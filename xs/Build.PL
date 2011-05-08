@@ -27,7 +27,7 @@ use Module::Build;
 use ExtUtils::PkgConfig;
 use Glib::Install::Files;
 
-my $marpa_xs_version = '0.003_003';
+my $marpa_xs_version = '0.005_000';
 
 use lib File::Spec->catdir('config');
 use Marpa::XS::Build_Me;
@@ -51,18 +51,7 @@ my %requires =
 my %recommends =
     map { ( $_, $Marpa::XS::VERSION_FOR_CONFIG{$_} ) } qw( PPI Test::Weaken );
 
-my %pod_files = map { ( "pod/$_" => "lib/Marpa/XS/$_" ) } qw(
-    Advanced/Algorithm.pod
-    Advanced/Bibliography.pod
-    Advanced/Implementation.pod
-    Advanced/Models.pod
-    Grammar.pod
-    Parse_Terms.pod
-    Recognizer.pod
-    Semantics.pod
-    Support.pod
-    Tracing.pod
-);
+my %pod_files = ();
 $pod_files{'pod/Marpa_XS.pod'} = 'lib/Marpa/XS.pod';
 
 my @no_index_namespace_inclusive = (
