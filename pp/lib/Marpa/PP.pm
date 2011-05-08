@@ -24,7 +24,7 @@ use English qw( -no_match_vars );
 use Marpa::PP::Version;
 
 # Sensible defaults if not defined
-$Marpa::PP::USE_PP //= 0;
+$Marpa::PP::USE_PP =  !defined $Marpa::XS::VERSION;
 $Marpa::PP::USE_XS //= ! $Marpa::PP::USE_PP;
 
 # Die if both PP and XS were chosen
@@ -36,25 +36,42 @@ if ( ! $Marpa::PP::USE_PP and ! $Marpa::PP::USE_XS ) {
     Carp::croak('Cannot unset both USE_XS and USE_PP');
 }
 
+require Marpa::PP::Internal;
+require Marpa::PP::Internal::Carp_Not;
+Marpa::PP::Internal::Carp_Not->import();
+
 if ( $Marpa::PP::USE_XS ) {
-
-    require Marpa::PP::Internal;
-    require Marpa::PP::Internal::Carp_Not;
-    Marpa::PP::Internal::Carp_Not->import();
-
     return 1;
 }
 
 $Marpa::PP::USING_XS = 0;
 $Marpa::PP::USING_PP = 1;
 
-require Marpa::PP::Internal;
-require Marpa::PP::Internal::Carp_Not;
-Marpa::PP::Internal::Carp_Not->import();
 require Marpa::PP::Grammar;
 require Marpa::PP::Recognizer;
 require Marpa::PP::Value;
 require Marpa::PP::Callback;
+
+*Marpa::Grammar::new = \&Marpa::PP::Grammar::new;
+*Marpa::Grammar::set = \&Marpa::PP::Grammar::set;
+*Marpa::Grammar::precompute = \&Marpa::PP::Grammar::precompute;
+*Marpa::Grammar::show_rules = \&Marpa::PP::Grammar::show_rules;
+*Marpa::Grammar::show_symbols = \&Marpa::PP::Grammar::show_symbols;
+*Marpa::Grammar::show_nullable_symbols = \&Marpa::PP::Grammar::show_nullable_symbols;
+*Marpa::Grammar::show_nulling_symbols = \&Marpa::PP::Grammar::show_nulling_symbols;
+*Marpa::Grammar::show_productive_symbols = \&Marpa::PP::Grammar::show_productive_symbols;
+*Marpa::Grammar::show_accessible_symbols = \&Marpa::PP::Grammar::show_accessible_symbols;
+*Marpa::Grammar::show_NFA = \&Marpa::PP::Grammar::show_NFA;
+*Marpa::Grammar::show_AHFA = \&Marpa::PP::Grammar::show_AHFA;
+*Marpa::Recognizer::new = \&Marpa::PP::Recognizer::new;
+*Marpa::Recognizer::reset_evaluation = \&Marpa::PP::Recognizer::reset_evaluation;
+*Marpa::Recognizer::set = \&Marpa::PP::Recognizer::set;
+*Marpa::Recognizer::show_earley_sets = \&Marpa::PP::Recognizer::show_earley_sets;
+*Marpa::Recognizer::read = \&Marpa::PP::Recognizer::read;
+*Marpa::Recognizer::alternative = \&Marpa::PP::Recognizer::alternative;
+*Marpa::Recognizer::tokens = \&Marpa::PP::Recognizer::tokens;
+*Marpa::Recognizer::earleme_complete = \&Marpa::PP::Recognizer::earleme_complete;
+*Marpa::Recognizer::value = \&Marpa::PP::Recognizer::value;
 
 1;
 
