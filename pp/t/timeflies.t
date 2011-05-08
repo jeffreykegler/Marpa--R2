@@ -62,7 +62,7 @@ sub preposition       { return "pr($_[1])" }
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start   => 'sentence',
         strip   => 0,
         actions => 'main',
@@ -107,7 +107,7 @@ while ( my ( $lexical_class, $words ) = each %lexical_class ) {
 
 for my $data ( 'time flies like an arrow', 'fruit flies like a banana' ) {
 
-    my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     die 'Failed to create recognizer' if not $recce;
 
     for my $word ( split q{ }, $data ) {
@@ -139,7 +139,7 @@ for my $data ( 'time flies like an arrow', 'fruit flies like a banana' ) {
     }
 } ## end for my $data ( 'time flies like an arrow', ...)
 
-Marpa::XS::Test::is( ( join "\n", sort @actual ) . "\n",
+Marpa::Test::is( ( join "\n", sort @actual ) . "\n",
     $expected, 'Ambiguous English sentences' );
 
 1;    # In case used as "do" file

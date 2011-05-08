@@ -84,7 +84,7 @@ sub default_action {
 
 ## use critic
 
-my $g = Marpa::XS::Grammar->new(
+my $g = Marpa::Grammar->new(
     {   start   => 'E',
         actions => 'main',
         rules   => [
@@ -107,7 +107,7 @@ for my $n ( 1 .. 12 ) {
     # Set max_parses just in case there's an infinite loop.
     # This is for debugging, after all
     my $recce =
-        Marpa::XS::Recognizer->new( { grammar => $g, max_parses => 300 } );
+        Marpa::Recognizer->new( { grammar => $g, max_parses => 300 } );
     $recce->tokens(
         [   [ 'Number', 6, 1 ],
             ( ( [ 'Minus', q{-}, 1 ] ) x $n ),
@@ -117,7 +117,7 @@ for my $n ( 1 .. 12 ) {
 
     my $parse_count = 0;
     while ( $recce->value() ) { $parse_count++; }
-    Marpa::XS::Test::is( $expected[$n], $parse_count,
+    Marpa::Test::is( $expected[$n], $parse_count,
         "Wall Series Number $n" );
 
 } ## end for my $n ( 1 .. 12 )

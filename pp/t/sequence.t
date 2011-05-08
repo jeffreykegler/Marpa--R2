@@ -55,7 +55,7 @@ sub run_sequence_test {
         push @separation_args, proper => 1;
     }
 
-    my $grammar = Marpa::XS::Grammar->new(
+    my $grammar = Marpa::Grammar->new(
         {   start => 'TOP',
             strip => 0,
             rules => [
@@ -87,7 +87,7 @@ sub run_sequence_test {
             . ( $keep ? 'keep;' : q{} )
             . ( $separation ne 'none' ? "$separation;" : q{} )
             . ";count=$symbol_count";
-        my $recce = Marpa::XS::Recognizer->new(
+        my $recce = Marpa::Recognizer->new(
             { grammar => $grammar, mode => 'stream' } );
 
         my @expected       = ();
@@ -95,7 +95,7 @@ sub run_sequence_test {
         SYMBOL_IX: for my $symbol_ix ( 0 .. $last_symbol_ix ) {
             push @expected, 'a';
             defined $recce->tokens( [ [ 'A', 'a', 1 ] ] )
-                or Marpa::XS::exception('Parsing exhausted');
+                or Marpa::exception('Parsing exhausted');
             next SYMBOL_IX if $separation eq 'none';
             next SYMBOL_IX
                 if $symbol_ix >= $last_symbol_ix
@@ -104,7 +104,7 @@ sub run_sequence_test {
                 push @expected, q{!};
             }
             defined $recce->tokens( [ [ 'sep', q{!}, 1 ] ] )
-                or Marpa::XS::exception('Parsing exhausted');
+                or Marpa::exception('Parsing exhausted');
         } ## end for my $symbol_ix ( 0 .. $last_symbol_ix )
 
         $recce->end_input();

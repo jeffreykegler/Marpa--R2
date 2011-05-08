@@ -20,21 +20,17 @@ use warnings;
 use Test::More tests => 8;
 use Marpa::PP::Test;
 
-package Marpa::XS;
-our $USE_PP;
-
 BEGIN {
 
-    # force perl-only version to be tested
-    $Marpa::XS::USE_PP = 1;
-    Test::More::use_ok('Marpa::Any');
+    # Only Pure perl version to be tested
+    Test::More::use_ok('Marpa::PP');
 }
 
 # The example grammar in Aycock/Horspool "Practical Earley Parsing",
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630
 # This time testing the stripped output
 
-my $g = Marpa::XS::Grammar->new(
+my $g = Marpa::Grammar->new(
     {   start => 'S',
         rules => [
             [ 'S',   [qw/A A A A/] ],
@@ -49,7 +45,7 @@ $g->set( { terminals => ['a'] } );
 
 $g->precompute();
 
-Marpa::XS::Test::is( $g->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
+Marpa::Test::is( $g->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 0: S -> A A A A /* stripped !used */
 1: A -> a /* stripped */
 2: A -> E /* stripped !used */
@@ -67,7 +63,7 @@ Marpa::XS::Test::is( $g->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 14: S['][] -> /* empty stripped vlhs real=1 */
 EOS
 
-Marpa::XS::Test::is( $g->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
+Marpa::Test::is( $g->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
 0: S, stripped
 1: A, stripped
 2: a, stripped terminal
@@ -80,16 +76,16 @@ Marpa::XS::Test::is( $g->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
 9: S['][], stripped nullable nulling
 EOS
 
-Marpa::XS::Test::is( $g->show_nullable_symbols, 'stripped_',
+Marpa::Test::is( $g->show_nullable_symbols, 'stripped_',
     'Aycock/Horspool Nullable Symbols' );
-Marpa::XS::Test::is( $g->show_nulling_symbols, 'stripped_',
+Marpa::Test::is( $g->show_nulling_symbols, 'stripped_',
     'Aycock/Horspool Nulling Symbols' );
-Marpa::XS::Test::is( $g->show_productive_symbols, 'stripped_',
+Marpa::Test::is( $g->show_productive_symbols, 'stripped_',
     'Aycock/Horspool Productive Symbols' );
-Marpa::XS::Test::is( $g->show_accessible_symbols, 'stripped_',
+Marpa::Test::is( $g->show_accessible_symbols, 'stripped_',
     'Aycock/Horspool Accessible Symbols' );
 
-Marpa::XS::Test::is( $g->show_NFA, <<'EOS', 'Aycock/Horspool NFA' );
+Marpa::Test::is( $g->show_NFA, <<'EOS', 'Aycock/Horspool NFA' );
 stripped
 EOS
 
