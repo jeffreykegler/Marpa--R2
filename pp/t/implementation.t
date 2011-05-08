@@ -30,7 +30,7 @@ BEGIN {
 # Marpa::PP::Display
 # name: Implementation Example
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start          => 'Expression',
         actions        => 'My_Actions',
         default_action => 'first_arg',
@@ -50,7 +50,7 @@ my $grammar = Marpa::XS::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my @tokens = (
     [ 'Number',   42 ],
@@ -81,7 +81,7 @@ my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
 # Marpa::PP::Display::End
 
-Marpa::XS::Test::is( 49, $value, 'Implementation Example Value 1' );
+Marpa::Test::is( 49, $value, 'Implementation Example Value 1' );
 
 $recce->reset_evaluation();
 
@@ -92,7 +92,7 @@ my $show_symbols_output = $grammar->show_symbols();
 # start-after-line: END_SYMBOLS
 # end-before-line: '^END_SYMBOLS$'
 
-Marpa::XS::Test::is( $show_symbols_output,
+Marpa::Test::is( $show_symbols_output,
     <<'END_SYMBOLS', 'Implementation Example Symbols' );
 0: Expression, lhs=[0] rhs=[5] terminal
 1: Term, lhs=[1 3] rhs=[0 3] terminal
@@ -112,7 +112,7 @@ my $show_rules_output = $grammar->show_rules();
 # start-after-line: END_RULES
 # end-before-line: '^END_RULES$'
 
-Marpa::XS::Test::is( $show_rules_output,
+Marpa::Test::is( $show_rules_output,
     <<'END_RULES', 'Implementation Example Rules' );
 0: Expression -> Term
 1: Term -> Factor
@@ -131,7 +131,7 @@ my $show_AHFA_output = $grammar->show_AHFA();
 # start-after-line: END_AHFA
 # end-before-line: '^END_AHFA$'
 
-Marpa::XS::Test::is( $show_AHFA_output,
+Marpa::Test::is( $show_AHFA_output,
     <<'END_AHFA', 'Implementation Example AHFA' );
 * S0:
 Expression['] -> . Expression
@@ -231,7 +231,7 @@ END_EARLEY_SETS
 
 # Marpa::PP::Display::End
 
-Marpa::XS::Test::is( $show_earley_sets_output,
+Marpa::Test::is( $show_earley_sets_output,
     $expected_earley_sets, 'Implementation Example Earley Sets' );
 
 my $trace_output;
@@ -241,14 +241,14 @@ $recce->set( { trace_fh => \*STDOUT, trace_values => 0 } );
 close $trace_fh;
 
 $value = $value_ref ? ${$value_ref} : 'No Parse';
-Marpa::XS::Test::is( 49, $value, 'Implementation Example Value 2' );
+Marpa::Test::is( 49, $value, 'Implementation Example Value 2' );
 
 # Marpa::PP::Display
 # name: Implementation Example trace_values Output
 # start-after-line: END_TRACE_OUTPUT
 # end-before-line: '^END_TRACE_OUTPUT$'
 
-Marpa::XS::Test::is( $trace_output,
+Marpa::Test::is( $trace_output,
     <<'END_TRACE_OUTPUT', 'Implementation Example Trace Output' );
 Pushed value from a12 T@0-1_Number: Number = \42
 Popping 1 values to evaluate a12 T@0-1_Number, rule: 2: Factor -> Number
@@ -281,7 +281,7 @@ $recce->reset_evaluation();
 
 $value_ref = $recce->value();
 $value = $value_ref ? ${$value_ref} : 'No Parse';
-Marpa::XS::Test::is( 49, $value, 'Implementation Example Value 3' );
+Marpa::Test::is( 49, $value, 'Implementation Example Value 3' );
 
 1;    # In case used as "do" file
 

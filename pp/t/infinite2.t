@@ -63,18 +63,18 @@ $Test_Grammar::MARPA_OPTIONS = [
 
 my $trace;
 open my $MEMORY, '>', \$trace;
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     { trace_file_handle => $MEMORY, infinite_action => 'warn' },
     @{$Test_Grammar::MARPA_OPTIONS} );
 $grammar->precompute();
 close $MEMORY;
 
-Marpa::XS::Test::is( $trace, <<'EOS', 'cycle detection' );
+Marpa::Test::is( $trace, <<'EOS', 'cycle detection' );
 Cycle found involving rule: 1: a -> b
 Cycle found involving rule: 3: b -> a
 EOS
 
-my $recce = Marpa::XS::Recognizer->new(
+my $recce = Marpa::Recognizer->new(
     {   grammar           => $grammar,
         trace_file_handle => *STDERR,
     }

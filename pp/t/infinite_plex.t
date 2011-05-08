@@ -125,13 +125,13 @@ for my $test_data ( $plex1_test, $plex2_test ) {
         strip             => 0,
         trace_file_handle => $MEMORY,
     );
-    my $grammar = Marpa::XS::Grammar->new( \%args );
+    my $grammar = Marpa::Grammar->new( \%args );
     $grammar->precompute();
 
     close $MEMORY;
-    Marpa::XS::Test::is( $trace, $expected_trace, "$test_name trace" );
+    Marpa::Test::is( $trace, $expected_trace, "$test_name trace" );
 
-    my $recce = Marpa::XS::Recognizer->new(
+    my $recce = Marpa::Recognizer->new(
         { grammar => $grammar, trace_file_handle => \*STDERR } );
 
     $recce->tokens( [ [ 't', 't', 1 ] ] );
@@ -142,7 +142,7 @@ for my $test_data ( $plex1_test, $plex2_test ) {
     }
 
     my $values = join "\n", sort @values;
-    Marpa::XS::Test::is( "$values\n", $expected_values, $test_name );
+    Marpa::Test::is( "$values\n", $expected_values, $test_name );
 
 } ## end for my $test_data ( $plex1_test, $plex2_test )
 
