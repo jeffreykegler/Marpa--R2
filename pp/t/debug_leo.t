@@ -22,15 +22,15 @@ use Test::More tests => 3;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 my $progress_report = q{};
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start         => 'S',
         strip         => 0,
         lhs_terminals => 0,
@@ -46,13 +46,13 @@ my $grammar = Marpa::XS::Grammar->new(
     }
 );
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 $grammar->precompute();
 
 my @tokens = ( ['T'] ) x 20;
 
-my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my $current_earleme = $recce->tokens( \@tokens );
 
@@ -61,12 +61,12 @@ $progress_report = $recce->show_progress();
 my $value_ref = $recce->value;
 Test::More::ok( $value_ref, 'Parse ok?' );
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Debug Leo Example Progress Report
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::XS::Test::is( $progress_report,
+Marpa::Test::is( $progress_report,
     <<'END_PROGRESS_REPORT', 'sorted progress report' );
 F0 @0-20 S -> Top_sequence .
 P1 @20-20 Top_sequence -> . Top Top_sequence
@@ -85,7 +85,7 @@ F6 @19-20 Bottom -> T .
 F7 @0-20 S['] -> S .
 END_PROGRESS_REPORT
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 1;    # In case used as "do" file
 

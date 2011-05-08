@@ -24,18 +24,18 @@ use Test::More tests => 4;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 my $progress_report = q{};
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Debug Sequence Example
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start         => 'Document',
         strip         => 0,
         lhs_terminals => 0,
@@ -43,21 +43,21 @@ my $grammar = Marpa::XS::Grammar->new(
     }
 );
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 $grammar->precompute();
 
 my @tokens = ( ( ['Stuff'] ) x 3 );
 
 my $recce =
-    Marpa::XS::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
+    Marpa::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Recognizer check_terminal Synopsis
 
 my $is_document_a_terminal = $recce->check_terminal('Document');
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 Test::More::ok( !$is_document_a_terminal, 'LHS terminal?' );
 
@@ -71,12 +71,12 @@ $progress_report = $recce->show_progress(0);
 my $value_ref = $recce->value;
 Test::More::ok( $value_ref, 'Parse ok?' );
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Debug Sequence Example Progress Report
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::XS::Test::is( $progress_report,
+Marpa::Test::is( $progress_report,
     << 'END_PROGRESS_REPORT', 'progress report' );
 P1 @0-0 Document -> . Document[Subseq:0:1]
 P2 @0-0 Document[Subseq:0:1] -> . Stuff
@@ -84,7 +84,7 @@ P3 @0-0 Document[Subseq:0:1] -> . Document[Subseq:0:1] Stuff
 P4 @0-0 Document['] -> . Document
 END_PROGRESS_REPORT
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 1;    # In case used as "do" file
 
