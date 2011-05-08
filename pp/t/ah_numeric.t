@@ -23,23 +23,23 @@ use strict;
 use warnings;
 
 use Test::More tests => 11;
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-# Marpa::XS::Display
-# name: Marpa::XS::token_location example
+# Marpa::PP::Display
+# name: Marpa::PP::token_location example
 
 sub rank_null_a {
     return \( ( $MyTest::MAXIMAL ? -1 : 1 )
-        * 10**( 3 - Marpa::XS::token_location() ) );
+        * 10**( 3 - Marpa::token_location() ) );
 }
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 sub default_action {
     shift;
@@ -51,7 +51,7 @@ sub default_action {
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         rules => [
             [ 'S', [qw/A A A A/] ],
@@ -69,7 +69,7 @@ $grammar->set( { terminals => ['a'], } );
 
 $grammar->precompute();
 
-my $recce = Marpa::XS::Recognizer->new(
+my $recce = Marpa::Recognizer->new(
     { grammar => $grammar, ranking_method => 'constant' } );
 
 my $input_length = 4;

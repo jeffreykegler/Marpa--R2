@@ -24,11 +24,11 @@ use warnings;
 
 use Test::More tests => 33;
 use English qw( -no_match_vars );
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 use Carp;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -41,7 +41,7 @@ BEGIN {
 # If we are counting up, the lowest number
 # has to have the highest numerical rank.
 sub rank_one {
-    return \( ( $MyTest::UP ? -1 : 1 ) / ( 2 << Marpa::XS::location() ) );
+    return \( ( $MyTest::UP ? -1 : 1 ) / ( 2 << Marpa::location() ) );
 }
 sub rank_zero { return \0 }
 sub zero      { return '0' }
@@ -54,7 +54,7 @@ sub start_rule_action {
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         strip => 0,
         rules => [
@@ -85,7 +85,7 @@ my $grammar = Marpa::XS::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::XS::Recognizer->new(
+my $recce = Marpa::Recognizer->new(
     { grammar => $grammar, ranking_method => 'constant' } );
 
 my $input_length = 4;

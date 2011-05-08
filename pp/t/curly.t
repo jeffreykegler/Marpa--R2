@@ -40,11 +40,11 @@ BEGIN {
     else {
         Test::More::plan tests => 5;
     }
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 } ## end BEGIN
 
-use Marpa::XS::Perl ();
-use Marpa::XS::Test ();
+use Marpa::PP::Perl ();
+use Marpa::PP::Test ();
 
 # Run in utility mode?
 my $utility = 0;
@@ -68,9 +68,9 @@ my %codeblock;
 sub do_hashblock {
     shift;
     my $location = 'line '
-        . Marpa::XS::Perl::token()->logical_line_number()
+        . Marpa::PP::Perl::token()->logical_line_number()
         . q{, column }
-        . Marpa::XS::Perl::token()->column_number;
+        . Marpa::PP::Perl::token()->column_number;
     $hash{$location}++;
     return;
 } ## end sub do_hashblock
@@ -78,14 +78,14 @@ sub do_hashblock {
 sub do_codeblock {
     shift;
     my $location = 'line '
-        . Marpa::XS::Perl::token()->logical_line_number()
+        . Marpa::PP::Perl::token()->logical_line_number()
         . q{, column }
-        . Marpa::XS::Perl::token()->column_number;
+        . Marpa::PP::Perl::token()->column_number;
     $codeblock{$location}++;
     return;
 } ## end sub do_codeblock
 
-my $parser = Marpa::XS::Perl->new( \&gen_closure );
+my $parser = Marpa::PP::Perl->new( \&gen_closure );
 
 my @tests;
 if ($utility) {
@@ -136,7 +136,7 @@ TEST: for my $test (@tests) {
     if ($utility) {
         say $result;
     } else {
-	Marpa::XS::Test::is( $result, $expected, qq{Test of "$string"} );
+	Marpa::Test::is( $result, $expected, qq{Test of "$string"} );
     }
     %hash      = ();
     %codeblock = ();

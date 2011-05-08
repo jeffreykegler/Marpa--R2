@@ -21,10 +21,10 @@ use strict;
 use warnings;
 
 use Test::More tests => 3;
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -39,7 +39,7 @@ sub default_action {
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start   => 'S',
         strip   => 0,
         rules   => [
@@ -58,7 +58,7 @@ $grammar->set( { terminals => ['a'], } );
 
 $grammar->precompute();
 
-Marpa::XS::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
+Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 0: S -> A B B B C C /* !used */
 1: A -> a
 2: B -> a
@@ -75,7 +75,7 @@ Marpa::XS::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 EOS
 
 my $recce =
-    Marpa::XS::Recognizer->new( { grammar => $grammar  } );
+    Marpa::Recognizer->new( { grammar => $grammar  } );
 
 $recce->tokens( [ [ 'a', 'a' ] ], );
 

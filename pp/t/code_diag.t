@@ -21,11 +21,11 @@ use warnings;
 
 use Test::More tests => 8;
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 use English qw( -no_match_vars );
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 my @features = qw(
@@ -104,24 +104,24 @@ LINE: while ( my $line = <DATA> ) {
             if ( $header =~ s/\A expected \s //xms ) {
                 my ( $feature, $test ) =
                     ( $header =~ m/\A ([^\s]*) \s+ (.*) \Z/xms );
-                Marpa::XS::exception(
+                Marpa::exception(
                     "expected result given for unknown test, feature: $test, $feature"
                 ) if not defined $expected{$test}{$feature};
                 $expected{$test}{$feature} = $data;
                 next HEADER;
             } ## end if ( $header =~ s/\A expected \s //xms )
             if ( $header =~ s/\A good \s code \s //xms ) {
-                Marpa::XS::exception(
+                Marpa::exception(
                     'Good code should no longer be in data section');
             }
             if ( $header =~ s/\A bad \s code \s //xms ) {
                 chomp $header;
-                Marpa::XS::exception(
+                Marpa::exception(
                     "test code given for unknown test: $header")
                     if not defined $test_arg{$header};
                 next HEADER;
             } ## end if ( $header =~ s/\A bad \s code \s //xms )
-            Marpa::XS::exception("Bad header: $header");
+            Marpa::exception("Bad header: $header");
         }    # HEADER
         $getting_headers = 1;
         $data            = q{};
@@ -139,7 +139,7 @@ sub canonical {
             \b package \s
             Marpa [:][:] Internal [:][:] Recognizer [:][:]
             [EP] _ [0-9a-fA-F]+ [;] $
-        }{package Marpa::XS::<PACKAGE>;}xms;
+        }{package Marpa::<PACKAGE>;}xms;
     $template =~ s{ \s* at \s (\S*)code_diag[.]t \s line \s \d+}{}gxms;
     $template =~ s/[<]WHERE[>]/$where/xmsg;
     $template =~ s/[<]LONG_WHERE[>]/$long_where/xmsg;
@@ -168,7 +168,7 @@ sub run_test {
             when ('e_number_action') { $e_number_action = $value }
             when ('default_action')  { $default_action  = $value }
             default {
-                Marpa::XS::exception("unknown argument to run_test: $arg");
+                Marpa::exception("unknown argument to run_test: $arg");
             };
         } ## end given
     } ## end while ( my ( $arg, $value ) = each %{$args} )
@@ -176,7 +176,7 @@ sub run_test {
     ### e_op_action: $e_op_action
     ### e_number_action: $e_number_action
 
-    my $grammar = Marpa::XS::Grammar->new(
+    my $grammar = Marpa::Grammar->new(
         {   start => 'S',
             rules => [
                 [ 'S', [qw/T trailer optional_trailer1 optional_trailer2/], ],
@@ -197,7 +197,7 @@ sub run_test {
     );
     $grammar->precompute();
 
-    my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
     my @tokens = (
         [ Number => 2 ],
@@ -211,7 +211,7 @@ sub run_test {
     );
 
     if ( not defined $recce->tokens( \@tokens ) ) {
-        Marpa::XS::exception('Recognition failed');
+        Marpa::exception('Recognition failed');
     }
 
     $recce->end_input();
@@ -219,7 +219,7 @@ sub run_test {
     my $expected  = '(((2*3)+(4*1))==10;trailer;[default null];[null])';
     my $value_ref = $recce->value();
     my $value     = $value_ref ? ${$value_ref} : 'No parse';
-    Marpa::XS::Test::is( $value, $expected, 'Ambiguous Equation Value' );
+    Marpa::Test::is( $value, $expected, 'Ambiguous Equation Value' );
 
     return 1;
 
@@ -251,7 +251,7 @@ for my $test (@tests) {
             my $eval_error = $EVAL_ERROR;
             my $where      = $where{$feature};
             my $long_where = $long_where{$feature};
-            Marpa::XS::Test::is(
+            Marpa::Test::is(
                 canonical( $eval_error,                $where, $long_where ),
                 canonical( $expected{$test}{$feature}, $where, $long_where ),
                 $test_name
@@ -283,7 +283,7 @@ sub e_op_action {
         $value = $left_value - $right_value;
     }
     else {
-        Marpa::XS::exception("Unknown op: $op");
+        Marpa::exception("Unknown op: $op");
     }
     return '(' . $left_string . $op . $right_string . ')==' . $value;
 } ## end sub e_op_action
@@ -327,7 +327,7 @@ __END__
 | expected e_op_action run phase warning
 ============================================================
 * THERE WERE 2 WARNING(S) IN THE MARPA SEMANTICS:
-Marpa::XS treats warnings as fatal errors
+Marpa treats warnings as fatal errors
 * THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:
 Computing value for rule: 3: F -> F MultOp F
 * WARNING MESSAGE NUMBER 0:
@@ -340,7 +340,7 @@ __END__
 | expected default_action run phase warning
 ============================================================
 * THERE WERE 2 WARNING(S) IN THE MARPA SEMANTICS:
-Marpa::XS treats warnings as fatal errors
+Marpa treats warnings as fatal errors
 * THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:
 Computing value for rule: 8: trailer -> Text
 * WARNING MESSAGE NUMBER 0:

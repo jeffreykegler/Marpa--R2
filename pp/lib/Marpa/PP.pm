@@ -67,11 +67,18 @@ require Marpa::PP::Callback;
 *Marpa::Recognizer::reset_evaluation = \&Marpa::PP::Recognizer::reset_evaluation;
 *Marpa::Recognizer::set = \&Marpa::PP::Recognizer::set;
 *Marpa::Recognizer::show_earley_sets = \&Marpa::PP::Recognizer::show_earley_sets;
+*Marpa::Recognizer::show_progress = \&Marpa::PP::Recognizer::show_progress;
 *Marpa::Recognizer::read = \&Marpa::PP::Recognizer::read;
 *Marpa::Recognizer::alternative = \&Marpa::PP::Recognizer::alternative;
 *Marpa::Recognizer::tokens = \&Marpa::PP::Recognizer::tokens;
 *Marpa::Recognizer::earleme_complete = \&Marpa::PP::Recognizer::earleme_complete;
 *Marpa::Recognizer::value = \&Marpa::PP::Recognizer::value;
+*Marpa::Recognizer::status = \&Marpa::PP::Recognizer::status;
+*Marpa::Recognizer::current_earleme = \&Marpa::PP::Recognizer::current_earleme;
+*Marpa::Recognizer::end_input = \&Marpa::PP::Recognizer::end_input;
+*Marpa::Recognizer::terminals_expected = \&Marpa::PP::Recognizer::terminals_expected;
+*Marpa::token_location = \&Marpa::PP::token_location;
+*Marpa::location = \&Marpa::PP::location;
 
 1;
 
