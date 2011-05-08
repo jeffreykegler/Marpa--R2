@@ -13,15 +13,15 @@
 # General Public License along with Marpa::PP.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::XS::Internal::Slot;
+package Marpa::PP::Internal::Slot;
 
 use 5.010;
 use strict;
 use warnings;
 use integer;
 
-use Marpa::XS::Offset qw(
-    :package=Marpa::XS::Internal::Slot
+use Marpa::PP::Offset qw(
+    :package=Marpa::PP::Internal::Slot
     VALUES
     FREE_LIST
 );
