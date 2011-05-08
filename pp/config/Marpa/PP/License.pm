@@ -199,39 +199,27 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
-    'LICENSE'  => \&license_problems_in_license_file,
+    'LICENSE'   => \&license_problems_in_license_file,
     'META.json' => sub {;}
     ,    # not source, and not clear how to add license at top
     'META.yml' => sub {;}
     ,    # not source, and not clear how to add license at top
-    'ppport.h'       => sub {;},    # copied from CPAN, just leave it alone
     'COPYING'        => sub {;},    # GNU license text, leave it alone
     'COPYING.LESSER' => sub {;},    # GNU license text, leave it alone
-    'libmarpa/dev/cwebmac.tex' => sub {;}
-    ,                               # originally from Cweb, leave it alone
     'lib/Marpa/PP/Test/capture-stderr' => sub {;},
 
     # Mostly from Andy Lester, leave alone
-    'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
-    'Makefile.PL'                           => \&trivial,
-    'html_pp_test.sh'                       => \&trivial,
-    'html_xs_test.sh'                       => \&trivial,
-    'libmarpa/dist/README'                  => \&trivial,
-    'libmarpa/dev/README'                   => \&trivial,
-    'README'                                => \&trivial,
-    'TODO'                                  => \&trivial,
-    'author.t/accept_tidy'                  => \&trivial,
-    'author.t/critic1'                      => \&trivial,
-    'author.t/perltidyrc'                   => \&trivial,
-    'author.t/spelling_exceptions.list'     => \&trivial,
-    'author.t/tidy1'                        => \&trivial,
-    'inc/proof/README' => sub {;}, # discussion of licensing in that directory
-    'inc/proof/ah_to_leo.lyx'    => \&tex_closed,
-    'inc/proof/ah2002_notes.lyx' => \&tex_closed,
-    'inc/proof/proof.lyx'        => \&tex_closed,
-    'libmarpa/dist/install-sh'   => \&check_X_copyright,
-    'libmarpa/dist/config.h.in' =>
-        check_tag( 'Generated from configure.ac by autoheader', 250 ),
+    'Makefile.PL'                       => \&trivial,
+    'html_pp_test.sh'                   => \&trivial,
+    'html_xs_test.sh'                   => \&trivial,
+    'README'                            => \&trivial,
+    'TODO'                              => \&trivial,
+    'author.t/accept_tidy'              => \&trivial,
+    'author.t/critic1'                  => \&trivial,
+    'author.t/perltidyrc'               => \&trivial,
+    'author.t/spelling_exceptions.list' => \&trivial,
+    'author.t/tidy1'                    => \&trivial,
+    'lib/Marpa/Any.pm'                  => \&trivial,
 );
 
 sub file_type {

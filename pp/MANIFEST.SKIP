@@ -25,8 +25,8 @@
 ^etc/track[.]list
 ^inc/proof/.*[.]lyx[~]$
 ^junk$
-^lib/Marpa/XS/Perl/Version.pm$
-^lib/Marpa/XS/Version.pm$
+^lib/Marpa/PP/Perl/Version.pm$
+^lib/Marpa/PP/Version.pm$
 ^nogit/
 ^nogit
 ^nytprof/
