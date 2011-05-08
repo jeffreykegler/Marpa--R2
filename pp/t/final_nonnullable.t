@@ -23,10 +23,10 @@ use warnings;
 
 use Test::More tests => 11;
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -42,7 +42,7 @@ sub default_action {
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start   => 'S',
         strip   => 0,
 
@@ -59,7 +59,7 @@ my $grammar = Marpa::XS::Grammar->new(
 
 $grammar->precompute();
 
-Marpa::XS::Test::is( $grammar->show_rules,
+Marpa::Test::is( $grammar->show_rules,
     <<'END_OF_STRING', 'final nonnulling Rules' );
 0: S -> p p p n /* !used */
 1: p -> a
@@ -74,7 +74,7 @@ Marpa::XS::Test::is( $grammar->show_rules,
 10: S['] -> S /* vlhs real=1 */
 END_OF_STRING
 
-Marpa::XS::Test::is( $grammar->show_AHFA,
+Marpa::Test::is( $grammar->show_AHFA,
     <<'END_OF_STRING', 'final nonnulling AHFA' );
 * S0:
 S['] -> . S
@@ -150,7 +150,7 @@ for my $input_length ( 1 .. 4 ) {
 
     # Set max at 10 just in case there's an infinite loop.
     # This is for debugging, after all
-    my $recce = Marpa::XS::Recognizer->new(
+    my $recce = Marpa::Recognizer->new(
         { grammar => $grammar, max_parses => 10 } );
     $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x $input_length ] );
     while ( my $value_ref = $recce->value() ) {

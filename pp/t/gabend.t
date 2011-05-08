@@ -25,10 +25,10 @@ use English qw( -no_match_vars );
 use Test::More tests => 7;
 use Fatal qw(open close);
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -56,7 +56,7 @@ sub test_grammar {
         $added_args = { trace_file_handle => $memory };
     } ## end if ($trace_result)
     my $eval_ok = eval {
-        my $grammar = Marpa::XS::Grammar->new( $grammar_args, $added_args );
+        my $grammar = Marpa::Grammar->new( $grammar_args, $added_args );
         $grammar->precompute();
         1;
     };
@@ -128,7 +128,7 @@ test_grammar(
     $counted_nullable_grammar,
     "Grammar has 1 problems:\n"
         . qq{Nullable symbol "Seq" is on rhs of counted rule\n}
-        . q{Counted nullables confuse Marpa::XS -- please rewrite the grammar}
+        . q{Counted nullables confuse Marpa -- please rewrite the grammar}
 );
 
 my $duplicate_rule_grammar = {
