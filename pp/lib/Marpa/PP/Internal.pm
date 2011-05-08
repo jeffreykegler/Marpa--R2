@@ -21,7 +21,7 @@ use warnings;
 use integer;
 use Carp;
 
-*Marpa::PP::exception = \&Carp::croak;
+*Marpa::exception = \&Carp::croak;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::PP::internal_error {

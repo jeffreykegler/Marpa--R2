@@ -36,7 +36,7 @@ sub main::default_action {
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start          => 'S',
         strip          => 0,
         rules          => [ [ 'S', [qw/a S/] ], [ 'S', [], ], ],
@@ -47,7 +47,7 @@ my $grammar = Marpa::XS::Grammar->new(
 
 $grammar->precompute();
 
-Marpa::XS::Test::is( $grammar->show_symbols(),
+Marpa::Test::is( $grammar->show_symbols(),
     <<'END_OF_STRING', 'Leo166 Symbols' );
 0: a, lhs=[] rhs=[0 2 3] terminal
 1: S, lhs=[0 1 2 3] rhs=[0 2 4]
@@ -56,7 +56,7 @@ Marpa::XS::Test::is( $grammar->show_symbols(),
 4: S['][], lhs=[5] rhs=[] nullable nulling
 END_OF_STRING
 
-Marpa::XS::Test::is( $grammar->show_rules,
+Marpa::Test::is( $grammar->show_rules,
     <<'END_OF_STRING', 'Leo166 Rules' );
 0: S -> a S /* !used */
 1: S -> /* empty !used */
@@ -66,7 +66,7 @@ Marpa::XS::Test::is( $grammar->show_rules,
 5: S['][] -> /* empty vlhs real=1 */
 END_OF_STRING
 
-Marpa::XS::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
+Marpa::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
 * S0:
 S['] -> . S
 S['][] -> .
@@ -89,7 +89,7 @@ my $a_token = [ 'a', 'a' ];
 my $length = 50;
 
 LEO_FLAG: for my $leo_flag ( 0, 1 ) {
-    my $recce = Marpa::XS::Recognizer->new(
+    my $recce = Marpa::Recognizer->new(
         { grammar => $grammar, mode => 'stream', leo => $leo_flag } );
 
     my $i        = 0;
@@ -101,12 +101,12 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     }
 
     my $expected_size = $leo_flag ? 4 : $length + 2;
-    Marpa::XS::Test::is( $max_size, $expected_size,
+    Marpa::Test::is( $max_size, $expected_size,
         "Leo flag $leo_flag, size" );
 
     my $value_ref = $recce->value( {} );
     my $value = $value_ref ? ${$value_ref} : 'No parse';
-    Marpa::XS::Test::is( $value, 'a' x $length, 'Leo p166 parse' );
+    Marpa::Test::is( $value, 'a' x $length, 'Leo p166 parse' );
 } ## end for my $leo_flag ( 0, 1 )
 
 1;    # In case used as "do" file

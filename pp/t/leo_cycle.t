@@ -41,7 +41,7 @@ sub main::default_action {
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         strip => 0,
         rules => [
@@ -63,7 +63,7 @@ my $grammar = Marpa::XS::Grammar->new(
 
 $grammar->precompute();
 
-Marpa::XS::Test::is( $grammar->show_symbols(),
+Marpa::Test::is( $grammar->show_symbols(),
     <<'END_OF_STRING', 'Leo166 Symbols' );
 0: a, lhs=[] rhs=[0 10 11] terminal
 1: S, lhs=[0 9 10 11] rhs=[1 12 20]
@@ -88,7 +88,7 @@ Marpa::XS::Test::is( $grammar->show_symbols(),
 20: S['][], lhs=[21] rhs=[] nullable nulling
 END_OF_STRING
 
-Marpa::XS::Test::is( $grammar->show_rules,
+Marpa::Test::is( $grammar->show_rules,
     <<'END_OF_STRING', 'Leo166 Rules' );
 0: S -> a A /* !used */
 1: H -> S /* !used */
@@ -169,13 +169,13 @@ E -> F .
 F -> G .
 END_OF_STRING
 
-Marpa::XS::Test::is( $grammar->show_AHFA(), $expected_ahfa_output,
+Marpa::Test::is( $grammar->show_AHFA(), $expected_ahfa_output,
     'Leo166 AHFA' );
 
 my $a_token = [ 'a', 'a' ];
 my $length = 20;
 
-my $recce = Marpa::XS::Recognizer->new(
+my $recce = Marpa::Recognizer->new(
     { grammar => $grammar, mode => 'stream'  } );
 
 my $i        = 0;
@@ -191,17 +191,17 @@ TOKEN: while ( $i++ < $length ) {
 # beginning with Earley set c, for some small
 # constant c
 my $expected_size = 4;
-Marpa::XS::Test::is( $max_size, $expected_size,
+Marpa::Test::is( $max_size, $expected_size,
     "size $max_size" );
 
 my $show_earley_sets_output = do { local $RS = undef; readline(*DATA); };
 
-Marpa::XS::Test::is( $recce->show_earley_sets(1),
+Marpa::Test::is( $recce->show_earley_sets(1),
     $show_earley_sets_output, 'Leo cycle PP Earley sets' );
 
 my $value_ref = $recce->value( {} );
 my $value = $value_ref ? ${$value_ref} : 'No parse';
-Marpa::XS::Test::is( $value, 'a' x $length, 'Leo cycle parse' );
+Marpa::Test::is( $value, 'a' x $length, 'Leo cycle parse' );
 
 1;    # In case used as "do" file
 

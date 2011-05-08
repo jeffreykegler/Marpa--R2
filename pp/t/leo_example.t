@@ -35,7 +35,7 @@ BEGIN {
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start          => 'Statement',
         actions        => 'My_Actions',
         default_action => 'first_arg',
@@ -72,7 +72,7 @@ my $grammar = Marpa::XS::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my @tokens = (
     [ 'Variable',         'a' ],
@@ -114,7 +114,7 @@ sub My_Actions::first_arg { return $_[1] }
 
 my $show_symbols_output = $grammar->show_symbols();
 
-Marpa::XS::Test::is( $show_symbols_output,
+Marpa::Test::is( $show_symbols_output,
     <<'END_SYMBOLS', 'Leo Example Symbols' );
 0: Statement, lhs=[0] rhs=[7] terminal
 1: Expression, lhs=[1 2 3 4 5] rhs=[0 1 2 3 4] terminal
@@ -129,7 +129,7 @@ END_SYMBOLS
 
 my $show_rules_output = $grammar->show_rules();
 
-Marpa::XS::Test::is( $show_rules_output, <<'END_RULES', 'Leo Example Rules' );
+Marpa::Test::is( $show_rules_output, <<'END_RULES', 'Leo Example Rules' );
 0: Statement -> Expression
 1: Expression -> Lvalue AssignOp Expression
 2: Expression -> Lvalue AddAssignOp Expression
@@ -142,7 +142,7 @@ END_RULES
 
 my $show_AHFA_output = $grammar->show_AHFA();
 
-Marpa::XS::Test::is( $show_AHFA_output, <<'END_AHFA', 'Leo Example AHFA' );
+Marpa::Test::is( $show_AHFA_output, <<'END_AHFA', 'Leo Example AHFA' );
 * S0:
 Statement['] -> . Statement
  <Statement> => S2; leo(Statement['])
@@ -206,7 +206,7 @@ END_AHFA
 
 my $show_earley_sets_output_before = $recce->show_earley_sets();
 
-Marpa::XS::Test::is( $show_earley_sets_output_before,
+Marpa::Test::is( $show_earley_sets_output_before,
     <<'END_EARLEY_SETS', 'Leo Example Earley Sets "Before"' );
 Last Completed: 9; Furthest: 9
 Earley Set 0
@@ -265,11 +265,11 @@ my $value_ref = $recce->value( { trace_fh => $trace_fh, trace_values => 1 } );
 close $trace_fh;
 
 my $value = ref $value_ref ? ${$value_ref} : 'No Parse';
-Marpa::XS::Test::is( $value, 'a=42 b=42 c=-5 d=6 e=3', 'Leo Example Value' );
+Marpa::Test::is( $value, 'a=42 b=42 c=-5 d=6 e=3', 'Leo Example Value' );
 
 my $show_earley_sets_output_after = $recce->show_earley_sets();
 
-Marpa::XS::Test::is( $show_earley_sets_output_after,
+Marpa::Test::is( $show_earley_sets_output_after,
     <<'END_EARLEY_SETS', 'Leo Example Earley Sets "After"' );
 Last Completed: 9; Furthest: 9
 Earley Set 0
@@ -325,7 +325,7 @@ S4@8-9 [p=S7@8-8; c=S5@8-9]
 S5@8-9 [p=S7@8-8; s=Variable; t=\'e']
 END_EARLEY_SETS
 
-Marpa::XS::Test::is( $trace_output,
+Marpa::Test::is( $trace_output,
     <<'END_TRACE_OUTPUT', 'Leo Example Trace Output' );
 Pushed value from a18 T@0-1_Variable: Variable = \'a'
 Popping 1 values to evaluate a18 T@0-1_Variable, rule: 6: Lvalue -> Variable

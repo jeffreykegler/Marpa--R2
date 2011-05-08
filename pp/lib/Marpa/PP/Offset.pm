@@ -58,7 +58,7 @@ sub import {
             $offset = $2 + 0;
         }
 
-        Marpa::PP::exception("Unacceptable field name: $field")
+        Marpa::exception("Unacceptable field name: $field")
             if $field =~ /[^A-Z0-9_]/xms;
         my $field_name = $prefix . $field;
         *{$field_name} = sub () {$offset};

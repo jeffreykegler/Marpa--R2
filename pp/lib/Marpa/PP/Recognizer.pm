@@ -162,18 +162,18 @@ sub Marpa::PP::Recognizer::new {
             last ARG_HASH;
         }
     } ## end for my $arg_hash (@arg_hashes)
-    Marpa::PP::exception('No grammar specified') if not defined $grammar;
+    Marpa::exception('No grammar specified') if not defined $grammar;
 
     $recce->[Marpa::PP::Internal::Recognizer::GRAMMAR] = $grammar;
 
     my $grammar_class = ref $grammar;
-    Marpa::PP::exception(
+    Marpa::exception(
         "${class}::new() grammar arg has wrong class: $grammar_class")
         if not $grammar_class eq 'Marpa::Grammar';
 
     my $problems = $grammar->[Marpa::PP::Internal::Grammar::PROBLEMS];
     if ($problems) {
-        Marpa::PP::exception(
+        Marpa::exception(
             Marpa::PP::Grammar::show_problems($grammar),
             "Attempt to parse grammar with fatal problems\n",
             'Marpa::PP cannot proceed',
@@ -182,7 +182,7 @@ sub Marpa::PP::Recognizer::new {
 
     my $phase = $grammar->[Marpa::PP::Internal::Grammar::PHASE];
     if ( $phase != Marpa::PP::Internal::Phase::PRECOMPUTED ) {
-        Marpa::PP::exception(
+        Marpa::exception(
             'Attempt to parse grammar in inappropriate phase ',
             Marpa::PP::Internal::Phase::description($phase)
         );
@@ -208,7 +208,7 @@ sub Marpa::PP::Recognizer::new {
         and not $grammar->[Marpa::PP::Internal::Grammar::CYCLE_RANKING_ACTION]
         )
     {
-        Marpa::PP::exception(
+        Marpa::exception(
             "The grammar cycles (is infinitely ambiguous)\n",
             "    but it has no 'cycle_ranking_action'.\n",
             "    Either rewrite the grammar to eliminate cycles\n",
@@ -290,7 +290,7 @@ sub Marpa::PP::Recognizer::new {
         for my $terminal (sort @terminals_expected) {
             say {$Marpa::PP::Internal::TRACE_FH}
                 qq{Expecting "$terminal" at earleme 0}
-                or Marpa::PP::exception("Cannot print: $ERRNO");
+                or Marpa::exception("Cannot print: $ERRNO");
         }
     } ## end if ( $trace_terminals > 1 )
 
@@ -380,7 +380,7 @@ sub Marpa::PP::Recognizer::set {
         } ## end if ( defined( my $value = $args->{'mode'} ) )
 
         if ( defined( my $value = $args->{'ranking_method'} ) ) {
-            Marpa::PP::exception(
+            Marpa::exception(
                 q{ranking_method must be 'constant' or 'none'})
                 if not $value ~~ [qw(constant none)];
             $recce->[Marpa::PP::Internal::Recognizer::RANKING_METHOD] =
@@ -405,19 +405,19 @@ sub Marpa::PP::Recognizer::set {
             $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             if ($value) {
                 say {$trace_fh} 'Setting trace_actions option'
-                    or Marpa::PP::exception("Cannot print: $ERRNO");
+                    or Marpa::exception("Cannot print: $ERRNO");
                 $recce->[Marpa::PP::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_actions'} ))
 
         if ( defined( my $value = $args->{'trace_tasks'} ) ) {
-            Marpa::PP::exception('trace_tasks must be set to a number >= 0')
+            Marpa::exception('trace_tasks must be set to a number >= 0')
                 if $value !~ /\A\d+\z/xms;
             $recce->[Marpa::PP::Internal::Recognizer::TRACE_TASKS] =
                 $value + 0;
             if ($value) {
                 say {$trace_fh} "Setting trace_tasks option to $value"
-                    or Marpa::PP::exception("Cannot print: $ERRNO");
+                    or Marpa::exception("Cannot print: $ERRNO");
                 $recce->[Marpa::PP::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_tasks'} ) )
@@ -427,7 +427,7 @@ sub Marpa::PP::Recognizer::set {
                 $value;
             if ($value) {
                 say {$trace_fh} 'Setting trace_terminals option'
-                    or Marpa::PP::exception("Cannot print: $ERRNO");
+                    or Marpa::exception("Cannot print: $ERRNO");
                 $recce->[Marpa::PP::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_terminals'}...))
@@ -437,7 +437,7 @@ sub Marpa::PP::Recognizer::set {
                 $value;
             if ($value) {
                 say {$trace_fh} 'Setting trace_earley_sets option'
-                    or Marpa::PP::exception("Cannot print: $ERRNO");
+                    or Marpa::exception("Cannot print: $ERRNO");
                 $recce->[Marpa::PP::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_earley_sets'...}))
@@ -448,7 +448,7 @@ sub Marpa::PP::Recognizer::set {
             $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             if ($value) {
                 say {$trace_fh} 'Setting trace_values option'
-                    or Marpa::PP::exception("Cannot print: $ERRNO");
+                    or Marpa::exception("Cannot print: $ERRNO");
                 $recce->[Marpa::PP::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_values'} ) )
@@ -458,7 +458,7 @@ sub Marpa::PP::Recognizer::set {
             # Not allowed once parsing is started
             if ( $recce->[Marpa::PP::Internal::Recognizer::PARSE_COUNT] > 0 )
             {
-                Marpa::PP::exception(
+                Marpa::exception(
                     q{Cannot reset end once parsing has started});
             }
             $recce->[Marpa::PP::Internal::Recognizer::END] = $value;
@@ -471,7 +471,7 @@ sub Marpa::PP::Recognizer::set {
             # Not allowed once parsing is started
             if ( $recce->[Marpa::PP::Internal::Recognizer::PARSE_COUNT] > 0 )
             {
-                Marpa::PP::exception(
+                Marpa::exception(
                     q{Cannot reset end once parsing has started});
             }
             my $closures =
@@ -479,7 +479,7 @@ sub Marpa::PP::Recognizer::set {
             ## Do not allow setting this option in recognizer for single parse mode
             $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             while ( my ( $action, $closure ) = each %{$closures} ) {
-                Marpa::PP::exception(qq{Bad closure for action "$action"})
+                Marpa::exception(qq{Bad closure for action "$action"})
                     if ref $closure ne 'CODE';
             }
         } ## end if ( defined( my $value = $args->{'closures'} ) )
@@ -872,7 +872,7 @@ sub report_progress {
 	my ($origin, $AHFA_state) = @{$workitem};
         my $NFA_states = $AHFA_state->[Marpa::PP::Internal::AHFA::NFA_STATES];
         if ( not $NFA_states ) {
-            Marpa::PP::exception(
+            Marpa::exception(
                 'Cannot report progress of Marpa::PP::Recognizer: it is stripped');
         }
         NFA_STATE: for my $NFA_state ( @{$NFA_states} ) {
@@ -917,7 +917,7 @@ sub Marpa::PP::Recognizer::alternative {
 
     my ( $recce, $symbol_name, $value, $length ) = @_;
 
-    Marpa::PP::exception(
+    Marpa::exception(
         'No recognizer object for Marpa::PP::Recognizer::tokens')
         if not defined $recce
             or ref $recce ne 'Marpa::Recognizer';
@@ -929,10 +929,10 @@ sub Marpa::PP::Recognizer::alternative {
         $recce->[Marpa::PP::Internal::Recognizer::TRACE_TERMINALS];
     my $warnings = $recce->[Marpa::PP::Internal::Recognizer::WARNINGS];
 
-    Marpa::PP::exception('Attempt to read token after parsing is finished')
+    Marpa::exception('Attempt to read token after parsing is finished')
         if $recce->[Marpa::PP::Internal::Recognizer::FINISHED];
 
-    Marpa::PP::exception('Attempt to read token when parsing is exhausted')
+    Marpa::exception('Attempt to read token when parsing is exhausted')
         if $recce->[Marpa::PP::Internal::Recognizer::EXHAUSTED];
 
     my $terminal_names =
@@ -955,7 +955,7 @@ sub Marpa::PP::Recognizer::alternative {
             defined $symbol_name
             ? qq{Token name "$symbol_name" is not the name of a terminal symbol}
             : q{Undef given, instead of the name of a terminal symbol};
-        Marpa::PP::exception($problem);
+        Marpa::exception($problem);
     } ## end if ( not defined $symbol_name or not $terminal_names...)
 
     $length //= 1;
@@ -966,7 +966,7 @@ sub Marpa::PP::Recognizer::alternative {
         if ($trace_terminals) {
 	    say {$trace_fh} qq{Rejected "$symbol_name" at $current_earleme-}
 		. ( $length + $current_earleme )
-                or Marpa::PP::exception("Cannot print: $ERRNO");
+                or Marpa::exception("Cannot print: $ERRNO");
         }
         return;
     } ## end if ( not $postdot_data )
@@ -974,20 +974,20 @@ sub Marpa::PP::Recognizer::alternative {
     my $value_ref = \($value);
 
     if ( $length & Marpa::PP::Internal::Recognizer::EARLEME_MASK ) {
-        Marpa::PP::exception(
+        Marpa::exception(
             'Token ' . $symbol_name . " is too long\n",
             "  Token starts at $current_earleme, and its length is $length\n"
         );
     } ## end if ( $length & ...)
 
     if ( $length <= 0 ) {
-        Marpa::PP::exception(
+        Marpa::exception(
             'Token ' . $symbol_name . ' has non-positive length ' . $length );
     } ## end if ( $length <= 0 )
 
     my $end_earleme = $current_earleme + $length;
 
-    Marpa::PP::exception(
+    Marpa::exception(
         'Token ' . $symbol_name . " makes parse too long\n",
         "  Token starts at $current_earleme, and its length is $length\n"
     ) if $end_earleme & Marpa::PP::Internal::Recognizer::EARLEME_MASK;
@@ -1035,7 +1035,7 @@ sub Marpa::PP::Recognizer::alternative {
                     ]
                     )
                 {
-                    Marpa::PP::exception(
+                    Marpa::exception(
                         qq{"$symbol_name" already scanned with length $length at location $current_earleme}
                     );
                 }
@@ -1079,7 +1079,7 @@ sub Marpa::PP::Recognizer::alternative {
         my $verb = $accepted ? 'Accepted' : 'Rejected';
         say {$trace_fh} qq{$verb "$symbol_name" at $current_earleme-}
             . ( $length + $current_earleme )
-            or Marpa::PP::exception("Cannot print: $ERRNO");
+            or Marpa::exception("Cannot print: $ERRNO");
     }
 
     return $current_earleme;
@@ -1091,12 +1091,12 @@ sub Marpa::PP::Recognizer::tokens {
 
     my ( $recce, $tokens, $token_ix_ref ) = @_;
 
-    Marpa::PP::exception(
+    Marpa::exception(
         'No recognizer object for Marpa::PP::Recognizer::tokens')
         if not defined $recce
             or ref $recce ne 'Marpa::Recognizer';
 
-    Marpa::PP::exception('No tokens arg for Marpa::PP::Recognizer::tokens')
+    Marpa::exception('No tokens arg for Marpa::PP::Recognizer::tokens')
         if not defined $tokens;
 
     my $mode = $recce->[Marpa::PP::Internal::Recognizer::MODE];
@@ -1106,11 +1106,11 @@ sub Marpa::PP::Recognizer::tokens {
         my $ref_type = ref $token_ix_ref;
         if ( ref $token_ix_ref ne 'SCALAR' ) {
             my $description = $ref_type ? "ref to $ref_type" : 'not a ref';
-            Marpa::PP::exception(
+            Marpa::exception(
                 "Token index arg for Marpa::PP::Recognizer::tokens is $description, must be ref to SCALAR"
             );
         } ## end if ( ref $token_ix_ref ne 'SCALAR' )
-        Marpa::PP::exception(
+        Marpa::exception(
             q{'Tokens index ref for Marpa::PP::Recognizer::tokens allowed only in 'stream' mode}
         ) if $mode ne 'stream';
         $interactive = 1;
@@ -1122,11 +1122,11 @@ sub Marpa::PP::Recognizer::tokens {
     my $trace_terminals =
         $recce->[Marpa::PP::Internal::Recognizer::TRACE_TERMINALS];
 
-    Marpa::PP::exception('Attempt to scan tokens after parsing is finished')
+    Marpa::exception('Attempt to scan tokens after parsing is finished')
         if $recce->[Marpa::PP::Internal::Recognizer::FINISHED]
             and scalar @{$tokens};
 
-    Marpa::PP::exception('Attempt to scan tokens when parsing is exhausted')
+    Marpa::exception('Attempt to scan tokens when parsing is exhausted')
         if $recce->[Marpa::PP::Internal::Recognizer::EXHAUSTED]
             and scalar @{$tokens};
 
@@ -1164,14 +1164,14 @@ sub Marpa::PP::Recognizer::tokens {
 
 	    # ... or until we run out of tokens
             last TOKEN if not my $token_args = $tokens->[ ${$token_ix_ref} ];
-            Marpa::PP::exception(
+            Marpa::exception(
                 'Tokens must be array refs: token #',
                 ${$token_ix_ref}, " is $token_args\n",
             ) if ref $token_args ne 'ARRAY';
             ${$token_ix_ref}++;
             my ( $symbol_name, $value, $length, $offset ) = @{$token_args};
 
-            Marpa::PP::exception(
+            Marpa::exception(
                 "Attempt to add token '$symbol_name' at location where processing is complete:\n",
                 "  Add attempted at $current_token_earleme\n",
                 "  Processing complete to $last_completed_earleme\n"
@@ -1181,14 +1181,14 @@ sub Marpa::PP::Recognizer::tokens {
 	    if ( not defined $symbol_id ) {
 		say {$trace_fh}
 		    qq{Attempted to add non-existent symbol named "$symbol_name" at $last_completed_earleme\n}
-		    or Marpa::PP::exception("Cannot print: $ERRNO");
+		    or Marpa::exception("Cannot print: $ERRNO");
 	    }
 
             my $result = $recce->alternative($symbol_name, $value, $length);
 
             if ( not defined $result ) {
                 if ( not $interactive ) {
-                    Marpa::PP::exception(
+                    Marpa::exception(
                         qq{Terminal "$symbol_name" received when not expected}
                     );
                 }
@@ -1201,7 +1201,7 @@ sub Marpa::PP::Recognizer::tokens {
             } ## end if ( not $postdot_data )
 
             $offset //= 1;
-            Marpa::PP::exception(
+            Marpa::exception(
                 'Token ' . $symbol_name . " has negative offset\n",
                 "  Token starts at $last_completed_earleme, and its length is $length\n",
                 "  Tokens are required to be in sequence by location\n",
@@ -1400,7 +1400,7 @@ sub Marpa::PP::Recognizer::earleme_complete {
         if ( $recce->[Marpa::PP::Internal::Recognizer::WARNINGS] ) {
             say {$Marpa::PP::Internal::TRACE_FH}
                 "Very large earley set: $item_count items at location $earleme_to_complete"
-                or Marpa::PP::exception("Cannot print: $ERRNO");
+                or Marpa::exception("Cannot print: $ERRNO");
         }
     } ## end if ( $too_many_earley_items >= 0 and ( my $item_count...))
 
@@ -1422,10 +1422,10 @@ sub Marpa::PP::Recognizer::earleme_complete {
     if ($trace_earley_sets) {
         print {$Marpa::PP::Internal::TRACE_FH}
             "=== Earley set $earleme_to_complete\n"
-            or Marpa::PP::exception("Cannot print: $ERRNO");
+            or Marpa::exception("Cannot print: $ERRNO");
         print {$Marpa::PP::Internal::TRACE_FH}
             Marpa::PP::show_earley_set($earley_set)
-            or Marpa::PP::exception("Cannot print: $ERRNO");
+            or Marpa::exception("Cannot print: $ERRNO");
     } ## end if ($trace_earley_sets)
 
     for my $earley_item ( @{$earley_items} ) {
@@ -1622,7 +1622,7 @@ sub Marpa::PP::Recognizer::earleme_complete {
         for my $terminal (sort @terminals_expected) {
             say {$Marpa::PP::Internal::TRACE_FH}
                 qq{Expecting "$terminal" at $earleme_to_complete}
-                or Marpa::PP::exception("Cannot print: $ERRNO");
+                or Marpa::exception("Cannot print: $ERRNO");
         }
     } ## end if ( $trace_terminals > 1 )
 

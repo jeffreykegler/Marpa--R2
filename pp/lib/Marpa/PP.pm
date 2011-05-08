@@ -71,6 +71,7 @@ require Marpa::PP::Callback;
 *Marpa::Recognizer::check_terminal = \&Marpa::PP::Recognizer::check_terminal;
 *Marpa::Recognizer::current_earleme = \&Marpa::PP::Recognizer::current_earleme;
 *Marpa::Recognizer::earleme_complete = \&Marpa::PP::Recognizer::earleme_complete;
+*Marpa::Recognizer::earley_set_size = \&Marpa::PP::Recognizer::earley_set_size;
 *Marpa::Recognizer::end_input = \&Marpa::PP::Recognizer::end_input;
 *Marpa::Recognizer::new = \&Marpa::PP::Recognizer::new;
 *Marpa::Recognizer::read = \&Marpa::PP::Recognizer::read;

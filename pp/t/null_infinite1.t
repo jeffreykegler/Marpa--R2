@@ -80,7 +80,7 @@ $grammar->precompute();
 # So I do not treat the difference as a bug.
 
 my @expected3 = ();
-if ($Marpa::XS::USING_PP) {
+if ($Marpa::USING_PP) {
     push @expected3, qw{
         S(-;f(S(n(A);f(S(-;f(S(n(A);f(A))))))))
         S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(-;f(A))))))))))
@@ -91,7 +91,7 @@ if ($Marpa::XS::USING_PP) {
         S(-;f(S(n(A);f(S(n(A);f(S(-;f(S(n(A);-)))))))))
         S(-;f(S(n(A);f(S(n(A);f(S(n(A);-)))))))
     };
-} ## end if ($Marpa::XS::USING_PP)
+} ## end if ($Marpa::USING_PP)
 
 push @expected3, qw{
     S(n(A);f(S(-;f(S(n(A);f(A))))))
