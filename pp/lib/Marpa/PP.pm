@@ -41,11 +41,13 @@ require Marpa::PP::Internal::Carp_Not;
 Marpa::PP::Internal::Carp_Not->import();
 
 if ( $Marpa::PP::USE_XS ) {
+    $Marpa::USING_XS = 1;
+    $Marpa::USING_PP = 0;
     return 1;
 }
 
-$Marpa::PP::USING_XS = 0;
-$Marpa::PP::USING_PP = 1;
+$Marpa::USING_XS = 0;
+$Marpa::USING_PP = 1;
 
 require Marpa::PP::Grammar;
 require Marpa::PP::Recognizer;
@@ -62,6 +64,7 @@ require Marpa::PP::Callback;
 *Marpa::Grammar::show_nullable_symbols = \&Marpa::PP::Grammar::show_nullable_symbols;
 *Marpa::Grammar::show_nulling_symbols = \&Marpa::PP::Grammar::show_nulling_symbols;
 *Marpa::Grammar::show_productive_symbols = \&Marpa::PP::Grammar::show_productive_symbols;
+*Marpa::Grammar::show_problems = \&Marpa::PP::Grammar::show_problems;
 *Marpa::Grammar::show_rules = \&Marpa::PP::Grammar::show_rules;
 *Marpa::Grammar::show_symbols = \&Marpa::PP::Grammar::show_symbols;
 *Marpa::Recognizer::alternative = \&Marpa::PP::Recognizer::alternative;
