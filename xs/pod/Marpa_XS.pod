@@ -1,0 +1,126 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS - XS extension of Marpa
+
+=head1 SYNOPSIS
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+normalize-whitespace: 1
+
+    use Marpa::XS;
+
+    my $grammar = Marpa::XS::Grammar->new(
+        {   start   => 'Expression',
+            actions => 'My_Actions',
+            default_action => 'first_arg',
+            rules   => [
+                { lhs => 'Expression', rhs => [qw/Term/] },
+                { lhs => 'Term', rhs => [qw/Factor/] },
+                { lhs => 'Factor', rhs => [qw/Number/] },
+                { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
+                {   lhs    => 'Factor',
+                    rhs    => [qw/Factor Multiply Factor/],
+                    action => 'do_multiply'
+                },
+            ],
+        }
+    );
+
+    $grammar->precompute();
+
+    my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+
+    $recce->read( 'Number', 42 );
+    $recce->read( 'Multiply', );
+    $recce->read( 'Number', 1 );
+    $recce->read( 'Add', );
+    $recce->read( 'Number', 7 );
+
+    sub My_Actions::do_add {
+        my ( undef, $t1, undef, $t2 ) = @_;
+        return $t1 + $t2;
+    }
+
+    sub My_Actions::do_multiply {
+        my ( undef, $t1, undef, $t2 ) = @_;
+        return $t1 * $t2;
+    }
+
+    sub My_Actions::first_arg { shift; return shift; }
+
+    my $value_ref = $recce->value;
+    my $value = $value_ref ? ${$value_ref} : 'No Parse';
+
+=for Marpa::XS::Display::End
+
+=head1 DESCRIPTION
+
+=head2 This is ALPHA software
+
+This is B<alpha> software.
+There may be bugs. The interface may change.
+Please be careful.
+Do not rely
+on it for anything mission-critical.
+
+=head2 Overview
+
+L<Marpa::XS> is the XS extension of L<Marpa::PP>.
+L<Marpa::XS> depends on L<Marpa::PP>,
+and its documentation can be found there.
+
+=head1 SUPPORT
+
+L<Marpa::XS> comes without warranty.
+Support is provided
+on a volunteer basis 
+through the standard mechanisms for CPAN modules.
+L<The Support document|Marpa::XS::Support> has details.
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
+
