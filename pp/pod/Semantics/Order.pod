@@ -1,0 +1,240 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Semantics::Order - How Marpa Ranks Ambiguous Parses
+
+=head1 DESCRIPTION
+
+This document details the order in which
+the recognizer's
+L<C<value>|Marpa::XS::Recognizer/"value">
+method
+returns parse results.
+The same mechanism allows the selection of parse results.
+It can also be exploited to do the actual processing
+of parses, using side effects.
+
+=head2 Duplicate Parses are Eliminated
+
+Marpa defines parse result duplication in terms of the semantics --
+two parse results are the same if no deterministic semantics could
+ever produce two different values for them.
+A parse result is considered to be a B<duplicate> of another
+if a recursive, top-down, evaluation of both parse results
+would apply
+the same rules
+in the same order
+at the same earleme locations.
+
+Two parse results are said to be the same if they
+are duplicates of one another.
+In a single parse series,
+Marpa will never return the same parse result twice.
+
+=head2 Default Parse Order
+
+By calling
+the recognizer's
+L<C<value>|Marpa::XS::Recognizer/"value">
+method
+repeatedly,
+Marpa can produce all the parse results
+for a given parse.
+The default is for the parse results to be returned
+in an arbitrary order.
+This corresponds to the "C<none>" value of
+L<the recognizer's C<ranking_method>|Marpa::XS::Recognizer/"ranking_method">
+named argument.
+
+=head2 A General Approach to Sorting Parses
+
+The most general way to sort Marpa parses is for the application
+to take control.
+The application can set up the Marpa semantic actions
+so that the value of every parse result is a
+C<< <rank, true_value> >> duple.
+The duples can then be sorted by C<rank>.
+Once the resuls are sorted,
+the C<rank> element of the duple can be discarded.
+(Those familiar with the Schwartzian transform
+may note a resemblance.
+In Perl,
+duples can be implemented as references to arrays of 2 elements.)
+
+The user needs to be careful.
+In theory, ambiguity can cause an exponential explosion in the number of results.
+In practice, ambiguity tends to get out of hand very easily.
+Producing and sorting all the parses can take a very
+long time.
+
+=head2 The Constant Ranking Method
+
+Marpa supports a simplified approach to sorting parses.
+The Constant Ranking Method is general enough to handle many, perhaps even most,
+practical applications,
+and simple enough that Marpa is able to optimize it.
+The Constant Ranking Method
+is specified by giving
+the recognizer's
+L<C<ranking_method>|Marpa::XS::Recognizer/"ranking_method">
+a value of "C<constant>".
+
+The basic idea is to allow the user to specify constant values for
+rules, and to rank all other nodes according to the sum of the values
+of their children.  Leaf nodes default to a value of 0.
+
+When specified,
+the value of a rule must be "constant" in the sense that it cannot
+depend on the values of its children.
+This is a major limitation, but it greatly simplifies the logic
+for re-ranking parses as they are iterated.
+And it is less of a limitation than it may appear,
+because rules, if they do not have ranking actions,
+B<will> take into account the values of their children.
+By strategically mixing rules that take into account child values,
+with rules that can have a user-specified rank,
+applications will often be able to
+accomplish what they need to.
+
+The ranking action of a token leaf node is specified
+using the token symbol's C<ranking_action> property.
+The ranking action of a nulled leaf node is specified
+using the null node symbol's C<ranking_action> property.
+The ranking action of a rule is specified
+using the rule's C<ranking_action> property.
+
+Ranking actions must return a B<reference> to
+the rank.
+Ranks must be Perl numbers.
+Negative values and non-integer values are allowed.
+The highest numeric value is considered to be the highest rank,
+and the lowest numeric value is considered to be the lowest rank.
+
+As a special case, if a ranking action returns a Perl C<undef>,
+Marpa will skip that possibility, rather than ranking it.
+Note that
+any "skipped" node in a parse result causes that whole
+parse result to be skipped.
+A consequence of this is that any skipped node in an
+unambiguous parse will result in no parse results being found.
+
+This behavior may seem to be draconian,
+but in fact skipping the entire tree
+is the most natural way to deal with skipped
+nodes.
+Anything resembling a traditional semantics requires parse
+trees to have a full set of nodes.
+And it is unclear
+what purpose an alternative semantics
+might be expected to serve.
+
+An B<instance> of a rule is a rule, a start location,
+and an end location.
+Ranking actions are called once for each rule instance.
+While ranking actions return constants in the sense that they
+cannot be aware of the ranks of their child nodes,
+the rank returned can vary based on the rule's start
+and end location.
+Ranking actions can determine their location using
+L<the context-aware static
+methods|"CONTEXT-AWARE STATIC METHODS">.
+
+For the rank of a node to be calculated, the ranking action
+must first be resolved to a ranking Perl closure. 
+Ranking action names are resolved to ranking Perl closures
+in the L<Ranking
+Phase|Marpa::XS::Semantics/"Ranking Phase">,
+using the same logic that resolves semantic actions to 
+semantic Perl closures.
+The logic that resolves action names to Perl closures is described
+elsewhere (L<Marpa::XS::Semantics/"RESOLVING ACTION NAMES">).
+The ranking Perl closures are both resolved and called in a single
+L<Ranking
+Phase|Marpa::XS::Semantics/"Ranking Phase">.
+
+=head2 Exploiting Side Effects
+
+In every parse series,
+ranking actions are guaranteed to be called once and
+only once for each rule instance.
+As a reminder,
+a rule instance is a rule, together with a start and
+end location.
+This guarantee makes ranking actions useful
+for their side effects,
+even when there is no interest in changing
+the order of the parse results.
+In fact, ranking actions can be used in cases
+when there is no interest in evaluating the actual
+parse results.
+
+For example,
+an application
+may be interested in detecting
+a particular kind of ambiguity:
+it may wants to know,
+for two specific rules,
+when they derive the same input string.
+To do this,
+the application can create ranking actions which have the side effect
+of tracking all instances of these two rules, by location.
+If there is no interest in an actual parse, the ranking actions
+can return C<undef>, which will cause all parses to be discarded.
+
+Detecting ambiguity is one example
+of an application where using the ranking actions
+can be very much faster than the alternative of producing
+all the parse results.
+In practical cases,
+the number of parse results grows much more rapidly than
+the number of ambiguities.
+In the worst cases, the number of calls to ranking actions can
+be O(n**3) in the length of the input.
+While far from fast, this is much better than
+the worst case for evaluating all the parses, which
+is O(e**n).
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
