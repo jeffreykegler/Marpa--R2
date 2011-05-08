@@ -32,7 +32,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 # Marpa::PP::Display
-# name: Marpa::PP::token_location example
+# name: Marpa::token_location example
 
 sub rank_null_a {
     return \( ( $MyTest::MAXIMAL ? -1 : 1 )

@@ -24,7 +24,7 @@ name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::PP::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     $recce->read( 'Number', 42 );
     $recce->read( 'Multiply', );
     $recce->read( 'Number', 1 );
@@ -74,7 +74,7 @@ name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::PP::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 =for Marpa::PP::Display::End
 
@@ -392,7 +392,7 @@ partial: 1
 normalize-whitespace: 1
 
     $recce =
-        Marpa::PP::Recognizer->new( { grammar => $grammar } );
+        Marpa::Recognizer->new( { grammar => $grammar } );
 
     my @tokens = (
         [ 'Number', 42 ],

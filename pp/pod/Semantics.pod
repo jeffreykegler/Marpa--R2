@@ -24,7 +24,7 @@ name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::PP::Grammar->new(
+    my $grammar = Marpa::Grammar->new(
         {   start          => 'Expression',
             actions        => 'My_Actions',
             default_action => 'first_arg',
@@ -721,12 +721,12 @@ on parse order|Marpa::PP::Semantics::Order>.
 =head1 CONTEXT-AWARE STATIC METHODS
 
 =for Marpa::PP::Display
-name: Marpa::PP::token_location example
+name: Marpa::token_location example
 perltidy: '-dcsc -sil=0'
 
     sub rank_null_a {
         return \( ( $MyTest::MAXIMAL ? -1 : 1 )
-            * 10**( 3 - Marpa::PP::token_location() ) );
+            * 10**( 3 - Marpa::token_location() ) );
     }
 
 =for Marpa::PP::Display::End

@@ -25,7 +25,7 @@ normalize-whitespace: 1
 
     use Marpa::PP;
 
-    my $grammar = Marpa::PP::Grammar->new(
+    my $grammar = Marpa::Grammar->new(
         {   start   => 'Expression',
             actions => 'My_Actions',
             default_action => 'first_arg',
@@ -44,7 +44,7 @@ normalize-whitespace: 1
 
     $grammar->precompute();
 
-    my $recce = Marpa::PP::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
     $recce->read( 'Number', 42 );
     $recce->read( 'Multiply', );
@@ -133,7 +133,7 @@ name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::PP::Grammar->new(
+    my $grammar = Marpa::Grammar->new(
         {   start   => 'Expression',
             actions => 'My_Actions',
             default_action => 'first_arg',
@@ -296,7 +296,7 @@ name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::PP::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 =for Marpa::PP::Display::End
 
@@ -554,7 +554,7 @@ normalize-whitespace: 1
 
     use Marpa::PP;
 
-    my $ambiguous_grammar = Marpa::PP::Grammar->new(
+    my $ambiguous_grammar = Marpa::Grammar->new(
         {   start   => 'E',
             actions => 'My_Actions',
             rules   => [
@@ -569,7 +569,7 @@ normalize-whitespace: 1
     $ambiguous_grammar->precompute();
 
     my $ambiguous_recce =
-        Marpa::PP::Recognizer->new( { grammar => $ambiguous_grammar } );
+        Marpa::Recognizer->new( { grammar => $ambiguous_grammar } );
 
     $ambiguous_recce->read( 'Number', 42 );
     $ambiguous_recce->read( 'Multiply', );
