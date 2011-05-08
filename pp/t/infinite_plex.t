@@ -24,10 +24,10 @@ use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
 use Test::More tests => 5;
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 sub make_rule {

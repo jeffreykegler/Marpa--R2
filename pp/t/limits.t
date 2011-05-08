@@ -21,10 +21,10 @@ use English qw( -no_match_vars );
 use Test::More tests => 6;
 use Fatal qw(open close);
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)

@@ -40,10 +40,10 @@ use warnings;
 use English qw( -no_match_vars );
 
 use Test::More tests => 2;
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -112,12 +112,12 @@ for my $data ( 'time flies like an arrow', 'fruit flies like a banana' ) {
 
     for my $word ( split q{ }, $data ) {
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Recognizer exhausted Synopsis
 
 	$recce->exhausted() and die 'Recognizer exhausted';
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 	for my $type (@{ $vocabulary{$word} } ) {
 	    defined $recce->alternative( $type, $word, 1 )
@@ -126,12 +126,12 @@ for my $data ( 'time flies like an arrow', 'fruit flies like a banana' ) {
 	$recce->earleme_complete();
     }
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Recognizer end_input Synopsis
 
     $recce->end_input();
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
     while ( defined( my $value_ref = $recce->value() ) ) {
         my $value = $value_ref ? ${$value_ref} : 'No parse';

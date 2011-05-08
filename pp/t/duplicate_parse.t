@@ -22,10 +22,10 @@ use warnings;
 
 use Test::More tests => 6;
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -41,7 +41,7 @@ sub default_action {
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         strip => 0,
 
@@ -59,7 +59,7 @@ my $grammar = Marpa::XS::Grammar->new(
 
 $grammar->precompute();
 
-Marpa::XS::Test::is( $grammar->show_rules,
+Marpa::Test::is( $grammar->show_rules,
     <<'END_OF_STRING', 'duplicate parse Rules' );
 0: S -> p p p n /* !used */
 1: p -> a
@@ -74,7 +74,7 @@ Marpa::XS::Test::is( $grammar->show_rules,
 10: S['] -> S /* vlhs real=1 */
 END_OF_STRING
 
-Marpa::XS::Test::is( $grammar->show_AHFA,
+Marpa::Test::is( $grammar->show_AHFA,
     <<'END_OF_STRING', 'duplicate parse AHFA' );
 * S0:
 S['] -> . S
@@ -140,7 +140,7 @@ END_OF_STRING
 use constant SPACE => 0x60;
 
 my $input_length = 3;
-my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 $recce->tokens(
     [ map { [ 'a', chr( SPACE + $_ ), 1 ] } ( 1 .. $input_length ) ] );
 

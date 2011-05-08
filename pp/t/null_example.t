@@ -21,12 +21,12 @@ use warnings;
 
 use Test::More tests => 2;
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (InputOutput::RequireBriefOpen)
@@ -49,7 +49,7 @@ sub restore_stdout {
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Null Value Example
 
 sub L {
@@ -98,11 +98,11 @@ my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
 
 $recce->read( 'X', 'x' );
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 ## use critic
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Null Value Example Output
 # start-after-line: END_OF_OUTPUT
 # end-before-line: '^END_OF_OUTPUT$'
@@ -111,7 +111,7 @@ chomp( my $expected = <<'END_OF_OUTPUT');
 S(L(null A;null B;x);null R)
 END_OF_OUTPUT
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 my $value = $recce->value();
 Marpa::XS::Test::is( ${$value}, $expected, 'Null example' );

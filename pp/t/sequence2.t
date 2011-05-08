@@ -23,10 +23,10 @@ use warnings;
 use Fatal qw(open close);
 use Test::More tests => 4;
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -41,12 +41,12 @@ my $value;
 
 my $min0 =
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Marpa::XS::Grammar min 0 sequence example
 
     { lhs => 'sequence', rhs => ['item'], min => 0 }
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 ; # semicolon to terminate rule
 
 $grammar = Marpa::XS::Grammar->new(
@@ -71,12 +71,12 @@ Marpa::XS::Test::is( $value, 'seq(0;1)', 'min 0 value' );
 
 my $min1 =
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Marpa::XS::Grammar min 1 sequence example
 
     { lhs => 'sequence', rhs => ['item'], min => 1 }
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 ; # semicolon to terminate rule
 
 $grammar = Marpa::XS::Grammar->new({
@@ -99,13 +99,13 @@ Marpa::XS::Test::is( $value, 'seq(0;1)', 'min 1 value' );
 
 my $multipart = [
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Marpa::XS::Grammar multipart rhs sequence example
 
     { lhs => 'sequence', rhs => [qw(item)], min => 0 },
     { lhs => 'item', rhs => [qw(part1 part2)], },
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 ]; # semicolon to terminate rule
 
 $grammar = Marpa::XS::Grammar->new(

@@ -28,10 +28,10 @@ use warnings;
 # is at perlmonks.org: http://perlmonks.org/?node_id=649892
 
 use Test::More tests => 13;
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 # The inefficiency (at least some of it) is deliberate.

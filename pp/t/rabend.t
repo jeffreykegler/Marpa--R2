@@ -22,10 +22,10 @@ use Test::More tests => 7;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 sub catch_problem {
@@ -98,13 +98,13 @@ $recce = Marpa::XS::Recognizer->new(
 
 sub duplicate_terminal_1 {
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Recognizer alternative Synopsis
 
     defined $recce->alternative( 'a', 42, 1 )
         or return 'First alternative failed';
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
     return $recce->alternative( 'a', 711, 1 );
 }
@@ -148,12 +148,12 @@ sub duplicate_terminal_2 {
     defined $recce->alternative( 'b', 12, 1 )
         or return 'alternative b at 0 failed';
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Recognizer earleme_complete Synopsis
 
     $recce->earleme_complete();
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
     # Should be OK, because different lengths
     defined $recce->alternative( 'a', 21, 3 )

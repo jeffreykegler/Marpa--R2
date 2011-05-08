@@ -20,10 +20,10 @@ use warnings;
 use English qw( -no_match_vars );
 
 use Test::More tests => 5;
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 package Test_Grammar;
@@ -190,12 +190,12 @@ TEST: for my $test_data (@test_data) {
     my $input_length = length $test_input;
     pos $test_input = 0;
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Recognizer terminals_expected Synopsis
 
     my $terminals_expected = $recce->terminals_expected();
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
     for ( my $pos = 0; $pos < $input_length; $pos++ ) {
         my @tokens = ();

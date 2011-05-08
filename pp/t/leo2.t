@@ -21,10 +21,10 @@ use warnings;
 
 use Test::More tests => 8;
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)

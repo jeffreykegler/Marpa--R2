@@ -45,11 +45,11 @@ BEGIN {
     else {
         Test::More::plan tests => 2;
     }
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 } ## end BEGIN
 
 my $test = sub {
-    my $g = Marpa::XS::Grammar->new(
+    my $g = Marpa::Grammar->new(
         {   start => 'S',
             rules => [
                 [ 'S', [qw/A A A A/] ],
@@ -61,7 +61,7 @@ my $test = sub {
         }
     );
     $g->precompute();
-    my $recce = Marpa::XS::Recognizer->new( { grammar => $g } );
+    my $recce = Marpa::Recognizer->new( { grammar => $g } );
     $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x 4 ] );
     $recce->value();
     [ $g, $recce ];

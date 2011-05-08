@@ -22,10 +22,10 @@ use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
 use Test::More tests => 7;
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)

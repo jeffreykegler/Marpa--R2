@@ -18,7 +18,7 @@ use 5.010;
 use strict;
 use warnings;
 use Test::More tests => 8;
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 package Marpa::XS;
 our $USE_PP;
@@ -27,7 +27,7 @@ BEGIN {
 
     # force perl-only version to be tested
     $Marpa::XS::USE_PP = 1;
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 # The example grammar in Aycock/Horspool "Practical Earley Parsing",

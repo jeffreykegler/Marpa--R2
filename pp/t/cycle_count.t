@@ -20,11 +20,11 @@ use warnings;
 
 use Test::More tests => 9;
 use English qw( -no_match_vars );
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 use Carp;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -39,9 +39,9 @@ our $CYCLE_RANK = 1;
 
 # If we are counting up, the lowest number
 # has to have the highest numerical rank.
-# sub rank_cycle { return \($main::CYCLE_RANK*(Marpa::XS::location()+1)) }
+# sub rank_cycle { return \($main::CYCLE_RANK*(Marpa::location()+1)) }
 sub rank_cycle {
-    return \( $main::CYCLE_RANK * ( 9 - Marpa::XS::location() ) );
+    return \( $main::CYCLE_RANK * ( 9 - Marpa::location() ) );
 }
 
 sub rule_action  { return 'direct' }
@@ -54,7 +54,7 @@ sub default_rule_action {
 
 ## use critic
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start                => 'S',
         strip                => 0,
         infinite_action      => 'quiet',
@@ -93,7 +93,7 @@ my $grammar = Marpa::XS::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::XS::Recognizer->new(
+my $recce = Marpa::Recognizer->new(
     { grammar => $grammar, ranking_method => 'constant' } );
 
 my $input_length = 2;

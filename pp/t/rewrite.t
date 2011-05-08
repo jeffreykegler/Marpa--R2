@@ -24,15 +24,15 @@ use warnings;
 use Fatal qw(open close);
 use Test::More tests => 3;
 
-use Marpa::XS::Test;
+use Marpa::PP::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::Any');
 }
 
 my $chaf_rule =
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: CHAF Rule
 
 {   lhs => 'statement',
@@ -43,14 +43,14 @@ my $chaf_rule =
     ]
 }
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
 
 my $separated_sequence_rule =
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Separated Sequence Rule
 
 {
@@ -60,19 +60,19 @@ my $separated_sequence_rule =
     min       => 1
 }
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
 
 my $sequence_rule =
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Sequence Rule
 
     { lhs => 'block', rhs => [qw/statements/], min => 0 },
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
@@ -109,11 +109,11 @@ my @tokens = ();
 
 $recce->tokens( \@tokens );
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 my $show_rules_output = $grammar->show_rules();
 
-# Marpa::XS::Display
+# Marpa::PP::Display
 # name: Rewrite show_rules Output
 # start-after-line: END_RULES
 # end-before-line: '^END_RULES$'
@@ -148,7 +148,7 @@ Marpa::XS::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 26: block['][] -> /* empty vlhs real=1 */
 END_RULES
 
-# Marpa::XS::Display::End
+# Marpa::PP::Display::End
 
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
