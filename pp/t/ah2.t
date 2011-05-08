@@ -112,7 +112,7 @@ Marpa::Test::is(
     'Aycock/Horspool Accessible Symbols'
 );
 
-if (!$Marpa::PP::USING_PP ) {
+if ($Marpa::USING_XS ) {
     Marpa::Test::is( $grammar->show_AHFA_items(), <<'EOS', 'Aycock/Horspool AHFA Items' );
 AHFA item 0: sort = 9; postdot = "a"
     A -> . a
@@ -169,7 +169,7 @@ AHFA item 25: sort = 25; completion
 EOS
 }
 
-if ($Marpa::PP::USING_PP ) {
+if ($Marpa::USING_PP ) {
     Marpa::Test::is( $grammar->show_NFA, <<'EOS', 'Aycock/Horspool NFA' );
 S0: /* empty */
  empty => S33 S35
