@@ -1,0 +1,29 @@
+use 5.010;
+use Data::Dumper;
+use Perl::Tidy;
+
+# instructive to try perltidy -bbt=10 -bt=0 
+
+my $do1 = do { { my $x = "code"  } { 1,'Not code' } };
+
+sub dummy {}
+my $s1 = '{dummy(); {1,2,3,4,5,6,7;8} }';
+my $s2 = '{dummy();{1,2,3,4,5,6,7,8}}';
+
+my @argv = ( '--noprofile', '-bt=2', '-bbt=1'  );
+Perl::Tidy::perltidy( source => \$s1, destination => \$output, argv => \@argv );
+say $output;
+Perl::Tidy::perltidy( source => \$s2, destination => \$output, argv => \@argv );
+say $output;
+
+my $v1 = eval $s1;
+my $v2 = eval $s2;
+no warnings;
+my $v3 = eval {42; {;1,2,3,4,5,6,7;8} };
+my $v4 = eval {42; +{1,2,3,4,5,6,7,8}};
+use warnings;
+
+say "v1= ", Data::Dumper::Dumper(\$v1);
+say "v2= ", Data::Dumper::Dumper(\$v2);
+say "v3= ", Data::Dumper::Dumper(\$v3);
+say "v4= ", Data::Dumper::Dumper(\$v4);

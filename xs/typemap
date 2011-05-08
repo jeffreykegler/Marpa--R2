@@ -1,0 +1,69 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+Recce * T_MARPA_R_C
+R_Wrapper * T_MARPA_R_W
+Grammar * T_MARPA_G_C
+G_Wrapper * T_MARPA_G_W
+
+Marpa_Grammar_ID T_IV
+Marpa_Recognizer_ID T_IV
+Marpa_Symbol_ID T_IV
+Marpa_Rule_ID T_IV
+Marpa_AHFA_Item_ID T_IV
+Marpa_AHFA_State_ID T_IV
+Marpa_Earley_Set_ID T_IV
+Marpa_Earley_Item_ID T_IV
+Marpa_Earleme T_IV
+
+INPUT
+
+T_MARPA_G_C
+	if (sv_isa($arg, \"Marpa::XS::Internal::G_C\")) {
+	    IV tmp = SvIV((SV*)SvRV($arg));
+	    G_Wrapper * g_wrapper = INT2PTR(G_Wrapper *, tmp);
+	    $var = g_wrapper->g;
+	} else
+	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::XS::Internal::G_C\",
+			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+			\"$var\")
+
+T_MARPA_G_W
+	if (sv_isa($arg, \"Marpa::XS::Internal::G_C\")) {
+	    IV tmp = SvIV((SV*)SvRV($arg));
+	    $var = INT2PTR(G_Wrapper *, tmp);
+	} else
+	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::XS::Internal::G_C\",
+			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+			\"$var\")
+
+T_MARPA_R_C
+	if (sv_isa($arg, \"Marpa::XS::Internal::R_C\")) {
+	    IV tmp = SvIV((SV*)SvRV($arg));
+	    R_Wrapper * r_wrapper = INT2PTR(R_Wrapper *, tmp);
+	    $var = r_wrapper->r;
+	} else
+	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::XS::Internal::R_C\",
+			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+			\"$var\")
+
+T_MARPA_R_W
+	if (sv_isa($arg, \"Marpa::XS::Internal::R_C\")) {
+	    IV tmp = SvIV((SV*)SvRV($arg));
+	    $var = INT2PTR(R_Wrapper *, tmp);
+	} else
+	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::XS::Internal::R_C\",
+			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+			\"$var\")
