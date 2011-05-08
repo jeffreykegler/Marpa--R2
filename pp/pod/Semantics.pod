@@ -15,16 +15,16 @@
 
 =head1 NAME
 
-Marpa::XS::Semantics - How Marpa Evaluates Parses
+Marpa::PP::Semantics - How Marpa Evaluates Parses
 
 =head1 SYNOPSIS
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::XS::Grammar->new(
+    my $grammar = Marpa::PP::Grammar->new(
         {   start          => 'Expression',
             actions        => 'My_Actions',
             default_action => 'first_arg',
@@ -41,9 +41,9 @@ normalize-whitespace: 1
         }
     );
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -63,7 +63,7 @@ normalize-whitespace: 1
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 =head1 OVERVIEW
 
@@ -203,7 +203,7 @@ a Perl C<undef>.
 
 =head2 Sequence Rule Nodes
 
-Some rules are L<sequence rules|Marpa::XS::Grammar/"Sequence Rules">.
+Some rules are L<sequence rules|Marpa::PP::Grammar/"Sequence Rules">.
 Sequence rule nodes are also rule nodes.
 Everything said above about rule nodes
 applies to sequence rule nodes.
@@ -264,7 +264,7 @@ or who simply would like
 to read a more detailed account of how Marpa's
 null semantics works,
 can turn to L<the document on
-null semantics|Marpa::XS::Semantics::Null>.
+null semantics|Marpa::PP::Semantics::Null>.
 
 An application can assign null values to symbols.
 If the null node is for a symbol, its null value
@@ -277,7 +277,7 @@ An application can also change a grammar's
 default null value,
 which is C<undef>, to a constant,
 using the grammar's
-L<C<default_null_value>|Marpa::XS::Grammar/default_null_value>
+L<C<default_null_value>|Marpa::PP::Grammar/default_null_value>
 named argument.
 
 Specifying null semantics on a per-symbol basis is a
@@ -337,19 +337,19 @@ A B<parse series> is the series of zero or more parse results
 for a single B<evaluation>.
 The first call to the 
 L<the recognizer's C<value>
-method|Marpa::XS::Recognizer/"value">
+method|Marpa::PP::Recognizer/"value">
 after the recognizer is created is the
 start of the first parse series.
 The first parse series continues until there is
 a call to the
 L<the C<reset_evaluation>
-method|Marpa::XS::Recognizer/"reset_evaluation">
+method|Marpa::PP::Recognizer/"reset_evaluation">
 or until the recognizer is destroyed.
 Usually, an application is only interested in a single
 parse series.
 
 When the
-L<C<reset_evaluation>|Marpa::XS::Recognizer/"reset_evaluation">
+L<C<reset_evaluation>|Marpa::PP::Recognizer/"reset_evaluation">
 method
 is called
 for a recognizer, it begins a new parse series.
@@ -357,7 +357,7 @@ The new parse series continues until
 there is another
 call to the
 L<the C<reset_evaluation>
-method|Marpa::XS::Recognizer/"reset_evaluation">,
+method|Marpa::PP::Recognizer/"reset_evaluation">,
 or until the recognizer is destroyed.
 
 =head2 Recognizer Setup Phase
@@ -386,7 +386,7 @@ Exactly one Series Setup Phase occurs for each parse
 series.
 A Series Setup Phase occurs in the first call of
 the recognizer's
-L<C<value>|Marpa::XS::Recognizer/"value">
+L<C<value>|Marpa::PP::Recognizer/"value">
 method of each parse series.
 
 =head2 Ranking Phase
@@ -403,13 +403,13 @@ resolved and the only phase
 in which ranking actions are called.
 
 Ranking Phases do not occur if
-recognizer's L<ranking_method|Marpa::XS::Recognizer/"ranking_method">
+recognizer's L<ranking_method|Marpa::PP::Recognizer/"ranking_method">
 is "C<none>", which is the default.
 If the recognizer's
 ranking method is set to a value other than "C<none>",
 a Ranking Phase occurs during the first call
 of the recognizer's
-L<C<value>|Marpa::XS::Recognizer/"value">
+L<C<value>|Marpa::PP::Recognizer/"value">
 method for
 each parse series.
 
@@ -716,20 +716,20 @@ with no duplication.
 By default, the order is arbitrary, but
 it is also possible to control the order.
 Details are in L<the document
-on parse order|Marpa::XS::Semantics::Order>.
+on parse order|Marpa::PP::Semantics::Order>.
 
 =head1 CONTEXT-AWARE STATIC METHODS
 
-=for Marpa::XS::Display
-name: Marpa::XS::token_location example
+=for Marpa::PP::Display
+name: Marpa::PP::token_location example
 perltidy: '-dcsc -sil=0'
 
     sub rank_null_a {
         return \( ( $MyTest::MAXIMAL ? -1 : 1 )
-            * 10**( 3 - Marpa::XS::token_location() ) );
+            * 10**( 3 - Marpa::PP::token_location() ) );
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Ranking Perl closures
 have
@@ -741,11 +741,11 @@ static methods are available for the
 ranking actions only.
 This may change in the future.
 
-=head2 Marpa::XS::location
+=head2 Marpa::PP::location
 
 Returns the earleme location of the origin (or start) of the rule.
 
-=head2 Marpa::XS::token_location
+=head2 Marpa::PP::token_location
 
 Returns the earleme location of the token.
 Intended for use in callbacks
@@ -773,29 +773,29 @@ of infinite loops.
 But practical interest in this seems non-existent.
 For those curious,
 further details can be found in a L<separate
-document|Marpa::XS::Semantics::Infinite>.
+document|Marpa::PP::Semantics::Infinite>.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::PP.  Marpa::PP is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::PP is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::PP.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 =cut
 

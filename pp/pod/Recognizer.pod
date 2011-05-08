@@ -15,23 +15,23 @@
 
 =head1 NAME
 
-Marpa::XS::Recognizer - Marpa Recognizer Objects
+Marpa::PP::Recognizer - Marpa Recognizer Objects
 
 =head1 SYNOPSIS
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::PP::Recognizer->new( { grammar => $grammar } );
     $recce->read( 'Number', 42 );
     $recce->read( 'Multiply', );
     $recce->read( 'Number', 1 );
     $recce->read( 'Add', );
     $recce->read( 'Number', 7 );
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 =head1 DESCRIPTION
 
@@ -59,7 +59,7 @@ This document will describe only the token-stream model of input.
 Marpa allows other models of the input, but their use
 requires special method calls,
 which are described in L<the
-document on alternative input models|Marpa::XS::Advanced::Models>.
+document on alternative input models|Marpa::PP::Advanced::Models>.
 Any application that restricts itself to reading input
 using the methods
 described in this document will be using the default, token-stream,
@@ -69,14 +69,14 @@ model of input.
 
 =head2 new
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::PP::Recognizer->new( { grammar => $grammar } );
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 The C<new> method creates a recognizer object.
 The C<new> method either returns a new recognizer object or throws an exception.
@@ -92,14 +92,14 @@ The named arguments are described L<below|/"NAMED ARGUMENTS">.
 
 =head2 current_earleme
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Debug Example Part 2
 partial: 1
 normalize-whitespace: 1
 
     my $current_earleme = $recce->current_earleme();
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Returns the current parse location,
 also known as the current earleme.
@@ -107,14 +107,14 @@ Not often needed.
 
 =head2 terminals_expected
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Recognizer terminals_expected Synopsis
 partial: 1
 normalize-whitespace: 1
 
     my $terminals_expected = $recce->terminals_expected();
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Returns a reference to a list of strings,
 where the strings are the
@@ -127,13 +127,13 @@ This is highly useful for Ruby Slippers parsing.
 
 =head2 check_terminal
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Recognizer check_terminal Synopsis
 normalize-whitespace: 1
 
     my $is_document_a_terminal = $recce->check_terminal('Document');
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Returns a Perl true when its argument is the name of a terminal symbol.
 Otherwise, returns a Perl false.
@@ -143,13 +143,13 @@ Not often needed.
 
 =head2 set
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Recognizer set Synopsis
 normalize-whitespace: 1
 
     $recce->set( { max_parses => 10, } );
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 The C<set> method's arguments are references to hashes of named
 arguments.
@@ -160,7 +160,7 @@ Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
 
 =head2 read
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -171,7 +171,7 @@ normalize-whitespace: 1
     $recce->read( 'Add', );
     $recce->read( 'Number', 7 );
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 The C<read> method reads one token at the current parse location
 (or current earleme).
@@ -184,7 +184,7 @@ The token value is optional.
 It defaults to a Perl C<undef>
 when not specified.
 For details about terminal symbols,
-see L<Marpa::XS::Grammar/"Terminals">.
+see L<Marpa::PP::Grammar/"Terminals">.
 
 The parser may accept or reject the token.
 If the parser accepted the token,
@@ -231,7 +231,7 @@ It is described in L<its own section|/"EVALUATION">.
 
 =head2 show_earley_sets
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: show_earley_sets Synopsis
 partial: 1
 normalize-whitespace: 1
@@ -239,7 +239,7 @@ normalize-whitespace: 1
     print $recce->show_earley_sets()
         or die "print failed: $ERRNO";
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 An advanced, internals-oriented tracing method,
 which will not be of interest to most users.
@@ -254,7 +254,7 @@ requires knowledge of Marpa internals to interpret.
 
 =head2 show_progress
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: show_progress Synopsis
 partial: 1
 normalize-whitespace: 1
@@ -262,7 +262,7 @@ normalize-whitespace: 1
     print $recce->show_progress()
         or die "print failed: $ERRNO";
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Returns a string describing the progress of the parse.
 With no arguments,
@@ -298,7 +298,7 @@ A much fuller description,
 with an example,
 is in
 L<the document on debugging Marpa
-grammars|Marpa::XS::Debug>.
+grammars|Marpa::PP::Debug>.
 
 =head1 NAMED ARGUMENTS
 
@@ -323,7 +323,7 @@ the C<value> method.
 
 The default is for parse results to be returned in arbitrary order.
 For details, see L<the section on parse order in the semantics
-document|Marpa::XS::Semantics/"PARSE ORDER">.
+document|Marpa::PP::Semantics/"PARSE ORDER">.
 
 =head2 too_many_earley_items
 
@@ -386,13 +386,13 @@ Usually, an application will want to leave them on.
 
 =head1 RUBY SLIPPERS PARSING
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Engine Synopsis Interactive Parse
 partial: 1
 normalize-whitespace: 1
 
     $recce =
-        Marpa::XS::Recognizer->new( { grammar => $grammar } );
+        Marpa::PP::Recognizer->new( { grammar => $grammar } );
 
     my @tokens = (
         [ 'Number', 42 ],
@@ -406,7 +406,7 @@ normalize-whitespace: 1
             or die q{Don't know how to fix things};
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Marpa is able to tell the application
 which symbols are acceptable as tokens at the next location
@@ -486,7 +486,7 @@ they are looking for", no other input is acceptable.
 
 =head1 EVALUATION
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -494,7 +494,7 @@ normalize-whitespace: 1
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 The C<value> method call evaluates and returns a parse result.
 Its arguments are zero or more hashes of named arguments.
@@ -533,7 +533,7 @@ the C<closures> named argument is to
 allow anonymous
 subroutines to be semantic actions.
 For more details, see L<the document on
-semantics|Marpa::XS::Semantics>.
+semantics|Marpa::PP::Semantics>.
 
 =head2 max_parses
 
@@ -581,25 +581,25 @@ Traces are written to the trace file handle.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::PP.  Marpa::PP is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::PP is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::PP.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 =cut
 

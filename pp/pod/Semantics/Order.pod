@@ -1,27 +1,27 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::PP.  Marpa::PP is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::PP is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::PP.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Semantics::Order - How Marpa Ranks Ambiguous Parses
+Marpa::PP::Semantics::Order - How Marpa Ranks Ambiguous Parses
 
 =head1 DESCRIPTION
 
 This document details the order in which
 the recognizer's
-L<C<value>|Marpa::XS::Recognizer/"value">
+L<C<value>|Marpa::PP::Recognizer/"value">
 method
 returns parse results.
 The same mechanism allows the selection of parse results.
@@ -49,7 +49,7 @@ Marpa will never return the same parse result twice.
 
 By calling
 the recognizer's
-L<C<value>|Marpa::XS::Recognizer/"value">
+L<C<value>|Marpa::PP::Recognizer/"value">
 method
 repeatedly,
 Marpa can produce all the parse results
@@ -57,7 +57,7 @@ for a given parse.
 The default is for the parse results to be returned
 in an arbitrary order.
 This corresponds to the "C<none>" value of
-L<the recognizer's C<ranking_method>|Marpa::XS::Recognizer/"ranking_method">
+L<the recognizer's C<ranking_method>|Marpa::PP::Recognizer/"ranking_method">
 named argument.
 
 =head2 A General Approach to Sorting Parses
@@ -90,7 +90,7 @@ and simple enough that Marpa is able to optimize it.
 The Constant Ranking Method
 is specified by giving
 the recognizer's
-L<C<ranking_method>|Marpa::XS::Recognizer/"ranking_method">
+L<C<ranking_method>|Marpa::PP::Recognizer/"ranking_method">
 a value of "C<constant>".
 
 The basic idea is to allow the user to specify constant values for
@@ -157,14 +157,14 @@ For the rank of a node to be calculated, the ranking action
 must first be resolved to a ranking Perl closure. 
 Ranking action names are resolved to ranking Perl closures
 in the L<Ranking
-Phase|Marpa::XS::Semantics/"Ranking Phase">,
+Phase|Marpa::PP::Semantics/"Ranking Phase">,
 using the same logic that resolves semantic actions to 
 semantic Perl closures.
 The logic that resolves action names to Perl closures is described
-elsewhere (L<Marpa::XS::Semantics/"RESOLVING ACTION NAMES">).
+elsewhere (L<Marpa::PP::Semantics/"RESOLVING ACTION NAMES">).
 The ranking Perl closures are both resolved and called in a single
 L<Ranking
-Phase|Marpa::XS::Semantics/"Ranking Phase">.
+Phase|Marpa::PP::Semantics/"Ranking Phase">.
 
 =head2 Exploiting Side Effects
 
@@ -210,25 +210,25 @@ is O(e**n).
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::PP.  Marpa::PP is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::PP is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::PP.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 =cut
 

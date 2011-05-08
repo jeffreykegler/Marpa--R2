@@ -1,32 +1,32 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::PP.  Marpa::PP is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::PP is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::PP.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Support - Marpa::XS Support, and How to Report Bugs
+Marpa::PP::Support - Marpa::PP Support, and How to Report Bugs
 
 =head1 DESCRIPTION
 
-Marpa::XS is free software.
+Marpa::PP is free software.
 There is no warranty.
 
 =head1 BUGS
 
 Please report any bugs or feature requests to
 C<bug-marpa-xs at rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa::XS>.
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa::PP>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
 
@@ -34,12 +34,12 @@ your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
-    perldoc Marpa::XS
+    perldoc Marpa::PP
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
     
 You can also look for information at:
 
@@ -51,39 +51,39 @@ L<http://annocpan.org/>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Marpa-XS>
+L<http://cpanratings.perl.org/d/Marpa-PP>
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa-XS>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa-PP>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Marpa-XS>
+L<http://search.cpan.org/dist/Marpa-PP>
 
 =back
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::PP.  Marpa::PP is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::PP is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::PP.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 =cut
 

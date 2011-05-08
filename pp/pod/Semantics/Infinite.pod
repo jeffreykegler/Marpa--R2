@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Semantics::Infinite - How Marpa Deals with Infinite Cycles
+Marpa::PP::Semantics::Infinite - How Marpa Deals with Infinite Cycles
 
 =head1 INFINITELY AMBIGUOUS GRAMMARS
 
@@ -25,7 +25,7 @@ called a B<cycle> or a B<loop>.)
 
 An example of an infinitely ambiguous grammar is the following:
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
     S ::= A
@@ -33,12 +33,12 @@ ignore: 1
     B ::= A
     B :: 'x'
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Given the input 'x', this grammar will produce
 these parses 
  
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
     S -> A -> B -> x
@@ -48,7 +48,7 @@ ignore: 1
     .
     .
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Because of the two rules C<A ::= B> and C<B ::= A>,
 this list of parses could go on forever.
@@ -63,7 +63,7 @@ This is the behavior most users will want.
 To proceed to producing parse results from an infinitely ambiguous grammar,
 the user must set
 the grammar's
-L<C<infinite_action>|Marpa::XS::Grammar/"infinite_action">
+L<C<infinite_action>|Marpa::PP::Grammar/"infinite_action">
 named argument
 to a value other than "C<fatal>".
 The other choices are "C<warn>"
@@ -87,14 +87,14 @@ infinitely ambiguous grammar.
 Here are those parses again, this time
 labeled with their cycle length.
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
     Cycle length 1: S -> A -> B -> x
     Cycle length 2: S -> A -> B -> A -> B -> x
     Cycle length 3: S -> A -> B -> A -> B -> A -> B -> x
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 Of the parse results in the above list, Marpa would return a value
 only for the first,
@@ -139,25 +139,25 @@ by Marpa's internals.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::PP.  Marpa::PP is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::PP is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::PP.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 =cut
 

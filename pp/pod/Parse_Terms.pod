@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Parse_Terms - Standard Parsing Terms used in the Marpa Documents
+Marpa::PP::Parse_Terms - Standard Parsing Terms used in the Marpa Documents
 
 =head1 DESCRIPTION
 
@@ -30,9 +30,9 @@ terse and should look elsewhere first.
 
 As an introduction, I recommend
 L<Mark Jason Dominus's
-excellent chapter on parsing in the Perl context|Marpa::XS::Advanced::Bibliography/"Dominus 2005">.
+excellent chapter on parsing in the Perl context|Marpa::PP::Advanced::Bibliography/"Dominus 2005">.
 It's available on-line.
-L<Wikipedia|Marpa::XS::Advanced::Bibliography/"Wikipedia"> is also an excellent place to start.
+L<Wikipedia|Marpa::PP::Advanced::Bibliography/"Wikipedia"> is also an excellent place to start.
 
 All the definitions here are consistent with
 at least some of the textbook definitions,
@@ -83,12 +83,12 @@ and B<lexical analysis> is often called B<lexing> or B<scanning>.
 A standard way of describing rules is Backus-Naur Form, or B<BNF>.
 In one common way of writing BNF, a production looks like this.
 
-=for Marpa::XS::Display:
+=for Marpa::PP::Display:
 ignore: 1
 
     Expression ::= Term Factor
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 In the production above, C<Expression>, C<Term> and C<Factor> are symbols.
 A production consists of a B<left hand side> and a B<right hand side>.
@@ -118,21 +118,21 @@ and replacing any occurrence of the LHS symbol in the symbol string with the
 RHS of the production.  For example, if C<A>, C<B>, C<C>, C<D>, and C<X> are symbols,
 and
 
-=for Marpa::XS::Display:
+=for Marpa::PP::Display:
 ignore: 1
 
     X ::= B C
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 is a production, then
 
-=for Marpa::XS::Display:
+=for Marpa::PP::Display:
 ignore: 1
 
     A X D -> A B C D
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 is a derivation step, with "C<A X D>" as its beginning and "C<A B C D>" as its end or result.
 We say that the symbol string "C<A X D>"
@@ -324,25 +324,25 @@ The value of a parse is the value of its start symbol.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::PP::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::PP.  Marpa::PP is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::PP is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::PP.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::PP::Display::End
 
 =cut
 
