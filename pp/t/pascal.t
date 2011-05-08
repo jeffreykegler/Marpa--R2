@@ -33,7 +33,7 @@ BEGIN {
 sub ah_extended {
     my $n = shift;
 
-    my $g = Marpa::XS::Grammar->new(
+    my $g = Marpa::Grammar->new(
         {   start => 'S',
 
             rules => [
@@ -50,7 +50,7 @@ sub ah_extended {
     );
     $g->precompute();
 
-    my $recce = Marpa::XS::Recognizer->new( { grammar => $g } );
+    my $recce = Marpa::Recognizer->new( { grammar => $g } );
 
     $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x ($n) ] );
 
@@ -85,7 +85,7 @@ my @answers = (
 for my $a ( ( 0 .. 5 ), 10 ) {
 ## use critic
 
-    Marpa::XS::Test::is( ah_extended($a), $answers[$a],
+    Marpa::Test::is( ah_extended($a), $answers[$a],
         "Row $a of Pascal's triangle matches parse counts" );
 
 } ## end for my $a ( ( 0 .. 5 ), 10 )
