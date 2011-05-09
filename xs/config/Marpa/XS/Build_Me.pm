@@ -31,7 +31,7 @@ use English qw( -no_match_vars );
 use Marpa::XS::Config;
 
 my @marpa_xs_use =
-    qw( Scalar::Util List::Util Carp Data::Dumper Storable ExtUtils::PkgConfig Glib );
+    qw( Scalar::Util List::Util Carp Data::Dumper ExtUtils::PkgConfig Glib Marpa::PP );
 my @marpa_xs_perl_use = qw( Scalar::Util Carp Data::Dumper PPI Marpa::XS );
 
 sub version_contents {

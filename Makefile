@@ -13,7 +13,7 @@
 # General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: libs dummy
+.PHONY: libs dummy full pp_html_test xs_html_test pp_etc_make xs_etc_make
 
 dummy: 
 
@@ -38,3 +38,5 @@ pp_etc_make:
 xs_etc_make: libs
 	(cd xs/etc;  \
 	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB make)
+
+full: pp_etc_make lib xs_etc_make pp_html_test xs_html_test
