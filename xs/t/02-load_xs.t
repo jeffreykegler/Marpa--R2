@@ -32,8 +32,8 @@ Test::More::ok( ( defined $Marpa::XS::VERSION ),
 Test::More::ok( ( defined $Marpa::XS::STRING_VERSION ),
     'XS string version is ' . $Marpa::XS::STRING_VERSION );
 
-Test::More::ok( ( not defined &Marpa::XS::version ),
-    'Marpa::XS::version not defined' );
+Test::More::ok( ( defined &Marpa::XS::version ),
+    'Marpa::XS::version defined' );
 
 Test::More::ok( ( not defined $Marpa::XS::Internal::{check_version}{CODE} ),
     'Pure Perl mode' );

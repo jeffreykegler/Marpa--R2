@@ -179,7 +179,7 @@ sub Marpa::XS::Internal::code_problems {
         if ($warnings_count) {
             push @problems,
                 "* THERE WERE $warnings_count WARNING(S) IN THE MARPA SEMANTICS:",
-                'Marpa::XS treats warnings as fatal errors';
+                'Marpa treats warnings as fatal errors';
         }
         if ( not scalar @problems ) {
             push @msg, '* THERE WAS A FATAL PROBLEM IN THE MARPA SEMANTICS';
@@ -526,7 +526,7 @@ sub Marpa::XS::Grammar::precompute {
         if ( $error eq 'counted nullable' ) {
             Marpa::exception(
 		Marpa::XS::Grammar::show_problems($grammar),
-                'Counted nullables confuse Marpa::XS -- please rewrite the grammar'
+                'Counted nullables confuse Marpa -- please rewrite the grammar'
             );
         }
 	if ($error eq 'no start symbol') {
