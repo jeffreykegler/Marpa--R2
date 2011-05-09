@@ -5535,18 +5535,6 @@ earley_set_new( RECCE r, Marpa_Earleme id)
     }
 }
 
-@*0 Comparison Function.
-@<Function definitions@> =
-static gint 
-earley_set_cmp( gconstpointer ap, gconstpointer bp)
-{
-    const struct s_earley_set_key* set_key_a = ap;
-    const struct s_earley_set_key* set_key_b = bp;
-    return set_key_a->t_earleme - set_key_b->t_earleme;
-}
-@ @<Private function prototypes@> =
-static gint earley_set_cmp( gconstpointer a, gconstpointer b);
-
 @*0 ID of Earley Set.
 @d Earleme_of_ES(set) ((set)->t_key.t_earleme)
 
