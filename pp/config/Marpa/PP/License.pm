@@ -228,10 +228,11 @@ sub file_type {
     return $closure if defined $closure;
     my ( $volume, $dirpart, $filepart ) = File::Spec->splitpath($filename);
     my @dirs = grep {length} File::Spec->splitdir($dirpart);
-    return sub {;}
-        if scalar @dirs >= 2
-            and $dirs[0] eq 'libmarpa'
-            and $dirs[1] eq 'orig';
+    return \&trivial
+        if scalar @dirs == 2
+            and $dirs[0] eq 't'
+            and $dirs[1] eq 'shared'
+	    and $filepart =~ /[.]t\z/xms;
     return sub {;}
         if scalar @dirs >= 1 and $dirs[0] eq 'html' ;
     return \&trivial if $filepart eq '.gitignore';
