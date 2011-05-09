@@ -21,14 +21,14 @@ use strict;
 use integer;
 
 use English qw( -no_match_vars );
-use Marpa::XS::Internal::Carp_Not;
+use Marpa::PP::Internal::Carp_Not;
 
 # This perlcritic check is broken as of 9 Aug 2010
 ## no critic (TestingAndDebugging::ProhibitNoWarnings)
 no warnings qw(qw);
 ## use critic
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Or_Node
 
@@ -48,7 +48,7 @@ use Marpa::XS::Offset qw(
     =LAST_FIELD
 );
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::And_Node
 
@@ -83,7 +83,7 @@ use Marpa::XS::Offset qw(
 
 );
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Iteration_Node
 
@@ -108,7 +108,7 @@ use Marpa::XS::Offset qw(
 
 );
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Task
 
@@ -126,7 +126,7 @@ use Marpa::XS::Offset qw(
 
 );
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Op
 
@@ -141,7 +141,7 @@ use Marpa::XS::Offset qw(
 
 );
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Choice
 
@@ -2239,7 +2239,7 @@ sub Marpa::XS::Recognizer::value {
                             "Too many or-nodes for evaluator: $predecessor_id"
                             )
                             if $predecessor_id
-                                & ~(Marpa::XS::Internal::N_FORMAT_MAX);
+                                & ~(Marpa::PP::Internal::N_FORMAT_MAX);
                         $predecessor_or_node
                             ->[Marpa::XS::Internal::Or_Node::ORIGIN] =
                             $work_or_node_origin;
@@ -2320,7 +2320,7 @@ sub Marpa::XS::Recognizer::value {
                             Marpa::XS::exception(
                                 "Too many or-nodes for evaluator: $cause_id")
                                 if $cause_id
-                                    & ~(Marpa::XS::Internal::N_FORMAT_MAX);
+                                    & ~(Marpa::PP::Internal::N_FORMAT_MAX);
                             $cause_or_node->[Marpa::XS::Internal::Or_Node::ORIGIN] = $middle_earleme;
                             $cause_or_node->[Marpa::XS::Internal::Or_Node::SET] = $work_set;
                             $cause_or_node->[Marpa::XS::Internal::Or_Node::ID]
@@ -2392,7 +2392,7 @@ sub Marpa::XS::Recognizer::value {
                     $work_set;
                 my $id = ( push @{$and_nodes}, $and_node ) - 1;
                 Marpa::XS::exception("Too many and-nodes for evaluator: $id")
-                    if $id & ~(Marpa::XS::Internal::N_FORMAT_MAX);
+                    if $id & ~(Marpa::PP::Internal::N_FORMAT_MAX);
                 $and_node->[Marpa::XS::Internal::And_Node::ID] = $id;
 
                 {

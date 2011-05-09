@@ -20,18 +20,7 @@ use strict;
 
 use Test::More tests => 5;
 
-use Carp;
-use Data::Dumper;
-
-package Marpa;
-our $USE_XS;
-
-package main;
-
 BEGIN {
-
-    # force perl-only version to be tested
-    $Marpa::USE_XS = 1;
     Test::More::use_ok('Marpa::XS');
 } ## end BEGIN
 

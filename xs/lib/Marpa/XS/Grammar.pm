@@ -31,7 +31,7 @@ use strict;
 use integer;
 use utf8;
 
-use Marpa::XS::Internal::Carp_Not;
+use Marpa::PP::Internal::Carp_Not;
 
 =begin Implementation:
 
@@ -44,7 +44,7 @@ what in C would be structures.
 
 =cut
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
     :package=Marpa::XS::Internal::Symbol
     ID { Unique ID }
     NAME
@@ -54,7 +54,7 @@ use Marpa::XS::Offset qw(
     if not }
 );
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Rule
 
@@ -68,7 +68,7 @@ use Marpa::XS::Offset qw(
 # Vestige of former Perl implementation of AHFA states.
 # It now includes only a list of the complete rules.
 # Indexed by AHFA ID.
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::AHFA
     COMPLETE_RULES { an array of lists of the complete rules,
@@ -76,7 +76,7 @@ use Marpa::XS::Offset qw(
     =LAST_FIELD
 );
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Grammar
 
@@ -124,7 +124,7 @@ package Marpa::XS::Internal::Grammar;
 
 use English qw( -no_match_vars );
 
-use Marpa::XS::Internal::Carp_Not;
+use Marpa::PP::Internal::Carp_Not;
 
 sub Marpa::XS::Internal::code_problems {
     my $args = shift;

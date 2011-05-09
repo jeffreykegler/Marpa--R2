@@ -37,7 +37,7 @@ use English qw( -no_match_vars );
 # around for debugging.
 
 # Elements of the RECOGNIZER structure
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Recognizer
 
@@ -91,7 +91,7 @@ use Marpa::XS::Offset qw(
 
 package Marpa::XS::Internal::Recognizer;
 
-use Marpa::XS::Internal::Carp_Not;
+use Marpa::PP::Internal::Carp_Not;
 
 use English qw( -no_match_vars );
 
@@ -721,7 +721,7 @@ sub Marpa::XS::Recognizer::show_earley_sets {
     return $text;
 } ## end sub Marpa::XS::Recognizer::new_show_earley_sets
 
-use Marpa::XS::Offset qw(
+use Marpa::Offset qw(
 
     :package=Marpa::XS::Internal::Progress_Report
 
