@@ -27,10 +27,10 @@ BEGIN {
 defined $INC{'Marpa/XS.pm'}
     or Test::More::BAIL_OUT('Could not load Marpa::XS');
 
-Test::More::ok( ( not defined $Marpa::XS::VERSION ),
-    'XS version not defined' );
-Test::More::ok( ( not defined $Marpa::XS::STRING_VERSION ),
-    'XS string version not defined' );
+Test::More::ok( ( defined $Marpa::XS::VERSION ),
+    'XS version is ' . $Marpa::XS::VERSION );
+Test::More::ok( ( defined $Marpa::XS::STRING_VERSION ),
+    'XS string version is ' . $Marpa::XS::STRING_VERSION );
 
 Test::More::ok( ( not defined &Marpa::XS::version ),
     'Marpa::XS::version not defined' );
