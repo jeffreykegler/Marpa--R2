@@ -83,7 +83,9 @@ sub c_comment {
 } ## end sub c_comment
 
 my $c_license          = c_comment($license);
-my $hash_license       = hash_comment($license);
+my $xs_hash_license       = hash_comment($license);
+my $pp_hash_license       = $xs_hash_license;
+$pp_hash_license =~ s/Marpa[:][:]XS/Marpa::PP/gxms;
 my $tex_closed_license = hash_comment( $closed_license, q{%} );
 my $tex_license        = hash_comment( $license, q{%} );
 my $indented_license   = $license;
@@ -240,6 +242,11 @@ sub file_type {
     return $closure if defined $closure;
     my ( $volume, $dirpart, $filepart ) = File::Spec->splitpath($filename);
     my @dirs = grep {length} File::Spec->splitdir($dirpart);
+    return \&license_problems_in_pp_perl_file
+        if scalar @dirs >= 2
+            and $dirs[0] eq 't'
+            and $dirs[1] eq 'common'
+	    and $filepart =~ /[.]t\z/xms;
     return sub {;}
         if scalar @dirs >= 2
             and $dirs[0] eq 'libmarpa'
@@ -249,9 +256,9 @@ sub file_type {
     return \&trivial if $filepart eq '.gitignore';
     return \&check_GNU_copyright
         if $GNU_file{$filename};
-    return \&license_problems_in_perl_file
+    return \&license_problems_in_xs_perl_file
         if $filepart =~ /[.] (t|pl|pm|PL) \z /xms;
-    return \&license_problems_in_perl_file
+    return \&license_problems_in_xs_perl_file
         if $filepart eq 'typemap';
     return \&license_problems_in_pod_file if $filepart =~ /[.]pod \z/xms;
     return \&license_problems_in_c_file
@@ -368,29 +375,40 @@ sub license_problems_in_license_file {
 sub license_problems_in_hash_file {
     my ( $filename, $verbose ) = @_;
     my @problems = ();
-    my $text = slurp_top( $filename, length $hash_license );
-    if ( $hash_license ne ${$text} ) {
+    my $text = slurp_top( $filename, length $xs_hash_license );
+    if ( $xs_hash_license ne ${$text} ) {
         my $problem = "No license language in $filename (hash style)\n";
         if ($verbose) {
             $problem
                 .= "=== Differences ===\n"
-                . Text::Diff::diff( $text, \$hash_license )
+                . Text::Diff::diff( $text, \$xs_hash_license )
                 . ( q{=} x 30 );
         } ## end if ($verbose)
         push @problems, $problem;
-    } ## end if ( $hash_license ne ${$text} )
+    } ## end if ( $xs_hash_license ne ${$text} )
     if ( scalar @problems and $verbose >= 2 ) {
         my $problem =
               "=== license for $filename should be as follows:\n"
-            . $hash_license
+            . $xs_hash_license
             . ( q{=} x 30 );
         push @problems, $problem;
     } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
 } ## end sub license_problems_in_hash_file
 
-sub license_problems_in_perl_file {
+sub license_problems_in_pp_perl_file {
     my ( $filename, $verbose ) = @_;
+    return license_problems_in_perl_file( $filename, 'pp', $verbose);
+}
+
+sub license_problems_in_xs_perl_file {
+    my ( $filename, $verbose ) = @_;
+    return license_problems_in_perl_file( $filename, 'xs', $verbose);
+}
+
+sub license_problems_in_perl_file {
+    my ( $filename, $type, $verbose ) = @_;
+    my $hash_license = $type eq 'pp' ? $pp_hash_license : $xs_hash_license;
     my @problems = ();
     my $text = slurp_top( $filename, 132 + length $hash_license );
 
@@ -531,7 +549,7 @@ sub license_problems_in_pod_file {
 
     # Pod files are Perl files, and should also have the
     # license statement at the start of the file
-    my @problems = license_problems_in_perl_file( $filename, $verbose );
+    my @problems = license_problems_in_xs_perl_file( $filename, $verbose );
 
     my $text = ${ slurp($filename) };
     if ( $text =~ m/ ^ [=]head1 \s+ COPYRIGHT \s+ AND \s+ LICENSE /xmsp ) {
