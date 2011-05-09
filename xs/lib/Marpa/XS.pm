@@ -72,6 +72,7 @@ my $version_wanted = '0.1.0';
 Carp::croak('Marpa::XS ', "fails version check, wanted $version_wanted, found $version_found")
     if $version_wanted ne $version_found;
 
+require Marpa::PP::Slot;
 require Marpa::XS::Grammar;
 require Marpa::XS::Recognizer;
 require Marpa::XS::Value;
