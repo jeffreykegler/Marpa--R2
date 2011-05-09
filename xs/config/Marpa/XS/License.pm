@@ -243,9 +243,15 @@ sub file_type {
     my ( $volume, $dirpart, $filepart ) = File::Spec->splitpath($filename);
     my @dirs = grep {length} File::Spec->splitdir($dirpart);
     return \&license_problems_in_pp_perl_file
-        if scalar @dirs >= 2
+        if scalar @dirs == 3
             and $dirs[0] eq 't'
-            and $dirs[1] eq 'common'
+            and $dirs[1] eq 'shared'
+            and $dirs[2] eq 'common'
+	    and $filepart =~ /[.]t\z/xms;
+    return \&trivial
+        if scalar @dirs == 2
+            and $dirs[0] eq 't'
+            and $dirs[1] eq 'shared'
 	    and $filepart =~ /[.]t\z/xms;
     return sub {;}
         if scalar @dirs >= 2
