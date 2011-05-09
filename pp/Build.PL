@@ -25,7 +25,7 @@ use File::Path;
 use Config;
 use Module::Build;
 
-my $marpa_pp_version = '0.005_000';
+my $marpa_pp_version = '0.005_001';
 
 use lib File::Spec->catdir('config');
 use Marpa::PP::Build_Me;
