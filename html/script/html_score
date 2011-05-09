@@ -1,0 +1,262 @@
+#!/usr/bin/perl
+
+use 5.010;
+use strict;
+use warnings;
+use English qw( -no_match_vars );
+use Marpa::HTML;
+use List::Util qw(sum);
+use Fatal qw(open close);
+use Getopt::Long;
+
+my $html;
+Carp::croak("usage: $0") unless GetOptions( 'html' => \$html );
+
+my $locator = shift;
+my $document;
+if ($locator =~ /^[a-zA-Z0-9]+[:]/) {
+    require WWW::Mechanize;
+    my $mech = WWW::Mechanize->new( autocheck => 1 );
+    $mech->get( $locator );
+    $document = $mech->content;
+    undef $mech;
+} else {
+    local $RS = undef;
+    open my $fh, q{<}, $locator;
+    $document = <$fh>;
+    close $fh;
+}
+
+sub calculate_max_depths {
+    my ($descendant_data) = @_;
+    my %return_depths = ( ANY => 0 );
+    for my $child_value ( grep { ref $_ } map { $_->[0] } @{$descendant_data} ) {
+        my $depths = $child_value->{depths};
+        CHILD_TAGNAME: for my $child_tagname ( keys %{$depths} ) {
+            my $depth = $depths->{$child_tagname};
+            if ( $depth > ( $return_depths{$child_tagname} // 0 ) ) {
+                $return_depths{$child_tagname} = $depth;
+            }
+            if ( $depth > $return_depths{ANY} ) {
+                $return_depths{ANY} = $depth;
+            }
+        } ## end for my $child_tagname ( keys %{$depths} )
+    } ## end for my $child_value ( grep { ref $_ } map { $_->[0] }...)
+    return \%return_depths;
+} ## end sub calculate_max_depths
+
+sub calculate_length {
+    my ($descendant_data) = @_;
+    my $length = 0;
+    CHILD: for my $descendant_data ( @{$descendant_data} ) {
+        my ( $value, $literal ) = @{$descendant_data};
+        if ( defined $value ) {
+            $length += $value->{length};
+            next CHILD;
+        }
+        $length += ( $literal =~ tr/\t\f \x{200B}//c );
+    } ## end for my $descendant_data ( @{$descendant_data} )
+    return $length;
+} ## end sub calculate_length
+
+my ( $instance, $value ) = @{
+    Marpa::HTML::html(
+        \$document,
+        {   ':COMMENT' => sub { return { depths => {}, length => 0 } },
+            q{*}       => sub {
+                my $descendant_data = Marpa::HTML::descendants('value,literal');
+                my $tagname    = Marpa::HTML::tagname();
+                my $length     = calculate_length($descendant_data);
+                $Marpa::HTML::INSTANCE->{count}->{$tagname}++;
+                $Marpa::HTML::INSTANCE->{length}->{$tagname} += $length;
+                my $return_depths = calculate_max_depths($descendant_data);
+                ( $return_depths->{$tagname} //= 0 )++;
+                $return_depths->{ANY}++;
+                return {
+                    depths => $return_depths,
+                    length => $length,
+                };
+            },
+            ':TOP' => sub {
+                my $descendant_data = Marpa::HTML::descendants('value,literal');
+                return [
+                    $Marpa::HTML::INSTANCE,
+                    {   depths => calculate_max_depths($descendant_data),
+                        length => calculate_length($descendant_data),
+                    },
+                ];
+            },
+        },
+    )
+    };
+
+my $length_by_element = $instance->{length};
+my $count_by_element = $instance->{count};
+my $html_length = $length_by_element->{html};
+my $total_lengths = List::Util::sum values %{ $length_by_element };
+my $complexity = sprintf "%.3f", ($total_lengths / ($html_length * log ($html_length)));
+my $max_depths = $value->{depths};
+my $max_element_depth = $max_depths->{ANY};
+delete $max_depths->{ANY};
+
+if ($html) {
+print qq{<table cellpadding="3" border="1">}
+    . qq{<thead>\n}
+    . qq{<tr><th colspan="5">$locator</tr>\n}
+    . qq{<tr><th colspan="5">Complexity Score = $complexity</tr>\n}
+    . qq{<tr><th colspan="5">Maximum Depth = $max_element_depth</tr>\n}
+    . qq{<tr>}
+    . qq{<th>Element}
+    . qq{<th>Maximum<br>Nesting}
+    . qq{<th>Number of<br>Elements}
+    . qq{<th>Size in<br>Characters</th>}
+    . qq{<th>Average<br>Size</th>}
+    . qq{</tr>\n}
+    . qq{</thead>\n};
+} else {
+    say $locator;
+    say "Complexity Score = ", $complexity;
+    say "Maximum Depth = ", $max_element_depth;
+    printf "%11s%11s%11s%11s%11s\n", q{}, 'Maximum ', 'Number of', 'Size in  ', 'Average';
+    printf "%11s%11s%11s%11s%11s\n", 'Element ', 'Nesting ', 'Elements ', 'Characters', 'Size  ';
+}
+
+for my $element ( sort keys %{$max_depths} ) {
+    my $count = $count_by_element->{$element};
+    my $size  = $length_by_element->{$element};
+    my $average = $count ? int( $size / $count ) : q{-};
+    if ($html) {
+    print join q{},
+        q{<tr>},
+        qq{<td>$element</td>},
+        q{<td align="right">}, $max_depths->{$element}, q{</td>},
+        qq{<td align="right">$count</td>},
+        qq{<td align="right">$size</td>},
+        qq{<td align="right">$average</td>},
+        "</tr>\n";
+    } else {
+        printf "%-11s%11d%11d%11d%11d\n", $element, $max_depths->{$element}, $count, $size, $average;
+    }
+} ## end for my $element ( sort keys %{$max_depths} )
+
+$html and print qq{</table>\n};
+
+exit 0;
+
+__END__
+
+=head1 NAME
+
+C<html_score> - Show complexity metric and other stats for web page
+
+=head1 SYNOPSIS
+
+    html_score [--html] [uri|file]
+
+=head1 EXAMPLES
+
+    html_score http://perl.org
+
+    html_score --html http://perl6.org
+
+=head1 DESCRIPTION
+
+Given a URI or a file name,
+treats its referent as HTML
+and prints a complexity metric,
+the maximum element depth, and per-element statistics.
+The per-element statistics appear in rows, one per tag name.
+For each tag name, its row contains:
+
+=over 4
+
+=item *
+The maximum nesting depth of elements with
+that tag name.
+This is per-tag-name nesting depth,
+and does not take
+into account nesting within other elements with
+other tag names.
+
+=item *
+A count of the elements with that tag name in the document.
+
+=item *
+The total number of characters in elements with that tag name.
+Characters in nested elements are counted multiple times.
+For example, if a page contains a table within a table,
+characters in the inner table will be counted twice.
+
+=item *
+The average size of elements with this tag name, in characters.
+
+=back
+
+The argument to L<html_score> can be either a URI or a file
+name.  If it starts with alphanumerics followed by a colon, it is treated
+as a URI.  Otherwise it is treated as file name.
+If the C<--html> option is specified, the output is written
+as an HTML table.
+
+The complexity metric is the average depth (or nesting level), in elements, of a character,
+divided by the logarithm of the length of the HTML.
+Whitespace and comments are ignored in calculating the complexity metric.
+The division by the logarithm of the HTML length is based on the idea that,
+all else being equal,
+it is reasonable for the nesting to increase logarithmically as
+a web page grows in length.
+
+=head1 SAMPLE OUTPUT
+
+Here is the first part of the output for C<http://perl.org>.
+
+    http://perl.org
+    Complexity Score = 0.873
+    Maximum Depth = 12
+                  Maximum   Number of  Size in      Average
+       Element    Nesting   Elements  Characters     Size  
+    a                    1         56       3533         63
+    body                 1          1       7615       7615
+    div                  5         30      24695        823
+    em                   1          1         13         13
+    h1                   1          1         37         37
+    h4                   1         11        559         50
+
+=head1 INTERPRETING THE COMPLEXITY METRIC
+
+With caution,
+the complexity metric can be used as a self-assessment
+of website quality.
+Well designed websites often have low numbers,
+particularly if fast loading is an important goal.
+But high values of the complexity metric do not necessarily mean low quality.
+Everything depends on what the mission is, and how well
+complexity is being used to serve the site's mission.
+
+=head1 PURPOSE
+
+This program is a demo of a demo.
+It purpose is to show how easy it is to write applications which look
+at the structure of web pages using L<Marpa::HTML>.
+And the purpose of L<Marpa::HTML>
+is to demonstrate the power of its parse engine,
+L<Marpa>.
+L<Marpa::HTML> was written in a few days,
+and its logic 
+is a straightforward,
+natural expression of the structure of HTML.
+
+=head1 ACKNOWLEDGMENTS
+
+The starting template for this code was
+L<HTML::TokeParser>, by Gisle Aas.
+See also the
+L<acknowledgments for Marpa as a whole|Marpa/"ACKNOWLEDGMENTS">.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2010 Jeffrey Kegler, all rights reserved.
+Marpa is free software under the Perl license.
+For details see the LICENSE file in the Marpa distribution.
+
+=cut

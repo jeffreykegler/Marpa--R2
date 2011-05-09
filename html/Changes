@@ -1,0 +1,10 @@
+Revision history for Marpa::HTML
+
+0.102000 Sun Mar 21 13:28:14 2010
+
+    * Added missing 'requires' for Marpa package.
+      Other packaging improvements.
+
+0.100000 Mon Mar 15 17:41:59 2010
+
+    * Initial release.  Formerly part of the Marpa distribution.

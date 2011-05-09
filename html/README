@@ -1,0 +1,27 @@
+Marpa::HTML
+
+This is ALPHA software.
+
+A high-level HTML parser, using the Marpa
+parser and HTML::Parser.
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+  perl Build.PL
+  ./Build
+  ./Build test
+  ./Build install  (this step may need to be done as the superuser)
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the perldoc command.
+
+    perldoc Marpa::HTML
+
+COPYRIGHT AND LICENSE
+
+Copyright 2007-2010 Jeffrey Kegler, all rights reserved.  Marpa is free
+software under the Perl license.  For details see the LICENSE file in
+the Marpa distribution.

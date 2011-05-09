@@ -1,0 +1,4 @@
+#!/bin/sh
+TMP=/tmp/tidy.$$
+perltidy --profile=perltidyrc $1 > $TMP
+mv -i $TMP $1

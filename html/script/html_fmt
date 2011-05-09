@@ -1,0 +1,364 @@
+#!/usr/bin/perl
+
+use 5.010;
+use strict;
+use warnings;
+use English qw( -no_match_vars );
+use Marpa::HTML;
+use HTML::Tagset;
+use Fatal qw(open close);
+
+my $locator = shift;
+my $document;
+if ($locator =~ /^[a-zA-Z0-9]+[:]/) {
+    require WWW::Mechanize;
+    my $mech = WWW::Mechanize->new( autocheck => 1 );
+    $mech->get( $locator );
+    $document = $mech->content;
+    undef $mech;
+} else {
+    local $RS = undef;
+    open my $fh, q{<}, $locator;
+    $document = <$fh>;
+    close $fh;
+}
+
+my $html_args = {
+    'pre' => sub {
+        my @new_line_data      = ();
+        my @following_comments = ();
+        CHILD:
+        for my $descendant_data ( @{ Marpa::HTML::descendants('value') } ) {
+            next CHILD if not defined( my $value = $descendant_data->[0] );
+            for my $line_data ( @{$value} ) {
+                given ( $line_data->[0] ) {    # depending on the type
+                    when (
+                        [ 'cruft', 'missing start tag', 'missing end tag' ] )
+                    {
+                        push @new_line_data,
+                            [
+                            $_, 0,
+                            'following pre',
+                            @{$line_data}[ 3 .. $#{$line_data} ]
+                            ];
+                    } ## end when ( [ 'cruft', 'missing start tag', ...])
+                } ## end given
+            } ## end for my $line_data ( @{$value} )
+        } ## end for my $descendant_data ( @{ Marpa::HTML::descendants('value'...)})
+        my $original = Marpa::HTML::original();
+        push @new_line_data, [ 'line', 0, $original ];
+        push @new_line_data, @following_comments;
+        return \@new_line_data;
+    },
+    ':CRUFT' => sub {
+        my $literal = Marpa::HTML::literal();
+        my @new_line_data = ( [ 'cruft', 0, 'following', $literal ] );
+        $literal =~ s/^\s+//gxms;
+        $literal =~ s/\s+$//gxms;
+        $literal =~ s/\s+/ /gxms;
+        push @new_line_data, [ 'line', 0, $literal ];
+        return \@new_line_data;
+    },
+    q{*} => sub {
+        my $tagname       = Marpa::HTML::tagname();
+        my @new_line_data = ();
+        my @descendant_data =
+            @{ Marpa::HTML::descendants('token_type,value,original') };
+        my $first_child         = $descendant_data[0];
+        my $first_content_child = 0;
+
+        if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
+            push @new_line_data, [ 'line', 0, $first_child->[2] ];
+            $first_content_child = 1;
+        }
+        else {
+            push @new_line_data,
+                [ 'missing start tag', 0, 'following', $tagname ];
+        }
+
+        my $last_child         = $descendant_data[-1];
+        my $last_content_child = $#descendant_data;
+        my $end_tag_child;
+        if ( defined $last_child->[0] and $last_child->[0] eq 'E' ) {
+            $end_tag_child = $last_child;
+            $last_content_child -= 1;
+        }
+
+        CHILD:
+        for my $descendant_data_ix ( $first_content_child .. $last_content_child )
+        {
+            my ( $token_type, $value, $original ) =
+                @{ $descendant_data[$descendant_data_ix] };
+            if ( defined $value ) {
+                for my $line_data ( @{$value} ) {
+                    my ( $type, $indent, @data ) = @{$line_data};
+                    push @new_line_data, [ $type, $indent + 1, @data ];
+                }
+                next CHILD;
+            } ## end if ( defined $value )
+            for my $line ( split /\n/xms, $original ) {
+                $line =~ s/^\s+//gxms;
+                $line =~ s/\s+$//gxms;
+                $line =~ s/\s+/ /gxms;
+                push @new_line_data, [ 'line', 1, $line ];
+            } ## end for my $line ( split /\n/xms, $original )
+        } ## end for my $descendant_data_ix ( $first_content_child .. ...)
+
+        given (1) {
+            when ( defined $end_tag_child ) {
+                push @new_line_data, [ 'line', 0, $end_tag_child->[2] ];
+            }
+            when ( not $HTML::Tagset::emptyElement{$tagname} ) {
+                push @new_line_data,
+                    [ 'missing end tag', 0, 'preceding', $tagname ];
+            }
+        } ## end given
+
+        return \@new_line_data;
+    },
+    ':TOP' => sub {
+        my $result = q{};
+        CHILD:
+        for my $descendant_data (
+            @{ Marpa::HTML::descendants('value,original') } )
+        {
+            my ( $value, $original ) = @{$descendant_data};
+            if ( defined $value ) {
+                LINE: for my $line_data ( @{$value} ) {
+                    my $type        = shift @{$line_data};
+                    my $indent      = shift @{$line_data};
+                    my $line_prefix = q{  } x $indent;
+                    if ( $type eq 'line' ) {
+                        my ($line) = @{$line_data};
+                        next LINE if $line =~ /^\s*$/;
+                        $result .= "$line_prefix$line\n";
+                        next LINE;
+                    } ## end if ( $type eq 'line' )
+                    if ( $type eq 'missing start tag' ) {
+                        my ( $location, $tagname ) = @{$line_data};
+                        given ($location) {
+                            when ('following') {
+                                $result
+                                    .= $line_prefix
+                                    . qq{<!-- Following start tag is replacement for a missing one -->\n}
+                                    . $line_prefix
+                                    . "<$tagname>\n";
+                            } ## end when ('following')
+                            when ('following pre') {
+                                $result .= $line_prefix
+                                    . qq{<!-- Inside following <pre>, a start tag is missing: <$tagname> -->\n};
+                            }
+                            default {
+                                Carp::croak(
+                                    "Internal error: unprovided-for missing start tag location: $_"
+                                );
+                            }
+                        } ## end given
+                        next LINE;
+                    } ## end if ( $type eq 'missing start tag' )
+                    if ( $type eq 'missing end tag' ) {
+                        my ( $location, $tagname ) = @{$line_data};
+                        given ($location) {
+                            when ('preceding') {
+                                $result
+                                    .= "$line_prefix</$tagname>\n"
+                                    . $line_prefix
+                                    . qq{<!-- Preceding end tag is replacement for a missing one -->\n};
+                            } ## end when ('preceding')
+                            when ('following pre') {
+                                $result .= $line_prefix
+                                    . qq{<!-- Inside following <pre>, an end tag is missing: <$tagname> -->\n};
+                            }
+                            default {
+                                Carp::croak(
+                                    "Internal error: unprovided-for missing end tag location: $_"
+                                );
+                            }
+                        } ## end given
+                        next LINE;
+                    } ## end if ( $type eq 'missing end tag' )
+                    if ( $type eq 'cruft' ) {
+                        my ( $location, $cruft ) = @{$line_data};
+                        given ($location) {
+                            when ('following') {
+                                $result
+                                    .= "$line_prefix<!-- Next line is cruft -->\n";
+                            }
+                            when ('following pre') {
+
+                                # Make sure the cruft quoted inside
+                                # the HTML comment does not
+                                # disrupt the comment.
+                                ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
+                                $safe_cruft =~ s/^/  $line_prefix/gxms;
+                                $result
+                                    .= qq{$line_prefix<!-- Inside the following <pre>, there is this cruft:\n}
+                                    . qq{$safe_cruft\n}
+                                    . qq{$line_prefix-->\n};
+                            } ## end when ('following pre')
+                            default {
+                                Carp::croak(
+                                    "Internal error: unprovided-for cruft location: $_"
+                                );
+                            }
+                        } ## end given
+                        next LINE;
+                    } ## end if ( $type eq 'cruft' )
+                    Carp::croak(
+                        qq{Internal error: unknown line data type: "$type"});
+                } ## end for my $line_data ( @{$value} )
+                next CHILD;
+            } ## end if ( defined $value )
+            LINE: for my $line ( split /\n/xms, $original ) {
+                next LINE if $line =~ /^\s*$/;
+                $line =~ s/^\s+//gxms;
+                $line =~ s/\s+$//gxms;
+                $line =~ s/\s+/ /gxms;
+                $result .= "$line\n";
+            } ## end for my $line ( split /\n/xms, $original )
+        } ## end for my $descendant_data ( @{ Marpa::HTML::descendant_data(...)})
+        return $result;
+    },
+};
+
+print Marpa::HTML::html( \$document, $html_args );
+
+exit 0;
+
+__END__
+
+=head1 NAME
+
+C<html_fmt> - Reformat HTML, indented according to structure
+
+=head1 SYNOPSIS
+
+    html_fmt [uri|file]
+
+=head1 EXAMPLE
+
+    html_fmt http://perl.org
+
+=head1 DESCRIPTION
+
+Given the URI or the name of a file,
+writes it to C<STDOUT>
+reformatted and
+indented according to the HTML structure.
+Missing start and end tags are supplied and
+comments added to indicate this.
+Text inside
+C<< <pre> >> elements 
+is not altered.
+
+L<html_fmt> tries to parse everything that is actually out there on the Web.
+In fact,
+L<html_fmt> will assume any file fed to it was intended as HTML,
+and will produce its best guess of the author's intent.
+
+L<html_fmt> supplies missing start and end tags.
+L<html_fmt>'s parser is extremely liberal in what it accepts.
+When its liberalization of the standards is not sufficient to make
+a document into valid HTML,
+L<html_fmt>
+will pick characters to treat as noise or "cruft".
+The parser ignores cruft in determining
+the structure of the document.
+
+When
+L<html_fmt> adds
+a missing start tag,
+it precedes the new start tag with a comment.
+When
+L<html_fmt> adds
+a missing end tag,
+it follows the new end tag with a comment.
+When L<html_fmt> classifies characters
+as "cruft",
+it adds a comment to that effect before the "cruft".
+
+C<pre> elements receive special treatment.
+The contents of 
+C<pre> elements are not reformatted.
+When missing tags or cruft occur inside a C<pre> element,
+the comments to that effect are placed 
+before the C<< <pre> >> start tag.
+
+The argument to L<html_score> can be either as a URI or a file
+name.  If it starts with alphanumerics followed by a colon, it is treated
+as a URI.  Otherwise it is treated as file name.
+
+=head1 SAMPLE OUTPUT
+
+Given this input:
+
+    <title>Test page<tr>x<head attr="I am cruft"><p>Final graf
+
+L<html_fmt> returns
+
+    <!-- Following start tag is replacement for a missing one -->
+    <html>
+      <!-- Following start tag is replacement for a missing one -->
+      <head>
+        <title>
+          Test page
+        </title>
+        <!-- Preceding end tag is replacement for a missing one -->
+      </head>
+      <!-- Preceding end tag is replacement for a missing one -->
+      <!-- Following start tag is replacement for a missing one -->
+      <body>
+        <!-- Following start tag is replacement for a missing one -->
+        <table>
+          <!-- Following start tag is replacement for a missing one -->
+          <tbody>
+            <tr>
+              <!-- Following start tag is replacement for a missing one -->
+              <td>
+                x
+                <!-- Next line is cruft -->
+                <head attr="I am cruft">
+                <p>
+                  Final graf
+                </p>
+                <!-- Preceding end tag is replacement for a missing one -->
+              </td>
+              <!-- Preceding end tag is replacement for a missing one -->
+            </tr>
+            <!-- Preceding end tag is replacement for a missing one -->
+          </tbody>
+          <!-- Preceding end tag is replacement for a missing one -->
+        </table>
+        <!-- Preceding end tag is replacement for a missing one -->
+      </body>
+      <!-- Preceding end tag is replacement for a missing one -->
+    </html>
+    <!-- Preceding end tag is replacement for a missing one -->
+
+=head1 PURPOSE
+
+This program is a demo of a demo.
+It purpose is to show how easy it is to write applications which look
+at the structure of web pages using L<Marpa::HTML>.
+And the purpose of L<Marpa::HTML>
+is to demonstrate the power of its parse engine,
+L<Marpa>.
+L<Marpa::HTML> was written in a few days,
+and its logic 
+is a straightforward,
+natural expression of the structure of HTML.
+
+=head1 ACKNOWLEDGMENTS
+
+The starting template for this code was
+L<HTML::TokeParser>, by Gisle Aas.
+See also the
+L<acknowledgments for Marpa as a whole|Marpa/"ACKNOWLEDGMENTS">.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2010 Jeffrey Kegler, all rights reserved.
+Marpa is free software under the Perl license.
+For details see the LICENSE file in the Marpa distribution.
+
+=cut

@@ -1,0 +1,505 @@
+=head1 NAME
+
+Marpa::HTML::Parsing_HTML - A Strategy for "Natural" HTML Parsing
+
+=head1 EPIGRAPH
+
+    And now I see with eye serene
+    The very pulse of the machine
+      -- Wordsworth
+
+=head1 SUMMARY
+
+High-level parsing of
+HTML means determining an HTML
+document's overall structure.
+This has been considered
+a difficult problem in the past,
+especially for invalid and broken
+HTML.
+This document outlines a straightforward,
+natural and transparent method for parsing
+arbitrary documents according to the Dao
+of HTML.
+
+=head1 THE BASIC IDEA
+
+L<Marpa::HTML> combines two major components:
+a Wishful Thinking Parser and a Ruby Slippers Tokenizer.
+
+The Wishful Thinking Parser ("Wishful Parser" for short)
+uses L<a grammar|/"APPENDIX: THE GRAMMAR">
+that assumes its input is a language
+like HTML, but nicer.
+In particular, it assumes that its input is not real
+HTML, but a "virtual HTML" where all elements
+have start and end tags.
+
+The Ruby Slippers Tokenizer ("Ruby Slippers" for short)
+is in charge of prettying up the input so that
+the Wishful Parser sees the kind of world it wants to see.
+This turns out to be easy to do for valid HTML,
+and not hard for invalid and/or broken HTML.
+
+The parse that the Wishful Parser produces is
+of a cleaned-up virtual HTML document, not the real one.
+But the parse of the virtual document easily maps
+back to a parse of the physical document.
+
+=head1 THE WISHFUL PARSER
+
+The Wishful Parser is not a weak parser.
+It is a general BNF parser, based on a new algorithm
+derived from Earley's.
+It is powerful enough that it could deal with the
+missing start and end tags on its own.
+
+But L<Marpa::HTML> takes a different approach.
+Instead of tying the high-level parser up with details,
+it passes these decisions down to the tokenizer,
+so that the high-level, parser can focus on the big
+picture.
+L<Marpa::HTML> uses this approach to let each
+of the two components handle what they do best.
+
+The L<Marpa> parse engine,
+on which L<Marpa::HTML> is based,
+allows predictive lexing.
+Predictive lexing is an essential part of the
+strategy for parsing HTML described in this document.
+In predictive lexing the high-level parser tells
+the low-level parser (or tokenizer) what tokens it
+needs in order for the parse to proceed.
+
+=head1 THE RUBY SLIPPERS TOKENIZER
+
+This strategy, of trying to isolate the process of parsing
+HTML into nitty low-level details, on one hand,
+and the big picture on the other,
+turns out to be eminently practical.
+A Ruby Slippers Tokenizer is not at all hard to write.
+L<Marpa::HTML> uses L<HTML::PullParser> to handle most
+of the low-level details.
+A thin layer of logic is wrapped around
+L<HTML::PullParser> 
+to implement the wish-granting abilities of the Ruby Slippers.
+
+=head1 HOW THE RUBY SLIPPERS WORK
+
+For simplicity, let's consider the case of HTML valid
+according to one of the standards first.
+What the Ruby Slippers needs to do for
+each token it sees in the physical document is
+the following:
+
+=head2 Step 1: Get The List of Acceptable Tokens
+
+Since the Wishful Thinking Parser is predictive,
+it knows at any point what tokens will allow the parse
+to continue.
+The Ruby Slippers gets this list.
+
+=head2 Step 2: Compare the Physical Token
+
+Is the physical token that the Ruby Slippers
+one of the tokens that the Wishful
+Thinking Parser is looking for?
+If so, great.  The Ruby Slippers
+just hand the physical
+token over, as is, to the Wishful Parser.
+Otherwise, the Ruby Slippers proceed to Step 3.
+
+=head2 Step 3: Which of the Acceptable Tokens are Optional Tokens?
+
+What if
+the physical token is not one of the tokens acceptable
+to the Wishful Parser?
+In that case, the Ruby Slippers examines the list
+of tokens the Wishful Parser does find acceptable
+at this point in the parse.
+The Ruby Slippers looks among
+tokens acceptable to the Wishful Parser
+for tokens which are allowed
+to be optional in the physical document.
+Optional tokens are always start or end tokens.
+
+=head2 Step 4: Create a Virtual Token
+
+The Ruby Slippers
+pick one of the optional tokens that are acceptable to the Wishful
+Parse at this point in the parse.
+The Ruby Slippers invent a virtual token of that type, and hand
+it over to the Wishful Parser.
+
+For HTML valid according to the standards, this step is
+surprisingly easy.
+There is always one and only one token which is both
+optional and acceptable to the Wishful Parser.
+No decision has to be made.
+
+=head1 THAT'S IT
+
+What I have described to this point
+is sufficient to parse valid HTML.
+Parsing broken and invalid HTML is a bit more
+complicated.
+Even those additional details
+are straightforward and intuitive.
+The test of this document is about those details.
+
+=head1 EVERYTHING LOOKS LIKE HTML
+
+L<Marpa::HTML> does not require its input document be
+valid according to the HTML standards.
+Far from it.
+For L<Marpa::HTML> every document is a valid HTML documents.
+L<Marpa::HTML> accepts that a document might be invalid or
+broken, but
+L<Marpa::HTML>
+assumes that there is an HTML structure in there somewhere,
+and does its best to find it.
+
+For documents which conform to one of the HTML specifications,
+L<Marpa::HTML> finds the structure according to the standard.
+For documents which are not strictly conformant,
+L<Marpa::HTML> tries to find a structure that follows the
+intention of the author, and the practices of liberal parsers
+of HTML, such as the typical rendering engines.
+
+Even a random non-HTML document
+will be parsed.
+Typically, most of a random document will be
+treated as body text,
+with L<Marpa::HTML> trying to make sense of
+anything in the document that looks like markup.
+
+=head1 OPTIONAL START AND END TAGS
+
+What determines whether a start or end tag is optional?
+Some end tokens, and a few start tokens,
+are optional because the standards say they
+can be.
+The practice of liberal parsers in current
+is to allow other start and end tags to be
+optional.
+
+L<Marpa::HTML> is completely liberal
+in what it accepts.
+Since in broken HTML any end tag could be
+missing, 
+L<Marpa::HTML> is be prepared as a last resort
+to supply a virtual replacement for any end tag.
+This means that for
+L<Marpa::HTML> all end tags are in effect optional.
+
+=head2 CONFLICTS: PRIORITIZING TOKENS
+
+The mechanism for dealing with conflicts is a prioritization scheme,
+and a handful of special cases.
+While this does "fuzz up" the original beauty of the Wishful Thinking
+scheme, the priorities and special cases following naturally from
+the structure of HTML,
+and the logic behind them is intuitive.
+
+The relative priority of the virtual terminals is as follows:
+
+    </html>
+    </body>
+    <table>
+    </head>
+    </table>
+    </tbody>
+    </tr>
+    </td>
+    <td>
+    <tr>
+    <tbody>
+    <head>
+    <body>
+    <html>
+
+With one exception, the order is first start tags, from outermost to innermost;
+then end tags from innermost to outermost.
+These three principles govern:
+
+=over 4
+
+=item * Start an element in preference to ending one 
+
+=item * Start outer, higher level elements before inner, lower level ones.
+
+=item * Start inner, lower level elements before outer, higher level ones.
+
+=back
+
+All this is natural enough.  The one exception is C<< <table> >> which is given
+and low a priority as possible.  The DTD's allow table to be started anywhere,
+including inside other tables.  Virtual table start tags,
+which start tables without the markup explicitly indicating
+they should start, threaten anarchy.
+
+L<Marpa::HTML> deals with virtual C<< <table> >> tags by only applying them
+when there is no other choice.  Part of the guarantee these is to put 
+virtual C<< <table> >> tags as low as possible in the priority scheme.
+C<< <table> >> tags are also one of the special cases.
+
+=head2 CONFLICTS: SPECIAL CASES
+
+In addition to giving virtual
+C<< <table> >> tags a very low priority, they also 
+are not allowed except directly before markup which can only
+appear inside tables.
+That is, if in a block flow outside a table, L<Marpa::HTML>
+encounters a C<< <td> >> tag, the parse cannot continue unless
+a table is created.
+In this case a virtual
+C<< <table> >> tag is allowed.
+If the next token is something that can appear outside a table,
+such as a C<< <p> >> tag, a virtual table start tag will B<not>
+be supplied.
+
+Another special case governs virtual table row start tags ("C<< <tr> >>").
+These are not valid according to the DTD's, but to pass the B<HTML::Tree> test
+suite they are required.
+However, they are not allowed as a way of dealing with an unexpected
+start tag for a higher level table construct, such as
+C<< <tbody> >>,
+C<< <thead> >> or
+C<< <tfoot> >>.
+Usually the preference to start something rather than to end
+something, but when these tags are encountered, starting a virtual
+table row leads to an infinite loop.
+Special case logic, therefore, prevents the virtual starts of table
+rows under these circumstances.
+
+A final special case deals with starting virtual table elements before certain end tags,
+as well as before end of file.
+All such cases arise in files where the HTML is not valid according to the DTD,
+but L<Marpa::HTML> keeping with its policy of liberalism, tries to produce valid
+parses when supplying missing tags will do that.
+Ordinarily, virtual start tags are preferred to virtual end tags.
+However starting a table row, cell or body (
+C<< <tr> >>,
+C<< <td> >> or
+C<< <tbody> >>
+)
+directly before end of file,
+C<< </th> >>,
+C<< </td> >>,
+C<< </tr> >>,
+C<< </thead> >>,
+C<< </tbody> >>,
+C<< </table> >>,
+C<< </body> >> and
+C<< </html> >> will cause an
+infinite loop and,
+as a special case, is prevented.
+
+=head1 DETAILS (notes)
+
+=head2 Virtual Tokens
+
+When stumped, the lexer has two choices, add a virtual token,
+or add cruft.
+
+Any end token can be a virtual token.
+In addition, optional start tags can be virtual tokens.
+The HTML DTD specifies four of these:
+
+    <html>
+    <head>
+    <body>
+    <tbody>
+
+L<HTML::Tree> also treats these table start tags as optional.
+
+    <table>
+    <tr>
+    <td>
+
+This is wrong according to the DTD, and unsupported by Mozilla,
+but I decided that it was important for L<Marpa::HTML> to pass
+the same tests as L<HTML::Tree>, so these three start tags
+are also virtual terminals.
+
+One problem you might see in simply indulging the fantasies of the Wishful
+Thinking Grammar: Don't you run the risk of prematurely ending elements?
+The answer in almost all cases is no.
+Normally, in cases where you want the parsing of an element to continue,
+the token you have is one of the ones that Wishful Thinking Grammar expects.
+And an expected token always takes priority over "wishful", or virtual, tokens.
+
+=head2 Conflicting Wishes
+
+In fact, if we stick to the DTD and ignore the L<HTML::Tree> loosenings of
+the DTD, there is only one case of a conflict between "wishes".  In tables,
+there could be a choice between ending the table and starting the table body:
+between a virtual C<< <tbody> >> and a virtual C<< </table> >>.
+
+What is wanted is to start the table body in preference to ending the table,
+that is to give a virtual C<< <tbody> >> priority over a virtual C<< </table> >>.
+This could have been special cased.
+But
+
+=over 4
+
+=item *
+Conformity with the loosened table parsing of L<HTML::Tree>
+introduced several other conflicts.
+
+=item *
+It seemed desirable to allow for HTML someday to be configurable.
+
+=item *
+L<Marpa::HTML> is intended to encourage others to "borrow" its logic,
+extend it and change it.  Robustness in the face of change is A Good Thing.
+
+=back
+
+For these reasons
+I implemented
+a more general mechanism for the dealing with conflicts.
+It is not complicated, but for dealing with the single
+conflict created by original DTD's, it is very much overkill.
+
+=head1 THE MARPA PARSE ENGINE
+
+    Rewrite?  Delete?
+
+Marpa is derived from
+the parser
+L<described by John Aycock and R.  Nigel Horspool|Marpa::Bibliography/"Aycock and Horspool 2002">.
+Aycock and Horspool combined LR(0)
+precomputation
+with the general parsing algorithm
+L<described by Jay
+Earley in 1970|Marpa::Bibliography/"Earley 1970">.
+
+=head1 APPENDIX: THE GRAMMAR
+
+    Also, Productions created on the fly.
+
+This grammar is taken directly from the code.
+The HTML grammar is created directly from this.
+The format is one production per line, with a C<::=> symbol to separate the
+left hand side symbol from the right hand side symbols.
+A final star indicates a sequence of zero or more of the symbol.
+(Sequences are directly supported by L<Marpa>,
+which optimizes for them.)
+
+=for Marpa::Display
+name: HTML BNF
+normalize-whitespace: 1
+
+    cruft ::= CRUFT
+    comment ::= C
+    pi ::= PI
+    decl ::= D
+    pcdata ::= PCDATA
+    cdata ::= CDATA
+    whitespace ::= WHITESPACE
+    SGML_item ::= comment
+    SGML_item ::= pi
+    SGML_item ::= decl
+    SGML_flow_item ::= SGML_item
+    SGML_flow_item ::= whitespace
+    SGML_flow_item ::= cruft
+    SGML_flow ::= SGML_flow_item*
+    document ::= prolog ELE_html trailer EOF
+    prolog ::= SGML_flow
+    trailer ::= SGML_flow
+    ELE_html ::= S_html Contents_html E_html
+    Contents_html ::= SGML_flow ELE_head SGML_flow ELE_body SGML_flow
+    ELE_head ::= S_head Contents_head E_head
+    Contents_head ::= head_item*
+    ELE_body ::= S_body flow E_body
+    ELE_table ::= S_table table_flow E_table
+    ELE_tbody ::= S_tbody table_section_flow E_tbody
+    ELE_tr ::= S_tr table_row_flow E_tr
+    ELE_td ::= S_td flow E_td
+    flow ::= flow_item*
+    flow_item ::= cruft
+    flow_item ::= SGML_item
+    flow_item ::= ELE_table
+    flow_item ::= list_item_element
+    flow_item ::= header_element
+    flow_item ::= block_element
+    flow_item ::= inline_element
+    flow_item ::= whitespace
+    flow_item ::= cdata
+    flow_item ::= pcdata
+    head_item ::= header_element
+    head_item ::= cruft
+    head_item ::= whitespace
+    head_item ::= SGML_item
+    inline_flow ::= inline_flow_item*
+    inline_flow_item ::= pcdata_flow_item
+    inline_flow_item ::= inline_element
+    pcdata_flow ::= pcdata_flow_item*
+    pcdata_flow_item ::= cdata
+    pcdata_flow_item ::= pcdata
+    pcdata_flow_item ::= cruft
+    pcdata_flow_item ::= whitespace
+    pcdata_flow_item ::= SGML_item
+    Contents_select ::= select_flow_item*
+    select_flow_item ::= ELE_optgroup
+    select_flow_item ::= ELE_option
+    select_flow_item ::= SGML_flow_item
+    Contents_optgroup ::= optgroup_flow_item*
+    optgroup_flow_item ::= ELE_option
+    optgroup_flow_item ::= SGML_flow_item
+    list_item_flow ::= list_item_flow_item*
+    list_item_flow_item ::= cruft
+    list_item_flow_item ::= SGML_item
+    list_item_flow_item ::= header_element
+    list_item_flow_item ::= block_element
+    list_item_flow_item ::= inline_element
+    list_item_flow_item ::= whitespace
+    list_item_flow_item ::= cdata
+    list_item_flow_item ::= pcdata
+    Contents_colgroup ::= colgroup_flow_item*
+    colgroup_flow_item ::= ELE_col
+    colgroup_flow_item ::= SGML_flow_item
+    table_row_flow ::= table_row_flow_item*
+    table_row_flow_item ::= ELE_th
+    table_row_flow_item ::= ELE_td
+    table_row_flow_item ::= SGML_flow_item
+    table_section_flow ::= table_section_flow_item*
+    table_section_flow_item ::= table_row_element
+    table_section_flow_item ::= SGML_flow_item
+    table_row_element ::= ELE_tr
+    table_flow ::= table_flow_item*
+    table_flow_item ::= ELE_colgroup
+    table_flow_item ::= ELE_thead
+    table_flow_item ::= ELE_tfoot
+    table_flow_item ::= ELE_tbody
+    table_flow_item ::= ELE_caption
+    table_flow_item ::= ELE_col
+    table_flow_item ::= SGML_flow_item
+    empty ::=
+
+=for Marpa::Display::End
+
+=head1 SUPPORT
+
+See the L<support section|Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2010 Jeffrey Kegler.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl 5.10.0.
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

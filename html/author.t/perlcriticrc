@@ -1,0 +1,442 @@
+#
+# This perlcriticrc is intended to list all policies explicitly.
+# Defaults are set so that policies not explicitly included (perhaps
+# because they are new in the latest Perl::Critic release)
+# produce warnings.  This is done by setting default severity to
+# 1, changing the severity of all policies I use to 5, and turning
+# off policies which are not used with a minus prepended to the
+# name of the module.
+
+severity = 1
+
+color = 0
+
+[-BuiltinFunctions::ProhibitBooleanGrep]
+severity=5
+
+[BuiltinFunctions::ProhibitComplexMappings]
+severity=5
+
+[BuiltinFunctions::ProhibitLvalueSubstr]
+severity=5
+
+[BuiltinFunctions::ProhibitReverseSortBlock]
+severity=5
+
+[BuiltinFunctions::ProhibitSleepViaSelect]
+severity=5
+
+[BuiltinFunctions::ProhibitStringyEval]
+severity=5
+
+[BuiltinFunctions::ProhibitStringySplit]
+severity=5
+
+[BuiltinFunctions::ProhibitUniversalCan]
+severity=5
+
+[BuiltinFunctions::ProhibitUniversalIsa]
+severity=5
+
+[BuiltinFunctions::ProhibitVoidGrep]
+severity=5
+
+[BuiltinFunctions::ProhibitVoidMap]
+severity=5
+
+[BuiltinFunctions::RequireBlockGrep]
+severity=5
+
+[BuiltinFunctions::RequireBlockMap]
+severity=5
+
+[BuiltinFunctions::RequireGlobFunction]
+severity=5
+
+[BuiltinFunctions::RequireSimpleSortBlock]
+severity=5
+
+[ClassHierarchies::ProhibitAutoloading]
+severity=5
+
+[ClassHierarchies::ProhibitExplicitISA]
+severity=5
+
+[ClassHierarchies::ProhibitOneArgBless]
+severity=5
+
+[CodeLayout::ProhibitHardTabs]
+severity=5
+
+[CodeLayout::ProhibitParensWithBuiltins]
+severity=5
+
+[CodeLayout::ProhibitQuotedWordLists]
+severity=5
+
+[CodeLayout::ProhibitTrailingWhitespace]
+severity=5
+
+[CodeLayout::RequireConsistentNewlines]
+severity=5
+
+[CodeLayout::RequireTrailingCommas]
+severity=5
+
+[CodeLayout::RequireTidyCode]
+severity=5
+perltidyrc=author.t/perltidyrc
+
+[-ControlStructures::ProhibitCStyleForLoops]
+severity=5
+
+[ControlStructures::ProhibitCascadingIfElse]
+severity=5
+
+# Good advice, but it is pretty obvious
+# when it is happening, and Perl::Critic
+# doesn't need to point it out.
+[-ControlStructures::ProhibitDeepNests]
+severity=5
+
+[ControlStructures::ProhibitMutatingListFunctions]
+severity=5
+
+[ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
+severity=5
+
+# These constructs are there because they can
+# be the clearest way to express the logic.
+# Disabling them is against the Perl spirit.
+[-ControlStructures::ProhibitPostfixControls]
+severity=5
+
+# These constructs are there because they can
+# be the clearest way to express the logic.
+# Disabling them is against the Perl spirit.
+[-ControlStructures::ProhibitUnlessBlocks]
+severity=5
+
+[ControlStructures::ProhibitUnreachableCode]
+severity=5
+
+# These constructs are there because they can
+# be the clearest way to express the logic.
+# Disabling them is against the Perl spirit.
+[-ControlStructures::ProhibitUntilBlocks]
+severity=5
+
+[-Documentation::RequirePodAtEnd]
+severity=5
+
+[-Documentation::RequirePodSections]
+severity=5
+lib_sections    = NAME | DESCRIPTION | SUPPORT | AUTHOR | LICENSE AND COPYRIGHT
+script_sections = NAME | USAGE | OPTIONS | EXIT STATUS | AUTHOR
+
+[ErrorHandling::RequireCarping]
+severity=5
+
+[InputOutput::ProhibitBacktickOperators]
+severity=5
+
+[InputOutput::ProhibitBarewordFileHandles]
+severity=5
+
+[InputOutput::ProhibitExplicitStdin]
+severity=5
+
+[InputOutput::ProhibitInteractiveTest]
+severity=5
+
+[InputOutput::ProhibitJoinedReadline]
+severity=5
+
+[InputOutput::ProhibitOneArgSelect]
+severity=5
+
+[InputOutput::ProhibitReadlineInForLoop]
+severity=5
+
+[InputOutput::ProhibitTwoArgOpen]
+severity=5
+
+[InputOutput::RequireBracedFileHandleWithPrint]
+severity=5
+
+[InputOutput::RequireBriefOpen]
+severity=5
+lines=99
+
+[InputOutput::RequireCheckedClose]
+severity=5
+
+[InputOutput::RequireCheckedOpen]
+severity=5
+
+
+[InputOutput::RequireCheckedSyscalls]
+severity=5
+
+functions = :builtins
+
+[Miscellanea::ProhibitFormats]
+severity=5
+
+[Miscellanea::ProhibitTies]
+severity=5
+
+[-Miscellanea::RequireRcsKeywords]
+
+[Modules::ProhibitAutomaticExportation]
+severity=5
+
+[Modules::ProhibitEvilModules]
+severity=5
+
+[-Modules::ProhibitExcessMainComplexity]
+
+[-Modules::ProhibitMultiplePackages]
+
+[Modules::RequireBarewordIncludes]
+severity=5
+
+[Modules::RequireEndWithOne]
+severity=5
+
+[Modules::RequireExplicitPackage]
+severity=5
+
+[-Modules::RequireFilenameMatchesPackage]
+
+[Modules::RequireNoMatchVarsWithUseEnglish]
+severity=5
+
+[-Modules::RequireVersionVar]
+
+# I do not use because
+# 1.) Obvious when violated
+# 2.) Many good reasons to make exceptions
+# 3.) Turning off on a case-by-case basis is too noisy
+#     considering the severity
+[-NamingConventions::Capitalization]
+local_lexical_variable_exemptions=.*_NFA.* .*NFA_.* .*QDFA_.*
+file_lexical_variable_exemptions=.*SGML_.*
+subroutine_exemptions=.*_NFA.* .*_QDFA.* Marpa::.* .*_CHAF.*
+severity=5
+
+[NamingConventions::ProhibitAmbiguousNames]
+severity=5
+
+forbid = last left right no abstract contract record second close
+# set is OK -- as in earley set
+
+[References::ProhibitDoubleSigils]
+severity=5
+
+[RegularExpressions::ProhibitCaptureWithoutTest]
+severity=5
+
+[RegularExpressions::ProhibitComplexRegexes]
+severity=5
+
+[RegularExpressions::ProhibitEnumeratedClasses]
+severity=5
+
+[RegularExpressions::ProhibitEscapedMetacharacters]
+severity=5
+
+[RegularExpressions::ProhibitFixedStringMatches]
+severity=5
+
+[RegularExpressions::ProhibitSingleCharAlternation]
+severity=5
+
+[RegularExpressions::ProhibitUnusedCapture]
+severity=5
+
+[RegularExpressions::ProhibitUnusualDelimiters]
+severity=5
+
+[RegularExpressions::RequireBracesForMultiline]
+severity=5
+
+[RegularExpressions::RequireExtendedFormatting]
+severity=5
+
+[RegularExpressions::RequireLineBoundaryMatching]
+severity=5
+
+[Subroutines::ProhibitAmpersandSigils]
+severity=5
+
+[Subroutines::ProhibitBuiltinHomonyms]
+severity=5
+
+[-Subroutines::ProhibitExcessComplexity]
+
+[Subroutines::ProhibitExplicitReturnUndef]
+severity=5
+
+[Subroutines::ProhibitManyArgs]
+severity=5
+
+[Subroutines::ProhibitNestedSubs]
+severity=5
+
+[Subroutines::ProhibitSubroutinePrototypes]
+severity=5
+
+[Subroutines::ProtectPrivateSubs]
+severity=5
+
+[Subroutines::RequireArgUnpacking]
+severity=5
+allow_subscripts = 1
+
+[Subroutines::RequireFinalReturn]
+severity=5
+terminal_funcs = Marpa::exception
+
+[TestingAndDebugging::ProhibitNoStrict]
+severity=5
+allow = refs
+
+[TestingAndDebugging::ProhibitNoWarnings]
+severity=5
+allow_with_category_restriction = 1
+
+[TestingAndDebugging::ProhibitProlongedStrictureOverride]
+severity=5
+
+[TestingAndDebugging::RequireTestLabels]
+severity=5
+
+[TestingAndDebugging::RequireUseStrict]
+severity=5
+
+[TestingAndDebugging::RequireUseWarnings]
+severity=5
+
+[ValuesAndExpressions::ProhibitCommaSeparatedStatements]
+severity=5
+
+[-ValuesAndExpressions::ProhibitConstantPragma]
+
+[ValuesAndExpressions::ProhibitEmptyQuotes]
+severity=5
+
+[ValuesAndExpressions::ProhibitEscapedCharacters]
+severity=5
+
+[ValuesAndExpressions::ProhibitImplicitNewlines]
+severity=5
+
+[ValuesAndExpressions::ProhibitInterpolationOfLiterals]
+severity=5
+
+[ValuesAndExpressions::ProhibitLeadingZeros]
+severity=5
+
+# I comment this out because it is
+# 1.) not a sin I'm prone to
+# 2.) obvious from the code when it happens, so that
+#     a perlcritic complaint is unneeded.
+# 3.) necessary to use Data::Dumper
+[-ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
+severity=5
+
+[ValuesAndExpressions::RequireInterpolationOfMetachars]
+severity=5
+
+# Reluctantly, I've disabled this one.
+# It is basically a good test, but
+# as of 2009-12-10 there is a bug where you either
+# get this warning or a useless "no critic" warning.
+#
+# Rewrites to constants are usually
+# not my preferred solution.
+# They often make the code more obscure.
+[-ValuesAndExpressions::ProhibitMagicNumbers]
+severity=5
+allowed_values = -1 0 1 2 3 4 10
+
+[ValuesAndExpressions::ProhibitMismatchedOperators]
+severity=5
+
+# Just don't agree with this one.
+# The differences between operators
+# is obvious to the eye.
+# And the difference is not an obscure feature
+# of Perl, but one easy to remember and
+# important to know.
+[-ValuesAndExpressions::ProhibitMixedBooleanOperators]
+severity=5
+
+[ValuesAndExpressions::ProhibitNoisyQuotes]
+severity=5
+
+[ValuesAndExpressions::ProhibitQuotesAsQuotelikeOperatorDelimiters]
+severity=5
+
+[ValuesAndExpressions::ProhibitVersionStrings]
+severity=5
+
+[ValuesAndExpressions::RequireInterpolationOfMetachars]
+severity=5
+
+[ValuesAndExpressions::RequireNumberSeparators]
+severity=5
+
+[ValuesAndExpressions::RequireQuotedHeredocTerminator]
+severity=5
+
+[ValuesAndExpressions::RequireUpperCaseHeredocTerminator]
+severity=5
+
+[Variables::ProhibitConditionalDeclarations]
+severity=5
+
+[Variables::ProhibitLocalVars]
+severity=5
+
+[Variables::ProhibitMatchVars]
+severity=5
+
+[Variables::ProhibitPackageVars]
+severity=5
+add_packages = Parse::Marpa::Read_Only Parse::Marpa::Internal::This Parse::Marpa::Internal
+
+[Variables::ProhibitPerl4PackageNames]
+severity=5
+
+[Variables::ProhibitPunctuationVars]
+severity=5
+
+[Variables::ProtectPrivateVars]
+severity=5
+
+[Variables::RequireInitializationForLocalVars]
+severity=5
+
+[Variables::RequireLexicalLoopIterators]
+severity=5
+
+[Variables::RequireLocalizedPunctuationVars]
+severity=5
+
+[Variables::RequireNegativeIndices]
+severity=5
+
+[-Subroutines::ProhibitCallsToUnexportedSubs]
+
+[-Subroutines::ProhibitQualifiedSubDeclarations]
+
+[Subroutines::ProhibitCallsToUndeclaredSubs]
+severity=5
+
+[-Modules::RequireExplicitInclusion]
+
+[Documentation::PodSpelling]
+severity=5
+stop_words_file = author.t/spelling_exceptions.list

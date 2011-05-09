@@ -1,0 +1,1043 @@
+=head1 NAME
+
+Marpa::HTML - High-level HTML Parser
+
+=head1 SYNOPSIS
+
+B<Delete all tables>:
+
+=for Marpa::Display
+name: 'HTML Synopsis: Delete Tables'
+perltidy: '-dcsc -sil=0'
+
+    use Marpa::HTML qw(html);
+
+    my $with_table = 'Text<table><tr><td>I am a cell</table> More Text';
+    my $no_table   = html( \$with_table, { table => sub { return q{} } });
+
+=for Marpa::Display::End
+
+B<Delete everything but tables>:
+
+=for Marpa::Display
+name: 'HTML Synopsis: Delete Everything But Tables'
+perltidy: '-dcsc -sil=0'
+
+    my %handlers_to_keep_only_tables = (
+        table  => sub { return Marpa::HTML::original() },
+        ':TOP' => sub { return \( join q{}, @{ Marpa::HTML::values() } ) }
+    );
+    my $only_table = html( \$with_table, \%handlers_to_keep_only_tables );
+
+=for Marpa::Display::End
+
+The above works by turning the original text of the HTML into values
+and concatenating the values at the top of the parse.
+The same logic works even if a B<table is very defective>:
+
+=for Marpa::Display
+name: 'HTML Synopsis: Defective Tables'
+perltidy: '-dcsc -sil=0'
+
+    my $with_bad_table = 'Text<tr>I am a cell</table> More Text';
+    my $only_bad_table =
+        html( \$with_bad_table, \%handlers_to_keep_only_tables );
+
+=for Marpa::Display::End
+
+B<Delete all comments>:
+
+=for Marpa::Display
+name: 'HTML Synopsis: Delete Comments'
+perltidy: '-dcsc -sil=0'
+
+    my $with_comment = 'Text <!-- I am a comment --> I am not a comment';
+    my $no_comment   = html( \$with_comment,
+        { ':COMMENT' => sub { return q{} } });
+
+=for Marpa::Display::End
+
+By default, text is passed through unchanged, so that the user
+need only specify semantic actions for those components she
+wants changed.  To B<change the title of a document>:
+
+=for Marpa::Display
+name: 'HTML Synopsis: Change Title'
+perltidy: '-dcsc -sil=0'
+
+    my $old_title = '<title>Old Title</title>A little html text';
+    my $new_title = html(
+        \$old_title,
+        {   'title' => sub { return '<title>New Title</title>' }
+        }
+    );
+
+=for Marpa::Display::End
+
+B<Delete all elements with a class attribute
+of "C<delete_me>">:
+
+=for Marpa::Display
+name: 'HTML Synopsis: Delete by Class'
+perltidy: '-dcsc -sil=0'
+
+    my $stuff_to_be_edited = '<p>A<p class="delete_me">B<p>C';
+    my $edited_stuff       = html( \$stuff_to_be_edited,
+        { '.delete_me' => sub { return q{} } });
+
+=for Marpa::Display::End
+
+L<Marpa::HTML> recognizes elements even if they have missing
+start and/or end tags.
+L<Marpa::HTML> can B<supply missing tags>:
+
+=for Marpa::Display
+name: 'HTML Synopsis: Supply Missing Tags'
+perltidy: '-dcsc -sil=0'
+
+    sub supply_missing_tags {
+        my $tagname = Marpa::HTML::tagname();
+        return if $empty_elements{$tagname};
+        return ( Marpa::HTML::start_tag() // "<$tagname>\n" )
+            . Marpa::HTML::contents() .
+            ( Marpa::HTML::end_tag() // "</$tagname>\n" );
+    }
+    my $html_with_just_a_title = '<title>I am a title and That is IT!';
+    my $valid_html_with_all_tags =
+        html( \$html_with_just_a_title, { q{*} => \&supply_missing_tags } );
+
+=for Marpa::Display::End
+
+L<Marpa::HTML> understands the hierarchical structure of an HTML document.
+B<Finding the maximum nesting depth in elements> is straightforward:
+
+=for Marpa::Display
+name: 'HTML Synopsis: Maximum Element Depth'
+perltidy: '-dcsc -sil=0'
+
+    sub depth_below_me {
+        return List::Util::max( 0, @{ Marpa::HTML::values() } );
+    }
+    my %handlers_to_calculate_maximum_element_depth = (
+        q{*}   => sub { return 1 + depth_below_me() },
+        ':TOP' => sub { return depth_below_me() },
+    );
+    my $maximum_depth_with_just_a_title = html( \$html_with_just_a_title,
+        \%handlers_to_calculate_maximum_element_depth );
+
+=for Marpa::Display::End
+
+L<Marpa::HTML> tracks actual elements, however tagged.
+The above code returns the same depth for C<$valid_html_with_all_tags>
+as for C<$html_with_just_a_title>.
+
+=head1 DESCRIPTION
+
+L<Marpa::HTML> does "high-level" parsing of HTML.
+It allows handlers to be specified for elements, terminals and other
+components in the hierarchical structure of an HTML document.
+L<Marpa::HTML> is an extremely liberal HTML parser.
+L<Marpa::HTML> does not reject any documents,
+no mater how poorly they fit the HTML standards.
+
+=head1 THE Marpa::HTML::html STATIC METHOD
+
+The interface to 
+L<Marpa::HTML> is through the
+C<Marpa::HTML::html>
+static method.
+It is
+the only
+L<Marpa::HTML>
+method not part of the API for the
+semantic actions.
+
+C<html> takes one or more arguments.
+The first argument is required, and must be a pointer to
+a string to be parsed as HTML.
+The second and
+subsequent arguments (all optional) are hash references
+with handler descriptions.
+(See L<the synopsis|/"SYNOPSIS"> for several examples of
+calls using the C<html> method.)
+
+=head2 CSS-style Handler Options
+
+Handler descriptions in L<Marpa::HTML> are key-value pairs
+in a hash.
+In each pair, the key is a CSS-style handler specifier,
+and the value is a closure,
+which is called the B<action> for the
+handler.
+
+Specifiers are "CSS-style" --
+their syntax imitates some of the basic cases
+of CSS specifiers.
+No attempt is planned
+to implement the full CSS specifier syntax.
+
+Supported specifier syntaxes are as follows:
+
+=over
+
+=item Tagname Specifiers
+
+=for Marpa::Display
+name: 'HTML Synopsis: Delete Everything But Tables'
+partial: 1
+normalize-whitespace: 1
+flatten: 1
+
+        table  => sub { return Marpa::HTML::original() },
+
+=for Marpa::Display::End
+
+If a specifier contains no special characters
+it is taken
+as the name of an element.
+(A "special" character is 
+anything except an alphanumeric, a hyphen or an underscore.)
+Consistent with L<HTML::Parser>'s default behavior,
+element names must be specified in lowercase.
+
+=item Class Specifiers
+
+A specifier which is a dot or period followed by a name
+will match any element whose class attribute is the same as the specified name.
+For example, the specifier "C<.delete_me>" will match any element whose
+class attribute is "C<delete_me>".
+
+=item Tagname-Class Pair Specifiers
+
+A specifier which contains a dot or period somewhere other than
+the first position (such as "C<span.label>")
+is treated as a dotted tagname-class pair.
+Its action will be called for
+any component whose tagname and class attribute both match
+the specifiers.
+
+=item The Tagname Wildcard Specifier
+
+A specifier of just an asterisk ("C<*>") matches all elements.
+Be careful to note that matching all elements is B<not> the same
+as matching all components.
+The element wildcard specifier will not match any pseudoclasses.
+
+=item Pseudoclass Specifiers
+
+=for Marpa::Display
+name: 'HTML Synopsis: Delete Comments'
+partial: 1
+normalize-whitespace: 1
+flatten: 1
+
+     ':COMMENT' => sub { return q{} }
+
+=for Marpa::Display::End
+
+A specifier which begins with a colon ("C<:>") matches a pseudoclass.
+L<Marpa::HTML> defines
+pseudoclasses to deal with terminals and other non-element
+components of the HTML hierarchy.
+
+=back
+
+=head2 Conflicting Specifiers
+
+At most one semantic action is called for each component.
+Where an element component matches several specifiers,
+the action is picked based on the B<most specific match>.
+
+=over
+
+=item 1. Matches by tagname-class pair are the most specific.
+
+=item 2. Matches by class are the next most specific.
+
+=item 3. Matches by tagname are considered less specific than matches by class.
+
+=item 4. The wildcard match is the least specific.
+
+=back
+
+Here's an example:
+
+=for Marpa::Display
+name: 'HTML Pod: Handler Precedence'
+perltidy: '-dcsc -sil=0'
+remove-display-indent: 1
+
+    my $html = <<'END_OF_HTML';
+    <span class="high">High Span</span>
+    <span class="low">Low Span</span>
+    <div class="high">High Div</div>
+    <div class="low">Low Div</div>
+    <div class="oddball">Oddball Div</div>
+    END_OF_HTML
+
+    my $result = Marpa::HTML::html(
+        \$html,
+        {   q{*} => sub {
+                return 'wildcard handler: ' . Marpa::HTML::contents();
+            },
+            'head' => sub { return Marpa::HTML::literal() },
+            'html' => sub { return Marpa::HTML::literal() },
+            'body' => sub { return Marpa::HTML::literal() },
+            'div'  => sub {
+                return '"div" handler: ' . Marpa::HTML::contents();
+            },
+            '.high' => sub {
+                return '".high" handler: ' . Marpa::HTML::contents();
+            },
+            'div.high' => sub {
+                return '"div.high" handler: ' . Marpa::HTML::contents();
+            },
+            '.oddball' => sub {
+                return '".oddball" handler: ' . Marpa::HTML::contents();
+            },
+        }
+    );
+
+=for Marpa::Display::End
+
+Here is what C<$result> would contain after the above code was run:
+
+=for Marpa::Display
+name: 'HTML Pod: Handler Precedence Result'
+normalize-whitespace: 1
+
+    ".high" handler: High Span
+    wildcard handler: Low Span
+    "div.high" handler: High Div
+    "div" handler: Low Div
+    ".oddball" handler: Oddball Div
+
+=for Marpa::Display::End
+
+=head2 Details of the Specifier Syntax
+
+For elements and class names only alphanumerics, hyphens and underscores are supported.
+Elements must be specified in lowercase, but they will match tagnames in the original
+document on a case-insensitive basis.
+
+Forcing element names to be lowercase follows the default behavior of
+L<HTML::Parser>, which coerces all tagnames to lowercase.
+This is consistent with the HTML standards.
+It is B<not> consistent with the XML standards,
+and an option to configure this behavior may be added in
+the future.
+
+Pseudoclass names special to
+L<Marpa::HTML> are case-sensitive, and must be all uppercase.
+Lowercase is reserved for CSS pseudoclasses.
+The CSS standard specifies that its pseudoclass names are case-indifferent.
+No CSS pseudoclasses are supported at this writing.
+
+=head1 PSEUDOCLASSES
+
+L<Marpa::HTML> uses
+L<HTML::Parser> to do its low-level parsing.
+L<HTML::Parser> "events"
+become the terminals for L<Marpa::HTML>.
+
+Besides terminals and elements,
+three other HTML components are recognized:
+the SGML prolog (C<:PROLOG>),
+the SGML trailer (C<:TRAILER>),
+and the HTML document as a whole (C<:TOP>).
+
+=head2 :CDATA
+
+The C<:CDATA> pseudoclass specifies the action for
+CDATA terminals.
+Its action is called once for each non-whitespace raw C<text> event
+that is not reclassed as cruft.
+(B<Raw text>
+is text in which any markup and entities should be left as is.)
+
+More precisely,
+a C<:CDATA> terminal is created from any
+L<HTML::Parser> C<text> event that has the C<is_cdata> flag on;
+that contains a non-whitespace character
+as defined in the HTML 4.01 specification
+(L<http://www.w3.org/TR/html4/struct/text.html#h-9.1>);
+and that is not reclassed as cruft.
+
+=head2 :COMMENT
+
+The C<:COMMENT> pseudoclass specifies the action for HTML comments.
+Its action is called once for every C<HTML::Parser> C<comment> event that
+is not reclassed as cruft.
+
+=head2 :CRUFT
+
+The C<:COMMENT> pseudoclass specifies the action for cruft.
+Its action is called once for every C<HTML::Parser> event that
+L<Marpa::HTML> reclasses as cruft.
+
+L<Marpa::HTML> reclasses terminals as cruft when
+they do not fit the structure of an HTML document.
+One example of a terminal that
+L<Marpa::HTML> would reclass as cruft is a
+C<< </head> >> end tag in the HTML body.
+
+Reclassing terminals as cruft is only done as the last resort.
+When it can,
+L<HTML::Parser> forgives
+violations of the HTML standards and accepts terminals as non-cruft.
+
+Cruft is treated in much the same way as comments.
+It is preserved, untouched, in the original text view.
+
+=head2 :DECL
+
+The C<:DECL> pseudoclass specifies the action for SGML declarations.
+Its action is called once for every C<HTML::Parser> C<declaration> event that
+is not reclassed as cruft.
+
+=head2 :PCDATA
+
+The C<:PCDATA> pseudoclass specifies the action for
+PCDATA terminals.
+Its action is called once for each non-whitespace non-raw C<text> event
+that is not reclassed as cruft.
+
+More precisely,
+a C<:PCDATA> terminal is created from any
+L<HTML::Parser> C<text> event that has the C<is_cdata> flag B<off>;
+that contains a non-whitespace character
+as defined in the HTML 4.01 specification
+(L<http://www.w3.org/TR/html4/struct/text.html#h-9.1>);
+and that is not reclassed as cruft.
+
+Markup and entities in
+C<:PCDATA> text
+are expected to be interpreted eventually,
+but it can be counter-productive to do this
+during parsing.
+An application may, for example,
+be rewriting a document for display on the web.
+In that case it will often
+want to leave markup and entities for the client's browser
+to interpret.
+
+L<Marpa::HTML> leaves interpretation of markup and entities entirely to
+the application.
+An application which chooses to do the interpretation itself
+may do it in the actions,
+or deal with it in post-processing.
+CPAN has excellent tools for this,
+some of which are part of L<HTML::Parser>.
+
+=head2 :PI
+
+The C<:PI> pseudoclass specifies the action for SGML processing instructions.
+Its action is called once for every L<HTML::Parser> C<process> event that
+is not reclassed as cruft.
+
+=head2 :PROLOG
+
+The C<:PROLOG> pseudoclass specifies the action for SGML prolog.
+This is the part of the HTML document which precedes the HTML root element.
+Components valid in the
+prolog include SGML comments, processing instructions and whitespace.
+
+=head2 :TOP
+
+The action specified for the C<:TOP> pseudoclass will be called
+once and only once in every parse,
+and will be the last action called in every parse.
+The C<:TOP> component is the entire
+physical document, including
+the SGML prolog,
+the root element,
+and the SGML trailer.
+All the other HTML components in a document
+will be descendants of the C<:TOP> component.
+
+The C<:TOP> action is unique, in that there is always an action
+for it, even if one is not specified.
+The C<html> method returns the value
+returned by the C<:TOP> action.
+The default C<:TOP> action returns a B<reference> to a string
+with the literal text value of all
+of its descendants.
+
+=head2 :TRAILER
+
+The C<:TRAILER> pseudoclass specifies the action for SGML trailer.
+This is the part of the HTML document which follows the HTML root element.
+Components valid in the
+trailer include SGML comments, processing instructions, and whitespace.
+Cruft can also be found here, though for L<Marpa::HTML> that is a
+last resort.
+
+=head2 :WHITESPACE
+
+A L<Marpa::HTML> C<:WHITESPACE> terminal is created for every
+L<HTML::Parser> C<text> event that is entirely whitespace
+as defined in the HTML 4.01 specification
+(L<http://www.w3.org/TR/html4/struct/text.html#h-9.1>)
+and that is not reclassed as cruft.
+Whitespace is acceptable in places where non-whitespace is not,
+and the difference can be very significant structurally.
+
+=head1 VIEWS
+
+I hope L<the synopsis|/"SYNOPSIS"> convinces the reader
+that the action semantics of L<Marpa::HTML> are natural.
+This naturalness is achieved at the price of some novelty.
+This section explains the ideas behind the semantic action API.
+Depending on taste,
+readers may want to skip this section and go straight to
+the API.
+
+The components of an HTML document form a hierarchy,
+with the C<:TOP> component on top, and the terminals on the bottom.
+The traditional syntax tree method requires semantic actions
+to know precisely
+what children every component will have.
+This processing model is not a good fit to HTML.
+L<Marpa::HTML> gives the writer of semantic actions
+"views" of each component that better fit situations
+where the number and type of
+children is unknown or vaguely defined.
+
+L<Marpa::HTML>'s semantics
+focus more widely --
+on a component's descendants instead of
+just its direct children.
+(The terms ancestor and descendant are used in the standard way:
+If a component X is
+above Y in the hierarchy,
+X is an B<ancestor> of Y; and
+Y is a B<descendant> of the X.)
+
+=head2 The Original View
+
+The B<original view> sees the text of a component as it was
+originally passed to the parser.
+The original view never changes.
+The original view is seen
+through the L</"Marpa::HTML::original"> API method.
+
+=head2 The Terminals View
+
+The B<terminals view> sees the terminals corresponding to the
+original text of a component.
+The terminals view never changes.
+The terminals view is usually seen as part of other views.
+
+At this writing the API does not contain a "pure" terminals view method.
+For a terminals view of the whole HTML document,
+L<HTML::PullParser> does the job with significantly lower overhead.
+For views and sections of views with no values defined,
+the descendants view (L<described below|/"The Descendants View">)
+is equivalent to the terminals view.
+
+=head2 The Values View
+
+When actions are called, they return a value.
+If that value is defined, it becomes visible to the B<values view> of
+its ancestors.
+The values view of a component sees the visible values for its descendants.
+
+The B<values view> is an array, with the values ordered according to the
+lexical order of the components whose actions returned them.
+If no descendants have visible values,
+then the values view is a zero-length array.
+
+The values view is hierarchical.
+When a component produces a visible value,
+it makes the values of its descendants disappear.
+That is, whenever the semantic action for a component X
+returns anything other than a Perl C<undef>, it has two effects:
+
+=over
+
+=item * That return value becomes the visible value associated with component X.
+
+=item * All the values previously visible due to semantic actions
+for the descendants of component X disappear.
+
+=back
+
+Values which disappear are gone forever.
+There is no mechanism to make them "reappear".
+
+As a special case, if an action for a component returns a Perl C<undef>,
+not only do the values of all its descendants disappear,
+the component for the action also will not appear in the values view.
+When its semantic action returns C<undef>, a component permanently "drops out" of the values view
+taking all descendants with it.
+The original view is seen
+through the L</"Marpa::HTML::values"> API method.
+
+=head2 The Literal View
+
+The literal view can be thought of as a mix between the original view
+and the values view.
+It sees a text string, like the original view.
+But unlike the original view, the literal view includes the visible values.
+
+Values appear in the B<literal view> in stringized form.
+For sections of the original text without visible values,
+the literal view is the same as the original
+view.
+In all L<Marpa::HTML>'s views,
+whether descendants are seen as text or values,
+they
+are seen in the original lexical order.
+The literal view is seen
+through the L</"Marpa::HTML::literal"> API method.
+
+=head2 The Descendants View
+
+Just as the literal view can be thought of as a mix between the original view
+and the values view,
+the descendants view can be thought of a mix between the terminals view and the
+values view.
+
+The B<descendants view> sees an array of elements
+with data for each
+of the component's descendants,
+in lexical order.
+Where a value is visible, the descendants view sees data for the component with the
+visible value.
+Where no value is visible, the descendants view sees data for the terminals.
+This means that
+when no values are visible, the descendants view is the same as the terminals view.
+
+The descendants view is implemented via the L</"Marpa::HTML::descendants"> method.
+It is the most fine-grained and detailed way to look at the descendants of a component.
+The descendants view can do anything that the other views can do,
+but the other views should be preferred when they fit the application.
+Other views are typically more intuitive and efficient.
+
+=head2 Views versus Syntax Trees
+
+Views are a generalization of the traditional method
+for processing semantics: syntax trees.
+The values view is the view that most
+closely resembles a syntax tree.
+But there are important differences.
+
+In its purest form,
+the syntax tree model
+required the semantic actions to 
+define exactly how many and what kind of immediate children
+each node had.
+Each node in a syntax tree worked with its immediate children.
+Children in a syntax tree appeared as values.
+
+The values view, on the other hand, sees all its descendants,
+not just its immediate children, but only if
+they make themselves visible.
+Because of this,
+the values view lends itself to being mixed with other views.
+The values view allows pieces of the tree to decide when they will
+come into sight
+and when they will fall out of view.
+
+=head2 Views and Efficiency
+
+In most applications,
+views are more efficient than syntax trees.
+In terms of L<Marpa::HTML> views,
+traditional syntax tree processing
+corresponds most closely to the values view
+when every component in the parse has a visible value.
+For L<Marpa::HTML> this is close to the worst case.
+
+L<Marpa::HTML> optimizes for unvalued components.
+Unvalued components are represented as terminal spans.
+Adjacent descendant spans are automatically merged.
+This means the size and time required do not increase as 
+processing rises up the component hierarchy.
+
+Terminals views are calculated on a just-in-time basis
+when they are requested through the action API.
+The terminals view is produced quickly from the merged terminal span.
+
+Original views are also calculated on a just-in-time basis
+as requested.
+Each terminal tracks the text it represents as a
+character span.
+The original text can be quickly reconstructed
+as the text in the source document from
+the first character location of its component's first terminal
+to the last character location of the component's last terminal.
+
+When a handler does not need to return a value,
+the most efficient thing to do is to return C<undef>.
+This reverts that component and all its descendants to
+the efficient unvalued representation.
+
+=head1 THE SEMANTIC ACTION API
+
+L<Marpa::HTML>'s semantic action API is implemented
+mainly through context-aware static methods.
+No arguments are passed to the
+user's semantics action callbacks.
+Instead the semantic actions get whatever data they need
+by calling these static methods.
+
+=head2 API Static Methods
+
+=over
+
+=item Marpa::HTML::attributes
+
+Returns a hash ref to the attributes of the start tag.
+This hash ref is exactly the hash ref returned
+for the C<attr> arg specification of L<HTML::Parser>.
+The C<attributes> API method
+returns an empty hash
+if there were no attributes,
+if there was no start tag for this element,
+or if the current component is not an element.
+
+=item Marpa::HTML::contents
+
+For an element, returns the literal view of the contents.
+The contents of an element are its entire text
+except for its start tag and its end tag.
+For an non-element component, returns undef.
+
+=item Marpa::HTML::descendants
+
+This static method implements the descendants view.
+It takes one argument, the "dataspec".
+The B<dataspec> is a string specifying
+the data to be returned for each descendant.
+The C<descendants> method
+returns a reference to an array with one element per descendant,
+in lexical order.
+Each element in the array is a reference to an array whose
+elements are
+the per-descendant data requested in the string.
+
+The descendant data specification string has a syntax
+similar to that of the C<argspec> strings of L<HTML::Parser>.
+Details of that syntax L<are given below|/"Dataspecs">
+
+=item Marpa::HTML::values
+
+The C<Marpa::HTML::values> method implements the values view.
+It returns a pointer to an array of the descendant
+values visible from this component,
+in lexical order.
+No elements of this array will be undefined.
+The array will be zero length if no descendant
+has a visible value.
+
+=item Marpa::HTML::end_tag
+
+For an element with an explicit end tag,
+returns the original text of the end tag.
+For non-element components, returns undef.
+For elements with no end tag, returns undef.
+
+=item Marpa::HTML::literal
+
+The C<Marpa::HTML::literal> method implements the literal view.
+Returns a string containing the literal view of the component --
+its text as modified by any the visible values of its
+descendants.
+
+=item Marpa::HTML::literal_ref
+
+Returns a reference to a string containing the literal view of the
+component.  This can be useful for very long strings.
+
+=item Marpa::HTML::offset
+
+Returns the start offset of the component.
+This is a zero-based location in the source document.
+
+=item Marpa::HTML::original
+
+The C<Marpa::HTML::original> method implements the original view.
+Returns a string containing the original view of the component --
+its text unchanged from the source document.
+
+=item Marpa::HTML::start_tag
+
+For an element with an explicit start tag,
+returns the original text of the start tag.
+For non-element components, returns undef.
+For elements with no explicit start tag, returns undef.
+
+=item Marpa::HTML::tagname
+
+For an element component,
+returns its tagname.
+There is a tagname even if there are no
+explicit tags.
+Tagname is determined based on structure.
+For non-element components, returns undef.
+
+=item Marpa::HTML::title
+
+Returns the value of the title attribute.
+For a non-element component, returns undef.
+If there was no explicit start tag, returns undef.
+If there was no title attribute, returns undef.
+
+=back
+
+=head2 Dataspecs
+
+=for Marpa::Display
+name: dataspec example
+perltidy: '-dcsc -sil=0'
+
+    Marpa::HTML::descendants('token_type,literal,element')
+
+=for Marpa::Display::End
+
+The data specification string, or dataspec,
+is a comma separated list of B<descendant data specifiers>.
+The C<Marpa::HTML::descendants> method takes a dataspec
+as its argument.
+The C<Marpa::HTML::descendants> method returns a reference
+to an array of references to arrays of per-descendant data.
+The contents of the per-descendant data arrays
+and their order is as specified
+by the dataspec.
+These are the valid descendant data specifiers:
+
+=over
+
+=item C<element>
+
+For an element descendant, returns the tagname.
+A valid tagname is returned even if there were no explicit tags.
+For non-element descendants, returns undef.
+
+=item C<literal>
+
+Returns a string containing the literal view of the
+descendant.
+
+=item C<original>
+
+Returns a string containing the original view of the
+descendant.
+
+=item C<pseudoclass>
+
+If the descendant is a pseudoclass component,
+returns the
+name of the pseudoclass.
+In all other cases, returns undef.
+
+=item C<token_type>
+
+If the descendant is a terminal, returns the token type.
+These token types
+are the event types from L<HTML::Parser>:
+"C<T>" for text,
+"C<S>" for a start tag,
+"C<E>" for an end tag,
+"C<PI>" for a processing instruction,
+"C<D>" for an SGML declaration,
+and "C<C>" for a comment.
+For components with visible values, returns undef.
+
+=item C<value>
+
+For element descendants with a value, returns that
+value.
+In all other cases, returns undef.
+
+=back
+
+=head2 The Instance Hash
+
+Each L<Marpa::HTML> instance
+makes available
+a per-instance variable
+as a scratchpad for the application:
+C<$Marpa::HTML::INSTANCE>.
+Each call to
+L<Marpa::HTML::html|/"THE Marpa::HTML::html STATIC METHOD">
+creates a C<$Marpa::HTML::INSTANCE>
+variable which is
+reserved for that application using the C<local> keyword.
+L<Marpa::HTML::html|/"THE Marpa::HTML::html STATIC METHOD">
+initializes it to an empty hash,
+but after that does not touch it.
+When programming via side effects
+is more natural than
+passing data up the parse
+tree (and it often is), 
+C<$Marpa::HTML::INSTANCE> can be used to
+store the data.
+
+Ordinarily, C<$Marpa::HTML::INSTANCE> is destroyed,
+with the rest of the parse instance,
+when C<Marpa::HTML::html> returns.
+But it can be useful
+for the C<:TOP> semantic action to
+return
+C<$Marpa::HTML::INSTANCE> as the value of the parse.
+
+=head2 Undefined Actions versus Actions Which Return C<undef>
+
+It is worth emphasizing that
+the effect of not defining a semantic action for a component
+is different from the effect of defining a semantic action which
+returns a Perl C<undef>.
+The difference lies in what happens to any visible values
+of the descendants of that component.
+
+Where no action is defined for a component,
+it leaves all that component's views as they were before.
+That is, all values which were visible remain visible and
+no new values become visible.
+When an action is defined for a component, but that action returns undef,
+no new values become visible, and
+all descendant values which were visible B<disappear>.
+
+=head2 Root Element versus :TOP Pseudoclass
+
+It is important to understand the very
+special function of the C<:TOP>
+component,
+and to avoid confusing it with the HTML root element.
+The most important distinctions are that
+
+=over
+
+=item *
+
+The semantic action
+for C<:TOP> pseudoclass is always the last action
+to be called in a parse.
+
+=item *
+
+The C<:TOP> component is B<always> the entire HTML document.
+This can be true of the root element, but it is not true in
+all cases.
+
+=item *
+
+The value that the action for the C<:TOP> component
+returns becomes the value that
+the
+L<Marpa::HTML::html|/"THE Marpa::HTML::html STATIC METHOD">
+method returns.
+
+=back
+
+The root element is the HTML element whose tagname is "C<html>", though
+its start and end tags are optional
+and can be omitted even in strictly valid HTML.
+Tags or no tags, every HTML document has a 
+root element.
+(The C<:TOP> component is not an element, so it does not have a tagname and
+never has tags.)
+
+The root element is always a descendant of the C<:TOP>
+component.
+The SGML prolog and SGML trailer are always descendants of the C<:TOP>
+component.
+The SGML prolog and SGML trailer
+are never descendants of the root element.
+
+If an action for the root element is specified,
+it will also be called
+once and only once in every parse.
+An action for the root element can be specified in same way as actions
+for other elements, using its tagname of "C<html>".
+An element wildcard action also becomes the action for the root element,
+if no more specific handler declaration takes precedence.
+
+A C<:TOP> action will be called once and only once in every parse.
+The C<:TOP> action is unique in that there is a default action.
+No other component has a default action.
+
+=head2 Tags versus Structure
+
+Where tags conflict with structure,
+L<HTML::Parser> follows structure.
+"Following structure" means that, for example,
+if semantic actions for the C<html>, C<head>,
+and C<body> elements exist,
+they will be called once and only once during every parse.
+
+Consider this short and very defective HTML document:
+
+=for Marpa::Display
+name: 'HTML Pod: Structure vs. Element Example'
+normalize-whitespace: 1
+
+    <title>Short</title><p>Text</head><head>
+
+=for Marpa::Display::End
+
+L<HTML::Parser> starts the HTML document's body
+when it encounters the C<< <p> >> start tag.
+That means that, even if they were in the right order,
+the two C<head> tags cannot be fit into any reasonable parse
+structure.
+
+If an action is specified for the C<head> element,
+it will be called for the actual header,
+and the original view of the C<head> element component
+will be the text "C<< <title>Short</title> >>".
+The action for the C<head> element will not be called again.
+The two stray tags, C<< </head> >> and C<< <head> >>,
+will be treated as descendants of
+the C<body> element, and reclassed as
+"cruft" terminals.
+
+=head2 Explicit and Implicit Elements
+
+If a semantic action
+is specified for a tagname, it is called
+whenever an element is found with that tagname,
+even if there are no explicit tags for
+that element.
+The HTML standards allow both start and end tags
+to be missing
+for
+C<html>,
+C<head>,
+C<body> and
+C<tbody> elements.
+L<Marpa::HTML> is more liberal,
+and will recognize virtual tags for
+C<table>, C<tr>, and C<td> elements
+as required to repair a defective table.
+
+L<Marpa::HTML> is more even
+liberal about recognizing virtual end tags
+than it is about start tags.
+Virtual start tags are recognized only for the specific
+elements listed above.
+For any non-empty HTML element, there is some circumstance
+under which
+L<Marpa::HTML> will recognize a virtual end tag.
+At end of file,
+as one example,
+L<Marpa::HTML> will do its best to produce a balanced
+HTML structure by
+creating a virtual end tag for every element
+in the stack of
+currently active elements.
+
+=head1 EXPORTS
+
+L<Marpa::HTML> exports nothing by default.
+Optionally,
+L<Marpa::HTML::html|/"THE Marpa::HTML::html STATIC METHOD">
+may be exported.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2010 Jeffrey Kegler, all rights reserved.  Marpa is free
+software under the Perl license.  For details see the LICENSE file in
+the Marpa distribution.
