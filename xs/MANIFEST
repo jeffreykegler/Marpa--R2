@@ -42,10 +42,6 @@ author.t/tidy1
 config/Marpa/XS/Build_Me.pm
 config/Marpa/XS/Config.pm
 config/Marpa/XS/License.pm
-devlib/ppshim/Marpa.pm
-devlib/ppshim/Marpa/Test.pm
-devlib/xsshim/Marpa.pm
-devlib/xsshim/Marpa/Test.pm
 etc/.gitignore
 etc/Makefile
 etc/check_license.pl

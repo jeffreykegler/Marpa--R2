@@ -39,4 +39,6 @@ xs_etc_make: libs
 	(cd xs/etc;  \
 	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB make)
 
-full: pp_etc_make lib xs_etc_make pp_html_test xs_html_test
+xs_test: libs xs_etc_make xs_html_test
+
+full: pp_etc_make libs xs_etc_make pp_html_test xs_html_test
