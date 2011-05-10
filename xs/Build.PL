@@ -27,7 +27,7 @@ use Module::Build;
 use ExtUtils::PkgConfig;
 use Glib::Install::Files;
 
-my $marpa_version = '0.005_002';
+my $marpa_version = '0.005_003';
 
 use lib File::Spec->catdir('config');
 use Marpa::XS::Build_Me;
@@ -102,5 +102,9 @@ my $build = Marpa::XS::Build_Me->new(
     create_makefile_pl => 'small',
     test_files         => [ map { glob $_ } qw(t/*.t t/shared/*.t) ],
 );
+
+die("Version mismatch in Build.PL: marpa_version=$marpa_version, dist_version=",
+    $build->dist_version()
+) if $marpa_version ne $build->dist_version();
 
 $build->create_build_script;
