@@ -18,6 +18,12 @@ package Marpa::XS;
 use 5.010;
 use strict;
 use warnings;
+
+use vars qw($VERSION $STRING_VERSION);
+$VERSION = '0.005_003';
+$STRING_VERSION = $VERSION;
+$VERSION = eval $VERSION;
+
 use Carp;
 use English qw( -no_match_vars );
 

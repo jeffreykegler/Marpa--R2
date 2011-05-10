@@ -27,7 +27,7 @@ use Module::Build;
 use ExtUtils::PkgConfig;
 use Glib::Install::Files;
 
-my $marpa_xs_version = '0.005_002';
+my $marpa_version = '0.005_002';
 
 use lib File::Spec->catdir('config');
 use Marpa::XS::Build_Me;
@@ -48,7 +48,7 @@ my %configure_requires =
 my %requires =
     map { ( $_, $Marpa::XS::VERSION_FOR_CONFIG{$_} ) }
     qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper ExtUtils::PkgConfig Glib );
-$requires{'Marpa::PP'} = $marpa_xs_version;
+$requires{'Marpa::PP'} = $marpa_version;
 my %recommends =
     map { ( $_, $Marpa::XS::VERSION_FOR_CONFIG{$_} ) } qw( PPI Test::Weaken );
 
@@ -72,9 +72,8 @@ my @files_to_cleanup = (
 
 my $build = Marpa::XS::Build_Me->new(
     add_to_cleanup     => \@files_to_cleanup,
-    dist_name          => 'Marpa-XS',
+    module_name          => 'Marpa::XS',
     dist_author        => 'Jeffrey Kegler',
-    dist_version       => $marpa_xs_version,
     dist_abstract      => 'XS Version of Marpa (Experimental)',
     recommends         => \%recommends,
     requires           => \%requires,
@@ -97,15 +96,6 @@ my $build = Marpa::XS::Build_Me->new(
             ],
             package => [@no_index_namespace_inclusive],
         }
-    },
-    meta_add => {
-        distribution_type => 'module',
-        provides          => {
-            'Marpa::XS' => {
-                file    => 'lib/Marpa/XS.pm',
-                version => $marpa_xs_version,
-            },
-        },
     },
     pod_files          => \%pod_files,
     create_readme      => 0,
