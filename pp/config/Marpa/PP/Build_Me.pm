@@ -31,7 +31,7 @@ use English qw( -no_match_vars );
 use Marpa::PP::Config;
 
 my @marpa_pp_use =
-    qw( Scalar::Util List::Util Carp Data::Dumper Storable );
+    qw( Scalar::Util List::Util Carp Data::Dumper );
 my @marpa_pp_perl_use = qw( Scalar::Util Carp Data::Dumper PPI Marpa::PP );
 
 sub version_contents {
@@ -43,15 +43,10 @@ END_OF_STRING
 
     my $marpa_pp_version = $self->dist_version();
     $text .= "package $package;\n";
-    $text .= "BEGIN {\n";
-    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-    $text .= q{$Marpa::PP::VERSION = } . $marpa_pp_version . ";\n";
-    $text .= q{$Marpa::PP::STRING_VERSION = '} . $marpa_pp_version . "';\n";
-    ## use critic
-    $text .= "}\n";
     PACKAGE: for my $package (@use_packages) {
-	next PACKAGE if $package eq 'Marpa::PP';
-        my $version = $Marpa::PP::VERSION_FOR_CONFIG{$package};
+        my $version = $package eq 'Marpa::PP'
+	    ? $marpa_pp_version
+	    : $Marpa::PP::VERSION_FOR_CONFIG{$package} ;
         die "No version defined for $package" if not defined $version;
         $text .= "use $package $version ();\n";
     }

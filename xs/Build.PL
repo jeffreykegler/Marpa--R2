@@ -47,7 +47,8 @@ my %configure_requires =
     qw( ExtUtils::PkgConfig Module::Build Glib );
 my %requires =
     map { ( $_, $Marpa::XS::VERSION_FOR_CONFIG{$_} ) }
-    qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper Storable ExtUtils::PkgConfig Glib );
+    qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper ExtUtils::PkgConfig Glib );
+$requires{'Marpa::PP'} = $marpa_xs_version;
 my %recommends =
     map { ( $_, $Marpa::XS::VERSION_FOR_CONFIG{$_} ) } qw( PPI Test::Weaken );
 

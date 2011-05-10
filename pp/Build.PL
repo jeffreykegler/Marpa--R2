@@ -25,8 +25,6 @@ use File::Path;
 use Config;
 use Module::Build;
 
-my $marpa_pp_version = '0.005_002';
-
 use lib File::Spec->catdir('config');
 use Marpa::PP::Build_Me;
 use Marpa::PP::Config;
@@ -74,9 +72,8 @@ my @files_to_cleanup = (
 
 my $build = Marpa::PP::Build_Me->new(
     add_to_cleanup     => \@files_to_cleanup,
-    dist_name          => 'Marpa-PP',
+    module_name        => 'Marpa::PP',
     dist_author        => 'Jeffrey Kegler',
-    dist_version       => $marpa_pp_version,
     dist_abstract      => 'PP Version of Marpa (Experimental)',
     recommends         => \%recommends,
     requires           => \%requires,
@@ -95,15 +92,6 @@ my $build = Marpa::PP::Build_Me->new(
             ],
             package => [@no_index_namespace_inclusive],
         }
-    },
-    meta_add => {
-        distribution_type => 'module',
-        provides          => {
-            'Marpa::PP' => {
-                file    => 'lib/Marpa/PP.pm',
-                version => $marpa_pp_version,
-            },
-        },
     },
     pod_files          => \%pod_files,
     create_readme      => 0,
