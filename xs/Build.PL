@@ -27,7 +27,7 @@ use Module::Build;
 use ExtUtils::PkgConfig;
 use Glib::Install::Files;
 
-my $marpa_version = '0.005_003';
+my $marpa_version = '0.005_004';
 
 use lib File::Spec->catdir('config');
 use Marpa::XS::Build_Me;
@@ -96,6 +96,15 @@ my $build = Marpa::XS::Build_Me->new(
             ],
             package => [@no_index_namespace_inclusive],
         }
+    },
+    meta_add => {
+        distribution_type => 'module',
+        provides          => {
+            'Marpa::XS' => {
+                file    => 'lib/Marpa/XS.pm',
+                version => $marpa_version,
+            },
+        },
     },
     pod_files          => \%pod_files,
     create_readme      => 0,

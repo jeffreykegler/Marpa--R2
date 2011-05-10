@@ -19,7 +19,7 @@ use 5.010;
 use strict;
 use warnings;
 use vars qw($VERSION $STRING_VERSION);
-$VERSION = '0.005_003';
+$VERSION = '0.005_004';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
