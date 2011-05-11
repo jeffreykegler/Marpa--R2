@@ -138,7 +138,7 @@ END_RULES
 
 # Alternative tests: AHFA items if XS, NFA items if PP
 
-if ($Marpa::USING_XS) {
+if ($Marpa::Any::USING_XS) {
 
 $actual_ref = save_stdout();
 
@@ -167,7 +167,7 @@ EOS
 
 } # USING_XS
 
-if ($Marpa::USING_PP) {
+if ($Marpa::Any::USING_PP) {
     $actual_ref = save_stdout();
     print $grammar->show_NFA()
         or die "print failed: $ERRNO";
