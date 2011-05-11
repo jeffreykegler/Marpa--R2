@@ -21,12 +21,12 @@ use warnings;
 
 use Test::More tests => 13;
 
-use Marpa::PP::Test;
+use Marpa::Test;
 use English qw( -no_match_vars );
 use Fatal qw( close open );
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 ## no critic (InputOutput::RequireBriefOpen)
@@ -65,7 +65,7 @@ sub do_op {
         $value = $left_value - $right_value;
     }
     else {
-        Marpa::exception("Unknown op: $op");
+        die("Unknown op: $op");
     }
     return '(' . $left_string . $op . $right_string . ')==' . $value;
 } ## end sub do_op

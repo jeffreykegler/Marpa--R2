@@ -21,10 +21,10 @@ use warnings;
 
 use Test::More tests => 11;
 
-use Marpa::PP::Test;
+use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 # The inefficiency (at least some of it) is deliberate.

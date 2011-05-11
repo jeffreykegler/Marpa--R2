@@ -22,10 +22,10 @@ use Test::More tests => 4;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
-use Marpa::PP::Test;
+use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 my $progress_report = q{};

@@ -19,10 +19,10 @@ use strict;
 use warnings;
 
 use Test::More tests => 2;
-use Marpa::PP::Test;
+use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 package Test;

@@ -21,12 +21,12 @@ use warnings;
 
 use Test::More tests => 2;
 
-use Marpa::PP::Test;
+use Marpa::Test;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 ## no critic (InputOutput::RequireBriefOpen)

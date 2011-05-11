@@ -22,7 +22,6 @@ use charnames ':full';
 use Scalar::Util;
 use Data::Dumper ();
 use English qw( -no_match_vars );
-use Carp 1.08 ();
 use Test::More ();
 
 BEGIN {
@@ -42,7 +41,7 @@ BEGIN {
     else {
         Test::More::plan tests => 13;
     }
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 } ## end BEGIN
 
 use Marpa::PP::Perl;
@@ -446,7 +445,7 @@ my %closure = ();
 
 ## Tests from dumper.t
 
-my $parser = Marpa::PP::Perl->new( \&gen_closure );
+my $parser = Marpa::Perl->new( \&gen_closure );
 
 # Perlcritic cannot figure out that $a and $b are not magic variables
 # for a sort comparison

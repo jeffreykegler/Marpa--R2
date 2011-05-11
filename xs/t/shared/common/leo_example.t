@@ -27,10 +27,10 @@ use warnings;
 use Fatal qw(open close);
 use Test::More tests => 8;
 
-use Marpa::PP::Test;
+use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)

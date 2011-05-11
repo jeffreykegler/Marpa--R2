@@ -21,11 +21,11 @@ use warnings;
 
 use Test::More tests => 8;
 
-use Marpa::PP::Test;
+use Marpa::Test;
 use English qw( -no_match_vars );
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 my @features = qw(
@@ -104,24 +104,24 @@ LINE: while ( my $line = <DATA> ) {
             if ( $header =~ s/\A expected \s //xms ) {
                 my ( $feature, $test ) =
                     ( $header =~ m/\A ([^\s]*) \s+ (.*) \Z/xms );
-                Marpa::exception(
+                die(
                     "expected result given for unknown test, feature: $test, $feature"
                 ) if not defined $expected{$test}{$feature};
                 $expected{$test}{$feature} = $data;
                 next HEADER;
             } ## end if ( $header =~ s/\A expected \s //xms )
             if ( $header =~ s/\A good \s code \s //xms ) {
-                Marpa::exception(
+                die(
                     'Good code should no longer be in data section');
             }
             if ( $header =~ s/\A bad \s code \s //xms ) {
                 chomp $header;
-                Marpa::exception(
+                die(
                     "test code given for unknown test: $header")
                     if not defined $test_arg{$header};
                 next HEADER;
             } ## end if ( $header =~ s/\A bad \s code \s //xms )
-            Marpa::exception("Bad header: $header");
+            die("Bad header: $header");
         }    # HEADER
         $getting_headers = 1;
         $data            = q{};
@@ -168,7 +168,7 @@ sub run_test {
             when ('e_number_action') { $e_number_action = $value }
             when ('default_action')  { $default_action  = $value }
             default {
-                Marpa::exception("unknown argument to run_test: $arg");
+                die("unknown argument to run_test: $arg");
             };
         } ## end given
     } ## end while ( my ( $arg, $value ) = each %{$args} )
@@ -211,7 +211,7 @@ sub run_test {
     );
 
     if ( not defined $recce->tokens( \@tokens ) ) {
-        Marpa::exception('Recognition failed');
+        die('Recognition failed');
     }
 
     $recce->end_input();
@@ -283,7 +283,7 @@ sub e_op_action {
         $value = $left_value - $right_value;
     }
     else {
-        Marpa::exception("Unknown op: $op");
+        die("Unknown op: $op");
     }
     return '(' . $left_string . $op . $right_string . ')==' . $value;
 } ## end sub e_op_action

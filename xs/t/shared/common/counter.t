@@ -24,11 +24,10 @@ use warnings;
 
 use Test::More tests => 33;
 use English qw( -no_match_vars );
-use Marpa::PP::Test;
-use Carp;
+use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -104,7 +103,7 @@ for my $up ( 1, 0 ) {
     while ( my $result = $recce->value() ) {
         my $got      = ${$result};
         my $expected = $count->[$i];
-        say ${$result} or Carp::croak("Could not print to STDOUT: $ERRNO");
+        say ${$result} or die("Could not print to STDOUT: $ERRNO");
         Test::More::is( $got, $expected, "counting $direction $i" );
         $i++;
     } ## end while ( my $result = $recce->value() )
