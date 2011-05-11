@@ -41,7 +41,7 @@ sub default_action {
 
 ## use critic
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::Any::Grammar->new(
     {   start   => 'S',
         strip   => 0,
         rules   => [
@@ -112,7 +112,7 @@ Marpa::Test::is(
     'Aycock/Horspool Accessible Symbols'
 );
 
-if ($Marpa::USING_XS ) {
+if ($Marpa::Any::USING_XS ) {
     Marpa::Test::is( $grammar->show_AHFA_items(), <<'EOS', 'Aycock/Horspool AHFA Items' );
 AHFA item 0: sort = 9; postdot = "a"
     A -> . a
@@ -169,7 +169,7 @@ AHFA item 25: sort = 25; completion
 EOS
 }
 
-if ($Marpa::USING_PP ) {
+if ($Marpa::Any::USING_PP ) {
     Marpa::Test::is( $grammar->show_NFA, <<'EOS', 'Aycock/Horspool NFA' );
 S0: /* empty */
  empty => S33 S35
@@ -338,7 +338,7 @@ A -> . a
 EOS
 
 my $recce =
-    Marpa::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
+    Marpa::Any::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
 
 my @set = (
     <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', <<'END_OF_SET4', );

@@ -153,7 +153,7 @@ my $parse_number = 0;
 # Returns the new parse object or throws an exception
 sub Marpa::PP::Recognizer::new {
     my ( $class, @arg_hashes ) = @_;
-    my $recce = bless [], $class;
+    my $recce = bless [], 'Marpa::PP::Recognizer';
 
     my $grammar;
     ARG_HASH: for my $arg_hash (@arg_hashes) {
@@ -169,7 +169,7 @@ sub Marpa::PP::Recognizer::new {
     my $grammar_class = ref $grammar;
     Marpa::exception(
         "${class}::new() grammar arg has wrong class: $grammar_class")
-        if not $grammar_class eq 'Marpa::Grammar';
+        if not $grammar_class eq 'Marpa::PP::Grammar';
 
     my $problems = $grammar->[Marpa::PP::Internal::Grammar::PROBLEMS];
     if ($problems) {
@@ -918,9 +918,20 @@ sub Marpa::PP::Recognizer::alternative {
     my ( $recce, $symbol_name, $value, $length ) = @_;
 
     Marpa::exception(
-        'No recognizer object for Marpa::PP::Recognizer::tokens')
-        if not defined $recce
-            or ref $recce ne 'Marpa::Recognizer';
+        'Missing recognizer argument for Marpa::PP::Recognizer::alternative()')
+        if not defined $recce;
+
+    {
+        my $recce_class = ref $recce;
+        $recce_class //= "not defined";
+        Marpa::exception(
+            "recognizer argument of alternative() has wrong class\n",
+            "Class of argument is ",
+            $recce_class,
+            "\n",
+            "Class of argument should be Marpa::PP::Recognizer\n"
+        ) if $recce_class ne 'Marpa::PP::Recognizer';
+    }
 
     my $grammar = $recce->[Marpa::PP::Internal::Recognizer::GRAMMAR];
     local $Marpa::PP::Internal::TRACE_FH = my $trace_fh =
@@ -1092,11 +1103,22 @@ sub Marpa::PP::Recognizer::tokens {
     my ( $recce, $tokens, $token_ix_ref ) = @_;
 
     Marpa::exception(
-        'No recognizer object for Marpa::PP::Recognizer::tokens')
-        if not defined $recce
-            or ref $recce ne 'Marpa::Recognizer';
+        'Missing recognizer argument for Marpa::PP::Recognizer::tokens()')
+        if not defined $recce;
 
-    Marpa::exception('No tokens arg for Marpa::PP::Recognizer::tokens')
+     {
+        my $recce_class = ref $recce;
+        $recce_class //= "not defined";
+        Marpa::exception(
+            "recognizer argument of tokens() has wrong class\n",
+            "Class of argument is ",
+            $recce_class,
+            "\n",
+            "Class of argument should be Marpa::PP::Recognizer\n"
+        ) if $recce_class ne 'Marpa::PP::Recognizer';
+    }
+
+    Marpa::exception('No tokens arg for Marpa::PP::Recognizer::tokens()')
         if not defined $tokens;
 
     my $mode = $recce->[Marpa::PP::Internal::Recognizer::MODE];

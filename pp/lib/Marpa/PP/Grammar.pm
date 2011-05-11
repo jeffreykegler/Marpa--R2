@@ -346,7 +346,7 @@ sub Marpa::PP::Grammar::new {
     my ( $class, @arg_hashes ) = @_;
 
     my $grammar = [];
-    bless $grammar, $class;
+    bless $grammar, 'Marpa::PP::Grammar';
 
     # set the defaults and the default defaults
     $grammar->[Marpa::PP::Internal::Grammar::TRACE_FILE_HANDLE] = *STDERR;
