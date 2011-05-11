@@ -39,12 +39,11 @@ BEGIN {
         Test::More::plan skip_all => $PPI_problem;
     }
     else {
-        Test::More::plan tests => 13;
+        Test::More::plan tests => 14;
     }
     Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::Perl');
 } ## end BEGIN
-
-use Marpa::PP::Perl;
 
 our @OUTPUT = ();
 our %SYMTAB = ( SCALAR => {} );
