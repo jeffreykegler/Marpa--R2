@@ -21,7 +21,6 @@ use warnings;
 use Test::More tests => 9;
 use English qw( -no_match_vars );
 use Marpa::Test;
-use Carp;
 
 BEGIN {
     Test::More::use_ok('Marpa::Any');

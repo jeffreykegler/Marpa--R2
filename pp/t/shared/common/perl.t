@@ -22,7 +22,6 @@ use charnames ':full';
 use Scalar::Util;
 use Data::Dumper ();
 use English qw( -no_match_vars );
-use Carp 1.08 ();
 use Test::More ();
 
 BEGIN {
