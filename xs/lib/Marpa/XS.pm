@@ -33,6 +33,12 @@ sub dl_load_flags { $^O eq 'darwin' ? 0x00 : 0x01 }
 
 use Marpa::XS::Version;
 
+# Die if more than one of the Marpa modules is loaded
+if ( defined $Marpa::MODULE ) {
+    Carp::croak("You can only load one of the Marpa modules at a time\n",
+        "The module ", $Marpa::MODULE, " is already loaded\n");
+}
+$Marpa::MODULE = "Marpa::XS";
 if ( defined $Marpa::PP::VERSION ) {
     Carp::croak('Attempt to load Marpa::XS when Marpa::PP ', $Marpa::PP::VERSION, ' already loaded');
 }
