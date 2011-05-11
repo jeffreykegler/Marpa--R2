@@ -18,7 +18,8 @@ use 5.010;
 use strict;
 use warnings;
 use Test::More tests => 8;
-use Marpa::PP::Test;
+use lib 'tool/lib';
+use Marpa::Test;
 
 BEGIN {
 

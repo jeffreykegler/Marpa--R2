@@ -45,8 +45,8 @@ sub Marpa::Test::Common::run {
         local $ERRNO      = undef;
         local $EVAL_ERROR = undef;
         last DO                                        if defined do $f;
-        die "$f: $ERRNO"                               if $ERRNO;
         die qq{Compilation error in $f\n"$EVAL_ERROR"} if $EVAL_ERROR;
+        die "$f: $ERRNO"                               if $ERRNO;
     } ## end DO:
 } ## end sub run
 

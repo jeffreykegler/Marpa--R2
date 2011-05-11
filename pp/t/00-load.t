@@ -22,6 +22,7 @@ use Test::More tests => 2;
 
 use Carp;
 use Data::Dumper;
+use lib "tool/lib";
 
 BEGIN {
     Test::More::use_ok('Marpa::Any');
