@@ -44,7 +44,7 @@ BEGIN {
     Test::More::use_ok('Marpa::PP');
 } ## end BEGIN
 
-use Marpa::Perl;
+use Marpa::PP::Perl;
 
 our @OUTPUT = ();
 our %SYMTAB = ( SCALAR => {} );
