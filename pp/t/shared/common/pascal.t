@@ -27,7 +27,7 @@ use Test::More tests => 8;
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 sub ah_extended {

@@ -40,10 +40,10 @@ BEGIN {
     else {
         Test::More::plan tests => 5;
     }
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 } ## end BEGIN
 
-use Marpa::Any::Perl;
+use Marpa::PP::Perl;
 use Marpa::Test;
 
 # Run in utility mode?

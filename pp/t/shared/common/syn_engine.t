@@ -29,7 +29,7 @@ use Marpa::Test;
 # Marpa::PP::Display
 # name: Engine Synopsis Unambiguous Parse
 
-use Marpa::Any;
+use Marpa::PP;
 
 my $grammar = Marpa::Any::Grammar->new(
     {   start          => 'Expression',

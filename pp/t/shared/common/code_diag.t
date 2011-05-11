@@ -25,7 +25,7 @@ use Marpa::Test;
 use English qw( -no_match_vars );
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 my @features = qw(

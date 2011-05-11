@@ -27,7 +27,7 @@ use Test::More tests => 5;
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 sub make_rule {
