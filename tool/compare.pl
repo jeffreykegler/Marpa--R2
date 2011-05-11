@@ -48,5 +48,26 @@ my @found = ();
 sub wanted {
      -d or push @found, $File::Find::name;
 }
-File::Find::find(\&wanted, 'pp/tool');
-say join "\n", @found;
+File::Find::find(\&wanted, 'xs/tool');
+for my $xs_tool_file (@found) {
+     my ($volume, $xsdir, $filename) = File::Spec->splitpath($xs_tool_file);
+     my @dirs = File::Spec->splitdir($xsdir);
+     my $ppdir = File::Spec->catdir('pp', @dirs[1 .. $#dirs]);
+     my $pp_tool_file = File::Spec->catpath($volume, $ppdir, $filename);
+    if ( File::Compare::compare( $pp_tool_file, $xs_tool_file ) ) {
+        say STDERR "Different: $pp_tool_file vs. $xs_tool_file";
+    }
+}
+@found = ();
+File::Find::find(\&wanted, 'xs/lib/Marpa/XS/PP');
+for my $xs_lib_file (@found) {
+    my ( $volume, $xsdir, $filename ) = File::Spec->splitpath($xs_lib_file);
+    my @dirs = File::Spec->splitdir($xsdir);
+    my $ppdir =
+        File::Spec->catdir( 'pp', 'lib', 'Marpa',
+        @dirs[ 4 .. $#dirs ] );
+    my $pp_lib_file = File::Spec->catpath( $volume, $ppdir, $filename );
+    if ( File::Compare::compare( $pp_lib_file, $xs_lib_file ) ) {
+        say STDERR "Different: $pp_lib_file vs. $xs_lib_file";
+    }
+} ## end for my $xs_lib_file (@found)
