@@ -53,7 +53,6 @@ lib/Marpa/PP/Grammar.pm
 lib/Marpa/PP/Internal.pm
 lib/Marpa/PP/Internal/Carp_Not.pm
 lib/Marpa/PP/Offset.pm
-lib/Marpa/PP/Perl.pm
 lib/Marpa/PP/Recognizer.pm
 lib/Marpa/PP/Slot.pm
 lib/Marpa/PP/Value.pm
@@ -72,6 +71,7 @@ pod/Semantics/Null.pod
 pod/Semantics/Order.pod
 pod/Support.pod
 pod/Tracing.pod
+pperl/Marpa/Perl.pm
 t/00-load.t
 t/02-load_pp.t
 t/Makefile

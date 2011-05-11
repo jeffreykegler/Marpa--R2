@@ -134,10 +134,10 @@ sub ACTION_code {
     my $self = shift;
     say STDERR "Writing version files";
     write_installed_pm($self, qw(lib Marpa PP ) );
-    write_installed_pm($self, qw(lib Marpa PP Perl ) );
-    my $perl_version_pm = version_contents( $self, 'Marpa::PP::Perl', @marpa_pp_perl_use );
+    write_installed_pm($self, qw(pperl Marpa Perl ) );
+    my $perl_version_pm = version_contents( $self, 'Marpa::Perl', @marpa_pp_perl_use );
     my $version_pm = version_contents( $self, 'Marpa::PP', @marpa_pp_use );
     $self->write_file($version_pm, qw(lib Marpa PP Version.pm) );
-    $self->write_file($perl_version_pm, qw(lib Marpa PP Perl Version.pm) );
+    $self->write_file($perl_version_pm, qw(pperl Marpa Perl Version.pm) );
     $self->SUPER::ACTION_code;
 }

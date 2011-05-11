@@ -66,7 +66,8 @@ my @no_index_namespace_inclusive = (
 );
 
 my @files_to_cleanup = (
-    'lib/Marpa/PP/Version.pm', 'lib/Marpa/PP/Perl/Version.pm',
+    'lib/Marpa/PP/Version.pm', 'pperl/Marpa/Perl/Version.pm',
+    'lib/Marpa/PP/Installed.pm', 'pperl/Marpa/Perl/Installed.pm',
     'libmarpa/main/build',
 );
 
@@ -85,7 +86,7 @@ my $build = Marpa::PP::Build_Me->new(
         resources =>
             { repository => 'git://github.com/jeffreykegler/Marpa-PP.git', },
         no_index => {
-            directory => [qw( config inc t tool author.t )],
+            directory => [qw( pperl config inc t tool author.t )],
             namespace => [
                 'Marpa::PP::Recognizer', 'Marpa::PP::Grammar',
                 @no_index_namespace_inclusive
