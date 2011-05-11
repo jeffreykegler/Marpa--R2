@@ -44,7 +44,7 @@ BEGIN {
 } ## end BEGIN
 
 use Marpa::PP::Perl ();
-use Marpa::PP::Test ();
+use Marpa::Test;
 
 # Run in utility mode?
 my $utility = 0;

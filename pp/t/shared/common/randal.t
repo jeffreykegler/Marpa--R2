@@ -20,7 +20,7 @@ use warnings;
 use English qw( -no_match_vars );
 
 use Test::More tests => 5;
-use Marpa::PP::Test;
+use Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa::Any');

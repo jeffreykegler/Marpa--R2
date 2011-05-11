@@ -22,7 +22,7 @@ use warnings;
 
 use Test::More tests => 3;
 
-use Marpa::PP::Test;
+use Marpa::Test;
 
 ## no critic (ErrorHandling::RequireCarping);
 

@@ -22,7 +22,7 @@ use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
 use Test::More tests => 7;
-use Marpa::PP::Test;
+use Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa::Any');
