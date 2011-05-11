@@ -19,6 +19,7 @@ use warnings;
 use strict;
 
 use Test::More tests => 5;
+use lib 'tool/lib';
 use lib 'lib';
 use lib 'blib/arch';
 
@@ -26,7 +27,7 @@ BEGIN {
     Test::More::use_ok('Devel::SawAmpersand');
     Test::More::use_ok('Marpa::PP');
     Test::More::use_ok('Marpa::PP::Perl');
-    Test::More::use_ok('Marpa::PP::Test');
+    Test::More::use_ok('Marpa::Test');
 } ## end BEGIN
 
 Test::More::ok( !Devel::SawAmpersand::sawampersand(), 'PL_sawampersand set' );

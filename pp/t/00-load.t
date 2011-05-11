@@ -25,11 +25,11 @@ use Data::Dumper;
 use lib "tool/lib";
 
 BEGIN {
-    Test::More::use_ok('Marpa::Any');
+    Test::More::use_ok('Marpa::PP');
 }
 
 defined $INC{'Marpa/Any.pm'}
-    or Test::More::BAIL_OUT('Could not load Marpa::Any');
+    or Test::More::BAIL_OUT('Could not load Marpa::PP');
 
 Test::More::ok( defined $Marpa::PP::VERSION, 'Marpa::version defined' );
 

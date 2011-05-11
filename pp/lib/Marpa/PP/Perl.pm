@@ -923,7 +923,7 @@ sub token_not_accepted {
     if (not defined $token_name) {
          $perl_token_desc = 'Undefined Perl token was not accepted: ';
     } else {
-         $perl_token_desc = qq{Perl token "$token_name" was not accepted: },
+         $perl_token_desc = qq{Perl token "$token_name" was not accepted: };
     }
     if (defined $length and $length != 1) {
          $perl_token_desc .= " length=" . $length;
