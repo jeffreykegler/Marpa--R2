@@ -42,50 +42,54 @@ what in C would be structures.
 
 =cut
 
-use Marpa::PP::Offset qw(
+BEGIN {
+    Marpa::offset(
+        qw(
 
-    :package=Marpa::PP::Internal::Symbol
+            :package=Marpa::PP::Internal::Symbol
 
-    ID
-    NAME
+            ID
+            NAME
 
-    =LAST_BASIC_DATA_FIELD
+            =LAST_BASIC_DATA_FIELD
 
-    NULL_ALIAS { for a non-nullable symbol,
-    ref of a its nulling alias,
-    if there is one
-    otherwise undef }
+            NULL_ALIAS { for a non-nullable symbol,
+            ref of a its nulling alias,
+            if there is one
+            otherwise undef }
 
-    NULLING { always is null? }
-    RANKING_ACTION
-    NULL_VALUE { null value }
+            NULLING { always is null? }
+            RANKING_ACTION
+            NULL_VALUE { null value }
 
-    NULLABLE { The number of nullable symbols
-    the symbol represents,
-    0 if the symbol is not nullable. }
+            NULLABLE { The number of nullable symbols
+            the symbol represents,
+            0 if the symbol is not nullable. }
 
-    =LAST_EVALUATOR_FIELD
+            =LAST_EVALUATOR_FIELD
 
-    TERMINAL { terminal? }
+            TERMINAL { terminal? }
 
-    =LAST_RECOGNIZER_FIELD
+            =LAST_RECOGNIZER_FIELD
 
-    LH_RULE_IDS { rules with this as the lhs,
-    as a ref to an array of rule refs }
+            LH_RULE_IDS { rules with this as the lhs,
+            as a ref to an array of rule refs }
 
-    RH_RULE_IDS { rules with this in the rhs,
-    as a ref to an array of rule refs }
+            RH_RULE_IDS { rules with this in the rhs,
+            as a ref to an array of rule refs }
 
-    ACCESSIBLE { reachable from start symbol? }
-    PRODUCTIVE { reachable from input symbol? }
-    START { is one of the start symbols? }
-    COUNTED { used on rhs of counted rule? }
+            ACCESSIBLE { reachable from start symbol? }
+            PRODUCTIVE { reachable from input symbol? }
+            START { is one of the start symbols? }
+            COUNTED { used on rhs of counted rule? }
 
-    WARN_IF_NO_NULL_VALUE { should have a null value -- warn
-    if not }
+            WARN_IF_NO_NULL_VALUE { should have a null value -- warn
+            if not }
 
-    =LAST_FIELD
-);
+            =LAST_FIELD
+            )
+    );
+} ## end BEGIN
 
 use Marpa::PP::Offset qw(
 

@@ -43,7 +43,7 @@ if ( defined $Marpa::XS::VERSION ) {
     Carp::croak('Cannot load both Marpa::PP and Marpa::XS');
 }
 
-my @carp_not = ();
+@Marpa::CARP_NOT = ();
 for my $start (qw(Marpa Marpa::PP Marpa::XS))
 {
     for my $middle ('', '::Internal')
@@ -54,7 +54,7 @@ for my $start (qw(Marpa Marpa::PP Marpa::XS))
 	}
     }
 }
-PACKAGE: for my $package (@carp_not) {
+PACKAGE: for my $package (@Marpa::CARP_NOT) {
     no strict 'refs';
     next PACKAGE if  $package eq 'Marpa';
     *{ $package . q{::CARP_NOT} } = \@Marpa::CARP_NOT;
