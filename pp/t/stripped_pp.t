@@ -31,7 +31,7 @@ BEGIN {
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630
 # This time testing the stripped output
 
-my $g = Marpa::Grammar->new(
+my $g = Marpa::PP::Grammar->new(
     {   start => 'S',
         rules => [
             [ 'S',   [qw/A A A A/] ],

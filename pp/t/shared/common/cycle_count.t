@@ -38,7 +38,7 @@ our $CYCLE_RANK = 1;
 
 # If we are counting up, the lowest number
 # has to have the highest numerical rank.
-# sub rank_cycle { return \($main::CYCLE_RANK*(Marpa::location()+1)) }
+# sub rank_cycle { return \($main::CYCLE_RANK*(Marpa::Any::location()+1)) }
 sub rank_cycle {
     return \( $main::CYCLE_RANK * ( 9 - Marpa::location() ) );
 }

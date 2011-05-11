@@ -43,7 +43,7 @@ BEGIN {
     Test::More::use_ok('Marpa::Any');
 } ## end BEGIN
 
-use Marpa::PP::Perl ();
+use Marpa::Any::Perl;
 use Marpa::Test;
 
 # Run in utility mode?
@@ -68,9 +68,9 @@ my %codeblock;
 sub do_hashblock {
     shift;
     my $location = 'line '
-        . Marpa::PP::Perl::token()->logical_line_number()
+        . Marpa::Any::Perl::token()->logical_line_number()
         . q{, column }
-        . Marpa::PP::Perl::token()->column_number;
+        . Marpa::Any::Perl::token()->column_number;
     $hash{$location}++;
     return;
 } ## end sub do_hashblock
@@ -78,14 +78,14 @@ sub do_hashblock {
 sub do_codeblock {
     shift;
     my $location = 'line '
-        . Marpa::PP::Perl::token()->logical_line_number()
+        . Marpa::Any::Perl::token()->logical_line_number()
         . q{, column }
-        . Marpa::PP::Perl::token()->column_number;
+        . Marpa::Any::Perl::token()->column_number;
     $codeblock{$location}++;
     return;
 } ## end sub do_codeblock
 
-my $parser = Marpa::PP::Perl->new( \&gen_closure );
+my $parser = Marpa::Any::Perl->new( \&gen_closure );
 
 my @tests;
 if ($utility) {

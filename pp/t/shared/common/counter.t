@@ -40,7 +40,7 @@ BEGIN {
 # If we are counting up, the lowest number
 # has to have the highest numerical rank.
 sub rank_one {
-    return \( ( $MyTest::UP ? -1 : 1 ) / ( 2 << Marpa::location() ) );
+    return \( ( $MyTest::UP ? -1 : 1 ) / ( 2 << Marpa::Any::location() ) );
 }
 sub rank_zero { return \0 }
 sub zero      { return '0' }
