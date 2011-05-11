@@ -68,9 +68,9 @@ my %codeblock;
 sub do_hashblock {
     shift;
     my $location = 'line '
-        . Marpa::Any::Perl::token()->logical_line_number()
+        . Marpa::Perl::token()->logical_line_number()
         . q{, column }
-        . Marpa::Any::Perl::token()->column_number;
+        . Marpa::Perl::token()->column_number;
     $hash{$location}++;
     return;
 } ## end sub do_hashblock
@@ -78,14 +78,14 @@ sub do_hashblock {
 sub do_codeblock {
     shift;
     my $location = 'line '
-        . Marpa::Any::Perl::token()->logical_line_number()
+        . Marpa::Perl::token()->logical_line_number()
         . q{, column }
-        . Marpa::Any::Perl::token()->column_number;
+        . Marpa::Perl::token()->column_number;
     $codeblock{$location}++;
     return;
 } ## end sub do_codeblock
 
-my $parser = Marpa::Any::Perl->new( \&gen_closure );
+my $parser = Marpa::Perl->new( \&gen_closure );
 
 my @tests;
 if ($utility) {

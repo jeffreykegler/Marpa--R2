@@ -40,7 +40,7 @@ BEGIN {
 # If we are counting up, the lowest number
 # has to have the highest numerical rank.
 sub rank_one {
-    return \( ( $MyTest::UP ? -1 : 1 ) / ( 2 << Marpa::Any::location() ) );
+    return \( ( $MyTest::UP ? -1 : 1 ) / ( 2 << Marpa::location() ) );
 }
 sub rank_zero { return \0 }
 sub zero      { return '0' }
@@ -53,7 +53,7 @@ sub start_rule_action {
 
 ## use critic
 
-my $grammar = Marpa::Any::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         strip => 0,
         rules => [
@@ -84,7 +84,7 @@ my $grammar = Marpa::Any::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Any::Recognizer->new(
+my $recce = Marpa::Recognizer->new(
     { grammar => $grammar, ranking_method => 'constant' } );
 
 my $input_length = 4;

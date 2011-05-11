@@ -55,7 +55,7 @@ sub run_sequence_test {
         push @separation_args, proper => 1;
     }
 
-    my $grammar = Marpa::Any::Grammar->new(
+    my $grammar = Marpa::Grammar->new(
         {   start => 'TOP',
             strip => 0,
             rules => [
@@ -87,7 +87,7 @@ sub run_sequence_test {
             . ( $keep ? 'keep;' : q{} )
             . ( $separation ne 'none' ? "$separation;" : q{} )
             . ";count=$symbol_count";
-        my $recce = Marpa::Any::Recognizer->new(
+        my $recce = Marpa::Recognizer->new(
             { grammar => $grammar, mode => 'stream' } );
 
         my @expected       = ();

@@ -172,7 +172,7 @@ my @test_data = (
     [ 'time', q{time  / 25 ; # / ; die "this dies!"}, ['division, comment'] ]
 );
 
-my $g = Marpa::Any::Grammar->new(
+my $g = Marpa::Grammar->new(
     {   warnings => 1,
         actions  => 'main',
     },
@@ -185,7 +185,7 @@ TEST: for my $test_data (@test_data) {
 
     my ( $test_name, $test_input, $test_results ) = @{$test_data};
     my $recce =
-        Marpa::Any::Recognizer->new( { grammar => $g, mode => 'stream' } );
+        Marpa::Recognizer->new( { grammar => $g, mode => 'stream' } );
 
     my $input_length = length $test_input;
     pos $test_input = 0;

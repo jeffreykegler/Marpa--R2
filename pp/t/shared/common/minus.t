@@ -79,7 +79,7 @@ sub default_action {
 
 ## use critic
 
-my $grammar = Marpa::Any::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start => 'E',
         strip => 0,
 
@@ -112,7 +112,7 @@ my $grammar = Marpa::Any::Grammar->new(
 );
 $grammar->precompute();
 
-my $recce = Marpa::Any::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 Marpa::Test::is( $grammar->show_rules,
     <<'END_RULES', 'Minuses Equation Rules' );

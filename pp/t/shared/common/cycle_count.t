@@ -38,9 +38,9 @@ our $CYCLE_RANK = 1;
 
 # If we are counting up, the lowest number
 # has to have the highest numerical rank.
-# sub rank_cycle { return \($main::CYCLE_RANK*(Marpa::Any::location()+1)) }
+# sub rank_cycle { return \($main::CYCLE_RANK*(Marpa::location()+1)) }
 sub rank_cycle {
-    return \( $main::CYCLE_RANK * ( 9 - Marpa::Any::location() ) );
+    return \( $main::CYCLE_RANK * ( 9 - Marpa::location() ) );
 }
 
 sub rule_action  { return 'direct' }
@@ -53,7 +53,7 @@ sub default_rule_action {
 
 ## use critic
 
-my $grammar = Marpa::Any::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start                => 'S',
         strip                => 0,
         infinite_action      => 'quiet',
@@ -92,7 +92,7 @@ my $grammar = Marpa::Any::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Any::Recognizer->new(
+my $recce = Marpa::Recognizer->new(
     { grammar => $grammar, ranking_method => 'constant' } );
 
 my $input_length = 2;

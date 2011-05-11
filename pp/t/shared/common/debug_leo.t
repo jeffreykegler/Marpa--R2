@@ -30,7 +30,7 @@ BEGIN {
 
 my $progress_report = q{};
 
-my $grammar = Marpa::Any::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start         => 'S',
         strip         => 0,
         lhs_terminals => 0,
@@ -52,7 +52,7 @@ $grammar->precompute();
 
 my @tokens = ( ['T'] ) x 20;
 
-my $recce = Marpa::Any::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my $current_earleme = $recce->tokens( \@tokens );
 

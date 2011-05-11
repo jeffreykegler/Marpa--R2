@@ -54,7 +54,7 @@ sub rule_f {
 
 ## use critic
 
-my $grammar = Marpa::Any::Grammar->new(
+my $grammar = Marpa::Grammar->new(
     {   start           => 'S',
         strip           => 0,
         infinite_action => 'quiet',
@@ -87,7 +87,7 @@ my @expected = qw{
 
 my $input_length = 1;
 my $recce =
-    Marpa::Any::Recognizer->new( { grammar => $grammar, max_parses => 99 } );
+    Marpa::Recognizer->new( { grammar => $grammar, max_parses => 99 } );
 $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] );
 my $expected = $expected[$input_length];
 my @values   = ();
