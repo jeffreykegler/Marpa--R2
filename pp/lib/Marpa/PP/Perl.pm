@@ -1196,4 +1196,9 @@ sub Marpa::PP::Perl::default_show_location {
         . $token->column_number();
 } ## end sub Marpa::PP::Perl::default_show_location
 
+*Marpa::Perl::new = \&Marpa::PP::Perl::new;
+*Marpa::Perl::parse = \&Marpa::PP::Perl::parse;
+*Marpa::Perl::token = \&Marpa::PP::Perl::token;
+*Marpa::Perl::default_show_location = \&Marpa::PP::Perl::default_show_location;
+
 1;
