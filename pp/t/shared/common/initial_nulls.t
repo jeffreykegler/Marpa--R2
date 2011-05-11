@@ -40,7 +40,7 @@ sub default_action {
 
 ## use critic
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::Any::Grammar->new(
     {   start => 'S',
         strip => 0,
 
@@ -87,7 +87,7 @@ $expected_count[8] = 8;     # 0 w/o r2; 8 with an r2
 $expected_count[9] = 1;     # 0 w/o r2; 1 with an r2
 
 for my $input_length ( 1 .. 9 ) {
-    my $recce = Marpa::Recognizer->new(
+    my $recce = Marpa::Any::Recognizer->new(
         { grammar => $grammar, max_parses => 100 } );
     $recce->tokens( [ ( [ 't', 't', 1 ] ) x $input_length ] );
     my $parse_count = 0;

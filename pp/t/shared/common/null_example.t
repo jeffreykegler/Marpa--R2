@@ -67,7 +67,7 @@ sub S {
     return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
 }
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::Any::Grammar->new(
     {   start   => 'S',
         actions => 'main',
         rules   => [
@@ -94,7 +94,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::Any::Recognizer->new( { grammar => $grammar } );
 
 $recce->read( 'X', 'x' );
 

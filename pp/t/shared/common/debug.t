@@ -33,7 +33,7 @@ my $progress_report = q{};
 # Marpa::PP::Display
 # name: Debug Example Part 1
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::Any::Grammar->new(
     {   start          => 'Expression',
         actions        => 'My_Actions',
         default_action => 'first_arg',
@@ -97,7 +97,7 @@ sub My_Actions::do_multiply {
 
 sub My_Actions::first_arg { shift; return shift; }
 
-my $recce = Marpa::Recognizer->new(
+my $recce = Marpa::Any::Recognizer->new(
     { grammar => $grammar, trace_terminals => 2 } );
 
 my $token_ix = 0;

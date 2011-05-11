@@ -53,7 +53,7 @@ sub default_rule_action {
 
 ## use critic
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::Any::Grammar->new(
     {   start                => 'S',
         strip                => 0,
         infinite_action      => 'quiet',
@@ -92,7 +92,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Recognizer->new(
+my $recce = Marpa::Any::Recognizer->new(
     { grammar => $grammar, ranking_method => 'constant' } );
 
 my $input_length = 2;

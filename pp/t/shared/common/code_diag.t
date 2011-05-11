@@ -176,7 +176,7 @@ sub run_test {
     ### e_op_action: $e_op_action
     ### e_number_action: $e_number_action
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::Any::Grammar->new(
         {   start => 'S',
             rules => [
                 [ 'S', [qw/T trailer optional_trailer1 optional_trailer2/], ],
@@ -197,7 +197,7 @@ sub run_test {
     );
     $grammar->precompute();
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::Any::Recognizer->new( { grammar => $grammar } );
 
     my @tokens = (
         [ Number => 2 ],

@@ -41,7 +41,7 @@ sub main::default_action {
 
 ## use critic
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::Any::Grammar->new(
     {   start => 'S',
         strip => 0,
         rules => [
@@ -175,7 +175,7 @@ Marpa::Test::is( $grammar->show_AHFA(), $expected_ahfa_output,
 my $a_token = [ 'a', 'a' ];
 my $length = 20;
 
-my $recce = Marpa::Recognizer->new(
+my $recce = Marpa::Any::Recognizer->new(
     { grammar => $grammar, mode => 'stream'  } );
 
 my $i        = 0;

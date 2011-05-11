@@ -35,7 +35,7 @@ my $progress_report = q{};
 # Marpa::PP::Display
 # name: Debug Sequence Example
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::Any::Grammar->new(
     {   start         => 'Document',
         strip         => 0,
         lhs_terminals => 0,
@@ -50,7 +50,7 @@ $grammar->precompute();
 my @tokens = ( ( ['Stuff'] ) x 3 );
 
 my $recce =
-    Marpa::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
+    Marpa::Any::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
 
 # Marpa::PP::Display
 # name: Recognizer check_terminal Synopsis

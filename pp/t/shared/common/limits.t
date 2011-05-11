@@ -44,7 +44,7 @@ sub test_grammar {
 
     my $grammar;
     my $eval_ok =
-        eval { $grammar = Marpa::Grammar->new($grammar_args); 1; };
+        eval { $grammar = Marpa::Any::Grammar->new($grammar_args); 1; };
     die("Exception while creating Grammar:\n$EVAL_ERROR")
         if not $eval_ok;
     die("Grammar not created\n") if not $grammar;
@@ -52,7 +52,7 @@ sub test_grammar {
 
     my $recce;
     $eval_ok = eval {
-        $recce = Marpa::Recognizer->new(
+        $recce = Marpa::Any::Recognizer->new(
             { grammar => $grammar, mode => 'stream' } );
         1;
     };

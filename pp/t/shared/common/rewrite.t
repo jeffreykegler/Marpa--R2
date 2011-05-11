@@ -77,7 +77,7 @@ my $sequence_rule =
 
 #>>> no perltidy
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::Any::Grammar->new(
     {   start   => 'block',
         strip   => 0,
         symbols => {
@@ -101,7 +101,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::Any::Recognizer->new( { grammar => $grammar } );
 
 # While we are at it, test the handling of null parses in
 # the Single Parse Evaluator
