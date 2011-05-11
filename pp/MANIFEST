@@ -20,8 +20,10 @@ COPYING.LESSER
 Changes
 LICENSE
 MANIFEST
-META.yml
 META.json
+META.json
+META.yml
+Makefile.PL
 README
 TODO
 author.t/.gitignore
@@ -45,8 +47,6 @@ etc/Makefile
 etc/check_license.pl
 etc/check_links.pl
 inc/drafts/undocumented.list
-META.json
-Makefile.PL
 lib/Marpa/PP.pm
 lib/Marpa/PP/Callback.pm
 lib/Marpa/PP/Grammar.pm
