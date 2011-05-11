@@ -28,7 +28,7 @@ BEGIN {
     Test::More::use_ok('Marpa::PP');
 }
 
-defined $INC{'Marpa/Any.pm'}
+defined $INC{'Marpa/PP.pm'}
     or Test::More::BAIL_OUT('Could not load Marpa::PP');
 
 Test::More::ok( defined $Marpa::PP::VERSION, 'Marpa::version defined' );
