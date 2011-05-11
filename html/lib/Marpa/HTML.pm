@@ -4,9 +4,10 @@ use 5.010;
 use strict;
 use warnings;
 
-BEGIN {
-    our $VERSION = '0.102000';
-}
+use vars qw($VERSION $STRING_VERSION);
+$VERSION = '0.103_000';
+$STRING_VERSION = $VERSION;
+$VERSION = eval $VERSION;
 
 our @EXPORT_OK;
 use base qw(Exporter);
@@ -18,7 +19,14 @@ use Carp ();
 use HTML::PullParser;
 use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
-use Marpa::Any;
+BEGIN {
+    my $using_xs = eval { require Marpa::XS::Installed; 1 };
+    if ($using_xs) {
+        require Marpa::XS;
+    } else {
+        require Marpa::PP;
+    }
+}
 
 # use Smart::Comments '-ENV';
 

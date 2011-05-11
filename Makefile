@@ -24,18 +24,16 @@ libs:
 
 pp_html_test: libs
 	(cd html; \
-	PERL5LIB=$$HOME/projects/marpa/all/dpplib/lib/perl5:$$PERL5LIB prove -Ilib --verbose xt; \
 	PERL5LIB=$$HOME/projects/marpa/all/dpplib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
 xs_html_test: libs
 	(cd html; \
-	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB prove -Ilib --verbose xt; \
 	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
 pp_etc_make:
 	(cd pp/etc;  make)
 
-xs_etc_make: libs
+xs_etc_make:
 	(cd xs/etc;  \
 	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB make)
 

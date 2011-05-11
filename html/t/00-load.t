@@ -28,11 +28,13 @@ Test::More::use_ok('Marpa::HTML');
 SKIP: {
    skip "Not Using PP", 1 if $Marpa::USING_XS;
    Test::More::ok( $Marpa::USING_PP, 'Using PP' );
+   Test::More::diag('Using PP');
 }
 
 SKIP: {
    skip "Not Using XS", 1 if $Marpa::USING_PP;
    Test::More::ok( $Marpa::USING_XS, 'Using XS' );
+   Test::More::diag('Using XS');
 }
 
 1;    # In case used as "do" file
