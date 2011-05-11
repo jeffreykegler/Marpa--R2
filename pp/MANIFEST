@@ -158,7 +158,6 @@ t/shared/timeflies.t
 t/shared/wall.t
 t/shared/weaken.t
 t/stripped_pp.t
-tool/lib/Marpa/Any.pm
 tool/lib/Marpa/Display.pm
 tool/lib/Marpa/Test.pm
 tool/lib/Marpa/Test/Common.pm

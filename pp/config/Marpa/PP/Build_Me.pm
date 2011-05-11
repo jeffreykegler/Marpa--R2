@@ -34,14 +34,29 @@ my @marpa_pp_use =
     qw( Scalar::Util List::Util Carp Data::Dumper );
 my @marpa_pp_perl_use = qw( Scalar::Util Carp Data::Dumper PPI Marpa::PP );
 
-sub version_contents {
-    my ( $self, $package, @use_packages ) = @_;
-    my $text = <<'END_OF_STRING';
+my $preamble = <<'END_OF_STRING';
 # This file is written by Build.PL
 # It is not intended to be modified directly
 END_OF_STRING
 
+sub installed_contents {
+    my ( $self, $package ) = @_;
     my $marpa_pp_version = $self->dist_version();
+    my $text = $preamble;
+    $text .= "package $package;\n";
+    $text .= q{use vars qw($VERSION $STRING_VERSION)} . "\n";
+    $text .= q{$VERSION = '} . $marpa_pp_version . qq{';\n};
+    $text .= q{$STRING_VERSION = $VERSION} . "\n";
+    $text .= q{$VERSION = eval $VERSION} . "\n";
+    $text .= "1;\n";
+    return $text;
+}
+
+sub version_contents {
+    my ( $self, $package, @use_packages ) = @_;
+
+    my $marpa_pp_version = $self->dist_version();
+    my $text = $preamble;
     $text .= "package $package;\n";
     PACKAGE: for my $package (@use_packages) {
         my $version = $package eq 'Marpa::PP'
@@ -107,9 +122,19 @@ sub ACTION_dist {
     $self->SUPER::ACTION_dist;
 } ## end sub ACTION_dist
 
+sub write_installed_pm {
+    my ($self, @components) = @_;
+    my $filename = 'Installed';
+    my $contents = installed_contents( $self, join q{::}, @components, $filename );
+    $filename .= q{.pm};
+    $self->write_file($contents, @components, $filename);
+}
+
 sub ACTION_code {
     my $self = shift;
     say STDERR "Writing version files";
+    write_installed_pm($self, qw(lib Marpa PP ) );
+    write_installed_pm($self, qw(lib Marpa PP Perl ) );
     my $perl_version_pm = version_contents( $self, 'Marpa::PP::Perl', @marpa_pp_perl_use );
     my $version_pm = version_contents( $self, 'Marpa::PP', @marpa_pp_use );
     $self->write_file($version_pm, qw(lib Marpa PP Version.pm) );
