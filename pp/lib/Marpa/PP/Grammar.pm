@@ -31,8 +31,6 @@ use strict;
 use integer;
 use utf8;
 
-use Marpa::PP::Internal::Carp_Not;
-
 =begin Implementation:
 
 Structures and Objects: The design is to present an object-oriented
@@ -250,8 +248,6 @@ sub phase_description {
 package Marpa::PP::Internal::Grammar;
 
 use English qw( -no_match_vars );
-
-use Marpa::PP::Internal::Carp_Not;
 
 # Longest RHS is 2**28-1.  It's 28 bits, not 32, so
 # it will fit in the internal priorities computed

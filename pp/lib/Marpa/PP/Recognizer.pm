@@ -140,8 +140,6 @@ use Marpa::PP::Offset qw(
 
 package Marpa::PP::Internal::Recognizer;
 
-use Marpa::PP::Internal::Carp_Not;
-
 use English qw( -no_match_vars );
 
 use constant EARLEME_MASK => ~(0x7fffffff);

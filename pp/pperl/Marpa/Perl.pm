@@ -13,18 +13,18 @@
 # General Public License along with Marpa::PP.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::PP::Perl;
+package Marpa::Perl;
 
 use 5.010;
 use strict;
 use warnings;
 
-package Marpa::PP::Internal::Perl;
+package Marpa::Internal::Perl;
 
 use charnames ':full';
 use English qw( -no_match_vars );
 
-use Marpa::PP::Perl::Version ();
+use Marpa::Perl::Version ();
 
 # This code is about Perl GRAMMAR.
 # If you're looking here
@@ -844,7 +844,7 @@ my %perl_type_by_word = (
 
 ## use critic
 
-sub Marpa::PP::Perl::new {
+sub Marpa::Perl::new {
     my ( $class, $gen_closure ) = @_;
 
     my %symbol = ();
@@ -909,7 +909,7 @@ sub Marpa::PP::Perl::new {
         has_ranking_action => $has_ranking_action
     }, $class;
 
-} ## end sub Marpa::PP::Perl::new
+} ## end sub Marpa::Perl::new
 
 my @RECCE_NAMED_ARGUMENTS =
     qw(trace_tasks trace_terminals trace_values trace_actions);
@@ -918,7 +918,7 @@ sub token_not_accepted {
     my ($ppi_token, $token_name, $token_value, $length) = @_;
     local $Data::Dumper::Maxdepth = 2;
     local $Data::Dumper::Terse = 1;
-    say STDERR $Marpa::PP::Perl::RECOGNIZER->show_progress();
+    say STDERR $Marpa::Perl::RECOGNIZER->show_progress();
     my $perl_token_desc;
     if (not defined $token_name) {
          $perl_token_desc = 'Undefined Perl token was not accepted: ';
@@ -942,11 +942,11 @@ sub token_not_accepted {
 sub unknown_ppi_token {
     my ($ppi_token) = @_;
     die 'Failed at Token: ', Data::Dumper::Dumper($ppi_token),
-	'Marpa::PP::Perl did not know how to process token',
-	Marpa::PP::Perl::default_show_location($ppi_token), "\n"
+	'Marpa::Perl did not know how to process token',
+	Marpa::Perl::default_show_location($ppi_token), "\n"
 }
 
-sub Marpa::PP::Perl::parse {
+sub Marpa::Perl::parse {
 
     my ( $parser, $input, $hash_arg ) = @_;
 
@@ -975,7 +975,7 @@ sub Marpa::PP::Perl::parse {
 
     # This is convenient for making the recognizer available to
     # error messages
-    local $Marpa::PP::Perl::RECOGNIZER = $recce;
+    local $Marpa::Perl::RECOGNIZER = $recce;
 
     my $document = PPI::Document->new($input);
     $document->index_locations();
@@ -983,7 +983,7 @@ sub Marpa::PP::Perl::parse {
     my @earleme_to_PPI_token;
     my $perl_type;
 
-    local $Marpa::PP::Perl::Internal::CONTEXT =
+    local $Marpa::Perl::Internal::CONTEXT =
         [ \@PPI_tokens, \@earleme_to_PPI_token ];
     TOKEN:
     for (
@@ -1023,7 +1023,7 @@ sub Marpa::PP::Perl::parse {
                 $perl_type = $perl_type_by_cast{$content};
                 if ( not defined $perl_type ) {
                     die qq{Unknown $PPI_type: "$content":},
-                        Marpa::PP::Perl::default_show_location($token),
+                        Marpa::Perl::default_show_location($token),
                         "\n";
                 }
                 $token_found = 1;
@@ -1047,7 +1047,7 @@ sub Marpa::PP::Perl::parse {
             $perl_type = $perl_type_by_op{$content};
             if ( not defined $perl_type ) {
                 die qq{Unknown $PPI_type: "$content":},
-                    Marpa::PP::Perl::default_show_location($token),
+                    Marpa::Perl::default_show_location($token),
                     "\n";
             }
             if ( $perl_type eq 'PLUS' ) {
@@ -1097,7 +1097,7 @@ sub Marpa::PP::Perl::parse {
             my $expected_tokens = $recce->terminals_expected();
             if ( not defined $perl_type ) {
                 die qq{Unknown $PPI_type: "$content":},
-                    Marpa::PP::Perl::default_show_location($token),
+                    Marpa::Perl::default_show_location($token),
                     "\n";
             }
             if ( $perl_type eq 'RCURLY' ) {
@@ -1173,19 +1173,19 @@ sub Marpa::PP::Perl::parse {
         return $value_ref;
     }
 
-} ## end sub Marpa::PP::Perl::parse
+} ## end sub Marpa::Perl::parse
 
 # Context-sensitive callback for
 # application-provided closures to use.
-sub Marpa::PP::Perl::token {
+sub Marpa::Perl::token {
     Marpa::exception('No Perl context for token callback')
-        if not my $context = $Marpa::PP::Perl::Internal::CONTEXT;
+        if not my $context = $Marpa::Perl::Internal::CONTEXT;
     my ( $PPI_tokens, $earleme_to_token ) = @{$context};
     my $earleme = Marpa::location();
     return $PPI_tokens->[ $earleme_to_token->[$earleme] ];
-} ## end sub Marpa::PP::Perl::token
+} ## end sub Marpa::Perl::token
 
-sub Marpa::PP::Perl::default_show_location {
+sub Marpa::Perl::default_show_location {
     my ($token) = @_;
     my $file_name = $token->logical_filename();
     my $file_description = $file_name ? qq{ file "$file_name"} : q{};
@@ -1194,11 +1194,6 @@ sub Marpa::PP::Perl::default_show_location {
         . $token->logical_line_number()
         . q{, column }
         . $token->column_number();
-} ## end sub Marpa::PP::Perl::default_show_location
-
-*Marpa::Perl::new = \&Marpa::PP::Perl::new;
-*Marpa::Perl::parse = \&Marpa::PP::Perl::parse;
-*Marpa::Perl::token = \&Marpa::PP::Perl::token;
-*Marpa::Perl::default_show_location = \&Marpa::PP::Perl::default_show_location;
+} ## end sub Marpa::Perl::default_show_location
 
 1;

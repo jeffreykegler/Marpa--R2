@@ -43,9 +43,24 @@ if ( defined $Marpa::XS::VERSION ) {
     Carp::croak('Cannot load both Marpa::PP and Marpa::XS');
 }
 
+my @carp_not = ();
+for my $start (qw(Marpa Marpa::PP Marpa::XS))
+{
+    for my $middle ('', '::Internal')
+    {
+	for my $end ('', qw(::Recognizer ::Callback ::Grammar ::Value))
+	{
+	    push @Marpa::CARP_NOT, $start . $middle . $end;
+	}
+    }
+}
+PACKAGE: for my $package (@carp_not) {
+    no strict 'refs';
+    next PACKAGE if  $package eq 'Marpa';
+    *{ $package . q{::CARP_NOT} } = \@Marpa::CARP_NOT;
+}
+
 require Marpa::PP::Internal;
-require Marpa::PP::Internal::Carp_Not;
-Marpa::PP::Internal::Carp_Not->import();
 require Marpa::PP::Grammar;
 require Marpa::PP::Recognizer;
 require Marpa::PP::Value;
