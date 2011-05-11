@@ -85,7 +85,7 @@ my $build = Marpa::PP::Build_Me->new(
         resources =>
             { repository => 'git://github.com/jeffreykegler/Marpa-PP.git', },
         no_index => {
-            directory => [qw( config inc t author.t )],
+            directory => [qw( config inc t tool author.t )],
             namespace => [
                 'Marpa::PP::Recognizer', 'Marpa::PP::Grammar',
                 @no_index_namespace_inclusive
