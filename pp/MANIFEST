@@ -47,10 +47,8 @@ etc/check_links.pl
 inc/drafts/undocumented.list
 META.json
 Makefile.PL
-lib/Marpa/Any.pm
 lib/Marpa/PP.pm
 lib/Marpa/PP/Callback.pm
-lib/Marpa/PP/Display.pm
 lib/Marpa/PP/Grammar.pm
 lib/Marpa/PP/Internal.pm
 lib/Marpa/PP/Internal/Carp_Not.pm
@@ -58,10 +56,6 @@ lib/Marpa/PP/Offset.pm
 lib/Marpa/PP/Perl.pm
 lib/Marpa/PP/Recognizer.pm
 lib/Marpa/PP/Slot.pm
-lib/Marpa/PP/Test.pm
-lib/Marpa/PP/Test/Common.pm
-lib/Marpa/PP/Test/Util.pm
-lib/Marpa/PP/Test/capture-stderr
 lib/Marpa/PP/Value.pm
 pod/Advanced/Algorithm.pod
 pod/Advanced/Bibliography.pod
@@ -164,3 +158,7 @@ t/shared/timeflies.t
 t/shared/wall.t
 t/shared/weaken.t
 t/stripped_pp.t
+tool/lib/Marpa/Any.pm
+tool/lib/Marpa/Display.pm
+tool/lib/Marpa/Test.pm
+tool/lib/Marpa/Test/Common.pm

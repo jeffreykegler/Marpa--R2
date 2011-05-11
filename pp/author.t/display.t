@@ -29,9 +29,8 @@ use Carp;
 use Perl::Tidy;
 use Text::Wrap;
 
-use lib 'lib';
-use lib 'blib/arch';
-use Marpa::PP::Display;
+use lib 'tool/lib';
+use Marpa::Display;
 
 my $warnings = 0;
 my $options_result = GetOptions( 'warnings' => \$warnings );
@@ -41,40 +40,6 @@ Marpa::exception("$PROGRAM_NAME options parsing failed")
 
 my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
-    html/_build/lib/Module/Build/Custom.pm
-    html/author.t
-    html/author.t/critic.t
-    html/author.t/display.t
-    html/author.t/meta_yaml.t
-    html/author.t/pod.t
-    html/blib/lib/Marpa/HTML.pm
-    html/blib/lib/Marpa/HTML.pod
-    html/blib/lib/Marpa/HTML/Callback.pm
-    html/blib/lib/Marpa/HTML/Offset.pm
-    html/blib/lib/Marpa/HTML/Test.pm
-    html/blib/lib/Marpa/HTML/Test/Util.pm
-    html/blib/lib/Marpa/Support.pod
-    html/etc/change_version.pl
-    html/etc/check_links.pl
-    html/inc/drafts/Implementation.pod
-    html/lib/Marpa/HTML.pm
-    html/lib/Marpa/HTML/Callback.pm
-    html/lib/Marpa/HTML/Doc/HTML.pod
-    html/lib/Marpa/HTML/Doc/Support.pod
-    html/lib/Marpa/HTML/Offset.pm
-    html/lib/Marpa/HTML/Test.pm
-    html/lib/Marpa/HTML/Test/Util.pm
-    html/sandbox/interesting.pl
-    html/t/copy.t
-    html/t/examples.t
-    html/t/fmt.t
-    html/t/parse.t
-    html/t/score.t
-    html/t/synopsis.t
-    html/t/tang.t
-    html/xt/00-load.t
-    inc/Test/Weaken.pm
-    sandbox/TODO.pod
 );
 
 my @additional_files = qw(
