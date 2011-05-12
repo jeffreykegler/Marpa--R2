@@ -28,12 +28,17 @@ use integer;
 
 use English qw( -no_match_vars );
 
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
+
     :package=Marpa::PP::Internal::Earley_Set
     ITEMS { The Earley items for this set. }
     HASH { Hash by origin & state.  To prevent dups. }
     POSTDOT { Index by postdot symbol. }
-);
+
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 # Elements of the EARLEY ITEM structure
 # Note that these are Earley items as modified by Aycock & Horspool,
@@ -43,7 +48,8 @@ use Marpa::PP::Offset qw(
 # We don't prune the Earley items because we want ORIGIN and SET
 # around for debugging.
 
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Earley_Item
 
@@ -63,12 +69,15 @@ use Marpa::PP::Offset qw(
     ORIGIN { The number of the Earley set with the parent item(s) }
     SET { The set this item is in. For debugging. }
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 our $LEO_CLASS;
 $LEO_CLASS = 'Marpa::PP::Internal::Leo_Item';
 
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Leo_Item
 
@@ -79,10 +88,13 @@ use Marpa::PP::Offset qw(
     SET { The set this item is in.  }
     TOP_TO_STATE { The AHFA to-state of the top-level transition. }
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 # Elements of the RECOGNIZER structure
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Recognizer
 
@@ -136,7 +148,9 @@ use Marpa::PP::Offset qw(
 
     MODE
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 package Marpa::PP::Internal::Recognizer;
 
@@ -741,7 +755,8 @@ sub Marpa::PP::Recognizer::show_earley_sets {
 
 } ## end sub Marpa::PP::Recognizer::show_earley_sets
 
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Progress_Report
 
@@ -749,7 +764,9 @@ use Marpa::PP::Offset qw(
     POSITION
     ORIGIN
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 sub Marpa::PP::Recognizer::show_progress {
     my ( $recce, $start_ix, $end_ix ) = @_;
