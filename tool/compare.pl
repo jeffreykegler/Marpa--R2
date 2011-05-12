@@ -33,7 +33,7 @@ for my $t_file ( keys %t_file ) {
     my $pp = "pp/t/shared/common/$t_file";
     my $xs = "xs/t/shared/common/$t_file";
     if ( File::Compare::compare( $pp, $xs ) ) {
-        say STDERR "Different: $xs vs $pp";
+        say STDERR "Different: $pp vs $xs";
     }
     $pp = "pp/t/shared/$t_file";
     if ( File::Compare::compare( $pp, $eqp ) ) {
@@ -48,7 +48,7 @@ my @found = ();
 sub wanted {
      -d or push @found, $File::Find::name;
 }
-File::Find::find(\&wanted, 'xs/tool');
+File::Find::find(\&wanted, 'xs/tool', 'xs/pperl');
 for my $xs_tool_file (@found) {
      my ($volume, $xsdir, $filename) = File::Spec->splitpath($xs_tool_file);
      my @dirs = File::Spec->splitdir($xsdir);

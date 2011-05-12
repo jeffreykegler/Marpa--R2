@@ -38,12 +38,12 @@ BEGIN {
         Test::More::plan skip_all => $PPI_problem;
     }
     else {
-        Test::More::plan tests => 5;
+        Test::More::plan tests => 6;
     }
     Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::Perl');
 } ## end BEGIN
 
-use Marpa::PP::Perl;
 use Marpa::Test;
 
 # Run in utility mode?

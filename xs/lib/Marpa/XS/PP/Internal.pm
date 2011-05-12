@@ -42,4 +42,54 @@ use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
 # in hex numbers
 use constant N_FORMAT_MAX => 0x7fff_ffff;
 
+sub Marpa::offset {
+    my (@desc)   = @_;
+    my @fields = ();
+    for my $desc (@desc) {
+        push @fields, split ' ', $desc;
+    }
+    my $pkg        = caller;
+    my $prefix     = $pkg . q{::};
+    my $offset     = -1;
+    my $in_comment = 0;
+
+    ## no critic (TestingAndDebugging::ProhibitNoStrict)
+    no strict 'refs';
+    ## use critic
+    FIELD: for my $field (@fields) {
+
+        if ($in_comment) {
+            $in_comment = $field ne ':}' && $field ne '}';
+            next FIELD;
+        }
+
+        PROCESS_OPTION: {
+            last PROCESS_OPTION if $field !~ /\A [{:] /xms;
+            if ( $field =~ / \A [:] package [=] (.*) /xms ) {
+                $prefix = $1 . q{::};
+                next FIELD;
+            }
+            if ( $field =~ / \A [:]? [{] /xms ) {
+                $in_comment++;
+                next FIELD;
+            }
+        } ## end PROCESS_OPTION:
+
+        if ( $field !~ s/\A=//xms ) {
+            $offset++;
+        }
+
+        if ( $field =~ / \A ( [^=]* ) = ( [0-9+-]* ) \z/xms ) {
+            $field  = $1;
+            $offset = $2 + 0;
+        }
+
+        Marpa::exception("Unacceptable field name: $field")
+            if $field =~ /[^A-Z0-9_]/xms;
+        my $field_name = $prefix . $field;
+        *{$field_name} = sub () {$offset};
+    } ## end for my $field (@fields)
+    return 1;
+} ## end sub Marpa::offset
+
 1;

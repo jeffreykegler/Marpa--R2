@@ -20,11 +20,14 @@ use strict;
 use warnings;
 use integer;
 
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::PP::Internal::Slot
     VALUES
     FREE_LIST
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 sub new {
     my ($class) = @_;

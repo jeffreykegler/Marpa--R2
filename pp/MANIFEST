@@ -51,8 +51,6 @@ lib/Marpa/PP.pm
 lib/Marpa/PP/Callback.pm
 lib/Marpa/PP/Grammar.pm
 lib/Marpa/PP/Internal.pm
-lib/Marpa/PP/Internal/Carp_Not.pm
-lib/Marpa/PP/Offset.pm
 lib/Marpa/PP/Recognizer.pm
 lib/Marpa/PP/Slot.pm
 lib/Marpa/PP/Value.pm
