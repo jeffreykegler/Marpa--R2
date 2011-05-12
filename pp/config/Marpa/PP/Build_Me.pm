@@ -44,10 +44,10 @@ sub installed_contents {
     my $marpa_pp_version = $self->dist_version();
     my $text = $preamble;
     $text .= "package $package;\n";
-    $text .= q{use vars qw($VERSION $STRING_VERSION)} . "\n";
+    $text .= q{use vars qw($VERSION $STRING_VERSION)} . qq{;\n};
     $text .= q{$VERSION = '} . $marpa_pp_version . qq{';\n};
-    $text .= q{$STRING_VERSION = $VERSION} . "\n";
-    $text .= q{$VERSION = eval $VERSION} . "\n";
+    $text .= q{$STRING_VERSION = $VERSION} . qq{;\n};
+    $text .= q{$VERSION = eval $VERSION} . qq{;\n};
     $text .= "1;\n";
     return $text;
 }
