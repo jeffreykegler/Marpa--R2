@@ -21,12 +21,14 @@ use strict;
 use Test::More tests => 5;
 use lib 'lib';
 use lib 'blib/arch';
+use lib 'tool/lib';
+use lib 'pperl';
 
 BEGIN {
     Test::More::use_ok('Devel::SawAmpersand');
     Test::More::use_ok('Marpa::XS');
-    Test::More::use_ok('Marpa::XS::Perl');
-    Test::More::use_ok('Marpa::XS::Test');
+    Test::More::use_ok('Marpa::Perl');
+    Test::More::use_ok('Marpa::Test');
 } ## end BEGIN
 
 Test::More::ok( !Devel::SawAmpersand::sawampersand(), 'PL_sawampersand set' );
