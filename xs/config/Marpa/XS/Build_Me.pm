@@ -30,17 +30,30 @@ use English qw( -no_match_vars );
 
 use Marpa::XS::Config;
 
-my $version_preamble = <<'END_OF_STRING';
+my $preamble = <<'END_OF_STRING';
 # This file is written by Build.PL
 # It is not intended to be modified directly
 
 END_OF_STRING
 
+sub installed_contents {
+    my ( $self, $package ) = @_;
+    my $marpa_xs_version = $self->dist_version();
+    my $text = $preamble;
+    $text .= "package $package;\n";
+    $text .= q{use vars qw($VERSION $STRING_VERSION)} . qq{;\n};
+    $text .= q{$VERSION = '} . $marpa_xs_version . qq{';\n};
+    $text .= q{$STRING_VERSION = $VERSION} . qq{;\n};
+    $text .= q{$VERSION = eval $VERSION} . qq{;\n};
+    $text .= "1;\n";
+    return $text;
+}
+
 sub xs_version_contents {
     my ( $self, $package ) = @_;
     my @use_packages =
     qw( Scalar::Util List::Util Carp Data::Dumper ExtUtils::PkgConfig Glib );
-    my $text = $version_preamble;
+    my $text = $preamble;
     $text .= "package $package;\n";
     for my $package (@use_packages) {
         my $version = $Marpa::XS::VERSION_FOR_CONFIG{$package};
@@ -54,7 +67,7 @@ sub xs_version_contents {
 sub perl_version_contents {
     my ( $self, $package, ) = @_;
     my @use_packages = qw( Scalar::Util Carp Data::Dumper PPI Marpa::XS );
-    my $text = $version_preamble;
+    my $text = $preamble;
     my $marpa_xs_version = $self->dist_version();
     $text .= "package $package;\n";
     for my $package (@use_packages) {
@@ -297,9 +310,19 @@ sub ACTION_dist {
     $self->SUPER::ACTION_dist;
 } ## end sub ACTION_dist
 
+sub write_installed_pm {
+    my ($self, @components) = @_;
+    my $filename = 'Installed';
+    my $contents = installed_contents( $self, join q{::}, @components, $filename );
+    $filename .= q{.pm};
+    $self->write_file($contents, @components, $filename);
+}
+
 sub ACTION_code {
     my $self = shift;
     say STDERR "Writing version files";
+    write_installed_pm($self, qw(lib Marpa XS ) );
+    write_installed_pm($self, qw(pperl Marpa Perl ) );
     my $perl_version_pm = perl_version_contents( $self, 'Marpa::Perl' );
     my $version_pm = xs_version_contents( $self, 'Marpa::XS' );
     $self->write_file($version_pm, qw(lib Marpa XS Version.pm) );
