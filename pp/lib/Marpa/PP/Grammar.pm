@@ -89,7 +89,8 @@ END_OF_STRUCTURE
     Marpa::offset($structure);
 } ## end BEGIN
 
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Rule
 
@@ -119,9 +120,13 @@ use Marpa::PP::Offset qw(
     PRODUCTIVE { reachable from input symbol? }
 
     =LAST_FIELD
-);
 
-use Marpa::PP::Offset qw(
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
+
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::NFA
 
@@ -132,9 +137,12 @@ use Marpa::PP::Offset qw(
     AT_NULLING { dot just before a nullable symbol? }
     COMPLETE { rule is complete? }
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::AHFA
 
@@ -164,18 +172,25 @@ use Marpa::PP::Offset qw(
     NFA_STATES { in an AHFA: an array of NFA states }
 
     =LAST_FIELD
-);
 
-use Marpa::PP::Offset qw(
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
+
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::LR0_item
 
     RULE
     POSITION
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Grammar
 
@@ -222,19 +237,25 @@ use Marpa::PP::Offset qw(
     TRACE_RULES
 
     =LAST_FIELD
-);
+
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 package Marpa::PP::Internal::Grammar;
 
 use POSIX qw(ceil);
 
 # values for grammar phases
-use Marpa::PP::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Phase
     NEW RULES PRECOMPUTED
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 sub phase_description {
     my $phase = shift;
