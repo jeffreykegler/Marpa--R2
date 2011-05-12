@@ -49,8 +49,9 @@ sub wanted {
      -d or push @found, $File::Find::name;
 }
 File::Find::find(\&wanted, 'xs/tool', 'xs/pperl');
-for my $xs_tool_file (@found) {
+FILE: for my $xs_tool_file (@found) {
      my ($volume, $xsdir, $filename) = File::Spec->splitpath($xs_tool_file);
+     next FILE if $filename eq 'Version.pm';
      my @dirs = File::Spec->splitdir($xsdir);
      my $ppdir = File::Spec->catdir('pp', @dirs[1 .. $#dirs]);
      my $pp_tool_file = File::Spec->catpath($volume, $ppdir, $filename);

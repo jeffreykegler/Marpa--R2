@@ -31,11 +31,10 @@ xs_html_test: libs
 	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
 pp_etc_make:
-	(cd pp/etc;  make)
+	(cd pp/etc; make)
 
 xs_etc_make:
-	(cd xs/etc;  \
-	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB make)
+	(cd xs/etc; make)
 
 pp_full_test: pp_etc_make pp_html_test
 
