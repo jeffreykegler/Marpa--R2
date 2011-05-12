@@ -37,7 +37,8 @@ use English qw( -no_match_vars );
 # around for debugging.
 
 # Elements of the RECOGNIZER structure
-use Marpa::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Recognizer
 
@@ -87,7 +88,9 @@ use Marpa::Offset qw(
     { This is temporary during development of Marpa::XS }
     EARLEME_TO_ORDINAL
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 package Marpa::XS::Internal::Recognizer;
 
@@ -717,9 +720,10 @@ sub Marpa::XS::Recognizer::show_earley_sets {
             . Marpa::XS::show_earley_set( $recce, $ix );
     }
     return $text;
-} ## end sub Marpa::XS::Recognizer::new_show_earley_sets
+}
 
-use Marpa::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Progress_Report
 
@@ -728,7 +732,9 @@ use Marpa::Offset qw(
     ORIGIN
     CURRENT
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 sub Marpa::XS::Recognizer::show_progress {
     my ( $recce, $start_ix, $end_ix ) = @_;

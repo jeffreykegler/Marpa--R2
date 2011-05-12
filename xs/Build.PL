@@ -55,7 +55,7 @@ $pod_files{'pod/Marpa_XS.pod'} = 'lib/Marpa/XS.pod';
 my @no_index_namespace_inclusive = (
 
     # not for now, at least
-    qw(Marpa::XS::Perl Marpa::XS::Offset Marpa::XS::Test Marpa::XS::Display ),
+    qw(Marpa::Perl Marpa::Test Marpa::Display ),
 
     # never intended to see the light of day
     qw( Marpa::XS::Internal),
@@ -63,7 +63,8 @@ my @no_index_namespace_inclusive = (
 );
 
 my @files_to_cleanup = (
-    'lib/Marpa/XS/Version.pm', 'lib/Marpa/XS/Perl/Version.pm',
+    'lib/Marpa/XS/Version.pm', 'pperl/Marpa/Perl/Version.pm',
+    'lib/Marpa/XS/Installed.pm', 'pperl/Marpa/Perl/Installed.pm',
     'lib/Marpa/XS.o',          'libmarpa/main/build',
 );
 
@@ -86,7 +87,7 @@ my $build = Marpa::XS::Build_Me->new(
         resources =>
             { repository => 'git://github.com/jeffreykegler/Marpa-XS.git', },
         no_index => {
-            directory => [qw( config inc t html devlib libmarpa author.t )],
+            directory => [qw( pperl config inc t html devlib libmarpa author.t )],
             namespace => [
                 'Marpa::XS::Recognizer', 'Marpa::XS::Grammar',
                 @no_index_namespace_inclusive

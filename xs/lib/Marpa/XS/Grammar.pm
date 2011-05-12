@@ -42,7 +42,8 @@ what in C would be structures.
 
 =cut
 
-use Marpa::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::Symbol
     ID { Unique ID }
     NAME
@@ -50,9 +51,12 @@ use Marpa::Offset qw(
     NULL_VALUE { null value }
     WARN_IF_NO_NULL_VALUE { should have a null value -- warn
     if not }
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
-use Marpa::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Rule
 
@@ -61,20 +65,26 @@ use Marpa::Offset qw(
     ACTION { action for this rule as specified by user }
     RANKING_ACTION
 
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 # Vestige of former Perl implementation of AHFA states.
 # It now includes only a list of the complete rules.
 # Indexed by AHFA ID.
-use Marpa::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::AHFA
     COMPLETE_RULES { an array of lists of the complete rules,
     indexed by lhs }
     =LAST_FIELD
-);
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
-use Marpa::Offset qw(
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Grammar
 
@@ -116,7 +126,10 @@ use Marpa::Offset qw(
     }
 
     =LAST_FIELD
-);
+
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
 
 package Marpa::XS::Internal::Grammar;
 
