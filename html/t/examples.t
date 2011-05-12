@@ -5,7 +5,7 @@ use English qw( -no_match_vars );
 use List::Util;
 use Test::More tests => 5;
 Test::More::use_ok('HTML::PullParser');
-Test::More::use_ok('Marpa::Test');
+Test::More::use_ok('Marpa::HTML::Test');
 Test::More::use_ok('Marpa::HTML');
 
 # Non-synopsis example in HTML.pod
@@ -61,7 +61,7 @@ EXPECTED_RESULT
 
 # Marpa::Display::End
 
-Marpa::Test::is( ${$result}, $expected_result, 'handler precedence example' );
+Marpa::HTML::Test::is( ${$result}, $expected_result, 'handler precedence example' );
 
 # Marpa::Display
 # name: 'HTML Pod: Structure vs. Element Example'
@@ -96,6 +96,6 @@ my $structured_html_ref =
     Marpa::HTML::html( \$tagged_html_example,
     { q{*} => \&supply_missing_tags } );
 
-Marpa::Test::is( ${$structured_html_ref}, $expected_structured_result,
+Marpa::HTML::Test::is( ${$structured_html_ref}, $expected_structured_result,
     'structure vs. tags example' );
 

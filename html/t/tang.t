@@ -5,7 +5,7 @@ use warnings;
 use lib 'lib';
 use Test::More tests => 4;
 Test::More::use_ok('HTML::PullParser');
-Test::More::use_ok('Marpa::Test');
+Test::More::use_ok('Marpa::HTML::Test');
 Test::More::use_ok('Marpa::HTML');
 
 use Carp;
@@ -35,4 +35,4 @@ my $value = Marpa::HTML::html(
     }
 );
 
-Marpa::Test::is( ${$value}, $no_tang_document, 'remove kTang class' );
+Marpa::HTML::Test::is( ${$value}, $no_tang_document, 'remove kTang class' );

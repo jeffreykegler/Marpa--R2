@@ -5,7 +5,7 @@ use English qw( -no_match_vars );
 use List::Util;
 use Test::More tests => 11;
 Test::More::use_ok('HTML::PullParser');
-Test::More::use_ok('Marpa::Test');
+Test::More::use_ok('Marpa::HTML::Test');
 
 # This is just a dummy value for the synopsis
 my %empty_elements = ();
@@ -113,9 +113,9 @@ my $maximum_depth_with_just_a_title = html( \$html_with_just_a_title,
 
 my $maximum_depth_with_all_tags_supplied = html( $valid_html_with_all_tags,
     \%handlers_to_calculate_maximum_element_depth );
-Marpa::Test::is( $maximum_depth_with_just_a_title,
+Marpa::HTML::Test::is( $maximum_depth_with_just_a_title,
     3, 'compute maximum depth' );
-Marpa::Test::is(
+Marpa::HTML::Test::is(
     $maximum_depth_with_just_a_title,
     $maximum_depth_with_all_tags_supplied,
     'compare maximum depths'
@@ -131,29 +131,29 @@ my $expected_valid_html_with_all_tags = <<'END_OF_EXPECTED';
 </html>
 END_OF_EXPECTED
 
-Marpa::Test::is( ${$no_table}, 'Text More Text', 'delete tables' );
-Marpa::Test::is(
+Marpa::HTML::Test::is( ${$no_table}, 'Text More Text', 'delete tables' );
+Marpa::HTML::Test::is(
     ${$only_table},
     '<table><tr><td>I am a cell</table>',
     'keep only tables'
 );
-Marpa::Test::is(
+Marpa::HTML::Test::is(
     ${$only_bad_table},
     '<tr>I am a cell</table>',
     'keep only tables -- bad table'
 );
-Marpa::Test::is(
+Marpa::HTML::Test::is(
     ${$no_comment},
     'Text  I am not a comment',
     'delete comments'
 );
-Marpa::Test::is(
+Marpa::HTML::Test::is(
     ${$new_title},
     '<title>New Title</title>A little html text',
     'replace title'
 );
-Marpa::Test::is( ${$edited_stuff}, '<p>A<p>C', 'delete by class name' );
-Marpa::Test::is(
+Marpa::HTML::Test::is( ${$edited_stuff}, '<p>A<p>C', 'delete by class name' );
+Marpa::HTML::Test::is(
     ${$valid_html_with_all_tags},
     $expected_valid_html_with_all_tags,
     'supply tags'
