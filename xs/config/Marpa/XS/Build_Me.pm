@@ -145,7 +145,7 @@ sub process_xs {
   # .xs -> .c
   $self->add_to_cleanup($spec->{c_file});
 
-  unless ($self->up_to_date(['typemap', 'Build.PL', $file], $spec->{c_file})) {
+  unless ($self->up_to_date(['typemap', 'lib/Marpa/XS.pm', $file], $spec->{c_file})) {
     $self->compile_xs($file, outfile => $spec->{c_file});
   }
 
