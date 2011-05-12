@@ -32,7 +32,6 @@ author.t/accept_tidy
 author.t/ampersand.t
 author.t/critic.t
 author.t/critic1
-author.t/display.t
 author.t/meta_yaml.t
 author.t/perlcriticrc
 author.t/perltidyrc
@@ -179,7 +178,6 @@ t/shared/timeflies.t
 t/shared/wall.t
 t/shared/weaken.t
 t/xs_ah2.t
-tool/lib/Marpa/Display.pm
 tool/lib/Marpa/Test.pm
 tool/lib/Marpa/Test/Common.pm
 typemap
