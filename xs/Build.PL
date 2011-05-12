@@ -27,8 +27,6 @@ use Module::Build;
 use ExtUtils::PkgConfig;
 use Glib::Install::Files;
 
-my $marpa_version = '0.005_004';
-
 use lib File::Spec->catdir('config');
 use Marpa::XS::Build_Me;
 use Marpa::XS::Config;
@@ -48,7 +46,6 @@ my %configure_requires =
 my %requires =
     map { ( $_, $Marpa::XS::VERSION_FOR_CONFIG{$_} ) }
     qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper ExtUtils::PkgConfig Glib );
-$requires{'Marpa::PP'} = $marpa_version;
 my %recommends =
     map { ( $_, $Marpa::XS::VERSION_FOR_CONFIG{$_} ) } qw( PPI Test::Weaken );
 
@@ -97,23 +94,10 @@ my $build = Marpa::XS::Build_Me->new(
             package => [@no_index_namespace_inclusive],
         }
     },
-    meta_add => {
-        distribution_type => 'module',
-        provides          => {
-            'Marpa::XS' => {
-                file    => 'lib/Marpa/XS.pm',
-                version => $marpa_version,
-            },
-        },
-    },
     pod_files          => \%pod_files,
     create_readme      => 0,
     create_makefile_pl => 'small',
     test_files         => [ map { glob $_ } qw(t/*.t t/shared/*.t) ],
 );
-
-die("Version mismatch in Build.PL: marpa_version=$marpa_version, dist_version=",
-    $build->dist_version()
-) if $marpa_version ne $build->dist_version();
 
 $build->create_build_script;

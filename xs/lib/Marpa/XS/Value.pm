@@ -21,7 +21,6 @@ use strict;
 use integer;
 
 use English qw( -no_match_vars );
-use Marpa::PP::Internal::Carp_Not;
 
 # This perlcritic check is broken as of 9 Aug 2010
 ## no critic (TestingAndDebugging::ProhibitNoWarnings)

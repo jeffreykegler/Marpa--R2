@@ -28,15 +28,7 @@ use File::Spec;
 use Carp;
 
 sub Marpa::Test::Common::run {
-    my ($path, $implementation) = @_;
-    if ($implementation eq "xs") {
-	$Marpa::USE_XS = 1;
-    } elsif ($implementation eq "pp") {
-	$Marpa::USE_XS = 0;
-    } else {
-        Carp::croak("Unknown implementation: $implementation");
-    }
-    $Marpa::USE_PP = !$Marpa::USE_XS;
+    my ($path) = @_;
     my ( $volume, $dirs, $file_name ) = File::Spec->splitpath($path);
     my @dirs    = File::Spec->splitdir($dirs);
     $dirs = File::Spec->catdir( @dirs, 'common' );

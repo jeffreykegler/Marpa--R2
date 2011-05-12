@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION = '0.005_004';
+$VERSION = '0.005_005';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -52,22 +52,8 @@ if ( $Marpa::USE_PP ) {
     Carp::croak('Attempt to load Marpa::XS when USE_PP specified');
 }
 
-# Sensible defaults if not defined
-$Marpa::USE_XS = 1;
 $Marpa::USING_XS = 1;
 $Marpa::USING_PP = 0;
-
-require Marpa::PP;
-if (!defined $Marpa::PP::VERSION ) {
-    die('Internal error: VERSION not defined in Marpa::PP');
-}
-if ($Marpa::PP::STRING_VERSION ne $Marpa::XS::STRING_VERSION ) {
-    Carp::croak("Version mismatch between Marpa::XS and Marpa::PP\n",
-    "Marpa::XS is version ", $Marpa::XS::STRING_VERSION, "\n",
-    "Marpa::PP is version ", $Marpa::PP::STRING_VERSION, "\n",
-    "The Marpa::XS and Marpa::PP versions must match and they do not\n"
-    );
-}
 
 eval {
     package DynaLoader;
@@ -84,7 +70,26 @@ my $version_wanted = '0.1.0';
 Carp::croak('Marpa::XS ', "fails version check, wanted $version_wanted, found $version_found")
     if $version_wanted ne $version_found;
 
-require Marpa::PP::Slot;
+@Marpa::CARP_NOT = ();
+for my $start (qw(Marpa Marpa::PP Marpa::XS))
+{
+    for my $middle ('', '::Internal')
+    {
+	for my $end ('', qw(::Recognizer ::Callback ::Grammar ::Value))
+	{
+	    push @Marpa::CARP_NOT, $start . $middle . $end;
+	}
+    }
+}
+PACKAGE: for my $package (@Marpa::CARP_NOT) {
+    no strict 'refs';
+    next PACKAGE if  $package eq 'Marpa';
+    *{ $package . q{::CARP_NOT} } = \@Marpa::CARP_NOT;
+}
+
+require Marpa::XS::PP::Version;
+require Marpa::XS::PP::Internal;
+require Marpa::XS::PP::Slot;
 require Marpa::XS::Grammar;
 require Marpa::XS::Recognizer;
 require Marpa::XS::Value;

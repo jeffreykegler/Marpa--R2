@@ -31,8 +31,6 @@ use strict;
 use integer;
 use utf8;
 
-use Marpa::PP::Internal::Carp_Not;
-
 =begin Implementation:
 
 Structures and Objects: The design is to present an object-oriented
@@ -123,8 +121,6 @@ use Marpa::Offset qw(
 package Marpa::XS::Internal::Grammar;
 
 use English qw( -no_match_vars );
-
-use Marpa::PP::Internal::Carp_Not;
 
 sub Marpa::XS::Internal::code_problems {
     my $args = shift;

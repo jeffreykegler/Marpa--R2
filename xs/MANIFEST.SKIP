@@ -32,8 +32,10 @@
 ^etc/track[.]list
 ^inc/proof/.*[.]lyx[~]$
 ^junk$
-^lib/Marpa/XS/Perl/Version.pm$
+^pperl/Marpa/Perl/Version.pm$
 ^lib/Marpa/XS/Version.pm$
+^pperl/Marpa/Perl/Installed.pm$
+^lib/Marpa/XS/Installed.pm$
 ^lib/Marpa/XS\.c
 ^lib/Marpa/XS\.xs
 ^libmarpa/dev/fragments/

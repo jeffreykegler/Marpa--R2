@@ -91,8 +91,6 @@ use Marpa::Offset qw(
 
 package Marpa::XS::Internal::Recognizer;
 
-use Marpa::PP::Internal::Carp_Not;
-
 use English qw( -no_match_vars );
 
 my $parse_number = 0;
