@@ -10,4 +10,4 @@ use warnings;
 use lib 'pperl';
 use lib 'tool/lib';
 use Marpa::Test::Common;
-Marpa::Test::Common::run( __FILE__, 'pp' );
+Marpa::Test::Common::run( __FILE__);
