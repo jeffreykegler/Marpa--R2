@@ -56,6 +56,8 @@ inc/proof/proof.lyx
 lib/Marpa/XS.pm
 lib/Marpa/XS/Callback.pm
 lib/Marpa/XS/Grammar.pm
+lib/Marpa/XS/PP/Internal.pm
+lib/Marpa/XS/PP/Slot.pm
 lib/Marpa/XS/Recognizer.pm
 lib/Marpa/XS/Value.pm
 libmarpa/dev/Makefile
@@ -88,10 +90,11 @@ libmarpa/dist/missing
 libmarpa/orig/gnu/obstack.c
 libmarpa/orig/gnu/obstack.h
 pod/Marpa_XS.pod
+pperl/Marpa/Perl.pm
 ppport.h
-t/Makefile
 t/00-load.t
 t/02-load_xs.t
+t/Makefile
 t/shared/ah2.t
 t/shared/ah_numeric.t
 t/shared/chaf.t
@@ -174,5 +177,9 @@ t/shared/syn_engine.t
 t/shared/timeflies.t
 t/shared/wall.t
 t/shared/weaken.t
+t/xs_ah2.t
+tool/lib/Marpa/Display.pm
+tool/lib/Marpa/Test.pm
+tool/lib/Marpa/Test/Common.pm
 typemap
 xs/XS.xs
