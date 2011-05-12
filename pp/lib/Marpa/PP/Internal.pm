@@ -43,7 +43,11 @@ use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
 use constant N_FORMAT_MAX => 0x7fff_ffff;
 
 sub Marpa::offset {
-    my (@fields)   = @_;
+    my (@desc)   = @_;
+    my @fields = ();
+    for my $desc (@desc) {
+        push @fields, split ' ', $desc;
+    }
     my $pkg        = caller;
     my $prefix     = $pkg . q{::};
     my $offset     = -1;

@@ -43,9 +43,7 @@ what in C would be structures.
 =cut
 
 BEGIN {
-    Marpa::offset(
-        qw(
-
+my $structure = <<'END_OF_STRUCTURE';
             :package=Marpa::PP::Internal::Symbol
 
             ID
@@ -87,8 +85,8 @@ BEGIN {
             if not }
 
             =LAST_FIELD
-            )
-    );
+END_OF_STRUCTURE
+    Marpa::offset($structure);
 } ## end BEGIN
 
 use Marpa::PP::Offset qw(
