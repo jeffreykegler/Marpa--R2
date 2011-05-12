@@ -216,6 +216,7 @@ my %files_by_type = (
     # Mostly from Andy Lester, leave alone
     'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
     'Makefile.PL'                           => \&trivial,
+    'ppshim/Marpa/PP.pm'                    => \&trivial,
     'html_pp_test.sh'                       => \&trivial,
     'html_xs_test.sh'                       => \&trivial,
     'libmarpa/dist/README'                  => \&trivial,

@@ -92,6 +92,7 @@ libmarpa/orig/gnu/obstack.h
 pod/Marpa_XS.pod
 pperl/Marpa/Perl.pm
 ppport.h
+ppshim/Marpa/PP.pm
 t/00-load.t
 t/02-load_xs.t
 t/Makefile

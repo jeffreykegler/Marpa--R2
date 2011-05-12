@@ -300,10 +300,10 @@ sub ACTION_dist {
 sub ACTION_code {
     my $self = shift;
     say STDERR "Writing version files";
-    my $perl_version_pm = perl_version_contents( $self, 'Marpa::XS::Perl' );
+    my $perl_version_pm = perl_version_contents( $self, 'Marpa::Perl' );
     my $version_pm = xs_version_contents( $self, 'Marpa::XS' );
     $self->write_file($version_pm, qw(lib Marpa XS Version.pm) );
-    $self->write_file($perl_version_pm, qw(lib Marpa XS Perl Version.pm) );
+    $self->write_file($perl_version_pm, qw(pperl Marpa Perl Version.pm) );
     $self->do_libmarpa();
     $self->SUPER::ACTION_code;
 }
