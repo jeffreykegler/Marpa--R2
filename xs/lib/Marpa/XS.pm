@@ -87,7 +87,6 @@ PACKAGE: for my $package (@Marpa::CARP_NOT) {
     *{ $package . q{::CARP_NOT} } = \@Marpa::CARP_NOT;
 }
 
-require Marpa::XS::PP::Version;
 require Marpa::XS::PP::Internal;
 require Marpa::XS::PP::Slot;
 require Marpa::XS::Grammar;
