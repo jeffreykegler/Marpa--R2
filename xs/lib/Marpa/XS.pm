@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION = '0.005_006';
+$VERSION = '0.005_007';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -56,9 +56,8 @@ $Marpa::USING_XS = 1;
 $Marpa::USING_PP = 0;
 
 eval {
-    package DynaLoader;
     my @libs = split q{ }, ExtUtils::PkgConfig->libs("glib-2.0");
-    @DynaLoader::dl_resolve_using = dl_findfile(@libs);
+    @DynaLoader::dl_resolve_using = DynaLoader::dl_findfile(@libs);
     bootstrap Marpa::XS $Marpa::XS::STRING_VERSION;
     1;
 } or do {
