@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Advanced::Algorithm - (OUTDATED) The Marpa Algorithm
+Marpa::PP::Advanced::Algorithm - (OUTDATED) The Marpa Algorithm
 
 =head1 THIS DOCUMENT IS OUTDATED
 
@@ -34,7 +34,7 @@ that break new ground.
 It is not a comprehensive description of the Marpa algorithm.
 Marpa owes its existence to previous work by
 other researchers.
-Their work is cited in L<Marpa's bibliography|Marpa::XS::Advanced::Bibliography>.
+Their work is cited in L<Marpa's bibliography|Marpa::PP::Advanced::Bibliography>.
 This document is intended to supplement their writings.
 
 I hope to have
@@ -69,13 +69,13 @@ instead of a Hieronymous Bosch.
 =item 1970
 
 Jay Earley L<invents the algorithm that now bears his
-name|Marpa::XS::Advanced::Bibliography/"Earley 1970">.
+name|Marpa::PP::Advanced::Bibliography/"Earley 1970">.
 
 =item 1991
 
 Joop Leo L<describes a way to modify Earley's algorithm so that it
 runs in O(n) time for all LR-regular
-grammars|Marpa::XS::Advanced::Bibliography/"Leo 1991">.
+grammars|Marpa::PP::Advanced::Bibliography/"Leo 1991">.
 LR-regular is a vast class of grammars, including all the
 LR(k) grammars, all grammars parseable with recursive descent,
 and regular expressions.
@@ -85,7 +85,7 @@ in practical use today, and then some.
 =item 2002
 
 L<Aycock and Horspool describe a way to do LR(0)
-precomputation|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">
+precomputation|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">
 for Earley's algorithm.
 Their method makes Earley's faster in most
 practical situations, but not all.
@@ -115,7 +115,7 @@ familiarity with the literature on Earley parsing.
 
 The algorithm described in
 L<Aycock-Horspool 2002
-|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">
+|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">
 speeds up Earley's algorithm
 by combining Earley items.
 Each Earley item in Earley's original algorithm
@@ -137,18 +137,18 @@ Earley items and
 improved the speed of Earley's algorithm considerably.
 
 L<Aycock-Horspool 2002
-|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">
+|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">
 had other very practical insights.
 For example, I can't imagine how I could have written Marpa had
 I not learned how to deal with
 nullable symbols and rules from 
 L<Aycock-Horspool 2002
-|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">.
+|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">.
 But Aycock and Horspool could not
 lay claim to any theoretical milestones.
 As the theoreticians say,
 L<Aycock-Horspool 2002
-|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">
+|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">
 "improved the constants".
 Worst case remained the same,
 and right-recursion was still quadratic.
@@ -172,13 +172,13 @@ without doing so much
 processing that most or all of the benefit of
 one algorithm or the other would be lost.
 L<Leo 1991
-|Marpa::XS::Advanced::Bibliography/"Leo 1991">,
+|Marpa::PP::Advanced::Bibliography/"Leo 1991">,
 L<Aycock-Horspool 2002
-|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">,
+|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">,
 and even Earley's original algorithm
 (after the bug fix suggested
 L<by Aho & Ullman in
-1972|Marpa::XS::Advanced::Bibliography/"Aho and Ullman 1972">)
+1972|Marpa::PP::Advanced::Bibliography/"Aho and Ullman 1972">)
 all do the same job.
 For decades now, the only question has been speed.
 
@@ -221,10 +221,10 @@ to derail the project.
 With the proof that Leo completions were always
 AHFA singletons, I knew that
 L<Leo 1991
-|Marpa::XS::Advanced::Bibliography/"Leo 1991">
+|Marpa::PP::Advanced::Bibliography/"Leo 1991">
 and
 L<Aycock-Horspool
-2002|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">
+2002|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">
 could be combined
 to
 get the best of both.
@@ -232,7 +232,7 @@ get the best of both.
 =head1 Marpa's Changes To The Leo Algorithm
 
 L<Leo 1991
-|Marpa::XS::Advanced::Bibliography/"Leo 1991">
+|Marpa::PP::Advanced::Bibliography/"Leo 1991">
 describes an algorithm for a recognizer.
 Marpa modifies Leo's original recognizer algorithm in two
 major respects.
@@ -245,7 +245,7 @@ Second, Leo's algorithm is lazy about computing Leo
 items.
 (A B<Leo item> is my term for what
 L<Leo 1991
-|Marpa::XS::Advanced::Bibliography/"Leo 1991">
+|Marpa::PP::Advanced::Bibliography/"Leo 1991">
 calls
 "transition items".)
 Leo's original algorithm
@@ -286,7 +286,7 @@ Because of this, Marpa
 rejected the direct approach.
 
 L<Leo 1991
-|Marpa::XS::Advanced::Bibliography/"Leo 1991">
+|Marpa::PP::Advanced::Bibliography/"Leo 1991">
 suggests an indirect approach.
 The indirect approach is to expand the Leo completions
 into the stacks of Earley items for which Leo completions
@@ -616,7 +616,7 @@ The description of the
 "split E<epsilon>-DFA"
 is on pages 624-627 of 
 L<Aycock-Horspool
-2002|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">.
+2002|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">.
 This description contained the insights
 without which Marpa could not have been written.
 But, in my reading at least, the Aycock-Horspool
@@ -716,7 +716,7 @@ the iteration and evaluation
 might contain significant unsolved problems.
 In
 L<their
-paper|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">,
+paper|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">,
 they identify
 the search for "better ways
 to reconstruct derivations" as an "area of future work."
@@ -737,7 +737,7 @@ it is necessary to find all the dotted rules which
 are applicable to that parse result.
 This process is described more fully in
 L<the implementation
-document|Marpa::XS::Advanced::Implementation/"Applicable Dotted Rules">.
+document|Marpa::PP::Advanced::Implementation/"Applicable Dotted Rules">.
 
 A disadvantage of Aycock-Horspool's use of LR(0) states
 in Earley items was that it muddied the question of what it
