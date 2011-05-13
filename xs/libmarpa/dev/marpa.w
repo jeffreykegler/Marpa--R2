@@ -826,13 +826,7 @@ static inline gint rule_count(const struct marpa_g* g) {
 static inline gint rule_count(const struct marpa_g* g);
 
 @ Internal accessor to find a rule by its id.
-@<Function definitions@> =
-static inline RULE
-rule_id2p(const struct marpa_g* g, Marpa_Rule_ID id)
-{ return g_array_index(g->t_rules, RULE, id); }
-@ @<Private function prototypes@> =
-static inline RULE
-rule_id2p(const struct marpa_g* g, Marpa_Rule_ID id);
+@d RULE_by_ID(g, id) (g_array_index((g)->t_rules, RULE, (id)))
 
 @ Adds the rule to the list of rules kept by the Grammar
 object.
@@ -1814,7 +1808,7 @@ Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, guint length)
     for (ix = 0; ix < same_lhs_count; ix++) {
 	Marpa_Rule_ID same_lhs_rule_id = ((Marpa_Rule_ID *)(same_lhs_array->data))[ix];
 	guint rhs_position;
-	RULE rule = rule_id2p(g, same_lhs_rule_id);
+	RULE rule = RULE_by_ID(g, same_lhs_rule_id);
 	if (rule->t_length != length) { goto RULE_IS_NOT_DUPLICATE; }
 	for (rhs_position = 0; rhs_position < rule->t_length; rhs_position++) {
 	    if (rhs_symid(rule, rhs_position) != rhs_ids[rhs_position]) {
@@ -1976,7 +1970,7 @@ static inline Marpa_Symbol_ID rule_lhs_get(RULE rule);
 Marpa_Symbol_ID marpa_rule_lhs(struct marpa_g *g, Marpa_Rule_ID rule_id) {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-    return rule_lhs_get(rule_id2p(g, rule_id)); }
+    return rule_lhs_get(RULE_by_ID(g, rule_id)); }
 @ @<Public function prototypes@> =
 Marpa_Symbol_ID marpa_rule_lhs(struct marpa_g *g, Marpa_Rule_ID rule_id);
 @ @<Function definitions@> =
@@ -1989,7 +1983,7 @@ Marpa_Symbol_ID marpa_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, g
     RULE rule;
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-    rule = rule_id2p(g, rule_id);
+    rule = RULE_by_ID(g, rule_id);
     if (rule->t_length <= ix) return -1;
     return rhs_symid(rule, ix);
 }
@@ -2004,7 +1998,7 @@ static inline gsize rule_length_get(RULE rule);
 gint marpa_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-    return rule_length_get(rule_id2p(g, rule_id)); }
+    return rule_length_get(RULE_by_ID(g, rule_id)); }
 @ @<Public function prototypes@> =
 gint marpa_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id);
 
@@ -2041,7 +2035,7 @@ For non-sequence rules, this flag should be false.
 rule->t_is_discard = FALSE;
 @ @<Function definitions@> =
 gboolean marpa_rule_is_discard_separation(struct marpa_g* g, Marpa_Rule_ID id)
-{ return rule_id2p(g, id)->t_is_discard; }
+{ return RULE_by_ID(g, id)->t_is_discard; }
 @ @<Public function prototypes@> =
 gboolean marpa_rule_is_discard_separation(struct marpa_g* g, Marpa_Rule_ID id);
 
@@ -2082,7 +2076,7 @@ gint marpa_rule_is_accessible(struct marpa_g* g, Marpa_Rule_ID rule_id)
     @<Return |-2| on failure@>@;
 RULE  rule;
     @<Fail if grammar |rule_id| is invalid@>@;
-rule = rule_id2p(g, rule_id);
+rule = RULE_by_ID(g, rule_id);
 return rule_is_accessible(g, rule);
 }
 @ @<Private function prototypes@> =
@@ -2106,7 +2100,7 @@ gint marpa_rule_is_productive(struct marpa_g* g, Marpa_Rule_ID rule_id)
     @<Return |-2| on failure@>@;
 RULE  rule;
     @<Fail if grammar |rule_id| is invalid@>@;
-rule = rule_id2p(g, rule_id);
+rule = RULE_by_ID(g, rule_id);
 return rule_is_productive(g, rule);
 }
 @ @<Private function prototypes@> =
@@ -2130,7 +2124,7 @@ gint marpa_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-return rule_id2p(g, rule_id)->t_is_loop; }
+return RULE_by_ID(g, rule_id)->t_is_loop; }
 @ @<Public function prototypes@> =
 gint marpa_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
@@ -2151,7 +2145,7 @@ gint marpa_rule_is_virtual_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-return rule_id2p(g, rule_id)->t_is_virtual_loop; }
+return RULE_by_ID(g, rule_id)->t_is_virtual_loop; }
 @ @<Public function prototypes@> =
 gint marpa_rule_is_virtual_loop(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
@@ -2181,7 +2175,7 @@ gint marpa_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-return rule_id2p(g, rule_id)->t_is_used; }
+return RULE_by_ID(g, rule_id)->t_is_used; }
 @ @<Public function prototypes@> =
 gint marpa_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
@@ -2197,7 +2191,7 @@ gint marpa_rule_is_start(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-return rule_id2p(g, rule_id)->t_is_start; }
+return RULE_by_ID(g, rule_id)->t_is_start; }
 @ @<Public function prototypes@> =
 gint marpa_rule_is_start(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
@@ -2223,7 +2217,7 @@ rule->t_is_virtual_lhs = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
 gboolean marpa_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID id)
-{ return rule_id2p(g, id)->t_is_virtual_lhs; }
+{ return RULE_by_ID(g, id)->t_is_virtual_lhs; }
 @ @<Public function prototypes@> =
 gboolean marpa_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID id);
 
@@ -2234,7 +2228,7 @@ rule->t_is_virtual_rhs = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
 gboolean marpa_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID id)
-{ return rule_id2p(g, id)->t_is_virtual_rhs; }
+{ return RULE_by_ID(g, id)->t_is_virtual_rhs; }
 @ @<Public function prototypes@> =
 gboolean marpa_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID id);
 
@@ -2249,7 +2243,7 @@ guint marpa_virtual_start(struct marpa_g *g, Marpa_Rule_ID rule_id)
 {
 @<Return |-2| on failure@>@;
 @<Fail if grammar |rule_id| is invalid@>@;
-return rule_id2p(g, rule_id)->t_virtual_start;
+return RULE_by_ID(g, rule_id)->t_virtual_start;
 }
 @ @<Public function prototypes@> =
 guint marpa_virtual_start(struct marpa_g *g, Marpa_Rule_ID rule_id);
@@ -2265,7 +2259,7 @@ guint marpa_virtual_end(struct marpa_g *g, Marpa_Rule_ID rule_id)
 {
 @<Return |-2| on failure@>@;
 @<Fail if grammar |rule_id| is invalid@>@;
-return rule_id2p(g, rule_id)->t_virtual_end;
+return RULE_by_ID(g, rule_id)->t_virtual_end;
 }
 @ @<Public function prototypes@> =
 guint marpa_virtual_end(struct marpa_g *g, Marpa_Rule_ID rule_id);
@@ -2319,7 +2313,7 @@ the ID of the original rule.
 @ @<Initialize rule elements@> = rule->t_original = -1;
 @ @<Function definitions@> =
 Marpa_Rule_ID marpa_rule_original(const struct marpa_g *g, Marpa_Rule_ID id)
-{ return rule_id2p(g, id)->t_original; }
+{ return RULE_by_ID(g, id)->t_original; }
 @ @<Public function prototypes@> =
 Marpa_Rule_ID marpa_rule_original(const struct marpa_g *g, Marpa_Rule_ID id);
 
@@ -2333,7 +2327,7 @@ the rule has a virtual rhs or a virtual lhs.
 @ @<Initialize rule elements@> = rule->t_real_symbol_count = 0;
 @ @<Function definitions@> =
 guint marpa_real_symbol_count(const struct marpa_g *g, Marpa_Rule_ID id)
-{ return rule_id2p(g, id)->t_real_symbol_count; }
+{ return RULE_by_ID(g, id)->t_real_symbol_count; }
 @ @<Public function prototypes@> =
 guint marpa_real_symbol_count(const struct marpa_g *g, Marpa_Rule_ID id);
 
@@ -2353,7 +2347,7 @@ Otherwise it returns -1.
 @<Function definitions@> =
 Marpa_Rule_ID marpa_rule_semantic_equivalent(struct marpa_g* g, Marpa_Rule_ID id)
 {
-RULE  rewrite_rule = rule_id2p(g, id);
+RULE  rewrite_rule = RULE_by_ID(g, id);
 return rewrite_rule->t_is_semantic_equivalent ? rewrite_rule->t_original : -1; }
 @ @<Public function prototypes@> =
 Marpa_Rule_ID marpa_rule_semantic_equivalent(struct marpa_g* g, Marpa_Rule_ID id);
@@ -2497,7 +2491,7 @@ empty_lhs_v = bv_shadow(lhs_v);
 for (rule_id = 0;
 	rule_id < (Marpa_Rule_ID)pre_rewrite_rule_count;
 	rule_id++) {
-    RULE  rule = rule_id2p(g, rule_id);
+    RULE  rule = RULE_by_ID(g, rule_id);
     Marpa_Symbol_ID lhs_id = LHS_ID_of_PRD(rule);
     bv_bit_set(lhs_v, (guint)lhs_id);
     if (rule->t_length <= 0) {
@@ -2670,7 +2664,7 @@ for (symid = 0; symid < no_of_symbols; symid++) {
 { Marpa_Rule_ID rule_id;
 guint no_of_rules = rule_count(g);
 for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
-     RULE  rule = rule_id2p(g, rule_id);
+     RULE  rule = RULE_by_ID(g, rule_id);
      Marpa_Symbol_ID lhs_id = LHS_ID_of_PRD(rule);
      guint rhs_ix, rule_length = rule->t_length;
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
@@ -2785,7 +2779,7 @@ static inline struct marpa_g* CHAF_rewrite(struct marpa_g* g)
      @<Alias proper nullables@>@;
     no_of_rules = rule_count(g);
     for (rule_id = 0; rule_id < no_of_rules; rule_id++) {
-         RULE  rule = rule_id2p(g, rule_id);
+         RULE  rule = RULE_by_ID(g, rule_id);
 	 guint rule_length = rule->t_length;
 	 guint nullable_suffix_ix = 0;
 	 @<Mark and skip unused rules@>@;
@@ -3323,7 +3317,7 @@ unit transitions are not in general reflexive.
 @<Mark direct unit transitions in |unit_transition_matrix|@> = {
 Marpa_Rule_ID rule_id;
 for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
-     RULE  rule = rule_id2p(g, rule_id);
+     RULE  rule = RULE_by_ID(g, rule_id);
      Marpa_Symbol_ID proper_id;
      guint rhs_ix, rule_length;
      if (!rule->t_is_used) continue;
@@ -3365,7 +3359,7 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
     if (!matrix_bit_test(unit_transition_matrix, (guint)rule_id, (guint)rule_id))
 	continue;
     loop_rule_count++;
-    rule = rule_id2p(g, rule_id);
+    rule = RULE_by_ID(g, rule_id);
     rule->t_is_loop = TRUE;
     rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !rule->t_is_virtual_rhs;
     g_context_clear(g);
@@ -3638,7 +3632,7 @@ static inline void create_AHFA_items(struct marpa_g* g);
 
 @ @<Create the AHFA items for a rule@> =
 guint rhs_ix;
-RULE  rule = rule_id2p(g, rule_id);
+RULE  rule = RULE_by_ID(g, rule_id);
 if (!rule->t_is_used) goto NEXT_RULE;
 for (rhs_ix = 0; rhs_ix < rule->t_length; rhs_ix++) {
      @<Create an AHFA item for a precompletion@>@;
@@ -4293,7 +4287,7 @@ g_tree_destroy(duplicates);
 	    p_initial_state->t_complete_symbols =
 	      obstack_alloc (&g->t_obs, sizeof (SYMID));
 	    *(p_initial_state->t_complete_symbols) =
-	      LHS_ID_of_PRD (rule_id2p (g, start_rule_id));
+	      LHS_ID_of_PRD (RULE_by_ID (g, start_rule_id));
 	  }
 	else
 	  {
@@ -4733,7 +4727,7 @@ calculate |no_of_predictable_rules|@> =
 @ @<Populate |rule_by_sort_key|@> =
 { Marpa_Rule_ID rule_id;
 for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
-    rule_by_sort_key[rule_id] = rule_id2p(g, rule_id);
+    rule_by_sort_key[rule_id] = RULE_by_ID(g, rule_id);
 }
 g_qsort_with_data(rule_by_sort_key, (gint)no_of_rules,
     sizeof(RULE), cmp_by_rule_sort_key,
@@ -5022,6 +5016,7 @@ enum enum_phase {
     active_phase,
     exhausted_phase,
     finished_phase,
+    evaluation_phase,
     error_phase
 };
 typedef enum enum_phase Marpa_Phase;
@@ -5550,9 +5545,6 @@ The two may coincide, but should not be confused.
 struct s_earley_set* t_trace_earley_set;
 @ @<Initialize recognizer elements@> =
 r->t_trace_earley_set = NULL;
-
-@ @<Clear trace earley set data@> =
-      r->t_trace_earley_set = NULL;
 
 @ @<Public function prototypes@> =
 Marpa_Earleme marpa_trace_earleme(struct marpa_r *r);
@@ -8969,7 +8961,7 @@ rhs_closure (struct marpa_g *g, Bit_Vector bv)
 	{
 	  Marpa_Rule_ID rule_id =
 	    g_array_index (rules, Marpa_Rule_ID, rule_ix);
-	  RULE rule = rule_id2p (g, rule_id);
+	  RULE rule = RULE_by_ID (g, rule_id);
 	  guint rule_length;
 	  guint rh_ix;
 	  Marpa_Symbol_ID lhs_id = LHS_ID_of_PRD (rule);
@@ -9746,6 +9738,7 @@ default:
 case active_phase:
 case exhausted_phase:
 case finished_phase:
+case evaluation_phase:
 break;
 }
 @ @<Fail if recognizer has fatal error@> =
