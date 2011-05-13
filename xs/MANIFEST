@@ -89,6 +89,7 @@ libmarpa/dist/missing
 libmarpa/orig/gnu/obstack.c
 libmarpa/orig/gnu/obstack.h
 pod/Marpa_XS.pod
+pod/Support.pod
 pperl/Marpa/Perl.pm
 ppport.h
 ppshim/Marpa/PP.pm

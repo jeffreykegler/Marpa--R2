@@ -58,7 +58,10 @@ my @no_index_namespace_inclusive = (
     qw(Marpa::Perl Marpa::Test Marpa::Display ),
 
     # never intended to see the light of day
-    qw( Marpa::XS::Internal),
+    qw( Marpa::XS::Internal Marpa::PP ),
+
+    # never intended to see the light of day
+    qw( Marpa::XS::Grammar Marpa::XS::Recognizer ),
 
 );
 
