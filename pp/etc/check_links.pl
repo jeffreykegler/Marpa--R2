@@ -35,9 +35,9 @@ use constant OK => 200;
 my $most_recent_distribution = pop @ARGV;
 if ( not $most_recent_distribution ) {
     my @distributions =
-        grep     {/\A Marpa [-] XS [-] \d /xms}
+        grep     {/\A Marpa [-] PP [-] \d /xms}
         sort map { $_->[2] }
-        CPAN::Shell->expand( 'Author', 'JKEGL' )->ls( 'Marpa-XS-*', 2 );
+        CPAN::Shell->expand( 'Author', 'JKEGL' )->ls( 'Marpa-PP-*', 2 );
     $most_recent_distribution = pop @distributions;
     $most_recent_distribution =~ s/\.tar\.gz$//xms;
 } ## end if ( not $most_recent_distribution )
