@@ -13,20 +13,24 @@
 # General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: libs dummy full pp_html_test xs_html_test pp_etc_make xs_etc_make
+.PHONY: libs dummy full pp_html_test xs_html_test pp_etc_make xs_etc_make \
+    pplib xslib libs
 
 dummy: 
 
-libs:
-	(cd pp; ./Build install --install_base ../dxslib)
+libs: pplib xslib
+
+pplib:
 	(cd pp; ./Build install --install_base ../dpplib)
+
+xslib:
 	(cd xs; ./Build install --install_base ../dxslib)
 
-pp_html_test: libs
+pp_html_test: pplib
 	(cd html; \
 	PERL5LIB=$$HOME/projects/marpa/all/dpplib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
-xs_html_test: libs
+xs_html_test: xslib
 	(cd html; \
 	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
