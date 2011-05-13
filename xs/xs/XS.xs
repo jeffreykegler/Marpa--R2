@@ -1034,9 +1034,8 @@ CODE:
     switch(phase) {
     case no_such_phase: RETVAL = "undefined"; break;
     case initial_phase: RETVAL = "initial"; break;
-    case active_phase: RETVAL = "active"; break;
-    case exhausted_phase: RETVAL = "exhausted"; break;
-    case finished_phase: RETVAL = "finished"; break;
+    case input_phase: RETVAL = "read"; break;
+    case evaluation_phase: RETVAL = "evaluation"; break;
     case error_phase: RETVAL = "error"; break;
     }
 OUTPUT:
@@ -1081,6 +1080,18 @@ PPCODE:
      gint boolean = marpa_is_use_leo( r );
      if (boolean < 0) { 
 	 croak("Problem in is_use_leo(): %s", marpa_r_error(r)); }
+    if (boolean) XSRETURN_YES;
+    XSRETURN_NO;
+    }
+
+void
+is_exhausted( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+     gint boolean = marpa_is_exhausted( r );
+     if (boolean < 0) { 
+	 croak("Problem in is_exhausted(): %s", marpa_r_error(r)); }
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -1494,11 +1505,29 @@ PPCODE:
     }
 
 void
-value( r_wrapper )
-     R_Wrapper *r_wrapper
+value( r_wrapper, rule_id, ordinal )
+     R_Wrapper *r_wrapper;
+     Marpa_Rule_ID rule_id;
+     Marpa_Earley_Set_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    marpa_value(r);
+	gint result = marpa_value(r, rule_id, ordinal);
+	if (result < 0) {
+	  croak ("Problem in r->value(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
+value_reset( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+	gint result = marpa_value_reset(r);
+	if (result < 0) {
+	  croak ("Problem in r->value_reset(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
 BOOT:

@@ -5009,26 +5009,36 @@ Initialized in |marpa_r_new|.
 @ @<Widely aligned recognizer elements@> = const struct marpa_g *t_grammar;
 
 @*0 Recognizer Phase.
+The recognizer has phases, such as "input"
+and "evaluation",
+and states, such as "exhausted".
+The main distinction is that the
+phases are mutually exclusive---%
+entering one means leaving another.
+"Exhausted" is not a phase, because when a parser is
+exhausted it may gone into the evaluation phase, then
+return to the input phase,
+All that time it will remain "exhausted".
 @<Public typedefs@> =
 enum enum_phase {
     no_such_phase = 0, // 0 is never a valid phase
     initial_phase,
-    active_phase,
-    exhausted_phase,
-    finished_phase,
+    input_phase,
     evaluation_phase,
     error_phase
 };
 typedef enum enum_phase Marpa_Phase;
-@ @<Int aligned recognizer elements@> = 
+@ @d Phase_of_R(r) ((r)->t_phase)
+@d LV_Phase_of_R(r) Phase_of_R(r)
+@<Int aligned recognizer elements@> = 
 Marpa_Phase t_phase;
 @ @<Initialize recognizer elements@> =
-r->t_phase = initial_phase;
+LV_Phase_of_R(r) = initial_phase;
 @ @<Public function prototypes@> =
 Marpa_Phase marpa_phase(struct marpa_r* r);
 @ @<Function definitions@> =
 Marpa_Phase marpa_phase(struct marpa_r* r)
-{ return r->t_phase; }
+{ return Phase_of_R(r); }
 
 @*0 Earley Set Container.
 @d First_ES_of_R(r) ((r)->t_first_earley_set)
@@ -5321,6 +5331,32 @@ struct marpa_r*r, gboolean value)
 }
 @ @<Public function prototypes@> =
 gboolean marpa_is_use_leo_set( struct marpa_r*r, gboolean value);
+
+@*1 Is The Parser Exhausted?.
+A parser is "exhausted" if it cannot accept any more input.
+Both successful and failed parses can be "exhausted".
+In many grammars,
+the parse is always exhausted as soon as it succeeds.
+And even if the parse is exhausted at a point
+where there is no good parse, 
+there may be good parses at earlemes prior to the
+earleme at which the parse became exhausted.
+@d R_is_Exhausted(r) ((r)->t_is_exhausted)
+@d LV_R_is_Exhausted(r) R_is_Exhausted(r)
+@<Bit aligned recognizer elements@> = unsigned int t_is_exhausted:1;
+@ @<Initialize recognizer elements@> = r->t_is_exhausted = 0;
+@ Exhaustion is a boolean, not a phase.
+Once exhausted a parse stays exhausted,
+even though the phase may change.
+@<Public function prototypes@> =
+gboolean marpa_is_exhausted(struct marpa_r* r);
+@ @<Function definitions@> =
+gint marpa_is_exhausted(struct marpa_r* r)
+{
+   @<Return |-2| on failure@>@/
+    @<Fail if recognizer has fatal error@>@;
+    return r->t_is_exhausted ? 1 : 0;
+}
 
 @*1 Is Leo Expansion in Progress?.
 This boolean indicates whether we are in the process of expanding
@@ -7091,7 +7127,7 @@ static inline void trace_source_link_clear(struct marpa_r* r) {
 @*1 Return the Predecessor AHFA State.
 Returns the predecessor AHFA State,
 or -1 if there is no predecessor.
-If the recognizer is not active,
+If the recognizer is trace-safe,
 there is no trace source link,
 the trace source link is a Leo source,
 or there is some other failure,
@@ -7128,7 +7164,7 @@ containing a source will always be over exactly one symbol.
 In the case of a Leo source, this symbol will be
 the Leo transition symbol.
 @ Returns the symbol ID of the Leo transition symbol.
-If the recognizer is not active,
+If the recognizer is not trace-safe,
 if there is no trace source link,
 if the trace source link is not a Leo source,
 or there is some other failure,
@@ -7220,7 +7256,7 @@ gboolean marpa_source_token_value(struct marpa_r* r, gpointer* value_p);
 writes the value of the token into |value_p|.
 On failure, returns |FALSE|.
 Possible failures include
-the recognizer not being active,
+the recognizer not being trace-safe,
 there being no source link,
 and the source link not being a token link.
 @<Function definitions@> =
@@ -7414,7 +7450,7 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
     psar_reset(Dot_PSAR_of_R(r));
     @<Allocate recognizer's bit vectors for symbols@>@;
     @<Initialize Earley item work stacks@>@;
-    r->t_phase = active_phase;
+    LV_Phase_of_R(r) = input_phase;
     LV_Current_Earleme_of_R(r) = 0;
     set0 = earley_set_new(r, 0);
     LV_Latest_ES_of_R(r) = set0;
@@ -7494,7 +7530,8 @@ Marpa_Symbol_ID token_id, void *token_value, gint length) {
     ES current_earley_set;
     const EARLEME current_earleme = Current_Earleme_of_R(r);
     EARLEME target_earleme;
-    @<Fail if recognizer not active@>@;
+    @<Fail if recognizer not in input phase@>@;
+    @<Fail if recognizer exhausted@>@;
     @<|marpa_alternative| initial check for failure conditions@>@;
     @<Set |current_earley_set|, failing if token is unexpected@>@;
     @<Set |target_earleme| or fail@>@;
@@ -7651,7 +7688,7 @@ marpa_earleme_complete(struct marpa_r* r)
       { /* If no terminals are expected, and there are no Earley items in
            uncompleted Earley sets, we can make no further progress.
 	   The parse is "exhausted". */
-	r->t_phase = exhausted_phase;
+	LV_R_is_Exhausted(r) = 1;
       }
     earley_set_update_items(r, current_earley_set);
     return count_of_expected_terminals;
@@ -7661,7 +7698,7 @@ marpa_earleme_complete(struct marpa_r* r)
   current_earleme = ++(LV_Current_Earleme_of_R(r));
   if (current_earleme > Furthest_Earleme_of_R (r))
     {
-	r->t_phase = exhausted_phase;
+	LV_R_is_Exhausted(r) = 1;
 	R_ERROR("parse exhausted");
 	return failure_indicator;
      }
@@ -8561,11 +8598,39 @@ a reference to an array with the "rest" of the values.
 An empty array signals that there are no more.
 
 @** Evaluation.
+I am frankly not quite sure what the return value of this function should be.
+It is basically pass/fail, but some other information might be useful.
 @<Public function prototypes@> =
-void marpa_value(struct marpa_r* r);
+gint marpa_value(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
 @ @<Function definitions@> =
-void marpa_value(struct marpa_r* r) {
+gint marpa_value(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
+    @<Return |-2| on failure@>@;
+    @<Fail if recognizer has fatal error@>@;
+    switch (Phase_of_R(r)) {
+    default:
+	R_ERROR("recce not evaluation-ready");
+	return failure_indicator;
+    case input_phase:
+    case evaluation_phase:
+    break;
+    }
+    LV_Phase_of_R(r) = evaluation_phase;
      r_update_earley_sets(r);
+    return 1; // For now, just return 1
+}
+
+@ @<Public function prototypes@> =
+gint marpa_value_reset(struct marpa_r* r);
+@ @<Function definitions@> =
+gint marpa_value_reset(struct marpa_r* r) {
+    @<Return |-2| on failure@>@;
+    @<Fail if recognizer has fatal error@>@;
+    if (Phase_of_R(r) != evaluation_phase) {
+	R_ERROR("recce not being evaluated");
+	return failure_indicator;
+    }
+    LV_Phase_of_R(r) = input_phase;
+    return 1; // For now, just return 1
 }
 
 @** Boolean Vectors.
@@ -9716,33 +9781,36 @@ if (sizeof(gint) != g_array_get_element_size(result)) {
 |r| is assumed to be the value of the relevant recognizer,
 when one is required.
 @<Fail if recognizer not initial@> =
-if (r->t_phase != initial_phase) {
+if (Phase_of_R(r) != initial_phase) {
     R_ERROR("not initial recce phase");
     return failure_indicator;
 }
 @ @<Fail if recognizer initial@> =
-if (r->t_phase == initial_phase) {
+if (Phase_of_R(r) == initial_phase) {
     R_ERROR("initial recce phase");
     return failure_indicator;
 }
-@ @<Fail if recognizer not active@> =
-if (r->t_phase != active_phase) {
-    R_ERROR("recce not active");
+@ @<Fail if recognizer exhausted@> =
+if (R_is_Exhausted(r)) {
+    R_ERROR("recce exhausted");
+    return failure_indicator;
+}
+@ @<Fail if recognizer not in input phase@> =
+if (Phase_of_R(r) != input_phase) {
+    R_ERROR("recce not in input phase");
     return failure_indicator;
 }
 @ @<Fail recognizer if not trace-safe@> =
-switch (r->t_phase) {
+switch (Phase_of_R(r)) {
 default:
     R_ERROR("recce not trace-safe");
     return failure_indicator;
-case active_phase:
-case exhausted_phase:
-case finished_phase:
+case input_phase:
 case evaluation_phase:
 break;
 }
 @ @<Fail if recognizer has fatal error@> =
-if (r->t_phase == error_phase) {
+if (Phase_of_R(r) == error_phase) {
     R_ERROR(r->t_fatal_error);
     return failure_indicator;
 }

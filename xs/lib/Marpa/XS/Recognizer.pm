@@ -276,6 +276,14 @@ use constant RECOGNIZER_MODES => [qw(default stream)];
 
 sub Marpa::XS::Recognizer::reset_evaluation {
     my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    if ( $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] ) {
+        my $result = $recce_c->value_reset();
+        if ( not defined $result ) {
+            Marpa::exception(
+                qq{libmarpa's marpa_value_reset() call failed\n});
+        }
+    } ## end if ( $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT...])
     $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]       = 0;
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
     $recce->[Marpa::XS::Internal::Recognizer::AND_NODES]         = [];
@@ -471,7 +479,7 @@ sub Marpa::XS::Recognizer::check_terminal {
 
 sub Marpa::XS::Recognizer::exhausted {
     my $recce_c = $_[0]->[Marpa::XS::Internal::Recognizer::C];
-    return $recce_c->phase eq "exhausted";
+    return $recce_c->is_exhausted();
 }
 
 sub Marpa::XS::Recognizer::current_earleme {

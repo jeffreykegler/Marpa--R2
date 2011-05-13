@@ -1397,7 +1397,9 @@ sub Marpa::XS::Recognizer::value {
 
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
 
-    $recce_c->value();
+    if ( not defined $recce_c->value(-1, -1) ) {
+        Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
+    }
 
     my $parse_set_arg = $recce->[Marpa::XS::Internal::Recognizer::END];
 
