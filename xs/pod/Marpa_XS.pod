@@ -25,48 +25,6 @@ normalize-whitespace: 1
 
     use Marpa::XS;
 
-    my $grammar = Marpa::XS::Grammar->new(
-        {   start   => 'Expression',
-            actions => 'My_Actions',
-            default_action => 'first_arg',
-            rules   => [
-                { lhs => 'Expression', rhs => [qw/Term/] },
-                { lhs => 'Term', rhs => [qw/Factor/] },
-                { lhs => 'Factor', rhs => [qw/Number/] },
-                { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
-                {   lhs    => 'Factor',
-                    rhs    => [qw/Factor Multiply Factor/],
-                    action => 'do_multiply'
-                },
-            ],
-        }
-    );
-
-    $grammar->precompute();
-
-    my $recce = Marpa::XS::Recognizer->new( { grammar => $grammar } );
-
-    $recce->read( 'Number', 42 );
-    $recce->read( 'Multiply', );
-    $recce->read( 'Number', 1 );
-    $recce->read( 'Add', );
-    $recce->read( 'Number', 7 );
-
-    sub My_Actions::do_add {
-        my ( undef, $t1, undef, $t2 ) = @_;
-        return $t1 + $t2;
-    }
-
-    sub My_Actions::do_multiply {
-        my ( undef, $t1, undef, $t2 ) = @_;
-        return $t1 * $t2;
-    }
-
-    sub My_Actions::first_arg { shift; return shift; }
-
-    my $value_ref = $recce->value;
-    my $value = $value_ref ? ${$value_ref} : 'No Parse';
-
 =for Marpa::XS::Display::End
 
 =head1 DESCRIPTION
@@ -79,11 +37,19 @@ Please be careful.
 Do not rely
 on it for anything mission-critical.
 
-=head2 Overview
+=head2 Where is the Documentation?
 
-L<Marpa::XS> is the XS extension of L<Marpa::PP>.
-L<Marpa::XS> depends on L<Marpa::PP>,
-and its documentation can be found there.
+L<Marpa::XS|http://search.cpan.org/dist/Marpa-PP/>
+is the XS extension of
+L<Marpa::PP|http://search.cpan.org/dist/Marpa-PP/>.
+Usage is the same, and the two modules
+share the same documentation.
+To avoid duplication,
+the documentation is not kept here.
+The documentation for both
+Marpa::XS and Marpa::PP can be found in the
+L<Marpa::PP|http://search.cpan.org/dist/Marpa-PP/>
+module.
 
 =head1 SUPPORT
 
