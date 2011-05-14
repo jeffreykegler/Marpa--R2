@@ -3397,14 +3397,20 @@ in parentheses:
 8   (0.57\%);
 9   (0.19\%); and
 20   (0.19\%).
-As can be seen, well over 90\% of the total discovered states have
+
+@ As can be seen, well over 90\% of the total discovered states have
 just one or two items.
-For the HTML grammars I used, the totals are even more lopsided:
+The average size is 1.5235,
+and the average of the $|size|^2$ is 3.9405.
+
+@ For the HTML grammars I used, the totals are even more lopsided:
 80.96\% of all discovered states have only 1 item.
 All the others (19.04\%) have 2 items.
+The average size is 1.1904,
+and the average of the $|size|^2$ is 1.5712.
 
-The number of predicted states tends to be much more
-evently distributed.
+@ The number of predicted states tends to be much more
+evenly distributed.
 It also tends to be much larger, and
 the average for practical grammars may be $O(s)$,
 where $s$ is the size of the grammar.
