@@ -1505,27 +1505,27 @@ PPCODE:
     }
 
 void
-value( r_wrapper, rule_id, ordinal )
+eval_setup( r_wrapper, rule_id, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Rule_ID rule_id;
      Marpa_Earley_Set_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_value(r, rule_id, ordinal);
+	gint result = marpa_eval_setup(r, rule_id, ordinal);
 	if (result < 0) {
-	  croak ("Problem in r->value(): %s", marpa_r_error (r));
+	  croak ("Problem in r->eval_setup(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
 void
-value_reset( r_wrapper )
+eval_clear( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_value_reset(r);
+	gint result = marpa_eval_clear(r);
 	if (result < 0) {
-	  croak ("Problem in r->value_reset(): %s", marpa_r_error (r));
+	  croak ("Problem in r->eval_clear(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }

@@ -8601,9 +8601,9 @@ An empty array signals that there are no more.
 I am frankly not quite sure what the return value of this function should be.
 It is basically pass/fail, but some other information might be useful.
 @<Public function prototypes@> =
-gint marpa_value(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
+gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
 @ @<Function definitions@> =
-gint marpa_value(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
+gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
     @<Return |-2| on failure@>@;
     @<Fail if recognizer has fatal error@>@;
     switch (Phase_of_R(r)) {
@@ -8620,9 +8620,9 @@ gint marpa_value(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID o
 }
 
 @ @<Public function prototypes@> =
-gint marpa_value_reset(struct marpa_r* r);
+gint marpa_eval_clear(struct marpa_r* r);
 @ @<Function definitions@> =
-gint marpa_value_reset(struct marpa_r* r) {
+gint marpa_eval_clear(struct marpa_r* r) {
     @<Return |-2| on failure@>@;
     @<Fail if recognizer has fatal error@>@;
     if (Phase_of_R(r) != evaluation_phase) {

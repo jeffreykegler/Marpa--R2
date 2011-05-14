@@ -278,7 +278,7 @@ sub Marpa::XS::Recognizer::reset_evaluation {
     my ($recce) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     if ( $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] ) {
-        my $result = $recce_c->value_reset();
+        my $result = $recce_c->eval_clear();
         if ( not defined $result ) {
             Marpa::exception(
                 qq{libmarpa's marpa_value_reset() call failed\n});
