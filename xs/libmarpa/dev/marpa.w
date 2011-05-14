@@ -3830,10 +3830,26 @@ struct s_AHFA_state {
     @<Int aligned AHFA state elements@>@;
     guint t_item_count;
     guint t_complete_symbol_count;
-    guint t_is_predict:1;
     guint t_has_completed_start_rule:1;
+    @<Bit aligned AHFA elements@>@;
 };
 typedef struct s_AHFA_state AHFAD;
+
+@ This boolean indicates whether the
+{\bf AHFA state} is predicted,
+as opposed to whether it contains any predicted 
+AHFA items.
+This makes a difference in AHFA state 0.
+When the null parse is allowed.
+AHFA state 0 will contain an AHFA item
+which is {\bf both} a prediction
+and a completion.
+AHFA state 0 is, however, {\bf never}
+a predicted AHFA state.
+@d AHFA_is_Predicted(ahfa) ((ahfa)->t_is_predict)
+@d LV_AHFA_is_Predicted(ahfa) AHFA_is_Predicted(ahfa)
+@<Bit aligned AHFA elements@> =
+guint t_is_predict:1;
 
 @ @<Private typedefs@> =
 typedef struct s_AHFA_state* AHFA;
@@ -4035,7 +4051,7 @@ gint marpa_AHFA_state_is_predict(struct marpa_g* g,
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
     state = AHFA_by_ID(AHFA_state_id);
-    return state->t_is_predict;
+    return AHFA_is_Predicted(state);
 }
 @ @<Public function prototypes@> =
 gint marpa_AHFA_state_is_predict(struct marpa_g* g,
@@ -4260,7 +4276,7 @@ g_tree_destroy(duplicates);
     p_initial_state->t_items = item_list;
     p_initial_state->t_item_count = no_of_items_in_new_state;
     p_initial_state->t_key.t_id = 0;
-    p_initial_state->t_is_predict = 0;
+    LV_AHFA_is_Predicted(p_initial_state) = 0;
     LV_Leo_LHS_ID_of_AHFA(p_initial_state) = -1;
     p_initial_state->t_to_ahfa_ary = to_ahfa_array_new(g);
     p_initial_state->t_empty_transition = NULL;
@@ -4354,7 +4370,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	obstack_alloc (&g->t_obs, sizeof (AIM));
     new_state_item_list[0] = single_item_p;
     p_new_state->t_item_count = 1;
-    p_new_state->t_is_predict = 0;
+    LV_AHFA_is_Predicted(p_new_state) = 0;
     if (AIM_has_Completed_Start_Rule(single_item_p)) {
 	p_new_state->t_has_completed_start_rule = 1;
     } else {
@@ -4489,7 +4505,7 @@ if (queued_AHFA_state)
   }
 // If we added the new state, finish up its data.
 p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFAD);
-p_new_state->t_is_predict=0;
+LV_AHFA_is_Predicted(p_new_state) = 0;
 p_new_state->t_has_completed_start_rule = 0;
 LV_Leo_LHS_ID_of_AHFA(p_new_state) =-1;
 p_new_state->t_to_ahfa_ary = to_ahfa_array_new(g);
@@ -4855,7 +4871,7 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFAD);@/
     }
     // The new state was added -- finish up its data
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE((*states_p), AHFAD);
-    p_new_state->t_is_predict = 1;
+    LV_AHFA_is_Predicted(p_new_state) = 1;
     p_new_state->t_has_completed_start_rule = 0;
     LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_empty_transition = NULL;
@@ -8586,16 +8602,6 @@ when different source links of the same Earley item share
 a dotted rule.
 This happen frequently enough to be an issue even for practical
 grammars.
-
-@*0 CHAF Evaluation.
-{\it A note from the Perl comments:}
-For efficiency, steps in the CHAF evaluation
-work on a the-last-is-the-rest principle ---
-productions
-with a CHAF head always return reference to an array
-of values, of which the last value is (in turn)
-a reference to an array with the "rest" of the values.
-An empty array signals that there are no more.
 
 @** Evaluation.
 I am frankly not quite sure what the return value of this function should be.
