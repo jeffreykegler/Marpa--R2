@@ -52,6 +52,7 @@
 \def\Theorem/{{\bf Theorem}}
 \def\Proof/{{\bf Theorem}}
 \def\gsize{\v g\v}
+\def\wsize{\v w\v}
 
 @q Unreserve the C++ keywords @>
 @s asm normal
@@ -8736,10 +8737,14 @@ the input.
 per parse---%
 $O(s)$, where $s$ is the size of the end of parse Earley set.
 This makes it very hard to justify any precomputations to
-help the search, because if they only have to be done once per
-Earley set, that is a O(\v w \v \cdot s) overhead,
-where $\v w \v$ is the length of the input, and where
-$s$ is now the average size of an Earley set.
+help the search, because if they have to be done once per
+Earley set, that is a $O(\wsize \cdot s')$ overhead,
+where $\wsize$ is the length of the input, and where
+$s'$ is the average size of an Earley set.
+It is hard to believe that for practical grammars
+that $O(\wsize \cdot s') <= O(s)$, which
+is what it would take for any per-Earley set overhead
+to make sense.
 @<Find |start_eim|@> =
 {
     gint eim_ix;
