@@ -3557,6 +3557,7 @@ if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
 
 @*1 Production of AHFA Item.
 @d RULE_of_AIM(item) ((item)->t_production)
+@d RULEID_of_AIM(item) ID_of_RULE(RULE_of_AIM(item))
 @d LV_RULE_of_AIM(item) RULE_of_AIM(item)
 @d LHS_ID_of_AIM(item) (LHS_ID_of_PRD(RULE_of_AIM(item)))
 
@@ -3841,19 +3842,28 @@ struct s_AHFA_state_key {
 };
 struct s_AHFA_state {
     struct s_AHFA_state_key t_key;
-    AIM* t_items;
     struct s_AHFA_state* t_empty_transition;
     AHFA* t_to_ahfa_ary;
     SYMID* t_complete_symbols;
     @<Widely aligned AHFA state elements@>@;
     @<Int aligned AHFA state elements@>@;
-    guint t_item_count;
     guint t_complete_symbol_count;
     guint t_has_completed_start_rule:1;
     @<Bit aligned AHFA elements@>@;
 };
 typedef struct s_AHFA_state AHFAD;
 
+@*0. AHFA Item Container.
+@ @d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
+@ @d LV_AIM_Count_of_AHFA(ahfa) AIM_Count_of_AHFA(ahfa)
+@<Int aligned AHFA state elements@> =
+guint t_item_count;
+@ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
+@d LV_AIMs_of_AHFA(ahfa) AIMs_of_AHFA(ahfa)
+@<Widely aligned AHFA state elements@> =
+AIM* t_items;
+
+@*0. Is AHFA Predicted?.
 @ This boolean indicates whether the
 {\bf AHFA state} is predicted,
 as opposed to whether it contains any predicted 
@@ -5747,7 +5757,7 @@ the Earley set.
 @d Earleme_of_EIM(item) Earleme_of_ES(ES_of_EIM(item))
 @d AHFAID_of_EIM(item) (ID_of_AHFA(AHFA_of_EIM(item)))
 @d AHFA_of_EIM(item) ((item)->t_key.t_state)
-@d Origin_ID_of_EIM(item) (Earleme_of_ES(Origin_of_EIM(item)))
+@d Origin_Earleme_of_EIM(item) (Earleme_of_ES(Origin_of_EIM(item)))
 @d Origin_of_EIM(item) ((item)->t_key.t_origin)
 @<Private incomplete structures@> =
 struct s_earley_item;
@@ -5902,7 +5912,7 @@ static inline gint earley_item_cmp (gconstpointer ap,
     AHFAID_of_EIM (eim_a) -
     AHFAID_of_EIM (eim_b);
   if (subkey) return subkey;
-  return Origin_ID_of_EIM (eim_a) - Origin_ID_of_EIM (eim_b);
+  return Origin_Earleme_of_EIM (eim_a) - Origin_Earleme_of_EIM (eim_b);
 }
 
 @*0 Source of the Earley Item.
@@ -6157,7 +6167,7 @@ Marpa_Earleme marpa_earley_item_origin(struct marpa_r *r)
       R_ERROR("no trace eim");
       return failure_indicator;
   }
-  return Origin_ID_of_EIM(item);
+  return Origin_Earleme_of_EIM(item);
 }
 
 @** Earley Index (EIX) Code.
@@ -6275,7 +6285,7 @@ Marpa_Earleme marpa_leo_base_origin(struct marpa_r *r)
   }
   if (EIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
   base_earley_item = Base_EIM_of_LIM(LIM_of_PIM(postdot_item));
-  return Origin_ID_of_EIM(base_earley_item);
+  return Origin_Earleme_of_EIM(base_earley_item);
 }
 
 @ @<Private function prototypes@> =
@@ -8654,10 +8664,12 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     const GRAMMAR_Const g = G_of_R(r);
     ES end_of_parse_es;
     RULE completed_start_rule;
+    EIM start_eim = NULL;
+    r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
+    @<Find |start_eim|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
-     r_update_earley_sets(r);
     return 1; // For now, just return 1
 }
 
@@ -8705,6 +8717,52 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	  return failure_indicator;
 	}
       completed_start_rule = RULE_by_ID (g, rule_id);
+    }
+}
+
+@ Predicted AFHA states can be skipped since they
+contain no completions.
+Note that AFHA state 0 is not marked as a predicted AHFA state,
+even though it can contain a predicted AHFA item.
+@ A linear search of the AHFA items is used.
+As shown elsewhere in this document,
+discovered AHFA states for practical grammars tend to be
+very small---%
+less than two AHFA items.
+Size of the AHFA state is a function of the grammar, so
+any reasonable search is $O(1)$ in terms of the length of
+the input.
+@ The search for the start Earley item is done once
+per parse---%
+$O(s)$, where $s$ is the size of the end of parse Earley set.
+This makes it very hard to justify any precomputations to
+help the search, because if they only have to be done once per
+Earley set, that is a O(\v w \v \cdot s) overhead,
+where $\v w \v$ is the length of the input, and where
+$s$ is now the average size of an Earley set.
+@<Find |start_eim|@> =
+{
+    gint eim_ix;
+    EIM* const earley_items = EIMs_of_ES(end_of_parse_es);
+    const RULEID sought_rule_id = ID_of_RULE(completed_start_rule);
+    const gint earley_item_count = EIM_Count_of_ES(end_of_parse_es);
+    for (eim_ix = 0; eim_ix < earley_item_count; eim_ix++) {
+        const EIM earley_item = earley_items[eim_ix];
+	const AHFA ahfa_state = AHFA_of_EIM(earley_item);
+	if (Origin_Earleme_of_EIM(earley_item) > 0) continue; // Not a start EIM
+	if (!AHFA_is_Predicted(ahfa_state)) {
+	    gint aim_ix;
+	    AIM* const ahfa_items = AIMs_of_AHFA(ahfa_state);
+	    const gint ahfa_item_count = AIM_Count_of_AHFA(ahfa_state);
+	    for (aim_ix = 0; aim_ix < ahfa_item_count; aim_ix++) {
+		 const AIM ahfa_item = ahfa_items[aim_ix];
+	         if (RULEID_of_AIM(ahfa_item) == sought_rule_id) {
+		      start_eim = earley_item;
+		      break;
+		 }
+	    }
+	}
+	if (start_eim) break;
     }
 }
 
@@ -10130,7 +10188,7 @@ static inline gchar*
 eim_tag (gchar *buffer, EIM eim)
 {
   sprintf (buffer, "S%d@@%d-%d",
-	   AHFAID_of_EIM (eim), Origin_ID_of_EIM (eim), Earleme_of_EIM (eim));
+	   AHFAID_of_EIM (eim), Origin_Earleme_of_EIM (eim), Earleme_of_EIM (eim));
 	return buffer;
 }
 #endif
