@@ -18,6 +18,11 @@
 
 dummy: 
 
+xs_basic_test:
+	(cd xs; ./Build test)
+
+xst: xs_basic_test xs_html_test
+
 libs: pplib xslib
 
 pplib:

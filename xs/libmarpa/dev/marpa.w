@@ -5536,8 +5536,7 @@ able to handle.
 
 @** Earley Set (ES) Code.
 @<Public typedefs@> = typedef gint Marpa_Earley_Set_ID;
-@ @d EIM_Count_of_ES(set) ((set)->t_eim_count)
-@d Next_ES_of_ES(set) ((set)->t_next_earley_set)
+@ @d Next_ES_of_ES(set) ((set)->t_next_earley_set)
 @d LV_Next_ES_of_ES(set) Next_ES_of_ES(set)
 @d Postdot_SYM_Count_of_ES(set) ((set)->t_postdot_sym_count)
 @d First_PIM_of_ES_by_SYMID(set, symid) (first_pim_of_es_by_symid((set), (symid)))
@@ -5552,20 +5551,25 @@ struct s_earley_set_key {
     EARLEME t_earleme;
 };
 typedef struct s_earley_set_key ESK_Object;
-@
-@d EIMs_of_ES(set) ((set)->t_earley_items)
-@d EIM_Count_of_ES(set) ((set)->t_eim_count)
-@<Private structures@> =
+@ @<Private structures@> =
 struct s_earley_set {
     ESK_Object t_key;
     gint t_postdot_sym_count;
-    gint t_eim_count;
     @<Int aligned Earley set elements@>@;
-    EIM* t_earley_items;
     union u_postdot_item** t_postdot_ary;
     ES t_next_earley_set;
     @<Widely aligned Earley set elements@>@/
 };
+
+@*0 Earley Item Container.
+@d EIM_Count_of_ES(set) ((set)->t_eim_count)
+@d LV_EIM_Count_of_ES(set) EIM_Count_of_ES(set)
+@<Int aligned Earley set elements@> =
+gint t_eim_count;
+@ @d EIMs_of_ES(set) ((set)->t_earley_items)
+@d LV_EIMs_of_ES(set) EIMs_of_ES(set)
+@<Widely aligned Earley set elements@> =
+EIM* t_earley_items;
 
 @*0 Ordinal.
 The ordinal of the Earley set---
@@ -5597,9 +5601,9 @@ earley_set_new( RECCE r, EARLEME id)
   set->t_key = key;
   set->t_postdot_ary = NULL;
   set->t_postdot_sym_count = 0;
-  set->t_eim_count = 0;
+  LV_EIM_Count_of_ES(set) = 0;
   set->t_ordinal = r->t_next_earley_set_ordinal++;
-  set->t_earley_items = NULL;
+  LV_EIMs_of_ES(set) = NULL;
   LV_Next_ES_of_ES(set) = NULL;
   @<Initialize Earley set PSL data@>@/
   return set;
@@ -5611,8 +5615,8 @@ earley_set_new( RECCE r, EARLEME id)
   ES set;
   for (set = First_ES_of_R (r); set; set = Next_ES_of_ES (set))
     {
-      if (set->t_earley_items)
-	g_free (set->t_earley_items);
+      if (EIMs_of_ES(set))
+	g_free (EIMs_of_ES(set));
     }
 }
 
@@ -5783,7 +5787,7 @@ static inline EIM earley_item_create(const RECCE r,
   EIM new_item;
   EIM* top_of_work_stack;
   const ES set = key.t_set;
-  const guint count = ++set->t_eim_count;
+  const guint count = ++LV_EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
   new_item = obstack_alloc (&r->t_obs, sizeof (*new_item));
   new_item->t_key = key;
@@ -7919,12 +7923,12 @@ static inline void earley_set_update_items(RECCE r, ES set) {
     EIM* finished_earley_items;
     gint working_earley_item_count;
     gint i;
-    if (!set->t_earley_items) {
-        set->t_earley_items = g_new(EIM, set->t_eim_count);
+    if (!EIMs_of_ES(set)) {
+        EIMs_of_ES(set) = g_new(EIM, EIM_Count_of_ES(set));
     } else {
-        set->t_earley_items = g_renew(EIM, set->t_earley_items, set->t_eim_count);
+        EIMs_of_ES(set) = g_renew(EIM, EIMs_of_ES(set), EIM_Count_of_ES(set));
     }
-    finished_earley_items = set->t_earley_items;
+    finished_earley_items = EIMs_of_ES(set);
     working_earley_items = Work_EIMs_of_R(r);
     working_earley_item_count = Work_EIM_Count_of_R(r);
     for (i = 0; i < working_earley_item_count; i++) {
