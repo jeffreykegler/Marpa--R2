@@ -6707,7 +6707,7 @@ token_link_add (struct marpa_r *r,
 		gpointer value)
 {
   SRCL new_link;
-  unsigned int previous_source_type = Source_Type_of_EIM (item);
+  guint previous_source_type = Source_Type_of_EIM (item);
   if (previous_source_type == NO_SOURCE)
     {
       Source_Type_of_EIM (item) = SOURCE_IS_TOKEN;
@@ -6796,7 +6796,7 @@ completion_link_add (struct marpa_r *r,
 		EIM cause)
 {
   SRCL new_link;
-  unsigned int previous_source_type = Source_Type_of_EIM (item);
+  guint previous_source_type = Source_Type_of_EIM (item);
   if (previous_source_type == NO_SOURCE)
     {
       Source_Type_of_EIM (item) = SOURCE_IS_COMPLETION;
@@ -6825,7 +6825,7 @@ leo_link_add (struct marpa_r *r,
 		EIM cause)
 {
   SRCL new_link;
-  unsigned int previous_source_type = Source_Type_of_EIM (item);
+  guint previous_source_type = Source_Type_of_EIM (item);
   LV_EIM_is_Leo_Expanded(item) = 0;
   if (previous_source_type == NO_SOURCE)
     {
@@ -6875,7 +6875,7 @@ Earley item first becomes ambiguous.
 @<Function definitions@> = static 
 void earley_item_ambiguate (struct marpa_r * r, EIM item)
 {
-  unsigned int previous_source_type = Source_Type_of_EIM (item);
+  guint previous_source_type = Source_Type_of_EIM (item);
   Source_Type_of_EIM (item) = SOURCE_IS_AMBIGUOUS;
   switch (previous_source_type)
     {
@@ -8689,6 +8689,7 @@ struct s_per_es_data {
 };
 struct s_per_es_data* per_es_data = NULL;
 struct obstack bocage_setup_obs;
+guint total_earley_items_in_parse;
 
 @ @<Return if function guards fail;
 set |end_of_parse_es| and |completed_start_rule|@> =
@@ -8737,11 +8738,12 @@ set |end_of_parse_es| and |completed_start_rule|@> =
     }
 }
 
-@ @<Allocate bocage setup working data@>=
+@
+@<Allocate bocage setup working data@>=
 {
   guint ix;
-  guint total_earley_items_in_parse = 0;
   guint earley_set_count = ES_Count_of_R (r);
+  total_earley_items_in_parse = 0;
   per_es_data =
     obstack_alloc (&bocage_setup_obs,
 		   sizeof (struct s_per_es_data) * earley_set_count);
@@ -8755,8 +8757,36 @@ set |end_of_parse_es| and |completed_start_rule|@> =
     }
 }
 
-@ @<Traverse Earley sets to create bocage@>= {
-;
+@ @<Traverse Earley sets to create bocage@>=
+{
+  const EIM *top_of_stack;
+  FSTACK_DECLARE (stack, EIM);
+  FSTACK_INIT (stack, EIM, total_earley_items_in_parse);
+  *(FSTACK_PUSH (stack)) = start_eim;
+  bv_bit_set (per_es -
+	      data[ES_Ord_of_EIM (start_eim)].was_earley_item_stacked,
+	      ID_of_EIM (start_eim));
+  while ((top_of_stack = FSTACK_POP (stack)))
+    {
+      const EIM_Const earley_item = *top_of_stack;
+      guint source_type = Source_Type_of_EIM (item);
+      switch (source_type) {
+	case NO_SOURCE: break;
+	case SOURCE_IS_TOKEN:
+	case SOURCE_IS_COMPLETION:
+	case SOURCE_IS_LEO:
+	case SOURCE_IS_AMBIGUOUS:
+	}
+#if 0
+      if (!bv_bit_test_and_set
+	  (per_es -
+	   data[ES_Ord_of_EIM (earley_item)].was_earley_item_stacked,
+	   ID_of_EIM (earley_item));
+	  {
+	  }
+      }
+#endif
+  FSTACK_DESTROY (stack);
 }
 
 @ @<Deallocate bocage setup working data@>= {
