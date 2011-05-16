@@ -5555,6 +5555,7 @@ able to handle.
 @<Private incomplete structures@> =
 struct s_earley_set;
 typedef struct s_earley_set *ES;
+typedef const struct s_earley_set *ES_Const;
 struct s_earley_set_key;
 typedef struct s_earley_set_key *ESK;
 @ @<Private structures@> =
@@ -5588,15 +5589,16 @@ its number in sequence.
 It is different from the earleme, because there may be
 gaps in the earleme sequence.
 There are never gaps in the sequence of ordinals.
+@d ES_Count_of_R(r) ((r)->t_earley_set_count)
 @d Ord_of_ES(set) ((set)->t_ordinal)
 @<Int aligned Earley set elements@> =
     gint t_ordinal;
 @ @d ES_Ord_is_Valid(r, ordinal)
-    ((ordinal) >= 0 && (ordinal) < (r)->t_next_earley_set_ordinal)
+    ((ordinal) >= 0 && (ordinal) < ES_Count_of_R(r))
 @<Int aligned recognizer elements@> =
-gint t_next_earley_set_ordinal;
+gint t_earley_set_count;
 @ @<Initialize recognizer elements@> =
-r->t_next_earley_set_ordinal = 0;
+r->t_earley_set_count = 0;
 
 @*0 Constructor.
 @<Private function prototypes@> =
@@ -5613,7 +5615,7 @@ earley_set_new( RECCE r, EARLEME id)
   set->t_postdot_ary = NULL;
   set->t_postdot_sym_count = 0;
   LV_EIM_Count_of_ES(set) = 0;
-  set->t_ordinal = r->t_next_earley_set_ordinal++;
+  set->t_ordinal = r->t_earley_set_count++;
   LV_EIMs_of_ES(set) = NULL;
   LV_Next_ES_of_ES(set) = NULL;
   @<Initialize Earley set PSL data@>@/
@@ -7961,7 +7963,7 @@ static inline void r_update_earley_sets(RECCE r) {
     if (!DSTACK_IS_INITIALIZED(r->t_earley_set_stack)) {
 	first_unstacked_earley_set = First_ES_of_R(r);
 	DSTACK_INIT (r->t_earley_set_stack, ES,
-		 MAX (1024, r->t_next_earley_set_ordinal));
+		 MAX (1024, ES_Count_of_R(r)));
     } else {
 	 ES* top_of_stack = DSTACK_TOP(r->t_earley_set_stack, ES);
 	 first_unstacked_earley_set = Next_ES_of_ES(*top_of_stack);
@@ -8661,18 +8663,32 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
 @ @<Function definitions@> =
 gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
     const gint no_parse = -1;
-    @<Return |-2| on failure@>@;
-    const GRAMMAR_Const g = G_of_R(r);
-    ES end_of_parse_es;
-    RULE completed_start_rule;
-    EIM start_eim = NULL;
+    @<Bocage setup locals@>@;
     r_update_earley_sets(r);
+    obstack_init(&bocage_setup_obs);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
     @<Find |start_eim|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
+    obstack_init(&bocage_setup_obs);
+    @<Allocate bocage setup working data@>@;
+    @<Traverse Earley sets to create bocage@>@;
+    @<Deallocate bocage setup working data@>@;
+    obstack_free(&bocage_setup_obs, NULL);
     return 1; // For now, just return 1
 }
+
+@ @<Bocage setup locals@> =
+@<Return |-2| on failure@>@;
+const GRAMMAR_Const g = G_of_R(r);
+ES end_of_parse_es;
+RULE completed_start_rule;
+EIM start_eim = NULL;
+struct s_per_es_data {
+     Bit_Vector was_earley_item_stacked;
+};
+struct s_per_es_data* per_es_data = NULL;
+struct obstack bocage_setup_obs;
 
 @ @<Return if function guards fail;
 set |end_of_parse_es| and |completed_start_rule|@> =
@@ -8719,6 +8735,32 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	}
       completed_start_rule = RULE_by_ID (g, rule_id);
     }
+}
+
+@ @<Allocate bocage setup working data@>=
+{
+  guint ix;
+  guint total_earley_items_in_parse = 0;
+  guint earley_set_count = ES_Count_of_R (r);
+  per_es_data =
+    obstack_alloc (&bocage_setup_obs,
+		   sizeof (struct s_per_es_data) * earley_set_count);
+  for (ix = 0; ix < earley_set_count; ix++)
+    {
+      const ES_Const earley_set = ES_of_R_by_Ord (r, ix);
+      const guint item_count = EIM_Count_of_ES (earley_set);
+      total_earley_items_in_parse += item_count;
+      per_es_data[ix].was_earley_item_stacked =
+	bv_obs_create (&bocage_setup_obs, item_count);
+    }
+}
+
+@ @<Traverse Earley sets to create bocage@>= {
+;
+}
+
+@ @<Deallocate bocage setup working data@>= {
+;
 }
 
 @ Predicted AFHA states can be skipped since they
@@ -8828,7 +8870,9 @@ static inline guint bv_bits_to_unused_mask(guint bits)
 static inline guint bv_bits_to_unused_mask(guint bits);
 
 @*0 Create a Boolean Vector.
-Always start with an all-zero vector.
+@<Private function prototypes@> =
+static inline Bit_Vector bv_create(guint bits);
+@ Always start with an all-zero vector.
 Note this code is a bit tricky ---
 the pointer returned is to the data.
 This is offset from the |g_malloc|'d space,
@@ -8844,8 +8888,32 @@ static inline Bit_Vector bv_create(guint bits)
     *addr++ = bv_bits_to_unused_mask(bits);
     return addr;
 }
-@ @<Private function prototypes@> =
-static inline Bit_Vector bv_create(guint bits);
+
+@*0 Create a Boolean Vector on an Obstack.
+@<Private function prototypes@> =
+static inline Bit_Vector bv_obs_create(struct obstack *obs, guint bits);
+@ Always start with an all-zero vector.
+Note this code is a bit tricky ---
+the pointer returned is to the data.
+This is offset from the |g_malloc|'d space,
+by |bv_hiddenwords|.
+@<Function definitions@> =
+static inline Bit_Vector
+bv_obs_create (struct obstack *obs, guint bits)
+{
+  guint size = bv_bits_to_size (bits);
+  guint bytes = (size + bv_hiddenwords) << sizeof (guint);
+  guint *addr = (Bit_Vector) obstack_alloc (obs, (size_t) bytes);
+  *addr++ = bits;
+  *addr++ = size;
+  *addr++ = bv_bits_to_unused_mask (bits);
+  if (size > 0) {
+      Bit_Vector bv = addr;
+      while (size--) *bv++ = 0u;
+  }
+  return addr;
+}
+
 
 @*0 Shadow a Boolean Vector.
 Create another vector the same size as the original, but with
