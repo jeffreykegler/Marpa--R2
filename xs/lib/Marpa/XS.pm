@@ -19,17 +19,13 @@ use 5.010;
 use strict;
 use warnings;
 
-use vars qw($VERSION $STRING_VERSION);
+use vars qw($VERSION $STRING_VERSION @ISA);
 $VERSION = '0.005_009';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
 use Carp;
 use English qw( -no_match_vars );
-
-use vars qw(@ISA);
-@ISA = qw( DynaLoader );
-sub dl_load_flags { $^O eq 'darwin' ? 0x00 : 0x01 }
 
 use Marpa::XS::Version;
 
@@ -56,13 +52,17 @@ $Marpa::USING_XS = 1;
 $Marpa::USING_PP = 0;
 
 eval {
+    require XSLoader;
+    XSLoader::load('Marpa::XS', $Marpa::XS::STRING_VERSION);
+    1;
+} or eval {
     my @libs = split q{ }, ExtUtils::PkgConfig->libs("glib-2.0");
     @DynaLoader::dl_resolve_using = DynaLoader::dl_findfile(@libs);
+    require DynaLoader;
+    push @ISA, 'DynaLoader';
     bootstrap Marpa::XS $Marpa::XS::STRING_VERSION;
     1;
-} or do {
-    Carp::croak("Could not load XS version of Marpa: $EVAL_ERROR");
-};
+} or Carp::croak("Could not load XS version of Marpa: $EVAL_ERROR");
 
 my $version_found = join q{.}, Marpa::XS::version();
 my $version_wanted = '0.1.0';
