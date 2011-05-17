@@ -8786,57 +8786,61 @@ set |end_of_parse_es| and |completed_start_rule|@> =
       push_candidate = Predecessor_of_EIM (earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Token_Link_of_EIM (item);
+      source_link = First_Token_Link_of_EIM (earley_item);
       if (source_link)
 	{
 	  push_candidate = Predecessor_of_SRCL (source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
     }
-  while (push_candidate || source_link)
+  for (;;)
     {
       if (push_candidate) {
 	  @<Put |push_candidate| on |stack| if not in bit vector@>@;
 	}
-	if (source_link) {
-	  push_candidate = Predecessor_of_SRCL (source_link);
-	  source_link = Next_SRCL_of_SRCL (source_link);
-	}
+	if (!source_link) break;
+	push_candidate = Predecessor_of_SRCL (source_link);
+	source_link = Next_SRCL_of_SRCL (source_link);
     }
 }
 
 @ @<Push child Earley items from completion sources@> =
 {
   SRCL source_link = NULL;
-  EIM push_candidate[2] = NULL;
-  EIM cause = NULL;
+  EIM push_candidates[2];
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
-      push_candidate[0] = Predecessor_of_EIM (earley_item);
-      push_candidate[1] = Cause_of_EIM (earley_item);
+      push_candidates[0] = Predecessor_of_EIM (earley_item);
+      push_candidates[1] = Cause_of_EIM (earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Completion_Link_of_EIM (item);
+      source_link = First_Completion_Link_of_EIM (earley_item);
       if (source_link)
 	{
-	  push_candidate[0] = Predecessor_of_SRCL (source_link);
-	  push_candidate[1] = Cause_of_SRCL (source_link);
+	  push_candidates[0] = Predecessor_of_SRCL (source_link);
+	  push_candidates[1] = Cause_of_SRCL (source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
+	} else {
+	  push_candidates[0] = push_candidates[1] = NULL;
 	}
+	break;
+    default:
+	  push_candidates[0] = push_candidates[1] = NULL;
+	  break;
     }
-  while (push_candidate[1])
+  while (push_candidates[1])
     {
-      int ix ;
-      for (ix = 0; ix < dimof(push_candidate); ix++) {
-	  if (!push_candidate[ix]) continue;
+      EIM push_candidate = push_candidates[0];
+      if (push_candidate) {
 	  @<Put |push_candidate| on |stack| if not in bit vector@>@;
-	}
-	if (source_link) {
-	  push_candidate[0] = Predecessor_of_SRCL (source_link);
-	  push_candidate[1] = Cause_of_SRCL (source_link);
-	  source_link = Next_SRCL_of_SRCL (source_link);
-	}
+      }
+      push_candidate = push_candidates[1];
+      @<Put |push_candidate| on |stack| if not in bit vector@>@;
+      if (!source_link) break;
+      push_candidates[0] = Predecessor_of_SRCL (source_link);
+      push_candidates[1] = Cause_of_SRCL (source_link);
+      source_link = Next_SRCL_of_SRCL (source_link);
     }
 }
 
@@ -8852,7 +8856,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
       push_candidate = Cause_of_EIM (earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_Link_of_EIM (item);
+      source_link = First_Leo_SRCL_of_EIM (earley_item);
       if (source_link)
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
@@ -8869,18 +8873,17 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	    push_candidate = Base_EIM_of_LIM(leo_predecessor);
 	    leo_predecessor = Predecessor_LIM_of_LIM(leo_predecessor);
         }
-	if (source_link) {
+	if (!source_link) break;
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
 	  push_candidate = Cause_of_SRCL (source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
-	}
     }
 }
 
 @ @<Put |push_candidate| on |stack| if not in bit vector@>= {
 if (!bv_bit_test_and_set
     (per_es_data[Ord_of_ES (ES_of_EIM (push_candidate))].
-     was_earley_item_stacked, ID_of_EIM (push_candidate)))
+     was_earley_item_stacked, (guint)Ord_of_EIM (push_candidate)))
   {
     *(FSTACK_PUSH (stack)) = push_candidate;
   }
@@ -9150,6 +9153,22 @@ static inline gboolean bv_bit_test(Bit_Vector vector, guint bit) {
 }
 @ @<Private function prototypes@> =
 static inline gboolean bv_bit_test(Bit_Vector vector, guint bit);
+
+@*0 Test and Set a Boolean Vector Bit.
+Ensure that a bit is set and returning its value to the call.
+@ @<Private function prototypes@> =
+static inline gboolean bv_bit_test_and_set(Bit_Vector vector, guint bit);
+@ @<Function definitions@> =
+static inline gboolean
+bv_bit_test_and_set (Bit_Vector vector, guint bit)
+{
+  Bit_Vector addr = vector + (bit / bv_wordbits);
+  guint mask = bv_lsb << (bit % bv_wordbits);
+  if ((*addr & mask) != 0u)
+    return 1;
+  *addr |= mask;
+  return 0;
+}
 
 @*0 Set a Boolean Vector to all Ones.
 @*0 Test a Boolean Vector for all Zeroes.
