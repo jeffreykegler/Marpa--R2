@@ -5765,6 +5765,7 @@ the Earley set.
 @<Private incomplete structures@> =
 struct s_earley_item;
 typedef struct s_earley_item* EIM;
+typedef const struct s_earley_item* EIM_Const;
 struct s_earley_item_key;
 typedef struct s_earley_item_key* EIK;
 
@@ -6664,25 +6665,25 @@ union u_source_container {
 };
 
 @
-@d SRCD_of_SRCL(link) ((link)->t_source)
-@d SRCD_of_EIM(eim) ((eim)->t_container.t_unique)
-@d Predecessor_of_SRCD(srcd) ((srcd).t_predecessor)
-@d Predecessor_of_SRC(source) Predecessor_of_SRCD(*(source))
-@d Predecessor_of_EIM(item) Predecessor_of_SRCD(SRCD_of_EIM(item))
-@d Predecessor_of_SRCL(link) Predecessor_of_SRCD(SRCD_of_SRCL(link))
+@d Source_of_SRCL(link) ((link)->t_source)
+@d Source_of_EIM(eim) ((eim)->t_container.t_unique)
+@d Predecessor_of_Source(srcd) ((srcd).t_predecessor)
+@d Predecessor_of_SRC(source) Predecessor_of_Source(*(source))
+@d Predecessor_of_EIM(item) Predecessor_of_Source(Source_of_EIM(item))
+@d Predecessor_of_SRCL(link) Predecessor_of_Source(Source_of_SRCL(link))
 @d LV_Predecessor_of_SRCL(link) Predecessor_of_SRCL(link)
-@d Cause_of_SRCD(srcd) ((srcd).t_cause)
-@d Cause_of_SRC(source) Cause_of_SRCD(*(source))
-@d Cause_of_EIM(item) Cause_of_SRCD(SRCD_of_EIM(item))
-@d Cause_of_SRCL(link) Cause_of_SRCD(SRCD_of_SRCL(link))
-@d Token_Value_of_SRCD(srcd) ((srcd).t_cause)
-@d Token_Value_of_SRC(source) Token_Value_of_SRCD(*(source))
-@d Token_Value_of_EIM(item) Token_Value_of_SRCD(SRCD_of_EIM(item))
-@d Token_Value_of_SRCL(link) Token_Value_of_SRCD(SRCD_of_SRCL(link))
+@d Cause_of_Source(srcd) ((srcd).t_cause)
+@d Cause_of_SRC(source) Cause_of_Source(*(source))
+@d Cause_of_EIM(item) Cause_of_Source(Source_of_EIM(item))
+@d Cause_of_SRCL(link) Cause_of_Source(Source_of_SRCL(link))
+@d Token_Value_of_Source(srcd) ((srcd).t_cause)
+@d Token_Value_of_SRC(source) Token_Value_of_Source(*(source))
+@d Token_Value_of_EIM(item) Token_Value_of_Source(Source_of_EIM(item))
+@d Token_Value_of_SRCL(link) Token_Value_of_Source(Source_of_SRCL(link))
 @d LV_Token_Value_of_SRCL(link) Token_Value_of_SRCL(link)
-@d Symbol_ID_of_SRCD(srcd) ((srcd).t_symbol_id)
-@d Symbol_ID_of_SRC(source) Symbol_ID_of_SRCD(*(source))
-@d Symbol_ID_of_SRCL(link) Symbol_ID_of_SRCD(SRCD_of_SRCL(link))
+@d Symbol_ID_of_Source(srcd) ((srcd).t_symbol_id)
+@d Symbol_ID_of_SRC(source) Symbol_ID_of_Source(*(source))
+@d Symbol_ID_of_SRCL(link) Symbol_ID_of_Source(Source_of_SRCL(link))
 @d LV_Symbol_ID_of_SRCL(link) Symbol_ID_of_SRCL(link)
 
 @ @d Cause_AHFA_State_ID_of_SRC(source)
@@ -8684,10 +8685,10 @@ const GRAMMAR_Const g = G_of_R(r);
 ES end_of_parse_es;
 RULE completed_start_rule;
 EIM start_eim = NULL;
-struct s_per_es_data {
+struct s_bocage_setup_per_es {
      Bit_Vector was_earley_item_stacked;
 };
-struct s_per_es_data* per_es_data = NULL;
+struct s_bocage_setup_per_es* per_es_data = NULL;
 struct obstack bocage_setup_obs;
 guint total_earley_items_in_parse;
 
@@ -8746,7 +8747,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
   total_earley_items_in_parse = 0;
   per_es_data =
     obstack_alloc (&bocage_setup_obs,
-		   sizeof (struct s_per_es_data) * earley_set_count);
+		   sizeof (struct s_bocage_setup_per_es) * earley_set_count);
   for (ix = 0; ix < earley_set_count; ix++)
     {
       const ES_Const earley_set = ES_of_R_by_Ord (r, ix);
@@ -8759,34 +8760,130 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 
 @ @<Traverse Earley sets to create bocage@>=
 {
-  const EIM *top_of_stack;
-  FSTACK_DECLARE (stack, EIM);
-  FSTACK_INIT (stack, EIM, total_earley_items_in_parse);
-  *(FSTACK_PUSH (stack)) = start_eim;
-  bv_bit_set (per_es -
-	      data[ES_Ord_of_EIM (start_eim)].was_earley_item_stacked,
-	      ID_of_EIM (start_eim));
-  while ((top_of_stack = FSTACK_POP (stack)))
+    const EIM *top_of_stack;
+    FSTACK_DECLARE (stack, EIM);
+    FSTACK_INIT (stack, EIM, total_earley_items_in_parse);
+    *(FSTACK_PUSH (stack)) = start_eim;
+    bv_bit_set (per_es_data[Ord_of_ES (ES_of_EIM (start_eim))].
+	    was_earley_item_stacked, (guint)Ord_of_EIM (start_eim));
+    while ((top_of_stack = FSTACK_POP (stack)))
     {
-      const EIM_Const earley_item = *top_of_stack;
-      guint source_type = Source_Type_of_EIM (item);
-      switch (source_type) {
-	case NO_SOURCE: break;
-	case SOURCE_IS_TOKEN:
-	case SOURCE_IS_COMPLETION:
-	case SOURCE_IS_LEO:
-	case SOURCE_IS_AMBIGUOUS:
+          const EIM_Const earley_item = *top_of_stack;
+        guint source_type = Source_Type_of_EIM (earley_item);
+        @<Push child Earley items from token sources@>@;
+        @<Push child Earley items from completion sources@>@;
+        @<Push child Earley items from Leo sources@>@;
+    }
+}
+
+@ @<Push child Earley items from token sources@> =
+{
+  SRCL source_link = NULL;
+  EIM push_candidate = NULL;
+  switch (source_type)
+    {
+    case SOURCE_IS_TOKEN:
+      push_candidate = Predecessor_of_EIM (earley_item);
+      break;
+    case SOURCE_IS_AMBIGUOUS:
+      source_link = First_Token_Link_of_EIM (item);
+      if (source_link)
+	{
+	  push_candidate = Predecessor_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
-#if 0
-      if (!bv_bit_test_and_set
-	  (per_es -
-	   data[ES_Ord_of_EIM (earley_item)].was_earley_item_stacked,
-	   ID_of_EIM (earley_item));
-	  {
-	  }
-      }
-#endif
-  FSTACK_DESTROY (stack);
+    }
+  while (push_candidate || source_link)
+    {
+      if (push_candidate) {
+	  @<Put |push_candidate| on |stack| if not in bit vector@>@;
+	}
+	if (source_link) {
+	  push_candidate = Predecessor_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+    }
+}
+
+@ @<Push child Earley items from completion sources@> =
+{
+  SRCL source_link = NULL;
+  EIM push_candidate[2] = NULL;
+  EIM cause = NULL;
+  switch (source_type)
+    {
+    case SOURCE_IS_COMPLETION:
+      push_candidate[0] = Predecessor_of_EIM (earley_item);
+      push_candidate[1] = Cause_of_EIM (earley_item);
+      break;
+    case SOURCE_IS_AMBIGUOUS:
+      source_link = First_Completion_Link_of_EIM (item);
+      if (source_link)
+	{
+	  push_candidate[0] = Predecessor_of_SRCL (source_link);
+	  push_candidate[1] = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+    }
+  while (push_candidate[1])
+    {
+      int ix ;
+      for (ix = 0; ix < dimof(push_candidate); ix++) {
+	  if (!push_candidate[ix]) continue;
+	  @<Put |push_candidate| on |stack| if not in bit vector@>@;
+	}
+	if (source_link) {
+	  push_candidate[0] = Predecessor_of_SRCL (source_link);
+	  push_candidate[1] = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+    }
+}
+
+@ @<Push child Earley items from Leo sources@> =
+{
+  SRCL source_link = NULL;
+  EIM push_candidate = NULL;
+  LIM leo_predecessor = NULL;
+  switch (source_type)
+    {
+    case SOURCE_IS_LEO:
+      leo_predecessor = Predecessor_of_EIM (earley_item);
+      push_candidate = Cause_of_EIM (earley_item);
+      break;
+    case SOURCE_IS_AMBIGUOUS:
+      source_link = First_Leo_Link_of_EIM (item);
+      if (source_link)
+	{
+	  leo_predecessor = Predecessor_of_SRCL (source_link);
+	  push_candidate = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+      break;
+    }
+  while (push_candidate)
+    {
+	while (1) {
+	    @<Put |push_candidate| on |stack| if not in bit vector@>@;
+	    if (!leo_predecessor) break;
+	    push_candidate = Base_EIM_of_LIM(leo_predecessor);
+	    leo_predecessor = Predecessor_LIM_of_LIM(leo_predecessor);
+        }
+	if (source_link) {
+	  leo_predecessor = Predecessor_of_SRCL (source_link);
+	  push_candidate = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+    }
+}
+
+@ @<Put |push_candidate| on |stack| if not in bit vector@>= {
+if (!bv_bit_test_and_set
+    (per_es_data[Ord_of_ES (ES_of_EIM (push_candidate))].
+     was_earley_item_stacked, ID_of_EIM (push_candidate)))
+  {
+    *(FSTACK_PUSH (stack)) = push_candidate;
+  }
 }
 
 @ @<Deallocate bocage setup working data@>= {
