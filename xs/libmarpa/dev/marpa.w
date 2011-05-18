@@ -4928,9 +4928,7 @@ struct s_transition {
 static inline AHFA to_ahfa_of_transition_get(TRANS transition);
 @ @<Function definitions@> =
 static inline AHFA to_ahfa_of_transition_get(TRANS transition) {
-    MARPA_DEBUG3 ("%s:%d", __FILE__, __LINE__);
      if (!transition) return NULL;
-    MARPA_DEBUG3 ("Getting transition %p to_ahfa=%p", transition, transition->t_to_ahfa);
      return transition->t_to_ahfa;
 }
 @ @<Private function prototypes@> =
@@ -4977,7 +4975,6 @@ void transition_add(GRAMMAR g, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[symid];
-    MARPA_DEBUG4 ("Adding transition %p,%d -> %p", from_ahfa, symid, to_ahfa);
     if (!transition) {
         transitions[symid] = transition_new(g, to_ahfa, -1);
 	return;
