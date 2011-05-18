@@ -4866,21 +4866,26 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFAD);@/
 }
 
 @** Transition (TRANS) Code.
-Several kinds data are functions of AHFA state and symbol.
-Most important of these are the AHFA state transitions,
-but the per-AHFA symbol completion data is another example,
-This operation is at the heart of the parse engine,
+This code deals with data which is accessed
+as a function of AHFA state and symbol.
+The most important data
+of this type are the AHFA state transitions,
+which is why the per-AHFA-per-symbol data is called
+"transition" data.
+But per-AHFA symbol completion data is also
+a function of AHFA state and symbol.
+@ This operation is at the heart of the parse engine,
 and worth a careful look.
-Time complexity is fine --- $O(1)$ in the length of the input,
-but nonetheless this implementation might be improved.
-And speed is probably optimal.
+Speed is probably optimal.
+Time complexity is fine --- $O(1)$ in the length of the input.
 @ But this solution is is very space-intensive---%
-perhaps |O(\v g\v^2)|.
+perhaps $O(\v g\v^2)$.
 Ordinarily, for code which is executed this heavily,
-I would not avoid trading speed for space.
-These arrays are very sparse,
-and some alternatives
-save a lot of space at a small cost in time.
+I would worry about a speed versus space tradeoff of this kind.
+But these arrays are extremely sparse,
+Many rows of the array have only one or two entries.
+There are alternatives
+which save a lot of space in return for a small overhead in time.
 @ A very similar problem has been the subject of considerable
 study---%
 LALR and LR(0) state tables.
@@ -4888,12 +4893,12 @@ These also index by state and symbol, and their usage is very
 similar to that expected for the AHFA lookups.
 @ Bison's solution is probably worth study.
 This is a kind of perfect hashing, and quite complex.
-I do wonder if it's not over-engineered.
-The arrays are very sparse
-Many rows of the array have only one or two entries.
+I do wonder if it would not be over-engineering
+in the libmarpa context.
 In practical applications, a binary search, or even
-a linear search may have average performance better than
-more complex solutions.
+a linear search,
+may have be fastest implementation for
+the average case.
 @ The trend is for memory to get cheap,
 favoring the sparse 2-dimensional array
 which is the present solution.
@@ -4901,7 +4906,6 @@ But I expect the trend will also be for grammars to get larger.
 This would be a good issue to run some benchmarks on,
 once I stabilize the C code implemention.
 
-and is kept in the same structure.
 @d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
     (*(TRANSs_of_AHFA(from_ahfa)+(id)))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
