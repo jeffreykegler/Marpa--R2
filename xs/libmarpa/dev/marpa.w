@@ -171,6 +171,167 @@ The more trouble I had understanding an issue,
 and writing the code,
 the more thorough the documentation.
 
+@** Architecture.
+@*0 Layers.
+|libmarpa|, the library described in this document, is intended as the bottom of potentially
+four layers.
+The layers are, from low to high
+\li |libmarpa|
+\li The glue layer
+\li The wrapper layer
+\li The application
+
+This glue layer will be in C and will call the |libmarpa| routines
+in a way that makes them compatible with another language.
+I expect this will usually be a 4GL (4th generation language),
+such as Perl.
+One example of a glue description lanuage is SWIG.
+Another is Perl XS, and currently that is
+the only glue layer implemented for |libmarpa|.
+
+|libmarpa| itself is not enormously user-
+or application-friendly.
+For example, in |libmarpa|, symbols do not have
+names, just symbol structures and symbol ID's.
+These are all that is needed for the data crunching,
+but an application writer will usually want a friendlier
+interface, including names for the symbols and
+many other conveniences.
+For this reason, applications will typically
+use |libmarpa| through a {\bf wrapper package}.
+Currently the only such package is in Perl.
+
+The top layer is the application.
+My expectation is that this will also be in a 4GL.
+Currently, |libmarpa|'s only application are
+in Perl.
+
+Not all these layers need be present.
+For example, it is conceivable that someone might
+write their application in C, in which case they could
+manage without minimal or no
+glue layers or package layers.
+
+Iterfaces between layers are named after the lower
+of the two layers.  For example the interface between
+|libmarpa| and the glue layer is the |libmarpa| interface.
+
+@*0 Representing Objects.
+Representation of objects is most commonly in one
+of three forms: cookies, ID's or pointers to C structures.
+
+@*1 Object ID's.
+Object ID's are integers.  They are always issued in sequence.
+They are guaranteed unique.
+(Note that in C,
+pointers to identical objects do {\bf not} necessarily
+compare equal.)
+If desired, they can be checked easily without risking a memory
+violation.
+
+ID's are the only object representation
+that can be used in any layer or any interface,
+and they are the preferred representation
+in the application layer
+and the package interface.
+
+Wraparound issues for object ID's are ignored.
+By the time any object ID wraps, memory will have long
+since overflowed.
+
+@*1 Object Cookies.
+Ideally, outside of the |libmarpa| layer,
+all objects would be represented by their ID.
+However, an exception is made recognizers and grammars,
+even though they do have ID's.
+This is because looking up ID's for these global objects
+is not thread-safe.
+
+@ To make ID lookup for global objects could be made thread-safe,
+but this involves locking data.
+It is possible to do this portably, using Glib, but it seems simply
+and safer to expect the calling environment to respect the opaque
+nature of the grammar and recognizer cookies.
+
+"Respecting the opaque nature of a cookie",
+means not
+accessing its internal contents -- using the
+cookie only as a cookie.
+The overall idea is that,
+if an programmer 
+writes trick-free higher-level code
+using cookies,
+any resulting errors occur
+in the package or application layer.
+
+The contents of Object Cookies are dependent on
+the choice of higher-level language (HLL).
+For this reason,
+The cookies are never visible in the |libmarpa| layer.
+
+In Perl's cookies, a major consideration is ensuring
+that, during the lifetime of a cookie,
+all the objects implied by the cookie also exist.
+This means that so long as
+a recognizer object cookie exists,
+the underlying grammar cannot be destroyed.
+
+@*1 Object pointers.
+The most efficient representation of objects
+are pointers to structures.
+These are the main representation of objects
+in the |libmarpa| layer.
+These must not be visible in the package and application
+layers.
+
+With regard to the visibility of object pointers in the
+glue layer, the situation is more complicated.
+At this writing, I expect to make pointers
+to most structures
+completely invisible except inside |libmarpa|.
+The external accessors do allow the glue layer
+some access
+to |libmarpa|'s internal structures.
+But in the case of the |_peek|
+external accessors,
+it is intuitive that the memory is owned
+by the |libmarpa| layer,
+and expected that any use of it will be quick.
+
+In the case of object pointers, their expected ordinary
+use is be kept around to refer to the object.
+But, for example, symbol object pointers must not
+be freed by the glue layer, but will become invalid
+when their associated grammar layer is destroyed.
+
+This behavior is not completely unintuitive to an
+experienced C programmer -- functions (like |ctime|)
+which return
+transient information in memory unowned by the caller
+have a long tradition in UNIX.
+But these are now deprecated.
+
+But tracking the lifetime of symbol object pointers 
+in the glue layer
+would be tricky, so as this writing the thought is to
+avoid the issue, for it and most other object pointers.
+The exceptions are grammar and recognizer objects.
+The base objects for these {\bf are} owned by
+the glue layer, so these do not present the same
+issues.
+The glue layer creates
+grammar and recognizer objects,
+it owns them during their lifetime,
+and it is up to the glue layer to destroy them.
+
+@*0 Inlining.
+Most of this code is expected to be freqently executed
+and inlining is used a lot.
+Enough so
+that it is useful to define a macro to let me know when inlining is not
+used in a private function.
+@d PRIVATE_NOT_INLINE static
+
 @** Coding conventions.
 @*0 Naming conventions.
 
@@ -358,235 +519,28 @@ object.
 \li |u_|: Prefix for a union tag.  Cweb does not C code format well
 unless tag names are distinct from other names.
 
-@** Development Plans.
+@** To Do.
 
 These are notes to myself,
 most of which will only be relevant
 while |libmarpa| is being written.
-Most of these notes will be revised
-and then deleted as development proceeds.
+These notes will be 
+deleted once development is finished.
 
 @*1 Short Term To Do List.
 
+\li Make tracing no longer the default in the recognizer.
+
+\li Add a "tracing" flag to the recognizer.  Also add a
+warning message when tracing is turned on.  The flag
+turns off the message.
+
+\li When (if?) I convert Marpa to use Marpa::XS,
+make sure the "interactive" flag works.
+
 @*1 Long Term To Do List.
 
-@*1 Development Note: Marpa layers.
-
-|libmarpa|, the library described in this document, is intended as the bottom of potentially
-four layers.
-The layers are, from low to high
-\li |libmarpa|
-\li The glue layer
-\li The wrapper layer
-\li The application
-
-This glue layer will be in C and will call the |libmarpa| routines
-in a way that makes them compatible with another language.
-I expect this will usually be a 4GL (4th generation language),
-such as Perl.
-One example of a glue description lanuage is SWIG.
-Another is Perl XS, and currently that is
-the only glue layer implemented for |libmarpa|.
-
-|libmarpa| itself is not enormously user-
-or application-friendly.
-For example, in |libmarpa|, symbols do not have
-names, just symbol structures and symbol ID's.
-These are all that is needed for the data crunching,
-but an application writer will usually want a friendlier
-interface, including names for the symbols and
-many other conveniences.
-For this reason, applications will typically
-use |libmarpa| through a {\bf wrapper package}.
-Currently the only such package is in Perl.
-
-The top layer is the application.
-My expectation is that this will also be in a 4GL.
-Currently, |libmarpa|'s only application are
-in Perl.
-
-Not all these layers need be present.
-For example, it is conceivable that someone might
-write their application in C, in which case they could
-manage without minimal or no
-glue layers or package layers.
-
-Iterfaces between layers are named after the lower
-of the two layers.  For example the interface between
-|libmarpa| and the glue layer is the |libmarpa| interface.
-
-@*1 Development Note: Representing Objects.
-Representation of objects is most commonly in one
-of three forms: cookies, ID's or pointers to C structures.
-
-@*2 Object ID's.
-Object ID's are integers.  They are always issued in sequence.
-They are guaranteed unique.
-(Note that in C,
-pointers to identical objects do {\bf not} necessarily
-compare equal.)
-If desired, they can be checked easily without risking a memory
-violation.
-
-ID's are the only object representation
-that can be used in any layer or any interface,
-and they are the preferred representation
-in the application layer
-and the package interface.
-
-Wraparound issues for object ID's are ignored.
-By the time any object ID wraps, memory will have long
-since overflowed.
-
-@*2 Object Cookies.
-Ideally, outside of the |libmarpa| layer,
-all objects would be represented by their ID.
-However, an exception is made recognizers and grammars,
-even though they do have ID's.
-This is because looking up ID's for these global objects
-is not thread-safe.
-
-@ To make ID lookup for global objects could be made thread-safe,
-but this involves locking data.
-It is possible to do this portably, using Glib, but it seems simply
-and safer to expect the calling environment to respect the opaque
-nature of the grammar and recognizer cookies.
-
-"Respecting the opaque nature of a cookie",
-means not
-accessing its internal contents -- using the
-cookie only as a cookie.
-The overall idea is that,
-if an programmer 
-writes trick-free higher-level code
-using cookies,
-any resulting errors occur
-in the package or application layer.
-
-The contents of Object Cookies are dependent on
-the choice of higher-level language (HLL).
-For this reason,
-The cookies are never visible in the |libmarpa| layer.
-
-In Perl's cookies, a major consideration is ensuring
-that, during the lifetime of a cookie,
-all the objects implied by the cookie also exist.
-This means that so long as
-a recognizer object cookie exists,
-the underlying grammar cannot be destroyed.
-
-@*2 Object pointers.
-The most efficient representation of objects
-are pointers to structures.
-These are the main representation of objects
-in the |libmarpa| layer.
-These must not be visible in the package and application
-layers.
-
-With regard to the visibility of object pointers in the
-glue layer, the situation is more complicated.
-At this writing, I expect to make pointers
-to most structures
-completely invisible except inside |libmarpa|.
-The external accessors do allow the glue layer
-some access
-to |libmarpa|'s internal structures.
-But in the case of the |_peek|
-external accessors,
-it is intuitive that the memory is owned
-by the |libmarpa| layer,
-and expected that any use of it will be quick.
-
-In the case of object pointers, their expected ordinary
-use is be kept around to refer to the object.
-But, for example, symbol object pointers must not
-be freed by the glue layer, but will become invalid
-when their associated grammar layer is destroyed.
-
-This behavior is not completely unintuitive to an
-experienced C programmer -- functions (like |ctime|)
-which return
-transient information in memory unowned by the caller
-have a long tradition in UNIX.
-But these are now deprecated.
-
-But tracking the lifetime of symbol object pointers 
-in the glue layer
-would be tricky, so as this writing the thought is to
-avoid the issue, for it and most other object pointers.
-The exceptions are grammar and recognizer objects.
-The base objects for these {\bf are} owned by
-the glue layer, so these do not present the same
-issues.
-The glue layer creates
-grammar and recognizer objects,
-it owns them during their lifetime,
-and it is up to the glue layer to destroy them.
-
-@*1 Development Note: Converting Elements.
-\li Init the data element.
-
-\li Add a destructor.
-At first arrange for this to be called when the Perl object
-is destroyed.
-Add a comment in the place where the destructor must eventually
-be called, as a reminder.
-This will usually be in the Recognizer or Grammar destructor.
-
-\li Add whatever mutators are needed,
-initially as un-inlined externals.
-At the end of development, it should be possible to
-eliminate the external versions of these.
-
-\li Now that there are a full set of initializers,
-destructors and mutators,
-change the Perl code so that it updates both the Perl and C elements.
-In other words, have the C element "shadow" the Perl element.
-
-\li Create an internal and an external "accessor".
-The external accessor is
-to be used by the XS code, and by the debugging and diagnostics.
-The internal accessor, declared |static internal| is for "production" uses.
-For elements used only in diagnostics and debugging, no internal accessor need ever be
-created.
-
-\li
-Convert all Perl code to use the external accessor of the C element.
-
-\li Eliminate all accesses to the Perl element.
-
-\li Eliminate the Perl element.
-
-@*1 Development Note: Converting Objects.
-
-\li First, all elements of an object must be converted to C,
-as described above.
-
-\li
-Next, all "production" code referring to the object must be converted to C.
-This probably requires the conversion of other objects to be well along.
-In this context, "production" is all code except for code which does debugging,
-diagnostic and "utility" functions.
-Right now the only "utility" function I can think of is cloning.
-
-\li
-If the object is not a Grammar or a Recognizer,
-recode the external interface so that
-it no longer requires a Perl version
-of the object.
-Ultimately only the 
-Grammar and Recognizer Perl objects will remain.
-
-\li
-Remember to use external accessors in XS,
-debugging, diagnostic and cloning
-code, and the internal accessors in the main routine.
-
-\li When an object is converted to C, it's destructor will no
-longer be called in the course of destroying the Perl object.
-Make sure the destructor will be called when necessary.
-This will usually be when the Recognizer or Grammar object is destroyed.
-
+@** The Public Header File.
 @<Body of public header file@> =
 @ Constants
 @ Version Constants @<Private global variables@> =
@@ -701,7 +655,7 @@ It would be possible to
 go through |libmarpa| and replace all sorts with a merge sort.
 But a slower library would be the result.
 
-@** Grammar Objects.
+@** Grammar (GRAMMAR) Code.
 @<Public incomplete structures@> = struct marpa_g;
 @ @<Private structures@> = struct marpa_g {
 @<Widely aligned grammar elements@>@;
@@ -1128,7 +1082,7 @@ Marpa_Error_ID marpa_g_error(const struct marpa_g* g)
 @ @<Public function prototypes@> =
 Marpa_Error_ID marpa_g_error(const struct marpa_g* g);
 
-@** Symbol Objects.
+@** Symbol (SYM) Code.
 @s Marpa_Symbol_ID int
 @<Public typedefs@> =
 typedef gint Marpa_Symbol_ID;
@@ -4129,9 +4083,25 @@ return 0;
 }
 
 @*0 AHFA State Mutators.
-@<Function definitions@> =
-static
+@ @<Private function prototypes@> =
+PRIVATE_NOT_INLINE void create_AHFA_states(struct marpa_g* g);
+@ @<Function definitions@> =
+PRIVATE_NOT_INLINE
 void create_AHFA_states(struct marpa_g* g) {
+    @<Declare locals for creating AHFA states@>@;
+    @<Initialize locals for creating AHFA states@>@;
+   @<Construct prediction matrix@>@;
+   @<Construct initial AHFA states@>@;
+   while ((p_working_state = DQUEUE_NEXT(states, AHFAD))) {
+       @<Process an AHFA state from the working stack@>@;
+   }
+   g->t_AHFA = DQUEUE_BASE(states, AHFAD); /* "Steals"
+       the |DQUEUE|'s data */
+   LV_AHFA_Count_of_G(g) = DQUEUE_END(states);
+   @<Free locals for creating AHFA states@>@;
+}
+
+@ @<Declare locals for creating AHFA states@> =
    AHFA p_working_state;
    const guint initial_no_of_states = 2*Size_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
@@ -4142,22 +4112,24 @@ void create_AHFA_states(struct marpa_g* g) {
     GTree* duplicates;
     AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
+  struct obstack ahfa_work_obs;
+
+@ @<Initialize locals for creating AHFA states@> =
     @<Initialize duplicates data structures@>@;
    DQUEUE_INIT(states, AHFAD, initial_no_of_states);
-   @<Construct prediction matrix@>@;
-   @<Construct initial AHFA states@>@;
-   while ((p_working_state = DQUEUE_NEXT(states, AHFAD))) {
-       @<Process an AHFA state from the working stack@>@;
-   }
-   g->t_AHFA = DQUEUE_BASE(states, AHFAD); /* "Steals"
-       the |DQUEUE|'s data */
-   LV_AHFA_Count_of_G(g) = DQUEUE_END(states);
-   g_free(rule_by_sort_key);
-   matrix_free(prediction_matrix);
-   @<Free duplicates data structures@>@;
+
+@ @<Initialize duplicates data structures@> =
+{
+  guint item_id;
+  guint no_of_items_in_grammar = AIM_Count_of_G (g);
+  obstack_init(&ahfa_work_obs);
+  duplicates = g_tree_new (AHFA_state_cmp);
+  singleton_duplicates = g_new (AHFA, no_of_items_in_grammar);
+  for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
+    {
+      singleton_duplicates[item_id] = NULL;	// All zero bits are not necessarily a NULL pointer
+    }
 }
-@ @<Private function prototypes@> =
-static void create_AHFA_states(struct marpa_g* g);
 
 @ @<Process an AHFA state from the working stack@> = {
 guint no_of_items = p_working_state->t_item_count;
@@ -4191,13 +4163,12 @@ if (working_symbol < 0) goto NEXT_AHFA_STATE; /*
 NEXT_AHFA_STATE: ;
 }
 
-@ @<Initialize duplicates data structures@> = { guint item_id;
-guint no_of_items_in_grammar = AIM_Count_of_G(g);
-duplicates = g_tree_new(AHFA_state_cmp);
-singleton_duplicates = g_new(AHFA, no_of_items_in_grammar);
-for ( item_id = 0; item_id < no_of_items_in_grammar; item_id++) {
-    singleton_duplicates[item_id] = NULL; // All zero bits are not necessarily a NULL pointer
-} }
+@ @<Free locals for creating AHFA states@> =
+   g_free(rule_by_sort_key);
+   matrix_free(prediction_matrix);
+    @<Free duplicates data structures@>@;
+     obstack_free(&ahfa_work_obs, NULL);
+
 @ @<Free duplicates data structures@> =
 g_free(singleton_duplicates);
 g_tree_destroy(duplicates);
@@ -8737,7 +8708,6 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     const gint no_parse = -1;
     @<Bocage setup locals@>@;
     r_update_earley_sets(r);
-    obstack_init(&bocage_setup_obs);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
     @<Find |start_eim|@>@;
