@@ -3844,7 +3844,6 @@ struct s_AHFA_state_key {
 struct s_AHFA_state {
     struct s_AHFA_state_key t_key;
     struct s_AHFA_state* t_empty_transition;
-    AHFA* t_to_ahfa_ary;
     SYMID* t_complete_symbols;
     @<Widely aligned AHFA state elements@>@;
     @<Int aligned AHFA state elements@>@;
@@ -3905,8 +3904,9 @@ STOLEN_DQUEUE_DATA_FREE(g->t_AHFA);
 
 @ Most of the data is on the obstack, and will be freed with that.
 @<Free AHFA state@> = {
- AHFA* ahfa_transition_array = ahfa_state->t_to_ahfa_ary;
-  if (ahfa_transition_array) g_free(ahfa_state->t_to_ahfa_ary);
+  TRANS *ahfa_transitions = LV_TRANSs_of_AHFA (ahfa_state);
+  if (ahfa_transitions)
+    g_free (TRANSs_of_AHFA (ahfa_state));
 }
 
 @*0 ID of AHFA State.
@@ -4031,7 +4031,7 @@ gint marpa_AHFA_state_transitions(struct marpa_g* g,
 
     @<Return |-2| on failure@>@;
     AHFA from_ahfa_state;
-    AHFA* to_ahfa_array;
+    TRANS* transitions;
     SYMID symid;
     gint symbol_count;
 
@@ -4039,11 +4039,11 @@ gint marpa_AHFA_state_transitions(struct marpa_g* g,
     @<Fail if grammar |AHFA_state_id| is invalid@>@;
     @<Fail grammar if elements of |result| are not |sizeof(gint)|@>@;
     from_ahfa_state = AHFA_by_ID(AHFA_state_id);
-    to_ahfa_array = from_ahfa_state->t_to_ahfa_ary; 
+    transitions = TRANSs_of_AHFA(from_ahfa_state); 
     symbol_count = SYM_Count_of_G(g);
     g_array_set_size(result, 0);
     for (symid = 0; symid < symbol_count; symid++) {
-        AHFA to_ahfa_state = to_ahfa_array[symid];
+        AHFA to_ahfa_state = To_AHFA_of_TRANS(transitions[symid]);
 	if (!to_ahfa_state) continue;
 	g_array_append_val (result, symid);
 	g_array_append_val (result, ID_of_AHFA(to_ahfa_state));
@@ -4312,7 +4312,7 @@ g_tree_destroy(duplicates);
     p_initial_state->t_key.t_id = 0;
     LV_AHFA_is_Predicted(p_initial_state) = 0;
     LV_Leo_LHS_ID_of_AHFA(p_initial_state) = -1;
-    p_initial_state->t_to_ahfa_ary = to_ahfa_array_new(g);
+    LV_TRANSs_of_AHFA(p_initial_state) = transitions_new(g);
     p_initial_state->t_empty_transition = NULL;
     if (start_symbol->t_is_nulling)
       {				// Special case the null parse
@@ -4394,7 +4394,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     p_new_state = singleton_duplicates[single_item_id];
     if (p_new_state)
       {				/* Do not add, this is a duplicate */
-	AHFA_transition_add (p_working_state, working_symbol, p_new_state);
+	transition_add (g, p_working_state, working_symbol, p_new_state);
 	goto NEXT_WORKING_SYMBOL;
       }
     p_new_state = DQUEUE_PUSH (states, AHFAD);
@@ -4412,8 +4412,8 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     }
     LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFAD);
-    p_new_state->t_to_ahfa_ary = to_ahfa_array_new(g);
-    AHFA_transition_add (p_working_state, working_symbol, p_new_state);
+    LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
+    transition_add (g, p_working_state, working_symbol, p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
       {
@@ -4532,21 +4532,21 @@ if (queued_AHFA_state)
 // Back it out and go on to the next in the queue
     (void) DQUEUE_POP (states, AHFAD);
     obstack_free (&g->t_obs_tricky, item_list_for_new_state);
-    AHFA_transition_add (p_working_state, working_symbol, queued_AHFA_state);
-    /* |AHFA_transition_add()| allocates obstack memory, but uses the 
+    transition_add (g, p_working_state, working_symbol, queued_AHFA_state);
+    /* |transition_add()| allocates obstack memory, but uses the 
        "non-tricky" obstack */
     goto NEXT_WORKING_SYMBOL;
   }
-// If we added the new state, finish up its data.
-p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFAD);
-LV_AHFA_is_Predicted(p_new_state) = 0;
-p_new_state->t_has_completed_start_rule = 0;
-LV_Leo_LHS_ID_of_AHFA(p_new_state) =-1;
-p_new_state->t_to_ahfa_ary = to_ahfa_array_new(g);
-@<Calculate complete and postdot symbols for discovered state@>@/
-AHFA_transition_add(p_working_state, working_symbol, p_new_state);
-@<Calculate the predicted rule vector for this state
-and add the predicted AHFA state@>@/
+    // If we added the new state, finish up its data.
+    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFAD);
+    LV_AHFA_is_Predicted(p_new_state) = 0;
+    p_new_state->t_has_completed_start_rule = 0;
+    LV_Leo_LHS_ID_of_AHFA(p_new_state) =-1;
+    LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
+    @<Calculate complete and postdot symbols for discovered state@>@/
+    transition_add(g, p_working_state, working_symbol, p_new_state);
+    @<Calculate the predicted rule vector for this state
+        and add the predicted AHFA state@>@/
 }
 
 @ @<Calculate complete and postdot symbols for discovered state@> =
@@ -4909,7 +4909,7 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFAD);@/
     p_new_state->t_has_completed_start_rule = 0;
     LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_empty_transition = NULL;
-    p_new_state->t_to_ahfa_ary = to_ahfa_array_new(g);
+    LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     p_new_state->t_complete_symbol_count = 0;
     @<Calculate postdot symbols for predicted state@>@/
     return p_new_state;
@@ -4948,30 +4948,94 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFAD);@/
     bv_free (postdot_v);
 }
 
-@** Transition Code.
-@d To_AHFA_of_AHFA_by_SYMID(from_ahfa, id) ((from_ahfa)->t_to_ahfa_ary[id])
+@** Transition (TRANS) Code.
+Several kinds data are functions of AHFA state and symbol.
+Most important of these are the AHFA state transitions,
+but the per-AHFA symbol completion data is another example,
+and is kept in the same structure.
+@d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
+    (*(TRANSs_of_AHFA(from_ahfa)+(id)))
+@d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
+@d First_Completion_IX_of_TRANS(trans)
+    (first_completion_ix_of_transition_get(trans))
+@d To_AHFA_of_AHFA_by_SYMID(from_ahfa, id)
+     (To_AHFA_of_TRANS(TRANS_of_AHFA_by_SYMID((from_ahfa), (id))))
+@d First_Completion_IX_of_AHFA_by_SYMID(from_ahfa, id)
+     (First_Completion_IX_of_TRANS(TRANS_of_AHFA_by_SYMID((from ahfa), (id))))
 @d To_AHFA_of_EIM_by_SYMID(eim, id) To_AHFA_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
+@ @<Private incomplete structures@> =
+struct s_transition;
+typedef struct s_transition* TRANS;
+@ @<Private structures@> =
+struct s_transition {
+    AHFA t_to_ahfa;
+    gint t_first_completion_ix;
+};
+@ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
+@d LV_TRANSs_of_AHFA(ahfa) TRANSs_of_AHFA(ahfa)
+@<Widely aligned AHFA state elements@> =
+    TRANS* t_transitions;
+@ @<Private function prototypes@> =
+static inline AHFA to_ahfa_of_transition_get(TRANS transition);
+@ @<Function definitions@> =
+static inline AHFA to_ahfa_of_transition_get(TRANS transition) {
+    MARPA_DEBUG3 ("%s:%d", __FILE__, __LINE__);
+     if (!transition) return NULL;
+    MARPA_DEBUG3 ("Getting transition %p to_ahfa=%p", transition, transition->t_to_ahfa);
+     return transition->t_to_ahfa;
+}
+@ @<Private function prototypes@> =
+static inline gint first_completion_ix_of_transition_get(TRANS transition);
+@ @<Function definitions@> =
+static inline gint first_completion_ix_of_transition_get(TRANS transition) {
+     if (!transition) return -1;
+     return transition->t_first_completion_ix;
+}
+
+@ @<Private function prototypes@> =
+static inline
+TRANS transition_new(GRAMMAR g, AHFA to_ahfa, gint aim_ix);
+@ @<Function definitions@> =
+static inline
+TRANS transition_new(GRAMMAR g, AHFA to_ahfa, gint aim_ix) {
+     TRANS transition;
+     transition = obstack_alloc (&g->t_obs, sizeof (transition[0]));
+     transition->t_to_ahfa = to_ahfa;
+     transition->t_first_completion_ix = aim_ix;
+     return transition;
+}
 
 @ @<Private function prototypes@> = static inline
-AHFA* to_ahfa_array_new(struct marpa_g* g);
+TRANS* transitions_new(struct marpa_g* g);
 @ @<Function definitions@> = static inline
-AHFA* to_ahfa_array_new(struct marpa_g* g) {
+TRANS* transitions_new(struct marpa_g* g) {
     gint symbol_count = SYM_Count_of_G(g);
     gint symid = 0;
-    AHFA* new_to_ahfa_array = g_malloc(symbol_count * sizeof(AHFA));
-    while (symid < symbol_count) new_to_ahfa_array[symid++] = NULL; /*
+    TRANS* transitions;
+    transitions = g_malloc(symbol_count * sizeof(transitions[0]));
+    while (symid < symbol_count) transitions[symid++] = NULL; /*
         |g_malloc0| will not work because NULL is not guaranteed
 	to be a bitwise zero. */
-    return new_to_ahfa_array;
+    return transitions;
 }
 
-@ @<Function definitions@> = static inline
-void AHFA_transition_add(AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
+@ @<Private function prototypes@> =
+static inline
+void transition_add(GRAMMAR g, AHFA from_ahfa, SYMID symid, AHFA to_ahfa);
+@ @<Function definitions@> =
+static inline
+void transition_add(GRAMMAR g, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
 {
-    from_ahfa->t_to_ahfa_ary[symid] = to_ahfa;
+    TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
+    TRANS transition = transitions[symid];
+    MARPA_DEBUG4 ("Adding transition %p,%d -> %p", from_ahfa, symid, to_ahfa);
+    if (!transition) {
+        transitions[symid] = transition_new(g, to_ahfa, -1);
+	return;
+    }
+    transition->t_to_ahfa = to_ahfa;
+    return;
 }
-@ @<Private function prototypes@> = static inline
-void AHFA_transition_add(AHFA from_ahfa, SYMID symid, AHFA to_ahfa);
 
 @** Populating the Terminal Boolean Vector.
 @<Populate the Terminal Boolean Vector@> = {
