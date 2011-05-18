@@ -3990,89 +3990,6 @@ Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
      Marpa_AHFA_State_ID AHFA_state_id,
 	guint item_ix);
 
-@*0 Symbol Transitions of AHFA State.
-@
-Complexity is fine --- $O(1)$ in the length of the input,
-but nonetheless this implementation might be improved.
-This operation is at the heart of the parse engine,
-and worth a careful look.
-@ One alternative is to use bison's solution,
-which is a type of perfect hashing.
-Calculating AHFA transitions
-is very closely related to accessing an LALR table ---
-for this purpose, both are essentially LR(0) tables.
-Time and space tradeoffs of the two algorithms
-are, if not identical, very, very similar.
-So the result of bison's experience is probably
-the best solution here.
-@ Another alternative is to use
-a sparse 2-dimensional array.
-This would be easy to implement
-and very fast,
-but the array will be $a\cdot s$
-in size,
-where $a$ is the number of AHFA states,
-and 
-where $s$ is the number of symbols.
-Since most transitions are not defined, most of the space would be wasted.
-@ The trend is for memory to get cheap, favoring the 2-dimensional array.
-But I expect the trend will also be for grammars to get larger,
-and the space required by the 2-dimensional array is roughly
-$O(n^2)$ in the size of the grammar.
-
-@ @<Public function prototypes@> =
-gint marpa_AHFA_state_transitions(struct marpa_g* g,
-    Marpa_AHFA_State_ID AHFA_state_id,
-    GArray *result);
-@ @<Function definitions@> =
-gint marpa_AHFA_state_transitions(struct marpa_g* g,
-    Marpa_AHFA_State_ID AHFA_state_id,
-    GArray *result) {
-
-    @<Return |-2| on failure@>@;
-    AHFA from_ahfa_state;
-    TRANS* transitions;
-    SYMID symid;
-    gint symbol_count;
-
-    @<Fail if grammar not precomputed@>@;
-    @<Fail if grammar |AHFA_state_id| is invalid@>@;
-    @<Fail grammar if elements of |result| are not |sizeof(gint)|@>@;
-    from_ahfa_state = AHFA_by_ID(AHFA_state_id);
-    transitions = TRANSs_of_AHFA(from_ahfa_state); 
-    symbol_count = SYM_Count_of_G(g);
-    g_array_set_size(result, 0);
-    for (symid = 0; symid < symbol_count; symid++) {
-        AHFA to_ahfa_state = To_AHFA_of_TRANS(transitions[symid]);
-	if (!to_ahfa_state) continue;
-	g_array_append_val (result, symid);
-	g_array_append_val (result, ID_of_AHFA(to_ahfa_state));
-    }
-    return result->len;
-}
-
-@*0 Empty Transition of AHFA State.
-@d Empty_Transition_of_AHFA(state) ((state)->t_empty_transition)
-@ In the external accessor,
--1 is a valid return value, indicating no empty transition.
-@<Function definitions@> =
-AHFAID marpa_AHFA_state_empty_transition(struct marpa_g* g,
-     AHFAID AHFA_state_id) {
-    AHFA state;
-    AHFA empty_transition_state;
-    @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
-    @<Fail if grammar |AHFA_state_id| is invalid@>@/
-    state = AHFA_by_ID(AHFA_state_id);
-    empty_transition_state = Empty_Transition_of_AHFA (state);
-    if (empty_transition_state)
-      return ID_of_AHFA (empty_transition_state);
-    return -1;
-}
-@ @<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_AHFA_state_empty_transition(struct marpa_g* g,
-     Marpa_AHFA_State_ID AHFA_state_id);
-
 @ @<Function definitions@> =
 gint marpa_AHFA_state_is_predict(struct marpa_g* g,
 	AHFAID AHFA_state_id) {
@@ -4952,6 +4869,38 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFAD);@/
 Several kinds data are functions of AHFA state and symbol.
 Most important of these are the AHFA state transitions,
 but the per-AHFA symbol completion data is another example,
+This operation is at the heart of the parse engine,
+and worth a careful look.
+Time complexity is fine --- $O(1)$ in the length of the input,
+but nonetheless this implementation might be improved.
+And speed is probably optimal.
+@ But this solution is is very space-intensive---%
+perhaps |O(\v g\v^2)|.
+Ordinarily, for code which is executed this heavily,
+I would not avoid trading speed for space.
+These arrays are very sparse,
+and some alternatives
+save a lot of space at a small cost in time.
+@ A very similar problem has been the subject of considerable
+study---%
+LALR and LR(0) state tables.
+These also index by state and symbol, and their usage is very
+similar to that expected for the AHFA lookups.
+@ Bison's solution is probably worth study.
+This is a kind of perfect hashing, and quite complex.
+I do wonder if it's not over-engineered.
+The arrays are very sparse
+Many rows of the array have only one or two entries.
+In practical applications, a binary search, or even
+a linear search may have average performance better than
+more complex solutions.
+@ The trend is for memory to get cheap,
+favoring the sparse 2-dimensional array
+which is the present solution.
+But I expect the trend will also be for grammars to get larger.
+This would be a good issue to run some benchmarks on,
+once I stabilize the C code implemention.
+
 and is kept in the same structure.
 @d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
     (*(TRANSs_of_AHFA(from_ahfa)+(id)))
@@ -5036,6 +4985,63 @@ void transition_add(GRAMMAR g, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
     transition->t_to_ahfa = to_ahfa;
     return;
 }
+
+@*0 Trace Functions.
+@<Public function prototypes@> =
+gint marpa_AHFA_state_transitions(struct marpa_g* g,
+    Marpa_AHFA_State_ID AHFA_state_id,
+    GArray *result);
+@ @<Function definitions@> =
+gint marpa_AHFA_state_transitions(struct marpa_g* g,
+    Marpa_AHFA_State_ID AHFA_state_id,
+    GArray *result) {
+
+    @<Return |-2| on failure@>@;
+    AHFA from_ahfa_state;
+    TRANS* transitions;
+    SYMID symid;
+    gint symbol_count;
+
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |AHFA_state_id| is invalid@>@;
+    @<Fail grammar if elements of |result| are not |sizeof(gint)|@>@;
+    from_ahfa_state = AHFA_by_ID(AHFA_state_id);
+    transitions = TRANSs_of_AHFA(from_ahfa_state); 
+    symbol_count = SYM_Count_of_G(g);
+    g_array_set_size(result, 0);
+    for (symid = 0; symid < symbol_count; symid++) {
+        AHFA to_ahfa_state = To_AHFA_of_TRANS(transitions[symid]);
+	if (!to_ahfa_state) continue;
+	g_array_append_val (result, symid);
+	g_array_append_val (result, ID_of_AHFA(to_ahfa_state));
+    }
+    return result->len;
+}
+
+@** Empty Transition Code.
+@d Empty_Transition_of_AHFA(state) ((state)->t_empty_transition)
+@*0 Trace Functions.
+@<Public function prototypes@> =
+@ @<Public function prototypes@> =
+Marpa_AHFA_State_ID marpa_AHFA_state_empty_transition(struct marpa_g* g,
+     Marpa_AHFA_State_ID AHFA_state_id);
+@ In the external accessor,
+-1 is a valid return value, indicating no empty transition.
+@<Function definitions@> =
+AHFAID marpa_AHFA_state_empty_transition(struct marpa_g* g,
+     AHFAID AHFA_state_id) {
+    AHFA state;
+    AHFA empty_transition_state;
+    @<Return |-2| on failure@>@/
+    @<Fail if grammar not precomputed@>@/
+    @<Fail if grammar |AHFA_state_id| is invalid@>@/
+    state = AHFA_by_ID(AHFA_state_id);
+    empty_transition_state = Empty_Transition_of_AHFA (state);
+    if (empty_transition_state)
+      return ID_of_AHFA (empty_transition_state);
+    return -1;
+}
+
 
 @** Populating the Terminal Boolean Vector.
 @<Populate the Terminal Boolean Vector@> = {
