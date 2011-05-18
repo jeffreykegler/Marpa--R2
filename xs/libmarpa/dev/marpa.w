@@ -171,7 +171,7 @@ The more trouble I had understanding an issue,
 and writing the code,
 the more thorough the documentation.
 
-@** Architecture.
+@** Design.
 @*0 Layers.
 |libmarpa|, the library described in this document, is intended as the bottom of potentially
 four layers.
@@ -331,6 +331,78 @@ Enough so
 that it is useful to define a macro to let me know when inlining is not
 used in a private function.
 @d PRIVATE_NOT_INLINE static
+
+@*0 Marpa Global Setup.
+
+Marpa does no global initialization at the moment.
+I'll try to keep it that way.
+If I can't, I will need to deal with the issue
+of thread safety.
+
+@*0 Complexity.
+Considerable attention is paid to time and,
+where it is a serious issue, space complexity.
+Complexity is considered from three points of view.
+{\bf Practical worst-case complexity} is the complexity of the
+actual implementation, in the worst-case.
+{\bf Practical average complexity} is the complexity of the
+actual implementation under what are expected to be normal
+circumstances.
+Average complexity is of most interest to the typical user,
+but worst-case considerations should not be ignored ---
+in some applications,
+one case of poor performance
+can outweigh any number of
+of excellent "average case" results.
+@ Finally, there is {\bf theoretical complexity}.
+This is the complexity I would claim in a write-up of the
+Marpa algorithm for a Theory of Computation article.
+Most of the time, this is the same as practical worst-case complexity.
+Often, however, for theoretical complexity I consider
+myself entitled to claim
+the time complexity for a 
+better algorithm, even thought that is not the one
+used in the actual implementation.
+@ Sorting is a good example of under what circumstances
+I take the liberty of claiming a time complexity I did not
+implement.
+In many places in |libmarpa|,
+for sorting,
+the most reasonable practical
+implementation (sometimes the only reasonable practical implementation)
+is an $O(n^2)$ sort.
+When average list size is small, for example,
+a hand-optimized insertion sort is often clearly superior
+to all other alternatives.
+Where average list size is larger,
+a call to |g_qsort| is the appropriate response.
+|g_qsort| is the result of considerable thought and experience,
+the GNU project has decided to base it on quicksort,
+and I do not care to second-guess them on this.
+But quicksort and insertion sorts are both, theoretically, $O(n^2)$.
+@ Clearly, in both cases, I could drop in a merge sort and achieve
+a theoretical $O(n \log n)$ worst case.
+Often just as clear is that is all cases likely to occur in practice,
+the merge sort would be inferior.
+@ When I claim a complexity from a theoretical choice of algorithm,
+rather than the actually implemented one, the following will always be
+the case:
+\li The existence of the theoretical algorithm must be generally accepted.
+\li The complexity I claim for it must be generally accepted.
+\li It must be clear that there are no obstacles to using the theoretical algorithm
+whose solution is not straightforward.
+@ I am a big believer in theory.
+Often practical considerations didn't clearly indicate a choice of
+algorithm .
+In those circumstances, I usually
+allowed theoretical superiority to be the deciding factor.
+@ But there were cases
+where the theoretically superior choice
+was clearly going to be inferior in practice.
+Sorting was one of them.
+It would be possible to
+go through |libmarpa| and replace all sorts with a merge sort.
+But a slower library would be the result.
 
 @** Coding conventions.
 @*0 Naming conventions.
@@ -521,15 +593,13 @@ unless tag names are distinct from other names.
 
 @** To Do.
 
-These are notes to myself,
+@ These are notes to myself,
 most of which will only be relevant
 while |libmarpa| is being written.
 These notes will be 
 deleted once development is finished.
 
-@*1 Short Term To Do List.
-
-\li Make tracing no longer the default in the recognizer.
+@ \li Make tracing no longer the default in the recognizer.
 
 \li Add a "tracing" flag to the recognizer.  Also add a
 warning message when tracing is turned on.  The flag
@@ -538,12 +608,9 @@ turns off the message.
 \li When (if?) I convert Marpa to use Marpa::XS,
 make sure the "interactive" flag works.
 
-@*1 Long Term To Do List.
-
 @** The Public Header File.
-@<Body of public header file@> =
-@ Constants
-@ Version Constants @<Private global variables@> =
+@*0 Version Constants.
+@<Private global variables@> =
 const unsigned int marpa_major_version = MARPA_MAJOR_VERSION;
 const unsigned int marpa_minor_version = MARPA_MINOR_VERSION;
 const unsigned int marpa_micro_version = MARPA_MICRO_VERSION;
@@ -559,7 +626,8 @@ void marpa_version(int* version) {
 @ @<Public function prototypes@> =
 void marpa_version(int* version);
 
-@ Header file.  |GLIB_VAR| is to
+@*0 Header file.
+|GLIB_VAR| is to
 prefix variable declarations so that they
 will be exported properly for Windows dlls.
 @f GLIB_VAR const
@@ -582,78 +650,6 @@ GLIB_VAR const guint marpa_binary_age;@#
 @<Callback typedefs@>@/
 @<Public structures@>@/
 @<Public function prototypes@>@/
-
-@ Marpa Global Setup
-
-Marpa does no global initialization at the moment.
-I'll try to keep it that way.
-If I can't, I will need to deal with the issue
-of thread safety.
-
-@*1 Complexity.
-Considerable attention is paid to time and,
-where it is a serious issue, space complexity.
-Complexity is considered from three points of view.
-{\bf Practical worst-case complexity} is the complexity of the
-actual implementation, in the worst-case.
-{\bf Practical average complexity} is the complexity of the
-actual implementation under what are expected to be normal
-circumstances.
-Average complexity is of most interest to the typical user,
-but worst-case considerations should not be ignored ---
-in some applications,
-one case of poor performance
-can outweigh any number of
-of excellent "average case" results.
-@ Finally, there is {\bf theoretical complexity}.
-This is the complexity I would claim in a write-up of the
-Marpa algorithm for a Theory of Computation article.
-Most of the time, this is the same as practical worst-case complexity.
-Often, however, for theoretical complexity I consider
-myself entitled to claim
-the time complexity for a 
-better algorithm, even thought that is not the one
-used in the actual implementation.
-@ Sorting is a good example of under what circumstances
-I take the liberty of claiming a time complexity I did not
-implement.
-In many places in |libmarpa|,
-for sorting,
-the most reasonable practical
-implementation (sometimes the only reasonable practical implementation)
-is an $O(n^2)$ sort.
-When average list size is small, for example,
-a hand-optimized insertion sort is often clearly superior
-to all other alternatives.
-Where average list size is larger,
-a call to |g_qsort| is the appropriate response.
-|g_qsort| is the result of considerable thought and experience,
-the GNU project has decided to base it on quicksort,
-and I do not care to second-guess them on this.
-But quicksort and insertion sorts are both, theoretically, $O(n^2)$.
-@ Clearly, in both cases, I could drop in a merge sort and achieve
-a theoretical $O(n \log n)$ worst case.
-Often just as clear is that is all cases likely to occur in practice,
-the merge sort would be inferior.
-@ When I claim a complexity from a theoretical choice of algorithm,
-rather than the actually implemented one, the following will always be
-the case:
-\li The existence of the theoretical algorithm must be generally accepted.
-\li The complexity I claim for it must be generally accepted.
-\li It must be clear that there are no obstacles to using the theoretical algorithm
-whose solution is not straightforward.
-@ I am a big believer in theory.
-Often practical considerations didn't clearly indicate a choice of
-algorithm .
-In those circumstances, I usually
-allowed theoretical superiority to be the deciding factor.
-@ But there were cases
-where the theoretically superior choice
-was clearly going to be inferior in practice.
-Sorting was one of them.
-It would be possible to
-go through |libmarpa| and replace all sorts with a merge sort.
-But a slower library would be the result.
 
 @** Grammar (GRAMMAR) Code.
 @<Public incomplete structures@> = struct marpa_g;
