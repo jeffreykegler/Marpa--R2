@@ -25,7 +25,6 @@ META.json
 META.yml
 Makefile.PL
 README
-TODO
 author.t/.gitignore
 author.t/Makefile
 author.t/accept_tidy
