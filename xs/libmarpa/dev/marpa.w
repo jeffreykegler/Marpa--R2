@@ -3798,7 +3798,7 @@ struct s_AHFA_state {
     guint t_has_completed_start_rule:1;
     @<Bit aligned AHFA elements@>@;
 };
-typedef struct s_AHFA_state AHFAD;
+typedef struct s_AHFA_state AHFA_Object;
 
 @*0 Complete Symbols Container.
 @ @d Complete_SYMIDs_of_AHFA(state) ((state)->t_complete_symbols)
@@ -4095,12 +4095,13 @@ void create_AHFA_states(struct marpa_g* g) {
     @<Initialize locals for creating AHFA states@>@;
    @<Construct prediction matrix@>@;
    @<Construct initial AHFA states@>@;
-   while ((p_working_state = DQUEUE_NEXT(states, AHFAD))) {
+   while ((p_working_state = DQUEUE_NEXT(states, AHFA_Object))) {
        @<Process an AHFA state from the working stack@>@;
    }
-   g->t_AHFA = DQUEUE_BASE(states, AHFAD); /* "Steals"
+   ahfas_of_g = g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* "Steals"
        the |DQUEUE|'s data */
-   LV_AHFA_Count_of_G(g) = DQUEUE_END(states);
+   ahfa_count_of_g = LV_AHFA_Count_of_G(g) = DQUEUE_END(states);
+   @<Populate the completed symbol data in the transitions@>@;
    @<Free locals for creating AHFA states@>@;
 }
 
@@ -4108,18 +4109,20 @@ void create_AHFA_states(struct marpa_g* g) {
    AHFA p_working_state;
    const guint initial_no_of_states = 2*Size_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
-   guint no_of_symbols = SYM_Count_of_G(g);
-   guint no_of_rules = rule_count(g);
+   const guint symbol_count_of_g = SYM_Count_of_G(g);
+   const guint rule_count_of_g = rule_count(g);
    Bit_Matrix prediction_matrix;
-   RULE* rule_by_sort_key = g_new(RULE, no_of_rules);
+   RULE* rule_by_sort_key = g_new(RULE, rule_count_of_g);
     GTree* duplicates;
     AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
   struct obstack ahfa_work_obs;
+  gint ahfa_count_of_g;
+  AHFA ahfas_of_g;
 
 @ @<Initialize locals for creating AHFA states@> =
     @<Initialize duplicates data structures@>@;
-   DQUEUE_INIT(states, AHFAD, initial_no_of_states);
+   DQUEUE_INIT(states, AHFA_Object, initial_no_of_states);
 
 @ @<Initialize duplicates data structures@> =
 {
@@ -4166,6 +4169,26 @@ if (working_symbol < 0) goto NEXT_AHFA_STATE; /*
 NEXT_AHFA_STATE: ;
 }
 
+@ @<Populate the completed symbol data in the transitions@> =
+{
+     gint ahfa_ix;
+     for (ahfa_ix = 0; ahfa_ix < ahfa_count_of_g; ahfa_ix++) {
+	  guint symbol_id;
+          TRANS* transitions = TRANSs_of_AHFA(ahfas_of_g+ahfa_ix);
+	  for (symbol_id = 0; symbol_id < symbol_count_of_g; symbol_id++) {
+	       TRANS working_transition = transitions[symbol_id];
+	       if (working_transition) {
+		   gint completion_count = Completion_Count_of_TRANS(working_transition);
+		   gint sizeof_transition = sizeof(working_transition[0]) + (completion_count-1) * sizeof(AEX);
+		   TRANS new_transition = obstack_alloc(&g->t_obs, sizeof_transition);
+		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
+		   LV_Completion_Count_of_TRANS(new_transition) = 0;
+	       }
+	  }
+     }
+;
+}
+
 @ @<Free locals for creating AHFA states@> =
    g_free(rule_by_sort_key);
    matrix_free(prediction_matrix);
@@ -4177,7 +4200,7 @@ g_free(singleton_duplicates);
 g_tree_destroy(duplicates);
 
 @ @<Construct initial AHFA states@> = {
-   AHFA p_initial_state = DQUEUE_PUSH(states, AHFAD);@/
+   AHFA p_initial_state = DQUEUE_PUSH(states, AHFA_Object);@/
    Marpa_Rule_ID start_rule_id;
    AIM start_item;
    SYM start_symbol = SYM_by_ID(g, g->t_start_symid);
@@ -4291,7 +4314,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	transition_add (g, p_working_state, working_symbol, p_new_state);
 	goto NEXT_WORKING_SYMBOL;
       }
-    p_new_state = DQUEUE_PUSH (states, AHFAD);
+    p_new_state = DQUEUE_PUSH (states, AHFA_Object);
     /* Create a new AHFA state */
     singleton_duplicates[single_item_id] = p_new_state;
     new_state_item_list = p_new_state->t_items =
@@ -4305,7 +4328,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	p_new_state->t_has_completed_start_rule = 0;
     }
     LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
-    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFAD);
+    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     transition_add (g, p_working_state, working_symbol, p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
@@ -4398,7 +4421,7 @@ guint predecessor_ix;
 guint no_of_new_items_so_far = 0;
 AIM* item_list_for_new_state;
 AHFA queued_AHFA_state;
-p_new_state = DQUEUE_PUSH(states, AHFAD);
+p_new_state = DQUEUE_PUSH(states, AHFA_Object);
 item_list_for_new_state = p_new_state->t_items = obstack_alloc(&g->t_obs_tricky,
     no_of_items_in_new_state * sizeof(AIM));
 p_new_state->t_item_count = no_of_items_in_new_state;
@@ -4424,7 +4447,7 @@ queued_AHFA_state = assign_AHFA_state(p_new_state, duplicates);
 if (queued_AHFA_state)
   {				// The new state would be a duplicate
 // Back it out and go on to the next in the queue
-    (void) DQUEUE_POP (states, AHFAD);
+    (void) DQUEUE_POP (states, AHFA_Object);
     obstack_free (&g->t_obs_tricky, item_list_for_new_state);
     transition_add (g, p_working_state, working_symbol, queued_AHFA_state);
     /* |transition_add()| allocates obstack memory, but uses the 
@@ -4432,7 +4455,7 @@ if (queued_AHFA_state)
     goto NEXT_WORKING_SYMBOL;
   }
     // If we added the new state, finish up its data.
-    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFAD);
+    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFA_Object);
     LV_AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_has_completed_start_rule = 0;
     LV_Leo_LHS_ID_of_AHFA(p_new_state) =-1;
@@ -4582,7 +4605,8 @@ The symbol-by-rule matrix will be used in constructing the prediction
 states.
 
 @ @<Construct prediction matrix@> = {
-    Bit_Matrix symbol_by_symbol_matrix = matrix_create(no_of_symbols, no_of_symbols);
+    Bit_Matrix symbol_by_symbol_matrix =
+	matrix_create (symbol_count_of_g, symbol_count_of_g);
     @<Initialize the symbol-by-symbol matrix@>@/
     transitive_closure(symbol_by_symbol_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
@@ -4590,18 +4614,19 @@ states.
 }
 
 @ @<Initialize the symbol-by-symbol matrix@> =
-{ Marpa_Rule_ID rule_id;
-Marpa_Symbol_ID symid;
-    AIM* items_by_rule = g->t_AHFA_items_by_rule;
-    for (symid = 0; symid < (Marpa_Symbol_ID)no_of_symbols; symid++) {
+{
+    RULEID rule_id;
+    SYMID symid;
+    AIM *items_by_rule = g->t_AHFA_items_by_rule;
+    for (symid = 0; symid < (SYMID)symbol_count_of_g; symid++) {
 	// If a symbol appears on a LHS, it predicts itself.
 	SYM symbol = SYM_by_ID(g, symid);
 	if (!SYMBOL_LHS_RULE_COUNT(symbol)) continue;
 	matrix_bit_set(symbol_by_symbol_matrix,
 	    (guint)symid, (guint)symid);
     }
-    for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
-	Marpa_Symbol_ID from, to;
+    for (rule_id = 0; rule_id < (RULEID)rule_count_of_g; rule_id++) {
+	SYMID from, to;
         AIM item = items_by_rule[rule_id];
 	    // Get the initial item for the rule
 	RULE  rule;
@@ -4622,9 +4647,9 @@ Specifically, if symbol |S1| predicts symbol |S2|, then symbol |S1|
 predicts every rule
 with |S2| on its LHS.
 @<Create the prediction matrix from the symbol-by-symbol matrix@> = {
-AIM* items_by_rule = g->t_AHFA_items_by_rule;
-    Marpa_Symbol_ID from_symid;
-    guint* sort_key_by_rule_id = g_new(guint, no_of_rules);
+    AIM* items_by_rule = g->t_AHFA_items_by_rule;
+    SYMID from_symid;
+    guint* sort_key_by_rule_id = g_new(guint, rule_count_of_g);
     guint no_of_predictable_rules = 0;
     @<Populate |sort_key_by_rule_id| with first pass value;
 	calculate |no_of_predictable_rules|@>@/
@@ -4653,8 +4678,8 @@ so that it can be used as the index in a bit vector.
 @<Populate |sort_key_by_rule_id| with first pass value;
 calculate |no_of_predictable_rules|@> =
 {
-  Marpa_Rule_ID rule_id;
-  for (rule_id = 0; rule_id < (Marpa_Rule_ID) no_of_rules; rule_id++)
+  RULEID rule_id;
+  for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
     {
       AIM item = items_by_rule[rule_id];
       SYMID postdot;
@@ -4672,13 +4697,15 @@ calculate |no_of_predictable_rules|@> =
 }
 
 @ @<Populate |rule_by_sort_key|@> =
-{ Marpa_Rule_ID rule_id;
-for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
-    rule_by_sort_key[rule_id] = RULE_by_ID(g, rule_id);
-}
-g_qsort_with_data(rule_by_sort_key, (gint)no_of_rules,
-    sizeof(RULE), cmp_by_rule_sort_key,
-    (gpointer)sort_key_by_rule_id);
+{
+  RULEID rule_id;
+  for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
+    {
+      rule_by_sort_key[rule_id] = RULE_by_ID (g, rule_id);
+    }
+  g_qsort_with_data (rule_by_sort_key, (gint)rule_count_of_g,
+		     sizeof (RULE), cmp_by_rule_sort_key,
+		     (gpointer) sort_key_by_rule_id);
 }
 
 @ @<Function definitions@> = static gint
@@ -4701,17 +4728,20 @@ gint cmp_by_rule_sort_key(gconstpointer ap,
 @ We have now sorted the rules into the final sort key order.
 With this final version of the sort keys,
 populate the index from rule id to sort key.
-@<Populate |sort_key_by_rule_id| with second pass value@> = {
-guint sort_key;
-for (sort_key = 0; sort_key < no_of_rules; sort_key++) {
-     RULE  rule = rule_by_sort_key[sort_key];
+@<Populate |sort_key_by_rule_id| with second pass value@> =
+{
+  guint sort_key;
+  for (sort_key = 0; sort_key < rule_count_of_g; sort_key++)
+    {
+      RULE rule = rule_by_sort_key[sort_key];
       sort_key_by_rule_id[rule->t_id] = sort_key;
-} }
+    }
+}
 
 @ @<Populate the prediction matrix@> =
 {
-  prediction_matrix = matrix_create (no_of_symbols, no_of_predictable_rules);
-  for (from_symid = 0; from_symid < (Marpa_Symbol_ID) no_of_symbols;
+  prediction_matrix = matrix_create (symbol_count_of_g, no_of_predictable_rules);
+  for (from_symid = 0; from_symid < (SYMID) symbol_count_of_g;
        from_symid++)
     {
       // for every row of the symbol-by-symbol matrix
@@ -4788,20 +4818,20 @@ item_list_for_new_state = obstack_alloc (&g->t_obs,
 	}
     }
 }
-p_new_state = DQUEUE_PUSH((*states_p), AHFAD);@/
+p_new_state = DQUEUE_PUSH((*states_p), AHFA_Object);@/
     p_new_state->t_items = item_list_for_new_state;
     p_new_state->t_item_count = no_of_items_in_new_state;
     { AHFA queued_AHFA_state = assign_AHFA_state(p_new_state, duplicates);
         if (queued_AHFA_state) {
 		 /* The new state would be a duplicate.
 		 Back it out and return the one that already exists */
-	    (void)DQUEUE_POP((*states_p), AHFAD);
+	    (void)DQUEUE_POP((*states_p), AHFA_Object);
 	    obstack_free(&g->t_obs, item_list_for_new_state);
 	    return queued_AHFA_state;
 	}
     }
     // The new state was added -- finish up its data
-    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE((*states_p), AHFAD);
+    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE((*states_p), AHFA_Object);
     LV_AHFA_is_Predicted(p_new_state) = 1;
     p_new_state->t_has_completed_start_rule = 0;
     LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
@@ -4889,8 +4919,10 @@ once I stabilize the C code implemention.
 @d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
     (*(TRANSs_of_AHFA(from_ahfa)+(id)))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
+@d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
 @d Completion_Count_of_TRANS(trans)
     (completion_count_of_transition_get(trans))
+@d LV_Completion_Count_of_TRANS(trans) ((trans)->t_ur.t_completion_count)
 @d To_AHFA_of_AHFA_by_SYMID(from_ahfa, id)
      (To_AHFA_of_TRANS(TRANS_of_AHFA_by_SYMID((from_ahfa), (id))))
 @d Completion_Count_of_AHFA_by_SYMID(from_ahfa, id)
@@ -4899,6 +4931,7 @@ once I stabilize the C code implemention.
 @ @<Private incomplete structures@> =
 struct s_transition;
 typedef struct s_transition* TRANS;
+@ @<Private typedefs@> = typedef gint AEX;
 @ @<Private structures@> =
 struct s_transition_ur {
     AHFA t_to_ahfa;
@@ -4906,7 +4939,7 @@ struct s_transition_ur {
 };
 struct s_transition {
     struct s_transition_ur t_ur;
-    gint t_aex[1];
+    AEX t_aex[1];
 };
 @ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
 @d LV_TRANSs_of_AHFA(ahfa) TRANSs_of_AHFA(ahfa)
