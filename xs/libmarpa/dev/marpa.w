@@ -330,6 +330,7 @@ and inlining is used a lot.
 Enough so
 that it is useful to define a macro to let me know when inlining is not
 used in a private function.
+@s PRIVATE_NOT_INLINE int
 @d PRIVATE_NOT_INLINE static
 
 @*0 Marpa Global Setup.
@@ -4207,7 +4208,9 @@ g_tree_destroy(duplicates);
     if (start_symbol->t_is_nulling)
       {				// Special case the null parse
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
-	*complete_symids = g->t_start_symid;
+	SYMID completed_symbol_id = g->t_start_symid;
+	*complete_symids = completed_symbol_id;
+	completion_count_inc(g, p_initial_state, completed_symbol_id);
 	LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
 	LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 1;
 	p_initial_state->t_has_completed_start_rule = 1;
@@ -4223,7 +4226,9 @@ g_tree_destroy(duplicates);
 	if (start_alias)
 	  {
 	    SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
-	    *complete_symids = LHS_ID_of_PRD (RULE_by_ID (g, start_rule_id));
+	    SYMID completed_symbol_id = LHS_ID_of_PRD (RULE_by_ID (g, start_rule_id));
+	    *complete_symids = completed_symbol_id;
+	    completion_count_inc(g, p_initial_state, completed_symbol_id);
 	    LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
 	    LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 1;
 	    p_initial_state->t_has_completed_start_rule = 1;
@@ -4325,6 +4330,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	LV_Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
+	completion_count_inc(g, p_new_state, lhs_id);
 	LV_Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
 	p_new_state->t_empty_transition = NULL;
@@ -4483,18 +4489,18 @@ if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
 						no_of_complete_symbols *
 						sizeof (SYMID));
 	SYMID *p_symbol = complete_symids;
-	*complete_symids = g->t_start_symid;
 	LV_Complete_SYMIDs_of_AHFA (p_new_state) = complete_symids;
 	for (start = 0; bv_scan (complete_v, start, &min, &max); start = max + 2)
 	  {
-	    Marpa_Symbol_ID complete_symbol;
-	    for (complete_symbol = (Marpa_Symbol_ID) min;
-		 complete_symbol <= (Marpa_Symbol_ID) max; complete_symbol++)
+	    SYMID complete_symbol_id;
+	    for (complete_symbol_id = (SYMID) min; complete_symbol_id <= (SYMID) max;
+		 complete_symbol_id++)
 	      {
-		*p_symbol++ = complete_symbol;
+		completion_count_inc (g, p_new_state, complete_symbol_id);
+		*p_symbol++ = complete_symbol_id;
+	      }
 	  }
-      }
-  }
+    }
     bv_free (postdot_v);
     bv_free (complete_v);
 }
