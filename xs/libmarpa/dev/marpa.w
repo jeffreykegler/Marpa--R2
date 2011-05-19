@@ -4183,6 +4183,7 @@ NEXT_AHFA_STATE: ;
 		   TRANS new_transition = obstack_alloc(&g->t_obs, sizeof_transition);
 		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
 		   LV_Completion_Count_of_TRANS(new_transition) = 0;
+		   transitions[symbol_id] = new_transition;
 	       }
 	  }
      }
@@ -4233,7 +4234,7 @@ g_tree_destroy(duplicates);
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
 	SYMID completed_symbol_id = g->t_start_symid;
 	*complete_symids = completed_symbol_id;
-	completion_count_inc(g, p_initial_state, completed_symbol_id);
+	completion_count_inc (&ahfa_work_obs, p_initial_state, completed_symbol_id);
 	LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
 	LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 1;
 	p_initial_state->t_has_completed_start_rule = 1;
@@ -4251,7 +4252,7 @@ g_tree_destroy(duplicates);
 	    SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
 	    SYMID completed_symbol_id = LHS_ID_of_PRD (RULE_by_ID (g, start_rule_id));
 	    *complete_symids = completed_symbol_id;
-	    completion_count_inc(g, p_initial_state, completed_symbol_id);
+	    completion_count_inc(&ahfa_work_obs, p_initial_state, completed_symbol_id);
 	    LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
 	    LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 1;
 	    p_initial_state->t_has_completed_start_rule = 1;
@@ -4311,7 +4312,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     p_new_state = singleton_duplicates[single_item_id];
     if (p_new_state)
       {				/* Do not add, this is a duplicate */
-	transition_add (g, p_working_state, working_symbol, p_new_state);
+	transition_add (&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
 	goto NEXT_WORKING_SYMBOL;
       }
     p_new_state = DQUEUE_PUSH (states, AHFA_Object);
@@ -4330,7 +4331,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
-    transition_add (g, p_working_state, working_symbol, p_new_state);
+    transition_add (&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
       {
@@ -4353,7 +4354,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	LV_Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
-	completion_count_inc(g, p_new_state, lhs_id);
+	completion_count_inc(&ahfa_work_obs, p_new_state, lhs_id);
 	LV_Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
 	p_new_state->t_empty_transition = NULL;
@@ -4449,7 +4450,7 @@ if (queued_AHFA_state)
 // Back it out and go on to the next in the queue
     (void) DQUEUE_POP (states, AHFA_Object);
     obstack_free (&g->t_obs_tricky, item_list_for_new_state);
-    transition_add (g, p_working_state, working_symbol, queued_AHFA_state);
+    transition_add (&ahfa_work_obs, p_working_state, working_symbol, queued_AHFA_state);
     /* |transition_add()| allocates obstack memory, but uses the 
        "non-tricky" obstack */
     goto NEXT_WORKING_SYMBOL;
@@ -4461,7 +4462,7 @@ if (queued_AHFA_state)
     LV_Leo_LHS_ID_of_AHFA(p_new_state) =-1;
     LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     @<Calculate complete and postdot symbols for discovered state@>@/
-    transition_add(g, p_working_state, working_symbol, p_new_state);
+    transition_add(&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
     @<Calculate the predicted rule vector for this state
         and add the predicted AHFA state@>@/
 }
@@ -4519,7 +4520,7 @@ if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
 	    for (complete_symbol_id = (SYMID) min; complete_symbol_id <= (SYMID) max;
 		 complete_symbol_id++)
 	      {
-		completion_count_inc (g, p_new_state, complete_symbol_id);
+		completion_count_inc (&ahfa_work_obs, p_new_state, complete_symbol_id);
 		*p_symbol++ = complete_symbol_id;
 	      }
 	  }
@@ -4962,12 +4963,12 @@ static inline gint completion_count_of_transition_get(TRANS transition) {
 
 @ @<Private function prototypes@> =
 static inline
-TRANS transition_new(GRAMMAR g, AHFA to_ahfa, gint aim_ix);
+TRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix);
 @ @<Function definitions@> =
 static inline
-TRANS transition_new(GRAMMAR g, AHFA to_ahfa, gint aim_ix) {
+TRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix) {
      TRANS transition;
-     transition = obstack_alloc (&g->t_obs, sizeof (transition[0]));
+     transition = obstack_alloc (obstack, sizeof (transition[0]));
      transition->t_ur.t_to_ahfa = to_ahfa;
      transition->t_ur.t_completion_count = aim_ix;
      return transition;
@@ -4989,15 +4990,15 @@ TRANS* transitions_new(struct marpa_g* g) {
 
 @ @<Private function prototypes@> =
 static inline
-void transition_add(GRAMMAR g, AHFA from_ahfa, SYMID symid, AHFA to_ahfa);
+void transition_add(struct obstack *obstack, AHFA from_ahfa, SYMID symid, AHFA to_ahfa);
 @ @<Function definitions@> =
 static inline
-void transition_add(GRAMMAR g, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
+void transition_add(struct obstack *obstack, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[symid];
     if (!transition) {
-        transitions[symid] = transition_new(g, to_ahfa, 0);
+        transitions[symid] = transition_new(obstack, to_ahfa, 0);
 	return;
     }
     transition->t_ur.t_to_ahfa = to_ahfa;
@@ -5006,15 +5007,15 @@ void transition_add(GRAMMAR g, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
 
 @ @<Private function prototypes@> =
 static inline
-void completion_count_inc(GRAMMAR g, AHFA from_ahfa, SYMID symid);
+void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid);
 @ @<Function definitions@> =
 static inline
-void completion_count_inc(GRAMMAR g, AHFA from_ahfa, SYMID symid)
+void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[symid];
     if (!transition) {
-        transitions[symid] = transition_new(g, NULL, 1);
+        transitions[symid] = transition_new(obstack, NULL, 1);
 	return;
     }
     transition->t_ur.t_completion_count++;
