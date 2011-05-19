@@ -3783,8 +3783,6 @@ The total is ${s \over 2} + {s \over 2} + s = 2s$.
 Typically, the number of AHFA states should be less than this estimate.
 
 @d AHFA_by_ID(id) (g->t_AHFA+(id))
-@d Complete_SYMIDARY_of_AHFA(state) ((state)->t_complete_symbols)
-@d Complete_SYM_Count_of_AHFA(state) ((state)->t_complete_symbol_count)
 @d AHFA_has_Completed_Start_Rule(ahfa) ((ahfa)->t_has_completed_start_rule)
 @<Private incomplete structures@> = struct s_AHFA_state;
 @ @<Private structures@> =
@@ -3794,18 +3792,26 @@ struct s_AHFA_state_key {
 struct s_AHFA_state {
     struct s_AHFA_state_key t_key;
     struct s_AHFA_state* t_empty_transition;
-    SYMID* t_complete_symbols;
     @<Widely aligned AHFA state elements@>@;
     @<Int aligned AHFA state elements@>@;
-    guint t_complete_symbol_count;
     guint t_has_completed_start_rule:1;
     @<Bit aligned AHFA elements@>@;
 };
 typedef struct s_AHFA_state AHFAD;
 
-@*0. AHFA Item Container.
+@*0 Complete Symbols Container.
+@ @d Complete_SYMIDs_of_AHFA(state) ((state)->t_complete_symbols)
+@d LV_Complete_SYMIDs_of_AHFA(state) Complete_SYMIDs_of_AHFA(state)
+@d Complete_SYM_Count_of_AHFA(state) ((state)->t_complete_symbol_count)
+@d LV_Complete_SYM_Count_of_AHFA(state) Complete_SYM_Count_of_AHFA(state)
+@<Int aligned AHFA state elements@> =
+guint t_complete_symbol_count;
+@ @<Widely aligned AHFA state elements@> =
+SYMID* t_complete_symbols;
+
+@*0 AHFA Item Container.
 @ @d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
-@ @d LV_AIM_Count_of_AHFA(ahfa) AIM_Count_of_AHFA(ahfa)
+@d LV_AIM_Count_of_AHFA(ahfa) AIM_Count_of_AHFA(ahfa)
 @<Int aligned AHFA state elements@> =
 guint t_item_count;
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
@@ -4200,11 +4206,11 @@ g_tree_destroy(duplicates);
     p_initial_state->t_empty_transition = NULL;
     if (start_symbol->t_is_nulling)
       {				// Special case the null parse
-	p_initial_state->t_complete_symbol_count = 1;
+	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
+	*complete_symids = g->t_start_symid;
+	LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
+	LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 1;
 	p_initial_state->t_has_completed_start_rule = 1;
-	p_initial_state->t_complete_symbols =
-	  obstack_alloc (&g->t_obs, sizeof (SYMID));
-	*(p_initial_state->t_complete_symbols) = g->t_start_symid;
 	LV_Postdot_SYM_Count_of_AHFA(p_initial_state) = 0;
       }
     else
@@ -4216,16 +4222,15 @@ g_tree_destroy(duplicates);
 	*postdot_symbol_ids = Postdot_SYMID_of_AIM(start_item);
 	if (start_alias)
 	  {
-	    p_initial_state->t_complete_symbol_count = 1;
+	    SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
+	    *complete_symids = LHS_ID_of_PRD (RULE_by_ID (g, start_rule_id));
+	    LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
+	    LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 1;
 	    p_initial_state->t_has_completed_start_rule = 1;
-	    p_initial_state->t_complete_symbols =
-	      obstack_alloc (&g->t_obs, sizeof (SYMID));
-	    *(p_initial_state->t_complete_symbols) =
-	      LHS_ID_of_PRD (RULE_by_ID (g, start_rule_id));
 	  }
 	else
 	  {
-	    p_initial_state->t_complete_symbol_count = 0;
+	    LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 0;
 	    p_initial_state->t_has_completed_start_rule = 0;
 	  }
 	    p_initial_state->t_empty_transition =
@@ -4301,7 +4306,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
       {
-	p_new_state->t_complete_symbol_count = 0;
+	LV_Complete_SYM_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_postdot_sym_count = 1;
 	p_new_state->t_postdot_symid_ary =
 	  obstack_alloc (&g->t_obs, sizeof (SYMID));
@@ -4316,12 +4321,11 @@ are either AHFA state 0, or 1-item discovered AHFA states.
       }
     else
       {
-	SYMID lhs_id;
-	p_new_state->t_complete_symbol_count = 1;
-	p_new_state->t_complete_symbols =
-	  obstack_alloc (&g->t_obs, sizeof (SYMID));
-	lhs_id = LHS_ID_of_PRD (single_item_p->t_production);
-	*(p_new_state->t_complete_symbols) = lhs_id;
+	SYMID lhs_id = LHS_ID_of_PRD (single_item_p->t_production);
+	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
+	*complete_symids = lhs_id;
+	LV_Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
+	LV_Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
 	p_new_state->t_empty_transition = NULL;
 	@<If this state can be a Leo completion,
@@ -4471,20 +4475,23 @@ if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
 	  }
       }
   }
-if ((no_of_complete_symbols = p_new_state->t_complete_symbol_count =
-     bv_count (complete_v)))
-  {
-    guint min, max, start;
-    Marpa_Symbol_ID *p_symbol = p_new_state->t_complete_symbols =
-      obstack_alloc (&g->t_obs,
-		     no_of_complete_symbols * sizeof (SYMID));
-    for (start = 0; bv_scan (complete_v, start, &min, &max); start = max + 2)
+    if ((no_of_complete_symbols =
+	 LV_Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (complete_v)))
       {
-	Marpa_Symbol_ID complete_symbol;
-	for (complete_symbol = (Marpa_Symbol_ID) min;
-	     complete_symbol <= (Marpa_Symbol_ID) max; complete_symbol++)
+	guint min, max, start;
+	SYMID *complete_symids = obstack_alloc (&g->t_obs,
+						no_of_complete_symbols *
+						sizeof (SYMID));
+	SYMID *p_symbol = complete_symids;
+	*complete_symids = g->t_start_symid;
+	LV_Complete_SYMIDs_of_AHFA (p_new_state) = complete_symids;
+	for (start = 0; bv_scan (complete_v, start, &min, &max); start = max + 2)
 	  {
-	    *p_symbol++ = complete_symbol;
+	    Marpa_Symbol_ID complete_symbol;
+	    for (complete_symbol = (Marpa_Symbol_ID) min;
+		 complete_symbol <= (Marpa_Symbol_ID) max; complete_symbol++)
+	      {
+		*p_symbol++ = complete_symbol;
 	  }
       }
   }
@@ -4794,7 +4801,7 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFAD);@/
     LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_empty_transition = NULL;
     LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
-    p_new_state->t_complete_symbol_count = 0;
+    LV_Complete_SYM_Count_of_AHFA(p_new_state) = 0;
     @<Calculate postdot symbols for predicted state@>@/
     return p_new_state;
 }
@@ -4876,20 +4883,24 @@ once I stabilize the C code implemention.
 @d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
     (*(TRANSs_of_AHFA(from_ahfa)+(id)))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
-@d First_Completion_IX_of_TRANS(trans)
-    (first_completion_ix_of_transition_get(trans))
+@d Completion_Count_of_TRANS(trans)
+    (completion_count_of_transition_get(trans))
 @d To_AHFA_of_AHFA_by_SYMID(from_ahfa, id)
      (To_AHFA_of_TRANS(TRANS_of_AHFA_by_SYMID((from_ahfa), (id))))
-@d First_Completion_IX_of_AHFA_by_SYMID(from_ahfa, id)
-     (First_Completion_IX_of_TRANS(TRANS_of_AHFA_by_SYMID((from ahfa), (id))))
+@d Completion_Count_of_AHFA_by_SYMID(from_ahfa, id)
+     (Completion_Count_of_TRANS(TRANS_of_AHFA_by_SYMID((from ahfa), (id))))
 @d To_AHFA_of_EIM_by_SYMID(eim, id) To_AHFA_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
 @ @<Private incomplete structures@> =
 struct s_transition;
 typedef struct s_transition* TRANS;
 @ @<Private structures@> =
-struct s_transition {
+struct s_transition_ur {
     AHFA t_to_ahfa;
-    gint t_first_completion_ix;
+    gint t_completion_count;
+};
+struct s_transition {
+    struct s_transition_ur t_ur;
+    gint t_aex[1];
 };
 @ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
 @d LV_TRANSs_of_AHFA(ahfa) TRANSs_of_AHFA(ahfa)
@@ -4900,14 +4911,14 @@ static inline AHFA to_ahfa_of_transition_get(TRANS transition);
 @ @<Function definitions@> =
 static inline AHFA to_ahfa_of_transition_get(TRANS transition) {
      if (!transition) return NULL;
-     return transition->t_to_ahfa;
+     return transition->t_ur.t_to_ahfa;
 }
 @ @<Private function prototypes@> =
-static inline gint first_completion_ix_of_transition_get(TRANS transition);
+static inline gint completion_count_of_transition_get(TRANS transition);
 @ @<Function definitions@> =
-static inline gint first_completion_ix_of_transition_get(TRANS transition) {
-     if (!transition) return -1;
-     return transition->t_first_completion_ix;
+static inline gint completion_count_of_transition_get(TRANS transition) {
+     if (!transition) return 0;
+     return transition->t_ur.t_completion_count;
 }
 
 @ @<Private function prototypes@> =
@@ -4918,8 +4929,8 @@ static inline
 TRANS transition_new(GRAMMAR g, AHFA to_ahfa, gint aim_ix) {
      TRANS transition;
      transition = obstack_alloc (&g->t_obs, sizeof (transition[0]));
-     transition->t_to_ahfa = to_ahfa;
-     transition->t_first_completion_ix = aim_ix;
+     transition->t_ur.t_to_ahfa = to_ahfa;
+     transition->t_ur.t_completion_count = aim_ix;
      return transition;
 }
 
@@ -4947,10 +4958,27 @@ void transition_add(GRAMMAR g, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[symid];
     if (!transition) {
-        transitions[symid] = transition_new(g, to_ahfa, -1);
+        transitions[symid] = transition_new(g, to_ahfa, 0);
 	return;
     }
-    transition->t_to_ahfa = to_ahfa;
+    transition->t_ur.t_to_ahfa = to_ahfa;
+    return;
+}
+
+@ @<Private function prototypes@> =
+static inline
+void completion_count_inc(GRAMMAR g, AHFA from_ahfa, SYMID symid);
+@ @<Function definitions@> =
+static inline
+void completion_count_inc(GRAMMAR g, AHFA from_ahfa, SYMID symid)
+{
+    TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
+    TRANS transition = transitions[symid];
+    if (!transition) {
+        transitions[symid] = transition_new(g, NULL, 1);
+	return;
+    }
+    transition->t_ur.t_completion_count++;
     return;
 }
 
@@ -5779,8 +5807,8 @@ The only awkwardness takes place
 when the second source is added, and the first one must
 be recopied to make way for pointers to the linked lists.
 @d EIM_FATAL_THRESHOLD (G_MAXINT/4)
-@d Complete_SYMIDARY_of_EIM(item) 
-    Complete_SYMIDARY_of_AHFA(AHFA_of_EIM(item))
+@d Complete_SYMIDs_of_EIM(item) 
+    Complete_SYMIDs_of_AHFA(AHFA_of_EIM(item))
 @d Complete_SYM_Count_of_EIM(item)
     Complete_SYM_Count_of_AHFA(AHFA_of_EIM(item))
 @d Leo_LHS_ID_of_EIM(eim) Leo_LHS_ID_of_AHFA(AHFA_of_EIM(eim))
@@ -7886,7 +7914,7 @@ this means that the parse is exhausted.
 add those Earley items it "causes".
 @<Add new Earley items for |cause|@> =
 {
-  Marpa_Symbol_ID *complete_symbols = Complete_SYMIDARY_of_EIM (cause);
+  Marpa_Symbol_ID *complete_symbols = Complete_SYMIDs_of_EIM (cause);
   gint count = Complete_SYM_Count_of_EIM (cause);
   ES middle = Origin_of_EIM (cause);
   gint symbol_ix;
