@@ -4099,7 +4099,6 @@ void create_AHFA_states(struct marpa_g* g) {
    AIM AHFA_item_0_p = g->t_AHFA_items;
    const guint symbol_count_of_g = SYM_Count_of_G(g);
    const guint rule_count_of_g = rule_count(g);
-MARPA_DEBUG2("rule count = %d", rule_count_of_g);
    Bit_Matrix prediction_matrix;
    RULE* rule_by_sort_key = g_new(RULE, rule_count_of_g);
     GTree* duplicates;
@@ -4170,8 +4169,6 @@ NEXT_AHFA_STATE: ;
 	       if (working_transition) {
 		   gint completion_count = Completion_Count_of_TRANS(working_transition);
 		   gint sizeof_transition = sizeof(working_transition[0]) + (completion_count-1) * sizeof(AEX);
-MARPA_DEBUG4("ahfa=%d symbol=%d, sizeof(trans)=%d",
-ID_of_AHFA(ahfa), symbol_id, sizeof_transition);
 		   TRANS new_transition = obstack_alloc(&g->t_obs, sizeof_transition);
 		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
 		   LV_Completion_Count_of_TRANS(new_transition) = 0;
@@ -4188,8 +4185,6 @@ ID_of_AHFA(ahfa), symbol_id, sizeof_transition);
 		      SYMID completed_symbol_id = LHS_ID_of_AIM(ahfa_item);
 		      TRANS transition = TRANS_of_AHFA_by_SYMID(ahfa, completed_symbol_id);
 		      AEX* aexes = AEXs_of_TRANS(transition);
-MARPA_DEBUG4("ahfa=%d symbol=%d, count=%d",
-ID_of_AHFA(ahfa), completed_symbol_id, Completion_Count_of_TRANS(transition));
 		      aexes[LV_Completion_Count_of_TRANS(transition)++] = aex;
 		  }
 	      }
@@ -5025,17 +5020,9 @@ void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
     TRANS transition = transitions[symid];
     if (!transition) {
         transitions[symid] = transition_new(obstack, NULL, 1);
-
-MARPA_DEBUG4("Setting ahfa=%d symbol=%d, count=%d",
-ID_of_AHFA(from_ahfa), symid, 1);
-
 	return;
     }
     transition->t_ur.t_completion_count++;
-
-MARPA_DEBUG4("Setting ahfa=%d symbol=%d, count=%d",
-ID_of_AHFA(from_ahfa), symid, transition->t_ur.t_completion_count);
-
     return;
 }
 
@@ -8644,6 +8631,18 @@ gint marpa_leo_completion_expand(struct marpa_r *r)
   }
   return leo_completion_expand(r, item);
 }
+
+@** Or-Node (OR) Code.
+@s OR int
+@<Private incomplete structures@> =
+struct s_or_node;
+typedef struct s_or_node* OR;
+@ @<Private structures@> =
+struct s_or_node {
+    gint dummy; // No contents yet
+};
+typedef struct s_or_node OR_Object;
+static const OR_Object dummy_or_node = { 1 };
 
 @** Evaluation --- Preliminary Notes.
 
