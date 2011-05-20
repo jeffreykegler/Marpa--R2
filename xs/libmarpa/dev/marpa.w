@@ -5866,11 +5866,13 @@ when the Earley item is initialized.
 to uniquely specify the Earley item you must also specify
 the Earley set.
 @d ES_of_EIM(item) ((item)->t_key.t_set)
+@d ES_Ord_of_EIM(item) (Ord_of_ES(ES_of_EIM(item)))
 @d Ord_of_EIM(item) ((item)->t_ordinal)
 @d LV_Ord_of_EIM(item) Ord_of_EIM(item)
 @d Earleme_of_EIM(item) Earleme_of_ES(ES_of_EIM(item))
 @d AHFAID_of_EIM(item) (ID_of_AHFA(AHFA_of_EIM(item)))
 @d AHFA_of_EIM(item) ((item)->t_key.t_state)
+@d AIM_Count_of_EIM(item) (AIM_Count_of_AHFA(AHFA_of_EIM(item)))
 @d Origin_Earleme_of_EIM(item) (Earleme_of_ES(Origin_of_EIM(item)))
 @d Origin_of_EIM(item) ((item)->t_key.t_origin)
 @<Private incomplete structures@> =
@@ -8642,7 +8644,7 @@ struct s_or_node {
     gint dummy; // No contents yet
 };
 typedef struct s_or_node OR_Object;
-static const OR_Object dummy_or_node = { 1 };
+static OR_Object dummy_or_node = { 1 };
 
 @** Evaluation --- Preliminary Notes.
 
@@ -8807,20 +8809,26 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     return 1; // For now, just return 1
 }
 
+
 @ @<Bocage setup locals@> =
 @<Return |-2| on failure@>@;
 const GRAMMAR_Const g = G_of_R(r);
 ES end_of_parse_es;
 RULE completed_start_rule;
 EIM start_eim = NULL;
-AEX start_aex;
-struct s_bocage_setup_per_es {
-     Bit_Vector was_earley_item_stacked; // To be deleted
-     OR ** t_per_eim_aexes;
-};
-struct s_bocage_setup_per_es* per_es_data = NULL;
+AEX start_aex = -1;
 struct obstack bocage_setup_obs;
 guint total_earley_items_in_parse;
+
+@ @<Private incomplete structures@> =
+struct s_bocage_setup_per_es;
+@ @<Private structures@> =
+struct s_bocage_setup_per_es {
+     Bit_Vector was_earley_item_stacked; // To be deleted
+     OR ** t_aexes_by_item;
+};
+@ @<Bocage setup locals@> =
+struct s_bocage_setup_per_es* per_es_data = NULL;
 
 @ @<Return if function guards fail;
 set |end_of_parse_es| and |completed_start_rule|@> =
@@ -8888,7 +8896,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
       const guint item_count = EIM_Count_of_ES (earley_set);
       total_earley_items_in_parse += item_count;
 	{
-	  OR ** const per_eim_eixes = per_es_data[ix].t_per_eim_aexes =
+	  OR ** const per_eim_eixes = per_es_data[ix].t_aexes_by_item =
 	    obstack_alloc (&bocage_setup_obs, sizeof (OR *) * item_count);
 	  guint item_ordinal;
 	  for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
@@ -8907,6 +8915,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
     const EIM *top_of_stack;
     FSTACK_DECLARE (stack, EIM);
     FSTACK_INIT (stack, EIM, total_earley_items_in_parse);
+    ur_node_boolean_set_if_false(&bocage_setup_obs, per_es_data, start_eim, start_aex);
     *(FSTACK_PUSH (stack)) = start_eim;
     was_stacked =
       per_es_data[Ord_of_ES (ES_of_EIM (start_eim))].was_earley_item_stacked; // Delete this
@@ -8919,6 +8928,37 @@ set |end_of_parse_es| and |completed_start_rule|@> =
         @<Push child Earley items from completion sources@>@;
         @<Push child Earley items from Leo sources@>@;
     }
+}
+
+@ @<Private function prototypes@> =
+static inline gint ur_node_boolean_set_if_false(
+    struct obstack* obs,
+    struct s_bocage_setup_per_es* per_es_data,
+    EIM earley_item,
+    AEX ahfa_element_ix);
+@ @<Function definitions@> = 
+static inline gint ur_node_boolean_set_if_false(
+    struct obstack* obs,
+    struct s_bocage_setup_per_es* per_es_data,
+    EIM earley_item,
+    AEX ahfa_element_ix)
+{
+    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
+    const Marpa_Earley_Set_ID set_ordinal = ES_Ord_of_EIM(earley_item);
+    OR** nodes_by_item = per_es_data[set_ordinal].t_aexes_by_item;
+    const gint item_ordinal = Ord_of_EIM(earley_item);
+    OR* nodes_by_aex = nodes_by_item[item_ordinal];
+    if (!nodes_by_aex) {
+	AEX aex;
+        nodes_by_aex = nodes_by_item[item_ordinal] =
+	    obstack_alloc(obs, aim_count_of_item*sizeof(OR));
+	for (aex = 0; aex < aim_count_of_item; aex++) {
+	    nodes_by_aex[ahfa_element_ix] = NULL;
+	}
+    }
+    if (nodes_by_aex[ahfa_element_ix]) return 0;
+    nodes_by_aex[ahfa_element_ix] = &dummy_or_node;
+    return 1;
 }
 
 @ @<Push child Earley items from token sources@> =
