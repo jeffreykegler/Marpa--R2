@@ -8645,9 +8645,6 @@ gint marpa_leo_completion_expand(struct marpa_r *r)
 }
 
 @** Evaluation --- Preliminary Notes.
-Work on the evaluation code is not yet really underway,
-but some relevant notes are by-products of other work.
-These are collected here.
 
 @*0 Alternate Start Rules.
 Note that a start symbol only works if it is
@@ -8668,10 +8665,10 @@ to do on-the-fly experiments.
 but it is just one more interface
 complication.
 
-@ Note that even when a start rule is supplies, that does
+@ Note that even when a start rule is supplied, that does
 not necessarily point to an unique Earley item.
 A completed rule can belong to several different AHFA states.
-That could be OK, because even so origin, current earleme
+That is OK, because even so origin, current earleme
 and the links will all be identical for all such Earley items.
 
 @*0 Statistics on Completed LHS Symbols per AHFA State.
@@ -8692,8 +8689,8 @@ These HTML grammars can differ from each other.
 because Marpa takes the HTML input into account when
 generating the grammar.
 In my HTML test suite,
-14,782 of the AHFA states include one or more completions.
-Not a single one has more than one completed LHS symbol.
+of the 14,782 of the AHFA states, every
+single one has only one completed LHS symbol.
 
 @*0 Relationship of Earley Items to Or-Nodes.
 Several Earley items may be the source of the same or-node,
@@ -8769,13 +8766,22 @@ the or-node's "unique" Earley item source.
 for the same Earley item.
 I prevent token source links from duplicating,
 and the Leo logic does not allow duplicate Leo source links.
-Completion source links are prevented from duplicating by
+@ Completion source links could be prevented from duplicating by
 making the transition symbol part of its "signature",
 and making sure the source link transition symbol matches
 the predot symbol of the or-node.
-@ A third source of duplication is the 
-when different source links of the same Earley item share
-a dotted rule.
+This would only impose a small overhead.
+But given that I need to look for duplicates from other
+sources, there does not seem to enough of a payoff to justify
+even a small overhead.
+@ A third source of duplication occurs
+when different source links
+have different AHFA states in their predecessors; but
+share the the same AHFA item.
+There will be
+pairs of these source links which share the same middle earleme,
+because if an AHFA item (dotted rule) in one is justified at a
+location, the same AHFA item in the other must be, also.
 This happen frequently enough to be an issue even for practical
 grammars.
 
@@ -8882,12 +8888,14 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 
 @ @<Traverse Earley sets to create bocage@>=
 {
+    Bit_Vector was_stacked;
     const EIM *top_of_stack;
     FSTACK_DECLARE (stack, EIM);
     FSTACK_INIT (stack, EIM, total_earley_items_in_parse);
     *(FSTACK_PUSH (stack)) = start_eim;
-    bv_bit_set (per_es_data[Ord_of_ES (ES_of_EIM (start_eim))].
-	    was_earley_item_stacked, (guint)Ord_of_EIM (start_eim));
+    was_stacked =
+      per_es_data[Ord_of_ES (ES_of_EIM (start_eim))].was_earley_item_stacked;
+    bv_bit_set (was_stacked, (guint) Ord_of_EIM (start_eim));
     while ((top_of_stack = FSTACK_POP (stack)))
     {
           const EIM_Const earley_item = *top_of_stack;
