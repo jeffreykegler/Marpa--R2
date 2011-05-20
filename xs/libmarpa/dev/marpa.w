@@ -3821,6 +3821,7 @@ AHFA state 0 is, however, {\bf never}
 a predicted AHFA state.
 @d AHFA_is_Predicted(ahfa) ((ahfa)->t_is_predict)
 @d LV_AHFA_is_Predicted(ahfa) AHFA_is_Predicted(ahfa)
+@d EIM_is_Predicted(eim) AHFA_is_Predicted(AHFA_of_EIM(eim))
 @<Bit aligned AHFA elements@> =
 guint t_is_predict:1;
 
@@ -8865,6 +8866,10 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	}
       completed_start_rule = RULE_by_ID (g, rule_id);
     }
+    if (ordinal == 0) {  // If this is a null parse
+         R_ERROR("null parse not yet implemented");
+	 return failure_indicator;
+    }
 }
 
 @
@@ -8923,6 +8928,10 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
     }
+    if (push_candidate && EIM_is_Predicted(push_candidate)) {
+	  /* Or-nodes are not built from predictions */
+          push_candidate = NULL;
+    }
   for (;;)
     {
       if (push_candidate) {
@@ -8959,6 +8968,11 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	  push_candidates[0] = push_candidates[1] = NULL;
 	  break;
     }
+    if (push_candidates[0] && EIM_is_Predicted (push_candidates[0]))
+      {
+	/* Or-nodes are not built from predictions */
+	push_candidates[0] = NULL;
+      }
   while (push_candidates[1])
     {
       EIM push_candidate = push_candidates[0];
