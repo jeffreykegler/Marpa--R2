@@ -4238,7 +4238,7 @@ g_tree_destroy(duplicates);
     if (start_symbol->t_is_nulling)
       {				// Special case the null parse
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
-	SYMID completed_symbol_id = ID_of_SYM(start_alias);
+	SYMID completed_symbol_id = ID_of_SYM(start_symbol);
 	*complete_symids = completed_symbol_id;
 	completion_count_inc (&ahfa_work_obs, p_initial_state, completed_symbol_id);
 	LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
