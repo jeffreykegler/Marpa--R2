@@ -1083,18 +1083,19 @@ Marpa_Error_ID marpa_g_error(const struct marpa_g* g);
 @s Marpa_Symbol_ID int
 @<Public typedefs@> =
 typedef gint Marpa_Symbol_ID;
+@ @<Private typedefs@> =
+typedef gint SYMID;
 @ @<Private incomplete structures@> =
 struct s_symbol;
 typedef struct s_symbol* SYM;
 typedef const struct s_symbol* SYM_Const;
 @ @<Private structures@> =
 struct s_symbol {
-    @<Widely aligned symbol elements@>@/
-    @<Int aligned symbol elements@>@/
-    @<Bit aligned symbol elements@>@/
+    @<Widely aligned symbol elements@>@;
+    @<Int aligned symbol elements@>@;
+    @<Bit aligned symbol elements@>@;
 };
 typedef struct s_symbol SYM_Object;
-typedef gint SYMID;
 
 @ @<Private function prototypes@> =
 static inline
@@ -1106,7 +1107,7 @@ symbol_new (struct marpa_g *g)
   SYM symbol = g_malloc (sizeof (SYM_Object));
   @<Initialize symbol elements @>@/
   {
-    Marpa_Symbol_ID id = symbol->t_id;
+    SYMID id = ID_of_SYM(symbol);
     g_symbol_add (g, id, symbol);
   }
   return symbol;
@@ -1118,7 +1119,7 @@ Marpa_Symbol_ID marpa_symbol_new(struct marpa_g *g);
 Marpa_Symbol_ID
 marpa_symbol_new (struct marpa_g * g)
 {
-  Marpa_Symbol_ID id = symbol_new (g)->t_id;
+  SYMID id = ID_of_SYM(symbol_new (g));
   symbol_callback (g, id);
   return id;
 }
@@ -1130,8 +1131,10 @@ static inline void symbol_free(SYM symbol)
 static inline void symbol_free(SYM symbol);
 
 @ Symbol ID: This is the unique identifier for the symbol.
-@<Int aligned symbol elements@> = Marpa_Symbol_ID t_id;
-@ @<Initialize symbol elements@> = symbol->t_id = g->t_symbols->len;
+@d ID_of_SYM(sym) ((sym)->t_symbol_id)
+@d LV_ID_of_SYM(sym) ID_of_SYM(sym)
+@<Int aligned symbol elements@> = SYMID t_symbol_id;
+@ @<Initialize symbol elements@> = LV_ID_of_SYM(symbol) = g->t_symbols->len;
 
 @*0 Symbol LHS Rules Element.
 This tracks the rules for which this symbol is the LHS.
@@ -1392,7 +1395,7 @@ SYM proper_alias;
 @<Fail if grammar |symid| is invalid@>@;
 symbol = SYM_by_ID(g, symid);
 proper_alias = symbol_proper_alias(symbol);
-return proper_alias == NULL ? -1 : proper_alias->t_id;
+return proper_alias == NULL ? -1 : ID_of_SYM(proper_alias);
 }
 @ @<Private function prototypes@> =
 static inline SYM symbol_proper_alias(SYM symbol);
@@ -1420,7 +1423,7 @@ if (alias == NULL) {
     g->t_error = "no alias";
     return -1;
 }
-return alias->t_id;
+return ID_of_SYM(alias);
 }
 @ @<Private function prototypes@> =
 static inline SYM symbol_null_alias(SYM symbol);
@@ -1433,12 +1436,11 @@ The proper (non-nullable) alias will have the same symbol ID
 as the arugment.
 The nulling alias will have a new symbol ID.
 The return value is a pointer to the nulling alias.
-TODO: I expect to delete
-the external version of this function after
-development.
-@<Function definitions@> = static inline
-SYM symbol_alias_create(struct marpa_g* g,
-SYM symbol)
+@ @<Private function prototypes@> = 
+static inline
+SYM symbol_alias_create(GRAMMAR g, SYM symbol);
+@ @<Function definitions@> = static inline
+SYM symbol_alias_create(GRAMMAR g, SYM symbol)
 {
     SYM alias = symbol_new(g);
     symbol->t_is_proper_alias = TRUE;
@@ -1453,21 +1455,6 @@ SYM symbol)
     alias->t_alias = symbol;
     return alias;
 }
-Marpa_Symbol_ID marpa_symbol_alias_create(
-struct marpa_g* g, Marpa_Symbol_ID original_id)
-{ Marpa_Symbol_ID alias_id;
-    if (original_id < 0) { return -1; }
-    if ((guint)original_id >= g->t_symbols->len) { return -1; }
-    alias_id = symbol_alias_create(g, SYM_by_ID(g, original_id))->t_id;
-    symbol_callback(g, alias_id);
-    return alias_id; }
-@ @<Private function prototypes@> = 
-static inline
-SYM symbol_alias_create(struct marpa_g* g,
-SYM symbol);
-@ @<Public function prototypes@> = 
-Marpa_Symbol_ID marpa_symbol_alias_create(
-struct marpa_g* g, Marpa_Symbol_ID symid);
 
 @ {\bf Symbol callbacks}:  The user can define a callback
 (with argument) which is invoked whenever a symbol
@@ -1639,7 +1626,7 @@ if (separator_id >= 0) { SYM_by_ID(g, separator_id)->t_is_counted = 1; }
 	rule_callback(g, rule->t_id);
 	}
 @ @<Create the internal LHS symbol@> =
-    internal_lhs_id = symbol_new(g)->t_id;
+    internal_lhs_id = ID_of_SYM(symbol_new(g));
     symbol_callback(g, internal_lhs_id);
 @ The actual size needed for the RHS buffer is determined by
 the longer of minimum rule and the iterating rule.
@@ -2778,7 +2765,7 @@ for (symid = 0; symid < no_of_symbols; symid++) {
      if (!symbol->t_is_productive) continue;
      if (symbol_null_alias(symbol)) continue;
     alias = symbol_alias_create(g, symbol);
-    symbol_callback(g, alias->t_id);
+    symbol_callback(g, ID_of_SYM(alias));
 } }
 
 @*0 Compute Statistics Needed to Rewrite the Rule.
@@ -2837,7 +2824,7 @@ if (unprocessed_factor_count == 2) {
     SYM chaf_virtual_symbol = symbol_new(g);
     chaf_virtual_symbol->t_is_accessible = 1;
     chaf_virtual_symbol->t_is_productive = 1;
-    chaf_virtual_symid = chaf_virtual_symbol->t_id;
+    chaf_virtual_symid = ID_of_SYM(chaf_virtual_symbol);
     g_context_clear(g);
     g_context_int_add(g, "rule_id", rule_id);
     g_context_int_add(g, "lhs_id", LHS_ID_of_PRD(rule));
@@ -2928,7 +2915,7 @@ for (remaining_rhs_length=piece_rhs_length-1 ;
 	remaining_rhs_length++) {
     Marpa_Symbol_ID original_id = rhs_symid(rule, piece_start+remaining_rhs_length);
     SYM alias = symbol_null_alias(SYM_by_ID(g, original_id));
-    remaining_rhs[remaining_rhs_length] = alias ? alias->t_id : original_id;
+    remaining_rhs[remaining_rhs_length] = alias ? ID_of_SYM(alias) : original_id;
 } }
 { RULE  chaf_rule;
     guint real_symbol_count = remaining_rhs_length;
@@ -2943,7 +2930,7 @@ for (remaining_rhs_length=piece_rhs_length-1 ;
     SYM alias = symbol_null_alias(SYM_by_ID(g, proper_id));
     remaining_rhs[first_factor_piece_position] =
 	piece_rhs[first_factor_piece_position] =
-	alias->t_id;
+	ID_of_SYM(alias);
 }
 { RULE  chaf_rule;
  guint real_symbol_count = piece_rhs_length-1;
@@ -3117,7 +3104,7 @@ It is assumed that the caller has ensured that
 static inline
 Marpa_Symbol_ID alias_by_id(struct marpa_g* g, Marpa_Symbol_ID proper_id) {
      SYM alias = symbol_null_alias(SYM_by_ID(g, proper_id));
-     return alias->t_id;
+     return ID_of_SYM(alias);
 }
 @ @<Private function prototypes@> =
 static inline
@@ -3157,15 +3144,15 @@ old_start->t_is_start = 0;
   RULE new_start_rule;
   proper_old_start->t_is_start = 0;
   proper_new_start = symbol_new (g);
-  proper_new_start_id = proper_new_start->t_id;
+  proper_new_start_id = ID_of_SYM(proper_new_start);
   g->t_start_symid = proper_new_start_id;
   proper_new_start->t_is_accessible = TRUE;
   proper_new_start->t_is_productive = TRUE;
   proper_new_start->t_is_start = TRUE;
   g_context_clear (g);
-  g_context_int_add (g, "old_start_id", old_start->t_id);
+  g_context_int_add (g, "old_start_id", ID_of_SYM(old_start));
   symbol_callback (g, proper_new_start_id);
-  new_start_rule = rule_start (g, proper_new_start_id, &old_start->t_id, 1);
+  new_start_rule = rule_start (g, proper_new_start_id, &LV_ID_of_SYM(old_start), 1);
   new_start_rule->t_is_start = 1;
   new_start_rule->t_is_virtual_lhs = 1;
   new_start_rule->t_real_symbol_count = 1;
@@ -3185,12 +3172,12 @@ if there is one.  Otherwise it is a new, nulling, symbol.
   if (proper_new_start)
     {				/* There are two start symbols */
       nulling_new_start = symbol_alias_create (g, proper_new_start);
-      nulling_new_start_id = nulling_new_start->t_id;
+      nulling_new_start_id = ID_of_SYM(nulling_new_start);
     }
   else
     {				/* The only start symbol is a nulling symbol */
       nulling_new_start = symbol_new (g);
-      nulling_new_start_id = nulling_new_start->t_id;
+      nulling_new_start_id = ID_of_SYM(nulling_new_start);
       g->t_start_symid = nulling_new_start_id;
       nulling_new_start->t_is_nulling = TRUE;
       nulling_new_start->t_is_nullable = TRUE;
@@ -3199,7 +3186,7 @@ if there is one.  Otherwise it is a new, nulling, symbol.
     }
   nulling_new_start->t_is_start = TRUE;
   g_context_clear (g);
-  g_context_int_add (g, "old_start_id", old_start->t_id);
+  g_context_int_add (g, "old_start_id", ID_of_SYM(old_start));
   symbol_callback (g, nulling_new_start_id);
   new_start_rule = rule_start (g, nulling_new_start_id, 0, 0);
   new_start_rule->t_is_start = 1;
@@ -3783,7 +3770,7 @@ The three possibilities just enumerated exhaust the possibilities for AHFA state
 The total is ${s \over 2} + {s \over 2} + s = 2s$.
 Typically, the number of AHFA states should be less than this estimate.
 
-@d AHFA_by_ID(id) (g->t_AHFA+(id))
+@d AHFA_of_G_by_ID(g, id) ((g)->t_AHFA+(id))
 @d AHFA_has_Completed_Start_Rule(ahfa) ((ahfa)->t_has_completed_start_rule)
 @<Private incomplete structures@> = struct s_AHFA_state;
 @ @<Private structures@> =
@@ -3853,7 +3840,7 @@ LV_AHFA_Count_of_G(g) = 0;
 @<Destroy grammar elements@> = if (g->t_AHFA) {
 AHFAID id;
 for (id = 0; id < AHFA_Count_of_G(g); id++) {
-   AHFA ahfa_state = AHFA_by_ID(id);
+   AHFA ahfa_state = AHFA_of_G_by_ID(g, id);
    @<Free AHFA state@>@;
 }
 STOLEN_DQUEUE_DATA_FREE(g->t_AHFA);
@@ -3918,7 +3905,7 @@ marpa_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
     AHFA state;
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
-    state = AHFA_by_ID(AHFA_state_id);
+    state = AHFA_of_G_by_ID(g, AHFA_state_id);
     return state->t_item_count;
 }
 @ @<Public function prototypes@> =
@@ -3932,7 +3919,7 @@ Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
-    state = AHFA_by_ID(AHFA_state_id);
+    state = AHFA_of_G_by_ID(g, AHFA_state_id);
     if (item_ix >= state->t_item_count) {
 	g_context_clear(g);
 	g_context_int_add(g, "item_ix", (gint)item_ix);
@@ -3954,7 +3941,7 @@ gint marpa_AHFA_state_is_predict(struct marpa_g* g,
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
-    state = AHFA_by_ID(AHFA_state_id);
+    state = AHFA_of_G_by_ID(g, AHFA_state_id);
     return AHFA_is_Predicted(state);
 }
 @ @<Public function prototypes@> =
@@ -3999,7 +3986,7 @@ Marpa_Rule_ID marpa_AHFA_completed_start_rule(struct marpa_g* g,
     AHFA state;
     @<Fail if grammar not precomputed@>@;
     @<Fail if grammar |AHFA_state_id| is invalid@>@;
-    state = AHFA_by_ID (AHFA_state_id);
+    state = AHFA_of_G_by_ID (g, AHFA_state_id);
     if (AHFA_has_Completed_Start_Rule(state)) {
 	const gint ahfa_item_count = state->t_item_count;
 	const AIM* ahfa_items = state->t_items;
@@ -4040,7 +4027,7 @@ Marpa_Symbol_ID marpa_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
     AHFA state;
     @<Fail if grammar not precomputed@>@;
     @<Fail if grammar |AHFA_state_id| is invalid@>@;
-    state = AHFA_by_ID(AHFA_state_id);
+    state = AHFA_of_G_by_ID(g, AHFA_state_id);
     return Leo_LHS_ID_of_AHFA(state);
 }
 
@@ -4111,6 +4098,7 @@ void create_AHFA_states(struct marpa_g* g) {
    AIM AHFA_item_0_p = g->t_AHFA_items;
    const guint symbol_count_of_g = SYM_Count_of_G(g);
    const guint rule_count_of_g = rule_count(g);
+MARPA_DEBUG2("rule count = %d", rule_count_of_g);
    Bit_Matrix prediction_matrix;
    RULE* rule_by_sort_key = g_new(RULE, rule_count_of_g);
     GTree* duplicates;
@@ -4171,23 +4159,41 @@ NEXT_AHFA_STATE: ;
 
 @ @<Populate the completed symbol data in the transitions@> =
 {
-     gint ahfa_ix;
-     for (ahfa_ix = 0; ahfa_ix < ahfa_count_of_g; ahfa_ix++) {
+     gint ahfa_id;
+     for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
 	  guint symbol_id;
-          TRANS* transitions = TRANSs_of_AHFA(ahfas_of_g+ahfa_ix);
+	  AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
+          TRANS* transitions = TRANSs_of_AHFA(ahfa);
 	  for (symbol_id = 0; symbol_id < symbol_count_of_g; symbol_id++) {
 	       TRANS working_transition = transitions[symbol_id];
 	       if (working_transition) {
 		   gint completion_count = Completion_Count_of_TRANS(working_transition);
 		   gint sizeof_transition = sizeof(working_transition[0]) + (completion_count-1) * sizeof(AEX);
+MARPA_DEBUG4("ahfa=%d symbol=%d, sizeof(trans)=%d",
+ID_of_AHFA(ahfa), symbol_id, sizeof_transition);
 		   TRANS new_transition = obstack_alloc(&g->t_obs, sizeof_transition);
 		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
 		   LV_Completion_Count_of_TRANS(new_transition) = 0;
 		   transitions[symbol_id] = new_transition;
 	       }
 	  }
+	  if (Complete_SYM_Count_of_AHFA(ahfa) > 0) {
+	      AIM* aims = AIMs_of_AHFA(ahfa);
+	      gint aim_count = AIM_Count_of_AHFA(ahfa);
+	      AEX aex;
+	      for (aex = 0; aex < aim_count; aex++) {
+		  AIM ahfa_item = aims[aex];
+		  if (AIM_is_Completion(ahfa_item)) {
+		      SYMID completed_symbol_id = LHS_ID_of_AIM(ahfa_item);
+		      TRANS transition = TRANS_of_AHFA_by_SYMID(ahfa, completed_symbol_id);
+		      AEX* aexes = AEXs_of_TRANS(transition);
+MARPA_DEBUG4("ahfa=%d symbol=%d, count=%d",
+ID_of_AHFA(ahfa), completed_symbol_id, Completion_Count_of_TRANS(transition));
+		      aexes[LV_Completion_Count_of_TRANS(transition)++] = aex;
+		  }
+	      }
+	  }
      }
-;
 }
 
 @ @<Free locals for creating AHFA states@> =
@@ -4232,7 +4238,7 @@ g_tree_destroy(duplicates);
     if (start_symbol->t_is_nulling)
       {				// Special case the null parse
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
-	SYMID completed_symbol_id = g->t_start_symid;
+	SYMID completed_symbol_id = ID_of_SYM(start_alias);
 	*complete_symids = completed_symbol_id;
 	completion_count_inc (&ahfa_work_obs, p_initial_state, completed_symbol_id);
 	LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
@@ -4250,7 +4256,7 @@ g_tree_destroy(duplicates);
 	if (start_alias)
 	  {
 	    SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
-	    SYMID completed_symbol_id = LHS_ID_of_PRD (RULE_by_ID (g, start_rule_id));
+	    SYMID completed_symbol_id = ID_of_SYM(start_alias);
 	    *complete_symids = completed_symbol_id;
 	    completion_count_inc(&ahfa_work_obs, p_initial_state, completed_symbol_id);
 	    LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
@@ -4929,7 +4935,9 @@ once I stabilize the C code implemention.
 @d Completion_Count_of_AHFA_by_SYMID(from_ahfa, id)
      (Completion_Count_of_TRANS(TRANS_of_AHFA_by_SYMID((from ahfa), (id))))
 @d To_AHFA_of_EIM_by_SYMID(eim, id) To_AHFA_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
-@ @<Private incomplete structures@> =
+@d AEXs_of_TRANS(trans) ((trans)->t_aex)
+@ @s TRANS int
+@<Private incomplete structures@> =
 struct s_transition;
 typedef struct s_transition* TRANS;
 @ @<Private typedefs@> = typedef gint AEX;
@@ -5016,9 +5024,17 @@ void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
     TRANS transition = transitions[symid];
     if (!transition) {
         transitions[symid] = transition_new(obstack, NULL, 1);
+
+MARPA_DEBUG4("Setting ahfa=%d symbol=%d, count=%d",
+ID_of_AHFA(from_ahfa), symid, 1);
+
 	return;
     }
     transition->t_ur.t_completion_count++;
+
+MARPA_DEBUG4("Setting ahfa=%d symbol=%d, count=%d",
+ID_of_AHFA(from_ahfa), symid, transition->t_ur.t_completion_count);
+
     return;
 }
 
@@ -5041,7 +5057,7 @@ gint marpa_AHFA_state_transitions(struct marpa_g* g,
     @<Fail if grammar not precomputed@>@;
     @<Fail if grammar |AHFA_state_id| is invalid@>@;
     @<Fail grammar if elements of |result| are not |sizeof(gint)|@>@;
-    from_ahfa_state = AHFA_by_ID(AHFA_state_id);
+    from_ahfa_state = AHFA_of_G_by_ID(g, AHFA_state_id);
     transitions = TRANSs_of_AHFA(from_ahfa_state); 
     symbol_count = SYM_Count_of_G(g);
     g_array_set_size(result, 0);
@@ -5071,7 +5087,7 @@ AHFAID marpa_AHFA_state_empty_transition(struct marpa_g* g,
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
-    state = AHFA_by_ID(AHFA_state_id);
+    state = AHFA_of_G_by_ID(g, AHFA_state_id);
     empty_transition_state = Empty_Transition_of_AHFA (state);
     if (empty_transition_state)
       return ID_of_AHFA (empty_transition_state);
@@ -5094,6 +5110,7 @@ AHFAID marpa_AHFA_state_empty_transition(struct marpa_g* g,
 @** Recognizer (RECCE) Code.
 @<Public incomplete structures@> =
 struct marpa_r;
+@ @<Private typedefs@> =
 typedef struct marpa_r* RECCE;
 @ @<Recognizer structure@> =
 struct marpa_r {
@@ -5176,14 +5193,14 @@ exhausted it may gone into the evaluation phase, then
 return to the input phase,
 All that time it will remain "exhausted".
 @<Public typedefs@> =
-enum enum_phase {
+enum marpa_phase {
     no_such_phase = 0, // 0 is never a valid phase
     initial_phase,
     input_phase,
     evaluation_phase,
     error_phase
 };
-typedef enum enum_phase Marpa_Phase;
+typedef enum marpa_phase Marpa_Phase;
 @ @d Phase_of_R(r) ((r)->t_phase)
 @d LV_Phase_of_R(r) Phase_of_R(r)
 @<Int aligned recognizer elements@> = 
@@ -6137,7 +6154,7 @@ marpa_old_earley_item_trace (struct marpa_r *r,
       R_ERROR("origin es not found");
       return failure_indicator;
     }
-  item_key.t_state = AHFA_by_ID (state_id);
+  item_key.t_state = AHFA_of_G_by_ID (g, state_id);
   item_key.t_origin = origin_set;
   item_key.t_set = current_set;
   item = r->t_trace_earley_item = g_tree_lookup(r->t_earley_item_tree, &item_key);
@@ -7629,7 +7646,7 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
     set0 = earley_set_new(r, 0);
     LV_Latest_ES_of_R(r) = set0;
     LV_First_ES_of_R(r) = set0;
-    state = AHFA_by_ID(0);
+    state = AHFA_of_G_by_ID(g, 0);
     key.t_origin = set0;
     key.t_state = state;
     key.t_set = set0;

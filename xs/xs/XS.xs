@@ -310,16 +310,6 @@ CODE:
 OUTPUT:
     RETVAL
 
-Marpa_Symbol_ID
-symbol_alias( g, symbol_id )
-    Grammar *g;
-    Marpa_Symbol_ID symbol_id;
-CODE:
-    RETVAL = marpa_symbol_alias_create(g, symbol_id);
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
-
 void
 symbol_lhs_rule_ids( g, symbol_id )
     Grammar *g;
