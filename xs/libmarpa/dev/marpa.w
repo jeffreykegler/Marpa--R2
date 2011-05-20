@@ -8797,7 +8797,7 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
-    @<Find |start_eim|@>@;
+    @<Find |start_eim| and |start_aex|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
@@ -8813,8 +8813,10 @@ const GRAMMAR_Const g = G_of_R(r);
 ES end_of_parse_es;
 RULE completed_start_rule;
 EIM start_eim = NULL;
+AEX start_aex;
 struct s_bocage_setup_per_es {
-     Bit_Vector was_earley_item_stacked;
+     Bit_Vector was_earley_item_stacked; // To be deleted
+     OR ** t_per_eim_aexes;
 };
 struct s_bocage_setup_per_es* per_es_data = NULL;
 struct obstack bocage_setup_obs;
@@ -8885,8 +8887,17 @@ set |end_of_parse_es| and |completed_start_rule|@> =
       const ES_Const earley_set = ES_of_R_by_Ord (r, ix);
       const guint item_count = EIM_Count_of_ES (earley_set);
       total_earley_items_in_parse += item_count;
+	{
+	  OR ** const per_eim_eixes = per_es_data[ix].t_per_eim_aexes =
+	    obstack_alloc (&bocage_setup_obs, sizeof (OR *) * item_count);
+	  guint item_ordinal;
+	  for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
+	    {
+	      per_eim_eixes[item_ordinal] = NULL;
+	    }
+	}
       per_es_data[ix].was_earley_item_stacked =
-	bv_obs_create (&bocage_setup_obs, item_count);
+	bv_obs_create (&bocage_setup_obs, item_count); // Delete this
     }
 }
 
@@ -8898,8 +8909,8 @@ set |end_of_parse_es| and |completed_start_rule|@> =
     FSTACK_INIT (stack, EIM, total_earley_items_in_parse);
     *(FSTACK_PUSH (stack)) = start_eim;
     was_stacked =
-      per_es_data[Ord_of_ES (ES_of_EIM (start_eim))].was_earley_item_stacked;
-    bv_bit_set (was_stacked, (guint) Ord_of_EIM (start_eim));
+      per_es_data[Ord_of_ES (ES_of_EIM (start_eim))].was_earley_item_stacked; // Delete this
+    bv_bit_set (was_stacked, (guint) Ord_of_EIM (start_eim)); // Delete this
     while ((top_of_stack = FSTACK_POP (stack)))
     {
           const EIM_Const earley_item = *top_of_stack;
@@ -9024,6 +9035,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 }
 
 @ @<Put |push_candidate| on |stack| if not in bit vector@>= {
+// Rewrite this
 if (!bv_bit_test_and_set
     (per_es_data[Ord_of_ES (ES_of_EIM (push_candidate))].
      was_earley_item_stacked, (guint)Ord_of_EIM (push_candidate)))
@@ -9060,7 +9072,7 @@ It is hard to believe that for practical grammars
 that $O(\wsize \cdot s') <= O(s)$, which
 is what it would take for any per-Earley set overhead
 to make sense.
-@<Find |start_eim|@> =
+@<Find |start_eim| and |start_aex|@> =
 {
     gint eim_ix;
     EIM* const earley_items = EIMs_of_ES(end_of_parse_es);
@@ -9071,13 +9083,14 @@ to make sense.
 	const AHFA ahfa_state = AHFA_of_EIM(earley_item);
 	if (Origin_Earleme_of_EIM(earley_item) > 0) continue; // Not a start EIM
 	if (!AHFA_is_Predicted(ahfa_state)) {
-	    gint aim_ix;
+	    gint aex;
 	    AIM* const ahfa_items = AIMs_of_AHFA(ahfa_state);
 	    const gint ahfa_item_count = AIM_Count_of_AHFA(ahfa_state);
-	    for (aim_ix = 0; aim_ix < ahfa_item_count; aim_ix++) {
-		 const AIM ahfa_item = ahfa_items[aim_ix];
+	    for (aex = 0; aex < ahfa_item_count; aex++) {
+		 const AIM ahfa_item = ahfa_items[aex];
 	         if (RULEID_of_AIM(ahfa_item) == sought_rule_id) {
 		      start_eim = earley_item;
+		      start_aex = aex;
 		      break;
 		 }
 	    }
