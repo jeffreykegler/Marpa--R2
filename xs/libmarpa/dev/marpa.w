@@ -5270,7 +5270,7 @@ so it needs to track how far out tokens might be found.
 No complete or predicted Earley item will be found after the current earleme.
 @d Furthest_Earleme_of_R(r) ((r)->t_furthest_earleme)
 @d LV_Furthest_Earleme_of_R(r) Furthest_Earleme_of_R(r)
-@<Int aligned recognizer elements@> = Marpa_Earleme t_furthest_earleme;
+@<Int aligned recognizer elements@> = EARLEME t_furthest_earleme;
 @ @<Initialize recognizer elements@> = r->t_furthest_earleme = 0;
 @ @<Public function prototypes@> =
 guint marpa_furthest_earleme(struct marpa_r* r);
@@ -5645,7 +5645,7 @@ I can prevent overflow without getting fancy -- overflow
 by addition is impossible as long as earlemes are below
 the threshold.
 @ I considered defining earlemes as |glong| or |gint64|.
-My thought on the matter is that machines with 32-bit int's
+But machines with 32-bit int's
 will in a not very long time
 become museum pieces.
 And in the meantime this
@@ -6391,7 +6391,7 @@ Marpa_Earleme marpa_leo_base_origin(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Earleme marpa_leo_base_origin(struct marpa_r *r)
 {
-  const Marpa_Earleme pim_is_not_a_leo_item = -1;
+  const EARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
   EIM base_earley_item;
@@ -6410,7 +6410,7 @@ Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r)
 {
-  const Marpa_Earleme pim_is_not_a_leo_item = -1;
+  const EARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
   EIM base_earley_item;
@@ -6453,7 +6453,7 @@ the Leo completion item is the expansion of that Leo item.
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID marpa_leo_expansion_ahfa(struct marpa_r *r)
 {
-    const Marpa_Earleme pim_is_not_a_leo_item = -1;
+    const EARLEME pim_is_not_a_leo_item = -1;
     @<Return |-2| on failure@>@;
     const PIM postdot_item = r->t_trace_postdot_item;
     @<Fail recognizer if not trace-safe@>@;
@@ -7403,7 +7403,7 @@ there being no source link,
 Marpa_Earleme marpa_source_middle(struct marpa_r* r)
 {
    @<Return |-2| on failure@>@/
-   const Marpa_Earleme no_predecessor = -1;
+   const EARLEME no_predecessor = -1;
    guint source_type;
    SRC source;
     @<Fail recognizer if not trace-safe@>@/
@@ -8114,7 +8114,7 @@ postdot_items_create (struct marpa_r *r, ES current_earley_set)
 {
     gpointer * const pim_workarea = r->t_sym_workarea;
     GRAMMAR_Const g = G_of_R(r);
-    Marpa_Earleme current_earley_set_id = Earleme_of_ES(current_earley_set);
+    EARLEME current_earley_set_id = Earleme_of_ES(current_earley_set);
     Bit_Vector bv_pim_symbols = r->t_bv_sym;
     Bit_Vector bv_lim_symbols = r->t_bv_sym2;
     bv_clear (bv_pim_symbols);
