@@ -7393,14 +7393,14 @@ as the origin of the cause.
 If there is a token,
 the middle earleme is always where the token starts.
 @<Public function prototypes@> =
-Marpa_Earleme marpa_source_middle(struct marpa_r* r);
+Marpa_Earley_Set_ID marpa_source_middle(struct marpa_r* r);
 @ The "predecessor set" is the earleme of the predecessor.
 Returns |-1| if there is no predecessor.
 If there are other failures, such as
 there being no source link,
 |-2| is returned.
 @<Function definitions@> =
-Marpa_Earleme marpa_source_middle(struct marpa_r* r)
+Marpa_Earley_Set_ID marpa_source_middle(struct marpa_r* r)
 {
    @<Return |-2| on failure@>@/
    const EARLEME no_predecessor = -1;
@@ -7416,14 +7416,14 @@ Marpa_Earleme marpa_source_middle(struct marpa_r* r)
 	  LIM predecessor = Predecessor_of_SRC (source);
 	  if (!predecessor) return no_predecessor;
 	  return
-	    Earleme_of_EIM (Base_EIM_of_LIM (predecessor));
+	    ES_Ord_of_EIM (Base_EIM_of_LIM (predecessor));
 	}
       case SOURCE_IS_TOKEN:
       case SOURCE_IS_COMPLETION:
 	{
 	  EIM predecessor = Predecessor_of_SRC (source);
 	  if (!predecessor) return no_predecessor;
-	  return Earleme_of_EIM (predecessor);
+	  return ES_Ord_of_EIM (predecessor);
 	}
     }
     R_ERROR(invalid_source_type_message (source_type));

@@ -545,9 +545,10 @@ sub Marpa::XS::new_show_token_link_choice {
     my $predecessor_state = $recce_c->source_predecessor_state();
     my $origin = $recce_c->earley_item_origin();
     if (defined $predecessor_state) {
-	my $middle = $recce_c->source_middle();
+	my $middle_set_id = $recce_c->source_middle();
+	my $middle_earleme = $recce_c->earleme($middle_set_id);
         push @pieces,
-            'p=S' .  $predecessor_state . '@' . $origin . '-' . $middle;
+            'p=S' .  $predecessor_state . '@' . $origin . '-' . $middle_earleme;
     }
     push @pieces, 's=' . $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
     my $slot = $recce_c->source_value();
@@ -569,13 +570,14 @@ sub Marpa::XS::new_show_completion_link_choice {
     my @pieces = ();
     my $predecessor_state = $recce_c->source_predecessor_state();
     my $origin = $recce_c->earley_item_origin();
-    my $middle = $recce_c->source_middle();
+    my $middle_set_id = $recce_c->source_middle();
+    my $middle_earleme = $recce_c->earleme($middle_set_id);
     if (defined $predecessor_state) {
         push @pieces,
-            'p=S' .  $predecessor_state . '@' . $origin . '-' . $middle;
+            'p=S' .  $predecessor_state . '@' . $origin . '-' . $middle_earleme;
     }
     push @pieces,
-        'c=S' . $AHFA_state_id . '@' . $middle . '-' . $current_earleme;
+        'c=S' . $AHFA_state_id . '@' . $middle_earleme . '-' . $current_earleme;
     return '[' . ( join '; ', @pieces ) . ']';
 }
 
@@ -589,12 +591,13 @@ sub Marpa::XS::new_show_leo_link_choice {
     my $text = q{};
     my @pieces = ();
     my $origin = $recce_c->earley_item_origin();
-    my $middle = $recce_c->source_middle();
+    my $middle_set_id = $recce_c->source_middle();
+    my $middle_earleme = $recce_c->earleme($middle_set_id);
     my $leo_transition_symbol = $recce_c->source_leo_transition_symbol();
     push @pieces,
-	'l=L' . $leo_transition_symbol . '@' . $middle;
+	'l=L' . $leo_transition_symbol . '@' . $middle_earleme;
     push @pieces,
-        'c=S' . $AHFA_state_id . '@' . $middle . '-' . $current_earleme;
+        'c=S' . $AHFA_state_id . '@' . $middle_earleme . '-' . $current_earleme;
     return '[' . ( join '; ', @pieces ) . ']';
 }
 
@@ -858,26 +861,25 @@ sub report_progress {
 	    # of its own first Leo link
 	    my $leo_transition_symbol = $recce_c->source_leo_transition_symbol();
 	    next LEO_SOURCE if not defined $leo_transition_symbol;
-	    my $previous_lim_earleme = $recce_c->source_middle();
-	    push @leo_worklist, [$previous_lim_earleme, $leo_transition_symbol];
+	    my $previous_lim_set_id = $recce_c->source_middle();
+	    push @leo_worklist, [$previous_lim_set_id, $leo_transition_symbol];
 	}
 	push @per_AHFA_item_data, [$origin, $AHFA_state_id];
     }
     for my $leo_workitem (@leo_worklist) {
 
-        my ( $leo_item_earleme, $leo_item_postdot_symbol ) = @{$leo_workitem};
+        my ( $leo_item_set_id, $leo_item_postdot_symbol ) = @{$leo_workitem};
         LEO_ITEM: for ( ;; ) {
-	    my $leo_item_set_id =
-		$recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]
-		->[$leo_item_earleme];
             $recce_c->earley_set_trace($leo_item_set_id);
             $recce_c->postdot_symbol_trace($leo_item_postdot_symbol);
             my $expansion_ahfa = $recce_c->leo_expansion_ahfa();
-            push @per_AHFA_item_data, [ $leo_item_earleme, $expansion_ahfa ];
+            push @per_AHFA_item_data,
+                [ $recce_c->earleme($leo_item_set_id), $expansion_ahfa ];
             $leo_item_postdot_symbol =
                 $recce_c->leo_predecessor_symbol();
             last LEO_ITEM if not defined $leo_item_postdot_symbol;
-            $leo_item_earleme = $recce_c->leo_base_origin();
+            my $leo_item_earleme = $recce_c->leo_base_origin();
+	    $leo_item_set_id = $recce_c->earleme($leo_item_earleme);
         } ## end for ( ;; )
     } ## end for my $leo_workitem (@leo_worklist)
     for my $per_AHFA_item_datum (@per_AHFA_item_data) {

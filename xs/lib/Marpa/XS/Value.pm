@@ -2172,7 +2172,7 @@ sub Marpa::XS::Recognizer::value {
 		    my $symbol_name = $symbol->[Marpa::XS::Internal::Symbol::NAME];
 		    push @link_worklist, [
 			$recce_c->source_predecessor_state(), undef,
-			$recce_c->source_middle(), $symbol_name,
+			$recce_c->earleme($recce_c->source_middle()), $symbol_name,
 			\($slots->value($recce_c->source_value()))
 		   ];
 		} ## end for ( my $symbol_id = $recce_c->first_token_link_trace...)
@@ -2184,7 +2184,7 @@ sub Marpa::XS::Recognizer::value {
 		{
 		    push @link_worklist, [
 			$recce_c->source_predecessor_state(), $cause_AHFA_id,
-			$recce_c->source_middle()
+			$recce_c->earleme($recce_c->source_middle())
 		   ];
 		} ## end for ( my $AHFA_state_id = $recce_c->first_completion_link_trace...)
 

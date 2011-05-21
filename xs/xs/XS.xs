@@ -1301,7 +1301,7 @@ source_middle( r_wrapper )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     gint middle = marpa_source_middle(r);
-    if (middle <= -2) { croak("Problem finding trace source middle: %s", marpa_r_error(r)); }
+    if (middle <= -2) { croak("Problem with r->source_middle(): %s", marpa_r_error(r)); }
     if (middle == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(middle) ) );
     }
