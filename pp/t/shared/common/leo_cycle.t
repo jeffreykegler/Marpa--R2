@@ -179,10 +179,12 @@ my $recce = Marpa::Recognizer->new(
     { grammar => $grammar, mode => 'stream'  } );
 
 my $i        = 0;
-my $max_size = $recce->earley_set_size();
+my $latest_earley_set = $recce->latest_earley_set();
+my $max_size = $recce->earley_set_size($latest_earley_set);
 TOKEN: while ( $i++ < $length ) {
     $recce->tokens( [$a_token] );
-    my $size = $recce->earley_set_size();
+    $latest_earley_set = $recce->latest_earley_set();
+    my $size = $recce->earley_set_size($latest_earley_set);
 
     $max_size = $size > $max_size ? $size : $max_size;
 } ## end while ( $i++ < $length )

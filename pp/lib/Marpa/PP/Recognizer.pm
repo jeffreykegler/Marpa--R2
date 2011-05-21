@@ -32,6 +32,8 @@ BEGIN {
 my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Earley_Set
+
+    ID { The ordinal for this set }
     ITEMS { The Earley items for this set. }
     HASH { Hash by origin & state.  To prevent dups. }
     POSTDOT { Index by postdot symbol. }
@@ -110,6 +112,8 @@ my $structure = <<'END_OF_STRUCTURE';
     EXPECTED_TERMINALS { terminals which are expected at the
         current earleme }
     USE_LEO { Use Leo items? }
+    NEXT_ORDINAL { Ordinal of next Earley set }
+    EARLEY_SETS_BY_ORDINAL { Array of Earley sets by ordinal }
 
     TRACE_FILE_HANDLE
 
@@ -286,10 +290,14 @@ sub Marpa::PP::Recognizer::new {
     my $earley_set = [];
     $earley_set->[Marpa::PP::Internal::Earley_Set::POSTDOT] = \%postdot;
     $earley_set->[Marpa::PP::Internal::Earley_Set::ITEMS] = \@earley_items;
+    $earley_set->[Marpa::PP::Internal::Earley_Set::ID] = 0;
     $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS] = [$earley_set];
 
     $recce->[Marpa::PP::Internal::Recognizer::FURTHEST_EARLEME]       = 0;
     $recce->[Marpa::PP::Internal::Recognizer::LAST_COMPLETED_EARLEME] = 0;
+    $recce->[Marpa::PP::Internal::Recognizer::NEXT_ORDINAL]           = 1;
+    $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS_BY_ORDINAL]->[0] =
+        $earley_set;
 
     my @terminals_expected = grep { $terminal_names->{$_} } keys %postdot;
     $recce->[Marpa::PP::Internal::Recognizer::EXPECTED_TERMINALS] =
@@ -515,14 +523,23 @@ sub Marpa::PP::Recognizer::set {
 # For testing, especially that the Leo items
 # are doing their job.
 sub Marpa::PP::Recognizer::earley_set_size {
-    my ( $recce, $name ) = @_;
-    my $last_completed_earleme =
-        $recce->[Marpa::PP::Internal::Recognizer::LAST_COMPLETED_EARLEME];
-    return if not defined $last_completed_earleme;
-    my $earley_set = $recce->[EARLEY_SETS]->[$last_completed_earleme];
+    my ( $recce, $ordinal ) = @_;
+    my $earley_set = $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS_BY_ORDINAL]->[$ordinal];
     return if not defined $earley_set;
     return scalar @{ $earley_set->[Marpa::PP::Internal::Earley_Set::ITEMS] };
 } ## end sub Marpa::PP::Recognizer::earley_set_size
+
+sub Marpa::PP::Recognizer::latest_earley_set {
+    my ($recce) = @_;
+    my $earleme = $recce->[Marpa::PP::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+    while (1) {
+	# Earley set has a defined ORDINAL, so this loop must terminate
+        my $earley_set = $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS]->[$earleme];
+	my $ordinal = $earley_set->[Marpa::PP::Internal::Earley_Set::ID];
+	return $ordinal if defined $ordinal;
+	$earleme--;
+    }
+}
 
 sub Marpa::PP::Recognizer::check_terminal {
     my ( $recce, $name ) = @_;
@@ -1662,6 +1679,14 @@ sub Marpa::PP::Recognizer::earleme_complete {
                 or Marpa::exception("Cannot print: $ERRNO");
         }
     } ## end if ( $trace_terminals > 1 )
+    
+    if ( scalar @{$earley_items} > 0 ) {
+        my $ordinal =
+            $recce->[Marpa::PP::Internal::Recognizer::NEXT_ORDINAL]++;
+        $earley_set->[Marpa::PP::Internal::Earley_Set::ID] = $ordinal;
+        $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS_BY_ORDINAL]
+            ->[$ordinal] = $earley_set;
+    } ## end if ( scalar @{$earley_items} > 0 )
 
     return scalar @terminals_expected;
 
