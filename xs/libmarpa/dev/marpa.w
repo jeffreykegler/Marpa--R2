@@ -5767,12 +5767,22 @@ Marpa_Earley_Set_ID marpa_trace_earley_set(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   ES trace_earley_set = r->t_trace_earley_set;
-  @<Fail if recognizer initial@>@;
+  @<Fail recognizer if not trace-safe@>@;
   if (!trace_earley_set) {
       R_ERROR("no trace es");
       return failure_indicator;
   }
   return Ord_of_ES(trace_earley_set);
+}
+
+@ @<Public function prototypes@> =
+Marpa_Earley_Set_ID marpa_latest_earley_set(struct marpa_r *r);
+@ @<Function definitions@> =
+Marpa_Earley_Set_ID marpa_latest_earley_set(struct marpa_r *r)
+{
+  @<Return |-2| on failure@>@;
+  @<Fail recognizer if not trace-safe@>@;
+  return Ord_of_ES(Latest_ES_of_R(r));
 }
 
 @ Given the ID (ordinal) of an Earley set,
@@ -5790,19 +5800,20 @@ Marpa_Earleme marpa_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
 {
     const gint es_does_not_exist = -1;
     @<Return |-2| on failure@>@;
-    ES* earley_set_p;
+    ES earley_set;
     @<Fail if recognizer initial@>@;
     @<Fail if recognizer has fatal error@>@;
     if (set_id < 0) {
         R_ERROR("invalid es ordinal");
 	return failure_indicator;
     }
-    r_update_earley_sets(r);
-    if (set_id >= DSTACK_LENGTH(r->t_earley_set_stack)) {
-        return es_does_not_exist;
-    }
-    earley_set_p = P_ES_of_R_by_Ord(r, set_id);
-    return Earleme_of_ES(*earley_set_p);
+    r_update_earley_sets (r);
+    if (!ES_Ord_is_Valid (r, set_id))
+      {
+	return es_does_not_exist;
+      }
+    earley_set = ES_of_R_by_Ord (r, set_id);
+    return Earleme_of_ES (earley_set);
 }
 
 @ Note that this trace function returns the earley set size
@@ -5810,14 +5821,22 @@ of the {\bf current earley set}.
 @ @^To Do@>  To Do: Change this so it takes an ordinal of
 the set as an argument.
 @<Public function prototypes@> =
-gint marpa_current_earley_set_size(struct marpa_r *r);
+gint marpa_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id);
 @ @<Function definitions@> =
-gint marpa_current_earley_set_size(struct marpa_r *r)
+gint marpa_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id)
 {
     @<Return |-2| on failure@>@;
+    ES earley_set;
     @<Fail if recognizer initial@>@;
     @<Fail if recognizer has fatal error@>@;
-  return EIM_Count_of_ES(Current_ES_of_R(r));
+    r_update_earley_sets (r);
+    if (!ES_Ord_is_Valid (r, set_id))
+      {
+	R_ERROR ("invalid es ordinal");
+	return failure_indicator;
+      }
+    earley_set = ES_of_R_by_Ord (r, set_id);
+    return EIM_Count_of_ES (earley_set);
 }
 
 @** Earley Item (EIM) Code.

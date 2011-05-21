@@ -118,6 +118,7 @@ require Marpa::XS::Callback;
 *Marpa::Recognizer::earley_set_size = \&Marpa::XS::Recognizer::earley_set_size;
 *Marpa::Recognizer::end_input = \&Marpa::XS::Recognizer::end_input;
 *Marpa::Recognizer::exhausted = \&Marpa::XS::Recognizer::exhausted;
+*Marpa::Recognizer::latest_earley_set = \&Marpa::XS::Recognizer::latest_earley_set;
 *Marpa::Recognizer::new = \&Marpa::XS::Recognizer::new;
 *Marpa::Recognizer::read = \&Marpa::XS::Recognizer::read;
 *Marpa::Recognizer::reset_evaluation = \&Marpa::XS::Recognizer::reset_evaluation;

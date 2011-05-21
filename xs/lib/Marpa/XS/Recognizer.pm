@@ -466,9 +466,15 @@ sub Marpa::XS::Recognizer::set {
 # For testing, especially that the Leo items
 # are doing their job.
 sub Marpa::XS::Recognizer::earley_set_size {
+    my ($recce, $set_id) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    return $recce_c->earley_set_size($set_id);
+}
+
+sub Marpa::XS::Recognizer::latest_earley_set {
     my ($recce) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
-    return $recce_c->current_earley_set_size();
+    return $recce_c->latest_earley_set();
 }
 
 sub Marpa::XS::Recognizer::check_terminal {

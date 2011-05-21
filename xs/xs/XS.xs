@@ -1141,16 +1141,32 @@ PPCODE:
     }
 
 void
-current_earley_set_size( r_wrapper )
+latest_earley_set( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint current_earley_set_size = marpa_current_earley_set_size (r);
-      if (current_earley_set_size < 0) {
-	  croak ("Problem in r->current_earley_set_size(): %s", marpa_r_error (r));
+      gint latest_earley_set = marpa_latest_earley_set(r);
+      if (latest_earley_set < 0)
+	{
+      croak ("Problem with r->latest_earley_set(): %s",
+		 marpa_r_error (r));
 	}
-      XPUSHs (sv_2mortal (newSViv (current_earley_set_size)));
+      XPUSHs (sv_2mortal (newSViv (latest_earley_set)));
+    }
+
+void
+earley_set_size( r_wrapper, set_ordinal )
+    R_Wrapper *r_wrapper;
+    Marpa_Earley_Set_ID set_ordinal;
+PPCODE:
+    {
+      struct marpa_r *r = r_wrapper->r;
+      gint earley_set_size = marpa_earley_set_size (r, set_ordinal);
+      if (earley_set_size < 0) {
+	  croak ("Problem in r->earley_set_size(): %s", marpa_r_error (r));
+	}
+      XPUSHs (sv_2mortal (newSViv (earley_set_size)));
     }
 
 void
