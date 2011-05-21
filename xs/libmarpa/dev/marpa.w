@@ -6388,9 +6388,9 @@ Marpa_Symbol_ID marpa_leo_predecessor_symbol(struct marpa_r *r)
   return Postdot_SYMID_of_LIM(predecessor_leo_item);
 }
 
-Marpa_Earleme marpa_leo_base_origin(struct marpa_r *r);
+Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Earleme marpa_leo_base_origin(struct marpa_r *r)
+Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r)
 {
   const EARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
@@ -6403,7 +6403,7 @@ Marpa_Earleme marpa_leo_base_origin(struct marpa_r *r)
   }
   if (EIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
   base_earley_item = Base_EIM_of_LIM(LIM_of_PIM(postdot_item));
-  return Origin_Earleme_of_EIM(base_earley_item);
+  return Origin_Ord_of_EIM(base_earley_item);
 }
 
 @ @<Private function prototypes@> =

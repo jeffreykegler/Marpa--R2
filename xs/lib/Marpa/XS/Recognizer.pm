@@ -516,7 +516,8 @@ sub Marpa::XS::new_show_leo_item {
     my $earleme               = $recce_c->trace_earleme();
     my $postdot_symbol_id     = $recce_c->postdot_item_symbol();
     my $predecessor_symbol_id = $recce_c->leo_predecessor_symbol();
-    my $base_origin           = $recce_c->leo_base_origin();
+    my $base_origin_set_id           = $recce_c->leo_base_origin();
+    my $base_origin_earleme           = $recce_c->earleme($base_origin_set_id);
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $postdot_symbol_name =
         $symbols->[$postdot_symbol_id]->[Marpa::XS::Internal::Symbol::NAME];
@@ -525,9 +526,9 @@ sub Marpa::XS::new_show_leo_item {
     my @link_texts = qq{"$postdot_symbol_name"};
     if ( defined $predecessor_symbol_id ) {
         push @link_texts, sprintf 'L%d@%d', $predecessor_symbol_id,
-            $base_origin;
+            $base_origin_earleme;
     }
-    push @link_texts, sprintf 'S%d@%d-%d', $leo_base_state, $base_origin,
+    push @link_texts, sprintf 'S%d@%d-%d', $leo_base_state, $base_origin_earleme,
         $earleme;
     $text .= ' [' . ( join '; ', @link_texts ) . ']';
     return $text;
@@ -890,8 +891,7 @@ sub report_progress {
             $leo_item_postdot_symbol =
                 $recce_c->leo_predecessor_symbol();
             last LEO_ITEM if not defined $leo_item_postdot_symbol;
-            my $leo_item_earleme = $recce_c->leo_base_origin();
-	    $leo_item_set_id = $recce_c->earleme($leo_item_earleme);
+	    $leo_item_set_id = $recce_c->leo_base_origin();
         } ## end for ( ;; )
     } ## end for my $leo_workitem (@leo_worklist)
     for my $per_AHFA_item_datum (@per_AHFA_item_data) {
