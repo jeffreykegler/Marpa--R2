@@ -1201,7 +1201,7 @@ PPCODE:
       gint origin_earleme = marpa_earley_item_origin (r);
       if (origin_earleme < 0)
 	{
-      croak ("Problem finding trace earley item origin: %s",
+      croak ("Problem with r->earley_item_origin(): %s",
 		 marpa_r_error (r));
 	}
       XPUSHs (sv_2mortal (newSViv (origin_earleme)));

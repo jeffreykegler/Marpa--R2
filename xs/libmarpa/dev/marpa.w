@@ -5874,6 +5874,7 @@ the Earley set.
 @d AHFA_of_EIM(item) ((item)->t_key.t_state)
 @d AIM_Count_of_EIM(item) (AIM_Count_of_AHFA(AHFA_of_EIM(item)))
 @d Origin_Earleme_of_EIM(item) (Earleme_of_ES(Origin_of_EIM(item)))
+@d Origin_Ord_of_EIM(item) (Ord_of_ES(Origin_of_EIM(item)))
 @d Origin_of_EIM(item) ((item)->t_key.t_origin)
 @<Private incomplete structures@> =
 struct s_earley_item;
@@ -6272,9 +6273,9 @@ static inline void trace_earley_item_clear(struct marpa_r* r)
 }
 
 @ @<Private function prototypes@> =
-Marpa_Earleme marpa_earley_item_origin(struct marpa_r *r);
+Marpa_Earley_Set_ID marpa_earley_item_origin(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Earleme marpa_earley_item_origin(struct marpa_r *r)
+Marpa_Earley_Set_ID marpa_earley_item_origin(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   EIM item = r->t_trace_earley_item;
@@ -6284,7 +6285,7 @@ Marpa_Earleme marpa_earley_item_origin(struct marpa_r *r)
       R_ERROR("no trace eim");
       return failure_indicator;
   }
-  return Origin_Earleme_of_EIM(item);
+  return Origin_Ord_of_EIM(item);
 }
 
 @** Earley Index (EIX) Code.
