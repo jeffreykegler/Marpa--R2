@@ -8824,7 +8824,6 @@ guint total_earley_items_in_parse;
 struct s_bocage_setup_per_es;
 @ @<Private structures@> =
 struct s_bocage_setup_per_es {
-     Bit_Vector was_earley_item_stacked; // To be deleted
      OR ** t_aexes_by_item;
 };
 @ @<Bocage setup locals@> =
@@ -8904,22 +8903,16 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	      per_eim_eixes[item_ordinal] = NULL;
 	    }
 	}
-      per_es_data[ix].was_earley_item_stacked =
-	bv_obs_create (&bocage_setup_obs, item_count); // Delete this
     }
 }
 
 @ @<Traverse Earley sets to create bocage@>=
 {
-    Bit_Vector was_stacked;
     const EIM *top_of_stack;
     FSTACK_DECLARE (stack, EIM);
     FSTACK_INIT (stack, EIM, total_earley_items_in_parse);
     ur_node_boolean_set_if_false(&bocage_setup_obs, per_es_data, start_eim, start_aex);
     *(FSTACK_PUSH (stack)) = start_eim;
-    was_stacked =
-      per_es_data[Ord_of_ES (ES_of_EIM (start_eim))].was_earley_item_stacked; // Delete this
-    bv_bit_set (was_stacked, (guint) Ord_of_EIM (start_eim)); // Delete this
     while ((top_of_stack = FSTACK_POP (stack)))
     {
           const EIM_Const earley_item = *top_of_stack;
@@ -9074,14 +9067,13 @@ static inline gint ur_node_boolean_set_if_false(
     }
 }
 
-@ @<Put |push_candidate| on |stack| if not in bit vector@>= {
-// Rewrite this
-if (!bv_bit_test_and_set
-    (per_es_data[Ord_of_ES (ES_of_EIM (push_candidate))].
-     was_earley_item_stacked, (guint)Ord_of_EIM (push_candidate)))
-  {
-    *(FSTACK_PUSH (stack)) = push_candidate;
-  }
+@ @<Put |push_candidate| on |stack| if not in bit vector@>=
+{
+  if (ur_node_boolean_set_if_false
+      (&bocage_setup_obs, per_es_data, push_candidate, 0))
+    {
+      *(FSTACK_PUSH (stack)) = push_candidate;
+    }
 }
 
 @ @<Deallocate bocage setup working data@>= {
