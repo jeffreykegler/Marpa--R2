@@ -1395,16 +1395,16 @@ PPCODE:
     }
 
 void
-trace_earleme( r_wrapper )
+trace_earley_set( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint trace_earleme = marpa_trace_earleme (r);
-      if (trace_earleme < 0) {
-	  croak ("Problem in r->trace_earleme(): %s", marpa_r_error (r));
+      gint trace_earley_set = marpa_trace_earley_set (r);
+      if (trace_earley_set < 0) {
+	  croak ("Problem in r->trace_earley_set(): %s", marpa_r_error (r));
 	}
-      XPUSHs (sv_2mortal (newSViv (trace_earleme)));
+      XPUSHs (sv_2mortal (newSViv (trace_earley_set)));
     }
 
 void

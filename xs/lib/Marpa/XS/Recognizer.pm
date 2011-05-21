@@ -513,7 +513,8 @@ sub Marpa::XS::new_show_leo_item {
     my $grammar        = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $leo_base_state = $recce_c->leo_base_state();
     return if not defined $leo_base_state;
-    my $earleme               = $recce_c->trace_earleme();
+    my $trace_earley_set = $recce_c->trace_earley_set();
+    my $trace_earleme = $recce_c->earleme($trace_earley_set);
     my $postdot_symbol_id     = $recce_c->postdot_item_symbol();
     my $predecessor_symbol_id = $recce_c->leo_predecessor_symbol();
     my $base_origin_set_id           = $recce_c->leo_base_origin();
@@ -522,14 +523,14 @@ sub Marpa::XS::new_show_leo_item {
     my $postdot_symbol_name =
         $symbols->[$postdot_symbol_id]->[Marpa::XS::Internal::Symbol::NAME];
 
-    my $text = sprintf 'L%d@%d', $postdot_symbol_id, $earleme;
+    my $text = sprintf 'L%d@%d', $postdot_symbol_id, $trace_earleme;
     my @link_texts = qq{"$postdot_symbol_name"};
     if ( defined $predecessor_symbol_id ) {
         push @link_texts, sprintf 'L%d@%d', $predecessor_symbol_id,
             $base_origin_earleme;
     }
     push @link_texts, sprintf 'S%d@%d-%d', $leo_base_state, $base_origin_earleme,
-        $earleme;
+        $trace_earleme;
     $text .= ' [' . ( join '; ', @link_texts ) . ']';
     return $text;
 } ## end sub Marpa::XS::new_show_leo_item

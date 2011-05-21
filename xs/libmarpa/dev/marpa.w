@@ -5761,9 +5761,9 @@ struct s_earley_set* t_trace_earley_set;
 r->t_trace_earley_set = NULL;
 
 @ @<Public function prototypes@> =
-Marpa_Earleme marpa_trace_earleme(struct marpa_r *r);
+Marpa_Earley_Set_ID marpa_trace_earley_set(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Earleme marpa_trace_earleme(struct marpa_r *r)
+Marpa_Earley_Set_ID marpa_trace_earley_set(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   ES trace_earley_set = r->t_trace_earley_set;
@@ -5772,7 +5772,7 @@ Marpa_Earleme marpa_trace_earleme(struct marpa_r *r)
       R_ERROR("no trace es");
       return failure_indicator;
   }
-  return Earleme_of_ES(trace_earley_set);
+  return Ord_of_ES(trace_earley_set);
 }
 
 @ Given the ID (ordinal) of an Earley set,
