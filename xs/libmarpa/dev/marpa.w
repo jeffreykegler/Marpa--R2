@@ -1482,7 +1482,8 @@ void marpa_symbol_callback_set(struct marpa_g *g, Marpa_Symbol_Callback*cb);
 void marpa_symbol_callback_arg_set(struct marpa_g *g, gpointer cb_arg);
 gpointer marpa_symbol_callback_arg(struct marpa_g *g);
 @ Do the symbol callback.
-@^To Do@>  To Do: Deal with the possibility of leaking memory if the callback
+{\bf To Do}: @^To Do@>
+Look at the possibility of leaking memory if the callback
 never returns, but the grammar is destroyed.
 @<Function definitions@> =
 static inline void symbol_callback(struct marpa_g *g, Marpa_Symbol_ID id)
@@ -2243,14 +2244,15 @@ gpointer marpa_rule_callback_arg(struct marpa_g *g)
 @ @<Public function prototypes@> =
 gpointer marpa_rule_callback_arg(struct marpa_g *g);
 @ Do the rule callback.
-@^To Do@>  To Do: Deal with the possibility of leaking memory if the callback
+@<Private function prototypes@> =
+static inline void rule_callback(struct marpa_g *g, Marpa_Rule_ID id);
+@ {\bf To Do}: @^To Do@>
+Look at with the possibility of leaking memory if the callback
 never returns, but the grammar is destroyed.
 @<Function definitions@> =
 static inline void rule_callback(struct marpa_g *g, Marpa_Rule_ID id)
 { Marpa_Rule_Callback* cb = g->t_rule_callback;
 if (cb) { (*cb)(g, id); } }
-@ @<Private function prototypes@> =
-static inline void rule_callback(struct marpa_g *g, Marpa_Rule_ID id);
 
 @*0 Rule Original.
 In many cases, Marpa will rewrite a rule.
@@ -3974,7 +3976,8 @@ A predicted non-null rule is not a completed rule.
 Therefore only the predicted null start rule
 can be a completed start rule in AHFA state 0.
 \QED/.
-@ @.To Do@> {\bf To Do}:
+@
+{\bf To Do}: @^To Do@>
 This function can probably be eliminated after conversion
 is complete, along with the flag for whether a rule is a start rule
 and the flag for tracking whether an AHFA has a completed start rule.
@@ -5285,7 +5288,8 @@ It is used in building the list of postdot items,
 and when building the Leo items.
 It is sized to hold one |gpointer| for
 every symbol.
-@.To Do@>
+@
+{\bf To Do}: @^To Do@>
 It may be possible to free this space when the recognition phase
 is finished.
 @<Widely aligned recognizer elements@> = gpointer* t_sym_workarea;
@@ -5299,7 +5303,8 @@ phase for each Earley set.
 when building the Leo items.
 It is sized to hold two |gpointer|'s for
 every symbol.
-@.To Do@>
+@
+{\bf To Do}: @^To Do@>
 It may be possible to free this space when the recognition phase
 is finished.
 @<Widely aligned recognizer elements@> = gpointer* t_workarea2;
@@ -5319,7 +5324,8 @@ They are used in the completion
 phase for each Earley set,
 to keep track of the new postdot items and
 Leo items.
-@.To Do@>
+@
+{\bf To Do}: @^To Do@>
 It may be possible to free this space when the recognition phase
 is finished.
 @<Widely aligned recognizer elements@> =
@@ -5818,9 +5824,7 @@ Marpa_Earleme marpa_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
 
 @ Note that this trace function returns the earley set size
 of the {\bf current earley set}.
-@ @^To Do@>  To Do: Change this so it takes an ordinal of
-the set as an argument.
-@<Public function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id);
 @ @<Function definitions@> =
 gint marpa_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id)
@@ -6123,7 +6127,9 @@ and clears the trace Earley item.
 Earley item is found, and on failure.
 The trace source link is always
 cleared, regardless of success or failure.
-@ @^To Do@>  To Do: Deprecated.  To be deleted.
+@
+{\bf To Do}: @^To Do@>
+Deprecated.  To be deleted.
 @<Public function prototypes@> =
 Marpa_AHFA_State_ID
 marpa_old_earley_item_trace (struct marpa_r *r,
@@ -8806,6 +8812,113 @@ because if an AHFA item (dotted rule) in one is justified at a
 location, the same AHFA item in the other must be, also.
 This happen frequently enough to be an issue even for practical
 grammars.
+
+@** Ur-Node (UR) Code.
+Ur is a German word for "primordial", which is used
+a lot in academic writing to designate precursors---%
+for example, scholars who believe that Shakespeare's
+{\it Hamlet} is based on another, now lost, play,
+call this play the ur-Hamlet.
+My ur-nodes are precursors of and-nodes and or-nodes.
+@<Private incomplete structures@> =
+struct s_ur_node_stack;
+struct s_ur_node;
+typedef struct s_ur_node_stack* URS;
+typedef struct s_ur_node* UR;
+@
+@
+{\bf To Do}: @^To Do@>
+It may make sense to reuse this stack
+for the alternatives.
+In that case some of these structures
+will need to be changed.
+@d Prev_UR_of_UR(ur) ((ur)->t_prev)
+@d LV_Prev_UR_of_UR(ur) Prev_UR_of_UR(ur)
+@d Next_UR_of_UR(ur) ((ur)->t_next)
+@d LV_Next_UR_of_UR(ur) Next_UR_of_UR(ur)
+@d EIM_of_UR(ur) ((ur)->t_earley_item)
+@d LV_EIM_of_UR(ur) EIM_of_UR(ur)
+@d AEX_of_UR(ur) ((ur)->t_aex)
+@d LV_AEX_of_UR(ur) AEX_of_UR(ur)
+
+@<Private structures@> =
+struct s_ur_node_stack {
+   struct obstack t_obs;
+   UR t_top;
+};
+struct s_ur_node {
+   UR t_prev;
+   UR t_next;
+   EIM t_earley_item;
+   AEX t_aex;
+};
+@ @d URS_of_R(r) (&(r)->t_ur_node_stack)
+@<Widely aligned recognizer elements@> =
+struct s_ur_node_stack t_ur_node_stack;
+@
+{\bf To Do}: @^To Do@>
+The lifetime of this stack should be reexamined once its uses
+are settled.
+@<Initialize recognizer elements@> =
+    ur_node_stack_init(URS_of_R(r));
+@ @<Destroy recognizer elements@> =
+    ur_node_stack_destroy(URS_of_R(r));
+
+@ @<Private function prototypes@> =
+static inline void ur_node_stack_init(URS stack);
+@ @<Function definitions@> =
+static inline void ur_node_stack_init(URS stack) {
+    obstack_init(&stack->t_obs);
+    stack->t_top = ur_node_new(stack, 0);
+}
+
+@ @<Private function prototypes@> =
+static inline void ur_node_stack_destroy(URS stack);
+@ @<Function definitions@> =
+static inline void ur_node_stack_destroy(URS stack) {
+    obstack_free(&stack->t_obs, NULL);
+}
+
+@ @<Private function prototypes@> =
+static inline UR ur_node_new(URS stack, UR prev);
+@ @<Function definitions@> =
+static inline UR ur_node_new(URS stack, UR prev) {
+    UR new_ur_node;
+    new_ur_node = obstack_alloc(&stack->t_obs, sizeof(new_ur_node[0]));
+    LV_Next_UR_of_UR(new_ur_node) = 0;
+    LV_Prev_UR_of_UR(new_ur_node) = prev;
+    return new_ur_node;
+}
+
+@ @<Private function prototypes@> =
+static inline void ur_node_push(URS stack, EIM earley_item, AEX aex);
+@ @<Function definitions@> =
+static inline void
+ur_node_push (URS stack, EIM earley_item, AEX aex)
+{
+  UR top = stack->t_top;
+  UR new_top = Next_UR_of_UR (top);
+  LV_EIM_of_UR (top) = earley_item;
+  LV_AEX_of_UR (top) = aex;
+  if (!new_top)
+    {
+      new_top = ur_node_new (stack, top);
+      LV_Next_UR_of_UR (top) = new_top;
+    }
+  stack->t_top = new_top;
+}
+
+@ @<Private function prototypes@> =
+static inline UR ur_node_pop(URS stack);
+@ @<Function definitions@> =
+static inline UR
+ur_node_pop (URS stack)
+{
+  UR new_top = Prev_UR_of_UR (stack->t_top);
+  if (!new_top) return NULL;
+  stack->t_top = new_top;
+  return new_top;
+}
 
 @** Evaluation.
 I am frankly not quite sure what the return value of this function should be.
