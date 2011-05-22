@@ -1951,7 +1951,7 @@ gint marpa_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
 gint marpa_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id);
 
 @*1 LHS Symbol of Rule.
-@d LHS_ID_of_PRD(production) ((production)->t_symbols[0])
+@d LHS_ID_of_RULE(production) ((production)->t_symbols[0])
 
 @*1 RHS Symbol of Rule.
 @ @<Function definitions@> =
@@ -2017,7 +2017,7 @@ taken care of in the rewrite itself.
 @<Function definitions@> =
 static inline gint rule_is_accessible(struct marpa_g* g, RULE  rule)
 {
-Marpa_Symbol_ID lhs_id = LHS_ID_of_PRD(rule);
+Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
  return SYM_by_ID(g, lhs_id)->t_is_accessible; }
 gint marpa_rule_is_accessible(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
@@ -2441,7 +2441,7 @@ for (rule_id = 0;
 	rule_id < (Marpa_Rule_ID)pre_rewrite_rule_count;
 	rule_id++) {
     RULE  rule = RULE_by_ID(g, rule_id);
-    Marpa_Symbol_ID lhs_id = LHS_ID_of_PRD(rule);
+    Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
     bv_bit_set(lhs_v, (guint)lhs_id);
     if (rule->t_length <= 0) {
 	bv_bit_set(empty_lhs_v, (guint)lhs_id);
@@ -2614,7 +2614,7 @@ for (symid = 0; symid < no_of_symbols; symid++) {
 guint no_of_rules = rule_count(g);
 for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
      RULE  rule = RULE_by_ID(g, rule_id);
-     Marpa_Symbol_ID lhs_id = LHS_ID_of_PRD(rule);
+     Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
      guint rhs_ix, rule_length = rule->t_length;
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 	 matrix_bit_set(reach_matrix,
@@ -2808,7 +2808,7 @@ rule->t_is_used = 0; /* Mark the original rule unused */
 { guint unprocessed_factor_count; /* The number of proper nullables for which CHAF rules have
 yet to be written */
 guint factor_position_ix = 0; /* Current index into the list of factors */
-Marpa_Symbol_ID current_lhs_id = LHS_ID_of_PRD(rule);
+Marpa_Symbol_ID current_lhs_id = LHS_ID_of_RULE(rule);
 guint piece_end, piece_start = 0; /* The positions, in the original rule, where
 the new (virtual) rule starts and ends */
 for (unprocessed_factor_count = factor_count - factor_position_ix;
@@ -2829,7 +2829,7 @@ if (unprocessed_factor_count == 2) {
     chaf_virtual_symid = ID_of_SYM(chaf_virtual_symbol);
     g_context_clear(g);
     g_context_int_add(g, "rule_id", rule_id);
-    g_context_int_add(g, "lhs_id", LHS_ID_of_PRD(rule));
+    g_context_int_add(g, "lhs_id", LHS_ID_of_RULE(rule));
     g_context_int_add(g, "virtual_end", (gint)piece_end);
     symbol_callback(g, chaf_virtual_symid);
 }
@@ -3500,7 +3500,7 @@ if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
 @d RULE_of_AIM(item) ((item)->t_production)
 @d RULEID_of_AIM(item) ID_of_RULE(RULE_of_AIM(item))
 @d LV_RULE_of_AIM(item) RULE_of_AIM(item)
-@d LHS_ID_of_AIM(item) (LHS_ID_of_PRD(RULE_of_AIM(item)))
+@d LHS_ID_of_AIM(item) (LHS_ID_of_RULE(RULE_of_AIM(item)))
 
 @*0 AHFA Item External Accessors.
 @<Function definitions@> =
@@ -4093,6 +4093,7 @@ void create_AHFA_states(struct marpa_g* g) {
        the |DQUEUE|'s data */
    ahfa_count_of_g = LV_AHFA_Count_of_G(g) = DQUEUE_END(states);
    @<Populate the completed symbol data in the transitions@>@;
+   @<Populate the Leo base AEXes@>@;
    @<Free locals for creating AHFA states@>@;
 }
 
@@ -4163,16 +4164,31 @@ NEXT_AHFA_STATE: ;
 @ @<Populate the completed symbol data in the transitions@> =
 {
      gint ahfa_id;
+
+MARPA_DEBUG2("offset of t_aex=%d", G_STRUCT_OFFSET(struct s_transition, t_aex));
+
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
 	  guint symbol_id;
 	  AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
-          TRANS* transitions = TRANSs_of_AHFA(ahfa);
+
+MARPA_DEBUG2("Working on AHFA ID=%d", ID_of_AHFA(ahfa));
+
+          TRANS* const transitions = TRANSs_of_AHFA(ahfa);
 	  for (symbol_id = 0; symbol_id < symbol_count_of_g; symbol_id++) {
+
+MARPA_DEBUG2("Working on symbol ID=%d", symbol_id);
+
 	       TRANS working_transition = transitions[symbol_id];
 	       if (working_transition) {
 		   gint completion_count = Completion_Count_of_TRANS(working_transition);
-		   gint sizeof_transition = sizeof(working_transition[0]) + (completion_count-1) * sizeof(AEX);
+		   gint sizeof_transition =
+		       G_STRUCT_OFFSET (struct s_transition, t_aex) + completion_count *
+		       sizeof (transitions[0]->t_aex[0]);
 		   TRANS new_transition = obstack_alloc(&g->t_obs, sizeof_transition);
+
+MARPA_DEBUG4("Allocated trans=%p, size=%d completion_count=%d",
+new_transition, sizeof_transition, completion_count);
+
 		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
 		   LV_Completion_Count_of_TRANS(new_transition) = 0;
 		   transitions[symbol_id] = new_transition;
@@ -4186,13 +4202,21 @@ NEXT_AHFA_STATE: ;
 		  AIM ahfa_item = aims[aex];
 		  if (AIM_is_Completion(ahfa_item)) {
 		      SYMID completed_symbol_id = LHS_ID_of_AIM(ahfa_item);
-		      TRANS transition = TRANS_of_AHFA_by_SYMID(ahfa, completed_symbol_id);
+		      TRANS transition = transitions[completed_symbol_id];
 		      AEX* aexes = AEXs_of_TRANS(transition);
-		      aexes[LV_Completion_Count_of_TRANS(transition)++] = aex;
+		      gint aex_ix = LV_Completion_Count_of_TRANS(transition)++;
+MARPA_DEBUG3("Working on aex=%d, symbol ID=%d", aex, completed_symbol_id);
+MARPA_DEBUG4("Copying aex=%d to transition=%p at ix=%d", aex, transition, aex_ix);
+MARPA_DEBUG4("Copying aex=%d to %p at ix=%d", aex, (aexes+aex_ix), aex_ix);
+		      aexes[aex_ix] = aex;
 		  }
 	      }
 	  }
      }
+}
+
+@ @<Populate the Leo base AEXes@> = {
+     ;
 }
 
 @ @<Free locals for creating AHFA states@> =
@@ -4355,10 +4379,11 @@ are either AHFA state 0, or 1-item discovered AHFA states.
       }
     else
       {
-	SYMID lhs_id = LHS_ID_of_PRD (single_item_p->t_production);
+	SYMID lhs_id = LHS_ID_of_RULE (single_item_p->t_production);
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	LV_Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
+MARPA_DEBUG1(G_STRLOC);
 	completion_count_inc(&ahfa_work_obs, p_new_state, lhs_id);
 	LV_Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
@@ -4486,7 +4511,9 @@ if (queued_AHFA_state)
       Marpa_Symbol_ID postdot = Postdot_SYMID_of_AIM (item);
       if (postdot < 0)
 	{
-	  bv_bit_set (complete_v, (guint) LHS_ID_of_PRD (item->t_production));
+	  guint complete_symbol_id = LHS_ID_of_RULE (item->t_production);
+	  completion_count_inc (&ahfa_work_obs, p_new_state, complete_symbol_id);
+	  bv_bit_set (complete_v, complete_symbol_id );
 	}
       else
 	{
@@ -4525,7 +4552,6 @@ if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
 	    for (complete_symbol_id = (SYMID) min; complete_symbol_id <= (SYMID) max;
 		 complete_symbol_id++)
 	      {
-		completion_count_inc (&ahfa_work_obs, p_new_state, complete_symbol_id);
 		*p_symbol++ = complete_symbol_id;
 	      }
 	  }
@@ -4638,7 +4664,7 @@ states.
 	RULE  rule;
 	if (!item) continue; // Not all rules have items
 	rule = item->t_production;
-	from = LHS_ID_of_PRD(rule);
+	from = LHS_ID_of_RULE(rule);
 	to = Postdot_SYMID_of_AIM(item);
 	if (to < 0) continue; // There is no symbol-to-symbol transition
 	// for a completion item
@@ -4935,18 +4961,23 @@ once I stabilize the C code implemention.
      (Completion_Count_of_TRANS(TRANS_of_AHFA_by_SYMID((from ahfa), (id))))
 @d To_AHFA_of_EIM_by_SYMID(eim, id) To_AHFA_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
 @d AEXs_of_TRANS(trans) ((trans)->t_aex)
+@d Leo_Base_AEX_of_TRANS(trans) ((trans)->t_leo_base_aex)
+@d LV_Leo_Base_AEX_of_TRANS(trans) Leo_Base_AEX_of_TRANS(trans)
 @ @s TRANS int
 @<Private incomplete structures@> =
 struct s_transition;
 typedef struct s_transition* TRANS;
+struct s_ur_transition;
+typedef struct s_ur_transition* URTRANS;
 @ @<Private typedefs@> = typedef gint AEX;
 @ @<Private structures@> =
-struct s_transition_ur {
+struct s_ur_transition {
     AHFA t_to_ahfa;
     gint t_completion_count;
 };
 struct s_transition {
-    struct s_transition_ur t_ur;
+    struct s_ur_transition t_ur;
+    AEX t_leo_base_aex;
     AEX t_aex[1];
 };
 @ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
@@ -4970,14 +5001,14 @@ static inline gint completion_count_of_transition_get(TRANS transition) {
 
 @ @<Private function prototypes@> =
 static inline
-TRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix);
+URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix);
 @ @<Function definitions@> =
 static inline
-TRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix) {
-     TRANS transition;
+URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix) {
+     URTRANS transition;
      transition = obstack_alloc (obstack, sizeof (transition[0]));
-     transition->t_ur.t_to_ahfa = to_ahfa;
-     transition->t_ur.t_completion_count = aim_ix;
+     transition->t_to_ahfa = to_ahfa;
+     transition->t_completion_count = aim_ix;
      return transition;
 }
 
@@ -5005,10 +5036,10 @@ void transition_add(struct obstack *obstack, AHFA from_ahfa, SYMID symid, AHFA t
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[symid];
     if (!transition) {
-        transitions[symid] = transition_new(obstack, to_ahfa, 0);
+        transitions[symid] = (TRANS)transition_new(obstack, to_ahfa, 0);
 	return;
     }
-    transition->t_ur.t_to_ahfa = to_ahfa;
+    LV_To_AHFA_of_TRANS(transition) = to_ahfa;
     return;
 }
 
@@ -5019,13 +5050,17 @@ void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid);
 static inline
 void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
 {
+
+MARPA_DEBUG3("incrementing completion count, AFHA=%d, symbol=%d",
+    ID_of_AHFA(from_ahfa), symid);
+
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[symid];
     if (!transition) {
-        transitions[symid] = transition_new(obstack, NULL, 1);
+        transitions[symid] = (TRANS)transition_new(obstack, NULL, 1);
 	return;
     }
-    transition->t_ur.t_completion_count++;
+    LV_Completion_Count_of_TRANS(transition)++;
     return;
 }
 
@@ -8214,6 +8249,12 @@ Leo item have not been fully populated.
 	        If there is more than one EIX, do not create a
 		Leo item */
 	    leo_base = EIM_of_PIM(this_pim);
+{
+AHFA debug_ahfa = AHFA_of_EIM(leo_base);
+TRANS debug_transition = TRANS_of_AHFA_by_SYMID(debug_ahfa, symid);
+MARPA_DEBUG2("about to get base_to_ahfa from %p", debug_transition);
+MARPA_DEBUG2("base_to_ahfa = %p", To_AHFA_of_EIM_by_SYMID(leo_base, symid));
+}
 	    base_to_ahfa = To_AHFA_of_EIM_by_SYMID(leo_base, symid);
 	    if (!AHFA_is_Leo_Completion(base_to_ahfa)) continue;
 	    @<Create a new, unpopulated, LIM@>@;
@@ -9708,7 +9749,7 @@ rhs_closure (struct marpa_g *g, Bit_Vector bv)
 	  RULE rule = RULE_by_ID (g, rule_id);
 	  guint rule_length;
 	  guint rh_ix;
-	  Marpa_Symbol_ID lhs_id = LHS_ID_of_PRD (rule);
+	  Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
 	  if (bv_bit_test (bv, (guint) lhs_id))
 	    goto NEXT_RULE;
 	  rule_length = rule->t_length;
