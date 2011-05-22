@@ -9044,8 +9044,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 {
     UR_Const ur_node;
     const URS ur_node_stack = URS_of_R(r);
-    ur_node_boolean_set_if_false(&bocage_setup_obs, per_es_data, start_eim, start_aex);
-    ur_node_push(ur_node_stack, start_eim, start_aex);
+    push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, start_eim, start_aex);
     while ((ur_node = ur_node_pop(ur_node_stack)))
     {
         const EIM_Const parent_earley_item = EIM_of_UR(ur_node);
@@ -9058,13 +9057,15 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 }
 
 @ @<Private function prototypes@> =
-static inline gint ur_node_boolean_set_if_false(
+static inline void push_ur_node_if_new(
+    URS ur_node_stack,
     struct obstack* obs,
     struct s_bocage_setup_per_es* per_es_data,
     EIM earley_item,
     AEX ahfa_element_ix);
 @ @<Function definitions@> = 
-static inline gint ur_node_boolean_set_if_false(
+static inline void push_ur_node_if_new(
+    URS ur_node_stack,
     struct obstack* obs,
     struct s_bocage_setup_per_es* per_es_data,
     EIM earley_item,
@@ -9083,9 +9084,14 @@ static inline gint ur_node_boolean_set_if_false(
 	    nodes_by_aex[ahfa_element_ix] = NULL;
 	}
     }
-    if (nodes_by_aex[ahfa_element_ix]) return 0;
-    nodes_by_aex[ahfa_element_ix] = &dummy_or_node;
-    return 1;
+    @<Push ur-node if not in |nodes_by_aex|@>@;
+}
+
+@ @<Push ur-node if not in |nodes_by_aex|@> = {
+    if (!nodes_by_aex[ahfa_element_ix]) {
+	nodes_by_aex[ahfa_element_ix] = &dummy_or_node;
+	ur_node_push(ur_node_stack, earley_item, ahfa_element_ix);
+    }
 }
 
 @ @<Push child Earley items from token sources@> =
@@ -9112,7 +9118,7 @@ static inline gint ur_node_boolean_set_if_false(
   for (;;)
     {
       if (push_candidate) {
-	  @<Put |push_candidate| on |stack| if not in bit vector@>@;
+	    push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, push_candidate, 0);
 	}
 	if (!source_link) break;
 	push_candidate = Predecessor_of_SRCL (source_link);
@@ -9123,44 +9129,38 @@ static inline gint ur_node_boolean_set_if_false(
 @ @<Push child Earley items from completion sources@> =
 {
   SRCL source_link = NULL;
-  EIM push_candidates[2];
+  EIM predecessor_earley_item = NULL;
+  EIM cause_earley_item = NULL;
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
-      push_candidates[0] = Predecessor_of_EIM (parent_earley_item);
-      push_candidates[1] = Cause_of_EIM (parent_earley_item);
+      predecessor_earley_item = Predecessor_of_EIM (parent_earley_item);
+      cause_earley_item = Cause_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = First_Completion_Link_of_EIM (parent_earley_item);
       if (source_link)
 	{
-	  push_candidates[0] = Predecessor_of_SRCL (source_link);
-	  push_candidates[1] = Cause_of_SRCL (source_link);
+	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
+	  cause_earley_item = Cause_of_SRCL (source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
-	} else {
-	  push_candidates[0] = push_candidates[1] = NULL;
 	}
 	break;
-    default:
-	  push_candidates[0] = push_candidates[1] = NULL;
-	  break;
     }
-    if (push_candidates[0] && EIM_is_Predicted (push_candidates[0]))
+    if (predecessor_earley_item && EIM_is_Predicted (predecessor_earley_item))
       {
 	/* Or-nodes are not built from predictions */
-	push_candidates[0] = NULL;
+	predecessor_earley_item = NULL;
       }
-  while (push_candidates[1])
+  while (cause_earley_item)
     {
-      EIM push_candidate = push_candidates[0];
-      if (push_candidate) {
-	  @<Put |push_candidate| on |stack| if not in bit vector@>@;
+      if (predecessor_earley_item) {
+	  push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, predecessor_earley_item, 0);
       }
-      push_candidate = push_candidates[1];
-      @<Put |push_candidate| on |stack| if not in bit vector@>@;
+      push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, cause_earley_item, 0);
       if (!source_link) break;
-      push_candidates[0] = Predecessor_of_SRCL (source_link);
-      push_candidates[1] = Cause_of_SRCL (source_link);
+      predecessor_earley_item = Predecessor_of_SRCL (source_link);
+      cause_earley_item = Cause_of_SRCL (source_link);
       source_link = Next_SRCL_of_SRCL (source_link);
     }
 }
@@ -9168,45 +9168,36 @@ static inline gint ur_node_boolean_set_if_false(
 @ @<Push child Earley items from Leo sources@> =
 {
   SRCL source_link = NULL;
-  EIM push_candidate = NULL;
+  EIM cause_earley_item = NULL;
   LIM leo_predecessor = NULL;
   switch (source_type)
     {
     case SOURCE_IS_LEO:
       leo_predecessor = Predecessor_of_EIM (parent_earley_item);
-      push_candidate = Cause_of_EIM (parent_earley_item);
+      cause_earley_item = Cause_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = First_Leo_SRCL_of_EIM (parent_earley_item);
       if (source_link)
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
-	  push_candidate = Cause_of_SRCL (source_link);
+	  cause_earley_item = Cause_of_SRCL (source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
       break;
     }
-  while (push_candidate)
+  while (cause_earley_item)
     {
 	while (1) {
-	    @<Put |push_candidate| on |stack| if not in bit vector@>@;
+	    push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, cause_earley_item, 0);
 	    if (!leo_predecessor) break;
-	    push_candidate = Base_EIM_of_LIM(leo_predecessor);
+	    cause_earley_item = Base_EIM_of_LIM(leo_predecessor);
 	    leo_predecessor = Predecessor_LIM_of_LIM(leo_predecessor);
         }
 	if (!source_link) break;
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
-	  push_candidate = Cause_of_SRCL (source_link);
+	  cause_earley_item = Cause_of_SRCL (source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
-    }
-}
-
-@ @<Put |push_candidate| on |stack| if not in bit vector@>=
-{
-  if (ur_node_boolean_set_if_false
-      (&bocage_setup_obs, per_es_data, push_candidate, 0))
-    {
-	ur_node_push(ur_node_stack, push_candidate, 0);
     }
 }
 
