@@ -4164,20 +4164,11 @@ NEXT_AHFA_STATE: ;
 @ @<Populate the completed symbol data in the transitions@> =
 {
      gint ahfa_id;
-
-MARPA_DEBUG2("offset of t_aex=%d", G_STRUCT_OFFSET(struct s_transition, t_aex));
-
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
 	  guint symbol_id;
 	  AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
-
-MARPA_DEBUG2("Working on AHFA ID=%d", ID_of_AHFA(ahfa));
-
           TRANS* const transitions = TRANSs_of_AHFA(ahfa);
 	  for (symbol_id = 0; symbol_id < symbol_count_of_g; symbol_id++) {
-
-MARPA_DEBUG2("Working on symbol ID=%d", symbol_id);
-
 	       TRANS working_transition = transitions[symbol_id];
 	       if (working_transition) {
 		   gint completion_count = Completion_Count_of_TRANS(working_transition);
@@ -4185,10 +4176,6 @@ MARPA_DEBUG2("Working on symbol ID=%d", symbol_id);
 		       G_STRUCT_OFFSET (struct s_transition, t_aex) + completion_count *
 		       sizeof (transitions[0]->t_aex[0]);
 		   TRANS new_transition = obstack_alloc(&g->t_obs, sizeof_transition);
-
-MARPA_DEBUG4("Allocated trans=%p, size=%d completion_count=%d",
-new_transition, sizeof_transition, completion_count);
-
 		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
 		   LV_Completion_Count_of_TRANS(new_transition) = 0;
 		   transitions[symbol_id] = new_transition;
@@ -4205,9 +4192,6 @@ new_transition, sizeof_transition, completion_count);
 		      TRANS transition = transitions[completed_symbol_id];
 		      AEX* aexes = AEXs_of_TRANS(transition);
 		      gint aex_ix = LV_Completion_Count_of_TRANS(transition)++;
-MARPA_DEBUG3("Working on aex=%d, symbol ID=%d", aex, completed_symbol_id);
-MARPA_DEBUG4("Copying aex=%d to transition=%p at ix=%d", aex, transition, aex_ix);
-MARPA_DEBUG4("Copying aex=%d to %p at ix=%d", aex, (aexes+aex_ix), aex_ix);
 		      aexes[aex_ix] = aex;
 		  }
 	      }
@@ -4383,7 +4367,6 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	LV_Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
-MARPA_DEBUG1(G_STRLOC);
 	completion_count_inc(&ahfa_work_obs, p_new_state, lhs_id);
 	LV_Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
@@ -5050,10 +5033,6 @@ void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid);
 static inline
 void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
 {
-
-MARPA_DEBUG3("incrementing completion count, AFHA=%d, symbol=%d",
-    ID_of_AHFA(from_ahfa), symid);
-
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[symid];
     if (!transition) {
@@ -8249,12 +8228,6 @@ Leo item have not been fully populated.
 	        If there is more than one EIX, do not create a
 		Leo item */
 	    leo_base = EIM_of_PIM(this_pim);
-{
-AHFA debug_ahfa = AHFA_of_EIM(leo_base);
-TRANS debug_transition = TRANS_of_AHFA_by_SYMID(debug_ahfa, symid);
-MARPA_DEBUG2("about to get base_to_ahfa from %p", debug_transition);
-MARPA_DEBUG2("base_to_ahfa = %p", To_AHFA_of_EIM_by_SYMID(leo_base, symid));
-}
 	    base_to_ahfa = To_AHFA_of_EIM_by_SYMID(leo_base, symid);
 	    if (!AHFA_is_Leo_Completion(base_to_ahfa)) continue;
 	    @<Create a new, unpopulated, LIM@>@;
