@@ -8825,6 +8825,7 @@ struct s_ur_node_stack;
 struct s_ur_node;
 typedef struct s_ur_node_stack* URS;
 typedef struct s_ur_node* UR;
+typedef const struct s_ur_node* UR_Const;
 @
 @
 {\bf To Do}: @^To Do@>
@@ -9041,15 +9042,15 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 
 @ @<Traverse Earley sets to create bocage@>=
 {
-    const EIM *top_of_stack;
-    FSTACK_DECLARE (stack, EIM);
-    FSTACK_INIT (stack, EIM, total_earley_items_in_parse);
+    UR_Const ur_node;
+    const URS ur_node_stack = URS_of_R(r);
     ur_node_boolean_set_if_false(&bocage_setup_obs, per_es_data, start_eim, start_aex);
-    *(FSTACK_PUSH (stack)) = start_eim;
-    while ((top_of_stack = FSTACK_POP (stack)))
+    ur_node_push(ur_node_stack, start_eim, start_aex);
+    while ((ur_node = ur_node_pop(ur_node_stack)))
     {
-          const EIM_Const earley_item = *top_of_stack;
-        guint source_type = Source_Type_of_EIM (earley_item);
+        const EIM_Const parent_earley_item = EIM_of_UR(ur_node);
+        const AEX parent_aex = AEX_of_UR(ur_node);
+        guint source_type = Source_Type_of_EIM (parent_earley_item);
         @<Push child Earley items from token sources@>@;
         @<Push child Earley items from completion sources@>@;
         @<Push child Earley items from Leo sources@>@;
@@ -9094,10 +9095,10 @@ static inline gint ur_node_boolean_set_if_false(
   switch (source_type)
     {
     case SOURCE_IS_TOKEN:
-      push_candidate = Predecessor_of_EIM (earley_item);
+      push_candidate = Predecessor_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Token_Link_of_EIM (earley_item);
+      source_link = First_Token_Link_of_EIM (parent_earley_item);
       if (source_link)
 	{
 	  push_candidate = Predecessor_of_SRCL (source_link);
@@ -9126,11 +9127,11 @@ static inline gint ur_node_boolean_set_if_false(
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
-      push_candidates[0] = Predecessor_of_EIM (earley_item);
-      push_candidates[1] = Cause_of_EIM (earley_item);
+      push_candidates[0] = Predecessor_of_EIM (parent_earley_item);
+      push_candidates[1] = Cause_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Completion_Link_of_EIM (earley_item);
+      source_link = First_Completion_Link_of_EIM (parent_earley_item);
       if (source_link)
 	{
 	  push_candidates[0] = Predecessor_of_SRCL (source_link);
@@ -9172,11 +9173,11 @@ static inline gint ur_node_boolean_set_if_false(
   switch (source_type)
     {
     case SOURCE_IS_LEO:
-      leo_predecessor = Predecessor_of_EIM (earley_item);
-      push_candidate = Cause_of_EIM (earley_item);
+      leo_predecessor = Predecessor_of_EIM (parent_earley_item);
+      push_candidate = Cause_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_SRCL_of_EIM (earley_item);
+      source_link = First_Leo_SRCL_of_EIM (parent_earley_item);
       if (source_link)
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
@@ -9205,7 +9206,7 @@ static inline gint ur_node_boolean_set_if_false(
   if (ur_node_boolean_set_if_false
       (&bocage_setup_obs, per_es_data, push_candidate, 0))
     {
-      *(FSTACK_PUSH (stack)) = push_candidate;
+	ur_node_push(ur_node_stack, push_candidate, 0);
     }
 }
 
