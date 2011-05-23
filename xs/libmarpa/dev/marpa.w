@@ -1510,13 +1510,6 @@ struct s_rule;
 typedef struct s_rule* RULE;
 typedef Marpa_Rule_ID RULEID;
 
-@ @<Function definitions@> =
-static inline guint rule_sizeof(guint length) {
-return sizeof(struct s_rule) + length*sizeof(Marpa_Symbol_ID);
-}
-@ @<Private function prototypes@> =
-static inline guint rule_sizeof(guint length);
-
 @*0 Rule Construction.
 @ Set up the basic data.
 This logic is intended to be common to all individual rules.
@@ -1531,8 +1524,10 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, guint length)
 {
     @<Return |NULL| on failure@>@;
     RULE rule;
+    const gint rule_sizeof = G_STRUCT_OFFSET (struct s_rule, t_symbols) +
+        (length + 1) * sizeof (rule->t_symbols[0]);
     @<Return failure on invalid rule symbols@>@/
-    rule = obstack_alloc(&g->t_obs, rule_sizeof(length));
+    rule = obstack_alloc (&g->t_obs, rule_sizeof);
     @<Initialize rule symbols@>@/
     @<Initialize rule elements@>@/
     rule_add(g, rule->t_id, rule);
