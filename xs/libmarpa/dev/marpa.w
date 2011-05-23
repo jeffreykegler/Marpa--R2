@@ -3460,6 +3460,12 @@ The one list contains the AHFA items themselves, in
 AHFA item ID order.
 The other is indexed by rule ID, and contains a pointer to
 the first AHFA item for that rule.
+@ Because AHFA items are in an array, the predecessor can
+be found by incrementing the AIM pointer,
+the successor can be found by decrementing it,
+and AIM pointers can be portably compared.
+A lot of code relies on these facts.
+@d AIM_by_ID(g, id) ((g)->t_AHFA_items+(id))
 @<Widely aligned grammar elements@> =
    AIM t_AHFA_items;
    AIM* t_AHFA_items_by_rule;
@@ -3480,7 +3486,6 @@ if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
 
 @*0 AHFA Item Accessors.
 @*1 AHFA Item ID.
-@d AIM_by_ID(g, id) ((g)->t_AHFA_items+(id))
 
 @*1 AHFA Item Postdot Symbol.
 |-1| if the item is a completion.
@@ -3568,8 +3573,8 @@ That means that I can avoid the overhead of checking the array
 size when adding each new AHFA item.
 @<Function definitions@> =
 static inline
-void create_AHFA_items(struct marpa_g* g) {
-    Marpa_Rule_ID rule_id;
+void create_AHFA_items(GRAMMAR g) {
+    RULEID rule_id;
     guint no_of_items;
     guint no_of_rules = rule_count(g);
     AIM base_item = g_new(struct s_AHFA_item, Size_of_G(g));
@@ -3635,10 +3640,15 @@ for (item_id = 0; item_id < (Marpa_AHFA_Item_ID)no_of_items; item_id++) {
 g->t_AHFA_items_by_rule = items_by_rule;
 }
 
+@ @<Private function prototypes@> =
+static gint cmp_by_AHFA_item_id (gconstpointer a,
+	gconstpointer b, gpointer user_data);
 @ The AHFA items were created with a temporary ID which sorts them
 by rule, then by position within that rule.  We need one that sort the AHFA items
 by (from major to minor) postdot symbol, then rule, then position.
 A postdot symbol of $-1$ should sort high.
+This comparison function is used in the logic to change the AHFA item ID's
+from their temporary values to their final ones.
 @ @<Function definitions@> =
 static gint cmp_by_AHFA_item_id (gconstpointer ap,
 	gconstpointer bp, gpointer user_data @, G_GNUC_UNUSED) {
@@ -3652,24 +3662,33 @@ static gint cmp_by_AHFA_item_id (gconstpointer ap,
     if (b_postdot < 0) return -1;
     return a_postdot-b_postdot;
 }
-@ @<Private function prototypes@> =
-static gint cmp_by_AHFA_item_id (gconstpointer a,
-	gconstpointer b, gpointer user_data);
-@ @<Set up the AHFA item ids@> = { Marpa_AHFA_Item_ID item_id;
-AIM* sort_array = g_new(struct s_AHFA_item*, no_of_items);
-AIM items = g->t_AHFA_items;
-for (item_id = 0; item_id < (Marpa_AHFA_Item_ID)no_of_items; item_id++) {
-    /* Create an array of pointers to the old items,
-      in order to sort them
-      */
-    sort_array[item_id] = items+item_id; 
+@ Change the AHFA ID's from their temporary form to their
+final form.
+Pointers to the AHFA items are copied to a temporary array
+which is then sorted in the order required for the new ID.
+As a result, the final AHFA ID number will be the same as
+the index in this temporary arra.
+A final loop then indexes through
+the temporary array and writes the index to the pointed-to
+AHFA item as its new, final ID.
+@<Set up the AHFA item ids@> =
+{
+  Marpa_AHFA_Item_ID item_id;
+  AIM *sort_array = g_new (struct s_AHFA_item *, no_of_items);
+  AIM items = g->t_AHFA_items;
+  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
+    {
+      sort_array[item_id] = items + item_id;
+    }
+  g_qsort_with_data (sort_array,
+		     (gint) no_of_items, sizeof (AIM), cmp_by_AHFA_item_id,
+		     (gpointer) NULL);
+  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
+    {
+      LV_Sort_Key_of_AIM (sort_array[item_id]) = item_id;
+    }
+  g_free (sort_array);
 }
-g_qsort_with_data(sort_array,
-    (gint)no_of_items, sizeof(AIM), cmp_by_AHFA_item_id, (gpointer)NULL);
-for (item_id = 0; item_id < (Marpa_AHFA_Item_ID)no_of_items; item_id++) {
-    LV_Sort_Key_of_AIM(sort_array[item_id]) = item_id;
-}
-g_free(sort_array); }
 
 @** AHFA State (AHFA) Code.
 
