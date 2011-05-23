@@ -4953,6 +4953,7 @@ once I stabilize the C code implemention.
 
 @d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
     (*(TRANSs_of_AHFA(from_ahfa)+(id)))
+@d TRANS_of_EIM_by_SYMID(eim, id) TRANS_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
 @d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
 @d Completion_Count_of_TRANS(trans)
@@ -9225,6 +9226,14 @@ static inline void push_ur_node_if_new(
 	while (1) {
 	    push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, cause_earley_item, 0);
 	    if (!leo_predecessor) break;
+	    {
+	      SYMID postdot = Postdot_SYMID_of_LIM (leo_predecessor);
+	      EIM leo_base_earley_item = Base_EIM_of_LIM (leo_predecessor);
+	      TRANS transition = TRANS_of_EIM_by_SYMID (leo_base_earley_item, postdot);
+	      AEX aex = Leo_Base_AEX_of_TRANS (transition);
+	      push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data,
+		  leo_base_earley_item, 0);
+	    }
 	    cause_earley_item = Base_EIM_of_LIM(leo_predecessor);
 	    leo_predecessor = Predecessor_LIM_of_LIM(leo_predecessor);
         }
