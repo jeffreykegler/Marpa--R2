@@ -4489,9 +4489,9 @@ if (queued_AHFA_state)
       Marpa_Symbol_ID postdot = Postdot_SYMID_of_AIM (item);
       if (postdot < 0)
 	{
-	  guint complete_symbol_id = LHS_ID_of_RULE (item->t_production);
+	  gint complete_symbol_id = LHS_ID_of_RULE (item->t_production);
 	  completion_count_inc (&ahfa_work_obs, p_new_state, complete_symbol_id);
-	  bv_bit_set (complete_v, complete_symbol_id );
+	  bv_bit_set (complete_v, (guint)complete_symbol_id );
 	}
       else
 	{
