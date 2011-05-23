@@ -4194,8 +4194,33 @@ NEXT_AHFA_STATE: ;
      }
 }
 
-@ @<Populate the Leo base AEXes@> = {
-     ;
+@ For every AHFA item which can be a Leo base, and any transition
+(or postdot) symbol that leads to a Leo completion, put the AEX
+into the |TRANS| structure, for memoization.
+@<Populate the Leo base AEXes@> =
+{
+  gint ahfa_id;
+  for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
+    {
+      AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
+      TRANS* const transitions = TRANSs_of_AHFA(ahfa);
+      AIM *aims = AIMs_of_AHFA (ahfa);
+      gint aim_count = AIM_Count_of_AHFA (ahfa);
+      AEX aex;
+      for (aex = 0; aex < aim_count; aex++)
+	{
+	  AIM ahfa_item = aims[aex];
+	  SYMID postdot = Postdot_SYMID_of_AIM (ahfa_item);
+	  if (postdot >= 0)
+	    {
+	      TRANS transition = transitions[postdot];
+	      AHFA to_ahfa = To_AHFA_of_TRANS (transition);
+	      if (!AHFA_is_Leo_Completion (to_ahfa))
+		continue;
+	      LV_Leo_Base_AEX_of_TRANS (transition) = aex;
+	    }
+	}
+    }
 }
 
 @ @<Free locals for creating AHFA states@> =
