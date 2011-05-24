@@ -9101,7 +9101,10 @@ set |end_of_parse_es| and |completed_start_rule|@> =
     }
 }
 
-@ @<Traverse Earley sets to create bocage@>=
+@ |predecessor_aim| and |predot|
+are guaranteed to be defined,
+since neither a prediction or the null parse AHFA item is ever on the stack.
+@<Traverse Earley sets to create bocage@>=
 {
     UR_Const ur_node;
     const URS ur_node_stack = URS_of_R(r);
@@ -9110,6 +9113,9 @@ set |end_of_parse_es| and |completed_start_rule|@> =
     {
         const EIM_Const parent_earley_item = EIM_of_UR(ur_node);
         const AEX parent_aex = AEX_of_UR(ur_node);
+	const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
+	const AIM predecessor_aim = parent_aim - 1;
+	const SYMID predot_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
         guint source_type = Source_Type_of_EIM (parent_earley_item);
         @<Push child Earley items from token sources@>@;
         @<Push child Earley items from completion sources@>@;
@@ -9180,9 +9186,8 @@ static inline void push_ur_node_if_new(
       {
 	if (predecessor_earley_item)
 	  {
-	    AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
 	    AEX predecessor_aex =
-	      AEX_of_EIM_by_AIM (predecessor_earley_item, parent_aim-1);
+	      AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
 	    push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
 				 predecessor_earley_item, 0);
 	  }
@@ -9222,11 +9227,21 @@ static inline void push_ur_node_if_new(
   while (cause_earley_item)
     {
       if (predecessor_earley_item) {
-	    const AIM parent_aim = AIM_of_EIM_by_AEX(parent_earley_item, parent_aex);
-	    const AEX predecessor_aex = AEX_of_EIM_by_AIM(predecessor_earley_item, parent_aim-1);
+	    const AEX predecessor_aex = AEX_of_EIM_by_AIM(predecessor_earley_item, predecessor_aim);
 	  push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, predecessor_earley_item, 0);
       }
-      push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, cause_earley_item, 0);
+    {
+      const TRANS cause_completion_data =
+	TRANS_of_EIM_by_SYMID (cause_earley_item, predot_symbol_id);
+      const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
+      const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
+      gint ix;
+      for (ix = 0; ix < aex_count; ix++) {
+	  AEX cause_aex = aexes[ix];
+	  push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
+			   cause_earley_item, 0);
+      }
+    }
       if (!source_link) break;
       predecessor_earley_item = Predecessor_of_SRCL (source_link);
       cause_earley_item = Cause_of_SRCL (source_link);
