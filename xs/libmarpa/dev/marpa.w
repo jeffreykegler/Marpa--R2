@@ -3446,8 +3446,8 @@ typedef gint Marpa_AHFA_Item_ID;
 @d LV_Sort_Key_of_AIM(aim) Sort_Key_of_AIM(aim)
 @<Private structures@> =
 struct s_AHFA_item {
-    Marpa_AHFA_Item_ID t_sort_key;
-    RULE  t_production;
+    gint t_sort_key;
+    RULE t_production;
     @<Int aligned AHFA item elements@>@;
     gint t_position; /* position in the RHS, -1 for a completion */
 };
@@ -3884,21 +3884,7 @@ return AHFA_state_id < AHFA_Count_of_G(g) && AHFA_state_id >= 0;
 static inline gint AHFA_state_id_is_valid(
 const struct marpa_g *g, AHFAID AHFA_state_id);
 
-@*0 Convert AHFA index to AHFA ID.
-@ Given an AHFA state
-and an index into the array of items for an AHFA state,
-return the |AHFA_Item_ID|.
-The caller must ensure that
-the index is in range.
-@<Function definitions@> =
-static inline Marpa_AHFA_Item_ID AHFA_state_item_ix2id(
-const struct marpa_g *g, const AHFA state, guint item_ix) {
-   return state->t_items[item_ix] - g->t_AHFA_items;
-}
-@ @<Private function prototypes@> =
-static inline Marpa_AHFA_Item_ID AHFA_state_item_ix2id(
-const struct marpa_g *g, const AHFA state, guint item_ix);
-
+    
 @*0 Postdot Symbols.
 @d Postdot_SYM_Count_of_AHFA(state) ((state)->t_postdot_sym_count)
 @d LV_Postdot_SYM_Count_of_AHFA(state) Postdot_SYM_Count_of_AHFA(state) 
@@ -3928,7 +3914,13 @@ marpa_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
 @ @<Public function prototypes@> =
 gint marpa_AHFA_state_item_count(struct marpa_g* g, Marpa_AHFA_State_ID AHFA_state_id);
 
-@ @<Function definitions@> =
+@ @<Public function prototypes@> =
+Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
+     Marpa_AHFA_State_ID AHFA_state_id,
+	guint item_ix);
+@ @d AIMID_of_AHFA_by_AEX(g, ahfa, aex)
+   ((ahfa)->t_items[aex] - (g)->t_AHFA_items)
+@<Function definitions@> =
 Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
      AHFAID AHFA_state_id,
 	guint item_ix) {
@@ -3944,12 +3936,8 @@ Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
 	g->t_error = "invalid state item ix";
 	return failure_indicator;
     }
-    return AHFA_state_item_ix2id(g, state, item_ix);
+    return AIMID_of_AHFA_by_AEX(g, state, item_ix);
 }
-@ @<Public function prototypes@> =
-Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
-     Marpa_AHFA_State_ID AHFA_state_id,
-	guint item_ix);
 
 @ @<Function definitions@> =
 gint marpa_AHFA_state_is_predict(struct marpa_g* g,
