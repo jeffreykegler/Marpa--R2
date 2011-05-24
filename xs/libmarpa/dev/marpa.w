@@ -9189,7 +9189,7 @@ static inline void push_ur_node_if_new(
 	    AEX predecessor_aex =
 	      AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
 	    push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
-				 predecessor_earley_item, 0);
+				 predecessor_earley_item, predecessor_aex);
 	  }
 	if (!source_link)
 	  break;
@@ -9226,9 +9226,12 @@ static inline void push_ur_node_if_new(
       }
   while (cause_earley_item)
     {
-      if (predecessor_earley_item) {
-	    const AEX predecessor_aex = AEX_of_EIM_by_AIM(predecessor_earley_item, predecessor_aim);
-	  push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, predecessor_earley_item, 0);
+    if (predecessor_earley_item)
+      {
+	const AEX predecessor_aex =
+	  AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
+	push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
+			     predecessor_earley_item, predecessor_aex);
       }
     {
       const TRANS cause_completion_data =
@@ -9239,7 +9242,7 @@ static inline void push_ur_node_if_new(
       for (ix = 0; ix < aex_count; ix++) {
 	  AEX cause_aex = aexes[ix];
 	  push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
-			   cause_earley_item, 0);
+			   cause_earley_item, cause_aex);
       }
     }
       if (!source_link) break;
@@ -9273,7 +9276,17 @@ static inline void push_ur_node_if_new(
   while (cause_earley_item)
     {
 	while (1) {
-	    push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, cause_earley_item, 0);
+	    {
+	      const TRANS cause_completion_data =
+		TRANS_of_EIM_by_SYMID (cause_earley_item, predot_symbol_id);
+	      const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
+	      const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
+	      gint ix;
+	      for (ix = 0; ix < aex_count; ix++) {
+		  AEX cause_aex = aexes[ix];
+		push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, cause_earley_item, cause_aex);
+	      }
+	    }
 	    if (!leo_predecessor) break;
 	    {
 	      SYMID postdot = Postdot_SYMID_of_LIM (leo_predecessor);
@@ -9281,7 +9294,7 @@ static inline void push_ur_node_if_new(
 	      TRANS transition = TRANS_of_EIM_by_SYMID (leo_base_earley_item, postdot);
 	      AEX aex = Leo_Base_AEX_of_TRANS (transition);
 	      push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data,
-		  leo_base_earley_item, 0);
+		  leo_base_earley_item, aex);
 	    }
 	    cause_earley_item = Base_EIM_of_LIM(leo_predecessor);
 	    leo_predecessor = Predecessor_LIM_of_LIM(leo_predecessor);
