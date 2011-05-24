@@ -3814,16 +3814,33 @@ guint t_complete_symbol_count;
 SYMID* t_complete_symbols;
 
 @*0 AHFA Item Container.
-@ @d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
-@d LV_AIM_Count_of_AHFA(ahfa) AIM_Count_of_AHFA(ahfa)
-@<Int aligned AHFA state elements@> =
-guint t_item_count;
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
+@d AIM_of_AHFA_by_AEX(ahfa, aex) (AIMs_of_AHFA(ahfa)[aex])
 @d LV_AIMs_of_AHFA(ahfa) AIMs_of_AHFA(ahfa)
+@d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
+@d LV_AIM_Count_of_AHFA(ahfa) AIM_Count_of_AHFA(ahfa)
+@d AEX_of_AHFA_by_AIM(ahfa, aim) aex_of_ahfa_by_aim_get((ahfa), (aim))
 @<Widely aligned AHFA state elements@> =
 AIM* t_items;
+@ @<Int aligned AHFA state elements@> =
+guint t_item_count;
+@ This function assumes that the caller knows that the AHFA item
+is in the AHFA state.
+@<Private function declarations@> =
+static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM aim_sought);
+@ Linear search is used because this function will be used
+only for discovered states, and these have an average AHFA item
+count of less than 2 in practical cases.
+@<Function definitions@> =
+static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM aim_sought)
+{
+    AIM* const aims = AIMs_of_AHFA(ahfa);
+    AEX aex = 0;
+    while ( aims[aex] != aim_sought) aex++;
+    return aex;
+}
 
-@*0. Is AHFA Predicted?.
+@*0 Is AHFA Predicted?.
 @ This boolean indicates whether the
 {\bf AHFA state} is predicted,
 as opposed to whether it contains any predicted 
@@ -5941,6 +5958,8 @@ the Earley set.
 @d Origin_Earleme_of_EIM(item) (Earleme_of_ES(Origin_of_EIM(item)))
 @d Origin_Ord_of_EIM(item) (Ord_of_ES(Origin_of_EIM(item)))
 @d Origin_of_EIM(item) ((item)->t_key.t_origin)
+@d AIM_of_EIM_by_AEX(eim, aex) AIM_of_AHFA_by_AEX(AHFA_of_EIM(eim), (aex))
+@d AEX_of_EIM_by_AIM(eim, aim) AEX_of_AHFA_by_AIM(AHFA_of_EIM(eim), (aim))
 @<Private incomplete structures@> =
 struct s_earley_item;
 typedef struct s_earley_item* EIM;
@@ -9139,33 +9158,39 @@ static inline void push_ur_node_if_new(
 @ @<Push child Earley items from token sources@> =
 {
   SRCL source_link = NULL;
-  EIM push_candidate = NULL;
+  EIM predecessor_earley_item = NULL;
   switch (source_type)
     {
     case SOURCE_IS_TOKEN:
-      push_candidate = Predecessor_of_EIM (parent_earley_item);
+      predecessor_earley_item = Predecessor_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = First_Token_Link_of_EIM (parent_earley_item);
       if (source_link)
 	{
-	  push_candidate = Predecessor_of_SRCL (source_link);
+	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
     }
-    if (push_candidate && EIM_is_Predicted(push_candidate)) {
+    if (predecessor_earley_item && EIM_is_Predicted(predecessor_earley_item)) {
 	  /* Or-nodes are not built from predictions */
-          push_candidate = NULL;
+          predecessor_earley_item = NULL;
     }
-  for (;;)
-    {
-      if (push_candidate) {
-	    push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, push_candidate, 0);
-	}
-	if (!source_link) break;
-	push_candidate = Predecessor_of_SRCL (source_link);
+    for (;;)
+      {
+	if (predecessor_earley_item)
+	  {
+	    AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
+	    AEX predecessor_aex =
+	      AEX_of_EIM_by_AIM (predecessor_earley_item, parent_aim-1);
+	    push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
+				 predecessor_earley_item, 0);
+	  }
+	if (!source_link)
+	  break;
+	predecessor_earley_item = Predecessor_of_SRCL (source_link);
 	source_link = Next_SRCL_of_SRCL (source_link);
-    }
+      }
 }
 
 @ @<Push child Earley items from completion sources@> =
@@ -9197,6 +9222,8 @@ static inline void push_ur_node_if_new(
   while (cause_earley_item)
     {
       if (predecessor_earley_item) {
+	    const AIM parent_aim = AIM_of_EIM_by_AEX(parent_earley_item, parent_aex);
+	    const AEX predecessor_aex = AEX_of_EIM_by_AIM(predecessor_earley_item, parent_aim-1);
 	  push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, predecessor_earley_item, 0);
       }
       push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, cause_earley_item, 0);
