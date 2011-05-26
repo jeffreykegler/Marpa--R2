@@ -3848,16 +3848,32 @@ guint t_item_count;
 is in the AHFA state.
 @<Private function prototypes@> =
 static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM aim_sought);
-@ Linear search is used because this function will be used
-only for discovered states, and these have an average AHFA item
-count of less than 2 in practical cases.
+@ Binary search is overkill for discovered states,
+not even repaying the overhead.
+But prediction states can get larger,
+and the overhead is always low.
+An alternative is to have different search routines based on the number
+of AIM items, but that is more overhead.
+Perhaps better to just search than
+to spend cycles figuring out how to search.
 @<Function definitions@> =
-static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM aim_sought)
+static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM sought_aim)
 {
     AIM* const aims = AIMs_of_AHFA(ahfa);
-    AEX aex = 0;
-    while ( aims[aex] != aim_sought) aex++;
-    return aex;
+    gint aim_count = AIM_Count_of_AHFA(ahfa);
+    gint hi = aim_count - 1;
+    gint lo = 0;
+    while (hi >= lo) { // A binary search
+       gint trial_aex = lo+(hi-lo)/2; // guards against overflow
+       AIM trial_aim = aims[trial_aex];
+       if (trial_aim == sought_aim) return trial_aex;
+       if (trial_aim < sought_aim) {
+           lo = trial_aex+1;
+       } else {
+           hi = trial_aex-1;
+       }
+  }
+  return -1;
 }
 
 @*0 Is AHFA Predicted?.
