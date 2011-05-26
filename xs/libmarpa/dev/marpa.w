@@ -3826,7 +3826,7 @@ AIM* t_items;
 guint t_item_count;
 @ This function assumes that the caller knows that the AHFA item
 is in the AHFA state.
-@<Private function declarations@> =
+@<Private function prototypes@> =
 static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM aim_sought);
 @ Linear search is used because this function will be used
 only for discovered states, and these have an average AHFA item
@@ -8874,6 +8874,31 @@ location, the same AHFA item in the other must be, also.
 This happen frequently enough to be an issue even for practical
 grammars.
 
+@*0 Sources of Leo Path Items.
+A Leo path consists of a series of Earley items:
+\li at the bottom, exactly one Leo base item;
+\li at the top, exactly one Leo completion item;
+\li in between, zero or more Leo path items.
+@ Leo base items and Leo completion items can have a variety
+of non-Leo sources.
+Leo completion items can have multiple Leo sources,
+though no other source can have the same middle earleme
+as a Leo source.
+@ When expanded, Leo path items can have multiple sources.
+However, the sources of a single Leo path item
+will result from the same Leo predecessor.
+As consequences:
+\li All the sources of an expanded Leo path item will have the same
+Earley item predecessor,
+the Leo base item of the Leo predecessor.
+\li All these sources will also have the same middle
+earleme, the Earley set of the Leo predecessor.
+\li Every source of the Leo path item will have a cause
+and the transition symbol of the Leo predecessor
+will be on the LHS of at least one completion in all of those causes.
+\li The Leo transition symbol will be the postdot symbol in exactly
+one AHFA item in the AHFA state of the Earley item predecessor.
+
 @** Ur-Node (UR) Code.
 Ur is a German word for "primordial", which is used
 a lot in academic writing to designate precursors---%
@@ -9115,7 +9140,9 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
         const AEX parent_aex = AEX_of_UR(ur_node);
 	const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
 	const AIM predecessor_aim = parent_aim - 1;
-	const SYMID predot_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
+	const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
+	/* Note that the postdot symbol of the predecessor is NOT necessary the
+	   predot symbol, because there may be nulling symbols in between. */
         guint source_type = Source_Type_of_EIM (parent_earley_item);
         @<Push child Earley items from token sources@>@;
         @<Push child Earley items from completion sources@>@;
@@ -9235,7 +9262,7 @@ static inline void push_ur_node_if_new(
       }
     {
       const TRANS cause_completion_data =
-	TRANS_of_EIM_by_SYMID (cause_earley_item, predot_symbol_id);
+	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
       const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       gint ix;
@@ -9278,7 +9305,7 @@ static inline void push_ur_node_if_new(
 	while (1) {
 	    {
 	      const TRANS cause_completion_data =
-		TRANS_of_EIM_by_SYMID (cause_earley_item, predot_symbol_id);
+		TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
 	      const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
 	      const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
 	      gint ix;
