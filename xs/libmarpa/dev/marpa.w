@@ -9202,6 +9202,28 @@ static inline void push_ur_node_if_new(
     EIM earley_item,
     AEX ahfa_element_ix)
 {
+    if (!psia_test_and_set(obs, per_es_data, earley_item, ahfa_element_ix)) {
+	ur_node_push(ur_node_stack, earley_item, ahfa_element_ix);
+    }
+}
+
+@ The |PSIA| is a container of data that is per Earley-set, per Earley item,
+and per AEX.  Thus, Per-Set-Item-Aex, or PSIA.
+This function ensures that the appropriate |PSIA| boolean is set,
+and returns that boolean's value prior to the call.
+@<Private function prototypes@> =
+static inline gint psia_test_and_set(
+    struct obstack* obs,
+    struct s_bocage_setup_per_es* per_es_data,
+    EIM earley_item,
+    AEX ahfa_element_ix);
+@ @<Function definitions@> = 
+static inline gint psia_test_and_set(
+    struct obstack* obs,
+    struct s_bocage_setup_per_es* per_es_data,
+    EIM earley_item,
+    AEX ahfa_element_ix)
+{
     const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
     const Marpa_Earley_Set_ID set_ordinal = ES_Ord_of_EIM(earley_item);
     OR** nodes_by_item = per_es_data[set_ordinal].t_aexes_by_item;
@@ -9215,14 +9237,11 @@ static inline void push_ur_node_if_new(
 	    nodes_by_aex[ahfa_element_ix] = NULL;
 	}
     }
-    @<Push ur-node if not in |nodes_by_aex|@>@;
-}
-
-@ @<Push ur-node if not in |nodes_by_aex|@> = {
     if (!nodes_by_aex[ahfa_element_ix]) {
 	nodes_by_aex[ahfa_element_ix] = &dummy_or_node;
-	ur_node_push(ur_node_stack, earley_item, ahfa_element_ix);
+	return 0;
     }
+    return 1;
 }
 
 @ @<Push child Earley items from token sources@> =
