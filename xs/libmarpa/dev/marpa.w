@@ -3641,7 +3641,26 @@ g->t_AHFA_items_by_rule = items_by_rule;
 }
 
 @ @<Private function prototypes@> =
-static gint cmp_by_AHFA_item_id (gconstpointer a,
+static gint cmp_by_aimid (gconstpointer a,
+	gconstpointer b, gpointer user_data);
+@ This functions sorts a list of pointers to
+AHFA items by AHFA item id,
+which is their most natural order.
+Once the AFHA states are created,
+they are restored to this order.
+For portability,
+it requires the AIMs to be in an array.
+@ @<Function definitions@> =
+static gint cmp_by_aimid (gconstpointer ap,
+	gconstpointer bp,
+	gpointer user_data @, G_GNUC_UNUSED) {
+    AIM a = *(AIM*)ap;
+    AIM b = *(AIM*)bp;
+    return a-b;
+}
+
+@ @<Private function prototypes@> =
+static gint cmp_by_postdot_and_aimid (gconstpointer a,
 	gconstpointer b, gpointer user_data);
 @ The AHFA items were created with a temporary ID which sorts them
 by rule, then by position within that rule.  We need one that sort the AHFA items
@@ -3650,7 +3669,7 @@ A postdot symbol of $-1$ should sort high.
 This comparison function is used in the logic to change the AHFA item ID's
 from their temporary values to their final ones.
 @ @<Function definitions@> =
-static gint cmp_by_AHFA_item_id (gconstpointer ap,
+static gint cmp_by_postdot_and_aimid (gconstpointer ap,
 	gconstpointer bp, gpointer user_data @, G_GNUC_UNUSED) {
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
@@ -3662,6 +3681,7 @@ static gint cmp_by_AHFA_item_id (gconstpointer ap,
     if (b_postdot < 0) return -1;
     return a_postdot-b_postdot;
 }
+
 @ Change the AHFA ID's from their temporary form to their
 final form.
 Pointers to the AHFA items are copied to a temporary array
@@ -3681,7 +3701,7 @@ AHFA item as its new, final ID.
       sort_array[item_id] = items + item_id;
     }
   g_qsort_with_data (sort_array,
-		     (gint) no_of_items, sizeof (AIM), cmp_by_AHFA_item_id,
+		     (gint) no_of_items, sizeof (AIM), cmp_by_postdot_and_aimid,
 		     (gpointer) NULL);
   for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
     {
@@ -4112,7 +4132,7 @@ void create_AHFA_states(struct marpa_g* g) {
        the |DQUEUE|'s data */
    ahfa_count_of_g = LV_AHFA_Count_of_G(g) = DQUEUE_END(states);
    @<Populate the completed symbol data in the transitions@>@;
-   @<Populate the Leo base AEXes@>@;
+   @<Resort the AIMs and populate the Leo base AEXes@>@;
    @<Free locals for creating AHFA states@>@;
 }
 
@@ -4221,7 +4241,7 @@ NEXT_AHFA_STATE: ;
 @ For every AHFA item which can be a Leo base, and any transition
 (or postdot) symbol that leads to a Leo completion, put the AEX
 into the |TRANS| structure, for memoization.
-@<Populate the Leo base AEXes@> =
+@<Resort the AIMs and populate the Leo base AEXes@> =
 {
   gint ahfa_id;
   for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
@@ -4231,6 +4251,7 @@ into the |TRANS| structure, for memoization.
       AIM *aims = AIMs_of_AHFA (ahfa);
       gint aim_count = AIM_Count_of_AHFA (ahfa);
       AEX aex;
+      g_qsort_with_data(aims, aim_count, sizeof (AIM*), cmp_by_aimid, NULL);
       for (aex = 0; aex < aim_count; aex++)
 	{
 	  AIM ahfa_item = aims[aex];
