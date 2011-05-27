@@ -9262,7 +9262,7 @@ static inline gint psia_test_and_set(
 	}
     }
     if (predecessor_earley_item && EIM_is_Predicted(predecessor_earley_item)) {
-	  /* Or-nodes are not built from predictions */
+	  @<Set boolean in PSIA for initial nulls@>@;
           predecessor_earley_item = NULL;
     }
     for (;;)
@@ -9279,6 +9279,19 @@ static inline gint psia_test_and_set(
 	predecessor_earley_item = Predecessor_of_SRCL (source_link);
 	source_link = Next_SRCL_of_SRCL (source_link);
       }
+}
+
+@ If there are initial nulls, set a boolean in the PSIA
+so that I will know to create the chain of or-nodes for them.
+We don't need to stack the prediction, because it can have
+no other descendants.
+@<Set boolean in PSIA for initial nulls@> = {
+    if (Position_of_AIM(predecessor_aim) > 0) {
+        AEX predecessor_aex = AEX_of_EIM_by_AIM(predecessor_earley_item,
+	    predecessor_aim);
+	psia_test_and_set(&bocage_setup_obs, per_es_data, 
+	    predecessor_earley_item, predecessor_aex);
+    }
 }
 
 @ @<Push child Earley items from completion sources@> =
@@ -9304,7 +9317,7 @@ static inline gint psia_test_and_set(
     }
     if (predecessor_earley_item && EIM_is_Predicted (predecessor_earley_item))
       {
-	/* Or-nodes are not built from predictions */
+	@<Set boolean in PSIA for initial nulls@>@;
 	predecessor_earley_item = NULL;
       }
   while (cause_earley_item)
