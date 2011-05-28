@@ -3440,20 +3440,18 @@ the duple being a a rule and a position in that rule.
 @<Public typedefs@> =
 typedef gint Marpa_AHFA_Item_ID;
 @
-@d Position_of_AIM(aim) ((aim)->t_position)
-@d LV_Position_of_AIM(aim) Position_of_AIM(aim)
 @d Sort_Key_of_AIM(aim) ((aim)->t_sort_key)
 @d LV_Sort_Key_of_AIM(aim) Sort_Key_of_AIM(aim)
 @<Private structures@> =
 struct s_AHFA_item {
     gint t_sort_key;
-    RULE t_production;
+    @<Widely aligned AHFA item elements@>@;
     @<Int aligned AHFA item elements@>@;
-    gint t_position; /* position in the RHS, -1 for a completion */
 };
 @ @<Private typedefs@> =
 struct s_AHFA_item;
 typedef struct s_AHFA_item* AIM;
+typedef Marpa_AHFA_Item_ID AIMID;
 
 @ A pointer to two lists of AHFA items.
 The one list contains the AHFA items themselves, in
@@ -3484,10 +3482,32 @@ g->t_AHFA_items_by_rule = NULL;
 if (g->t_AHFA_items) { g_free(g->t_AHFA_items); };
 if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
 
-@*0 AHFA Item Accessors.
-@*1 AHFA Item ID.
+@ Check that AHFA item ID is in valid range.
+@<Function definitions@> =
+static inline gboolean item_is_valid(
+GRAMMAR_Const g, AIMID item_id) {
+return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
+}
+@ @<Private function prototypes@> =
+static inline gboolean item_is_valid(
+GRAMMAR_Const g, AIMID item_id);
 
-@*1 AHFA Item Postdot Symbol.
+@*0 Rule.
+@d RULE_of_AIM(item) ((item)->t_rule)
+@d RULEID_of_AIM(item) ID_of_RULE(RULE_of_AIM(item))
+@d LV_RULE_of_AIM(item) RULE_of_AIM(item)
+@d LHS_ID_of_AIM(item) (LHS_ID_of_RULE(RULE_of_AIM(item)))
+@<Widely aligned AHFA item elements@> =
+    RULE t_rule;
+
+@*0 Position.
+Position in the RHS, -1 for a completion.
+@d Position_of_AIM(aim) ((aim)->t_position)
+@d LV_Position_of_AIM(aim) Position_of_AIM(aim)
+@<Int aligned AHFA item elements@> =
+gint t_position;
+
+@*0 Postdot Symbol.
 |-1| if the item is a completion.
 @d Postdot_SYMID_of_AIM(item) ((item)->t_postdot)
 @d LV_Postdot_SYMID_of_AIM(item) Postdot_SYMID_of_AIM(item)
@@ -3496,11 +3516,16 @@ if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
     (AIM_is_Completion(aim) && RULE_is_Start(RULE_of_AIM(aim)))
 @<Int aligned AHFA item elements@> = Marpa_Symbol_ID t_postdot;
 
-@*1 Production of AHFA Item.
-@d RULE_of_AIM(item) ((item)->t_production)
-@d RULEID_of_AIM(item) ID_of_RULE(RULE_of_AIM(item))
-@d LV_RULE_of_AIM(item) RULE_of_AIM(item)
-@d LHS_ID_of_AIM(item) (LHS_ID_of_RULE(RULE_of_AIM(item)))
+@*0 Leading Nulls.
+In libmarpa's AHFA items, the dot position is never in front
+of a nulling symbol.  (Due to rewriting, every nullable symbol
+is also a nulling symbol.)
+This element contains the count of nulling symbols preceding
+this AHFA items's dot position.
+@d Null_Count_of_AIM(aim) ((aim)->t_leading_nulls)
+@d LV_Null_Count_of_AIM(aim) Null_Count_of_AIM(aim)
+@<Int aligned AHFA item elements@> =
+gint t_leading_nulls;
 
 @*0 AHFA Item External Accessors.
 @<Function definitions@> =
@@ -3555,16 +3580,6 @@ gint marpa_AHFA_item_sort_key(struct marpa_g* g,
 @ @<Public function prototypes@> =
 gint marpa_AHFA_item_sort_key(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
 
-@ Check that symbol is in valid range.
-@<Function definitions@> =
-static inline gboolean item_is_valid(
-const struct marpa_g *g, Marpa_AHFA_Item_ID item_id) {
-return item_id < (Marpa_AHFA_Item_ID)AIM_Count_of_G(g) && item_id >= 0;
-}
-@ @<Private function prototypes@> =
-static inline gboolean item_is_valid(
-const struct marpa_g *g, Marpa_AHFA_Item_ID item_id);
-
 @ I do not use a |DSTACK| because I can initially size the
 item stack to |Size_of_G(g)|, which is a reasonable allocation,
 but guaranteed to be greater than
@@ -3581,7 +3596,6 @@ void create_AHFA_items(GRAMMAR g) {
     AIM current_item = base_item;
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
 	@<Create the AHFA items for a rule@>@;
-	NEXT_RULE: ;
     }
     no_of_items = LV_AIM_Count_of_G(g) = current_item - base_item;
     g->t_AHFA_items = g_renew(struct s_AHFA_item, base_item, no_of_items);
@@ -3592,31 +3606,45 @@ void create_AHFA_items(GRAMMAR g) {
 static inline void create_AHFA_items(struct marpa_g* g);
 
 @ @<Create the AHFA items for a rule@> =
-guint rhs_ix;
-RULE  rule = RULE_by_ID(g, rule_id);
-if (!rule->t_is_used) goto NEXT_RULE;
-for (rhs_ix = 0; rhs_ix < rule->t_length; rhs_ix++) {
-     @<Create an AHFA item for a precompletion@>@;
-     current_item++;
-     NEXT_RH_SYMBOL: ;
+{
+  RULE rule = RULE_by_ID (g, rule_id);
+  if (rule->t_is_used) {
+  guint leading_nulls = 0;
+  guint rhs_ix;
+  for (rhs_ix = 0; rhs_ix < rule->t_length; rhs_ix++)
+    {
+      Marpa_Symbol_ID rh_symid = rhs_symid (rule, rhs_ix);
+      SYM symbol = SYM_by_ID (g, rh_symid);
+      if (!symbol->t_is_nullable) {
+	  @<Create an AHFA item for a precompletion@>@;
+	  leading_nulls = 0;
+	  current_item++;
+      } else {
+          leading_nulls++;
+      }
+    }
+  @<Create an AHFA item for a completion @>@;
+  current_item++;
+  }
 }
-@<Create an AHFA item for a completion@>@;
-current_item++;
 
 @ @<Create an AHFA item for a precompletion@> =
-Marpa_Symbol_ID rh_symid = rhs_symid(rule, rhs_ix);
-SYM symbol = SYM_by_ID(g, rh_symid);
-if (symbol->t_is_nullable) goto NEXT_RH_SYMBOL;
-LV_Sort_Key_of_AIM(current_item) = current_item - base_item;
-LV_Postdot_SYMID_of_AIM(current_item) = rh_symid;
-LV_RULE_of_AIM(current_item) = rule;
-LV_Position_of_AIM(current_item) = rhs_ix;
+{
+  LV_RULE_of_AIM (current_item) = rule;
+  LV_Sort_Key_of_AIM (current_item) = current_item - base_item;
+  LV_Null_Count_of_AIM(current_item) = leading_nulls;
+  LV_Postdot_SYMID_of_AIM (current_item) = rh_symid;
+  LV_Position_of_AIM (current_item) = rhs_ix;
+}
 
 @ @<Create an AHFA item for a completion@> =
-LV_Sort_Key_of_AIM(current_item) = current_item - base_item;
-LV_Postdot_SYMID_of_AIM(current_item) =  -1;
-LV_Position_of_AIM(current_item) = -1;
-LV_RULE_of_AIM(current_item) = rule;
+{
+  LV_RULE_of_AIM (current_item) = rule;
+  LV_Sort_Key_of_AIM (current_item) = current_item - base_item;
+  LV_Null_Count_of_AIM(current_item) = leading_nulls;
+  LV_Postdot_SYMID_of_AIM (current_item) = -1;
+  LV_Position_of_AIM (current_item) = -1;
+}
 
 @ This is done after creating the AHFA items, because in
 theory the |g_renew| might have moved them.
@@ -3927,7 +3955,7 @@ STOLEN_DQUEUE_DATA_FREE(g->t_AHFA);
 @d ID_of_AHFA(state) ((state)->t_key.t_id)
 
 @*0 Validate AHFA ID.
-Check that symbol is in valid range.
+Check that AHFA ID is in valid range.
 @<Function definitions@> =
 static inline gint AHFA_state_id_is_valid(
 const struct marpa_g *g, AHFAID AHFA_state_id) {
@@ -4444,7 +4472,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
       }
     else
       {
-	SYMID lhs_id = LHS_ID_of_RULE (single_item_p->t_production);
+	SYMID lhs_id = LHS_ID_of_AIM(single_item_p);
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	LV_Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
@@ -4575,7 +4603,7 @@ if (queued_AHFA_state)
       Marpa_Symbol_ID postdot = Postdot_SYMID_of_AIM (item);
       if (postdot < 0)
 	{
-	  gint complete_symbol_id = LHS_ID_of_RULE (item->t_production);
+	  gint complete_symbol_id = LHS_ID_of_AIM (item);
 	  completion_count_inc (&ahfa_work_obs, p_new_state, complete_symbol_id);
 	  bv_bit_set (complete_v, (guint)complete_symbol_id );
 	}
@@ -4711,30 +4739,34 @@ states.
 
 @ @<Initialize the symbol-by-symbol matrix@> =
 {
-    RULEID rule_id;
-    SYMID symid;
-    AIM *items_by_rule = g->t_AHFA_items_by_rule;
-    for (symid = 0; symid < (SYMID)symbol_count_of_g; symid++) {
-	// If a symbol appears on a LHS, it predicts itself.
-	SYM symbol = SYM_by_ID(g, symid);
-	if (!SYMBOL_LHS_RULE_COUNT(symbol)) continue;
-	matrix_bit_set(symbol_by_symbol_matrix,
-	    (guint)symid, (guint)symid);
+  RULEID rule_id;
+  SYMID symid;
+  AIM *items_by_rule = g->t_AHFA_items_by_rule;
+  for (symid = 0; symid < (SYMID) symbol_count_of_g; symid++)
+    {
+      /* If a symbol appears on a LHS, it predicts itself. */
+      SYM symbol = SYM_by_ID (g, symid);
+      if (!SYMBOL_LHS_RULE_COUNT (symbol))
+	continue;
+      matrix_bit_set (symbol_by_symbol_matrix, (guint) symid, (guint) symid);
     }
-    for (rule_id = 0; rule_id < (RULEID)rule_count_of_g; rule_id++) {
-	SYMID from, to;
-        AIM item = items_by_rule[rule_id];
-	    // Get the initial item for the rule
-	RULE  rule;
-	if (!item) continue; // Not all rules have items
-	rule = item->t_production;
-	from = LHS_ID_of_RULE(rule);
-	to = Postdot_SYMID_of_AIM(item);
-	if (to < 0) continue; // There is no symbol-to-symbol transition
-	// for a completion item
-	matrix_bit_set(symbol_by_symbol_matrix,
-	    (guint)from, (guint)to); // Set a bit in the matrix
-} }
+  for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
+    {
+      SYMID from, to;
+      /* Get the initial item for the rule */
+      AIM item = items_by_rule[rule_id];
+      /* Not all rules have items */
+      if (!item)
+	continue;
+      from = LHS_ID_of_AIM (item);
+      to = Postdot_SYMID_of_AIM (item);
+      /* There is no symbol-to-symbol transition for a completion item */
+      if (to < 0)
+	continue;
+      /* Set a bit in the matrix */
+      matrix_bit_set (symbol_by_symbol_matrix, (guint) from, (guint) to);
+    }
+}
 
 @ At this point I have a full matrix showing which symbol implies a prediction
 of which others.  To save repeated processing when building the AHFA prediction states,
