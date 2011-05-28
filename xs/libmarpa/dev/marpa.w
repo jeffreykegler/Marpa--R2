@@ -1176,6 +1176,7 @@ The implementation is a |GArray|.
 @ @<Initialize symbol elements@> =
 symbol->t_rhs = g_array_new(FALSE, FALSE, sizeof(Marpa_Rule_ID));
 @ @<Free symbol elements@> = g_array_free(symbol->t_rhs, TRUE);
+
 @ The trace accessor returns the GArray.
 It remains "owned" by the Grammar,
 and must not be freed or modified.
@@ -1515,12 +1516,16 @@ typedef Marpa_Rule_ID RULEID;
 This logic is intended to be common to all individual rules.
 The name comes from the idea that this logic "starts"
 the initialization of a rule.
+@ @<Private function prototypes@> =
+PRIVATE_NOT_INLINE
+RULE rule_start(GRAMMAR g,
+SYMID lhs, SYMID *rhs, guint length);
 @ GCC complains about inlining |rule_start| -- it is
 not a tiny function, and it is repeated often.
 @<Function definitions@> =
-static
-RULE rule_start(struct marpa_g *g,
-Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, guint length)
+PRIVATE_NOT_INLINE
+RULE rule_start(GRAMMAR g,
+SYMID lhs, SYMID *rhs, guint length)
 {
     @<Return |NULL| on failure@>@;
     RULE rule;
@@ -1534,10 +1539,6 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, guint length)
     @<Add this rule to the symbol rule lists@>
    return rule;
 }
-@ @<Private function prototypes@> =
-static
-RULE rule_start(struct marpa_g *g,
-Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, guint length);
 
 @ @<Function definitions@> =
 Marpa_Rule_ID marpa_rule_new(struct marpa_g *g,
@@ -1545,10 +1546,14 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, guint length)
 {
     Marpa_Rule_ID rule_id;
     RULE rule;
+    if (length > MAX_RHS_LENGTH) {
+	g->t_error = (Marpa_Error_ID)"rhs too long";
+        return -1;
+    }
     if (is_rule_duplicate(g, lhs, rhs, length) == TRUE) {
 	g->t_error = (Marpa_Error_ID)"duplicate rule";
         return -1;
-    }@;
+    }
     rule = rule_start(g, lhs, rhs, length);
     if (!rule) { return -1; }@;
     rule_id = rule->t_id;
@@ -1882,6 +1887,19 @@ A rule takes the traditiona form of
 a left hand side (LHS), and a right hand side (RHS).
 The {\bf length} of a rule is the length of the RHS ---
 there is always exactly one LHS symbol.
+Maximum length of the RHS is restricted so that the evaluation
+phase can save a few bytes per or-node.
+This is only checked for new rules.
+The rules generated internally by libmarpa
+are shorter than
+a small constant in length, and 
+rewrites of existing rules shorten them.
+Still, I take off two more bits than necessary, as a fudge
+factor.
+On a 32-bit machine, this still allows a RHS of many millions
+of symbols.  I believe nobody will find notice this restriction
+at least not until 64-bit machines becomes universal.
+@d MAX_RHS_LENGTH (G_MAXINT >> (OR_NODE_MASK_BITS+2))
 @<Int aligned rule elements@> = guint t_length;
 @ The symbols come at the end of the |marpa_rule| structure,
 so that they can be variable length.
@@ -3580,6 +3598,7 @@ gint marpa_AHFA_item_sort_key(struct marpa_g* g,
 @ @<Public function prototypes@> =
 gint marpa_AHFA_item_sort_key(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
 
+@** Creating the AHFA Items.
 @ I do not use a |DSTACK| because I can initially size the
 item stack to |Size_of_G(g)|, which is a reasonable allocation,
 but guaranteed to be greater than
@@ -9075,6 +9094,9 @@ ur_node_pop (URS stack)
   stack->t_top = new_top;
   return new_top;
 }
+
+@** Or-Node (OR) Code.
+@d OR_NODE_MASK_BITS 2
 
 @** Evaluation.
 I am frankly not quite sure what the return value of this function should be.
