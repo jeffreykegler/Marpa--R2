@@ -9022,9 +9022,32 @@ ur_node_pop (URS stack)
   return new_top;
 }
 
+@** And-Node (AND) Code.
+The or-nodes are part of the parse bocage.
+They are analogous to the and-nodes of a standard parse forest,
+except that they are binary -- restricted to two children.
+This means that the parse bocage stores the parse in a kind
+of Chomsky Normal Form.
+As another difference between it and a parse forest,
+the parse bocage can contain cycles.
+
+@<Private incomplete structures@> =
+struct s_and_node;
+typedef struct s_and_node* AND;
+@ @<Private structures@> =
+struct s_and_node {
+    AND t_predecessor;
+    AND t_cause;
+    gint t_token_length;
+    AND t_sibling;
+};
+typedef struct s_and_node AND_Object;
+
 @** Or-Node (OR) Code.
 The or-nodes are part of the parse bocage
 and are similar to the or-nodes of a standard parse forest.
+Unlike a parse forest,
+a parse bocage can contain cycles.
 
 @*0 Relationship of Earley Items to Or-Nodes.
 Several Earley items may be the source of the same or-node,
@@ -9087,18 +9110,44 @@ The theorem for token source links follows from the EIM Lemma and the
 Token Source Lemma.
 {\bf QED}.
 
-@
-@s OR int
-@d OR_NODE_MASK_BITS 2
-@<Private incomplete structures@> =
+@ @<Private incomplete structures@> =
 struct s_or_node;
 typedef struct s_or_node* OR;
-@ @<Private structures@> =
-struct s_or_node {
-    gint dummy; // No contents yet
+@ The type is contained in the lower bits,
+but the access is not masked because only final or-nodes have
+a non-zero position.
+That way the non-final types can be tested for unmasked,
+and anything else can be assumed to be a final or-node.
+@s OR int
+@d OR_NODE_MASK_BITS 2
+@d DUMMY_OR_NODE 1
+@d DRAFT_OR_NODE 2
+@d FINAL_OR_NODE 3
+@d Type_of_OR(or) ((or)->t_type)
+@d LV_Type_of_OR(or) Type_of_OR(or)
+@<Private structures@> =
+struct s_or_node
+{
+  gint t_type;			// No contents yet
+  union
+  {
+    struct
+    {
+      EIM t_earley_item;
+      AEX t_aex;
+      LIM t_leo_item;
+    } s_draft;
+    struct
+    {
+      RULE t_rule;
+      ES t_start;
+      ES t_end;
+      AND_Object t_first_and_node;
+    } s_final;
+  } t_data;
 };
-typedef struct s_or_node OR_Object;
-static OR_Object dummy_or_node = { 1 };
+
+@*0 Type.
 
 @** Evaluation.
 I am frankly not quite sure what the return value of this function should be.
@@ -9132,6 +9181,7 @@ EIM start_eim = NULL;
 AEX start_aex = -1;
 struct obstack bocage_setup_obs;
 guint total_earley_items_in_parse;
+OR dummy_or_node;
 
 @ @<Private incomplete structures@> =
 struct s_bocage_setup_per_es;
@@ -9199,6 +9249,8 @@ set |end_of_parse_es| and |completed_start_rule|@> =
   guint ix;
   guint earley_set_count = ES_Count_of_R (r);
   total_earley_items_in_parse = 0;
+  dummy_or_node = obstack_alloc (&bocage_setup_obs, sizeof (dummy_or_node[0]));
+  LV_Type_of_OR(dummy_or_node) = DUMMY_OR_NODE;
   per_es_data =
     obstack_alloc (&bocage_setup_obs,
 		   sizeof (struct s_bocage_setup_per_es) * earley_set_count);
