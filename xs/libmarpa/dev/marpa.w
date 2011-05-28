@@ -8809,18 +8809,6 @@ gint marpa_leo_completion_expand(struct marpa_r *r)
   return leo_completion_expand(r, item);
 }
 
-@** Or-Node (OR) Code.
-@s OR int
-@<Private incomplete structures@> =
-struct s_or_node;
-typedef struct s_or_node* OR;
-@ @<Private structures@> =
-struct s_or_node {
-    gint dummy; // No contents yet
-};
-typedef struct s_or_node OR_Object;
-static OR_Object dummy_or_node = { 1 };
-
 @** Evaluation --- Preliminary Notes.
 
 @*0 Alternate Start Rules.
@@ -8868,67 +8856,6 @@ generating the grammar.
 In my HTML test suite,
 of the 14,782 of the AHFA states, every
 single one has only one completed LHS symbol.
-
-@*0 Relationship of Earley Items to Or-Nodes.
-Several Earley items may be the source of the same or-node,
-but the or-node only keeps track of one.  This is sufficient,
-because the Earley item is tracked by the or-node only for its
-links and,
-by the following theorem,
-the links for every Earley item which is the source
-of the same or-node must be the same.
-
-@ {\bf Theorem}: If two Earley items are sources of the same or-node,
-they have the same links.
-{\bf Outline of Proof}:
-No or-node results from a predicted Earley
-item, so every Earley item which is the source of an or-node
-is itself the result of a transition over a symbol from
-another Earley item.  
-So I can restrict my discussion to discovered Earley items.
-For the same reason, I can assume all source links have
-predecessors defined.
-
-@ {\bf Shared Predot Lemma}: An AHFA state is either predicted,
-or all its LR0 items share the same predot symbol.
-{\bf Proof}:  Straightforward, based on the construction of
-an AHFA.
-
-@ {\bf EIM Lemma }: If two Earley items are sources of the same or-node,
-they share the same origin ES, the same current ES and the same
-predot symbol.
-{\bf Proof of Lemma}:
-Showing that the Earley items share the same origin and current
-ES is straightforward, based on the or-node's construction.
-They share at least one LR0 item in their AHFA states---%
-the LR0 item which defines the or-node.
-Because they share at least one LR0 item and because, by the
-Shared Predot Lemma, every LR0
-item in a discovered AHFA state has the same predot symbol,
-the two Earley items also
-share the same predot symbol.
-
-@ {\bf Completion Source Lemma}:
-A discovered Earley item has a completion source link if and only if
-the origin ES of the link's predecessor,
-the current ES of the link's cause
-and the transition symbol match, respectively,
-the origin ES, current ES and predot symbol of the discovered EIM.
-{\bf Proof}: Based on the construction of EIMs.
-
-@ {\bf Token Source Lemma}:
-A discovered Earley item has a token source link if and only if
-origin ES of the link's predecessor, the current ES of the link's cause
-and the token symbol match, respectively,
-the origin ES, current ES and predot symbol of the discovered EIM.
-{\bf Proof}: Based on the construction of EIMs.
-
-@ Source links are either completion source links or token source links.
-The theorem for completion source links follows from the EIM Lemma and the
-Completion Source Lemma.
-The theorem for token source links follows from the EIM Lemma and the
-Token Source Lemma.
-{\bf QED}.
 
 @*0 CHAF Duplicate And-Nodes.
 There are three ways in which the same and-node can occur multiple
@@ -9096,7 +9023,82 @@ ur_node_pop (URS stack)
 }
 
 @** Or-Node (OR) Code.
+The or-nodes are part of the parse bocage
+and are similar to the or-nodes of a standard parse forest.
+
+@*0 Relationship of Earley Items to Or-Nodes.
+Several Earley items may be the source of the same or-node,
+but the or-node only keeps track of one.  This is sufficient,
+because the Earley item is tracked by the or-node only for its
+links and,
+by the following theorem,
+the links for every Earley item which is the source
+of the same or-node must be the same.
+
+@ {\bf Theorem}: If two Earley items are sources of the same or-node,
+they have the same links.
+{\bf Outline of Proof}:
+No or-node results from a predicted Earley
+item, so every Earley item which is the source of an or-node
+is itself the result of a transition over a symbol from
+another Earley item.  
+So I can restrict my discussion to discovered Earley items.
+For the same reason, I can assume all source links have
+predecessors defined.
+
+@ {\bf Shared Predot Lemma}: An AHFA state is either predicted,
+or all its LR0 items share the same predot symbol.
+{\bf Proof}:  Straightforward, based on the construction of
+an AHFA.
+
+@ {\bf EIM Lemma }: If two Earley items are sources of the same or-node,
+they share the same origin ES, the same current ES and the same
+predot symbol.
+{\bf Proof of Lemma}:
+Showing that the Earley items share the same origin and current
+ES is straightforward, based on the or-node's construction.
+They share at least one LR0 item in their AHFA states---%
+the LR0 item which defines the or-node.
+Because they share at least one LR0 item and because, by the
+Shared Predot Lemma, every LR0
+item in a discovered AHFA state has the same predot symbol,
+the two Earley items also
+share the same predot symbol.
+
+@ {\bf Completion Source Lemma}:
+A discovered Earley item has a completion source link if and only if
+the origin ES of the link's predecessor,
+the current ES of the link's cause
+and the transition symbol match, respectively,
+the origin ES, current ES and predot symbol of the discovered EIM.
+{\bf Proof}: Based on the construction of EIMs.
+
+@ {\bf Token Source Lemma}:
+A discovered Earley item has a token source link if and only if
+origin ES of the link's predecessor, the current ES of the link's cause
+and the token symbol match, respectively,
+the origin ES, current ES and predot symbol of the discovered EIM.
+{\bf Proof}: Based on the construction of EIMs.
+
+@ Source links are either completion source links or token source links.
+The theorem for completion source links follows from the EIM Lemma and the
+Completion Source Lemma.
+The theorem for token source links follows from the EIM Lemma and the
+Token Source Lemma.
+{\bf QED}.
+
+@
+@s OR int
 @d OR_NODE_MASK_BITS 2
+@<Private incomplete structures@> =
+struct s_or_node;
+typedef struct s_or_node* OR;
+@ @<Private structures@> =
+struct s_or_node {
+    gint dummy; // No contents yet
+};
+typedef struct s_or_node OR_Object;
+static OR_Object dummy_or_node = { 1 };
 
 @** Evaluation.
 I am frankly not quite sure what the return value of this function should be.
