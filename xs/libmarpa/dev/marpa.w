@@ -9169,7 +9169,7 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
-    @<Find |start_eim| and |start_aex|@>@;
+    @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
@@ -9186,9 +9186,11 @@ const GRAMMAR_Const g = G_of_R(r);
 ES end_of_parse_es;
 RULE completed_start_rule;
 EIM start_eim = NULL;
+AIM start_aim = NULL;
 AEX start_aex = -1;
 struct obstack bocage_setup_obs;
 guint total_earley_items_in_parse;
+guint or_node_estimate = 0;
 
 @ @<Private incomplete structures@> =
 struct s_bocage_setup_per_es;
@@ -9285,6 +9287,7 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
     const URS ur_node_stack = URS_of_R(r);
     {
        const EIM ur_earley_item = start_eim;
+       const AIM ur_aim = start_aim;
        const AEX ur_aex = start_aex;
 	@<Push ur-node if new@>@;
     }
@@ -9309,6 +9312,7 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 	(&bocage_setup_obs, per_es_data, ur_earley_item, ur_aex))
       {
 	ur_node_push (ur_node_stack, ur_earley_item, ur_aex);
+	or_node_estimate += Null_Count_of_AIM(ur_aim);
       }
 }
 
@@ -9378,6 +9382,7 @@ static inline gint psia_test_and_set(
 	    const EIM ur_earley_item = predecessor_earley_item;
 	    const AEX ur_aex =
 	      AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
+	    const AIM ur_aim = predecessor_aim;
 	    @<Push ur-node if new@>@;
 	  }
 	if (!source_link)
@@ -9395,6 +9400,7 @@ no other descendants.
     if (Position_of_AIM(predecessor_aim) > 0) {
         AEX predecessor_aex = AEX_of_EIM_by_AIM(predecessor_earley_item,
 	    predecessor_aim);
+	or_node_estimate += Null_Count_of_AIM(predecessor_aim);
 	psia_test_and_set(&bocage_setup_obs, per_es_data, 
 	    predecessor_earley_item, predecessor_aex);
     }
@@ -9433,6 +9439,7 @@ no other descendants.
 	const EIM ur_earley_item = predecessor_earley_item;
 	const AEX ur_aex =
 	  AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
+	const AIM ur_aim = predecessor_aim;
 	@<Push ur-node if new@>@;
       }
     {
@@ -9444,6 +9451,7 @@ no other descendants.
       gint ix;
       for (ix = 0; ix < aex_count; ix++) {
 	  const AEX ur_aex = aexes[ix];
+	  const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
 	    @<Push ur-node if new@>@;
       }
     }
@@ -9487,6 +9495,7 @@ no other descendants.
 	      const EIM ur_earley_item = cause_earley_item;
 	      for (ix = 0; ix < aex_count; ix++) {
 		  const AEX ur_aex = aexes[ix];
+		  const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
 		  @<Push ur-node if new@>@;
 	      }
 	    }
@@ -9496,6 +9505,7 @@ no other descendants.
 	      EIM ur_earley_item = Base_EIM_of_LIM (leo_predecessor);
 	      TRANS transition = TRANS_of_EIM_by_SYMID (ur_earley_item, postdot);
 	      const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
+	      const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
 		  @<Push ur-node if new@>@;
 	    }
 	    cause_earley_item = Base_EIM_of_LIM(leo_predecessor);
@@ -9536,7 +9546,7 @@ It is hard to believe that for practical grammars
 that $O(\wsize \cdot s') <= O(s)$, which
 is what it would take for any per-Earley set overhead
 to make sense.
-@<Find |start_eim| and |start_aex|@> =
+@<Find |start_eim|, |start_aim| and |start_aex|@> =
 {
     gint eim_ix;
     EIM* const earley_items = EIMs_of_ES(end_of_parse_es);
@@ -9553,6 +9563,7 @@ to make sense.
 	    for (aex = 0; aex < ahfa_item_count; aex++) {
 		 const AIM ahfa_item = ahfa_items[aex];
 	         if (RULEID_of_AIM(ahfa_item) == sought_rule_id) {
+		      start_aim = ahfa_item;
 		      start_eim = earley_item;
 		      start_aex = aex;
 		      break;
