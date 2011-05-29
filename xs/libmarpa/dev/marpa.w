@@ -9120,15 +9120,16 @@ That way the non-final types can be tested for unmasked,
 and anything else can be assumed to be a final or-node.
 @s OR int
 @d OR_NODE_MASK_BITS 2
-@d DUMMY_OR_NODE 1
-@d DRAFT_OR_NODE 2
-@d FINAL_OR_NODE 3
-@d Type_of_OR(or) ((or)->t_type)
+@d DUMMY_OR_NODE -1
+@d DRAFT_OR_NODE -2
+@d DRAFT_NULL_OR_NODE -2
+@d FINAL_OR_NODE -3
+@d Type_of_OR(or) ((or)->t_position)
 @d LV_Type_of_OR(or) Type_of_OR(or)
 @<Private structures@> =
 struct s_or_node
 {
-  gint t_type;			// No contents yet
+  gint t_position;
   union
   {
     struct
@@ -9137,6 +9138,13 @@ struct s_or_node
       AEX t_aex;
       LIM t_leo_item;
     } s_draft;
+    struct
+    {
+      RULE t_rule;
+      EIM t_start;
+      AEX t_end;
+      LIM t_draft_position;
+    } s_draft_null;
     struct
     {
       RULE t_rule;
@@ -9181,7 +9189,6 @@ EIM start_eim = NULL;
 AEX start_aex = -1;
 struct obstack bocage_setup_obs;
 guint total_earley_items_in_parse;
-OR dummy_or_node;
 
 @ @<Private incomplete structures@> =
 struct s_bocage_setup_per_es;
@@ -9249,8 +9256,6 @@ set |end_of_parse_es| and |completed_start_rule|@> =
   guint ix;
   guint earley_set_count = ES_Count_of_R (r);
   total_earley_items_in_parse = 0;
-  dummy_or_node = obstack_alloc (&bocage_setup_obs, sizeof (dummy_or_node[0]));
-  LV_Type_of_OR(dummy_or_node) = DUMMY_OR_NODE;
   per_es_data =
     obstack_alloc (&bocage_setup_obs,
 		   sizeof (struct s_bocage_setup_per_es) * earley_set_count);
@@ -9278,7 +9283,11 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 {
     UR_Const ur_node;
     const URS ur_node_stack = URS_of_R(r);
-    push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, start_eim, start_aex);
+    {
+       const EIM ur_earley_item = start_eim;
+       const AEX ur_aex = start_aex;
+	@<Push ur-node if new@>@;
+    }
     while ((ur_node = ur_node_pop(ur_node_stack)))
     {
         const EIM_Const parent_earley_item = EIM_of_UR(ur_node);
@@ -9295,24 +9304,12 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
     }
 }
 
-@ @<Private function prototypes@> =
-static inline void push_ur_node_if_new(
-    URS ur_node_stack,
-    struct obstack* obs,
-    struct s_bocage_setup_per_es* per_es_data,
-    EIM earley_item,
-    AEX ahfa_element_ix);
-@ @<Function definitions@> = 
-static inline void push_ur_node_if_new(
-    URS ur_node_stack,
-    struct obstack* obs,
-    struct s_bocage_setup_per_es* per_es_data,
-    EIM earley_item,
-    AEX ahfa_element_ix)
-{
-    if (!psia_test_and_set(obs, per_es_data, earley_item, ahfa_element_ix)) {
-	ur_node_push(ur_node_stack, earley_item, ahfa_element_ix);
-    }
+@ @<Push ur-node if new@> = {
+    if (!psia_test_and_set
+	(&bocage_setup_obs, per_es_data, ur_earley_item, ur_aex))
+      {
+	ur_node_push (ur_node_stack, ur_earley_item, ur_aex);
+      }
 }
 
 @ The |PSIA| is a container of data that is per Earley-set, per Earley item,
@@ -9332,6 +9329,7 @@ static inline gint psia_test_and_set(
     EIM earley_item,
     AEX ahfa_element_ix)
 {
+    const gint dummy_or_node_type = DUMMY_OR_NODE;
     const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
     const Marpa_Earley_Set_ID set_ordinal = ES_Ord_of_EIM(earley_item);
     OR** nodes_by_item = per_es_data[set_ordinal].t_aexes_by_item;
@@ -9346,7 +9344,7 @@ static inline gint psia_test_and_set(
 	}
     }
     if (!nodes_by_aex[ahfa_element_ix]) {
-	nodes_by_aex[ahfa_element_ix] = &dummy_or_node;
+	nodes_by_aex[ahfa_element_ix] = (OR)&dummy_or_node_type;
 	return 0;
     }
     return 1;
@@ -9377,10 +9375,10 @@ static inline gint psia_test_and_set(
       {
 	if (predecessor_earley_item)
 	  {
-	    AEX predecessor_aex =
+	    const EIM ur_earley_item = predecessor_earley_item;
+	    const AEX ur_aex =
 	      AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
-	    push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
-				 predecessor_earley_item, predecessor_aex);
+	    @<Push ur-node if new@>@;
 	  }
 	if (!source_link)
 	  break;
@@ -9432,21 +9430,21 @@ no other descendants.
     {
     if (predecessor_earley_item)
       {
-	const AEX predecessor_aex =
+	const EIM ur_earley_item = predecessor_earley_item;
+	const AEX ur_aex =
 	  AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
-	push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
-			     predecessor_earley_item, predecessor_aex);
+	@<Push ur-node if new@>@;
       }
     {
       const TRANS cause_completion_data =
 	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
       const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
+      const EIM ur_earley_item = cause_earley_item;
       gint ix;
       for (ix = 0; ix < aex_count; ix++) {
-	  AEX cause_aex = aexes[ix];
-	  push_ur_node_if_new (ur_node_stack, &bocage_setup_obs, per_es_data,
-			   cause_earley_item, cause_aex);
+	  const AEX ur_aex = aexes[ix];
+	    @<Push ur-node if new@>@;
       }
     }
       if (!source_link) break;
@@ -9486,19 +9484,19 @@ no other descendants.
 	      const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
 	      const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
 	      gint ix;
+	      const EIM ur_earley_item = cause_earley_item;
 	      for (ix = 0; ix < aex_count; ix++) {
-		  AEX cause_aex = aexes[ix];
-		push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data, cause_earley_item, cause_aex);
+		  const AEX ur_aex = aexes[ix];
+		  @<Push ur-node if new@>@;
 	      }
 	    }
 	    if (!leo_predecessor) break;
 	    {
 	      SYMID postdot = Postdot_SYMID_of_LIM (leo_predecessor);
-	      EIM leo_base_earley_item = Base_EIM_of_LIM (leo_predecessor);
-	      TRANS transition = TRANS_of_EIM_by_SYMID (leo_base_earley_item, postdot);
-	      AEX aex = Leo_Base_AEX_of_TRANS (transition);
-	      push_ur_node_if_new(ur_node_stack, &bocage_setup_obs, per_es_data,
-		  leo_base_earley_item, aex);
+	      EIM ur_earley_item = Base_EIM_of_LIM (leo_predecessor);
+	      TRANS transition = TRANS_of_EIM_by_SYMID (ur_earley_item, postdot);
+	      const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
+		  @<Push ur-node if new@>@;
 	    }
 	    cause_earley_item = Base_EIM_of_LIM(leo_predecessor);
 	    leo_predecessor = Predecessor_LIM_of_LIM(leo_predecessor);
