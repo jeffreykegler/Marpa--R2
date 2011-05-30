@@ -2343,10 +2343,10 @@ marpa_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID id)
 @** Symbol Instance (SYMI) Code.
 @d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
 @<Int aligned grammar elements@> =
-guint t_symbol_instance_count;
+gint t_symbol_instance_count;
 @ @d SYMI_of_RULE(rule) ((rule)->t_symbol_instance_base)
 @<Int aligned rule elements@> =
-guint t_symbol_instance_base;
+gint t_symbol_instance_base;
 
 @** Precomputing the Grammar.
 Marpa's logic divides roughly into three pieces -- grammar precomputation,
@@ -3995,11 +3995,10 @@ typedef gint AHFAID;
 @ @<Widely aligned grammar elements@> = struct s_AHFA_state* t_AHFA;
 @
 @d AHFA_Count_of_G(g) ((g)->t_AHFA_len)
-@d LV_AHFA_Count_of_G(g) ((g)->t_AHFA_len)
 @<Int aligned grammar elements@> = gint t_AHFA_len;
 @ @<Initialize grammar elements@> =
 g->t_AHFA = NULL;
-LV_AHFA_Count_of_G(g) = 0;
+AHFA_Count_of_G(g) = 0;
 @*0 Destructor.
 @<Destroy grammar elements@> = if (g->t_AHFA) {
 AHFAID id;
@@ -4240,7 +4239,7 @@ void create_AHFA_states(struct marpa_g* g) {
    }
    ahfas_of_g = g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
-   ahfa_count_of_g = LV_AHFA_Count_of_G(g) = DQUEUE_END(states);
+   ahfa_count_of_g = AHFA_Count_of_G(g) = DQUEUE_END(states);
    @<Populate the completed symbol data in the transitions@>@;
    @<Resort the AIMs and populate the Leo base AEXes@>@;
    @<Free locals for creating AHFA states@>@;
@@ -9197,16 +9196,41 @@ struct s_or_node
     } s_final;
   } t_data;
 };
+typedef struct s_or_node OR_Object;
+
 @ @<Private global variables@> =
 static const gint dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
+@ @d ORs_of_R(r) ((r)->t_or_nodes)
+@<Widely aligned recognizer elements@> =
+OR t_or_nodes;
+@ @<Pre-initialize evaluation elements@> =
+ORs_of_R(r) = NULL;
+@ @<Destroy evaluation elements@> =
+{
+  OR or_nodes = ORs_of_R (r);
+  if (or_nodes)
+    {
+      g_free (or_nodes);
+      ORs_of_R (r) = NULL;
+    }
+}
 
 @*0 Type.
 
 @** Evaluation.
 I am frankly not quite sure what the return value of this function should be.
 It is basically pass/fail, but some other information might be useful.
-@<Public function prototypes@> =
+
+@ Pre-initialization is making the elements safe for the deallocation logic
+to be called.  Often it is setting the value to zero, so that the deallocation
+logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
+@<Initialize recognizer elements@> = @<Pre-initialize evaluation elements@>@;
+
+@ Destroy the evaluation elements when I destroy the recognizer.
+@<Destroy recognizer elements@> = @<Destroy evaluation elements@>@;
+
+@ @<Public function prototypes@> =
 gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
 @ @<Function definitions@> =
 gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
@@ -9324,10 +9348,16 @@ set |end_of_parse_es| and |completed_start_rule|@> =
     }
 }
 
+@ @<Traverse Earley sets to create bocage@>=
+{
+    @<Populate the PSIA data@>@;
+    @<Create the or-nodes@>@;
+}
+
 @ |predecessor_aim| and |predot|
 are guaranteed to be defined,
 since neither a prediction or the null parse AHFA item is ever on the stack.
-@<Traverse Earley sets to create bocage@>=
+@<Populate the PSIA data@>=
 {
     UR_Const ur_node;
     const URS ur_node_stack = URS_of_R(r);
@@ -9351,6 +9381,17 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
         @<Push child Earley items from completion sources@>@;
         @<Push child Earley items from Leo sources@>@;
     }
+}
+
+@ @<Create the or-nodes@> =
+{
+  PSAR_Object and_psar;
+  PSAR_Object or_psar;
+  psar_init (&and_psar, AHFA_Count_of_G (g));
+  psar_init (&or_psar, SYMI_Count_of_G (g));
+  ORs_of_R (r) = g_new (OR_Object, or_node_estimate);
+  psar_destroy (&and_psar);
+  psar_destroy (&or_psar);
 }
 
 @ @<Push ur-node if new@> = {
@@ -9630,6 +9671,7 @@ gint marpa_eval_clear(struct marpa_r* r) {
 	return failure_indicator;
     }
     LV_Phase_of_R(r) = input_phase;
+    @<Destroy evaluation elements@>;
     return 1; // For now, just return 1
 }
 
@@ -10484,9 +10526,9 @@ struct s_per_earley_set_arena {
 typedef struct s_per_earley_set_arena PSAR_Object;
 @ @d Dot_PSAR_of_R(r) (&(r)->t_dot_psar_object)
 @<Widely aligned recognizer elements@> =
-struct s_per_earley_set_arena t_dot_psar_object;
+PSAR_Object t_dot_psar_object;
 @ @<Initialize recognizer elements@> =
-  psar_init(Dot_PSAR_of_R(r), (gint)AHFA_Count_of_R (r));
+  psar_init(Dot_PSAR_of_R(r), AHFA_Count_of_R (r));
 @ @<Destroy recognizer elements@> =
   psar_destroy(Dot_PSAR_of_R(r));
 @ @<Private function prototypes@> =
