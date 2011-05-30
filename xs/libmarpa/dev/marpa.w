@@ -1604,7 +1604,7 @@ guint min, gint flags );
 	g->t_error = "internal_error";
 	return failure_indicator;
     }
-    original_rule->t_is_used = 0;
+    LV_RULE_is_Used(original_rule) = 0;
     original_rule_id = original_rule->t_id;
     rule_callback(g, original_rule_id);
 
@@ -2114,21 +2114,23 @@ gint marpa_rule_is_virtual_loop(struct marpa_g* g, Marpa_Rule_ID rule_id);
 @ A rule is nulling if every symbol on its RHS is nulling.
 Note that this can be vacuously true --- an empty rule is nulling.
 @<Function definitions@> =
-static inline gint rule_is_nulling(struct marpa_g* g, RULE  rule)
+static inline gint rule_is_nulling(GRAMMAR g, RULE  rule)
 {
 guint rh_ix;
 for (rh_ix = 0; rh_ix < rule->t_length; rh_ix++) {
-   Marpa_Symbol_ID rhs_id = rhs_symid(rule, rh_ix);
+   SYMID rhs_id = rhs_symid(rule, rh_ix);
    if ( !SYM_by_ID(g, rhs_id)->t_is_nulling ) return FALSE;
 }
 return TRUE; }
 @ @<Private function prototypes@> =
-static inline gint rule_is_nulling(struct marpa_g* g, RULE  rule);
+static inline gint rule_is_nulling(GRAMMAR g, RULE rule);
 
 @*0 Is Rule Used?.
+@d RULE_is_Used(rule) ((rule)->t_is_used)
+@d LV_RULE_is_Used(rule) RULE_is_Used(rule)
 @<Bit aligned rule elements@> = unsigned int t_is_used:1;
 @ @<Initialize rule elements@> =
-rule->t_is_used = TRUE;
+LV_RULE_is_Used(rule) = 1;
 @ This is the external accessor.
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
@@ -2136,7 +2138,7 @@ gint marpa_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-return RULE_by_ID(g, rule_id)->t_is_used; }
+return RULE_is_Used(RULE_by_ID(g, rule_id)); }
 @ @<Public function prototypes@> =
 gint marpa_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
@@ -2761,10 +2763,10 @@ Marpa_Rule_ID rule_id;
 gint no_of_rules;
 
 @ @<Mark and skip unused rules@> =
-if (!rule->t_is_used) { goto NEXT_RULE; }
-if (rule_is_nulling(g, rule)) { rule->t_is_used = 0; goto NEXT_RULE; }
-if (!rule_is_accessible(g, rule)) { rule->t_is_used = 0; goto NEXT_RULE; }
-if (!rule_is_productive(g, rule)) { rule->t_is_used = 0; goto NEXT_RULE; }
+if (!RULE_is_Used(rule)) { goto NEXT_RULE; }
+if (rule_is_nulling(g, rule)) { LV_RULE_is_Used(rule) = 0; goto NEXT_RULE; }
+if (!rule_is_accessible(g, rule)) { LV_RULE_is_Used(rule) = 0; goto NEXT_RULE; }
+if (!rule_is_productive(g, rule)) { LV_RULE_is_Used(rule) = 0; goto NEXT_RULE; }
 
 @ For every accessible and productive proper nullable which
 is not already aliased, alias it.
@@ -2817,7 +2819,7 @@ g_free(factor_positions);
 
 @*0 Divide the Rule into Pieces.
 @<Factor the rule into CHAF rules@> =
-rule->t_is_used = 0; /* Mark the original rule unused */
+LV_RULE_is_Used(rule) = 0; /* Mark the original rule unused */
 { guint unprocessed_factor_count; /* The number of proper nullables for which CHAF rules have
 yet to be written */
 guint factor_position_ix = 0; /* Current index into the list of factors */
@@ -3102,7 +3104,7 @@ them all.
 This include the setting of many of the elements of the 
 rule structure, and performing the call back.
 @<Set CHAF rule flags and call back@> =
-chaf_rule->t_is_used = 1;
+LV_RULE_is_Used(chaf_rule) = 1;
 chaf_rule->t_original = rule_id;
 chaf_rule->t_is_virtual_lhs = piece_start > 0;
 chaf_rule->t_is_semantic_equivalent = !chaf_rule->t_is_virtual_lhs;
@@ -3171,7 +3173,7 @@ old_start->t_is_start = 0;
   new_start_rule->t_is_start = 1;
   new_start_rule->t_is_virtual_lhs = 1;
   new_start_rule->t_real_symbol_count = 1;
-  new_start_rule->t_is_used = TRUE;
+  LV_RULE_is_Used(new_start_rule) = 1;
   g->t_proper_start_rule = new_start_rule;
   rule_callback (g, new_start_rule->t_id);
 }
@@ -3207,7 +3209,7 @@ if there is one.  Otherwise it is a new, nulling, symbol.
   new_start_rule->t_is_start = 1;
   new_start_rule->t_is_virtual_lhs = 1;
   new_start_rule->t_real_symbol_count = 1;
-  new_start_rule->t_is_used = TRUE;
+  LV_RULE_is_Used(new_start_rule) = TRUE;
   g->t_null_start_rule = new_start_rule;
   rule_callback (g, new_start_rule->t_id);
 }
@@ -3287,7 +3289,7 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
      RULE  rule = RULE_by_ID(g, rule_id);
      Marpa_Symbol_ID proper_id;
      guint rhs_ix, rule_length;
-     if (!rule->t_is_used) continue;
+     if (!RULE_is_Used(rule)) continue;
      rule_length = rule->t_length;
      proper_id = -1;
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
@@ -3614,7 +3616,10 @@ void create_AHFA_items(GRAMMAR g) {
     AIM base_item = g_new(struct s_AHFA_item, Size_of_G(g));
     AIM current_item = base_item;
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
+      RULE rule = RULE_by_ID (g, rule_id);
+      if (RULE_is_Used (rule)) {
 	@<Create the AHFA items for a rule@>@;
+	}
     }
     no_of_items = LV_AIM_Count_of_G(g) = current_item - base_item;
     g->t_AHFA_items = g_renew(struct s_AHFA_item, base_item, no_of_items);
@@ -3626,25 +3631,25 @@ static inline void create_AHFA_items(struct marpa_g* g);
 
 @ @<Create the AHFA items for a rule@> =
 {
-  RULE rule = RULE_by_ID (g, rule_id);
-  if (rule->t_is_used) {
   guint leading_nulls = 0;
   guint rhs_ix;
   for (rhs_ix = 0; rhs_ix < rule->t_length; rhs_ix++)
     {
-      Marpa_Symbol_ID rh_symid = rhs_symid (rule, rhs_ix);
+      SYMID rh_symid = rhs_symid (rule, rhs_ix);
       SYM symbol = SYM_by_ID (g, rh_symid);
-      if (!symbol->t_is_nullable) {
+      if (!symbol->t_is_nullable)
+	{
 	  @<Create an AHFA item for a precompletion@>@;
 	  leading_nulls = 0;
 	  current_item++;
-      } else {
-          leading_nulls++;
-      }
+	}
+      else
+	{
+	  leading_nulls++;
+	}
     }
-  @<Create an AHFA item for a completion @>@;
+  @<Create an AHFA item for a completion@>@;
   current_item++;
-  }
 }
 
 @ @<Create an AHFA item for a precompletion@> =
