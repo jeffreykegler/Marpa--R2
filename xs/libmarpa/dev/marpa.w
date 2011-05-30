@@ -152,8 +152,8 @@ and |libmarpa| is one of them.
 \par
 Because I realized that abbreviations were going to be not
 just better, but almost essential if I ever was to finish this
-project, I changed from a "no abbreviation" policy to one
-of "abbreviate when necessary and it is necessary a lot" half
+project, I changed from a ``no abbreviation" policy to one
+of ``abbreviate when necessary and it is necessary a lot" half
 way through.
 Thus the code is highly inconsistent in this respect.
 At the moment,
@@ -253,7 +253,7 @@ It is possible to do this portably, using Glib, but it seems simply
 and safer to expect the calling environment to respect the opaque
 nature of the grammar and recognizer cookies.
 
-"Respecting the opaque nature of a cookie",
+``Respecting the opaque nature of a cookie",
 means not
 accessing its internal contents -- using the
 cookie only as a cookie.
@@ -354,7 +354,7 @@ but worst-case considerations should not be ignored ---
 in some applications,
 one case of poor performance
 can outweigh any number of
-of excellent "average case" results.
+of excellent ``average case" results.
 @ Finally, there is {\bf theoretical complexity}.
 This is the complexity I would claim in a write-up of the
 Marpa algorithm for a Theory of Computation article.
@@ -426,13 +426,13 @@ when most of a page is in caps, that page becomes
 much harder and less pleasant to read.
 So in this code I have made macros mixed case.
 Marpa's mixed case macros are easy to spot ---
-they always start with a capital, and the "major words"
+they always start with a capital, and the ``major words"
 also begin in capital letters.
-"Verbs" and "coverbs" in the macros begin with a lower
+``Verbs" and ``coverbs" in the macros begin with a lower
 case letter.
 All words are separated with an underscore,
 as is the currently accepted practice to enhance readability.
-@ The "macros are all caps" convention is a long standing one.
+@ The ``macros are all caps" convention is a long standing one.
 I understand that experienced C programmers will be suspicious
 of my claim that this code is special in a way that justifies
 breaking the convention.
@@ -447,7 +447,7 @@ page was in caps?
 @*1 External Names.
 External Names have |marpa_| or |MARPA_| as their prefix,
 as appropriate under the capitalization conventions.
-Many names begin with one of the major "objects" of Marpa:
+Many names begin with one of the major ``objects" of Marpa:
 grammars, recognizers, symbols, etc.
 Names of functions typically end with a verb.
 
@@ -496,11 +496,11 @@ It is an external equivalent of |obj_fld_get|.
 The returned value is still owned by object |obj| -- it should
 not be modified or freed.
 
-The difference between "peek" and "look" is somewhat
+The difference between ``peek" and ``look" is somewhat
 subjective.
-"Look" functions are expected to be called in the normal
+``Look" functions are expected to be called in the normal
 course of operation, including in production code.
-"Peek" functions break the encapsulation rules.
+``Peek" functions break the encapsulation rules.
 Their use is expected to be limited
 to debugging or tracing situations.
 
@@ -524,7 +524,7 @@ Also included is the
 any non-standard vocabulary 
 which is not explained in detail elsewhere in the
 text.
-By "non-standard vocabulary",
+By ``non-standard vocabulary",
 I mean terms that
 are not in a general dictionary, and
 are also not in the standard reference works.
@@ -534,7 +534,7 @@ incomplete and sometimes inaccurate.
 \li assign: Find something, creating it when necessary.
 \li bv: Bit Vector.
 \li cmp: Compare.
-Usually as |_cmp|, the suffix or "verb" of a function name.
+Usually as |_cmp|, the suffix or ``verb" of a function name.
 \li \_Object: As a suffix of a type name, this means an object,
 as opposed to a pointer.
 When there is a choice,
@@ -544,7 +544,7 @@ union itself.
 When it's necessary to have a type which
 refers to the actual structure
 or union {\bf directly}, not via a pointer,
-that type is called the "object" form of the
+that type is called the ``object" form of the
 type.  As an example, look at the definitions
 of |EIM| and |EIM_Object|.
 \li EIM: Earley item.
@@ -553,13 +553,13 @@ of |EIM| and |EIM_Object|.
 \li ES: Earley set.
 \li g: Grammar.
 \li |_ix|, |_IX|, ix, IX: Index.  Often used as a suffix.
-\li Leo base item: The Earley item which "causes" a Leo item to
+\li Leo base item: The Earley item which ``causes" a Leo item to
 be added.  If a Leo chain in reconstructed from the Leo item,
-\li Leo completion item: The Earley item which is the "successor"
+\li Leo completion item: The Earley item which is the ``successor"
 of a Leo item to
 be added.
 \li Leo LHS symbol: The LHS of a Leo completion item (see which).
-\li Leo item: A "transition item" as described in Leo1991.
+\li Leo item: A ``transition item" as described in Leo1991.
 These stand in for a Leo chain of one or more Earley tems.
 Leo items can stand in for all the Earley items of a right
 recursion,
@@ -602,12 +602,12 @@ deleted once development is finished.
 
 @ \li Make tracing no longer the default in the recognizer.
 
-\li Add a "tracing" flag to the recognizer.  Also add a
+\li Add a ``tracing" flag to the recognizer.  Also add a
 warning message when tracing is turned on.  The flag
 turns off the message.
 
 \li When (if?) I convert Marpa to use Marpa::XS,
-make sure the "interactive" flag works.
+make sure the ``interactive" flag works.
 
 \li Within libmarpa, eliminate some of the
 tracking of start symbols and rules?
@@ -721,7 +721,7 @@ g->t_symbols = g_array_new(FALSE, FALSE, sizeof(SYM));
 g_array_free(g->t_symbols, TRUE);
 
 @ The trace accessor returns the GArray.
-It remains "owned" by the Grammar,
+It remains ``owned" by the Grammar,
 and must not be freed or modified.
 @<Function definitions@> =
 GArray *marpa_g_symbols_peek(struct marpa_g* g)
@@ -767,7 +767,7 @@ g->t_rules = g_array_new(FALSE, FALSE, sizeof(RULE));
 g_array_free(g->t_rules, TRUE);
 
 @ The trace accessor returns the GArray.
-It remains "owned" by the Grammar,
+It remains ``owned" by the Grammar,
 and must not be freed or modified.
 @<Function definitions@> =
 GArray *marpa_g_rules_peek(struct marpa_g* g)
@@ -941,10 +941,10 @@ can tell if there is a bit vector to be freed.
 if (g->t_bv_symid_is_terminal) { bv_free(g->t_bv_symid_is_terminal); }
 
 @*0 The Grammar's Context.
-The "context" is a hash of miscellaneous data,
+The ``context" is a hash of miscellaneous data,
 by keyword.
 It is so called because its purpose is to 
-provide callbacks with "context" ---
+provide callbacks with ``context" ---
 data about
 |libmarpa|'s state which is not conveniently
 available in other forms.
@@ -1023,7 +1023,7 @@ static inline
 void context_const_add(struct marpa_g* g, const gchar* key, const gchar* value);
 
 @ Clear the current context.
-Used to create a "clean slate" in the context.
+Used to create a ``clean slate" in the context.
 @<Function definitions@> =
 static inline void g_context_clear(struct marpa_g* g) {
     g_hash_table_remove_all(Context_of_G(g)); }
@@ -1040,10 +1040,10 @@ union marpa_context_value* marpa_g_context_value(struct marpa_g* g, const gchar*
 Two obstacks with the same lifetime as the grammar.
 This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the grammar.
-One obstack is reserved for of "tricky" operations
+One obstack is reserved for of ``tricky" operations
 like |obs_free|,
 which require coordination with other allocations.
-The other obstack is reserved for "safe" operations---%
+The other obstack is reserved for ``safe" operations---%
 complete allocations which are never reversed.
 The dual obstacks allow me to get tricky where it is useful,
 which also allowing most obstack allocations to be done safely without
@@ -1066,7 +1066,7 @@ it is only valid when an external
 function has indicated there is an error,
 and becomes invalid again when another external method
 is called on the grammar.
-Checking it at other times may reveal "stale" error
+Checking it at other times may reveal ``stale" error
 messages.
 @<Public typedefs@> =
 typedef const gchar* Marpa_Error_ID;
@@ -1075,7 +1075,7 @@ typedef const gchar* Marpa_Error_ID;
 g->t_error = NULL;
 @ There is no destructor.
 The error strings are assummed to be
-{\bf not} error messages, but "cookies".
+{\bf not} error messages, but ``cookies".
 These cookies are constants residing in static memory
 (which may be read-only depending on implementation).
 They cannot and should not be de-allocated.
@@ -1160,7 +1160,7 @@ symbol->t_lhs = g_array_new(FALSE, FALSE, sizeof(Marpa_Rule_ID));
 @ @<Free symbol elements@> =
 g_array_free(symbol->t_lhs, TRUE);
 @ The trace accessor returns the GArray.
-It remains "owned" by the Grammar,
+It remains ``owned" by the Grammar,
 and must not be freed or modified.
 @<Function definitions@> = 
 GArray *marpa_symbol_lhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid)
@@ -1190,7 +1190,7 @@ symbol->t_rhs = g_array_new(FALSE, FALSE, sizeof(Marpa_Rule_ID));
 @ @<Free symbol elements@> = g_array_free(symbol->t_rhs, TRUE);
 
 @ The trace accessor returns the GArray.
-It remains "owned" by the Grammar,
+It remains ``owned" by the Grammar,
 and must not be freed or modified.
 @<Function definitions@> = 
 GArray *marpa_symbol_rhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid)
@@ -1378,10 +1378,10 @@ gint marpa_symbol_is_start( struct marpa_g*g, Marpa_Symbol_ID id);
 @ Symbol Aliasing:
 This is the logic for aliasing symbols.
 In the Aycock-Horspool algorithm, from which Marpa is derived,
-it is essential that there be no "proper nullable"
+it is essential that there be no ``proper nullable"
 symbols.  Therefore, all proper nullable symbols in
 the original grammar are converted into two, aliased,
-symbols: a non-nullable (or "proper") alias and a nulling alias.
+symbols: a non-nullable (or ``proper") alias and a nulling alias.
 @<Bit aligned symbol elements@> =
 unsigned int t_is_proper_alias:1;
 unsigned int t_is_nulling_alias:1;
@@ -1444,7 +1444,7 @@ static inline SYM symbol_null_alias(SYM symbol);
 Marpa_Symbol_ID marpa_symbol_null_alias(struct marpa_g* g, Marpa_Symbol_ID symid);
 
 @ Given a proper nullable symbol as its argument,
-converts the argument into two "aliases".
+converts the argument into two ``aliases".
 The proper (non-nullable) alias will have the same symbol ID
 as the arugment.
 The nulling alias will have a new symbol ID.
@@ -1526,7 +1526,7 @@ typedef Marpa_Rule_ID RULEID;
 @*0 Rule Construction.
 @ Set up the basic data.
 This logic is intended to be common to all individual rules.
-The name comes from the idea that this logic "starts"
+The name comes from the idea that this logic ``starts"
 the initialization of a rule.
 @ @<Private function prototypes@> =
 PRIVATE_NOT_INLINE
@@ -1667,7 +1667,7 @@ rule->t_is_virtual_rhs = TRUE;
 rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION) && separator_id >= 0;
 rule_callback(g, rule->t_id);
 }
-@ This "alternate" top rule is needed if a final separator is allowed.
+@ This ``alternate" top rule is needed if a final separator is allowed.
 @<Add the alternate top rule for the sequence@> =
 { RULE rule;
     temp_rhs[0] = internal_lhs_id;
@@ -1753,7 +1753,7 @@ If all these comparisons succeed, I conclude
 that the old rule duplicates the new one
 and return |TRUE|.
 If, after having done the comparison for all
-the "same LHS" rules, I have found no duplicates,
+the ``same LHS" rules, I have found no duplicates,
 then I conclude there is no duplicate of the new
 rule, and return |FALSE|.
 @<Function definitions@> =
@@ -2019,7 +2019,7 @@ gboolean marpa_rule_is_discard_separation(struct marpa_g* g, Marpa_Rule_ID id);
 In Marpa's terminology,
 proper separation means that a sequence
 cannot legally end with a separator.
-In "proper" separation,
+In ``proper" separation,
 the term separator is interpreted strictly,
 as something which separates two list items.
 A separator coming after the final list item does not separate
@@ -2029,7 +2029,7 @@ error.
 Proper separation is often inconvenient,
 or even counter-productive.
 Increasingly, the
-practice is to be "liberal"
+practice is to be ``liberal"
 and to allow a separator to come after the last list
 item.
 Liberal separation is the default in Marpa.
@@ -2088,7 +2088,7 @@ gint marpa_rule_is_productive(struct marpa_g* g, Marpa_Rule_ID id);
 @ A rule is a loop rule if it non-trivially
 produces the string of length one
 which consists only of its LHS symbol.
-"Non-trivially" means the zero-step derivation does not count -- the
+``Non-trivially" means the zero-step derivation does not count -- the
 derivation must have at least one step.
 @<Bit aligned rule elements@> = unsigned int t_is_loop:1;
 @ @<Initialize rule elements@> =
@@ -2106,9 +2106,9 @@ gint marpa_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
 @*0 Virtual Loop Rule.
 @ When dealing with rules which result from the CHAF rewrite,
-it is convenient to recognize the "loop rule" property as belonging
+it is convenient to recognize the ``loop rule" property as belonging
 to only one of the pieces.
-The "virtual loop rule" property exists for this purpose.
+The ``virtual loop rule" property exists for this purpose.
 All virtual loop rules are loop rules,
 but not vice versa.
 @<Bit aligned rule elements@> = unsigned int t_is_virtual_loop:1;
@@ -2177,16 +2177,16 @@ return RULE_by_ID(g, rule_id)->t_is_start; }
 gint marpa_rule_is_start(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
 @*0 Rule Boolean: Virtual LHS.
-This is for Marpa's "internal semantics".
+This is for Marpa's ``internal semantics".
 When Marpa rewrites rules, it does so in a way invisible to
 the user's semantics.
 It does this by marking rules so that it can reassemble
-the results of rewritten rules to appear "as if"
+the results of rewritten rules to appear ``as if"
 they were the result of evaluating the original,
 un-rewritten rule.
 \par
 All Marpa's rewrites allow the rewritten rules to be
-"dummied up" to look like the originals.
+``dummied up" to look like the originals.
 That this must be possible for any rewrite was one of
 Marpa's design criteria.
 It was an especially non-negotiable criteria, because
@@ -2300,7 +2300,7 @@ Marpa_Rule_ID marpa_rule_original(const struct marpa_g *g, Marpa_Rule_ID id)
 Marpa_Rule_ID marpa_rule_original(const struct marpa_g *g, Marpa_Rule_ID id);
 
 @*0 Rule Real Symbol Count.
-This is another data element used for the "internal semantics" --
+This is another data element used for the ``internal semantics" --
 the logic to reassemble results of rewritten rules so that they
 look as if they came from the original, un-rewritten rules.
 The value of this field is meaningful if and only if
@@ -2321,13 +2321,13 @@ rule->t_is_semantic_equivalent = FALSE;
 When a rule is rewritten,
 some (but not all!) of the resulting rules have the
 same semantics as the original rule.
-It is this "original rule" that |semantic_equivalent()| returns.
+It is this ``original rule" that |semantic_equivalent()| returns.
 @
 {\bf To Do}: @^To Do@>
 Do I need to track this inside libmarpa?
 
 @ If this rule is the semantic equivalent of another rule,
-this external accessor returns the "original rule".
+this external accessor returns the ``original rule".
 Otherwise it returns -1.
 @<Public function prototypes@> =
 Marpa_Rule_ID marpa_rule_semantic_equivalent(struct marpa_g* g, Marpa_Rule_ID id);
@@ -2742,9 +2742,9 @@ The number of rewritten rules in CHAF in linear in the length of
 the original rule.
 
 @ The CHAF rewrite affects only rules with proper nullables.
-In this context, the proper nullables are called "factors".
+In this context, the proper nullables are called ``factors".
 Each piece of the original rule is rewritten into up to four
-"factored pieces".
+``factored pieces".
 When there are two proper nullables, the potential CHAF rules
 are
 \li The PP rule:  Both factors are replaced with non-nulling symbols.
@@ -2819,10 +2819,10 @@ for (symid = 0; symid < no_of_symbols; symid++) {
 
 @*0 Compute Statistics Needed to Rewrite the Rule.
 The term
-"factor" is used to mean an instance of a proper nullable
+``factor" is used to mean an instance of a proper nullable
 symbol on the RHS of a rule.
 This comes from the idea that replacing the proper nullables
-with proper symbols and nulling symbols "factors" pieces
+with proper symbols and nulling symbols ``factors" pieces
 of the rule being rewritten (the original rule)
 into multiple CHAF rules.
 @<Calculate CHAF rule statistics@> =
@@ -3167,7 +3167,7 @@ Marpa_Symbol_ID alias_by_id(struct marpa_g* g, Marpa_Symbol_ID proper_id);
 
 @** Adding a New Start Symbol.
 This is such a common rewrite that it has a special name
-in the literature --- it is called "augmenting the grammar".
+in the literature --- it is called ``augmenting the grammar".
 
 @ @<Function definitions@> =
 static inline
@@ -3824,9 +3824,9 @@ and is a {\bf predicted} AHFA state.
 @ Predicted AHFA states are so called because they only contain
 items which predict, according to the grammar,
 what might be found in the input.
-Discovered AHFA states are so called because either they "report"
+Discovered AHFA states are so called because either they ``report"
 the start of the input
-or they "report" symbols actually found in the input.
+or they ``report" symbols actually found in the input.
 There is only one case in which
 a discovered AHFA state will contain a prediction ---
 that is when the AHFA state contains an
@@ -4238,7 +4238,7 @@ void create_AHFA_states(struct marpa_g* g) {
    while ((p_working_state = DQUEUE_NEXT(states, AHFA_Object))) {
        @<Process an AHFA state from the working stack@>@;
    }
-   ahfas_of_g = g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* "Steals"
+   ahfas_of_g = g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
    ahfa_count_of_g = LV_AHFA_Count_of_G(g) = DQUEUE_END(states);
    @<Populate the completed symbol data in the transitions@>@;
@@ -4566,7 +4566,7 @@ if the last non-nulling symbol is on a LHS.
 With a bit more trouble, I could determine
 which rules are right-recursive.
 I would need to compute a transitive closure on the relationship
-"X right-derives Y" and then consider a state to be
+``X right-derives Y" and then consider a state to be
 a Leo completion
 only if the LHS of the rule in its only item right-derives its
 last non-nulling symbol.
@@ -4640,7 +4640,7 @@ if (queued_AHFA_state)
     obstack_free (&g->t_obs_tricky, item_list_for_new_state);
     transition_add (&ahfa_work_obs, p_working_state, working_symbol, queued_AHFA_state);
     /* |transition_add()| allocates obstack memory, but uses the 
-       "non-tricky" obstack */
+       ``non-tricky" obstack */
     goto NEXT_WORKING_SYMBOL;
   }
     // If we added the new state, finish up its data.
@@ -4750,7 +4750,7 @@ if (postdot >= 0) { // If any item is not a completion ...
     Bit_Vector predicted_rule_vector
 	= bv_shadow(matrix_row(prediction_matrix, (guint)postdot));
     for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++) {
-    // "or" the other non-complete items into the prediction rule vector
+    // ``or" the other non-complete items into the prediction rule vector
 	postdot = Postdot_SYMID_of_AIM(item_list_for_new_state[item_ix]);
 	if (postdot < 0) continue;
 	bv_or_assign(predicted_rule_vector, 
@@ -4782,7 +4782,7 @@ of a list solution, $O(s \cdot \log s)$.
 In normal cases,
 the practical advantages of bit vectors are overwhelming and swamp the theoretical
 time complexity.
-The advantage of listing AHFA items is restricted to a putative "average" case,
+The advantage of listing AHFA items is restricted to a putative ``average" case,
 and even there would not kick in until the grammars became very large.
 My conclusion is that alternatives to the bit vector implementation deserve
 further investigation, but that at present, and overall,
@@ -4855,7 +4855,7 @@ with |S2| on its LHS.
 
 @ For creating prediction AHFA states, we need to have an ordering of rules
 by their postdot symbol.
-A "predictable rule" is one whose initial item has a postdot symbol.
+A ``predictable rule" is one whose initial item has a postdot symbol.
 The following facts hold:
 \li A rule is predictable iff it is both used and non-nulling.
 \li A rule is predictable iff it is a used rule which is not the nulling start rule.
@@ -4867,7 +4867,7 @@ the predictable rules.
 (|G_MAXINT| is used and not |G_MAXUINT|, because the sort routines
 work with signed values.)
 This first pass fully captures the order, but
-our final result needs to be an unique ID for every "predictable rule",
+our final result needs to be an unique ID for every ``predictable rule",
 so that it can be used as the index in a bit vector.
 @<Populate |sort_key_by_rule_id| with first pass value;
 calculate |no_of_predictable_rules|@> =
@@ -5075,7 +5075,7 @@ as a function of AHFA state and symbol.
 The most important data
 of this type are the AHFA state transitions,
 which is why the per-AHFA-per-symbol data is called
-"transition" data.
+``transition" data.
 But per-AHFA symbol completion data is also
 a function of AHFA state and symbol.
 @ This operation is at the heart of the parse engine,
@@ -5367,16 +5367,16 @@ Initialized in |marpa_r_new|.
 @ @<Widely aligned recognizer elements@> = const struct marpa_g *t_grammar;
 
 @*0 Recognizer Phase.
-The recognizer has phases, such as "input"
-and "evaluation",
-and states, such as "exhausted".
+The recognizer has phases, such as ``input"
+and ``evaluation",
+and states, such as ``exhausted".
 The main distinction is that the
 phases are mutually exclusive---%
 entering one means leaving another.
-"Exhausted" is not a phase, because when a parser is
+``Exhausted" is not a phase, because when a parser is
 exhausted it may gone into the evaluation phase, then
 return to the input phase,
-All that time it will remain "exhausted".
+All that time it will remain ``exhausted".
 @<Public typedefs@> =
 enum marpa_phase {
     no_such_phase = 0, // 0 is never a valid phase
@@ -5460,7 +5460,7 @@ gboolean marpa_earley_item_warning_threshold_set(struct marpa_r*r, guint thresho
 }
 
 @*0 Furthest Earleme.
-The "furthest" or highest-numbered earleme.
+The ``furthest" or highest-numbered earleme.
 This is the earleme of the last Earley set that contains anything.
 Marpa allows variable length tokens,
 so it needs to track how far out tokens might be found.
@@ -5560,7 +5560,7 @@ function and its caller about size of the |GArray| elements match.
 This is a check worth making.
 Mistakes happen,
 a mismatch might arise as a portability issue,
-and if I do not "fail fast" here the ultimate problem
+and if I do not ``fail fast" here the ultimate problem
 could be very hard to debug.
 @<Public function prototypes@> =
 gint marpa_terminals_expected(struct marpa_r* r, GArray* result);
@@ -5667,7 +5667,7 @@ unsigned int t_is_using_leo:1;
 @ @<Initialize recognizer elements@> =
 r->t_use_leo_flag = 1;
 r->t_is_using_leo = 0;
-@ Returns 1 if the "use Leo" flag is set,
+@ Returns 1 if the ``use Leo" flag is set,
 0 if not,
 and |-2| if there was an error.
 @<Public function prototypes@> =
@@ -5694,8 +5694,8 @@ struct marpa_r*r, gboolean value)
 gboolean marpa_is_use_leo_set( struct marpa_r*r, gboolean value);
 
 @*1 Is The Parser Exhausted?.
-A parser is "exhausted" if it cannot accept any more input.
-Both successful and failed parses can be "exhausted".
+A parser is ``exhausted" if it cannot accept any more input.
+Both successful and failed parses can be ``exhausted".
 In many grammars,
 the parse is always exhausted as soon as it succeeds.
 And even if the parse is exhausted at a point
@@ -5725,7 +5725,7 @@ Leo items into Earley items.
 It's use by the logic which warns
 when the Earley item warning threshold is exceeded.
 Leo expansion is expected to add a lot of Earley items to a single
-Earley set, so the Earley item "warning threshold exceeded"
+Earley set, so the Earley item ``warning threshold exceeded"
 message is disable during Leo expansion.
 @<Bit aligned recognizer elements@> =
 unsigned int t_is_leo_expanding:1;
@@ -5734,7 +5734,7 @@ r->t_is_leo_expanding = 0;
 
 @*0 The Recognizer's Context.
 As in the grammar,
-The "context" is a hash of miscellaneous data,
+The ``context" is a hash of miscellaneous data,
 by keyword,
 whose
 purpose is to 
@@ -5781,7 +5781,7 @@ static inline
 void r_context_const_add(struct marpa_r* r, const gchar* key, const gchar* value);
 
 @ Clear the current context.
-Used to create a "clean slate" in the context.
+Used to create a ``clean slate" in the context.
 @<Function definitions@> =
 static inline void r_context_clear(struct marpa_r* r) {
     g_hash_table_remove_all(Context_of_R(r)); }
@@ -5810,7 +5810,7 @@ it is only valid when an external
 function has indicated there is an error,
 and becomes invalid again when another external method
 is called on the recognizer.
-Checking it at other times may reveal "stale" error
+Checking it at other times may reveal ``stale" error
 messages.
 @ @<Widely aligned recognizer elements@> =
 Marpa_Error_ID t_error;
@@ -5820,7 +5820,7 @@ r->t_error = NULL;
 r->t_fatal_error = NULL;
 @ There is no destructor.
 The error strings are assummed to be
-{\bf not} error messages, but "cookies".
+{\bf not} error messages, but ``cookies".
 These cookies are constants residing in static memory
 (which may be read-only depending on implementation).
 They cannot and should not be de-allocated.
@@ -5950,9 +5950,9 @@ earley_set_new( RECCE r, EARLEME id)
 @*0 Trace Functions.
 Many of the
 trace functions use
-a "trace Earley set" which is
+a ``trace Earley set" which is
 tracked on a per-recognizer basis.
-The "trace Earley set" is tracked separately
+The ``trace Earley set" is tracked separately
 from the current Earley set for the parse.
 The two may coincide, but should not be confused.
 @<Widely aligned recognizer elements@> =
@@ -6302,7 +6302,7 @@ static const char* invalid_source_type_message(guint type) {
 @*0 Trace Functions.
 Many of the
 trace functions use
-a "trace Earley item" which is
+a ``trace Earley item" which is
 tracked on a per-recognizer basis.
 @<Widely aligned recognizer elements@> =
 EIM t_trace_earley_item;
@@ -6536,7 +6536,7 @@ struct s_earley_ix {
 typedef struct s_earley_ix EIX_Object;
 
 @** Leo Item (LIM) Code.
-Leo items originate from the "transition items" of Joop Leo's 1991 paper.
+Leo items originate from the ``transition items" of Joop Leo's 1991 paper.
 They are set up so their first fields are identical to those of
 the Earley item indexes,
 so that they can be linked together in the same chain.
@@ -6647,7 +6647,7 @@ Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r)
 }
 
 @ This function
-returns the "Leo expansion AHFA" of the current trace Leo item.
+returns the ``Leo expansion AHFA" of the current trace Leo item.
 @<Private function prototypes@> =
 Marpa_AHFA_State_ID marpa_leo_expansion_ahfa(struct marpa_r *r);
 @ The {\bf Leo expansion AHFA} is the AHFA
@@ -6764,7 +6764,7 @@ static inline PIM first_pim_of_es_by_symid(ES set, SYMID symid)
 @*0 Trace Functions.
 Many of the
 trace functions use
-a "trace postdot item".
+a ``trace postdot item".
 This is
 tracked on a per-recognizer basis.
 @<Widely aligned recognizer elements@> =
@@ -6925,11 +6925,11 @@ But there may be other sources (both Leo and non-Leo),
 a long as their predecessors
 are in different Earley sets.
 @ One way to look at these Leo ambiguities is as different
-"factorings" of the Earley item.
+``factorings" of the Earley item.
 Assume the last (or transition) symbol of an Earley item
 is a token.
 An Earley item will often have both a predecessor and a token,
-and these can "factor", or divide up, the distance between
+and these can ``factor", or divide up, the distance between
 an Earley item's origin and its current set in different ways.
 @ The Earley item can have only one origin,
 and only one transition symbol.
@@ -6953,7 +6953,7 @@ I have some latitude in the number of linked lists
 in a ambiguous source.
 If an |int| is the same size as a |void*|,
 then space for three |void*| in ambiguous sources
-comes "free".
+comes ``free".
 If |void*| is $n$ bytes larger than an |int|,
 then each unambiguous source uses $n$ bytes
 more than it has to, although there are
@@ -7254,7 +7254,7 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item);
 }
 
 @*0 Trace Functions.
-Many trace functions track a "trace source link".
+Many trace functions track a ``trace source link".
 There is only one of these, shared among all types of
 source link.
 It is an error to call a trace function that is
@@ -7593,12 +7593,12 @@ Marpa_Symbol_ID marpa_source_leo_transition_symbol(struct marpa_r *r)
 }
 
 @*1 Return the Middle Earleme.
-Every source has a "middle earleme" defined.
+Every source has a ``middle earleme" defined.
 Every source has
 \li An origin (or start earleme).
 \li An end earleme (the current set).
-\li A "middle earleme".
-An Earley item can be thought of as covering a "span"
+\li A ``middle earleme".
+An Earley item can be thought of as covering a ``span"
 from its origin to the current set.
 For each source,
 this span is divided into two pieces at the middle
@@ -7616,7 +7616,7 @@ If there is a token,
 the middle earleme is always where the token starts.
 @<Public function prototypes@> =
 Marpa_Earley_Set_ID marpa_source_middle(struct marpa_r* r);
-@ The "predecessor set" is the earleme of the predecessor.
+@ The ``predecessor set" is the earleme of the predecessor.
 Returns |-1| if there is no predecessor.
 If there are other failures, such as
 there being no source link,
@@ -7688,7 +7688,7 @@ gboolean marpa_source_token_value(struct marpa_r* r, gpointer* value_p)
 
 @** Alternative Tokens (ALT) Code.
 Because Marpa allows more than one token at every
-earleme, Marpa's tokens are also called "alternatives".
+earleme, Marpa's tokens are also called ``alternatives".
 @<Private incomplete structures@> =
 struct s_alternative;
 typedef struct s_alternative* ALT;
@@ -7903,7 +7903,7 @@ never reach location $n$.
 @ Whether token rejection is considered a failure is
 a matter for the upper layers to define.
 Retrying rejected tokens is one way to implement the
-important "Ruby Slippers" parsing technique.
+important ``Ruby Slippers" parsing technique.
 On the other hand it is traditional,
 and often quite reasonable,
 to always treat rejection of a token as a fatal error.
@@ -7974,7 +7974,7 @@ The application can treat this as a fatal error.
 The application can also use this as a mechanism to test alternatives,
 in which case, returning |unexpected_token_indicator| is a perfectly normal data path.
 This last is part of an important technique:
-"Ruby Slippers" parsing.
+``Ruby Slippers" parsing.
 @<Set |current_earley_set|, failing if token is unexpected@> = {
     current_earley_set = Current_ES_of_R (r);
     if (!current_earley_set) return unexpected_token_indicator;
@@ -8090,7 +8090,7 @@ marpa_earleme_complete(struct marpa_r* r)
 	&& Earleme_of_ES (current_earley_set) >= Furthest_Earleme_of_R (r))
       { /* If no terminals are expected, and there are no Earley items in
            uncompleted Earley sets, we can make no further progress.
-	   The parse is "exhausted". */
+	   The parse is ``exhausted". */
 	LV_R_is_Exhausted(r) = 1;
       }
     earley_set_update_items(r, current_earley_set);
@@ -8180,7 +8180,7 @@ this means that the parse is exhausted.
     }
 
 @ For the current completion cause,
-add those Earley items it "causes".
+add those Earley items it ``causes".
 @<Add new Earley items for |cause|@> =
 {
   Marpa_Symbol_ID *complete_symbols = Complete_SYMIDs_of_EIM (cause);
@@ -8460,7 +8460,7 @@ a bit vector which indicates the LIM's.
 but which cannot be immediately populated.
 This is because predecessors link the LIMs in chains, and such chains
 must be populated in order.
-Any "links" in the chain of LIMs which are in previous Earley sets
+Any ``links" in the chain of LIMs which are in previous Earley sets
 will already be populated.
 But a chain of LIMs may all be in the current Earley set, the
 one we are currently processing.
@@ -8703,7 +8703,7 @@ of the base EIM.
 }
 
 @** Expand the Leo Items.
-\libmarpa/ expands Leo items on a "lazy" basis.
+\libmarpa/ expands Leo items on a ``lazy" basis.
 When an or-node is about to be populated, it is necessary to
 examine all of the descendants of its Earley items.
 If one of the or-nodes Earley items is a Leo completion,
@@ -8765,7 +8765,7 @@ static gint leo_completion_expand(RECCE r, EIM leo_completion)
       this_lim = Predecessor_of_EIM(leo_completion);
       previous_eim_on_this_path = Cause_of_EIM(leo_completion);
       leo_path_lengths += 2; /* Add 2, one for the Leo completion,
-          one for its cause (the "Leo completion base item") */
+          one for its cause (the ``Leo completion base item") */
       break;
     }
     if (!this_lim) return 0; /* Returns 0 if this is not a Leo completion
@@ -8784,7 +8784,7 @@ static gint leo_completion_expand(RECCE r, EIM leo_completion)
     }
     earley_set_update_items(r, earley_set_of_this_path);
     r->t_is_leo_expanding = 0;
-     /* Turn Earley item "warning threshold exceeded" messages
+     /* Turn Earley item ``warning threshold exceeded" messages
         back on.  */
     return leo_path_lengths;
 }
@@ -8793,7 +8793,7 @@ static gint leo_completion_expand(RECCE r, EIM leo_completion)
 	 this_lim = Predecessor_of_SRCL(leo_link);
 	 previous_eim_on_this_path = Cause_of_SRCL(leo_link);
 	 leo_path_lengths += 2; /* Add 2, one for the Leo completion,
-		  one for its cause (the "Leo completion base item") */
+		  one for its cause (the ``Leo completion base item") */
 }
 
 @ @<Expand a LIM chain@> = {
@@ -8841,7 +8841,7 @@ in stages --- while the evaluator is not yet converted to C,
 it can call this function to expand |libmarpa|'s Leo completions.
 I am undecided whether to keep this function after development.
 It could be used by an application that decides it wants to expand
-Leo completions on a more "eager" basis than |libmarpa| does.
+Leo completions on a more ``eager" basis than |libmarpa| does.
 @ @<Function definitions@> =
 gint marpa_leo_completion_expand(struct marpa_r *r)
 {
@@ -8912,13 +8912,13 @@ its source.  This is dealt with by noticing that in building the
 or-node, we only use the source links of an Earley item, and
 that these are always identical.  Therefore we can arbitrarily
 select any one of the possible source Earley items to be
-the or-node's "unique" Earley item source.
+the or-node's ``unique" Earley item source.
 @ The second source of duplication is duplicate source links
 for the same Earley item.
 I prevent token source links from duplicating,
 and the Leo logic does not allow duplicate Leo source links.
 @ Completion source links could be prevented from duplicating by
-making the transition symbol part of its "signature",
+making the transition symbol part of its ``signature",
 and making sure the source link transition symbol matches
 the predot symbol of the or-node.
 This would only impose a small overhead.
@@ -8962,7 +8962,7 @@ will be on the LHS of at least one completion in all of those causes.
 one AHFA item in the AHFA state of the Earley item predecessor.
 
 @** Ur-Node (UR) Code.
-Ur is a German word for "primordial", which is used
+Ur is a German word for ``primordial", which is used
 a lot in academic writing to designate precursors---%
 for example, scholars who believe that Shakespeare's
 {\it Hamlet} is based on another, now lost, play,
@@ -10007,7 +10007,7 @@ static inline guint bv_count (Bit_Vector v);
 @*0 The RHS Closure of a Vector.
 Despite the fact that they are actually tied closely to their
 use in |libmarpa|, most of the logic of boolean vectors has
-a "pure math" appearance.
+a ``pure math" appearance.
 This routine has a direct connection with the grammar.
 \par
 Several properties of symbols that need to be determined
@@ -10102,7 +10102,7 @@ Beyer's matrixes are a single Boolean vector
 which special routines index by row and column.
 Marpa's matrixes are arrays of vectors.
 
-Since there are "hidden words" before the data
+Since there are ``hidden words" before the data
 in each vectors, Marpa must repeat these for each
 row of a vector.  Consequences:
 \li Marpa matrixes use a few extra bytes per row of space.
@@ -10110,7 +10110,7 @@ row of a vector.  Consequences:
 \li Marpa's rows {\bf can} be used as vectors.
 \li Marpa's matrix pointers point to the beginning of
 the allocated space.  |Bit_Vector| pointers use trickery
-and include "hidden words" before the pointer.
+and include ``hidden words" before the pointer.
 @ Note that |typedef|'s for |Bit_Matrix|
 and |Bit_Vector| are identical.
 @s Bit_Matrix int
@@ -10121,7 +10121,7 @@ typedef Bit_Vector_Word* Bit_Matrix;
 @ Here the pointer returned is the actual start of the
 |g_malloc|'d space.
 This is {\bf not} the case with vectors, whose pointer is offset for
-the "hidden words".
+the ``hidden words".
 @<Function definitions@> =
 static inline Bit_Matrix matrix_create(guint rows, guint columns)
 {
@@ -10165,7 +10165,7 @@ static inline gint matrix_columns(Bit_Matrix matrix);
 
 @*0 Find a Row of a Boolean Matrix.
 Here's where the slight extra overhead of repeating
-identical "hidden word" data for each row of a matrix
+identical ``hidden word" data for each row of a matrix
 pays off.
 This simply returns a pointer into the matrix.
 This is adequate if the data is not changed.
@@ -10337,10 +10337,10 @@ resizings unnecessary.
 @d DSTACK_LENGTH(this) ((this).t_count)
 
 @
-|DSTACK|'s can have their data "stolen", by other containers.
+|DSTACK|'s can have their data ``stolen", by other containers.
 The |STOLEN_DSTACK_DATA_FREE| macro is intended
-to help the "thief" container
-deallocate the data it now has "stolen".
+to help the ``thief" container
+deallocate the data it now has ``stolen".
 @d STOLEN_DSTACK_DATA_FREE(data) ((data) && (g_free(data), 1))
 @d DSTACK_DESTROY(this) STOLEN_DSTACK_DATA_FREE(this.t_base)
 
@@ -10362,9 +10362,9 @@ static inline gpointer dstack_resize(struct s_dstack* this, gsize type_size);
 This is simply a dynamic stack extended with a second
 index.
 These is no destructor at this point, because so far all uses
-of this let another container "steal" the data from this one.
+of this let another container ``steal" the data from this one.
 When one exists, it will simply call the dynamic stack destructor.
-Instead I define a destructor for the "thief" container to use
+Instead I define a destructor for the ``thief" container to use
 when it needs to free the data.
 
 @d DQUEUE_DECLARE(this) struct s_dqueue this
@@ -10388,11 +10388,16 @@ struct s_dqueue { gint t_current; struct s_dstack t_stack; };
 @** Per-Earley-Set List (PSL) Code.
 There are several cases where Marpa needs to
 look up a triple $\langle s,s',k \rangle$,
-where $s$ and $s'$ are earlemes, and $0<k<\gsize$,
-where $n$ is the number of AHFA items.
+where $s$ and $s'$ are earlemes, and $0<k<n$,
+where $n$ is a reasonably small constant,
+such as the number of AHFA items.
 Earley items, or-nodes and and-nodes are examples.
-Lookup for these needs to be $O(1)$
+@ Lookup for Earley items needs to be $O(1)$
 to justify Marpa's time complexity claims.
+Setup of the parse
+bocage for evaluation is not
+parsing in the strict sense,
+but makes sense to have it meet the same time complexity claims.
 @
 To obtain $O(1)$,
 Marpa uses a special data structure, the Per-Earley-Set List.
@@ -10417,10 +10422,26 @@ Since this list is of a size less than a constant,
 search and insertion in it is $O(1)$.
 Thus each search and insertion for the triple
 $\langle s,s',k \rangle$ takes $O(1)$ time.
+@ In understanding how the PSL's are used, it is important
+to keep in mind that the PSL's are kept in Earley sets as
+a convenience, and that the semantic relation of the Earley set
+to the data structure being tracked by the PSL is not important
+in the choice of where the PSL goes.
+All data structures tracked by PSL's belong
+semantically more to
+the Earley set of their dot earleme than any other,
+but for the time complexity hack to work,
+that must be held constand while another Earley set is
+the one which varies.
+In the case of Earley items and or-nodes, the varying
+Earley set is the origin.
+In the case of and-nodes, the origin Earley set is also
+held constant, and the Earley set of the middle earleme
+is the variable.
 @ The PSL's are kept in a linked list.
 Each contains |Size_of_PSL| |gpointer|'s.
 |t_owner| is the address of the location
-that "owns" this PSL.
+that ``owns" this PSL.
 That location will be NULL'ed
 when deallocating.
 @<Private incomplete structures@> =
@@ -10442,13 +10463,13 @@ typedef struct s_per_earley_set_list PSL_Object;
 @<Private incomplete structures@> =
 struct s_per_earley_set_arena;
 typedef struct s_per_earley_set_arena *PSAR;
-@ The "dot" PSAR is to track earley items whose origin
-or current earleme is at the "dot" location,
+@ The ``dot" PSAR is to track earley items whose origin
+or current earleme is at the ``dot" location,
 that is, the current Earley set.
-The "predict" PSAR
+The ``predict" PSAR
 is to track earley items for predictions
 at locations other than the current earleme.
-The "predict" PSAR
+The ``predict" PSAR
 is used for predictions which result from
 scanned items.
 Since they are predictions, their current Earley set
@@ -10456,7 +10477,7 @@ and origin are at the same earleme.
 This earleme will be somewhere after the current earleme.
 @<Private structures@> =
 struct s_per_earley_set_arena {
-      guint t_psl_length;
+      gint t_psl_length;
       PSL t_first_psl;
       PSL t_first_free_psl;
 };
@@ -10465,18 +10486,18 @@ typedef struct s_per_earley_set_arena PSAR_Object;
 @<Widely aligned recognizer elements@> =
 struct s_per_earley_set_arena t_dot_psar_object;
 @ @<Initialize recognizer elements@> =
-  psar_init(r, Dot_PSAR_of_R(r));
+  psar_init(Dot_PSAR_of_R(r), (gint)AHFA_Count_of_R (r));
 @ @<Destroy recognizer elements@> =
   psar_destroy(Dot_PSAR_of_R(r));
 @ @<Private function prototypes@> =
-static inline void psar_init(const RECCE r, const PSAR psar);
+static inline void psar_init(const PSAR psar, gint length);
 static inline void psar_destroy(const PSAR psar);
 static inline PSL psl_new(const PSAR psar);
 @ @<Function definitions@> =
 static inline void
-psar_init (const RECCE r, const PSAR psar)
+psar_init (const PSAR psar, gint length)
 {
-  psar->t_psl_length = AHFA_Count_of_R (r);
+  psar->t_psl_length = length;
   psar->t_first_psl = psar->t_first_free_psl = psl_new (psar);
 }
 @ @<Function definitions@> =
@@ -10493,7 +10514,7 @@ static inline void psar_destroy(const PSAR psar)
 }
 @ @<Function definitions@> =
 static inline PSL psl_new(const PSAR psar) {
-     guint i;
+     gint i;
      PSL new_psl = g_slice_alloc(Sizeof_PSL(psar));
      new_psl->t_next = NULL;
      new_psl->t_prev = NULL;
@@ -10503,7 +10524,10 @@ static inline PSL psl_new(const PSAR psar) {
     }
      return new_psl;
 }
-@ This temporary data and perhaps should be keep track of on a per-phase
+@
+{\bf To Do}: @^To Do@>
+This is temporary data
+and perhaps should be keep track of on a per-phase
 obstack.
 @d Dot_PSL_of_ES(es) ((es)->t_dot_psl)
 @d LV_Dot_PSL_of_ES(es) Dot_PSL_of_ES(es)
@@ -10514,7 +10538,7 @@ obstack.
 
 @ A PSAR reset nulls out the data in the PSL's.
 It is a moderately expensive operation, usually
-avoided by having the logic check for "stale" data.
+avoided by having the logic check for ``stale" data.
 But when the PSAR is needed for a
 a different type of PSL data,
 one which will require different stale-detection logic,
@@ -10525,7 +10549,7 @@ static inline void psar_reset(const PSAR psar);
 static inline void psar_reset(const PSAR psar) {
     PSL psl = psar->t_first_psl;
     while (psl && psl->t_owner) {
-	guint i;
+	gint i;
 	for (i = 0; i < psar->t_psl_length; i++) {
 	    LV_PSL_Datum(psl, i) = NULL;
 	}
@@ -10584,7 +10608,7 @@ static inline void psl_dealloc(const PSAR psar, const PSL psl) {
     psl->t_prev = first_free;
     first_free->t_next = psl;
 }
-@ This function "claims" a PSL.
+@ This function ``claims" a PSL.
 The address of the claimed PSL and the PSAR
 from which to claim it are arguments.
 The caller must ensure that
@@ -10601,7 +10625,7 @@ static inline void psl_claim(
      new_psl->t_owner = psl_owner;
 }
 
-@ This function "allocates" a PSL.
+@ This function ``allocates" a PSL.
 It gets a free PSL from the PSAR.
 There must always be at least one free PSL in a PSAR.
 This function replaces the allocated PSL with
@@ -10670,8 +10694,8 @@ First, the error handling is not thread-safe.  In fact,
 since it relies on a global error handler, it is not even
 safe for use by multiple libraries within one thread.
 Since
-the obstack "error handling" consisted of exactly one
-"out of memory" message, which Marpa will never use because
+the obstack ``error handling" consisted of exactly one
+``out of memory" message, which Marpa will never use because
 it uses |g_malloc|, this risk comes at no benefit whatsoever.
 Removing the error handling was far easier than leaving it
 in.
@@ -10736,7 +10760,7 @@ so that |-1| can be reserved for special purposes.
 which |-1| is returned are described in the section
 for each external function call.
 Typical meanings of |-1| are
-"not defined", or "does not exist".
+``not defined", or ``does not exist".
 
 @ The final decision about the meaning of
 return values is up to the higher layers.
@@ -10894,7 +10918,7 @@ recognizer object is so thorougly compromised
 that |libmarpa|'s external functions cannot proceed
 without risking internal memory errors,
 such as bus errors and segment violations.
-"Recognizer-fatal" status is thus,
+``Recognizer-fatal" status is thus,
 not a means of dictating to the higher layers that a
 |libmarpa| condition must be application-fatal,
 but a way of preventing a recognizer error from becoming
@@ -10957,7 +10981,7 @@ The user can define a callback
 has a message for the upper layers.
 Note a lot of strings are used for convenience
 in these messages.
-These should be considered "cookies", 
+These should be considered ``cookies", 
 as is they were file name or variables names.
 They should not be regarded as part of the user
 interface, even if some default or fallback routines
@@ -11052,7 +11076,7 @@ static inline void r_message(struct marpa_r *r, Marpa_Message_ID id);
 
 @** Debugging.
 The |MARPA_DEBUG| flag enables intrusive debugging logic.
-"Intrusive" debugging includes things which would
+``Intrusive" debugging includes things which would
 be annoying in production, such as detailed messages about
 internal matters on |STDERR|.
 @<Debug macros@> =
