@@ -5885,11 +5885,9 @@ struct s_earley_set {
 
 @*0 Earley Item Container.
 @d EIM_Count_of_ES(set) ((set)->t_eim_count)
-@d LV_EIM_Count_of_ES(set) EIM_Count_of_ES(set)
 @<Int aligned Earley set elements@> =
 gint t_eim_count;
 @ @d EIMs_of_ES(set) ((set)->t_earley_items)
-@d LV_EIMs_of_ES(set) EIMs_of_ES(set)
 @<Widely aligned Earley set elements@> =
 EIM* t_earley_items;
 
@@ -5924,9 +5922,9 @@ earley_set_new( RECCE r, EARLEME id)
   set->t_key = key;
   set->t_postdot_ary = NULL;
   set->t_postdot_sym_count = 0;
-  LV_EIM_Count_of_ES(set) = 0;
+  EIM_Count_of_ES(set) = 0;
   set->t_ordinal = r->t_earley_set_count++;
-  LV_EIMs_of_ES(set) = NULL;
+  EIMs_of_ES(set) = NULL;
   LV_Next_ES_of_ES(set) = NULL;
   @<Initialize Earley set PSL data@>@/
   return set;
@@ -6133,7 +6131,7 @@ static inline EIM earley_item_create(const RECCE r,
   EIM new_item;
   EIM* top_of_work_stack;
   const ES set = key.t_set;
-  const guint count = ++LV_EIM_Count_of_ES(set);
+  const guint count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
   new_item = obstack_alloc (&r->t_obs, sizeof (*new_item));
   new_item->t_key = key;
@@ -9387,12 +9385,47 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 {
   PSAR_Object and_psar;
   PSAR_Object or_psar;
+  const gint earley_set_count = ES_Count_of_R (r);
+  gint earley_set_ordinal;
   psar_init (&and_psar, AHFA_Count_of_G (g));
   psar_init (&or_psar, SYMI_Count_of_G (g));
   ORs_of_R (r) = g_new (OR_Object, or_node_estimate);
+  for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count; earley_set_ordinal++)
+  {
+      const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
+      @<Create the draft or-nodes for |earley_set_ordinal|@>@;
+  }
   psar_destroy (&and_psar);
   psar_destroy (&or_psar);
 }
+
+@
+@<Create the draft or-nodes for |earley_set_ordinal|@> =
+{
+    OR** const nodes_by_item = per_es_data[earley_set_ordinal].t_aexes_by_item;
+    EIM* const eims_of_es = EIMs_of_ES(earley_set);
+    const gint item_count = EIM_Count_of_ES (earley_set);
+    gint item_ordinal;
+    for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
+    {
+	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
+	if (nodes_by_aex) {
+	    const EIM earley_item = eims_of_es[item_ordinal];
+	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
+	    AEX aex;
+	    for (aex = 0; aex < aim_count_of_item; aex++) {
+		OR* const p_master_psia_entry = nodes_by_aex + aex;
+		const gconstpointer dummy = *p_master_psia_entry;
+		if (!dummy) continue;
+		@<Create the draft or-nodes
+		    for |earley_item| and |aex|@>@;
+	    }
+	}
+    }
+}
+
+@ @<Create the draft or-nodes for |earley_item| and |aex|@> =
+{ ; }
 
 @ @<Push ur-node if new@> = {
     if (!psia_test_and_set
