@@ -8066,6 +8066,7 @@ marpa_earleme_complete(struct marpa_r* r)
   ES current_earley_set;
   EARLEME current_earleme;
   gint count_of_expected_terminals;
+  psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_symid_is_expected);
     @<Initialize |current_earleme|@>@;
     @<Return 0 if no alternatives@>@;
@@ -9436,7 +9437,18 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 }
 
 @ @<Create the draft or-nodes for |earley_item| and |aex|@> =
-{ ; }
+{
+#if 0
+  AIM ahfa_item = AIM_of_EIM_by_AEX(earley_item, aex);
+  PSL *psl_owner = &per_es_data[earley_set_ordinal].or_psl;
+  if (!*psl_owner)
+    {
+      psl_claim (psl_owner, or_psar);
+    }
+  psl = *psl_owner;
+  eim = PSL_Datum (psl, ahfa_id);
+#endif
+}
 
 @ @<Push ur-node if new@> = {
     if (!psia_test_and_set
