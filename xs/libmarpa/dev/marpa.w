@@ -2341,7 +2341,8 @@ marpa_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID id)
 }
 
 @** Symbol Instance (SYMI) Code.
-@d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
+@<Private typedefs@> = typedef gint SYMI;
+@ @d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
 @<Int aligned grammar elements@> =
 gint t_symbol_instance_count;
 @ @d SYMI_of_RULE(rule) ((rule)->t_symbol_instance_base)
@@ -3499,7 +3500,6 @@ the duple being a a rule and a position in that rule.
 typedef gint Marpa_AHFA_Item_ID;
 @
 @d Sort_Key_of_AIM(aim) ((aim)->t_sort_key)
-@d LV_Sort_Key_of_AIM(aim) Sort_Key_of_AIM(aim)
 @<Private structures@> =
 struct s_AHFA_item {
     gint t_sort_key;
@@ -3553,7 +3553,6 @@ GRAMMAR_Const g, AIMID item_id);
 @*0 Rule.
 @d RULE_of_AIM(item) ((item)->t_rule)
 @d RULEID_of_AIM(item) ID_of_RULE(RULE_of_AIM(item))
-@d LV_RULE_of_AIM(item) RULE_of_AIM(item)
 @d LHS_ID_of_AIM(item) (LHS_ID_of_RULE(RULE_of_AIM(item)))
 @<Widely aligned AHFA item elements@> =
     RULE t_rule;
@@ -3561,14 +3560,12 @@ GRAMMAR_Const g, AIMID item_id);
 @*0 Position.
 Position in the RHS, -1 for a completion.
 @d Position_of_AIM(aim) ((aim)->t_position)
-@d LV_Position_of_AIM(aim) Position_of_AIM(aim)
 @<Int aligned AHFA item elements@> =
 gint t_position;
 
 @*0 Postdot Symbol.
 |-1| if the item is a completion.
 @d Postdot_SYMID_of_AIM(item) ((item)->t_postdot)
-@d LV_Postdot_SYMID_of_AIM(item) Postdot_SYMID_of_AIM(item)
 @d AIM_is_Completion(aim) (Postdot_SYMID_of_AIM(aim) < 0)
 @d AIM_has_Completed_Start_Rule(aim)
     (AIM_is_Completion(aim) && RULE_is_Start(RULE_of_AIM(aim)))
@@ -3581,7 +3578,6 @@ is also a nulling symbol.)
 This element contains the count of nulling symbols preceding
 this AHFA items's dot position.
 @d Null_Count_of_AIM(aim) ((aim)->t_leading_nulls)
-@d LV_Null_Count_of_AIM(aim) Null_Count_of_AIM(aim)
 @<Int aligned AHFA item elements@> =
 gint t_leading_nulls;
 
@@ -3696,20 +3692,20 @@ static inline void create_AHFA_items(struct marpa_g* g);
 
 @ @<Create an AHFA item for a precompletion@> =
 {
-  LV_RULE_of_AIM (current_item) = rule;
-  LV_Sort_Key_of_AIM (current_item) = current_item - base_item;
-  LV_Null_Count_of_AIM(current_item) = leading_nulls;
-  LV_Postdot_SYMID_of_AIM (current_item) = rh_symid;
-  LV_Position_of_AIM (current_item) = rhs_ix;
+  RULE_of_AIM (current_item) = rule;
+  Sort_Key_of_AIM (current_item) = current_item - base_item;
+  Null_Count_of_AIM(current_item) = leading_nulls;
+  Postdot_SYMID_of_AIM (current_item) = rh_symid;
+  Position_of_AIM (current_item) = rhs_ix;
 }
 
 @ @<Create an AHFA item for a completion@> =
 {
-  LV_RULE_of_AIM (current_item) = rule;
-  LV_Sort_Key_of_AIM (current_item) = current_item - base_item;
-  LV_Null_Count_of_AIM(current_item) = leading_nulls;
-  LV_Postdot_SYMID_of_AIM (current_item) = -1;
-  LV_Position_of_AIM (current_item) = -1;
+  RULE_of_AIM (current_item) = rule;
+  Sort_Key_of_AIM (current_item) = current_item - base_item;
+  Null_Count_of_AIM(current_item) = leading_nulls;
+  Postdot_SYMID_of_AIM (current_item) = -1;
+  Position_of_AIM (current_item) = -1;
 }
 
 @ This is done after creating the AHFA items, because in
@@ -3726,7 +3722,7 @@ Marpa_Rule_ID highest_found_rule_id = -1; /* The highest ID of a rule whose AHFA
 Marpa_AHFA_Item_ID item_id;
 for (item_id = 0; item_id < (Marpa_AHFA_Item_ID)no_of_items; item_id++) {
      AIM item = items+item_id;
-     Marpa_Rule_ID rule_id_for_item = LV_RULE_of_AIM(item)->t_id;
+     Marpa_Rule_ID rule_id_for_item = RULE_of_AIM(item)->t_id;
      if (rule_id_for_item <= highest_found_rule_id) continue;
      items_by_rule[rule_id_for_item] = item;
      highest_found_rule_id = rule_id_for_item;
@@ -3799,7 +3795,7 @@ AHFA item as its new, final ID.
 		     (gpointer) NULL);
   for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
     {
-      LV_Sort_Key_of_AIM (sort_array[item_id]) = item_id;
+      Sort_Key_of_AIM (sort_array[item_id]) = item_id;
     }
   g_free (sort_array);
 }
@@ -9155,8 +9151,8 @@ Token Source Lemma.
 {\bf QED}.
 
 @ @<Private incomplete structures@> =
-struct s_or_node;
-typedef struct s_or_node* OR;
+union u_or_node;
+typedef union u_or_node* OR;
 @ The type is contained in same word as the position is
 for final or-nodes.
 @s OR int
@@ -9165,36 +9161,51 @@ for final or-nodes.
 @d DRAFT_NULL_OR_NODE -3
 @d TOKEN_OR_NODE -5
 @d Type_of_OR(or) ((or)->t_position)
-@d LV_Type_of_OR(or) Type_of_OR(or)
-@<Private structures@> =
-struct s_or_node
+@ C89 guarantess that common initial sequences
+may be accessed via different members of a union.
+@<Or-node structure common initial sequence@> =
+gint t_position;
+ES t_end;
+@ In the case of a trival or-node, |t_and_nodes|
+will be NULL, and the or-node structure itself contain
+the and-node.
+@<Final Or-nodes common initial sequence@> =
+@<Or-node structure common initial sequence@>@;
+RULE t_rule;
+ES t_start;
+AND t_and_nodes;
+@ @<Private structures@> =
+struct s_draft_or_node
 {
-  gint t_position;
-  union
-  {
-    struct
-    {
-      EIM t_earley_item;
-      AEX t_aex;
-      LIM t_leo_item;
-    } s_draft;
-    struct
-    {
-      RULE t_rule;
-      EIM t_start;
-      AEX t_end;
-      LIM t_draft_position;
-    } s_draft_null;
-    struct
-    {
-      RULE t_rule;
-      ES t_start;
-      ES t_end;
-      AND_Object t_first_and_node;
-    } s_final;
-  } t_data;
+    @<Or-node structure common initial sequence@>@;
+  EIM t_earley_item;
+  AEX t_aex;
+  LIM t_leo_item;
 };
-typedef struct s_or_node OR_Object;
+struct s_draft_null_or_node
+{
+    @<Or-node structure common initial sequence@>@;
+    LIM t_draft_position;
+    SYMI t_symbol_instance;
+};
+struct s_trival_or_node
+{
+    @<Final Or-nodes common initial sequence@>@;
+      AND_Object t_and_node;
+};
+struct s_non_trival_or_node
+{
+    @<Final Or-nodes common initial sequence@>@;
+      gint t_and_node_count;
+};
+union u_or_node {
+    gint t_type;
+    struct s_draft_or_node t_draft;
+    struct s_draft_null_or_node t_null_draft;
+    struct s_trival_or_node t_trivial;
+    struct s_non_trival_or_node t_non_trivial;
+};
+typedef union u_or_node OR_Object;
 
 @ @<Private global variables@> =
 static const gint dummy_or_node_type = DUMMY_OR_NODE;
