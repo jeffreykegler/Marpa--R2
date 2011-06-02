@@ -5812,6 +5812,12 @@ resized and which will have the same lifetime as the recognizer.
 @ @<Initialize recognizer obstack@> = obstack_init(&r->t_obs);
 @ @<Destroy recognizer obstack@> = obstack_free(&r->t_obs, NULL);
 
+@*0 The Evaluation Obstack.
+Create an obstack with the lifetime of the evaluation.
+@<Widely aligned recognizer elements@> = struct obstack t_eval_obs;
+@ @<Initialize evaluation elements, first phase@> = obstack_init(&r->t_eval_obs);
+@ @<Destroy evaluation elements, final phase@> = obstack_free(&r->t_eval_obs, NULL);
+
 @*0 The Recognizer's Error ID.
 This is an error flag for the recognizer.
 Error status is not necessarily cleared
@@ -6093,7 +6099,6 @@ the Earley set.
 @d ES_of_EIM(item) ((item)->t_key.t_set)
 @d ES_Ord_of_EIM(item) (Ord_of_ES(ES_of_EIM(item)))
 @d Ord_of_EIM(item) ((item)->t_ordinal)
-@d LV_Ord_of_EIM(item) Ord_of_EIM(item)
 @d Earleme_of_EIM(item) Earleme_of_ES(ES_of_EIM(item))
 @d AHFAID_of_EIM(item) (ID_of_AHFA(AHFA_of_EIM(item)))
 @d AHFA_of_EIM(item) ((item)->t_key.t_state)
@@ -6147,7 +6152,7 @@ static inline EIM earley_item_create(const RECCE r,
   new_item = obstack_alloc (&r->t_obs, sizeof (*new_item));
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
-  LV_Ord_of_EIM(new_item) = count - 1;
+  Ord_of_EIM(new_item) = count - 1;
   LV_EIM_is_Leo_Expanded(new_item) = 1; /* Will be unset when
      and if a Leo link is added */
   top_of_work_stack = WORK_EIM_PUSH(r);
@@ -9176,13 +9181,14 @@ for final or-nodes.
 @d DRAFT_OR_NODE -2
 @d DRAFT_NULL_OR_NODE -3
 @d TOKEN_OR_NODE -5
-@d Type_of_OR(or) ((or)->t_position)
+@d Type_of_OR(or) ((or)->t_trivial.t_position)
+@d End_ES_of_OR(or) ((or)->t_trivial.t_end)
 @ C89 guarantess that common initial sequences
 may be accessed via different members of a union.
 @<Or-node structure common initial sequence@> =
 gint t_position;
 ES t_end;
-@ In the case of a trival or-node, |t_and_nodes|
+@ In the case of a trivial or-node, |t_and_nodes|
 will be NULL, and the or-node structure itself contain
 the and-node.
 @<Final Or-nodes common initial sequence@> =
@@ -9190,7 +9196,11 @@ the and-node.
 RULE t_rule;
 ES t_start;
 AND t_and_nodes;
-@ @<Private structures@> =
+@
+@d EIM_of_OR(or) ((or)->t_draft.t_earley_item)
+@d AEX_of_OR(or) ((or)->t_draft.t_aex)
+@d LIM_of_OR(or) ((or)->t_draft.t_leo_item)
+@<Private structures@> =
 struct s_draft_or_node
 {
     @<Or-node structure common initial sequence@>@;
@@ -9198,18 +9208,24 @@ struct s_draft_or_node
   AEX t_aex;
   LIM t_leo_item;
 };
+@
+@d Draft_Position_of_OR(or)
+    ((or)->t_null_draft.t_draft_position)
+@d SYMI_of_OR(or)
+    ((or)->t_null_draft.t_symbol_instance)
+@<Private structures@> =
 struct s_draft_null_or_node
 {
     @<Or-node structure common initial sequence@>@;
-    LIM t_draft_position;
-    SYMI t_symbol_instance;
+    gint t_draft_position;
+    gint t_symbol_instance;
 };
-struct s_trival_or_node
+struct s_trivial_or_node
 {
     @<Final Or-nodes common initial sequence@>@;
       AND_Object t_and_node;
 };
-struct s_non_trival_or_node
+struct s_non_trivial_or_node
 {
     @<Final Or-nodes common initial sequence@>@;
       gint t_and_node_count;
@@ -9218,8 +9234,8 @@ union u_or_node {
     gint t_type;
     struct s_draft_or_node t_draft;
     struct s_draft_null_or_node t_null_draft;
-    struct s_trival_or_node t_trivial;
-    struct s_non_trival_or_node t_non_trivial;
+    struct s_trivial_or_node t_trivial;
+    struct s_non_trivial_or_node t_non_trivial;
 };
 typedef union u_or_node OR_Object;
 
@@ -9231,7 +9247,7 @@ static const OR dummy_or_node = (OR)&dummy_or_node_type;
 OR t_or_nodes;
 @ @<Pre-initialize evaluation elements@> =
 ORs_of_R(r) = NULL;
-@ @<Destroy evaluation elements@> =
+@ @<Destroy evaluation elements, main phase@> =
 {
   OR or_nodes = ORs_of_R (r);
   if (or_nodes)
@@ -9252,8 +9268,13 @@ to be called.  Often it is setting the value to zero, so that the deallocation
 logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
 @<Initialize recognizer elements@> = @<Pre-initialize evaluation elements@>@;
 
+@ @<Initialize evaluation elements, all phases@> =
+@<Initialize evaluation elements, first phase@>@;
+@ @<Destroy evaluation elements, all phases@> =
+@<Destroy evaluation elements, main phase@>;
+@<Destroy evaluation elements, final phase@>;
 @ Destroy the evaluation elements when I destroy the recognizer.
-@<Destroy recognizer elements@> = @<Destroy evaluation elements@>@;
+@<Destroy recognizer elements@> = @<Destroy evaluation elements, all phases@>@;
 
 @ @<Public function prototypes@> =
 gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
@@ -9266,6 +9287,7 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
 	set |end_of_parse_es| and |completed_start_rule|@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
+    @<Initialize evaluation elements, all phases@>@;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
     @<Traverse Earley sets to create bocage@>@;
@@ -9461,17 +9483,60 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 @ @<Create the draft or-nodes for |earley_item| and |aex|@> =
 {
   AIM ahfa_item = AIM_of_EIM_by_AEX(earley_item, aex);
-  SYMI symbol_instance;
+  SYMI ahfa_item_symbol_instance;
   PSL *psl_owner = &per_es_data[earley_set_ordinal].t_or_psl;
   PSL or_psl;
-  OR or_node;
+  /* The or-node which will go into the PSIA */
+  OR psia_or_node = NULL;
   if (!*psl_owner)
     {
       psl_claim (psl_owner, or_psar);
     }
   or_psl = *psl_owner;
-  symbol_instance = SYMI_of_AIM(ahfa_item);
-  or_node = PSL_Datum (or_psl, symbol_instance);
+  ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
+    @<Add nulling token or-nodes@>@;
+    @<Add main or-node@>@;
+}
+
+@ @<Add nulling token or-nodes@> = {
+     gint null_count = Null_Count_of_AIM(ahfa_item);
+     while (null_count > 0) {
+          gint symbol_instance = ahfa_item_symbol_instance + null_count;
+	  OR or_node = PSL_Datum (or_psl, symbol_instance);
+	  if (!or_node) {
+	      or_node = obstack_alloc (&r->t_eval_obs, sizeof(or_node[0]));
+	  }
+	  Type_of_OR(or_node) = DRAFT_NULL_OR_NODE;
+	  End_ES_of_OR(or_node) = ES_of_EIM(earley_item);
+	  SYMI_of_OR(or_node) = symbol_instance;
+	  Draft_Position_of_OR(or_node) = Position_of_AIM(ahfa_item);
+	  psia_or_node = or_node;
+	  null_count--;
+     }
+}
+
+@ Add the main or-node---%
+the one that corresponds directly to this AHFA item.
+The exception are predicted AHFA items.
+Or-nodes are not added for predicted AHFA items.
+@<Add main or-node@> =
+{
+  if (!EIM_is_Predicted (earley_item))
+    {
+      OR or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
+      if (!or_node)
+	{
+	  or_node = obstack_alloc (&r->t_eval_obs, sizeof (or_node[0]));
+	  EIM_of_OR (or_node) = NULL;
+	  AEX_of_OR (or_node) = -1;
+	  LIM_of_OR (or_node) = NULL;
+	}
+      Type_of_OR (or_node) = DRAFT_OR_NODE;
+      End_ES_of_OR (or_node) = ES_of_EIM (earley_item);
+      EIM_of_OR (or_node) = earley_item;
+      AEX_of_OR (or_node) = aex;
+      psia_or_node = or_node;
+    }
 }
 
 @ @<Push ur-node if new@> = {
@@ -9751,7 +9816,7 @@ gint marpa_eval_clear(struct marpa_r* r) {
 	return failure_indicator;
     }
     LV_Phase_of_R(r) = input_phase;
-    @<Destroy evaluation elements@>;
+    @<Destroy evaluation elements, all phases@>;
     return 1; // For now, just return 1
 }
 
