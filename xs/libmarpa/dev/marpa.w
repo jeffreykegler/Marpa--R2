@@ -2346,8 +2346,23 @@ marpa_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID id)
 @<Int aligned grammar elements@> =
 gint t_symbol_instance_count;
 @ @d SYMI_of_RULE(rule) ((rule)->t_symbol_instance_base)
+@ @d SYMI_of_AIM(aim) (symbol_instance_of_ahfa_item_get(aim))
 @<Int aligned rule elements@> =
 gint t_symbol_instance_base;
+@ @<Private function prototypes@> =
+static inline gint symbol_instance_of_ahfa_item_get(AIM aim);
+@ @<Function definitions@> =
+static inline gint
+symbol_instance_of_ahfa_item_get (AIM aim)
+{
+  RULE rule = RULE_of_AIM (aim);
+  gint position = Position_of_AIM (aim);
+  if (position < 0)
+    {
+      position = Length_of_RULE (rule);
+    }
+   return SYMI_of_RULE(rule) + position;
+}
 
 @** Precomputing the Grammar.
 Marpa's logic divides roughly into three pieces -- grammar precomputation,
@@ -9277,6 +9292,8 @@ struct s_bocage_setup_per_es;
 @ @<Private structures@> =
 struct s_bocage_setup_per_es {
      OR ** t_aexes_by_item;
+     PSL t_or_psl;
+     PSL t_and_psl;
 };
 @ @<Bocage setup locals@> =
 struct s_bocage_setup_per_es* per_es_data = NULL;
@@ -9347,9 +9364,12 @@ set |end_of_parse_es| and |completed_start_rule|@> =
       const guint item_count = EIM_Count_of_ES (earley_set);
       total_earley_items_in_parse += item_count;
 	{
-	  OR ** const per_eim_eixes = per_es_data[ix].t_aexes_by_item =
+	  struct s_bocage_setup_per_es *per_es = per_es_data + ix;
+	  OR ** const per_eim_eixes = per_es->t_aexes_by_item =
 	    obstack_alloc (&bocage_setup_obs, sizeof (OR *) * item_count);
 	  guint item_ordinal;
+	  per_es->t_or_psl = NULL;
+	  per_es->t_and_psl = NULL;
 	  for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
 	    {
 	      per_eim_eixes[item_ordinal] = NULL;
@@ -9395,20 +9415,22 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 
 @ @<Create the or-nodes@> =
 {
-  PSAR_Object and_psar;
-  PSAR_Object or_psar;
+  PSAR_Object and_per_es_arena;
+  const PSAR and_psar = &and_per_es_arena;
+  PSAR_Object or_per_es_arena;
+  const PSAR or_psar = &or_per_es_arena;
   const gint earley_set_count = ES_Count_of_R (r);
   gint earley_set_ordinal;
-  psar_init (&and_psar, AHFA_Count_of_G (g));
-  psar_init (&or_psar, SYMI_Count_of_G (g));
+  psar_init (and_psar, AHFA_Count_of_G (g));
+  psar_init (or_psar, SYMI_Count_of_G (g));
   ORs_of_R (r) = g_new (OR_Object, or_node_estimate);
   for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count; earley_set_ordinal++)
   {
       const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
       @<Create the draft or-nodes for |earley_set_ordinal|@>@;
   }
-  psar_destroy (&and_psar);
-  psar_destroy (&or_psar);
+  psar_destroy (and_psar);
+  psar_destroy (or_psar);
 }
 
 @
@@ -9438,16 +9460,18 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 
 @ @<Create the draft or-nodes for |earley_item| and |aex|@> =
 {
-#if 0
   AIM ahfa_item = AIM_of_EIM_by_AEX(earley_item, aex);
-  PSL *psl_owner = &per_es_data[earley_set_ordinal].or_psl;
+  SYMI symbol_instance;
+  PSL *psl_owner = &per_es_data[earley_set_ordinal].t_or_psl;
+  PSL or_psl;
+  OR or_node;
   if (!*psl_owner)
     {
       psl_claim (psl_owner, or_psar);
     }
-  psl = *psl_owner;
-  eim = PSL_Datum (psl, ahfa_id);
-#endif
+  or_psl = *psl_owner;
+  symbol_instance = SYMI_of_AIM(ahfa_item);
+  or_node = PSL_Datum (or_psl, symbol_instance);
 }
 
 @ @<Push ur-node if new@> = {
@@ -10628,7 +10652,6 @@ This is temporary data
 and perhaps should be keep track of on a per-phase
 obstack.
 @d Dot_PSL_of_ES(es) ((es)->t_dot_psl)
-@d LV_Dot_PSL_of_ES(es) Dot_PSL_of_ES(es)
 @<Widely aligned Earley set elements@> =
     PSL t_dot_psl;
 @ @<Initialize Earley set PSL data@> =
