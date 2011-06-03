@@ -2359,7 +2359,7 @@ symbol_instance_of_ahfa_item_get (AIM aim)
   gint position = Position_of_AIM (aim);
   if (position < 0)
     {
-      position = Length_of_RULE (rule);
+      position = Length_of_RULE (rule) - 1;
     }
    return SYMI_of_RULE(rule) + position;
 }
@@ -8412,21 +8412,26 @@ and that will be used as an indicator that the fields
 of this 
 Leo item have not been fully populated.
 @d LIM_is_Populated(leo) (Origin_of_LIM(leo) != NULL)
-@<Start LIMs in PIM workarea@> = {
-    guint min, max, start;
-    for (start = 0; bv_scan (bv_pim_symbols, start, &min, &max); start = max + 2) {
-	SYMID symid;
-	for (symid = (SYMID)min; symid <= (SYMID) max; symid++) {
-            PIM this_pim = pim_workarea[symid];
-	    EIM leo_base;
-	    AHFA base_to_ahfa;
-	    if (Next_PIM_of_PIM(this_pim)) continue; /*
-	        If there is more than one EIX, do not create a
-		Leo item */
-	    leo_base = EIM_of_PIM(this_pim);
-	    base_to_ahfa = To_AHFA_of_EIM_by_SYMID(leo_base, symid);
-	    if (!AHFA_is_Leo_Completion(base_to_ahfa)) continue;
-	    @<Create a new, unpopulated, LIM@>@;
+@<Start LIMs in PIM workarea@> =
+{
+  guint min, max, start;
+  for (start = 0; bv_scan (bv_pim_symbols, start, &min, &max);
+       start = max + 2)
+    {
+      SYMID symid;
+      for (symid = (SYMID) min; symid <= (SYMID) max; symid++)
+	{
+	  PIM this_pim = pim_workarea[symid];
+	  if (!Next_PIM_of_PIM (this_pim))
+	    { /* Only create a Leo item if there is more
+	         than one EIX */
+	      EIM leo_base = EIM_of_PIM (this_pim);
+	      AHFA base_to_ahfa = To_AHFA_of_EIM_by_SYMID (leo_base, symid);
+	      if (AHFA_is_Leo_Completion (base_to_ahfa))
+		{
+		  @<Create a new, unpopulated, LIM@>@;
+		}
+	    }
 	}
     }
 }
@@ -9443,14 +9448,19 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
   const PSAR or_psar = &or_per_es_arena;
   const gint earley_set_count = ES_Count_of_R (r);
   gint earley_set_ordinal;
+  OR first_or_node;
+  OR next_or_node;
   psar_init (and_psar, AHFA_Count_of_G (g));
+MARPA_DEBUG3("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
   psar_init (or_psar, SYMI_Count_of_G (g));
-  ORs_of_R (r) = g_new (OR_Object, or_node_estimate);
+MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
+  ORs_of_R (r) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
   for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count; earley_set_ordinal++)
   {
       const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
       @<Create the draft or-nodes for |earley_set_ordinal|@>@;
   }
+  ORs_of_R (r) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
   psar_destroy (and_psar);
   psar_destroy (or_psar);
 }
@@ -9487,32 +9497,14 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
   PSL *psl_owner = &per_es_data[earley_set_ordinal].t_or_psl;
   PSL or_psl;
   /* The or-node which will go into the PSIA */
-  OR psia_or_node = NULL;
   if (!*psl_owner)
     {
       psl_claim (psl_owner, or_psar);
     }
   or_psl = *psl_owner;
   ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
-    @<Add nulling token or-nodes@>@;
     @<Add main or-node@>@;
-}
-
-@ @<Add nulling token or-nodes@> = {
-     gint null_count = Null_Count_of_AIM(ahfa_item);
-     while (null_count > 0) {
-          gint symbol_instance = ahfa_item_symbol_instance + null_count;
-	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-	  if (!or_node) {
-	      or_node = obstack_alloc (&r->t_eval_obs, sizeof(or_node[0]));
-	  }
-	  Type_of_OR(or_node) = DRAFT_NULL_OR_NODE;
-	  End_ES_of_OR(or_node) = ES_of_EIM(earley_item);
-	  SYMI_of_OR(or_node) = symbol_instance;
-	  Draft_Position_of_OR(or_node) = Position_of_AIM(ahfa_item);
-	  psia_or_node = or_node;
-	  null_count--;
-     }
+    @<Add nulling token or-nodes@>@;
 }
 
 @ Add the main or-node---%
@@ -9523,10 +9515,14 @@ Or-nodes are not added for predicted AHFA items.
 {
   if (!EIM_is_Predicted (earley_item))
     {
+MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
+char debug_buffer[30];
+MARPA_DEBUG3("%s or_psl EIM = %s", G_STRLOC, eim_tag(debug_buffer, earley_item));
       OR or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
       if (!or_node)
 	{
-	  or_node = obstack_alloc (&r->t_eval_obs, sizeof (or_node[0]));
+MARPA_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
+	  or_node = next_or_node++;
 	  EIM_of_OR (or_node) = NULL;
 	  AEX_of_OR (or_node) = -1;
 	  LIM_of_OR (or_node) = NULL;
@@ -9535,8 +9531,29 @@ Or-nodes are not added for predicted AHFA items.
       End_ES_of_OR (or_node) = ES_of_EIM (earley_item);
       EIM_of_OR (or_node) = earley_item;
       AEX_of_OR (or_node) = aex;
-      psia_or_node = or_node;
     }
+}
+
+
+@ The one added last in this or the logic for
+adding the main item, will be used as the or node
+in the PSIA.
+So the order matters.
+@<Add nulling token or-nodes@> = {
+     gint null_count = Null_Count_of_AIM(ahfa_item);
+     gint i;
+     for (i = 1; i <= null_count; i++) {
+          gint symbol_instance = ahfa_item_symbol_instance + null_count;
+	  OR or_node = PSL_Datum (or_psl, symbol_instance);
+MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, symbol_instance);
+	  if (!or_node) {
+	      or_node = next_or_node++;
+	  }
+	  Type_of_OR(or_node) = DRAFT_NULL_OR_NODE;
+	  End_ES_of_OR(or_node) = ES_of_EIM(earley_item);
+	  SYMI_of_OR(or_node) = symbol_instance;
+	  Draft_Position_of_OR(or_node) = Position_of_AIM(ahfa_item);
+     }
 }
 
 @ @<Push ur-node if new@> = {
@@ -9544,7 +9561,7 @@ Or-nodes are not added for predicted AHFA items.
 	(&bocage_setup_obs, per_es_data, ur_earley_item, ur_aex))
       {
 	ur_node_push (ur_node_stack, ur_earley_item, ur_aex);
-	or_node_estimate += Null_Count_of_AIM(ur_aim);
+	or_node_estimate += 1 + Null_Count_of_AIM(ur_aim);
       }
 }
 
@@ -9737,6 +9754,7 @@ no other descendants.
 	      TRANS transition = TRANS_of_EIM_by_SYMID (ur_earley_item, postdot);
 	      const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
 	      const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
+	      or_node_estimate += 1 + Null_Count_of_AIM(ur_aim+1);
 		  @<Push ur-node if new@>@;
 	    }
 	    cause_earley_item = Base_EIM_of_LIM(leo_predecessor);
@@ -10690,14 +10708,17 @@ psar_init (const PSAR psar, gint length)
 @ @<Function definitions@> =
 static inline void psar_destroy(const PSAR psar)
 {
-     PSL psl = psar->t_first_psl;
-     while (psl) {
-	  PSL next_psl = psl->t_next;
-	PSL* owner = psl->t_owner;
-	if (owner) *owner = NULL;
-	  g_slice_free1(Sizeof_PSL(psar), psl);
-	  psl = next_psl;
-     }
+    PSL psl = psar->t_first_psl;
+    while (psl)
+      {
+	PSL next_psl = psl->t_next;
+	PSL *owner = psl->t_owner;
+MARPA_DEBUG3("%s owner=%p", G_STRLOC, owner);
+	if (owner)
+	  *owner = NULL;
+	g_slice_free1 (Sizeof_PSL (psar), psl);
+	psl = next_psl;
+      }
 }
 @ @<Function definitions@> =
 static inline PSL psl_new(const PSAR psar) {
@@ -11266,7 +11287,7 @@ The |MARPA_DEBUG| flag enables intrusive debugging logic.
 be annoying in production, such as detailed messages about
 internal matters on |STDERR|.
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
+#define MARPA_DEBUG @[ 1 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
