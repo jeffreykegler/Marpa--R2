@@ -6207,7 +6207,7 @@ earley_item_assign (const RECCE r, const ES set, const ES origin,
   key.t_state = state;
   key.t_set = set;
   eim = earley_item_create (r, key);
-  LV_PSL_Datum (psl, ahfa_id) = eim;
+  PSL_Datum (psl, ahfa_id) = eim;
   return eim;
 }
 
@@ -9187,19 +9187,19 @@ for final or-nodes.
 @d DRAFT_NULL_OR_NODE -3
 @d TOKEN_OR_NODE -5
 @d Type_of_OR(or) ((or)->t_trivial.t_position)
-@d End_ES_of_OR(or) ((or)->t_trivial.t_end)
+@d ES_Ord_of_OR(or) ((or)->t_trivial.t_end_set_ordinal)
 @ C89 guarantess that common initial sequences
 may be accessed via different members of a union.
 @<Or-node structure common initial sequence@> =
 gint t_position;
-ES t_end;
+gint t_end_set_ordinal;
 @ In the case of a trivial or-node, |t_and_nodes|
 will be NULL, and the or-node structure itself contain
 the and-node.
 @<Final Or-nodes common initial sequence@> =
 @<Or-node structure common initial sequence@>@;
 RULE t_rule;
-ES t_start;
+gint t_start_set_ordinal;
 AND t_and_nodes;
 @
 @d EIM_of_OR(or) ((or)->t_draft.t_earley_item)
@@ -9516,19 +9516,22 @@ Or-nodes are not added for predicted AHFA items.
   if (!EIM_is_Predicted (earley_item))
     {
 MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
-char debug_buffer[30];
-MARPA_DEBUG3("%s or_psl EIM = %s", G_STRLOC, eim_tag(debug_buffer, earley_item));
+char DEBUG_BUFFER[30];
+MARPA_DEBUG3("%s or_psl EIM = %s", G_STRLOC, eim_tag(DEBUG_BUFFER, earley_item));
+MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g));
       OR or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
-      if (!or_node)
+      if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
 	{
 MARPA_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
+MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
 	  or_node = next_or_node++;
 	  EIM_of_OR (or_node) = NULL;
 	  AEX_of_OR (or_node) = -1;
 	  LIM_of_OR (or_node) = NULL;
+	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = or_node;
 	}
       Type_of_OR (or_node) = DRAFT_OR_NODE;
-      End_ES_of_OR (or_node) = ES_of_EIM (earley_item);
+      ES_Ord_of_OR(or_node) = earley_set_ordinal;
       EIM_of_OR (or_node) = earley_item;
       AEX_of_OR (or_node) = aex;
     }
@@ -9546,11 +9549,14 @@ So the order matters.
           gint symbol_instance = ahfa_item_symbol_instance + null_count;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
 MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, symbol_instance);
-	  if (!or_node) {
+MARPA_ASSERT(symbol_instance < SYMI_Count_of_G(g));
+	  if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal) {
+MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
 	      or_node = next_or_node++;
+	      PSL_Datum (or_psl, symbol_instance) = or_node;
 	  }
 	  Type_of_OR(or_node) = DRAFT_NULL_OR_NODE;
-	  End_ES_of_OR(or_node) = ES_of_EIM(earley_item);
+	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
 	  SYMI_of_OR(or_node) = symbol_instance;
 	  Draft_Position_of_OR(or_node) = Position_of_AIM(ahfa_item);
      }
@@ -10655,7 +10661,6 @@ typedef struct s_per_earley_set_list *PSL;
 @ @d Sizeof_PSL(psar)
     (sizeof(PSL_Object) + (psar->t_psl_length - 1) * sizeof(gpointer))
 @d PSL_Datum(psl, i) ((psl)->t_data[(i)])
-@d LV_PSL_Datum(psl, i) PSL_Datum((psl), (i))
 @<Private structures@> =
 struct s_per_earley_set_list {
     PSL t_prev;
@@ -10728,7 +10733,7 @@ static inline PSL psl_new(const PSAR psar) {
      new_psl->t_prev = NULL;
      new_psl->t_owner = NULL;
     for (i = 0; i < psar->t_psl_length; i++) {
-	LV_PSL_Datum(new_psl, i) = NULL;
+	PSL_Datum(new_psl, i) = NULL;
     }
      return new_psl;
 }
@@ -10758,7 +10763,7 @@ static inline void psar_reset(const PSAR psar) {
     while (psl && psl->t_owner) {
 	gint i;
 	for (i = 0; i < psar->t_psl_length; i++) {
-	    LV_PSL_Datum(psl, i) = NULL;
+	    PSL_Datum(psl, i) = NULL;
 	}
 	psl = psl->t_next;
     }
@@ -11293,11 +11298,14 @@ internal matters on |STDERR|.
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
 #define MARPA_DEBUG3(a, b, c) @[ g_debug((a),(b),(c)) @]
 #define MARPA_DEBUG4(a, b, c, d) @[ g_debug((a),(b),(c),(d)) @]
+#define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
+       g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0)
 #else /* if not |MARPA_DEBUG| */
 #define MARPA_DEBUG1(a) @[@]
 #define MARPA_DEBUG2(a, b) @[@]
 #define MARPA_DEBUG3(a, b, c) @[@]
 #define MARPA_DEBUG4(a, b, c, d) @[@]
+#define MARPA_ASSERT(exp) @[@]
 #endif
 
 @*0 Earley Item Tag.
