@@ -11339,17 +11339,26 @@ A function to print a descriptive tag for
 an Earley item.
 @<Private function prototypes@> =
 #if MARPA_DEBUG
-static inline gchar* eim_tag(gchar *buffer, EIM eim);
+PRIVATE_NOT_INLINE gchar* eim_tag_safe(gchar *buffer, EIM eim);
+PRIVATE_NOT_INLINE gchar* eim_tag(EIM eim);
 #endif
 @ It is passed a buffer to keep it thread-safe.
 @<Function definitions@> =
 #if MARPA_DEBUG
-static inline gchar*
-eim_tag (gchar *buffer, EIM eim)
+PRIVATE_NOT_INLINE gchar *
+eim_tag_safe (gchar * buffer, EIM eim)
 {
   sprintf (buffer, "S%d@@%d-%d",
-	   AHFAID_of_EIM (eim), Origin_Earleme_of_EIM (eim), Earleme_of_EIM (eim));
-	return buffer;
+	   AHFAID_of_EIM (eim), Origin_Earleme_of_EIM (eim),
+	   Earleme_of_EIM (eim));
+  return buffer;
+}
+
+static char DEBUG_eim_tag_buffer[1000];
+PRIVATE_NOT_INLINE gchar*
+eim_tag (EIM eim)
+{
+  return eim_tag_safe (DEBUG_eim_tag_buffer, eim);
 }
 #endif
 
