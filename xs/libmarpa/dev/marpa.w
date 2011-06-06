@@ -2351,17 +2351,30 @@ gint t_symbol_instance_count;
 gint t_symbol_instance_base;
 @ @<Private function prototypes@> =
 static inline gint symbol_instance_of_ahfa_item_get(AIM aim);
-@ @<Function definitions@> =
+@ Symbol instances are for the {\bf predot} symbol.
+In parsing the emphasis is on what is to come ---
+on what follows the dot.
+Symbol instances are used in evaluation.
+In evaluation we are looking at what we have,
+so the emphasis is on what preceeds the dot position.
+@ The symbol instance of a prediction is $-1$.
+If the AHFA item is not a prediction, then it has a preceding
+AHFA item for the same rule.
+In that case the symbol instance base symbol instance for
+the rule, offset by the position of that preceding AHFA item.
+@<Function definitions@> =
 static inline gint
 symbol_instance_of_ahfa_item_get (AIM aim)
 {
-  RULE rule = RULE_of_AIM (aim);
   gint position = Position_of_AIM (aim);
-  if (position < 0)
-    {
-      position = Length_of_RULE (rule) - 1;
-    }
-   return SYMI_of_RULE(rule) + position;
+  const gint null_count = Null_Count_of_AIM(aim);
+  if (position < 0 || position - null_count > 0) {
+      /* If this AHFA item is not a predictiion */
+      const RULE rule = RULE_of_AIM (aim);
+      position = Position_of_AIM(aim-1);
+      return SYMI_of_RULE(rule) + position;
+  }
+  return -1;
 }
 
 @** Precomputing the Grammar.
@@ -3521,7 +3534,7 @@ struct s_AHFA_item {
     @<Widely aligned AHFA item elements@>@;
     @<Int aligned AHFA item elements@>@;
 };
-@ @<Private typedefs@> =
+@ @<Private incomplete structures@> =
 struct s_AHFA_item;
 typedef struct s_AHFA_item* AIM;
 typedef Marpa_AHFA_Item_ID AIMID;
@@ -9196,6 +9209,8 @@ gint t_end_set_ordinal;
 @ In the case of a trivial or-node, |t_and_nodes|
 will be NULL, and the or-node structure itself contain
 the and-node.
+@d RULE_of_OR(or) ((or)->t_trivial.t_rule)
+@d Start_ES_Ord_of_OR(or) ((or)->t_trivial.t_start_set_ordinal)
 @<Final Or-nodes common initial sequence@> =
 @<Or-node structure common initial sequence@>@;
 RULE t_rule;
@@ -9214,15 +9229,12 @@ struct s_draft_or_node
   LIM t_leo_item;
 };
 @
-@d Draft_Position_of_OR(or)
-    ((or)->t_null_draft.t_draft_position)
 @d SYMI_of_OR(or)
     ((or)->t_null_draft.t_symbol_instance)
 @<Private structures@> =
 struct s_draft_null_or_node
 {
-    @<Or-node structure common initial sequence@>@;
-    gint t_draft_position;
+    @<Final Or-nodes common initial sequence@>@;
     gint t_symbol_instance;
 };
 struct s_trivial_or_node
@@ -9261,8 +9273,6 @@ ORs_of_R(r) = NULL;
       ORs_of_R (r) = NULL;
     }
 }
-
-@*0 Type.
 
 @** Evaluation.
 I am frankly not quite sure what the return value of this function should be.
@@ -9479,6 +9489,9 @@ MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
 	    const EIM earley_item = eims_of_es[item_ordinal];
 	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
 	    AEX aex;
+	      const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
+	    PSL or_psl;
+	    @<Claim the PSL for |origin_ordinal| as |or_psl|@>@;
 	    for (aex = 0; aex < aim_count_of_item; aex++) {
 		OR* const p_master_psia_entry = nodes_by_aex + aex;
 		const gconstpointer dummy = *p_master_psia_entry;
@@ -9490,18 +9503,19 @@ MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
     }
 }
 
+
+@ @<Claim the PSL for |origin_ordinal| as |or_psl|@> =
+{
+      PSL *psl_owner = &per_es_data[origin_ordinal].t_or_psl;
+      if (!*psl_owner)
+	psl_claim (psl_owner, or_psar);
+      or_psl = *psl_owner;
+}
+
 @ @<Create the draft or-nodes for |earley_item| and |aex|@> =
 {
   AIM ahfa_item = AIM_of_EIM_by_AEX(earley_item, aex);
   SYMI ahfa_item_symbol_instance;
-  PSL *psl_owner = &per_es_data[earley_set_ordinal].t_or_psl;
-  PSL or_psl;
-  /* The or-node which will go into the PSIA */
-  if (!*psl_owner)
-    {
-      psl_claim (psl_owner, or_psar);
-    }
-  or_psl = *psl_owner;
   ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
     @<Add main or-node@>@;
     @<Add nulling token or-nodes@>@;
@@ -9513,7 +9527,7 @@ The exception are predicted AHFA items.
 Or-nodes are not added for predicted AHFA items.
 @<Add main or-node@> =
 {
-  if (!EIM_is_Predicted (earley_item))
+  if (ahfa_item_symbol_instance >= 0)
     {
 MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
 char DEBUG_BUFFER[30];
@@ -9538,28 +9552,40 @@ MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
 }
 
 
-@ The one added last in this or the logic for
+@  In the following logic, the order matters.
+The one added last in this or the logic for
 adding the main item, will be used as the or node
 in the PSIA.
-So the order matters.
-@<Add nulling token or-nodes@> = {
-     gint null_count = Null_Count_of_AIM(ahfa_item);
-     gint i;
-     for (i = 1; i <= null_count; i++) {
-          gint symbol_instance = ahfa_item_symbol_instance + null_count;
+@ In building the final or-node, the predecessor can be
+determined using the PSIA for $|symbol_instance|-1$.
+The exception is where there is no predecessor,
+and this is the case if |Draft_Position_of_OR(or_node) == 0|.
+@<Add nulling token or-nodes@> =
+{
+  gint null_count = Null_Count_of_AIM (ahfa_item);
+  if (null_count > 0)
+    {
+      gint i;
+      for (i = 1; i <= null_count; i++)
+	{
+	  gint symbol_instance = ahfa_item_symbol_instance + null_count;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, symbol_instance);
-MARPA_ASSERT(symbol_instance < SYMI_Count_of_G(g));
-	  if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal) {
-MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
+	  MARPA_DEBUG3 ("%s or_psl SYMI = %d", G_STRLOC, symbol_instance);
+	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g));
+	  if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
+	    {
+	      MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate);
 	      or_node = next_or_node++;
 	      PSL_Datum (or_psl, symbol_instance) = or_node;
-	  }
-	  Type_of_OR(or_node) = DRAFT_NULL_OR_NODE;
-	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
-	  SYMI_of_OR(or_node) = symbol_instance;
-	  Draft_Position_of_OR(or_node) = Position_of_AIM(ahfa_item);
-     }
+	    }
+	  Type_of_OR (or_node) = DRAFT_NULL_OR_NODE;
+	  ES_Ord_of_OR (or_node) = earley_set_ordinal;
+	  Start_ES_Ord_of_OR (or_node) =
+	    Ord_of_ES (Origin_of_EIM (earley_item));
+	  SYMI_of_OR (or_node) = symbol_instance;
+	  RULE_of_OR (or_node) = RULE_of_AIM (ahfa_item);
+	}
+    }
 }
 
 @ @<Push ur-node if new@> = {
