@@ -9025,6 +9025,7 @@ will need to be changed.
 @<Private structures@> =
 struct s_ur_node_stack {
    struct obstack t_obs;
+   UR t_base;
    UR t_top;
 };
 struct s_ur_node {
@@ -9049,15 +9050,27 @@ are settled.
 static inline void ur_node_stack_init(URS stack);
 @ @<Function definitions@> =
 static inline void ur_node_stack_init(URS stack) {
+MARPA_DEBUG2("ur_node_stack_init %s", G_STRLOC);
     obstack_init(&stack->t_obs);
-    stack->t_top = ur_node_new(stack, 0);
+    stack->t_base = ur_node_new(stack, 0);
+    ur_node_stack_reset(stack);
+}
+
+@ @<Private function prototypes@> =
+static inline void ur_node_stack_reset(URS stack);
+@ @<Function definitions@> =
+static inline void ur_node_stack_reset(URS stack) {
+    stack->t_top = stack->t_base;
 }
 
 @ @<Private function prototypes@> =
 static inline void ur_node_stack_destroy(URS stack);
 @ @<Function definitions@> =
 static inline void ur_node_stack_destroy(URS stack) {
-    obstack_free(&stack->t_obs, NULL);
+MARPA_DEBUG2("ur_node_stack_destroy %s", G_STRLOC);
+    if (stack->t_base) obstack_free(&stack->t_obs, NULL);
+    stack->t_base = NULL;
+MARPA_DEBUG2("ur_node_stack_destroy %s", G_STRLOC);
 }
 
 @ @<Private function prototypes@> =
@@ -9431,6 +9444,7 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 {
     UR_Const ur_node;
     const URS ur_node_stack = URS_of_R(r);
+    ur_node_stack_reset(ur_node_stack);
     {
        const EIM ur_earley_item = start_eim;
        const AIM ur_aim = start_aim;
@@ -11341,7 +11355,7 @@ internal matters on |STDERR|.
 @d MARPA_DEBUG4_OFF(a, b, c, d)
 @d MARPA_DEBUG5_OFF(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 1 @]
+#define MARPA_DEBUG @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
