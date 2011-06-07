@@ -9441,7 +9441,7 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 	const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
 	const AIM predecessor_aim = parent_aim - 1;
 	const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
-	/* Note that the postdot symbol of the predecessor is NOT necessary the
+	/* Note that the postdot symbol of the predecessor is NOT necessarily the
 	   predot symbol, because there may be nulling symbols in between. */
         guint source_type = Source_Type_of_EIM (parent_earley_item);
         @<Push child Earley items from token sources@>@;
@@ -9461,7 +9461,7 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
   OR first_or_node;
   OR next_or_node;
   psar_init (and_psar, AHFA_Count_of_G (g));
-MARPA_DEBUG3("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
+MARPA_DEBUG3_OFF("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
   psar_init (or_psar, SYMI_Count_of_G (g));
 MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
   ORs_of_R (r) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
@@ -9496,6 +9496,7 @@ MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
 		OR* const p_master_psia_entry = nodes_by_aex + aex;
 		const gconstpointer dummy = *p_master_psia_entry;
 		if (!dummy) continue;
+MARPA_ASSERT(dummy == dummy_or_node);
 		@<Create the draft or-nodes
 		    for |earley_item| and |aex|@>@;
 	    }
@@ -9529,14 +9530,13 @@ Or-nodes are not added for predicted AHFA items.
 {
   if (ahfa_item_symbol_instance >= 0)
     {
-MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
-char DEBUG_BUFFER[30];
-MARPA_DEBUG3("%s or_psl EIM = %s", G_STRLOC, eim_tag(DEBUG_BUFFER, earley_item));
+MARPA_DEBUG3_OFF("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
+MARPA_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
 MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g));
       OR or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
 	{
-MARPA_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
+MARPA_DEBUG3_OFF("%s next_or_node = %p", G_STRLOC, next_or_node);
 MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
 	  or_node = next_or_node++;
 	  EIM_of_OR (or_node) = NULL;
@@ -9570,7 +9570,8 @@ and this is the case if |Draft_Position_of_OR(or_node) == 0|.
 	{
 	  gint symbol_instance = ahfa_item_symbol_instance + null_count;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-	  MARPA_DEBUG3 ("%s or_psl SYMI = %d", G_STRLOC, symbol_instance);
+MARPA_DEBUG3_OFF ("%s or_psl SYMI = %d", G_STRLOC, symbol_instance);
+MARPA_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
 	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g));
 	  if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
 	    {
@@ -9593,7 +9594,11 @@ and this is the case if |Draft_Position_of_OR(or_node) == 0|.
 	(&bocage_setup_obs, per_es_data, ur_earley_item, ur_aex))
       {
 	ur_node_push (ur_node_stack, ur_earley_item, ur_aex);
+MARPA_DEBUG4_OFF("Adding ur-node for %s aex=%d or_node_estimate before = %d",
+eim_tag(ur_earley_item), ur_aex, or_node_estimate);
 	or_node_estimate += 1 + Null_Count_of_AIM(ur_aim);
+MARPA_DEBUG4("Adding ur-node for %s aex=%d or_node_estimate after = %d",
+eim_tag(ur_earley_item), ur_aex, or_node_estimate);
       }
 }
 
@@ -9615,6 +9620,7 @@ static inline gint psia_test_and_set(
     AEX ahfa_element_ix)
 {
     const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
+MARPA_ASSERT(ahfa_element_ix < aim_count_of_item);
     const Marpa_Earley_Set_ID set_ordinal = ES_Ord_of_EIM(earley_item);
     OR** nodes_by_item = per_es_data[set_ordinal].t_aexes_by_item;
     const gint item_ordinal = Ord_of_EIM(earley_item);
@@ -9624,10 +9630,11 @@ static inline gint psia_test_and_set(
         nodes_by_aex = nodes_by_item[item_ordinal] =
 	    obstack_alloc(obs, aim_count_of_item*sizeof(OR));
 	for (aex = 0; aex < aim_count_of_item; aex++) {
-	    nodes_by_aex[ahfa_element_ix] = NULL;
+	    nodes_by_aex[aex] = NULL;
 	}
     }
     if (!nodes_by_aex[ahfa_element_ix]) {
+MARPA_DEBUG4("PSIA Set S=%d I=%s A=%d", set_ordinal, eim_tag(earley_item), ahfa_element_ix);
 	nodes_by_aex[ahfa_element_ix] = dummy_or_node;
 	return 0;
     }
@@ -9680,7 +9687,11 @@ no other descendants.
     if (Position_of_AIM(predecessor_aim) > 0) {
         AEX predecessor_aex = AEX_of_EIM_by_AIM(predecessor_earley_item,
 	    predecessor_aim);
+MARPA_DEBUG4_OFF("Initial nulls for %s aex=%d or_node_estimate before = %d",
+eim_tag(predecessor_earley_item), predecessor_aex, or_node_estimate);
 	or_node_estimate += Null_Count_of_AIM(predecessor_aim);
+MARPA_DEBUG4("Initial nulls for %s aex=%d or_node_estimate after = %d",
+eim_tag(predecessor_earley_item), predecessor_aex, or_node_estimate);
 	psia_test_and_set(&bocage_setup_obs, per_es_data, 
 	    predecessor_earley_item, predecessor_aex);
     }
@@ -9786,7 +9797,11 @@ no other descendants.
 	      TRANS transition = TRANS_of_EIM_by_SYMID (ur_earley_item, postdot);
 	      const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
 	      const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
+MARPA_DEBUG4_OFF("Adding ur-node for %s aex=%d or_node_estimate before = %d",
+eim_tag(ur_earley_item), ur_aex, or_node_estimate);
 	      or_node_estimate += 1 + Null_Count_of_AIM(ur_aim+1);
+MARPA_DEBUG4("Adding ur-node for %s aex=%d or_node_estimate after = %d",
+eim_tag(ur_earley_item), ur_aex, or_node_estimate);
 		  @<Push ur-node if new@>@;
 	    }
 	    cause_earley_item = Base_EIM_of_LIM(leo_predecessor);
@@ -10744,7 +10759,7 @@ static inline void psar_destroy(const PSAR psar)
       {
 	PSL next_psl = psl->t_next;
 	PSL *owner = psl->t_owner;
-MARPA_DEBUG3("%s owner=%p", G_STRLOC, owner);
+MARPA_DEBUG3_OFF("%s owner=%p", G_STRLOC, owner);
 	if (owner)
 	  *owner = NULL;
 	g_slice_free1 (Sizeof_PSL (psar), psl);
@@ -11317,6 +11332,11 @@ The |MARPA_DEBUG| flag enables intrusive debugging logic.
 ``Intrusive" debugging includes things which would
 be annoying in production, such as detailed messages about
 internal matters on |STDERR|.
+@d MARPA_DEBUG1_OFF(a)
+@d MARPA_DEBUG2_OFF(a, b)
+@d MARPA_DEBUG3_OFF(a, b, c)
+@d MARPA_DEBUG4_OFF(a, b, c, d)
+@d MARPA_DEBUG5_OFF(a, b, c, d, e)
 @<Debug macros@> =
 #define MARPA_DEBUG @[ 1 @]
 #if MARPA_DEBUG
