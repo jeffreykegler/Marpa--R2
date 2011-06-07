@@ -9272,18 +9272,18 @@ typedef union u_or_node OR_Object;
 @ @<Private global variables@> =
 static const gint dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
-@ @d ORs_of_R(r) ((r)->t_or_nodes)
-@<Widely aligned recognizer elements@> =
+@ @d ORs_of_E(e) ((e)->t_or_nodes)
+@<Widely aligned evaluation elements@> =
 OR t_or_nodes;
-@ @<Pre-initialize evaluation elements@> =
-ORs_of_R(r) = NULL;
+@ @<Initialize evaluation elements, main phase@> =
+ORs_of_E(e) = NULL;
 @ @<Destroy evaluation elements, main phase@> =
 {
-  OR or_nodes = ORs_of_R (r);
+  OR or_nodes = ORs_of_E (e);
   if (or_nodes)
     {
       g_free (or_nodes);
-      ORs_of_R (r) = NULL;
+      ORs_of_E (e) = NULL;
     }
 }
 
@@ -9294,13 +9294,30 @@ It is basically pass/fail, but some other information might be useful.
 @ Pre-initialization is making the elements safe for the deallocation logic
 to be called.  Often it is setting the value to zero, so that the deallocation
 logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
-@<Initialize recognizer elements@> = @<Pre-initialize evaluation elements@>@;
+@<Private incomplete structures@> =
+struct s_evaluation;
+typedef struct s_evaluation* EVAL;
+@ @<Private structures@> =
+struct s_evaluation {
+    @<Widely aligned evaluation elements@>@;
+};
+typedef struct s_evaluation EVAL_Object;
+@ @d E_of_R(r) ((r)->t_evaluation)
+@<Widely aligned recognizer elements@> =
+EVAL t_evaluation;
+@ @<Initialize recognizer elements@> =
+r->t_evaluation = NULL;
 
 @ @<Initialize evaluation elements, all phases@> =
 @<Initialize evaluation elements, first phase@>@;
 @ @<Destroy evaluation elements, all phases@> =
-@<Destroy evaluation elements, main phase@>;
-@<Destroy evaluation elements, final phase@>;
+{
+    EVAL e = r->t_evaluation;
+    if (e) {
+        @<Destroy evaluation elements, main phase@>;
+        @<Destroy evaluation elements, final phase@>;
+    }
+}
 @ Destroy the evaluation elements when I destroy the recognizer.
 @<Destroy recognizer elements@> = @<Destroy evaluation elements, all phases@>@;
 
@@ -9314,6 +9331,7 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
+    e = g_slice_new(EVAL_Object);
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
     @<Initialize evaluation elements, all phases@>@;
@@ -9329,6 +9347,7 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
 @ @<Bocage setup locals@> =
 @<Return |-2| on failure@>@;
 const GRAMMAR_Const g = G_of_R(r);
+EVAL e;
 ES end_of_parse_es;
 RULE completed_start_rule;
 EIM start_eim = NULL;
@@ -9481,13 +9500,13 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 MARPA_DEBUG3_OFF("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
   psar_init (or_psar, SYMI_Count_of_G (g));
 MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
-  ORs_of_R (r) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
+  ORs_of_E (e) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
   for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count; earley_set_ordinal++)
   {
       const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
       @<Create the draft or-nodes for |earley_set_ordinal|@>@;
   }
-  ORs_of_R (r) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
+  ORs_of_E (e) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
   psar_destroy (and_psar);
   psar_destroy (or_psar);
 }
