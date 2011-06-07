@@ -9296,6 +9296,7 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
 @ @<Function definitions@> =
 gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
     const gint no_parse = -1;
+    const gint null_parse = 0;
     @<Bocage setup locals@>@;
     r_update_earley_sets(r);
     @<Return if function guards fail;
@@ -9308,7 +9309,7 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     @<Traverse Earley sets to create bocage@>@;
     @<Deallocate bocage setup working data@>@;
     obstack_free(&bocage_setup_obs, NULL);
-    return 1; // For now, just return 1
+    return 1; // For now, just return 1 on non-null parse
 }
 
 
@@ -9350,6 +9351,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	break;
       }
 
+MARPA_DEBUG2("ordinal=%d", ordinal);
     if (ordinal == -1)
       {
 	end_of_parse_es = Current_ES_of_R (r);
@@ -9366,6 +9368,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 
     if (!end_of_parse_es)
       return no_parse;
+    ordinal = Ord_of_ES(end_of_parse_es);
     end_of_parse_earleme = Earleme_of_ES (end_of_parse_es);
     if (rule_id == -1) {
 	completed_start_rule =
@@ -9380,9 +9383,9 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	}
       completed_start_rule = RULE_by_ID (g, rule_id);
     }
+MARPA_DEBUG2("ordinal=%d", ordinal);
     if (ordinal == 0) {  // If this is a null parse
-         R_ERROR("null parse not yet implemented");
-	 return failure_indicator;
+	 return null_parse;
     }
 }
 

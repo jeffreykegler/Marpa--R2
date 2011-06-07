@@ -1518,6 +1518,7 @@ eval_setup( r_wrapper, rule_id, ordinal )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
 	gint result = marpa_eval_setup(r, rule_id, ordinal);
+	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->eval_setup(): %s", marpa_r_error (r));
 	}
