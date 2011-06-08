@@ -5825,12 +5825,6 @@ resized and which will have the same lifetime as the recognizer.
 @ @<Initialize recognizer obstack@> = obstack_init(&r->t_obs);
 @ @<Destroy recognizer obstack@> = obstack_free(&r->t_obs, NULL);
 
-@*0 The Evaluation Obstack.
-Create an obstack with the lifetime of the evaluation.
-@<Widely aligned recognizer elements@> = struct obstack t_eval_obs;
-@ @<Initialize evaluation elements, first phase@> = obstack_init(&r->t_eval_obs);
-@ @<Destroy evaluation elements, final phase@> = obstack_free(&r->t_eval_obs, NULL);
-
 @*0 The Recognizer's Error ID.
 This is an error flag for the recognizer.
 Error status is not necessarily cleared
@@ -9272,69 +9266,74 @@ typedef union u_or_node OR_Object;
 @ @<Private global variables@> =
 static const gint dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
-@ @d ORs_of_E(e) ((e)->t_or_nodes)
-@<Widely aligned evaluation elements@> =
+@ @d ORs_of_B(b) ((b)->t_or_nodes)
+@<Widely aligned bocage elements@> =
 OR t_or_nodes;
-@ @<Initialize evaluation elements, main phase@> =
-ORs_of_E(e) = NULL;
-@ @<Destroy evaluation elements, main phase@> =
+@ @<Initialize bocage elements, main phase@> =
+ORs_of_B(e) = NULL;
+@ @<Destroy bocage elements, main phase@> =
 {
-  OR or_nodes = ORs_of_E (e);
+  OR or_nodes = ORs_of_B (b);
   if (or_nodes)
     {
       g_free (or_nodes);
-      ORs_of_E (e) = NULL;
+      ORs_of_B (b) = NULL;
     }
 }
 
-@** Evaluation.
-I am frankly not quite sure what the return value of this function should be.
-It is basically pass/fail, but some other information might be useful.
-
+@** The Parse Bocage.
 @ Pre-initialization is making the elements safe for the deallocation logic
 to be called.  Often it is setting the value to zero, so that the deallocation
 logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
 @<Private incomplete structures@> =
-struct s_evaluation;
-typedef struct s_evaluation* EVAL;
+struct s_bocage;
+typedef struct s_bocage* BOC;
 @ @<Private structures@> =
-struct s_evaluation {
-    @<Widely aligned evaluation elements@>@;
+struct s_bocage {
+    @<Widely aligned bocage elements@>@;
 };
-typedef struct s_evaluation EVAL_Object;
-@ @d E_of_R(r) ((r)->t_evaluation)
+typedef struct s_bocage BOC_Object;
+@ @d B_of_R(r) ((r)->t_bocage)
 @<Widely aligned recognizer elements@> =
-EVAL t_evaluation;
-@ @<Initialize recognizer elements@> =
-r->t_evaluation = NULL;
+BOC t_bocage;
 
-@ @<Initialize evaluation elements, all phases@> =
-@<Initialize evaluation elements, first phase@>@;
-@ @<Destroy evaluation elements, all phases@> =
+@ @<Initialize bocage elements, all phases@> =
+@<Initialize bocage elements, first phase@>@;
+@ @<Destroy bocage elements, all phases@> =
+@<Destroy bocage elements, main phase@>;
+@<Destroy bocage elements, final phase@>;
+
+@ Destroy the bocage elements when I destroy the recognizer.
+@<Destroy recognizer elements@> =
 {
-    EVAL e = r->t_evaluation;
-    if (e) {
-        @<Destroy evaluation elements, main phase@>;
-        @<Destroy evaluation elements, final phase@>;
+  BOC b = B_of_R (r);
+  if (b)
+    {
+      @<Destroy bocage elements, all phases@>@;
     }
 }
-@ Destroy the evaluation elements when I destroy the recognizer.
-@<Destroy recognizer elements@> = @<Destroy evaluation elements, all phases@>@;
+
+@*0 The Bocage Obstack.
+Create an obstack with the lifetime of the bocage.
+@d OBS_of_BOC(b) ((b)->t_obs);
+@<Widely aligned bocage elements@> = struct obstack t_obs;
+@ @<Initialize bocage elements, first phase@> = obstack_init(&b->t_obs);
+@ @<Destroy bocage elements, final phase@> = obstack_free(&b->t_obs, NULL);
 
 @ @<Public function prototypes@> =
-gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
+gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
 @ @<Function definitions@> =
-gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
+gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
     const gint no_parse = -1;
     const gint null_parse = 0;
     @<Bocage setup locals@>@;
     r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
-    e = g_slice_new(EVAL_Object);
+    b = g_slice_new(BOC_Object);
+    @<Initialize bocage elements, all phases@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
-    @<Initialize evaluation elements, all phases@>@;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
     @<Traverse Earley sets to create bocage@>@;
@@ -9343,11 +9342,10 @@ gint marpa_eval_setup(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     return 1; // For now, just return 1 on non-null parse
 }
 
-
 @ @<Bocage setup locals@> =
 @<Return |-2| on failure@>@;
 const GRAMMAR_Const g = G_of_R(r);
-EVAL e;
+BOC b;
 ES end_of_parse_es;
 RULE completed_start_rule;
 EIM start_eim = NULL;
@@ -9500,13 +9498,13 @@ since neither a prediction or the null parse AHFA item is ever on the stack.
 MARPA_DEBUG3_OFF("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
   psar_init (or_psar, SYMI_Count_of_G (g));
 MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
-  ORs_of_E (e) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
+  ORs_of_B (b) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
   for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count; earley_set_ordinal++)
   {
       const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
       @<Create the draft or-nodes for |earley_set_ordinal|@>@;
   }
-  ORs_of_E (e) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
+  ORs_of_B (b) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
   psar_destroy (and_psar);
   psar_destroy (or_psar);
 }
@@ -9907,18 +9905,21 @@ to make sense.
 }
 
 @ @<Public function prototypes@> =
-gint marpa_eval_clear(struct marpa_r* r);
+gint marpa_bocage_free(struct marpa_r* r);
 @ @<Function definitions@> =
-gint marpa_eval_clear(struct marpa_r* r) {
+gint marpa_bocage_free(struct marpa_r* r) {
     @<Return |-2| on failure@>@;
+    BOC b = B_of_R(r);
     @<Fail if recognizer has fatal error@>@;
     if (Phase_of_R(r) != evaluation_phase) {
 	R_ERROR("recce not being evaluated");
 	return failure_indicator;
     }
     LV_Phase_of_R(r) = input_phase;
-    @<Destroy evaluation elements, all phases@>;
-    return 1; // For now, just return 1
+    if (b) {
+	@<Destroy bocage elements, all phases@>;
+    }
+    return 1;
 }
 
 @** Boolean Vectors.

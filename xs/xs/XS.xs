@@ -1517,7 +1517,7 @@ eval_setup( r_wrapper, rule_id, ordinal )
      Marpa_Earley_Set_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_eval_setup(r, rule_id, ordinal);
+	gint result = marpa_bocage_new(r, rule_id, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->eval_setup(): %s", marpa_r_error (r));
@@ -1530,7 +1530,7 @@ eval_clear( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_eval_clear(r);
+	gint result = marpa_bocage_free(r);
 	if (result < 0) {
 	  croak ("Problem in r->eval_clear(): %s", marpa_r_error (r));
 	}
