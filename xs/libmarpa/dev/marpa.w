@@ -9562,10 +9562,11 @@ Or-nodes are not added for predicted AHFA items.
 {
   if (ahfa_item_symbol_instance >= 0)
     {
+      OR or_node;
 MARPA_DEBUG3_OFF("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
 MARPA_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
 MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g));
-      OR or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
+      or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
 	{
 MARPA_DEBUG3_OFF("%s next_or_node = %p", G_STRLOC, next_or_node);
@@ -9652,11 +9653,11 @@ static inline gint psia_test_and_set(
     AEX ahfa_element_ix)
 {
     const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
-MARPA_ASSERT(ahfa_element_ix < aim_count_of_item);
     const Marpa_Earley_Set_ID set_ordinal = ES_Ord_of_EIM(earley_item);
     OR** nodes_by_item = per_es_data[set_ordinal].t_aexes_by_item;
     const gint item_ordinal = Ord_of_EIM(earley_item);
     OR* nodes_by_aex = nodes_by_item[item_ordinal];
+MARPA_ASSERT(ahfa_element_ix < aim_count_of_item);
     if (!nodes_by_aex) {
 	AEX aex;
         nodes_by_aex = nodes_by_item[item_ordinal] =
