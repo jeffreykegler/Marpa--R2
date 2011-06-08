@@ -9269,8 +9269,8 @@ static const OR dummy_or_node = (OR)&dummy_or_node_type;
 @ @d ORs_of_B(b) ((b)->t_or_nodes)
 @<Widely aligned bocage elements@> =
 OR t_or_nodes;
-@ @<Initialize bocage elements, main phase@> =
-ORs_of_B(e) = NULL;
+@ @<Initialize bocage elements@> =
+ORs_of_B(b) = NULL;
 @ @<Destroy bocage elements, main phase@> =
 {
   OR or_nodes = ORs_of_B (b);
@@ -9297,8 +9297,6 @@ typedef struct s_bocage BOC_Object;
 @<Widely aligned recognizer elements@> =
 BOC t_bocage;
 
-@ @<Initialize bocage elements, all phases@> =
-@<Initialize bocage elements, first phase@>@;
 @ @<Destroy bocage elements, all phases@> =
 @<Destroy bocage elements, main phase@>;
 @<Destroy bocage elements, final phase@>;
@@ -9317,7 +9315,7 @@ BOC t_bocage;
 Create an obstack with the lifetime of the bocage.
 @d OBS_of_BOC(b) ((b)->t_obs);
 @<Widely aligned bocage elements@> = struct obstack t_obs;
-@ @<Initialize bocage elements, first phase@> = obstack_init(&b->t_obs);
+@ @<Initialize bocage elements@> = obstack_init(&b->t_obs);
 @ @<Destroy bocage elements, final phase@> = obstack_free(&b->t_obs, NULL);
 
 @ @<Public function prototypes@> =
@@ -9331,7 +9329,7 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
     b = g_slice_new(BOC_Object);
-    @<Initialize bocage elements, all phases@>@;
+    @<Initialize bocage elements@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
