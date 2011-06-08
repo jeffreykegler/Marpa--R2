@@ -45,8 +45,8 @@ pp_etc_make:
 xs_etc_make:
 	(cd xs/etc; make)
 
-pp_full_test: pp_etc_make pp_html_test
+pp_full_test: pplib pp_etc_make pp_html_test
 
-xs_full_test: xs_etc_make xs_html_test
+xs_full_test: xslib xs_etc_make xs_html_test
 
 full_test: pp_full_test  xs_full_test
