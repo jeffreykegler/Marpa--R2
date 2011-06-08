@@ -2356,11 +2356,12 @@ In parsing the emphasis is on what is to come ---
 on what follows the dot.
 Symbol instances are used in evaluation.
 In evaluation we are looking at what we have,
-so the emphasis is on what preceeds the dot position.
+so the emphasis is on what precedes the dot position.
 @ The symbol instance of a prediction is $-1$.
 If the AHFA item is not a prediction, then it has a preceding
 AHFA item for the same rule.
-In that case the symbol instance base symbol instance for
+In that case the symbol instance is the
+base symbol instance for
 the rule, offset by the position of that preceding AHFA item.
 @<Function definitions@> =
 static inline gint
@@ -9208,7 +9209,7 @@ for final or-nodes.
 @d TOKEN_OR_NODE -5
 @d Type_of_OR(or) ((or)->t_trivial.t_position)
 @d ES_Ord_of_OR(or) ((or)->t_trivial.t_end_set_ordinal)
-@ C89 guarantess that common initial sequences
+@ C89 guarantees that common initial sequences
 may be accessed via different members of a union.
 @<Or-node structure common initial sequence@> =
 gint t_position;
@@ -9454,7 +9455,8 @@ MARPA_DEBUG2("ordinal=%d", ordinal);
 
 @ |predecessor_aim| and |predot|
 are guaranteed to be defined,
-since neither a prediction or the null parse AHFA item is ever on the stack.
+since predictions and the null parse AHFA item are
+never on the stack.
 @<Populate the PSIA data@>=
 {
     UR_Const ur_node;
