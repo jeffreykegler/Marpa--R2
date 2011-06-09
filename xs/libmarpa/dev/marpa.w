@@ -9297,20 +9297,15 @@ typedef struct s_bocage BOC_Object;
 @ @d B_of_R(r) ((r)->t_bocage)
 @<Widely aligned recognizer elements@> =
 BOC t_bocage;
+@ @<Initialize recognizer elements@> =
+B_of_R(r) = NULL;
 
 @ @<Destroy bocage elements, all phases@> =
 @<Destroy bocage elements, main phase@>;
 @<Destroy bocage elements, final phase@>;
 
 @ Destroy the bocage elements when I destroy the recognizer.
-@<Destroy recognizer elements@> =
-{
-  BOC b = B_of_R (r);
-  if (b)
-    {
-      @<Destroy bocage elements, all phases@>@;
-    }
-}
+@<Destroy recognizer elements@> = @<Free bocage@>@;
 
 @*0 The Bocage Obstack.
 Create an obstack with the lifetime of the bocage.
@@ -9326,10 +9321,12 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     const gint no_parse = -1;
     const gint null_parse = 0;
     @<Bocage setup locals@>@;
+MARPA_DEBUG2("marpa_bocage_new, b=%p", B_of_R(r));
     r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
     b = g_slice_new(BOC_Object);
+MARPA_DEBUG2("Allocated bocage %p", b);
     @<Initialize bocage elements@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
@@ -9370,6 +9367,10 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 {
     EARLEME end_of_parse_earleme;
     @<Fail if recognizer has fatal error@>@;
+    if (B_of_R(r)) {
+	R_ERROR ("bocage in use");
+	return failure_indicator;
+    }
     switch (Phase_of_R (r))
       {
       default:
@@ -9910,17 +9911,24 @@ gint marpa_bocage_free(struct marpa_r* r);
 @ @<Function definitions@> =
 gint marpa_bocage_free(struct marpa_r* r) {
     @<Return |-2| on failure@>@;
-    BOC b = B_of_R(r);
     @<Fail if recognizer has fatal error@>@;
     if (Phase_of_R(r) != evaluation_phase) {
 	R_ERROR("recce not being evaluated");
 	return failure_indicator;
     }
     LV_Phase_of_R(r) = input_phase;
+    @<Free bocage@>@;
+    return 1;
+}
+
+@ @<Free bocage@> = {
+    BOC b = B_of_R(r);
+MARPA_DEBUG2("Freeing bocage %p", b);
     if (b) {
 	@<Destroy bocage elements, all phases@>;
+	g_slice_free(BOC_Object, b);
+	B_of_R(r) = NULL;
     }
-    return 1;
 }
 
 @** Boolean Vectors.
