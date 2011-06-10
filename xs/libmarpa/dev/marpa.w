@@ -600,6 +600,9 @@ while |libmarpa| is being written.
 These notes will be 
 deleted once development is finished.
 
+@ \li Make sure that |t_is_leo_expanding| is eliminated
+when no longer needed.
+
 @ \li Make tracing no longer the default in the recognizer.
 
 \li Add a ``tracing" flag to the recognizer.  Also add a
@@ -9531,7 +9534,6 @@ MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
 		OR* const p_master_psia_entry = nodes_by_aex + aex;
 		const gconstpointer dummy = *p_master_psia_entry;
 		if (!dummy) continue;
-MARPA_ASSERT(dummy == dummy_or_node);
 		@<Create the draft or-nodes
 		    for |earley_item| and |aex|@>@;
 	    }
@@ -9558,6 +9560,7 @@ MARPA_ASSERT(dummy == dummy_or_node);
     /* Replace the dummy or-node with
     the last one added */
     *p_master_psia_entry = next_or_node-1;
+    @<Add Leo or-nodes@>@;
 }
 
 @ Add the main or-node---%
@@ -9625,6 +9628,48 @@ MARPA_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item
 	  SYMI_of_OR (or_node) = symbol_instance;
 	  RULE_of_OR (or_node) = RULE_of_AIM (ahfa_item);
 	}
+    }
+}
+
+@ @<Add Leo or-nodes@> = {
+  SRCL source_link = NULL;
+  EIM cause_earley_item = NULL;
+  LIM leo_predecessor = NULL;
+  switch (Source_Type_of_EIM(earley_item))
+    {
+    case SOURCE_IS_LEO:
+      leo_predecessor = Predecessor_of_EIM (earley_item);
+      cause_earley_item = Cause_of_EIM (earley_item);
+      break;
+    case SOURCE_IS_AMBIGUOUS:
+      source_link = First_Leo_SRCL_of_EIM (earley_item);
+      if (source_link)
+	{
+	  leo_predecessor = Predecessor_of_SRCL (source_link);
+	  cause_earley_item = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+      break;
+    }
+    if (leo_predecessor) {
+	for (;;) { /* for each Leo source link */
+	    @<Add or-nodes for chain starting with |leo_predecessor|@>@;
+	    if (!source_link) break;
+	    leo_predecessor = Predecessor_of_SRCL (source_link);
+	    cause_earley_item = Cause_of_SRCL (source_link);
+	    source_link = Next_SRCL_of_SRCL (source_link);
+	}
+    }
+}
+
+@ The main loop in this code deliberately skips the first leo predecessor.
+The successor of the first leo predecessor is the base of the Leo path,
+which already exists, and therefore the first leo predecessor is not
+expanded.
+@<Add or-nodes for chain starting with |leo_predecessor|@> =
+{
+  while ((leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor)))
+    {
     }
 }
 
