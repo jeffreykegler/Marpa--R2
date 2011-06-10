@@ -9555,6 +9555,9 @@ MARPA_ASSERT(dummy == dummy_or_node);
   ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
     @<Add main or-node@>@;
     @<Add nulling token or-nodes@>@;
+    /* Replace the dummy or-node with
+    the last one added */
+    *p_master_psia_entry = next_or_node-1;
 }
 
 @ Add the main or-node---%
