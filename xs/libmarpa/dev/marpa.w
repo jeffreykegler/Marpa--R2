@@ -9505,8 +9505,15 @@ MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
   ORs_of_B (b) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
   for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count; earley_set_ordinal++)
   {
+      OR draft_or_node;
       const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
+      const OR first_or_node_of_earley_set = next_or_node;
       @<Create the draft or-nodes for |earley_set_ordinal|@>@;
+      for (draft_or_node = first_or_node_of_earley_set;
+	  draft_or_node < next_or_node;
+	  draft_or_node++) {
+	  @<Convert |draft_or_node| to final or-node@>@;
+      }
   }
   ORs_of_B (b) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
   psar_destroy (and_psar);
@@ -9743,6 +9750,22 @@ or-nodes follow a completion.
     }
 }
 
+@ @<Convert |draft_or_node| to final or-node@> = {
+     switch (Type_of_OR(draft_or_node)) {
+     case DRAFT_NULL_OR_NODE:
+	@<Convert null |draft_or_node| to final or-node@>@;
+     break;
+     case DRAFT_OR_NODE:
+	@<Convert non-null |draft_or_node| to final or-node@>@;
+     break;
+     }
+}
+
+@ @<Convert null |draft_or_node| to final or-node@> = {
+}
+
+@ @<Convert non-null |draft_or_node| to final or-node@> = {
+}
 
 @ @<Push ur-node if new@> = {
     if (!psia_test_and_set
