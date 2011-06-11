@@ -9666,12 +9666,83 @@ MARPA_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item
 The successor of the first leo predecessor is the base of the Leo path,
 which already exists, and therefore the first leo predecessor is not
 expanded.
+@ The unwrapping of the information for the Leo path item is quite the
+process, and some memoization might be useful.
+But it is not clear that memoization does more than move
+the processing from one place to another, increasing space
+requirements in the process.
 @<Add or-nodes for chain starting with |leo_predecessor|@> =
 {
   while ((leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor)))
     {
+        const EIM leo_base_earley_item = Base_EIM_of_LIM (leo_predecessor);
+        const SYMID postdot_symbol_of_this_lim = Postdot_SYMID_of_LIM (leo_predecessor);
+	const AHFA leo_path_ahfa =
+			To_AHFA_of_EIM_by_SYMID (leo_base_earley_item,
+						 postdot_symbol_of_this_lim);
+	const AIM leo_path_ahfa_item = AIMs_of_AHFA (leo_path_ahfa)[0];
+	const SYMI leo_path_item_symbol_instance =
+	    SYMI_of_AIM (leo_path_ahfa_item);
+	@<Add main Leo path or-node@>@;
+	@<Add Leo path nulling token or-nodes@>@;
     }
 }
+
+@ Adds the main Leo path or-node---%
+the non-nulling or-node which
+corresponds to the leo predecessor.
+@<Add main Leo path or-node@> =
+{
+    {
+      OR or_node;
+MARPA_ASSERT(leo_path_item_symbol_instance < SYMI_Count_of_G(g));
+      or_node = PSL_Datum (or_psl, leo_path_item_symbol_instance);
+      if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
+	{
+MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
+	  or_node = next_or_node++;
+	  EIM_of_OR (or_node) = NULL;
+	  AEX_of_OR (or_node) = -1;
+	  LIM_of_OR (or_node) = NULL;
+	  PSL_Datum (or_psl, leo_path_item_symbol_instance) = or_node;
+	}
+      Type_of_OR (or_node) = DRAFT_OR_NODE;
+      ES_Ord_of_OR(or_node) = earley_set_ordinal;
+      LIM_of_OR (or_node) = leo_predecessor;
+    }
+}
+
+@ In building the final or-node, the predecessor can be
+determined using the PSIA for $|symbol_instance|-1$.
+There will always be a predecessor, since these nulling
+or-nodes follow a completion.
+@<Add Leo path nulling token or-nodes@> =
+{
+  gint null_count = Null_Count_of_AIM (leo_path_ahfa_item);
+  if (null_count > 0)
+    {
+      gint i;
+      for (i = 1; i <= null_count; i++)
+	{
+	  const gint symbol_instance = leo_path_item_symbol_instance + null_count;
+	  OR or_node = PSL_Datum (or_psl, symbol_instance);
+	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g));
+	  if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
+	    {
+	      MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate);
+	      or_node = next_or_node++;
+	      PSL_Datum (or_psl, symbol_instance) = or_node;
+	    }
+	  Type_of_OR (or_node) = DRAFT_NULL_OR_NODE;
+	  ES_Ord_of_OR (or_node) = earley_set_ordinal;
+	  Start_ES_Ord_of_OR (or_node) =
+	    Ord_of_ES (Origin_of_EIM (leo_base_earley_item));
+	  SYMI_of_OR (or_node) = symbol_instance;
+	  RULE_of_OR (or_node) = RULE_of_AIM (leo_path_ahfa_item);
+	}
+    }
+}
+
 
 @ @<Push ur-node if new@> = {
     if (!psia_test_and_set
