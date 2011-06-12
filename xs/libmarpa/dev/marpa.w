@@ -9512,6 +9512,7 @@ MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
       OR draft_or_node;
       const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
       const OR first_or_node_of_earley_set = next_or_node;
+      psar_dealloc(or_psar);
       @<Create the draft or-nodes for |earley_set_ordinal|@>@;
       for (draft_or_node = first_or_node_of_earley_set;
 	  draft_or_node < next_or_node;
