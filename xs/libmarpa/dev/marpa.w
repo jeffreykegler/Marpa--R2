@@ -9117,12 +9117,15 @@ the parse bocage can contain cycles.
 @<Private incomplete structures@> =
 struct s_and_node;
 typedef struct s_and_node* AND;
-@ @<Private structures@> =
+@
+@d OR_of_AND(and) ((and)->t_current)
+@d Predecessor_OR_of_AND(and) ((and)->t_predecessor)
+@d Cause_OR_of_AND(and) ((and)->t_cause)
+@<Private structures@> =
 struct s_and_node {
-    AND t_predecessor;
-    AND t_cause;
-    gint t_token_length;
-    AND t_sibling;
+    OR t_current;
+    OR t_predecessor;
+    OR t_cause;
 };
 typedef struct s_and_node AND_Object;
 
@@ -9203,6 +9206,8 @@ for final or-nodes.
 @d DRAFT_OR_NODE -2
 @d DRAFT_NULL_OR_NODE -3
 @d TOKEN_OR_NODE -5
+@ C89 guarantees that common initial sequences
+may be accessed via different members of a union.
 @d ES_Ord_of_OR(or) ((or)->t_trivial.t_end_set_ordinal)
 @ These two occupy the same positiion.  Draft or-nodes
 have their type (always a negative number) 
@@ -9211,8 +9216,6 @@ which is replaced with their position (always non-negative)
 when the or-node becomes final.
 @d Type_of_OR(or) ((or)->t_trivial.t_position)
 @d Position_of_OR(or) ((or)->t_trivial.t_position)
-@ C89 guarantees that common initial sequences
-may be accessed via different members of a union.
 @<Or-node common initial sequence@> =
 gint t_position;
 gint t_end_set_ordinal;
@@ -9227,6 +9230,7 @@ will be NULL, and the or-node structure itself contain
 the and-node.
 @d RULE_of_OR(or) ((or)->t_trivial.t_rule)
 @d Start_ES_Ord_of_OR(or) ((or)->t_trivial.t_start_set_ordinal)
+@d ANDs_of_OR(or) ((or)->t_trivial.t_and_nodes)
 @<Final Or-nodes common initial sequence@> =
 @<Or-node typical common initial sequence@>@;
 AND t_and_nodes;
@@ -9251,16 +9255,23 @@ struct s_draft_null_or_node
     @<Or-node typical common initial sequence@>@;
     gint t_symbol_instance;
 };
+@ A trivial or-node is one which contains only
+one and-node.  It is called trivial because an or-node
+represents a choice and there is only one choice.
+@d Trivial_AND_of_OR(or) (&(or)->t_trivial.t_and_node)
+@<Private structures@> =
 struct s_trivial_or_node
 {
     @<Final Or-nodes common initial sequence@>@;
       AND_Object t_and_node;
 };
+@ @<Private structures@> =
 struct s_non_trivial_or_node
 {
     @<Final Or-nodes common initial sequence@>@;
       gint t_and_node_count;
 };
+@ @<Private structures@> =
 union u_or_node {
     gint t_type;
     struct s_draft_or_node t_draft;
@@ -9315,7 +9326,7 @@ B_of_R(r) = NULL;
 
 @*0 The Bocage Obstack.
 Create an obstack with the lifetime of the bocage.
-@d OBS_of_BOC(b) ((b)->t_obs);
+@d OBS_of_BOC(b) ((b)->t_obs)
 @<Widely aligned bocage elements@> = struct obstack t_obs;
 @ @<Initialize bocage elements@> = obstack_init(&b->t_obs);
 @ @<Destroy bocage elements, final phase@> = obstack_free(&b->t_obs, NULL);
@@ -9769,6 +9780,9 @@ or-nodes follow a completion.
     const gint symbol_instance = SYMI_of_OR(draft_or_node);
     const RULE rule = RULE_of_OR(draft_or_node);
     const gint position = symbol_instance - SYMI_of_RULE(rule);
+    MARPA_ASSERT(position < Length_of_RULE(rule));
+    MARPA_ASSERT(position >= 0);
+    OR cause = (OR)SYM_by_ID(g, RHS_ID_of_RULE(rule, position));
     OR predecessor = NULL;
     Position_of_OR(draft_or_node) = position;
     if (position > 0) {
@@ -9777,6 +9791,15 @@ or-nodes follow a completion.
 	@<Claim the PSL for |origin_ordinal| as |or_psl|@>@;
         predecessor = PSL_Datum (or_psl, symbol_instance - 1);
     }
+    @<Create trivial and-node in |draft_or_node|@>@;
+}
+
+@ @<Create trivial and-node in |draft_or_node|@> = {
+    const AND and_node = Trivial_AND_of_OR(draft_or_node);
+    ANDs_of_OR(draft_or_node) = NULL;
+    OR_of_AND(and_node) = draft_or_node;
+    Predecessor_OR_of_AND(and_node) = predecessor;
+    Cause_OR_of_AND(and_node) = cause;
 }
 
 @ @<Convert non-null |draft_or_node| to final or-node@> = {
