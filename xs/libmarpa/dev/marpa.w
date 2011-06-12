@@ -600,7 +600,10 @@ while |libmarpa| is being written.
 These notes will be 
 deleted once development is finished.
 
-@ \li Make sure that |t_is_leo_expanding| is eliminated
+@ \li Make sure that
+|t_is_leo_expanding|
+and |t_is_leo_expansion|
+are eliminated
 when no longer needed.
 
 @ \li Make tracing no longer the default in the recognizer.
@@ -6157,6 +6160,7 @@ static inline EIM earley_item_create(const RECCE r,
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   Ord_of_EIM(new_item) = count - 1;
+  EIM_is_Leo_Expansion(new_item) = 0; /* The default */
   LV_EIM_is_Leo_Expanded(new_item) = 1; /* Will be unset when
      and if a Leo link is added */
   top_of_work_stack = WORK_EIM_PUSH(r);
@@ -6291,9 +6295,11 @@ This interpretation fits the purpose,
 which is to tell code which encounters
 this Leo item whether there are Leo items which need expansion.
 @d EIM_is_Leo_Expanded(eim) ((eim)->t_is_leo_expanded)
+@d EIM_is_Leo_Expansion(eim) ((eim)->t_is_leo_expansion)
 @d LV_EIM_is_Leo_Expanded(eim) EIM_is_Leo_Expanded(eim)
 @<Bit aligned Earley item elements@> =
 unsigned int t_is_leo_expanded:1;
+unsigned int t_is_leo_expansion:1;
 
 @ @<Private function prototypes@> =
 static const char* invalid_source_type_message(guint type);
@@ -8843,6 +8849,7 @@ must be created.
 			To_AHFA_of_EIM_by_SYMID (base_eim_of_this_lim,
 						 postdot_symbol_of_this_lim));
   leo_path_lengths++;
+  EIM_is_Leo_Expansion(new_eim_for_this_path) = 1;
   completion_link_add (r, new_eim_for_this_path,
       base_eim_of_this_lim,
       previous_eim_on_this_path);
@@ -9041,7 +9048,7 @@ are settled.
 static inline void ur_node_stack_init(URS stack);
 @ @<Function definitions@> =
 static inline void ur_node_stack_init(URS stack) {
-MARPA_DEBUG2("ur_node_stack_init %s", G_STRLOC);
+MARPA_DEBUG2_OFF("ur_node_stack_init %s", G_STRLOC);
     obstack_init(&stack->t_obs);
     stack->t_base = ur_node_new(stack, 0);
     ur_node_stack_reset(stack);
@@ -9058,10 +9065,10 @@ static inline void ur_node_stack_reset(URS stack) {
 static inline void ur_node_stack_destroy(URS stack);
 @ @<Function definitions@> =
 static inline void ur_node_stack_destroy(URS stack) {
-MARPA_DEBUG2("ur_node_stack_destroy %s", G_STRLOC);
+MARPA_DEBUG2_OFF("ur_node_stack_destroy %s", G_STRLOC);
     if (stack->t_base) obstack_free(&stack->t_obs, NULL);
     stack->t_base = NULL;
-MARPA_DEBUG2("ur_node_stack_destroy %s", G_STRLOC);
+MARPA_DEBUG2_OFF("ur_node_stack_destroy %s", G_STRLOC);
 }
 
 @ @<Private function prototypes@> =
@@ -9338,12 +9345,12 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     const gint no_parse = -1;
     const gint null_parse = 0;
     @<Bocage setup locals@>@;
-MARPA_DEBUG2("marpa_bocage_new, b=%p", B_of_R(r));
+MARPA_DEBUG2_OFF("marpa_bocage_new, b=%p", B_of_R(r));
     r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
     b = g_slice_new(BOC_Object);
-MARPA_DEBUG2("Allocated bocage %p", b);
+MARPA_DEBUG2_OFF("Allocated bocage %p", b);
     @<Initialize bocage elements@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     LV_Phase_of_R(r) = evaluation_phase;
@@ -9398,7 +9405,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 	break;
       }
 
-MARPA_DEBUG2("ordinal=%d", ordinal);
+MARPA_DEBUG2_OFF("ordinal=%d", ordinal);
     if (ordinal == -1)
       {
 	end_of_parse_es = Current_ES_of_R (r);
@@ -9430,7 +9437,7 @@ MARPA_DEBUG2("ordinal=%d", ordinal);
 	}
       completed_start_rule = RULE_by_ID (g, rule_id);
     }
-MARPA_DEBUG2("ordinal=%d", ordinal);
+MARPA_DEBUG2_OFF("ordinal=%d", ordinal);
     if (ordinal == 0) {  // If this is a null parse
 	 return null_parse;
     }
@@ -9489,16 +9496,18 @@ never on the stack.
     while ((ur_node = ur_node_pop(ur_node_stack)))
     {
         const EIM_Const parent_earley_item = EIM_of_UR(ur_node);
-        const AEX parent_aex = AEX_of_UR(ur_node);
-	const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
-	const AIM predecessor_aim = parent_aim - 1;
-	const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
-	/* Note that the postdot symbol of the predecessor is NOT necessarily the
-	   predot symbol, because there may be nulling symbols in between. */
-        guint source_type = Source_Type_of_EIM (parent_earley_item);
-        @<Push child Earley items from token sources@>@;
-        @<Push child Earley items from completion sources@>@;
-        @<Push child Earley items from Leo sources@>@;
+	if (!EIM_is_Leo_Expansion(parent_earley_item)) {
+	    const AEX parent_aex = AEX_of_UR(ur_node);
+	    const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
+	    const AIM predecessor_aim = parent_aim - 1;
+	    const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
+	    /* Note that the postdot symbol of the predecessor is NOT necessarily the
+	       predot symbol, because there may be nulling symbols in between. */
+	    guint source_type = Source_Type_of_EIM (parent_earley_item);
+	    @<Push child Earley items from token sources@>@;
+	    @<Push child Earley items from completion sources@>@;
+	    @<Push child Earley items from Leo sources@>@;
+	}
     }
 }
 
@@ -9515,7 +9524,7 @@ never on the stack.
   psar_init (and_psar, AHFA_Count_of_G (g));
 MARPA_DEBUG3_OFF("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
   psar_init (or_psar, SYMI_Count_of_G (g));
-MARPA_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
+MARPA_DEBUG3_OFF("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
   ORs_of_B (b) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
   for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count; earley_set_ordinal++)
   {
@@ -9594,8 +9603,8 @@ Or-nodes are not added for predicted AHFA items.
   if (ahfa_item_symbol_instance >= 0)
     {
       OR or_node;
-MARPA_DEBUG3_OFF("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
-MARPA_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
+MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
+MARPA_DEBUG3_OFF("main or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
 MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g));
       or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
@@ -9626,15 +9635,17 @@ The exception is where there is no predecessor,
 and this is the case if |Draft_Position_of_OR(or_node) == 0|.
 @<Add nulling token or-nodes@> =
 {
-  gint null_count = Null_Count_of_AIM (ahfa_item);
+  const gint null_count = Null_Count_of_AIM (ahfa_item);
+  const RULE rule = RULE_of_AIM (ahfa_item);
+  const gint first_null_symbol_instance =
+      ahfa_item_symbol_instance < 0 ? SYMI_of_RULE (rule) : ahfa_item_symbol_instance + 1;
   if (null_count > 0)
     {
       gint i;
-      for (i = 1; i <= null_count; i++)
+      for (i = 0; i < null_count; i++)
 	{
-	  gint symbol_instance = ahfa_item_symbol_instance + null_count;
+	  const gint symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-MARPA_DEBUG3_OFF ("%s or_psl SYMI = %d", G_STRLOC, symbol_instance);
 MARPA_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
 	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g));
 	  if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
@@ -9645,10 +9656,17 @@ MARPA_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item
 	    }
 	  Type_of_OR (or_node) = DRAFT_NULL_OR_NODE;
 	  ES_Ord_of_OR (or_node) = earley_set_ordinal;
-	  Start_ES_Ord_of_OR (or_node) =
-	    Ord_of_ES (Origin_of_EIM (earley_item));
+	  Start_ES_Ord_of_OR (or_node) = origin_ordinal;
 	  SYMI_of_OR (or_node) = symbol_instance;
-	  RULE_of_OR (or_node) = RULE_of_AIM (ahfa_item);
+	  RULE_of_OR (or_node) = rule;
+MARPA_DEBUG2("symbol_instance = %d", symbol_instance);
+MARPA_DEBUG2("ahfa_item_symbol_instance = %d", ahfa_item_symbol_instance);
+MARPA_DEBUG2("or_psl RULE = %d", ID_of_RULE(rule));
+MARPA_DEBUG3("%s or_psl SYMI_of_RULE = %d", G_STRLOC, SYMI_of_RULE(rule));
+	  MARPA_ASSERT (SYMI_of_OR(or_node) <
+	      SYMI_of_RULE(rule) +
+	      Length_of_RULE(rule));
+	  MARPA_ASSERT (SYMI_of_OR(or_node) >= SYMI_of_RULE(rule));
 	}
     }
 }
@@ -9740,13 +9758,19 @@ There will always be a predecessor, since these nulling
 or-nodes follow a completion.
 @<Add Leo path nulling token or-nodes@> =
 {
-  gint null_count = Null_Count_of_AIM (leo_path_ahfa_item);
+  const gint null_count = Null_Count_of_AIM (leo_path_ahfa_item);
+  const RULE rule = RULE_of_AIM (leo_path_ahfa_item);
+  const gint leo_origin_ordinal = Ord_of_ES (Origin_of_EIM (leo_base_earley_item));
+  const gint first_null_symbol_instance =
+      leo_path_item_symbol_instance < 0
+	  ? SYMI_of_RULE (rule)
+	  : leo_path_item_symbol_instance + 1;
   if (null_count > 0)
     {
       gint i;
-      for (i = 1; i <= null_count; i++)
+      for (i = 0; i < null_count; i++)
 	{
-	  const gint symbol_instance = leo_path_item_symbol_instance + null_count;
+	  const gint symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
 	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g));
 	  if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
@@ -9757,11 +9781,12 @@ or-nodes follow a completion.
 	    }
 	  Type_of_OR (or_node) = DRAFT_NULL_OR_NODE;
 	  ES_Ord_of_OR (or_node) = earley_set_ordinal;
-	  Start_ES_Ord_of_OR (or_node) =
-	    Ord_of_ES (Origin_of_EIM (leo_base_earley_item));
+	  Start_ES_Ord_of_OR (or_node) = leo_origin_ordinal;
 	  SYMI_of_OR (or_node) = symbol_instance;
-	  RULE_of_OR (or_node) = RULE_of_AIM (leo_path_ahfa_item);
-	}
+	  RULE_of_OR (or_node) = rule;
+	  MARPA_ASSERT (SYMI_of_OR(or_node) <
+	      SYMI_of_RULE(rule) + Length_of_RULE(rule));
+	  MARPA_ASSERT (SYMI_of_OR(or_node) >= SYMI_of_RULE(rule)); }
     }
 }
 
@@ -9813,7 +9838,7 @@ or-nodes follow a completion.
 MARPA_DEBUG4_OFF("Adding ur-node for %s aex=%d or_node_estimate before = %d",
 eim_tag(ur_earley_item), ur_aex, or_node_estimate);
 	or_node_estimate += 1 + Null_Count_of_AIM(ur_aim);
-MARPA_DEBUG4("Adding ur-node for %s aex=%d or_node_estimate after = %d",
+MARPA_DEBUG4_OFF("Adding ur-node for %s aex=%d or_node_estimate after = %d",
 eim_tag(ur_earley_item), ur_aex, or_node_estimate);
       }
 }
@@ -9850,7 +9875,7 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item);
 	}
     }
     if (!nodes_by_aex[ahfa_element_ix]) {
-MARPA_DEBUG4("PSIA Set S=%d I=%s A=%d", set_ordinal, eim_tag(earley_item), ahfa_element_ix);
+MARPA_DEBUG4_OFF("PSIA Set S=%d I=%s A=%d", set_ordinal, eim_tag(earley_item), ahfa_element_ix);
 	nodes_by_aex[ahfa_element_ix] = dummy_or_node;
 	return 0;
     }
@@ -9906,7 +9931,7 @@ no other descendants.
 MARPA_DEBUG4_OFF("Initial nulls for %s aex=%d or_node_estimate before = %d",
 eim_tag(predecessor_earley_item), predecessor_aex, or_node_estimate);
 	or_node_estimate += Null_Count_of_AIM(predecessor_aim);
-MARPA_DEBUG4("Initial nulls for %s aex=%d or_node_estimate after = %d",
+MARPA_DEBUG4_OFF("Initial nulls for %s aex=%d or_node_estimate after = %d",
 eim_tag(predecessor_earley_item), predecessor_aex, or_node_estimate);
 	psia_test_and_set(&bocage_setup_obs, per_es_data, 
 	    predecessor_earley_item, predecessor_aex);
@@ -10016,7 +10041,7 @@ eim_tag(predecessor_earley_item), predecessor_aex, or_node_estimate);
 MARPA_DEBUG4_OFF("Adding ur-node for %s aex=%d or_node_estimate before = %d",
 eim_tag(ur_earley_item), ur_aex, or_node_estimate);
 	      or_node_estimate += 1 + Null_Count_of_AIM(ur_aim+1);
-MARPA_DEBUG4("Adding ur-node for %s aex=%d or_node_estimate after = %d",
+MARPA_DEBUG4_OFF("Adding ur-node for %s aex=%d or_node_estimate after = %d",
 eim_tag(ur_earley_item), ur_aex, or_node_estimate);
 		  @<Push ur-node if new@>@;
 	    }
@@ -10103,7 +10128,7 @@ gint marpa_bocage_free(struct marpa_r* r) {
 
 @ @<Free bocage@> = {
     BOC b = B_of_R(r);
-MARPA_DEBUG2("Freeing bocage %p", b);
+MARPA_DEBUG2_OFF("Freeing bocage %p", b);
     if (b) {
 	@<Destroy bocage elements, all phases@>;
 	g_slice_free(BOC_Object, b);
@@ -11534,6 +11559,7 @@ internal matters on |STDERR|.
 @d MARPA_DEBUG5_OFF(a, b, c, d, e)
 @<Debug macros@> =
 #define MARPA_DEBUG @[ 0 @]
+#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
@@ -11547,6 +11573,12 @@ internal matters on |STDERR|.
 #define MARPA_DEBUG3(a, b, c) @[@]
 #define MARPA_DEBUG4(a, b, c, d) @[@]
 #define MARPA_ASSERT(exp) @[@]
+#endif
+
+#if MARPA_ENABLE_ASSERT
+#undef MARPA_ASSERT
+#define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
+       g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0)
 #endif
 
 @*0 Earley Item Tag.
