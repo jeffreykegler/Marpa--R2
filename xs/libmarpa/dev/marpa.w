@@ -1775,7 +1775,7 @@ Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, guint length)
 	const guint rule_length = Length_of_RULE(rule);
 	if (rule_length != length) { goto RULE_IS_NOT_DUPLICATE; }
 	for (rhs_position = 0; rhs_position < rule_length; rhs_position++) {
-	    if (rhs_symid(rule, rhs_position) != rhs_ids[rhs_position]) {
+	    if (RHS_ID_of_RULE(rule, rhs_position) != rhs_ids[rhs_position]) {
 	        goto RULE_IS_NOT_DUPLICATE;
 	    }
 	}
@@ -1872,12 +1872,12 @@ be tiny.
 {
 /* Handle the first symbol as a special case */
 gint rhs_ix = (gint) Length_of_RULE (rule) - 1;
-rh_symbol_list[0] = rhs_symid(rule, (unsigned)rhs_ix);
+rh_symbol_list[0] = RHS_ID_of_RULE(rule, (unsigned)rhs_ix);
 rh_symbol_list_length = 1;
 rhs_ix--;
 for (; rhs_ix >= 0; rhs_ix--) {
     gint higher_ix;
-    Marpa_Symbol_ID new_symid = rhs_symid(rule, (unsigned)rhs_ix);
+    Marpa_Symbol_ID new_symid = RHS_ID_of_RULE(rule, (unsigned)rhs_ix);
     gint next_highest_ix = rh_symbol_list_length - 1;
     while (next_highest_ix >= 0) {
 	Marpa_Symbol_ID current_symid = rh_symbol_list[next_highest_ix];
@@ -1964,7 +1964,7 @@ Marpa_Symbol_ID marpa_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, g
     @<Fail if grammar |rule_id| is invalid@>@;
     rule = RULE_by_ID(g, rule_id);
     if (Length_of_RULE(rule) <= ix) return -1;
-    return rhs_symid(rule, ix);
+    return RHS_ID_of_RULE(rule, ix);
 }
 @ @<Public function prototypes@> =
 Marpa_Symbol_ID marpa_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, guint ix);
@@ -1981,17 +1981,10 @@ gint marpa_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
 @ @<Public function prototypes@> =
 gint marpa_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id);
 
-@*1 LHS Symbol of Rule.
-@d LHS_ID_of_RULE(production) ((production)->t_symbols[0])
-
-@*1 RHS Symbol of Rule.
-@ @<Function definitions@> =
-static inline Marpa_Symbol_ID
-    rhs_symid(RULE  rule, guint rh_index) {
-	return rule->t_symbols[rh_index+1];
-    }
-@ @<Private function prototypes@> =
-static inline Marpa_Symbol_ID rhs_symid(RULE  rule, guint rh_index);
+@*1 Symbols of the Rule.
+@d LHS_ID_of_RULE(rule) ((rule)->t_symbols[0])
+@d RHS_ID_of_RULE(rule, position)
+    ((rule)->t_symbols[(position)+1])
 
 @*0 Rule ID.
 The {\bf rule ID} is a number which
@@ -2070,7 +2063,7 @@ static inline gint rule_is_productive(struct marpa_g* g, RULE  rule)
 {
 guint rh_ix;
 for (rh_ix = 0; rh_ix < Length_of_RULE(rule); rh_ix++) {
-   Marpa_Symbol_ID rhs_id = rhs_symid(rule, rh_ix);
+   Marpa_Symbol_ID rhs_id = RHS_ID_of_RULE(rule, rh_ix);
    if ( !SYM_by_ID(g, rhs_id)->t_is_productive ) return FALSE;
 }
 return TRUE; }
@@ -2138,7 +2131,7 @@ rule_is_nulling (GRAMMAR g, RULE rule)
   guint rh_ix;
   for (rh_ix = 0; rh_ix < Length_of_RULE (rule); rh_ix++)
     {
-      SYMID rhs_id = rhs_symid (rule, rh_ix);
+      SYMID rhs_id = RHS_ID_of_RULE (rule, rh_ix);
       if (!SYM_by_ID (g, rhs_id)->t_is_nulling)
 	return FALSE;
     }
@@ -2698,7 +2691,7 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
      guint rhs_ix, rule_length = Length_of_RULE(rule);
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 	 matrix_bit_set(reach_matrix,
-	     (guint)lhs_id, (guint)rhs_symid(rule, rhs_ix));
+	     (guint)lhs_id, (guint)RHS_ID_of_RULE(rule, rhs_ix));
 } } }
 transitive_closure(reach_matrix);
 @ @<Declare census variables@> = Bit_Matrix reach_matrix;
@@ -2862,7 +2855,7 @@ into multiple CHAF rules.
 { guint rhs_ix;
 factor_count = 0;
 for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
-     Marpa_Symbol_ID symid = rhs_symid(rule, rhs_ix);
+     Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
      SYM symbol = SYM_by_ID(g, symid);
      if (symbol->t_is_nulling) continue; /* Do nothing for nulling symbols */
      if (symbol_null_alias(symbol)) {
@@ -2980,7 +2973,7 @@ for the PN rule.
 guint real_symbol_count = piece_end - piece_start + 1;
 for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
    remaining_rhs[piece_rhs_length] =
-   piece_rhs[piece_rhs_length] = rhs_symid(rule, piece_start+piece_rhs_length);
+   piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
 }
 piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
 }
@@ -2997,7 +2990,7 @@ piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
        remaining_rhs_length < chaf_rule_length; remaining_rhs_length++)
     {
       Marpa_Symbol_ID original_id =
-	rhs_symid (rule, piece_start + remaining_rhs_length);
+	RHS_ID_of_RULE (rule, piece_start + remaining_rhs_length);
       SYM alias = symbol_null_alias (SYM_by_ID (g, original_id));
       remaining_rhs[remaining_rhs_length] =
 	alias ? ID_of_SYM (alias) : original_id;
@@ -3014,7 +3007,7 @@ piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
 @ Note, while I have the nulling alias for the first factor,
 |remaining_rhs| is altered to be ready for the NN rule.
 @<Add NP CHAF rule for nullable continuation@> = {
-    Marpa_Symbol_ID proper_id = rhs_symid(rule, first_factor_position);
+    Marpa_Symbol_ID proper_id = RHS_ID_of_RULE(rule, first_factor_position);
     SYM alias = symbol_null_alias(SYM_by_ID(g, proper_id));
     remaining_rhs[first_factor_piece_position] =
 	piece_rhs[first_factor_piece_position] =
@@ -3053,7 +3046,7 @@ real_symbol_count = piece_end - piece_start + 1;
 @ The PP Rule.
 @<Add CHAF rules for proper continuation@> = 
     for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
-	piece_rhs[piece_rhs_length] = rhs_symid(rule, piece_start+piece_rhs_length);
+	piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
     }
     piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
     chaf_rule = rule_start(g, current_lhs_id, piece_rhs, piece_rhs_length);
@@ -3061,7 +3054,7 @@ real_symbol_count = piece_end - piece_start + 1;
 
 @ The PN Rule.
 @<Add CHAF rules for proper continuation@> = 
-    second_factor_proper_id = rhs_symid(rule, second_factor_position);
+    second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
     piece_rhs[second_factor_piece_position]
 	= second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
     chaf_rule = rule_start(g, current_lhs_id, piece_rhs, piece_rhs_length);
@@ -3069,7 +3062,7 @@ real_symbol_count = piece_end - piece_start + 1;
 
 @ The NP Rule.
 @<Add CHAF rules for proper continuation@> = 
-    first_factor_proper_id = rhs_symid(rule, first_factor_position);
+    first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
     piece_rhs[first_factor_piece_position]
 	= first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
     piece_rhs[second_factor_piece_position] = second_factor_proper_id;
@@ -3103,14 +3096,14 @@ real_symbol_count = piece_end - piece_start + 1;
 @ The PP Rule.
 @<Add final CHAF rules for two factors@> = 
     for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
-	piece_rhs[piece_rhs_length] = rhs_symid(rule, piece_start+piece_rhs_length);
+	piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
     }
     chaf_rule = rule_start(g, current_lhs_id, piece_rhs, piece_rhs_length);
     @<Set CHAF rule flags and call back@>@;
 
 @ The PN Rule.
 @<Add final CHAF rules for two factors@> =
-    second_factor_proper_id = rhs_symid(rule, second_factor_position);
+    second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
     piece_rhs[second_factor_piece_position]
 	= second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
     chaf_rule = rule_start(g, current_lhs_id, piece_rhs, piece_rhs_length);
@@ -3118,7 +3111,7 @@ real_symbol_count = piece_end - piece_start + 1;
 
 @ The NP Rule.
 @<Add final CHAF rules for two factors@> =
-    first_factor_proper_id = rhs_symid(rule, first_factor_position);
+    first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
     piece_rhs[first_factor_piece_position]
 	= first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
     piece_rhs[second_factor_piece_position] = second_factor_proper_id;
@@ -3151,7 +3144,7 @@ real_symbol_count = piece_end - piece_start + 1;
 @ The P Rule.
 @<Add final CHAF rules for one factor@> = 
     for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
-	piece_rhs[piece_rhs_length] = rhs_symid(rule, piece_start+piece_rhs_length);
+	piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
     }
     chaf_rule = rule_start(g, current_lhs_id, piece_rhs, piece_rhs_length);
     @<Set CHAF rule flags and call back@>@;
@@ -3160,7 +3153,7 @@ real_symbol_count = piece_end - piece_start + 1;
 a nulling rule.
 @<Add final CHAF rules for one factor@> =
 if (piece_start < nullable_suffix_ix) {
-    first_factor_proper_id = rhs_symid(rule, first_factor_position);
+    first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
     first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
     piece_rhs[first_factor_piece_position] = first_factor_alias_id;
     chaf_rule = rule_start(g, current_lhs_id, piece_rhs, piece_rhs_length);
@@ -3364,7 +3357,7 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
      rule_length = Length_of_RULE(rule);
      proper_id = -1;
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
-	 Marpa_Symbol_ID symid = rhs_symid(rule, rhs_ix);
+	 Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
 	 SYM symbol = SYM_by_ID(g, symid);
 	 if (symbol->t_is_nullable) continue; /* After the CHAF rewrite, nullable $\E$ nulling */
 	 if (proper_id >= 0) goto NEXT_RULE; /* More
@@ -3705,7 +3698,7 @@ static inline void create_AHFA_items(struct marpa_g* g);
   guint rhs_ix;
   for (rhs_ix = 0; rhs_ix < Length_of_RULE(rule); rhs_ix++)
     {
-      SYMID rh_symid = rhs_symid (rule, rhs_ix);
+      SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
       SYM symbol = SYM_by_ID (g, rh_symid);
       if (!symbol->t_is_nullable)
 	{
@@ -9210,8 +9203,14 @@ for final or-nodes.
 @d DRAFT_OR_NODE -2
 @d DRAFT_NULL_OR_NODE -3
 @d TOKEN_OR_NODE -5
-@d Type_of_OR(or) ((or)->t_trivial.t_position)
 @d ES_Ord_of_OR(or) ((or)->t_trivial.t_end_set_ordinal)
+@ These two occupy the same positiion.  Draft or-nodes
+have their type (always a negative number) 
+here,
+which is replaced with their position (always non-negative)
+when the or-node becomes final.
+@d Type_of_OR(or) ((or)->t_trivial.t_position)
+@d Position_of_OR(or) ((or)->t_trivial.t_position)
 @ C89 guarantees that common initial sequences
 may be accessed via different members of a union.
 @<Or-node common initial sequence@> =
@@ -9767,6 +9766,17 @@ or-nodes follow a completion.
 }
 
 @ @<Convert null |draft_or_node| to final or-node@> = {
+    const gint symbol_instance = SYMI_of_OR(draft_or_node);
+    const RULE rule = RULE_of_OR(draft_or_node);
+    const gint position = symbol_instance - SYMI_of_RULE(rule);
+    OR predecessor = NULL;
+    Position_of_OR(draft_or_node) = position;
+    if (position > 0) {
+	const gint origin_ordinal = Start_ES_Ord_of_OR(draft_or_node);
+	PSL or_psl;
+	@<Claim the PSL for |origin_ordinal| as |or_psl|@>@;
+        predecessor = PSL_Datum (or_psl, symbol_instance - 1);
+    }
 }
 
 @ @<Convert non-null |draft_or_node| to final or-node@> = {
@@ -10522,7 +10532,7 @@ rhs_closure (struct marpa_g *g, Bit_Vector bv)
 	  rule_length = Length_of_RULE(rule);
 	  for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
 	    {
-	      if (!bv_bit_test (bv, (guint) rhs_symid (rule, rh_ix)))
+	      if (!bv_bit_test (bv, (guint) RHS_ID_of_RULE (rule, rh_ix)))
 		goto NEXT_RULE;
 	    }
 	  /* If I am here, the bits for the RHS symbols are all
