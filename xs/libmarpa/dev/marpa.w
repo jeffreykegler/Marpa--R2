@@ -9214,18 +9214,22 @@ for final or-nodes.
 @d ES_Ord_of_OR(or) ((or)->t_trivial.t_end_set_ordinal)
 @ C89 guarantees that common initial sequences
 may be accessed via different members of a union.
-@<Or-node structure common initial sequence@> =
+@<Or-node common initial sequence@> =
 gint t_position;
 gint t_end_set_ordinal;
+@ All or-nodes except non-null draft or-nodes begin with
+this sequence.
+@<Or-node typical common initial sequence@> =
+@<Or-node common initial sequence@>@;
+RULE t_rule;
+gint t_start_set_ordinal;
 @ In the case of a trivial or-node, |t_and_nodes|
 will be NULL, and the or-node structure itself contain
 the and-node.
 @d RULE_of_OR(or) ((or)->t_trivial.t_rule)
 @d Start_ES_Ord_of_OR(or) ((or)->t_trivial.t_start_set_ordinal)
 @<Final Or-nodes common initial sequence@> =
-@<Or-node structure common initial sequence@>@;
-RULE t_rule;
-gint t_start_set_ordinal;
+@<Or-node typical common initial sequence@>@;
 AND t_and_nodes;
 @
 @d EIM_of_OR(or) ((or)->t_draft.t_earley_item)
@@ -9234,7 +9238,7 @@ AND t_and_nodes;
 @<Private structures@> =
 struct s_draft_or_node
 {
-    @<Or-node structure common initial sequence@>@;
+    @<Or-node common initial sequence@>@;
   EIM t_earley_item;
   AEX t_aex;
   LIM t_leo_item;
@@ -9245,7 +9249,7 @@ struct s_draft_or_node
 @<Private structures@> =
 struct s_draft_null_or_node
 {
-    @<Final Or-nodes common initial sequence@>@;
+    @<Or-node typical common initial sequence@>@;
     gint t_symbol_instance;
 };
 struct s_trivial_or_node
@@ -11018,37 +11022,6 @@ static inline void psar_dealloc(const PSAR psar) {
      psar->t_first_free_psl = psar->t_first_psl;
 }
 
-
-@ A PSL dealloc removes an owner's claim to the PSL,
-and puts it back on the free list.
-It does {\bf not} clear out the data.
-A deallocated PSL contains stale data.
-@<Private function prototypes@> =
-static inline void psl_dealloc(const PSAR psar, const PSL psl);
-@ @<Function definitions@> =
-static inline void psl_dealloc(const PSAR psar, const PSL psl) {
-    if (!psl) return;
-    (*psl->t_owner) = NULL;
-    psl->t_owner = NULL;
-    @<Unlink |psl| from |psar|@>@;
-    @<Link |psl| into |psar| after |t_first_free_psl|@>@;
-}
-@ @<Unlink |psl| from |psar|@> = {
-    if (!psl->t_prev) { // If |psl| was first, set a new first PSL
-         psar->t_first_psl = psar->t_first_psl->t_next;
-	 psar->t_first_psl->t_prev = NULL;
-    } else {
-         psl->t_prev->t_next = psl->t_next;
-	 /* |psl->t_next != NULL| if |psl| is in use */
-         psl->t_next->t_prev = psl->t_prev;
-    }
-}
-@ @<Link |psl| into |psar| after |t_first_free_psl|@> = {
-    PSL first_free = psar->t_first_free_psl;
-    psl->t_next = first_free->t_next;
-    psl->t_prev = first_free;
-    first_free->t_next = psl;
-}
 @ This function ``claims" a PSL.
 The address of the claimed PSL and the PSAR
 from which to claim it are arguments.
