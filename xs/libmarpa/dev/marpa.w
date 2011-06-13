@@ -9801,14 +9801,22 @@ or-nodes follow a completion.
      }
 }
 
-@ @<Convert null |draft_or_node| to final or-node@> = {
+@ If the code needs to be revised be aware that the draft
+and final or-node share memory locations, using unions.
+for the non-null nodes, this requires an unpack/repack
+cycle.  Here this is avoided in favor of a more natural
+order of operations, but the maintainer needs to be careful,
+and may simply want to convert to unpack/repack.
+@<Convert null |draft_or_node| to final or-node@> = {
     const gint symbol_instance = SYMI_of_OR(draft_or_node);
     const RULE rule = RULE_of_OR(draft_or_node);
-    const gint position = symbol_instance - SYMI_of_RULE(rule);
+    gint position;
+    OR cause;
+    OR predecessor = NULL;
     MARPA_ASSERT(position < Length_of_RULE(rule));
     MARPA_ASSERT(position >= 0);
-    OR cause = (OR)SYM_by_ID(g, RHS_ID_of_RULE(rule, position));
-    OR predecessor = NULL;
+    position = symbol_instance - SYMI_of_RULE(rule);
+    cause = (OR)SYM_by_ID(g, RHS_ID_of_RULE(rule, position));
     Position_of_OR(draft_or_node) = position;
     if (position > 0) {
 	const gint origin_ordinal = Start_ES_Ord_of_OR(draft_or_node);
@@ -9819,7 +9827,22 @@ or-nodes follow a completion.
     @<Create trivial and-node in |draft_or_node|@>@;
 }
 
-@ @<Create trivial and-node in |draft_or_node|@> = {
+@ Since much of the data needs to be recopied anyway,
+it is tempting to create the final or-nodes in a new
+array.  There are two problems with that.  First,
+if all the draft or-nodes and final or-nodes both
+exist at a single point in time, that
+increases the high-water mark on memory usage.
+With craft, this first problem may be avoidable.
+Second, and more serious, the pointers to the draft
+or-nodes will be in other data structures, and this
+must be converted somehow.
+@ I have settled for using the same structure for
+both draft and final or-node,
+and after completion re-sizing the or-node array to
+the actual usage.  In most implementations, this
+should make most of the unused space re-useable.
+@<Create trivial and-node in |draft_or_node|@> = {
     const AND and_node = Trivial_AND_of_OR(draft_or_node);
     ANDs_of_OR(draft_or_node) = NULL;
     OR_of_AND(and_node) = draft_or_node;
@@ -9828,6 +9851,43 @@ or-nodes follow a completion.
 }
 
 @ @<Convert non-null |draft_or_node| to final or-node@> = {
+    /* Unpack draft or-node */
+    const EIM draft_earley_item = EIM_of_OR (draft_or_node);
+    const AEX draft_aex = AEX_of_OR (draft_or_node);
+    const LIM draft_leo_item = LIM_of_OR (draft_or_node);
+    /* Repack or-node with final data */
+    if (draft_earley_item) @<Repack or-node fields from
+	|draft_earley_item| and |draft_aex|@>@;
+    else @<Repack or-node fields from |draft_leo_item|@>@;
+}
+
+@ @<Repack or-node fields from |draft_earley_item| and |draft_aex|@> =
+{
+   const AIM draft_ahfa_item = AIM_of_EIM_by_AEX(draft_earley_item, draft_aex);
+   Position_of_OR(draft_or_node) = Position_of_AIM(draft_ahfa_item);
+   Start_ES_Ord_of_OR (draft_or_node) = Origin_Ord_of_EIM(draft_earley_item);
+   RULE_of_OR (draft_or_node) = RULE_of_AIM(draft_ahfa_item);
+}
+
+@ If there is no Earley item, there must be a Leo item.
+The calculation of the Leo AHFA item is done both for the draft and
+the final item.
+Memoization might pay off, but space is an issue ---
+draft or-nodes use the same space as
+final or-nodes, and the size of the draft or-node should be
+kept smaller than the final or-node.
+@<Repack or-node fields from |draft_leo_item|@> =
+{
+    const EIM leo_base_earley_item = Base_EIM_of_LIM (draft_leo_item);
+    const SYMID postdot_symbol_of_this_lim = Postdot_SYMID_of_LIM (draft_leo_item);
+    const AHFA leo_path_ahfa =
+		    To_AHFA_of_EIM_by_SYMID (leo_base_earley_item,
+					     postdot_symbol_of_this_lim);
+    const AIM leo_path_ahfa_item = AIMs_of_AHFA (leo_path_ahfa)[0];
+    const RULE rule = RULE_of_AIM(leo_path_ahfa_item);
+    Position_of_OR(draft_or_node) = Length_of_RULE(rule);
+    Start_ES_Ord_of_OR (draft_or_node) = Origin_Ord_of_EIM(leo_base_earley_item);
+    RULE_of_OR(draft_or_node) = rule;
 }
 
 @ @<Push ur-node if new@> = {
