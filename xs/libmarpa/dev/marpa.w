@@ -9136,6 +9136,31 @@ struct s_and_node {
 };
 typedef struct s_and_node AND_Object;
 
+@** Draft And-Node (DAND) Code.
+The draft and-nodes are used while the bocage is
+being built.
+Both draft and final and-nodes contain the predecessor
+and cause fields.
+They differ in their third field.
+Draft and-nodes need to be in a linked list,
+so the third field is a link to the next and-node.
+Final and-nodes sit in an array, and the third field
+is a link to their parent or-node.
+@<Private incomplete structures@> =
+struct s_draft_and_node;
+typedef struct s_draft_and_node* DAND;
+@
+@d Next_DAND_of_DAND(dand) ((dand)->t_next)
+@d Predecessor_OR_of_DAND(dand) ((dand)->t_predecessor)
+@d Cause_OR_of_DAND(dand) ((dand)->t_cause)
+@<Private structures@> =
+struct s_draft_and_node {
+    DAND t_next;
+    OR t_predecessor;
+    OR t_cause;
+};
+typedef struct s_draft_and_node DAND_Object;
+
 @** Or-Node (OR) Code.
 The or-nodes are part of the parse bocage
 and are similar to the or-nodes of a standard parse forest.
@@ -9209,82 +9234,39 @@ typedef union u_or_node* OR;
 @ The type is contained in same word as the position is
 for final or-nodes.
 @s OR int
-@d DUMMY_OR_NODE -1
-@d DRAFT_OR_NODE -2
-@d DRAFT_NULL_OR_NODE -3
-@d TOKEN_OR_NODE -5
 @ C89 guarantees that common initial sequences
 may be accessed via different members of a union.
-@d ES_Ord_of_OR(or) ((or)->t_trivial.t_end_set_ordinal)
-@ These two occupy the same positiion.  Draft or-nodes
-have their type (always a negative number) 
-here,
-which is replaced with their position (always non-negative)
-when the or-node becomes final.
-@d Type_of_OR(or) ((or)->t_trivial.t_position)
-@d Position_of_OR(or) ((or)->t_trivial.t_position)
+Position is |DUMMY_OR_NODE| for dummy or-nodes,
+|TOKEN_OR_NODE| if the or-node is actually a symbol.
+@d DUMMY_OR_NODE -1
+@d TOKEN_OR_NODE -2
+@d Position_of_OR(or) ((or)->t_draft.t_position)
+@d RULE_of_OR(or) ((or)->t_draft.t_rule)
+@d Start_ES_Ord_of_OR(or) ((or)->t_draft.t_start_set_ordinal)
+@d ES_Ord_of_OR(or) ((or)->t_draft.t_end_set_ordinal)
+@d DANDs_of_OR(or) ((or)->t_draft.t_draft_and_node)
 @<Or-node common initial sequence@> =
 gint t_position;
 gint t_end_set_ordinal;
-@ All or-nodes except non-null draft or-nodes begin with
-this sequence.
-@<Or-node typical common initial sequence@> =
-@<Or-node common initial sequence@>@;
 RULE t_rule;
 gint t_start_set_ordinal;
-@ In the case of a trivial or-node, |t_and_nodes|
-will be NULL, and the or-node structure itself contain
-the and-node.
-@d RULE_of_OR(or) ((or)->t_trivial.t_rule)
-@d Start_ES_Ord_of_OR(or) ((or)->t_trivial.t_start_set_ordinal)
-@d ANDs_of_OR(or) ((or)->t_trivial.t_and_nodes)
-@<Final Or-nodes common initial sequence@> =
-@<Or-node typical common initial sequence@>@;
-AND t_and_nodes;
-@
-@d EIM_of_OR(or) ((or)->t_draft.t_earley_item)
-@d AEX_of_OR(or) ((or)->t_draft.t_aex)
-@d LIM_of_OR(or) ((or)->t_draft.t_leo_item)
-@<Private structures@> =
+@ @<Private structures@> =
 struct s_draft_or_node
 {
     @<Or-node common initial sequence@>@;
-  EIM t_earley_item;
-  AEX t_aex;
-  LIM t_leo_item;
-};
-@
-@d SYMI_of_OR(or)
-    ((or)->t_null_draft.t_symbol_instance)
-@<Private structures@> =
-struct s_draft_null_or_node
-{
-    @<Or-node typical common initial sequence@>@;
-    gint t_symbol_instance;
-};
-@ A trivial or-node is one which contains only
-one and-node.  It is called trivial because an or-node
-represents a choice and there is only one choice.
-@d Trivial_AND_of_OR(or) (&(or)->t_trivial.t_and_node)
-@<Private structures@> =
-struct s_trivial_or_node
-{
-    @<Final Or-nodes common initial sequence@>@;
-      AND_Object t_and_node;
+  DAND t_draft_and_node;
 };
 @ @<Private structures@> =
-struct s_non_trivial_or_node
+struct s_final_or_node
 {
-    @<Final Or-nodes common initial sequence@>@;
-      gint t_and_node_count;
+    @<Or-node common initial sequence@>@;
+    gint t_and_node_id;
+    gint t_and_node_count;
 };
 @ @<Private structures@> =
 union u_or_node {
-    gint t_type;
     struct s_draft_or_node t_draft;
-    struct s_draft_null_or_node t_null_draft;
-    struct s_trivial_or_node t_trivial;
-    struct s_non_trivial_or_node t_non_trivial;
+    struct s_final_or_node t_final;
 };
 typedef union u_or_node OR_Object;
 
@@ -9536,7 +9518,7 @@ MARPA_DEBUG3_OFF("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
       for (draft_or_node = first_or_node_of_earley_set;
 	  draft_or_node < next_or_node;
 	  draft_or_node++) {
-	  @<Convert |draft_or_node| to final or-node@>@;
+	  @<Populate |draft_or_node|@>@;
       }
   }
   ORs_of_B (b) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
@@ -9612,15 +9594,13 @@ MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g));
 MARPA_DEBUG3_OFF("%s next_or_node = %p", G_STRLOC, next_or_node);
 MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
 	  or_node = next_or_node++;
-	  EIM_of_OR (or_node) = NULL;
-	  AEX_of_OR (or_node) = -1;
-	  LIM_of_OR (or_node) = NULL;
 	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = or_node;
+	  Start_ES_Ord_of_OR(or_node) = Origin_Ord_of_EIM(earley_item);
+	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
+	  RULE_of_OR(or_node) = RULE_of_AIM(ahfa_item);
+	  Position_of_OR(or_node) = Position_of_AIM(ahfa_item);
+	  DANDs_of_OR(or_node) = NULL;
 	}
-      Type_of_OR (or_node) = DRAFT_OR_NODE;
-      ES_Ord_of_OR(or_node) = earley_set_ordinal;
-      EIM_of_OR (or_node) = earley_item;
-      AEX_of_OR (or_node) = aex;
     }
 }
 
@@ -9632,41 +9612,44 @@ in the PSIA.
 @ In building the final or-node, the predecessor can be
 determined using the PSIA for $|symbol_instance|-1$.
 The exception is where there is no predecessor,
-and this is the case if |Draft_Position_of_OR(or_node) == 0|.
+and this is the case if |Position_of_OR(or_node) == 0|.
 @<Add nulling token or-nodes@> =
 {
   const gint null_count = Null_Count_of_AIM (ahfa_item);
-  const RULE rule = RULE_of_AIM (ahfa_item);
-  const gint first_null_symbol_instance =
-      ahfa_item_symbol_instance < 0 ? SYMI_of_RULE (rule) : ahfa_item_symbol_instance + 1;
   if (null_count > 0)
     {
+      const RULE rule = RULE_of_AIM (ahfa_item);
+      const gint symbol_instance_of_rule = SYMI_of_RULE(rule);
+      const gint first_null_symbol_instance =
+	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
       gint i;
       for (i = 0; i < null_count; i++)
 	{
 	  const gint symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-MARPA_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
-	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g));
+MARPA_DEBUG3_OFF("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
 	  if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
 	    {
+	      const gint position = symbol_instance - symbol_instance_of_rule;
+		DAND draft_and_node = obstack_alloc (&bocage_setup_obs, sizeof(DAND_Object));
+		OR predecessor = NULL;
+	      const OR cause = (OR)SYM_by_ID(g, RHS_ID_of_RULE(rule, position));
 	      MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate);
 	      or_node = next_or_node++;
 	      PSL_Datum (or_psl, symbol_instance) = or_node;
+	      Start_ES_Ord_of_OR (or_node) = origin_ordinal;
+	      ES_Ord_of_OR (or_node) = earley_set_ordinal;
+	      RULE_of_OR (or_node) = rule;
+	      Position_of_OR (or_node) = position;
+		if (position > 0) {
+		    @<Claim the PSL for |origin_ordinal| as |or_psl|@>@;
+		    predecessor = PSL_Datum (or_psl, symbol_instance - 1);
+		}
+		Predecessor_OR_of_DAND(draft_and_node) = predecessor;
+		Cause_OR_of_DAND(draft_and_node) = cause;
+		Next_DAND_of_DAND(draft_and_node) = NULL;
+		DANDs_of_OR(or_node) = draft_and_node;
 	    }
-	  Type_of_OR (or_node) = DRAFT_NULL_OR_NODE;
-	  ES_Ord_of_OR (or_node) = earley_set_ordinal;
-	  Start_ES_Ord_of_OR (or_node) = origin_ordinal;
-	  SYMI_of_OR (or_node) = symbol_instance;
-	  RULE_of_OR (or_node) = rule;
-MARPA_DEBUG2("symbol_instance = %d", symbol_instance);
-MARPA_DEBUG2("ahfa_item_symbol_instance = %d", ahfa_item_symbol_instance);
-MARPA_DEBUG2("or_psl RULE = %d", ID_of_RULE(rule));
-MARPA_DEBUG3("%s or_psl SYMI_of_RULE = %d", G_STRLOC, SYMI_of_RULE(rule));
-	  MARPA_ASSERT (SYMI_of_OR(or_node) <
-	      SYMI_of_RULE(rule) +
-	      Length_of_RULE(rule));
-	  MARPA_ASSERT (SYMI_of_OR(or_node) >= SYMI_of_RULE(rule));
 	}
     }
 }
@@ -9739,16 +9722,15 @@ MARPA_ASSERT(leo_path_item_symbol_instance < SYMI_Count_of_G(g));
       or_node = PSL_Datum (or_psl, leo_path_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
 	{
+          RULE rule = Path_RULE_of_LIM(leo_predecessor);
 MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
 	  or_node = next_or_node++;
-	  EIM_of_OR (or_node) = NULL;
-	  AEX_of_OR (or_node) = -1;
-	  LIM_of_OR (or_node) = NULL;
-	  PSL_Datum (or_psl, leo_path_item_symbol_instance) = or_node;
+	  Start_ES_Ord_of_OR(or_node) = Ord_of_ES(ES_of_LIM(leo_predecessor));
+	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
+	  RULE_of_OR(or_node) = rule;
+	  Position_of_OR(or_node) = Length_of_RULE(rule);
+	  DANDs_of_OR(or_node) = NULL;
 	}
-      Type_of_OR (or_node) = DRAFT_OR_NODE;
-      ES_Ord_of_OR(or_node) = earley_set_ordinal;
-      LIM_of_OR (or_node) = leo_predecessor;
     }
 }
 
@@ -9759,136 +9741,59 @@ or-nodes follow a completion.
 @<Add Leo path nulling token or-nodes@> =
 {
   const gint null_count = Null_Count_of_AIM (leo_path_ahfa_item);
-  const RULE rule = RULE_of_AIM (leo_path_ahfa_item);
-  const gint leo_origin_ordinal = Ord_of_ES (Origin_of_EIM (leo_base_earley_item));
-  const gint first_null_symbol_instance =
-      leo_path_item_symbol_instance < 0
-	  ? SYMI_of_RULE (rule)
-	  : leo_path_item_symbol_instance + 1;
   if (null_count > 0)
     {
+      const RULE rule = RULE_of_AIM (leo_path_ahfa_item);
+      const gint symbol_instance_of_rule = SYMI_of_RULE(rule);
+      const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (leo_base_earley_item));
+      const gint first_null_symbol_instance =
+	  leo_path_item_symbol_instance < 0
+	      ? symbol_instance_of_rule
+	      : leo_path_item_symbol_instance + 1;
       gint i;
       for (i = 0; i < null_count; i++)
 	{
 	  const gint symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
 	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g));
-	  if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
-	    {
-	      MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate);
-	      or_node = next_or_node++;
-	      PSL_Datum (or_psl, symbol_instance) = or_node;
-	    }
-	  Type_of_OR (or_node) = DRAFT_NULL_OR_NODE;
-	  ES_Ord_of_OR (or_node) = earley_set_ordinal;
-	  Start_ES_Ord_of_OR (or_node) = leo_origin_ordinal;
-	  SYMI_of_OR (or_node) = symbol_instance;
-	  RULE_of_OR (or_node) = rule;
-	  MARPA_ASSERT (SYMI_of_OR(or_node) <
+	    if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
+	      {
+		DAND draft_and_node =
+		  obstack_alloc (&bocage_setup_obs, sizeof (DAND_Object));
+		OR predecessor = NULL;
+		const gint position = symbol_instance - symbol_instance_of_rule;
+		const OR cause = (OR) SYM_by_ID (g, RHS_ID_of_RULE (rule, position));
+		MARPA_ASSERT (position < Length_of_RULE (rule));
+		MARPA_ASSERT (position >= 0);
+		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate);
+		or_node = next_or_node++;
+		PSL_Datum (or_psl, symbol_instance) = or_node;
+		Start_ES_Ord_of_OR (or_node) = origin_ordinal;
+		ES_Ord_of_OR (or_node) = earley_set_ordinal;
+		RULE_of_OR (or_node) = rule;
+		Position_of_OR (or_node) = position;
+		{
+		  PSL or_psl;
+		  @<Claim the PSL for |origin_ordinal| as |or_psl|@>@;
+		  predecessor = PSL_Datum (or_psl, symbol_instance - 1);
+		}
+		Predecessor_OR_of_DAND (draft_and_node) = predecessor;
+		Cause_OR_of_DAND (draft_and_node) = cause;
+		Next_DAND_of_DAND (draft_and_node) = NULL;
+		DANDs_of_OR (or_node) = draft_and_node;
+	      }
+	  MARPA_ASSERT (Position_of_OR(or_node) <
 	      SYMI_of_RULE(rule) + Length_of_RULE(rule));
-	  MARPA_ASSERT (SYMI_of_OR(or_node) >= SYMI_of_RULE(rule)); }
+	  MARPA_ASSERT (Position_of_OR(or_node) >= SYMI_of_RULE(rule));
+	  }
     }
 }
 
-@ @<Convert |draft_or_node| to final or-node@> = {
-     switch (Type_of_OR(draft_or_node)) {
-     case DRAFT_NULL_OR_NODE:
-	@<Convert null |draft_or_node| to final or-node@>@;
-     break;
-     case DRAFT_OR_NODE:
-	@<Convert non-null |draft_or_node| to final or-node@>@;
-     break;
-     }
-}
-
-@ If the code needs to be revised be aware that the draft
-and final or-node share memory locations, using unions.
-for the non-null nodes, this requires an unpack/repack
-cycle.  Here this is avoided in favor of a more natural
-order of operations, but the maintainer needs to be careful,
-and may simply want to convert to unpack/repack.
-@<Convert null |draft_or_node| to final or-node@> = {
-    const gint symbol_instance = SYMI_of_OR(draft_or_node);
-    const RULE rule = RULE_of_OR(draft_or_node);
-    gint position;
-    OR cause;
-    OR predecessor = NULL;
-    MARPA_ASSERT(position < Length_of_RULE(rule));
-    MARPA_ASSERT(position >= 0);
-    position = symbol_instance - SYMI_of_RULE(rule);
-    cause = (OR)SYM_by_ID(g, RHS_ID_of_RULE(rule, position));
-    Position_of_OR(draft_or_node) = position;
-    if (position > 0) {
-	const gint origin_ordinal = Start_ES_Ord_of_OR(draft_or_node);
-	PSL or_psl;
-	@<Claim the PSL for |origin_ordinal| as |or_psl|@>@;
-        predecessor = PSL_Datum (or_psl, symbol_instance - 1);
-    }
-    @<Create trivial and-node in |draft_or_node|@>@;
-}
-
-@ Since much of the data needs to be recopied anyway,
-it is tempting to create the final or-nodes in a new
-array.  There are two problems with that.  First,
-if all the draft or-nodes and final or-nodes both
-exist at a single point in time, that
-increases the high-water mark on memory usage.
-With craft, this first problem may be avoidable.
-Second, and more serious, the pointers to the draft
-or-nodes will be in other data structures, and this
-must be converted somehow.
-@ I have settled for using the same structure for
-both draft and final or-node,
-and after completion re-sizing the or-node array to
-the actual usage.  In most implementations, this
-should make most of the unused space re-useable.
-@<Create trivial and-node in |draft_or_node|@> = {
-    const AND and_node = Trivial_AND_of_OR(draft_or_node);
-    ANDs_of_OR(draft_or_node) = NULL;
-    OR_of_AND(and_node) = draft_or_node;
-    Predecessor_OR_of_AND(and_node) = predecessor;
-    Cause_OR_of_AND(and_node) = cause;
-}
-
-@ @<Convert non-null |draft_or_node| to final or-node@> = {
-    /* Unpack draft or-node */
-    const EIM draft_earley_item = EIM_of_OR (draft_or_node);
-    const AEX draft_aex = AEX_of_OR (draft_or_node);
-    const LIM draft_leo_item = LIM_of_OR (draft_or_node);
-    /* Repack or-node with final data */
-    if (draft_earley_item) @<Repack or-node fields from
-	|draft_earley_item| and |draft_aex|@>@;
-    else @<Repack or-node fields from |draft_leo_item|@>@;
-}
-
-@ @<Repack or-node fields from |draft_earley_item| and |draft_aex|@> =
+@ @<Add draft and-node containing |predecessor| and |cause| to |or_node|@> =
 {
-   const AIM draft_ahfa_item = AIM_of_EIM_by_AEX(draft_earley_item, draft_aex);
-   Position_of_OR(draft_or_node) = Position_of_AIM(draft_ahfa_item);
-   Start_ES_Ord_of_OR (draft_or_node) = Origin_Ord_of_EIM(draft_earley_item);
-   RULE_of_OR (draft_or_node) = RULE_of_AIM(draft_ahfa_item);
 }
 
-@ If there is no Earley item, there must be a Leo item.
-The calculation of the Leo AHFA item is done both for the draft and
-the final item.
-Memoization might pay off, but space is an issue ---
-draft or-nodes use the same space as
-final or-nodes, and the size of the draft or-node should be
-kept smaller than the final or-node.
-@<Repack or-node fields from |draft_leo_item|@> =
-{
-    const EIM leo_base_earley_item = Base_EIM_of_LIM (draft_leo_item);
-    const SYMID postdot_symbol_of_this_lim = Postdot_SYMID_of_LIM (draft_leo_item);
-    const AHFA leo_path_ahfa =
-		    To_AHFA_of_EIM_by_SYMID (leo_base_earley_item,
-					     postdot_symbol_of_this_lim);
-    const AIM leo_path_ahfa_item = AIMs_of_AHFA (leo_path_ahfa)[0];
-    const RULE rule = RULE_of_AIM(leo_path_ahfa_item);
-    Position_of_OR(draft_or_node) = Length_of_RULE(rule);
-    Start_ES_Ord_of_OR (draft_or_node) = Origin_Ord_of_EIM(leo_base_earley_item);
-    RULE_of_OR(draft_or_node) = rule;
-}
+@ @<Populate |draft_or_node|@> = { ; }
 
 @ @<Push ur-node if new@> = {
     if (!psia_test_and_set
