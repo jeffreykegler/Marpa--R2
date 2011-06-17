@@ -9577,9 +9577,9 @@ MARPA_DEBUG3_OFF("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
 	    for (aex = 0; aex < aim_count_of_item; aex++) {
 		OR or_node = nodes_by_aex[aex];
 		while (or_node) { /* Loop through the nulling or-nodes */
-MARPA_DEBUG2("or_node = %s", or_tag(or_node));
 		    OR cause;
 		    DAND draft_and_node = DANDs_of_OR(or_node);
+MARPA_DEBUG2("or_node = %s", or_tag(or_node));
 MARPA_DEBUG2("DAND = %p", draft_and_node);
 		    if (!draft_and_node) break;
 		    cause = Cause_OR_of_DAND(draft_and_node);
@@ -11575,8 +11575,8 @@ internal matters on |STDERR|.
 @d MARPA_DEBUG4_OFF(a, b, c, d)
 @d MARPA_DEBUG5_OFF(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 1 @]
-#define MARPA_ENABLE_ASSERT @[ 1 @]
+#define MARPA_DEBUG @[ 0 @]
+#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
