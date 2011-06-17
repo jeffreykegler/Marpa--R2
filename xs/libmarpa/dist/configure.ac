@@ -223,7 +223,7 @@ AC_DEFINE_UNQUOTED( [MARPA_CAN_INLINE], $marpa_cv_can_inline, [Does header inlin
 # taken from the glib configuration file
 
 PKG_PROG_PKG_CONFIG([0.22])
-PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.6.0] )
+PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.22.0] )
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
