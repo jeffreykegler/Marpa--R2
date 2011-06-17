@@ -9577,6 +9577,7 @@ MARPA_DEBUG3_OFF("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
 	    for (aex = 0; aex < aim_count_of_item; aex++) {
 		OR or_node = nodes_by_aex[aex];
 		while (or_node) { /* Loop through the nulling or-nodes */
+MARPA_DEBUG2("or_node = %s", or_tag(or_node));
 		    OR cause;
 		    DAND draft_and_node = DANDs_of_OR(or_node);
 MARPA_DEBUG2("DAND = %p", draft_and_node);
@@ -9616,7 +9617,10 @@ MARPA_DEBUG2("%s", G_STRLOC);
     @<Add nulling token or-nodes@>@;
     /* Replace the dummy or-node with
     the last one added */
-    *p_master_psia_entry = next_or_node-1;
+    if (next_or_node > first_or_node_of_earley_set) {
+MARPA_DEBUG2("new psia or-node = %s", or_tag(next_or_node-1));
+	*p_master_psia_entry = next_or_node-1;
+    }
     @<Add Leo or-nodes@>@;
 }
 
@@ -11642,6 +11646,38 @@ lim_tag (gchar *buffer, LIM lim)
 	return buffer;
 }
 #endif
+
+@*0 Or-Node Tag.
+Functions to print a descriptive tag for
+an or-node item.
+One is thread-safe, the other is
+more convenient but not thread-safe.
+@<Private function prototypes@> =
+#if MARPA_DEBUG
+PRIVATE_NOT_INLINE gchar* or_tag_safe(gchar *buffer, OR or);
+PRIVATE_NOT_INLINE gchar* or_tag(OR or);
+#endif
+@ It is passed a buffer to keep it thread-safe.
+@<Function definitions@> =
+#if MARPA_DEBUG
+PRIVATE_NOT_INLINE gchar *
+or_tag_safe (gchar * buffer, OR or)
+{
+  sprintf (buffer, "R%d:%d@@%d-%d",
+	   RULE_of_OR (or), Position_of_OR (or),
+	   Start_ES_Ord_of_OR (or),
+	   ES_Ord_of_OR (or));
+  return buffer;
+}
+
+static char DEBUG_or_tag_buffer[1000];
+PRIVATE_NOT_INLINE gchar*
+or_tag (OR or)
+{
+  return or_tag_safe (DEBUG_or_tag_buffer, or);
+}
+#endif
+
 
 @** File Layout.  
 @ The output files are {\bf not} source files,
