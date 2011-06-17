@@ -9456,7 +9456,7 @@ MARPA_DEBUG2_OFF("ordinal=%d", ordinal);
 @ @<Traverse Earley sets to create bocage@>=
 {
     @<Populate the PSIA data@>@;
-    @<Create the or-nodes@>@;
+    @<Create the or-nodes for all earley sets@>@;
 }
 
 @ |predecessor_aim| and |predot|
@@ -9492,7 +9492,7 @@ never on the stack.
     }
 }
 
-@ @<Create the or-nodes@> =
+@ @<Create the or-nodes for all earley sets@> =
 {
   PSAR_Object and_per_es_arena;
   const PSAR and_psar = &and_per_es_arena;
@@ -9513,12 +9513,7 @@ MARPA_DEBUG3_OFF("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
       const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
       const OR first_or_node_of_earley_set = next_or_node;
       psar_dealloc(or_psar);
-      @<Create the draft or-nodes for |earley_set_ordinal|@>@;
-      for (draft_or_node = first_or_node_of_earley_set;
-	  draft_or_node < next_or_node;
-	  draft_or_node++) {
-	  @<Populate |draft_or_node|@>@;
-      }
+      @<Create the or-nodes for |earley_set_ordinal|@>@;
   }
   ORs_of_B (b) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
   psar_destroy (and_psar);
@@ -9526,11 +9521,17 @@ MARPA_DEBUG3_OFF("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
 }
 
 @
-@<Create the draft or-nodes for |earley_set_ordinal|@> =
+@<Create the or-nodes for |earley_set_ordinal|@> =
 {
     OR** const nodes_by_item = per_es_data[earley_set_ordinal].t_aexes_by_item;
     EIM* const eims_of_es = EIMs_of_ES(earley_set);
     const gint item_count = EIM_Count_of_ES (earley_set);
+    @<Create the unpopulated or-nodes for |earley_set_ordinal|@>@;
+    @<Populate the or-nodes for |earley_set_ordinal|@>@;
+}
+
+@ @<Create the unpopulated or-nodes for |earley_set_ordinal|@> =
+{
     gint item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
     {
@@ -9553,6 +9554,23 @@ MARPA_DEBUG3_OFF("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
     }
 }
 
+@ @<Populate the or-nodes for |earley_set_ordinal|@> =
+{
+    gint item_ordinal;
+    for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
+    {
+	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
+	if (nodes_by_aex) {
+	    const EIM earley_item = eims_of_es[item_ordinal];
+	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
+	    const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
+	    AEX aex;
+	    for (aex = 0; aex < aim_count_of_item; aex++) {
+		OR* const p_psia_entry = nodes_by_aex + aex;
+	    }
+	}
+    }
+}
 
 @ @<Claim the PSL for |origin_ordinal| as |or_psl|@> =
 {
@@ -9792,12 +9810,6 @@ or-nodes follow a completion.
 	  }
     }
 }
-
-@ @<Add draft and-node containing |predecessor| and |cause| to |or_node|@> =
-{
-}
-
-@ @<Populate |draft_or_node|@> = { ; }
 
 @ @<Push ur-node if new@> = {
     if (!psia_test_and_set
