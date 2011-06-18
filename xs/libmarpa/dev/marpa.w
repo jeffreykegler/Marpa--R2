@@ -9489,6 +9489,10 @@ never on the stack.
 	if (!EIM_is_Leo_Expansion(parent_earley_item)) {
 	    const AEX parent_aex = AEX_of_UR(ur_node);
 	    const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
+	    MARPA_DEBUG3("parent_earley_item=%s, parent_aex=%d",
+		eim_tag(parent_earley_item),
+		parent_aex);
+	    MARPA_ASSERT(parent_aim >= AIM_by_ID(g, 1));
 	    const AIM predecessor_aim = parent_aim - 1;
 	    const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
 	    /* Note that the postdot symbol of the predecessor is NOT necessarily the
@@ -9739,14 +9743,40 @@ MARPA_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 }
 
 @ @<Private function prototypes@> =
+static inline
 DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause);
 @ @<Function definitions@> =
+static inline
 DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
 {
     DAND draft_and_node = obstack_alloc (obs, sizeof(DAND_Object));
     Predecessor_OR_of_DAND(draft_and_node) = predecessor;
     Cause_OR_of_DAND(draft_and_node) = cause;
     return draft_and_node;
+}
+
+@ Currently, I do not check draft and-nodes for duplicates.
+This will be done when they are copied to final and-ndoes.
+In the future, it may be more efficient to do a linear search for
+duplicates until the number of draft and-nodes reaches a small
+constant $n$.
+(Optimal $n$ is perhaps something like 7.)
+Alernatively, it could always check for duplicates, but limit
+the search to the first $n$ draft and-nodes.
+@ In that case, the logic to copy the final and-nodes can
+rely on chains of length less than $n$ being non-duplicated,
+and the PSARs can be reserved for the unusual case where this
+is not sufficient.
+@<Private function prototypes@> =
+static inline
+void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause);
+@ @<Function definitions@> =
+static inline
+void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
+{
+    const DAND new = draft_and_node_new(obs, predecessor, cause);
+    Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
+    DANDs_of_OR(parent) = new;
 }
 
 @ @<Add Leo or-nodes@> = {
@@ -11613,8 +11643,8 @@ internal matters on |STDERR|.
 @d MARPA_DEBUG4_OFF(a, b, c, d)
 @d MARPA_DEBUG5_OFF(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
-#define MARPA_ENABLE_ASSERT @[ 0 @]
+#define MARPA_DEBUG @[ 1 @]
+#define MARPA_ENABLE_ASSERT @[ 1 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
