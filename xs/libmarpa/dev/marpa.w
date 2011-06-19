@@ -9498,6 +9498,7 @@ never on the stack.
 	    /* Note that the postdot symbol of the predecessor is NOT necessarily the
 	       predot symbol, because there may be nulling symbols in between. */
 	    guint source_type = Source_Type_of_EIM (parent_earley_item);
+	    MARPA_ASSERT(!EIM_is_Predicted(parent_earley_item));
 	    @<Push child Earley items from token sources@>@;
 	    @<Push child Earley items from completion sources@>@;
 	    @<Push child Earley items from Leo sources@>@;
@@ -9984,19 +9985,19 @@ MARPA_DEBUG4_OFF("PSIA Set S=%d I=%s A=%d", set_ordinal, eim_tag(earley_item), a
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
     }
-    if (predecessor_earley_item && EIM_is_Predicted(predecessor_earley_item)) {
-	  @<Set boolean in PSIA for initial nulls@>@;
-          predecessor_earley_item = NULL;
-    }
     for (;;)
       {
 	if (predecessor_earley_item)
 	  {
-	    const EIM ur_earley_item = predecessor_earley_item;
-	    const AEX ur_aex =
-	      AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
-	    const AIM ur_aim = predecessor_aim;
-	    @<Push ur-node if new@>@;
+	    if (EIM_is_Predicted(predecessor_earley_item)) {
+		  @<Set boolean in PSIA for initial nulls@>@;
+	    } else {
+		const EIM ur_earley_item = predecessor_earley_item;
+		const AEX ur_aex =
+		  AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
+		const AIM ur_aim = predecessor_aim;
+		@<Push ur-node if new@>@;
+	    }
 	  }
 	if (!source_link)
 	  break;
@@ -10044,21 +10045,23 @@ eim_tag(predecessor_earley_item), predecessor_aex, or_node_estimate);
 	}
 	break;
     }
-    if (predecessor_earley_item && EIM_is_Predicted (predecessor_earley_item))
-      {
-	@<Set boolean in PSIA for initial nulls@>@;
-	predecessor_earley_item = NULL;
-      }
   while (cause_earley_item)
     {
-    if (predecessor_earley_item)
-      {
-	const EIM ur_earley_item = predecessor_earley_item;
-	const AEX ur_aex =
-	  AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
-	const AIM ur_aim = predecessor_aim;
-	@<Push ur-node if new@>@;
-      }
+	if (predecessor_earley_item)
+	  {
+	    if (EIM_is_Predicted (predecessor_earley_item))
+	      {
+		@<Set boolean in PSIA for initial nulls@>@;
+	      }
+	    else
+	      {
+		const EIM ur_earley_item = predecessor_earley_item;
+		const AEX ur_aex =
+		  AEX_of_EIM_by_AIM (predecessor_earley_item, predecessor_aim);
+		const AIM ur_aim = predecessor_aim;
+		@<Push ur-node if new@>@;
+	      }
+	  }
     {
       const TRANS cause_completion_data =
 	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
@@ -10123,12 +10126,18 @@ eim_tag(predecessor_earley_item), predecessor_aex, or_node_estimate);
 	      TRANS transition = TRANS_of_EIM_by_SYMID (ur_earley_item, postdot);
 	      const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
 	      const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
-MARPA_DEBUG4_OFF("Adding ur-node for %s aex=%d or_node_estimate before = %d",
-eim_tag(ur_earley_item), ur_aex, or_node_estimate);
+	      /* Increment the
+	      estimate to account for the Leo path or-nodes */
 	      or_node_estimate += 1 + Null_Count_of_AIM(ur_aim+1);
-MARPA_DEBUG4_OFF("Adding ur-node for %s aex=%d or_node_estimate after = %d",
+		if (EIM_is_Predicted (ur_earley_item))
+		  {
+		    const EIM predecessor_earley_item = ur_earley_item;
+		    @<Set boolean in PSIA for initial nulls@>@;
+		  } else {
+MARPA_DEBUG4("Adding ur-node for %s aex=%d or_node_estimate after = %d",
 eim_tag(ur_earley_item), ur_aex, or_node_estimate);
-		  @<Push ur-node if new@>@;
+		      @<Push ur-node if new@>@;
+		  }
 	    }
 	    cause_earley_item = Base_EIM_of_LIM(leo_predecessor);
 	    leo_predecessor = Predecessor_LIM_of_LIM(leo_predecessor);
