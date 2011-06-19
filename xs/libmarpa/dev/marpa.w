@@ -9489,16 +9489,16 @@ never on the stack.
 	if (!EIM_is_Leo_Expansion(parent_earley_item)) {
 	    const AEX parent_aex = AEX_of_UR(ur_node);
 	    const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
-	    MARPA_OFF_DEBUG3("parent_earley_item=%s, parent_aex=%d",
-		eim_tag(parent_earley_item),
-		parent_aex);
-	    MARPA_ASSERT(parent_aim >= AIM_by_ID(g, 1));
+	    MARPA_ASSERT(parent_aim >= AIM_by_ID(g, 1))@;
 	    const AIM predecessor_aim = parent_aim - 1;
 	    const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
 	    /* Note that the postdot symbol of the predecessor is NOT necessarily the
 	       predot symbol, because there may be nulling symbols in between. */
 	    guint source_type = Source_Type_of_EIM (parent_earley_item);
-	    MARPA_ASSERT(!EIM_is_Predicted(parent_earley_item));
+	    MARPA_ASSERT(!EIM_is_Predicted(parent_earley_item))@;
+	    MARPA_OFF_DEBUG3("parent_earley_item=%s, parent_aex=%d",
+		eim_tag(parent_earley_item),
+		parent_aex);
 	    @<Push child Earley items from token sources@>@;
 	    @<Push child Earley items from completion sources@>@;
 	    @<Push child Earley items from Leo sources@>@;
@@ -9523,7 +9523,6 @@ MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
   ORs_of_B (b) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
   for (earley_set_ordinal = 0; earley_set_ordinal < earley_set_count; earley_set_ordinal++)
   {
-      OR draft_or_node;
       const ES_Const earley_set = ES_of_R_by_Ord (r, earley_set_ordinal);
       const OR first_or_node_of_earley_set = next_or_node;
       psar_dealloc(or_psar);
@@ -9680,12 +9679,12 @@ MARPA_OFF_DEBUG3("%s ahfa_item_symbol_instance = %d", G_STRLOC, ahfa_item_symbol
       OR or_node;
 MARPA_OFF_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
 MARPA_OFF_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
-MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g));
+MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
       or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
 	{
 MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
-MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
+MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  or_node = next_or_node++;
 	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = or_node;
 	  Start_ES_Ord_of_OR(or_node) = Origin_Ord_of_EIM(earley_item);
@@ -9728,7 +9727,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_
 		const gint position = symbol_instance - symbol_instance_of_rule;
 		const OR predecessor = position > 0 ? next_or_node - 1 : NULL;
 		const OR cause = (OR) SYM_by_ID (g, RHS_ID_of_RULE (rule, position));
-		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate);
+		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate)@;
 MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
 		or_node = next_or_node++;
 		PSL_Datum (or_psl, symbol_instance) = or_node;
@@ -9849,7 +9848,7 @@ corresponds to the leo predecessor.
 {
     {
       OR or_node;
-MARPA_ASSERT(leo_path_item_symbol_instance < SYMI_Count_of_G(g));
+MARPA_ASSERT(leo_path_item_symbol_instance < SYMI_Count_of_G(g))@;
       or_node = PSL_Datum (or_psl, leo_path_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
 	{
@@ -9858,7 +9857,7 @@ MARPA_ASSERT(leo_path_item_symbol_instance < SYMI_Count_of_G(g));
 	  const TRANS transition = TRANS_of_EIM_by_SYMID (base_item, postdot);
 	  const AEX base_aex = Leo_Base_AEX_of_TRANS (transition);
           const AIM path_ahfa_item = AIM_of_EIM_by_AEX(base_item, base_aex);
-MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate);
+MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  or_node = next_or_node++;
 	  Start_ES_Ord_of_OR(or_node) = leo_path_origin_ordinal;
 	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
@@ -9891,7 +9890,7 @@ or-nodes follow a completion.
 	{
 	  const gint symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g));
+	  MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g))@;
 	    if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal)
 	      {
 		DAND draft_and_node;
@@ -9899,9 +9898,9 @@ or-nodes follow a completion.
 		   so that there is always a predecessor */
 		const gint position = symbol_instance - symbol_instance_of_rule;
 		const OR cause = (OR) SYM_by_ID (g, RHS_ID_of_RULE (rule, position));
-		MARPA_ASSERT (position < Length_of_RULE (rule));
-		MARPA_ASSERT (position >= 0);
-		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate);
+		MARPA_ASSERT (position < Length_of_RULE (rule))@;
+		MARPA_ASSERT (position >= 0)@;
+		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate)@;
 		or_node = next_or_node++;
 		PSL_Datum (or_psl, symbol_instance) = or_node;
 		Start_ES_Ord_of_OR (or_node) = leo_origin_ordinal;
@@ -9915,8 +9914,8 @@ MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 		Next_DAND_of_DAND (draft_and_node) = NULL;
 	      }
 	  MARPA_ASSERT (Position_of_OR(or_node) <
-	      SYMI_of_RULE(rule) + Length_of_RULE(rule));
-	  MARPA_ASSERT (Position_of_OR(or_node) >= SYMI_of_RULE(rule));
+	      SYMI_of_RULE(rule) + Length_of_RULE(rule))@;
+	  MARPA_ASSERT (Position_of_OR(or_node) >= SYMI_of_RULE(rule))@;
 	  }
     }
 }
@@ -9956,7 +9955,7 @@ static inline gint psia_test_and_set(
     OR** nodes_by_item = per_es_data[set_ordinal].t_aexes_by_item;
     const gint item_ordinal = Ord_of_EIM(earley_item);
     OR* nodes_by_aex = nodes_by_item[item_ordinal];
-MARPA_ASSERT(ahfa_element_ix < aim_count_of_item);
+MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
     if (!nodes_by_aex) {
 	AEX aex;
         nodes_by_aex = nodes_by_item[item_ordinal] =
@@ -11657,8 +11656,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 1 @]
-#define MARPA_ENABLE_ASSERT @[ 1 @]
+#define MARPA_DEBUG @[ 0 @]
+#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
