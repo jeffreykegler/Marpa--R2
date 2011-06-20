@@ -9174,6 +9174,9 @@ and are similar to the or-nodes of a standard parse forest.
 Unlike a parse forest,
 a parse bocage can contain cycles.
 
+@<Public typedefs@> =
+typedef gint Marpa_Or_Node_ID;
+
 @*0 Relationship of Earley Items to Or-Nodes.
 Several Earley items may be the source of the same or-node,
 but the or-node only keeps track of one.  This is sufficient,
@@ -9282,10 +9285,13 @@ typedef union u_or_node OR_Object;
 static const gint dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
 @ @d ORs_of_B(b) ((b)->t_or_nodes)
+@ @d OR_Count_of_B(b) ((b)->t_or_node_count)
 @<Widely aligned bocage elements@> =
 OR t_or_nodes;
+gint t_or_node_count;
 @ @<Initialize bocage elements@> =
 ORs_of_B(b) = NULL;
+OR_Count_of_B(b) = 0;
 @ @<Destroy bocage elements, main phase@> =
 {
   OR or_nodes = ORs_of_B (b);
@@ -9528,7 +9534,11 @@ MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
       psar_dealloc(or_psar);
       @<Create the or-nodes for |earley_set_ordinal|@>@;
   }
-  ORs_of_B (b) = g_renew (OR_Object, first_or_node, next_or_node - first_or_node);
+  {
+     const gint or_node_count = next_or_node - first_or_node;
+     OR_Count_of_B(b) = or_node_count;
+     ORs_of_B(b) = g_renew (OR_Object, first_or_node, or_node_count);
+  }
   psar_destroy (and_psar);
   psar_destroy (or_psar);
 }
@@ -10232,6 +10242,49 @@ MARPA_OFF_DEBUG2("Freeing bocage %p", b);
 	g_slice_free(BOC_Object, b);
 	B_of_R(r) = NULL;
     }
+}
+
+@*0 Trace Functions.
+
+@ @<Private function prototypes@> =
+gint marpa_or_node(struct marpa_r *r, int or_node_id, int or_data[6]);
+@ @<Function definitions@> =
+gint marpa_or_node(struct marpa_r *r, int or_node_id, int or_data[6])
+{
+  BOC b = B_of_R(r);
+  OR or_nodes;
+  @<Return |-2| on failure@>@;
+  @<Fail if recognizer has fatal error@>@;
+  if (Phase_of_R(r) != evaluation_phase) {
+    R_ERROR("recce not being evaluated");
+    return failure_indicator;
+  }
+  if (!b) {
+      R_ERROR("no bocage");
+      return failure_indicator;
+  }
+  or_nodes = ORs_of_B(b);
+  if (!or_nodes) {
+      R_ERROR("no or nodes");
+      return failure_indicator;
+  }
+  if (or_node_id < 0) {
+      R_ERROR("bad or node id");
+      return failure_indicator;
+  }
+  if (or_node_id > OR_Count_of_B(b)) {
+      return -1;
+  }
+  {
+      const OR or_node = or_nodes+or_node_id;
+      or_data[0] = Start_ES_Ord_of_OR(or_node);
+      or_data[1] = ES_Ord_of_OR(or_node);
+      or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
+      or_data[3] = Position_of_OR(or_node);
+      or_data[4] = 0; /* Count of and-nodes */
+      or_data[5] = 0; /* ID of first and-node */
+  }
+  return 1;
 }
 
 @** Boolean Vectors.

@@ -330,7 +330,7 @@ sub Marpa::XS::Recognizer::show_recce_or_node {
 
 } ## end sub Marpa::XS::Recognizer::show_recce_or_node
 
-sub Marpa::XS::Recognizer::show_or_nodes {
+sub Marpa::XS::Recognizer::old_show_or_nodes {
     my ($recce, $verbose) = @_;
     my $text;
     my $or_nodes  = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
@@ -338,6 +338,10 @@ sub Marpa::XS::Recognizer::show_or_nodes {
          $text .= $recce->show_recce_or_node($or_node, $verbose);
     }
     return $text;
+}
+
+sub Marpa::XS::Recognizer::show_or_nodes {
+     return q{};
 }
 
 sub Marpa::XS::brief_iteration_node {

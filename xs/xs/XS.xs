@@ -1537,5 +1537,26 @@ PPCODE:
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
+ # In scalar context, returns the count
+void
+or_node( r_wrapper, or_node_id )
+     R_Wrapper *r_wrapper;
+    Marpa_Or_Node_ID or_node_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    const gint data_count = 6;
+    gint data[data_count];
+    gint result = marpa_or_node(r, or_node_id, data);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result <= -2) { croak("Problem in r->or_node(): %s", marpa_r_error(r)); }
+    {
+        guint ix;
+        EXTEND(SP, data_count);
+        for (ix = 0; ix < data_count; ix++) {
+            PUSHs( sv_2mortal( newSViv(data[ix]) ) );
+        }
+    }
+    }
+
 BOOT:
     gperl_handle_logs_for(G_LOG_DOMAIN);
