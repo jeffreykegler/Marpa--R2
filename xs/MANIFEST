@@ -97,10 +97,12 @@ t/02-load_xs.t
 t/Makefile
 t/shared/ah2.t
 t/shared/ah_numeric.t
+t/shared/bocage.t
 t/shared/chaf.t
 t/shared/code_diag.t
 t/shared/common/ah2.t
 t/shared/common/ah_numeric.t
+t/shared/common/bocage.t
 t/shared/common/chaf.t
 t/shared/common/code_diag.t
 t/shared/common/counter.t
