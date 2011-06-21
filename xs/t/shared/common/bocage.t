@@ -412,7 +412,31 @@ for my $value ( keys %expected ) {
     Test::More::fail(qq{Missing result, "$value"});
 }
 
-Marpa::Test::is($recce->show_or_nodes(), q{}, "Or nodes");
+my $or_node_output = <<'END_OF_TEXT';
+R6:1@0-0
+R1:1@0-1
+R4:1@0-1
+R7:1@0-1
+R4:2@0-3
+R6:2@0-3
+R7:2@0-3
+R13:1@0-3
+R9:1@1-1
+R1:1@1-2
+R7:1@1-2
+R10:1@1-2
+R7:2@1-3
+R9:2@1-3
+R10:2@1-3
+R12:1@2-2
+R1:1@2-3
+R11:1@2-3
+R11:2@2-3
+R12:2@2-3
+END_OF_TEXT
+
+Marpa::Test::is($recce->old_show_or_nodes(), $or_node_output, "PP Or nodes");
+Marpa::Test::is($recce->show_or_nodes(), q{}, "XS Or nodes") if 0;
 
 1;    # In case used as "do" file
 

@@ -174,11 +174,10 @@ use constant SKIP => -1;
 
 use warnings;
 
-sub Marpa::XS::Recognizer::show_recce_and_node {
+sub Marpa::XS::Recognizer::old_show_and_node {
     my ( $recce, $and_node, $verbose ) = @_;
     $verbose //= 0;
-
-    my $text = "show_recce_and_node:\n";
+    my $text = q{};
 
     my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
@@ -258,9 +257,9 @@ sub Marpa::XS::Recognizer::show_recce_and_node {
 
     return $text;
 
-} ## end sub Marpa::XS::Recognizer::show_recce_and_node
+} ## end sub Marpa::XS::Recognizer::old_show_and_node
 
-sub Marpa::XS::Recognizer::show_recce_or_node {
+sub Marpa::XS::Recognizer::old_show_or_node {
     my ( $recce, $or_node, $verbose, ) = @_;
     $verbose //= 0;
 
@@ -273,7 +272,7 @@ sub Marpa::XS::Recognizer::show_recce_or_node {
     my $or_node_id  = $or_node->[Marpa::XS::Internal::Or_Node::ID];
     my $or_node_tag = $or_node->[Marpa::XS::Internal::Or_Node::TAG];
 
-    my $text = "show_recce_or_node o$or_node_id:\n";
+    my $text = q{};
 
     my $rule             = $rules->[$rule_id];
     my $original_rule_id = $grammar_c->rule_original($rule_id);
@@ -284,6 +283,10 @@ sub Marpa::XS::Recognizer::show_recce_or_node {
     my $and_nodes = $recce->[Marpa::XS::Internal::Recognizer::AND_NODES];
 
     LIST_AND_NODES: {
+
+	# turn this off for now
+        last LIST_AND_NODES;
+
         my $and_node_ids =
             $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS];
         if ( not defined $and_node_ids ) {
@@ -302,7 +305,7 @@ sub Marpa::XS::Recognizer::show_recce_or_node {
                 $text .= $or_node_tag
                     . "o$or_node_id: $or_node_tag -> $and_node_tag\n";
             }
-            $text .= $recce->show_recce_and_node( $and_node, $verbose );
+            $text .= $recce->old_show_and_node( $and_node, $verbose );
         } ## end for my $index ( 0 .. $#{$and_node_ids} )
     } ## end LIST_AND_NODES:
 
@@ -328,21 +331,49 @@ sub Marpa::XS::Recognizer::show_recce_or_node {
 
     return $text;
 
-} ## end sub Marpa::XS::Recognizer::show_recce_or_node
+} ## end sub Marpa::XS::Recognizer::old_show_or_node
 
 sub Marpa::XS::Recognizer::old_show_or_nodes {
     my ($recce, $verbose) = @_;
     my $text;
+    my @data = ();
     my $or_nodes  = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
     for my $or_node (@{$or_nodes}) {
-         $text .= $recce->show_recce_or_node($or_node, $verbose);
+	my $set = $or_node->[Marpa::XS::Internal::Or_Node::SET];
+	my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
+	my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
+	my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
+        my $desc = 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
+        push @data, [$origin, $set, $rule, $position, $desc];
     }
-    return $text;
+    my @sorted_data = map { $_->[-1] } sort {
+        $a->[0] <=> $b->[0]
+	or $a->[1] <=> $b->[1]
+	or $a->[2] <=> $b->[2]
+	or $a->[3] <=> $b->[3]
+    } @data;
+    return (join "\n", @sorted_data) . "\n";;
 }
 
 sub Marpa::XS::Recognizer::show_or_nodes {
-     return q{};
+    my ($recce, $verbose) = @_;
+    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $text;
+    my @data = ();
+    my $id = 0;
+    while (my ($origin, $set, $rule, $position) = $recce_c->or_node($id++)) {
+        my $desc = 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
+        push @data, [$origin, $set, $rule, $position, $desc];
+    }
+    my @sorted_data = map { $_->[-1] } sort {
+        $a->[0] <=> $b->[0]
+	or $a->[1] <=> $b->[1]
+	or $a->[2] <=> $b->[2]
+	or $a->[3] <=> $b->[3]
+    } @data;
+    return (join "\n", @sorted_data) . "\n";;
 }
+
 
 sub Marpa::XS::brief_iteration_node {
     my ($iteration_node) = @_;
@@ -1401,6 +1432,7 @@ sub Marpa::XS::Recognizer::value {
 
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
 
+    $recce_c->eval_clear();
     if ( not defined $recce_c->eval_setup(-1, -1) ) {
         Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
     }

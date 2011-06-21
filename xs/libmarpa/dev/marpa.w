@@ -773,6 +773,7 @@ const struct marpa_g *g, const Marpa_Symbol_ID symid);
 @*0 The Grammar's Rule List.
 This lists the rules for the grammar,
 with their |Marpa_Rule_ID| as the index.
+@d RULE_Count_of_G(g) ((g)->t_rules->len)
 @<Widely aligned grammar elements@> = GArray* t_rules;
 @ @<Initialize grammar elements@> =
 g->t_rules = g_array_new(FALSE, FALSE, sizeof(RULE));
@@ -787,14 +788,6 @@ GArray *marpa_g_rules_peek(struct marpa_g* g)
 { return g->t_rules; }
 @ @<Public function prototypes@> =
 GArray *marpa_g_rules_peek(struct marpa_g* g);
-
-@ Rule count accesor.
-@<Function definitions@> =
-static inline gint rule_count(const struct marpa_g* g) {
-   return g->t_rules->len;
-}
-@ @<Private function prototypes@> =
-static inline gint rule_count(const struct marpa_g* g);
 
 @ Internal accessor to find a rule by its id.
 @d RULE_by_ID(g, id) (g_array_index((g)->t_rules, RULE, (id)))
@@ -2695,7 +2688,7 @@ for (symid = 0; symid < no_of_symbols; symid++) {
      matrix_bit_set(reach_matrix, symid, symid);
 } }
 { Marpa_Rule_ID rule_id;
-guint no_of_rules = rule_count(g);
+guint no_of_rules = RULE_Count_of_G(g);
 for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
      RULE  rule = RULE_by_ID(g, rule_id);
      Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
@@ -2810,7 +2803,7 @@ static inline struct marpa_g* CHAF_rewrite(struct marpa_g* g)
     @<CHAF rewrite declarations@>@;
     @<CHAF rewrite allocations@>@;
      @<Alias proper nullables@>@;
-    no_of_rules = rule_count(g);
+    no_of_rules = RULE_Count_of_G(g);
     for (rule_id = 0; rule_id < no_of_rules; rule_id++) {
          RULE  rule = RULE_by_ID(g, rule_id);
 	 const guint rule_length = Length_of_RULE(rule);
@@ -3338,7 +3331,7 @@ as well as a final message with the count of looping symbols.
 @<Function definitions@> =
 static inline
 void loop_detect(struct marpa_g* g)
-{ guint no_of_rules = rule_count(g);
+{ guint no_of_rules = RULE_Count_of_G(g);
 gint loop_rule_count = 0;
 Bit_Matrix unit_transition_matrix
     = matrix_create( no_of_rules , no_of_rules);
@@ -3682,7 +3675,7 @@ static inline
 void create_AHFA_items(GRAMMAR g) {
     RULEID rule_id;
     guint no_of_items;
-    guint no_of_rules = rule_count(g);
+    guint no_of_rules = RULE_Count_of_G(g);
     AIM base_item = g_new(struct s_AHFA_item, Size_of_G(g));
     AIM current_item = base_item;
     guint symbol_instance_count = 0;
@@ -4282,7 +4275,7 @@ void create_AHFA_states(struct marpa_g* g) {
    const guint initial_no_of_states = 2*Size_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
    const guint symbol_count_of_g = SYM_Count_of_G(g);
-   const guint rule_count_of_g = rule_count(g);
+   const guint rule_count_of_g = RULE_Count_of_G(g);
    Bit_Matrix prediction_matrix;
    RULE* rule_by_sort_key = g_new(RULE, rule_count_of_g);
     GTree* duplicates;
@@ -5350,6 +5343,7 @@ struct marpa_r* marpa_r_new( const struct marpa_g* const g )
     r->t_grammar = g;
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
+MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     if (!G_is_Precomputed(g)) {
 	R_ERROR("grammar not precomputed");
 	return failure_indicator;
@@ -5417,11 +5411,10 @@ enum marpa_phase {
 };
 typedef enum marpa_phase Marpa_Phase;
 @ @d Phase_of_R(r) ((r)->t_phase)
-@d LV_Phase_of_R(r) Phase_of_R(r)
 @<Int aligned recognizer elements@> = 
 Marpa_Phase t_phase;
 @ @<Initialize recognizer elements@> =
-LV_Phase_of_R(r) = initial_phase;
+Phase_of_R(r) = initial_phase;
 @ @<Public function prototypes@> =
 Marpa_Phase marpa_phase(struct marpa_r* r);
 @ @<Function definitions@> =
@@ -7883,7 +7876,7 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
     psar_reset(Dot_PSAR_of_R(r));
     @<Allocate recognizer's bit vectors for symbols@>@;
     @<Initialize Earley item work stacks@>@;
-    LV_Phase_of_R(r) = input_phase;
+    Phase_of_R(r) = input_phase;
     LV_Current_Earleme_of_R(r) = 0;
     set0 = earley_set_new(r, 0);
     LV_Latest_ES_of_R(r) = set0;
@@ -9341,15 +9334,15 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     const gint no_parse = -1;
     const gint null_parse = 0;
     @<Bocage setup locals@>@;
-MARPA_OFF_DEBUG2("marpa_bocage_new, b=%p", B_of_R(r));
     r_update_earley_sets(r);
+MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
-    b = g_slice_new(BOC_Object);
-MARPA_OFF_DEBUG2("Allocated bocage %p", b);
+    b = B_of_R(r) = g_slice_new(BOC_Object);
+MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Initialize bocage elements@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
-    LV_Phase_of_R(r) = evaluation_phase;
+    Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
     @<Traverse Earley sets to create bocage@>@;
@@ -9387,6 +9380,7 @@ set |end_of_parse_es| and |completed_start_rule|@> =
 {
     EARLEME end_of_parse_earleme;
     @<Fail if recognizer has fatal error@>@;
+MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     if (B_of_R(r)) {
 	R_ERROR ("bocage in use");
 	return failure_indicator;
@@ -10219,29 +10213,32 @@ to make sense.
     }
 }
 
-@ @<Public function prototypes@> =
+@ This function is safe to call even
+if the bocage already has been freed,
+or was never initialized.
+@<Public function prototypes@> =
 gint marpa_bocage_free(struct marpa_r* r);
 @ @<Function definitions@> =
 gint marpa_bocage_free(struct marpa_r* r) {
     @<Return |-2| on failure@>@;
     @<Fail if recognizer has fatal error@>@;
-    if (Phase_of_R(r) != evaluation_phase) {
-	R_ERROR("recce not being evaluated");
-	return failure_indicator;
+    if (Phase_of_R(r) == evaluation_phase) { /* Reset phase if evaluating.
+	    Otherwise leave phase untouched */
+	Phase_of_R(r) = input_phase;
     }
-    LV_Phase_of_R(r) = input_phase;
     @<Free bocage@>@;
     return 1;
 }
 
 @ @<Free bocage@> = {
     BOC b = B_of_R(r);
-MARPA_OFF_DEBUG2("Freeing bocage %p", b);
+MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     if (b) {
 	@<Destroy bocage elements, all phases@>;
 	g_slice_free(BOC_Object, b);
 	B_of_R(r) = NULL;
     }
+MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 }
 
 @*0 Trace Functions.
@@ -10255,6 +10252,7 @@ gint marpa_or_node(struct marpa_r *r, int or_node_id, int or_data[6])
   OR or_nodes;
   @<Return |-2| on failure@>@;
   @<Fail if recognizer has fatal error@>@;
+MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
   if (Phase_of_R(r) != evaluation_phase) {
     R_ERROR("recce not being evaluated");
     return failure_indicator;
@@ -11717,7 +11715,7 @@ internal matters on |STDERR|.
 #define MARPA_DEBUG3(a, b, c) @[ g_debug((a),(b),(c)) @]
 #define MARPA_DEBUG4(a, b, c, d) @[ g_debug((a),(b),(c),(d)) @]
 #define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
-       g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0)
+       g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
 #define MARPA_DEBUG1(a) @[@]
 #define MARPA_DEBUG2(a, b) @[@]
@@ -11729,7 +11727,7 @@ internal matters on |STDERR|.
 #if MARPA_ENABLE_ASSERT
 #undef MARPA_ASSERT
 #define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
-       g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0)
+       g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #endif
 
 @*0 Earley Item Tag.

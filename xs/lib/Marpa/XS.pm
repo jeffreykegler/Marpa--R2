@@ -111,6 +111,8 @@ require Marpa::XS::Callback;
 *Marpa::Grammar::show_rules = \&Marpa::XS::Grammar::show_rules;
 *Marpa::Grammar::show_symbol = \&Marpa::XS::Grammar::show_symbol;
 *Marpa::Grammar::show_symbols = \&Marpa::XS::Grammar::show_symbols;
+*Marpa::Recognizer::old_show_or_node = \&Marpa::XS::Recognizer::old_show_or_node;
+*Marpa::Recognizer::old_show_and_node = \&Marpa::XS::Recognizer::old_show_and_node;
 *Marpa::Recognizer::alternative = \&Marpa::XS::Recognizer::alternative;
 *Marpa::Recognizer::check_terminal = \&Marpa::XS::Recognizer::check_terminal;
 *Marpa::Recognizer::current_earleme = \&Marpa::XS::Recognizer::current_earleme;
