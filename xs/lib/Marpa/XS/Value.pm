@@ -361,7 +361,9 @@ sub Marpa::XS::Recognizer::show_or_nodes {
     my $text;
     my @data = ();
     my $id = 0;
-    while (my ($origin, $set, $rule, $position) = $recce_c->or_node($id++)) {
+    OR_NODE: for (;;) {
+	my ($origin, $set, $rule, $position) = $recce_c->or_node($id++);
+	last OR_NODE if not defined $origin;
         my $desc = 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
         push @data, [$origin, $set, $rule, $position, $desc];
     }
@@ -1432,11 +1434,6 @@ sub Marpa::XS::Recognizer::value {
 
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
 
-    $recce_c->eval_clear();
-    if ( not defined $recce_c->eval_setup(-1, -1) ) {
-        Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
-    }
-
     my $parse_set_arg = $recce->[Marpa::XS::Internal::Recognizer::END];
 
     my $trace_tasks = $recce->[Marpa::XS::Internal::Recognizer::TRACE_TASKS];
@@ -1462,6 +1459,13 @@ sub Marpa::XS::Recognizer::value {
     my $max_parses  = $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES];
     if ( $max_parses and $parse_count > $max_parses ) {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
+    }
+
+    if (not $parse_count) {
+	$recce_c->eval_clear();
+	if ( not defined $recce_c->eval_setup(-1, -1) ) {
+	    Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
+	}
     }
 
     for my $arg_hash (@arg_hashes) {

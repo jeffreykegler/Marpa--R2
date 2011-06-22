@@ -9687,14 +9687,18 @@ MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
       or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
 	{
+	  const RULE rule = RULE_of_AIM(ahfa_item);
+	  gint position = Position_of_AIM(ahfa_item);
+	  if (position < 0) position = Length_of_RULE(rule);
 MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
 MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  or_node = next_or_node++;
 	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = or_node;
 	  Start_ES_Ord_of_OR(or_node) = Origin_Ord_of_EIM(earley_item);
 	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
-	  RULE_of_OR(or_node) = RULE_of_AIM(ahfa_item);
-	  Position_of_OR(or_node) = Position_of_AIM(ahfa_item);
+	  RULE_of_OR(or_node) = rule;
+MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
+	  Position_of_OR(or_node) = position;
 	  DANDs_of_OR(or_node) = NULL;
 MARPA_OFF_DEBUG3("Created or-node %s for symi=%d", or_tag(or_node),
       ahfa_item_symbol_instance);
@@ -9738,6 +9742,7 @@ MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
 		Start_ES_Ord_of_OR (or_node) = origin_ordinal;
 		ES_Ord_of_OR (or_node) = earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
+MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = position;
 		draft_and_node = DANDs_of_OR (or_node) =
 		  draft_and_node_new (&bocage_setup_obs, predecessor, cause);
@@ -9861,12 +9866,16 @@ MARPA_ASSERT(leo_path_item_symbol_instance < SYMI_Count_of_G(g))@;
 	  const TRANS transition = TRANS_of_EIM_by_SYMID (base_item, postdot);
 	  const AEX base_aex = Leo_Base_AEX_of_TRANS (transition);
           const AIM path_ahfa_item = AIM_of_EIM_by_AEX(base_item, base_aex);
+	  const RULE rule = RULE_of_AIM(path_ahfa_item);
+	  gint position = Position_of_AIM(path_ahfa_item);
+	  if (position < 0) position = Length_of_RULE(rule);
 MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  or_node = next_or_node++;
 	  Start_ES_Ord_of_OR(or_node) = leo_path_origin_ordinal;
 	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
-	  RULE_of_OR(or_node) = RULE_of_AIM(path_ahfa_item);
-	  Position_of_OR(or_node) = Position_of_AIM(path_ahfa_item);
+	  RULE_of_OR(or_node) = rule;
+MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
+	  Position_of_OR(or_node) = position;
 	  DANDs_of_OR(or_node) = NULL;
 MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 	}
@@ -9910,6 +9919,7 @@ or-nodes follow a completion.
 		Start_ES_Ord_of_OR (or_node) = leo_origin_ordinal;
 		ES_Ord_of_OR (or_node) = earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
+MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = position;
 		DANDs_of_OR (or_node)
 		    = draft_and_node
@@ -10244,9 +10254,9 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 @*0 Trace Functions.
 
 @ @<Private function prototypes@> =
-gint marpa_or_node(struct marpa_r *r, int or_node_id, int or_data[6]);
+gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data);
 @ @<Function definitions@> =
-gint marpa_or_node(struct marpa_r *r, int or_node_id, int or_data[6])
+gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
 {
   BOC b = B_of_R(r);
   OR or_nodes;
@@ -10270,7 +10280,9 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
       R_ERROR("bad or node id");
       return failure_indicator;
   }
-  if (or_node_id > OR_Count_of_B(b)) {
+MARPA_DEBUG3("or_node_id=%d OR_Count_of_B=%d", or_node_id,
+       OR_Count_of_B(b));
+  if (or_node_id >= OR_Count_of_B(b)) {
       return -1;
   }
   {
@@ -10278,6 +10290,7 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
       or_data[0] = Start_ES_Ord_of_OR(or_node);
       or_data[1] = ES_Ord_of_OR(or_node);
       or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
+MARPA_DEBUG3("Read rule %p from or-node %p", RULE_of_OR(or_node), or_node);
       or_data[3] = Position_of_OR(or_node);
       or_data[4] = 0; /* Count of and-nodes */
       or_data[5] = 0; /* ID of first and-node */
@@ -11707,8 +11720,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
-#define MARPA_ENABLE_ASSERT @[ 0 @]
+#define MARPA_DEBUG @[ 1 @]
+#define MARPA_ENABLE_ASSERT @[ 1 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]

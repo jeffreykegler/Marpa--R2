@@ -23,7 +23,7 @@
 #undef G_LOG_DOMAIN
 #define G_LOG_DOMAIN "Marpa"
 
-#define DEBUG 0
+#define DEBUG 1
 #if !DEBUG
 #if defined(G_HAVE_GNUC_VARARGS)
 #undef g_debug
@@ -1547,12 +1547,14 @@ PPCODE:
     const gint data_count = 6;
     gint data[data_count];
     gint result = marpa_or_node(r, or_node_id, data);
+    g_debug("result=%d", result);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result <= -2) { croak("Problem in r->or_node(): %s", marpa_r_error(r)); }
     {
         guint ix;
         EXTEND(SP, data_count);
         for (ix = 0; ix < data_count; ix++) {
+	    g_debug("ix=%d %d", ix, data[ix]);
             PUSHs( sv_2mortal( newSViv(data[ix]) ) );
         }
     }
