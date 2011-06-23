@@ -9681,8 +9681,6 @@ MARPA_OFF_DEBUG3("%s ahfa_item_symbol_instance = %d", G_STRLOC, ahfa_item_symbol
   if (ahfa_item_symbol_instance >= 0)
     {
       OR or_node;
-MARPA_OFF_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
-MARPA_OFF_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
 MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
       or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != earley_set_ordinal)
@@ -9697,11 +9695,11 @@ MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  Start_ES_Ord_of_OR(or_node) = Origin_Ord_of_EIM(earley_item);
 	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
 	  RULE_of_OR(or_node) = rule;
-MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 	  Position_of_OR(or_node) = position;
+MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
+MARPA_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
+MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 	  DANDs_of_OR(or_node) = NULL;
-MARPA_OFF_DEBUG3("Created or-node %s for symi=%d", or_tag(or_node),
-      ahfa_item_symbol_instance);
 	}
     }
 }
@@ -9732,8 +9730,8 @@ and this is the case if |Position_of_OR(or_node) == 0|.
 MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
 	  if (!or_node || ES_Ord_of_OR (or_node) != earley_set_ordinal) {
 		DAND draft_and_node;
-		const gint position = symbol_instance - symbol_instance_of_rule;
-		const OR predecessor = position > 0 ? next_or_node - 1 : NULL;
+		const gint position = symbol_instance - symbol_instance_of_rule + 1;
+		const OR predecessor = position > 1 ? next_or_node - 1 : NULL;
 		const OR cause = (OR) SYM_by_ID (g, RHS_ID_of_RULE (rule, position));
 		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate)@;
 MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
@@ -9744,6 +9742,7 @@ MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
 		RULE_of_OR (or_node) = rule;
 MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = position;
+MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 		draft_and_node = DANDs_of_OR (or_node) =
 		  draft_and_node_new (&bocage_setup_obs, predecessor, cause);
 MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
@@ -9874,8 +9873,8 @@ MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  Start_ES_Ord_of_OR(or_node) = leo_path_origin_ordinal;
 	  ES_Ord_of_OR(or_node) = earley_set_ordinal;
 	  RULE_of_OR(or_node) = rule;
-MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 	  Position_of_OR(or_node) = position;
+MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 	  DANDs_of_OR(or_node) = NULL;
 MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 	}
@@ -9909,25 +9908,25 @@ or-nodes follow a completion.
 		DAND draft_and_node;
 		OR predecessor = next_or_node - 1; /* Leo path Earley items are never predictions,
 		   so that there is always a predecessor */
-		const gint position = symbol_instance - symbol_instance_of_rule;
-		const OR cause = (OR) SYM_by_ID (g, RHS_ID_of_RULE (rule, position));
-		MARPA_ASSERT (position < Length_of_RULE (rule))@;
-		MARPA_ASSERT (position >= 0)@;
+		const gint position = symbol_instance - symbol_instance_of_rule + 1;
+		const OR cause = (OR) SYM_by_ID (g, RHS_ID_of_RULE (rule, position-1));
+		MARPA_ASSERT (position <= Length_of_RULE (rule))@;
+		MARPA_ASSERT (position >= 1)@;
 		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate)@;
 		or_node = next_or_node++;
 		PSL_Datum (or_psl, symbol_instance) = or_node;
 		Start_ES_Ord_of_OR (or_node) = leo_origin_ordinal;
 		ES_Ord_of_OR (or_node) = earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
-MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = position;
+MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 		DANDs_of_OR (or_node)
 		    = draft_and_node
 		    = draft_and_node_new(&bocage_setup_obs, predecessor, cause);
 MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 		Next_DAND_of_DAND (draft_and_node) = NULL;
 	      }
-	  MARPA_ASSERT (Position_of_OR(or_node) <
+	  MARPA_ASSERT (Position_of_OR(or_node) <=
 	      SYMI_of_RULE(rule) + Length_of_RULE(rule))@;
 	  MARPA_ASSERT (Position_of_OR(or_node) >= SYMI_of_RULE(rule))@;
 	  }
