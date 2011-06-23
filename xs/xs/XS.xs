@@ -23,7 +23,7 @@
 #undef G_LOG_DOMAIN
 #define G_LOG_DOMAIN "Marpa"
 
-#define DEBUG 1
+#define DEBUG 0
 #if !DEBUG
 #if defined(G_HAVE_GNUC_VARARGS)
 #undef g_debug
@@ -825,7 +825,6 @@ PPCODE:
     Grammar *g = g_wrapper->g;
     GArray* const gint_array = g_wrapper->gint_array;
     const gint result = marpa_AHFA_state_transitions(g, AHFA_state_id, gint_array);
-    g_debug("%d result=%d", __LINE__, result);
     if (result < 0) {
 	  croak ("Problem in AHFA_state_transitions(): %s", marpa_g_error (g));
     }
@@ -1547,14 +1546,12 @@ PPCODE:
     const gint data_count = 6;
     gint data[data_count];
     gint result = marpa_or_node(r, or_node_id, data);
-    g_debug("result=%d", result);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result <= -2) { croak("Problem in r->or_node(): %s", marpa_r_error(r)); }
     {
         guint ix;
         EXTEND(SP, data_count);
         for (ix = 0; ix < data_count; ix++) {
-	    g_debug("ix=%d %d", ix, data[ix]);
             PUSHs( sv_2mortal( newSViv(data[ix]) ) );
         }
     }
