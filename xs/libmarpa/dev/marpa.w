@@ -9801,6 +9801,7 @@ void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause
     case SOURCE_IS_LEO:
       leo_predecessor = Predecessor_of_EIM (earley_item);
       cause_earley_item = Cause_of_EIM (earley_item);
+      MARPA_DEBUG2("Unique Leo source: cause=%s", eim_tag(cause_earley_item));
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = First_Leo_SRCL_of_EIM (earley_item);
@@ -9808,6 +9809,7 @@ void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
 	  cause_earley_item = Cause_of_SRCL (source_link);
+      MARPA_DEBUG2("Ambiguous Leo source: cause=%s", eim_tag(cause_earley_item));
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
       break;
@@ -9818,6 +9820,7 @@ void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause
 	    if (!source_link) break;
 	    leo_predecessor = Predecessor_of_SRCL (source_link);
 	    cause_earley_item = Cause_of_SRCL (source_link);
+      MARPA_DEBUG2("Additional Leo source: cause=%s", eim_tag(cause_earley_item));
 	    source_link = Next_SRCL_of_SRCL (source_link);
 	}
     }
@@ -9871,6 +9874,7 @@ MARPA_ASSERT(leo_path_item_symbol_instance < SYMI_Count_of_G(g))@;
 	  const RULE rule = RULE_of_AIM(path_ahfa_item);
 	  gint dot_position = Position_of_AIM(path_ahfa_item);
 	  if (dot_position < 0) dot_position = Length_of_RULE(rule);
+MARPA_DEBUG4("base_eim=%s base_aex=%d rule=%d", eim_tag(base_item), base_aex, ID_of_RULE(rule));
 MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  or_node = next_or_node++;
 	  Start_ES_Ord_of_OR(or_node) = leo_path_origin_ordinal;
@@ -11719,8 +11723,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
-#define MARPA_ENABLE_ASSERT @[ 0 @]
+#define MARPA_DEBUG @[ 1 @]
+#define MARPA_ENABLE_ASSERT @[ 1 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]

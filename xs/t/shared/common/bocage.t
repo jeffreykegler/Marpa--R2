@@ -436,7 +436,7 @@ R12:2@2-3
 END_OF_TEXT
 
 Marpa::Test::is($recce->old_show_or_nodes(), $or_node_output, "PP Or nodes");
-Marpa::Test::is($recce->show_or_nodes(), q{}, "XS Or nodes") if 0;
+Marpa::Test::is($recce->show_or_nodes(), $or_node_output, "XS Or nodes");
 
 1;    # In case used as "do" file
 
