@@ -4338,6 +4338,7 @@ NEXT_AHFA_STATE: ;
 {
      gint ahfa_id;
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
+	  MARPA_DEBUG2("Populating completed symbol data for ahfa_id=%d", ahfa_id);
 	  guint symbol_id;
 	  AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
           TRANS* const transitions = TRANSs_of_AHFA(ahfa);
@@ -4345,6 +4346,7 @@ NEXT_AHFA_STATE: ;
 	       TRANS working_transition = transitions[symbol_id];
 	       if (working_transition) {
 		   gint completion_count = Completion_Count_of_TRANS(working_transition);
+MARPA_DEBUG4("Initial Count is %d for ahfa_id=%d sym=%d", completion_count, ahfa_id, symbol_id);
 		   gint sizeof_transition =
 		       G_STRUCT_OFFSET (struct s_transition, t_aex) + completion_count *
 		       sizeof (transitions[0]->t_aex[0]);
@@ -4365,6 +4367,8 @@ NEXT_AHFA_STATE: ;
 		      TRANS transition = transitions[completed_symbol_id];
 		      AEX* aexes = AEXs_of_TRANS(transition);
 		      gint aex_ix = LV_Completion_Count_of_TRANS(transition)++;
+MARPA_DEBUG4("Added completion aex at %d for ahfa_id=%d sym=%d",
+    aex_ix, ahfa_id, completed_symbol_id);
 		      aexes[aex_ix] = aex;
 		  }
 	      }
@@ -6573,7 +6577,6 @@ For this reason, Leo items contain an Earley index,
 but one
 with a |NULL| Earley item pointer.
 @d Postdot_SYMID_of_LIM(leo) (Postdot_SYMID_of_EIX(EIX_of_LIM(leo)))
-@d LV_Postdot_SYMID_of_LIM(leo) Postdot_SYMID_of_LIM(leo)
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_EIX(EIX_of_LIM(leo)))
 @d LV_Next_PIM_of_LIM(leo) Next_PIM_of_LIM(leo)
 @d Origin_of_LIM(leo) ((leo)->t_origin)
@@ -8455,7 +8458,7 @@ once it is populated.
 @<Create a new, unpopulated, LIM@> = {
     LIM new_lim;
     new_lim = obstack_alloc(&r->t_obs, sizeof(*new_lim));
-    LV_Postdot_SYMID_of_LIM(new_lim) = symid;
+    Postdot_SYMID_of_LIM(new_lim) = symid;
     LV_EIM_of_PIM(new_lim) = NULL;
     LV_Predecessor_LIM_of_LIM(new_lim) = NULL;
     LV_Origin_of_LIM(new_lim) = NULL;
@@ -9494,12 +9497,11 @@ G_STRLOC, eim_tag(ur_earley_item), ur_aex);
 	    const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
 	    MARPA_ASSERT(parent_aim >= AIM_by_ID(g, 1))@;
 	    const AIM predecessor_aim = parent_aim - 1;
-	    const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
 	    /* Note that the postdot symbol of the predecessor is NOT necessarily the
 	       predot symbol, because there may be nulling symbols in between. */
 	    guint source_type = Source_Type_of_EIM (parent_earley_item);
 	    MARPA_ASSERT(!EIM_is_Predicted(parent_earley_item))@;
-	    MARPA_OFF_DEBUG3("parent_earley_item=%s, parent_aex=%d",
+	    MARPA_DEBUG3("parent_earley_item=%s, parent_aex=%d",
 		eim_tag(parent_earley_item),
 		parent_aex);
 	    @<Push child Earley items from token sources@>@;
@@ -9699,6 +9701,7 @@ MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
 	  const RULE rule = RULE_of_AIM(ahfa_item);
 	  gint position = Position_of_AIM(ahfa_item);
 	  if (position < 0) position = Length_of_RULE(rule);
+	  position -= Null_Count_of_AIM(ahfa_item);
 MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
 MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  or_node = next_or_node++;
@@ -9731,8 +9734,11 @@ and this is the case if |Position_of_OR(or_node) == 0|.
     {
       const RULE rule = RULE_of_AIM (ahfa_item);
       const gint symbol_instance_of_rule = SYMI_of_RULE(rule);
+MARPA_DEBUG3("%s symbol_instance_of_rule=%d", G_STRLOC, symbol_instance_of_rule);
+MARPA_DEBUG3("%s afta_item_symbol_instance=%d", G_STRLOC, ahfa_item_symbol_instance);
       const gint first_null_symbol_instance =
 	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
+MARPA_DEBUG3("%s first_null_symbol_instance=%d", G_STRLOC, first_null_symbol_instance);
       gint i;
       for (i = 0; i < null_count; i++)
 	{
@@ -10047,6 +10053,7 @@ G_STRLOC, eim_tag(predecessor_earley_item), predecessor_aex);
   SRCL source_link = NULL;
   EIM predecessor_earley_item = NULL;
   EIM cause_earley_item = NULL;
+  const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
@@ -10089,6 +10096,11 @@ G_STRLOC, eim_tag(ur_earley_item), ur_aex);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       const EIM ur_earley_item = cause_earley_item;
       gint ix;
+MARPA_DEBUG4("%s: TRANS of %s, sym=%d", G_STRLOC,
+    eim_tag(cause_earley_item), transition_symbol_id);
+MARPA_DEBUG4("%s: aexes=%p, aex_count=%d", G_STRLOC, aexes, aex_count);
+	    MARPA_DEBUG3("%s transition_symbol_id=%d",
+		G_STRLOC, transition_symbol_id);
       for (ix = 0; ix < aex_count; ix++) {
 	  const AEX ur_aex = aexes[ix];
 	  const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
@@ -10127,12 +10139,18 @@ G_STRLOC, eim_tag(ur_earley_item), ur_aex);
     }
   while (cause_earley_item)
     {
+      const SYMID transition_symbol_id = Postdot_SYMID_of_LIM(leo_predecessor);
       const TRANS cause_completion_data =
 	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
       const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       gint ix;
       EIM ur_earley_item = cause_earley_item;
+MARPA_DEBUG3("%s: Processing Leo source link, cause is %s",
+G_STRLOC, eim_tag(cause_earley_item));
+MARPA_DEBUG4("%s: TRANS of %s, sym=%d", G_STRLOC,
+    eim_tag(cause_earley_item), transition_symbol_id);
+MARPA_DEBUG4("%s: aexes=%p, aex_count=%d", G_STRLOC, aexes, aex_count);
       for (ix = 0; ix < aex_count; ix++) {
 	  const AEX ur_aex = aexes[ix];
 	  const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
@@ -10243,13 +10261,13 @@ gint marpa_bocage_free(struct marpa_r* r) {
 
 @ @<Free bocage@> = {
     BOC b = B_of_R(r);
-MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
+MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     if (b) {
 	@<Destroy bocage elements, all phases@>;
 	g_slice_free(BOC_Object, b);
 	B_of_R(r) = NULL;
     }
-MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
+MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 }
 
 @*0 Trace Functions.
@@ -10263,7 +10281,7 @@ gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
   OR or_nodes;
   @<Return |-2| on failure@>@;
   @<Fail if recognizer has fatal error@>@;
-MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
+MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
   if (Phase_of_R(r) != evaluation_phase) {
     R_ERROR("recce not being evaluated");
     return failure_indicator;
@@ -10281,8 +10299,6 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
       R_ERROR("bad or node id");
       return failure_indicator;
   }
-MARPA_DEBUG3("or_node_id=%d OR_Count_of_B=%d", or_node_id,
-       OR_Count_of_B(b));
   if (or_node_id >= OR_Count_of_B(b)) {
       return -1;
   }
@@ -10291,7 +10307,6 @@ MARPA_DEBUG3("or_node_id=%d OR_Count_of_B=%d", or_node_id,
       or_data[0] = Start_ES_Ord_of_OR(or_node);
       or_data[1] = ES_Ord_of_OR(or_node);
       or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
-MARPA_DEBUG3("Read rule %p from or-node %p", RULE_of_OR(or_node), or_node);
       or_data[3] = Position_of_OR(or_node);
       or_data[4] = 0; /* Count of and-nodes */
       or_data[5] = 0; /* ID of first and-node */
@@ -11721,8 +11736,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 1 @]
-#define MARPA_ENABLE_ASSERT @[ 1 @]
+#define MARPA_DEBUG @[ 0 @]
+#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
