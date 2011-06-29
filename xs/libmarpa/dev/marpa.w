@@ -4338,7 +4338,6 @@ NEXT_AHFA_STATE: ;
 {
      gint ahfa_id;
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
-	  MARPA_DEBUG2("Populating completed symbol data for ahfa_id=%d", ahfa_id);
 	  guint symbol_id;
 	  AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
           TRANS* const transitions = TRANSs_of_AHFA(ahfa);
@@ -4346,7 +4345,6 @@ NEXT_AHFA_STATE: ;
 	       TRANS working_transition = transitions[symbol_id];
 	       if (working_transition) {
 		   gint completion_count = Completion_Count_of_TRANS(working_transition);
-MARPA_DEBUG4("Initial Count is %d for ahfa_id=%d sym=%d", completion_count, ahfa_id, symbol_id);
 		   gint sizeof_transition =
 		       G_STRUCT_OFFSET (struct s_transition, t_aex) + completion_count *
 		       sizeof (transitions[0]->t_aex[0]);
@@ -9734,11 +9732,8 @@ and this is the case if |Position_of_OR(or_node) == 0|.
     {
       const RULE rule = RULE_of_AIM (ahfa_item);
       const gint symbol_instance_of_rule = SYMI_of_RULE(rule);
-MARPA_DEBUG3("%s symbol_instance_of_rule=%d", G_STRLOC, symbol_instance_of_rule);
-MARPA_DEBUG3("%s afta_item_symbol_instance=%d", G_STRLOC, ahfa_item_symbol_instance);
       const gint first_null_symbol_instance =
 	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
-MARPA_DEBUG3("%s first_null_symbol_instance=%d", G_STRLOC, first_null_symbol_instance);
       gint i;
       for (i = 0; i < null_count; i++)
 	{
