@@ -73,6 +73,7 @@ pperl/Marpa/Perl.pm
 t/00-load.t
 t/02-load_pp.t
 t/Makefile
+t/infinite_plex.t
 t/null_infinite1.t
 t/shared/ah2.t
 t/shared/ah_numeric.t
@@ -95,7 +96,6 @@ t/shared/common/gabend.t
 t/shared/common/implementation.t
 t/shared/common/infinite.t
 t/shared/common/infinite2.t
-t/shared/common/infinite_plex.t
 t/shared/common/initial_nulls.t
 t/shared/common/leo.t
 t/shared/common/leo2.t
@@ -131,7 +131,6 @@ t/shared/gabend.t
 t/shared/implementation.t
 t/shared/infinite.t
 t/shared/infinite2.t
-t/shared/infinite_plex.t
 t/shared/initial_nulls.t
 t/shared/leo.t
 t/shared/leo2.t
