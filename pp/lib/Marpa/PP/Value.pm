@@ -1620,15 +1620,17 @@ sub Marpa::PP::Recognizer::value {
 
             if ( $ranking_method eq 'constant' ) {
                 push @task_list, [Marpa::PP::Internal::Task::RANK_ALL],
-                    [
-                    Marpa::PP::Internal::Task::POPULATE_DEPTH, 0,
-                    [$start_or_node]
-                    ],
-                    [
-                    Marpa::PP::Internal::Task::POPULATE_OR_NODE,
-                    $start_or_node
-                    ];
             } ## end if ( $ranking_method eq 'constant' )
+
+            push @task_list,
+                [
+                Marpa::PP::Internal::Task::POPULATE_DEPTH, 0,
+                [$start_or_node]
+                ],
+                [
+                Marpa::PP::Internal::Task::POPULATE_OR_NODE,
+                $start_or_node
+                ];
 
             next TASK;
 

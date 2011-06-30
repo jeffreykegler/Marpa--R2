@@ -1677,7 +1677,10 @@ sub Marpa::XS::Recognizer::value {
                 ];
 
             if ( $ranking_method eq 'constant' ) {
-                push @task_list, [Marpa::XS::Internal::Task::RANK_ALL],
+                push @task_list, [Marpa::XS::Internal::Task::RANK_ALL],;
+            }
+
+	    push @task_list,
                     [
                     Marpa::XS::Internal::Task::POPULATE_DEPTH, 0,
                     [$start_or_node]
@@ -1686,7 +1689,6 @@ sub Marpa::XS::Recognizer::value {
                     Marpa::XS::Internal::Task::POPULATE_OR_NODE,
                     $start_or_node
                     ];
-            } ## end if ( $ranking_method eq 'constant' )
 
             next TASK;
 

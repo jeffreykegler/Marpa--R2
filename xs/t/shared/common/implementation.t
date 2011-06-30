@@ -248,22 +248,21 @@ Marpa::Test::is( 49, $value, 'Implementation Example Value 2' );
 # start-after-line: END_TRACE_OUTPUT
 # end-before-line: '^END_TRACE_OUTPUT$'
 
-Marpa::Test::is( $trace_output,
-    <<'END_TRACE_OUTPUT', 'Implementation Example Trace Output' );
+my $expected_trace_output = <<'END_TRACE_OUTPUT';
 Pushed value from a12 T@0-1_Number: Number = \42
 Popping 1 values to evaluate a12 T@0-1_Number, rule: 2: Factor -> Number
 Calculated and pushed value: 42
-Pushed value from a10 R4:1@0-1T@1-2_Multiply: Multiply = \'*'
-Pushed value from a9 T@2-3_Number: Number = \1
-Popping 1 values to evaluate a9 T@2-3_Number, rule: 2: Factor -> Number
+Pushed value from a9 R4:1@0-1T@1-2_Multiply: Multiply = \'*'
+Pushed value from a10 T@2-3_Number: Number = \1
+Popping 1 values to evaluate a10 T@2-3_Number, rule: 2: Factor -> Number
 Calculated and pushed value: 1
 Popping 3 values to evaluate a8 R4:2@0-2F2@2-3, rule: 4: Factor -> Factor Multiply Factor
 Calculated and pushed value: 42
 Popping 1 values to evaluate a7 F4@0-3, rule: 1: Term -> Factor
 Calculated and pushed value: 42
-Pushed value from a5 R3:1@0-3T@3-4_Add: Add = \'+'
-Pushed value from a4 T@4-5_Number: Number = \7
-Popping 1 values to evaluate a4 T@4-5_Number, rule: 2: Factor -> Number
+Pushed value from a4 R3:1@0-3T@3-4_Add: Add = \'+'
+Pushed value from a6 T@4-5_Number: Number = \7
+Popping 1 values to evaluate a6 T@4-5_Number, rule: 2: Factor -> Number
 Calculated and pushed value: 7
 Popping 1 values to evaluate a3 F2@4-5, rule: 1: Term -> Factor
 Calculated and pushed value: 7
@@ -276,6 +275,13 @@ Symbol count is 1, now 1 rules
 END_TRACE_OUTPUT
 
 # Marpa::PP::Display::End
+
+$trace_output =~ s/ [ ] to [ ] evaluate [ ] a\d+ [ ] / to evaluate aNN /xmsg;
+$expected_trace_output =~ s/ [ ] to [ ] evaluate [ ] a\d+ [ ] / to evaluate aNN /xmsg;
+$trace_output =~ s/ [ ] value [ ] from [ ] a\d+ [ ] / value from aNN /xmsg;
+$expected_trace_output =~ s/ [ ] value [ ] from [ ] a\d+ [ ] / value from aNN /xmsg;
+Marpa::Test::is( $trace_output,
+    $expected_trace_output, 'Implementation Example Trace Output' );
 
 $recce->reset_evaluation();
 
