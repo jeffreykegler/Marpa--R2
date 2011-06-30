@@ -325,8 +325,7 @@ S4@8-9 [p=S7@8-8; c=S5@8-9]
 S5@8-9 [p=S7@8-8; s=Variable; t=\'e']
 END_EARLEY_SETS
 
-Marpa::Test::is( $trace_output,
-    <<'END_TRACE_OUTPUT', 'Leo Example Trace Output' );
+my $expected_trace_output = <<'END_TRACE_OUTPUT';
 Pushed value from a18 T@0-1_Variable: Variable = \'a'
 Popping 1 values to evaluate a18 T@0-1_Variable, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'a'
@@ -359,6 +358,13 @@ Calculated and pushed value: 'a=42 b=42 c=-5 d=6 e=3'
 New Virtual Rule: a0 F0@0-9, rule: 7: Statement['] -> Statement
 Symbol count is 1, now 1 rules
 END_TRACE_OUTPUT
+
+$trace_output =~ s/ [ ] to [ ] evaluate [ ] a\d+ [ ] / to evaluate aNN /xmsg;
+$expected_trace_output =~ s/ [ ] to [ ] evaluate [ ] a\d+ [ ] / to evaluate aNN /xmsg;
+$trace_output =~ s/ [ ] value [ ] from [ ] a\d+ [ ] / value from aNN /xmsg;
+$expected_trace_output =~ s/ [ ] value [ ] from [ ] a\d+ [ ] / value from aNN /xmsg;
+Marpa::Test::is( $trace_output,
+    $expected_trace_output, 'Leo Example Trace Output' );
 
 1;    # In case used as "do" file
 
