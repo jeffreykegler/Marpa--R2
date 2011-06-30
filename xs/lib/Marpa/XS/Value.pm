@@ -2432,7 +2432,8 @@ sub Marpa::XS::Recognizer::value {
 
             } ## end for my $link_work_item (@link_worklist)
 
-            my @child_and_nodes = values %and_node_data;
+            my @child_and_nodes =
+                map { $and_node_data{$_} } sort keys %and_node_data;
 
             for my $and_node (@child_and_nodes) {
 
@@ -2795,7 +2796,9 @@ sub Marpa::XS::Recognizer::value {
 
             # No or-nodes at next depth?
             # Great, we are done!
-            my @or_nodes_at_next_depth = values %or_nodes_at_next_depth;
+            my @or_nodes_at_next_depth =
+                map { $or_nodes_at_next_depth{$_} }
+                sort keys %or_nodes_at_next_depth;
             next TASK if not scalar @or_nodes_at_next_depth;
 
             push @task_list,
