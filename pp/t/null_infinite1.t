@@ -21,6 +21,7 @@ use warnings;
 
 use Test::More tests => 4;
 
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
@@ -79,17 +80,18 @@ $grammar->precompute();
 # changes as anything.
 # So I do not treat the difference as a bug.
 
-my @expected2 = ();
-my @expected3 = ();
-if ($Marpa::USING_PP) {
-    say STDERR "USING_PP";
-    push @expected2, qw{
+my @expected2 = qw{
         S(-;f(S(n(A);f(S(-;f(A))))))
         S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))
         S(-;f(S(n(A);f(S(n(A);-)))))
         S(-;f(S(n(A);f(A))))
-    };
-    push @expected3, qw{
+        S(n(A);f(S(-;f(A))))
+        S(n(A);f(S(-;f(S(n(A);-)))))
+        S(n(A);f(S(n(A);-)))
+        S(n(A);f(A))
+};
+
+my @expected3 = qw{
         S(-;f(S(n(A);f(S(-;f(S(n(A);f(A))))))))
         S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(-;f(A))))))))))
         S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))))))
@@ -98,17 +100,6 @@ if ($Marpa::USING_PP) {
         S(-;f(S(n(A);f(S(n(A);f(S(-;f(A))))))))
         S(-;f(S(n(A);f(S(n(A);f(S(-;f(S(n(A);-)))))))))
         S(-;f(S(n(A);f(S(n(A);f(S(n(A);-)))))))
-    };
-} ## end if ($Marpa::USING_PP)
-
-push @expected2, qw{
-            S(n(A);f(S(-;f(A))))
-            S(n(A);f(S(-;f(S(n(A);-)))))
-            S(n(A);f(S(n(A);-)))
-            S(n(A);f(A))
-};
-
-push @expected3, qw{
      S(n(A);f(S(-;f(S(n(A);f(A))))))
      S(n(A);f(S(-;f(S(n(A);f(S(-;f(A))))))))
      S(n(A);f(S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))))
