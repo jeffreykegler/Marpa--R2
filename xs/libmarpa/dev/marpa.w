@@ -4265,8 +4265,9 @@ void create_AHFA_states(struct marpa_g* g) {
    ahfas_of_g = g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
    ahfa_count_of_g = AHFA_Count_of_G(g) = DQUEUE_END(states);
-   @<Populate the completed symbol data in the transitions@>@;
+   @<Resize the transitions@>@;
    @<Resort the AIMs and populate the Leo base AEXes@>@;
+   @<Populate the completed symbol data in the transitions@>@;
    @<Free locals for creating AHFA states@>@;
 }
 
@@ -4334,7 +4335,7 @@ if (working_symbol < 0) goto NEXT_AHFA_STATE; /*
 NEXT_AHFA_STATE: ;
 }
 
-@ @<Populate the completed symbol data in the transitions@> =
+@ @<Resize the transitions@> =
 {
      gint ahfa_id;
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
@@ -4354,6 +4355,15 @@ NEXT_AHFA_STATE: ;
 		   transitions[symbol_id] = new_transition;
 	       }
 	  }
+	}
+}
+
+@ @<Populate the completed symbol data in the transitions@> =
+{
+     gint ahfa_id;
+     for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
+	  const AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
+          TRANS* const transitions = TRANSs_of_AHFA(ahfa);
 	  if (Complete_SYM_Count_of_AHFA(ahfa) > 0) {
 	      AIM* aims = AIMs_of_AHFA(ahfa);
 	      gint aim_count = AIM_Count_of_AHFA(ahfa);
