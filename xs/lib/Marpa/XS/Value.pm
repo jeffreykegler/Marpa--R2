@@ -1461,13 +1461,6 @@ sub Marpa::XS::Recognizer::value {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
 
-    if (not $parse_count) {
-	$recce_c->eval_clear();
-	if ( not defined $recce_c->eval_setup(-1, -1) ) {
-	    Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
-	}
-    }
-
     for my $arg_hash (@arg_hashes) {
 
         if ( exists $arg_hash->{end} ) {
@@ -1527,6 +1520,13 @@ sub Marpa::XS::Recognizer::value {
             if @unknown_arg_names;
 
     } ## end for my $arg_hash (@arg_hashes)
+
+    if (not $parse_count) {
+	$recce_c->eval_clear();
+	if ( not defined $recce_c->eval_setup(-1, ($parse_set_arg // -1)) ) {
+	    Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
+	}
+    }
 
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
