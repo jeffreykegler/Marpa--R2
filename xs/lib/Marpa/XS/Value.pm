@@ -361,12 +361,20 @@ sub Marpa::XS::Recognizer::show_or_nodes {
     my $text;
     my @data = ();
     my $id = 0;
-    OR_NODE: for (;;) {
-	my ($origin, $set, $rule, $position) = $recce_c->or_node($id++);
-	last OR_NODE if not defined $origin;
-        my $desc = 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
-        push @data, [$origin, $set, $rule, $position, $desc];
-    }
+    OR_NODE: for ( ;; ) {
+        my ( $origin, $set, $rule, $position ) = $recce_c->or_node( $id++ );
+        last OR_NODE if not defined $origin;
+        my $origin_earleme  = $recce_c->earleme($origin);
+        my $current_earleme = $recce_c->earleme($set);
+        my $desc =
+              'R' 
+            . $rule . q{:}
+            . $position . q{@}
+            . $origin_earleme . q{-}
+            . $current_earleme;
+        push @data,
+            [ $origin_earleme, $current_earleme, $rule, $position, $desc ];
+    } ## end for ( ;; )
     my @sorted_data = map { $_->[-1] } sort {
         $a->[0] <=> $b->[0]
 	or $a->[1] <=> $b->[1]
@@ -2822,6 +2830,16 @@ sub Marpa::XS::Recognizer::value {
         $_->[Marpa::XS::Internal::Iteration_Node::CHOICES]->[0]
             ->[Marpa::XS::Internal::Choice::AND_NODE]
     } @{$iteration_stack};
+
+    if ( $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] <= 1 ) {
+        my $old_or_nodes = $recce->old_show_or_nodes();
+        my $new_or_nodes = $recce->show_or_nodes();
+        if ( $old_or_nodes ne $new_or_nodes ) {
+            say STDERR "OLD:\n", $old_or_nodes;
+            say STDERR "NEW:\n", $new_or_nodes;
+            die;
+        }
+    } ## end if ( $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT...])
 
     return Marpa::XS::Internal::Recognizer::evaluate( $recce, \@stack );
 

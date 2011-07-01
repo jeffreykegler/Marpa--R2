@@ -620,7 +620,7 @@ sub Marpa::XS::new_show_leo_link_choice {
 }
 
  # Assumes trace earley item was set by caller
-sub Marpa::XS::new_show_earley_item {
+sub Marpa::XS::show_earley_item {
     my ($recce, $earleme, $state_id) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $text = q{};
@@ -710,7 +710,7 @@ sub Marpa::XS::show_earley_set {
 	last EARLEY_ITEM if not defined $state_id;
 	push @sort_data,
 	    [ $recce_c->earley_item_origin(), $state_id, 
-            Marpa::XS::new_show_earley_item( $recce, $earleme, $state_id ) ];
+            Marpa::XS::show_earley_item( $recce, $earleme, $state_id ) ];
     } ## end for ( my $state_id = $recce_c->earley_item_first_trace...)
     my @sorted_data = map { $_->[-1] . "\n" } sort {
         $a->[0] <=> $b->[0]
