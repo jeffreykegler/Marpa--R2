@@ -2831,7 +2831,10 @@ sub Marpa::XS::Recognizer::value {
             ->[Marpa::XS::Internal::Choice::AND_NODE]
     } @{$iteration_stack};
 
-    if ( $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] <= 1 ) {
+    my $BOCAGE_DEBUG = 0;
+    if (   $BOCAGE_DEBUG
+        && $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] <= 1 )
+    {
         my $old_or_nodes = $recce->old_show_or_nodes();
         my $new_or_nodes = $recce->show_or_nodes();
         if ( $old_or_nodes ne $new_or_nodes ) {
@@ -2839,7 +2842,7 @@ sub Marpa::XS::Recognizer::value {
             say STDERR "NEW:\n", $new_or_nodes;
             die;
         }
-    } ## end if ( $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT...])
+    } ## end if ( $BOCAGE_DEBUG && $recce->[...])
 
     return Marpa::XS::Internal::Recognizer::evaluate( $recce, \@stack );
 
