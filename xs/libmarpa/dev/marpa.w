@@ -408,6 +408,30 @@ But a slower library would be the result.
 @** Coding conventions.
 @*0 Naming conventions.
 
+@*1 Reserved locals.
+Certain symbol names are reserved for certain purposes.
+They are not necessarily defined, but if defined they
+must be used for the designated purpose.
+An example is |g|, which is the grammar of most interest in
+the context.
+(In fact, no marpa routine uses more than one grammar.)
+It is expected that the routines which refer to a grammar
+will set |g| to that value.
+This convention saves a lot of clutter in the form of
+macro and subroutine arguments.
+
+In some cases, these constants may not be well-defined.
+An example is |rule_count_of_g| while rules are being added
+to the grammar.
+In such cases, to minimize confusion, these names should be
+left undefined.
+This makes the macros which use them unuseable, which
+is a feature.
+
+\li |g| is always the grammar of most interest in the context.
+\li |r| is always the recognizer of most interest in the context.
+\li |rule_count_of_g| is the number of rules in |g|.
+
 @*1 Mixed Case Macros.
 In programming in general, accessors are very common.
 In |libmarpa|, the percentage of the logic the consists
@@ -9737,7 +9761,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_
 		DAND draft_and_node;
 		const gint dot_position = symbol_instance - symbol_instance_of_rule + 1;
 		const OR predecessor = dot_position > 1 ? next_or_node - 1 : NULL;
-		const OR cause = (OR) SYM_by_ID (g, RHS_ID_of_RULE (rule, dot_position-1));
+		const WHEID whole_element_id = WHEID_of_SYMID( RHS_ID_of_RULE (rule, dot_position-1) );
 		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate)@;
 MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
 		or_node = next_or_node++;
@@ -9749,7 +9773,8 @@ MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = dot_position;
 MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 		draft_and_node = DANDs_of_OR (or_node) =
-		  draft_and_node_new (&bocage_setup_obs, predecessor, cause);
+		  draft_and_node_new (&bocage_setup_obs, predecessor,
+		      this_earley_set_ordinal, whole_element_id);
 MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 		Next_DAND_of_DAND (draft_and_node) = NULL;
 	      }
@@ -9871,8 +9896,7 @@ or-nodes follow a completion.
 	  OR predecessor = next_or_node - 1;	/* Leo path Earley items are never predictions,
 						   so that there is always a predecessor */
 	  const gint dot_position = dot_position_of_path_ahfa_item + i;
-	  const OR cause =
-	    (OR) SYM_by_ID (g, RHS_ID_of_RULE (path_rule, dot_position - 1));
+	  const WHEID whole_element_id = WHEID_of_SYMID( RHS_ID_of_RULE (path_rule, dot_position-1)) ;
 	  MARPA_ASSERT (dot_position <= Length_of_RULE (path_rule)) @;
 	  MARPA_ASSERT (dot_position >= 1) @;
 	  MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate) @;
@@ -9885,7 +9909,8 @@ or-nodes follow a completion.
 	  MARPA_DEBUG3 ("Created or-node %s at %s", or_tag (or_node),
 			G_STRLOC);
 	  DANDs_of_OR (or_node) = draft_and_node =
-	    draft_and_node_new (&bocage_setup_obs, predecessor, cause);
+	      draft_and_node_new (&bocage_setup_obs, predecessor,
+		  this_earley_set_ordinal, whole_element_id);
 	  MARPA_OFF_DEBUG3 ("or = %p, setting DAND = %p", or_node,
 			    DANDs_of_OR (or_node));
 	  Next_DAND_of_DAND (draft_and_node) = NULL;
@@ -9895,6 +9920,18 @@ or-nodes follow a completion.
       MARPA_ASSERT (Position_of_OR (or_node) >= SYMI_of_RULE (path_rule)) @;
     }
 }
+
+@** Whole Element ID (WHEID) Code.
+The "whole elements" of the grammar are the symbols
+and the completed rules.
+{\bf To Do}: @^To Do@>
+Note that this puts a limit on the number of symbols
+and rules in a grammar --- their total must fit in an
+int.
+@d WHEID_of_SYMID(symid) (rule_count_of_g+(symid))
+@d WHEID_of_RULEID(ruleid) (ruleid)
+@<Private typedefs@> =
+typedef gint WHEID;
 
 @** Draft And-Node (DAND) Code.
 The draft and-nodes are used while the bocage is
@@ -9912,25 +9949,29 @@ typedef struct s_draft_and_node* DAND;
 @
 @d Next_DAND_of_DAND(dand) ((dand)->t_next)
 @d Predecessor_OR_of_DAND(dand) ((dand)->t_predecessor)
-@d Cause_OR_of_DAND(dand) ((dand)->t_cause)
+@d Middle_ES_Ord_of_DAND(dand) ((dand)->t_middle_ordinal)
+@d WHEID_of_DAND(dand) ((dand)->t_wheid)
 @<Private structures@> =
 struct s_draft_and_node {
     DAND t_next;
     OR t_predecessor;
-    OR t_cause;
+    gint t_middle_ordinal;
+    WHEID t_wheid;
 };
 typedef struct s_draft_and_node DAND_Object;
 
 @ @<Private function prototypes@> =
 static inline
-DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause);
+DAND draft_and_node_new(struct obstack *obs, OR predecessor, gint middle, WHEID wheid);
 @ @<Function definitions@> =
 static inline
-DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
+DAND draft_and_node_new(struct obstack *obs, OR predecessor,
+gint middle, WHEID wheid)
 {
     DAND draft_and_node = obstack_alloc (obs, sizeof(DAND_Object));
     Predecessor_OR_of_DAND(draft_and_node) = predecessor;
-    Cause_OR_of_DAND(draft_and_node) = cause;
+    Middle_ES_Ord_of_DAND(draft_and_node) = middle;
+    WHEID_of_DAND(draft_and_node) = wheid;
     return draft_and_node;
 }
 
@@ -9948,12 +9989,13 @@ and the PSARs can be reserved for the unusual case where this
 is not sufficient.
 @<Private function prototypes@> =
 static inline
-void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause);
+void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, gint middle, WHEID wheid);
 @ @<Function definitions@> =
 static inline
-void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
+void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor,
+gint middle, WHEID wheid)
 {
-    const DAND new = draft_and_node_new(obs, predecessor, cause);
+    const DAND new = draft_and_node_new(obs, predecessor, middle, wheid);
     Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
     DANDs_of_OR(parent) = new;
 }
@@ -9996,15 +10038,12 @@ typedef struct s_and_node AND_Object;
 	    for (aex = 0; aex < aim_count_of_item; aex++) {
 		OR or_node = nodes_by_aex[aex];
 		while (or_node) { /* Loop through the nulling or-nodes */
-		    OR cause;
 		    DAND draft_and_node = DANDs_of_OR(or_node);
 MARPA_OFF_DEBUG2("or_node = %s", or_tag(or_node));
 MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
 		    if (!draft_and_node) break;
-		    cause = Cause_OR_of_DAND(draft_and_node);
-MARPA_OFF_DEBUG2("cause = %p", cause);
-		    if (Type_of_OR(cause) != TOKEN_OR_NODE) break;
-		    if (!SYM_is_Nulling((SYM)cause)) break;
+		    gint middle_ordinal = Middle_ES_Ord_of_DAND(draft_and_node);
+		    if (middle_ordinal != this_earley_set_ordinal) break;
 		    or_node = Predecessor_OR_of_DAND(draft_and_node);
 		}
 		if (or_node) {
@@ -10108,6 +10147,7 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 @ @<Bocage setup locals@> =
 @<Return |-2| on failure@>@;
 const GRAMMAR_Const g = G_of_R(r);
+gint rule_count_of_g = RULE_Count_of_G(g);
 BOC b;
 ES end_of_parse_es;
 RULE completed_start_rule;
