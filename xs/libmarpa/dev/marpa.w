@@ -9175,7 +9175,7 @@ Not very elegant, but this deals with it at a constant
 cost per parse.
 @<Unset the PSIA for the start rule prediction@> = {
     const ES first_earley_set = ES_of_R_by_Ord (r, 0);
-    const OR** const nodes_by_item = per_es_data[0].t_aexes_by_item;
+    OR** const nodes_by_item = per_es_data[0].t_aexes_by_item;
     const EIM* const eims_of_es = EIMs_of_ES(first_earley_set);
     const gint item_count = EIM_Count_of_ES (first_earley_set);
     gint item_ordinal;
@@ -9766,7 +9766,6 @@ MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
       this_earley_set_ordinal++)
   {
       const ES_Const earley_set = ES_of_R_by_Ord (r, this_earley_set_ordinal);
-      const OR first_or_node_of_earley_set = next_or_node;
       psar_dealloc(or_psar);
 #define PSL_ES_ORD this_earley_set_ordinal
 #define CLAIMED_PSL this_earley_set_psl
@@ -11792,8 +11791,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 1 @]
-#define MARPA_ENABLE_ASSERT @[ 1 @]
+#define MARPA_DEBUG @[ 0 @]
+#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
