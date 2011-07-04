@@ -9451,165 +9451,6 @@ G_STRLOC, eim_tag(ur_earley_item), ur_aex);
       }
 }
 
-@** And-Node (AND) Code.
-The or-nodes are part of the parse bocage.
-They are analogous to the and-nodes of a standard parse forest,
-except that they are binary -- restricted to two children.
-This means that the parse bocage stores the parse in a kind
-of Chomsky Normal Form.
-As another difference between it and a parse forest,
-the parse bocage can contain cycles.
-
-@<Private incomplete structures@> =
-struct s_and_node;
-typedef struct s_and_node* AND;
-@
-@d OR_of_AND(and) ((and)->t_current)
-@d Predecessor_OR_of_AND(and) ((and)->t_predecessor)
-@d Cause_OR_of_AND(and) ((and)->t_cause)
-@<Private structures@> =
-struct s_and_node {
-    OR t_current;
-    OR t_predecessor;
-    OR t_cause;
-};
-typedef struct s_and_node AND_Object;
-
-@ @<Create the and-nodes for |this_earley_set_ordinal|@> =
-{
-    gint item_ordinal;
-    for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
-    {
-	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
-	if (nodes_by_aex) {
-	    const EIM earley_item = eims_of_es[item_ordinal];
-	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
-	    const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
-	    AEX aex;
-	    for (aex = 0; aex < aim_count_of_item; aex++) {
-		OR or_node = nodes_by_aex[aex];
-		while (or_node) { /* Loop through the nulling or-nodes */
-		    OR cause;
-		    DAND draft_and_node = DANDs_of_OR(or_node);
-MARPA_OFF_DEBUG2("or_node = %s", or_tag(or_node));
-MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
-		    if (!draft_and_node) break;
-		    cause = Cause_OR_of_DAND(draft_and_node);
-MARPA_OFF_DEBUG2("cause = %p", cause);
-		    if (Type_of_OR(cause) != TOKEN_OR_NODE) break;
-		    if (!SYM_is_Nulling((SYM)cause)) break;
-		    or_node = Predecessor_OR_of_DAND(draft_and_node);
-		}
-		if (or_node) {
-		    @<Populate |or_node|@>@;
-		}
-	    }
-	}
-    }
-}
-
-@ @<Populate |or_node|@> =
-{
-    @<Create Leo and-nodes@>@;
-}
-
-@ @<Create Leo and-nodes@> = {
-  SRCL source_link = NULL;
-  EIM cause_earley_item = NULL;
-  LIM leo_predecessor = NULL;
-  switch (Source_Type_of_EIM(earley_item))
-    {
-    case SOURCE_IS_LEO:
-      leo_predecessor = Predecessor_of_EIM (earley_item);
-      cause_earley_item = Cause_of_EIM (earley_item);
-      break;
-    case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_SRCL_of_EIM (earley_item);
-      if (source_link)
-	{
-	  leo_predecessor = Predecessor_of_SRCL (source_link);
-	  cause_earley_item = Cause_of_SRCL (source_link);
-	  source_link = Next_SRCL_of_SRCL (source_link);
-	}
-      break;
-    }
-    if (leo_predecessor) {
-	for (;;) { /* for each Leo source link */
-	    @<Add and-nodes for chain starting with |leo_predecessor|@>@;
-	    if (!source_link) break;
-	    leo_predecessor = Predecessor_of_SRCL (source_link);
-	    cause_earley_item = Cause_of_SRCL (source_link);
-	    source_link = Next_SRCL_of_SRCL (source_link);
-	}
-    }
-}
-
-@ @<Add and-nodes for chain starting with |leo_predecessor|@> =
-{
-}
-
-@** Draft And-Node (DAND) Code.
-The draft and-nodes are used while the bocage is
-being built.
-Both draft and final and-nodes contain the predecessor
-and cause fields.
-They differ in their third field.
-Draft and-nodes need to be in a linked list,
-so the third field is a link to the next and-node.
-Final and-nodes sit in an array, and the third field
-is a link to their parent or-node.
-@<Private incomplete structures@> =
-struct s_draft_and_node;
-typedef struct s_draft_and_node* DAND;
-@
-@d Next_DAND_of_DAND(dand) ((dand)->t_next)
-@d Predecessor_OR_of_DAND(dand) ((dand)->t_predecessor)
-@d Cause_OR_of_DAND(dand) ((dand)->t_cause)
-@<Private structures@> =
-struct s_draft_and_node {
-    DAND t_next;
-    OR t_predecessor;
-    OR t_cause;
-};
-typedef struct s_draft_and_node DAND_Object;
-
-@ @<Private function prototypes@> =
-static inline
-DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause);
-@ @<Function definitions@> =
-static inline
-DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
-{
-    DAND draft_and_node = obstack_alloc (obs, sizeof(DAND_Object));
-    Predecessor_OR_of_DAND(draft_and_node) = predecessor;
-    Cause_OR_of_DAND(draft_and_node) = cause;
-    return draft_and_node;
-}
-
-@ Currently, I do not check draft and-nodes for duplicates.
-This will be done when they are copied to final and-ndoes.
-In the future, it may be more efficient to do a linear search for
-duplicates until the number of draft and-nodes reaches a small
-constant $n$.
-(Optimal $n$ is perhaps something like 7.)
-Alernatively, it could always check for duplicates, but limit
-the search to the first $n$ draft and-nodes.
-@ In that case, the logic to copy the final and-nodes can
-rely on chains of length less than $n$ being non-duplicated,
-and the PSARs can be reserved for the unusual case where this
-is not sufficient.
-@<Private function prototypes@> =
-static inline
-void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause);
-@ @<Function definitions@> =
-static inline
-void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
-{
-    const DAND new = draft_and_node_new(obs, predecessor, cause);
-    Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
-    DANDs_of_OR(parent) = new;
-}
-
 @** Or-Node (OR) Code.
 The or-nodes are part of the parse bocage
 and are similar to the or-nodes of a standard parse forest.
@@ -10053,6 +9894,165 @@ or-nodes follow a completion.
 		    SYMI_of_RULE (path_rule) + Length_of_RULE (path_rule)) @;
       MARPA_ASSERT (Position_of_OR (or_node) >= SYMI_of_RULE (path_rule)) @;
     }
+}
+
+@** Draft And-Node (DAND) Code.
+The draft and-nodes are used while the bocage is
+being built.
+Both draft and final and-nodes contain the predecessor
+and cause fields.
+They differ in their third field.
+Draft and-nodes need to be in a linked list,
+so the third field is a link to the next and-node.
+Final and-nodes sit in an array, and the third field
+is a link to their parent or-node.
+@<Private incomplete structures@> =
+struct s_draft_and_node;
+typedef struct s_draft_and_node* DAND;
+@
+@d Next_DAND_of_DAND(dand) ((dand)->t_next)
+@d Predecessor_OR_of_DAND(dand) ((dand)->t_predecessor)
+@d Cause_OR_of_DAND(dand) ((dand)->t_cause)
+@<Private structures@> =
+struct s_draft_and_node {
+    DAND t_next;
+    OR t_predecessor;
+    OR t_cause;
+};
+typedef struct s_draft_and_node DAND_Object;
+
+@ @<Private function prototypes@> =
+static inline
+DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause);
+@ @<Function definitions@> =
+static inline
+DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
+{
+    DAND draft_and_node = obstack_alloc (obs, sizeof(DAND_Object));
+    Predecessor_OR_of_DAND(draft_and_node) = predecessor;
+    Cause_OR_of_DAND(draft_and_node) = cause;
+    return draft_and_node;
+}
+
+@ Currently, I do not check draft and-nodes for duplicates.
+This will be done when they are copied to final and-ndoes.
+In the future, it may be more efficient to do a linear search for
+duplicates until the number of draft and-nodes reaches a small
+constant $n$.
+(Optimal $n$ is perhaps something like 7.)
+Alernatively, it could always check for duplicates, but limit
+the search to the first $n$ draft and-nodes.
+@ In that case, the logic to copy the final and-nodes can
+rely on chains of length less than $n$ being non-duplicated,
+and the PSARs can be reserved for the unusual case where this
+is not sufficient.
+@<Private function prototypes@> =
+static inline
+void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause);
+@ @<Function definitions@> =
+static inline
+void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
+{
+    const DAND new = draft_and_node_new(obs, predecessor, cause);
+    Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
+    DANDs_of_OR(parent) = new;
+}
+
+@** And-Node (AND) Code.
+The or-nodes are part of the parse bocage.
+They are analogous to the and-nodes of a standard parse forest,
+except that they are binary -- restricted to two children.
+This means that the parse bocage stores the parse in a kind
+of Chomsky Normal Form.
+As another difference between it and a parse forest,
+the parse bocage can contain cycles.
+
+@<Private incomplete structures@> =
+struct s_and_node;
+typedef struct s_and_node* AND;
+@
+@d OR_of_AND(and) ((and)->t_current)
+@d Predecessor_OR_of_AND(and) ((and)->t_predecessor)
+@d Cause_OR_of_AND(and) ((and)->t_cause)
+@<Private structures@> =
+struct s_and_node {
+    OR t_current;
+    OR t_predecessor;
+    OR t_cause;
+};
+typedef struct s_and_node AND_Object;
+
+@ @<Create the and-nodes for |this_earley_set_ordinal|@> =
+{
+    gint item_ordinal;
+    for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
+    {
+	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
+	if (nodes_by_aex) {
+	    const EIM earley_item = eims_of_es[item_ordinal];
+	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
+	    const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
+	    AEX aex;
+	    for (aex = 0; aex < aim_count_of_item; aex++) {
+		OR or_node = nodes_by_aex[aex];
+		while (or_node) { /* Loop through the nulling or-nodes */
+		    OR cause;
+		    DAND draft_and_node = DANDs_of_OR(or_node);
+MARPA_OFF_DEBUG2("or_node = %s", or_tag(or_node));
+MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
+		    if (!draft_and_node) break;
+		    cause = Cause_OR_of_DAND(draft_and_node);
+MARPA_OFF_DEBUG2("cause = %p", cause);
+		    if (Type_of_OR(cause) != TOKEN_OR_NODE) break;
+		    if (!SYM_is_Nulling((SYM)cause)) break;
+		    or_node = Predecessor_OR_of_DAND(draft_and_node);
+		}
+		if (or_node) {
+		    @<Populate |or_node|@>@;
+		}
+	    }
+	}
+    }
+}
+
+@ @<Populate |or_node|@> =
+{
+    @<Create Leo and-nodes@>@;
+}
+
+@ @<Create Leo and-nodes@> = {
+  SRCL source_link = NULL;
+  EIM cause_earley_item = NULL;
+  LIM leo_predecessor = NULL;
+  switch (Source_Type_of_EIM(earley_item))
+    {
+    case SOURCE_IS_LEO:
+      leo_predecessor = Predecessor_of_EIM (earley_item);
+      cause_earley_item = Cause_of_EIM (earley_item);
+      break;
+    case SOURCE_IS_AMBIGUOUS:
+      source_link = First_Leo_SRCL_of_EIM (earley_item);
+      if (source_link)
+	{
+	  leo_predecessor = Predecessor_of_SRCL (source_link);
+	  cause_earley_item = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+      break;
+    }
+    if (leo_predecessor) {
+	for (;;) { /* for each Leo source link */
+	    @<Add and-nodes for chain starting with |leo_predecessor|@>@;
+	    if (!source_link) break;
+	    leo_predecessor = Predecessor_of_SRCL (source_link);
+	    cause_earley_item = Cause_of_SRCL (source_link);
+	    source_link = Next_SRCL_of_SRCL (source_link);
+	}
+    }
+}
+
+@ @<Add and-nodes for chain starting with |leo_predecessor|@> =
+{
 }
 
 @** The Parse Bocage.
