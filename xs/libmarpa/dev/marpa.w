@@ -9635,7 +9635,7 @@ MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
 #define PSL_ES_ORD this_earley_set_ordinal
 #define CLAIMED_PSL this_earley_set_psl
       @<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@>@;
-      @<Create the or-nodes for |this_earley_set_ordinal|@>@;
+      @<Create the bocage nodes for |this_earley_set_ordinal|@>@;
   }
   {
      const gint or_node_count = next_or_node - first_or_node;
@@ -9647,16 +9647,16 @@ MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
 }
 
 @
-@<Create the or-nodes for |this_earley_set_ordinal|@> =
+@<Create the bocage nodes for |this_earley_set_ordinal|@> =
 {
     OR** const nodes_by_item = per_es_data[this_earley_set_ordinal].t_aexes_by_item;
     EIM* const eims_of_es = EIMs_of_ES(earley_set);
     const gint item_count = EIM_Count_of_ES (earley_set);
-    @<Create the unpopulated or-nodes for |this_earley_set_ordinal|@>@;
-    @<Create the and-nodes for |this_earley_set_ordinal|@>@;
+    @<Create the or-nodes for |this_earley_set_ordinal|@>@;
+    @<Create the draft and-nodes for |this_earley_set_ordinal|@>@;
 }
 
-@ @<Create the unpopulated or-nodes for |this_earley_set_ordinal|@> =
+@ @<Create the or-nodes for |this_earley_set_ordinal|@> =
 {
     gint item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
@@ -9833,11 +9833,7 @@ requirements in the process.
   while ((this_leo_item = Predecessor_LIM_of_LIM (this_leo_item)))
     {
 	const gint ordinal_of_set_of_this_leo_item = Ord_of_ES(ES_of_LIM(this_leo_item));
-	  const SYMID previous_postdot = Postdot_SYMID_of_LIM (previous_leo_item);
-	  const EIM previous_base = Base_EIM_of_LIM(previous_leo_item);
-	  const TRANS transition = TRANS_of_EIM_by_SYMID (previous_base, previous_postdot);
-	  const AEX previous_base_aex = Leo_Base_AEX_of_TRANS (transition);
-          const AIM path_ahfa_item = AIM_of_EIM_by_AEX(previous_base, previous_base_aex) + 1;
+          const AIM path_ahfa_item = Path_AIM_of_LIM(previous_leo_item);
 	  const RULE path_rule = RULE_of_AIM(path_ahfa_item);
 	  const gint dot_position_of_path_ahfa_item = Position_of_AIM(path_ahfa_item);
 	  const gint symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
@@ -9845,6 +9841,19 @@ requirements in the process.
 	@<Add Leo path nulling token or-nodes@>@;
 	previous_leo_item = this_leo_item;
     }
+}
+
+@ @d Path_AIM_of_LIM(lim) (path_aim_of_lim(lim))
+@<Private function prototypes@>
+static inline AIM path_aim_of_lim(LIM lim);
+@ @<Function definitions@> =
+static inline AIM path_aim_of_lim(LIM leo_item)
+{
+      const SYMID postdot = Postdot_SYMID_of_LIM (leo_item);
+      const EIM base = Base_EIM_of_LIM(leo_item);
+      const TRANS transition = TRANS_of_EIM_by_SYMID (base, postdot);
+      const AEX base_aex = Leo_Base_AEX_of_TRANS (transition);
+       return AIM_of_EIM_by_AEX(base, base_aex) + 1;
 }
 
 @ Adds the main Leo path or-node---%
@@ -10000,6 +10009,97 @@ gint middle, WHEID wheid)
     DANDs_of_OR(parent) = new;
 }
 
+@ @<Create the draft and-nodes for |this_earley_set_ordinal|@> =
+{
+    gint item_ordinal;
+    for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
+    {
+	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
+	if (nodes_by_aex) {
+	    const EIM earley_item = eims_of_es[item_ordinal];
+	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
+	    const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
+	    AEX aex;
+	    for (aex = 0; aex < aim_count_of_item; aex++) {
+		OR or_node = nodes_by_aex[aex];
+		while (or_node) { /* Loop through the nulling or-nodes */
+		    DAND draft_and_node = DANDs_of_OR(or_node);
+MARPA_OFF_DEBUG2("or_node = %s", or_tag(or_node));
+MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
+		    if (!draft_and_node) break;
+		    gint middle_ordinal = Middle_ES_Ord_of_DAND(draft_and_node);
+		    if (middle_ordinal != this_earley_set_ordinal) break;
+		    or_node = Predecessor_OR_of_DAND(draft_and_node);
+		}
+		if (or_node) {
+		    @<Create draft and-nodes for |or_node|@>@;
+		}
+	    }
+	}
+    }
+}
+
+@ @<Create draft and-nodes for |or_node|@> =
+{
+    @<Create Leo draft and-nodes@>@;
+}
+
+@ @<Create Leo draft and-nodes@> = {
+  SRCL source_link = NULL;
+  EIM cause_earley_item = NULL;
+  LIM leo_predecessor = NULL;
+  switch (Source_Type_of_EIM(earley_item))
+    {
+    case SOURCE_IS_LEO:
+      leo_predecessor = Predecessor_of_EIM (earley_item);
+      cause_earley_item = Cause_of_EIM (earley_item);
+      break;
+    case SOURCE_IS_AMBIGUOUS:
+      source_link = First_Leo_SRCL_of_EIM (earley_item);
+      if (source_link)
+	{
+	  leo_predecessor = Predecessor_of_SRCL (source_link);
+	  cause_earley_item = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+      break;
+    }
+    if (leo_predecessor) {
+	for (;;) { /* for each Leo source link */
+	    @<Add draft and-nodes for chain starting with |leo_predecessor|@>@;
+	    if (!source_link) break;
+	    leo_predecessor = Predecessor_of_SRCL (source_link);
+	    cause_earley_item = Cause_of_SRCL (source_link);
+	    source_link = Next_SRCL_of_SRCL (source_link);
+	}
+    }
+}
+
+@ @<Add draft and-nodes for chain starting with |leo_predecessor|@> =
+{
+    LIM path_leo_item = leo_predecessor;
+    LIM higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
+    /* A boolean to indicate whether is true is there is some
+       section of a non-trivial path left unprocessed. */
+    gint on_path = 0;
+    OR bottom_or_node;
+    gint bottom_or_node_origin;
+    gint bottom_or_node_symi;
+    PSL or_psl;
+    if (higher_path_leo_item) {
+	 const AIM aim = Path_AIM_of_LIM(higher_path_leo_item);
+	 bottom_or_node_origin = Ord_of_ES(ES_of_LIM(higher_path_leo_item));
+         bottom_or_node_symi = SYMI_of_AIM(aim);
+	 on_path = 1;
+    } else {
+         const AIM aim = AIM_of_EIM_by_AEX(earley_item, aex);
+	 bottom_or_node_origin = Origin_Ord_of_EIM(earley_item);
+         bottom_or_node_symi = SYMI_of_AIM(aim);
+    }
+    /* Find bottom or-node */
+      or_psl = per_es_data[bottom_or_node_origin].t_or_psl;
+}
+
 @** And-Node (AND) Code.
 The or-nodes are part of the parse bocage.
 They are analogous to the and-nodes of a standard parse forest,
@@ -10023,76 +10123,6 @@ struct s_and_node {
     OR t_cause;
 };
 typedef struct s_and_node AND_Object;
-
-@ @<Create the and-nodes for |this_earley_set_ordinal|@> =
-{
-    gint item_ordinal;
-    for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
-    {
-	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
-	if (nodes_by_aex) {
-	    const EIM earley_item = eims_of_es[item_ordinal];
-	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
-	    const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
-	    AEX aex;
-	    for (aex = 0; aex < aim_count_of_item; aex++) {
-		OR or_node = nodes_by_aex[aex];
-		while (or_node) { /* Loop through the nulling or-nodes */
-		    DAND draft_and_node = DANDs_of_OR(or_node);
-MARPA_OFF_DEBUG2("or_node = %s", or_tag(or_node));
-MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
-		    if (!draft_and_node) break;
-		    gint middle_ordinal = Middle_ES_Ord_of_DAND(draft_and_node);
-		    if (middle_ordinal != this_earley_set_ordinal) break;
-		    or_node = Predecessor_OR_of_DAND(draft_and_node);
-		}
-		if (or_node) {
-		    @<Populate |or_node|@>@;
-		}
-	    }
-	}
-    }
-}
-
-@ @<Populate |or_node|@> =
-{
-    @<Create Leo and-nodes@>@;
-}
-
-@ @<Create Leo and-nodes@> = {
-  SRCL source_link = NULL;
-  EIM cause_earley_item = NULL;
-  LIM leo_predecessor = NULL;
-  switch (Source_Type_of_EIM(earley_item))
-    {
-    case SOURCE_IS_LEO:
-      leo_predecessor = Predecessor_of_EIM (earley_item);
-      cause_earley_item = Cause_of_EIM (earley_item);
-      break;
-    case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_SRCL_of_EIM (earley_item);
-      if (source_link)
-	{
-	  leo_predecessor = Predecessor_of_SRCL (source_link);
-	  cause_earley_item = Cause_of_SRCL (source_link);
-	  source_link = Next_SRCL_of_SRCL (source_link);
-	}
-      break;
-    }
-    if (leo_predecessor) {
-	for (;;) { /* for each Leo source link */
-	    @<Add and-nodes for chain starting with |leo_predecessor|@>@;
-	    if (!source_link) break;
-	    leo_predecessor = Predecessor_of_SRCL (source_link);
-	    cause_earley_item = Cause_of_SRCL (source_link);
-	    source_link = Next_SRCL_of_SRCL (source_link);
-	}
-    }
-}
-
-@ @<Add and-nodes for chain starting with |leo_predecessor|@> =
-{
-}
 
 @** The Parse Bocage.
 @ Pre-initialization is making the elements safe for the deallocation logic
