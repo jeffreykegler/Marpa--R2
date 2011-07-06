@@ -9844,7 +9844,7 @@ requirements in the process.
 }
 
 @ @d Path_AIM_of_LIM(lim) (path_aim_of_lim(lim))
-@<Private function prototypes@>
+@<Private function prototypes@> =
 static inline AIM path_aim_of_lim(LIM lim);
 @ @<Function definitions@> =
 static inline AIM path_aim_of_lim(LIM leo_item)
@@ -10026,10 +10026,11 @@ gint middle, WHEID wheid)
 		    DAND draft_and_node = DANDs_of_OR(or_node);
 MARPA_OFF_DEBUG2("or_node = %s", or_tag(or_node));
 MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
-		    if (!draft_and_node) break;
-		    gint middle_ordinal = Middle_ES_Ord_of_DAND(draft_and_node);
-		    if (middle_ordinal != this_earley_set_ordinal) break;
-		    or_node = Predecessor_OR_of_DAND(draft_and_node);
+		    if (!draft_and_node)
+		      break;
+		    if (Middle_ES_Ord_of_DAND (draft_and_node) != this_earley_set_ordinal)
+		      break;
+		    or_node = Predecessor_OR_of_DAND (draft_and_node);
 		}
 		if (or_node) {
 		    @<Create draft and-nodes for |or_node|@>@;
@@ -10083,22 +10084,65 @@ MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
        section of a non-trivial path left unprocessed. */
     gint on_path = 0;
     OR bottom_or_node;
+    AIM bottom_ahfa_item;
     gint bottom_or_node_origin;
     gint bottom_or_node_symi;
     PSL or_psl;
     if (higher_path_leo_item) {
-	 const AIM aim = Path_AIM_of_LIM(higher_path_leo_item);
+	 bottom_ahfa_item = Path_AIM_of_LIM(higher_path_leo_item);
 	 bottom_or_node_origin = Ord_of_ES(ES_of_LIM(higher_path_leo_item));
-         bottom_or_node_symi = SYMI_of_AIM(aim);
 	 on_path = 1;
     } else {
-         const AIM aim = AIM_of_EIM_by_AEX(earley_item, aex);
+         bottom_ahfa_item = AIM_of_EIM_by_AEX(earley_item, aex);
 	 bottom_or_node_origin = Origin_Ord_of_EIM(earley_item);
-         bottom_or_node_symi = SYMI_of_AIM(aim);
     }
     /* Find bottom or-node */
+         bottom_or_node_symi = SYMI_of_AIM(bottom_ahfa_item);
       or_psl = per_es_data[bottom_or_node_origin].t_or_psl;
+      bottom_or_node = PSL_Datum (or_psl, bottom_or_node_symi);
 }
+
+@ Note that in a trivial path the bottom is also the top.
+@<Add the draft and-nodes to the bottom of the Leo path@> =
+{
+  const SYMID transition_symbol_id = Postdot_SYMID_of_LIM (leo_predecessor);
+  const TRANS cause_completion_data =
+    TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
+  const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
+  const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
+  const gint dand_ordinal = Ord_of_LIM (path_leo_item);
+  OR dand_predecessor;
+  @<Set |dand_predecessor| from the base of |path_leo_item|@>@;
+  for (ix = 0; ix < aex_count; ix++)
+    {
+      const AEX aex = aexes[ix];
+    }
+}
+
+@ @<Set |dand_predecessor| from the base of |path_leo_item|@> =
+{
+    const EIM base_earley_item = Base_EIM_of_LIM(path_leo_item);
+    const AEX base_aex = Base_AEX_of_LIM(path_leo_item);
+#define PSIA_EIM base_earley_item
+#define PSIA_AEX base_aex
+#define PSIA_OR dand_predecessor
+    @<Set |PSIA_OR| from |PSIA_EIM| and |PSIA_AEX|@>@;
+}
+
+@ It is assumed that there is an or-node entry for
+|PSIA_EIM| and |PSIA_AEX|.
+@<Set |PSIA_OR| from |PSIA_EIM| and |PSIA_AEX|@> =
+{
+    const EIM earley_item = PSIA_EIM;
+    const gint earley_set_ordinal = ES_Ord_of_EIM(earley_item);
+    OR** const nodes_by_item = per_es_data[earley_set_ordinal].t_aexes_by_item;
+    const gint item_ordinal = Ord_of_EIM(earley_item);
+    OR* const nodes_by_aex = nodes_by_item[item_ordinal];
+    PSIA_OR = nodes_by_aex[PSIA_AEX];
+}
+#undef PSIA_OR
+#undef PSIA_EIM
+#undef PSIA_AEX
 
 @** And-Node (AND) Code.
 The or-nodes are part of the parse bocage.
