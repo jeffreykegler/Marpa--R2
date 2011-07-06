@@ -9843,17 +9843,29 @@ requirements in the process.
     }
 }
 
+@ Get the base data for a Leo item -- it's base Earley item
+and the index of the relevant AHFA item.
+@<Private function prototypes@> =
+static inline AEX lim_base_data_get(LIM leo_item, EIM* p_base);
+@ @<Function definitions@> =
+static inline AEX lim_base_data_get(LIM leo_item, EIM* p_base)
+{
+      const SYMID postdot = Postdot_SYMID_of_LIM (leo_item);
+      const EIM base = Base_EIM_of_LIM(leo_item);
+      const TRANS transition = TRANS_of_EIM_by_SYMID (base, postdot);
+      *p_base = base;
+      return Leo_Base_AEX_of_TRANS (transition);
+}
+
 @ @d Path_AIM_of_LIM(lim) (path_aim_of_lim(lim))
 @<Private function prototypes@> =
 static inline AIM path_aim_of_lim(LIM lim);
 @ @<Function definitions@> =
 static inline AIM path_aim_of_lim(LIM leo_item)
 {
-      const SYMID postdot = Postdot_SYMID_of_LIM (leo_item);
-      const EIM base = Base_EIM_of_LIM(leo_item);
-      const TRANS transition = TRANS_of_EIM_by_SYMID (base, postdot);
-      const AEX base_aex = Leo_Base_AEX_of_TRANS (transition);
-       return AIM_of_EIM_by_AEX(base, base_aex) + 1;
+      EIM base;
+      const AEX base_aex = lim_base_data_get(leo_item, &base);
+      return AIM_of_EIM_by_AEX(base, base_aex) + 1;
 }
 
 @ Adds the main Leo path or-node---%
@@ -10082,47 +10094,77 @@ MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
     LIM higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
     /* A boolean to indicate whether is true is there is some
        section of a non-trivial path left unprocessed. */
-    gint on_path = 0;
-    OR bottom_or_node;
-    AIM bottom_ahfa_item;
-    gint bottom_or_node_origin;
-    gint bottom_or_node_symi;
+    gint at_top_of_path = !higher_path_leo_item;
     PSL or_psl;
-    if (higher_path_leo_item) {
-	 bottom_ahfa_item = Path_AIM_of_LIM(higher_path_leo_item);
-	 bottom_or_node_origin = Ord_of_ES(ES_of_LIM(higher_path_leo_item));
-	 on_path = 1;
-    } else {
-         bottom_ahfa_item = AIM_of_EIM_by_AEX(earley_item, aex);
-	 bottom_or_node_origin = Origin_Ord_of_EIM(earley_item);
+    @<Add the draft and-nodes to the bottom of the Leo path@>@;
+    while (!at_top_of_path) {
+	path_leo_item = higher_path_leo_item;
+	higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
+	if (higher_path_leo_item) {
+	    @<Set |path_or_node| from |higher_path_leo_item|@>@;
+	} else {
+	    at_top_of_path = 0;
+	    @<Set |path_or_node| from |earley_item|@>@;
+	}
+	@<Add the draft and-nodes to an upper Leo path or-node@>@;
     }
-    /* Find bottom or-node */
-         bottom_or_node_symi = SYMI_of_AIM(bottom_ahfa_item);
-      or_psl = per_es_data[bottom_or_node_origin].t_or_psl;
-      bottom_or_node = PSL_Datum (or_psl, bottom_or_node_symi);
 }
 
 @ Note that in a trivial path the bottom is also the top.
 @<Add the draft and-nodes to the bottom of the Leo path@> =
+{
+    OR bottom_or_node;
+    @<Find |bottom_or_node|@>@;
+    @<Add draft and-nodes to |bottom_or_node|@>@;
+}
+
+@ @<Find |bottom_or_node|@> =
+{
+  AIM bottom_ahfa_item;
+  gint bottom_or_node_origin;
+  gint bottom_or_node_symi;
+  if (higher_path_leo_item)
+    {
+      bottom_ahfa_item = Path_AIM_of_LIM (higher_path_leo_item);
+      bottom_or_node_origin = Ord_of_ES (ES_of_LIM (higher_path_leo_item));
+    }
+  else
+    {
+      bottom_ahfa_item = AIM_of_EIM_by_AEX (earley_item, aex);
+      bottom_or_node_origin = Origin_Ord_of_EIM (earley_item);
+    }
+  bottom_or_node_symi = SYMI_of_AIM (bottom_ahfa_item);
+  or_psl = per_es_data[bottom_or_node_origin].t_or_psl;
+  bottom_or_node = PSL_Datum (or_psl, bottom_or_node_symi);
+}
+
+@ @<Add draft and-nodes to |bottom_or_node|@> =
 {
   const SYMID transition_symbol_id = Postdot_SYMID_of_LIM (leo_predecessor);
   const TRANS cause_completion_data =
     TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
   const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
   const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
-  const gint dand_ordinal = Ord_of_LIM (path_leo_item);
+  const gint dand_ordinal = Ord_of_ES(ES_of_LIM (path_leo_item));
   OR dand_predecessor;
+  gint ix;
   @<Set |dand_predecessor| from the base of |path_leo_item|@>@;
   for (ix = 0; ix < aex_count; ix++)
     {
-      const AEX aex = aexes[ix];
+      const AEX cause_aex = aexes[ix];
+      gint dand_wheid;
+      @<Set |dand_wheid| from |cause_earley_item| and |cause_aex|@>@;
+      draft_and_node_add (&bocage_setup_obs, bottom_or_node,
+			  dand_predecessor, dand_ordinal, dand_wheid);
     }
 }
 
+@ @<Set |dand_wheid| from |cause_earley_item| and |cause_aex|@> = {;}
+
 @ @<Set |dand_predecessor| from the base of |path_leo_item|@> =
 {
-    const EIM base_earley_item = Base_EIM_of_LIM(path_leo_item);
-    const AEX base_aex = Base_AEX_of_LIM(path_leo_item);
+    EIM base_earley_item;
+    const AEX base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
 #define PSIA_EIM base_earley_item
 #define PSIA_AEX base_aex
 #define PSIA_OR dand_predecessor
@@ -10133,16 +10175,21 @@ MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
 |PSIA_EIM| and |PSIA_AEX|.
 @<Set |PSIA_OR| from |PSIA_EIM| and |PSIA_AEX|@> =
 {
-    const EIM earley_item = PSIA_EIM;
-    const gint earley_set_ordinal = ES_Ord_of_EIM(earley_item);
-    OR** const nodes_by_item = per_es_data[earley_set_ordinal].t_aexes_by_item;
-    const gint item_ordinal = Ord_of_EIM(earley_item);
-    OR* const nodes_by_aex = nodes_by_item[item_ordinal];
-    PSIA_OR = nodes_by_aex[PSIA_AEX];
+  const EIM psia_earley_item = PSIA_EIM;
+  const gint psia_earley_set_ordinal = ES_Ord_of_EIM (psia_earley_item);
+  OR **const psia_nodes_by_item =
+    per_es_data[psia_earley_set_ordinal].t_aexes_by_item;
+  const gint psia_item_ordinal = Ord_of_EIM (psia_earley_item);
+  OR *const psia_nodes_by_aex = psia_nodes_by_item[psia_item_ordinal];
+  PSIA_OR = psia_nodes_by_aex[PSIA_AEX];
 }
 #undef PSIA_OR
 #undef PSIA_EIM
 #undef PSIA_AEX
+
+@ @<Set |path_or_node| from |higher_path_leo_item|@> = {;}
+@ @<Set |path_or_node| from |earley_item|@> = {;}
+@ @<Add the draft and-nodes to an upper Leo path or-node@> = {;}
 
 @** And-Node (AND) Code.
 The or-nodes are part of the parse bocage.
