@@ -2831,7 +2831,7 @@ sub Marpa::XS::Recognizer::value {
             ->[Marpa::XS::Internal::Choice::AND_NODE]
     } @{$iteration_stack};
 
-    my $BOCAGE_DEBUG = 0;
+    my $BOCAGE_DEBUG = 1;
     if (   $BOCAGE_DEBUG
         && $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] <= 1 )
     {
