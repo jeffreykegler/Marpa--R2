@@ -9657,9 +9657,7 @@ MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
     EIM* const eims_of_es = EIMs_of_ES(earley_set);
     const gint item_count = EIM_Count_of_ES (earley_set);
     @<Create the or-nodes for |this_earley_set_ordinal|@>@;
-    if (0) {
-	@<Create the draft and-nodes for |this_earley_set_ordinal|@>@;
-    }
+    @<Create the draft and-nodes for |this_earley_set_ordinal|@>@;
 }
 
 @ @<Create the or-nodes for |this_earley_set_ordinal|@> =
@@ -10115,7 +10113,7 @@ MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
 	if (higher_path_leo_item) {
 	    @<Set |path_or_node| from |higher_path_leo_item|@>@;
 	} else {
-	    at_top_of_path = 0;
+	    at_top_of_path = 1;
 	    @<Set |path_or_node| from |earley_item|@>@;
 	}
 	@<Add the draft and-nodes to an upper Leo path or-node@>@;
@@ -10140,7 +10138,7 @@ MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
   if (higher_path_leo_item)
     {
   MARPA_DEBUG2("%s", G_STRLOC);
-      same_rule_ahfa_item = Base_AIM_of_LIM (higher_path_leo_item);
+      same_rule_ahfa_item = Base_AIM_of_LIM (path_leo_item);
       bottom_or_node_origin = Ord_of_ES (ES_of_LIM (higher_path_leo_item));
     }
   else
@@ -10151,12 +10149,13 @@ MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
     }
   bottom_or_node_rule = RULE_of_AIM(same_rule_ahfa_item);
   bottom_or_node_symi = SYMI_of_Completed_RULE (bottom_or_node_rule);
+  MARPA_DEBUG3("%s bottom_or_node_rule=%d", G_STRLOC, ID_of_RULE(bottom_or_node_rule));
     @<Set |bottom_or_node| from PSL using |bottom_or_node_origin|
-    and bottom_or_node_symi@>@;
+    and |bottom_or_node_symi|@>@;
 }
 
 @ @<Set |bottom_or_node| from PSL using |bottom_or_node_origin|
-and bottom_or_node_symi@> =
+and |bottom_or_node_symi|@> =
 {
   const PSL or_psl_at_origin = per_es_data[bottom_or_node_origin].t_or_psl;
   bottom_or_node = PSL_Datum (or_psl_at_origin, bottom_or_node_symi);
