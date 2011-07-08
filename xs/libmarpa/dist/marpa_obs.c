@@ -28,23 +28,47 @@
 /* NOTE BEFORE MODIFYING THIS FILE: This version number must be
    incremented whenever callers compiled using an old obstack.h can no
    longer properly call the functions in this obstack.c.  */
-/* NOTE FOR MARPA MODIFICATION -- The GNU original has a lot of complex
-   CPP logic intended to make this file work as part of GNU libc as well
-   as independently.  This was causing me portability problems, with
-   no value added -- inclusion in the GNU libc is not exactly a near
-   term priority for libmarpa.
 
+/* WHY A SPECIAL MARPA VERSION?  I am happy to rely on the local versions
+   of the glibc and glib libraries, and sanquine about facing the portability
+   consequences.  But obstacks fall into a twilight zone, and I was forced
+   for reasons described below, to make my own copy
+   to be compiled with libmarpa.  I was initially reluctant to do this,
+   but as development has proceeded, this has proved to be the right
+   choice.
+ */
 
-   A second complication was the internationalization, which also caused
-   portability problems.  Again, no added value --
-   there is exactly one message in this file
-   and in the libmarpa context it will *NEVER* be called -- it's for
+/* NOTES FOR THE MARPA MODIFICATIONS --
+
+   I read the previous note as saying the version numbers should be kept
+   in sync between the .h and the .c.  In Marpa's case, these files are
+   an integral part of the package, so it's not so much of an issue but
+   it is a good idea.
+
+   Marpa has its own copy of the obstack code because
+   the GNU original had a number of complications which caused Marpa
+   problems, and which added no value in the Marpa context.
+   The first was the complex CPP logic needed
+   to make the same obstack files work both as part of GNU libc and
+   as independently.  Inclusion as an integral part of
+   the GNU libc is not exactly a near term priority for libmarpa,
+   so I was happy to eliminate all that.
+
+   A second complication was the internationalization.
+   This caused portability problems for Marpa.
+   The internationalization did not add value --
+   there was exactly one message in the obstack
+   files to be internationalized
+   and in the libmarpa context it would *NEVER* be called -- it's for
    memory allocation failures and libmarpa uses g_malloc();
+   libmarpa itself avoids internationalization issues by kicking them
+   up to the higher levels.  libmarpa avoids the use of strings
+   except 7-bit ASCII which are for internal purposes.
+   The use of American English in these strings is the same kind
+   of arbitrary convention as its use in variable names, and for
+   the same reasons they are not considered translation candidates.
 
-   I've removed these complications.  Otherwise, I've tried to leave this file intact.
-   The result may be useful for someone else trying to embed obstack into
-   their application.  On the other hand, it is PROBABLY A VERY BAD IDEA to
-   simply use this as a drop-in replacement for obstack.c.  */
+*/
 
 /* ORIGINAL COMMENT:
     Comment out all this code if we are using the GNU C Library, and are not
@@ -56,13 +80,6 @@
    program understand `configure --with-gnu-libc' and omit the object
    files, it is simpler to just do this in the source for each such file.  */
 
-/* NOTE FOR MARPA VERSION: I'm happy to rely on the local versions of the
-   GNU C and GTK libraries, and sanquine about facing the portability
-   consequences.  But obstacks seem to be in a twilight zone, and until
-   I understand what's going on better, I'm taking no chances.  There is
-   not a lot of code here, and I'm just going to compile it as part of
-   libmarpa. -- Jeffrey Kegler
- */
 #include <stdio.h>		/* Random thing to get __GNU_LIBRARY__.  */
 
 #include <stddef.h>

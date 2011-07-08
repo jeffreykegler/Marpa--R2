@@ -9600,14 +9600,14 @@ static const OR dummy_or_node = (OR)&dummy_or_node_type;
 @ @d ORs_of_B(b) ((b)->t_or_nodes)
 @ @d OR_Count_of_B(b) ((b)->t_or_node_count)
 @<Widely aligned bocage elements@> =
-OR t_or_nodes;
+OR* t_or_nodes;
 gint t_or_node_count;
 @ @<Initialize bocage elements@> =
 ORs_of_B(b) = NULL;
 OR_Count_of_B(b) = 0;
 @ @<Destroy bocage elements, main phase@> =
 {
-  OR or_nodes = ORs_of_B (b);
+  OR* or_nodes = ORs_of_B (b);
   if (or_nodes)
     {
       g_free (or_nodes);
@@ -9624,13 +9624,11 @@ OR_Count_of_B(b) = 0;
   const gint earley_set_count = ES_Count_of_R (r);
   gint work_earley_set_ordinal;
   PSL this_earley_set_psl;
-  OR first_or_node;
-  OR next_or_node;
+  OR last_or_node = NULL ;
   psar_init (and_psar, AHFA_Count_of_G (g));
 MARPA_OFF_DEBUG3("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
   psar_init (or_psar, SYMI_Count_of_G (g));
-MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
-  ORs_of_B (b) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
+  ORs_of_B (b) = g_new (OR, or_node_estimate);
   for (work_earley_set_ordinal = 0;
       work_earley_set_ordinal < earley_set_count;
       work_earley_set_ordinal++)
@@ -9642,18 +9640,12 @@ MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
       @<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@>@;
       @<Create the bocage nodes for |work_earley_set_ordinal|@>@;
   }
-  {
-     const gint or_node_count = next_or_node - first_or_node;
-     OR_Count_of_B(b) = or_node_count;
-     ORs_of_B(b) = g_renew (OR_Object, first_or_node, or_node_count);
-    MARPA_DEBUG2("g_renew of or-nodes: %s", G_STRLOC);
-  }
+  ORs_of_B(b) = g_renew (OR, ORs_of_B(b), OR_Count_of_B(b));
   psar_destroy (and_psar);
   psar_destroy (or_psar);
 }
 
-@
-@<Create the bocage nodes for |work_earley_set_ordinal|@> =
+@ @<Create the bocage nodes for |work_earley_set_ordinal|@> =
 {
     OR** const nodes_by_item = per_es_data[work_earley_set_ordinal].t_aexes_by_item;
     EIM* const eims_of_es = EIMs_of_ES(earley_set);
@@ -9725,10 +9717,9 @@ MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
       if (!or_node || ES_Ord_of_OR(or_node) != work_earley_set_ordinal)
 	{
 	  const RULE rule = RULE_of_AIM(ahfa_item);
-MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
-MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
-	  or_node = next_or_node++;
-	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = or_node;
+	  @<Set |last_or_node| to a new or-node@>@;
+	  or_node = last_or_node;
+	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = last_or_node;
   MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, ahfa_item_symbol_instance );
 	  Start_ES_Ord_of_OR(or_node) = Origin_Ord_of_EIM(work_earley_item);
 	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
@@ -9742,6 +9733,26 @@ MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 	}
 	psia_or_node = or_node;
     }
+}
+
+@ The resizing of the or-node array here presents an issue.
+It should not be invoked, which means it is never tested,
+which raises the question of either having confidence in the logic
+and deleting the code,
+or arranging to test it.
+@<Set |last_or_node| to a new or-node@> =
+{
+  const gint or_node_id = OR_Count_of_B (b)++;
+  OR *or_nodes_of_b = ORs_of_B (b);
+  last_or_node = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
+  if (G_UNLIKELY(or_node_id >= or_node_estimate))
+    {
+      MARPA_ASSERT(0);
+      or_node_estimate *= 2;
+      ORs_of_B (b) = or_nodes_of_b =
+	g_renew (OR, or_nodes_of_b, or_node_estimate);
+    }
+  or_nodes_of_b[or_node_id] = last_or_node;
 }
 
 
@@ -9772,12 +9783,10 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
 	  if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal) {
 		DAND draft_and_node;
 		const gint rhs_ix = symbol_instance - SYMI_of_RULE(rule);
-		const OR predecessor = symbol_instance ? next_or_node - 1 : NULL;
+		const OR predecessor = symbol_instance ? last_or_node : NULL;
 		const WHEID whole_element_id = WHEID_of_SYMID( RHS_ID_of_RULE (rule, rhs_ix ) );
-		MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate)@;
-MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
-		or_node = next_or_node++;
-		PSL_Datum (or_psl, symbol_instance) = or_node;
+		@<Set |last_or_node| to a new or-node@>@;
+		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
   MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, symbol_instance );
 		Start_ES_Ord_of_OR (or_node) = work_origin_ordinal;
 		ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
@@ -9898,9 +9907,8 @@ corresponds to the leo predecessor.
       or_node = PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item);
       if (!or_node || ES_Ord_of_OR(or_node) != work_earley_set_ordinal)
 	{
-MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
-	  or_node = next_or_node++;
-	  PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item) = or_node;
+	  @<Set |last_or_node| to a new or-node@>@;
+	  PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item) = or_node = last_or_node;
   MARPA_DEBUG3("%s: leo_psl symi=%d", G_STRLOC, symbol_instance_of_path_ahfa_item );
 	  Start_ES_Ord_of_OR(or_node) = ordinal_of_set_of_this_leo_item;
 	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
@@ -9930,15 +9938,14 @@ or-nodes follow a completion.
       if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal)
 	{
 	  DAND draft_and_node;
-	  OR predecessor = next_or_node - 1;	/* Leo path Earley items are never predictions,
+	  OR predecessor = last_or_node;	/* Leo path Earley items are never predictions,
 						   so that there is always a predecessor */
 	  const gint rhs_ix = symbol_instance - SYMI_of_RULE(path_rule);
 	  const WHEID whole_element_id = WHEID_of_SYMID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
 	  MARPA_ASSERT (symbol_instance < Length_of_RULE (path_rule)) @;
 	  MARPA_ASSERT (symbol_instance >= 0) @;
-	  MARPA_ASSERT (next_or_node - first_or_node < or_node_estimate) @;
-	  or_node = next_or_node++;
-	  PSL_Datum (this_earley_set_psl, symbol_instance) = or_node;
+	  @<Set |last_or_node| to a new or-node@>@;
+	  PSL_Datum (this_earley_set_psl, symbol_instance) = or_node = last_or_node;
   MARPA_DEBUG3("%s: this_earley_set_psl symi=%d", G_STRLOC, symbol_instance );
 	  Start_ES_Ord_of_OR (or_node) = ordinal_of_set_of_this_leo_item;
 	  ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
@@ -10271,11 +10278,14 @@ BOC t_bocage;
 B_of_R(r) = NULL;
 
 @*0 The Bocage Obstack.
-Create an obstack with the lifetime of the bocage.
-@d OBS_of_BOC(b) ((b)->t_obs)
-@<Widely aligned bocage elements@> = struct obstack t_obs;
-@ @<Initialize bocage elements@> = obstack_init(&b->t_obs);
-@ @<Destroy bocage elements, final phase@> = obstack_free(&b->t_obs, NULL);
+An obstack with the lifetime of the bocage.
+@d OBS_of_B(b) ((b)->t_obs)
+@<Widely aligned bocage elements@> =
+struct obstack t_obs;
+@ @<Initialize bocage elements@> =
+obstack_init(&OBS_of_B(b));
+@ @<Destroy bocage elements, final phase@> =
+obstack_free(&OBS_of_B(b), NULL);
 
 @*0 Bocage Construction.
 @<Public function prototypes@> =
@@ -10284,7 +10294,7 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
 gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
     const gint no_parse = -1;
     const gint null_parse = 0;
-    @<Bocage setup locals@>@;
+    @<Declare bocage locals@>@;
     r_update_earley_sets(r);
 MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Return if function guards fail;
@@ -10302,7 +10312,7 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     return 1; // For now, just return 1 on non-null parse
 }
 
-@ @<Bocage setup locals@> =
+@ @<Declare bocage locals@> =
 @<Return |-2| on failure@>@;
 const GRAMMAR_Const g = G_of_R(r);
 gint rule_count_of_g = RULE_Count_of_G(g);
@@ -10324,7 +10334,7 @@ struct s_bocage_setup_per_es {
      PSL t_or_psl;
      PSL t_and_psl;
 };
-@ @<Bocage setup locals@> =
+@ @<Declare bocage locals@> =
 struct s_bocage_setup_per_es* per_es_data = NULL;
 
 @ @<Return if function guards fail;
@@ -10521,7 +10531,7 @@ gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data);
 gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
 {
   BOC b = B_of_R(r);
-  OR or_nodes;
+  OR* or_nodes;
   @<Return |-2| on failure@>@;
   @<Fail if recognizer has fatal error@>@;
 MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
@@ -10546,7 +10556,7 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
       return -1;
   }
   {
-      const OR or_node = or_nodes+or_node_id;
+      const OR or_node = or_nodes[or_node_id];
       or_data[0] = Start_ES_Ord_of_OR(or_node);
       or_data[1] = ES_Ord_of_OR(or_node);
       or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
