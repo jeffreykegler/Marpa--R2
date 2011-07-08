@@ -9223,8 +9223,9 @@ cost per parse.
 		    if (Position_of_AIM(ahfa_item) == 0) {
 			/* Don't bother with the null count ---
 			there are no nulling symbols in the start rule */
-			OR* const p_master_psia_entry = nodes_by_aex + aex;
-			*p_master_psia_entry = 0;
+			nodes_by_aex[aex] = NULL;
+			MARPA_DEBUG5("Setting psia for es=%d,eim=%d,aex=%d to %p",
+			    0, item_ordinal, aex, NULL);
 			goto FINISHED_UNSET;
 		    }
 		}
@@ -9275,7 +9276,7 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
 	}
     }
     if (!nodes_by_aex[ahfa_element_ix]) {
-MARPA_OFF_DEBUG4("PSIA Set S=%d I=%s A=%d", set_ordinal, eim_tag(earley_item), ahfa_element_ix);
+MARPA_DEBUG4("PSIA Set S=%d I=%s A=%d", set_ordinal, eim_tag(earley_item), ahfa_element_ix);
 	nodes_by_aex[ahfa_element_ix] = dummy_or_node;
 	return 0;
     }
@@ -9621,7 +9622,7 @@ OR_Count_of_B(b) = 0;
   PSAR_Object or_per_es_arena;
   const PSAR or_psar = &or_per_es_arena;
   const gint earley_set_count = ES_Count_of_R (r);
-  gint this_earley_set_ordinal;
+  gint work_earley_set_ordinal;
   PSL this_earley_set_psl;
   OR first_or_node;
   OR next_or_node;
@@ -9630,75 +9631,82 @@ MARPA_OFF_DEBUG3("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
   psar_init (or_psar, SYMI_Count_of_G (g));
 MARPA_OFF_DEBUG3("%s or_node_estimate=%d", G_STRLOC, or_node_estimate);
   ORs_of_B (b) = first_or_node = next_or_node = g_new (OR_Object, or_node_estimate);
-  for (this_earley_set_ordinal = 0;
-      this_earley_set_ordinal < earley_set_count;
-      this_earley_set_ordinal++)
+  for (work_earley_set_ordinal = 0;
+      work_earley_set_ordinal < earley_set_count;
+      work_earley_set_ordinal++)
   {
-      const ES_Const earley_set = ES_of_R_by_Ord (r, this_earley_set_ordinal);
+      const ES_Const earley_set = ES_of_R_by_Ord (r, work_earley_set_ordinal);
       psar_dealloc(or_psar);
-#define PSL_ES_ORD this_earley_set_ordinal
+#define PSL_ES_ORD work_earley_set_ordinal
 #define CLAIMED_PSL this_earley_set_psl
       @<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@>@;
-      @<Create the bocage nodes for |this_earley_set_ordinal|@>@;
+      @<Create the bocage nodes for |work_earley_set_ordinal|@>@;
   }
   {
      const gint or_node_count = next_or_node - first_or_node;
      OR_Count_of_B(b) = or_node_count;
      ORs_of_B(b) = g_renew (OR_Object, first_or_node, or_node_count);
+    MARPA_DEBUG2("g_renew of or-nodes: %s", G_STRLOC);
   }
   psar_destroy (and_psar);
   psar_destroy (or_psar);
 }
 
 @
-@<Create the bocage nodes for |this_earley_set_ordinal|@> =
+@<Create the bocage nodes for |work_earley_set_ordinal|@> =
 {
-    OR** const nodes_by_item = per_es_data[this_earley_set_ordinal].t_aexes_by_item;
+    OR** const nodes_by_item = per_es_data[work_earley_set_ordinal].t_aexes_by_item;
     EIM* const eims_of_es = EIMs_of_ES(earley_set);
     const gint item_count = EIM_Count_of_ES (earley_set);
-    @<Create the or-nodes for |this_earley_set_ordinal|@>@;
-    @<Create the draft and-nodes for |this_earley_set_ordinal|@>@;
+    @<Create the or-nodes for |work_earley_set_ordinal|@>@;
+    if (0) {
+	@<Create the draft and-nodes for |work_earley_set_ordinal|@>@;
+    }
 }
 
-@ @<Create the or-nodes for |this_earley_set_ordinal|@> =
+@ @<Create the or-nodes for |work_earley_set_ordinal|@> =
 {
     gint item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
     {
-	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
-	if (nodes_by_aex) {
-	    const EIM earley_item = eims_of_es[item_ordinal];
-	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
-	    AEX aex;
-	      const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
-	    PSL or_psl;
-	    for (aex = 0; aex < aim_count_of_item; aex++) {
-		OR* const p_master_psia_entry = nodes_by_aex + aex;
-		const gconstpointer dummy = *p_master_psia_entry;
-		if (!dummy) continue;
+	OR* const work_nodes_by_aex = nodes_by_item[item_ordinal];
+MARPA_DEBUG4("Setting work_nodes_by_aex to %p, item=%d, es=%d", work_nodes_by_aex,
+   item_ordinal, work_earley_set_ordinal);
+	if (work_nodes_by_aex) {
+	    const EIM work_earley_item = eims_of_es[item_ordinal];
+	    const gint work_ahfa_item_count = AIM_Count_of_EIM(work_earley_item);
+	    AEX work_aex;
+	      const gint work_origin_ordinal = Ord_of_ES (Origin_of_EIM (work_earley_item));
+	    for (work_aex = 0; work_aex < work_ahfa_item_count; work_aex++) {
+		if (!work_nodes_by_aex[work_aex]) continue;
 		@<Create the or-nodes
-		    for |earley_item| and |aex|@>@;
+		    for |work_earley_item| and |work_aex|@>@;
 	    }
 	}
     }
 }
 
-@ @<Create the or-nodes for |earley_item| and |aex|@> =
+@ @<Create the or-nodes for |work_earley_item| and |work_aex|@> =
 {
-  AIM ahfa_item = AIM_of_EIM_by_AEX(earley_item, aex);
+  AIM ahfa_item = AIM_of_EIM_by_AEX(work_earley_item, work_aex);
   SYMI ahfa_item_symbol_instance;
   OR psia_or_node = NULL;
   ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
-#define PSL_ES_ORD origin_ordinal
+  {
+	    PSL or_psl;
+#define PSL_ES_ORD work_origin_ordinal
 #define CLAIMED_PSL or_psl
 	@<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@>@;
-    @<Add main or-node@>@;
-    @<Add nulling token or-nodes@>@;
+	@<Add main or-node@>@;
+	@<Add nulling token or-nodes@>@;
+    }
     /* Replace the dummy or-node with
     the last one added */
-MARPA_DEBUG3("eim, aex = %s, %d", eim_tag(earley_item), aex);
+MARPA_DEBUG3("eim, aex = %s, %d", eim_tag(work_earley_item), work_aex);
     MARPA_ASSERT (psia_or_node)@;
-    *p_master_psia_entry = psia_or_node;
+    work_nodes_by_aex[work_aex] = psia_or_node;
+MARPA_DEBUG4("Setting psia for work_nodes_by_aex=%p,aex=%d to %p",
+	work_nodes_by_aex, work_aex, psia_or_node);
     @<Add Leo or-nodes@>@;
 }
 
@@ -9714,7 +9722,7 @@ MARPA_OFF_DEBUG3("%s ahfa_item_symbol_instance = %d", G_STRLOC, ahfa_item_symbol
       OR or_node;
 MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
       or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
-      if (!or_node || ES_Ord_of_OR(or_node) != this_earley_set_ordinal)
+      if (!or_node || ES_Ord_of_OR(or_node) != work_earley_set_ordinal)
 	{
 	  const RULE rule = RULE_of_AIM(ahfa_item);
 MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
@@ -9722,13 +9730,13 @@ MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  or_node = next_or_node++;
 	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = or_node;
   MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, ahfa_item_symbol_instance );
-	  Start_ES_Ord_of_OR(or_node) = Origin_Ord_of_EIM(earley_item);
-	  ES_Ord_of_OR(or_node) = this_earley_set_ordinal;
+	  Start_ES_Ord_of_OR(or_node) = Origin_Ord_of_EIM(work_earley_item);
+	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
 	  RULE_of_OR(or_node) = rule;
 	  Position_of_OR (or_node) =
 	      ahfa_item_symbol_instance - SYMI_of_RULE (rule) + 1;
 MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
-MARPA_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
+MARPA_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(work_earley_item), work_aex);
 MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 	  DANDs_of_OR(or_node) = NULL;
 	}
@@ -9759,8 +9767,9 @@ and this is the case if |Position_of_OR(or_node) == 0|.
 	{
 	  const gint symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d", eim_tag(earley_item), aex);
-	  if (!or_node || ES_Ord_of_OR (or_node) != this_earley_set_ordinal) {
+MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
+    eim_tag(work_earley_item), work_aex);
+	  if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal) {
 		DAND draft_and_node;
 		const gint rhs_ix = symbol_instance - SYMI_of_RULE(rule);
 		const OR predecessor = symbol_instance ? next_or_node - 1 : NULL;
@@ -9770,15 +9779,15 @@ MARPA_OFF_DEBUG3("%s next_or_node = %p", G_STRLOC, next_or_node);
 		or_node = next_or_node++;
 		PSL_Datum (or_psl, symbol_instance) = or_node;
   MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, symbol_instance );
-		Start_ES_Ord_of_OR (or_node) = origin_ordinal;
-		ES_Ord_of_OR (or_node) = this_earley_set_ordinal;
+		Start_ES_Ord_of_OR (or_node) = work_origin_ordinal;
+		ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
 MARPA_OFF_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 		draft_and_node = DANDs_of_OR (or_node) =
 		  draft_and_node_new (&bocage_setup_obs, predecessor,
-		      this_earley_set_ordinal, whole_element_id);
+		      work_earley_set_ordinal, whole_element_id);
 MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 		Next_DAND_of_DAND (draft_and_node) = NULL;
 	      }
@@ -9791,15 +9800,15 @@ MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
   SRCL source_link = NULL;
   EIM cause_earley_item = NULL;
   LIM leo_predecessor = NULL;
-  switch (Source_Type_of_EIM(earley_item))
+  switch (Source_Type_of_EIM(work_earley_item))
     {
     case SOURCE_IS_LEO:
-      leo_predecessor = Predecessor_of_EIM (earley_item);
-      cause_earley_item = Cause_of_EIM (earley_item);
+      leo_predecessor = Predecessor_of_EIM (work_earley_item);
+      cause_earley_item = Cause_of_EIM (work_earley_item);
       MARPA_DEBUG2("Unique Leo source: cause=%s", eim_tag(cause_earley_item));
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_SRCL_of_EIM (earley_item);
+      source_link = First_Leo_SRCL_of_EIM (work_earley_item);
       if (source_link)
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
@@ -9887,14 +9896,14 @@ corresponds to the leo predecessor.
 #define CLAIMED_PSL leo_psl
 	@<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@>@;
       or_node = PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item);
-      if (!or_node || ES_Ord_of_OR(or_node) != this_earley_set_ordinal)
+      if (!or_node || ES_Ord_of_OR(or_node) != work_earley_set_ordinal)
 	{
 MARPA_ASSERT(next_or_node - first_or_node < or_node_estimate)@;
 	  or_node = next_or_node++;
 	  PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item) = or_node;
   MARPA_DEBUG3("%s: leo_psl symi=%d", G_STRLOC, symbol_instance_of_path_ahfa_item );
 	  Start_ES_Ord_of_OR(or_node) = ordinal_of_set_of_this_leo_item;
-	  ES_Ord_of_OR(or_node) = this_earley_set_ordinal;
+	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
 	  RULE_of_OR(or_node) = path_rule;
 	  Position_of_OR (or_node) =
 	      symbol_instance_of_path_ahfa_item - SYMI_of_RULE (path_rule) + 1;
@@ -9918,7 +9927,7 @@ or-nodes follow a completion.
       const gint symbol_instance = symbol_instance_of_path_ahfa_item + i;
       OR or_node = PSL_Datum (this_earley_set_psl, symbol_instance);
       MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g)) @;
-      if (!or_node || ES_Ord_of_OR (or_node) != this_earley_set_ordinal)
+      if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal)
 	{
 	  DAND draft_and_node;
 	  OR predecessor = next_or_node - 1;	/* Leo path Earley items are never predictions,
@@ -9932,14 +9941,14 @@ or-nodes follow a completion.
 	  PSL_Datum (this_earley_set_psl, symbol_instance) = or_node;
   MARPA_DEBUG3("%s: this_earley_set_psl symi=%d", G_STRLOC, symbol_instance );
 	  Start_ES_Ord_of_OR (or_node) = ordinal_of_set_of_this_leo_item;
-	  ES_Ord_of_OR (or_node) = this_earley_set_ordinal;
+	  ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
 	  RULE_of_OR (or_node) = path_rule;
 	  Position_of_OR (or_node) = rhs_ix + 1;
 	  MARPA_DEBUG3 ("Created or-node %s at %s", or_tag (or_node),
 			G_STRLOC);
 	  DANDs_of_OR (or_node) = draft_and_node =
 	      draft_and_node_new (&bocage_setup_obs, predecessor,
-		  this_earley_set_ordinal, whole_element_id);
+		  work_earley_set_ordinal, whole_element_id);
 	  MARPA_OFF_DEBUG3 ("or = %p, setting DAND = %p", or_node,
 			    DANDs_of_OR (or_node));
 	  Next_DAND_of_DAND (draft_and_node) = NULL;
@@ -10029,7 +10038,7 @@ gint middle, WHEID wheid)
     DANDs_of_OR(parent) = new;
 }
 
-@ @<Create the draft and-nodes for |this_earley_set_ordinal|@> =
+@ @<Create the draft and-nodes for |work_earley_set_ordinal|@> =
 {
     gint item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
@@ -10040,15 +10049,17 @@ gint middle, WHEID wheid)
 	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
 	    const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
 	    AEX aex;
+MARPA_DEBUG2("Creating DANDs for %s", eim_tag(earley_item));
 	    for (aex = 0; aex < aim_count_of_item; aex++) {
 		OR or_node = nodes_by_aex[aex];
+MARPA_DEBUG3("OR of aex %d is %p", aex, or_node);
 		while (or_node) { /* Loop through the nulling or-nodes */
 		    DAND draft_and_node = DANDs_of_OR(or_node);
-MARPA_OFF_DEBUG2("or_node = %s", or_tag(or_node));
-MARPA_OFF_DEBUG2("DAND = %p", draft_and_node);
+MARPA_DEBUG2("or_node = %s", or_tag(or_node));
+MARPA_DEBUG2("DAND = %p", draft_and_node);
 		    if (!draft_and_node)
 		      break;
-		    if (Middle_ES_Ord_of_DAND (draft_and_node) != this_earley_set_ordinal)
+		    if (Middle_ES_Ord_of_DAND (draft_and_node) != work_earley_set_ordinal)
 		      break;
 		    or_node = Predecessor_OR_of_DAND (draft_and_node);
 		}
@@ -11986,6 +11997,7 @@ internal matters on |STDERR|.
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
 #define MARPA_DEBUG3(a, b, c) @[ g_debug((a),(b),(c)) @]
 #define MARPA_DEBUG4(a, b, c, d) @[ g_debug((a),(b),(c),(d)) @]
+#define MARPA_DEBUG5(a, b, c, d, e) @[ g_debug((a),(b),(c),(d),(e)) @]
 #define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
        g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
@@ -11993,6 +12005,7 @@ internal matters on |STDERR|.
 #define MARPA_DEBUG2(a, b) @[@]
 #define MARPA_DEBUG3(a, b, c) @[@]
 #define MARPA_DEBUG4(a, b, c, d) @[@]
+#define MARPA_DEBUG5(a, b, c, d, e) @[@]
 #define MARPA_ASSERT(exp) @[@]
 #endif
 
