@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION @ISA);
-$VERSION = '0.005_028';
+$VERSION = '0.005_029';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -86,6 +86,9 @@ PACKAGE: for my $package (@Marpa::CARP_NOT) {
     *{ $package . q{::CARP_NOT} } = \@Marpa::CARP_NOT;
 }
 
+if (not $ENV{'MARPA_AUTHOR_TEST'}) {
+    Glib::Log->set_handler('Marpa', 'debug', (sub {;}), undef)
+}
 require Marpa::XS::PP::Internal;
 require Marpa::XS::PP::Slot;
 require Marpa::XS::Grammar;

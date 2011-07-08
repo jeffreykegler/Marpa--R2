@@ -9224,7 +9224,7 @@ cost per parse.
 			/* Don't bother with the null count ---
 			there are no nulling symbols in the start rule */
 			nodes_by_aex[aex] = NULL;
-			MARPA_DEBUG5("Setting psia for es=%d,eim=%d,aex=%d to %p",
+			MARPA_DEBUG5("Setting PSIA for %d,%d,%d to %p",
 			    0, item_ordinal, aex, NULL);
 			goto FINISHED_UNSET;
 		    }
@@ -9651,9 +9651,7 @@ MARPA_OFF_DEBUG3("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
     EIM* const eims_of_es = EIMs_of_ES(earley_set);
     const gint item_count = EIM_Count_of_ES (earley_set);
     @<Create the or-nodes for |work_earley_set_ordinal|@>@;
-    if (0) {
-	@<Create the draft and-nodes for |work_earley_set_ordinal|@>@;
-    }
+    @<Create the draft and-nodes for |work_earley_set_ordinal|@>@;
 }
 
 @ @<Create the or-nodes for |work_earley_set_ordinal|@> =
@@ -9694,10 +9692,10 @@ MARPA_DEBUG4("Setting work_nodes_by_aex to %p, item=%d, es=%d", work_nodes_by_ae
     }
     /* Replace the dummy or-node with
     the last one added */
-MARPA_DEBUG3("eim, aex = %s, %d", eim_tag(work_earley_item), work_aex);
+MARPA_DEBUG3("Setting PSIA for eim, aex = %s, %d", eim_tag(work_earley_item), work_aex);
     MARPA_ASSERT (psia_or_node)@;
     work_nodes_by_aex[work_aex] = psia_or_node;
-MARPA_DEBUG4("Setting psia for work_nodes_by_aex=%p,aex=%d to %p",
+MARPA_DEBUG4("Setting PSIA for work_nodes_by_aex=%p,aex=%d to %p",
 	work_nodes_by_aex, work_aex, psia_or_node);
     @<Add Leo or-nodes@>@;
 }
@@ -10225,7 +10223,12 @@ and |bottom_or_node_symi|@> =
     per_es_data[psia_earley_set_ordinal].t_aexes_by_item;
   const gint psia_item_ordinal = Ord_of_EIM (psia_earley_item);
   OR *const psia_nodes_by_aex = psia_nodes_by_item[psia_item_ordinal];
-  PSIA_OR = psia_nodes_by_aex[PSIA_AEX];
+MARPA_DEBUG2("Getting PSIA for %s", eim_tag(psia_earley_item));
+MARPA_DEBUG4("Getting PSIA of %d,%d,%d", 
+       psia_earley_set_ordinal,
+       psia_item_ordinal,
+       PSIA_AEX);
+  PSIA_OR = psia_nodes_by_aex ? psia_nodes_by_aex[PSIA_AEX] : NULL;
 }
 #undef PSIA_OR
 #undef PSIA_EIM
@@ -12000,7 +12003,7 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
+#define MARPA_DEBUG @[ 1 @]
 #define MARPA_ENABLE_ASSERT @[ 1 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
