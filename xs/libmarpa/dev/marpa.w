@@ -10051,7 +10051,7 @@ MARPA_DEBUG2("Creating DANDs for %s", eim_tag(work_earley_item));
 	    for (work_aex = 0; work_aex < work_ahfa_item_count; work_aex++) {
 		OR or_node = nodes_by_aex[work_aex];
 MARPA_DEBUG3("OR of aex %d is %p", work_aex, or_node);
-		Set_to_Proper_OR(or_node);
+		Move_OR_to_Proper_OR(or_node);
 		if (or_node) {
 		    @<Create draft and-nodes for |or_node|@>@;
 		}
@@ -10062,7 +10062,7 @@ MARPA_DEBUG3("OR of aex %d is %p", work_aex, or_node);
 
 @ From an or-node, which may be nulling, determine its proper
 predecessor.  Set |or-node| to 0 if there is none.
-@d Set_to_Proper_OR(or_node) {
+@d Move_OR_to_Proper_OR(or_node) {
     while (or_node)  {
 	DAND draft_and_node = DANDs_of_OR(or_node);
 	OR predecessor_or;
@@ -10215,17 +10215,13 @@ and |bottom_or_node_symi|@> =
 {
     EIM base_earley_item;
     const AEX base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
-#define PSIA_EIM base_earley_item
-#define PSIA_AEX base_aex
-#define PSIA_OR dand_predecessor
-    @<Set |PSIA_OR| from |PSIA_EIM| and |PSIA_AEX|@>@;
+    Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
 }
 
 @ It is assumed that there is an or-node entry for
-|PSIA_EIM| and |PSIA_AEX|.
-@<Set |PSIA_OR| from |PSIA_EIM| and |PSIA_AEX|@> =
-{
-  const EIM psia_earley_item = PSIA_EIM;
+|psia_eim| and |psia_aex|.
+@d Set_OR_from_EIM_and_AEX(psia_or, psia_eim, psia_aex) {
+  const EIM psia_earley_item = psia_eim;
   const gint psia_earley_set_ordinal = ES_Ord_of_EIM (psia_earley_item);
   OR **const psia_nodes_by_item =
     per_es_data[psia_earley_set_ordinal].t_aexes_by_item;
@@ -10235,12 +10231,9 @@ MARPA_DEBUG2("Getting PSIA for %s", eim_tag(psia_earley_item));
 MARPA_DEBUG4("Getting PSIA of %d,%d,%d", 
        psia_earley_set_ordinal,
        psia_item_ordinal,
-       PSIA_AEX);
-  PSIA_OR = psia_nodes_by_aex ? psia_nodes_by_aex[PSIA_AEX] : NULL;
+       psia_aex);
+  psia_or = psia_nodes_by_aex ? psia_nodes_by_aex[psia_aex] : NULL;
 }
-#undef PSIA_OR
-#undef PSIA_EIM
-#undef PSIA_AEX
 
 @ @<Set |path_or_node| from |higher_path_leo_item|@> =
 {
