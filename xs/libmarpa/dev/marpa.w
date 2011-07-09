@@ -10051,24 +10051,27 @@ MARPA_DEBUG2("Creating DANDs for %s", eim_tag(work_earley_item));
 	    for (work_aex = 0; work_aex < work_ahfa_item_count; work_aex++) {
 		OR or_node = nodes_by_aex[work_aex];
 MARPA_DEBUG3("OR of aex %d is %p", work_aex, or_node);
-		if (!or_node) continue;
-		for (;;) { /* Loop through the nulling or-nodes */
-		    DAND draft_and_node = DANDs_of_OR(or_node);
-		    OR predecessor_or;
-MARPA_DEBUG2("or_node = %s", or_tag(or_node));
-MARPA_DEBUG2("DAND = %p", draft_and_node);
-		    if (!draft_and_node)
-		      break;
-		    predecessor_or = Predecessor_OR_of_DAND (draft_and_node);
-		    if (!predecessor_or) goto NEXT_WORK_AEX;
-		    if (ES_Ord_of_OR (predecessor_or) != work_earley_set_ordinal)
-		      break;
-		    or_node = predecessor_or;
+		Set_to_Proper_OR(or_node);
+		if (or_node) {
+		    @<Create draft and-nodes for |or_node|@>@;
 		}
-		@<Create draft and-nodes for |or_node|@>@;
-		NEXT_WORK_AEX: ;
 	    }
 	}
+    }
+}
+
+@ From an or-node, which may be nulling, determine its proper
+predecessor.  Set |or-node| to 0 if there is none.
+@d Set_to_Proper_OR(or_node) {
+    while (or_node)  {
+	DAND draft_and_node = DANDs_of_OR(or_node);
+	OR predecessor_or;
+	if (!draft_and_node) break;
+	predecessor_or = Predecessor_OR_of_DAND (draft_and_node);
+	if (predecessor_or &&
+	    ES_Ord_of_OR (predecessor_or) != work_earley_set_ordinal)
+	  break;
+	or_node = predecessor_or;
     }
 }
 
