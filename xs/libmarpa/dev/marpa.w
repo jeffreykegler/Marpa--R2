@@ -10182,32 +10182,21 @@ predecessor.  Set |or-node| to 0 if there is none.
   const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
   OR dand_predecessor;
   gint ix;
-  @<Set |dand_predecessor| from the base of |path_leo_item|@>@;
+  Set_OR_from_LIM_Base(dand_predecessor, path_leo_item);
   for (ix = 0; ix < aex_count; ix++)
     {
       const AEX cause_aex = aexes[ix];
       OR dand_cause;
-      @<Set |dand_cause| from |cause_earley_item| and |cause_aex|@>@;
+      Set_OR_from_EIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
       draft_and_node_add (&bocage_setup_obs, path_or_node,
 			  dand_predecessor, dand_cause);
     }
 }
 
-@ @<Set |dand_cause| from |cause_earley_item| and |cause_aex|@> =
-{
-  const gint origin_ordinal_of_cause = Origin_Ord_of_EIM (cause_earley_item);
-  const PSL or_psl_at_origin = per_es_data[origin_ordinal_of_cause].t_or_psl;
-  const AIM aim = AIM_of_EIM_by_AEX (cause_earley_item, cause_aex);
-  const RULE rule = RULE_of_AIM (aim);
-  const SYMI symbol_instance = SYMI_of_Completed_RULE (rule);
-  dand_cause = PSL_Datum (or_psl_at_origin, symbol_instance );
-}
-
-@ @<Set |dand_predecessor| from the base of |path_leo_item|@> =
-{
+@ @d Set_OR_from_LIM_Base(or_node, leo_item) {
     EIM base_earley_item;
-    const AEX base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
-    Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
+    const AEX base_aex = lim_base_data_get((leo_item), &base_earley_item);
+    Set_OR_from_EIM_and_AEX((or_node), base_earley_item, base_aex);
 }
 
 @ It is assumed that there is an or-node entry for
@@ -10229,18 +10218,16 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
 
 @ @<Set |path_or_node| from |higher_path_leo_item|@> =
 {
-  const PSL or_psl_at_origin = per_es_data[work_origin_ordinal].t_or_psl;
-  const AIM aim = Base_AIM_of_LIM (higher_path_leo_item);
+  const AIM aim = Path_AIM_of_LIM (higher_path_leo_item);
   const gint symi = SYMI_of_Completed_RULE (RULE_of_AIM (aim));
-  path_or_node = PSL_Datum (or_psl_at_origin, symi);
+  Set_OR_from_Ord_and_SYMI(path_or_node, work_origin_ordinal, symi);
 }
 
 @ @<Set |path_or_node| from |work_earley_item|@> =
 {
-  const PSL or_psl_at_origin = per_es_data[work_origin_ordinal].t_or_psl;
   const AIM aim = AIM_of_EIM_by_AEX (work_earley_item, 0);
   const gint symi = SYMI_of_Completed_RULE (RULE_of_AIM (aim));
-  path_or_node = PSL_Datum (or_psl_at_origin, symi);
+  Set_OR_from_Ord_and_SYMI(path_or_node, work_origin_ordinal, symi);
 }
 
 @ @<Add the draft and-nodes to an upper Leo path or-node@> = {;}
