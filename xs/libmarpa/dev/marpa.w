@@ -10147,38 +10147,30 @@ predecessor.  Set |or-node| to 0 if there is none.
 
 @ @<Set |path_or_node| to bottom or-node@> =
 {
-  AIM same_rule_ahfa_item;
-  RULE bottom_or_node_rule;
+  AIM ahfa_item;
   gint bottom_or_node_origin;
   gint bottom_or_node_symi;
   MARPA_DEBUG3("%s: eim=%s", G_STRLOC, eim_tag(work_earley_item));
   if (higher_path_leo_item)
     {
   MARPA_DEBUG2("%s", G_STRLOC);
-      same_rule_ahfa_item = Base_AIM_of_LIM (path_leo_item);
+      ahfa_item = Path_AIM_of_LIM (path_leo_item);
       bottom_or_node_origin = Ord_of_ES (ES_of_LIM (higher_path_leo_item));
     }
   else
     {
   MARPA_DEBUG2("%s", G_STRLOC);
-      same_rule_ahfa_item = AIM_of_EIM_by_AEX (work_earley_item, work_aex);
-      bottom_or_node_origin = Origin_Ord_of_EIM (work_earley_item);
+      ahfa_item = AIM_of_EIM_by_AEX (work_earley_item, work_aex);
+      bottom_or_node_origin = work_origin_ordinal;
     }
-  bottom_or_node_rule = RULE_of_AIM(same_rule_ahfa_item);
-  bottom_or_node_symi = SYMI_of_Completed_RULE (bottom_or_node_rule);
-  MARPA_DEBUG3("%s bottom_or_node_rule=%d", G_STRLOC, ID_of_RULE(bottom_or_node_rule));
-    @<Set |path_or_node| from PSL using |bottom_or_node_origin|
-    and |bottom_or_node_symi|@>@;
+  bottom_or_node_symi = SYMI_of_AIM(ahfa_item);
+  Set_OR_from_Ord_and_SYMI(path_or_node, bottom_or_node_origin, bottom_or_node_symi);
+  MARPA_ASSERT(path_or_node);
 }
 
-@ @<Set |path_or_node| from PSL using |bottom_or_node_origin|
-and |bottom_or_node_symi|@> =
-{
-  const PSL or_psl_at_origin = per_es_data[bottom_or_node_origin].t_or_psl;
-  path_or_node = PSL_Datum (or_psl_at_origin, bottom_or_node_symi);
-  MARPA_DEBUG4("%s: origin=%d, symi=%d", G_STRLOC,
-      bottom_or_node_origin, bottom_or_node_symi);
-  MARPA_ASSERT(path_or_node);
+@ @d Set_OR_from_Ord_and_SYMI(or_node, origin, symbol_instance) {
+  const PSL or_psl_at_origin = per_es_data[(origin)].t_or_psl;
+  (or_node) = PSL_Datum (or_psl_at_origin, (symbol_instance));
 }
 
 @ @<Add draft and-nodes to the bottom or-node@> =
