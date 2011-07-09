@@ -9973,6 +9973,7 @@ and rules in a grammar --- their total must fit in an
 int.
 @d WHEID_of_SYMID(symid) (rule_count_of_g+(symid))
 @d WHEID_of_RULEID(ruleid) (ruleid)
+@d WHEID_of_RULE(rule) WHEID_of_RULEID(ID_of_RULE(rule))
 @<Private typedefs@> =
 typedef gint WHEID;
 
@@ -9980,12 +9981,9 @@ typedef gint WHEID;
 The draft and-nodes are used while the bocage is
 being built.
 Both draft and final and-nodes contain the predecessor
-and cause fields.
-They differ in their third field.
+and cause information.
 Draft and-nodes need to be in a linked list,
-so the third field is a link to the next and-node.
-Final and-nodes sit in an array, and the third field
-is a link to their parent or-node.
+so they have a link to the next and-node.
 @<Private incomplete structures@> =
 struct s_draft_and_node;
 typedef struct s_draft_and_node* DAND;
@@ -10050,14 +10048,14 @@ gint middle, WHEID wheid)
     {
 	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
 	if (nodes_by_aex) {
-	    const EIM earley_item = eims_of_es[item_ordinal];
-	    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
-	    const gint origin_ordinal = Ord_of_ES (Origin_of_EIM (earley_item));
-	    AEX aex;
-MARPA_DEBUG2("Creating DANDs for %s", eim_tag(earley_item));
-	    for (aex = 0; aex < aim_count_of_item; aex++) {
-		OR or_node = nodes_by_aex[aex];
-MARPA_DEBUG3("OR of aex %d is %p", aex, or_node);
+	    const EIM work_earley_item = eims_of_es[item_ordinal];
+	    const gint work_ahfa_item_count = AIM_Count_of_EIM(work_earley_item);
+	    const gint work_origin_ordinal = Ord_of_ES (Origin_of_EIM (work_earley_item));
+	    AEX work_aex;
+MARPA_DEBUG2("Creating DANDs for %s", eim_tag(work_earley_item));
+	    for (work_aex = 0; work_aex < work_ahfa_item_count; work_aex++) {
+		OR or_node = nodes_by_aex[work_aex];
+MARPA_DEBUG3("OR of aex %d is %p", work_aex, or_node);
 		while (or_node) { /* Loop through the nulling or-nodes */
 		    DAND draft_and_node = DANDs_of_OR(or_node);
 MARPA_DEBUG2("or_node = %s", or_tag(or_node));
@@ -10085,14 +10083,14 @@ MARPA_DEBUG2("DAND = %p", draft_and_node);
   SRCL source_link = NULL;
   EIM cause_earley_item = NULL;
   LIM leo_predecessor = NULL;
-  switch (Source_Type_of_EIM(earley_item))
+  switch (Source_Type_of_EIM(work_earley_item))
     {
     case SOURCE_IS_LEO:
-      leo_predecessor = Predecessor_of_EIM (earley_item);
-      cause_earley_item = Cause_of_EIM (earley_item);
+      leo_predecessor = Predecessor_of_EIM (work_earley_item);
+      cause_earley_item = Cause_of_EIM (work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_SRCL_of_EIM (earley_item);
+      source_link = First_Leo_SRCL_of_EIM (work_earley_item);
       if (source_link)
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
@@ -10121,36 +10119,38 @@ MARPA_DEBUG2("DAND = %p", draft_and_node);
     /* A boolean to indicate whether is true is there is some
        section of a non-trivial path left unprocessed. */
     gint at_top_of_path = !higher_path_leo_item;
-    PSL or_psl;
-    @<Add the draft and-nodes to the bottom of the Leo path@>@;
+    OR path_or_node;
+    @<Set |path_or_node| to the bottom of the Leo path;
+	add the draft and-nodes to it@>@;
     while (!at_top_of_path) {
+	OR last_path_or_node = path_or_node;
 	path_leo_item = higher_path_leo_item;
 	higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
 	if (higher_path_leo_item) {
 	    @<Set |path_or_node| from |higher_path_leo_item|@>@;
 	} else {
 	    at_top_of_path = 1;
-	    @<Set |path_or_node| from |earley_item|@>@;
+	    @<Set |path_or_node| from |work_earley_item|@>@;
 	}
 	@<Add the draft and-nodes to an upper Leo path or-node@>@;
     }
 }
 
 @ Note that in a trivial path the bottom is also the top.
-@<Add the draft and-nodes to the bottom of the Leo path@> =
+@<Set |path_or_node| to the bottom of the Leo path;
+	add the draft and-nodes to it@> =
 {
-    OR bottom_or_node;
-    @<Find |bottom_or_node|@>@;
-    @<Add draft and-nodes to |bottom_or_node|@>@;
+    @<Set |path_or_node| to bottom or-node@>@;
+    @<Add draft and-nodes to the bottom or-node@>@;
 }
 
-@ @<Find |bottom_or_node|@> =
+@ @<Set |path_or_node| to bottom or-node@> =
 {
   AIM same_rule_ahfa_item;
   RULE bottom_or_node_rule;
   gint bottom_or_node_origin;
   gint bottom_or_node_symi;
-  MARPA_DEBUG3("%s: eim=%s", G_STRLOC, eim_tag(earley_item));
+  MARPA_DEBUG3("%s: eim=%s", G_STRLOC, eim_tag(work_earley_item));
   if (higher_path_leo_item)
     {
   MARPA_DEBUG2("%s", G_STRLOC);
@@ -10160,27 +10160,27 @@ MARPA_DEBUG2("DAND = %p", draft_and_node);
   else
     {
   MARPA_DEBUG2("%s", G_STRLOC);
-      same_rule_ahfa_item = AIM_of_EIM_by_AEX (earley_item, aex);
-      bottom_or_node_origin = Origin_Ord_of_EIM (earley_item);
+      same_rule_ahfa_item = AIM_of_EIM_by_AEX (work_earley_item, work_aex);
+      bottom_or_node_origin = Origin_Ord_of_EIM (work_earley_item);
     }
   bottom_or_node_rule = RULE_of_AIM(same_rule_ahfa_item);
   bottom_or_node_symi = SYMI_of_Completed_RULE (bottom_or_node_rule);
   MARPA_DEBUG3("%s bottom_or_node_rule=%d", G_STRLOC, ID_of_RULE(bottom_or_node_rule));
-    @<Set |bottom_or_node| from PSL using |bottom_or_node_origin|
+    @<Set |path_or_node| from PSL using |bottom_or_node_origin|
     and |bottom_or_node_symi|@>@;
 }
 
-@ @<Set |bottom_or_node| from PSL using |bottom_or_node_origin|
+@ @<Set |path_or_node| from PSL using |bottom_or_node_origin|
 and |bottom_or_node_symi|@> =
 {
   const PSL or_psl_at_origin = per_es_data[bottom_or_node_origin].t_or_psl;
-  bottom_or_node = PSL_Datum (or_psl_at_origin, bottom_or_node_symi);
+  path_or_node = PSL_Datum (or_psl_at_origin, bottom_or_node_symi);
   MARPA_DEBUG4("%s: origin=%d, symi=%d", G_STRLOC,
       bottom_or_node_origin, bottom_or_node_symi);
-  MARPA_ASSERT(bottom_or_node);
+  MARPA_ASSERT(path_or_node);
 }
 
-@ @<Add draft and-nodes to |bottom_or_node|@> =
+@ @<Add draft and-nodes to the bottom or-node@> =
 {
   const SYMID transition_symbol_id = Postdot_SYMID_of_LIM (leo_predecessor);
   const TRANS cause_completion_data =
@@ -10196,12 +10196,15 @@ and |bottom_or_node_symi|@> =
       const AEX cause_aex = aexes[ix];
       gint dand_wheid;
       @<Set |dand_wheid| from |cause_earley_item| and |cause_aex|@>@;
-      draft_and_node_add (&bocage_setup_obs, bottom_or_node,
+      draft_and_node_add (&bocage_setup_obs, path_or_node,
 			  dand_predecessor, dand_ordinal, dand_wheid);
     }
 }
 
-@ @<Set |dand_wheid| from |cause_earley_item| and |cause_aex|@> = {;}
+@ @<Set |dand_wheid| from |cause_earley_item| and |cause_aex|@> = {
+    AIM aim = AIM_of_EIM_by_AEX(cause_earley_item, cause_aex);
+    dand_wheid = WHEID_of_RULE(RULE_of_AIM(aim));
+}
 
 @ @<Set |dand_predecessor| from the base of |path_leo_item|@> =
 {
@@ -10234,8 +10237,22 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
 #undef PSIA_EIM
 #undef PSIA_AEX
 
-@ @<Set |path_or_node| from |higher_path_leo_item|@> = {;}
-@ @<Set |path_or_node| from |earley_item|@> = {;}
+@ @<Set |path_or_node| from |higher_path_leo_item|@> =
+{
+  const PSL or_psl_at_origin = per_es_data[work_origin_ordinal].t_or_psl;
+  const AIM aim = Base_AIM_of_LIM (higher_path_leo_item);
+  const gint symi = SYMI_of_Completed_RULE (RULE_of_AIM (aim));
+  path_or_node = PSL_Datum (or_psl_at_origin, symi);
+}
+
+@ @<Set |path_or_node| from |work_earley_item|@> =
+{
+  const PSL or_psl_at_origin = per_es_data[work_origin_ordinal].t_or_psl;
+  const AIM aim = AIM_of_EIM_by_AEX (work_earley_item, 0);
+  const gint symi = SYMI_of_Completed_RULE (RULE_of_AIM (aim));
+  path_or_node = PSL_Datum (or_psl_at_origin, symi);
+}
+
 @ @<Add the draft and-nodes to an upper Leo path or-node@> = {;}
 
 @** And-Node (AND) Code.
