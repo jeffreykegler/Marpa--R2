@@ -3577,7 +3577,8 @@ be found by incrementing the AIM pointer,
 the successor can be found by decrementing it,
 and AIM pointers can be portably compared.
 A lot of code relies on these facts.
-@d AIM_by_ID(g, id) ((g)->t_AHFA_items+(id))
+@d Next_AIM_of_AIM(aim) ((aim)+1)
+@d AIM_by_ID(id) (g->t_AHFA_items+(id))
 @<Widely aligned grammar elements@> =
    AIM t_AHFA_items;
    AIM* t_AHFA_items_by_rule;
@@ -3653,7 +3654,7 @@ Marpa_Rule_ID marpa_AHFA_item_rule(struct marpa_g* g,
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
-    return RULE_of_AIM(AIM_by_ID(g, item_id))->t_id;
+    return RULE_of_AIM(AIM_by_ID(item_id))->t_id;
 }
 @ @<Public function prototypes@> =
 Marpa_Rule_ID marpa_AHFA_item_rule(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
@@ -3667,7 +3668,7 @@ gint marpa_AHFA_item_position(struct marpa_g* g,
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
-    return Position_of_AIM(AIM_by_ID(g, item_id));
+    return Position_of_AIM(AIM_by_ID(item_id));
 }
 
 @ |-1| is the value for completions, so |-2| is the failure indicator.
@@ -3679,7 +3680,7 @@ Marpa_Symbol_ID marpa_AHFA_item_postdot(struct marpa_g* g,
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
-    return Postdot_SYMID_of_AIM(AIM_by_ID(g, item_id));
+    return Postdot_SYMID_of_AIM(AIM_by_ID(item_id));
 }
 
 @ @<Public function prototypes@> =
@@ -3690,7 +3691,7 @@ gint marpa_AHFA_item_sort_key(struct marpa_g* g,
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
-    return Sort_Key_of_AIM(AIM_by_ID(g, item_id));
+    return Sort_Key_of_AIM(AIM_by_ID(item_id));
 }
 
 @** Creating the AHFA Items.
@@ -9177,7 +9178,7 @@ G_STRLOC, eim_tag(ur_earley_item), ur_aex);
 	if (!EIM_is_Leo_Expansion(parent_earley_item)) {
 	    const AEX parent_aex = AEX_of_UR(ur_node);
 	    const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
-	    MARPA_ASSERT(parent_aim >= AIM_by_ID(g, 1))@;
+	    MARPA_ASSERT(parent_aim >= AIM_by_ID(1))@;
 	    const AIM predecessor_aim = parent_aim - 1;
 	    /* Note that the postdot symbol of the predecessor is NOT necessarily the
 	       predot symbol, because there may be nulling symbols in between. */
