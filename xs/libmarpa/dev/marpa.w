@@ -2370,13 +2370,19 @@ marpa_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID id)
 gint t_symbol_instance_count;
 @ |SYMI_of_Completed_RULE| assumes that the rule is
 not zero length.
+|SYMI_of_Last_AIM_of_RULE| will return -1 if the
+rule has no proper symbols.
 @d SYMI_of_RULE(rule) ((rule)->t_symbol_instance_base)
+@d SYMI_of_Last_AIM_of_RULE(rule) ((rule)->t_symi_of_last_aim)
 @d SYMI_of_Completed_RULE(rule)
     (SYMI_of_RULE(rule) + Length_of_RULE(rule)-1)
+@d SYMI_of_AIM(aim) (symbol_instance_of_ahfa_item_get(aim))
 @<Int aligned rule elements@> =
 gint t_symbol_instance_base;
-@ @d SYMI_of_AIM(aim) (symbol_instance_of_ahfa_item_get(aim))
-@<Private function prototypes@> =
+gint t_symi_of_last_aim;
+@ @<Initialize rule elements@> =
+rule->t_symi_of_last_aim = -1;
+@ @<Private function prototypes@> =
 static inline gint symbol_instance_of_ahfa_item_get(AIM aim);
 @ Symbol instances are for the {\bf predot} symbol.
 In parsing the emphasis is on what is to come ---
@@ -3709,16 +3715,16 @@ void create_AHFA_items(GRAMMAR g) {
     guint no_of_rules = RULE_Count_of_G(g);
     AIM base_item = g_new(struct s_AHFA_item, Size_of_G(g));
     AIM current_item = base_item;
-    guint symbol_instance_count = 0;
+    guint symbol_instance_of_next_rule = 0;
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
       if (RULE_is_Used (rule)) {
 	@<Create the AHFA items for a rule@>@;
-	SYMI_of_RULE(rule) = symbol_instance_count;
-	symbol_instance_count += Length_of_RULE(rule);
+	SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
+	symbol_instance_of_next_rule += Length_of_RULE(rule);
 	}
     }
-    SYMI_Count_of_G(g) = symbol_instance_count;
+    SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
     no_of_items = LV_AIM_Count_of_G(g) = current_item - base_item;
     g->t_AHFA_items = g_renew(struct s_AHFA_item, base_item, no_of_items);
     @<Set up the items-by-rule list@>@;
@@ -3737,6 +3743,7 @@ static inline void create_AHFA_items(struct marpa_g* g);
       SYM symbol = SYM_by_ID (rh_symid);
       if (!symbol->t_is_nullable)
 	{
+	  SYMI_of_Last_AIM_of_RULE(rule) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
 	  leading_nulls = 0;
 	  current_item++;
