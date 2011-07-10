@@ -10220,14 +10220,14 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
 @ @<Set |path_or_node| from |higher_path_leo_item|@> =
 {
   const AIM aim = Path_AIM_of_LIM (higher_path_leo_item);
-  const gint symi = SYMI_of_Completed_RULE (RULE_of_AIM (aim));
+  const gint symi = SYMI_of_AIM (aim);
   Set_OR_from_Ord_and_SYMI(path_or_node, work_origin_ordinal, symi);
 }
 
 @ @<Set |path_or_node| from |work_earley_item|@> =
 {
   const AIM aim = AIM_of_EIM_by_AEX (work_earley_item, 0);
-  const gint symi = SYMI_of_Completed_RULE (RULE_of_AIM (aim));
+  const gint symi = SYMI_of_AIM (aim);
   Set_OR_from_Ord_and_SYMI(path_or_node, work_origin_ordinal, symi);
 }
 
