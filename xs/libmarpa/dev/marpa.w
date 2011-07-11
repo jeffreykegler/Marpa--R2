@@ -2373,15 +2373,15 @@ not zero length.
 |SYMI_of_Last_AIM_of_RULE| will return -1 if the
 rule has no proper symbols.
 @d SYMI_of_RULE(rule) ((rule)->t_symbol_instance_base)
-@d SYMI_of_Last_AIM_of_RULE(rule) ((rule)->t_symi_of_last_aim)
+@d Last_Proper_SYMI_of_RULE(rule) ((rule)->t_last_proper_symi)
 @d SYMI_of_Completed_RULE(rule)
     (SYMI_of_RULE(rule) + Length_of_RULE(rule)-1)
 @d SYMI_of_AIM(aim) (symbol_instance_of_ahfa_item_get(aim))
 @<Int aligned rule elements@> =
 gint t_symbol_instance_base;
-gint t_symi_of_last_aim;
+gint t_last_proper_symi;
 @ @<Initialize rule elements@> =
-rule->t_symi_of_last_aim = -1;
+Last_Proper_SYMI_of_RULE(rule) = -1;
 @ @<Private function prototypes@> =
 static inline gint symbol_instance_of_ahfa_item_get(AIM aim);
 @ Symbol instances are for the {\bf predot} symbol.
@@ -3743,7 +3743,7 @@ static inline void create_AHFA_items(struct marpa_g* g);
       SYM symbol = SYM_by_ID (rh_symid);
       if (!symbol->t_is_nullable)
 	{
-	  SYMI_of_Last_AIM_of_RULE(rule) = symbol_instance_of_next_rule + rhs_ix;
+	  Last_Proper_SYMI_of_RULE(rule) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
 	  leading_nulls = 0;
 	  current_item++;
@@ -9572,7 +9572,7 @@ Position is the dot position.
 @d Position_of_OR(or) ((or)->t_draft.t_position)
 @d Type_of_OR(or) ((or)->t_draft.t_position)
 @d RULE_of_OR(or) ((or)->t_draft.t_rule)
-@d Start_ES_Ord_of_OR(or) ((or)->t_draft.t_start_set_ordinal)
+@d Origin_Ord_of_OR(or) ((or)->t_draft.t_start_set_ordinal)
 @d ES_Ord_of_OR(or) ((or)->t_draft.t_end_set_ordinal)
 @d DANDs_of_OR(or) ((or)->t_draft.t_draft_and_node)
 @ C89 guarantees that common initial sequences
@@ -9727,7 +9727,7 @@ MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
 	  or_node = last_or_node;
 	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = last_or_node;
   MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, ahfa_item_symbol_instance );
-	  Start_ES_Ord_of_OR(or_node) = Origin_Ord_of_EIM(work_earley_item);
+	  Origin_Ord_of_OR(or_node) = Origin_Ord_of_EIM(work_earley_item);
 	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
 	  RULE_of_OR(or_node) = rule;
 	  Position_of_OR (or_node) =
@@ -9794,7 +9794,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
   MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, symbol_instance );
-		Start_ES_Ord_of_OR (or_node) = work_origin_ordinal;
+		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
 		ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
 MARPA_OFF_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
@@ -9916,7 +9916,7 @@ corresponds to the leo predecessor.
 	  @<Set |last_or_node| to a new or-node@>@;
 	  PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item) = or_node = last_or_node;
   MARPA_DEBUG3("%s: leo_psl symi=%d", G_STRLOC, symbol_instance_of_path_ahfa_item );
-	  Start_ES_Ord_of_OR(or_node) = ordinal_of_set_of_this_leo_item;
+	  Origin_Ord_of_OR(or_node) = ordinal_of_set_of_this_leo_item;
 	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
 	  RULE_of_OR(or_node) = path_rule;
 	  Position_of_OR (or_node) =
@@ -9948,13 +9948,13 @@ or-nodes follow a completion.
 						   so that there is always a predecessor */
 	  const gint rhs_ix = symbol_instance - SYMI_of_RULE(path_rule);
 	  const OR cause =
-	   SYM_by_ID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
+	   (OR)SYM_by_ID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
 	  MARPA_ASSERT (symbol_instance < Length_of_RULE (path_rule)) @;
 	  MARPA_ASSERT (symbol_instance >= 0) @;
 	  @<Set |last_or_node| to a new or-node@>@;
 	  PSL_Datum (this_earley_set_psl, symbol_instance) = or_node = last_or_node;
   MARPA_DEBUG3("%s: this_earley_set_psl symi=%d", G_STRLOC, symbol_instance );
-	  Start_ES_Ord_of_OR (or_node) = ordinal_of_set_of_this_leo_item;
+	  Origin_Ord_of_OR (or_node) = ordinal_of_set_of_this_leo_item;
 	  ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
 	  RULE_of_OR (or_node) = path_rule;
 	  Position_of_OR (or_node) = rhs_ix + 1;
@@ -10121,59 +10121,37 @@ predecessor.  Set |or-node| to 0 if there is none.
     }
 }
 
-@ @<Add draft and-nodes for chain starting with |leo_predecessor|@> =
+@ Note that in a trivial path the bottom is also the top.
+@<Add draft and-nodes for chain starting with |leo_predecessor|@> =
 {
     LIM path_leo_item = leo_predecessor;
     LIM higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
     /* A boolean to indicate whether is true is there is some
        section of a non-trivial path left unprocessed. */
-    gint at_top_of_path = !higher_path_leo_item;
+    OR dand_predecessor;
     OR path_or_node;
-    @<Set |path_or_node| to the bottom of the Leo path;
-	add the draft and-nodes to it@>@;
-    while (!at_top_of_path) {
-	OR last_path_or_node = path_or_node;
+    EIM base_earley_item;
+    AEX base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
+    Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
+    @<Set |path_or_node|@>@;
+    @<Add draft and-nodes to the bottom or-node@>@;
+    while (higher_path_leo_item) {
 	path_leo_item = higher_path_leo_item;
 	higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
-	if (higher_path_leo_item) {
-	    @<Set |path_or_node| from |higher_path_leo_item|@>@;
-	} else {
-	    at_top_of_path = 1;
-	    @<Set |path_or_node| from |work_earley_item|@>@;
-	}
+	base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
+	Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
+	@<Set |path_or_node|@>@;
 	@<Add the draft and-nodes to an upper Leo path or-node@>@;
     }
 }
 
-@ Note that in a trivial path the bottom is also the top.
-@<Set |path_or_node| to the bottom of the Leo path;
-	add the draft and-nodes to it@> =
+@ @<Set |path_or_node|@> =
 {
-    @<Set |path_or_node| to bottom or-node@>@;
-    @<Add draft and-nodes to the bottom or-node@>@;
-}
-
-@ @<Set |path_or_node| to bottom or-node@> =
-{
-  AIM ahfa_item;
-  gint bottom_or_node_origin;
-  gint bottom_or_node_symi;
-  MARPA_DEBUG3("%s: eim=%s", G_STRLOC, eim_tag(work_earley_item));
-  if (higher_path_leo_item)
-    {
-  MARPA_DEBUG2("%s", G_STRLOC);
-      ahfa_item = Path_AIM_of_LIM (path_leo_item);
-      bottom_or_node_origin = Ord_of_ES (ES_of_LIM (higher_path_leo_item));
-    }
-  else
-    {
-  MARPA_DEBUG2("%s", G_STRLOC);
-      ahfa_item = AIM_of_EIM_by_AEX (work_earley_item, work_aex);
-      bottom_or_node_origin = work_origin_ordinal;
-    }
-  bottom_or_node_symi = SYMI_of_AIM(ahfa_item);
-  Set_OR_from_Ord_and_SYMI(path_or_node, bottom_or_node_origin, bottom_or_node_symi);
-  MARPA_ASSERT(path_or_node);
+  if (higher_path_leo_item) {
+      @<Use Leo base data to set |path_or_node|@>@;
+  } else {
+      @<Use |work_earley_item| to set |path_or_node|@>@;
+  }
 }
 
 @ @d Set_OR_from_Ord_and_SYMI(or_node, origin, symbol_instance) {
@@ -10188,9 +10166,7 @@ predecessor.  Set |or-node| to 0 if there is none.
     TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
   const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
   const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
-  OR dand_predecessor;
   gint ix;
-  Set_OR_from_LIM_Base(dand_predecessor, path_leo_item);
   for (ix = 0; ix < aex_count; ix++)
     {
       const AEX cause_aex = aexes[ix];
@@ -10199,12 +10175,6 @@ predecessor.  Set |or-node| to 0 if there is none.
       draft_and_node_add (&bocage_setup_obs, path_or_node,
 			  dand_predecessor, dand_cause);
     }
-}
-
-@ @d Set_OR_from_LIM_Base(or_node, leo_item) {
-    EIM base_earley_item;
-    const AEX base_aex = lim_base_data_get((leo_item), &base_earley_item);
-    Set_OR_from_EIM_and_AEX((or_node), base_earley_item, base_aex);
 }
 
 @ It is assumed that there is an or-node entry for
@@ -10224,14 +10194,16 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
   psia_or = psia_nodes_by_aex ? psia_nodes_by_aex[psia_aex] : NULL;
 }
 
-@ @<Set |path_or_node| from |higher_path_leo_item|@> =
+@ @<Use Leo base data to set |path_or_node|@> =
 {
-  const AIM aim = Path_AIM_of_LIM (higher_path_leo_item);
-  const gint symi = SYMI_of_AIM (aim);
-  Set_OR_from_Ord_and_SYMI(path_or_node, work_origin_ordinal, symi);
+  const gint origin_ordinal = Origin_Ord_of_EIM(base_earley_item);
+  const AIM aim = AIM_of_EIM_by_AEX(base_earley_item, base_aex);
+  const RULE rule = RULE_of_AIM(aim);
+  const gint symbol_instance = Last_Proper_SYMI_of_RULE (rule);
+  Set_OR_from_Ord_and_SYMI(path_or_node, origin_ordinal, symbol_instance);
 }
 
-@ @<Set |path_or_node| from |work_earley_item|@> =
+@ @<Use |work_earley_item| to set |path_or_node|@>=;
 {
   const AIM aim = AIM_of_EIM_by_AEX (work_earley_item, 0);
   const gint symi = SYMI_of_AIM (aim);
@@ -10562,7 +10534,7 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
   }
   {
       const OR or_node = or_nodes[or_node_id];
-      or_data[0] = Start_ES_Ord_of_OR(or_node);
+      or_data[0] = Origin_Ord_of_OR(or_node);
       or_data[1] = ES_Ord_of_OR(or_node);
       or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
       or_data[3] = Position_of_OR(or_node);
@@ -12100,7 +12072,7 @@ or_tag_safe (gchar * buffer, OR or)
   if (type == TOKEN_OR_NODE) return "TOKEN";
   sprintf (buffer, "R%d:%d@@%d-%d",
 	   ID_of_RULE(RULE_of_OR (or)), Position_of_OR (or),
-	   Start_ES_Ord_of_OR (or),
+	   Origin_Ord_of_OR (or),
 	   ES_Ord_of_OR (or));
   return buffer;
 }
