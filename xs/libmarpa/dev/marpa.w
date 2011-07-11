@@ -10315,8 +10315,8 @@ EIM start_eim = NULL;
 AIM start_aim = NULL;
 AEX start_aex = -1;
 struct obstack bocage_setup_obs;
-guint total_earley_items_in_parse;
-guint or_node_estimate = 0;
+gint total_earley_items_in_parse;
+gint or_node_estimate = 0;
 
 @ @<Private incomplete structures@> =
 struct s_bocage_setup_per_es;
@@ -11992,8 +11992,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 1 @]
-#define MARPA_ENABLE_ASSERT @[ 1 @]
+#define MARPA_DEBUG @[ 0 @]
+#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
