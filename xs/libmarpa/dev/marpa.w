@@ -9627,39 +9627,38 @@ OR_Count_of_B(b) = 0;
 {
   PSAR_Object and_per_es_arena;
   const PSAR and_psar = &and_per_es_arena;
-  PSAR_Object or_per_es_arena;
-  const PSAR or_psar = &or_per_es_arena;
-  const gint earley_set_count = ES_Count_of_R (r);
-  gint work_earley_set_ordinal;
-  PSL this_earley_set_psl;
-  OR last_or_node = NULL ;
+  const gint earley_set_count_of_r = ES_Count_of_R (r);
   psar_init (and_psar, AHFA_Count_of_G (g));
-MARPA_OFF_DEBUG3("%s SYMI count = %d", G_STRLOC, SYMI_Count_of_G (g));
-  psar_init (or_psar, SYMI_Count_of_G (g));
-  ORs_of_B (b) = g_new (OR, or_node_estimate);
-  for (work_earley_set_ordinal = 0;
-      work_earley_set_ordinal < earley_set_count;
-      work_earley_set_ordinal++)
-  {
-      const ES_Const earley_set = ES_of_R_by_Ord (r, work_earley_set_ordinal);
-      psar_dealloc(or_psar);
-#define PSL_ES_ORD work_earley_set_ordinal
-#define CLAIMED_PSL this_earley_set_psl
-      @<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@>@;
-      @<Create the bocage nodes for |work_earley_set_ordinal|@>@;
-  }
-  ORs_of_B(b) = g_renew (OR, ORs_of_B(b), OR_Count_of_B(b));
+  @<Create the bocage nodes for |work_earley_set_ordinal|@>@;
   psar_destroy (and_psar);
-  psar_destroy (or_psar);
 }
 
 @ @<Create the bocage nodes for |work_earley_set_ordinal|@> =
 {
+  PSAR_Object or_per_es_arena;
+  const PSAR or_psar = &or_per_es_arena;
+  gint work_earley_set_ordinal;
+  OR last_or_node = NULL ;
+  ORs_of_B (b) = g_new (OR, or_node_estimate);
+  psar_init (or_psar, SYMI_Count_of_G (g));
+  for (work_earley_set_ordinal = 0;
+      work_earley_set_ordinal < earley_set_count_of_r;
+      work_earley_set_ordinal++)
+  {
+      const ES_Const earley_set = ES_of_R_by_Ord (r, work_earley_set_ordinal);
+      PSL this_earley_set_psl;
+      psar_dealloc(or_psar);
+#define PSL_ES_ORD work_earley_set_ordinal
+#define CLAIMED_PSL this_earley_set_psl
+      @<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@>@;
     OR** const nodes_by_item = per_es_data[work_earley_set_ordinal].t_aexes_by_item;
     EIM* const eims_of_es = EIMs_of_ES(earley_set);
     const gint item_count = EIM_Count_of_ES (earley_set);
     @<Create the or-nodes for |work_earley_set_ordinal|@>@;
     @<Create the draft and-nodes for |work_earley_set_ordinal|@>@;
+  }
+  psar_destroy (or_psar);
+  ORs_of_B(b) = g_renew (OR, ORs_of_B(b), OR_Count_of_B(b));
 }
 
 @ @<Create the or-nodes for |work_earley_set_ordinal|@> =
