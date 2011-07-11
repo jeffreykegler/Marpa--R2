@@ -10087,8 +10087,13 @@ predecessor.  Set |or-node| to 0 if there is none.
 {
     guint work_source_type = Source_Type_of_EIM (work_earley_item);
     const AIM work_ahfa_item = AIM_of_EIM_by_AEX (work_earley_item, work_aex);
-    MARPA_ASSERT(work_ahfa_item >= AIM_by_ID(1))@;
-    const AIM predecessor_aim = work_ahfa_item - 1;
+    MARPA_ASSERT (work_ahfa_item >= AIM_by_ID (1))@;
+    const AIM work_predecessor_aim = work_ahfa_item - 1;
+    const gint work_symbol_instance = SYMI_of_AIM (work_ahfa_item);
+    OR work_proper_or_node;
+    Set_OR_from_Ord_and_SYMI (work_proper_or_node, work_origin_ordinal,
+			      work_symbol_instance);
+
     @<Create Leo draft and-nodes@>@;
     @<Create draft and-nodes for token sources@>@;
     @<Create draft and-nodes for completion sources@>@;
@@ -10162,7 +10167,7 @@ predecessor.  Set |or-node| to 0 if there is none.
   if (higher_path_leo_item) {
       @<Use Leo base data to set |path_or_node|@>@;
   } else {
-      @<Use |work_earley_item| to set |path_or_node|@>@;
+      path_or_node = work_proper_or_node;
   }
 }
 
@@ -10216,13 +10221,6 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
   Set_OR_from_Ord_and_SYMI (path_or_node, origin_ordinal, symbol_instance);
 }
 
-@ @<Use |work_earley_item| to set |path_or_node|@>=;
-{
-  const AIM aim = AIM_of_EIM_by_AEX (work_earley_item, 0);
-  const gint symi = SYMI_of_AIM (aim);
-  Set_OR_from_Ord_and_SYMI(path_or_node, work_origin_ordinal, symi);
-}
-
 @ @<Add the draft and-nodes to an upper Leo path or-node@> =
 {
   OR dand_cause;
@@ -10237,40 +10235,58 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
 {
   SRCL source_link = NULL;
   EIM predecessor_earley_item = NULL;
-  SYMID token;
+  SYMID token_id = -1;
   switch (work_source_type)
     {
     case SOURCE_IS_TOKEN:
       predecessor_earley_item = Predecessor_of_EIM (work_earley_item);
-      token = SYMID_of_EIM(work_earley_item);
+      token_id = SYMID_of_EIM(work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = First_Token_Link_of_EIM (work_earley_item);
       if (source_link)
 	{
 	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
-	  token = SYMID_of_SRCL(source_link);
+	  token_id = SYMID_of_SRCL(source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
     }
-    for (;;)
+    while (token_id >= 0) 
       {
 	@<Add draft and-node for token source@>@;
 	if (!source_link) break;
 	predecessor_earley_item = Predecessor_of_SRCL (source_link);
-        token = SYMID_of_SRCL(source_link);
+        token_id = SYMID_of_SRCL(source_link);
 	source_link = Next_SRCL_of_SRCL (source_link);
       }
 }
 
-@ @<Add draft and-node for token source@> = {;}
+@ @<Add draft and-node for token source@> =
+{
+  OR dand_predecessor;
+  const SYM symbol = SYM_by_ID(token_id);
+  @<Set |dand_predecessor|@>@;
+  draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
+	  dand_predecessor, (OR)symbol);
+}
+
+@ @<Set |dand_predecessor|@> =
+{
+   if (EIM_is_Predicted(predecessor_earley_item)) {
+       dand_predecessor = NULL;
+   } else {
+	const AEX predecessor_aex =
+	    AEX_of_EIM_by_AIM (predecessor_earley_item, work_predecessor_aim);
+      Set_OR_from_EIM_and_AEX(dand_predecessor, predecessor_earley_item, predecessor_aex);
+   }
+}
 
 @ @<Create draft and-nodes for completion sources@> =
 {
   SRCL source_link = NULL;
   EIM predecessor_earley_item = NULL;
   EIM cause_earley_item = NULL;
-  const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
+  const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(work_predecessor_aim);
   switch (work_source_type)
     {
     case SOURCE_IS_COMPLETION:
@@ -10310,7 +10326,15 @@ MARPA_DEBUG4("%s: aexes=%p, aex_count=%d", G_STRLOC, aexes, aex_count);
     }
 }
 
-@ @<Add draft and-node for completion source@> = {;}
+@ @<Add draft and-node for completion source@> =
+{
+  OR dand_predecessor;
+  OR dand_cause;
+  @<Set |dand_predecessor|@>@;
+  Set_OR_from_EIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
+  draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
+	  dand_predecessor, dand_cause);
+}
 
 @** And-Node (AND) Code.
 The or-nodes are part of the parse bocage.
