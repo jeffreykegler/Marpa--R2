@@ -2831,10 +2831,11 @@ sub Marpa::XS::Recognizer::value {
             ->[Marpa::XS::Internal::Choice::AND_NODE]
     } @{$iteration_stack};
 
-    my $BOCAGE_DEBUG = 1;
+    my $BOCAGE_DEBUG = 1 && $Marpa::XS::DEBUG;
     if (   $BOCAGE_DEBUG
         && $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] <= 1 )
     {
+	say STDERR join " ", __FILE__, __LINE__;
         my $old_or_nodes = $recce->old_show_or_nodes();
         my $new_or_nodes = $recce->show_or_nodes();
         if ( $old_or_nodes ne $new_or_nodes ) {
