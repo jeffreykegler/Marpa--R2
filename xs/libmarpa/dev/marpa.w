@@ -9625,15 +9625,12 @@ OR_Count_of_B(b) = 0;
 
 @ @<Create the or-nodes for all earley sets@> =
 {
-  PSAR_Object and_per_es_arena;
-  const PSAR and_psar = &and_per_es_arena;
   const gint earley_set_count_of_r = ES_Count_of_R (r);
-  psar_init (and_psar, AHFA_Count_of_G (g));
-  @<Create the bocage nodes for |work_earley_set_ordinal|@>@;
-  psar_destroy (and_psar);
+  @<Create the bocage nodes@>@;
+  @<Mark duplicate draft and-nodes@>@;
 }
 
-@ @<Create the bocage nodes for |work_earley_set_ordinal|@> =
+@ @<Create the bocage nodes@> =
 {
   PSAR_Object or_per_es_arena;
   const PSAR or_psar = &or_per_es_arena;
@@ -9646,19 +9643,41 @@ OR_Count_of_B(b) = 0;
       work_earley_set_ordinal++)
   {
       const ES_Const earley_set = ES_of_R_by_Ord (r, work_earley_set_ordinal);
+    EIM* const eims_of_es = EIMs_of_ES(earley_set);
+    const gint item_count = EIM_Count_of_ES (earley_set);
       PSL this_earley_set_psl;
+    OR** const nodes_by_item = per_es_data[work_earley_set_ordinal].t_aexes_by_item;
       psar_dealloc(or_psar);
 #define PSL_ES_ORD work_earley_set_ordinal
 #define CLAIMED_PSL this_earley_set_psl
       @<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@>@;
-    OR** const nodes_by_item = per_es_data[work_earley_set_ordinal].t_aexes_by_item;
-    EIM* const eims_of_es = EIMs_of_ES(earley_set);
-    const gint item_count = EIM_Count_of_ES (earley_set);
     @<Create the or-nodes for |work_earley_set_ordinal|@>@;
     @<Create the draft and-nodes for |work_earley_set_ordinal|@>@;
   }
   psar_destroy (or_psar);
   ORs_of_B(b) = g_renew (OR, ORs_of_B(b), OR_Count_of_B(b));
+}
+
+@ @<Mark duplicate draft and-nodes@> =
+{
+  OR * const or_nodes_of_b = ORs_of_B (b);
+  const gint or_node_count_of_b = OR_Count_of_B(b);
+  PSAR_Object and_per_es_arena;
+  const PSAR and_psar = &and_per_es_arena;
+  gint or_node_id;
+  psar_init (and_psar, AHFA_Count_of_G (g));
+  for (or_node_id = 0; 
+      or_node_id < or_node_count_of_b;
+      or_node_id++)
+  {
+      const OR work_or_node = or_nodes_of_b[or_node_id];
+    @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
+  }
+  psar_destroy (and_psar);
+}
+
+@ @<Mark the duplicate draft and-nodes for |work_or_node|@> =
+{;
 }
 
 @ @<Create the or-nodes for |work_earley_set_ordinal|@> =
