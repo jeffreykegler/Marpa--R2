@@ -6794,7 +6794,7 @@ union u_postdot_item {
 typedef union u_postdot_item* PIM;
 
 @*0 Symbol of a Postdot Item.
-@d Symbol_ID_of_Postdot_Item(postdot) ((postdot)->t_earley.transition_symid)
+@d SYMID_of_Postdot_Item(postdot) ((postdot)->t_earley.transition_symid)
 
 @ This function searches for the
 first postdot item for an Earley set
@@ -7088,14 +7088,14 @@ union u_source_container {
 @d Token_Value_of_EIM(item) Token_Value_of_Source(Source_of_EIM(item))
 @d Token_Value_of_SRCL(link) Token_Value_of_Source(Source_of_SRCL(link))
 @d LV_Token_Value_of_SRCL(link) Token_Value_of_SRCL(link)
-@d Symbol_ID_of_Source(srcd) ((srcd).t_symbol_id)
-@d Symbol_ID_of_SRC(source) Symbol_ID_of_Source(*(source))
-@d Symbol_ID_of_SRCL(link) Symbol_ID_of_Source(Source_of_SRCL(link))
-@d LV_Symbol_ID_of_SRCL(link) Symbol_ID_of_SRCL(link)
+@d SYMID_of_Source(srcd) ((srcd).t_symbol_id)
+@d SYMID_of_SRC(source) SYMID_of_Source(*(source))
+@d SYMID_of_EIM(eim) SYMID_of_Source(Source_of_EIM(eim))
+@d SYMID_of_SRCL(link) SYMID_of_Source(Source_of_SRCL(link))
 
 @ @d Cause_AHFA_State_ID_of_SRC(source)
     AHFAID_of_EIM((EIM)Cause_of_SRC(source))
-@d Leo_Transition_Symbol_ID_of_SRC(leo_source)
+@d Leo_Transition_SYMID_of_SRC(leo_source)
     Postdot_SYMID_of_LIM((LIM)Predecessor_of_SRC(leo_source))
 
 @
@@ -7367,7 +7367,7 @@ Marpa_Symbol_ID marpa_first_token_link_trace(struct marpa_r *r)
 	source = &(item->t_container.t_unique);
 	r->t_trace_source = source;
 	r->t_trace_next_source_link = NULL;
-	return Symbol_ID_of_SRC (source);
+	return SYMID_of_SRC (source);
       case SOURCE_IS_AMBIGUOUS:
 	{
 	  SRCL full_link =
@@ -7377,7 +7377,7 @@ Marpa_Symbol_ID marpa_first_token_link_trace(struct marpa_r *r)
 	      r->t_trace_source_type = SOURCE_IS_TOKEN;
 	      r->t_trace_next_source_link = Next_SRCL_of_SRCL (full_link);
 	      r->t_trace_source = &(full_link->t_source);
-	      return Symbol_ID_of_SRCL (full_link);
+	      return SYMID_of_SRCL (full_link);
 	    }
 	}
       }
@@ -7415,7 +7415,7 @@ Marpa_Symbol_ID marpa_next_token_link_trace(struct marpa_r *r)
     full_link = r->t_trace_next_source_link;
     r->t_trace_next_source_link = Next_SRCL_of_SRCL (full_link);
     r->t_trace_source = &(full_link->t_source);
-    return Symbol_ID_of_SRCL (full_link);
+    return SYMID_of_SRCL (full_link);
 }
 
 @*1 Trace First Completion Link.
@@ -7658,7 +7658,7 @@ Marpa_Symbol_ID marpa_source_leo_transition_symbol(struct marpa_r *r)
     switch (source_type)
     {
     case SOURCE_IS_LEO:
-	return Leo_Transition_Symbol_ID_of_SRC(source);
+	return Leo_Transition_SYMID_of_SRC(source);
     }
     R_ERROR(invalid_source_type_message(source_type));
     return failure_indicator;
@@ -10085,7 +10085,13 @@ predecessor.  Set |or-node| to 0 if there is none.
 
 @ @<Create draft and-nodes for |or_node|@> =
 {
+    guint work_source_type = Source_Type_of_EIM (work_earley_item);
+    const AIM work_ahfa_item = AIM_of_EIM_by_AEX (work_earley_item, work_aex);
+    MARPA_ASSERT(work_ahfa_item >= AIM_by_ID(1))@;
+    const AIM predecessor_aim = work_ahfa_item - 1;
     @<Create Leo draft and-nodes@>@;
+    @<Create draft and-nodes for token sources@>@;
+    @<Create draft and-nodes for completion sources@>@;
 }
 
 @ @<Create Leo draft and-nodes@> = {
@@ -10226,6 +10232,85 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
   draft_and_node_add (&bocage_setup_obs, path_or_node,
 	  dand_predecessor, dand_cause);
 }
+
+@ @<Create draft and-nodes for token sources@> =
+{
+  SRCL source_link = NULL;
+  EIM predecessor_earley_item = NULL;
+  SYMID token;
+  switch (work_source_type)
+    {
+    case SOURCE_IS_TOKEN:
+      predecessor_earley_item = Predecessor_of_EIM (work_earley_item);
+      token = SYMID_of_EIM(work_earley_item);
+      break;
+    case SOURCE_IS_AMBIGUOUS:
+      source_link = First_Token_Link_of_EIM (work_earley_item);
+      if (source_link)
+	{
+	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
+	  token = SYMID_of_SRCL(source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+    }
+    for (;;)
+      {
+	@<Add draft and-node for token source@>@;
+	if (!source_link) break;
+	predecessor_earley_item = Predecessor_of_SRCL (source_link);
+        token = SYMID_of_SRCL(source_link);
+	source_link = Next_SRCL_of_SRCL (source_link);
+      }
+}
+
+@ @<Add draft and-node for token source@> = {;}
+
+@ @<Create draft and-nodes for completion sources@> =
+{
+  SRCL source_link = NULL;
+  EIM predecessor_earley_item = NULL;
+  EIM cause_earley_item = NULL;
+  const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
+  switch (work_source_type)
+    {
+    case SOURCE_IS_COMPLETION:
+      predecessor_earley_item = Predecessor_of_EIM (work_earley_item);
+      cause_earley_item = Cause_of_EIM (work_earley_item);
+      break;
+    case SOURCE_IS_AMBIGUOUS:
+      source_link = First_Completion_Link_of_EIM (work_earley_item);
+      if (source_link)
+	{
+	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
+	  cause_earley_item = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+	break;
+    }
+  while (cause_earley_item)
+    {
+      const TRANS cause_completion_data =
+	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
+      const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
+      const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
+      gint ix;
+MARPA_DEBUG4("%s: TRANS of %s, sym=%d", G_STRLOC,
+    eim_tag(cause_earley_item), transition_symbol_id);
+MARPA_DEBUG4("%s: aexes=%p, aex_count=%d", G_STRLOC, aexes, aex_count);
+	    MARPA_DEBUG3("%s transition_symbol_id=%d",
+		G_STRLOC, transition_symbol_id);
+      for (ix = 0; ix < aex_count; ix++) {
+	  const AEX cause_aex = aexes[ix];
+	    @<Add draft and-node for completion source@>@;
+      }
+      if (!source_link) break;
+      predecessor_earley_item = Predecessor_of_SRCL (source_link);
+      cause_earley_item = Cause_of_SRCL (source_link);
+      source_link = Next_SRCL_of_SRCL (source_link);
+    }
+}
+
+@ @<Add draft and-node for completion source@> = {;}
 
 @** And-Node (AND) Code.
 The or-nodes are part of the parse bocage.
