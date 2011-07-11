@@ -10125,7 +10125,7 @@ predecessor.  Set |or-node| to 0 if there is none.
 @<Add draft and-nodes for chain starting with |leo_predecessor|@> =
 {
     /* The rule for the Leo path Earley item */
-    RULE path_rule;
+    RULE path_rule = NULL;
     /* The rule for the previous Leo path Earley item */
     RULE previous_path_rule;
     LIM path_leo_item = leo_predecessor;
@@ -10217,7 +10217,15 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
   Set_OR_from_Ord_and_SYMI(path_or_node, work_origin_ordinal, symi);
 }
 
-@ @<Add the draft and-nodes to an upper Leo path or-node@> = {;}
+@ @<Add the draft and-nodes to an upper Leo path or-node@> =
+{
+  OR dand_cause;
+  const SYMI symbol_instance = SYMI_of_Completed_RULE(previous_path_rule);
+  const gint origin_ordinal = Ord_of_ES(ES_of_LIM(path_leo_item));
+  Set_OR_from_Ord_and_SYMI(dand_cause, origin_ordinal, symbol_instance);
+  draft_and_node_add (&bocage_setup_obs, path_or_node,
+	  dand_predecessor, dand_cause);
+}
 
 @** And-Node (AND) Code.
 The or-nodes are part of the parse bocage.
