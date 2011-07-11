@@ -9790,7 +9790,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
 		DAND draft_and_node;
 		const gint rhs_ix = symbol_instance - SYMI_of_RULE(rule);
 		const OR predecessor = symbol_instance ? last_or_node : NULL;
-		const OR cause = SYM_by_ID( RHS_ID_of_RULE (rule, rhs_ix ) );
+		const OR cause = (OR)SYM_by_ID( RHS_ID_of_RULE (rule, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
   MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, symbol_instance );
@@ -10124,6 +10124,10 @@ predecessor.  Set |or-node| to 0 if there is none.
 @ Note that in a trivial path the bottom is also the top.
 @<Add draft and-nodes for chain starting with |leo_predecessor|@> =
 {
+    /* The rule for the Leo path Earley item */
+    RULE path_rule;
+    /* The rule for the previous Leo path Earley item */
+    RULE previous_path_rule;
     LIM path_leo_item = leo_predecessor;
     LIM higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
     /* A boolean to indicate whether is true is there is some
@@ -10135,6 +10139,7 @@ predecessor.  Set |or-node| to 0 if there is none.
     Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
     @<Set |path_or_node|@>@;
     @<Add draft and-nodes to the bottom or-node@>@;
+    previous_path_rule = path_rule;
     while (higher_path_leo_item) {
 	path_leo_item = higher_path_leo_item;
 	higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
@@ -10142,6 +10147,7 @@ predecessor.  Set |or-node| to 0 if there is none.
 	Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
 	@<Set |path_or_node|@>@;
 	@<Add the draft and-nodes to an upper Leo path or-node@>@;
+	previous_path_rule = path_rule;
     }
 }
 
@@ -10196,11 +10202,12 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
 
 @ @<Use Leo base data to set |path_or_node|@> =
 {
-  const gint origin_ordinal = Origin_Ord_of_EIM(base_earley_item);
-  const AIM aim = AIM_of_EIM_by_AEX(base_earley_item, base_aex);
-  const RULE rule = RULE_of_AIM(aim);
-  const gint symbol_instance = Last_Proper_SYMI_of_RULE (rule);
-  Set_OR_from_Ord_and_SYMI(path_or_node, origin_ordinal, symbol_instance);
+  gint symbol_instance;
+  const gint origin_ordinal = Origin_Ord_of_EIM (base_earley_item);
+  const AIM aim = AIM_of_EIM_by_AEX (base_earley_item, base_aex);
+  path_rule = RULE_of_AIM (aim);
+  symbol_instance = Last_Proper_SYMI_of_RULE (path_rule);
+  Set_OR_from_Ord_and_SYMI (path_or_node, origin_ordinal, symbol_instance);
 }
 
 @ @<Use |work_earley_item| to set |path_or_node|@>=;
