@@ -6222,7 +6222,8 @@ static inline EIM earley_item_create(const RECCE r,
 @ @<Private function prototypes@> =
 static inline
 EIM old_earley_item_assign (const RECCE r, const ES set, const ES origin, const AHFA state);
-@ @<Function definitions@> =
+@ Now used only in expanding Leo items, and modified under that assumption.
+@<Function definitions@> =
 static inline EIM old_earley_item_assign (
     const RECCE r, const ES set, const ES origin, const AHFA state)
 {
@@ -6233,7 +6234,9 @@ static inline EIM old_earley_item_assign (
     key.t_set = set;
     item = g_tree_lookup(r->t_earley_item_tree, &key);
     if (item) return item;
-    return earley_item_create(r, key);
+    item = earley_item_create(r, key);
+      EIM_is_Leo_Expansion(item) = 1;
+      return item;
 }
 
 @ @<Private function prototypes@> =
@@ -8899,7 +8902,6 @@ must be created.
 			To_AHFA_of_EIM_by_SYMID (base_eim_of_this_lim,
 						 postdot_symbol_of_this_lim));
   leo_path_lengths++;
-  EIM_is_Leo_Expansion(new_eim_for_this_path) = 1;
   completion_link_add (r, new_eim_for_this_path,
       base_eim_of_this_lim,
       previous_eim_on_this_path);
@@ -9677,7 +9679,7 @@ OR_Count_of_B(b) = 0;
   PSAR_Object and_per_es_arena;
   const PSAR and_psar = &and_per_es_arena;
   gint or_node_id;
-  psar_init (and_psar, AHFA_Count_of_G (g));
+  psar_init (and_psar, rule_count_of_g+symbol_count_of_g);
   for (or_node_id = 0; 
       or_node_id < or_node_count_of_b;
       or_node_id++)
@@ -9714,6 +9716,7 @@ there are less than, say, 7 and-nodes, and the PSL's otherwise.
 	  PSL and_psl;
 	  PSL *psl_owner = &per_es_data[middle_ordinal].t_and_psl;
 	  MARPA_DEBUG3("Claiming psl at ordinal=%d as %s", middle_ordinal, G_STRINGIFY(and_psl));
+	  MARPA_DEBUG2("psl_owner=%p", psl_owner);
 	  if (!*psl_owner) psl_claim (psl_owner, and_psar);
 	  and_psl = *psl_owner;
 	  if (GPOINTER_TO_INT(PSL_Datum(and_psl, wheid)) == work_or_node_id) {
@@ -9732,6 +9735,7 @@ there are less than, say, 7 and-nodes, and the PSL's otherwise.
 @ @<Create the or-nodes for |work_earley_set_ordinal|@> =
 {
     gint item_ordinal;
+MARPA_DEBUG2("CREATING OR-NODES at %d", work_earley_set_ordinal);
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
     {
 	OR* const work_nodes_by_aex = nodes_by_item[item_ordinal];
@@ -9793,13 +9797,12 @@ MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
 	  @<Set |last_or_node| to a new or-node@>@;
 	  or_node = last_or_node;
 	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = last_or_node;
-  MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, ahfa_item_symbol_instance );
+  MARPA_DEBUG3("%s: Setting or_psl symi=%d", G_STRLOC, ahfa_item_symbol_instance );
 	  Origin_Ord_of_OR(or_node) = Origin_Ord_of_EIM(work_earley_item);
 	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
 	  RULE_of_OR(or_node) = rule;
 	  Position_of_OR (or_node) =
 	      ahfa_item_symbol_instance - SYMI_of_RULE (rule) + 1;
-MARPA_DEBUG3("%s or_psl SYMI = %d", G_STRLOC, ahfa_item_symbol_instance);
 MARPA_DEBUG3("main or-node EIM = %s aex=%d", eim_tag(work_earley_item), work_aex);
 MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 	  DANDs_of_OR(or_node) = NULL;
@@ -9861,7 +9864,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
 		const OR cause = (OR)SYM_by_ID( RHS_ID_of_RULE (rule, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
-  MARPA_DEBUG3("%s: or_psl symi=%d", G_STRLOC, symbol_instance );
+  MARPA_DEBUG3("%s: Setting or_psl symi=%d", G_STRLOC, symbol_instance );
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
 		ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
@@ -10412,10 +10415,14 @@ MARPA_DEBUG4("%s: aexes=%p, aex_count=%d", G_STRLOC, aexes, aex_count);
 {
   OR dand_predecessor;
   OR dand_cause;
+  const gint middle_ordinal = Origin_Ord_of_EIM(cause_earley_item);
+  const AIM cause_ahfa_item = AIM_of_EIM_by_AEX(cause_earley_item, cause_aex);
+  const SYMI cause_symbol_instance =
+      SYMI_of_Completed_RULE(RULE_of_AIM(cause_ahfa_item));
   @<Set |dand_predecessor|@>@;
-  Set_OR_from_EIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
-  MARPA_DEBUG4("dand_cause=%p, set as completion from %s,%d", dand_cause,
-           eim_tag(cause_earley_item), cause_aex);
+  Set_OR_from_Ord_and_SYMI(dand_cause, middle_ordinal, cause_symbol_instance);
+  MARPA_DEBUG5("dand_cause=%p, set as completion from %s,%d,%d", dand_cause,
+           eim_tag(cause_earley_item), middle_ordinal, cause_symbol_instance);
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -10500,7 +10507,8 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 @ @<Declare bocage locals@> =
 @<Return |-2| on failure@>@;
 const GRAMMAR_Const g = G_of_R(r);
-gint rule_count_of_g = RULE_Count_of_G(g);
+const gint rule_count_of_g = RULE_Count_of_G(g);
+const gint symbol_count_of_g = SYM_Count_of_G(g);
 BOC b;
 ES end_of_parse_es;
 RULE completed_start_rule;
@@ -11622,11 +11630,13 @@ psar_init (const PSAR psar, gint length)
 static inline void psar_destroy(const PSAR psar)
 {
     PSL psl = psar->t_first_psl;
+MARPA_DEBUG3("%s psl=%p", G_STRLOC, psl);
     while (psl)
       {
+MARPA_DEBUG3("%s psl=%p", G_STRLOC, psl);
 	PSL next_psl = psl->t_next;
 	PSL *owner = psl->t_owner;
-MARPA_OFF_DEBUG3("%s owner=%p", G_STRLOC, owner);
+MARPA_DEBUG3("%s owner=%p", G_STRLOC, owner);
 	if (owner)
 	  *owner = NULL;
 	g_slice_free1 (Sizeof_PSL (psar), psl);
