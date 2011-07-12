@@ -69,10 +69,6 @@ $grammar->set( { terminals => ['a'], } );
 
 $grammar->precompute();
 
-say STDERR "SYMBOLS: ", $grammar->show_symbols();
-say STDERR "RULES: ", $grammar->show_rules();
-say STDERR "AHFA: ", $grammar->show_AHFA();
-
 my $recce = Marpa::Recognizer->new(
     { grammar => $grammar, ranking_method => 'constant' } );
 
@@ -89,7 +85,6 @@ for my $i ( 0 .. $input_length ) {
         my $name     = $maximal ? 'maximal' : 'minimal';
         $recce->reset_evaluation();
         $recce->set( { end => $i, } );
-say STDERR "Earley Sets: ", $recce->show_earley_sets();
         my $result = $recce->value();
         Test::More::is( ${$result}, $expected->[$i],
             "$name parse permutation $i" );
