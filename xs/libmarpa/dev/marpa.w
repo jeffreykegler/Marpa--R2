@@ -9182,6 +9182,11 @@ G_STRLOC, eim_tag(ur_earley_item), ur_aex);
     while ((ur_node = ur_node_pop(ur_node_stack)))
     {
         const EIM_Const parent_earley_item = EIM_of_UR(ur_node);
+
+MARPA_DEBUG4("%s: Popped ur-node for %s; expansion? = %d",
+    G_STRLOC, eim_tag(parent_earley_item),
+    EIM_is_Leo_Expansion(parent_earley_item));
+
 	if (!EIM_is_Leo_Expansion(parent_earley_item)) {
 	    const AEX parent_aex = AEX_of_UR(ur_node);
 	    const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
@@ -9191,7 +9196,7 @@ G_STRLOC, eim_tag(ur_earley_item), ur_aex);
 	       predot symbol, because there may be nulling symbols in between. */
 	    guint source_type = Source_Type_of_EIM (parent_earley_item);
 	    MARPA_ASSERT(!EIM_is_Predicted(parent_earley_item))@;
-	    MARPA_DEBUG3("parent_earley_item=%s, parent_aex=%d",
+	    MARPA_DEBUG3("Popped ur-node for eim=%s, aex=%d",
 		eim_tag(parent_earley_item),
 		parent_aex);
 	    @<Push child Earley items from token sources@>@;
@@ -9374,8 +9379,11 @@ G_STRLOC, eim_tag(predecessor_earley_item), predecessor_aex);
     }
   while (cause_earley_item)
     {
+	MARPA_DEBUG2("PSIA from Completion cause=%s", eim_tag(cause_earley_item));
 	if (predecessor_earley_item)
 	  {
+	    MARPA_DEBUG2("PSIA from Completion predecessor=%s",
+	    eim_tag(predecessor_earley_item));
 	    if (EIM_is_Predicted (predecessor_earley_item))
 	      {
 		@<Set boolean in PSIA for initial nulls@>@;
@@ -9629,6 +9637,7 @@ OR_Count_of_B(b) = 0;
 @ @<Create the or-nodes for all earley sets@> =
 {
   const gint earley_set_count_of_r = ES_Count_of_R (r);
+  gint unique_draft_and_node_count = 0;
   @<Create the bocage nodes@>@;
   @<Mark duplicate draft and-nodes@>@;
 }
@@ -9679,8 +9688,45 @@ OR_Count_of_B(b) = 0;
   psar_destroy (and_psar);
 }
 
-@ @<Mark the duplicate draft and-nodes for |work_or_node|@> =
-{;
+@ I think the and PSL's and or PSL's are not actually used at the
+same time, so the same field might be used for both.
+More significantly, a simple $O(n^2)$ sort of the 
+draft and-nodes would spot duplicates more efficiently in 99%
+of cases, although it would not be $O(n)$ as the PSL's are.
+The best of both worlds could be had by using the sort when
+there are less than, say, 7 and-nodes, and the PSL's otherwise.
+@<Mark the duplicate draft and-nodes for |work_or_node|@> =
+{
+  DAND dand = DANDs_of_OR (work_or_node);
+  DAND next_dand = Next_DAND_of_DAND (dand);
+  ORID work_or_node_id = ID_of_OR(work_or_node);
+  /* Only if there is more than one draft and-node */
+  if (next_dand)
+    {
+      gint origin_ordinal = Origin_Ord_of_OR (work_or_node);
+      psar_dealloc(and_psar);
+      while (dand)
+	{
+	  OR predecessor = Predecessor_OR_of_DAND (dand);
+	  WHEID wheid = WHEID_of_OR(Cause_OR_of_DAND(dand));
+	  const gint middle_ordinal =
+	    predecessor ? ES_Ord_of_OR (predecessor) : origin_ordinal;
+	  PSL and_psl;
+	  PSL *psl_owner = &per_es_data[middle_ordinal].t_and_psl;
+	  MARPA_DEBUG3("Claiming psl at ordinal=%d as %s", middle_ordinal, G_STRINGIFY(and_psl));
+	  if (!*psl_owner) psl_claim (psl_owner, and_psar);
+	  and_psl = *psl_owner;
+	  if (GPOINTER_TO_INT(PSL_Datum(and_psl, wheid)) == work_or_node_id) {
+	      /* Mark this draft and-node as a duplicate */
+	      Cause_OR_of_DAND(dand) = NULL;
+	  } else {
+	      /* Increment the count of unique draft and-nodes */
+	      PSL_Datum(and_psl, wheid) = GINT_TO_POINTER(work_or_node_id);
+	      unique_draft_and_node_count++;
+	  }
+	  dand = Next_DAND_of_DAND (dand);
+	}
+    }
 }
 
 @ @<Create the or-nodes for |work_earley_set_ordinal|@> =
@@ -10002,10 +10048,18 @@ Note that this puts a limit on the number of symbols
 and rules in a grammar --- their total must fit in an
 int.
 @d WHEID_of_SYMID(symid) (rule_count_of_g+(symid))
+@d WHEID_of_SYM(sym) WHEID_of_SYMID(ID_of_SYM(sym))
 @d WHEID_of_RULEID(ruleid) (ruleid)
 @d WHEID_of_RULE(rule) WHEID_of_RULEID(ID_of_RULE(rule))
+@d WHEID_of_OR(or) (
+    wheid = (Type_of_OR(or) == TOKEN_OR_NODE) ?
+        WHEID_of_SYM((SYM)or) :
+        WHEID_of_RULE(RULE_of_OR(or))
+    )
+
 @<Private typedefs@> =
 typedef gint WHEID;
+
 
 @** Draft And-Node (DAND) Code.
 The draft and-nodes are used while the bocage is
@@ -10039,6 +10093,7 @@ DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
     DAND draft_and_node = obstack_alloc (obs, sizeof(DAND_Object));
     Predecessor_OR_of_DAND(draft_and_node) = predecessor;
     Cause_OR_of_DAND(draft_and_node) = cause;
+    MARPA_ASSERT(cause);
     return draft_and_node;
 }
 
@@ -10211,6 +10266,8 @@ predecessor.  Set |or-node| to 0 if there is none.
       const AEX cause_aex = aexes[ix];
       OR dand_cause;
       Set_OR_from_EIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
+      MARPA_DEBUG4("dand_cause=%p, set at Leo bottom from %s,%d", dand_cause,
+           eim_tag(cause_earley_item), cause_aex);
       draft_and_node_add (&bocage_setup_obs, path_or_node,
 			  dand_predecessor, dand_cause);
     }
@@ -10231,6 +10288,7 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
        psia_item_ordinal,
        psia_aex);
   psia_or = psia_nodes_by_aex ? psia_nodes_by_aex[psia_aex] : NULL;
+MARPA_DEBUG2("Got PSIA: %p", psia_or);
 }
 
 @ @<Use Leo base data to set |path_or_node|@> =
@@ -10249,6 +10307,7 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
   const SYMI symbol_instance = SYMI_of_Completed_RULE(previous_path_rule);
   const gint origin_ordinal = Ord_of_ES(ES_of_LIM(path_leo_item));
   Set_OR_from_Ord_and_SYMI(dand_cause, origin_ordinal, symbol_instance);
+  MARPA_DEBUG2("dand_cause=%p, set from Leo item", dand_cause);
   draft_and_node_add (&bocage_setup_obs, path_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -10288,6 +10347,7 @@ MARPA_DEBUG4("Getting PSIA of %d,%d,%d",
   OR dand_predecessor;
   const SYM symbol = SYM_by_ID(token_id);
   @<Set |dand_predecessor|@>@;
+  MARPA_DEBUG3("dand_cause=%p, set from symbol %d", symbol, token_id);
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, (OR)symbol);
 }
@@ -10354,6 +10414,8 @@ MARPA_DEBUG4("%s: aexes=%p, aex_count=%d", G_STRLOC, aexes, aex_count);
   OR dand_cause;
   @<Set |dand_predecessor|@>@;
   Set_OR_from_EIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
+  MARPA_DEBUG4("dand_cause=%p, set as completion from %s,%d", dand_cause,
+           eim_tag(cause_earley_item), cause_aex);
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -12123,8 +12185,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
-#define MARPA_ENABLE_ASSERT @[ 0 @]
+#define MARPA_DEBUG @[ 1 @]
+#define MARPA_ENABLE_ASSERT @[ 1 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
