@@ -9618,10 +9618,11 @@ typedef union u_or_node OR_Object;
 @ @<Private global variables@> =
 static const gint dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
+
 @ @d ORs_of_B(b) ((b)->t_or_nodes)
-@ @d OR_Count_of_B(b) ((b)->t_or_node_count)
-@ @d ANDs_of_B(b) ((b)->t_and_nodes)
-@ @d AND_Count_of_B(b) ((b)->t_and_node_count)
+@d OR_Count_of_B(b) ((b)->t_or_node_count)
+@d ANDs_of_B(b) ((b)->t_and_nodes)
+@d AND_Count_of_B(b) ((b)->t_and_node_count)
 @<Widely aligned bocage elements@> =
 OR* t_or_nodes;
 AND t_and_nodes;
@@ -9648,14 +9649,8 @@ AND_Count_of_B(b) = 0;
     }
 }
 
-@ @<Create the final and-nodes for all earley sets@> =
-{
-  gint unique_draft_and_node_count = 0;
-  @<Mark duplicate draft and-nodes@>@;
-  @<Create the final and-node array@>@;
-}
-
-@ @<Create the or-nodes for all earley sets@> =
+@*0 Create the Or-Nodes.
+@<Create the or-nodes for all earley sets@> =
 {
   PSAR_Object or_per_es_arena;
   const PSAR or_psar = &or_per_es_arena;
@@ -9681,66 +9676,6 @@ AND_Count_of_B(b) = 0;
   }
   psar_destroy (or_psar);
   ORs_of_B(b) = g_renew (OR, ORs_of_B(b), OR_Count_of_B(b));
-}
-
-@ @<Mark duplicate draft and-nodes@> =
-{
-  OR * const or_nodes_of_b = ORs_of_B (b);
-  const gint or_node_count_of_b = OR_Count_of_B(b);
-  PSAR_Object and_per_es_arena;
-  const PSAR and_psar = &and_per_es_arena;
-  gint or_node_id;
-  psar_init (and_psar, rule_count_of_g+symbol_count_of_g);
-  for (or_node_id = 0; 
-      or_node_id < or_node_count_of_b;
-      or_node_id++)
-  {
-      const OR work_or_node = or_nodes_of_b[or_node_id];
-    @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
-  }
-  psar_destroy (and_psar);
-}
-
-@ I think the and PSL's and or PSL's are not actually used at the
-same time, so the same field might be used for both.
-More significantly, a simple $O(n^2)$ sort of the 
-draft and-nodes would spot duplicates more efficiently in 99%
-of cases, although it would not be $O(n)$ as the PSL's are.
-The best of both worlds could be had by using the sort when
-there are less than, say, 7 and-nodes, and the PSL's otherwise.
-@<Mark the duplicate draft and-nodes for |work_or_node|@> =
-{
-  DAND dand = DANDs_of_OR (work_or_node);
-  DAND next_dand = Next_DAND_of_DAND (dand);
-  ORID work_or_node_id = ID_of_OR(work_or_node);
-  /* Only if there is more than one draft and-node */
-  if (next_dand)
-    {
-      gint origin_ordinal = Origin_Ord_of_OR (work_or_node);
-      psar_dealloc(and_psar);
-      while (dand)
-	{
-	  OR predecessor = Predecessor_OR_of_DAND (dand);
-	  WHEID wheid = WHEID_of_OR(Cause_OR_of_DAND(dand));
-	  const gint middle_ordinal =
-	    predecessor ? ES_Ord_of_OR (predecessor) : origin_ordinal;
-	  PSL and_psl;
-	  PSL *psl_owner = &per_es_data[middle_ordinal].t_and_psl;
-	  MARPA_DEBUG3("Claiming psl at ordinal=%d as %s", middle_ordinal, G_STRINGIFY(and_psl));
-	  MARPA_DEBUG2("psl_owner=%p", psl_owner);
-	  if (!*psl_owner) psl_claim (psl_owner, and_psar);
-	  and_psl = *psl_owner;
-	  if (GPOINTER_TO_INT(PSL_Datum(and_psl, wheid)) == work_or_node_id) {
-	      /* Mark this draft and-node as a duplicate */
-	      Cause_OR_of_DAND(dand) = NULL;
-	  } else {
-	      /* Increment the count of unique draft and-nodes */
-	      PSL_Datum(and_psl, wheid) = GINT_TO_POINTER(work_or_node_id);
-	      unique_draft_and_node_count++;
-	  }
-	  dand = Next_DAND_of_DAND (dand);
-	}
-    }
 }
 
 @ @<Create the or-nodes for |work_earley_set_ordinal|@> =
@@ -9790,6 +9725,7 @@ MARPA_DEBUG4("Setting PSIA for work_nodes_by_aex=%p,aex=%d to %p",
     @<Add Leo or-nodes@>@;
 }
 
+@*0 Non-Leo Or-Nodes.
 @ Add the main or-node---%
 the one that corresponds directly to this AHFA item.
 The exception are predicted AHFA items.
@@ -9893,7 +9829,8 @@ MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
     }
 }
 
-@ @<Add Leo or-nodes@> = {
+@*0 Leo Or-Nodes.
+@<Add Leo or-nodes@> = {
   SRCL source_link = NULL;
   EIM cause_earley_item = NULL;
   LIM leo_predecessor = NULL;
@@ -10438,6 +10375,66 @@ MARPA_DEBUG4("%s: aexes=%p, aex_count=%d", G_STRLOC, aexes, aex_count);
 	  dand_predecessor, dand_cause);
 }
 
+@ @<Mark duplicate draft and-nodes@> =
+{
+  OR * const or_nodes_of_b = ORs_of_B (b);
+  const gint or_node_count_of_b = OR_Count_of_B(b);
+  PSAR_Object and_per_es_arena;
+  const PSAR and_psar = &and_per_es_arena;
+  gint or_node_id;
+  psar_init (and_psar, rule_count_of_g+symbol_count_of_g);
+  for (or_node_id = 0; 
+      or_node_id < or_node_count_of_b;
+      or_node_id++)
+  {
+      const OR work_or_node = or_nodes_of_b[or_node_id];
+    @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
+  }
+  psar_destroy (and_psar);
+}
+
+@ I think the and PSL's and or PSL's are not actually used at the
+same time, so the same field might be used for both.
+More significantly, a simple $O(n^2)$ sort of the 
+draft and-nodes would spot duplicates more efficiently in 99%
+of cases, although it would not be $O(n)$ as the PSL's are.
+The best of both worlds could be had by using the sort when
+there are less than, say, 7 and-nodes, and the PSL's otherwise.
+@<Mark the duplicate draft and-nodes for |work_or_node|@> =
+{
+  DAND dand = DANDs_of_OR (work_or_node);
+  DAND next_dand = Next_DAND_of_DAND (dand);
+  ORID work_or_node_id = ID_of_OR(work_or_node);
+  /* Only if there is more than one draft and-node */
+  if (next_dand)
+    {
+      gint origin_ordinal = Origin_Ord_of_OR (work_or_node);
+      psar_dealloc(and_psar);
+      while (dand)
+	{
+	  OR predecessor = Predecessor_OR_of_DAND (dand);
+	  WHEID wheid = WHEID_of_OR(Cause_OR_of_DAND(dand));
+	  const gint middle_ordinal =
+	    predecessor ? ES_Ord_of_OR (predecessor) : origin_ordinal;
+	  PSL and_psl;
+	  PSL *psl_owner = &per_es_data[middle_ordinal].t_and_psl;
+	  MARPA_DEBUG3("Claiming psl at ordinal=%d as %s", middle_ordinal, G_STRINGIFY(and_psl));
+	  MARPA_DEBUG2("psl_owner=%p", psl_owner);
+	  if (!*psl_owner) psl_claim (psl_owner, and_psar);
+	  and_psl = *psl_owner;
+	  if (GPOINTER_TO_INT(PSL_Datum(and_psl, wheid)) == work_or_node_id) {
+	      /* Mark this draft and-node as a duplicate */
+	      Cause_OR_of_DAND(dand) = NULL;
+	  } else {
+	      /* Increment the count of unique draft and-nodes */
+	      PSL_Datum(and_psl, wheid) = GINT_TO_POINTER(work_or_node_id);
+	      unique_draft_and_node_count++;
+	  }
+	  dand = Next_DAND_of_DAND (dand);
+	}
+    }
+}
+
 @** And-Node (AND) Code.
 The or-nodes are part of the parse bocage.
 They are analogous to the and-nodes of a standard parse forest,
@@ -10461,6 +10458,13 @@ struct s_and_node {
     OR t_cause;
 };
 typedef struct s_and_node AND_Object;
+
+@ @<Create the final and-nodes for all earley sets@> =
+{
+  gint unique_draft_and_node_count = 0;
+  @<Mark duplicate draft and-nodes@>@;
+  @<Create the final and-node array@>@;
+}
 
 @ @<Create the final and-node array@> = {;}
 
