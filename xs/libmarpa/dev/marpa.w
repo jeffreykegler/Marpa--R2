@@ -9620,31 +9620,42 @@ static const gint dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
 @ @d ORs_of_B(b) ((b)->t_or_nodes)
 @ @d OR_Count_of_B(b) ((b)->t_or_node_count)
+@ @d ANDs_of_B(b) ((b)->t_and_nodes)
+@ @d AND_Count_of_B(b) ((b)->t_and_node_count)
 @<Widely aligned bocage elements@> =
 OR* t_or_nodes;
+AND t_and_nodes;
 gint t_or_node_count;
+gint t_and_node_count;
 @ @<Initialize bocage elements@> =
 ORs_of_B(b) = NULL;
 OR_Count_of_B(b) = 0;
+ANDs_of_B(b) = NULL;
+AND_Count_of_B(b) = 0;
 @ @<Destroy bocage elements, main phase@> =
 {
   OR* or_nodes = ORs_of_B (b);
+  AND and_nodes = ANDs_of_B (b);
   if (or_nodes)
     {
       g_free (or_nodes);
       ORs_of_B (b) = NULL;
     }
+  if (and_nodes)
+    {
+      g_free (and_nodes);
+      ANDs_of_B (b) = NULL;
+    }
+}
+
+@ @<Create the final and-nodes for all earley sets@> =
+{
+  gint unique_draft_and_node_count = 0;
+  @<Mark duplicate draft and-nodes@>@;
+  @<Create the final and-node array@>@;
 }
 
 @ @<Create the or-nodes for all earley sets@> =
-{
-  const gint earley_set_count_of_r = ES_Count_of_R (r);
-  gint unique_draft_and_node_count = 0;
-  @<Create the bocage nodes@>@;
-  @<Mark duplicate draft and-nodes@>@;
-}
-
-@ @<Create the bocage nodes@> =
 {
   PSAR_Object or_per_es_arena;
   const PSAR or_psar = &or_per_es_arena;
@@ -10451,6 +10462,8 @@ struct s_and_node {
 };
 typedef struct s_and_node AND_Object;
 
+@ @<Create the final and-node array@> = {;}
+
 @** The Parse Bocage.
 @ Pre-initialization is making the elements safe for the deallocation logic
 to be called.  Often it is setting the value to zero, so that the deallocation
@@ -10619,8 +10632,10 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 
 @ @<Traverse Earley sets to create bocage@>=
 {
+  const gint earley_set_count_of_r = ES_Count_of_R (r);
     @<Populate the PSIA data@>@;
     @<Create the or-nodes for all earley sets@>@;
+    @<Create the final and-nodes for all earley sets@>@;
 }
 
 @ Predicted AHFA states can be skipped since they
@@ -12195,14 +12210,14 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
-#define MARPA_ENABLE_ASSERT @[ 0 @]
+#define MARPA_DEBUG @[ 1 @]
+#define MARPA_ENABLE_ASSERT @[ 1 @]
 #if MARPA_DEBUG
-#define MARPA_DEBUG1(a) @[ g_debug((a)) @]
-#define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
-#define MARPA_DEBUG3(a, b, c) @[ g_debug((a),(b),(c)) @]
-#define MARPA_DEBUG4(a, b, c, d) @[ g_debug((a),(b),(c),(d)) @]
-#define MARPA_DEBUG5(a, b, c, d, e) @[ g_debug((a),(b),(c),(d),(e)) @]
+#define MARPA_DEBUG1(a) @[ g_debug((a)); @]
+#define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)); @]
+#define MARPA_DEBUG3(a, b, c) @[ g_debug((a),(b),(c)); @]
+#define MARPA_DEBUG4(a, b, c, d) @[ g_debug((a),(b),(c),(d)); @]
+#define MARPA_DEBUG5(a, b, c, d, e) @[ g_debug((a),(b),(c),(d),(e)); @]
 #define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
        g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
