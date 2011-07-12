@@ -9496,6 +9496,8 @@ a parse bocage can contain cycles.
 
 @<Public typedefs@> =
 typedef gint Marpa_Or_Node_ID;
+@ @<Private typedefs@> =
+typedef Marpa_Or_Node_ID ORID;
 
 @*0 Relationship of Earley Items to Or-Nodes.
 Several Earley items may be the source of the same or-node,
@@ -9569,10 +9571,11 @@ Position is |DUMMY_OR_NODE| for dummy or-nodes,
 Position is the dot position.
 @d DUMMY_OR_NODE -1
 @d TOKEN_OR_NODE -2
-@d Position_of_OR(or) ((or)->t_draft.t_position)
-@d Type_of_OR(or) ((or)->t_draft.t_position)
-@d RULE_of_OR(or) ((or)->t_draft.t_rule)
-@d Origin_Ord_of_OR(or) ((or)->t_draft.t_start_set_ordinal)
+@d Position_of_OR(or) ((or)->t_final.t_position)
+@d Type_of_OR(or) ((or)->t_final.t_position)
+@d RULE_of_OR(or) ((or)->t_final.t_rule)
+@d Origin_Ord_of_OR(or) ((or)->t_final.t_start_set_ordinal)
+@d ID_of_OR(or) ((or)->t_final.t_id)
 @d ES_Ord_of_OR(or) ((or)->t_draft.t_end_set_ordinal)
 @d DANDs_of_OR(or) ((or)->t_draft.t_draft_and_node)
 @ C89 guarantees that common initial sequences
@@ -9582,6 +9585,7 @@ gint t_position;
 gint t_end_set_ordinal;
 RULE t_rule;
 gint t_start_set_ordinal;
+ORID t_id;
 @ @<Private structures@> =
 struct s_draft_or_node
 {
@@ -9593,7 +9597,6 @@ struct s_final_or_node
 {
     @<Or-node common initial sequence@>@;
     gint t_and_node_id;
-    gint t_and_node_count;
 };
 @ @<Private structures@> =
 union u_or_node {
@@ -9769,6 +9772,7 @@ or arranging to test it.
   const gint or_node_id = OR_Count_of_B (b)++;
   OR *or_nodes_of_b = ORs_of_B (b);
   last_or_node = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
+  ID_of_OR(last_or_node) = or_node_id;
   if (G_UNLIKELY(or_node_id >= or_node_estimate))
     {
       MARPA_ASSERT(0);
