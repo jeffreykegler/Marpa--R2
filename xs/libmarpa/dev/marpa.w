@@ -11633,7 +11633,6 @@ static inline void psar_destroy(const PSAR psar)
 MARPA_DEBUG3("%s psl=%p", G_STRLOC, psl);
     while (psl)
       {
-MARPA_DEBUG3("%s psl=%p", G_STRLOC, psl);
 	PSL next_psl = psl->t_next;
 	PSL *owner = psl->t_owner;
 MARPA_DEBUG3("%s owner=%p", G_STRLOC, owner);
@@ -11641,6 +11640,7 @@ MARPA_DEBUG3("%s owner=%p", G_STRLOC, owner);
 	  *owner = NULL;
 	g_slice_free1 (Sizeof_PSL (psar), psl);
 	psl = next_psl;
+MARPA_DEBUG3("%s psl=%p", G_STRLOC, psl);
       }
 }
 @ @<Function definitions@> =
@@ -12195,8 +12195,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 1 @]
-#define MARPA_ENABLE_ASSERT @[ 1 @]
+#define MARPA_DEBUG @[ 0 @]
+#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)) @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)) @]
