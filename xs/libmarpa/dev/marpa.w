@@ -10401,6 +10401,15 @@ draft and-nodes would spot duplicates more efficiently in 99%
 of cases, although it would not be $O(n)$ as the PSL's are.
 The best of both worlds could be had by using the sort when
 there are less than, say, 7 and-nodes, and the PSL's otherwise.
+@ The use of PSL's is slightly different here.
+The PSL is not needed to find the draft and-nodes -- it's
+essentially just a boolean to indicate whether it exists.
+But "stale" booleans must still be detected.
+The solutiion adopted is to put the parent or-node
+into the PSL.
+If the PSL contains the current parent or-node,
+the draft and-node is a duplicate within that or-node.
+Otherwise, it's the first such draft and-node.
 @<Mark the duplicate draft and-nodes for |work_or_node|@> =
 {
   DAND dand = DANDs_of_OR (work_or_node);
@@ -10413,24 +10422,28 @@ there are less than, say, 7 and-nodes, and the PSL's otherwise.
       psar_dealloc(and_psar);
       while (dand)
 	{
+	  OR psl_or_node;
 	  OR predecessor = Predecessor_OR_of_DAND (dand);
 	  WHEID wheid = WHEID_of_OR(Cause_OR_of_DAND(dand));
 	  const gint middle_ordinal =
 	    predecessor ? ES_Ord_of_OR (predecessor) : origin_ordinal;
 	  PSL and_psl;
 	  PSL *psl_owner = &per_es_data[middle_ordinal].t_and_psl;
+	  /* The or-node used as a boolean in the PSL */
 	  MARPA_DEBUG3("Claiming psl at ordinal=%d as %s", middle_ordinal, G_STRINGIFY(and_psl));
 	  MARPA_DEBUG2("psl_owner=%p", psl_owner);
 	  if (!*psl_owner) psl_claim (psl_owner, and_psar);
 	  and_psl = *psl_owner;
-	  if (GPOINTER_TO_INT(PSL_Datum(and_psl, wheid)) == work_or_node_id) {
+	  psl_or_node = (OR)PSL_Datum(and_psl, wheid);
+	  if (psl_or_node && ID_of_OR(psl_or_node) == work_or_node_id)
+	  {
 	      /* Mark this draft and-node as a duplicate */
 	      Cause_OR_of_DAND(dand) = NULL;
 	      MARPA_DEBUG2("or_node=%d, duplicate dand",
 		  ID_of_OR(work_or_node));
 	  } else {
 	      /* Increment the count of unique draft and-nodes */
-	      PSL_Datum(and_psl, wheid) = GINT_TO_POINTER(work_or_node_id);
+	      PSL_Datum(and_psl, wheid) = work_or_node;
 	      unique_draft_and_node_count++;
 	      MARPA_DEBUG3("or_node=%d, unique dand=%d",
 		  ID_of_OR(work_or_node), 

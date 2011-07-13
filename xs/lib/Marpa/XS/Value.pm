@@ -2940,19 +2940,18 @@ sub Marpa::XS::Recognizer::value {
     if (   $BOCAGE_DEBUG
         && $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] <= 1 )
     {
+	say STDERR "Checking old vs. new bocage";
         my $old_or_nodes = $recce->old_show_or_nodes();
         my $new_or_nodes = $recce->show_or_nodes();
         if ( $old_or_nodes ne $new_or_nodes ) {
             say STDERR "OLD:\n", $old_or_nodes;
             say STDERR "NEW:\n", $new_or_nodes;
-            die;
         }
         my $old_and_nodes = $recce->old_show_and_nodes();
         my $new_and_nodes = $recce->show_and_nodes();
         if ( $old_and_nodes ne $new_and_nodes ) {
             say STDERR "OLD:\n", $old_and_nodes;
             say STDERR "NEW:\n", $new_and_nodes;
-            die;
         }
     } ## end if ( $BOCAGE_DEBUG && $recce->[...])
 
