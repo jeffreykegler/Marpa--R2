@@ -9588,6 +9588,8 @@ Position is the dot position.
 @d ID_of_OR(or) ((or)->t_final.t_id)
 @d ES_Ord_of_OR(or) ((or)->t_draft.t_end_set_ordinal)
 @d DANDs_of_OR(or) ((or)->t_draft.t_draft_and_node)
+@d First_ANDID_of_OR(or) ((or)->t_final.t_first_and_node_id)
+@d AND_Count_of_OR(or) ((or)->t_final.t_and_node_count)
 @ C89 guarantees that common initial sequences
 may be accessed via different members of a union.
 @<Or-node common initial sequence@> =
@@ -9606,7 +9608,8 @@ struct s_draft_or_node
 struct s_final_or_node
 {
     @<Or-node common initial sequence@>@;
-    gint t_and_node_id;
+    gint t_first_and_node_id;
+    gint t_and_node_count;
 };
 @ @<Private structures@> =
 union u_or_node {
@@ -10484,8 +10487,10 @@ typedef struct s_and_node AND_Object;
     g_new (AND_Object, unique_draft_and_node_count);
   for (or_node_id = 0; or_node_id < or_count_of_b; or_node_id++)
     {
+      gint and_count_of_parent_or = 0;
       const OR or_node = ors_of_b[or_node_id];
       DAND dand = DANDs_of_OR (or_node);
+	First_ANDID_of_OR(or_node) = and_node_id;
       while (dand)
 	{
 	  const OR cause_or_node = Cause_OR_of_DAND (dand);
@@ -10500,14 +10505,56 @@ typedef struct s_and_node AND_Object;
 	      MARPA_DEBUG3("or_node=%d, find and=%d",
 		  ID_of_OR(or_node), and_node_id);
 	      and_node_id++;
+	      and_count_of_parent_or++;
 	    }
 	    dand = Next_DAND_of_DAND(dand);
 	}
+	AND_Count_of_OR(or_node) = and_count_of_parent_or;
     }
     AND_Count_of_B (b) = and_node_id;
     MARPA_DEBUG3("and_node_id=%d unique DAND count = %d",
 	and_node_id, unique_draft_and_node_count);
     MARPA_ASSERT(and_node_id == unique_draft_and_node_count);
+}
+
+@*0 Trace Functions.
+
+@ @<Private function prototypes@> =
+gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data);
+@ @<Function definitions@> =
+gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data)
+{
+  BOC b = B_of_R(r);
+  AND and_nodes;
+  @<Return |-2| on failure@>@;
+  @<Fail if recognizer has fatal error@>@;
+  if (Phase_of_R(r) != evaluation_phase) {
+    R_ERROR("recce not being evaluated");
+    return failure_indicator;
+  }
+  if (!b) {
+      R_ERROR("no bocage");
+      return failure_indicator;
+  }
+  and_nodes = ANDs_of_B(b);
+  if (!and_nodes) {
+      R_ERROR("no and nodes");
+      return failure_indicator;
+  }
+  if (and_node_id < 0) {
+      R_ERROR("bad and node id");
+      return failure_indicator;
+  }
+  if (and_node_id >= AND_Count_of_B(b)) {
+      return -1;
+  }
+  {
+      const AND and_node = and_nodes + and_node_id;
+      and_data[0] = ID_of_OR(OR_of_AND(and_node));
+      and_data[1] = ID_of_OR(Predecessor_OR_of_AND(and_node));
+      and_data[2] = ID_of_OR(Cause_OR_of_AND(and_node));
+  }
+  return 1;
 }
 
 @** The Parse Bocage.
@@ -10815,8 +10862,8 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
       or_data[1] = ES_Ord_of_OR(or_node);
       or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
       or_data[3] = Position_of_OR(or_node);
-      or_data[4] = 0; /* Count of and-nodes */
-      or_data[5] = 0; /* ID of first and-node */
+      or_data[4] = First_ANDID_of_OR(or_node);
+      or_data[5] = AND_Count_of_OR(or_node);
   }
   return 1;
 }
