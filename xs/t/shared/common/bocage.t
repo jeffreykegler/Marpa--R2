@@ -22,7 +22,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 18;
 use Marpa::Test;
 
 BEGIN {
@@ -438,10 +438,34 @@ END_OF_TEXT
 Marpa::Test::is($recce->old_show_or_nodes(), $or_node_output, "PP Or nodes");
 Marpa::Test::is($recce->show_or_nodes(), $or_node_output, "XS Or nodes");
 
-my $and_node_output = q{};
+my $and_node_output = <<'END_OF_TEXT';
+R6:1@0-0S5@0
+R1:1@0-1S2@0
+R4:1@0-1C1@0
+R7:1@0-1C1@0
+R4:2@0-3C7@1
+R4:2@0-3C9@1
+R6:2@0-3C7@0
+R7:2@0-3C10@1
+R13:1@0-3C4@0
+R13:1@0-3C6@0
+R9:1@1-1S5@1
+R1:1@1-2S2@1
+R7:1@1-2C1@1
+R10:1@1-2C1@1
+R7:2@1-3C11@2
+R7:2@1-3C12@2
+R9:2@1-3C10@1
+R10:2@1-3C1@2
+R12:1@2-2S5@2
+R1:1@2-3S2@2
+R11:1@2-3C1@2
+R11:2@2-3S5@3
+R12:2@2-3C1@2
+END_OF_TEXT
 
-Marpa::Test::is($recce->old_show_and_nodes(), $and_node_output, "PP And nodes") if 0;
-Marpa::Test::is($recce->show_and_nodes(), $and_node_output, "XS And nodes") if 0;
+Marpa::Test::is($recce->old_show_and_nodes(), $and_node_output, "PP And nodes");
+Marpa::Test::is($recce->show_and_nodes(), $and_node_output, "XS And nodes");
 
 1;    # In case used as "do" file
 
