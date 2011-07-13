@@ -12333,7 +12333,7 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @<Debug macros@> =
 #define MARPA_DEBUG @[ 0 @]
-#define MARPA_ENABLE_ASSERT @[ 1 @]
+#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)); @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)); @]
