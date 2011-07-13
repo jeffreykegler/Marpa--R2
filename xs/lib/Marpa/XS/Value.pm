@@ -259,6 +259,55 @@ sub Marpa::XS::Recognizer::old_show_and_node {
 
 } ## end sub Marpa::XS::Recognizer::old_show_and_node
 
+sub Marpa::XS::Recognizer::show_and_nodes {
+    my ($recce) = @_;
+    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $text;
+    my @data = ();
+    my $id = 0;
+    AND_NODE: for ( ;; ) {
+        my ( $parent, $predecessor, $cause, $symbol ) = $recce_c->and_node( $id++ );
+        last AND_NODE if not defined $parent;
+        my ( $origin, $set, $rule, $position ) = $recce_c->or_node( $parent );
+        my $origin_earleme  = $recce_c->earleme($origin);
+        my $current_earleme = $recce_c->earleme($set);
+	my $middle_earleme = $origin_earleme;
+	if (defined $predecessor) {
+	    my ( undef, $predecessor_set, ) = $recce_c->or_node( $predecessor );
+	    $middle_earleme = $recce_c->earleme($predecessor_set);
+	}
+        my $desc =
+              'R' 
+            . $rule . q{:}
+            . $position . q{@}
+            . $origin_earleme . q{-}
+            . $current_earleme;
+	if (defined $cause) {
+	    my ( $cause_origin, undef, $cause_rule, ) = $recce_c->or_node( $cause );
+	    $desc .= 'C' . $cause_rule;
+	} else {
+	    $desc .= 'S' . $symbol;
+	}
+	$desc .= q{@} . $middle_earleme;
+        push @data,
+            [ $origin_earleme, $current_earleme, $rule, $position,
+		$middle_earleme,
+		($cause // -1),
+		($symbol // -1),
+		$desc ];
+    } ## end for ( ;; )
+    my @sorted_data = map { $_->[-1] } sort {
+        $a->[0] <=> $b->[0]
+	or $a->[1] <=> $b->[1]
+	or $a->[2] <=> $b->[2]
+	or $a->[3] <=> $b->[3]
+	or $a->[4] <=> $b->[4]
+	or $a->[5] <=> $b->[5]
+	or $a->[6] <=> $b->[6]
+    } @data;
+    return (join "\n", @sorted_data) . "\n";;
+}
+
 sub Marpa::XS::Recognizer::old_show_or_node {
     my ( $recce, $or_node, $verbose, ) = @_;
     $verbose //= 0;
@@ -383,7 +432,6 @@ sub Marpa::XS::Recognizer::show_or_nodes {
     } @data;
     return (join "\n", @sorted_data) . "\n";;
 }
-
 
 sub Marpa::XS::brief_iteration_node {
     my ($iteration_node) = @_;

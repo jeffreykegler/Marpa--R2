@@ -1557,5 +1557,31 @@ PPCODE:
     }
     }
 
+ # In scalar context, returns the count
+void
+and_node( r_wrapper, and_node_id )
+     R_Wrapper *r_wrapper;
+    Marpa_And_Node_ID and_node_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    const gint data_count = 4;
+    gint data[data_count];
+    gint result = marpa_and_node(r, and_node_id, data);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result <= -2) { croak("Problem in r->and_node(): %s", marpa_r_error(r)); }
+    {
+        guint ix;
+        EXTEND(SP, data_count);
+        for (ix = 0; ix < data_count; ix++) {
+	    gint datum = data[ix];
+	    if (datum < 0) {
+		PUSHs(&PL_sv_undef);
+	    } else {
+		PUSHs( sv_2mortal( newSViv(data[ix]) ) );
+	    }
+        }
+    }
+    }
+
 BOOT:
     gperl_handle_logs_for(G_LOG_DOMAIN);

@@ -28,6 +28,7 @@ Marpa_Earley_Set_ID T_IV
 Marpa_Earley_Item_ID T_IV
 Marpa_Earleme T_IV
 Marpa_Or_Node_ID T_IV
+Marpa_And_Node_ID T_IV
 
 INPUT
 

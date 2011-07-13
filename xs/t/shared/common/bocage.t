@@ -438,6 +438,11 @@ END_OF_TEXT
 Marpa::Test::is($recce->old_show_or_nodes(), $or_node_output, "PP Or nodes");
 Marpa::Test::is($recce->show_or_nodes(), $or_node_output, "XS Or nodes");
 
+my $and_node_output = q{};
+
+Marpa::Test::is($recce->old_show_and_nodes(), $and_node_output, "PP And nodes") if 0;
+Marpa::Test::is($recce->show_and_nodes(), $and_node_output, "XS And nodes") if 0;
+
 1;    # In case used as "do" file
 
 # Local Variables:

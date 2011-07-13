@@ -133,6 +133,8 @@ require Marpa::XS::Callback;
 *Marpa::Recognizer::reset_evaluation = \&Marpa::XS::Recognizer::reset_evaluation;
 *Marpa::Recognizer::set = \&Marpa::XS::Recognizer::set;
 *Marpa::Recognizer::show_earley_sets = \&Marpa::XS::Recognizer::show_earley_sets;
+*Marpa::Recognizer::show_and_nodes = \&Marpa::XS::Recognizer::show_and_nodes;
+*Marpa::Recognizer::old_show_and_nodes = \&Marpa::XS::Recognizer::old_show_and_nodes;
 *Marpa::Recognizer::show_or_nodes = \&Marpa::XS::Recognizer::show_or_nodes;
 *Marpa::Recognizer::old_show_or_nodes = \&Marpa::XS::Recognizer::old_show_or_nodes;
 *Marpa::Recognizer::show_progress = \&Marpa::XS::Recognizer::show_progress;
