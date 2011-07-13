@@ -10381,14 +10381,12 @@ MARPA_DEBUG4("%s: aexes=%p, aex_count=%d", G_STRLOC, aexes, aex_count);
   const gint or_node_count_of_b = OR_Count_of_B(b);
   PSAR_Object and_per_es_arena;
   const PSAR and_psar = &and_per_es_arena;
-  gint or_node_id;
+  gint or_node_id = 0;
   psar_init (and_psar, rule_count_of_g+symbol_count_of_g);
-  for (or_node_id = 0; 
-      or_node_id < or_node_count_of_b;
-      or_node_id++)
-  {
+  while (or_node_id < or_node_count_of_b) {
       const OR work_or_node = or_nodes_of_b[or_node_id];
     @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
+    or_node_id++;
   }
   psar_destroy (and_psar);
 }
@@ -10425,13 +10423,23 @@ there are less than, say, 7 and-nodes, and the PSL's otherwise.
 	  if (GPOINTER_TO_INT(PSL_Datum(and_psl, wheid)) == work_or_node_id) {
 	      /* Mark this draft and-node as a duplicate */
 	      Cause_OR_of_DAND(dand) = NULL;
+	      MARPA_DEBUG2("or_node=%d, duplicate dand",
+		  ID_of_OR(work_or_node));
 	  } else {
 	      /* Increment the count of unique draft and-nodes */
 	      PSL_Datum(and_psl, wheid) = GINT_TO_POINTER(work_or_node_id);
 	      unique_draft_and_node_count++;
+	      MARPA_DEBUG3("or_node=%d, unique dand=%d",
+		  ID_of_OR(work_or_node), 
+		  unique_draft_and_node_count);
 	  }
 	  dand = Next_DAND_of_DAND (dand);
 	}
+    } else {
+	  unique_draft_and_node_count++;
+	  MARPA_DEBUG3("or_node=%d, unique dand=%d",
+	      ID_of_OR(work_or_node), 
+	      unique_draft_and_node_count);
     }
 }
 
@@ -10466,7 +10474,41 @@ typedef struct s_and_node AND_Object;
   @<Create the final and-node array@>@;
 }
 
-@ @<Create the final and-node array@> = {;}
+@ @<Create the final and-node array@> =
+{
+  const gint or_count_of_b = OR_Count_of_B (b);
+  gint or_node_id;
+  gint and_node_id = 0;
+  const OR *ors_of_b = ORs_of_B (b);
+  const AND ands_of_b = ANDs_of_B (b) =
+    g_new (AND_Object, unique_draft_and_node_count);
+  for (or_node_id = 0; or_node_id < or_count_of_b; or_node_id++)
+    {
+      const OR or_node = ors_of_b[or_node_id];
+      DAND dand = DANDs_of_OR (or_node);
+      while (dand)
+	{
+	  const OR cause_or_node = Cause_OR_of_DAND (dand);
+	  if (cause_or_node)
+	    { /* Duplicates draft and-nodes
+	    were marked by nulling the cause or-node */
+	      const AND and_node = ands_of_b + and_node_id;
+	      OR_of_AND (and_node) = or_node;
+	      Predecessor_OR_of_AND (and_node) =
+		Predecessor_OR_of_DAND (dand);
+	      Cause_OR_of_AND (and_node) = cause_or_node;
+	      MARPA_DEBUG3("or_node=%d, find and=%d",
+		  ID_of_OR(or_node), and_node_id);
+	      and_node_id++;
+	    }
+	    dand = Next_DAND_of_DAND(dand);
+	}
+    }
+    AND_Count_of_B (b) = and_node_id;
+    MARPA_DEBUG3("and_node_id=%d unique DAND count = %d",
+	and_node_id, unique_draft_and_node_count);
+    MARPA_ASSERT(and_node_id == unique_draft_and_node_count);
+}
 
 @** The Parse Bocage.
 @ Pre-initialization is making the elements safe for the deallocation logic
@@ -11649,17 +11691,17 @@ psar_init (const PSAR psar, gint length)
 static inline void psar_destroy(const PSAR psar)
 {
     PSL psl = psar->t_first_psl;
-MARPA_DEBUG3("%s psl=%p", G_STRLOC, psl);
+MARPA_OFF_DEBUG3("%s psl=%p", G_STRLOC, psl);
     while (psl)
       {
 	PSL next_psl = psl->t_next;
 	PSL *owner = psl->t_owner;
-MARPA_DEBUG3("%s owner=%p", G_STRLOC, owner);
+MARPA_OFF_DEBUG3("%s owner=%p", G_STRLOC, owner);
 	if (owner)
 	  *owner = NULL;
 	g_slice_free1 (Sizeof_PSL (psar), psl);
 	psl = next_psl;
-MARPA_DEBUG3("%s psl=%p", G_STRLOC, psl);
+MARPA_OFF_DEBUG3("%s psl=%p", G_STRLOC, psl);
       }
 }
 @ @<Function definitions@> =
