@@ -5931,6 +5931,7 @@ able to handle.
 
 @** Earley Set (ES) Code.
 @<Public typedefs@> = typedef gint Marpa_Earley_Set_ID;
+@ @<Private typedefs@> = typedef Marpa_Earley_Set_ID ESID;
 @ @d Next_ES_of_ES(set) ((set)->t_next_earley_set)
 @d LV_Next_ES_of_ES(set) Next_ES_of_ES(set)
 @d Postdot_SYM_Count_of_ES(set) ((set)->t_postdot_sym_count)
@@ -10615,32 +10616,45 @@ obstack_init(&OBS_of_B(b));
 obstack_free(&OBS_of_B(b), NULL);
 
 @*0 Bocage Construction.
+@ This function returns 0 for a null parse,
+and the ID of the start or-node for a non-null parse.
+If there is no parse, -1 is returned.
+On other failures, -2 is returned.
+Note that, even though 0 is a valid or-node ID,
+this does not conflict with returning 0 for a null parse.
+Or-node 0 must be in the first Earley set,
+and any parse whose top or-node is in the first
+Earley set must be a null parse.
+
+so that an or-node of 0 
 @<Public function prototypes@> =
 gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
 @ @<Function definitions@> =
 gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
+    @<Return |-2| on failure@>@;
+    ORID top_or_node_id = failure_indicator;
     const gint no_parse = -1;
     const gint null_parse = 0;
     @<Declare bocage locals@>@;
     r_update_earley_sets(r);
-MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
     b = B_of_R(r) = g_slice_new(BOC_Object);
-MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Initialize bocage elements@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
-    @<Traverse Earley sets to create bocage@>@;
+    @<Populate the PSIA data@>@;
+    @<Create the or-nodes for all earley sets@>@;
+    @<Create the final and-nodes for all earley sets@>@;
+    @<Set |top_or_node_id|@>@;
     @<Deallocate bocage setup working data@>@;
     obstack_free(&bocage_setup_obs, NULL);
-    return 1; // For now, just return 1 on non-null parse
+    return top_or_node_id;
 }
 
 @ @<Declare bocage locals@> =
-@<Return |-2| on failure@>@;
 const GRAMMAR_Const g = G_of_R(r);
 const gint rule_count_of_g = RULE_Count_of_G(g);
 const gint symbol_count_of_g = SYM_Count_of_G(g);
@@ -10653,6 +10667,7 @@ AEX start_aex = -1;
 struct obstack bocage_setup_obs;
 gint total_earley_items_in_parse;
 gint or_node_estimate = 0;
+const gint earley_set_count_of_r = ES_Count_of_R (r);
 
 @ @<Private incomplete structures@> =
 struct s_bocage_setup_per_es;
@@ -10752,14 +10767,6 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
     }
 }
 
-@ @<Traverse Earley sets to create bocage@>=
-{
-  const gint earley_set_count_of_r = ES_Count_of_R (r);
-    @<Populate the PSIA data@>@;
-    @<Create the or-nodes for all earley sets@>@;
-    @<Create the final and-nodes for all earley sets@>@;
-}
-
 @ Predicted AHFA states can be skipped since they
 contain no completions.
 Note that AHFA state 0 is not marked as a predicted AHFA state,
@@ -10810,6 +10817,15 @@ to make sense.
 	}
 	if (start_eim) break;
     }
+}
+
+@ @<Set |top_or_node_id|@> = {
+    const ESID end_of_parse_ordinal = Ord_of_ES(end_of_parse_es);
+    OR** const nodes_by_item = per_es_data[end_of_parse_ordinal].t_aexes_by_item;
+    const gint start_earley_item_ordinal = Ord_of_EIM(start_eim);
+    OR* const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
+    const OR top_or_node = nodes_by_aex[start_aex];
+    top_or_node_id = ID_of_OR(top_or_node);
 }
 
 @*0 Bocage Destruction.
