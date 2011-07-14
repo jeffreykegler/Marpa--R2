@@ -59,7 +59,6 @@ my $structure = <<'END_OF_STRUCTURE';
     TAG
     RULE_ID
     TOKEN_NAME
-    VALUE_OPS
 
     { Fields before this (except ID)
     are used in evaluate() }
@@ -238,9 +237,6 @@ sub Marpa::XS::Recognizer::old_show_and_node {
 
     if ( $verbose >= 2 ) {
         my @comment = ();
-        if ( $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS] ) {
-            push @comment, 'value_ops';
-        }
         if ( scalar @comment ) {
             $text .= q{    } . ( join q{, }, @comment ) . "\n";
         }
@@ -1193,6 +1189,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
     my $token_values = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
+    my $evaluator_rules =
+        $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
     my $grammar      = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
@@ -1299,7 +1297,15 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
         }    # defined $value_ref
 
-        my $ops = $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS];
+	my $ops;
+	{
+	    my $rule_id = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
+	    if ( $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1
+		== $grammar_c->rule_length($rule_id) )
+	    {
+		$ops = $evaluator_rules->[$rule_id];
+	    }
+	}
 
         next TREE_NODE if not defined $ops;
 
@@ -2561,12 +2567,6 @@ sub Marpa::XS::Recognizer::value {
 
                 $and_node->[Marpa::XS::Internal::And_Node::RULE_ID] =
                     $work_rule_id;
-
-                $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS] =
-                    $work_position + 1
-                    == $grammar_c->rule_length($work_rule_id)
-                    ? $evaluator_rules->[$work_rule_id]
-                    : undef;
 
                 $and_node->[Marpa::XS::Internal::And_Node::POSITION] =
                     $work_position;
