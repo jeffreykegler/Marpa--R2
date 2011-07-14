@@ -1533,8 +1533,6 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
     $#{$and_node} = Marpa::XS::Internal::And_Node::LAST_FIELD;
     $and_node->[Marpa::XS::Internal::And_Node::RULE_ID] =
         $start_rule->[Marpa::XS::Internal::Rule::ID];
-    $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS] =
-        $evaluator_rules->[$start_rule_id];
 
     $and_node->[Marpa::XS::Internal::And_Node::POSITION]      = 0;
     $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME] = 0;
