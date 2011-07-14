@@ -33,7 +33,6 @@ my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::Or_Node
 
     ID
-    TAG
     ORIGIN
     SET
     AHFAID { Only one needs to be tracked }
@@ -56,7 +55,6 @@ my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::And_Node
 
     ID
-    TAG
     RULE_ID
     TOKEN_NAME
     VALUE_REF
@@ -122,8 +120,6 @@ my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::Task
 
     INITIALIZE
-    POPULATE_OR_NODE
-    POPULATE_DEPTH
 
     RANK_ALL
     GRAFT_SUBTREE
@@ -1634,15 +1630,84 @@ sub Marpa::XS::Recognizer::value {
 
     } ## end for my $arg_hash (@arg_hashes)
 
+    my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
+
     if (not $parse_count) {
 	$recce_c->eval_clear();
 	if ( not defined $recce_c->eval_setup(-1, ($parse_set_arg // -1)) ) {
 	    Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
 	}
+
+	my $or_node_id = 0;
+	OR_NODE: for ( ;; ) {
+	    my ( $origin, $set, $rule_id, $position, $first_and_id, $and_count ) =
+		$recce_c->or_node( $or_node_id++ );
+	    last OR_NODE if not defined $origin;
+
+	    $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID]  = $rule_id;
+	    $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN]   = $origin;
+	    $or_node->[Marpa::XS::Internal::Or_Node::SET]      = $set;
+	    $or_node->[Marpa::XS::Internal::Or_Node::POSITION] = $position;
+	    $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] =
+		[ $first_and_id .. ( $first_and_id + $and_count - 1 ) ];
+
+	    # nulling nodes are never part of cycles
+	    # thanks to the CHAF rewrite
+	    $or_node->[Marpa::XS::Internal::Or_Node::CYCLE] =
+		   $grammar_c->rule_is_virtual_loop($rule_id)
+		&& $origin != $set;
+	    $or_nodes->[$or_node_id] = $or_node;
+	} ## end for ( ;; )
+
+	AND_NODE: for (my $and_node_id = 0;; $and_node_id++) {
+	    my ($parent_or_node_id, $predecessor_or_node_id,
+		$cause_or_node_id,  $symbol_id
+	    ) = $recce_c->and_node( $and_node_id );
+	    last AND_NODE if not defined $parent;
+
+	    my ( $parent_origin, $parent_set, $rule_id, $parent_position ) =
+		$recce_c->or_node( $parent_or_node_id );
+
+	    $and_node->[Marpa::XS::Internal::And_Node::RULE_ID]  = $rule_id;
+	    $and_node->[Marpa::XS::Internal::And_Node::$TOKEN_NAME]  = $symbols->[$symbol_id]
+                ->[Marpa::XS::Internal::Symbol::NAME];
+
+	    # VALUE_REF -- What to do here?  Set later?
+	    # VALUE_OPS -- Set later
+
+	    # { Fields before this (except ID)
+	    # are used in evaluate() }
+
+	    $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID]  = $predecessor_or_node_id;
+	    $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID]  = $cause_or_node_id;
+	    if (defined $predecessor_or_node_id) {
+		my ( undef, $predecessor_set ) =
+		    $recce_c->or_node( $predecessor_or_node_id );
+		$and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
+		    $recce_c->earleme($predecessor_set);
+	    } else {
+		$and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
+		    $recce_c->earleme($parent_origin);
+	    }
+
+	    # These earleme positions will be needed for the callbacks
+	    $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME] =
+		$recce_c->earleme($parent_origin);
+	    $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME] =
+		$recce_c->earleme($parent_set);
+
+	    # POSITION { This is only used for diagnostics, but
+	    # diagnostics are important. }
+	    $and_node->[Marpa::XS::Internal::And_Node::POSITION] =
+	        $position - 1;
+
+	    $and_nodes->[$and_node_id] = $and_node;
+	}
+
     }
 
-    my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $furthest_earleme = $recce_c->furthest_earleme();
     my $last_completed_earleme = $recce_c->current_earleme();
     Marpa::exception(
@@ -1742,32 +1807,10 @@ sub Marpa::XS::Recognizer::value {
 
             my $start_rule_id = $start_rule->[Marpa::XS::Internal::Rule::ID];
 
+	    die "Add code to find the start or-node";
             my $start_or_node = [];
-            {
-                my $start_or_node_tag =
-                    $start_or_node->[Marpa::XS::Internal::Or_Node::TAG] =
-                    "F$start_rule_id"
-                    .
-                    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-                    '@0-' .
-                    ## use critic
-                    $parse_end_earley_set;
-                $recce->[Marpa::XS::Internal::Recognizer::OR_NODE_HASH]
-                    ->{$start_or_node_tag} = $start_or_node;
-            }
-            $start_or_node->[Marpa::XS::Internal::Or_Node::ID]     = 0;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::ORIGIN] = 0;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::SET] =
-                $parse_end_earley_set;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::AHFAID] =
-                $start_ahfa_state_id;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::RULE_ID] =
-                $start_rule_id;
-
             # Start or-node cannot cycle
             $start_or_node->[Marpa::XS::Internal::Or_Node::CYCLE] = 0;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::POSITION] =
-	        $grammar_c->rule_length($start_rule_id);
 
             # Zero out the evaluation
             $#{$and_nodes}       = -1;
@@ -1792,16 +1835,6 @@ sub Marpa::XS::Recognizer::value {
             if ( $ranking_method eq 'constant' ) {
                 push @task_list, [Marpa::XS::Internal::Task::RANK_ALL],;
             }
-
-	    push @task_list,
-                    [
-                    Marpa::XS::Internal::Task::POPULATE_DEPTH, 0,
-                    [$start_or_node]
-                    ],
-                    [
-                    Marpa::XS::Internal::Task::POPULATE_OR_NODE,
-                    $start_or_node
-                    ];
 
             next TASK;
 
@@ -2236,383 +2269,6 @@ sub Marpa::XS::Recognizer::value {
 
         } ## end while ( $task_type == Marpa::XS::Internal::Task::FIX_TREE)
 
-        if ( $task_type == Marpa::XS::Internal::Task::POPULATE_OR_NODE ) {
-
-            my $work_or_node = $task_data[0];
-
-            if ($trace_tasks) {
-                print {$Marpa::XS::Internal::TRACE_FH}
-                    'Task: POPULATE_OR_NODE o',
-                    $work_or_node->[Marpa::XS::Internal::Or_Node::ID],
-                    q{; }, ( scalar @task_list ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
-
-            my $work_node_name =
-                $work_or_node->[Marpa::XS::Internal::Or_Node::TAG];
-
-            my $work_set =
-                $work_or_node->[Marpa::XS::Internal::Or_Node::SET];
-            my $work_or_node_origin =
-                $work_or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
-	    my $work_or_node_ahfa_id =
-                $work_or_node->[Marpa::XS::Internal::Or_Node::AHFAID];
-
-            my $work_rule_id =
-                $work_or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
-            my $work_rule = $rules->[$work_rule_id];
-            my $work_position =
-                $work_or_node->[Marpa::XS::Internal::Or_Node::POSITION] - 1;
-            my $work_symbol_id = $grammar_c->rule_rhs($work_rule_id, $work_position);
-            my $work_symbol = $symbols->[$work_symbol_id];
-	    my $work_symbol_name = $work_symbol->[Marpa::XS::Internal::Symbol::NAME];
-
-	    {
-		my $work_set_id =
-		    $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]
-		    ->[$work_set];
-		$recce_c->earley_set_trace($work_set_id);
-	    }
-
-	    my $work_or_node_origin_set_id =
-		$recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]
-		->[$work_or_node_origin];
-	    {
-		die 'Could not Leo expand S', $work_or_node_ahfa_id, q{@},
-		    $work_or_node_origin, q{-}, $work_set
-		    unless
-		    defined $recce_c->old_earley_item_trace(
-			    $work_or_node_origin_set_id, $work_or_node_ahfa_id );
-		my $number_expanded = $recce_c->leo_completion_expand();
-	    }
-
-            my @link_worklist;
-
-            CREATE_LINK_WORKLIST: {
-
-		# Several Earley items may be the source of the same or-node,
-		# but the or-node only keeps track of one.  This is sufficient,
-		# because the Earley item is tracked by the or-node only for its
-		# links, and the links for every Earley item which is the source
-		# of the same or-node must be the same.
-
-                if ( $grammar_c->symbol_is_nulling($work_symbol_id) ) {
-                    my $nulling_symbol_id = $work_symbol_id;
-                    my $value_ref = \$null_values->[$nulling_symbol_id];
-		    my $middle_earleme = $work_position > 0 
-                        ? $work_set
-                        : $work_or_node_origin;
-                    @link_worklist =
-                        [ $work_or_node_ahfa_id,
-			undef, $middle_earleme, $work_symbol_name, $value_ref ];
-                    last CREATE_LINK_WORKLIST;
-                } ## end if ( $grammar_c->symbol_is_nulling($work_symbol_id) )
-
-		my $work_set_id =
-		    $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]
-		    ->[$work_set];
-		$recce_c->earley_set_trace($work_set_id);
-		die 'Could not find eim', $work_or_node_ahfa_id, q{@},
-		    $work_or_node_origin, q{-}, $work_set
-		    if not
-			defined $recce_c->old_earley_item_trace( $work_or_node_origin_set_id,
-                    $work_or_node_ahfa_id );
-		for (
-		    my $symbol_id = $recce_c->first_token_link_trace();
-		    defined $symbol_id;
-		    $symbol_id = $recce_c->next_token_link_trace()
-		    )
-		{
-		    my $symbol = $symbols->[$symbol_id];
-		    my $symbol_name = $symbol->[Marpa::XS::Internal::Symbol::NAME];
-		    push @link_worklist, [
-			$recce_c->source_predecessor_state(), undef,
-			$recce_c->earleme($recce_c->source_middle()), $symbol_name,
-			\($slots->value($recce_c->source_value()))
-		   ];
-		} ## end for ( my $symbol_id = $recce_c->first_token_link_trace...)
-		for (
-		    my $cause_AHFA_id = $recce_c->first_completion_link_trace();
-		    defined $cause_AHFA_id;
-		    $cause_AHFA_id = $recce_c->next_completion_link_trace()
-		    )
-		{
-		    push @link_worklist, [
-			$recce_c->source_predecessor_state(), $cause_AHFA_id,
-			$recce_c->earleme($recce_c->source_middle())
-		   ];
-		} ## end for ( my $AHFA_state_id = $recce_c->first_completion_link_trace...)
-
-	    } ## end CREATE_LINK_WORKLIST:
-
-            # The and node data is put into the hash, only to be taken out immediately,
-            # but in the process the very important step of eliminating duplicates
-            # is accomplished.
-            my %and_node_data = ();
-
-            LINK_WORK_ITEM: for my $link_work_item (@link_worklist) {
-
-                my ( $predecessor_ahfa_id, $cause_ahfa_id, $middle_earleme,
-                    $symbol_name, $value_ref )
-                    = @{$link_work_item};
-
-		# Since duplicates still occur, fixing just this one
-		# source may be more trouble than it is worth.
-		# next LINK_WORK_ITEM if $symbol_name ne $work_symbol_name;
-
-                my $predecessor_id;
-                my $predecessor_name;
-
-                if ( $work_position > 0 ) {
-
-                    $predecessor_name =
-                        "R$work_rule_id:$work_position" . q{@}
-                        . $work_or_node_origin
-                        . q{-}
-                        . $middle_earleme;
-
-                    FIND_PREDECESSOR: {
-                        my $predecessor_or_node =
-                            $recce
-                            ->[Marpa::XS::Internal::Recognizer::OR_NODE_HASH]
-                            ->{$predecessor_name};
-                        if ($predecessor_or_node) {
-                            $predecessor_id = $predecessor_or_node
-                                ->[Marpa::XS::Internal::Or_Node::ID];
-                            last FIND_PREDECESSOR;
-
-                        } ## end if ($predecessor_or_node)
-
-                        $predecessor_or_node = [];
-                        $predecessor_or_node
-                            ->[Marpa::XS::Internal::Or_Node::TAG] =
-                            $predecessor_name;
-                        $recce
-                            ->[Marpa::XS::Internal::Recognizer::OR_NODE_HASH]
-                            ->{$predecessor_name} = $predecessor_or_node;
-                        $predecessor_or_node
-                            ->[Marpa::XS::Internal::Or_Node::RULE_ID] =
-                            $work_rule_id;
-
-                        # nulling nodes are never part of cycles
-                        # thanks to the CHAF rewrite
-                        $predecessor_or_node
-                            ->[Marpa::XS::Internal::Or_Node::CYCLE] =
-                               $grammar_c->rule_is_virtual_loop($work_rule_id)
-                            && $middle_earleme != $work_or_node_origin;
-                        $predecessor_or_node
-                            ->[Marpa::XS::Internal::Or_Node::POSITION] =
-                            $work_position;
-                        $predecessor_or_node
-                            ->[Marpa::XS::Internal::Or_Node::AHFAID] =
-			    $predecessor_ahfa_id;
-                        $predecessor_id =
-                            ( push @{$or_nodes}, $predecessor_or_node ) - 1;
-
-                        Marpa::exception(
-                            "Too many or-nodes for evaluator: $predecessor_id"
-                            )
-                            if $predecessor_id
-                                & ~(Marpa::PP::Internal::N_FORMAT_MAX);
-                        $predecessor_or_node
-                            ->[Marpa::XS::Internal::Or_Node::ORIGIN] =
-                            $work_or_node_origin;
-                        $predecessor_or_node
-                            ->[Marpa::XS::Internal::Or_Node::SET] =
-                            $middle_earleme;
-                        $predecessor_or_node
-                            ->[Marpa::XS::Internal::Or_Node::ID] =
-                            $predecessor_id;
-
-                    } ## end FIND_PREDECESSOR:
-
-                } ## end if ( $work_position > 0 )
-
-                my $cause_id;
-
-                if ( defined $cause_ahfa_id ) {
-
-                    my $cause_symbol_id = $work_symbol_id;
-
-                    my $state = $AHFA->[$cause_ahfa_id];
-
-                    for my $cause_rule (
-                        @{  $state
-                                ->[Marpa::XS::Internal::AHFA::COMPLETE_RULES]
-                                ->[$cause_symbol_id]
-                        }
-                        )
-                    {
-
-                        my $cause_rule_id =
-                            $cause_rule->[Marpa::XS::Internal::Rule::ID];
-
-                        my $cause_name =
-                            "F$cause_rule_id" . q{@}
-                            . $middle_earleme
-                            . q{-}
-                            . $work_set;
-
-                        FIND_CAUSE: {
-                            my $cause_or_node =
-                                $recce->[
-                                Marpa::XS::Internal::Recognizer::OR_NODE_HASH]
-                                ->{$cause_name};
-                            if ($cause_or_node) {
-                                $cause_id = $cause_or_node
-                                    ->[Marpa::XS::Internal::Or_Node::ID];
-                                last FIND_CAUSE;
-                            } ## end if ($cause_or_node)
-
-                            $cause_or_node = [];
-                            $cause_or_node
-                                ->[Marpa::XS::Internal::Or_Node::TAG] =
-                                $cause_name;
-                            $recce->[
-                                Marpa::XS::Internal::Recognizer::OR_NODE_HASH]
-                                ->{$cause_name} = $cause_or_node;
-                            $cause_or_node
-                                ->[Marpa::XS::Internal::Or_Node::RULE_ID] =
-                                $cause_rule_id;
-
-                            # nulling nodes are never part of cycles
-                            # thanks to the CHAF rewrite
-                            $cause_or_node
-                                ->[Marpa::XS::Internal::Or_Node::CYCLE] =
-                                $grammar_c->rule_is_virtual_loop(
-                                $cause_rule_id)
-                                && $middle_earleme != $work_set;
-                            $cause_or_node
-                                ->[Marpa::XS::Internal::Or_Node::POSITION] =
-                                $grammar_c->rule_length($cause_rule_id);
-			    $cause_or_node
-				->[Marpa::XS::Internal::Or_Node::AHFAID] =
-				$cause_ahfa_id;
-                            $cause_id =
-                                ( push @{$or_nodes}, $cause_or_node ) - 1;
-
-                            Marpa::exception(
-                                "Too many or-nodes for evaluator: $cause_id")
-                                if $cause_id
-                                    & ~(Marpa::PP::Internal::N_FORMAT_MAX);
-                            $cause_or_node->[Marpa::XS::Internal::Or_Node::ORIGIN] = $middle_earleme;
-                            $cause_or_node->[Marpa::XS::Internal::Or_Node::SET] = $work_set;
-                            $cause_or_node->[Marpa::XS::Internal::Or_Node::ID]
-                                = $cause_id;
-
-                        } ## end FIND_CAUSE:
-
-                        my $and_node = [];
-                        #<<< cycles in perltidy as of 5 Jul 2010
-                        $and_node
-                            ->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID
-                            ] = $predecessor_id;
-                        #>>>
-                        $and_node
-                            ->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
-                            $middle_earleme;
-                        $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID] =
-                            $cause_id;
-
-                        $and_node_data{
-                            join q{:},
-                            ( $predecessor_id // q{} ),
-                            $cause_id
-                            }
-                            = $and_node;
-
-                    } ## end for my $cause_rule ( @{ $state->[...]})
-
-                    next LINK_WORK_ITEM;
-
-                }    # if cause
-
-                my $and_node = [];
-                $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID] =
-                    $predecessor_id;
-                $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
-                    $middle_earleme;
-                $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME] =
-                    $symbol_name;
-                $and_node->[Marpa::XS::Internal::And_Node::VALUE_REF] =
-                    $value_ref;
-
-                $and_node_data{
-                    join q{:}, ( $predecessor_id // q{} ),
-                    q{}, $symbol_name
-                    }
-                    = $and_node;
-
-            } ## end for my $link_work_item (@link_worklist)
-
-            my @child_and_nodes =
-                map { $and_node_data{$_} } sort keys %and_node_data;
-
-            for my $and_node (@child_and_nodes) {
-
-                $and_node->[Marpa::XS::Internal::And_Node::RULE_ID] =
-                    $work_rule_id;
-
-                $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS] =
-                    $work_position + 1
-                    == $grammar_c->rule_length($work_rule_id)
-                    ? $evaluator_rules->[$work_rule_id]
-                    : undef;
-
-                $and_node->[Marpa::XS::Internal::And_Node::POSITION] =
-                    $work_position;
-                $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME] =
-                    $work_or_node_origin;
-                $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME] =
-                    $work_set;
-                my $id = ( push @{$and_nodes}, $and_node ) - 1;
-                Marpa::exception("Too many and-nodes for evaluator: $id")
-                    if $id & ~(Marpa::PP::Internal::N_FORMAT_MAX);
-                $and_node->[Marpa::XS::Internal::And_Node::ID] = $id;
-
-                {
-                    my $token_name = $and_node
-                        ->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
-                    my $cause_earleme = $and_node
-                        ->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
-                    my $tag            = q{};
-                    my $predecessor_id = $and_node
-                        ->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID];
-                    my $predecessor_or_node =
-                          $predecessor_id
-                        ? $or_nodes->[$predecessor_id]
-                        : undef;
-                    $predecessor_or_node
-                        and $tag
-                        .= $predecessor_or_node
-                        ->[Marpa::XS::Internal::Or_Node::TAG];
-                    my $cause_id =
-                        $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
-                    my $cause_or_node =
-                        $cause_id ? $or_nodes->[$cause_id] : undef;
-                    $cause_or_node
-                        and $tag
-                        .= $cause_or_node
-                        ->[Marpa::XS::Internal::Or_Node::TAG];
-                    $token_name
-                        and $tag
-                        .= q{T@}
-                        . $cause_earleme . q{-}
-                        . $work_set . q{_}
-                        . $token_name;
-                    $and_node->[Marpa::XS::Internal::And_Node::TAG] = $tag;
-
-                }
-            } ## end for my $and_node (@child_and_nodes)
-
-            # Populate the or-node, now that we have ID's for all the and-nodes
-            $work_or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] =
-                [ map { $_->[Marpa::XS::Internal::And_Node::ID] }
-                    @child_and_nodes ];
-
-            next TASK;
-        } ## end if ( $task_type == ...)
-
         if ( $task_type == Marpa::XS::Internal::Task::STACK_INODE ) {
 
             my $work_iteration_node = $task_data[0];
@@ -2629,15 +2285,6 @@ sub Marpa::XS::Recognizer::value {
 
             my $and_node_ids =
                 $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS];
-
-            # If the or-node is not populated,
-            # restack this task, and stack a task to populate the
-            # or-node on top of it.
-            if ( not defined $and_node_ids ) {
-                push @task_list, $task,
-                    [ Marpa::XS::Internal::Task::POPULATE_OR_NODE, $or_node ];
-                next TASK;
-            }
 
             my $choices = $work_iteration_node
                 ->[Marpa::XS::Internal::Iteration_Node::CHOICES];
@@ -2857,74 +2504,6 @@ sub Marpa::XS::Recognizer::value {
 
             next TASK;
         } ## end if ( $task_type == Marpa::XS::Internal::Task::RANK_ALL)
-
-        # This task is for pre-populating the entire and-node and or-node
-        # space one "depth level" at a time.  It is used when ranking is
-        # being done, because to rank you need to make a pre-pass through
-        # the entire and-node and or-node space.
-        #
-        # As a side effect, depths are calculated for all the and-nodes.
-        if ( $task_type == Marpa::XS::Internal::Task::POPULATE_DEPTH ) {
-            my ( $depth, $or_node_list ) = @task_data;
-
-            if ($trace_tasks) {
-                print {$Marpa::XS::Internal::TRACE_FH}
-                    'Task: POPULATE_DEPTH; ',
-                    ( scalar @task_list ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
-
-            # We can assume all or-nodes in the list are populated
-
-            my %or_nodes_at_next_depth = ();
-
-            # Assign a depth to all the and-node children which
-            # do not already have one assigned.
-            for my $and_node_id (
-                map { @{ $_->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] } }
-                @{$or_node_list} )
-            {
-                my $and_node = $and_nodes->[$and_node_id];
-                FIELD:
-                for my $field (
-                    Marpa::XS::Internal::And_Node::PREDECESSOR_ID,
-                    Marpa::XS::Internal::And_Node::CAUSE_ID
-                    )
-                {
-                    my $child_or_node_id = $and_node->[$field];
-                    next FIELD if not defined $child_or_node_id;
-
-                    my $next_depth_or_node = $or_nodes->[$child_or_node_id];
-
-                    # Push onto list only if child or-node
-                    # is not already populated
-                    $next_depth_or_node
-                        ->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS]
-                        or $or_nodes_at_next_depth{$next_depth_or_node} =
-                        $next_depth_or_node;
-
-                } ## end for my $field ( ...)
-
-            } ## end for my $and_node_id ( map { @{ $_->[...]}})
-
-            # No or-nodes at next depth?
-            # Great, we are done!
-            my @or_nodes_at_next_depth =
-                map { $or_nodes_at_next_depth{$_} }
-                sort keys %or_nodes_at_next_depth;
-            next TASK if not scalar @or_nodes_at_next_depth;
-
-            push @task_list,
-                [
-                Marpa::XS::Internal::Task::POPULATE_DEPTH, $depth + 1,
-                \@or_nodes_at_next_depth
-                ],
-                map { [ Marpa::XS::Internal::Task::POPULATE_OR_NODE, $_ ] }
-                @or_nodes_at_next_depth;
-
-            next TASK;
-
-        } ## end if ( $task_type == Marpa::XS::Internal::Task::POPULATE_DEPTH)
 
         Marpa::XS::internal_error(
             "Internal error: Unknown task type: $task_type");
