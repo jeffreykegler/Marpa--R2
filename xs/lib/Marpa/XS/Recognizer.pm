@@ -60,6 +60,7 @@ my $structure = <<'END_OF_STRUCTURE';
     MAX_PARSES
     NULL_VALUES
     RANKING_METHOD
+    TOKEN_VALUES
 
     { The following fields must be reinitialized when
     evaluation is reset }
@@ -199,6 +200,7 @@ sub Marpa::XS::Recognizer::new {
     $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES]     = 0;
     $recce->[Marpa::XS::Internal::Recognizer::SLOTS]     = Marpa::PP::Internal::Slot->new();
+    $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]     = {};
     $recce->reset_evaluation();
 
     $recce->set(@arg_hashes);
@@ -963,6 +965,8 @@ sub Marpa::XS::Recognizer::alternative {
     my $slot = $slots->slot($value);
     $length //= 1;
 
+    $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]->{join q{;}, 
+	$recce_c->current_earleme(), $length, $symbol_name} = $value;
     my $result = $recce_c->alternative( $symbol_id, $slot, $length );
     Marpa::exception(
         qq{"$symbol_name" already scanned with length $length at location },

@@ -47,7 +47,14 @@ my $class = Module::Build->subclass(
     sub ACTION_build {
         my $self = shift;
 
-        eval "require Marpa ";
+	{
+	    my $using_xs = eval { require Marpa::XS::Installed; 1 };
+	    if ($using_xs) {
+		eval "require Marpa::XS $MINIMUM_MARPA_VERSION";
+	    } else {
+		eval "require Marpa::PP $MINIMUM_MARPA_VERSION";
+	    }
+	}
         my $marpa_version = $Marpa::VERSION;
         my $marpa_html_version = $self->dist_version();
         if (not Marpa::compatible( { 'Marpa::HTML' => $marpa_html_version } )
@@ -71,14 +78,12 @@ my $build = $class->new(
     dist_abstract => 'High-level HTML Parsing',
     requires      => {
         'Scalar::Util'     => 0,
-        'Marpa'            => $MINIMUM_MARPA_VERSION,
         'HTML::Parser'     => '3.64',
         'HTML::PullParser' => '3.57',
         perl               => 5.010,
     },
     build_requires => {
         'Test::More' => 0.94,
-        'Marpa'      => $MINIMUM_MARPA_VERSION,
     },
     PL_files => {},    # workaround Module::Build bug
     script_files => [ 'script/html_fmt', 'script/html_score', ],
