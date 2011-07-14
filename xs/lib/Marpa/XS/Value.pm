@@ -1036,7 +1036,12 @@ sub do_rank_all {
             # the result of the closure for a final one
             if ( defined $rule_rank_ref ) {
                 $constant_rank_ref =
-                      $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS]
+                    (
+                    $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1
+                        == $grammar_c->rule_length(
+                        $and_node->[Marpa::XS::Internal::And_Node::RULE_ID]
+                        )
+                    )
                     ? $rule_rank_ref
                     : \0;
                 last SET_CONSTANT_RANK;
