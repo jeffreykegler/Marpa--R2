@@ -267,28 +267,19 @@ sub Marpa::XS::Recognizer::old_show_and_nodes {
 	if (defined $token_name) {
 	    $symbol = $symbol_hash->{$token_name};
 	}
-        my $desc =
-              'R' 
-            . $rule . q{:}
-            . $position . q{@}
-            . $origin_earleme . q{-}
-            . $current_earleme;
+        my $tag = Marpa::XS::Recognizer::and_node_tag($recce, $and_node);
 	my $cause_rule = -1;
 	my $cause_id  = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
 	if (defined $cause_id) {
 	    my $cause = $or_nodes->[$cause_id];
 	    $cause_rule = $cause->[Marpa::XS::Internal::Or_Node::RULE_ID];
-	    $desc .= 'C' . $cause_rule;
-	} else {
-	    $desc .= 'S' . $symbol;
 	}
-	$desc .= q{@} . $middle_earleme;
         push @data,
             [ $origin_earleme, $current_earleme, $rule, $position,
 		$middle_earleme,
 		$cause_rule,
 		($symbol // -1),
-		$desc ];
+		$tag ];
     } ## end for ( ;; )
     my @sorted_data = map { $_->[-1] } sort {
         $a->[0] <=> $b->[0]
@@ -300,6 +291,38 @@ sub Marpa::XS::Recognizer::old_show_and_nodes {
 	or $a->[6] <=> $b->[6]
     } @data;
     return (join "\n", @sorted_data) . "\n";;
+}
+
+sub Marpa::XS::Recognizer::and_node_tag {
+    my ($recce, $and_node) = @_;
+    my $or_nodes = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
+    my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
+    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $origin_earleme = $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME];
+    my $current_earleme = $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME];
+    my $middle_earleme = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
+    my $position = $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1;
+    my $rule = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
+    my $tag =
+	  'R' 
+	. $rule . q{:}
+	. $position . q{@}
+	. $origin_earleme . q{-}
+	. $current_earleme;
+    my $cause_id  = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
+    if (defined $cause_id) {
+	my $cause = $or_nodes->[$cause_id];
+	my $cause_rule = $cause->[Marpa::XS::Internal::Or_Node::RULE_ID];
+	$tag .= 'C' . $cause_rule;
+    } else {
+	my $token_name =
+	    $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
+	my $symbol = $symbol_hash->{$token_name};
+	$tag .= 'S' . $symbol;
+    }
+    $tag .= q{@} . $middle_earleme;
+    return $tag;
 }
 
 sub Marpa::XS::Recognizer::show_and_nodes {
