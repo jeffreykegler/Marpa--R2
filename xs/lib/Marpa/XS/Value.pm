@@ -117,8 +117,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Task
 
-    INITIALIZE
-
     RANK_ALL
     GRAFT_SUBTREE
 
@@ -1405,26 +1403,29 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
 # null parse is special case
 sub Marpa::XS::Internal::Recognizer::do_null_parse {
-    my ( $recce, $start_rule ) = @_;
+    my ( $recce ) = @_;
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols     = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-    my $start_rule_id   = $start_rule->[Marpa::XS::Internal::Rule::ID];
+    my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
+
+    # The nulling start rule is the only nulling rule that is used
+    my $start_rule_id;
+    RULE: for my $rule (@{$rules}) {
+	$start_rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
+	next RULE if not $grammar_c->rule_is_used($start_rule_id);
+	last RULE if $grammar_c->rule_length($start_rule_id) <= 0;
+    }
+
     my $start_symbol_id = $grammar_c->rule_lhs($start_rule_id);
-    my $start_symbol = $symbols->[$start_symbol_id];
 
     # Cannot increment the null parse
     return if $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
-    my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
-    my $evaluator_rules =
-        $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
 
     my $and_node = [];
     $#{$and_node} = Marpa::XS::Internal::And_Node::LAST_FIELD;
-    $and_node->[Marpa::XS::Internal::And_Node::RULE_ID] =
-        $start_rule->[Marpa::XS::Internal::Rule::ID];
-
-    $and_node->[Marpa::XS::Internal::And_Node::POSITION]      = 0;
+    $and_node->[Marpa::XS::Internal::And_Node::RULE_ID]  = $start_rule_id;
+    $and_node->[Marpa::XS::Internal::And_Node::POSITION] = 0;
     $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME] = 0;
     $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] = 0;
     $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME]   = 0;
@@ -1432,8 +1433,7 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
 
     $recce->[Marpa::XS::Internal::Recognizer::AND_NODES]->[0] = $and_node;
 
-    my $symbol_name = $start_symbol->[Marpa::XS::Internal::Symbol::NAME];
-
+    my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
     return \$null_values->[$start_symbol_id];
 
 } ## end sub Marpa::XS::Internal::Recognizer::do_null_parse
@@ -1540,12 +1540,42 @@ sub Marpa::XS::Recognizer::value {
     my $AHFA = $grammar->[Marpa::XS::Internal::Grammar::AHFA];
     my $grammar_has_cycle = $grammar_c->has_loop();
 
+    my $furthest_earleme = $recce_c->furthest_earleme();
+    my $last_completed_earleme = $recce_c->current_earleme();
+    Marpa::exception(
+        "Attempt to evaluate incompletely recognized parse:\n",
+        "  Last token ends at location $furthest_earleme\n",
+        "  Recognition done only as far as location $last_completed_earleme\n"
+    ) if $furthest_earleme > $last_completed_earleme;
+
+    my $iteration_stack;
+    my $evaluator_rules;
+    my @task_list = ();
+
     my $top_or_node_id;
     if (not $parse_count) {
+
+	$iteration_stack =
+	    $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK] = [];
+
+	# Perhaps this call should be moved.
+	# The null values are currently a function of the grammar,
+	# and should be constant for the life of a recognizer.
+	my $null_values =
+	    $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES] //=
+	    Marpa::XS::Internal::Recognizer::set_null_values($recce);
+
+	$evaluator_rules =
+	    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] =
+	    Marpa::XS::Internal::Recognizer::set_actions($recce);
+
 	$recce_c->eval_clear();
 	$top_or_node_id = $recce_c->eval_setup(-1, ($parse_set_arg // -1));
 	if ( not defined $top_or_node_id ) {
 	    Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
+	}
+	if ( $top_or_node_id == 0 ) {
+	    return Marpa::XS::Internal::Recognizer::do_null_parse( $recce )
 	}
 
 	$#{$or_nodes} = -1;
@@ -1615,122 +1645,42 @@ sub Marpa::XS::Recognizer::value {
 	    $and_nodes->[$and_node_id] = $and_node;
 	}
 
-    }
+	# Zero out the iteration stack
+	$#{$iteration_stack} = -1;
 
-    my $furthest_earleme = $recce_c->furthest_earleme();
-    my $last_completed_earleme = $recce_c->current_earleme();
-    Marpa::exception(
-        "Attempt to evaluate incompletely recognized parse:\n",
-        "  Last token ends at location $furthest_earleme\n",
-        "  Recognition done only as far as location $last_completed_earleme\n"
-    ) if $furthest_earleme > $last_completed_earleme;
+	my $start_iteration_node = [];
+	$start_iteration_node
+	    ->[Marpa::XS::Internal::Iteration_Node::OR_NODE] =
+	    $or_nodes->[$top_or_node_id];
 
-    my $parse_end_earley_set = $parse_set_arg // $furthest_earleme;
+	push @task_list, [Marpa::XS::Internal::Task::FIX_TREE],
+	    [
+	    Marpa::XS::Internal::Task::STACK_INODE,
+	    $start_iteration_node
+	    ];
 
-    # Perhaps this call should be moved.
-    # The null values are currently a function of the grammar,
-    # and should be constant for the life of a recognizer.
-    my $null_values =
-        $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES] //=
-        Marpa::XS::Internal::Recognizer::set_null_values($recce);
+	if ( $ranking_method eq 'constant' ) {
+	    push @task_list, [Marpa::XS::Internal::Task::RANK_ALL],;
+	}
 
-    my @task_list;
-    my $start_ahfa_state_id;
-    my $start_rule;
-    if ($parse_count) {
+    } else {
+
+        # Not the first parse of a parse series
+	$evaluator_rules =
+	    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
+	$iteration_stack =
+	    $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK];
         @task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
+
     }
-    else {
-
-	my $traced_set_id = $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]->[$parse_end_earley_set];
-	my $traced_earleme;
-	if (defined $traced_set_id) {
-	    $traced_earleme = $recce_c->earley_set_trace($traced_set_id);
-	}
-	if (not defined $traced_earleme) {
-	    $traced_earleme //= 'undefined';
-	    die
-		qq{Bad return ("$traced_earleme") from earley_set_trace: },
-		qq{expected "$parse_end_earley_set"};
-	}
-
-	EARLEY_ITEM:
-	for (
-	    my $item_id = 0;
-	    defined (my $ahfa_state_id = $recce_c->earley_item_trace($item_id));
-	    $item_id++
-	    )
-	{
-	    my $start_rule_id = $grammar_c->AHFA_completed_start_rule($ahfa_state_id);
-	    if ( defined $start_rule_id ) {
-		$start_rule = $rules->[$start_rule_id];
-		$start_ahfa_state_id = $ahfa_state_id;
-		last EARLEY_ITEM;
-	    } ## end if ( defined $start_rule )
-	}
-
-        return if not $start_rule;
-
-        $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] =
-            Marpa::XS::Internal::Recognizer::set_actions($recce);
-
-        return Marpa::XS::Internal::Recognizer::do_null_parse( $recce,
-            $start_rule )
-            if $grammar_c->symbol_is_nulling(
-                    $grammar_c->rule_lhs(
-                        $start_rule->[Marpa::XS::Internal::Rule::ID]
-                    )
-            );
-
-        @task_list = ();
-        push @task_list, [Marpa::XS::Internal::Task::INITIALIZE];
-    } ## end else [ if ($parse_count) ]
 
     $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
-
-    my $evaluator_rules =
-        $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
-    my $iteration_stack =
-        $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK];
 
     my $iteration_node_worklist;
 
     TASK: while ( my $task = pop @task_list ) {
 
         my ( $task_type, @task_data ) = @{$task};
-
-        # Create the unpopulated top or-node
-        if ( $task_type == Marpa::XS::Internal::Task::INITIALIZE ) {
-
-            if ($trace_tasks) {
-                print {$Marpa::XS::Internal::TRACE_FH}
-                    'Task: INITIALIZE; ',
-                    ( scalar @task_list ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
-
-            # Zero out the evaluation
-            $#{$iteration_stack} = -1;
-
-            my $start_iteration_node = [];
-            $start_iteration_node
-                ->[Marpa::XS::Internal::Iteration_Node::OR_NODE] =
-                $or_nodes->[$top_or_node_id];
-
-            @task_list = ();
-            push @task_list, [Marpa::XS::Internal::Task::FIX_TREE],
-                [
-                Marpa::XS::Internal::Task::STACK_INODE,
-                $start_iteration_node
-                ];
-
-            if ( $ranking_method eq 'constant' ) {
-                push @task_list, [Marpa::XS::Internal::Task::RANK_ALL],;
-            }
-
-            next TASK;
-
-        } ## end if ( $task_type == Marpa::XS::Internal::Task::INITIALIZE)
 
         # Special processing for the top iteration node
         if ( $task_type == Marpa::XS::Internal::Task::ITERATE ) {
