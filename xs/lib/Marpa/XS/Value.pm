@@ -1691,12 +1691,15 @@ sub Marpa::XS::Recognizer::value {
     my $AHFA = $grammar->[Marpa::XS::Internal::Grammar::AHFA];
     my $grammar_has_cycle = $grammar_c->has_loop();
 
+    my $top_or_node_id;
     if (not $parse_count) {
 	$recce_c->eval_clear();
-	if ( not defined $recce_c->eval_setup(-1, ($parse_set_arg // -1)) ) {
+	$top_or_node_id = $recce_c->eval_setup(-1, ($parse_set_arg // -1));
+	if ( not defined $top_or_node_id ) {
 	    Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
 	}
 
+	$#{$or_nodes} = -1;
 	my $or_node_id = 0;
 	OR_NODE: for ( ;; ) {
 	    my ( $origin, $set, $rule_id, $position, $first_and_id, $and_count ) =
@@ -1719,6 +1722,7 @@ sub Marpa::XS::Recognizer::value {
 	    $or_nodes->[$or_node_id] = $or_node;
 	} ## end for ( ;; )
 
+	$#{$and_nodes} = -1;
 	AND_NODE: for (my $and_node_id = 0;; $and_node_id++) {
 	    my ($parent_or_node_id, $predecessor_or_node_id,
 		$cause_or_node_id,  $symbol_id
@@ -1856,36 +1860,13 @@ sub Marpa::XS::Recognizer::value {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
 
-            my $start_rule_id = $start_rule->[Marpa::XS::Internal::Rule::ID];
-
-	    die "Add code to find the start or-node";
-            my $start_or_node = [];
-            $start_or_node->[Marpa::XS::Internal::Or_Node::ID]     = 0;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::ORIGIN] = 0;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::SET] =
-                $parse_end_earley_set;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::AHFAID] =
-                $start_ahfa_state_id;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::RULE_ID] =
-                $start_rule_id;
-
-            # Start or-node cannot cycle
-            $start_or_node->[Marpa::XS::Internal::Or_Node::CYCLE] = 0;
-            $start_or_node->[Marpa::XS::Internal::Or_Node::POSITION] =
-	        $grammar_c->rule_length($start_rule_id);
-
             # Zero out the evaluation
-            $#{$and_nodes}       = -1;
-            $#{$or_nodes}        = -1;
             $#{$iteration_stack} = -1;
-
-            # Populate the start or-node
-            $or_nodes->[0] = $start_or_node;
 
             my $start_iteration_node = [];
             $start_iteration_node
                 ->[Marpa::XS::Internal::Iteration_Node::OR_NODE] =
-                $start_or_node;
+                $or_nodes->[$top_or_node_id];
 
             @task_list = ();
             push @task_list, [Marpa::XS::Internal::Task::FIX_TREE],
