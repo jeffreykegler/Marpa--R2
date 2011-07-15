@@ -449,6 +449,15 @@ sub Marpa::XS::Recognizer::old_show_or_node {
 
 } ## end sub Marpa::XS::Recognizer::old_show_or_node
 
+sub Marpa::XS::Recognizer::or_node_tag {
+    my ($recce, $or_node) = @_;
+    my $set = $or_node->[Marpa::XS::Internal::Or_Node::SET];
+    my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
+    my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
+    my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
+    return 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
+}
+
 sub Marpa::XS::Recognizer::old_show_or_nodes {
     my ($recce, $verbose) = @_;
     my $text;
@@ -459,8 +468,8 @@ sub Marpa::XS::Recognizer::old_show_or_nodes {
 	my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
 	my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
 	my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
-        my $desc = 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
-        push @data, [$origin, $set, $rule, $position, $desc];
+        my $tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node);
+        push @data, [$origin, $set, $rule, $position, $tag];
     }
     my @sorted_data = map { $_->[-1] } sort {
         $a->[0] <=> $b->[0]
