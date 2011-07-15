@@ -1686,7 +1686,10 @@ sub Marpa::XS::Recognizer::value {
 
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
+    my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
+    my $rules   = $grammar->[Marpa::XS::Internal::Grammar::RULES];
+    my $AHFA = $grammar->[Marpa::XS::Internal::Grammar::AHFA];
+    my $grammar_has_cycle = $grammar_c->has_loop();
 
     if (not $parse_count) {
 	$recce_c->eval_clear();
@@ -1700,6 +1703,7 @@ sub Marpa::XS::Recognizer::value {
 		$recce_c->or_node( $or_node_id++ );
 	    last OR_NODE if not defined $origin;
 
+	    my $or_node = [];
 	    $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID]  = $rule_id;
 	    $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN]   = $origin;
 	    $or_node->[Marpa::XS::Internal::Or_Node::SET]      = $set;
@@ -1719,20 +1723,18 @@ sub Marpa::XS::Recognizer::value {
 	    my ($parent_or_node_id, $predecessor_or_node_id,
 		$cause_or_node_id,  $symbol_id
 	    ) = $recce_c->and_node( $and_node_id );
-	    last AND_NODE if not defined $parent;
+
+	    last AND_NODE if not defined $parent_or_node_id;
 
 	    my ( $parent_origin, $parent_set, $rule_id, $parent_position ) =
 		$recce_c->or_node( $parent_or_node_id );
 
+	    my $and_node = [];
 	    $and_node->[Marpa::XS::Internal::And_Node::RULE_ID]  = $rule_id;
-	    $and_node->[Marpa::XS::Internal::And_Node::$TOKEN_NAME]  = $symbols->[$symbol_id]
-                ->[Marpa::XS::Internal::Symbol::NAME];
-
-	    # VALUE_REF -- What to do here?  Set later?
-	    # VALUE_OPS -- Set later
-
-	    # { Fields before this (except ID)
-	    # are used in evaluate() }
+	    if ( defined $symbol_id ) {
+		$and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME] =
+		    $symbols->[$symbol_id]->[Marpa::XS::Internal::Symbol::NAME];
+	    }
 
 	    $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID]  = $predecessor_or_node_id;
 	    $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID]  = $cause_or_node_id;
@@ -1755,7 +1757,7 @@ sub Marpa::XS::Recognizer::value {
 	    # POSITION { This is only used for diagnostics, but
 	    # diagnostics are important. }
 	    $and_node->[Marpa::XS::Internal::And_Node::POSITION] =
-	        $position - 1;
+	        $parent_position - 1;
 
 	    $and_nodes->[$and_node_id] = $and_node;
 	}
@@ -1769,11 +1771,6 @@ sub Marpa::XS::Recognizer::value {
         "  Last token ends at location $furthest_earleme\n",
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
-
-    my $rules   = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-    my $AHFA = $grammar->[Marpa::XS::Internal::Grammar::AHFA];
-    my $grammar_has_cycle = $grammar_c->has_loop();
 
     my $parse_end_earley_set = $parse_set_arg // $furthest_earleme;
 
@@ -1876,12 +1873,6 @@ sub Marpa::XS::Recognizer::value {
             $start_or_node->[Marpa::XS::Internal::Or_Node::CYCLE] = 0;
             $start_or_node->[Marpa::XS::Internal::Or_Node::POSITION] =
 	        $grammar_c->rule_length($start_rule_id);
-            {
-                my $start_or_node_tag =
-		    Marpa::XS::Recognizer::or_node_tag($recce, $start_or_node);
-                $recce->[Marpa::XS::Internal::Recognizer::OR_NODE_HASH]
-                    ->{$start_or_node_tag} = $start_or_node;
-            }
 
             # Zero out the evaluation
             $#{$and_nodes}       = -1;
