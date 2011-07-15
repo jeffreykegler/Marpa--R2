@@ -114,6 +114,7 @@ my @expected = (
     [q{}],
     [   qw{
             S(-;f(A))
+            S(-;f(S(-;f(A))))
             S(-;f(S(n(A);-)))
             S(n(A);-)
             }
