@@ -57,8 +57,6 @@ my $structure = <<'END_OF_STRUCTURE';
     ID
     RULE_ID
     TOKEN_NAME
-    VALUE_REF
-    VALUE_OPS
 
     { Fields before this (except ID)
     are used in evaluate() }
@@ -179,12 +177,11 @@ sub Marpa::XS::Recognizer::old_show_and_node {
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
 
-    my $name = $and_node->[Marpa::XS::Internal::And_Node::TAG];
+    my $name = Marpa::XS::Recognizer::and_node_tag($recce, $and_node);
     my $id   = $and_node->[Marpa::XS::Internal::And_Node::ID];
     my $predecessor_id =
         $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID];
     my $cause_id  = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
-    my $value_ref = $and_node->[Marpa::XS::Internal::And_Node::VALUE_REF];
     my $rule_id   = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
     my $position  = $and_node->[Marpa::XS::Internal::And_Node::POSITION];
 
@@ -202,22 +199,18 @@ sub Marpa::XS::Recognizer::old_show_and_node {
     if ($predecessor_id) {
         $predecessor = $or_nodes->[$predecessor_id];
 
-        push @rhs, $predecessor->[Marpa::XS::Internal::Or_Node::TAG]
+        push @rhs,
+	    Marpa::XS::Recognizer::or_node_tag($recce, $predecessor)
             . "o$predecessor_id";
     }    # predecessor
 
     my $cause;
     if ($cause_id) {
         $cause = $or_nodes->[$cause_id];
-        push @rhs, $cause->[Marpa::XS::Internal::Or_Node::TAG] . "o$cause_id";
+        push @rhs,
+	Marpa::XS::Recognizer::or_node_tag($recce, $cause)
+	. "o$cause_id";
     }    # cause
-
-    if ( defined $value_ref ) {
-        my $value_as_string =
-            Data::Dumper->new( [$value_ref] )->Terse(1)->Dump;
-        chomp $value_as_string;
-        push @rhs, $value_as_string;
-    }    # value
 
     $text .= "R$rule_id:$position" . "a$id -> " . join( q{ }, @rhs ) . "\n";
 
@@ -243,9 +236,6 @@ sub Marpa::XS::Recognizer::old_show_and_node {
 
     if ( $verbose >= 2 ) {
         my @comment = ();
-        if ( $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS] ) {
-            push @comment, 'value_ops';
-        }
         if ( scalar @comment ) {
             $text .= q{    } . ( join q{, }, @comment ) . "\n";
         }
@@ -276,28 +266,19 @@ sub Marpa::XS::Recognizer::old_show_and_nodes {
 	if (defined $token_name) {
 	    $symbol = $symbol_hash->{$token_name};
 	}
-        my $desc =
-              'R' 
-            . $rule . q{:}
-            . $position . q{@}
-            . $origin_earleme . q{-}
-            . $current_earleme;
+        my $tag = Marpa::XS::Recognizer::and_node_tag($recce, $and_node);
 	my $cause_rule = -1;
 	my $cause_id  = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
 	if (defined $cause_id) {
 	    my $cause = $or_nodes->[$cause_id];
 	    $cause_rule = $cause->[Marpa::XS::Internal::Or_Node::RULE_ID];
-	    $desc .= 'C' . $cause_rule;
-	} else {
-	    $desc .= 'S' . $symbol;
 	}
-	$desc .= q{@} . $middle_earleme;
         push @data,
             [ $origin_earleme, $current_earleme, $rule, $position,
 		$middle_earleme,
 		$cause_rule,
 		($symbol // -1),
-		$desc ];
+		$tag ];
     } ## end for ( ;; )
     my @sorted_data = map { $_->[-1] } sort {
         $a->[0] <=> $b->[0]
@@ -309,6 +290,38 @@ sub Marpa::XS::Recognizer::old_show_and_nodes {
 	or $a->[6] <=> $b->[6]
     } @data;
     return (join "\n", @sorted_data) . "\n";;
+}
+
+sub Marpa::XS::Recognizer::and_node_tag {
+    my ($recce, $and_node) = @_;
+    my $or_nodes = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
+    my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
+    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $origin_earleme = $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME];
+    my $current_earleme = $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME];
+    my $middle_earleme = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
+    my $position = $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1;
+    my $rule = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
+    my $tag =
+	  'R' 
+	. $rule . q{:}
+	. $position . q{@}
+	. $origin_earleme . q{-}
+	. $current_earleme;
+    my $cause_id  = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
+    if (defined $cause_id) {
+	my $cause = $or_nodes->[$cause_id];
+	my $cause_rule = $cause->[Marpa::XS::Internal::Or_Node::RULE_ID];
+	$tag .= 'C' . $cause_rule;
+    } else {
+	my $token_name =
+	    $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
+	my $symbol = $symbol_hash->{$token_name};
+	$tag .= 'S' . $symbol;
+    }
+    $tag .= q{@} . $middle_earleme;
+    return $tag;
 }
 
 sub Marpa::XS::Recognizer::show_and_nodes {
@@ -372,7 +385,6 @@ sub Marpa::XS::Recognizer::old_show_or_node {
     my $rule_id     = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
     my $position    = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
     my $or_node_id  = $or_node->[Marpa::XS::Internal::Or_Node::ID];
-    my $or_node_tag = $or_node->[Marpa::XS::Internal::Or_Node::TAG];
 
     my $text = q{};
 
@@ -391,6 +403,7 @@ sub Marpa::XS::Recognizer::old_show_or_node {
 
         my $and_node_ids =
             $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS];
+	my $or_node_tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node);
         if ( not defined $and_node_ids ) {
             $text .= $or_node_tag . "o$or_node_id: UNPOPULATED\n";
             last LIST_AND_NODES;
@@ -435,6 +448,16 @@ sub Marpa::XS::Recognizer::old_show_or_node {
 
 } ## end sub Marpa::XS::Recognizer::old_show_or_node
 
+sub Marpa::XS::Recognizer::or_node_tag {
+    my ($recce, $or_node) = @_;
+    die unless defined $or_node;
+    my $set = $or_node->[Marpa::XS::Internal::Or_Node::SET];
+    my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
+    my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
+    my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
+    return 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
+}
+
 sub Marpa::XS::Recognizer::old_show_or_nodes {
     my ($recce, $verbose) = @_;
     my $text;
@@ -445,8 +468,8 @@ sub Marpa::XS::Recognizer::old_show_or_nodes {
 	my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
 	my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
 	my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
-        my $desc = 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
-        push @data, [$origin, $set, $rule, $position, $desc];
+        my $tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node);
+        push @data, [$origin, $set, $rule, $position, $tag];
     }
     my @sorted_data = map { $_->[-1] } sort {
         $a->[0] <=> $b->[0]
@@ -534,7 +557,7 @@ sub Marpa::XS::Recognizer::show_iteration_node {
     my $or_node =
         $iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE];
     my $or_node_id  = $or_node->[Marpa::XS::Internal::Or_Node::ID];
-    my $or_node_tag = $or_node->[Marpa::XS::Internal::Or_Node::TAG];
+    my $or_node_tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node);
     my $text        = "o$or_node_id $or_node_tag; ";
     given (
         $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE] )
@@ -592,7 +615,7 @@ sub Marpa::XS::Recognizer::show_iteration_node {
             $text .= " o$or_node_id" . '[' . $choice_ix . '] ';
             my $and_node = $choice->[Marpa::XS::Internal::Choice::AND_NODE];
             my $and_node_tag =
-                $and_node->[Marpa::XS::Internal::And_Node::TAG];
+		 Marpa::XS::Recognizer::and_node_tag($recce, $and_node);
             my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
             $text .= " ::= a$and_node_id $and_node_tag";
             no integer;
@@ -1007,7 +1030,9 @@ sub do_rank_all {
                         eval_ok     => $eval_ok,
                         warnings    => \@warnings,
                         where       => 'ranking and-node '
-                            . $and_node->[Marpa::XS::Internal::And_Node::TAG],
+                            . Marpa::XS::Recognizer::and_node_tag(
+                            $recce, $and_node
+                            )
                     }
                 );
             } ## end if ( defined $fatal_error )
@@ -1041,7 +1066,12 @@ sub do_rank_all {
             # the result of the closure for a final one
             if ( defined $rule_rank_ref ) {
                 $constant_rank_ref =
-                      $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS]
+                    (
+                    $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1
+                        == $grammar_c->rule_length(
+                        $and_node->[Marpa::XS::Internal::And_Node::RULE_ID]
+                        )
+                    )
                     ? $rule_rank_ref
                     : \0;
                 last SET_CONSTANT_RANK;
@@ -1190,7 +1220,14 @@ sub do_rank_all {
 # Does not modify stack
 sub Marpa::XS::Internal::Recognizer::evaluate {
     my ( $recce, $stack ) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
+    my $token_values = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
+    my $evaluator_rules =
+        $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
     my $grammar      = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
     my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
         // 0;
 
@@ -1258,7 +1295,21 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             } ## end for my $i ( reverse 0 .. $#evaluation_stack )
         } ## end if ( $trace_values >= 3 )
 
-        my $value_ref = $and_node->[Marpa::XS::Internal::And_Node::VALUE_REF];
+	my $value_ref;
+	SET_VALUE_REF: {
+	    my $token_name = $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
+	    last SET_VALUE_REF if not defined $token_name;
+	    my $token_id = $symbol_hash->{$token_name};
+	    if ( $grammar_c->symbol_is_nulling($token_id) ) {
+		$value_ref = \$null_values->[$token_id];
+		last SET_VALUE_REF;
+	    }
+	    my $middle_earleme = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
+	    my $end_earleme = $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME];
+	    my $value_key = join q{;}, $middle_earleme, ($end_earleme-$middle_earleme), $token_name;
+	    last SET_VALUE_REF if not exists $token_values->{$value_key};
+	    $value_ref = \($token_values->{$value_key});
+	}
 
         if ( defined $value_ref ) {
 
@@ -1272,7 +1323,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     'Pushed value from a',
                     $and_node->[Marpa::XS::Internal::And_Node::ID],
                     q{ },
-                    $and_node->[Marpa::XS::Internal::And_Node::TAG], ': ',
+		    Marpa::XS::Recognizer::and_node_tag($recce, $and_node),
+                    ': ',
                     ( $token_name ? qq{$token_name = } : q{} ),
                     Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
                     or Marpa::exception('print to trace handle failed');
@@ -1280,7 +1332,15 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
         }    # defined $value_ref
 
-        my $ops = $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS];
+	my $ops;
+	{
+	    my $rule_id = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
+	    if ( $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1
+		== $grammar_c->rule_length($rule_id) )
+	    {
+		$ops = $evaluator_rules->[$rule_id];
+	    }
+	}
 
         next TREE_NODE if not defined $ops;
 
@@ -1302,7 +1362,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             ' values to evaluate a',
                             $and_node->[Marpa::XS::Internal::And_Node::ID],
                             q{ },
-                            $and_node->[Marpa::XS::Internal::And_Node::TAG],
+			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node),
                             ', rule: ', $grammar->brief_rule($rule_id)
                             or Marpa::exception(
                             'Could not print to trace file');
@@ -1324,7 +1384,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             'Head of Virtual Rule: a',
                             $and_node->[Marpa::XS::Internal::And_Node::ID],
                             q{ },
-                            $and_node->[Marpa::XS::Internal::And_Node::TAG],
+			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node),
                             ', rule: ', $grammar->brief_rule($rule_id),
                             "\n",
                             "Incrementing virtual rule by $real_symbol_count symbols\n",
@@ -1353,7 +1413,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             'Head of Virtual Rule (discards separation): a',
                             $and_node->[Marpa::XS::Internal::And_Node::ID],
                             q{ },
-                            $and_node->[Marpa::XS::Internal::And_Node::TAG],
+			    Marpa::XS::Recognizer::and_node_tag($recce, $and_node),
                             ', rule: ', $grammar->brief_rule($rule_id),
                             "\nAdding $real_symbol_count symbols; currently ",
                             ( scalar @virtual_rule_stack ),
@@ -1388,7 +1448,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             'Virtual Rule: a',
                             $and_node->[Marpa::XS::Internal::And_Node::ID],
                             q{ },
-                            $and_node->[Marpa::XS::Internal::And_Node::TAG],
+			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node),
                             ', rule: ', $grammar->brief_rule($rule_id),
                             "\nAdding $real_symbol_count, now ",
                             ( scalar @virtual_rule_stack ),
@@ -1409,7 +1469,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             'New Virtual Rule: a',
                             $and_node->[Marpa::XS::Internal::And_Node::ID],
                             q{ },
-                            $and_node->[Marpa::XS::Internal::And_Node::TAG],
+			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node),
                             ', rule: ', $grammar->brief_rule($rule_id),
                             "\nSymbol count is $real_symbol_count, now ",
                             ( scalar @virtual_rule_stack + 1 ), ' rules',
@@ -1512,12 +1572,8 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
 
     my $and_node = [];
     $#{$and_node} = Marpa::XS::Internal::And_Node::LAST_FIELD;
-    $and_node->[Marpa::XS::Internal::And_Node::VALUE_REF] =
-        \( $null_values->[$start_symbol_id] );
     $and_node->[Marpa::XS::Internal::And_Node::RULE_ID] =
         $start_rule->[Marpa::XS::Internal::Rule::ID];
-    $and_node->[Marpa::XS::Internal::And_Node::VALUE_OPS] =
-        $evaluator_rules->[$start_rule_id];
 
     $and_node->[Marpa::XS::Internal::And_Node::POSITION]      = 0;
     $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME] = 0;
@@ -1528,10 +1584,8 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
     $recce->[Marpa::XS::Internal::Recognizer::AND_NODES]->[0] = $and_node;
 
     my $symbol_name = $start_symbol->[Marpa::XS::Internal::Symbol::NAME];
-    $and_node->[Marpa::XS::Internal::And_Node::TAG] =
-        q{T@0-0_} . $symbol_name;
 
-    return Marpa::XS::Internal::Recognizer::evaluate( $recce, [$and_node] );
+    return \$null_values->[$start_symbol_id];
 
 } ## end sub Marpa::XS::Internal::Recognizer::do_null_parse
 
@@ -1809,8 +1863,25 @@ sub Marpa::XS::Recognizer::value {
 
 	    die "Add code to find the start or-node";
             my $start_or_node = [];
+            $start_or_node->[Marpa::XS::Internal::Or_Node::ID]     = 0;
+            $start_or_node->[Marpa::XS::Internal::Or_Node::ORIGIN] = 0;
+            $start_or_node->[Marpa::XS::Internal::Or_Node::SET] =
+                $parse_end_earley_set;
+            $start_or_node->[Marpa::XS::Internal::Or_Node::AHFAID] =
+                $start_ahfa_state_id;
+            $start_or_node->[Marpa::XS::Internal::Or_Node::RULE_ID] =
+                $start_rule_id;
+
             # Start or-node cannot cycle
             $start_or_node->[Marpa::XS::Internal::Or_Node::CYCLE] = 0;
+            $start_or_node->[Marpa::XS::Internal::Or_Node::POSITION] =
+	        $grammar_c->rule_length($start_rule_id);
+            {
+                my $start_or_node_tag =
+		    Marpa::XS::Recognizer::or_node_tag($recce, $start_or_node);
+                $recce->[Marpa::XS::Internal::Recognizer::OR_NODE_HASH]
+                    ->{$start_or_node_tag} = $start_or_node;
+            }
 
             # Zero out the evaluation
             $#{$and_nodes}       = -1;
@@ -1951,9 +2022,11 @@ sub Marpa::XS::Recognizer::value {
             # ancestores are already dirtied.
             if ( not defined $cycle_hash ) {
                 my @and_node_tags = map {
-                    $_->[Marpa::XS::Internal::Iteration_Node::CHOICES]->[0]
-                        ->[Marpa::XS::Internal::Choice::AND_NODE]
-                        ->[Marpa::XS::Internal::And_Node::TAG]
+                    Marpa::XS::Recognizer::and_node_tag(
+                        $recce,
+                        $_->[Marpa::XS::Internal::Iteration_Node::CHOICES]
+                            ->[0]->[Marpa::XS::Internal::Choice::AND_NODE]
+                        )
                 } @{$iteration_stack}[ 0 .. $#{$iteration_stack} - 1 ];
                 my %cycle_hash;
                 @cycle_hash{@and_node_tags} = @and_node_tags;
@@ -1971,8 +2044,8 @@ sub Marpa::XS::Recognizer::value {
 
             CHOICE: while ( scalar @{$choices} ) {
                 my $and_node_tag =
-                    $choices->[0]->[Marpa::XS::Internal::Choice::AND_NODE]
-                    ->[Marpa::XS::Internal::And_Node::TAG];
+                    Marpa::XS::Recognizer::and_node_tag( $recce,
+                    $choices->[0]->[Marpa::XS::Internal::Choice::AND_NODE] );
 
                 # Would this node cycle?
                 # Shift it off the choice list and try the next choice
@@ -2348,15 +2421,18 @@ sub Marpa::XS::Recognizer::value {
             my $next_iteration_stack_ix = scalar @{$iteration_stack};
 
             my $and_node_tag =
-                $and_node->[Marpa::XS::Internal::And_Node::TAG];
+		 Marpa::XS::Recognizer::and_node_tag($recce, $and_node);
 
             if ($grammar_has_cycle) {
 
                 if ( not defined $cycle_hash ) {
                     my @and_node_tags = map {
-                        $_->[Marpa::XS::Internal::Iteration_Node::CHOICES]
-                            ->[0]->[Marpa::XS::Internal::Choice::AND_NODE]
-                            ->[Marpa::XS::Internal::And_Node::TAG]
+                        Marpa::XS::Recognizer::and_node_tag(
+                            $recce,
+                            $_->[
+                                Marpa::XS::Internal::Iteration_Node::CHOICES]
+                                ->[0]->[Marpa::XS::Internal::Choice::AND_NODE]
+                            )
                     } @{$iteration_stack};
                     my %cycle_hash;
                     @cycle_hash{@and_node_tags} = @and_node_tags;

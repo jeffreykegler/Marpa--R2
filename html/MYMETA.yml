@@ -3,13 +3,11 @@ abstract: 'High-level HTML Parsing'
 author:
   - 'Jeffrey Kegler'
 build_requires:
-  Marpa: 0.100
   Test::More: 0.94
 configure_requires:
   Module::Build: 0.36
-distribution_type: module
 dynamic_config: 0
-generated_by: 'Module::Build version 0.3601'
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.110930'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -37,7 +35,6 @@ provides:
 requires:
   HTML::Parser: 3.64
   HTML::PullParser: 3.57
-  Marpa: 0.100
   Scalar::Util: 0
   perl: 5.01
 resources:

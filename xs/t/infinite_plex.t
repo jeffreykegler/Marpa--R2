@@ -69,6 +69,7 @@ my $plex1_test = [
     '1-plex test',
     [ start => 's', rules => make_plex_rules(1) ],
     <<'EOS',
+sA(AA(AA(At(t))))
 sA(AA(At(t)))
 sA(At(t))
 EOS
@@ -121,32 +122,35 @@ for my $test_data ( $plex1_test, $plex2_test ) {
     my ( $test_name, $rules, $expected_values, $expected_trace ) =
         @{$test_data};
 
-    my $trace = q{};
-    open my $MEMORY, '>', \$trace;
-    my %args = (
-        @{$rules},
-        infinite_action   => 'warn',
-        strip             => 0,
-        trace_file_handle => $MEMORY,
-    );
-    my $grammar = Marpa::Grammar->new( \%args );
-    $grammar->precompute();
+    SKIP: {
+        skip "2-plex test may be too large", 2 if $test_name eq "2-plex test";
+        my $trace = q{};
+        open my $MEMORY, '>', \$trace;
+        my %args = (
+            @{$rules},
+            infinite_action   => 'warn',
+            strip             => 0,
+            trace_file_handle => $MEMORY,
+        );
+        my $grammar = Marpa::Grammar->new( \%args );
+        $grammar->precompute();
 
-    close $MEMORY;
-    Marpa::Test::is( $trace, $expected_trace, "$test_name trace" );
+        close $MEMORY;
+        Marpa::Test::is( $trace, $expected_trace, "$test_name trace" );
 
-    my $recce = Marpa::Recognizer->new(
-        { grammar => $grammar, trace_file_handle => \*STDERR } );
+        my $recce = Marpa::Recognizer->new(
+            { grammar => $grammar, trace_file_handle => \*STDERR } );
 
-    $recce->tokens( [ [ 't', 't', 1 ] ] );
+        $recce->tokens( [ [ 't', 't', 1 ] ] );
 
-    my @values = ();
-    while ( my $value_ref = $recce->value() ) {
-        push @values, ${$value_ref};
-    }
+        my @values = ();
+        while ( my $value_ref = $recce->value() ) {
+            push @values, ${$value_ref};
+        }
 
-    my $values = join "\n", sort @values;
-    Marpa::Test::is( "$values\n", $expected_values, $test_name );
+        my $values = join "\n", sort @values;
+        Marpa::Test::is( "$values\n", $expected_values, $test_name );
+    } ## end SKIP:
 
 } ## end for my $test_data ( $plex1_test, $plex2_test )
 
