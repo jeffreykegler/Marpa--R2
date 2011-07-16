@@ -2361,6 +2361,18 @@ sub Marpa::XS::Recognizer::value {
             ->[Marpa::XS::Internal::Choice::AND_NODE]
     } @{$iteration_stack};
 
+    if ($recce->[Marpa::XS::Internal::Recognizer::TRACE_AND_NODES]) {
+	print {$Marpa::XS::Internal::TRACE_FH} 'AND_NODES: ',
+	    $recce->show_and_nodes()
+	or Marpa::exception('print to trace handle failed');
+    }
+
+    if ($recce->[Marpa::XS::Internal::Recognizer::TRACE_OR_NODES]) {
+	print {$Marpa::XS::Internal::TRACE_FH} 'OR_NODES: ',
+	    $recce->show_or_nodes()
+	or Marpa::exception('print to trace handle failed');
+    }
+
     my $BOCAGE_DEBUG = 1 && $Marpa::XS::DEBUG;
     if (   $BOCAGE_DEBUG
         && $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] <= 1 )

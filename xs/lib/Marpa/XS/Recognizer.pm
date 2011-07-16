@@ -54,6 +54,8 @@ my $structure = <<'END_OF_STRUCTURE';
     END
     CLOSURES
     TRACE_ACTIONS
+    TRACE_AND_NODES
+    TRACE_OR_NODES
     TRACE_VALUES
     TRACE_TASKS
     TRACING
@@ -262,9 +264,11 @@ use constant RECOGNIZER_OPTIONS => [
         ranking_method
         too_many_earley_items
         trace_actions
+        trace_and_nodes
         trace_earley_sets
         trace_fh
         trace_file_handle
+        trace_or_nodes
         trace_tasks
         trace_terminals
         trace_values
@@ -371,6 +375,30 @@ sub Marpa::XS::Recognizer::set {
                 $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_actions'} ))
+
+        if ( defined( my $value = $args->{'trace_and_nodes'} ) ) {
+            Marpa::exception('trace_and_nodes must be set to a number >= 0')
+                if $value !~ /\A\d+\z/xms;
+            $recce->[Marpa::XS::Internal::Recognizer::TRACE_AND_NODES] =
+                $value + 0;
+            if ($value) {
+                say {$trace_fh} "Setting trace_and_nodes option to $value"
+                    or Marpa::exception("Cannot print: $ERRNO");
+                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
+            }
+        } ## end if ( defined( my $value = $args->{'trace_and_nodes'} ...))
+
+        if ( defined( my $value = $args->{'trace_or_nodes'} ) ) {
+            Marpa::exception('trace_or_nodes must be set to a number >= 0')
+                if $value !~ /\A\d+\z/xms;
+            $recce->[Marpa::XS::Internal::Recognizer::TRACE_OR_NODES] =
+                $value + 0;
+            if ($value) {
+                say {$trace_fh} "Setting trace_or_nodes option to $value"
+                    or Marpa::exception("Cannot print: $ERRNO");
+                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
+            }
+        } ## end if ( defined( my $value = $args->{'trace_or_nodes'} ...))
 
         if ( defined( my $value = $args->{'trace_tasks'} ) ) {
             Marpa::exception('trace_tasks must be set to a number >= 0')
