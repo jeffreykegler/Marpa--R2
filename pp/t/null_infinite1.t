@@ -81,10 +81,14 @@ $grammar->precompute();
 # So I do not treat the difference as a bug.
 
 my @expected2 = qw{
-        S(n(A);f(S(-;f(A))))
-        S(n(A);f(S(-;f(S(n(A);-)))))
-        S(n(A);f(S(n(A);-)))
-        S(n(A);f(A))
+    S(-;f(S(n(A);f(A))))
+    S(-;f(S(n(A);f(S(-;f(A))))))
+    S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))
+    S(-;f(S(n(A);f(S(n(A);-)))))
+    S(n(A);f(S(-;f(A))))
+    S(n(A);f(S(-;f(S(n(A);-)))))
+    S(n(A);f(S(n(A);-)))
+    S(n(A);f(A))
 };
 
 my @expected3 = qw{
@@ -98,6 +102,7 @@ my @expected = (
     [q{}],
     [   qw{
             S(-;f(A))
+            S(-;f(S(-;f(A))))
             S(-;f(S(n(A);-)))
             S(n(A);-)
             }

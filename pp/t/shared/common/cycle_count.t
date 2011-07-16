@@ -18,7 +18,8 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More skip_all => 'Cycle logic is not yet settled';
+# use Test::More tests => 9;
 use English qw( -no_match_vars );
 use Marpa::Test;
 

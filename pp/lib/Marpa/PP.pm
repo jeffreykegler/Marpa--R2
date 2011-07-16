@@ -18,10 +18,11 @@ package Marpa::PP;
 use 5.010;
 use strict;
 use warnings;
-use vars qw($VERSION $STRING_VERSION);
+use vars qw($VERSION $STRING_VERSION $DEBUG);
 $VERSION = '0.005_006';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
+$DEBUG = 0;
 
 use Carp;
 use English qw( -no_match_vars );
@@ -58,6 +59,12 @@ PACKAGE: for my $package (@Marpa::CARP_NOT) {
     no strict 'refs';
     next PACKAGE if  $package eq 'Marpa';
     *{ $package . q{::CARP_NOT} } = \@Marpa::CARP_NOT;
+}
+
+if (not $ENV{'MARPA_AUTHOR_TEST'}) {
+    $Marpa::PP::DEBUG = 0;
+} else {
+    $Marpa::PP::DEBUG = 1;
 }
 
 require Marpa::PP::Internal;

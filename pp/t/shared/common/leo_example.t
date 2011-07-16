@@ -326,36 +326,36 @@ S5@8-9 [p=S7@8-8; s=Variable; t=\'e']
 END_EARLEY_SETS
 
 my $expected_trace_output = <<'END_TRACE_OUTPUT';
-Pushed value from a18 T@0-1_Variable: Variable = \'a'
-Popping 1 values to evaluate a18 T@0-1_Variable, rule: 6: Lvalue -> Variable
+Pushed value from a18 R6:1@0-1S7@0: Variable = \'a'
+Popping 1 values to evaluate a18 R6:1@0-1S7@0, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'a'
-Pushed value from a16 R1:1@0-1T@1-2_AssignOp: AssignOp = \'='
-Pushed value from a15 T@2-3_Variable: Variable = \'b'
-Popping 1 values to evaluate a15 T@2-3_Variable, rule: 6: Lvalue -> Variable
+Pushed value from a16 R1:2@0-2S3@1: AssignOp = \'='
+Pushed value from a15 R6:1@2-3S7@2: Variable = \'b'
+Popping 1 values to evaluate a15 R6:1@2-3S7@2, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'b'
-Pushed value from a13 R2:1@2-3T@3-4_AddAssignOp: AddAssignOp = \'+='
-Pushed value from a12 T@4-5_Variable: Variable = \'c'
-Popping 1 values to evaluate a12 T@4-5_Variable, rule: 6: Lvalue -> Variable
+Pushed value from a13 R2:2@2-4S4@3: AddAssignOp = \'+='
+Pushed value from a12 R6:1@4-5S7@4: Variable = \'c'
+Popping 1 values to evaluate a12 R6:1@4-5S7@4, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'c'
-Pushed value from a10 R3:1@4-5T@5-6_MinusAssignOp: MinusAssignOp = \'-='
-Pushed value from a9 T@6-7_Variable: Variable = \'d'
-Popping 1 values to evaluate a9 T@6-7_Variable, rule: 6: Lvalue -> Variable
+Pushed value from a10 R3:2@4-6S5@5: MinusAssignOp = \'-='
+Pushed value from a9 R6:1@6-7S7@6: Variable = \'d'
+Popping 1 values to evaluate a9 R6:1@6-7S7@6, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'd'
-Pushed value from a7 R4:1@6-7T@7-8_MultiplyAssignOp: MultiplyAssignOp = \'*='
-Pushed value from a6 T@8-9_Variable: Variable = \'e'
-Popping 1 values to evaluate a6 T@8-9_Variable, rule: 5: Expression -> Variable
+Pushed value from a7 R4:2@6-8S6@7: MultiplyAssignOp = \'*='
+Pushed value from a6 R5:1@8-9S7@8: Variable = \'e'
+Popping 1 values to evaluate a6 R5:1@8-9S7@8, rule: 5: Expression -> Variable
 Calculated and pushed value: 3
-Popping 3 values to evaluate a5 R4:2@6-8F5@8-9, rule: 4: Expression -> Lvalue MultiplyAssignOp Expression
+Popping 3 values to evaluate a5 R4:3@6-9C5@8, rule: 4: Expression -> Lvalue MultiplyAssignOp Expression
 Calculated and pushed value: 6
-Popping 3 values to evaluate a4 R3:2@4-6F4@6-9, rule: 3: Expression -> Lvalue MinusAssignOp Expression
+Popping 3 values to evaluate a4 R3:3@4-9C4@6, rule: 3: Expression -> Lvalue MinusAssignOp Expression
 Calculated and pushed value: -5
-Popping 3 values to evaluate a3 R2:2@2-4F3@4-9, rule: 2: Expression -> Lvalue AddAssignOp Expression
+Popping 3 values to evaluate a3 R2:3@2-9C3@4, rule: 2: Expression -> Lvalue AddAssignOp Expression
 Calculated and pushed value: 42
-Popping 3 values to evaluate a2 R1:2@0-2F2@2-9, rule: 1: Expression -> Lvalue AssignOp Expression
+Popping 3 values to evaluate a2 R1:3@0-9C2@2, rule: 1: Expression -> Lvalue AssignOp Expression
 Calculated and pushed value: 42
-Popping 1 values to evaluate a1 F1@0-9, rule: 0: Statement -> Expression
+Popping 1 values to evaluate a1 R0:1@0-9C1@0, rule: 0: Statement -> Expression
 Calculated and pushed value: 'a=42 b=42 c=-5 d=6 e=3'
-New Virtual Rule: a0 F0@0-9, rule: 7: Statement['] -> Statement
+New Virtual Rule: a0 R7:1@0-9C0@0, rule: 7: Statement['] -> Statement
 Symbol count is 1, now 1 rules
 END_TRACE_OUTPUT
 
