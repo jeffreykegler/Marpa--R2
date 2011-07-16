@@ -1579,13 +1579,13 @@ sub Marpa::XS::Recognizer::value {
 	}
 
 	$#{$or_nodes} = -1;
-	my $or_node_id = 0;
-	OR_NODE: for ( ;; ) {
+	OR_NODE: for ( my $or_node_id = 0; ; $or_node_id++ ) {
 	    my ( $origin, $set, $rule_id, $position, $first_and_id, $and_count ) =
-		$recce_c->or_node( $or_node_id++ );
+		$recce_c->or_node( $or_node_id );
 	    last OR_NODE if not defined $origin;
 
 	    my $or_node = [];
+	    $or_node->[Marpa::XS::Internal::Or_Node::ID]  = $or_node_id;
 	    $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID]  = $rule_id;
 	    $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN]   = $origin;
 	    $or_node->[Marpa::XS::Internal::Or_Node::SET]      = $set;
@@ -1613,6 +1613,7 @@ sub Marpa::XS::Recognizer::value {
 		$recce_c->or_node( $parent_or_node_id );
 
 	    my $and_node = [];
+	    $and_node->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
 	    $and_node->[Marpa::XS::Internal::And_Node::RULE_ID]  = $rule_id;
 	    if ( defined $symbol_id ) {
 		$and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME] =
@@ -1645,8 +1646,6 @@ sub Marpa::XS::Recognizer::value {
 	    $and_nodes->[$and_node_id] = $and_node;
 	}
 
-	# Zero out the iteration stack
-	$#{$iteration_stack} = -1;
 
 	my $start_iteration_node = [];
 	$start_iteration_node
