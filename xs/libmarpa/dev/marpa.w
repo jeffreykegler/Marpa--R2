@@ -3780,21 +3780,29 @@ theory the |g_renew| might have moved them.
 This is not likely since the |g_renew| shortened the array,
 but if you are hoping for portability,
 you want to follow the rules.
-@<Set up the items-by-rule list@> = {
-AIM* items_by_rule = g_new0(AIM, no_of_rules); /* Must be
-zeroed because not all entries will be populated */
-AIM items = g->t_AHFA_items;
-Marpa_Rule_ID highest_found_rule_id = -1; /* The highest ID of a rule whose AHFA items
-    have been found */
-Marpa_AHFA_Item_ID item_id;
-for (item_id = 0; item_id < (Marpa_AHFA_Item_ID)no_of_items; item_id++) {
-     AIM item = items+item_id;
-     Marpa_Rule_ID rule_id_for_item = RULE_of_AIM(item)->t_id;
-     if (rule_id_for_item <= highest_found_rule_id) continue;
-     items_by_rule[rule_id_for_item] = item;
-     highest_found_rule_id = rule_id_for_item;
-}
-g->t_AHFA_items_by_rule = items_by_rule;
+@<Set up the items-by-rule list@> =
+{
+  AIM *items_by_rule = g_new (AIM, no_of_rules);
+  AIM items = g->t_AHFA_items;
+  /* The highest ID of a rule whose AHFA items have been found */
+  Marpa_Rule_ID highest_found_rule_id = -1;
+  Marpa_AHFA_Item_ID item_id;
+  /* |items_by_rule| must be NULL'd
+      because not all entries will be populated */
+  for (rule_id = 0; rule_id < (Marpa_Rule_ID) no_of_rules; rule_id++)
+  {
+      items_by_rule[rule_id] = NULL;
+  }
+  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
+    {
+      AIM item = items + item_id;
+      Marpa_Rule_ID rule_id_for_item = RULE_of_AIM (item)->t_id;
+      if (rule_id_for_item <= highest_found_rule_id)
+	continue;
+      items_by_rule[rule_id_for_item] = item;
+      highest_found_rule_id = rule_id_for_item;
+    }
+  g->t_AHFA_items_by_rule = items_by_rule;
 }
 
 @ @<Private function prototypes@> =
@@ -9821,6 +9829,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
 		RULE_of_OR (or_node) = rule;
 MARPA_OFF_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = rhs_ix + 1;
+MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 MARPA_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 		draft_and_node = DANDs_of_OR (or_node) =
 		  draft_and_node_new (&bocage_setup_obs, predecessor,
@@ -9983,6 +9992,7 @@ or-nodes follow a completion.
 	  Position_of_OR (or_node) = rhs_ix + 1;
 	  MARPA_DEBUG3 ("Created or-node %s at %s", or_tag (or_node),
 			G_STRLOC);
+MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 	  DANDs_of_OR (or_node) = draft_and_node =
 	      draft_and_node_new (&bocage_setup_obs, predecessor, cause);
 	  MARPA_OFF_DEBUG3 ("or = %p, setting DAND = %p", or_node,
@@ -10071,6 +10081,7 @@ void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause
 static inline
 void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
 {
+    MARPA_ASSERT(Position_of_OR(parent) <= 1 || predecessor);
     const DAND new = draft_and_node_new(obs, predecessor, cause);
     Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
     DANDs_of_OR(parent) = new;
@@ -10309,7 +10320,7 @@ MARPA_DEBUG2("Got PSIA: %p", psia_or);
 
 @ @<Set |dand_predecessor|@> =
 {
-   if (EIM_is_Predicted(predecessor_earley_item)) {
+   if (Position_of_AIM(work_predecessor_aim) == 0) {
        dand_predecessor = NULL;
    } else {
 	const AEX predecessor_aex =
@@ -10547,10 +10558,6 @@ gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data)
   AND and_nodes;
   @<Return |-2| on failure@>@;
   @<Fail if recognizer has fatal error@>@;
-  if (Phase_of_R(r) != evaluation_phase) {
-    R_ERROR("recce not being evaluated");
-    return failure_indicator;
-  }
   if (!b) {
       R_ERROR("no bocage");
       return failure_indicator;
@@ -10880,11 +10887,6 @@ gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
   OR* or_nodes;
   @<Return |-2| on failure@>@;
   @<Fail if recognizer has fatal error@>@;
-MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
-  if (Phase_of_R(r) != evaluation_phase) {
-    R_ERROR("recce not being evaluated");
-    return failure_indicator;
-  }
   if (!b) {
       R_ERROR("no bocage");
       return failure_indicator;
