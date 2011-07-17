@@ -269,8 +269,10 @@ Marpa::Test::is( $value, 'a=42 b=42 c=-5 d=6 e=3', 'Leo Example Value' );
 
 my $show_earley_sets_output_after = $recce->show_earley_sets();
 
-Marpa::Test::is( $show_earley_sets_output_after,
-    <<'END_EARLEY_SETS', 'Leo Example Earley Sets "After"' );
+SKIP: {
+    skip "Not relevant to XS", 1 if $Marpa::USING_XS;
+    Marpa::Test::is( $show_earley_sets_output_after,
+        <<'END_EARLEY_SETS', 'Leo Example Earley Sets "After"' );
 Last Completed: 9; Furthest: 9
 Earley Set 0
 S0@0-0
@@ -324,6 +326,7 @@ S14@6-9 [p=S10@6-8; c=S5@8-9]
 S4@8-9 [p=S7@8-8; c=S5@8-9]
 S5@8-9 [p=S7@8-8; s=Variable; t=\'e']
 END_EARLEY_SETS
+} ## end SKIP:
 
 my $expected_trace_output = <<'END_TRACE_OUTPUT';
 Pushed value from R6:1@0-1S7@0: Variable = \'a'

@@ -6219,9 +6219,6 @@ static inline EIM earley_item_create(const RECCE r,
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   Ord_of_EIM(new_item) = count - 1;
-  EIM_is_Leo_Expansion(new_item) = 0; /* The default */
-  LV_EIM_is_Leo_Expanded(new_item) = 1; /* Will be unset when
-     and if a Leo link is added */
   top_of_work_stack = WORK_EIM_PUSH(r);
   *top_of_work_stack = new_item;
   g_tree_insert(r->t_earley_item_tree, new_item, new_item);
@@ -6244,7 +6241,6 @@ static inline EIM old_earley_item_assign (
     item = g_tree_lookup(r->t_earley_item_tree, &key);
     if (item) return item;
     item = earley_item_create(r, key);
-      EIM_is_Leo_Expansion(item) = 1;
       return item;
 }
 
@@ -6349,19 +6345,6 @@ static inline gint earley_item_cmp (gconstpointer ap,
 @d Earley_Item_is_Ambiguous(item) ((item)->t_source_type == SOURCE_IS_AMBIGUOUS)
 @<Bit aligned Earley item elements@> =
 unsigned int t_source_type:3;
-
-@*0 Flag marking Leo Expansion.
-This flag is used to indicate the expansion of Leo items.
-It is initally set, indicating that it is vacuously true.
-This interpretation fits the purpose,
-which is to tell code which encounters
-this Leo item whether there are Leo items which need expansion.
-@d EIM_is_Leo_Expanded(eim) ((eim)->t_is_leo_expanded)
-@d EIM_is_Leo_Expansion(eim) ((eim)->t_is_leo_expansion)
-@d LV_EIM_is_Leo_Expanded(eim) EIM_is_Leo_Expanded(eim)
-@<Bit aligned Earley item elements@> =
-unsigned int t_is_leo_expanded:1;
-unsigned int t_is_leo_expansion:1;
 
 @ @<Private function prototypes@> =
 static const char* invalid_source_type_message(guint type);
@@ -7246,7 +7229,6 @@ leo_link_add (struct marpa_r *r,
 {
   SRCL new_link;
   guint previous_source_type = Source_Type_of_EIM (item);
-  LV_EIM_is_Leo_Expanded(item) = 0;
   if (previous_source_type == NO_SOURCE)
     {
       Source_Type_of_EIM (item) = SOURCE_IS_LEO;
@@ -8794,27 +8776,11 @@ of the base EIM.
 }
 
 @** Expand the Leo Items.
-\libmarpa/ expands Leo items on a ``lazy" basis.
-When an or-node is about to be populated, it is necessary to
-examine all of the descendants of its Earley items.
-If one of the or-nodes Earley items is a Leo completion,
-these do not necessarily exist at that point,
-and must be created.
-
-@ This function returns the total of the lengths
-of all the newly expanded Leo paths.
-If this item was not
-actually a Leo completion,
-there will be no Leo paths,
-and the return value will be zero.
-Each Earley item is counted every time it appears in
-a Leo path, which means that the total of the path
-lengths may count the same Earley item
-several times.
-@ Some Earley items in the Leo paths will exist
-before this function call,
-others will be created.
-Earley items in the Leo path will already exist
+\libmarpa/ expands Leo items on a ``lazy" basis,
+when it creates the parse bocage.
+Some of the "virtual" Earley items in the Leo paths will also
+be real Earley items.
+Earley items in the Leo path may actually exist
 for several reasons:
 \li The Leo completion item itself always exists before
 this function call.
@@ -8831,121 +8797,6 @@ for other reasons.
 If an Earley item in a Leo path already exists, a new Earley
 item is not created ---
 instead a source link is added to the present Earley item.
-@<Private function prototypes@> =
-static gint leo_completion_expand(RECCE r, EIM leo_completion);
-@ @<Function definitions@> =
-static gint leo_completion_expand(RECCE r, EIM leo_completion)
-{
-    gint leo_path_lengths = 0;
-    const ES earley_set_of_this_path = ES_of_EIM(leo_completion);
-    LIM this_lim = NULL;
-    EIM previous_eim_on_this_path = NULL;
-    SRCL next_leo_link = NULL;
-    if (EIM_is_Leo_Expanded(leo_completion)) return 0; /* Do not
-	Leo expand an EIM more than once */
-    LV_EIM_is_Leo_Expanded(leo_completion) = 1;
-    switch ( Source_Type_of_EIM (leo_completion))  {
-    case SOURCE_IS_AMBIGUOUS: {
-	 const SRCL leo_link = First_Leo_SRCL_of_EIM(leo_completion);
-	 if (!leo_link) return 0;
-	 @<Unpack values from Leo link@>@;
-	 next_leo_link = Next_SRCL_of_SRCL(leo_link);
-    }
-     break;
-    case SOURCE_IS_LEO:
-      this_lim = Predecessor_of_EIM(leo_completion);
-      previous_eim_on_this_path = Cause_of_EIM(leo_completion);
-      leo_path_lengths += 2; /* Add 2, one for the Leo completion,
-          one for its cause (the ``Leo completion base item") */
-      break;
-    }
-    if (!this_lim) return 0; /* Returns 0 if this is not a Leo completion
-        and there is no Leo path */
-    r->t_is_leo_expanding = 1; /* This boolean will disable the
-        message which usually results
-        when the Earley item warning threshold is exceeded */
-    for (;;) {
-         @<Expand a LIM chain@>@;
-	 if (!next_leo_link) break;
-	 {
-	     const SRCL leo_link = next_leo_link;
-	     next_leo_link = Next_SRCL_of_SRCL(leo_link);
-	     @<Unpack values from Leo link@>@;
-	 }
-    }
-    earley_set_update_items(r, earley_set_of_this_path);
-    r->t_is_leo_expanding = 0;
-     /* Turn Earley item ``warning threshold exceeded" messages
-        back on.  */
-    return leo_path_lengths;
-}
-
-@ @<Unpack values from Leo link@> = {
-	 this_lim = Predecessor_of_SRCL(leo_link);
-	 previous_eim_on_this_path = Cause_of_SRCL(leo_link);
-	 leo_path_lengths += 2; /* Add 2, one for the Leo completion,
-		  one for its cause (the ``Leo completion base item") */
-}
-
-@ @<Expand a LIM chain@> = {
-    LIM next_lim;
-    while ( ( next_lim = Predecessor_LIM_of_LIM(this_lim) )  ) {
-	@<Expand LIMs above the bottom of the chain@>@;
-	this_lim = next_lim;
-    }
-  completion_link_add (r, leo_completion, Base_EIM_of_LIM(this_lim), previous_eim_on_this_path); /*
-      At the top of the chain, we only need to add a source link connecting
-	our newly built chain to the Leo completion Earley item that is at its
-	top. */
-}
-
-@ For each Leo item above the bottom, a new Earley item
-must be created.
-@<Expand LIMs above the bottom of the chain@> =
-{
-  const EIM base_eim_of_this_lim = Base_EIM_of_LIM (this_lim);
-  const SYMID postdot_symbol_of_this_lim = Postdot_SYMID_of_LIM (this_lim);
-  EIM new_eim_for_this_path =
-    old_earley_item_assign (r, earley_set_of_this_path,
-			ES_of_LIM (next_lim),
-			To_AHFA_of_EIM_by_SYMID (base_eim_of_this_lim,
-						 postdot_symbol_of_this_lim));
-  leo_path_lengths++;
-  completion_link_add (r, new_eim_for_this_path,
-      base_eim_of_this_lim,
-      previous_eim_on_this_path);
-  previous_eim_on_this_path = new_eim_for_this_path;
-}
-
-@*0 External Function.
-@ This is the external function to expand all
-the Leo items for a Leo completion.
-On success,
-it returns the number of new Earley created.
-This may be zero, if the Earley item is not in
-fact a Leo completion.
-On failure, this function returns |-2|.
-@<Public function prototypes@> =
-gint marpa_leo_completion_expand(struct marpa_r *r);
-@ This function was created to allow |libmarpa| to be written
-in stages --- while the evaluator is not yet converted to C,
-it can call this function to expand |libmarpa|'s Leo completions.
-I am undecided whether to keep this function after development.
-It could be used by an application that decides it wants to expand
-Leo completions on a more ``eager" basis than |libmarpa| does.
-@ @<Function definitions@> =
-gint marpa_leo_completion_expand(struct marpa_r *r)
-{
-  @<Return |-2| on failure@>@;
-  EIM item = r->t_trace_earley_item;
-  @<Fail recognizer if not trace-safe@>@;
-  if (!item) {
-      @<Clear trace Earley item data@>@;
-      R_ERROR("no trace eim");
-      return failure_indicator;
-  }
-  return leo_completion_expand(r, item);
-}
 
 @** Evaluation --- Preliminary Notes.
 
@@ -9193,27 +9044,20 @@ G_STRLOC, eim_tag(ur_earley_item), ur_aex);
     while ((ur_node = ur_node_pop(ur_node_stack)))
     {
         const EIM_Const parent_earley_item = EIM_of_UR(ur_node);
-
-MARPA_DEBUG4("%s: Popped ur-node for %s; expansion? = %d",
-    G_STRLOC, eim_tag(parent_earley_item),
-    EIM_is_Leo_Expansion(parent_earley_item));
-
-	if (!EIM_is_Leo_Expansion(parent_earley_item)) {
-	    const AEX parent_aex = AEX_of_UR(ur_node);
-	    const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
-	    MARPA_ASSERT(parent_aim >= AIM_by_ID(1))@;
-	    const AIM predecessor_aim = parent_aim - 1;
-	    /* Note that the postdot symbol of the predecessor is NOT necessarily the
-	       predot symbol, because there may be nulling symbols in between. */
-	    guint source_type = Source_Type_of_EIM (parent_earley_item);
-	    MARPA_ASSERT(!EIM_is_Predicted(parent_earley_item))@;
-	    MARPA_DEBUG3("Popped ur-node for eim=%s, aex=%d",
-		eim_tag(parent_earley_item),
-		parent_aex);
-	    @<Push child Earley items from token sources@>@;
-	    @<Push child Earley items from completion sources@>@;
-	    @<Push child Earley items from Leo sources@>@;
-	}
+	const AEX parent_aex = AEX_of_UR(ur_node);
+	const AIM parent_aim = AIM_of_EIM_by_AEX (parent_earley_item, parent_aex);
+	MARPA_ASSERT(parent_aim >= AIM_by_ID(1))@;
+	const AIM predecessor_aim = parent_aim - 1;
+	/* Note that the postdot symbol of the predecessor is NOT necessarily the
+	   predot symbol, because there may be nulling symbols in between. */
+	guint source_type = Source_Type_of_EIM (parent_earley_item);
+	MARPA_ASSERT(!EIM_is_Predicted(parent_earley_item))@;
+	MARPA_DEBUG3("Popped ur-node for eim=%s, aex=%d",
+	    eim_tag(parent_earley_item),
+	    parent_aex);
+	@<Push child Earley items from token sources@>@;
+	@<Push child Earley items from completion sources@>@;
+	@<Push child Earley items from Leo sources@>@;
     }
     @<Unset the PSIA for the start rule prediction@>@;
 }

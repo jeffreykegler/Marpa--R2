@@ -1483,19 +1483,6 @@ PPCODE:
     }
 
 void
-leo_completion_expand( r_wrapper )
-     R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-        gint result = marpa_leo_completion_expand(r);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->leo_completion_expand(): %s", marpa_r_error (r));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-void
 earleme( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Earley_Set_ID ordinal;
