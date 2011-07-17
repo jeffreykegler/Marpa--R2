@@ -55,6 +55,7 @@ my $structure = <<'END_OF_STRUCTURE';
     CLOSURES
     TRACE_ACTIONS
     TRACE_AND_NODES
+    TRACE_BOCAGE
     TRACE_OR_NODES
     TRACE_VALUES
     TRACE_TASKS
@@ -265,6 +266,7 @@ use constant RECOGNIZER_OPTIONS => [
         too_many_earley_items
         trace_actions
         trace_and_nodes
+        trace_bocage
         trace_earley_sets
         trace_fh
         trace_file_handle
@@ -387,6 +389,18 @@ sub Marpa::XS::Recognizer::set {
                 $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_and_nodes'} ...))
+
+        if ( defined( my $value = $args->{'trace_bocage'} ) ) {
+            Marpa::exception('trace_bocage must be set to a number >= 0')
+                if $value !~ /\A\d+\z/xms;
+            $recce->[Marpa::XS::Internal::Recognizer::TRACE_BOCAGE] =
+                $value + 0;
+            if ($value) {
+                say {$trace_fh} "Setting trace_bocage option to $value"
+                    or Marpa::exception("Cannot print: $ERRNO");
+                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
+            }
+        } ## end if ( defined( my $value = $args->{'trace_bocage'} ...))
 
         if ( defined( my $value = $args->{'trace_or_nodes'} ) ) {
             Marpa::exception('trace_or_nodes must be set to a number >= 0')
