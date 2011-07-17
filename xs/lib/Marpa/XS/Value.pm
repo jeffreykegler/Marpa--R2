@@ -264,7 +264,7 @@ sub Marpa::XS::Recognizer::show_bocage {
 		$predecessor_tag =
 		    Marpa::XS::Recognizer::or_node_tag( $recce, $predecessor );
 	    }
-	    my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag; 
+	    my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
             push @data,
                 [
                 $origin_earleme, $current_earleme, $rule,
@@ -297,7 +297,7 @@ sub Marpa::XS::Recognizer::and_node_tag {
     my $position = $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1;
     my $rule = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
     my $tag =
-	  'R' 
+	  'R'
 	. $rule . q{:}
 	. $position . q{@}
 	. $origin_earleme . q{-}
@@ -335,7 +335,7 @@ sub Marpa::XS::Recognizer::show_and_nodes {
 	    $middle_earleme = $recce_c->earleme($predecessor_set);
 	}
         my $desc =
-              'R' 
+              'R'
             . $rule . q{:}
             . $position . q{@}
             . $origin_earleme . q{-}
@@ -411,7 +411,7 @@ sub Marpa::XS::Recognizer::show_or_nodes {
         my $origin_earleme  = $recce_c->earleme($origin);
         my $current_earleme = $recce_c->earleme($set);
         my $desc =
-              'R' 
+              'R'
             . $rule . q{:}
             . $position . q{@}
             . $origin_earleme . q{-}
@@ -2180,8 +2180,8 @@ sub Marpa::XS::Recognizer::value {
 
             if ($trace_tasks) {
                 print {$Marpa::XS::Internal::TRACE_FH}
-                    'Task: STACK_INODE o',
-                    $or_node->[Marpa::XS::Internal::Or_Node::ID],
+                    'Task: STACK_INODE ',
+		    Marpa::XS::Recognizer::or_node_tag( $recce, $or_node ),
                     q{; }, ( scalar @task_list ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
@@ -2332,8 +2332,8 @@ sub Marpa::XS::Recognizer::value {
 
             if ($trace_tasks) {
                 print {$Marpa::XS::Internal::TRACE_FH}
-                    'Task: GRAFT_SUBTREE o',
-                    $or_node->[Marpa::XS::Internal::Or_Node::ID],
+                    'Task: GRAFT_SUBTREE ',
+		    Marpa::XS::Recognizer::or_node_tag( $recce, $or_node );
                     q{; }, ( scalar @task_list ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
