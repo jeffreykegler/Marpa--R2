@@ -1166,9 +1166,7 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                     $and_node->[Marpa::PP::Internal::And_Node::TOKEN_NAME];
 
                 print {$Marpa::PP::Internal::TRACE_FH}
-                    'Pushed value from a',
-                    $and_node->[Marpa::PP::Internal::And_Node::ID],
-                    q{ },
+                    'Pushed value from ',
                     $and_node->[Marpa::PP::Internal::And_Node::TAG], ': ',
                     ( $token_name ? qq{$token_name = } : q{} ),
                     Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
@@ -1197,9 +1195,7 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                         say {$Marpa::PP::Internal::TRACE_FH}
                             'Popping ',
                             $argc,
-                            ' values to evaluate a',
-                            $and_node->[Marpa::PP::Internal::And_Node::ID],
-                            q{ },
+                            ' values to evaluate ',
                             $and_node->[Marpa::PP::Internal::And_Node::TAG],
                             ', rule: ', Marpa::PP::brief_rule($rule)
                             or Marpa::exception(
@@ -1220,9 +1216,7 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                             ->[Marpa::PP::Internal::And_Node::RULE_ID];
                         my $rule = $rules->[$rule_id];
                         say {$Marpa::PP::Internal::TRACE_FH}
-                            'Head of Virtual Rule: a',
-                            $and_node->[Marpa::PP::Internal::And_Node::ID],
-                            q{ },
+                            'Head of Virtual Rule: ',
                             $and_node->[Marpa::PP::Internal::And_Node::TAG],
                             ', rule: ', Marpa::PP::brief_rule($rule),
                             "\n",
@@ -1250,9 +1244,7 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                             ->[Marpa::PP::Internal::And_Node::RULE_ID];
                         my $rule = $rules->[$rule_id];
                         say {$Marpa::PP::Internal::TRACE_FH}
-                            'Head of Virtual Rule (discards separation): a',
-                            $and_node->[Marpa::PP::Internal::And_Node::ID],
-                            q{ },
+                            'Head of Virtual Rule (discards separation): ',
                             $and_node->[Marpa::PP::Internal::And_Node::TAG],
                             ', rule: ', Marpa::PP::brief_rule($rule),
                             "\nAdding $real_symbol_count symbols; currently ",
@@ -1286,9 +1278,7 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                             ->[Marpa::PP::Internal::And_Node::RULE_ID];
                         my $rule = $rules->[$rule_id];
                         say {$Marpa::PP::Internal::TRACE_FH}
-                            'Virtual Rule: a',
-                            $and_node->[Marpa::PP::Internal::And_Node::ID],
-                            q{ },
+                            'Virtual Rule: ',
                             $and_node->[Marpa::PP::Internal::And_Node::TAG],
                             ', rule: ', Marpa::PP::brief_rule($rule),
                             "\nAdding $real_symbol_count, now ",
@@ -1308,9 +1298,7 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                             ->[Marpa::PP::Internal::And_Node::RULE_ID];
                         my $rule = $rules->[$rule_id];
                         say {$Marpa::PP::Internal::TRACE_FH}
-                            'New Virtual Rule: a',
-                            $and_node->[Marpa::PP::Internal::And_Node::ID],
-                            q{ },
+                            'New Virtual Rule: ',
                             $and_node->[Marpa::PP::Internal::And_Node::TAG],
                             ', rule: ', Marpa::PP::brief_rule($rule),
                             "\nSymbol count is $real_symbol_count, now ",
