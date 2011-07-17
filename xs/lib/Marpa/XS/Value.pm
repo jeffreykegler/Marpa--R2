@@ -2333,7 +2333,7 @@ sub Marpa::XS::Recognizer::value {
             if ($trace_tasks) {
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Task: GRAFT_SUBTREE ',
-		    Marpa::XS::Recognizer::or_node_tag( $recce, $or_node );
+		    Marpa::XS::Recognizer::or_node_tag( $recce, $or_node ),
                     q{; }, ( scalar @task_list ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
