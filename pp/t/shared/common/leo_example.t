@@ -269,8 +269,10 @@ Marpa::Test::is( $value, 'a=42 b=42 c=-5 d=6 e=3', 'Leo Example Value' );
 
 my $show_earley_sets_output_after = $recce->show_earley_sets();
 
-Marpa::Test::is( $show_earley_sets_output_after,
-    <<'END_EARLEY_SETS', 'Leo Example Earley Sets "After"' );
+SKIP: {
+    skip "Not relevant to XS", 1 if $Marpa::USING_XS;
+    Marpa::Test::is( $show_earley_sets_output_after,
+        <<'END_EARLEY_SETS', 'Leo Example Earley Sets "After"' );
 Last Completed: 9; Furthest: 9
 Earley Set 0
 S0@0-0
@@ -324,45 +326,42 @@ S14@6-9 [p=S10@6-8; c=S5@8-9]
 S4@8-9 [p=S7@8-8; c=S5@8-9]
 S5@8-9 [p=S7@8-8; s=Variable; t=\'e']
 END_EARLEY_SETS
+} ## end SKIP:
 
 my $expected_trace_output = <<'END_TRACE_OUTPUT';
-Pushed value from a18 R6:1@0-1S7@0: Variable = \'a'
-Popping 1 values to evaluate a18 R6:1@0-1S7@0, rule: 6: Lvalue -> Variable
+Pushed value from R6:1@0-1S7@0: Variable = \'a'
+Popping 1 values to evaluate R6:1@0-1S7@0, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'a'
-Pushed value from a16 R1:2@0-2S3@1: AssignOp = \'='
-Pushed value from a15 R6:1@2-3S7@2: Variable = \'b'
-Popping 1 values to evaluate a15 R6:1@2-3S7@2, rule: 6: Lvalue -> Variable
+Pushed value from R1:2@0-2S3@1: AssignOp = \'='
+Pushed value from R6:1@2-3S7@2: Variable = \'b'
+Popping 1 values to evaluate R6:1@2-3S7@2, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'b'
-Pushed value from a13 R2:2@2-4S4@3: AddAssignOp = \'+='
-Pushed value from a12 R6:1@4-5S7@4: Variable = \'c'
-Popping 1 values to evaluate a12 R6:1@4-5S7@4, rule: 6: Lvalue -> Variable
+Pushed value from R2:2@2-4S4@3: AddAssignOp = \'+='
+Pushed value from R6:1@4-5S7@4: Variable = \'c'
+Popping 1 values to evaluate R6:1@4-5S7@4, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'c'
-Pushed value from a10 R3:2@4-6S5@5: MinusAssignOp = \'-='
-Pushed value from a9 R6:1@6-7S7@6: Variable = \'d'
-Popping 1 values to evaluate a9 R6:1@6-7S7@6, rule: 6: Lvalue -> Variable
+Pushed value from R3:2@4-6S5@5: MinusAssignOp = \'-='
+Pushed value from R6:1@6-7S7@6: Variable = \'d'
+Popping 1 values to evaluate R6:1@6-7S7@6, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'd'
-Pushed value from a7 R4:2@6-8S6@7: MultiplyAssignOp = \'*='
-Pushed value from a6 R5:1@8-9S7@8: Variable = \'e'
-Popping 1 values to evaluate a6 R5:1@8-9S7@8, rule: 5: Expression -> Variable
+Pushed value from R4:2@6-8S6@7: MultiplyAssignOp = \'*='
+Pushed value from R5:1@8-9S7@8: Variable = \'e'
+Popping 1 values to evaluate R5:1@8-9S7@8, rule: 5: Expression -> Variable
 Calculated and pushed value: 3
-Popping 3 values to evaluate a5 R4:3@6-9C5@8, rule: 4: Expression -> Lvalue MultiplyAssignOp Expression
+Popping 3 values to evaluate R4:3@6-9C5@8, rule: 4: Expression -> Lvalue MultiplyAssignOp Expression
 Calculated and pushed value: 6
-Popping 3 values to evaluate a4 R3:3@4-9C4@6, rule: 3: Expression -> Lvalue MinusAssignOp Expression
+Popping 3 values to evaluate R3:3@4-9C4@6, rule: 3: Expression -> Lvalue MinusAssignOp Expression
 Calculated and pushed value: -5
-Popping 3 values to evaluate a3 R2:3@2-9C3@4, rule: 2: Expression -> Lvalue AddAssignOp Expression
+Popping 3 values to evaluate R2:3@2-9C3@4, rule: 2: Expression -> Lvalue AddAssignOp Expression
 Calculated and pushed value: 42
-Popping 3 values to evaluate a2 R1:3@0-9C2@2, rule: 1: Expression -> Lvalue AssignOp Expression
+Popping 3 values to evaluate R1:3@0-9C2@2, rule: 1: Expression -> Lvalue AssignOp Expression
 Calculated and pushed value: 42
-Popping 1 values to evaluate a1 R0:1@0-9C1@0, rule: 0: Statement -> Expression
+Popping 1 values to evaluate R0:1@0-9C1@0, rule: 0: Statement -> Expression
 Calculated and pushed value: 'a=42 b=42 c=-5 d=6 e=3'
-New Virtual Rule: a0 R7:1@0-9C0@0, rule: 7: Statement['] -> Statement
+New Virtual Rule: R7:1@0-9C0@0, rule: 7: Statement['] -> Statement
 Symbol count is 1, now 1 rules
 END_TRACE_OUTPUT
 
-$trace_output =~ s/ [ ] to [ ] evaluate [ ] a\d+ [ ] / to evaluate aNN /xmsg;
-$expected_trace_output =~ s/ [ ] to [ ] evaluate [ ] a\d+ [ ] / to evaluate aNN /xmsg;
-$trace_output =~ s/ [ ] value [ ] from [ ] a\d+ [ ] / value from aNN /xmsg;
-$expected_trace_output =~ s/ [ ] value [ ] from [ ] a\d+ [ ] / value from aNN /xmsg;
 Marpa::Test::is( $trace_output,
     $expected_trace_output, 'Leo Example Trace Output' );
 
