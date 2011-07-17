@@ -9819,7 +9819,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
 	  if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal) {
 		DAND draft_and_node;
 		const gint rhs_ix = symbol_instance - SYMI_of_RULE(rule);
-		const OR predecessor = symbol_instance ? last_or_node : NULL;
+		const OR predecessor = rhs_ix ? last_or_node : NULL;
 		const OR cause = (OR)SYM_by_ID( RHS_ID_of_RULE (rule, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
@@ -9976,9 +9976,8 @@ or-nodes follow a completion.
       if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal)
 	{
 	  DAND draft_and_node;
-	  OR predecessor = last_or_node;	/* Leo path Earley items are never predictions,
-						   so that there is always a predecessor */
 	  const gint rhs_ix = symbol_instance - SYMI_of_RULE(path_rule);
+	    const OR predecessor = rhs_ix ? last_or_node : NULL;
 	  const OR cause =
 	   (OR)SYM_by_ID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
 	  MARPA_ASSERT (symbol_instance < Length_of_RULE (path_rule)) @;
@@ -10320,7 +10319,7 @@ MARPA_DEBUG2("Got PSIA: %p", psia_or);
 
 @ @<Set |dand_predecessor|@> =
 {
-   if (Position_of_AIM(work_predecessor_aim) == 0) {
+   if (Position_of_AIM(work_predecessor_aim) < 1) {
        dand_predecessor = NULL;
    } else {
 	const AEX predecessor_aex =
@@ -12349,6 +12348,7 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG3(a, b, c)
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
+@d MARPA_OFF_ASSERT(expr)
 @<Debug macros@> =
 #define MARPA_DEBUG @[ 0 @]
 #define MARPA_ENABLE_ASSERT @[ 0 @]
