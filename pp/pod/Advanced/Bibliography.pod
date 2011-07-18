@@ -17,6 +17,52 @@
 
 Marpa::PP::Advanced::Bibliography - A Marpa Bibliography
 
+=head1 HISTORY OF THE MARPA ALGORITHM
+
+=over
+
+=item 1970
+
+Jay Earley L<invents the algorithm that now bears his
+name|"Earley 1970">.
+
+=item 1991
+
+Joop Leo L<describes a way to modify Earley's algorithm so that it
+runs in O(n) time for all LR-regular
+grammars|"Leo 1991">.
+LR-regular is a vast class of grammars, including all the
+LR(k) grammars, all grammars parseable with recursive descent,
+and regular expressions.
+LR-regular can safely be thought of as including all grammars
+in practical use today, and then some.
+
+=item 2002
+
+L<Aycock and Horspool describe a way to do LR(0)
+precomputation|"Aycock and Horspool 2002">
+for Earley's algorithm.
+Their method makes Earley's faster in most
+practical situations, but not all.
+In particular, right-recursion remains quadratic in
+the Aycock and Horspool algorithm.
+Worst case is no better than Earley's.
+Leo is unaware of Aycock and Horspool's work
+and Aycock and Horspool seem unaware of Leo.
+
+=item 2010
+
+Marpa combines the Leo and Aycock-Horspool
+algorithms,
+in the process making significant
+changes to both of them.
+The result preserves the
+best features of both.
+Marpa also tackles the many remaining
+implementation issues.
+
+=back
+
 =head1 BIBLIOGRAPHY
 
 =head2 Aho and Ullman 1972
