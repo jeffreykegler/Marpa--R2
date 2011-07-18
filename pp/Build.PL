@@ -42,13 +42,12 @@ my %recommends =
     map { ( $_, $Marpa::PP::VERSION_FOR_CONFIG{$_} ) } qw( PPI Test::Weaken );
 
 my %pod_files = map { ( "pod/$_" => "lib/Marpa/PP/$_" ) } qw(
-    Advanced/Algorithm.pod
     Advanced/Bibliography.pod
-    Advanced/Implementation.pod
     Advanced/Models.pod
     Grammar.pod
     Parse_Terms.pod
     Recognizer.pod
+    Rewrite.pod
     Semantics.pod
     Support.pod
     Tracing.pod

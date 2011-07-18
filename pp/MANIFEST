@@ -54,15 +54,14 @@ lib/Marpa/PP/Internal.pm
 lib/Marpa/PP/Recognizer.pm
 lib/Marpa/PP/Slot.pm
 lib/Marpa/PP/Value.pm
-pod/Advanced/Algorithm.pod
 pod/Advanced/Bibliography.pod
-pod/Advanced/Implementation.pod
 pod/Advanced/Models.pod
 pod/Debug.pod
 pod/Grammar.pod
 pod/Marpa_PP.pod
 pod/Parse_Terms.pod
 pod/Recognizer.pod
+pod/Rewrite.pod
 pod/Semantics.pod
 pod/Semantics/Infinite.pod
 pod/Semantics/Null.pod
