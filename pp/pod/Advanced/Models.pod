@@ -19,9 +19,6 @@ Marpa::PP::Advanced::Models - Other Input Models
 
 =head1 ABOUT THIS DOCUMENT
 
-This document is under construction.  As of this release,
-it is not 100% complete.
-
 The alternative input models described in this document are an
 advanced technique.
 If you are starting out with Marpa, you
@@ -101,26 +98,27 @@ Marpa's tracks position in terms of B<earlemes>.
 B<Earlemes> are named after Jay Earley,
 the inventor of the first algorithm
 in Marpa's lineage.
-Internally,
-each earleme corresponds exactly and directly to an Earley set.
 Every token has a start earleme and an end earleme.
 
 The token stream model may also be called the token-per-earleme
 model.
 In the token stream model,
 token location and earleme location
-directly correspond on an one-to-one basis.
+are exactly identical an one-to-one basis.
 If a user's application uses the token stream model,
 he can ignore earlemes, and think entirely in terms of
 tokens and position in a token stream.
+Because of this, the main Marpa documents speak
+simply of the "location" in the parse.
 
 =head2 The Furthest Earleme
 
 The B<furthest earleme> is the last earleme at which a token ends.
 In the default input model, the furthest earleme is not an important
 concept.
-When input is performed using the recognizer's C<read> method,
-the furthest earleme and the current earleme are always the same.
+In the default input model,
+the furthest earleme and the current earleme
+are always the same.
 
 In alternative input models,
 tokens may be longer than 1 earleme, and
@@ -165,7 +163,8 @@ Its value can be any integer B<greater> than zero.
 Marpa does not allow zero length tokens in any input model.
 
 Unlike the C<read> method, the C<alternative> method does
-B<not> advance the current earleme on each call.
+B<not> advance the current location
+(current earleme) on each call.
 This allows the application to read several tokens
 at the same earleme.
 This is how ambiguous input is created.
@@ -183,6 +182,21 @@ rejection must be careful to test that the return value is undefined,
 and not merely a Perl false.
 When a token is accepted at earleme 0,
 the C<alternative> method returns 0.
+
+=head2 current_earleme
+
+=for Marpa::PP::Display
+name: Debug Example Part 2
+partial: 1
+normalize-whitespace: 1
+
+    my $current_earleme = $recce->current_earleme();
+
+=for Marpa::PP::Display::End
+
+Returns the current parse location,
+also known as the current earleme.
+Not often needed.
 
 =head2 earleme_complete
 
@@ -436,10 +450,10 @@ a comment.
 
 =head1 OTHER INPUT MODELS
 
-While only the token-per-earleme and
+So far only the token-per-earleme and
 character-per-earleme models have seen any
-real use,
-other models are certainly possible.
+real use in Marpa programs.
+But other models are certainly possible.
 Using earlemes,
 you can structure your input in almost any way you like.
 

@@ -51,19 +51,11 @@ then advances the current location by one.
 Assuming that the location before any input is numbered 0, as it is in Marpa,
 a parse of I<N> tokens will fill the locations from 1 to I<N>.
 
-In Marpa, locations in the input stream are also called B<earlemes>.
-The B<current earleme> means exactly the same thing as
-the B<current location>.
-
 This document will describe only the token-stream model of input.
 Marpa allows other models of the input, but their use
 requires special method calls,
 which are described in L<the
 document on alternative input models|Marpa::PP::Advanced::Models>.
-Any application that restricts itself to reading input
-using the methods
-described in this document will be using the default, token-stream,
-model of input.
 
 =head1 CONSTRUCTOR
 
@@ -90,21 +82,6 @@ The named arguments are described L<below|/"NAMED ARGUMENTS">.
 
 =head1 ACCESSORS
 
-=head2 current_earleme
-
-=for Marpa::PP::Display
-name: Debug Example Part 2
-partial: 1
-normalize-whitespace: 1
-
-    my $current_earleme = $recce->current_earleme();
-
-=for Marpa::PP::Display::End
-
-Returns the current parse location,
-also known as the current earleme.
-Not often needed.
-
 =head2 terminals_expected
 
 =for Marpa::PP::Display
@@ -119,7 +96,7 @@ normalize-whitespace: 1
 Returns a reference to a list of strings,
 where the strings are the
 names of the terminals
-acceptable at the current earleme.
+acceptable at the current location.
 In the default input model, the presence of a terminal
 in this list means that terminal will be acceptable
 in the next C<read> method call.
@@ -131,7 +108,7 @@ This is highly useful for Ruby Slippers parsing.
 name: Recognizer check_terminal Synopsis
 normalize-whitespace: 1
 
-    my $is_document_a_terminal = $recce->check_terminal('Document');
+    my $is_symbol_a_terminal = $recce->check_terminal('Document');
 
 =for Marpa::PP::Display::End
 
@@ -173,9 +150,8 @@ normalize-whitespace: 1
 
 =for Marpa::PP::Display::End
 
-The C<read> method reads one token at the current parse location
-(or current earleme).
-It then advances the current earleme by 1.
+The C<read> method reads one token at the current parse location.
+It then advances the current location by 1.
 
 C<read> takes two arguments: a B<token name> and a B<token value>.
 The token name is required.
@@ -189,7 +165,7 @@ see L<Marpa::PP::Grammar/"Terminals">.
 The parser may accept or reject the token.
 If the parser accepted the token,
 the C<read> method returns
-the number of tokens which are acceptable at the new current earleme.
+the number of tokens which are acceptable at the new current location.
 This number may be helpful in guiding L<Ruby
 Slippers parsing|/"RUBY SLIPPERS PARSING">.
 
@@ -206,7 +182,7 @@ More details on "exhaustion" are in L<a
 section below|/"EXHAUSTION, SUCCESS AND FAILURE">.
 
 Marpa may reject a token because it is not one of those
-acceptable at the current earleme.
+acceptable at the current location.
 When this happens, C<read> returns a Perl C<undef>.
 A rejected token need not end parsing --
 it is perfectly possible to retry the C<read> call
@@ -276,15 +252,15 @@ as a range of locations and the returned string contains
 reports for all locations in the range.
 The first argument, I<N>,
 must be a non-negative integer,
-and is always the number of the earleme which begins the range.
+and is always the number of the location which begins the range.
 If both arguments are non-negative integers,
-the range is from earleme I<N> to earleme I<M>.
+the range is from location I<N> to location I<M>.
 If the second argument is a negative integer,
 I<-M>,
 the end of the range is the 
-I<M>th location from the furthest earleme.
-For example, if 42 was the furthest earleme,
--1 would be earleme 42 and -2 would be earleme 41.
+I<M>th location from the furthest location.
+For example, if 42 was the furthest location,
+-1 would be location 42 and -2 would be location 41.
 The method call C<< $recce->show_progress(0, -1) >>
 will print progress reports for the entire parse.
 
@@ -418,14 +394,13 @@ The application can use this information to change the
 input "on the fly"
 so that it is acceptable to the parser.
 
-An application which is doubtful about the acceptability
-of a token does not have to check
-the output of C<terminals_expected>.
+An application can also take a "try it and see"
+approach.
 It is a recoverable error
 if a token is rejected because it is not acceptable.
 If an application is not sure whether a token is
-acceptable or not, the application can simply
-attempt to input the dubious token using
+acceptable or not, the application can
+try to read the dubious token using
 L<the C<read> method|/read>.
 If the token is rejected,
 L<the C<read> method|/read> call will return a

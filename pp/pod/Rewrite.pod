@@ -22,13 +22,13 @@ Marpa::PP::Rewrite - How Marpa Rewrites Grammars
 Marpa rewrites grammars,
 adding internal symbols and rules in the process.
 These rewritings do not affect the semantics,
-but they do show up when you examine the internals.
+but they do show up when you look at Marpa's grammars.
 
 Marpa's internal symbols have B<tags> at the end,
 enclosed in square brackets.
 This means that all Marpa internal symbols end in a right square bracket.
 
-=head1 Adding a Start Rule
+=head2 Marpa Adds a New Start Rule
 
 Many parsers add their own start rule
 and their own start symbol
@@ -42,7 +42,7 @@ start symbol,
 with "C<['][]>" suffixed.
 An example of a Marpa internal nulling start symbol would be "C<Script['][]>".
 
-=head1 Elminating Proper Nullable Symbols
+=head2 Marpa Eliminates Proper Nullable Symbols
 
 A symbol is B<nulled> if it produces the empty sentence.
 B<Nulling symbols> are those which are I<always> nulled.
@@ -87,7 +87,7 @@ new rules covering every possible combination of
 the non-nullable and nulling variants.
 That rewrite is called the CHAF rewrite.
 
-=head1 CHAF Rewriting
+=head2 Marpa Divides some Rules up into Smaller Ones
 
 Here's an example of a CHAF rewrite:
 
@@ -234,7 +234,7 @@ The user's semantic actions
 see the original child values
 as if the CHAF rewrite had never occurred.
 
-=head1 Converting Sequence Productions to BNF
+=head2 Marpa Converts Sequence Productions to Ordinary Rules
 
 Internally, Marpa converts productions specified as sequences into BNF productions.
 The conversion is done in a standard way.  For example,
