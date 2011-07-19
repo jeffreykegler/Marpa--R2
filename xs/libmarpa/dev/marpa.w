@@ -9924,7 +9924,7 @@ void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause
 static inline
 void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
 {
-    MARPA_ASSERT(Position_of_OR(parent) <= 1 || predecessor);
+    MARPA_ASSERT(Position_of_OR(parent) <= 1 || predecessor)
     const DAND new = draft_and_node_new(obs, predecessor, cause);
     Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
     DANDs_of_OR(parent) = new;

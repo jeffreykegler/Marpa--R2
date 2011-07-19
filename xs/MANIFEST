@@ -63,6 +63,8 @@ libmarpa/dev/README
 libmarpa/dev/copyright_page_license.w
 libmarpa/dev/cwebmac.tex
 libmarpa/dev/marpa.w
+libmarpa/dev/old_pod/Algorithm.pod
+libmarpa/dev/old_pod/Implementation.pod
 libmarpa/dist/Makefile.am
 libmarpa/dist/Makefile.in
 libmarpa/dist/README
