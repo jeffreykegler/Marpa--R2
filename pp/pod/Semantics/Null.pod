@@ -17,7 +17,9 @@
 
 Marpa::PP::Semantics::Null - How Marpa Evaluates Null Rules and Symbols
 
-=head1 NULL VALUES
+=head1 DESCRIPTION
+
+=head2 Null Values
 
 A B<null node> is a node which derives the zero-length,
 or empty string.
@@ -56,7 +58,7 @@ named argument
 is defined,
 a symbol's null value is a Perl C<undef>.
 
-=head1 NULL SUBTREES
+=head2 Null Subtrees
 
 A null subtree is a subtree all of whose nodes are null.
 Marpa prunes
@@ -82,7 +84,7 @@ If any application ever actually needs it,
 Marpa could implement a complex, and even dynamic,
 "semantics of nothing".
 
-=head1 NULL SEQUENCE NODES
+=head2 Null Sequence Nodes
 
 Rule nodes for sequences were mentioned above.
 Sequence nodes can also be null nodes.
@@ -128,7 +130,7 @@ and that zero-length sequence
 is not the root node of that subtree,
 then its semantics will be completely ignored.
 
-=head1 NULL SUBTREE EXAMPLE
+=head1 EXAMPLE
 
 In Marpa, a null node must be leaf node.
 Because Marpa prunes every null subtree back to its topmost
@@ -266,32 +268,49 @@ We B<do not> see an application of the semantic Perl closure for node 2,
 because after pruning,
 node 2 is not a rule node.
 
-=head1 HOW TO IMPLEMENT A COMPLEX NULL SEMANTICS
+=head1 ADVANCED
 
 In rare cases,
 your application
 may call for null values with a complex semantics.
+
+=head2 Implementing a Complex but Constant Null Semantics
+
 If an application's semantics of nothing, while complex, remains constant,
 you can handle it
-setting every nullable symbol's C<null_value> property
+by setting every nullable symbol's C<null_value> property
 to the value
 which your semantics produces when that nullable symbol is the root
 symbol of a null subtree.
 
+=head2 Implementing a Complex and Dynamic Null Semantics
+
 If the values of an application's
 null values are not constants,
 Marpa can still calculate them.
-Here is a very general method:
-First,
-determine which of the application's nullable symbols have a dynamic semantics.
+Here is the most general method:
+
+=over
+
+=item *
+
+Determine which of the application's nullable symbols have a dynamic semantics.
 Call these the B<dynamic nullables>.
+
+=item *
 Let the C<null_value> property of every dynamic nullable be a hash key.
+
+=item *
 For every rule with a dynamic nullable on its right hand side,
 write the rule's semantic Perl closure
 so that it looks up that hash key
 in a hash whose values are Perl closures.
+
+=item *
 The Perl closure can then use an arbitrarily complex semantics for
 calculating the value of the dynamic nullable.
+
+=back
 
 =head1 COPYRIGHT AND LICENSE
 
