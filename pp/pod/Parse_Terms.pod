@@ -69,14 +69,24 @@ Otherwise, B<parsing> will mean parsing in the loose sense.
 Parsers often use a
 B<lexical analyzer> to convert B<raw input>,
 usually B<input text>,
-into a series of B<tokens>.
+into a B<token stream>,
+which is a series of B<tokens>.
 Each token represents a B<symbol> of the grammar and has a B<value>.
+A lexical analyzer is often called a B<lexer> or a B<scanner>,
+and B<lexical analysis> is often called B<lexing> or B<scanning>.
+
 The series of symbols represented by the series of tokens
 becomes the B<symbol string input>
 seen by the recognizer.
 The B<symbol string input> is also called the B<input sentence>.
-A lexical analyzer is often called a B<lexer> or a B<scanner>,
-and B<lexical analysis> is often called B<lexing> or B<scanning>.
+
+By default, Marpa uses the token stream model of input.
+Marpa also allows alternative input models.
+These are new to Marpa, so that their terminology is
+of necessity non-standard.
+The terminology for alternative input models
+is L<the document which describes the models
+themselves|Marpa::PP::Advanced::Models>.
 
 =head2 Productions
 
@@ -164,25 +174,39 @@ is a B<non-trivial> derivation.
 
 =back
 
-If the symbol string of length 1
-derives a second symbol string of any length,
-then the symbol contained in the first string
-is said to derive the second symbol string.
-A derivation from a symbol is said to be
-B<trivial>,
-B<non-trivial>, B<direct> or B<indirect>,
-according to whether
-the derivation from the symbol string of length 1 containing that
-symbol is B<trivial>.
-B<non-trivial>, B<direct> or B<indirect>.
-When a symbol produces or derives a symbol string,
-we also say that the symbol B<matches> the symbol string,
-or that the symbol string B<matches> the symbol.
+Technically, a symbol C<X> and a string
+that consists of only that symbol
+are two different things.
+But we often say "the symbol C<X>"
+as shorthand for "the string
+whose only symbol is C<X>".
+For example, if the string containing only the
+symbol C<X> derives a string C<Y>,
+we will usually say simply that "C<X> derives C<Y>".
+
+Derivations are often described as productions
+or symbol matches.
+Wherever symbol or string C<X> derives C<Y>,
+we may also say C<X> B<produces> C<Y>.
+Wherever symbol or string C<X> derives C<Y>,
+we may also say that C<Y> B<matches> C<X>
+or that C<X> B<matches> C<Y>.
+It is particularly common to say that
+C<X> matches C<Y> when C<Y> is a sentence.
 
 In any parse, one symbol is distinguished as the B<start symbol>.
 The parse of an input is B<successful>
 if and only if the start symbol produces the input sentence
 according to the grammar.
+The set of all input sentences that 
+a B<grammar> and a B<start symbol>
+will successfully parse is their B<language>.
+Traditionally,
+the start symbol is part of a grammar's definition.
+If we regard the start symbol as fixed,
+B<language> of 
+a B<grammar> and its B<start symbol>
+is the B<language> of the B<grammar>.
 
 =head2 Nulling
 
@@ -217,8 +241,8 @@ is called B<unreachable> or B<inaccessible>.
 If any derivation which results in a sentence uses a rule,
 that rule is said to be B<productive>.
 A rule that is not productive is called B<unproductive>.
-A simple case of an unproductive rule is one whose RHS contains a symbol which is not
-a terminal and not on the LHS of any other rule.
+For example, a rule is unproductive unless every symbol on
+its RHS either is a terminal or is the LHS of some other rule.
 A rule which is inaccessible or unproductive is called a
 B<useless> rule.
 Marpa can handle grammars with useless rules.
@@ -250,19 +274,26 @@ and grammars
 which contain both left- and right-recursion.
 
 A B<cycle> is a non-trivial derivation
-from a string of symbols to itself.
-Since the result of a cycle is exactly the same as the beginning of
-a cycle, a cycle is the parsing equivalent of an infinite loop.
-A grammar which contains no cycles is B<cycle-free>.
+of a string of symbols from itself.
+A grammar which is considered B<cycle-free>
+if it is not possible for any parse using that
+grammar to contain a cycle.
 
-A grammar which contains a cycle is called B<infinitely ambiguous>,
-because a grammar with a cycle can repeat that cycle in a derivation
-an arbitrary number of times.
+Traditionally, in fact, almost universally,
+only cycle-free grammars are considered useful.
+This is because
+a cycle can be repeated over and over again,
+even in the derivation of a finite input sentence.
+This makes a cycle
+the parsing equivalent of an infinite loop.
+
+A grammar which contains a cycle is also
+called B<infinitely ambiguous>.
 Marpa can handle cycles,
 and can produce parses for
 infinitely ambiguous grammars.
 
-=head2 Structure
+=head2 Parse Structure
 
 The structure of a parse can be represented as a series of derivation steps from
 the start symbol to the input.
@@ -275,29 +306,70 @@ and the RHS symbols are represented by B<child nodes>.
 The start symbol is the B<root> of the tree.
 The node at the root of the tree is called the B<start node>.
 
-Terminals are B<leaf nodes>.
-Any node with a symbol being used as a terminal is a B<terminal node>.
-In Marpa, symbols on the
-left hand side of empty productions are also B<leaf nodes>.
-If a node is not a B<leaf node>, it is an B<inner node>.
-A B<nulled node> is one that represents a nulled symbol.
+Traditionally,
+a symbol is either a terminal symbol or it is not;
+and a terminal symbol must always be
+used as a terminal symbol.
+Marpa is non-traditional in
+allowing terminal symbols to be used as
+non-terminals.
+In Marpa, a symbol is a B<terminal> symbol if
+it is one that
+can be used as a terminal.
+In Marpa,
+by default, all symbols are terminal symbols.
 
-If, for a given grammar and a given input,
-more than one derivation tree is possible,
-we say that parse is B<ambiguous>.
-The standard definition of an ambiguous grammar is that,
-if any parse from a grammar is ambiguous,
-the grammar is B<ambiguous>.
+Traditionally, and in Marpa as well,
+every node is either a 
+B<inner node> or a 
+B<leaf node>.
+In Marpa,
+B<leaf nodes> are of
+two kinds:
 
-Marpa is unusual in that it allows ambiguous B<input>,
-so for Marpa this definition needs to be modified.
-In the Marpa context, a grammar is called ambiguous,
-if for any unambiguous input,
-some parse from that grammar is ambiguous.
-Marpa can handle ambiguous grammars, whether ambiguity
-is defined in the standard way,
-or used with its Marpa-specific
-meaning.
+=over
+
+=item *
+
+Nodes for nulled symbols.
+In Marpa, nulled symbols are symbol on the
+left hand side of empty productions.
+A node for a nulled symbol is called
+a B<nulled node>.
+
+=item *
+
+Nodes for symbols being used as terminals.
+
+=back
+
+=head2 Ambiguity
+
+Marpa allows ambiguous grammars.
+Traditionally
+we say that a parse is B<ambiguous> if,
+for a given grammar and a given input,
+more than one derivation tree is possible.
+However, Marpa allows ambiguous input tokens,
+which the traditional definition does not take
+into account.
+If Marpa used
+the traditional definition,
+all grammars would be
+ambiguous except those grammars which allowed only
+the null parse.
+
+It is easiest if the Marpa definition and the
+traditional definition were extensionally
+equivalent ---
+that is, if Marpa's set of ambiguous grammars
+was exactly the same as the set of traditionally
+ambiguous grammars.
+This can be accomplished by using a slightly
+altered definition.
+In the Marpa context, an B<ambiguous grammar> is a grammar
+that, for some B<unambiguous> input,
+will produce more than one parse result.
 
 =head2 Semantics
 
