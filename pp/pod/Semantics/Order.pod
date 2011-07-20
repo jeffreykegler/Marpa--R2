@@ -30,20 +30,24 @@ of parses, using side effects.
 
 =head2 Duplicate Parses are Eliminated
 
-Marpa defines parse result duplication in terms of the semantics --
-two parse results are the same if no deterministic semantics could
-ever produce two different values for them.
-A parse result is considered to be a B<duplicate> of another
-if a recursive, top-down, evaluation of both parse results
-would apply
+In a single parse series,
+Marpa will never return the same parse result twice.
+Marpa regards two parses as being the same if they are
+B<semantic duplicates>.
+
+Two parses are semantic duplicates if
+a recursive, top-down evaluation of each
+applies
 the same rules
 in the same order
 at the same earleme locations.
-
-Two parse results are said to be the same if they
-are duplicates of one another.
-In a single parse series,
-Marpa will never return the same parse result twice.
+When this is the case,
+a deterministic semantics will
+always produce the same value for both parses --
+hence the term "semantic duplicate".
+When the Marpa documentation refers to duplicate
+parses, it will mean semantic duplicates unless otherwise
+stated.
 
 =head2 Default Parse Order
 
@@ -195,10 +199,12 @@ of tracking all instances of these two rules, by location.
 If there is no interest in an actual parse, the ranking actions
 can return C<undef>, which will cause all parses to be discarded.
 
-Detecting ambiguity is one example
-of an application where using the ranking actions
-can be very much faster than the alternative of producing
-all the parse results.
+For applications like
+ambiguity detection,
+an implementation that
+uses the ranking actions
+can be much faster than one which
+produces all the parse results.
 In practical cases,
 the number of parse results grows much more rapidly than
 the number of ambiguities.

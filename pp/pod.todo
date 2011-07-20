@@ -1,9 +1,9 @@
 done 340 pod/Rewrite.pod
 done  89 pod/Support.pod
-todo 151 pod/Tracing.pod
-todo 169 pod/Semantics/Infinite.pod
-todo 239 pod/Advanced/Bibliography.pod
-todo 240 pod/Semantics/Order.pod
+done 151 pod/Tracing.pod
+done 169 pod/Semantics/Infinite.pod
+done 239 pod/Advanced/Bibliography.pod
+done 240 pod/Semantics/Order.pod
 todo 325 pod/Semantics/Null.pod
 todo 348 pod/Parse_Terms.pod
 todo 509 pod/Advanced/Models.pod
