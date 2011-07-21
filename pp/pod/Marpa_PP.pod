@@ -646,8 +646,6 @@ be inherited.
 
 =head1 OTHER DOCUMENTS
 
-=head2 Basic Documents
-
 This document gives a semi-tutorial overview of the entire Marpa API.
 For full details on Marpa's grammar objects and their methods,
 see the
@@ -664,13 +662,9 @@ Techniques for tracing and for debugging your Marpa grammars
 are described in the
 L<Marpa::PP::Tracing> document and the
 L<Marpa::PP::Debug> document.
-
-=head2 Academic Documents
-
 For those with a theoretical bent,
 my sources, and other useful references, are described in
 L<Marpa::PP::Advanced::Bibliography>.
-L<Marpa::PP::Advanced::Algorithm> describes the Marpa algorithm itself.
 
 =head1 AUTHOR
 

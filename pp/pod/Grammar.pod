@@ -436,9 +436,8 @@ were nullable, unproductive, inaccessible, or empty.
 The C<vlhs>, C<vrhs> and C<real> comments
 show rule settings relevant in tracking "virtual"
 internal symbols.
-Details on virtual symbols
-can be found in
-L<the implementation document|Marpa::PP::Advanced::Implementation>.
+These are used internally,
+to optimize evaluation.
 
 =head2 show_symbols
 
