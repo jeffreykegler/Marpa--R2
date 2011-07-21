@@ -220,10 +220,10 @@ when you are writing the code for the value action.
 In a sequence rule,
 the number of right hand side symbols is not known
 until node evaluation time.
-The Perl closure that is the value action
-of a sequence rule node is written in
-the same way
-that you write any Perl closure that handles
+The value action of
+of a sequence rule node
+must be a Perl closure capable of
+dealing with
 a variable number of arguments.
 
 Sequence semantics work best when
@@ -247,87 +247,30 @@ C<@_> array.
 
 =head2 Null Nodes
 
-=head3 The Default Null Semantics
-
 A B<null node> is a node which derives the zero-length,
 or empty string.
 By default, the value of a null node is a Perl C<undef>.
-This is adequate for many applications.
-
-=head3 More Complex Null Semantics
-
-This document contains all that most
-users will need to know about implementing their
-null semantics.
-Users who need to implement a very complex null semantics,
+This is adequate for many applications, but Marpa
+allows other values to be specified for null nodes.
+In fact, Marpa allows
+allows an arbitrarily complex null semantics.
+Readers interested in null nodes with values
+other than C<undef>,
 or who simply would like
 to read a more detailed account of how Marpa's
 null semantics works,
-can turn to L<the document on
+should turn to L<the document on
 null semantics|Marpa::PP::Semantics::Null>.
 
-An application can assign null values to symbols.
-If the null node is for a symbol, its null value
-is the null value of its symbol.
-A null node can be for a rule.
-In that case, its null value is the null value of
-the rule's LHS.
-
-An application can also change a grammar's
-default null value,
-which is C<undef>, to a constant,
-using the grammar's
-L<C<default_null_value>|Marpa::PP::Grammar/default_null_value>
-named argument.
-
-Specifying null semantics on a per-symbol basis is a
-natural way to do it, and the result is essentially what
-the user would expect.
-Several special issues should be watched for.
-
-=head3 Nulled Subtrees
-
-Basing the null value on the node's symbol implies
-that, in a null subtree, the semantics of the topmost null
-node will be the only thing that matters.
-In computing its null value, a node never takes into
-account the values of its child nodes.
-
-=head3 Nullable Rules
-
-Nullable rules derive their values from two different
-sources, depending on whether they are nulled or not.
-If a nullable rule node B<is not> nulled, its value comes from the
-semantics of its rule.
-If a nullable rule node B<is> nulled, its value is the null value
-of the rule's LHS symbol.
-
-It is up to the application to make sure that, for nullable rules,
-the rule semantics and the null value of the LHS symbol
-"make sense" when used together in an application.
-This can always be done, if necessary by making sure the LHS
-of the nullable rule is a dedicated symbol -- one that
-serves that purpose and that purpose only.
-A LHS symbol can be regarded as dedicated if it
-is not a terminal and is not
-the LHS of any other rule.
-
-=head3 Nullable Sequence Rules
-
-The remarks just made about nullable rules apply to nullable sequence
-rules.
-A sequence rule is nullable if
-the minimum number of items in it is zero.
-A nullable sequence which is nulled has the null value of its LHS symbol.
-A nullable sequence which is not nulled has the semantics of its rule.
-
-=head1 SEMANTIC PHASES
+=head1 OVERVIEW OF THE SEMANTIC PHASES
 
 Most applications will find that the order in which
 Marpa executes its semantics "just works".
 This section describes that order in detail.
 These details can matter in some applications,
 for example, those which exploit side effects.
+
+=head2 Evaluations, Parse Results and Parse Series
 
 When the semantics are applied to a parse,
 it produces a value called a B<parse result>.
@@ -359,6 +302,45 @@ call to the
 L<the C<reset_evaluation>
 method|Marpa::PP::Recognizer/"reset_evaluation">,
 or until the recognizer is destroyed.
+
+=head2 Summary of the Phases
+
+While processing a recognizer, we have
+
+=over 
+
+=item * A Recognizer Setup Phase, followed by
+
+=item * the processing of zero or more parse series.
+
+=back
+
+While processing a parse series, we have:
+
+=over
+
+=item * A Series Setup Phase, followed by
+
+=item * an optional Ranking Phase, followed by
+
+=item * the processing of zero or more parse results.
+
+=back
+
+While processing a parse result, we have:
+
+=over
+
+=item * A Result Setup Phase, followed by
+
+=item * a Tree Traveral Phase.
+
+=back
+
+Within the Tree Traversal Phase, from the point of view of
+each rule node, we have Node Evaluation Time.
+
+=head1 THE SEMANTIC PHASES IN DETAIL
 
 =head2 Recognizer Setup Phase
 
@@ -457,43 +439,6 @@ Node Evaluation Time is the Tree Traversal Phase,
 seen from the point of view of the individual nodes of the parse tree.
 If a node has a semantic Perl closure,
 it is called at Node Evaluation Time.
-
-=head2 Summary of the Phases
-
-While processing a recognizer, we have
-
-=over 
-
-=item * A Recognizer Setup Phase, followed by
-
-=item * the processing of zero or more parse series.
-
-=back
-
-While processing a parse series, we have:
-
-=over
-
-=item * A Series Setup Phase, followed by
-
-=item * an optional Ranking Phase, followed by
-
-=item * the processing of zero or more parse results.
-
-=back
-
-While processing a parse result, we have:
-
-=over
-
-=item * A Result Setup Phase, followed by
-
-=item * a Tree Traveral Phase.
-
-=back
-
-Within the Tree Traversal Phase, from the point of view of
-each rule node, we have Node Evaluation Time.
 
 =head1 FINDING THE ACTION FOR A RULE
 
@@ -633,7 +578,7 @@ silently executing unintended code.
 
 Generally it is a good practice to keep
 the semantic Perl closures
-into their own namespace.
+in their own namespace.
 But if, for example, the user wants to leave the
 semantic closures in the C<main> namespace,
 she can specify
@@ -741,11 +686,11 @@ static methods are available for the
 ranking actions only.
 This may change in the future.
 
-=head2 Marpa::PP::location
+=head2 Marpa::location
 
 Returns the earleme location of the origin (or start) of the rule.
 
-=head2 Marpa::PP::token_location
+=head2 Marpa::token_location
 
 Returns the earleme location of the token.
 Intended for use in callbacks
@@ -753,11 +698,12 @@ associated with empty rules and nulling symbols.
 
 =head1 INFINITE LOOPS
 
-Marpa allows grammar with infinite loops.
-These are universally considered useless in practical applications,
-and Marpa supports all the semantics for these that should be necessary
+Marpa allows grammars with infinite loops.
+These are universally considered useless in practical applications.
+Marpa supports all the semantics for these that should be necessary
 and more.
-Marpa allows infinite loops because doing so allows it to accurately
+Because it can handle
+infinite loops, Marpa can accurately
 claim to support B<every grammar> that can be written in BNF.
 
 Marpa applies semantics to infinite loops by breaking the loop at
@@ -771,8 +717,8 @@ In particular, a precise definition of where loops are broken
 would allow applications to depend on the details of the structure
 of infinite loops.
 But practical interest in this seems non-existent.
-For those curious,
-further details can be found in a L<separate
+For those who want to know more,
+the details are in a L<separate
 document|Marpa::PP::Semantics::Infinite>.
 
 =head1 COPYRIGHT AND LICENSE
