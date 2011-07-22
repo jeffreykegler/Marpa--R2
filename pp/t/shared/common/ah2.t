@@ -388,7 +388,7 @@ END_OF_SET4
 
 my $input_length = 4;
 EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
-    my $current_earleme = my $furthest = my $last_completed =
+    my $furthest = my $last_completed =
         List::Util::min( $earleme, $input_length );
     Marpa::Test::is(
         $recce->show_earley_sets(1),

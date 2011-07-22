@@ -186,8 +186,7 @@ the C<alternative> method returns 0.
 =head2 current_earleme
 
 =for Marpa::PP::Display
-name: Debug Example Part 2
-partial: 1
+name: current_earleme Example
 normalize-whitespace: 1
 
     my $current_earleme = $recce->current_earleme();

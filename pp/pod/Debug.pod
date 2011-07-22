@@ -19,20 +19,20 @@ Marpa::PP::Debug - Marpa Grammar Debugging
 
 =head1 OVERVIEW
 
-This document describes Marpa's
-more powerful general-use tracing
-and debugging techniques in detail.
+This document describes
+the more powerful of
+Marpa's
+tracing and debugging techniques.
 It assumes that you have written
 a grammar for your Marpa application,
 and that something is going wrong.
-It is a very good idea to
-read
+You should read
 L<the overview document
 for tracing
 problems|Marpa::PP::Tracing> before
 reading this document.
 
-=head1 DESCRIPTION
+=head1 INTRODUCTION TO EARLEY PARSING
 
 To read the
 L<C<show_progress>|Marpa::PP::Recognizer/"show_progress">
@@ -101,8 +101,11 @@ A completion indicates that a rule has been fully recognized.
 
 =head2 Earley Items
 
-In dotted rules, Earley's algorithm has all but one piece of the information it needs to track.
-The final piece is the second of the two "wheres": where in the input stream.
+The dotted rules contain
+all but one piece of the information
+that Earley's algorithm
+needs to track.
+The missing piece is the second of the two "wheres": where in the input stream.
 To associate input stream location and dotted rules, Earley's algorithm uses what are now called Earley items.
 
 A convenient way to think of an B<Earley item> is as a triple, or 3-tuple,
@@ -121,7 +124,8 @@ Second,
 the input stream location where a rule ends is not tracked unless the
 dotted rule is a completion.
 In other cases,
-we don't know if the rule will
+an Earley item does not tell us
+if a rule will
 ever be completed,
 much less at which location.
 
@@ -161,7 +165,7 @@ where the problem is,
 and use the Marpa diagnostics and tracing facilities
 to "discover" it.
 
-=head1 THE FIRST WARNING
+=head1 FIRST WARNING
 
 Right off the bat, we get two warning messages:
 
@@ -193,14 +197,15 @@ tracing facilities, let's pretend we have not
 had our morning coffee,
 and that we miss the significance of these warning messages.
 
-=head1 THE trace_terminals OUTPUT
+=head1 OUTPUT FROM trace_terminals
 
 Before looking at Marpa's progress reports,
 it is usually best to orient yourself by looking
 at the output from
 L<C<trace_terminals>|Marpa::PP::Recognizer/trace_terminals>.
-Typically, you will be interested in what were the last tokens
-to be accepted, and perhaps what tokens the recognizer was
+Typically, you will be interested in the last tokens
+to be accepted, and perhaps also
+in the tokens the recognizer was
 looking for when it didn't find what it wanted.
 Sometimes that information alone is enough to make it clear
 where the problem is.
@@ -224,14 +229,14 @@ normalize-whitespace: 1
 
 A note in passing: Marpa shows the location of the tokens it accepts
 as a range of locations.  For C<Number>, the range is "C<2-3>", indicating that
-earleme 2 is the start location and earleme 3 is the end location.
-That level of detail will seem like overkill in ordinary applications,
-where every token has length 1.
+the token starts at location 2 and ends at location 3.
+In its default input model, all tokens have length 1,
+so this is clearly information overkill.
 But Marpa allows other input models, and in those models the information
 about start and end location of the token is important.
 
 Returning to the problem at hand:
-We notice that at earleme 3 we are expecting a C<Multiply> operator,
+We notice that at location 3 we are expecting a C<Multiply> operator,
 but not an C<Add> operator.
 That should strike us as strange,
 and send us back to the grammar.
@@ -240,7 +245,7 @@ assume that we are slow on the uptake today,
 and that this does not clue us in.
 We move on.
 
-=head1 THE show_progress OUTPUT
+=head1 OUTPUT FROM show_progress
 
 Marpa's most powerful tool for debugging
 grammars is its progress report, which
@@ -255,9 +260,9 @@ If a parse is at all large, you will usually need to be selective.
 The progress report that is usually of most interest is
 the one for the Earley set
 that you were working on when the error occurred.
-This is called the "current earleme".
-In our example the current earleme is earleme 3.
-You can find out the current earleme using the
+This is called the "current location".
+In our example the current location is location 3.
+You can find out the current location using the
 L<C<current_earleme> method|Marpa::PP::Recognizer/"current_earleme">.
 But you can also simply call
 L<C<show_progress>|Marpa::PP::Recognizer/"show_progress">
@@ -266,8 +271,8 @@ By default,
 L<C<show_progress>|Marpa::PP::Recognizer/"show_progress">
 prints out only the progress reports for the current earleme.
 
-Here are the progress reports for the current earleme,
-earleme 3,
+Here are the progress reports for the current location,
+location 3,
 from our example.
 
 =for Marpa::PP::Display
@@ -322,24 +327,24 @@ In what follows we won't need the rule number.
 
 The "C<@0-3>" describes the location of the dotted rule in
 the parse.  In its simplest form, the location field is two
-earleme numbers, separated by a hyphen.
-The first earleme number is the origin, the place where Marpa
+location numbers, separated by a hyphen.
+The first location number is the origin, the place where Marpa
 first started recognizing the rule.
-The last earleme number is the dot earleme, the earleme location
+The last location number is the dot location, the location location
 of the dot in a dotted rule.
-"C<@0-3>" say that this rule began at earleme 0, and that the
+"C<@0-3>" say that this rule began at location 0, and that the
 dot is at location 3.
 
-Earleme 3 is the current earleme and this is no coincidence.
-Whenever we are displaying the progress report for an earleme,
+Earleme 3 is the current location and this is no coincidence.
+Whenever we are displaying the progress report for an location,
 all the progress report lines will have their dot location at
-that earleme.
+that location.
 
 As an aside, notice that
 the left hand side symbol is C<Expression[']>.
 That is is Marpa's special start symbol.
 The presence of a completed start rule in our
-progress report indicates that if our input ended at earleme 3, it would be a valid sentence
+progress report indicates that if our input ended at location 3, it would be a valid sentence
 in the language of our grammar.
 
 Let's look at another progress report line:
@@ -370,7 +375,7 @@ than one, a count field is included in
 the progress report line.
 Here the "C<x2>" indicates that there are two
 instances of C<Factor -E<gt> Factor . Multiply Factor> at
-this earleme.
+this location.
 
 Multiple instances of a dotted rule
 will differ in their origin,
@@ -379,11 +384,11 @@ the location field of the
 progress report line.
 Here the location field is "C<@0,2-3>",
 which indicates that one instance of this dotted rule has
-its origin at earleme 0, and the other has its origin
-at earleme 2.
+its origin at location 0, and the other has its origin
+at location 2.
 All instances reported on a single progress report line
 will always have the same dot location, and in this case
-it is earleme 3.
+it is location 3.
 
 Predicted rules also appear in progress reports:
 
@@ -404,14 +409,14 @@ But final (or completed) and predicted rules can be important
 and the initial C<"F"> and C<"P"> make these lines easy to spot.
 
 Notice that in the predicted rule,
-the origin is the same as the dot earleme.
+the origin is the same as the dot location.
 This will always be the case with predicted rules.
 
-For any given earleme,
+For any given location,
 no predicted rule has more than one instance.
 For other dotted rules,
 there may be many instances of the dotted
-rule at a single earleme.
+rule at a single location.
 In grammars with right recursion,
 the number of instances
 is limited only by the
@@ -420,7 +425,7 @@ The length of a recursion is limited primarily by
 the available memory.
 
 When there are many
-instances of a dotted rule at a single earleme location,
+instances of a dotted rule at a single location,
 it may be inconvenient to show all the origins in a comma-separated
 list.
 In that case the origins in the location field are shown as a
@@ -444,7 +449,7 @@ normalize-whitespace: 1
 =head2 OK!  Now to Find the Bug
 
 Here again are progress reports
-at the earleme where things went wrong:
+at the location where things went wrong:
 
 =for Marpa::PP::Display
 name: Debug Example Progress Report
@@ -479,8 +484,8 @@ We don't find any.
 Next, we ask ourselves, what is the earliest place the 
 "C<Term -E<gt> Term Add Term>" rule should be appearing?
 The answer is that 
-there should be a prediction of "C<Term -E<gt> Term Add Term>" at earleme 0.
-So we look at the predictions at earleme 0.
+there should be a prediction of "C<Term -E<gt> Term Add Term>" at location 0.
+So we look at the predictions at location 0.
 
 =for Marpa::PP::Display
 name: Debug Example Progress Report
@@ -546,13 +551,17 @@ and see that our C<Expression -E<gt> Factor> rule is wrong.
 It should be C<Expression -E<gt> Term>.
 Change that and the problem is fixed.
 
-=head1 COMPLICATIONS
+=head1 GRAMMAR REWRITING
 
 Internally, Marpa rewrites Earley items and grammars.
 L<C<show_progress>|Marpa::PP::Recognizer/"show_progress">
-hides most of this from the user.
+hides most of this from the user, but not all of it.
 But some aspects of Marpa's rewrites are relevant
 or useful to know.
+For those interested,
+Marpa's grammar rewrites are described in complete
+detail in a 
+L<Marpa::PP::Rewrite>
 
 =head2 Special Symbols
 
@@ -732,9 +741,7 @@ perltidy: '-dcsc -sil=0'
         last TOKEN if not defined $recce->read( @{$token_and_value} );
     }
 
-    my $current_earleme = $recce->current_earleme();
-
-    $progress_report = $recce->show_progress( 0, $current_earleme );
+    $progress_report = $recce->show_progress( 0, -1 );
 
 =for Marpa::PP::Display::End
 

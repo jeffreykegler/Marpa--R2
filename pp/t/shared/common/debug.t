@@ -106,9 +106,7 @@ TOKEN: for my $token_and_value (@tokens) {
     last TOKEN if not defined $recce->read( @{$token_and_value} );
 }
 
-my $current_earleme = $recce->current_earleme();
-
-$progress_report = $recce->show_progress( 0, $current_earleme );
+$progress_report = $recce->show_progress( 0, -1 );
 
 # Marpa::PP::Display::End
 
