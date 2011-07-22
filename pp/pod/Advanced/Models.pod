@@ -189,7 +189,7 @@ the C<alternative> method returns 0.
 name: current_earleme Example
 normalize-whitespace: 1
 
-    my $current_earleme = $recce->current_earleme();
+    $current_earleme = $recce->current_earleme();
 
 =for Marpa::PP::Display::End
 
