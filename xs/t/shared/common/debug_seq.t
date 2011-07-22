@@ -55,11 +55,11 @@ my $recce =
 # Marpa::PP::Display
 # name: Recognizer check_terminal Synopsis
 
-my $is_document_a_terminal = $recce->check_terminal('Document');
+my $is_symbol_a_terminal = $recce->check_terminal('Document');
 
 # Marpa::PP::Display::End
 
-Test::More::ok( !$is_document_a_terminal, 'LHS terminal?' );
+Test::More::ok( !$is_symbol_a_terminal, 'LHS terminal?' );
 
 my $token_ix = 0;
 

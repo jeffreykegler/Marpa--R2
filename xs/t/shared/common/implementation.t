@@ -27,9 +27,6 @@ BEGIN {
     Test::More::use_ok('Marpa::PP');
 }
 
-# Marpa::PP::Display
-# name: Implementation Example
-
 my $grammar = Marpa::Grammar->new(
     {   start          => 'Expression',
         actions        => 'My_Actions',
@@ -79,18 +76,11 @@ sub My_Actions::first_arg { shift; return shift; }
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-# Marpa::PP::Display::End
-
 Marpa::Test::is( 49, $value, 'Implementation Example Value 1' );
 
 $recce->reset_evaluation();
 
 my $show_symbols_output = $grammar->show_symbols();
-
-# Marpa::PP::Display
-# name: Implementation Example show_symbols Output
-# start-after-line: END_SYMBOLS
-# end-before-line: '^END_SYMBOLS$'
 
 Marpa::Test::is( $show_symbols_output,
     <<'END_SYMBOLS', 'Implementation Example Symbols' );
@@ -103,14 +93,7 @@ Marpa::Test::is( $show_symbols_output,
 6: Expression['], lhs=[5] rhs=[]
 END_SYMBOLS
 
-# Marpa::PP::Display::End
-
 my $show_rules_output = $grammar->show_rules();
-
-# Marpa::PP::Display
-# name: Implementation Example show_rules Output
-# start-after-line: END_RULES
-# end-before-line: '^END_RULES$'
 
 Marpa::Test::is( $show_rules_output,
     <<'END_RULES', 'Implementation Example Rules' );
@@ -122,14 +105,7 @@ Marpa::Test::is( $show_rules_output,
 5: Expression['] -> Expression /* vlhs real=1 */
 END_RULES
 
-# Marpa::PP::Display::End
-
 my $show_AHFA_output = $grammar->show_AHFA();
-
-# Marpa::PP::Display
-# name: Implementation Example show_AHFA Output
-# start-after-line: END_AHFA
-# end-before-line: '^END_AHFA$'
 
 Marpa::Test::is( $show_AHFA_output,
     <<'END_AHFA', 'Implementation Example AHFA' );
@@ -188,14 +164,7 @@ Factor -> Factor . Multiply Factor
  <Multiply> => S8; S9
 END_AHFA
 
-# Marpa::PP::Display::End
-
 my $show_earley_sets_output = $recce->show_earley_sets();
-
-# Marpa::PP::Display
-# name: Implementation Example show_earley_sets Output
-# start-after-line: END_EARLEY_SETS
-# end-before-line: '^END_EARLEY_SETS$'
 
 my $expected_earley_sets = <<'END_EARLEY_SETS';
 Last Completed: 5; Furthest: 5
@@ -229,8 +198,6 @@ S5@4-5 [p=S7@4-4; s=Number; t=\7]
 S11@4-5 [p=S7@4-4; c=S4@4-5]
 END_EARLEY_SETS
 
-# Marpa::PP::Display::End
-
 Marpa::Test::is( $show_earley_sets_output,
     $expected_earley_sets, 'Implementation Example Earley Sets' );
 
@@ -242,11 +209,6 @@ close $trace_fh;
 
 $value = $value_ref ? ${$value_ref} : 'No Parse';
 Marpa::Test::is( 49, $value, 'Implementation Example Value 2' );
-
-# Marpa::PP::Display
-# name: Implementation Example trace_values Output
-# start-after-line: END_TRACE_OUTPUT
-# end-before-line: '^END_TRACE_OUTPUT$'
 
 my $expected_trace_output = <<'END_TRACE_OUTPUT';
 Pushed value from R2:1@0-1S3@0: Number = \42
@@ -273,8 +235,6 @@ Calculated and pushed value: 49
 New Virtual Rule: R5:1@0-5C0@0, rule: 5: Expression['] -> Expression
 Symbol count is 1, now 1 rules
 END_TRACE_OUTPUT
-
-# Marpa::PP::Display::End
 
 Marpa::Test::is( $trace_output,
     $expected_trace_output, 'Implementation Example Trace Output' );

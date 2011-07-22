@@ -56,6 +56,16 @@ my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my $current_earleme = $recce->tokens( \@tokens );
 
+# The call to current earlem is Useless,
+# but provides an example for the docs
+
+# Marpa::PP::Display
+# name: current_earleme Example
+
+$current_earleme = $recce->current_earleme();
+
+# Marpa::PP::Display::End
+
 $progress_report = $recce->show_progress();
 
 my $value_ref = $recce->value;

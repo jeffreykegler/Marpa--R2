@@ -807,25 +807,44 @@ END_OF_STRUCTURE
 } ## end BEGIN
 
 sub Marpa::XS::Recognizer::show_progress {
-    my ( $recce, $start_ix, $end_ix ) = @_;
+    my ( $recce, $start_ordinal, $end_ordinal ) = @_;
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c   = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
     update_earleme_map($recce);
+
     my $last_ix = $recce_c->furthest_earleme();
-    $start_ix //= $recce_c->current_earleme();
-    if ( $start_ix < 0 or $start_ix > $last_ix ) {
-        return
-            "Marpa::XS::Recognizer::show_progress start index is $start_ix, must be in range 0-$last_ix";
+    my $last_ordinal = $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]->[$last_ix];
+
+    my $start_ix;
+    if ( not defined $start_ordinal ) {
+        $start_ix = $recce_c->current_earleme();
     }
-    $end_ix //= $start_ix;
-    if ( $end_ix < 0 ) {
-        $end_ix += $last_ix + 1;
+    else {
+        if ( $start_ordinal < 0 or $start_ordinal > $last_ordinal ) {
+            return
+                "Marpa::PP::Recognizer::show_progress start index is $start_ordinal, "
+                . "must be in range 0-$last_ordinal";
+        }
+        $start_ix = $recce_c->earleme($start_ordinal);
+    } ## end else [ if ( not defined $start_ordinal ) ]
+
+    my $end_ix;
+    if (not defined $end_ordinal) {
+        $end_ix = $start_ix;
+    } else {
+	my $end_ordinal_argument = $end_ordinal;
+	if ($end_ordinal < 0) {
+	   $end_ordinal += $last_ordinal + 1;
+	}
+	if ( $end_ordinal < 0 ) {
+	    return
+		"Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
+		. sprintf " must be in range %d-%d", -($last_ordinal+1), $last_ordinal;
+	}
+        $end_ix = $recce_c->earleme($end_ordinal);
     }
-    if ( $end_ix < 0 or $end_ix > $last_ix ) {
-        return
-            "Marpa::XS::Recognizer::show_progress end index is $end_ix, must be in range 0-$last_ix";
-    }
+
     my $text = q{};
     for my $current ( $start_ix .. $end_ix ) {
 	my %by_rule_by_position = ();
