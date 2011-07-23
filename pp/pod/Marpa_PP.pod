@@ -654,8 +654,10 @@ For full details on Marpa's recognizer objects and their methods,
 see the
 L<Marpa::PP::Recognizer> document.
 
-L<Marpa::PP::Parse_Terms> is intended as a quick refresher in
-parsing terminology.
+L<Marpa::PP::Vocabulary> is intended as a quick refresher in
+parsing terminology,
+emphasizing how the standard terms are used
+in the Marpa context.
 Marpa's standard semantics are fully described in the
 L<Marpa::PP::Semantics> document.
 Techniques for tracing and for debugging your Marpa grammars
