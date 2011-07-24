@@ -1,4 +1,5 @@
 Remove Marpa::XS::length static method
+Create a recce->latest_set method
 
 PP pod todo
 done  89 pod/Support.pod

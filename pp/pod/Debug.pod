@@ -260,16 +260,11 @@ If a parse is at all large, you will usually need to be selective.
 The progress report that is usually of most interest is
 the one for the Earley set
 that you were working on when the error occurred.
-This is called the "current location".
+This is called the B<current location>.
 In our example the current location is location 3.
-You can find out the current location using the
-L<C<current_earleme> method|Marpa::PP::Recognizer/"current_earleme">.
-But you can also simply call
-L<C<show_progress>|Marpa::PP::Recognizer/"show_progress">
-without arguments.
 By default,
 L<C<show_progress>|Marpa::PP::Recognizer/"show_progress">
-prints out only the progress reports for the current earleme.
+prints out only the progress reports for the current location.
 
 Here are the progress reports for the current location,
 location 3,
@@ -335,7 +330,7 @@ of the dot in a dotted rule.
 "C<@0-3>" say that this rule began at location 0, and that the
 dot is at location 3.
 
-Earleme 3 is the current location and this is no coincidence.
+The current location is location 3, and this is no coincidence.
 Whenever we are displaying the progress report for an location,
 all the progress report lines will have their dot location at
 that location.
@@ -426,12 +421,12 @@ the available memory.
 
 When there are many
 instances of a dotted rule at a single location,
-it may be inconvenient to show all the origins in a comma-separated
+it is inconvenient to show all the origins in a comma-separated
 list.
 In that case the origins in the location field are shown as a
 range, with the earliest separated from the most recent
 by a "C<...>".
-The example is this document contains no lines with
+The example in this document contains no lines with
 a large number of
 instances, but here is an example from another grammar.
 This is the progress report line for
@@ -556,12 +551,11 @@ Change that and the problem is fixed.
 Internally, Marpa rewrites Earley items and grammars.
 L<C<show_progress>|Marpa::PP::Recognizer/"show_progress">
 hides most of this from the user, but not all of it.
-But some aspects of Marpa's rewrites are relevant
-or useful to know.
+Some aspects of Marpa's rewrites
+are useful to know.
 For those interested,
 Marpa's grammar rewrites are described in complete
-detail in a 
-L<Marpa::PP::Rewrite>
+detail in L<Marpa::PP::Rewrite>.
 
 =head2 Special Symbols
 
@@ -601,8 +595,10 @@ Outwardly, the effect is the same, so much so that you
 might not even notice the absence of the original
 grammar's nulling and empty rules from the progress reports.
 
-To be precise, Marpa allows exactly one nulling rule,
-but this is a rule that it creates internally,
+
+The only nulling rule that
+Marpa allows
+is a rule that it creates internally,
 not one specified by the user.
 If the grammar accepts the null string as valid input,
 Marpa creates a nulling start rule.
@@ -768,6 +764,16 @@ remove-blank-last-line: 1
     Rejected "Add" at 3-4
 
 =for Marpa::PP::Display::End
+
+Note the use of the term "earleme".
+If you are using the default input model,
+you can assume that earleme means "location":
+the earleme
+and the location will always be exactly the same.
+Advanced users, using alternative input models,
+may set it up so that earleme and location are
+two different things,
+and in that case the distinction will matter.
 
 =head2 Progress Output
 
