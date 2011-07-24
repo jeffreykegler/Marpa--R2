@@ -61,7 +61,8 @@ These concepts were explained in L<the main document for
 the recognizer|Marpa::PP::Recognizer> on the assumption
 that the default input model was in use.
 This document revises those explanations as necessary
-to allow for the alternative input models.
+to take into
+account the alternative input models.
 
 =head2 Token Streams
 
@@ -125,12 +126,8 @@ tokens may be longer than 1 earleme, and
 the furthest earleme and the current earleme may be far apart.
 This becomes an issue when
 parsing is finished.
-In alternative input models,
-calling
-the recognizer's L<C<earleme_complete>|/"earleme_complete"> method at the
-end of input is not enough to ensure that all input has been processed.
-The application must also call the
-recognizer's L<C<end_input>|/"end_input"> method to ensure
+Alternative input models use
+the recognizer's L<C<end_input>|/"end_input"> method to ensure
 that processing of input catches up to the furthest earleme.
 
 =head1 METHODS
@@ -147,7 +144,7 @@ normalize-whitespace: 1
 =for Marpa::PP::Display::End
 
 The C<alternative> method is the most general method for reading
-input, and is therefore used in alternative input models.
+input, and is used in alternative input models.
 It takes three arguments, only the first of which is required.
 
 The first two arguments are similar to those of the recognizer's
@@ -175,13 +172,7 @@ the C<complete_earleme> method must be called.
 On success, C<alternative> returns the current earleme.
 On failures, other than the rejection of a token in interactive mode,
 C<alternative> throws an exception.
-
 If the token is rejected, C<alternative> returns a Perl C<undef>.
-The user checking for token
-rejection must be careful to test that the return value is undefined,
-and not merely a Perl false.
-When a token is accepted at earleme 0,
-the C<alternative> method returns 0.
 
 =head2 current_earleme
 
@@ -222,12 +213,13 @@ All tokens read using the C<alternative> method are read at the same
 location -- the current earleme.
 A C<earleme_complete> call causes the tokens
 read using the C<alternative> method to be processed,
-and the current earleme advanced.
+and the current earleme to be advanced.
 
 C<earleme_complete> may be called even if the C<alternative>
 method has been not called since the last
 call to C<earleme_complete>.
-This will create an earleme with no tokens.
+This will create an earleme with no tokens,
+which is often useful.
 
 =head2 exhausted
 
@@ -338,11 +330,11 @@ When potentially ambiguous lexing occurs,
 it becomes possible for there to be more
 than one sequence of tokens.
 
-An B<actual ambiguity> only occurs if
+An B<actual lexical ambiguity> only occurs if
 more than one of the potential token sequences is consistent with
 the grammar.
-If there is no actual ambiguity, Marpa
-will use the only token choice that is
+If there is no actual lexical ambiguity,
+Marpa will use the only token choice that is
 consistent with the grammar.
 
 When lexing is B<actually ambiguous>, Marpa
@@ -351,8 +343,8 @@ consistent with the grammar.
 When the lexing in a parse is actually ambiguous,
 the parse will be ambiguous.
 From the point of view of Marpa's semantics,
-ambiguity caused by lexing is exactly the
-same as ambiguity caused by an ambiguous grammar.
+ambiguities caused by lexing look the
+same as ambiguities caused by an ambiguous grammar.
 
 In the standard
 terminology,
