@@ -5,8 +5,8 @@ done 239 pod/Advanced/Bibliography.pod
 done 240 pod/Semantics/Order.pod
 done 325 pod/Semantics/Null.pod
 done 340 pod/Rewrite.pod
+done 807 pod/Semantics.pod
 final 348 pod/Parse_Terms.pod
-final 807 pod/Semantics.pod
 todo 509 pod/Advanced/Models.pod
 todo 586 pod/Recognizer.pod
 todo 795 pod/Marpa_PP.pod

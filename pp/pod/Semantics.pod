@@ -220,7 +220,7 @@ when you are writing the code for the value action.
 In a sequence rule,
 the number of right hand side symbols is not known
 until node evaluation time.
-The value action of
+The value action
 of a sequence rule node
 must be a Perl closure capable of
 dealing with
@@ -630,7 +630,7 @@ Resolution of the action object constructor is
 resolution of the B<action object constructor name>.
 The action object constructor name is
 formed by concatenating
-literal string "C<::new>" to
+the literal string "C<::new>" to
 the value of the C<action_object> named argument.
 
 All standard rules apply when resolving the action
@@ -688,11 +688,11 @@ This may change in the future.
 
 =head2 Marpa::location
 
-Returns the earleme location of the origin (or start) of the rule.
+Returns the location of the origin (or start) of the rule.
 
 =head2 Marpa::token_location
 
-Returns the earleme location of the token.
+Returns the location of the token.
 Intended for use in callbacks
 associated with empty rules and nulling symbols.
 
@@ -708,11 +708,12 @@ claim to support B<every grammar> that can be written in BNF.
 
 Marpa applies semantics to infinite loops by breaking the loop at
 some convenient point, so that an infinite regress is prevented.
-Where the break occurs varies among Marpa implementations.
+The exact location at which the loop is broken
+varies among Marpa implementations.
 If an infinite loop is given a null semantics, which is the default,
 the location of the break will not matter.
 
-More might be done.
+More could be done.
 In particular, a precise definition of where loops are broken
 would allow applications to depend on the details of the structure
 of infinite loops.
