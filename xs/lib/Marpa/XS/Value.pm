@@ -923,7 +923,7 @@ sub do_rank_all {
             my $rank_ref;
             DO_EVAL: {
                 local $Marpa::XS::Internal::CONTEXT =
-                    [ 'and-node', $and_node ];
+                    [ 'and-node', $and_node, $recce ];
                 local $SIG{__WARN__} =
                     sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
                 $eval_ok = eval { $rank_ref = $closure->(); 1; };
