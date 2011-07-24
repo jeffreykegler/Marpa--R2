@@ -81,7 +81,7 @@ on it for anything mission-critical.
 
 =head2 Overview
 
-L<Marpa::PP> parses any language whose
+Marpa parses any language whose
 grammar can be written in BNF.
 That includes recursive grammars,
 ambiguous grammars, infinitely ambiguous grammars and
@@ -114,10 +114,11 @@ according to a semantics.
 
 In Marpa these three tasks
 are, for the most part, distinct phases.
-Grammars are L<Marpa::PP::Grammar> objects.
+Grammars are
+L<C<Marpa::Grammar>|Marpa::PP::Grammar> objects.
 The reading of input and the evaluation of the parse
 according to the semantics is performed by
-L<Marpa::PP::Recognizer> objects.
+L<C<Marpa::Recognizer>|Marpa::PP::Recognizer> objects.
 
 =head1 EXAMPLE 1: A SIMPLE CALCULATOR
 
@@ -126,7 +127,7 @@ It handles only
 addition and multiplication of integers.
 This section explains, line by line, how it works.
 
-=head2 Marpa::PP::Grammar::new
+=head2 Marpa::Grammar::new
 
 =for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
@@ -152,13 +153,14 @@ normalize-whitespace: 1
 
 =for Marpa::PP::Display::End
 
-Marpa grammars are L<Marpa::PP::Grammar> objects.
+Marpa grammars are
+L<C<Marpa::Grammar>|Marpa::PP::Grammar> objects.
 They are created
 with the
-L<Marpa::PP::Grammar::new|Marpa::PP::Grammar/"new">
+L<Marpa::Grammar::new|Marpa::PP::Grammar/"new">
 constructor.
 The arguments to 
-L<Marpa::PP::Grammar::new|Marpa::PP::Grammar/"new">
+L<Marpa::Grammar::new|Marpa::PP::Grammar/"new">
 are references to
 hashes of named arguments.
 In the key/value pairs of these hashes,
@@ -274,7 +276,7 @@ to a Perl closure that
 implements 
 the rule's semantics.
 
-=head2 Marpa::PP::Grammar::precompute
+=head2 Marpa::Grammar::precompute
 
 =for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
@@ -289,7 +291,7 @@ Before a Marpa grammar object can be used by a Marpa recognizer,
 it must be B<precomputed>.
 Precomputation compiles data structures that the recognizer will need.
 
-=head2 Marpa::PP::Recognizer::new
+=head2 Marpa::Recognizer::new
 
 =for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
@@ -300,7 +302,7 @@ normalize-whitespace: 1
 
 =for Marpa::PP::Display::End
 
-C<Marpa::PP::Recognizer::new> creates a new recognizer.
+C<Marpa::Recognizer::new> creates a new recognizer.
 Its arguments are references to hashes of named arguments.
 In this example the only named argument is
 the required argument: "C<grammar>".
@@ -309,7 +311,7 @@ C<grammar>
 named argument must be a precomputed Marpa
 grammar.
 
-=head2 Marpa::PP::Recognizer::read
+=head2 Marpa::Recognizer::read
 
 =for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
@@ -324,7 +326,7 @@ normalize-whitespace: 1
 
 =for Marpa::PP::Display::End
 
-The C<Marpa::PP::Recognizer::read> method takes two arguments,
+The C<Marpa::Recognizer::read> method takes two arguments,
 a B<token name> and a B<token value>.
 The token name must be the name
 of a valid terminal symbol in the grammar.
@@ -351,7 +353,7 @@ In the calculator example, the values of the
 and "C<Multiply>" tokens are never used,
 so they are allowed to default to C<undef>.
 
-=head2 Marpa::PP::Recognizer::value
+=head2 Marpa::Recognizer::value
 
 =for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse
@@ -363,17 +365,17 @@ normalize-whitespace: 1
 
 =for Marpa::PP::Display::End
 
-The C<Marpa::PP::Recognizer::value> method returns
+The C<Marpa::Recognizer::value> method returns
 a reference to the parse result's value,
 if there was a parse result.
 If there was no parse result,
-C<Marpa::PP::Recognizer::value>
+C<Marpa::Recognizer::value>
 returns
 C<undef>.
 
 =head2 Resolving the Semantics
 
-The first thing C<Marpa::PP::Recognizer::value> needs to do is
+The first thing C<Marpa::Recognizer::value> needs to do is
 to resolve the semantics.
 B<Resolving the semantics> means
 mapping the action names into actions.
@@ -527,7 +529,7 @@ becomes the value of the parse result.
 Rules with no action specified for them take their
 semantics from the C<default_action> named argument.
 If there is no default action for a grammar,
-rules without no action specified for them
+rules with no action specified for them
 return a Perl C<undef>.
 
 =head1 EXAMPLE 2: AN AMBIGUOUS PARSE
@@ -608,7 +610,7 @@ the C<lhs> property,
 the C<rhs> property,
 and the C<action> property.
 
-=head2 Marpa::PP::Recognizer::value
+=head2 Marpa::Recognizer::value
 
 =for Marpa::PP::Display
 name: Engine Synopsis Ambiguous Parse
@@ -623,14 +625,14 @@ normalize-whitespace: 1
 =for Marpa::PP::Display::End
 
 When called more than once,
-the C<Marpa::PP::Recognizer::value> method iterates through the parse results.
+the C<Marpa::Recognizer::value> method iterates through the parse results.
 For each call,
 it returns a reference to the value of a parse result.
 At the end of the iteration, after
 all parse results have been returned,
-C<Marpa::PP::Recognizer::value> returns C<undef>.
+C<Marpa::Recognizer::value> returns C<undef>.
 If there were no parse results,
-C<Marpa::PP::Recognizer::value> returns C<undef> the first
+C<Marpa::Recognizer::value> returns C<undef> the first
 time that it is called.
 
 =head1 ERRORS AND EXCEPTIONS
@@ -677,8 +679,8 @@ Jeffrey Kegler
 Marpa is the name of the greatest of the Tibetan "translators".
 In his time (the 11th century AD) Indian Buddhism was
 at its height.
-Marpa's generation of scholars devoted
-itself to producing Tibetan versions of Buddhism's Sanskrit scriptures.
+Marpa's generation of scholars was devoted
+to producing Tibetan versions of Buddhism's Sanskrit scriptures.
 Marpa became the greatest of them,
 and today is known as Marpa Lotsawa: "Marpa the Translator".
 
@@ -710,9 +712,6 @@ algorithms on the
 L<algorithm discovered by Jay Earley|Marpa::PP::Advanced::Bibliography/"Earley 1970">.
 I combined the Aycock-Horspool algorithm with the Leo algorithm,
 and added significant changes of my own.
-More details on the algorithm itself are in
-L<another
-document|Marpa::PP::Advanced::Algorithm>.
 
 I'm grateful to Randal Schwartz for his support over the years that
 I've been working on Marpa.

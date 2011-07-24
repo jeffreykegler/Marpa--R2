@@ -1,18 +1,2 @@
 Remove Marpa::XS::length static method
 Create a recce->latest_set method
-
-PP pod todo
-done  89 pod/Support.pod
-done 151 pod/Tracing.pod
-done 169 pod/Semantics/Infinite.pod
-done 239 pod/Advanced/Bibliography.pod
-done 240 pod/Semantics/Order.pod
-done 325 pod/Semantics/Null.pod
-done 340 pod/Rewrite.pod
-done 348 pod/Vocabulary.pod
-done 509 pod/Advanced/Models.pod
-done 586 pod/Recognizer.pod
-done 807 pod/Semantics.pod
-done 961 pod/Grammar.pod
-todo 795 pod/Marpa_PP.pod
-todo 820 pod/Debug.pod
