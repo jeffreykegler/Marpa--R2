@@ -222,11 +222,8 @@ which will not be of interest to most users.
 Most users will want to use L<the C<show_progress>
 method|/show_progress>
 instead.
-
 C<show_earley_sets> returns a multi-line string
 listing every Earley item in every Earley set.
-C<show_earley_sets> 
-requires knowledge of Marpa internals to interpret.
 
 =head2 show_progress
 
@@ -433,8 +430,12 @@ to deal with omitted start and end tags.
 The actual HTML grammar that
 L<Marpa::HTML> uses takes
 an oversimplified view of the HTML --
-it assumes, contrary to fact,
+it assumes,
+even when the HTML standards do not require it,
 that start and end tags are always present.
+For most HTML files of interest,
+this assumption will be
+contrary to fact.
 
 Ruby Slippers parsing is used to make the grammar's
 over-simplistic view of the world come true for it.
