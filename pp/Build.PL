@@ -44,13 +44,17 @@ my %recommends =
 my %pod_files = map { ( "pod/$_" => "lib/Marpa/PP/$_" ) } qw(
     Advanced/Bibliography.pod
     Advanced/Models.pod
+    Debug.pod
     Grammar.pod
-    Parse_Terms.pod
     Recognizer.pod
     Rewrite.pod
+    Semantics/Infinite.pod
+    Semantics/Null.pod
+    Semantics/Order.pod
     Semantics.pod
     Support.pod
     Tracing.pod
+    Vocabulary.pod
 );
 $pod_files{'pod/Marpa_PP.pod'} = 'lib/Marpa/PP.pod';
 

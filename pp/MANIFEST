@@ -59,7 +59,6 @@ pod/Advanced/Models.pod
 pod/Debug.pod
 pod/Grammar.pod
 pod/Marpa_PP.pod
-pod/Parse_Terms.pod
 pod/Recognizer.pod
 pod/Rewrite.pod
 pod/Semantics.pod
@@ -68,6 +67,7 @@ pod/Semantics/Null.pod
 pod/Semantics/Order.pod
 pod/Support.pod
 pod/Tracing.pod
+pod/Vocabulary.pod
 pperl/Marpa/Perl.pm
 t/00-load.t
 t/02-load_pp.t
