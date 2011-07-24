@@ -33,7 +33,7 @@ my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::PP::Internal::Earley_Set
 
-    ID { The ordinal for this set }
+    ORDINAL { The ordinal for this set }
     ITEMS { The Earley items for this set. }
     HASH { Hash by origin & state.  To prevent dups. }
     POSTDOT { Index by postdot symbol. }
@@ -290,7 +290,7 @@ sub Marpa::PP::Recognizer::new {
     my $earley_set = [];
     $earley_set->[Marpa::PP::Internal::Earley_Set::POSTDOT] = \%postdot;
     $earley_set->[Marpa::PP::Internal::Earley_Set::ITEMS] = \@earley_items;
-    $earley_set->[Marpa::PP::Internal::Earley_Set::ID] = 0;
+    $earley_set->[Marpa::PP::Internal::Earley_Set::ORDINAL] = 0;
     $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS] = [$earley_set];
 
     $recce->[Marpa::PP::Internal::Recognizer::FURTHEST_EARLEME]       = 0;
@@ -535,7 +535,7 @@ sub Marpa::PP::Recognizer::latest_earley_set {
     while (1) {
 	# Earley set has a defined ORDINAL, so this loop must terminate
         my $earley_set = $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS]->[$earleme];
-	my $ordinal = $earley_set->[Marpa::PP::Internal::Earley_Set::ID];
+	my $ordinal = $earley_set->[Marpa::PP::Internal::Earley_Set::ORDINAL];
 	return $ordinal if defined $ordinal;
 	$earleme--;
     }
@@ -807,7 +807,7 @@ sub Marpa::PP::Recognizer::show_progress {
         }
         $start_ix =
             $earley_sets_by_ordinal->[$start_ordinal]
-            ->[Marpa::PP::Internal::Earley_Set::ID];
+            ->[Marpa::PP::Internal::Earley_Set::ORDINAL];
     } ## end else [ if ( not defined $start_ordinal ) ]
 
     my $end_ix;
@@ -823,7 +823,7 @@ sub Marpa::PP::Recognizer::show_progress {
 		"Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
 		. sprintf " must be in range %d-%d", -($last_ordinal+1), $last_ordinal;
 	}
-        $end_ix = $earley_sets_by_ordinal->[$end_ordinal] ->[Marpa::PP::Internal::Earley_Set::ID];
+        $end_ix = $earley_sets_by_ordinal->[$end_ordinal] ->[Marpa::PP::Internal::Earley_Set::ORDINAL];
     }
 
     my $text = q{};
@@ -1706,7 +1706,7 @@ sub Marpa::PP::Recognizer::earleme_complete {
     if ( scalar @{$earley_items} > 0 ) {
         my $ordinal =
             $recce->[Marpa::PP::Internal::Recognizer::NEXT_ORDINAL]++;
-        $earley_set->[Marpa::PP::Internal::Earley_Set::ID] = $ordinal;
+        $earley_set->[Marpa::PP::Internal::Earley_Set::ORDINAL] = $ordinal;
         $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS_BY_ORDINAL]
             ->[$ordinal] = $earley_set;
     } ## end if ( scalar @{$earley_items} > 0 )

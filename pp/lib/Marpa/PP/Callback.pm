@@ -25,7 +25,7 @@ use English qw( -no_match_vars );
 sub Marpa::PP::location {
     Marpa::exception('No context for location callback')
         if not my $context = $Marpa::PP::Internal::CONTEXT;
-    my ( $context_type, $and_node ) = @{$context};
+    my ( $context_type, $and_node, $recce ) = @{$context};
     if ( $context_type eq 'and-node' ) {
         return $and_node->[Marpa::PP::Internal::And_Node::START_EARLEME];
     }
@@ -35,7 +35,7 @@ sub Marpa::PP::location {
 sub Marpa::PP::cause_location {
     Marpa::exception('No context for cause_location callback')
         if not my $context = $Marpa::PP::Internal::CONTEXT;
-    my ( $context_type, $and_node ) = @{$context};
+    my ( $context_type, $and_node, $recce ) = @{$context};
     if ( $context_type eq 'and-node' ) {
         return $and_node->[Marpa::PP::Internal::And_Node::CAUSE_EARLEME];
     }
@@ -49,7 +49,7 @@ use strict;
 sub Marpa::PP::length {
     Marpa::exception('No context for LENGTH tie')
         if not my $context = $Marpa::PP::Internal::CONTEXT;
-    my ( $context_type, $and_node ) = @{$context};
+    my ( $context_type, $and_node, $recce ) = @{$context};
     if ( $context_type eq 'and-node' ) {
         return $and_node->[Marpa::PP::Internal::And_Node::END_EARLEME]
             - $and_node->[Marpa::PP::Internal::And_Node::START_EARLEME];
