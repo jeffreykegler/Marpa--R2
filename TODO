@@ -8,10 +8,10 @@ done 239 pod/Advanced/Bibliography.pod
 done 240 pod/Semantics/Order.pod
 done 325 pod/Semantics/Null.pod
 done 340 pod/Rewrite.pod
+done 348 pod/Vocabulary.pod
 done 509 pod/Advanced/Models.pod
 done 586 pod/Recognizer.pod
 done 807 pod/Semantics.pod
 done 961 pod/Grammar.pod
-final 348 pod/Parse_Terms.pod
 todo 795 pod/Marpa_PP.pod
 todo 820 pod/Debug.pod

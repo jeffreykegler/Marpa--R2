@@ -19,36 +19,23 @@ Marpa::PP::Vocabulary - Standard Parsing Terms as Used within Marpa
 
 =head1 DESCRIPTION
 
-This document is intended
-as a reminder of
-the standard vocabulary of parsing.
-Terms which are special to
-Marpa are defined
-as they are introduced
-in the other documents.
-
-The definitions in this document apply only to the use
-of these terms
+The definitions in this document are of standard parsing
+terms as they are used
 in the Marpa context.
+I put B<defining uses> of terms in boldface, for easy skimming.
 Where a narrow
 or specialized sense of the term is the one that applies
 within Marpa, that is the only definition given.
 Marpa also sometimes uses a standard term
 with a definition which is slightly different from
-any of the standard ones.
+the standard one.
 ("Ambiguous grammar" is one example, and "grammar" itself is
 another.)
 When this is the case, it is explicitly pointed out.
 
-I put B<defining uses> of terms in boldface, for easy skimming.
-Experts already familiar with the standard terminology
-may find in this document a convenient summary
-of Marpa's breaks with tradition.
-On the other hand,
-a reader totally new to parsing will find this document too
+A reader totally new to parsing will find this document too
 terse to act as a textbook or tutorial.
 They will need to look elsewhere first.
-
 As an introduction, I recommend
 L<Mark Jason Dominus's
 excellent chapter on parsing in the Perl context|Marpa::PP::Advanced::Bibliography/"Dominus 2005">.
@@ -59,7 +46,7 @@ L<Wikipedia|Marpa::PP::Advanced::Bibliography/"Wikipedia"> is also an excellent 
 
 A B<grammar> is a set of rules,
 associated with a set of symbols,
-one of which is distinguished as the default start symbols.
+one of which is distinguished as the default start symbol.
 A B<symbol string>, or simply B<string> where the meaning is clear,
 is an ordered series of symbols.
 The B<length> of a string is the number of symbols in it.
@@ -161,7 +148,7 @@ that symbol string is also called a B<sentence>.
 
 A B<step> of a derivation, or B<derivation step>, is a change made to a symbol string
 by applying one of the productions from the grammar.
-The production must be one of whose with a LHS that occurs in the symbol string.
+The production must be one of those with a LHS that occurs in the symbol string.
 The result of the derivation step is another symbol string,
 one in which every occurence of the LHS symbol from the production is
 replaced by the RHS of the production.
@@ -202,11 +189,11 @@ string to the second symbol string.
 
 =item *
 Every symbol string is said to derive itself in a derivation
-of length 0.  Such a zero length derivation is a B<trivial derivation>.
+of length 0.  A zero length derivation is a B<trivial derivation>.
 
 =item *
-A symbol string may also derive itself in a non-trivial derviation.
-Such a derivation is called a B<cycle>.
+A non-trivial derivation of a symbol string from itself
+is called a B<cycle>.
 Grammars which contain cycles are traditionally considered useless,
 but Marpa will parse with such grammars.
 
@@ -320,10 +307,10 @@ A B<cycle> is a non-trivial derivation
 of a string of symbols from itself.
 If it is not possible for any derivation using a grammar
 to contain a cycle,
-then that grammar is said to be B<cycle-free>
-Traditionally, a grammar which is not cycle-free is
-considered useless, although Marpa will parse with
-such grammars.
+then that grammar is said to be B<cycle-free>.
+Traditionally, a grammar is
+considered useless
+if it is not cycle-free.
 
 The traditional deprecation of cycles is well-founded.
 A cycle is
@@ -412,8 +399,7 @@ the traditional definition,
 all grammars would be
 ambiguous except those grammars which allowed only
 the null parse.
-An slight additonal complication is introduced
-when it is take into account that in Marpa
+Another complication is that in Marpa
 the start symbol of a grammar is not fixed.
 
 It is easiest if the Marpa definition and the
@@ -425,9 +411,10 @@ ambiguous grammars.
 This can be accomplished by using a slightly
 altered definition.
 In the Marpa context, a grammar with an associated start symbol
-is B<ambiguous> if and only if
-for some UNAMBIGUOUS input,
-it produces more than one parse result.
+is B<ambiguous> if and only if,
+for some UNAMBIGUOUS stream of input tokens,
+that grammar with that start symbol produces
+more than one parse result.
 A Marpa grammar is B<ambiguous> if that Marpa grammar with its
 default start symbol is ambiguous.
 
