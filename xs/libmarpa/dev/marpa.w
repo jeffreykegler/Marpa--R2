@@ -10762,6 +10762,18 @@ gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
   return 1;
 }
 
+@ Return the ordinal of the current (final) Earley set of
+the or-node.
+@<Private function prototypes@> =
+gint marpa_or_node_set(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_set(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return ES_Ord_of_OR(or_node);
+}
+
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.

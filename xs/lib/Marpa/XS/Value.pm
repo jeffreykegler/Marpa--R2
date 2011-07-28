@@ -34,7 +34,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     ID
     ORIGIN
-    SET
     RULE_ID
     POSITION
     AND_NODE_IDS
@@ -322,7 +321,10 @@ sub Marpa::XS::Recognizer::show_and_nodes {
 sub Marpa::XS::Recognizer::or_node_tag {
     my ($recce, $or_node) = @_;
     die unless defined $or_node;
-    my $set = $or_node->[Marpa::XS::Internal::Or_Node::SET];
+    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $or_node_id = $or_node->[Marpa::XS::Internal::Or_Node::ID];
+    my $set = $recce_c->or_node_set($or_node_id);
+
     my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
     my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
     my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
@@ -1578,7 +1580,6 @@ sub Marpa::XS::Recognizer::value {
 	    $or_node->[Marpa::XS::Internal::Or_Node::ID]  = $or_node_id;
 	    $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID]  = $rule_id;
 	    $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN]   = $origin;
-	    $or_node->[Marpa::XS::Internal::Or_Node::SET]      = $set;
 	    $or_node->[Marpa::XS::Internal::Or_Node::POSITION] = $position;
 	    $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] =
 		[ $first_and_id .. ( $first_and_id + $and_count - 1 ) ];
