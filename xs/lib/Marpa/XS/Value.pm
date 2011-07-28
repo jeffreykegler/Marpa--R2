@@ -33,8 +33,6 @@ my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::Or_Node
 
     ID
-    ORIGIN
-    POSITION
     AND_NODE_IDS
 
     CYCLE { Can this Or node be part of a cycle? }
@@ -325,9 +323,8 @@ sub Marpa::XS::Recognizer::or_node_tag {
     my $or_node_id = $or_node->[Marpa::XS::Internal::Or_Node::ID];
     my $set = $recce_c->or_node_set($or_node_id);
     my $rule = $recce_c->or_node_rule($or_node_id);
-
-    my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
-    my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
+    my $origin = $recce_c->or_node_origin($or_node_id);
+    my $position = $recce_c->or_node_position($or_node_id);
     return 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
 }
 
@@ -1578,8 +1575,6 @@ sub Marpa::XS::Recognizer::value {
 
 	    my $or_node = [];
 	    $or_node->[Marpa::XS::Internal::Or_Node::ID]  = $or_node_id;
-	    $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN]   = $origin;
-	    $or_node->[Marpa::XS::Internal::Or_Node::POSITION] = $position;
 	    $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] =
 		[ $first_and_id .. ( $first_and_id + $and_count - 1 ) ];
 
