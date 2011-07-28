@@ -10721,11 +10721,8 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 
 @*0 Trace Functions.
 
-@ @<Private function prototypes@> =
-gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data);
-@ @<Function definitions@> =
-gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
-{
+@ This is common logic in the or_node trace functions.
+@<Check |r| and |or_node_id|; set |or_node|@> = {
   BOC b = B_of_R(r);
   OR* or_nodes;
   @<Return |-2| on failure@>@;
@@ -10746,15 +10743,22 @@ gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
   if (or_node_id >= OR_Count_of_B(b)) {
       return -1;
   }
-  {
-      const OR or_node = or_nodes[or_node_id];
-      or_data[0] = Origin_Ord_of_OR(or_node);
-      or_data[1] = ES_Ord_of_OR(or_node);
-      or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
-      or_data[3] = Position_of_OR(or_node);
-      or_data[4] = First_ANDID_of_OR(or_node);
-      or_data[5] = AND_Count_of_OR(or_node);
-  }
+  or_node = or_nodes[or_node_id];
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data);
+@ @<Function definitions@> =
+gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  or_data[0] = Origin_Ord_of_OR(or_node);
+  or_data[1] = ES_Ord_of_OR(or_node);
+  or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
+  or_data[3] = Position_of_OR(or_node);
+  or_data[4] = First_ANDID_of_OR(or_node);
+  or_data[5] = AND_Count_of_OR(or_node);
   return 1;
 }
 

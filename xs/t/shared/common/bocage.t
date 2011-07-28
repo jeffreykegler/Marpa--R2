@@ -22,7 +22,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 16;
 use Marpa::Test;
 
 BEGIN {
@@ -435,7 +435,6 @@ R11:2@2-3
 R12:2@2-3
 END_OF_TEXT
 
-Marpa::Test::is($recce->old_show_or_nodes(), $or_node_output, "PP Or nodes");
 Marpa::Test::is($recce->show_or_nodes(), $or_node_output, "XS Or nodes");
 
 my $and_node_output = <<'END_OF_TEXT';
@@ -464,7 +463,6 @@ R11:2@2-3S5@3
 R12:2@2-3C1@2
 END_OF_TEXT
 
-Marpa::Test::is($recce->old_show_and_nodes(), $and_node_output, "PP And nodes");
 Marpa::Test::is($recce->show_and_nodes(), $and_node_output, "XS And nodes");
 
 1;    # In case used as "do" file
