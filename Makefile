@@ -31,13 +31,16 @@ pplib:
 xslib:
 	(cd xs; ./Build install --install_base ../dxslib)
 
-pp_html_test: pplib
-	(cd html; \
-	PERL5LIB=$$HOME/projects/marpa/all/dpplib/lib/perl5:$$PERL5LIB prove -Ilib t )
+html_blib:
+	(cd html; ./Build code)
 
-xs_html_test: xslib
+pp_html_test: html_blib pplib
 	(cd html; \
-	PERL5LIB=$$HOME/projects/marpa/all/dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
+	PERL5LIB=../dpplib/lib/perl5:$$PERL5LIB prove -Ilib t )
+
+xs_html_test: html_blib xslib
+	(cd html; \
+	PERL5LIB=../dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
 pp_etc_make:
 	(cd pp/etc; make)
