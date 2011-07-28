@@ -34,7 +34,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     ID
     ORIGIN
-    RULE_ID
     POSITION
     AND_NODE_IDS
 
@@ -169,6 +168,7 @@ sub Marpa::XS::Recognizer::show_bocage {
     my $text;
     my @data = ();
     my $id = 0;
+    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $and_nodes = $recce->[Marpa::XS::Internal::Recognizer::AND_NODES];
     my $or_nodes = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
@@ -201,7 +201,7 @@ sub Marpa::XS::Recognizer::show_bocage {
                 $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
             if ( defined $cause_id ) {
                 my $cause = $or_nodes->[$cause_id];
-                $cause_rule = $cause->[Marpa::XS::Internal::Or_Node::RULE_ID];
+                $cause_rule = $recce_c->or_node_rule($cause_id);
 		$cause_tag =
 		    Marpa::XS::Recognizer::or_node_tag( $recce, $cause );
             }
@@ -256,7 +256,7 @@ sub Marpa::XS::Recognizer::and_node_tag {
     my $cause_id  = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
     if (defined $cause_id) {
 	my $cause = $or_nodes->[$cause_id];
-	my $cause_rule = $cause->[Marpa::XS::Internal::Or_Node::RULE_ID];
+	my $cause_rule = $recce_c->or_node_rule($cause_id);
 	$tag .= 'C' . $cause_rule;
     } else {
 	my $token_name =
@@ -324,9 +324,9 @@ sub Marpa::XS::Recognizer::or_node_tag {
     my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $or_node_id = $or_node->[Marpa::XS::Internal::Or_Node::ID];
     my $set = $recce_c->or_node_set($or_node_id);
+    my $rule = $recce_c->or_node_rule($or_node_id);
 
     my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
-    my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
     my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
     return 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
 }
@@ -1578,7 +1578,6 @@ sub Marpa::XS::Recognizer::value {
 
 	    my $or_node = [];
 	    $or_node->[Marpa::XS::Internal::Or_Node::ID]  = $or_node_id;
-	    $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID]  = $rule_id;
 	    $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN]   = $origin;
 	    $or_node->[Marpa::XS::Internal::Or_Node::POSITION] = $position;
 	    $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] =

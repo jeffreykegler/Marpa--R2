@@ -1557,6 +1557,48 @@ PPCODE:
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
+void
+or_node_origin( r_wrapper, ordinal )
+     R_Wrapper *r_wrapper;
+     Marpa_Earley_Set_ID ordinal;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+	gint result = marpa_or_node_origin(r, ordinal);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
+or_node_position( r_wrapper, ordinal )
+     R_Wrapper *r_wrapper;
+     Marpa_Earley_Set_ID ordinal;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+	gint result = marpa_or_node_position(r, ordinal);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
+or_node_rule( r_wrapper, ordinal )
+     R_Wrapper *r_wrapper;
+     Marpa_Earley_Set_ID ordinal;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+	gint result = marpa_or_node_rule(r, ordinal);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
 
 void
 and_node( r_wrapper, and_node_id )

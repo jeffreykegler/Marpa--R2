@@ -10774,6 +10774,36 @@ gint marpa_or_node_set(struct marpa_r *r, int or_node_id)
   return ES_Ord_of_OR(or_node);
 }
 
+@ @<Private function prototypes@> =
+gint marpa_or_node_origin(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_origin(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return Origin_Ord_of_OR(or_node);
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_rule(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_rule(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return ID_of_RULE(RULE_of_OR(or_node));
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_position(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_position(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return Position_of_OR(or_node);
+}
+
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.
