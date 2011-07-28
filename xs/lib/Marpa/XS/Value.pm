@@ -35,7 +35,6 @@ my $structure = <<'END_OF_STRUCTURE';
     ID
     ORIGIN
     SET
-    AHFAID { Only one needs to be tracked }
     RULE_ID
     POSITION
     AND_NODE_IDS
@@ -165,53 +164,6 @@ END_OF_STRUCTURE
 use constant SKIP => -1;
 
 use warnings;
-
-sub Marpa::XS::Recognizer::old_show_and_nodes {
-    my ($recce) = @_;
-    my $text;
-    my @data = ();
-    my $id = 0;
-    my $and_nodes = $recce->[Marpa::XS::Internal::Recognizer::AND_NODES];
-    my $or_nodes = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
-    my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
-    AND_NODE: for my $and_node ( @{$and_nodes} ) {
-        my $origin_earleme = $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME];
-        my $current_earleme = $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME];
-	my $middle_earleme = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
-	my $position = $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1;
-	my $rule = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
-        my $token_name =
-            $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
-	my $symbol = -1;
-	if (defined $token_name) {
-	    $symbol = $symbol_hash->{$token_name};
-	}
-        my $tag = Marpa::XS::Recognizer::and_node_tag($recce, $and_node);
-	my $cause_rule = -1;
-	my $cause_id  = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
-	if (defined $cause_id) {
-	    my $cause = $or_nodes->[$cause_id];
-	    $cause_rule = $cause->[Marpa::XS::Internal::Or_Node::RULE_ID];
-	}
-        push @data,
-            [ $origin_earleme, $current_earleme, $rule, $position,
-		$middle_earleme,
-		$cause_rule,
-		($symbol // -1),
-		$tag ];
-    } ## end for ( ;; )
-    my @sorted_data = map { $_->[-1] } sort {
-        $a->[0] <=> $b->[0]
-	or $a->[1] <=> $b->[1]
-	or $a->[2] <=> $b->[2]
-	or $a->[3] <=> $b->[3]
-	or $a->[4] <=> $b->[4]
-	or $a->[5] <=> $b->[5]
-	or $a->[6] <=> $b->[6]
-    } @data;
-    return (join "\n", @sorted_data) . "\n";;
-}
 
 sub Marpa::XS::Recognizer::show_bocage {
     my ($recce) = @_;
@@ -375,28 +327,6 @@ sub Marpa::XS::Recognizer::or_node_tag {
     my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
     my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
     return 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
-}
-
-sub Marpa::XS::Recognizer::old_show_or_nodes {
-    my ($recce, $verbose) = @_;
-    my $text;
-    my @data = ();
-    my $or_nodes  = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
-    for my $or_node (@{$or_nodes}) {
-	my $set = $or_node->[Marpa::XS::Internal::Or_Node::SET];
-	my $origin = $or_node->[Marpa::XS::Internal::Or_Node::ORIGIN];
-	my $rule = $or_node->[Marpa::XS::Internal::Or_Node::RULE_ID];
-	my $position = $or_node->[Marpa::XS::Internal::Or_Node::POSITION];
-        my $tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node);
-        push @data, [$origin, $set, $rule, $position, $tag];
-    }
-    my @sorted_data = map { $_->[-1] } sort {
-        $a->[0] <=> $b->[0]
-	or $a->[1] <=> $b->[1]
-	or $a->[2] <=> $b->[2]
-	or $a->[3] <=> $b->[3]
-    } @data;
-    return (join "\n", @sorted_data) . "\n";;
 }
 
 sub Marpa::XS::Recognizer::show_or_nodes {
@@ -2438,25 +2368,6 @@ sub Marpa::XS::Recognizer::value {
 	    $recce->show_bocage()
 	or Marpa::exception('print to trace handle failed');
     }
-
-    my $BOCAGE_DEBUG = 1 && $Marpa::XS::DEBUG;
-    if (   $BOCAGE_DEBUG
-        && $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT] <= 1 )
-    {
-	say STDERR "Checking old vs. new bocage";
-        my $old_or_nodes = $recce->old_show_or_nodes();
-        my $new_or_nodes = $recce->show_or_nodes();
-        if ( $old_or_nodes ne $new_or_nodes ) {
-            say STDERR "OLD:\n", $old_or_nodes;
-            say STDERR "NEW:\n", $new_or_nodes;
-        }
-        my $old_and_nodes = $recce->old_show_and_nodes();
-        my $new_and_nodes = $recce->show_and_nodes();
-        if ( $old_and_nodes ne $new_and_nodes ) {
-            say STDERR "OLD:\n", $old_and_nodes;
-            say STDERR "NEW:\n", $new_and_nodes;
-        }
-    } ## end if ( $BOCAGE_DEBUG && $recce->[...])
 
     return Marpa::XS::Internal::Recognizer::evaluate( $recce, \@stack );
 
