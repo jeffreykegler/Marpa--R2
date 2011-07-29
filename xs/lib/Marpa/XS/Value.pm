@@ -33,7 +33,6 @@ my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::Or_Node
 
     ID
-    AND_NODE_IDS
 
     CYCLE { Can this Or node be part of a cycle? }
 
@@ -174,7 +173,7 @@ sub Marpa::XS::Recognizer::show_bocage {
     OR_NODE: for my $or_node_id ( 0 .. $#{$or_nodes} ) {
         my @and_node_ids =
             ( $recce_c->or_node_first_and($or_node_id)
-                .. $recce_c->or_node_and_count($or_node_id) - 1 );
+                .. $recce_c->or_node_last_and($or_node_id) );
         AND_NODE:
         for my $and_node_id (@and_node_ids) {
             my $and_node = $and_nodes->[$and_node_id];
@@ -992,10 +991,11 @@ sub do_rank_all {
             } ## end if ( defined( my $or_node_initial_rank_ref = $or_node...))
             my @ranks              = ();
             my @unranked_and_nodes = ();
+	    my @and_node_ids =
+		( $recce_c->or_node_first_and($or_node_id)
+		    .. $recce_c->or_node_last_and($or_node_id) );
             CHILD_AND_NODE:
-            for my $child_and_node_id (
-                @{ $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] } )
-            {
+            for my $child_and_node_id ( @and_node_ids ) {
                 my $rank_ref =
                     $and_nodes->[$child_and_node_id]
                     ->[Marpa::XS::Internal::And_Node::INITIAL_RANK_REF];
@@ -1561,13 +1561,9 @@ sub Marpa::XS::Recognizer::value {
 	    last OR_NODE if not defined $origin;
 	    my $set = $recce_c->or_node_set( $or_node_id );
 	    my $rule_id = $recce_c->or_node_rule( $or_node_id );
-	    my $first_and_id = $recce_c->or_node_first_and( $or_node_id );
-	    my $and_count = $recce_c->or_node_and_count( $or_node_id );
 
 	    my $or_node = [];
 	    $or_node->[Marpa::XS::Internal::Or_Node::ID]  = $or_node_id;
-	    $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] =
-		[ $first_and_id .. ( $first_and_id + $and_count - 1 ) ];
 
 	    # nulling nodes are never part of cycles
 	    # thanks to the CHAF rewrite
@@ -2104,8 +2100,9 @@ sub Marpa::XS::Recognizer::value {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
 
-            my $and_node_ids =
-                $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS];
+	    my @and_node_ids =
+		( $recce_c->or_node_first_and($or_node_id)
+		    .. $recce_c->or_node_last_and($or_node_id) );
 
             my $choices = $work_iteration_node
                 ->[Marpa::XS::Internal::Iteration_Node::CHOICES];
@@ -2117,7 +2114,7 @@ sub Marpa::XS::Recognizer::value {
                 if ( $ranking_method eq 'constant' ) {
                     no integer;
                     my @choices = ();
-                    AND_NODE: for my $and_node_id ( @{$and_node_ids} ) {
+                    AND_NODE: for my $and_node_id ( @and_node_ids ) {
                         my $and_node   = $and_nodes->[$and_node_id];
                         my $new_choice = [];
                         $new_choice->[Marpa::XS::Internal::Choice::AND_NODE] =
@@ -2145,7 +2142,7 @@ sub Marpa::XS::Recognizer::value {
                 } ## end if ( $ranking_method eq 'constant' )
                 else {
                     $choices =
-                        [ map { [ $and_nodes->[$_], 0 ] } @{$and_node_ids} ];
+                        [ map { [ $and_nodes->[$_], 0 ] } @and_node_ids ];
                 }
                 $work_iteration_node
                     ->[Marpa::XS::Internal::Iteration_Node::CHOICES] =

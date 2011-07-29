@@ -10815,6 +10815,17 @@ gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id)
 }
 
 @ @<Private function prototypes@> =
+gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return First_ANDID_of_OR(or_node)
+      + AND_Count_of_OR(or_node) - 1;
+}
+
+@ @<Private function prototypes@> =
 gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
