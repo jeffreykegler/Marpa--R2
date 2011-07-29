@@ -171,12 +171,13 @@ sub Marpa::XS::Recognizer::show_bocage {
     my $or_nodes = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
-    OR_NODE: for my $or_node ( @{$or_nodes} ) {
+    OR_NODE: for my $or_node_id ( 0 .. $#{$or_nodes} ) {
+        my @and_node_ids =
+            ( $recce_c->or_node_first_and($or_node_id)
+                .. $recce_c->or_node_and_count($or_node_id) - 1 );
         AND_NODE:
-        for my $and_node_id (
-            @{ $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS] } )
-        {
-	    my $and_node = $and_nodes->[$and_node_id];
+        for my $and_node_id (@and_node_ids) {
+            my $and_node = $and_nodes->[$and_node_id];
             my $origin_earleme =
                 $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME];
             my $current_earleme =
@@ -189,39 +190,38 @@ sub Marpa::XS::Recognizer::show_bocage {
             my $token_name =
                 $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
             my $symbol = -1;
-	    my $cause_tag;
+            my $cause_tag;
+
             if ( defined $token_name ) {
-                $symbol = $symbol_hash->{$token_name};
-		$cause_tag = "S$symbol";
+                $symbol    = $symbol_hash->{$token_name};
+                $cause_tag = "S$symbol";
             }
             my $cause_rule = -1;
             my $cause_id =
                 $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
             if ( defined $cause_id ) {
-                my $cause = $or_nodes->[$cause_id];
                 $cause_rule = $recce_c->or_node_rule($cause_id);
-		$cause_tag =
-		    Marpa::XS::Recognizer::or_node_tag( $recce, $cause );
+                $cause_tag =
+                    Marpa::XS::Recognizer::or_node_tag( $recce, $cause_id );
             }
             my $parent_tag =
-                Marpa::XS::Recognizer::or_node_tag( $recce, $or_node );
+                Marpa::XS::Recognizer::or_node_tag( $recce, $or_node_id );
             my $predecessor_id =
                 $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID];
             my $predecessor_tag = q{-};
-	    if ( defined $predecessor_id ) {
-		my $predecessor = $or_nodes->[$predecessor_id];
-		$predecessor_tag =
-		    Marpa::XS::Recognizer::or_node_tag( $recce, $predecessor );
-	    }
-	    my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
+            if ( defined $predecessor_id ) {
+                $predecessor_tag = Marpa::XS::Recognizer::or_node_tag( $recce,
+                    $predecessor_id );
+            }
+            my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
             push @data,
                 [
                 $origin_earleme, $current_earleme, $rule,
                 $position,       $middle_earleme,  $cause_rule,
                 ( $symbol // -1 ), $tag
                 ];
-        } ## end for my $and_node ( @{ $or_node->[...]})
-    } ## end for my $or_node ( @{$or_nodes} )
+        } ## end for my $and_node_id (@and_node_ids)
+    } ## end for my $or_node_id ( 0 .. $#{$or_nodes} )
     my @sorted_data = map { $_->[-1] } sort {
         $a->[0] <=> $b->[0]
 	or $a->[1] <=> $b->[1]
@@ -317,10 +317,8 @@ sub Marpa::XS::Recognizer::show_and_nodes {
 }
 
 sub Marpa::XS::Recognizer::or_node_tag {
-    my ($recce, $or_node) = @_;
-    die unless defined $or_node;
+    my ($recce, $or_node_id) = @_;
     my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $or_node_id = $or_node->[Marpa::XS::Internal::Or_Node::ID];
     my $set = $recce_c->or_node_set($or_node_id);
     my $rule = $recce_c->or_node_rule($or_node_id);
     my $origin = $recce_c->or_node_origin($or_node_id);
@@ -405,7 +403,7 @@ sub Marpa::XS::Recognizer::show_iteration_node {
     my $or_node =
         $iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE];
     my $or_node_id  = $or_node->[Marpa::XS::Internal::Or_Node::ID];
-    my $or_node_tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node);
+    my $or_node_tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node_id);
     my $text        = "o$or_node_id $or_node_tag; ";
     given (
         $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE] )
@@ -2102,11 +2100,13 @@ sub Marpa::XS::Recognizer::value {
             my $work_iteration_node = $task_data[0];
             my $or_node             = $work_iteration_node
                 ->[Marpa::XS::Internal::Iteration_Node::OR_NODE];
+	    my $or_node_id = 
+                $or_node->[Marpa::XS::Internal::Or_Node::ID];
 
             if ($trace_tasks) {
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Task: STACK_INODE ',
-		    Marpa::XS::Recognizer::or_node_tag( $recce, $or_node ),
+		    Marpa::XS::Recognizer::or_node_tag( $recce, $or_node_id ),
                     q{; }, ( scalar @task_list ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
@@ -2254,11 +2254,13 @@ sub Marpa::XS::Recognizer::value {
             my $subtree_parent_node = $iteration_stack->[-1];
             my $or_node             = $subtree_parent_node
                 ->[Marpa::XS::Internal::Iteration_Node::OR_NODE];
+	    my $or_node_id = 
+                $or_node->[Marpa::XS::Internal::Or_Node::ID];
 
             if ($trace_tasks) {
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Task: GRAFT_SUBTREE ',
-		    Marpa::XS::Recognizer::or_node_tag( $recce, $or_node ),
+		    Marpa::XS::Recognizer::or_node_tag( $recce, $or_node_id ),
                     q{; }, ( scalar @task_list ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)

@@ -10804,6 +10804,27 @@ gint marpa_or_node_position(struct marpa_r *r, int or_node_id)
   return Position_of_OR(or_node);
 }
 
+@ @<Private function prototypes@> =
+gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return First_ANDID_of_OR(or_node);
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return AND_Count_of_OR(or_node);
+}
+
+
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.

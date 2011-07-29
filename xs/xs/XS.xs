@@ -1599,6 +1599,33 @@ PPCODE:
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
+void
+or_node_first_and( r_wrapper, ordinal )
+     R_Wrapper *r_wrapper;
+     Marpa_Earley_Set_ID ordinal;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+	gint result = marpa_or_node_first_and(r, ordinal);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
+or_node_and_count( r_wrapper, ordinal )
+     R_Wrapper *r_wrapper;
+     Marpa_Earley_Set_ID ordinal;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+	gint result = marpa_or_node_and_count(r, ordinal);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
 
 void
 and_node( r_wrapper, and_node_id )
