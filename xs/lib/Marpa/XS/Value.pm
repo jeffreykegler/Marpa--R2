@@ -361,13 +361,8 @@ sub Marpa::XS::brief_iteration_node {
     my $or_node =
         $iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE];
     my $or_node_id   = $or_node->[Marpa::XS::Internal::Or_Node::ID];
-    my $and_node_ids = $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS];
     my $text         = "o$or_node_id";
     DESCRIBE_CHOICES: {
-        if ( not defined $and_node_ids ) {
-            $text .= ' UNPOPULATED';
-            last DESCRIBE_CHOICES;
-        }
         my $choices =
             $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICES];
         if ( not defined $choices ) {
@@ -440,12 +435,6 @@ sub Marpa::XS::Recognizer::show_iteration_node {
         ) . "\n";
 
     DESCRIBE_CHOICES: {
-        my $and_node_ids =
-            $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS];
-        if ( not defined $and_node_ids ) {
-            $text .= " UNPOPULATED\n";
-            last DESCRIBE_CHOICES;
-        }
         my $choices =
             $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICES];
         if ( not defined $choices ) {
@@ -723,6 +712,7 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 # Returns false if no parse
 sub do_rank_all {
     my ( $recce, $depth_by_id ) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
