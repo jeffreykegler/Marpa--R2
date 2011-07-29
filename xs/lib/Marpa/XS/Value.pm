@@ -1604,8 +1604,7 @@ sub Marpa::XS::Recognizer::value {
 	    $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID]  = $predecessor_or_node_id;
 	    $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID]  = $cause_or_node_id;
 	    if (defined $predecessor_or_node_id) {
-		my ( undef, $predecessor_set ) =
-		    $recce_c->or_node( $predecessor_or_node_id );
+		my $predecessor_set = $recce_c->or_node_set($predecessor_or_node_id);
 		$and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
 		    $recce_c->earleme($predecessor_set);
 	    } else {
