@@ -10446,6 +10446,61 @@ gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data)
   return 1;
 }
 
+@ @<Private function prototypes@> =
+gint marpa_and_node_parent(struct marpa_r *r, int and_node_id);
+@ @<Function definitions@> =
+gint marpa_and_node_parent(struct marpa_r *r, int and_node_id)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+  return ID_of_OR (OR_of_AND (and_node));
+}
+
+@ @<Private function prototypes@> =
+gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id);
+@ @<Function definitions@> =
+gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    {
+      const OR predecessor_or = Predecessor_OR_of_AND (and_node);
+      const ORID predecessor_or_id =
+	predecessor_or ? ID_of_OR (predecessor_or) : -1;
+      return predecessor_or_id;
+      }
+}
+
+@ @<Private function prototypes@> =
+gint marpa_and_node_cause(struct marpa_r *r, int and_node_id);
+@ @<Function definitions@> =
+gint marpa_and_node_cause(struct marpa_r *r, int and_node_id)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    {
+      const OR cause_or = Cause_OR_of_AND (and_node);
+      const ORID cause_or_id =
+	Type_of_OR (cause_or) == TOKEN_OR_NODE ? -1 : ID_of_OR (cause_or);
+      return cause_or_id;
+    }
+}
+
+@ @<Private function prototypes@> =
+gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id);
+@ @<Function definitions@> =
+gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    {
+      const OR cause_or = Cause_OR_of_AND (and_node);
+      const SYMID symbol_id =
+	Type_of_OR (cause_or) == TOKEN_OR_NODE ? ID_of_SYM ((SYM) cause_or) : -1;
+      return symbol_id;
+    }
+}
+
 @** The Parse Bocage.
 @ Pre-initialization is making the elements safe for the deallocation logic
 to be called.  Often it is setting the value to zero, so that the deallocation
