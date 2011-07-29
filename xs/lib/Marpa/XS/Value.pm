@@ -335,7 +335,11 @@ sub Marpa::XS::Recognizer::show_or_nodes {
     my @data = ();
     my $id = 0;
     OR_NODE: for ( ;; ) {
-        my ( $origin, $set, $rule, $position ) = $recce_c->or_node( $id++ );
+	my $origin = $recce_c->or_node_origin( $id );
+	my $set = $recce_c->or_node_set( $id );
+	my $rule = $recce_c->or_node_rule( $id );
+	my $position = $recce_c->or_node_position( $id );
+	$id++;
         last OR_NODE if not defined $origin;
         my $origin_earleme  = $recce_c->earleme($origin);
         my $current_earleme = $recce_c->earleme($set);
@@ -1584,8 +1588,10 @@ sub Marpa::XS::Recognizer::value {
 
 	    last AND_NODE if not defined $parent_or_node_id;
 
-	    my ( $parent_origin, $parent_set, $rule_id, $parent_position ) =
-		$recce_c->or_node( $parent_or_node_id );
+	    my $parent_origin   = $recce_c->or_node_origin($parent_or_node_id);
+	    my $parent_set      = $recce_c->or_node_set($parent_or_node_id);
+	    my $rule_id         = $recce_c->or_node_rule($parent_or_node_id);
+	    my $parent_position = $recce_c->or_node_position($parent_or_node_id);
 
 	    my $and_node = [];
 	    $and_node->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
