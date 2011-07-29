@@ -15,45 +15,21 @@
 
 Revision history for Marpa::XS
 
-0.005_035 Sat Jul 23 17:57:51 PDT 2011
-0.005_034 Thu Jul 21 20:28:53 PDT 2011
-0.005_033 Sun Jul 17 09:28:12 PDT 2011
-0.005_032 Wed Jul 13 09:22:37 PDT 2011
-0.005_031 Tue Jul 12 09:17:00 PDT 2011
-0.005_030 Sun Jul 10 21:21:03 PDT 2011
-0.005_029 Thu Jul  7 20:48:57 PDT 2011
-0.005_028 Sun Jul  3 21:47:39 PDT 2011
-0.005_027 Fri Jul  1 08:09:12 PDT 2011
-0.005_026 Mon Jun 27 08:50:21 PDT 2011
-0.005_025 Mon Jun 27 08:36:54 PDT 2011
-0.005_024 Thu Jun 23 21:23:29 PDT 2011
-0.005_023 Mon Jun 20 21:02:38 PDT 2011
-0.005_022 Sun Jun 19 20:09:54 PDT 2011
-0.005_021 Sat Jun 18 20:18:28 PDT 2011
-0.005_020 Fri Jun 17 15:32:17 PDT 2011
-0.005_019 Sun Jun 12 18:28:57 PDT 2011
-0.005_018 Sun Jun 12 16:38:55 PDT 2011
-0.005_017 Fri Jun 10 16:03:12 PDT 2011
-0.005_016 Wed Jun  8 19:31:29 PDT 2011
-0.005_015 Tue Jun  7 20:11:34 PDT 2011
-0.005_014 Mon May 30 21:51:43 PDT 2011
-0.005_013 Fri May 27 19:52:22 PDT 2011
-0.005_012 Mon May 23 09:53:36 PDT 2011
-0.005_011 Wed May 18 20:04:35 PDT 2011
-0.005_010 Wed May 18 19:55:37 PDT 2011
-0.005_009 Mon May 16 08:53:35 PDT 2011
-0.005_008 Thu May 12 17:59:41 PDT 2011
-0.005_007 Thu May 12 12:48:28 PDT 2011
-0.005_006 Thu May 12 09:59:20 PDT 2011
-0.005_005 Wed May 11 20:29:41 PDT 2011
-0.005_004 Tue May 10 10:07:46 PDT 2011
-0.005_003 Mon May  9 18:50:01 PDT 2011
-0.005_002 Mon May  9 15:26:00 PDT 2011
-0.005_001 Mon May  9 09:06:59 PDT 2011
-     A series of developer's releases.
+0.008000 Fri Jul 29 09:04:42 PDT 2011
 
-0.005_000 Sun May  8 21:22:31 PDT 2011
-     Copied over into combined Marpa repository
+     * Second official (ALPHA) release.
+
+     * Parse Location is now by Earley set ordinal,
+       not Earleme.  If you don't know what this means,
+       it does not affect you.  For the default input
+       model, earleme and Earley set ordinal are the
+       same.  If you are not sure whether you are using
+       the default input model, then you are.
+
+     * Converted parse bocage to C.  This is a major
+       change.
+
+     * Copied Marpa::XS into combined Marpa repository
 
 0.002000 Thu Apr 14 20:11:04 PDT 2011
-     First official release
+     First official (ALPHA) release
