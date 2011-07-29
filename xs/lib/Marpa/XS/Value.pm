@@ -2256,8 +2256,6 @@ sub Marpa::XS::Recognizer::value {
             } ## end if ($trace_tasks)
 
             my $subtree_parent_ix = $#{$iteration_stack};
-            my $and_node_ids =
-                $or_node->[Marpa::XS::Internal::Or_Node::AND_NODE_IDS];
 
             my $choices = $subtree_parent_node
                 ->[Marpa::XS::Internal::Iteration_Node::CHOICES];
