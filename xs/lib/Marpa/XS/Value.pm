@@ -274,12 +274,15 @@ sub Marpa::XS::Recognizer::show_and_nodes {
     AND_NODE: for ( ;; ) {
         my ( $parent, $predecessor, $cause, $symbol ) = $recce_c->and_node( $id++ );
         last AND_NODE if not defined $parent;
-        my ( $origin, $set, $rule, $position ) = $recce_c->or_node( $parent );
+	my $origin = $recce_c->or_node_origin( $parent );
+	my $set = $recce_c->or_node_set( $parent );
+	my $rule = $recce_c->or_node_rule( $parent );
+	my $position = $recce_c->or_node_position( $parent );
         my $origin_earleme  = $recce_c->earleme($origin);
         my $current_earleme = $recce_c->earleme($set);
 	my $middle_earleme = $origin_earleme;
 	if (defined $predecessor) {
-	    my ( undef, $predecessor_set, ) = $recce_c->or_node( $predecessor );
+	    my $predecessor_set = $recce_c->or_node_set( $predecessor );
 	    $middle_earleme = $recce_c->earleme($predecessor_set);
 	}
         my $desc =
@@ -290,7 +293,7 @@ sub Marpa::XS::Recognizer::show_and_nodes {
             . $current_earleme;
 	my $cause_rule = -1;
 	if (defined $cause) {
-	    ( undef, undef, $cause_rule ) = $recce_c->or_node( $cause );
+	    $cause_rule = $recce_c->or_node_rule( $cause );
 	    $desc .= 'C' . $cause_rule;
 	} else {
 	    $desc .= 'S' . $symbol;
