@@ -171,6 +171,7 @@ sub Marpa::XS::Recognizer::show_bocage {
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
     OR_NODE: for my $or_node_id ( 0 .. $#{$or_nodes} ) {
+	my $position = $recce_c->or_node_position($or_node_id);
         my @and_node_ids =
             ( $recce_c->or_node_first_and($or_node_id)
                 .. $recce_c->or_node_last_and($or_node_id) );
@@ -183,8 +184,6 @@ sub Marpa::XS::Recognizer::show_bocage {
                 $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME];
             my $middle_earleme =
                 $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
-            my $position =
-                $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1;
             my $rule = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
             my $token_name =
                 $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];

@@ -10392,11 +10392,7 @@ typedef struct s_and_node AND_Object;
 
 @*0 Trace Functions.
 
-@ @<Private function prototypes@> =
-gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data);
-@ @<Function definitions@> =
-gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data)
-{
+@<Check |r| and |and_node_id|; set |and_node|@> = {
   BOC b = B_of_R(r);
   AND and_nodes;
   @<Return |-2| on failure@>@;
@@ -10417,23 +10413,36 @@ gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data)
   if (and_node_id >= AND_Count_of_B(b)) {
       return -1;
   }
-  {
-      const AND and_node = and_nodes + and_node_id;
-      const OR predecessor_or = Predecessor_OR_of_AND(and_node);
-      const ORID predecessor_or_id = predecessor_or ? ID_of_OR(predecessor_or) : -1;
-      const OR cause_or = Cause_OR_of_AND(and_node);
+  and_node = and_nodes + and_node_id;
+}
+
+@ @<Private function prototypes@> =
+gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data);
+@ @<Function definitions@> =
+gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    {
+      const OR predecessor_or = Predecessor_OR_of_AND (and_node);
+      const ORID predecessor_or_id =
+	predecessor_or ? ID_of_OR (predecessor_or) : -1;
+      const OR cause_or = Cause_OR_of_AND (and_node);
       ORID cause_or_id = -1;
       SYMID symbol_id = -1;
-      if (Type_of_OR(cause_or) == TOKEN_OR_NODE) {
-           symbol_id = ID_of_SYM((SYM)cause_or);
-      } else {
-           cause_or_id = ID_of_OR(cause_or);
-      }
-      and_data[0] = ID_of_OR(OR_of_AND(and_node));
+      if (Type_of_OR (cause_or) == TOKEN_OR_NODE)
+	{
+	  symbol_id = ID_of_SYM ((SYM) cause_or);
+	}
+      else
+	{
+	  cause_or_id = ID_of_OR (cause_or);
+	}
+      and_data[0] = ID_of_OR (OR_of_AND (and_node));
       and_data[1] = predecessor_or_id;
       and_data[2] = cause_or_id;
       and_data[3] = symbol_id;
-  }
+    }
   return 1;
 }
 
