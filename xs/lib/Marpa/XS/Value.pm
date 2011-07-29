@@ -1557,12 +1557,12 @@ sub Marpa::XS::Recognizer::value {
 
 	$#{$or_nodes} = -1;
 	OR_NODE: for ( my $or_node_id = 0; ; $or_node_id++ ) {
-	    my ( undef, undef, undef, undef, $first_and_id, $and_count ) =
-		$recce_c->or_node( $or_node_id );
 	    my $origin = $recce_c->or_node_origin( $or_node_id );
 	    last OR_NODE if not defined $origin;
 	    my $set = $recce_c->or_node_set( $or_node_id );
 	    my $rule_id = $recce_c->or_node_rule( $or_node_id );
+	    my $first_and_id = $recce_c->or_node_first_and( $or_node_id );
+	    my $and_count = $recce_c->or_node_and_count( $or_node_id );
 
 	    my $or_node = [];
 	    $or_node->[Marpa::XS::Internal::Or_Node::ID]  = $or_node_id;

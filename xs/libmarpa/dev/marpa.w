@@ -10824,7 +10824,6 @@ gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
   return AND_Count_of_OR(or_node);
 }
 
-
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.
