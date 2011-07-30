@@ -50,8 +50,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     ID
 
-    CAUSE_ID
-
     CAUSE_EARLEME
 
     INITIAL_RANK_REF
@@ -178,8 +176,7 @@ sub Marpa::XS::Recognizer::show_bocage {
                 $cause_tag = "S$symbol";
             }
             my $cause_rule = -1;
-            my $cause_id =
-                $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID];
+            my $cause_id   = $recce_c->and_node_cause($and_node_id);
             if ( defined $cause_id ) {
                 $cause_rule = $recce_c->or_node_rule($cause_id);
                 $cause_tag =
@@ -254,9 +251,11 @@ sub Marpa::XS::Recognizer::show_and_nodes {
     my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $text;
     my @data = ();
-    my $id = 0;
-    AND_NODE: for ( ;; ) {
-        my ( $parent, $predecessor, $cause, $symbol ) = $recce_c->and_node( $id++ );
+    AND_NODE: for ( my $id = 0;;  $id++) {
+	my $parent = $recce_c->and_node_parent($id);
+	my $predecessor = $recce_c->and_node_predecessor($id);
+	my $cause = $recce_c->and_node_cause($id);
+	my $symbol = $recce_c->and_node_symbol($id);
         last AND_NODE if not defined $parent;
 	my $origin = $recce_c->or_node_origin( $parent );
 	my $set = $recce_c->or_node_set( $parent );
@@ -1561,8 +1560,8 @@ sub Marpa::XS::Recognizer::value {
 	    $or_nodes->[$or_node_id] = $or_node;
 	} ## end for ( ;; )
 
-	$#{$and_nodes} = -1;
-	AND_NODE: for (my $and_node_id = 0;; $and_node_id++) {
+	$#{$and_nodes} = $recce_c->and_node_count() - 1;
+	AND_NODE: for my $and_node_id (0 .. $#{$and_nodes}) {
 	    my ($parent_or_node_id, $predecessor_or_node_id,
 		$cause_or_node_id,  undef
 	    ) = $recce_c->and_node( $and_node_id );
@@ -1577,7 +1576,6 @@ sub Marpa::XS::Recognizer::value {
 	    my $and_node = [];
 	    $and_node->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
 
-	    $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID]  = $cause_or_node_id;
 	    if (defined $predecessor_or_node_id) {
 		my $predecessor_set = $recce_c->or_node_set($predecessor_or_node_id);
 		$and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =

@@ -10392,7 +10392,22 @@ typedef struct s_and_node AND_Object;
 
 @*0 Trace Functions.
 
-@<Check |r| and |and_node_id|; set |and_node|@> = {
+@ @<Private function prototypes@> =
+gint marpa_and_node_count(struct marpa_r *r);
+@ @<Function definitions@> =
+gint marpa_and_node_count(struct marpa_r *r)
+{
+  BOC b = B_of_R(r);
+  @<Return |-2| on failure@>@;
+  @<Fail if recognizer has fatal error@>@;
+  if (!b) {
+      R_ERROR("no bocage");
+      return failure_indicator;
+  }
+  return AND_Count_of_B(b);
+}
+
+@ @<Check |r| and |and_node_id|; set |and_node|@> = {
   BOC b = B_of_R(r);
   AND and_nodes;
   @<Return |-2| on failure@>@;

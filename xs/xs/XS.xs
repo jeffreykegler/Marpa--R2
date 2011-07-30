@@ -1622,6 +1622,19 @@ PPCODE:
     }
 
 void
+and_node_count( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+	gint result = marpa_and_node_count(r);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
 and_node( r_wrapper, and_node_id )
      R_Wrapper *r_wrapper;
     Marpa_And_Node_ID and_node_id;
