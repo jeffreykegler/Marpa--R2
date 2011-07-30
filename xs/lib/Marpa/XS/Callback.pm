@@ -29,7 +29,7 @@ sub Marpa::XS::location {
     if ( $context_type eq 'and-node' ) {
         my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
         my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
-        my ($parent_or_node_id) = $recce_c->and_node($and_node_id);
+        my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
         my $parent_origin = $recce_c->or_node_origin($parent_or_node_id);
         return $parent_origin;
     } ## end if ( $context_type eq 'and-node' )
@@ -43,8 +43,9 @@ sub Marpa::XS::cause_location {
     if ( $context_type eq 'and-node' ) {
         my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
         my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
-        my ( $parent_or_node_id, $predecessor_or_node_id ) =
-            $recce_c->and_node($and_node_id);
+        my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
+        my $predecessor_or_node_id =
+            $recce_c->and_node_predecessor($and_node_id);
         if ( defined $predecessor_or_node_id ) {
             my $predecessor_set =
                 $recce_c->or_node_set($predecessor_or_node_id);
@@ -69,8 +70,9 @@ sub Marpa::XS::length {
     if ( $context_type eq 'and-node' ) {
         my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
         my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
-        my ( $parent_or_node_id, $predecessor_or_node_id ) =
-            $recce_c->and_node($and_node_id);
+        my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
+        my $predecessor_or_node_id =
+            $recce_c->and_node_predecessor($and_node_id);
 	my $parent_origin = $recce_c->or_node_origin($parent_or_node_id);
 	my $parent_set = $recce_c->or_node_set($parent_or_node_id);
         return $parent_set - $parent_origin;

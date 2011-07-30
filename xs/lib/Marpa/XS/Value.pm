@@ -1570,23 +1570,8 @@ sub Marpa::XS::Recognizer::value {
 
 	$#{$and_nodes} = $recce_c->and_node_count() - 1;
 	AND_NODE: for my $and_node_id (0 .. $#{$and_nodes}) {
-	    my ($parent_or_node_id, $predecessor_or_node_id,
-		$cause_or_node_id,  undef
-	    ) = $recce_c->and_node( $and_node_id );
-
-	    last AND_NODE if not defined $parent_or_node_id;
-
-	    my $parent_origin   = $recce_c->or_node_origin($parent_or_node_id);
-	    my $parent_set      = $recce_c->or_node_set($parent_or_node_id);
-	    my $rule_id         = $recce_c->or_node_rule($parent_or_node_id);
-	    my $parent_position = $recce_c->or_node_position($parent_or_node_id);
-
-	    my $and_node = [];
-	    $and_node->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
-
-	    $and_nodes->[$and_node_id] = $and_node;
+	    $and_nodes->[$and_node_id]->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
 	}
-
 
 	my $start_iteration_node = [];
 	$start_iteration_node
