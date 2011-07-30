@@ -49,10 +49,6 @@ my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::And_Node
 
     ID
-    TOKEN_NAME
-
-    { Fields before this (except ID)
-    are used in evaluate() }
 
     PREDECESSOR_ID
     CAUSE_ID
@@ -179,13 +175,10 @@ sub Marpa::XS::Recognizer::show_bocage {
             my $and_node = $and_nodes->[$and_node_id];
             my $middle_earleme =
                 $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
-            my $token_name =
-                $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
-            my $symbol = -1;
+            my $symbol = $recce_c->and_node_symbol($and_node_id);
             my $cause_tag;
 
-            if ( defined $token_name ) {
-                $symbol    = $symbol_hash->{$token_name};
+            if ( defined $symbol ) {
                 $cause_tag = "S$symbol";
             }
             my $cause_rule = -1;
@@ -814,10 +807,11 @@ sub do_rank_all {
         my $and_node = $and_nodes->[$and_node_id];
         my $rule_id  = $recce_c->or_node_rule($parent_or_node_id);
         my $rule_closure = $ranking_closures_by_rule[$rule_id];
-        my $token_name =
-            $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
+        my $token_id = $recce_c->and_node_symbol($and_node_id);
         my $token_closure;
-        if ($token_name) {
+        if ($token_id) {
+            my $token_name =
+                $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
             $token_closure = $ranking_closures_by_symbol{$token_name};
         }
 
@@ -885,7 +879,7 @@ sub do_rank_all {
         # if there is one with no closure.
         # Note: token can never cause a cycle, but they
         # can cause an and-node to be skipped.
-        if ($token_name) {
+        if (defined $token_id) {
             $and_node->[Marpa::XS::Internal::And_Node::TOKEN_RANK_REF] =
                 $token_rank_ref // \0;
         }
@@ -920,12 +914,12 @@ sub do_rank_all {
             # of this rule is a constant:
             # 0 is there was not token symbol closure
             # the result of that closure if there was one
-            if ( $token_name
+            if ( defined $token_id
                 and not defined
                 $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID] )
             {
                 $constant_rank_ref = $token_rank_ref // \0;
-            } ## end if ( $token_name and not defined $and_node->[...])
+            } ## end if ( defined $token_id and not defined $and_node->[...])
 
         } ## end SET_CONSTANT_RANK:
 
@@ -1067,7 +1061,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
     my $grammar      = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
+    my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
         // 0;
 
@@ -1140,9 +1134,10 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
 	my $value_ref;
 	SET_VALUE_REF: {
-	    my $token_name = $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
-	    last SET_VALUE_REF if not defined $token_name;
-	    my $token_id = $symbol_hash->{$token_name};
+	    my $token_id = $recce_c->and_node_symbol($and_node_id);
+	    last SET_VALUE_REF if not defined $token_id;
+	    my $token_name =
+		$symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
 	    if ( $grammar_c->symbol_is_nulling($token_id) ) {
 		$value_ref = \$null_values->[$token_id];
 		last SET_VALUE_REF;
@@ -1160,8 +1155,11 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             push @evaluation_stack, $value_ref;
 
             if ($trace_values) {
-                my $token_name =
-                    $and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME];
+                my $token_name;
+		my $token_id = $recce_c->and_node_symbol($and_node_id);
+		if  (defined $token_id) {
+		     $token_name = $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
+		}
 
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Pushed value from ',
@@ -1575,7 +1573,7 @@ sub Marpa::XS::Recognizer::value {
 	$#{$and_nodes} = -1;
 	AND_NODE: for (my $and_node_id = 0;; $and_node_id++) {
 	    my ($parent_or_node_id, $predecessor_or_node_id,
-		$cause_or_node_id,  $symbol_id
+		$cause_or_node_id,  undef
 	    ) = $recce_c->and_node( $and_node_id );
 
 	    last AND_NODE if not defined $parent_or_node_id;
@@ -1587,10 +1585,6 @@ sub Marpa::XS::Recognizer::value {
 
 	    my $and_node = [];
 	    $and_node->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
-	    if ( defined $symbol_id ) {
-		$and_node->[Marpa::XS::Internal::And_Node::TOKEN_NAME] =
-		    $symbols->[$symbol_id]->[Marpa::XS::Internal::Symbol::NAME];
-	    }
 
 	    $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID]  = $predecessor_or_node_id;
 	    $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID]  = $cause_or_node_id;
