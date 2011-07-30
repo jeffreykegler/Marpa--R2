@@ -59,9 +59,6 @@ my $structure = <<'END_OF_STRUCTURE';
     CONSTANT_RANK_REF
     TOKEN_RANK_REF
 
-    POSITION { This is only used for diagnostics, but
-    diagnostics are important. }
-
     =LAST_FIELD
 
 END_OF_STRUCTURE
@@ -900,7 +897,7 @@ sub do_rank_all {
             if ( defined $rule_rank_ref ) {
                 $constant_rank_ref =
                     (
-                    $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1
+                    $recce_c->or_node_position($parent_or_node_id)
                         == $grammar_c->rule_length(
                         $recce_c->or_node_rule($parent_or_node_id)
                         )
@@ -1175,7 +1172,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 	my $ops;
 	{
 	    my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
-	    if ( $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1
+	    if ( $recce_c->or_node_position($parent_or_node_id)
 		== $grammar_c->rule_length($rule_id) )
 	    {
 		$ops = $evaluator_rules->[$rule_id];
@@ -1401,7 +1398,6 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
 
     my $and_node = [];
     $#{$and_node} = Marpa::XS::Internal::And_Node::LAST_FIELD;
-    $and_node->[Marpa::XS::Internal::And_Node::POSITION] = 0;
     $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] = 0;
     $and_node->[Marpa::XS::Internal::And_Node::ID]            = 0;
 
@@ -1596,11 +1592,6 @@ sub Marpa::XS::Recognizer::value {
 		$and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
 		    $recce_c->earleme($parent_origin);
 	    }
-
-	    # POSITION { This is only used for diagnostics, but
-	    # diagnostics are important. }
-	    $and_node->[Marpa::XS::Internal::And_Node::POSITION] =
-	        $parent_position - 1;
 
 	    $and_nodes->[$and_node_id] = $and_node;
 	}
