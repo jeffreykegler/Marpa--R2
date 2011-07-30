@@ -64,11 +64,6 @@ my $structure = <<'END_OF_STRUCTURE';
     CONSTANT_RANK_REF
     TOKEN_RANK_REF
 
-    { These earleme positions will be needed for the callbacks: }
-
-    START_EARLEME
-    END_EARLEME
-
     POSITION { This is only used for diagnostics, but
     diagnostics are important. }
 
@@ -172,16 +167,16 @@ sub Marpa::XS::Recognizer::show_bocage {
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
     OR_NODE: for my $or_node_id ( 0 .. $#{$or_nodes} ) {
 	my $position = $recce_c->or_node_position($or_node_id);
+	my $or_origin = $recce_c->or_node_origin($or_node_id);
+	my $origin_earleme = $recce_c->earleme($or_origin);
+	my $or_set = $recce_c->or_node_set($or_node_id);
+	my $current_earleme = $recce_c->earleme($or_set);
         my @and_node_ids =
             ( $recce_c->or_node_first_and($or_node_id)
                 .. $recce_c->or_node_last_and($or_node_id) );
         AND_NODE:
         for my $and_node_id (@and_node_ids) {
             my $and_node = $and_nodes->[$and_node_id];
-            my $origin_earleme =
-                $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME];
-            my $current_earleme =
-                $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME];
             my $middle_earleme =
                 $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
             my $rule = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
@@ -234,12 +229,16 @@ sub Marpa::XS::Recognizer::show_bocage {
 
 sub Marpa::XS::Recognizer::and_node_tag {
     my ($recce, $and_node) = @_;
+    my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
     my $or_nodes = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
     my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $origin_earleme = $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME];
-    my $current_earleme = $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME];
+    my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
+    my $origin = $recce_c->or_node_origin($parent_or_node_id);
+    my $origin_earleme = $recce_c->earleme($origin);
+    my $current_earley_set = $recce_c->or_node_set($parent_or_node_id);
+    my $current_earleme = $recce_c->earleme($current_earley_set);
     my $middle_earleme = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
     my $position = $and_node->[Marpa::XS::Internal::And_Node::POSITION] + 1;
     my $rule = $and_node->[Marpa::XS::Internal::And_Node::RULE_ID];
@@ -1146,8 +1145,11 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 		$value_ref = \$null_values->[$token_id];
 		last SET_VALUE_REF;
 	    }
+	    my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
+	    my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
+	    my $current_earley_set = $recce_c->or_node_set($parent_or_node_id);
+	    my $end_earleme = $recce_c->earleme($current_earley_set);
 	    my $middle_earleme = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
-	    my $end_earleme = $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME];
 	    my $value_key = join q{;}, $middle_earleme, ($end_earleme-$middle_earleme), $token_name;
 	    last SET_VALUE_REF if not exists $token_values->{$value_key};
 	    $value_ref = \($token_values->{$value_key});
@@ -1409,9 +1411,7 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
     $#{$and_node} = Marpa::XS::Internal::And_Node::LAST_FIELD;
     $and_node->[Marpa::XS::Internal::And_Node::RULE_ID]  = $start_rule_id;
     $and_node->[Marpa::XS::Internal::And_Node::POSITION] = 0;
-    $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME] = 0;
     $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] = 0;
-    $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME]   = 0;
     $and_node->[Marpa::XS::Internal::And_Node::ID]            = 0;
 
     $recce->[Marpa::XS::Internal::Recognizer::AND_NODES]->[0] = $and_node;
@@ -1610,12 +1610,6 @@ sub Marpa::XS::Recognizer::value {
 		$and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
 		    $recce_c->earleme($parent_origin);
 	    }
-
-	    # These earleme positions will be needed for the callbacks
-	    $and_node->[Marpa::XS::Internal::And_Node::START_EARLEME] =
-		$recce_c->earleme($parent_origin);
-	    $and_node->[Marpa::XS::Internal::And_Node::END_EARLEME] =
-		$recce_c->earleme($parent_set);
 
 	    # POSITION { This is only used for diagnostics, but
 	    # diagnostics are important. }
