@@ -50,7 +50,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     ID
 
-    PREDECESSOR_ID
     CAUSE_ID
 
     CAUSE_EARLEME
@@ -953,14 +952,12 @@ sub do_rank_all {
         my $is_cycle = 0;
         my $is_skip  = 0;
         OR_NODE:
-        for my $field (
-            Marpa::XS::Internal::And_Node::PREDECESSOR_ID,
-            Marpa::XS::Internal::And_Node::CAUSE_ID,
+        for my $or_node_id (
+	    grep { defined }
+            $recce_c->and_node_predecessor($and_node_id),
+            $recce_c->and_node_cause($and_node_id),
             )
         {
-            my $or_node_id = $and_node->[$field];
-            next OR_NODE if not defined $or_node_id;
-
             my $or_node = $or_nodes->[$or_node_id];
             if (defined(
                     my $or_node_initial_rank_ref =
@@ -1580,7 +1577,6 @@ sub Marpa::XS::Recognizer::value {
 	    my $and_node = [];
 	    $and_node->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
 
-	    $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID]  = $predecessor_or_node_id;
 	    $and_node->[Marpa::XS::Internal::And_Node::CAUSE_ID]  = $cause_or_node_id;
 	    if (defined $predecessor_or_node_id) {
 		my $predecessor_set = $recce_c->or_node_set($predecessor_or_node_id);
