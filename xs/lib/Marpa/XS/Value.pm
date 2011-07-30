@@ -50,8 +50,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     ID
 
-    CAUSE_EARLEME
-
     INITIAL_RANK_REF
     CONSTANT_RANK_REF
     TOKEN_RANK_REF
@@ -167,8 +165,6 @@ sub Marpa::XS::Recognizer::show_bocage {
         AND_NODE:
         for my $and_node_id (@and_node_ids) {
             my $and_node = $and_nodes->[$and_node_id];
-            my $middle_earleme =
-                $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
             my $symbol = $recce_c->and_node_symbol($and_node_id);
             my $cause_tag;
 
@@ -191,6 +187,12 @@ sub Marpa::XS::Recognizer::show_bocage {
                     $predecessor_id );
             }
             my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
+	    my $middle_earleme = $origin_earleme;
+	    if (defined $predecessor_id) {
+		my $predecessor_set = $recce_c->or_node_set($predecessor_id);
+		$middle_earleme = $recce_c->earleme($predecessor_set);
+	    }
+
             push @data,
                 [
                 $origin_earleme, $current_earleme, $rule,
@@ -1135,7 +1137,14 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 	    }
 	    my $current_earley_set = $recce_c->or_node_set($parent_or_node_id);
 	    my $end_earleme = $recce_c->earleme($current_earley_set);
-	    my $middle_earleme = $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME];
+	    my $origin = $recce_c->or_node_origin($parent_or_node_id);
+	    my $origin_earleme = $recce_c->earleme($origin);
+	    my $predecessor = $recce_c->and_node_predecessor($and_node_id);
+	    my $middle_earleme = $origin_earleme;
+	    if (defined $predecessor) {
+	        my $predecessor_set = $recce_c->or_node_set($predecessor);
+		$middle_earleme = $recce_c->earleme($predecessor_set);
+	    }
 	    my $value_key = join q{;}, $middle_earleme, ($end_earleme-$middle_earleme), $token_name;
 	    last SET_VALUE_REF if not exists $token_values->{$value_key};
 	    $value_ref = \($token_values->{$value_key});
@@ -1392,7 +1401,6 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
 
     my $and_node = [];
     $#{$and_node} = Marpa::XS::Internal::And_Node::LAST_FIELD;
-    $and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] = 0;
     $and_node->[Marpa::XS::Internal::And_Node::ID]            = 0;
 
     $recce->[Marpa::XS::Internal::Recognizer::AND_NODES]->[0] = $and_node;
@@ -1575,15 +1583,6 @@ sub Marpa::XS::Recognizer::value {
 
 	    my $and_node = [];
 	    $and_node->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
-
-	    if (defined $predecessor_or_node_id) {
-		my $predecessor_set = $recce_c->or_node_set($predecessor_or_node_id);
-		$and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
-		    $recce_c->earleme($predecessor_set);
-	    } else {
-		$and_node->[Marpa::XS::Internal::And_Node::CAUSE_EARLEME] =
-		    $recce_c->earleme($parent_origin);
-	    }
 
 	    $and_nodes->[$and_node_id] = $and_node;
 	}
