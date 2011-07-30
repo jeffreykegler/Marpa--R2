@@ -188,8 +188,7 @@ sub Marpa::XS::Recognizer::show_bocage {
             }
             my $parent_tag =
                 Marpa::XS::Recognizer::or_node_tag( $recce, $or_node_id );
-            my $predecessor_id =
-                $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID];
+            my $predecessor_id = $recce_c->and_node_predecessor($and_node_id);
             my $predecessor_tag = q{-};
             if ( defined $predecessor_id ) {
                 $predecessor_tag = Marpa::XS::Recognizer::or_node_tag( $recce,
@@ -912,11 +911,10 @@ sub do_rank_all {
             # 0 is there was not token symbol closure
             # the result of that closure if there was one
             if ( defined $token_id
-                and not defined
-                $and_node->[Marpa::XS::Internal::And_Node::PREDECESSOR_ID] )
+                and not defined $recce_c->and_node_predecessor($and_node_id) )
             {
                 $constant_rank_ref = $token_rank_ref // \0;
-            } ## end if ( defined $token_id and not defined $and_node->[...])
+            }
 
         } ## end SET_CONSTANT_RANK:
 
