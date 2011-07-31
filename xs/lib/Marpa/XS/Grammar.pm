@@ -79,7 +79,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     RULES { array of rule refs }
     SYMBOLS { array of symbol refs }
-    AHFA { array of states }
     ACTIONS { Default package in which to find actions }
     DEFAULT_ACTION { Action for rules without one }
     CYCLE_RANKING_ACTION { Action for ranking rules which cycle }
@@ -90,7 +89,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     { === Evaluator Fields === }
 
-    TERMINAL_NAMES { hash of terminal symbols, by name }
     SYMBOL_HASH { hash to symbol ID by name of symbol }
     DEFAULT_NULL_VALUE { default value for nulled symbols }
     ACTION_OBJECT
@@ -542,13 +540,6 @@ sub Marpa::XS::Grammar::precompute {
         Marpa::XS::uncaught_error($error);
     }
 
-    $grammar->[Marpa::XS::Internal::Grammar::TERMINAL_NAMES] = {
-        map { ( $_->[Marpa::XS::Internal::Symbol::NAME] => 1 ) }
-            grep {
-            $grammar_c->symbol_is_terminal(
-                $_->[Marpa::XS::Internal::Symbol::ID] )
-            } @{ $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS] }
-    };
     populate_semantic_equivalences($grammar);
     populate_null_values($grammar);
 

@@ -1509,7 +1509,6 @@ sub Marpa::XS::Recognizer::value {
     my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $rules   = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    my $AHFA = $grammar->[Marpa::XS::Internal::Grammar::AHFA];
     my $grammar_has_cycle = $grammar_c->has_loop();
 
     my $furthest_earleme = $recce_c->furthest_earleme();
