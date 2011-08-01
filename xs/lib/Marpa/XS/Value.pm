@@ -93,7 +93,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Task
 
-    RANK_ALL
     GRAFT_SUBTREE
 
     ITERATE
@@ -1584,7 +1583,7 @@ sub Marpa::XS::Recognizer::value {
 	    ];
 
 	if ( $ranking_method eq 'constant' ) {
-	    push @task_list, [Marpa::XS::Internal::Task::RANK_ALL],;
+            do_rank_all($recce);
 	}
 
     } else {
@@ -2272,19 +2271,6 @@ sub Marpa::XS::Recognizer::value {
             next TASK;
 
         } ## end if ( $task_type == Marpa::XS::Internal::Task::GRAFT_SUBTREE)
-
-        if ( $task_type == Marpa::XS::Internal::Task::RANK_ALL ) {
-
-            if ($trace_tasks) {
-                print {$Marpa::XS::Internal::TRACE_FH} 'Task: RANK_ALL; ',
-                    ( scalar @task_list ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            }
-
-            do_rank_all($recce);
-
-            next TASK;
-        } ## end if ( $task_type == Marpa::XS::Internal::Task::RANK_ALL)
 
         Marpa::XS::internal_error(
             "Internal error: Unknown task type: $task_type");
