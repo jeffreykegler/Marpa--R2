@@ -232,13 +232,6 @@ sub Marpa::XS::Recognizer::new {
         );
     }
 
-    # Some of this processing -- to find terminals and Leo symbols
-    # by state -- should perhaps be done in the grammar.
-
-    my $terminal_names =
-        $grammar->[Marpa::XS::Internal::Grammar::TERMINAL_NAMES];
-
-    my $AHFA        = $grammar->[Marpa::XS::Internal::Grammar::AHFA];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
 
     $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR]     = $grammar;
@@ -1232,7 +1225,6 @@ sub Marpa::XS::Recognizer::earleme_complete {
     local $Marpa::XS::Internal::TRACE_FH =
         $recce->[Marpa::XS::Internal::Recognizer::TRACE_FILE_HANDLE];
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $AHFA        = $grammar->[Marpa::XS::Internal::Grammar::AHFA];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
     my $symbols     = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
 

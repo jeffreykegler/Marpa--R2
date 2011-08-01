@@ -69,20 +69,6 @@ END_OF_STRUCTURE
     Marpa::offset($structure);
 } ## end BEGIN
 
-# Vestige of former Perl implementation of AHFA states.
-# It now includes only a list of the complete rules.
-# Indexed by AHFA ID.
-BEGIN {
-my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::XS::Internal::AHFA
-    COMPLETE_RULES { an array of lists of the complete rules,
-    indexed by lhs }
-    =LAST_FIELD
-END_OF_STRUCTURE
-    Marpa::offset($structure);
-} ## end BEGIN
-
 BEGIN {
 my $structure = <<'END_OF_STRUCTURE';
 
@@ -93,7 +79,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     RULES { array of rule refs }
     SYMBOLS { array of symbol refs }
-    AHFA { array of states }
     ACTIONS { Default package in which to find actions }
     DEFAULT_ACTION { Action for rules without one }
     CYCLE_RANKING_ACTION { Action for ranking rules which cycle }
@@ -104,7 +89,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     { === Evaluator Fields === }
 
-    TERMINAL_NAMES { hash of terminal symbols, by name }
     SYMBOL_HASH { hash to symbol ID by name of symbol }
     DEFAULT_NULL_VALUE { default value for nulled symbols }
     ACTION_OBJECT
@@ -556,18 +540,6 @@ sub Marpa::XS::Grammar::precompute {
         Marpa::XS::uncaught_error($error);
     }
 
-    # Here I update the Perl structures to reflect changes made
-    # in the C structures.  Eventually I will eliminate the Perl
-    # structures, and this code with them.
-    shadow_AHFA($grammar);
-
-    $grammar->[Marpa::XS::Internal::Grammar::TERMINAL_NAMES] = {
-        map { ( $_->[Marpa::XS::Internal::Symbol::NAME] => 1 ) }
-            grep {
-            $grammar_c->symbol_is_terminal(
-                $_->[Marpa::XS::Internal::Symbol::ID] )
-            } @{ $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS] }
-    };
     populate_semantic_equivalences($grammar);
     populate_null_values($grammar);
 
@@ -1554,34 +1526,5 @@ sub set_start_symbol {
         Marpa::XS::uncaught_error($error);
     }
 } ## end sub check_start
-
-sub shadow_AHFA {
-    my $grammar   = shift;
-    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $AHFA      = $grammar->[Marpa::XS::Internal::Grammar::AHFA] = [];
-    my $rules      = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    my $AHFA_state_count = $grammar_c->AHFA_state_count();
-
-    STATE:
-    for ( my $state_id = 0; $state_id < $AHFA_state_count; $state_id++ ) {
-	next STATE
-	    if $grammar_c->AHFA_state_is_predict($state_id)
-		and $state_id > 0;
-	my $state = $AHFA->[$state_id] = [];
-	my @items = $grammar_c->AHFA_state_items($state_id);
-	my $complete_rules;
-	ITEM: for my $item_id (@items) {
-	     # not a completion
-	     next ITEM if $grammar_c->AHFA_item_position($item_id) >= 0;
-	     my $rule_id = $grammar_c->AHFA_item_rule($item_id);
-            my $lhs_id = $grammar_c->rule_lhs($rule_id);
-	    my $rule = $rules->[$rule_id];
-	    push @{$complete_rules->[$lhs_id]}, $rule;
-	}
-	$state->[Marpa::XS::Internal::AHFA::COMPLETE_RULES] =
-	    $complete_rules;
-    }
-
-}
 
 1;

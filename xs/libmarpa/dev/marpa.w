@@ -10393,10 +10393,21 @@ typedef struct s_and_node AND_Object;
 @*0 Trace Functions.
 
 @ @<Private function prototypes@> =
-gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data);
+gint marpa_and_node_count(struct marpa_r *r);
 @ @<Function definitions@> =
-gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data)
+gint marpa_and_node_count(struct marpa_r *r)
 {
+  BOC b = B_of_R(r);
+  @<Return |-2| on failure@>@;
+  @<Fail if recognizer has fatal error@>@;
+  if (!b) {
+      R_ERROR("no bocage");
+      return failure_indicator;
+  }
+  return AND_Count_of_B(b);
+}
+
+@ @<Check |r| and |and_node_id|; set |and_node|@> = {
   BOC b = B_of_R(r);
   AND and_nodes;
   @<Return |-2| on failure@>@;
@@ -10417,24 +10428,62 @@ gint marpa_and_node(struct marpa_r *r, int and_node_id, int *and_data)
   if (and_node_id >= AND_Count_of_B(b)) {
       return -1;
   }
-  {
-      const AND and_node = and_nodes + and_node_id;
-      const OR predecessor_or = Predecessor_OR_of_AND(and_node);
-      const ORID predecessor_or_id = predecessor_or ? ID_of_OR(predecessor_or) : -1;
-      const OR cause_or = Cause_OR_of_AND(and_node);
-      ORID cause_or_id = -1;
-      SYMID symbol_id = -1;
-      if (Type_of_OR(cause_or) == TOKEN_OR_NODE) {
-           symbol_id = ID_of_SYM((SYM)cause_or);
-      } else {
-           cause_or_id = ID_of_OR(cause_or);
+  and_node = and_nodes + and_node_id;
+}
+
+@ @<Private function prototypes@> =
+gint marpa_and_node_parent(struct marpa_r *r, int and_node_id);
+@ @<Function definitions@> =
+gint marpa_and_node_parent(struct marpa_r *r, int and_node_id)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+  return ID_of_OR (OR_of_AND (and_node));
+}
+
+@ @<Private function prototypes@> =
+gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id);
+@ @<Function definitions@> =
+gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    {
+      const OR predecessor_or = Predecessor_OR_of_AND (and_node);
+      const ORID predecessor_or_id =
+	predecessor_or ? ID_of_OR (predecessor_or) : -1;
+      return predecessor_or_id;
       }
-      and_data[0] = ID_of_OR(OR_of_AND(and_node));
-      and_data[1] = predecessor_or_id;
-      and_data[2] = cause_or_id;
-      and_data[3] = symbol_id;
-  }
-  return 1;
+}
+
+@ @<Private function prototypes@> =
+gint marpa_and_node_cause(struct marpa_r *r, int and_node_id);
+@ @<Function definitions@> =
+gint marpa_and_node_cause(struct marpa_r *r, int and_node_id)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    {
+      const OR cause_or = Cause_OR_of_AND (and_node);
+      const ORID cause_or_id =
+	Type_of_OR (cause_or) == TOKEN_OR_NODE ? -1 : ID_of_OR (cause_or);
+      return cause_or_id;
+    }
+}
+
+@ @<Private function prototypes@> =
+gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id);
+@ @<Function definitions@> =
+gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
+{
+  AND and_node;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    {
+      const OR cause_or = Cause_OR_of_AND (and_node);
+      const SYMID symbol_id =
+	Type_of_OR (cause_or) == TOKEN_OR_NODE ? ID_of_SYM ((SYM) cause_or) : -1;
+      return symbol_id;
+    }
 }
 
 @** The Parse Bocage.
@@ -10721,11 +10770,8 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 
 @*0 Trace Functions.
 
-@ @<Private function prototypes@> =
-gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data);
-@ @<Function definitions@> =
-gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
-{
+@ This is common logic in the or_node trace functions.
+@<Check |r| and |or_node_id|; set |or_node|@> = {
   BOC b = B_of_R(r);
   OR* or_nodes;
   @<Return |-2| on failure@>@;
@@ -10746,16 +10792,96 @@ gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
   if (or_node_id >= OR_Count_of_B(b)) {
       return -1;
   }
-  {
-      const OR or_node = or_nodes[or_node_id];
-      or_data[0] = Origin_Ord_of_OR(or_node);
-      or_data[1] = ES_Ord_of_OR(or_node);
-      or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
-      or_data[3] = Position_of_OR(or_node);
-      or_data[4] = First_ANDID_of_OR(or_node);
-      or_data[5] = AND_Count_of_OR(or_node);
-  }
+  or_node = or_nodes[or_node_id];
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data);
+@ @<Function definitions@> =
+gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  or_data[0] = Origin_Ord_of_OR(or_node);
+  or_data[1] = ES_Ord_of_OR(or_node);
+  or_data[2] = ID_of_RULE(RULE_of_OR(or_node));
+  or_data[3] = Position_of_OR(or_node);
+  or_data[4] = First_ANDID_of_OR(or_node);
+  or_data[5] = AND_Count_of_OR(or_node);
   return 1;
+}
+
+@ Return the ordinal of the current (final) Earley set of
+the or-node.
+@<Private function prototypes@> =
+gint marpa_or_node_set(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_set(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return ES_Ord_of_OR(or_node);
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_origin(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_origin(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return Origin_Ord_of_OR(or_node);
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_rule(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_rule(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return ID_of_RULE(RULE_of_OR(or_node));
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_position(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_position(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return Position_of_OR(or_node);
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return First_ANDID_of_OR(or_node);
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return First_ANDID_of_OR(or_node)
+      + AND_Count_of_OR(or_node) - 1;
+}
+
+@ @<Private function prototypes@> =
+gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id);
+@ @<Function definitions@> =
+gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
+{
+  OR or_node;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return AND_Count_of_OR(or_node);
 }
 
 @** Boolean Vectors.
