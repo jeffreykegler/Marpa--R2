@@ -15,6 +15,9 @@
 
 Revision history for Marpa::XS
 
+0.009_000 Mon Aug  1 08:57:14 PDT 2011
+     A new series of developer's releases.
+
 0.008000 Fri Jul 29 09:04:42 PDT 2011
 
      * Second official (ALPHA) release.
