@@ -81,8 +81,6 @@ my $structure = <<'END_OF_STRUCTURE';
     CHILD_TYPE { Cause or Predecessor }
 
     RANK { Current rank }
-    CLEAN { Boolean -- true if rank does not need to
-    be recalculated }
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -415,11 +413,7 @@ sub Marpa::XS::Recognizer::show_iteration_node {
         . q{; rank=}
         . ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::RANK]
             // 'undef' )
-        . (
-        $iteration_node->[Marpa::XS::Internal::Iteration_Node::CLEAN]
-        ? q{}
-        : ' (dirty)'
-        ) . "\n";
+        . "\n";
 
     DESCRIBE_CHOICES: {
         my $choices =
@@ -1612,22 +1606,8 @@ sub Marpa::XS::Recognizer::value {
             ITERATION_NODE:
             while ( $iteration_node = pop @{$iteration_stack} ) {
 
-                # Climb the parent links, marking the ranks
-                # of the nodes "dirty", until we hit one this is
-                # already dirty
-                my $direct_parent = $iteration_node
-                    ->[Marpa::XS::Internal::Iteration_Node::PARENT];
-                PARENT:
-                for ( my $parent = $direct_parent; defined $parent; ) {
-                    my $parent_node = $iteration_stack->[$parent];
-                    last PARENT
-                        if not $parent_node
-                            ->[Marpa::XS::Internal::Iteration_Node::CLEAN];
-                    $parent_node->[Marpa::XS::Internal::Iteration_Node::CLEAN]
-                        = 0;
-                    $parent = $parent_node
-                        ->[Marpa::XS::Internal::Iteration_Node::PARENT];
-                } ## end for ( my $parent = $direct_parent; defined $parent; )
+		my $direct_parent =
+		    $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
 
                 # This or-node is already populated,
                 # or it would not have been put
@@ -1663,8 +1643,6 @@ sub Marpa::XS::Recognizer::value {
                     undef;
                 $iteration_node
                     ->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX] = undef;
-                $iteration_node->[Marpa::XS::Internal::Iteration_Node::CLEAN]
-                    = 0;
                 push @{$iteration_stack}, $iteration_node;
 
                 shift @{$choices};
@@ -1820,8 +1798,6 @@ sub Marpa::XS::Recognizer::value {
                 next TASK;
             } ## end for my $field ( ...)
 
-	    $working_node->[Marpa::XS::Internal::Iteration_Node::CLEAN] =
-		1;
 	    pop @{$iteration_node_worklist};
 	    next FIX_TREE_LOOP;
 
