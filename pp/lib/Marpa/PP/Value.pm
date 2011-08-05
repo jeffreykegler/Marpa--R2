@@ -124,7 +124,6 @@ my $structure = <<'END_OF_STRUCTURE';
     POPULATE_DEPTH
 
     RANK_ALL
-    GRAFT_SUBTREE
 
     ITERATE
     FIX_TREE
@@ -162,7 +161,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     AND_NODE
     RANK { *NOT* a rank ref }
-    ITERATION_SUBTREE
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -378,15 +376,6 @@ sub Marpa::PP::Recognizer::show_iteration_node {
             if ($verbose) {
                 $text .= q{; rank=}
                     . $choice->[Marpa::PP::Internal::Choice::RANK];
-                if ( my $saved_subtree =
-                    $choice->[Marpa::PP::Internal::Choice::ITERATION_SUBTREE]
-                    )
-                {
-                    $text
-                        .= q{; }
-                        . ( scalar @{$saved_subtree} )
-                        . ' nodes saved';
-                } ## end if ( my $saved_subtree = $choice->[...])
             } ## end if ($verbose)
             $text .= "\n";
             last CHOICE if not $verbose;
@@ -1638,13 +1627,6 @@ sub Marpa::PP::Recognizer::value {
 
             push @task_list, [Marpa::PP::Internal::Task::FIX_TREE];
 
-            if ( $choices->[0]
-                ->[Marpa::PP::Internal::Choice::ITERATION_SUBTREE] )
-            {
-                push @task_list, [Marpa::PP::Internal::Task::GRAFT_SUBTREE];
-                next TASK;
-            } ## end if ( $choices->[0]->[...])
-
             if ($grammar_has_cycle) {
                 push @task_list, [Marpa::PP::Internal::Task::CHECK_FOR_CYCLE];
                 next TASK;
@@ -2358,80 +2340,6 @@ say STDERR "End of STACK_INODE: ", $recce->show_iteration_stack(99) if $MARPA::P
             next TASK;
 
         } ## end if ( $task_type == Marpa::PP::Internal::Task::STACK_INODE)
-
-        if ( $task_type == Marpa::PP::Internal::Task::GRAFT_SUBTREE ) {
-
-            my $subtree_parent_node = $iteration_stack->[-1];
-            my $or_node             = $subtree_parent_node
-                ->[Marpa::PP::Internal::Iteration_Node::OR_NODE];
-
-            if ($trace_tasks) {
-                print {$Marpa::PP::Internal::TRACE_FH}
-                    'Task: GRAFT_SUBTREE o',
-                    $or_node->[Marpa::PP::Internal::Or_Node::ID],
-                    q{; }, ( scalar @task_list ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
-
-            my $subtree_parent_ix = $#{$iteration_stack};
-            my $and_node_ids =
-                $or_node->[Marpa::PP::Internal::Or_Node::AND_NODE_IDS];
-
-            my $choices = $subtree_parent_node
-                ->[Marpa::PP::Internal::Iteration_Node::CHOICES];
-
-            # set RANK
-            my $choice = $choices->[0];
-            {
-                no integer;
-                $subtree_parent_node
-                    ->[Marpa::PP::Internal::Iteration_Node::RANK] =
-                    $choice->[Marpa::PP::Internal::Choice::RANK];
-
-            }
-
-            my $subtree =
-                $choice->[Marpa::PP::Internal::Choice::ITERATION_SUBTREE];
-
-            # Undef the old "frozen" values,
-            # now that we are putting them back into play.
-            $choice->[Marpa::PP::Internal::Choice::ITERATION_SUBTREE] = undef;
-
-            # Clear the cycle hash
-            $cycle_hash = undef;
-
-            push @{$iteration_stack}, @{$subtree};
-            my $top_of_stack = $#{$iteration_stack};
-
-            # Reset the parent's cause and predecessor
-            IX:
-            for (
-                my $ix = $subtree_parent_ix + 1;
-                $ix <= $top_of_stack;
-                $ix++
-                )
-            {
-                my $iteration_node = $iteration_stack->[$ix];
-                if ( $iteration_node
-                    ->[Marpa::PP::Internal::Iteration_Node::PARENT]
-                    == $subtree_parent_ix )
-                {
-                    my $child_type = $iteration_node
-                        ->[Marpa::PP::Internal::Iteration_Node::CHILD_TYPE];
-                    $iteration_stack->[$subtree_parent_ix]->[
-                        $child_type
-                        == Marpa::PP::Internal::And_Node::PREDECESSOR_ID
-                        ? Marpa::PP::Internal::Iteration_Node::PREDECESSOR_IX
-                        : Marpa::PP::Internal::Iteration_Node::CAUSE_IX
-                        ]
-                        = $ix;
-                } ## end if ( $iteration_node->[...])
-            } ## end for ( my $ix = $subtree_parent_ix + 1; $ix <= ...)
-
-            # We are done.
-            next TASK;
-
-        } ## end if ( $task_type == Marpa::PP::Internal::Task::GRAFT_SUBTREE)
 
         if ( $task_type == Marpa::PP::Internal::Task::RANK_ALL ) {
 
