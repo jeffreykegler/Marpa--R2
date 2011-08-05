@@ -1,19 +1,19 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::PP::Internal;
+package Marpa::XS::Internal;
 
 use 5.010;
 use strict;
@@ -24,9 +24,9 @@ use Carp;
 *Marpa::exception = \&Carp::croak;
 
 ## no critic (Subroutines::RequireArgUnpacking)
-sub Marpa::PP::internal_error {
+sub Marpa::XS::internal_error {
     Carp::confess(
-        "Internal Marpa::PP Error: This could be a bug in Marpa::PP\n", @_ );
+        "Internal Marpa::XS Error: This could be a bug in Marpa::XS\n", @_ );
 }
 ## use critic
 

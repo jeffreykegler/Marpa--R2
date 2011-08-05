@@ -54,9 +54,9 @@ inc/proof/proof.lyx
 lib/Marpa/XS.pm
 lib/Marpa/XS/Callback.pm
 lib/Marpa/XS/Grammar.pm
-lib/Marpa/XS/PP/Internal.pm
-lib/Marpa/XS/PP/Slot.pm
+lib/Marpa/XS/Internal.pm
 lib/Marpa/XS/Recognizer.pm
+lib/Marpa/XS/Slot.pm
 lib/Marpa/XS/Value.pm
 libmarpa/dev/Makefile
 libmarpa/dev/README
