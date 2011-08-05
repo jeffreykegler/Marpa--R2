@@ -1820,20 +1820,10 @@ sub Marpa::XS::Recognizer::value {
                 next TASK;
             } ## end for my $field ( ...)
 
-            # If we have all the child nodes and the rank is clean,
-            # pop this node from the worklist and move on.
-            if ( $working_node->[Marpa::XS::Internal::Iteration_Node::CLEAN] )
-            {
-                pop @{$iteration_node_worklist};
-                next FIX_TREE_LOOP;
-            }
-
-            {
-                $working_node->[Marpa::XS::Internal::Iteration_Node::CLEAN] =
-                    1;
-                pop @{$iteration_node_worklist};
-                next FIX_TREE_LOOP;
-            }
+	    $working_node->[Marpa::XS::Internal::Iteration_Node::CLEAN] =
+		1;
+	    pop @{$iteration_node_worklist};
+	    next FIX_TREE_LOOP;
 
         } ## end while ( $task_type == Marpa::XS::Internal::Task::FIX_TREE)
 
