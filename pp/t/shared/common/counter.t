@@ -14,15 +14,20 @@
 # General Public License along with Marpa::PP.  If not, see
 # http://www.gnu.org/licenses/.
 
-# This uses an ambiguous grammar to implement a binary
-# counter.  A very expensive way to do it, but a
-# good test of the ranking logic.
+# A vestige of a former test of the "constant"
+# ranking method when ranks were computed dynamically.
+# When the "constant" ranking method was dynamic, it
+# was possible to use it as a binary counter.
+
+# This test probably should be replaced with something
+# better targeted to the new, simplified "constant"
+# ranking method.
 
 use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 33;
+use Test::More tests => 3;
 use English qw( -no_match_vars );
 use Marpa::Test;
 
@@ -90,23 +95,17 @@ my $recce = Marpa::Recognizer->new(
 my $input_length = 4;
 $recce->tokens( [ ( ['t'] ) x $input_length ] );
 
-my @counting_up =
-    qw{ 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111 };
-my @counting_down = reverse @counting_up;
-
 for my $up ( 1, 0 ) {
     local $MyTest::UP = $up;
-    my $count = $up ? ( \@counting_up ) : ( \@counting_down );
     my $direction = $up ? 'up' : 'down';
     $recce->reset_evaluation();
     my $i = 0;
-    while ( my $result = $recce->value() ) {
-        my $got      = ${$result};
-        my $expected = $count->[$i];
-        say ${$result} or die("Could not print to STDOUT: $ERRNO");
-        Test::More::is( $got, $expected, "counting $direction $i" );
-        $i++;
-    } ## end while ( my $result = $recce->value() )
+    my $result = $recce->value();
+    my $got      = ${$result};
+    my $expected = $up ? '0000' : '1111';
+    say ${$result} or die("Could not print to STDOUT: $ERRNO");
+    Test::More::is( $got, $expected, "counting $direction $i" );
+    $i++;
 } ## end for my $up ( 1, 0 )
 
 1;    # In case used as "do" file

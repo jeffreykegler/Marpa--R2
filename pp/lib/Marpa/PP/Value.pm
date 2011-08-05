@@ -215,166 +215,54 @@ sub Marpa::PP::Recognizer::or_node_tag {
     return 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
 } ## end sub Marpa::PP::Recognizer::or_node_tag
 
-
-sub Marpa::PP::Recognizer::show_recce_and_node {
-    my ( $recce, $and_node, $verbose ) = @_;
-    $verbose //= 0;
-
-    my $text = "show_recce_and_node:\n";
-
-    my $grammar = $recce->[Marpa::PP::Internal::Recognizer::GRAMMAR];
-    my $rules   = $grammar->[Marpa::PP::Internal::Grammar::RULES];
-
-    my $name = $and_node->[Marpa::PP::Internal::And_Node::TAG];
-    my $id   = $and_node->[Marpa::PP::Internal::And_Node::ID];
-    my $predecessor_id =
-        $and_node->[Marpa::PP::Internal::And_Node::PREDECESSOR_ID];
-    my $cause_id  = $and_node->[Marpa::PP::Internal::And_Node::CAUSE_ID];
-    my $value_ref = $and_node->[Marpa::PP::Internal::And_Node::VALUE_REF];
-    my $rule_id   = $and_node->[Marpa::PP::Internal::And_Node::RULE_ID];
-    my $position  = $and_node->[Marpa::PP::Internal::And_Node::POSITION];
-
-    my @rhs = ();
-
-    my $rule          = $rules->[$rule_id];
-    my $original_rule = $rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE]
-        // $rule;
-    my $is_virtual_rule = $rule != $original_rule;
-
-    my $or_nodes = $recce->[Marpa::PP::Internal::Recognizer::OR_NODES];
-
-    my $predecessor;
-    if ($predecessor_id) {
-        $predecessor = $or_nodes->[$predecessor_id];
-
-        push @rhs, $predecessor->[Marpa::PP::Internal::Or_Node::TAG]
-            . "o$predecessor_id";
-    }    # predecessor
-
-    my $cause;
-    if ($cause_id) {
-        $cause = $or_nodes->[$cause_id];
-        push @rhs, $cause->[Marpa::PP::Internal::Or_Node::TAG] . "o$cause_id";
-    }    # cause
-
-    if ( defined $value_ref ) {
-        my $value_as_string =
-            Data::Dumper->new( [$value_ref] )->Terse(1)->Dump;
-        chomp $value_as_string;
-        push @rhs, $value_as_string;
-    }    # value
-
-    $text .= "R$rule_id:$position" . "a$id -> " . join( q{ }, @rhs ) . "\n";
-
-    SHOW_RULE: {
-        if ( $is_virtual_rule and $verbose >= 2 ) {
-            $text
-                .= '    rule '
-                . $rule->[Marpa::PP::Internal::Rule::ID] . ': '
-                . Marpa::PP::show_dotted_rule( $rule, $position + 1 )
-                . "\n    "
-                . Marpa::PP::brief_virtual_rule( $rule, $position + 1 )
-                . "\n";
-            last SHOW_RULE;
-        } ## end if ( $is_virtual_rule and $verbose >= 2 )
-
-        last SHOW_RULE if not $verbose;
-        $text
-            .= '    rule '
-            . $rule->[Marpa::PP::Internal::Rule::ID] . ': '
-            . Marpa::PP::brief_virtual_rule( $rule, $position + 1 ) . "\n";
-
-    } ## end SHOW_RULE:
-
-    if ( $verbose >= 2 ) {
-        my @comment = ();
-        if ( $and_node->[Marpa::PP::Internal::And_Node::VALUE_OPS] ) {
-            push @comment, 'value_ops';
-        }
-        if ( scalar @comment ) {
-            $text .= q{    } . ( join q{, }, @comment ) . "\n";
-        }
-    } ## end if ( $verbose >= 2 )
-
-    return $text;
-
-} ## end sub Marpa::PP::Recognizer::show_recce_and_node
-
-sub Marpa::PP::Recognizer::show_recce_or_node {
-    my ( $recce, $or_node, $verbose, ) = @_;
-    $verbose //= 0;
-
-    my $grammar     = $recce->[Marpa::PP::Internal::Recognizer::GRAMMAR];
-    my $rules       = $grammar->[Marpa::PP::Internal::Grammar::RULES];
-    my $rule_id     = $or_node->[Marpa::PP::Internal::Or_Node::RULE_ID];
-    my $position    = $or_node->[Marpa::PP::Internal::Or_Node::POSITION];
-    my $or_node_id  = $or_node->[Marpa::PP::Internal::Or_Node::ID];
-    my $or_node_tag = $or_node->[Marpa::PP::Internal::Or_Node::TAG];
-
-    my $text = "show_recce_or_node o$or_node_id:\n";
-
-    my $rule          = $rules->[$rule_id];
-    my $original_rule = $rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE]
-        // $rule;
-    my $is_virtual_rule = $rule != $original_rule;
-
-    my $and_nodes = $recce->[Marpa::PP::Internal::Recognizer::AND_NODES];
-
-    LIST_AND_NODES: {
-        my $and_node_ids =
-            $or_node->[Marpa::PP::Internal::Or_Node::AND_NODE_IDS];
-        if ( not defined $and_node_ids ) {
-            $text .= $or_node_tag . "o$or_node_id: UNPOPULATED\n";
-            last LIST_AND_NODES;
-        }
-        if ( not scalar @{$and_node_ids} ) {
-            $text .= $or_node_tag . "o$or_node_id: Empty and-node list!\n";
-            last LIST_AND_NODES;
-        }
-        for my $index ( 0 .. $#{$and_node_ids} ) {
-            my $and_node_id  = $and_node_ids->[$index];
-            my $and_node     = $and_nodes->[$and_node_id];
-            my $and_node_tag = $or_node_tag . "a$and_node_id";
-            if ( $verbose >= 2 ) {
-                $text .= $or_node_tag
-                    . "o$or_node_id: $or_node_tag -> $and_node_tag\n";
-            }
-            $text .= $recce->show_recce_and_node( $and_node, $verbose );
-        } ## end for my $index ( 0 .. $#{$and_node_ids} )
-    } ## end LIST_AND_NODES:
-
-    SHOW_RULE: {
-        if ( $is_virtual_rule and $verbose >= 2 ) {
-            $text
-                .= '    rule '
-                . $rule->[Marpa::PP::Internal::Rule::ID] . ': '
-                . Marpa::PP::show_dotted_rule( $rule, $position + 1 )
-                . "\n    "
-                . Marpa::PP::brief_virtual_rule( $rule, $position + 1 )
-                . "\n";
-            last SHOW_RULE;
-        } ## end if ( $is_virtual_rule and $verbose >= 2 )
-
-        last SHOW_RULE if not $verbose;
-        $text
-            .= '    rule '
-            . $rule->[Marpa::PP::Internal::Rule::ID] . ': '
-            . Marpa::PP::brief_virtual_rule( $rule, $position + 1 ) . "\n";
-
-    } ## end SHOW_RULE:
-
-    return $text;
-
-} ## end sub Marpa::PP::Recognizer::show_recce_or_node
+sub Marpa::PP::Recognizer::show_and_nodes {
+    my ($recce) = @_;
+    my $and_nodes  = $recce->[Marpa::PP::Internal::Recognizer::AND_NODES];
+    my @data = ();
+    for my $and_node (@{$and_nodes}) {
+         my $desc = $recce->and_node_tag($and_node);
+	 my ($rule, $position, $origin, $dot, $cause_type, $cause, $middle) = (
+	     $desc =~ /\A R (\d+) [:] (\d+)
+	     [@] (\d+) [-] (\d+) ([SC]) (\d+)
+	     [@] (\d+) \z/msx
+	 );
+        push @data,
+            [ $origin, $dot, $rule, $position,
+		$middle,
+		($cause_type eq "C" ? $cause : -1),
+		($cause_type eq "S" ? $cause : -1),
+		$desc ];
+    }
+    my @tags = map { $_->[-1] } sort {
+       $a->[0] <=> $b->[0]
+       or $a->[1] <=> $b->[1]
+       or $a->[2] <=> $b->[2]
+       or $a->[3] <=> $b->[3]
+       or $a->[4] <=> $b->[4]
+       or $a->[5] <=> $b->[5]
+       or $a->[6] <=> $b->[6]
+    } @data;
+    my $result = (join "\n", @tags) . "\n";
+    return $result;
+}
 
 sub Marpa::PP::Recognizer::show_or_nodes {
-    my ($recce, $verbose) = @_;
-    my $text;
+    my ($recce) = @_;
     my $or_nodes  = $recce->[Marpa::PP::Internal::Recognizer::OR_NODES];
+    my @data = ();
     for my $or_node (@{$or_nodes}) {
-         $text .= $recce->show_recce_or_node($or_node, $verbose);
+         my $desc = $recce->or_node_tag($or_node);
+	 my @elements = ($desc =~ /\A R (\d+) [:] (\d+) [@] (\d+) [-] (\d+) \z/msx);
+	 push @data, [ @elements, $desc ];
     }
-    return $text;
+    my @tags = map { $_->[-1] } sort {
+       $a->[2] <=> $b->[2]
+       or $a->[3] <=> $b->[3]
+       or $a->[0] <=> $b->[0]
+       or $a->[1] <=> $b->[1]
+    } @data;
+    my $result = (join "\n", @tags) . "\n";
+    return $result;
 }
 
 sub Marpa::PP::brief_iteration_node {
