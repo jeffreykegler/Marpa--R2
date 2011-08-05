@@ -15,5 +15,8 @@
 
 Revision history for Marpa::PP
 
+0.009_000 Fri Aug  5 15:04:38 PDT 2011
+     * Starting a new series of developer's releases.
+
 0.008000
      First official release (ALPHA).
