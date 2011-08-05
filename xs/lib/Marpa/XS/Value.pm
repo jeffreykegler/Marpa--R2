@@ -93,8 +93,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Task
 
-    GRAFT_SUBTREE
-
     ITERATE
     FIX_TREE
     STACK_INODE
@@ -131,7 +129,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     AND_NODE
     RANK { *NOT* a rank ref }
-    ITERATION_SUBTREE
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -447,15 +444,6 @@ sub Marpa::XS::Recognizer::show_iteration_node {
             if ($verbose) {
                 $text .= q{; rank=}
                     . $choice->[Marpa::XS::Internal::Choice::RANK];
-                if ( my $saved_subtree =
-                    $choice->[Marpa::XS::Internal::Choice::ITERATION_SUBTREE]
-                    )
-                {
-                    $text
-                        .= q{; }
-                        . ( scalar @{$saved_subtree} )
-                        . ' nodes saved';
-                } ## end if ( my $saved_subtree = $choice->[...])
             } ## end if ($verbose)
             $text .= "\n";
             last CHOICE if not $verbose;
@@ -1690,13 +1678,6 @@ sub Marpa::XS::Recognizer::value {
             return if not defined $iteration_node;
 
             push @task_list, [Marpa::XS::Internal::Task::FIX_TREE];
-
-            if ( $choices->[0]
-                ->[Marpa::XS::Internal::Choice::ITERATION_SUBTREE] )
-            {
-                push @task_list, [Marpa::XS::Internal::Task::GRAFT_SUBTREE];
-                next TASK;
-            } ## end if ( $choices->[0]->[...])
 
             if ($grammar_has_cycle) {
                 push @task_list, [Marpa::XS::Internal::Task::CHECK_FOR_CYCLE];
