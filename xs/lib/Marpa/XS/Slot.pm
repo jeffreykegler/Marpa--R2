@@ -13,7 +13,7 @@
 # General Public License along with Marpa::PP.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::PP::Internal::Slot;
+package Marpa::XS::Internal::Slot;
 
 use 5.010;
 use strict;
@@ -22,7 +22,7 @@ use integer;
 
 BEGIN {
 my $structure = <<'END_OF_STRUCTURE';
-    :package=Marpa::PP::Internal::Slot
+    :package=Marpa::XS::Internal::Slot
     VALUES
     FREE_LIST
 END_OF_STRUCTURE

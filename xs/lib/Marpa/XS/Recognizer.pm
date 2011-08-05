@@ -200,7 +200,7 @@ sub Marpa::XS::Recognizer::new {
     $recce->[Marpa::XS::Internal::Recognizer::MODE]           = 'default';
     $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES]     = 0;
-    $recce->[Marpa::XS::Internal::Recognizer::SLOTS]     = Marpa::PP::Internal::Slot->new();
+    $recce->[Marpa::XS::Internal::Recognizer::SLOTS]     = Marpa::XS::Internal::Slot->new();
     $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]     = {};
     $recce->reset_evaluation();
 
