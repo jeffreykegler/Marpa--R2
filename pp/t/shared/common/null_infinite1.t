@@ -75,11 +75,6 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-# PP and XS differ on this test.  The result of this test
-# is not well-defined, and it exists as much to track
-# changes as anything.
-# So I do not treat the difference as a bug.
-
 my @expected2 = qw{
     S(-;f(S(n(A);f(A))))
     S(-;f(S(n(A);f(S(-;f(A))))))
@@ -92,17 +87,28 @@ my @expected2 = qw{
 };
 
 my @expected3 = qw{
+    S(-;f(S(n(A);f(S(-;f(S(n(A);f(A))))))))
+    S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(-;f(A))))))))))
+    S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))))))
+    S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(n(A);-)))))))))
+    S(-;f(S(n(A);f(S(n(A);f(A))))))
+    S(-;f(S(n(A);f(S(n(A);f(S(-;f(A))))))))
+    S(-;f(S(n(A);f(S(n(A);f(S(-;f(S(n(A);-)))))))))
+    S(-;f(S(n(A);f(S(n(A);f(S(n(A);-)))))))
     S(n(A);f(S(n(A);f(A))))
     S(n(A);f(S(n(A);f(S(-;f(A))))))
     S(n(A);f(S(n(A);f(S(-;f(S(n(A);-)))))))
     S(n(A);f(S(n(A);f(S(n(A);-)))))
+    S(n(A);f(S(-;f(S(n(A);f(A))))))
+    S(n(A);f(S(-;f(S(n(A);f(S(-;f(A))))))))
+    S(n(A);f(S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))))
+    S(n(A);f(S(-;f(S(n(A);f(S(n(A);-)))))))
 };
 
 my @expected = (
     [q{}],
     [   qw{
             S(-;f(A))
-            S(-;f(S(-;f(A))))
             S(-;f(S(n(A);-)))
             S(n(A);-)
             }
@@ -120,9 +126,11 @@ for my $input_length ( 1 .. 3 ) {
     while ( my $value_ref = $recce->value() ) {
         push @values, ${$value_ref};
     }
+    my $values = join "\n", sort @values;
+    my $expected_values = join "\n", sort @{$expected};
+    # die if $values ne $expected_values;
     Marpa::Test::is(
-        ( join "\n", sort @values ),
-        ( join "\n", sort @{$expected} ),
+        $values, $expected_values,
         "value for input length $input_length"
     );
 } ## end for my $input_length ( 1 .. 3 )
