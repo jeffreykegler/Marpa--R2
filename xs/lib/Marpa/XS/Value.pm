@@ -94,7 +94,6 @@ my $structure = <<'END_OF_STRUCTURE';
     ITERATE
     FIX_TREE
     STACK_INODE
-    CHECK_FOR_CYCLE
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -1408,7 +1407,7 @@ sub Marpa::XS::Recognizer::value {
     my $and_nodes = $recce->[Marpa::XS::Internal::Recognizer::AND_NODES];
     my $or_nodes  = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
     my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
-    my $cycle_hash;
+    my @and_node_in_use = ();
     my $ranking_method =
         $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD];
 
@@ -1490,7 +1489,6 @@ sub Marpa::XS::Recognizer::value {
     my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $rules   = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    my $grammar_has_cycle = $grammar_c->has_loop();
 
     my $furthest_earleme = $recce_c->furthest_earleme();
     my $last_completed_earleme = $recce_c->current_earleme();
@@ -1657,74 +1655,9 @@ sub Marpa::XS::Recognizer::value {
 
             push @task_list, [Marpa::XS::Internal::Task::FIX_TREE];
 
-            if ($grammar_has_cycle) {
-                push @task_list, [Marpa::XS::Internal::Task::CHECK_FOR_CYCLE];
-                next TASK;
-            }
-
             next TASK;
 
         } ## end if ( $task_type == Marpa::XS::Internal::Task::ITERATE)
-
-        if ( $task_type == Marpa::XS::Internal::Task::CHECK_FOR_CYCLE ) {
-
-            next TASK if not $grammar_has_cycle;
-
-            # This task assumes the top node and the ranks of all its
-            # ancestores are already dirtied.
-            if ( not defined $cycle_hash ) {
-                my @and_node_tags = map {
-                    Marpa::XS::Recognizer::and_node_tag(
-                        $recce,
-                        $_->[Marpa::XS::Internal::Iteration_Node::CHOICES]
-                            ->[0]->[Marpa::XS::Internal::Choice::AND_NODE]
-                            ->[Marpa::XS::Internal::And_Node::ID]
-                        )
-                } @{$iteration_stack}[ 0 .. $#{$iteration_stack} - 1 ];
-                my %cycle_hash;
-                @cycle_hash{@and_node_tags} = @and_node_tags;
-                $cycle_hash = \%cycle_hash;
-            } ## end if ( not defined $cycle_hash )
-
-            my $top_inode = $iteration_stack->[-1];
-            my $choices =
-                $top_inode->[Marpa::XS::Internal::Iteration_Node::CHOICES];
-            my $or_node =
-                $top_inode->[Marpa::XS::Internal::Iteration_Node::OR_NODE];
-
-            # If we can't cycle, we are done
-            next TASK if not $or_node->[Marpa::XS::Internal::Or_Node::CYCLE];
-
-            CHOICE: while ( scalar @{$choices} ) {
-                my $and_node_tag =
-                    Marpa::XS::Recognizer::and_node_tag( $recce,
-                    $choices->[0]->[Marpa::XS::Internal::Choice::AND_NODE]
-                            ->[Marpa::XS::Internal::And_Node::ID]
-		    );
-
-                # Would this node cycle?
-                # Shift it off the choice list and try the next choice
-                if ( exists $cycle_hash->{$and_node_tag} ) {
-                    shift @{$choices};
-                    next CHOICE;
-                }
-
-                # No cycle
-                # Add this node to the hash and move on the next
-                # task, which presumably a FIX_TREE
-                $cycle_hash->{$and_node_tag} = $and_node_tag;
-                next TASK;
-
-            } ## end while ( scalar @{$choices} )
-
-            # No non-cycling choices --
-            # Pop this node off the iteration stack,
-            # clear the task stack and iterate.
-            pop @{$iteration_stack};
-            @task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
-            next TASK;
-
-        } ## end if ( $task_type == ...)
 
         # This task is set up to rerun itself until explicitly exited
         FIX_TREE_LOOP:
@@ -1885,50 +1818,26 @@ sub Marpa::XS::Recognizer::value {
             my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
             my $next_iteration_stack_ix = scalar @{$iteration_stack};
 
-            my $and_node_tag =
-		 Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id);
+	    # Check if we are about to cycle.
+	    if ( $and_node_in_use[$and_node_id] ) {
 
-            if ($grammar_has_cycle) {
+		# If there is another choice, increment choice and restack
+		# this task ...
+		#
+		# This iteration node is not yet on the stack, so we
+		# don't need to do anything with the pointers.
+		if ( scalar @{$choices} > 1 ) {
+		    shift @{$choices};
+		    push @task_list, $task;
+		    next TASK;
+		}
 
-                if ( not defined $cycle_hash ) {
-                    my @and_node_tags = map {
-                        Marpa::XS::Recognizer::and_node_tag(
-                            $recce,
-                            $_->[
-                                Marpa::XS::Internal::Iteration_Node::CHOICES]
-                                ->[0]->[Marpa::XS::Internal::Choice::AND_NODE]
-                                ->[Marpa::XS::Internal::And_Node::ID]
-                            )
-                    } @{$iteration_stack};
-                    my %cycle_hash;
-                    @cycle_hash{@and_node_tags} = @and_node_tags;
-                    $cycle_hash = \%cycle_hash;
-                } ## end if ( not defined $cycle_hash )
-
-                # Check if we are about to cycle.
-                if ( $or_node->[Marpa::XS::Internal::Or_Node::CYCLE]
-                    and exists $cycle_hash->{$and_node_tag} )
-                {
-
-                    # If there is another choice, increment choice and restack
-                    # this task ...
-                    #
-                    # This iteration node is not yet on the stack, so we
-                    # don't need to do anything with the pointers.
-                    if ( scalar @{$choices} > 1 ) {
-                        shift @{$choices};
-                        push @task_list, $task;
-                        next TASK;
-                    }
-
-                    # Otherwise, throw away all pending tasks and
-                    # iterate
-                    @task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
-                    next TASK;
-                } ## end if ( $or_node->[Marpa::XS::Internal::Or_Node::CYCLE]...)
-                $cycle_hash->{$and_node_tag} = $and_node_tag;
-
-            } ## end if ($grammar_has_cycle)
+		# Otherwise, throw away all pending tasks and
+		# iterate
+		@task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
+		next TASK;
+	    } ## end if ( $and_node_in_use[$and_node_id] )
+	    $and_node_in_use[$and_node_id] = 1;
 
             # Tell the parent that the new iteration node is its child.
             if (defined(
