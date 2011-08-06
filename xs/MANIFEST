@@ -98,7 +98,6 @@ t/00-load.t
 t/02-load_xs.t
 t/Makefile
 t/infinite_plex.t
-t/null_infinite1.t
 t/shared/ah2.t
 t/shared/ah_numeric.t
 t/shared/bocage.t
@@ -131,6 +130,7 @@ t/shared/common/leo_example.t
 t/shared/common/limits.t
 t/shared/common/minus.t
 t/shared/common/null_example.t
+t/shared/common/null_infinite1.t
 t/shared/common/null_infinite4.t
 t/shared/common/null_value.t
 t/shared/common/pascal.t
@@ -166,6 +166,7 @@ t/shared/leo_example.t
 t/shared/limits.t
 t/shared/minus.t
 t/shared/null_example.t
+t/shared/null_infinite1.t
 t/shared/null_infinite4.t
 t/shared/null_value.t
 t/shared/pascal.t
