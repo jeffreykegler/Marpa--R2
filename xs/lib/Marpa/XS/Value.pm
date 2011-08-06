@@ -1407,7 +1407,6 @@ sub Marpa::XS::Recognizer::value {
     my $and_nodes = $recce->[Marpa::XS::Internal::Recognizer::AND_NODES];
     my $or_nodes  = $recce->[Marpa::XS::Internal::Recognizer::OR_NODES];
     my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
-    my @and_node_in_use = ();
     my $ranking_method =
         $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD];
 
@@ -1580,6 +1579,14 @@ sub Marpa::XS::Recognizer::value {
     $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
 
     my $iteration_node_worklist;
+    my @and_node_in_use = ();
+    for my $iteration_node (@{$iteration_stack}) {
+	my $choices = $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICES];
+	my $choice = $choices->[0];
+	my $and_node = $choice->[Marpa::XS::Internal::Choice::AND_NODE];
+	my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
+	$and_node_in_use[$and_node_id] = 1;
+    }
 
     TASK: while ( my $task = pop @task_list ) {
 
@@ -1604,16 +1611,32 @@ sub Marpa::XS::Recognizer::value {
             ITERATION_NODE:
             while ( $iteration_node = pop @{$iteration_stack} ) {
 
-		my $direct_parent =
-		    $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
-
                 # This or-node is already populated,
                 # or it would not have been put
                 # onto the iteration stack
                 $choices = $iteration_node
                     ->[Marpa::XS::Internal::Iteration_Node::CHOICES];
 
-                if ( scalar @{$choices} <= 1 ) {
+		# Eliminate the current choice
+		my $choice = $choices->[0];
+		my $and_node = $choice->[Marpa::XS::Internal::Choice::AND_NODE];
+		my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
+		$and_node_in_use[$and_node_id] = undef;
+                shift @{$choices};
+
+		# Throw away choices until we find one that does not cycle
+                CHOICE: while ( scalar @{$choices} ) {
+		    $choice = $choices->[0];
+		    $and_node = $choice->[Marpa::XS::Internal::Choice::AND_NODE];
+		    $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
+		    last CHOICE if not $and_node_in_use[$and_node_id];
+		    shift @{$choices};
+		}
+
+                if ( not scalar @{$choices} ) {
+
+		    my $direct_parent =
+			$iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
 
                     # For the node just popped off the stack
                     # unset the pointer to it in its parent
@@ -1643,7 +1666,10 @@ sub Marpa::XS::Recognizer::value {
                     ->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX] = undef;
                 push @{$iteration_stack}, $iteration_node;
 
-                shift @{$choices};
+		$choice = $choices->[0];
+		$and_node = $choice->[Marpa::XS::Internal::Choice::AND_NODE];
+		$and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
+		$and_node_in_use[$and_node_id] = 1;
 
                 last ITERATION_NODE;
 
