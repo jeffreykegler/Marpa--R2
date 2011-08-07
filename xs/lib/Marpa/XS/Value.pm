@@ -1646,8 +1646,6 @@ sub Marpa::XS::Recognizer::value {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
 
-            $iteration_node_worklist = undef;
-
             # In this pass, we go up the iteration stack,
             # looking a node which we can iterate.
             my $iteration_node;
@@ -1723,6 +1721,8 @@ sub Marpa::XS::Recognizer::value {
             # to iterate, that is it for parsing.
             return if not defined $iteration_node;
 
+            $iteration_node_worklist = [ 0 .. $#{$iteration_stack} ];
+
             push @task_list, [Marpa::XS::Internal::Task::FIX_TREE];
 
             next TASK;
@@ -1734,7 +1734,6 @@ sub Marpa::XS::Recognizer::value {
         while ( $task_type == Marpa::XS::Internal::Task::FIX_TREE ) {
 
             # If the work list is undefined, initialize it to the entire stack
-            $iteration_node_worklist //= [ 0 .. $#{$iteration_stack} ];
             # We are done fixing the tree if the worklist is empty
             next TASK if not scalar @{$iteration_node_worklist};
             my $working_node_ix = $iteration_node_worklist->[-1];
@@ -1927,12 +1926,8 @@ sub Marpa::XS::Recognizer::value {
                     = scalar @{$iteration_stack};
             } ## end if ( defined( my $child_type = $work_iteration_node->...))
 
-            # If we are keeping an iteration node worklist,
-            # add this node to it.
-            defined $iteration_node_worklist
-                and push @{$iteration_node_worklist},
-                scalar @{$iteration_stack};
-
+            # Add this node to the iteration node worklist.
+	    push @{$iteration_node_worklist}, scalar @{$iteration_stack};
             push @{$iteration_stack}, $work_iteration_node;
             next TASK;
 
