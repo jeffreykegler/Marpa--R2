@@ -25,10 +25,9 @@ use English qw( -no_match_vars );
 sub Marpa::XS::location {
     Marpa::exception('No context for location callback')
         if not my $context = $Marpa::XS::Internal::CONTEXT;
-    my ( $context_type, $and_node, $recce ) = @{$context};
+    my ( $context_type, $and_node_id, $recce ) = @{$context};
     if ( $context_type eq 'and-node' ) {
         my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
-        my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
         my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
         my $parent_origin = $recce_c->or_node_origin($parent_or_node_id);
         return $parent_origin;
@@ -39,10 +38,9 @@ sub Marpa::XS::location {
 sub Marpa::XS::cause_location {
     Marpa::exception('No context for cause_location callback')
         if not my $context = $Marpa::XS::Internal::CONTEXT;
-    my ( $context_type, $and_node, $recce ) = @{$context};
+    my ( $context_type, $and_node_id, $recce ) = @{$context};
     if ( $context_type eq 'and-node' ) {
         my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
-        my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
         my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
         my $predecessor_or_node_id =
             $recce_c->and_node_predecessor($and_node_id);
@@ -66,10 +64,9 @@ use strict;
 sub Marpa::XS::length {
     Marpa::exception('No context for LENGTH tie')
         if not my $context = $Marpa::XS::Internal::CONTEXT;
-    my ( $context_type, $and_node, $recce ) = @{$context};
+    my ( $context_type, $and_node_id, $recce ) = @{$context};
     if ( $context_type eq 'and-node' ) {
         my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
-        my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
         my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
         my $predecessor_or_node_id =
             $recce_c->and_node_predecessor($and_node_id);
