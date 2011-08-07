@@ -1497,7 +1497,12 @@ sub Marpa::XS::Recognizer::value {
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
 
+    my $initialized = $parse_count ? 1 : 0;
+
+    # ITERATION LOOP TO START HERE
     my $iteration_stack;
+    my $iteration_node_worklist;
+    my @and_node_in_use = ();
     my $evaluator_rules;
     my @task_list = ();
 
@@ -1572,18 +1577,16 @@ sub Marpa::XS::Recognizer::value {
 	    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
 	$iteration_stack =
 	    $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK];
+	for my $iteration_node (@{$iteration_stack}) {
+	    my $choices = $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICES];
+	    my $choice = $choices->[0];
+	    my $and_node = $choice->[Marpa::XS::Internal::Choice::AND_NODE];
+	    my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
+	    $and_node_in_use[$and_node_id] = 1;
+	}
+
         @task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
 
-    }
-
-    my $iteration_node_worklist;
-    my @and_node_in_use = ();
-    for my $iteration_node (@{$iteration_stack}) {
-	my $choices = $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICES];
-	my $choice = $choices->[0];
-	my $and_node = $choice->[Marpa::XS::Internal::Choice::AND_NODE];
-	my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
-	$and_node_in_use[$and_node_id] = 1;
     }
 
     TASK: while ( my $task = pop @task_list ) {
