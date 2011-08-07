@@ -35,7 +35,6 @@ my $structure = <<'END_OF_STRUCTURE';
     ID
 
     INITIAL_RANK_REF
-    TOKEN_RANK_REF
 
     =LAST_FIELD
 
@@ -671,6 +670,7 @@ sub do_rank_all {
 
     my @or_node_rank = ();
     my @and_node_constant_rank_ref = ();
+    my @and_node_token_rank_ref = ();
 
     my $cycle_ranking_action =
         $grammar->[Marpa::XS::Internal::Grammar::CYCLE_RANKING_ACTION];
@@ -838,7 +838,7 @@ sub do_rank_all {
         # Note: token can never cause a cycle, but they
         # can cause an and-node to be skipped.
         if (defined $token_id) {
-            $and_node->[Marpa::XS::Internal::And_Node::TOKEN_RANK_REF] =
+            $and_node_token_rank_ref[$and_node_id] =
                 $token_rank_ref // \0;
         }
 
@@ -989,8 +989,7 @@ sub do_rank_all {
 
         } ## end for my $field ( ...)
 
-        my $token_rank_ref =
-            $and_node->[Marpa::XS::Internal::And_Node::TOKEN_RANK_REF];
+        my $token_rank_ref = $and_node_token_rank_ref[$and_node_id];
         $calculated_rank += defined $token_rank_ref ? ${$token_rank_ref} : 0;
         $and_node->[Marpa::XS::Internal::And_Node::INITIAL_RANK_REF] =
             \$calculated_rank;
