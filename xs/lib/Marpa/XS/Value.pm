@@ -1576,8 +1576,6 @@ sub Marpa::XS::Recognizer::value {
 
     }
 
-    $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
-
     my $iteration_node_worklist;
     my @and_node_in_use = ();
     for my $iteration_node (@{$iteration_stack}) {
@@ -1922,6 +1920,7 @@ sub Marpa::XS::Recognizer::value {
 	or Marpa::exception('print to trace handle failed');
     }
 
+    $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
     return Marpa::XS::Internal::Recognizer::evaluate( $recce, \@stack );
 
 } ## end sub Marpa::XS::Recognizer::value

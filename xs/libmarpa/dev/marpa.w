@@ -10770,7 +10770,7 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 
 @*0 Trace Functions.
 
-@ This is common logic in the or_node trace functions.
+@ This is common logic in the or-node trace functions.
 @<Check |r| and |or_node_id|; set |or_node|@> = {
   BOC b = B_of_R(r);
   OR* or_nodes;
