@@ -72,7 +72,6 @@ my $structure = <<'END_OF_STRUCTURE';
     PARSE_COUNT :{ number of parses in an ambiguous parse :}
 
     AND_NODES
-    OR_NODES
 
     ITERATION_STACK
 
@@ -286,7 +285,6 @@ sub Marpa::XS::Recognizer::reset_evaluation {
     $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]       = 0;
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
     $recce->[Marpa::XS::Internal::Recognizer::AND_NODES]         = [];
-    $recce->[Marpa::XS::Internal::Recognizer::OR_NODES]          = [];
     $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK]   = [];
     $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES]   = [];
     return;
