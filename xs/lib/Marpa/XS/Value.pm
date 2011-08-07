@@ -1497,9 +1497,6 @@ sub Marpa::XS::Recognizer::value {
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
 
-    my $initialized = $parse_count ? 1 : 0;
-
-    # ITERATION LOOP TO START HERE
     my $iteration_stack;
     my $iteration_node_worklist;
     my @and_node_in_use = ();
@@ -1507,68 +1504,114 @@ sub Marpa::XS::Recognizer::value {
     my @task_list = ();
 
     my $top_or_node_id;
-    if (not $parse_count) {
+    if ( not $parse_count ) {
 
-	$iteration_stack =
-	    $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK] = [];
+        # Perhaps this call should be moved.
+        # The null values are currently a function of the grammar,
+        # and should be constant for the life of a recognizer.
+        my $null_values =
+            $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES] //=
+            Marpa::XS::Internal::Recognizer::set_null_values($recce);
 
-	# Perhaps this call should be moved.
-	# The null values are currently a function of the grammar,
-	# and should be constant for the life of a recognizer.
-	my $null_values =
-	    $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES] //=
-	    Marpa::XS::Internal::Recognizer::set_null_values($recce);
+        $evaluator_rules =
+            $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] =
+            Marpa::XS::Internal::Recognizer::set_actions($recce);
 
-	$evaluator_rules =
-	    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] =
-	    Marpa::XS::Internal::Recognizer::set_actions($recce);
+        $recce_c->eval_clear();
+        $top_or_node_id =
+            $recce_c->eval_setup( -1, ( $parse_set_arg // -1 ) );
+        if ( not defined $top_or_node_id ) {
+            Marpa::exception(qq{libmarpa's marpa_value() call failed\n});
+        }
+        if ( $top_or_node_id == 0 ) {
+            return Marpa::XS::Internal::Recognizer::do_null_parse($recce);
+        }
 
-	$recce_c->eval_clear();
-	$top_or_node_id = $recce_c->eval_setup(-1, ($parse_set_arg // -1));
-	if ( not defined $top_or_node_id ) {
-	    Marpa::exception( qq{libmarpa's marpa_value() call failed\n} );
-	}
-	if ( $top_or_node_id == 0 ) {
-	    return Marpa::XS::Internal::Recognizer::do_null_parse( $recce )
-	}
+        $#{$or_nodes} = -1;
+        OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
+            my $origin = $recce_c->or_node_origin($or_node_id);
+            last OR_NODE if not defined $origin;
+            my $set     = $recce_c->or_node_set($or_node_id);
+            my $rule_id = $recce_c->or_node_rule($or_node_id);
 
-	$#{$or_nodes} = -1;
-	OR_NODE: for ( my $or_node_id = 0; ; $or_node_id++ ) {
-	    my $origin = $recce_c->or_node_origin( $or_node_id );
-	    last OR_NODE if not defined $origin;
-	    my $set = $recce_c->or_node_set( $or_node_id );
-	    my $rule_id = $recce_c->or_node_rule( $or_node_id );
+            my $or_node = [];
+            $or_node->[Marpa::XS::Internal::Or_Node::ID] = $or_node_id;
 
-	    my $or_node = [];
-	    $or_node->[Marpa::XS::Internal::Or_Node::ID]  = $or_node_id;
+            # nulling nodes are never part of cycles
+            # thanks to the CHAF rewrite
+            $or_node->[Marpa::XS::Internal::Or_Node::CYCLE] =
+                   $grammar_c->rule_is_virtual_loop($rule_id)
+                && $origin != $set;
+            $or_nodes->[$or_node_id] = $or_node;
+        } ## end for ( my $or_node_id = 0;; $or_node_id++ )
 
-	    # nulling nodes are never part of cycles
-	    # thanks to the CHAF rewrite
-	    $or_node->[Marpa::XS::Internal::Or_Node::CYCLE] =
-		   $grammar_c->rule_is_virtual_loop($rule_id)
-		&& $origin != $set;
-	    $or_nodes->[$or_node_id] = $or_node;
-	} ## end for ( ;; )
+        $#{$and_nodes} = $recce_c->and_node_count() - 1;
+        AND_NODE: for my $and_node_id ( 0 .. $#{$and_nodes} ) {
+            $and_nodes->[$and_node_id]->[Marpa::XS::Internal::And_Node::ID] =
+                $and_node_id;
+        }
 
-	$#{$and_nodes} = $recce_c->and_node_count() - 1;
-	AND_NODE: for my $and_node_id (0 .. $#{$and_nodes}) {
-	    $and_nodes->[$and_node_id]->[Marpa::XS::Internal::And_Node::ID] = $and_node_id;
-	}
+        my $start_or_node        = $or_nodes->[$top_or_node_id];
+        my $start_iteration_node = [];
+        $start_iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE]
+            = $start_or_node;
 
-	my $start_iteration_node = [];
-	$start_iteration_node
-	    ->[Marpa::XS::Internal::Iteration_Node::OR_NODE] =
-	    $or_nodes->[$top_or_node_id];
+        my @and_node_ids =
+            ( $recce_c->or_node_first_and($top_or_node_id)
+                .. $recce_c->or_node_last_and($top_or_node_id) );
 
-	push @task_list, [Marpa::XS::Internal::Task::FIX_TREE],
-	    [
-	    Marpa::XS::Internal::Task::STACK_INODE,
-	    $start_iteration_node
-	    ];
+        my $choices;
 
-	if ( $ranking_method eq 'constant' ) {
+        if ( $ranking_method eq 'constant' ) {
             do_rank_all($recce);
-	}
+            no integer;
+            my @choices = ();
+            AND_NODE: for my $and_node_id (@and_node_ids) {
+                my $and_node   = $and_nodes->[$and_node_id];
+                my $new_choice = [];
+                $new_choice->[Marpa::XS::Internal::Choice::AND_NODE] =
+                    $and_node;
+                        #<<< perltidy cycles as of version 20090616
+                        my $rank_ref =
+                            $and_node
+                            ->[Marpa::XS::Internal::And_Node::INITIAL_RANK_REF
+                            ];
+                        #>>>
+                die "Undefined rank for a$and_node_id"
+                    if not defined $rank_ref;
+                next AND_NODE if not ref $rank_ref;
+                $new_choice->[Marpa::XS::Internal::Choice::RANK] =
+                    ${$rank_ref};
+                push @choices, $new_choice;
+            } ## end for my $and_node_id (@and_node_ids)
+            ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
+            $choices = [
+                sort {
+                    $b->[Marpa::XS::Internal::Choice::RANK]
+                        <=> $a->[Marpa::XS::Internal::Choice::RANK]
+                    } @choices
+            ];
+        } ## end if ( $ranking_method eq 'constant' )
+        else {
+            $choices = [ map { [ $and_nodes->[$_], 0 ] } @and_node_ids ];
+        }
+        $start_iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICES]
+            = $choices;
+
+        # Due to skipping, even an initialized set of choices
+        # may be empty.  If it is, return no parse.
+        return if not scalar @{$choices};
+
+        # Make our choice and set RANK
+        my $choice      = $choices->[0];
+        my $and_node    = $choice->[Marpa::XS::Internal::Choice::AND_NODE];
+        my $and_node_id = $and_node->[Marpa::XS::Internal::And_Node::ID];
+        $and_node_in_use[$and_node_id] = 1;
+	$recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK] =
+	    $iteration_stack = [$start_iteration_node];
+        $iteration_node_worklist = [ 0 ];
+
+        @task_list = ( [Marpa::XS::Internal::Task::FIX_TREE] );
 
     } else {
 
