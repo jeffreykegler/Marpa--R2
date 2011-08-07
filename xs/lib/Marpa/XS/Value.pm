@@ -35,7 +35,6 @@ my $structure = <<'END_OF_STRUCTURE';
     ID
 
     INITIAL_RANK_REF
-    CONSTANT_RANK_REF
     TOKEN_RANK_REF
 
     =LAST_FIELD
@@ -671,6 +670,7 @@ sub do_rank_all {
     my $rules   = $grammar->[Marpa::XS::Internal::Grammar::RULES];
 
     my @or_node_rank = ();
+    my @and_node_constant_rank_ref = ();
 
     my $cycle_ranking_action =
         $grammar->[Marpa::XS::Internal::Grammar::CYCLE_RANKING_ACTION];
@@ -882,7 +882,7 @@ sub do_rank_all {
 
         if ( defined $constant_rank_ref ) {
             $and_node->[Marpa::XS::Internal::And_Node::INITIAL_RANK_REF] =
-                $and_node->[Marpa::XS::Internal::And_Node::CONSTANT_RANK_REF]
+                $and_node_constant_rank_ref[$and_node_id]
                 = $constant_rank_ref;
 
             next AND_NODE;
@@ -934,8 +934,7 @@ sub do_rank_all {
 
                 # At this point only possible value is skip
                 $and_node->[Marpa::XS::Internal::And_Node::INITIAL_RANK_REF] =
-                    $and_node
-                    ->[Marpa::XS::Internal::And_Node::CONSTANT_RANK_REF] =
+                    $and_node_constant_rank_ref[$and_node_id] =
                     Marpa::XS::Internal::Value::SKIP;
 
                 next AND_NODE;
@@ -978,8 +977,7 @@ sub do_rank_all {
                 $or_node_rank[$or_node_id] =
                     $and_node
                     ->[Marpa::XS::Internal::And_Node::INITIAL_RANK_REF] =
-                    $and_node
-                    ->[Marpa::XS::Internal::And_Node::CONSTANT_RANK_REF] =
+                    $and_node_constant_rank_ref[$and_node_id] =
                     Marpa::XS::Internal::Value::SKIP;
 
                 next AND_NODE;
