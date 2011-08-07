@@ -1779,16 +1779,16 @@ sub Marpa::XS::Recognizer::value {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
 
-	    my @and_node_ids =
-		( $recce_c->or_node_first_and($or_node_id)
-		    .. $recce_c->or_node_last_and($or_node_id) );
-
             my $choices = $work_iteration_node
                 ->[Marpa::XS::Internal::Iteration_Node::CHOICES];
 
             # At this point we know the iteration node is populated, so if we don't
             # have the choices list initialized, we can do so now.
             if ( not defined $choices ) {
+
+		my @and_node_ids =
+		    ( $recce_c->or_node_first_and($or_node_id)
+			.. $recce_c->or_node_last_and($or_node_id) );
 
                 if ( $ranking_method eq 'constant' ) {
                     no integer;
