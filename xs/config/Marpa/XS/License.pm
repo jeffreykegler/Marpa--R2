@@ -245,10 +245,6 @@ sub file_type {
     my @dirs = grep {length} File::Spec->splitdir($dirpart);
     return \&license_problems_in_pp_perl_file
         if scalar @dirs > 1
-            and $dirs[0] eq 'tool'
-	    and $filepart =~ /[.]pm\z/xms;
-    return \&license_problems_in_pp_perl_file
-        if scalar @dirs > 1
             and $dirs[0] eq 'pperl'
 	    and $filepart =~ /[.]pm\z/xms;
     return \&license_problems_in_pp_perl_file
