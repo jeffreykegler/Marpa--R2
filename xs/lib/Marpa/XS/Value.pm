@@ -1657,7 +1657,7 @@ sub Marpa::XS::Recognizer::value {
 
             # If the work list is undefined, initialize it to the entire stack
             # We are done fixing the tree if the worklist is empty
-            next TASK if not scalar @{$iteration_node_worklist};
+            last TASK if not scalar @{$iteration_node_worklist};
             my $working_node_ix = $iteration_node_worklist->[-1];
 
             if ($trace_tasks) {
