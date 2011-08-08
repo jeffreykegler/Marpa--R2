@@ -75,7 +75,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     ITERATE
     FIX_TREE
-    STACK_INODE
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -1724,23 +1723,6 @@ sub Marpa::XS::Recognizer::value {
                 ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE] =
                 $and_node_field_type;
 
-            # Restack the current task, adding a task to create
-            # the child iteration node
-            push @task_list, $task,
-                [
-                Marpa::XS::Internal::Task::STACK_INODE,
-                $new_iteration_node
-                ];
-            next TASK;
-
-        } ## end while ( $task_type == Marpa::XS::Internal::Task::FIX_TREE)
-
-        if ( $task_type == Marpa::XS::Internal::Task::STACK_INODE ) {
-
-            my $work_iteration_node = $task_data[0];
-            my $or_node_id             = $work_iteration_node
-                ->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID];
-
             if ($trace_tasks) {
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Task: STACK_INODE ',
@@ -1749,12 +1731,12 @@ sub Marpa::XS::Recognizer::value {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
 
-            my $choices = $work_iteration_node
+            my $new_iteration_node_choices = $new_iteration_node
                 ->[Marpa::XS::Internal::Iteration_Node::CHOICES];
 
             # At this point we know the iteration node is populated, so if we don't
             # have the choices list initialized, we can do so now.
-            if ( not defined $choices ) {
+            if ( not defined $new_iteration_node_choices ) {
 
 		my @and_node_ids =
 		    ( $recce_c->or_node_first_and($or_node_id)
@@ -1762,7 +1744,7 @@ sub Marpa::XS::Recognizer::value {
 
                 if ( $ranking_method eq 'constant' ) {
                     no integer;
-                    my @choices = ();
+                    my @new_iteration_node_choices = ();
                     AND_NODE: for my $and_node_id (@and_node_ids) {
                         my $new_choice = [];
                         $new_choice
@@ -1774,37 +1756,37 @@ sub Marpa::XS::Recognizer::value {
                         next AND_NODE if not ref $rank_ref;
                         $new_choice->[Marpa::XS::Internal::Choice::RANK] =
                             ${$rank_ref};
-                        push @choices, $new_choice;
+                        push @new_iteration_node_choices, $new_choice;
                     } ## end for my $and_node_id (@and_node_ids)
                     ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
-                    $choices = [
+                    $new_iteration_node_choices = [
                         sort {
                             $b->[Marpa::XS::Internal::Choice::RANK]
                                 <=> $a->[Marpa::XS::Internal::Choice::RANK]
-                            } @choices
+                            } @new_iteration_node_choices
                     ];
                 } ## end if ( $ranking_method eq 'constant' )
                 else {
-                    $choices =
+                    $new_iteration_node_choices =
                         [ map { [ $_, 0 ] } @and_node_ids ];
                 }
-                $work_iteration_node
+                $new_iteration_node
                     ->[Marpa::XS::Internal::Iteration_Node::CHOICES] =
-                    $choices;
+                    $new_iteration_node_choices;
 
-            } ## end if ( not defined $choices )
+            } ## end if ( not defined $new_iteration_node_choices )
 
 	    CHOICE: while (1) {
 
 		# Due to skipping, even an initialized set of choices
 		# may be empty.  If it is, throw away the stack and iterate.
-		if ( not scalar @{$choices} ) {
+		if ( not scalar @{$new_iteration_node_choices} ) {
 		    @task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
 		    next TASK;
 		}
 
 		# Make our choice and set RANK
-		my $choice = $choices->[0];
+		my $choice = $new_iteration_node_choices->[0];
 
 		# Rank is left until later to be initialized
 
@@ -1816,19 +1798,19 @@ sub Marpa::XS::Recognizer::value {
 		    last CHOICE;
 		}
 
-		shift @{$choices};
+		shift @{$new_iteration_node_choices};
 
 	    } ## end while (1)
 
             # Tell the parent that the new iteration node is its child.
             if (defined(
                     my $child_type =
-                        $work_iteration_node
+                        $new_iteration_node
                         ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE]
                 )
                 )
             {
-                my $parent_ix = $work_iteration_node
+                my $parent_ix = $new_iteration_node
                     ->[Marpa::XS::Internal::Iteration_Node::PARENT];
                 $iteration_stack->[$parent_ix]->[
                     $child_type eq 'P'
@@ -1836,14 +1818,13 @@ sub Marpa::XS::Recognizer::value {
                     : Marpa::XS::Internal::Iteration_Node::CAUSE_IX
                     ]
                     = scalar @{$iteration_stack};
-            } ## end if ( defined( my $child_type = $work_iteration_node->...))
+            } ## end if ( defined( my $child_type = $new_iteration_node->...))
 
             # Add this node to the iteration node worklist.
 	    push @{$iteration_node_worklist}, scalar @{$iteration_stack};
-            push @{$iteration_stack}, $work_iteration_node;
-            next TASK;
+            push @{$iteration_stack}, $new_iteration_node;
 
-        } ## end if ( $task_type == Marpa::XS::Internal::Task::STACK_INODE)
+        }
 
         Marpa::XS::internal_error(
             "Internal error: Unknown task type: $task_type");
