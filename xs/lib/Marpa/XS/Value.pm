@@ -1670,7 +1670,6 @@ sub Marpa::XS::Recognizer::value {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
 
-
             my $working_node = $iteration_stack->[$working_node_ix];
             my $choices =
                 $working_node->[Marpa::XS::Internal::Iteration_Node::CHOICES];
@@ -1678,51 +1677,61 @@ sub Marpa::XS::Recognizer::value {
             my $working_and_node_id =
                 $choice->[Marpa::XS::Internal::Choice::AND_NODE_ID];
 
-            FIELD:
-            for my $field ( Marpa::XS::Internal::Iteration_Node::CAUSE_IX,
-                Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX
+            my $and_node_field_type;
+            my $or_node_id;
+            if (not defined
+                $working_node->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX]
                 )
             {
-                my $ix = $working_node->[$field];
-                next FIELD if defined $ix;
-                my $and_node_field_type;
-		my $or_node_id;
-		if ( $field == Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX ) {
-		    $and_node_field_type = 'P';
-		    $or_node_id = $recce_c->and_node_predecessor($working_and_node_id);
-		} else {
-		    $and_node_field_type = 'C';
-		    $or_node_id = $recce_c->and_node_cause($working_and_node_id);
-		}
-
-                if ( not defined $or_node_id ) {
-                    $working_node->[$field] = -999_999_999;
-                    next FIELD;
+                $or_node_id = $recce_c->and_node_cause($working_and_node_id);
+                if ( defined $or_node_id ) {
+                    $and_node_field_type = 'C';
                 }
+                else {
+                    $working_node
+                        ->[ Marpa::XS::Internal::Iteration_Node::CAUSE_IX ] =
+                        -999_999_999;
+                }
+            } ## end if ( not defined $working_node->[...])
+            if (    not defined $or_node_id
+                and not defined $working_node
+                ->[Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX] )
+            {
+                $or_node_id =
+                    $recce_c->and_node_predecessor($working_and_node_id);
+                if ( defined $or_node_id ) {
+                    $and_node_field_type = 'P';
+                }
+                else {
+                    $working_node->[
+                        Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX ]
+                        = -999_999_999;
+                }
+            } ## end if ( not defined $or_node_id and not defined ...)
 
-                my $new_iteration_node = [];
-                $new_iteration_node
-                    ->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID] =
-                    $or_node_id;
-                $new_iteration_node
-                    ->[Marpa::XS::Internal::Iteration_Node::PARENT] =
-                    $working_node_ix;
-                $new_iteration_node
-                    ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE] =
-                    $and_node_field_type;
+            if ( not defined $or_node_id ) {
+                pop @{$iteration_node_worklist};
+                next FIX_TREE_LOOP;
+            }
 
-                # Restack the current task, adding a task to create
-                # the child iteration node
-                push @task_list, $task,
-                    [
-                    Marpa::XS::Internal::Task::STACK_INODE,
-                    $new_iteration_node
-                    ];
-                next TASK;
-            } ## end for my $field ( ...)
+            my $new_iteration_node = [];
+            $new_iteration_node
+                ->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID] =
+                $or_node_id;
+            $new_iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT]
+                = $working_node_ix;
+            $new_iteration_node
+                ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE] =
+                $and_node_field_type;
 
-	    pop @{$iteration_node_worklist};
-	    next FIX_TREE_LOOP;
+            # Restack the current task, adding a task to create
+            # the child iteration node
+            push @task_list, $task,
+                [
+                Marpa::XS::Internal::Task::STACK_INODE,
+                $new_iteration_node
+                ];
+            next TASK;
 
         } ## end while ( $task_type == Marpa::XS::Internal::Task::FIX_TREE)
 
