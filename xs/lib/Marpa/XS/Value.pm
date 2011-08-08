@@ -1794,41 +1794,31 @@ sub Marpa::XS::Recognizer::value {
 
             } ## end if ( not defined $choices )
 
-            # Due to skipping, even an initialized set of choices
-            # may be empty.  If it is, throw away the stack and iterate.
-            if ( not scalar @{$choices} ) {
-                @task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
-                next TASK;
-            } ## end if ( not scalar @{$choices} )
+	    CHOICE: while (1) {
 
-            # Make our choice and set RANK
-            my $choice = $choices->[0];
-
-            # Rank is left until later to be initialized
-
-            my $and_node_id = $choice->[Marpa::XS::Internal::Choice::AND_NODE_ID];
-            my $next_iteration_stack_ix = scalar @{$iteration_stack};
-
-	    # Check if we are about to cycle.
-	    if ( $and_node_in_use[$and_node_id] ) {
-
-		# If there is another choice, increment choice and restack
-		# this task ...
-		#
-		# This iteration node is not yet on the stack, so we
-		# don't need to do anything with the pointers.
-		if ( scalar @{$choices} > 1 ) {
-		    shift @{$choices};
-		    push @task_list, $task;
+		# Due to skipping, even an initialized set of choices
+		# may be empty.  If it is, throw away the stack and iterate.
+		if ( not scalar @{$choices} ) {
+		    @task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
 		    next TASK;
 		}
 
-		# Otherwise, throw away all pending tasks and
-		# iterate
-		@task_list = ( [Marpa::XS::Internal::Task::ITERATE] );
-		next TASK;
-	    } ## end if ( $and_node_in_use[$and_node_id] )
-	    $and_node_in_use[$and_node_id] = 1;
+		# Make our choice and set RANK
+		my $choice = $choices->[0];
+
+		# Rank is left until later to be initialized
+
+		my $and_node_id = $choice->[Marpa::XS::Internal::Choice::AND_NODE_ID];
+
+		# End the loop if we do not cycle on this and-node.
+		if ( not $and_node_in_use[$and_node_id] ) {
+		    $and_node_in_use[$and_node_id] = 1;
+		    last CHOICE;
+		}
+
+		shift @{$choices};
+
+	    } ## end while (1)
 
             # Tell the parent that the new iteration node is its child.
             if (defined(
