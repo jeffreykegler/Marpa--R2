@@ -1,0 +1,340 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Rewrite - How Marpa Rewrites Grammars
+
+=head1 OVERVIEW
+
+Marpa rewrites grammars,
+adding internal symbols and rules in the process.
+These rewritings do not affect the semantics,
+but they do show up when you look at Marpa's grammars.
+
+Marpa's internal symbols have B<tags> at the end,
+enclosed in square brackets.
+This means that all Marpa internal symbols end in a right square bracket.
+
+=head2 Marpa Adds a New Start Rule
+
+Many parsers add their own start rule
+and their own start symbol
+to grammars.
+Marpa is no exception.
+The new internal start symbol is the original start symbol with "C<[']>" suffixed.
+An example of a Marpa internal start symbol is "C<Expression[']>".
+If the grammar allows a null parse, there will also be a Marpa
+internal nulling
+start symbol,
+with "C<['][]>" suffixed.
+An example of a Marpa internal nulling start symbol would be "C<Script['][]>".
+
+=head2 Marpa Eliminates Proper Nullable Symbols
+
+A symbol is B<nulled> if it produces the empty sentence.
+B<Nulling symbols> are those which are I<always> nulled.
+B<Nullable symbols> are those which are I<sometimes> nulled.
+B<Non-nullable symbols> are those which are I<never> nulled.
+
+All nulling symbols are also nullable symbols.
+A B<proper nullable> is any nullable symbol which is not a nulling symbol.
+In other words,
+a proper nullable is a symbol that
+might or might not be nulled.
+
+Nullable symbols were a problem in previous versions of Earley parsers.
+L<Aycock and Horspool 2002|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">
+outlined a new approach for dealing with them.
+I use their ideas with modifications of my own.
+
+Marpa rewrites its grammar to eliminate proper nullables.
+It does this by turning every proper nullable into two symbols:
+a non-nullable variant and a nulling variant.
+The non-nullable variant keeps the original symbol's name,
+but is no longer allowed to appear in places
+where it might be nulled.
+
+The name of the nulling variant
+is that of the original symbol with the nulling tag ("C<[]>") suffixed.
+When the nulling variant is used,
+it must be nulled.
+
+The newly introduced nulling symbols will not appear on any left hand sides,
+with one exception:
+grammars that allow a null parse
+will have a nulling start rule.
+Except for the nulling start symbol,
+Marpa marks nulling symbols internally and
+recognizes them directly,
+without the need for empty rules.
+
+Rules with proper nullables on the RHS
+have to be replaced with
+new rules covering every possible combination of
+the non-nullable and nulling variants.
+That rewrite is called the CHAF rewrite.
+
+=head2 Marpa Divides some Rules up into Smaller Ones
+
+Here's an example of a CHAF rewrite:
+
+=for Marpa::XS::Display
+name: CHAF Rule
+normalize-whitespace: 1
+flatten: 1
+
+    {   lhs => 'statement',
+        rhs => [
+            qw/optional_whitespace expression
+                optional_whitespace optional_modifier
+                optional_whitespace/
+        ]
+    }
+
+=for Marpa::XS::Display::End
+
+This rule contains four instances
+of proper nullables,
+illustrating my fear
+that grammars of practical interest will
+have lots of proper nullables
+on right hand sides.
+C<optional_whitespace>
+and C<optional_modifier> are both
+proper nullables and
+C<optional_whitespace>
+appears three times.
+
+Here's is the output from C<show_rules>, showing what Marpa does with this rule:
+
+=for Marpa::XS::Display
+name: Rewrite show_rules Output
+partial: 1
+normalize-whitespace: 1
+flatten: 1
+
+    0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace
+    /* !used */
+
+=for Marpa::XS::Display::End
+
+=for Marpa::XS::Display
+name: Rewrite show_rules Output
+partial: 1
+normalize-whitespace: 1
+flatten: 1
+
+    15: statement -> optional_whitespace expression statement[R0:2] /* vrhs real=2 */
+    16: statement -> optional_whitespace expression optional_whitespace[] optional_modifier[] optional_whitespace[]
+    17: statement -> optional_whitespace[] expression statement[R0:2] /* vrhs real=2 */
+    18: statement -> optional_whitespace[] expression optional_whitespace[] optional_modifier[] optional_whitespace[]
+    19: statement[R0:2] -> optional_whitespace statement[R0:3] /* vlhs vrhs real=1 */
+    20: statement[R0:2] -> optional_whitespace optional_modifier[] optional_whitespace[] /* vlhs real=3 */
+    21: statement[R0:2] -> optional_whitespace[] statement[R0:3] /* vlhs vrhs real=1 */
+    22: statement[R0:3] -> optional_modifier optional_whitespace /* vlhs real=2 */
+    23: statement[R0:3] -> optional_modifier optional_whitespace[] /* vlhs real=2 */
+    24: statement[R0:3] -> optional_modifier[] optional_whitespace /* vlhs real=2 */
+
+=for Marpa::XS::Display::End
+
+Rule 0 is the original rule.  Because Marpa has rewritten it,
+the rule is marked "C<!used>",
+telling later stages in the precomputation to ignore it.
+Marpa breaks Rule 0 up into three pieces,
+each with no more than two proper nullables.
+Marpa then eliminates the proper nullables in each piece by
+B<factoring>.
+
+To B<factor> a piece, Marpa first rewrites it into multiple rules,
+one for each possible combination of nulled and non-nulled symbols.
+Marpa then replaces each proper nullable
+with its nulling or non-nullable variant, as appropriate.
+There are two symbol variants for each proper nullable.
+With a maximum of two proper nullables for each piece,
+each with two variants, there are at most four combinations.
+A rule for one of these combinations is called a
+B<factored rule>, or a B<factor>.
+
+In the example in the above display,
+the original rule (Rule 0) was broken into three pieces.
+Rule 0 had 5 RHS symbols,
+and the three pieces contain, respectively, the first two RHS symbols;
+the third RHS symbol;
+and the last two (that is, 4th and 5th) RHS symbols.
+
+The first piece of Rule 0 is factored into four rules: Rules 15 to 18.
+The second piece is factored into three rules: Rules 19 to 21.
+The third and last piece of Rule 0 is also factored into three rules:
+Rules 22 to 24.
+
+When a rule is broken into pieces, the
+left hand side of the first piece is the left hand
+side of the original rule.
+New symbols are introduced to be the left hand sides
+of the other pieces.
+The names of the new LHS symbols are formed
+by suffixing a tag to
+the name of the original left hand side.
+The suffixed tag begins with a capital "R" and identifies the
+location of the piece in the original rule.
+For example,
+the tag "C<[R0:3]>" indicates that this
+symbol is the left hand side for the piece of Rule 0 which begins at right hand symbol 3
+(the first symbol is symbol 0).
+
+When a new LHS symbol is created for a piece,
+the worst case is that the new LHS is
+also a proper nullable.
+This worst case occurs when
+all the original symbols in the
+piece for the new LHS
+and all symbols in all subsequent pieces are proper nullables.
+
+A newly created LHS symbol will always appear on the RHS of the previous piece.
+If the newly created symbol is a proper nullable,
+then it counts against the limit of two proper nullables for that previous piece,
+and it must be factored,
+just the same as if it was
+one of the proper nullables appearing in the original rule.
+
+Rule 0 is such a worst case.
+The last three symbols
+of the right hand side are all
+proper nullables.
+That means that all the symbols in the last two pieces of the original rule
+are proper nullables.
+Therefore both of the newly created LHS symbols are proper nullables.
+
+The original Rule 0 has 4 proper nullables.
+After the CHAF rewrite,
+there are 6 proper nullables:
+the original 4 plus the 2 symbols newly created to serve as left hand sides.
+This is why, in order to have at most 2 proper nullables per piece,
+the original rule must to be divided into 3 pieces.
+
+CHAF preserves user semantics.
+Marpa,
+when it splits the rule into
+pieces and factors the pieces,
+inserts logic to gather and preserve the values of child nodes.
+The user's semantic actions
+see the original child values
+as if the CHAF rewrite had never occurred.
+
+=head2 Marpa Converts Sequence Productions to Ordinary Rules
+
+Internally, Marpa converts productions specified as sequences into BNF productions.
+The conversion is done in a standard way.  For example,
+
+=for Marpa::XS::Display
+name: Separated Sequence Rule
+normalize-whitespace: 1
+
+    {
+    lhs       => 'statements',
+    rhs       => [qw/statement/],
+    separator => 'comma',
+    min       => 1
+    }
+
+=for Marpa::XS::Display::End
+
+becomes
+
+=for Marpa::XS::Display
+name: Rewrite show_rules Output
+partial: 1
+normalize-whitespace: 1
+
+    2: statements -> statements[Subseq:8:5] /* vrhs discard_sep real=0 */
+    3: statements -> statements[Subseq:8:5] comma /* vrhs discard_sep real=1 */
+    4: statements[Subseq:8:5] -> statement /* vlhs real=1 */
+    5: statements[Subseq:8:5] -> statements[Subseq:8:5] comma statement /* vlhs vrhs real=2 */
+
+=for Marpa::XS::Display::End
+
+In the added symbol, the tag "C<[Subseq:8:5]>" indicates a special
+symbol introduced to serve as the LHS of the sequence.
+The "C<8:5>" indentifies the sequence using the symbol ID's of the two
+symbols involved.
+"C<statements>", the LHS symbol, has symbol ID 8.
+"C<statement>", the RHS symbol, has symbol ID 5.
+
+Here's another example, this time of a sequence without a separator.
+The rule
+
+=for Marpa::XS::Display
+name: Sequence Rule
+normalize-whitespace: 1
+
+    { lhs => 'block', rhs => [qw/statements/], min => 0 },
+
+=for Marpa::XS::Display::End
+
+is rewritten by Marpa as follows:
+
+=for Marpa::XS::Display
+name: Rewrite show_rules Output
+partial: 1
+normalize-whitespace: 1
+
+    7: block -> /* empty !used */
+    8: block -> block[Subseq:0:8] /* vrhs real=0 */
+    9: block[Subseq:0:8] -> statements /* vlhs real=1 */
+    10: block[Subseq:0:8] -> block[Subseq:0:8] statements /* vlhs vrhs real=1 */
+
+=for Marpa::XS::Display::End
+
+Note that rule 7, the empty rule with the C<block> symbol as its LHS,
+is marked "C<!used>".
+C<block> is a proper nullable, and rules from sequence conversion
+undergo the same rewriting of proper nullables as any other rules.
+In this case a nulling variant of C<block> (C<block[]>)
+was created.
+That made the empty rule created by the sequence conversion
+useless,
+and that is why it was marked "C<!used>".
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

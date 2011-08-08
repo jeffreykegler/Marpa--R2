@@ -1,0 +1,500 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Advanced::Models - Other Input Models
+
+=head1 ABOUT THIS DOCUMENT
+
+The alternative input models described in this document are an
+advanced technique.
+If you are starting out with Marpa, you
+probably want to ignore this document.
+If you are an experienced Marpa user,
+it is still safe to ignore this document,
+but you might find the possibilities it discusses
+interesting.
+
+=head1 DESCRIPTION
+
+=head2 What is an Alternative Input Model?
+
+An alternative input model
+is anything that is not the default, token-stream model.
+More helpfully, Marpa allows variable-length tokens and ambiguous tokens,
+and an alternative input model is any input model which
+
+=over
+
+=item * Allows a token whose length is not exactly 1, or
+
+=item * Allows locations which have more than one token.
+
+=back
+
+To do either of these things,
+a user must use the recognizer's L<C<alternative>|/"alternative">
+method.
+In other words,
+if you are not using the recognizer's C<alternative> method call,
+you are not using an alternative input method.
+
+Many concepts, such as parsing location,
+parse exhaustion,
+and the end of parsing,
+are somewhat more complicated when alternative
+input models are involved.
+These concepts were explained in L<the main document for
+the recognizer|Marpa::XS::Recognizer> on the assumption
+that the default input model was in use.
+This document revises those explanations as necessary
+to take into
+account the alternative input models.
+
+=head2 Token Streams
+
+Marpa's default input model is the traditional one --
+a token stream.
+Token streams are very standard in parsing applications --
+so much so
+that most texts do not take the trouble
+of defining the term.
+A B<token stream> is input structured as
+a sequence of tokens,
+where each token occupies one location
+and every location has a token.
+In the token stream model, all tokens are
+of the same length.
+
+Conventionally, all tokens are of length 1,
+and the token stream starts at location 0.
+Following this convention,
+the I<N>th token would start at
+location I<N-1> and end
+at location I<N>.
+For example,
+the first token would start at location 0 and end at location 1.
+The second token would start at location 1 and end at location 2.
+
+=head2 Earlemes
+
+For most parsers, position is location in a token stream.
+To deal with variable-length and overlapping tokens,
+Marpa needs a more flexible idea of location.
+
+Marpa's tracks position in terms of B<earlemes>.
+B<Earlemes> are named after Jay Earley,
+the inventor of the first algorithm
+in Marpa's lineage.
+Every token has a start earleme and an end earleme.
+
+The token stream model may also be called the token-per-earleme
+model.
+In the token stream model,
+token location and earleme location
+are exactly identical an one-to-one basis.
+If a user's application uses the token stream model,
+he can ignore earlemes, and think entirely in terms of
+tokens and position in a token stream.
+Because of this, the main Marpa documents speak
+simply of the "location" in the parse.
+
+=head2 The Furthest Earleme
+
+The B<furthest earleme> is the last earleme at which a token ends.
+In the default input model, the furthest earleme is not an important
+concept.
+In the default input model,
+the furthest earleme and the current earleme
+are always the same.
+
+In alternative input models,
+tokens may be longer than 1 earleme, and
+the furthest earleme and the current earleme may be far apart.
+This becomes an issue when
+parsing is finished.
+Alternative input models use
+the recognizer's L<C<end_input>|/"end_input"> method to ensure
+that processing of input catches up to the furthest earleme.
+
+=head1 METHODS
+
+=head2 alternative
+
+=for Marpa::XS::Display
+name: Recognizer alternative Synopsis
+normalize-whitespace: 1
+
+    defined $recce->alternative( 'a', 42, 1 )
+        or return 'First alternative failed';
+
+=for Marpa::XS::Display::End
+
+The C<alternative> method is the most general method for reading
+input, and is used in alternative input models.
+It takes three arguments, only the first of which is required.
+
+The first two arguments are similar to those of the recognizer's
+C<read> method: the token type and the token value.
+As with the C<read> method, the token value is optional and,
+if omitted, defaults to a Perl C<undef>.
+
+The third argument to the C<alternative> method is a token
+length.
+If omitted, token length defaults to 1,
+which is the correct value for the token stream model.
+Its value can be any integer B<greater> than zero.
+Marpa does not allow zero length tokens in any input model.
+
+Unlike the C<read> method, the C<alternative> method does
+B<not> advance the current location
+(current earleme) on each call.
+This allows the application to read several tokens
+at the same earleme.
+This is how ambiguous input is created.
+To advance the current earleme when
+input is read using the C<alternative> method,
+the C<complete_earleme> method must be called.
+
+On success, C<alternative> returns the current earleme.
+On failures, other than the rejection of a token in interactive mode,
+C<alternative> throws an exception.
+If the token is rejected, C<alternative> returns a Perl C<undef>.
+
+=head2 current_earleme
+
+=for Marpa::XS::Display
+name: current_earleme Example
+normalize-whitespace: 1
+
+    $current_earleme = $recce->current_earleme();
+
+=for Marpa::XS::Display::End
+
+Returns the current parse location,
+also known as the current earleme.
+Not often needed.
+
+=head2 earleme_complete
+
+=for Marpa::XS::Display
+name: Recognizer earleme_complete Synopsis
+normalize-whitespace: 1
+
+    $recce->earleme_complete();
+
+=for Marpa::XS::Display::End
+
+Processes all tokens at the current earleme and advances the current
+earleme by 1.
+Returns the number of terminals acceptable at the new current earleme.
+Note that, in alternative input models,
+a return value of 0 does B<not> necessarily indicate an
+exhausted parser.
+
+When reading input using the C<alternative> method,
+C<earleme_complete> is used to move
+forward in
+the input stream.
+All tokens read using the C<alternative> method are read at the same
+location -- the current earleme.
+A C<earleme_complete> call causes the tokens
+read using the C<alternative> method to be processed,
+and the current earleme to be advanced.
+
+C<earleme_complete> may be called even if the C<alternative>
+method has been not called since the last
+call to C<earleme_complete>.
+This will create an earleme with no tokens,
+which is often useful.
+
+=head2 exhausted
+
+=for Marpa::XS::Display
+name: Recognizer exhausted Synopsis
+normalize-whitespace: 1
+
+	$recce->exhausted() and die 'Recognizer exhausted';
+
+=for Marpa::XS::Display::End
+
+The C<exhausted> method returns a Perl true if parsing
+in a recognizer is exhausted, and a Perl false
+otherwise.
+Parsing is exhausted when the recognizer will not accept
+any further input.
+This method is seldom used.
+For most applications, the return values of the other
+methods provide sufficient information about the parse status,
+and there is no need to specifically test for parse exhaustion.
+
+In the default input model, a recognizer was exhausted if
+the C<read> method returned 0, indicating that no tokens
+would be accepted at the new current earleme.
+In alternative input models, 
+C<earleme_complete> will always return 0 when the parser is exhausted,
+but the converse is not always true:
+C<earleme_complete> may return 0 even in some cases when the parser is not exhausted.
+
+When C<earleme_complete> returns 0, no input will be
+accepted at the current earleme.
+But in input models which allow tokens longer than 1,
+it is possible for input to be accepted at earlemes
+after the current earleme,
+even if no input is accepted
+at the current earleme.
+
+=head2 end_input
+
+=for Marpa::XS::Display
+name: Recognizer end_input Synopsis
+normalize-whitespace: 1
+
+    $recce->end_input();
+
+=for Marpa::XS::Display::End
+
+Indicates that input is finished.
+Calling C<end_input> is not necessary
+or useful
+in the default input model,
+because in the default input model no token
+has a length greater than 1.
+
+The C<end_input> method takes no arguments.
+The C<end_input> method returns a Perl true value on success.
+On failure, it throws an exception.
+
+In alternative input models, calling the C<earleme_complete> method
+once input is finished does not
+ensure that all input has been processed.
+The C<earleme_complete> method completes the current earleme,
+but in alternative models, tokens may extend well past the current earleme.
+The C<end_input> method ensures that all input is processed.
+
+Calling C<end_input> multiple times on the same recognizer object
+is harmless,
+but useless.
+The second and subsequent calls will
+return a Perl true,
+but will have no effect.
+
+=head1 ALTERNATIVE MODELS AND THE C<read> METHOD
+
+A recognizer can mix
+calls to
+its L<C<read>|Marpa::XS::Recognizer/"read">
+method with calls to its L<C<alternative>|/"alternative">
+method.
+The C<read> method has the same effect as a single call
+to the C<alternative> method, followed immediately
+by a call of the C<earleme_complete> method.
+More precisely,
+the C<read> method is equivalent to
+
+=for Marpa::XS::Display
+ignore: 1
+
+    sub Marpa::XS::Recognizer::read {
+	my $recce = shift;
+	return defined $recce->alternative(@_) ? $recce->earleme_complete() : undef;
+    }
+
+=for Marpa::XS::Display::End
+
+=head1 AMBIGUOUS LEXING
+
+Marpa allows ambiguous tokens.
+Several Marpa tokens can start at a single parsing location.
+Ambiguous tokens can be of various lengths.
+Tokens can also overlap.
+
+B<Potentially
+ambiguous lexing>
+occurs when more than one token starts
+at a single earleme.
+When potentially ambiguous lexing occurs,
+it becomes possible for there to be more
+than one sequence of tokens.
+
+An B<actual lexical ambiguity> only occurs if
+more than one of the potential token sequences is consistent with
+the grammar.
+If there is no actual lexical ambiguity,
+Marpa will use the only token choice that is
+consistent with the grammar.
+
+When lexing is B<actually ambiguous>, Marpa
+will use all the alternatives
+consistent with the grammar.
+When the lexing in a parse is actually ambiguous,
+the parse will be ambiguous.
+From the point of view of Marpa's semantics,
+ambiguities caused by lexing look the
+same as ambiguities caused by an ambiguous grammar.
+
+In the standard
+terminology,
+if a grammar produces more than one parse result,
+then that grammar must be ambiguous.
+In Marpa this is not strictly true.
+In Marpa,
+if the input is ambiguous,
+even an unambiguous grammar can produce than one parse.
+
+=head1 DUPLICATE TOKENS
+
+A duplicate token is a token of the same type
+and the same length as another
+that was read at the same earleme.
+Duplicate tokens are impossible in the default, token-stream,
+model.
+This is because in the token-stream model only one token can be
+read at each earleme.
+
+In alternative models, more than one token may be read at
+an earleme, and duplicates B<are> possible.
+Marpa detects duplicate tokens and treats them as
+"hard errors" -- 
+Marpa throws an exception
+when it sees a duplicate token.
+Marpa's assumption is that
+duplicate tokens indicate
+an error at the application level.
+
+An application can retry input after
+a duplicate token, if it
+catches the exception.
+In the future, if recovery from duplicate tokens is found
+to be a useful technique, Marpa may provide an option to change
+its behavior, so that a soft failure is returned
+when there is a duplicate token.
+
+=head1 EARLEMES: THE DETAILS
+
+While scanning, Marpa keeps track of the B<current earleme>.
+Earlemes in a parse start at earleme 0 and increase numerically.
+The earleme immediately following earleme 0 is earleme 1,
+the earleme immediately following earleme 1 is earleme 2,
+and so on.
+The earleme immediately following earleme I<N> is always earleme I<N+1>.
+
+B<Distance> in the earleme stream is
+what you would intuitively expect it to be.
+The distance between earleme I<X> and earleme I<Y> is
+the absolute value of the difference between I<X> and I<Y>,
+I<|X-Y|>.
+The distance from earleme 3 to earleme 6,
+for example, is 3 earlemes.
+
+Whenever a token is given to Marpa to be scanned,
+it starts at the current earleme.
+In addition to the type and value of the token,
+Marpa must be told token's B<length> in earlemes.
+The length of a Marpa token must be greater than zero.
+
+This earleme length will become
+the distance from the start of the
+token to the end of the token.
+If the length of the token is I<L>,
+and the number of the current earleme is I<C>,
+the end of the token will be at the earleme whose number is I<C+L>.
+
+=head1 THE CHARACTER-PER-EARLEME MODEL
+
+Many different models of the relationship between tokens and earlemes
+are possible, but two are particularly important.
+One is the one-token-per-earleme model,
+which is the default,
+and which has already been described.
+The other is the one-character-per-earleme model.
+
+In the one-character-per-earleme model,
+every character will be treated as being exactly one
+earleme in length.
+If a token is more than one character in length,
+that token will span earlemes.
+When the lexing is ambiguous, tokens may overlap.
+
+When a one-character-per-earleme model of input is used,
+there may be many earlemes at which no tokens start.
+For example,
+in a straightforward character-per-earleme implementation
+of a grammar for a language which allows
+comments,
+no tokens will start at
+any earlemes which corresponds to character locations inside
+a comment.
+
+=head1 OTHER INPUT MODELS
+
+So far only the token-per-earleme and
+character-per-earleme models have seen any
+real use in Marpa programs.
+But other models are certainly possible.
+Using earlemes,
+you can structure your input in almost any way you like.
+
+There are only three restrictions:
+
+=over 4
+
+=item 1
+
+Scanning always starts at earleme 0.
+
+=item 2
+
+All tokens starting at
+earleme I<N> must be scanned before
+any tokens starting at earleme I<N+1>.
+In other words, the tokens must be scanned in non-decreasing order
+by start earleme.
+
+=item 3
+
+Every token must have a length, in earlemes,
+which is greater than zero.
+In other words,
+token length can never
+be zero or negative.
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+

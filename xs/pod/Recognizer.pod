@@ -1,0 +1,587 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Recognizer - Marpa Recognizer Objects
+
+=head1 SYNOPSIS
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    $recce->read( 'Number', 42 );
+    $recce->read( 'Multiply', );
+    $recce->read( 'Number', 1 );
+    $recce->read( 'Add', );
+    $recce->read( 'Number', 7 );
+
+=for Marpa::XS::Display::End
+
+=head1 DESCRIPTION
+
+To create a recognizer object, use L<the C<new> method|/new>.
+
+To read input, use L<the C<read> method|/read>.
+
+To evaluate a parse result, based on the input, use L<the C<value> method|/value>.
+
+=head2 Token Streams
+
+By default, Marpa uses the token-stream model of input.
+The token-stream model is standard -- so standard the most documents about
+parsing do not bother to describe it.
+In the token-stream model, each read adds a token at the current location,
+then advances the current location by one.
+Assuming that the location before any input is numbered 0, as it is in Marpa,
+a parse of I<N> tokens will fill the locations from 1 to I<N>.
+
+This document will describe only the token-stream model of input.
+Marpa allows other models of the input, but their use
+requires special method calls,
+which are described in L<the
+document on alternative input models|Marpa::XS::Advanced::Models>.
+
+=head1 CONSTRUCTOR
+
+=head2 new
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+
+=for Marpa::XS::Display::End
+
+The C<new> method creates a recognizer object.
+The C<new> method either returns a new recognizer object or throws an exception.
+
+The arguments to the C<new> method
+are references to hashes of named
+arguments.
+In each key/value pair of these hashes, the key is the argument name,
+and the hash value is the value of the argument.
+The named arguments are described L<below|/"NAMED ARGUMENTS">.
+
+=head1 ACCESSORS
+
+=head2 terminals_expected
+
+=for Marpa::XS::Display
+name: Recognizer terminals_expected Synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $terminals_expected = $recce->terminals_expected();
+
+=for Marpa::XS::Display::End
+
+Returns a reference to a list of strings,
+where the strings are the
+names of the terminals
+acceptable at the current location.
+In the default input model, the presence of a terminal
+in this list means that terminal will be acceptable
+in the next C<read> method call.
+This is highly useful for Ruby Slippers parsing.
+
+=head2 check_terminal
+
+=for Marpa::XS::Display
+name: Recognizer check_terminal Synopsis
+normalize-whitespace: 1
+
+    my $is_symbol_a_terminal = $recce->check_terminal('Document');
+
+=for Marpa::XS::Display::End
+
+Returns a Perl true when its argument is the name of a terminal symbol.
+Otherwise, returns a Perl false.
+Not often needed.
+
+=head1 MUTATORS
+
+=head2 set
+
+=for Marpa::XS::Display
+name: Recognizer set Synopsis
+normalize-whitespace: 1
+
+    $recce->set( { max_parses => 10, } );
+
+=for Marpa::XS::Display::End
+
+The C<set> method's arguments are references to hashes of named
+arguments.
+The C<set> method
+can be used to set or change named arguments after the recognizer
+has been created.
+Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
+
+=head2 read
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    $recce->read( 'Number', 42 );
+    $recce->read( 'Multiply', );
+    $recce->read( 'Number', 1 );
+    $recce->read( 'Add', );
+    $recce->read( 'Number', 7 );
+
+=for Marpa::XS::Display::End
+
+The C<read> method reads one token at the current parse location.
+It then advances the current location by 1.
+
+C<read> takes two arguments: a B<token name> and a B<token value>.
+The token name is required.
+It must be the name of a valid terminal symbol.
+The token value is optional.
+It defaults to a Perl C<undef>
+when not specified.
+For details about terminal symbols,
+see L<Marpa::XS::Grammar/"Terminals">.
+
+The parser may accept or reject the token.
+If the parser accepted the token,
+the C<read> method returns
+the number of tokens which are acceptable at the new current location.
+This number may be helpful in guiding L<Ruby
+Slippers parsing|/"RUBY SLIPPERS PARSING">.
+
+C<read> may return zero,
+which means that no tokens will be acceptable at the next
+earleme.
+This is turn means that the next C<read> call will fail.
+In the default input model,
+where the C<read> method is the only means of inputing tokens,
+a zero return from a C<read> method
+means that the parse is B<exhausted> --
+that no more input is possible.
+More details on "exhaustion" are in L<a
+section below|/"EXHAUSTION, SUCCESS AND FAILURE">.
+
+Marpa may reject a token because it is not one of those
+acceptable at the current location.
+When this happens, C<read> returns a Perl C<undef>.
+A rejected token need not end parsing --
+it is perfectly possible to retry the C<read> call
+with another token.
+This is, in fact, an important technique in Ruby
+Slippers parsing.
+For details,
+see L<the section on Ruby Slippers
+parsing|/"RUBY SLIPPERS PARSING">.
+
+For other failures,
+including an attempt to C<read> a token
+into an exhausted parser,
+Marpa throws an exception.
+
+=head2 value
+
+The C<value> mutator evaluates and returns a parse result.
+It is described in L<its own section|/"EVALUATION">.
+
+=head1 TRACE ACCESSORS
+
+=head2 show_earley_sets
+
+=for Marpa::XS::Display
+name: show_earley_sets Synopsis
+partial: 1
+normalize-whitespace: 1
+
+    print $recce->show_earley_sets()
+        or die "print failed: $ERRNO";
+
+=for Marpa::XS::Display::End
+
+An advanced, internals-oriented tracing method,
+which will not be of interest to most users.
+Most users will want to use L<the C<show_progress>
+method|/show_progress>
+instead.
+C<show_earley_sets> returns a multi-line string
+listing every Earley item in every Earley set.
+
+=head2 show_progress
+
+=for Marpa::XS::Display
+name: show_progress Synopsis
+partial: 1
+normalize-whitespace: 1
+
+    print $recce->show_progress()
+        or die "print failed: $ERRNO";
+
+=for Marpa::XS::Display::End
+
+Returns a string describing the progress of the parse.
+With no arguments,
+the string contains reports for
+the current location.
+With a non-negative argument I<N>,
+the string contains reports for location I<N>.
+
+With two numeric arguments, I<N> and I<M>, the arguments are interpreted
+as a range of locations and the returned string contains
+reports for all locations in the range.
+The first argument, I<N>,
+must be a non-negative integer,
+and is always the number of the location which begins the range.
+If both arguments are non-negative integers,
+the range is from location I<N> to location I<M>.
+If the second argument is a negative integer,
+I<-M>,
+the end of the range is the 
+I<M>th location from the furthest location.
+For example, if 42 was the furthest location,
+-1 would be location 42 and -2 would be location 41.
+The method call C<< $recce->show_progress(0, -1) >>
+will print progress reports for the entire parse.
+
+C<show_progress> is
+Marpa's most powerful tool for 
+debugging application grammars.
+It can also be used to track the
+progress of a parse or
+to investigate how a parse works.
+A much fuller description,
+with an example,
+is in
+L<the document on debugging Marpa
+grammars|Marpa::XS::Debug>.
+
+=head1 NAMED ARGUMENTS
+
+=head2 grammar
+
+The C<grammar> named argument is required.  Its
+value must be
+a precomputed Marpa grammar object.
+
+=head2 ranking_method
+
+The value must be a string:
+either "C<none>" or "C<constant>".
+When the value is "C<none>", Marpa returns the parse results
+in arbitrary order.
+When the value is "C<constant>", Marpa allows the user
+to
+specify ranking actions which assign values to rules and tokens.
+These values will
+control the order in which parse results are returned by
+the C<value> method.
+
+The default is for parse results to be returned in arbitrary order.
+For details, see L<the section on parse order in the semantics
+document|Marpa::XS::Semantics/"PARSE ORDER">.
+
+=head2 too_many_earley_items
+
+The C<too_many_earley_items> argument is optional.
+If specified, it sets the B<Earley item warning threshold>.
+If an Earley set becomes larger than the
+Earley item warning threshold,
+a warning is printed to the trace file handle.
+
+Marpa parses from any BNF,
+and can handle grammars and inputs which produce large
+Earley sets.
+But parsing that involves large Earley sets can be slow.
+Large Earley sets
+are something most applications can,
+and will wish to, avoid.
+
+By default, Marpa calculates
+an Earley item warning threshold
+based on the size of the
+grammar.
+The default threshold will never be less than 100.
+If the Earley item warning threshold is set to 0,
+warnings about large Earley sets are turned off.
+
+=head2 trace_file_handle
+
+The value is a file handle.
+Traces and warning messages
+go to the trace file handle.
+By default the trace file handle is inherited
+from the grammar used to create the recognizer.
+
+=head2 trace_terminals
+
+Very handy in debugging, and often useful
+even when the problem is not in the lexing.
+The value is a trace level.
+When the trace level is 0,
+tracing of terminals is off.
+This is the default.
+
+At a trace level of 1 or higher,
+Marpa produces a trace message
+for each terminal as it is accepted or rejected
+by the recognizer.
+At a trace level of 2 or higher,
+the trace messages include, for
+every location, a list of the
+terminals expected.
+In practical grammars, output from
+trace level 2 can be voluminous.
+
+=head2 warnings
+
+The value is a boolean.
+Warnings are written to the trace file handle.
+By default, the recognizer's warnings are on.
+Usually, an application will want to leave them on.
+
+=head1 RUBY SLIPPERS PARSING
+
+=for Marpa::XS::Display
+name: Engine Synopsis Interactive Parse
+partial: 1
+normalize-whitespace: 1
+
+    $recce =
+        Marpa::Recognizer->new( { grammar => $grammar } );
+
+    my @tokens = (
+        [ 'Number', 42 ],
+        ['Multiply'], [ 'Number', 1 ],
+        ['Add'],      [ 'Number', 7 ],
+    );
+
+    TOKEN: for ( my $token_ix = 0; $token_ix <= $#tokens; $token_ix++ ) {
+        defined $recce->read( @{ $tokens[$token_ix] } )
+            or fix_things( $recce, \@tokens )
+            or die q{Don't know how to fix things};
+    }
+
+=for Marpa::XS::Display::End
+
+Marpa is able to tell the application
+which symbols are acceptable as tokens at the next location
+in the parse.
+The L<C<terminals_expected> method|/terminals_expected>
+returns the list of tokens that B<will> be accepted by
+the next C<read>.
+The application can use this information to change the
+input "on the fly"
+so that it is acceptable to the parser.
+
+An application can also take a "try it and see"
+approach.
+It is a recoverable error
+if a token is rejected because it is not acceptable.
+If an application is not sure whether a token is
+acceptable or not, the application can
+try to read the dubious token using
+L<the C<read> method|/read>.
+If the token is rejected,
+L<the C<read> method|/read> call will return a
+Perl C<undef>.
+At that point,
+the application can retry the C<read> with a different token.
+
+=head2 An Example
+
+Marpa's HTML parser, L<Marpa::HTML>, is
+an example of how Ruby Slippers parsing can help
+with a non-trivial, real-life application.
+When a token is rejected in L<Marpa::HTML>, it changes
+the input to match
+the parser's expectations by
+
+=over
+
+=item * Modifying existing tokens, and
+
+=item * Creating new tokens.
+
+=back
+
+The second technique, the creation of
+new, "virtual", tokens
+is used
+by L<Marpa::HTML>
+to deal with omitted start and end tags.
+The actual HTML grammar that
+L<Marpa::HTML> uses takes
+an oversimplified view of the HTML --
+it assumes,
+even when the HTML standards do not require it,
+that start and end tags are always present.
+For most HTML files of interest,
+this assumption will be
+contrary to fact.
+
+Ruby Slippers parsing is used to make the grammar's
+over-simplistic view of the world come true for it.
+Whenever a token is rejected,
+L<Marpa::HTML> looks at the expected tokens list.
+If it sees that a start or end tag is expected,
+L<Marpa::HTML> creates a token for it --
+a completely new "virtual" token that gives the parser exactly what it expects.
+L<Marpa::HTML> then resumes input at the point in the original input stream
+where it left off.
+
+=head1 EXHAUSTION, SUCCESS AND FAILURE
+
+A parse is B<exhausted> when it will accept no more input.
+In the default input model, the C<read> method indicates this
+by returning zero.
+
+While a failed parse often becomes exhausted,
+a B<exhausted> parse is by no means necessarily a failed parse.
+Many common practical grammars succeed at exactly the point
+that they become exhausted.
+Grammars are often written so that once the "find what
+they are looking for", no other input is acceptable.
+
+=head1 EVALUATION
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    my $value_ref = $recce->value;
+    my $value = $value_ref ? ${$value_ref} : 'No Parse';
+
+=for Marpa::XS::Display::End
+
+The C<value> method call evaluates and returns a parse result.
+Its arguments are zero or more hashes of named arguments.
+It returns a B<reference> to the value of the next parse result,
+or undef if there are no more parse results.
+
+These are the named arguments available to the C<value> method
+call:
+
+=head2 end
+
+The C<value> method's
+C<end> named argument
+specifies the parse end location.
+The default is for the parse to end where the input did,
+so that the parse returned is of the entire input.
+
+=head2 closures
+
+The C<value> method's
+C<closures> named argument
+is
+a reference to a hash.
+In each key/value pair of this hash,
+the key must be an action name.
+The hash value
+must be a CODE ref.
+
+When an action name is a key in
+the 
+C<closures> named argument,
+the usual action resolution mechanism of the semantics
+is bypassed.
+One common use of
+the C<closures> named argument is to
+allow anonymous
+subroutines to be semantic actions.
+For more details, see L<the document on
+semantics|Marpa::XS::Semantics>.
+
+=head2 max_parses
+
+The value must be an integer.
+If it is greater than zero, the evaluator will
+return no more than that number of parse results.
+If it is zero, there will be no
+limit on the number of parse results returned.
+The default is for
+there to be no limit.
+
+Marpa allows extremely ambiguous grammars.
+C<max_parses> 
+can be used if
+the user
+wants to see only
+the first few parse results of
+an ambiguous parse.
+C<max_parses> is also useful to
+limit CPU usage and output length when testing
+and debugging.
+
+=head2 trace_actions
+
+The C<value> method's
+C<trace_actions> named argument
+is a boolean.
+If the boolean value is true, Marpa prints tracing information
+as it resolves action names to
+Perl closures.
+A boolean value of false turns tracing off, which is the default.
+Traces are written to the trace file handle.
+
+=head2 trace_values
+
+The C<value> method's
+C<trace_values> named argument
+is a numeric trace level.
+If the numeric trace level is 1, Marpa
+prints tracing information
+as values are computed in the evaluation stack.
+A trace level of 0 turns value tracing off,
+which is the default.
+Traces are written to the trace file handle.
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

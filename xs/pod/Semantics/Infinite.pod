@@ -1,0 +1,169 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Semantics::Infinite - How Marpa Deals with Infinite Cycles
+
+=head1 INFINITELY AMBIGUOUS GRAMMARS
+
+Marpa will parse using an infinitely ambiguous grammar.
+(In the technical literature, an infinite ambiguity is more usually
+called a B<cycle> or a B<loop>.)
+
+An example of an infinitely ambiguous grammar is the following:
+
+=for Marpa::XS::Display
+ignore: 1
+
+    S ::= A
+    A ::= B
+    B ::= A
+    B :: 'x'
+
+=for Marpa::XS::Display::End
+
+Given the input 'x', this grammar will produce
+these parses 
+ 
+=for Marpa::XS::Display
+ignore: 1
+
+    S -> A -> B -> x
+    S -> A -> B -> A -> B -> x
+    S -> A -> B -> A -> B -> A -> B -> x
+    .
+    .
+    .
+
+=for Marpa::XS::Display::End
+
+Because of the two rules C<A ::= B> and C<B ::= A>,
+this list of parses could go on forever.
+The two rules C<A ::= B> and C<B ::= A> form what is called a B<cycle>.
+
+Typically, if a user has written an grammar with an infinite cycle,
+it was a mistake and
+he wants to rewrite it before proceeding.
+By default, an infinitely ambiguous grammar is a fatal error.
+This is the behavior most users will want.
+
+To proceed to producing parse results from an infinitely ambiguous grammar,
+the user must set
+the grammar's
+L<C<infinite_action>|Marpa::XS::Grammar/"infinite_action">
+named argument
+to a value other than "C<fatal>".
+The other choices are "C<warn>"
+and "C<quiet>".
+
+=head1 CYCLE LENGTH
+
+Obviously,
+Marpa cannot list all of an infinite number of parse results.
+Marpa deals with potentially infinite parses by limiting the
+cycle length.
+B<Cycle length> is the number of times a parse derivation goes
+around a potentially infinite cycle.
+
+Marpa limits all cycles to a length of 1.
+There will always be a finite number of these parse results.
+
+Above I showed
+a set of parses from an example of an
+infinitely ambiguous grammar.
+Here are those parses again, this time
+labeled with their cycle length.
+
+=for Marpa::XS::Display
+ignore: 1
+
+    Cycle length 1: S -> A -> B -> x
+    Cycle length 2: S -> A -> B -> A -> B -> x
+    Cycle length 3: S -> A -> B -> A -> B -> A -> B -> x
+
+=for Marpa::XS::Display::End
+
+Of the parse results in the above list, Marpa would return a value
+only for the first,
+the one whose cycle length is 1.
+
+=head1 LIMITATIONS
+
+The precise behavior of
+Marpa's cycle detection is,
+at this point,
+not strictly defined and
+applications should avoid
+relying on the details of its semantics.
+The exact point at which
+a cycle is broken varies among
+implementations.
+
+In future releases,
+Marpa's cycle detection may be
+more carefully defined.
+But cycles at this point are universally considered
+useless,
+and there seems to be literally nobody who
+cares about the details of their semantics.
+The quality of the present implementation
+seems to be completely adequate in terms
+of the present interest.
+
+At this point it seems that a cycle should be
+broken when it is about to loop back to the "same
+rule".
+But in current Marpa implementations,
+the "same rule"
+means the same rule
+B<after Marpa's rewriting of the grammar>,
+not the same rule as in the original grammar.
+If a more careful semantics is created, it probably
+should be defined in terms of the rules as
+the user sees them,
+rather than in terms of the rules as rewritten
+by Marpa's internals.
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

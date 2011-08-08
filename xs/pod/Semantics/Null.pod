@@ -1,0 +1,344 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Semantics::Null - How Marpa Evaluates Null Rules and Symbols
+
+=head1 DESCRIPTION
+
+=head2 Null Values
+
+A B<null node> is a node which derives the zero-length,
+or empty string.
+This means that a null node
+cannot be the ancestor of any token nodes.
+In Marpa, null nodes are always leaf nodes.
+
+Null nodes are of two kinds.
+A B<nulling symbol node> corresponds to a nulling symbol.
+A B<nulled rule node> represents a nulled rule.
+
+For every null node there is a B<null node symbol>,
+which is used to the determine
+the value of the null node.
+For a nulled rule node,
+the B<null node symbol> is
+the nulled rule's left hand side symbol.
+For a nulling symbol node,
+the B<null node symbol>
+is the nulling symbol.
+
+The value of a null node is the null value
+of the null node symbol.
+The B<null value of a symbol> comes from
+that symbol's C<null_value> property,
+if one is defined.
+Otherwise, the null value of the symbol
+comes from the grammar's
+default null value, as defined by the grammar's
+L<C<default_null_value>|Marpa::XS::Grammar/default_null_value>
+named argument.
+If neither the symbol C<null_value> property
+or the grammar's
+L<C<default_null_value>|Marpa::XS::Grammar/default_null_value>
+named argument
+is defined,
+a symbol's null value is a Perl C<undef>.
+
+=head2 Null Subtrees
+
+A null subtree is a subtree all of whose nodes are null.
+Marpa prunes
+all null subtrees back to their topmost null node.
+This means that all null nodes that remain in
+Marpa's virtual parse tree will be leaf nodes.
+
+The "lost" semantics of the non-root nodes
+of null subtrees are usually not missed.
+Null subtrees cannot contain token nodes,
+so no token nodes are lost when
+null subtrees are pruned.
+As bushy as a null subtree might be,
+all of its nodes are null nodes.
+
+All null nodes correspond to zero-length strings,
+so we are literally dealing here with
+the "semantics of nothing".
+In theory the semantics of nothing can be arbitrarily complex.
+In practice it should be possible to keep them simple.
+
+If any application ever actually needs it,
+Marpa could implement a complex, and even dynamic,
+"semantics of nothing".
+
+=head2 Null Sequence Nodes
+
+Rule nodes for sequences were mentioned above.
+Sequence nodes can also be null nodes.
+This happens with
+sequence rules which have a
+C<min> rule property of 0.
+Such a sequence rule can contain any number of sequence items, including zero items.
+When a sequence contains zero items, it must derive the zero-length string,
+and its node is a null node.
+
+Sequence null nodes obey the rules for null nodes.
+Their value is that of a symbol -- the left hand side
+symbol of the nulled sequence rule.
+
+When the node for a nullable sequence rule
+is a null node,
+its semantics comes from the null value for its left hand side symbol.
+When the node for a nullable sequence rule
+is not a null node,
+then it is a rule node and
+its semantics come from the rule.
+It's up to the
+application to ensure that
+the null value of the LHS symbol,
+when seen in the same contexts
+as the values returned by the semantic Perl closure for the sequence rule,
+"makes sense".
+
+If necessary, an application can
+make sure that the LHS symbol
+of the sequence rule
+is not used
+for a conflicting purpose elsewhere.
+This dedicated symbol can then be given
+whatever semantics are necessary.
+
+The rules for nodes in null subtrees apply with equal force
+to nodes for sequence rules.
+In a nulled subtree, the only node whose semantics matters
+is the root node of that subtree.
+If a zero-length sequence is in a nulled subtree,
+and that zero-length sequence
+is not the root node of that subtree,
+then its semantics will be completely ignored.
+
+=head1 EXAMPLE
+
+In Marpa, a null node must be leaf node.
+Because Marpa prunes every null subtree back to its topmost
+null node,
+none of the non-root nodes in a null subtree are
+represented in Marpa's virtual parse tree.
+Here's an example:
+
+=for Marpa::XS::Display
+name: Null Value Example
+perltidy: '-dcsc -sil=0'
+
+    sub L {
+        shift;
+        return 'L(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+    }
+
+    sub R {
+        shift;
+        return 'R(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+    }
+
+    sub S {
+        shift;
+        return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+    }
+
+    my $grammar = Marpa::Grammar->new(
+        {   start   => 'S',
+            actions => 'main',
+            rules   => [
+                [ 'S', [qw/L R/] ],
+                [ 'L', [qw/A B X/] ],
+                [ 'L', [] ],
+                [ 'R', [qw/A B Y/] ],
+                [ 'R', [] ],
+                [ 'A', [] ],
+                [ 'B', [] ],
+                [ 'X', [] ],
+                [ 'Y', [] ],
+            ],
+            symbols        => {
+                L => { null_value => 'null L' },
+                R => { null_value => 'null R' },
+                A => { null_value => 'null A' },
+                B => { null_value => 'null B' },
+                X => { null_value => 'null X', terminal => 1 },
+                Y => { null_value => 'null Y', terminal => 1 },
+            },
+        }
+    );
+
+    $grammar->precompute();
+
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+
+    $recce->read( 'X', 'x' );
+
+=for Marpa::XS::Display::End
+
+If we write the unpruned parse tree
+one node per line in pre-order, depth-first, indenting children
+below their parents, we get something like this:
+
+=for Marpa::XS::Display
+ignore: 1
+
+        0: Rule Node, Rule: S := L R
+             1: Rule Node, Rule L := A B X
+                 1.1: Null Node, Symbol A
+                 1.2: Null Node, Symbol B
+                 1.3: Token Node, Token value is 'x'
+             2: Rule Node, Rule R := A B Y
+                 2.1: Null Node, Symbol A
+                 2.2: Null Node, Symbol B
+                 2.3: Null Node, Symbol Y
+
+=for Marpa::XS::Display::End
+
+In this example, six nodes are nulled.
+Four of them are in a single subtree: 2, 2.1, 2.2 and 2.3.
+Marpa prunes every null subtree back to its null root node, which
+in this case
+is the node numbered 2.
+
+The pruned tree looks like this
+
+=for Marpa::XS::Display
+ignore: 1
+
+        0: Rule Node, Rule: S := L R
+             1: Rule Node, Rule L := A B X
+                 1.1: Null Node, Symbol A
+                 1.2: Null Node, Symbol B
+                 1.3: Token Node, Token value is 'x'
+             2: Null Node, Symbol R
+
+=for Marpa::XS::Display::End
+
+
+Here is the output:
+
+=for Marpa::XS::Display
+name: Null Value Example Output
+normalize-whitespace: 1
+
+    S(L(null A;null B;x);null R)
+
+=for Marpa::XS::Display::End
+
+In the output we see
+
+=over
+
+=item * The null value for node 1.1: "C<null A>".
+
+=item * The null value for node 1.2: "C<null B>".
+
+=item * The token value for node 1.3: "C<x>".
+
+=item * An application of the semantic Perl closure for node 1.
+
+=item * The null value for node 2: "C<null R>".
+
+=item * An application of the semantic Perl closure for rule node 0.
+
+=back
+
+We do not see any output
+for nodes 2.1, 2.2, or 2.3 because they were non-root nodes
+in the pruned subtree.
+We B<do> see the null value for node 2,
+because after pruning it is a leaf node.
+We B<do not> see an application of the semantic Perl closure for node 2,
+because after pruning,
+node 2 is not a rule node.
+
+=head1 ADVANCED
+
+In rare cases,
+your application
+may call for null values with a complex semantics.
+
+=head2 Implementing a Complex but Constant Null Semantics
+
+If an application's semantics of nothing, while complex, remains constant,
+you can handle it
+by setting every nullable symbol's C<null_value> property
+to the value
+which your semantics produces when that nullable symbol is the root
+symbol of a null subtree.
+
+=head2 Implementing a Complex and Dynamic Null Semantics
+
+If the values of an application's
+null values are not constants,
+Marpa can still calculate them.
+Here is the most general method:
+
+=over
+
+=item *
+
+Determine which of the application's nullable symbols have a dynamic semantics.
+Call these the B<dynamic nullables>.
+
+=item *
+Let the C<null_value> property of every dynamic nullable be a hash key.
+
+=item *
+For every rule with a dynamic nullable on its right hand side,
+write the rule's semantic Perl closure
+so that it looks up that hash key
+in a hash whose values are Perl closures.
+
+=item *
+The Perl closure can then use an arbitrarily complex semantics for
+calculating the value of the dynamic nullable.
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

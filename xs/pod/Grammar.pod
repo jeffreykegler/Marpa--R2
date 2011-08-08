@@ -1,0 +1,958 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Grammar - Marpa Grammar Objects
+
+=head1 SYNOPSIS
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    my $grammar = Marpa::Grammar->new(
+        {   start   => 'Expression',
+            actions => 'My_Actions',
+            default_action => 'first_arg',
+            rules   => [
+                { lhs => 'Expression', rhs => [qw/Term/] },
+                { lhs => 'Term', rhs => [qw/Factor/] },
+                { lhs => 'Factor', rhs => [qw/Number/] },
+                { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
+                {   lhs    => 'Factor',
+                    rhs    => [qw/Factor Multiply Factor/],
+                    action => 'do_multiply'
+                },
+            ],
+        }
+    );
+
+    $grammar->precompute();
+
+=for Marpa::XS::Display::End
+
+=head1 DESCRIPTION
+
+To create a Marpa grammar object,
+use the C<new> method.
+Rules and symbols may be specified when the grammar is created.
+
+To change a Marpa grammar object,
+use the C<set> method.
+New rules may be added until a grammar is precomputed.
+
+A grammar cannot be used for parsing until it is precomputed.
+To precompute a Marpa grammar object,
+use the C<precompute> method.
+After precomputation,
+no new rules may added and
+most other changes are forbidden.
+
+=head2 Symbol Names
+
+Symbol names that end in right square brackets
+are reserved for Marpa's internal use.
+Any other valid Perl string is an acceptable
+symbol name.
+
+=head2 Terminal Symbols
+
+If a grammar has no empty rules, all symbols are terminals by default.
+Unlike most parser generators,
+Marpa will allow terminals to appear on the left
+hand side of rules.
+Marpa defines a B<terminal> as a symbol which is valid as an
+input token symbol.
+
+Marpa allows direct marking of terminals
+using
+the L<C<terminals> named argument|/"terminals">,
+and the L<C<terminal> property|/"terminal">.
+If any terminal is directly marked, only directly marked
+symbols will be terminals.
+
+Marpa's behavior can be changed by unsetting
+the L<C<lhs_terminals> named argument|/"lhs_terminals">.
+When the L<C<lhs_terminals> named argument|/"lhs_terminals"> is unset,
+only symbols which do not appear on the LHS of a rule can be terminals.
+If no symbols are directly marked, Marpa will implicitly
+mark all the non-LHS symbols as terminals.
+
+Marpa is stricter for grammars with empty rules --
+it does not allow them to take the default.
+There is an efficiency hit whenever
+the LHS of an empty rule is a terminal as well,
+so Marpa does not allow this to happen by default --
+the user has to be explicitly indicate that that is
+what she wants.
+If a grammar has any empty rules,
+it must either directly mark its terminals,
+or must unset 
+the L<C<lhs_terminals> named argument|/"lhs_terminals">.
+
+One advantage of not taking the default is efficiency.
+Precomputation is faster for grammars
+which mark their terminals.
+Also, the recognizer checks that input tokens are
+terminals, so that being selective about which symbols
+are terminals and which are not can allow better input checking.
+
+=head3 Summary
+
+The following summarizes the logic which determines
+whether a symbol C<S> is terminal.
+As a reminder,
+a symbol is said to be B<directly marked as a terminal>
+if it is one of the symbols in the
+L<C<terminals> named argument|/"terminals">,
+or if the symbol has the L<C<terminal> property|/"terminal"> set.
+
+=over
+
+=item * If any symbol is directly marked as a terminal,
+then a symbol C<S> is a terminal if and only if it is also directly marked
+as a terminal.
+
+=item * If no symbol is directly marked as a terminal,
+and the L<C<lhs_terminals> named argument|/"lhs_terminals"> is unset,
+then all non-LHS symbols are terminals.
+
+=item * If the grammar contains no empty rules,
+no symbol is directly marked as a terminal,
+and the L<C<lhs_terminals> named argument|/"lhs_terminals"> is set or
+left at its default,
+then all symbols are terminals.
+ 
+=item * The only case not covered above is that in which
+a grammar contains one or more empty rules,
+no symbol is directly marked as a terminal,
+and the L<C<lhs_terminals> named argument|/"lhs_terminals"> is set or
+left at its default.
+This is a fatal error.
+
+=back
+
+=head2 Sequence Rules
+
+It is very common in a grammar for one symbol to produce a
+repeating sequence.
+Marpa allows a shorthand for this:
+sequence rules.
+The RHS of a sequence rule will be repeated,
+as specified by the C<min> rule property.
+In sequence rules the RHS must always be one symbol
+in length,
+and that symbol may not be a nullable symbol.
+
+A rule is a sequence rule if the C<min> rule property is defined.
+C<min> can be 0 or 1, and specifies the minimum number of times
+that the sequence is allowed to repeat.
+As of this writing,
+the maximum number of repetitions is always infinite.
+
+=for Marpa::XS::Display
+name: Marpa::Grammar min 0 sequence example
+partial: 1
+normalize-whitespace: 1
+
+    { lhs => 'sequence', rhs => ['item'], min => 0 }
+
+=for Marpa::XS::Display::End
+
+A C<min> of zero indicates a sequence that repeats zero or more times.
+This is the equivalent of using the star quantifier
+("C<*>") in the
+standard regular expression notation.
+
+=for Marpa::XS::Display
+name: Marpa::Grammar min 1 sequence example
+partial: 1
+normalize-whitespace: 1
+
+    { lhs => 'sequence', rhs => ['item'], min => 1 }
+
+=for Marpa::XS::Display::End
+
+A C<min> of one indicates a sequence that repeats one or more times.
+This is the equivalent of using the plus quantifier
+("C<+>") in the
+standard regular expression notation.
+
+Sequences can have a separator, specified
+with the C<separator> rule property.
+By default, separation is Perl-style:
+trailing separators are allowed.
+In "C<proper>" separation,
+a separator must actually separate
+two sequence items
+and therefore is not allowed
+after the last item of a sequence.
+If you prefer "C<proper>" separation,
+you can set
+the C<proper> rule property.
+
+=head3 Advantages of Sequence Rules
+
+You are never forced to use sequence rules,
+but it's usually better if you do.
+When a sequence is written as a sequence rule,
+Marpa optimizes it.
+
+When a sequence is written using non-sequence
+rules, the semantics typically wind up being spread
+over two or three Perl closures.
+The semantic action for a sequence rule
+is a single Perl closure.
+Putting the semantics into
+a single Perl closure often results in
+simpler and more
+natural code.
+See L<the section on sequences in the semantics
+document|Marpa::XS::Semantics/"Sequence Rule Nodes">.
+
+=head3 Caveats
+
+Marpa throws an exception if you try to use a nullable symbol
+as the right hand side of a sequence rule,
+or as the separator for a sequence rule.
+The ban on nullables in sequences only applies to sequences
+when they are written using sequence rules.
+Nothing prevents you from specifying a sequence of nullables using non-sequence rules.
+But usually there is no good reason to do this,
+and sequences of nullable can be highly ambiguous,
+which makes them
+a good thing to avoid
+for efficiency reasons.
+
+To keep things simple,
+the right hand side of a sequence rule must be a single symbol.
+Of course, applications will often want to repeat sequences of multiple symbols.
+That is easy to do indirectly:
+
+=for Marpa::XS::Display
+name: Marpa::Grammar multipart rhs sequence example
+partial: 1
+normalize-whitespace: 1
+
+    { lhs => 'sequence', rhs => [qw(item)], min => 0 },
+    { lhs => 'item', rhs => [qw(part1 part2)], },
+
+=for Marpa::XS::Display::End
+
+=head1 CONSTRUCTOR
+
+=head2 new
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    my $grammar = Marpa::Grammar->new(
+        {   start   => 'Expression',
+            actions => 'My_Actions',
+            default_action => 'first_arg',
+            rules   => [
+                { lhs => 'Expression', rhs => [qw/Term/] },
+                { lhs => 'Term', rhs => [qw/Factor/] },
+                { lhs => 'Factor', rhs => [qw/Number/] },
+                { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
+                {   lhs    => 'Factor',
+                    rhs    => [qw/Factor Multiply Factor/],
+                    action => 'do_multiply'
+                },
+            ],
+        }
+    );
+
+=for Marpa::XS::Display::End
+
+C<Marpa::Grammar::new> 
+returns a new Marpa grammar object or throws an exception.
+The arguments to
+C<Marpa::Grammar::new> are
+references to hashes of named arguments.
+In each key/value pair of this hash,
+the hash key is the argument name
+and the hash value is the value of
+the named argument.
+The available named arguments are described
+L<below|/"Named Arguments">.
+
+=head1 MUTATORS
+
+=head2 precompute
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    $grammar->precompute();
+
+=for Marpa::XS::Display::End
+
+The C<precompute> method
+compiles data structures that the recognizer will need.
+It
+returns the grammar object or throws an exception.
+
+=head2 set
+
+=for Marpa::XS::Display
+name: Grammar set Synopsis
+normalize-whitespace: 1
+
+    $grammar->set( { trace_file_handle => $trace_fh } );
+
+=for Marpa::XS::Display::End
+
+The arguments to the
+C<set> method are
+references to hashes of named arguments.
+The available named arguments are described
+L<below|/"Named Arguments">.
+C<set> either returns true or throws an exception.
+
+=head1 ACCESSORS
+
+=head2 check_terminal
+
+Returns a Perl true when its argument is the name of a terminal symbol.
+Otherwise, returns a Perl false.
+Not often needed,
+but a lexer may find this
+the most convenient way to determine if a symbol is a terminal.
+
+=head1 TRACE ACCESSORS
+
+=head2 show_AHFA
+
+=for Marpa::XS::Display
+name: show_AHFA Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_AHFA()
+        or die "print failed: $ERRNO";
+
+=for Marpa::XS::Display::End
+
+Not of interest to most users.
+Returns a multi-line string listing the states of
+an internal data structure called the
+Aycock-Horspool Finite Automaton.
+Not useful before the grammar is precomputed.
+
+=head2 show_problems
+
+=for Marpa::XS::Display
+name: show_problems Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_problems()
+        or die "print failed: $ERRNO";
+
+=for Marpa::XS::Display::End
+
+Usually the application does not call this method
+directly.
+Returns a string describing any serious but non-fatal
+problems a grammar had in the precomputation phase.
+A serious problem is one that will prevent parsing.
+Warnings are not serious problems in this sense.
+If there were no serious problems, returns a string saying so.
+This method is not useful before precomputation.
+
+In Marpa, most serious grammar problems are
+not immediately thrown as exceptions.
+This is because there can be a number of serious
+problems in a grammar, particularly one that is large
+or in an early draft.
+If each serious problem
+caused an immediate exception,
+the user would have to
+fix them one at a time
+-- very tedious.
+
+The recognizer
+throws an exception
+when the user attempts
+to create a parse from
+a grammar with serious problems.
+When that happens,
+the string returned by C<show_problems> is part of the
+error message.
+
+=head2 show_rules
+
+=for Marpa::XS::Display
+name: show_rules Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_rules()
+        or die "print failed: $ERRNO";
+
+=for Marpa::XS::Display::End
+
+Returns a string listing the rules.
+Each rule is shown with B<comments> which
+indicate either rule properties
+or internal settings.
+C<show_rules> is useful in debugging grammars.
+
+Marpa does extensive rewriting of its grammars,
+and both the original rules and the rewritten rules
+appear in the C<show_rules> list.
+When a rule is rewritten, the original rule is
+often not used.
+In that case, "C<!used>" will be one of the comments
+for the original rule.
+The "C<!used>" comment also marks rules not used
+for reasons other than rewrites.
+For example,
+inaccessible and unproductive rules are also
+marked "C<!used>".
+
+The "C<discard_sep"> comment indicates that the rule
+discards separators
+This is only
+relevant in sequence rules.
+Other comments indicate
+whether rules
+were nullable, unproductive, inaccessible, or empty.
+
+The C<vlhs>, C<vrhs> and C<real> comments
+show rule settings relevant in tracking "virtual"
+internal symbols.
+These are used internally,
+to optimize evaluation.
+
+=head2 show_symbols
+
+=for Marpa::XS::Display
+name: show_symbols Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_symbols()
+        or die "print failed: $ERRNO";
+
+=for Marpa::XS::Display::End
+
+Returns a string listing the symbols, along with comments
+indicating whether they were
+terminal, nulling, nullable, unproductive or inaccessible.
+Also shown is a list of rules with that symbol on the left hand side,
+and a list of rules which have that symbol anywhere on the right hand side.
+Useful for debugging grammars.
+
+=head1 NAMED ARGUMENTS
+
+=head2 action_object
+
+The C<action_object> named argument
+specifies a class name to be used
+in resolving action names to Perl closures.
+A C<new> constructor must be defined
+in the C<action_object> package.
+It will be used to create the per-parse variables.
+Details are in
+L<the document on semantics|Marpa::XS::Semantics>.
+
+=head2 actions
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+            actions => 'My_Actions',
+
+=for Marpa::XS::Display::End
+
+The C<actions> named argument specifies
+the Perl package that Marpa will use when resolving
+action names to Perl closures.
+If both an 
+C<actions> named argument and an
+C<action_object> named argument are specified,
+the 
+package from the C<actions> named argument
+is the only one used to resolve action names.
+The C<actions> package is treated only as a package,
+and not as a class.
+Any C<new> constructor in the C<actions> package is ignored.
+Details are given in
+L<the document on semantics|Marpa::XS::Semantics>.
+
+=head2 default_action
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+            default_action => 'first_arg',
+
+=for Marpa::XS::Display::End
+
+The C<default_action> named argument specifies
+the value action name
+for rules without an L<C<action> property|/"action">.
+Details are given in
+L<the document on semantics|Marpa::XS::Semantics>.
+
+=head2 default_null_value
+
+The C<default_null_value> named argument specifies
+the null value for
+symbols
+without a L<C<null_value> property|/"null_value">.
+Details are given in
+L<the document on semantics|Marpa::XS::Semantics>.
+
+=head2 inaccessible_ok
+
+The value must be a reference to an array of symbol names.
+By default, Marpa warns if a symbol is inaccessible, but
+the warning is suppressed for any symbol named in the array.
+Setting the C<inaccessible_ok> named argument
+after grammar precomputation is useless,
+and itself results in a warning.
+
+Inaccessible symbols are symbols which cannot be derived from
+the start symbol, and which therefore can never be part of a
+successful parse.
+Inaccessible symbols often indicate errors in grammar
+design.
+But a user may have plans for these symbols,
+may wish to keep them as notes,
+or may simply wish to deal with them later.
+
+=head2 infinite_action
+
+Takes as its value a string specifying what Marpa
+should do if it discovers that
+its grammar is infinitely
+ambiguous.
+The value must be one of
+"C<fatal>",
+"C<warn>" or
+"C<quiet>".
+A grammar is B<infinitely ambiguous> if there
+is some input for which it produces
+an endless number of parses.
+
+If the value is "C<fatal>",
+Marpa throws an exception when it encounters
+an infinitely ambiguous grammar.
+This is the default and
+will usually be what the user wants.
+In most cases,
+an infinitely ambiguous grammar is simply a mistake.
+
+"C<quiet>" indicates that
+the user wants to allow
+infinitely ambiguous grammars.
+"C<warn>" indicates that
+the user wants to allow
+infinitely ambiguous grammars, but
+wants a warning message to be printed
+to the trace file handle.
+
+=head2 lhs_terminals
+
+The value of the C<lhs_terminals> named argument is a Boolean.
+If true, symbols which appear on the LHS of a rule are allowed
+to be terminals.
+C<lhs_terminals> is true by default.
+
+If C<lhs_terminals> is unset and no symbols are directly marked
+as terminals, Marpa will mark all non-LHS symbols as terminals.
+If any symbol is directly marked, all terminals must be directly
+marked.
+If C<lhs_terminals> is unset,
+but some symbols are directly marked,
+it is a fatal error for a terminal to appear on the LHS of a rule.
+For more, see
+L<the discussion of terminals above|/"Terminal Symbols">.
+
+=head2 rules
+
+The value of the
+C<rules> named argument is a reference to an array of
+B<rule descriptors>.
+The C<rules> named argument may be specified multiple times,
+adding new rules to the grammar each time.
+New rules may be added until the grammar is precomputed.
+The format of rule descriptors is L<explained
+below|/"RULE DESCRIPTORS">.
+
+=head2 start
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    start => 'Expression',
+
+=for Marpa::XS::Display::End
+
+The value of the C<start> named argument must be a symbol name.
+It will be used as the start symbol for the grammar.
+The C<start> named argument is required.
+
+=head2 symbols
+
+The value of the C<symbols> named
+arguments must be a reference to a hash.
+In each key/value pair of this hash,
+the hash key is the symbol property name
+and the hash value is the
+symbol descriptor.
+Symbol descriptors are described L<below|/"SYMBOL DESCRIPTORS">.
+
+Note that the value of C<symbols> named argument is a hash,
+but the value of the C<rules> named argument is an array.
+This is because symbol names make convenient hash keys.
+For rules, there is no equally natural choice for a hash key.
+
+=head2 terminals
+
+The value of the C<terminals> named argument
+must be a reference to an array of symbol names.
+Specifying a symbol's name in a
+C<terminals> named argument
+is one way of
+B<directly marking> it as a terminal.
+See
+L<the discussion of terminals above|/"Terminal Symbols">.
+
+=head2 trace_file_handle
+
+The value is a file handle.
+Trace output and warning messages
+go to the trace file handle.
+By default the trace file handle is C<STDERR>.
+
+=head2 trace_rules
+
+Traces rules as they are added to the grammar.
+Useful, but you will usually
+prefer the C<show_rules> method.
+A C<trace_rules> setting becomes effective
+within the named argument hash which sets it.
+A trace message warns the user if he turns
+on rule tracing when
+rules have already been added.
+
+=head2 unproductive_ok
+
+The value must be a reference to an array of symbol names.
+By default, Marpa warns if a symbol is unproductive, but
+the warning is suppressed for any symbol named in the array.
+Setting the C<unproductive_ok> named argument
+after grammar precomputation is useless,
+and itself results in a warning.
+
+Unproductive symbols are symbols which can never derive
+a sentence.
+(A sentence is a string of zero or more terminals.)
+That means that unproductive symbols can never be part
+of a successful parse.
+Unproductive symbols often indicate errors in grammar
+design.
+But a user may have plans for these symbols,
+may wish to keep them as notes,
+or may simply wish to deal with them later.
+
+=head2 warnings
+
+The value is a boolean.
+Warnings are written to the trace file handle.
+By default, warnings are on.
+Usually, an application will want to leave them on.
+If warnings are turned off,
+turning them back on
+after grammar precomputation is useless,
+and itself results in a warning.
+
+=head1 RULE DESCRIPTORS
+
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    rules => [
+        { lhs => 'Expression', rhs => [qw/Term/] },
+        { lhs => 'Term',       rhs => [qw/Factor/] },
+        { lhs => 'Factor',     rhs => [qw/Number/] },
+        { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
+        {   lhs    => 'Factor',
+            rhs    => [qw/Factor Multiply Factor/],
+            action => 'do_multiply'
+        },
+    ],
+
+=for Marpa::XS::Display::End
+
+=head2 Rule Descriptors as Hashes
+
+The long form descriptor of a rule is a
+reference to a hash
+of B<rule properties>.
+In each key/value pair of this hash,
+the hash key is the rule property name
+and the hash value is the value of
+that property.
+
+=head2 action
+
+The value of the C<action> rule property is a string which
+specifies the semantics for the rule.
+For details, see
+L<the document on semantics|Marpa::XS::Semantics>.
+
+The semantics of nulling symbols are dealt with on a per-symbol
+basis, rather than a per-rule basis.
+For this reason the
+C<action> rule property is useless
+for empty rules.
+An exception is thrown if an C<action> property
+is defined for an empty rule.
+
+=head2 keep
+
+Separators in sequence rules
+are usually not semantically
+significant.
+By default,
+Marpa throws away
+separators during parse tree traversal and
+before node evaluation time,
+so that the semantic actions
+do not see the separators.
+
+If the value of the C<keep> rule property
+is a Perl true, Marpa keeps separators.
+This allows the semantic actions to examine them.
+The downside
+is that the
+work of distinguishing
+sequence separators from sequence items
+is pushed into the semantic actions.
+For details about the semantics, see
+L<the document on semantics|Marpa::XS::Semantics>.
+
+=head2 lhs
+
+The value of the C<lhs> rule property must be a string containing
+the name of the rule's left hand side symbol.
+Every Marpa rule must have a left hand side symbol.
+
+The C<lhs> plays a role in the semantics.
+If no C<action> rule property is defined,
+Marpa looks in either the
+grammar's C<actions> package
+or the grammar's C<action_object>
+for a Perl closure that has
+the name of the C<lhs> symbol.
+For details, see
+L<the document on semantics|Marpa::XS::Semantics>.
+
+=head2 min
+
+C<min> must be 0, 1, or undefined.
+If C<min> is 0 or 1, 
+the rule is a B<sequence rule>.
+If C<min> is undefined, the rule is an ordinary, B<non-sequence rule>.
+
+Only one symbol,
+called the B<sequence item>,
+is allowed on the right hand side of a sequence rule.
+The sequence item
+may not be a nullable symbol.
+The input will be required to match
+the sequence item
+at least C<min> times
+and will be allowed to match
+the sequence item
+an unlimited number of times.
+
+=head2 proper
+
+By default, sequence rules with separators allow trailing
+separators,
+Perl-style.
+If the C<proper> rule property is a Perl true,
+"C<proper>" separation is enforced.
+In proper separation,
+separation must actually separate sequence items,
+and trailing separators are not allowed.
+
+=head2 ranking_action
+
+The C<ranking_action> rule property 
+affects the order
+in which Marpa returns
+parse results for an ambiguous parse.
+For details
+see
+L<the document on Marpa's semantics|Marpa::XS::Semantics>
+
+=head2 rhs
+
+The value of the C<rhs> property is a reference to
+an array of strings containing
+the names of the rule's right hand symbols,
+in order.
+This array may be zero length, in which case
+this is an B<empty rule> --
+a rule with no symbols on the right hand side.
+A rule is also empty if
+there is no C<rhs> specifier in its descriptor.
+
+=head2 separator
+
+Any sequence rule may have a C<separator> defined.
+The value must be a symbol name.
+By default, Marpa allows trailing separators.
+This is the usual style in Perl.
+The separator must not be a nullable symbol.
+
+=head2 Rule Descriptors as Arrays
+
+=for Marpa::XS::Display
+name: Engine Synopsis Ambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    rules => [
+        [ 'E', [qw/E Add E/],      'do_add' ],
+        [ 'E', [qw/E Multiply E/], 'do_multiply' ],
+        [ 'E', [qw/Number/], ],
+    ],
+
+=for Marpa::XS::Display::End
+
+Rule descriptors may be given in "short form" --
+as a reference to an array.
+The elements of the array,
+in order,
+are
+the C<lhs> property,
+the C<rhs> property,
+and the C<action> property.
+The last two are optional.
+Omission of an optional
+property in a short form descriptor
+has the same effect 
+that omitting the same optional property would have
+in the long form.
+
+=head2 Duplicate Rules
+
+Marpa throws an exception if a duplicate rule is added.
+Two rules are considered duplicates if
+
+=over
+
+=item * Both rules have the same left hand symbol.
+
+=item * Both rules have the same right hand symbols in the same order.
+
+=back
+
+This definition applies to sequence rules, as well as to
+ordinary rules.
+As a consequence,
+sequence rules can be considered
+duplicates even when they
+have different separators
+and/or different minimum counts.
+
+=head1 SYMBOL DESCRIPTORS
+
+=for Marpa::XS::Display
+name: Null Value Example
+partial: 1
+normalize-whitespace: 1
+
+    symbols        => {
+        L => { null_value => 'null L' },
+        R => { null_value => 'null R' },
+        A => { null_value => 'null A' },
+        B => { null_value => 'null B' },
+        X => { null_value => 'null X', terminal => 1 },
+        Y => { null_value => 'null Y', terminal => 1 },
+    },
+
+=for Marpa::XS::Display::End
+
+A symbol descriptor is a hash.
+In the key/value pairs of this hash,
+the hash key is the symbol property name
+and the hash value is the value of
+that property.
+The available symbol properties are as follows:
+
+=head2 null_value
+
+The C<null_value> symbol property specifies
+the null value of its symbol.
+Details are given in
+L<the document on semantics|Marpa::XS::Semantics>.
+
+=head2 terminal
+
+A boolean.
+If true, it B<directly marks> the symbol as a terminal.
+If false, it unmarks the symbol as a terminal.
+For details, see
+L<the section on terminals|/"Terminal Symbols">.
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

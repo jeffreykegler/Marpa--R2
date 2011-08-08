@@ -1,0 +1,467 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Vocabulary - Standard Parsing Terms as Used within Marpa
+
+=head1 DESCRIPTION
+
+The definitions in this document are of standard parsing
+terms as they are used
+in the Marpa context.
+I put B<defining uses> of terms in boldface, for easy skimming.
+Where a narrow
+or specialized sense of the term is the one that applies
+within Marpa, that is the only definition given.
+Marpa also sometimes uses a standard term
+with a definition which is slightly different from
+the standard one.
+("Ambiguous grammar" is one example, and "grammar" itself is
+another.)
+When this is the case, it is explicitly pointed out.
+
+A reader totally new to parsing will find this document too
+terse to act as a textbook or tutorial.
+They will need to look elsewhere first.
+As an introduction, I recommend
+L<Mark Jason Dominus's
+excellent chapter on parsing in the Perl context|Marpa::XS::Advanced::Bibliography/"Dominus 2005">.
+It's available on-line.
+L<Wikipedia|Marpa::XS::Advanced::Bibliography/"Wikipedia"> is also an excellent place to start.
+
+=head2 Basic
+
+A B<grammar> is a set of rules,
+associated with a set of symbols,
+one of which is distinguished as the default start symbol.
+A B<symbol string>, or simply B<string> where the meaning is clear,
+is an ordered series of symbols.
+The B<length> of a string is the number of symbols in it.
+
+A B<language> is a set of B<symbol strings>.
+A grammar defines a B<language>,
+as will be described later.
+
+It is important to note that the term language, as it is
+used in parsing theory, means something very different
+from what it means in ordinary use.
+The meaning of the strings is an essential part
+of the ordinary idea of what a language is.
+In ordinary use, the word "language" means
+far more than a unordered list of its sentences.
+In parsing terminology, meaning (or B<semantics> as it is
+called) is a separate issue.
+For parsing theory a
+language is exactly a set of strings --
+that and nothing more.
+
+The Marpa definition of a grammar differs slightly from the various
+standard ones.  Standard definitions usually sharply distinguish terminal symbols
+from non-terminals.  Marpa does not.
+In standard definitions, the start symbol is fixed.
+In Marpa, it is merely a default.
+
+=head2 Stages of Parsing
+
+A B<recognizer> is a program that determines whether its B<input>
+is in the language of a grammar and a start symbol.
+A B<parser> is a program which finds the structure of that input.
+
+The term B<parsing> is used in a strict and a loose sense.
+B<Parsing in the loose sense> is all phases of finding a grammar's structure,
+including a separate recognition phase if the parser has one.  (Marpa does.)
+If a parser has phases,
+B<parsing in the strict sense> refers specifically to the phase that finds the structure of the input.
+When the Marpa documents use the term B<parsing> in its strict sense, they will
+speak explicitly of "parsing in the strict sense".
+Otherwise, B<parsing> will mean parsing in the loose sense.
+
+Parsers often use a
+B<lexical analyzer> to convert B<raw input>,
+usually B<input text>,
+into a B<token stream>,
+which is a series of B<tokens>.
+Each token represents a B<symbol> of the grammar and has a B<value>.
+A lexical analyzer is often called a B<lexer> or a B<scanner>,
+and B<lexical analysis> is often called B<lexing> or B<scanning>.
+
+The series of symbols represented by the series of tokens
+becomes the B<symbol string input>
+seen by the recognizer.
+The B<symbol string input> is more often called the B<input sentence>.
+
+By default, Marpa uses the token stream model of input.
+Marpa also allows alternative input models.
+These are new to Marpa, so that their terminology is
+of necessity non-standard.
+The terminology needed for alternative input models
+is explained in L<the document that introduces
+them|Marpa::XS::Advanced::Models>.
+
+=head2 Rules
+
+A standard way of describing rules is Backus-Naur Form, or B<BNF>.
+A rule of a grammar is also often called a B<production>.
+In one common way of writing BNF, a production looks like this:
+
+=for Marpa::XS::Display:
+ignore: 1
+
+    Expression ::= Term Factor
+
+=for Marpa::XS::Display::End
+
+In the production above, C<Expression>, C<Term> and C<Factor> are symbols.
+A production consists of a B<left hand side> and a B<right hand side>.
+In a B<context-free grammar>,
+like those Marpa parses,
+the left hand side of a production 
+is always a symbol string of length 1.
+The right hand side of a production is a symbol string of zero or more symbols.
+In the example, C<Expression> is the left hand side, and 
+C<Term> and C<Factor> are right hand side symbols.
+
+Left hand side and right hand side are often abbreviated as B<RHS> and B<LHS>.
+If the RHS of a production has no symbols,
+the production is called an B<empty production>
+or an B<empty rule>.
+
+Any symbol which is allowed to occur
+in the symbol string input is called a B<terminal> symbol.
+If the symbols in a symbol string are all terminals,
+that symbol string is also called a B<sentence>.
+
+=head2 Derivations
+
+A B<step> of a derivation, or B<derivation step>, is a change made to a symbol string
+by applying one of the productions from the grammar.
+The production must be one of those with a LHS that occurs in the symbol string.
+The result of the derivation step is another symbol string,
+one in which every occurence of the LHS symbol from the production is
+replaced by the RHS of the production.
+For example, if C<A>, C<B>, C<C>, C<D>, and C<X> are symbols,
+and
+
+=for Marpa::XS::Display:
+ignore: 1
+
+    X ::= B C
+
+=for Marpa::XS::Display::End
+
+is a production, then
+
+=for Marpa::XS::Display:
+ignore: 1
+
+    A X D -> A B C D
+
+=for Marpa::XS::Display::End
+
+is a derivation step, with "C<A X D>" as its beginning and "C<A B C D>" as its end or result.
+We say that the symbol string "C<A X D>"
+B<derives> the symbol string
+"C<A B C D>".
+
+A B<derivation> is a sequence of derivation steps.
+The B<length> of a derivation is its length in steps.
+
+=over
+
+=item *
+We say that 
+a first symbol string B<directly
+derives> a second symbol string if and only if there is a derivation of length 1 from the first symbol
+string to the second symbol string.
+
+=item *
+Every symbol string is said to derive itself in a derivation
+of length 0.  A zero length derivation is a B<trivial derivation>.
+
+=item *
+A non-trivial derivation of a symbol string from itself
+is called a B<cycle>.
+Grammars which contain cycles are traditionally considered useless,
+but Marpa will parse with such grammars.
+
+=item * If a derivation is not trivial or direct, that is, if it has more than one step,
+then it is an B<indirect> derivation.
+
+=item * A derivation which is not trivial
+(that is,
+a derivation which has one or more steps)
+is a B<non-trivial> derivation.
+
+=back
+
+Technically, a symbol C<X> and a string
+that consists of only that symbol
+are two different things.
+But we often say "the symbol C<X>"
+as shorthand for "the string
+of length 1
+whose only symbol is C<X>".
+For example, if the string containing only the
+symbol C<X> derives a string C<Y>,
+we will usually say simply that "C<X> derives C<Y>".
+
+Wherever symbol or string C<X> derives C<Y>,
+we may also say C<X> B<produces> C<Y>.
+Derivations are often described as symbol matches.
+Wherever symbol or string C<X> derives C<Y>,
+we may also say that C<Y> B<matches> C<X>
+or that C<X> B<matches> C<Y>.
+It is particularly common to say that
+C<X> matches C<Y> when C<X> or C<Y> is a sentence.
+
+In any parse, one symbol is distinguished as the B<start symbol>.
+The parse of an input is B<successful>
+if and only if the start symbol produces the input sentence
+according to the grammar.
+The set of all input sentences that 
+a grammar and a start symbol
+will successfully parse is their B<language>.
+Traditionally,
+the start symbol is part of a grammar's definition.
+The B<language> of 
+a grammar
+is the language of the grammar
+and its default start symbol.
+
+=head2 Nulling
+
+The zero length symbol string is called the B<empty string>.
+The empty string can be considered to be a sentence, in which
+case it is the B<empty sentence>.
+A string of one or more symbols is B<non-empty>.
+A derivation which produces the empty string is a B<null derivation>.
+A derivation from the start symbol which produces the empty string
+is a B<null parse>.
+
+If in a particular grammar, a symbol has a null derivation,
+it is a B<nullable symbol>.
+If, in a particular grammar,
+the only sentence produced by a symbol is the empty sentence,
+it is a B<nulling symbol>.
+All nulling symbols are nullable symbols.
+
+If a symbol is not nullable, it is B<non-nullable>.
+If a symbol is not nulling, it is B<non-nulling>.
+In any instance where a symbol produces the empty string,
+it is said to be B<nulled>,
+or to be a B<null symbol>.
+
+=head2 Useless Rules
+
+If any derivation from the start symbol uses a rule,
+that rule is called B<reachable> or B<accessible>.
+A rule that is not accessible
+is called B<unreachable> or B<inaccessible>.
+If any derivation which results in a sentence uses a rule,
+that rule is said to be B<productive>.
+A rule that is not productive is called B<unproductive>.
+For example, a rule is unproductive unless every symbol on
+its RHS either is a terminal or is the LHS of some other rule.
+A rule which is inaccessible or unproductive is called a
+B<useless> rule.
+Marpa can handle grammars with useless rules.
+
+A symbol is B<reachable> or B<accessible> if it appears in a reachable production.
+If a symbol is not reachable, it is B<unreachable> or B<inaccessible>.
+A symbol is B<productive> if it appears on the LHS of a productive rule,
+or if it is a nullable symbol.
+If a symbol is not productive, it is B<unproductive>.
+A symbol which is inaccessible or unproductive is called a
+B<useless> symbol.
+Marpa can handle grammars with useless symbols.
+
+=head2 Recursion and Cycles
+
+If any symbol in the grammar non-trivially produces a symbol string containing itself,
+the grammar is said to be B<recursive>.
+If any symbol non-trivially produces a symbol string with itself on the left,
+the grammar is said to be B<left-recursive>.
+If any symbol non-trivially produces a symbol string with itself on the right,
+the grammar is said to be B<right-recursive>.
+Marpa can handle all recursive grammars,
+including
+grammars which are left-recursive,
+grammars which are right-recursive,
+and grammars
+which contain both left- and right-recursion.
+
+A B<cycle> is a non-trivial derivation
+of a string of symbols from itself.
+If it is not possible for any derivation using a grammar
+to contain a cycle,
+then that grammar is said to be B<cycle-free>.
+Traditionally, a grammar is
+considered useless
+if it is not cycle-free.
+
+The traditional deprecation of cycles is well-founded.
+A cycle is
+the parsing equivalent of an infinite loop.
+Once a cycle appears, it can be
+repeated over and over again.
+Even a very short input sentence can have an
+infinite number of parses when the grammar is not
+cycle-free.
+
+For that reason,
+a grammar which contains a cycle is also
+called B<infinitely ambiguous>.
+Marpa can parse with grammars which are not
+cycle-free,
+and will
+even parse inputs that cause cycles.
+When a parse is infinitely ambiguous, Marpa
+limits cycles to a single loop,
+so that only a finite number of parses is returned.
+
+=head2 Parse Structure
+
+The structure of a parse can be represented as a series of derivation steps from
+the start symbol to the input.
+Another way to represent structure is as a B<parse tree>.
+Every symbol used in the parse is
+represented by a B<node> of the parse tree.
+Wherever a production is used in the parse,
+its LHS is represented by a B<parent node>
+and the RHS symbols are represented by B<child nodes>.
+The start symbol is the B<root> of the tree.
+The node at the root of the tree is called the B<start node>.
+
+Traditionally,
+grammars divide all symbols sharply into terminals
+and non-terminals.
+A terminal symbol must ALWAYS be used as a terminal.
+A non-terminal symbol can NEVER be used as a terminal.
+
+Marpa's use of terminals is non-traditional,
+and its terminology is different accordingly.
+As in the traditional approach,
+Marpa's non-terminals can never be used as terminals.
+But Marpa terminals can be used anywhere,
+even in places where
+the traditional approach requires a
+a non-terminal symbol.
+In particular, a Marpa terminal can be the LHS
+of a rule.
+
+Traditionally, and in Marpa as well,
+every node is either a 
+B<inner node> or a 
+B<leaf node>.
+In Marpa,
+B<leaf nodes> are of
+two kinds:
+
+=over
+
+=item *
+
+Nodes for nulled symbols.
+A node for a nulled symbol is called
+a B<nulled node>.
+
+=item *
+
+Nodes for symbols being used as terminals.
+
+=back
+
+=head2 Ambiguity
+
+Marpa allows ambiguous grammars.
+Traditionally
+we say that a parse is B<ambiguous> if,
+for a given grammar and a given input,
+more than one derivation tree is possible.
+However, Marpa allows ambiguous input tokens,
+which the traditional definition does not take
+into account.
+If Marpa used
+the traditional definition,
+all grammars would be
+ambiguous except those grammars which allowed only
+the null parse.
+Another complication is that in Marpa
+the start symbol of a grammar is not fixed.
+
+It is easiest if the Marpa definition and the
+traditional definition were extensionally
+equivalent ---
+that is, if Marpa's set of ambiguous grammars
+was exactly the same as the set of traditionally
+ambiguous grammars.
+This can be accomplished by using a slightly
+altered definition.
+In the Marpa context, a grammar with an associated start symbol
+is B<ambiguous> if and only if,
+for some UNAMBIGUOUS stream of input tokens,
+that grammar with that start symbol produces
+more than one parse result.
+A Marpa grammar is B<ambiguous> if that Marpa grammar with its
+default start symbol is ambiguous.
+
+=head2 Semantics
+
+In real life, the structure of a parse is usually a means to an end.
+Grammars usually have a B<semantics> associated with them,
+and what the user actually wants is the B<value> of the parse
+according to the semantics.
+
+The tree representation is especially useful when evaluating a parse.
+In the traditional method of evaluating a parse tree,
+every node which represents a terminal symbol
+has a value associated with it on input.
+Non-null inner nodes 
+take their semantics from the production whose LHS they represent.
+Nulled nodes are dealt with as special cases.
+
+The semantics for a production
+describe how to calculate the value of the node which represents the LHS
+(the parent node)
+from the values of zero or more of the nodes which represent the RHS symbols
+(child nodes).
+Values are computed recursively, bottom-up.
+The value of a parse is the value of its start symbol.
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
