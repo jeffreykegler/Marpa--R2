@@ -1,17 +1,17 @@
 #!/usr/bin/perl -w
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -23,6 +23,7 @@ use Scalar::Util;
 use Data::Dumper ();
 use English qw( -no_match_vars );
 use Test::More ();
+use lib 'pperl';
 
 BEGIN {
     my $PPI_problem;
@@ -41,7 +42,7 @@ BEGIN {
     else {
         Test::More::plan tests => 14;
     }
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
     Test::More::use_ok('Marpa::Perl');
 } ## end BEGIN
 

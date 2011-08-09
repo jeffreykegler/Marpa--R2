@@ -152,7 +152,6 @@ t/syn_engine.t
 t/timeflies.t
 t/wall.t
 t/weaken.t
-t/xs_ah2.t
 tool/lib/Marpa/Display.pm
 tool/lib/Marpa/Test.pm
 tool/lib/Marpa/Test/Common.pm

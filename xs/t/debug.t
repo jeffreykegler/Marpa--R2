@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -22,15 +22,16 @@ use Test::More tests => 4;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
 }
 
 my $progress_report = q{};
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Debug Example Part 1
 
 my $grammar = Marpa::Grammar->new(
@@ -59,20 +60,20 @@ my $grammar = Marpa::Grammar->new(
     }
 );
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 ## no critic (InputOutput::RequireBriefOpen)
 open my $trace_fh, q{>}, \( my $trace_output = q{} );
 ## use critic
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Grammar set Synopsis
 
 $grammar->set( { trace_file_handle => $trace_fh } );
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Debug Example Part 2
 
 $grammar->precompute();
@@ -108,14 +109,14 @@ TOKEN: for my $token_and_value (@tokens) {
 
 $progress_report = $recce->show_progress( 0, -1 );
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 my $value_ref = $recce->value;
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
 Test::More::is( $value, 42, 'value' );
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Debug Example Progress Report
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
@@ -140,9 +141,9 @@ F4 @0-3 Factor -> Factor Multiply Factor .
 F5 @0-3 Expression['] -> Expression .
 END_PROGRESS_REPORT
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Debug Example Trace Output
 # start-after-line: END_TRACE_OUTPUT
 # end-before-line: '^END_TRACE_OUTPUT$'
@@ -164,7 +165,7 @@ Expecting "Multiply" at 3
 Rejected "Add" at 3-4
 END_TRACE_OUTPUT
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 1;    # In case used as "do" file
 

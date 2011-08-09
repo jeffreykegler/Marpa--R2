@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
 # the example grammar in Aycock/Horspool "Practical Earley Parsing",
@@ -23,10 +23,11 @@ use strict;
 use warnings;
 
 use Test::More tests => 31;
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -394,7 +395,7 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
         $recce->show_earley_sets(1),
         "Last Completed: $last_completed; Furthest: $furthest\n"
             . ( join q{}, @set[ 0 .. $furthest ] ),
-        "Aycock/Horspool PP Parse Status at earleme $earleme"
+        "Aycock/Horspool Parse Status at earleme $earleme"
     );
     next EARLEME if $earleme == $input_length;
     last EARLEME if $earleme > $input_length;

@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
 # Rewriting tests, to check the accuracy of the
@@ -24,15 +24,16 @@ use warnings;
 use Fatal qw(open close);
 use Test::More tests => 3;
 
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
 }
 
 my $chaf_rule =
 #<<< no perltidy
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: CHAF Rule
 
 {   lhs => 'statement',
@@ -43,14 +44,14 @@ my $chaf_rule =
     ]
 }
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
 
 my $separated_sequence_rule =
 #<<< no perltidy
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Separated Sequence Rule
 
 {
@@ -60,19 +61,19 @@ my $separated_sequence_rule =
     min       => 1
 }
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
 
 my $sequence_rule =
 #<<< no perltidy
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Sequence Rule
 
     { lhs => 'block', rhs => [qw/statements/], min => 0 },
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
@@ -109,11 +110,11 @@ my @tokens = ();
 
 $recce->tokens( \@tokens );
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 my $show_rules_output = $grammar->show_rules();
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Rewrite show_rules Output
 # start-after-line: END_RULES
 # end-before-line: '^END_RULES$'
@@ -148,7 +149,7 @@ Marpa::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 26: block['][] -> /* empty vlhs real=1 */
 END_RULES
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No Parse';

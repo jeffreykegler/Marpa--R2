@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
 # Tests of the sequence in the Marpa::Grammar doc
@@ -23,10 +23,11 @@ use warnings;
 use Fatal qw(open close);
 use Test::More tests => 4;
 
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -41,12 +42,12 @@ my $value;
 
 my $min0 =
 #<<< no perltidy
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Marpa::Grammar min 0 sequence example
 
     { lhs => 'sequence', rhs => ['item'], min => 0 }
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 ; # semicolon to terminate rule
 
 $grammar = Marpa::Grammar->new(
@@ -71,12 +72,12 @@ Marpa::Test::is( $value, 'seq(0;1)', 'min 0 value' );
 
 my $min1 =
 #<<< no perltidy
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Marpa::Grammar min 1 sequence example
 
     { lhs => 'sequence', rhs => ['item'], min => 1 }
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 ; # semicolon to terminate rule
 
 $grammar = Marpa::Grammar->new({
@@ -99,13 +100,13 @@ Marpa::Test::is( $value, 'seq(0;1)', 'min 1 value' );
 
 my $multipart = [
 #<<< no perltidy
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Marpa::Grammar multipart rhs sequence example
 
     { lhs => 'sequence', rhs => [qw(item)], min => 0 },
     { lhs => 'item', rhs => [qw(part1 part2)], },
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 ]; # semicolon to terminate rule
 
 $grammar = Marpa::Grammar->new(

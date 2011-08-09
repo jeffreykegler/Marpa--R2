@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 # An ambiguous equation
 
@@ -21,12 +21,13 @@ use warnings;
 
 use Test::More tests => 13;
 
+use lib 'tool/lib';
 use Marpa::Test;
 use English qw( -no_match_vars );
 use Fatal qw( close open );
 
 BEGIN {
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
 }
 
 ## no critic (InputOutput::RequireBriefOpen)
@@ -101,13 +102,13 @@ $grammar->precompute();
 my $actual_ref;
 $actual_ref = save_stdout();
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: show_symbols Synopsis
 
 print $grammar->show_symbols()
     or die "print failed: $ERRNO";
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 restore_stdout();
 
@@ -121,13 +122,13 @@ END_SYMBOLS
 
 $actual_ref = save_stdout();
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: show_rules Synopsis
 
 print $grammar->show_rules()
     or die "print failed: $ERRNO";
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 Marpa::Test::is( ${$actual_ref},
     <<'END_RULES', 'Ambiguous Equation Rules' );
@@ -196,13 +197,13 @@ END_NFA
 
 $actual_ref = save_stdout();
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: show_AHFA Synopsis
 
 print $grammar->show_AHFA()
     or die "print failed: $ERRNO";
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 Marpa::Test::is( ${$actual_ref},
     <<'END_AHFA', 'Ambiguous Equation AHFA' );
@@ -230,13 +231,13 @@ END_AHFA
 
 $actual_ref = save_stdout();
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: show_problems Synopsis
 
 print $grammar->show_problems()
     or die "print failed: $ERRNO";
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 Marpa::Test::is(
     ${$actual_ref},
@@ -261,13 +262,13 @@ $recce->tokens(
 
 $actual_ref = save_stdout();
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: show_earley_sets Synopsis
 
 print $recce->show_earley_sets()
     or die "print failed: $ERRNO";
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 my $expected_earley_sets = <<'END_OF_EARLEY_SETS';
 Last Completed: 7; Furthest: 7
@@ -323,13 +324,13 @@ restore_stdout();
 
 $actual_ref = save_stdout();
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: show_progress Synopsis
 
 print $recce->show_progress()
     or die "print failed: $ERRNO";
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 Marpa::Test::is( ${$actual_ref},
     <<'END_OF_PROGRESS_REPORT', 'Ambiguous Equation Progress Report' );
@@ -352,12 +353,12 @@ my %expected_value = (
 # Set max at 10 just in case there's an infinite loop.
 # This is for debugging, after all
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Recognizer set Synopsis
 
 $recce->set( { max_parses => 10, } );
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 my $i = 0;
 while ( defined( my $value = $recce->value() ) ) {

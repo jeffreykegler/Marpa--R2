@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -20,10 +20,11 @@ use warnings;
 use English qw( -no_match_vars );
 
 use Test::More tests => 5;
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
 }
 
 package Test_Grammar;
@@ -190,12 +191,12 @@ TEST: for my $test_data (@test_data) {
     my $input_length = length $test_input;
     pos $test_input = 0;
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Recognizer terminals_expected Synopsis
 
     my $terminals_expected = $recce->terminals_expected();
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
     for ( my $pos = 0; $pos < $input_length; $pos++ ) {
         my @tokens = ();

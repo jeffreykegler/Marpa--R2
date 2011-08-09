@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
 # This example is from Ralf Muschall, who clearly knows English
@@ -40,10 +40,11 @@ use warnings;
 use English qw( -no_match_vars );
 
 use Test::More tests => 2;
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -112,12 +113,12 @@ for my $data ( 'time flies like an arrow', 'fruit flies like a banana' ) {
 
     for my $word ( split q{ }, $data ) {
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Recognizer exhausted Synopsis
 
 	$recce->exhausted() and die 'Recognizer exhausted';
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
 	for my $type (@{ $vocabulary{$word} } ) {
 	    defined $recce->alternative( $type, $word, 1 )
@@ -126,12 +127,12 @@ for my $data ( 'time flies like an arrow', 'fruit flies like a banana' ) {
 	$recce->earleme_complete();
     }
 
-# Marpa::PP::Display
+# Marpa::XS::Display
 # name: Recognizer end_input Synopsis
 
     $recce->end_input();
 
-# Marpa::PP::Display::End
+# Marpa::XS::Display::End
 
     while ( defined( my $value_ref = $recce->value() ) ) {
         my $value = $value_ref ? ${$value_ref} : 'No parse';

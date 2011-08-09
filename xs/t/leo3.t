@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::PP is distributed in the hope that it will be useful,
+# Marpa::XS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::PP.  If not, see
+# General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 # The example from p. 166 of Leo's paper,
 # augmented to test Leo prediction items.
@@ -23,10 +23,11 @@ use warnings;
 
 use Test::More tests => 8;
 
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::PP');
+    Test::More::use_ok('Marpa::XS');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -144,7 +145,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     # constant c
     my $expected_size = $leo_flag ? 4 : ( $length - 1 ) * 4 + 3;
     Marpa::Test::is( $max_size, $expected_size,
-        "Leo flag $leo_flag, PP size $max_size" );
+        "Leo flag $leo_flag, size $max_size" );
 
     my $value_ref = $recce->value( {} );
     my $value = $value_ref ? ${$value_ref} : 'No parse';
