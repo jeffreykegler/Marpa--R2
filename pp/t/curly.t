@@ -22,7 +22,6 @@ use English qw( -no_match_vars );
 
 use Getopt::Long ();
 use Test::More ( import => [] );
-use lib 'tool/lib';
 use lib 'pperl';
 
 BEGIN {
@@ -46,6 +45,7 @@ BEGIN {
     Test::More::use_ok('Marpa::Perl');
 } ## end BEGIN
 
+use lib 'tool/lib';
 use Marpa::Test;
 
 # Run in utility mode?

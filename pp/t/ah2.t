@@ -395,7 +395,7 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
         $recce->show_earley_sets(1),
         "Last Completed: $last_completed; Furthest: $furthest\n"
             . ( join q{}, @set[ 0 .. $furthest ] ),
-        "Aycock/Horspool PP Parse Status at earleme $earleme"
+        "Aycock/Horspool Parse Status at earleme $earleme"
     );
     next EARLEME if $earleme == $input_length;
     last EARLEME if $earleme > $input_length;

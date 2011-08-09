@@ -200,7 +200,7 @@ Marpa::Test::is( $max_size, $expected_size,
 my $show_earley_sets_output = do { local $RS = undef; readline(*DATA); };
 
 Marpa::Test::is( $recce->show_earley_sets(1),
-    $show_earley_sets_output, 'Leo cycle PP Earley sets' );
+    $show_earley_sets_output, 'Leo cycle Earley sets' );
 
 my $value_ref = $recce->value( {} );
 my $value = $value_ref ? ${$value_ref} : 'No parse';

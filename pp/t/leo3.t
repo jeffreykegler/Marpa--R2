@@ -145,7 +145,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     # constant c
     my $expected_size = $leo_flag ? 4 : ( $length - 1 ) * 4 + 3;
     Marpa::Test::is( $max_size, $expected_size,
-        "Leo flag $leo_flag, PP size $max_size" );
+        "Leo flag $leo_flag, size $max_size" );
 
     my $value_ref = $recce->value( {} );
     my $value = $value_ref ? ${$value_ref} : 'No parse';
