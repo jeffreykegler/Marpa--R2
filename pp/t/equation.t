@@ -21,6 +21,7 @@ use warnings;
 
 use Test::More tests => 13;
 
+use lib 'tool/lib';
 use Marpa::Test;
 use English qw( -no_match_vars );
 use Fatal qw( close open );

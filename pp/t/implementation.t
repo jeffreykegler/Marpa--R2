@@ -21,6 +21,7 @@ use warnings;
 use Fatal qw(open close);
 use Test::More tests => 9;
 
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {

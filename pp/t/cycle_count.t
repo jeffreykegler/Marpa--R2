@@ -21,6 +21,7 @@ use warnings;
 use Test::More skip_all => 'Cycle logic is not yet settled';
 # use Test::More tests => 9;
 use English qw( -no_match_vars );
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {

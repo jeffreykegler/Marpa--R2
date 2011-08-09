@@ -21,6 +21,7 @@ use strict;
 use warnings;
 
 use Test::More tests => 3;
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {

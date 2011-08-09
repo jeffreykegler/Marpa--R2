@@ -22,6 +22,7 @@ use English qw( -no_match_vars );
 
 use Getopt::Long ();
 use Test::More ( import => [] );
+use lib 'tool/lib';
 
 BEGIN {
     my $PPI_problem;

@@ -21,6 +21,7 @@ use warnings;
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 use Test::More tests => 4;
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {

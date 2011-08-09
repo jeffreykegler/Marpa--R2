@@ -28,6 +28,7 @@ use warnings;
 # is at perlmonks.org: http://perlmonks.org/?node_id=649892
 
 use Test::More tests => 13;
+use lib 'tool/lib';
 use Marpa::Test;
 
 BEGIN {
