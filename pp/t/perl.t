@@ -23,6 +23,7 @@ use Scalar::Util;
 use Data::Dumper ();
 use English qw( -no_match_vars );
 use Test::More ();
+use lib 'pperl';
 
 BEGIN {
     my $PPI_problem;
