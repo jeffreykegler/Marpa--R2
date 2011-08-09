@@ -1,4 +1,5 @@
 /[.]gitignore$
+^pod/Semantics/Order[.]pod[.]save$
 ^[.]gitattributes$
 ^[.]gdbinit$
 ^[.]inputrc$
