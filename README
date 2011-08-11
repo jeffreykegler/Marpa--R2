@@ -1,4 +1,16 @@
 This is a working repository for the various Marpa projects.
 
-The projects are joined into a single repository because
-at this point they are being refactored.
+The projects are joined into a single repository because at this
+point they are being refactored.
+Because this repository is a
+collection of development environments for the author's own use,
+how to install it continually changes.  There are installation notes
+in the file INSTALL.
+
+There is not fixed installation procedure.  If this combined repository
+last long enough, and stabilizes, maybe there will be one someday.
+
+In the meantime, for the author's own use, there are installation
+notes.  There contain an installation checklist.  For the author's
+own convenience, he tries to keep these accurate and up-to-date.
+He does not succeed 100%.

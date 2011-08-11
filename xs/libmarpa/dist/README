@@ -2,4 +2,9 @@ This is the code for the project to create
 a Marpa C library.  It is pre-alpha.
 You'll find nothing useful here at this point.
 
-Recreate this directory with autoreconf -i
+1.) All commands are to be run with this directory as the current
+directory.
+
+2.) Run "mkdir m4".
+
+3.) Recreate this directory with "autoreconf -ivf".
