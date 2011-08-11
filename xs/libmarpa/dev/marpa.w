@@ -7040,8 +7040,10 @@ typedef struct s_source* SRC;
 @ @<Source object structure@>= 
 struct s_source {
      gpointer t_predecessor;
-     gpointer t_cause;
-     SYMID t_symbol_id;
+     union {
+	 gpointer t_completion;
+	 SYMID t_token_id;
+     } t_cause;
 };
 
 @ @<Private typedefs@> =
@@ -7074,11 +7076,11 @@ union u_source_container {
 @d Predecessor_of_EIM(item) Predecessor_of_Source(Source_of_EIM(item))
 @d Predecessor_of_SRCL(link) Predecessor_of_Source(Source_of_SRCL(link))
 @d LV_Predecessor_of_SRCL(link) Predecessor_of_SRCL(link)
-@d Cause_of_Source(srcd) ((srcd).t_cause)
+@d Cause_of_Source(srcd) ((srcd).t_cause.t_completion)
 @d Cause_of_SRC(source) Cause_of_Source(*(source))
 @d Cause_of_EIM(item) Cause_of_Source(Source_of_EIM(item))
 @d Cause_of_SRCL(link) Cause_of_Source(Source_of_SRCL(link))
-@d SYMID_of_Source(srcd) ((srcd).t_symbol_id)
+@d SYMID_of_Source(srcd) ((srcd).t_cause.t_token_id)
 @d SYMID_of_SRC(source) SYMID_of_Source(*(source))
 @d SYMID_of_EIM(eim) SYMID_of_Source(Source_of_EIM(eim))
 @d SYMID_of_SRCL(link) SYMID_of_Source(Source_of_SRCL(link))
@@ -7109,7 +7111,7 @@ token_link_add (struct marpa_r *r,
     {
       Source_Type_of_EIM (item) = SOURCE_IS_TOKEN;
       item->t_container.t_unique.t_predecessor = predecessor;
-      item->t_container.t_unique.t_symbol_id = token_id;
+      SYMID_of_Source(item->t_container.t_unique) = token_id;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7119,7 +7121,7 @@ token_link_add (struct marpa_r *r,
   new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Token_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  new_link->t_source.t_symbol_id = token_id;
+  SYMID_of_Source(new_link->t_source) = token_id;
   LV_First_Token_Link_of_EIM (item) = new_link;
 }
 @ @<Private function prototypes@> = static inline void
@@ -7195,8 +7197,7 @@ completion_link_add (struct marpa_r *r,
     {
       Source_Type_of_EIM (item) = SOURCE_IS_COMPLETION;
       item->t_container.t_unique.t_predecessor = predecessor;
-      item->t_container.t_unique.t_cause = cause;
-      item->t_container.t_unique.t_symbol_id = -1;
+      Cause_of_Source(item->t_container.t_unique) = cause;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7206,8 +7207,7 @@ completion_link_add (struct marpa_r *r,
   new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Completion_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  new_link->t_source.t_cause = cause;
-  new_link->t_source.t_symbol_id = -1;
+  Cause_of_Source(new_link->t_source) = cause;
   LV_First_Completion_Link_of_EIM (item) = new_link;
 }
 
@@ -7224,8 +7224,7 @@ leo_link_add (struct marpa_r *r,
     {
       Source_Type_of_EIM (item) = SOURCE_IS_LEO;
       item->t_container.t_unique.t_predecessor = predecessor;
-      item->t_container.t_unique.t_cause = cause;
-      item->t_container.t_unique.t_symbol_id = -1;
+      Cause_of_Source(item->t_container.t_unique) = cause;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7235,8 +7234,7 @@ leo_link_add (struct marpa_r *r,
   new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Leo_SRCL_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  new_link->t_source.t_cause = cause;
-  new_link->t_source.t_symbol_id = -1;
+  Cause_of_Source(new_link->t_source) = cause;
   LV_First_Leo_SRCL_of_EIM(item) = new_link;
 }
 @ @<Private function prototypes@> = static inline void
