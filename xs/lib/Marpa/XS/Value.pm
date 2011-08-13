@@ -1768,6 +1768,8 @@ sub Marpa::XS::Recognizer::value {
 
             } ## end while (1)
 
+	    my $new_iteration_node_ix = scalar @{$iteration_stack};
+
             # Tell the parent that the new iteration node is its child.
             if (defined(
                     my $child_type =
@@ -1783,11 +1785,11 @@ sub Marpa::XS::Recognizer::value {
                     ? Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX
                     : Marpa::XS::Internal::Iteration_Node::CAUSE_IX
                     ]
-                    = scalar @{$iteration_stack};
+                    = $new_iteration_node_ix;
             } ## end if ( defined( my $child_type = $new_iteration_node->...))
 
             # Add this node to the iteration node worklist.
-            push @{$iteration_node_worklist}, scalar @{$iteration_stack};
+            push @{$iteration_node_worklist}, $new_iteration_node_ix;
             push @{$iteration_stack},         $new_iteration_node;
 
         } ## end while (1)
