@@ -64,8 +64,6 @@ my $structure = <<'END_OF_STRUCTURE';
     IS_PREDECESSOR_OF_PARENT
     IS_CAUSE_OF_PARENT
 
-    RANK { Current rank }
-
 END_OF_STRUCTURE
     Marpa::offset($structure);
 } ## end BEGIN
@@ -383,9 +381,6 @@ sub Marpa::XS::Recognizer::show_iteration_node {
             : q{-};
     } ## end if ( $iteration_node->[...])
     $text .= q{;p=} . ( $parent_ix >= 0 ? $parent_ix : q{-} )
-        . q{; rank=}
-        . ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::RANK]
-            // 'undef' )
         . "\n";
 
     DESCRIBE_CHOICES: {
