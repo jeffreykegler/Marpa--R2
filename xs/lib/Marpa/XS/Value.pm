@@ -56,13 +56,13 @@ my $structure = <<'END_OF_STRUCTURE';
 
     PARENT { Offset of the parent in the iterations stack }
 
-    CAUSE_IX { Offset of the cause child, if any }
-    PREDECESSOR_IX { Offset of the predecessor child, if any }
-    { IX value is -1 if IX needs to be recalculated }
+    IS_CAUSE_READY
+    HAS_CAUSE
+    IS_PREDECESSOR_READY
+    HAS_PREDECESSOR
 
-    CHILD_TYPE { Cause or Predecessor }
-
-    RANK { Current rank }
+    IS_PREDECESSOR_OF_PARENT
+    IS_CAUSE_OF_PARENT
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -327,9 +327,8 @@ sub Marpa::XS::brief_iteration_node {
         } ## end if ( defined $choice )
         $text .= "o$or_node_id has no choices left";
     } ## end DESCRIBE_CHOICES:
-    my $parent_ix =
-        $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT]
-        // q{-};
+    my $parent_ix = $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
+    $parent_ix = q{-} if $parent_ix < 0;
     return "$text; p=$parent_ix";
 } ## end sub Marpa::XS::brief_iteration_node
 
@@ -347,34 +346,41 @@ sub Marpa::XS::Recognizer::show_iteration_node {
         $iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID];
     my $or_node_tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node_id);
     my $text        = "o$or_node_id $or_node_tag; ";
-    given (
-        $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE] )
-    {
-        when ('C') {
-            $text .= 'cause '
-        }
-        when ('P') {
-            $text .= 'predecessor '
-        }
-        default {
-            $text .= '- '
-        }
-    } ## end given
+    CHILD_TYPE: {
+        if ( $iteration_node
+            ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_OF_PARENT] )
+        {
+            $text .= 'cause ';
+            last CHILD_TYPE;
+        } ## end if ( $iteration_node->[...])
+        if ( $iteration_node
+            ->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_OF_PARENT]
+            )
+        {
+            $text .= 'predecessor ';
+            last CHILD_TYPE;
+        } ## end if ( $iteration_node->[...])
+        $text .= '- ';
+    } ## end CHILD_TYPE:
 
-    $text
-        .= 'pr='
-        . (
-        $iteration_node->[Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX]
-            // q{-} )
-        . q{;c=}
-        . ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX]
-            // q{-} )
-        . q{;p=}
-        . ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT]
-            // q{-} )
-        . q{; rank=}
-        . ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::RANK]
-            // 'undef' )
+    my $parent_ix = $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
+    if ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::HAS_PREDECESSOR] ) {
+        $text .= 'p=';
+        $text
+            .= $iteration_node
+            ->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY]
+            ? 'ok'
+            : q{-};
+    } ## end if ( $iteration_node->[...])
+    if ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::HAS_CAUSE] ) {
+        $text .= '; c=';
+        $text
+            .= $iteration_node
+            ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY]
+            ? 'ok'
+            : q{-};
+    } ## end if ( $iteration_node->[...])
+    $text .= q{;p=} . ( $parent_ix >= 0 ? $parent_ix : q{-} )
         . "\n";
 
     DESCRIBE_CHOICES: {
@@ -1474,9 +1480,13 @@ sub Marpa::XS::Recognizer::value {
             return Marpa::XS::Internal::Recognizer::do_null_parse($recce);
         }
 
-        my $start_iteration_node = [];
-        $start_iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID]
-            = $top_or_node_id;
+	my $start_iteration_node = [];
+	# -999 because -1 will NOT work -- because of some hackery
+	# it confuses the logic into thinking the top or-node is the cause of
+	# a or-node numberbed -1
+	$start_iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT] = -999;
+	$start_iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID]
+	    = $top_or_node_id;
 
         my @and_node_ids =
             ( $recce_c->or_node_first_and($top_or_node_id)
@@ -1559,6 +1569,8 @@ sub Marpa::XS::Recognizer::value {
             ITERATION_NODE:
             while ( $iteration_node = pop @{$iteration_stack} ) {
 
+		my $iteration_node_ix = scalar @{$iteration_stack};
+
                 # This or-node is already populated,
                 # or it would not have been put
                 # onto the iteration stack
@@ -1588,30 +1600,36 @@ sub Marpa::XS::Recognizer::value {
 
                     # For the node just popped off the stack
                     # unset the pointer to it in its parent
-                    if ( defined $direct_parent ) {
-                        #<<< perltidy cycles as of version 20090616
-                        my $child_type =
-                            $iteration_node
-                            ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE
-                            ];
-                        #>>>
-                        $iteration_stack->[$direct_parent]->[
-                            $child_type eq 'P'
-                            ? Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX
-                            : Marpa::XS::Internal::Iteration_Node::CAUSE_IX
-                            ]
+                    if ($iteration_node->[
+                        Marpa::XS::Internal::Iteration_Node::IS_CAUSE_OF_PARENT
+                        ]
+                        )
+                    {
+                        $iteration_stack->[$direct_parent]
+                            ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY]
                             = undef;
-                    } ## end if ( defined $direct_parent )
+                    } ## end if ( $iteration_node->[...])
+                    if ($iteration_node->[
+                        Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_OF_PARENT
+                        ]
+                        )
+                    {
+                        $iteration_stack->[$direct_parent]
+                            ->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY]
+                            = undef;
+                    } ## end if ( $iteration_node->[...])
+
                     next ITERATION_NODE;
                 } ## end if ( not scalar @{$choices} )
 
                 # Dirty the iteration node and put it back
                 # on the stack
+                $iteration_node->[
+                    Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY]
+                    = undef;
                 $iteration_node
-                    ->[Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX] =
+                    ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY] =
                     undef;
-                $iteration_node
-                    ->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX] = undef;
                 push @{$iteration_stack}, $iteration_node;
 
                 $choice = $choices->[0];
@@ -1646,52 +1664,49 @@ sub Marpa::XS::Recognizer::value {
             my $working_and_node_id =
                 $choice->[Marpa::XS::Internal::Choice::AND_NODE_ID];
 
-            my $and_node_field_type;
+            my $new_iteration_node = [];
             my $or_node_id;
-            if (not defined
-                $working_node->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX]
+            if (not 
+                $working_node->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY]
                 )
             {
                 $or_node_id = $recce_c->and_node_cause($working_and_node_id);
                 if ( defined $or_node_id ) {
-                    $and_node_field_type = 'C';
+                    $new_iteration_node->[
+                        Marpa::XS::Internal::Iteration_Node::IS_CAUSE_OF_PARENT
+                    ] = 1;
                 }
                 else {
-                    $working_node
-                        ->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX] =
-                        -999_999_999;
+		    $working_node->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY] = 1;
+                    $working_node ->[Marpa::XS::Internal::Iteration_Node::HAS_CAUSE] = undef;
                 }
             } ## end if ( not defined $working_node->[...])
-            if (    not defined $or_node_id
-                and not defined $working_node
-                ->[Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX] )
+            if (not defined $or_node_id and not
+                $working_node->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY]
+                )
             {
-                $or_node_id =
-                    $recce_c->and_node_predecessor($working_and_node_id);
+                $or_node_id = $recce_c->and_node_predecessor($working_and_node_id);
                 if ( defined $or_node_id ) {
-                    $and_node_field_type = 'P';
+                    $new_iteration_node->[
+                        Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_OF_PARENT
+                    ] = 1;
                 }
                 else {
-                    $working_node
-                        ->[Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX
-                        ] = -999_999_999;
+		    $working_node->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY] = 1;
+                    $working_node ->[Marpa::XS::Internal::Iteration_Node::HAS_PREDECESSOR] = undef;
                 }
-            } ## end if ( not defined $or_node_id and not defined ...)
+            } ## end if ( not defined $working_node->[...])
 
             if ( not defined $or_node_id ) {
                 pop @{$iteration_node_worklist};
                 next FIX_TREE_LOOP;
             }
 
-            my $new_iteration_node = [];
             $new_iteration_node
                 ->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID] =
                 $or_node_id;
             $new_iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT]
                 = $working_node_ix;
-            $new_iteration_node
-                ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE] =
-                $and_node_field_type;
 
             my $new_iteration_node_choices = $new_iteration_node
                 ->[Marpa::XS::Internal::Iteration_Node::CHOICES];
@@ -1762,26 +1777,30 @@ sub Marpa::XS::Recognizer::value {
 
             } ## end while (1)
 
+	    my $new_iteration_node_ix = scalar @{$iteration_stack};
+	    my $parent_ix = $new_iteration_node
+		->[Marpa::XS::Internal::Iteration_Node::PARENT];
+
             # Tell the parent that the new iteration node is its child.
-            if (defined(
-                    my $child_type =
-                        $new_iteration_node
-                        ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE]
-                )
+            if ( $new_iteration_node
+                ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_OF_PARENT] )
+            {
+                $iteration_stack->[$parent_ix]
+                    ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY] =
+                    1;
+            } ## end if ( $new_iteration_node->[...])
+
+            if ($new_iteration_node->[
+                Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_OF_PARENT]
                 )
             {
-                my $parent_ix = $new_iteration_node
-                    ->[Marpa::XS::Internal::Iteration_Node::PARENT];
                 $iteration_stack->[$parent_ix]->[
-                    $child_type eq 'P'
-                    ? Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX
-                    : Marpa::XS::Internal::Iteration_Node::CAUSE_IX
-                    ]
-                    = scalar @{$iteration_stack};
-            } ## end if ( defined( my $child_type = $new_iteration_node->...))
+                    Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY]
+                    = 1;
+            } ## end if ( $new_iteration_node->[...])
 
             # Add this node to the iteration node worklist.
-            push @{$iteration_node_worklist}, scalar @{$iteration_stack};
+            push @{$iteration_node_worklist}, $new_iteration_node_ix;
             push @{$iteration_stack},         $new_iteration_node;
 
         } ## end while (1)

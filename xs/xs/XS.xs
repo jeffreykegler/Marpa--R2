@@ -1100,16 +1100,15 @@ PPCODE:
  #      because Perl can do better error message for this
  # -2 means some other failure -- call croak
 void
-alternative( r_wrapper, symbol_id, slot, length )
+alternative( r_wrapper, symbol_id, length )
     R_Wrapper *r_wrapper;
     Marpa_Symbol_ID symbol_id;
-    int slot;
     int length;
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
       gint result =
-	marpa_alternative (r, symbol_id, GINT_TO_POINTER (slot), length);
+	marpa_alternative (r, symbol_id, length);
       if (result == -1)
 	{
 	  XSRETURN_UNDEF;
@@ -1319,19 +1318,6 @@ PPCODE:
     if (middle <= -2) { croak("Problem with r->source_middle(): %s", marpa_r_error(r)); }
     if (middle == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(middle) ) );
-    }
-
- # In this interface, the value of a token is always an integer representing the
- # "slot" where the real value resides.
-void
-source_value( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    gpointer value;
-    gboolean result = marpa_source_token_value(r, &value);
-    if (!result) { croak("Problem finding trace source token value: %s", marpa_r_error(r)); }
-    XPUSHs( sv_2mortal( newSViv(GPOINTER_TO_INT(value)) ) );
     }
 
 void

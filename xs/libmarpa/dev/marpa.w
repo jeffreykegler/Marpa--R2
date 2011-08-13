@@ -7040,8 +7040,10 @@ typedef struct s_source* SRC;
 @ @<Source object structure@>= 
 struct s_source {
      gpointer t_predecessor;
-     gpointer t_cause;
-     SYMID t_symbol_id;
+     union {
+	 gpointer t_completion;
+	 SYMID t_token_id;
+     } t_cause;
 };
 
 @ @<Private typedefs@> =
@@ -7074,16 +7076,11 @@ union u_source_container {
 @d Predecessor_of_EIM(item) Predecessor_of_Source(Source_of_EIM(item))
 @d Predecessor_of_SRCL(link) Predecessor_of_Source(Source_of_SRCL(link))
 @d LV_Predecessor_of_SRCL(link) Predecessor_of_SRCL(link)
-@d Cause_of_Source(srcd) ((srcd).t_cause)
+@d Cause_of_Source(srcd) ((srcd).t_cause.t_completion)
 @d Cause_of_SRC(source) Cause_of_Source(*(source))
 @d Cause_of_EIM(item) Cause_of_Source(Source_of_EIM(item))
 @d Cause_of_SRCL(link) Cause_of_Source(Source_of_SRCL(link))
-@d Token_Value_of_Source(srcd) ((srcd).t_cause)
-@d Token_Value_of_SRC(source) Token_Value_of_Source(*(source))
-@d Token_Value_of_EIM(item) Token_Value_of_Source(Source_of_EIM(item))
-@d Token_Value_of_SRCL(link) Token_Value_of_Source(Source_of_SRCL(link))
-@d LV_Token_Value_of_SRCL(link) Token_Value_of_SRCL(link)
-@d SYMID_of_Source(srcd) ((srcd).t_symbol_id)
+@d SYMID_of_Source(srcd) ((srcd).t_cause.t_token_id)
 @d SYMID_of_SRC(source) SYMID_of_Source(*(source))
 @d SYMID_of_EIM(eim) SYMID_of_Source(Source_of_EIM(eim))
 @d SYMID_of_SRCL(link) SYMID_of_Source(Source_of_SRCL(link))
@@ -7106,8 +7103,7 @@ void
 token_link_add (struct marpa_r *r,
 		EIM item,
 		EIM predecessor,
-		SYMID token_id,
-		gpointer value)
+		SYMID token_id)
 {
   SRCL new_link;
   guint previous_source_type = Source_Type_of_EIM (item);
@@ -7115,8 +7111,7 @@ token_link_add (struct marpa_r *r,
     {
       Source_Type_of_EIM (item) = SOURCE_IS_TOKEN;
       item->t_container.t_unique.t_predecessor = predecessor;
-      item->t_container.t_unique.t_cause = value;
-      item->t_container.t_unique.t_symbol_id = token_id;
+      SYMID_of_Source(item->t_container.t_unique) = token_id;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7126,16 +7121,14 @@ token_link_add (struct marpa_r *r,
   new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Token_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  new_link->t_source.t_cause = value;
-  new_link->t_source.t_symbol_id = token_id;
+  SYMID_of_Source(new_link->t_source) = token_id;
   LV_First_Token_Link_of_EIM (item) = new_link;
 }
 @ @<Private function prototypes@> = static inline void
 token_link_add (struct marpa_r *r,
 		EIM item,
 		EIM predecessor,
-		SYMID token_id,
-		gpointer value);
+		SYMID token_id);
 
 @ @<Private function prototypes@> = static inline void
 completion_link_add (struct marpa_r *r,
@@ -7204,8 +7197,7 @@ completion_link_add (struct marpa_r *r,
     {
       Source_Type_of_EIM (item) = SOURCE_IS_COMPLETION;
       item->t_container.t_unique.t_predecessor = predecessor;
-      item->t_container.t_unique.t_cause = cause;
-      item->t_container.t_unique.t_symbol_id = -1;
+      Cause_of_Source(item->t_container.t_unique) = cause;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7215,8 +7207,7 @@ completion_link_add (struct marpa_r *r,
   new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Completion_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  new_link->t_source.t_cause = cause;
-  new_link->t_source.t_symbol_id = -1;
+  Cause_of_Source(new_link->t_source) = cause;
   LV_First_Completion_Link_of_EIM (item) = new_link;
 }
 
@@ -7233,8 +7224,7 @@ leo_link_add (struct marpa_r *r,
     {
       Source_Type_of_EIM (item) = SOURCE_IS_LEO;
       item->t_container.t_unique.t_predecessor = predecessor;
-      item->t_container.t_unique.t_cause = cause;
-      item->t_container.t_unique.t_symbol_id = -1;
+      Cause_of_Source(item->t_container.t_unique) = cause;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7244,8 +7234,7 @@ leo_link_add (struct marpa_r *r,
   new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Leo_SRCL_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  new_link->t_source.t_cause = cause;
-  new_link->t_source.t_symbol_id = -1;
+  Cause_of_Source(new_link->t_source) = cause;
   LV_First_Leo_SRCL_of_EIM(item) = new_link;
 }
 @ @<Private function prototypes@> = static inline void
@@ -7718,33 +7707,6 @@ Marpa_Earley_Set_ID marpa_source_middle(struct marpa_r* r)
     return failure_indicator;
 }
 
-@*1 Return the Token Value.
-@<Public function prototypes@> =
-gboolean marpa_source_token_value(struct marpa_r* r, gpointer* value_p);
-@ If successful, returns |TRUE| and
-writes the value of the token into |value_p|.
-On failure, returns |FALSE|.
-Possible failures include
-the recognizer not being trace-safe,
-there being no source link,
-and the source link not being a token link.
-@<Function definitions@> =
-gboolean marpa_source_token_value(struct marpa_r* r, gpointer* value_p)
-{
-   @<Return |FALSE| on failure@>@;
-   guint source_type;
-   SRC source;
-    @<Fail recognizer if not trace-safe@>@;
-   source_type = r->t_trace_source_type;
-    @<Set source, failing if necessary@>@;
-    if (source_type == SOURCE_IS_TOKEN) {
-	  *value_p = Token_Value_of_SRC (source);
-	   return TRUE;
-	}
-    R_ERROR(invalid_source_type_message (source_type));
-    return failure_indicator;
-}
-
 @ @<Set source, failing if necessary@> =
     source = r->t_trace_source;
     if (!source) {
@@ -7761,14 +7723,12 @@ typedef struct s_alternative* ALT;
 typedef const struct s_alternative* ALT_Const;
 @
 @d Token_ID_of_ALT(alt) ((alt)->t_token_id)
-@d Token_Value_of_ALT(alt) ((alt)->t_token_value)
 @d Start_ES_of_ALT(alt) ((alt)->t_start_earley_set)
 @d Start_Earleme_of_ALT(alt) Earleme_of_ES(Start_ES_of_ALT(alt))
 @d End_Earleme_of_ALT(alt) ((alt)->t_end_earleme)
 @<Private structures@> =
 struct s_alternative {
     SYMID t_token_id;
-    void *t_token_value;
     ES t_start_earley_set;
     EARLEME t_end_earleme;
 };
@@ -7826,13 +7786,12 @@ alternative_insertion_point (RECCE r, ALT new_alternative)
 @ This is a convenience function for setting up an alternative.
 @<Private function prototypes@> =
 static inline void alternative_set(
-ALT alternative, ES start, EARLEME end, SYMID token_id, gpointer value);
+ALT alternative, ES start, EARLEME end, SYMID token_id);
 @ @<Function definitions@> =
 static inline void alternative_set(
-ALT alternative, ES start, EARLEME end, SYMID token_id, gpointer value)
+ALT alternative, ES start, EARLEME end, SYMID token_id)
 {
     alternative->t_token_id = token_id;
-    alternative->t_token_value = value;
     alternative->t_start_earley_set = start;
     alternative->t_end_earleme = end;
 }
@@ -7989,10 +7948,10 @@ also see this as a normal data path.
 The general failures reported with |-2| will typically be
 treated by the application as fatal errors.
 @<Public function prototypes@> = gboolean marpa_alternative(struct marpa_r *r,
-Marpa_Symbol_ID token_id, void *value, gint length);
+Marpa_Symbol_ID token_id, gint length);
 @ @<Function definitions@> =
 gboolean marpa_alternative(struct marpa_r *r,
-Marpa_Symbol_ID token_id, void *token_value, gint length) {
+Marpa_Symbol_ID token_id, gint length) {
     @<Return |-2| on failure@>@;
     GRAMMAR_Const g = G_of_R(r);
     const gint duplicate_token_indicator = -3;
@@ -8071,7 +8030,7 @@ altered by the attempt.
     if (Furthest_Earleme_of_R (r) < target_earleme)
       LV_Furthest_Earleme_of_R (r) = target_earleme;
   alternative_set (&alternative,
-		   current_earley_set, target_earleme, token_id, token_value);
+		   current_earley_set, target_earleme, token_id);
   if (alternative_insert (r, &alternative) < 0)
     return duplicate_token_indicator;
 }
@@ -8219,8 +8178,7 @@ this means that the parse is exhausted.
 						current_earley_set,
 						Origin_of_EIM (predecessor),
 						scanned_AHFA);
-      token_link_add (r, scanned_earley_item, predecessor, token_id,
-	  Token_Value_of_ALT(alternative));
+      token_link_add (r, scanned_earley_item, predecessor, token_id);
       prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
       if (!prediction_AHFA) continue;
       scanned_earley_item = earley_item_assign (r,

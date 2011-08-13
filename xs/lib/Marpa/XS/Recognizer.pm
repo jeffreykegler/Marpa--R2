@@ -544,7 +544,7 @@ sub Marpa::XS::Recognizer::strip { return 1; }
 
 # Viewing methods, for debugging
 
-sub Marpa::XS::new_show_leo_item {
+sub Marpa::XS::show_leo_item {
     my ($recce)        = @_;
     my $recce_c        = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar        = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
@@ -570,40 +570,43 @@ sub Marpa::XS::new_show_leo_item {
         $trace_earleme;
     $text .= ' [' . ( join '; ', @link_texts ) . ']';
     return $text;
-} ## end sub Marpa::XS::new_show_leo_item
+} ## end sub Marpa::XS::show_leo_item
 
  # Assumes trace token source link set by caller
-sub Marpa::XS::new_show_token_link_choice {
-    my ($recce, $token_id) = @_;
+sub Marpa::XS::show_token_link_choice {
+    my ($recce, $token_id, $current_earleme ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $text = q{};
     my @pieces = ();
     my $predecessor_state = $recce_c->source_predecessor_state();
     my $origin_set_id = $recce_c->earley_item_origin();
     my $origin_earleme = $recce_c->earleme($origin_set_id);
+    my $middle_earleme = $origin_earleme;
     if (defined $predecessor_state) {
 	my $middle_set_id = $recce_c->source_middle();
-	my $middle_earleme = $recce_c->earleme($middle_set_id);
+	$middle_earleme = $recce_c->earleme($middle_set_id);
         push @pieces,
               'p=S'
             . $predecessor_state . '@'
             . $origin_earleme . '-'
             . $middle_earleme;
     }
-    push @pieces, 's=' . $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
-    my $slot = $recce_c->source_value();
-    my $value_ref = \($slots->value($slot));
-    my $token_dump = Data::Dumper->new( [$value_ref] )->Terse(1)->Dump;
+    my $symbol_name = $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
+    push @pieces, 's=' . $symbol_name;
+    my $token_length = $current_earleme - $middle_earleme;
+# say STDERR +(join q{;}, 'SEEKING', $middle_earleme, $token_length, $symbol_name);
+    my $value = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]->{join q{;}, 
+	$middle_earleme, $token_length, $symbol_name};
+    my $token_dump = Data::Dumper->new( [\$value] )->Terse(1)->Dump;
     chomp $token_dump;
     push @pieces, "t=$token_dump";
     return '[' . ( join '; ', @pieces ) . ']';
 }
 
  # Assumes trace completion source link set by caller
-sub Marpa::XS::new_show_completion_link_choice {
+sub Marpa::XS::show_completion_link_choice {
     my ($recce, $AHFA_state_id, $current_earleme) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
@@ -632,7 +635,7 @@ sub Marpa::XS::new_show_completion_link_choice {
 }
 
  # Assumes trace completion source link set by caller
-sub Marpa::XS::new_show_leo_link_choice {
+sub Marpa::XS::show_leo_link_choice {
     my ($recce, $AHFA_state_id, $current_earleme) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
@@ -670,7 +673,7 @@ sub Marpa::XS::show_earley_item {
 	    $recce_c->source_middle(),
 	    $symbol_id,
 	    ($recce_c->source_predecessor_state() // -1),
-            Marpa::XS::new_show_token_link_choice( $recce, $symbol_id )
+            Marpa::XS::show_token_link_choice( $recce, $symbol_id, $earleme )
        ];
     } ## end for ( my $symbol_id = $recce_c->first_token_link_trace...)
     push @pieces, map { $_->[-1] } sort {
@@ -690,7 +693,7 @@ sub Marpa::XS::show_earley_item {
             $recce_c->source_middle(),
             $cause_AHFA_id,
             ( $recce_c->source_predecessor_state() // -1 ),
-            Marpa::XS::new_show_completion_link_choice(
+            Marpa::XS::show_completion_link_choice(
                 $recce, $cause_AHFA_id, $earleme
             )
             ];
@@ -712,7 +715,7 @@ sub Marpa::XS::show_earley_item {
             $recce_c->source_middle(),
             $AHFA_state_id,
 	    $recce_c->source_leo_transition_symbol(),
-            Marpa::XS::new_show_leo_link_choice(
+            Marpa::XS::show_leo_link_choice(
                 $recce, $AHFA_state_id, $earleme
             )
             ];
@@ -758,7 +761,7 @@ sub Marpa::XS::show_earley_set {
 
         # If there is no base Earley item,
         # then this is not a Leo item, so we skip it
-        my $leo_item_desc = Marpa::XS::new_show_leo_item($recce);
+        my $leo_item_desc = Marpa::XS::show_leo_item($recce);
         next POSTDOT_ITEM if not defined $leo_item_desc;
         push @sort_data, [ $postdot_symbol_id, $leo_item_desc ];
     } ## end for ( my $postdot_symbol_id = $recce_c->postdot_item_first_trace...)
@@ -1013,9 +1016,11 @@ sub Marpa::XS::Recognizer::alternative {
     my $slot = $slots->slot($value);
     $length //= 1;
 
+# say STDERR +(join q{;}, 'SETTING', $recce_c->current_earleme(), $length, $symbol_name);
+
     $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]->{join q{;}, 
 	$recce_c->current_earleme(), $length, $symbol_name} = $value;
-    my $result = $recce_c->alternative( $symbol_id, $slot, $length );
+    my $result = $recce_c->alternative( $symbol_id, $length );
     Marpa::exception(
         qq{"$symbol_name" already scanned with length $length at location },
 	$recce_c->current_earleme()
