@@ -327,9 +327,8 @@ sub Marpa::XS::brief_iteration_node {
         } ## end if ( defined $choice )
         $text .= "o$or_node_id has no choices left";
     } ## end DESCRIBE_CHOICES:
-    my $parent_ix =
-        $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT]
-        // q{-};
+    my $parent_ix = $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
+    $parent_ix = q{-} if $parent_ix < 0;
     return "$text; p=$parent_ix";
 } ## end sub Marpa::XS::brief_iteration_node
 
@@ -361,6 +360,7 @@ sub Marpa::XS::Recognizer::show_iteration_node {
         }
     } ## end given
 
+    my $parent_ix = $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
     $text
         .= 'pr='
         . (
@@ -370,8 +370,7 @@ sub Marpa::XS::Recognizer::show_iteration_node {
         . ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX]
             // q{-} )
         . q{;p=}
-        . ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT]
-            // q{-} )
+        . ( $parent_ix >= 0 ? $parent_ix : q{-} )
         . q{; rank=}
         . ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::RANK]
             // 'undef' )
@@ -1474,9 +1473,13 @@ sub Marpa::XS::Recognizer::value {
             return Marpa::XS::Internal::Recognizer::do_null_parse($recce);
         }
 
-        my $start_iteration_node = [];
-        $start_iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID]
-            = $top_or_node_id;
+	my $start_iteration_node = [];
+	# -999 because -1 will NOT work -- because of some hackery
+	# it confuses the logic into thinking the top or-node is the cause of
+	# a or-node numberbed -1
+	$start_iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT] = -999;
+	$start_iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID]
+	    = $top_or_node_id;
 
         my @and_node_ids =
             ( $recce_c->or_node_first_and($top_or_node_id)
@@ -1559,6 +1562,8 @@ sub Marpa::XS::Recognizer::value {
             ITERATION_NODE:
             while ( $iteration_node = pop @{$iteration_stack} ) {
 
+		my $iteration_node_ix = scalar @{$iteration_stack};
+
                 # This or-node is already populated,
                 # or it would not have been put
                 # onto the iteration stack
@@ -1586,22 +1591,23 @@ sub Marpa::XS::Recognizer::value {
                     my $direct_parent = $iteration_node
                         ->[Marpa::XS::Internal::Iteration_Node::PARENT];
 
-                    # For the node just popped off the stack
+                    # For the node just popped off the stack,
+                    # if it is a cause or-node,
                     # unset the pointer to it in its parent
-                    if ( defined $direct_parent ) {
-                        #<<< perltidy cycles as of version 20090616
-                        my $child_type =
-                            $iteration_node
-                            ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE
-                            ];
-                        #>>>
-                        $iteration_stack->[$direct_parent]->[
-                            $child_type eq 'P'
-                            ? Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX
-                            : Marpa::XS::Internal::Iteration_Node::CAUSE_IX
-                            ]
+                    if ( $direct_parent + 1 == $iteration_node_ix ) {
+                        $iteration_stack->[$direct_parent]
+                            ->[Marpa::XS::Internal::Iteration_Node::CAUSE_IX]
                             = undef;
-                    } ## end if ( defined $direct_parent )
+                        next ITERATION_NODE;
+                    } ## end if ( $direct_parent + 1 == $iteration_node_ix )
+
+                    # If it's not the top or-node it must be a predecessor
+                    if ( $direct_parent >= 0 ) {
+                        $iteration_stack->[$direct_parent]->[
+                            Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX
+                        ] = undef;
+                        next ITERATION_NODE;
+                    } ## end if ( $direct_parent >= 0 )
                     next ITERATION_NODE;
                 } ## end if ( not scalar @{$choices} )
 
