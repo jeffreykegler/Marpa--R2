@@ -1769,17 +1769,14 @@ sub Marpa::XS::Recognizer::value {
             } ## end while (1)
 
 	    my $new_iteration_node_ix = scalar @{$iteration_stack};
+	    my $parent_ix = $new_iteration_node
+		->[Marpa::XS::Internal::Iteration_Node::PARENT];
 
             # Tell the parent that the new iteration node is its child.
-            if (defined(
-                    my $child_type =
+            if ($parent_ix >= 0) {
+		my $child_type =
                         $new_iteration_node
-                        ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE]
-                )
-                )
-            {
-                my $parent_ix = $new_iteration_node
-                    ->[Marpa::XS::Internal::Iteration_Node::PARENT];
+                        ->[Marpa::XS::Internal::Iteration_Node::CHILD_TYPE];
                 $iteration_stack->[$parent_ix]->[
                     $child_type eq 'P'
                     ? Marpa::XS::Internal::Iteration_Node::PREDECESSOR_IX
