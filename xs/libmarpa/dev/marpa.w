@@ -10451,7 +10451,7 @@ logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
 @<Private incomplete structures@> =
 struct s_bocage;
 typedef struct s_bocage* BOC;
-@ @<Private structures@> =
+@ @<Bocage structure@> =
 struct s_bocage {
     @<Widely aligned bocage elements@>@;
 };
@@ -10841,6 +10841,60 @@ gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return AND_Count_of_OR(or_node);
 }
+
+@** Bocage Iterator (BOCI) Code.
+@<Private incomplete structures@> =
+struct s_bocage_iter;
+typedef struct s_bocage_iter* BOCI;
+@ @<Private structures@> =
+struct s_bocage_iter {
+    Bit_Vector and_node_in_use;
+    ANDID** and_node_orderings;
+    BIN *bin_stack;
+};
+typedef struct s_bocage_iter BOCI_Object;
+@ @d BOCI_of_B(b) (&(b)->t_bocage_iter)
+@<Widely aligned bocage elements@> =
+BOCI_Object t_bocage_iter;
+@ @<Initialize bocage elements@> =
+{ const BOCI boci = BOCI_of_B(b);
+    boci->and_node_in_use = NULL;
+    boci->and_node_orderings = NULL;
+    boci->bin_stack = NULL;
+}
+@ @<Destroy bocage elements, main phase@> =
+{
+  const BOCI boci = BOCI_of_B (b);
+  if (boci->and_node_in_use)
+    {
+      bv_free (boci->and_node_in_use);
+    }
+  if (boci->and_node_orderings)
+    {
+      g_free (boci->and_node_orderings);
+    }
+  if (boci->bin_stack)
+    {
+      g_free (boci->bin_stack);
+    }
+}
+
+@** Bocage Iterator Node (BIN) Code.
+@<Private incomplete structures@> =
+struct s_bocage_iter_node;
+typedef struct s_bocage_iter_node* BIN;
+@ @<Private structures@> =
+struct s_bocage_iter_node {
+    OR t_or_node;
+    gint choice;
+    BIN parent;
+    gint is_cause_ready:1;
+    gint has_cause:1;
+    gint is_predecessor_ready:1;
+    gint has_predecessor:1;
+    gint is_predecessor_of_parent:1;
+    gint is_cause_of_parent:1;
+};
 
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
@@ -12442,6 +12496,7 @@ So I add such a comment.
 @<Recognizer structure@>@;
 @<Source object structure@>@;
 @<Earley item structure@>@;
+@<Bocage structure@>@;
 @<Private function prototypes@>@;
 @<Private inline functions@>@;
 @<Function definitions@>@;
