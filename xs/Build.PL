@@ -90,7 +90,7 @@ my $build = Marpa::XS::Build_Me->new(
         resources =>
             { repository => 'git://github.com/jeffreykegler/Marpa-XS.git', },
         no_index => {
-            directory => [qw( pperl config inc t html devlib libmarpa author.t )],
+            directory => [qw( pperl config inc tool t html devlib libmarpa author.t )],
             namespace => [
                 'Marpa::XS::Recognizer', 'Marpa::XS::Grammar',
                 @no_index_namespace_inclusive

@@ -95,8 +95,21 @@ flexible enough to handle many, perhaps even most,
 practical applications,
 but simple enough that Marpa is able to optimize it.
 
-While it was flexible, its previous was too costly,
-so it is currently being revised.
+The first implementation of
+the Constant Ranking Method had a semantics which
+made the rank of a node depend on which of its children
+were actually
+used in each parse result.
+While this is what a user would intuitively expect,
+it required the
+the ranks of subtrees to be recalculated dynamically,
+and partially iterated subtrees to be stored and
+regrafted into the tree being parsed.
+The code to do this was very complicated
+and the efficiency trade-offs
+arguable.
+The Constant Ranking Method
+is currently being simplified.
 Until its features settle, its documentation has been removed.
 
 =head1 COPYRIGHT AND LICENSE
