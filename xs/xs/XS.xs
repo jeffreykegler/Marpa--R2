@@ -1676,5 +1676,32 @@ PPCODE:
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
+int
+and_node_order_set( r_wrapper, or_node_id, and_node_id_av )
+    R_Wrapper *r_wrapper;
+    Marpa_Or_Node_ID or_node_id;
+    AV *and_node_id_av;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int length = av_len(and_node_id_av)+1;
+    int result;
+    Marpa_And_Node_ID* and_node_ids;
+    int i;
+    Newx(and_node_ids, length, Marpa_And_Node_ID);
+    for (i = 0; i < length; i++) {
+	SV** elem = av_fetch(and_node_id_av, i, 0);
+	if (elem == NULL) {
+	    Safefree(and_node_ids);
+	    XSRETURN_UNDEF;
+	} else {
+	    and_node_ids[i] = SvIV(*elem);
+	}
+    }
+    result = marpa_and_order_set(r, or_node_id, and_node_ids, length);
+    Safefree(and_node_ids);
+    if (result < 0) { XSRETURN_NO; }
+    XSRETURN_YES;
+    }
+
 BOOT:
     gperl_handle_logs_for(G_LOG_DOMAIN);

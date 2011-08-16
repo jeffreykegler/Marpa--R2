@@ -10368,7 +10368,6 @@ gint marpa_and_node_count(struct marpa_r *r)
 @ @<Check |r| and |and_node_id|; set |and_node|@> = {
   BOC b = B_of_R(r);
   AND and_nodes;
-  @<Return |-2| on failure@>@;
   @<Fail if recognizer has fatal error@>@;
   if (!b) {
       R_ERROR("no bocage");
@@ -10395,6 +10394,7 @@ gint marpa_and_node_parent(struct marpa_r *r, int and_node_id);
 gint marpa_and_node_parent(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
   return ID_of_OR (OR_of_AND (and_node));
 }
@@ -10405,6 +10405,7 @@ gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id);
 gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR predecessor_or = Predecessor_OR_of_AND (and_node);
@@ -10420,6 +10421,7 @@ gint marpa_and_node_cause(struct marpa_r *r, int and_node_id);
 gint marpa_and_node_cause(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
@@ -10435,6 +10437,7 @@ gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id);
 gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
@@ -10732,7 +10735,6 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 @<Check |r| and |or_node_id|; set |or_node|@> = {
   BOC b = B_of_R(r);
   OR* or_nodes;
-  @<Return |-2| on failure@>@;
   @<Fail if recognizer has fatal error@>@;
   if (!b) {
       R_ERROR("no bocage");
@@ -10759,6 +10761,7 @@ gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data);
 gint marpa_or_node(struct marpa_r *r, int or_node_id, int *or_data)
 {
   OR or_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   or_data[0] = Origin_Ord_of_OR(or_node);
   or_data[1] = ES_Ord_of_OR(or_node);
@@ -10777,6 +10780,7 @@ gint marpa_or_node_set(struct marpa_r *r, int or_node_id);
 gint marpa_or_node_set(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return ES_Ord_of_OR(or_node);
 }
@@ -10787,6 +10791,7 @@ gint marpa_or_node_origin(struct marpa_r *r, int or_node_id);
 gint marpa_or_node_origin(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return Origin_Ord_of_OR(or_node);
 }
@@ -10797,6 +10802,7 @@ gint marpa_or_node_rule(struct marpa_r *r, int or_node_id);
 gint marpa_or_node_rule(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return ID_of_RULE(RULE_of_OR(or_node));
 }
@@ -10807,6 +10813,7 @@ gint marpa_or_node_position(struct marpa_r *r, int or_node_id);
 gint marpa_or_node_position(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return Position_of_OR(or_node);
 }
@@ -10817,6 +10824,7 @@ gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id);
 gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node);
 }
@@ -10827,6 +10835,7 @@ gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id);
 gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node)
       + AND_Count_of_OR(or_node) - 1;
@@ -10838,6 +10847,7 @@ gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id);
 gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
+  @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return AND_Count_of_OR(or_node);
 }
@@ -10877,6 +10887,43 @@ BOCI_Object t_bocage_iter;
     {
       g_free (boci->bin_stack);
     }
+}
+
+@*0 Set the Order of And-nodes.
+@ @<Private function prototypes@> =
+gint marpa_and_order_set(struct marpa_r *r,
+    Marpa_Or_Node_ID or_node_id,
+    Marpa_And_Node_ID* and_node_ids,
+    gint length);
+@ @<Function definitions@> =
+gint marpa_and_order_set(struct marpa_r *r,
+    Marpa_Or_Node_ID or_node_id,
+    Marpa_And_Node_ID* and_node_ids,
+    gint length)
+{
+    OR or_node;
+  @<Return |-2| on failure@>@;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  return 1;
+}
+
+@*0 Get an And-node by Order within its Or-Node.
+@ @<Private function prototypes@> =
+Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix);
+@ @<Function definitions@> =
+Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix)
+{
+    OR or_node;
+  @<Return |-2| on failure@>@;
+    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  if (ix < 0) {
+      R_ERROR("negative and ix");
+      return failure_indicator;
+  }
+  if (ix >= AND_Count_of_OR(or_node)) {
+      return -1;
+  }
+  return First_ANDID_of_OR(or_node) + ix;
 }
 
 @** Bocage Iterator Node (BIN) Code.
