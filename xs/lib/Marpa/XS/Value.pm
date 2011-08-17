@@ -104,6 +104,7 @@ use constant SKIP => -1;
 
 use warnings;
 
+# Not in test suite, and at this point may be broken.
 sub Marpa::XS::Recognizer::show_bocage {
     my ($recce) = @_;
     my $text;
@@ -976,6 +977,21 @@ sub do_rank_all {
 	$and_node_rank_refs->[$and_node_id] = \$calculated_rank;
 
     } ## end while ( defined( my $and_node_id = pop @and_node_worklist...))
+
+    my @or_node_choices = ();
+    AND_NODE: for my $and_node_id (0 .. $#{$and_node_rank_refs}) {
+	my $rank_ref = $and_node_rank_refs->[$and_node_id];
+	next AND_NODE if $rank_ref == Marpa::XS::Internal::Value::SKIP;
+	my $or_node_id = $recce_c->and_node_parent($and_node_id);
+	push @{$or_node_choices[$or_node_id]}, [ ${$rank_ref}, $and_node_id ];
+    }
+
+    OR_NODE: for my $or_node_id (0 .. $#or_node_choices) {
+	my $choices = $or_node_choices[$or_node_id] // [];
+        my @and_node_ids = map { $_->[-1] } sort { $a->[0] <=> $b->[0] } @{$choices};
+	$recce_c->and_node_order_set($or_node_id, \@and_node_ids);
+
+    } ## end for my $or_node_id ( 0 .. $recce_c->or_node_count() -...)
 
     return;
 
