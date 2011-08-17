@@ -648,6 +648,9 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
 }    # set_actions
 
+# Sub-optimal.
+# This routine should be written to do a depth-first traversal.
+
 # Returns false if no parse
 sub do_rank_all {
     my ( $recce, $depth_by_id ) = @_;
@@ -660,7 +663,6 @@ sub do_rank_all {
     my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
 
     my @or_node_rank = ();
-    my @and_node_constant_rank_ref = ();
     my @and_node_token_rank_ref = ();
 
     my $cycle_ranking_action =
@@ -872,8 +874,7 @@ sub do_rank_all {
 
         if ( defined $constant_rank_ref ) {
             $and_node_rank_refs->[$and_node_id] =
-                $and_node_constant_rank_ref[$and_node_id]
-                = $constant_rank_ref;
+                $constant_rank_ref;
 
             next AND_NODE;
         } ## end if ( defined $constant_rank_ref )
@@ -920,7 +921,6 @@ sub do_rank_all {
 
                 # At this point only possible value is skip
                 $and_node_rank_refs->[$and_node_id] =
-                    $and_node_constant_rank_ref[$and_node_id] =
                     Marpa::XS::Internal::Value::SKIP;
 
                 next AND_NODE;
@@ -960,7 +960,6 @@ sub do_rank_all {
             if ( not scalar @ranks ) {
                 $or_node_rank[$or_node_id] =
                     $and_node_rank_refs->[$and_node_id] =
-                    $and_node_constant_rank_ref[$and_node_id] =
                     Marpa::XS::Internal::Value::SKIP;
 
                 next AND_NODE;
