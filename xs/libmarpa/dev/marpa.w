@@ -10858,39 +10858,100 @@ struct s_bocage_iter;
 typedef struct s_bocage_iter* BOCI;
 @ @<Private structures@> =
 struct s_bocage_iter {
-    Bit_Vector and_node_in_use;
-    ANDID** and_node_orderings;
-    BIN *bin_stack;
+    Bit_Vector t_and_node_in_use;
+    BIN *t_bin_stack;
 };
 typedef struct s_bocage_iter BOCI_Object;
 @ @d BOCI_of_B(b) (&(b)->t_bocage_iter)
 @<Widely aligned bocage elements@> =
 BOCI_Object t_bocage_iter;
-@ @<Initialize bocage elements@> =
-{ const BOCI boci = BOCI_of_B(b);
-    boci->and_node_in_use = NULL;
-    boci->and_node_orderings = NULL;
-    boci->bin_stack = NULL;
-}
-@ @<Destroy bocage elements, main phase@> =
+
+@ @<Private function prototypes@> =
+static inline void boci_initialize(BOCI boci);
+@ @<Function definitions@> =
+static inline void boci_initialize(BOCI boci)
 {
-  const BOCI boci = BOCI_of_B (b);
-  if (boci->and_node_in_use)
+    boci->t_and_node_in_use = NULL;
+    boci->t_bin_stack = NULL;
+}
+
+@ @<Private function prototypes@> =
+static inline void boci_destroy(BOCI boci);
+@ @<Function definitions@> =
+static inline void boci_destroy(BOCI boci)
+{
+  if (boci->t_and_node_in_use)
     {
-      bv_free (boci->and_node_in_use);
+      bv_free (boci->t_and_node_in_use);
     }
-  if (boci->and_node_orderings)
+  if (boci->t_bin_stack)
     {
-      g_free (boci->and_node_orderings);
-    }
-  if (boci->bin_stack)
-    {
-      g_free (boci->bin_stack);
+      g_free (boci->t_bin_stack);
     }
 }
 
-@*0 Set the Order of And-nodes.
+@** Bocage Ranking (RANK) Code.
+@<Private incomplete structures@> =
+struct s_bocage_rank;
+typedef struct s_bocage_rank* RANK;
+@
+@d BOCI_of_RANK(rank) (&(rank)->t_boci)
+@<Private structures@> =
+struct s_bocage_rank {
+    struct obstack t_obs;
+    Bit_Vector t_and_node_in_use;
+    ANDID** t_and_node_orderings;
+    BOCI_Object t_boci;
+};
+typedef struct s_bocage_rank RANK_Object;
+
+@ @d RANK_of_B(b) (&(b)->t_rank)
+@<Widely aligned bocage elements@> =
+RANK_Object t_rank;
+@ @<Initialize bocage elements@> =
+rank_initialize(RANK_of_B(b));
 @ @<Private function prototypes@> =
+static inline void rank_initialize(RANK rank);
+@ @<Function definitions@> =
+static inline void rank_initialize(RANK rank)
+{
+    rank->t_and_node_in_use = NULL;
+    rank->t_and_node_orderings = NULL;
+    @<Initialize ranker obstack@>@;
+    boci_initialize(BOCI_of_RANK(rank));
+}
+
+@ @<Destroy bocage elements, main phase@> =
+rank_destroy(RANK_of_B(b));
+@ @<Private function prototypes@> =
+static inline void rank_freeze(RANK rank);
+static inline void rank_destroy(RANK rank);
+@ @<Function definitions@> =
+static inline void rank_freeze(RANK rank)
+{
+  if (rank->t_and_node_in_use)
+    {
+      bv_free (rank->t_and_node_in_use);
+    }
+}
+static inline void rank_destroy(RANK rank)
+{
+  boci_destroy(BOCI_of_RANK(rank));
+  rank_freeze(rank);
+  @<Destroy ranker obstack@>@;
+}
+
+@*0 The RANK Obstack.
+An obstack with the lifetime of the bocage ranker.
+@d OBS_of_RANK(rank) ((rank)->t_obs)
+@<Widely aligned bocage elements@> =
+@ @<Initialize ranker obstack@> =
+obstack_init(&OBS_of_RANK(rank));
+@ @<Destroy ranker obstack@> =
+obstack_free(&OBS_of_RANK(rank), NULL);
+
+@*0 Set the Order of And-nodes.
+@ @<Public function prototypes@> =
 gint marpa_and_order_set(struct marpa_r *r,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
