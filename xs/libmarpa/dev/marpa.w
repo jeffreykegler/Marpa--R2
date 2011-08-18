@@ -10905,7 +10905,8 @@ struct s_bocage_rank {
 };
 typedef struct s_bocage_rank RANK_Object;
 
-@ @d RANK_of_B(b) (&(b)->t_rank)
+@
+@d RANK_of_B(b) (&(b)->t_rank)
 @<Widely aligned bocage elements@> =
 RANK_Object t_rank;
 @ @<Initialize bocage elements@> =
@@ -10963,8 +10964,41 @@ gint marpa_and_order_set(struct marpa_r *r,
     gint length)
 {
     OR or_node;
+    RANK rank;
   @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
+    { BOC b = B_of_R(r);
+	ANDID** and_node_orderings;
+	Bit_Vector and_node_in_use;
+	struct obstack *obs;
+	  if (!b) {
+	      R_ERROR("no bocage");
+	      return failure_indicator;
+	  }
+	rank = RANK_of_B(b);
+	and_node_orderings = rank->t_and_node_orderings;
+	and_node_in_use = rank->t_and_node_in_use;
+	obs = &rank->t_obs;
+	if (and_node_orderings && !and_node_in_use)
+	{
+	  R_ERROR("ranker frozen");
+	  return failure_indicator;
+	}
+	if (!and_node_orderings)
+	  {
+	    gint and_id;
+	    const gint and_count_of_r = AND_Count_of_B (b);
+	    rank->t_and_node_orderings =
+	      and_node_orderings =
+	      obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
+	    for (and_id = 0; and_id < and_count_of_r; and_id++)
+	      {
+		and_node_orderings[and_id] = (ANDID *) NULL;
+	      }
+	     rank->t_and_node_in_use =
+	     and_node_in_use = bv_create ((guint)and_count_of_r);
+	  }
+    }
   return 1;
 }
 
