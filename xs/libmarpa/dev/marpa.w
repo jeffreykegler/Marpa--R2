@@ -10968,9 +10968,11 @@ gint marpa_and_order_set(struct marpa_r *r,
   @<Return |-2| on failure@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
     { BOC b = B_of_R(r);
-	ANDID** and_node_orderings;
-	Bit_Vector and_node_in_use;
-	struct obstack *obs;
+      ANDID** and_node_orderings;
+      Bit_Vector and_node_in_use;
+      struct obstack *obs;
+      ANDID first_and_node_id;
+      ANDID and_count_of_or;
 	  if (!b) {
 	      R_ERROR("no bocage");
 	      return failure_indicator;
@@ -10998,6 +11000,29 @@ gint marpa_and_order_set(struct marpa_r *r,
 	     rank->t_and_node_in_use =
 	     and_node_in_use = bv_create ((guint)and_count_of_r);
 	  }
+	  first_and_node_id = First_ANDID_of_OR(or_node);
+	  and_count_of_or = AND_Count_of_OR(or_node);
+	  bv_over_clear(and_node_in_use, (guint)(and_count_of_or-1));
+	    {
+	      gint and_ix;
+	      for (and_ix = 0; and_ix < length; and_ix++)
+		{
+		  ANDID and_node_id = and_node_ids[and_ix];
+		  gint and_node_ix_within_or_node;
+		  if (and_node_id < first_and_node_id ||
+			  and_node_id - first_and_node_id >= and_count_of_or) {
+		      R_ERROR ("and node not in or node");
+		      return failure_indicator;
+		    }
+		  and_node_ix_within_or_node = and_node_id - first_and_node_id;
+		  if (bv_bit_test (and_node_in_use, (guint)and_ix))
+		    {
+		      R_ERROR ("dup and node");
+		      return failure_indicator;
+		    }
+		  bv_bit_set (and_node_in_use, (guint)and_ix);
+		}
+	    }
     }
   return 1;
 }
@@ -11209,6 +11234,21 @@ static inline void bv_clear(Bit_Vector bv)
     guint size = BV_SIZE(bv);
     if (size <= 0) return;
     while (size--) *bv++ = 0u;
+}
+
+@ This function "overclears" ---
+it clears "too many bits".
+It clears a prefix of the bit vector faster
+than an interval clear, at the expense of often
+clearing more bits than were requested.
+In some situations clearing the extra bits is OK.
+@<Private function prototypes@> =
+static inline void bv_over_clear(Bit_Vector bv, guint bit);
+@ @<Function definitions@> =
+static inline void bv_over_clear(Bit_Vector bv, guint bit)
+{
+    guint length = bit/bv_wordbits+1;
+    while (length--) *bv++ = 0u;
 }
 
 @*0 Set a Boolean Vector Bit.
