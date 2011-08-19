@@ -10957,7 +10957,17 @@ gint marpa_and_order_set(struct marpa_r *r,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
     gint length);
-@ @<Function definitions@> =
+@ In this function, the |and_node_in_use| bit vector
+is sized to the total count of and-nodes in the grammar,
+when it needs only to be sized to the maximum number of
+and-nodes directly below any or-node.
+But in worst cases, these counts are the same, or
+almost, and any attempt to economize on space seems
+counter-productive in speed.
+Allocating a bit vector for the worst case does
+not increase the memory high water mark, so it seems
+the best trade-off.
+@<Function definitions@> =
 gint marpa_and_order_set(struct marpa_r *r,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
