@@ -10952,21 +10952,58 @@ obstack_init(&OBS_of_RANK(rank));
 obstack_free(&OBS_of_RANK(rank), NULL);
 
 @*0 Set the Order of And-nodes.
-@ @<Public function prototypes@> =
+@ This function
+sets the order in which the and-nodes of an
+or-node are used.
+It is an error if an and-node ID is not the 
+immediate child of the specified or-node,
+or if the and-node is specified twice,
+or if an ordering has already been specified for
+the or-node.
+@<Public function prototypes@> =
 gint marpa_and_order_set(struct marpa_r *r,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
     gint length);
-@ In this function, the |and_node_in_use| bit vector
-is sized to the total count of and-nodes in the grammar,
-when it needs only to be sized to the maximum number of
-and-nodes directly below any or-node.
-But in worst cases, these counts are the same, or
-almost, and any attempt to economize on space seems
-counter-productive in speed.
-Allocating a bit vector for the worst case does
-not increase the memory high water mark, so it seems
-the best trade-off.
+@ For a given bocage,
+this function may not be used to order
+the same or-node more than once ---
+in other words, once you order an or-node,
+it cannot be changed.
+Some applications might find this inconvenient,
+and will have to resort to their own buffering
+to prevent multiple changes.
+But most applications won't care, and
+will benefit from the faster memory allocation
+this restriction allows.
+
+@ Using a bit vector for
+the index of an and-node within an or-node,
+instead of the and-node ID, would seem to allow
+an space efficiency: the size of the bit vector
+could be reduced to the maximum number of descendents
+of any or-node.
+But in fact, improvements from this approach are evasive.
+
+In the worst cases, these counts are the same, or
+almost the same.
+Any attempt to economize on space seems to always
+be counter-productive in terms of speed.
+And since
+allocating a bit vector for the worst case does
+not increase the memory high water mark,
+it would seems to be the most reasonable tradeoff.
+
+This in turn suggests there is no advantage is using
+a within-or-node index to index the bit vector,
+instead of using the and-node id to index the bit vector.
+Using the and-node ID does have the advantage that the bit
+vector does not need to be cleared for each or-node.
+@ The first position in each |and_node_orderings| array is not
+actually an |ANDID|, but a count.
+A purist might insist this needs to be reflected in a structure,
+but to my mind doing this portably makes the code more obscure,
+not less.
 @<Function definitions@> =
 gint marpa_and_order_set(struct marpa_r *r,
     Marpa_Or_Node_ID or_node_id,
@@ -11012,25 +11049,36 @@ gint marpa_and_order_set(struct marpa_r *r,
 	  }
 	  first_and_node_id = First_ANDID_of_OR(or_node);
 	  and_count_of_or = AND_Count_of_OR(or_node);
-	  bv_over_clear(and_node_in_use, (guint)(and_count_of_or-1));
 	    {
 	      gint and_ix;
 	      for (and_ix = 0; and_ix < length; and_ix++)
 		{
 		  ANDID and_node_id = and_node_ids[and_ix];
-		  gint and_node_ix_within_or_node;
 		  if (and_node_id < first_and_node_id ||
 			  and_node_id - first_and_node_id >= and_count_of_or) {
 		      R_ERROR ("and node not in or node");
 		      return failure_indicator;
 		    }
-		  and_node_ix_within_or_node = and_node_id - first_and_node_id;
-		  if (bv_bit_test (and_node_in_use, (guint)and_ix))
+		  if (bv_bit_test (and_node_in_use, (guint)and_node_id))
 		    {
 		      R_ERROR ("dup and node");
 		      return failure_indicator;
 		    }
-		  bv_bit_set (and_node_in_use, (guint)and_ix);
+		  bv_bit_set (and_node_in_use, (guint)and_node_id);
+		}
+	    }
+	    if (and_node_orderings[or_node_id]) {
+		      R_ERROR ("or node already ordered");
+		      return failure_indicator;
+	    }
+	    {
+	      ANDID *orderings = obstack_alloc (obs, sizeof (ANDID) * (length + 1));
+	      gint i;
+	      and_node_orderings[or_node_id] = orderings;
+	      *orderings++ = length;
+	      for (i = 0; i < length; i++)
+		{
+		  *orderings++ = and_node_ids[i];
 		}
 	    }
     }
