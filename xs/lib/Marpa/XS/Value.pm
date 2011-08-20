@@ -857,12 +857,13 @@ sub do_rank_all {
 
     } ## end for my $and_node_id ( 0 .. $#{$and_nodes} )
 
+    # From here on we may be calculating ranks, so use floating point
+    no integer;
+
     # Now go through the and-nodes that require context to be ranked
     # This loop assumes that all cycles has been taken care of
     # with constant ranks
     AND_NODE: while ( defined( my $and_node_id = pop @and_node_worklist ) ) {
-
-        no integer;
 
         # Go to next if we have already ranked this and-node
         next AND_NODE if defined $and_node_rank_refs->[$and_node_id];
@@ -962,7 +963,6 @@ sub do_rank_all {
 	# Sort is in reverse order
         my @and_node_ids = map { $_->[-1] } sort { $b->[0] <=> $a->[0] } @{$choices};
 	$recce_c->and_node_order_set($or_node_id, \@and_node_ids);
-
     } ## end for my $or_node_id ( 0 .. $recce_c->or_node_count() -...)
 
     return;
