@@ -1703,5 +1703,21 @@ PPCODE:
     XSRETURN_YES;
     }
 
+int
+and_node_order_get( r_wrapper, or_node_id, and_ix )
+    R_Wrapper *r_wrapper;
+    Marpa_Or_Node_ID or_node_id;
+    int and_ix;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_and_order_get(r, or_node_id, and_ix);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->and_node_order_get(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
 BOOT:
     gperl_handle_logs_for(G_LOG_DOMAIN);
