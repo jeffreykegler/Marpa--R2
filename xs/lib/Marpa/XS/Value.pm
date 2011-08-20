@@ -628,8 +628,7 @@ sub do_rank_all {
     my ( $recce, $depth_by_id ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $and_node_rank_refs =
-        $recce->[Marpa::XS::Internal::Recognizer::AND_NODE_RANK_REFS];
+    my @and_node_rank_refs;
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
@@ -720,8 +719,6 @@ sub do_rank_all {
         $ranking_closures_by_rule[$rule_id] = $ranking_closure;
 
     } ## end for my $rule ( @{$rules} )
-
-    my $and_node_rank_ref = $recce->[Marpa::XS::Internal::Recognizer::AND_NODE_RANK_REFS];
 
     my @and_node_worklist = ();
     AND_NODE: for my $and_node_id ( 0 .. $recce_c->and_node_count()-1 ) {
@@ -845,7 +842,7 @@ sub do_rank_all {
         } ## end SET_CONSTANT_RANK:
 
         if ( defined $constant_rank_ref ) {
-            $and_node_rank_refs->[$and_node_id] =
+            $and_node_rank_refs[$and_node_id] =
                 $constant_rank_ref;
 
             next AND_NODE;
@@ -866,7 +863,7 @@ sub do_rank_all {
     AND_NODE: while ( defined( my $and_node_id = pop @and_node_worklist ) ) {
 
         # Go to next if we have already ranked this and-node
-        next AND_NODE if defined $and_node_rank_refs->[$and_node_id];
+        next AND_NODE if defined $and_node_rank_refs[$and_node_id];
 
         # The rank calculated so far from the
         # children
@@ -893,7 +890,7 @@ sub do_rank_all {
                 }
 
                 # At this point only possible value is skip
-                $and_node_rank_refs->[$and_node_id] =
+                $and_node_rank_refs[$and_node_id] =
                     Marpa::XS::Internal::Value::SKIP;
 
                 next AND_NODE;
@@ -905,7 +902,7 @@ sub do_rank_all {
 		    .. $recce_c->or_node_last_and($or_node_id) );
             CHILD_AND_NODE:
             for my $child_and_node_id ( @and_node_ids ) {
-                my $rank_ref = $and_node_rank_refs->[$child_and_node_id];
+                my $rank_ref = $and_node_rank_refs[$child_and_node_id];
                 if ( not defined $rank_ref ) {
                     push @unranked_and_nodes, $child_and_node_id;
 
@@ -932,7 +929,7 @@ sub do_rank_all {
             # parent and-node must also be skipped
             if ( not scalar @ranks ) {
                 $or_node_rank[$or_node_id] =
-                    $and_node_rank_refs->[$and_node_id] =
+                    $and_node_rank_refs[$and_node_id] =
                     Marpa::XS::Internal::Value::SKIP;
 
                 next AND_NODE;
@@ -946,13 +943,13 @@ sub do_rank_all {
 
         my $token_rank_ref = $and_node_token_rank_ref[$and_node_id];
         $calculated_rank += defined $token_rank_ref ? ${$token_rank_ref} : 0;
-	$and_node_rank_refs->[$and_node_id] = \$calculated_rank;
+	$and_node_rank_refs[$and_node_id] = \$calculated_rank;
 
     } ## end while ( defined( my $and_node_id = pop @and_node_worklist...))
 
     my @or_node_choices = ();
-    AND_NODE: for my $and_node_id (0 .. $#{$and_node_rank_refs}) {
-	my $rank_ref = $and_node_rank_refs->[$and_node_id];
+    AND_NODE: for my $and_node_id (0 .. $#and_node_rank_refs) {
+	my $rank_ref = $and_node_rank_refs[$and_node_id];
 	next AND_NODE if $rank_ref == Marpa::XS::Internal::Value::SKIP;
 	my $or_node_id = $recce_c->and_node_parent($and_node_id);
 	push @{$or_node_choices[$or_node_id]}, [ ${$rank_ref}, $and_node_id ];
@@ -1325,8 +1322,6 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
     # Cannot increment the null parse
     return if $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
 
-    $recce->[Marpa::XS::Internal::Recognizer::AND_NODE_RANK_REFS]->[0] = \0;
-
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
     return \$null_values->[$start_symbol_id];
 
@@ -1345,7 +1340,6 @@ sub Marpa::XS::Recognizer::value {
     local $Marpa::XS::Internal::TRACE_FH =
         $recce->[Marpa::XS::Internal::Recognizer::TRACE_FILE_HANDLE];
 
-    my $and_node_rank_refs = $recce->[Marpa::XS::Internal::Recognizer::AND_NODE_RANK_REFS];
     my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
     my $ranking_method =
         $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD];

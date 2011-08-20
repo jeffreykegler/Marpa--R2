@@ -71,8 +71,6 @@ my $structure = <<'END_OF_STRUCTURE';
     SINGLE_PARSE_MODE
     PARSE_COUNT :{ number of parses in an ambiguous parse :}
 
-    AND_NODE_RANK_REFS
-
     ITERATION_STACK
 
     EVALUATOR_RULES
@@ -284,7 +282,6 @@ sub Marpa::XS::Recognizer::reset_evaluation {
     } ## end if ( $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT...])
     $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]       = 0;
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
-    $recce->[Marpa::XS::Internal::Recognizer::AND_NODE_RANK_REFS]         = [];
     $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK]   = [];
     $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES]   = [];
     return;
