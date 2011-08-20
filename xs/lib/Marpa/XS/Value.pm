@@ -172,7 +172,7 @@ sub Marpa::XS::Recognizer::and_node_tag {
     my $position = $recce_c->or_node_position($parent_or_node_id);
     my $rule     = $recce_c->or_node_rule($parent_or_node_id);
     my $tag =
-          'R' 
+          'R'
         . $rule . q{:}
         . $position . q{@}
         . $origin_earleme . q{-}
@@ -370,7 +370,7 @@ sub Marpa::XS::Recognizer::show_iteration_node {
     DESCRIBE_CHOICES: {
         my $this_choice =
             $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICE];
-	$text .= " Current Choice is " . (defined $this_choice ? "a$this_choice" : 'uninitialized');
+	$text .= ' Current Choice is ' . (defined $this_choice ? "a$this_choice" : 'uninitialized');
 	my $choice_ix = 0;
 	CHOICE: while (1) {
 	    my $and_node_id = $recce_c->and_node_order_get($or_node_id, $choice_ix);
@@ -957,7 +957,7 @@ sub do_rank_all {
 
     OR_NODE: for my $or_node_id (0 .. $#or_node_choices) {
 	my $choices = $or_node_choices[$or_node_id] // [];
-	# Sort is in reverse order
+	## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
         my @and_node_ids = map { $_->[-1] } sort { $b->[0] <=> $a->[0] } @{$choices};
 	$recce_c->and_node_order_set($or_node_id, \@and_node_ids);
     } ## end for my $or_node_id ( 0 .. $recce_c->or_node_count() -...)
@@ -1608,7 +1608,7 @@ sub Marpa::XS::Recognizer::value {
 
             my $new_iteration_node = [];
             my $or_node_id;
-            if (not 
+            if (not
                 $working_node->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY]
                 )
             {
