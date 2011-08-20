@@ -959,7 +959,8 @@ sub do_rank_all {
 
     OR_NODE: for my $or_node_id (0 .. $#or_node_choices) {
 	my $choices = $or_node_choices[$or_node_id] // [];
-        my @and_node_ids = map { $_->[-1] } sort { $a->[0] <=> $b->[0] } @{$choices};
+	# Sort is in reverse order
+        my @and_node_ids = map { $_->[-1] } sort { $b->[0] <=> $a->[0] } @{$choices};
 	$recce_c->and_node_order_set($or_node_id, \@and_node_ids);
 
     } ## end for my $or_node_id ( 0 .. $recce_c->or_node_count() -...)
