@@ -1433,7 +1433,7 @@ sub Marpa::XS::Recognizer::value {
 
     my $iteration_stack;
     my $iteration_node_worklist;
-    my @and_node_in_use = ();
+    my $and_node_in_use;
     my $evaluator_rules;
     my $initial_pass = 0;
 
@@ -1481,7 +1481,7 @@ sub Marpa::XS::Recognizer::value {
         # may be empty.  If it is, return no parse.
         my $and_node_id = $recce_c->and_node_order_get($top_or_node_id, $choice);
         return if not defined $and_node_id;
-        $and_node_in_use[$and_node_id] = 1;
+        $and_node_in_use->[$and_node_id] = 1;
 
 	$recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK] =
 	    $iteration_stack = [$start_iteration_node];
@@ -1492,15 +1492,10 @@ sub Marpa::XS::Recognizer::value {
         # Not the first parse of a parse series
 	$evaluator_rules =
 	    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
+	$and_node_in_use =
+	    $recce->[Marpa::XS::Internal::Recognizer::AND_NODE_IN_USE];
 	$iteration_stack =
 	    $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK];
-	ITERATION_NODE: for my $iteration_node (@{$iteration_stack}) {
-	    my $or_node_id = $iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID];
-	    my $choice = $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICE];
-	    my $and_node_id = $recce_c->and_node_order_get($or_node_id, $choice);
-	    next ITERATION_NODE if not defined $and_node_id;
-	    $and_node_in_use[$and_node_id] = 1;
-	}
 
     }
 
@@ -1530,7 +1525,7 @@ sub Marpa::XS::Recognizer::value {
 
                 # Mark the current choice not in use
 		my $and_node_id = $recce_c->and_node_order_get($or_node_id, $choice);
-                $and_node_in_use[$and_node_id] = undef;
+                $and_node_in_use->[$and_node_id] = undef;
 
                 $choice++;
 
@@ -1538,7 +1533,7 @@ sub Marpa::XS::Recognizer::value {
                 CHOICE: while ( 1 ) {
                     $and_node_id = $recce_c->and_node_order_get($or_node_id, $choice);
 		    last CHOICE if not defined $and_node_id;
-                    last CHOICE if not $and_node_in_use[$and_node_id];
+                    last CHOICE if not $and_node_in_use->[$and_node_id];
                     $choice++;
                 } ## end while ( scalar @{$choices} )
 
@@ -1582,7 +1577,7 @@ sub Marpa::XS::Recognizer::value {
                     ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY] =
                     undef;
                 push @{$iteration_stack}, $iteration_node;
-                $and_node_in_use[$and_node_id] = 1;
+                $and_node_in_use->[$and_node_id] = 1;
                 last ITERATION_NODE;
 
             } ## end while ( $iteration_node = pop @{$iteration_stack} )
@@ -1673,8 +1668,8 @@ sub Marpa::XS::Recognizer::value {
 		}
 
                 # End the loop if we do not cycle on this and-node.
-                if ( not $and_node_in_use[$and_node_id] ) {
-                    $and_node_in_use[$and_node_id] = 1;
+                if ( not $and_node_in_use->[$and_node_id] ) {
+                    $and_node_in_use->[$and_node_id] = 1;
                     last CHOICE;
                 }
 
