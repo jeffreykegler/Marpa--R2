@@ -11101,6 +11101,29 @@ Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_nod
   if (ix >= AND_Count_of_OR(or_node)) {
       return -1;
   }
+    {
+      ANDID **and_node_orderings;
+      RANK rank;
+      BOC b = B_of_R (r);
+      if (!b)
+	{
+	  R_ERROR ("no bocage");
+	  return failure_indicator;
+	}
+      rank = RANK_of_B (b);
+      and_node_orderings = rank->t_and_node_orderings;
+      if (and_node_orderings)
+	{
+	  ANDID *ordering = and_node_orderings[or_node_id];
+	  if (ordering)
+	    {
+	      gint length = ordering[0];
+	      if (ix >= length)
+		return -1;
+	      return ordering[1 + ix];
+	    }
+	}
+    }
   return First_ANDID_of_OR(or_node) + ix;
 }
 
