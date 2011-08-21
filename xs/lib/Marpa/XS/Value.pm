@@ -52,9 +52,7 @@ my $structure = <<'END_OF_STRUCTURE';
     PARENT { Offset of the parent in the iterations stack }
 
     IS_CAUSE_READY
-    HAS_CAUSE
     IS_PREDECESSOR_READY
-    HAS_PREDECESSOR
 
     IS_PREDECESSOR_OF_PARENT
     IS_CAUSE_OF_PARENT
@@ -321,65 +319,54 @@ sub Marpa::XS::show_rank_ref {
     return ${$rank_ref};
 } ## end sub Marpa::XS::show_rank_ref
 
-# Never tested and not in test suite.
 sub Marpa::XS::Recognizer::old_show_iteration_node {
     my ( $recce, $iteration_node, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
 
     my $or_node_id =
         $iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID];
-    my $or_node_tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node_id);
-    my $text        = "o$or_node_id $or_node_tag; ";
+    my $text = "o$or_node_id";
+    my $parent_ix = $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
+    my $parent = $parent_ix >= 0 ? $parent_ix : q{-};
     CHILD_TYPE: {
         if ( $iteration_node
             ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_OF_PARENT] )
         {
-            $text .= 'cause ';
+            $text .= "[c$parent]";
             last CHILD_TYPE;
         } ## end if ( $iteration_node->[...])
         if ( $iteration_node
             ->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_OF_PARENT]
             )
         {
-            $text .= 'predecessor ';
+            $text .= "[p$parent]";
             last CHILD_TYPE;
         } ## end if ( $iteration_node->[...])
-        $text .= '- ';
+        $text .= '[-]';
     } ## end CHILD_TYPE:
+    my $or_node_tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node_id);
+    $text        .= " $or_node_tag";
 
-    my $parent_ix = $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
-    if ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::HAS_PREDECESSOR] ) {
-        $text .= 'p=';
-        $text
-            .= $iteration_node
-            ->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY]
-            ? 'ok'
-            : q{-};
-    } ## end if ( $iteration_node->[...])
-    if ( $iteration_node->[Marpa::XS::Internal::Iteration_Node::HAS_CAUSE] ) {
-        $text .= '; c=';
-        $text
-            .= $iteration_node
-            ->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY]
-            ? 'ok'
-            : q{-};
-    } ## end if ( $iteration_node->[...])
-    $text .= q{;p=} . ( $parent_ix >= 0 ? $parent_ix : q{-} )
-        . "\n";
+    $text .= ' p';
+    $text .= $iteration_node->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY] ? '=ok' : '-';
+    $text .= ' c';
+    $text .= $iteration_node->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY] ? '=ok' : '-';
+    $text .= "\n";
 
     DESCRIBE_CHOICES: {
         my $this_choice =
             $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICE];
-	$text .= ' Current Choice is ' . (defined $this_choice ? "a$this_choice" : 'uninitialized');
-	my $choice_ix = 0;
-	CHOICE: while (1) {
+	CHOICE: for (my $choice_ix = 0; ;$choice_ix++) {
 	    my $and_node_id = $recce_c->and_node_order_get($or_node_id, $choice_ix);
 	    last CHOICE if not defined $and_node_id;
-            $text .= " o$or_node_id" . '[' . $choice_ix . '] ';
+            $text .= " o$or_node_id" . '[' . $choice_ix . ']';
+	    if (defined $this_choice and $this_choice == $choice_ix) {
+		$text .= q{*};
+	    }
             my $and_node_tag =
 		 Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id);
             $text .= " ::= a$and_node_id $and_node_tag";
-            $text .= "\n";
+	    $text .= "\n";
         } ## end for my $choice_ix ( 0 .. $#{$choices} )
     } ## end DESCRIBE_CHOICES:
     return $text;
@@ -1620,7 +1607,6 @@ sub Marpa::XS::Recognizer::value {
                 }
                 else {
 		    $working_node->[Marpa::XS::Internal::Iteration_Node::IS_CAUSE_READY] = 1;
-                    $working_node ->[Marpa::XS::Internal::Iteration_Node::HAS_CAUSE] = undef;
                 }
             } ## end if ( not defined $working_node->[...])
             if (not defined $or_node_id and not
@@ -1635,7 +1621,6 @@ sub Marpa::XS::Recognizer::value {
                 }
                 else {
 		    $working_node->[Marpa::XS::Internal::Iteration_Node::IS_PREDECESSOR_READY] = 1;
-                    $working_node ->[Marpa::XS::Internal::Iteration_Node::HAS_PREDECESSOR] = undef;
                 }
             } ## end if ( not defined $working_node->[...])
 
