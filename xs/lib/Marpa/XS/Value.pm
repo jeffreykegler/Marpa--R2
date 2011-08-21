@@ -85,7 +85,6 @@ use constant SKIP => -1;
 
 use warnings;
 
-# Not in test suite, and at this point may be broken.
 sub Marpa::XS::Recognizer::show_bocage {
     my ($recce) = @_;
     my $text;
@@ -94,9 +93,10 @@ sub Marpa::XS::Recognizer::show_bocage {
     my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
-    OR_NODE: for my $or_node_id ( 0 .. $recce_c->or_node_count()-1 ) {
-	my $position = $recce_c->or_node_position($or_node_id);
+    OR_NODE: for (my $or_node_id = 0; ; $or_node_id++) {
 	my $rule = $recce_c->or_node_rule($or_node_id);
+	last OR_NODE if not defined $rule;
+	my $position = $recce_c->or_node_position($or_node_id);
 	my $or_origin = $recce_c->or_node_origin($or_node_id);
 	my $origin_earleme = $recce_c->earleme($or_origin);
 	my $or_set = $recce_c->or_node_set($or_node_id);
@@ -288,7 +288,7 @@ sub Marpa::XS::Recognizer::show_or_nodes {
 }
 
 # Not tested and not in test suite.
-sub Marpa::XS::brief_iteration_node {
+sub Marpa::XS::old_brief_iteration_node {
     my ($recce, $iteration_node) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
 
@@ -322,7 +322,7 @@ sub Marpa::XS::show_rank_ref {
 } ## end sub Marpa::XS::show_rank_ref
 
 # Never tested and not in test suite.
-sub Marpa::XS::Recognizer::show_iteration_node {
+sub Marpa::XS::Recognizer::old_show_iteration_node {
     my ( $recce, $iteration_node, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
 
@@ -385,7 +385,7 @@ sub Marpa::XS::Recognizer::show_iteration_node {
     return $text;
 } ## end sub Marpa::XS::Recognizer::show_iteration_node
 
-sub Marpa::XS::Recognizer::show_iteration_stack {
+sub Marpa::XS::Recognizer::old_show_iteration_stack {
     my ( $recce, $verbose ) = @_;
     my $iteration_stack =
         $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK];
@@ -393,7 +393,7 @@ sub Marpa::XS::Recognizer::show_iteration_stack {
     for my $ix ( 0 .. $#{$iteration_stack} ) {
         my $iteration_node = $iteration_stack->[$ix];
         $text .= "$ix: "
-            . $recce->show_iteration_node( $iteration_node, $verbose );
+            . $recce->old_show_iteration_node( $iteration_node, $verbose );
     }
     return $text;
 } ## end sub Marpa::XS::Recognizer::show_iteration_stack

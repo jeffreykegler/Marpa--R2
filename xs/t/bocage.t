@@ -14,7 +14,9 @@
 # General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
-# the example grammar in Aycock/Horspool "Practical Earley Parsing",
+# This test dumps the contents of the bocage and its iterator.
+# The example grammar is Aycock/Horspool's
+# "Practical Earley Parsing",
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
 # in its "NNF" form
 
@@ -22,7 +24,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 17;
 use lib 'tool/lib';
 use Marpa::Test;
 
@@ -465,6 +467,34 @@ R12:2@2-3C1@2
 END_OF_TEXT
 
 Marpa::Test::is($recce->show_and_nodes(), $and_node_output, "XS And nodes");
+
+my $bocage_output = <<'END_OF_TEXT';
+R6:1@0-0 - S5
+R1:1@0-1 - S2
+R4:1@0-1 - R1:1@0-1
+R7:1@0-1 - R1:1@0-1
+R4:2@0-3 R4:1@0-1 R7:2@1-3
+R4:2@0-3 R4:1@0-1 R9:2@1-3
+R6:2@0-3 R6:1@0-0 R7:2@0-3
+R7:2@0-3 R7:1@0-1 R10:2@1-3
+R13:1@0-3 - R4:2@0-3
+R13:1@0-3 - R6:2@0-3
+R9:1@1-1 - S5
+R1:1@1-2 - S2
+R7:1@1-2 - R1:1@1-2
+R10:1@1-2 - R1:1@1-2
+R7:2@1-3 R7:1@1-2 R11:2@2-3
+R7:2@1-3 R7:1@1-2 R12:2@2-3
+R9:2@1-3 R9:1@1-1 R10:2@1-3
+R10:2@1-3 R10:1@1-2 R1:1@2-3
+R12:1@2-2 - S5
+R1:1@2-3 - S2
+R11:1@2-3 - R1:1@2-3
+R11:2@2-3 R11:1@2-3 S5
+R12:2@2-3 R12:1@2-2 R1:1@2-3
+END_OF_TEXT
+
+Marpa::Test::is($recce->show_bocage(), $bocage_output, "XS Bocage");
 
 1;    # In case used as "do" file
 
