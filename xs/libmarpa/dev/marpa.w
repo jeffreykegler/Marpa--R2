@@ -8044,7 +8044,7 @@ This section is devoted to the logic for completion.
 @d WORK_EIMS_CLEAR(r) DSTACK_CLEAR((r)->t_eim_work_stack)
 @d WORK_EIM_PUSH(r) DSTACK_PUSH((r)->t_eim_work_stack, EIM)
 @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_eim_work_stack);
-@ @<Initialize recognizer elements@> = DSTACK_ZERO_INIT(r->t_eim_work_stack);
+@ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_eim_work_stack);
 @ @<Initialize Earley item work stacks@> =
     DSTACK_IS_INITIALIZED(r->t_eim_work_stack) ||
 	DSTACK_INIT (r->t_eim_work_stack, EIM ,
@@ -8056,7 +8056,7 @@ number of completions per Earley set.
 It will grow if needed.
 Large stacks may needed for very ambiguous grammars.
 @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_completion_stack);
-@ @<Initialize recognizer elements@> = DSTACK_ZERO_INIT(r->t_completion_stack);
+@ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_completion_stack);
 @ @<Initialize Earley item work stacks@> =
     DSTACK_IS_INITIALIZED(r->t_completion_stack) ||
     DSTACK_INIT (r->t_completion_stack, EIM ,
@@ -8068,7 +8068,7 @@ number of completions per Earley set.
 It will grow if needed.
 Large stacks may needed for very ambiguous grammars.
 @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_earley_set_stack);
-@ @<Initialize recognizer elements@> = DSTACK_ZERO_INIT(r->t_earley_set_stack);
+@ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_earley_set_stack);
 @ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_earley_set_stack);
 
 @ This function returns the number of terminals expected on success.
@@ -10857,9 +10857,10 @@ gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
 struct s_bocage_iter;
 typedef struct s_bocage_iter* BOCI;
 @ @<Private structures@> =
+@<BIN structure@>@;
 struct s_bocage_iter {
-    Bit_Vector t_and_node_in_use;
-    BIN *t_bin_stack;
+    FSTACK_DECLARE(t_bin_stack, BIN_Object)@;
+    FSTACK_DECLARE(t_bin_worklist, gint)@;
 };
 typedef struct s_bocage_iter BOCI_Object;
 @ @d BOCI_of_B(b) (&(b)->t_bocage_iter)
@@ -10867,12 +10868,12 @@ typedef struct s_bocage_iter BOCI_Object;
 BOCI_Object t_bocage_iter;
 
 @ @<Private function prototypes@> =
-static inline void boci_initialize(BOCI boci);
+static inline void boci_safe(BOCI boci);
 @ @<Function definitions@> =
-static inline void boci_initialize(BOCI boci)
+static inline void boci_safe(BOCI boci)
 {
-    boci->t_and_node_in_use = NULL;
-    boci->t_bin_stack = NULL;
+    FSTACK_SAFE(boci->t_bin_stack);
+    FSTACK_SAFE(boci->t_bin_worklist);
 }
 
 @ @<Private function prototypes@> =
@@ -10880,13 +10881,13 @@ static inline void boci_destroy(BOCI boci);
 @ @<Function definitions@> =
 static inline void boci_destroy(BOCI boci)
 {
-  if (boci->t_and_node_in_use)
+  if (FSTACK_IS_INITIALIZED(boci->t_bin_stack))
     {
-      bv_free (boci->t_and_node_in_use);
+      FSTACK_DESTROY(boci->t_bin_stack);
     }
-  if (boci->t_bin_stack)
+  if (FSTACK_IS_INITIALIZED(boci->t_bin_worklist))
     {
-      g_free (boci->t_bin_stack);
+      FSTACK_DESTROY(boci->t_bin_worklist);
     }
 }
 
@@ -10919,7 +10920,7 @@ static inline void rank_initialize(RANK rank)
     rank->t_and_node_in_use = NULL;
     rank->t_and_node_orderings = NULL;
     @<Initialize ranker obstack@>@;
-    boci_initialize(BOCI_of_RANK(rank));
+    boci_safe(BOCI_of_RANK(rank));
 }
 
 @ @<Destroy bocage elements, main phase@> =
@@ -11131,18 +11132,54 @@ Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_nod
 @<Private incomplete structures@> =
 struct s_bocage_iter_node;
 typedef struct s_bocage_iter_node* BIN;
-@ @<Private structures@> =
+@ Hackery alert:
+The BIN is actually two data structures folded into
+one, and the index used to look it up means two different
+things, depending on the field.
+For the |is_and_node_in_use| field, the index of the |BIN|
+is an and-node ID.
+For all other fields, the index is a position in the bocage
+iteration stack (|BOCI|).
+\par
+Because the semantics of the index is completely different,
+is most cases
+it would make sense to have two different data structures.
+(Some reasonable people might insist that,
+the arguments in this section to the contrary notwithstanding,
+this is one of those cases.)
+For example, the |is_and_node_in_use| bits might be put
+into their own bit vector.
+\par
+How do I justify this hackishness?
+Both structures have the same size -- the and-node count.
+The |BIN| has used many unused bits so the space for the
+|is_and_in_use| field comes free when the two structures
+are combined.
+And, very importantly,
+while the two structures has different semantics for their indexes,
+their lifetimes are exactly the same.
+When you initialize one you always want to initialize the other,
+and when you destroy one you always want to destroy the other.
+\par
+This hackery is not without its potential to confuse.
+In particular, note that |BIN|
+entries viewed as elements
+in the bocage iteration stack (|BOCI|)
+typically have an and-node associated with them.
+This is almost {\bf never} the same as the and-node
+to which the |is_and_node_in_use| bit corresponds.
+@<BIN structure@> =
 struct s_bocage_iter_node {
     OR t_or_node;
     gint choice;
     BIN parent;
     gint is_cause_ready:1;
-    gint has_cause:1;
     gint is_predecessor_ready:1;
-    gint has_predecessor:1;
-    gint is_predecessor_of_parent:1;
     gint is_cause_of_parent:1;
+    gint is_predecessor_of_parent:1;
+    gint is_and_node_in_use:1;
 };
+typedef struct s_bocage_iter_node BIN_Object;
 
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
@@ -11575,7 +11612,7 @@ rhs_closure (struct marpa_g *g, Bit_Vector bv)
 {
   guint min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
-  FSTACK_DECLARE (stack, Marpa_Symbol_ID);
+  FSTACK_DECLARE (stack, Marpa_Symbol_ID)@;
   FSTACK_INIT (stack, Marpa_Symbol_ID, SYM_Count_of_G(g));
   while (bv_scan (bv, start, &min, &max))
     {
@@ -11806,11 +11843,13 @@ when compared to hand-written code.
 |libmarpa| uses stacks and worklists extensively.
 Often a reasonable maximum size is known when they are
 set up, in which case they can be made very fast.
-@d FSTACK_DECLARE(name, type) struct { gint t_count; type* t_base; } name;
-@d FSTACK_INIT(name, type, n) ((name.t_count = 0), (name.t_base = g_new(type, n)))
-@d FSTACK_PUSH(name) (name.t_base+name.t_count++)
-@d FSTACK_POP(name) (name.t_count <= 0 ? NULL : name.t_base+(--name.t_count))
-@d FSTACK_DESTROY(name) (g_free(name.t_base))
+@d FSTACK_DECLARE(stack, type) struct { gint t_count; type* t_base; } stack;
+@d FSTACK_INIT(stack, type, n) (((stack).t_count = 0), ((stack).t_base = g_new(type, n)))
+@d FSTACK_SAFE(stack) ((stack).t_base = NULL)
+@d FSTACK_PUSH(stack) ((stack).t_base+stack.t_count++)
+@d FSTACK_POP(stack) ((stack).t_count <= 0 ? NULL : (stack).t_base+(--(stack).t_count))
+@d FSTACK_IS_INITIALIZED(stack) ((stack).t_base)
+@d FSTACK_DESTROY(stack) (g_free((stack).t_base))
 
 @*0 Dynamic Stacks.
 |libmarpa| uses stacks and worklists extensively.
@@ -11831,7 +11870,7 @@ next |DSTACK_PUSH|.
   (((this).t_count = 0),
   ((this).t_base = g_new(type, ((this).t_capacity = (initial_size)))))
 
-@ |DSTACK_ZERO_INIT| is for cases where the dstack is not
+@ |DSTACK_SAFE| is for cases where the dstack is not
 immediately initialized to a useful value,
 and might never be.
 All fields are zeroed so that when the containing object
@@ -11839,7 +11878,7 @@ is destroyed, the deallocation logic knows that no
 memory has been allocated and therefore no attempt
 to free memory should be made.
 @d DSTACK_IS_INITIALIZED(this) ((this).t_base)
-@d DSTACK_ZERO_INIT(this)
+@d DSTACK_SAFE(this)
   (((this).t_count = (this).t_capacity = 0), ((this).t_base = NULL))
 
 @ A stack reinitialized by
