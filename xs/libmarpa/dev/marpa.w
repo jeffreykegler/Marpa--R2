@@ -10861,6 +10861,7 @@ typedef struct s_bocage_iter* BOCI;
 struct s_bocage_iter {
     FSTACK_DECLARE(t_bin_stack, BIN_Object)@;
     FSTACK_DECLARE(t_bin_worklist, gint)@;
+    gint t_parse_count;
 };
 typedef struct s_bocage_iter BOCI_Object;
 @ @d BOCI_of_B(b) (&(b)->t_bocage_iter)
@@ -10874,6 +10875,30 @@ static inline void boci_safe(BOCI boci)
 {
     FSTACK_SAFE(boci->t_bin_stack);
     FSTACK_SAFE(boci->t_bin_worklist);
+    boci->t_parse_count = 0;
+}
+
+@ @<Private function prototypes@> =
+int marpa_result_new(struct marpa_r* r);
+@ @<Function definitions@> =
+int marpa_result_new(struct marpa_r* r)
+{
+    BOC b;
+    BOCI boci;
+    @<Return |-2| on failure@>@;
+    @<Fail if recognizer has fatal error@>@;
+    b = B_of_R(r);
+    if (!b) {
+	R_ERROR ("no bocage");
+	return failure_indicator;
+    }
+    boci = BOCI_of_B(b);
+    boci->t_parse_count++;
+    if (boci->t_parse_count == 1)
+    {
+        return 1;
+    }
+    return 1;
 }
 
 @ @<Private function prototypes@> =

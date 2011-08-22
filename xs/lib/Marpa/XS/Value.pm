@@ -1291,6 +1291,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 # null parse is special case
 sub Marpa::XS::Internal::Recognizer::do_null_parse {
     my ( $recce ) = @_;
+    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols     = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
@@ -1307,7 +1308,9 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
     my $start_symbol_id = $grammar_c->rule_lhs($start_rule_id);
 
     # Cannot increment the null parse
-    return if $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
+    return if $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT];
+    $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
+    $recce_c->result_new();
 
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
     return \$null_values->[$start_symbol_id];
@@ -1713,6 +1716,7 @@ sub Marpa::XS::Recognizer::value {
     }
 
     $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
+    $recce_c->result_new();
     return Marpa::XS::Internal::Recognizer::evaluate( $recce, $iteration_stack );
 
 } ## end sub Marpa::XS::Recognizer::value

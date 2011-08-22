@@ -1719,5 +1719,19 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
+int
+result_new( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int status;
+    status = marpa_result_new(r);
+    if (status < 0) {
+      croak ("Problem in r->result_new(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(status) ) );
+    }
+
+
 BOOT:
     gperl_handle_logs_for(G_LOG_DOMAIN);
