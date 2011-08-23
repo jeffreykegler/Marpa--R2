@@ -10502,9 +10502,9 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
-    @<Deal with null parse as a special case@>@;
     b = B_of_R(r) = g_slice_new(BOC_Object);
     @<Initialize bocage elements@>@;
+    @<Deal with null parse as a special case@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
@@ -10602,7 +10602,29 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 @ @<Deal with null parse as a special case@> =
 {
     if (ordinal == 0) {  // If this is a null parse
-	 return null_parse;
+	gint rule_length = Length_of_RULE(completed_start_rule);
+	OR* or_nodes = ORs_of_B (b) = g_new (OR, 1);
+        AND and_nodes = ANDs_of_B (b) = g_new (AND_Object, 1);
+	OR or_node = or_nodes[0] = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
+	ORID or_node_id = 0;
+
+	OR_Count_of_B(b) = 1;
+	AND_Count_of_B(b) = 1;
+
+	RULE_of_OR(or_node) = completed_start_rule;
+	Position_of_OR(or_node) = rule_length;
+	Origin_Ord_of_OR(or_node) = 0;
+	ID_of_OR(or_node) = top_or_node_id;
+	ES_Ord_of_OR(or_node) = 0;
+	First_ANDID_of_OR(or_node) = 0;
+	AND_Count_of_OR(or_node) = 1;
+
+	OR_of_AND(and_nodes) = or_node;
+	Predecessor_OR_of_AND(and_nodes) = NULL;
+	Cause_OR_of_AND (and_nodes) =
+	  (OR) SYM_by_ID (RHS_ID_of_RULE (completed_start_rule, rule_length - 1));
+
+	return or_node_id;
     }
 }
 
@@ -10981,7 +11003,6 @@ static inline void rank_destroy(RANK rank)
 @*0 The RANK Obstack.
 An obstack with the lifetime of the bocage ranker.
 @d OBS_of_RANK(rank) ((rank)->t_obs)
-@<Widely aligned bocage elements@> =
 @ @<Initialize ranker obstack@> =
 obstack_init(&OBS_of_RANK(rank));
 @ @<Destroy ranker obstack@> =
