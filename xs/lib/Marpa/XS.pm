@@ -135,6 +135,7 @@ require Marpa::XS::Callback;
 *Marpa::Recognizer::show_bocage = \&Marpa::XS::Recognizer::show_bocage;
 *Marpa::Recognizer::old_show_iteration_stack = \&Marpa::XS::Recognizer::old_show_iteration_stack;
 *Marpa::Recognizer::old_show_iteration_node = \&Marpa::XS::Recognizer::old_show_iteration_node;
+*Marpa::Recognizer::parse_count = \&Marpa::XS::Recognizer::parse_count;
 *Marpa::Recognizer::show_iteration_node = \&Marpa::XS::Recognizer::show_iteration_node;
 *Marpa::Recognizer::show_or_nodes = \&Marpa::XS::Recognizer::show_or_nodes;
 *Marpa::Recognizer::show_progress = \&Marpa::XS::Recognizer::show_progress;

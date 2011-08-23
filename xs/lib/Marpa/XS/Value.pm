@@ -83,6 +83,12 @@ use constant SKIP => -1;
 
 use warnings;
 
+sub Marpa::XS::Recognizer::parse_count {
+    my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    return $recce_c->parse_count();
+}
+
 sub Marpa::XS::Recognizer::show_bocage {
     my ($recce) = @_;
     my $text;
@@ -1313,7 +1319,7 @@ sub Marpa::XS::Recognizer::value {
         );
     } ## end if ( $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE...])
 
-    my $parse_count = $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT];
+    my $parse_count = $recce_c->parse_count() // 0;
     my $max_parses  = $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES];
     if ( $max_parses and $parse_count > $max_parses ) {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
@@ -1683,7 +1689,6 @@ sub Marpa::XS::Recognizer::value {
 	or Marpa::exception('print to trace handle failed');
     }
 
-    $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
     $recce_c->tree_new();
     return Marpa::XS::Internal::Recognizer::evaluate( $recce, $iteration_stack );
 

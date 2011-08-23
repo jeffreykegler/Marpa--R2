@@ -1732,6 +1732,19 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(status) ) );
     }
 
+int
+parse_count( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_parse_count(r);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->parse_count(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
 
 BOOT:
     gperl_handle_logs_for(G_LOG_DOMAIN);

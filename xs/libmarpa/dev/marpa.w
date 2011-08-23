@@ -10724,7 +10724,7 @@ to make sense.
 @<Destroy bocage elements, final phase@>;
 
 @ Destroy the bocage elements when I destroy the recognizer.
-@<Destroy recognizer elements@> = @<Free bocage@>@;
+@<Destroy recognizer elements@> = bocage_destroy(r);
 
 @ @<Deallocate bocage setup working data@>= {
 ;
@@ -10744,11 +10744,15 @@ gint marpa_bocage_free(struct marpa_r* r) {
 	    Otherwise leave phase untouched */
 	Phase_of_R(r) = input_phase;
     }
-    @<Free bocage@>@;
+    bocage_destroy(r);
     return 1;
 }
 
-@ @<Free bocage@> = {
+@ @<Private function prototypes@> =
+static inline void bocage_destroy(struct marpa_r* r);
+@ @<Function definitions@> =
+static inline void bocage_destroy(struct marpa_r* r)
+{
     BOC b = B_of_R(r);
 MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     if (b) {
@@ -10917,18 +10921,23 @@ int marpa_tree_new(struct marpa_r* r)
     BOCI boci;
     @<Return |-2| on failure@>@;
     @<Fail if recognizer has fatal error@>@;
+    @<Set |b| to bocage; fail if none@>@;
+    boci = BOCI_of_B(b);
+    boci->t_parse_count++;
+    if (boci->t_parse_count >= 1)
+    {
+        return 1;
+    }
+    return 1;
+}
+
+@ @<Set |b| to bocage; fail if none@> =
+{
     b = B_of_R(r);
     if (!b) {
 	R_ERROR ("no bocage");
 	return failure_indicator;
     }
-    boci = BOCI_of_B(b);
-    boci->t_parse_count++;
-    if (boci->t_parse_count == 1)
-    {
-        return 1;
-    }
-    return 1;
 }
 
 @ @<Private function prototypes@> =
@@ -10946,6 +10955,26 @@ static inline void boci_destroy(BOCI boci)
       FSTACK_DESTROY(boci->t_bin_worklist);
       FSTACK_SAFE(boci->t_bin_worklist);
     }
+    boci->t_parse_count = 0;
+}
+
+@ Soft failure (-1) if no bocage, so that this function
+can be also used to check for the existence of the bocage.
+@<Public function prototypes@> =
+gint marpa_parse_count(struct marpa_r* r);
+@ @<Function definitions@> =
+gint marpa_parse_count(struct marpa_r* r)
+{
+    BOC b;
+    BOCI boci;
+    @<Return |-2| on failure@>@;
+    @<Fail if recognizer has fatal error@>@;
+    b = B_of_R(r);
+    if (!b) {
+	return -1;
+    }
+    boci = BOCI_of_B(b);
+    return boci->t_parse_count;
 }
 
 @** Bocage Ranking (RANK) Code.
@@ -10953,7 +10982,12 @@ static inline void boci_destroy(BOCI boci)
 struct s_bocage_rank;
 typedef struct s_bocage_rank* RANK;
 @
+|t_and_node_orderings| is used as the "safe boolean"
+for the obstack.  They have the same lifetime, so
+that it is safe to destroy the obstack if
+|t_and_node_orderings| is not null.
 @d BOCI_of_RANK(rank) (&(rank)->t_boci)
+@d OBS_of_RANK(rank) ((rank)->t_obs)
 @<Private structures@> =
 struct s_bocage_rank {
     struct obstack t_obs;
@@ -10968,15 +11002,14 @@ typedef struct s_bocage_rank RANK_Object;
 @<Widely aligned bocage elements@> =
 RANK_Object t_rank;
 @ @<Initialize bocage elements@> =
-rank_initialize(RANK_of_B(b));
+rank_safe(RANK_of_B(b));
 @ @<Private function prototypes@> =
-static inline void rank_initialize(RANK rank);
+static inline void rank_safe(RANK rank);
 @ @<Function definitions@> =
-static inline void rank_initialize(RANK rank)
+static inline void rank_safe(RANK rank)
 {
     rank->t_and_node_in_use = NULL;
     rank->t_and_node_orderings = NULL;
-    @<Initialize ranker obstack@>@;
     boci_safe(BOCI_of_RANK(rank));
 }
 
@@ -10991,22 +11024,21 @@ static inline void rank_freeze(RANK rank)
   if (rank->t_and_node_in_use)
     {
       bv_free (rank->t_and_node_in_use);
+	rank->t_and_node_in_use = NULL;
     }
 }
 static inline void rank_destroy(RANK rank)
 {
   boci_destroy(BOCI_of_RANK(rank));
   rank_freeze(rank);
-  @<Destroy ranker obstack@>@;
+  if (rank->t_and_node_orderings) {
+      rank->t_and_node_orderings = NULL;
+      obstack_free(&OBS_of_RANK(rank), NULL);
+  }
 }
 
 @*0 The RANK Obstack.
 An obstack with the lifetime of the bocage ranker.
-@d OBS_of_RANK(rank) ((rank)->t_obs)
-@ @<Initialize ranker obstack@> =
-obstack_init(&OBS_of_RANK(rank));
-@ @<Destroy ranker obstack@> =
-obstack_free(&OBS_of_RANK(rank), NULL);
 
 @*0 Set the Order of And-nodes.
 @ This function
@@ -11084,7 +11116,7 @@ gint marpa_and_order_set(struct marpa_r *r,
 	rank = RANK_of_B(b);
 	and_node_orderings = rank->t_and_node_orderings;
 	and_node_in_use = rank->t_and_node_in_use;
-	obs = &rank->t_obs;
+	obs = &OBS_of_RANK(rank);
 	if (and_node_orderings && !and_node_in_use)
 	{
 	  R_ERROR("ranker frozen");
@@ -11094,6 +11126,7 @@ gint marpa_and_order_set(struct marpa_r *r,
 	  {
 	    gint and_id;
 	    const gint and_count_of_r = AND_Count_of_B (b);
+	    obstack_init(obs);
 	    rank->t_and_node_orderings =
 	      and_node_orderings =
 	      obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
