@@ -1713,8 +1713,7 @@ rule_callback(g, rule->t_id);
 }
 @ The traditional way to write a sequence in BNF is with one
 rule to represent the minimum, and another to deal with iteration.
-That's the core of Marpa's rewrite.  This is the minimum
-rule.
+That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 { RULE rule;
 guint rhs_ix, i;
@@ -9440,13 +9439,16 @@ static const OR dummy_or_node = (OR)&dummy_or_node_type;
 @<Widely aligned bocage elements@> =
 OR* t_or_nodes;
 AND t_and_nodes;
+@ @<Int aligned bocage elements@> =
 gint t_or_node_count;
 gint t_and_node_count;
+
 @ @<Initialize bocage elements@> =
 ORs_of_B(b) = NULL;
 OR_Count_of_B(b) = 0;
 ANDs_of_B(b) = NULL;
 AND_Count_of_B(b) = 0;
+
 @ @<Destroy bocage elements, main phase@> =
 {
   OR* or_nodes = ORs_of_B (b);
@@ -10457,6 +10459,7 @@ typedef struct s_bocage* BOC;
 @ @<Bocage structure@> =
 struct s_bocage {
     @<Widely aligned bocage elements@>@;
+    @<Int aligned bocage elements@>@;
 };
 typedef struct s_bocage BOC_Object;
 @ @d B_of_R(r) ((r)->t_bocage)
@@ -10499,6 +10502,7 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     r_update_earley_sets(r);
     @<Return if function guards fail;
 	set |end_of_parse_es| and |completed_start_rule|@>@;
+    @<Deal with null parse as a special case@>@;
     b = B_of_R(r) = g_slice_new(BOC_Object);
     @<Initialize bocage elements@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
@@ -10593,6 +10597,10 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
       completed_start_rule = RULE_by_ID (g, rule_id);
     }
 MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
+}
+
+@ @<Deal with null parse as a special case@> =
+{
     if (ordinal == 0) {  // If this is a null parse
 	 return null_parse;
     }
@@ -10879,9 +10887,9 @@ static inline void boci_safe(BOCI boci)
 }
 
 @ @<Private function prototypes@> =
-int marpa_result_new(struct marpa_r* r);
+int marpa_tree_new(struct marpa_r* r);
 @ @<Function definitions@> =
-int marpa_result_new(struct marpa_r* r)
+int marpa_tree_new(struct marpa_r* r)
 {
     BOC b;
     BOCI boci;
@@ -10909,10 +10917,12 @@ static inline void boci_destroy(BOCI boci)
   if (FSTACK_IS_INITIALIZED(boci->t_bin_stack))
     {
       FSTACK_DESTROY(boci->t_bin_stack);
+      FSTACK_SAFE(boci->t_bin_stack);
     }
   if (FSTACK_IS_INITIALIZED(boci->t_bin_worklist))
     {
       FSTACK_DESTROY(boci->t_bin_worklist);
+      FSTACK_SAFE(boci->t_bin_worklist);
     }
 }
 

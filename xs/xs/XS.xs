@@ -1720,14 +1720,14 @@ PPCODE:
     }
 
 int
-result_new( r_wrapper )
+tree_new( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int status;
-    status = marpa_result_new(r);
+    status = marpa_tree_new(r);
     if (status < 0) {
-      croak ("Problem in r->result_new(): %s", marpa_r_error (r));
+      croak ("Problem in r->tree_new(): %s", marpa_r_error (r));
     }
     XPUSHs( sv_2mortal( newSViv(status) ) );
     }

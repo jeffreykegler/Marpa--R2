@@ -1310,7 +1310,7 @@ sub Marpa::XS::Internal::Recognizer::do_null_parse {
     # Cannot increment the null parse
     return if $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT];
     $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
-    $recce_c->result_new();
+    $recce_c->tree_new();
 
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
     return \$null_values->[$start_symbol_id];
@@ -1716,7 +1716,7 @@ sub Marpa::XS::Recognizer::value {
     }
 
     $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
-    $recce_c->result_new();
+    $recce_c->tree_new();
     return Marpa::XS::Internal::Recognizer::evaluate( $recce, $iteration_stack );
 
 } ## end sub Marpa::XS::Recognizer::value
