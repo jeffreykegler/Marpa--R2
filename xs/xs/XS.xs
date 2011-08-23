@@ -1518,7 +1518,7 @@ PPCODE:
 	gint result = marpa_or_node_set(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->or_node_set(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1532,7 +1532,7 @@ PPCODE:
 	gint result = marpa_or_node_origin(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->or_node_origin(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1546,7 +1546,7 @@ PPCODE:
 	gint result = marpa_or_node_position(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->or_node_position(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1560,7 +1560,7 @@ PPCODE:
 	gint result = marpa_or_node_rule(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->or_node_rule(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1574,7 +1574,7 @@ PPCODE:
 	gint result = marpa_or_node_first_and(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->or_node_first_and(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1588,7 +1588,7 @@ PPCODE:
 	gint result = marpa_or_node_last_and(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->or_node_last_and(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1602,7 +1602,7 @@ PPCODE:
 	gint result = marpa_or_node_and_count(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->or_node_and_count(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1615,7 +1615,7 @@ PPCODE:
 	gint result = marpa_and_node_count(r);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->and_node_count(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1629,7 +1629,7 @@ PPCODE:
 	gint result = marpa_and_node_parent(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->and_node_parent(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1643,7 +1643,7 @@ PPCODE:
 	gint result = marpa_and_node_predecessor(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->and_node_predecessor(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1657,7 +1657,7 @@ PPCODE:
 	gint result = marpa_and_node_cause(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->and_node_cause(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
@@ -1671,7 +1671,7 @@ PPCODE:
 	gint result = marpa_and_node_symbol(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
+	  croak ("Problem in r->and_node_symbol(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }

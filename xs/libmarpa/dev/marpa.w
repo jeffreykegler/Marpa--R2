@@ -10606,7 +10606,7 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 	OR* or_nodes = ORs_of_B (b) = g_new (OR, 1);
         AND and_nodes = ANDs_of_B (b) = g_new (AND_Object, 1);
 	OR or_node = or_nodes[0] = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
-	ORID or_node_id = 0;
+	ORID null_or_node_id = 0;
 
 	OR_Count_of_B(b) = 1;
 	AND_Count_of_B(b) = 1;
@@ -10614,7 +10614,7 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 	RULE_of_OR(or_node) = completed_start_rule;
 	Position_of_OR(or_node) = rule_length;
 	Origin_Ord_of_OR(or_node) = 0;
-	ID_of_OR(or_node) = top_or_node_id;
+	ID_of_OR(or_node) = null_or_node_id;
 	ES_Ord_of_OR(or_node) = 0;
 	First_ANDID_of_OR(or_node) = 0;
 	AND_Count_of_OR(or_node) = 1;
@@ -10624,7 +10624,7 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 	Cause_OR_of_AND (and_nodes) =
 	  (OR) SYM_by_ID (RHS_ID_of_RULE (completed_start_rule, rule_length - 1));
 
-	return or_node_id;
+	return null_or_node_id;
     }
 }
 

@@ -1288,35 +1288,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     return pop @evaluation_stack;
 } ## end sub Marpa::XS::Internal::Recognizer::evaluate
 
-# null parse is special case
-sub Marpa::XS::Internal::Recognizer::do_null_parse {
-    my ( $recce ) = @_;
-    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $symbols     = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-    my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-
-    # The nulling start rule is the only nulling rule that is used
-    my $start_rule_id;
-    RULE: for my $rule (@{$rules}) {
-	$start_rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
-	next RULE if not $grammar_c->rule_is_used($start_rule_id);
-	last RULE if $grammar_c->rule_length($start_rule_id) <= 0;
-    }
-
-    my $start_symbol_id = $grammar_c->rule_lhs($start_rule_id);
-
-    # Cannot increment the null parse
-    return if $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT];
-    $recce->[Marpa::XS::Internal::Recognizer::PARSE_COUNT]++;
-    $recce_c->tree_new();
-
-    my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
-    return \$null_values->[$start_symbol_id];
-
-} ## end sub Marpa::XS::Internal::Recognizer::do_null_parse
-
 # Returns false if no parse
 sub Marpa::XS::Recognizer::value {
     my ( $recce, @arg_hashes ) = @_;
@@ -1448,9 +1419,6 @@ sub Marpa::XS::Recognizer::value {
             $recce_c->eval_setup( -1, ( $parse_set_arg // -1 ) );
         if ( not defined $top_or_node_id ) {
             Marpa::exception(qq{libmarpa's marpa_value() call failed\n});
-        }
-        if ( $top_or_node_id == 0 ) {
-            return Marpa::XS::Internal::Recognizer::do_null_parse($recce);
         }
 
 	my $start_iteration_node = [];
