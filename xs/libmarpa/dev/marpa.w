@@ -10835,6 +10835,8 @@ int marpa_tree_new(struct marpa_r* r)
     {
         return 1;
     }
+  FSTACK_INIT (boci->t_bin_stack, BIN_Object, AND_Count_of_B(b));
+  FSTACK_INIT (boci->t_bin_worklist, gint, AND_Count_of_B(b));
     return 1;
 }
 
