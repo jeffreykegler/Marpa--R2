@@ -9399,15 +9399,18 @@ static const gint dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
 
 @ @d ORs_of_B(b) ((b)->t_or_nodes)
+@d OR_of_B_by_ID(b, id) (ORs_of_B(b)[(id)])
 @d OR_Count_of_B(b) ((b)->t_or_node_count)
 @d ANDs_of_B(b) ((b)->t_and_nodes)
 @d AND_Count_of_B(b) ((b)->t_and_node_count)
+@d Top_ORID_of_B(b) ((b)->t_top_or_node_id)
 @<Widely aligned bocage elements@> =
 OR* t_or_nodes;
 AND t_and_nodes;
 @ @<Int aligned bocage elements@> =
 gint t_or_node_count;
 gint t_and_node_count;
+ORID t_top_or_node_id;
 
 @ @<Initialize bocage elements@> =
 ORs_of_B(b) = NULL;
@@ -10425,6 +10428,7 @@ MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Set |top_or_node_id|@>@;
     @<Deallocate bocage setup working data@>@;
     obstack_free(&bocage_setup_obs, NULL);
+    Top_ORID_of_B(b) = top_or_node_id;
     return top_or_node_id;
 }
 
@@ -10516,6 +10520,7 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
         AND and_nodes = ANDs_of_B (b) = g_new (AND_Object, 1);
 	OR or_node = or_nodes[0] = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
 	ORID null_or_node_id = 0;
+	Top_ORID_of_B(b) = null_or_node_id;
 
 	OR_Count_of_B(b) = 1;
 	AND_Count_of_B(b) = 1;
@@ -10799,7 +10804,15 @@ gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
 @<Private incomplete structures@> =
 struct s_bocage_iter;
 typedef struct s_bocage_iter* BOCI;
-@ @<Private structures@> =
+@ An exhausted bocage iterator does not need a worklist
+or a stack, so they are destroyed.
+if the bocage iterator has a parse count,
+but no stack,
+it is exhausted.
+@d BOCI_Initialized(boci) ((boci)->t_parse_count >= 0)
+@d BOCI_Exhausted(boci) (BOCI_Initialized(boci)
+    && !FSTACK_IS_INITIALIZED((boci)->t_bin_stack))
+@<Private structures@> =
 @<BIN structure@>@;
 struct s_bocage_iter {
     FSTACK_DECLARE(t_bin_stack, BIN_Object)@;
@@ -10809,13 +10822,30 @@ struct s_bocage_iter {
 typedef struct s_bocage_iter BOCI_Object;
 
 @ @<Private function prototypes@> =
+static inline void boci_exhaust(BOCI boci);
+@ @<Function definitions@> =
+static inline void boci_exhaust(BOCI boci)
+{
+  if (FSTACK_IS_INITIALIZED(boci->t_bin_stack))
+    {
+      FSTACK_DESTROY(boci->t_bin_stack);
+      FSTACK_SAFE(boci->t_bin_stack);
+    }
+  if (FSTACK_IS_INITIALIZED(boci->t_bin_worklist))
+    {
+      FSTACK_DESTROY(boci->t_bin_worklist);
+      FSTACK_SAFE(boci->t_bin_worklist);
+    }
+}
+
+@ @<Private function prototypes@> =
 static inline void boci_safe(BOCI boci);
 @ @<Function definitions@> =
 static inline void boci_safe(BOCI boci)
 {
     FSTACK_SAFE(boci->t_bin_stack);
     FSTACK_SAFE(boci->t_bin_worklist);
-    boci->t_parse_count = 0;
+    boci->t_parse_count = -1;
 MARPA_DEBUG4("%s boci=%p parse_count=%d", G_STRLOC, boci, boci->t_parse_count);
 }
 
@@ -10826,18 +10856,60 @@ int marpa_tree_new(struct marpa_r* r)
 {
     BOC b;
     BOCI boci;
+    gint first_tree_of_series = 0;
     @<Return |-2| on failure@>@;
     @<Fail if recognizer has fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
     boci = BOCI_of_RANK(RANK_of_B(b));
-    boci->t_parse_count++;
-    if (boci->t_parse_count >= 1)
+    if (BOCI_Exhausted(boci)) {
+       return -1;
+    }
+    /* Temporary, until the iteration logic is finished */
+    if (boci->t_parse_count > 0)
     {
+	boci->t_parse_count++;
         return 1;
     }
-  FSTACK_INIT (boci->t_bin_stack, BIN_Object, AND_Count_of_B(b));
-  FSTACK_INIT (boci->t_bin_worklist, gint, AND_Count_of_B(b));
+    if (!BOCI_Initialized(boci))
+      {
+	ORID top_or_id = Top_ORID_of_B(b);
+	OR top_or_node = OR_of_B_by_ID(b, top_or_id);
+	gint choice = 0;
+	gint and_id = and_order_get(b, top_or_node, choice);
+	/* Due to skipping, even the top or-node can have no
+	   valid choices, in which case there is no parse */
+	if (and_id < 0) {
+	   boci_exhaust(boci);
+	   return -1;
+	}
+	@<Initialize the bocage iterator@>@;
+      }
+    boci->t_parse_count++;
     return 1;
+}
+
+@ @<Initialize the bocage iterator@> =
+{
+  BIN bin;
+  const gint and_count = AND_Count_of_B (b);
+  boci->t_parse_count = 0;
+  first_tree_of_series = 1;
+  FSTACK_INIT (boci->t_bin_stack, BIN_Object, and_count);
+  bin = FSTACK_BASE(boci->t_bin_stack, BIN_Object);
+  FSTACK_INIT (boci->t_bin_worklist, gint, and_count);
+  for (and_id = 0; and_id < and_count; and_id++)
+    {
+      BIN_ANDID_in_Use (bin + and_id) = 0;
+    }
+  bin = FSTACK_PUSH (boci->t_bin_stack);
+    OR_of_BIN(bin) = top_or_node;
+    Choice_of_BIN(bin) = choice;
+    Parent_of_BIN(bin) = NULL;
+    BIN_Cause_is_Ready(bin) = 0;
+    BIN_is_Cause(bin) = 0;
+    BIN_Predecessor_is_Ready(bin) = 0;
+    BIN_is_Predecessor(bin) = 0;
+  *(FSTACK_PUSH (boci->t_bin_worklist)) = 0;
 }
 
 @ @<Set |b| to bocage; fail if none@> =
@@ -10854,17 +10926,8 @@ static inline void boci_destroy(BOCI boci);
 @ @<Function definitions@> =
 static inline void boci_destroy(BOCI boci)
 {
-  if (FSTACK_IS_INITIALIZED(boci->t_bin_stack))
-    {
-      FSTACK_DESTROY(boci->t_bin_stack);
-      FSTACK_SAFE(boci->t_bin_stack);
-    }
-  if (FSTACK_IS_INITIALIZED(boci->t_bin_worklist))
-    {
-      FSTACK_DESTROY(boci->t_bin_worklist);
-      FSTACK_SAFE(boci->t_bin_worklist);
-    }
-    boci->t_parse_count = 0;
+    boci_exhaust(boci);
+    boci->t_parse_count = -1;
 MARPA_DEBUG4("%s boci=%p parse_count=%d", G_STRLOC, boci, boci->t_parse_count);
 }
 
@@ -11090,8 +11153,35 @@ gint marpa_and_order_set(struct marpa_r *r,
 
 @*0 Get an And-node by Order within its Or-Node.
 @ @<Private function prototypes@> =
+static inline ANDID and_order_get(BOC b, OR or_node, gint ix);
+@ @<Public function prototypes@> =
 Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix);
 @ @<Function definitions@> =
+static inline ANDID and_order_get(BOC b, OR or_node, gint ix)
+{
+  RANK rank;
+  ANDID **and_node_orderings;
+  if (ix >= AND_Count_of_OR (or_node))
+    {
+      return -1;
+    }
+  rank = RANK_of_B (b);
+  and_node_orderings = rank->t_and_node_orderings;
+  if (and_node_orderings)
+    {
+      ORID or_node_id = ID_of_OR(or_node);
+      ANDID *ordering = and_node_orderings[or_node_id];
+      if (ordering)
+	{
+	  gint length = ordering[0];
+	  if (ix >= length)
+	    return -1;
+	  return ordering[1 + ix];
+	}
+    }
+  return First_ANDID_of_OR(or_node) + ix;
+}
+
 Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix)
 {
     OR or_node;
@@ -11101,33 +11191,15 @@ Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_nod
       R_ERROR("negative and ix");
       return failure_indicator;
   }
-  if (ix >= AND_Count_of_OR(or_node)) {
-      return -1;
-  }
     {
-      ANDID **and_node_orderings;
-      RANK rank;
       BOC b = B_of_R (r);
       if (!b)
 	{
 	  R_ERROR ("no bocage");
 	  return failure_indicator;
 	}
-      rank = RANK_of_B (b);
-      and_node_orderings = rank->t_and_node_orderings;
-      if (and_node_orderings)
-	{
-	  ANDID *ordering = and_node_orderings[or_node_id];
-	  if (ordering)
-	    {
-	      gint length = ordering[0];
-	      if (ix >= length)
-		return -1;
-	      return ordering[1 + ix];
-	    }
+	return and_order_get(b, or_node, ix);
 	}
-    }
-  return First_ANDID_of_OR(or_node) + ix;
 }
 
 @** Bocage Iterator Node (BIN) Code.
@@ -11170,16 +11242,24 @@ in the bocage iteration stack (|BOCI|)
 typically have an and-node associated with them.
 This is almost {\bf never} the same as the and-node
 to which the |is_and_node_in_use| bit corresponds.
+@d OR_of_BIN(bin) ((bin)->t_or_node)
+@d Choice_of_BIN(bin) ((bin)->t_choice)
+@d Parent_of_BIN(bin) ((bin)->t_parent)
+@d BIN_Cause_is_Ready(bin) ((bin)->t_is_cause_ready)
+@d BIN_is_Cause(bin) ((bin)->t_is_cause_of_parent)
+@d BIN_Predecessor_is_Ready(bin) ((bin)->t_is_predecessor_ready)
+@d BIN_is_Predecessor(bin) ((bin)->t_is_predecessor_of_parent)
+@d BIN_ANDID_in_Use(bin) ((bin)->t_is_and_node_in_use)
 @<BIN structure@> =
 struct s_bocage_iter_node {
     OR t_or_node;
-    gint choice;
-    BIN parent;
-    gint is_cause_ready:1;
-    gint is_predecessor_ready:1;
-    gint is_cause_of_parent:1;
-    gint is_predecessor_of_parent:1;
-    gint is_and_node_in_use:1;
+    gint t_choice;
+    BIN t_parent;
+    gint t_is_cause_ready:1;
+    gint t_is_predecessor_ready:1;
+    gint t_is_cause_of_parent:1;
+    gint t_is_predecessor_of_parent:1;
+    gint t_is_and_node_in_use:1;
 };
 typedef struct s_bocage_iter_node BIN_Object;
 
@@ -11848,6 +11928,7 @@ set up, in which case they can be made very fast.
 @d FSTACK_DECLARE(stack, type) struct { gint t_count; type* t_base; } stack;
 @d FSTACK_INIT(stack, type, n) (((stack).t_count = 0), ((stack).t_base = g_new(type, n)))
 @d FSTACK_SAFE(stack) ((stack).t_base = NULL)
+@d FSTACK_BASE(stack, type) ((type *)(stack).t_base)
 @d FSTACK_PUSH(stack) ((stack).t_base+stack.t_count++)
 @d FSTACK_POP(stack) ((stack).t_count <= 0 ? NULL : (stack).t_base+(--(stack).t_count))
 @d FSTACK_IS_INITIALIZED(stack) ((stack).t_base)
