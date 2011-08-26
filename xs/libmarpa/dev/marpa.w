@@ -10805,8 +10805,8 @@ or a stack, so they are destroyed.
 if the bocage iterator has a parse count,
 but no stack,
 it is exhausted.
-@d TREE_Initialized(tree) ((tree)->t_parse_count >= 0)
-@d TREE_Exhausted(tree) (TREE_Initialized(tree)
+@d TREE_is_Initialized(tree) ((tree)->t_parse_count >= 0)
+@d TREE_is_Exhausted(tree) (TREE_is_Initialized(tree)
     && !FSTACK_IS_INITIALIZED((tree)->t_fork_stack))
 @<Private structures@> =
 @<FORK structure@>@;
@@ -10857,7 +10857,7 @@ int marpa_tree_new(struct marpa_r* r)
     @<Fail if recognizer has fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
     tree = TREE_of_RANK(RANK_of_B(b));
-    if (TREE_Exhausted(tree)) {
+    if (TREE_is_Exhausted(tree)) {
        return -1;
     }
     /* Temporary, until the iteration logic is finished */
@@ -10866,7 +10866,7 @@ int marpa_tree_new(struct marpa_r* r)
 	tree->t_parse_count++;
         return 1;
     }
-    if (!TREE_Initialized(tree))
+    if (!TREE_is_Initialized(tree))
       {
 	ORID top_or_id = Top_ORID_of_B(b);
 	OR top_or_node = OR_of_B_by_ID(b, top_or_id);
@@ -11268,6 +11268,51 @@ struct s_fork {
     gint t_is_and_node_in_use:1;
 };
 typedef struct s_fork FORK_Object;
+
+@*0 Trace Functions.
+
+@ This is common logic in the or-node trace functions.
+@<Check |r| and |fork_id|;
+set |fork|@> = {
+  FORK base_fork;
+  BOC b = B_of_R(r);
+  TREE tree;
+  @<Fail if recognizer has fatal error@>@;
+  if (!b) {
+      R_ERROR("no bocage");
+      return failure_indicator;
+  }
+  tree = TREE_of_RANK(RANK_of_B(b));
+  if (TREE_is_Initialized(tree)) {
+      R_ERROR("tree not initialized");
+      return failure_indicator;
+  }
+  if (TREE_is_Exhausted(tree)) {
+      R_ERROR("bocage iteration exhausted");
+      return failure_indicator;
+  }
+  base_fork = FSTACK_BASE(tree->t_fork_stack, FORK_Object);
+  if (fork_id < 0) {
+      R_ERROR("bad fork id");
+      return failure_indicator;
+  }
+  if (fork_id >= FSTACK_LENGTH(tree->t_fork_stack)) {
+      return -1;
+  }
+  fork = base_fork + fork_id;
+}
+
+@ Return the ID of the or-node for |fork_id|.
+@<Private function prototypes@> =
+gint marpa_fork_or_node(struct marpa_r *r, int fork_id);
+@ @<Function definitions@> =
+gint marpa_fork_or_node(struct marpa_r *r, int fork_id)
+{
+  FORK fork;
+  @<Return |-2| on failure@>@;
+   @<Check |r| and |fork_id|; set |fork|@>@;
+  return ID_of_OR(OR_of_FORK(fork));
+}
 
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
@@ -11935,7 +11980,7 @@ set up, in which case they can be made very fast.
 @d FSTACK_INIT(stack, type, n) (((stack).t_count = 0), ((stack).t_base = g_new(type, n)))
 @d FSTACK_SAFE(stack) ((stack).t_base = NULL)
 @d FSTACK_BASE(stack, type) ((type *)(stack).t_base)
-@d FSTACK_LENGTH(stack, type) ((type *)(stack).t_count)
+@d FSTACK_LENGTH(stack) ((stack).t_count)
 @d FSTACK_PUSH(stack) ((stack).t_base+stack.t_count++)
 @d FSTACK_POP(stack) ((stack).t_count <= 0 ? NULL : (stack).t_base+(--(stack).t_count))
 @d FSTACK_IS_INITIALIZED(stack) ((stack).t_base)
