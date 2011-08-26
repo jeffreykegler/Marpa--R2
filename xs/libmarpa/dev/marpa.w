@@ -11314,6 +11314,66 @@ gint marpa_fork_or_node(struct marpa_r *r, int fork_id)
   return ID_of_OR(OR_of_FORK(fork));
 }
 
+@ Return the current choice for |fork_id|.
+@<Private function prototypes@> =
+gint marpa_fork_choice(struct marpa_r *r, int fork_id);
+@ @<Function definitions@> =
+gint marpa_fork_choice(struct marpa_r *r, int fork_id)
+{
+  FORK fork;
+  @<Return |-2| on failure@>@;
+   @<Check |r| and |fork_id|; set |fork|@>@;
+    return Choice_of_FORK(fork);
+}
+
+@ Return the cause-is-ready bit for |fork_id|.
+@<Private function prototypes@> =
+gint marpa_fork_cause_is_ready(struct marpa_r *r, int fork_id);
+@ @<Function definitions@> =
+gint marpa_fork_cause_is_ready(struct marpa_r *r, int fork_id)
+{
+  FORK fork;
+  @<Return |-2| on failure@>@;
+   @<Check |r| and |fork_id|; set |fork|@>@;
+    return FORK_Cause_is_Ready(fork);
+}
+
+@ Return the predecessor-is-ready bit for |fork_id|.
+@<Private function prototypes@> =
+gint marpa_fork_predecessor_is_ready(struct marpa_r *r, int fork_id);
+@ @<Function definitions@> =
+gint marpa_fork_predecessor_is_ready(struct marpa_r *r, int fork_id)
+{
+  FORK fork;
+  @<Return |-2| on failure@>@;
+   @<Check |r| and |fork_id|; set |fork|@>@;
+    return FORK_Predecessor_is_Ready(fork);
+}
+
+@ Return the is-cause bit for |fork_id|.
+@<Private function prototypes@> =
+gint marpa_fork_is_cause(struct marpa_r *r, int fork_id);
+@ @<Function definitions@> =
+gint marpa_fork_is_cause(struct marpa_r *r, int fork_id)
+{
+  FORK fork;
+  @<Return |-2| on failure@>@;
+   @<Check |r| and |fork_id|; set |fork|@>@;
+    return FORK_is_Cause(fork);
+}
+
+@ Return the is-predecessor bit for |fork_id|.
+@<Private function prototypes@> =
+gint marpa_fork_is_predecessor(struct marpa_r *r, int fork_id);
+@ @<Function definitions@> =
+gint marpa_fork_is_predecessor(struct marpa_r *r, int fork_id)
+{
+  FORK fork;
+  @<Return |-2| on failure@>@;
+   @<Check |r| and |fork_id|; set |fork|@>@;
+    return FORK_is_Predecessor(fork);
+}
+
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.
