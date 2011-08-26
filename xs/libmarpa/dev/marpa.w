@@ -10900,7 +10900,7 @@ int marpa_tree_new(struct marpa_r* r)
   fork = FSTACK_PUSH (tree->t_fork_stack);
     OR_of_FORK(fork) = top_or_node;
     Choice_of_FORK(fork) = choice;
-    Parent_of_FORK(fork) = NULL;
+    Parent_of_FORK(fork) = -1;
     FORK_Cause_is_Ready(fork) = 0;
     FORK_is_Cause(fork) = 0;
     FORK_Predecessor_is_Ready(fork) = 0;
@@ -11260,7 +11260,7 @@ to which the |is_and_node_in_use| bit corresponds.
 struct s_fork {
     OR t_or_node;
     gint t_choice;
-    FORK t_parent;
+    gint t_parent;
     gint t_is_cause_ready:1;
     gint t_is_predecessor_ready:1;
     gint t_is_cause_of_parent:1;
@@ -11324,6 +11324,26 @@ gint marpa_fork_choice(struct marpa_r *r, int fork_id)
   @<Return |-2| on failure@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
     return Choice_of_FORK(fork);
+}
+
+@ Return the parent fork's ID for |fork_id|.
+As with the other fork trace functions,
+-1 is returned if |fork_id| is not the ID of
+a fork on the stack,
+but -1 can also be a valid value.
+If that's an issue, the |fork_id| needs
+to be checked with one of the trace functions
+where -1 is never a valid value ---
+for example, |marpa_fork_or_node|.
+@<Private function prototypes@> =
+gint marpa_fork_parent(struct marpa_r *r, int fork_id);
+@ @<Function definitions@> =
+gint marpa_fork_parent(struct marpa_r *r, int fork_id)
+{
+  FORK fork;
+  @<Return |-2| on failure@>@;
+   @<Check |r| and |fork_id|; set |fork|@>@;
+    return Parent_of_FORK(fork);
 }
 
 @ Return the cause-is-ready bit for |fork_id|.
