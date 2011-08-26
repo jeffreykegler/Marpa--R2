@@ -11287,7 +11287,7 @@ set |fork|@> = {
       return failure_indicator;
   }
   tree = TREE_of_RANK(RANK_of_B(b));
-  if (TREE_is_Initialized(tree)) {
+  if (!TREE_is_Initialized(tree)) {
       R_ERROR("tree not initialized");
       return failure_indicator;
   }

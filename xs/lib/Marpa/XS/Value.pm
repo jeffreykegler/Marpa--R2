@@ -377,10 +377,10 @@ sub Marpa::XS::Recognizer::show_fork {
 sub Marpa::XS::Recognizer::show_tree {
     my ( $recce, $verbose ) = @_;
     my $text = q{};
-    for (my $fork_id = 0; 1; $fork_id++) {
-        my $fork_text = "$fork_id: " . $recce->show_fork( $fork_id, $verbose );
+    FORK: for (my $fork_id = 0; 1; $fork_id++) {
+        my $fork_text = $recce->show_fork( $fork_id, $verbose );
 	last FORK if not defined $fork_text;
-	$text .= $fork_text;
+	$text .= "$fork_id: $fork_text";
     }
     return $text;
 } ## end sub Marpa::XS::Recognizer::show_tree
