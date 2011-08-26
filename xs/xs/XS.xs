@@ -1746,5 +1746,112 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
+int
+fork_or_node( r_wrapper, fork_id )
+    R_Wrapper *r_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_fork_or_node(r, fork_id);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->fork_or_node(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+int
+fork_choice( r_wrapper, fork_id )
+    R_Wrapper *r_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_fork_choice(r, fork_id);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->fork_choice(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+int
+fork_parent( r_wrapper, fork_id )
+    R_Wrapper *r_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_fork_parent(r, fork_id);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->fork_parent(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+int
+fork_is_cause( r_wrapper, fork_id )
+    R_Wrapper *r_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_fork_is_cause(r, fork_id);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->fork_is_cause(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+int
+fork_cause_is_ready( r_wrapper, fork_id )
+    R_Wrapper *r_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_fork_cause_is_ready(r, fork_id);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->fork_cause_is_ready(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+
+int
+fork_is_predecessor( r_wrapper, fork_id )
+    R_Wrapper *r_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_fork_is_predecessor(r, fork_id);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->fork_is_predecessor(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+int
+fork_predecessor_is_ready( r_wrapper, fork_id )
+    R_Wrapper *r_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_fork_predecessor_is_ready(r, fork_id);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->fork_predecessor_is_ready(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+
 BOOT:
     gperl_handle_logs_for(G_LOG_DOMAIN);

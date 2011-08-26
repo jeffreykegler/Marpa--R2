@@ -384,9 +384,9 @@ S14@3-3
 L1@3 ["A"; L7@2; S13@2-3]
 END_OF_SET3
 
-my %boci_expected = ();
+my %tree_expected = ();
 
-$boci_expected{'(;a;a;a)'} = <<'END_OF_TEXT';
+$tree_expected{'(;a;a;a)'} = <<'END_OF_TEXT';
 0: o17[-] R13:1@0-3 p=ok c=ok
  o17[0]* ::= a17 R13:1@0-3C6@0
  o17[1] ::= a18 R13:1@0-3C4@0
@@ -410,7 +410,7 @@ $boci_expected{'(;a;a;a)'} = <<'END_OF_TEXT';
  o0[0]* ::= a0 R6:1@0-0S5@0
 END_OF_TEXT
 
-$boci_expected{'(a;;a;a)'} = <<'END_OF_TEXT';
+$tree_expected{'(a;;a;a)'} = <<'END_OF_TEXT';
 0: o17[-] R13:1@0-3 p=ok c=ok
  o17[0] ::= a17 R13:1@0-3C6@0
  o17[1]* ::= a18 R13:1@0-3C4@0
@@ -435,7 +435,7 @@ $boci_expected{'(a;;a;a)'} = <<'END_OF_TEXT';
  o1[0]* ::= a1 R1:1@0-1S2@0
 END_OF_TEXT
 
-$boci_expected{'(a;a;;a)'} = <<'END_OF_TEXT';
+$tree_expected{'(a;a;;a)'} = <<'END_OF_TEXT';
 0: o17[-] R13:1@0-3 p=ok c=ok
  o17[0] ::= a17 R13:1@0-3C6@0
  o17[1]* ::= a18 R13:1@0-3C4@0
@@ -461,7 +461,7 @@ $boci_expected{'(a;a;;a)'} = <<'END_OF_TEXT';
  o1[0]* ::= a1 R1:1@0-1S2@0
 END_OF_TEXT
 
-$boci_expected{'(a;a;a;)'} = <<'END_OF_TEXT';
+$tree_expected{'(a;a;a;)'} = <<'END_OF_TEXT';
 0: o17[-] R13:1@0-3 p=ok c=ok
  o17[0] ::= a17 R13:1@0-3C6@0
  o17[1]* ::= a18 R13:1@0-3C4@0
@@ -505,15 +505,18 @@ $recce->set( { max_parses => 20 } );
 
 while ( my $value_ref = $recce->value() ) {
 
-    my $bocage_iter_output = q{};
+    my $tree_output = q{};
 
     my $value = "No parse";
     if ($value_ref) {
         $value = ${$value_ref};
-        Marpa::Test::is($recce->old_show_iteration_stack(),
-            $boci_expected{$value}, qq{XS Bocage Iter (old), "$value"});
+        Marpa::Test::is($recce->old_show_tree(),
+            $tree_expected{$value}, qq{OLD Tree, "$value"});
+        Marpa::Test::is($recce->show_tree(),
+            $tree_expected{$value}, qq{Tree, "$value"});
     } else {
-        Test::More::fail('XS Bocage Iter (old)');
+        Test::More::fail('Tree (old)');
+        Test::More::fail('Tree');
     }
 
     if ( defined $expected{$value} ) {

@@ -11208,7 +11208,11 @@ The problem is that within Marpa,
 the word "node" is already heavily overloaded.
 So what most texts call "tree nodes" are here
 called "forks".
-@<Private incomplete structures@> =
+@<Public typedefs@> =
+typedef gint Marpa_Fork_ID;
+@ @<Private typedefs@> =
+typedef Marpa_Fork_ID FORKID;
+@ @<Private incomplete structures@> =
 struct s_fork;
 typedef struct s_fork* FORK;
 @ Hackery alert:
@@ -11260,7 +11264,7 @@ to which the |is_and_node_in_use| bit corresponds.
 struct s_fork {
     OR t_or_node;
     gint t_choice;
-    gint t_parent;
+    FORKID t_parent;
     gint t_is_cause_ready:1;
     gint t_is_predecessor_ready:1;
     gint t_is_cause_of_parent:1;

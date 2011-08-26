@@ -325,7 +325,67 @@ sub Marpa::XS::show_rank_ref {
     return ${$rank_ref};
 } ## end sub Marpa::XS::show_rank_ref
 
-sub Marpa::XS::Recognizer::old_show_iteration_node {
+sub Marpa::XS::Recognizer::show_fork {
+    my ( $recce, $fork_id, $verbose ) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+
+    my $or_node_id = $recce_c->fork_or_node($fork_id);
+    return if not defined $or_node_id;
+
+    my $text = "o$or_node_id";
+    my $parent = $recce_c->fork_parent($fork_id) // q{-};
+    CHILD_TYPE: {
+        if ( $recce_c->fork_is_cause($fork_id) )
+        {
+            $text .= "[c$parent]";
+            last CHILD_TYPE;
+        } ## end if ( $iteration_node->[...])
+        if ( $recce_c->fork_is_predecessor($fork_id) )
+        {
+            $text .= "[p$parent]";
+            last CHILD_TYPE;
+        } ## end if ( $iteration_node->[...])
+        $text .= '[-]';
+    } ## end CHILD_TYPE:
+    my $or_node_tag = Marpa::XS::Recognizer::or_node_tag($recce, $or_node_id);
+    $text        .= " $or_node_tag";
+
+    $text .= ' p';
+    $text .= $recce_c->fork_predecessor_is_ready($fork_id) ? '=ok' : '-';
+    $text .= ' c';
+    $text .= $recce_c->fork_cause_is_ready($fork_id) ? '=ok' : '-';
+    $text .= "\n";
+
+    DESCRIBE_CHOICES: {
+        my $this_choice = $recce_c->fork_choice($fork_id);
+	CHOICE: for (my $choice_ix = 0; ;$choice_ix++) {
+	    my $and_node_id = $recce_c->and_node_order_get($or_node_id, $choice_ix);
+	    last CHOICE if not defined $and_node_id;
+            $text .= " o$or_node_id" . '[' . $choice_ix . ']';
+	    if (defined $this_choice and $this_choice == $choice_ix) {
+		$text .= q{*};
+	    }
+            my $and_node_tag =
+		 Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id);
+            $text .= " ::= a$and_node_id $and_node_tag";
+	    $text .= "\n";
+        } ## end for my $choice_ix ( 0 .. $#{$choices} )
+    } ## end DESCRIBE_CHOICES:
+    return $text;
+} ## end sub Marpa::XS::Recognizer::show_fork
+
+sub Marpa::XS::Recognizer::show_tree {
+    my ( $recce, $verbose ) = @_;
+    my $text = q{};
+    for (my $fork_id = 0; 1; $fork_id++) {
+        my $fork_text = "$fork_id: " . $recce->show_fork( $fork_id, $verbose );
+	last FORK if not defined $fork_text;
+	$text .= $fork_text;
+    }
+    return $text;
+} ## end sub Marpa::XS::Recognizer::show_tree
+
+sub Marpa::XS::Recognizer::old_show_fork {
     my ( $recce, $iteration_node, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
 
@@ -376,9 +436,9 @@ sub Marpa::XS::Recognizer::old_show_iteration_node {
         } ## end for my $choice_ix ( 0 .. $#{$choices} )
     } ## end DESCRIBE_CHOICES:
     return $text;
-} ## end sub Marpa::XS::Recognizer::show_iteration_node
+} ## end sub Marpa::XS::Recognizer::show_fork
 
-sub Marpa::XS::Recognizer::old_show_iteration_stack {
+sub Marpa::XS::Recognizer::old_show_tree {
     my ( $recce, $verbose ) = @_;
     my $iteration_stack =
         $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK];
@@ -386,10 +446,10 @@ sub Marpa::XS::Recognizer::old_show_iteration_stack {
     for my $ix ( 0 .. $#{$iteration_stack} ) {
         my $iteration_node = $iteration_stack->[$ix];
         $text .= "$ix: "
-            . $recce->old_show_iteration_node( $iteration_node, $verbose );
+            . $recce->old_show_fork( $iteration_node, $verbose );
     }
     return $text;
-} ## end sub Marpa::XS::Recognizer::show_iteration_stack
+} ## end sub Marpa::XS::Recognizer::show_tree
 
 package Marpa::XS::Internal::Recognizer;
 our $DEFAULT_ACTION_VALUE = \undef;
