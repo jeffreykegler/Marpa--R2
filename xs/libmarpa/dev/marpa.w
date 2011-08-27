@@ -9357,6 +9357,7 @@ Position is |DUMMY_OR_NODE| for dummy or-nodes,
 Position is the dot position.
 @d DUMMY_OR_NODE -1
 @d TOKEN_OR_NODE -2
+@d OR_is_Token(or) (Type_of_OR(or) == TOKEN_OR_NODE)
 @d Position_of_OR(or) ((or)->t_final.t_position)
 @d Type_of_OR(or) ((or)->t_final.t_position)
 @d RULE_of_OR(or) ((or)->t_final.t_rule)
@@ -9768,7 +9769,7 @@ int.
 @d WHEID_of_RULEID(ruleid) (ruleid)
 @d WHEID_of_RULE(rule) WHEID_of_RULEID(ID_of_RULE(rule))
 @d WHEID_of_OR(or) (
-    wheid = (Type_of_OR(or) == TOKEN_OR_NODE) ?
+    wheid = OR_is_Token(or) ?
         WHEID_of_SYM((SYM)or) :
         WHEID_of_RULE(RULE_of_OR(or))
     )
@@ -10341,7 +10342,7 @@ gint marpa_and_node_cause(struct marpa_r *r, int and_node_id)
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
       const ORID cause_or_id =
-	Type_of_OR (cause_or) == TOKEN_OR_NODE ? -1 : ID_of_OR (cause_or);
+	OR_is_Token(cause_or) ? -1 : ID_of_OR (cause_or);
       return cause_or_id;
     }
 }
@@ -10357,7 +10358,7 @@ gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
       const SYMID symbol_id =
-	Type_of_OR (cause_or) == TOKEN_OR_NODE ? ID_of_SYM ((SYM) cause_or) : -1;
+	OR_is_Token(cause_or) ? ID_of_SYM ((SYM) cause_or) : -1;
       return symbol_id;
     }
 }
@@ -13050,9 +13051,8 @@ PRIVATE_NOT_INLINE const gchar* or_tag(OR or);
 PRIVATE_NOT_INLINE const gchar *
 or_tag_safe (gchar * buffer, OR or)
 {
-  const gint type = Type_of_OR(or);
-  if (type == DUMMY_OR_NODE) return "DUMMY";
-  if (type == TOKEN_OR_NODE) return "TOKEN";
+  if (OR_is_Token(or)) return "TOKEN";
+  if (Type_of_OR(or) == DUMMY_OR_NODE) return "DUMMY";
   sprintf (buffer, "R%d:%d@@%d-%d",
 	   ID_of_RULE(RULE_of_OR (or)), Position_of_OR (or),
 	   Origin_Ord_of_OR (or),
