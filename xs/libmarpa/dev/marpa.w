@@ -10868,18 +10868,10 @@ int marpa_tree_new(struct marpa_r* r)
     }
     if (!TREE_is_Initialized(tree))
       {
-	ORID top_or_id = Top_ORID_of_B(b);
-	OR top_or_node = OR_of_B_by_ID(b, top_or_id);
-	gint choice = 0;
-	gint and_id = and_order_get(b, top_or_node, choice);
-	/* Due to skipping, even the top or-node can have no
-	   valid choices, in which case there is no parse */
-	if (and_id < 0) {
-	   tree_exhaust(tree);
-	   return -1;
-	}
 	first_tree_of_series = 1;
-	@<Initialize the tree iterator@>@;
+	@<Initialize the tree iterator;
+	return -1 if fails
+	@>@;
       }
       while (1) {
 	 const AND ands_of_b = ANDs_of_B(b);
@@ -10897,9 +10889,14 @@ int marpa_tree_new(struct marpa_r* r)
     return 1;
 }
 
-@ @<Initialize the tree iterator@> =
+@ @<Initialize the tree iterator;
+return -1 if fails@> =
 {
+    ORID top_or_id = Top_ORID_of_B(b);
+    OR top_or_node = OR_of_B_by_ID(b, top_or_id);
+  ANDID and_id;
   FORK fork;
+  gint choice;
   const gint and_count = AND_Count_of_B (b);
   tree->t_parse_count = 0;
   FSTACK_INIT (tree->t_fork_stack, FORK_Object, and_count);
@@ -10909,6 +10906,13 @@ int marpa_tree_new(struct marpa_r* r)
 	FORK_ANDID_in_Use (FSTACK_INDEX (tree->t_fork_stack, FORK_Object, and_id))
 	  = 0;
       }
+    choice = or_node_next_choice(b, tree, top_or_node, 0);
+	/* Due to skipping, even the top or-node can have no
+	   valid choices, in which case there is no parse */
+	if (choice < 0) {
+	   tree_exhaust(tree);
+	   return -1;
+	}
   fork = FSTACK_PUSH (tree->t_fork_stack);
     OR_of_FORK(fork) = top_or_node;
     Choice_of_FORK(fork) = choice;
@@ -10963,19 +10967,31 @@ int marpa_tree_new(struct marpa_r* r)
 	    FSTACK_POP(tree->t_fork_worklist);
 	    goto NEXT_FORK_ON_WORKLIST;
 	}
-	for (choice = 0; ; choice++) {
-	    FORK and_in_use_fork;
-	    ANDID child_and_node_id = and_order_get(b, child_or_node, choice);
-	    if (child_and_node_id < 0) goto NEXT_TREE;
-	    and_in_use_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, child_and_node_id);
-	    if (FORK_ANDID_in_Use (and_in_use_fork)) continue;
-	    FORK_ANDID_in_Use (and_in_use_fork) = 1;
-	    break;
-	}
+	choice = or_node_next_choice(b, tree, child_or_node, 0);
+	if (choice < 0) goto NEXT_TREE;
 	@<Add new fork to tree@>;
 	NEXT_FORK_ON_WORKLIST: ;
     }
     NEXT_TREE: ;
+}
+
+@ @<Private function prototypes@> =
+static inline gint or_node_next_choice(BOC b, TREE tree, OR or_node, gint start_choice);
+@ @<Function definitions@> =
+static inline gint or_node_next_choice(BOC b, TREE tree, OR or_node, gint start_choice)
+{
+    gint choice = start_choice;
+    while (1) {
+	FORK and_in_use_fork;
+	ANDID and_node_id = and_order_get(b, or_node, choice);
+	if (and_node_id < 0) return -1;
+	and_in_use_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, and_node_id);
+	if (!FORK_ANDID_in_Use (and_in_use_fork)) {
+	    FORK_ANDID_in_Use (and_in_use_fork) = 1;
+	    return choice;
+	}
+	choice++;
+    }
 }
 
 @ @<Add new fork to tree@> =
