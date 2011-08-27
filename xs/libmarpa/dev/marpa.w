@@ -10888,6 +10888,9 @@ int marpa_tree_new(struct marpa_r* r)
      TREE_IS_FINISHED: ;
     tree->t_parse_count++;
     return 1;
+    TREE_IS_EXHAUSTED: ;
+   tree_exhaust(tree);
+   return -1;
 }
 
 @ @<Initialize the tree iterator;
@@ -10910,10 +10913,7 @@ return -1 if fails@> =
     choice = or_node_next_choice(b, tree, top_or_node, 0);
 	/* Due to skipping, even the top or-node can have no
 	   valid choices, in which case there is no parse */
-	if (choice < 0) {
-	   tree_exhaust(tree);
-	   return -1;
-	}
+	if (choice < 0) goto TREE_IS_EXHAUSTED;
   fork = FSTACK_PUSH (tree->t_fork_stack);
     OR_of_FORK(fork) = top_or_node;
     Choice_of_FORK(fork) = choice;
@@ -10950,6 +10950,7 @@ return -1 if fails@> =
 	work_and_node = ands_of_b + work_and_node_id;
 	if (!FORK_Cause_is_Ready(work_fork)) {
 	    child_or_node = Cause_OR_of_AND(work_and_node);
+	    if (child_or_node && OR_is_Token(child_or_node)) child_or_node = NULL;
 	    if (child_or_node) {
 		child_is_cause = 1;
 	    } else {
