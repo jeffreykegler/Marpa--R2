@@ -10960,7 +10960,7 @@ return -1 if fails@> =
 	    if (child_or_node) {
 		child_is_predecessor = 1;
 	    } else {
-		FORK_Predecessor_is_Ready(work_fork) = 1u;
+		FORK_Predecessor_is_Ready(work_fork) = 1;
 	    }
 	}
 	if (!child_or_node) {
