@@ -10878,25 +10878,33 @@ int marpa_tree_new(struct marpa_r* r)
 	   tree_exhaust(tree);
 	   return -1;
 	}
-	@<Initialize the tree@>@;
+	first_tree_of_series = 1;
+	@<Initialize the tree iterator@>@;
       }
+      while (0) {
+	 const AND ands_of_b = ANDs_of_B(b);
+         if (!first_tree_of_series) {
+	     @<Start a new iteration of the tree@>@;
+	 }
+	 first_tree_of_series = 0;
+	 @<Finish tree@>@;
+     }
     tree->t_parse_count++;
     return 1;
 }
 
-@ @<Initialize the tree@> =
+@ @<Initialize the tree iterator@> =
 {
   FORK fork;
   const gint and_count = AND_Count_of_B (b);
   tree->t_parse_count = 0;
-  first_tree_of_series = 1;
   FSTACK_INIT (tree->t_fork_stack, FORK_Object, and_count);
-  fork = FSTACK_BASE(tree->t_fork_stack, FORK_Object);
   FSTACK_INIT (tree->t_fork_worklist, gint, and_count);
-  for (and_id = 0; and_id < and_count; and_id++)
-    {
-      FORK_ANDID_in_Use (fork + and_id) = 0;
-    }
+    for (and_id = 0; and_id < and_count; and_id++)
+      {
+	FORK_ANDID_in_Use (FSTACK_INDEX (tree->t_fork_stack, FORK_Object, and_id))
+	  = 0;
+      }
   fork = FSTACK_PUSH (tree->t_fork_stack);
     OR_of_FORK(fork) = top_or_node;
     Choice_of_FORK(fork) = choice;
@@ -10906,6 +10914,79 @@ int marpa_tree_new(struct marpa_r* r)
     FORK_Predecessor_is_Ready(fork) = 0;
     FORK_is_Predecessor(fork) = 0;
   *(FSTACK_PUSH (tree->t_fork_worklist)) = 0;
+}
+
+@ @<Start a new iteration of the tree@> = {
+;
+}
+
+@ @<Finish tree@> = {
+    while (1) {
+	FORKID work_fork_id;
+	FORK work_fork;
+	ANDID work_and_node_id;
+	AND work_and_node;
+	OR work_or_node;
+	OR child_or_node;
+	gint choice;
+	gint child_is_cause = 0;
+	gint child_is_predecessor = 0;
+	work_fork_id = *FSTACK_TOP(tree->t_fork_worklist, FORKID);
+	work_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, work_fork_id);
+	work_or_node = OR_of_FORK(work_fork);
+	work_and_node_id = and_order_get(b, work_or_node, Choice_of_FORK(work_fork));
+	work_and_node = ands_of_b + work_and_node_id;
+	if (!FORK_Cause_is_Ready(work_fork)) {
+	    child_or_node = Cause_OR_of_AND(work_and_node);
+	    if (child_or_node) {
+		child_is_cause = 1;
+	    } else {
+		FORK_Cause_is_Ready(work_fork) = 1;
+	    }
+	}
+	if (!child_or_node && !FORK_Predecessor_is_Ready(work_fork)) {
+	    child_or_node = Predecessor_OR_of_AND(work_and_node);
+	    if (child_or_node) {
+		child_is_predecessor = 1;
+	    } else {
+		FORK_Predecessor_is_Ready(work_fork) = 1u;
+	    }
+	}
+	if (!child_or_node) {
+	    FSTACK_POP(tree->t_fork_worklist);
+	    goto NEXT_FORK_ON_WORKLIST;
+	}
+	for (choice = 0; ; choice++) {
+	    FORK and_in_use_fork;
+	    ANDID child_and_node_id = and_order_get(b, child_or_node, choice);
+	    if (child_and_node_id < 0) goto NEXT_TREE;
+	    and_in_use_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, child_and_node_id);
+	    if (FORK_ANDID_in_Use (and_in_use_fork)) continue;
+	    FORK_ANDID_in_Use (and_in_use_fork) = 1;
+	    break;
+	}
+	@<Add new fork to tree@>;
+	NEXT_FORK_ON_WORKLIST: ;
+    }
+    NEXT_TREE: ;
+}
+
+@ @<Add new fork to tree@> =
+{
+   FORKID new_fork_id = FSTACK_LENGTH(tree->t_fork_stack);
+   FORK new_fork = FSTACK_PUSH(tree->t_fork_stack);
+    *(FSTACK_PUSH(tree->t_fork_worklist)) = new_fork_id;
+    Parent_of_FORK(new_fork) = work_fork_id;
+    Choice_of_FORK(new_fork) = choice;
+    OR_of_FORK(new_fork) = child_or_node;
+    FORK_Cause_is_Ready(new_fork) = 0;
+    if ( ( FORK_is_Cause(new_fork) = child_is_cause ) ) {
+	FORK_Cause_is_Ready(work_fork) = 1;
+    }
+    FORK_Predecessor_is_Ready(new_fork) = 0;
+    if ( ( FORK_is_Predecessor(new_fork) = child_is_predecessor ) ) {
+	FORK_Predecessor_is_Ready(work_fork) = 1;
+    }
 }
 
 @ @<Set |b| to bocage; fail if none@> =
@@ -11265,11 +11346,11 @@ struct s_fork {
     OR t_or_node;
     gint t_choice;
     FORKID t_parent;
-    gint t_is_cause_ready:1;
-    gint t_is_predecessor_ready:1;
-    gint t_is_cause_of_parent:1;
-    gint t_is_predecessor_of_parent:1;
-    gint t_is_and_node_in_use:1;
+    unsigned int t_is_cause_ready:1;
+    unsigned int t_is_predecessor_ready:1;
+    unsigned int t_is_cause_of_parent:1;
+    unsigned int t_is_predecessor_of_parent:1;
+    unsigned int t_is_and_node_in_use:1;
 };
 typedef struct s_fork FORK_Object;
 
@@ -12064,6 +12145,10 @@ set up, in which case they can be made very fast.
 @d FSTACK_INIT(stack, type, n) (((stack).t_count = 0), ((stack).t_base = g_new(type, n)))
 @d FSTACK_SAFE(stack) ((stack).t_base = NULL)
 @d FSTACK_BASE(stack, type) ((type *)(stack).t_base)
+@d FSTACK_INDEX(this, type, ix) (FSTACK_BASE((this), type)+(ix))
+@d FSTACK_TOP(this, type) (FSTACK_LENGTH(this) <= 0
+   ? NULL
+   : FSTACK_INDEX((this), type, FSTACK_LENGTH(this)-1))
 @d FSTACK_LENGTH(stack) ((stack).t_count)
 @d FSTACK_PUSH(stack) ((stack).t_base+stack.t_count++)
 @d FSTACK_POP(stack) ((stack).t_count <= 0 ? NULL : (stack).t_base+(--(stack).t_count))

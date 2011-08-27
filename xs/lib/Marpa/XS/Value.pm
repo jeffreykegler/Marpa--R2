@@ -1683,9 +1683,6 @@ sub Marpa::XS::Recognizer::value {
                 # Due to skipping, even an initialized set of choices
                 # may be empty.  If it is, throw away the stack and iterate.
                 if (not defined $and_node_id) {
-		    $new_iteration_node
-			->[Marpa::XS::Internal::Iteration_Node::CHOICE] =
-			$new_iteration_node_choice;
 		    next ITERATION;
 		}
 
