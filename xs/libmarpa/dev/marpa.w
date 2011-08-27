@@ -10881,14 +10881,18 @@ int marpa_tree_new(struct marpa_r* r)
 	first_tree_of_series = 1;
 	@<Initialize the tree iterator@>@;
       }
-      while (0) {
+      while (1) {
 	 const AND ands_of_b = ANDs_of_B(b);
          if (!first_tree_of_series) {
+	     // temporary
+	    tree->t_parse_count++;
+	     return 1;
 	     @<Start a new iteration of the tree@>@;
 	 }
 	 first_tree_of_series = 0;
 	 @<Finish tree@>@;
      }
+     TREE_IS_FINISHED: ;
     tree->t_parse_count++;
     return 1;
 }
@@ -10922,17 +10926,20 @@ int marpa_tree_new(struct marpa_r* r)
 
 @ @<Finish tree@> = {
     while (1) {
-	FORKID work_fork_id;
+	FORKID* p_work_fork_id;
 	FORK work_fork;
 	ANDID work_and_node_id;
 	AND work_and_node;
 	OR work_or_node;
-	OR child_or_node;
+	OR child_or_node = NULL;
 	gint choice;
 	gint child_is_cause = 0;
 	gint child_is_predecessor = 0;
-	work_fork_id = *FSTACK_TOP(tree->t_fork_worklist, FORKID);
-	work_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, work_fork_id);
+	p_work_fork_id = FSTACK_TOP(tree->t_fork_worklist, FORKID);
+	if (!p_work_fork_id) {
+	    goto TREE_IS_FINISHED;
+	}
+	work_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, *p_work_fork_id);
 	work_or_node = OR_of_FORK(work_fork);
 	work_and_node_id = and_order_get(b, work_or_node, Choice_of_FORK(work_fork));
 	work_and_node = ands_of_b + work_and_node_id;
@@ -10976,7 +10983,7 @@ int marpa_tree_new(struct marpa_r* r)
    FORKID new_fork_id = FSTACK_LENGTH(tree->t_fork_stack);
    FORK new_fork = FSTACK_PUSH(tree->t_fork_stack);
     *(FSTACK_PUSH(tree->t_fork_worklist)) = new_fork_id;
-    Parent_of_FORK(new_fork) = work_fork_id;
+    Parent_of_FORK(new_fork) = *p_work_fork_id;
     Choice_of_FORK(new_fork) = choice;
     OR_of_FORK(new_fork) = child_or_node;
     FORK_Cause_is_Ready(new_fork) = 0;
