@@ -10861,12 +10861,6 @@ int marpa_tree_new(struct marpa_r* r)
     if (TREE_is_Exhausted(tree)) {
        return -1;
     }
-    /* Temporary, until the iteration logic is finished */
-    if (tree->t_parse_count > 0)
-    {
-	tree->t_parse_count++;
-        return 1;
-    }
     if (!TREE_is_Initialized(tree))
       {
 	first_tree_of_series = 1;
