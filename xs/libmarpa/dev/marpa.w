@@ -10877,9 +10877,6 @@ int marpa_tree_new(struct marpa_r* r)
       while (1) {
 	 const AND ands_of_b = ANDs_of_B(b);
          if (!first_tree_of_series) {
-	     // temporary
-	    tree->t_parse_count++;
-	     return 1;
 	     @<Start a new iteration of the tree@>@;
 	 }
 	 first_tree_of_series = 0;
@@ -10925,8 +10922,55 @@ return -1 if fails@> =
   *(FSTACK_PUSH (tree->t_fork_worklist)) = 0;
 }
 
-@ @<Start a new iteration of the tree@> = {
-;
+@ Look for a fork to iterate.
+If there is one, set it to the next choice.
+Otherwise, the tree is exhausted.
+@<Start a new iteration of the tree@> = {
+    while (1) {
+	FORK iteration_candidate = FSTACK_TOP(tree->t_fork_stack, FORK_Object);
+	gint choice = Choice_of_FORK(iteration_candidate);
+	{
+	    OR or_node = OR_of_FORK(iteration_candidate);
+	    ANDID and_node_id = and_order_get(b, or_node, choice);
+	    const FORK and_in_use_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, and_node_id);
+	    FORK_ANDID_in_Use (and_in_use_fork) = 0;
+	    choice = or_node_next_choice(b, tree, or_node, choice+1);
+	}
+	if (choice >= 0) {
+	    /* We have found a fork we can iterate.
+		Dirty the child bits in the current working fork,
+		and break out of the loop.
+	    */
+	    FORK_Cause_is_Ready(iteration_candidate) = 0;
+	    FORK_Predecessor_is_Ready(iteration_candidate) = 0;
+	    break;
+	}
+	{
+	    /* Dirty the corresponding bit in the parent */
+	    const gint parent_fork_ix = Parent_of_FORK(iteration_candidate);
+	    if (parent_fork_ix >= 0) {
+		FORK parent_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, parent_fork_ix);
+		if (FORK_is_Cause(iteration_candidate)) {
+		    FORK_Cause_is_Ready(parent_fork) = 0;
+		}
+		if (FORK_is_Predecessor(iteration_candidate)) {
+		    FORK_Predecessor_is_Ready(parent_fork) = 0;
+		}
+	    }
+
+	    /* Continue with the next item on the stack */
+	    FSTACK_POP(tree->t_fork_stack);
+	}
+    }
+    {
+	gint stack_length = FSTACK_LENGTH(tree->t_fork_stack);
+	gint i;
+	if (stack_length <= 0) goto TREE_IS_EXHAUSTED;
+	FSTACK_CLEAR(tree->t_fork_worklist);
+	for (i = 0; i < stack_length; i++) {
+	    *(FSTACK_PUSH(tree->t_fork_worklist)) = i;
+	}
+    }
 }
 
 @ @<Finish tree@> = {
@@ -12167,7 +12211,8 @@ when compared to hand-written code.
 Often a reasonable maximum size is known when they are
 set up, in which case they can be made very fast.
 @d FSTACK_DECLARE(stack, type) struct { gint t_count; type* t_base; } stack;
-@d FSTACK_INIT(stack, type, n) (((stack).t_count = 0), ((stack).t_base = g_new(type, n)))
+@d FSTACK_CLEAR(stack) ((stack).t_count = 0)
+@d FSTACK_INIT(stack, type, n) (FSTACK_CLEAR(stack), ((stack).t_base = g_new(type, n)))
 @d FSTACK_SAFE(stack) ((stack).t_base = NULL)
 @d FSTACK_BASE(stack, type) ((type *)(stack).t_base)
 @d FSTACK_INDEX(this, type, ix) (FSTACK_BASE((this), type)+(ix))
