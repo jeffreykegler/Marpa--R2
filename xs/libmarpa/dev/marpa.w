@@ -10922,7 +10922,9 @@ Otherwise, the tree is exhausted.
 @<Start a new iteration of the tree@> = {
     while (1) {
 	FORK iteration_candidate = FSTACK_TOP(tree->t_fork_stack, FORK_Object);
-	gint choice = Choice_of_FORK(iteration_candidate);
+	gint choice;
+	if (!iteration_candidate) break;
+	choice = Choice_of_FORK(iteration_candidate);
 	{
 	    OR or_node = OR_of_FORK(iteration_candidate);
 	    ANDID and_node_id = and_order_get(b, or_node, choice);

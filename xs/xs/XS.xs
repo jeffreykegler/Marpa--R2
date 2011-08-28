@@ -1726,6 +1726,7 @@ PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int status;
     status = marpa_tree_new(r);
+    if (status == -1) { XSRETURN_UNDEF; }
     if (status < 0) {
       croak ("Problem in r->tree_new(): %s", marpa_r_error (r));
     }
