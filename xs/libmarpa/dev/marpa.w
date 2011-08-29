@@ -10964,9 +10964,11 @@ Otherwise, the tree is exhausted.
 	}
 	if (choice >= 0) {
 	    /* We have found a fork we can iterate.
-		Dirty the child bits in the current working fork,
+	        Set the new choice,
+		dirty the child bits in the current working fork,
 		and break out of the loop.
 	    */
+	    Choice_of_FORK(iteration_candidate) = choice;
 	    FORK_Cause_is_Ready(iteration_candidate) = 0;
 	    FORK_Predecessor_is_Ready(iteration_candidate) = 0;
 	    break;
