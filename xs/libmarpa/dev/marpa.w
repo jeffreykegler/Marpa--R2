@@ -10889,6 +10889,35 @@ int marpa_tree_new(struct marpa_r* r)
    return -1;
 }
 
+@*0 Claiming and Releasing And-nodes.
+To avoid cycles, the same and node is not allowed to occur twice
+in the parse tree.
+A bit vector, accessed by these functions, enforces this.
+@<Private function prototypes@> =
+static inline void tree_and_node_claim(TREE tree, ANDID and_node_id);
+static inline void tree_and_node_release(TREE tree, ANDID and_node_id);
+static inline gint tree_and_node_try(TREE tree, ANDID and_node_id);
+@ Claim the and-node by setting its bit.
+@<Function definitions@> =
+static inline void tree_and_node_claim(TREE tree, ANDID and_node_id)
+{
+    bv_bit_set(tree->t_and_node_in_use, and_node_id);
+}
+@ Release the and-node by unsetting its bit.
+@<Function definitions@> =
+static inline void tree_and_node_release(TREE tree, ANDID and_node_id)
+{
+    bv_bit_clear(tree->t_and_node_in_use, and_node_id);
+}
+@ Try to claim the and-node.
+If it was already claimed, return 0, otherwise claim it (that is,
+set the bit) and return 1.
+@<Function definitions@> =
+static inline gint tree_and_node_try(TREE tree, ANDID and_node_id)
+{
+    return !bv_bit_test_and_set(tree->t_and_node_in_use, and_node_id);
+}
+
 @ @<Initialize the tree iterator;
 return -1 if fails@> =
 {
@@ -10902,11 +10931,6 @@ return -1 if fails@> =
     tree->t_and_node_in_use = bv_create ((guint) and_count);
   FSTACK_INIT (tree->t_fork_stack, FORK_Object, and_count);
   FSTACK_INIT (tree->t_fork_worklist, gint, and_count);
-    for (and_id = 0; and_id < and_count; and_id++)
-      {
-	FORK_ANDID_in_Use (FSTACK_INDEX (tree->t_fork_stack, FORK_Object, and_id))
-	  = 0;
-      }
     choice = or_node_next_choice(b, tree, top_or_node, 0);
 	/* Due to skipping, even the top or-node can have no
 	   valid choices, in which case there is no parse */
@@ -10931,11 +10955,11 @@ Otherwise, the tree is exhausted.
 	gint choice;
 	if (!iteration_candidate) break;
 	choice = Choice_of_FORK(iteration_candidate);
+	MARPA_ASSERT(choice >= 0);
 	{
 	    OR or_node = OR_of_FORK(iteration_candidate);
 	    ANDID and_node_id = and_order_get(b, or_node, choice);
-	    const FORK and_in_use_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, and_node_id);
-	    FORK_ANDID_in_Use (and_in_use_fork) = 0;
+	    tree_and_node_release(tree, and_node_id);
 	    choice = or_node_next_choice(b, tree, or_node, choice+1);
 	}
 	if (choice >= 0) {
@@ -11030,16 +11054,12 @@ static inline gint or_node_next_choice(BOC b, TREE tree, OR or_node, gint start_
 {
     gint choice = start_choice;
     while (1) {
-	FORK and_in_use_fork;
 	ANDID and_node_id = and_order_get(b, or_node, choice);
 	if (and_node_id < 0) return -1;
-	and_in_use_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, and_node_id);
-	if (!FORK_ANDID_in_Use (and_in_use_fork)) {
-	    FORK_ANDID_in_Use (and_in_use_fork) = 1;
-	    return choice;
-	}
+	if (tree_and_node_try(tree, and_node_id)) return choice;
 	choice++;
     }
+    return -1;
 }
 
 @ @<Add new fork to tree@> =
@@ -11369,51 +11389,13 @@ typedef Marpa_Fork_ID FORKID;
 @<Private incomplete structures@> =
 struct s_fork;
 typedef struct s_fork* FORK;
-@ Hackery alert:
-The FORK has a second data structure folded into it,
-one which whose index has a different semantics.
-For the |is_and_node_in_use| field, the index of the |FORK|
-is an and-node ID.
-For all other fields, the index is a position in the bocage
-iteration stack (|TREE|).
-\par
-Usually if the semantics of the index is completely different,
-it makes sense to use two different data structures.
-(Some reasonable people might insist that,
-the arguments in this section to the contrary notwithstanding,
-this is one of those cases.)
-Typically, the |is_and_node_in_use| bits would be put
-into their own bit vector.
-\par
-How do I justify this hackishness?
-First, and least importantly,
-both structures have the same size -- the and-node count.
-The |FORK| has used many unused bits so the space for the
-|is_and_in_use| field comes free when the two structures
-are combined.
-Second and more importantly,
-while the two structures have exactly
-the same lifetimes ---
-they need to be allocated and deallocated together.
-Because they are combined into one structure,
-this happens automatically.
-\par
-I confess that
-this hackery is not without its potential to confuse.
-In particular, for every |FORK| structure,
-two different and-nodes are of significance.
-Each |FORK|, viewed as an element
-of a |TREE| has an and-node associated with it.
-This and-node is almost {\bf never} the same as the and-node
-to which the |is_and_node_in_use| bit corresponds.
-@d OR_of_FORK(fork) ((fork)->t_or_node)
+@ @d OR_of_FORK(fork) ((fork)->t_or_node)
 @d Choice_of_FORK(fork) ((fork)->t_choice)
 @d Parent_of_FORK(fork) ((fork)->t_parent)
 @d FORK_Cause_is_Ready(fork) ((fork)->t_is_cause_ready)
 @d FORK_is_Cause(fork) ((fork)->t_is_cause_of_parent)
 @d FORK_Predecessor_is_Ready(fork) ((fork)->t_is_predecessor_ready)
 @d FORK_is_Predecessor(fork) ((fork)->t_is_predecessor_of_parent)
-@d FORK_ANDID_in_Use(fork) ((fork)->t_is_and_node_in_use)
 @s FORK_Object int
 @<FORK structure@> =
 struct s_fork {
@@ -11424,13 +11406,12 @@ struct s_fork {
     unsigned int t_is_predecessor_ready:1;
     unsigned int t_is_cause_of_parent:1;
     unsigned int t_is_predecessor_of_parent:1;
-    unsigned int t_is_and_node_in_use:1;
 };
 typedef struct s_fork FORK_Object;
 
 @*0 Trace Functions.
 
-@ This is common logic in the or-node trace functions.
+@ This is common logic in the |FORK| trace functions.
 @<Check |r| and |fork_id|;
 set |fork|@> = {
   FORK base_fork;
