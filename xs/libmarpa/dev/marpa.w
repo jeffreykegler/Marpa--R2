@@ -10789,9 +10789,8 @@ Within Marpa,
 when it makes sense in context,
 "tree" means a parse tree.
 Trees are, of course, a very common data structure,
-and are used for all sorts of things, even
-within Marpa.
-But the most important trees in the Marpa universe
+and are used for all sorts of things.
+But the most important trees in Marpa's universe
 are its parse trees.
 \par
 Marpa's parse trees are produced by iterating
@@ -10814,6 +10813,7 @@ it is exhausted.
 struct s_tree {
     FSTACK_DECLARE(t_fork_stack, FORK_Object)@;
     FSTACK_DECLARE(t_fork_worklist, gint)@;
+    Bit_Vector t_and_node_in_use;
     gint t_parse_count;
 };
 typedef struct s_tree TREE_Object;
@@ -10833,6 +10833,10 @@ static inline void tree_exhaust(TREE tree)
       FSTACK_DESTROY(tree->t_fork_worklist);
       FSTACK_SAFE(tree->t_fork_worklist);
     }
+    if (tree->t_and_node_in_use) {
+	  bv_free (tree->t_and_node_in_use);
+	tree->t_and_node_in_use = NULL;
+    }
 }
 
 @ @<Private function prototypes@> =
@@ -10842,6 +10846,7 @@ static inline void tree_safe(TREE tree)
 {
     FSTACK_SAFE(tree->t_fork_stack);
     FSTACK_SAFE(tree->t_fork_worklist);
+    tree->t_and_node_in_use = NULL;
     tree->t_parse_count = -1;
 MARPA_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
 }
@@ -10874,7 +10879,7 @@ int marpa_tree_new(struct marpa_r* r)
 	     @<Start a new iteration of the tree@>@;
 	 }
 	 first_tree_of_series = 0;
-	 @<Finish tree@>@;
+	 @<Finish tree if possible@>@;
      }
      TREE_IS_FINISHED: ;
     tree->t_parse_count++;
@@ -10894,6 +10899,7 @@ return -1 if fails@> =
   gint choice;
   const gint and_count = AND_Count_of_B (b);
   tree->t_parse_count = 0;
+    tree->t_and_node_in_use = bv_create ((guint) and_count);
   FSTACK_INIT (tree->t_fork_stack, FORK_Object, and_count);
   FSTACK_INIT (tree->t_fork_worklist, gint, and_count);
     for (and_id = 0; and_id < and_count; and_id++)
@@ -10969,7 +10975,7 @@ Otherwise, the tree is exhausted.
     }
 }
 
-@ @<Finish tree@> = {
+@ @<Finish tree if possible@> = {
     while (1) {
 	FORKID* p_work_fork_id;
 	FORK work_fork;
@@ -11159,7 +11165,7 @@ static inline void rank_destroy(RANK rank)
 An obstack with the lifetime of the bocage ranker.
 
 @*0 Set the Order of And-nodes.
-@ This function
+This function
 sets the order in which the and-nodes of an
 or-node are used.
 It is an error if an and-node ID is not the 
@@ -11174,9 +11180,10 @@ gint marpa_and_order_set(struct marpa_r *r,
     gint length);
 @ For a given bocage,
 this function may not be used to order
-the same or-node more than once ---
-in other words, once you order an or-node,
-it cannot be changed.
+the same or-node more than once.
+In other words, after you have once specified an order
+for the and-nodes within an or-node,
+you cannot change it.
 Some applications might find this inconvenient,
 and will have to resort to their own buffering
 to prevent multiple changes.
@@ -11358,7 +11365,8 @@ called "forks".
 typedef gint Marpa_Fork_ID;
 @ @<Private typedefs@> =
 typedef Marpa_Fork_ID FORKID;
-@ @<Private incomplete structures@> =
+@ @s FORK int
+@<Private incomplete structures@> =
 struct s_fork;
 typedef struct s_fork* FORK;
 @ Hackery alert:
@@ -11406,6 +11414,7 @@ to which the |is_and_node_in_use| bit corresponds.
 @d FORK_Predecessor_is_Ready(fork) ((fork)->t_is_predecessor_ready)
 @d FORK_is_Predecessor(fork) ((fork)->t_is_predecessor_of_parent)
 @d FORK_ANDID_in_Use(fork) ((fork)->t_is_and_node_in_use)
+@s FORK_Object int
 @<FORK structure@> =
 struct s_fork {
     OR t_or_node;
