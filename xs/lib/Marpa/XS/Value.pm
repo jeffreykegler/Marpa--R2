@@ -1232,8 +1232,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 sub Marpa::XS::Recognizer::value {
     my ( $recce, @arg_hashes ) = @_;
 
-    Marpa::XS::Internal::Recognizer::update_earleme_map($recce);
-
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
 
     my $parse_set_arg = $recce->[Marpa::XS::Internal::Recognizer::END];
