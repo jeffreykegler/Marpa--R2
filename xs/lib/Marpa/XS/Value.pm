@@ -1021,7 +1021,7 @@ sub do_rank_all {
 
 # Does not modify stack
 sub Marpa::XS::Internal::Recognizer::evaluate {
-    my ( $recce, $iteration_stack ) = @_;
+    my ( $recce ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
     my $token_values = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
@@ -1083,10 +1083,11 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
     my @evaluation_stack   = ();
     my @virtual_rule_stack = ();
-    TREE_NODE: for my $iteration_node (reverse @{$iteration_stack}) {
+    TREE_NODE: for (my $fork_ix = $recce_c->tree_size() - 1; $fork_ix >= 0; $fork_ix--) {
 
-	my $parent_or_node_id = $iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID];
-	my $choice = $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICE];
+	my $parent_or_node_id = $recce_c->fork_or_node($fork_ix);
+	my $choice = $recce_c->fork_choice($fork_ix);
+
         my $and_node_id = $recce_c->and_node_order_get($parent_or_node_id, $choice);
 
         if ( $trace_values >= 3 ) {
@@ -1747,7 +1748,7 @@ sub Marpa::XS::Recognizer::value {
     }
 
     $recce_c->tree_new();
-    return Marpa::XS::Internal::Recognizer::evaluate( $recce, $iteration_stack );
+    return Marpa::XS::Internal::Recognizer::evaluate( $recce );
 
 } ## end sub Marpa::XS::Recognizer::value
 
