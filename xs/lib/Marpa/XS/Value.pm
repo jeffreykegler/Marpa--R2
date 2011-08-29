@@ -30,40 +30,6 @@ no warnings qw(qw);
 BEGIN {
 my $structure = <<'END_OF_STRUCTURE';
 
-    :package=Marpa::XS::Internal::And_Node
-
-    ID
-
-    INITIAL_RANK_REF
-
-    =LAST_FIELD
-
-END_OF_STRUCTURE
-    Marpa::offset($structure);
-} ## end BEGIN
-
-BEGIN {
-my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::XS::Internal::Iteration_Node
-
-    OR_NODE_ID { The or-node }
-    CHOICE { The current choice }
-    PARENT { Offset of the parent in the iterations stack }
-
-    IS_CAUSE_READY
-    IS_PREDECESSOR_READY
-
-    IS_PREDECESSOR_OF_PARENT
-    IS_CAUSE_OF_PARENT
-
-END_OF_STRUCTURE
-    Marpa::offset($structure);
-} ## end BEGIN
-
-BEGIN {
-my $structure = <<'END_OF_STRUCTURE';
-
     :package=Marpa::XS::Internal::Op
 
     :{ These are the valuation-time ops }
@@ -290,33 +256,6 @@ sub Marpa::XS::Recognizer::show_or_nodes {
     } @data;
     return (join "\n", @sorted_data) . "\n";;
 }
-
-# Not tested and not in test suite.
-sub Marpa::XS::old_brief_iteration_node {
-    my ($recce, $iteration_node) = @_;
-    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
-
-    my $or_node_id =
-        $iteration_node->[Marpa::XS::Internal::Iteration_Node::OR_NODE_ID];
-    my $text         = "o$or_node_id";
-    DESCRIBE_CHOICES: {
-        my $choice =
-            $iteration_node->[Marpa::XS::Internal::Iteration_Node::CHOICE];
-        if ( not defined $choice ) {
-            $text .= ' Choices not initialized';
-            last DESCRIBE_CHOICES;
-        }
-        my $and_node_id = $recce_c->and_node_order_get($or_node_id, $choice);
-        if ( defined $choice ) {
-            $text .= " [$choice] == a" . $and_node_id;
-            last DESCRIBE_CHOICES;
-        } ## end if ( defined $choice )
-        $text .= "o$or_node_id has no choices left";
-    } ## end DESCRIBE_CHOICES:
-    my $parent_ix = $iteration_node->[Marpa::XS::Internal::Iteration_Node::PARENT];
-    $parent_ix = q{-} if $parent_ix < 0;
-    return "$text; p=$parent_ix";
-} ## end sub Marpa::XS::brief_iteration_node
 
 sub Marpa::XS::show_rank_ref {
     my ($rank_ref) = @_;
