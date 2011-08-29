@@ -954,8 +954,11 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
     $action_object //= {};
 
-    my @evaluation_stack   = ();
-    my @virtual_rule_stack = ();
+    my $evaluation_stack =
+        $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK];
+    my $virtual_evaluation_stack =
+        $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK];
+
     TREE_NODE: for (my $fork_ix = $recce_c->tree_size() - 1; $fork_ix >= 0; $fork_ix--) {
 
 	my $parent_or_node_id = $recce_c->fork_or_node($fork_ix);
@@ -964,15 +967,15 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         my $and_node_id = $recce_c->and_node_order_get($parent_or_node_id, $choice);
 
         if ( $trace_values >= 3 ) {
-            for my $i ( reverse 0 .. $#evaluation_stack ) {
+            for my $i ( reverse 0 .. $#{$evaluation_stack} ) {
                 printf {$Marpa::XS::Internal::TRACE_FH} 'Stack position %3d:',
                     $i
                     or Marpa::exception('print to trace handle failed');
                 print {$Marpa::XS::Internal::TRACE_FH} q{ },
-                    Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
+                    Data::Dumper->new( [ $evaluation_stack->[$i] ] )->Terse(1)
                     ->Dump
                     or Marpa::exception('print to trace handle failed');
-            } ## end for my $i ( reverse 0 .. $#evaluation_stack )
+            } ## end for my $i ( reverse 0 .. $#${evaluation_stack} )
         } ## end if ( $trace_values >= 3 )
 
 	my $value_ref;
@@ -1002,7 +1005,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
         if ( defined $value_ref ) {
 
-            push @evaluation_stack, $value_ref;
+            push @{$evaluation_stack}, $value_ref;
 
             if ($trace_values) {
                 my $token_name;
@@ -1057,7 +1060,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                     $current_data =
                         [ map { ${$_} }
-                            ( splice @evaluation_stack, -$argc ) ];
+                            ( splice @{$evaluation_stack}, -$argc ) ];
 
                 } ## end when (Marpa::XS::Internal::Op::ARGC)
 
@@ -1073,16 +1076,16 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             "\n",
                             "Incrementing virtual rule by $real_symbol_count symbols\n",
                             'Currently ',
-                            ( scalar @virtual_rule_stack ),
-                            ' rules; ', $virtual_rule_stack[-1], ' symbols;',
+                            ( scalar @{$virtual_evaluation_stack} ),
+                            ' rules; ', $virtual_evaluation_stack->[-1], ' symbols;',
                             or Marpa::exception(
                             'Could not print to trace file');
                     } ## end if ($trace_values)
 
-                    $real_symbol_count += pop @virtual_rule_stack;
+                    $real_symbol_count += pop @{$virtual_evaluation_stack};
                     $current_data =
                         [ map { ${$_} }
-                            ( splice @evaluation_stack, -$real_symbol_count )
+                            ( splice @{$evaluation_stack}, -$real_symbol_count )
                         ];
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_HEAD)
@@ -1097,30 +1100,30 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 			    Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id),
                             ', rule: ', $grammar->brief_rule($rule_id),
                             "\nAdding $real_symbol_count symbols; currently ",
-                            ( scalar @virtual_rule_stack ),
-                            ' rules; ', $virtual_rule_stack[-1], ' symbols'
+                            ( scalar @{$virtual_evaluation_stack} ),
+                            ' rules; ', $virtual_evaluation_stack->[-1], ' symbols'
                             or Marpa::exception(
                             'Could not print to trace file');
                     } ## end if ($trace_values)
 
-                    $real_symbol_count += pop @virtual_rule_stack;
+                    $real_symbol_count += pop @{$virtual_evaluation_stack};
                     my $base =
-                        ( scalar @evaluation_stack ) - $real_symbol_count;
+                        ( scalar @{$evaluation_stack} ) - $real_symbol_count;
                     $current_data = [
-                        map { ${$_} } @evaluation_stack[
+                        map { ${$_} } @{$evaluation_stack}[
                             map { $base + 2 * $_ }
                             ( 0 .. ( $real_symbol_count + 1 ) / 2 - 1 )
                         ]
                     ];
 
                     # truncate the evaluation stack
-                    $#evaluation_stack = $base - 1;
+                    $#{$evaluation_stack} = $base - 1;
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP)
 
                 when (Marpa::XS::Internal::Op::VIRTUAL_KERNEL) {
                     my $real_symbol_count = $ops->[ $op_ix++ ];
-                    $virtual_rule_stack[-1] += $real_symbol_count;
+                    $virtual_evaluation_stack->[-1] += $real_symbol_count;
 
                     if ($trace_values) {
 			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
@@ -1129,8 +1132,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id),
                             ', rule: ', $grammar->brief_rule($rule_id),
                             "\nAdding $real_symbol_count, now ",
-                            ( scalar @virtual_rule_stack ),
-                            ' rules; ', $virtual_rule_stack[-1], ' symbols'
+                            ( scalar @{$virtual_evaluation_stack} ),
+                            ' rules; ', $virtual_evaluation_stack->[-1], ' symbols'
                             or Marpa::exception(
                             'Could not print to trace file');
                     } ## end if ($trace_values)
@@ -1147,12 +1150,12 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id),
                             ', rule: ', $grammar->brief_rule($rule_id),
                             "\nSymbol count is $real_symbol_count, now ",
-                            ( scalar @virtual_rule_stack + 1 ), ' rules',
+                            ( scalar @{$virtual_evaluation_stack} + 1 ), ' rules',
                             or Marpa::exception(
                             'Could not print to trace file');
                     } ## end if ($trace_values)
 
-                    push @virtual_rule_stack, $real_symbol_count;
+                    push @{$virtual_evaluation_stack}, $real_symbol_count;
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_TAIL)
 
@@ -1166,7 +1169,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             or Marpa::exception(
                             'Could not print to trace file');
                     } ## end if ($trace_values)
-                    push @evaluation_stack, $result;
+                    push @{$evaluation_stack}, $result;
                 } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
 
                 when (Marpa::XS::Internal::Op::CALL) {
@@ -1212,7 +1215,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             'print to trace handle failed');
                     } ## end if ($trace_values)
 
-                    push @evaluation_stack, \$result;
+                    push @{$evaluation_stack}, \$result;
 
                 } ## end when (Marpa::XS::Internal::Op::CALL)
 
@@ -1225,7 +1228,10 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
     }    # TREE_NODE
 
-    return pop @evaluation_stack;
+    my $top_value = pop @{$evaluation_stack};
+
+    return $top_value;
+
 } ## end sub Marpa::XS::Internal::Recognizer::evaluate
 
 # Returns false if no parse
