@@ -10901,13 +10901,13 @@ static inline gint tree_and_node_try(TREE tree, ANDID and_node_id);
 @<Function definitions@> =
 static inline void tree_and_node_claim(TREE tree, ANDID and_node_id)
 {
-    bv_bit_set(tree->t_and_node_in_use, and_node_id);
+    bv_bit_set(tree->t_and_node_in_use, (guint)and_node_id);
 }
 @ Release the and-node by unsetting its bit.
 @<Function definitions@> =
 static inline void tree_and_node_release(TREE tree, ANDID and_node_id)
 {
-    bv_bit_clear(tree->t_and_node_in_use, and_node_id);
+    bv_bit_clear(tree->t_and_node_in_use, (guint)and_node_id);
 }
 @ Try to claim the and-node.
 If it was already claimed, return 0, otherwise claim it (that is,
@@ -10915,7 +10915,7 @@ set the bit) and return 1.
 @<Function definitions@> =
 static inline gint tree_and_node_try(TREE tree, ANDID and_node_id)
 {
-    return !bv_bit_test_and_set(tree->t_and_node_in_use, and_node_id);
+    return !bv_bit_test_and_set(tree->t_and_node_in_use, (guint)and_node_id);
 }
 
 @ @<Initialize the tree iterator;
@@ -10923,7 +10923,6 @@ return -1 if fails@> =
 {
     ORID top_or_id = Top_ORID_of_B(b);
     OR top_or_node = OR_of_B_by_ID(b, top_or_id);
-  ANDID and_id;
   FORK fork;
   gint choice;
   const gint and_count = AND_Count_of_B (b);
