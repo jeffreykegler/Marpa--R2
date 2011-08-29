@@ -510,12 +510,9 @@ while ( my $value_ref = $recce->value() ) {
     my $value = "No parse";
     if ($value_ref) {
         $value = ${$value_ref};
-        Marpa::Test::is($recce->old_show_tree(),
-            $tree_expected{$value}, qq{OLD Tree, "$value"});
         Marpa::Test::is($recce->show_tree(),
             $tree_expected{$value}, qq{Tree, "$value"});
     } else {
-        Test::More::fail('Tree (old)');
         Test::More::fail('Tree');
     }
 

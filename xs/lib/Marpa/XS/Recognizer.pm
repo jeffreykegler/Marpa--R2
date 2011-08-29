@@ -69,10 +69,6 @@ my $structure = <<'END_OF_STRUCTURE';
     evaluation is reset }
 
     SINGLE_PARSE_MODE
-
-    ITERATION_STACK
-    AND_NODE_IN_USE
-
     EVALUATOR_RULES
 
     { This is the end of the list of fields which
@@ -278,8 +274,6 @@ sub Marpa::XS::Recognizer::reset_evaluation {
 	Marpa::exception("eval_clear() failed\n");
     }
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
-    $recce->[Marpa::XS::Internal::Recognizer::ITERATION_STACK]   = [];
-    $recce->[Marpa::XS::Internal::Recognizer::AND_NODE_IN_USE]   = [];
     $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES]   = [];
     return;
 } ## end sub Marpa::XS::Recognizer::reset_evaluation
