@@ -1748,6 +1748,20 @@ PPCODE:
     }
 
 int
+tree_size( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int result;
+    result = marpa_tree_size(r);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in r->tree_size(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+int
 fork_or_node( r_wrapper, fork_id )
     R_Wrapper *r_wrapper;
     Marpa_Fork_ID fork_id;

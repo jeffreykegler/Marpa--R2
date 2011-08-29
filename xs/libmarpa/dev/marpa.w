@@ -11122,6 +11122,35 @@ MARPA_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
     return tree->t_parse_count;
 }
 
+@ Return the size of the parse tree.
+This is the number of |FORK| entries in its stack.
+If there is a serioius error,
+or if the tree is uninitialized, return -2.
+If the tree is exhausted, return -1.
+@<Private function prototypes@> =
+gint marpa_tree_size(struct marpa_r *r);
+@ @<Function definitions@> =
+gint marpa_tree_size(struct marpa_r *r)
+{
+  @<Return |-2| on failure@>@;
+  BOC b = B_of_R(r);
+  TREE tree;
+  @<Fail if recognizer has fatal error@>@;
+  if (!b) {
+      R_ERROR("no bocage");
+      return failure_indicator;
+  }
+  tree = TREE_of_RANK(RANK_of_B(b));
+  if (!TREE_is_Initialized(tree)) {
+      R_ERROR("tree not initialized");
+      return failure_indicator;
+  }
+  if (TREE_is_Exhausted(tree)) {
+      return -1;
+  }
+  return FSTACK_LENGTH(tree->t_fork_stack);
+}
+
 @** Bocage Ranking (RANK) Code.
 @<Private incomplete structures@> =
 struct s_bocage_rank;
