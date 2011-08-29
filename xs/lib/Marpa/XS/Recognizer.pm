@@ -70,6 +70,10 @@ my $structure = <<'END_OF_STRUCTURE';
 
     SINGLE_PARSE_MODE
     EVALUATOR_RULES
+    EVAL_STACK
+    EVAL_TOS
+    VEVAL_STACK
+    VEVAL_TOS
 
     { This is the end of the list of fields which
     must be reinitialized when evaluation is reset }
@@ -259,6 +263,10 @@ sub Marpa::XS::Recognizer::reset_evaluation {
     }
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
     $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES]   = [];
+    $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK] = [];
+    $recce->[Marpa::XS::Internal::Recognizer::EVAL_TOS] = 0;
+    $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = [];
+    $recce->[Marpa::XS::Internal::Recognizer::VEVAL_TOS] = 0;
     return;
 } ## end sub Marpa::XS::Recognizer::reset_evaluation
 

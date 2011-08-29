@@ -1239,10 +1239,6 @@ sub Marpa::XS::Recognizer::value {
     local $Marpa::XS::Internal::TRACE_FH =
         $recce->[Marpa::XS::Internal::Recognizer::TRACE_FILE_HANDLE];
 
-    my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
-    my $ranking_method =
-        $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD];
-
     if ( $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] ) {
         Marpa::exception(
             qq{Arguments were passed directly to value() in a previous call\n},
@@ -1317,11 +1313,6 @@ sub Marpa::XS::Recognizer::value {
 
     } ## end for my $arg_hash (@arg_hashes)
 
-    my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $grammar_c     = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-    my $rules   = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-
     my $furthest_earleme = $recce_c->furthest_earleme();
     my $last_completed_earleme = $recce_c->current_earleme();
     Marpa::exception(
@@ -1330,24 +1321,16 @@ sub Marpa::XS::Recognizer::value {
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
 
-    my $evaluator_rules;
-    my $initial_pass = 0;
-
     my $top_or_node_id;
     if ( not $parse_count ) {
 
-	$initial_pass = 1;
-
-        # Perhaps this call should be moved.
-        # The null values are currently a function of the grammar,
-        # and should be constant for the life of a recognizer.
-        my $null_values =
-            $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES] //=
-            Marpa::XS::Internal::Recognizer::set_null_values($recce);
-
-        $evaluator_rules =
-            $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] =
-            Marpa::XS::Internal::Recognizer::set_actions($recce);
+	# Perhaps this call should be moved.
+	# The null values are currently a function of the grammar,
+	# and should be constant for the life of a recognizer.
+	$recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES] //=
+	    Marpa::XS::Internal::Recognizer::set_null_values($recce);
+	$recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] =
+	    Marpa::XS::Internal::Recognizer::set_actions($recce);
 
         $recce_c->eval_clear();
         $top_or_node_id =
@@ -1356,15 +1339,11 @@ sub Marpa::XS::Recognizer::value {
             Marpa::exception(qq{libmarpa's marpa_value() call failed\n});
         }
 
-        if ( $ranking_method eq 'constant' ) {
-            do_rank_all($recce);
-        } ## end if ( $ranking_method eq 'constant' )
-
-    } else {
-
-        # Not the first parse of a parse series
-	$evaluator_rules =
-	    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
+	if ( $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] eq
+	    'constant' )
+	{
+	    do_rank_all($recce);
+	}
 
     }
 
