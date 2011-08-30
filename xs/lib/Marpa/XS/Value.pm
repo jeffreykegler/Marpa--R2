@@ -27,21 +27,6 @@ use English qw( -no_match_vars );
 no warnings qw(qw);
 ## use critic
 
-BEGIN {
-my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::XS::Internal::Op
-
-    :{ These are the valuation-time ops }
-    ARGC
-    VIRTUAL_HEAD
-    VIRTUAL_KERNEL
-    VIRTUAL_TAIL
-
-END_OF_STRUCTURE
-    Marpa::offset($structure);
-} ## end BEGIN
-
 use constant SKIP => -1;
 
 use warnings;
@@ -449,7 +434,6 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
     my $default_action =
         $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_ACTION];
 
-    my $evaluator_rules = [];
     my $rule_closures = [];
     my $rule_constants = [];
 
@@ -467,34 +451,6 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
         my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
         next RULE if not $grammar_c->rule_is_used($rule_id);
-
-        my $ops = $evaluator_rules->[$rule_id] = [];
-
-        my $virtual_rhs = $grammar_c->rule_is_virtual_rhs($rule_id);
-        my $virtual_lhs = $grammar_c->rule_is_virtual_lhs($rule_id);
-
-        if ($virtual_lhs) {
-            push @{$ops},
-                (
-                $virtual_rhs
-                ? Marpa::XS::Internal::Op::VIRTUAL_KERNEL
-                : Marpa::XS::Internal::Op::VIRTUAL_TAIL
-                ),
-                $grammar_c->real_symbol_count($rule_id);
-            next RULE;
-        } ## end if ($virtual_lhs)
-
-        # If we are here the LHS is real, not virtual
-
-        if ($virtual_rhs) {
-            push @{$ops},
-                Marpa::XS::Internal::Op::VIRTUAL_HEAD ,
-                $grammar_c->real_symbol_count($rule_id);
-        } ## end if ($virtual_rhs)
-            # assignment instead of comparison is deliberate
-        elsif ( my $argc = $grammar_c->rule_length($rule_id) ) {
-            push @{$ops}, Marpa::XS::Internal::Op::ARGC, $argc;
-        }
 
         if ( my $action = $rule->[Marpa::XS::Internal::Rule::ACTION] ) {
             my $closure =
@@ -535,7 +491,6 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
     } ## end for my $rule ( @{$rules} )
 
-    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] = $evaluator_rules;
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS] = $rule_constants;
 
@@ -900,8 +855,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
         // 0;
 
-    my $evaluator_rules =
-        $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
     my $rule_constants =
         $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS];
     my $rule_closures =
@@ -1038,22 +991,16 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
         }    # defined $value_ref
 
-        my $ops;
-        {
-            if ( $recce_c->or_node_position($or_node_id)
-                == $grammar_c->rule_length($rule_id) )
-            {
-                $ops = $evaluator_rules->[$rule_id];
-            }
-        }
+	next TREE_NODE if  $recce_c->or_node_position($or_node_id)
+                != $grammar_c->rule_length($rule_id) ;
 
-        next TREE_NODE if not defined $ops;
+        my $virtual_rhs = $grammar_c->rule_is_virtual_rhs($rule_id);
+        my $virtual_lhs = $grammar_c->rule_is_virtual_lhs($rule_id);
 
         my $current_data = [];
-        OP: for ( my $op_ix = 0; $op_ix < scalar @{$ops}; $op_ix++ ) {
-            my $op = $ops->[$op_ix];
+        OP: {
 
-            if ( $op == Marpa::XS::Internal::Op::ARGC ) {
+            if ( not $virtual_rhs and not $virtual_lhs ) {
 
                 my $argc = $grammar_c->rule_length($rule_id);
 
@@ -1074,7 +1021,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             } ## end if ( $op == Marpa::XS::Internal::Op::ARGC )
 
-            if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD) {
+            if ( $virtual_rhs and not $virtual_lhs ) {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
 
                 if ($trace_values) {
@@ -1103,7 +1050,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD )
 
-            if ( $op == Marpa::XS::Internal::Op::VIRTUAL_KERNEL ) {
+            if ( $virtual_lhs and $virtual_rhs ) {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
                 $virtual_evaluation_stack->[-1] += $real_symbol_count;
 
@@ -1125,7 +1072,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_KERNEL )
 
-            if ( $op == Marpa::XS::Internal::Op::VIRTUAL_TAIL ) {
+            if ( not $virtual_rhs and $virtual_lhs ) {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
 
                 if ($trace_values) {
