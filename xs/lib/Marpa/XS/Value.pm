@@ -510,6 +510,7 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
             Marpa::exception(qq{Could not resolve action name: "$action"})
                 if not defined $closure;
+	    $rule_closures ->[$rule_id] = $closure;
             push @{$ops}, Marpa::XS::Internal::Op::CALL, $closure;
             next RULE;
         } ## end if ( my $action = $rule->[Marpa::XS::Internal::Rule::ACTION...])
@@ -1182,55 +1183,53 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     push @{$evaluation_stack}, $result;
                 } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
 
-                if ($op == Marpa::XS::Internal::Op::CALL) {
-                    my $closure = $ops->[ ++$op_ix ];
-                    my $result;
-
-                    my @warnings;
-                    my $eval_ok;
-                    DO_EVAL: {
-                        local $SIG{__WARN__} = sub {
-                            push @warnings, [ $_[0], ( caller 0 ) ];
-                        };
-
-                        $eval_ok = eval {
-                            $result =
-                                $closure->( $action_object,
-                                @{$current_data} );
-                            1;
-                        };
-
-                    } ## end DO_EVAL:
-
-                    if ( not $eval_ok or @warnings ) {
-                        my $fatal_error = $EVAL_ERROR;
-                        Marpa::XS::Internal::code_problems(
-                            {   fatal_error => $fatal_error,
-                                grammar     => $grammar,
-                                eval_ok     => $eval_ok,
-                                warnings    => \@warnings,
-                                where       => 'computing value',
-                                long_where  => 'Computing value for rule: '
-                                    . $grammar->brief_rule($rule_id),
-                            }
-                        );
-                    } ## end if ( not $eval_ok or @warnings )
-
-                    if ($trace_values) {
-                        print {$Marpa::XS::Internal::TRACE_FH}
-                            'Calculated and pushed value: ',
-                            Data::Dumper->new( [$result] )->Terse(1)->Dump
-                            or Marpa::exception(
-                            'print to trace handle failed');
-                    } ## end if ($trace_values)
-
-                    push @{$evaluation_stack}, \$result;
-
-                } ## end when (Marpa::XS::Internal::Op::CALL)
-
         } ## end while ( $op_ix < scalar @{$ops} )
 
-    }    # TREE_NODE
+	my $closure = $rule_closures->[$rule_id];
+	if ( defined $closure ) {
+	    my $result;
+
+	    my @warnings;
+	    my $eval_ok;
+	    DO_EVAL: {
+		local $SIG{__WARN__} = sub {
+		    push @warnings, [ $_[0], ( caller 0 ) ];
+		};
+
+		$eval_ok = eval {
+		    $result = $closure->( $action_object, @{$current_data} );
+		    1;
+		};
+
+	    } ## end DO_EVAL:
+
+	    if ( not $eval_ok or @warnings ) {
+		my $fatal_error = $EVAL_ERROR;
+		Marpa::XS::Internal::code_problems(
+		    {   fatal_error => $fatal_error,
+			grammar     => $grammar,
+			eval_ok     => $eval_ok,
+			warnings    => \@warnings,
+			where       => 'computing value',
+			long_where  => 'Computing value for rule: '
+			    . $grammar->brief_rule($rule_id),
+		    }
+		);
+	    } ## end if ( not $eval_ok or @warnings )
+
+	    if ($trace_values) {
+		print {$Marpa::XS::Internal::TRACE_FH}
+		    'Calculated and pushed value: ',
+		    Data::Dumper->new( [$result] )->Terse(1)->Dump
+		    or Marpa::exception('print to trace handle failed');
+	    } ## end if ($trace_values)
+
+	    push @{$evaluation_stack}, \$result;
+
+	    } ## end if ( defined $closure )
+
+
+	}    # TREE_NODE
 
     my $top_value = pop @{$evaluation_stack};
 
