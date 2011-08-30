@@ -1004,6 +1004,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 my $argc = $grammar_c->rule_length($rule_id);
 
+                $current_data =
+                    [ map { ${$_} } ( splice @{$evaluation_stack}, -$argc ) ];
+
                 if ($trace_values) {
                     say {$Marpa::XS::Internal::TRACE_FH}
                         'Popping ', $argc, ' values to evaluate ',
@@ -1014,15 +1017,18 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                         or Marpa::exception('Could not print to trace file');
                 } ## end if ($trace_values)
 
-                $current_data =
-                    [ map { ${$_} } ( splice @{$evaluation_stack}, -$argc ) ];
-
 		last OP;
 
             } ## end if ( $op == Marpa::XS::Internal::Op::ARGC )
 
             if ( $virtual_rhs and not $virtual_lhs ) {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
+
+                $real_symbol_count += pop @{$virtual_evaluation_stack};
+                $current_data =
+                    [ map { ${$_} }
+                        ( splice @{$evaluation_stack}, -$real_symbol_count )
+                    ];
 
                 if ($trace_values) {
                     say {$Marpa::XS::Internal::TRACE_FH}
@@ -1032,19 +1038,15 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                         ),
                         ', rule: ', $grammar->brief_rule($rule_id),
                         "\n",
-                        "Incrementing virtual rule by $real_symbol_count symbols\n",
+                        "Incrementing virtual rule by ",
+			$grammar_c->real_symbol_count($rule_id),
+			" symbols\n",
                         'Currently ',
                         ( scalar @{$virtual_evaluation_stack} ),
                         ' rules; ', $virtual_evaluation_stack->[-1],
                         ' symbols;',
                         or Marpa::exception('Could not print to trace file');
                 } ## end if ($trace_values)
-
-                $real_symbol_count += pop @{$virtual_evaluation_stack};
-                $current_data =
-                    [ map { ${$_} }
-                        ( splice @{$evaluation_stack}, -$real_symbol_count )
-                    ];
 
 		last OP;
 
@@ -1075,6 +1077,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             if ( not $virtual_rhs and $virtual_lhs ) {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
 
+                push @{$virtual_evaluation_stack}, $real_symbol_count;
+
                 if ($trace_values) {
                     say {$Marpa::XS::Internal::TRACE_FH}
                         'New Virtual Rule: ',
@@ -1083,11 +1087,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                         ),
                         ', rule: ', $grammar->brief_rule($rule_id),
                         "\nSymbol count is $real_symbol_count, now ",
-                        ( scalar @{$virtual_evaluation_stack} + 1 ), ' rules',
+                        (scalar @{$virtual_evaluation_stack}), ' rules',
                         or Marpa::exception('Could not print to trace file');
                 } ## end if ($trace_values)
-
-                push @{$virtual_evaluation_stack}, $real_symbol_count;
 
                 next TREE_NODE;
 
@@ -1133,6 +1135,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                 );
             } ## end if ( not $eval_ok or @warnings )
 
+            push @{$evaluation_stack}, \$result;
+
             if ($trace_values) {
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Calculated and pushed value: ',
@@ -1140,13 +1144,13 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_values)
 
-            push @{$evaluation_stack}, \$result;
             next TREE_NODE;
 
         } ## end if ( defined $closure )
 
         {
             my $constant_result = $rule_constants->[$rule_id];
+            push @{$evaluation_stack}, $constant_result;
             if ($trace_values) {
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Constant result: ',
@@ -1154,7 +1158,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     Data::Dumper->new( [$constant_result] )->Terse(1)->Dump
                     or Marpa::exception('Could not print to trace file');
             } ## end if ($trace_values)
-            push @{$evaluation_stack}, $constant_result;
         } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
 
     }    # TREE_NODE
