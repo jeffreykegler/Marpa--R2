@@ -35,7 +35,6 @@ my $structure = <<'END_OF_STRUCTURE';
     :{ These are the valuation-time ops }
     ARGC
     VIRTUAL_HEAD
-    VIRTUAL_HEAD_NO_SEP
     VIRTUAL_KERNEL
     VIRTUAL_TAIL
 
@@ -489,11 +488,7 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
         if ($virtual_rhs) {
             push @{$ops},
-                (
-                $grammar_c->rule_is_discard_separation($rule_id)
-                ? Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP
-                : Marpa::XS::Internal::Op::VIRTUAL_HEAD
-                ),
+                Marpa::XS::Internal::Op::VIRTUAL_HEAD ,
                 $grammar_c->real_symbol_count($rule_id);
         } ## end if ($virtual_rhs)
             # assignment instead of comparison is deliberate
@@ -1077,8 +1072,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             } ## end if ( $op == Marpa::XS::Internal::Op::ARGC )
 
-            if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD
-            or $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP ) {
+            if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD) {
                 my $real_symbol_count = $ops->[ ++$op_ix ];
 
                 if ($trace_values) {
