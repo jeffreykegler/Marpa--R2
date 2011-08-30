@@ -34,8 +34,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     :{ These are the valuation-time ops }
     ARGC
-    CALL
-    CONSTANT_RESULT
     VIRTUAL_HEAD
     VIRTUAL_HEAD_NO_SEP
     VIRTUAL_KERNEL
@@ -511,7 +509,6 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
             Marpa::exception(qq{Could not resolve action name: "$action"})
                 if not defined $closure;
 	    $rule_closures ->[$rule_id] = $closure;
-            push @{$ops}, Marpa::XS::Internal::Op::CALL, $closure;
             next RULE;
         } ## end if ( my $action = $rule->[Marpa::XS::Internal::Rule::ACTION...])
 
@@ -529,22 +526,17 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 		$action );
 	    last FIND_CLOSURE_BY_LHS if not defined $closure;
 	    $rule_closures ->[$rule_id] = $closure;
-	    push @{$ops}, Marpa::XS::Internal::Op::CALL, $closure;
 	    next RULE;
 	} ## end FIND_CLOSURE_BY_LHS:
 
         if ( defined $default_action_closure ) {
 	    $rule_closures ->[$rule_id] = $default_action_closure;
-            push @{$ops}, Marpa::XS::Internal::Op::CALL,
-                $default_action_closure;
             next RULE;
         }
 
         # If there is no default action specified, the fallback
         # is to return an undef
 	$rule_constants->[$rule_id] = $Marpa::XS::Internal::Recognizer::DEFAULT_ACTION_VALUE;
-        push @{$ops}, Marpa::XS::Internal::Op::CONSTANT_RESULT,
-            $Marpa::XS::Internal::Recognizer::DEFAULT_ACTION_VALUE;
 
     } ## end for my $rule ( @{$rules} )
 
@@ -1170,19 +1162,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_TAIL)
 
-                if ($op == Marpa::XS::Internal::Op::CONSTANT_RESULT) {
-                    my $result = $ops->[ ++$op_ix ];
-                    if ($trace_values) {
-                        print {$Marpa::XS::Internal::TRACE_FH}
-                            'Constant result: ',
-                            'Pushing 1 value on stack: ',
-                            Data::Dumper->new( [$result] )->Terse(1)->Dump
-                            or Marpa::exception(
-                            'Could not print to trace file');
-                    } ## end if ($trace_values)
-                    push @{$evaluation_stack}, $result;
-                } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
-
         } ## end while ( $op_ix < scalar @{$ops} )
 
 	my $closure = $rule_closures->[$rule_id];
@@ -1225,9 +1204,22 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 	    } ## end if ($trace_values)
 
 	    push @{$evaluation_stack}, \$result;
+	     next TREE_NODE;
 
 	    } ## end if ( defined $closure )
 
+                {
+		    my $constant_result = $rule_constants->[$rule_id];
+                    if ($trace_values) {
+                        print {$Marpa::XS::Internal::TRACE_FH}
+                            'Constant result: ',
+                            'Pushing 1 value on stack: ',
+                            Data::Dumper->new( [$constant_result] )->Terse(1)->Dump
+                            or Marpa::exception(
+                            'Could not print to trace file');
+                    } ## end if ($trace_values)
+                    push @{$evaluation_stack}, $constant_result;
+                } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
 
 	}    # TREE_NODE
 
