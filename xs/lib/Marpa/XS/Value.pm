@@ -453,6 +453,8 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
         $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_ACTION];
 
     my $evaluator_rules = [];
+    my $rule_closures = [];
+    my $rule_constants = [];
 
     my $default_action_closure;
     if ( defined $default_action ) {
@@ -525,11 +527,13 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 		Marpa::XS::Internal::Recognizer::resolve_semantics( $recce,
 		$action );
 	    last FIND_CLOSURE_BY_LHS if not defined $closure;
+	    $rule_closures ->[$rule_id] = $closure;
 	    push @{$ops}, Marpa::XS::Internal::Op::CALL, $closure;
 	    next RULE;
 	} ## end FIND_CLOSURE_BY_LHS:
 
         if ( defined $default_action_closure ) {
+	    $rule_closures ->[$rule_id] = $default_action_closure;
             push @{$ops}, Marpa::XS::Internal::Op::CALL,
                 $default_action_closure;
             next RULE;
@@ -537,12 +541,15 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
         # If there is no default action specified, the fallback
         # is to return an undef
+	$rule_constants->[$rule_id] = $Marpa::XS::Internal::Recognizer::DEFAULT_ACTION_VALUE;
         push @{$ops}, Marpa::XS::Internal::Op::CONSTANT_RESULT,
             $Marpa::XS::Internal::Recognizer::DEFAULT_ACTION_VALUE;
 
     } ## end for my $rule ( @{$rules} )
 
-    return $evaluator_rules;
+    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] = $evaluator_rules;
+    $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
+    $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS] = $rule_constants;
 
 }    # set_actions
 
@@ -898,13 +905,18 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
     my $token_values = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
-    my $evaluator_rules =
-        $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
     my $grammar      = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
         // 0;
+
+    my $evaluator_rules =
+        $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES];
+    my $rule_constants =
+        $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS];
+    my $rule_closures =
+        $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES];
 
     my $action_object_class =
         $grammar->[Marpa::XS::Internal::Grammar::ACTION_OBJECT];
@@ -1038,13 +1050,12 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         next TREE_NODE if not defined $ops;
 
         my $current_data = [];
-        my $op_ix        = 0;
-        while ( $op_ix < scalar @{$ops} ) {
-            given ( $ops->[ $op_ix++ ] ) {
+        for (my $op_ix        = 0; $op_ix < scalar @{$ops}; $op_ix++) {
+	        my $op = $ops->[$op_ix];
 
-                when (Marpa::XS::Internal::Op::ARGC) {
+                if ($op == Marpa::XS::Internal::Op::ARGC) {
 
-                    my $argc = $ops->[ $op_ix++ ];
+                    my $argc = $ops->[ ++$op_ix ];
 
                     if ($trace_values) {
 			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
@@ -1064,8 +1075,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 } ## end when (Marpa::XS::Internal::Op::ARGC)
 
-                when (Marpa::XS::Internal::Op::VIRTUAL_HEAD) {
-                    my $real_symbol_count = $ops->[ $op_ix++ ];
+                if ($op == Marpa::XS::Internal::Op::VIRTUAL_HEAD) {
+                    my $real_symbol_count = $ops->[ ++$op_ix ];
 
                     if ($trace_values) {
 			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
@@ -1090,8 +1101,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_HEAD)
 
-                when (Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP) {
-                    my $real_symbol_count = $ops->[ $op_ix++ ];
+                if ($op == Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP) {
+                    my $real_symbol_count = $ops->[ ++$op_ix ];
 
                     if ($trace_values) {
 			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
@@ -1121,8 +1132,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP)
 
-                when (Marpa::XS::Internal::Op::VIRTUAL_KERNEL) {
-                    my $real_symbol_count = $ops->[ $op_ix++ ];
+                if ($op == Marpa::XS::Internal::Op::VIRTUAL_KERNEL) {
+                    my $real_symbol_count = $ops->[ ++$op_ix ];
                     $virtual_evaluation_stack->[-1] += $real_symbol_count;
 
                     if ($trace_values) {
@@ -1140,8 +1151,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_KERNEL)
 
-                when (Marpa::XS::Internal::Op::VIRTUAL_TAIL) {
-                    my $real_symbol_count = $ops->[ $op_ix++ ];
+                if ($op == Marpa::XS::Internal::Op::VIRTUAL_TAIL) {
+                    my $real_symbol_count = $ops->[ ++$op_ix ];
 
                     if ($trace_values) {
 			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
@@ -1159,8 +1170,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_TAIL)
 
-                when (Marpa::XS::Internal::Op::CONSTANT_RESULT) {
-                    my $result = $ops->[ $op_ix++ ];
+                if ($op == Marpa::XS::Internal::Op::CONSTANT_RESULT) {
+                    my $result = $ops->[ ++$op_ix ];
                     if ($trace_values) {
                         print {$Marpa::XS::Internal::TRACE_FH}
                             'Constant result: ',
@@ -1172,8 +1183,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     push @{$evaluation_stack}, $result;
                 } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
 
-                when (Marpa::XS::Internal::Op::CALL) {
-                    my $closure = $ops->[ $op_ix++ ];
+                if ($op == Marpa::XS::Internal::Op::CALL) {
+                    my $closure = $ops->[ ++$op_ix ];
                     my $result;
 
                     my @warnings;
@@ -1219,20 +1230,15 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 } ## end when (Marpa::XS::Internal::Op::CALL)
 
-                default {
-                    Marpa::XS::Exception("Unknown evaluator Op: $_");
-                }
-
-            } ## end given
         } ## end while ( $op_ix < scalar @{$ops} )
 
     }    # TREE_NODE
 
     my $top_value = pop @{$evaluation_stack};
 
-    $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK] = undef;
-    $recce->[Marpa::XS::Internal::Recognizer::EVAL_TOS] = 0;
-    $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = undef;
+    $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK]      = undef;
+    $recce->[Marpa::XS::Internal::Recognizer::EVAL_TOS]        = 0;
+    $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK]     = undef;
 
     return $top_value;
 
@@ -1339,8 +1345,7 @@ sub Marpa::XS::Recognizer::value {
 	# and should be constant for the life of a recognizer.
 	$recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES] //=
 	    Marpa::XS::Internal::Recognizer::set_null_values($recce);
-	$recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES] =
-	    Marpa::XS::Internal::Recognizer::set_actions($recce);
+	Marpa::XS::Internal::Recognizer::set_actions($recce);
 
         $recce_c->eval_clear();
         $top_or_node_id =

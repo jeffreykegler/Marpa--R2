@@ -70,6 +70,8 @@ my $structure = <<'END_OF_STRUCTURE';
 
     SINGLE_PARSE_MODE
     EVALUATOR_RULES
+    RULE_CLOSURES
+    RULE_CONSTANTS
     EVAL_STACK
     EVAL_TOS
     VEVAL_STACK
@@ -262,6 +264,8 @@ sub Marpa::XS::Recognizer::reset_evaluation {
     }
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
     $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES]   = [];
+    $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES]   = [];
+    $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS]   = [];
     $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK] = undef;
     $recce->[Marpa::XS::Internal::Recognizer::EVAL_TOS] = 0;
     $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = undef;
