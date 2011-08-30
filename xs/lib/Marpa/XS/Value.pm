@@ -955,9 +955,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     $action_object //= {};
 
     my $evaluation_stack =
-        $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK];
+        $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK] = [];
     my $virtual_evaluation_stack =
-        $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK];
+        $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = [];
 
     TREE_NODE: for (my $fork_ix = $recce_c->tree_size() - 1; $fork_ix >= 0; $fork_ix--) {
 
@@ -1229,6 +1229,10 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     }    # TREE_NODE
 
     my $top_value = pop @{$evaluation_stack};
+
+    $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK] = undef;
+    $recce->[Marpa::XS::Internal::Recognizer::EVAL_TOS] = 0;
+    $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = undef;
 
     return $top_value;
 
