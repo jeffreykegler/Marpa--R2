@@ -1145,6 +1145,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                             'Could not print to trace file');
                     } ## end if ($trace_values)
 
+		    next TREE_NODE;
+
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_KERNEL)
 
                 if ($op == Marpa::XS::Internal::Op::VIRTUAL_TAIL) {
@@ -1162,6 +1164,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     } ## end if ($trace_values)
 
                     push @{$virtual_evaluation_stack}, $real_symbol_count;
+
+		    next TREE_NODE;
 
                 } ## end when (Marpa::XS::Internal::Op::VIRTUAL_TAIL)
 
