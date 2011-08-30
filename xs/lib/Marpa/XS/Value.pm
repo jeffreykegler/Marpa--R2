@@ -1050,12 +1050,12 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         next TREE_NODE if not defined $ops;
 
         my $current_data = [];
-        for ( my $op_ix = 0; $op_ix < scalar @{$ops}; $op_ix++ ) {
+        OP: for ( my $op_ix = 0; $op_ix < scalar @{$ops}; $op_ix++ ) {
             my $op = $ops->[$op_ix];
 
             if ( $op == Marpa::XS::Internal::Op::ARGC ) {
 
-                my $argc = $ops->[ ++$op_ix ];
+                my $argc = $grammar_c->rule_length($rule_id);
 
                 if ($trace_values) {
                     say {$Marpa::XS::Internal::TRACE_FH}
@@ -1070,10 +1070,12 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                 $current_data =
                     [ map { ${$_} } ( splice @{$evaluation_stack}, -$argc ) ];
 
+		last OP;
+
             } ## end if ( $op == Marpa::XS::Internal::Op::ARGC )
 
             if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD) {
-                my $real_symbol_count = $ops->[ ++$op_ix ];
+                my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
 
                 if ($trace_values) {
                     say {$Marpa::XS::Internal::TRACE_FH}
@@ -1097,10 +1099,12 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                         ( splice @{$evaluation_stack}, -$real_symbol_count )
                     ];
 
+		last OP;
+
             } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD )
 
             if ( $op == Marpa::XS::Internal::Op::VIRTUAL_KERNEL ) {
-                my $real_symbol_count = $ops->[ ++$op_ix ];
+                my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
                 $virtual_evaluation_stack->[-1] += $real_symbol_count;
 
                 if ($trace_values) {
@@ -1122,7 +1126,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_KERNEL )
 
             if ( $op == Marpa::XS::Internal::Op::VIRTUAL_TAIL ) {
-                my $real_symbol_count = $ops->[ ++$op_ix ];
+                my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
 
                 if ($trace_values) {
                     say {$Marpa::XS::Internal::TRACE_FH}
