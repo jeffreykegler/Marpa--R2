@@ -973,10 +973,11 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
     TREE_NODE: for (my $fork_ix = $recce_c->tree_size() - 1; $fork_ix >= 0; $fork_ix--) {
 
-	my $parent_or_node_id = $recce_c->fork_or_node($fork_ix);
+	my $or_node_id = $recce_c->fork_or_node($fork_ix);
+	my $rule_id = $recce_c->or_node_rule($or_node_id);
 	my $choice = $recce_c->fork_choice($fork_ix);
 
-        my $and_node_id = $recce_c->and_node_order_get($parent_or_node_id, $choice);
+        my $and_node_id = $recce_c->and_node_order_get($or_node_id, $choice);
 
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $#{$evaluation_stack} ) {
@@ -1000,9 +1001,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 		$value_ref = \$null_values->[$token_id];
 		last SET_VALUE_REF;
 	    }
-	    my $current_earley_set = $recce_c->or_node_set($parent_or_node_id);
+	    my $current_earley_set = $recce_c->or_node_set($or_node_id);
 	    my $end_earleme = $recce_c->earleme($current_earley_set);
-	    my $origin = $recce_c->or_node_origin($parent_or_node_id);
+	    my $origin = $recce_c->or_node_origin($or_node_id);
 	    my $origin_earleme = $recce_c->earleme($origin);
 	    my $predecessor = $recce_c->and_node_predecessor($and_node_id);
 	    my $middle_earleme = $origin_earleme;
@@ -1039,8 +1040,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
 	my $ops;
 	{
-	    my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
-	    if ( $recce_c->or_node_position($parent_or_node_id)
+	    if ( $recce_c->or_node_position($or_node_id)
 		== $grammar_c->rule_length($rule_id) )
 	    {
 		$ops = $evaluator_rules->[$rule_id];
@@ -1058,7 +1058,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     my $argc = $ops->[ ++$op_ix ];
 
                     if ($trace_values) {
-			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
                         say {$Marpa::XS::Internal::TRACE_FH}
                             'Popping ',
                             $argc,
@@ -1079,7 +1078,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     my $real_symbol_count = $ops->[ ++$op_ix ];
 
                     if ($trace_values) {
-			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
                         say {$Marpa::XS::Internal::TRACE_FH}
                             'Head of Virtual Rule: ',
 			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id),
@@ -1105,7 +1103,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     my $real_symbol_count = $ops->[ ++$op_ix ];
 
                     if ($trace_values) {
-			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
                         say {$Marpa::XS::Internal::TRACE_FH}
                             'Head of Virtual Rule (discards separation): ',
 			    Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id),
@@ -1137,7 +1134,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     $virtual_evaluation_stack->[-1] += $real_symbol_count;
 
                     if ($trace_values) {
-			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
                         say {$Marpa::XS::Internal::TRACE_FH}
                             'Virtual Rule: ',
 			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id),
@@ -1155,7 +1151,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     my $real_symbol_count = $ops->[ ++$op_ix ];
 
                     if ($trace_values) {
-			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
                         say {$Marpa::XS::Internal::TRACE_FH}
                             'New Virtual Rule: ',
 			     Marpa::XS::Recognizer::and_node_tag($recce, $and_node_id),
@@ -1204,7 +1199,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     } ## end DO_EVAL:
 
                     if ( not $eval_ok or @warnings ) {
-			my $rule_id = $recce_c->or_node_rule($parent_or_node_id);
                         my $fatal_error = $EVAL_ERROR;
                         Marpa::XS::Internal::code_problems(
                             {   fatal_error => $fatal_error,
