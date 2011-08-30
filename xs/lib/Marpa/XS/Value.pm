@@ -1077,7 +1077,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             } ## end if ( $op == Marpa::XS::Internal::Op::ARGC )
 
-            if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD ) {
+            if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD
+            or $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP ) {
                 my $real_symbol_count = $ops->[ ++$op_ix ];
 
                 if ($trace_values) {
@@ -1103,38 +1104,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     ];
 
             } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD )
-
-            if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP ) {
-                my $real_symbol_count = $ops->[ ++$op_ix ];
-
-                if ($trace_values) {
-                    say {$Marpa::XS::Internal::TRACE_FH}
-                        'Head of Virtual Rule (discards separation): ',
-                        Marpa::XS::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_rule($rule_id),
-                        "\nAdding $real_symbol_count symbols; currently ",
-                        ( scalar @{$virtual_evaluation_stack} ),
-                        ' rules; ', $virtual_evaluation_stack->[-1],
-                        ' symbols'
-                        or Marpa::exception('Could not print to trace file');
-                } ## end if ($trace_values)
-
-                $real_symbol_count += pop @{$virtual_evaluation_stack};
-                my $base =
-                    ( scalar @{$evaluation_stack} ) - $real_symbol_count;
-                $current_data = [
-                    map { ${$_} } @{$evaluation_stack}[
-                        map { $base + 2 * $_ }
-                        ( 0 .. ( $real_symbol_count + 1 ) / 2 - 1 )
-                    ]
-                ];
-
-                # truncate the evaluation stack
-                $#{$evaluation_stack} = $base - 1;
-
-            } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD_NO_SEP)
 
             if ( $op == Marpa::XS::Internal::Op::VIRTUAL_KERNEL ) {
                 my $real_symbol_count = $ops->[ ++$op_ix ];
@@ -1184,6 +1153,12 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         my $closure = $rule_closures->[$rule_id];
         if ( defined $closure ) {
             my $result;
+
+	    if ( $grammar_c->rule_is_discard_separation($rule_id) ) {
+		@{$current_data} =
+		    @{$current_data}[ map { 2 * $_ }
+		    ( 0 .. ( scalar @{$current_data} + 1 ) / 2 - 1 ) ];
+	    }
 
             my @warnings;
             my $eval_ok;
