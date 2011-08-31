@@ -7798,6 +7798,11 @@ TOK token_new(struct marpa_r *r, SYMID symbol_id, gpointer value)
   return token;
 }
 
+@ Recover |token| from the token obstack.
+The intended use is to recover the one token
+most recently added in case of an error.
+@<Recover |token|@> = obstack_free (TOK_Obs, token);
+
 @** Alternative Tokens (ALT) Code.
 Because Marpa allows more than one token at every
 earleme, Marpa's tokens are also called ``alternatives".
@@ -7806,13 +7811,13 @@ struct s_alternative;
 typedef struct s_alternative* ALT;
 typedef const struct s_alternative* ALT_Const;
 @
-@d Token_ID_of_ALT(alt) ((alt)->t_token_id)
+@d Token_ID_of_ALT(alt) (SYMID_of_TOK((alt)->t_token))
 @d Start_ES_of_ALT(alt) ((alt)->t_start_earley_set)
 @d Start_Earleme_of_ALT(alt) Earleme_of_ES(Start_ES_of_ALT(alt))
 @d End_Earleme_of_ALT(alt) ((alt)->t_end_earleme)
 @<Private structures@> =
 struct s_alternative {
-    SYMID t_token_id;
+    TOK t_token;
     ES t_start_earley_set;
     EARLEME t_end_earleme;
 };
@@ -7867,19 +7872,6 @@ alternative_insertion_point (RECCE r, ALT new_alternative)
       if (hi < lo)
 	return outcome > 0 ? trial + 1 : trial;
     }
-}
-
-@ This is a convenience function for setting up an alternative.
-@<Private function prototypes@> =
-static inline void alternative_set(
-ALT alternative, ES start, EARLEME end, SYMID token_id);
-@ @<Function definitions@> =
-static inline void alternative_set(
-ALT alternative, ES start, EARLEME end, SYMID token_id)
-{
-    alternative->t_token_id = token_id;
-    alternative->t_start_earley_set = start;
-    alternative->t_end_earleme = end;
 }
 
 @ This is the comparison function for sorting alternatives.
@@ -8112,13 +8104,18 @@ The Earley sets and items will not have been
 altered by the attempt.
 @<Insert alternative into stack, failing if token is duplicate@> =
 {
+  TOK token = token_new (r, token_id, value);
   ALT_Object alternative;
-    if (Furthest_Earleme_of_R (r) < target_earleme)
-      LV_Furthest_Earleme_of_R (r) = target_earleme;
-  alternative_set (&alternative,
-		   current_earley_set, target_earleme, token_id);
+  if (Furthest_Earleme_of_R (r) < target_earleme)
+    LV_Furthest_Earleme_of_R (r) = target_earleme;
+  alternative.t_token = token;
+  alternative.t_start_earley_set = current_earley_set;
+  alternative.t_end_earleme = target_earleme;
   if (alternative_insert (r, &alternative) < 0)
+  {
+    @<Recover |token|@>@;
     return duplicate_token_indicator;
+    }
 }
 
 @** Complete an Earley Set.
