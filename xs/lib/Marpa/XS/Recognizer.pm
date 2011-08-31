@@ -48,6 +48,8 @@ my $structure = <<'END_OF_STRUCTURE';
     GRAMMAR { the grammar used }
     FINISHED
     SLOTS { Array of slots for data to pass to libmarpa }
+    TOKEN_VALUES
+    OLD_TOKEN_VALUES
 
     TRACE_FILE_HANDLE
 
@@ -63,7 +65,6 @@ my $structure = <<'END_OF_STRUCTURE';
     MAX_PARSES
     NULL_VALUES
     RANKING_METHOD
-    TOKEN_VALUES
 
     { The following fields must be reinitialized when
     evaluation is reset }
@@ -182,7 +183,8 @@ sub Marpa::XS::Recognizer::new {
     $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES]     = 0;
     $recce->[Marpa::XS::Internal::Recognizer::SLOTS]     = Marpa::XS::Internal::Slot->new();
-    $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]     = {};
+    $recce->[Marpa::XS::Internal::Recognizer::OLD_TOKEN_VALUES]     = {};
+    $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]     = [];
     $recce->reset_evaluation();
 
     $recce->set(@arg_hashes);
@@ -578,7 +580,7 @@ sub Marpa::XS::show_token_link_choice {
     push @pieces, 's=' . $symbol_name;
     my $token_length = $current_earleme - $middle_earleme;
 # say STDERR +(join q{;}, 'SEEKING', $middle_earleme, $token_length, $symbol_name);
-    my $value = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]->{join q{;}, 
+    my $value = $recce->[Marpa::XS::Internal::Recognizer::OLD_TOKEN_VALUES]->{join q{;}, 
 	$middle_earleme, $token_length, $symbol_name};
     my $token_dump = Data::Dumper->new( [\$value] )->Terse(1)->Dump;
     chomp $token_dump;
@@ -988,16 +990,22 @@ sub Marpa::XS::Recognizer::alternative {
     my $trace_fh = $recce->[Marpa::XS::Internal::Recognizer::TRACE_FILE_HANDLE];
     my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $token_values = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
     my $symbol_id = $symbol_hash->{$symbol_name};
+    my $value_ix = 0;
+    if (defined $value) {
+        $value_ix = scalar @{$token_values};
+        push @{$token_values}, $value;
+    }
     my $slot = $slots->slot($value);
     $length //= 1;
 
 # say STDERR +(join q{;}, 'SETTING', $recce_c->current_earleme(), $length, $symbol_name);
 
-    $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]->{join q{;}, 
+    $recce->[Marpa::XS::Internal::Recognizer::OLD_TOKEN_VALUES]->{join q{;}, 
 	$recce_c->current_earleme(), $length, $symbol_name} = $value;
-    my $result = $recce_c->alternative( $symbol_id, $length );
+    my $result = $recce_c->alternative( $symbol_id, $value_ix, $length );
     Marpa::exception(
         qq{"$symbol_name" already scanned with length $length at location },
 	$recce_c->current_earleme()

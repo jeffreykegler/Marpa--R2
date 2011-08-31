@@ -847,8 +847,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
     my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
-    my $token_values =
-        $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
+    my $old_token_values =
+        $recce->[Marpa::XS::Internal::Recognizer::OLD_TOKEN_VALUES];
     my $grammar      = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c    = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols      = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
@@ -961,8 +961,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             }
             my $value_key = join q{;}, $middle_earleme,
                 ( $end_earleme - $middle_earleme ), $token_name;
-            last SET_VALUE_REF if not exists $token_values->{$value_key};
-            $value_ref = \( $token_values->{$value_key} );
+            last SET_VALUE_REF if not exists $old_token_values->{$value_key};
+            $value_ref = \( $old_token_values->{$value_key} );
         } ## end SET_VALUE_REF:
 
         if ( defined $value_ref ) {

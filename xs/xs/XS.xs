@@ -1100,15 +1100,16 @@ PPCODE:
  #      because Perl can do better error message for this
  # -2 means some other failure -- call croak
 void
-alternative( r_wrapper, symbol_id, length )
+alternative( r_wrapper, symbol_id, value, length )
     R_Wrapper *r_wrapper;
     Marpa_Symbol_ID symbol_id;
+    int value;
     int length;
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
       gint result =
-	marpa_alternative (r, symbol_id, length);
+	marpa_alternative (r, symbol_id, INT2PTR(gpointer, value), length);
       if (result == -1)
 	{
 	  XSRETURN_UNDEF;

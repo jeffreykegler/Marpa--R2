@@ -7762,12 +7762,12 @@ typedef struct s_token* TOK;
 @ The |t_type| field is to allow |TOK|
 objects to act as or-nodes.
 @d Type_of_TOK(tok) ((tok)->t_type)
-@d SYM_of_TOK(tok) ((tok)->t_symbol)
+@d SYMID_of_TOK(tok) ((tok)->t_symbol_id)
 @d Value_of_TOK(tok) ((tok)->t_value)
 @<Private structures@> =
 struct s_token {
     gint t_type;
-    SYM t_symbol;
+    SYMID t_symbol_id;
     gpointer t_value;
 };
 typedef struct s_token TOK_Object;
@@ -7785,18 +7785,19 @@ obstack_free(TOK_Obs, NULL);
 
 @ @<Private function prototypes@> =
 static inline
-TOK token_new(struct marpa_r *r, SYM symbol, gpointer value);
+TOK token_new(struct marpa_r *r, SYMID symbol_id, gpointer value);
 @ @<Function definitions@> =
 static inline
-TOK token_new(struct marpa_r *r, SYM symbol, gpointer value)
+TOK token_new(struct marpa_r *r, SYMID symbol_id, gpointer value)
 {
   TOK token;
     token = obstack_alloc (TOK_Obs, sizeof(*token));
     Type_of_TOK(token) = TOKEN_OR_NODE;
-    SYM_of_TOK(token) = symbol;
+    SYMID_of_TOK(token) = symbol_id;
     Value_of_TOK(token) = value;
   return token;
 }
+
 @** Alternative Tokens (ALT) Code.
 Because Marpa allows more than one token at every
 earleme, Marpa's tokens are also called ``alternatives".
@@ -7819,7 +7820,9 @@ typedef struct s_alternative ALT_Object;
 
 @ @<Widely aligned recognizer elements@> =
 DSTACK_DECLARE(t_alternatives);
-@ The value of |INITIAL_ALTERNATIVES_CAPACITY| is 1 for testing while this
+@
+{\bf To Do}: @^To Do@>
+The value of |INITIAL_ALTERNATIVES_CAPACITY| is 1 for testing while this
 code is being developed.
 Once the code is stable it should be increased.
 @d INITIAL_ALTERNATIVES_CAPACITY 1
@@ -8031,10 +8034,10 @@ also see this as a normal data path.
 The general failures reported with |-2| will typically be
 treated by the application as fatal errors.
 @<Public function prototypes@> = gboolean marpa_alternative(struct marpa_r *r,
-Marpa_Symbol_ID token_id, gint length);
+Marpa_Symbol_ID token_id, gpointer value, gint length);
 @ @<Function definitions@> =
 gboolean marpa_alternative(struct marpa_r *r,
-Marpa_Symbol_ID token_id, gint length) {
+Marpa_Symbol_ID token_id, gpointer value, gint length) {
     @<Return |-2| on failure@>@;
     GRAMMAR_Const g = G_of_R(r);
     const gint duplicate_token_indicator = -3;
