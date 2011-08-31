@@ -7712,6 +7712,91 @@ Marpa_Earley_Set_ID marpa_source_middle(struct marpa_r* r)
         return failure_indicator;
     }
 
+@** Token Code (TOK).
+@ Tokens are duples of symbol ID and token value.
+They do {\bf not} store location information,
+so the same token
+can occur many times in a parse.
+On the other hand, duplicate tokens are also allowed.
+How much, if any, trouble to take to avoid duplication
+is up to the application --
+duplicates have their cost, but so does the
+tracking necessary to avoid them.
+@ My strong preference is that token values
+{\bf always} be integers, but
+token values are |gpointer|'s to allow applications
+full generality.
+Using |glib|, integers can portably be stored in a
+|gpointer|, but the reverse is not true.
+@ In my prefered semantic scheme, the integers are
+used by the higher levels to index the actual data.
+In this way no direct pointer to any data "owned"
+by the higher level is ever under libmarpa's control.
+Problems with mismatches between libmarpa and the
+higher levels are almost impossible to avoid in
+development
+and once an application gets in maintenance mode
+things become, if possible, worse.
+@ "But," you say, "pointers are faster,
+and mismatches occur whether
+you index the data with an integer or directly.
+So if you are in trouble either way, why not go
+for speed?"
+\par
+The above objection is true, but overlooks a very
+important issue.  A bad pointer can cause very
+serious problems --
+a core dump, or even worse, undetected data corruption.
+There is no good way to detect a bad pointer before it
+does it's damage.
+\par
+If an integer index, on the other hand, is out of bounds,
+the higher levels can catch this and react.
+Worst case, the higher level may have to throw a controlled
+fatal error.
+This is a much better than a core dump
+and far better than undetected data corruption.
+@<Private incomplete structures@> =
+struct s_token;
+typedef struct s_token* TOK;
+@ The |t_type| field is to allow |TOK|
+objects to act as or-nodes.
+@d Type_of_TOK(tok) ((tok)->t_type)
+@d SYM_of_TOK(tok) ((tok)->t_symbol)
+@d Value_of_TOK(tok) ((tok)->t_value)
+@<Private structures@> =
+struct s_token {
+    gint t_type;
+    SYM t_symbol;
+    gpointer t_value;
+};
+typedef struct s_token TOK_Object;
+
+@*0 The |TOK| Obstack.
+An obstack with the lifetime of the bocage.
+@d TOK_Obs_of_R(r) (&(r)->t_token_obs)
+@d TOK_Obs TOK_Obs_of_R(r)
+@<Widely aligned recognizer elements@> =
+struct obstack t_token_obs;
+@ @<Initialize recognizer elements@> =
+obstack_init(TOK_Obs);
+@ @<Destroy recognizer elements@> =
+obstack_free(TOK_Obs, NULL);
+
+@ @<Private function prototypes@> =
+static inline
+TOK token_new(struct marpa_r *r, SYM symbol, gpointer value);
+@ @<Function definitions@> =
+static inline
+TOK token_new(struct marpa_r *r, SYM symbol, gpointer value)
+{
+  TOK token;
+    token = obstack_alloc (TOK_Obs, sizeof(*token));
+    Type_of_TOK(token) = TOKEN_OR_NODE;
+    SYM_of_TOK(token) = symbol;
+    Value_of_TOK(token) = value;
+  return token;
+}
 @** Alternative Tokens (ALT) Code.
 Because Marpa allows more than one token at every
 earleme, Marpa's tokens are also called ``alternatives".
@@ -10363,7 +10448,7 @@ gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
     }
 }
 
-@** The Parse Bocage.
+@** Parse Bocage Code (BOC).
 @ Pre-initialization is making the elements safe for the deallocation logic
 to be called.  Often it is setting the value to zero, so that the deallocation
 logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
