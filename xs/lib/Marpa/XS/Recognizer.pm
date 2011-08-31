@@ -69,7 +69,11 @@ my $structure = <<'END_OF_STRUCTURE';
     evaluation is reset }
 
     SINGLE_PARSE_MODE
-    EVALUATOR_RULES
+    RULE_CLOSURES
+    RULE_CONSTANTS
+    EVAL_STACK
+    EVAL_TOS
+    VEVAL_STACK
 
     { This is the end of the list of fields which
     must be reinitialized when evaluation is reset }
@@ -79,9 +83,6 @@ my $structure = <<'END_OF_STRUCTURE';
     WARNINGS
 
     MODE
-
-    { This is temporary during development of Marpa::XS }
-    EARLEME_TO_ORDINAL
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -93,19 +94,6 @@ use English qw( -no_match_vars );
 
 my $parse_number = 0;
 my %recce_by_id = ();
-
-# Temporary -- delete when Marpa::XS development is done
-sub update_earleme_map {
-    my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
-    $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL] //= [];
-    my $earleme_to_ordinal = $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL];
-    EARLEY_SET: for (my $ordinal = scalar @{$earleme_to_ordinal}; ; $ordinal++ ) {
-         my $earleme = $recce_c->earleme($ordinal);
-	 last EARLEY_SET if not defined $earleme;
-	 $earleme_to_ordinal->[$earleme] = $ordinal;
-     }
-}
 
 sub get_recognizer_by_id {
     my ( $recce_id ) = @_;
@@ -274,7 +262,12 @@ sub Marpa::XS::Recognizer::reset_evaluation {
 	Marpa::exception("eval_clear() failed\n");
     }
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
-    $recce->[Marpa::XS::Internal::Recognizer::EVALUATOR_RULES]   = [];
+    $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES]   = [];
+    $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS]   = [];
+    $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK] = undef;
+    $recce->[Marpa::XS::Internal::Recognizer::EVAL_TOS] = 0;
+    $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = undef;
+
     return;
 } ## end sub Marpa::XS::Recognizer::reset_evaluation
 
@@ -643,10 +636,11 @@ sub Marpa::XS::show_leo_link_choice {
 
  # Assumes trace earley item was set by caller
 sub Marpa::XS::show_earley_item {
-    my ($recce, $earleme, $state_id) = @_;
+    my ($recce, $current_es, $state_id) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $text = q{};
     my $origin_set_id = $recce_c->earley_item_origin();
+    my $earleme = $recce_c->earleme($current_es);
     my $origin_earleme = $recce_c->earleme($origin_set_id);
     $text .= sprintf "S%d@%d-%d", $state_id, $origin_earleme, $earleme;
     my @pieces = $text;
@@ -717,12 +711,9 @@ sub Marpa::XS::show_earley_item {
 }
 
 sub Marpa::XS::show_earley_set {
-    my ( $recce, $earleme ) = @_;
+    my ( $recce, $traced_set_id ) = @_;
     my $recce_c        = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $text           = q{};
-    update_earleme_map($recce);
-    my $traced_set_id = $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]->[$earleme];
-    return $text if not defined $traced_set_id;
     my @sort_data = ();
     if (not defined $recce_c->earley_set_trace($traced_set_id)) {
        return $text;
@@ -732,7 +723,7 @@ sub Marpa::XS::show_earley_set {
 	last EARLEY_ITEM if not defined $state_id;
 	push @sort_data,
 	    [ $recce_c->earley_item_origin(), $state_id, 
-            Marpa::XS::show_earley_item( $recce, $earleme, $state_id ) ];
+            Marpa::XS::show_earley_item( $recce, $traced_set_id, $state_id ) ];
     } ## end for ( my $state_id = $recce_c->earley_item_first_trace...)
     my @sorted_data = map { $_->[-1] . "\n" } sort {
         $a->[0] <=> $b->[0]
@@ -767,9 +758,10 @@ sub Marpa::XS::Recognizer::show_earley_sets {
     my $text = 
           "Last Completed: $last_completed_earleme; "
         . "Furthest: $furthest_earleme\n";
-    LIST: for my $ix ( 0 .. $furthest_earleme ) {
-        $text .= "Earley Set $ix\n"
-            . Marpa::XS::show_earley_set( $recce, $ix );
+    LIST: for (my $ix = 0; ;$ix++) {
+        my $set_desc = Marpa::XS::show_earley_set( $recce, $ix );
+        last LIST if not $set_desc;
+        $text .= "Earley Set $ix\n$set_desc";
     }
     return $text;
 }
@@ -793,14 +785,11 @@ sub Marpa::XS::Recognizer::show_progress {
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $grammar_c   = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
-    update_earleme_map($recce);
 
-    my $last_ix = $recce_c->furthest_earleme();
-    my $last_ordinal = $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]->[$last_ix];
+    my $last_ordinal = $recce_c->latest_earley_set();
 
-    my $start_ix;
     if ( not defined $start_ordinal ) {
-        $start_ix = $recce_c->current_earleme();
+        $start_ordinal = $last_ordinal;
     }
     else {
         if ( $start_ordinal < 0 or $start_ordinal > $last_ordinal ) {
@@ -808,12 +797,10 @@ sub Marpa::XS::Recognizer::show_progress {
                 "Marpa::PP::Recognizer::show_progress start index is $start_ordinal, "
                 . "must be in range 0-$last_ordinal";
         }
-        $start_ix = $recce_c->earleme($start_ordinal);
     } ## end else [ if ( not defined $start_ordinal ) ]
 
-    my $end_ix;
     if (not defined $end_ordinal) {
-        $end_ix = $start_ix;
+        $end_ordinal = $start_ordinal
     } else {
 	my $end_ordinal_argument = $end_ordinal;
 	if ($end_ordinal < 0) {
@@ -824,13 +811,13 @@ sub Marpa::XS::Recognizer::show_progress {
 		"Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
 		. sprintf " must be in range %d-%d", -($last_ordinal+1), $last_ordinal;
 	}
-        $end_ix = $recce_c->earleme($end_ordinal);
     }
 
     my $text = q{};
-    for my $current ( $start_ix .. $end_ix ) {
-	my %by_rule_by_position = ();
-        my $reports = report_progress( $recce, $current );
+    for my $current_ordinal ( $start_ordinal .. $end_ordinal ) {
+	my $current_earleme = $recce_c->earleme($current_ordinal);
+        my %by_rule_by_position = ();
+        my $reports = report_progress( $recce, $current_ordinal );
 
         for my $report ( @{$reports} ) {
             my $rule_id =
@@ -845,37 +832,39 @@ sub Marpa::XS::Recognizer::show_progress {
         for my $rule_id ( sort { $a <=> $b } keys %by_rule_by_position ) {
             my $by_position = $by_rule_by_position{$rule_id};
             for my $position ( sort { $a <=> $b } keys %{$by_position} ) {
-		my $raw_origins = $by_position->{$position};
-                my @origins = sort { $a <=> $b } keys %{$raw_origins};
-		my $origins_count = scalar @origins;
+                my $raw_origins   = $by_position->{$position};
+                my @origins       = sort { $a <=> $b } keys %{$raw_origins};
+                my $origins_count = scalar @origins;
                 my $origin_desc;
                 if ( $origins_count <= 3 ) {
                     $origin_desc = join q{,}, @origins;
                 }
                 else {
                     $origin_desc = $origins[0] . q{...} . $origins[-1];
-                } ## end else [ if ( scalar @{$origins} < 3 ) ]
+                }
 
                 my $rhs_length = $grammar_c->rule_length($rule_id);
                 my $item_text;
 
                 # flag indicating whether we need to show the dot in the rule
                 if ( $position >= $rhs_length ) {
-		    $item_text .= "F$rule_id";
-                } ## end if ( $position >= $rhs_length )
-                elsif ($position) {
-		    $item_text .= "R$rule_id:$position";
-                } ## end elsif ($position)
-                else {
-		    $item_text .= "P$rule_id";
+                    $item_text .= "F$rule_id";
                 }
-		$item_text .= " x$origins_count" if $origins_count > 1;
-		$item_text .= q{ @} . $origin_desc . q{-} . $current . q{ };
-		$item_text .= $grammar->show_dotted_rule( $rule_id, $position );
+                elsif ($position) {
+                    $item_text .= "R$rule_id:$position";
+                }
+                else {
+                    $item_text .= "P$rule_id";
+                }
+                $item_text .= " x$origins_count" if $origins_count > 1;
+                $item_text
+                    .= q{ @} . $origin_desc . q{-} . $current_earleme . q{ };
+                $item_text
+                    .= $grammar->show_dotted_rule( $rule_id, $position );
                 $text .= $item_text . "\n";
-            } ## end for my $postion ( sort { $a <=> $b } keys %{$by_position...})
+            } ## end for my $position ( sort { $a <=> $b } keys %{...})
         } ## end for my $rule_id ( sort { $a <=> $b } keys ...)
-    } ## end for my $current ( $start_ix .. $end_ix )
+    } ## end for my $current_ordinal ( $start_ordinal .. $end_ordinal)
     return $text;
 } ## end sub Marpa::XS::Recognizer::show_progress
 
@@ -884,11 +873,12 @@ sub Marpa::XS::Recognizer::show_progress {
 # and that is the most convenient
 # point at which to eliminate duplicates.
 sub report_progress {
-    my ($recce, $earleme) = @_;
+    my ($recce, $current_set ) = @_;
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $rules = $grammar->[Marpa::XS::Internal::Grammar::RULES];
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $earleme = $recce_c->earleme($current_set);
 
     # Reports must be unique by a key
     # composted of original rule, rule position, and
@@ -903,8 +893,7 @@ sub report_progress {
     # worklist of them for later.
     my @leo_worklist = ();
 
-    my $traced_set_id = $recce->[Marpa::XS::Internal::Recognizer::EARLEME_TO_ORDINAL]->[$earleme];
-    $recce_c->earley_set_trace($traced_set_id);
+    $recce_c->earley_set_trace($current_set);
     EARLEY_ITEM: for (my $item_id = 0;
 	    defined (my $AHFA_state_id = $recce_c->earley_item_trace($item_id)) ;
 	    $item_id++) {
@@ -1231,15 +1220,14 @@ sub Marpa::XS::Recognizer::earleme_complete {
             $recce_c->error() );
     }
 
-    if ($recce->[Marpa::XS::Internal::Recognizer::TRACE_EARLEY_SETS]) {
-	my $current_earleme = $recce_c->current_earleme();
-        print {$Marpa::XS::Internal::TRACE_FH}
-            "=== Earley set $current_earleme\n"
+    if ( $recce->[Marpa::XS::Internal::Recognizer::TRACE_EARLEY_SETS] ) {
+        my $latest_set = $recce_c->latest_earley_set();
+        print {$Marpa::XS::Internal::TRACE_FH} "=== Earley set $latest_set\n"
             or Marpa::exception("Cannot print: $ERRNO");
         print {$Marpa::XS::Internal::TRACE_FH}
-            Marpa::XS::show_earley_set($current_earleme)
+            Marpa::XS::show_earley_set($latest_set)
             or Marpa::exception("Cannot print: $ERRNO");
-    } ## end if ($trace_earley_sets)
+    } ## end if ( $recce->[Marpa::XS::Internal::Recognizer::TRACE_EARLEY_SETS...])
 
     my $trace_terminals =
         $recce->[Marpa::XS::Internal::Recognizer::TRACE_TERMINALS] // 0;
