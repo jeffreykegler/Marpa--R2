@@ -9473,10 +9473,13 @@ struct s_final_or_node
     gint t_first_and_node_id;
     gint t_and_node_count;
 };
-@ @<Private structures@> =
+@
+@d SYMID_of_OR(or) ID_of_SYM(&(or)->t_symbol)
+@<Private structures@> =
 union u_or_node {
     struct s_draft_or_node t_draft;
     struct s_final_or_node t_final;
+    struct s_symbol t_symbol;
 };
 typedef union u_or_node OR_Object;
 
@@ -9850,12 +9853,11 @@ Note that this puts a limit on the number of symbols
 and rules in a grammar --- their total must fit in an
 int.
 @d WHEID_of_SYMID(symid) (rule_count_of_g+(symid))
-@d WHEID_of_SYM(sym) WHEID_of_SYMID(ID_of_SYM(sym))
 @d WHEID_of_RULEID(ruleid) (ruleid)
 @d WHEID_of_RULE(rule) WHEID_of_RULEID(ID_of_RULE(rule))
 @d WHEID_of_OR(or) (
     wheid = OR_is_Token(or) ?
-        WHEID_of_SYM((SYM)or) :
+        WHEID_of_SYMID(SYMID_of_OR(or)) :
         WHEID_of_RULE(RULE_of_OR(or))
     )
 
@@ -10443,7 +10445,7 @@ gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
       const SYMID symbol_id =
-	OR_is_Token(cause_or) ? ID_of_SYM ((SYM) cause_or) : -1;
+	OR_is_Token(cause_or) ? SYMID_of_OR(cause_or) : -1;
       return symbol_id;
     }
 }
