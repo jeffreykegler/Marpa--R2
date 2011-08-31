@@ -15,6 +15,10 @@
 
 Revision history for Marpa::XS
 
+0.013_000 Tue Aug 30 18:26:58 PDT 2011
+    
+    * New series of developer's releases.
+
 0.012000 Fri Aug 26 18:09:32 PDT 2011
 
     * Tree iterator converted to XS.
