@@ -5395,9 +5395,11 @@ For this reason, the grammar is not |const|.
 @<Function definitions@> =
 struct marpa_r* marpa_r_new( const struct marpa_g* const g )
 { RECCE r;
+    gint symbol_count_of_g;
     @<Return |NULL| on failure@>@/
     r = g_slice_new(struct marpa_r);
     r->t_grammar = g;
+    symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
     if (!G_is_Precomputed(g)) {
@@ -7773,16 +7775,45 @@ struct s_token {
 };
 typedef struct s_token TOK_Object;
 
-@*0 The |TOK| Obstack.
-An obstack with the lifetime of the bocage.
+@ An obstack dedicated to the tokens and an array
+with default tokens for each symbol.
+Currently,
+the default tokens are used to provide
+null values, since all non-tokens are given
+values when read.
+There is a special obstack for the tokens, to
+to separate the token stream from the rest of the recognizer
+data.
+Once the bocage is built, the token data is all that
+it needs, and someday I may want to take advantage of
+this fact by freeing up the rest of recognizer memory.
 @d TOK_Obs_of_R(r) (&(r)->t_token_obs)
+@d TOKs_by_SYMID_of_R(r) ((r)->t_tokens_by_symid)
 @d TOK_Obs TOK_Obs_of_R(r)
 @<Widely aligned recognizer elements@> =
 struct obstack t_token_obs;
+TOK **t_tokens_by_symid;
 @ @<Initialize recognizer elements@> =
-obstack_init(TOK_Obs);
+{
+  gint i;
+  TOK **tokens_by_symid;
+  obstack_init (TOK_Obs);
+  tokens_by_symid =
+    obstack_alloc (TOK_Obs, sizeof (TOK) * symbol_count_of_g);
+  for (i = 0; i < symbol_count_of_g; i++)
+    {
+      tokens_by_symid[i] = token_new (r, i, NULL);
+    }
+  TOKs_by_SYMID_of_R(r) = tokens_by_symid;
+}
 @ @<Destroy recognizer elements@> =
-obstack_free(TOK_Obs, NULL);
+{
+    TOK** tokens_by_symid = TOKs_by_SYMID_of_R(r);
+    if (tokens_by_symid) {
+	obstack_free(TOK_Obs, NULL);
+	TOKs_by_SYMID_of_R(r) = NULL;
+    }
+}
 
 @ @<Private function prototypes@> =
 static inline
