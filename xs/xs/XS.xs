@@ -265,6 +265,24 @@ PPCODE:
     }
 
 void
+default_value_set( g, value )
+    Grammar *g;
+    int value;
+PPCODE:
+    { gboolean result = marpa_default_value_set(g, GINT_TO_POINTER(value));
+    if (result) XSRETURN_YES;
+    }
+    XSRETURN_NO;
+
+void
+default_value( g )
+    Grammar *g;
+PPCODE:
+    { gpointer value = marpa_default_value( g );
+    XPUSHs( sv_2mortal( newSViv(GPOINTER_TO_INT(value)) ) );
+    }
+
+void
 is_precomputed( g )
     Grammar *g;
 PPCODE:
@@ -938,7 +956,7 @@ PPCODE:
             grammar_c_class_name);
     }
     tmp = SvIV((SV*)SvRV(g_sv));
-    g_wrapper = INT2PTR(G_Wrapper *, tmp);
+    g_wrapper = GINT_TO_POINTER(tmp);
     g = g_wrapper->g;
     r = marpa_r_new(g);
     if (!r) { XSRETURN_UNDEF; }
@@ -1109,7 +1127,7 @@ PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
       gint result =
-	marpa_alternative (r, symbol_id, INT2PTR(gpointer, value), length);
+	marpa_alternative (r, symbol_id, GINT_TO_POINTER(value), length);
       if (result == -1)
 	{
 	  XSRETURN_UNDEF;
@@ -1675,6 +1693,22 @@ PPCODE:
 	  croak ("Problem in r->and_node_symbol(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
+and_node_token( r_wrapper, ordinal )
+     R_Wrapper *r_wrapper;
+     Marpa_And_Node_ID ordinal;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+        gpointer value = NULL;
+	gint result = marpa_and_node_token(r, ordinal, &value);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->and_node_symbol(): %s", marpa_r_error (r));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+	XPUSHs( sv_2mortal( newSViv(GPOINTER_TO_INT(value)) ) );
     }
 
 int

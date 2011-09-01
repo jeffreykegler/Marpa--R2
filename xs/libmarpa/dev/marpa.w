@@ -834,6 +834,27 @@ void rule_add(
 @d RULEID_of_G_is_Valid(g, rule_id)
     ((rule_id) >= 0 && (guint)(rule_id) < (g)->t_rules->len)
 
+@*0 Default Value.
+@d Default_Value_of_G(g) ((g)->t_default_value)
+@<Widely aligned grammar elements@> = gpointer t_default_value;
+@ @<Initialize grammar elements@> =
+Default_Value_of_G(g) = NULL;
+@ @<Public function prototypes@> =
+gpointer marpa_default_value(struct marpa_g* g);
+@ @<Function definitions@> =
+gpointer marpa_default_value(struct marpa_g* g)
+{ return Default_Value_of_G(g); }
+@ @<Public function prototypes@> =
+gboolean marpa_default_value_set(struct marpa_g*g, gpointer default_value);
+@ @<Function definitions@> =
+gboolean marpa_default_value_set(struct marpa_g*g, gpointer default_value)
+{
+   @<Return |FALSE| on failure@>@;
+    @<Fail if grammar is precomputed@>@;
+    Default_Value_of_G(g) = default_value;
+    return TRUE;
+}
+
 @*0 Start Symbol.
 @<Int aligned grammar elements@> = Marpa_Symbol_ID t_start_symid;
 @ @<Initialize grammar elements@> =
@@ -7793,6 +7814,7 @@ struct obstack t_token_obs;
 TOK *t_tokens_by_symid;
 @ @<Initialize recognizer elements@> =
 {
+  gpointer default_value = Default_Value_of_G(g);
   gint i;
   TOK *tokens_by_symid;
   obstack_init (TOK_Obs);
@@ -7800,7 +7822,7 @@ TOK *t_tokens_by_symid;
     obstack_alloc (TOK_Obs, sizeof (TOK) * symbol_count_of_g);
   for (i = 0; i < symbol_count_of_g; i++)
     {
-      tokens_by_symid[i] = token_new (r, i, NULL);
+      tokens_by_symid[i] = token_new (r, i, default_value);
     }
   TOKs_by_SYMID_of_R(r) = tokens_by_symid;
 }
@@ -9508,6 +9530,7 @@ struct s_final_or_node
 @
 @d TOK_of_OR(or) (&(or)->t_token)
 @d SYMID_of_OR(or) SYMID_of_TOK(TOK_of_OR(or))
+@d Value_of_OR(or) Value_of_TOK(TOK_of_OR(or))
 @<Private structures@> =
 union u_or_node {
     struct s_draft_or_node t_draft;
@@ -10479,6 +10502,40 @@ gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
       const SYMID symbol_id =
 	OR_is_Token(cause_or) ? SYMID_of_OR(cause_or) : -1;
       return symbol_id;
+    }
+}
+
+@ Returns the data for the token of the and-node.
+The symbol id is the return value,
+and the token value is placed
+in the location pointed
+to by |value_p|, if that is non-null.
+If |and_node_id| is not the ID of an and-node
+whose cause is a token,
+returns -1,
+without changing |*value_p|.
+On hard failure, returns -2 without changing
+|*value_p|.
+\par
+There is no function to simply return the token value --
+because of the need to indicate errors, it is just as
+easy to return the symbol ID as well.
+If the
+@<Private function prototypes@> =
+gint marpa_and_node_token(struct marpa_r *r, int and_node_id, gpointer* value_p);
+@ @<Function definitions@> =
+gint marpa_and_node_token(struct marpa_r *r, int and_node_id, gpointer* value_p)
+{
+  AND and_node;
+  @<Return |-2| on failure@>@;
+    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    {
+      const OR cause_or = Cause_OR_of_AND (and_node);
+      if (!OR_is_Token(cause_or)) {
+          return -1;
+      }
+      if (value_p) *value_p = Value_of_OR(cause_or);
+      return SYMID_of_OR(cause_or);
     }
 }
 
@@ -12949,12 +13006,6 @@ if (sizeof(gint) != g_array_get_element_size(result)) {
      r_context_int_add(r, "expected size", sizeof(gint));
      R_ERROR_CXT("garray size mismatch");
      return failure_indicator;
-}
-@ @<Fail with internal recognizer error@> = 
-{
-    r_context_clear(r);
-    R_FATAL("internal error");
-    return failure_indicator;
 }
 
 @ The central error routine for the recognizer.
