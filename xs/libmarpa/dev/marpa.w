@@ -7790,13 +7790,14 @@ this fact by freeing up the rest of recognizer memory.
 @d TOK_Obs_of_R(r) (&(r)->t_token_obs)
 @d TOKs_by_SYMID_of_R(r) ((r)->t_tokens_by_symid)
 @d TOK_Obs TOK_Obs_of_R(r)
+@d TOK_by_ID_of_R(r, symbol_id) (TOKs_by_SYMID_of_R(r)[symbol_id])
 @<Widely aligned recognizer elements@> =
 struct obstack t_token_obs;
-TOK **t_tokens_by_symid;
+TOK *t_tokens_by_symid;
 @ @<Initialize recognizer elements@> =
 {
   gint i;
-  TOK **tokens_by_symid;
+  TOK *tokens_by_symid;
   obstack_init (TOK_Obs);
   tokens_by_symid =
     obstack_alloc (TOK_Obs, sizeof (TOK) * symbol_count_of_g);
@@ -7808,7 +7809,7 @@ TOK **t_tokens_by_symid;
 }
 @ @<Destroy recognizer elements@> =
 {
-    TOK** tokens_by_symid = TOKs_by_SYMID_of_R(r);
+    TOK* tokens_by_symid = TOKs_by_SYMID_of_R(r);
     if (tokens_by_symid) {
 	obstack_free(TOK_Obs, NULL);
 	TOKs_by_SYMID_of_R(r) = NULL;
@@ -9508,12 +9509,13 @@ struct s_final_or_node
     gint t_and_node_count;
 };
 @
-@d SYMID_of_OR(or) ID_of_SYM(&(or)->t_symbol)
+@d TOK_of_OR(or) (&(or)->t_token)
+@d SYMID_of_OR(or) SYMID_of_TOK(TOK_of_OR(or))
 @<Private structures@> =
 union u_or_node {
     struct s_draft_or_node t_draft;
     struct s_final_or_node t_final;
-    struct s_symbol t_symbol;
+    struct s_token t_token;
 };
 typedef union u_or_node OR_Object;
 
@@ -9707,7 +9709,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
 		DAND draft_and_node;
 		const gint rhs_ix = symbol_instance - SYMI_of_RULE(rule);
 		const OR predecessor = rhs_ix ? last_or_node : NULL;
-		const OR cause = (OR)SYM_by_ID( RHS_ID_of_RULE (rule, rhs_ix ) );
+		const OR cause = (OR)TOK_by_ID_of_R( r, RHS_ID_of_RULE (rule, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
@@ -9856,8 +9858,7 @@ or-nodes follow a completion.
 	  DAND draft_and_node;
 	  const gint rhs_ix = symbol_instance - SYMI_of_RULE(path_rule);
 	    const OR predecessor = rhs_ix ? last_or_node : NULL;
-	  const OR cause =
-	   (OR)SYM_by_ID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
+	  const OR cause = (OR)TOK_by_ID_of_R( r, RHS_ID_of_RULE (path_rule, rhs_ix)) ;
 	  MARPA_ASSERT (symbol_instance < Length_of_RULE (path_rule)) @;
 	  MARPA_ASSERT (symbol_instance >= 0) @;
 	  @<Set |last_or_node| to a new or-node@>@;
@@ -10171,10 +10172,10 @@ predecessor.  Set |or-node| to 0 if there is none.
 @ @<Add draft and-node for token source@> =
 {
   OR dand_predecessor;
-  const SYM symbol = SYM_by_ID(token_id);
+  OR token = (OR)TOK_by_ID_of_R(r, token_id);
   @<Set |dand_predecessor|@>@;
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
-	  dand_predecessor, (OR)symbol);
+	  dand_predecessor, token);
 }
 
 @ @<Set |dand_predecessor|@> =
@@ -10296,7 +10297,7 @@ Otherwise, it's the first such draft and-node.
 	  /* The or-node used as a boolean in the PSL */
 	  if (!*psl_owner) psl_claim (psl_owner, and_psar);
 	  and_psl = *psl_owner;
-	  psl_or_node = (OR)PSL_Datum(and_psl, wheid);
+	  psl_or_node = PSL_Datum(and_psl, wheid);
 	  if (psl_or_node && ID_of_OR(psl_or_node) == work_or_node_id)
 	  {
 	      /* Mark this draft and-node as a duplicate */
@@ -10658,7 +10659,7 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 	OR_of_AND(and_nodes) = or_node;
 	Predecessor_OR_of_AND(and_nodes) = NULL;
 	Cause_OR_of_AND (and_nodes) =
-	  (OR) SYM_by_ID (RHS_ID_of_RULE (completed_start_rule, rule_length - 1));
+	  (OR)TOK_by_ID_of_R (r, RHS_ID_of_RULE (completed_start_rule, rule_length - 1));
 
 	return null_or_node_id;
     }
