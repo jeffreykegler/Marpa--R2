@@ -1130,14 +1130,11 @@ symbol structure may be used where or-nodes are
 expected.
 @<Private structures@> =
 struct s_symbol {
-    gint t_type;
     @<Widely aligned symbol elements@>@;
     @<Int aligned symbol elements@>@;
     @<Bit aligned symbol elements@>@;
 };
 typedef struct s_symbol SYM_Object;
-@ @<Initialize symbol elements@> =
-(symbol)->t_type = TOKEN_OR_NODE;
 
 @ @<Private function prototypes@> =
 static inline
