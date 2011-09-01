@@ -7040,7 +7040,7 @@ struct s_source {
      gpointer t_predecessor;
      union {
 	 gpointer t_completion;
-	 SYMID t_token_id;
+	 TOK t_token;
      } t_cause;
 };
 
@@ -7078,7 +7078,8 @@ union u_source_container {
 @d Cause_of_SRC(source) Cause_of_Source(*(source))
 @d Cause_of_EIM(item) Cause_of_Source(Source_of_EIM(item))
 @d Cause_of_SRCL(link) Cause_of_Source(Source_of_SRCL(link))
-@d SYMID_of_Source(srcd) ((srcd).t_cause.t_token_id)
+@d TOK_of_Source(srcd) ((srcd).t_cause.t_token)
+@d SYMID_of_Source(srcd) SYMID_of_TOK(TOK_of_Source(srcd))
 @d SYMID_of_SRC(source) SYMID_of_Source(*(source))
 @d SYMID_of_EIM(eim) SYMID_of_Source(Source_of_EIM(eim))
 @d SYMID_of_SRCL(link) SYMID_of_Source(Source_of_SRCL(link))
@@ -7096,12 +7097,17 @@ union u_source_container {
 @d First_Leo_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_leo)
 @d LV_First_Leo_SRCL_of_EIM(item) First_Leo_SRCL_of_EIM(item)
 
+@ @<Private function prototypes@> = static inline void
+token_link_add (struct marpa_r *r,
+		EIM item,
+		EIM predecessor,
+		TOK token);
 @ @<Function definitions@> = static inline
 void
 token_link_add (struct marpa_r *r,
 		EIM item,
 		EIM predecessor,
-		SYMID token_id)
+		TOK token)
 {
   SRCL new_link;
   guint previous_source_type = Source_Type_of_EIM (item);
@@ -7109,7 +7115,7 @@ token_link_add (struct marpa_r *r,
     {
       Source_Type_of_EIM (item) = SOURCE_IS_TOKEN;
       item->t_container.t_unique.t_predecessor = predecessor;
-      SYMID_of_Source(item->t_container.t_unique) = token_id;
+      TOK_of_Source(item->t_container.t_unique) = token;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7119,14 +7125,9 @@ token_link_add (struct marpa_r *r,
   new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Token_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  SYMID_of_Source(new_link->t_source) = token_id;
+  TOK_of_Source(new_link->t_source) = token;
   LV_First_Token_Link_of_EIM (item) = new_link;
 }
-@ @<Private function prototypes@> = static inline void
-token_link_add (struct marpa_r *r,
-		EIM item,
-		EIM predecessor,
-		SYMID token_id);
 
 @ @<Private function prototypes@> = static inline void
 completion_link_add (struct marpa_r *r,
@@ -7811,7 +7812,8 @@ struct s_alternative;
 typedef struct s_alternative* ALT;
 typedef const struct s_alternative* ALT_Const;
 @
-@d Token_ID_of_ALT(alt) (SYMID_of_TOK((alt)->t_token))
+@d TOK_of_ALT(alt) ((alt)->t_token)
+@d SYMID_of_ALT(alt) SYMID_of_TOK(TOK_of_ALT(alt))
 @d Start_ES_of_ALT(alt) ((alt)->t_start_earley_set)
 @d Start_Earleme_of_ALT(alt) Earleme_of_ES(Start_ES_of_ALT(alt))
 @d End_Earleme_of_ALT(alt) ((alt)->t_end_earleme)
@@ -7891,7 +7893,7 @@ costlier evaluation can sometimes be avoided.
 static inline gint alternative_cmp(const ALT_Const a, const ALT_Const b) {
      gint subkey = End_Earleme_of_ALT(b) - End_Earleme_of_ALT(a);
      if (subkey) return subkey;
-     subkey = Token_ID_of_ALT(a) - Token_ID_of_ALT(b);
+     subkey = SYMID_of_ALT(a) - SYMID_of_ALT(b);
      if (subkey) return subkey;
      return Start_Earleme_of_ALT(a) - Start_Earleme_of_ALT(b);
 }
@@ -8248,7 +8250,8 @@ this means that the parse is exhausted.
 @ @<Scan an Earley item from alternative@> =
 {
   ES start_earley_set = Start_ES_of_ALT (alternative);
-  SYMID token_id = Token_ID_of_ALT (alternative);
+  TOK token = TOK_of_ALT (alternative);
+  SYMID token_id = SYMID_of_TOK(token);
   PIM pim = First_PIM_of_ES_by_SYMID (start_earley_set, token_id);
   for ( ; pim ; pim = Next_PIM_of_PIM (pim)) {
       AHFA scanned_AHFA, prediction_AHFA;
@@ -8261,7 +8264,7 @@ this means that the parse is exhausted.
 						current_earley_set,
 						Origin_of_EIM (predecessor),
 						scanned_AHFA);
-      token_link_add (r, scanned_earley_item, predecessor, token_id);
+      token_link_add (r, scanned_earley_item, predecessor, token);
       prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
       if (!prediction_AHFA) continue;
       scanned_earley_item = earley_item_assign (r,
