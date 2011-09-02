@@ -1666,6 +1666,8 @@ guint min, gint flags );
     }
     RULE_is_Used(original_rule) = 0;
     original_rule_id = original_rule->t_id;
+    original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
+      && separator_id >= 0;
     rule_callback(g, original_rule_id);
 
 @ @<Check that the separator is valid or -1@> =
@@ -1712,7 +1714,6 @@ rule->t_original = original_rule_id;
 rule->t_is_semantic_equivalent = TRUE;
 /* Real symbol count remains at default of 0 */
 rule->t_is_virtual_rhs = TRUE;
-rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION) && separator_id >= 0;
 rule_callback(g, rule->t_id);
 }
 @ This ``alternate" top rule is needed if a final separator is allowed.
@@ -1726,7 +1727,6 @@ rule_callback(g, rule->t_id);
     rule->t_is_semantic_equivalent = TRUE;
     rule->t_is_virtual_rhs = TRUE;
     rule->t_real_symbol_count = 1;
-    rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION);
     rule_callback(g, rule->t_id);
 }
 @ The traditional way to write a sequence in BNF is with one

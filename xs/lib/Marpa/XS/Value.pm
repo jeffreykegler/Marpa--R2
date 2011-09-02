@@ -1132,7 +1132,7 @@ sub Marpa::XS::Internal::Recognizer::event {
         if ( defined $closure ) {
             my $result;
 
-	    if ( $grammar_c->rule_is_discard_separation($rule_id) ) {
+	    if ( $grammar_c->rule_is_discard_separation($semantic_rule_id) ) {
 		@{$current_data} =
 		    @{$current_data}[ map { 2 * $_ }
 		    ( 0 .. ( scalar @{$current_data} + 1 ) / 2 - 1 ) ];
@@ -1161,7 +1161,7 @@ sub Marpa::XS::Internal::Recognizer::event {
                         warnings    => \@warnings,
                         where       => 'computing value',
                         long_where  => 'Computing value for rule: '
-                            . $grammar->brief_rule($rule_id),
+                            . $grammar->brief_rule($semantic_rule_id),
                     }
                 );
             } ## end if ( not $eval_ok or @warnings )
@@ -1180,7 +1180,7 @@ sub Marpa::XS::Internal::Recognizer::event {
         } ## end if ( defined $closure )
 
         {
-            my $constant_result = $rule_constants->[$rule_id];
+            my $constant_result = $rule_constants->[$semantic_rule_id];
             push @{$evaluation_stack}, $constant_result;
             if ($trace_values) {
                 print {$Marpa::XS::Internal::TRACE_FH}
