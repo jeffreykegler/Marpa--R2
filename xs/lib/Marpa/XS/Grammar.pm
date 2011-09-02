@@ -1189,8 +1189,6 @@ sub populate_semantic_equivalences {
             $grammar_c->semantic_equivalent($rule_id);
         next RULE if not defined $semantic_equivalent_id;
         my $semantic_equivalent = $rules->[$semantic_equivalent_id];
-        $rule->[Marpa::XS::Internal::Rule::RANKING_ACTION] =
-            $semantic_equivalent->[Marpa::XS::Internal::Rule::RANKING_ACTION];
         next RULE if not defined $grammar_c->rule_length($rule_id);
         $rule->[Marpa::XS::Internal::Rule::ACTION] =
             $semantic_equivalent->[Marpa::XS::Internal::Rule::ACTION];

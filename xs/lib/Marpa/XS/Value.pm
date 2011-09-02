@@ -463,7 +463,6 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
     RULE: for my $rule ( @{$rules} ) {
 
         my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
-        next RULE if not $grammar_c->rule_is_used($rule_id);
 
         if ( my $action = $rule->[Marpa::XS::Internal::Rule::ACTION] ) {
             my $closure =
@@ -603,8 +602,6 @@ sub do_rank_all {
 		    ->[Marpa::XS::Internal::Symbol::NAME] } = $ranking_closure;
 	} ## end if ( $grammar_c->rule_length($rule_id) == 0 )
 
-        next RULE if not $grammar_c->rule_is_used($rule_id);
-
         $ranking_closures_by_rule[$rule_id] = $ranking_closure;
 
     } ## end for my $rule ( @{$rules} )
@@ -614,7 +611,9 @@ sub do_rank_all {
 
 	my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
         my $rule_id  = $recce_c->or_node_rule($parent_or_node_id);
-        my $rule_closure = $ranking_closures_by_rule[$rule_id];
+	my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
+	my $rule_closure = 
+	defined $semantic_rule_id ?  $ranking_closures_by_rule[$semantic_rule_id] : undef;
         my $token_id = $recce_c->and_node_symbol($and_node_id);
         my $token_closure;
         if ($token_id) {
