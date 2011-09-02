@@ -30,6 +30,7 @@ my $structure = <<'END_OF_STRUCTURE';
     EVAL_STACK
     EVAL_TOS
     VEVAL_STACK
+    FORK_IX
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -920,9 +921,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     my $eval = [];
     my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK] = [];
     $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = [];
+    $eval->[Marpa::XS::Internal::Eval::FORK_IX] = -1;
 
     while (my @event = Marpa::XS::Internal::Recognizer::event($recce, $eval, $action_object)) {
-       ;
     }
     
     my $top_value = pop @{$evaluation_stack};
@@ -950,13 +951,16 @@ sub Marpa::XS::Internal::Recognizer::event {
     my $rule_closures =
         $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES];
 
+    if ( $eval->[Marpa::XS::Internal::Eval::FORK_IX] ) {
+        $eval->[Marpa::XS::Internal::Eval::FORK_IX] = $recce_c->tree_size();
+    }
+
     TREE_NODE:
-    for (
-        my $fork_ix = $recce_c->tree_size() - 1;
-        $fork_ix >= 0;
-        $fork_ix--
-        )
-    {
+    while (1) {
+
+	my $fork_ix = --$eval->[Marpa::XS::Internal::Eval::FORK_IX];
+
+	return if $fork_ix < 0;
 
         my $or_node_id = $recce_c->fork_or_node($fork_ix);
         my $rule_id    = $recce_c->or_node_rule($or_node_id);
@@ -1189,7 +1193,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
     }    # TREE_NODE
 
-    return;
+    return (1, 1, 1, 1, 1);
 
 }
 
