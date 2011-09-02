@@ -541,7 +541,6 @@ sub Marpa::XS::Grammar::precompute {
         Marpa::XS::uncaught_error($error);
     }
 
-    populate_semantic_equivalences($grammar);
     populate_null_values($grammar);
 
     # A bit hackish here: INACCESSIBLE_OK is not a HASH ref iff
@@ -1175,24 +1174,6 @@ sub wrap_rule_cb {
             or Marpa::exception("Could not print: $ERRNO");
     } ## end if ($trace_rules)
     return;
-}
-
-sub populate_semantic_equivalences {
-    my ($grammar) = @_;
-    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $rules = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    RULE: for my $rule ( @{$rules} ) {
-
-        # Do I need to copy the actions for this rule from another rule?
-        my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
-        my $semantic_equivalent_id =
-            $grammar_c->semantic_equivalent($rule_id);
-        next RULE if not defined $semantic_equivalent_id;
-        my $semantic_equivalent = $rules->[$semantic_equivalent_id];
-        next RULE if not defined $grammar_c->rule_length($rule_id);
-        $rule->[Marpa::XS::Internal::Rule::ACTION] =
-            $semantic_equivalent->[Marpa::XS::Internal::Rule::ACTION];
-    }
 }
 
 sub populate_null_values {
