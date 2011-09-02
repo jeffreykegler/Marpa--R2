@@ -927,7 +927,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     while (my @event = Marpa::XS::Internal::Recognizer::event($recce, $eval, $action_object)) {
     }
     
-    my $top_value = pop @{$evaluation_stack};
+    my $top_value = $evaluation_stack->[0];
 
     return $top_value;
 
@@ -956,7 +956,10 @@ sub Marpa::XS::Internal::Recognizer::event {
         $eval->[Marpa::XS::Internal::Eval::FORK_IX] = $recce_c->tree_size();
     }
 
+    my $arg_0;
+    my $arg_n;
     my $continue = 1;
+
     TREE_NODE:
     while ($continue) {
 
@@ -965,6 +968,9 @@ sub Marpa::XS::Internal::Recognizer::event {
 	my $fork_ix = --$eval->[Marpa::XS::Internal::Eval::FORK_IX];
 
 	return if $fork_ix < 0;
+
+	$arg_0 = -1;
+	$arg_n = -1;
 
         my $or_node_id = $recce_c->fork_or_node($fork_ix);
         my $rule_id    = $recce_c->or_node_rule($or_node_id);
@@ -998,7 +1004,9 @@ sub Marpa::XS::Internal::Recognizer::event {
 
         if ( defined $value_ref ) {
 
-            push @{$evaluation_stack}, $value_ref;
+	    
+	    $evaluation_stack->[ ++$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] ] =
+		$value_ref;
 
             if ($trace_values) {
                 my $token_name;
@@ -1028,15 +1036,15 @@ sub Marpa::XS::Internal::Recognizer::event {
         my $virtual_rhs = $grammar_c->rule_is_virtual_rhs($rule_id);
         my $virtual_lhs = $grammar_c->rule_is_virtual_lhs($rule_id);
 
-        my $current_data = [];
         OP: {
 
             if ( not $virtual_rhs and not $virtual_lhs ) {
 
                 my $argc = $grammar_c->rule_length($rule_id);
 
-                $current_data =
-                    [ map { ${$_} } ( splice @{$evaluation_stack}, -$argc ) ];
+		$arg_n = $eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
+		$arg_0 = $arg_n - $argc + 1;
+		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 
                 if ($trace_values) {
                     say {$Marpa::XS::Internal::TRACE_FH}
@@ -1056,10 +1064,9 @@ sub Marpa::XS::Internal::Recognizer::event {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
 
                 $real_symbol_count += pop @{$virtual_evaluation_stack};
-                $current_data =
-                    [ map { ${$_} }
-                        ( splice @{$evaluation_stack}, -$real_symbol_count )
-                    ];
+		$arg_n = $eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
+		$arg_0 = $arg_n - $real_symbol_count + 1;
+		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 
                 if ($trace_values) {
                     say {$Marpa::XS::Internal::TRACE_FH}
@@ -1136,10 +1143,11 @@ sub Marpa::XS::Internal::Recognizer::event {
         if ( defined $closure ) {
             my $result;
 
+	    my @args = map { ${$_} } @{$evaluation_stack}[$arg_0 .. $arg_n];
 	    if ( $grammar_c->rule_is_discard_separation($semantic_rule_id) ) {
-		@{$current_data} =
-		    @{$current_data}[ map { 2 * $_ }
-		    ( 0 .. ( scalar @{$current_data} + 1 ) / 2 - 1 ) ];
+		@args =
+		    @args[ map { 2 * $_ }
+		    ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
 	    }
 
             my @warnings;
@@ -1150,7 +1158,7 @@ sub Marpa::XS::Internal::Recognizer::event {
                 };
 
                 $eval_ok = eval {
-                    $result = $closure->( $action_object, @{$current_data} );
+                    $result = $closure->( $action_object, @args );
                     1;
                 };
 
@@ -1170,7 +1178,7 @@ sub Marpa::XS::Internal::Recognizer::event {
                 );
             } ## end if ( not $eval_ok or @warnings )
 
-            push @{$evaluation_stack}, \$result;
+            $evaluation_stack->[$arg_0] = \$result;
 
             if ($trace_values) {
                 print {$Marpa::XS::Internal::TRACE_FH}
@@ -1185,7 +1193,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
         {
             my $constant_result = $rule_constants->[$semantic_rule_id];
-            push @{$evaluation_stack}, $constant_result;
+            $evaluation_stack->[$arg_0] = $constant_result;
             if ($trace_values) {
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Constant result: ',
@@ -1197,7 +1205,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
     }    # TREE_NODE
 
-    return (1, 1, 1, 1, 1);
+    return (1, 1, 1, $arg_0, $arg_n);
 
 }
 
