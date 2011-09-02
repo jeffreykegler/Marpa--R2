@@ -22,6 +22,19 @@ use integer;
 
 use English qw( -no_match_vars );
 
+BEGIN {
+my $structure = <<'END_OF_STRUCTURE';
+
+    :package=Marpa::XS::Internal::Eval
+
+    EVAL_STACK
+    EVAL_TOS
+    VEVAL_STACK
+
+END_OF_STRUCTURE
+    Marpa::offset($structure);
+} ## end BEGIN
+
 # This perlcritic check is broken as of 9 Aug 2010
 ## no critic (TestingAndDebugging::ProhibitNoWarnings)
 no warnings qw(qw);
@@ -907,10 +920,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
     $action_object //= {};
 
-    my $evaluation_stack =
-        $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK] = [];
-    my $virtual_evaluation_stack =
-        $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = [];
+    my $eval = [];
+    my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK] = undef;
+    my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = undef;
 
     TREE_NODE:
     for (
@@ -1148,10 +1160,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     }    # TREE_NODE
 
     my $top_value = pop @{$evaluation_stack};
-
-    $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK]  = undef;
-    $recce->[Marpa::XS::Internal::Recognizer::EVAL_TOS]    = 0;
-    $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = undef;
 
     return $top_value;
 

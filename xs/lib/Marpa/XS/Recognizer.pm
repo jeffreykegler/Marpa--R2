@@ -28,14 +28,6 @@ use integer;
 
 use English qw( -no_match_vars );
 
-# Elements of the EARLEY ITEM structure
-# Note that these are Earley items as modified by Aycock & Horspool,
-# with AHFA states instead of
-# LR(0) items.
-
-# We don't prune the Earley items because we want ORIGIN and SET
-# around for debugging.
-
 # Elements of the RECOGNIZER structure
 BEGIN {
 my $structure = <<'END_OF_STRUCTURE';
@@ -70,9 +62,6 @@ my $structure = <<'END_OF_STRUCTURE';
     SINGLE_PARSE_MODE
     RULE_CLOSURES
     RULE_CONSTANTS
-    EVAL_STACK
-    EVAL_TOS
-    VEVAL_STACK
 
     { This is the end of the list of fields which
     must be reinitialized when evaluation is reset }
@@ -265,9 +254,6 @@ sub Marpa::XS::Recognizer::reset_evaluation {
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES]   = [];
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS]   = [];
-    $recce->[Marpa::XS::Internal::Recognizer::EVAL_STACK] = undef;
-    $recce->[Marpa::XS::Internal::Recognizer::EVAL_TOS] = 0;
-    $recce->[Marpa::XS::Internal::Recognizer::VEVAL_STACK] = undef;
 
     return;
 } ## end sub Marpa::XS::Recognizer::reset_evaluation
