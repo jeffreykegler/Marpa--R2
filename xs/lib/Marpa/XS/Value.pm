@@ -1120,7 +1120,11 @@ sub Marpa::XS::Internal::Recognizer::event {
 
         } ## end for ( my $op_ix = 0; $op_ix < scalar @{$ops}; $op_ix++)
 
-        my $closure = $rule_closures->[$rule_id];
+        my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
+        my $closure =
+            defined $semantic_rule_id
+            ? $rule_closures->[$semantic_rule_id]
+            : undef;
         if ( defined $closure ) {
             my $result;
 
