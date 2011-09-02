@@ -865,8 +865,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
     my $grammar_c    = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols      = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-    my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
-        // 0;
 
     my $rule_constants =
         $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS];
@@ -921,8 +919,37 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     $action_object //= {};
 
     my $eval = [];
-    my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK] = undef;
-    my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = undef;
+    my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK] = [];
+    $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = [];
+
+    while (my @event = Marpa::XS::Internal::Recognizer::event($recce, $eval, $action_object)) {
+       ;
+    }
+    
+    my $top_value = pop @{$evaluation_stack};
+
+    return $top_value;
+
+} ## end sub Marpa::XS::Internal::Recognizer::evaluate
+
+sub Marpa::XS::Internal::Recognizer::event {
+    my ($recce, $eval, $action_object)     = @_;
+    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $grammar_c   = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
+        // 0;
+    my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK];
+    my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK];
+    my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
+    my $symbols      = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
+
+    my $token_values =
+        $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
+    my $rule_constants =
+        $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS];
+    my $rule_closures =
+        $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES];
 
     TREE_NODE:
     for (
@@ -1159,11 +1186,10 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
     }    # TREE_NODE
 
-    my $top_value = pop @{$evaluation_stack};
+    return;
 
-    return $top_value;
+}
 
-} ## end sub Marpa::XS::Internal::Recognizer::evaluate
 
 # Returns false if no parse
 sub Marpa::XS::Recognizer::value {
