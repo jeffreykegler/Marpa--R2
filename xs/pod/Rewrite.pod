@@ -259,8 +259,8 @@ name: Rewrite show_rules Output
 partial: 1
 normalize-whitespace: 1
 
-    2: statements -> statements[Subseq:8:5] /* vrhs discard_sep real=0 */
-    3: statements -> statements[Subseq:8:5] comma /* vrhs discard_sep real=1 */
+    2: statements -> statements[Subseq:8:5] /* vrhs real=0 */
+    3: statements -> statements[Subseq:8:5] comma /* vrhs real=1 */
     4: statements[Subseq:8:5] -> statement /* vlhs real=1 */
     5: statements[Subseq:8:5] -> statements[Subseq:8:5] comma statement /* vlhs vrhs real=2 */
 

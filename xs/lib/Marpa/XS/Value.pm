@@ -921,6 +921,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     my $eval = [];
     my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK] = [];
     $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = [];
+    $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = -1;
     $eval->[Marpa::XS::Internal::Eval::FORK_IX] = -1;
 
     while (my @event = Marpa::XS::Internal::Recognizer::event($recce, $eval, $action_object)) {
@@ -951,12 +952,15 @@ sub Marpa::XS::Internal::Recognizer::event {
     my $rule_closures =
         $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES];
 
-    if ( $eval->[Marpa::XS::Internal::Eval::FORK_IX] ) {
+    if ( $eval->[Marpa::XS::Internal::Eval::FORK_IX] < 0) {
         $eval->[Marpa::XS::Internal::Eval::FORK_IX] = $recce_c->tree_size();
     }
 
+    my $continue = 1;
     TREE_NODE:
-    while (1) {
+    while ($continue) {
+
+	$continue = !$trace_values;
 
 	my $fork_ix = --$eval->[Marpa::XS::Internal::Eval::FORK_IX];
 
