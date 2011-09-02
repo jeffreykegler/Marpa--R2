@@ -94,7 +94,6 @@ if (not $ENV{'MARPA_AUTHOR_TEST'}) {
     $Marpa::XS::DEBUG = 1;
 }
 require Marpa::XS::Internal;
-require Marpa::XS::Slot;
 require Marpa::XS::Grammar;
 require Marpa::XS::Recognizer;
 require Marpa::XS::Value;

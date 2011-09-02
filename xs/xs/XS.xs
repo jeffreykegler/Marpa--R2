@@ -1329,6 +1329,19 @@ PPCODE:
     }
 
 void
+source_token( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    gpointer value;
+    gint symbol_id = marpa_source_token(r, &value);
+    if (symbol_id == -1) { XSRETURN_UNDEF; }
+    if (symbol_id < 0) { croak("Problem with r->source_token(): %s", marpa_r_error(r)); }
+	XPUSHs( sv_2mortal( newSViv(symbol_id) ) );
+	XPUSHs( sv_2mortal( newSViv(GPOINTER_TO_INT(value)) ) );
+    }
+
+void
 source_middle( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
@@ -1682,12 +1695,12 @@ PPCODE:
     }
 
 void
-and_node_symbol( r_wrapper, ordinal )
+and_node_symbol( r_wrapper, and_node_id )
      R_Wrapper *r_wrapper;
-     Marpa_And_Node_ID ordinal;
+     Marpa_And_Node_ID and_node_id;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_and_node_symbol(r, ordinal);
+	gint result = marpa_and_node_symbol(r, and_node_id);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->and_node_symbol(): %s", marpa_r_error (r));
@@ -1696,13 +1709,13 @@ PPCODE:
     }
 
 void
-and_node_token( r_wrapper, ordinal )
+and_node_token( r_wrapper, and_node_id )
      R_Wrapper *r_wrapper;
-     Marpa_And_Node_ID ordinal;
+     Marpa_And_Node_ID and_node_id;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
         gpointer value = NULL;
-	gint result = marpa_and_node_token(r, ordinal, &value);
+	gint result = marpa_and_node_token(r, and_node_id, &value);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->and_node_symbol(): %s", marpa_r_error (r));

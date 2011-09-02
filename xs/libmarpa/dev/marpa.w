@@ -7099,6 +7099,9 @@ union u_source_container {
 @d Cause_of_EIM(item) Cause_of_Source(Source_of_EIM(item))
 @d Cause_of_SRCL(link) Cause_of_Source(Source_of_SRCL(link))
 @d TOK_of_Source(srcd) ((srcd).t_cause.t_token)
+@d TOK_of_SRC(source) TOK_of_Source(*(source))
+@d TOK_of_EIM(eim) TOK_of_Source(Source_of_EIM(eim))
+@d TOK_of_SRCL(link) TOK_of_Source(Source_of_SRCL(link))
 @d SYMID_of_Source(srcd) SYMID_of_TOK(TOK_of_Source(srcd))
 @d SYMID_of_SRC(source) SYMID_of_Source(*(source))
 @d SYMID_of_EIM(eim) SYMID_of_Source(Source_of_EIM(eim))
@@ -7628,6 +7631,44 @@ AHFAID marpa_source_predecessor_state(struct marpa_r *r)
 	if (!predecessor) return -1;
 	return AHFAID_of_EIM(predecessor);
     }
+    }
+    R_ERROR(invalid_source_type_message(source_type));
+    return failure_indicator;
+}
+
+@*1 Return the Token.
+Returns the token.
+The symbol id is the return value,
+and the value is written to |*value_p|,
+if it is non-null.
+If the recognizer is not trace-safe,
+there is no trace source link,
+if the trace source link is not a token source,
+or there is some other failure,
+|-2| is returned.
+\par
+There is no function to return just the token value
+for two reasons.
+First, since token value can be anything
+an additional return value is needed to indicate errors,
+which means the symbol ID comes at virtually zero cost.
+Second, whenever the token value is
+wanted, the symbol ID is almost always wanted as well.
+@<Public function prototypes@> =
+Marpa_Symbol_ID marpa_source_token(struct marpa_r *r, gpointer *value_p);
+@ @<Function definitions@> =
+Marpa_Symbol_ID marpa_source_token(struct marpa_r *r, gpointer *value_p)
+{
+   @<Return |-2| on failure@>@;
+   guint source_type;
+   SRC source;
+    @<Fail recognizer if not trace-safe@>@;
+   source_type = r->t_trace_source_type;
+    @<Set source, failing if necessary@>@;
+    if (source_type == SOURCE_IS_TOKEN) {
+	const TOK token = TOK_of_SRC(source);
+        if (value_p) *value_p = Value_of_TOK(token);
+	return SYMID_of_TOK(token);
     }
     R_ERROR(invalid_source_type_message(source_type));
     return failure_indicator;
@@ -10163,28 +10204,28 @@ predecessor.  Set |or-node| to 0 if there is none.
 {
   SRCL source_link = NULL;
   EIM predecessor_earley_item = NULL;
-  SYMID token_id = -1;
+  TOK token = NULL;
   switch (work_source_type)
     {
     case SOURCE_IS_TOKEN:
       predecessor_earley_item = Predecessor_of_EIM (work_earley_item);
-      token_id = SYMID_of_EIM(work_earley_item);
+      token = TOK_of_EIM(work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = First_Token_Link_of_EIM (work_earley_item);
       if (source_link)
 	{
 	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
-	  token_id = SYMID_of_SRCL(source_link);
+	  token = TOK_of_SRCL(source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
     }
-    while (token_id >= 0) 
+    while (token) 
       {
 	@<Add draft and-node for token source@>@;
 	if (!source_link) break;
 	predecessor_earley_item = Predecessor_of_SRCL (source_link);
-        token_id = SYMID_of_SRCL(source_link);
+        token = TOK_of_SRCL(source_link);
 	source_link = Next_SRCL_of_SRCL (source_link);
       }
 }
@@ -10192,10 +10233,9 @@ predecessor.  Set |or-node| to 0 if there is none.
 @ @<Add draft and-node for token source@> =
 {
   OR dand_predecessor;
-  OR token = (OR)TOK_by_ID_of_R(r, token_id);
   @<Set |dand_predecessor|@>@;
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
-	  dand_predecessor, token);
+	  dand_predecessor, (OR)token);
 }
 
 @ @<Set |dand_predecessor|@> =
@@ -10531,12 +10571,16 @@ gint marpa_and_node_token(struct marpa_r *r, int and_node_id, gpointer* value_p)
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
-      if (!OR_is_Token(cause_or)) {
-          return -1;
-      }
-      if (value_p) *value_p = Value_of_OR(cause_or);
-      return SYMID_of_OR(cause_or);
+      if (OR_is_Token (cause_or))
+	{
+	  const TOK token = TOK_of_OR (cause_or);
+	  if (value_p)
+	    *value_p = Value_of_TOK (token);
+MARPA_DEBUG3("and_node_token returning %p, value_p=%p", SYMID_of_TOK(token), *value_p);
+	  return SYMID_of_TOK (token);
+	}
     }
+    return -1;
 }
 
 @** Parse Bocage Code (BOC).

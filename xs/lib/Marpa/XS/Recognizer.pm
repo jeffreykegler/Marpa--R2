@@ -47,9 +47,7 @@ my $structure = <<'END_OF_STRUCTURE';
 
     GRAMMAR { the grammar used }
     FINISHED
-    SLOTS { Array of slots for data to pass to libmarpa }
     TOKEN_VALUES
-    OLD_TOKEN_VALUES
 
     TRACE_FILE_HANDLE
 
@@ -182,9 +180,10 @@ sub Marpa::XS::Recognizer::new {
     $recce->[Marpa::XS::Internal::Recognizer::MODE]           = 'default';
     $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES]     = 0;
-    $recce->[Marpa::XS::Internal::Recognizer::SLOTS]     = Marpa::XS::Internal::Slot->new();
-    $recce->[Marpa::XS::Internal::Recognizer::OLD_TOKEN_VALUES]     = {};
-    $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]     = [];
+
+    # First position is reserved for undef
+    $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]     = [undef];
+
     $recce->reset_evaluation();
 
     $recce->set(@arg_hashes);
@@ -557,12 +556,13 @@ sub Marpa::XS::show_leo_item {
 
  # Assumes trace token source link set by caller
 sub Marpa::XS::show_token_link_choice {
-    my ($recce, $token_id, $current_earleme ) = @_;
+    my ($recce, $current_earleme ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $text = q{};
     my @pieces = ();
+    my ($token_id, $value_ix) = $recce_c->source_token();
     my $predecessor_state = $recce_c->source_predecessor_state();
     my $origin_set_id = $recce_c->earley_item_origin();
     my $origin_earleme = $recce_c->earleme($origin_set_id);
@@ -579,9 +579,7 @@ sub Marpa::XS::show_token_link_choice {
     my $symbol_name = $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
     push @pieces, 's=' . $symbol_name;
     my $token_length = $current_earleme - $middle_earleme;
-# say STDERR +(join q{;}, 'SEEKING', $middle_earleme, $token_length, $symbol_name);
-    my $value = $recce->[Marpa::XS::Internal::Recognizer::OLD_TOKEN_VALUES]->{join q{;}, 
-	$middle_earleme, $token_length, $symbol_name};
+    my $value = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES]->[$value_ix];
     my $token_dump = Data::Dumper->new( [\$value] )->Terse(1)->Dump;
     chomp $token_dump;
     push @pieces, "t=$token_dump";
@@ -593,7 +591,6 @@ sub Marpa::XS::show_completion_link_choice {
     my ($recce, $AHFA_state_id, $current_earleme) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $text = q{};
     my @pieces = ();
@@ -622,7 +619,6 @@ sub Marpa::XS::show_leo_link_choice {
     my ($recce, $AHFA_state_id, $current_earleme) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
     my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $text = q{};
     my @pieces = ();
@@ -657,7 +653,7 @@ sub Marpa::XS::show_earley_item {
 	    $recce_c->source_middle(),
 	    $symbol_id,
 	    ($recce_c->source_predecessor_state() // -1),
-            Marpa::XS::show_token_link_choice( $recce, $symbol_id, $earleme )
+            Marpa::XS::show_token_link_choice( $recce, $earleme )
        ];
     } ## end for ( my $symbol_id = $recce_c->first_token_link_trace...)
     push @pieces, map { $_->[-1] } sort {
@@ -988,7 +984,6 @@ sub Marpa::XS::Recognizer::alternative {
 
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $trace_fh = $recce->[Marpa::XS::Internal::Recognizer::TRACE_FILE_HANDLE];
-    my $slots = $recce->[Marpa::XS::Internal::Recognizer::SLOTS];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     my $token_values = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
@@ -998,13 +993,8 @@ sub Marpa::XS::Recognizer::alternative {
         $value_ix = scalar @{$token_values};
         push @{$token_values}, $value;
     }
-    my $slot = $slots->slot($value);
     $length //= 1;
 
-# say STDERR +(join q{;}, 'SETTING', $recce_c->current_earleme(), $length, $symbol_name);
-
-    $recce->[Marpa::XS::Internal::Recognizer::OLD_TOKEN_VALUES]->{join q{;}, 
-	$recce_c->current_earleme(), $length, $symbol_name} = $value;
     my $result = $recce_c->alternative( $symbol_id, $value_ix, $length );
     Marpa::exception(
         qq{"$symbol_name" already scanned with length $length at location },

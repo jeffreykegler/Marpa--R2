@@ -847,9 +847,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
     my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
-    my $old_token_values =
-        $recce->[Marpa::XS::Internal::Recognizer::OLD_TOKEN_VALUES];
-    my $grammar      = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $token_values =
+        $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
     my $grammar_c    = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols      = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
@@ -941,28 +941,13 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
         my $value_ref;
         SET_VALUE_REF: {
-            my $token_id = $recce_c->and_node_symbol($and_node_id);
+            my ($token_id, $value_ix) = $recce_c->and_node_token($and_node_id);
             last SET_VALUE_REF if not defined $token_id;
-            my $token_name =
-                $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
-            if ( $grammar_c->symbol_is_nulling($token_id) ) {
+            if ( $value_ix < 0 ) {
                 $value_ref = \$null_values->[$token_id];
                 last SET_VALUE_REF;
             }
-            my $current_earley_set = $recce_c->or_node_set($or_node_id);
-            my $end_earleme        = $recce_c->earleme($current_earley_set);
-            my $origin             = $recce_c->or_node_origin($or_node_id);
-            my $origin_earleme     = $recce_c->earleme($origin);
-            my $predecessor    = $recce_c->and_node_predecessor($and_node_id);
-            my $middle_earleme = $origin_earleme;
-            if ( defined $predecessor ) {
-                my $predecessor_set = $recce_c->or_node_set($predecessor);
-                $middle_earleme = $recce_c->earleme($predecessor_set);
-            }
-            my $value_key = join q{;}, $middle_earleme,
-                ( $end_earleme - $middle_earleme ), $token_name;
-            last SET_VALUE_REF if not exists $old_token_values->{$value_key};
-            $value_ref = \( $old_token_values->{$value_key} );
+            $value_ref = \( $token_values->[$value_ix] );
         } ## end SET_VALUE_REF:
 
         if ( defined $value_ref ) {

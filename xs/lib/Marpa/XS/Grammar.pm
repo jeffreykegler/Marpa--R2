@@ -244,6 +244,7 @@ sub Marpa::XS::Grammar::new {
     $grammar_c->message_callback_set(\&message_cb);
     $grammar_c->rule_callback_set(\&wrap_rule_cb);
     $grammar_c->symbol_callback_set(\&wrap_symbol_cb);
+    $grammar_c->default_value_set(-1);
 
     $grammar->set(@arg_hashes);
 
