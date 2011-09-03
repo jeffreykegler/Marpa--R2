@@ -31,6 +31,7 @@ my $structure = <<'END_OF_STRUCTURE';
     EVAL_TOS
     VEVAL_STACK
     FORK_IX
+    TRACE_VAL
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -865,6 +866,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
     my $grammar_c    = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols      = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
+    my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
+        // 0;
 
     my $rule_constants =
         $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS];
@@ -923,9 +926,26 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = [];
     $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = -1;
     $eval->[Marpa::XS::Internal::Eval::FORK_IX] = -1;
+    $eval->[Marpa::XS::Internal::Eval::TRACE_VAL] = $trace_values ? 1 : 0;
 
-    while (my @event = Marpa::XS::Internal::Recognizer::event($recce, $eval, $action_object)) {
-    }
+    while (
+        my ($token_id, $value_ix, $rule_id, $arg_0, $arg_n) = Marpa::XS::Internal::Recognizer::event(
+            $recce, $eval, $action_object
+        )
+        )
+    {
+        if ( $trace_values >= 3 ) {
+            for my $i ( reverse 0 .. $arg_n ) {
+                printf {$Marpa::XS::Internal::TRACE_FH} 'Stack position %3d:',
+                    $i
+                    or Marpa::exception('print to trace handle failed');
+                print {$Marpa::XS::Internal::TRACE_FH} q{ },
+                    Data::Dumper->new( [ $evaluation_stack->[$i] ] )->Terse(1)
+                    ->Dump
+                    or Marpa::exception('print to trace handle failed');
+            } ## end for my $i ( reverse 0 .. $#{$evaluation_stack} )
+        } ## end if ( $trace_values >= 3 )
+    } ## end while ( my @event = Marpa::XS::Internal::Recognizer::event...)
     
     my $top_value = $evaluation_stack->[0];
 
@@ -940,6 +960,7 @@ sub Marpa::XS::Internal::Recognizer::event {
     my $grammar_c   = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
         // 0;
+    my $trace_val = $eval->[Marpa::XS::Internal::Eval::TRACE_VAL];
     my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK];
     my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK];
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
@@ -960,6 +981,7 @@ sub Marpa::XS::Internal::Recognizer::event {
     my $arg_n;
     my $token_id;
     my $value_ix;
+    my $semantic_rule_id;
     my $continue = 1;
 
     TREE_NODE:
@@ -979,18 +1001,6 @@ sub Marpa::XS::Internal::Recognizer::event {
 
         my $and_node_id =
             $recce_c->and_node_order_get( $or_node_id, $choice );
-
-        if ( $trace_values >= 3 ) {
-            for my $i ( reverse 0 .. $#{$evaluation_stack} ) {
-                printf {$Marpa::XS::Internal::TRACE_FH} 'Stack position %3d:',
-                    $i
-                    or Marpa::exception('print to trace handle failed');
-                print {$Marpa::XS::Internal::TRACE_FH} q{ },
-                    Data::Dumper->new( [ $evaluation_stack->[$i] ] )->Terse(1)
-                    ->Dump
-                    or Marpa::exception('print to trace handle failed');
-            } ## end for my $i ( reverse 0 .. $#{$evaluation_stack} )
-        } ## end if ( $trace_values >= 3 )
 
         my $value_ref;
         SET_VALUE_REF: {
@@ -1133,7 +1143,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
         } ## end for ( my $op_ix = 0; $op_ix < scalar @{$ops}; $op_ix++)
 
-        my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
+        $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
         my $closure =
             defined $semantic_rule_id
             ? $rule_closures->[$semantic_rule_id]
@@ -1203,7 +1213,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
     }    # TREE_NODE
 
-    return (1, 1, 1, $arg_0, $arg_n);
+    return ($token_id, $value_ix, $semantic_rule_id, $arg_0, $arg_n);
 
 }
 
