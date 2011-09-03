@@ -1191,35 +1191,26 @@ sub Marpa::XS::Internal::Recognizer::event {
         my $virtual_rhs = $grammar_c->rule_is_virtual_rhs($rule_id);
         my $virtual_lhs = $grammar_c->rule_is_virtual_lhs($rule_id);
 
-        OP: {
+	my $real_symbol_count;
 
-	    my $real_symbol_count;
-
-            if ( not $virtual_lhs ) {
-		if ($virtual_rhs) {
-		    $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
-		    $real_symbol_count += pop @{$virtual_evaluation_stack};
-		} else {
-		    $real_symbol_count = $grammar_c->rule_length($rule_id);
-		}
-		$arg_0 = $arg_n - $real_symbol_count + 1;
-		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
-		last OP;
+	if ( $virtual_lhs ) {
+	    $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
+	    if ( $virtual_rhs ) {
+		$virtual_evaluation_stack->[-1] += $real_symbol_count;
+	    } else {
+		push @{$virtual_evaluation_stack}, $real_symbol_count;
 	    }
+	    next TREE_NODE;
+	}
 
-            if ( $virtual_lhs and $virtual_rhs ) {
-                $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
-                $virtual_evaluation_stack->[-1] += $real_symbol_count;
-                next TREE_NODE;
-            } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_KERNEL )
-
-            if ( not $virtual_rhs and $virtual_lhs ) {
-                $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
-                push @{$virtual_evaluation_stack}, $real_symbol_count;
-                next TREE_NODE;
-            } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_TAIL )
-
-        } ## end for ( my $op_ix = 0; $op_ix < scalar @{$ops}; $op_ix++)
+	if ($virtual_rhs) {
+	    $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
+	    $real_symbol_count += pop @{$virtual_evaluation_stack};
+	} else {
+	    $real_symbol_count = $grammar_c->rule_length($rule_id);
+	}
+	$arg_0 = $arg_n - $real_symbol_count + 1;
+	    $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 
         $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
 	if (defined $semantic_rule_id) { $continue = 0; }
