@@ -947,48 +947,40 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             } ## end for my $i ( reverse 0 .. $arg_n )
         } ## end if ( $trace_values >= 3 )
 
-	if ( defined $token_id ) {
-	    my $value_ref;
-	    if ( $value_ix < 0 ) {
-		$value_ref = \$null_values->[$token_id];
+	ADD_TOKEN: {
+	    last ADD_TOKEN if not defined $token_id;
+	    my $value_ref =
+		$value_ix < 0
+		? \$null_values->[$token_id]
+		: \( $token_values->[$value_ix] );
+
+	    $evaluation_stack->[$arg_n] = $value_ref;
+
+	    last ADD_TOKEN if not $trace_values;
+
+	    my $fork_ix    = $eval->[Marpa::XS::Internal::Eval::FORK_IX];
+	    my $or_node_id = $recce_c->fork_or_node($fork_ix);
+	    my $choice     = $recce_c->fork_choice($fork_ix);
+	    my $and_node_id =
+		$recce_c->and_node_order_get( $or_node_id, $choice );
+	    my $token_id = $recce_c->and_node_symbol($and_node_id);
+	    my $token_name;
+	    if ( defined $token_id ) {
+		$token_name =
+		    $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
 	    }
-	    else {
-		$value_ref = \( $token_values->[$value_ix] );
-	    }
 
-	    if ( defined $value_ref ) {
+	    print {$Marpa::XS::Internal::TRACE_FH}
+		'Pushed value from ',
+		Marpa::XS::Recognizer::and_node_tag( $recce, $and_node_id ),
+		': ',
+		( $token_name ? qq{$token_name = } : q{} ),
+		Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
+		or Marpa::exception('print to trace handle failed');
 
-		$evaluation_stack->[$arg_n] = $value_ref;
+	} ## end ADD_TOKEN:
 
-		if ($trace_values) {
-		    my $fork_ix    = $eval->[Marpa::XS::Internal::Eval::FORK_IX];
-		    my $or_node_id = $recce_c->fork_or_node($fork_ix);
-		    my $choice     = $recce_c->fork_choice($fork_ix);
-		    my $and_node_id =
-			$recce_c->and_node_order_get( $or_node_id, $choice );
-		    my $token_id = $recce_c->and_node_symbol($and_node_id);
-		    my $token_name;
-		    if ( defined $token_id ) {
-			$token_name =
-			    $symbols->[$token_id]
-			    ->[Marpa::XS::Internal::Symbol::NAME];
-		    }
-
-		    print {$Marpa::XS::Internal::TRACE_FH}
-			'Pushed value from ',
-			Marpa::XS::Recognizer::and_node_tag(
-			$recce, $and_node_id
-			),
-			': ',
-			( $token_name ? qq{$token_name = } : q{} ),
-			Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
-			or Marpa::exception('print to trace handle failed');
-		} ## end if ($trace_values)
-
-	    }    # defined $value_ref
-	} ## end if ( defined $token_id )
-
-        TRACE_OP: {
+	TRACE_OP: {
 
             last TRACE_OP if not $trace_values;
 
