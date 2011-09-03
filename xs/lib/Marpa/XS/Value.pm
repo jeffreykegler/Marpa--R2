@@ -1193,29 +1193,28 @@ sub Marpa::XS::Internal::Recognizer::event {
 
         OP: {
 
-            if ( not $virtual_rhs and not $virtual_lhs ) {
-                my $argc = $grammar_c->rule_length($rule_id);
-		$arg_0 = $arg_n - $argc + 1;
-		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
-		last OP;
-            } ## end if ( $op == Marpa::XS::Internal::Op::ARGC )
+	    my $real_symbol_count;
 
-            if ( $virtual_rhs and not $virtual_lhs ) {
-                my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
-                $real_symbol_count += pop @{$virtual_evaluation_stack};
+            if ( not $virtual_lhs ) {
+		if ($virtual_rhs) {
+		    $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
+		    $real_symbol_count += pop @{$virtual_evaluation_stack};
+		} else {
+		    $real_symbol_count = $grammar_c->rule_length($rule_id);
+		}
 		$arg_0 = $arg_n - $real_symbol_count + 1;
 		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 		last OP;
-            } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD )
+	    }
 
             if ( $virtual_lhs and $virtual_rhs ) {
-                my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
+                $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
                 $virtual_evaluation_stack->[-1] += $real_symbol_count;
                 next TREE_NODE;
             } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_KERNEL )
 
             if ( not $virtual_rhs and $virtual_lhs ) {
-                my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
+                $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
                 push @{$virtual_evaluation_stack}, $real_symbol_count;
                 next TREE_NODE;
             } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_TAIL )
