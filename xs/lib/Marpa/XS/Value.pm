@@ -928,6 +928,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     $eval->[Marpa::XS::Internal::Eval::FORK_IX] = -1;
     $eval->[Marpa::XS::Internal::Eval::TRACE_VAL] = $trace_values ? 1 : 0;
 
+    EVENT:
     while (
         my ($token_id, $value_ix, $rule_id, $arg_0, $arg_n) = Marpa::XS::Internal::Recognizer::event(
             $recce, $eval, $action_object
@@ -943,8 +944,74 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     Data::Dumper->new( [ $evaluation_stack->[$i] ] )->Terse(1)
                     ->Dump
                     or Marpa::exception('print to trace handle failed');
-            } ## end for my $i ( reverse 0 .. $#{$evaluation_stack} )
+            } ## end for my $i ( reverse 0 .. $arg_n )
         } ## end if ( $trace_values >= 3 )
+
+	next EVENT if not defined $rule_id;
+
+        my $closure = $rule_closures->[$rule_id];
+        if ( defined $closure ) {
+            my $result;
+
+            my @args = map { ${$_} } @{$evaluation_stack}[ $arg_0 .. $arg_n ];
+            if ( $grammar_c->rule_is_discard_separation($rule_id) ) {
+                @args =
+                    @args[ map { 2 * $_ }
+                    ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
+            }
+
+            my @warnings;
+            my $eval_ok;
+            DO_EVAL: {
+                local $SIG{__WARN__} = sub {
+                    push @warnings, [ $_[0], ( caller 0 ) ];
+                };
+
+                $eval_ok = eval {
+                    $result = $closure->( $action_object, @args );
+                    1;
+                };
+
+            } ## end DO_EVAL:
+
+            if ( not $eval_ok or @warnings ) {
+                my $fatal_error = $EVAL_ERROR;
+                Marpa::XS::Internal::code_problems(
+                    {   fatal_error => $fatal_error,
+                        grammar     => $grammar,
+                        eval_ok     => $eval_ok,
+                        warnings    => \@warnings,
+                        where       => 'computing value',
+                        long_where  => 'Computing value for rule: '
+                            . $grammar->brief_rule($rule_id),
+                    }
+                );
+            } ## end if ( not $eval_ok or @warnings )
+
+            $evaluation_stack->[$arg_0] = \$result;
+
+            if ($trace_values) {
+                print {$Marpa::XS::Internal::TRACE_FH}
+                    'Calculated and pushed value: ',
+                    Data::Dumper->new( [$result] )->Terse(1)->Dump
+                    or Marpa::exception('print to trace handle failed');
+            } ## end if ($trace_values)
+
+            next EVENT;
+
+        } ## end if ( defined $closure )
+
+        {
+            my $constant_result = $rule_constants->[$rule_id];
+            $evaluation_stack->[$arg_0] = $constant_result;
+            if ($trace_values) {
+                print {$Marpa::XS::Internal::TRACE_FH}
+                    'Constant result: ',
+                    'Pushing 1 value on stack: ',
+                    Data::Dumper->new( [$constant_result] )->Terse(1)->Dump
+                    or Marpa::exception('Could not print to trace file');
+            } ## end if ($trace_values)
+        } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
     } ## end while ( my @event = Marpa::XS::Internal::Recognizer::event...)
     
     my $top_value = $evaluation_stack->[0];
@@ -1089,7 +1156,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 			" symbols\n",
                         'Currently ',
                         ( scalar @{$virtual_evaluation_stack} ),
-                        ' rules; ', $virtual_evaluation_stack->[-1],
+                        ' rules; ', ($virtual_evaluation_stack->[-1] // 0),
                         ' symbols;',
                         or Marpa::exception('Could not print to trace file');
                 } ## end if ($trace_values)
@@ -1144,79 +1211,14 @@ sub Marpa::XS::Internal::Recognizer::event {
         } ## end for ( my $op_ix = 0; $op_ix < scalar @{$ops}; $op_ix++)
 
         $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
-        my $closure =
-            defined $semantic_rule_id
-            ? $rule_closures->[$semantic_rule_id]
-            : undef;
-        if ( defined $closure ) {
-            my $result;
 
-	    my @args = map { ${$_} } @{$evaluation_stack}[$arg_0 .. $arg_n];
-	    if ( $grammar_c->rule_is_discard_separation($semantic_rule_id) ) {
-		@args =
-		    @args[ map { 2 * $_ }
-		    ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
-	    }
-
-            my @warnings;
-            my $eval_ok;
-            DO_EVAL: {
-                local $SIG{__WARN__} = sub {
-                    push @warnings, [ $_[0], ( caller 0 ) ];
-                };
-
-                $eval_ok = eval {
-                    $result = $closure->( $action_object, @args );
-                    1;
-                };
-
-            } ## end DO_EVAL:
-
-            if ( not $eval_ok or @warnings ) {
-                my $fatal_error = $EVAL_ERROR;
-                Marpa::XS::Internal::code_problems(
-                    {   fatal_error => $fatal_error,
-                        grammar     => $grammar,
-                        eval_ok     => $eval_ok,
-                        warnings    => \@warnings,
-                        where       => 'computing value',
-                        long_where  => 'Computing value for rule: '
-                            . $grammar->brief_rule($semantic_rule_id),
-                    }
-                );
-            } ## end if ( not $eval_ok or @warnings )
-
-            $evaluation_stack->[$arg_0] = \$result;
-
-            if ($trace_values) {
-                print {$Marpa::XS::Internal::TRACE_FH}
-                    'Calculated and pushed value: ',
-                    Data::Dumper->new( [$result] )->Terse(1)->Dump
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_values)
-
-            next TREE_NODE;
-
-        } ## end if ( defined $closure )
-
-        {
-            my $constant_result = $rule_constants->[$semantic_rule_id];
-            $evaluation_stack->[$arg_0] = $constant_result;
-            if ($trace_values) {
-                print {$Marpa::XS::Internal::TRACE_FH}
-                    'Constant result: ',
-                    'Pushing 1 value on stack: ',
-                    Data::Dumper->new( [$constant_result] )->Terse(1)->Dump
-                    or Marpa::exception('Could not print to trace file');
-            } ## end if ($trace_values)
-        } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
+	if (defined $semantic_rule_id) { $continue = 0; }
 
     }    # TREE_NODE
 
     return ($token_id, $value_ix, $semantic_rule_id, $arg_0, $arg_n);
 
 }
-
 
 # Returns false if no parse
 sub Marpa::XS::Recognizer::value {
