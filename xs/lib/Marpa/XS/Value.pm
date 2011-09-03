@@ -958,6 +958,8 @@ sub Marpa::XS::Internal::Recognizer::event {
 
     my $arg_0;
     my $arg_n;
+    my $token_id;
+    my $value_ix;
     my $continue = 1;
 
     TREE_NODE:
@@ -969,8 +971,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
 	return if $fork_ix < 0;
 
-	$arg_0 = -1;
-	$arg_n = -1;
+	$arg_0 = $arg_n = $eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
 
         my $or_node_id = $recce_c->fork_or_node($fork_ix);
         my $rule_id    = $recce_c->or_node_rule($or_node_id);
@@ -993,7 +994,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
         my $value_ref;
         SET_VALUE_REF: {
-            my ($token_id, $value_ix) = $recce_c->and_node_token($and_node_id);
+            ($token_id, $value_ix) = $recce_c->and_node_token($and_node_id);
             last SET_VALUE_REF if not defined $token_id;
             if ( $value_ix < 0 ) {
                 $value_ref = \$null_values->[$token_id];
@@ -1003,10 +1004,9 @@ sub Marpa::XS::Internal::Recognizer::event {
         } ## end SET_VALUE_REF:
 
         if ( defined $value_ref ) {
-
 	    
-	    $evaluation_stack->[ ++$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] ] =
-		$value_ref;
+	    $arg_0 = $arg_n = ++$eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
+	    $evaluation_stack->[ $arg_n ] = $value_ref;
 
             if ($trace_values) {
                 my $token_name;
@@ -1042,7 +1042,6 @@ sub Marpa::XS::Internal::Recognizer::event {
 
                 my $argc = $grammar_c->rule_length($rule_id);
 
-		$arg_n = $eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
 		$arg_0 = $arg_n - $argc + 1;
 		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 
@@ -1064,7 +1063,6 @@ sub Marpa::XS::Internal::Recognizer::event {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
 
                 $real_symbol_count += pop @{$virtual_evaluation_stack};
-		$arg_n = $eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
 		$arg_0 = $arg_n - $real_symbol_count + 1;
 		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 
