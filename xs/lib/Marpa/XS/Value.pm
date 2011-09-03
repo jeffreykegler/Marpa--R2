@@ -923,7 +923,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
     my $eval = [];
     my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK] = [];
-    $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = [];
+    my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = [];
     $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = -1;
     $eval->[Marpa::XS::Internal::Eval::FORK_IX] = -1;
     $eval->[Marpa::XS::Internal::Eval::TRACE_VAL] = $trace_values ? 1 : 0;
@@ -946,6 +946,99 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     or Marpa::exception('print to trace handle failed');
             } ## end for my $i ( reverse 0 .. $arg_n )
         } ## end if ( $trace_values >= 3 )
+
+        TRACE_OP: {
+
+            last TRACE_OP if not $trace_values;
+
+	    my $fork_ix = $eval->[Marpa::XS::Internal::Eval::FORK_IX];
+	    my $or_node_id = $recce_c->fork_or_node($fork_ix);
+	    my $choice     = $recce_c->fork_choice($fork_ix);
+	    my $and_node_id =
+		$recce_c->and_node_order_get( $or_node_id, $choice );
+	    my $trace_rule_id    = $recce_c->or_node_rule($or_node_id);
+	    my $virtual_rhs = $grammar_c->rule_is_virtual_rhs($trace_rule_id);
+	    my $virtual_lhs = $grammar_c->rule_is_virtual_lhs($trace_rule_id);
+
+	    next EVENT if  $recce_c->or_node_position($or_node_id)
+                != $grammar_c->rule_length($trace_rule_id) ;
+
+            if ( not $virtual_rhs and not $virtual_lhs ) {
+
+                my $argc = $grammar_c->rule_length($trace_rule_id);
+
+                say {$Marpa::XS::Internal::TRACE_FH} 'Popping ', $argc,
+                    ' values to evaluate ',
+                    Marpa::XS::Recognizer::and_node_tag(
+                    $recce, $and_node_id
+                    ),
+                    ', rule: ', $grammar->brief_rule($trace_rule_id)
+                    or Marpa::exception('Could not print to trace file');
+
+                last TRACE_OP;
+
+            } ## end if ( not $virtual_rhs and not $virtual_lhs )
+
+            if ( $virtual_rhs and not $virtual_lhs ) {
+
+                say {$Marpa::XS::Internal::TRACE_FH}
+                    'Head of Virtual Rule: ',
+                    Marpa::XS::Recognizer::and_node_tag(
+                    $recce, $and_node_id
+                    ),
+                    ', rule: ', $grammar->brief_rule($trace_rule_id),
+                    "\n",
+                    "Incrementing virtual rule by ",
+                    $grammar_c->real_symbol_count($trace_rule_id),
+                    " symbols\n",
+                    'Currently ',
+                    ( scalar @{$virtual_evaluation_stack} ),
+                    ' rules; ', ( $virtual_evaluation_stack->[-1] // 0 ),
+                    ' symbols;',
+                    or Marpa::exception('Could not print to trace file');
+
+                last TRACE_OP;
+
+            } ## end if ( $virtual_rhs and not $virtual_lhs )
+
+            if ( $virtual_lhs and $virtual_rhs ) {
+
+                say {$Marpa::XS::Internal::TRACE_FH}
+                    'Virtual Rule: ',
+                    Marpa::XS::Recognizer::and_node_tag(
+                    $recce, $and_node_id
+                    ),
+                    ', rule: ', $grammar->brief_rule($trace_rule_id),
+                    "\nAdding ",
+                    $grammar_c->real_symbol_count($trace_rule_id),
+                    ", now ",
+                    ( scalar @{$virtual_evaluation_stack} ),
+                    ' rules; ', $virtual_evaluation_stack->[-1], ' symbols'
+                    or Marpa::exception('Could not print to trace file');
+
+                next EVENT;
+
+            } ## end if ( $virtual_lhs and $virtual_rhs )
+
+            if ( not $virtual_rhs and $virtual_lhs ) {
+
+                say {$Marpa::XS::Internal::TRACE_FH}
+                    'New Virtual Rule: ',
+                    Marpa::XS::Recognizer::and_node_tag(
+                    $recce, $and_node_id
+                    ),
+                    ', rule: ', $grammar->brief_rule($trace_rule_id),
+                    "\nSymbol count is ",
+		    $grammar_c->real_symbol_count($trace_rule_id),
+                    ", now ",
+                    ( scalar @{$virtual_evaluation_stack} ), ' rules',
+                    or Marpa::exception('Could not print to trace file');
+
+                next EVENT;
+
+            } ## end if ( not $virtual_rhs and $virtual_lhs )
+
+        } ## end TRACE_OP:
 
 	next EVENT if not defined $rule_id;
 
@@ -1122,16 +1215,6 @@ sub Marpa::XS::Internal::Recognizer::event {
 		$arg_0 = $arg_n - $argc + 1;
 		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 
-                if ($trace_values) {
-                    say {$Marpa::XS::Internal::TRACE_FH}
-                        'Popping ', $argc, ' values to evaluate ',
-                        Marpa::XS::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_rule($rule_id)
-                        or Marpa::exception('Could not print to trace file');
-                } ## end if ($trace_values)
-
 		last OP;
 
             } ## end if ( $op == Marpa::XS::Internal::Op::ARGC )
@@ -1143,24 +1226,6 @@ sub Marpa::XS::Internal::Recognizer::event {
 		$arg_0 = $arg_n - $real_symbol_count + 1;
 		$eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 
-                if ($trace_values) {
-                    say {$Marpa::XS::Internal::TRACE_FH}
-                        'Head of Virtual Rule: ',
-                        Marpa::XS::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_rule($rule_id),
-                        "\n",
-                        "Incrementing virtual rule by ",
-			$grammar_c->real_symbol_count($rule_id),
-			" symbols\n",
-                        'Currently ',
-                        ( scalar @{$virtual_evaluation_stack} ),
-                        ' rules; ', ($virtual_evaluation_stack->[-1] // 0),
-                        ' symbols;',
-                        or Marpa::exception('Could not print to trace file');
-                } ## end if ($trace_values)
-
 		last OP;
 
             } ## end if ( $op == Marpa::XS::Internal::Op::VIRTUAL_HEAD )
@@ -1168,20 +1233,6 @@ sub Marpa::XS::Internal::Recognizer::event {
             if ( $virtual_lhs and $virtual_rhs ) {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
                 $virtual_evaluation_stack->[-1] += $real_symbol_count;
-
-                if ($trace_values) {
-                    say {$Marpa::XS::Internal::TRACE_FH}
-                        'Virtual Rule: ',
-                        Marpa::XS::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_rule($rule_id),
-                        "\nAdding $real_symbol_count, now ",
-                        ( scalar @{$virtual_evaluation_stack} ),
-                        ' rules; ', $virtual_evaluation_stack->[-1],
-                        ' symbols'
-                        or Marpa::exception('Could not print to trace file');
-                } ## end if ($trace_values)
 
                 next TREE_NODE;
 
@@ -1191,18 +1242,6 @@ sub Marpa::XS::Internal::Recognizer::event {
                 my $real_symbol_count = $grammar_c->real_symbol_count($rule_id);
 
                 push @{$virtual_evaluation_stack}, $real_symbol_count;
-
-                if ($trace_values) {
-                    say {$Marpa::XS::Internal::TRACE_FH}
-                        'New Virtual Rule: ',
-                        Marpa::XS::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_rule($rule_id),
-                        "\nSymbol count is $real_symbol_count, now ",
-                        (scalar @{$virtual_evaluation_stack}), ' rules',
-                        or Marpa::exception('Could not print to trace file');
-                } ## end if ($trace_values)
 
                 next TREE_NODE;
 
