@@ -27,7 +27,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Eval
 
-    EVAL_STACK
     EVAL_TOS
     VEVAL_STACK
     FORK_IX
@@ -922,7 +921,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     $action_object //= {};
 
     my $eval = [];
-    my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK] = [];
+    my @evaluation_stack = ();
     my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = [];
     $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = -1;
     $eval->[Marpa::XS::Internal::Eval::FORK_IX] = -1;
@@ -941,7 +940,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     $i
                     or Marpa::exception('print to trace handle failed');
                 print {$Marpa::XS::Internal::TRACE_FH} q{ },
-                    Data::Dumper->new( [ $evaluation_stack->[$i] ] )->Terse(1)
+                    Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
                     ->Dump
                     or Marpa::exception('print to trace handle failed');
             } ## end for my $i ( reverse 0 .. $arg_n )
@@ -954,7 +953,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 		? \$null_values->[$token_id]
 		: \( $token_values->[$value_ix] );
 
-	    $evaluation_stack->[$arg_n] = $value_ref;
+	    $evaluation_stack[$arg_n] = $value_ref;
 
 	    last ADD_TOKEN if not $trace_values;
 
@@ -1079,7 +1078,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         if ( defined $closure ) {
             my $result;
 
-            my @args = map { ${$_} } @{$evaluation_stack}[ $arg_0 .. $arg_n ];
+            my @args = map { ${$_} } @evaluation_stack[ $arg_0 .. $arg_n ];
             if ( $grammar_c->rule_is_discard_separation($rule_id) ) {
                 @args =
                     @args[ map { 2 * $_ }
@@ -1114,7 +1113,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                 );
             } ## end if ( not $eval_ok or @warnings )
 
-            $evaluation_stack->[$arg_0] = \$result;
+            $evaluation_stack[$arg_0] = \$result;
 
             if ($trace_values) {
                 print {$Marpa::XS::Internal::TRACE_FH}
@@ -1129,7 +1128,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
         {
             my $constant_result = $rule_constants->[$rule_id];
-            $evaluation_stack->[$arg_0] = $constant_result;
+            $evaluation_stack[$arg_0] = $constant_result;
             if ($trace_values) {
                 print {$Marpa::XS::Internal::TRACE_FH}
                     'Constant result: ',
@@ -1140,7 +1139,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
     } ## end while ( my @event = Marpa::XS::Internal::Recognizer::event...)
     
-    my $top_value = $evaluation_stack->[0];
+    my $top_value = $evaluation_stack[0];
 
     return $top_value;
 
@@ -1154,7 +1153,6 @@ sub Marpa::XS::Internal::Recognizer::event {
     my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
         // 0;
     my $trace_val = $eval->[Marpa::XS::Internal::Eval::TRACE_VAL];
-    my $evaluation_stack = $eval->[Marpa::XS::Internal::Eval::EVAL_STACK];
     my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK];
     my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
     my $symbols      = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
