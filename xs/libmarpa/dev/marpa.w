@@ -11026,13 +11026,16 @@ it is exhausted.
 @d TREE_is_Initialized(tree) ((tree)->t_parse_count >= 0)
 @d TREE_is_Exhausted(tree) (TREE_is_Initialized(tree)
     && !FSTACK_IS_INITIALIZED((tree)->t_fork_stack))
+@d VAL_of_TREE(tree) (&(tree)->t_val)
 @<Private structures@> =
 @<FORK structure@>@;
+@<VAL structure@>@;
 struct s_tree {
     FSTACK_DECLARE(t_fork_stack, FORK_Object)@;
     FSTACK_DECLARE(t_fork_worklist, gint)@;
     Bit_Vector t_and_node_in_use;
     gint t_parse_count;
+    VAL_Object t_val;
 };
 typedef struct s_tree TREE_Object;
 
@@ -11066,7 +11069,7 @@ static inline void tree_safe(TREE tree)
     FSTACK_SAFE(tree->t_fork_worklist);
     tree->t_and_node_in_use = NULL;
     tree->t_parse_count = -1;
-MARPA_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
+    val_safe(VAL_of_TREE(tree));
 }
 
 @ @<Private function prototypes@> =
@@ -11084,6 +11087,7 @@ int marpa_tree_new(struct marpa_r* r)
     if (TREE_is_Exhausted(tree)) {
        return -1;
     }
+    val_destroy(VAL_of_TREE(tree));
     if (!TREE_is_Initialized(tree))
       {
 	first_tree_of_series = 1;
@@ -11780,6 +11784,123 @@ gint marpa_fork_is_predecessor(struct marpa_r *r, int fork_id)
   @<Return |-2| on failure@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_is_Predecessor(fork);
+}
+
+@** Event (EVE) Code.
+@ @<Public structures@> =
+struct marpa_event {
+    Marpa_Symbol_ID marpa_token_id;
+    gint marpa_value_ix;
+    Marpa_Rule_ID marpa_rule_id;
+    gint marpa_arg_0;
+    gint marpa_arg_n;
+};
+@ @<Private typedefs@> =
+typedef struct marpa_event *EVE;
+
+@** Evaluation (VAL) Code.
+This code helps
+compute a value for
+a parse tree.
+I say "helps" because evaluating a parse tree
+involves semantics, and libmarpa has only
+limited knowledge of the semantics.
+This code is really just routines to assist
+the higher level in tracking the evaluation stack.
+\par
+The main reason for this code is to hide libmarpa's
+internal rewrites from the semantics.
+If it were not for that, it would probably be
+just as easy to provide a parse tree to the
+higher level and let them decide how to
+evaluation it.
+@<Private incomplete structures@> =
+struct s_value;
+typedef struct s_value* VAL;
+@
+@d VAL_is_Active(val) ((val)->t_active)
+@d FORK_of_VAL(val) ((val)->t_fork)
+@<VAL structure@> =
+struct s_value {
+    DSTACK_DECLARE(t_virtual_stack);
+    FORKID t_fork;
+    gint t_tos;
+    gint t_trace:1;
+    gint t_active:1;
+};
+typedef struct s_value VAL_Object;
+
+@ @<Private function prototypes@> =
+static inline void val_safe(VAL val);
+@ @<Function definitions@> =
+static inline void val_safe(VAL val)
+{
+    DSTACK_SAFE(val->t_virtual_stack);
+    val->t_active = 0;
+    val->t_trace = 0;
+    val->t_tos = -1;
+    val->t_fork = -1;
+}
+
+@ @<Private function prototypes@> =
+int marpa_val_new(struct marpa_r* r);
+@ @<Function definitions@> =
+int marpa_val_new(struct marpa_r* r)
+{
+    BOC b;
+    TREE tree;
+    @<Return |-2| on failure@>@;
+    @<Fail if recognizer has fatal error@>@;
+    @<Set |b| to bocage; fail if none@>@;
+    tree = TREE_of_RANK(RANK_of_B(b));
+    if (TREE_is_Exhausted(tree)) {
+       return -1;
+    }
+    if (!TREE_is_Initialized(tree))
+      {
+	R_ERROR ("tree not initialized");
+	return failure_indicator;
+      }
+     // Not yet finished.
+    return 1;
+}
+
+@ @<Private function prototypes@> =
+static inline void val_destroy(VAL val);
+@ @<Function definitions@> =
+static inline void val_destroy(VAL val)
+{
+
+  if (DSTACK_IS_INITIALIZED(val->t_virtual_stack))
+    {
+      DSTACK_DESTROY(val->t_virtual_stack);
+      DSTACK_SAFE(val->t_virtual_stack);
+    }
+    val_safe(val);
+}
+
+@ Soft failure (-1) if no bocage, or if the evaluator
+is not active.
+@<Public function prototypes@> =
+Marpa_Fork_ID marpa_val_fork(struct marpa_r* r);
+@ @<Function definitions@> =
+Marpa_Fork_ID marpa_val_fork(struct marpa_r* r)
+{
+    BOC b;
+    TREE tree;
+    VAL val;
+    @<Return |-2| on failure@>@;
+    @<Fail if recognizer has fatal error@>@;
+    b = B_of_R(r);
+    if (!b) {
+	return -1;
+    }
+    tree = TREE_of_RANK(RANK_of_B(b));
+    val = VAL_of_TREE(tree);
+    if (!VAL_is_Active(val)) {
+	return -1;
+    }
+    return FORK_of_VAL(val);
 }
 
 @** Boolean Vectors.
