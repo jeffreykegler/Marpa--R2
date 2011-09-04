@@ -51,6 +51,7 @@
 \def\QED/{{\bf QED}}
 \def\Theorem/{{\bf Theorem}}
 \def\Proof/{{\bf Theorem}}
+\def\size#1{\v #1\v}
 \def\gsize{\v g\v}
 \def\wsize{\v w\v}
 
@@ -11787,16 +11788,23 @@ gint marpa_fork_is_predecessor(struct marpa_r *r, int fork_id)
 }
 
 @** Event (EVE) Code.
-@ @<Public structures@> =
+@
+@d SYMID_of_EVE(eve) ((eve)->marpa_token_id)
+@d Value_of_EVE(eve) ((eve)->marpa_value)
+@d RULEID_of_EVE(eve) ((eve)->marpa_rule_id)
+@d Arg0_of_EVE(eve) ((eve)->marpa_arg_0)
+@d ArgN_of_EVE(eve) ((eve)->marpa_arg_n)
+@<Public structures@> =
 struct marpa_event {
     Marpa_Symbol_ID marpa_token_id;
-    gint marpa_value_ix;
+    gpointer marpa_value;
     Marpa_Rule_ID marpa_rule_id;
     gint marpa_arg_0;
     gint marpa_arg_n;
 };
+typedef struct marpa_event Marpa_Event;
 @ @<Private typedefs@> =
-typedef struct marpa_event *EVE;
+typedef Marpa_Event *EVE;
 
 @** Evaluation (VAL) Code.
 This code helps
@@ -11817,9 +11825,20 @@ evaluation it.
 @<Private incomplete structures@> =
 struct s_value;
 typedef struct s_value* VAL;
-@
+@ This structure tracks the top of the evaluation
+stack, but does {\bf not} actually maintain the
+actual evaluation stack ---
+that is left for the upper layers to do.
+It does, however, mantain a stack of the counts
+of symbols in the
+original (or "virtual") rules.
+This enables libmarpa to make the rewriting of
+the grammar invisible to the semantics.
 @d VAL_is_Active(val) ((val)->t_active)
+@d VAL_is_Trace(val) ((val)->t_trace)
 @d FORK_of_VAL(val) ((val)->t_fork)
+@d TOS_of_VAL(val) ((val)->t_tos)
+@d VStack_of_VAL(val) ((val)->t_virtual_stack)
 @<VAL structure@> =
 struct s_value {
     DSTACK_DECLARE(t_virtual_stack);
@@ -11844,7 +11863,40 @@ static inline void val_safe(VAL val)
 
 @ @<Private function prototypes@> =
 int marpa_val_new(struct marpa_r* r);
-@ @<Function definitions@> =
+@ A dynamic stack is used here instead of a fixed
+stack for two reasons.
+First, this code is not really within a tight CPU
+loop, so that shaving off the few instructions it
+takes to check stack size is not a big deal.
+Second, the fixed stack, to accomodate the worst
+case, would have to be many times larger than
+what will usually be needed.
+@ I calculate the 
+worst case for virtual stack size, as follows.
+The virtual stack only grows once for each virtual
+rules.
+To be virtual, a rule must divide into a least two
+"real" or rewritten, rules, so worst case is half
+of all applications of real rules grow the virtual
+stack.
+The number of applications of real rules is
+the size of the parse tree, \size{|tree|}.
+So, if the fixed stack is sized per tree,
+it must be $\size{|tree|}/2+1$.
+@ I set the initial size of
+the dynamic stack to be
+$\size{|tree|}/1024$,
+with a minimum of 1024.
+1024 is chosen because
+in some modern configurations
+a smaller allocation may require
+extra work.
+The purpose of the $\size{|tree|}/1024$ is
+to guarantee that this code is $O(n)$.
+$\size{|tree|}/1024$ is a fixed fraction
+of the worst case size, so the number of
+stack reallocations is $O(1)$.
+@<Function definitions@> =
 int marpa_val_new(struct marpa_r* r)
 {
     BOC b;
@@ -11879,9 +11931,35 @@ static inline void val_destroy(VAL val)
     val_safe(val);
 }
 
-@ Soft failure (-1) if no bocage, or if the evaluator
-is not active.
-@<Public function prototypes@> =
+@ @<Set |b|, |tree|, |val|;
+return on failure@> = {
+    @<Fail if recognizer has fatal error@>@;
+    b = B_of_R(r);
+    if (!b) {
+	return failure_indicator;
+    }
+    tree = TREE_of_RANK(RANK_of_B(b));
+    val = VAL_of_TREE(tree);
+    if (!VAL_is_Active(val)) {
+	return failure_indicator;
+    }
+}
+
+@ @<Public function prototypes@> =
+gint marpa_val_trace(struct marpa_r* r, gint flag);
+@ @<Function definitions@> =
+gint marpa_val_trace(struct marpa_r* r, gint flag)
+{
+    BOC b;
+    TREE tree;
+    VAL val;
+    @<Return |-2| on failure@>@;
+    @<Set |b|, |tree|, |val|; return on failure@>@;
+    VAL_is_Trace(val) = flag;
+    return 1;
+}
+
+@ @<Public function prototypes@> =
 Marpa_Fork_ID marpa_val_fork(struct marpa_r* r);
 @ @<Function definitions@> =
 Marpa_Fork_ID marpa_val_fork(struct marpa_r* r)
@@ -11890,16 +11968,26 @@ Marpa_Fork_ID marpa_val_fork(struct marpa_r* r)
     TREE tree;
     VAL val;
     @<Return |-2| on failure@>@;
-    @<Fail if recognizer has fatal error@>@;
-    b = B_of_R(r);
-    if (!b) {
-	return -1;
-    }
-    tree = TREE_of_RANK(RANK_of_B(b));
-    val = VAL_of_TREE(tree);
-    if (!VAL_is_Active(val)) {
-	return -1;
-    }
+    @<Set |b|, |tree|, |val|; return on failure@>@;
+    return FORK_of_VAL(val);
+}
+
+@ @<Public function prototypes@> =
+Marpa_Fork_ID marpa_val_event(struct marpa_r* r, Marpa_Event* event);
+@ @<Function definitions@> =
+Marpa_Fork_ID marpa_val_event(struct marpa_r* r, Marpa_Event* event)
+{
+    BOC b;
+    TREE tree;
+    VAL val;
+    @<Return |-2| on failure@>@;
+    @<Set |b|, |tree|, |val|; return on failure@>@;
+    // Return just anything for now.
+    SYMID_of_EVE(event) = -1;
+    Value_of_EVE(event) = NULL;
+    RULEID_of_EVE(event) = -1;
+    Arg0_of_EVE(event) = TOS_of_VAL(val);
+    ArgN_of_EVE(event) = TOS_of_VAL(val);
     return FORK_of_VAL(val);
 }
 
