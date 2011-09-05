@@ -656,11 +656,11 @@ the higher layers.
 @** The Public Header File.
 @*0 Version Constants.
 @<Private global variables@> =
-const unsigned int marpa_major_version = MARPA_MAJOR_VERSION;
-const unsigned int marpa_minor_version = MARPA_MINOR_VERSION;
-const unsigned int marpa_micro_version = MARPA_MICRO_VERSION;
-const unsigned int marpa_interface_age = MARPA_INTERFACE_AGE;
-const unsigned int marpa_binary_age = MARPA_BINARY_AGE;
+const guint marpa_major_version = MARPA_MAJOR_VERSION;
+const guint marpa_minor_version = MARPA_MINOR_VERSION;
+const guint marpa_micro_version = MARPA_MICRO_VERSION;
+const guint marpa_interface_age = MARPA_INTERFACE_AGE;
+const guint marpa_binary_age = MARPA_BINARY_AGE;
 @ Return the version in a 3 element int array
 @<Function definitions@> =
 void marpa_version(int* version) {
@@ -930,7 +930,7 @@ g->t_max_rule_length = 0;
 @ @<Public function prototypes@> =
 gboolean marpa_is_precomputed(const struct marpa_g* const g);
 @ @d G_is_Precomputed(g) ((g)->t_is_precomputed)
-@<Bit aligned grammar elements@> = unsigned int t_is_precomputed:1;
+@<Bit aligned grammar elements@> = guint t_is_precomputed:1;
 @ @<Initialize grammar elements@> =
 g->t_is_precomputed = FALSE;
 @ @<Function definitions@> =
@@ -938,7 +938,7 @@ gboolean marpa_is_precomputed(const struct marpa_g* const g)
 { return G_is_Precomputed(g); }
 
 @*0 Grammar Boolean: Has Loop.
-@<Bit aligned grammar elements@> = unsigned int t_has_loop:1;
+@<Bit aligned grammar elements@> = guint t_has_loop:1;
 @ @<Initialize grammar elements@> =
 g->t_has_loop = FALSE;
 @ The internal accessor would be trivial, so there is none.
@@ -953,7 +953,7 @@ Traditionally, a BNF grammar did {\bf not} allow a symbol
 which was a terminal symbol of the grammar, to also be a LHS
 symbol.
 By default, this is allowed under Marpa.
-@<Bit aligned grammar elements@> = unsigned int t_is_lhs_terminal_ok:1;
+@<Bit aligned grammar elements@> = guint t_is_lhs_terminal_ok:1;
 @ @<Initialize grammar elements@> =
 g->t_is_lhs_terminal_ok = TRUE;
 @ The internal accessor would be trivial, so there is none.
@@ -1255,7 +1255,7 @@ void symbol_rhs_add(SYM symbol, Marpa_Rule_ID rule_id)
 void symbol_rhs_add(SYM symbol, Marpa_Rule_ID rule_id);
 
 @ Symbol Is Accessible Boolean
-@<Bit aligned symbol elements@> = unsigned int t_is_accessible:1;
+@<Bit aligned symbol elements@> = guint t_is_accessible:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_accessible = FALSE;
 @ The trace accessor returns the Boolean value.
@@ -1281,7 +1281,7 @@ struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
 void marpa_symbol_is_accessible_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
 
 @ Symbol Is Counted Boolean
-@<Bit aligned symbol elements@> = unsigned int t_is_counted:1;
+@<Bit aligned symbol elements@> = guint t_is_counted:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_counted = FALSE;
 @ The trace accessor returns the Boolean value.
@@ -1299,7 +1299,7 @@ gboolean marpa_symbol_is_counted(struct marpa_g* g, Marpa_Symbol_ID id)
 gboolean marpa_symbol_is_counted(struct marpa_g* g, Marpa_Symbol_ID id);
 
 @ Symbol Is Nullable Boolean
-@<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
+@<Bit aligned symbol elements@> = guint t_is_nullable:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nullable = FALSE;
 @ The trace accessor returns the Boolean value.
@@ -1325,7 +1325,7 @@ void marpa_symbol_is_nullable_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolea
 
 @ Symbol Is Nulling Boolean
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
-@<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
+@<Bit aligned symbol elements@> = guint t_is_nulling:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nulling = FALSE;
 @ The trace accessor returns the Boolean value.
@@ -1352,7 +1352,7 @@ struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
 void marpa_symbol_is_nulling_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
 
 @ Symbol Is Terminal Boolean
-@<Bit aligned symbol elements@> = unsigned int t_is_terminal:1;
+@<Bit aligned symbol elements@> = guint t_is_terminal:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_terminal = FALSE;
 @ The trace accessor returns the Boolean value.
@@ -1380,7 +1380,7 @@ void marpa_symbol_is_terminal_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolea
 
 
 @ Symbol Is Productive Boolean
-@<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
+@<Bit aligned symbol elements@> = guint t_is_productive:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_productive = FALSE;
 @ The trace accessor returns the Boolean value.
@@ -1405,7 +1405,7 @@ struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
 void marpa_symbol_is_productive_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
 
 @ Symbol Is Start Boolean
-@<Bit aligned symbol elements@> = unsigned int t_is_start:1;
+@<Bit aligned symbol elements@> = guint t_is_start:1;
 @ @<Initialize symbol elements@> = symbol->t_is_start = FALSE;
 @ Accessor: The trace accessor returns the Boolean value.
 The internal accessor would be trivial, so there is none.
@@ -1432,8 +1432,8 @@ symbols.  Therefore, all proper nullable symbols in
 the original grammar are converted into two, aliased,
 symbols: a non-nullable (or ``proper") alias and a nulling alias.
 @<Bit aligned symbol elements@> =
-unsigned int t_is_proper_alias:1;
-unsigned int t_is_nulling_alias:1;
+guint t_is_proper_alias:1;
+guint t_is_nulling_alias:1;
 @ @<Widely aligned symbol elements@> =
 struct s_symbol* t_alias;
 @ @<Initialize symbol elements@> =
@@ -2047,7 +2047,7 @@ and that is what is wanted.
 For non-sequence rules, this flag should be false.
 @<Public defines@> =
 #define MARPA_KEEP_SEPARATION @| @[0x1@]@/
-@ @<Bit aligned rule elements@> = unsigned int t_is_discard:1;
+@ @<Bit aligned rule elements@> = guint t_is_discard:1;
 @ @<Initialize rule elements@> =
 rule->t_is_discard = FALSE;
 @ @<Function definitions@> =
@@ -2131,7 +2131,7 @@ produces the string of length one
 which consists only of its LHS symbol.
 ``Non-trivially" means the zero-step derivation does not count -- the
 derivation must have at least one step.
-@<Bit aligned rule elements@> = unsigned int t_is_loop:1;
+@<Bit aligned rule elements@> = guint t_is_loop:1;
 @ @<Initialize rule elements@> =
 rule->t_is_loop = FALSE;
 @ This is the external accessor.
@@ -2152,7 +2152,7 @@ to only one of the pieces.
 The ``virtual loop rule" property exists for this purpose.
 All virtual loop rules are loop rules,
 but not vice versa.
-@<Bit aligned rule elements@> = unsigned int t_is_virtual_loop:1;
+@<Bit aligned rule elements@> = guint t_is_virtual_loop:1;
 @ @<Initialize rule elements@> =
 rule->t_is_virtual_loop = FALSE;
 @ This is the external accessor.
@@ -2187,7 +2187,7 @@ static inline gint rule_is_nulling(GRAMMAR g, RULE rule);
 
 @*0 Is Rule Used?.
 @d RULE_is_Used(rule) ((rule)->t_is_used)
-@<Bit aligned rule elements@> = unsigned int t_is_used:1;
+@<Bit aligned rule elements@> = guint t_is_used:1;
 @ @<Initialize rule elements@> =
 RULE_is_Used(rule) = 1;
 @ This is the external accessor.
@@ -2203,7 +2203,7 @@ gint marpa_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
 @*0 Is This a Start Rule?.
 @d RULE_is_Start(rule) ((rule)->t_is_start)
-@<Bit aligned rule elements@> = unsigned int t_is_start:1;
+@<Bit aligned rule elements@> = guint t_is_start:1;
 @ @<Initialize rule elements@> =
 rule->t_is_start = FALSE;
 @ This is the external accessor.
@@ -2233,7 +2233,7 @@ Marpa's design criteria.
 It was an especially non-negotiable criteria, because
 almost the only reason for parsing a grammar is to apply the
 semantics specified for the original grammar.
-@<Bit aligned rule elements@> = unsigned int t_is_virtual_lhs:1;
+@<Bit aligned rule elements@> = guint t_is_virtual_lhs:1;
 @ @<Initialize rule elements@> =
 rule->t_is_virtual_lhs = FALSE;
 @ The internal accessor would be trivial, so there is none.
@@ -2244,7 +2244,7 @@ gboolean marpa_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID id)
 gboolean marpa_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID id);
 
 @*0 Rule Boolean: Virtual RHS.
-@<Bit aligned rule elements@> = unsigned int t_is_virtual_rhs:1;
+@<Bit aligned rule elements@> = guint t_is_virtual_rhs:1;
 @ @<Initialize rule elements@> =
 rule->t_is_virtual_rhs = FALSE;
 @ The internal accessor would be trivial, so there is none.
@@ -2355,7 +2355,7 @@ guint marpa_real_symbol_count(const struct marpa_g *g, Marpa_Rule_ID id)
 guint marpa_real_symbol_count(const struct marpa_g *g, Marpa_Rule_ID id);
 
 @*0 Semantic Equivalents.
-@<Bit aligned rule elements@> = unsigned int t_is_semantic_equivalent:1;
+@<Bit aligned rule elements@> = guint t_is_semantic_equivalent:1;
 @ @<Initialize rule elements@> =
 rule->t_is_semantic_equivalent = FALSE;
 @ Semantic equivalence arises out of Marpa's rewritings.
@@ -5760,8 +5760,8 @@ be unset, while the external flag may be set or unset, as the user
 decided.
 After Earley set 0 is complete, both booleans will have the same value.
 @<Bit aligned recognizer elements@> =
-unsigned int t_use_leo_flag:1;
-unsigned int t_is_using_leo:1;
+guint t_use_leo_flag:1;
+guint t_is_using_leo:1;
 @ @<Initialize recognizer elements@> =
 r->t_use_leo_flag = 1;
 r->t_is_using_leo = 0;
@@ -5802,7 +5802,7 @@ there may be good parses at earlemes prior to the
 earleme at which the parse became exhausted.
 @d R_is_Exhausted(r) ((r)->t_is_exhausted)
 @d LV_R_is_Exhausted(r) R_is_Exhausted(r)
-@<Bit aligned recognizer elements@> = unsigned int t_is_exhausted:1;
+@<Bit aligned recognizer elements@> = guint t_is_exhausted:1;
 @ @<Initialize recognizer elements@> = r->t_is_exhausted = 0;
 @ Exhaustion is a boolean, not a phase.
 Once exhausted a parse stays exhausted,
@@ -5826,7 +5826,7 @@ Leo expansion is expected to add a lot of Earley items to a single
 Earley set, so the Earley item ``warning threshold exceeded"
 message is disable during Leo expansion.
 @<Bit aligned recognizer elements@> =
-unsigned int t_is_leo_expanding:1;
+guint t_is_leo_expanding:1;
 @ @<Initialize recognizer elements@> =
 r->t_is_leo_expanding = 0;
 
@@ -6361,7 +6361,7 @@ static inline gint earley_item_cmp (gconstpointer ap,
 @d Earley_Item_has_Leo_Source(item) ((item)->t_source_type == SOURCE_IS_LEO)
 @d Earley_Item_is_Ambiguous(item) ((item)->t_source_type == SOURCE_IS_AMBIGUOUS)
 @<Bit aligned Earley item elements@> =
-unsigned int t_source_type:3;
+guint t_source_type:3;
 
 @ @<Private function prototypes@> =
 static const char* invalid_source_type_message(guint type);
@@ -7340,7 +7340,7 @@ source link.
 SRC t_trace_source;
 SRCL t_trace_next_source_link;
 @ @<Bit aligned recognizer elements@> =
-unsigned int t_trace_source_type:3;
+guint t_trace_source_type:3;
 @ @<Initialize recognizer elements@> =
 r->t_trace_source = NULL;
 r->t_trace_next_source_link = NULL;
@@ -11028,6 +11028,7 @@ it is exhausted.
 @d TREE_is_Exhausted(tree) (TREE_is_Initialized(tree)
     && !FSTACK_IS_INITIALIZED((tree)->t_fork_stack))
 @d VAL_of_TREE(tree) (&(tree)->t_val)
+@d Size_of_TREE(tree) FSTACK_LENGTH((tree)->t_fork_stack)
 @<Private structures@> =
 @<FORK structure@>@;
 @<VAL structure@>@;
@@ -11655,10 +11656,10 @@ struct s_fork {
     OR t_or_node;
     gint t_choice;
     FORKID t_parent;
-    unsigned int t_is_cause_ready:1;
-    unsigned int t_is_predecessor_ready:1;
-    unsigned int t_is_cause_of_parent:1;
-    unsigned int t_is_predecessor_of_parent:1;
+    guint t_is_cause_ready:1;
+    guint t_is_predecessor_ready:1;
+    guint t_is_cause_of_parent:1;
+    guint t_is_predecessor_of_parent:1;
 };
 typedef struct s_fork FORK_Object;
 
@@ -11844,8 +11845,8 @@ struct s_value {
     DSTACK_DECLARE(t_virtual_stack);
     FORKID t_fork;
     gint t_tos;
-    gint t_trace:1;
-    gint t_active:1;
+    guint t_trace:1;
+    guint t_active:1;
 };
 typedef struct s_value VAL_Object;
 
@@ -11855,10 +11856,10 @@ static inline void val_safe(VAL val);
 static inline void val_safe(VAL val)
 {
     DSTACK_SAFE(val->t_virtual_stack);
-    val->t_active = 0;
-    val->t_trace = 0;
-    val->t_tos = -1;
-    val->t_fork = -1;
+    VAL_is_Active(val) = 0;
+    VAL_is_Trace(val) = 0;
+    TOS_of_VAL(val) = -1;
+    FORK_of_VAL(val) = -1;
 }
 
 @ @<Private function prototypes@> =
@@ -11919,7 +11920,15 @@ int marpa_val_new(struct marpa_r* r)
 	R_ERROR ("tree not initialized");
 	return failure_indicator;
       }
-     // Not yet finished.
+    {
+      VAL val = VAL_of_TREE (tree);
+      const gint minimum_stack_size = (8192 / sizeof (gint));
+	const gint initial_stack_size =
+	MAX (Size_of_TREE (tree) / 1024, minimum_stack_size);
+      val_destroy (val);
+      DSTACK_INIT (VStack_of_VAL (val), gint, initial_stack_size);
+      VAL_is_Active(val) = 1;
+    }
     return 1;
 }
 

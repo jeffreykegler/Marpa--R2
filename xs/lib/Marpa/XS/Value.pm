@@ -920,17 +920,20 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
     $action_object //= {};
 
+    $recce_c->val_new();
     my $eval = [];
     my @evaluation_stack = ();
     my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK] = [];
     $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = -1;
     $eval->[Marpa::XS::Internal::Eval::FORK_IX] = -1;
     $eval->[Marpa::XS::Internal::Eval::TRACE_VAL] = $trace_values ? 1 : 0;
+    $recce_c->val_trace( $eval->[Marpa::XS::Internal::Eval::TRACE_VAL] );
 
     EVENT:
     while ( my ( $token_id, $value_ix, $rule_id, $arg_0, $arg_n ) =
         Marpa::XS::Internal::Recognizer::event( $recce, $eval ) )
     {
+	my ( $new_token_id, $new_value_ix, $new_rule_id, $new_arg_0, $new_arg_n ) = $recce_c->val_event();
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $arg_n ) {
                 printf {$Marpa::XS::Internal::TRACE_FH} 'Stack position %3d:',
@@ -1135,6 +1138,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             } ## end if ($trace_values)
         } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
     } ## end while ( my @event = Marpa::XS::Internal::Recognizer::event...)
+
+    my ( $new_token_id, $new_value_ix, $new_rule_id, $new_arg_0, $new_arg_n ) = $recce_c->val_event();
     
     my $top_value = $evaluation_stack[0];
 

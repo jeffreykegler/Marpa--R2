@@ -1938,14 +1938,14 @@ PPCODE:
       int status;
       SV* sv;
       Marpa_Event event;
-      status = marpa_val_new (r, &event);
+      status = marpa_val_event (r, &event);
       if (status == -1)
 	{
 	  XSRETURN_UNDEF;
 	}
       if (status < 0)
 	{
-	  croak ("Problem in r->val_new(): %s", marpa_r_error (r));
+	  croak ("Problem in r->val_event(): %s", marpa_r_error (r));
 	}
       sv = event.marpa_token_id < 0 ? &PL_sv_undef : sv_2mortal (newSViv (event.marpa_token_id));
       XPUSHs (sv);
@@ -1970,7 +1970,7 @@ PPCODE:
     status = marpa_val_trace(r, flag);
     if (status == -1) { XSRETURN_UNDEF; }
     if (status < 0) {
-      croak ("Problem in r->val_new(): %s", marpa_r_error (r));
+      croak ("Problem in r->val_trace(): %s", marpa_r_error (r));
     }
     XPUSHs( sv_2mortal( newSViv(status) ) );
     }
@@ -1984,7 +1984,7 @@ PPCODE:
     status = marpa_val_fork(r);
     if (status == -1) { XSRETURN_UNDEF; }
     if (status < 0) {
-      croak ("Problem in r->val_new(): %s", marpa_r_error (r));
+      croak ("Problem in r->val_fork(): %s", marpa_r_error (r));
     }
     XPUSHs( sv_2mortal( newSViv(status) ) );
     }
