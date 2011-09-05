@@ -1164,12 +1164,10 @@ sub Marpa::XS::Internal::Recognizer::event {
     my $token_id;
     my $value_ix;
     my $semantic_rule_id;
-    my $continue = 1;
+    my $continue = !$trace_val;
 
-    TREE_NODE:
-    while ($continue) {
+    FORK: while (1) {
 
-	$continue = !$trace_val;
 
 	my $fork_ix = --$eval->[Marpa::XS::Internal::Eval::FORK_IX];
 
@@ -1190,7 +1188,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 	    $continue = 0;
 	}
 
-	next TREE_NODE if  $recce_c->or_node_position($or_node_id)
+	goto NEXT_FORK if  $recce_c->or_node_position($or_node_id)
                 != $grammar_c->rule_length($rule_id) ;
 
         my $virtual_rhs = $grammar_c->rule_is_virtual_rhs($rule_id);
@@ -1205,7 +1203,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 	    } else {
 		push @{$virtual_evaluation_stack}, $real_symbol_count;
 	    }
-	    next TREE_NODE;
+	    goto NEXT_FORK
 	}
 
 	if ($virtual_rhs) {
@@ -1219,6 +1217,10 @@ sub Marpa::XS::Internal::Recognizer::event {
 
         $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
 	if (defined $semantic_rule_id) { $continue = 0; }
+
+	NEXT_FORK:
+
+	last FORK if not $continue;
 
     }    # TREE_NODE
 
