@@ -11865,13 +11865,19 @@ static inline void val_safe(VAL val)
 int marpa_val_new(struct marpa_r* r);
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
-First, this code is not really within a tight CPU
-loop, so that shaving off the few instructions it
-takes to check stack size is not a big deal.
-Second, the fixed stack, to accomodate the worst
+First, there are only a few stack moves per call
+of |marpa_event|.
+Since at least one subroutine call occurs every few
+virtual stack moves,
+virtual stack moves are not really within a tight CPU
+loop.
+Therefore shaving off the few instructions it
+takes to check stack size is less important than it is
+in other places.
+@ Second, the fixed stack, to accomodate the worst
 case, would have to be many times larger than
 what will usually be needed.
-@ I calculate the 
+I calculate the 
 worst case for virtual stack size, as follows.
 The virtual stack only grows once for each virtual
 rules.
@@ -11880,7 +11886,7 @@ To be virtual, a rule must divide into a least two
 of all applications of real rules grow the virtual
 stack.
 The number of applications of real rules is
-the size of the parse tree, \size{|tree|}.
+the size of the parse tree, $\size{|tree|}$.
 So, if the fixed stack is sized per tree,
 it must be $\size{|tree|}/2+1$.
 @ I set the initial size of

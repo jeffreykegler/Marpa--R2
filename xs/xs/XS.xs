@@ -1915,6 +1915,79 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
+void
+val_new( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int status;
+    status = marpa_val_new(r);
+    if (status == -1) { XSRETURN_UNDEF; }
+    if (status < 0) {
+      croak ("Problem in r->val_new(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(status) ) );
+    }
+
+void
+val_event( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    {
+      struct marpa_r *r = r_wrapper->r;
+      int status;
+      SV* sv;
+      Marpa_Event event;
+      status = marpa_val_new (r, &event);
+      if (status == -1)
+	{
+	  XSRETURN_UNDEF;
+	}
+      if (status < 0)
+	{
+	  croak ("Problem in r->val_new(): %s", marpa_r_error (r));
+	}
+      sv = event.marpa_token_id < 0 ? &PL_sv_undef : sv_2mortal (newSViv (event.marpa_token_id));
+      XPUSHs (sv);
+	{
+	  int value_as_int = GPOINTER_TO_INT (event.marpa_value);
+	  sv = value_as_int < 0 ? &PL_sv_undef : sv_2mortal (newSViv (value_as_int));
+	  XPUSHs (sv);
+	}
+      sv = event.marpa_rule_id < 0 ? &PL_sv_undef : sv_2mortal (newSViv (event.marpa_rule_id));
+      XPUSHs (sv);
+	XPUSHs( sv_2mortal( newSViv(event.marpa_arg_0) ) );
+	XPUSHs( sv_2mortal( newSViv(event.marpa_arg_n) ) );
+    }
+
+void
+val_trace( r_wrapper, flag )
+    R_Wrapper *r_wrapper;
+    int flag;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int status;
+    status = marpa_val_trace(r, flag);
+    if (status == -1) { XSRETURN_UNDEF; }
+    if (status < 0) {
+      croak ("Problem in r->val_new(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(status) ) );
+    }
+
+void
+val_fork( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+    int status;
+    status = marpa_val_fork(r);
+    if (status == -1) { XSRETURN_UNDEF; }
+    if (status < 0) {
+      croak ("Problem in r->val_new(): %s", marpa_r_error (r));
+    }
+    XPUSHs( sv_2mortal( newSViv(status) ) );
+    }
 
 BOOT:
     gperl_handle_logs_for(G_LOG_DOMAIN);
