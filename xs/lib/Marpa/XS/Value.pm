@@ -1165,15 +1165,13 @@ sub Marpa::XS::Internal::Recognizer::event {
     my $value_ix;
     my $semantic_rule_id;
     my $continue = !$trace_val;
+    $arg_0 = $arg_n = $eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
 
     FORK: while (1) {
 
-
 	my $fork_ix = --$eval->[Marpa::XS::Internal::Eval::FORK_IX];
 
-	return if $fork_ix < 0;
-
-	$arg_0 = $arg_n = $eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
+	goto RETURN_SOFT_ERROR if $fork_ix < 0;
 
         my $or_node_id = $recce_c->fork_or_node($fork_ix);
         my $rule_id    = $recce_c->or_node_rule($or_node_id);
@@ -1184,7 +1182,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
 	($token_id, $value_ix) = $recce_c->and_node_token($and_node_id);
 	if (defined $token_id) {
-	    $arg_0 = $arg_n = ++$eval->[Marpa::XS::Internal::Eval::EVAL_TOS];
+	    $arg_0 = ++$arg_n;
 	    $continue = 0;
 	}
 
@@ -1213,7 +1211,6 @@ sub Marpa::XS::Internal::Recognizer::event {
 	    $real_symbol_count = $grammar_c->rule_length($rule_id);
 	}
 	$arg_0 = $arg_n - $real_symbol_count + 1;
-	    $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
 
         $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
 	if (defined $semantic_rule_id) { $continue = 0; }
@@ -1224,7 +1221,12 @@ sub Marpa::XS::Internal::Recognizer::event {
 
     }    # TREE_NODE
 
+    $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
     return ($token_id, $value_ix, $semantic_rule_id, $arg_0, $arg_n);
+
+    RETURN_SOFT_ERROR: ;
+    $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
+    return;
 
 }
 
