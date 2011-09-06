@@ -957,7 +957,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
 	    last ADD_TOKEN if not $trace_values;
 
-	    my $fork_ix    = $eval->[Marpa::XS::Internal::Eval::FORK_IX];
+	    my $fork_ix    = $recce_c->val_fork();
 	    my $or_node_id = $recce_c->fork_or_node($fork_ix);
 	    my $choice     = $recce_c->fork_choice($fork_ix);
 	    my $and_node_id =
@@ -983,7 +983,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             last TRACE_OP if not $trace_values;
 
-	    my $fork_ix = $eval->[Marpa::XS::Internal::Eval::FORK_IX];
+	    my $fork_ix    = $recce_c->val_fork();
 	    my $or_node_id = $recce_c->fork_or_node($fork_ix);
 	    my $choice     = $recce_c->fork_choice($fork_ix);
 	    my $and_node_id =
