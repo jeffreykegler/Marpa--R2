@@ -907,7 +907,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
     $action_object //= {};
 
     $recce_c->val_new();
-    my $virtual_evaluation_stack = [ -999 ];
     my @evaluation_stack = ();
     $recce_c->val_trace( $trace_values ? 1 : 0 );
 
@@ -1006,11 +1005,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     "\n",
                     "Incrementing virtual rule by ",
                     $grammar_c->real_symbol_count($trace_rule_id),
-                    " symbols\n",
-                    'Currently ',
-                    ( scalar @{$virtual_evaluation_stack} ),
-                    ' rules; ', ( $virtual_evaluation_stack->[-1] // 0 ),
-                    ' symbols;',
+                    " symbols"
                     or Marpa::exception('Could not print to trace file');
 
                 last TRACE_OP;
@@ -1026,10 +1021,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     ),
                     ', rule: ', $grammar->brief_rule($trace_rule_id),
                     "\nAdding ",
-                    $grammar_c->real_symbol_count($trace_rule_id),
-                    ", now ",
-                    ( scalar @{$virtual_evaluation_stack} ),
-                    ' rules; ', $virtual_evaluation_stack->[-1], ' symbols'
+                    $grammar_c->real_symbol_count($trace_rule_id)
                     or Marpa::exception('Could not print to trace file');
 
                 next EVENT;
@@ -1044,10 +1036,8 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     $recce, $and_node_id
                     ),
                     ', rule: ', $grammar->brief_rule($trace_rule_id),
-                    "\nSymbol count is ",
-                    $grammar_c->real_symbol_count($trace_rule_id),
-                    ", now ",
-                    ( scalar @{$virtual_evaluation_stack} ), ' rules',
+                    "\nReal symbol count is ",
+                    $grammar_c->real_symbol_count($trace_rule_id)
                     or Marpa::exception('Could not print to trace file');
 
                 next EVENT;

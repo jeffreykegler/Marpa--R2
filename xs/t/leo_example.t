@@ -360,7 +360,7 @@ Calculated and pushed value: 42
 Popping 1 values to evaluate R0:1@0-9C1@0, rule: 0: Statement -> Expression
 Calculated and pushed value: 'a=42 b=42 c=-5 d=6 e=3'
 New Virtual Rule: R7:1@0-9C0@0, rule: 7: Statement['] -> Statement
-Symbol count is 1, now 1 rules
+Real symbol count is 1
 END_TRACE_OUTPUT
 
 Marpa::Test::is( $trace_output,

@@ -234,7 +234,7 @@ Calculated and pushed value: 49
 Popping 1 values to evaluate R0:1@0-5C3@0, rule: 0: Expression -> Term
 Calculated and pushed value: 49
 New Virtual Rule: R5:1@0-5C0@0, rule: 5: Expression['] -> Expression
-Symbol count is 1, now 1 rules
+Real symbol count is 1
 END_TRACE_OUTPUT
 
 Marpa::Test::is( $trace_output,
