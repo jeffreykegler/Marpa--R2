@@ -1947,13 +1947,13 @@ PPCODE:
 	{
 	  croak ("Problem in r->val_event(): %s", marpa_r_error (r));
 	}
-      sv = event.marpa_token_id < 0 ? &PL_sv_undef : sv_2mortal (newSViv (event.marpa_token_id));
-      XPUSHs (sv);
-	{
-	  int value_as_int = GPOINTER_TO_INT (event.marpa_value);
-	  sv = value_as_int < 0 ? &PL_sv_undef : sv_2mortal (newSViv (value_as_int));
-	  XPUSHs (sv);
-	}
+      if ( event.marpa_token_id < 0 ) {
+	  XPUSHs (&PL_sv_undef);
+	  XPUSHs (&PL_sv_undef);
+      } else {
+	  XPUSHs ( sv_2mortal (newSViv (event.marpa_token_id)) );
+	  XPUSHs ( sv_2mortal (newSViv (GPOINTER_TO_INT(event.marpa_value))));
+      }
       sv = event.marpa_rule_id < 0 ? &PL_sv_undef : sv_2mortal (newSViv (event.marpa_rule_id));
       XPUSHs (sv);
 	XPUSHs( sv_2mortal( newSViv(event.marpa_arg_0) ) );

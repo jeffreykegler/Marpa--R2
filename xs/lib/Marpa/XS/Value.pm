@@ -949,9 +949,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 	ADD_TOKEN: {
 	    last ADD_TOKEN if not defined $token_id;
 	    my $value_ref =
-		$value_ix < 0
-		? \$null_values->[$token_id]
-		: \( $token_values->[$value_ix] );
+		$value_ix >= 0
+		? \( $token_values->[$value_ix] )
+		: \$null_values->[$token_id];
 
 	    $evaluation_stack[$arg_n] = $value_ref;
 
@@ -1180,6 +1180,7 @@ sub Marpa::XS::Internal::Recognizer::event {
             $recce_c->and_node_order_get( $or_node_id, $choice );
 
 	($token_id, $value_ix) = $recce_c->and_node_token($and_node_id);
+	$value_ix = undef if not defined $token_id;
 	if (defined $token_id) {
 	    $arg_0 = ++$arg_n;
 	    $continue = 0;
