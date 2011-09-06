@@ -922,7 +922,7 @@ The value is used for allocating resources.
 Unused rules are not included in the theoretical number,
 but Marpa does not adjust this number as rules
 are marked useless.
-@ @<Int aligned grammar elements@> = guint t_max_rule_length;
+@ @<Int aligned grammar elements@> = gint t_max_rule_length;
 @ @<Initialize grammar elements@> =
 g->t_max_rule_length = 0;
 
@@ -1580,13 +1580,13 @@ the initialization of a rule.
 @ @<Private function prototypes@> =
 PRIVATE_NOT_INLINE
 RULE rule_start(GRAMMAR g,
-SYMID lhs, SYMID *rhs, guint length);
+SYMID lhs, SYMID *rhs, gint length);
 @ GCC complains about inlining |rule_start| -- it is
 not a tiny function, and it is repeated often.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE
 RULE rule_start(GRAMMAR g,
-SYMID lhs, SYMID *rhs, guint length)
+SYMID lhs, SYMID *rhs, gint length)
 {
     @<Return |NULL| on failure@>@;
     RULE rule;
@@ -1601,9 +1601,12 @@ SYMID lhs, SYMID *rhs, guint length)
    return rule;
 }
 
+@ @<Public function prototypes@> =
+Marpa_Rule_ID marpa_rule_new(struct marpa_g *g,
+Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, gint length);
 @ @<Function definitions@> =
 Marpa_Rule_ID marpa_rule_new(struct marpa_g *g,
-Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, guint length)
+Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, gint length)
 {
     Marpa_Rule_ID rule_id;
     RULE rule;
@@ -1622,10 +1625,14 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, guint length)
     return rule_id;
 }
 
+@ @<Public function prototypes@> =
+Marpa_Rule_ID marpa_sequence_new(struct marpa_g *g,
+Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
+gint min, gint flags );
 @ @<Function definitions@> =
 Marpa_Rule_ID marpa_sequence_new(struct marpa_g *g,
 Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
-guint min, gint flags )
+gint min, gint flags )
 {
     @<Return |-2| on failure@>@;
     Marpa_Rule_ID original_rule_id;
@@ -1653,10 +1660,6 @@ guint min, gint flags )
     @<Free the temporary rhs buffer@>@;
     return original_rule_id;
 }
-@ @<Public function prototypes@> =
-Marpa_Rule_ID marpa_sequence_new(struct marpa_g *g,
-Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
-guint min, gint flags );
 @ As a side effect, this checks the LHS and RHS symbols for validity.
 @<Add the original rule for a sequence@> =
     original_rule = rule_start(g, lhs_id, &rhs_id, 1);
@@ -1714,7 +1717,7 @@ if (!rule) { @<Fail with internal grammar error@>@; }
 rule->t_original = original_rule_id;
 rule->t_is_semantic_equivalent = TRUE;
 /* Real symbol count remains at default of 0 */
-rule->t_is_virtual_rhs = TRUE;
+RULE_is_Virtual_RHS(rule) = TRUE;
 rule_callback(g, rule->t_id);
 }
 @ This ``alternate" top rule is needed if a final separator is allowed.
@@ -1726,8 +1729,8 @@ rule_callback(g, rule->t_id);
     if (!rule) { @<Fail with internal grammar error@>@; }
     rule->t_original = original_rule_id;
     rule->t_is_semantic_equivalent = TRUE;
-    rule->t_is_virtual_rhs = TRUE;
-    rule->t_real_symbol_count = 1;
+    RULE_is_Virtual_RHS(rule) = TRUE;
+    Real_SYM_Count_of_RULE(rule) = 1;
     rule_callback(g, rule->t_id);
 }
 @ The traditional way to write a sequence in BNF is with one
@@ -1735,7 +1738,7 @@ rule to represent the minimum, and another to deal with iteration.
 That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 { RULE rule;
-guint rhs_ix, i;
+gint rhs_ix, i;
     temp_rhs[0] = rhs_id;
     rhs_ix = 1;
     for (i = 0; i < min - 1; i++) {
@@ -1744,21 +1747,21 @@ guint rhs_ix, i;
     }
     rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
     if (!rule) { @<Fail with internal grammar error@>@; }
-    rule->t_is_virtual_lhs = TRUE;
-    rule->t_real_symbol_count = rhs_ix;
+    RULE_is_Virtual_LHS(rule) = 1;
+    Real_SYM_Count_of_RULE(rule) = rhs_ix;
     rule_callback(g, rule->t_id);
 }
 @ @<Add the iterating rule for the sequence@> =
 { RULE rule;
-guint rhs_ix = 0;
+gint rhs_ix = 0;
     temp_rhs[rhs_ix++] = internal_lhs_id;
     if (separator_id >= 0) temp_rhs[rhs_ix++] = separator_id;
     temp_rhs[rhs_ix++] = rhs_id;
     rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
     if (!rule) { @<Fail with internal grammar error@>@; }
-    rule->t_is_virtual_lhs = TRUE;
-    rule->t_is_virtual_rhs = TRUE;
-    rule->t_real_symbol_count = rhs_ix - 1;
+    RULE_is_Virtual_LHS(rule) = 1;
+    RULE_is_Virtual_RHS(rule) = 1;
+    Real_SYM_Count_of_RULE(rule) = rhs_ix - 1;
     rule_callback(g, rule->t_id);
 }
 
@@ -1804,20 +1807,24 @@ If, after having done the comparison for all
 the ``same LHS" rules, I have found no duplicates,
 then I conclude there is no duplicate of the new
 rule, and return |FALSE|.
-@<Function definitions@> =
+@ @<Private function prototypes@> =
 static inline
 gboolean is_rule_duplicate(struct marpa_g* g,
-Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, guint length)
+Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, gint length);
+@ @<Function definitions@> =
+static inline
+gboolean is_rule_duplicate(struct marpa_g* g,
+Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, gint length)
 {
-    guint ix;
+    gint ix;
     SYM lhs = SYM_by_ID(lhs_id);
     GArray* same_lhs_array = lhs->t_lhs;
-    guint same_lhs_count = same_lhs_array->len;
+    gint same_lhs_count = same_lhs_array->len;
     for (ix = 0; ix < same_lhs_count; ix++) {
 	RULEID same_lhs_rule_id = ((RULEID *)(same_lhs_array->data))[ix];
-	guint rhs_position;
+	gint rhs_position;
 	RULE rule = RULE_by_ID(g, same_lhs_rule_id);
-	const guint rule_length = Length_of_RULE(rule);
+	const gint rule_length = Length_of_RULE(rule);
 	if (rule_length != length) { goto RULE_IS_NOT_DUPLICATE; }
 	for (rhs_position = 0; rhs_position < rule_length; rhs_position++) {
 	    if (RHS_ID_of_RULE(rule, rhs_position) != rhs_ids[rhs_position]) {
@@ -1829,14 +1836,6 @@ Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, guint length)
     }
     return FALSE; /* No duplicate rules were found */
 }
-@ @<Private function prototypes@> =
-static inline
-gboolean is_rule_duplicate(struct marpa_g* g,
-Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, guint length);
-
-@ @<Public function prototypes@> =
-Marpa_Rule_ID marpa_rule_new(struct marpa_g *g,
-Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, guint length);
 
 @ Add the rules to the symbol's rule lists:
 An obstack scratchpad might be useful for
@@ -1916,7 +1915,7 @@ be tiny.
 @<Create |rh_symbol_list|, a duplicate-free list of the right hand side symbols@> =
 {
 /* Handle the first symbol as a special case */
-gint rhs_ix = (gint) Length_of_RULE (rule) - 1;
+gint rhs_ix = Length_of_RULE (rule) - 1;
 rh_symbol_list[0] = RHS_ID_of_RULE(rule, (unsigned)rhs_ix);
 rh_symbol_list_length = 1;
 rhs_ix--;
@@ -1963,7 +1962,7 @@ by the time 64-bit machines become universal,
 nobody will have noticed this restriction.
 @d MAX_RHS_LENGTH (G_MAXINT >> (2))
 @d Length_of_RULE(rule) ((rule)->t_rhs_length)
-@<Int aligned rule elements@> = guint t_rhs_length;
+@<Int aligned rule elements@> = gint t_rhs_length;
 @ The symbols come at the end of the |marpa_rule| structure,
 so that they can be variable length.
 @<Final rule elements@> = Marpa_Symbol_ID t_symbols[1];
@@ -1973,7 +1972,7 @@ so that they can be variable length.
     SYMID symid = lhs;
     @<Fail if grammar |symid| is invalid@>@;
 }
-{ guint rh_index;
+{ gint rh_index;
     for (rh_index = 0; rh_index<length; rh_index++) {
 	SYMID symid = rhs[rh_index];
 	@<Fail if grammar |symid| is invalid@>@;
@@ -1983,7 +1982,7 @@ so that they can be variable length.
 @ @<Initialize rule symbols@> =
 Length_of_RULE(rule) = length;
 rule->t_symbols[0] = lhs;
-{ guint i; for (i = 0; i<length; i++) {
+{ gint i; for (i = 0; i<length; i++) {
     rule->t_symbols[i+1] = rhs[i]; } }
 @ @<Function definitions@> =
 static inline Marpa_Symbol_ID rule_lhs_get(RULE rule) {
@@ -2002,8 +2001,10 @@ static inline Marpa_Symbol_ID* rule_rhs_get(RULE rule) {
     return rule->t_symbols+1; }
 @ @<Private function prototypes@> =
 static inline Marpa_Symbol_ID* rule_rhs_get(RULE rule);
+@ @<Public function prototypes@> =
+Marpa_Symbol_ID marpa_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, gint ix);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, guint ix) {
+Marpa_Symbol_ID marpa_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, gint ix) {
     RULE rule;
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
@@ -2011,8 +2012,6 @@ Marpa_Symbol_ID marpa_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, g
     if (Length_of_RULE(rule) <= ix) return -1;
     return RHS_ID_of_RULE(rule, ix);
 }
-@ @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, guint ix);
 @ @<Function definitions@> =
 static inline gsize rule_length_get(RULE rule) {
     return Length_of_RULE(rule); }
@@ -2106,7 +2105,7 @@ gint marpa_rule_is_accessible(struct marpa_g* g, Marpa_Rule_ID id);
 @<Function definitions@> =
 static inline gint rule_is_productive(struct marpa_g* g, RULE  rule)
 {
-guint rh_ix;
+gint rh_ix;
 for (rh_ix = 0; rh_ix < Length_of_RULE(rule); rh_ix++) {
    Marpa_Symbol_ID rhs_id = RHS_ID_of_RULE(rule, rh_ix);
    if ( !SYM_by_ID(rhs_id)->t_is_productive ) return FALSE;
@@ -2173,7 +2172,7 @@ Note that this can be vacuously true --- an empty rule is nulling.
 static inline gint
 rule_is_nulling (GRAMMAR g, RULE rule)
 {
-  guint rh_ix;
+  gint rh_ix;
   for (rh_ix = 0; rh_ix < Length_of_RULE (rule); rh_ix++)
     {
       SYMID rhs_id = RHS_ID_of_RULE (rule, rh_ix);
@@ -2233,26 +2232,34 @@ Marpa's design criteria.
 It was an especially non-negotiable criteria, because
 almost the only reason for parsing a grammar is to apply the
 semantics specified for the original grammar.
+@d RULE_is_Virtual_LHS(rule) ((rule)->t_is_virtual_lhs)
 @<Bit aligned rule elements@> = guint t_is_virtual_lhs:1;
 @ @<Initialize rule elements@> =
-rule->t_is_virtual_lhs = FALSE;
+RULE_is_Virtual_LHS(rule) = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID id)
-{ return RULE_by_ID(g, id)->t_is_virtual_lhs; }
+gboolean marpa_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID rule_id)
+{
+@<Return |-2| on failure@>@;
+@<Fail if grammar |rule_id| is invalid@>@;
+return RULE_is_Virtual_LHS(RULE_by_ID(g, rule_id)); }
 @ @<Public function prototypes@> =
-gboolean marpa_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID id);
+gboolean marpa_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
 @*0 Rule Boolean: Virtual RHS.
+@d RULE_is_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
 @<Bit aligned rule elements@> = guint t_is_virtual_rhs:1;
 @ @<Initialize rule elements@> =
-rule->t_is_virtual_rhs = FALSE;
+RULE_is_Virtual_RHS(rule) = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID id)
-{ return RULE_by_ID(g, id)->t_is_virtual_rhs; }
+gboolean marpa_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID rule_id)
+{
+@<Return |-2| on failure@>@;
+@<Fail if grammar |rule_id| is invalid@>@;
+return RULE_is_Virtual_RHS(RULE_by_ID(g, rule_id)); }
 @ @<Public function prototypes@> =
-gboolean marpa_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID id);
+gboolean marpa_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
 @*0 Virtual Start Position.
 For a virtual rule,
@@ -2285,7 +2292,6 @@ return RULE_by_ID(g, rule_id)->t_virtual_end;
 }
 @ @<Public function prototypes@> =
 guint marpa_virtual_end(struct marpa_g *g, Marpa_Rule_ID rule_id);
-
 
 @*0 Rule Callbacks.
 The user can define a callback
@@ -2335,10 +2341,14 @@ the ID of the original rule.
 @ @<Int aligned rule elements@> = Marpa_Rule_ID t_original;
 @ @<Initialize rule elements@> = rule->t_original = -1;
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_rule_original(const struct marpa_g *g, Marpa_Rule_ID id)
-{ return RULE_by_ID(g, id)->t_original; }
+Marpa_Rule_ID marpa_rule_original(struct marpa_g *g, Marpa_Rule_ID rule_id)
+{
+@<Return |-2| on failure@>@;
+@<Fail if grammar |rule_id| is invalid@>@;
+return RULE_by_ID(g, rule_id)->t_original;
+}
 @ @<Public function prototypes@> =
-Marpa_Rule_ID marpa_rule_original(const struct marpa_g *g, Marpa_Rule_ID id);
+Marpa_Rule_ID marpa_rule_original(struct marpa_g *g, Marpa_Rule_ID rule_id);
 
 @*0 Rule Real Symbol Count.
 This is another data element used for the ``internal semantics" --
@@ -2346,13 +2356,18 @@ the logic to reassemble results of rewritten rules so that they
 look as if they came from the original, un-rewritten rules.
 The value of this field is meaningful if and only if
 the rule has a virtual rhs or a virtual lhs.
-@ @<Int aligned rule elements@> = guint t_real_symbol_count;
-@ @<Initialize rule elements@> = rule->t_real_symbol_count = 0;
-@ @<Function definitions@> =
-guint marpa_real_symbol_count(const struct marpa_g *g, Marpa_Rule_ID id)
-{ return RULE_by_ID(g, id)->t_real_symbol_count; }
+@d Real_SYM_Count_of_RULE(rule) ((rule)->t_real_symbol_count)
+@ @<Int aligned rule elements@> = gint t_real_symbol_count;
+@ @<Initialize rule elements@> = Real_SYM_Count_of_RULE(rule) = 0;
 @ @<Public function prototypes@> =
-guint marpa_real_symbol_count(const struct marpa_g *g, Marpa_Rule_ID id);
+gint marpa_real_symbol_count(struct marpa_g *g, Marpa_Rule_ID rule_id);
+@ @<Function definitions@> =
+gint marpa_real_symbol_count(struct marpa_g *g, Marpa_Rule_ID rule_id)
+{
+@<Return |-2| on failure@>@;
+@<Fail if grammar |rule_id| is invalid@>@;
+return Real_SYM_Count_of_RULE(RULE_by_ID(g, rule_id));
+}
 
 @*0 Semantic Equivalents.
 @<Bit aligned rule elements@> = guint t_is_semantic_equivalent:1;
@@ -2371,12 +2386,15 @@ Otherwise it returns -1.
 Marpa_Rule_ID marpa_rule_semantic_equivalent(struct marpa_g* g, Marpa_Rule_ID id);
 @ @<Function definitions@> =
 Marpa_Rule_ID
-marpa_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID id)
+marpa_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID rule_id)
 {
-  RULE rule = RULE_by_ID (g, id);
-  if (rule->t_is_virtual_lhs) return -1;
+  RULE rule;
+@<Return |-2| on failure@>@;
+@<Fail if grammar |rule_id| is invalid@>@;
+  rule = RULE_by_ID (g, rule_id);
+  if (RULE_is_Virtual_LHS(rule)) return -1;
   if (rule->t_is_semantic_equivalent) return rule->t_original;
-  return id;
+  return rule_id;
 }
 
 @** Symbol Instance (SYMI) Code.
@@ -2855,8 +2873,8 @@ static inline struct marpa_g* CHAF_rewrite(struct marpa_g* g)
     no_of_rules = RULE_Count_of_G(g);
     for (rule_id = 0; rule_id < no_of_rules; rule_id++) {
          RULE  rule = RULE_by_ID(g, rule_id);
-	 const guint rule_length = Length_of_RULE(rule);
-	 guint nullable_suffix_ix = 0;
+	 const gint rule_length = Length_of_RULE(rule);
+	 gint nullable_suffix_ix = 0;
 	 @<Mark and skip unused rules@>@;
 	 @<Calculate CHAF rule statistics@>@;
 	 /* If there is no proper nullable in this rule, I am done */
@@ -2905,7 +2923,7 @@ with proper symbols and nulling symbols ``factors" pieces
 of the rule being rewritten (the original rule)
 into multiple CHAF rules.
 @<Calculate CHAF rule statistics@> =
-{ guint rhs_ix;
+{ gint rhs_ix;
 factor_count = 0;
 for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
      Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
@@ -2921,21 +2939,21 @@ for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
  of the nullable suffix location */
 } }
 @ @<CHAF rewrite declarations@> =
-guint factor_count;
-guint* factor_positions;
+gint factor_count;
+gint* factor_positions;
 @ @<CHAF rewrite allocations@> =
-factor_positions = g_new(guint, g->t_max_rule_length);
+factor_positions = g_new(gint, g->t_max_rule_length);
 @ @<CHAF rewrite deallocations@> =
 g_free(factor_positions);
 
 @*0 Divide the Rule into Pieces.
 @<Factor the rule into CHAF rules@> =
 RULE_is_Used(rule) = 0; /* Mark the original rule unused */
-{ guint unprocessed_factor_count; /* The number of proper nullables for which CHAF rules have
+{ gint unprocessed_factor_count; /* The number of proper nullables for which CHAF rules have
 yet to be written */
-guint factor_position_ix = 0; /* Current index into the list of factors */
+gint factor_position_ix = 0; /* Current index into the list of factors */
 Marpa_Symbol_ID current_lhs_id = LHS_ID_of_RULE(rule);
-guint piece_end, piece_start = 0; /* The positions, in the original rule, where
+gint piece_end, piece_start = 0; /* The positions, in the original rule, where
 the new (virtual) rule starts and ends */
 for (unprocessed_factor_count = factor_count - factor_position_ix;
 unprocessed_factor_count >= 3;
@@ -2984,9 +3002,9 @@ g_free(remaining_rhs);
 rule.
 @<Add non-final CHAF rules@> =
     Marpa_Symbol_ID chaf_virtual_symid;
-    guint first_factor_position = factor_positions[factor_position_ix];
-    guint first_factor_piece_position = first_factor_position - piece_start;
-    guint second_factor_position = factor_positions[factor_position_ix+1];
+    gint first_factor_position = factor_positions[factor_position_ix];
+    gint first_factor_piece_position = first_factor_position - piece_start;
+    gint second_factor_position = factor_positions[factor_position_ix+1];
     if (second_factor_position >= nullable_suffix_ix) {
 	piece_end = second_factor_position-1;
         /* The last factor is in the nullable suffix, so the virtual RHS must be nullable */
@@ -3011,7 +3029,7 @@ That means the piece must
 end before the second proper nullable (or factor).
 @<Add CHAF rules for nullable continuation@> =
 {
-    guint remaining_rhs_length, piece_rhs_length;
+    gint remaining_rhs_length, piece_rhs_length;
     @<Add PP CHAF rule for nullable continuation@>;
     @<Add PN CHAF rule for nullable continuation@>;
     @<Add NP CHAF rule for nullable continuation@>;
@@ -3023,7 +3041,7 @@ as the first part of |piece_rhs| so I copy it here in preparation
 for the PN rule.
 @<Add PP CHAF rule for nullable continuation@> =
 {
-guint real_symbol_count = piece_end - piece_start + 1;
+gint real_symbol_count = piece_end - piece_start + 1;
 for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
    remaining_rhs[piece_rhs_length] =
    piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
@@ -3031,14 +3049,14 @@ for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_lengt
 piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
 }
 { RULE  chaf_rule;
-    guint real_symbol_count = piece_rhs_length - 1;
+    gint real_symbol_count = piece_rhs_length - 1;
     chaf_rule = rule_start(g, current_lhs_id, piece_rhs, piece_rhs_length);
     @<Set CHAF rule flags and call back@>@;
 }
 
 @ @<Add PN CHAF rule for nullable continuation@> =
 {
-  guint chaf_rule_length = Length_of_RULE(rule) - piece_start;
+  gint chaf_rule_length = Length_of_RULE(rule) - piece_start;
   for (remaining_rhs_length = piece_rhs_length - 1;
        remaining_rhs_length < chaf_rule_length; remaining_rhs_length++)
     {
@@ -3051,7 +3069,7 @@ piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
 }
 {
   RULE chaf_rule;
-  guint real_symbol_count = remaining_rhs_length;
+  gint real_symbol_count = remaining_rhs_length;
   chaf_rule =
     rule_start (g, current_lhs_id, remaining_rhs, remaining_rhs_length);
   @<Set CHAF rule flags and call back@>@;
@@ -3067,7 +3085,7 @@ piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
 	ID_of_SYM(alias);
 }
 { RULE  chaf_rule;
- guint real_symbol_count = piece_rhs_length-1;
+ gint real_symbol_count = piece_rhs_length-1;
     chaf_rule = rule_start(g, current_lhs_id, piece_rhs, piece_rhs_length);
     @<Set CHAF rule flags and call back@>@;
 }
@@ -3081,7 +3099,7 @@ Note that |remaining_rhs| was altered above.
 @<Add NN CHAF rule for nullable continuation@> =
 if (piece_start < nullable_suffix_ix) {
  RULE  chaf_rule;
- guint real_symbol_count = remaining_rhs_length;
+ gint real_symbol_count = remaining_rhs_length;
     chaf_rule = rule_start(g, current_lhs_id, remaining_rhs, remaining_rhs_length);
     @<Set CHAF rule flags and call back@>@;
 }
@@ -3089,9 +3107,9 @@ if (piece_start < nullable_suffix_ix) {
 @*0 Add CHAF Rules for Proper Continuations.
 @ Open block and declarations.
 @<Add CHAF rules for proper continuation@> = {
-    guint piece_rhs_length;
+    gint piece_rhs_length;
 RULE  chaf_rule;
-guint real_symbol_count;
+gint real_symbol_count;
 Marpa_Symbol_ID first_factor_proper_id, second_factor_proper_id,
 	first_factor_alias_id, second_factor_alias_id;
 real_symbol_count = piece_end - piece_start + 1;
@@ -3134,12 +3152,12 @@ real_symbol_count = piece_end - piece_start + 1;
 @*0 Add Final CHAF Rules for Two Factors.
 Open block, declarations and setup.
 @<Add final CHAF rules for two factors@> = {
-guint first_factor_position = factor_positions[factor_position_ix];
-guint first_factor_piece_position = first_factor_position - piece_start;
-guint second_factor_position = factor_positions[factor_position_ix+1];
-guint second_factor_piece_position = second_factor_position - piece_start;
-guint real_symbol_count;
-guint piece_rhs_length;
+gint first_factor_position = factor_positions[factor_position_ix];
+gint first_factor_piece_position = first_factor_position - piece_start;
+gint second_factor_position = factor_positions[factor_position_ix+1];
+gint second_factor_piece_position = second_factor_position - piece_start;
+gint real_symbol_count;
+gint piece_rhs_length;
 RULE  chaf_rule;
 Marpa_Symbol_ID first_factor_proper_id, second_factor_proper_id,
 	first_factor_alias_id, second_factor_alias_id;
@@ -3185,12 +3203,12 @@ if (piece_start < nullable_suffix_ix) {
 
 @*0 Add Final CHAF Rules for One Factor.
 @<Add final CHAF rules for one factor@> = {
-guint piece_rhs_length;
+gint piece_rhs_length;
 RULE  chaf_rule;
 Marpa_Symbol_ID first_factor_proper_id, first_factor_alias_id;
-guint real_symbol_count;
-guint first_factor_position = factor_positions[factor_position_ix];
-guint first_factor_piece_position = factor_positions[factor_position_ix] - piece_start;
+gint real_symbol_count;
+gint first_factor_position = factor_positions[factor_position_ix];
+gint first_factor_piece_position = factor_positions[factor_position_ix] - piece_start;
 piece_end = Length_of_RULE(rule)-1;
 real_symbol_count = piece_end - piece_start + 1;
 
@@ -3223,12 +3241,12 @@ rule structure, and performing the call back.
 @<Set CHAF rule flags and call back@> =
 RULE_is_Used (chaf_rule) = 1;
 chaf_rule->t_original = rule_id;
-chaf_rule->t_is_virtual_lhs = piece_start > 0;
-chaf_rule->t_is_semantic_equivalent = !chaf_rule->t_is_virtual_lhs;
-chaf_rule->t_is_virtual_rhs = Length_of_RULE (chaf_rule) > real_symbol_count;
+RULE_is_Virtual_LHS(chaf_rule) = piece_start > 0;
+chaf_rule->t_is_semantic_equivalent = !RULE_is_Virtual_LHS(chaf_rule);
+RULE_is_Virtual_RHS(chaf_rule) = Length_of_RULE (chaf_rule) > real_symbol_count;
 chaf_rule->t_virtual_start = piece_start;
 chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
-chaf_rule->t_real_symbol_count = real_symbol_count;
+Real_SYM_Count_of_RULE(chaf_rule) = real_symbol_count;
 rule_callback (g, chaf_rule->t_id);
 
 @ This utility routine translates a proper symbol id to a nulling symbol ID.
@@ -3288,8 +3306,8 @@ old_start->t_is_start = 0;
   symbol_callback (g, proper_new_start_id);
   new_start_rule = rule_start (g, proper_new_start_id, &LV_ID_of_SYM(old_start), 1);
   new_start_rule->t_is_start = 1;
-  new_start_rule->t_is_virtual_lhs = 1;
-  new_start_rule->t_real_symbol_count = 1;
+  RULE_is_Virtual_LHS(new_start_rule) = 1;
+  Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = 1;
   g->t_proper_start_rule = new_start_rule;
   rule_callback (g, new_start_rule->t_id);
@@ -3324,8 +3342,8 @@ if there is one.  Otherwise it is a new, nulling, symbol.
   symbol_callback (g, nulling_new_start_id);
   new_start_rule = rule_start (g, nulling_new_start_id, 0, 0);
   new_start_rule->t_is_start = 1;
-  new_start_rule->t_is_virtual_lhs = 1;
-  new_start_rule->t_real_symbol_count = 1;
+  RULE_is_Virtual_LHS(new_start_rule) = 1;
+  Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = TRUE;
   g->t_null_start_rule = new_start_rule;
   rule_callback (g, new_start_rule->t_id);
@@ -3380,10 +3398,10 @@ as well as a final message with the count of looping symbols.
 @<Function definitions@> =
 static inline
 void loop_detect(struct marpa_g* g)
-{ guint no_of_rules = RULE_Count_of_G(g);
+{ gint no_of_rules = RULE_Count_of_G(g);
 gint loop_rule_count = 0;
 Bit_Matrix unit_transition_matrix
-    = matrix_create( no_of_rules , no_of_rules);
+    = matrix_create( (guint)no_of_rules , (guint)no_of_rules);
 @<Mark direct unit transitions in |unit_transition_matrix|@>@;
 transitive_closure(unit_transition_matrix);
 @<Mark loop rules@>@;
@@ -3405,7 +3423,7 @@ Marpa_Rule_ID rule_id;
 for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
      RULE  rule = RULE_by_ID(g, rule_id);
      Marpa_Symbol_ID proper_id;
-     guint rhs_ix, rule_length;
+     gint rhs_ix, rule_length;
      if (!RULE_is_Used(rule)) continue;
      rule_length = Length_of_RULE(rule);
      proper_id = -1;
@@ -3422,7 +3440,7 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
 	nulling start rule is allowed, so there may be no proper symbol */
      { SYM rhs_symbol = SYM_by_ID(proper_id);
      GArray* lhs_rules = rhs_symbol->t_lhs;
-     guint ix, no_of_lhs_rules = lhs_rules->len;
+     gint ix, no_of_lhs_rules = lhs_rules->len;
      for (ix = 0; ix < no_of_lhs_rules; ix++) {
 	 /* Direct loops ($A \RA A$) only need the $(rule_id, rule_id)$ bit set,
 	    but it is not clear that it is a win to special case them. */
@@ -3447,7 +3465,7 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
     loop_rule_count++;
     rule = RULE_by_ID(g, rule_id);
     rule->t_is_loop = TRUE;
-    rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !rule->t_is_virtual_rhs;
+    rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !RULE_is_Virtual_RHS(rule);
     g_context_clear(g);
     g_context_int_add(g, "rule_id", rule_id);
     grammar_message(g, "loop rule");
@@ -3751,8 +3769,8 @@ static inline void create_AHFA_items(struct marpa_g* g);
 
 @ @<Create the AHFA items for a rule@> =
 {
-  guint leading_nulls = 0;
-  guint rhs_ix;
+  gint leading_nulls = 0;
+  gint rhs_ix;
   for (rhs_ix = 0; rhs_ix < Length_of_RULE(rule); rhs_ix++)
     {
       SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
@@ -10560,24 +10578,30 @@ There is no function to simply return the token value --
 because of the need to indicate errors, it is just as
 easy to return the symbol ID as well.
 If the
-@<Private function prototypes@> =
-gint marpa_and_node_token(struct marpa_r *r, int and_node_id, gpointer* value_p);
+@<Public function prototypes@> =
+Marpa_Symbol_ID marpa_and_node_token(struct marpa_r *r,
+    Marpa_And_Node_ID and_node_id, gpointer* value_p);
 @ @<Function definitions@> =
-gint marpa_and_node_token(struct marpa_r *r, int and_node_id, gpointer* value_p)
+Marpa_Symbol_ID marpa_and_node_token(struct marpa_r *r,
+    Marpa_And_Node_ID and_node_id, gpointer* value_p)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
+    return and_node_token(and_node, value_p);
+}
+@ @<Private function prototypes@> =
+SYMID and_node_token(AND and_node, gpointer* value_p);
+@ @<Function definitions@> =
+SYMID and_node_token(AND and_node, gpointer* value_p)
+{
+  const OR cause_or = Cause_OR_of_AND (and_node);
+  if (OR_is_Token (cause_or))
     {
-      const OR cause_or = Cause_OR_of_AND (and_node);
-      if (OR_is_Token (cause_or))
-	{
-	  const TOK token = TOK_of_OR (cause_or);
-	  if (value_p)
-	    *value_p = Value_of_TOK (token);
-MARPA_DEBUG3("and_node_token returning %p, value_p=%p", SYMID_of_TOK(token), *value_p);
-	  return SYMID_of_TOK (token);
-	}
+      const TOK token = TOK_of_OR (cause_or);
+      if (value_p)
+	*value_p = Value_of_TOK (token);
+      return SYMID_of_TOK (token);
     }
     return -1;
 }
@@ -11029,6 +11053,8 @@ it is exhausted.
     && !FSTACK_IS_INITIALIZED((tree)->t_fork_stack))
 @d VAL_of_TREE(tree) (&(tree)->t_val)
 @d Size_of_TREE(tree) FSTACK_LENGTH((tree)->t_fork_stack)
+@d FORK_of_TREE_by_IX(tree, fork_id)
+    FSTACK_INDEX((tree)->t_fork_stack, FORK_Object, fork_id)
 @<Private structures@> =
 @<FORK structure@>@;
 @<VAL structure@>@;
@@ -11200,7 +11226,7 @@ Otherwise, the tree is exhausted.
 	    /* Dirty the corresponding bit in the parent */
 	    const gint parent_fork_ix = Parent_of_FORK(iteration_candidate);
 	    if (parent_fork_ix >= 0) {
-		FORK parent_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, parent_fork_ix);
+		FORK parent_fork = FORK_of_TREE_by_IX(tree, parent_fork_ix);
 		if (FORK_is_Cause(iteration_candidate)) {
 		    FORK_Cause_is_Ready(parent_fork) = 0;
 		}
@@ -11239,7 +11265,7 @@ Otherwise, the tree is exhausted.
 	if (!p_work_fork_id) {
 	    goto TREE_IS_FINISHED;
 	}
-	work_fork = FSTACK_INDEX(tree->t_fork_stack, FORK_Object, *p_work_fork_id);
+	work_fork = FORK_of_TREE_by_IX(tree, *p_work_fork_id);
 	work_or_node = OR_of_FORK(work_fork);
 	work_and_node_id = and_order_get(b, work_or_node, Choice_of_FORK(work_fork));
 	work_and_node = ands_of_b + work_and_node_id;
@@ -11867,7 +11893,7 @@ int marpa_val_new(struct marpa_r* r);
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
 First, there are only a few stack moves per call
-of |marpa_event|.
+of |marpa_val_event|.
 Since at least one subroutine call occurs every few
 virtual stack moves,
 virtual stack moves are not really within a tight CPU
@@ -11995,15 +12021,94 @@ Marpa_Fork_ID marpa_val_event(struct marpa_r* r, Marpa_Event* event)
     BOC b;
     TREE tree;
     VAL val;
+    AND and_nodes;
+    gint semantic_rule_id = -1;
+    gint token_id = -1;
+    gpointer token_value = NULL;
+    gint arg_0 = -1;
+    gint arg_n = -1;
+    FORKID fork_ix;
+    gint continue_with_next_fork;
+
+    /* event is not changed in case of hard failure */
     @<Return |-2| on failure@>@;
     @<Set |b|, |tree|, |val|; return on failure@>@;
-    // Return just anything for now.
-    SYMID_of_EVE(event) = -1;
-    Value_of_EVE(event) = NULL;
-    RULEID_of_EVE(event) = -1;
-    Arg0_of_EVE(event) = TOS_of_VAL(val);
-    ArgN_of_EVE(event) = TOS_of_VAL(val);
+    and_nodes = ANDs_of_B(b);
+
+    arg_0 = arg_n = TOS_of_VAL(val);
+    fork_ix = FORK_of_VAL(val);
+    if (fork_ix < 0) {
+	fork_ix = Size_of_TREE(tree);
+    }
+    continue_with_next_fork = !VAL_is_Trace(val);
+
+    while (1) {
+	OR or;
+	RULE fork_rule;
+	fork_ix--;
+	if (fork_ix < 0) goto RETURN_SOFT_ERROR;
+	{
+	    ANDID and_node_id;
+	    AND and_node;
+	    const FORK fork = FORK_of_TREE_by_IX(tree, fork_ix);
+	    const gint choice = Choice_of_FORK(fork);
+	    or = OR_of_FORK(fork);
+	    and_node_id = and_order_get(b, or, choice);
+	    and_node = and_nodes + and_node_id;
+	    token_id = and_node_token(and_node, &token_value);
+	}
+	if (token_id >= 0) {
+	    arg_0 = ++arg_n;
+	    continue_with_next_fork = 0;
+	}
+	fork_rule = RULE_of_OR(or);
+	if (Position_of_OR(or) == Length_of_RULE(fork_rule)) {
+	    gint virtual_rhs = RULE_is_Virtual_RHS(fork_rule);
+	    gint virtual_lhs = RULE_is_Virtual_LHS(fork_rule);
+	    gint real_symbol_count;
+	    const DSTACK virtual_stack = &VStack_of_VAL(val);
+	    if (virtual_lhs) {
+	        real_symbol_count = Real_SYM_Count_of_RULE(fork_rule);
+		if (virtual_rhs) {
+		    *(DSTACK_TOP(*virtual_stack, gint)) += real_symbol_count;
+		} else {
+		    *DSTACK_PUSH(*virtual_stack, gint) = real_symbol_count;
+		}
+		goto NEXT_FORK;
+	    }
+	    if (virtual_rhs) {
+	        real_symbol_count = Real_SYM_Count_of_RULE(fork_rule);
+		real_symbol_count += *DSTACK_POP(*virtual_stack, gint);
+	    } else {
+	        real_symbol_count = Length_of_RULE(fork_rule);
+	    }
+	    arg_0 = arg_n - real_symbol_count + 1;
+	    semantic_rule_id =
+	      fork_rule->t_is_semantic_equivalent ?
+		  fork_rule->t_original : ID_of_RULE(fork_rule);
+	    continue_with_next_fork = 0;
+	}
+	NEXT_FORK: ;
+	if (!continue_with_next_fork) break;
+    }
+
+    @<Write results to |val| and |event|@>@;
     return FORK_of_VAL(val);
+
+    RETURN_SOFT_ERROR: ;
+    @<Write results to |val| and |event|@>@;
+    return -1;
+
+}
+
+@ @<Write results to |val| and |event|@> =
+{
+    SYMID_of_EVE(event) = token_id;
+    Value_of_EVE(event) = token_value;
+    RULEID_of_EVE(event) = semantic_rule_id;
+    TOS_of_VAL(val) = Arg0_of_EVE(event) = arg_0;
+    FORK_of_VAL(val) = fork_ix;
+    ArgN_of_EVE(event) = arg_n;
 }
 
 @** Boolean Vectors.
