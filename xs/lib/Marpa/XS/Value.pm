@@ -1155,9 +1155,8 @@ sub Marpa::XS::Internal::Recognizer::event {
     my $trace_val = $eval->[Marpa::XS::Internal::Eval::TRACE_VAL];
     my $virtual_evaluation_stack = $eval->[Marpa::XS::Internal::Eval::VEVAL_STACK];
 
-    if ( $eval->[Marpa::XS::Internal::Eval::FORK_IX] < 0) {
-        $eval->[Marpa::XS::Internal::Eval::FORK_IX] = $recce_c->tree_size();
-    }
+    my $fork_ix = $eval->[Marpa::XS::Internal::Eval::FORK_IX];
+    if ( $fork_ix < 0) { $fork_ix = $recce_c->tree_size(); }
 
     my $arg_0;
     my $arg_n;
@@ -1169,7 +1168,7 @@ sub Marpa::XS::Internal::Recognizer::event {
 
     FORK: while (1) {
 
-	my $fork_ix = --$eval->[Marpa::XS::Internal::Eval::FORK_IX];
+	$fork_ix--;
 
 	goto RETURN_SOFT_ERROR if $fork_ix < 0;
 
@@ -1222,10 +1221,12 @@ sub Marpa::XS::Internal::Recognizer::event {
     }    # TREE_NODE
 
     $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
+    $eval->[Marpa::XS::Internal::Eval::FORK_IX] = $fork_ix;
     return ($token_id, $value_ix, $semantic_rule_id, $arg_0, $arg_n);
 
     RETURN_SOFT_ERROR: ;
     $eval->[Marpa::XS::Internal::Eval::EVAL_TOS] = $arg_0;
+    $eval->[Marpa::XS::Internal::Eval::FORK_IX] = $fork_ix;
     return;
 
 }
