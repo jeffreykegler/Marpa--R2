@@ -121,9 +121,9 @@ my $show_rules_output = $grammar->show_rules();
 
 Marpa::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace /* !used */
-1: statements -> statement /* !used */
-2: statements -> statements[Subseq:8:5] /* vrhs discard_sep real=0 */
-3: statements -> statements[Subseq:8:5] comma /* vrhs discard_sep real=1 */
+1: statements -> statement /* !used discard_sep */
+2: statements -> statements[Subseq:8:5] /* vrhs real=0 */
+3: statements -> statements[Subseq:8:5] comma /* vrhs real=1 */
 4: statements[Subseq:8:5] -> statement /* vlhs real=1 */
 5: statements[Subseq:8:5] -> statements[Subseq:8:5] comma statement /* vlhs vrhs real=2 */
 6: block -> statements /* !used */

@@ -109,13 +109,13 @@ my $structure = <<'END_OF_STRUCTURE';
     CYCLE { Can this rule be part of a cycle? }
     VIRTUAL_CYCLE { Is this rule part of a cycle from the virtual
     point of view? }
+    VIRTUAL_START
+    VIRTUAL_END
+    ORIGINAL_RULE { for a rewritten rule, the original }
 
     =LAST_EVALUATOR_FIELD
     =LAST_RECOGNIZER_FIELD
 
-    ORIGINAL_RULE { for a rewritten rule, the original }
-    VIRTUAL_START
-    VIRTUAL_END
     ACCESSIBLE { reachable from start symbol? }
     PRODUCTIVE { reachable from input symbol? }
 
@@ -1609,6 +1609,8 @@ sub add_user_rule {
             rhs            => $rhs,
             action         => $action,
             ranking_action => $ranking_action,
+            discard_separation =>
+                ( not $keep_separation and defined $separator_name ),
         }
     );
     $original_rule->[Marpa::PP::Internal::Rule::USED] = 0;
@@ -1659,32 +1661,31 @@ sub add_user_rule {
     my $sequence = assign_symbol( $grammar, $sequence_name );
 
     # The top sequence rule
-    add_rule(
+    my $top_rule = add_rule(
         {   grammar           => $grammar,
             lhs               => $lhs,
             rhs               => [$sequence],
             virtual_rhs       => 1,
             real_symbol_count => 0,
-            discard_separation =>
-                ( not $keep_separation and defined $separator ),
             action         => $action,
             ranking_action => $ranking_action,
         }
     );
+    $top_rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE] = $original_rule;
 
     # An alternative top sequence rule needed for perl5 separation
     if ( defined $separator and not $proper_separation ) {
-        add_rule(
+        my $alt_top_rule = add_rule(
             {   grammar            => $grammar,
                 lhs                => $lhs,
                 rhs                => [ $sequence, $separator, ],
                 virtual_rhs        => 1,
                 real_symbol_count  => 1,
-                discard_separation => !$keep_separation,
                 action             => $action,
                 ranking_action     => $ranking_action,
             }
         );
+	$alt_top_rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE] = $original_rule;
     } ## end if ( defined $separator and not $proper_separation )
 
     my @separated_rhs =

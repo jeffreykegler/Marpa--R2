@@ -935,9 +935,13 @@ sub report_progress {
             my $marpa_rule = $LR0_item->[Marpa::PP::Internal::LR0_item::RULE];
             my $marpa_position =
                 $LR0_item->[Marpa::PP::Internal::LR0_item::POSITION];
-            my $original_rule =
-                $marpa_rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE]
-                // $marpa_rule;
+
+            my $original_rule = $marpa_rule;
+            if ( $marpa_rule->[Marpa::PP::Internal::Rule::VIRTUAL_START] ) {
+                $original_rule =
+                    $marpa_rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE];
+            }
+
             my $original_rhs =
                 $original_rule->[Marpa::PP::Internal::Rule::RHS];
 

@@ -14,7 +14,9 @@
 # General Public License along with Marpa::PP.  If not, see
 # http://www.gnu.org/licenses/.
 
-# the example grammar in Aycock/Horspool "Practical Earley Parsing",
+# This test dumps the contents of the bocage and its iterator.
+# The example grammar is Aycock/Horspool's
+# "Practical Earley Parsing",
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
 # in its "NNF" form
 
@@ -22,7 +24,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 21;
 use lib 'tool/lib';
 use Marpa::Test;
 
@@ -382,6 +384,109 @@ S14@3-3
 L1@3 ["A"; L7@2; S13@2-3]
 END_OF_SET3
 
+my %tree_expected = ();
+
+$tree_expected{'(;a;a;a)'} = <<'END_OF_TEXT';
+0: o17[-] R13:1@0-3 p=ok c=ok
+ o17[0]* ::= a17 R13:1@0-3C6@0
+ o17[1] ::= a18 R13:1@0-3C4@0
+1: o16[c0] R6:2@0-3 p=ok c=ok
+ o16[0]* ::= a16 R6:2@0-3C7@0
+2: o15[c1] R7:2@0-3 p=ok c=ok
+ o15[0]* ::= a15 R7:2@0-3C10@1
+3: o13[c2] R10:2@1-3 p=ok c=ok
+ o13[0]* ::= a13 R10:2@1-3C1@2
+4: o9[c3] R1:1@2-3 p=ok c=ok
+ o9[0]* ::= a9 R1:1@2-3S2@2
+5: o7[p3] R10:1@1-2 p=ok c=ok
+ o7[0]* ::= a7 R10:1@1-2C1@1
+6: o5[c5] R1:1@1-2 p=ok c=ok
+ o5[0]* ::= a5 R1:1@1-2S2@1
+7: o3[p2] R7:1@0-1 p=ok c=ok
+ o3[0]* ::= a3 R7:1@0-1C1@0
+8: o1[c7] R1:1@0-1 p=ok c=ok
+ o1[0]* ::= a1 R1:1@0-1S2@0
+9: o0[p1] R6:1@0-0 p=ok c=ok
+ o0[0]* ::= a0 R6:1@0-0S5@0
+END_OF_TEXT
+
+$tree_expected{'(a;;a;a)'} = <<'END_OF_TEXT';
+0: o17[-] R13:1@0-3 p=ok c=ok
+ o17[0] ::= a17 R13:1@0-3C6@0
+ o17[1]* ::= a18 R13:1@0-3C4@0
+1: o18[c0] R4:2@0-3 p=ok c=ok
+ o18[0]* ::= a19 R4:2@0-3C9@1
+ o18[1] ::= a20 R4:2@0-3C7@1
+2: o14[c1] R9:2@1-3 p=ok c=ok
+ o14[0]* ::= a14 R9:2@1-3C10@1
+3: o13[c2] R10:2@1-3 p=ok c=ok
+ o13[0]* ::= a13 R10:2@1-3C1@2
+4: o9[c3] R1:1@2-3 p=ok c=ok
+ o9[0]* ::= a9 R1:1@2-3S2@2
+5: o7[p3] R10:1@1-2 p=ok c=ok
+ o7[0]* ::= a7 R10:1@1-2C1@1
+6: o5[c5] R1:1@1-2 p=ok c=ok
+ o5[0]* ::= a5 R1:1@1-2S2@1
+7: o4[p2] R9:1@1-1 p=ok c=ok
+ o4[0]* ::= a4 R9:1@1-1S5@1
+8: o2[p1] R4:1@0-1 p=ok c=ok
+ o2[0]* ::= a2 R4:1@0-1C1@0
+9: o1[c8] R1:1@0-1 p=ok c=ok
+ o1[0]* ::= a1 R1:1@0-1S2@0
+END_OF_TEXT
+
+$tree_expected{'(a;a;;a)'} = <<'END_OF_TEXT';
+0: o17[-] R13:1@0-3 p=ok c=ok
+ o17[0] ::= a17 R13:1@0-3C6@0
+ o17[1]* ::= a18 R13:1@0-3C4@0
+1: o18[c0] R4:2@0-3 p=ok c=ok
+ o18[0] ::= a19 R4:2@0-3C9@1
+ o18[1]* ::= a20 R4:2@0-3C7@1
+2: o19[c1] R7:2@1-3 p=ok c=ok
+ o19[0]* ::= a21 R7:2@1-3C12@2
+ o19[1] ::= a22 R7:2@1-3C11@2
+3: o12[c2] R12:2@2-3 p=ok c=ok
+ o12[0]* ::= a12 R12:2@2-3C1@2
+4: o9[c3] R1:1@2-3 p=ok c=ok
+ o9[0]* ::= a9 R1:1@2-3S2@2
+5: o8[p3] R12:1@2-2 p=ok c=ok
+ o8[0]* ::= a8 R12:1@2-2S5@2
+6: o6[p2] R7:1@1-2 p=ok c=ok
+ o6[0]* ::= a6 R7:1@1-2C1@1
+7: o5[c6] R1:1@1-2 p=ok c=ok
+ o5[0]* ::= a5 R1:1@1-2S2@1
+8: o2[p1] R4:1@0-1 p=ok c=ok
+ o2[0]* ::= a2 R4:1@0-1C1@0
+9: o1[c8] R1:1@0-1 p=ok c=ok
+ o1[0]* ::= a1 R1:1@0-1S2@0
+END_OF_TEXT
+
+$tree_expected{'(a;a;a;)'} = <<'END_OF_TEXT';
+0: o17[-] R13:1@0-3 p=ok c=ok
+ o17[0] ::= a17 R13:1@0-3C6@0
+ o17[1]* ::= a18 R13:1@0-3C4@0
+1: o18[c0] R4:2@0-3 p=ok c=ok
+ o18[0] ::= a19 R4:2@0-3C9@1
+ o18[1]* ::= a20 R4:2@0-3C7@1
+2: o19[c1] R7:2@1-3 p=ok c=ok
+ o19[0] ::= a21 R7:2@1-3C12@2
+ o19[1]* ::= a22 R7:2@1-3C11@2
+3: o11[c2] R11:2@2-3 p=ok c=ok
+ o11[0]* ::= a11 R11:2@2-3S5@3
+4: o10[p3] R11:1@2-3 p=ok c=ok
+ o10[0]* ::= a10 R11:1@2-3C1@2
+5: o9[c4] R1:1@2-3 p=ok c=ok
+ o9[0]* ::= a9 R1:1@2-3S2@2
+6: o6[p2] R7:1@1-2 p=ok c=ok
+ o6[0]* ::= a6 R7:1@1-2C1@1
+7: o5[c6] R1:1@1-2 p=ok c=ok
+ o5[0]* ::= a5 R1:1@1-2S2@1
+8: o2[p1] R4:1@0-1 p=ok c=ok
+ o2[0]* ::= a2 R4:1@0-1C1@0
+9: o1[c8] R1:1@0-1 p=ok c=ok
+ o1[0]* ::= a1 R1:1@0-1S2@0
+END_OF_TEXT
+
 $recce->read( 'a', 'a' );
 $recce->read( 'a', 'a' );
 $recce->read( 'a', 'a' );
@@ -400,7 +505,21 @@ $recce->set( { max_parses => 20 } );
 
 while ( my $value_ref = $recce->value() ) {
 
-    my $value = $value_ref ? ${$value_ref} : 'No parse';
+    my $tree_output = q{};
+
+    my $value = "No parse";
+    if ($value_ref) {
+        $value = ${$value_ref};
+        SKIP: {
+            skip "Not using XS", 1 if not $Marpa::USING_XS;
+            Marpa::Test::is( $recce->show_tree(), $tree_expected{$value},
+                qq{Tree, "$value"} );
+        }
+    } ## end if ($value_ref)
+    else {
+        Test::More::fail('Tree');
+    }
+
     if ( defined $expected{$value} ) {
         delete $expected{$value};
         Test::More::pass(qq{Expected result, "$value"});
@@ -465,6 +584,37 @@ R12:2@2-3C1@2
 END_OF_TEXT
 
 Marpa::Test::is($recce->show_and_nodes(), $and_node_output, "XS And nodes");
+
+my $bocage_output = <<'END_OF_TEXT';
+R6:1@0-0 - S5
+R1:1@0-1 - S2
+R4:1@0-1 - R1:1@0-1
+R7:1@0-1 - R1:1@0-1
+R4:2@0-3 R4:1@0-1 R7:2@1-3
+R4:2@0-3 R4:1@0-1 R9:2@1-3
+R6:2@0-3 R6:1@0-0 R7:2@0-3
+R7:2@0-3 R7:1@0-1 R10:2@1-3
+R13:1@0-3 - R4:2@0-3
+R13:1@0-3 - R6:2@0-3
+R9:1@1-1 - S5
+R1:1@1-2 - S2
+R7:1@1-2 - R1:1@1-2
+R10:1@1-2 - R1:1@1-2
+R7:2@1-3 R7:1@1-2 R11:2@2-3
+R7:2@1-3 R7:1@1-2 R12:2@2-3
+R9:2@1-3 R9:1@1-1 R10:2@1-3
+R10:2@1-3 R10:1@1-2 R1:1@2-3
+R12:1@2-2 - S5
+R1:1@2-3 - S2
+R11:1@2-3 - R1:1@2-3
+R11:2@2-3 R11:1@2-3 S5
+R12:2@2-3 R12:1@2-2 R1:1@2-3
+END_OF_TEXT
+
+SKIP: {
+    skip "Not using XS", 1 if not $Marpa::USING_XS;
+    Marpa::Test::is( $recce->show_bocage(), $bocage_output, "XS Bocage" );
+}
 
 1;    # In case used as "do" file
 

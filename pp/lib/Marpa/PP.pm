@@ -95,6 +95,7 @@ require Marpa::PP::Callback;
 *Marpa::Recognizer::exhausted = \&Marpa::PP::Recognizer::exhausted;
 *Marpa::Recognizer::latest_earley_set = \&Marpa::PP::Recognizer::latest_earley_set;
 *Marpa::Recognizer::new = \&Marpa::PP::Recognizer::new;
+*Marpa::Recognizer::parse_count = \&Marpa::PP::Recognizer::parse_count;
 *Marpa::Recognizer::read = \&Marpa::PP::Recognizer::read;
 *Marpa::Recognizer::reset_evaluation = \&Marpa::PP::Recognizer::reset_evaluation;
 *Marpa::Recognizer::set = \&Marpa::PP::Recognizer::set;

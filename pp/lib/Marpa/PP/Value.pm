@@ -143,7 +143,6 @@ my $structure = <<'END_OF_STRUCTURE';
     CALL
     CONSTANT_RESULT
     VIRTUAL_HEAD
-    VIRTUAL_HEAD_NO_SEP
     VIRTUAL_KERNEL
     VIRTUAL_TAIL
 
@@ -168,6 +167,13 @@ END_OF_STRUCTURE
 use constant SKIP => -1;
 
 use warnings;
+
+# The internal parameter is slightly misnamed -- between
+# calls it is the count of the *next* parse
+sub Marpa::PP::Recognizer::parse_count {
+    my ($recce) = @_;
+    return $recce->[Marpa::PP::Internal::Recognizer::PARSE_COUNT] - 1;
+}
 
 sub Marpa::PP::Recognizer::and_node_tag {
     my ($recce, $and_node) = @_;
@@ -558,11 +564,7 @@ sub Marpa::PP::Internal::Recognizer::set_actions {
 
         if ($virtual_rhs) {
             push @{$ops},
-                (
-                $rule->[Marpa::PP::Internal::Rule::DISCARD_SEPARATION]
-                ? Marpa::PP::Internal::Op::VIRTUAL_HEAD_NO_SEP
-                : Marpa::PP::Internal::Op::VIRTUAL_HEAD
-                ),
+                Marpa::PP::Internal::Op::VIRTUAL_HEAD,
                 $rule->[Marpa::PP::Internal::Rule::REAL_SYMBOL_COUNT];
         } ## end if ($virtual_rhs)
             # assignment instead of comparison is deliberate
@@ -1112,39 +1114,6 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
 
                 } ## end when (Marpa::PP::Internal::Op::VIRTUAL_HEAD)
 
-                when (Marpa::PP::Internal::Op::VIRTUAL_HEAD_NO_SEP) {
-                    my $real_symbol_count = $ops->[ $op_ix++ ];
-
-                    if ($trace_values) {
-                        my $rule_id = $and_node
-                            ->[Marpa::PP::Internal::And_Node::RULE_ID];
-                        my $rule = $rules->[$rule_id];
-                        say {$Marpa::PP::Internal::TRACE_FH}
-                            'Head of Virtual Rule (discards separation): ',
-                            $and_node->[Marpa::PP::Internal::And_Node::TAG],
-                            ', rule: ', Marpa::PP::brief_rule($rule),
-                            "\nAdding $real_symbol_count symbols; currently ",
-                            ( scalar @virtual_rule_stack ),
-                            ' rules; ', $virtual_rule_stack[-1], ' symbols'
-                            or Marpa::exception(
-                            'Could not print to trace file');
-                    } ## end if ($trace_values)
-
-                    $real_symbol_count += pop @virtual_rule_stack;
-                    my $base =
-                        ( scalar @evaluation_stack ) - $real_symbol_count;
-                    $current_data = [
-                        map { ${$_} } @evaluation_stack[
-                            map { $base + 2 * $_ }
-                            ( 0 .. ( $real_symbol_count + 1 ) / 2 - 1 )
-                        ]
-                    ];
-
-                    # truncate the evaluation stack
-                    $#evaluation_stack = $base - 1;
-
-                } ## end when (Marpa::PP::Internal::Op::VIRTUAL_HEAD_NO_SEP)
-
                 when (Marpa::PP::Internal::Op::VIRTUAL_KERNEL) {
                     my $real_symbol_count = $ops->[ $op_ix++ ];
                     $virtual_rule_stack[-1] += $real_symbol_count;
@@ -1157,9 +1126,7 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                             'Virtual Rule: ',
                             $and_node->[Marpa::PP::Internal::And_Node::TAG],
                             ', rule: ', Marpa::PP::brief_rule($rule),
-                            "\nAdding $real_symbol_count, now ",
-                            ( scalar @virtual_rule_stack ),
-                            ' rules; ', $virtual_rule_stack[-1], ' symbols'
+                            "\nAdding $real_symbol_count",
                             or Marpa::exception(
                             'Could not print to trace file');
                     } ## end if ($trace_values)
@@ -1177,8 +1144,7 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                             'New Virtual Rule: ',
                             $and_node->[Marpa::PP::Internal::And_Node::TAG],
                             ', rule: ', Marpa::PP::brief_rule($rule),
-                            "\nSymbol count is $real_symbol_count, now ",
-                            ( scalar @virtual_rule_stack + 1 ), ' rules',
+                            "\nReal symbol count is $real_symbol_count",
                             or Marpa::exception(
                             'Could not print to trace file');
                     } ## end if ($trace_values)
@@ -1202,6 +1168,16 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
 
                 when (Marpa::PP::Internal::Op::CALL) {
                     my $closure = $ops->[ $op_ix++ ];
+                    my $rule_id =
+                        $and_node->[Marpa::PP::Internal::And_Node::RULE_ID];
+                    my $rule = $rules->[$rule_id];
+                    my $original_rule = $rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE];
+                    if ($original_rule->[Marpa::PP::Internal::Rule::DISCARD_SEPARATION])
+                    {
+                        $current_data =
+                            [ @{$current_data}[ grep { not $_ % 2 }
+                            0 .. $#{$current_data} ] ];
+                    } ## end if ( $rule->[...])
                     my $result;
 
                     my @warnings;
@@ -1221,9 +1197,6 @@ sub Marpa::PP::Internal::Recognizer::evaluate {
                     } ## end DO_EVAL:
 
                     if ( not $eval_ok or @warnings ) {
-                        my $rule_id = $and_node
-                            ->[Marpa::PP::Internal::And_Node::RULE_ID];
-                        my $rule        = $rules->[$rule_id];
                         my $fatal_error = $EVAL_ERROR;
                         Marpa::PP::Internal::code_problems(
                             {   fatal_error => $fatal_error,
