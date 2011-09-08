@@ -166,7 +166,7 @@ sub Marpa::HTML::License::file_license_problems {
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::HTML::License::license_problems {
-    return map { Marpa::HTML::License::file_license_problems( $_, 1 ) } @_;
+    return map { Marpa::HTML::License::file_license_problems( $_, 0 ) } @_;
 }
 ## use critic
 
