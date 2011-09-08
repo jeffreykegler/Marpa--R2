@@ -55,3 +55,4 @@ t/score.t
 t/synopsis.t
 t/tang.t
 t/test.html
+tool/lib/Marpa/HTML/Display.pm
