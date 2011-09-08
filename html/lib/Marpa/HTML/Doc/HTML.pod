@@ -11,7 +11,7 @@ Marpa::HTML - High-level HTML Parser
 
 B<Delete all tables>:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Delete Tables'
 perltidy: '-dcsc -sil=0'
 
@@ -20,11 +20,11 @@ perltidy: '-dcsc -sil=0'
     my $with_table = 'Text<table><tr><td>I am a cell</table> More Text';
     my $no_table   = html( \$with_table, { table => sub { return q{} } });
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 B<Delete everything but tables>:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Delete Everything But Tables'
 perltidy: '-dcsc -sil=0'
 
@@ -34,13 +34,13 @@ perltidy: '-dcsc -sil=0'
     );
     my $only_table = html( \$with_table, \%handlers_to_keep_only_tables );
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 The above works by turning the original text of the HTML into values
 and concatenating the values at the top of the parse.
 The same logic works even if a B<table is very defective>:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Defective Tables'
 perltidy: '-dcsc -sil=0'
 
@@ -48,11 +48,11 @@ perltidy: '-dcsc -sil=0'
     my $only_bad_table =
         html( \$with_bad_table, \%handlers_to_keep_only_tables );
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 B<Delete all comments>:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Delete Comments'
 perltidy: '-dcsc -sil=0'
 
@@ -60,13 +60,13 @@ perltidy: '-dcsc -sil=0'
     my $no_comment   = html( \$with_comment,
         { ':COMMENT' => sub { return q{} } });
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 By default, text is passed through unchanged, so that the user
 need only specify semantic actions for those components she
 wants changed.  To B<change the title of a document>:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Change Title'
 perltidy: '-dcsc -sil=0'
 
@@ -77,12 +77,12 @@ perltidy: '-dcsc -sil=0'
         }
     );
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 B<Delete all elements with a class attribute
 of "C<delete_me>">:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Delete by Class'
 perltidy: '-dcsc -sil=0'
 
@@ -90,13 +90,13 @@ perltidy: '-dcsc -sil=0'
     my $edited_stuff       = html( \$stuff_to_be_edited,
         { '.delete_me' => sub { return q{} } });
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 L<Marpa::HTML> recognizes elements even if they have missing
 start and/or end tags.
 L<Marpa::HTML> can B<supply missing tags>:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Supply Missing Tags'
 perltidy: '-dcsc -sil=0'
 
@@ -111,12 +111,12 @@ perltidy: '-dcsc -sil=0'
     my $valid_html_with_all_tags =
         html( \$html_with_just_a_title, { q{*} => \&supply_missing_tags } );
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 L<Marpa::HTML> understands the hierarchical structure of an HTML document.
 B<Finding the maximum nesting depth in elements> is straightforward:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Maximum Element Depth'
 perltidy: '-dcsc -sil=0'
 
@@ -130,7 +130,7 @@ perltidy: '-dcsc -sil=0'
     my $maximum_depth_with_just_a_title = html( \$html_with_just_a_title,
         \%handlers_to_calculate_maximum_element_depth );
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 L<Marpa::HTML> tracks actual elements, however tagged.
 The above code returns the same depth for C<$valid_html_with_all_tags>
@@ -187,7 +187,7 @@ Supported specifier syntaxes are as follows:
 
 =item Tagname Specifiers
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Delete Everything But Tables'
 partial: 1
 normalize-whitespace: 1
@@ -195,7 +195,7 @@ flatten: 1
 
         table  => sub { return Marpa::HTML::original() },
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 If a specifier contains no special characters
 it is taken
@@ -230,7 +230,7 @@ The element wildcard specifier will not match any pseudoclasses.
 
 =item Pseudoclass Specifiers
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Synopsis: Delete Comments'
 partial: 1
 normalize-whitespace: 1
@@ -238,7 +238,7 @@ flatten: 1
 
      ':COMMENT' => sub { return q{} }
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 A specifier which begins with a colon ("C<:>") matches a pseudoclass.
 L<Marpa::HTML> defines
@@ -267,7 +267,7 @@ the action is picked based on the B<most specific match>.
 
 Here's an example:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Pod: Handler Precedence'
 perltidy: '-dcsc -sil=0'
 remove-display-indent: 1
@@ -303,11 +303,11 @@ remove-display-indent: 1
         }
     );
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 Here is what C<$result> would contain after the above code was run:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Pod: Handler Precedence Result'
 normalize-whitespace: 1
 
@@ -317,7 +317,7 @@ normalize-whitespace: 1
     "div" handler: Low Div
     ".oddball" handler: Oddball Div
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 =head2 Details of the Specifier Syntax
 
@@ -793,13 +793,13 @@ If there was no title attribute, returns undef.
 
 =head2 Dataspecs
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: dataspec example
 perltidy: '-dcsc -sil=0'
 
     Marpa::HTML::descendants('token_type,literal,element')
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 The data specification string, or dataspec,
 is a comma separated list of B<descendant data specifiers>.
@@ -975,13 +975,13 @@ they will be called once and only once during every parse.
 
 Consider this short and very defective HTML document:
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: 'HTML Pod: Structure vs. Element Example'
 normalize-whitespace: 1
 
     <title>Short</title><p>Text</head><head>
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 L<HTML::Parser> starts the HTML document's body
 when it encounters the C<< <p> >> start tag.
@@ -1050,4 +1050,6 @@ ignore: 1
   This is free software; you can redistribute it and/or modify it
   under the same terms as the Perl 5 programming language system
   itself.
+
+=for Marpa::HTML::Display::End
 

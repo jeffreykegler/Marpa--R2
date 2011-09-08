@@ -681,7 +681,7 @@ END_OF_STRING
 # until the HTML::Implementation doc
 # is ready.
 
-# Marpa::Display
+# Marpa::HTML::Display
 # name: HTML BNF
 # ignore: 1
 # start-after-line: END_OF_BNF

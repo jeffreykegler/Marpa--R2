@@ -392,7 +392,7 @@ A final star indicates a sequence of zero or more of the symbol.
 (Sequences are directly supported by L<Marpa>,
 which optimizes for them.)
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 name: HTML BNF
 normalize-whitespace: 1
 
@@ -483,7 +483,7 @@ normalize-whitespace: 1
     table_flow_item ::= SGML_flow_item
     empty ::=
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
 
 =head1 SUPPORT
 

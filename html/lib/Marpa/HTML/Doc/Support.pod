@@ -24,12 +24,12 @@ your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-=for Marpa::Display
+=for Marpa::HTML::Display
 ignore: 1
 
     perldoc Marpa::HTML
 
-=for Marpa::Display::End
+=for Marpa::HTML::Display::End
     
 You can also look for information at:
 
@@ -62,4 +62,6 @@ ignore: 1
   This is free software; you can redistribute it and/or modify it
   under the same terms as the Perl 5 programming language system
   itself.
+
+=for Marpa::HTML::Display::End
 
