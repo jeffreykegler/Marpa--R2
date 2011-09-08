@@ -1,9 +1,7 @@
 # This software is copyright (c) 2011 by Jeffrey Kegler
-#
 # This is free software; you can redistribute it and/or modify it
 # under the same terms as the Perl 5 programming language system
 # itself.
-#
 
 # This perlcriticrc is intended to list all policies explicitly.
 # Defaults are set so that policies not explicitly included (perhaps
