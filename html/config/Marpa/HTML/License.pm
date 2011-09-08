@@ -28,21 +28,12 @@ Jeffrey Kegler retains full rights.
 END_OF_STRING
 
 my $license_body = <<'END_OF_STRING';
-
 This is free software; you can redistribute it and/or modify it
 under the same terms as the Perl 5 programming language system
 itself.
-
 END_OF_STRING
 
 my $license = "$copyright_line\n$license_body";
-
-my $license_file = $license . <<'END_OF_STRING';
-
-In the Marpa::XS distribution, the GNU Lesser General Public License
-version 3 should be in a file named "COPYING.LESSER" and the The GNU
-General Public License version 3 should be in a file named "COPYING".
-END_OF_STRING
 
 sub hash_comment {
     my ( $text, $char ) = @_;
@@ -114,9 +105,8 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
-
-    # Should be the Perl 5 license
-    'LICENSE'   => \&license_problems_in_license_file,
+    'LICENSE' =>
+        \&license_problems_in_license_file,    # Should be the Perl 5 license
     'META.json' => sub {;}
     ,    # not source, and not clear how to add license at top
     'META.yml' => sub {;}
@@ -124,8 +114,10 @@ my %files_by_type = (
     'lib/Marpa/HTML/Test/capture-stderr' => sub {;},
     'script/html_fmt'                   => \&license_problems_in_perl_file,
     'script/html_score'                 => \&license_problems_in_perl_file,
-    't/fmt_t_data/expected1.html'       => sub { ; },
-    't/fmt_t_data/expected2.html'       => sub { ; },
+    't/no_tang.html'                    => sub {;},
+    't/test.html'                       => sub {;},
+    't/fmt_t_data/expected1.html'       => sub {;},
+    't/fmt_t_data/expected2.html'       => sub {;},
     't/fmt_t_data/input1.html'          => \&trivial,
     't/fmt_t_data/input2.html'          => \&trivial,
     't/fmt_t_data/score_expected1.html' => \&trivial,
@@ -174,7 +166,7 @@ sub Marpa::HTML::License::file_license_problems {
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::HTML::License::license_problems {
-    return map { Marpa::HTML::License::file_license_problems( $_, 0 ) } @_;
+    return map { Marpa::HTML::License::file_license_problems( $_, 1 ) } @_;
 }
 ## use critic
 
@@ -210,20 +202,30 @@ sub tops_equal {
 
 sub license_problems_in_license_file {
     my ( $filename, $verbose ) = @_;
-    my @problems = ();
-    my $text     = ${ slurp($filename) };
-    if ($text !~ m/
-This [ ] software [ ] is [ ] copyright [ ] [(]c[)] [ ] 2011 [ ] by [ ] Jeffrey [ ] Kegler[.]$
-.{100,}
-This [ ] software [ ] is [ ] copyright [ ] [(]c[)] [ ] 2011 [ ] by [ ] Jeffrey [ ] Kegler[.]$
-.{100,}
-This [ ] software [ ] is [ ] copyright [ ] [(]c[)] [ ] 2011 [ ] by [ ] Jeffrey [ ] Kegler[.]$
-.{1000,}
-/xms)
-    {
-        my $problem = "LICENSE file is wrong\n";
+    my @problems      = ();
+    my $text          = ${ slurp($filename) };
+    my $length = length $text;
+    if ( $length != 18374 ) {
+        my $problem = "LICENSE file is wrong: length is $length\n";
         push @problems, $problem;
-    } ## end if ( $text ne $license_file )
+    }
+    my $Copyright_line = $copyright_line;
+    $Copyright_line =~ s/copyright/Copyright/;
+    my $copyright_pos = index $text, $copyright_line, 0;
+    if ( $copyright_pos != 0 ) {
+        my $problem = "LICENSE file is wrong: first copyright at position $copyright_pos\n";
+        push @problems, $problem;
+    }
+    $copyright_pos = index $text, $Copyright_line, $copyright_pos+1;
+    if ( $copyright_pos != 485 ) {
+        my $problem = "LICENSE file is wrong: second copyright at position $copyright_pos\n";
+        push @problems, $problem;
+    }
+    $copyright_pos = index $text, $Copyright_line, $copyright_pos+1;
+    if ( $copyright_pos != 13304 ) {
+        my $problem = "LICENSE file is wrong: third copyright at position $copyright_pos\n";
+        push @problems, $problem;
+    }
     return @problems;
 } ## end sub license_problems_in_license_file
 
