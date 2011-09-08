@@ -1,3 +1,9 @@
+# This software is copyright (c) 2011 by Jeffrey Kegler
+#
+# This is free software; you can redistribute it and/or modify it
+# under the same terms as the Perl 5 programming language system
+# itself.
+#
 package Marpa::HTML::Test::Util;
 
 # The original of this code was copied from Andy Lester's Ack
