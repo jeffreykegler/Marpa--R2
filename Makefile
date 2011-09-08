@@ -42,6 +42,7 @@ xs_html_test: html_blib xslib
 	(cd html; \
 	PERL5LIB=../dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
+
 pp_etc_make:
 	(cd pp/etc; make)
 
@@ -53,3 +54,8 @@ pp_full_test: pplib pp_etc_make pp_html_test
 xs_full_test: xslib xs_etc_make xs_html_test
 
 full_test: pp_full_test  xs_full_test
+
+html_full_test:
+	(cd html/etc; PERL5LIB=$(CURDIR)/noxs/lib/:$$PERL5LIB make )
+	(cd html/etc;  make )
+	
