@@ -10,9 +10,8 @@ use Fatal qw(open close read);
 use File::Spec;
 use Text::Diff ();
 
-my $copyright_line = q{Copyright 2011 Jeffrey Kegler};
-( my $copyright_line_in_tex = $copyright_line )
-    =~ s/ ^ Copyright \s /Copyright \\copyright\\ /xms;
+my $copyright_line =
+    q{This software is copyright (c) 2011 by Jeffrey Kegler};
 
 my $closed_license = "$copyright_line\n" . <<'END_OF_STRING';
 This document is not part of the Marpa or Marpa::XS source.
@@ -109,6 +108,7 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
+    # Should be the Perl 5 license
     'LICENSE'  => \&license_problems_in_license_file,
     'META.json' => sub {;}
     ,    # not source, and not clear how to add license at top
@@ -197,23 +197,18 @@ sub license_problems_in_license_file {
     my ( $filename, $verbose ) = @_;
     my @problems = ();
     my $text     = ${ slurp($filename) };
-    if ( $text ne $license_file ) {
+    if ($text !~ m/
+This [ ] software [ ] is [ ] copyright [ ] [(]c[)] [ ] 2011 [ ] by [ ] Jeffrey [ ] Kegler[.]$
+.{100,}
+This [ ] software [ ] is [ ] copyright [ ] [(]c[)] [ ] 2011 [ ] by [ ] Jeffrey [ ] Kegler[.]$
+.{100,}
+This [ ] software [ ] is [ ] copyright [ ] [(]c[)] [ ] 2011 [ ] by [ ] Jeffrey [ ] Kegler[.]$
+.{1000,}
+/xms)
+    {
         my $problem = "LICENSE file is wrong\n";
-        if ($verbose) {
-            $problem
-                .= "=== Differences ===\n"
-                . Text::Diff::diff( \$text, \$license_file )
-                . ( q{=} x 30 );
-        } ## end if ($verbose)
         push @problems, $problem;
     } ## end if ( $text ne $license_file )
-    if ( scalar @problems and $verbose >= 2 ) {
-        my $problem =
-              "=== $filename should be as follows:\n"
-            . $license_file
-            . ( q{=} x 30 );
-        push @problems, $problem;
-    } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
 } ## end sub license_problems_in_license_file
 
