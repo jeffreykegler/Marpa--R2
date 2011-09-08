@@ -9,6 +9,9 @@ use English qw( -no_match_vars );
 
 use Module::Build;
 
+use lib File::Spec->catdir('config');
+use Marpa::HTML::Build_Me;
+
 our $MINIMUM_MARPA_VERSION = '0.100';
 our $MARPA_HTML_VERSION    = '0.102000';
 
@@ -70,16 +73,21 @@ my $class = Module::Build->subclass(
 
 SUBCLASS
 
-my $build = $class->new(
+my $build = Marpa::HTML::Build_Me->new(
     dist_name     => 'Marpa-HTML',
     module_name   => 'Marpa::HTML',
     dist_author   => 'Jeffrey Kegler',
     dist_version  => $MARPA_HTML_VERSION,
     dist_abstract => 'High-level HTML Parsing',
+    recommends      => {
+	'Marpa::XS' => '0.010000',
+    },
+    configure_requires => { 'Module::Build' => 0.38 },
     requires      => {
         'Scalar::Util'     => 0,
         'HTML::Parser'     => '3.64',
         'HTML::PullParser' => '3.57',
+	'Marpa::PP' => '0.008000',
         perl               => 5.010,
     },
     build_requires => {
@@ -121,8 +129,6 @@ my $build = $class->new(
             },
         },
     },
-    license            => 'perl',
-    create_license     => 1,
     create_readme      => 0,
     create_makefile_pl => 'small',
     test_files => [ map { glob $_ } qw(t/*.t t/*/*.t lib/Marpa/HTML/t/*.t) ],
