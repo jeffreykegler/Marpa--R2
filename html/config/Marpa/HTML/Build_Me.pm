@@ -1,8 +1,6 @@
 
 use 5.010;
 
-BEGIN { say STDERR __FILE__ };
-
 package Marpa::HTML::Build_Me;
 
 use strict;

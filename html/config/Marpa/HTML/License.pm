@@ -108,21 +108,30 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
+
     # Should be the Perl 5 license
-    'LICENSE'  => \&license_problems_in_license_file,
+    'LICENSE'   => \&license_problems_in_license_file,
     'META.json' => sub {;}
     ,    # not source, and not clear how to add license at top
     'META.yml' => sub {;}
     ,    # not source, and not clear how to add license at top
-    'lib/Marpa/XS/Test/capture-stderr' => sub {;},
-    'Makefile.PL'                           => \&trivial,
-    'README'                                => \&trivial,
-    'TODO'                                  => \&trivial,
-    'author.t/accept_tidy'                  => \&trivial,
-    'author.t/critic1'                      => \&trivial,
-    'author.t/perltidyrc'                   => \&trivial,
-    'author.t/spelling_exceptions.list'     => \&trivial,
-    'author.t/tidy1'                        => \&trivial,
+    'lib/Marpa/HTML/Test/capture-stderr' => sub {;},
+    'script/html_fmt'                   => \&license_problems_in_perl_file,
+    'script/html_score'                 => \&license_problems_in_perl_file,
+    't/fmt_t_data/expected1.html'       => sub { ; },
+    't/fmt_t_data/expected2.html'       => sub { ; },
+    't/fmt_t_data/input1.html'          => \&trivial,
+    't/fmt_t_data/input2.html'          => \&trivial,
+    't/fmt_t_data/score_expected1.html' => \&trivial,
+    't/fmt_t_data/score_expected2.html' => \&trivial,
+    'Makefile.PL'                       => \&trivial,
+    'README'                            => \&trivial,
+    'TODO'                              => \&trivial,
+    'author.t/accept_tidy'              => \&trivial,
+    'author.t/critic1'                  => \&trivial,
+    'author.t/perltidyrc'               => \&trivial,
+    'author.t/spelling_exceptions.list' => \&trivial,
+    'author.t/tidy1'                    => \&trivial,
 );
 
 sub file_type {
@@ -268,7 +277,7 @@ sub license_problems_in_pod_file {
 
     # Pod files are Perl files, and should also have the
     # license statement at the start of the file
-    my @problems = license_problems_in_perl_file( $filename, $verbose );
+    my @problems = license_problems_in_hash_file( $filename, $verbose );
 
     my $text = ${ slurp($filename) };
     if ( $text =~ m/ ^ [=]head1 \s+ COPYRIGHT \s+ AND \s+ LICENSE /xmsp ) {
