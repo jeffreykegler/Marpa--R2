@@ -17,7 +17,6 @@ use lib File::Spec->catdir('config');
 use Marpa::HTML::Build_Me;
 
 our $MINIMUM_MARPA_VERSION = '0.100';
-our $MARPA_HTML_VERSION    = '0.102000';
 
 my $class = Module::Build->subclass(
     class => 'Module::Build::Custom',
@@ -51,37 +50,12 @@ my $class = Module::Build->subclass(
         $self->SUPER::ACTION_dist;
     } ## end sub ACTION_dist
 
-    sub ACTION_build {
-        my $self = shift;
-
-	{
-	    my $using_xs = eval { require Marpa::XS::Installed; 1 };
-	    if ($using_xs) {
-		eval "require Marpa::XS $MINIMUM_MARPA_VERSION";
-	    } else {
-		eval "require Marpa::PP $MINIMUM_MARPA_VERSION";
-	    }
-	}
-        my $marpa_version = $Marpa::VERSION;
-        my $marpa_html_version = $self->dist_version();
-        if (not Marpa::compatible( { 'Marpa::HTML' => $marpa_html_version } )
-            )
-        {
-            Carp::croak(
-                "Unsupported Marpa::HTML $marpa_html_version with Marpa $marpa_version"
-            );
-        } ## end if ( not Marpa->compatible( { 'Marpa::HTML' => ...}))
-
-        $self->SUPER::ACTION_build;
-    } ## end sub ACTION_build
-
 SUBCLASS
 
 my $build = Marpa::HTML::Build_Me->new(
     dist_name     => 'Marpa-HTML',
     module_name   => 'Marpa::HTML',
     dist_author   => 'Jeffrey Kegler',
-    dist_version  => $MARPA_HTML_VERSION,
     dist_abstract => 'High-level HTML Parsing',
     recommends      => {
 	'Marpa::XS' => '0.010000',
@@ -129,7 +103,6 @@ my $build = Marpa::HTML::Build_Me->new(
         provides          => {
             'Marpa::HTML' => {
                 file    => 'lib/Marpa/HTML.pm',
-                version => $MARPA_HTML_VERSION,
             },
         },
     },

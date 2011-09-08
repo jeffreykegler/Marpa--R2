@@ -24,12 +24,16 @@ use Carp ();
 use HTML::PullParser;
 use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
+# versions below must be coordinated with
+# those required in Build.PL
 BEGIN {
     my $using_xs = eval { require Marpa::XS::Installed; 1 };
     if ($using_xs) {
         require Marpa::XS;
+	Marpa::XS->VERSION(0.010000);
     } else {
         require Marpa::PP;
+	Marpa::PP->VERSION(0.008000);
     }
 }
 
