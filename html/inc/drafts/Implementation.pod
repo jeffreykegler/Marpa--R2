@@ -495,7 +495,7 @@ See the L<support section|Marpa/SUPPORT> in the main module.
 
 Jeffrey Kegler
 
-=head1 LICENSE AND COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
 
   This software is copyright (c) 2011 by Jeffrey Kegler
  

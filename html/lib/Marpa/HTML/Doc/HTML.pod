@@ -1043,8 +1043,10 @@ Optionally,
 L<Marpa::HTML::html|/"THE Marpa::HTML::html STATIC METHOD">
 may be exported.
 
-=head1 LICENSE AND COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2007-2010 Jeffrey Kegler, all rights reserved.  Marpa is free
-software under the Perl license.  For details see the LICENSE file in
-the Marpa distribution.
+  This software is copyright (c) 2011 by Jeffrey Kegler
+ 
+  This is free software; you can redistribute it and/or modify it
+  under the same terms as the Perl 5 programming language system
+  itself.

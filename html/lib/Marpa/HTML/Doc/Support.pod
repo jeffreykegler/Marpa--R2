@@ -55,8 +55,13 @@ L<http://search.cpan.org/dist/Marpa-HTML>
 
 =back
 
-=head1 LICENSE AND COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2007-2010 Jeffrey Kegler, all rights reserved.  Marpa::HTML is free
-software under the Perl license.  For details see the LICENSE file in
-the Marpa::HTML distribution.
+=for Marpa::HTML::Display
+ignore: 1
+
+  This software is copyright (c) 2011 by Jeffrey Kegler
+
+  This is free software; you can redistribute it and/or modify it
+  under the same terms as the Perl 5 programming language system
+  itself.
