@@ -1,5 +1,6 @@
 /* Hello World program */
 
+#include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <glib.h>

@@ -1,7 +1,13 @@
 This directory is for testing.
 
+To initialize:
+
+1) mkdir m4
+
+1) autoreconf -ivf
+
 To build in it:
 
-1) sh ../dist/configure
+1) sh configure
 
 2) make

@@ -19,8 +19,7 @@ AM_CFLAGS = $(WARNING_CFLAGS)
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = README
 noinst_PROGRAMS = testleak
-testleak_LDADD = $(LIBOBJS) $(GLIB_LIBS) libmarpa.la
-testleak_CFLAGS = $(GLIB_CFLAGS) $(WARNING_CFLAGS)
-include_HEADERS = marpa.h marpa_obs.h
+testleak_LDADD = $(LIBOBJS) $(GLIB_LIBS) ../build2/libmarpa.la
+testleak_CFLAGS = $(GLIB_CFLAGS) $(WARNING_CFLAGS) -I../dist
 
 
