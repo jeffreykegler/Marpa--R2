@@ -1,10 +1,10 @@
 This directory is for testing.
 
-To initialize:
+To install
 
-1) mkdir m4
+1) mkdir dev/m4
 
-1) autoreconf -ivf
+2) (cd dev; autoreconf -ivf)
 
 To build in it:
 
