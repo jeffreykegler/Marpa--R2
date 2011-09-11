@@ -6268,25 +6268,6 @@ static inline EIM earley_item_create(const RECCE r,
 
 @ @<Private function prototypes@> =
 static inline
-EIM old_earley_item_assign (const RECCE r, const ES set, const ES origin, const AHFA state);
-@ Now used only in expanding Leo items, and modified under that assumption.
-@<Function definitions@> =
-static inline EIM old_earley_item_assign (
-    const RECCE r, const ES set, const ES origin, const AHFA state)
-{
-    EIM item;
-    EIK_Object key;
-    key.t_origin = origin;
-    key.t_state = state;
-    key.t_set = set;
-    item = g_tree_lookup(r->t_earley_item_tree, &key);
-    if (item) return item;
-    item = earley_item_create(r, key);
-      return item;
-}
-
-@ @<Private function prototypes@> =
-static inline
 EIM earley_item_assign (const RECCE r, const ES set, const ES origin, const AHFA state);
 @ @<Function definitions@> =
 static inline EIM
@@ -6432,59 +6413,6 @@ and clears the trace Earley item.
 Earley item is found, and on failure.
 The trace source link is always
 cleared, regardless of success or failure.
-@
-{\bf To Do}: @^To Do@>
-Deprecated.  To be deleted.
-@<Public function prototypes@> =
-Marpa_AHFA_State_ID
-marpa_old_earley_item_trace (struct marpa_r *r,
-    Marpa_Earley_Set_ID origin_set_id,
-    Marpa_AHFA_State_ID state_id);
-@ @<Function definitions@> =
-Marpa_AHFA_State_ID
-marpa_old_earley_item_trace (struct marpa_r *r,
-    Marpa_Earley_Set_ID origin_set_id,
-    Marpa_AHFA_State_ID state_id)
-{
-  const gint no_match = -1;
-  @<Return |-2| on failure@>@;
-  ES current_set = r->t_trace_earley_set;
-  ES origin_set;
-  EIM item;
-  EIK_Object item_key;
-  GRAMMAR_Const g = G_of_R(r);
-  @<Fail if recognizer initial@>@;
-  trace_source_link_clear(r);
-  if (!current_set) {
-      @<Clear trace Earley item data@>@;
-      R_ERROR("no trace es");
-      return failure_indicator;
-  }
-    if (origin_set_id < 0) {
-        R_ERROR("invalid es ordinal");
-	return failure_indicator;
-    }
-    r_update_earley_sets(r);
-    if (origin_set_id >= DSTACK_LENGTH(r->t_earley_set_stack)) {
-        R_ERROR("origin es does not exist");
-        return failure_indicator;
-    }
-  origin_set = ES_of_R_by_Ord (r, origin_set_id);
-  if (!origin_set) {
-      @<Clear trace Earley item data@>@;
-      R_ERROR("origin es not found");
-      return failure_indicator;
-    }
-  item_key.t_state = AHFA_of_G_by_ID (g, state_id);
-  item_key.t_origin = origin_set;
-  item_key.t_set = current_set;
-  item = r->t_trace_earley_item = g_tree_lookup(r->t_earley_item_tree, &item_key);
-  if (!item) {
-      @<Clear trace Earley item data@>@/
-      return no_match;
-    }
-  return AHFAID_of_EIM(item);
-}
 
 @ This function sets
 the trace Earley set to the one indicated

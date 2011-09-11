@@ -1213,19 +1213,6 @@ PPCODE:
     }
 
 void
-old_earley_item_trace( r_wrapper, origin, ahfa_id )
-    R_Wrapper *r_wrapper;
-    Marpa_Earleme origin;
-    Marpa_AHFA_State_ID ahfa_id;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    Marpa_AHFA_State_ID result = marpa_old_earley_item_trace(r, origin, ahfa_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) { croak("Trace earley item problem: %s", marpa_r_error(r)); }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-void
 earley_item_origin( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
