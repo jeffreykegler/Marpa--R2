@@ -4862,22 +4862,28 @@ for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++) {
     if (postdot >= 0) break;
 }
 p_new_state->t_empty_transition = NULL;
-if (postdot >= 0) { // If any item is not a completion ...
-    Bit_Vector predicted_rule_vector
-	= bv_shadow(matrix_row(prediction_matrix, (guint)postdot));
-    for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++) {
-    // ``or" the other non-complete items into the prediction rule vector
-	postdot = Postdot_SYMID_of_AIM(item_list_for_new_state[item_ix]);
-	if (postdot < 0) continue;
-	bv_or_assign(predicted_rule_vector, 
-	    matrix_row(prediction_matrix, (guint)postdot));
+if (postdot >= 0)
+{				/* If any item is not a completion ... */
+  Bit_Vector predicted_rule_vector
+    = bv_shadow (matrix_row (prediction_matrix, (guint) postdot));
+  for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
+    {
+      /* ``or" the other non-complete items into the prediction rule vector */
+      postdot = Postdot_SYMID_of_AIM (item_list_for_new_state[item_ix]);
+      if (postdot < 0)
+	continue;
+      bv_or_assign (predicted_rule_vector,
+		    matrix_row (prediction_matrix, (guint) postdot));
     }
-    p_new_state->t_empty_transition = create_predicted_AHFA_state(g,
-	predicted_rule_vector,
-	 rule_by_sort_key,
-	 &states,
-	 duplicates); // Add the predicted rule
-} }
+  /* Add the predicted rule */
+  p_new_state->t_empty_transition = create_predicted_AHFA_state (g,
+			 predicted_rule_vector,
+			 rule_by_sort_key,
+			 &states,
+			 duplicates);
+  bv_free (predicted_rule_vector);
+}
+}
 
 @*0 Predicted AHFA States.
 The method for building predicted AHFA states is optimized using
