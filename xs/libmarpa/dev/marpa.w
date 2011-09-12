@@ -632,12 +632,6 @@ Evaluation should allow the user to specify an
 alternative start symbol, and not prefer the
 recognizer's.
 
-@ \li Make sure that
-|t_is_leo_expanding|
-and |t_is_leo_expansion|
-are eliminated
-when no longer needed.
-
 @ \li Make tracing no longer the default in the recognizer.
 
 \li Add a ``tracing" flag to the recognizer.  Also add a
@@ -5500,6 +5494,12 @@ entering one means leaving another.
 exhausted it may gone into the evaluation phase, then
 return to the input phase,
 All that time it will remain ``exhausted".
+@ {\bf To Do}: @^To Do@>
+Once I refactor the objects, these phases will need to be
+revisited.
+|evaluation_phase| should probably be eliminated at that point,
+assuming that the bocage object can be made independent of
+the recognizer.
 @<Public typedefs@> =
 enum marpa_phase {
     no_such_phase = 0, // 0 is never a valid phase
@@ -5783,6 +5783,8 @@ While Earley set 0 is being processed the internal flag will always
 be unset, while the external flag may be set or unset, as the user
 decided.
 After Earley set 0 is complete, both booleans will have the same value.
+@ {\bf To Do}: @^To Do@>
+Once the null parse is special-cased, one boolean may suffice.
 @<Bit aligned recognizer elements@> =
 guint t_use_leo_flag:1;
 guint t_is_using_leo:1;
@@ -5809,6 +5811,7 @@ struct marpa_r*r, gboolean value)
 {
    @<Return |FALSE| on failure@>@/
     @<Fail if recognizer has fatal error@>@;
+    @<Fail if recognizer not initial@>@;
     r->t_use_leo_flag = value;
     return TRUE;
 }
@@ -5840,19 +5843,6 @@ gint marpa_is_exhausted(struct marpa_r* r)
     @<Fail if recognizer has fatal error@>@;
     return r->t_is_exhausted ? 1 : 0;
 }
-
-@*1 Is Leo Expansion in Progress?.
-This boolean indicates whether we are in the process of expanding
-Leo items into Earley items.
-It's use by the logic which warns
-when the Earley item warning threshold is exceeded.
-Leo expansion is expected to add a lot of Earley items to a single
-Earley set, so the Earley item ``warning threshold exceeded"
-message is disable during Leo expansion.
-@<Bit aligned recognizer elements@> =
-guint t_is_leo_expanding:1;
-@ @<Initialize recognizer elements@> =
-r->t_is_leo_expanding = 0;
 
 @*0 The Recognizer's Context.
 As in the grammar,
@@ -6310,10 +6300,8 @@ if (count >= r->t_earley_item_warning_threshold)
 	  R_FATAL("eim count exceeds fatal threshold");
 	  return failure_indicator;
 	}
-      if (!r->t_is_leo_expanding) {
 	  r_context_clear (r);
 	  r_message (r, "earley item count exceeds threshold");
-	}
 }
 
 @*0 Destructor.
@@ -8227,6 +8215,8 @@ marpa_earleme_complete(struct marpa_r* r)
   ES current_earley_set;
   EARLEME current_earleme;
   gint count_of_expected_terminals;
+    @<Fail if recognizer not in input phase@>@;
+    @<Fail if recognizer exhausted@>@;
   psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_symid_is_expected);
     @<Initialize |current_earleme|@>@;
