@@ -1,4 +1,10 @@
 This directory is for testing.
+Actual testing happens in the build subdirectory.
+The dev subdirectory holds the source of the test program.
+The lib subdirectory is for building the version
+of libmarpa to be used for testing.
+
+The following instructions are probably out of date:
 
 To install
 
