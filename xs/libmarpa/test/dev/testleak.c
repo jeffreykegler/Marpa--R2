@@ -73,12 +73,31 @@ int main(int argc, char **argv)
 	   exit(1);
 	}
     }
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i <= 4; i++) {
+	int tree_ordinal = 0;
 	int status = marpa_bocage_new(r, -1, i);
 	if (status < 0) {
 	   printf("marpa_bocage_new returned %d: %s", status,
 	    marpa_r_error(r));
 	   exit(1);
+	}
+	while (++tree_ordinal) {
+	    int value_ordinal = 0;
+	    int val_status;
+	    int tree_status = marpa_tree_new(r);
+	    if (tree_status < -1) {
+	       printf("marpa_tree_new returned %d: %s", status,
+		marpa_r_error(r));
+	       exit(1);
+	    }
+	    if (tree_status == -1) break;
+	    fprintf(stdout, "Tree #%d for length %d\n", tree_ordinal, i);
+	    val_status = marpa_val_new(r);
+	    if (val_status < 0) {
+	       printf("marpa_val_new returned %d: %s", status,
+		marpa_r_error(r));
+	       exit(1);
+	    }
 	}
 	marpa_bocage_free(r);
     }
