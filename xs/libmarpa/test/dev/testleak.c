@@ -98,6 +98,22 @@ int main(int argc, char **argv)
 		marpa_r_error(r));
 	       exit(1);
 	    }
+	    while (1) {
+	       Marpa_Event event;
+	       int event_status = marpa_val_event(r, &event);
+	       if (event_status < -1) {
+		   printf("marpa_val_event returned %d: %s", status,
+		    marpa_r_error(r));
+		   exit(1);
+	       }
+	       if (event_status == -1) break;
+		fprintf(stdout, "Event: %d %d %d %d %d\n",
+		    event.marpa_token_id,
+		    GPOINTER_TO_INT(event.marpa_value),
+		    event.marpa_rule_id,
+		    event.marpa_arg_0,
+		    event.marpa_arg_n);
+	    }
 	}
 	marpa_bocage_free(r);
     }
