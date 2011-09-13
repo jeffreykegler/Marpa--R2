@@ -11024,7 +11024,10 @@ static inline void tree_safe(TREE tree)
     val_safe(VAL_of_TREE(tree));
 }
 
-@ @<Private function prototypes@> =
+@ Returns the size of the tree.
+If the bocage iterator is exhausted, returns -1.
+On error, returns -2.
+@<Public function prototypes@> =
 int marpa_tree_new(struct marpa_r* r);
 @ @<Function definitions@> =
 int marpa_tree_new(struct marpa_r* r)
@@ -11057,7 +11060,7 @@ int marpa_tree_new(struct marpa_r* r)
      }
      TREE_IS_FINISHED: ;
     tree->t_parse_count++;
-    return 1;
+      return FSTACK_LENGTH(tree->t_fork_stack);
     TREE_IS_EXHAUSTED: ;
    tree_exhaust(tree);
    return -1;
@@ -11812,7 +11815,7 @@ static inline void val_safe(VAL val)
     FORK_of_VAL(val) = -1;
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 int marpa_val_new(struct marpa_r* r);
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
