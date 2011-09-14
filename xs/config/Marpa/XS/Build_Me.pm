@@ -22,6 +22,7 @@ use warnings;
 
 @Marpa::XS::Build_Me::ISA = ('Module::Build');
 
+use DateTime;
 use Config;
 use File::Copy;
 use IPC::Cmd;
@@ -56,6 +57,8 @@ sub xs_version_contents {
     qw( Scalar::Util List::Util Carp Data::Dumper ExtUtils::PkgConfig Glib );
     my $text = $preamble;
     $text .= "package $package;\n";
+    $text .= q{use vars qw($TIMESTAMP)} . qq{;\n};
+    $text .= q{$TIMESTAMP='} . DateTime->now() . qq{';\n};
     for my $package (@use_packages) {
         my $version = $Marpa::XS::VERSION_FOR_CONFIG{$package};
         die "No version defined for $package" if not defined $version;
@@ -71,6 +74,8 @@ sub perl_version_contents {
     my $text = $preamble;
     my $marpa_xs_version = $self->dist_version();
     $text .= "package $package;\n";
+    $text .= q{use vars qw($TIMESTAMP)} . qq{;\n};
+    $text .= q{$TIMESTAMP='} . DateTime->now() . qq{';\n};
     for my $package (@use_packages) {
         my $version = $package eq 'Marpa::XS' ? $marpa_xs_version
 	     : $Marpa::XS::VERSION_FOR_CONFIG{$package};
