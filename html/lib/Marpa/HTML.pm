@@ -9,10 +9,12 @@ use 5.010;
 use strict;
 use warnings;
 
-use vars qw($VERSION $STRING_VERSION);
+use vars qw( $VERSION $STRING_VERSION );
 $VERSION = '0.103_000';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
+
+use Marpa::HTML::Version;
 
 our @EXPORT_OK;
 use base qw(Exporter);

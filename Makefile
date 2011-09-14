@@ -36,11 +36,11 @@ html_blib:
 
 pp_html_test: html_blib pplib
 	(cd html; \
-	PERL5LIB=../dpplib/lib/perl5:$$PERL5LIB prove -Ilib t )
+	PERL5LIB=$(CURDIR)/noxs/lib:$(CURDIR)/dpplib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
 xs_html_test: html_blib xslib
 	(cd html; \
-	PERL5LIB=../dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
+	PERL5LIB=$(CURDIR)/dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
 
 pp_etc_make:

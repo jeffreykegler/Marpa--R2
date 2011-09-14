@@ -19,6 +19,7 @@
 ^errs$
 ^inc/save/
 ^junk$
+^lib/Marpa/HTML/Version.pm$
 ^pod2htmd.tmp
 ^pod2htmi.tmp
 ^sandbox/

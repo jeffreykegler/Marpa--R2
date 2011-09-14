@@ -24,6 +24,7 @@ author.t/pod.t
 author.t/spelling_exceptions.list
 author.t/tidy1
 config/Marpa/HTML/Build_Me.pm
+config/Marpa/HTML/Config.pm
 config/Marpa/HTML/License.pm
 etc/.gitignore
 etc/Makefile

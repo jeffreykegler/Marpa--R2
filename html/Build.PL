@@ -15,62 +15,30 @@ use Module::Build;
 
 use lib File::Spec->catdir('config');
 use Marpa::HTML::Build_Me;
+use Marpa::HTML::Config;
 
-our $MINIMUM_MARPA_VERSION = '0.100';
-
-my $class = Module::Build->subclass(
-    class => 'Module::Build::Custom',
-    code  => <<'SUBCLASS' );
-
-    sub ACTION_dist {
-        my $self = shift;
-        open( my $manifest_fh, q{<}, 'MANIFEST' )
-            or die("Cannot open MANIFEST: $!");
-
-        my @problems;
-        FILE: while ( my $file = <$manifest_fh> ) {
-            chomp $file;
-            next FILE if $file =~ /^\s*[#]/xms;
-            next FILE if $file !~ /[.](pl|pm|t)$/xmsi;
-            my $file_text = do {
-                local $/ = undef;
-                if ( not -r $file ) {
-                    Carp::carp("Cannot open $file: $!");
-                    next FILE;
-                }
-                open( my $fh, q{<}, $file );
-                <$fh>;
-            };
-            if ( $file_text =~ /^ \s+ use \s+ Smart[:][:]Comments /xms ) {
-                push @problems, "Smart::Comments enabled in $file";
-            }
-        } ## end while ( my $file = <$manifest_fh> )
-
-        Carp::carp(join "\n", @problems, "Fatal Error\n") if @problems;
-        $self->SUPER::ACTION_dist;
-    } ## end sub ACTION_dist
-
-SUBCLASS
+my %build_requires =
+    map { ( $_, $Marpa::HTML::VERSION_FOR_CONFIG{$_} ) }
+    qw( Test::More );
+my %configure_requires =
+    map { ( $_, $Marpa::HTML::VERSION_FOR_CONFIG{$_} ) }
+    qw( Module::Build );
+my %requires =
+    map { ( $_, $Marpa::HTML::VERSION_FOR_CONFIG{$_} ) }
+    qw( Scalar::Util List::Util Carp Data::Dumper HTML::Parser HTML::PullParser Marpa::PP );
+my %recommends =
+    map { ( $_, $Marpa::HTML::VERSION_FOR_CONFIG{$_} ) } qw( Marpa::XS );
+$requires{perl} = 5.010;
 
 my $build = Marpa::HTML::Build_Me->new(
-    dist_name     => 'Marpa-HTML',
-    module_name   => 'Marpa::HTML',
-    dist_author   => 'Jeffrey Kegler',
-    dist_abstract => 'High-level HTML Parsing',
-    recommends      => {
-	'Marpa::XS' => '0.010000',
-    },
-    configure_requires => { 'Module::Build' => 0.38 },
-    requires      => {
-        'Scalar::Util'     => 0,
-        'HTML::Parser'     => '3.64',
-        'HTML::PullParser' => '3.57',
-	'Marpa::PP' => '0.008000',
-        perl               => 5.010,
-    },
-    build_requires => {
-        'Test::More' => 0.94,
-    },
+    dist_name          => 'Marpa-HTML',
+    module_name        => 'Marpa::HTML',
+    dist_author        => 'Jeffrey Kegler',
+    dist_abstract      => 'High-level HTML Parsing',
+    recommends         => \%recommends,
+    configure_requires => \%configure_requires,
+    requires           => \%requires,
+    build_requires     => \%build_requires,
     PL_files => {},    # workaround Module::Build bug
     script_files => [ 'script/html_fmt', 'script/html_score', ],
     pod_files    => {
@@ -100,11 +68,7 @@ my $build = Marpa::HTML::Build_Me->new(
     },
     meta_add => {
         distribution_type => 'module',
-        provides          => {
-            'Marpa::HTML' => {
-                file    => 'lib/Marpa/HTML.pm',
-            },
-        },
+        provides => { 'Marpa::HTML' => { file => 'lib/Marpa/HTML.pm', }, },
     },
     create_readme      => 0,
     create_makefile_pl => 'small',
