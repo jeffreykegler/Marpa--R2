@@ -22,6 +22,7 @@ use warnings;
 
 @Marpa::PP::Build_Me::ISA = ('Module::Build');
 
+use DateTime;
 use Config;
 use File::Copy;
 use IPC::Cmd;
@@ -58,6 +59,8 @@ sub version_contents {
     my $marpa_pp_version = $self->dist_version();
     my $text = $preamble;
     $text .= "package $package;\n";
+    $text .= q{use vars qw($TIMESTAMP)} . qq{;\n};
+    $text .= q{$TIMESTAMP='} . DateTime->now() . qq{';\n};
     PACKAGE: for my $package (@use_packages) {
         my $version = $package eq 'Marpa::PP'
 	    ? $marpa_pp_version

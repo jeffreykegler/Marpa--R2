@@ -32,6 +32,7 @@ defined $INC{'Marpa/PP.pm'}
     or Test::More::BAIL_OUT('Could not load Marpa::PP');
 
 Test::More::ok( defined $Marpa::PP::VERSION, 'Marpa::version defined' );
+Test::More::diag( "Using Marpa::PP ", $Marpa::PP::VERSION, q{ }, $Marpa::PP::TIMESTAMP );
 
 1;    # In case used as "do" file
 
