@@ -946,7 +946,7 @@ sub unknown_ppi_token {
 	Marpa::Perl::default_show_location($ppi_token), "\n"
 }
 
-sub Marpa::Perl::parse {
+sub Marpa::Perl::read {
 
     my ( $parser, $input, $hash_arg ) = @_;
 
@@ -983,8 +983,6 @@ sub Marpa::Perl::parse {
     my @earleme_to_PPI_token;
     my $perl_type;
 
-    local $Marpa::Perl::Internal::CONTEXT =
-        [ \@PPI_tokens, \@earleme_to_PPI_token ];
     TOKEN:
     for (
         my $PPI_token_ix = 0;
@@ -1161,18 +1159,36 @@ sub Marpa::Perl::parse {
     } ## end for ( my $PPI_token_ix = 0; $PPI_token_ix <= $#PPI_tokens...)
 
     $recce->end_input();
+    $parser->{recce} = $recce;
+    $parser->{PPI_tokens} = \@PPI_tokens;
+    $parser->{earleme_to_PPI_token} = \@earleme_to_PPI_token;
+    return $parser;
+
+} ## end sub Marpa::Perl::read
+
+sub Marpa::Perl::eval {
+    my ($parser) = @_;
+    my $recce = $parser->{recce};
+    local $Marpa::Perl::Internal::CONTEXT =
+        [ $parser->{PPI_tokens}, $parser->{earleme_to_PPI_token} ];
+    my $value_ref = $recce->value();
+    return $value_ref;
+} ## end sub Marpa::Perl::eval
+
+sub Marpa::Perl::parse {
+    my ( $parser, $input, $hash_arg ) = @_;
+    $parser->Marpa::Perl::read( $input, $hash_arg );
     if (wantarray) {
+        local $Marpa::Perl::Internal::CONTEXT =
+            [ $parser->{PPI_tokens}, $parser->{earleme_to_PPI_token} ];
+	my $recce = $parser->{recce};
         my @values = ();
         while ( defined( my $value_ref = $recce->value() ) ) {
             push @values, ${$value_ref};
         }
         return @values;
     } ## end if (wantarray)
-    else {
-        my $value_ref = $recce->value();
-        return $value_ref;
-    }
-
+    return $parser->Marpa::Perl::eval();
 } ## end sub Marpa::Perl::parse
 
 # Context-sensitive callback for
@@ -1195,5 +1211,24 @@ sub Marpa::Perl::default_show_location {
         . q{, column }
         . $token->column_number();
 } ## end sub Marpa::Perl::default_show_location
+
+sub Marpa::Perl::foreach_completion {
+    my $recce;
+    my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $recce->[Marpa::XS::Internal::Grammar::C];
+    AND_NODE: for ( my $id = 0;; $id++ ) {
+        my $parent = $recce_c->and_node_parent($id);
+        last AND_NODE if not defined $parent;
+        my $rule_id    = $recce_c->or_node_rule($parent);
+        my $position   = $recce_c->or_node_position($parent);
+        my $rhs_length = $grammar_c->rule_length($rule_id);
+        last AND_NODE if $position != $rhs_length;
+        my $origin          = $recce_c->or_node_origin($parent);
+        my $set             = $recce_c->or_node_set($parent);
+        my $origin_earleme  = $recce_c->earleme($origin);
+        my $current_earleme = $recce_c->earleme($set);
+    } ## end for ( my $id = 0;; $id++ )
+} ## end sub Marpa::Perl::foreach_completion
 
 1;

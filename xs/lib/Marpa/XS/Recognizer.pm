@@ -62,6 +62,7 @@ my $structure = <<'END_OF_STRUCTURE';
     SINGLE_PARSE_MODE
     RULE_CLOSURES
     RULE_CONSTANTS
+    TOP_OR_NODE_ID
 
     { This is the end of the list of fields which
     must be reinitialized when evaluation is reset }
@@ -252,6 +253,7 @@ sub Marpa::XS::Recognizer::reset_evaluation {
 	Marpa::exception("eval_clear() failed\n");
     }
     $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
+    $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID]   = undef;
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES]   = [];
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS]   = [];
 

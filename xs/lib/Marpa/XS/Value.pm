@@ -1228,6 +1228,8 @@ sub Marpa::XS::Recognizer::value {
         if ( not defined $top_or_node_id ) {
             Marpa::exception(qq{libmarpa's marpa_value() call failed\n});
         }
+        $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID] =
+            $top_or_node_id;
 
 	if ( $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] eq
 	    'constant' )
