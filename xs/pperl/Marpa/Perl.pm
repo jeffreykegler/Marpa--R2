@@ -1171,16 +1171,7 @@ sub Marpa::Perl::eval {
     my $recce = $parser->{recce};
     local $Marpa::Perl::Internal::CONTEXT =
         [ $parser->{PPI_tokens}, $parser->{earleme_to_PPI_token} ];
-    my $value_ref = $recce->value();
-    return $value_ref;
-} ## end sub Marpa::Perl::eval
-
-sub Marpa::Perl::parse {
-    my ( $parser, $input, $hash_arg ) = @_;
-    $parser->Marpa::Perl::read( $input, $hash_arg );
     if (wantarray) {
-        local $Marpa::Perl::Internal::CONTEXT =
-            [ $parser->{PPI_tokens}, $parser->{earleme_to_PPI_token} ];
 	my $recce = $parser->{recce};
         my @values = ();
         while ( defined( my $value_ref = $recce->value() ) ) {
@@ -1188,6 +1179,13 @@ sub Marpa::Perl::parse {
         }
         return @values;
     } ## end if (wantarray)
+    my $value_ref = $recce->value();
+    return $value_ref;
+} ## end sub Marpa::Perl::eval
+
+sub Marpa::Perl::parse {
+    my ( $parser, $input, $hash_arg ) = @_;
+    $parser->Marpa::Perl::read( $input, $hash_arg );
     return $parser->Marpa::Perl::eval();
 } ## end sub Marpa::Perl::parse
 
@@ -1213,10 +1211,12 @@ sub Marpa::Perl::default_show_location {
 } ## end sub Marpa::Perl::default_show_location
 
 sub Marpa::Perl::foreach_completion {
-    my $recce;
+    my ($parser) = @_;
+    my $recce = $parser->{recce};
     my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $recce->[Marpa::XS::Internal::Grammar::C];
+    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $rules = $grammar->[Marpa::XS::Internal::Grammar::RULES];
     AND_NODE: for ( my $id = 0;; $id++ ) {
         my $parent = $recce_c->and_node_parent($id);
         last AND_NODE if not defined $parent;
@@ -1224,6 +1224,8 @@ sub Marpa::Perl::foreach_completion {
         my $position   = $recce_c->or_node_position($parent);
         my $rhs_length = $grammar_c->rule_length($rule_id);
         last AND_NODE if $position != $rhs_length;
+	my $rule = $rules->[$rule_id];
+	say STDERR show_rule($grammar, $rule);
         my $origin          = $recce_c->or_node_origin($parent);
         my $set             = $recce_c->or_node_set($parent);
         my $origin_earleme  = $recce_c->earleme($origin);
