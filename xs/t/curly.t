@@ -127,7 +127,9 @@ END_OF_RESULT
 TEST: for my $test (@tests) {
 
     my ( $string, $expected ) = @{$test};
-    my @values = $parser->parse( \$string );
+    my $parser = $parser->read( \$string );
+    my @values = $parser->eval( );
+    $parser->foreach_completion();
     my $result = 'Number of values: ' . scalar @values . "\n";
     for my $location ( sort keys %hash ) {
         $result .= "Hash at $location\n";

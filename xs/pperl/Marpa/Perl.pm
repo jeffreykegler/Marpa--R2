@@ -1223,7 +1223,7 @@ sub Marpa::Perl::foreach_completion {
         my $rule_id    = $recce_c->or_node_rule($parent);
         my $position   = $recce_c->or_node_position($parent);
         my $rhs_length = $grammar_c->rule_length($rule_id);
-        last AND_NODE if $position != $rhs_length;
+        next AND_NODE if $position != $rhs_length;
 	my $rule = $rules->[$rule_id];
 	say STDERR show_rule($grammar, $rule);
         my $origin          = $recce_c->or_node_origin($parent);
