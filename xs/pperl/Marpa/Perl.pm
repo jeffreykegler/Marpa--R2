@@ -861,7 +861,7 @@ sub Marpa::Perl::new {
         next LINE if $line eq q{};
         Carp::croak("Misformed line: $line")
             if $line !~ / [:][:][=] .* [;] \s* \z /xms;
-        my ($action_name) = ( $line =~ /\A (\w+) \s* [:] [^:] /gxms );
+        my ($rule_name) = ( $line =~ /\A (\w+) \s* [:] [^:] /gxms );
         my ( $lhs, $rhs_string ) =
             ( $line =~ / \s* (\w+) \s* [:][:][=] \s* (.*) [;] \s* \z/xms );
         my @rhs = map { $symbol_name{$_} // $_ } split q{ }, $rhs_string;
@@ -877,20 +877,20 @@ sub Marpa::Perl::new {
         # only create action for non-empty rules
         my @action_arg = ();
         if ( scalar @rhs ) {
-            $action_name ||= 'MyAction::rule_' . scalar @rules;
+            $rule_name ||= 'MyAction::rule_' . scalar @rules;
             my ( $action, $ranking_action ) =
-                $gen_closure->( $lhs, \@rhs, $action_name );
+                $gen_closure->( $lhs, \@rhs, $rule_name );
             if ( defined $action ) {
-                $closure{"!$action_name"} = $action;
-                push @action_arg, action => "!$action_name";
+                $closure{"!$rule_name"} = $action;
+                push @action_arg, action => "!$rule_name";
             }
             if ( defined $ranking_action ) {
-                $closure{"!r!$action_name"} = $ranking_action;
-                push @action_arg, ranking_action => "!r!$action_name";
+                $closure{"!r!$rule_name"} = $ranking_action;
+                push @action_arg, ranking_action => "!r!$rule_name";
                 $has_ranking_action++;
             }
         } ## end if ( scalar @rhs )
-        push @rules, { lhs => $lhs, rhs => \@rhs, @action_arg };
+        push @rules, { lhs => $lhs, rhs => \@rhs, @action_arg, name => $rule_name };
     } ## end for my $line ( split /\n/xms, $reference_grammar )
 
     my $grammar = Marpa::Grammar->new(

@@ -265,6 +265,7 @@ use constant GRAMMAR_OPTIONS => [
         default_null_value
         inaccessible_ok
         lhs_terminals
+        rule_name_required
         rules
         start
         strip
@@ -349,8 +350,13 @@ sub Marpa::XS::Grammar::set {
                         'lhs_terminals option not allowed after grammar is precomputed'
                     );
                 }
-		Marpa::XS::uncaught_error($error);
-            }
+                Marpa::XS::uncaught_error($error);
+            } ## end if ( not $ok )
+        } ## end if ( defined( my $value = $args->{'lhs_terminals'} ))
+
+        if ( defined( my $value = $args->{'rule_name_required'} ) ) {
+            $grammar->[Marpa::XS::Internal::Grammar::RULE_NAME_REQUIRED] =
+                !!$value;
         }
 
         if ( defined( my $value = $args->{'terminals'} ) ) {
@@ -403,8 +409,8 @@ sub Marpa::XS::Grammar::set {
         }
 
         if ( defined( my $value = $args->{'strip'} ) ) {
-	  ; # A no-op in the XS version
-	}
+            ;    # A no-op in the XS version
+        }
 
         if ( defined( my $value = $args->{'infinite_action'} ) ) {
             if ( $value && $grammar_c->is_precomputed() ) {
