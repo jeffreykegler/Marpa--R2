@@ -61,6 +61,7 @@ my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::Rule
 
     ID
+    NAME
     ACTION { action for this rule as specified by user }
     RANKING_ACTION
 
@@ -83,6 +84,8 @@ my $structure = <<'END_OF_STRUCTURE';
     CYCLE_RANKING_ACTION { Action for ranking rules which cycle }
     TRACE_FILE_HANDLE
     WARNINGS { print warnings about grammar? }
+    RULE_NAME_REQUIRED
+    RULE_BY_NAME
 
     =LAST_BASIC_DATA_FIELD
 
@@ -233,6 +236,8 @@ sub Marpa::XS::Grammar::new {
     $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS]             = [];
     $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH]         = {};
     $grammar->[Marpa::XS::Internal::Grammar::RULES]               = [];
+    $grammar->[Marpa::XS::Internal::Grammar::RULE_BY_NAME]        = {};
+    $grammar->[Marpa::XS::Internal::Grammar::RULE_NAME_REQUIRED]  = 0;
 
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C] =
         Marpa::XS::Internal::G_C->new($grammar);
@@ -619,6 +624,11 @@ sub Marpa::XS::Grammar::precompute {
     return $grammar;
 
 } ## end sub Marpa::XS::Grammar::precompute
+
+sub Marpa::XS::Grammar::rule_by_name {
+    my ($grammar, $name) = @_;
+    return $grammar->[Marpa::XS::Internal::Grammar::RULE_BY_NAME]->{$name};
+}
 
 sub Marpa::XS::Grammar::show_problems {
     my ($grammar) = @_;
@@ -1348,11 +1358,13 @@ sub add_user_rule {
     my ( $lhs_name, $rhs_names, $action );
     my ( $min, $separator_name );
     my $ranking_action;
+    my $rule_name;
     my $proper_separation = 0;
     my $keep_separation   = 0;
 
     while ( my ( $option, $value ) = each %{$options} ) {
         given ($option) {
+	    when ('name')           { $rule_name              = $value }
             when ('rhs')            { $rhs_names         = $value }
             when ('lhs')            { $lhs_name          = $value }
             when ('action')         { $action            = $value }
@@ -1415,21 +1427,39 @@ sub add_user_rule {
     my @rhs_ids = map { $_->[Marpa::XS::Internal::Symbol::ID] } @{$rhs};
     my $lhs_id = $lhs->[Marpa::XS::Internal::Symbol::ID];
 
-    if ( $is_ordinary_rule ) {
-        my $ordinary_rule_id = $grammar_c->rule_new( $lhs_id, \@rhs_ids );
-	if (not defined $ordinary_rule_id) {
-	    my $rule_description = "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
-	    my $error = $grammar_c->error();
-	    my $problem_description =
-		$error eq "duplicate rule"
-		? 'Duplicate rule'
-		: qq{Unknown problem ("$error")};
-	    Marpa::exception( "$problem_description: $rule_description" );
+    # Determine the rule's name
+    my $rule_name_required = $grammar->[Marpa::XS::Internal::Grammar::RULE_NAME_REQUIRED];
+    my $rules_by_name = $grammar->[Marpa::XS::Internal::Grammar::RULE_BY_NAME];
+    if (defined $rule_name and defined $rules_by_name->{$rule_name}) {
+	    Marpa::exception( qq{rule named "$rule_name" already exists} );
+    }
+    if ($rule_name_required) {
+        $rule_name //= $lhs->[Marpa::XS::Internal::Symbol::NAME];
+	if (defined $rules_by_name->{$rule_name}) {
+	    Marpa::exception( qq{Cannot name rule from LHS; rule named "$rule_name" already exists} );
 	}
-        my $ordinary_rule    = $rules->[$ordinary_rule_id];
+    }
+
+    if ($is_ordinary_rule) {
+        my $ordinary_rule_id = $grammar_c->rule_new( $lhs_id, \@rhs_ids );
+        if ( not defined $ordinary_rule_id ) {
+            my $rule_description =
+                "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
+            my $error = $grammar_c->error();
+            my $problem_description =
+                $error eq "duplicate rule"
+                ? 'Duplicate rule'
+                : qq{Unknown problem ("$error")};
+            Marpa::exception("$problem_description: $rule_description");
+        } ## end if ( not defined $ordinary_rule_id )
+        my $ordinary_rule = $rules->[$ordinary_rule_id];
         $ordinary_rule->action_set( $grammar, $action );
         $ordinary_rule->[Marpa::XS::Internal::Rule::RANKING_ACTION] =
             $ranking_action;
+        if ( defined $rule_name ) {
+            $ordinary_rule->[Marpa::XS::Internal::Rule::NAME] = $rule_name;
+            $rules_by_name->{$rule_name} = $ordinary_rule;
+        }
         return;
     }    # not defined $min
 
@@ -1481,6 +1511,11 @@ sub add_user_rule {
     $original_rule->action_set( $grammar, $action );
     $original_rule->[Marpa::XS::Internal::Rule::RANKING_ACTION] =
         $ranking_action;
+
+    if ( defined $rule_name ) {
+	$original_rule->[Marpa::XS::Internal::Rule::NAME] = $rule_name;
+	$rules_by_name->{$rule_name} = $original_rule;
+    }
 
     $grammar->[Marpa::XS::Internal::Grammar::NEXT_SYMBOL_NAME] = undef;
 
