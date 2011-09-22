@@ -39,7 +39,7 @@ BEGIN {
         Test::More::plan skip_all => $PPI_problem;
     }
     else {
-        Test::More::plan tests => 6;
+        Test::More::plan tests => 10;
     }
     Test::More::use_ok('Marpa::XS');
     Test::More::use_ok('Marpa::Perl');
@@ -52,42 +52,10 @@ use Marpa::Test;
 my $utility = 0;
 die if not Getopt::Long::GetOptions( utility => \$utility );
 
-my %closure = (
-    'anon_hash' => \&do_hashblock,
-    'block'     => \&do_codeblock,
-    'mblock'    => \&do_codeblock,
-);
-
-sub gen_closure {
-    my ( $lhs, $rhs, $action ) = @_;
-    my $closure = $closure{$action};
-    return ( undef, $closure );
-}
-
 my %hash;
 my %codeblock;
 
-sub do_hashblock {
-    shift;
-    my $location = 'line '
-        . Marpa::Perl::token()->logical_line_number()
-        . q{, column }
-        . Marpa::Perl::token()->column_number;
-    $hash{$location}++;
-    return;
-} ## end sub do_hashblock
-
-sub do_codeblock {
-    shift;
-    my $location = 'line '
-        . Marpa::Perl::token()->logical_line_number()
-        . q{, column }
-        . Marpa::Perl::token()->column_number;
-    $codeblock{$location}++;
-    return;
-} ## end sub do_codeblock
-
-my $parser = Marpa::Perl->new( \&gen_closure );
+my $parser = Marpa::Perl->new( sub { return undef, sub { return undef }; } );
 
 my @tests;
 if ($utility) {
@@ -97,46 +65,81 @@ if ($utility) {
 else {
     @tests = (
         [   '{42;{1,2,3;4}}', << 'END_OF_RESULT'
-Number of values: 0
 Code block at line 1, column 1
 Code block at line 1, column 5
 END_OF_RESULT
         ],
         [   '{42;{1,2,3,4}}', << 'END_OF_RESULT'
-Number of values: 0
-Hash at line 1, column 5
 Code block at line 1, column 1
 Code block at line 1, column 5
+Hash at line 1, column 5
 END_OF_RESULT
         ],
         [   '{42;{;1,2,3;4}}', << 'END_OF_RESULT'
-Number of values: 0
 Code block at line 1, column 1
 Code block at line 1, column 5
 END_OF_RESULT
         ],
         [   '{42;+{1,2,3,4}}', << 'END_OF_RESULT'
-Number of values: 0
-Hash at line 1, column 6
 Code block at line 1, column 1
+Hash at line 1, column 6
 END_OF_RESULT
         ],
     );
 } ## end else [ if ($utility) ]
+
+# This interface requires the user to know a lot about
+# the internals of Marpa::XS.  That's OK in the internal
+# testing context,
+# but if I want to document this interface, it needs to
+# be rethought.
+sub tag_completion {
+    my ($parser, $and_node_id) = @_;
+    my $recce = $parser->{recce};
+    die if not defined $recce;
+    my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    die if not defined $grammar;
+    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $parent = $recce_c->and_node_parent($and_node_id);
+    my $rule_id    = $recce_c->or_node_rule($parent);
+    my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
+    my $rules = $grammar->[Marpa::XS::Internal::Grammar::RULES];
+    my $rule = $rules->[$semantic_rule_id];
+    my $action = $rule->[Marpa::XS::Internal::Rule::RANKING_ACTION];
+    return if not defined $action;
+    my $blocktype = $action eq '!r!anon_hash' ? 'hash'
+	: $action eq '!r!block' ? 'code'
+	: $action eq '!r!mblock' ? 'code' : undef;
+    return if not defined $blocktype;
+    my $PPI_tokens = $parser->{PPI_tokens};
+    my $earleme_to_token = $parser->{earleme_to_PPI_token};
+    my $origin          = $recce_c->or_node_origin($parent);
+    my $origin_earleme  = $recce_c->earleme($origin);
+    my $token = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
+    my $location = 'line '
+        . $token->logical_line_number()
+        . q{, column }
+        . $token->column_number;
+    $hash{$location}++ if $blocktype eq 'hash';
+    $codeblock{$location}++ if $blocktype eq 'code';
+}
 
 TEST: for my $test (@tests) {
 
     my ( $string, $expected ) = @{$test};
     my $parser = $parser->read( \$string );
     my @values = $parser->eval( );
-    $parser->foreach_completion();
-    my $result = 'Number of values: ' . scalar @values . "\n";
+    $parser->foreach_completion(\&tag_completion);
+    Marpa::Test::is( (scalar @values), 0, 'Count of values' );
+    my @result;
     for my $location ( sort keys %hash ) {
-        $result .= "Hash at $location\n";
+        push @result, "Hash at $location\n";
     }
     for my $location ( sort keys %codeblock ) {
-        $result .= "Code block at $location\n";
+        push @result, "Code block at $location\n";
     }
+    my $result = join q{}, sort @result;
     if ($utility) {
         say $result;
     } else {

@@ -746,11 +746,14 @@ Marpa_Rule_ID
 semantic_equivalent( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
-CODE:
-    RETVAL = marpa_rule_semantic_equivalent(g, rule_id);
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
+PPCODE:
+    { gint result = marpa_rule_semantic_equivalent(g, rule_id);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in g->semantic_equivalent(): %s", marpa_g_error (g));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
 
 int
 AHFA_item_count( g )

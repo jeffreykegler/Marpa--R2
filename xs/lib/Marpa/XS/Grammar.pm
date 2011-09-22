@@ -60,7 +60,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     :package=Marpa::XS::Internal::Rule
 
-    C { A C structure }
     ID
     ACTION { action for this rule as specified by user }
     RANKING_ACTION

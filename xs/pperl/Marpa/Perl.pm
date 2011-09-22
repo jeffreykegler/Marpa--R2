@@ -1211,7 +1211,7 @@ sub Marpa::Perl::default_show_location {
 } ## end sub Marpa::Perl::default_show_location
 
 sub Marpa::Perl::foreach_completion {
-    my ($parser) = @_;
+    my ($parser, $closure) = @_;
     my $recce = $parser->{recce};
     my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
@@ -1221,15 +1221,11 @@ sub Marpa::Perl::foreach_completion {
         my $parent = $recce_c->and_node_parent($id);
         last AND_NODE if not defined $parent;
         my $rule_id    = $recce_c->or_node_rule($parent);
+	next AND_NODE if $grammar_c->rule_is_virtual_lhs($rule_id);
         my $position   = $recce_c->or_node_position($parent);
         my $rhs_length = $grammar_c->rule_length($rule_id);
         next AND_NODE if $position != $rhs_length;
-	my $rule = $rules->[$rule_id];
-	say STDERR show_rule($grammar, $rule);
-        my $origin          = $recce_c->or_node_origin($parent);
-        my $set             = $recce_c->or_node_set($parent);
-        my $origin_earleme  = $recce_c->earleme($origin);
-        my $current_earleme = $recce_c->earleme($set);
+	$closure->($parser, $id);
     } ## end for ( my $id = 0;; $id++ )
 } ## end sub Marpa::Perl::foreach_completion
 
