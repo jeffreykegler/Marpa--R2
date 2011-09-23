@@ -64,23 +64,23 @@ if ($utility) {
 }
 else {
     @tests = (
-        [   '{42;{1,2,3;4}}', << 'END_OF_RESULT'
+        [   '{42;{1,2,3;4}}', << 'END_OF_RESULT', 1
 Code block at line 1, column 1
 Code block at line 1, column 5
 END_OF_RESULT
         ],
-        [   '{42;{1,2,3,4}}', << 'END_OF_RESULT'
+        [   '{42;{1,2,3,4}}', << 'END_OF_RESULT', 2
 Code block at line 1, column 1
 Code block at line 1, column 5
 Hash at line 1, column 5
 END_OF_RESULT
         ],
-        [   '{42;{;1,2,3;4}}', << 'END_OF_RESULT'
+        [   '{42;{;1,2,3;4}}', << 'END_OF_RESULT', 1
 Code block at line 1, column 1
 Code block at line 1, column 5
 END_OF_RESULT
         ],
-        [   '{42;+{1,2,3,4}}', << 'END_OF_RESULT'
+        [   '{42;+{1,2,3,4}}', << 'END_OF_RESULT', 1
 Code block at line 1, column 1
 Hash at line 1, column 6
 END_OF_RESULT
@@ -106,11 +106,11 @@ sub tag_completion {
     my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
     my $rules = $grammar->[Marpa::XS::Internal::Grammar::RULES];
     my $rule = $rules->[$semantic_rule_id];
-    my $action = $rule->[Marpa::XS::Internal::Rule::RANKING_ACTION];
-    return if not defined $action;
-    my $blocktype = $action eq '!r!anon_hash' ? 'hash'
-	: $action eq '!r!block' ? 'code'
-	: $action eq '!r!mblock' ? 'code' : undef;
+    my $rule_name = $rule->[Marpa::XS::Internal::Rule::NAME];
+    return if not defined $rule_name;
+    my $blocktype = $rule_name eq 'anon_hash' ? 'hash'
+	: $rule_name eq 'block' ? 'code'
+	: $rule_name eq 'mblock' ? 'code' : undef;
     return if not defined $blocktype;
     my $PPI_tokens = $parser->{PPI_tokens};
     my $earleme_to_token = $parser->{earleme_to_PPI_token};
@@ -127,11 +127,11 @@ sub tag_completion {
 
 TEST: for my $test (@tests) {
 
-    my ( $string, $expected ) = @{$test};
+    my ( $string, $expected, $expected_parse_count ) = @{$test};
     my $parser = $parser->read( \$string );
     my @values = $parser->eval( );
     $parser->foreach_completion(\&tag_completion);
-    Marpa::Test::is( (scalar @values), 0, 'Count of values' );
+    Marpa::Test::is( (scalar @values), $expected_parse_count, 'Count of values' );
     my @result;
     for my $location ( sort keys %hash ) {
         push @result, "Hash at $location\n";

@@ -850,7 +850,6 @@ sub Marpa::Perl::new {
     my %symbol = ();
     my @rules;
     my %closure;
-    my $has_ranking_action;
 
     LINE:
     for my $line ( split /\n/xms, $reference_grammar ) {
@@ -878,16 +877,11 @@ sub Marpa::Perl::new {
         my @action_arg = ();
         if ( scalar @rhs ) {
             $rule_name ||= 'MyAction::rule_' . scalar @rules;
-            my ( $action, $ranking_action ) =
+            my ( $action ) =
                 $gen_closure->( $lhs, \@rhs, $rule_name );
             if ( defined $action ) {
                 $closure{"!$rule_name"} = $action;
                 push @action_arg, action => "!$rule_name";
-            }
-            if ( defined $ranking_action ) {
-                $closure{"!r!$rule_name"} = $ranking_action;
-                push @action_arg, ranking_action => "!r!$rule_name";
-                $has_ranking_action++;
             }
         } ## end if ( scalar @rhs )
         push @rules, { lhs => $lhs, rhs => \@rhs, @action_arg, name => $rule_name };
@@ -906,7 +900,6 @@ sub Marpa::Perl::new {
     return bless {
         grammar            => $grammar,
         closure            => \%closure,
-        has_ranking_action => $has_ranking_action
     }, $class;
 
 } ## end sub Marpa::Perl::new
@@ -962,8 +955,6 @@ sub Marpa::Perl::read {
     } ## end while ( my ( $arg, $value ) = each %{$hash_arg} )
 
     my $grammar = $parser->{grammar};
-    $parser->{has_ranking_action}
-        and push @recce_args, ranking_method => 'constant';
 
     my $recce = Marpa::Recognizer->new(
         {   grammar  => $grammar,
