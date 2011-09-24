@@ -848,21 +848,20 @@ sub do_high_rank_only {
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    my $default_rank = $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_RANK];
 
     my @or_nodes = ($recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID]);
 
     # Set up ranks by symbol
     my @rank_by_symbol = ();
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::XS::Internal::Symbol::RANK] // $default_rank;
+        my $rank = $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
 	$rank_by_symbol[$symbol->[Marpa::XS::Internal::Symbol::ID]] = $rank;
     }    # end for my $symbol ( @{$symbols} )
 
     # Set up ranks by rule
     my @rank_by_rule = ();
     SYMBOL: for my $rule ( @{$rules} ) {
-        my $rank = $rule->[Marpa::XS::Internal::Rule::RANK] // $default_rank;
+        my $rank = $rule->[Marpa::XS::Internal::Rule::RANK];
 	$rank_by_rule[$rule->[Marpa::XS::Internal::Rule::ID]] = $rank;
     }    # end for my $rule ( @{$rules} )
 

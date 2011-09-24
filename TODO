@@ -5,3 +5,5 @@ Document high_rank_only ranking_method
 Eliminate constant ranking_method
 Undocument RANKING_ACTION but keep in code -- may use in other ranking methods
 Do not document DEFAULT_RANK and Symbol::RANK until there are tests for them
+Document Symbol::RANK
+Doucment Symbol::NULL_RANK, LHS_RANK and TERMINAL_RANK once tested
