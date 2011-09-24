@@ -309,9 +309,12 @@ sub Marpa::XS::Recognizer::set {
         } ## end if ( defined( my $value = $args->{'mode'} ) )
 
         if ( defined( my $value = $args->{'ranking_method'} ) ) {
+	    my @ranking_methods = qw(constant high_rule_only none);
             Marpa::exception(
-                q{ranking_method must be 'constant' or 'none'})
-                if not $value ~~ [qw(constant none)];
+                qq{ranking_method value is $value (should be one of },
+		(join ", ", map { q{'} . $_ . q{'} } @ranking_methods),
+		')'
+	    ) if not $value ~~ \@ranking_methods;
             $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] =
                 $value;
         } ## end if ( defined( my $value = $args->{'ranking_method'} ...))

@@ -960,6 +960,7 @@ sub Marpa::Perl::read {
         {   grammar  => $grammar,
             mode     => 'stream',
             closures => $parser->{closure},
+	    ranking_method => 'high_rule_only',
             @recce_args
         }
     );

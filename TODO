@@ -1,2 +1,6 @@
 Remove Marpa::XS::length static method
 Create a recce->latest_set method
+Document rule name, recce->rule_by_name(), recce->rule_name()
+Document high_rank_only ranking_method
+Eliminate constant ranking_method
+Undocument RANKING_ACTION but keep in code -- may use in other ranking methods

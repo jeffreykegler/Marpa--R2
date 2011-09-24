@@ -841,6 +841,63 @@ sub do_rank_all {
 
 } ## end sub do_rank_all
 
+sub do_high_rank_only {
+    my ( $recce ) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
+    my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
+    my $default_rank = $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_RANK];
+
+    my @or_nodes = ($recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID]);
+
+    # Set up ranks by symbol
+    my @rank_by_symbol = ();
+    SYMBOL: for my $symbol ( @{$symbols} ) {
+        my $rank = $symbol->[Marpa::XS::Internal::Symbol::RANK] // $default_rank;
+	$rank_by_symbol[$symbol->[Marpa::XS::Internal::Symbol::ID]] = $rank;
+    }    # end for my $symbol ( @{$symbols} )
+
+    # Set up ranks by rule
+    my @rank_by_rule = ();
+    SYMBOL: for my $rule ( @{$rules} ) {
+        my $rank = $rule->[Marpa::XS::Internal::Rule::RANK] // $default_rank;
+	$rank_by_rule[$rule->[Marpa::XS::Internal::Rule::ID]] = $rank;
+    }    # end for my $rule ( @{$rules} )
+
+    my $seen = q{};
+    OR_NODE: while ( my $or_node = pop @or_nodes ) {
+        last OR_NODE if not defined $or_node;
+        next OR_NODE if vec( $seen, $or_node, 1 );
+        vec( $seen, $or_node, 1 ) = 1;
+        my $first_and_node = $recce_c->or_node_first_and($or_node);
+        my $last_and_node  = $recce_c->or_node_last_and($or_node);
+        my @ranks          = ();
+        my @and_nodes = $first_and_node .. $last_and_node ;
+        AND_NODE:
+        for my $and_node (@and_nodes) {
+            my $token = $recce_c->and_node_symbol($and_node);
+            if ( defined $token ) {
+                push @ranks, $rank_by_symbol[$token];
+                next AND_NODE;
+            }
+            my $cause = $recce_c->and_node_cause($and_node);
+            my $rule  = $recce_c->or_node_rule($cause);
+            push @ranks, $rank_by_rule[$token];
+        } ## end for my $and_node (@and_nodes)
+        my $max_rank = List::Util::max(@ranks);
+        my @ixes_of_high_rank_nodes =
+            grep { $ranks[$_] == $max_rank }
+            0 .. $last_and_node - $first_and_node;
+	my @ranked_and_nodes = @and_nodes[@ixes_of_high_rank_nodes];
+	$recce_c->and_node_order_set($or_node, \@ranked_and_nodes);
+	push @or_nodes, grep { defined } map { 
+	    ( recce_c->and_node_predecessor($_),
+	     recce_c->and_node_cause($_) ) } @ranked_and_nodes;
+    } ## end while ( my $or_node = pop @or_nodes )
+}
+
 # Does not modify stack
 sub Marpa::XS::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
@@ -1231,10 +1288,9 @@ sub Marpa::XS::Recognizer::value {
         $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID] =
             $top_or_node_id;
 
-	if ( $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] eq
-	    'constant' )
-	{
-	    do_rank_all($recce);
+	given ( $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] ) {
+	    when ('constant')       { do_rank_all($recce); }
+	    when ('high_rank_only') { do_high_rank_only($recce); }
 	}
 
     }
