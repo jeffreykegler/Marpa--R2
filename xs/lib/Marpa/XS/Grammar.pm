@@ -235,6 +235,7 @@ sub Marpa::XS::Grammar::new {
     $grammar->[Marpa::XS::Internal::Grammar::INACCESSIBLE_OK] = {};
     $grammar->[Marpa::XS::Internal::Grammar::UNPRODUCTIVE_OK] = {};
     $grammar->[Marpa::XS::Internal::Grammar::INFINITE_ACTION] = 'fatal';
+    $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_RANK]    = 0;
 
     $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS]             = [];
     $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH]         = {};
