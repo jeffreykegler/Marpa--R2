@@ -1494,7 +1494,7 @@ sub add_user_rule {
 	push @rule_problems, "Missing LHS\n";
     }
 
-    if ( defined $rank and Scalar::Util::looks_like_number($rank) ) {
+    if ( defined $rank and not Scalar::Util::looks_like_number($rank) ) {
         push @rule_problems, "Rank must be undefined or a number\n";
     }
     $rank //= $default_rank;

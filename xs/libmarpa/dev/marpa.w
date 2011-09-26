@@ -10541,6 +10541,7 @@ typedef struct s_bocage* BOC;
 struct s_bocage {
     @<Widely aligned bocage elements@>@;
     @<Int aligned bocage elements@>@;
+    @<Bit aligned bocage elements@>@;
 };
 typedef struct s_bocage BOC_Object;
 @ @d B_of_R(r) ((r)->t_bocage)
@@ -10554,10 +10555,16 @@ An obstack with the lifetime of the bocage.
 @d OBS_of_B(b) ((b)->t_obs)
 @<Widely aligned bocage elements@> =
 struct obstack t_obs;
+@ @<Bit aligned bocage elements@> =
+unsigned int is_obstack_initialized:1;
 @ @<Initialize bocage elements@> =
+b->is_obstack_initialized = 1;
 obstack_init(&OBS_of_B(b));
 @ @<Destroy bocage elements, final phase@> =
-obstack_free(&OBS_of_B(b), NULL);
+if (b->is_obstack_initialized) {
+    obstack_free(&OBS_of_B(b), NULL);
+    b->is_obstack_initialized = 0;
+}
 
 @*0 Bocage Construction.
 @ This function returns 0 for a null parse,
@@ -10587,6 +10594,7 @@ MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Initialize bocage elements@>@;
     @<Deal with null parse as a special case@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
+    if (!start_eim) goto SOFT_ERROR;
     Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
@@ -10594,10 +10602,12 @@ MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Create the or-nodes for all earley sets@>@;
     @<Create the final and-nodes for all earley sets@>@;
     @<Set |top_or_node_id|@>@;
-    @<Deallocate bocage setup working data@>@;
     obstack_free(&bocage_setup_obs, NULL);
     Top_ORID_of_B(b) = top_or_node_id;
     return top_or_node_id;
+    SOFT_ERROR: ;
+    @<Destroy bocage elements, all phases@>;
+    return no_parse;
 }
 
 @ @<Declare bocage locals@> =
@@ -10807,11 +10817,6 @@ to make sense.
 
 @ Destroy the bocage elements when I destroy the recognizer.
 @<Destroy recognizer elements@> = bocage_destroy(r);
-
-@ @<Deallocate bocage setup working data@>= {
-;
-}
-
 
 @ This function is safe to call even
 if the bocage already has been freed,

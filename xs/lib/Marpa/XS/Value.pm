@@ -841,7 +841,7 @@ sub do_rank_all {
 
 } ## end sub do_rank_all
 
-sub do_high_rank_only {
+sub do_high_rule_only {
     my ( $recce ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
@@ -883,17 +883,17 @@ sub do_high_rank_only {
             }
             my $cause = $recce_c->and_node_cause($and_node);
             my $rule  = $recce_c->or_node_rule($cause);
-            push @ranks, $rank_by_rule[$token];
+            push @ranks, $rank_by_rule[$rule];
         } ## end for my $and_node (@and_nodes)
         my $max_rank = List::Util::max(@ranks);
-        my @ixes_of_high_rank_nodes =
+        my @ixes_of_high_rule_nodes =
             grep { $ranks[$_] == $max_rank }
             0 .. $last_and_node - $first_and_node;
-	my @ranked_and_nodes = @and_nodes[@ixes_of_high_rank_nodes];
+	my @ranked_and_nodes = @and_nodes[@ixes_of_high_rule_nodes];
 	$recce_c->and_node_order_set($or_node, \@ranked_and_nodes);
 	push @or_nodes, grep { defined } map { 
-	    ( recce_c->and_node_predecessor($_),
-	     recce_c->and_node_cause($_) ) } @ranked_and_nodes;
+	    ( $recce_c->and_node_predecessor($_),
+	     $recce_c->and_node_cause($_) ) } @ranked_and_nodes;
     } ## end while ( my $or_node = pop @or_nodes )
 }
 
@@ -1281,15 +1281,16 @@ sub Marpa::XS::Recognizer::value {
         $recce_c->eval_clear();
         $top_or_node_id =
             $recce_c->eval_setup( -1, ( $parse_set_arg // -1 ) );
-        if ( not defined $top_or_node_id ) {
-            Marpa::exception(qq{libmarpa's marpa_value() call failed\n});
-        }
+
+	# No parse
+        return if not defined $top_or_node_id;
+
         $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID] =
             $top_or_node_id;
 
 	given ( $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] ) {
 	    when ('constant')       { do_rank_all($recce); }
-	    when ('high_rank_only') { do_high_rank_only($recce); }
+	    when ('high_rule_only') { do_high_rule_only($recce); }
 	}
 
     }
