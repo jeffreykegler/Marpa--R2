@@ -1256,10 +1256,23 @@ sub populate_null_values {
 	}
         my $proper_alias_id =
             $grammar_c->symbol_proper_alias($nulling_symbol_id);
-        next RULE if not defined $proper_alias_id;
+        if ( not defined $proper_alias_id ) {
+	    my $terminal_rank = $nulling_symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
+	    my $null_rank = $nulling_symbol->[Marpa::XS::Internal::Symbol::NULL_RANK];
+            if ( $terminal_rank != $null_rank ) {
+                Marpa::exception(
+                    q{Nulling symbol "},
+                    $nulling_symbol->[Marpa::XS::Internal::Symbol::NAME],
+                    qq{" has inconsistent ranks: null_rank=$null_rank, terminal_rank=$terminal_rank"}
+                );
+            } ## end if ( $terminal_rank != $null_rank )
+            next RULE;
+        } ## end if ( not defined $proper_alias_id )
         my $proper_alias = $symbols->[$proper_alias_id];
         $nulling_symbol->[Marpa::XS::Internal::Symbol::NULL_VALUE] =
             $proper_alias->[Marpa::XS::Internal::Symbol::NULL_VALUE];
+        $nulling_symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] =
+            $proper_alias->[Marpa::XS::Internal::Symbol::NULL_RANK];
     }
 }
 
