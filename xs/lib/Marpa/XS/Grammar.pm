@@ -706,12 +706,11 @@ sub Marpa::XS::Grammar::precompute {
     # of the pair
     SYMBOL: for (my $symbol_id = 0; $symbol_id < scalar @{$symbols}; $symbol_id++) {
         next SYMBOL if not $grammar_c->symbol_is_nulling($symbol_id);
-	# should not happen
-	# die if $chaf_virtual_lhs[$symbol_id];
 
 	my $symbol = $symbols->[$symbol_id];
 	my $proper_alias_id = $grammar_c->symbol_proper_alias($symbol_id);
 	next SYMBOL if not defined $proper_alias_id;
+	next SYMBOL if defined $chaf_factor_set_by_lhs[$proper_alias_id];
 
 	# proper symbol's rank is its LHS_RANK, if there is one and
 	# its TERMINAL_RANK otherwise.
@@ -722,9 +721,6 @@ sub Marpa::XS::Grammar::precompute {
 	    $proper_symbol->[Marpa::XS::Internal::Symbol::LHS_RANK] //
 	    $proper_symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
 	my $nulling_rank = $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
-
-die "No nulling rank for ", $symbol->[Marpa::XS::Internal::Symbol::NAME] if not defined $nulling_rank;
-die "No proper rank for ", $symbol->[Marpa::XS::Internal::Symbol::NAME] if not defined $proper_rank;
 
 	# Note that both chaf ranks may be 0, if the nulling rank and proper
 	# rank are equal
