@@ -566,6 +566,16 @@ sub Marpa::XS::Grammar::precompute {
         Marpa::XS::uncaught_error($error);
     }
 
+    my $default_rank = $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_RANK];
+
+    # LHS_RANK is left undefined if not explicitly set
+    # NULL_RANK defaults to TERMINAL_RANK if not explicitly set
+    SYMBOL: for my $symbol ( @{$symbols} ) {
+	$symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] //= $default_rank;
+	$symbol->[Marpa::XS::Internal::Symbol::NULL_RANK] //= 
+	    $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
+    }
+
     populate_null_values($grammar);
 
     # A bit hackish here: INACCESSIBLE_OK is not a HASH ref iff
@@ -642,7 +652,6 @@ sub Marpa::XS::Grammar::precompute {
         } ## end for my $symbol ( @{ $grammar->[...]})
     } ## end if ( $grammar->[Marpa::XS::Internal::Grammar::WARNINGS...])
 
-    my $default_rank = $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_RANK];
     RULE: for my $rule ( @{$rules} ) {
 	my $rule_rank = $rule->[Marpa::XS::Internal::Rule::RANK];
 	my $rule_id         = $rule->[Marpa::XS::Internal::Rule::ID];
@@ -667,6 +676,106 @@ sub Marpa::XS::Grammar::precompute {
 	    brief_rule($rule), "\n",
 	    "LHS rank is $lhs_rank; rule rank is ",
 	    $rule->[Marpa::XS::Internal::Rule::RANK]);
+    }
+
+    #
+    # Set ranks for chaf rules
+    #
+    my @symbol_chaf_rank = ();
+    my @chaf_factor_set_by_rule = ();
+    my @chaf_factor_set_by_lhs = ();
+
+    # Gather the chaf rules, by LHS
+    RULE: for (my $rule_id = 0; $rule_id < scalar @{$rules}; $rule_id++) {
+	 # CHAF rules only
+         next RULE if $grammar_c->rule_virtual_start($rule_id) < 0;
+
+	 # Create factor sets by LHS, if it is virtual,
+	 # and by original rule, otherwise.
+         if ($grammar_c->rule_is_virtual_lhs($rule_id))
+	 {
+	     push @{$chaf_factor_set_by_lhs[$grammar_c->rule_lhs($rule_id)]}, $rule_id;
+	 } else {
+	     push @{$chaf_factor_set_by_rule[$grammar_c->rule_original($rule_id)]}, $rule_id;
+	 }
+    }
+
+    # Compute chaf rank for symbols which are NOT chaf LHS's
+    # Chaf symbol rank is 1 or 0, meant only to mark one of a
+    # pair of proper/nulling aliases as the higher or lower
+    # of the pair
+    SYMBOL: for (my $symbol_id = 0; $symbol_id < scalar @{$symbols}; $symbol_id++) {
+        next SYMBOL if not $grammar_c->symbol_is_nulling($symbol_id);
+	# should not happen
+	# die if $chaf_virtual_lhs[$symbol_id];
+
+	my $symbol = $symbols->[$symbol_id];
+	my $proper_alias_id = $grammar_c->symbol_proper_alias($symbol_id);
+	next SYMBOL if not defined $proper_alias_id;
+
+	# proper symbol's rank is its LHS_RANK, if there is one and
+	# its TERMINAL_RANK otherwise.
+	# nulling symbol's rank is its TERMINAL rank, which should be
+	# the same as the NULL_RANK of its proper alias.
+	my $proper_symbol = $symbols->[$proper_alias_id];
+	my $proper_rank =
+	    $proper_symbol->[Marpa::XS::Internal::Symbol::LHS_RANK] //
+	    $proper_symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
+	my $nulling_rank = $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
+
+die "No nulling rank for ", $symbol->[Marpa::XS::Internal::Symbol::NAME] if not defined $nulling_rank;
+die "No proper rank for ", $symbol->[Marpa::XS::Internal::Symbol::NAME] if not defined $proper_rank;
+
+	# Note that both chaf ranks may be 0, if the nulling rank and proper
+	# rank are equal
+	$symbol_chaf_rank[$symbol_id] = $nulling_rank > $proper_rank ? 1 : 0;
+	$symbol_chaf_rank[$proper_alias_id] = $proper_rank > $nulling_rank ? 1 : 0;
+    }
+
+    SYMBOL: for (my $symbol_id = 0; $symbol_id < scalar @{$symbols}; $symbol_id++) {
+        my $factor_set = $chaf_factor_set_by_lhs[$symbol_id];
+	next SYMBOL if not defined $factor_set;
+
+	# CHAF rank for CHAF virtual LHS only if it has a nulling alias
+	# The point is CHAF rank is relative -- nulling versus proper
+	my $null_alias_id = $grammar_c->symbol_null_alias($symbol_id);
+	next SYMBOL if not defined $null_alias_id;
+
+	# For each symbol in the rules, until we find the first proper nullable
+	# of the factor set
+	my $ix = 0;
+	my $nulling_rank;
+	my $proper_rank;
+	IX: while (1) {
+	    my $first_rule_id = $factor_set->[0];
+	    my $first_rule_rhs_id = $grammar_c->rule_rhs($first_rule_id, $ix);
+	    if (not defined $first_rule_rhs_id) {
+	        $ix = undef;
+		last IX;
+	    }
+	    for my $rule_id (@{$factor_set}[1 .. $#{$factor_set}]) {
+		my $rule_rhs_id = $grammar_c->rule_rhs($rule_id, $ix);
+		if ($rule_rhs_id != $first_rule_rhs_id) {
+		    my @ranks = map { $symbol_chaf_rank[$_] } ($rule_rhs_id, $first_rule_rhs_id);
+		    @ranks = reverse @ranks if $grammar_c->symbol_is_nulling($rule_rhs_id);
+		    ($proper_rank, $nulling_rank) = @ranks;
+		    last IX;
+		}
+	    }
+	    $ix++;
+	}
+	$symbol_chaf_rank[$symbol_id] = $proper_rank;
+	$symbol_chaf_rank[$null_alias_id] = $nulling_rank;
+    }
+
+    if ($ENV{'MARPA_AUTHOR_TEST'}) {
+	SYMBOL: for (my $symbol_id = 0; $symbol_id < scalar @{$symbols}; $symbol_id++) {
+	     my $rank = $symbol_chaf_rank[$symbol_id];
+	     next SYMBOL if not defined $rank;
+	     my $symbol = $symbols->[$symbol_id];
+	     my $name = $symbol->[Marpa::XS::Internal::Symbol::NAME];
+	     say STDERR "Symbol $name, chaf rank $rank";
+	}
     }
 
     return $grammar;
@@ -1324,8 +1433,9 @@ sub assign_user_symbol {
     # Do RANK first, so that the other options override it
     my $rank = $options->{rank};
     if ( defined $rank ) {
-        Marpa::exception(qq{Symbol "$name": rank must be a number})
-            if not Scalar::Util::looks_like_number($rank);
+        Marpa::exception(qq{Symbol "$name": rank must be an integer})
+            if not Scalar::Util::looks_like_number($rank)
+                or not int($rank) != $rank;
         $symbol->[Marpa::XS::Internal::Symbol::LHS_RANK] =
             $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] =
             $symbol->[Marpa::XS::Internal::Symbol::NULL_RANK] = $rank;
@@ -1344,27 +1454,25 @@ sub assign_user_symbol {
             $symbol->[Marpa::XS::Internal::Symbol::NULL_VALUE] = \$value;
         }
         if ( $property eq 'null_rank' ) {
-            Marpa::exception( qq{Symbol "$name": null_rank must be a number} )
-                if not Scalar::Util::looks_like_number($value);
+            Marpa::exception(qq{Symbol "$name": null_rank must be an integer})
+                if not Scalar::Util::looks_like_number($value)
+                    or int($value) != $value;
             $symbol->[Marpa::XS::Internal::Symbol::NULL_RANK] = $value;
-        }
+        } ## end if ( $property eq 'null_rank' )
         if ( $property eq 'terminal_rank' ) {
             Marpa::exception(
-                qq{Symbol "$name": terminal_rank must be a number} )
-                if not Scalar::Util::looks_like_number($value);
+                qq{Symbol "$name": terminal_rank must be an integer})
+                if not Scalar::Util::looks_like_number($value)
+                    or int($value) != $value;
             $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] = $value;
         } ## end if ( $property eq 'terminal_rank' )
         if ( $property eq 'lhs_rank' ) {
-            Marpa::exception( qq{Symbol "$name": lhs_rank must be a number} )
-                if not Scalar::Util::looks_like_number($value);
+            Marpa::exception(qq{Symbol "$name": lhs_rank must be an integer})
+                if not Scalar::Util::looks_like_number($value)
+                    or int($value) != $value;
             $symbol->[Marpa::XS::Internal::Symbol::LHS_RANK] = $value;
-        }
+        } ## end if ( $property eq 'lhs_rank' )
     } ## end while ( my ( $property, $value ) = each %{$options} )
-
-    # LHS_RANK is left undefined if not explicitly set
-    my $default_rank = $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_RANK];
-    $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] //= $default_rank;
-    $symbol->[Marpa::XS::Internal::Symbol::NULL_RANK] //= $default_rank;
 
     return $symbol;
 
@@ -1494,9 +1602,13 @@ sub add_user_rule {
 	push @rule_problems, "Missing LHS\n";
     }
 
-    if ( defined $rank and not Scalar::Util::looks_like_number($rank) ) {
-        push @rule_problems, "Rank must be undefined or a number\n";
-    }
+    if ( defined $rank
+        and
+        ( not Scalar::Util::looks_like_number($rank) or int($rank) != $rank )
+        )
+    {
+        push @rule_problems, "Rank must be undefined or an integer\n";
+    } ## end if ( defined $rank and ( not Scalar::Util::looks_like_number...))
     $rank //= $default_rank;
 
     # Determine the rule's name
