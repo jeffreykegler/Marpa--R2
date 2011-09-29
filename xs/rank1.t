@@ -47,8 +47,7 @@ my $grammar = Marpa::Grammar->new(
         rules => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],
-            [ 'A', [qw/E/] ],
-            ['E'],
+            [ 'A' ],
         ],
         default_null_value => q{},
         default_action     => 'main::default_action',

@@ -368,14 +368,6 @@ PPCODE:
     }
 
 void
-symbol_is_accessible_set( g, symbol_id, boolean )
-    Grammar *g;
-    Marpa_Symbol_ID symbol_id;
-    int boolean;
-PPCODE:
-    marpa_symbol_is_accessible_set( g, symbol_id, (boolean ? TRUE : FALSE));
-
-void
 symbol_is_accessible( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
@@ -396,14 +388,6 @@ PPCODE:
     }
 
 void
-symbol_is_nullable_set( g, symbol_id, boolean )
-    Grammar *g;
-    Marpa_Symbol_ID symbol_id;
-    int boolean;
-PPCODE:
-    marpa_symbol_is_nullable_set( g, symbol_id, (boolean ? TRUE : FALSE));
-
-void
 symbol_is_nullable( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
@@ -412,14 +396,6 @@ PPCODE:
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
     }
-
-void
-symbol_is_nulling_set( g, symbol_id, boolean )
-    Grammar *g;
-    Marpa_Symbol_ID symbol_id;
-    int boolean;
-PPCODE:
-    marpa_symbol_is_nulling_set( g, symbol_id, (boolean ? TRUE : FALSE));
 
 void
 symbol_is_nulling( g, symbol_id )
@@ -450,14 +426,6 @@ PPCODE:
     if (result) XSRETURN_YES;
     XSRETURN_NO;
     }
-
-void
-symbol_is_productive_set( g, symbol_id, boolean )
-    Grammar *g;
-    Marpa_Symbol_ID symbol_id;
-    int boolean;
-PPCODE:
-    marpa_symbol_is_productive_set( g, symbol_id, (boolean ? TRUE : FALSE));
 
 void
 symbol_is_productive( g, symbol_id )

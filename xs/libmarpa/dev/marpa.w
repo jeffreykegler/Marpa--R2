@@ -1265,14 +1265,6 @@ gboolean marpa_symbol_is_accessible(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYM_by_ID(id)->t_is_accessible; }
 @ @<Public function prototypes@> =
 gboolean marpa_symbol_is_accessible(struct marpa_g* g, Marpa_Symbol_ID id);
-@ The external mutator is temporary, for development.
-@<Function definitions@> =
-void marpa_symbol_is_accessible_set(
-struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
-{ SYM_by_ID(id)->t_is_accessible = value; }
-@ @<Public function prototypes@> =
-/* static inline */
-void marpa_symbol_is_accessible_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
 
 @ Symbol Is Counted Boolean
 @<Bit aligned symbol elements@> = guint t_is_counted:1;
@@ -1309,13 +1301,6 @@ gboolean marpa_symbol_is_nullable(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYM_by_ID(id)->t_is_nullable; }
 @ @<Public function prototypes@> =
 gboolean marpa_symbol_is_nullable(struct marpa_g* g, Marpa_Symbol_ID id);
-@ The external mutator is temporary, for development.
-@<Function definitions@> =
-void marpa_symbol_is_nullable_set(
-struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
-{ SYM_by_ID(id)->t_is_nullable = value; }
-@ @<Public function prototypes@> =
-void marpa_symbol_is_nullable_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
 
 @ Symbol Is Nulling Boolean
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
@@ -1337,13 +1322,6 @@ gint marpa_symbol_is_nulling(struct marpa_g* g, Marpa_Symbol_ID symid)
 return SYM_is_Nulling(SYM_by_ID(symid)); }
 @ @<Public function prototypes@> =
 gint marpa_symbol_is_nulling(struct marpa_g* g, Marpa_Symbol_ID id);
-@ The external mutator is temporary, for development.
-@<Function definitions@> =
-void marpa_symbol_is_nulling_set(
-struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
-{ SYM_is_Nulling(SYM_by_ID(id)) = value; }
-@ @<Public function prototypes@> = 
-void marpa_symbol_is_nulling_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
 
 @ Symbol Is Terminal Boolean
 @<Bit aligned symbol elements@> = guint t_is_terminal:1;
@@ -1364,14 +1342,12 @@ gboolean marpa_symbol_is_terminal(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYMID_is_Terminal(id); }
 @ @<Public function prototypes@> =
 gboolean marpa_symbol_is_terminal(struct marpa_g* g, Marpa_Symbol_ID id);
-@ The external mutator is temporary, for development.
-@<Function definitions@> =
+@ @<Function definitions@> =
 void marpa_symbol_is_terminal_set(
 struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
 { SYMID_is_Terminal(id) = value; }
 @ @<Public function prototypes@> =
 void marpa_symbol_is_terminal_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
-
 
 @ Symbol Is Productive Boolean
 @<Bit aligned symbol elements@> = guint t_is_productive:1;
@@ -1390,13 +1366,6 @@ gboolean marpa_symbol_is_productive(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYM_by_ID(id)->t_is_productive; }
 @ @<Public function prototypes@> =
 gboolean marpa_symbol_is_productive(struct marpa_g* g, Marpa_Symbol_ID id);
-@ The external mutator is temporary, for development.
-@<Function definitions@> =
-void marpa_symbol_is_productive_set(
-struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
-{ SYM_by_ID(id)->t_is_productive = value ? 1 : 0; }
-@ @<Public function prototypes@> =
-void marpa_symbol_is_productive_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
 
 @ Symbol Is Start Boolean
 @<Bit aligned symbol elements@> = guint t_is_start:1;
