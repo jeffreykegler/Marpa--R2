@@ -682,46 +682,50 @@ sub Marpa::XS::Grammar::precompute {
 
     RULE: for my $rule (@{$rules}) {
 
-	 # If nulling and proper symbols rank the same, nothing to do
-         my $null_ranking = $rule->[Marpa::XS::Internal::Rule::NULL_RANKING];
-	 next RULE if not defined $null_ranking;
-
          my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
 	 my $virtual_start = $grammar_c->rule_virtual_start($rule_id);
 
 	 # Nothing to do unless this is a CHAF rule
 	 next RULE if $virtual_start < 0;
 	 my $original_rule_id = $grammar_c->rule_original($rule_id);
-	 my $rule_length = $grammar_c->rule_length($rule_id);
+	 my $original_rule = $rules->[$original_rule_id];
+
+	 # If nulling and proper symbols rank the same, nothing to do
+         my $null_ranking = $original_rule->[Marpa::XS::Internal::Rule::NULL_RANKING];
+	 next RULE if not $null_ranking;
+
+	 my $original_rule_length = $grammar_c->rule_length($original_rule_id);
 
 	 my $rank = 0;
 	 my $proper_nullable_count = 0;
 	RHS_IX:
-	for ( my $rhs_ix = $virtual_start; $rhs_ix < $rule_length; $rhs_ix++ )
+	for ( my $rhs_ix = $virtual_start; $rhs_ix < $original_rule_length; $rhs_ix++ )
 	{
 	    my $original_rhs_id =
 		$grammar_c->rule_rhs( $original_rule_id, $rhs_ix );
 
 	    # Do nothing unless this is a proper nullable
 	    next RHS_IX if $grammar_c->symbol_is_nulling($original_rhs_id);
-	    next RHS_IX if not $grammar_c->symbol_is_nullable($original_rhs_id);
+	    next RHS_IX if not $grammar_c->symbol_null_alias($original_rhs_id);
 
-	    my $rhs_id = $grammar_c->rule_rhs( $rule_id, $rhs_ix );
+	    my $rhs_id = $grammar_c->rule_rhs( $rule_id, $rhs_ix - $virtual_start );
+	    last RHS_IX if not defined $rhs_id;
 	    $rank *= 2;
 	    $rank += ( $grammar_c->symbol_is_nulling($rhs_id) ? 0 : 1 );
 
 	    last RHS_IX if ++$proper_nullable_count >= 2;
 	} ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < $rhs_length...)
 
-	$rule->[Marpa::XS::Internal::Rule::CHAF_RANK] =
-	    $null_ranking eq 'high' ? $rank : 2**$proper_nullable_count - $rank;
+	if ($null_ranking eq 'high') {
+	    $rank = (2**$proper_nullable_count - 1) - $rank;
+	}
+	$rule->[Marpa::XS::Internal::Rule::CHAF_RANK] = $rank;
 
 if ($ENV{'MARPA_AUTHOR_TEST'}) {
     say STDERR "Rank ", $rule->[Marpa::XS::Internal::Rule::CHAF_RANK], "; rule: ", $grammar->brief_rule($rule_id);
 }
 
     }
-
 
     return $grammar;
 
@@ -1539,6 +1543,10 @@ sub add_user_rule {
         push @rule_problems, "Rank must be undefined or an integer\n";
     } ## end if ( defined $rank and ( not Scalar::Util::looks_like_number...))
     $rank //= $default_rank;
+
+    if (defined $null_ranking and $null_ranking ne 'high' and $null_ranking ne 'low') {
+        push @rule_problems, "Null Ranking must be undefined, 'high' or 'low'\n";
+    }
 
     # Determine the rule's name
     my $rules_by_name = $grammar->[Marpa::XS::Internal::Grammar::RULE_BY_NAME];

@@ -45,20 +45,15 @@ sub default_action {
 my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         rules => [
-            [ 'S', [qw/A A A A/] ],
-            [ 'A', [qw/a/] ],
-            [ 'A' ],
+            { lhs => 'S', rhs => [qw/A A A A/], null_ranking => 'low' },
+            [ 'A', [qw/a/] ], ['A'],
         ],
         default_null_value => q{},
         default_action     => 'main::default_action',
     }
 );
 
-$grammar->set(
-    {   terminals => ['a'],
-        symbols   => { 'A' => { terminal_rank => 711, null_rank => 42 } }
-    }
-);
+$grammar->set( { terminals => ['a'], } );
 
 $grammar->precompute();
 
