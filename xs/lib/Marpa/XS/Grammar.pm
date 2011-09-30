@@ -48,7 +48,6 @@ my $structure = <<'END_OF_STRUCTURE';
     ID { Unique ID }
     NAME
     RANKING_ACTION
-    NULL_RANK
     LHS_RANK
     TERMINAL_RANK
     NULL_VALUE { null value }
@@ -68,6 +67,8 @@ my $structure = <<'END_OF_STRUCTURE';
     ACTION { action for this rule as specified by user }
     RANKING_ACTION
     RANK
+    CHAF_RANK
+    NULL_RANKING
 
 END_OF_STRUCTURE
     Marpa::offset($structure);
@@ -569,11 +570,8 @@ sub Marpa::XS::Grammar::precompute {
     my $default_rank = $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_RANK];
 
     # LHS_RANK is left undefined if not explicitly set
-    # NULL_RANK defaults to TERMINAL_RANK if not explicitly set
     SYMBOL: for my $symbol ( @{$symbols} ) {
 	$symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] //= $default_rank;
-	$symbol->[Marpa::XS::Internal::Symbol::NULL_RANK] //= 
-	    $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
     }
 
     populate_null_values($grammar);
@@ -681,98 +679,49 @@ sub Marpa::XS::Grammar::precompute {
     #
     # Set ranks for chaf rules
     #
-    my @symbol_chaf_rank = ();
-    my @chaf_factor_set_by_rule = ();
-    my @chaf_factor_set_by_lhs = ();
 
-    # Gather the chaf rules, by LHS
-    RULE: for (my $rule_id = 0; $rule_id < scalar @{$rules}; $rule_id++) {
-	 # CHAF rules only
-         next RULE if $grammar_c->rule_virtual_start($rule_id) < 0;
+    RULE: for my $rule (@{$rules}) {
 
-	 # Create factor sets by LHS, if it is virtual,
-	 # and by original rule, otherwise.
-         if ($grammar_c->rule_is_virtual_lhs($rule_id))
-	 {
-	     push @{$chaf_factor_set_by_lhs[$grammar_c->rule_lhs($rule_id)]}, $rule_id;
-	 } else {
-	     push @{$chaf_factor_set_by_rule[$grammar_c->rule_original($rule_id)]}, $rule_id;
-	 }
+	 # If nulling and proper symbols rank the same, nothing to do
+         my $null_ranking = $rule->[Marpa::XS::Internal::Rule::NULL_RANKING];
+	 next RULE if not defined $null_ranking;
+
+         my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
+	 my $virtual_start = $grammar_c->rule_virtual_start($rule_id);
+
+	 # Nothing to do unless this is a CHAF rule
+	 next RULE if $virtual_start < 0;
+	 my $original_rule_id = $grammar_c->rule_original($rule_id);
+	 my $rule_length = $grammar_c->rule_length($rule_id);
+
+	 my $rank = 0;
+	 my $proper_nullable_count = 0;
+	RHS_IX:
+	for ( my $rhs_ix = $virtual_start; $rhs_ix < $rule_length; $rhs_ix++ )
+	{
+	    my $original_rhs_id =
+		$grammar_c->rule_rhs( $original_rule_id, $rhs_ix );
+
+	    # Do nothing unless this is a proper nullable
+	    next RHS_IX if $grammar_c->symbol_is_nulling($original_rhs_id);
+	    next RHS_IX if not $grammar_c->symbol_is_nullable($original_rhs_id);
+
+	    my $rhs_id = $grammar_c->rule_rhs( $rule_id, $rhs_ix );
+	    $rank *= 2;
+	    $rank += ( $grammar_c->symbol_is_nulling($rhs_id) ? 0 : 1 );
+
+	    last RHS_IX if ++$proper_nullable_count >= 2;
+	} ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < $rhs_length...)
+
+	$rule->[Marpa::XS::Internal::Rule::CHAF_RANK] =
+	    $null_ranking eq 'high' ? $rank : 2**$proper_nullable_count - $rank;
+
+if ($ENV{'MARPA_AUTHOR_TEST'}) {
+    say STDERR "Rank ", $rule->[Marpa::XS::Internal::Rule::CHAF_RANK], "; rule: ", $grammar->brief_rule($rule_id);
+}
+
     }
 
-    # Compute chaf rank for symbols which are NOT chaf LHS's
-    # Chaf symbol rank is 1 or 0, meant only to mark one of a
-    # pair of proper/nulling aliases as the higher or lower
-    # of the pair
-    SYMBOL: for (my $symbol_id = 0; $symbol_id < scalar @{$symbols}; $symbol_id++) {
-        next SYMBOL if not $grammar_c->symbol_is_nulling($symbol_id);
-
-	my $symbol = $symbols->[$symbol_id];
-	my $proper_alias_id = $grammar_c->symbol_proper_alias($symbol_id);
-	next SYMBOL if not defined $proper_alias_id;
-	next SYMBOL if defined $chaf_factor_set_by_lhs[$proper_alias_id];
-
-	# proper symbol's rank is its LHS_RANK, if there is one and
-	# its TERMINAL_RANK otherwise.
-	# nulling symbol's rank is its TERMINAL rank, which should be
-	# the same as the NULL_RANK of its proper alias.
-	my $proper_symbol = $symbols->[$proper_alias_id];
-	my $proper_rank =
-	    $proper_symbol->[Marpa::XS::Internal::Symbol::LHS_RANK] //
-	    $proper_symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
-	my $nulling_rank = $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
-
-	# Note that both chaf ranks may be 0, if the nulling rank and proper
-	# rank are equal
-	$symbol_chaf_rank[$symbol_id] = $nulling_rank > $proper_rank ? 1 : 0;
-	$symbol_chaf_rank[$proper_alias_id] = $proper_rank > $nulling_rank ? 1 : 0;
-    }
-
-    SYMBOL: for (my $symbol_id = 0; $symbol_id < scalar @{$symbols}; $symbol_id++) {
-        my $factor_set = $chaf_factor_set_by_lhs[$symbol_id];
-	next SYMBOL if not defined $factor_set;
-
-	# CHAF rank for CHAF virtual LHS only if it has a nulling alias
-	# The point is CHAF rank is relative -- nulling versus proper
-	my $null_alias_id = $grammar_c->symbol_null_alias($symbol_id);
-	next SYMBOL if not defined $null_alias_id;
-
-	# For each symbol in the rules, until we find the first proper nullable
-	# of the factor set
-	my $ix = 0;
-	my $nulling_rank;
-	my $proper_rank;
-	IX: while (1) {
-	    my $first_rule_id = $factor_set->[0];
-	    my $first_rule_rhs_id = $grammar_c->rule_rhs($first_rule_id, $ix);
-	    if (not defined $first_rule_rhs_id) {
-	        $ix = undef;
-		last IX;
-	    }
-	    for my $rule_id (@{$factor_set}[1 .. $#{$factor_set}]) {
-		my $rule_rhs_id = $grammar_c->rule_rhs($rule_id, $ix);
-		if ($rule_rhs_id != $first_rule_rhs_id) {
-		    my @ranks = map { $symbol_chaf_rank[$_] } ($rule_rhs_id, $first_rule_rhs_id);
-		    @ranks = reverse @ranks if $grammar_c->symbol_is_nulling($rule_rhs_id);
-		    ($proper_rank, $nulling_rank) = @ranks;
-		    last IX;
-		}
-	    }
-	    $ix++;
-	}
-	$symbol_chaf_rank[$symbol_id] = $proper_rank;
-	$symbol_chaf_rank[$null_alias_id] = $nulling_rank;
-    }
-
-    if ($ENV{'MARPA_AUTHOR_TEST'}) {
-	SYMBOL: for (my $symbol_id = 0; $symbol_id < scalar @{$symbols}; $symbol_id++) {
-	     my $rank = $symbol_chaf_rank[$symbol_id];
-	     next SYMBOL if not defined $rank;
-	     my $symbol = $symbols->[$symbol_id];
-	     my $name = $symbol->[Marpa::XS::Internal::Symbol::NAME];
-	     say STDERR "Symbol $name, chaf rank $rank";
-	}
-    }
 
     return $grammar;
 
@@ -1361,23 +1310,12 @@ sub populate_null_values {
 	}
         my $proper_alias_id =
             $grammar_c->symbol_proper_alias($nulling_symbol_id);
-        if ( not defined $proper_alias_id ) {
-	    my $terminal_rank = $nulling_symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
-	    my $null_rank = $nulling_symbol->[Marpa::XS::Internal::Symbol::NULL_RANK];
-            if ( $terminal_rank != $null_rank ) {
-                Marpa::exception(
-                    q{Nulling symbol "},
-                    $nulling_symbol->[Marpa::XS::Internal::Symbol::NAME],
-                    qq{" has inconsistent ranks: null_rank=$null_rank, terminal_rank=$terminal_rank"}
-                );
-            } ## end if ( $terminal_rank != $null_rank )
-            next RULE;
-        } ## end if ( not defined $proper_alias_id )
+        next RULE if not defined $proper_alias_id;
         my $proper_alias = $symbols->[$proper_alias_id];
         $nulling_symbol->[Marpa::XS::Internal::Symbol::NULL_VALUE] =
             $proper_alias->[Marpa::XS::Internal::Symbol::NULL_VALUE];
         $nulling_symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] =
-            $proper_alias->[Marpa::XS::Internal::Symbol::NULL_RANK];
+            $proper_alias->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
     }
 }
 
@@ -1433,13 +1371,12 @@ sub assign_user_symbol {
             if not Scalar::Util::looks_like_number($rank)
                 or not int($rank) != $rank;
         $symbol->[Marpa::XS::Internal::Symbol::LHS_RANK] =
-            $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] =
-            $symbol->[Marpa::XS::Internal::Symbol::NULL_RANK] = $rank;
+            $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK] = $rank;
     } ## end if ( defined $rank )
 
     PROPERTY: while ( my ( $property, $value ) = each %{$options} ) {
         if (not $property ~~
-            [qw(terminal rank null_rank lhs_rank terminal_rank ranking_action null_value)] )
+            [qw(terminal rank lhs_rank terminal_rank ranking_action null_value)] )
         {
             Marpa::exception(qq{Unknown symbol property "$property"});
         }
@@ -1449,12 +1386,6 @@ sub assign_user_symbol {
         if ( $property eq 'null_value' ) {
             $symbol->[Marpa::XS::Internal::Symbol::NULL_VALUE] = \$value;
         }
-        if ( $property eq 'null_rank' ) {
-            Marpa::exception(qq{Symbol "$name": null_rank must be an integer})
-                if not Scalar::Util::looks_like_number($value)
-                    or int($value) != $value;
-            $symbol->[Marpa::XS::Internal::Symbol::NULL_RANK] = $value;
-        } ## end if ( $property eq 'null_rank' )
         if ( $property eq 'terminal_rank' ) {
             Marpa::exception(
                 qq{Symbol "$name": terminal_rank must be an integer})
@@ -1556,18 +1487,20 @@ sub add_user_rule {
     my ( $min, $separator_name );
     my $ranking_action;
     my $rank;
+    my $null_ranking;
     my $rule_name;
     my $proper_separation = 0;
     my $keep_separation   = 0;
 
     while ( my ( $option, $value ) = each %{$options} ) {
         given ($option) {
-	    when ('name')           { $rule_name              = $value }
+            when ('name')           { $rule_name         = $value }
             when ('rhs')            { $rhs_names         = $value }
             when ('lhs')            { $lhs_name          = $value }
             when ('action')         { $action            = $value }
             when ('ranking_action') { $ranking_action    = $value }
-            when ('rank') { $rank    = $value }
+            when ('rank')           { $rank              = $value }
+            when ('null_ranking')   { $null_ranking      = $value }
             when ('min')            { $min               = $value }
             when ('separator')      { $separator_name    = $value }
             when ('proper')         { $proper_separation = $value }
@@ -1666,6 +1599,8 @@ sub add_user_rule {
         $ordinary_rule->[Marpa::XS::Internal::Rule::RANK] = $rank // $default_rank;
         $ordinary_rule->[Marpa::XS::Internal::Rule::RANKING_ACTION] =
             $ranking_action;
+        $ordinary_rule->[Marpa::XS::Internal::Rule::NULL_RANKING] =
+            $null_ranking;
         if ( defined $rule_name ) {
             $ordinary_rule->[Marpa::XS::Internal::Rule::NAME] = $rule_name;
             $rules_by_name->{$rule_name} = $ordinary_rule;
@@ -1721,8 +1656,8 @@ sub add_user_rule {
     $original_rule->action_set( $grammar, $action );
     $original_rule->[Marpa::XS::Internal::Rule::RANKING_ACTION] =
         $ranking_action;
-    $original_rule->[Marpa::XS::Internal::Rule::RANK] =
-        $rank;
+    $original_rule->[Marpa::XS::Internal::Rule::NULL_RANKING] = $null_ranking;
+    $original_rule->[Marpa::XS::Internal::Rule::RANK]         = $rank;
 
     if ( defined $rule_name ) {
 	$original_rule->[Marpa::XS::Internal::Rule::NAME] = $rule_name;
