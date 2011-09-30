@@ -5389,7 +5389,7 @@ struct marpa_r {
 };
 
 @ @<Public function prototypes@> =
-struct marpa_r* marpa_r_new( const struct marpa_g* const g );
+struct marpa_r* marpa_r_new( struct marpa_g* g );
 @ The grammar must not be deallocated for the life of the
 recognizer.
 In the event of an error creating the recognizer,
@@ -5397,19 +5397,19 @@ In the event of an error creating the recognizer,
 of the {\bf grammar} is set.
 For this reason, the grammar is not |const|.
 @<Function definitions@> =
-struct marpa_r* marpa_r_new( const struct marpa_g* const g )
+struct marpa_r* marpa_r_new( struct marpa_g* g )
 { RECCE r;
     gint symbol_count_of_g;
     @<Return |NULL| on failure@>@/
+    if (!G_is_Precomputed(g)) {
+        g->t_error = "precomputed";
+	return failure_indicator;
+    }
     r = g_slice_new(struct marpa_r);
     r->t_grammar = g;
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
-    if (!G_is_Precomputed(g)) {
-	R_ERROR("grammar not precomputed");
-	return failure_indicator;
-    }
    return r; }
 
 @ @<Function definitions@> =

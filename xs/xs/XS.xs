@@ -930,7 +930,7 @@ PPCODE:
     g_wrapper = GINT_TO_POINTER(tmp);
     g = g_wrapper->g;
     r = marpa_r_new(g);
-    if (!r) { XSRETURN_UNDEF; }
+    if (!r) { croak ("failure in marpa_r_new: %s", marpa_g_error (g)); };
     marpa_r_message_callback_set( r, &xs_r_message_callback );
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;

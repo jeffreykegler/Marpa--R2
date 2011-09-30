@@ -872,28 +872,40 @@ sub do_high_rule_only {
         vec( $seen, $or_node, 1 ) = 1;
         my $first_and_node = $recce_c->or_node_first_and($or_node);
         my $last_and_node  = $recce_c->or_node_last_and($or_node);
-        my @ranks          = ();
-        my @and_nodes = $first_and_node .. $last_and_node ;
+        my @ranking_data   = ();
+        my @and_nodes      = $first_and_node .. $last_and_node;
         AND_NODE:
+
         for my $and_node (@and_nodes) {
             my $token = $recce_c->and_node_symbol($and_node);
             if ( defined $token ) {
-                push @ranks, $rank_by_symbol[$token];
+                push @ranking_data, [ $and_node, $rank_by_symbol[$token] ];
                 next AND_NODE;
             }
             my $cause = $recce_c->and_node_cause($and_node);
-            my $rule  = $recce_c->or_node_rule($cause);
-            push @ranks, $rank_by_rule[$rule];
+            my $rule_id  = $recce_c->or_node_rule($cause);
+	    my $rule = $rules->[$rule_id];
+            push @ranking_data,
+                [
+                $and_node, $rank_by_rule[$rule_id],
+                $rule->[Marpa::XS::Internal::Rule::CHAF_RANK]
+                ];
         } ## end for my $and_node (@and_nodes)
-        my $max_rank = List::Util::max(@ranks);
-        my @ixes_of_high_rule_nodes =
-            grep { $ranks[$_] == $max_rank }
-            0 .. $last_and_node - $first_and_node;
-	my @ranked_and_nodes = @and_nodes[@ixes_of_high_rule_nodes];
-	$recce_c->and_node_order_set($or_node, \@ranked_and_nodes);
-	push @or_nodes, grep { defined } map { 
-	    ( $recce_c->and_node_predecessor($_),
-	     $recce_c->and_node_cause($_) ) } @ranked_and_nodes;
+        my $max_rank = List::Util::max( map { $_->[1] } @ranking_data );
+        @ranking_data     = grep { $_->[1] == $max_rank } @ranking_data;
+        my $max_chaf_rank = List::Util::max( grep { defined } map { $_->[2] } @ranking_data );
+	my @ranked_and_nodes = ();
+	DATUM: for my $ranking_datum (@ranking_data) {
+	    my $chaf_rank = $ranking_datum->[2];
+	    next DATUM if defined $chaf_rank and $chaf_rank < $max_chaf_rank;
+	    push @ranked_and_nodes, $ranking_datum->[0];
+	}
+        $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
+        push @or_nodes, grep {defined} map {
+            (   $recce_c->and_node_predecessor($_),
+                $recce_c->and_node_cause($_)
+                )
+        } @ranked_and_nodes;
     } ## end while ( my $or_node = pop @or_nodes )
 }
 
