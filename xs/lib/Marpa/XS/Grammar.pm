@@ -47,7 +47,6 @@ my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::XS::Internal::Symbol
     ID { Unique ID }
     NAME
-    RANKING_ACTION
     LHS_RANK
     TERMINAL_RANK
     NULL_VALUE { null value }
@@ -65,7 +64,6 @@ my $structure = <<'END_OF_STRUCTURE';
     ID
     NAME
     ACTION { action for this rule as specified by user }
-    RANKING_ACTION
     RANK
     CHAF_RANK
     NULL_RANKING
@@ -87,7 +85,6 @@ my $structure = <<'END_OF_STRUCTURE';
     ACTIONS { Default package in which to find actions }
     DEFAULT_ACTION { Action for rules without one }
     DEFAULT_RANK { Rank for rules and symbols without one }
-    CYCLE_RANKING_ACTION { Action for ranking rules which cycle }
     TRACE_FILE_HANDLE
     WARNINGS { print warnings about grammar? }
     RULE_NAME_REQUIRED
@@ -266,7 +263,6 @@ use constant GRAMMAR_OPTIONS => [
     qw{
         action_object
         actions
-        cycle_ranking_action
         infinite_action
         default_action
         default_null_value
@@ -413,11 +409,6 @@ sub Marpa::XS::Grammar::set {
 
         if ( defined( my $value = $args->{'action_object'} ) ) {
             $grammar->[Marpa::XS::Internal::Grammar::ACTION_OBJECT] = $value;
-        }
-
-        if ( defined( my $value = $args->{'cycle_ranking_action'} ) ) {
-            $grammar->[Marpa::XS::Internal::Grammar::CYCLE_RANKING_ACTION] =
-                $value;
         }
 
         if ( defined( my $value = $args->{'default_action'} ) ) {
@@ -1365,7 +1356,6 @@ sub assign_user_symbol {
     my $symbol = assign_symbol( $grammar, $name );
     my $symbol_id = $symbol->[Marpa::XS::Internal::Symbol::ID];
 
-    my $ranking_action;
     my $terminal;
 
     # Do RANK first, so that the other options override it
@@ -1380,7 +1370,7 @@ sub assign_user_symbol {
 
     PROPERTY: while ( my ( $property, $value ) = each %{$options} ) {
         if (not $property ~~
-            [qw(terminal rank lhs_rank terminal_rank ranking_action null_value)] )
+            [qw(terminal rank lhs_rank terminal_rank null_value)] )
         {
             Marpa::exception(qq{Unknown symbol property "$property"});
         }
@@ -1489,7 +1479,6 @@ sub add_user_rule {
 
     my ( $lhs_name, $rhs_names, $action );
     my ( $min, $separator_name );
-    my $ranking_action;
     my $rank;
     my $null_ranking;
     my $rule_name;
@@ -1502,7 +1491,6 @@ sub add_user_rule {
             when ('rhs')            { $rhs_names         = $value }
             when ('lhs')            { $lhs_name          = $value }
             when ('action')         { $action            = $value }
-            when ('ranking_action') { $ranking_action    = $value }
             when ('rank')           { $rank              = $value }
             when ('null_ranking')   { $null_ranking      = $value }
             when ('min')            { $min               = $value }
@@ -1605,8 +1593,6 @@ sub add_user_rule {
         my $ordinary_rule = $rules->[$ordinary_rule_id];
         $ordinary_rule->action_set( $grammar, $action );
         $ordinary_rule->[Marpa::XS::Internal::Rule::RANK] = $rank // $default_rank;
-        $ordinary_rule->[Marpa::XS::Internal::Rule::RANKING_ACTION] =
-            $ranking_action;
         $ordinary_rule->[Marpa::XS::Internal::Rule::NULL_RANKING] =
             $null_ranking;
         if ( defined $rule_name ) {
@@ -1662,8 +1648,6 @@ sub add_user_rule {
     # semantic equivalents.
     my $original_rule = $rules->[$original_rule_id];
     $original_rule->action_set( $grammar, $action );
-    $original_rule->[Marpa::XS::Internal::Rule::RANKING_ACTION] =
-        $ranking_action;
     $original_rule->[Marpa::XS::Internal::Rule::NULL_RANKING] = $null_ranking;
     $original_rule->[Marpa::XS::Internal::Rule::RANK]         = $rank;
 

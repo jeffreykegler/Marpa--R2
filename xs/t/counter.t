@@ -31,19 +31,6 @@ BEGIN {
     Test::More::use_ok('Marpa::XS');
 }
 
-## no critic (Subroutines::RequireArgUnpacking)
-
-# Ranks are less than 1
-# to make sure
-# that integer rounding
-# is not happening anywhere.
-
-# If we are counting up, the lowest number
-# has to have the highest numerical rank.
-sub rank_one {
-    return \( ( $MyTest::UP ? -1 : 1 ) / ( 2 << Marpa::location() ) );
-}
-sub rank_zero { return \0 }
 sub zero      { return '0' }
 sub one       { return '1' }
 
@@ -54,61 +41,61 @@ sub start_rule_action {
 
 ## use critic
 
-my $grammar = Marpa::Grammar->new(
-    {   start => 'S',
-        strip => 0,
-        rules => [
-            {   lhs    => 'S',
-                rhs    => [qw/digit digit digit digit/],
-                action => 'main::start_rule_action'
-            },
-            {   lhs            => 'digit',
-                rhs            => ['zero'],
-                ranking_action => 'main::rank_zero',
-                action         => 'main::zero'
-            },
-            {   lhs            => 'digit',
-                rhs            => ['one'],
-                ranking_action => 'main::rank_one',
-                action         => 'main::one'
-            },
-            {   lhs => 'one',
-                rhs => ['t'],
-            },
-            {   lhs => 'zero',
-                rhs => ['t'],
-            },
-        ],
-        terminals => [qw(t)],
-    }
-);
-
-$grammar->precompute();
-
-my $recce = Marpa::Recognizer->new(
-    { grammar => $grammar, ranking_method => 'constant' } );
-
-my $input_length = 4;
-$recce->tokens( [ ( ['t'] ) x $input_length ] );
+sub gen_grammar {
+    my ($direction) = @_;
+    my $grammar = Marpa::Grammar->new(
+        {   start => 'S',
+            strip => 0,
+            rules => [
+                {   lhs    => 'S',
+                    rhs    => [qw/digit digit digit digit/],
+                    action => 'main::start_rule_action'
+                },
+                {   lhs    => 'digit',
+                    rhs    => ['zero'],
+                    rank   => $direction ? 0 : 1,
+                    action => 'main::zero'
+                },
+                {   lhs    => 'digit',
+                    rhs    => ['one'],
+                    rank   => $direction ? 1 : 0,
+                    action => 'main::one'
+                },
+                {   lhs => 'one',
+                    rhs => ['t'],
+                },
+                {   lhs => 'zero',
+                    rhs => ['t'],
+                },
+            ],
+            terminals => [qw(t)],
+        }
+    );
+    $grammar->precompute();
+} ## end gen_grammar
 
 my @counting_up =
     qw{ 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111 };
 my @counting_down = reverse @counting_up;
 
-for my $up ( 1, 0 ) {
-    local $MyTest::UP = $up;
-    my $count = $up ? ( \@counting_up ) : ( \@counting_down );
-    my $direction = $up ? 'up' : 'down';
-    $recce->reset_evaluation();
+for my $direction ( 1, 0 ) {
+    my $count = $direction ? ( \@counting_up ) : ( \@counting_down );
+    my $direction_desc = $direction ? 'up' : 'down';
+    my $recce = Marpa::Recognizer->new(
+        { grammar => gen_grammar($direction), ranking_method => 'rule' } );
+
+    my $input_length = 4;
+    $recce->tokens( [ ( ['t'] ) x $input_length ] );
+
     my $i = 0;
     while ( my $result = $recce->value() ) {
         my $got      = ${$result};
         my $expected = reverse $count->[$i];
         say ${$result} or die("Could not print to STDOUT: $ERRNO");
-        Test::More::is( $got, $expected, "counting $direction $i" );
+        Test::More::is( $got, $expected, "counting $direction_desc $i" );
         $i++;
     } ## end while ( my $result = $recce->value() )
-} ## end for my $up ( 1, 0 )
+} ## end for my $direction ( 1, 0 )
 
 1;    # In case used as "do" file
 

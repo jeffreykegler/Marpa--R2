@@ -178,20 +178,6 @@ sub Marpa::XS::Recognizer::new {
 
     $recce->set(@arg_hashes);
 
-    if (    $grammar_c->has_loop()
-        and $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] ne
-        'none'
-        and not $grammar->[Marpa::XS::Internal::Grammar::CYCLE_RANKING_ACTION]
-        )
-    {
-        Marpa::exception(
-            "The grammar cycles (is infinitely ambiguous)\n",
-            "    but it has no 'cycle_ranking_action'.\n",
-            "    Either rewrite the grammar to eliminate cycles\n",
-            "    or define a 'cycle ranking action'\n"
-        );
-    }
-
     my $trace_terminals =
         $recce->[Marpa::XS::Internal::Recognizer::TRACE_TERMINALS] // 0;
     my $trace_tasks = $recce->[Marpa::XS::Internal::Recognizer::TRACE_TASKS]
@@ -309,7 +295,7 @@ sub Marpa::XS::Recognizer::set {
         } ## end if ( defined( my $value = $args->{'mode'} ) )
 
         if ( defined( my $value = $args->{'ranking_method'} ) ) {
-	    my @ranking_methods = qw(constant high_rule_only none);
+	    my @ranking_methods = qw(high_rule_only rule none);
             Marpa::exception(
                 qq{ranking_method value is $value (should be one of },
 		(join ", ", map { q{'} . $_ . q{'} } @ranking_methods),

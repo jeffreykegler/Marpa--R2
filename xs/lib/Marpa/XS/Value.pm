@@ -495,353 +495,72 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
 }    # set_actions
 
-# Sub-optimal.
-# This routine should be written to do a depth-first traversal.
-
-# Returns false if no parse
-sub do_rank_all {
-    my ( $recce, $depth_by_id ) = @_;
+sub do_high_rule_only {
+    my ( $recce ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my @and_node_rank_refs;
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
 
-    my @or_node_rank = ();
-    my @and_node_token_rank_ref = ();
+    my @or_nodes = ($recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID]);
 
-    my $cycle_ranking_action =
-        $grammar->[Marpa::XS::Internal::Grammar::CYCLE_RANKING_ACTION];
-    my $cycle_closure;
-    if ( defined $cycle_ranking_action ) {
-        $cycle_closure =
-            Marpa::XS::Internal::Recognizer::resolve_semantics( $recce,
-            $cycle_ranking_action );
-        Marpa::exception(
-            "Could not resolve cycle ranking action named '$cycle_ranking_action'"
-        ) if not $cycle_closure;
-    } ## end if ( defined $cycle_ranking_action )
-
-    # Set up rank closures by symbol
-    my %ranking_closures_by_symbol = ();
+    # Set up ranks by symbol
+    my @rank_by_symbol = ();
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $ranking_action =
-            $symbol->[Marpa::XS::Internal::Symbol::RANKING_ACTION];
-        next SYMBOL if not defined $ranking_action;
-        my $ranking_closure =
-            Marpa::XS::Internal::Recognizer::resolve_semantics( $recce,
-            $ranking_action );
-        my $symbol_name = $symbol->[Marpa::XS::Internal::Symbol::NAME];
-        Marpa::exception(
-            "Could not resolve ranking action for symbol.\n",
-            qq{    Symbol was "$symbol_name".},
-            qq{    Ranking action was "$ranking_action".}
-        ) if not defined $ranking_closure;
-        $ranking_closures_by_symbol{$symbol_name} = $ranking_closure;
+        my $rank = $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
+	$rank_by_symbol[$symbol->[Marpa::XS::Internal::Symbol::ID]] = $rank;
     }    # end for my $symbol ( @{$symbols} )
 
-    # Get closure used in ranking, by rule
-    my @ranking_closures_by_rule = ();
-    RULE: for my $rule ( @{$rules} ) {
+    # Set up ranks by rule
+    my @rank_by_rule = ();
+    SYMBOL: for my $rule ( @{$rules} ) {
+        my $rank = $rule->[Marpa::XS::Internal::Rule::RANK];
+	$rank_by_rule[$rule->[Marpa::XS::Internal::Rule::ID]] = $rank;
+    }    # end for my $rule ( @{$rules} )
 
-        my $ranking_action =
-            $rule->[Marpa::XS::Internal::Rule::RANKING_ACTION];
-	my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
-        my $cycle_rule = $grammar_c->rule_is_loop($rule_id);
+    OR_NODE: for ( my $or_node = 0; ; $or_node++) {
+        my $first_and_node = $recce_c->or_node_first_and($or_node);
+        last OR_NODE if not defined $first_and_node;
+        my $last_and_node  = $recce_c->or_node_last_and($or_node);
+        my @ranking_data   = ();
+        my @and_nodes      = $first_and_node .. $last_and_node;
+        AND_NODE:
 
-        Marpa::exception(
-            "Rule which cycles has an explicit ranking action\n",
-            qq{   The ranking action is "$ranking_action"\n},
-            qq{   To solve this problem,\n},
-            qq{   Rewrite the grammar so that this rule does not cycle\n},
-            qq{   Or eliminate its ranking action.\n}
-        ) if $ranking_action and $cycle_rule;
-
-        my $ranking_closure;
-        if ($ranking_action) {
-            $ranking_closure =
-                Marpa::XS::Internal::Recognizer::resolve_semantics( $recce,
-                $ranking_action );
-            Marpa::exception(
-                "Ranking closure '$ranking_action' not found")
-                if not defined $ranking_closure;
-        } ## end if ($ranking_action)
-
-        if ($cycle_rule) {
-            $ranking_closure = $cycle_closure;
-        }
-
-        next RULE if not $ranking_closure;
-
-	# If the RHS is empty ...
-	# Empty rules are never in cycles -- they are either
-	# unused (because of the CHAF rewrite) or the special
-	# null start rule.
-	if ( $grammar_c->rule_length($rule_id) == 0 ) {
-	    Marpa::exception("Ranking closure '$ranking_action' not found")
-		if not defined $ranking_closure;
-
-	    my $lhs_id = $grammar_c->rule_lhs($rule_id);
-	    my $lhs_null_alias =
-		$symbols->[ $grammar_c->symbol_null_alias($lhs_id) ];
-	    $ranking_closures_by_symbol{ $lhs_null_alias
-		    ->[Marpa::XS::Internal::Symbol::NAME] } = $ranking_closure;
-	} ## end if ( $grammar_c->rule_length($rule_id) == 0 )
-
-        $ranking_closures_by_rule[$rule_id] = $ranking_closure;
-
-    } ## end for my $rule ( @{$rules} )
-
-    my @and_node_worklist = ();
-    AND_NODE: for my $and_node_id ( 0 .. $recce_c->and_node_count()-1 ) {
-
-	my $parent_or_node_id = $recce_c->and_node_parent($and_node_id);
-        my $rule_id  = $recce_c->or_node_rule($parent_or_node_id);
-	my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
-	my $rule_closure = 
-	defined $semantic_rule_id ?  $ranking_closures_by_rule[$semantic_rule_id] : undef;
-        my $token_id = $recce_c->and_node_symbol($and_node_id);
-        my $token_closure;
-        if ($token_id) {
-            my $token_name =
-                $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
-            $token_closure = $ranking_closures_by_symbol{$token_name};
-        }
-
-        my $token_rank_ref;
-        my $rule_rank_ref;
-
-        # It is a feature of the ranking closures that they are always
-        # called once per instance, even if the result is never used.
-        # This sometimes makes for unnecessary calls,
-        # but it makes these closures predictable enough
-        # to allow their use for side effects.
-        EVALUATION:
-        for my $evaluation_data (
-            [ \$token_rank_ref, $token_closure ],
-            [ \$rule_rank_ref,  $rule_closure ]
-            )
-        {
-            my ( $rank_ref_ref, $closure ) = @{$evaluation_data};
-            next EVALUATION if not defined $closure;
-
-            my @warnings;
-            my $eval_ok;
-            my $rank_ref;
-            DO_EVAL: {
-                local $Marpa::XS::Internal::CONTEXT =
-                    [ 'and-node', $and_node_id, $recce ];
-                local $SIG{__WARN__} =
-                    sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-                $eval_ok = eval { $rank_ref = $closure->(); 1; };
-            } ## end DO_EVAL:
-
-            my $fatal_error;
-            CHECK_FOR_ERROR: {
-                if ( not $eval_ok or scalar @warnings ) {
-                    $fatal_error = $EVAL_ERROR // 'Fatal Error';
-                    last CHECK_FOR_ERROR;
-                }
-                if ( defined $rank_ref and not ref $rank_ref ) {
-                    $fatal_error =
-                        "Invalid return value from ranking closure: $rank_ref";
-                }
-            } ## end CHECK_FOR_ERROR:
-
-            if ( defined $fatal_error ) {
-
-                Marpa::XS::Internal::code_problems(
-                    {   fatal_error => $fatal_error,
-                        grammar     => $grammar,
-                        eval_ok     => $eval_ok,
-                        warnings    => \@warnings,
-                        where       => 'ranking and-node '
-                            . Marpa::XS::Recognizer::and_node_tag(
-                            $recce, $and_node_id
-                            )
-                    }
-                );
-            } ## end if ( defined $fatal_error )
-
-            ${$rank_ref_ref} = $rank_ref // Marpa::XS::Internal::Value::SKIP;
-
-        } ## end for my $evaluation_data ( [ \$token_rank_ref, $token_closure...])
-
-        # Set the token rank if there is a token.
-        # It is zero if there is no token, or
-        # if there is one with no closure.
-        # Note: token can never cause a cycle, but they
-        # can cause an and-node to be skipped.
-        if (defined $token_id) {
-            $and_node_token_rank_ref[$and_node_id] =
-                $token_rank_ref // \0;
-        }
-
-        # See if we can set the rank for this node to a constant.
-        my $constant_rank_ref;
-        SET_CONSTANT_RANK: {
-
-            if ( defined $token_rank_ref && !ref $token_rank_ref ) {
-                $constant_rank_ref = Marpa::XS::Internal::Value::SKIP;
-                last SET_CONSTANT_RANK;
+        for my $and_node (@and_nodes) {
+            my $token = $recce_c->and_node_symbol($and_node);
+            if ( defined $token ) {
+                push @ranking_data, [ $and_node, $rank_by_symbol[$token] ];
+                next AND_NODE;
             }
-
-            # If we have ranking closure for this rule, the rank
-            # is constant:
-            # 0 for a non-final node,
-            # the result of the closure for a final one
-            if ( defined $rule_rank_ref ) {
-                $constant_rank_ref =
-                    (
-                    $recce_c->or_node_position($parent_or_node_id)
-                        == $grammar_c->rule_length(
-                        $recce_c->or_node_rule($parent_or_node_id)
-                        )
-                    )
-                    ? $rule_rank_ref
-                    : \0;
-                last SET_CONSTANT_RANK;
-            } ## end if ( defined $rule_rank_ref )
-
-            # It there is a token and no predecessor, the rank
-            # of this rule is a constant:
-            # 0 is there was not token symbol closure
-            # the result of that closure if there was one
-            if ( defined $token_id
-                and not defined $recce_c->and_node_predecessor($and_node_id) )
-            {
-                $constant_rank_ref = $token_rank_ref // \0;
-            }
-
-        } ## end SET_CONSTANT_RANK:
-
-        if ( defined $constant_rank_ref ) {
-            $and_node_rank_refs[$and_node_id] =
-                $constant_rank_ref;
-
-            next AND_NODE;
-        } ## end if ( defined $constant_rank_ref )
-
-        # If we are here there is (so far) no constant rank
-        # so we stack this and-node for depth-sensitive evaluation
-        push @and_node_worklist, $and_node_id;
-
-    } ## end for my $and_node_id ( 0 .. $#{$and_nodes} )
-
-    # From here on we may be calculating ranks, so use floating point
-    no integer;
-
-    # Now go through the and-nodes that require context to be ranked
-    # This loop assumes that all cycles has been taken care of
-    # with constant ranks
-    AND_NODE: while ( defined( my $and_node_id = pop @and_node_worklist ) ) {
-
-        # Go to next if we have already ranked this and-node
-        next AND_NODE if defined $and_node_rank_refs[$and_node_id];
-
-        # The rank calculated so far from the
-        # children
-        my $calculated_rank = 0;
-
-        my $is_cycle = 0;
-        my $is_skip  = 0;
-        OR_NODE:
-        for my $or_node_id (
-	    grep { defined }
-            $recce_c->and_node_predecessor($and_node_id),
-            $recce_c->and_node_cause($and_node_id),
-            )
-        {
-            if (defined(
-                    my $or_node_initial_rank_ref =
-                        $or_node_rank[$or_node_id]
+            my $cause = $recce_c->and_node_cause($and_node);
+            my $rule_id  = $recce_c->or_node_rule($cause);
+	    my $rule = $rules->[$rule_id];
+            push @ranking_data,
+                [
+                $and_node, $rank_by_rule[$rule_id],
+                $rule->[Marpa::XS::Internal::Rule::CHAF_RANK]
+                ];
+        } ## end for my $and_node (@and_nodes)
+        my $max_rank = List::Util::max( map { $_->[1] } @ranking_data );
+        @ranking_data     = grep { $_->[1] == $max_rank } @ranking_data;
+        my $max_chaf_rank = List::Util::max( grep { defined } map { $_->[2] } @ranking_data );
+	my @ranked_and_nodes = ();
+	DATUM: for my $ranking_datum (@ranking_data) {
+	    my $chaf_rank = $ranking_datum->[2];
+	    next DATUM if defined $chaf_rank and $chaf_rank < $max_chaf_rank;
+	    push @ranked_and_nodes, $ranking_datum->[0];
+	}
+        $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
+        push @or_nodes, grep {defined} map {
+            (   $recce_c->and_node_predecessor($_),
+                $recce_c->and_node_cause($_)
                 )
-                )
-            {
-                if ( ref $or_node_initial_rank_ref ) {
-                    $calculated_rank += ${$or_node_initial_rank_ref};
-                    next OR_NODE;
-                }
+        } @ranked_and_nodes;
+    } ## end while ( my $or_node = pop @or_nodes )
+}
 
-                # At this point only possible value is skip
-                $and_node_rank_refs[$and_node_id] =
-                    Marpa::XS::Internal::Value::SKIP;
-
-                next AND_NODE;
-            } ## end if ( defined( my $or_node_initial_rank_ref = $or_node...))
-            my @ranks              = ();
-            my @unranked_and_nodes = ();
-	    my @and_node_ids =
-		( $recce_c->or_node_first_and($or_node_id)
-		    .. $recce_c->or_node_last_and($or_node_id) );
-            CHILD_AND_NODE:
-            for my $child_and_node_id ( @and_node_ids ) {
-                my $rank_ref = $and_node_rank_refs[$child_and_node_id];
-                if ( not defined $rank_ref ) {
-                    push @unranked_and_nodes, $child_and_node_id;
-
-                    next CHILD_AND_NODE;
-                } ## end if ( not defined $rank_ref )
-
-                # Right now the only defined scalar value for a rank is
-                # Marpa::XS::Internal::Value::SKIP
-                next CHILD_AND_NODE if not ref $rank_ref;
-
-                push @ranks, ${$rank_ref};
-
-            } ## end for my $child_and_node_id ( @{ $or_node->[...]})
-
-            # If we have unranked child and nodes, those have to be
-            # ranked first.  Schedule the work and move on.
-            if ( scalar @unranked_and_nodes ) {
-
-                push @and_node_worklist, $and_node_id, @unranked_and_nodes;
-                next AND_NODE;
-            }
-
-            # If there were no non-skipped and-nodes, the
-            # parent and-node must also be skipped
-            if ( not scalar @ranks ) {
-                $or_node_rank[$or_node_id] =
-                    $and_node_rank_refs[$and_node_id] =
-                    Marpa::XS::Internal::Value::SKIP;
-
-                next AND_NODE;
-            } ## end if ( not scalar @ranks )
-
-            my $or_calculated_rank = List::Util::max @ranks;
-	    $or_node_rank[$or_node_id] = \$or_calculated_rank;
-            $calculated_rank += $or_calculated_rank;
-
-        } ## end for my $field ( ...)
-
-        my $token_rank_ref = $and_node_token_rank_ref[$and_node_id];
-        $calculated_rank += defined $token_rank_ref ? ${$token_rank_ref} : 0;
-	$and_node_rank_refs[$and_node_id] = \$calculated_rank;
-
-    } ## end while ( defined( my $and_node_id = pop @and_node_worklist...))
-
-    my @or_node_choices = ();
-    AND_NODE: for my $and_node_id (0 .. $#and_node_rank_refs) {
-	my $rank_ref = $and_node_rank_refs[$and_node_id];
-	next AND_NODE if $rank_ref == Marpa::XS::Internal::Value::SKIP;
-	my $or_node_id = $recce_c->and_node_parent($and_node_id);
-	push @{$or_node_choices[$or_node_id]}, [ ${$rank_ref}, $and_node_id ];
-    }
-
-    OR_NODE: for my $or_node_id (0 .. $#or_node_choices) {
-	my $choices = $or_node_choices[$or_node_id] // [];
-	## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
-        my @and_node_ids = map { $_->[-1] } sort { $b->[0] <=> $a->[0] } @{$choices};
-	$recce_c->and_node_order_set($or_node_id, \@and_node_ids);
-    } ## end for my $or_node_id ( 0 .. $recce_c->or_node_count() -...)
-
-    return;
-
-} ## end sub do_rank_all
-
-sub do_high_rule_only {
+sub do_rank_by_rule {
     my ( $recce ) = @_;
     my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
@@ -879,7 +598,7 @@ sub do_high_rule_only {
         for my $and_node (@and_nodes) {
             my $token = $recce_c->and_node_symbol($and_node);
             if ( defined $token ) {
-                push @ranking_data, [ $and_node, $rank_by_symbol[$token] ];
+                push @ranking_data, [ $and_node, $rank_by_symbol[$token], 99 ];
                 next AND_NODE;
             }
             my $cause = $recce_c->and_node_cause($and_node);
@@ -888,18 +607,14 @@ sub do_high_rule_only {
             push @ranking_data,
                 [
                 $and_node, $rank_by_rule[$rule_id],
-                $rule->[Marpa::XS::Internal::Rule::CHAF_RANK]
+                $rule->[Marpa::XS::Internal::Rule::CHAF_RANK], 99
                 ];
         } ## end for my $and_node (@and_nodes)
-        my $max_rank = List::Util::max( map { $_->[1] } @ranking_data );
-        @ranking_data     = grep { $_->[1] == $max_rank } @ranking_data;
-        my $max_chaf_rank = List::Util::max( grep { defined } map { $_->[2] } @ranking_data );
-	my @ranked_and_nodes = ();
-	DATUM: for my $ranking_datum (@ranking_data) {
-	    my $chaf_rank = $ranking_datum->[2];
-	    next DATUM if defined $chaf_rank and $chaf_rank < $max_chaf_rank;
-	    push @ranked_and_nodes, $ranking_datum->[0];
-	}
+
+	my @ranked_and_nodes = map { $_->[0] } sort {
+	     $a->[1] <=> $b->[1] or
+	     $a->[2] <=> $b->[2]
+	} @ranking_data;
         $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
         push @or_nodes, grep {defined} map {
             (   $recce_c->and_node_predecessor($_),
@@ -1301,8 +1016,8 @@ sub Marpa::XS::Recognizer::value {
             $top_or_node_id;
 
 	given ( $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] ) {
-	    when ('constant')       { do_rank_all($recce); }
 	    when ('high_rule_only') { do_high_rule_only($recce); }
+	    when ('rule')           { do_rank_by_rule($recce); }
 	}
 
     }

@@ -114,7 +114,6 @@ t/chaf.t
 t/code_diag.t
 t/counter.t
 t/curly.t
-t/cycle_count.t
 t/debug.t
 t/debug_leo.t
 t/debug_seq.t
