@@ -169,7 +169,10 @@ subbody ::= ';' ;
 
 package ::= PACKAGE WORD WORD ';' ;
 
-use ::= USE startsub WORD WORD listexpr ';' ;
+/* use ::= USE startsub WORD WORD listexpr ';' ; */
+long_use: use ::= USE startsub WORD VERSION listexpr ';' ;
+perl_version_use: use ::= USE startsub VERSION ';' ;
+short_use: use ::= USE startsub WORD listexpr ';' ;
 
 /* Ordinary expressions; logical combinations */
 
@@ -844,6 +847,12 @@ my %perl_type_by_word = (
 
 ## use critic
 
+my %rule_rank = (
+    long_use => 2,
+    perl_version_use => 1,
+    short_use => 0,
+);
+
 sub Marpa::Perl::new {
     my ( $class, $gen_closure ) = @_;
 
@@ -874,17 +883,21 @@ sub Marpa::Perl::new {
         $symbol{$lhs}++;
 
         # only create action for non-empty rules
-        my @action_arg = ();
+        my @additional_args = ();
         if ( scalar @rhs ) {
             $rule_name ||= 'MyAction::rule_' . scalar @rules;
             my ( $action ) =
                 $gen_closure->( $lhs, \@rhs, $rule_name );
             if ( defined $action ) {
                 $closure{"!$rule_name"} = $action;
-                push @action_arg, action => "!$rule_name";
+                push @additional_args, action => "!$rule_name";
             }
         } ## end if ( scalar @rhs )
-        push @rules, { lhs => $lhs, rhs => \@rhs, @action_arg, name => $rule_name };
+	my $rank = defined $rule_name ? $rule_rank{$rule_name} : undef;
+	if (defined $rank) {
+	    push @additional_args, rank => $rank;
+	}
+        push @rules, { lhs => $lhs, rhs => \@rhs, @additional_args, name => $rule_name };
     } ## end for my $line ( split /\n/xms, $reference_grammar )
 
     my $grammar = Marpa::Grammar->new(
@@ -1128,12 +1141,23 @@ sub Marpa::Perl::read {
             next TOKEN;
         } ## end if ( $PPI_type eq 'PPI::Token::Structure' )
 
-        if ( $PPI_type eq 'PPI::Token::Number' ) {
-            my $content = $token->{content};
-            defined $recce->read( 'THING', $content + 0 )
-                or token_not_accepted( $token, 'THING', $content + 0 );
+        if (
+	    $PPI_type eq 'PPI::Token::Number'
+	    or $PPI_type eq 'PPI::Token::Number::Float'
+	    or $PPI_type eq 'PPI::Token::Number::Version'
+	) {
+            my $content         = eval $token->{content};
+            my $expected_tokens = $recce->terminals_expected();
+            my @potential_types = grep { $_ ~~ $expected_tokens } qw(THING VERSION);
+            scalar @potential_types or unknown_ppi_token($token);
+            TYPE: for my $type (@potential_types) {
+                defined $recce->alternative( $type, $content, 1 )
+                    or token_not_accepted( $token, $type, $content, 1 );
+            }
+            $recce->earleme_complete();
             next TOKEN;
         } ## end if ( $PPI_type eq 'PPI::Token::Number' )
+
         if ( $PPI_type eq 'PPI::Token::Quote::Single' ) {
             my $content = $token->{content};
             ## no critic (BuiltinFunctions::ProhibitStringyEval)
