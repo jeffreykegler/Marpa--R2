@@ -965,6 +965,12 @@ sub Marpa::XS::Recognizer::alternative {
     my $token_values = $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
     my $symbol_id = $symbol_hash->{$symbol_name};
+
+    # This is not
+    # a bare return, to be consistent with undef return from libmarpa
+    # alternative() call, below
+    return undef if not defined $symbol_id;
+
     my $value_ix = 0;
     if (defined $value) {
         $value_ix = scalar @{$token_values};

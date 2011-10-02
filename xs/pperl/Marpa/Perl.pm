@@ -598,15 +598,15 @@ my %perl_type_by_op = (
 );
 
 my %perl_type_by_word = (
-    'AUTOLOAD'         => 'PHASER -- TO BE DETERMINED',
-    'BEGIN'            => 'PHASER -- TO BE DETERMINED',
-    'CHECK'            => 'PHASER -- TO BE DETERMINED',
+    'AUTOLOAD'         => 'PHASER',
+    'BEGIN'            => 'PHASER',
+    'CHECK'            => 'PHASER',
     'CORE'             => 'TO_BE_DETERMINED',
-    'DESTROY'          => 'PHASER -- TO BE DETERMINED',
-    'END'              => 'PHASER -- TO BE DETERMINED',
-    'INIT'             => 'PHASER -- TO BE DETERMINED',
+    'DESTROY'          => 'PHASER',
+    'END'              => 'PHASER',
+    'INIT'             => 'PHASER',
     'NULL'             => 'TO_BE_DETERMINED',
-    'UNITCHECK'        => 'PHASER -- TO BE DETERMINED',
+    'UNITCHECK'        => 'PHASER',
     '__DATA__'         => 'TO_BE_DETERMINED',
     '__END__'          => 'TO_BE_DETERMINED',
     '__FILE__'         => 'THING',
@@ -935,13 +935,15 @@ sub token_not_accepted {
          $perl_token_desc .= " length=" . $length;
     }
     $perl_token_desc .= Data::Dumper::Dumper( $token_value );
+    my $logical_filename = $ppi_token->logical_filename();
+    $logical_filename = '[no file]' if not $logical_filename;
     Carp::croak(
-	"$perl_token_desc",
-	'PPI token is ', (ref $ppi_token), q{: },
-	  $ppi_token->logical_filename(), q{:},
-	  $ppi_token->logical_line_number(), q{:},
-	  $ppi_token->column_number(), q{, },
-	  q{content="},  $ppi_token->content(), q{"}
+        "$perl_token_desc",                'PPI token is ',
+        ( ref $ppi_token ),                qq{: $logical_filename:},
+        $ppi_token->logical_line_number(), q{:},
+        $ppi_token->column_number(),       q{, },
+        q{content="},                      $ppi_token->content(),
+        q{"}
     );
 }
 
@@ -1040,10 +1042,35 @@ sub Marpa::Perl::read {
         if ( $PPI_type eq 'PPI::Token::Word' ) {
             my $content = $token->{content};
             $perl_type = $perl_type_by_word{$content} // 'WORD';
+	    if ($perl_type eq 'WORD') {
+                my $expected_tokens = $recce->terminals_expected();
+		my @potential_types = grep { $_ ~~ $expected_tokens } qw(WORD METHOD FUNCMETH);
+		scalar @potential_types or unknown_ppi_token($token);
+		TYPE: for my $type (@potential_types) {
+		    defined $recce->alternative( $type, $content, 1 )
+			or token_not_accepted( $token, $type, $content, 1 );
+		}
+		$recce->earleme_complete();
+		next TOKEN;
+	    }
+	    if ( $perl_type eq 'PHASER' ) {
+		defined $recce->read('SUB')
+		    or token_not_accepted( $token, 'PHASER', 'no value' );
+		defined $recce->read( 'WORD', $content )
+		    or token_not_accepted( $token, 'WORD', $content );
+		next TOKEN;
+	    } ## end if ( $perl_type eq 'PHASER' )
             defined $recce->read( $perl_type, $content )
                 or token_not_accepted( $token, $perl_type, $content );
             next TOKEN;
         } ## end if ( $PPI_type eq 'PPI::Token::Word' )
+
+        if ( $PPI_type eq 'PPI::Token::Label' ) {
+            my $content = $token->{content};
+            defined $recce->read( 'LABEL', $content )
+                or token_not_accepted( $token, 'LABEL', $content );
+	    next TOKEN;
+	}
 
         if ( $PPI_type eq 'PPI::Token::Operator' ) {
             my $content = $token->{content};
@@ -1167,6 +1194,14 @@ sub Marpa::Perl::read {
                 if not defined $string;
             defined $recce->read( 'THING', $string )
                 or token_not_accepted( $token, 'THING', $string );
+            next TOKEN;
+        } ## end if ( $PPI_type eq 'PPI::Token::Quote::Single' )
+
+        if ( $PPI_type eq 'PPI::Token::QuoteLike::Words' ) {
+            my $content = $token->{content};
+            my $words = $token->literal();
+            defined $recce->read( 'THING', $words )
+                or token_not_accepted( $token, 'THING', $words );
             next TOKEN;
         } ## end if ( $PPI_type eq 'PPI::Token::Quote::Single' )
 
