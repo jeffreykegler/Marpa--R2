@@ -123,20 +123,22 @@ my %original = (
     'libmarpa/dist/marpa_obs.h'  => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
 );
 
-my %GNU_file = map { ( $_, 1 ) } qw(
-    libmarpa/dist/aclocal.m4
-    libmarpa/dist/config.guess
-    libmarpa/dist/config.sub
-    libmarpa/dist/configure
-    libmarpa/dist/depcomp
-    libmarpa/dist/ltmain.sh
-    libmarpa/dist/m4/libtool.m4
-    libmarpa/dist/m4/ltoptions.m4
-    libmarpa/dist/m4/ltsugar.m4
-    libmarpa/dist/m4/ltversion.m4
-    libmarpa/dist/m4/lt~obsolete.m4
-    libmarpa/dist/missing
-    libmarpa/dist/Makefile.in
+my %GNU_file =
+    map { ( 'libmarpa/dist/' . $_, 1, 'libmarpa/test/dev/' . $_, 1 ) }
+    qw(
+    aclocal.m4
+    config.guess
+    config.sub
+    configure
+    depcomp
+    ltmain.sh
+    m4/libtool.m4
+    m4/ltoptions.m4
+    m4/ltsugar.m4
+    m4/ltversion.m4
+    m4/lt~obsolete.m4
+    missing
+    Makefile.in
 );
 
 sub trivial {
@@ -221,6 +223,8 @@ my %files_by_type = (
     'html_xs_test.sh'                       => \&trivial,
     'libmarpa/dist/README'                  => \&trivial,
     'libmarpa/dev/README'                   => \&trivial,
+    'libmarpa/test/README'                   => \&trivial,
+    'libmarpa/test/Makefile'                   => \&trivial,
     'README'                                => \&trivial,
     'TODO'                                  => \&trivial,
     'author.t/accept_tidy'                  => \&trivial,
@@ -233,6 +237,7 @@ my %files_by_type = (
     'inc/proof/ah2002_notes.lyx' => \&tex_closed,
     'inc/proof/proof.lyx'        => \&tex_closed,
     'libmarpa/dist/install-sh'   => \&check_X_copyright,
+    'libmarpa/test/dev/install-sh'   => \&check_X_copyright,
     'libmarpa/dist/config.h.in' =>
         check_tag( 'Generated from configure.ac by autoheader', 250 ),
 );
