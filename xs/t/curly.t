@@ -55,7 +55,7 @@ die if not Getopt::Long::GetOptions( utility => \$utility );
 my %hash;
 my %codeblock;
 
-my $parser = Marpa::Perl->new( sub { return undef, sub { return undef }; } );
+my $parser = Marpa::Perl->new( {} );
 
 my @tests;
 if ($utility) {

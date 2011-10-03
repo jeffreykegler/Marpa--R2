@@ -856,6 +856,10 @@ my %rule_rank = (
 sub Marpa::Perl::new {
     my ( $class, $gen_closure ) = @_;
 
+    my $closure_type = ref $gen_closure;
+    if ( $closure_type ne 'HASH' and $closure_type ne 'CODE' ) {
+        die 'Closure argument to new must be HASH or CODE ref';
+    }
     my %symbol = ();
     my @rules;
     my %closure;
@@ -885,13 +889,22 @@ sub Marpa::Perl::new {
         # only create action for non-empty rules
         my @additional_args = ();
         if ( scalar @rhs ) {
-            $rule_name ||= 'MyAction::rule_' . scalar @rules;
-            my ( $action ) =
-                $gen_closure->( $lhs, \@rhs, $rule_name );
-            if ( defined $action ) {
-                $closure{"!$rule_name"} = $action;
-                push @additional_args, action => "!$rule_name";
-            }
+            if ( $closure_type eq 'CODE' ) {
+                $rule_name ||= q{!} . scalar @rules;
+                my ($action) = $gen_closure->( $lhs, \@rhs, $rule_name );
+                if ( defined $action ) {
+                    $closure{"!$rule_name"} = $action;
+                    push @additional_args, action => "!$rule_name";
+                }
+            } ## end if ( ref $gen_closure eq 'CODE' )
+            if ( $closure_type eq 'HASH' ) {
+                my $action_name = $rule_name // $lhs;
+                my $action = $gen_closure->{$action_name};
+                if ( defined $action ) {
+                    $closure{"!$action_name"} = $action;
+                    push @additional_args, action => "!$action_name";
+                }
+            } ## end if ( ref $gen_closure eq 'HASH' )
         } ## end if ( scalar @rhs )
 	my $rank = defined $rule_name ? $rule_rank{$rule_name} : undef;
 	if (defined $rank) {
@@ -1043,13 +1056,12 @@ sub Marpa::Perl::read {
             my $content = $token->{content};
             $perl_type = $perl_type_by_word{$content} // 'WORD';
 	    if ($perl_type eq 'WORD') {
-                my $expected_tokens = $recce->terminals_expected();
-		my @potential_types = grep { $_ ~~ $expected_tokens } qw(WORD METHOD FUNCMETH);
-		scalar @potential_types or unknown_ppi_token($token);
-		TYPE: for my $type (@potential_types) {
+		my $token_found = 0;
+		TYPE: for my $type ( qw(WORD METHOD FUNCMETH) ) {
 		    defined $recce->alternative( $type, $content, 1 )
-			or token_not_accepted( $token, $type, $content, 1 );
+		        and $token_found++;
 		}
+		$token_found or token_not_accepted( $token, 'WORD', $content, 1 );
 		$recce->earleme_complete();
 		next TOKEN;
 	    }
@@ -1098,6 +1110,7 @@ sub Marpa::Perl::read {
                 $recce->earleme_complete();
                 next TOKEN;
             } ## end if ( $perl_type eq 'PLUS' )
+
             if ( $perl_type eq 'MINUS' ) {
 
                 # Apply the "ruby slippers"
@@ -1168,22 +1181,20 @@ sub Marpa::Perl::read {
             next TOKEN;
         } ## end if ( $PPI_type eq 'PPI::Token::Structure' )
 
-        if (
-	    $PPI_type eq 'PPI::Token::Number'
-	    or $PPI_type eq 'PPI::Token::Number::Float'
-	    or $PPI_type eq 'PPI::Token::Number::Version'
-	) {
-            my $content         = eval $token->{content};
-            my $expected_tokens = $recce->terminals_expected();
-            my @potential_types = grep { $_ ~~ $expected_tokens } qw(THING VERSION);
-            scalar @potential_types or unknown_ppi_token($token);
-            TYPE: for my $type (@potential_types) {
+        if (   $PPI_type eq 'PPI::Token::Number'
+            or $PPI_type eq 'PPI::Token::Number::Float'
+            or $PPI_type eq 'PPI::Token::Number::Version' )
+        {
+            my $content     = eval $token->{content};
+            my $token_found = 0;
+            TYPE: for my $type (qw(THING VERSION)) {
                 defined $recce->alternative( $type, $content, 1 )
-                    or token_not_accepted( $token, $type, $content, 1 );
+                    and $token_found++;
             }
+            $token_found or token_not_accepted( $token, 'THING', $content );
             $recce->earleme_complete();
             next TOKEN;
-        } ## end if ( $PPI_type eq 'PPI::Token::Number' )
+        } ## end if ( $PPI_type eq 'PPI::Token::Number' or $PPI_type ...)
 
         if ( $PPI_type eq 'PPI::Token::Quote::Single' ) {
             my $content = $token->{content};
