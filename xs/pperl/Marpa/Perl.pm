@@ -171,6 +171,7 @@ package ::= PACKAGE WORD WORD ';' ;
 
 /* use ::= USE startsub WORD WORD listexpr ';' ; */
 long_use: use ::= USE startsub WORD VERSION listexpr ';' ;
+revlong_use: use ::= USE startsub VERSION WORD listexpr ';' ;
 perl_version_use: use ::= USE startsub VERSION ';' ;
 short_use: use ::= USE startsub WORD listexpr ';' ;
 
@@ -464,25 +465,25 @@ END_OF_GRAMMAR
 ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
 
 my %symbol_name = (
-    q{'~'} => 'TILDE',
-    q{'-'} => 'MINUS',
-    q{','} => 'COMMA',
-    q{';'} => 'SEMI',
-    q{':'} => 'COLON',
-    q{'!'} => 'BANG',
-    q{'?'} => 'QUESTION',
-    q{'('} => 'LPAREN',
-    q{')'} => 'RPAREN',
-    q{'['} => 'LSQUARE',
-    q{']'} => 'RSQUARE',
-    q['{'] => 'LCURLY',
-    q['}'] => 'RCURLY',
-    q{'@'} => 'ATSIGN',
-    q{'$'} => 'DOLLAR',
-    q{'*'} => 'ASTERISK',
-    q{'&'} => 'AMPERSAND',
-    q{'%'} => 'PERCENT',
-    q{'+'} => 'PLUS',
+    q{~} => 'TILDE',
+    q{-} => 'MINUS',
+    q{,} => 'COMMA',
+    q{;} => 'SEMI',
+    q{:} => 'COLON',
+    q{!} => 'BANG',
+    q{?} => 'QUESTION',
+    q{(} => 'LPAREN',
+    q{)} => 'RPAREN',
+    q{[} => 'LSQUARE',
+    q{]} => 'RSQUARE',
+    q[{] => 'LCURLY',
+    q[}] => 'RCURLY',
+    q{@} => 'ATSIGN',
+    q{$} => 'DOLLAR',
+    q{*} => 'ASTERISK',
+    q{&} => 'AMPERSAND',
+    q{%} => 'PERCENT',
+    q{+} => 'PLUS',
 );
 
 my %perl_type_by_cast = (
@@ -876,7 +877,16 @@ sub Marpa::Perl::new {
         my ($rule_name) = ( $line =~ /\A (\w+) \s* [:] [^:] /gxms );
         my ( $lhs, $rhs_string ) =
             ( $line =~ / \s* (\w+) \s* [:][:][=] \s* (.*) [;] \s* \z/xms );
-        my @rhs = map { $symbol_name{$_} // $_ } split q{ }, $rhs_string;
+	my @rhs = ();
+	RHS: for my $rhs_desc ( split q{ }, $rhs_string ) {
+	    if ($rhs_desc =~ m/\A ['] ([^']*) ['] \z/xms) {
+	        my $rhs_name = $symbol_name{$1};
+		die "No symbol name for $rhs_desc" if not defined $rhs_name;
+		push @rhs, $rhs_name;
+		next RHS;
+	    }
+	    push @rhs, $rhs_desc;
+	}
 
         for my $symbol ( $lhs, @rhs ) {
             $symbol{$symbol} //= 0;
@@ -1021,14 +1031,20 @@ sub Marpa::Perl::read {
 
         if ( $PPI_type eq 'PPI::Token::Symbol' ) {
             my ( $sigil, $word ) =
-                ( $token->{content} =~ / \A ([\$]) (\w*) \z /xms );
-            if ( not defined $sigil or $sigil ne q{$} ) {
+                ( $token->{content} =~ / \A ([\$@]) (\w*) \z /xms );
+            if ( not defined $sigil ) {
                 Carp::croak( 'Unknown symbol type: ',
                     Data::Dumper::Dumper($token) );
                 next TOKEN;
             }
-            defined $recce->read( 'DOLLAR', $sigil )
-                or token_not_accepted( $token, 'DOLLAR', $sigil );
+	    my $symbol_name = $symbol_name{$sigil};
+            if ( not defined $symbol_name ) {
+                Carp::croak( 'Unknown symbol type: ',
+                    Data::Dumper::Dumper($token) );
+                next TOKEN;
+            }
+            defined $recce->read( $symbol_name, $sigil )
+                or token_not_accepted( $token, $symbol_name, $sigil );
             defined $recce->read( 'WORD', $word )
                 or token_not_accepted( $token, 'WORD', $word );
             next TOKEN;
