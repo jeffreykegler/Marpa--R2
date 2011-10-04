@@ -9,3 +9,4 @@ Document Symbol::RANK
 Doucment LHS_RANK and TERMINAL_RANK once tested
 Document Rule::RANK
 Document rule nulling_rank named argument
+Document negative 1st arg for show_progress()

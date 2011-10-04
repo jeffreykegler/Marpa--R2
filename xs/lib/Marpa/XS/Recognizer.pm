@@ -766,6 +766,9 @@ sub Marpa::XS::Recognizer::show_progress {
     if ( not defined $start_ordinal ) {
         $start_ordinal = $last_ordinal;
     }
+    if ($start_ordinal < 0) {
+       $start_ordinal += $last_ordinal + 1;
+    }
     else {
         if ( $start_ordinal < 0 or $start_ordinal > $last_ordinal ) {
             return
