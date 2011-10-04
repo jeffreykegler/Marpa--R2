@@ -39,7 +39,7 @@ BEGIN {
         Test::More::plan skip_all => $PPI_problem;
     }
     else {
-        Test::More::plan tests => 10;
+        Test::More::plan tests => 3;
     }
     Test::More::use_ok('Marpa::XS');
     Test::More::use_ok('Marpa::Perl');
