@@ -1201,7 +1201,7 @@ sub Marpa::Perl::read {
             or $PPI_type eq 'PPI::Token::Number::Float'
             or $PPI_type eq 'PPI::Token::Number::Version' )
         {
-            my $content     = eval $token->{content};
+            my $content     = $token->{content};
             my $token_found = 0;
             TYPE: for my $type (qw(THING VERSION)) {
                 defined $recce->alternative( $type, $content, 1 )
