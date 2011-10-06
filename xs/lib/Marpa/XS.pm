@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION @ISA $DEBUG);
-$VERSION = '0.013_004';
+$VERSION = '0.014000';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 $DEBUG = 0;
