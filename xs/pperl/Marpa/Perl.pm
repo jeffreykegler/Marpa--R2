@@ -1031,7 +1031,7 @@ sub Marpa::Perl::read {
 
         if ( $PPI_type eq 'PPI::Token::Symbol' ) {
             my ( $sigil, $word ) =
-                ( $token->{content} =~ / \A ([\$@]) (\w*) \z /xms );
+                ( $token->{content} =~ / \A ([\$@%]) (\w*) \z /xms );
             if ( not defined $sigil ) {
                 Carp::croak( 'Unknown symbol type: ',
                     Data::Dumper::Dumper($token) );
@@ -1073,7 +1073,7 @@ sub Marpa::Perl::read {
             $perl_type = $perl_type_by_word{$content} // 'WORD';
 	    if ($perl_type eq 'WORD') {
 		my $token_found = 0;
-		TYPE: for my $type ( qw(WORD METHOD FUNCMETH) ) {
+		TYPE: for my $type ( qw(WORD FUNC METHOD FUNCMETH) ) {
 		    defined $recce->alternative( $type, $content, 1 )
 		        and $token_found++;
 		}
