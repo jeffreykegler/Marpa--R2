@@ -241,23 +241,22 @@ Returns a string describing the progress of the parse.
 With no arguments,
 the string contains reports for
 the current location.
-With a non-negative argument I<N>,
+With a single integer argument I<N>,
 the string contains reports for location I<N>.
-
 With two numeric arguments, I<N> and I<M>, the arguments are interpreted
 as a range of locations and the returned string contains
 reports for all locations in the range.
-The first argument, I<N>,
-must be a non-negative integer,
-and is always the number of the location which begins the range.
-If both arguments are non-negative integers,
-the range is from location I<N> to location I<M>.
-If the second argument is a negative integer,
-I<-M>,
-the end of the range is the 
-I<M>th location from the furthest location.
+
+If an argument is negative,
+I<-N>,
+it indicates 
+the I<N>th location counting backward
+from the furthest location of the parse.
 For example, if 42 was the furthest location,
 -1 would be location 42 and -2 would be location 41.
+For example, the method call
+C<< $recce->show_progress(-3, -1) >>
+returns reports for the last three locations of the parse.
 The method call C<< $recce->show_progress(0, -1) >>
 will print progress reports for the entire parse.
 
