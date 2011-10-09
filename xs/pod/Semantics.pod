@@ -483,8 +483,6 @@ Action names come from these sources:
 
 =item * The C<action> property of Marpa's rules.
 
-=item * The C<ranking_action> property of Marpa's rules.
-
 =item * The C<new> constructor in the package specified by the
 C<action_object> named argument of the Marpa grammar.
 

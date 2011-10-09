@@ -805,16 +805,6 @@ In proper separation,
 separation must actually separate sequence items,
 and trailing separators are not allowed.
 
-=head2 ranking_action
-
-The C<ranking_action> rule property 
-affects the order
-in which Marpa returns
-parse results for an ambiguous parse.
-For details
-see
-L<the document on Marpa's semantics|Marpa::XS::Semantics>
-
 =head2 rhs
 
 The value of the C<rhs> property is a reference to
