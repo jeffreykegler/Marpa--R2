@@ -2,9 +2,8 @@ Remove Marpa::XS::length static method
 Create a recce->latest_set method
 Document rule name, recce->rule_by_name() once there is a test for them
 Document high_rule_only, rule ranking_method's
-Undocument CYCLE_RANKING_ACTION
 Do not document DEFAULT_RANK and Symbol::RANK until there are tests for them
 Document Symbol::RANK
-Doucment LHS_RANK and TERMINAL_RANK once tested
+Document LHS_RANK and TERMINAL_RANK once tested
 Document Rule::RANK
 Document rule nulling_rank named argument

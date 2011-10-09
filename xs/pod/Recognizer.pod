@@ -283,19 +283,22 @@ a precomputed Marpa grammar object.
 =head2 ranking_method
 
 The value must be a string:
-either "C<none>" or "C<constant>".
+one of "C<none>",
+"C<rule>",
+or "C<high_rule_only>".
 When the value is "C<none>", Marpa returns the parse results
 in arbitrary order.
-When the value is "C<constant>", Marpa allows the user
-to
-specify ranking actions which assign values to rules and tokens.
+When the value is "C<rule>"
+or "C<high_rule_only>",
+Marpa allows the user
+to specify ranks for symbols and rules.
 These values will
 control the order in which parse results are returned by
 the C<value> method.
 
 The default is for parse results to be returned in arbitrary order.
-For details, see L<the section on parse order in the semantics
-document|Marpa::XS::Semantics/"PARSE ORDER">.
+For details, see L<the document
+on parse order|Marpa::XS::Semantics::Order>.
 
 =head2 too_many_earley_items
 
