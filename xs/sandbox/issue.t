@@ -47,15 +47,11 @@ my $grammar = Marpa::Grammar->new(
         strip   => 0,
         rules   => [
             [ Top => [qw/C/] ],
-            [ C => [qw/A C Z/] ],
-            [ C => [qw/ASeries Y/] ],
-            [ ASeries => [qw/A ASeries/] ],
-            [ ASeries => [qw/A/] ],
-            [ ASeries => [qw/C X/] ],
-            [ 'A', [qw/a/] ],
-            [ 'X', [qw/x/] ],
-            [ 'Y', [qw/y/] ],
-            [ 'Z', [qw/z/] ],
+            [ C => [qw/a C z/] ],
+            [ C => [qw/ASeries y/] ],
+            [ ASeries => [qw/a ASeries/] ],
+            [ ASeries => [qw/a/] ],
+            [ ASeries => [qw/C x/] ],
         ],
         default_null_value => q{},
         default_action     => 'main::default_action',
@@ -81,8 +77,9 @@ my $recce =
 
 my $input_length = 99;
 EARLEME: for my $earleme ( 1 .. $input_length ) {
-    say "PROGRESS:\n", $recce->show_progress();
     $recce->read( 'a', 'a' );
+    my $latest_set = $recce->latest_earley_set();
+    say "set $latest_set, size=", $recce->earley_set_size($latest_set);
 }
 $recce->read( 'y', 'y' );
 
