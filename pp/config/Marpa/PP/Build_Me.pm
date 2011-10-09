@@ -22,12 +22,12 @@ use warnings;
 
 @Marpa::PP::Build_Me::ISA = ('Module::Build');
 
-use DateTime;
 use Config;
 use File::Copy;
 use IPC::Cmd;
 use Module::Build;
 use English qw( -no_match_vars );
+use Time::Piece;
 
 use Marpa::PP::Config;
 
@@ -60,7 +60,7 @@ sub version_contents {
     my $text = $preamble;
     $text .= "package $package;\n";
     $text .= q{use vars qw($TIMESTAMP)} . qq{;\n};
-    $text .= q{$TIMESTAMP='} . DateTime->now() . qq{';\n};
+    $text .= q{$TIMESTAMP='} . localtime()->datetime . qq{';\n};
     PACKAGE: for my $package (@use_packages) {
         my $version = $package eq 'Marpa::PP'
 	    ? $marpa_pp_version
