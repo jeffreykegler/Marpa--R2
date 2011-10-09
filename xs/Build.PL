@@ -60,9 +60,6 @@ my @no_index_namespace_inclusive = (
     # never intended to see the light of day
     qw( Marpa::XS::Internal Marpa::PP ),
 
-    # never intended to see the light of day
-    qw( Marpa::XS::Grammar Marpa::XS::Recognizer ),
-
 );
 
 my @files_to_cleanup = (
