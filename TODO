@@ -1,5 +1,5 @@
 Remove Marpa::XS::length static method
-Create a recce->latest_set method
+Document recce->latest_earley_set method
 Document rule name, recce->rule_by_name() once there is a test for them
 Document high_rule_only, rule ranking_method's
 Do not document DEFAULT_RANK and Symbol::RANK until there are tests for them
