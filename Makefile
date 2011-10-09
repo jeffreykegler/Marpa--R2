@@ -55,7 +55,5 @@ xs_full_test: xslib xs_etc_make xs_html_test
 
 full_test: pp_full_test  xs_full_test
 
-html_full_test:
-	(cd html/etc; PERL5LIB=$(CURDIR)/noxs/lib/:$$PERL5LIB make )
-	(cd html/etc;  make )
+html_full_test: pp_html_test xs_html_test
 	
