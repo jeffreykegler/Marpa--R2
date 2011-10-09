@@ -12,10 +12,10 @@ use warnings;
 
 @Marpa::HTML::Build_Me::ISA = ('Module::Build');
 
-use DateTime;
 use Config;
 use Module::Build;
 use English qw( -no_match_vars );
+use Time::Piece;
 
 use Marpa::HTML::Config;
 
@@ -44,7 +44,7 @@ sub html_version_contents {
     my $text = $preamble;
     $text .= "package $package;\n";
     $text .= q{use vars qw($TIMESTAMP)} . qq{;\n};
-    $text .= q{$TIMESTAMP='} . DateTime->now() . qq{';\n};
+    $text .= q{$TIMESTAMP='} . localtime()->datetime . qq{';\n};
     for my $package (@use_packages) {
         my $version = $Marpa::HTML::VERSION_FOR_CONFIG{$package};
         die "No version defined for $package" if not defined $version;
