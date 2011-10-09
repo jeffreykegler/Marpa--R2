@@ -15,6 +15,10 @@
 
 Revision history for Marpa::XS
 
+0.015_000 Sat Oct  8 21:43:46 PDT 2011
+
+    * A new series of developer's releases
+
 0.014000 Wed Oct  5 08:30:16 PDT 2011
     
     * Internal cleanups and speed-ups.
