@@ -53,7 +53,6 @@ inc/proof/ah2002_notes.lyx
 inc/proof/ah_to_leo.lyx
 inc/proof/proof.lyx
 lib/Marpa/XS.pm
-lib/Marpa/XS/Callback.pm
 lib/Marpa/XS/Grammar.pm
 lib/Marpa/XS/Internal.pm
 lib/Marpa/XS/Recognizer.pm
