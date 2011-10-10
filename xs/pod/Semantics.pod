@@ -67,22 +67,7 @@ normalize-whitespace: 1
 
 =head1 OVERVIEW
 
-Marpa's semantics is of two kinds:
-
-=over
-
-=item * The value semantics.
-This is the semantics which produces the value of the parse tree.
-
-=item * The ranking semantics, which is used
-to rank ambiguous parse results, but which can be exploited for
-its side effects.
-
-=back
-
-=head2 Value Semantics
-
-Marpa's value semantics will be
+Marpa's semantics will be
 familiar
 to those who have used traditional
 methods to evaluate parses.
@@ -115,8 +100,8 @@ initialized when the recognizer is created.
 =head2 Action Names and Actions
 
 When a Marpa grammar is created,
-much of its value semantics and ranking semantics
-is 
+much of its semantics
+are 
 specified indirectly, as B<action names>.
 Marpa does not allow semantics to be 
 specified directly as Perl closures
@@ -147,10 +132,6 @@ The action names and actions used to produce the
 node value are called
 B<value action names> and
 B<value actions>.
-The action names and actions used to rank nodes
-are called
-B<ranking action names> and
-B<ranking actions>.
 
 An action name
 and action is also used
@@ -159,7 +140,7 @@ as L<described
 below|/"THE PER-PARSE VARIABLE">.
 The per-parse variable is a special case,
 but it is intended to be used as part of
-the value semantics.
+the semantics.
 
 =head1 NODES
 
@@ -321,8 +302,6 @@ While processing a parse series, we have:
 
 =item * A Series Setup Phase, followed by
 
-=item * an optional Ranking Phase, followed by
-
 =item * the processing of zero or more parse results.
 
 =back
@@ -371,30 +350,6 @@ the recognizer's
 L<C<value>|Marpa::XS::Recognizer/"value">
 method of each parse series.
 
-=head2 Ranking Phase
-
-In the Ranking Phase, all ranking action
-names are resolved to Perl
-closures (ranking actions),
-and those ranking actions are called.
-The entire ranking semantics is carried
-out in the Ranking Phase.
-The Ranking Phase is
-the only phase in which ranking action names are
-resolved and the only phase
-in which ranking actions are called.
-
-Ranking Phases do not occur if
-recognizer's L<ranking_method|Marpa::XS::Recognizer/"ranking_method">
-is "C<none>", which is the default.
-If the recognizer's
-ranking method is set to a value other than "C<none>",
-a Ranking Phase occurs during the first call
-of the recognizer's
-L<C<value>|Marpa::XS::Recognizer/"value">
-method for
-each parse series.
-
 =head2 Result Setup Phase
 
 In the Result Setup Phase,
@@ -408,9 +363,6 @@ for each parse result.
 In every parse series,
 all the Result Setup Phases occur
 after the Series Setup Phase.
-In every parse series which has a Ranking Phase,
-all the Result Setup Phases occur
-after the Ranking Phase.
 For each parse result,
 the Result Setup Phase occurs before
 its Tree Traversal Phase.
@@ -660,39 +612,6 @@ By default, the order is arbitrary, but
 it is also possible to control the order.
 Details are in L<the document
 on parse order|Marpa::XS::Semantics::Order>.
-
-=head1 CONTEXT-AWARE STATIC METHODS
-
-=for Marpa::XS::Display
-name: Marpa::token_location example
-perltidy: '-dcsc -sil=0'
-
-    sub rank_null_a {
-        return \( ( $MyTest::MAXIMAL ? -1 : 1 )
-            * 10**( 3 - Marpa::token_location() ) );
-    }
-
-=for Marpa::XS::Display::End
-
-Ranking Perl closures
-have
-available a set of B<context-aware static methods>.
-A ranking action can use these methods to learn
-about the context in which it is called.
-As of this writing, the context-aware
-static methods are available for the
-ranking actions only.
-This may change in the future.
-
-=head2 Marpa::location
-
-Returns the location of the origin (or start) of the rule.
-
-=head2 Marpa::token_location
-
-Returns the location of the token.
-Intended for use in callbacks
-associated with empty rules and nulling symbols.
 
 =head1 INFINITE LOOPS
 

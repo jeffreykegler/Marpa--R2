@@ -1267,16 +1267,6 @@ sub Marpa::Perl::parse {
     return $parser->Marpa::Perl::eval();
 } ## end sub Marpa::Perl::parse
 
-# Context-sensitive callback for
-# application-provided closures to use.
-sub Marpa::Perl::token {
-    Marpa::exception('No Perl context for token callback')
-        if not my $context = $Marpa::Perl::Internal::CONTEXT;
-    my ( $PPI_tokens, $earleme_to_token ) = @{$context};
-    my $earleme = Marpa::location();
-    return $PPI_tokens->[ $earleme_to_token->[$earleme] ];
-} ## end sub Marpa::Perl::token
-
 sub Marpa::Perl::default_show_location {
     my ($token) = @_;
     my $file_name = $token->logical_filename();

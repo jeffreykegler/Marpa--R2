@@ -143,8 +143,6 @@ require Marpa::XS::Callback;
 *Marpa::Recognizer::terminals_expected = \&Marpa::XS::Recognizer::terminals_expected;
 *Marpa::Recognizer::tokens = \&Marpa::XS::Recognizer::tokens;
 *Marpa::Recognizer::value = \&Marpa::XS::Recognizer::value;
-*Marpa::location = \&Marpa::XS::location;
-*Marpa::token_location = \&Marpa::XS::token_location;
 
 return 1;
 

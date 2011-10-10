@@ -47,7 +47,6 @@ my $grammar = Marpa::Grammar->new(
         strip   => 0,
         rules   => [
             [ Top => [qw/C/] ],
-            [ C => [qw/a C z/] ],
             [ C => [qw/ASeries y/] ],
             [ ASeries => [qw/a ASeries/] ],
             [ ASeries => [qw/a/] ],

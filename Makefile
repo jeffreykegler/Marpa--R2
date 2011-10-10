@@ -26,9 +26,11 @@ xst: xs_basic_test xs_html_test
 libs: pplib xslib
 
 pplib:
+	(cd dpplib; rm -rf *)
 	(cd pp; ./Build install --install_base ../dpplib)
 
 xslib:
+	(cd dxslib; rm -rf *)
 	(cd xs; ./Build install --install_base ../dxslib)
 
 html_blib:
