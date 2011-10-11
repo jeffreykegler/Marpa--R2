@@ -28,7 +28,7 @@ The same mechanism allows the selection of parse results.
 It can also be exploited to do the actual processing
 of parses, using side effects.
 
-=head2 Duplicate Parses are Eliminated
+=head2 Duplicate parses are eliminated
 
 In a single parse series,
 Marpa will never return the same parse result twice.
@@ -49,7 +49,7 @@ When the Marpa documentation refers to duplicate
 parses, it will mean semantic duplicates unless otherwise
 stated.
 
-=head2 Default Parse Order
+=head2 Default parse order
 
 By calling
 the recognizer's
@@ -64,7 +64,162 @@ This corresponds to the "C<none>" value of
 L<the recognizer's C<ranking_method>|Marpa::XS::Recognizer/"ranking_method">
 named argument.
 
-=head2 A General Approach to Sorting Parses
+=head2 Arbitrary parse order
+
+As the term is used in the Marpa documents,
+"arbitrary parse order" means that no property of
+the order, except avoidance of duplicates,
+can be relied on by an application.
+In particular, where the parse order is arbitrary,
+it may change from version to version of the software,
+or from parse to parse with the same version.
+
+For an application which is indifferent to the order
+of parses,
+arbitrary parse order is acceptable.
+For example,
+an application which collects all the parses and sorts them
+itself will not care about the order in which it received the
+parses.
+Application writers should be careful that their applications
+are truly indifferent to an arbitrary parse order,
+and not just relying on its current, unguaranteed, properties.
+
+=head2 Ranking methods
+
+Marpa Grammar objects have L<a C<ranking_method> named
+argument|Marpa::XS::Recognizer/"ranking_method">,
+whose value can be the name of a ranking method,
+or "C<none>", indicating that the default ranking method is to
+be used.
+
+=head2 The C<rule> ranking method
+
+The rule method ranks alternative parses according to their rules.
+Every rule has a B<rule rank>.
+A rule's rank can be specified using the 
+the C<rank> named
+argument for that rule.
+Rule ranks must be integers.
+If no rule rank is specified, the rule rank is 0.
+
+Ranking using the C<rule> ranking method
+takes place in top-down, left-to-right order.
+
+=head2 Null ranking
+
+Some rules have a RHS which contains
+B<proper nullables>, symbols
+which may be nulled, but which are not nulling
+symbols.
+(Nulling symbols are those which are B<always> nulled.)
+
+Where a rule contains proper nullables, each application
+of that rule to a section of input creates a pattern of
+symbols which are and are not nulled.
+In many cases, this creates an ambiguity -- several
+patterns could apply to the same input substring.
+In ambiguous parsings of this kind,
+some applications may want the ranking to prefer non-null symbols.
+Others may want to the parse order to rank nulled symbols higher.
+
+Call an B<input substring> a section of a parse's input with
+a fixed beginning and end.
+An input substring can be thought of either as a string or
+as a sequence of tokens, whichever is convenient.
+If a parse is ambiguious,
+a single rule can match an
+input substring in several ways.
+One source of this kind of ambiguity is the pattern
+of nulled and non-nulled symbols.
+For a particular rule,
+call a pattern of nulled and non-nulled symbols
+a B<nulling variant> of that rule.
+
+Nulling variants are ranking by preferring nulled or
+non-nulled symbols in left-to-right order.
+The 
+L<C<null_ranking> named
+argument for rules|Marpa::XS::Grammar/"null_ranking">
+specifies whether nulled or non-nulled symbols are preferred.
+If the C<null_ranking> is "C<low>", nulled symbols are
+ranked low, so that non-nulled symbols are preferred.
+If the C<null_ranking> is "C<high>", nulled symbols are
+ranked high, so that they are preferred.
+
+By default, 
+C<null_ranking> is undefined, which means the order
+of the null variants is arbitrary.
+This will be acceptable to most applications.
+
+=head3 Details of rule comparison
+
+Call a rule B<null ranked> if and only if it has one or more proper
+nullables on its RHS, and its C<null_ranking> is defined.
+Note that this definition implies that a rule without proper nullables
+will is NOT null ranked, even if a C<null_ranking> was explicitly
+specified for it.
+
+If only one rule is involved and it is null ranked,
+rule variants are ordered based on null ranking as described above.
+If only one rule is involved and it is non-null-ranked,
+the ranking of the rule applications is arbitrary.
+
+Where rules with different rule ranks are involved,
+the rule ranks take priority.
+Null ranking are never taken into consideration when
+comparing rules of different rule ranks.
+
+If rules with the same rule rank are compared,
+but none of them are null ranked,
+their order is arbitrary.
+
+The rest of this section
+deals with rule comparisons where more than one
+rule is involved, all the rules have the same rank
+and at least one of the rules is null ranked.
+
+The guiding principle is as follows:
+A non-null-ranked rule will NEVER be outranked by
+a null ranked rule.  A null ranked rule variant, at best,
+ranks the same as a non-null-ranked rule.
+
+When comparing null variants between different null ranked
+rules, the relative ranking of the null variants is arbitrary.
+All an application can rely on about the order of the rule variants
+is that it will preserve relative order of the variants within
+each null ranked rule.
+
+In particular, it is arbitrary whether all the null
+variants of one null ranked rule outrank all of those of another,
+whether they are interleaved,
+and whether in the interleaving some null variants rank equal
+to others.
+An application, if it requires non-arbitrary behavior in comparisons
+of null variants between rules, should
+rewrite its grammar or
+use rule ranks
+to guarantee the required behavior.
+
+For each null ranked rule,
+exactly one null variant has the highest null ranking of the rule
+In each rule comparison involving a null ranked rule,
+a least one null variant has the highest null ranking of
+the rule comparison.
+If there are I<N> null ranked rules in the comparison,
+there will be from 1 to I<N> null variants with the highest null ranking.
+Exactly how many there are, and which rules they represent,
+is arbitrary.
+
+Whenever a non-null-ranked rule is compared to a null ranked
+rule (again, assuming both have the same rule rank),
+the non-null-ranked rule is treated as having the highest
+null ranking of the comparison.
+As a consequence, the null ranked rule
+may compare equal to the non-null-ranked rule,
+but it will never outrank it.
+
+=head2 A general approach to sorting parses
 
 The most general way to sort Marpa parses is for the application
 to take control.
@@ -85,32 +240,15 @@ In practice, ambiguity tends to get out of hand very easily.
 Producing and sorting all the parses can take a very
 long time.
 
-=head2 The Constant Ranking Method
+=head2 The C<constant> ranking method is not longer supported
 
 In the past,
-Marpa supported a simplified approach to sorting parses,
+Marpa supported a approach to sorting parses,
 called the Constant Ranking Method.
-The Constant Ranking Method was intended to be
-flexible enough to handle many, perhaps even most,
-practical applications,
-but simple enough that Marpa is able to optimize it.
-
-The first implementation of
-the Constant Ranking Method had a semantics which
-made the rank of a node depend on which of its children
-were actually
-used in each parse result.
-While this is what a user would intuitively expect,
-it required the
-the ranks of subtrees to be recalculated dynamically,
-and partially iterated subtrees to be stored and
-regrafted into the tree being parsed.
-The code to do this was very complicated
-and the efficiency trade-offs
-arguable.
-The Constant Ranking Method
-is currently being simplified.
-Until its features settle, its documentation has been removed.
+An initial attempt to find the sweet spot
+between flexibity and efficiency,
+the Constant Ranking Method was a design failure,
+and is no longer implemented.
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -712,10 +712,6 @@ sub Marpa::XS::Grammar::precompute {
 	}
 	$rule->[Marpa::XS::Internal::Rule::CHAF_RANK] = $rank;
 
-# if ($ENV{'MARPA_AUTHOR_TEST'}) {
-    # say STDERR "Rank ", $rule->[Marpa::XS::Internal::Rule::CHAF_RANK], "; rule: ", $grammar->brief_rule($rule_id);
-# }
-
     }
 
     return $grammar;

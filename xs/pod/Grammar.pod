@@ -794,6 +794,21 @@ and will be allowed to match
 the sequence item
 an unlimited number of times.
 
+=head2 null_ranking
+
+Sometimes the same rule may apply to an input substring
+in different ways.
+Where the different is due to nullable symbols on the rule's
+RHS,
+the C<null_ranking> named argument is a method of fine-tuning
+the order in which those rule applications appear in the
+evaluation.
+Default is the C<null_ranking> to be undefined,
+which means the order will be arbitrary.
+Most applications will find the default acceptable.
+For details,
+see L<the document on parse order|Marpa::XS::Semantics::Order>.
+
 =head2 proper
 
 By default, sequence rules with separators allow trailing
