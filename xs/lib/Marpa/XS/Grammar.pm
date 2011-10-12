@@ -673,6 +673,8 @@ sub Marpa::XS::Grammar::precompute {
 
     RULE: for my $rule (@{$rules}) {
 
+	# default to higher than any possible CHAF rank
+	$rule->[Marpa::XS::Internal::Rule::CHAF_RANK] = 99;
          my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
 	 my $virtual_start = $grammar_c->rule_virtual_start($rule_id);
 

@@ -42,7 +42,7 @@ sub start_rule_action {
 ## use critic
 
 sub gen_grammar {
-    my ($direction) = @_;
+    my ($is_count_up) = @_;
     my $grammar = Marpa::Grammar->new(
         {   start => 'S',
             strip => 0,
@@ -53,12 +53,12 @@ sub gen_grammar {
                 },
                 {   lhs    => 'digit',
                     rhs    => ['zero'],
-                    rank   => $direction ? 0 : 1,
+                    rank   => $is_count_up ? 1 : 0,
                     action => 'main::zero'
                 },
                 {   lhs    => 'digit',
                     rhs    => ['one'],
-                    rank   => $direction ? 1 : 0,
+                    rank   => $is_count_up ? 0 : 1,
                     action => 'main::one'
                 },
                 {   lhs => 'one',
@@ -78,11 +78,11 @@ my @counting_up =
     qw{ 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111 };
 my @counting_down = reverse @counting_up;
 
-for my $direction ( 1, 0 ) {
-    my $count = $direction ? ( \@counting_up ) : ( \@counting_down );
-    my $direction_desc = $direction ? 'up' : 'down';
+for my $is_count_up ( 1, 0 ) {
+    my $count = $is_count_up ? ( \@counting_up ) : ( \@counting_down );
+    my $direction_desc = $is_count_up ? 'up' : 'down';
     my $recce = Marpa::Recognizer->new(
-        { grammar => gen_grammar($direction), ranking_method => 'rule' } );
+        { grammar => gen_grammar($is_count_up), ranking_method => 'rule' } );
 
     my $input_length = 4;
     $recce->tokens( [ ( ['t'] ) x $input_length ] );
@@ -91,11 +91,10 @@ for my $direction ( 1, 0 ) {
     while ( my $result = $recce->value() ) {
         my $got      = ${$result};
         my $expected = reverse $count->[$i];
-        say ${$result} or die("Could not print to STDOUT: $ERRNO");
         Test::More::is( $got, $expected, "counting $direction_desc $i" );
         $i++;
     } ## end while ( my $result = $recce->value() )
-} ## end for my $direction ( 1, 0 )
+} ## end for my $is_count_up ( 1, 0 )
 
 1;    # In case used as "do" file
 

@@ -530,33 +530,37 @@ sub do_high_rule_only {
         for my $and_node (@and_nodes) {
             my $token = $recce_c->and_node_symbol($and_node);
             if ( defined $token ) {
-                push @ranking_data, [ $and_node, $rank_by_symbol[$token] ];
+                push @ranking_data,
+                    [ $and_node, $rank_by_symbol[$token], 99 ];
                 next AND_NODE;
             }
-            my $cause = $recce_c->and_node_cause($and_node);
-            my $rule_id  = $recce_c->or_node_rule($cause);
-	    my $rule = $rules->[$rule_id];
+            my $cause   = $recce_c->and_node_cause($and_node);
+            my $rule_id = $recce_c->or_node_rule($cause);
+            my $rule    = $rules->[$rule_id];
             push @ranking_data,
                 [
                 $and_node, $rank_by_rule[$rule_id],
                 $rule->[Marpa::XS::Internal::Rule::CHAF_RANK]
                 ];
         } ## end for my $and_node (@and_nodes)
-        my $max_rank = List::Util::max( map { $_->[1] } @ranking_data );
-        @ranking_data     = grep { $_->[1] == $max_rank } @ranking_data;
-        my $max_chaf_rank = List::Util::max( grep { defined } map { $_->[2] } @ranking_data );
-	my @ranked_and_nodes = ();
-	DATUM: for my $ranking_datum (@ranking_data) {
-	    my $chaf_rank = $ranking_datum->[2];
-	    next DATUM if defined $chaf_rank and $chaf_rank < $max_chaf_rank;
-	    push @ranked_and_nodes, $ranking_datum->[0];
+	my @sorted_and_data = sort {
+	     $b->[1] <=> $a->[1] or
+	     $b->[2] <=> $a->[2]
+	} @ranking_data;
+	my ($first_selected_and_node, $high_rule_rank, $high_chaf_rank) = @{$sorted_and_data[0]};
+	my @selected_and_nodes = ($first_selected_and_node);
+	AND_DATUM: for my $and_datum (@sorted_and_data[1 .. $#sorted_and_data]) {
+	    my ($and_node, $rule_rank, $chaf_rank) = @{$and_datum};
+	    last AND_DATUM if $rule_rank < $high_rule_rank;
+	    last AND_DATUM if $chaf_rank < $high_chaf_rank;
+	    push @selected_and_nodes, $and_node;
 	}
-        $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
+        $recce_c->and_node_order_set( $or_node, \@selected_and_nodes );
         push @or_nodes, grep {defined} map {
             (   $recce_c->and_node_predecessor($_),
                 $recce_c->and_node_cause($_)
                 )
-        } @ranked_and_nodes;
+        } @selected_and_nodes;
     } ## end while ( my $or_node = pop @or_nodes )
 }
 
@@ -607,13 +611,13 @@ sub do_rank_by_rule {
             push @ranking_data,
                 [
                 $and_node, $rank_by_rule[$rule_id],
-                $rule->[Marpa::XS::Internal::Rule::CHAF_RANK], 99
+                $rule->[Marpa::XS::Internal::Rule::CHAF_RANK]
                 ];
         } ## end for my $and_node (@and_nodes)
 
 	my @ranked_and_nodes = map { $_->[0] } sort {
-	     $a->[1] <=> $b->[1] or
-	     $a->[2] <=> $b->[2]
+	     $b->[1] <=> $a->[1] or
+	     $b->[2] <=> $a->[2]
 	} @ranking_data;
         $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
         push @or_nodes, grep {defined} map {
