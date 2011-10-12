@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Tracing - Tracing Your Grammar
+Marpa::XS::Tracing - Tracing your Marpa grammar
 
 =head1 DESCRIPTION
 

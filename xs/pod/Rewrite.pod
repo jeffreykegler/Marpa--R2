@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Rewrite - How Marpa Rewrites Grammars
+Marpa::XS::Rewrite - How Marpa rewrites grammars
 
 =head1 OVERVIEW
 

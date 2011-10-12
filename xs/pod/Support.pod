@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Support - Marpa::XS Support, and How to Report Bugs
+Marpa::XS::Support - Marpa::XS Support, and how to report bugs
 
 =head1 DESCRIPTION
 

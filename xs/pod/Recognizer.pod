@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Recognizer - Marpa Recognizer Objects
+Marpa::XS::Recognizer - Marpa recognizers
 
 =head1 SYNOPSIS
 

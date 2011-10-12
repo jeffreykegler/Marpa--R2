@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Semantics - How Marpa Evaluates Parses
+Marpa::XS::Semantics - How Marpa evaluates parses
 
 =head1 SYNOPSIS
 

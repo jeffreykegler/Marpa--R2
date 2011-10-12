@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Grammar - Marpa Grammar Objects
+Marpa::XS::Grammar - Marpa grammars
 
 =head1 SYNOPSIS
 

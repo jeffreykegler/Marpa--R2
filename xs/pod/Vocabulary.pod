@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Vocabulary - Standard Parsing Terms as Used within Marpa
+Marpa::XS::Vocabulary - Standard parsing terms as used within Marpa
 
 =head1 DESCRIPTION
 

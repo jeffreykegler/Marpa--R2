@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Debug - Marpa Grammar Debugging
+Marpa::XS::Debug - Debugging your Marpa grammar
 
 =head1 OVERVIEW
 
