@@ -673,19 +673,26 @@ sub Marpa::XS::Grammar::precompute {
 
     RULE: for my $rule (@{$rules}) {
 
-	# default to higher than any possible CHAF rank
-	$rule->[Marpa::XS::Internal::Rule::CHAF_RANK] = 99;
          my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
-	 my $virtual_start = $grammar_c->rule_virtual_start($rule_id);
-
-	 # Nothing to do unless this is a CHAF rule
-	 next RULE if $virtual_start < 0;
 	 my $original_rule_id = $grammar_c->rule_original($rule_id);
-	 my $original_rule = $rules->[$original_rule_id];
+	 my $original_rule = defined $original_rule_id ? $rules->[$original_rule_id] : $rule;
 
-	 # If nulling and proper symbols rank the same, nothing to do
+	 # If not null ranked, default to highest CHAF rank
          my $null_ranking = $original_rule->[Marpa::XS::Internal::Rule::NULL_RANKING];
-	 next RULE if not $null_ranking;
+	 if (not $null_ranking) {
+	    $rule->[Marpa::XS::Internal::Rule::CHAF_RANK] = 99;
+	    next RULE;
+	 }
+
+	 # If this rule is marked as null ranked,
+	 # but it is not actually a CHAF rule, rank it below
+	 # all non-null-ranked rules, but above all rules with CHAF
+	 # ranks actually computed from the proper nullables
+	 my $virtual_start = $grammar_c->rule_virtual_start($rule_id);
+	 if ($virtual_start < 0) {
+	    $rule->[Marpa::XS::Internal::Rule::CHAF_RANK] = 98;
+	    next RULE;
+	 }
 
 	 my $original_rule_length = $grammar_c->rule_length($original_rule_id);
 
