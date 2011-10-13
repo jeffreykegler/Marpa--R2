@@ -468,7 +468,7 @@ specifies a class name to be used
 in resolving action names to Perl closures.
 A C<new> constructor must be defined
 in the C<action_object> package.
-It will be used to create the per-parse variables.
+It will be used to create the per-parse-tree variables.
 Details are in
 L<the document on semantics|Marpa::XS::Semantics>.
 

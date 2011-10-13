@@ -505,9 +505,9 @@ normalize-whitespace: 1
 Value actions are Perl closures used as callbacks.
 Value actions are called when nodes in a parse tree are evaluated.
 A value action receives one or more arguments.
-The first argument to a value action is always a per-parse-result
+The first argument to a value action is always a per-parse-tree
 object, which the callbacks can use as a scratchpad.
-In these examples, the per-parse-result object is not used.
+In these examples, the per-parse-tree object is not used.
 
 For a non-empty rule,
 the second and any subsequent arguments to the callback are
@@ -516,15 +516,15 @@ in lexical order,
 of the symbols on the right hand side of
 the rule.
 If the action is for an empty rule,
-the per-parse-result object will be its only argument.
+the per-parse-tree object will be its only argument.
 
 Every value action is expected to return a value.
 With one exception,
 this value is passed up to a parent node
 as an argument.
 The exception is the value for the start rule.
-The return value for the start rule
-becomes the value of the parse result.
+The return value for the start rule becomes
+the parse result.
 
 Rules with no action specified for them take their
 semantics from the C<default_action> named argument.
@@ -545,10 +545,10 @@ and the C<@tokens> array remain
 the same as before.
 
 Eliminating precedence makes the grammar shorter,
-but it also means there can be multiple parse results,
-and that the different parse results can have different values.
+but it also means there can be multiple parse trees,
+and that the different parse trees can have different parse results.
 In this application we decide, for each input,
-to return the value for every one of the parse results.
+to return every one of the parse results.
 
 =for Marpa::XS::Display
 name: Engine Synopsis Ambiguous Parse
@@ -627,7 +627,7 @@ normalize-whitespace: 1
 When called more than once,
 the C<Marpa::Recognizer::value> method iterates through the parse results.
 For each call,
-it returns a reference to the value of a parse result.
+it returns a reference to the parse result.
 At the end of the iteration, after
 all parse results have been returned,
 C<Marpa::Recognizer::value> returns C<undef>.

@@ -414,7 +414,7 @@ In the Marpa context, a grammar with an associated start symbol
 is B<ambiguous> if and only if,
 for some UNAMBIGUOUS stream of input tokens,
 that grammar with that start symbol produces
-more than one parse result.
+more than one parse tree.
 A Marpa grammar is B<ambiguous> if that Marpa grammar with its
 default start symbol is ambiguous.
 

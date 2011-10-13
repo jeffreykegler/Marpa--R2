@@ -60,7 +60,7 @@ he wants to rewrite it before proceeding.
 By default, an infinitely ambiguous grammar is a fatal error.
 This is the behavior most users will want.
 
-To proceed to producing parse results from an infinitely ambiguous grammar,
+To produce parse results from an infinitely ambiguous grammar,
 the user must set
 the grammar's
 L<C<infinite_action>|Marpa::XS::Grammar/"infinite_action">
@@ -96,8 +96,8 @@ ignore: 1
 
 =for Marpa::XS::Display::End
 
-Of the parse results in the above list, Marpa would return a value
-only for the first,
+Marpa would return a parse result
+only for the first parse tree in the list above,
 the one whose cycle length is 1.
 
 =head1 LIMITATIONS

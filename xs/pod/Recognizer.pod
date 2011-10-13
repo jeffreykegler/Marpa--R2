@@ -39,7 +39,7 @@ To create a recognizer object, use L<the C<new> method|/new>.
 
 To read input, use L<the C<read> method|/read>.
 
-To evaluate a parse result, based on the input, use L<the C<value> method|/value>.
+To evaluate a parse tree, based on the input, use L<the C<value> method|/value>.
 
 =head2 Token Streams
 
@@ -200,7 +200,8 @@ Marpa throws an exception.
 
 =head2 value
 
-The C<value> mutator evaluates and returns a parse result.
+The C<value> mutator evaluates a parse tree
+and returns a parse result.
 It is described in L<its own section|/"EVALUATION">.
 
 =head1 TRACE ACCESSORS

@@ -135,10 +135,10 @@ B<value actions>.
 
 An action name
 and action is also used
-to create the per-parse variable,
+to create the per-parse-tree variable,
 as L<described
-below|/"THE PER-PARSE VARIABLE">.
-The per-parse variable is a special case,
+below|/"THE PER-PARSE-TREE VARIABLE">.
+The per-parse-tree variable is a special case,
 but it is intended to be used as part of
 the semantics.
 
@@ -172,7 +172,7 @@ rule nodes are called value actions.
 
 A value action's
 arguments will be a
-per-parse variable followed by
+per-parse-tree variable followed by
 the values of its child nodes in lexical order.
 The return value of a value action becomes the
 value of the node.
@@ -191,7 +191,7 @@ applies to sequence rule nodes.
 Specifically,
 the arguments to the value actions for sequence rules
 are the 
-per-parse variable followed by
+per-parse-tree variable followed by
 the values of the child nodes in lexical order.
 
 The difference (and it is a big one)
@@ -251,14 +251,14 @@ This section describes that order in detail.
 These details can matter in some applications,
 for example, those which exploit side effects.
 
-=head2 Evaluations, Parse Results and Parse Series
+=head2 Parse trees, parse results and parse series
 
-When the semantics are applied to a parse,
+When the semantics are applied to a parse tree,
 it produces a value called a B<parse result>.
 Because Marpa allows ambiguous parsing,
-each parse can have zero or more parse results.
-A B<parse series> is the series of zero or more parse results
-for a single B<evaluation>.
+each parse can produce a B<parse series> --
+a series of zero or more parse trees,
+each with its own parse result.
 The first call to the 
 L<the recognizer's C<value>
 method|Marpa::XS::Recognizer/"value">
@@ -302,15 +302,16 @@ While processing a parse series, we have:
 
 =item * A Series Setup Phase, followed by
 
-=item * the processing of zero or more parse results.
+=item * the processing of zero or more parse trees
+to produce a parse result.
 
 =back
 
-While processing a parse result, we have:
+While processing a parse tree, we have:
 
 =over
 
-=item * A Result Setup Phase, followed by
+=item * A Tree Setup Phase, followed by
 
 =item * a Tree Traveral Phase.
 
@@ -350,31 +351,31 @@ the recognizer's
 L<C<value>|Marpa::XS::Recognizer/"value">
 method of each parse series.
 
-=head2 Result Setup Phase
+=head2 Tree Setup Phase
 
-In the Result Setup Phase,
-the per-parse variable is created.
+In the Tree Setup Phase,
+the per-parse-tree variable is created.
 If a constructor was found for the C<action_object>,
-it is run at this point, and the per-parse variable is
+it is run at this point, and the per-parse-tree variable is
 its return value.
-Exactly one Result Setup Phase occurs
-for each parse result.
+Exactly one Tree Setup Phase occurs
+for each parse tree.
 
 In every parse series,
-all the Result Setup Phases occur
+all the Tree Setup Phases occur
 after the Series Setup Phase.
-For each parse result,
-the Result Setup Phase occurs before
+For each parse tree,
+the Tree Setup Phase occurs before
 its Tree Traversal Phase.
 
 =head2 Tree Traversal Phase
 
 During the Tree Traversal Phase,
 the semantic Perl closures are called.
-For each parse result,
+For each parse tree,
 there is exactly one
 Tree Traversal Phase,
-which follows the Result Setup Phase.
+which follows the Tree Setup Phase.
 
 During parse tree traversal, Node Evaluation Time occurs
 for every node in the parse.
@@ -535,14 +536,14 @@ she can specify
 C<"main">
 as the value of the C<actions> named argument.
 
-=head1 THE PER-PARSE VARIABLE
+=head1 THE PER-PARSE-TREE VARIABLE
 
-In the Result Setup Phase,
-Marpa creates a per-parse variable.
+In the Tree Setup Phase,
+Marpa creates a per-parse-tree variable.
 This becomes the first argument of the semantic Perl closures for
 the rule nodes.
 If the grammar's C<action_object> named argument is not defined,
-the per-parse variable is initialized to an empty hash ref.
+the per-parse-tree variable is initialized to an empty hash ref.
 
 Most data for
 the value actions of the rules
@@ -551,13 +552,13 @@ The actions will see the values of the rule node's child nodes
 as arguments,
 and will return their own value to be seen as an argument
 by their parent node.
-The per-parse variable can be used for data which does not
+The per-parse-tree variable can be used for data which does not
 conveniently fit this model.
 
-The lifetime of the per-parse variable
+The lifetime of the per-parse-tree variable
 extends into the Tree Traversal Phase.
 During the Tree Traversal Phase,
-Marpa's internals never alter the per-parse variable --
+Marpa's internals never alter the per-parse-tree variable --
 it is reserved for use by the application.
 
 =head2 Action Object Constructor
@@ -569,9 +570,9 @@ the C<new> method
 in the C<action_object> class.
 
 The action object constructor is called
-in the Result Setup Phase.
+in the Tree Setup Phase.
 The return value of the
-action object constructor becomes the per-parse variable.
+action object constructor becomes the per-parse-tree variable.
 It is a fatal error if the
 grammar's C<action_object> named argument is defined,
 but does not name a class with a C<new> method.

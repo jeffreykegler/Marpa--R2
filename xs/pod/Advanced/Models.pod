@@ -348,7 +348,8 @@ same as ambiguities caused by an ambiguous grammar.
 
 In the standard
 terminology,
-if a grammar produces more than one parse result,
+if a grammar produces more than one parse tree
+for any input,
 then that grammar must be ambiguous.
 In Marpa this is not strictly true.
 In Marpa,

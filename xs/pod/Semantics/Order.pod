@@ -15,36 +15,47 @@
 
 =head1 NAME
 
-Marpa::XS::Semantics::Order - How Marpa Ranks Ambiguous Parses
+Marpa::XS::Semantics::Order - How Marpa ranks ambiguous parses
 
 =head1 DESCRIPTION
 
-This document details the order in which
+Marpa allows ambiguous parses.
+While an unambiguous parse can produce at most one parse tree
+and one parse result,
+an ambiguous parse will produce a parse series.
+A parse series is a sequence of parse trees,
+each of which will have its own parse result.
+
+This document describes ways of controlling
+the order in which
 the recognizer's
 L<C<value>|Marpa::XS::Recognizer/"value">
 method
-returns parse results.
-The same mechanism allows the selection of parse results.
-It can also be exploited to do the actual processing
-of parses, using side effects.
+evaluates the parse
+trees of an ambiguous parse.
+It also describes ways to excluding selected parse trees
+from the parse series.
 
 =head2 Duplicate parses are eliminated
 
-In a single parse series,
-Marpa will never return the same parse result twice.
-Marpa regards two parses as being the same if they are
+When evaluating the parse results of a parse series,
+Marpa does not evaluate the same parse tree twice.
+Marpa considers two parse trees to be the same if they are
 B<semantic duplicates>.
 
-Two parses are semantic duplicates if
+Two parse trees are semantic duplicates if
+and only if
 a recursive, top-down evaluation of each
 applies
 the same rules
 in the same order
 at the same earleme locations.
-When this is the case,
-a deterministic semantics will
-always produce the same value for both parses --
-hence the term "semantic duplicate".
+This definition implies that,
+given any deterministic semantics,
+two parse trees which are
+semantic duplicates
+will always produce the same parse result --
+hence the term "semantic duplicates".
 When the Marpa documentation refers to duplicate
 parses, it will mean semantic duplicates unless otherwise
 stated.
@@ -57,7 +68,7 @@ L<C<value>|Marpa::XS::Recognizer/"value">
 method
 repeatedly,
 Marpa can produce all the parse results
-for a given parse.
+of the current parse series.
 The default is for the parse results to be returned
 in an arbitrary order.
 This corresponds to the "C<none>" value of
@@ -81,11 +92,14 @@ or from call to call of the methods.
 
 "Arbitrary parse order", in particular,
 means that the particular order in which
-parse results are received may not be repeated.
+parse trees are evaluated may not be repeated.
 An application can expect,
-even when the order of parse results is arbitrary,
-that all appropriate parse results will be included,
-and that there will be no duplicates.
+even when the order of evaluation
+of the parse trees is arbitrary,
+that all appropriate parse trees
+will be included in the parse series,
+and that none of the parse trees in the parse series
+will be the semantic duplicate of any other.
 
 In the situations in which it occurs, arbitrary parse
 order is usually acceptable.
@@ -129,9 +143,9 @@ If no rule rank is specified, the rule rank is 0.
 The choice points of the parse trees,
 are traversed top-down, left-to-right.
 Since the C<high_rule_only> ranking method eliminates some
-parse results, it can reduce or eliminate the ambiguity of a parse,
+parse trees, it can reduce or eliminate the ambiguity of a parse,
 but it does not necessarily do either.
-This is because, at each choice point in the parse trees,
+This is because, at each choice point among the parse trees,
 it is possible that several of the choices,
 or all of them, will have the same rank.
 
@@ -255,7 +269,7 @@ either one may rank high, or they may both rank equal.
 The most general way to sort Marpa parses is for the application
 to take control.
 The application can set up the Marpa semantic actions
-so that the value of every parse result is a
+so that the parse result of every parse tree is a
 C<< <rank, true_value> >> duple.
 The duples can then be sorted by C<rank>.
 Once the resuls are sorted,
