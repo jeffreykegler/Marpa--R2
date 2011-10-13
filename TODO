@@ -1,3 +1,10 @@
+For R2, visit action names vs. rule names -- both needed?
+For R2, default semantics => 'arbitrary'
+For R2, add 'arg0' semantics
+For R2, revisit LHS as action name
+For R2, in libmarpa, special-case null parse
+For R2, eliminate SINGLE_PARSE_MODE
+For R2, eliminate tokens()
 Remove Marpa::XS::length static method
 Document recce->latest_earley_set method
 Document rule name, recce->rule_by_name() once there is a test for them
