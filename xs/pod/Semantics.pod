@@ -147,8 +147,7 @@ the semantics.
 =head2 Token nodes
 
 For every input token, there is an associated B<token node>.
-In the default model of input,
-every token will become a leaf node
+Token nodes are leaf nodes
 in the parse tree.
 Tokens always have a B<token symbol>.
 At lexing time,
@@ -344,6 +343,9 @@ The value actions are never called in the Series Setup Phase.
 Value actions are called
 in the Tree Traversal Phase.
 
+Also during the Series Setup Phase,
+the logic which
+ranks parse trees is executed.
 Exactly one Series Setup Phase occurs for each parse
 series.
 A Series Setup Phase occurs in the first call of
@@ -523,7 +525,7 @@ one case in which Marpa
 will look at other alternatives.
 
 Marpa's philosophy 
-asks the programmer to be specific about action names.
+is to require that the programmer be specific about action names.
 This can be an inconvenience, but Marpa prefers this to
 silently executing unintended code.
 
@@ -593,7 +595,6 @@ If the action object constructor name is
 a hash key in the
 evaluator's C<closures> named argument,
 then 
-the Perl closure referred to by 
 the value of that hash entry becomes the
 action object constructor.
 
@@ -628,8 +629,9 @@ Marpa applies semantics to infinite loops by breaking the loop at
 some convenient point, so that an infinite regress is prevented.
 The exact location at which the loop is broken
 varies among Marpa implementations.
-If an infinite loop is given a null semantics, which is the default,
+If an infinite loop is given a null semantics,
 the location of the break will not matter.
+A null semantics is the default.
 
 More could be done.
 In particular, a precise definition of where loops are broken
