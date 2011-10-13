@@ -28,7 +28,7 @@ Marpa's internal symbols have B<tags> at the end,
 enclosed in square brackets.
 This means that all Marpa internal symbols end in a right square bracket.
 
-=head2 Marpa Adds a New Start Rule
+=head2 Marpa adds a new start rule
 
 Many parsers add their own start rule
 and their own start symbol
@@ -42,7 +42,7 @@ start symbol,
 with "C<['][]>" suffixed.
 An example of a Marpa internal nulling start symbol would be "C<Script['][]>".
 
-=head2 Marpa Eliminates Proper Nullable Symbols
+=head2 Marpa eliminates proper nullable symbols
 
 A symbol is B<nulled> if it produces the empty sentence.
 B<Nulling symbols> are those which are I<always> nulled.
@@ -87,7 +87,7 @@ new rules covering every possible combination of
 the non-nullable and nulling variants.
 That rewrite is called the CHAF rewrite.
 
-=head2 Marpa Divides some Rules up into Smaller Ones
+=head2 Marpa divides some rules up into smaller ones
 
 Here's an example of a CHAF rewrite:
 
@@ -234,7 +234,7 @@ The user's semantic actions
 see the original child values
 as if the CHAF rewrite had never occurred.
 
-=head2 Marpa Converts Sequence Productions to Ordinary Rules
+=head2 Marpa converts sequence productions to BNF rules
 
 Internally, Marpa converts productions specified as sequences into BNF productions.
 The conversion is done in a standard way.  For example,

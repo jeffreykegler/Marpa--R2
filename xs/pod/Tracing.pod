@@ -25,7 +25,7 @@ debugging Marpa parses and grammars.
 
 =head1 BASIC TECHNIQUES
 
-=head2 Check the Input Location Where Parsing Failed
+=head2 Check the input location where parsing failed
 
 If parsing failed in the recognizer,
 look at the input location where it happened.
@@ -36,7 +36,7 @@ even experts (actually, especially experts)
 will sometimes overlook the obvious
 in a rush to use more advanced techniques.
 
-=head2 Turn on Warnings
+=head2 Turn on warnings
 
 Make sure that 
 Marpa's C<warnings> named arguments
@@ -44,7 +44,7 @@ for both the grammar and the recognizer
 are turned on.
 Warnings are on by default.
 
-=head2 Trace Terminals
+=head2 Trace terminals
 
 Turn on the C<trace_terminals> recognizer named argument.
 This tells you which tokens the recognizer is looking for and which ones it thinks it found.
@@ -62,7 +62,7 @@ tokens that the recognizer is looking for
 can also tell you where
 the recognizer thinks it is.
 
-=head2 Trace Progress
+=head2 Trace progress
 
 Tracing the recognizer's progress
 with
@@ -79,21 +79,21 @@ That document includes an
 example of the use of C<show_progress>
 to debug an error in a grammar.
 
-=head2 Double Check Rules and Symbols
+=head2 Double check rules and symbols
 
 It sometimes helps to look carefully at the output of
 C<show_rules> and C<show_symbols>.
 Check if anything there is
 not what you expected.
 
-=head2 Other Traces
+=head2 Other traces
 
 C<trace_actions> will show you how action names resolve to actions.
 Setting the C<trace_values> evaluator named argument to a trace level of 1
 traces the values of the parse tree nodes as they are pushed on, and 
 popped off, the evaluation stack.
 
-=head2 Basic Checklist
+=head2 Basic checklist
 
 A full investigation of a parse
 includes the following:

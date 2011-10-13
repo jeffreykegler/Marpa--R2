@@ -41,7 +41,7 @@ To read input, use L<the C<read> method|/read>.
 
 To evaluate a parse tree, based on the input, use L<the C<value> method|/value>.
 
-=head2 Token Streams
+=head2 Token streams
 
 By default, Marpa uses the token-stream model of input.
 The token-stream model is standard -- so standard the most documents about
@@ -408,7 +408,7 @@ Perl C<undef>.
 At that point,
 the application can retry the C<read> with a different token.
 
-=head2 An Example
+=head2 An example
 
 Marpa's HTML parser, L<Marpa::HTML>, is
 an example of how Ruby Slippers parsing can help

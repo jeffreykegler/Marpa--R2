@@ -19,7 +19,7 @@ Marpa::XS::Semantics::Null - How Marpa Evaluates Null Rules and Symbols
 
 =head1 DESCRIPTION
 
-=head2 Null Values
+=head2 Null values
 
 A B<null node> is a node which derives the zero-length,
 or empty string.
@@ -58,7 +58,7 @@ named argument
 is defined,
 a symbol's null value is a Perl C<undef>.
 
-=head2 Null Subtrees
+=head2 Null subtrees
 
 A null subtree is a subtree all of whose nodes are null.
 Marpa prunes
@@ -84,7 +84,7 @@ If any application ever actually needs it,
 Marpa could implement a complex, and even dynamic,
 "semantics of nothing".
 
-=head2 Null Sequence Nodes
+=head2 Null sequence nodes
 
 Rule nodes for sequences were mentioned above.
 Sequence nodes can also be null nodes.
@@ -274,7 +274,7 @@ In rare cases,
 your application
 may call for null values with a complex semantics.
 
-=head2 Implementing a Complex but Constant Null Semantics
+=head2 Implementing a complex but constant null semantics
 
 If an application's semantics of nothing, while complex, remains constant,
 you can handle it
@@ -283,7 +283,7 @@ to the value
 which your semantics produces when that nullable symbol is the root
 symbol of a null subtree.
 
-=head2 Implementing a Complex and Dynamic Null Semantics
+=head2 Implementing a complex and dynamic null semantics
 
 If the values of an application's
 null values are not constants,

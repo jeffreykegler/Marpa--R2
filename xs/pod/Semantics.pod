@@ -97,7 +97,7 @@ initialized when the recognizer is created.
 
 =back
 
-=head2 Action Names and Actions
+=head2 Action names and actions
 
 When a Marpa grammar is created,
 much of its semantics
@@ -144,7 +144,7 @@ the semantics.
 
 =head1 NODES
 
-=head2 Token Nodes
+=head2 Token nodes
 
 For every input token, there is an associated B<token node>.
 In the default model of input,
@@ -156,7 +156,7 @@ they can be assigned a B<token value>.
 If no token value is assigned at lex time,
 the token value defaults to a Perl C<undef>.
 
-=head2 Rule Nodes
+=head2 Rule nodes
 
 Nodes which are ancestors of token nodes
 are called B<rule nodes>.
@@ -182,7 +182,7 @@ rule node,
 the value of the rule node is
 a Perl C<undef>.
 
-=head2 Sequence Rule Nodes
+=head2 Sequence rule nodes
 
 Some rules are L<sequence rules|Marpa::XS::Grammar/"Sequence Rules">.
 Sequence rule nodes are also rule nodes.
@@ -226,7 +226,7 @@ and do appear in the
 value action's
 C<@_> array.
 
-=head2 Null Nodes
+=head2 Null nodes
 
 A B<null node> is a node which derives the zero-length,
 or empty string.
@@ -284,7 +284,7 @@ L<the C<reset_evaluation>
 method|Marpa::XS::Recognizer/"reset_evaluation">,
 or until the recognizer is destroyed.
 
-=head2 Summary of the Phases
+=head2 Summary of the phases
 
 While processing a recognizer, we have
 
@@ -443,7 +443,7 @@ C<action_object> named argument of the Marpa grammar.
 
 =back
 
-=head2 Explicit Resolution
+=head2 Explicit resolution
 
 The recognizer's C<closures> named argument
 allows the user to directly control the mapping from action names
@@ -468,7 +468,7 @@ begin with
 an exclamation mark ("!"),
 and that convention is recommended.
 
-=head2 Fully Qualified Action Names
+=head2 Fully qualified action names
 
 If explicit resolution fails, 
 Marpa transforms the action name into a
@@ -561,7 +561,7 @@ During the Tree Traversal Phase,
 Marpa's internals never alter the per-parse-tree variable --
 it is reserved for use by the application.
 
-=head2 Action Object Constructor
+=head2 Action object constructor
 
 If the grammar's C<action_object> named argument has a defined value,
 that value is treated as the name of a class.

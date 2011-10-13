@@ -74,7 +74,7 @@ from non-terminals.  Marpa does not.
 In standard definitions, the start symbol is fixed.
 In Marpa, it is merely a default.
 
-=head2 Stages of Parsing
+=head2 Stages of parsing
 
 A B<recognizer> is a program that determines whether its B<input>
 is in the language of a grammar and a start symbol.
@@ -264,7 +264,7 @@ In any instance where a symbol produces the empty string,
 it is said to be B<nulled>,
 or to be a B<null symbol>.
 
-=head2 Useless Rules
+=head2 Useless rules
 
 If any derivation from the start symbol uses a rule,
 that rule is called B<reachable> or B<accessible>.
@@ -288,7 +288,7 @@ A symbol which is inaccessible or unproductive is called a
 B<useless> symbol.
 Marpa can handle grammars with useless symbols.
 
-=head2 Recursion and Cycles
+=head2 Recursion and cycles
 
 If any symbol in the grammar non-trivially produces a symbol string containing itself,
 the grammar is said to be B<recursive>.
@@ -332,7 +332,7 @@ When a parse is infinitely ambiguous, Marpa
 limits cycles to a single loop,
 so that only a finite number of parses is returned.
 
-=head2 Parse Structure
+=head2 Parse structure
 
 The structure of a parse can be represented as a series of derivation steps from
 the start symbol to the input.

@@ -62,14 +62,14 @@ After precomputation,
 no new rules may added and
 most other changes are forbidden.
 
-=head2 Symbol Names
+=head2 Symbol names
 
 Symbol names that end in right square brackets
 are reserved for Marpa's internal use.
 Any other valid Perl string is an acceptable
 symbol name.
 
-=head2 Terminal Symbols
+=head2 Terminal symbols
 
 If a grammar has no empty rules, all symbols are terminals by default.
 Unlike most parser generators,
@@ -146,7 +146,7 @@ This is a fatal error.
 
 =back
 
-=head2 Sequence Rules
+=head2 Sequence rules
 
 It is very common in a grammar for one symbol to produce a
 repeating sequence.
@@ -205,7 +205,7 @@ If you prefer "C<proper>" separation,
 you can set
 the C<proper> rule property.
 
-=head3 Advantages of Sequence Rules
+=head3 Advantages of sequence rules
 
 You are never forced to use sequence rules,
 but it's usually better if you do.
@@ -711,7 +711,7 @@ normalize-whitespace: 1
 
 =for Marpa::XS::Display::End
 
-=head2 Rule Descriptors as Hashes
+=head2 Rule descriptors as hashes
 
 The long form descriptor of a rule is a
 reference to a hash
@@ -840,7 +840,7 @@ By default, Marpa allows trailing separators.
 This is the usual style in Perl.
 The separator must not be a nullable symbol.
 
-=head2 Rule Descriptors as Arrays
+=head2 Rule descriptors as arrays
 
 =for Marpa::XS::Display
 name: Engine Synopsis Ambiguous Parse
@@ -870,7 +870,7 @@ has the same effect
 that omitting the same optional property would have
 in the long form.
 
-=head2 Duplicate Rules
+=head2 Duplicate rules
 
 Marpa throws an exception if a duplicate rule is added.
 Two rules are considered duplicates if
