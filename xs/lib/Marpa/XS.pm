@@ -97,7 +97,6 @@ require Marpa::XS::Internal;
 require Marpa::XS::Grammar;
 require Marpa::XS::Recognizer;
 require Marpa::XS::Value;
-require Marpa::XS::Callback;
 
 *Marpa::Grammar::check_terminal = \&Marpa::XS::Grammar::check_terminal;
 *Marpa::Grammar::new = \&Marpa::XS::Grammar::new;
