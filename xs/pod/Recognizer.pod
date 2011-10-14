@@ -289,15 +289,14 @@ one of "C<none>",
 or "C<high_rule_only>".
 When the value is "C<none>", Marpa returns the parse results
 in arbitrary order.
-When the value is "C<rule>"
-or "C<high_rule_only>",
-Marpa allows the user
-to specify ranks for symbols and rules.
-These values will
-control the order in which parse results are returned by
-the C<value> method.
+This is the default.
 
-The default is for parse results to be returned in arbitrary order.
+Marpa allows the user
+to control the order which parse results are returned by
+the C<value> method,
+and to exclude some parse results from the parse series.
+This is done by specifying "C<rule>"
+or "C<high_rule_only>" as the C<ranking_method>.
 For details, see L<the document
 on parse order|Marpa::XS::Semantics::Order>.
 

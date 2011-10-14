@@ -796,17 +796,23 @@ an unlimited number of times.
 
 =head2 null_ranking
 
-Sometimes the same rule may apply to an input substring
-in different ways.
-Where the different is due to nullable symbols on the rule's
-RHS,
-the C<null_ranking> named argument is a method of fine-tuning
-the order in which those rule applications appear in the
-evaluation.
-Default is the C<null_ranking> to be undefined,
-which means the order will be arbitrary.
-Most applications will find the default acceptable.
-For details,
+C<null_ranking> is ignored unless
+the recognizer's C<ranking_method> named argument
+is set to something other than its default.
+The C<null_ranking> named argument allows the application
+to control the order in which rules with nullable symbols
+are returned by the C<value> method.
+Such rules can match the same input in several ways
+depending on which symbols are nulled.
+These different ways of nulling symbols in a rule
+are called its null variants.
+
+If C<null_ranking> is undefined,
+the order of the null variants will be arbitrary.
+This is the default,
+and is acceptable to most applications.
+For details on using the
+C<null_ranking> named argument,
 see L<the document on parse order|Marpa::XS::Semantics::Order>.
 
 =head2 proper
@@ -819,6 +825,18 @@ If the C<proper> rule property is a Perl true,
 In proper separation,
 separation must actually separate sequence items,
 and trailing separators are not allowed.
+
+=head2 rank
+
+C<rank> is ignored unless
+the recognizer's C<ranking_method> named argument
+is set to something other than its default.
+C<rank>, when specified, must be an integer.
+It may be negative.
+C<rank> is 0 by default.
+For details on using the
+C<rank> named argument,
+see L<the document on parse order|Marpa::XS::Semantics::Order>.
 
 =head2 rhs
 
