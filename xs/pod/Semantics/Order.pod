@@ -33,13 +33,13 @@ L<C<value>|Marpa::XS::Recognizer/"value">
 method
 evaluates the parse
 trees of an ambiguous parse.
-It also describes ways to excluding selected parse trees
+It also describes ways to exclude selected parse trees
 from the parse series.
 
 =head2 Duplicate parses are eliminated
 
-When evaluating the parse results of a parse series,
-Marpa does not evaluate the same parse tree twice.
+When evaluating the parse trees in a parse series,
+Marpa never evaluates the same parse tree twice.
 Marpa considers two parse trees to be the same if they are
 B<semantic duplicates>.
 
@@ -68,7 +68,7 @@ L<C<value>|Marpa::XS::Recognizer/"value">
 method
 repeatedly,
 Marpa can produce all the parse results
-of the current parse series.
+in the current parse series.
 The default is for the parse results to be returned
 in an arbitrary order.
 This corresponds to the "C<none>" value of
@@ -77,9 +77,6 @@ named argument.
 
 =head2 Arbitrary parse order
 
-At various points, this documents points out
-behaviors which are "arbitrary" --
-in particular arbitrary parse order.
 When this document calls a behavior "arbitrary"
 it means that an application
 must
@@ -99,11 +96,11 @@ of the parse trees is arbitrary,
 that all appropriate parse trees
 will be included in the parse series,
 and that none of the parse trees in the parse series
-will be the semantic duplicate of any other.
+will be the semantic duplicate of any other tree.
 
 =head2 Ranking methods
 
-Marpa Grammar objects have L<a C<ranking_method> named
+Marpa grammar objects have L<a C<ranking_method> named
 argument|Marpa::XS::Recognizer/"ranking_method">,
 whose value can be the name of a ranking method,
 or "C<none>", indicating that the default ranking method is to
@@ -149,17 +146,17 @@ which may be nulled, but which are not nulling
 symbols.
 (Nulling symbols are symbols which are B<always> nulled.)
 
-Where a rule contains proper nullables, each application
+When a rule contains proper nullables, each application
 of that rule to a section of input creates a B<nulling variant> --
 that rule with a specific pattern of
 null and non-null symbols.
 In many cases, this creates an ambiguity -- different
 nulling variants could apply to the same substring of input.
 In ambiguous parsings of this kind,
-some applications may want to rank nulling variants which start
+some applications may want to rank nulling variants that start
 with non-null symbols higher.
 Other applications may want to do the opposite --
-to rank nulling variants which start
+to rank nulling variants that start
 with null symbols higher.
 
 The 
@@ -180,9 +177,9 @@ the higher it ranks.
 
 A rule is null ranked if and only if its C<null_ranking>
 is defined.
-A rule which is not null ranked is called non-null-ranked.
 Note that this definition means that a rule can be considered
 null ranked even if it does not have any nullable symbols.
+A rule which is not null ranked is called non-null-ranked.
 
 Null ranking, in the current implementation,
 is targeted at situations where the alternatives
@@ -247,7 +244,7 @@ the two alternatives have equal rank.
 
 =item *
 If both rules are null-ranked, their ranking is arbitrary --
-either one may rank high, or they may both rank equal.
+either one may rank high, or they may have equal rank.
 
 =back
 
@@ -277,17 +274,27 @@ long time.
 =head2 The C<constant> ranking method is no longer supported
 
 The C<constant> ranking method is no longer implemented.
-An initial attempt to find the sweet spot
-between flexibity and efficiency,
+An initial attempt to find the ideal compromise
+between flexibility and efficiency,
 the
 C<constant> ranking method
-turned out to attempt
-too much -- its implementation was
-quite complex.
-The new C<rule> ranking method is more efficient
-and vastly more intuitive,
-but is still powerful enough to pass the test suite
-designed for the C<constant> ranking method.
+proved too ambitious, and had several drawbacks.
+First, its overhead was high in comparison to the flexibility
+it offered.
+Second, it was not intuitive.
+Even when the
+C<constant> ranking method
+was powerful enough to solve a problem,
+it was not always obvious how to actually use it.
+Finally, its implementation
+was extremely complex.
+
+The new C<rule> ranking method is far more efficient,
+vastly more intuitive, and
+far easier to implement and maintain.
+But the new C<rule> ranking method is
+also very flexible -- it passes the test suite
+which was written for the C<constant> ranking method.
 
 =head1 COPYRIGHT AND LICENSE
 

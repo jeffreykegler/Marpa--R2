@@ -100,18 +100,9 @@ initialized when the recognizer is created.
 =head2 Action names and actions
 
 When a Marpa grammar is created,
-much of its semantics
-are 
+its dynamic semantics
+is
 specified indirectly, as B<action names>.
-Marpa does not allow semantics to be 
-specified directly as Perl closures
-until the evaluation phase.
-This approach to semantics
-follows Perl 6.
-I discovered the wisdom of having an additonal layer
-of abstraction
-the hard way.
-
 To implement its semantics of action names and
 actions,
 Marpa must do three things:
@@ -127,11 +118,6 @@ An action is a Perl closure.
 actual result.
 
 =back
-
-The action names and actions used to produce the
-node value are called
-B<value action names> and
-B<value actions>.
 
 An action name
 and action is also used
@@ -236,7 +222,7 @@ In fact, Marpa allows
 allows an arbitrarily complex null semantics.
 Readers interested in null nodes with values
 other than C<undef>,
-or who simply would like
+or who would like
 to read a more detailed account of how Marpa's
 null semantics works,
 should turn to L<the document on
@@ -289,7 +275,9 @@ While processing a recognizer, we have
 
 =over 
 
-=item * A Recognizer Setup Phase, followed by
+=item * A Recognizer Setup Phase, which occurs
+during the call of a recognizer's C<new> method.
+It is followed by
 
 =item * the processing of zero or more parse series.
 
@@ -299,10 +287,12 @@ While processing a parse series, we have:
 
 =over
 
-=item * A Series Setup Phase, followed by
+=item * A Series Setup Phase, which occurs during
+the first call of the recognizer's C<value> method
+for that series.
+It is followed by
 
-=item * the processing of zero or more parse trees
-to produce a parse result.
+=item * the processing of zero or more parse trees.
 
 =back
 
@@ -310,14 +300,18 @@ While processing a parse tree, we have:
 
 =over
 
-=item * A Tree Setup Phase, followed by
+=item * A Tree Setup Phase, which occurs during
+the call of the recognizer's C<value> method
+for that parse tree.
+It is followed by
 
 =item * a Tree Traveral Phase.
 
 =back
 
-Within the Tree Traversal Phase, from the point of view of
-each rule node, we have Node Evaluation Time.
+B<Node Evaluation Time>
+is the Tree Traversal Phase, as seen from the point of view of
+each rule node.  It is not a separate phase.
 
 =head1 THE SEMANTIC PHASES IN DETAIL
 
@@ -328,12 +322,6 @@ of the symbols are determined.
 The null values of symbols never change --
 they are in effect properties of the grammar.
 
-Exactly one Recognizer Setup Phase occurs for every
-recognizer.
-For every Marpa Recognizer object,
-the Recognizer Setup Phase occurs
-before any Series Setup Phase.
-
 =head2 Series Setup Phase
 
 During the Series Setup Phase
@@ -342,16 +330,9 @@ the value actions.
 The value actions are never called in the Series Setup Phase.
 Value actions are called
 in the Tree Traversal Phase.
-
 Also during the Series Setup Phase,
 the logic which
 ranks parse trees is executed.
-Exactly one Series Setup Phase occurs for each parse
-series.
-A Series Setup Phase occurs in the first call of
-the recognizer's
-L<C<value>|Marpa::XS::Recognizer/"value">
-method of each parse series.
 
 =head2 Tree Setup Phase
 
@@ -363,36 +344,13 @@ its return value.
 Exactly one Tree Setup Phase occurs
 for each parse tree.
 
-In every parse series,
-all the Tree Setup Phases occur
-after the Series Setup Phase.
-For each parse tree,
-the Tree Setup Phase occurs before
-its Tree Traversal Phase.
-
 =head2 Tree Traversal Phase
 
 During the Tree Traversal Phase,
-the semantic Perl closures are called.
-For each parse tree,
-there is exactly one
-Tree Traversal Phase,
-which follows the Tree Setup Phase.
-
-During parse tree traversal, Node Evaluation Time occurs
-for every node in the parse.
-Tree Traversal Phases
-occur during
-calls of the recognizer's
-C<value> method.
-
-=head2 Node Evaluation Time
-
-Node Evaluation Time is not really a separate
-phase.
+the value actions are called.
 Node Evaluation Time is the Tree Traversal Phase,
-seen from the point of view of the individual nodes of the parse tree.
-If a node has a semantic Perl closure,
+as seen from the point of view of the individual nodes of the parse tree.
+If a node has a value action,
 it is called at Node Evaluation Time.
 
 =head1 FINDING THE ACTION FOR A RULE
@@ -413,7 +371,8 @@ if one is defined.
 the C<default_action> named argument of the grammar,
 if one is defined.
 
-=item * Defaulting to a virtual action which
+=item * Defaulting to a virtual action,
+one which
 returns a Perl C<undef>.
 
 =back
@@ -595,7 +554,8 @@ If the action object constructor name is
 a hash key in the
 evaluator's C<closures> named argument,
 then 
-the value of that hash entry becomes the
+the value referred to by
+that hash entry becomes the
 action object constructor.
 
 If a grammar has both the C<action> and the 
