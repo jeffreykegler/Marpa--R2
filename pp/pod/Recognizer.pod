@@ -281,23 +281,6 @@ The C<grammar> named argument is required.  Its
 value must be
 a precomputed Marpa grammar object.
 
-=head2 ranking_method
-
-The value must be a string:
-either "C<none>" or "C<constant>".
-When the value is "C<none>", Marpa returns the parse results
-in arbitrary order.
-When the value is "C<constant>", Marpa allows the user
-to
-specify ranking actions which assign values to rules and tokens.
-These values will
-control the order in which parse results are returned by
-the C<value> method.
-
-The default is for parse results to be returned in arbitrary order.
-For details, see L<the section on parse order in the semantics
-document|Marpa::PP::Semantics/"PARSE ORDER">.
-
 =head2 too_many_earley_items
 
 The C<too_many_earley_items> argument is optional.
