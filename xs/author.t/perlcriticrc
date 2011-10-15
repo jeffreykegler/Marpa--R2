@@ -433,6 +433,7 @@ severity=5
 
 [Variables::ProhibitPackageVars]
 severity=5
+add_packages = DynaLoader
 
 [Variables::ProhibitPerl4PackageNames]
 severity=5

@@ -22,7 +22,9 @@ use warnings;
 use vars qw($VERSION $STRING_VERSION @ISA $DEBUG);
 $VERSION = '0.017_002';
 $STRING_VERSION = $VERSION;
+## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
+## use critic
 $DEBUG = 0;
 
 use Carp;
@@ -33,9 +35,9 @@ use Marpa::XS::Version;
 # Die if more than one of the Marpa modules is loaded
 if ( defined $Marpa::MODULE ) {
     Carp::croak("You can only load one of the Marpa modules at a time\n",
-        "The module ", $Marpa::MODULE, " is already loaded\n");
+        'The module ', $Marpa::MODULE, " is already loaded\n");
 }
-$Marpa::MODULE = "Marpa::XS";
+$Marpa::MODULE = 'Marpa::XS';
 if ( defined $Marpa::PP::VERSION ) {
     Carp::croak('Attempt to load Marpa::XS when Marpa::PP ', $Marpa::PP::VERSION, ' already loaded');
 }
@@ -43,7 +45,7 @@ if ( $Marpa::USING_PP ) {
     Carp::croak('Attempt to load Marpa::XS when already using Marpa::PP');
 }
 if ( $Marpa::USING_XS ) {
-    die('Internal error: Attempt to load Marpa::XS twice');
+    die 'Internal error: Attempt to load Marpa::XS twice';
 }
 if ( $Marpa::USE_PP ) {
     Carp::croak('Attempt to load Marpa::XS when USE_PP specified');
@@ -57,11 +59,12 @@ eval {
     XSLoader::load('Marpa::XS', $Marpa::XS::STRING_VERSION);
     1;
 } or eval {
-    my @libs = split q{ }, ExtUtils::PkgConfig->libs("glib-2.0");
+    my @libs = split q{ }, ExtUtils::PkgConfig->libs('glib-2.0');
     @DynaLoader::dl_resolve_using = DynaLoader::dl_findfile(@libs);
     require DynaLoader;
+## no critic(ClassHierarchies::ProhibitExplicitISA)
     push @ISA, 'DynaLoader';
-    bootstrap Marpa::XS $Marpa::XS::STRING_VERSION;
+    Dynaloader::bootstrap Marpa::XS $Marpa::XS::STRING_VERSION;
     1;
 } or Carp::croak("Could not load XS version of Marpa: $EVAL_ERROR");
 
@@ -73,9 +76,9 @@ Carp::croak('Marpa::XS ', "fails version check, wanted $version_wanted, found $v
 @Marpa::CARP_NOT = ();
 for my $start (qw(Marpa Marpa::PP Marpa::XS))
 {
-    for my $middle ('', '::Internal')
+    for my $middle (q{}, '::Internal')
     {
-	for my $end ('', qw(::Recognizer ::Callback ::Grammar ::Value))
+	for my $end (q{}, qw(::Recognizer ::Callback ::Grammar ::Value))
 	{
 	    push @Marpa::CARP_NOT, $start . $middle . $end;
 	}
@@ -96,7 +99,7 @@ if (not $ENV{'MARPA_AUTHOR_TEST'}) {
 
 sub version_ok {
     my ($sub_module_version) = @_;
-    return "not defined" if not defined $sub_module_version;
+    return 'not defined' if not defined $sub_module_version;
     return "$sub_module_version does not match Marpa::XS::VERSION " . $VERSION if $sub_module_version != $VERSION;
     return;
 }
@@ -104,19 +107,19 @@ sub version_ok {
 my $version_result;
 require Marpa::XS::Internal;
 ( $version_result = version_ok($Marpa::XS::Internal::VERSION) )
-    and die "Marpa::XS::Internal::VERSION ", $version_result;
+    and die 'Marpa::XS::Internal::VERSION ', $version_result;
 
 require Marpa::XS::Grammar;
 ( $version_result = version_ok($Marpa::XS::Grammar::VERSION) )
-    and die "Marpa::XS::Grammar::VERSION ", $version_result;
+    and die 'Marpa::XS::Grammar::VERSION ', $version_result;
 
 require Marpa::XS::Recognizer;
 ( $version_result = version_ok($Marpa::XS::Recognizer::VERSION) )
-    and die "Marpa::XS::Recognizer::VERSION ", $version_result;
+    and die 'Marpa::XS::Recognizer::VERSION ', $version_result;
 
 require Marpa::XS::Value;
 ( $version_result = version_ok($Marpa::XS::Value::VERSION) )
-    and die "Marpa::XS::Value::VERSION ", $version_result;
+    and die 'Marpa::XS::Value::VERSION ', $version_result;
 
 *Marpa::Grammar::check_terminal = \&Marpa::XS::Grammar::check_terminal;
 *Marpa::Grammar::new = \&Marpa::XS::Grammar::new;
@@ -163,6 +166,4 @@ require Marpa::XS::Value;
 *Marpa::Recognizer::tokens = \&Marpa::XS::Recognizer::tokens;
 *Marpa::Recognizer::value = \&Marpa::XS::Recognizer::value;
 
-return 1;
-
-__END__
+1;

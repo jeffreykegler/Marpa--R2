@@ -81,7 +81,7 @@ my $recce =
 $recce->tokens( [ [ 'a', 'a' ] ], );
 
 my $value_ref = $recce->value();
-my $value = defined $value_ref ? ${$value_ref} : "undef";
+my $value = defined $value_ref ? ${$value_ref} : 'undef';
 Test::More::is($value, '(a;;;;;)', 'subp test');
 
 1;    # In case used as "do" file

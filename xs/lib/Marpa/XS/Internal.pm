@@ -24,16 +24,16 @@ use Carp;
 use vars qw($VERSION $STRING_VERSION);
 $VERSION = '0.017_002';
 $STRING_VERSION = $VERSION;
+## no critic (Subroutines::RequireArgUnpacking)
 $VERSION = eval $VERSION;
+## use critic
 
 *Marpa::exception = \&Carp::croak;
 
-## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::XS::internal_error {
     Carp::confess(
         "Internal Marpa::XS Error: This could be a bug in Marpa::XS\n", @_ );
 }
-## use critic
 
 # Perl critic at present is not smart about underscores
 # in hex numbers
@@ -51,16 +51,14 @@ sub Marpa::offset {
     my (@desc)   = @_;
     my @fields = ();
     for my $desc (@desc) {
-        push @fields, split ' ', $desc;
+        push @fields, split q{ }, $desc;
     }
     my $pkg        = caller;
     my $prefix     = $pkg . q{::};
     my $offset     = -1;
     my $in_comment = 0;
 
-    ## no critic (TestingAndDebugging::ProhibitNoStrict)
     no strict 'refs';
-    ## use critic
     FIELD: for my $field (@fields) {
 
         if ($in_comment) {

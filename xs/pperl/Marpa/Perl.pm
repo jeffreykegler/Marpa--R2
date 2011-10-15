@@ -462,8 +462,6 @@ indirob__block: indirob ::= block ;
 indirob ::= PRIVATEREF ;
 END_OF_GRAMMAR
 
-## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-
 my %symbol_name = (
     q{~} => 'TILDE',
     q{-} => 'MINUS',
@@ -846,8 +844,6 @@ my %perl_type_by_word = (
     'y'           => 'QUOTEABLE -- TO BE DETERMINED',
 );
 
-## use critic
-
 my %rule_rank = (
     long_use => 2,
     perl_version_use => 1,
@@ -947,7 +943,8 @@ sub token_not_accepted {
     my ($ppi_token, $token_name, $token_value, $length) = @_;
     local $Data::Dumper::Maxdepth = 2;
     local $Data::Dumper::Terse = 1;
-    say STDERR $Marpa::Perl::RECOGNIZER->show_progress();
+    say {*STDERR} $Marpa::Perl::RECOGNIZER->show_progress()
+       or die 'Cannot write to STDERR';
     my $perl_token_desc;
     if (not defined $token_name) {
          $perl_token_desc = 'Undefined Perl token was not accepted: ';
@@ -955,7 +952,7 @@ sub token_not_accepted {
          $perl_token_desc = qq{Perl token "$token_name" was not accepted: };
     }
     if (defined $length and $length != 1) {
-         $perl_token_desc .= " length=" . $length;
+         $perl_token_desc .= ' length=' . $length;
     }
     $perl_token_desc .= Data::Dumper::Dumper( $token_value );
     my $logical_filename = $ppi_token->logical_filename();
@@ -1250,7 +1247,6 @@ sub Marpa::Perl::eval {
     local $Marpa::Perl::Internal::CONTEXT =
         [ $parser->{PPI_tokens}, $parser->{earleme_to_PPI_token} ];
     if (wantarray) {
-	my $recce = $parser->{recce};
         my @values = ();
         while ( defined( my $value_ref = $recce->value() ) ) {
             push @values, ${$value_ref};
@@ -1295,6 +1291,7 @@ sub Marpa::Perl::foreach_completion {
         next AND_NODE if $position != $rhs_length;
 	$closure->($parser, $id);
     } ## end for ( my $id = 0;; $id++ )
+    return 1;
 } ## end sub Marpa::Perl::foreach_completion
 
 1;

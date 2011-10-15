@@ -344,7 +344,7 @@ my $recce =
     Marpa::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
 
 my @set = (
-    <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3' );
+    <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', );
 Earley Set 0
 S0@0-0
 S1@0-0
@@ -495,10 +495,10 @@ Marpa::Test::is(
     $recce->show_earley_sets(1),
     "Last Completed: 3; Furthest: 3\n"
         . ( join q{}, @set[ 0 .. 3 ] ),
-    "Aycock/Horspool Parse Status"
+    'Aycock/Horspool Parse Status'
 );
 
-my %expected = 
+my %expected =
     map { ( $_ => 1 ) } qw( (a;a;a;) (a;a;;a) (a;;a;a) (;a;a;a) );
 
 $recce->set( { max_parses => 20 } );
@@ -507,7 +507,7 @@ while ( my $value_ref = $recce->value() ) {
 
     my $tree_output = q{};
 
-    my $value = "No parse";
+    my $value = 'No parse';
     if ($value_ref) {
         $value = ${$value_ref};
         Marpa::Test::is($recce->show_tree(),
@@ -551,7 +551,7 @@ R11:2@2-3
 R12:2@2-3
 END_OF_TEXT
 
-Marpa::Test::is($recce->show_or_nodes(), $or_node_output, "XS Or nodes");
+Marpa::Test::is($recce->show_or_nodes(), $or_node_output, 'XS Or nodes');
 
 my $and_node_output = <<'END_OF_TEXT';
 R6:1@0-0S5@0
@@ -579,7 +579,7 @@ R11:2@2-3S5@3
 R12:2@2-3C1@2
 END_OF_TEXT
 
-Marpa::Test::is($recce->show_and_nodes(), $and_node_output, "XS And nodes");
+Marpa::Test::is($recce->show_and_nodes(), $and_node_output, 'XS And nodes');
 
 my $bocage_output = <<'END_OF_TEXT';
 R6:1@0-0 - S5
@@ -607,7 +607,7 @@ R11:2@2-3 R11:1@2-3 S5
 R12:2@2-3 R12:1@2-2 R1:1@2-3
 END_OF_TEXT
 
-Marpa::Test::is($recce->show_bocage(), $bocage_output, "XS Bocage");
+Marpa::Test::is($recce->show_bocage(), $bocage_output, 'XS Bocage');
 
 1;    # In case used as "do" file
 

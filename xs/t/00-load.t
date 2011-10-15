@@ -37,7 +37,7 @@ Test::More::is( $version[0], 0, 'XS major version' );
 Test::More::is( $version[1], 1, 'XS minor version' );
 Test::More::is( $version[2], 0, 'XS micro version' );
 
-Test::More::diag( "Using Marpa::XS ", $Marpa::XS::VERSION, q{ }, $Marpa::XS::TIMESTAMP );
+Test::More::diag( 'Using Marpa::XS ', $Marpa::XS::VERSION, q{ }, $Marpa::XS::TIMESTAMP );
 
 1;    # In case used as "do" file
 
