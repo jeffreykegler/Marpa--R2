@@ -13,23 +13,23 @@
 # General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::XS::Internal::Value;
+package Marpa::XS::Value;
 
 use 5.010;
 use warnings;
 use strict;
 use integer;
 
+use vars qw($VERSION $STRING_VERSION);
+$VERSION = '0.017_002';
+$STRING_VERSION = $VERSION;
+$VERSION = eval $VERSION;
+
+package Marpa::XS::Internal::Value;
+
 use English qw( -no_match_vars );
 
-# This perlcritic check is broken as of 9 Aug 2010
-## no critic (TestingAndDebugging::ProhibitNoWarnings)
-no warnings qw(qw);
-## use critic
-
 use constant SKIP => -1;
-
-use warnings;
 
 sub Marpa::XS::Recognizer::parse_count {
     my ($recce) = @_;

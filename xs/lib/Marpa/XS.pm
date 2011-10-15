@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION @ISA $DEBUG);
-$VERSION = '0.017_001';
+$VERSION = '0.017_002';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 $DEBUG = 0;
@@ -93,10 +93,30 @@ if (not $ENV{'MARPA_AUTHOR_TEST'}) {
 } else {
     $Marpa::XS::DEBUG = 1;
 }
+
+sub version_ok {
+    my ($sub_module_version) = @_;
+    return "not defined" if not defined $sub_module_version;
+    return "$sub_module_version does not match Marpa::XS::VERSION " . $VERSION if $sub_module_version != $VERSION;
+    return;
+}
+
+my $version_result;
 require Marpa::XS::Internal;
+( $version_result = version_ok($Marpa::XS::Internal::VERSION) )
+    and die "Marpa::XS::Internal::VERSION ", $version_result;
+
 require Marpa::XS::Grammar;
+( $version_result = version_ok($Marpa::XS::Grammar::VERSION) )
+    and die "Marpa::XS::Grammar::VERSION ", $version_result;
+
 require Marpa::XS::Recognizer;
+( $version_result = version_ok($Marpa::XS::Recognizer::VERSION) )
+    and die "Marpa::XS::Recognizer::VERSION ", $version_result;
+
 require Marpa::XS::Value;
+( $version_result = version_ok($Marpa::XS::Value::VERSION) )
+    and die "Marpa::XS::Value::VERSION ", $version_result;
 
 *Marpa::Grammar::check_terminal = \&Marpa::XS::Grammar::check_terminal;
 *Marpa::Grammar::new = \&Marpa::XS::Grammar::new;

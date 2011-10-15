@@ -28,6 +28,11 @@ use integer;
 
 use English qw( -no_match_vars );
 
+use vars qw($VERSION $STRING_VERSION);
+$VERSION = '0.017_002';
+$STRING_VERSION = $VERSION;
+$VERSION = eval $VERSION;
+
 # Elements of the RECOGNIZER structure
 BEGIN {
 my $structure = <<'END_OF_STRUCTURE';
