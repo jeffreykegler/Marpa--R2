@@ -21,9 +21,11 @@ use strict;
 use integer;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION = '0.017_002';
+$VERSION        = '0.017_002';
 $STRING_VERSION = $VERSION;
+## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
+## use critic
 
 package Marpa::XS::Internal::Value;
 
@@ -272,9 +274,9 @@ sub Marpa::XS::Recognizer::show_fork {
     $text        .= " $or_node_tag";
 
     $text .= ' p';
-    $text .= $recce_c->fork_predecessor_is_ready($fork_id) ? '=ok' : '-';
+    $text .= $recce_c->fork_predecessor_is_ready($fork_id) ? q{=ok} : q{-};
     $text .= ' c';
-    $text .= $recce_c->fork_cause_is_ready($fork_id) ? '=ok' : '-';
+    $text .= $recce_c->fork_cause_is_ready($fork_id) ? q{=ok} : q{-};
     $text .= "\n";
 
     DESCRIBE_CHOICES: {
@@ -493,6 +495,7 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS] = $rule_constants;
 
+    return 1;
 }    # set_actions
 
 sub do_high_rule_only {
@@ -543,10 +546,14 @@ sub do_high_rule_only {
                 $rule->[Marpa::XS::Internal::Rule::CHAF_RANK]
                 ];
         } ## end for my $and_node (@and_nodes)
+
+## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
 	my @sorted_and_data = sort {
 	     $b->[1] <=> $a->[1] or
 	     $b->[2] <=> $a->[2]
 	} @ranking_data;
+## use critic
+
 	my ($first_selected_and_node, $high_rule_rank, $high_chaf_rank) = @{$sorted_and_data[0]};
 	my @selected_and_nodes = ($first_selected_and_node);
 	AND_DATUM: for my $and_datum (@sorted_and_data[1 .. $#sorted_and_data]) {
@@ -562,6 +569,7 @@ sub do_high_rule_only {
                 )
         } @selected_and_nodes;
     } ## end while ( my $or_node = pop @or_nodes )
+    return 1;
 }
 
 sub do_rank_by_rule {
@@ -591,7 +599,7 @@ sub do_rank_by_rule {
     my $seen = q{};
     OR_NODE: while ( my $or_node = pop @or_nodes ) {
         last OR_NODE if not defined $or_node;
-        next OR_NODE if vec( $seen, $or_node, 1 );
+        next OR_NODE if vec $seen, $or_node, 1;
         vec( $seen, $or_node, 1 ) = 1;
         my $first_and_node = $recce_c->or_node_first_and($or_node);
         my $last_and_node  = $recce_c->or_node_last_and($or_node);
@@ -615,10 +623,13 @@ sub do_rank_by_rule {
                 ];
         } ## end for my $and_node (@and_nodes)
 
+## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
 	my @ranked_and_nodes = map { $_->[0] } sort {
 	     $b->[1] <=> $a->[1] or
 	     $b->[2] <=> $a->[2]
 	} @ranking_data;
+## use critic
+
         $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
         push @or_nodes, grep {defined} map {
             (   $recce_c->and_node_predecessor($_),
@@ -626,6 +637,7 @@ sub do_rank_by_rule {
                 )
         } @ranked_and_nodes;
     } ## end while ( my $or_node = pop @or_nodes )
+    return 1;
 }
 
 # Does not modify stack
@@ -730,7 +742,6 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             my $choice     = $recce_c->fork_choice($fork_ix);
             my $and_node_id =
                 $recce_c->and_node_order_get( $or_node_id, $choice );
-            my $token_id = $recce_c->and_node_symbol($and_node_id);
             my $token_name;
             if ( defined $token_id ) {
                 $token_name =
@@ -790,9 +801,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
                     ),
                     ', rule: ', $grammar->brief_rule($trace_rule_id),
                     "\n",
-                    "Incrementing virtual rule by ",
+                    'Incrementing virtual rule by ',
                     $grammar_c->real_symbol_count($trace_rule_id),
-                    " symbols"
+                    ' symbols'
                     or Marpa::exception('Could not print to trace file');
 
                 last TRACE_OP;

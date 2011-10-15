@@ -347,6 +347,7 @@ severity=5
 severity=5
 
 [-ValuesAndExpressions::ProhibitConstantPragma]
+[-ValuesAndExpressions::RequireConstantVersion]
 
 [ValuesAndExpressions::ProhibitEmptyQuotes]
 severity=5
