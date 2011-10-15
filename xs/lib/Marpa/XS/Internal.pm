@@ -21,6 +21,11 @@ use warnings;
 use integer;
 use Carp;
 
+use vars qw($VERSION $STRING_VERSION);
+$VERSION = '0.017_002';
+$STRING_VERSION = $VERSION;
+$VERSION = eval $VERSION;
+
 *Marpa::exception = \&Carp::croak;
 
 ## no critic (Subroutines::RequireArgUnpacking)
