@@ -105,24 +105,22 @@ LINE: while ( my $line = <DATA> ) {
             if ( $header =~ s/\A expected \s //xms ) {
                 my ( $feature, $test ) =
                     ( $header =~ m/\A ([^\s]*) \s+ (.*) \Z/xms );
-                die(
+                die
                     "expected result given for unknown test, feature: $test, $feature"
-                ) if not defined $expected{$test}{$feature};
+                    if not defined $expected{$test}{$feature};
                 $expected{$test}{$feature} = $data;
                 next HEADER;
             } ## end if ( $header =~ s/\A expected \s //xms )
             if ( $header =~ s/\A good \s code \s //xms ) {
-                die(
-                    'Good code should no longer be in data section');
+                die 'Good code should no longer be in data section';
             }
             if ( $header =~ s/\A bad \s code \s //xms ) {
                 chomp $header;
-                die(
-                    "test code given for unknown test: $header")
+                die "test code given for unknown test: $header"
                     if not defined $test_arg{$header};
                 next HEADER;
             } ## end if ( $header =~ s/\A bad \s code \s //xms )
-            die("Bad header: $header");
+            die "Bad header: $header";
         }    # HEADER
         $getting_headers = 1;
         $data            = q{};
@@ -169,7 +167,7 @@ sub run_test {
             when ('e_number_action') { $e_number_action = $value }
             when ('default_action')  { $default_action  = $value }
             default {
-                die("unknown argument to run_test: $arg");
+                die "unknown argument to run_test: $arg";
             };
         } ## end given
     } ## end while ( my ( $arg, $value ) = each %{$args} )
@@ -212,7 +210,7 @@ sub run_test {
     );
 
     if ( not defined $recce->tokens( \@tokens ) ) {
-        die('Recognition failed');
+        die 'Recognition failed';
     }
 
     $recce->end_input();
@@ -284,7 +282,7 @@ sub e_op_action {
         $value = $left_value - $right_value;
     }
     else {
-        die("Unknown op: $op");
+        die "Unknown op: $op";
     }
     return '(' . $left_string . $op . $right_string . ')==' . $value;
 } ## end sub e_op_action
@@ -382,7 +380,7 @@ __END__
 | bad code run phase die
 # this is a call to die()
 my $x = 0;
-die('test call to die');
+die 'test call to die';
 $x++;
 1;
 __END__

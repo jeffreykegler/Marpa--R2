@@ -275,6 +275,7 @@ severity=5
 severity=5
 
 [RegularExpressions::ProhibitUnusualDelimiters]
+allow_all_brackets=1
 severity=5
 
 [RegularExpressions::RequireBracesForMultiline]
@@ -312,6 +313,7 @@ severity=5
 [Subroutines::RequireArgUnpacking]
 severity=5
 allow_subscripts = 1
+short_subroutine_statements = 3
 
 [Subroutines::RequireFinalReturn]
 severity=5

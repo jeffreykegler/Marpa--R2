@@ -55,8 +55,6 @@ die if not Getopt::Long::GetOptions( utility => \$utility );
 my %hash;
 my %codeblock;
 
-my $parser = Marpa::Perl->new( {} );
-
 my @tests;
 if ($utility) {
     my $string = do { local $RS = undef; <STDIN> };
@@ -94,44 +92,53 @@ END_OF_RESULT
 # but if I want to document this interface, it needs to
 # be rethought.
 sub tag_completion {
-    my ($parser, $and_node_id) = @_;
+    my ( $parser, $and_node_id ) = @_;
     my $recce = $parser->{recce};
     die if not defined $recce;
-    my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
     die if not defined $grammar;
-    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $parent = $recce_c->and_node_parent($and_node_id);
-    my $rule_id    = $recce_c->or_node_rule($parent);
+    my $grammar_c        = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $parent           = $recce_c->and_node_parent($and_node_id);
+    my $rule_id          = $recce_c->or_node_rule($parent);
     my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
-    my $rules = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    my $rule = $rules->[$semantic_rule_id];
-    my $rule_name = $rule->[Marpa::XS::Internal::Rule::NAME];
+    my $rules            = $grammar->[Marpa::XS::Internal::Grammar::RULES];
+    my $rule             = $rules->[$semantic_rule_id];
+    my $rule_name        = $rule->[Marpa::XS::Internal::Rule::NAME];
     return if not defined $rule_name;
-    my $blocktype = $rule_name eq 'anon_hash' ? 'hash'
-	: $rule_name eq 'block' ? 'code'
-	: $rule_name eq 'mblock' ? 'code' : undef;
+    my $blocktype =
+          $rule_name eq 'anon_hash' ? 'hash'
+        : $rule_name eq 'block'     ? 'code'
+        : $rule_name eq 'mblock'    ? 'code'
+        :                             undef;
     return if not defined $blocktype;
-    my $PPI_tokens = $parser->{PPI_tokens};
+    my $PPI_tokens       = $parser->{PPI_tokens};
     my $earleme_to_token = $parser->{earleme_to_PPI_token};
-    my $origin          = $recce_c->or_node_origin($parent);
-    my $origin_earleme  = $recce_c->earleme($origin);
-    my $token = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
+    my $origin           = $recce_c->or_node_origin($parent);
+    my $origin_earleme   = $recce_c->earleme($origin);
+    my $token    = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
     my $location = 'line '
         . $token->logical_line_number()
         . q{, column }
         . $token->column_number;
-    $hash{$location}++ if $blocktype eq 'hash';
+    $hash{$location}++      if $blocktype eq 'hash';
     $codeblock{$location}++ if $blocktype eq 'code';
-}
+    return 1;
+} ## end sub tag_completion
+
+my $parser = Marpa::Perl->new( {} );
 
 TEST: for my $test (@tests) {
 
     my ( $string, $expected, $expected_parse_count ) = @{$test};
-    my $parser = $parser->read( \$string );
-    my @values = $parser->eval( );
-    $parser->foreach_completion(\&tag_completion);
-    Marpa::Test::is( (scalar @values), $expected_parse_count, 'Count of values' );
+    $parser = $parser->read( \$string );
+    my @values = $parser->eval();
+    $parser->foreach_completion( \&tag_completion );
+    Marpa::Test::is(
+        ( scalar @values ),
+        $expected_parse_count,
+        'Count of values'
+    );
     my @result;
     for my $location ( sort keys %hash ) {
         push @result, "Hash at $location\n";
@@ -141,9 +148,10 @@ TEST: for my $test (@tests) {
     }
     my $result = join q{}, sort @result;
     if ($utility) {
-        say $result;
-    } else {
-	Marpa::Test::is( $result, $expected, qq{Test of "$string"} );
+        say $result or die 'say builtin failed';
+    }
+    else {
+        Marpa::Test::is( $result, $expected, qq{Test of "$string"} );
     }
     %hash      = ();
     %codeblock = ();

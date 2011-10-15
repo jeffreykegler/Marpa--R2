@@ -66,7 +66,7 @@ sub do_op {
         $value = $left_value - $right_value;
     }
     else {
-        die("Unknown op: $op");
+        die "Unknown op: $op";
     }
     return '(' . $left_string . $op . $right_string . ')==' . $value;
 } ## end sub do_op
