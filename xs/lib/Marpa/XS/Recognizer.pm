@@ -31,7 +31,9 @@ use English qw( -no_match_vars );
 use vars qw($VERSION $STRING_VERSION);
 $VERSION = '0.017_002';
 $STRING_VERSION = $VERSION;
+## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
+## use critic
 
 # Elements of the RECOGNIZER structure
 BEGIN {
@@ -95,10 +97,10 @@ sub get_recognizer_by_id {
     if (not defined $recce) {
 	Carp::croak(
 	    "Attempting to use a recognizer which has been garbage collected\n",
-	    "Recognizer with id ", q{#}, "$recce_id no longer exists\n"
+	    'Recognizer with id ', q{#}, "$recce_id no longer exists\n"
 	);
     }
-    $recce;
+    return $recce;
 }
 
 sub message_cb {
@@ -107,7 +109,7 @@ sub message_cb {
     my $recce_c = $recce->[Marpa::XS::Internal::Grammar::C];
     my $trace_fh =
         $recce->[Marpa::XS::Internal::Grammar::TRACE_FILE_HANDLE];
-    if ($message_id eq "recce not active") {
+    if ($message_id eq 'recce not active') {
 	my $phase = $recce_c->phase();
 	Marpa::exception( "Recognizer not active, phase is $phase" );
 	return;
@@ -303,7 +305,7 @@ sub Marpa::XS::Recognizer::set {
 	    my @ranking_methods = qw(high_rule_only rule none);
             Marpa::exception(
                 qq{ranking_method value is $value (should be one of },
-		(join ", ", map { q{'} . $_ . q{'} } @ranking_methods),
+		(join q{, }, map { q{'} . $_ . q{'} } @ranking_methods),
 		')'
 	    ) if not $value ~~ \@ranking_methods;
             $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] =
@@ -479,24 +481,27 @@ sub Marpa::XS::Recognizer::check_terminal {
 }
 
 sub Marpa::XS::Recognizer::exhausted {
-    my $recce_c = $_[0]->[Marpa::XS::Internal::Recognizer::C];
+    my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     return $recce_c->is_exhausted();
 }
 
 sub Marpa::XS::Recognizer::current_earleme {
-    my $recce_c = $_[0]->[Marpa::XS::Internal::Recognizer::C];
+    my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     return $recce_c->current_earleme();
 }
 
 sub Marpa::XS::Recognizer::furthest_earleme {
-    my $recce_c = $_[0]->[Marpa::XS::Internal::Recognizer::C];
+    my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     return $recce_c->furthest_earleme();
 }
 
 # Deprecated -- obsolete
 sub Marpa::XS::Recognizer::status {
     my ($recce) = @_;
-    my $recce_c = $_[0]->[Marpa::XS::Internal::Recognizer::C];
+    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
     return ( $recce_c->current_earleme(), $recce->terminals_expected() )
         if wantarray;
     return $recce->current_earleme();
@@ -554,8 +559,8 @@ sub Marpa::XS::show_token_link_choice {
 	$middle_earleme = $recce_c->earleme($middle_set_id);
         push @pieces,
               'p=S'
-            . $predecessor_state . '@'
-            . $origin_earleme . '-'
+            . $predecessor_state . q{@}
+            . $origin_earleme . q{-}
             . $middle_earleme;
     }
     my $symbol_name = $symbols->[$token_id]->[Marpa::XS::Internal::Symbol::NAME];
@@ -584,14 +589,14 @@ sub Marpa::XS::show_completion_link_choice {
     if (defined $predecessor_state) {
         push @pieces,
               'p=S'
-            . $predecessor_state . '@'
-            . $origin_earleme . '-'
+            . $predecessor_state . q{@}
+            . $origin_earleme . q{-}
             . $middle_earleme;
     }
     push @pieces,
           'c=S'
-        . $AHFA_state_id . '@'
-        . $middle_earleme . '-'
+        . $AHFA_state_id . q{@}
+        . $middle_earleme . q{-}
         . $current_earleme;
     return '[' . ( join '; ', @pieces ) . ']';
 }
@@ -608,9 +613,9 @@ sub Marpa::XS::show_leo_link_choice {
     my $middle_earleme = $recce_c->earleme($middle_set_id);
     my $leo_transition_symbol = $recce_c->source_leo_transition_symbol();
     push @pieces,
-	'l=L' . $leo_transition_symbol . '@' . $middle_earleme;
+	'l=L' . $leo_transition_symbol . q{@} . $middle_earleme;
     push @pieces,
-        'c=S' . $AHFA_state_id . '@' . $middle_earleme . '-' . $current_earleme;
+        'c=S' . $AHFA_state_id . q{@} . $middle_earleme . q{-} . $current_earleme;
     return '[' . ( join '; ', @pieces ) . ']';
 }
 
@@ -702,7 +707,7 @@ sub Marpa::XS::show_earley_set {
 	my $state_id = $recce_c->earley_item_trace($item_id);
 	last EARLEY_ITEM if not defined $state_id;
 	push @sort_data,
-	    [ $recce_c->earley_item_origin(), $state_id, 
+	    [ $recce_c->earley_item_origin(), $state_id,
             Marpa::XS::show_earley_item( $recce, $traced_set_id, $state_id ) ];
     } ## end for ( my $state_id = $recce_c->earley_item_first_trace...)
     my @sorted_data = map { $_->[-1] . "\n" } sort {
@@ -735,7 +740,7 @@ sub Marpa::XS::Recognizer::show_earley_sets {
     my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
     my $last_completed_earleme = $recce_c->current_earleme();
     my $furthest_earleme = $recce_c->furthest_earleme();
-    my $text = 
+    my $text =
           "Last Completed: $last_completed_earleme; "
         . "Furthest: $furthest_earleme\n";
     LIST: for (my $ix = 0; ;$ix++) {
@@ -792,7 +797,7 @@ sub Marpa::XS::Recognizer::show_progress {
 	if ( $end_ordinal < 0 ) {
 	    return
 		"Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
-		. sprintf " must be in range %d-%d", -($last_ordinal+1), $last_ordinal;
+		. sprintf ' must be in range %d-%d', -($last_ordinal+1), $last_ordinal;
 	}
     }
 
@@ -948,12 +953,13 @@ sub report_progress {
     return \@progress_reports;
 } ## end sub report_progress
 
+## no critic(Subroutines::RequireArgUnpacking)
 sub Marpa::XS::Recognizer::read {
-    # For efficiency, not unpacked
-    # my ( $recce, $symbol_name, $value ) = @_;
+    # For efficiency, args are not unpacked
     my $recce = shift;
     return defined $recce->alternative(@_) ? $recce->earleme_complete() : undef;
 }
+## use critic
 
 sub Marpa::XS::Recognizer::alternative {
 
@@ -974,10 +980,12 @@ sub Marpa::XS::Recognizer::alternative {
     my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
     my $symbol_id = $symbol_hash->{$symbol_name};
 
+## no critic(Subroutines::ProhibitExplicitReturnUndef)
     # This is not
     # a bare return, to be consistent with undef return from libmarpa
     # alternative() call, below
     return undef if not defined $symbol_id;
+## use critic
 
     my $value_ix = 0;
     if (defined $value) {
@@ -1048,7 +1056,7 @@ sub Marpa::XS::Recognizer::tokens {
             and scalar @{$tokens};
 
     Marpa::exception('Attempt to scan tokens when parsing is exhausted')
-        if $recce_c->phase() eq "exhausted" and scalar @{$tokens};
+        if $recce_c->phase() eq 'exhausted' and scalar @{$tokens};
 
     my $symbol_hash =
         $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
@@ -1198,16 +1206,14 @@ sub Marpa::XS::Recognizer::earleme_complete {
     my $symbols     = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
 
     my $no_of_terminals_expected = $recce_c->earleme_complete();
-    if (not defined $no_of_terminals_expected) {
+    if ( not defined $no_of_terminals_expected ) {
         my $error = $recce_c->error();
-        if ( $error eq "parse exhausted" ) {
-            Marpa::exception(
-                qq{parse exhausted}
-            );
+        if ( $error eq 'parse exhausted' ) {
+            Marpa::exception( 'parse exhausted' );
         }
-        Marpa::exception( "Uncaught error from earleme_complete(): ",
+        Marpa::exception( 'Uncaught error from earleme_complete(): ',
             $recce_c->error() );
-    }
+    } ## end if ( not defined $no_of_terminals_expected )
 
     if ( $recce->[Marpa::XS::Internal::Recognizer::TRACE_EARLEY_SETS] ) {
         my $latest_set = $recce_c->latest_earley_set();
