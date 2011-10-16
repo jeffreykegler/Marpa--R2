@@ -53,8 +53,8 @@ my $utility = 0;
 die if not Getopt::Long::GetOptions( utility => \$utility );
 
 sub concat {
-   shift @_;
-   return join q{}, map { $_ // '!UNDEF in concat!' } @_;
+    shift @_;
+    return join q{}, map { $_ // '!UNDEF in concat!' } @_;
 }
 my %closure_by_action = (
     long_use => sub {
@@ -73,11 +73,11 @@ my %closure_by_action = (
 );
 
 my %closure_by_lhs = (
-    prog        => sub { return $_[1] . "\n" },
-    ary        => \&concat,
+    prog    => sub { return $_[1] . "\n" },
+    ary     => \&concat,
     lineseq => sub {
         shift @_;
-        join "\n", grep { defined } @_;
+        join "\n", grep {defined} @_;
     },
 );
 
@@ -86,13 +86,14 @@ sub gen_closure {
     my $closure = $closure_by_action{$action} // $closure_by_lhs{$lhs};
     return $closure if defined $closure and ref $closure eq 'CODE';
     die "lhs=$lhs: $closure is not a closure" if defined $closure;
-    return sub { $_[1] } if scalar @{$rhs} == 1;
+    return sub { $_[1] }
+        if scalar @{$rhs} == 1;
     return sub {
-	my @args = map { $_ // 'undef' } @_[1 .. $#_];
-        return (join "\n", @args)
-	    . "\n$lhs ::= "
-            . ( join q{ }, map { $_ // q{-} } @{$rhs} ) . q{; }
-            ;
+        my @args = map { $_ // 'undef' } @_[ 1 .. $#_ ];
+        return
+              ( join "\n", @args )
+            . "\n$lhs ::= "
+            . ( join q{ }, map { $_ // q{-} } @{$rhs} ) . q{; };
     };
 } ## end sub gen_closure
 
@@ -101,9 +102,14 @@ my $parser = Marpa::Perl->new( \&gen_closure );
 my $string;
 if ($utility) {
     $string = do { local $RS = undef; <STDIN> };
-} else {
-    $string = do { local $RS = undef; <*DATA>; };
 }
+else {
+    $string = do {
+        local $RS = undef;
+## no critic(Subroutines::ProhibitCallsToUndeclaredSubs)
+        <DATA>;
+    };
+} ## end else [ if ($utility) ]
 
 my $expected = <<'EOS';
 PERL: use v5 ;
@@ -132,11 +138,12 @@ LONG: use xyz 5.1 @a ;
 EOS
 
 $parser->read( \$string );
-my $result_ref = $parser->eval( );
+my $result_ref = $parser->eval();
 my $result = defined $result_ref ? ${$result_ref} : 'no parse';
 if ($utility) {
     say $result or die 'say builtin failed';
-} else {
+}
+else {
     Marpa::Test::is( $result, $expected, 'Test of use statements' );
 }
 
