@@ -82,12 +82,12 @@ sub c_comment {
     return qq{/*\n$text */\n};
 } ## end sub c_comment
 
-my $c_license          = c_comment($license);
-my $xs_hash_license       = hash_comment($license);
-my $pp_hash_license       = $xs_hash_license;
+my $c_license       = c_comment($license);
+my $xs_hash_license = hash_comment($license);
+my $pp_hash_license = $xs_hash_license;
 $pp_hash_license =~ s/Marpa[:][:]XS/Marpa::PP/gxms;
 my $tex_closed_license = hash_comment( $closed_license, q{%} );
-my $tex_license        = hash_comment( $license, q{%} );
+my $tex_license        = hash_comment( $license,        q{%} );
 my $indented_license   = $license;
 $indented_license =~ s/^/  /gxms;
 
@@ -119,8 +119,8 @@ END_OF_STRING
 =cut
 
 my %original = (
-    'libmarpa/dist/marpa_obs.c'  => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
-    'libmarpa/dist/marpa_obs.h'  => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
+    'libmarpa/dist/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
+    'libmarpa/dist/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
 );
 
 my %GNU_file =
@@ -203,7 +203,7 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
-    'LICENSE'  => \&license_problems_in_license_file,
+    'LICENSE'   => \&license_problems_in_license_file,
     'META.json' => sub {;}
     ,    # not source, and not clear how to add license at top
     'META.yml' => sub {;}
@@ -223,8 +223,8 @@ my %files_by_type = (
     'html_xs_test.sh'                       => \&trivial,
     'libmarpa/dist/README'                  => \&trivial,
     'libmarpa/dev/README'                   => \&trivial,
-    'libmarpa/test/README'                   => \&trivial,
-    'libmarpa/test/Makefile'                   => \&trivial,
+    'libmarpa/test/README'                  => \&trivial,
+    'libmarpa/test/Makefile'                => \&trivial,
     'README'                                => \&trivial,
     'TODO'                                  => \&trivial,
     'author.t/accept_tidy'                  => \&trivial,
@@ -233,11 +233,11 @@ my %files_by_type = (
     'author.t/spelling_exceptions.list'     => \&trivial,
     'author.t/tidy1'                        => \&trivial,
     'inc/proof/README' => sub {;}, # discussion of licensing in that directory
-    'inc/proof/ah_to_leo.lyx'    => \&tex_closed,
-    'inc/proof/ah2002_notes.lyx' => \&tex_closed,
-    'inc/proof/proof.lyx'        => \&tex_closed,
-    'libmarpa/dist/install-sh'   => \&check_X_copyright,
-    'libmarpa/test/dev/install-sh'   => \&check_X_copyright,
+    'inc/proof/ah_to_leo.lyx'      => \&tex_closed,
+    'inc/proof/ah2002_notes.lyx'   => \&tex_closed,
+    'inc/proof/proof.lyx'          => \&tex_closed,
+    'libmarpa/dist/install-sh'     => \&check_X_copyright,
+    'libmarpa/test/dev/install-sh' => \&check_X_copyright,
     'libmarpa/dist/config.h.in' =>
         check_tag( 'Generated from configure.ac by autoheader', 250 ),
 );
@@ -251,24 +251,25 @@ sub file_type {
     return \&license_problems_in_pp_perl_file
         if scalar @dirs > 1
             and $dirs[0] eq 'pperl'
-	    and $filepart =~ /[.]pm\z/xms;
+            and $filepart =~ /[.]pm\z/xms;
     return \&license_problems_in_pp_perl_file
         if scalar @dirs == 3
             and $dirs[0] eq 't'
             and $dirs[1] eq 'shared'
             and $dirs[2] eq 'common'
-	    and $filepart =~ /[.]t\z/xms;
+            and $filepart =~ /[.]t\z/xms;
     return \&trivial
         if scalar @dirs == 2
             and $dirs[0] eq 't'
             and $dirs[1] eq 'shared'
-	    and $filepart =~ /[.]t\z/xms;
+            and $filepart =~ /[.]t\z/xms;
     return sub {;}
+
         if scalar @dirs >= 2
             and $dirs[0] eq 'libmarpa'
             and $dirs[1] eq 'orig';
     return sub {;}
-        if scalar @dirs >= 1 and $dirs[0] eq 'html' ;
+        if scalar @dirs >= 1 and $dirs[0] eq 'html';
     return \&trivial if $filepart eq '.gitignore';
     return \&check_GNU_copyright
         if $GNU_file{$filename};
@@ -289,26 +290,32 @@ sub file_type {
 sub Marpa::XS::License::file_license_problems {
     my ( $filename, $verbose ) = @_;
     $verbose //= 1;
+    if ($verbose) {
+        say "Checking license of $filename" or die "say failed: $ERRNO";
+    }
     my @problems = ();
     CHECK_VS_ORIGINAL: {
         my $original = $original{$filename};
         last CHECK_VS_ORIGINAL if not defined $original;
-	my ($original_file, $length);
-	if (ref $original eq 'ARRAY') {
-	    ($original_file, $length) = @{$original};
-	} else {
-	   $original_file = $original;
-	}
+        my ( $original_file, $length );
+        if ( ref $original eq 'ARRAY' ) {
+            ( $original_file, $length ) = @{$original};
+        }
+        else {
+            $original_file = $original;
+        }
         if ( not -r $original_file ) {
             push @problems,
                 qq{Original of "$filename" is not readable: "$original_file"\n};
             last CHECK_VS_ORIGINAL;
         }
-        if ( not defined $length and not files_equal( $original_file, $filename ) ) {
+        if (    not defined $length
+            and not files_equal( $original_file, $filename ) )
+        {
             push @problems,
                 "Difference between original ($original_file) and $filename\n";
             last CHECK_VS_ORIGINAL;
-        }
+        } ## end if ( not defined $length and not files_equal( $original_file...))
         if ( not tops_equal( $original_file, $filename, $length ) ) {
             push @problems,
                 "Difference between top of original ($original_file) and $filename\n";
@@ -329,8 +336,11 @@ sub Marpa::XS::License::file_license_problems {
 } ## end sub Marpa::XS::License::file_license_problems
 
 sub Marpa::XS::License::license_problems {
-    return map { Marpa::XS::License::file_license_problems( $_, 0 ) } @_;
-}
+    my ( $files, $verbose ) = @_;
+    return
+        map { Marpa::XS::License::file_license_problems( $_, $verbose ) }
+        @{$files};
+} ## end sub Marpa::XS::License::license_problems
 
 sub slurp {
     my ($filename) = @_;
@@ -359,7 +369,8 @@ sub files_equal {
 
 sub tops_equal {
     my ( $filename1, $filename2, $length ) = @_;
-    return ${ slurp_top($filename1, $length) } eq ${ slurp_top($filename2, $length) };
+    return ${ slurp_top( $filename1, $length ) } eq
+        ${ slurp_top( $filename2, $length ) };
 }
 
 sub license_problems_in_license_file {
@@ -412,19 +423,19 @@ sub license_problems_in_hash_file {
 
 sub license_problems_in_pp_perl_file {
     my ( $filename, $verbose ) = @_;
-    return license_problems_in_perl_file( $filename, 'pp', $verbose);
+    return license_problems_in_perl_file( $filename, 'pp', $verbose );
 }
 
 sub license_problems_in_xs_perl_file {
     my ( $filename, $verbose ) = @_;
-    return license_problems_in_perl_file( $filename, 'xs', $verbose);
+    return license_problems_in_perl_file( $filename, 'xs', $verbose );
 }
 
 sub license_problems_in_perl_file {
     my ( $filename, $type, $verbose ) = @_;
     my $hash_license = $type eq 'pp' ? $pp_hash_license : $xs_hash_license;
-    my @problems = ();
-    my $text = slurp_top( $filename, 132 + length $hash_license );
+    my @problems     = ();
+    my $text         = slurp_top( $filename, 132 + length $hash_license );
 
     # Delete hash bang line, if present
     ${$text} =~ s/\A [#][!] [^\n] \n//xms;

@@ -287,6 +287,7 @@ sub ACTION_manifest {
 }
 
 sub ACTION_licensecheck {
+    my $self = shift;
     require 'config/Marpa/XS/License.pm';
     my @manifest = do {
         open my $fh, q{<}, 'MANIFEST';
@@ -295,7 +296,8 @@ sub ACTION_licensecheck {
         $text =~ s/[#] [^\n]* $//gxms;
         grep { defined and not / \A \s* \z /xms } split "\n", $text;
     };
-    my @license_problems = Marpa::XS::License::license_problems(@manifest);
+    my @license_problems =
+        Marpa::XS::License::license_problems( \@manifest, $self->verbose() );
     if (@license_problems) {
         print {*STDERR} join q{}, @license_problems
             or die "Cannot print: $ERRNO";
@@ -336,7 +338,7 @@ sub write_installed_pm {
 sub ACTION_code {
     my $self = shift;
     say {*STDERR} 'Writing version files'
-        or "say failed: $ERRNO";
+        or die "say failed: $ERRNO";
     write_installed_pm( $self, qw(lib Marpa XS ) );
     write_installed_pm( $self, qw(pperl Marpa Perl ) );
     my $perl_version_pm = perl_version_contents( $self, 'Marpa::Perl' );
