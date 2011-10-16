@@ -13,12 +13,12 @@
 # General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
-use 5.010;
+# This file is editable.  It is used during the
+# configuration process to set up version information.
 
 package Marpa::XS;
 
-# This file is editable.  It is used during the
-# configuration process to set up version information.
+use 5.010;
 
 use strict;
 use warnings;
@@ -39,3 +39,4 @@ use warnings;
     'Glib'                => 1.223,
 );
 
+1;

@@ -231,8 +231,6 @@ TEST: for my $test_data (@test_data) {
     Marpa::Test::is( $actual, $expected, "$test_name: Parse match" );
 } ## end for my $test_data (@test_data)
 
-## no critic (Subroutines::RequireArgUnpacking)
-
 sub show_perl_line {
     shift;
     return join ', ', grep {defined} @_;
@@ -245,7 +243,5 @@ sub show_function_call      { return $_[1] }
 sub show_die                { return 'die statement' }
 sub show_unary              { return $_[1] . ' function call' }
 sub show_nullary            { return $_[1] . ' function call' }
-
-## use critic
 
 1;    # In case used as "do" file

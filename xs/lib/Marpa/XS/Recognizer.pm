@@ -953,13 +953,11 @@ sub report_progress {
     return \@progress_reports;
 } ## end sub report_progress
 
-## no critic(Subroutines::RequireArgUnpacking)
 sub Marpa::XS::Recognizer::read {
     # For efficiency, args are not unpacked
     my $recce = shift;
     return defined $recce->alternative(@_) ? $recce->earleme_complete() : undef;
 }
-## use critic
 
 sub Marpa::XS::Recognizer::alternative {
 

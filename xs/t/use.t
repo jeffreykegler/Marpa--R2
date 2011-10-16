@@ -102,7 +102,7 @@ my $string;
 if ($utility) {
     $string = do { local $RS = undef; <STDIN> };
 } else {
-    $string = do { local $RS = undef; readline DATA; };
+    $string = do { local $RS = undef; <*DATA>; };
 }
 
 my $expected = <<'EOS';

@@ -24,7 +24,7 @@ use Carp;
 use vars qw($VERSION $STRING_VERSION);
 $VERSION = '0.017_002';
 $STRING_VERSION = $VERSION;
-## no critic (Subroutines::RequireArgUnpacking)
+## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
 ## use critic
 

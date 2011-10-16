@@ -29,14 +29,10 @@ BEGIN {
     $OUTPUT_AUTOFLUSH = 1;
 }
 
-open my $critic_list, '<', 'author.t/critic.list'
-    or Marpa::XS::exception("open of author.t/critic.list failed: $ERRNO");
-
-my @test_files = ();
-FILE: while ( my $file = <$critic_list> ) {
-    chomp $file;
-    push @test_files, $file;
-}
+open my $critic_list, '<', 'author.t/critic.list';
+my @test_files = <$critic_list>;
+close $critic_list;
+chomp @test_files;
 
 my $rcfile = File::Spec->catfile( 'author.t', 'perlcriticrc' );
 Test::Perl::Critic->import(

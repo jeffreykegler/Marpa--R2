@@ -328,11 +328,9 @@ sub Marpa::XS::License::file_license_problems {
     return @problems;
 } ## end sub Marpa::XS::License::file_license_problems
 
-## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::XS::License::license_problems {
     return map { Marpa::XS::License::file_license_problems( $_, 0 ) } @_;
 }
-## use critic
 
 sub slurp {
     my ($filename) = @_;

@@ -197,7 +197,7 @@ my $expected_size = 4;
 Marpa::Test::is( $max_size, $expected_size,
     "size $max_size" );
 
-my $show_earley_sets_output = do { local $RS = undef; readline(*DATA); };
+my $show_earley_sets_output = do { local $RS = undef; <*DATA>; };
 
 Marpa::Test::is( $recce->show_earley_sets(1),
     $show_earley_sets_output, 'Leo cycle Earley sets' );
