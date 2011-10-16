@@ -40,6 +40,7 @@ sub Marpa::Test::Common::run {
         die qq{Compilation error in $f\n"$EVAL_ERROR"} if $EVAL_ERROR;
         die "$f: $ERRNO"                               if $ERRNO;
     } ## end DO:
+    return 1; # keep perlcritic happy
 } ## end sub run
 
 1;

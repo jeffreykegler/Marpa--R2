@@ -249,4 +249,3 @@ sub show_nullary            { return $_[1] . ' function call' }
 ## use critic
 
 1;    # In case used as "do" file
-

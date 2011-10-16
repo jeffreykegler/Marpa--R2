@@ -52,23 +52,22 @@ use Marpa::Test;
 my $utility = 0;
 die if not Getopt::Long::GetOptions( utility => \$utility );
 
-my @RESULT;
 sub concat {
    shift @_;
-   join q{}, map { $_ // '!UNDEF in concat!' } @_;
+   return join q{}, map { $_ // '!UNDEF in concat!' } @_;
 }
 my %closure_by_action = (
     long_use => sub {
-        'LONG: ' . join " ", map { $_ // q{()} } @_[ 1, 3 .. $#_ ];
+        'LONG: ' . join q{ }, map { $_ // q{()} } @_[ 1, 3 .. $#_ ];
     },
     revlong_use => sub {
-        'REVLONG: ' . join " ", map { $_ // q{()} } @_[ 1, 3 .. $#_ ];
+        'REVLONG: ' . join q{ }, map { $_ // q{()} } @_[ 1, 3 .. $#_ ];
     },
     perl_version_use => sub {
-        'PERL: ' . join " ", map { $_ // q{()} } @_[ 1, 3 .. $#_ ];
+        'PERL: ' . join q{ }, map { $_ // q{()} } @_[ 1, 3 .. $#_ ];
     },
     short_use => sub {
-        'SHORT: ' . join " ", map { $_ // q{()} } @_[ 1, 3 .. $#_ ];
+        'SHORT: ' . join q{ }, map { $_ // q{()} } @_[ 1, 3 .. $#_ ];
     },
     argexpr => \&concat,
 );
@@ -103,7 +102,7 @@ my $string;
 if ($utility) {
     $string = do { local $RS = undef; <STDIN> };
 } else {
-    $string = do { local $RS = undef; <DATA> };
+    $string = do { local $RS = undef; readline DATA; };
 }
 
 my $expected = <<'EOS';
@@ -136,9 +135,9 @@ $parser->read( \$string );
 my $result_ref = $parser->eval( );
 my $result = defined $result_ref ? ${$result_ref} : 'no parse';
 if ($utility) {
-    say $result;
+    say $result or die 'say builtin failed';
 } else {
-    Marpa::Test::is( $result, $expected, qq{Test of use statements} );
+    Marpa::Test::is( $result, $expected, 'Test of use statements' );
 }
 
 1;    # In case used as "do" file

@@ -123,7 +123,8 @@ for my $test_data ( $plex1_test, $plex2_test ) {
         @{$test_data};
 
     SKIP: {
-        skip "2-plex test may be too large", 2 if $test_name eq "2-plex test";
+        Test::More::skip '2-plex test may be too large', 2
+            if $test_name eq '2-plex test';
         my $trace = q{};
         open my $MEMORY, '>', \$trace;
         my %args = (

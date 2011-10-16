@@ -96,7 +96,7 @@ sub run_sequence_test {
         SYMBOL_IX: for my $symbol_ix ( 0 .. $last_symbol_ix ) {
             push @expected, 'a';
             defined $recce->tokens( [ [ 'A', 'a', 1 ] ] )
-                or die('Parsing exhausted');
+                or die 'Parsing exhausted';
             next SYMBOL_IX if $separation eq 'none';
             next SYMBOL_IX
                 if $symbol_ix >= $last_symbol_ix
@@ -105,7 +105,7 @@ sub run_sequence_test {
                 push @expected, q{!};
             }
             defined $recce->tokens( [ [ 'sep', q{!}, 1 ] ] )
-                or die('Parsing exhausted');
+                or die 'Parsing exhausted';
         } ## end for my $symbol_ix ( 0 .. $last_symbol_ix )
 
         $recce->end_input();
