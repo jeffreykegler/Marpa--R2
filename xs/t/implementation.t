@@ -199,8 +199,8 @@ S5@4-5 [p=S7@4-4; s=Number; t=\7]
 S11@4-5 [p=S7@4-4; c=S4@4-5]
 END_EARLEY_SETS
 
-Marpa::Test::is( $show_earley_sets_output,
-    $expected_earley_sets, 'Implementation Example Earley Sets' );
+Marpa::Test::is( $show_earley_sets_output, $expected_earley_sets,
+    'Implementation Example Earley Sets' );
 
 my $trace_output;
 open my $trace_fh, q{>}, \$trace_output;
@@ -237,8 +237,8 @@ New Virtual Rule: R5:1@0-5C0@0, rule: 5: Expression['] -> Expression
 Real symbol count is 1
 END_TRACE_OUTPUT
 
-Marpa::Test::is( $trace_output,
-    $expected_trace_output, 'Implementation Example Trace Output' );
+Marpa::Test::is( $trace_output, $expected_trace_output,
+    'Implementation Example Trace Output' );
 
 $recce->reset_evaluation();
 

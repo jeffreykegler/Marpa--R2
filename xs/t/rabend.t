@@ -108,7 +108,7 @@ sub duplicate_terminal_1 {
 # Marpa::XS::Display::End
 
     return $recce->alternative( 'a', 711, 1 );
-}
+} ## end sub duplicate_terminal_1
 
 catch_problem( $test_name, \&duplicate_terminal_1, undef,
     q{"a" already scanned with length 1} );

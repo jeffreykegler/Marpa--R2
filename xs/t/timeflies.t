@@ -116,16 +116,16 @@ for my $data ( 'time flies like an arrow', 'fruit flies like a banana' ) {
 # Marpa::XS::Display
 # name: Recognizer exhausted Synopsis
 
-	$recce->exhausted() and die 'Recognizer exhausted';
+        $recce->exhausted() and die 'Recognizer exhausted';
 
 # Marpa::XS::Display::End
 
-	for my $type (@{ $vocabulary{$word} } ) {
-	    defined $recce->alternative( $type, $word, 1 )
-		or die 'Recognition failed';
+        for my $type ( @{ $vocabulary{$word} } ) {
+            defined $recce->alternative( $type, $word, 1 )
+                or die 'Recognition failed';
         }
-	$recce->earleme_complete();
-    }
+        $recce->earleme_complete();
+    } ## end for my $word ( split q{ }, $data )
 
 # Marpa::XS::Display
 # name: Recognizer end_input Synopsis

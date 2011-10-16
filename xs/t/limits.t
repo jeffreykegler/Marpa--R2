@@ -44,8 +44,7 @@ sub test_grammar {
     my ( $grammar_args, $tokens ) = @_;
 
     my $grammar;
-    my $eval_ok =
-        eval { $grammar = Marpa::Grammar->new($grammar_args); 1; };
+    my $eval_ok = eval { $grammar = Marpa::Grammar->new($grammar_args); 1; };
     die "Exception while creating Grammar:\n$EVAL_ERROR"
         if not $eval_ok;
     die "Grammar not created\n" if not $grammar;
@@ -62,17 +61,17 @@ sub test_grammar {
         if not $eval_ok;
     die "Recognizer not created\n" if not $recce;
 
-    for my $token (@{$tokens}) {
-    my $earleme_result;
-    $eval_ok = eval {
-        $earleme_result = $recce->tokens( [ $token ] );
-        1;
-    };
-    die "Exception while recognizing earleme:\n$EVAL_ERROR"
-        if not $eval_ok;
-    die "Parsing exhausted\n"
-        if not defined $earleme_result;
-    }
+    for my $token ( @{$tokens} ) {
+        my $earleme_result;
+        $eval_ok = eval {
+            $earleme_result = $recce->tokens( [$token] );
+            1;
+        };
+        die "Exception while recognizing earleme:\n$EVAL_ERROR"
+            if not $eval_ok;
+        die "Parsing exhausted\n"
+            if not defined $earleme_result;
+    } ## end for my $token ( @{$tokens} )
 
     $eval_ok = eval { $recce->end_input(); 1; };
     die "Exception while recognizing end of input:\n$EVAL_ERROR"
@@ -108,7 +107,7 @@ sub gen_tokens {
 }
 
 my $value;
-my $eval_ok = eval { $value = test_grammar($placebo, gen_tokens(1)); 1; };
+my $eval_ok = eval { $value = test_grammar( $placebo, gen_tokens(1) ); 1; };
 if ( not defined $eval_ok ) {
     Test::More::diag($EVAL_ERROR);
     Test::More::fail('Placebo grammar');
@@ -125,7 +124,8 @@ else {
         'Earleme very long, but still OK' );
 }
 
-$eval_ok = eval { $value = test_grammar( $placebo, gen_tokens(2**31) ); 1; };
+$eval_ok =
+    eval { $value = test_grammar( $placebo, gen_tokens( 2**31 ) ); 1; };
 REPORT_RESULT: {
     if ( defined $eval_ok ) {
         Test::More::diag("Earleme too long test returned value: $value");
@@ -150,20 +150,18 @@ my $missing_null_value_grammar = {
             min    => 0,
             action => 'main::default_action',
         },
-        {   lhs => 'Item',
-            rhs => ['a'],
+        {   lhs    => 'Item',
+            rhs    => ['a'],
             action => 'main::default_action',
         },
     ],
-    lhs_terminals => 0,
-    start         => 'Seq',
+    lhs_terminals     => 0,
+    start             => 'Seq',
     trace_file_handle => $MEMORY,
 };
 
 $eval_ok = eval {
-    $value =
-        test_grammar( $missing_null_value_grammar,
-        [ [ 'a', 'a' ] ] );
+    $value = test_grammar( $missing_null_value_grammar, [ [ 'a', 'a' ] ] );
     1;
 };
 close $MEMORY;

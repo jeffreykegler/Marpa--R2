@@ -22,13 +22,15 @@ use Test::More tests => 5;
 
 BEGIN {
     Test::More::use_ok('Marpa::XS');
-} ## end BEGIN
+}
 
 defined $INC{'Marpa/XS.pm'}
     or Test::More::BAIL_OUT('Could not load Marpa::XS');
 
-Test::More::ok( ( defined $Marpa::XS::VERSION ),
-    'XS version is ' . $Marpa::XS::VERSION );
+Test::More::ok(
+    ( defined $Marpa::XS::VERSION ),
+    'XS version is ' . $Marpa::XS::VERSION
+);
 Test::More::ok( ( defined $Marpa::XS::STRING_VERSION ),
     'XS string version is ' . $Marpa::XS::STRING_VERSION );
 

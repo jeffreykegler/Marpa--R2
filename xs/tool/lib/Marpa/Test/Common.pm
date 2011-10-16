@@ -30,7 +30,7 @@ use Carp;
 sub Marpa::Test::Common::run {
     my ($path) = @_;
     my ( $volume, $dirs, $file_name ) = File::Spec->splitpath($path);
-    my @dirs    = File::Spec->splitdir($dirs);
+    my @dirs = File::Spec->splitdir($dirs);
     $dirs = File::Spec->catdir( @dirs, 'common' );
     my $f = File::Spec->catpath( $volume, $dirs, $file_name );
     DO: {
@@ -40,8 +40,8 @@ sub Marpa::Test::Common::run {
         die qq{Compilation error in $f\n"$EVAL_ERROR"} if $EVAL_ERROR;
         die "$f: $ERRNO"                               if $ERRNO;
     } ## end DO:
-    return 1; # keep perlcritic happy
-} ## end sub run
+    return 1;    # keep perlcritic happy
+} ## end sub Marpa::Test::Common::run
 
 1;
 

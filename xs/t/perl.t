@@ -240,12 +240,12 @@ sub do_THING {
     if ( Scalar::Util::looks_like_number($value) ) {
 
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
-       $value = eval $value;
+        $value = eval $value;
 ## use critic
 
-    }
+    } ## end if ( Scalar::Util::looks_like_number($value) )
     return [ 'R', \$value ];
-}
+} ## end sub do_THING
 
 sub do_anon_array {
     my ( undef, undef, $expr ) = @_;

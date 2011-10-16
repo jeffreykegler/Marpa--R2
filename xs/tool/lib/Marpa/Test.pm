@@ -28,7 +28,7 @@ BEGIN {
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
     ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
     eval 'use Test::Differences';
-} ## end BEGIN
+}
 
 sub Marpa::Test::is {
     goto &Test::Differences::eq_or_diff

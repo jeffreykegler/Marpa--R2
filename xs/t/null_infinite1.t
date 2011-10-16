@@ -118,21 +118,20 @@ my @expected = (
 );
 
 for my $input_length ( 1 .. 3 ) {
-    my $recce = Marpa::Recognizer->new(
-        { grammar => $grammar, max_parses => 99 } );
+    my $recce =
+        Marpa::Recognizer->new( { grammar => $grammar, max_parses => 99 } );
     $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] );
     my $expected = $expected[$input_length];
     my @values   = ();
     while ( my $value_ref = $recce->value() ) {
         push @values, ${$value_ref};
     }
-    my $values = join "\n", sort @values;
+    my $values          = join "\n", sort @values;
     my $expected_values = join "\n", sort @{$expected};
+
     # die if $values ne $expected_values;
-    Marpa::Test::is(
-        $values, $expected_values,
-        "value for input length $input_length"
-    );
+    Marpa::Test::is( $values, $expected_values,
+        "value for input length $input_length" );
 } ## end for my $input_length ( 1 .. 3 )
 
 1;    # In case used as "do" file

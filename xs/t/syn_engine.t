@@ -126,8 +126,7 @@ sub fix_things {
 # Marpa::XS::Display
 # name: Engine Synopsis Interactive Parse
 
-$recce =
-    Marpa::Recognizer->new( { grammar => $grammar } );
+$recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my @tokens = (
     [ 'Number', 42 ],

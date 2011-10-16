@@ -86,21 +86,21 @@ my $grammar = Marpa::Grammar->new(
 
         actions => 'main',
         rules   => [
-            {   lhs      => 'E',
-                rhs      => [qw/E Minus E/],
-                action   => 'subtraction',
+            {   lhs    => 'E',
+                rhs    => [qw/E Minus E/],
+                action => 'subtraction',
             },
-            {   lhs      => 'E',
-                rhs      => [qw/E MinusMinus/],
-                action   => 'postfix_decr',
+            {   lhs    => 'E',
+                rhs    => [qw/E MinusMinus/],
+                action => 'postfix_decr',
             },
-            {   lhs      => 'E',
-                rhs      => [qw/MinusMinus E/],
-                action   => 'prefix_decr',
+            {   lhs    => 'E',
+                rhs    => [qw/MinusMinus E/],
+                action => 'prefix_decr',
             },
-            {   lhs      => 'E',
-                rhs      => [qw/Minus E/],
-                action   => 'negation'
+            {   lhs    => 'E',
+                rhs    => [qw/Minus E/],
+                action => 'negation'
             },
             {   lhs    => 'E',
                 rhs    => [qw/Number/],
@@ -125,8 +125,7 @@ Marpa::Test::is( $grammar->show_rules,
 5: E['] -> E /* vlhs real=1 */
 END_RULES
 
-Marpa::Test::is( $grammar->show_AHFA,
-    <<'END_AHFA', 'Minuses Equation AHFA' );
+Marpa::Test::is( $grammar->show_AHFA, <<'END_AHFA', 'Minuses Equation AHFA' );
 * S0:
 E['] -> . E
  <E> => S2; leo(E['])

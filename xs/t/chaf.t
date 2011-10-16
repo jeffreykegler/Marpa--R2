@@ -41,9 +41,9 @@ sub default_action {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    {   start   => 'S',
-        strip   => 0,
-        rules   => [
+    {   start => 'S',
+        strip => 0,
+        rules => [
             [ 'S', [qw/A B B B C C /] ],
             [ 'A', [qw/a/] ],
             [ 'B', [qw/a/] ],
@@ -75,14 +75,13 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 12: S['] -> S /* vlhs real=1 */
 EOS
 
-my $recce =
-    Marpa::Recognizer->new( { grammar => $grammar  } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 $recce->tokens( [ [ 'a', 'a' ] ], );
 
 my $value_ref = $recce->value();
 my $value = defined $value_ref ? ${$value_ref} : 'undef';
-Test::More::is($value, '(a;;;;;)', 'subp test');
+Test::More::is( $value, '(a;;;;;)', 'subp test' );
 
 1;    # In case used as "do" file
 
