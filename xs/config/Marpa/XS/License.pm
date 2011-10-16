@@ -289,7 +289,7 @@ sub file_type {
 
 sub Marpa::XS::License::file_license_problems {
     my ( $filename, $verbose ) = @_;
-    $verbose //= 1;
+    $verbose //= 0;
     if ($verbose) {
         say "Checking license of $filename" or die "say failed: $ERRNO";
     }
