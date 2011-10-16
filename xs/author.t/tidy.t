@@ -40,10 +40,8 @@ FILE: while ( my $file = <$critic_list> ) {
 
 my $rcfile = File::Spec->catfile( 'author.t', 'perlcriticrc' );
 Test::Perl::Critic->import(
-    -verbose => '%l:%c %p %r',
-    -profile => $rcfile,
-    -exclude => [ 'Dynamic::*', 'CodeLayout::RequireTidyCode' ],
+    -verbose         => '%l:%c %p %r',
+    -profile         => $rcfile,
+    '-single-policy' => 'CodeLayout::RequireTidyCode',
 );
 Test::Perl::Critic::all_critic_ok(@test_files);
-
-1;

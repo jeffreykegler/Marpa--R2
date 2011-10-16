@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!perl
 # Copyright 2011 Jeffrey Kegler
 # This file is part of Marpa::XS.  Marpa::XS is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
@@ -19,31 +19,28 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use Fatal qw( open close );
-use Carp;
-use Perl::Critic;
-use Test::Perl::Critic;
-use Test::More;
 
-# Test that the module passes perlcritic
-BEGIN {
-    $OUTPUT_AUTOFLUSH = 1;
-}
+my %exclude = map { ( $_, 1 ) } qw(
+    Makefile.PL
+);
 
-open my $critic_list, '<', 'author.t/critic.list'
-    or Marpa::XS::exception("open of author.t/critic.list failed: $ERRNO");
+open my $manifest, '<', '../MANIFEST'
+    or Marpa::XS::exception("open of ../MANIFEST failed: $ERRNO");
 
 my @test_files = ();
-FILE: while ( my $file = <$critic_list> ) {
+FILE: while ( my $file = <$manifest> ) {
     chomp $file;
-    push @test_files, $file;
-}
+    $file =~ s/\s*[#].*\z//xms;
+    next FILE if $exclude{$file};
+    my ($ext) = $file =~ / [.] ([^.]+) \z /xms;
+    given ( lc $ext ) {
+        when (undef) {
+            break
+        }
+        when ('pl') { say $file or die "Cannot say: $ERRNO" }
+        when ('pm') { say $file or die "Cannot say: $ERRNO" }
+        when ('t')  { say $file or die "Cannot say: $ERRNO" }
+    } ## end given
+} ## end while ( my $file = <$manifest> )
 
-my $rcfile = File::Spec->catfile( 'author.t', 'perlcriticrc' );
-Test::Perl::Critic->import(
-    -verbose => '%l:%c %p %r',
-    -profile => $rcfile,
-    -exclude => [ 'Dynamic::*', 'CodeLayout::RequireTidyCode' ],
-);
-Test::Perl::Critic::all_critic_ok(@test_files);
-
-1;
+close $manifest;

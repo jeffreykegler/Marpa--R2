@@ -29,6 +29,7 @@ author.t/.gitignore
 author.t/Makefile
 author.t/accept_tidy
 author.t/ampersand.t
+author.t/create_critic_list.pl
 author.t/critic.t
 author.t/critic1
 author.t/display.t
@@ -37,6 +38,7 @@ author.t/perlcriticrc
 author.t/perltidyrc
 author.t/pod.t
 author.t/spelling_exceptions.list
+author.t/tidy.t
 author.t/tidy1
 config/Marpa/XS/Build_Me.pm
 config/Marpa/XS/Config.pm

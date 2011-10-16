@@ -13,14 +13,20 @@
 # General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: all all_tests critic
+.PHONY: all all_tests critic display tidy
 
 all: all_tests
+
+critic.list: ../MANIFEST create_critic_list.pl
+	perl ./create_critic_list.pl > critic.list
 
 all_tests:
 	-(cd ..; prove author.t/*.t ) 2>&1 | tee all.errs
 
-critic:
+tidy: critic.list
+	-(cd ..; prove author.t/tidy.t) 2>&1 | tee tidy.errs
+
+critic: critic.list
 	-(cd ..; prove author.t/critic.t) 2>&1 | tee critic.errs
 
 display:

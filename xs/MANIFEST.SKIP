@@ -26,8 +26,11 @@
 ^\.gitignore$
 ^\_build\/
 ^author.t/all.errs$
+^author.t/critic.errs$
+^author.t/critic.list$
 ^author.t/display.errs$
 ^author.t/perlcritic.errs$
+^author.t/tidy.errs$
 ^blib/
 ^errs$
 ^etc/track[.]list
