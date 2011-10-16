@@ -29,9 +29,6 @@ BEGIN {
     $OUTPUT_AUTOFLUSH = 1;
 }
 
-open my $critic_list, '<', 'author.t/critic.list'
-    or Marpa::XS::exception("open of author.t/critic.list failed: $ERRNO");
-
 open my $critic_list, '<', 'author.t/critic.list';
 my @test_files = <$critic_list>;
 close $critic_list;
