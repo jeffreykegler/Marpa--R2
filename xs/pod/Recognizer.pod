@@ -366,8 +366,7 @@ name: Engine Synopsis Interactive Parse
 partial: 1
 normalize-whitespace: 1
 
-    $recce =
-        Marpa::Recognizer->new( { grammar => $grammar } );
+    $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
     my @tokens = (
         [ 'Number', 42 ],

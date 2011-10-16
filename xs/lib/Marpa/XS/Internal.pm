@@ -22,7 +22,7 @@ use integer;
 use Carp;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION = '0.017_002';
+$VERSION        = '0.017_002';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -48,7 +48,7 @@ use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
 use constant N_FORMAT_MAX => 0x7fff_ffff;
 
 sub Marpa::offset {
-    my (@desc)   = @_;
+    my (@desc) = @_;
     my @fields = ();
     for my $desc (@desc) {
         push @fields, split q{ }, $desc;

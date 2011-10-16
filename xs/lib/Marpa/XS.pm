@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION @ISA $DEBUG);
-$VERSION = '0.017_002';
+$VERSION        = '0.017_002';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -34,20 +34,21 @@ use Marpa::XS::Version;
 
 # Die if more than one of the Marpa modules is loaded
 if ( defined $Marpa::MODULE ) {
-    Carp::croak("You can only load one of the Marpa modules at a time\n",
-        'The module ', $Marpa::MODULE, " is already loaded\n");
+    Carp::croak( "You can only load one of the Marpa modules at a time\n",
+        'The module ', $Marpa::MODULE, " is already loaded\n" );
 }
 $Marpa::MODULE = 'Marpa::XS';
 if ( defined $Marpa::PP::VERSION ) {
-    Carp::croak('Attempt to load Marpa::XS when Marpa::PP ', $Marpa::PP::VERSION, ' already loaded');
+    Carp::croak( 'Attempt to load Marpa::XS when Marpa::PP ',
+        $Marpa::PP::VERSION, ' already loaded' );
 }
-if ( $Marpa::USING_PP ) {
+if ($Marpa::USING_PP) {
     Carp::croak('Attempt to load Marpa::XS when already using Marpa::PP');
 }
-if ( $Marpa::USING_XS ) {
+if ($Marpa::USING_XS) {
     die 'Internal error: Attempt to load Marpa::XS twice';
 }
-if ( $Marpa::USE_PP ) {
+if ($Marpa::USE_PP) {
     Carp::croak('Attempt to load Marpa::XS when USE_PP specified');
 }
 
@@ -56,7 +57,7 @@ $Marpa::USING_PP = 0;
 
 eval {
     require XSLoader;
-    XSLoader::load('Marpa::XS', $Marpa::XS::STRING_VERSION);
+    XSLoader::load( 'Marpa::XS', $Marpa::XS::STRING_VERSION );
     1;
 } or eval {
     my @libs = split q{ }, ExtUtils::PkgConfig->libs('glib-2.0');
@@ -70,39 +71,39 @@ eval {
 
 my $version_found = join q{.}, Marpa::XS::version();
 my $version_wanted = '0.1.0';
-Carp::croak('Marpa::XS ', "fails version check, wanted $version_wanted, found $version_found")
+Carp::croak( 'Marpa::XS ',
+    "fails version check, wanted $version_wanted, found $version_found" )
     if $version_wanted ne $version_found;
 
 @Marpa::CARP_NOT = ();
-for my $start (qw(Marpa Marpa::PP Marpa::XS))
-{
-    for my $middle (q{}, '::Internal')
-    {
-	for my $end (q{}, qw(::Recognizer ::Callback ::Grammar ::Value))
-	{
-	    push @Marpa::CARP_NOT, $start . $middle . $end;
-	}
+for my $start (qw(Marpa Marpa::PP Marpa::XS)) {
+    for my $middle ( q{}, '::Internal' ) {
+        for my $end ( q{}, qw(::Recognizer ::Callback ::Grammar ::Value) ) {
+            push @Marpa::CARP_NOT, $start . $middle . $end;
+        }
     }
-}
+} ## end for my $start (qw(Marpa Marpa::PP Marpa::XS))
 PACKAGE: for my $package (@Marpa::CARP_NOT) {
     no strict 'refs';
-    next PACKAGE if  $package eq 'Marpa';
+    next PACKAGE if $package eq 'Marpa';
     *{ $package . q{::CARP_NOT} } = \@Marpa::CARP_NOT;
 }
 
-if (not $ENV{'MARPA_AUTHOR_TEST'}) {
-    Glib::Log->set_handler('Marpa', 'debug', (sub {;}), undef);
+if ( not $ENV{'MARPA_AUTHOR_TEST'} ) {
+    Glib::Log->set_handler( 'Marpa', 'debug', ( sub {;} ), undef );
     $Marpa::XS::DEBUG = 0;
-} else {
+}
+else {
     $Marpa::XS::DEBUG = 1;
 }
 
 sub version_ok {
     my ($sub_module_version) = @_;
     return 'not defined' if not defined $sub_module_version;
-    return "$sub_module_version does not match Marpa::XS::VERSION " . $VERSION if $sub_module_version != $VERSION;
+    return "$sub_module_version does not match Marpa::XS::VERSION " . $VERSION
+        if $sub_module_version != $VERSION;
     return;
-}
+} ## end sub version_ok
 
 my $version_result;
 require Marpa::XS::Internal;
@@ -121,49 +122,60 @@ require Marpa::XS::Value;
 ( $version_result = version_ok($Marpa::XS::Value::VERSION) )
     and die 'Marpa::XS::Value::VERSION ', $version_result;
 
-*Marpa::Grammar::check_terminal = \&Marpa::XS::Grammar::check_terminal;
-*Marpa::Grammar::new = \&Marpa::XS::Grammar::new;
-*Marpa::Grammar::precompute = \&Marpa::XS::Grammar::precompute;
-*Marpa::Grammar::set = \&Marpa::XS::Grammar::set;
-*Marpa::Grammar::show_AHFA = \&Marpa::XS::Grammar::show_AHFA;
+*Marpa::Grammar::check_terminal  = \&Marpa::XS::Grammar::check_terminal;
+*Marpa::Grammar::new             = \&Marpa::XS::Grammar::new;
+*Marpa::Grammar::precompute      = \&Marpa::XS::Grammar::precompute;
+*Marpa::Grammar::set             = \&Marpa::XS::Grammar::set;
+*Marpa::Grammar::show_AHFA       = \&Marpa::XS::Grammar::show_AHFA;
 *Marpa::Grammar::show_AHFA_items = \&Marpa::XS::Grammar::show_AHFA_items;
-*Marpa::Grammar::show_NFA = \&Marpa::XS::Grammar::show_NFA;
-*Marpa::Grammar::show_accessible_symbols = \&Marpa::XS::Grammar::show_accessible_symbols;
+*Marpa::Grammar::show_NFA        = \&Marpa::XS::Grammar::show_NFA;
+*Marpa::Grammar::show_accessible_symbols =
+    \&Marpa::XS::Grammar::show_accessible_symbols;
 *Marpa::Grammar::show_dotted_rule = \&Marpa::XS::Grammar::show_dotted_rule;
-*Marpa::Grammar::show_nullable_symbols = \&Marpa::XS::Grammar::show_nullable_symbols;
-*Marpa::Grammar::show_nulling_symbols = \&Marpa::XS::Grammar::show_nulling_symbols;
-*Marpa::Grammar::show_productive_symbols = \&Marpa::XS::Grammar::show_productive_symbols;
-*Marpa::Grammar::show_problems = \&Marpa::XS::Grammar::show_problems;
-*Marpa::Grammar::brief_rule = \&Marpa::XS::Grammar::brief_rule;
-*Marpa::Grammar::show_rule = \&Marpa::XS::Grammar::show_rule;
-*Marpa::Grammar::show_rules = \&Marpa::XS::Grammar::show_rules;
-*Marpa::Grammar::show_symbol = \&Marpa::XS::Grammar::show_symbol;
-*Marpa::Grammar::show_symbols = \&Marpa::XS::Grammar::show_symbols;
-*Marpa::Recognizer::alternative = \&Marpa::XS::Recognizer::alternative;
+*Marpa::Grammar::show_nullable_symbols =
+    \&Marpa::XS::Grammar::show_nullable_symbols;
+*Marpa::Grammar::show_nulling_symbols =
+    \&Marpa::XS::Grammar::show_nulling_symbols;
+*Marpa::Grammar::show_productive_symbols =
+    \&Marpa::XS::Grammar::show_productive_symbols;
+*Marpa::Grammar::show_problems     = \&Marpa::XS::Grammar::show_problems;
+*Marpa::Grammar::brief_rule        = \&Marpa::XS::Grammar::brief_rule;
+*Marpa::Grammar::show_rule         = \&Marpa::XS::Grammar::show_rule;
+*Marpa::Grammar::show_rules        = \&Marpa::XS::Grammar::show_rules;
+*Marpa::Grammar::show_symbol       = \&Marpa::XS::Grammar::show_symbol;
+*Marpa::Grammar::show_symbols      = \&Marpa::XS::Grammar::show_symbols;
+*Marpa::Recognizer::alternative    = \&Marpa::XS::Recognizer::alternative;
 *Marpa::Recognizer::check_terminal = \&Marpa::XS::Recognizer::check_terminal;
-*Marpa::Recognizer::current_earleme = \&Marpa::XS::Recognizer::current_earleme;
-*Marpa::Recognizer::earleme_complete = \&Marpa::XS::Recognizer::earleme_complete;
-*Marpa::Recognizer::earley_set_size = \&Marpa::XS::Recognizer::earley_set_size;
+*Marpa::Recognizer::current_earleme =
+    \&Marpa::XS::Recognizer::current_earleme;
+*Marpa::Recognizer::earleme_complete =
+    \&Marpa::XS::Recognizer::earleme_complete;
+*Marpa::Recognizer::earley_set_size =
+    \&Marpa::XS::Recognizer::earley_set_size;
 *Marpa::Recognizer::end_input = \&Marpa::XS::Recognizer::end_input;
 *Marpa::Recognizer::exhausted = \&Marpa::XS::Recognizer::exhausted;
-*Marpa::Recognizer::latest_earley_set = \&Marpa::XS::Recognizer::latest_earley_set;
-*Marpa::Recognizer::new = \&Marpa::XS::Recognizer::new;
+*Marpa::Recognizer::latest_earley_set =
+    \&Marpa::XS::Recognizer::latest_earley_set;
+*Marpa::Recognizer::new  = \&Marpa::XS::Recognizer::new;
 *Marpa::Recognizer::read = \&Marpa::XS::Recognizer::read;
-*Marpa::Recognizer::reset_evaluation = \&Marpa::XS::Recognizer::reset_evaluation;
+*Marpa::Recognizer::reset_evaluation =
+    \&Marpa::XS::Recognizer::reset_evaluation;
 *Marpa::Recognizer::set = \&Marpa::XS::Recognizer::set;
-*Marpa::Recognizer::show_earley_sets = \&Marpa::XS::Recognizer::show_earley_sets;
+*Marpa::Recognizer::show_earley_sets =
+    \&Marpa::XS::Recognizer::show_earley_sets;
 *Marpa::Recognizer::show_and_nodes = \&Marpa::XS::Recognizer::show_and_nodes;
-*Marpa::Recognizer::show_bocage = \&Marpa::XS::Recognizer::show_bocage;
-*Marpa::Recognizer::old_show_tree = \&Marpa::XS::Recognizer::old_show_tree;
-*Marpa::Recognizer::old_show_fork = \&Marpa::XS::Recognizer::old_show_fork;
-*Marpa::Recognizer::parse_count = \&Marpa::XS::Recognizer::parse_count;
-*Marpa::Recognizer::show_fork = \&Marpa::XS::Recognizer::show_fork;
-*Marpa::Recognizer::show_tree = \&Marpa::XS::Recognizer::show_tree;
-*Marpa::Recognizer::show_or_nodes = \&Marpa::XS::Recognizer::show_or_nodes;
-*Marpa::Recognizer::show_progress = \&Marpa::XS::Recognizer::show_progress;
-*Marpa::Recognizer::status = \&Marpa::XS::Recognizer::status;
-*Marpa::Recognizer::terminals_expected = \&Marpa::XS::Recognizer::terminals_expected;
+*Marpa::Recognizer::show_bocage    = \&Marpa::XS::Recognizer::show_bocage;
+*Marpa::Recognizer::old_show_tree  = \&Marpa::XS::Recognizer::old_show_tree;
+*Marpa::Recognizer::old_show_fork  = \&Marpa::XS::Recognizer::old_show_fork;
+*Marpa::Recognizer::parse_count    = \&Marpa::XS::Recognizer::parse_count;
+*Marpa::Recognizer::show_fork      = \&Marpa::XS::Recognizer::show_fork;
+*Marpa::Recognizer::show_tree      = \&Marpa::XS::Recognizer::show_tree;
+*Marpa::Recognizer::show_or_nodes  = \&Marpa::XS::Recognizer::show_or_nodes;
+*Marpa::Recognizer::show_progress  = \&Marpa::XS::Recognizer::show_progress;
+*Marpa::Recognizer::status         = \&Marpa::XS::Recognizer::status;
+*Marpa::Recognizer::terminals_expected =
+    \&Marpa::XS::Recognizer::terminals_expected;
 *Marpa::Recognizer::tokens = \&Marpa::XS::Recognizer::tokens;
-*Marpa::Recognizer::value = \&Marpa::XS::Recognizer::value;
+*Marpa::Recognizer::value  = \&Marpa::XS::Recognizer::value;
 
 1;
