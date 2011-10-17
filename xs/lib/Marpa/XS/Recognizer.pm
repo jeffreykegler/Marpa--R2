@@ -17,15 +17,8 @@ package Marpa::XS::Recognizer;
 
 use 5.010;
 use warnings;
-
-# As of 9 Aug 2010 there's a problem with this perlcritic check
-## no critic (TestingAndDebugging::ProhibitNoWarnings)
-no warnings 'recursion';
-## use critic
-
 use strict;
 use integer;
-
 use English qw( -no_match_vars );
 
 use vars qw($VERSION $STRING_VERSION);
@@ -244,9 +237,9 @@ sub Marpa::XS::Recognizer::reset_evaluation {
     if ( not defined $result ) {
         Marpa::exception("eval_clear() failed\n");
     }
-    $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID]    = undef;
-    $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES]     = [];
-    $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS]    = [];
+    $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID] = undef;
+    $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES]  = [];
+    $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS] = [];
 
     return;
 } ## end sub Marpa::XS::Recognizer::reset_evaluation
@@ -281,15 +274,27 @@ sub Marpa::XS::Recognizer::set {
         } ## end if ( my @bad_options = grep { not $_ ~~ ...})
 
         if ( defined( my $value = $args->{'leo'} ) ) {
+
+            # Not allowed once input has started
+            if ( $recce_c->current_earleme() >= 0 ) {
+                Marpa::exception(
+                    q{Cannot reset 'leo' once input has started});
+            }
             my $boolean = $value ? 1 : 0;
             $recce_c->is_use_leo_set($boolean);
-        }
+        } ## end if ( defined( my $value = $args->{'leo'} ) )
 
         if ( defined( my $value = $args->{'max_parses'} ) ) {
             $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES] = $value;
         }
 
         if ( defined( my $value = $args->{'mode'} ) ) {
+
+            # Not allowed once input has started
+            if ( $recce_c->current_earleme() >= 0 ) {
+                Marpa::exception(
+                    q{Cannot reset 'mode' once input has started});
+            }
             if (not $value ~~
                 Marpa::XS::Internal::Recognizer::RECOGNIZER_MODES )
             {
@@ -300,6 +305,12 @@ sub Marpa::XS::Recognizer::set {
         } ## end if ( defined( my $value = $args->{'mode'} ) )
 
         if ( defined( my $value = $args->{'ranking_method'} ) ) {
+
+            # Not allowed once parsing is started
+            if ( $recce_c->parse_count() ) {
+                Marpa::exception(
+                    q{Cannot change ranking method once parsing has started});
+            }
             my @ranking_methods = qw(high_rule_only rule none);
             Marpa::exception(
                 qq{ranking_method value is $value (should be one of },
@@ -404,20 +415,20 @@ sub Marpa::XS::Recognizer::set {
 
         if ( defined( my $value = $args->{'end'} ) ) {
 
-            # Not allowed once parsing is started
+            # Not allowed once evaluation is started
             if ( $recce_c->parse_count() ) {
                 Marpa::exception(
-                    q{Cannot reset end once parsing has started});
+                    q{Cannot reset end once evaluation has started});
             }
             $recce->[Marpa::XS::Internal::Recognizer::END] = $value;
         } ## end if ( defined( my $value = $args->{'end'} ) )
 
         if ( defined( my $value = $args->{'closures'} ) ) {
 
-            # Not allowed once parsing is started
+            # Not allowed once evaluation is started
             if ( $recce_c->parse_count() ) {
                 Marpa::exception(
-                    q{Cannot reset end once parsing has started});
+                    q{Cannot reset end once evaluation has started});
             }
             my $closures =
                 $recce->[Marpa::XS::Internal::Recognizer::CLOSURES] = $value;

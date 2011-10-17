@@ -179,7 +179,7 @@ a zero return from a C<read> method
 means that the parse is B<exhausted> --
 that no more input is possible.
 More details on "exhaustion" are in L<a
-section below|/"EXHAUSTION, SUCCESS AND FAILURE">.
+section below|/"PARSE EXHAUSTION">.
 
 Marpa may reject a token because it is not one of those
 acceptable at the current location.
@@ -200,9 +200,47 @@ Marpa throws an exception.
 
 =head2 value
 
-The C<value> mutator evaluates a parse tree
-and returns a parse result.
-It is described in L<its own section|/"EVALUATION">.
+=for Marpa::XS::Display
+name: Engine Synopsis Unambiguous Parse
+partial: 1
+normalize-whitespace: 1
+
+    my $value_ref = $recce->value;
+    my $value = $value_ref ? ${$value_ref} : 'No Parse';
+
+=for Marpa::XS::Display::End
+
+The C<value> method call evaluates and returns a parse result.
+Its arguments are zero or more hashes of named arguments.
+It returns a B<reference> to the value of the next parse result,
+or undef if there are no more parse results.
+
+The C<value> method's arguments are references to hashes of named
+arguments.
+Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
+
+Several of named arguments are not allowed once
+evaluation has begun.
+Evaluation of a parse series begins with
+its first C<value> method call.
+As a convenience,
+the named arguments
+in that first C<value> method call
+are treated as having been specified BEFORE
+evaluation begins.
+This eliminates some of the need
+for the recognizer's C<set> method.
+
+For example, the C<end> named argument,
+which specifies the end of parsing location in the input
+stream, may not be changed after evaluation begins.
+The first C<value> call of an ambiguous parse series
+may have an C<end> named argument,
+and its value will apply to the entire parse series.
+If any subsequent call to C<value> for that parse series
+has an C<end> named argument specified,
+an exception will be
+thrown.
 
 =head1 TRACE ACCESSORS
 
@@ -275,11 +313,90 @@ grammars|Marpa::XS::Debug>.
 
 =head1 NAMED ARGUMENTS
 
+The recognizer's named arguments are
+accepted by its
+C<new>, C<set> and C<value> methods.
+Most of these named arguments are valid everywhere,
+although depending on their meaning,
+they often will have no effect.
+For example, the C<too_many_earley_items> named
+argument will have no effect after input is complete.
+
+Some of the recognizer's named arguments
+are not valid for all of the C<new>, C<set>
+and C<value> methods,
+and cause an exception if used
+in the wrong one.
+For example,
+a C<grammar> named argument is only valid
+when a recognizer is being constructed by
+the C<new> method.
+If a named argument causes
+an exception
+when used in the wrong method call,
+this is mentioned in its description below.
+
+=head2 closures
+
+The value of C<closures> named argument
+must be
+a reference to a hash.
+In each key/value pair of this hash,
+the key must be an action name.
+The hash value
+must be a CODE ref.
+The C<closures> named argument
+is not allowed once evaluation has begun.
+
+When an action name is a key in
+the 
+C<closures> named argument,
+the usual action resolution mechanism of the semantics
+is bypassed.
+One common use of
+the C<closures> named argument is to
+allow anonymous
+subroutines to be semantic actions.
+For more details, see L<the document on
+semantics|Marpa::XS::Semantics>.
+
+=head2 end
+
+The C<end> named argument
+specifies the parse end location.
+The default is for the parse to end where the input did,
+so that the parse returned is of the entire input.
+The C<end> named argument is not allowed
+once evaluation has begun.
+
 =head2 grammar
 
-The C<grammar> named argument is required.  Its
+The C<new> method is required to have
+a C<grammar> named argument.  Its
 value must be
 a precomputed Marpa grammar object.
+The C<grammar> named argument is not allowed anywhere else.
+
+=head2 max_parses
+
+The value must be an integer.
+If it is greater than zero, the evaluator will
+return no more than that number of parse results.
+If it is zero, there will be no
+limit on the number of parse results returned.
+The default is for
+there to be no limit.
+
+Marpa allows extremely ambiguous grammars.
+C<max_parses> 
+can be used if
+the user
+wants to see only
+the first few parse results of
+an ambiguous parse.
+C<max_parses> is also useful to
+limit CPU usage and output length when testing
+and debugging.
 
 =head2 ranking_method
 
@@ -290,6 +407,8 @@ or "C<high_rule_only>".
 When the value is "C<none>", Marpa returns the parse results
 in arbitrary order.
 This is the default.
+The C<ranking_method> named argument is not allowed
+once evaluation has begun.
 
 Marpa allows the user
 to control the order which parse results are returned by
@@ -324,6 +443,17 @@ The default threshold will never be less than 100.
 If the Earley item warning threshold is set to 0,
 warnings about large Earley sets are turned off.
 
+=head2 trace_actions
+
+The C<value> method's
+C<trace_actions> named argument
+is a boolean.
+If the boolean value is true, Marpa prints tracing information
+as it resolves action names to
+Perl closures.
+A boolean value of false turns tracing off, which is the default.
+Traces are written to the trace file handle.
+
 =head2 trace_file_handle
 
 The value is a file handle.
@@ -351,6 +481,18 @@ every location, a list of the
 terminals expected.
 In practical grammars, output from
 trace level 2 can be voluminous.
+
+=head2 trace_values
+
+The C<value> method's
+C<trace_values> named argument
+is a numeric trace level.
+If the numeric trace level is 1, Marpa
+prints tracing information
+as values are computed in the evaluation stack.
+A trace level of 0 turns value tracing off,
+which is the default.
+Traces are written to the trace file handle.
 
 =head2 warnings
 
@@ -394,8 +536,6 @@ so that it is acceptable to the parser.
 
 An application can also take a "try it and see"
 approach.
-It is a recoverable error
-if a token is rejected because it is not acceptable.
 If an application is not sure whether a token is
 acceptable or not, the application can
 try to read the dubious token using
@@ -448,113 +588,17 @@ a completely new "virtual" token that gives the parser exactly what it expects.
 L<Marpa::HTML> then resumes input at the point in the original input stream
 where it left off.
 
-=head1 EXHAUSTION, SUCCESS AND FAILURE
+=head1 PARSE EXHAUSTION
 
 A parse is B<exhausted> when it will accept no more input.
 In the default input model, the C<read> method indicates this
 by returning zero.
 
-While a failed parse often becomes exhausted,
-a B<exhausted> parse is by no means necessarily a failed parse.
-Many common practical grammars succeed at exactly the point
-that they become exhausted.
+An B<exhausted> parse is not necessarily a failed parse.
 Grammars are often written so that once the "find what
 they are looking for", no other input is acceptable.
-
-=head1 EVALUATION
-
-=for Marpa::XS::Display
-name: Engine Synopsis Unambiguous Parse
-partial: 1
-normalize-whitespace: 1
-
-    my $value_ref = $recce->value;
-    my $value = $value_ref ? ${$value_ref} : 'No Parse';
-
-=for Marpa::XS::Display::End
-
-The C<value> method call evaluates and returns a parse result.
-Its arguments are zero or more hashes of named arguments.
-It returns a B<reference> to the value of the next parse result,
-or undef if there are no more parse results.
-
-These are the named arguments available to the C<value> method
-call:
-
-=head2 end
-
-The C<value> method's
-C<end> named argument
-specifies the parse end location.
-The default is for the parse to end where the input did,
-so that the parse returned is of the entire input.
-
-=head2 closures
-
-The C<value> method's
-C<closures> named argument
-is
-a reference to a hash.
-In each key/value pair of this hash,
-the key must be an action name.
-The hash value
-must be a CODE ref.
-
-When an action name is a key in
-the 
-C<closures> named argument,
-the usual action resolution mechanism of the semantics
-is bypassed.
-One common use of
-the C<closures> named argument is to
-allow anonymous
-subroutines to be semantic actions.
-For more details, see L<the document on
-semantics|Marpa::XS::Semantics>.
-
-=head2 max_parses
-
-The value must be an integer.
-If it is greater than zero, the evaluator will
-return no more than that number of parse results.
-If it is zero, there will be no
-limit on the number of parse results returned.
-The default is for
-there to be no limit.
-
-Marpa allows extremely ambiguous grammars.
-C<max_parses> 
-can be used if
-the user
-wants to see only
-the first few parse results of
-an ambiguous parse.
-C<max_parses> is also useful to
-limit CPU usage and output length when testing
-and debugging.
-
-=head2 trace_actions
-
-The C<value> method's
-C<trace_actions> named argument
-is a boolean.
-If the boolean value is true, Marpa prints tracing information
-as it resolves action names to
-Perl closures.
-A boolean value of false turns tracing off, which is the default.
-Traces are written to the trace file handle.
-
-=head2 trace_values
-
-The C<value> method's
-C<trace_values> named argument
-is a numeric trace level.
-If the numeric trace level is 1, Marpa
-prints tracing information
-as values are computed in the evaluation stack.
-A trace level of 0 turns value tracing off,
-which is the default.
-Traces are written to the trace file handle.
+Such grammars succeed at exactly the point
+that they become exhausted.
 
 =head1 COPYRIGHT AND LICENSE
 
