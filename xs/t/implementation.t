@@ -212,6 +212,7 @@ $value = $value_ref ? ${$value_ref} : 'No Parse';
 Marpa::Test::is( 49, $value, 'Implementation Example Value 2' );
 
 my $expected_trace_output = <<'END_TRACE_OUTPUT';
+Setting trace_values option
 Pushed value from R2:1@0-1S3@0: Number = \42
 Popping 1 values to evaluate R2:1@0-1S3@0, rule: 2: Factor -> Number
 Calculated and pushed value: 42

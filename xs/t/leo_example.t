@@ -330,6 +330,7 @@ END_EARLEY_SETS
 } ## end SKIP:
 
 my $expected_trace_output = <<'END_TRACE_OUTPUT';
+Setting trace_values option
 Pushed value from R6:1@0-1S7@0: Variable = \'a'
 Popping 1 values to evaluate R6:1@0-1S7@0, rule: 6: Lvalue -> Variable
 Calculated and pushed value: 'a'

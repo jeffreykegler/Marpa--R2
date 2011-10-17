@@ -940,82 +940,17 @@ sub Marpa::XS::Recognizer::value {
 
     my $parse_set_arg = $recce->[Marpa::XS::Internal::Recognizer::END];
 
+    my $parse_count = $recce_c->parse_count() // 0;
+
+    $recce->set(@arg_hashes);
+
     local $Marpa::XS::Internal::TRACE_FH =
         $recce->[Marpa::XS::Internal::Recognizer::TRACE_FILE_HANDLE];
 
-    if ( $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] ) {
-        Marpa::exception(
-            qq{Arguments were passed directly to value() in a previous call\n},
-            qq{Only one call to value() is allowed per recognizer when arguments are passed directly\n},
-            qq{This is the second call to value()\n}
-        );
-    } ## end if ( $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE...])
-
-    my $parse_count = $recce_c->parse_count() // 0;
     my $max_parses = $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES];
     if ( $max_parses and $parse_count > $max_parses ) {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
-
-    for my $arg_hash (@arg_hashes) {
-
-        if ( exists $arg_hash->{end} ) {
-            if ($parse_count) {
-                Marpa::exception(
-                    q{Cannot change "end" after first parse result});
-            }
-            $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = 1;
-            $parse_set_arg = $arg_hash->{end};
-            delete $arg_hash->{end};
-        } ## end if ( exists $arg_hash->{end} )
-
-        if ( exists $arg_hash->{closures} ) {
-            if ($parse_count) {
-                Marpa::exception(
-                    q{Cannot change "closures" after first parse result});
-            }
-            $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = 1;
-            my $closures = $arg_hash->{closures};
-            while ( my ( $action, $closure ) = each %{$closures} ) {
-                Marpa::exception(qq{Bad closure for action "$action"})
-                    if ref $closure ne 'CODE';
-            }
-            $recce->[Marpa::XS::Internal::Recognizer::CLOSURES] = $closures;
-            delete $arg_hash->{closures};
-        } ## end if ( exists $arg_hash->{closures} )
-
-        if ( exists $arg_hash->{trace_actions} ) {
-            $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = 1;
-            $recce->[Marpa::XS::Internal::Recognizer::TRACE_ACTIONS] =
-                $arg_hash->{trace_actions};
-            delete $arg_hash->{trace_actions};
-        } ## end if ( exists $arg_hash->{trace_actions} )
-
-        if ( exists $arg_hash->{trace_values} ) {
-            $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = 1;
-            $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES] =
-                $arg_hash->{trace_values};
-            delete $arg_hash->{trace_values};
-        } ## end if ( exists $arg_hash->{trace_values} )
-
-        # A typo made its way into the documentation, so now it's a
-        # synonym.
-        for my $trace_fh_alias (qw(trace_fh trace_file_handle)) {
-            if ( exists $arg_hash->{$trace_fh_alias} ) {
-                $recce->[Marpa::XS::Internal::Recognizer::TRACE_FILE_HANDLE] =
-                    $Marpa::XS::Internal::TRACE_FH =
-                    $arg_hash->{$trace_fh_alias};
-                delete $arg_hash->{$trace_fh_alias};
-            } ## end if ( exists $arg_hash->{$trace_fh_alias} )
-        } ## end for my $trace_fh_alias (qw(trace_fh trace_file_handle))
-
-        my @unknown_arg_names = keys %{$arg_hash};
-        Marpa::exception(
-            'Unknown named argument(s) to Marpa::XS::Recognizer::value: ',
-            ( join q{ }, @unknown_arg_names ) )
-            if @unknown_arg_names;
-
-    } ## end for my $arg_hash (@arg_hashes)
 
     my $furthest_earleme       = $recce_c->furthest_earleme();
     my $last_completed_earleme = $recce_c->current_earleme();

@@ -58,7 +58,6 @@ BEGIN {
     TRACE_OR_NODES
     TRACE_VALUES
     TRACE_TASKS
-    TRACING
     MAX_PARSES
     NULL_VALUES
     RANKING_METHOD
@@ -66,7 +65,6 @@ BEGIN {
     { The following fields must be reinitialized when
     evaluation is reset }
 
-    SINGLE_PARSE_MODE
     RULE_CLOSURES
     RULE_CONSTANTS
     TOP_OR_NODE_ID
@@ -246,7 +244,6 @@ sub Marpa::XS::Recognizer::reset_evaluation {
     if ( not defined $result ) {
         Marpa::exception("eval_clear() failed\n");
     }
-    $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
     $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID]    = undef;
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES]     = [];
     $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS]    = [];
@@ -328,11 +325,9 @@ sub Marpa::XS::Recognizer::set {
         if ( defined( my $value = $args->{'trace_actions'} ) ) {
             $recce->[Marpa::XS::Internal::Recognizer::TRACE_ACTIONS] = $value;
             ## Do not allow setting this option in recognizer for single parse mode
-            $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             if ($value) {
                 say {$trace_fh} 'Setting trace_actions option'
                     or Marpa::exception("Cannot print: $ERRNO");
-                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_actions'} ))
 
@@ -344,7 +339,6 @@ sub Marpa::XS::Recognizer::set {
             if ($value) {
                 say {$trace_fh} "Setting trace_and_nodes option to $value"
                     or Marpa::exception("Cannot print: $ERRNO");
-                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_and_nodes'}...))
 
@@ -356,7 +350,6 @@ sub Marpa::XS::Recognizer::set {
             if ($value) {
                 say {$trace_fh} "Setting trace_bocage option to $value"
                     or Marpa::exception("Cannot print: $ERRNO");
-                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_bocage'} ) )
 
@@ -368,7 +361,6 @@ sub Marpa::XS::Recognizer::set {
             if ($value) {
                 say {$trace_fh} "Setting trace_or_nodes option to $value"
                     or Marpa::exception("Cannot print: $ERRNO");
-                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_or_nodes'} ...))
 
@@ -380,7 +372,6 @@ sub Marpa::XS::Recognizer::set {
             if ($value) {
                 say {$trace_fh} "Setting trace_tasks option to $value"
                     or Marpa::exception("Cannot print: $ERRNO");
-                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_tasks'} ) )
 
@@ -390,7 +381,6 @@ sub Marpa::XS::Recognizer::set {
             if ($value) {
                 say {$trace_fh} 'Setting trace_terminals option'
                     or Marpa::exception("Cannot print: $ERRNO");
-                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_terminals'}...))
 
@@ -400,18 +390,15 @@ sub Marpa::XS::Recognizer::set {
             if ($value) {
                 say {$trace_fh} 'Setting trace_earley_sets option'
                     or Marpa::exception("Cannot print: $ERRNO");
-                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_earley_sets'...}))
 
         if ( defined( my $value = $args->{'trace_values'} ) ) {
             $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES] = $value;
             ## Do not allow setting this option in recognizer for single parse mode
-            $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             if ($value) {
                 say {$trace_fh} 'Setting trace_values option'
                     or Marpa::exception("Cannot print: $ERRNO");
-                $recce->[Marpa::XS::Internal::Recognizer::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_values'} ) )
 
@@ -423,8 +410,6 @@ sub Marpa::XS::Recognizer::set {
                     q{Cannot reset end once parsing has started});
             }
             $recce->[Marpa::XS::Internal::Recognizer::END] = $value;
-            ## Do not allow setting this option in recognizer for single parse mode
-            $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
         } ## end if ( defined( my $value = $args->{'end'} ) )
 
         if ( defined( my $value = $args->{'closures'} ) ) {
@@ -436,8 +421,6 @@ sub Marpa::XS::Recognizer::set {
             }
             my $closures =
                 $recce->[Marpa::XS::Internal::Recognizer::CLOSURES] = $value;
-            ## Do not allow setting this option in recognizer for single parse mode
-            $recce->[Marpa::XS::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             while ( my ( $action, $closure ) = each %{$closures} ) {
                 Marpa::exception(qq{Bad closure for action "$action"})
                     if ref $closure ne 'CODE';
