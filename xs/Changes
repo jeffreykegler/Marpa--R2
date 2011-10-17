@@ -21,6 +21,12 @@ Revision history for Marpa::XS
 
     * A new series of developer's releases
 
+    * Next official release will be beta
+
+    * New ranking methods: 'rule' and
+      'high_rule_only'.  'constant' ranking
+      method eliminated.
+
 0.016000 Sat Oct  8 23:27:24 PDT 2011
 
     * Fix unindexed documentation.

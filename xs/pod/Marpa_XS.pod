@@ -71,14 +71,6 @@ normalize-whitespace: 1
 
 =head1 DESCRIPTION
 
-=head2 This is ALPHA software
-
-This is B<alpha> software.
-There may be bugs. The interface may change.
-Please be careful.
-Do not rely
-on it for anything mission-critical.
-
 =head2 Overview
 
 Marpa parses any language whose

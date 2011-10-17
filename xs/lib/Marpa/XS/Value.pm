@@ -126,12 +126,15 @@ sub Marpa::XS::Recognizer::and_node_tag {
     }
     my $position = $recce_c->or_node_position($parent_or_node_id);
     my $rule     = $recce_c->or_node_rule($parent_or_node_id);
+
+#<<<  perltidy introduces trailing space on this
     my $tag =
-          'R' 
+          'R'
         . $rule . q{:}
         . $position . q{@}
         . $origin_earleme . q{-}
         . $current_earleme;
+#>>>
     if ( defined $cause_id ) {
         my $cause_rule = $recce_c->or_node_rule($cause_id);
         $tag .= 'C' . $cause_rule;
@@ -167,12 +170,15 @@ sub Marpa::XS::Recognizer::show_and_nodes {
             my $predecessor_set = $recce_c->or_node_set($predecessor);
             $middle_earleme = $recce_c->earleme($predecessor_set);
         }
+
+#<<<  perltidy introduces trailing space on this
         my $desc =
-              'R' 
+              'R'
             . $rule . q{:}
             . $position . q{@}
             . $origin_earleme . q{-}
             . $current_earleme;
+#>>>
         my $cause_rule = -1;
         if ( defined $cause ) {
             $cause_rule = $recce_c->or_node_rule($cause);
@@ -226,12 +232,15 @@ sub Marpa::XS::Recognizer::show_or_nodes {
         last OR_NODE if not defined $origin;
         my $origin_earleme  = $recce_c->earleme($origin);
         my $current_earleme = $recce_c->earleme($set);
+
+#<<<  perltidy introduces trailing space on this
         my $desc =
-              'R' 
+              'R'
             . $rule . q{:}
             . $position . q{@}
             . $origin_earleme . q{-}
             . $current_earleme;
+#>>>
         push @data,
             [ $origin_earleme, $current_earleme, $rule, $position, $desc ];
     } ## end for ( ;; )
@@ -563,8 +572,7 @@ sub do_high_rule_only {
             @{ $sorted_and_data[0] };
         my @selected_and_nodes = ($first_selected_and_node);
         AND_DATUM:
-        for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data ] )
-        {
+        for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data ] ) {
             my ( $and_node, $rule_rank, $chaf_rank ) = @{$and_datum};
             last AND_DATUM if $rule_rank < $high_rule_rank;
             last AND_DATUM if $chaf_rank < $high_chaf_rank;

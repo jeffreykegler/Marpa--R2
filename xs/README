@@ -1,4 +1,3 @@
-This module is the experimental XS version of the Marpa module.
+This module is the XS version of the Marpa module.
 
-THIS IS ALPHA SOFTWARE.  It may contain bugs.  In particular, use
-in production or mission-critical applications would be unwise.
+Marpa::XS is BETA software.

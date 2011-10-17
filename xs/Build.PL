@@ -63,14 +63,14 @@ my @no_index_namespace_inclusive = (
 );
 
 my @files_to_cleanup = (
-    'lib/Marpa/XS/Version.pm', 'pperl/Marpa/Perl/Version.pm',
+    'lib/Marpa/XS/Version.pm',   'pperl/Marpa/Perl/Version.pm',
     'lib/Marpa/XS/Installed.pm', 'pperl/Marpa/Perl/Installed.pm',
-    'lib/Marpa/XS.o',          'libmarpa/main/build',
+    'lib/Marpa/XS.o',            'libmarpa/main/build',
 );
 
 my $build = Marpa::XS::Build_Me->new(
     add_to_cleanup     => \@files_to_cleanup,
-    module_name          => 'Marpa::XS',
+    module_name        => 'Marpa::XS',
     dist_author        => 'Jeffrey Kegler',
     dist_abstract      => 'XS Version of Marpa',
     recommends         => \%recommends,
@@ -87,7 +87,8 @@ my $build = Marpa::XS::Build_Me->new(
         resources =>
             { repository => 'git://github.com/jeffreykegler/Marpa-XS.git', },
         no_index => {
-            directory => [qw( pperl config inc tool t html devlib libmarpa author.t )],
+            directory =>
+                [qw( pperl config inc tool t html devlib libmarpa author.t )],
             namespace => [
                 'Marpa::XS::Recognizer', 'Marpa::XS::Grammar',
                 @no_index_namespace_inclusive

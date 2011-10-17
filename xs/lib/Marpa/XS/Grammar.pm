@@ -347,7 +347,7 @@ sub Marpa::XS::Grammar::set {
 
         if ( defined( my $value = $args->{'default_rank'} ) ) {
             Marpa::exception(
-                'terminals option not allowed after grammar is precomputed' )
+                'terminals option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_RANK] = $value;
         } ## end if ( defined( my $value = $args->{'default_rank'} ) )
@@ -385,7 +385,7 @@ sub Marpa::XS::Grammar::set {
 
         if ( defined( my $value = $args->{'terminals'} ) ) {
             Marpa::exception(
-                'terminals option not allowed after grammar is precomputed' )
+                'terminals option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             Marpa::exception('terminals value must be REF to ARRAY')
                 if ref $value ne 'ARRAY';
@@ -1278,10 +1278,13 @@ sub wrap_symbol_cb {
             my $rule_id = $grammar_c->context('rule_id') // '[RULE?]';
             my $lhs_id  = $grammar_c->context('lhs_id')  // '[LHS?]';
             my $lhs     = $symbols->[$lhs_id];
+
+#<<<  perltidy introduces trailing space on this
             $name =
-                  $lhs->[Marpa::XS::Internal::Symbol::NAME] . '[R' 
+                  $lhs->[Marpa::XS::Internal::Symbol::NAME] . '[R'
                 . $rule_id . q{:}
                 . ( $virtual_end + 1 ) . ']';
+#>>>
             last DETERMINE_NAME;
         } ## end if ( defined $virtual_end )
         die 'Internal Marpa Perl wrapper error: No way to name unnamed symbol'
