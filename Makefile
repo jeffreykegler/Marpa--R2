@@ -68,12 +68,12 @@ install:
 	(cd xs/libmarpa/dist && autoreconf -ivf)
 	-mkdir xs/libmarpa/test/dev/m4
 	(cd xs/libmarpa/test/dev && autoreconf -ivf)
-	-mkdir xs/libmarpa/test/build
-	(cd xs/libmarpa/test/build && sh ../dev/configure)
-	(cd xs/libmarpa/test/build && make)
 	(cd pp && perl Build.PL)
 	(cd pp && ./Build code)
 	(cd xs && perl Build.PL)
 	(cd xs && ./Build code)
 	(cd html && perl Build.PL)
 	(cd html && ./Build code)
+	-mkdir xs/libmarpa/test/build
+	(cd xs/libmarpa/test/build && sh ../dev/configure)
+	(cd xs/libmarpa/test/build && make)
