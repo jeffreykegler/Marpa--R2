@@ -1,26 +1,6 @@
 Because this repository is a collection of development environments
 created for refactoring, there is no 100% up-to-date, accurate
-installation procedure.  The contents of this file are notes,
-collected to help the author figure out how to set up a brand new
-clone of the repository for development.  For his own sake, if
-nothing else, the author tries to keep these accurate and up-to-date.
-He does not succeed 100%.
+installation procedure.
 
-If this combined repository lasts long enough, and stabilizes, maybe
-someday there will be a real installation checklist.
-
-1.) In the xs/libmarpa/dev directory, run "make".
-
-2.) In the xs/libmarpa/dev directory, run "make install".
-
-3.) In the xs/libmarpa/dist directory, follow the instructions in
-the README file.
-
-4.) In the xs directory, run "perl Build.PL".  Then run "./Build
-code".
-
-5.) In the pp directory, run "perl Build.PL".  Then run "./Build
-code".
-
-6.) In the html directory, run "perl Build.PL".  Then run "./Build
-code".
+There is an install target in the Makefile.  It is not necessarily
+fully up to date with the software and is best used as a checklist.

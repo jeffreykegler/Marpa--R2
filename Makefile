@@ -19,37 +19,39 @@
 dummy: 
 
 xs_basic_test:
-	(cd xs; ./Build test)
+	(cd xs && ./Build test)
 
 xst: xs_basic_test xs_html_test
 
 libs: pplib xslib
 
 pplib:
-	(cd dpplib; rm -rf *)
-	(cd pp; ./Build install --install_base ../dpplib)
+	-mkdir dpplib
+	-rm -rf dpplib/lib dpplib/man dpplib/html
+	(cd pp && ./Build install --install_base ../dpplib)
 
 xslib:
-	(cd dxslib; rm -rf *)
-	(cd xs; ./Build install --install_base ../dxslib)
+	-mkdir dxslib
+	-rm -rf dxslib/lib dxslib/man dxslib/html
+	(cd xs && ./Build install --install_base ../dxslib)
 
 html_blib:
-	(cd html; ./Build code)
+	(cd html && ./Build code)
 
 pp_html_test: html_blib pplib
-	(cd html; \
+	(cd html && \
 	PERL5LIB=$(CURDIR)/noxs/lib:$(CURDIR)/dpplib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
 xs_html_test: html_blib xslib
-	(cd html; \
+	(cd html && \
 	PERL5LIB=$(CURDIR)/dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
 
 
 pp_etc_make:
-	(cd pp/etc; make)
+	(cd pp/etc && make)
 
 xs_etc_make:
-	(cd xs/etc; make)
+	(cd xs/etc && make)
 
 pp_full_test: pplib pp_etc_make pp_html_test
 
@@ -59,3 +61,19 @@ full_test: pp_full_test  xs_full_test
 
 html_full_test: pp_html_test xs_html_test
 	
+install:
+	(cd xs/libmarpa/dev && make)
+	(cd xs/libmarpa/dev && make install)
+	-mkdir xs/libmarpa/dist/m4
+	(cd xs/libmarpa/dist && autoreconf -ivf)
+	-mkdir xs/libmarpa/test/dev/m4
+	(cd xs/libmarpa/test/dev && autoreconf -ivf)
+	-mkdir xs/libmarpa/test/build
+	(cd xs/libmarpa/test/build && sh ../dev/configure)
+	(cd xs/libmarpa/test/build && make)
+	(cd pp && perl Build.PL)
+	(cd pp && ./Build code)
+	(cd xs && perl Build.PL)
+	(cd xs && ./Build code)
+	(cd html && perl Build.PL)
+	(cd html && ./Build code)
