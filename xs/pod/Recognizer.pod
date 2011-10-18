@@ -48,8 +48,9 @@ The token-stream model is standard -- so standard the most documents about
 parsing do not bother to describe it.
 In the token-stream model, each read adds a token at the current location,
 then advances the current location by one.
-Assuming that the location before any input is numbered 0, as it is in Marpa,
-a parse of I<N> tokens will fill the locations from 1 to I<N>.
+The location before any input is numbered 0
+and if I<N> tokens are parsed,
+they fill the locations from 1 to I<N>.
 
 This document will describe only the token-stream model of input.
 Marpa allows other models of the input, but their use
@@ -118,23 +119,6 @@ Not often needed.
 
 =head1 MUTATORS
 
-=head2 set
-
-=for Marpa::XS::Display
-name: Recognizer set Synopsis
-normalize-whitespace: 1
-
-    $recce->set( { max_parses => 10, } );
-
-=for Marpa::XS::Display::End
-
-The C<set> method's arguments are references to hashes of named
-arguments.
-The C<set> method
-can be used to set or change named arguments after the recognizer
-has been created.
-Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
-
 =head2 read
 
 =for Marpa::XS::Display
@@ -157,8 +141,7 @@ C<read> takes two arguments: a B<token name> and a B<token value>.
 The token name is required.
 It must be the name of a valid terminal symbol.
 The token value is optional.
-It defaults to a Perl C<undef>
-when not specified.
+It defaults to a Perl C<undef>.
 For details about terminal symbols,
 see L<Marpa::XS::Grammar/"Terminals">.
 
@@ -170,9 +153,9 @@ This number may be helpful in guiding L<Ruby
 Slippers parsing|/"RUBY SLIPPERS PARSING">.
 
 C<read> may return zero,
-which means that no tokens will be acceptable at the next
-earleme.
-This is turn means that the next C<read> call will fail.
+which means
+that the next C<read> call must fail,
+because there is no token that will be acceptable to it.
 In the default input model,
 where the C<read> method is the only means of inputing tokens,
 a zero return from a C<read> method
@@ -198,6 +181,23 @@ including an attempt to C<read> a token
 into an exhausted parser,
 Marpa throws an exception.
 
+=head2 set
+
+=for Marpa::XS::Display
+name: Recognizer set Synopsis
+normalize-whitespace: 1
+
+    $recce->set( { max_parses => 10, } );
+
+=for Marpa::XS::Display::End
+
+The C<set> method's arguments are references to hashes of named
+arguments.
+The C<set> method
+can be used to set or change named arguments after the recognizer
+has been created.
+Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
+
 =head2 value
 
 =for Marpa::XS::Display
@@ -210,26 +210,30 @@ normalize-whitespace: 1
 
 =for Marpa::XS::Display::End
 
-The C<value> method call evaluates and returns a parse result.
-Its arguments are zero or more hashes of named arguments.
-It returns a B<reference> to the value of the next parse result,
-or undef if there are no more parse results.
+Because Marpa parses ambiguous grammars, every parse
+is a series of zero or more parse trees.
+There are zero parse trees if there was no valid parse
+of the input according to the grammar.
+
+The C<value> method call evaluates the next parse tree
+in the parse series,
+and returns a reference to the parse result for that parse tree.
+If there are no more parse trees,
+the C<value> method returns C<undef>.
 
 The C<value> method's arguments are references to hashes of named
 arguments.
 Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
 
-Several of named arguments are not allowed once
+Several of the recognizer's named arguments are not allowed once
 evaluation has begun.
 Evaluation of a parse series begins with
 its first C<value> method call.
 As a convenience,
 the named arguments
-in that first C<value> method call
+of the first C<value> method call
 are treated as having been specified BEFORE
 evaluation begins.
-This eliminates some of the need
-for the recognizer's C<set> method.
 
 For example, the C<end> named argument,
 which specifies the end of parsing location in the input
@@ -318,12 +322,12 @@ accepted by its
 C<new>, C<set> and C<value> methods.
 Most of these named arguments are valid everywhere,
 although depending on their meaning,
-they often will have no effect.
+they may have no effect.
 For example, the C<too_many_earley_items> named
 argument will have no effect after input is complete.
 
 Some of the recognizer's named arguments
-are not valid for all of the C<new>, C<set>
+are not valid for all calls of the C<new>, C<set>
 and C<value> methods,
 and cause an exception if used
 in the wrong one.
@@ -331,9 +335,8 @@ For example,
 a C<grammar> named argument is only valid
 when a recognizer is being constructed by
 the C<new> method.
-If a named argument causes
-an exception
-when used in the wrong method call,
+If a named argument can cause an exception
+due to use in the wrong method call,
 this is mentioned in its description below.
 
 =head2 closures
@@ -410,12 +413,13 @@ This is the default.
 The C<ranking_method> named argument is not allowed
 once evaluation has begun.
 
-Marpa allows the user
-to control the order which parse results are returned by
+The "C<rule>"
+and "C<high_rule_only>" ranking methods
+allows the user
+to control the order
+in which parse results are returned by
 the C<value> method,
 and to exclude some parse results from the parse series.
-This is done by specifying "C<rule>"
-or "C<high_rule_only>" as the C<ranking_method>.
 For details, see L<the document
 on parse order|Marpa::XS::Semantics::Order>.
 
@@ -564,7 +568,7 @@ the parser's expectations by
 =back
 
 The second technique, the creation of
-new, "virtual", tokens
+new "virtual" tokens,
 is used
 by L<Marpa::HTML>
 to deal with omitted start and end tags.
@@ -595,10 +599,9 @@ In the default input model, the C<read> method indicates this
 by returning zero.
 
 An B<exhausted> parse is not necessarily a failed parse.
-Grammars are often written so that once the "find what
-they are looking for", no other input is acceptable.
-Such grammars succeed at exactly the point
-that they become exhausted.
+Grammars are often written so that once they "find what
+they are looking for", no further input is acceptable.
+Grammars of that kind become exhausted when they succeed.
 
 =head1 COPYRIGHT AND LICENSE
 
