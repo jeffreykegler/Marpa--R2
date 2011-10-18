@@ -1,0 +1,114 @@
+{
+   "abstract" : "PP Version of Marpa",
+   "author" : [
+      "Jeffrey Kegler"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.110930",
+   "license" : [
+      "unknown"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Marpa-PP",
+   "no_index" : {
+      "directory" : [
+         "pperl",
+         "config",
+         "inc",
+         "t",
+         "tool",
+         "author.t"
+      ],
+      "namespace" : [
+         "Marpa::PP::Recognizer",
+         "Marpa::PP::Grammar",
+         "Marpa::PP::Perl",
+         "Marpa::PP::Offset",
+         "Marpa::PP::Test",
+         "Marpa::PP::Display",
+         "Marpa::PP::Internal"
+      ],
+      "package" : [
+         "Marpa::PP::Perl",
+         "Marpa::PP::Offset",
+         "Marpa::PP::Test",
+         "Marpa::PP::Display",
+         "Marpa::PP::Internal"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::CBuilder" : 0,
+            "Test::More" : "0.94"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.3601"
+         }
+      },
+      "runtime" : {
+         "recommends" : {
+            "PPI" : "1.206",
+            "Test::Weaken" : "3.004000"
+         },
+         "requires" : {
+            "Carp" : "1.08",
+            "Data::Dumper" : "2.125",
+            "List::Util" : "1.21",
+            "Scalar::Util" : "1.21",
+            "Storable" : "2.21",
+            "Task::Weaken" : 0
+         }
+      }
+   },
+   "provides" : {
+      "Marpa::PP" : {
+         "file" : "lib/Marpa/PP.pm",
+         "version" : "0.009_004"
+      },
+      "Marpa::PP::Grammar" : {
+         "file" : "lib/Marpa/PP/Grammar.pm",
+         "version" : 0
+      },
+      "Marpa::PP::Internal" : {
+         "file" : "lib/Marpa/PP/Internal.pm",
+         "version" : 0
+      },
+      "Marpa::PP::Internal::Callback" : {
+         "file" : "lib/Marpa/PP/Callback.pm",
+         "version" : 0
+      },
+      "Marpa::PP::Internal::Grammar" : {
+         "file" : "lib/Marpa/PP/Grammar.pm",
+         "version" : 0
+      },
+      "Marpa::PP::Internal::Recognizer" : {
+         "file" : "lib/Marpa/PP/Recognizer.pm",
+         "version" : 0
+      },
+      "Marpa::PP::Internal::Slot" : {
+         "file" : "lib/Marpa/PP/Slot.pm",
+         "version" : 0
+      },
+      "Marpa::PP::Internal::Value" : {
+         "file" : "lib/Marpa/PP/Value.pm",
+         "version" : 0
+      },
+      "Marpa::PP::Recognizer" : {
+         "file" : "lib/Marpa/PP/Recognizer.pm",
+         "version" : 0
+      }
+   },
+   "release_status" : "testing",
+   "resources" : {
+      "repository" : {
+         "url" : "git://github.com/jeffreykegler/Marpa-PP.git"
+      }
+   },
+   "version" : "0.009_004"
+}
