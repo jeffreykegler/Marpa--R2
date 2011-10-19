@@ -71,14 +71,6 @@ normalize-whitespace: 1
 
 =head1 DESCRIPTION
 
-=head2 This is ALPHA software
-
-This is B<alpha> software.
-There may be bugs. The interface may change.
-Please be careful.
-Do not rely
-on it for anything mission-critical.
-
 =head2 Overview
 
 Marpa parses any language whose
@@ -97,7 +89,7 @@ in semi-tutorial fashion.
 Marpa's advanced features, and full reference details of all features,
 can be found in L<the other Marpa API documents|/"OTHER DOCUMENTS">.
 
-=head2 The Three Phases
+=head2 The three phases
 
 A parser needs to:
 
@@ -173,7 +165,7 @@ hash value
 is the
 value of the named argument.
 
-=head3 The start Named Argument
+=head3 The start named argument
 
 =for Marpa::PP::Display
 name: Engine Synopsis Unambiguous Parse

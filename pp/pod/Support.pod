@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::PP::Support - Marpa::PP Support, and How to Report Bugs
+Marpa::PP::Support - Marpa::PP Support, and how to report bugs
 
 =head1 DESCRIPTION
 

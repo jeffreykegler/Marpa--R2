@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::PP::Debug - Marpa Grammar Debugging
+Marpa::PP::Debug - Debugging your Marpa grammar
 
 =head1 OVERVIEW
 
@@ -43,7 +43,7 @@ and of what the information in them means.
 Everything that the user needs to know
 is explained in this section.
 
-=head2 Dotted Rules
+=head2 Dotted rules
  
 The idea behind Earley's algorithm is that you can
 parse by building a table of rules
@@ -99,7 +99,7 @@ S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term ASSIGNOP term E<middot>>>
 
 A completion indicates that a rule has been fully recognized.
 
-=head2 Earley Items
+=head2 Earley items
 
 The dotted rules contain
 all but one piece of the information
@@ -283,7 +283,7 @@ normalize-whitespace: 1
 
 =for Marpa::PP::Display::End
 
-=head2 Progress Report Lines
+=head2 Progress report lines
 
 The last field of
 each Progress Report line shows,
@@ -441,7 +441,7 @@ normalize-whitespace: 1
 
 =for Marpa::PP::Display::End
 
-=head2 OK!  Now to Find the Bug
+=head2 OK!  Now to find the bug
 
 Here again are progress reports
 at the location where things went wrong:
@@ -557,7 +557,7 @@ For those interested,
 Marpa's grammar rewrites are described in complete
 detail in L<Marpa::PP::Rewrite>.
 
-=head2 Special Symbols
+=head2 Special symbols
 
 Marpa uses 
 a few special symbols internally which
@@ -585,7 +585,7 @@ will have its own special null start symbol
 on its left hand side.
 The special null start symbol ends in "C<['][]>".
 
-=head2 Empty Rules
+=head2 Empty rules
 
 Marpa removes all of the
 empty and nulling rules in the original grammar.
@@ -741,7 +741,7 @@ perltidy: '-dcsc -sil=0'
 
 =for Marpa::PP::Display::End
 
-=head2 Trace Output
+=head2 Trace output
 
 =for Marpa::PP::Display
 name: Debug Example Trace Output
@@ -775,7 +775,7 @@ may set it up so that earleme and location are
 two different things,
 and in that case the distinction will matter.
 
-=head2 Progress Output
+=head2 Progress output
 
 =for Marpa::PP::Display
 name: Debug Example Progress Report

@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::PP::Semantics - How Marpa Evaluates Parses
+Marpa::PP::Semantics - How Marpa evaluates parses
 
 =head1 SYNOPSIS
 
@@ -67,22 +67,7 @@ normalize-whitespace: 1
 
 =head1 OVERVIEW
 
-Marpa's semantics is of two kinds:
-
-=over
-
-=item * The value semantics.
-This is the semantics which produces the value of the parse tree.
-
-=item * The ranking semantics, which is used
-to rank ambiguous parse results, but which can be exploited for
-its side effects.
-
-=back
-
-=head2 Value Semantics
-
-Marpa's value semantics will be
+Marpa's semantics will be
 familiar
 to those who have used traditional
 methods to evaluate parses.
@@ -112,21 +97,12 @@ initialized when the recognizer is created.
 
 =back
 
-=head2 Action Names and Actions
+=head2 Action names and actions
 
 When a Marpa grammar is created,
-much of its value semantics and ranking semantics
-is 
+its dynamic semantics
+is
 specified indirectly, as B<action names>.
-Marpa does not allow semantics to be 
-specified directly as Perl closures
-until the evaluation phase.
-This approach to semantics
-follows Perl 6.
-I discovered the wisdom of having an additonal layer
-of abstraction
-the hard way.
-
 To implement its semantics of action names and
 actions,
 Marpa must do three things:
@@ -143,31 +119,21 @@ actual result.
 
 =back
 
-The action names and actions used to produce the
-node value are called
-B<value action names> and
-B<value actions>.
-The action names and actions used to rank nodes
-are called
-B<ranking action names> and
-B<ranking actions>.
-
 An action name
 and action is also used
-to create the per-parse variable,
+to create the per-parse-tree variable,
 as L<described
-below|/"THE PER-PARSE VARIABLE">.
-The per-parse variable is a special case,
+below|/"THE PER-PARSE-TREE VARIABLE">.
+The per-parse-tree variable is a special case,
 but it is intended to be used as part of
-the value semantics.
+the semantics.
 
 =head1 NODES
 
-=head2 Token Nodes
+=head2 Token nodes
 
 For every input token, there is an associated B<token node>.
-In the default model of input,
-every token will become a leaf node
+Token nodes are leaf nodes
 in the parse tree.
 Tokens always have a B<token symbol>.
 At lexing time,
@@ -175,7 +141,7 @@ they can be assigned a B<token value>.
 If no token value is assigned at lex time,
 the token value defaults to a Perl C<undef>.
 
-=head2 Rule Nodes
+=head2 Rule nodes
 
 Nodes which are ancestors of token nodes
 are called B<rule nodes>.
@@ -191,7 +157,7 @@ rule nodes are called value actions.
 
 A value action's
 arguments will be a
-per-parse variable followed by
+per-parse-tree variable followed by
 the values of its child nodes in lexical order.
 The return value of a value action becomes the
 value of the node.
@@ -201,7 +167,7 @@ rule node,
 the value of the rule node is
 a Perl C<undef>.
 
-=head2 Sequence Rule Nodes
+=head2 Sequence rule nodes
 
 Some rules are L<sequence rules|Marpa::PP::Grammar/"Sequence Rules">.
 Sequence rule nodes are also rule nodes.
@@ -210,7 +176,7 @@ applies to sequence rule nodes.
 Specifically,
 the arguments to the value actions for sequence rules
 are the 
-per-parse variable followed by
+per-parse-tree variable followed by
 the values of the child nodes in lexical order.
 
 The difference (and it is a big one)
@@ -245,7 +211,7 @@ and do appear in the
 value action's
 C<@_> array.
 
-=head2 Null Nodes
+=head2 Null nodes
 
 A B<null node> is a node which derives the zero-length,
 or empty string.
@@ -256,7 +222,7 @@ In fact, Marpa allows
 allows an arbitrarily complex null semantics.
 Readers interested in null nodes with values
 other than C<undef>,
-or who simply would like
+or who would like
 to read a more detailed account of how Marpa's
 null semantics works,
 should turn to L<the document on
@@ -270,14 +236,14 @@ This section describes that order in detail.
 These details can matter in some applications,
 for example, those which exploit side effects.
 
-=head2 Evaluations, Parse Results and Parse Series
+=head2 Parse trees, parse results and parse series
 
-When the semantics are applied to a parse,
+When the semantics are applied to a parse tree,
 it produces a value called a B<parse result>.
 Because Marpa allows ambiguous parsing,
-each parse can have zero or more parse results.
-A B<parse series> is the series of zero or more parse results
-for a single B<evaluation>.
+each parse can produce a B<parse series> --
+a series of zero or more parse trees,
+each with its own parse result.
 The first call to the 
 L<the recognizer's C<value>
 method|Marpa::PP::Recognizer/"value">
@@ -303,13 +269,15 @@ L<the C<reset_evaluation>
 method|Marpa::PP::Recognizer/"reset_evaluation">,
 or until the recognizer is destroyed.
 
-=head2 Summary of the Phases
+=head2 Summary of the phases
 
 While processing a recognizer, we have
 
 =over 
 
-=item * A Recognizer Setup Phase, followed by
+=item * A Recognizer Setup Phase, which occurs
+during the call of a recognizer's C<new> method.
+It is followed by
 
 =item * the processing of zero or more parse series.
 
@@ -319,26 +287,31 @@ While processing a parse series, we have:
 
 =over
 
-=item * A Series Setup Phase, followed by
+=item * A Series Setup Phase, which occurs during
+the first call of the recognizer's C<value> method
+for that series.
+It is followed by
 
-=item * an optional Ranking Phase, followed by
-
-=item * the processing of zero or more parse results.
+=item * the processing of zero or more parse trees.
 
 =back
 
-While processing a parse result, we have:
+While processing a parse tree, we have:
 
 =over
 
-=item * A Result Setup Phase, followed by
+=item * A Tree Setup Phase, which occurs during
+the call of the recognizer's C<value> method
+for that parse tree.
+It is followed by
 
 =item * a Tree Traveral Phase.
 
 =back
 
-Within the Tree Traversal Phase, from the point of view of
-each rule node, we have Node Evaluation Time.
+B<Node Evaluation Time>
+is the Tree Traversal Phase, as seen from the point of view of
+each rule node.  It is not a separate phase.
 
 =head1 THE SEMANTIC PHASES IN DETAIL
 
@@ -349,12 +322,6 @@ of the symbols are determined.
 The null values of symbols never change --
 they are in effect properties of the grammar.
 
-Exactly one Recognizer Setup Phase occurs for every
-recognizer.
-For every Marpa Recognizer object,
-the Recognizer Setup Phase occurs
-before any Series Setup Phase.
-
 =head2 Series Setup Phase
 
 During the Series Setup Phase
@@ -363,81 +330,27 @@ the value actions.
 The value actions are never called in the Series Setup Phase.
 Value actions are called
 in the Tree Traversal Phase.
+Also during the Series Setup Phase,
+the logic which
+ranks parse trees is executed.
 
-Exactly one Series Setup Phase occurs for each parse
-series.
-A Series Setup Phase occurs in the first call of
-the recognizer's
-L<C<value>|Marpa::PP::Recognizer/"value">
-method of each parse series.
+=head2 Tree Setup Phase
 
-=head2 Ranking Phase
-
-In the Ranking Phase, all ranking action
-names are resolved to Perl
-closures (ranking actions),
-and those ranking actions are called.
-The entire ranking semantics is carried
-out in the Ranking Phase.
-The Ranking Phase is
-the only phase in which ranking action names are
-resolved and the only phase
-in which ranking actions are called.
-
-Ranking Phases do not occur if
-recognizer's L<ranking_method|Marpa::PP::Recognizer/"ranking_method">
-is "C<none>", which is the default.
-If the recognizer's
-ranking method is set to a value other than "C<none>",
-a Ranking Phase occurs during the first call
-of the recognizer's
-L<C<value>|Marpa::PP::Recognizer/"value">
-method for
-each parse series.
-
-=head2 Result Setup Phase
-
-In the Result Setup Phase,
-the per-parse variable is created.
+In the Tree Setup Phase,
+the per-parse-tree variable is created.
 If a constructor was found for the C<action_object>,
-it is run at this point, and the per-parse variable is
+it is run at this point, and the per-parse-tree variable is
 its return value.
-Exactly one Result Setup Phase occurs
-for each parse result.
-
-In every parse series,
-all the Result Setup Phases occur
-after the Series Setup Phase.
-In every parse series which has a Ranking Phase,
-all the Result Setup Phases occur
-after the Ranking Phase.
-For each parse result,
-the Result Setup Phase occurs before
-its Tree Traversal Phase.
+Exactly one Tree Setup Phase occurs
+for each parse tree.
 
 =head2 Tree Traversal Phase
 
 During the Tree Traversal Phase,
-the semantic Perl closures are called.
-For each parse result,
-there is exactly one
-Tree Traversal Phase,
-which follows the Result Setup Phase.
-
-During parse tree traversal, Node Evaluation Time occurs
-for every node in the parse.
-Tree Traversal Phases
-occur during
-calls of the recognizer's
-C<value> method.
-
-=head2 Node Evaluation Time
-
-Node Evaluation Time is not really a separate
-phase.
+the value actions are called.
 Node Evaluation Time is the Tree Traversal Phase,
-seen from the point of view of the individual nodes of the parse tree.
-If a node has a semantic Perl closure,
+as seen from the point of view of the individual nodes of the parse tree.
+If a node has a value action,
 it is called at Node Evaluation Time.
 
 =head1 FINDING THE ACTION FOR A RULE
@@ -458,7 +371,8 @@ if one is defined.
 the C<default_action> named argument of the grammar,
 if one is defined.
 
-=item * Defaulting to a virtual action which
+=item * Defaulting to a virtual action,
+one which
 returns a Perl C<undef>.
 
 =back
@@ -483,8 +397,6 @@ Action names come from these sources:
 
 =item * The C<action> property of Marpa's rules.
 
-=item * The C<ranking_action> property of Marpa's rules.
-
 =item * The C<new> constructor in the package specified by the
 C<action_object> named argument of the Marpa grammar.
 
@@ -492,7 +404,7 @@ C<action_object> named argument of the Marpa grammar.
 
 =back
 
-=head2 Explicit Resolution
+=head2 Explicit resolution
 
 The recognizer's C<closures> named argument
 allows the user to directly control the mapping from action names
@@ -517,7 +429,7 @@ begin with
 an exclamation mark ("!"),
 and that convention is recommended.
 
-=head2 Fully Qualified Action Names
+=head2 Fully qualified action names
 
 If explicit resolution fails, 
 Marpa transforms the action name into a
@@ -572,7 +484,7 @@ one case in which Marpa
 will look at other alternatives.
 
 Marpa's philosophy 
-asks the programmer to be specific about action names.
+is to require that the programmer be specific about action names.
 This can be an inconvenience, but Marpa prefers this to
 silently executing unintended code.
 
@@ -585,14 +497,14 @@ she can specify
 C<"main">
 as the value of the C<actions> named argument.
 
-=head1 THE PER-PARSE VARIABLE
+=head1 THE PER-PARSE-TREE VARIABLE
 
-In the Result Setup Phase,
-Marpa creates a per-parse variable.
+In the Tree Setup Phase,
+Marpa creates a per-parse-tree variable.
 This becomes the first argument of the semantic Perl closures for
 the rule nodes.
 If the grammar's C<action_object> named argument is not defined,
-the per-parse variable is initialized to an empty hash ref.
+the per-parse-tree variable is initialized to an empty hash ref.
 
 Most data for
 the value actions of the rules
@@ -601,16 +513,16 @@ The actions will see the values of the rule node's child nodes
 as arguments,
 and will return their own value to be seen as an argument
 by their parent node.
-The per-parse variable can be used for data which does not
+The per-parse-tree variable can be used for data which does not
 conveniently fit this model.
 
-The lifetime of the per-parse variable
+The lifetime of the per-parse-tree variable
 extends into the Tree Traversal Phase.
 During the Tree Traversal Phase,
-Marpa's internals never alter the per-parse variable --
+Marpa's internals never alter the per-parse-tree variable --
 it is reserved for use by the application.
 
-=head2 Action Object Constructor
+=head2 Action object constructor
 
 If the grammar's C<action_object> named argument has a defined value,
 that value is treated as the name of a class.
@@ -619,9 +531,9 @@ the C<new> method
 in the C<action_object> class.
 
 The action object constructor is called
-in the Result Setup Phase.
+in the Tree Setup Phase.
 The return value of the
-action object constructor becomes the per-parse variable.
+action object constructor becomes the per-parse-tree variable.
 It is a fatal error if the
 grammar's C<action_object> named argument is defined,
 but does not name a class with a C<new> method.
@@ -642,8 +554,8 @@ If the action object constructor name is
 a hash key in the
 evaluator's C<closures> named argument,
 then 
-the Perl closure referred to by 
-the value of that hash entry becomes the
+the value referred to by
+that hash entry becomes the
 action object constructor.
 
 If a grammar has both the C<action> and the 
@@ -663,39 +575,6 @@ it is also possible to control the order.
 Details are in L<the document
 on parse order|Marpa::PP::Semantics::Order>.
 
-=head1 CONTEXT-AWARE STATIC METHODS
-
-=for Marpa::PP::Display
-name: Marpa::token_location example
-perltidy: '-dcsc -sil=0'
-
-    sub rank_null_a {
-        return \( ( $MyTest::MAXIMAL ? -1 : 1 )
-            * 10**( 3 - Marpa::token_location() ) );
-    }
-
-=for Marpa::PP::Display::End
-
-Ranking Perl closures
-have
-available a set of B<context-aware static methods>.
-A ranking action can use these methods to learn
-about the context in which it is called.
-As of this writing, the context-aware
-static methods are available for the
-ranking actions only.
-This may change in the future.
-
-=head2 Marpa::location
-
-Returns the location of the origin (or start) of the rule.
-
-=head2 Marpa::token_location
-
-Returns the location of the token.
-Intended for use in callbacks
-associated with empty rules and nulling symbols.
-
 =head1 INFINITE LOOPS
 
 Marpa allows grammars with infinite loops.
@@ -710,8 +589,9 @@ Marpa applies semantics to infinite loops by breaking the loop at
 some convenient point, so that an infinite regress is prevented.
 The exact location at which the loop is broken
 varies among Marpa implementations.
-If an infinite loop is given a null semantics, which is the default,
+If an infinite loop is given a null semantics,
 the location of the break will not matter.
+A null semantics is the default.
 
 More could be done.
 In particular, a precise definition of where loops are broken
