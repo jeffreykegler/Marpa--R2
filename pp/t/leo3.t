@@ -71,8 +71,7 @@ Marpa::Test::is( $grammar->show_symbols(),
 10: S['][], lhs=[11] rhs=[] nullable nulling
 END_OF_STRING
 
-Marpa::Test::is( $grammar->show_rules,
-    <<'END_OF_STRING', 'Leo166 Rules' );
+Marpa::Test::is( $grammar->show_rules, <<'END_OF_STRING', 'Leo166 Rules' );
 0: S -> a A /* !used */
 1: A -> B /* !used */
 2: B -> C /* !used */
@@ -129,9 +128,9 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     my $recce = Marpa::Recognizer->new(
         { grammar => $grammar, mode => 'stream', leo => $leo_flag } );
 
-    my $i        = 0;
+    my $i                 = 0;
     my $latest_earley_set = $recce->latest_earley_set();
-    my $max_size = $recce->earley_set_size($latest_earley_set);
+    my $max_size          = $recce->earley_set_size($latest_earley_set);
     TOKEN: while ( $i++ < $length ) {
         $recce->tokens( [$a_token] );
         $latest_earley_set = $recce->latest_earley_set();
