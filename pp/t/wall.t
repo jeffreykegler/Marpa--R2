@@ -118,8 +118,7 @@ for my $n ( 1 .. 12 ) {
 
     my $parse_count = 0;
     while ( $recce->value() ) { $parse_count++; }
-    Marpa::Test::is( $expected[$n], $parse_count,
-        "Wall Series Number $n" );
+    Marpa::Test::is( $expected[$n], $parse_count, "Wall Series Number $n" );
 
 } ## end for my $n ( 1 .. 12 )
 
