@@ -45,6 +45,12 @@ BEGIN {
     Test::More::use_ok('Marpa::Perl');
 } ## end BEGIN
 
+# skip the rest of the tests if not using XS
+TODO: {
+    Test::More::todo_skip 'Not using XS', 4 if not $Marpa::USING_XS;
+}
+exit 0 if not $Marpa::USING_XS;
+
 use lib 'tool/lib';
 use Marpa::Test;
 
