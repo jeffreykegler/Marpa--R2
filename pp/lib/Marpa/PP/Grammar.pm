@@ -57,7 +57,6 @@ my $structure = <<'END_OF_STRUCTURE';
             otherwise undef }
 
             NULLING { always is null? }
-            RANKING_ACTION
             NULL_VALUE { null value }
 
             NULLABLE { The number of nullable symbols
@@ -101,7 +100,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     USED { Use this rule in NFA? }
     ACTION { action for this rule as specified by user }
-    RANKING_ACTION
     VIRTUAL_LHS
     VIRTUAL_RHS
     DISCARD_SEPARATION
@@ -200,7 +198,6 @@ my $structure = <<'END_OF_STRUCTURE';
     PHASE { the grammar's phase }
     ACTIONS { Default package in which to find actions }
     DEFAULT_ACTION { Action for rules without one }
-    CYCLE_RANKING_ACTION { Action for ranking rules which cycle }
     HAS_CYCLE { Does this grammar have a cycle? }
     TRACE_FILE_HANDLE
     STRIP { Boolean.  If true, strip unused data to save space. }
@@ -395,7 +392,6 @@ use constant GRAMMAR_OPTIONS => [
     qw{
         action_object
         actions
-        cycle_ranking_action
         infinite_action
         default_action
         default_null_value
@@ -531,11 +527,6 @@ sub Marpa::PP::Grammar::set {
 
         if ( defined( my $value = $args->{'action_object'} ) ) {
             $grammar->[Marpa::PP::Internal::Grammar::ACTION_OBJECT] = $value;
-        }
-
-        if ( defined( my $value = $args->{'cycle_ranking_action'} ) ) {
-            $grammar->[Marpa::PP::Internal::Grammar::CYCLE_RANKING_ACTION] =
-                $value;
         }
 
         if ( defined( my $value = $args->{'default_action'} ) ) {
@@ -1322,12 +1313,11 @@ sub assign_user_symbol {
     my ( $new, $symbol ) = assign_symbol( $self, $name );
 
     my $greed;
-    my $ranking_action;
     my $terminal;
 
     PROPERTY: while ( my ( $property, $value ) = each %{$options} ) {
         if (not $property ~~
-            [qw(terminal ranking_action null_value)] )
+            [qw(terminal null_value)] )
         {
             Marpa::exception(qq{Unknown symbol property "$property"});
         }
@@ -1350,7 +1340,6 @@ sub add_rule {
     my $lhs;
     my $rhs;
     my $action;
-    my $ranking_action;
     my $greed;
     my $virtual_lhs;
     my $virtual_rhs;
@@ -1363,7 +1352,6 @@ sub add_rule {
             when ('lhs')            { $lhs            = $value }
             when ('rhs')            { $rhs            = $value }
             when ('action')         { $action         = $value }
-            when ('ranking_action') { $ranking_action = $value }
             when ('virtual_lhs')        { $virtual_lhs        = $value }
             when ('virtual_rhs')        { $virtual_rhs        = $value }
             when ('discard_separation') { $discard_separation = $value }
@@ -1425,7 +1413,6 @@ sub add_rule {
     $new_rule->[Marpa::PP::Internal::Rule::LHS]            = $lhs;
     $new_rule->[Marpa::PP::Internal::Rule::RHS]            = $rhs;
     $new_rule->[Marpa::PP::Internal::Rule::ACTION]         = $action;
-    $new_rule->[Marpa::PP::Internal::Rule::RANKING_ACTION] = $ranking_action;
     $new_rule->[Marpa::PP::Internal::Rule::VIRTUAL_LHS] = $virtual_lhs;
     $new_rule->[Marpa::PP::Internal::Rule::VIRTUAL_RHS] = $virtual_rhs;
     $new_rule->[Marpa::PP::Internal::Rule::DISCARD_SEPARATION] =
@@ -1515,7 +1502,6 @@ sub add_user_rule {
 
     my ( $lhs_name, $rhs_names, $action );
     my ( $min, $separator_name );
-    my $ranking_action;
     my $proper_separation = 0;
     my $keep_separation   = 0;
 
@@ -1524,7 +1510,6 @@ sub add_user_rule {
             when ('rhs')            { $rhs_names         = $value }
             when ('lhs')            { $lhs_name          = $value }
             when ('action')         { $action            = $value }
-            when ('ranking_action') { $ranking_action    = $value }
             when ('min')            { $min               = $value }
             when ('separator')      { $separator_name    = $value }
             when ('proper')         { $proper_separation = $value }
@@ -1593,7 +1578,6 @@ sub add_user_rule {
                 lhs            => $lhs,
                 rhs            => $rhs,
                 action         => $action,
-                ranking_action => $ranking_action,
             }
         );
 
@@ -1608,7 +1592,6 @@ sub add_user_rule {
             lhs            => $lhs,
             rhs            => $rhs,
             action         => $action,
-            ranking_action => $ranking_action,
             discard_separation =>
                 ( not $keep_separation and defined $separator_name ),
         }
@@ -1634,9 +1617,6 @@ sub add_user_rule {
             $lhs->[Marpa::PP::Internal::Symbol::WARN_IF_NO_NULL_VALUE] = 1;
         }
 
-        if ($ranking_action) {
-            push @rule_args, ranking_action => $ranking_action;
-        }
         add_rule( {@rule_args} );
         $min = 1;
     } ## end if ( $min == 0 )
@@ -1668,7 +1648,6 @@ sub add_user_rule {
             virtual_rhs       => 1,
             real_symbol_count => 0,
             action         => $action,
-            ranking_action => $ranking_action,
         }
     );
     $top_rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE] = $original_rule;
@@ -1682,7 +1661,6 @@ sub add_user_rule {
                 virtual_rhs        => 1,
                 real_symbol_count  => 1,
                 action             => $action,
-                ranking_action     => $ranking_action,
             }
         );
 	$alt_top_rule->[Marpa::PP::Internal::Rule::ORIGINAL_RULE] = $original_rule;
@@ -3038,8 +3016,6 @@ sub rewrite_as_CHAF {
                         virtual_rhs       => $virtual_rhs,
                         real_symbol_count => $real_symbol_count,
                         action => $rule->[Marpa::PP::Internal::Rule::ACTION],
-                        ranking_action => $rule
-                            ->[Marpa::PP::Internal::Rule::RANKING_ACTION],
                     }
                 );
 

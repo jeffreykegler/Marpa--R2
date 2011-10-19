@@ -125,12 +125,10 @@ my $structure = <<'END_OF_STRUCTURE';
     TRACING
     MAX_PARSES
     NULL_VALUES
-    RANKING_METHOD
 
     { The following fields must be reinitialized when
     evaluation is reset }
 
-    SINGLE_PARSE_MODE
     PARSE_COUNT :{ number of parses in an ambiguous parse :}
 
     AND_NODES
@@ -210,27 +208,12 @@ sub Marpa::PP::Recognizer::new {
         $grammar->[Marpa::PP::Internal::Grammar::TRACE_FILE_HANDLE];
     $recce->[Marpa::PP::Internal::Recognizer::WARNINGS] = 1;
     $recce->[Marpa::PP::Internal::Recognizer::MODE]           = 'default';
-    $recce->[Marpa::PP::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::PP::Internal::Recognizer::USE_LEO]        = 1;
     $recce->[Marpa::PP::Internal::Recognizer::MAX_PARSES]     = 0;
     $recce->[Marpa::PP::Internal::Recognizer::NEXT_EARLEY_ITEM_ID]     = 0;
     $recce->reset_evaluation();
 
     $recce->set(@arg_hashes);
-
-    if (    $grammar->[Marpa::PP::Internal::Grammar::HAS_CYCLE]
-        and $recce->[Marpa::PP::Internal::Recognizer::RANKING_METHOD] ne
-        'none'
-        and not $grammar->[Marpa::PP::Internal::Grammar::CYCLE_RANKING_ACTION]
-        )
-    {
-        Marpa::exception(
-            "The grammar cycles (is infinitely ambiguous)\n",
-            "    but it has no 'cycle_ranking_action'.\n",
-            "    Either rewrite the grammar to eliminate cycles\n",
-            "    or define a 'cycle ranking action'\n"
-        );
-    }
 
     my $trace_terminals =
         $recce->[Marpa::PP::Internal::Recognizer::TRACE_TERMINALS] // 0;
@@ -324,7 +307,6 @@ use constant RECOGNIZER_OPTIONS => [
         leo
         max_parses
         mode
-        ranking_method
         too_many_earley_items
         trace_actions
         trace_earley_sets
@@ -342,7 +324,6 @@ use constant RECOGNIZER_MODES => [qw(default stream)];
 sub Marpa::PP::Recognizer::reset_evaluation {
     my ($recce) = @_;
     $recce->[Marpa::PP::Internal::Recognizer::PARSE_COUNT]       = 0;
-    $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = undef;
     $recce->[Marpa::PP::Internal::Recognizer::AND_NODES]         = [];
     $recce->[Marpa::PP::Internal::Recognizer::AND_NODE_HASH]     = {};
     $recce->[Marpa::PP::Internal::Recognizer::OR_NODES]          = [];
@@ -399,14 +380,6 @@ sub Marpa::PP::Recognizer::set {
             $recce->[Marpa::PP::Internal::Recognizer::MODE] = $value;
         } ## end if ( defined( my $value = $args->{'mode'} ) )
 
-        if ( defined( my $value = $args->{'ranking_method'} ) ) {
-            Marpa::exception(
-                q{ranking_method must be 'constant' or 'none'})
-                if not $value ~~ [qw(constant none)];
-            $recce->[Marpa::PP::Internal::Recognizer::RANKING_METHOD] =
-                $value;
-        } ## end if ( defined( my $value = $args->{'ranking_method'} ...))
-
         if ( defined( my $value = $args->{'trace_fh'} ) ) {
             $trace_fh =
                 $recce->[Marpa::PP::Internal::Recognizer::TRACE_FILE_HANDLE] =
@@ -421,8 +394,6 @@ sub Marpa::PP::Recognizer::set {
 
         if ( defined( my $value = $args->{'trace_actions'} ) ) {
             $recce->[Marpa::PP::Internal::Recognizer::TRACE_ACTIONS] = $value;
-            ## Do not allow setting this option in recognizer for single parse mode
-            $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             if ($value) {
                 say {$trace_fh} 'Setting trace_actions option'
                     or Marpa::exception("Cannot print: $ERRNO");
@@ -465,7 +436,6 @@ sub Marpa::PP::Recognizer::set {
         if ( defined( my $value = $args->{'trace_values'} ) ) {
             $recce->[Marpa::PP::Internal::Recognizer::TRACE_VALUES] = $value;
             ## Do not allow setting this option in recognizer for single parse mode
-            $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             if ($value) {
                 say {$trace_fh} 'Setting trace_values option'
                     or Marpa::exception("Cannot print: $ERRNO");
@@ -483,7 +453,6 @@ sub Marpa::PP::Recognizer::set {
             }
             $recce->[Marpa::PP::Internal::Recognizer::END] = $value;
             ## Do not allow setting this option in recognizer for single parse mode
-            $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
         } ## end if ( defined( my $value = $args->{'end'} ) )
 
         if ( defined( my $value = $args->{'closures'} ) ) {
@@ -492,12 +461,11 @@ sub Marpa::PP::Recognizer::set {
             if ( $recce->[Marpa::PP::Internal::Recognizer::PARSE_COUNT] > 0 )
             {
                 Marpa::exception(
-                    q{Cannot reset end once parsing has started});
+                    q{Cannot change closures once parsing has started});
             }
             my $closures =
                 $recce->[Marpa::PP::Internal::Recognizer::CLOSURES] = $value;
             ## Do not allow setting this option in recognizer for single parse mode
-            $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 0;
             while ( my ( $action, $closure ) = each %{$closures} ) {
                 Marpa::exception(qq{Bad closure for action "$action"})
                     if ref $closure ne 'CODE';

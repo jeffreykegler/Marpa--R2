@@ -121,9 +121,6 @@ my $structure = <<'END_OF_STRUCTURE';
 
     INITIALIZE
     POPULATE_OR_NODE
-    POPULATE_DEPTH
-
-    RANK_ALL
 
     ITERATE
     FIX_TREE
@@ -626,340 +623,6 @@ sub Marpa::PP::Internal::Recognizer::set_actions {
 }    # set_actions
 
 # Returns false if no parse
-sub do_rank_all {
-    my ( $recce, $depth_by_id ) = @_;
-    my $grammar = $recce->[Marpa::PP::Internal::Recognizer::GRAMMAR];
-    my $symbols = $grammar->[Marpa::PP::Internal::Grammar::SYMBOLS];
-    my $rules   = $grammar->[Marpa::PP::Internal::Grammar::RULES];
-
-    my $cycle_ranking_action =
-        $grammar->[Marpa::PP::Internal::Grammar::CYCLE_RANKING_ACTION];
-    my $cycle_closure;
-    if ( defined $cycle_ranking_action ) {
-        $cycle_closure =
-            Marpa::PP::Internal::Recognizer::resolve_semantics( $recce,
-            $cycle_ranking_action );
-        Marpa::exception(
-            "Could not resolve cycle ranking action named '$cycle_ranking_action'"
-        ) if not $cycle_closure;
-    } ## end if ( defined $cycle_ranking_action )
-
-    # Set up rank closures by symbol
-    my %ranking_closures_by_symbol = ();
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $ranking_action =
-            $symbol->[Marpa::PP::Internal::Symbol::RANKING_ACTION];
-        next SYMBOL if not defined $ranking_action;
-        my $ranking_closure =
-            Marpa::PP::Internal::Recognizer::resolve_semantics( $recce,
-            $ranking_action );
-        my $symbol_name = $symbol->[Marpa::PP::Internal::Symbol::NAME];
-        Marpa::exception(
-            "Could not resolve ranking action for symbol.\n",
-            qq{    Symbol was "$symbol_name".},
-            qq{    Ranking action was "$ranking_action".}
-        ) if not defined $ranking_closure;
-        $ranking_closures_by_symbol{$symbol_name} = $ranking_closure;
-    }    # end for my $symbol ( @{$symbols} )
-
-    # Get closure used in ranking, by rule
-    my @ranking_closures_by_rule = ();
-    RULE: for my $rule ( @{$rules} ) {
-
-        my $ranking_action =
-            $rule->[Marpa::PP::Internal::Rule::RANKING_ACTION];
-        my $ranking_closure;
-        my $cycle_rule = $rule->[Marpa::PP::Internal::Rule::CYCLE];
-
-        Marpa::exception(
-            "Rule which cycles has an explicit ranking action\n",
-            qq{   The ranking action is "$ranking_action"\n},
-            qq{   To solve this problem,\n},
-            qq{   Rewrite the grammar so that this rule does not cycle\n},
-            qq{   Or eliminate its ranking action.\n}
-        ) if $ranking_action and $cycle_rule;
-
-        if ($ranking_action) {
-            $ranking_closure =
-                Marpa::PP::Internal::Recognizer::resolve_semantics( $recce,
-                $ranking_action );
-            Marpa::exception(
-                "Ranking closure '$ranking_action' not found")
-                if not defined $ranking_closure;
-        } ## end if ($ranking_action)
-
-        if ($cycle_rule) {
-            $ranking_closure = $cycle_closure;
-        }
-
-        next RULE if not $ranking_closure;
-
-        # If the RHS is empty ...
-        # Empty rules are never in cycles -- they are either
-        # unused (because of the CHAF rewrite) or the special
-        # null start rule.
-        if ( not scalar @{ $rule->[Marpa::PP::Internal::Rule::RHS] } ) {
-            Marpa::exception(
-                "Ranking closure '$ranking_action' not found")
-                if not defined $ranking_closure;
-
-            $ranking_closures_by_symbol{ $rule
-                    ->[Marpa::PP::Internal::Rule::LHS]
-                    ->[Marpa::PP::Internal::Symbol::NULL_ALIAS]
-                    ->[Marpa::PP::Internal::Symbol::NAME] } =
-                $ranking_closure;
-        } ## end if ( not scalar @{ $rule->[Marpa::PP::Internal::Rule::RHS...]})
-
-        next RULE if not $rule->[Marpa::PP::Internal::Rule::USED];
-
-        $ranking_closures_by_rule[ $rule->[Marpa::PP::Internal::Rule::ID] ] =
-            $ranking_closure;
-
-    } ## end for my $rule ( @{$rules} )
-
-    my $and_nodes = $recce->[Marpa::PP::Internal::Recognizer::AND_NODES];
-    my $or_nodes  = $recce->[Marpa::PP::Internal::Recognizer::OR_NODES];
-
-    my @and_node_worklist = ();
-    AND_NODE: for my $and_node_id ( 0 .. $#{$and_nodes} ) {
-
-        my $and_node = $and_nodes->[$and_node_id];
-        my $rule_id  = $and_node->[Marpa::PP::Internal::And_Node::RULE_ID];
-        my $rule_closure = $ranking_closures_by_rule[$rule_id];
-        my $token_name =
-            $and_node->[Marpa::PP::Internal::And_Node::TOKEN_NAME];
-        my $token_closure;
-        if ($token_name) {
-            $token_closure = $ranking_closures_by_symbol{$token_name};
-        }
-
-        my $token_rank_ref;
-        my $rule_rank_ref;
-
-        # It is a feature of the ranking closures that they are always
-        # called once per instance, even if the result is never used.
-        # This sometimes makes for unnecessary calls,
-        # but it makes these closures predictable enough
-        # to allow their use for side effects.
-        EVALUATION:
-        for my $evaluation_data (
-            [ \$token_rank_ref, $token_closure ],
-            [ \$rule_rank_ref,  $rule_closure ]
-            )
-        {
-            my ( $rank_ref_ref, $closure ) = @{$evaluation_data};
-            next EVALUATION if not defined $closure;
-
-            my @warnings;
-            my $eval_ok;
-            my $rank_ref;
-            DO_EVAL: {
-                local $Marpa::PP::Internal::CONTEXT =
-                    [ 'and-node', $and_node, $recce ];
-                local $SIG{__WARN__} =
-                    sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-                $eval_ok = eval { $rank_ref = $closure->(); 1; };
-            } ## end DO_EVAL:
-
-            my $fatal_error;
-            CHECK_FOR_ERROR: {
-                if ( not $eval_ok or scalar @warnings ) {
-                    $fatal_error = $EVAL_ERROR // 'Fatal Error';
-                    last CHECK_FOR_ERROR;
-                }
-                if ( defined $rank_ref and not ref $rank_ref ) {
-                    $fatal_error =
-                        "Invalid return value from ranking closure: $rank_ref";
-                }
-            } ## end CHECK_FOR_ERROR:
-
-            if ( defined $fatal_error ) {
-
-                Marpa::PP::Internal::code_problems(
-                    {   fatal_error => $fatal_error,
-                        grammar     => $grammar,
-                        eval_ok     => $eval_ok,
-                        warnings    => \@warnings,
-                        where       => 'ranking and-node '
-                            . $and_node->[Marpa::PP::Internal::And_Node::TAG],
-                    }
-                );
-            } ## end if ( defined $fatal_error )
-
-            ${$rank_ref_ref} = $rank_ref // Marpa::PP::Internal::Value::SKIP;
-
-        } ## end for my $evaluation_data ( [ \$token_rank_ref, $token_closure...])
-
-        # Set the token rank if there is a token.
-        # It is zero if there is no token, or
-        # if there is one with no closure.
-        # Note: token can never cause a cycle, but they
-        # can cause an and-node to be skipped.
-        if ($token_name) {
-            $and_node->[Marpa::PP::Internal::And_Node::TOKEN_RANK_REF] =
-                $token_rank_ref // \0;
-        }
-
-        # See if we can set the rank for this node to a constant.
-        my $constant_rank_ref;
-        SET_CONSTANT_RANK: {
-
-            if ( defined $token_rank_ref && !ref $token_rank_ref ) {
-                $constant_rank_ref = Marpa::PP::Internal::Value::SKIP;
-                last SET_CONSTANT_RANK;
-            }
-
-            # If we have ranking closure for this rule, the rank
-            # is constant:
-            # 0 for a non-final node,
-            # the result of the closure for a final one
-            if ( defined $rule_rank_ref ) {
-                $constant_rank_ref =
-                      $and_node->[Marpa::PP::Internal::And_Node::VALUE_OPS]
-                    ? $rule_rank_ref
-                    : \0;
-                last SET_CONSTANT_RANK;
-            } ## end if ( defined $rule_rank_ref )
-
-            # It there is a token and no predecessor, the rank
-            # of this rule is a constant:
-            # 0 is there was not token symbol closure
-            # the result of that closure if there was one
-            if ( $token_name
-                and not defined
-                $and_node->[Marpa::PP::Internal::And_Node::PREDECESSOR_ID] )
-            {
-                $constant_rank_ref = $token_rank_ref // \0;
-            } ## end if ( $token_name and not defined $and_node->[...])
-
-        } ## end SET_CONSTANT_RANK:
-
-        if ( defined $constant_rank_ref ) {
-            $and_node->[Marpa::PP::Internal::And_Node::INITIAL_RANK_REF] =
-                $and_node->[Marpa::PP::Internal::And_Node::CONSTANT_RANK_REF]
-                = $constant_rank_ref;
-
-            next AND_NODE;
-        } ## end if ( defined $constant_rank_ref )
-
-        # If we are here there is (so far) no constant rank
-        # so we stack this and-node for depth-sensitive evaluation
-        push @and_node_worklist, $and_node_id;
-
-    } ## end for my $and_node_id ( 0 .. $#{$and_nodes} )
-
-    # Now go through the and-nodes that require context to be ranked
-    # This loop assumes that all cycles has been taken care of
-    # with constant ranks
-    AND_NODE: while ( defined( my $and_node_id = pop @and_node_worklist ) ) {
-
-        no integer;
-
-        my $and_node = $and_nodes->[$and_node_id];
-
-        # Go to next if we have already ranked this and-node
-        next AND_NODE
-            if defined
-                $and_node->[Marpa::PP::Internal::And_Node::INITIAL_RANK_REF];
-
-        # The rank calculated so far from the
-        # children
-        my $calculated_rank = 0;
-
-        my $is_cycle = 0;
-        my $is_skip  = 0;
-        OR_NODE:
-        for my $field (
-            Marpa::PP::Internal::And_Node::PREDECESSOR_ID,
-            Marpa::PP::Internal::And_Node::CAUSE_ID,
-            )
-        {
-            my $or_node_id = $and_node->[$field];
-            next OR_NODE if not defined $or_node_id;
-
-            my $or_node = $or_nodes->[$or_node_id];
-            if (defined(
-                    my $or_node_initial_rank_ref =
-                        $or_node
-                        ->[Marpa::PP::Internal::Or_Node::INITIAL_RANK_REF]
-                )
-                )
-            {
-                if ( ref $or_node_initial_rank_ref ) {
-                    $calculated_rank += ${$or_node_initial_rank_ref};
-                    next OR_NODE;
-                }
-
-                # At this point only possible value is skip
-                $and_node->[Marpa::PP::Internal::And_Node::INITIAL_RANK_REF] =
-                    $and_node
-                    ->[Marpa::PP::Internal::And_Node::CONSTANT_RANK_REF] =
-                    Marpa::PP::Internal::Value::SKIP;
-
-                next AND_NODE;
-            } ## end if ( defined( my $or_node_initial_rank_ref = $or_node...))
-            my @ranks              = ();
-            my @unranked_and_nodes = ();
-            CHILD_AND_NODE:
-            for my $child_and_node_id (
-                @{ $or_node->[Marpa::PP::Internal::Or_Node::AND_NODE_IDS] } )
-            {
-                my $rank_ref =
-                    $and_nodes->[$child_and_node_id]
-                    ->[Marpa::PP::Internal::And_Node::INITIAL_RANK_REF];
-                if ( not defined $rank_ref ) {
-                    push @unranked_and_nodes, $child_and_node_id;
-
-                    next CHILD_AND_NODE;
-                } ## end if ( not defined $rank_ref )
-
-                # Right now the only defined scalar value for a rank is
-                # Marpa::PP::Internal::Value::SKIP
-                next CHILD_AND_NODE if not ref $rank_ref;
-
-                push @ranks, ${$rank_ref};
-
-            } ## end for my $child_and_node_id ( @{ $or_node->[...]})
-
-            # If we have unranked child and nodes, those have to be
-            # ranked first.  Schedule the work and move on.
-            if ( scalar @unranked_and_nodes ) {
-
-                push @and_node_worklist, $and_node_id, @unranked_and_nodes;
-                next AND_NODE;
-            }
-
-            # If there were no non-skipped and-nodes, the
-            # parent and-node must also be skipped
-            if ( not scalar @ranks ) {
-                $or_node->[Marpa::PP::Internal::Or_Node::INITIAL_RANK_REF] =
-                    $and_node
-                    ->[Marpa::PP::Internal::And_Node::INITIAL_RANK_REF] =
-                    $and_node
-                    ->[Marpa::PP::Internal::And_Node::CONSTANT_RANK_REF] =
-                    Marpa::PP::Internal::Value::SKIP;
-
-                next AND_NODE;
-            } ## end if ( not scalar @ranks )
-
-            my $or_calculated_rank = List::Util::max @ranks;
-            $or_node->[Marpa::PP::Internal::Or_Node::INITIAL_RANK_REF] =
-                \$or_calculated_rank;
-            $calculated_rank += $or_calculated_rank;
-
-        } ## end for my $field ( ...)
-
-        my $token_rank_ref =
-            $and_node->[Marpa::PP::Internal::And_Node::TOKEN_RANK_REF];
-        $calculated_rank += defined $token_rank_ref ? ${$token_rank_ref} : 0;
-        $and_node->[Marpa::PP::Internal::And_Node::INITIAL_RANK_REF] =
-            \$calculated_rank;
-
-    } ## end while ( defined( my $and_node_id = pop @and_node_worklist...))
-
-    return;
-
-} ## end sub do_rank_all
 
 # Does not modify stack
 sub Marpa::PP::Internal::Recognizer::evaluate {
@@ -1278,6 +941,10 @@ sub Marpa::PP::Internal::Recognizer::do_null_parse {
 sub Marpa::PP::Recognizer::value {
     my ( $recce, @arg_hashes ) = @_;
 
+    my $parse_count = $recce->[Marpa::PP::Internal::Recognizer::PARSE_COUNT] // 0;
+
+    $recce->set(@arg_hashes);
+
     my $parse_set_arg = $recce->[Marpa::PP::Internal::Recognizer::END];
 
     my $trace_tasks = $recce->[Marpa::PP::Internal::Recognizer::TRACE_TASKS];
@@ -1286,82 +953,11 @@ sub Marpa::PP::Recognizer::value {
 
     my $and_nodes = $recce->[Marpa::PP::Internal::Recognizer::AND_NODES];
     my $or_nodes  = $recce->[Marpa::PP::Internal::Recognizer::OR_NODES];
-    my $ranking_method =
-        $recce->[Marpa::PP::Internal::Recognizer::RANKING_METHOD];
 
-    if ( $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] ) {
-        Marpa::exception(
-            qq{Arguments were passed directly to value() in a previous call\n},
-            qq{Only one call to value() is allowed per recognizer when arguments are passed directly\n},
-            qq{This is the second call to value()\n}
-        );
-    } ## end if ( $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE...])
-
-    my $parse_count = $recce->[Marpa::PP::Internal::Recognizer::PARSE_COUNT];
     my $max_parses  = $recce->[Marpa::PP::Internal::Recognizer::MAX_PARSES];
     if ( $max_parses and $parse_count > $max_parses ) {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
-
-    for my $arg_hash (@arg_hashes) {
-
-        if ( exists $arg_hash->{end} ) {
-            if ($parse_count) {
-                Marpa::exception(
-                    q{Cannot change "end" after first parse result});
-            }
-            $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 1;
-            $parse_set_arg = $arg_hash->{end};
-            delete $arg_hash->{end};
-        } ## end if ( exists $arg_hash->{end} )
-
-        if ( exists $arg_hash->{closures} ) {
-            if ($parse_count) {
-                Marpa::exception(
-                    q{Cannot change "closures" after first parse result});
-            }
-            $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 1;
-            my $closures = $arg_hash->{closures};
-            while ( my ( $action, $closure ) = each %{$closures} ) {
-                Marpa::exception(qq{Bad closure for action "$action"})
-                    if ref $closure ne 'CODE';
-            }
-            $recce->[Marpa::PP::Internal::Recognizer::CLOSURES] = $closures;
-            delete $arg_hash->{closures};
-        } ## end if ( exists $arg_hash->{closures} )
-
-        if ( exists $arg_hash->{trace_actions} ) {
-            $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 1;
-            $recce->[Marpa::PP::Internal::Recognizer::TRACE_ACTIONS] =
-                $arg_hash->{trace_actions};
-            delete $arg_hash->{trace_actions};
-        } ## end if ( exists $arg_hash->{trace_actions} )
-
-        if ( exists $arg_hash->{trace_values} ) {
-            $recce->[Marpa::PP::Internal::Recognizer::SINGLE_PARSE_MODE] = 1;
-            $recce->[Marpa::PP::Internal::Recognizer::TRACE_VALUES] =
-                $arg_hash->{trace_values};
-            delete $arg_hash->{trace_values};
-        } ## end if ( exists $arg_hash->{trace_values} )
-
-        # A typo made its way into the documentation, so now it's a
-        # synonym.
-        for my $trace_fh_alias (qw(trace_fh trace_file_handle)) {
-            if ( exists $arg_hash->{$trace_fh_alias} ) {
-                $recce->[Marpa::PP::Internal::Recognizer::TRACE_FILE_HANDLE] =
-                    $Marpa::PP::Internal::TRACE_FH =
-                    $arg_hash->{$trace_fh_alias};
-                delete $arg_hash->{$trace_fh_alias};
-            } ## end if ( exists $arg_hash->{$trace_fh_alias} )
-        } ## end for my $trace_fh_alias (qw(trace_fh trace_file_handle))
-
-        my @unknown_arg_names = keys %{$arg_hash};
-        Marpa::exception(
-            'Unknown named argument(s) to Marpa::PP::Recognizer::value: ',
-            ( join q{ }, @unknown_arg_names ) )
-            if @unknown_arg_names;
-
-    } ## end for my $arg_hash (@arg_hashes)
 
     my $grammar     = $recce->[Marpa::PP::Internal::Recognizer::GRAMMAR];
     my $earley_sets = $recce->[Marpa::PP::Internal::Recognizer::EARLEY_SETS];
@@ -1500,15 +1096,7 @@ sub Marpa::PP::Recognizer::value {
                 $start_iteration_node
                 ];
 
-            if ( $ranking_method eq 'constant' ) {
-                push @task_list, [Marpa::PP::Internal::Task::RANK_ALL],
-            } ## end if ( $ranking_method eq 'constant' )
-
             push @task_list,
-                [
-                Marpa::PP::Internal::Task::POPULATE_DEPTH, 0,
-                [$start_or_node]
-                ],
                 [
                 Marpa::PP::Internal::Task::POPULATE_OR_NODE,
                 $start_or_node
@@ -2152,38 +1740,8 @@ sub Marpa::PP::Recognizer::value {
             # have the choices list initialized, we can do so now.
             if ( not defined $choices ) {
 
-                if ( $ranking_method eq 'constant' ) {
-                    no integer;
-                    my @choices = ();
-                    AND_NODE: for my $and_node_id ( @{$and_node_ids} ) {
-                        my $and_node   = $and_nodes->[$and_node_id];
-                        my $new_choice = [];
-                        $new_choice->[Marpa::PP::Internal::Choice::AND_NODE] =
-                            $and_node;
-
-                        #<<< cycles on perltidy 20090616
-                        my $rank_ref = $and_node->[
-                            Marpa::PP::Internal::And_Node::INITIAL_RANK_REF ];
-                        #>>>
-                        die "Undefined rank for a$and_node_id"
-                            if not defined $rank_ref;
-                        next AND_NODE if not ref $rank_ref;
-                        $new_choice->[Marpa::PP::Internal::Choice::RANK] =
-                            ${$rank_ref};
-                        push @choices, $new_choice;
-                    } ## end for my $and_node_id ( @{$and_node_ids} )
-                    ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
-                    $choices = [
-                        sort {
-                            $b->[Marpa::PP::Internal::Choice::RANK]
-                                <=> $a->[Marpa::PP::Internal::Choice::RANK]
-                            } @choices
-                    ];
-                } ## end if ( $ranking_method eq 'constant' )
-                else {
-                    $choices =
-                        [ map { [ $and_nodes->[$_], 0 ] } @{$and_node_ids} ];
-                }
+		$choices =
+		    [ map { [ $and_nodes->[$_], 0 ] } @{$and_node_ids} ];
                 $work_iteration_node
                     ->[Marpa::PP::Internal::Iteration_Node::CHOICES] =
                     $choices;
@@ -2259,87 +1817,6 @@ sub Marpa::PP::Recognizer::value {
             next TASK;
 
         } ## end if ( $task_type == Marpa::PP::Internal::Task::STACK_INODE)
-
-        if ( $task_type == Marpa::PP::Internal::Task::RANK_ALL ) {
-
-            if ($trace_tasks) {
-                print {$Marpa::PP::Internal::TRACE_FH} 'Task: RANK_ALL; ',
-                    ( scalar @task_list ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            }
-
-            do_rank_all($recce);
-
-            next TASK;
-        } ## end if ( $task_type == Marpa::PP::Internal::Task::RANK_ALL)
-
-        # This task is for pre-populating the entire and-node and or-node
-        # space one "depth level" at a time.  It is used when ranking is
-        # being done, because to rank you need to make a pre-pass through
-        # the entire and-node and or-node space.
-        #
-        # As a side effect, depths are calculated for all the and-nodes.
-        if ( $task_type == Marpa::PP::Internal::Task::POPULATE_DEPTH ) {
-            my ( $depth, $or_node_list ) = @task_data;
-
-            if ($trace_tasks) {
-                print {$Marpa::PP::Internal::TRACE_FH}
-                    'Task: POPULATE_DEPTH; ',
-                    ( scalar @task_list ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
-
-            # We can assume all or-nodes in the list are populated
-
-            my %or_nodes_at_next_depth = ();
-
-            # Assign a depth to all the and-node children which
-            # do not already have one assigned.
-            for my $and_node_id (
-                map { @{ $_->[Marpa::PP::Internal::Or_Node::AND_NODE_IDS] } }
-                @{$or_node_list} )
-            {
-                my $and_node = $and_nodes->[$and_node_id];
-                FIELD:
-                for my $field (
-                    Marpa::PP::Internal::And_Node::PREDECESSOR_ID,
-                    Marpa::PP::Internal::And_Node::CAUSE_ID
-                    )
-                {
-                    my $child_or_node_id = $and_node->[$field];
-                    next FIELD if not defined $child_or_node_id;
-
-                    my $next_depth_or_node = $or_nodes->[$child_or_node_id];
-
-                    # Push onto list only if child or-node
-                    # is not already populated
-                    $next_depth_or_node
-                        ->[Marpa::PP::Internal::Or_Node::AND_NODE_IDS]
-                        or $or_nodes_at_next_depth{$next_depth_or_node} =
-                        $next_depth_or_node;
-
-                } ## end for my $field ( ...)
-
-            } ## end for my $and_node_id ( map { @{ $_->[...]}})
-
-            # No or-nodes at next depth?
-            # Great, we are done!
-            my @or_nodes_at_next_depth =
-                map { $or_nodes_at_next_depth{$_} }
-                sort keys %or_nodes_at_next_depth;
-            next TASK if not scalar @or_nodes_at_next_depth;
-
-            push @task_list,
-                [
-                Marpa::PP::Internal::Task::POPULATE_DEPTH, $depth + 1,
-                \@or_nodes_at_next_depth
-                ],
-                map { [ Marpa::PP::Internal::Task::POPULATE_OR_NODE, $_ ] }
-                @or_nodes_at_next_depth;
-
-            next TASK;
-
-        } ## end if ( $task_type == Marpa::PP::Internal::Task::POPULATE_DEPTH)
 
         Marpa::PP::internal_error(
             "Internal error: Unknown task type: $task_type");

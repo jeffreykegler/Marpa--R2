@@ -78,7 +78,6 @@ t/chaf.t
 t/code_diag.t
 t/counter.t
 t/curly.t
-t/cycle_count.t
 t/debug.t
 t/debug_leo.t
 t/debug_seq.t
@@ -112,6 +111,7 @@ t/sequence2.t
 t/stripped_pp.t
 t/syn_engine.t
 t/timeflies.t
+t/use.t
 t/wall.t
 t/weaken.t
 tool/lib/Marpa/Display.pm
