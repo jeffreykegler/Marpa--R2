@@ -48,8 +48,6 @@ sub restore_stdout {
     return 1;
 }
 
-## no critic (Subroutines::RequireArgUnpacking)
-
 # Marpa::PP::Display
 # name: Null Value Example
 
