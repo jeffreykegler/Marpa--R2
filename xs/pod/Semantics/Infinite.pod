@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::XS::Semantics::Infinite - How Marpa Deals with Infinite Cycles
+Marpa::XS::Semantics::Infinite - How Marpa deals with infinite cycles
 
 =head1 INFINITELY AMBIGUOUS GRAMMARS
 
