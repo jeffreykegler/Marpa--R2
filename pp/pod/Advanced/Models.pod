@@ -30,7 +30,7 @@ interesting.
 
 =head1 DESCRIPTION
 
-=head2 What is an Alternative Input Model?
+=head2 What is an alternative input model?
 
 An alternative input model
 is anything that is not the default, token-stream model.
@@ -64,7 +64,7 @@ This document revises those explanations as necessary
 to take into
 account the alternative input models.
 
-=head2 Token Streams
+=head2 Token streams
 
 Marpa's default input model is the traditional one --
 a token stream.
@@ -112,7 +112,7 @@ tokens and position in a token stream.
 Because of this, the main Marpa documents speak
 simply of the "location" in the parse.
 
-=head2 The Furthest Earleme
+=head2 The furthest earleme
 
 The B<furthest earleme> is the last earleme at which a token ends.
 In the default input model, the furthest earleme is not an important
@@ -348,7 +348,8 @@ same as ambiguities caused by an ambiguous grammar.
 
 In the standard
 terminology,
-if a grammar produces more than one parse result,
+if a grammar produces more than one parse tree
+for any input,
 then that grammar must be ambiguous.
 In Marpa this is not strictly true.
 In Marpa,
