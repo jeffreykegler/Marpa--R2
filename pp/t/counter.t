@@ -31,6 +31,12 @@ BEGIN {
     Test::More::use_ok('Marpa::PP');
 }
 
+# skip the rest of the tests if not using XS
+TODO: {
+    Test::More::todo_skip 'Not using XS', 32 if not $Marpa::USING_XS;
+}
+exit 0 if not $Marpa::USING_XS;
+
 sub zero { return '0' }
 sub one  { return '1' }
 
