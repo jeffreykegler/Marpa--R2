@@ -43,9 +43,9 @@ sub default_action {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    {   start   => 'S',
-        strip   => 0,
-        rules   => [
+    {   start => 'S',
+        strip => 0,
+        rules => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],
             [ 'A', [qw/E/] ],
@@ -78,8 +78,7 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 14: S['][] -> /* empty vlhs real=1 */
 EOS
 
-Marpa::Test::is( $grammar->show_symbols,
-    <<'EOS', 'Aycock/Horspool Symbols' );
+Marpa::Test::is( $grammar->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
 0: S, lhs=[0 4 5 6] rhs=[13]
 1: A, lhs=[1 2] rhs=[0 4 5 7 8 10 11 12]
 2: a, lhs=[] rhs=[1] terminal
@@ -113,8 +112,9 @@ Marpa::Test::is(
     'Aycock/Horspool Accessible Symbols'
 );
 
-if ($Marpa::USING_XS ) {
-    Marpa::Test::is( $grammar->show_AHFA_items(), <<'EOS', 'Aycock/Horspool AHFA Items' );
+if ($Marpa::USING_XS) {
+    Marpa::Test::is( $grammar->show_AHFA_items(),
+        <<'EOS', 'Aycock/Horspool AHFA Items' );
 AHFA item 0: sort = 9; postdot = "a"
     A -> . a
 AHFA item 1: sort = 14; completion
@@ -168,9 +168,9 @@ AHFA item 24: sort = 24; completion
 AHFA item 25: sort = 25; completion
     S['][] -> .
 EOS
-}
+} ## end if ($Marpa::USING_XS)
 
-if ($Marpa::USING_PP ) {
+if ($Marpa::USING_PP) {
     Marpa::Test::is( $grammar->show_NFA, <<'EOS', 'Aycock/Horspool NFA' );
 S0: /* empty */
  empty => S33 S35
@@ -255,7 +255,7 @@ S33: S['] -> . S
 S34: S['] -> S .
 S35: S['][] -> .
 EOS
-}
+} ## end if ($Marpa::USING_PP)
 
 Marpa::Test::is( $grammar->show_AHFA, <<'EOS', 'Aycock/Horspool AHFA' );
 * S0:

@@ -185,8 +185,7 @@ $g->precompute();
 TEST: for my $test_data (@test_data) {
 
     my ( $test_name, $test_input, $test_results ) = @{$test_data};
-    my $recce =
-        Marpa::Recognizer->new( { grammar => $g, mode => 'stream' } );
+    my $recce = Marpa::Recognizer->new( { grammar => $g, mode => 'stream' } );
 
     my $input_length = length $test_input;
     pos $test_input = 0;
@@ -211,8 +210,7 @@ TEST: for my $test_data (@test_data) {
                 [ $token, $+{match}, ( ( pos $test_input ) - $pos ), 0 ];
 
         } ## end while ( my ( $token, $regex ) = each %regexes )
-        ( undef, $terminals_expected ) =
-            $recce->tokens( \@tokens );
+        ( undef, $terminals_expected ) = $recce->tokens( \@tokens );
     } ## end for ( my $pos = 0; $pos < $input_length; $pos++ )
     $recce->end_input();
 
@@ -231,8 +229,6 @@ TEST: for my $test_data (@test_data) {
     Marpa::Test::is( $actual, $expected, "$test_name: Parse match" );
 } ## end for my $test_data (@test_data)
 
-## no critic (Subroutines::RequireArgUnpacking)
-
 sub show_perl_line {
     shift;
     return join ', ', grep {defined} @_;
@@ -246,7 +242,4 @@ sub show_die                { return 'die statement' }
 sub show_unary              { return $_[1] . ' function call' }
 sub show_nullary            { return $_[1] . ' function call' }
 
-## use critic
-
 1;    # In case used as "do" file
-

@@ -45,9 +45,9 @@ sub test_grammar {
 
     my $grammar;
     my $eval_ok = eval { $grammar = Marpa::Grammar->new($grammar_args); 1; };
-    die("Exception while creating Grammar:\n$EVAL_ERROR")
+    die "Exception while creating Grammar:\n$EVAL_ERROR"
         if not $eval_ok;
-    die("Grammar not created\n") if not $grammar;
+    die "Grammar not created\n" if not $grammar;
     $grammar->precompute();
 
     my $recce;
@@ -57,9 +57,9 @@ sub test_grammar {
         1;
     };
 
-    die("Exception while creating Recognizer:\n$EVAL_ERROR")
+    die "Exception while creating Recognizer:\n$EVAL_ERROR"
         if not $eval_ok;
-    die("Recognizer not created\n") if not $recce;
+    die "Recognizer not created\n" if not $recce;
 
     for my $token ( @{$tokens} ) {
         my $earleme_result;
@@ -67,18 +67,18 @@ sub test_grammar {
             $earleme_result = $recce->tokens( [$token] );
             1;
         };
-        die("Exception while recognizing earleme:\n$EVAL_ERROR")
+        die "Exception while recognizing earleme:\n$EVAL_ERROR"
             if not $eval_ok;
-        die("Parsing exhausted\n")
+        die "Parsing exhausted\n"
             if not defined $earleme_result;
     } ## end for my $token ( @{$tokens} )
 
     $eval_ok = eval { $recce->end_input(); 1; };
-    die("Exception while recognizing end of input:\n$EVAL_ERROR")
+    die "Exception while recognizing end of input:\n$EVAL_ERROR"
         if not $eval_ok;
 
     my $value_ref = $recce->value();
-    die("No parse\n") if not $value_ref;
+    die "No parse\n" if not $value_ref;
     return ${$value_ref};
 } ## end sub test_grammar
 
