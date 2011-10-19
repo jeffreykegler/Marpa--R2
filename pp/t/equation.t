@@ -66,7 +66,7 @@ sub do_op {
         $value = $left_value - $right_value;
     }
     else {
-        die("Unknown op: $op");
+        die "Unknown op: $op";
     }
     return '(' . $left_string . $op . $right_string . ')==' . $value;
 } ## end sub do_op
@@ -130,8 +130,7 @@ print $grammar->show_rules()
 
 # Marpa::PP::Display::End
 
-Marpa::Test::is( ${$actual_ref},
-    <<'END_RULES', 'Ambiguous Equation Rules' );
+Marpa::Test::is( ${$actual_ref}, <<'END_RULES', 'Ambiguous Equation Rules' );
 0: E -> E Op E
 1: E -> Number
 2: E['] -> E /* vlhs real=1 */
@@ -141,13 +140,13 @@ END_RULES
 
 if ($Marpa::USING_XS) {
 
-$actual_ref = save_stdout();
+    $actual_ref = save_stdout();
 
-print $grammar->show_AHFA_items()
-    or die "print failed: $ERRNO";
+    print $grammar->show_AHFA_items()
+        or die "print failed: $ERRNO";
 
-Marpa::Test::is( ${$actual_ref},
-    <<'EOS', 'Ambiguous Equation AHFA Items' );
+    Marpa::Test::is( ${$actual_ref},
+        <<'EOS', 'Ambiguous Equation AHFA Items' );
 AHFA item 0: sort = 0; postdot = "E"
     E -> . E Op E
 AHFA item 1: sort = 3; postdot = "Op"
@@ -166,14 +165,13 @@ AHFA item 7: sort = 7; completion
     E['] -> E .
 EOS
 
-} # USING_XS
+}    # USING_XS
 
 if ($Marpa::USING_PP) {
     $actual_ref = save_stdout();
     print $grammar->show_NFA()
         or die "print failed: $ERRNO";
-    Marpa::Test::is( ${$actual_ref},
-        <<'END_NFA', 'Ambiguous Equation NFA' );
+    Marpa::Test::is( ${$actual_ref}, <<'END_NFA', 'Ambiguous Equation NFA' );
 S0: /* empty */
  empty => S7
 S1: E -> . E Op E
@@ -193,7 +191,7 @@ S7: E['] -> . E
  <E> => S8
 S8: E['] -> E .
 END_NFA
-} # USING_PP
+}    # USING_PP
 
 $actual_ref = save_stdout();
 
@@ -205,8 +203,7 @@ print $grammar->show_AHFA()
 
 # Marpa::PP::Display::End
 
-Marpa::Test::is( ${$actual_ref},
-    <<'END_AHFA', 'Ambiguous Equation AHFA' );
+Marpa::Test::is( ${$actual_ref}, <<'END_AHFA', 'Ambiguous Equation AHFA' );
 * S0:
 E['] -> . E
  <E> => S2; leo(E['])
@@ -317,8 +314,8 @@ S3@6-7 [p=S1@6-6; c=S4@6-7]
 S4@6-7 [p=S1@6-6; s=Number; t=\1]
 END_OF_EARLEY_SETS
 
-Marpa::Test::is( ${$actual_ref},
-    $expected_earley_sets, 'Ambiguous Equation Earley Sets' );
+Marpa::Test::is( ${$actual_ref}, $expected_earley_sets,
+    'Ambiguous Equation Earley Sets' );
 
 restore_stdout();
 
