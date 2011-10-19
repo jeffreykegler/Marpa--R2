@@ -33,14 +33,10 @@ BEGIN {
     Test::More::use_ok('Marpa::PP');
 }
 
-## no critic (Subroutines::RequireArgUnpacking)
-
 sub main::default_action {
     shift;
     return ( join q{}, grep {defined} @_ );
 }
-
-## use critic
 
 my $grammar = Marpa::Grammar->new(
     {   start => 'S',
@@ -89,8 +85,7 @@ Marpa::Test::is( $grammar->show_symbols(),
 20: S['][], lhs=[21] rhs=[] nullable nulling
 END_OF_STRING
 
-Marpa::Test::is( $grammar->show_rules,
-    <<'END_OF_STRING', 'Leo166 Rules' );
+Marpa::Test::is( $grammar->show_rules, <<'END_OF_STRING', 'Leo166 Rules' );
 0: S -> a A /* !used */
 1: H -> S /* !used */
 2: B -> C /* !used */
@@ -176,12 +171,12 @@ Marpa::Test::is( $grammar->show_AHFA(), $expected_ahfa_output,
 my $a_token = [ 'a', 'a' ];
 my $length = 20;
 
-my $recce = Marpa::Recognizer->new(
-    { grammar => $grammar, mode => 'stream'  } );
+my $recce =
+    Marpa::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
 
-my $i        = 0;
+my $i                 = 0;
 my $latest_earley_set = $recce->latest_earley_set();
-my $max_size = $recce->earley_set_size($latest_earley_set);
+my $max_size          = $recce->earley_set_size($latest_earley_set);
 TOKEN: while ( $i++ < $length ) {
     $recce->tokens( [$a_token] );
     $latest_earley_set = $recce->latest_earley_set();
@@ -194,10 +189,13 @@ TOKEN: while ( $i++ < $length ) {
 # beginning with Earley set c, for some small
 # constant c
 my $expected_size = 4;
-Marpa::Test::is( $max_size, $expected_size,
-    "size $max_size" );
+Marpa::Test::is( $max_size, $expected_size, "size $max_size" );
 
-my $show_earley_sets_output = do { local $RS = undef; readline(*DATA); };
+my $show_earley_sets_output = do {
+    local $RS = undef;
+## no critic(Subroutines::ProhibitCallsToUndeclaredSubs)
+    <DATA>;
+};
 
 Marpa::Test::is( $recce->show_earley_sets(1),
     $show_earley_sets_output, 'Leo cycle Earley sets' );
