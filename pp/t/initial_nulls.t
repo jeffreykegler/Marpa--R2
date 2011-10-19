@@ -88,10 +88,10 @@ $expected_count[8] = 8;     # 0 w/o r2; 8 with an r2
 $expected_count[9] = 1;     # 0 w/o r2; 1 with an r2
 
 for my $input_length ( 1 .. 9 ) {
-    my $recce = Marpa::Recognizer->new(
-        { grammar => $grammar, max_parses => 100 } );
+    my $recce =
+        Marpa::Recognizer->new( { grammar => $grammar, max_parses => 100 } );
     $recce->tokens( [ ( [ 't', 't', 1 ] ) x $input_length ] );
-    my $expected    = 1;
+    my $expected = 1;
     while ( $expected and my $value_ref = $recce->value() ) {
         $expected = 0;
         my $value = ${$value_ref};
@@ -131,7 +131,7 @@ for my $input_length ( 1 .. 9 ) {
     } ## end while ( $expected and my $value_ref = $recce->value() )
     if ($expected) {
         my $expected_count = $expected_count[$input_length];
-        my $parse_count = $recce->parse_count();
+        my $parse_count    = $recce->parse_count();
         if ( $parse_count == $expected_count ) {
             Test::More::pass(
                 qq{Good parse count $parse_count; input length=$input_length}
