@@ -15,13 +15,9 @@
 
 Revision history for Marpa::XS
 
-0.017_002 Fri Oct 14 21:15:42 PDT 2011
-0.017_001 Wed Oct 12 20:39:51 PDT 2011
-0.017_000 Sun Oct  9 19:43:05 PDT 2011
+0.018000 Thu Oct 20 14:56:52 PDT 2011
 
-    * A new series of developer's releases
-
-    * Next official release will be beta
+    * First official BETA release
 
     * New ranking methods: 'rule' and
       'high_rule_only'.  'constant' ranking
@@ -30,11 +26,6 @@ Revision history for Marpa::XS
 0.016000 Sat Oct  8 23:27:24 PDT 2011
 
     * Fix unindexed documentation.
-
-0.015_001 Sat Oct  8 22:55:54 PDT 2011
-0.015_000 Sat Oct  8 21:43:46 PDT 2011
-
-    * A new series of developer's releases
 
 0.014000 Wed Oct  5 08:30:16 PDT 2011
     
