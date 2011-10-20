@@ -74,6 +74,6 @@ install:
 	(cd xs && ./Build code)
 	(cd html && perl Build.PL)
 	(cd html && ./Build code)
-	-mkdir xs/libmarpa/test/build
-	(cd xs/libmarpa/test/build && sh ../dev/configure)
-	(cd xs/libmarpa/test/build && make)
+	-mkdir xs/libmarpa/test/work
+	(cd xs/libmarpa/test/work && sh ../dev/configure)
+	(cd xs/libmarpa/test/work && make)
