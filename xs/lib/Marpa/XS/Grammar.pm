@@ -576,6 +576,21 @@ sub Marpa::XS::Grammar::precompute {
                 $symbols->[$symbol_id]->[Marpa::XS::Internal::Symbol::NAME];
             Marpa::exception(qq{Unproductive start symbol: "$name"});
         } ## end if ( $error eq 'unproductive start symbol' )
+        if ( $error eq 'lhs is terminal' ) {
+	    my @problems = ();
+            RULE: for my $rule ( @{$rules} ) {
+                my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
+                my $lhs_id  = $grammar_c->rule_lhs($rule_id);
+                next RULE if not $grammar_c->symbol_is_terminal($lhs_id);
+                my $name =
+                    $symbols->[$lhs_id]->[Marpa::XS::Internal::Symbol::NAME];
+                push @problems,
+                    "lhs_terminals option is off, but Symbol $name is both an LHS and a terminal"
+            } ## end for my $rule ( @{$rules} )
+	    push @problems, "Disallowed LHS terminal reported by libmarpa, but none found"
+	        if not scalar @problems;
+	    Marpa::exception( @problems );
+        } ## end if ( $error eq 'lhs is terminal' )
         Marpa::XS::uncaught_error($error);
     } ## end if ( not $grammar_c->precompute() )
 
@@ -1208,15 +1223,6 @@ sub message_cb {
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $trace_fh =
         $grammar->[Marpa::XS::Internal::Grammar::TRACE_FILE_HANDLE];
-    if ( $message_id eq 'lhs is terminal' ) {
-        my $symbol_id = $grammar_c->context('symid');
-        my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-        my $name =
-            $symbols->[$symbol_id]->[Marpa::XS::Internal::Symbol::NAME];
-        Marpa::exception(
-            "lhs_terminals option is off, but Symbol $name is both an LHS and a terminal"
-        );
-    } ## end if ( $message_id eq 'lhs is terminal' )
     if ( $message_id eq 'loop rule' ) {
         return
             if $grammar->[Marpa::XS::Internal::Grammar::INFINITE_ACTION] eq

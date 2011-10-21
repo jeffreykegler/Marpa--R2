@@ -2584,31 +2584,25 @@ if (have_empty_rule && g->t_is_lhs_terminal_ok) {
      g->t_error = "empty rule and unmarked terminals";
     return NULL;
 }
-@ Any optimization should be for the non-error case, in which
+@ Any optimization should be for the non-error case.
+But in that case
 there are no LHS terminals, and the entire list of symbols must
 be scanned to discover this.
-It is faster to stop scanning symbols on the first error, if there is
-an error, but when that happens it is a fatal error,
-and for that, this code is already plenty fast enough.
+It is possible to find the first error without going
+through entire list of symbols, which this code does,
+but that would be optimizing for a fatal error.
+For fatal errors,
+this code is plenty fast enough.
 @<Fatal if LHS terminal when not allowed@> = 
 if (!g->t_is_lhs_terminal_ok) {
-    gboolean have_bad_lhs = 0;
+    gint no_lhs_terminals;
     guint start = 0;
     guint min, max;
     Bit_Vector bad_lhs_v = bv_clone(terminal_v);
     bv_and(bad_lhs_v, bad_lhs_v, lhs_v);
-    while ( bv_scan(bad_lhs_v, start, &min, &max) ) {
-	Marpa_Symbol_ID i;
-	for (i = (Marpa_Symbol_ID)min; i <= (Marpa_Symbol_ID)max; i++) {
-	    g_context_clear(g);
-	    g_context_int_add(g, "symid", i);
-	    grammar_message(g, "lhs is terminal");
-	}
-        start = max+2;
-	have_bad_lhs = 1;
-    }
+    no_lhs_terminals = bv_is_empty(bad_lhs_v);
     bv_free(bad_lhs_v);
-    if (have_bad_lhs) {
+    if (!no_lhs_terminals) {
         g->t_error = "lhs is terminal";
 	return NULL;
     }
@@ -12237,7 +12231,6 @@ bv_bit_test_and_set (Bit_Vector vector, guint bit)
   return 0;
 }
 
-@*0 Set a Boolean Vector to all Ones.
 @*0 Test a Boolean Vector for all Zeroes.
 @<Function definitions@> =
 static inline
