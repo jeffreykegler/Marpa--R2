@@ -2649,9 +2649,6 @@ gint counted_nullables = 0;
 	for (symid = (Marpa_Symbol_ID)min; symid <= (Marpa_Symbol_ID)max; symid++) {
 	    SYM symbol = SYM_by_ID(symid);
 	    if (symbol->t_is_counted) {
-		g_context_clear(g);
-		g_context_int_add(g, "symid", symid);
-		grammar_message(g, "counted nullable");
 		counted_nullables++;
 	    }
 	    symbol->t_is_nullable = 1;

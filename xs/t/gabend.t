@@ -127,8 +127,7 @@ my $counted_nullable_grammar = {
 test_grammar(
     'counted nullable',
     $counted_nullable_grammar,
-    "Grammar has 1 problems:\n"
-        . qq{Nullable symbol "Seq" is on rhs of counted rule\n}
+    qq{Nullable symbol "Seq" is on rhs of counted rule\n}
         . q{Counted nullables confuse Marpa -- please rewrite the grammar}
 );
 

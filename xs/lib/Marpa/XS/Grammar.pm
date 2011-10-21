@@ -548,10 +548,19 @@ sub Marpa::XS::Grammar::precompute {
             );
         }
         if ( $error eq 'counted nullable' ) {
-            Marpa::exception( Marpa::XS::Grammar::show_problems($grammar),
+            my @counted_nullable_messages = map {
+                      qq{Nullable symbol "}
+                    . $symbols->[$_]->[Marpa::XS::Internal::Symbol::NAME]
+                    . qq{" is on rhs of counted rule\n}
+                }
+                grep {
+                $grammar_c->symbol_is_counted($_)
+                    and $grammar_c->symbol_is_nullable($_)
+                } ( 0 .. $#{$symbols} );
+            Marpa::exception( @counted_nullable_messages,
                 'Counted nullables confuse Marpa -- please rewrite the grammar'
             );
-        }
+        } ## end if ( $error eq 'counted nullable' )
         if ( $error eq 'no start symbol' ) {
             Marpa::exception('No start symbol');
         }
@@ -1199,16 +1208,6 @@ sub message_cb {
     my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
     my $trace_fh =
         $grammar->[Marpa::XS::Internal::Grammar::TRACE_FILE_HANDLE];
-    if ( $message_id eq 'counted nullable' ) {
-        my $symbol_id = $grammar_c->context('symid');
-        my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-        my $name =
-            $symbols->[$symbol_id]->[Marpa::XS::Internal::Symbol::NAME];
-        my $problem = qq{Nullable symbol "$name" is on rhs of counted rule};
-        push @{ $grammar->[Marpa::XS::Internal::Grammar::PROBLEMS] },
-            $problem;
-        return;
-    } ## end if ( $message_id eq 'counted nullable' )
     if ( $message_id eq 'lhs is terminal' ) {
         my $symbol_id = $grammar_c->context('symid');
         my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
