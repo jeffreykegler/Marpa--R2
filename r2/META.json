@@ -75,16 +75,16 @@
       }
    },
    "provides" : {
-      "Marpa::XS" : {
+      "Marpa::R2" : {
          "file" : "lib/Marpa/R2.pm",
+         "version" : "0.001_000"
+      },
+      "Marpa::R2::Internal" : {
+         "file" : "lib/Marpa/R2/Internal.pm",
          "version" : "0.019_002"
       },
       "Marpa::XS::Grammar" : {
          "file" : "lib/Marpa/R2/Grammar.pm",
-         "version" : "0.019_002"
-      },
-      "Marpa::XS::Internal" : {
-         "file" : "lib/Marpa/R2/Internal.pm",
          "version" : "0.019_002"
       },
       "Marpa::XS::Internal::Grammar" : {
@@ -108,11 +108,11 @@
          "version" : "0.019_002"
       }
    },
-   "release_status" : "stable",
+   "release_status" : "testing",
    "resources" : {
       "repository" : {
          "url" : "git://github.com/jeffreykegler/Marpa-R2.git"
       }
    },
-   "version" : "0"
+   "version" : "0.001_000"
 }
