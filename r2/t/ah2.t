@@ -44,7 +44,6 @@ sub default_action {
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start => 'S',
-        strip => 0,
         rules => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],

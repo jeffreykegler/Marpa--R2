@@ -129,7 +129,7 @@ sub Marpa::R2::Recognizer::new {
     my $grammar_class = ref $grammar;
     Marpa::exception(
         "${class}::new() grammar arg has wrong class: $grammar_class")
-        if not $grammar_class eq 'Marpa::Grammar';
+        if not $grammar_class eq 'Marpa::R2::Grammar';
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
 
@@ -977,7 +977,7 @@ sub Marpa::R2::Recognizer::alternative {
 
     Marpa::exception('No recognizer object for Marpa::R2::Recognizer::tokens')
         if not defined $recce
-            or ref $recce ne 'Marpa::Recognizer';
+            or ref $recce ne 'Marpa::R2::Recognizer';
 
     Marpa::exception('Attempt to read token after parsing is finished')
         if $recce->[Marpa::R2::Internal::Recognizer::FINISHED];

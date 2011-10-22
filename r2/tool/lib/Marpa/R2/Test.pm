@@ -30,12 +30,12 @@ BEGIN {
     eval 'use Test::Differences';
 }
 
-sub Marpa::Test::is {
+sub Marpa::R2::Test::is {
     goto &Test::Differences::eq_or_diff
         if defined &Test::Differences::eq_or_diff && @_ > 1;
     @_ = map { ref $_ ? Data::Dumper::Dumper(@_) : $_ } @_;
     goto &Test::More::is;
-} ## end sub Marpa::Test::is
+} ## end sub Marpa::R2::Test::is
 
 1;
 
