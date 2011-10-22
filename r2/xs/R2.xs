@@ -1,17 +1,17 @@
 /*
  * Copyright 2011 Jeffrey Kegler
- * This file is part of Marpa::XS.  Marpa::XS is free software: you can
+ * This file is part of Marpa::R2.  Marpa::R2 is free software: you can
  * redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation,
  * either version 3 of the License, or (at your option) any later version.
  *
- * Marpa::XS is distributed in the hope that it will be useful,
+ * Marpa::R2 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser
- * General Public License along with Marpa::XS.  If not, see
+ * General Public License along with Marpa::R2.  If not, see
  * http://www.gnu.org/licenses/.
  */
 
@@ -44,8 +44,8 @@ typedef struct {
      GArray* gint_array;
 } R_Wrapper;
 
-static const char grammar_c_class_name[] = "Marpa::XS::Internal::G_C";
-static const char recce_c_class_name[] = "Marpa::XS::Internal::R_C";
+static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
+static const char recce_c_class_name[] = "Marpa::R2::Internal::R_C";
 
 static void
 xs_g_message_callback(Grammar *g, Marpa_Message_ID id)
@@ -127,7 +127,7 @@ xs_symbol_callback(Grammar *g, Marpa_Symbol_ID id)
     }
 }
 
-MODULE = Marpa::XS        PACKAGE = Marpa::XS
+MODULE = Marpa::R2        PACKAGE = Marpa::R2
 
 PROTOTYPES: DISABLE
 
@@ -143,7 +143,7 @@ PPCODE:
    mPUSHi( version[2] );
 }
 
-MODULE = Marpa::XS        PACKAGE = Marpa::XS::Internal::G_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::G_C
 
 G_Wrapper *
 new( class, non_c_sv )
@@ -908,7 +908,7 @@ PPCODE:
     if  (marpa_precompute(g)) { XSRETURN_YES; }
     XSRETURN_NO;
 
-MODULE = Marpa::XS        PACKAGE = Marpa::XS::Internal::R_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::R_C
 
 void
 new( class, g_sv )

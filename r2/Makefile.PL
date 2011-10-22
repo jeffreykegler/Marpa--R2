@@ -2,5 +2,5 @@
     use Module::Build::Compat 0.02;
     use lib 'config';
     Module::Build::Compat->run_build_pl(args => \@ARGV);
-    require Marpa::XS::Build_Me;
-    Module::Build::Compat->write_makefile(build_class => 'Marpa::XS::Build_Me');
+    require Marpa::R2::Build_Me;
+    Module::Build::Compat->write_makefile(build_class => 'Marpa::R2::Build_Me');

@@ -1,5 +1,5 @@
 {
-   "abstract" : "XS Version of Marpa",
+   "abstract" : "Release 2 of Marpa",
    "author" : [
       "Jeffrey Kegler"
    ],
@@ -12,7 +12,7 @@
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : "2"
    },
-   "name" : "Marpa-XS",
+   "name" : "Marpa-R2",
    "no_index" : {
       "directory" : [
          "pperl",
@@ -26,21 +26,21 @@
          "author.t"
       ],
       "namespace" : [
-         "Marpa::XS::Recognizer",
-         "Marpa::XS::Grammar",
-         "Marpa::XS::Value",
+         "Marpa::R2::Recognizer",
+         "Marpa::R2::Grammar",
+         "Marpa::R2::Value",
          "Marpa::Perl",
          "Marpa::Test",
          "Marpa::Display",
-         "Marpa::XS::Internal",
+         "Marpa::R2::Internal",
          "Marpa::PP"
       ],
       "package" : [
-         "Marpa::XS::Value",
+         "Marpa::R2::Value",
          "Marpa::Perl",
          "Marpa::Test",
          "Marpa::Display",
-         "Marpa::XS::Internal",
+         "Marpa::R2::Internal",
          "Marpa::PP"
       ]
    },
@@ -76,43 +76,43 @@
    },
    "provides" : {
       "Marpa::XS" : {
-         "file" : "lib/Marpa/XS.pm",
+         "file" : "lib/Marpa/R2.pm",
          "version" : "0.019_002"
       },
       "Marpa::XS::Grammar" : {
-         "file" : "lib/Marpa/XS/Grammar.pm",
+         "file" : "lib/Marpa/R2/Grammar.pm",
          "version" : "0.019_002"
       },
       "Marpa::XS::Internal" : {
-         "file" : "lib/Marpa/XS/Internal.pm",
+         "file" : "lib/Marpa/R2/Internal.pm",
          "version" : "0.019_002"
       },
       "Marpa::XS::Internal::Grammar" : {
-         "file" : "lib/Marpa/XS/Grammar.pm",
+         "file" : "lib/Marpa/R2/Grammar.pm",
          "version" : 0
       },
       "Marpa::XS::Internal::Recognizer" : {
-         "file" : "lib/Marpa/XS/Value.pm",
+         "file" : "lib/Marpa/R2/Value.pm",
          "version" : 0
       },
       "Marpa::XS::Internal::Value" : {
-         "file" : "lib/Marpa/XS/Value.pm",
+         "file" : "lib/Marpa/R2/Value.pm",
          "version" : 0
       },
       "Marpa::XS::Recognizer" : {
-         "file" : "lib/Marpa/XS/Recognizer.pm",
+         "file" : "lib/Marpa/R2/Recognizer.pm",
          "version" : "0.019_002"
       },
       "Marpa::XS::Value" : {
-         "file" : "lib/Marpa/XS/Value.pm",
+         "file" : "lib/Marpa/R2/Value.pm",
          "version" : "0.019_002"
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "repository" : {
-         "url" : "git://github.com/jeffreykegler/Marpa-XS.git"
+         "url" : "git://github.com/jeffreykegler/Marpa-R2.git"
       }
    },
-   "version" : "0.019_002"
+   "version" : "0"
 }
