@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cat $1 |
+( cd ..; perlcritic --verbose '%l:%c %p %r\n' --exclude 'Dynamic::*' --profile author.t/perlcriticrc )

@@ -1,0 +1,13 @@
+Copyright 2010 Jeffrey Kegler
+Jeffrey Kegler retains full rights to the documents in this directory.
+In particular, this includes the right to prevent unauthorized
+modifications to these documents.
+
+The files in this directory are background documents of a theoretical
+and academic nature.  They are not part of the source for any
+software, including Marpa or Marpa::XS.  They are also not part of the
+documentation necessary to use or build Marpa or Marpa::XS.
+
+While they may be physically in a Marpa or other distribution,
+including one that is under an open source license, they do not fall
+under that open source license.

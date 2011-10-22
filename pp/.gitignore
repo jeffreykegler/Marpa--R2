@@ -1,0 +1,16 @@
+/pod2htmd.tmp
+/pod2htmi.tmp
+/Build
+/MYMETA.yml
+/MYMETA.json
+/Makefile
+/Marpa-PP-[0-9].[0-9][0-9][0-9][0-9][0-9][0-9].tar.gz
+/Marpa-PP-[0-9].[0-9][0-9][0-9][0-9][0-9][0-9]/
+/Marpa-PP-[0-9].[0-9][0-9][0-9]_[0-9][0-9][0-9].tar.gz
+/Marpa-PP-[0-9].[0-9][0-9][0-9]_[0-9][0-9][0-9]/
+/_build/
+/blib/
+errs
+junk
+/nogit/
+nogit*

@@ -1,0 +1,52 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::PP.  Marpa::PP is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::PP is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::PP.  If not, see
+# http://www.gnu.org/licenses/.
+
+LIST OF UNDOCUMENTED METHODS, ETC.
+
+Marpa::Grammar::inaccessible_symbols
+Marpa::Grammar::show_accessible_symbols
+Marpa::Grammar::show_nullable_symbols
+Marpa::Grammar::show_nulling_symbols
+Marpa::Grammar::show_productive_symbols
+Marpa::Grammar::unproductive_symbols
+Marpa::Grammar::show_NFA
+
+# No longer tested -- probably should eliminate
+Recognizer Named Argument: trace_earley_sets
+
+Marpa::Recognizer::status
+
+Terminal Property: ranking_action
+# ranking action for symbols seems to be implemented
+# *EXCEPT* for the named argument.  It would also need
+# to be tested.
+
+Grammar Named Argument: academic
+
+Marpa::Evaluator Named Argument: infinite_nodes
+Marpa::Evaluator Named Argument: infinite_scale
+Marpa::Evaluator Named Argument: experimental
+Marpa::Evaluator Named Argument: trace_tasks
+
+Marpa::Evaluator::audit
+in Marpa::Evaluator, Marpa::dump_sort_key
+Marpa::Evaluator::show_sort_keys
+Marpa::Evaluator::show_and_node
+Marpa::Evaluator::show_or_node
+Marpa::Evaluator::show_ambiguity
+
+action callback: Marpa::length
+action callback: Marpa::cause_location
+

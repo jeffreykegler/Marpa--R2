@@ -1,0 +1,73 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+Revision history for Marpa::XS
+
+0.019_002 Thu Oct 20 23:47:53 PDT 2011
+0.019_000 Thu Oct 20 18:25:50 PDT 2011
+    * New series of developer's release
+
+    * Cosmetic fix to indexing
+
+0.018000 Thu Oct 20 14:56:52 PDT 2011
+
+    * First official BETA release
+
+    * New ranking methods: 'rule' and
+      'high_rule_only'.  'constant' ranking
+      method eliminated.
+
+0.016000 Sat Oct  8 23:27:24 PDT 2011
+
+    * Fix unindexed documentation.
+
+0.014000 Wed Oct  5 08:30:16 PDT 2011
+    
+    * Internal cleanups and speed-ups.
+
+0.012000 Fri Aug 26 18:09:32 PDT 2011
+
+    * Tree iterator converted to XS.
+
+    * Internal cleanups and speed-ups.
+
+0.010000 Sat Aug 13 10:21:55 PDT 2011
+
+     * Official (ALPHA) release.
+
+     * Internal cleanups and speed-ups.
+
+     * Documentation copied into Marpa::XS from Marpa::PP.
+     Documentation for deprecated "Constant Ranking Method" dropped.
+
+
+0.008000 Fri Jul 29 09:04:42 PDT 2011
+
+     * Second official (ALPHA) release.
+
+     * Parse Location is now by Earley set ordinal,
+       not Earleme.  If you don't know what this means,
+       it does not affect you.  For the default input
+       model, earleme and Earley set ordinal are the
+       same.  If you are not sure whether you are using
+       the default input model, then you are.
+
+     * Converted parse bocage to C.  This is a major
+       change.
+
+     * Copied Marpa::XS into combined Marpa repository
+
+0.002000 Thu Apr 14 20:11:04 PDT 2011
+     First official (ALPHA) release

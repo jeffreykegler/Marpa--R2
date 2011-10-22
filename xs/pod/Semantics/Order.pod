@@ -1,0 +1,328 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Semantics::Order - How Marpa ranks ambiguous parses
+
+=head1 DESCRIPTION
+
+Marpa allows ambiguous parses.
+While an unambiguous parse can produce at most one parse tree
+and one parse result,
+an ambiguous parse will produce a parse series.
+A parse series is a sequence of parse trees,
+each of which will have its own parse result.
+
+This document describes ways of controlling
+the order in which
+the recognizer's
+L<C<value>|Marpa::XS::Recognizer/"value">
+method
+evaluates the parse
+trees of an ambiguous parse.
+It also describes ways to exclude selected parse trees
+from the parse series.
+
+=head2 Duplicate parses are eliminated
+
+When evaluating the parse trees in a parse series,
+Marpa never evaluates the same parse tree twice.
+Marpa considers two parse trees to be the same if they are
+B<semantic duplicates>.
+
+Two parse trees are semantic duplicates if
+and only if
+a recursive, top-down evaluation of each
+applies
+the same rules
+in the same order
+at the same earleme locations.
+This definition implies that,
+given any deterministic semantics,
+two parse trees which are
+semantic duplicates
+will always produce the same parse result --
+hence the term "semantic duplicates".
+When the Marpa documentation refers to duplicate
+parses, it will mean semantic duplicates unless otherwise
+stated.
+
+=head2 Default parse order
+
+By calling
+the recognizer's
+L<C<value>|Marpa::XS::Recognizer/"value">
+method
+repeatedly,
+Marpa can produce all the parse results
+in the current parse series.
+The default is for the parse results to be returned
+in an arbitrary order.
+This corresponds to the "C<none>" value of
+L<the recognizer's C<ranking_method>|Marpa::XS::Recognizer/"ranking_method">
+named argument.
+
+=head2 Arbitrary parse order
+
+When this document calls a behavior "arbitrary"
+it means that an application
+must
+not rely on that behavior being repeated.
+An arbitrary behavior is allowed to
+change from version to version
+of the software,
+from run to run of the application,
+and even from call to call of the methods.
+
+"Arbitrary parse order", in particular,
+means that the particular order in which
+parse trees are evaluated may not be repeated.
+But an application can expect,
+even when the order of evaluation
+of the parse trees is arbitrary,
+that all appropriate parse trees
+will be included in the parse series,
+and that none of the parse trees in the parse series
+will be the semantic duplicate of any other tree.
+
+=head2 Ranking methods
+
+Marpa grammar objects have L<a C<ranking_method> named
+argument|Marpa::XS::Recognizer/"ranking_method">,
+whose value can be the name of a ranking method,
+or "C<none>", indicating that the default ranking method is to
+be used.
+
+=head2 The C<rule> ranking method
+
+The rule method ranks alternative parses according to their rules.
+Every rule has a B<rule rank>.
+A rule's rank can be specified using the 
+the C<rank> named
+argument for that rule.
+Rule ranks must be integers.
+If no rule rank is specified, the rule rank is 0.
+When being ranked,
+parse trees
+are traversed top-down, left-to-right.
+
+=head2 The C<high_rule_only> ranking method
+
+The C<high_rule_only> ranking method is similar to the
+C<rule> ranking method, except that, at every choice point,
+it discards all of the choices which
+have a rank lower than that of the highest ranked alternative.
+
+In carrying out the ranking,
+the choice points of the parse trees
+are visited in top-down, left-to-right order.
+Since the C<high_rule_only> ranking method eliminates some
+parse trees, it can reduce or eliminate the ambiguity of a parse,
+but it does not necessarily do either.
+This is because, at each choice point among the parse trees,
+it is possible that several of the choices,
+or all of them, will have the same rank
+as the highest ranked alternative.
+
+=head2 Null ranking
+
+Some rules have a RHS which contains
+B<proper nullables>:
+symbols
+which may be nulled, but which are not nulling
+symbols.
+(Nulling symbols are symbols which are B<always> nulled.)
+
+When a rule contains proper nullables, each application
+of that rule to a section of input creates a B<nulling variant> --
+that rule with a specific pattern of
+null and non-null symbols.
+In many cases, this creates an ambiguity -- different
+nulling variants could apply to the same substring of input.
+In ambiguous parsings of this kind,
+some applications may want to rank nulling variants that start
+with non-null symbols higher.
+Other applications may want to do the opposite --
+to rank nulling variants that start
+with null symbols higher.
+
+The 
+L<C<null_ranking> named
+argument for rules|Marpa::XS::Grammar/"null_ranking">
+specifies which nulling variants are ranked high or low.
+Ranking of nulling variants is done left-to-right,
+with the null preference as indicated by the C<null_ranking>
+named argument.
+Specifically, if the C<null_ranking> is "C<low>",
+then the closer a nulling variant
+places its B<non-null> symbols to the start of the rule,
+the higher it ranks.
+If the C<null_ranking> is "C<high>",
+then the closer a nulling variant
+places its B<null> symbols to the start of the rule,
+the higher it ranks.
+
+A rule is null ranked if and only if its C<null_ranking>
+is defined.
+Note that this definition means that a rule can be considered
+null ranked even if it does not have any nullable symbols.
+A rule which is not null ranked is called non-null-ranked.
+
+Null ranking, in the current implementation,
+is targeted at situations where the alternatives
+are different applications of
+a single rule.
+In situations where the choice is between
+two different rules,
+an application which cares about the order
+will typically want to
+override the null ranking
+using rule ranks.
+A more detailed description of the rule comparison
+logic can be found below.
+
+By default, 
+C<null_ranking> is undefined, which means the order
+of the null variants is arbitrary.
+This is fine for most applications.
+
+=head2 Details of ranking
+
+When ranking, the logic descends the parse trees top-down
+and left-to-right.
+Places where there is more than one alternative are
+called B<choice points>.
+Alternatives are ranked (in the C<rule> ranking method)
+or selected
+(in the C<high_rule_only> ranking method),
+by comparing them as follows:
+
+=over
+
+=item * If two alternatives are for the same rule,
+and that the rule is null ranked, they rank as described
+under L<"Null ranking">.
+
+=item *
+If the two alternatives have the same rule,
+and that rule is non-null-ranked,
+the alternatives have equal rank.
+
+=item * If the two alternatives have different rules,
+and the two rules have different rule ranks,
+the alternative with the higher rule rank
+ranks high.
+
+=item * The remaining cases deal with the
+comparison of alternatives which have
+different rules,
+when both rules have the same rule rank.
+
+=over
+
+=item *
+If the rule for one alternative is null ranked,
+while the rule for the other is non-null-ranked,
+the alternative with the non-null-ranked rule ranks high.
+
+=item *
+If both rules are non-null-ranked,
+the two alternatives have equal rank.
+
+=item *
+If both rules are null-ranked, their ranking is arbitrary --
+either one may rank high, or they may have equal rank.
+
+=back
+
+=back
+
+=head2 A general approach to sorting parses
+
+The most general way to sort Marpa parses is for the application
+to take control.
+The application can set up the Marpa semantic actions
+so that the parse result of every parse tree is a
+C<< <rank, true_value> >> duple.
+The duples can then be sorted by C<rank>.
+Once the resuls are sorted,
+the C<rank> element of the duple can be discarded.
+(Those familiar with the Schwartzian transform
+may note a resemblance.
+In Perl,
+duples can be implemented as references to arrays of 2 elements.)
+
+The user needs to be careful.
+In theory, ambiguity can cause an exponential explosion in the number of results.
+In practice, ambiguity tends to get out of hand very easily.
+Producing and sorting all the parses can take a very
+long time.
+
+=head2 The C<constant> ranking method is no longer supported
+
+The C<constant> ranking method is no longer implemented.
+An initial attempt to find the ideal compromise
+between flexibility and efficiency,
+the
+C<constant> ranking method
+proved too ambitious, and had several drawbacks.
+First, its overhead was high in comparison to the flexibility
+it offered.
+Second, it was not intuitive.
+Even when the
+C<constant> ranking method
+was powerful enough to solve a problem,
+it was not always obvious how to actually use it.
+Finally, its implementation
+was extremely complex.
+
+The new C<rule> ranking method is far more efficient,
+vastly more intuitive, and
+far easier to implement and maintain.
+But the new C<rule> ranking method is
+also very flexible -- it passes the test suite
+which was written for the C<constant> ranking method.
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

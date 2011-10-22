@@ -1,0 +1,239 @@
+# Copyright 2011 Jeffrey Kegler
+# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::XS is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::XS.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::XS::Advanced::Bibliography - A Marpa Bibliography
+
+=head1 HISTORY OF THE MARPA ALGORITHM
+
+=over
+
+=item 1970
+
+Jay Earley L<invents the algorithm that now bears his
+name|"Earley 1970">.
+
+=item 1991
+
+Joop Leo L<describes a way to modify Earley's algorithm so that it
+runs in O(n) time for all LR-regular
+grammars|"Leo 1991">.
+LR-regular is a vast class of grammars, including all the
+LR(k) grammars, all grammars parseable with recursive descent,
+and regular expressions.
+LR-regular can safely be thought of as including all grammars
+in practical use today, and then some.
+
+=item 2002
+
+L<Aycock and Horspool describe a way to do LR(0)
+precomputation|"Aycock and Horspool 2002">
+for Earley's algorithm.
+Their method makes Earley's faster in most
+practical situations, but not all.
+In particular, right-recursion remains quadratic in
+the Aycock and Horspool algorithm.
+Worst case is no better than Earley's.
+Leo is unaware of Aycock and Horspool's work
+and Aycock and Horspool seem unaware of Leo.
+
+=item 2010
+
+Marpa combines the Leo and Aycock-Horspool
+algorithms,
+in the process making significant
+changes to both of them.
+The result preserves the
+best features of both.
+Marpa also tackles the many remaining
+implementation issues.
+
+=back
+
+=head1 BIBLIOGRAPHY
+
+=head2 Aho and Ullman 1972
+
+I<The Theory of Parsing, Translation and Compiling, Volume I: Parsing>
+by Alfred Aho and Jeffrey Ullman
+(Prentice-Hall: Englewood Cliffs, New Jersey, 1972).
+I think this was the 
+standard source for Earley's algorithm for decades.
+It certainly was B<my> standard source.
+The account of Earley's algorithm is on pages 320-330.
+
+=head2 Aycock and Horspool 2002
+
+Marpa is based on ideas from
+John Aycock and R.
+Nigel Horspool's "Practical Earley Parsing", I<The Computer Journal>,
+Vol. 45, No. 6, 2002, pp. 620-630.
+The idea of doing LR(0)
+precomputation for
+L<Earley's general parsing algorithm|"Earley 1970">,
+and Marpa's approach to handling nullable symbols and rules,
+both came from this article.
+
+The Aycock and Horspool paper 
+summarizes Earley's very nicely and is
+available on the web: L<http://www.cs.uvic.ca/~nigelh/Publications/PracticalEarleyParsing.pdf>.
+Unlike L<"Earley 1970">,
+Aycock and Horspool 2002 is B<not> easy reading.
+I have been following
+this particular topic on and off for years
+and nonetheless found this paper very heavy going.
+
+=head2 Dominus 2005
+
+Although my approach to parsing is not influenced
+by Mark Jason Dominus's I<Higher Order Perl>,
+Mark's treatment of parsing is an excellent introduction to parsing,
+especially in a Perl context.
+His focus on just about every other technique B<except>
+general BNF parsing is pretty much standard, and
+will help a beginner understand how unconventional
+Marpa's approach is.
+
+Mark's book opened my eyes to many new ideas.
+Both Mark's Perl and his English are examples of good writing,
+and the book is dense with insights.
+Mark's discussion on memoization in Chapter 3 is the
+best I've seen.
+I wish I'd bought his book earlier in my coding.
+
+Mark's book is available on-line.
+You can download chapter-by-chapter or the whole thing at once,
+and you can take your pick of his original sources or PDF,
+at L<http://hop.perl.plover.com/book/>.
+A PDF of the parsing chapter is at L<http://hop.perl.plover.com/book/pdf/08Parsing.pdf>.
+
+=head2 Earley 1970
+
+Of 
+Jay Earley's papers on his general parsing algorithm,
+the most readily available
+is "An efficient context-free parsing algorithm",
+I<Communications of the Association for Computing Machinery>,
+13:2:94-102, 1970.
+
+Ordinarily, I'd not bother pointing out 35-year old nits
+in a brilliant and historically important article.
+But more than a few people treat this article as not just the first word in Earley
+parsing, but the last as well.
+Many implementations of Earley's algorithm come, directly and
+unaltered, from his paper.
+These implementers and their users need to be aware of two issues.
+
+First, the recognition engine itself, as described, has a serious bug.
+There's an easy fix, but one that greatly slows down an algorithm
+whose main problem, in its original form, was speed.
+This issue is well laid out by
+Aycock and Horspool
+L<in their article|"Aycock and Horspool 2002">.
+
+Second,
+according to Tomita there is a mistake in the parse
+tree representation.
+See page 153 of L<"Grune and Jacobs 1990">,
+page 210 of L<"Grune and Jacobs 2008">,
+and the bibliography entry for Earley 1970 in L<"Grune and Jacobs 2008">.
+In the printed edition of the 2008 bibliography, the entry is on page 578,
+and on the web
+(L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>),
+it's on pp. 583-584.
+My methods for producing parse results
+from Earley sets do not come from Earley 1970,
+so I am taking Tomita's word on this one.
+
+=head2 Grune and Jacobs 1990
+
+I<Parsing Techniques: A Practical Guide>,
+by Dick Grune and
+Ceriel Jacobs,
+(Ellis Horwood Limited: Chichester, West Sussex, England,
+1990).
+This book is available on the Web: L<http://www.cs.vu.nl/~dick/PTAPG.html>
+
+=head2 Grune and Jacobs 2008
+
+I<Parsing Techniques: A Practical Guide>,
+by Dick Grune and
+Ceriel Jacobs,
+2nd Edition.
+(Springer: New York NY, 2008).
+This is the most authoritative and comprehensive introduction
+to parsing I know of.
+In theory it requires no mathematics, only a programming background,
+but even so it is moderately difficult reading.
+
+This is L<Grune and Jacobs 1990> updated.
+The bibliography for this book is available in enlarged form
+on the web: L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>.
+
+=head2 Leo 1991
+
+Marpa's handling of right-recursion uses the ideas in
+Joop M.I.M. Leo's
+"A General Context-Free Parsing Algorithm Running in Linear
+Time on Every LR(k) Grammar Without Using Lookahead",
+I<Theoretical Computer Science>,
+Vol. 82, No. 1, 1991, pp 165-176.
+This is a difficult paper.
+Unfortunately, there is no copy of it on-line.
+
+=head2 Wikipedia
+
+Wikipedia's article on Backus-Naur form is
+L<http://en.wikipedia.org/wiki/Backus-Naur_form>.
+It's a great place to start if you don't know the
+basics of grammars and parsing.
+As Wikipedia points out, 
+BNF might better be called Panini-Backus Form.
+The grammarian Panini
+gave a precise description of Sanskirt
+more than 23 centuries earlier in India
+using a similar notation.
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::XS::Display
+ignore: 1
+
+  Copyright 2011 Jeffrey Kegler
+  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::XS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::XS.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::XS::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

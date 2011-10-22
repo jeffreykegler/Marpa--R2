@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cat $1 |
+( cd ..; perlcritic --profile author.t/perlcriticrc )
