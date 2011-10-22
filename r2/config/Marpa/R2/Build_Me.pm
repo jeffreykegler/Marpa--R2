@@ -1,25 +1,25 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::XS::Build_Me;
+package Marpa::R2::Build_Me;
 
 use 5.010;
 use strict;
 use warnings;
 
-@Marpa::XS::Build_Me::ISA = ('Module::Build');
+@Marpa::R2::Build_Me::ISA = ('Module::Build');
 
 use Config;
 use File::Copy;
@@ -29,7 +29,7 @@ use Fatal qw(open close chdir chmod utime);
 use English qw( -no_match_vars );
 use Time::Piece;
 
-use Marpa::XS::Config;
+use Marpa::R2::Config;
 
 my $preamble = <<'END_OF_STRING';
 # This file is written by Build.PL
@@ -67,7 +67,7 @@ sub xs_version_contents {
 ##use critic
 
     for my $package (@use_packages) {
-        my $version = $Marpa::XS::VERSION_FOR_CONFIG{$package};
+        my $version = $Marpa::R2::VERSION_FOR_CONFIG{$package};
         die "No version defined for $package" if not defined $version;
         $text .= "use $package $version ();\n";
     }
@@ -77,7 +77,7 @@ sub xs_version_contents {
 
 sub perl_version_contents {
     my ( $self, $package, ) = @_;
-    my @use_packages     = qw( Scalar::Util Carp Data::Dumper PPI Marpa::XS );
+    my @use_packages     = qw( Scalar::Util Carp Data::Dumper PPI Marpa::R2 );
     my $text             = $preamble;
     my $marpa_xs_version = $self->dist_version();
     $text .= "package $package;\n";
@@ -89,9 +89,9 @@ sub perl_version_contents {
 
     for my $package (@use_packages) {
         my $version =
-              $package eq 'Marpa::XS'
+              $package eq 'Marpa::R2'
             ? $marpa_xs_version
-            : $Marpa::XS::VERSION_FOR_CONFIG{$package};
+            : $Marpa::R2::VERSION_FOR_CONFIG{$package};
         die "No version defined for $package" if not defined $version;
         $text .= "use $package $version ();\n";
     } ## end for my $package (@use_packages)
@@ -322,7 +322,7 @@ sub ACTION_licensecheck {
     my $self = shift;
 
 ## no critic(Modules::RequireBarewordIncludes)
-    require 'config/Marpa/XS/License.pm';
+    require 'config/Marpa/R2/License.pm';
 ## use critic
 
     my @manifest = do {
@@ -334,7 +334,7 @@ sub ACTION_licensecheck {
         grep { defined and not / \A \s* \z /xms } split /\n/xms, $text;
     };
     my @license_problems =
-        Marpa::XS::License::license_problems( \@manifest, $self->verbose() );
+        Marpa::R2::License::license_problems( \@manifest, $self->verbose() );
     if (@license_problems) {
         print {*STDERR} join q{}, @license_problems
             or die "Cannot print: $ERRNO";
@@ -376,11 +376,11 @@ sub ACTION_code {
     my $self = shift;
     say {*STDERR} 'Writing version files'
         or die "say failed: $ERRNO";
-    write_installed_pm( $self, qw(lib Marpa XS ) );
+    write_installed_pm( $self, qw(lib Marpa R2 ) );
     write_installed_pm( $self, qw(pperl Marpa Perl ) );
     my $perl_version_pm = perl_version_contents( $self, 'Marpa::Perl' );
-    my $version_pm = xs_version_contents( $self, 'Marpa::XS' );
-    $self->write_file( $version_pm,      qw(lib Marpa XS Version.pm) );
+    my $version_pm = xs_version_contents( $self, 'Marpa::R2' );
+    $self->write_file( $version_pm,      qw(lib Marpa R2 Version.pm) );
     $self->write_file( $perl_version_pm, qw(pperl Marpa Perl Version.pm) );
     $self->do_libmarpa();
     return $self->SUPER::ACTION_code;

@@ -1,16 +1,16 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 .gitignore
@@ -40,9 +40,9 @@ author.t/pod.t
 author.t/spelling_exceptions.list
 author.t/tidy.t
 author.t/tidy1
-config/Marpa/XS/Build_Me.pm
-config/Marpa/XS/Config.pm
-config/Marpa/XS/License.pm
+config/Marpa/R2/Build_Me.pm
+config/Marpa/R2/Config.pm
+config/Marpa/R2/License.pm
 etc/.gitignore
 etc/Makefile
 etc/check_license.pl
@@ -54,11 +54,11 @@ inc/proof/README
 inc/proof/ah2002_notes.lyx
 inc/proof/ah_to_leo.lyx
 inc/proof/proof.lyx
-lib/Marpa/XS.pm
-lib/Marpa/XS/Grammar.pm
-lib/Marpa/XS/Internal.pm
-lib/Marpa/XS/Recognizer.pm
-lib/Marpa/XS/Value.pm
+lib/Marpa/R2.pm
+lib/Marpa/R2/Grammar.pm
+lib/Marpa/R2/Internal.pm
+lib/Marpa/R2/Recognizer.pm
+lib/Marpa/R2/Value.pm
 libmarpa/dev/Makefile
 libmarpa/dev/README
 libmarpa/dev/copyright_page_license.w
@@ -113,7 +113,7 @@ pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod
 pod/Debug.pod
 pod/Grammar.pod
-pod/Marpa_XS.pod
+pod/Marpa_R2.pod
 pod/Recognizer.pod
 pod/Rewrite.pod
 pod/Semantics.pod
@@ -173,4 +173,4 @@ tool/lib/Marpa/Display.pm
 tool/lib/Marpa/Test.pm
 tool/lib/Marpa/Test/Common.pm
 typemap
-xs/XS.xs
+xs/R2.xs
