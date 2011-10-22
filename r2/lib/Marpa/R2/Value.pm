@@ -1,19 +1,19 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::XS::Value;
+package Marpa::R2::Value;
 
 use 5.010;
 use warnings;
@@ -27,26 +27,26 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
-package Marpa::XS::Internal::Value;
+package Marpa::R2::Internal::Value;
 
 use English qw( -no_match_vars );
 
 use constant SKIP => -1;
 
-sub Marpa::XS::Recognizer::parse_count {
+sub Marpa::R2::Recognizer::parse_count {
     my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     return $recce_c->parse_count();
 }
 
-sub Marpa::XS::Recognizer::show_bocage {
+sub Marpa::R2::Recognizer::show_bocage {
     my ($recce) = @_;
     my $text;
     my @data        = ();
     my $id          = 0;
-    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $symbol_hash = $grammar->[Marpa::XS::Internal::Grammar::SYMBOL_HASH];
+    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
         my $rule = $recce_c->or_node_rule($or_node_id);
         last OR_NODE if not defined $rule;
@@ -72,14 +72,14 @@ sub Marpa::XS::Recognizer::show_bocage {
             if ( defined $cause_id ) {
                 $cause_rule = $recce_c->or_node_rule($cause_id);
                 $cause_tag =
-                    Marpa::XS::Recognizer::or_node_tag( $recce, $cause_id );
+                    Marpa::R2::Recognizer::or_node_tag( $recce, $cause_id );
             }
             my $parent_tag =
-                Marpa::XS::Recognizer::or_node_tag( $recce, $or_node_id );
+                Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
             my $predecessor_id = $recce_c->and_node_predecessor($and_node_id);
             my $predecessor_tag = q{-};
             if ( defined $predecessor_id ) {
-                $predecessor_tag = Marpa::XS::Recognizer::or_node_tag( $recce,
+                $predecessor_tag = Marpa::R2::Recognizer::or_node_tag( $recce,
                     $predecessor_id );
             }
             my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
@@ -107,11 +107,11 @@ sub Marpa::XS::Recognizer::show_bocage {
             or $a->[6] <=> $b->[6]
     } @data;
     return ( join "\n", @sorted_data ) . "\n";
-} ## end sub Marpa::XS::Recognizer::show_bocage
+} ## end sub Marpa::R2::Recognizer::show_bocage
 
-sub Marpa::XS::Recognizer::and_node_tag {
+sub Marpa::R2::Recognizer::and_node_tag {
     my ( $recce, $and_node_id ) = @_;
-    my $recce_c            = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $recce_c            = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $parent_or_node_id  = $recce_c->and_node_parent($and_node_id);
     my $origin             = $recce_c->or_node_origin($parent_or_node_id);
     my $origin_earleme     = $recce_c->earleme($origin);
@@ -145,11 +145,11 @@ sub Marpa::XS::Recognizer::and_node_tag {
     }
     $tag .= q{@} . $middle_earleme;
     return $tag;
-} ## end sub Marpa::XS::Recognizer::and_node_tag
+} ## end sub Marpa::R2::Recognizer::and_node_tag
 
-sub Marpa::XS::Recognizer::show_and_nodes {
+sub Marpa::R2::Recognizer::show_and_nodes {
     my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $text;
     my @data = ();
     AND_NODE: for ( my $id = 0;; $id++ ) {
@@ -205,21 +205,21 @@ sub Marpa::XS::Recognizer::show_and_nodes {
             or $a->[6] <=> $b->[6]
     } @data;
     return ( join "\n", @sorted_data ) . "\n";
-} ## end sub Marpa::XS::Recognizer::show_and_nodes
+} ## end sub Marpa::R2::Recognizer::show_and_nodes
 
-sub Marpa::XS::Recognizer::or_node_tag {
+sub Marpa::R2::Recognizer::or_node_tag {
     my ( $recce, $or_node_id ) = @_;
-    my $recce_c  = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $recce_c  = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $set      = $recce_c->or_node_set($or_node_id);
     my $rule     = $recce_c->or_node_rule($or_node_id);
     my $origin   = $recce_c->or_node_origin($or_node_id);
     my $position = $recce_c->or_node_position($or_node_id);
     return 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
-} ## end sub Marpa::XS::Recognizer::or_node_tag
+} ## end sub Marpa::R2::Recognizer::or_node_tag
 
-sub Marpa::XS::Recognizer::show_or_nodes {
+sub Marpa::R2::Recognizer::show_or_nodes {
     my ( $recce, $verbose ) = @_;
-    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $text;
     my @data = ();
     my $id   = 0;
@@ -251,18 +251,18 @@ sub Marpa::XS::Recognizer::show_or_nodes {
             or $a->[3] <=> $b->[3]
     } @data;
     return ( join "\n", @sorted_data ) . "\n";
-} ## end sub Marpa::XS::Recognizer::show_or_nodes
+} ## end sub Marpa::R2::Recognizer::show_or_nodes
 
-sub Marpa::XS::show_rank_ref {
+sub Marpa::R2::show_rank_ref {
     my ($rank_ref) = @_;
     return 'undef' if not defined $rank_ref;
-    return 'SKIP'  if $rank_ref == Marpa::XS::Internal::Value::SKIP;
+    return 'SKIP'  if $rank_ref == Marpa::R2::Internal::Value::SKIP;
     return ${$rank_ref};
-} ## end sub Marpa::XS::show_rank_ref
+} ## end sub Marpa::R2::show_rank_ref
 
-sub Marpa::XS::Recognizer::show_fork {
+sub Marpa::R2::Recognizer::show_fork {
     my ( $recce, $fork_id, $verbose ) = @_;
-    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
 
     my $or_node_id = $recce_c->fork_or_node($fork_id);
     return if not defined $or_node_id;
@@ -281,7 +281,7 @@ sub Marpa::XS::Recognizer::show_fork {
         $text .= '[-]';
     } ## end CHILD_TYPE:
     my $or_node_tag =
-        Marpa::XS::Recognizer::or_node_tag( $recce, $or_node_id );
+        Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
     $text .= " $or_node_tag";
 
     $text .= ' p';
@@ -301,15 +301,15 @@ sub Marpa::XS::Recognizer::show_fork {
                 $text .= q{*};
             }
             my $and_node_tag =
-                Marpa::XS::Recognizer::and_node_tag( $recce, $and_node_id );
+                Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id );
             $text .= " ::= a$and_node_id $and_node_tag";
             $text .= "\n";
         } ## end for ( my $choice_ix = 0;; $choice_ix++ )
     } ## end DESCRIBE_CHOICES:
     return $text;
-} ## end sub Marpa::XS::Recognizer::show_fork
+} ## end sub Marpa::R2::Recognizer::show_fork
 
-sub Marpa::XS::Recognizer::show_tree {
+sub Marpa::R2::Recognizer::show_tree {
     my ( $recce, $verbose ) = @_;
     my $text = q{};
     FORK: for ( my $fork_id = 0; 1; $fork_id++ ) {
@@ -318,38 +318,38 @@ sub Marpa::XS::Recognizer::show_tree {
         $text .= "$fork_id: $fork_text";
     }
     return $text;
-} ## end sub Marpa::XS::Recognizer::show_tree
+} ## end sub Marpa::R2::Recognizer::show_tree
 
-package Marpa::XS::Internal::Recognizer;
+package Marpa::R2::Internal::Recognizer;
 our $DEFAULT_ACTION_VALUE = \undef;
 
-package Marpa::XS::Internal::Value;
+package Marpa::R2::Internal::Value;
 
-sub Marpa::XS::Internal::Recognizer::set_null_values {
+sub Marpa::R2::Internal::Recognizer::set_null_values {
     my ($recce)   = @_;
-    my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $trace_values =
-        $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES];
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES];
 
-    my $rules   = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    my $symbols = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
+    my $rules   = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $default_null_value =
-        $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_NULL_VALUE];
+        $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE];
 
     my $null_values;
     $#{$null_values} = $#{$symbols};
 
     SYMBOL: for my $symbol ( @{$symbols} ) {
 
-        my $symbol_id = $symbol->[Marpa::XS::Internal::Symbol::ID];
+        my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
         next SYMBOL if not $grammar_c->symbol_is_nulling($symbol_id);
 
         my $null_value = undef;
-        if ( $symbol->[Marpa::XS::Internal::Symbol::NULL_VALUE] ) {
+        if ( $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] ) {
             $null_value =
-                ${ $symbol->[Marpa::XS::Internal::Symbol::NULL_VALUE] };
+                ${ $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] };
         }
         else {
             $null_value = $default_null_value;
@@ -359,9 +359,9 @@ sub Marpa::XS::Internal::Recognizer::set_null_values {
         $null_values->[$symbol_id] = $null_value;
 
         if ($trace_values) {
-            print {$Marpa::XS::Internal::TRACE_FH}
+            print {$Marpa::R2::Internal::TRACE_FH}
                 'Setting null value for symbol ',
-                $symbol->[Marpa::XS::Internal::Symbol::NAME],
+                $symbol->[Marpa::R2::Internal::Symbol::NAME],
                 ' to ', Data::Dumper->new( [ \$null_value ] )->Terse(1)->Dump
                 or Marpa::exception('Could not print to trace file');
         } ## end if ($trace_values)
@@ -374,19 +374,19 @@ sub Marpa::XS::Internal::Recognizer::set_null_values {
 
 # Given the grammar and an action name, resolve it to a closure,
 # or return undef
-sub Marpa::XS::Internal::Recognizer::resolve_semantics {
+sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my ( $recce, $closure_name ) = @_;
-    my $grammar  = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $closures = $recce->[Marpa::XS::Internal::Recognizer::CLOSURES];
+    my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURES];
     my $trace_actions =
-        $recce->[Marpa::XS::Internal::Recognizer::TRACE_ACTIONS];
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     Marpa::exception(q{Trying to resolve 'undef' as closure name})
         if not defined $closure_name;
 
     if ( my $closure = $closures->{$closure_name} ) {
         if ($trace_actions) {
-            print {$Marpa::XS::Internal::TRACE_FH}
+            print {$Marpa::R2::Internal::TRACE_FH}
                 qq{Resolved "$closure_name" to explicit closure\n}
                 or Marpa::exception('Could not print to trace file');
         }
@@ -402,7 +402,7 @@ sub Marpa::XS::Internal::Recognizer::resolve_semantics {
         }
         if (defined(
                 my $actions_package =
-                    $grammar->[Marpa::XS::Internal::Grammar::ACTIONS]
+                    $grammar->[Marpa::R2::Internal::Grammar::ACTIONS]
             )
             )
         {
@@ -412,7 +412,7 @@ sub Marpa::XS::Internal::Recognizer::resolve_semantics {
 
         if (defined(
                 my $action_object_class =
-                    $grammar->[Marpa::XS::Internal::Grammar::ACTION_OBJECT]
+                    $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
             )
             )
         {
@@ -428,7 +428,7 @@ sub Marpa::XS::Internal::Recognizer::resolve_semantics {
     use strict 'refs';
 
     if ($trace_actions) {
-        print {$Marpa::XS::Internal::TRACE_FH}
+        print {$Marpa::R2::Internal::TRACE_FH}
             ( $closure ? 'Successful' : 'Failed' )
             . qq{ resolution of "$closure_name" },
             'to ', $fully_qualified_name, "\n"
@@ -437,16 +437,16 @@ sub Marpa::XS::Internal::Recognizer::resolve_semantics {
 
     return $closure;
 
-} ## end sub Marpa::XS::Internal::Recognizer::resolve_semantics
+} ## end sub Marpa::R2::Internal::Recognizer::resolve_semantics
 
-sub Marpa::XS::Internal::Recognizer::set_actions {
+sub Marpa::R2::Internal::Recognizer::set_actions {
     my ($recce)   = @_;
-    my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
-    my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $default_action =
-        $grammar->[Marpa::XS::Internal::Grammar::DEFAULT_ACTION];
+        $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_ACTION];
 
     my $rule_closures  = [];
     my $rule_constants = [];
@@ -454,7 +454,7 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
     my $default_action_closure;
     if ( defined $default_action ) {
         $default_action_closure =
-            Marpa::XS::Internal::Recognizer::resolve_semantics( $recce,
+            Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
             $default_action );
         Marpa::exception(
             "Could not resolve default action named '$default_action'")
@@ -463,18 +463,18 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
     RULE: for my $rule ( @{$rules} ) {
 
-        my $rule_id = $rule->[Marpa::XS::Internal::Rule::ID];
+        my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
 
-        if ( my $action = $rule->[Marpa::XS::Internal::Rule::ACTION] ) {
+        if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION] ) {
             my $closure =
-                Marpa::XS::Internal::Recognizer::resolve_semantics( $recce,
+                Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
                 $action );
 
             Marpa::exception(qq{Could not resolve action name: "$action"})
                 if not defined $closure;
             $rule_closures->[$rule_id] = $closure;
             next RULE;
-        } ## end if ( my $action = $rule->[Marpa::XS::Internal::Rule::ACTION...])
+        } ## end if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION...])
 
         # Try to resolve the LHS as a closure name,
         # if it is not internal.
@@ -484,10 +484,10 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
         FIND_CLOSURE_BY_LHS: {
             my $lhs_id = $grammar_c->rule_lhs($rule_id);
             my $action =
-                $symbols->[$lhs_id]->[Marpa::XS::Internal::Symbol::NAME];
+                $symbols->[$lhs_id]->[Marpa::R2::Internal::Symbol::NAME];
             last FIND_CLOSURE_BY_LHS if substr( $action, -1 ) eq ']';
             my $closure =
-                Marpa::XS::Internal::Recognizer::resolve_semantics( $recce,
+                Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
                 $action );
             last FIND_CLOSURE_BY_LHS if not defined $closure;
             $rule_closures->[$rule_id] = $closure;
@@ -502,12 +502,12 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
         # If there is no default action specified, the fallback
         # is to return an undef
         $rule_constants->[$rule_id] =
-            $Marpa::XS::Internal::Recognizer::DEFAULT_ACTION_VALUE;
+            $Marpa::R2::Internal::Recognizer::DEFAULT_ACTION_VALUE;
 
     } ## end for my $rule ( @{$rules} )
 
-    $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
-    $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS] =
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_CONSTANTS] =
         $rule_constants;
 
     return 1;
@@ -515,27 +515,27 @@ sub Marpa::XS::Internal::Recognizer::set_actions {
 
 sub do_high_rule_only {
     my ($recce)   = @_;
-    my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-    my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
 
     my @or_nodes =
-        ( $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID] );
+        ( $recce->[Marpa::R2::Internal::Recognizer::TOP_OR_NODE_ID] );
 
     # Set up ranks by symbol
     my @rank_by_symbol = ();
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
-        $rank_by_symbol[ $symbol->[Marpa::XS::Internal::Symbol::ID] ] = $rank;
+        my $rank = $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
+        $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
     }    # end for my $symbol ( @{$symbols} )
 
     # Set up ranks by rule
     my @rank_by_rule = ();
     SYMBOL: for my $rule ( @{$rules} ) {
-        my $rank = $rule->[Marpa::XS::Internal::Rule::RANK];
-        $rank_by_rule[ $rule->[Marpa::XS::Internal::Rule::ID] ] = $rank;
+        my $rank = $rule->[Marpa::R2::Internal::Rule::RANK];
+        $rank_by_rule[ $rule->[Marpa::R2::Internal::Rule::ID] ] = $rank;
     }    # end for my $rule ( @{$rules} )
 
     OR_NODE: for ( my $or_node = 0;; $or_node++ ) {
@@ -559,7 +559,7 @@ sub do_high_rule_only {
             push @ranking_data,
                 [
                 $and_node, $rank_by_rule[$rule_id],
-                $rule->[Marpa::XS::Internal::Rule::CHAF_RANK]
+                $rule->[Marpa::R2::Internal::Rule::CHAF_RANK]
                 ];
         } ## end for my $and_node (@and_nodes)
 
@@ -590,27 +590,27 @@ sub do_high_rule_only {
 
 sub do_rank_by_rule {
     my ($recce)   = @_;
-    my $recce_c   = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $grammar   = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $symbols   = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-    my $rules     = $grammar->[Marpa::XS::Internal::Grammar::RULES];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
 
     my @or_nodes =
-        ( $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID] );
+        ( $recce->[Marpa::R2::Internal::Recognizer::TOP_OR_NODE_ID] );
 
     # Set up ranks by symbol
     my @rank_by_symbol = ();
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::XS::Internal::Symbol::TERMINAL_RANK];
-        $rank_by_symbol[ $symbol->[Marpa::XS::Internal::Symbol::ID] ] = $rank;
+        my $rank = $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
+        $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
     }    # end for my $symbol ( @{$symbols} )
 
     # Set up ranks by rule
     my @rank_by_rule = ();
     SYMBOL: for my $rule ( @{$rules} ) {
-        my $rank = $rule->[Marpa::XS::Internal::Rule::RANK];
-        $rank_by_rule[ $rule->[Marpa::XS::Internal::Rule::ID] ] = $rank;
+        my $rank = $rule->[Marpa::R2::Internal::Rule::RANK];
+        $rank_by_rule[ $rule->[Marpa::R2::Internal::Rule::ID] ] = $rank;
     }    # end for my $rule ( @{$rules} )
 
     my $seen = q{};
@@ -637,7 +637,7 @@ sub do_rank_by_rule {
             push @ranking_data,
                 [
                 $and_node, $rank_by_rule[$rule_id],
-                $rule->[Marpa::XS::Internal::Rule::CHAF_RANK]
+                $rule->[Marpa::R2::Internal::Rule::CHAF_RANK]
                 ];
         } ## end for my $and_node (@and_nodes)
 
@@ -658,31 +658,31 @@ sub do_rank_by_rule {
 } ## end sub do_rank_by_rule
 
 # Does not modify stack
-sub Marpa::XS::Internal::Recognizer::evaluate {
+sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
-    my $recce_c     = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $null_values = $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES];
-    my $grammar     = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_values =
-        $recce->[Marpa::XS::Internal::Recognizer::TOKEN_VALUES];
-    my $grammar_c    = $grammar->[Marpa::XS::Internal::Grammar::C];
-    my $symbols      = $grammar->[Marpa::XS::Internal::Grammar::SYMBOLS];
-    my $trace_values = $recce->[Marpa::XS::Internal::Recognizer::TRACE_VALUES]
+        $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
+    my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols      = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
         // 0;
 
     my $rule_constants =
-        $recce->[Marpa::XS::Internal::Recognizer::RULE_CONSTANTS];
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_CONSTANTS];
     my $rule_closures =
-        $recce->[Marpa::XS::Internal::Recognizer::RULE_CLOSURES];
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
 
     my $action_object_class =
-        $grammar->[Marpa::XS::Internal::Grammar::ACTION_OBJECT];
+        $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
 
     my $action_object_constructor;
     if ( defined $action_object_class ) {
         my $constructor_name = $action_object_class . q{::new};
         my $closure =
-            Marpa::XS::Internal::Recognizer::resolve_semantics( $recce,
+            Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
             $constructor_name );
         Marpa::exception(qq{Could not find constructor "$constructor_name"})
             if not defined $closure;
@@ -709,7 +709,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         } ## end DO_EVAL:
 
         if ( not $eval_ok or @warnings ) {
-            Marpa::XS::Internal::code_problems(
+            Marpa::R2::Internal::code_problems(
                 {   fatal_error => $fatal_error,
                     grammar     => $grammar,
                     eval_ok     => $eval_ok,
@@ -733,10 +733,10 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
         last EVENT if not defined $arg_n;
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $arg_n ) {
-                printf {$Marpa::XS::Internal::TRACE_FH} 'Stack position %3d:',
+                printf {$Marpa::R2::Internal::TRACE_FH} 'Stack position %3d:',
                     $i
                     or Marpa::exception('print to trace handle failed');
-                print {$Marpa::XS::Internal::TRACE_FH} q{ },
+                print {$Marpa::R2::Internal::TRACE_FH} q{ },
                     Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
                     ->Dump
                     or Marpa::exception('print to trace handle failed');
@@ -763,12 +763,12 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             if ( defined $token_id ) {
                 $token_name =
                     $symbols->[$token_id]
-                    ->[Marpa::XS::Internal::Symbol::NAME];
+                    ->[Marpa::R2::Internal::Symbol::NAME];
             }
 
-            print {$Marpa::XS::Internal::TRACE_FH}
+            print {$Marpa::R2::Internal::TRACE_FH}
                 'Pushed value from ',
-                Marpa::XS::Recognizer::and_node_tag( $recce, $and_node_id ),
+                Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id ),
                 ': ',
                 ( $token_name ? qq{$token_name = } : q{} ),
                 Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
@@ -797,9 +797,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
                 my $argc = $grammar_c->rule_length($trace_rule_id);
 
-                say {$Marpa::XS::Internal::TRACE_FH} 'Popping ', $argc,
+                say {$Marpa::R2::Internal::TRACE_FH} 'Popping ', $argc,
                     ' values to evaluate ',
-                    Marpa::XS::Recognizer::and_node_tag(
+                    Marpa::R2::Recognizer::and_node_tag(
                     $recce, $and_node_id
                     ),
                     ', rule: ', $grammar->brief_rule($trace_rule_id)
@@ -811,9 +811,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             if ( $virtual_rhs and not $virtual_lhs ) {
 
-                say {$Marpa::XS::Internal::TRACE_FH}
+                say {$Marpa::R2::Internal::TRACE_FH}
                     'Head of Virtual Rule: ',
-                    Marpa::XS::Recognizer::and_node_tag(
+                    Marpa::R2::Recognizer::and_node_tag(
                     $recce, $and_node_id
                     ),
                     ', rule: ', $grammar->brief_rule($trace_rule_id),
@@ -828,9 +828,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             if ( $virtual_lhs and $virtual_rhs ) {
 
-                say {$Marpa::XS::Internal::TRACE_FH}
+                say {$Marpa::R2::Internal::TRACE_FH}
                     'Virtual Rule: ',
-                    Marpa::XS::Recognizer::and_node_tag(
+                    Marpa::R2::Recognizer::and_node_tag(
                     $recce, $and_node_id
                     ),
                     ', rule: ',  $grammar->brief_rule($trace_rule_id),
@@ -843,9 +843,9 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             if ( not $virtual_rhs and $virtual_lhs ) {
 
-                say {$Marpa::XS::Internal::TRACE_FH}
+                say {$Marpa::R2::Internal::TRACE_FH}
                     'New Virtual Rule: ',
-                    Marpa::XS::Recognizer::and_node_tag(
+                    Marpa::R2::Recognizer::and_node_tag(
                     $recce, $and_node_id
                     ),
                     ', rule: ', $grammar->brief_rule($trace_rule_id),
@@ -888,7 +888,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
 
             if ( not $eval_ok or @warnings ) {
                 my $fatal_error = $EVAL_ERROR;
-                Marpa::XS::Internal::code_problems(
+                Marpa::R2::Internal::code_problems(
                     {   fatal_error => $fatal_error,
                         grammar     => $grammar,
                         eval_ok     => $eval_ok,
@@ -903,7 +903,7 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             $evaluation_stack[$arg_0] = \$result;
 
             if ($trace_values) {
-                print {$Marpa::XS::Internal::TRACE_FH}
+                print {$Marpa::R2::Internal::TRACE_FH}
                     'Calculated and pushed value: ',
                     Data::Dumper->new( [$result] )->Terse(1)->Dump
                     or Marpa::exception('print to trace handle failed');
@@ -917,37 +917,37 @@ sub Marpa::XS::Internal::Recognizer::evaluate {
             my $constant_result = $rule_constants->[$rule_id];
             $evaluation_stack[$arg_0] = $constant_result;
             if ($trace_values) {
-                print {$Marpa::XS::Internal::TRACE_FH}
+                print {$Marpa::R2::Internal::TRACE_FH}
                     'Constant result: ',
                     'Pushing 1 value on stack: ',
                     Data::Dumper->new( [$constant_result] )->Terse(1)->Dump
                     or Marpa::exception('Could not print to trace file');
             } ## end if ($trace_values)
-        } ## end when (Marpa::XS::Internal::Op::CONSTANT_RESULT)
+        } ## end when (Marpa::R2::Internal::Op::CONSTANT_RESULT)
     } ## end while (1)
 
     my $top_value = $evaluation_stack[0];
 
     return $top_value;
 
-} ## end sub Marpa::XS::Internal::Recognizer::evaluate
+} ## end sub Marpa::R2::Internal::Recognizer::evaluate
 
 # Returns false if no parse
-sub Marpa::XS::Recognizer::value {
+sub Marpa::R2::Recognizer::value {
     my ( $recce, @arg_hashes ) = @_;
 
-    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
 
-    my $parse_set_arg = $recce->[Marpa::XS::Internal::Recognizer::END];
+    my $parse_set_arg = $recce->[Marpa::R2::Internal::Recognizer::END];
 
     my $parse_count = $recce_c->parse_count() // 0;
 
     $recce->set(@arg_hashes);
 
-    local $Marpa::XS::Internal::TRACE_FH =
-        $recce->[Marpa::XS::Internal::Recognizer::TRACE_FILE_HANDLE];
+    local $Marpa::R2::Internal::TRACE_FH =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
 
-    my $max_parses = $recce->[Marpa::XS::Internal::Recognizer::MAX_PARSES];
+    my $max_parses = $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
     if ( $max_parses and $parse_count > $max_parses ) {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
@@ -966,9 +966,9 @@ sub Marpa::XS::Recognizer::value {
         # Perhaps this call should be moved.
         # The null values are currently a function of the grammar,
         # and should be constant for the life of a recognizer.
-        $recce->[Marpa::XS::Internal::Recognizer::NULL_VALUES] //=
-            Marpa::XS::Internal::Recognizer::set_null_values($recce);
-        Marpa::XS::Internal::Recognizer::set_actions($recce);
+        $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] //=
+            Marpa::R2::Internal::Recognizer::set_null_values($recce);
+        Marpa::R2::Internal::Recognizer::set_actions($recce);
 
         $recce_c->eval_clear();
         $top_or_node_id =
@@ -977,38 +977,38 @@ sub Marpa::XS::Recognizer::value {
         # No parse
         return if not defined $top_or_node_id;
 
-        $recce->[Marpa::XS::Internal::Recognizer::TOP_OR_NODE_ID] =
+        $recce->[Marpa::R2::Internal::Recognizer::TOP_OR_NODE_ID] =
             $top_or_node_id;
 
-        given ( $recce->[Marpa::XS::Internal::Recognizer::RANKING_METHOD] ) {
+        given ( $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] ) {
             when ('high_rule_only') { do_high_rule_only($recce); }
             when ('rule')           { do_rank_by_rule($recce); }
         }
 
     } ## end if ( not $parse_count )
 
-    if ( $recce->[Marpa::XS::Internal::Recognizer::TRACE_AND_NODES] ) {
-        print {$Marpa::XS::Internal::TRACE_FH} 'AND_NODES: ',
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_AND_NODES] ) {
+        print {$Marpa::R2::Internal::TRACE_FH} 'AND_NODES: ',
             $recce->show_and_nodes()
             or Marpa::exception('print to trace handle failed');
     }
 
-    if ( $recce->[Marpa::XS::Internal::Recognizer::TRACE_OR_NODES] ) {
-        print {$Marpa::XS::Internal::TRACE_FH} 'OR_NODES: ',
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_OR_NODES] ) {
+        print {$Marpa::R2::Internal::TRACE_FH} 'OR_NODES: ',
             $recce->show_or_nodes()
             or Marpa::exception('print to trace handle failed');
     }
 
-    if ( $recce->[Marpa::XS::Internal::Recognizer::TRACE_BOCAGE] ) {
-        print {$Marpa::XS::Internal::TRACE_FH} 'BOCAGE: ',
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_BOCAGE] ) {
+        print {$Marpa::R2::Internal::TRACE_FH} 'BOCAGE: ',
             $recce->show_bocage()
             or Marpa::exception('print to trace handle failed');
     }
 
     $recce_c->tree_new();
     return if not defined $recce_c->tree_size();
-    return Marpa::XS::Internal::Recognizer::evaluate($recce);
+    return Marpa::R2::Internal::Recognizer::evaluate($recce);
 
-} ## end sub Marpa::XS::Recognizer::value
+} ## end sub Marpa::R2::Recognizer::value
 
 1;
