@@ -28,6 +28,7 @@
       "namespace" : [
          "Marpa::XS::Recognizer",
          "Marpa::XS::Grammar",
+         "Marpa::XS::Value",
          "Marpa::Perl",
          "Marpa::Test",
          "Marpa::Display",
@@ -35,6 +36,7 @@
          "Marpa::PP"
       ],
       "package" : [
+         "Marpa::XS::Value",
          "Marpa::Perl",
          "Marpa::Test",
          "Marpa::Display",
@@ -75,15 +77,15 @@
    "provides" : {
       "Marpa::XS" : {
          "file" : "lib/Marpa/XS.pm",
-         "version" : "0.017_002"
+         "version" : "0.019_002"
       },
       "Marpa::XS::Grammar" : {
          "file" : "lib/Marpa/XS/Grammar.pm",
-         "version" : "0.017_002"
+         "version" : "0.019_002"
       },
       "Marpa::XS::Internal" : {
          "file" : "lib/Marpa/XS/Internal.pm",
-         "version" : "0.017_002"
+         "version" : "0.019_002"
       },
       "Marpa::XS::Internal::Grammar" : {
          "file" : "lib/Marpa/XS/Grammar.pm",
@@ -99,11 +101,11 @@
       },
       "Marpa::XS::Recognizer" : {
          "file" : "lib/Marpa/XS/Recognizer.pm",
-         "version" : "0.017_002"
+         "version" : "0.019_002"
       },
       "Marpa::XS::Value" : {
          "file" : "lib/Marpa/XS/Value.pm",
-         "version" : "0.017_002"
+         "version" : "0.019_002"
       }
    },
    "release_status" : "testing",
@@ -112,5 +114,5 @@
          "url" : "git://github.com/jeffreykegler/Marpa-XS.git"
       }
    },
-   "version" : "0.017_002"
+   "version" : "0.019_002"
 }
