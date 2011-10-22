@@ -97,7 +97,6 @@ int main(int argc, char **argv)
 	   exit(1);
 	}
 	while (++tree_ordinal) {
-	    int value_ordinal = 0;
 	    int val_status;
 	    int tree_status = marpa_tree_new(r);
 	    if (tree_status < -1) {

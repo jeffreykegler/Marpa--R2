@@ -2596,8 +2596,6 @@ this code is plenty fast enough.
 @<Fatal if LHS terminal when not allowed@> = 
 if (!g->t_is_lhs_terminal_ok) {
     gint no_lhs_terminals;
-    guint start = 0;
-    guint min, max;
     Bit_Vector bad_lhs_v = bv_clone(terminal_v);
     bv_and(bad_lhs_v, bad_lhs_v, lhs_v);
     no_lhs_terminals = bv_is_empty(bad_lhs_v);
