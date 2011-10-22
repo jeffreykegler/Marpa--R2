@@ -20,8 +20,8 @@
 ^MYMETA.yml$
 ^MYMETA.json$
 ^Makefile$
-^Marpa-XS-0.\d{3}_\d{3}/
-^Marpa-XS-0.\d{6}/
+^Marpa-R2-0.\d{3}_\d{3}/
+^Marpa-R2-0.\d{6}/
 ^\.git\/
 ^\.gitignore$
 ^\_build\/
@@ -37,11 +37,11 @@
 ^inc/proof/.*[.]lyx[~]$
 ^junk$
 ^pperl/Marpa/Perl/Version.pm$
-^lib/Marpa/XS/Version.pm$
+^lib/Marpa/R2/Version.pm$
 ^pperl/Marpa/Perl/Installed.pm$
-^lib/Marpa/XS/Installed.pm$
-^lib/Marpa/XS\.c
-^lib/Marpa/XS\.xs
+^lib/Marpa/R2/Installed.pm$
+^lib/Marpa/R2\.c
+^lib/Marpa/R2\.xs
 ^libmarpa/dev/fragments/
 ^libmarpa/dev/marpa.log
 ^libmarpa/dev/marpa.scn

@@ -1,19 +1,19 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::XS::Internal;
+package Marpa::R2::Internal;
 
 use 5.010;
 use strict;
@@ -30,9 +30,9 @@ $VERSION = eval $VERSION;
 
 *Marpa::exception = \&Carp::croak;
 
-sub Marpa::XS::internal_error {
+sub Marpa::R2::internal_error {
     Carp::confess(
-        "Internal Marpa::XS Error: This could be a bug in Marpa::XS\n", @_ );
+        "Internal Marpa::R2 Error: This could be a bug in Marpa::R2\n", @_ );
 }
 
 # Perl critic at present is not smart about underscores
