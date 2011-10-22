@@ -1,0 +1,6 @@
+This is a working repository for RELEASE 2 of the Marpa.  This is
+ALPHA sofware.
+
+This repository started as an ad hoc collection of separate development
+environments.  The separate projects have portable installation
+procedures (usually CPAN based).
