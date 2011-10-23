@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 # Debug Sequence Example
@@ -25,40 +25,39 @@ use Test::More tests => 4;
 use English qw( -no_match_vars );
 use Fatal qw( open close );
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 my $progress_report = q{};
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Debug Sequence Example
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start         => 'Document',
-        strip         => 0,
         lhs_terminals => 0,
         rules => [ { lhs => 'Document', rhs => [qw/Stuff/], min => 1 }, ],
     }
 );
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 $grammar->precompute();
 
 my @tokens = ( ( ['Stuff'] ) x 3 );
 
 my $recce =
-    Marpa::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
+    Marpa::R2::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Recognizer check_terminal Synopsis
 
 my $is_symbol_a_terminal = $recce->check_terminal('Document');
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 Test::More::ok( !$is_symbol_a_terminal, 'LHS terminal?' );
 
@@ -72,12 +71,12 @@ $progress_report = $recce->show_progress(0);
 my $value_ref = $recce->value;
 Test::More::ok( $value_ref, 'Parse ok?' );
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Debug Sequence Example Progress Report
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::Test::is( $progress_report,
+Marpa::R2::Test::is( $progress_report,
     << 'END_PROGRESS_REPORT', 'progress report' );
 P1 @0-0 Document -> . Document[Subseq:0:1]
 P2 @0-0 Document[Subseq:0:1] -> . Stuff
@@ -85,7 +84,7 @@ P3 @0-0 Document[Subseq:0:1] -> . Document[Subseq:0:1] Stuff
 P4 @0-0 Document['] -> . Document
 END_PROGRESS_REPORT
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 1;    # In case used as "do" file
 

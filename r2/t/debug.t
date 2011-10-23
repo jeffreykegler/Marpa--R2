@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -23,22 +23,21 @@ use Test::More tests => 4;
 use English qw( -no_match_vars );
 use Fatal qw( open close );
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 my $progress_report = q{};
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Debug Example Part 1
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start          => 'Expression',
         actions        => 'My_Actions',
         default_action => 'first_arg',
-        strip          => 0,
         rules          => [
             ## This is a deliberate error in the grammar
             ## The next line should be:
@@ -60,20 +59,20 @@ my $grammar = Marpa::Grammar->new(
     }
 );
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 ## no critic (InputOutput::RequireBriefOpen)
 open my $trace_fh, q{>}, \( my $trace_output = q{} );
 ## use critic
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Grammar set Synopsis
 
 $grammar->set( { trace_file_handle => $trace_fh } );
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Debug Example Part 2
 
 $grammar->precompute();
@@ -99,7 +98,7 @@ sub My_Actions::do_multiply {
 sub My_Actions::first_arg { shift; return shift; }
 
 my $recce =
-    Marpa::Recognizer->new( { grammar => $grammar, trace_terminals => 2 } );
+    Marpa::R2::Recognizer->new( { grammar => $grammar, trace_terminals => 2 } );
 
 my $token_ix = 0;
 
@@ -109,19 +108,19 @@ TOKEN: for my $token_and_value (@tokens) {
 
 $progress_report = $recce->show_progress( 0, -1 );
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 my $value_ref = $recce->value;
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
 Test::More::is( $value, 42, 'value' );
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Debug Example Progress Report
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::Test::is( $progress_report,
+Marpa::R2::Test::is( $progress_report,
     <<'END_PROGRESS_REPORT', 'progress report' );
 P0 @0-0 Expression -> . Factor
 P2 @0-0 Factor -> . Number
@@ -141,14 +140,14 @@ F4 @0-3 Factor -> Factor Multiply Factor .
 F5 @0-3 Expression['] -> Expression .
 END_PROGRESS_REPORT
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Debug Example Trace Output
 # start-after-line: END_TRACE_OUTPUT
 # end-before-line: '^END_TRACE_OUTPUT$'
 
-Marpa::Test::is( $trace_output, <<'END_TRACE_OUTPUT', 'trace output' );
+Marpa::R2::Test::is( $trace_output, <<'END_TRACE_OUTPUT', 'trace output' );
 Inaccessible symbol: Add
 Inaccessible symbol: Term
 Setting trace_terminals option
@@ -165,7 +164,7 @@ Expecting "Multiply" at 3
 Rejected "Add" at 3-4
 END_TRACE_OUTPUT
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 1;    # In case used as "do" file
 

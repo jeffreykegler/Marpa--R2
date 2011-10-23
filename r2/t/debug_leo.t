@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -23,17 +23,16 @@ use Test::More tests => 3;
 use English qw( -no_match_vars );
 use Fatal qw( open close );
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 my $progress_report = q{};
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start         => 'S',
-        strip         => 0,
         lhs_terminals => 0,
         rules         => [
             { lhs => 'S',            rhs => [qw/Top_sequence/] },
@@ -47,37 +46,37 @@ my $grammar = Marpa::Grammar->new(
     }
 );
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 $grammar->precompute();
 
 my @tokens = ( ['T'] ) x 20;
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 my $current_earleme = $recce->tokens( \@tokens );
 
 # The call to current earlem is Useless,
 # but provides an example for the docs
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: current_earleme Example
 
 $current_earleme = $recce->current_earleme();
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 $progress_report = $recce->show_progress();
 
 my $value_ref = $recce->value;
 Test::More::ok( $value_ref, 'Parse ok?' );
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Debug Leo Example Progress Report
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::Test::is( $progress_report,
+Marpa::R2::Test::is( $progress_report,
     <<'END_PROGRESS_REPORT', 'sorted progress report' );
 F0 @0-20 S -> Top_sequence .
 P1 @20-20 Top_sequence -> . Top Top_sequence
@@ -96,7 +95,7 @@ F6 @19-20 Bottom -> T .
 F7 @0-20 S['] -> S .
 END_PROGRESS_REPORT
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 1;    # In case used as "do" file
 
