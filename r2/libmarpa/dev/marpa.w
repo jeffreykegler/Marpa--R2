@@ -1,16 +1,16 @@
 % Copyright 2011 Jeffrey Kegler
-% This file is part of Marpa::XS.  Marpa::XS is free software: you can
+% This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 % redistribute it and/or modify it under the terms of the GNU Lesser
 % General Public License as published by the Free Software Foundation,
 % either version 3 of the License, or (at your option) any later version.
 %
-% Marpa::XS is distributed in the hope that it will be useful,
+% Marpa::R2 is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 % Lesser General Public License for more details.
 %
 % You should have received a copy of the GNU Lesser
-% General Public License along with Marpa::XS.  If not, see
+% General Public License along with Marpa::R2.  If not, see
 % http://www.gnu.org/licenses/.
 
 \def\li{\item{$\bullet$}}
@@ -638,7 +638,7 @@ recognizer's.
 warning message when tracing is turned on.  The flag
 turns off the message.
 
-\li When (if?) I convert Marpa to use Marpa::XS,
+\li When (if?) I convert Marpa to use Marpa::R2 or Marpa::XS,
 make sure the ``interactive" flag works.
 
 \li Within libmarpa, eliminate some of the
@@ -2460,7 +2460,7 @@ unproductive symbols will be make productive somehow,
 and not eliminated.
 The downside of this choice is that, in a few uncommon cases,
 a user relying entirely
-on the Marpa::XS warnings to clean up his grammar will have to go through
+on the Marpa::R2 warnings to clean up his grammar will have to go through
 more than a single pass of the diagnostics.
 (As of this writing, I personally have yet to encounter such a case.)
 The upside is that in the more frequent cases, the user is spared
@@ -7059,7 +7059,7 @@ Each possible cause
 link is only visited once.
 It may be paired with several different predecessors.
 Each cause may complete several different LHS symbols
-and Marpa::XS will seek predecessors for each at
+and Marpa::R2 will seek predecessors for each at
 the parent location.
 Two different completed LHS symbols might be postdot
 symbols for the same predecessor Earley item.
@@ -13581,18 +13581,18 @@ So I add such a comment.
 @c
 @=/*@>@/
 @= * Copyright 2011 Jeffrey Kegler@>@/
-@= * This file is part of Marpa::XS.  Marpa::XS is free software: you can@>@/
+@= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
 @= * redistribute it and/or modify it under the terms of the GNU Lesser@>@/
 @= * General Public License as published by the Free Software Foundation,@>@/
 @= * either version 3 of the License, or (at your option) any later version.@>@/
 @= *@>@/
-@= * Marpa::XS is distributed in the hope that it will be useful,@>@/
+@= * Marpa::R2 is distributed in the hope that it will be useful,@>@/
 @= * but WITHOUT ANY WARRANTY; without even the implied warranty of@>@/
 @= * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU@>@/
 @= * Lesser General Public License for more details.@>@/
 @= *@>@/
 @= * You should have received a copy of the GNU Lesser@>@/
-@= * General Public License along with Marpa::XS.  If not, see@>@/
+@= * General Public License along with Marpa::R2.  If not, see@>@/
 @= * http://www.gnu.org/licenses/.@>@/
 @= */@>@/
 @=/*@>@/
@@ -13630,18 +13630,18 @@ So I add such a comment.
 @(marpa.h@> =
 @=/*@>@/
 @= * Copyright 2011 Jeffrey Kegler@>@/
-@= * This file is part of Marpa::XS.  Marpa::XS is free software: you can@>@/
+@= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
 @= * redistribute it and/or modify it under the terms of the GNU Lesser@>@/
 @= * General Public License as published by the Free Software Foundation,@>@/
 @= * either version 3 of the License, or (at your option) any later version.@>@/
 @= *@>@/
-@= * Marpa::XS is distributed in the hope that it will be useful,@>@/
+@= * Marpa::R2 is distributed in the hope that it will be useful,@>@/
 @= * but WITHOUT ANY WARRANTY; without even the implied warranty of@>@/
 @= * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU@>@/
 @= * Lesser General Public License for more details.@>@/
 @= *@>@/
 @= * You should have received a copy of the GNU Lesser@>@/
-@= * General Public License along with Marpa::XS.  If not, see@>@/
+@= * General Public License along with Marpa::R2.  If not, see@>@/
 @= * http://www.gnu.org/licenses/.@>@/
 @= */@>@/
 @=/*@>@/
