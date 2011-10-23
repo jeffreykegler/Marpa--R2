@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -41,12 +41,12 @@ BEGIN {
     else {
         Test::More::plan tests => 10;
     }
-    Test::More::use_ok('Marpa::XS');
-    Test::More::use_ok('Marpa::Perl');
+    Test::More::use_ok('Marpa::R2');
+    Test::More::use_ok('Marpa::R2::Perl');
 } ## end BEGIN
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 # Run in utility mode?
 my $utility = 0;
@@ -87,7 +87,7 @@ END_OF_RESULT
 } ## end else [ if ($utility) ]
 
 # This interface requires the user to know a lot about
-# the internals of Marpa::XS.  That's OK in the internal
+# the internals of Marpa::R2.  That's OK in the internal
 # testing context,
 # but if I want to document this interface, it needs to
 # be rethought.
@@ -95,16 +95,16 @@ sub tag_completion {
     my ( $parser, $and_node_id ) = @_;
     my $recce = $parser->{recce};
     die if not defined $recce;
-    my $recce_c = $recce->[Marpa::XS::Internal::Recognizer::C];
-    my $grammar = $recce->[Marpa::XS::Internal::Recognizer::GRAMMAR];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     die if not defined $grammar;
-    my $grammar_c        = $grammar->[Marpa::XS::Internal::Grammar::C];
+    my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $parent           = $recce_c->and_node_parent($and_node_id);
     my $rule_id          = $recce_c->or_node_rule($parent);
     my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
-    my $rules            = $grammar->[Marpa::XS::Internal::Grammar::RULES];
+    my $rules            = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $rule             = $rules->[$semantic_rule_id];
-    my $rule_name        = $rule->[Marpa::XS::Internal::Rule::NAME];
+    my $rule_name        = $rule->[Marpa::R2::Internal::Rule::NAME];
     return if not defined $rule_name;
     my $blocktype =
           $rule_name eq 'anon_hash' ? 'hash'
@@ -126,7 +126,7 @@ sub tag_completion {
     return 1;
 } ## end sub tag_completion
 
-my $parser = Marpa::Perl->new( {} );
+my $parser = Marpa::R2::Perl->new( {} );
 
 TEST: for my $test (@tests) {
 
@@ -134,7 +134,7 @@ TEST: for my $test (@tests) {
     $parser = $parser->read( \$string );
     my @values = $parser->eval();
     $parser->foreach_completion( \&tag_completion );
-    Marpa::Test::is(
+    Marpa::R2::Test::is(
         ( scalar @values ),
         $expected_parse_count,
         'Count of values'
@@ -151,7 +151,7 @@ TEST: for my $test (@tests) {
         say $result or die 'say builtin failed';
     }
     else {
-        Marpa::Test::is( $result, $expected, qq{Test of "$string"} );
+        Marpa::R2::Test::is( $result, $expected, qq{Test of "$string"} );
     }
     %hash      = ();
     %codeblock = ();
