@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -25,22 +25,21 @@ use warnings;
 # so now these are simply Leo-oriented regression tests.
 
 use Fatal qw(open close);
-use Test::More tests => 8;
+use Test::More tests => 7;
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start          => 'Statement',
         actions        => 'My_Actions',
         default_action => 'first_arg',
-        strip          => 0,
         rules          => [
             {   lhs    => 'Statement',
                 rhs    => [qw/Expression/],
@@ -73,7 +72,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 my @tokens = (
     [ 'Variable',         'a' ],
@@ -115,7 +114,7 @@ sub My_Actions::first_arg { return $_[1] }
 
 my $show_symbols_output = $grammar->show_symbols();
 
-Marpa::Test::is( $show_symbols_output,
+Marpa::R2::Test::is( $show_symbols_output,
     <<'END_SYMBOLS', 'Leo Example Symbols' );
 0: Statement, lhs=[0] rhs=[7] terminal
 1: Expression, lhs=[1 2 3 4 5] rhs=[0 1 2 3 4] terminal
@@ -130,7 +129,7 @@ END_SYMBOLS
 
 my $show_rules_output = $grammar->show_rules();
 
-Marpa::Test::is( $show_rules_output, <<'END_RULES', 'Leo Example Rules' );
+Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Leo Example Rules' );
 0: Statement -> Expression
 1: Expression -> Lvalue AssignOp Expression
 2: Expression -> Lvalue AddAssignOp Expression
@@ -143,7 +142,7 @@ END_RULES
 
 my $show_AHFA_output = $grammar->show_AHFA();
 
-Marpa::Test::is( $show_AHFA_output, <<'END_AHFA', 'Leo Example AHFA' );
+Marpa::R2::Test::is( $show_AHFA_output, <<'END_AHFA', 'Leo Example AHFA' );
 * S0:
 Statement['] -> . Statement
  <Statement> => S2; leo(Statement['])
@@ -207,7 +206,7 @@ END_AHFA
 
 my $show_earley_sets_output_before = $recce->show_earley_sets();
 
-Marpa::Test::is( $show_earley_sets_output_before,
+Marpa::R2::Test::is( $show_earley_sets_output_before,
     <<'END_EARLEY_SETS', 'Leo Example Earley Sets "Before"' );
 Last Completed: 9; Furthest: 9
 Earley Set 0
@@ -266,68 +265,9 @@ my $value_ref = $recce->value( { trace_fh => $trace_fh, trace_values => 1 } );
 close $trace_fh;
 
 my $value = ref $value_ref ? ${$value_ref} : 'No Parse';
-Marpa::Test::is( $value, 'a=42 b=42 c=-5 d=6 e=3', 'Leo Example Value' );
+Marpa::R2::Test::is( $value, 'a=42 b=42 c=-5 d=6 e=3', 'Leo Example Value' );
 
 my $show_earley_sets_output_after = $recce->show_earley_sets();
-
-SKIP: {
-    Test::More::skip 'Not relevant to XS', 1 if $Marpa::USING_XS;
-    Marpa::Test::is( $show_earley_sets_output_after,
-        <<'END_EARLEY_SETS', 'Leo Example Earley Sets "After"' );
-Last Completed: 9; Furthest: 9
-Earley Set 0
-S0@0-0
-S1@0-0
-Earley Set 1
-S2@0-1 [p=S0@0-0; c=S3@0-1]
-S3@0-1 [p=S1@0-0; c=S5@0-1]
-S4@0-1 [p=S1@0-0; c=S5@0-1]
-S5@0-1 [p=S1@0-0; s=Variable; t=\'a']
-Earley Set 2
-S6@0-2 [p=S4@0-1; s=AssignOp; t=\'=']
-S7@2-2
-L1@2 ["Expression"; S6@0-2]
-Earley Set 3
-S2@0-3 [p=S0@0-0; c=S3@0-3]
-S3@0-3 [p=S1@0-0; c=S11@0-3]
-S11@0-3 [l=L1@2; c=S5@2-3]
-S4@2-3 [p=S7@2-2; c=S5@2-3]
-S5@2-3 [p=S7@2-2; s=Variable; t=\'b']
-Earley Set 4
-S8@2-4 [p=S4@2-3; s=AddAssignOp; t=\'+=']
-S7@4-4
-L1@4 ["Expression"; L1@2; S8@2-4]
-Earley Set 5
-S2@0-5 [p=S0@0-0; c=S3@0-5]
-S3@0-5 [p=S1@0-0; c=S11@0-5]
-S11@0-5 [l=L1@4; c=S5@4-5]
-S4@4-5 [p=S7@4-4; c=S5@4-5]
-S5@4-5 [p=S7@4-4; s=Variable; t=\'c']
-Earley Set 6
-S9@4-6 [p=S4@4-5; s=MinusAssignOp; t=\'-=']
-S7@6-6
-L1@6 ["Expression"; L1@4; S9@4-6]
-Earley Set 7
-S2@0-7 [p=S0@0-0; c=S3@0-7]
-S3@0-7 [p=S1@0-0; c=S11@0-7]
-S11@0-7 [l=L1@6; c=S5@6-7]
-S4@6-7 [p=S7@6-6; c=S5@6-7]
-S5@6-7 [p=S7@6-6; s=Variable; t=\'d']
-Earley Set 8
-S10@6-8 [p=S4@6-7; s=MultiplyAssignOp; t=\'*=']
-S7@8-8
-L1@8 ["Expression"; L1@6; S10@6-8]
-Earley Set 9
-S2@0-9 [p=S0@0-0; c=S3@0-9]
-S3@0-9 [p=S1@0-0; c=S11@0-9]
-S11@0-9 [p=S6@0-2; c=S12@2-9] [l=L1@8; c=S5@8-9]
-S12@2-9 [p=S8@2-4; c=S13@4-9]
-S13@4-9 [p=S9@4-6; c=S14@6-9]
-S14@6-9 [p=S10@6-8; c=S5@8-9]
-S4@8-9 [p=S7@8-8; c=S5@8-9]
-S5@8-9 [p=S7@8-8; s=Variable; t=\'e']
-END_EARLEY_SETS
-} ## end SKIP:
 
 my $expected_trace_output = <<'END_TRACE_OUTPUT';
 Setting trace_values option
@@ -364,7 +304,7 @@ New Virtual Rule: R7:1@0-9C0@0, rule: 7: Statement['] -> Statement
 Real symbol count is 1
 END_TRACE_OUTPUT
 
-Marpa::Test::is( $trace_output, $expected_trace_output,
+Marpa::R2::Test::is( $trace_output, $expected_trace_output,
     'Leo Example Trace Output' );
 
 1;    # In case used as "do" file

@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 # The example from p. 166 of Leo's paper,
 # augmented to test Leo prediction items.
@@ -24,10 +24,10 @@ use warnings;
 use Test::More tests => 8;
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -39,9 +39,8 @@ sub main::default_action {
 
 ## use critic
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start => 'S',
-        strip => 0,
         rules => [
             [ 'S', [qw/a A/] ],
             [ 'A', [qw/B/] ],
@@ -56,7 +55,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-Marpa::Test::is( $grammar->show_symbols(),
+Marpa::R2::Test::is( $grammar->show_symbols(),
     <<'END_OF_STRING', 'Leo166 Symbols' );
 0: a, lhs=[] rhs=[0 5 6] terminal
 1: S, lhs=[0 4 5 6] rhs=[3 9 10]
@@ -71,7 +70,7 @@ Marpa::Test::is( $grammar->show_symbols(),
 10: S['][], lhs=[11] rhs=[] nullable nulling
 END_OF_STRING
 
-Marpa::Test::is( $grammar->show_rules, <<'END_OF_STRING', 'Leo166 Rules' );
+Marpa::R2::Test::is( $grammar->show_rules, <<'END_OF_STRING', 'Leo166 Rules' );
 0: S -> a A /* !used */
 1: A -> B /* !used */
 2: B -> C /* !used */
@@ -86,7 +85,7 @@ Marpa::Test::is( $grammar->show_rules, <<'END_OF_STRING', 'Leo166 Rules' );
 11: S['][] -> /* empty vlhs real=1 */
 END_OF_STRING
 
-Marpa::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
+Marpa::R2::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
 * S0:
 S['] -> . S
 S['][] -> .
@@ -125,7 +124,7 @@ my $a_token = [ 'a', 'a' ];
 my $length = 20;
 
 LEO_FLAG: for my $leo_flag ( 0, 1 ) {
-    my $recce = Marpa::Recognizer->new(
+    my $recce = Marpa::R2::Recognizer->new(
         { grammar => $grammar, mode => 'stream', leo => $leo_flag } );
 
     my $i                 = 0;
@@ -143,12 +142,12 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     # beginning with Earley set c, for some small
     # constant c
     my $expected_size = $leo_flag ? 4 : ( $length - 1 ) * 4 + 3;
-    Marpa::Test::is( $max_size, $expected_size,
+    Marpa::R2::Test::is( $max_size, $expected_size,
         "Leo flag $leo_flag, size $max_size" );
 
     my $value_ref = $recce->value( {} );
     my $value = $value_ref ? ${$value_ref} : 'No parse';
-    Marpa::Test::is( $value, 'a' x $length, 'Leo p166 parse' );
+    Marpa::R2::Test::is( $value, 'a' x $length, 'Leo p166 parse' );
 
 } ## end for my $leo_flag ( 0, 1 )
 
