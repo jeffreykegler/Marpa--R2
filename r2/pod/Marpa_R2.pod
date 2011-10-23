@@ -1,31 +1,31 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS - XS version of Marpa
+Marpa::R2 - Release 2 of Marpa
 
 =head1 SYNOPSIS
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 normalize-whitespace: 1
 
-    use Marpa::XS;
+    use Marpa::R2;
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start   => 'Expression',
             actions => 'My_Actions',
             default_action => 'first_arg',
@@ -44,7 +44,7 @@ normalize-whitespace: 1
 
     $grammar->precompute();
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     $recce->read( 'Number', 42 );
     $recce->read( 'Multiply', );
@@ -67,7 +67,7 @@ normalize-whitespace: 1
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =head1 DESCRIPTION
 
@@ -107,10 +107,10 @@ according to a semantics.
 In Marpa these three tasks
 are, for the most part, distinct phases.
 Grammars are
-L<C<Marpa::Grammar>|Marpa::XS::Grammar> objects.
+L<C<Marpa::R2::Grammar>|Marpa::R2::Grammar> objects.
 The reading of input and the evaluation of the parse
 according to the semantics is performed by
-L<C<Marpa::Recognizer>|Marpa::XS::Recognizer> objects.
+L<C<Marpa::R2::Recognizer>|Marpa::R2::Recognizer> objects.
 
 =head1 EXAMPLE 1: A SIMPLE CALCULATOR
 
@@ -119,14 +119,14 @@ It handles only
 addition and multiplication of integers.
 This section explains, line by line, how it works.
 
-=head2 Marpa::Grammar::new
+=head2 Marpa::R2::Grammar::new
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start   => 'Expression',
             actions => 'My_Actions',
             default_action => 'first_arg',
@@ -143,16 +143,16 @@ normalize-whitespace: 1
         }
     );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Marpa grammars are
-L<C<Marpa::Grammar>|Marpa::XS::Grammar> objects.
+L<C<Marpa::R2::Grammar>|Marpa::R2::Grammar> objects.
 They are created
 with the
-L<Marpa::Grammar::new|Marpa::XS::Grammar/"new">
+L<Marpa::R2::Grammar::new|Marpa::R2::Grammar/"new">
 constructor.
 The arguments to 
-L<Marpa::Grammar::new|Marpa::XS::Grammar/"new">
+L<Marpa::R2::Grammar::new|Marpa::R2::Grammar/"new">
 are references to
 hashes of named arguments.
 In the key/value pairs of these hashes,
@@ -167,14 +167,14 @@ value of the named argument.
 
 =head3 The start named argument
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
     start => 'Expression',
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<start> named argument is required.
 Its value is
@@ -182,7 +182,7 @@ a string containing the name of the grammar's start symbol.
 
 =head3 Named arguments for the semantics
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -190,7 +190,7 @@ normalize-whitespace: 1
             actions => 'My_Actions',
             default_action => 'first_arg',
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<actions> and C<default_action> named arguments specify
 semantics.
@@ -213,7 +213,7 @@ its B<actions>.
 
 =head3 The rules named argument
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -229,7 +229,7 @@ normalize-whitespace: 1
         },
     ],
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The value of the
 C<rules> named argument is a reference to an array of
@@ -268,33 +268,33 @@ to a Perl closure that
 implements 
 the rule's semantics.
 
-=head2 Marpa::Grammar::precompute
+=head2 Marpa::R2::Grammar::precompute
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
     $grammar->precompute();
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Before a Marpa grammar object can be used by a Marpa recognizer,
 it must be B<precomputed>.
 Precomputation compiles data structures that the recognizer will need.
 
-=head2 Marpa::Recognizer::new
+=head2 Marpa::R2::Recognizer::new
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
-C<Marpa::Recognizer::new> creates a new recognizer.
+C<Marpa::R2::Recognizer::new> creates a new recognizer.
 Its arguments are references to hashes of named arguments.
 In this example the only named argument is
 the required argument: "C<grammar>".
@@ -303,9 +303,9 @@ C<grammar>
 named argument must be a precomputed Marpa
 grammar.
 
-=head2 Marpa::Recognizer::read
+=head2 Marpa::R2::Recognizer::read
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -316,9 +316,9 @@ normalize-whitespace: 1
     $recce->read( 'Add', );
     $recce->read( 'Number', 7 );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
-The C<Marpa::Recognizer::read> method takes two arguments,
+The C<Marpa::R2::Recognizer::read> method takes two arguments,
 a B<token name> and a B<token value>.
 The token name must be the name
 of a valid terminal symbol in the grammar.
@@ -332,7 +332,7 @@ and therefore are free to use any symbol in the
 grammar as a token name.
 For more on terminals,
 including how to explicitly mark terminal symbols,
-see L<Marpa::XS::Grammar/"Terminals">.
+see L<Marpa::R2::Grammar/"Terminals">.
 
 The B<token value>
 must be a Perl scalar, but otherwise its form
@@ -345,9 +345,9 @@ In the calculator example, the values of the
 and "C<Multiply>" tokens are never used,
 so they are allowed to default to C<undef>.
 
-=head2 Marpa::Recognizer::value
+=head2 Marpa::R2::Recognizer::value
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -355,19 +355,19 @@ normalize-whitespace: 1
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
-The C<Marpa::Recognizer::value> method returns
+The C<Marpa::R2::Recognizer::value> method returns
 a reference to the parse result's value,
 if there was a parse result.
 If there was no parse result,
-C<Marpa::Recognizer::value>
+C<Marpa::R2::Recognizer::value>
 returns
 C<undef>.
 
 =head2 Resolving the semantics
 
-The first thing C<Marpa::Recognizer::value> needs to do is
+The first thing C<Marpa::R2::Recognizer::value> needs to do is
 to resolve the semantics.
 B<Resolving the semantics> means
 mapping the action names into actions.
@@ -379,16 +379,16 @@ C<actions> is a Perl package name.
 Marpa will look for actions
 in that package.
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
     actions => 'My_Actions',
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -396,7 +396,7 @@ flatten: 1
 
     { lhs => 'Factor', rhs => [qw/Factor Multiply Factor/], action => 'do_multiply' },
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 For example, the C<action> property for the above rule
 is "C<do_multiply>" and the C<actions> named argument to the grammar
@@ -404,7 +404,7 @@ was "C<My_Actions>".
 So Marpa looks for a closure whose fully qualified name is C<My_Actions::do_multiply>,
 which it finds:
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -414,12 +414,12 @@ normalize-whitespace: 1
         return $t1 * $t2;
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Rules do not always have C<action> properties.
 That is the case with these rules in this example:
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -428,7 +428,7 @@ normalize-whitespace: 1
     { lhs => 'Term', rhs => [qw/Factor/] },
     { lhs => 'Factor', rhs => [qw/Number/] },
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Where there is no C<action> rule property,
 Marpa tries to use the
@@ -454,14 +454,14 @@ It will not find them and will fall back to trying to use
 the default action,
 as described next.
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
     default_action => 'first_arg',
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<default_action> named argument is resolved in the same way
 as are the C<action> properties of the
@@ -473,16 +473,16 @@ C<My_Actions::first_arg>.
 
 =head2 Actions
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
     sub My_Actions::first_arg { shift; return shift; }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -492,7 +492,7 @@ normalize-whitespace: 1
         return $t1 + $t2;
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Value actions are Perl closures used as callbacks.
 Value actions are called when nodes in a parse tree are evaluated.
@@ -542,13 +542,13 @@ and that the different parse trees can have different parse results.
 In this application we decide, for each input,
 to return every one of the parse results.
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Ambiguous Parse
 normalize-whitespace: 1
 
-    use Marpa::XS;
+    use Marpa::R2;
 
-    my $ambiguous_grammar = Marpa::Grammar->new(
+    my $ambiguous_grammar = Marpa::R2::Grammar->new(
         {   start   => 'E',
             actions => 'My_Actions',
             rules   => [
@@ -563,7 +563,7 @@ normalize-whitespace: 1
     $ambiguous_grammar->precompute();
 
     my $ambiguous_recce =
-        Marpa::Recognizer->new( { grammar => $ambiguous_grammar } );
+        Marpa::R2::Recognizer->new( { grammar => $ambiguous_grammar } );
 
     $ambiguous_recce->read( 'Number', 42 );
     $ambiguous_recce->read( 'Multiply', );
@@ -576,11 +576,11 @@ normalize-whitespace: 1
         push @values, ${$ambiguous_value_ref};
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =head2 Short form rule descriptors
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Ambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -591,7 +591,7 @@ normalize-whitespace: 1
         [ 'E', [qw/Number/], ],
     ],
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The rule descriptors in the
 ambiguous example demonstrate the "short" or array form of rule
@@ -602,9 +602,9 @@ the C<lhs> property,
 the C<rhs> property,
 and the C<action> property.
 
-=head2 Marpa::Recognizer::value
+=head2 Marpa::R2::Recognizer::value
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Ambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -614,17 +614,17 @@ normalize-whitespace: 1
         push @values, ${$ambiguous_value_ref};
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 When called more than once,
-the C<Marpa::Recognizer::value> method iterates through the parse results.
+the C<Marpa::R2::Recognizer::value> method iterates through the parse results.
 For each call,
 it returns a reference to the parse result.
 At the end of the iteration, after
 all parse results have been returned,
-C<Marpa::Recognizer::value> returns C<undef>.
+C<Marpa::R2::Recognizer::value> returns C<undef>.
 If there were no parse results,
-C<Marpa::Recognizer::value> returns C<undef> the first
+C<Marpa::R2::Recognizer::value> returns C<undef> the first
 time that it is called.
 
 =head1 ERRORS AND EXCEPTIONS
@@ -643,24 +643,24 @@ be inherited.
 This document gives a semi-tutorial overview of the entire Marpa API.
 For full details on Marpa's grammar objects and their methods,
 see the
-L<Marpa::XS::Grammar> document.
+L<Marpa::R2::Grammar> document.
 For full details on Marpa's recognizer objects and their methods,
 see the
-L<Marpa::XS::Recognizer> document.
+L<Marpa::R2::Recognizer> document.
 
-L<Marpa::XS::Vocabulary> is intended as a quick refresher in
+L<Marpa::R2::Vocabulary> is intended as a quick refresher in
 parsing terminology,
 emphasizing how the standard terms are used
 in the Marpa context.
 Marpa's standard semantics are fully described in the
-L<Marpa::XS::Semantics> document.
+L<Marpa::R2::Semantics> document.
 Techniques for tracing and for debugging your Marpa grammars
 are described in the
-L<Marpa::XS::Tracing> document and the
-L<Marpa::XS::Debug> document.
+L<Marpa::R2::Tracing> document and the
+L<Marpa::R2::Debug> document.
 For those with a theoretical bent,
 my sources, and other useful references, are described in
-L<Marpa::XS::Advanced::Bibliography>.
+L<Marpa::R2::Advanced::Bibliography>.
 
 =head1 AUTHOR
 
@@ -696,12 +696,12 @@ The first was discovered by
 John Aycock and
 R.  Nigel Horspool
 and is described in their
-L<Aycock and Horspool 2002|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">.
+L<Aycock and Horspool 2002|Marpa::R2::Advanced::Bibliography/"Aycock and Horspool 2002">.
 The second was described by Joop Leo and is described in
-L<Leo 1991|Marpa::XS::Advanced::Bibliography/"Leo 1991">.
+L<Leo 1991|Marpa::R2::Advanced::Bibliography/"Leo 1991">.
 Aycock, Horspool, and Leo, in turn, based their
 algorithms on the
-L<algorithm discovered by Jay Earley|Marpa::XS::Advanced::Bibliography/"Earley 1970">.
+L<algorithm discovered by Jay Earley|Marpa::R2::Advanced::Bibliography/"Earley 1970">.
 I combined the Aycock-Horspool algorithm with the Leo algorithm,
 and added significant changes of my own.
 
@@ -743,33 +743,33 @@ on issues about which I really should have know better.
 
 =head1 SUPPORT
 
-L<Marpa::XS> comes without warranty.
+L<Marpa::R2> comes without warranty.
 Support is provided
 on a volunteer basis 
 through the standard mechanisms for CPAN modules.
-L<The Support document|Marpa::XS::Support> has details.
+L<The Support document|Marpa::R2::Support> has details.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 
