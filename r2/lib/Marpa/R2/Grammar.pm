@@ -549,7 +549,7 @@ sub Marpa::R2::Grammar::precompute {
                     . qq{" is on rhs of counted rule\n}
                 }
                 grep {
-                $grammar_c->symbol_is_counted($_)
+                        $grammar_c->symbol_is_counted($_)
                     and $grammar_c->symbol_is_nullable($_)
                 } ( 0 .. $#{$symbols} );
             Marpa::exception( @counted_nullable_messages,
@@ -572,7 +572,7 @@ sub Marpa::R2::Grammar::precompute {
             Marpa::exception(qq{Unproductive start symbol: "$name"});
         } ## end if ( $error eq 'unproductive start symbol' )
         if ( $error eq 'lhs is terminal' ) {
-	    my @problems = ();
+            my @problems = ();
             RULE: for my $rule ( @{$rules} ) {
                 my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
                 my $lhs_id  = $grammar_c->rule_lhs($rule_id);
@@ -580,11 +580,12 @@ sub Marpa::R2::Grammar::precompute {
                 my $name =
                     $symbols->[$lhs_id]->[Marpa::R2::Internal::Symbol::NAME];
                 push @problems,
-                    "lhs_terminals option is off, but Symbol $name is both an LHS and a terminal"
+                    "lhs_terminals option is off, but Symbol $name is both an LHS and a terminal";
             } ## end for my $rule ( @{$rules} )
-	    push @problems, 'Disallowed LHS terminal reported by libmarpa, but none found'
-	        if not scalar @problems;
-	    Marpa::exception( @problems );
+            push @problems,
+                'Disallowed LHS terminal reported by libmarpa, but none found'
+                if not scalar @problems;
+            Marpa::exception(@problems);
         } ## end if ( $error eq 'lhs is terminal' )
         Marpa::R2::uncaught_error($error);
     } ## end if ( not $grammar_c->precompute() )
