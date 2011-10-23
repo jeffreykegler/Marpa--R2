@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 # Engine Synopsis
@@ -23,16 +23,16 @@ use warnings;
 use Test::More tests => 3;
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 ## no critic (ErrorHandling::RequireCarping);
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Engine Synopsis Unambiguous Parse
 
-use Marpa::XS;
+use Marpa::R2;
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start          => 'Expression',
         actions        => 'My_Actions',
         default_action => 'first_arg',
@@ -51,7 +51,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 $recce->read( 'Number', 42 );
 $recce->read( 'Multiply', );
@@ -74,16 +74,16 @@ sub My_Actions::first_arg { shift; return shift; }
 my $value_ref = $recce->value;
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 # Ambiguous, Array Form Rules
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Engine Synopsis Ambiguous Parse
 
-use Marpa::XS;
+use Marpa::R2;
 
-my $ambiguous_grammar = Marpa::Grammar->new(
+my $ambiguous_grammar = Marpa::R2::Grammar->new(
     {   start   => 'E',
         actions => 'My_Actions',
         rules   => [
@@ -98,7 +98,7 @@ my $ambiguous_grammar = Marpa::Grammar->new(
 $ambiguous_grammar->precompute();
 
 my $ambiguous_recce =
-    Marpa::Recognizer->new( { grammar => $ambiguous_grammar } );
+    Marpa::R2::Recognizer->new( { grammar => $ambiguous_grammar } );
 
 $ambiguous_recce->read( 'Number', 42 );
 $ambiguous_recce->read( 'Multiply', );
@@ -111,7 +111,7 @@ while ( defined( my $ambiguous_value_ref = $ambiguous_recce->value() ) ) {
     push @values, ${$ambiguous_value_ref};
 }
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 Test::More::is( $value, 49, 'Unambiguous Value' );
 Test::More::is_deeply( [ sort @values ], [ 336, 49 ], 'Ambiguous Values' );
@@ -123,10 +123,10 @@ sub fix_things {
     die q{Don't know how to fix things};
 }
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Engine Synopsis Interactive Parse
 
-$recce = Marpa::Recognizer->new( { grammar => $grammar } );
+$recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 my @tokens = (
     [ 'Number', 42 ],
@@ -140,7 +140,7 @@ TOKEN: for ( my $token_ix = 0; $token_ix <= $#tokens; $token_ix++ ) {
         or die q{Don't know how to fix things};
 }
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 $value_ref = $recce->value;
 $value = $value_ref ? ${$value_ref} : 'No Parse';

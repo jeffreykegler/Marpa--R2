@@ -1,20 +1,20 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Tests of the sequence in the Marpa::Grammar doc
+# Tests of the sequence in the Marpa::R2::Grammar doc
 
 use 5.010;
 use strict;
@@ -24,10 +24,10 @@ use Fatal qw(open close);
 use Test::More tests => 4;
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -42,15 +42,15 @@ my $value;
 
 my $min0 =
 #<<< no perltidy
-# Marpa::XS::Display
-# name: Marpa::Grammar min 0 sequence example
+# Marpa::R2::Display
+# name: Marpa::R2::Grammar min 0 sequence example
 
     { lhs => 'sequence', rhs => ['item'], min => 0 }
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 ; # semicolon to terminate rule
 
-$grammar = Marpa::Grammar->new(
+$grammar = Marpa::R2::Grammar->new(
     {   start     => 'sequence',
         terminals => [qw(item)],
         rules     => [$min0],
@@ -60,7 +60,7 @@ $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-$recce = Marpa::Recognizer->new( { grammar => $grammar } );
+$recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 $recce->tokens( [ [ 'item', '0' ], ['item', '1'] ]);
 
@@ -68,19 +68,19 @@ $value_ref = $recce->value();
 $value = $value_ref ? ${$value_ref} : 'No Parse';
 $value //= 'undef returned';
 
-Marpa::Test::is( $value, 'seq(0;1)', 'min 0 value' );
+Marpa::R2::Test::is( $value, 'seq(0;1)', 'min 0 value' );
 
 my $min1 =
 #<<< no perltidy
-# Marpa::XS::Display
-# name: Marpa::Grammar min 1 sequence example
+# Marpa::R2::Display
+# name: Marpa::R2::Grammar min 1 sequence example
 
     { lhs => 'sequence', rhs => ['item'], min => 1 }
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 ; # semicolon to terminate rule
 
-$grammar = Marpa::Grammar->new({
+$grammar = Marpa::R2::Grammar->new({
      start => 'sequence',
      rules => [ $min1 ],
         actions => 'main'
@@ -88,7 +88,7 @@ $grammar = Marpa::Grammar->new({
 
 $grammar->precompute();
 
-$recce = Marpa::Recognizer->new( { grammar => $grammar } );
+$recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 $recce->tokens( [ [ 'item', '0' ], [ 'item', '1' ] ] );
 
@@ -96,20 +96,20 @@ $value_ref = $recce->value();
 $value = $value_ref ? ${$value_ref} : 'No Parse';
 $value //= 'undef returned';
 
-Marpa::Test::is( $value, 'seq(0;1)', 'min 1 value' );
+Marpa::R2::Test::is( $value, 'seq(0;1)', 'min 1 value' );
 
 my $multipart = [
 #<<< no perltidy
-# Marpa::XS::Display
-# name: Marpa::Grammar multipart rhs sequence example
+# Marpa::R2::Display
+# name: Marpa::R2::Grammar multipart rhs sequence example
 
     { lhs => 'sequence', rhs => [qw(item)], min => 0 },
     { lhs => 'item', rhs => [qw(part1 part2)], },
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 ]; # semicolon to terminate rule
 
-$grammar = Marpa::Grammar->new(
+$grammar = Marpa::R2::Grammar->new(
     {   start => 'sequence',
         terminals => [qw(part1 part2)],
         rules => $multipart,
@@ -120,7 +120,7 @@ $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-$recce = Marpa::Recognizer->new( { grammar => $grammar } );
+$recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 $recce->tokens( [ [ 'part1', '0' ], [ 'part2', '1' ] ] );
 
@@ -128,7 +128,7 @@ $value_ref = $recce->value();
 $value = $value_ref ? ${$value_ref} : 'No Parse';
 $value //= 'undef returned';
 
-Marpa::Test::is( $value, 'seq(item(0;1))', 'multipart rhs value' );
+Marpa::R2::Test::is( $value, 'seq(item(0;1))', 'multipart rhs value' );
 
 1; # In case used as "do" file
 
