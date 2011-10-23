@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -22,10 +22,10 @@ use Test::More tests => 6;
 use Fatal qw(open close);
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -44,7 +44,7 @@ sub test_grammar {
     my ( $grammar_args, $tokens ) = @_;
 
     my $grammar;
-    my $eval_ok = eval { $grammar = Marpa::Grammar->new($grammar_args); 1; };
+    my $eval_ok = eval { $grammar = Marpa::R2::Grammar->new($grammar_args); 1; };
     die "Exception while creating Grammar:\n$EVAL_ERROR"
         if not $eval_ok;
     die "Grammar not created\n" if not $grammar;
@@ -52,7 +52,7 @@ sub test_grammar {
 
     my $recce;
     $eval_ok = eval {
-        $recce = Marpa::Recognizer->new(
+        $recce = Marpa::R2::Recognizer->new(
             { grammar => $grammar, mode => 'stream' } );
         1;
     };
@@ -90,7 +90,6 @@ my $result_on_success = '(a;a)';
 
 my $placebo = {
     start => 'S',
-    strip => 0,
     rules => [
         #<<< no perltidy
         [ 'S', [ qw(A A) ] ],
@@ -172,7 +171,7 @@ REPORT_RESULT: {
         Test::More::fail("Eval error: $eval_error");
         last REPORT_RESULT;
     }
-    Marpa::Test::is(
+    Marpa::R2::Test::is(
         $trace,
         qq{Zero length sequence for symbol without null value: "Seq"\n},
         'Missing null value warning'
