@@ -28,7 +28,7 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
-*Marpa::exception = \&Carp::croak;
+*Marpa::R2::exception = \&Carp::croak;
 
 sub Marpa::R2::internal_error {
     Carp::confess(
@@ -47,7 +47,7 @@ use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
 # in hex numbers
 use constant N_FORMAT_MAX => 0x7fff_ffff;
 
-sub Marpa::offset {
+sub Marpa::R2::offset {
     my (@desc) = @_;
     my @fields = ();
     for my $desc (@desc) {
@@ -87,12 +87,12 @@ sub Marpa::offset {
             $offset = $2 + 0;
         }
 
-        Marpa::exception("Unacceptable field name: $field")
+        Marpa::R2::exception("Unacceptable field name: $field")
             if $field =~ /[^A-Z0-9_]/xms;
         my $field_name = $prefix . $field;
         *{$field_name} = sub () {$offset};
     } ## end for my $field (@fields)
     return 1;
-} ## end sub Marpa::offset
+} ## end sub Marpa::R2::offset
 
 1;

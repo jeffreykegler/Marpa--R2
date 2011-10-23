@@ -21,7 +21,7 @@ use warnings;
 
 use Data::Dumper;
 
-Marpa::exception('Test::More not loaded')
+Marpa::R2::exception('Test::More not loaded')
     if not defined &Test::More::is;
 
 BEGIN {

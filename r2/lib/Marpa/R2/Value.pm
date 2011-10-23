@@ -363,7 +363,7 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
                 'Setting null value for symbol ',
                 $symbol->[Marpa::R2::Internal::Symbol::NAME],
                 ' to ', Data::Dumper->new( [ \$null_value ] )->Terse(1)->Dump
-                or Marpa::exception('Could not print to trace file');
+                or Marpa::R2::exception('Could not print to trace file');
         } ## end if ($trace_values)
 
     } ## end for my $symbol ( @{$symbols} )
@@ -381,14 +381,14 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
-    Marpa::exception(q{Trying to resolve 'undef' as closure name})
+    Marpa::R2::exception(q{Trying to resolve 'undef' as closure name})
         if not defined $closure_name;
 
     if ( my $closure = $closures->{$closure_name} ) {
         if ($trace_actions) {
             print {$Marpa::R2::Internal::TRACE_FH}
                 qq{Resolved "$closure_name" to explicit closure\n}
-                or Marpa::exception('Could not print to trace file');
+                or Marpa::R2::exception('Could not print to trace file');
         }
 
         return $closure;
@@ -432,7 +432,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
             ( $closure ? 'Successful' : 'Failed' )
             . qq{ resolution of "$closure_name" },
             'to ', $fully_qualified_name, "\n"
-            or Marpa::exception('Could not print to trace file');
+            or Marpa::R2::exception('Could not print to trace file');
     } ## end if ($trace_actions)
 
     return $closure;
@@ -456,7 +456,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
         $default_action_closure =
             Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
             $default_action );
-        Marpa::exception(
+        Marpa::R2::exception(
             "Could not resolve default action named '$default_action'")
             if not $default_action_closure;
     } ## end if ( defined $default_action )
@@ -470,7 +470,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
                 Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
                 $action );
 
-            Marpa::exception(qq{Could not resolve action name: "$action"})
+            Marpa::R2::exception(qq{Could not resolve action name: "$action"})
                 if not defined $closure;
             $rule_closures->[$rule_id] = $closure;
             next RULE;
@@ -684,7 +684,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $closure =
             Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
             $constructor_name );
-        Marpa::exception(qq{Could not find constructor "$constructor_name"})
+        Marpa::R2::exception(
+            qq{Could not find constructor "$constructor_name"})
             if not defined $closure;
         $action_object_constructor = $closure;
     } ## end if ( defined $action_object_class )
@@ -735,11 +736,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             for my $i ( reverse 0 .. $arg_n ) {
                 printf {$Marpa::R2::Internal::TRACE_FH} 'Stack position %3d:',
                     $i
-                    or Marpa::exception('print to trace handle failed');
+                    or Marpa::R2::exception('print to trace handle failed');
                 print {$Marpa::R2::Internal::TRACE_FH} q{ },
                     Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
                     ->Dump
-                    or Marpa::exception('print to trace handle failed');
+                    or Marpa::R2::exception('print to trace handle failed');
             } ## end for my $i ( reverse 0 .. $arg_n )
         } ## end if ( $trace_values >= 3 )
 
@@ -772,7 +773,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 ': ',
                 ( $token_name ? qq{$token_name = } : q{} ),
                 Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
-                or Marpa::exception('print to trace handle failed');
+                or Marpa::R2::exception('print to trace handle failed');
 
         } ## end ADD_TOKEN:
 
@@ -803,7 +804,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     $recce, $and_node_id
                     ),
                     ', rule: ', $grammar->brief_rule($trace_rule_id)
-                    or Marpa::exception('Could not print to trace file');
+                    or Marpa::R2::exception('Could not print to trace file');
 
                 last TRACE_OP;
 
@@ -820,7 +821,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     "\n",
                     'Incrementing virtual rule by ',
                     $grammar_c->real_symbol_count($trace_rule_id), ' symbols'
-                    or Marpa::exception('Could not print to trace file');
+                    or Marpa::R2::exception('Could not print to trace file');
 
                 last TRACE_OP;
 
@@ -835,7 +836,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     ),
                     ', rule: ',  $grammar->brief_rule($trace_rule_id),
                     "\nAdding ", $grammar_c->real_symbol_count($trace_rule_id)
-                    or Marpa::exception('Could not print to trace file');
+                    or Marpa::R2::exception('Could not print to trace file');
 
                 next EVENT;
 
@@ -851,7 +852,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     ', rule: ', $grammar->brief_rule($trace_rule_id),
                     "\nReal symbol count is ",
                     $grammar_c->real_symbol_count($trace_rule_id)
-                    or Marpa::exception('Could not print to trace file');
+                    or Marpa::R2::exception('Could not print to trace file');
 
                 next EVENT;
 
@@ -906,7 +907,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 print {$Marpa::R2::Internal::TRACE_FH}
                     'Calculated and pushed value: ',
                     Data::Dumper->new( [$result] )->Terse(1)->Dump
-                    or Marpa::exception('print to trace handle failed');
+                    or Marpa::R2::exception('print to trace handle failed');
             } ## end if ($trace_values)
 
             next EVENT;
@@ -921,7 +922,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     'Constant result: ',
                     'Pushing 1 value on stack: ',
                     Data::Dumper->new( [$constant_result] )->Terse(1)->Dump
-                    or Marpa::exception('Could not print to trace file');
+                    or Marpa::R2::exception('Could not print to trace file');
             } ## end if ($trace_values)
         } ## end when (Marpa::R2::Internal::Op::CONSTANT_RESULT)
     } ## end while (1)
@@ -949,12 +950,12 @@ sub Marpa::R2::Recognizer::value {
 
     my $max_parses = $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
     if ( $max_parses and $parse_count > $max_parses ) {
-        Marpa::exception("Maximum parse count ($max_parses) exceeded");
+        Marpa::R2::exception("Maximum parse count ($max_parses) exceeded");
     }
 
     my $furthest_earleme       = $recce_c->furthest_earleme();
     my $last_completed_earleme = $recce_c->current_earleme();
-    Marpa::exception(
+    Marpa::R2::exception(
         "Attempt to evaluate incompletely recognized parse:\n",
         "  Last token ends at location $furthest_earleme\n",
         "  Recognition done only as far as location $last_completed_earleme\n"
@@ -990,19 +991,19 @@ sub Marpa::R2::Recognizer::value {
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_AND_NODES] ) {
         print {$Marpa::R2::Internal::TRACE_FH} 'AND_NODES: ',
             $recce->show_and_nodes()
-            or Marpa::exception('print to trace handle failed');
+            or Marpa::R2::exception('print to trace handle failed');
     }
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_OR_NODES] ) {
         print {$Marpa::R2::Internal::TRACE_FH} 'OR_NODES: ',
             $recce->show_or_nodes()
-            or Marpa::exception('print to trace handle failed');
+            or Marpa::R2::exception('print to trace handle failed');
     }
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_BOCAGE] ) {
         print {$Marpa::R2::Internal::TRACE_FH} 'BOCAGE: ',
             $recce->show_bocage()
-            or Marpa::exception('print to trace handle failed');
+            or Marpa::R2::exception('print to trace handle failed');
     }
 
     $recce_c->tree_new();
