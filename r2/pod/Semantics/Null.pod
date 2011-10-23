@@ -1,21 +1,21 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Semantics::Null - How Marpa Evaluates Null Rules and Symbols
+Marpa::R2::Semantics::Null - How Marpa Evaluates Null Rules and Symbols
 
 =head1 DESCRIPTION
 
@@ -49,11 +49,11 @@ if one is defined.
 Otherwise, the null value of the symbol
 comes from the grammar's
 default null value, as defined by the grammar's
-L<C<default_null_value>|Marpa::XS::Grammar/default_null_value>
+L<C<default_null_value>|Marpa::R2::Grammar/default_null_value>
 named argument.
 If neither the symbol C<null_value> property
 or the grammar's
-L<C<default_null_value>|Marpa::XS::Grammar/default_null_value>
+L<C<default_null_value>|Marpa::R2::Grammar/default_null_value>
 named argument
 is defined,
 a symbol's null value is a Perl C<undef>.
@@ -139,7 +139,7 @@ none of the non-root nodes in a null subtree are
 represented in Marpa's virtual parse tree.
 Here's an example:
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Null Value Example
 perltidy: '-dcsc -sil=0'
 
@@ -158,7 +158,7 @@ perltidy: '-dcsc -sil=0'
         return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
     }
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start   => 'S',
             actions => 'main',
             rules   => [
@@ -185,17 +185,17 @@ perltidy: '-dcsc -sil=0'
 
     $grammar->precompute();
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     $recce->read( 'X', 'x' );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 If we write the unpruned parse tree
 one node per line in pre-order, depth-first, indenting children
 below their parents, we get something like this:
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
         0: Rule Node, Rule: S := L R
@@ -208,7 +208,7 @@ ignore: 1
                  2.2: Null Node, Symbol B
                  2.3: Null Node, Symbol Y
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 In this example, six nodes are nulled.
 Four of them are in a single subtree: 2, 2.1, 2.2 and 2.3.
@@ -218,7 +218,7 @@ is the node numbered 2.
 
 The pruned tree looks like this
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
         0: Rule Node, Rule: S := L R
@@ -228,18 +228,18 @@ ignore: 1
                  1.3: Token Node, Token value is 'x'
              2: Null Node, Symbol R
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 
 Here is the output:
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Null Value Example Output
 normalize-whitespace: 1
 
     S(L(null A;null B;x);null R)
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 In the output we see
 
@@ -314,25 +314,25 @@ calculating the value of the dynamic nullable.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 

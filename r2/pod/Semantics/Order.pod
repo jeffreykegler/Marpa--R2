@@ -1,21 +1,21 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Semantics::Order - How Marpa ranks ambiguous parses
+Marpa::R2::Semantics::Order - How Marpa ranks ambiguous parses
 
 =head1 DESCRIPTION
 
@@ -29,7 +29,7 @@ each of which will have its own parse result.
 This document describes ways of controlling
 the order in which
 the recognizer's
-L<C<value>|Marpa::XS::Recognizer/"value">
+L<C<value>|Marpa::R2::Recognizer/"value">
 method
 evaluates the parse
 trees of an ambiguous parse.
@@ -64,7 +64,7 @@ stated.
 
 By calling
 the recognizer's
-L<C<value>|Marpa::XS::Recognizer/"value">
+L<C<value>|Marpa::R2::Recognizer/"value">
 method
 repeatedly,
 Marpa can produce all the parse results
@@ -72,7 +72,7 @@ in the current parse series.
 The default is for the parse results to be returned
 in an arbitrary order.
 This corresponds to the "C<none>" value of
-L<the recognizer's C<ranking_method>|Marpa::XS::Recognizer/"ranking_method">
+L<the recognizer's C<ranking_method>|Marpa::R2::Recognizer/"ranking_method">
 named argument.
 
 =head2 Arbitrary parse order
@@ -101,7 +101,7 @@ will be the semantic duplicate of any other tree.
 =head2 Ranking methods
 
 Marpa grammar objects have L<a C<ranking_method> named
-argument|Marpa::XS::Recognizer/"ranking_method">,
+argument|Marpa::R2::Recognizer/"ranking_method">,
 whose value can be the name of a ranking method,
 or "C<none>", indicating that the default ranking method is to
 be used.
@@ -161,7 +161,7 @@ with null symbols higher.
 
 The 
 L<C<null_ranking> named
-argument for rules|Marpa::XS::Grammar/"null_ranking">
+argument for rules|Marpa::R2::Grammar/"null_ranking">
 specifies which nulling variants are ranked high or low.
 Ranking of nulling variants is done left-to-right,
 with the null preference as indicated by the C<null_ranking>
@@ -298,25 +298,25 @@ which was written for the C<constant> ranking method.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 
