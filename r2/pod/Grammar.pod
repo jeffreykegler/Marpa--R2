@@ -1,30 +1,30 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Grammar - Marpa grammars
+Marpa::R2::Grammar - Marpa grammars
 
 =head1 SYNOPSIS
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start   => 'Expression',
             actions => 'My_Actions',
             default_action => 'first_arg',
@@ -43,7 +43,7 @@ normalize-whitespace: 1
 
     $grammar->precompute();
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =head1 DESCRIPTION
 
@@ -164,28 +164,28 @@ that the sequence is allowed to repeat.
 As of this writing,
 the maximum number of repetitions is always infinite.
 
-=for Marpa::XS::Display
-name: Marpa::Grammar min 0 sequence example
+=for Marpa::R2::Display
+name: Marpa::R2::Grammar min 0 sequence example
 partial: 1
 normalize-whitespace: 1
 
     { lhs => 'sequence', rhs => ['item'], min => 0 }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 A C<min> of zero indicates a sequence that repeats zero or more times.
 This is the equivalent of using the star quantifier
 ("C<*>") in the
 standard regular expression notation.
 
-=for Marpa::XS::Display
-name: Marpa::Grammar min 1 sequence example
+=for Marpa::R2::Display
+name: Marpa::R2::Grammar min 1 sequence example
 partial: 1
 normalize-whitespace: 1
 
     { lhs => 'sequence', rhs => ['item'], min => 1 }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 A C<min> of one indicates a sequence that repeats one or more times.
 This is the equivalent of using the plus quantifier
@@ -222,7 +222,7 @@ a single Perl closure often results in
 simpler and more
 natural code.
 See L<the section on sequences in the semantics
-document|Marpa::XS::Semantics/"Sequence Rule Nodes">.
+document|Marpa::R2::Semantics/"Sequence Rule Nodes">.
 
 =head3 Caveats
 
@@ -243,26 +243,26 @@ the right hand side of a sequence rule must be a single symbol.
 Of course, applications will often want to repeat sequences of multiple symbols.
 That is easy to do indirectly:
 
-=for Marpa::XS::Display
-name: Marpa::Grammar multipart rhs sequence example
+=for Marpa::R2::Display
+name: Marpa::R2::Grammar multipart rhs sequence example
 partial: 1
 normalize-whitespace: 1
 
     { lhs => 'sequence', rhs => [qw(item)], min => 0 },
     { lhs => 'item', rhs => [qw(part1 part2)], },
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =head1 CONSTRUCTOR
 
 =head2 new
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start   => 'Expression',
             actions => 'My_Actions',
             default_action => 'first_arg',
@@ -279,12 +279,12 @@ normalize-whitespace: 1
         }
     );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
-C<Marpa::Grammar::new> 
+C<Marpa::R2::Grammar::new> 
 returns a new Marpa grammar object or throws an exception.
 The arguments to
-C<Marpa::Grammar::new> are
+C<Marpa::R2::Grammar::new> are
 references to hashes of named arguments.
 In each key/value pair of this hash,
 the hash key is the argument name
@@ -297,14 +297,14 @@ L<below|/"Named Arguments">.
 
 =head2 precompute
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
     $grammar->precompute();
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<precompute> method
 compiles data structures that the recognizer will need.
@@ -313,13 +313,13 @@ returns the grammar object or throws an exception.
 
 =head2 set
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Grammar set Synopsis
 normalize-whitespace: 1
 
     $grammar->set( { trace_file_handle => $trace_fh } );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The arguments to the
 C<set> method are
@@ -342,14 +342,14 @@ the most convenient way to determine if a symbol is a terminal.
 
 =head2 show_AHFA
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: show_AHFA Synopsis
 perltidy: '-dcsc -sil=0'
 
     print $grammar->show_AHFA()
         or die "print failed: $ERRNO";
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Not of interest to most users.
 Returns a multi-line string listing the states of
@@ -359,14 +359,14 @@ Not useful before the grammar is precomputed.
 
 =head2 show_problems
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: show_problems Synopsis
 perltidy: '-dcsc -sil=0'
 
     print $grammar->show_problems()
         or die "print failed: $ERRNO";
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Usually the application does not call this method
 directly.
@@ -399,14 +399,14 @@ error message.
 
 =head2 show_rules
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: show_rules Synopsis
 perltidy: '-dcsc -sil=0'
 
     print $grammar->show_rules()
         or die "print failed: $ERRNO";
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Returns a string listing the rules.
 Each rule is shown with B<comments> which
@@ -443,14 +443,14 @@ to optimize evaluation.
 
 =head2 show_symbols
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: show_symbols Synopsis
 perltidy: '-dcsc -sil=0'
 
     print $grammar->show_symbols()
         or die "print failed: $ERRNO";
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Returns a string listing the symbols, along with comments
 indicating whether they were
@@ -470,18 +470,18 @@ A C<new> constructor must be defined
 in the C<action_object> package.
 It will be used to create the per-parse-tree variables.
 Details are in
-L<the document on semantics|Marpa::XS::Semantics>.
+L<the document on semantics|Marpa::R2::Semantics>.
 
 =head2 actions
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
             actions => 'My_Actions',
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<actions> named argument specifies
 the Perl package that Marpa will use when resolving
@@ -496,24 +496,24 @@ The C<actions> package is treated only as a package,
 and not as a class.
 Any C<new> constructor in the C<actions> package is ignored.
 Details are given in
-L<the document on semantics|Marpa::XS::Semantics>.
+L<the document on semantics|Marpa::R2::Semantics>.
 
 =head2 default_action
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
             default_action => 'first_arg',
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<default_action> named argument specifies
 the value action name
 for rules without an L<C<action> property|/"action">.
 Details are given in
-L<the document on semantics|Marpa::XS::Semantics>.
+L<the document on semantics|Marpa::R2::Semantics>.
 
 =head2 default_null_value
 
@@ -522,7 +522,7 @@ the null value for
 symbols
 without a L<C<null_value> property|/"null_value">.
 Details are given in
-L<the document on semantics|Marpa::XS::Semantics>.
+L<the document on semantics|Marpa::R2::Semantics>.
 
 =head2 inaccessible_ok
 
@@ -603,14 +603,14 @@ below|/"RULE DESCRIPTORS">.
 
 =head2 start
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
     start => 'Expression',
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The value of the C<start> named argument must be a symbol name.
 It will be used as the start symbol for the grammar.
@@ -693,7 +693,7 @@ and itself results in a warning.
 
 =head1 RULE DESCRIPTORS
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -709,7 +709,7 @@ normalize-whitespace: 1
         },
     ],
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =head2 Rule descriptors as hashes
 
@@ -726,7 +726,7 @@ that property.
 The value of the C<action> rule property is a string which
 specifies the semantics for the rule.
 For details, see
-L<the document on semantics|Marpa::XS::Semantics>.
+L<the document on semantics|Marpa::R2::Semantics>.
 
 The semantics of nulling symbols are dealt with on a per-symbol
 basis, rather than a per-rule basis.
@@ -757,7 +757,7 @@ work of distinguishing
 sequence separators from sequence items
 is pushed into the semantic actions.
 For details about the semantics, see
-L<the document on semantics|Marpa::XS::Semantics>.
+L<the document on semantics|Marpa::R2::Semantics>.
 
 =head2 lhs
 
@@ -773,7 +773,7 @@ or the grammar's C<action_object>
 for a Perl closure that has
 the name of the C<lhs> symbol.
 For details, see
-L<the document on semantics|Marpa::XS::Semantics>.
+L<the document on semantics|Marpa::R2::Semantics>.
 
 =head2 min
 
@@ -813,7 +813,7 @@ This is the default,
 and is acceptable to most applications.
 For details on using the
 C<null_ranking> named argument,
-see L<the document on parse order|Marpa::XS::Semantics::Order>.
+see L<the document on parse order|Marpa::R2::Semantics::Order>.
 
 =head2 proper
 
@@ -836,7 +836,7 @@ It may be negative.
 C<rank> is 0 by default.
 For details on using the
 C<rank> named argument,
-see L<the document on parse order|Marpa::XS::Semantics::Order>.
+see L<the document on parse order|Marpa::R2::Semantics::Order>.
 
 =head2 rhs
 
@@ -860,7 +860,7 @@ The separator must not be a nullable symbol.
 
 =head2 Rule descriptors as arrays
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Ambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -871,7 +871,7 @@ normalize-whitespace: 1
         [ 'E', [qw/Number/], ],
     ],
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Rule descriptors may be given in "short form" --
 as a reference to an array.
@@ -911,7 +911,7 @@ and/or different minimum counts.
 
 =head1 SYMBOL DESCRIPTORS
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Null Value Example
 partial: 1
 normalize-whitespace: 1
@@ -925,7 +925,7 @@ normalize-whitespace: 1
         Y => { null_value => 'null Y', terminal => 1 },
     },
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 A symbol descriptor is a hash.
 In the key/value pairs of this hash,
@@ -939,7 +939,7 @@ The available symbol properties are as follows:
 The C<null_value> symbol property specifies
 the null value of its symbol.
 Details are given in
-L<the document on semantics|Marpa::XS::Semantics>.
+L<the document on semantics|Marpa::R2::Semantics>.
 
 =head2 terminal
 
@@ -951,25 +951,25 @@ L<the section on terminals|/"Terminal Symbols">.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 
