@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 # An ambiguous equation
 
@@ -22,12 +22,12 @@ use warnings;
 use Test::More tests => 13;
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 use English qw( -no_match_vars );
 use Fatal qw( close open );
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 ## no critic (InputOutput::RequireBriefOpen)
@@ -85,9 +85,8 @@ sub default_action {
     return '(' . join( q{;}, @_ ) . ')';
 } ## end sub default_action
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start   => 'E',
-        strip   => 0,
         actions => 'main',
         rules   => [
             [ 'E', [qw/E Op E/], 'do_op' ],
@@ -102,17 +101,17 @@ $grammar->precompute();
 my $actual_ref;
 $actual_ref = save_stdout();
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: show_symbols Synopsis
 
 print $grammar->show_symbols()
     or die "print failed: $ERRNO";
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 restore_stdout();
 
-Marpa::Test::is( ${$actual_ref},
+Marpa::R2::Test::is( ${$actual_ref},
     <<'END_SYMBOLS', 'Ambiguous Equation Symbols' );
 0: E, lhs=[0 1] rhs=[0 2] terminal
 1: Op, lhs=[] rhs=[0] terminal
@@ -122,15 +121,15 @@ END_SYMBOLS
 
 $actual_ref = save_stdout();
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: show_rules Synopsis
 
 print $grammar->show_rules()
     or die "print failed: $ERRNO";
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
-Marpa::Test::is( ${$actual_ref}, <<'END_RULES', 'Ambiguous Equation Rules' );
+Marpa::R2::Test::is( ${$actual_ref}, <<'END_RULES', 'Ambiguous Equation Rules' );
 0: E -> E Op E
 1: E -> Number
 2: E['] -> E /* vlhs real=1 */
@@ -138,15 +137,13 @@ END_RULES
 
 # Alternative tests: AHFA items if XS, NFA items if PP
 
-if ($Marpa::USING_XS) {
+$actual_ref = save_stdout();
 
-    $actual_ref = save_stdout();
+print $grammar->show_AHFA_items()
+    or die "print failed: $ERRNO";
 
-    print $grammar->show_AHFA_items()
-        or die "print failed: $ERRNO";
-
-    Marpa::Test::is( ${$actual_ref},
-        <<'EOS', 'Ambiguous Equation AHFA Items' );
+Marpa::R2::Test::is( ${$actual_ref},
+    <<'EOS', 'Ambiguous Equation AHFA Items' );
 AHFA item 0: sort = 0; postdot = "E"
     E -> . E Op E
 AHFA item 1: sort = 3; postdot = "Op"
@@ -165,45 +162,17 @@ AHFA item 7: sort = 7; completion
     E['] -> E .
 EOS
 
-}    # USING_XS
-
-if ($Marpa::USING_PP) {
-    $actual_ref = save_stdout();
-    print $grammar->show_NFA()
-        or die "print failed: $ERRNO";
-    Marpa::Test::is( ${$actual_ref}, <<'END_NFA', 'Ambiguous Equation NFA' );
-S0: /* empty */
- empty => S7
-S1: E -> . E Op E
- empty => S1 S5
- <E> => S2
-S2: E -> E . Op E
- <Op> => S3
-S3: E -> E Op . E
- empty => S1 S5
- <E> => S4
-S4: E -> E Op E .
-S5: E -> . Number
- <Number> => S6
-S6: E -> Number .
-S7: E['] -> . E
- empty => S1 S5
- <E> => S8
-S8: E['] -> E .
-END_NFA
-}    # USING_PP
-
 $actual_ref = save_stdout();
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: show_AHFA Synopsis
 
 print $grammar->show_AHFA()
     or die "print failed: $ERRNO";
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
-Marpa::Test::is( ${$actual_ref}, <<'END_AHFA', 'Ambiguous Equation AHFA' );
+Marpa::R2::Test::is( ${$actual_ref}, <<'END_AHFA', 'Ambiguous Equation AHFA' );
 * S0:
 E['] -> . E
  <E> => S2; leo(E['])
@@ -228,15 +197,15 @@ END_AHFA
 
 $actual_ref = save_stdout();
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: show_problems Synopsis
 
 print $grammar->show_problems()
     or die "print failed: $ERRNO";
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
-Marpa::Test::is(
+Marpa::R2::Test::is(
     ${$actual_ref},
     "Grammar has no problems\n",
     'Ambiguous Equation Problems'
@@ -244,7 +213,7 @@ Marpa::Test::is(
 
 restore_stdout();
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 $recce->tokens(
     [   [ 'Number', 2,    1 ],
@@ -259,13 +228,13 @@ $recce->tokens(
 
 $actual_ref = save_stdout();
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: show_earley_sets Synopsis
 
 print $recce->show_earley_sets()
     or die "print failed: $ERRNO";
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 my $expected_earley_sets = <<'END_OF_EARLEY_SETS';
 Last Completed: 7; Furthest: 7
@@ -314,22 +283,22 @@ S3@6-7 [p=S1@6-6; c=S4@6-7]
 S4@6-7 [p=S1@6-6; s=Number; t=\1]
 END_OF_EARLEY_SETS
 
-Marpa::Test::is( ${$actual_ref}, $expected_earley_sets,
+Marpa::R2::Test::is( ${$actual_ref}, $expected_earley_sets,
     'Ambiguous Equation Earley Sets' );
 
 restore_stdout();
 
 $actual_ref = save_stdout();
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: show_progress Synopsis
 
 print $recce->show_progress()
     or die "print failed: $ERRNO";
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
-Marpa::Test::is( ${$actual_ref},
+Marpa::R2::Test::is( ${$actual_ref},
     <<'END_OF_PROGRESS_REPORT', 'Ambiguous Equation Progress Report' );
 R0:1 x4 @0...6-7 E -> E . Op E
 F0 x3 @0,2,4-7 E -> E Op E .
@@ -350,12 +319,12 @@ my %expected_value = (
 # Set max at 10 just in case there's an infinite loop.
 # This is for debugging, after all
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Recognizer set Synopsis
 
 $recce->set( { max_parses => 10, } );
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 my $i = 0;
 while ( defined( my $value = $recce->value() ) ) {

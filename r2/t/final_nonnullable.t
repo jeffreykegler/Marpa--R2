@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 # Catch the case of a final non-nulling symbol at the end of a rule
 # which has more than 2 proper nullables
@@ -24,10 +24,10 @@ use warnings;
 use Test::More tests => 11;
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -43,9 +43,8 @@ sub default_action {
 
 ## use critic
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start => 'S',
-        strip => 0,
 
         rules => [
             [ 'S', [qw/p p p n/], ],
@@ -60,7 +59,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-Marpa::Test::is( $grammar->show_rules,
+Marpa::R2::Test::is( $grammar->show_rules,
     <<'END_OF_STRING', 'final nonnulling Rules' );
 0: S -> p p p n /* !used */
 1: p -> a
@@ -75,7 +74,7 @@ Marpa::Test::is( $grammar->show_rules,
 10: S['] -> S /* vlhs real=1 */
 END_OF_STRING
 
-Marpa::Test::is( $grammar->show_AHFA,
+Marpa::R2::Test::is( $grammar->show_AHFA,
     <<'END_OF_STRING', 'final nonnulling AHFA' );
 * S0:
 S['] -> . S
@@ -152,7 +151,7 @@ for my $input_length ( 1 .. 4 ) {
     # Set max at 10 just in case there's an infinite loop.
     # This is for debugging, after all
     my $recce =
-        Marpa::Recognizer->new( { grammar => $grammar, max_parses => 10 } );
+        Marpa::R2::Recognizer->new( { grammar => $grammar, max_parses => 10 } );
     $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x $input_length ] );
     while ( my $value_ref = $recce->value() ) {
         my $value = $value_ref ? ${$value_ref} : 'No parse';
