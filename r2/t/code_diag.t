@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 # Ensure various coding errors are caught
 
@@ -22,11 +22,11 @@ use warnings;
 use Test::More tests => 8;
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 use English qw( -no_match_vars );
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 my @features = qw(
@@ -175,7 +175,7 @@ sub run_test {
     ### e_op_action: $e_op_action
     ### e_number_action: $e_number_action
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start => 'S',
             rules => [
                 [ 'S', [qw/T trailer optional_trailer1 optional_trailer2/], ],
@@ -196,7 +196,7 @@ sub run_test {
     );
     $grammar->precompute();
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     my @tokens = (
         [ Number => 2 ],
@@ -218,7 +218,7 @@ sub run_test {
     my $expected  = '(((2*3)+(4*1))==10;trailer;[default null];[null])';
     my $value_ref = $recce->value();
     my $value     = $value_ref ? ${$value_ref} : 'No parse';
-    Marpa::Test::is( $value, $expected, 'Ambiguous Equation Value' );
+    Marpa::R2::Test::is( $value, $expected, 'Ambiguous Equation Value' );
 
     return 1;
 
@@ -250,7 +250,7 @@ for my $test (@tests) {
             my $eval_error = $EVAL_ERROR;
             my $where      = $where{$feature};
             my $long_where = $long_where{$feature};
-            Marpa::Test::is(
+            Marpa::R2::Test::is(
                 canonical( $eval_error,                $where, $long_where ),
                 canonical( $expected{$test}{$feature}, $where, $long_where ),
                 $test_name
