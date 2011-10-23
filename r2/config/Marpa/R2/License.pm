@@ -82,10 +82,10 @@ sub c_comment {
     return qq{/*\n$text */\n};
 } ## end sub c_comment
 
-my $c_license       = c_comment($license);
-my $r2_hash_license = hash_comment($license);
+my $c_license          = c_comment($license);
+my $r2_hash_license    = hash_comment($license);
 my $tex_closed_license = hash_comment( $closed_license, q{%} );
-my $tex_license        = hash_comment( $license,        q{%} );
+my $tex_license        = hash_comment( $license, q{%} );
 my $indented_license   = $license;
 $indented_license =~ s/^/  /gxms;
 
@@ -431,8 +431,8 @@ sub license_problems_in_xs_perl_file {
 
 sub license_problems_in_perl_file {
     my ( $filename, $type, $verbose ) = @_;
-    my @problems     = ();
-    my $text         = slurp_top( $filename, 132 + length $r2_hash_license );
+    my @problems = ();
+    my $text = slurp_top( $filename, 132 + length $r2_hash_license );
 
     # Delete hash bang line, if present
     ${$text} =~ s/\A [#][!] [^\n] \n//xms;
