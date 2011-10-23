@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 # Rewriting tests, to check the accuracy of the
@@ -25,15 +25,15 @@ use Fatal qw(open close);
 use Test::More tests => 3;
 
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 my $chaf_rule =
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: CHAF Rule
 
 {   lhs => 'statement',
@@ -44,14 +44,14 @@ my $chaf_rule =
     ]
 }
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
 
 my $separated_sequence_rule =
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Separated Sequence Rule
 
 {
@@ -61,26 +61,25 @@ my $separated_sequence_rule =
     min       => 1
 }
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
 
 my $sequence_rule =
 #<<< no perltidy
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Sequence Rule
 
     { lhs => 'block', rhs => [qw/statements/], min => 0 },
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 ; # semicolon to terminate rule
 
 #>>> no perltidy
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start   => 'block',
-        strip   => 0,
         symbols => {
             'block' => {
                 terminal   => 1,
@@ -102,7 +101,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 # While we are at it, test the handling of null parses in
 # the Single Parse Evaluator
@@ -110,16 +109,16 @@ my @tokens = ();
 
 $recce->tokens( \@tokens );
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 my $show_rules_output = $grammar->show_rules();
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Rewrite show_rules Output
 # start-after-line: END_RULES
 # end-before-line: '^END_RULES$'
 
-Marpa::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
+Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace /* !used */
 1: statements -> statement /* !used discard_sep */
 2: statements -> statements[Subseq:8:5] /* vrhs real=0 */
@@ -149,12 +148,12 @@ Marpa::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 26: block['][] -> /* empty vlhs real=1 */
 END_RULES
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-Marpa::Test::is( $value, 'Null parse', 'Null parse value' );
+Marpa::R2::Test::is( $value, 'Null parse', 'Null parse value' );
 
 1;    # In case used as "do" file
 

@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -21,10 +21,10 @@ use English qw( -no_match_vars );
 
 use Test::More tests => 5;
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 package Test_Grammar;
@@ -173,7 +173,7 @@ my @test_data = (
     [ 'time', q{time  / 25 ; # / ; die "this dies!"}, ['division, comment'] ]
 );
 
-my $g = Marpa::Grammar->new(
+my $g = Marpa::R2::Grammar->new(
     {   warnings => 1,
         actions  => 'main',
     },
@@ -185,17 +185,17 @@ $g->precompute();
 TEST: for my $test_data (@test_data) {
 
     my ( $test_name, $test_input, $test_results ) = @{$test_data};
-    my $recce = Marpa::Recognizer->new( { grammar => $g, mode => 'stream' } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $g, mode => 'stream' } );
 
     my $input_length = length $test_input;
     pos $test_input = 0;
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Recognizer terminals_expected Synopsis
 
     my $terminals_expected = $recce->terminals_expected();
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
     for ( my $pos = 0; $pos < $input_length; $pos++ ) {
         my @tokens = ();
@@ -221,12 +221,12 @@ TEST: for my $test_data (@test_data) {
     }
     my $expected_parse_count = scalar @{$test_results};
     my $parse_count          = scalar @parses;
-    Marpa::Test::is( $parse_count, $expected_parse_count,
+    Marpa::R2::Test::is( $parse_count, $expected_parse_count,
         "$test_name: Parse count" );
 
     my $expected = join "\n", sort @{$test_results};
     my $actual   = join "\n", sort @parses;
-    Marpa::Test::is( $actual, $expected, "$test_name: Parse match" );
+    Marpa::R2::Test::is( $actual, $expected, "$test_name: Parse match" );
 } ## end for my $test_data (@test_data)
 
 sub show_perl_line {

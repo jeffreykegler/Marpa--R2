@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -23,10 +23,10 @@ use Test::More tests => 7;
 use English qw( -no_match_vars );
 use Fatal qw( open close );
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 sub catch_problem {
@@ -64,9 +64,8 @@ sub catch_problem {
     return;
 } ## end sub catch_problem
 
-my $grammar = Marpa::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start => 'Top',
-        strip => 0,
         rules => [
             { lhs => 'Top',  rhs => [qw/Term/], min => 1 },
             { lhs => 'Term', rhs => [qw/a/] },
@@ -90,7 +89,7 @@ $test_name = 'duplicate terminal 1';
 $trace     = q{};
 ## no critic (InputOutput::RequireBriefOpen)
 open $memory, q{>}, \$trace;
-$recce = Marpa::Recognizer->new(
+$recce = Marpa::R2::Recognizer->new(
     {   grammar           => $grammar,
         trace_terminals   => 1,
         trace_file_handle => $memory
@@ -99,13 +98,13 @@ $recce = Marpa::Recognizer->new(
 
 sub duplicate_terminal_1 {
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Recognizer alternative Synopsis
 
     defined $recce->alternative( 'a', 42, 1 )
         or return 'First alternative failed';
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
     return $recce->alternative( 'a', 711, 1 );
 } ## end sub duplicate_terminal_1
@@ -134,7 +133,7 @@ $test_name = 'duplicate terminal 2';
 $trace     = q{};
 close $memory;
 open $memory, q{>}, \$trace;
-$recce = Marpa::Recognizer->new(
+$recce = Marpa::R2::Recognizer->new(
     {   grammar           => $grammar,
         trace_terminals   => 1,
         trace_file_handle => $memory
@@ -149,12 +148,12 @@ sub duplicate_terminal_2 {
     defined $recce->alternative( 'b', 12, 1 )
         or return 'alternative b at 0 failed';
 
-# Marpa::XS::Display
+# Marpa::R2::Display
 # name: Recognizer earleme_complete Synopsis
 
     $recce->earleme_complete();
 
-# Marpa::XS::Display::End
+# Marpa::R2::Display::End
 
     # Should be OK, because different lengths
     defined $recce->alternative( 'a', 21, 3 )
