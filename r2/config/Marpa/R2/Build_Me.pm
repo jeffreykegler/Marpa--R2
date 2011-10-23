@@ -377,11 +377,11 @@ sub ACTION_code {
     say {*STDERR} 'Writing version files'
         or die "say failed: $ERRNO";
     write_installed_pm( $self, qw(lib Marpa R2 ) );
-    write_installed_pm( $self, qw(pperl Marpa Perl ) );
-    my $perl_version_pm = perl_version_contents( $self, 'Marpa::Perl' );
+    write_installed_pm( $self, qw(pperl Marpa R2 Perl ) );
+    my $perl_version_pm = perl_version_contents( $self, 'Marpa::R2::Perl' );
     my $version_pm = xs_version_contents( $self, 'Marpa::R2' );
     $self->write_file( $version_pm,      qw(lib Marpa R2 Version.pm) );
-    $self->write_file( $perl_version_pm, qw(pperl Marpa Perl Version.pm) );
+    $self->write_file( $perl_version_pm, qw(pperl Marpa R2 Perl Version.pm) );
     $self->do_libmarpa();
     return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code

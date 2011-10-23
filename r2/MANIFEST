@@ -123,7 +123,7 @@ pod/Semantics/Order.pod
 pod/Support.pod
 pod/Tracing.pod
 pod/Vocabulary.pod
-pperl/Marpa/Perl.pm
+pperl/Marpa/R2/Perl.pm
 ppport.h
 t/00-load.t
 t/02-load_xs.t
@@ -169,8 +169,8 @@ t/timeflies.t
 t/use.t
 t/wall.t
 t/weaken.t
-tool/lib/Marpa/Display.pm
-tool/lib/Marpa/Test.pm
-tool/lib/Marpa/Test/Common.pm
+tool/lib/Marpa/R2/Display.pm
+tool/lib/Marpa/R2/Test.pm
+tool/lib/Marpa/R2/Test/Common.pm
 typemap
 xs/R2.xs
