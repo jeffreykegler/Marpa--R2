@@ -544,7 +544,7 @@ sub Marpa::R2::Grammar::precompute {
         }
         if ( $error eq 'counted nullable' ) {
             my @counted_nullable_messages = map {
-                      qq{Nullable symbol "}
+                      q{Nullable symbol "}
                     . $symbols->[$_]->[Marpa::R2::Internal::Symbol::NAME]
                     . qq{" is on rhs of counted rule\n}
                 }
@@ -582,7 +582,7 @@ sub Marpa::R2::Grammar::precompute {
                 push @problems,
                     "lhs_terminals option is off, but Symbol $name is both an LHS and a terminal"
             } ## end for my $rule ( @{$rules} )
-	    push @problems, "Disallowed LHS terminal reported by libmarpa, but none found"
+	    push @problems, 'Disallowed LHS terminal reported by libmarpa, but none found'
 	        if not scalar @problems;
 	    Marpa::exception( @problems );
         } ## end if ( $error eq 'lhs is terminal' )
