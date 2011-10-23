@@ -5,7 +5,7 @@
 \textclass article
 \begin_preamble
 % Copyright 2011 Jeffrey Kegler
-% This document is not part of the Marpa or Marpa::XS source.
+% This document is not part of the Marpa or Marpa::R2 source.
 % Although it may be included with a Marpa distribution that
 % is under an open source license, this document is
 % not under that open source license.

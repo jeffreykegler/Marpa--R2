@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -35,9 +35,9 @@ use constant OK => 200;
 my $most_recent_distribution = pop @ARGV;
 if ( not $most_recent_distribution ) {
     my @distributions =
-        grep     {/\A Marpa [-] XS [-] \d /xms}
+        grep     {/\A Marpa [-] R2 [-] \d /xms}
         sort map { $_->[2] }
-        CPAN::Shell->expand( 'Author', 'JKEGL' )->ls( 'Marpa-XS-*', 2 );
+        CPAN::Shell->expand( 'Author', 'JKEGL' )->ls( 'Marpa-R2-*', 2 );
     $most_recent_distribution = pop @distributions;
     $most_recent_distribution =~ s/\.tar\.gz$//xms;
 } ## end if ( not $most_recent_distribution )

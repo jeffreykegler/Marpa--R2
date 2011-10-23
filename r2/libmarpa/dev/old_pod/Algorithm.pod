@@ -1,16 +1,16 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
@@ -19,7 +19,7 @@ Marpa::PP::Advanced::Algorithm - (OUTDATED) The Marpa Algorithm
 
 =head1 THIS DOCUMENT IS OUTDATED
 
-With Marpa::XS, I made many changes to the algorithm, and
+With Marpa::R2, I made many changes to the algorithm, and
 this document is in need of a thorough revision.
 It may not, in fact, be kept in its present form.
 A lot of the material is very academic, and I plan to move
@@ -1017,25 +1017,25 @@ as the turning point of that campaign.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 
