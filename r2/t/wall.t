@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 #
 use 5.010;
@@ -29,10 +29,10 @@ use warnings;
 
 use Test::More tests => 13;
 use lib 'tool/lib';
-use Marpa::Test;
+use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -85,7 +85,7 @@ sub default_action {
 
 ## use critic
 
-my $g = Marpa::Grammar->new(
+my $g = Marpa::R2::Grammar->new(
     {   start   => 'E',
         actions => 'main',
         rules   => [
@@ -108,7 +108,7 @@ for my $n ( 1 .. 12 ) {
     # Set max_parses just in case there's an infinite loop.
     # This is for debugging, after all
     my $recce =
-        Marpa::Recognizer->new( { grammar => $g, max_parses => 300 } );
+        Marpa::R2::Recognizer->new( { grammar => $g, max_parses => 300 } );
     $recce->tokens(
         [   [ 'Number', 6, 1 ],
             ( ( [ 'Minus', q{-}, 1 ] ) x $n ),
@@ -118,7 +118,7 @@ for my $n ( 1 .. 12 ) {
 
     my $parse_count = 0;
     while ( $recce->value() ) { $parse_count++; }
-    Marpa::Test::is( $expected[$n], $parse_count, "Wall Series Number $n" );
+    Marpa::R2::Test::is( $expected[$n], $parse_count, "Wall Series Number $n" );
 
 } ## end for my $n ( 1 .. 12 )
 

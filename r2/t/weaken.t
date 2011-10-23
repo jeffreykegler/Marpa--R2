@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -45,11 +45,11 @@ BEGIN {
     else {
         Test::More::plan tests => 2;
     }
-    Test::More::use_ok('Marpa::XS');
+    Test::More::use_ok('Marpa::R2');
 } ## end BEGIN
 
 my $test = sub {
-    my $g = Marpa::Grammar->new(
+    my $g = Marpa::R2::Grammar->new(
         {   start => 'S',
             rules => [
                 [ 'S', [qw/A A A A/] ],
@@ -61,7 +61,7 @@ my $test = sub {
         }
     );
     $g->precompute();
-    my $recce = Marpa::Recognizer->new( { grammar => $g } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $g } );
     $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x 4 ] );
     $recce->value();
     [ $g, $recce ];
