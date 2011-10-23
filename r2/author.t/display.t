@@ -1,17 +1,17 @@
 #!perl
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 use 5.010;
@@ -30,12 +30,12 @@ use Perl::Tidy;
 use Text::Wrap;
 
 use lib 'tool/lib';
-use Marpa::Display;
+use Marpa::R2::Display;
 
 my $warnings = 0;
 my $options_result = GetOptions( 'warnings' => \$warnings );
 
-Marpa::exception("$PROGRAM_NAME options parsing failed")
+Marpa::R2::exception("$PROGRAM_NAME options parsing failed")
     if not $options_result;
 
 my %exclude = map { ( $_, 1 ) } qw(
@@ -55,7 +55,7 @@ if ( not $debug_mode ) {
     }
 
     open my $manifest, '<', 'MANIFEST'
-        or Marpa::exception("Cannot open MANIFEST: $ERRNO");
+        or Marpa::R2::exception("Cannot open MANIFEST: $ERRNO");
     FILE: while ( my $file = <$manifest> ) {
         chomp $file;
         $file =~ s/\s*[#].*\z//xms;
@@ -89,15 +89,15 @@ my $error_file;
 ## no critic (InputOutput::RequireBriefOpen)
 if ($debug_mode) {
     open $error_file, '>&STDOUT'
-        or Marpa::exception("Cannot dup STDOUT: $ERRNO");
+        or Marpa::R2::exception("Cannot dup STDOUT: $ERRNO");
 }
 else {
     open $error_file, '>', 'author.t/display.errs'
-        or Marpa::exception("Cannot open display.errs: $ERRNO");
+        or Marpa::R2::exception("Cannot open display.errs: $ERRNO");
 }
 ## use critic
 
-my $display_data = Marpa::XS::Display->new();
+my $display_data = Marpa::R2::Display->new();
 
 FILE: for my $file (@test_files) {
     if ( not -f $file ) {
