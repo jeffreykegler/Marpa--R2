@@ -1033,7 +1033,7 @@ sub Marpa::R2::Recognizer::tokens {
 
     Marpa::exception('No recognizer object for Marpa::R2::Recognizer::tokens')
         if not defined $recce
-            or ref $recce ne 'Marpa::Recognizer';
+            or ref $recce ne 'Marpa::R2::Recognizer';
 
     Marpa::exception('No tokens arg for Marpa::R2::Recognizer::tokens')
         if not defined $tokens;
