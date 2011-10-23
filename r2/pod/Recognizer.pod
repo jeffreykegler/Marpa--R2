@@ -1,37 +1,37 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Recognizer - Marpa recognizers
+Marpa::R2::Recognizer - Marpa recognizers
 
 =head1 SYNOPSIS
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
     $recce->read( 'Number', 42 );
     $recce->read( 'Multiply', );
     $recce->read( 'Number', 1 );
     $recce->read( 'Add', );
     $recce->read( 'Number', 7 );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =head1 DESCRIPTION
 
@@ -56,20 +56,20 @@ This document will describe only the token-stream model of input.
 Marpa allows other models of the input, but their use
 requires special method calls,
 which are described in L<the
-document on alternative input models|Marpa::XS::Advanced::Models>.
+document on alternative input models|Marpa::R2::Advanced::Models>.
 
 =head1 CONSTRUCTOR
 
 =head2 new
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<new> method creates a recognizer object.
 The C<new> method either returns a new recognizer object or throws an exception.
@@ -85,14 +85,14 @@ The named arguments are described L<below|/"NAMED ARGUMENTS">.
 
 =head2 terminals_expected
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Recognizer terminals_expected Synopsis
 partial: 1
 normalize-whitespace: 1
 
     my $terminals_expected = $recce->terminals_expected();
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Returns a reference to a list of strings,
 where the strings are the
@@ -105,13 +105,13 @@ This is highly useful for Ruby Slippers parsing.
 
 =head2 check_terminal
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Recognizer check_terminal Synopsis
 normalize-whitespace: 1
 
     my $is_symbol_a_terminal = $recce->check_terminal('Document');
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Returns a Perl true when its argument is the name of a terminal symbol.
 Otherwise, returns a Perl false.
@@ -121,7 +121,7 @@ Not often needed.
 
 =head2 read
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -132,7 +132,7 @@ normalize-whitespace: 1
     $recce->read( 'Add', );
     $recce->read( 'Number', 7 );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<read> method reads one token at the current parse location.
 It then advances the current location by 1.
@@ -143,7 +143,7 @@ It must be the name of a valid terminal symbol.
 The token value is optional.
 It defaults to a Perl C<undef>.
 For details about terminal symbols,
-see L<Marpa::XS::Grammar/"Terminals">.
+see L<Marpa::R2::Grammar/"Terminals">.
 
 The parser may accept or reject the token.
 If the parser accepted the token,
@@ -183,13 +183,13 @@ Marpa throws an exception.
 
 =head2 set
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Recognizer set Synopsis
 normalize-whitespace: 1
 
     $recce->set( { max_parses => 10, } );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<set> method's arguments are references to hashes of named
 arguments.
@@ -200,7 +200,7 @@ Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
 
 =head2 value
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -208,7 +208,7 @@ normalize-whitespace: 1
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Because Marpa parses ambiguous grammars, every parse
 is a series of zero or more parse trees.
@@ -250,7 +250,7 @@ thrown.
 
 =head2 show_earley_sets
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: show_earley_sets Synopsis
 partial: 1
 normalize-whitespace: 1
@@ -258,7 +258,7 @@ normalize-whitespace: 1
     print $recce->show_earley_sets()
         or die "print failed: $ERRNO";
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 An advanced, internals-oriented tracing method,
 which will not be of interest to most users.
@@ -270,7 +270,7 @@ listing every Earley item in every Earley set.
 
 =head2 show_progress
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: show_progress Synopsis
 partial: 1
 normalize-whitespace: 1
@@ -278,7 +278,7 @@ normalize-whitespace: 1
     print $recce->show_progress()
         or die "print failed: $ERRNO";
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Returns a string describing the progress of the parse.
 With no arguments,
@@ -313,7 +313,7 @@ A much fuller description,
 with an example,
 is in
 L<the document on debugging Marpa
-grammars|Marpa::XS::Debug>.
+grammars|Marpa::R2::Debug>.
 
 =head1 NAMED ARGUMENTS
 
@@ -361,7 +361,7 @@ the C<closures> named argument is to
 allow anonymous
 subroutines to be semantic actions.
 For more details, see L<the document on
-semantics|Marpa::XS::Semantics>.
+semantics|Marpa::R2::Semantics>.
 
 =head2 end
 
@@ -421,7 +421,7 @@ in which parse results are returned by
 the C<value> method,
 and to exclude some parse results from the parse series.
 For details, see L<the document
-on parse order|Marpa::XS::Semantics::Order>.
+on parse order|Marpa::R2::Semantics::Order>.
 
 =head2 too_many_earley_items
 
@@ -507,12 +507,12 @@ Usually, an application will want to leave them on.
 
 =head1 RUBY SLIPPERS PARSING
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Interactive Parse
 partial: 1
 normalize-whitespace: 1
 
-    $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     my @tokens = (
         [ 'Number', 42 ],
@@ -526,7 +526,7 @@ normalize-whitespace: 1
             or die q{Don't know how to fix things};
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Marpa is able to tell the application
 which symbols are acceptable as tokens at the next location
@@ -605,25 +605,25 @@ Grammars of that kind become exhausted when they succeed.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 
