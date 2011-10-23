@@ -1,21 +1,21 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Rewrite - How Marpa rewrites grammars
+Marpa::R2::Rewrite - How Marpa rewrites grammars
 
 =head1 OVERVIEW
 
@@ -56,7 +56,7 @@ a proper nullable is a symbol that
 might or might not be nulled.
 
 Nullable symbols were a problem in previous versions of Earley parsers.
-L<Aycock and Horspool 2002|Marpa::XS::Advanced::Bibliography/"Aycock and Horspool 2002">
+L<Aycock and Horspool 2002|Marpa::R2::Advanced::Bibliography/"Aycock and Horspool 2002">
 outlined a new approach for dealing with them.
 I use their ideas with modifications of my own.
 
@@ -91,7 +91,7 @@ That rewrite is called the CHAF rewrite.
 
 Here's an example of a CHAF rewrite:
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: CHAF Rule
 normalize-whitespace: 1
 flatten: 1
@@ -104,7 +104,7 @@ flatten: 1
         ]
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 This rule contains four instances
 of proper nullables,
@@ -120,7 +120,7 @@ appears three times.
 
 Here's is the output from C<show_rules>, showing what Marpa does with this rule:
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Rewrite show_rules Output
 partial: 1
 normalize-whitespace: 1
@@ -129,9 +129,9 @@ flatten: 1
     0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace
     /* !used */
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Rewrite show_rules Output
 partial: 1
 normalize-whitespace: 1
@@ -148,7 +148,7 @@ flatten: 1
     23: statement[R0:3] -> optional_modifier optional_whitespace[] /* vlhs real=2 */
     24: statement[R0:3] -> optional_modifier[] optional_whitespace /* vlhs real=2 */
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Rule 0 is the original rule.  Because Marpa has rewritten it,
 the rule is marked "C<!used>",
@@ -239,7 +239,7 @@ as if the CHAF rewrite had never occurred.
 Internally, Marpa converts productions specified as sequences into BNF productions.
 The conversion is done in a standard way.  For example,
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Separated Sequence Rule
 normalize-whitespace: 1
 
@@ -250,11 +250,11 @@ normalize-whitespace: 1
     min       => 1
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 becomes
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Rewrite show_rules Output
 partial: 1
 normalize-whitespace: 1
@@ -264,7 +264,7 @@ normalize-whitespace: 1
     4: statements[Subseq:8:5] -> statement /* vlhs real=1 */
     5: statements[Subseq:8:5] -> statements[Subseq:8:5] comma statement /* vlhs vrhs real=2 */
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 In the added symbol, the tag "C<[Subseq:8:5]>" indicates a special
 symbol introduced to serve as the LHS of the sequence.
@@ -276,17 +276,17 @@ symbols involved.
 Here's another example, this time of a sequence without a separator.
 The rule
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Sequence Rule
 normalize-whitespace: 1
 
     { lhs => 'block', rhs => [qw/statements/], min => 0 },
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 is rewritten by Marpa as follows:
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Rewrite show_rules Output
 partial: 1
 normalize-whitespace: 1
@@ -296,7 +296,7 @@ normalize-whitespace: 1
     9: block[Subseq:0:8] -> statements /* vlhs real=1 */
     10: block[Subseq:0:8] -> block[Subseq:0:8] statements /* vlhs vrhs real=1 */
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Note that rule 7, the empty rule with the C<block> symbol as its LHS,
 is marked "C<!used>".
@@ -310,25 +310,25 @@ and that is why it was marked "C<!used>".
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 

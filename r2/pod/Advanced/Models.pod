@@ -1,21 +1,21 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Advanced::Models - Other Input Models
+Marpa::R2::Advanced::Models - Other Input Models
 
 =head1 ABOUT THIS DOCUMENT
 
@@ -58,7 +58,7 @@ and the end of parsing,
 are somewhat more complicated when alternative
 input models are involved.
 These concepts were explained in L<the main document for
-the recognizer|Marpa::XS::Recognizer> on the assumption
+the recognizer|Marpa::R2::Recognizer> on the assumption
 that the default input model was in use.
 This document revises those explanations as necessary
 to take into
@@ -134,14 +134,14 @@ that processing of input catches up to the furthest earleme.
 
 =head2 alternative
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Recognizer alternative Synopsis
 normalize-whitespace: 1
 
     defined $recce->alternative( 'a', 42, 1 )
         or return 'First alternative failed';
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<alternative> method is the most general method for reading
 input, and is used in alternative input models.
@@ -176,13 +176,13 @@ If the token is rejected, C<alternative> returns a Perl C<undef>.
 
 =head2 current_earleme
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: current_earleme Example
 normalize-whitespace: 1
 
     $current_earleme = $recce->current_earleme();
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Returns the current parse location,
 also known as the current earleme.
@@ -190,13 +190,13 @@ Not often needed.
 
 =head2 earleme_complete
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Recognizer earleme_complete Synopsis
 normalize-whitespace: 1
 
     $recce->earleme_complete();
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Processes all tokens at the current earleme and advances the current
 earleme by 1.
@@ -223,13 +223,13 @@ which is often useful.
 
 =head2 exhausted
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Recognizer exhausted Synopsis
 normalize-whitespace: 1
 
 	$recce->exhausted() and die 'Recognizer exhausted';
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 The C<exhausted> method returns a Perl true if parsing
 in a recognizer is exhausted, and a Perl false
@@ -259,13 +259,13 @@ at the current earleme.
 
 =head2 end_input
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Recognizer end_input Synopsis
 normalize-whitespace: 1
 
     $recce->end_input();
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 Indicates that input is finished.
 Calling C<end_input> is not necessary
@@ -296,7 +296,7 @@ but will have no effect.
 
 A recognizer can mix
 calls to
-its L<C<read>|Marpa::XS::Recognizer/"read">
+its L<C<read>|Marpa::R2::Recognizer/"read">
 method with calls to its L<C<alternative>|/"alternative">
 method.
 The C<read> method has the same effect as a single call
@@ -305,15 +305,15 @@ by a call of the C<earleme_complete> method.
 More precisely,
 the C<read> method is equivalent to
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
-    sub Marpa::XS::Recognizer::read {
+    sub Marpa::R2::Recognizer::read {
 	my $recce = shift;
 	return defined $recce->alternative(@_) ? $recce->earleme_complete() : undef;
     }
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =head1 AMBIGUOUS LEXING
 
@@ -477,25 +477,25 @@ be zero or negative.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 

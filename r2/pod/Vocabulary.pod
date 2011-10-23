@@ -1,21 +1,21 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Vocabulary - Standard parsing terms as used within Marpa
+Marpa::R2::Vocabulary - Standard parsing terms as used within Marpa
 
 =head1 DESCRIPTION
 
@@ -38,9 +38,9 @@ terse to act as a textbook or tutorial.
 They will need to look elsewhere first.
 As an introduction, I recommend
 L<Mark Jason Dominus's
-excellent chapter on parsing in the Perl context|Marpa::XS::Advanced::Bibliography/"Dominus 2005">.
+excellent chapter on parsing in the Perl context|Marpa::R2::Advanced::Bibliography/"Dominus 2005">.
 It's available on-line.
-L<Wikipedia|Marpa::XS::Advanced::Bibliography/"Wikipedia"> is also an excellent place to start.
+L<Wikipedia|Marpa::R2::Advanced::Bibliography/"Wikipedia"> is also an excellent place to start.
 
 =head2 Basic
 
@@ -109,7 +109,7 @@ These are new to Marpa, so that their terminology is
 of necessity non-standard.
 The terminology needed for alternative input models
 is explained in L<the document that introduces
-them|Marpa::XS::Advanced::Models>.
+them|Marpa::R2::Advanced::Models>.
 
 =head2 Rules
 
@@ -117,12 +117,12 @@ A standard way of describing rules is Backus-Naur Form, or B<BNF>.
 A rule of a grammar is also often called a B<production>.
 In one common way of writing BNF, a production looks like this:
 
-=for Marpa::XS::Display:
+=for Marpa::R2::Display:
 ignore: 1
 
     Expression ::= Term Factor
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 In the production above, C<Expression>, C<Term> and C<Factor> are symbols.
 A production consists of a B<left hand side> and a B<right hand side>.
@@ -155,21 +155,21 @@ replaced by the RHS of the production.
 For example, if C<A>, C<B>, C<C>, C<D>, and C<X> are symbols,
 and
 
-=for Marpa::XS::Display:
+=for Marpa::R2::Display:
 ignore: 1
 
     X ::= B C
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 is a production, then
 
-=for Marpa::XS::Display:
+=for Marpa::R2::Display:
 ignore: 1
 
     A X D -> A B C D
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 is a derivation step, with "C<A X D>" as its beginning and "C<A B C D>" as its end or result.
 We say that the symbol string "C<A X D>"
@@ -443,25 +443,25 @@ The value of a parse is the value of its start symbol.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 

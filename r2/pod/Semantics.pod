@@ -1,30 +1,30 @@
 # Copyright 2011 Jeffrey Kegler
-# This file is part of Marpa::XS.  Marpa::XS is free software: you can
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
 #
-# Marpa::XS is distributed in the hope that it will be useful,
+# Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser
-# General Public License along with Marpa::XS.  If not, see
+# General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 =head1 NAME
 
-Marpa::XS::Semantics - How Marpa evaluates parses
+Marpa::R2::Semantics - How Marpa evaluates parses
 
 =head1 SYNOPSIS
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start          => 'Expression',
             actions        => 'My_Actions',
             default_action => 'first_arg',
@@ -41,9 +41,9 @@ normalize-whitespace: 1
         }
     );
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
@@ -63,7 +63,7 @@ normalize-whitespace: 1
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =head1 OVERVIEW
 
@@ -169,7 +169,7 @@ a Perl C<undef>.
 
 =head2 Sequence rule nodes
 
-Some rules are L<sequence rules|Marpa::XS::Grammar/"Sequence Rules">.
+Some rules are L<sequence rules|Marpa::R2::Grammar/"Sequence Rules">.
 Sequence rule nodes are also rule nodes.
 Everything said above about rule nodes
 applies to sequence rule nodes.
@@ -226,7 +226,7 @@ or who would like
 to read a more detailed account of how Marpa's
 null semantics works,
 should turn to L<the document on
-null semantics|Marpa::XS::Semantics::Null>.
+null semantics|Marpa::R2::Semantics::Null>.
 
 =head1 OVERVIEW OF THE SEMANTIC PHASES
 
@@ -246,19 +246,19 @@ a series of zero or more parse trees,
 each with its own parse result.
 The first call to the 
 L<the recognizer's C<value>
-method|Marpa::XS::Recognizer/"value">
+method|Marpa::R2::Recognizer/"value">
 after the recognizer is created is the
 start of the first parse series.
 The first parse series continues until there is
 a call to the
 L<the C<reset_evaluation>
-method|Marpa::XS::Recognizer/"reset_evaluation">
+method|Marpa::R2::Recognizer/"reset_evaluation">
 or until the recognizer is destroyed.
 Usually, an application is only interested in a single
 parse series.
 
 When the
-L<C<reset_evaluation>|Marpa::XS::Recognizer/"reset_evaluation">
+L<C<reset_evaluation>|Marpa::R2::Recognizer/"reset_evaluation">
 method
 is called
 for a recognizer, it begins a new parse series.
@@ -266,7 +266,7 @@ The new parse series continues until
 there is another
 call to the
 L<the C<reset_evaluation>
-method|Marpa::XS::Recognizer/"reset_evaluation">,
+method|Marpa::R2::Recognizer/"reset_evaluation">,
 or until the recognizer is destroyed.
 
 =head2 Summary of the phases
@@ -573,7 +573,7 @@ with no duplication.
 By default, the order is arbitrary, but
 it is also possible to control the order.
 Details are in L<the document
-on parse order|Marpa::XS::Semantics::Order>.
+on parse order|Marpa::R2::Semantics::Order>.
 
 =head1 INFINITE LOOPS
 
@@ -600,29 +600,29 @@ of infinite loops.
 But practical interest in this seems non-existent.
 For those who want to know more,
 the details are in a L<separate
-document|Marpa::XS::Semantics::Infinite>.
+document|Marpa::R2::Semantics::Infinite>.
 
 =head1 COPYRIGHT AND LICENSE
 
-=for Marpa::XS::Display
+=for Marpa::R2::Display
 ignore: 1
 
   Copyright 2011 Jeffrey Kegler
-  This file is part of Marpa::XS.  Marpa::XS is free software: you can
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
   
-  Marpa::XS is distributed in the hope that it will be useful,
+  Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
   
   You should have received a copy of the GNU Lesser
-  General Public License along with Marpa::XS.  If not, see
+  General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
 
-=for Marpa::XS::Display::End
+=for Marpa::R2::Display::End
 
 =cut
 
