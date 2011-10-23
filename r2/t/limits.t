@@ -44,7 +44,8 @@ sub test_grammar {
     my ( $grammar_args, $tokens ) = @_;
 
     my $grammar;
-    my $eval_ok = eval { $grammar = Marpa::R2::Grammar->new($grammar_args); 1; };
+    my $eval_ok =
+        eval { $grammar = Marpa::R2::Grammar->new($grammar_args); 1; };
     die "Exception while creating Grammar:\n$EVAL_ERROR"
         if not $eval_ok;
     die "Grammar not created\n" if not $grammar;

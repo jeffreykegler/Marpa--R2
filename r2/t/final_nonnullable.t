@@ -150,8 +150,8 @@ for my $input_length ( 1 .. 4 ) {
 
     # Set max at 10 just in case there's an infinite loop.
     # This is for debugging, after all
-    my $recce =
-        Marpa::R2::Recognizer->new( { grammar => $grammar, max_parses => 10 } );
+    my $recce = Marpa::R2::Recognizer->new(
+        { grammar => $grammar, max_parses => 10 } );
     $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x $input_length ] );
     while ( my $value_ref = $recce->value() ) {
         my $value = $value_ref ? ${$value_ref} : 'No parse';

@@ -185,7 +185,8 @@ $g->precompute();
 TEST: for my $test_data (@test_data) {
 
     my ( $test_name, $test_input, $test_results ) = @{$test_data};
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $g, mode => 'stream' } );
+    my $recce =
+        Marpa::R2::Recognizer->new( { grammar => $g, mode => 'stream' } );
 
     my $input_length = length $test_input;
     pos $test_input = 0;

@@ -58,7 +58,7 @@ sub rule_f {
 my $grammar = Marpa::R2::Grammar->new(
     {   start           => 'S',
         infinite_action => 'quiet',
-        rules => [
+        rules           => [
             {   lhs    => 'S',
                 rhs    => [qw/n n n f/],
                 action => 'main::start_rule'

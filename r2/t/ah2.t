@@ -77,7 +77,8 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 14: S['][] -> /* empty vlhs real=1 */
 EOS
 
-Marpa::R2::Test::is( $grammar->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
+Marpa::R2::Test::is( $grammar->show_symbols,
+    <<'EOS', 'Aycock/Horspool Symbols' );
 0: S, lhs=[0 4 5 6] rhs=[13]
 1: A, lhs=[1 2] rhs=[0 4 5 7 8 10 11 12]
 2: a, lhs=[] rhs=[1] terminal
@@ -112,7 +113,7 @@ Marpa::R2::Test::is(
 );
 
 Marpa::R2::Test::is( $grammar->show_AHFA_items(),
-        <<'EOS', 'Aycock/Horspool AHFA Items' );
+    <<'EOS', 'Aycock/Horspool AHFA Items' );
 AHFA item 0: sort = 9; postdot = "a"
     A -> . a
 AHFA item 1: sort = 14; completion

@@ -27,10 +27,8 @@ BEGIN {
 defined $INC{'Marpa/R2.pm'}
     or Test::More::BAIL_OUT('Could not load Marpa::R2');
 
-Test::More::ok(
-    ( defined $Marpa::R2::VERSION ),
-    'Marpa::R2 version is ' . $Marpa::R2::VERSION
-);
+Test::More::ok( ( defined $Marpa::R2::VERSION ),
+    'Marpa::R2 version is ' . $Marpa::R2::VERSION );
 Test::More::ok( ( defined $Marpa::R2::STRING_VERSION ),
     'Marpa::R2 string version is ' . $Marpa::R2::STRING_VERSION );
 

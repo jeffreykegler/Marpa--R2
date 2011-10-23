@@ -58,7 +58,7 @@ sub rule_f {
 my $grammar = Marpa::R2::Grammar->new(
     {   start           => 'S',
         infinite_action => 'quiet',
-        rules => [
+        rules           => [
             { lhs => 'S', rhs => [qw/n f/], action => 'main::start_rule' },
             { lhs => 'n', rhs => ['a'],     action => 'main::rule_n' },
             { lhs => 'n', rhs => [] },
@@ -116,8 +116,8 @@ my @expected = (
 );
 
 for my $input_length ( 1 .. 3 ) {
-    my $recce =
-        Marpa::R2::Recognizer->new( { grammar => $grammar, max_parses => 99 } );
+    my $recce = Marpa::R2::Recognizer->new(
+        { grammar => $grammar, max_parses => 99 } );
     $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] );
     my $expected = $expected[$input_length];
     my @values   = ();

@@ -56,7 +56,8 @@ Marpa::R2::Test::is( $grammar->show_symbols(),
 4: S['][], lhs=[5] rhs=[] nullable nulling
 END_OF_STRING
 
-Marpa::R2::Test::is( $grammar->show_rules, <<'END_OF_STRING', 'Leo166 Rules' );
+Marpa::R2::Test::is( $grammar->show_rules,
+    <<'END_OF_STRING', 'Leo166 Rules' );
 0: S -> a S /* !used */
 1: S -> /* empty !used */
 2: S -> a S
@@ -102,7 +103,8 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     } ## end while ( $i++ < $length )
 
     my $expected_size = $leo_flag ? 4 : $length + 2;
-    Marpa::R2::Test::is( $max_size, $expected_size, "Leo flag $leo_flag, size" );
+    Marpa::R2::Test::is( $max_size, $expected_size,
+        "Leo flag $leo_flag, size" );
 
     my $value_ref = $recce->value( {} );
     my $value = $value_ref ? ${$value_ref} : 'No parse';
