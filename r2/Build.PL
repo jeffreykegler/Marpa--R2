@@ -88,7 +88,9 @@ my $build = Marpa::R2::Build_Me->new(
             { repository => 'git://github.com/jeffreykegler/Marpa-R2.git', },
         no_index => {
             directory =>
-                [qw( pperl config inc tool t html devlib libmarpa author.t )],
+                [qw( pperl config inc tool t html devlib libmarpa author.t
+		    html/etc html/sandbox html/script html/t
+		)],
             namespace => [
                 'Marpa::R2::Recognizer', 'Marpa::R2::Grammar',
                 @no_index_namespace_inclusive
@@ -99,7 +101,7 @@ my $build = Marpa::R2::Build_Me->new(
     pod_files          => \%pod_files,
     create_readme      => 0,
     create_makefile_pl => 'small',
-    test_files         => [ map { glob $_ } qw(t/*.t t/shared/*.t) ],
+    test_files         => [ map { glob $_ } qw(t/*.t t/shared/*.t html/t/*.t) ],
 );
 
 $build->create_build_script;
