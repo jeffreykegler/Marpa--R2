@@ -13,67 +13,27 @@
 # General Public License along with Marpa::XS.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: libs dummy full pp_html_test xs_html_test pp_etc_make xs_etc_make \
-    pplib xslib libs
+.PHONY: dummy basic_test full_test etc_make install
 
 dummy: 
 
-xs_basic_test:
-	(cd xs && ./Build test)
+basic_test:
+	(cd r2 && ./Build test)
 
-xst: xs_basic_test xs_html_test
+etc_make:
+	(cd r2/etc && make)
 
-libs: pplib xslib
+full_test: etc_make
 
-pplib:
-	-mkdir dpplib
-	-rm -rf dpplib/lib dpplib/man dpplib/html
-	(cd pp && ./Build install --install_base ../dpplib)
-
-xslib:
-	-mkdir dxslib
-	-rm -rf dxslib/lib dxslib/man dxslib/html
-	(cd xs && ./Build install --install_base ../dxslib)
-
-html_blib:
-	(cd html && ./Build code)
-
-pp_html_test: html_blib pplib
-	(cd html && \
-	PERL5LIB=$(CURDIR)/noxs/lib:$(CURDIR)/dpplib/lib/perl5:$$PERL5LIB prove -Ilib t )
-
-xs_html_test: html_blib xslib
-	(cd html && \
-	PERL5LIB=$(CURDIR)/dxslib/lib/perl5:$$PERL5LIB prove -Ilib t )
-
-
-pp_etc_make:
-	(cd pp/etc && make)
-
-xs_etc_make:
-	(cd xs/etc && make)
-
-pp_full_test: pplib pp_etc_make pp_html_test
-
-xs_full_test: xslib xs_etc_make xs_html_test
-
-full_test: pp_full_test  xs_full_test
-
-html_full_test: pp_html_test xs_html_test
-	
 install:
-	(cd xs/libmarpa/dev && make)
-	(cd xs/libmarpa/dev && make install)
-	-mkdir xs/libmarpa/dist/m4
-	(cd xs/libmarpa/dist && autoreconf -ivf)
-	-mkdir xs/libmarpa/test/dev/m4
-	(cd xs/libmarpa/test/dev && autoreconf -ivf)
-	(cd pp && perl Build.PL)
-	(cd pp && ./Build code)
-	(cd xs && perl Build.PL)
-	(cd xs && ./Build code)
-	(cd html && perl Build.PL)
-	(cd html && ./Build code)
-	-mkdir xs/libmarpa/test/work
-	(cd xs/libmarpa/test/work && sh ../dev/configure)
-	(cd xs/libmarpa/test/work && make)
+	(cd r2/libmarpa/dev && make)
+	(cd r2/libmarpa/dev && make install)
+	-mkdir r2/libmarpa/dist/m4
+	(cd r2/libmarpa/dist && autoreconf -ivf)
+	-mkdir r2/libmarpa/test/dev/m4
+	(cd r2/libmarpa/test/dev && autoreconf -ivf)
+	(cd r2 && perl Build.PL)
+	(cd r2 && ./Build code)
+	-mkdir r2/libmarpa/test/work
+	(cd r2/libmarpa/test/work && sh ../dev/configure)
+	(cd r2/libmarpa/test/work && make)
