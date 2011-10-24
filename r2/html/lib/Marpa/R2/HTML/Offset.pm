@@ -3,7 +3,7 @@
 # under the same terms as the Perl 5 programming language system
 # itself.
 
-package Marpa::HTML::Offset;
+package Marpa::R2::HTML::Offset;
 
 use 5.010;
 use strict;
