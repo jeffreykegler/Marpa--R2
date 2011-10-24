@@ -11,8 +11,8 @@ use warnings;
 use lib 'lib';
 use Test::More tests => 4;
 Test::More::use_ok('HTML::PullParser');
-Test::More::use_ok('Marpa::HTML::Test');
-Test::More::use_ok('Marpa::HTML');
+Test::More::use_ok('Marpa::R2::Test');
+Test::More::use_ok('Marpa::R2::HTML');
 
 use Carp;
 use Data::Dumper;
@@ -35,10 +35,10 @@ my $no_tang_document;
     close $fh;
 };
 
-my $value = Marpa::HTML::html(
+my $value = Marpa::R2::HTML::html(
     \$document,
     {   '.ktang' => sub { return q{}; }
     }
 );
 
-Marpa::HTML::Test::is( ${$value}, $no_tang_document, 'remove kTang class' );
+Marpa::R2::Test::is( ${$value}, $no_tang_document, 'remove kTang class' );

@@ -8,29 +8,18 @@ use 5.010;
 use warnings;
 use strict;
 
-use Test::More tests => 6;
+use Test::More tests => 4;
 
 use Carp;
 use Data::Dumper;
 
-Test::More::use_ok('Marpa::HTML');
+Test::More::use_ok('Marpa::R2::HTML');
 
-Test::More::ok( defined $Marpa::HTML::TIMESTAMP, 'Marpa::HTML Timestamp defined' );
-Test::More::diag('Using Marpa::HTML ', $Marpa::HTML::VERSION, q{ }, $Marpa::HTML::TIMESTAMP);
+Test::More::ok( defined $Marpa::R2::HTML::TIMESTAMP, 'Marpa::R2::HTML Timestamp defined' );
+Test::More::diag('Using Marpa::R2::HTML ', $Marpa::R2::HTML::VERSION, q{ }, $Marpa::R2::HTML::TIMESTAMP);
 
-SKIP: {
-   skip "Not Using PP", 2 if $Marpa::USING_XS;
-   Test::More::ok( $Marpa::USING_PP, 'Using PP' );
-   Test::More::ok( defined $Marpa::PP::TIMESTAMP, 'Marpa::PP Timestamp defined' );
-   Test::More::diag('Using Marpa::PP ', $Marpa::PP::VERSION, q{ }, $Marpa::PP::TIMESTAMP);
-}
-
-SKIP: {
-   skip "Not Using XS", 2 if $Marpa::USING_PP;
-   Test::More::ok( $Marpa::USING_XS, 'Using XS' );
-   Test::More::ok( defined $Marpa::XS::TIMESTAMP, 'Marpa::XS Timestamp defined' );
-   Test::More::diag('Using Marpa::XS ', $Marpa::XS::VERSION, q{ }, $Marpa::XS::TIMESTAMP);
-}
+Test::More::ok( defined $Marpa::R2::TIMESTAMP, 'Marpa::XS Timestamp defined' );
+Test::More::diag('Using Marpa::R2 ', $Marpa::R2::VERSION, q{ }, $Marpa::R2::TIMESTAMP);
 
 1;    # In case used as "do" file
 

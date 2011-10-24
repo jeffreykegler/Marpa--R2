@@ -11,12 +11,12 @@ use English qw( -no_match_vars );
 use List::Util;
 use Test::More tests => 5;
 Test::More::use_ok('HTML::PullParser');
-Test::More::use_ok('Marpa::HTML::Test');
-Test::More::use_ok('Marpa::HTML');
+Test::More::use_ok('Marpa::R2::Test');
+Test::More::use_ok('Marpa::R2::HTML');
 
 # Non-synopsis example in HTML.pod
 
-# Marpa::HTML::Display
+# Marpa::R2::Display
 # name: 'HTML Pod: Handler Precedence'
 
 my $html = <<'END_OF_HTML';
@@ -27,32 +27,32 @@ my $html = <<'END_OF_HTML';
 <div class="oddball">Oddball Div</div>
 END_OF_HTML
 
-my $result = Marpa::HTML::html(
+my $result = Marpa::R2::HTML::html(
     \$html,
     {   q{*} => sub {
-            return 'wildcard handler: ' . Marpa::HTML::contents();
+            return 'wildcard handler: ' . Marpa::R2::HTML::contents();
         },
-        'head' => sub { return Marpa::HTML::literal() },
-        'html' => sub { return Marpa::HTML::literal() },
-        'body' => sub { return Marpa::HTML::literal() },
+        'head' => sub { return Marpa::R2::HTML::literal() },
+        'html' => sub { return Marpa::R2::HTML::literal() },
+        'body' => sub { return Marpa::R2::HTML::literal() },
         'div'  => sub {
-            return '"div" handler: ' . Marpa::HTML::contents();
+            return '"div" handler: ' . Marpa::R2::HTML::contents();
         },
         '.high' => sub {
-            return '".high" handler: ' . Marpa::HTML::contents();
+            return '".high" handler: ' . Marpa::R2::HTML::contents();
         },
         'div.high' => sub {
-            return '"div.high" handler: ' . Marpa::HTML::contents();
+            return '"div.high" handler: ' . Marpa::R2::HTML::contents();
         },
         '.oddball' => sub {
-            return '".oddball" handler: ' . Marpa::HTML::contents();
+            return '".oddball" handler: ' . Marpa::R2::HTML::contents();
         },
     }
 );
 
-# Marpa::HTML::Display::End
+# Marpa::R2::Display::End
 
-# Marpa::HTML::Display
+# Marpa::R2::Display
 # name: 'HTML Pod: Handler Precedence Result'
 # start-after-line: EXPECTED_RESULT
 # end-before-line: '^EXPECTED_RESULT$'
@@ -65,11 +65,11 @@ wildcard handler: Low Span
 ".oddball" handler: Oddball Div
 EXPECTED_RESULT
 
-# Marpa::HTML::Display::End
+# Marpa::R2::Display::End
 
-Marpa::HTML::Test::is( ${$result}, $expected_result, 'handler precedence example' );
+Marpa::R2::Test::is( ${$result}, $expected_result, 'handler precedence example' );
 
-# Marpa::HTML::Display
+# Marpa::R2::Display
 # name: 'HTML Pod: Structure vs. Element Example'
 # start-after-line: END_OF_EXAMPLE
 # end-before-line: '^END_OF_EXAMPLE$'
@@ -78,7 +78,7 @@ my $tagged_html_example = <<'END_OF_EXAMPLE';
     <title>Short</title><p>Text</head><head>
 END_OF_EXAMPLE
 
-# Marpa::HTML::Display::End
+# Marpa::R2::Display::End
 
 my $expected_structured_result = <<'END_OF_EXPECTED';
     <html>
@@ -92,16 +92,16 @@ my $expected_structured_result = <<'END_OF_EXPECTED';
 END_OF_EXPECTED
 
 sub supply_missing_tags {
-    my $tagname = Marpa::HTML::tagname();
+    my $tagname = Marpa::R2::HTML::tagname();
     return
-          ( Marpa::HTML::start_tag() // "<$tagname>\n" )
-        . Marpa::HTML::contents()
-        . ( Marpa::HTML::end_tag() // "</$tagname>\n" );
+          ( Marpa::R2::HTML::start_tag() // "<$tagname>\n" )
+        . Marpa::R2::HTML::contents()
+        . ( Marpa::R2::HTML::end_tag() // "</$tagname>\n" );
 } ## end sub supply_missing_tags
 my $structured_html_ref =
-    Marpa::HTML::html( \$tagged_html_example,
+    Marpa::R2::HTML::html( \$tagged_html_example,
     { q{*} => \&supply_missing_tags } );
 
-Marpa::HTML::Test::is( ${$structured_html_ref}, $expected_structured_result,
+Marpa::R2::Test::is( ${$structured_html_ref}, $expected_structured_result,
     'structure vs. tags example' );
 

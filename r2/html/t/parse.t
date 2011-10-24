@@ -17,17 +17,17 @@ my $DEBUG = 2;
 
 Test::More::use_ok('HTML::Entities');
 Test::More::use_ok('HTML::PullParser');
-Test::More::use_ok('Marpa::HTML');
+Test::More::use_ok('Marpa::R2::HTML');
 
 my $html_args = {
     ':CRUFT' => sub {
-        my $literal = Marpa::HTML::literal();
+        my $literal = Marpa::R2::HTML::literal();
         say STDERR 'Cruft: ', $literal
             or Carp::croak("Cannot print: $ERRNO");
         return qq{<CRUFT literal="$literal">};
     },
     ':PCDATA' => sub {
-        my $literal = Marpa::HTML::literal();
+        my $literal = Marpa::R2::HTML::literal();
         if ( defined &HTML::Entities::decode_entities ) {
             $literal =
                 HTML::Entities::encode_entities(
@@ -36,19 +36,19 @@ my $html_args = {
         return $literal;
     },
     ':PROLOG' => sub {
-        my $literal = Marpa::HTML::literal();
+        my $literal = Marpa::R2::HTML::literal();
         $literal =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
         $literal =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
         return $literal;
     },
     ':COMMENT' => sub { return q{} },
     q{*}       => sub {
-        my $tagname = Marpa::HTML::tagname();
+        my $tagname = Marpa::R2::HTML::tagname();
 
         # say STDERR "In handler for $tagname element";
 
         Carp::croak('Not in an element') if not $tagname;
-        my $attributes = Marpa::HTML::attributes();
+        my $attributes = Marpa::R2::HTML::attributes();
 
         # Note this logic suffices to get through
         # the test set but it does not handle
@@ -64,12 +64,12 @@ my $html_args = {
 
         my $descendant_data =
 
-# Marpa::HTML::Display
+# Marpa::R2::Display
 # name: dataspec example
 
-            Marpa::HTML::descendants('token_type,literal,element')
+            Marpa::R2::HTML::descendants('token_type,literal,element')
 
-# Marpa::HTML::Display::End
+# Marpa::R2::Display::End
 
             ;    # semi to end $descendant_data definition
 
@@ -191,20 +191,20 @@ sub same {
     if ( ref $code2 ) { $code2 = ${$code2} }
 
     my $value1;
-    if ( not eval { $value1 = Marpa::HTML::html( \$code1, $html_args ); 1 } )
+    if ( not eval { $value1 = Marpa::R2::HTML::html( \$code1, $html_args ); 1 } )
     {
         say "No parse for $code1"
             or Carp::croak("Cannot print: $ERRNO");
         return $flip;
-    } ## end if ( not eval { $value1 = Marpa::HTML::html( \$code1...)})
+    } ## end if ( not eval { $value1 = Marpa::R2::HTML::html( \$code1...)})
 
     my $value2;
-    if ( not eval { $value2 = Marpa::HTML::html( \$code2, $html_args ); 1 } )
+    if ( not eval { $value2 = Marpa::R2::HTML::html( \$code2, $html_args ); 1 } )
     {
         say "No parse for $code2"
             or Carp::croak("Cannot print: $ERRNO");
         return $flip;
-    } ## end if ( not eval { $value2 = Marpa::HTML::html( \$code2...)})
+    } ## end if ( not eval { $value2 = Marpa::R2::HTML::html( \$code2...)})
 
     my $out1 = ${$value1};
     my $out2 = ${$value2};

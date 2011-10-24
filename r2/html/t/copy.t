@@ -12,7 +12,7 @@ use lib 'lib';
 use Test::More tests => 3;
 
 Test::More::use_ok('HTML::PullParser');
-Test::More::use_ok('Marpa::HTML');
+Test::More::use_ok('Marpa::R2::HTML');
 
 use Carp;
 use Data::Dumper;
@@ -27,6 +27,6 @@ my $document;
     close $fh
 };
 
-my $value = Marpa::HTML::html( \$document );
+my $value = Marpa::R2::HTML::html( \$document );
 
 Test::More::is( ${$value}, $document, 'Straight copy using defaults' );
