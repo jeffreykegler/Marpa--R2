@@ -55,16 +55,16 @@ $pod_files{'pod/Marpa_R2.pod'} = 'lib/Marpa/R2.pod';
 my @no_index_namespace_inclusive = (
 
     # not for now, at least
-    qw(Marpa::R2::Value Marpa::Perl Marpa::Test Marpa::Display ),
+    qw(Marpa::R2::Value Marpa::R2::Perl Marpa::R2::Test Marpa::R2::Display ),
 
     # never intended to see the light of day
-    qw( Marpa::R2::Internal Marpa::PP ),
+    qw( Marpa::R2::Internal ),
 
 );
 
 my @files_to_cleanup = (
-    'lib/Marpa/R2/Version.pm',   'pperl/Marpa/Perl/Version.pm',
-    'lib/Marpa/R2/Installed.pm', 'pperl/Marpa/Perl/Installed.pm',
+    'lib/Marpa/R2/Version.pm',   'pperl/Marpa/R2/Perl/Version.pm',
+    'lib/Marpa/R2/Installed.pm', 'pperl/Marpa/R2/Perl/Installed.pm',
     'lib/Marpa/R2.o',            'libmarpa/main/build',
 );
 
