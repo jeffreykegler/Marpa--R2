@@ -1,8 +1,0 @@
-Make tracing no longer the default in the recognizer.
-
-Add a "tracing" flag to the recognizer.  Also add a
-warning message when tracing is turned on.  The flag
-turns off the message.
-
-When (if?) I convert Marpa to use Marpa::XS,
-make sure the "interactive" flag works.
