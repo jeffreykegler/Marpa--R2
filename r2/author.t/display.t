@@ -60,6 +60,7 @@ if ( not $debug_mode ) {
         chomp $file;
         $file =~ s/\s*[#].*\z//xms;
         next FILE if $file =~ m( [/] old_pod [/] )xms;
+        next FILE if $file =~ m( html [/] etc [/] drafts [/] )xms;
         my ($ext) = $file =~ / [.] ([^.]+) \z /xms;
         next FILE if not defined $ext;
         $ext = lc $ext;
