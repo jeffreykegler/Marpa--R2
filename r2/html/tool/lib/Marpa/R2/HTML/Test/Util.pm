@@ -54,9 +54,10 @@ sub build_command_line {
     }
 
     return "$EXECUTABLE_NAME -Ilib @args";
+
     # capture-stderr drops core on my Mac OS Tiger laptop
     # return
-        # "$EXECUTABLE_NAME -Ilib ./lib/Marpa/HTML/Test/capture-stderr $catcherr_file @args";
+    # "$EXECUTABLE_NAME -Ilib ./lib/Marpa/HTML/Test/capture-stderr $catcherr_file @args";
 } ## end sub build_command_line
 
 sub run_command {
@@ -93,6 +94,7 @@ sub run_with_stderr {
     # unlink $catcherr_file;
 
     return ( $stdout, q{}, $rc );
+
     # return ( $stdout, $stderr, $rc );
 } ## end sub run_with_stderr
 

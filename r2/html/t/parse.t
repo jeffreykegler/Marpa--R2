@@ -201,7 +201,8 @@ sub same {
     if ( ref $code2 ) { $code2 = ${$code2} }
 
     my $value1;
-    if ( not eval { $value1 = Marpa::R2::HTML::html( \$code1, $html_args ); 1 } )
+    if (not eval { $value1 = Marpa::R2::HTML::html( \$code1, $html_args ); 1 }
+        )
     {
         say "No parse for $code1"
             or Carp::croak("Cannot print: $ERRNO");
@@ -209,7 +210,8 @@ sub same {
     } ## end if ( not eval { $value1 = Marpa::R2::HTML::html( \$code1...)})
 
     my $value2;
-    if ( not eval { $value2 = Marpa::R2::HTML::html( \$code2, $html_args ); 1 } )
+    if (not eval { $value2 = Marpa::R2::HTML::html( \$code2, $html_args ); 1 }
+        )
     {
         say "No parse for $code2"
             or Carp::croak("Cannot print: $ERRNO");

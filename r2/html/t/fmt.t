@@ -36,7 +36,8 @@ for my $test (qw(1 2)) {
     my $expected;
     my $output = Marpa::R2::HTML::Test::Util::run_command(
         File::Spec->catfile( @script_dir, 'marpa_r2_html_fmt' ),
-        File::Spec->catfile( @data_dir, ( 'input' . $test . '.html' ) ) );
+        File::Spec->catfile( @data_dir, ( 'input' . $test . '.html' ) )
+    );
     local $RS = undef;
     open my $fh, q{<},
         File::Spec->catfile( @data_dir, ( 'expected' . $test . '.html' ) );

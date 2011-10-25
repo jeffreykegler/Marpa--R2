@@ -79,7 +79,8 @@ EXPECTED_RESULT
 
 # Marpa::R2::Display::End
 
-Marpa::R2::Test::is( ${$result}, $expected_result, 'handler precedence example' );
+Marpa::R2::Test::is( ${$result}, $expected_result,
+    'handler precedence example' );
 
 # Marpa::R2::Display
 # name: 'HTML Pod: Structure vs. Element Example'
