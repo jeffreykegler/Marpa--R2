@@ -11,6 +11,8 @@ use English qw( -no_match_vars );
 use List::Util;
 use Test::More tests => 5;
 Test::More::use_ok('HTML::PullParser');
+
+use lib 'tool/lib';
 Test::More::use_ok('Marpa::R2::Test');
 Test::More::use_ok('Marpa::R2::HTML');
 
