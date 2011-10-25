@@ -23,25 +23,27 @@
          "html",
          "devlib",
          "libmarpa",
-         "author.t"
+         "author.t",
+         "html/etc",
+         "html/sandbox",
+         "html/script",
+         "html/t"
       ],
       "namespace" : [
          "Marpa::R2::Recognizer",
          "Marpa::R2::Grammar",
          "Marpa::R2::Value",
-         "Marpa::Perl",
-         "Marpa::Test",
-         "Marpa::Display",
-         "Marpa::R2::Internal",
-         "Marpa::PP"
+         "Marpa::R2::Perl",
+         "Marpa::R2::Test",
+         "Marpa::R2::Display",
+         "Marpa::R2::Internal"
       ],
       "package" : [
          "Marpa::R2::Value",
-         "Marpa::Perl",
-         "Marpa::Test",
-         "Marpa::Display",
-         "Marpa::R2::Internal",
-         "Marpa::PP"
+         "Marpa::R2::Perl",
+         "Marpa::R2::Test",
+         "Marpa::R2::Display",
+         "Marpa::R2::Internal"
       ]
    },
    "prereqs" : {

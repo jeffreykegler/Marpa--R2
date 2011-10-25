@@ -21,6 +21,7 @@ use Fatal qw(open close mkdir chdir);
 use File::Spec 0.82;
 use IPC::Cmd;
 use File::Path;
+use File::Find;
 
 use Config;
 use Module::Build;
@@ -52,6 +53,26 @@ my %recommends =
 my %pod_files = ();
 $pod_files{'pod/Marpa_R2.pod'} = 'lib/Marpa/R2.pod';
 
+my %pm_files = ();
+File::Find::find(
+    sub {
+        return if not m/[.]pm \z/xms;
+        $pm_files{$File::Find::name} = $File::Find::name;
+    },
+    'lib'
+);
+File::Find::find(
+    sub {
+        return if not m/[.]pm \z/xms;
+        my ( $vol, $dirs, $file ) = File::Spec->splitpath($File::Find::name);
+        my @dirs      = File::Spec->splitdir($dirs);
+        my $dest_dirs = File::Spec->catdir( @dirs[ 1 .. $#dirs ] );
+        my $dest_name = File::Spec->catpath( $vol, $dest_dirs, $file );
+        $pm_files{$File::Find::name} = $dest_name;
+    },
+    'html/lib'
+);
+
 my @no_index_namespace_inclusive = (
 
     # not for now, at least
@@ -82,6 +103,8 @@ my $build = Marpa::R2::Build_Me->new(
         "$glib_2_0_compiler_flags -I$gperl_h_location -Ilibmarpa/dist",
     extra_linker_flags => "$glib_2_0_linker_flags",
     PL_files           => {},
+    pm_files           => \%pm_files,
+    script_files => [ 'html/script/marpa_r2_html_fmt', 'html/script/marpa_r2_html_score', ],
     xs_files           => { 'xs/R2.xs' => 'lib/Marpa/R2.xs' },
     meta_merge         => {
         resources =>
@@ -101,7 +124,7 @@ my $build = Marpa::R2::Build_Me->new(
     pod_files          => \%pod_files,
     create_readme      => 0,
     create_makefile_pl => 'small',
-    test_files         => [ map { glob $_ } qw(t/*.t t/shared/*.t html/t/*.t) ],
+    test_files         => [ map { glob $_ } qw(t/*.t html/t/*.t) ],
 );
 
 $build->create_build_script;

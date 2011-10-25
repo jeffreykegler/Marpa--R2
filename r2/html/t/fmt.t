@@ -20,18 +20,18 @@ Test::More::use_ok('Marpa::R2::HTML::Test::Util');
 Test::More::use_ok('HTML::PullParser');
 
 my @script_dir = qw( blib script );
-my @data_dir   = qw( t fmt_t_data );
+my @data_dir   = qw( html t fmt_t_data );
 
 for my $test (qw(1 2)) {
     my $expected;
     my $output = Marpa::R2::HTML::Test::Util::run_command(
-        File::Spec->catfile( @script_dir, 'html_fmt' ),
+        File::Spec->catfile( @script_dir, 'marpa_r2_html_fmt' ),
         File::Spec->catfile( @data_dir, ( 'input' . $test . '.html' ) ) );
     local $RS = undef;
     open my $fh, q{<},
         File::Spec->catfile( @data_dir, ( 'expected' . $test . '.html' ) );
     $expected = <$fh>;
     close $fh;
-    Marpa::R2::Test::is( $output, $expected, 'html_fmt test' );
+    Marpa::R2::Test::is( $output, $expected, 'marpa_r2_html_fmt test' );
 } ## end for my $test (qw(1 2))
 

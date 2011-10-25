@@ -8,7 +8,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Marpa::HTML;
+use Marpa::R2::HTML;
 use HTML::Tagset;
 use Fatal qw(open close);
 
@@ -32,7 +32,7 @@ my $html_args = {
         my @new_line_data      = ();
         my @following_comments = ();
         CHILD:
-        for my $descendant_data ( @{ Marpa::HTML::descendants('value') } ) {
+        for my $descendant_data ( @{ Marpa::R2::HTML::descendants('value') } ) {
             next CHILD if not defined( my $value = $descendant_data->[0] );
             for my $line_data ( @{$value} ) {
                 given ( $line_data->[0] ) {    # depending on the type
@@ -48,14 +48,14 @@ my $html_args = {
                     } ## end when ( [ 'cruft', 'missing start tag', ...])
                 } ## end given
             } ## end for my $line_data ( @{$value} )
-        } ## end for my $descendant_data ( @{ Marpa::HTML::descendants('value'...)})
-        my $original = Marpa::HTML::original();
+        } ## end for my $descendant_data ( @{ Marpa::R2::HTML::descendants('value'...)})
+        my $original = Marpa::R2::HTML::original();
         push @new_line_data, [ 'line', 0, $original ];
         push @new_line_data, @following_comments;
         return \@new_line_data;
     },
     ':CRUFT' => sub {
-        my $literal = Marpa::HTML::literal();
+        my $literal = Marpa::R2::HTML::literal();
         my @new_line_data = ( [ 'cruft', 0, 'following', $literal ] );
         $literal =~ s/^\s+//gxms;
         $literal =~ s/\s+$//gxms;
@@ -64,10 +64,10 @@ my $html_args = {
         return \@new_line_data;
     },
     q{*} => sub {
-        my $tagname       = Marpa::HTML::tagname();
+        my $tagname       = Marpa::R2::HTML::tagname();
         my @new_line_data = ();
         my @descendant_data =
-            @{ Marpa::HTML::descendants('token_type,value,original') };
+            @{ Marpa::R2::HTML::descendants('token_type,value,original') };
         my $first_child         = $descendant_data[0];
         my $first_content_child = 0;
 
@@ -124,7 +124,7 @@ my $html_args = {
         my $result = q{};
         CHILD:
         for my $descendant_data (
-            @{ Marpa::HTML::descendants('value,original') } )
+            @{ Marpa::R2::HTML::descendants('value,original') } )
         {
             my ( $value, $original ) = @{$descendant_data};
             if ( defined $value ) {
@@ -220,12 +220,12 @@ my $html_args = {
                 $line =~ s/\s+/ /gxms;
                 $result .= "$line\n";
             } ## end for my $line ( split /\n/xms, $original )
-        } ## end for my $descendant_data ( @{ Marpa::HTML::descendant_data(...)})
+        } ## end for my $descendant_data ( @{ Marpa::R2::HTML::descendant_data(...)})
         return $result;
     },
 };
 
-print Marpa::HTML::html( \$document, $html_args );
+print Marpa::R2::HTML::html( \$document, $html_args );
 
 exit 0;
 
@@ -343,11 +343,11 @@ L<html_fmt> returns
 
 This program is a demo of a demo.
 It purpose is to show how easy it is to write applications which look
-at the structure of web pages using L<Marpa::HTML>.
-And the purpose of L<Marpa::HTML>
+at the structure of web pages using L<Marpa::R2::HTML>.
+And the purpose of L<Marpa::R2::HTML>
 is to demonstrate the power of its parse engine,
 L<Marpa>.
-L<Marpa::HTML> was written in a few days,
+L<Marpa::R2::HTML> was written in a few days,
 and its logic 
 is a straightforward,
 natural expression of the structure of HTML.
