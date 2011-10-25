@@ -10,6 +10,8 @@ use warnings;
 use English qw( -no_match_vars );
 use List::Util;
 use Test::More tests => 11;
+use lib 'tool/lib';
+use lib 'html/tool/lib';
 Test::More::use_ok('HTML::PullParser');
 Test::More::use_ok('Marpa::R2::Test');
 
