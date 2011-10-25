@@ -15,6 +15,9 @@
 
 Revision history for Marpa::R2
 
+0.001_001 Mon Oct 24 20:29:34 PDT 2011
 0.001_000 Fri Oct 21 20:57:44 PDT 2011
+
+	* Series of developer's versions
 
 	* Marpa::R2 forked from Marpa::XS 0.019_002
