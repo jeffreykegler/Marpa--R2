@@ -72,6 +72,10 @@ File::Find::find(
     },
     'html/lib'
 );
+for my $pm_file (qw(Version.pm Installed.pm)) {
+    my $pm_fullname = 'lib/Marpa/R2/' . $pm_file;
+    $pm_files{$pm_fullname} = $pm_fullname;
+}
 
 my @no_index_namespace_inclusive = (
 
