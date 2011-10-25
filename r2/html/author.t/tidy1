@@ -1,3 +1,0 @@
-#!/bin/sh
-
-perltidy --profile=perltidyrc $1 | diff $1 -
