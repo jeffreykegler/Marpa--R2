@@ -3,7 +3,7 @@
 # under the same terms as the Perl 5 programming language system
 # itself.
 
-package Marpa::HTML::Test::Util;
+package Marpa::R2::HTML::Test::Util;
 
 # The original of this code was copied from Andy Lester's Ack
 # package
