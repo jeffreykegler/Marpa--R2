@@ -23,7 +23,9 @@ package Marpa::R2::HTML::Callback;
 use vars qw( $VERSION $STRING_VERSION );
 $VERSION = '0.001_002';
 $STRING_VERSION = $VERSION;
+## use critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
+## no critic
 
 package Marpa::R2::HTML::Internal::Callback;
 

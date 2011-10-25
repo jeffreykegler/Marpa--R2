@@ -32,7 +32,7 @@ Test::More::use_ok('Marpa::R2::HTML');
 my $html_args = {
     ':CRUFT' => sub {
         my $literal = Marpa::R2::HTML::literal();
-        say STDERR 'Cruft: ', $literal
+        say {*STDERR} 'Cruft: ', $literal
             or Carp::croak("Cannot print: $ERRNO");
         return qq{<CRUFT literal="$literal">};
     },
