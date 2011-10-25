@@ -22,7 +22,7 @@ use Fatal qw(open close);
 my $document;
 {
     local $RS = undef;
-    open my $fh, q{<:utf8}, 't/test.html';
+    open my $fh, q{<:utf8}, 'html/t/test.html';
     $document = <$fh>;
     close $fh
 };

@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 use vars qw( $VERSION $STRING_VERSION );
-$VERSION = '0.103_000';
+$VERSION = '0.001_000';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
@@ -28,6 +28,15 @@ use HTML::Tagset ();
 # those required in Build.PL
 
 use English qw( -no_match_vars );
+use Marpa::R2;
+{
+    my $submodule_version = $Marpa::R2::VERSION;
+    die 'Marpa::R2::VERSION not defined' if not defined $submodule_version;
+    die
+        "Marpa::R2::VERSION ($submodule_version) does not match Marpa::R2::HTML::VERSION ",
+        $Marpa::R2::HTML::VERSION
+        if $submodule_version != $Marpa::R2::HTML::VERSION;
+}
 
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
@@ -63,7 +72,8 @@ END_OF_STRUCTURE
     unbroken_text => 1,
 );
 
-use Marpa::R2::Offset qw(
+BEGIN {
+    my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::R2::HTML::Internal::Token
     TYPE
     LINE
@@ -74,9 +84,19 @@ use Marpa::R2::Offset qw(
     TAGNAME
     =IS_CDATA
     ATTR
-);
+END_OF_STRUCTURE
+    Marpa::R2::offset($structure);
+} ## end BEGIN
 
 use Marpa::R2::HTML::Callback;
+{
+    my $submodule_version = $Marpa::R2::HTML::Callback::VERSION;
+    die 'Marpa::R2::HTML::Callback::VERSION not defined' if not defined $submodule_version;
+    die
+        "Marpa::R2::HTML::Callback::VERSION ($submodule_version) does not match Marpa::R2::HTML::VERSION ",
+        $Marpa::R2::HTML::VERSION
+        if $submodule_version != $Marpa::R2::HTML::VERSION;
+}
 
 sub per_element_handlers {
     my ( $element, $user_handlers ) = @_;
@@ -1092,14 +1112,13 @@ sub parse {
 
     } ## end DECIDE_CRUFT_TREATMENT:
 
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   rules           => \@rules,
             start           => 'document',
             terminals       => \@terminals,
             inaccessible_ok => 1,
             unproductive_ok => 1,
             default_action  => 'Marpa::R2::HTML::Internal::default_action',
-            strip           => 0,
         }
     );
     $grammar->precompute();
@@ -1113,7 +1132,7 @@ sub parse {
             or Carp::croak("Cannot print: $ERRNO");
     }
 
-    my $recce = Marpa::Recognizer->new(
+    my $recce = Marpa::R2::Recognizer->new(
         {   grammar           => $grammar,
             trace_terminals   => $self->{trace_terminals},
             trace_earley_sets => $self->{trace_earley_sets},

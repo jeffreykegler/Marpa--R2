@@ -3,12 +3,19 @@
 # under the same terms as the Perl 5 programming language system
 # itself.
 
-package Marpa::R2::HTML::Internal::Callback;
-
 use 5.010;
 use warnings;
 use strict;
 use integer;
+
+package Marpa::R2::HTML::Callback;
+
+use vars qw( $VERSION $STRING_VERSION );
+$VERSION = '0.001_000';
+$STRING_VERSION = $VERSION;
+$VERSION = eval $VERSION;
+
+package Marpa::R2::HTML::Internal::Callback;
 
 # use Smart::Comments '-ENV';
 
