@@ -276,19 +276,7 @@ sub file_type {
         if scalar @dirs > 1
             and $dirs[0] eq 'pperl'
             and $filepart =~ /[.]pm\z/xms;
-    return \&license_problems_in_perl_file
-        if scalar @dirs == 3
-            and $dirs[0] eq 't'
-            and $dirs[1] eq 'shared'
-            and $dirs[2] eq 'common'
-            and $filepart =~ /[.]t\z/xms;
-    return \&trivial
-        if scalar @dirs == 2
-            and $dirs[0] eq 't'
-            and $dirs[1] eq 'shared'
-            and $filepart =~ /[.]t\z/xms;
     return \&ignored
-
         if scalar @dirs >= 2
             and $dirs[0] eq 'libmarpa'
             and $dirs[1] eq 'orig';
@@ -625,7 +613,9 @@ sub license_problems_in_pod_file {
         my $problem =
             "=== licensing pod section for $filename should be as follows:\n"
             . $pod_section
-            . ( q{=} x 30 );
+            . ( q{=} x 30 )
+	    . "\n"
+	    ;
         push @problems, $problem;
     } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
