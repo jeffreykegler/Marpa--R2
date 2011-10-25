@@ -139,8 +139,20 @@ my %GNU_file =
     Makefile.in
 );
 
+sub ignored {
+    my ( $filename, $verbose ) = @_;
+    my @problems = ();
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as ignored file" or die "say failed: $ERRNO";
+    }
+    return @problems;
+} ## end sub trivial
+
 sub trivial {
     my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as trivial file" or die "say failed: $ERRNO";
+    }
     my $length   = 1000;
     my @problems = ();
     if ( -s $filename > $length ) {
@@ -153,6 +165,9 @@ sub trivial {
 
 sub check_GNU_copyright {
     my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as GNU copyright file" or die "say failed: $ERRNO";
+    }
     my @problems = ();
     my $text = slurp_top( $filename, 1000 );
     ${$text} =~ s/^[#]//gxms;
@@ -170,6 +185,9 @@ sub check_GNU_copyright {
 
 sub check_X_copyright {
     my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as X Consortium file" or die "say failed: $ERRNO";
+    }
     my @problems = ();
     my $text = slurp_top( $filename, 1000 );
     if ( ${$text} !~ / \s copyright \s .* X \s+ Consortium [\s,] /xmsi ) {
@@ -202,23 +220,31 @@ sub check_tag {
 
 my %files_by_type = (
     'LICENSE'   => \&license_problems_in_license_file,
-    'META.json' => sub {;}
+    'META.json' => \&ignored
     ,    # not source, and not clear how to add license at top
-    'META.yml' => sub {;}
+    'META.yml' => \&ignored
     ,    # not source, and not clear how to add license at top
-    'ppport.h'       => sub {;},    # copied from CPAN, just leave it alone
-    'COPYING'        => sub {;},    # GNU license text, leave it alone
-    'COPYING.LESSER' => sub {;},    # GNU license text, leave it alone
-    'libmarpa/dev/cwebmac.tex' => sub {;}
+    'ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
+    'COPYING'        => \&ignored,    # GNU license text, leave it alone
+    'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
+    'libmarpa/dev/cwebmac.tex' => \&ignored
     ,                               # originally from Cweb, leave it alone
-    'lib/Marpa/R2/Test/capture-stderr' => sub {;},
+
+    'html/lib/Marpa/R2/HTML/Test/capture-stderr' => \&ignored,
+    'html/script/marpa_r2_html_fmt'             => \&license_problems_in_perl_file,
+    'html/script/marpa_r2_html_score'           => \&license_problems_in_perl_file,
+    'html/t/no_tang.html'              => \&ignored,
+    'html/t/test.html'                 => \&ignored,
+    'html/t/fmt_t_data/expected1.html' => \&ignored,
+    'html/t/fmt_t_data/expected2.html' => \&ignored,
+    'html/t/fmt_t_data/input1.html'    => \&trivial,
+    'html/t/fmt_t_data/input2.html'    => \&trivial,
+    'html/t/fmt_t_data/score_expected1.html' => \&trivial,
+    'html/t/fmt_t_data/score_expected2.html' => \&trivial,
 
     # Mostly from Andy Lester, leave alone
     'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
     'Makefile.PL'                           => \&trivial,
-    'ppshim/Marpa/PP.pm'                    => \&trivial,
-    'html_pp_test.sh'                       => \&trivial,
-    'html_xs_test.sh'                       => \&trivial,
     'libmarpa/dist/README'                  => \&trivial,
     'libmarpa/dev/README'                   => \&trivial,
     'libmarpa/test/README'                  => \&trivial,
@@ -230,7 +256,7 @@ my %files_by_type = (
     'author.t/perltidyrc'                   => \&trivial,
     'author.t/spelling_exceptions.list'     => \&trivial,
     'author.t/tidy1'                        => \&trivial,
-    'inc/proof/README' => sub {;}, # discussion of licensing in that directory
+    'inc/proof/README' => \&ignored, # discussion of licensing in that directory
     'inc/proof/ah_to_leo.lyx'      => \&tex_closed,
     'inc/proof/ah2002_notes.lyx'   => \&tex_closed,
     'inc/proof/proof.lyx'          => \&tex_closed,
@@ -246,11 +272,11 @@ sub file_type {
     return $closure if defined $closure;
     my ( $volume, $dirpart, $filepart ) = File::Spec->splitpath($filename);
     my @dirs = grep {length} File::Spec->splitdir($dirpart);
-    return \&license_problems_in_pp_perl_file
+    return \&license_problems_in_perl_file
         if scalar @dirs > 1
             and $dirs[0] eq 'pperl'
             and $filepart =~ /[.]pm\z/xms;
-    return \&license_problems_in_pp_perl_file
+    return \&license_problems_in_perl_file
         if scalar @dirs == 3
             and $dirs[0] eq 't'
             and $dirs[1] eq 'shared'
@@ -261,19 +287,17 @@ sub file_type {
             and $dirs[0] eq 't'
             and $dirs[1] eq 'shared'
             and $filepart =~ /[.]t\z/xms;
-    return sub {;}
+    return \&ignored
 
         if scalar @dirs >= 2
             and $dirs[0] eq 'libmarpa'
             and $dirs[1] eq 'orig';
-    return sub {;}
-        if scalar @dirs >= 1 and $dirs[0] eq 'html';
     return \&trivial if $filepart eq '.gitignore';
     return \&check_GNU_copyright
         if $GNU_file{$filename};
-    return \&license_problems_in_xs_perl_file
+    return \&license_problems_in_perl_file
         if $filepart =~ /[.] (t|pl|pm|PL) \z /xms;
-    return \&license_problems_in_xs_perl_file
+    return \&license_problems_in_perl_file
         if $filepart eq 'typemap';
     return \&license_problems_in_pod_file if $filepart =~ /[.]pod \z/xms;
     return \&license_problems_in_c_file
@@ -289,7 +313,7 @@ sub Marpa::R2::License::file_license_problems {
     my ( $filename, $verbose ) = @_;
     $verbose //= 0;
     if ($verbose) {
-        say "Checking license of $filename" or die "say failed: $ERRNO";
+        say {*STDERR} "Checking license of $filename" or die "say failed: $ERRNO";
     }
     my @problems = ();
     CHECK_VS_ORIGINAL: {
@@ -397,6 +421,9 @@ sub license_problems_in_license_file {
 
 sub license_problems_in_hash_file {
     my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as hash style file" or die "say failed: $ERRNO";
+    }
     my @problems = ();
     my $text = slurp_top( $filename, length $r2_hash_license );
     if ( $r2_hash_license ne ${$text} ) {
@@ -419,18 +446,12 @@ sub license_problems_in_hash_file {
     return @problems;
 } ## end sub license_problems_in_hash_file
 
-sub license_problems_in_pp_perl_file {
-    my ( $filename, $verbose ) = @_;
-    return license_problems_in_perl_file( $filename, 'pp', $verbose );
-}
-
-sub license_problems_in_xs_perl_file {
-    my ( $filename, $verbose ) = @_;
-    return license_problems_in_perl_file( $filename, 'xs', $verbose );
-}
-
 sub license_problems_in_perl_file {
     my ( $filename, $type, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as $type perl file" or die "say failed: $ERRNO";
+    }
+    $verbose //= 0;
     my @problems = ();
     my $text = slurp_top( $filename, 132 + length $r2_hash_license );
 
@@ -458,6 +479,9 @@ sub license_problems_in_perl_file {
 
 sub license_problems_in_c_file {
     my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as C file" or die "say failed: $ERRNO";
+    }
     my @problems = ();
     my $text = slurp_top( $filename, 200 + length $c_license );
     ${$text}
@@ -484,6 +508,9 @@ sub license_problems_in_c_file {
 
 sub license_problems_in_tex_file {
     my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as TeX file" or die "say failed: $ERRNO";
+    }
     my @problems = ();
     my $text = slurp_top( $filename, 200 + length $tex_license );
     ${$text}
@@ -568,10 +595,13 @@ sub copyright_page {
 
 sub license_problems_in_pod_file {
     my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as POD file" or die "say failed: $ERRNO";
+    }
 
     # Pod files are Perl files, and should also have the
     # license statement at the start of the file
-    my @problems = license_problems_in_xs_perl_file( $filename, $verbose );
+    my @problems = license_problems_in_perl_file( $filename, $verbose );
 
     my $text = ${ slurp($filename) };
     if ( $text =~ m/ ^ [=]head1 \s+ COPYRIGHT \s+ AND \s+ LICENSE /xmsp ) {
@@ -605,6 +635,9 @@ sub license_problems_in_pod_file {
 # No need to comment it out.
 sub license_problems_in_text_file {
     my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as text file" or die "say failed: $ERRNO";
+    }
     my @problems = ();
     my $text     = slurp_top($filename);
     if ( ( index ${$text}, $license ) < 0 ) {

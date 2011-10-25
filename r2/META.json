@@ -85,6 +85,22 @@
          "file" : "lib/Marpa/R2/Grammar.pm",
          "version" : "0.001_000"
       },
+      "Marpa::R2::HTML" : {
+         "file" : "html/lib/Marpa/R2/HTML.pm",
+         "version" : "0.001_000"
+      },
+      "Marpa::R2::HTML::Callback" : {
+         "file" : "html/lib/Marpa/R2/HTML/Callback.pm",
+         "version" : "0.001_000"
+      },
+      "Marpa::R2::HTML::Internal" : {
+         "file" : "html/lib/Marpa/R2/HTML.pm",
+         "version" : 0
+      },
+      "Marpa::R2::HTML::Internal::Callback" : {
+         "file" : "html/lib/Marpa/R2/HTML/Callback.pm",
+         "version" : 0
+      },
       "Marpa::R2::Internal" : {
          "file" : "lib/Marpa/R2/Internal.pm",
          "version" : "0.001_000"
@@ -94,7 +110,7 @@
          "version" : 0
       },
       "Marpa::R2::Internal::Recognizer" : {
-         "file" : "lib/Marpa/R2/Value.pm",
+         "file" : "lib/Marpa/R2/Recognizer.pm",
          "version" : 0
       },
       "Marpa::R2::Internal::Value" : {
