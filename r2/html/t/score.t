@@ -12,20 +12,21 @@ use English qw( -no_match_vars );
 use Fatal qw(open close);
 use File::Spec;
 
-use lib 'lib';
+use lib 'tool/lib';
+use lib 'html/tool/lib';
 use Test::More tests => 7;
 
 Test::More::use_ok('Marpa::R2::Test');
-Test::More::use_ok('Marpa::R2::Test::Util');
+Test::More::use_ok('Marpa::R2::HTML::Test::Util');
 Test::More::use_ok('HTML::PullParser');
 
-my @script_dir = qw( script );
-my @data_dir   = qw( t fmt_t_data );
+my @script_dir = qw( blib script );
+my @data_dir   = qw( html t fmt_t_data );
 
 for my $test (qw(1 2)) {
     my $expected;
-    my $output = Marpa::R2::Test::Util::run_command(
-        File::Spec->catfile( @script_dir, 'html_score' ),
+    my $output = Marpa::R2::HTML::Test::Util::run_command(
+        File::Spec->catfile( @script_dir, 'marpa_r2_html_score' ),
         File::Spec->catfile( @data_dir, ( 'input' . $test . '.html' ) ) );
     $output =~ s/\A [^\n]* \n//xms;
     open my $fh, q{<},
@@ -35,6 +36,6 @@ for my $test (qw(1 2)) {
     local $RS = undef;
     $expected = <$fh>;
     close $fh;
-    Marpa::R2::Test::is( $output, $expected, 'html_score test' );
+    Marpa::R2::Test::is( $output, $expected, 'marpa_r2_html_score test' );
 } ## end for my $test (qw(1 2))
 

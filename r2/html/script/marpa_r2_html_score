@@ -64,15 +64,15 @@ sub calculate_length {
 } ## end sub calculate_length
 
 my ( $instance, $value ) = @{
-    Marpa::HTML::html(
+    Marpa::R2::HTML::html(
         \$document,
         {   ':COMMENT' => sub { return { depths => {}, length => 0 } },
             q{*}       => sub {
-                my $descendant_data = Marpa::HTML::descendants('value,literal');
-                my $tagname    = Marpa::HTML::tagname();
+                my $descendant_data = Marpa::R2::HTML::descendants('value,literal');
+                my $tagname    = Marpa::R2::HTML::tagname();
                 my $length     = calculate_length($descendant_data);
-                $Marpa::HTML::INSTANCE->{count}->{$tagname}++;
-                $Marpa::HTML::INSTANCE->{length}->{$tagname} += $length;
+                $Marpa::R2::HTML::INSTANCE->{count}->{$tagname}++;
+                $Marpa::R2::HTML::INSTANCE->{length}->{$tagname} += $length;
                 my $return_depths = calculate_max_depths($descendant_data);
                 ( $return_depths->{$tagname} //= 0 )++;
                 $return_depths->{ANY}++;
@@ -82,9 +82,9 @@ my ( $instance, $value ) = @{
                 };
             },
             ':TOP' => sub {
-                my $descendant_data = Marpa::HTML::descendants('value,literal');
+                my $descendant_data = Marpa::R2::HTML::descendants('value,literal');
                 return [
-                    $Marpa::HTML::INSTANCE,
+                    $Marpa::R2::HTML::INSTANCE,
                     {   depths => calculate_max_depths($descendant_data),
                         length => calculate_length($descendant_data),
                     },
@@ -241,11 +241,11 @@ complexity is being used to serve the site's mission.
 
 This program is a demo of a demo.
 It purpose is to show how easy it is to write applications which look
-at the structure of web pages using L<Marpa::HTML>.
-And the purpose of L<Marpa::HTML>
+at the structure of web pages using L<Marpa::R2::HTML>.
+And the purpose of L<Marpa::R2::HTML>
 is to demonstrate the power of its parse engine,
-L<Marpa>.
-L<Marpa::HTML> was written in a few days,
+L<Marpa::R2>.
+L<Marpa::R2::HTML> was written in a few days,
 and its logic 
 is a straightforward,
 natural expression of the structure of HTML.
@@ -254,8 +254,6 @@ natural expression of the structure of HTML.
 
 The starting template for this code was
 L<HTML::TokeParser>, by Gisle Aas.
-See also the
-L<acknowledgments for Marpa as a whole|Marpa/"ACKNOWLEDGMENTS">.
 
 =head1 LICENSE AND COPYRIGHT
 
