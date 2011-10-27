@@ -17,17 +17,36 @@
 use 5.010;
 use strict;
 use warnings;
-
-use lib 'lib';
-use Test::More tests => 3;
-
-Test::More::use_ok('HTML::PullParser');
-Test::More::use_ok('Marpa::R2::HTML');
-
 use Carp;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
+use lib 'config';
+use lib 'html/lib';
+
+BEGIN {
+    my $eval_result =
+        eval { require HTML::PullParser; 'HTML::PullParser'->import; 1 };
+    if ( !$eval_result ) {
+        print "1..0 # Skip Could not load HTML::PullParser; $EVAL_ERROR\n";
+        exit 0;
+    }
+    $eval_result = eval { require Marpa::R2::Config; 1 };
+    if ( !$eval_result ) {
+        print "1..0 # Skip Could not load Marpa::R2::Config; $EVAL_ERROR\n";
+        exit 0;
+    }
+    my $version_wanted = $Marpa::R2::VERSION_FOR_CONFIG{'HTML::PullParser'};
+    if ( !HTML::PullParser->VERSION($version_wanted) ) {
+        print "1..0 # Skip HTML::PullParser version is ",
+            $HTML::PullParser::VERSION, "; we wanted $version_wanted\n";
+        exit 0;
+    }
+} ## end BEGIN
+
+use Test::More tests => 2;
+
+BEGIN { Test::More::use_ok('Marpa::R2::HTML'); }
 
 my $document;
 {
