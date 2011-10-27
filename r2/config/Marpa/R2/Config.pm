@@ -24,19 +24,21 @@ use strict;
 use warnings;
 
 %Marpa::R2::VERSION_FOR_CONFIG = (
-    'Scalar::Util'        => 1.21,
-    'List::Util'          => 1.21,
     'Carp'                => 1.08,
     'Data::Dumper'        => '2.125',
-    'Storable'            => 2.21,
-    'PPI'                 => '1.206',
-    'Test::Weaken'        => '3.004000',
-    'Task::Weaken'        => '0',
-    'ExtUtils::PkgConfig' => 1.12,
-    'Module::Build'       => 0.3601,
     'ExtUtils::CBuilder'  => 0.27,
-    'Test::More'          => 0.94,
+    'ExtUtils::PkgConfig' => 1.12,
     'Glib'                => 1.223,
+    'HTML::Parser'        => '3.64',
+    'HTML::PullParser'    => '3.57',
+    'List::Util'          => 1.21,
+    'Module::Build'       => 0.3601,
+    'PPI'                 => '1.206',
+    'Scalar::Util'        => 1.21,
+    'Storable'            => 2.21,
+    'Task::Weaken'        => '0',
+    'Test::More'          => 0.94,
+    'Test::Weaken'        => '3.004000',
 );
 
 1;

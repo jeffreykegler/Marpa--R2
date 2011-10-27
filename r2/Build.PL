@@ -48,7 +48,8 @@ my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper ExtUtils::PkgConfig Glib );
 my %recommends =
-    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) } qw( PPI Test::Weaken );
+    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
+    qw( PPI HTML::Parser HTML::PullParser Test::Weaken );
 
 my %pod_files = ();
 $pod_files{'pod/Marpa_R2.pod'} = 'lib/Marpa/R2.pod';
