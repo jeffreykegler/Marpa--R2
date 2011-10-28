@@ -50,7 +50,6 @@ etc/check_links.pl
 html/etc/drafts/Implementation.pod
 html/lib/Marpa/R2/HTML.pm
 html/lib/Marpa/R2/HTML/Callback.pm
-html/lib/Marpa/R2/HTML/Test/capture-stderr
 html/pod/HTML.pod
 html/script/marpa_r2_html_fmt
 html/script/marpa_r2_html_score
@@ -195,6 +194,5 @@ t/wall.t
 t/weaken.t
 tool/lib/Marpa/R2/Display.pm
 tool/lib/Marpa/R2/Test.pm
-tool/lib/Marpa/R2/Test/Common.pm
 typemap
 xs/R2.xs
