@@ -19,10 +19,24 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use List::Util;
-use Test::More tests => 11;
+use Test::More;
 use lib 'tool/lib';
-use lib 'html/tool/lib';
-Test::More::use_ok('HTML::PullParser');
+
+BEGIN {
+    use lib 'html/tool/lib';
+    my $eval_result = eval { require Marpa::R2::HTML::Test::Util; 1 };
+    if ( !$eval_result ) {
+        Test::More::plan tests => 1;
+        Test::More::fail(
+            "Could not load Marpa::R2::HTML::Test::Util; $EVAL_ERROR");
+        exit 0;
+    } ## end if ( !$eval_result )
+} ## end BEGIN
+
+BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::PullParser'); }
+
+BEGIN { use Test::More tests => 10; }
+
 Test::More::use_ok('Marpa::R2::Test');
 
 # This is just a dummy value for the synopsis

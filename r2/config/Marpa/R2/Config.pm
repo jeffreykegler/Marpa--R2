@@ -31,6 +31,7 @@ use warnings;
     'Glib'                => 1.223,
     'HTML::Parser'        => '3.64',
     'HTML::PullParser'    => '3.57',
+    'HTML::Entities'    => '3.68',
     'List::Util'          => 1.21,
     'Module::Build'       => 0.3601,
     'PPI'                 => '1.206',

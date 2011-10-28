@@ -21,13 +21,25 @@ use warnings;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
 use File::Spec;
+use Test::More;
+
+BEGIN {
+    use lib 'html/tool/lib';
+    my $eval_result = eval { require Marpa::R2::HTML::Test::Util; 1 };
+    if ( !$eval_result ) {
+        Test::More::plan tests => 1;
+        Test::More::fail(
+            "Could not load Marpa::R2::HTML::Test::Util; $EVAL_ERROR");
+        exit 0;
+    } ## end if ( !$eval_result )
+} ## end BEGIN
+
+BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::PullParser'); }
+
+BEGIN { Test::More::plan tests => 5; }
 
 use lib 'tool/lib';
-use lib 'html/tool/lib';
-use Test::More tests => 7;
 Test::More::use_ok('Marpa::R2::Test');
-Test::More::use_ok('Marpa::R2::HTML::Test::Util');
-Test::More::use_ok('HTML::PullParser');
 
 my @script_dir = qw( blib script );
 my @data_dir   = qw( html t fmt_t_data );

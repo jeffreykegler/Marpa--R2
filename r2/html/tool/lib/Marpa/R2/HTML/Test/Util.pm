@@ -101,18 +101,18 @@ sub load_or_skip_all {
             or Carp::croak("say failed: $ERRNO");
         exit 0;
     } ## end if ( !$eval_result )
+    use lib 'config';
     $eval_result = eval { require Marpa::R2::Config; 1 };
     if ( !$eval_result ) {
-        my $eval_error = $EVAL_ERROR;
-        $eval_error =~ s/^/# /gxms;
-        print "1..0 # Skip Could not load Marpa::R2::Config\n", $eval_error
-            or Carp::croak("say failed: $ERRNO");
+	Test::More::plan tests => 1;
+	Test::More::diag($EVAL_ERROR);
+	Test::More::fail("Could not load Marpa::R2::Config\n");
         exit 0;
     } ## end if ( !$eval_result )
     my $version_wanted = $Marpa::R2::VERSION_FOR_CONFIG{$module_name};
     if ( not defined $version_wanted ) {
-        say "1..0 # Skip $module_name is not known to Marpa::R2 config\n"
-            or Carp::croak("say failed: $ERRNO");
+	Test::More::plan tests => 1;
+	Test::More::fail("$module_name is not known to Marpa::R2");
         exit 0;
     }
     my $module_version = eval q{$} . $module_name . '::VERSION';
