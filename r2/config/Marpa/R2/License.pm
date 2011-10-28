@@ -230,7 +230,6 @@ my %files_by_type = (
     'libmarpa/dev/cwebmac.tex' => \&ignored
     ,                               # originally from Cweb, leave it alone
 
-    'html/lib/Marpa/R2/HTML/Test/capture-stderr' => \&ignored,
     'html/script/marpa_r2_html_fmt'             => \&license_problems_in_perl_file,
     'html/script/marpa_r2_html_score'           => \&license_problems_in_perl_file,
     'html/t/no_tang.html'              => \&ignored,
