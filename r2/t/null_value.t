@@ -91,7 +91,7 @@ package main;
 my $g = Marpa::R2::Grammar->new( @{$Test_Grammar::MARPA_OPTIONS} );
 $g->precompute();
 my $recce = Marpa::R2::Recognizer->new( { grammar => $g } );
-$recce->tokens( [ [ 'Z', 'Z' ] ] );
+$recce->read( 'Z', 'Z' );
 my $ref_value = $recce->value();
 my $value = $ref_value ? ${$ref_value} : 'No parse';
 Marpa::R2::Test::is(

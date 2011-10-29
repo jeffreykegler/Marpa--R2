@@ -74,19 +74,15 @@ $grammar->precompute();
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-my @tokens = (
-    [ 'Variable',         'a' ],
-    [ 'AssignOp',         q{=} ],
-    [ 'Variable',         'b' ],
-    [ 'AddAssignOp',      q{+=} ],
-    [ 'Variable',         'c' ],
-    [ 'MinusAssignOp',    q{-=} ],
-    [ 'Variable',         'd' ],
-    [ 'MultiplyAssignOp', q{*=} ],
-    [ 'Variable',         'e' ],
-);
-
-$recce->tokens( \@tokens );
+$recce->read( 'Variable',         'a' );
+$recce->read( 'AssignOp',         q{=} );
+$recce->read( 'Variable',         'b' );
+$recce->read( 'AddAssignOp',      q{+=} );
+$recce->read( 'Variable',         'c' );
+$recce->read( 'MinusAssignOp',    q{-=} );
+$recce->read( 'Variable',         'd' );
+$recce->read( 'MultiplyAssignOp', q{*=} );
+$recce->read( 'Variable',         'e' );
 
 %My_Actions::VALUES = ( a => 711, b => 47, c => 1, d => 2, e => 3 );
 

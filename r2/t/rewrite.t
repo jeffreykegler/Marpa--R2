@@ -105,9 +105,7 @@ my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 # While we are at it, test the handling of null parses in
 # the Single Parse Evaluator
-my @tokens = ();
-
-$recce->tokens( \@tokens );
+$recce->end_input();
 
 # Marpa::R2::Display::End
 

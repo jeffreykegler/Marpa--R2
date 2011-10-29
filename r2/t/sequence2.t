@@ -62,7 +62,8 @@ $grammar->precompute();
 
 $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-$recce->tokens( [ [ 'item', '0' ], ['item', '1'] ]);
+$recce->read( 'item', '0');
+$recce->read( 'item', '1');
 
 $value_ref = $recce->value();
 $value = $value_ref ? ${$value_ref} : 'No Parse';
@@ -90,7 +91,9 @@ $grammar->precompute();
 
 $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-$recce->tokens( [ [ 'item', '0' ], [ 'item', '1' ] ] );
+$recce->read( 'item', '0');
+$recce->read( 'item', '1');
+
 
 $value_ref = $recce->value();
 $value = $value_ref ? ${$value_ref} : 'No Parse';
@@ -122,7 +125,8 @@ $grammar->precompute();
 
 $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-$recce->tokens( [ [ 'part1', '0' ], [ 'part2', '1' ] ] );
+$recce->read( 'part1', '0' );
+$recce->read( 'part2', '1' );
 
 $value_ref = $recce->value();
 $value = $value_ref ? ${$value_ref} : 'No Parse';

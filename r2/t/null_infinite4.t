@@ -87,7 +87,9 @@ my @expected = qw{
 my $input_length = 1;
 my $recce =
     Marpa::R2::Recognizer->new( { grammar => $grammar, max_parses => 99 } );
-$recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] );
+for my $token_ix ( 1 .. $input_length ) {
+    $recce->read( 'a', 'A' );
+}
 my $expected = $expected[$input_length];
 my @values   = ();
 while ( my $value_ref = $recce->value() ) {

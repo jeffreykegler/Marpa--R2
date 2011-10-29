@@ -53,7 +53,9 @@ sub ah_extended {
 
     my $recce = Marpa::R2::Recognizer->new( { grammar => $g } );
 
-    $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x ($n) ] );
+    for my $token_ix ( 1 .. $n ) {
+        $recce->read( 'a', 'a' );
+    }
 
     my @parse_counts;
     for my $loc ( 0 .. $n ) {
