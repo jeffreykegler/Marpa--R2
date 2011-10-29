@@ -186,7 +186,7 @@ TEST: for my $test_data (@test_data) {
 
     my ( $test_name, $test_input, $test_results ) = @{$test_data};
     my $recce =
-        Marpa::R2::Recognizer->new( { grammar => $g, mode => 'stream' } );
+        Marpa::R2::Recognizer->new( { grammar => $g } );
 
     my $input_length = length $test_input;
     pos $test_input = 0;
@@ -199,7 +199,6 @@ TEST: for my $test_data (@test_data) {
 # Marpa::R2::Display::End
 
     for ( my $pos = 0; $pos < $input_length; $pos++ ) {
-        my @tokens = ();
         TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
             next TOKEN_TYPE if not $token ~~ $terminals_expected;
             pos $test_input = $pos;
@@ -207,11 +206,12 @@ TEST: for my $test_data (@test_data) {
                 if not $test_input =~ m{ \G \s* (?<match>$regex) }xgms;
 
 ## no critic (Variables::ProhibitPunctuationVars)
-            push @tokens,
-                [ $token, $+{match}, ( ( pos $test_input ) - $pos ), 0 ];
+            $recce->alternative(
+                 $token, $+{match}, ( ( pos $test_input ) - $pos ) );
 
         } ## end while ( my ( $token, $regex ) = each %regexes )
-        ( undef, $terminals_expected ) = $recce->tokens( \@tokens );
+        $recce->earleme_complete();
+        $terminals_expected = $recce->terminals_expected();
     } ## end for ( my $pos = 0; $pos < $input_length; $pos++ )
     $recce->end_input();
 

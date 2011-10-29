@@ -85,18 +85,17 @@ S -> a S[] .
 S -> a S .
 END_OF_STRING
 
-my $a_token = [ 'a', 'a' ];
 my $length = 50;
 
 LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     my $recce = Marpa::R2::Recognizer->new(
-        { grammar => $grammar, mode => 'stream', leo => $leo_flag } );
+        { grammar => $grammar, leo => $leo_flag } );
 
     my $i                 = 0;
     my $latest_earley_set = $recce->latest_earley_set();
     my $max_size          = $recce->earley_set_size($latest_earley_set);
     TOKEN: while ( $i++ < $length ) {
-        $recce->tokens( [$a_token] );
+        $recce->read( 'a', 'a' );
         $latest_earley_set = $recce->latest_earley_set();
         my $size = $recce->earley_set_size($latest_earley_set);
         $max_size = $size > $max_size ? $size : $max_size;

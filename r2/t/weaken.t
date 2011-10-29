@@ -62,7 +62,10 @@ my $test = sub {
     );
     $g->precompute();
     my $recce = Marpa::R2::Recognizer->new( { grammar => $g } );
-    $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x 4 ] );
+    $recce->read(  'a', 'a' );
+    $recce->read(  'a', 'a' );
+    $recce->read(  'a', 'a' );
+    $recce->read(  'a', 'a' );
     $recce->value();
     [ $g, $recce ];
 };

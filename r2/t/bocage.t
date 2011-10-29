@@ -251,8 +251,7 @@ A -> . a
  <a> => S5
 EOS
 
-my $recce =
-    Marpa::R2::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 my @set =
     ( <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', );

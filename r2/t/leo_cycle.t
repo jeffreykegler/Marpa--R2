@@ -168,17 +168,15 @@ END_OF_STRING
 Marpa::R2::Test::is( $grammar->show_AHFA(), $expected_ahfa_output,
     'Leo166 AHFA' );
 
-my $a_token = [ 'a', 'a' ];
 my $length = 20;
 
-my $recce =
-    Marpa::R2::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 my $i                 = 0;
 my $latest_earley_set = $recce->latest_earley_set();
 my $max_size          = $recce->earley_set_size($latest_earley_set);
 TOKEN: while ( $i++ < $length ) {
-    $recce->tokens( [$a_token] );
+    $recce->read( 'a', 'a' );
     $latest_earley_set = $recce->latest_earley_set();
     my $size = $recce->earley_set_size($latest_earley_set);
 

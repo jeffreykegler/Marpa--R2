@@ -109,12 +109,11 @@ for my $n ( 1 .. 12 ) {
     # This is for debugging, after all
     my $recce =
         Marpa::R2::Recognizer->new( { grammar => $g, max_parses => 300 } );
-    $recce->tokens(
-        [   [ 'Number', 6, 1 ],
-            ( ( [ 'Minus', q{-}, 1 ] ) x $n ),
-            [ 'Number', 1, 1 ]
-        ]
-    );
+    $recce->read( 'Number', 6, 1 );
+    for my $i (1 .. $n) {
+            $recce->read( 'Minus', q{-}, 1 );
+    }
+    $recce->read( 'Number', 1, 1 );
 
     my $parse_count = 0;
     while ( $recce->value() ) { $parse_count++; }

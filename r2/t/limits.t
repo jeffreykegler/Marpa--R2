@@ -53,8 +53,7 @@ sub test_grammar {
 
     my $recce;
     $eval_ok = eval {
-        $recce = Marpa::R2::Recognizer->new(
-            { grammar => $grammar, mode => 'stream' } );
+        $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
         1;
     };
 
@@ -65,7 +64,7 @@ sub test_grammar {
     for my $token ( @{$tokens} ) {
         my $earleme_result;
         $eval_ok = eval {
-            $earleme_result = $recce->tokens( [$token] );
+            $earleme_result = $recce->read( @{$token} );
             1;
         };
         die "Exception while recognizing earleme:\n$EVAL_ERROR"
