@@ -128,8 +128,6 @@ C -> a C . b
 C -> a C b .
 END_OF_STRING
 
-my $a_token = [ 'a', 'a' ];
-my $b_token = [ 'b', 'b' ];
 my %expected = (
     'a'        => q{S(a;-)},
     'ab'       => q{S(C(a;-;b))},
@@ -160,9 +158,12 @@ for my $a_length ( 1 .. 4 ) {
                 }
             }
         );
-        $recce->tokens(
-            [ ( ($a_token) x $a_length ), ( ($b_token) x $b_length ), ] );
-
+        for (1 .. $a_length ) {
+            $recce->read( 'a', 'a' );
+        }
+        for (1 .. $b_length ) {
+            $recce->read( 'b', 'b' );
+        }
         my $value_ref = $recce->value();
         my $value = $value_ref ? ${$value_ref} : 'No parse';
         Marpa::R2::Test::is( $value, $expected{$string}, "Parse of $string" );

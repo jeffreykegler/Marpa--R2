@@ -217,16 +217,13 @@ restore_stdout();
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-$recce->tokens(
-    [   [ 'Number', 2,    1 ],
-        [ 'Op',     q{-}, 1 ],
-        [ 'Number', 0,    1 ],
-        [ 'Op',     q{*}, 1 ],
-        [ 'Number', 3,    1 ],
-        [ 'Op',     q{+}, 1 ],
-        [ 'Number', 1,    1 ],
-    ]
-);
+$recce->read( 'Number', 2 );
+$recce->read( 'Op',     q{-} );
+$recce->read( 'Number', 0 );
+$recce->read( 'Op',     q{*} );
+$recce->read( 'Number', 3 );
+$recce->read( 'Op',     q{+} );
+$recce->read( 'Number', 1 );
 
 $actual_ref = save_stdout();
 
