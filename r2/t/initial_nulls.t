@@ -89,7 +89,7 @@ $expected_count[9] = 1;     # 0 w/o r2; 1 with an r2
 for my $input_length ( 1 .. 9 ) {
     my $recce = Marpa::R2::Recognizer->new(
         { grammar => $grammar, max_parses => 100 } );
-    $recce->tokens( [ ( [ 't', 't', 1 ] ) x $input_length ] );
+    for ( 1 .. $input_length ) { $recce->read( 't', 't' ); }
     my $expected = 1;
     while ( $expected and my $value_ref = $recce->value() ) {
         $expected = 0;
