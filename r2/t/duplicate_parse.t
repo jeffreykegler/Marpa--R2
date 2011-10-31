@@ -139,10 +139,11 @@ END_OF_STRING
 
 use constant SPACE => 0x60;
 
-my $input_length = 3;
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
-$recce->tokens(
-    [ map { [ 'a', chr( SPACE + $_ ), 1 ] } ( 1 .. $input_length ) ] );
+my $input_length = 3;
+for my $input_ix ( 1 .. $input_length ) {
+    $recce->read( 'a', chr( SPACE + $input_ix ) );
+}
 
 # Set max at 10 just in case there's an infinite loop.
 # This is for debugging, after all

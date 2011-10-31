@@ -152,7 +152,9 @@ for my $input_length ( 1 .. 4 ) {
     # This is for debugging, after all
     my $recce = Marpa::R2::Recognizer->new(
         { grammar => $grammar, max_parses => 10 } );
-    $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x $input_length ] );
+    for ( 1 .. $input_length ) {
+        $recce->read( 'a', 'a' );
+    }
     while ( my $value_ref = $recce->value() ) {
         my $value = $value_ref ? ${$value_ref} : 'No parse';
         my $expected = $expected[$input_length];
