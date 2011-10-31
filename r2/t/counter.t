@@ -84,7 +84,7 @@ for my $is_count_up ( 1, 0 ) {
         { grammar => gen_grammar($is_count_up), ranking_method => 'rule' } );
 
     my $input_length = 4;
-    $recce->tokens( [ ( ['t'] ) x $input_length ] );
+    for ( 1 .. $input_length ) { $recce->read('t'); }
 
     my $i = 0;
     while ( my $result = $recce->value() ) {

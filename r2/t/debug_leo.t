@@ -50,11 +50,12 @@ my $grammar = Marpa::R2::Grammar->new(
 
 $grammar->precompute();
 
-my @tokens = ( ['T'] ) x 20;
-
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-my $current_earleme = $recce->tokens( \@tokens );
+my $current_earleme;
+for (1 .. 20) {
+    $current_earleme = $recce->read( 'T' );
+}
 
 # The call to current earlem is Useless,
 # but provides an example for the docs

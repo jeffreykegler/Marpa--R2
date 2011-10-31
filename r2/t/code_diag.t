@@ -198,20 +198,14 @@ sub run_test {
 
     my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-    my @tokens = (
-        [ Number => 2 ],
-        [ MultOp => q{*} ],
-        [ Number => 3 ],
-        [ AddOp  => q{+} ],
-        [ Number => 4 ],
-        [ MultOp => q{*} ],
-        [ Number => 1 ],
-        [ Text   => q{trailer} ],
-    );
-
-    if ( not defined $recce->tokens( \@tokens ) ) {
-        die 'Recognition failed';
-    }
+    $recce->read( Number => 2 );
+    $recce->read( MultOp => q{*} );
+    $recce->read( Number => 3 );
+    $recce->read( AddOp  => q{+} );
+    $recce->read( Number => 4 );
+    $recce->read( MultOp => q{*} );
+    $recce->read( Number => 1 );
+    $recce->read( Text   => q{trailer} );
 
     $recce->end_input();
 
