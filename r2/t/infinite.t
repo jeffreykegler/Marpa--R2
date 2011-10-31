@@ -119,7 +119,7 @@ package main;
 my $cycle1_test = [
     'cycle1',
     $Test_Grammar::MARPA_OPTIONS_1,
-    [ [ 's', '1' ] ],
+    [ [ [ 's', '1' ] ] ],
     '1',
     <<'EOS'
 Cycle found involving rule: 0: s -> s
@@ -129,7 +129,7 @@ EOS
 my $cycle2_test = [
     'cycle2',
     $Test_Grammar::MARPA_OPTIONS_2,
-    [ [ 'a', '1' ] ],
+    [ [ [ 'a', '1' ] ] ],
     '1',
     <<'EOS'
 Cycle found involving rule: 0: s -> a
@@ -137,15 +137,16 @@ Cycle found involving rule: 1: a -> s
 EOS
 ];
 
-my @cycle8_tokens = ( [ 'e', '1', 1, 0 ], [ 'v', '1', 1, 0 ], [ 'w', '1', ] );
+my @cycle8_tokens = ( [ [ 'e', '1' ], [ 'v', '1' ], [ 'w', '1' ] ] );
 
 push @cycle8_tokens, map {
-    (   [ 'e', $_, 1, 0 ],
-        [ 't', $_, 1, 0 ],
-        [ 'u', $_, 1, 0 ],
-        [ 'v', $_, 1, 0 ],
-        [ 'w', $_, 1, 0 ],
-        [ 'x', $_ ],
+    (   [   [ 'e', $_ ],
+            [ 't', $_ ],
+            [ 'u', $_ ],
+            [ 'v', $_ ],
+            [ 'w', $_ ],
+            [ 'x', $_ ]
+        ],
         )
 } qw( 2 3 4 5 6 );
 
@@ -178,7 +179,12 @@ for my $test_data ( $cycle1_test, $cycle2_test, $cycle8_test ) {
     $grammar->precompute();
 
     my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
-    $recce->tokens($input);
+    for my $earleme_input ( @{$input} ) {
+        for my $token ( @{$earleme_input} ) {
+            $recce->alternative(@{$token});
+        }
+        $recce->earleme_complete();
+    }
     my $value_ref = $recce->value();
     my $value = $value_ref ? ${$value_ref} : 'No parse';
 

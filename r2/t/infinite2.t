@@ -81,7 +81,7 @@ my $recce = Marpa::R2::Recognizer->new(
     }
 );
 
-$recce->tokens( [ [ 'a:k0', 'a' ] ] );
+$recce->read( 'a:k0', 'a' );
 
 my %expected = %expected_original;
 while ( my $value_ref = $recce->value() ) {
