@@ -32,6 +32,7 @@
       "namespace" : [
          "Marpa::R2::Recognizer",
          "Marpa::R2::Grammar",
+         "Marpa::R2::HTML",
          "Marpa::R2::Value",
          "Marpa::R2::Perl",
          "Marpa::R2::Test",
@@ -82,19 +83,19 @@
    "provides" : {
       "Marpa::R2" : {
          "file" : "lib/Marpa/R2.pm",
-         "version" : "0.001_002"
+         "version" : "0.001_003"
       },
       "Marpa::R2::Grammar" : {
          "file" : "lib/Marpa/R2/Grammar.pm",
-         "version" : "0.001_002"
+         "version" : "0.001_003"
       },
       "Marpa::R2::HTML" : {
          "file" : "html/lib/Marpa/R2/HTML.pm",
-         "version" : "0.001_002"
+         "version" : "0.001_003"
       },
       "Marpa::R2::HTML::Callback" : {
          "file" : "html/lib/Marpa/R2/HTML/Callback.pm",
-         "version" : "0.001_002"
+         "version" : "0.001_003"
       },
       "Marpa::R2::HTML::Internal" : {
          "file" : "html/lib/Marpa/R2/HTML.pm",
@@ -106,7 +107,7 @@
       },
       "Marpa::R2::Internal" : {
          "file" : "lib/Marpa/R2/Internal.pm",
-         "version" : "0.001_002"
+         "version" : "0.001_003"
       },
       "Marpa::R2::Internal::Grammar" : {
          "file" : "lib/Marpa/R2/Grammar.pm",
@@ -122,11 +123,11 @@
       },
       "Marpa::R2::Recognizer" : {
          "file" : "lib/Marpa/R2/Recognizer.pm",
-         "version" : "0.001_002"
+         "version" : "0.001_003"
       },
       "Marpa::R2::Value" : {
          "file" : "lib/Marpa/R2/Value.pm",
-         "version" : "0.001_002"
+         "version" : "0.001_003"
       }
    },
    "release_status" : "testing",
@@ -135,5 +136,5 @@
          "url" : "git://github.com/jeffreykegler/Marpa-R2.git"
       }
    },
-   "version" : "0.001_002"
+   "version" : "0.001_003"
 }

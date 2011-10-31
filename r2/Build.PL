@@ -52,6 +52,24 @@ my %recommends =
     qw( PPI HTML::Entities HTML::Parser HTML::PullParser Test::Weaken );
 
 my %pod_files = ();
+File::Find::find(
+    sub {
+        return if not m/[.]pod \z/xms;
+        $pod_files{$File::Find::name} = $File::Find::name;
+    },
+    'pod'
+);
+File::Find::find(
+    sub {
+        return if not m/[.]pod \z/xms;
+        my ( $vol, $dirs, $file ) = File::Spec->splitpath($File::Find::name);
+        my @dirs      = File::Spec->splitdir($dirs);
+        my $dest_dirs = File::Spec->catdir( @dirs[ 1 .. $#dirs ] );
+        my $dest_name = File::Spec->catpath( $vol, $dest_dirs, $file );
+        $pod_files{$File::Find::name} = $dest_name;
+    },
+    'html/pod'
+);
 $pod_files{'pod/Marpa_R2.pod'} = 'lib/Marpa/R2.pod';
 
 my %pm_files = ();
@@ -121,6 +139,7 @@ my $build = Marpa::R2::Build_Me->new(
 		)],
             namespace => [
                 'Marpa::R2::Recognizer', 'Marpa::R2::Grammar',
+                'Marpa::R2::HTML',
                 @no_index_namespace_inclusive
             ],
             package => [@no_index_namespace_inclusive],
