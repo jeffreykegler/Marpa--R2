@@ -999,7 +999,6 @@ sub Marpa::R2::Perl::read {
 
     my $recce = Marpa::R2::Recognizer->new(
         {   grammar        => $grammar,
-            mode           => 'stream',
             closures       => $parser->{closure},
             ranking_method => 'high_rule_only',
             @recce_args

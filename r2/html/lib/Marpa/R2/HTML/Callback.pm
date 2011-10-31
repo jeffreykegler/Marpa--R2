@@ -38,7 +38,7 @@ use English qw( -no_match_vars );
 sub Marpa::R2::HTML::start_tag {
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(q{Attempt to fetch start tag outside of a parse})
+    Marpa::R2::exception(q{Attempt to fetch start tag outside of a parse})
         if not defined $parse_instance;
 
     my $element = $Marpa::R2::HTML::Internal::PER_NODE_DATA->{element};
@@ -61,7 +61,7 @@ sub Marpa::R2::HTML::start_tag {
 sub Marpa::R2::HTML::end_tag {
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(q{Attempt to fetch an end tag outside of a parse})
+    Marpa::R2::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
 
     my $element = $Marpa::R2::HTML::Internal::PER_NODE_DATA->{element};
@@ -83,7 +83,7 @@ sub Marpa::R2::HTML::end_tag {
 sub Marpa::R2::HTML::contents {
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(
+    Marpa::R2::exception(
         q{Attempt to fetch an element contents outside of a parse})
         if not defined $parse_instance;
 
@@ -113,7 +113,7 @@ sub Marpa::R2::HTML::contents {
 sub Marpa::R2::HTML::values {
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(q{Attempt to fetch an end tag outside of a parse})
+    Marpa::R2::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
 
     my @values = grep {defined}
@@ -129,7 +129,7 @@ sub Marpa::R2::HTML::descendants {
     my ($argspecs) = @_;
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(q{Attempt to fetch an end tag outside of a parse})
+    Marpa::R2::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
     my $tokens = $parse_instance->{tokens};
 
@@ -230,7 +230,7 @@ sub Marpa::R2::HTML::descendants {
                     : undef;
             } ## end when ('value')
             default {
-                Marpa::exception(qq{Unrecognized argspec: "$_"})
+                Marpa::R2::exception(qq{Unrecognized argspec: "$_"})
             }
         } ## end for (@argspecs)
         push @return, \@values;
@@ -242,7 +242,7 @@ sub Marpa::R2::HTML::descendants {
 sub Marpa::R2::HTML::attributes {
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(
+    Marpa::R2::exception(
         q{Attempt to fetch attributes from an undefined parse instance})
         if not defined $parse_instance;
 
@@ -263,7 +263,7 @@ sub create_fetch_attribute_closure {
     my ($attribute) = @_;
     return sub {
         my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-        Marpa::exception(
+        Marpa::R2::exception(
             qq{Attempt to fetch attribute "$attribute" outside of a parse instance}
         ) if not defined $parse_instance;
 
@@ -297,7 +297,7 @@ sub Marpa::R2::HTML::tagname {
 sub Marpa::R2::HTML::literal_ref {
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception('Attempt to get literal value outside of a parse')
+    Marpa::R2::exception('Attempt to get literal value outside of a parse')
         if not defined $parse_instance;
     my $tdesc_list = $Marpa::R2::HTML::Internal::TDESC_LIST;
     return Marpa::R2::HTML::Internal::tdesc_list_to_literal( $parse_instance,
@@ -309,7 +309,7 @@ sub Marpa::R2::HTML::literal {
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Carp::confess('Attempt to get literal value outside of a parse')
         if not defined $parse_instance;
-    Marpa::exception('Attempt to get literal value outside of a parse')
+    Marpa::R2::exception('Attempt to get literal value outside of a parse')
         if not defined $parse_instance;
     my $tdesc_list = $Marpa::R2::HTML::Internal::TDESC_LIST;
     return ${
@@ -320,7 +320,7 @@ sub Marpa::R2::HTML::literal {
 
 sub Marpa::R2::HTML::offset {
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception('Attempt to read offset outside of a parse instance')
+    Marpa::R2::exception('Attempt to read offset outside of a parse instance')
         if not defined $parse_instance;
     return Marpa::R2::HTML::Internal::earleme_to_offset( $parse_instance,
         $Marpa::R2::HTML::Internal::PER_NODE_DATA->{first_token_id} );
@@ -328,7 +328,7 @@ sub Marpa::R2::HTML::offset {
 
 sub Marpa::R2::HTML::original {
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::exception('Attempt to read offset outside of a parse instance')
+    Marpa::R2::exception('Attempt to read offset outside of a parse instance')
         if not defined $parse_instance;
     my $tokens   = $Marpa::R2::HTML::Internal::PARSE_INSTANCE->{tokens};
     my $document = $Marpa::R2::HTML::Internal::PARSE_INSTANCE->{document};

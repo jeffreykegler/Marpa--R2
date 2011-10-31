@@ -69,8 +69,6 @@ BEGIN {
     TRACE_TERMINALS
     WARNINGS
 
-    MODE
-
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -166,7 +164,6 @@ sub Marpa::R2::Recognizer::new {
     $recce_c->message_callback_set( \&message_cb );
 
     $recce->[Marpa::R2::Internal::Recognizer::WARNINGS]       = 1;
-    $recce->[Marpa::R2::Internal::Recognizer::MODE]           = 'default';
     $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES]     = 0;
 
@@ -211,7 +208,6 @@ use constant RECOGNIZER_OPTIONS => [
         end
         leo
         max_parses
-        mode
         ranking_method
         too_many_earley_items
         trace_actions
@@ -227,8 +223,6 @@ use constant RECOGNIZER_OPTIONS => [
         warnings
         }
 ];
-
-use constant RECOGNIZER_MODES => [qw(default stream)];
 
 sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;
@@ -288,22 +282,6 @@ sub Marpa::R2::Recognizer::set {
             $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES] = $value;
         }
 
-        if ( defined( my $value = $args->{'mode'} ) ) {
-
-            # Not allowed once input has started
-            if ( $recce_c->current_earleme() >= 0 ) {
-                Marpa::R2::exception(
-                    q{Cannot reset 'mode' once input has started});
-            }
-            if (not $value ~~
-                Marpa::R2::Internal::Recognizer::RECOGNIZER_MODES )
-            {
-                Carp::croak( 'Unknown mode for Marpa::R2 Recognizer: ',
-                    $value );
-            } ## end if ( not $value ~~ ...)
-            $recce->[Marpa::R2::Internal::Recognizer::MODE] = $value;
-        } ## end if ( defined( my $value = $args->{'mode'} ) )
-
         if ( defined( my $value = $args->{'ranking_method'} ) ) {
 
             # Not allowed once parsing is started
@@ -335,7 +313,6 @@ sub Marpa::R2::Recognizer::set {
 
         if ( defined( my $value = $args->{'trace_actions'} ) ) {
             $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] = $value;
-            ## Do not allow setting this option in recognizer for single parse mode
             if ($value) {
                 say {$trace_fh} 'Setting trace_actions option'
                     or Marpa::R2::exception("Cannot print: $ERRNO");
@@ -408,7 +385,6 @@ sub Marpa::R2::Recognizer::set {
 
         if ( defined( my $value = $args->{'trace_values'} ) ) {
             $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES] = $value;
-            ## Do not allow setting this option in recognizer for single parse mode
             if ($value) {
                 say {$trace_fh} 'Setting trace_values option'
                     or Marpa::R2::exception("Cannot print: $ERRNO");
@@ -1027,166 +1003,6 @@ sub Marpa::R2::Recognizer::alternative {
     return $result;
 
 } ## end sub Marpa::R2::Recognizer::alternative
-
-# Deprecated -- obsolete
-sub Marpa::R2::Recognizer::tokens {
-
-    my ( $recce, $tokens, $token_ix_ref ) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-
-    Marpa::R2::exception(
-        'No recognizer object for Marpa::R2::Recognizer::tokens')
-        if not defined $recce
-            or ref $recce ne 'Marpa::R2::Recognizer';
-
-    Marpa::R2::exception('No tokens arg for Marpa::R2::Recognizer::tokens')
-        if not defined $tokens;
-
-    my $mode = $recce->[Marpa::R2::Internal::Recognizer::MODE];
-    my $interactive;
-
-    if ( defined $token_ix_ref ) {
-        my $ref_type = ref $token_ix_ref;
-        if ( ref $token_ix_ref ne 'SCALAR' ) {
-            my $description = $ref_type ? "ref to $ref_type" : 'not a ref';
-            Marpa::R2::exception(
-                "Token index arg for Marpa::R2::Recognizer::tokens is $description, must be ref to SCALAR"
-            );
-        } ## end if ( ref $token_ix_ref ne 'SCALAR' )
-        Marpa::R2::exception(
-            q{'Tokens index ref for Marpa::R2::Recognizer::tokens allowed only in 'stream' mode}
-        ) if $mode ne 'stream';
-        $interactive = 1;
-    } ## end if ( defined $token_ix_ref )
-
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    local $Marpa::R2::Internal::TRACE_FH = my $trace_fh =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
-    my $trace_terminals =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS];
-
-    Marpa::R2::exception('Attempt to scan tokens after parsing is finished')
-        if $recce->[Marpa::R2::Internal::Recognizer::FINISHED]
-            and scalar @{$tokens};
-
-    Marpa::R2::exception('Attempt to scan tokens when parsing is exhausted')
-        if $recce_c->phase() eq 'exhausted' and scalar @{$tokens};
-
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-
-    my $next_token_earleme = my $last_completed_earleme =
-        $recce_c->current_earleme();
-
-    $token_ix_ref //= \( my $token_ix = 0 );
-
-    my $token_args = $tokens->[ ${$token_ix_ref} ];
-
-    # If the token list is empty, we will go straight to the
-    # next token
-    if ( not scalar @{$tokens} ) { $next_token_earleme++ }
-
-    EARLEME: while ( ${$token_ix_ref} < scalar @{$tokens} ) {
-
-        my $current_token_earleme = $last_completed_earleme;
-
-        # At this point, typically, $current_token_earleme,
-        # $next_token_earleme and $last_completed_earleme are
-        # all equal.
-
-        # It's not 100% clear whether it's best to leave
-        # the token_ix_ref pointing at the start of the
-        # earleme, or at the actual problem token.
-        # Right now, we set it at the actual problem
-        # token, which is probably what will turn out
-        # to be easiest.
-        # my $first_ix_of_this_earleme = ${$token_ix_ref};
-
-        # For as long the $next_token_earleme does not advance ...
-        TOKEN: while ( $current_token_earleme == $next_token_earleme ) {
-
-            # ... or until we run out of tokens
-            last TOKEN if not my $token_args = $tokens->[ ${$token_ix_ref} ];
-            Marpa::R2::exception(
-                'Tokens must be array refs: token #',
-                ${$token_ix_ref}, " is $token_args\n",
-            ) if ref $token_args ne 'ARRAY';
-            ${$token_ix_ref}++;
-            my ( $symbol_name, $value, $length, $offset ) = @{$token_args};
-
-            Marpa::R2::exception(
-                "Attempt to add token '$symbol_name' at location where processing is complete:\n",
-                "  Add attempted at $current_token_earleme\n",
-                "  Processing complete to $last_completed_earleme\n"
-            ) if $current_token_earleme < $last_completed_earleme;
-
-            my $symbol_id = $symbol_hash->{$symbol_name};
-            if ( not defined $symbol_id ) {
-                say {$trace_fh}
-                    qq{Attempted to add non-existent symbol named "$symbol_name" at $last_completed_earleme\n}
-                    or Marpa::R2::exception("Cannot print: $ERRNO");
-            }
-
-            my $result = $recce->alternative( $symbol_name, $value, $length );
-
-            if ( not defined $result ) {
-                if ( not $interactive ) {
-                    Marpa::R2::exception(
-                        qq{Terminal "$symbol_name" received when not expected}
-                    );
-                }
-
-                # Current token didn't actually work, so back out
-                # the increment
-                ${$token_ix_ref}--;
-
-                return $recce->status();
-            } ## end if ( not defined $result )
-
-            $offset //= 1;
-            Marpa::R2::exception(
-                'Token ' . $symbol_name . " has negative offset\n",
-                "  Token starts at $last_completed_earleme, and its length is $length\n",
-                "  Tokens are required to be in sequence by location\n",
-            ) if $offset < 0;
-            $next_token_earleme += $offset;
-
-        } ## end while ( $current_token_earleme == $next_token_earleme )
-
-        # We've ended the loop for the tokens at $current_token_earleme.
-        # It is possible that $next_token_earleme did not advance,
-        # and the loop ended when we ran out of tokens in the
-        # argument list.
-        # We arrange it so that the last descriptor in
-        # a tokens call always advances the current earleme by at least one --
-        # as if it had incremented $next_token_earleme
-        $current_token_earleme++;
-        $current_token_earleme = $next_token_earleme
-            if $next_token_earleme > $current_token_earleme;
-
-        $recce->earleme_complete();
-        $last_completed_earleme++;
-
-    } ## end while ( ${$token_ix_ref} < scalar @{$tokens} )
-
-    if ( $mode eq 'stream' ) {
-        while ( $last_completed_earleme < $next_token_earleme ) {
-            $recce->earleme_complete();
-            $last_completed_earleme++;
-        }
-    } ## end if ( $mode eq 'stream' )
-
-    my $furthest_earleme = $recce_c->furthest_earleme();
-    if ( $mode eq 'default' ) {
-        while ( $last_completed_earleme < $furthest_earleme ) {
-            $recce->earleme_complete();
-            $last_completed_earleme++;
-        }
-        $recce->[Marpa::R2::Internal::Recognizer::FINISHED] = 1;
-    } ## end if ( $mode eq 'default' )
-
-    return $recce->status();
-
-} ## end sub Marpa::R2::Recognizer::tokens
 
 # Perform the completion step on an earley set
 

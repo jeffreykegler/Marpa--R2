@@ -182,7 +182,7 @@ sub tdesc_list_to_literal {
                     ( $end_offset - $offset );
             } ## end when ('UNVALUED_SPAN')
             default {
-                Marpa::exception(qq{Internal error: unknown tdesc type "$_"});
+                Marpa::R2::exception(qq{Internal error: unknown tdesc type "$_"});
             }
         } ## end given
     } ## end for my $tdesc ( @{$tdesc_list} )
@@ -354,7 +354,7 @@ sub create_tdesc_handler {
                             $tdesc->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN];
                     } ## end when ('UNVALUED_SPAN')
                     default {
-                        Marpa::exception("Unknown text description type: $_");
+                        Marpa::R2::exception("Unknown text description type: $_");
                     }
                 } ## end given
             } ## end PARSE_TDESC:
@@ -502,7 +502,7 @@ my %ARGS = (
 sub add_handler {
     my ( $self, $handler_description ) = @_;
     my $ref_type = ref $handler_description || 'not a reference';
-    Marpa::exception(
+    Marpa::R2::exception(
         "Long form handler description should be ref to hash, but it is $ref_type"
     ) if $ref_type ne 'HASH';
     my $element     = delete $handler_description->{element};
@@ -510,12 +510,12 @@ sub add_handler {
     my $class       = delete $handler_description->{class};
     my $pseudoclass = delete $handler_description->{pseudoclass};
     my $action      = delete $handler_description->{action};
-    Marpa::exception(
+    Marpa::R2::exception(
         'Unknown option(s) in Long form handler description: ',
         ( join q{ }, keys %{$handler_description} )
     ) if scalar keys %{$handler_description};
 
-    Marpa::exception('Handler action must be CODE ref')
+    Marpa::R2::exception('Handler action must be CODE ref')
         if ref $action ne 'CODE';
 
     $element = ( not $element or $element eq q{*} ) ? 'ANY' : lc $element;
@@ -537,7 +537,7 @@ sub add_handler {
 sub add_handlers_from_hashes {
     my ( $self, $handler_specs ) = @_;
     my $ref_type = ref $handler_specs || 'not a reference';
-    Marpa::exception(
+    Marpa::R2::exception(
         "handlers arg must must be ref to ARRAY, it is $ref_type")
         if $ref_type ne 'ARRAY';
     for my $handler_spec ( keys %{$handler_specs} ) {
@@ -563,11 +563,11 @@ sub add_handlers {
             ]
             )
         {
-            Marpa::exception( qq{pseudoclass "$pseudoclass" is not known:\n},
+            Marpa::R2::exception( qq{pseudoclass "$pseudoclass" is not known:\n},
                 "Specifier was $specifier\n" );
         } ## end if ( $pseudoclass and not $pseudoclass ~~ [ ...])
         if ( $pseudoclass and $element ) {
-            Marpa::exception(
+            Marpa::R2::exception(
                 qq{pseudoclass "$pseudoclass" may not have an element specified:\n},
                 "Specifier was $specifier\n"
             );
@@ -599,12 +599,12 @@ sub create {
             Marpa::R2::HTML::Internal::add_handlers( $self, $arg );
             next ARG;
         }
-        Marpa::exception(
+        Marpa::R2::exception(
             "Argument must be hash or refs to hash: it is $ref_type")
             if $ref_type ne 'REF';
         my $option_hash = ${$arg};
         $ref_type = ref $option_hash || 'not a reference';
-        Marpa::exception(
+        Marpa::R2::exception(
             "Argument must be hash or refs to hash: it is ref to $ref_type")
             if $ref_type ne 'HASH';
         OPTION: for my $option ( keys %{$option_hash} ) {
@@ -618,7 +618,7 @@ sub create {
                 ]
                 )
             {
-                Marpa::exception("unknown option: $option");
+                Marpa::R2::exception("unknown option: $option");
             } ## end if ( not $option ~~ [ ...])
             $self->{$option} = $option_hash->{$option};
         } ## end for my $option ( keys %{$option_hash} )
@@ -872,7 +872,7 @@ sub parse {
     my %start_tags = ();
     my %end_tags   = ();
 
-    Marpa::exception(
+    Marpa::R2::exception(
         "parse() already run on this object\n",
         'For a new parse, create a new object'
     ) if $self->{document};
@@ -882,7 +882,7 @@ sub parse {
     my $trace_conflicts = $self->{trace_conflicts};
     my $trace_fh        = $self->{trace_fh};
     my $ref_type        = ref $document_ref;
-    Marpa::exception('Arg to parse() must be ref to string')
+    Marpa::R2::exception('Arg to parse() must be ref to string')
         if not $ref_type
             or $ref_type ne 'SCALAR'
             or not defined ${$document_ref};
@@ -1148,7 +1148,6 @@ sub parse {
         {   grammar           => $grammar,
             trace_terminals   => $self->{trace_terminals},
             trace_earley_sets => $self->{trace_earley_sets},
-            mode              => 'stream',
         }
     );
 
@@ -1160,14 +1159,15 @@ sub parse {
     my %start_virtuals_used           = ();
     my $earleme_of_last_start_virtual = -1;
 
-    RECCE_RESPONSE: for ( my $token_ix = 0;; ) {
+    my $marpa_token = shift @marpa_tokens;
+    RECCE_RESPONSE: while ( defined $marpa_token ) {
 
-        my ( $current_earleme, $expected_terminals ) =
-            $recce->tokens( \@marpa_tokens, \$token_ix );
+        my $read_result = $recce->read( @{$marpa_token} );
+        if ( defined $read_result ) {
+            $marpa_token = shift @marpa_tokens;
+            next RECCE_RESPONSE;
+        }
 
-        last RECCE_RESPONSE if $token_ix > $#marpa_tokens;
-
-        my $marpa_token     = $marpa_tokens[$token_ix];
         my $actual_terminal = $marpa_token->[0];
         if ($trace_terminals) {
             say {$trace_fh} 'Literal Token not accepted: ', $actual_terminal
@@ -1181,7 +1181,7 @@ sub parse {
             my @virtuals_expected =
                 sort { $optional_terminals{$a} <=> $optional_terminals{$b} }
                 grep { defined $optional_terminals{$_} }
-                @{$expected_terminals};
+                @{ $recce->terminals_expected() };
             if ($trace_conflicts) {
                 say {$trace_fh} 'Conflict of virtual choices'
                     or Carp::croak("Cannot print: $ERRNO");
@@ -1307,6 +1307,7 @@ sub parse {
                 # Are we at the same earleme as we were when the last
                 # virtual start was added?  If not, no problem.
                 # But we need to reinitialize.
+                my $current_earleme = $recce->current_earleme();
                 if ( $current_earleme != $earleme_of_last_start_virtual ) {
                     $earleme_of_last_start_virtual = $current_earleme;
                     %start_virtuals_used           = ();
@@ -1331,7 +1332,8 @@ sub parse {
 
             my $tdesc_list = $marpa_token->[1];
             my $first_tdesc_start_token =
-                $tdesc_list->[0]->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
+                $tdesc_list->[0]
+                ->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
             $virtual_token_to_add = [
                 $virtual_terminal, [ [ 'POINT', $first_tdesc_start_token ] ]
             ];
@@ -1339,7 +1341,7 @@ sub parse {
         } ## end FIND_VIRTUAL_TOKEN:
 
         if ( defined $virtual_token_to_add ) {
-            $recce->tokens( [$virtual_token_to_add] );
+            $recce->read( @{$virtual_token_to_add} );
             next RECCE_RESPONSE;
         }
 
@@ -1356,7 +1358,7 @@ sub parse {
         $marpa_token->[0] = 'CRUFT';
         if ($trace_cruft) {
             my ( $line, $col ) =
-                earleme_to_linecol( $self, $current_earleme );
+                earleme_to_linecol( $self, $recce->current_earleme() );
 
             # HTML::Parser uses one-based line numbers,
             # but zero-based column numbers
@@ -1369,7 +1371,7 @@ sub parse {
                 or Carp::croak("Cannot print: $ERRNO");
         } ## end if ($trace_cruft)
 
-    } ## end for ( my $token_ix = 0;; )
+    } ## end while ( defined $marpa_token )
 
     if ($trace_terminals) {
         say {$trace_fh} 'at end of tokens'
@@ -1422,7 +1424,7 @@ sub parse {
         # As of now, there are
         # no per-element pseudo-classes, and since I can't regression test
         # this logic any more, I'm commenting it out.
-        Marpa::exception('per-element pseudo-classes not implemented');
+        Marpa::R2::exception('per-element pseudo-classes not implemented');
 
         # my ( $pseudoclass, $element ) = @{$data};
         # my $pseudoclass_action =
@@ -1447,7 +1449,7 @@ sub parse {
             }
         );
     };
-    Marpa::exception('No parse: evaler returned undef') if not defined $value;
+    Marpa::R2::exception('No parse: evaler returned undef') if not defined $value;
     return ${$value};
 
 } ## end sub parse
