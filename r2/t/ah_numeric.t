@@ -72,7 +72,7 @@ for my $maximal ( 0, 1 ) {
         { grammar => $grammar, ranking_method => 'high_rule_only' } );
 
     my $input_length = 4;
-    $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x $input_length ] );
+    for ( 1 .. $input_length ) { $recce->read( 'a', 'a' ); }
 
     for my $i ( 0 .. $input_length ) {
         my $expected = $maximal ? \@maximal : \@minimal;
