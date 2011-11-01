@@ -7,9 +7,17 @@ use Regexp::Common qw /balanced/;
 use Marpa::XS;
 
 say $Marpa::XS::VERSION;
-say $RE{balanced}{-parens=>'()<>[]{}'}{-keep};
+
+if (scalar @ARGV) {
+    my $s = shift @ARGV;
+    say $s;
+    do_marpa_xs($s);
+    do_regexp($s);
+    exit 0;
+}
 
 my $length = 1000;
+my $s = ('(' x $length) . '((()))';
 
 sub concat {
     my (undef, @args) = @_;
@@ -21,6 +29,7 @@ sub arg1 {
 }
 
 sub do_marpa_xs {
+    my ($s) = @_;
     my $grammar = Marpa::Grammar->new(
         {   start => 'S',
             rules => [
@@ -56,22 +65,40 @@ sub do_marpa_xs {
 
     $grammar->precompute();
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    $recce->read( 'lparen', '(' ) for 1 .. $length + 3;
-    $recce->read( 'rparen', ')' ) for 1 .. 3;
-    my $value_ref = $recce->value();
-    my $value = ref $value_ref ? ${$value_ref} : 'No parse';
-    say $value;
+    my $end_of_parse = undef;
+    my $location = 0;
+    CHAR: while ($s =~ m/(.)/xmsgc) {
+       $location++;
+       my $token = $1 eq '(' ? 'lparen' : 'rparen';
+       my $result = $recce->read( $token, $1 );
+       if ($result > 2) {
+           $end_of_parse = $location;
+	}
+    }
+    say "end_of_parse: ", ($end_of_parse // 'undef');
+    {
+        my $value_ref = $recce->value( );
+        my $value = ref $value_ref ? ${$value_ref} : 'No parse';
+        say "earleme: default;  $value";
+    } ## end for my $i ( 1 .. $end_of_parse )
+    for my $i (1 .. $recce->current_earleme() ) {
+        $recce->reset_evaluation();
+	$recce->set( { end=>$i } );
+        my $value_ref = $recce->value();
+        my $value = ref $value_ref ? ${$value_ref} : 'No parse';
+        say "earleme: $i;  $value";
+    } ## end for my $i ( 1 .. $end_of_parse )
 
 } ## end sub do_marpa_xs
 
 sub do_regexp {
-    my $s = ( '(' x $length ) . '((()))';
+    my ($s) = @_;
     $s =~ /$RE{balanced}{-parens=>'()'}{-keep}/
         and print qq{balanced parentheses: $1\n};
 }
 
-say timestr countit( 2, \&do_marpa_xs );
-say timestr countit( 2, \&do_regexp );
+say timestr countit( 2, sub { do_marpa_xs($s) } );
+say timestr countit( 2, sub { do_regexp($s) } );
 
 #while (<>) {
     #/$RE{balanced}{-parens=>'()'}{-keep}/
