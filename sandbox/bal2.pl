@@ -4,26 +4,48 @@ use warnings;
 
 use Benchmark qw(timeit countit timestr);
 use Regexp::Common qw /balanced/;
+use Getopt::Long;
+my $example;
+my $length = 1000;
+my $string;
+my $getopt_result = GetOptions(
+    "length=i" => \$length,
+    "example=s"   => \$example,
+    "string=s"   => \$string,
+);   
 use Marpa::XS;
 
 say $Marpa::XS::VERSION;
 
-my $s = shift @ARGV // 1000;
-if ($s =~ /\A [()]+ \z/xms) {
-    say "Testing $s";
-    do_marpa_xs($s);
-    do_regex($s);
+my $grammar = paren_grammar_generate();
+
+if ( defined $string ) {
+    die "Bad string: $string" if not $string =~ /\A [()]+ \z/xms;
+    say "Testing $string";
+    do_marpa_xs($string);
+    do_regex($string);
     exit 0;
+} ## end if ( defined $string )
+
+$length += 0;
+if ($length <= 0) {
+    die "Bad length $length";
 }
 
-my $length = $s + 0;
-if (not $length or $length < 0) {
-    die "Bad length $s";
-}
-
-my $s_balanced = '(()())((';
-$s = ( '(' x ($length - length $s_balanced) ) . $s_balanced;
-# $s = '(' . $s_balanced . ( '(' x ( $length - length $s_balanced ) );
+$example //= "final";
+my $s;
+CREATE_S: {
+    my $s_balanced = '(()())((';
+    if ( $example eq 'pos2' ) {
+        $s = '(' . $s_balanced . ( '(' x ( $length - length $s_balanced ) );
+        last CREATE_S;
+    }
+    if ( $example eq 'final' ) {
+        $s = ( '(' x ( $length - length $s_balanced ) ) . $s_balanced;
+        last CREATE_S;
+    }
+    die qq{Example "$example" not known};
+} ## end CREATE_S:
 
 sub concat {
     my (undef, @args) = @_;
@@ -37,16 +59,16 @@ sub arg1 {
 my $marpa_answer_shown;
 my $regex_answer_shown;
 
-sub do_marpa_xs {
-    my ($s) = @_;
+sub paren_grammar_generate {
     my $grammar = Marpa::Grammar->new(
         {   start => 'S',
             rules => [
                 [ S => [qw(prefix first_balanced endmark1 endmark2)] ],
-                {   lhs => 'S'   , rhs   => [qw(prefix first_balanced )],
+                {   lhs    => 'S',
+                    rhs    => [qw(prefix first_balanced )],
                     action => 'main::arg1'
                 },
-                { lhs     => 'prefix', rhs => [qw(prefix_char)], min => 0 },
+                { lhs => 'prefix', rhs => [qw(prefix_char)], min => 0 },
                 {   lhs    => 'first_balanced',
                     rhs    => [qw(balanced)],
                     action => 'main::concat'
@@ -68,12 +90,19 @@ sub do_marpa_xs {
         }
     );
 
-    $grammar->set( { terminals => [qw(prefix_char lparen rparen endmark1 endmark2)] } );
+    $grammar->set(
+        { terminals => [qw(prefix_char lparen rparen endmark1 endmark2)] } );
 
     $grammar->precompute();
+    return $grammar;
+} ## end sub paren_grammar_generate
+
+sub do_marpa_xs {
+    my ($s) = @_;
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     my $end_of_parse;
     CHAR: for (my $location = 1; ; $location++) {
+       my $accepted = 0;
        if ('endmark1' ~~ $recce->terminals_expected()) {
            $end_of_parse = $location - 1;
        }
@@ -83,17 +112,16 @@ sub do_marpa_xs {
 	}
        my $token = $1 eq '(' ? 'lparen' : 'rparen';
        if (not defined $end_of_parse) {
-	   $recce->alternative( 'prefix_char', $1 );
+	   defined $recce->alternative( 'prefix_char', $1 ) and $accepted++;
 	}
-       if (not defined $recce->alternative( $token, $1 ))
-       {
-	   # the parse is exhausted if a paren is not accepted
-	   $end_of_parse //= $location;
-           last CHAR;
+       defined $recce->alternative( $token, $1 ) and $accepted++;
+       if (not $accepted) {
+	    $end_of_parse //= $location;
+	    last CHAR;
        }
-       $recce->earleme_complete( );
-       # say $recce->show_progress();
+       $recce->earleme_complete();
     }
+    $recce->end_input();
     $recce->set( { end=>$end_of_parse } );
     my $value_ref = $recce->value();
     my $value = ref $value_ref ? ${$value_ref} : 'No parse';
