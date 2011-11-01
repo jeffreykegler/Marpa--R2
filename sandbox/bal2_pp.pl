@@ -7,9 +7,21 @@ use Regexp::Common qw /balanced/;
 use Marpa::PP;
 
 say $Marpa::PP::VERSION;
-say $RE{balanced}{-parens=>'()<>[]{}'}{-keep};
 
-my $length = 2000;
+my $s = shift @ARGV // 1000;
+if ($s =~ /\A [()]+ \z/xms) {
+    say "Testing $s";
+    do_marpa_xs($s);
+    do_regexp($s);
+    exit 0;
+}
+
+my $length = $s + 0;
+if (not $length or $length < 0) {
+    die "Bad length $s";
+}
+
+$s = ('(' x $length) . '((()))';
 
 sub concat {
     my (undef, @args) = @_;
@@ -21,6 +33,7 @@ sub arg1 {
 }
 
 sub do_marpa_xs {
+    my ($s) = @_;
     my $grammar = Marpa::Grammar->new(
         {   start => 'S',
             rules => [
@@ -56,24 +69,33 @@ sub do_marpa_xs {
 
     $grammar->precompute();
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    $recce->read( 'lparen', '(' ) for 1 .. $length + 3;
-    $recce->read( 'rparen', ')' ) for 1 .. 3;
+    my $end_of_parse = undef;
+    my $location = 0;
+    CHAR: while ($s =~ m/(.)/xmsgc) {
+       $location++;
+       my $token = $1 eq '(' ? 'lparen' : 'rparen';
+       my $result = $recce->read( $token, $1 );
+       if ($result > 2) {
+           $end_of_parse = $location;
+	}
+    }
+    if (not defined $end_of_parse) {
+	say "No balanced parens found";
+	return 0;
+    }
+    $recce->set( { end=>$end_of_parse } );
     my $value_ref = $recce->value();
     my $value = ref $value_ref ? ${$value_ref} : 'No parse';
-    say $value;
+    say "location $end_of_parse;  $value";
 
 } ## end sub do_marpa_xs
 
 sub do_regexp {
-    my $s = ( '(' x $length ) . '((()))';
+    my ($s) = @_;
     $s =~ /$RE{balanced}{-parens=>'()'}{-keep}/
         and print qq{balanced parentheses: $1\n};
 }
 
-say timestr countit( 3, \&do_marpa_xs );
-say timestr countit( 3, \&do_regexp );
+say timestr countit( 2, sub { do_marpa_xs($s) } );
+say timestr countit( 2, sub { do_regexp($s) } );
 
-#while (<>) {
-    #/$RE{balanced}{-parens=>'()'}{-keep}/
-        #and print qq{balanced parentheses: $1\n};
-#}
