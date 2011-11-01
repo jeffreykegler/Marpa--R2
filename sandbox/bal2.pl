@@ -21,8 +21,9 @@ if (not $length or $length < 0) {
     die "Bad length $s";
 }
 
-$s = '((()())' . ( '(()' x ($length/3) )
-.  ( ')' x ($length/3+1) )  ;
+my $s_balanced = '(()())((';
+$s = ( '(' x ($length - length $s_balanced) ) . $s_balanced;
+# $s = '(' . $s_balanced . ( '(' x ( $length - length $s_balanced ) );
 
 sub concat {
     my (undef, @args) = @_;
