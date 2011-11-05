@@ -8,16 +8,31 @@ use Getopt::Long;
 my $example;
 my $length = 1000;
 my $string;
+my $pp = 0;
 my $getopt_result = GetOptions(
     "length=i" => \$length,
     "example=s"   => \$example,
     "string=s"   => \$string,
+    "pp" => \$pp,
 );   
-use Marpa::XS;
 
-say $Marpa::XS::VERSION;
+if ($pp) {
+    require Marpa::PP;
+    'Marpa::PP'->VERSION(0.010000);
+    say "Marpa::PP ", $Marpa::PP::VERSION;
+    no strict 'refs';
+    *{'main::Marpa::grammar_new'} = \&Marpa::PP::Grammar::new;
+    *{'main::Marpa::recce_new'} = \&Marpa::PP::Recognizer::new;
+}
+else {
+    require Marpa::XS;
+    'Marpa::XS'->VERSION(0.020000);
+    say "Marpa::XS ", $Marpa::XS::VERSION;
+    no strict 'refs';
+    *{'main::Marpa::grammar_new'} = \&Marpa::XS::Grammar::new;
+    *{'main::Marpa::recce_new'} = \&Marpa::XS::Recognizer::new;
+}
 
-my $grammar = paren_grammar_generate();
 
 if ( defined $string ) {
     die "Bad string: $string" if not $string =~ /\A [()]+ \z/xms;
@@ -60,10 +75,10 @@ my $marpa_answer_shown;
 my $regex_answer_shown;
 
 sub paren_grammar_generate {
-    my $grammar = Marpa::Grammar->new(
+    my $grammar = main::Marpa->grammar_new(
         {   start => 'S',
             rules => [
-                [ S => [qw(prefix first_balanced endmark1 endmark2)] ],
+                [ S => [qw(prefix first_balanced endmark1 )] ],
                 {   lhs    => 'S',
                     rhs    => [qw(prefix first_balanced )],
                     action => 'main::arg1'
@@ -91,7 +106,7 @@ sub paren_grammar_generate {
     );
 
     $grammar->set(
-        { terminals => [qw(prefix_char lparen rparen endmark1 endmark2)] } );
+        { terminals => [qw(prefix_char lparen rparen endmark1 )] } );
 
     $grammar->precompute();
     return $grammar;
@@ -99,7 +114,8 @@ sub paren_grammar_generate {
 
 sub do_marpa_xs {
     my ($s) = @_;
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $grammar = paren_grammar_generate();
+    my $recce = main::Marpa->recce_new( { grammar => $grammar } );
     my $end_of_parse;
     CHAR: for (my $location = 1; ; $location++) {
        my $accepted = 0;
