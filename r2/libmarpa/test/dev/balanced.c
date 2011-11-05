@@ -34,6 +34,11 @@ int main(int argc, char **argv)
     {
       string_length = atoi (argv[1]);
     }
+    if (string_length < 10)
+      {
+	fprintf (stderr, "String length is %d, must be at least 10\n");
+	exit (1);
+      }
   for (pass = 0; pass < 1; pass++)
     {
       int i;
@@ -94,9 +99,17 @@ int main(int argc, char **argv)
 	  puts (marpa_r_error (r));
 	  exit (1);
 	}
-      for (i = 0; i < 4; i++)
+      for (i = 0; i < string_length; i++)
 	{
-	  int status = marpa_alternative (r, a, GINT_TO_POINTER (42), 1);
+	  int status;
+	  Marpa_Symbol_ID paren_token = s_lparen;
+	    switch (i + 8 - string_length)
+	      {
+	      case 2:
+	      case 4:
+		paren_token = s_rparen;
+	      }
+	  int status = marpa_alternative (r, paren_token, 0, 1);
 	  if (status < 0)
 	    {
 	      printf ("marpa_alternative returned %d: %s", status,
