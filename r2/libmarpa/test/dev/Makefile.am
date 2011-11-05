@@ -18,8 +18,10 @@
 AM_CFLAGS = $(WARNING_CFLAGS)
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = README
-noinst_PROGRAMS = testleak
+noinst_PROGRAMS = testleak balanced
 testleak_LDADD = $(LIBOBJS) $(GLIB_LIBS) ../../build/libmarpa.la
 testleak_CFLAGS = $(GLIB_CFLAGS) $(WARNING_CFLAGS) -I../../dist
+balanced_LDADD = $(LIBOBJS) $(GLIB_LIBS) ../../build/libmarpa.la
+balanced_CFLAGS = $(GLIB_CFLAGS) $(WARNING_CFLAGS) -I../../dist
 
 
