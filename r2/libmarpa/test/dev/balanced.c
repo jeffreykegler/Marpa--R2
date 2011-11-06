@@ -21,11 +21,12 @@
 #include <glib.h>
 #include "marpa.h"
 
-int main(int argc, char **argv)
+int
+main (int argc, char **argv)
 {
   int pass;
   int string_length = 1000;
-    GArray *terminals_expected = g_array_new (FALSE, FALSE, sizeof (gint));
+  GArray *terminals_expected = g_array_new (FALSE, FALSE, sizeof (gint));
   /* This was to move gslice area out of the
      tree of Marpa calls during memory debugging */
   /* void* dummy = g_slice_alloc(42); */
@@ -34,14 +35,16 @@ int main(int argc, char **argv)
     {
       string_length = atoi (argv[1]);
     }
-    if (string_length < 10)
-      {
-	fprintf (stderr, "String length is %d, must be at least 10\n");
-	exit (1);
-      }
+  if (string_length < 10)
+    {
+      fprintf (stderr, "String length is %d, must be at least 10\n",
+	       string_length);
+      exit (1);
+    }
   for (pass = 0; pass < 1; pass++)
     {
       int i;
+      int end_of_parse = -1;
       Marpa_Symbol_ID s_top, s_prefix, s_first_balanced, s_endmark;
       Marpa_Symbol_ID s_prefix_char, s_balanced;
       Marpa_Symbol_ID s_lparen, s_rparen;
@@ -99,86 +102,81 @@ int main(int argc, char **argv)
 	  puts (marpa_r_error (r));
 	  exit (1);
 	}
-      for (i = 0; i < string_length; i++)
+      for (i = 0; i <= string_length; i++)
 	{
+	  int alternatives_accepted = 0;
 	  int status;
 	  Marpa_Symbol_ID paren_token = s_lparen;
-	    switch (i + 8 - string_length)
+	  {
+	    int count = marpa_terminals_expected (r, terminals_expected);
+	    if (count < 0)
 	      {
-	      case 2:
-	      case 4:
-		paren_token = s_rparen;
+		fprintf (stderr, "Problem in marpa_terminals_expected(): %s",
+			 marpa_r_error (r));
 	      }
-	  int status = marpa_alternative (r, paren_token, 0, 1);
-	  if (status < 0)
+	    while (count > 0)
+	      {
+		int expected_symbol_id =
+		  g_array_index (terminals_expected, gint, count);
+		if (expected_symbol_id == s_endmark) {
+		    end_of_parse = i;
+		}
+		count--;
+	      }
+	  }
+	  if (i >= string_length) break;
+	  switch (i + 8 - string_length)
 	    {
-	      printf ("marpa_alternative returned %d: %s", status,
+	    case 2:
+	    case 4:
+	      paren_token = s_rparen;
+	    }
+	  status = marpa_alternative (r, paren_token, 0, 1);
+	  if (status < -1)
+	    {
+	      fprintf (stderr, "marpa_alternative returned %d: %s", status,
 		      marpa_r_error (r));
 	      exit (1);
 	    }
+	  if (status >= 0) alternatives_accepted++;
+	  /* If we have not seen the end of a balanced set of parentheses,
+	     we might be in a prefix */
+if (end_of_parse < 0)
+  {
+    status = marpa_alternative (r, s_prefix_char, 0, 1);
+    if (status < -1)
+      {
+	fprintf (stderr, "marpa_alternative returned %d: %s", status,
+		 marpa_r_error (r));
+	exit (1);
+      }
+    if (status >= 0)
+      alternatives_accepted++;
+  }
+	  /* If none of the alternatives were accepted, we are done */
+	  if (alternatives_accepted <= 0) break;
 	  status = marpa_earleme_complete (r);
 	  if (status < 0)
 	    {
-	      printf ("marpa_earleme_complete returned %d: %s", status,
+	      fprintf (stderr, "marpa_earleme_complete returned %d: %s", status,
 		      marpa_r_error (r));
 	      exit (1);
 	    }
 	}
-      for (i = 0; i <= 4; i++)
-	{
-	  int tree_ordinal = 0;
-	  int status = marpa_bocage_new (r, -1, i);
-	  if (status < 0)
-	    {
-	      printf ("marpa_bocage_new returned %d: %s", status,
-		      marpa_r_error (r));
-	      exit (1);
-	    }
-	  while (++tree_ordinal)
-	    {
-	      int val_status;
-	      int tree_status = marpa_tree_new (r);
-	      if (tree_status < -1)
-		{
-		  printf ("marpa_tree_new returned %d: %s", status,
-			  marpa_r_error (r));
-		  exit (1);
-		}
-	      if (tree_status == -1)
-		break;
-	      fprintf (stdout, "Tree #%d for length %d\n", tree_ordinal, i);
-	      val_status = marpa_val_new (r);
-	      if (val_status < 0)
-		{
-		  printf ("marpa_val_new returned %d: %s", status,
-			  marpa_r_error (r));
-		  exit (1);
-		}
-	      while (1)
-		{
-		  Marpa_Event event;
-		  int event_status = marpa_val_event (r, &event);
-		  if (event_status < -1)
-		    {
-		      printf ("marpa_val_event returned %d: %s", status,
-			      marpa_r_error (r));
-		      exit (1);
-		    }
-		  if (event_status == -1)
-		    break;
-		  fprintf (stdout, "Event: %d %d %d %d %d\n",
-			   event.marpa_token_id,
-			   GPOINTER_TO_INT (event.marpa_value),
-			   event.marpa_rule_id,
-			   event.marpa_arg_0, event.marpa_arg_n);
-		}
-	    }
-	  marpa_bocage_free (r);
-	}
+      {
+	int status = marpa_bocage_new (r, -1, end_of_parse);
+	if (status < 0)
+	  {
+	    fprintf (stderr, "marpa_bocage_new returned %d: %s\n", status,
+		     marpa_r_error (r));
+	    exit (1);
+	  }
+	marpa_bocage_free (r);
+      }
       marpa_r_free (r);
       marpa_g_free (g);
       g = NULL;
     }
   /* while(1) { putc('.', stderr); sleep(10); } */
+  exit (0);
 }
-
