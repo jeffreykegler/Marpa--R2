@@ -21,6 +21,10 @@
 #include <glib.h>
 #include "marpa.h"
 
+#define Dim(x) (sizeof(x)/sizeof(*x))
+
+int is_first_balanced_completion[100];
+
 Marpa_Symbol_ID s_lparen;
 Marpa_Symbol_ID s_rparen;
 Marpa_Symbol_ID s_endmark;
@@ -56,15 +60,14 @@ create_recce (struct marpa_g *g)
 }
 
 static void
-fatal_r_error (const char *where, struct marpa_r * r, int status)
+fatal_r_error (const char *where, struct marpa_r *r, int status)
 {
-  fprintf (stderr, "%s returned %d: %s", where, status,
-	   marpa_r_error (r));
+  fprintf (stderr, "%s returned %d: %s", where, status, marpa_r_error (r));
   exit (1);
 }
 
-static inline int is_expecting_endmark (struct marpa_r * r,
-					GArray * terminals_expected)
+static inline int
+is_expecting_endmark (struct marpa_r *r, GArray * terminals_expected)
 {
   int count = marpa_terminals_expected (r, terminals_expected);
   if (count < 0)
@@ -82,7 +85,7 @@ static inline int is_expecting_endmark (struct marpa_r * r,
 	}
       count--;
     }
-    return 0;
+  return 0;
 }
 
 int
@@ -155,6 +158,38 @@ main (int argc, char **argv)
 	  puts (marpa_g_error (g));
 	  exit (1);
 	}
+{
+  int AHFA_state_count = marpa_AHFA_state_count (g);
+  int ahfa_id;
+  if ((guint) AHFA_state_count >= Dim (is_first_balanced_completion))
+    {
+      fprintf (stderr, "Too many AHFA states: %d", AHFA_state_count);
+      exit (1);
+    }
+  for (ahfa_id = 0; ahfa_id < AHFA_state_count; ahfa_id++)
+    {
+      guint aim_ix;
+      guint aim_count = marpa_AHFA_state_item_count (g, ahfa_id);
+      is_first_balanced_completion[ahfa_id] = 0;
+      for (aim_ix = 0; aim_ix < aim_count; aim_ix++)
+	{
+	  int aim_id = marpa_AHFA_state_item (g, ahfa_id, aim_ix);
+	  int position = marpa_AHFA_item_position (g, aim_id);
+	  if (position == -1)
+	    {
+	      Marpa_Rule_ID rule = marpa_AHFA_item_rule (g, aim_id);
+	      Marpa_Symbol_ID lhs = marpa_rule_lhs (g, rule);
+	      if (lhs == s_first_balanced)
+		{
+		  printf ("AHFA state %d is first balanced completion\n",
+			  ahfa_id);
+		  is_first_balanced_completion[ahfa_id] = 1;
+		  break;
+		}
+	    }
+	}
+    }
+}
       r = create_recce (g);
       for (location = 0; location <= string_length; location++)
 	{
@@ -178,10 +213,10 @@ main (int argc, char **argv)
 	    }
 	  location++;
 	}
-	if (last_prefix_location < 0)
-	  {
-	    printf ("No balanced parens\n");
-	  }
+      if (last_prefix_location < 0)
+	{
+	  printf ("No balanced parens\n");
+	}
       marpa_r_free (r);
       r = create_recce (g);
       while (1)
@@ -234,21 +269,6 @@ main (int argc, char **argv)
 	      break;
 	    }
 	}
-      if (!marpa_end_input (r))
-	{
-	  puts (marpa_r_error (r));
-	  exit (1);
-	}
-      {
-	int status = marpa_bocage_new (r, -1, end_of_parse);
-	if (status < 0)
-	  {
-	    fprintf (stderr, "marpa_bocage_new returned %d: %s\n", status,
-		     marpa_r_error (r));
-	    exit (1);
-	  }
-	marpa_bocage_free (r);
-      }
       marpa_r_free (r);
       marpa_g_free (g);
       g = NULL;
