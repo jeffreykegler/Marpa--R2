@@ -77,6 +77,7 @@ my $regex_answer_shown;
 sub paren_grammar_generate {
     my $grammar = main::Marpa->grammar_new(
         {   start => 'S',
+	    strip => 0,
             rules => [
                 [ S => [qw(prefix first_balanced endmark )] ],
                 {   lhs    => 'S',
