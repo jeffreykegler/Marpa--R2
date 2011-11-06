@@ -118,8 +118,8 @@ sub do_marpa_xs {
     my $recce = main::Marpa->recce_new( { grammar => $grammar } );
     my $location = 0;
     my $string_length = length $s;
-    my $last_prefix_location;
-    my $end_of_parse;
+    my $start_of_match;
+    my $end_of_match;
     # find the match which ends first -- the one which starts
     # first must start at or before it does
     CHAR: while ( $location < $string_length ) {
@@ -129,33 +129,26 @@ sub do_marpa_xs {
         $recce->alternative( 'prefix_char', $value );
         $recce->earleme_complete();
         if ( 'endmark' ~~ $recce->terminals_expected() ) {
-            $last_prefix_location = $location - 1;
-	    $end_of_parse = $location + 1;
+            my $progress = $recce->show_progress();
+            if (not( $progress
+                    =~ m/ ^ F\d+ \s [@] (\d+) [-] \d+ \s first_balanced \s [-][>] /xms
+                )
+                )
+            {
+                die "No match for $progress";
+            } ## end if ( not( $progress =~ ...))
+	    $start_of_match = $1;
+            # say $start_of_match;
+            $end_of_match         = $location + 1;
             last CHAR;
-        }
-	$location++;
-    }
-    if (not defined $last_prefix_location ) {
+        } ## end if ( 'endmark' ~~ $recce->terminals_expected() )
+        $location++;
+    } ## end while ( $location < $string_length )
+    if (not defined $start_of_match ) {
        say "No balanced parens";
        return 0;
     }
-    # say "end_of_parse=", $end_of_parse, 'LINE=', __LINE__;
-    # now that we know the maximum length of the prefx,
-    # start over again
-    $recce = main::Marpa->recce_new( { grammar => $grammar } );
-    $location = 0;
-    # say STDERR "last_prefix_location =$last_prefix_location ";
-    CHAR: while ( 1 ) {
-        my $value = substr $s, $location, 1;
-        my $token = $value eq '(' ? 'lparen' : 'rparen';
-	# say "Reading $token $value";
-        $recce->alternative( $token,        $value );
-	last CHAR if $location > $last_prefix_location;
-        $recce->alternative( 'prefix_char', $value );
-        $recce->earleme_complete();
-	$location++;
-    }
-    $recce->earleme_complete();
+
     CHAR: while ( ++$location < $string_length ) {
         my $value = substr $s, $location, 1;
         my $token = $value eq '(' ? 'lparen' : 'rparen';
@@ -163,26 +156,28 @@ sub do_marpa_xs {
         last CHAR if not defined $recce->alternative( $token, $value );
         $recce->earleme_complete();
         if ( 'endmark' ~~ $recce->terminals_expected() ) {
-            $end_of_parse = $location + 1;
+            my $progress = $recce->show_progress();
+            if (not( $progress
+                    =~ m/ ^ F\d+ \s [@] (\d+) [-] \d+ \s first_balanced \s [-][>] /xms
+                )
+                )
+            {
+                die "No match for $progress";
+	    }
+	    if ( $1 >= $start_of_match) {
+		# say "spurious match starts at $1";
+	        next CHAR;
+	    }
+            # say $start_of_match;
+	    $start_of_match = $1;
+            $end_of_match = $location + 1;
             last CHAR;
         }
     } ## end while ( $location < $string_length )
-    if ($location >= $string_length) {
-        if ( 'endmark' ~~ $recce->terminals_expected() ) {
-            $end_of_parse = $location + 1;
-            last CHAR;
-        }
-    }
-    $recce->end_input();
-    # say "end_of_parse=", $end_of_parse, 'LINE=', __LINE__;
-    $recce->set( { end=>$end_of_parse } );
-    my $value_ref = $recce->value();
-    die "Parse failure" if not ref $value_ref;
-    my $value = ${$value_ref};
-    my $start_of_parse = $end_of_parse - length $value;
+    my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
     return 0 if $marpa_answer_shown;
     $marpa_answer_shown = $value;
-    say qq{marpa: "$value" at $start_of_parse-$end_of_parse};
+    say qq{marpa: "$value" at $start_of_match-$end_of_match};
     return 0;
 
 } ## end sub do_marpa_xs
