@@ -6476,7 +6476,7 @@ static inline void trace_earley_item_clear(struct marpa_r* r)
     trace_source_link_clear(r);
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 Marpa_Earley_Set_ID marpa_earley_item_origin(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Earley_Set_ID marpa_earley_item_origin(struct marpa_r *r)
