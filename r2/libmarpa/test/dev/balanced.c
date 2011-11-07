@@ -208,6 +208,7 @@ if (string)
     /* Never freed */
     test_string = string;
     string_length = strlen(test_string);
+    printf("Target is \"%s\", length=%d\n", test_string, string_length);
   }
 else if (string_length < 10)
   {
@@ -219,6 +220,7 @@ else
   {
     /* Never freed */
     test_string = gen_example_string (string_length);
+    printf("Target at end, length=%d\n", string_length);
   }
 
   for (pass = 0; pass < repeats; pass++)
