@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <glib.h>
 #include "marpa.h"
 
@@ -29,17 +30,20 @@ Marpa_Symbol_ID s_lparen;
 Marpa_Symbol_ID s_rparen;
 Marpa_Symbol_ID s_endmark;
 
-static inline Marpa_Symbol_ID
-gen_token (int string_length, int location)
+struct leo_workitem {
+    Marpa_Earley_Set_ID es;
+    Marpa_Symbol_ID transition_symbol;
+};
+
+static inline char *gen_example_string(int length)
 {
-  switch (location + 8 - string_length)
-    {
-    case 2:
-    case 4:
-    case 5:
-      return s_rparen;
+    char *result = g_malloc((guint)length+1);
+    int i;
+    for (i = 0; i < length-8; i++) {
+        result[i] = '(';
     }
-  return s_lparen;
+    strcpy(result+i, "(()())((");
+    return result;
 }
 
 static inline struct marpa_r *
@@ -67,28 +71,100 @@ fatal_r_error (const char *where, struct marpa_r *r, int status)
 }
 
 static inline Marpa_Earley_Set_ID
-at_first_balanced_completion (struct marpa_r *r, int earley_set )
+at_first_balanced_completion (struct marpa_r *r, int current_earley_set)
 {
   int eim = 0;
-  int earleme = marpa_earley_set_trace(r, earley_set);
-  /* printf("marpa_earley_set_trace: es=%d, earleme=%d\n", earley_set, earleme); */
-  if (earleme < -1) {
-      fatal_r_error("marpa_earley_set_trace", r, earleme);
-  }
-  while (1) {
-      Marpa_AHFA_State_ID ahfa_id = marpa_earley_item_trace(r, eim);
-      if (ahfa_id < -1) {
-          fatal_r_error("marpa_earley_item_trace", r, ahfa_id);
-      }
-      if (ahfa_id == -1) break;
+  guint work_item_ix;
+  Marpa_Earley_Set_ID traced_earley_set = -1;
+
+  GArray *leo_worklist = g_array_new(TRUE, FALSE, sizeof(struct leo_workitem));
+  while (1)
+    {
+      Marpa_AHFA_State_ID ahfa_id;
+	Marpa_AHFA_State_ID leo_cause_ahfa;
+      if (traced_earley_set != current_earley_set)
+	{
+	  int earleme = marpa_earley_set_trace (r, current_earley_set);
+	  /* printf("marpa_earley_set_trace: es=%d, earleme=%d\n", earley_set, earleme); */
+	  if (earleme < -1)
+	    {
+	      fatal_r_error ("marpa_earley_set_trace", r, earleme);
+	    }
+	}
+      ahfa_id = marpa_earley_item_trace (r, eim);
+      if (ahfa_id < -1)
+	{
+	  fatal_r_error ("marpa_earley_item_trace", r, ahfa_id);
+	}
+      if (ahfa_id == -1)
+	break;
       /* printf("es=%d, eim=%d, ahfa_id=%d\n", earley_set, eim, ahfa_id); */
-      if (ahfa_id == first_balanced_completion) {
-          Marpa_Earley_Set_ID es = marpa_earley_item_origin(r);
-	  if (es < 0) {
-	      fatal_r_error("marpa_earley_item_origin", r, es);
-	  }
+      if (ahfa_id == first_balanced_completion)
+	{
+	  Marpa_Earley_Set_ID es = marpa_earley_item_origin (r);
+	  if (es < 0)
+	    {
+	      fatal_r_error ("marpa_earley_item_origin", r, es);
+	    }
 	  return es;
+	}
+for (leo_cause_ahfa = marpa_first_leo_link_trace (r);
+     leo_cause_ahfa >= 0; leo_cause_ahfa = marpa_next_leo_link_trace (r))
+  {
+    struct leo_workitem workitem;
+    Marpa_Earley_Set_ID leo_earley_set;
+    Marpa_Symbol_ID leo_transition_symbol =
+      marpa_source_leo_transition_symbol (r);
+    if (leo_transition_symbol < 0)
+      {
+	fatal_r_error ("marpa_source_leo_transition_symbol", r,
+		       leo_transition_symbol);
       }
+    leo_earley_set = marpa_source_middle (r);
+    if (leo_earley_set < 0)
+      {
+	fatal_r_error ("marpa_source_middle", r, traced_earley_set);
+      }
+    workitem.es = leo_earley_set;
+    workitem.transition_symbol = leo_transition_symbol;
+    g_array_append_vals (leo_worklist, &workitem, 1);
+  }
+	if (leo_cause_ahfa < -1)
+	  {
+	    fatal_r_error ("marpa_{first,next}_leo_item_trace", r,
+			   leo_cause_ahfa);
+	  }
+for (work_item_ix = 0; work_item_ix < leo_worklist->len; work_item_ix++)
+{
+  int result;
+  Marpa_AHFA_State_ID expansion_ahfa_id;
+  struct leo_workitem *workitem =
+    &g_array_index (leo_worklist, struct leo_workitem, work_item_ix);
+  Marpa_Earleme earleme = marpa_earley_set_trace (r, workitem->es);
+  if (earleme < -1)
+    {
+      fatal_r_error ("marpa_earley_set_trace", r, earleme);
+    }
+  result = marpa_postdot_symbol_trace (r, workitem->transition_symbol);
+  if (result < 0)
+    {
+      fatal_r_error ("marpa_postdot_symbol_trace", r, result);
+    }
+  expansion_ahfa_id = marpa_leo_expansion_ahfa (r);
+  if (expansion_ahfa_id < 0)
+    {
+      fatal_r_error ("marpa_leo_expansion_ahfa", r, expansion_ahfa_id);
+    }
+  if (expansion_ahfa_id == first_balanced_completion)
+    {
+      Marpa_Earley_Set_ID origin = marpa_leo_base_origin (r);
+      if (origin < 0)
+	{
+	  fatal_r_error ("marpa_leo_base_origin", r, origin);
+	}
+      return origin;
+    }
+}
       eim++;
     }
   return -1;
@@ -96,11 +172,13 @@ at_first_balanced_completion (struct marpa_r *r, int earley_set )
 
 static gint string_length = 1000;
 static gint repeats = 1;
+static char *string = NULL;
 
 static GOptionEntry entries[] = {
   {"length", 'l', 0, G_OPTION_ARG_INT, &string_length,
    "Length of test string", "L"},
   {"repeats", 'r', 0, G_OPTION_ARG_INT, &repeats, "Test R times", "R"},
+  {"string", 's', 0, G_OPTION_ARG_STRING, &string, "String to test", NULL},
   {NULL, 0, 0, 0, NULL, NULL, NULL}
 };
 
@@ -115,6 +193,7 @@ main (int argc, char **argv)
   /* g_slice_free1(42, dummy); */
   GError *error = NULL;
   GOptionContext *context;
+  char *test_string;
 
   context = g_option_context_new ("- test balanced parens");
   g_option_context_add_main_entries (context, entries, NULL);
@@ -124,12 +203,24 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  if (string_length < 10)
-    {
-      fprintf (stderr, "String length is %d, must be at least 10\n",
-	       string_length);
-      exit (1);
-    }
+if (string)
+  {
+    /* Never freed */
+    test_string = string;
+    string_length = strlen(test_string);
+  }
+else if (string_length < 10)
+  {
+    fprintf (stderr, "String length is %d, must be at least 10\n",
+	     string_length);
+    exit (1);
+  }
+else
+  {
+    /* Never freed */
+    test_string = gen_example_string (string_length);
+  }
+
   for (pass = 0; pass < repeats; pass++)
     {
       int location;
@@ -143,6 +234,7 @@ main (int argc, char **argv)
       void *result;
       /* Longest rule is 4 symbols */
       Marpa_Symbol_ID rhs[4];
+
       g = marpa_g_new ();
       s_top = marpa_symbol_new (g);
       s_prefix = marpa_symbol_new (g);
@@ -209,7 +301,7 @@ main (int argc, char **argv)
       for (location = 0; location <= string_length; location++)
 	{
 	  int origin, status;
-	  Marpa_Symbol_ID paren_token = gen_token (string_length, location);
+	  Marpa_Symbol_ID paren_token = test_string[location] == '(' ? s_lparen : s_rparen;
 	  status = marpa_alternative (r, paren_token, 0, 1);
 	  if (status < -1)
 	    fatal_r_error ("marpa alternative", r, status);
@@ -234,15 +326,15 @@ main (int argc, char **argv)
 	}
       while (++location < string_length)
 	{
-	  int origin, status;
-	  Marpa_Symbol_ID paren_token = gen_token (string_length, location);
+	  int origin, status, earleme_complete_status;
+	  Marpa_Symbol_ID paren_token = test_string[location] == '(' ? s_lparen : s_rparen;
 	  status = marpa_alternative (r, paren_token, 0, 1);
 	  if (status == -1) break;
 	  if (status < -1)
 	    fatal_r_error ("marpa alternative", r, status);
-	  status = marpa_earleme_complete (r);
-	  if (status < -1)
-	    fatal_r_error ("marpa_earleme_complete", r, status);
+	  earleme_complete_status = marpa_earleme_complete (r);
+	  if (earleme_complete_status < -1)
+	    fatal_r_error ("marpa_earleme_complete", r, earleme_complete_status);
 	  origin = at_first_balanced_completion (r, location+1 );
 	  if (origin >= 0 && origin < start_of_match)
 	    {
@@ -250,6 +342,7 @@ main (int argc, char **argv)
 	      end_of_match = location + 1;
 	      break;
 	    }
+	    if (earleme_complete_status == 0) break;
 	}
 	if (!was_result_written) {
 	printf("Match at %d-%d\n", start_of_match, end_of_match);
