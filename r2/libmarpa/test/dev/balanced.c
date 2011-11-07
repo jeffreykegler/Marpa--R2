@@ -70,27 +70,24 @@ fatal_r_error (const char *where, struct marpa_r *r, int status)
   exit (1);
 }
 
-static inline Marpa_Earley_Set_ID
+static Marpa_Earley_Set_ID
 at_first_balanced_completion (struct marpa_r *r, int current_earley_set)
 {
   int eim = 0;
   guint work_item_ix;
-  Marpa_Earley_Set_ID traced_earley_set = -1;
 
-  GArray *leo_worklist = g_array_new(TRUE, FALSE, sizeof(struct leo_workitem));
+  GArray *leo_worklist =
+    g_array_new (TRUE, FALSE, sizeof (struct leo_workitem));
+  int earleme = marpa_earley_set_trace (r, current_earley_set);
+  /* printf("marpa_earley_set_trace: es=%d, earleme=%d\n", earley_set, earleme); */
+  if (earleme < -1)
+    {
+      fatal_r_error ("marpa_earley_set_trace", r, earleme);
+    }
   while (1)
     {
       Marpa_AHFA_State_ID ahfa_id;
-	Marpa_AHFA_State_ID leo_cause_ahfa;
-      if (traced_earley_set != current_earley_set)
-	{
-	  int earleme = marpa_earley_set_trace (r, current_earley_set);
-	  /* printf("marpa_earley_set_trace: es=%d, earleme=%d\n", earley_set, earleme); */
-	  if (earleme < -1)
-	    {
-	      fatal_r_error ("marpa_earley_set_trace", r, earleme);
-	    }
-	}
+      Marpa_AHFA_State_ID leo_cause_ahfa;
       ahfa_id = marpa_earley_item_trace (r, eim);
       if (ahfa_id < -1)
 	{
@@ -108,65 +105,85 @@ at_first_balanced_completion (struct marpa_r *r, int current_earley_set)
 	    }
 	  return es;
 	}
-for (leo_cause_ahfa = marpa_first_leo_link_trace (r);
-     leo_cause_ahfa >= 0; leo_cause_ahfa = marpa_next_leo_link_trace (r))
-  {
-    struct leo_workitem workitem;
-    Marpa_Earley_Set_ID leo_earley_set;
-    Marpa_Symbol_ID leo_transition_symbol =
-      marpa_source_leo_transition_symbol (r);
-    if (leo_transition_symbol < 0)
-      {
-	fatal_r_error ("marpa_source_leo_transition_symbol", r,
-		       leo_transition_symbol);
-      }
-    leo_earley_set = marpa_source_middle (r);
-    if (leo_earley_set < 0)
-      {
-	fatal_r_error ("marpa_source_middle", r, traced_earley_set);
-      }
-    workitem.es = leo_earley_set;
-    workitem.transition_symbol = leo_transition_symbol;
-    g_array_append_vals (leo_worklist, &workitem, 1);
-  }
-	if (leo_cause_ahfa < -1)
-	  {
-	    fatal_r_error ("marpa_{first,next}_leo_item_trace", r,
-			   leo_cause_ahfa);
-	  }
-for (work_item_ix = 0; work_item_ix < leo_worklist->len; work_item_ix++)
-{
-  int result;
-  Marpa_AHFA_State_ID expansion_ahfa_id;
-  struct leo_workitem *workitem =
-    &g_array_index (leo_worklist, struct leo_workitem, work_item_ix);
-  Marpa_Earleme earleme = marpa_earley_set_trace (r, workitem->es);
-  if (earleme < -1)
-    {
-      fatal_r_error ("marpa_earley_set_trace", r, earleme);
-    }
-  result = marpa_postdot_symbol_trace (r, workitem->transition_symbol);
-  if (result < 0)
-    {
-      fatal_r_error ("marpa_postdot_symbol_trace", r, result);
-    }
-  expansion_ahfa_id = marpa_leo_expansion_ahfa (r);
-  if (expansion_ahfa_id < 0)
-    {
-      fatal_r_error ("marpa_leo_expansion_ahfa", r, expansion_ahfa_id);
-    }
-  if (expansion_ahfa_id == first_balanced_completion)
-    {
-      Marpa_Earley_Set_ID origin = marpa_leo_base_origin (r);
-      if (origin < 0)
+      for (leo_cause_ahfa = marpa_first_leo_link_trace (r);
+	   leo_cause_ahfa >= 0;
+	   leo_cause_ahfa = marpa_next_leo_link_trace (r))
 	{
-	  fatal_r_error ("marpa_leo_base_origin", r, origin);
+	  struct leo_workitem workitem;
+	  Marpa_Earley_Set_ID leo_earley_set;
+	  Marpa_Symbol_ID leo_transition_symbol =
+	    marpa_source_leo_transition_symbol (r);
+	  if (leo_transition_symbol < 0)
+	    {
+	      fatal_r_error ("marpa_source_leo_transition_symbol", r,
+			     leo_transition_symbol);
+	    }
+	  leo_earley_set = marpa_source_middle (r);
+	  if (leo_earley_set < 0)
+	    {
+	      fatal_r_error ("marpa_source_middle", r, leo_earley_set);
+	    }
+	  workitem.es = leo_earley_set;
+	  workitem.transition_symbol = leo_transition_symbol;
+	  g_array_append_vals (leo_worklist, &workitem, 1);
 	}
-      return origin;
-    }
-}
+      if (leo_cause_ahfa < -1)
+	{
+	  fatal_r_error ("marpa_{first,next}_leo_item_trace", r,
+			 leo_cause_ahfa);
+	}
       eim++;
     }
+  for (work_item_ix = 0; work_item_ix < leo_worklist->len; work_item_ix++)
+    {
+      /* No relevant Leo items in this grammar, so this logic is not
+       * really tested -- it was copied from Marpa::XS */
+      struct leo_workitem *workitem =
+	&g_array_index (leo_worklist, struct leo_workitem, work_item_ix);
+      Marpa_Symbol_ID leo_transition_symbol = workitem->transition_symbol;
+      Marpa_Earleme earley_set_of_leo_item = workitem->es;
+      while (1)
+	{
+	  Marpa_Earley_Set_ID origin;
+	  Marpa_AHFA_State_ID expansion_ahfa_id;
+	  int result =
+	    marpa_earley_set_trace (r, earley_set_of_leo_item);
+	  if (result < -1)
+	    {
+	      fatal_r_error ("marpa_earley_set_trace", r, result);
+	    }
+	  result = marpa_postdot_symbol_trace (r, leo_transition_symbol);
+	  if (result < 0)
+	    {
+	      fatal_r_error ("marpa_postdot_symbol_trace", r, result);
+	    }
+	  expansion_ahfa_id = marpa_leo_expansion_ahfa (r);
+	  if (expansion_ahfa_id < 0)
+	    {
+	      fatal_r_error ("marpa_leo_expansion_ahfa", r,
+			     expansion_ahfa_id);
+	    }
+	  origin = marpa_leo_base_origin (r);
+	  if (origin < 0)
+	    {
+	      fatal_r_error ("marpa_leo_base_origin", r, origin);
+	    }
+	  if (expansion_ahfa_id == first_balanced_completion)
+	    {
+	      return origin;
+	    }
+	  leo_transition_symbol = marpa_leo_predecessor_symbol (r);
+	  if (leo_transition_symbol == -1)
+	    break;
+	  if (leo_transition_symbol < -1)
+	    {
+	      fatal_r_error ("marpa_leo_predecessor_symbol", r,
+			     leo_transition_symbol);
+	    }
+	  earley_set_of_leo_item = origin;
+	}
+    }
+  g_array_free (leo_worklist, TRUE);
   return -1;
 }
 
