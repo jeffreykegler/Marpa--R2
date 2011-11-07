@@ -6568,7 +6568,7 @@ The functions in this section are all accessors.
 The trace Leo item is selected by setting the trace postdot item
 to a Leo item.
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 Marpa_Symbol_ID marpa_leo_predecessor_symbol(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Symbol_ID marpa_leo_predecessor_symbol(struct marpa_r *r)
@@ -6591,6 +6591,7 @@ Marpa_Symbol_ID marpa_leo_predecessor_symbol(struct marpa_r *r)
   return Postdot_SYMID_of_LIM(predecessor_leo_item);
 }
 
+@ @<Public function prototypes@> =
 Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r)
@@ -6609,7 +6610,7 @@ Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r)
   return Origin_Ord_of_EIM(base_earley_item);
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r)
@@ -6630,7 +6631,7 @@ Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r)
 
 @ This function
 returns the ``Leo expansion AHFA" of the current trace Leo item.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 Marpa_AHFA_State_ID marpa_leo_expansion_ahfa(struct marpa_r *r);
 @ The {\bf Leo expansion AHFA} is the AHFA
 of the {\bf Leo expansion Earley item}.
