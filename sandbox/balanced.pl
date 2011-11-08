@@ -201,7 +201,7 @@ my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 sub do_regex_new {
     my ($s) = @_;
     my $answer =
-          $s =~ /$tchrist_regex/
+          $s =~ $tchrist_regex
         ? $1
         : 'no balanced parentheses';
     return 0 if $regex_new_answer_shown;
