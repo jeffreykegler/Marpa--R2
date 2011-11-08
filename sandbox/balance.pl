@@ -39,6 +39,7 @@ if ( defined $string ) {
     say "Testing $string";
     do_marpa_xs($string);
     do_regex($string);
+    do_regex_new($string);
     exit 0;
 } ## end if ( defined $string )
 
@@ -73,6 +74,7 @@ sub arg1 {
 
 my $marpa_answer_shown;
 my $regex_answer_shown;
+my $regex_new_answer_shown;
 
 sub paren_grammar_generate {
     my $grammar = main::Marpa->grammar_new(
@@ -195,7 +197,21 @@ sub do_regex {
     return 0;
 } ## end sub do_regex
 
+sub do_regex_new {
+    my ($s) = @_;
+    my $answer =
+          $s =~ /(\((?:[^()]++|(?-1))*+\))/
+        ? $1
+        : 'no balanced parentheses';
+    return 0 if $regex_new_answer_shown;
+    $regex_new_answer_shown = $answer;
+    say "regex answer: $answer";
+    return 0;
+} ## end sub do_regex
+
 say timestr countit( 2, sub { do_marpa_xs($s) } );
 say timestr countit( 2, sub { do_regex($s) } );
+say timestr countit( 2, sub { do_regex_new($s) } );
 
 say +($marpa_answer_shown eq $regex_answer_shown ? 'Answers match' : 'ANSWERS DO NOT MATCH!');
+say +($marpa_answer_shown eq $regex_new_answer_shown ? 'New Answer matches' : 'NEW ANSWER DOES NOT MATCH!');
