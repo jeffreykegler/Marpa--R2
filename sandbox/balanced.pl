@@ -33,6 +33,7 @@ else {
     *{'main::Marpa::recce_new'} = \&Marpa::XS::Recognizer::new;
 }
 
+my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 
 if ( defined $string ) {
     die "Bad string: $string" if not $string =~ /\A [()]+ \z/xms;
@@ -65,11 +66,16 @@ CREATE_S: {
 
 sub concat {
     my (undef, @args) = @_;
-    return join q{}, @args;
+    return join q{}, grep { defined } @args;
 }
+sub arg0 {
+    my (undef, $arg0) = @_;
+    return $arg0;
+}
+
 sub arg1 {
-    my (undef, undef, $balanced) = @_;
-    return $balanced;
+    my (undef, undef, $arg1) = @_;
+    return $arg1;
 }
 
 my $marpa_answer_shown;
@@ -87,29 +93,27 @@ sub paren_grammar_generate {
                     action => 'main::arg1'
                 },
                 { lhs => 'prefix', rhs => [qw(prefix_char)], min => 0 },
+                { lhs => 'prefix_char', rhs => [qw(xlparen)] },
+                { lhs => 'prefix_char', rhs => [qw(rparen)] },
+                { lhs => 'lparen', rhs => [qw(xlparen)] },
+                { lhs => 'lparen', rhs => [qw(ilparen)] },
                 {   lhs    => 'first_balanced',
-                    rhs    => [qw(balanced)],
-                    action => 'main::concat'
-                },
-                {   lhs    => 'balanced',
-                    rhs    => [qw(lparen rparen)],
-                    action => 'main::concat'
+                    rhs    => [qw(xlparen balanced_sequence rparen)],
+                    action => 'main::arg0'
                 },
                 {   lhs    => 'balanced',
                     rhs    => [qw(lparen balanced_sequence rparen)],
-                    action => 'main::concat'
                 },
                 {   lhs    => 'balanced_sequence',
                     rhs    => [qw(balanced)],
-                    min    => 1,
-                    action => 'main::concat'
+                    min    => 0,
                 },
             ],
         }
     );
 
     $grammar->set(
-        { terminals => [qw(prefix_char lparen rparen endmark )] } );
+        { terminals => [qw(xlparen ilparen rparen endmark )] } );
 
     $grammar->precompute();
     return $grammar;
@@ -121,62 +125,46 @@ sub do_marpa_xs {
     my $recce = main::Marpa->recce_new( { grammar => $grammar } );
     my $location = 0;
     my $string_length = length $s;
-    my $start_of_match;
     my $end_of_match;
     # find the match which ends first -- the one which starts
     # first must start at or before it does
     CHAR: while ( $location < $string_length ) {
         my $value = substr $s, $location, 1;
-        my $token = $value eq '(' ? 'lparen' : 'rparen';
-        $recce->alternative( $token,        $value );
-        $recce->alternative( 'prefix_char', $value );
-        $recce->earleme_complete();
+	if ($value eq '(') {
+	    $recce->read( 'xlparen', $location );
+	} else {
+	    $recce->read( 'rparen' );
+	}
         if ( 'endmark' ~~ $recce->terminals_expected() ) {
-            my $progress = $recce->show_progress();
-            if (not( $progress
-                    =~ m/ ^ F\d+ \s [@] (\d+) [-] \d+ \s first_balanced \s [-][>] /xms
-                )
-                )
-            {
-                die "No match for $progress";
-            } ## end if ( not( $progress =~ ...))
-	    $start_of_match = $1;
-            # say $start_of_match;
-            $end_of_match         = $location + 1;
+            $end_of_match = $location + 1;
+	    # say "Setting end of match to ", $location + 1;
             last CHAR;
-        } ## end if ( 'endmark' ~~ $recce->terminals_expected() )
+        }
         $location++;
     } ## end while ( $location < $string_length )
-    if (not defined $start_of_match ) {
+
+    if ( not defined $end_of_match ) {
        say "No balanced parens";
        return 0;
     }
 
     CHAR: while ( ++$location < $string_length ) {
         my $value = substr $s, $location, 1;
-        my $token = $value eq '(' ? 'lparen' : 'rparen';
-	# say "Reading $token $value";
-        last CHAR if not defined $recce->alternative( $token, $value );
-        $recce->earleme_complete();
+        my $token = $value eq '(' ? 'ilparen' : 'rparen';
+        last CHAR if not defined $recce->read( $token );
         if ( 'endmark' ~~ $recce->terminals_expected() ) {
-            my $progress = $recce->show_progress();
-            if (not( $progress
-                    =~ m/ ^ F\d+ \s [@] (\d+) [-] \d+ \s first_balanced \s [-][>] /xms
-                )
-                )
-            {
-                die "No match for $progress";
-	    }
-	    if ( $1 >= $start_of_match) {
-		# say "spurious match starts at $1";
-	        next CHAR;
-	    }
-            # say $start_of_match;
-	    $start_of_match = $1;
             $end_of_match = $location + 1;
+            # say "Resetting end of match to ", $location + 1;
             last CHAR;
         }
-    } ## end while ( $location < $string_length )
+    } ## end while ( ++$location < $string_length )
+
+    # say "End of match is ", $end_of_match;
+    $recce->set( { end => $end_of_match } );
+    my $value_ref = $recce->value( );
+    # say $recce->show_progress($end_of_match);
+    die "No parse" if not defined $value_ref;
+    my $start_of_match = ${$value_ref};
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
     return 0 if $marpa_answer_shown;
     $marpa_answer_shown = $value;
@@ -197,7 +185,6 @@ sub do_regex {
     return 0;
 } ## end sub do_regex
 
-my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 sub do_regex_new {
     my ($s) = @_;
     my $answer =
