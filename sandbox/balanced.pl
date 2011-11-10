@@ -131,8 +131,10 @@ sub do_marpa_xs {
     CHAR: while ( $location < $string_length ) {
         my $value = substr $s, $location, 1;
 	if ($value eq '(') {
+	    # say "Adding xlparen at $location";
 	    $recce->read( 'xlparen', $location );
 	} else {
+	    # say "Adding rparen at $location";
 	    $recce->read( 'rparen' );
 	}
         if ( 'endmark' ~~ $recce->terminals_expected() ) {
@@ -151,11 +153,11 @@ sub do_marpa_xs {
     CHAR: while ( ++$location < $string_length ) {
         my $value = substr $s, $location, 1;
         my $token = $value eq '(' ? 'ilparen' : 'rparen';
+	# say "Adding $token at $location";
         last CHAR if not defined $recce->read( $token );
         if ( 'endmark' ~~ $recce->terminals_expected() ) {
             $end_of_match = $location + 1;
-            # say "Resetting end of match to ", $location + 1;
-            last CHAR;
+            # say $recce->show_progress();
         }
     } ## end while ( ++$location < $string_length )
 
@@ -197,9 +199,13 @@ sub do_regex_new {
     return 0;
 } ## end sub do_regex
 
-say timestr countit( 2, sub { do_marpa_xs($s) } );
-say timestr countit( 2, sub { do_regex($s) } );
-say timestr countit( 2, sub { do_regex_new($s) } );
+# say timestr countit( 2, sub { do_marpa_xs($s) } );
+# say timestr countit( 2, sub { do_regex($s) } );
+# say timestr countit( 2, sub { do_regex_new($s) } );
+Benchmark::cmpthese ( -4, {
+    marpa_xs => sub { do_marpa_xs($s) },
+    regex => sub { do_regex_new($s) }
+} );
 
-say +($marpa_answer_shown eq $regex_answer_shown ? 'Answers match' : 'ANSWERS DO NOT MATCH!');
+# say +($marpa_answer_shown eq $regex_answer_shown ? 'Answers match' : 'ANSWERS DO NOT MATCH!');
 say +($marpa_answer_shown eq $regex_new_answer_shown ? 'New Answer matches' : 'NEW ANSWER DOES NOT MATCH!');
