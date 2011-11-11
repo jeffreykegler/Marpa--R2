@@ -118,6 +118,7 @@ libmarpa/test/README
 libmarpa/test/dev/Makefile.am
 libmarpa/test/dev/Makefile.in
 libmarpa/test/dev/aclocal.m4
+libmarpa/test/dev/balanced.c
 libmarpa/test/dev/config.guess
 libmarpa/test/dev/config.sub
 libmarpa/test/dev/configure

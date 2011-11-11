@@ -2,6 +2,7 @@
 /[.]gitignore$
 /errs$
 /junk$
+[.]DS_Store$
 \.a$
 \.la$
 \.lo$

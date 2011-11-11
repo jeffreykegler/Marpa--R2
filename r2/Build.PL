@@ -96,15 +96,14 @@ for my $pm_file (qw(Version.pm Installed.pm)) {
     $pm_files{$pm_fullname} = $pm_fullname;
 }
 
-my @no_index_namespace_inclusive = (
-
-    # not for now, at least
-    qw(Marpa::R2::Value Marpa::R2::Perl Marpa::R2::Test Marpa::R2::Display ),
-
-    # never intended to see the light of day
-    qw( Marpa::R2::Internal ),
-
-);
+my @no_index_namespace_inclusive = qw(
+        Marpa::R2::HTML
+        Marpa::R2::Value
+        Marpa::R2::Perl
+        Marpa::R2::Test
+        Marpa::R2::Display
+        Marpa::R2::Internal
+        );
 
 my @files_to_cleanup = (
     'lib/Marpa/R2/Version.pm',   'pperl/Marpa/R2/Perl/Version.pm',
