@@ -53,6 +53,10 @@ $example //= "final";
 my $s;
 CREATE_S: {
     my $s_balanced = '(()())((';
+    if ( $example eq 'pos2_simple' ) {
+        $s = '(' . '()'. ( '(' x ( $length - length $s_balanced ) );
+        last CREATE_S;
+    }
     if ( $example eq 'pos2' ) {
         $s = '(' . $s_balanced . ( '(' x ( $length - length $s_balanced ) );
         last CREATE_S;
