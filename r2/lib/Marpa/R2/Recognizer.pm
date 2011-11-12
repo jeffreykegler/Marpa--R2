@@ -944,9 +944,25 @@ sub report_progress {
 sub Marpa::R2::Recognizer::read {
 
     # For efficiency, args are not unpacked
-    my $recce = shift;
-    return
-        defined $recce->alternative(@_) ? $recce->earleme_complete() : undef;
+    my $recce  = shift;
+    my $result = $recce->alternative(@_);
+    return if not $result;
+    $result = $recce->earleme_complete();
+    return $result if $result <= 0;
+    my $exhausted = 0;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    EVENT: for my $event_ix ( 0 .. $result - 1 ) {
+        my $event_type = $recce_c->earleme_event($event_ix);
+        if ( $event_type eq 'exhausted' ) { $exhausted = 1; next EVENT; }
+        if ( $event_type eq 'earley_item_threshold' ) {
+            print {
+                $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] }
+                "Earley item count exceeds warning threshold";
+            next EVENT;
+        } ## end if ( $event_type eq 'earley_item_threshold' )
+        Marpa::R2::exception(
+            "Unknown earleme completion event; type = $event_type");
+    } ## end for my $event_ix ( 0 .. $result - 1 )
 } ## end sub Marpa::R2::Recognizer::read
 
 sub Marpa::R2::Recognizer::alternative {
@@ -970,12 +986,9 @@ sub Marpa::R2::Recognizer::alternative {
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     my $symbol_id   = $symbol_hash->{$symbol_name};
 
-## no critic(Subroutines::ProhibitExplicitReturnUndef)
-    # This is not
-    # a bare return, to be consistent with undef return from libmarpa
-    # alternative() call, below
-    return undef if not defined $symbol_id;
-## use critic
+    if (not defined $symbol_id) {
+        Marpa::R2::exception(qq{alternative(): symbol "$symbol_name" does not exist});
+    }
 
     my $value_ix = 0;
     if ( defined $value ) {
@@ -985,10 +998,6 @@ sub Marpa::R2::Recognizer::alternative {
     $length //= 1;
 
     my $result = $recce_c->alternative( $symbol_id, $value_ix, $length );
-    Marpa::R2::exception(
-        qq{"$symbol_name" already scanned with length $length at location },
-        $recce_c->current_earleme() )
-        if defined $result and $result == -3;
 
     my $trace_terminals =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS];
@@ -1000,7 +1009,8 @@ sub Marpa::R2::Recognizer::alternative {
             or Marpa::R2::exception("Cannot print: $ERRNO");
     } ## end if ($trace_terminals)
 
-    return $result;
+    return if not defined $result;
+    return 1;
 
 } ## end sub Marpa::R2::Recognizer::alternative
 
