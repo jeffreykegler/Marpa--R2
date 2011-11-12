@@ -138,7 +138,7 @@ that processing of input catches up to the furthest earleme.
 name: Recognizer alternative Synopsis
 normalize-whitespace: 1
 
-    defined $recce->alternative( 'a', 42, 1 )
+    $recce->alternative( 'a', 42, 1 )
         or return 'First alternative failed';
 
 =for Marpa::R2::Display::End
@@ -169,10 +169,9 @@ To advance the current earleme when
 input is read using the C<alternative> method,
 the C<complete_earleme> method must be called.
 
-On success, C<alternative> returns the current earleme.
-On failures, other than the rejection of a token in interactive mode,
-C<alternative> throws an exception.
-If the token is rejected, C<alternative> returns a Perl C<undef>.
+On success, C<alternative> returns a Perl true value.
+If the token is rejected, C<alternative> returns a Perl false.
+On other failures, C<alternative> throws an exception.
 
 =head2 current_earleme
 
@@ -302,18 +301,6 @@ method.
 The C<read> method has the same effect as a single call
 to the C<alternative> method, followed immediately
 by a call of the C<earleme_complete> method.
-More precisely,
-the C<read> method is equivalent to
-
-=for Marpa::R2::Display
-ignore: 1
-
-    sub Marpa::R2::Recognizer::read {
-	my $recce = shift;
-	return defined $recce->alternative(@_) ? $recce->earleme_complete() : undef;
-    }
-
-=for Marpa::R2::Display::End
 
 =head1 AMBIGUOUS LEXING
 
