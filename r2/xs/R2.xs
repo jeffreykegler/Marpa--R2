@@ -1085,8 +1085,7 @@ PPCODE:
 
  # current earleme on success -- return that directly
  # -1 means rejected because unexpected -- return undef
- # -3 means rejected as duplicate -- return that directly
- #      because Perl can do better error message for this
+ # -3 means rejected as duplicate -- call croak
  # -2 means some other failure -- call croak
 void
 alternative( r_wrapper, symbol_id, value, length )
@@ -1103,7 +1102,11 @@ PPCODE:
 	{
 	  XSRETURN_UNDEF;
 	}
-      if (result < 0 && result != -3)
+      if (result == -3)
+	{
+	  croak ("r->alternative(): Attempt to read same symbol twice at same location");
+	  }
+      if (result < 0)
 	{
 	  croak ("Invalid alternative: %s", marpa_r_error (r));
 	}
@@ -1456,6 +1459,25 @@ PPCODE:
 	  croak ("Problem in r->earleme_complete(): %s", marpa_r_error (r));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
+earleme_event( r_wrapper, ix )
+    R_Wrapper *r_wrapper;
+    int ix;
+PPCODE:
+    { struct marpa_r* r = r_wrapper->r;
+      struct marpa_r_event event;
+      char *result_string = "unknown";
+        Marpa_Earleme result = marpa_r_event(r, &event, ix);
+	if (result < 0) {
+	  croak ("Problem in r->earleme_event(): %s", marpa_r_error (r));
+	}
+	switch (result)  {
+	case MARPA_R_EV_EXHAUSTED: result_string = "exhausted"; break;
+	case MARPA_R_EV_EARLEY_ITEM_THRESHOLD: result_string = "earley item count"; break;
+	}
+	XPUSHs( sv_2mortal( newSVpv(result_string, 0) ) );
     }
 
 void
