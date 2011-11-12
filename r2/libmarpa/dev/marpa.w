@@ -5786,7 +5786,6 @@ where there is no good parse,
 there may be good parses at earlemes prior to the
 earleme at which the parse became exhausted.
 @d R_is_Exhausted(r) ((r)->t_is_exhausted)
-@d LV_R_is_Exhausted(r) R_is_Exhausted(r)
 @<Bit aligned recognizer elements@> = guint t_is_exhausted:1;
 @ @<Initialize recognizer elements@> = r->t_is_exhausted = 0;
 @ Exhaustion is a boolean, not a phase.
@@ -5800,6 +5799,87 @@ gint marpa_is_exhausted(struct marpa_r* r)
    @<Return |-2| on failure@>@/
     @<Fail if recognizer has fatal error@>@;
     return r->t_is_exhausted ? 1 : 0;
+}
+
+@*0 The recognizer's event stack.
+Events are designed to be fast,
+but are at the moment
+not expected to have high volumes of data.
+The memory used is that of
+the high water mark,
+with no way of freeing it.
+@<Public defines@> =
+#define MARPA_R_EV_NONE @| 0@/
+#define MARPA_R_EV_EXHAUSTED @| 1@/
+#define MARPA_R_EV_EARLEY_ITEM_THRESHOLD @| 2@/
+@ @<Private incomplete structures@> =
+struct s_r_event;
+typedef struct s_r_event* REV;
+@ @<Public structures@> =
+struct marpa_r_event {
+     gint t_type;
+};
+@ @<Private structures@> =
+struct s_r_event {
+     gint t_type;
+};
+typedef struct s_r_event REV_Object;
+@ @<Widely aligned recognizer elements@> =
+DSTACK_DECLARE(t_events);
+@
+{\bf To Do}: @^To Do@>
+The value of |INITIAL_R_EVENTS_CAPACITY| is 1 for testing while this
+code is being developed.
+Once the code is stable it should be increased.
+@d INITIAL_R_EVENTS_CAPACITY 1
+@<Initialize recognizer elements@> =
+DSTACK_INIT(r->t_events, REV_Object, INITIAL_R_EVENTS_CAPACITY);
+@ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_events);
+
+@ Callers must be careful.
+A pointer to the new event is returned,
+but it must be written to before another event
+is added,
+because that may cause
+the locations of |DSTACK| elements to change.
+@d R_EVENTS_CLEAR(r) DSTACK_CLEAR((r)->t_events)
+@d R_EVENT_PUSH(r) DSTACK_PUSH((r)->t_events, REV_Object)
+@<Private function prototypes@> =
+static inline
+REV r_event_new(struct marpa_r* r, gint type);
+@ @<Function definitions@> =
+static inline
+REV r_event_new(struct marpa_r* r, gint type)
+{
+  /* may change base of dstack */
+  REV top_of_stack = R_EVENT_PUSH(r);
+  top_of_stack->t_type = type;
+  return top_of_stack;
+}
+
+@ @<Private function prototypes@> =
+gint marpa_r_event(struct marpa_r* r, struct marpa_r_event *public_event, gint ix);
+@ @<Function definitions@> =
+gint
+marpa_r_event (struct marpa_r *r, struct marpa_r_event *public_event,
+	       gint ix)
+{
+  @<Return |-2| on failure@>@;
+  const gint index_out_of_bounds = -1;
+  DSTACK events = &r->t_events;
+  REV internal_event;
+  gint type;
+
+  if (ix < 0)
+    return failure_indicator;
+  if (ix > DSTACK_LENGTH (*events))
+    return index_out_of_bounds;
+  internal_event = DSTACK_INDEX (*events, REV_Object, ix);
+  type = internal_event->t_type;
+  /* At this point there is no data except type
+     for any of the events */
+  public_event->t_type = type;
+  return type;
 }
 
 @*0 The Recognizer's Context.
@@ -5819,7 +5899,10 @@ r->t_context = g_hash_table_new_full( g_str_hash, g_str_equal, NULL, g_free );
 @ @<Destroy recognizer elements@> = g_hash_table_destroy(Context_of_R(r));
 
 @ Add an integer to the context.
-The const qualifier on the key is deliberately discarded.
+@ @<Private function prototypes@> =
+static inline
+void r_context_int_add(struct marpa_r* r, const gchar* key, gint value);
+@ The const qualifier on the key is deliberately discarded.
 As implemented, the keys are treated as const's by
 |g_hash_table_insert|, but the compiler can't know
 that is my intention.
@@ -5834,9 +5917,10 @@ void r_context_int_add(struct marpa_r* r, const gchar* key, gint payload)
     value->t_data = payload;
     g_hash_table_insert(Context_of_R(r), (gpointer)key, value);
 }
+
 @ @<Private function prototypes@> =
 static inline
-void r_context_int_add(struct marpa_r* r, const gchar* key, gint value);
+void r_context_const_add(struct marpa_r* r, const gchar* key, const gchar* value);
 @ @<Function definitions@> =
 static inline
 void r_context_const_add(struct marpa_r* r, const gchar* key, const gchar* payload)
@@ -5846,9 +5930,6 @@ void r_context_const_add(struct marpa_r* r, const gchar* key, const gchar* paylo
     value->t_data = payload;
     g_hash_table_insert(Context_of_R(r), (gpointer)key, value);
 }
-@ @<Private function prototypes@> =
-static inline
-void r_context_const_add(struct marpa_r* r, const gchar* key, const gchar* value);
 
 @ Clear the current context.
 Used to create a ``clean slate" in the context.
@@ -6251,16 +6332,15 @@ earley_item_assign (const RECCE r, const ES set, const ES origin,
 The warning threshold does not count against items added by a Leo expansion.
 @<Check count against Earley item thresholds@> = 
 if (count >= r->t_earley_item_warning_threshold)
-    {
-      if (G_UNLIKELY(count >= EIM_FATAL_THRESHOLD))
-      { /* Set the recognizer to a fatal error */
-	  r_context_clear (r);
-	  R_FATAL("eim count exceeds fatal threshold");
-	  return failure_indicator;
-	}
-	  r_context_clear (r);
-	  r_message (r, "earley item count exceeds threshold");
-}
+  {
+    if (G_UNLIKELY (count >= EIM_FATAL_THRESHOLD))
+      {				/* Set the recognizer to a fatal error */
+	r_context_clear (r);
+	R_FATAL ("eim count exceeds fatal threshold");
+	return failure_indicator;
+      }
+    r_event_new (r, MARPA_R_EV_EARLEY_ITEM_THRESHOLD);
+  }
 
 @*0 Destructor.
 No destructor.  All earley item elements are either owned by other objects.
@@ -8176,6 +8256,7 @@ marpa_earleme_complete(struct marpa_r* r)
   gint count_of_expected_terminals;
     @<Fail if recognizer not in input phase@>@;
     @<Fail if recognizer exhausted@>@;
+    R_EVENTS_CLEAR(r);
   psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_symid_is_expected);
     @<Initialize |current_earleme|@>@;
@@ -8195,7 +8276,8 @@ marpa_earleme_complete(struct marpa_r* r)
       { /* If no terminals are expected, and there are no Earley items in
            uncompleted Earley sets, we can make no further progress.
 	   The parse is ``exhausted". */
-	LV_R_is_Exhausted(r) = 1;
+	R_is_Exhausted(r) = 1;
+	r_event_new(r, MARPA_R_EV_EXHAUSTED);
       }
     earley_set_update_items(r, current_earley_set);
     return count_of_expected_terminals;
@@ -8205,7 +8287,7 @@ marpa_earleme_complete(struct marpa_r* r)
   current_earleme = ++(LV_Current_Earleme_of_R(r));
   if (current_earleme > Furthest_Earleme_of_R (r))
     {
-	LV_R_is_Exhausted(r) = 1;
+	R_is_Exhausted(r) = 1;
 	R_ERROR("parse exhausted");
 	return failure_indicator;
      }
