@@ -1,0 +1,93 @@
+%-----------------------------------------------------------------------
+% Beginning of amsart.template
+%-----------------------------------------------------------------------
+%
+%     AMS-LaTeX v.2 template for use with amsart
+%
+%     Remove any commented or uncommented macros you do not use.
+
+\documentclass{amsart}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{xca}[theorem]{Exercise}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\de}{\rightarrow}
+\newcommand{\bul}{\mathrel{\bullet}}
+
+\numberwithin{equation}{section}
+
+\begin{document}
+
+\title{An $LR(\pi)$ grammar which is not $O(n)$ for the Leo/Earley algorithm?}
+
+%    Remove any unused author tags.
+
+%    author one information
+\author{Jeffrey Kegler}
+\thanks{
+This is a preliminary draft,
+intended for comment.
+It is made public as a convenience,
+and at this point should not be taken as a
+conjecture and proof outline,
+and as preliminary to a claim.
+}
+\email{}
+
+\subjclass[2010]{Primary }
+
+\keywords{Leo Earley Marpa}
+
+\date{}
+
+\dedicatory{}
+
+\begin{abstract}
+In Leo 1991, an algorithm is presented that is
+$O(n)$ for all LR-regular grammars.
+The question is raised whether that algorithm
+is also $O(n)$ where the grammar is $LR(\pi)$,
+where $\pi$ is a finite partition.
+algorithm.
+\end{abstract}
+
+\maketitle
+\section{The counter-example}
+Consider the grammar $G$,
+with start symbol $S$,
+non-terminals $A$ and $C$,
+and terminals $a$, $y$ and $z$.
+Let it have the following productions:
+$$
+\begin{array}[t]{l}
+S \de C \\
+C \de aCz \\
+C \de A \\
+A \de aAy \\
+A \de ay
+\end{array}
+$$
+\par
+The language of this grammar is $a^c a^d y^d z^c$.
+It is $LR(\pi)$, for the 2-element partition $\pi = { e_1, e_2 }$,
+where $e_1$ is ${ a^x y^d z^c }$ such $x > d$, and $e_2$ is the
+complement of $e_1$.
+\par
+The essential idea of this example is that terminal $a$ can
+be derived by recursion on either non-terminal $A$ or $C$.
+Recursions are "counted" with a trailer containing
+the terminals $y$ and $z$.
+For each $a$ from recursion on C, there is a $z$.
+For each $a$ from recursion on A, there is a $y$.
+\par
+\end{document}
+%-----------------------------------------------------------------------
+% End of amsart.template
+%-----------------------------------------------------------------------
