@@ -8280,7 +8280,7 @@ marpa_earleme_complete(struct marpa_r* r)
 	r_event_new(r, MARPA_R_EV_EXHAUSTED);
       }
     earley_set_update_items(r, current_earley_set);
-    return count_of_expected_terminals;
+  return DSTACK_LENGTH (r->t_events);
 }
 
 @ @<Initialize |current_earleme|@> = {
