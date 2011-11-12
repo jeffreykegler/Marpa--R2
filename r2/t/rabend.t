@@ -101,16 +101,16 @@ sub duplicate_terminal_1 {
 # Marpa::R2::Display
 # name: Recognizer alternative Synopsis
 
-    defined $recce->alternative( 'a', 42, 1 )
-        or return 'First alternative failed';
+    $recce->alternative( 'a', 42, 1 ) or return 'First alternative failed';
 
 # Marpa::R2::Display::End
 
-    return $recce->alternative( 'a', 711, 1 );
+    return 1 if $recce->alternative( 'a', 711, 1 );
+    return;
 } ## end sub duplicate_terminal_1
 
 catch_problem( $test_name, \&duplicate_terminal_1, undef,
-    q{"a" already scanned with length 1} );
+    q{r->alternative(): Attempt to read same symbol twice at same location} );
 
 $expected_trace = q{Accepted "a" at 0-1};
 if ( index( $trace, $expected_trace ) < 0 ) {
@@ -143,9 +143,9 @@ $recce = Marpa::R2::Recognizer->new(
 sub duplicate_terminal_2 {
 
     # Should be OK, because different symbols
-    defined $recce->alternative( 'a', 11, 1 )
+    $recce->alternative( 'a', 11, 1 )
         or return 'alternative a at 0 failed';
-    defined $recce->alternative( 'b', 12, 1 )
+    $recce->alternative( 'b', 12, 1 )
         or return 'alternative b at 0 failed';
 
 # Marpa::R2::Display
@@ -156,22 +156,23 @@ sub duplicate_terminal_2 {
 # Marpa::R2::Display::End
 
     # Should be OK, because different lengths
-    defined $recce->alternative( 'a', 21, 3 )
+    $recce->alternative( 'a', 21, 3 )
         or return 'alternative a at 1 failed';
-    defined $recce->alternative( 'a', 22, 1 )
+    $recce->alternative( 'a', 22, 1 )
         or return 'alternative b at 1 failed';
     $recce->earleme_complete();
-    defined $recce->alternative( 'd', 42, 2 )
+    $recce->alternative( 'd', 42, 2 )
         or return 'first alternative d at 2 failed';
-    defined $recce->alternative( 'b', 22, 1 )
+    $recce->alternative( 'b', 22, 1 )
         or return 'alternative b at 1 failed';
 
     # this should cause an abend -- a 2nd d, with the same length
-    return $recce->alternative( 'd', 711, 2 );
+    return 1 if $recce->alternative( 'd', 711, 2 );
+    return;
 } ## end sub duplicate_terminal_2
 
 catch_problem( $test_name, \&duplicate_terminal_2, undef,
-    q{"d" already scanned with length 2 at location 2} );
+    q{r->alternative(): Attempt to read same symbol twice at same location} );
 
 $expected_trace = <<'EOS';
 Setting trace_terminals option
