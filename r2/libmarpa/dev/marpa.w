@@ -13400,7 +13400,6 @@ static void r_error( struct marpa_r* r, Marpa_Message_ID message, guint flags ) 
     if (!(flags & CONTEXT_FLAG)) r_context_clear(r);
     r->t_error = message;
     if (flags & FATAL_FLAG) r->t_fatal_error = r->t_error;
-    r_message(r, message);
 }
 
 @** Messages and Logging.
@@ -13492,37 +13491,6 @@ static inline void grammar_message(struct marpa_g *g, Marpa_Message_ID id)
 if (cb) { (*cb)(g, id); } }
 @ @<Private function prototypes@> =
 static inline void grammar_message(struct marpa_g *g, Marpa_Message_ID id);
-
-@* Recognizer Messages.
-@ Essentially the same as grammar messages,
-except they live in and use the recognizer object.
-@<Callback typedefs@> =
-typedef void (Marpa_R_Message_Callback)(struct marpa_r *r, Marpa_Message_ID id);
-@ @d Message_Callback_of_R(r) ((r)->t_message_callback)
-@d Message_Callback_Arg_of_R(r) ((r)->t_message_callback_arg)
-@<Widely aligned recognizer elements@> =
-    Marpa_R_Message_Callback* t_message_callback;
-    gpointer t_message_callback_arg;
-@ @<Initialize recognizer elements@> =
-r->t_message_callback_arg = NULL;
-r->t_message_callback = NULL;
-@ @<Function definitions@> =
-void marpa_r_message_callback_set(struct marpa_r *r, Marpa_R_Message_Callback*cb)
-{ r->t_message_callback = cb; }
-void marpa_r_message_callback_arg_set(struct marpa_r *r, gpointer cb_arg)
-{ r->t_message_callback_arg = cb_arg; }
-gpointer marpa_r_message_callback_arg(struct marpa_r *r)
-{ return Message_Callback_Arg_of_R(r); }
-@ @<Public function prototypes@> =
-void marpa_r_message_callback_set(struct marpa_r *r, Marpa_R_Message_Callback*cb);
-void marpa_r_message_callback_arg_set(struct marpa_r *r, gpointer cb_arg);
-gpointer marpa_r_message_callback_arg(struct marpa_r *r);
-@ @<Function definitions@> =
-static inline void r_message(struct marpa_r *r, Marpa_Message_ID id)
-{ Marpa_R_Message_Callback* cb = Message_Callback_of_R(r);
-if (cb) { (*cb)(r, id); } }
-@ @<Private function prototypes@> =
-static inline void r_message(struct marpa_r *r, Marpa_Message_ID id);
 
 @** Debugging.
 The |MARPA_DEBUG| flag enables intrusive debugging logic.
