@@ -1116,9 +1116,12 @@ Checking it at other times may reveal ``stale" error
 messages.
 @<Public typedefs@> =
 typedef const gchar* Marpa_Error_ID;
-@ @<Widely aligned grammar elements@> = Marpa_Error_ID t_error;
+@ @<Widely aligned grammar elements@> =
+Marpa_Error_ID t_error;
+Marpa_Error_ID t_fatal_error;
 @ @<Initialize grammar elements@> =
 g->t_error = NULL;
+g->t_fatal_error = NULL;
 @ There is no destructor.
 The error strings are assummed to be
 {\bf not} error messages, but ``cookies".
@@ -5418,7 +5421,7 @@ void marpa_r_free(struct marpa_r *r);
 Initialized in |marpa_r_new|.
 @d G_of_R(r) ((r)->t_grammar)
 @d AHFA_Count_of_R(r) AHFA_Count_of_G(G_of_R(r))
-@ @<Widely aligned recognizer elements@> = const struct marpa_g *t_grammar;
+@ @<Widely aligned recognizer elements@> = struct marpa_g *t_grammar;
 
 @*0 Recognizer Phase.
 The recognizer has phases, such as ``input"
@@ -5442,8 +5445,7 @@ enum marpa_phase {
     no_such_phase = 0, // 0 is never a valid phase
     initial_phase,
     input_phase,
-    evaluation_phase,
-    error_phase
+    evaluation_phase
 };
 typedef enum marpa_phase Marpa_Phase;
 @ @d Phase_of_R(r) ((r)->t_phase)
@@ -5627,8 +5629,9 @@ gint marpa_terminals_expected(struct marpa_r* r, GArray* result);
 gint marpa_terminals_expected(struct marpa_r* r, GArray* result)
 {
     @<Return |-2| on failure@>@;
+    struct marpa_g *g = G_of_R(r);
     guint min, max, start;
-    @<Fail recognizer if |GArray| elements are not |sizeof(gint)|@>@;
+    @<Fail if |GArray| elements are not |sizeof(gint)|@>@;
     g_array_set_size(result, 0);
     for (start = 0; bv_scan (r->t_bv_symid_is_expected, start, &min, &max);
 	 start = max + 2)
@@ -5737,23 +5740,25 @@ gboolean marpa_is_use_leo(struct marpa_r* r);
 gint marpa_is_use_leo(struct marpa_r* r)
 {
    @<Return |-2| on failure@>@/
-    @<Fail if recognizer has fatal error@>@;
+  struct marpa_g* g = G_of_R(r);
+    @<Fail if fatal error@>@;
     return r->t_use_leo_flag ? 1 : 0;
 }
 @ Returns |TRUE| on success,
 |FALSE| on failure.
-@<Function definitions@> =
+@<Public function prototypes@> =
+gboolean marpa_is_use_leo_set( struct marpa_r*r, gboolean value);
+@ @<Function definitions@> =
 gboolean marpa_is_use_leo_set(
 struct marpa_r*r, gboolean value)
 {
    @<Return |FALSE| on failure@>@/
-    @<Fail if recognizer has fatal error@>@;
+  struct marpa_g* g = G_of_R(r);
+    @<Fail if fatal error@>@;
     @<Fail if recognizer not initial@>@;
     r->t_use_leo_flag = value;
     return TRUE;
 }
-@ @<Public function prototypes@> =
-gboolean marpa_is_use_leo_set( struct marpa_r*r, gboolean value);
 
 @*1 Is The Parser Exhausted?.
 A parser is ``exhausted" if it cannot accept any more input.
@@ -5776,7 +5781,8 @@ gboolean marpa_is_exhausted(struct marpa_r* r);
 gint marpa_is_exhausted(struct marpa_r* r)
 {
    @<Return |-2| on failure@>@/
-    @<Fail if recognizer has fatal error@>@;
+   struct marpa_g *g = G_of_R(r);
+    @<Fail if fatal error@>@;
     return r->t_is_exhausted ? 1 : 0;
 }
 
@@ -5861,69 +5867,6 @@ marpa_r_event (struct marpa_r *r, struct marpa_r_event *public_event,
   return type;
 }
 
-@*0 The Recognizer's Context.
-As in the grammar,
-The ``context" is a hash of miscellaneous data,
-by keyword,
-whose
-purpose is to 
-provide callbacks with
-data about the recognizer's
-state which is not conveniently
-available in other forms.
-@d Context_of_R(r) ((r)->t_context)
-@<Widely aligned recognizer elements@> = GHashTable* t_context;
-@ @<Initialize recognizer elements@> =
-r->t_context = g_hash_table_new_full( g_str_hash, g_str_equal, NULL, g_free );
-@ @<Destroy recognizer elements@> = g_hash_table_destroy(Context_of_R(r));
-
-@ Add an integer to the context.
-@ @<Private function prototypes@> =
-static inline
-void r_context_int_add(struct marpa_r* r, const gchar* key, gint value);
-@ The const qualifier on the key is deliberately discarded.
-As implemented, the keys are treated as const's by
-|g_hash_table_insert|, but the compiler can't know
-that is my intention.
-For type safety, I do want to keep the |const|
-qualifier in other contexts.
-@<Function definitions@> =
-static inline
-void r_context_int_add(struct marpa_r* r, const gchar* key, gint payload)
-{
-    struct marpa_context_int_value* value = g_new(struct marpa_context_int_value, 1);
-    value->t_type = MARPA_CONTEXT_INT;
-    value->t_data = payload;
-    g_hash_table_insert(Context_of_R(r), (gpointer)key, value);
-}
-
-@ @<Private function prototypes@> =
-static inline
-void r_context_const_add(struct marpa_r* r, const gchar* key, const gchar* value);
-@ @<Function definitions@> =
-static inline
-void r_context_const_add(struct marpa_r* r, const gchar* key, const gchar* payload)
-{
-    struct marpa_context_const_value* value = g_new(struct marpa_context_const_value, 1);
-    value->t_type = MARPA_CONTEXT_CONST;
-    value->t_data = payload;
-    g_hash_table_insert(Context_of_R(r), (gpointer)key, value);
-}
-
-@ Clear the current context.
-Used to create a ``clean slate" in the context.
-@<Function definitions@> =
-static inline void r_context_clear(struct marpa_r* r) {
-    g_hash_table_remove_all(Context_of_R(r)); }
-@ @<Private function prototypes@> =
-static inline void r_context_clear(struct marpa_r* r);
-
-@ @<Function definitions@> =
-union marpa_context_value* marpa_r_context_value(struct marpa_r* r, const gchar* key)
-{ return g_hash_table_lookup(Context_of_R(r), key); }
-@ @<Public function prototypes@> =
-union marpa_context_value* marpa_r_context_value(struct marpa_r* r, const gchar* key);
-
 @*0 The Recognizer Obstack.
 Create an obstack with the lifetime of the recognizer.
 This is a very efficient way of allocating memory which won't be
@@ -5932,33 +5875,16 @@ resized and which will have the same lifetime as the recognizer.
 @ @<Initialize recognizer obstack@> = obstack_init(&r->t_obs);
 @ @<Destroy recognizer obstack@> = obstack_free(&r->t_obs, NULL);
 
-@*0 The Recognizer's Error ID.
-This is an error flag for the recognizer.
-Error status is not necessarily cleared
-on successful return, so that
-it is only valid when an external
-function has indicated there is an error,
-and becomes invalid again when another external method
-is called on the recognizer.
-Checking it at other times may reveal ``stale" error
-messages.
-@ @<Widely aligned recognizer elements@> =
-Marpa_Error_ID t_error;
-Marpa_Error_ID t_fatal_error;
-@ @<Initialize recognizer elements@> =
-r->t_error = NULL;
-r->t_fatal_error = NULL;
-@ There is no destructor.
-The error strings are assummed to be
-{\bf not} error messages, but ``cookies".
-These cookies are constants residing in static memory
-(which may be read-only depending on implementation).
-They cannot and should not be de-allocated.
-@ @<Function definitions@> =
-Marpa_Error_ID marpa_r_error(const struct marpa_r* r)
-{ return r->t_error ? r->t_error : "unknown error"; }
+@*0 Recognizer error handling.
+@ Uses the grammar error strings.
 @ @<Public function prototypes@> =
 Marpa_Error_ID marpa_r_error(const struct marpa_r* r);
+@ @<Function definitions@> =
+Marpa_Error_ID marpa_r_error(const struct marpa_r* r)
+{
+struct marpa_g* g = G_of_R(r);
+return g->t_error ? g->t_error : "unknown error";
+}
 
 @** Earlemes.
 In most parsers, the input is modeled as a token stream ---
@@ -6096,7 +6022,8 @@ Marpa_Earley_Set_ID marpa_trace_earley_set(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   ES trace_earley_set = r->t_trace_earley_set;
-  @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g *g = G_of_R(r);
+  @<Fail if not trace-safe@>@;
   if (!trace_earley_set) {
       R_ERROR("no trace es");
       return failure_indicator;
@@ -6110,7 +6037,8 @@ Marpa_Earley_Set_ID marpa_latest_earley_set(struct marpa_r *r);
 Marpa_Earley_Set_ID marpa_latest_earley_set(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
-  @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g *g = G_of_R(r);
+  @<Fail if not trace-safe@>@;
   return Ord_of_ES(Latest_ES_of_R(r));
 }
 
@@ -6130,8 +6058,9 @@ Marpa_Earleme marpa_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
     const gint es_does_not_exist = -1;
     @<Return |-2| on failure@>@;
     ES earley_set;
+    struct marpa_g *g = G_of_R(r);
     @<Fail if recognizer initial@>@;
-    @<Fail if recognizer has fatal error@>@;
+    @<Fail if fatal error@>@;
     if (set_id < 0) {
         R_ERROR("invalid es ordinal");
 	return failure_indicator;
@@ -6154,8 +6083,9 @@ gint marpa_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id)
 {
     @<Return |-2| on failure@>@;
     ES earley_set;
+    struct marpa_g *g = G_of_R(r);
     @<Fail if recognizer initial@>@;
-    @<Fail if recognizer has fatal error@>@;
+    @<Fail if fatal error@>@;
     r_update_earley_sets (r);
     if (!ES_Ord_is_Valid (r, set_id))
       {
@@ -6259,6 +6189,7 @@ static inline EIM earley_item_create(const RECCE r,
     const EIK_Object key)
 {
   @<Return |NULL| on failure@>@;
+  struct marpa_g *g = G_of_R(r);
   EIM new_item;
   EIM* top_of_work_stack;
   const ES set = key.t_set;
@@ -6314,7 +6245,7 @@ if (count >= r->t_earley_item_warning_threshold)
   {
     if (G_UNLIKELY (count >= EIM_FATAL_THRESHOLD))
       {				/* Set the recognizer to a fatal error */
-	r_context_clear (r);
+	g_context_clear (g);
 	R_FATAL ("eim count exceeds fatal threshold");
 	return failure_indicator;
       }
@@ -6451,7 +6382,8 @@ marpa_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
   ES earley_set;
   const gint es_does_not_exist = -1;
   @<Return |-2| on failure@>@/
-  @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g *g = G_of_R(r);
+  @<Fail if not trace-safe@>@;
     if (r->t_trace_earley_set && Ord_of_ES (r->t_trace_earley_set) == set_id)
       { /* If the set is already
 	   the current earley set,
@@ -6493,7 +6425,8 @@ marpa_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID item_id)
   ES trace_earley_set;
   EIM earley_item;
   EIM *earley_items;
-  @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g *g = G_of_R(r);
+  @<Fail if not trace-safe@>@;
   trace_earley_set = r->t_trace_earley_set;
   if (!trace_earley_set)
     {
@@ -6636,7 +6569,8 @@ Marpa_Symbol_ID marpa_leo_predecessor_symbol(struct marpa_r *r)
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
   LIM predecessor_leo_item;
-  @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g *g = G_of_R(r);
+  @<Fail if not trace-safe@>@;
   if (!postdot_item) {
       R_ERROR("no trace pim");
       return failure_indicator;
@@ -6658,8 +6592,9 @@ Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r)
   const EARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
+  struct marpa_g *g = G_of_R(r);
   EIM base_earley_item;
-  @<Fail recognizer if not trace-safe@>@;
+  @<Fail if not trace-safe@>@;
   if (!postdot_item) {
       R_ERROR("no trace pim");
       return failure_indicator;
@@ -6678,7 +6613,8 @@ Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r)
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
   EIM base_earley_item;
-  @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g *g = G_of_R(r);
+  @<Fail if not trace-safe@>@;
   if (!postdot_item) {
       R_ERROR("no trace pim");
       return failure_indicator;
@@ -6720,7 +6656,8 @@ Marpa_AHFA_State_ID marpa_leo_expansion_ahfa(struct marpa_r *r)
     const EARLEME pim_is_not_a_leo_item = -1;
     @<Return |-2| on failure@>@;
     const PIM postdot_item = r->t_trace_postdot_item;
-    @<Fail recognizer if not trace-safe@>@;
+    struct marpa_g *g = G_of_R(r);
+    @<Fail if not trace-safe@>@;
     if (!postdot_item)
       {
 	R_ERROR ("no trace pim");
@@ -6839,8 +6776,9 @@ marpa_postdot_symbol_trace (struct marpa_r *r,
   ES current_es = r->t_trace_earley_set;
   PIM* pim_sym_p;
   PIM pim;
+  struct marpa_g *g = G_of_R(r);
   @<Clear trace postdot item data@>@;
-  @<Fail recognizer if not trace-safe@>@;
+  @<Fail if not trace-safe@>@;
   @<Fail if recognizer |symid| is invalid@>@;
   if (!current_es) {
       R_ERROR("no pim");
@@ -6874,9 +6812,10 @@ marpa_first_postdot_item_trace (struct marpa_r *r)
   @<Return |-2| on failure@>@;
   ES current_earley_set = r->t_trace_earley_set;
   PIM pim;
+  struct marpa_g *g = G_of_R(r);
   PIM* pim_sym_p;
   @<Clear trace postdot item data@>@;
-  @<Fail recognizer if not trace-safe@>@;
+  @<Fail if not trace-safe@>@;
   if (!current_earley_set) {
       @<Clear trace Earley item data@>@;
       R_ERROR("no trace es");
@@ -6909,6 +6848,7 @@ marpa_next_postdot_item_trace (struct marpa_r *r)
   ES current_set = r->t_trace_earley_set;
   PIM pim;
   PIM* pim_sym_p;
+struct marpa_g *g = G_of_R(r);
 
   pim_sym_p = r->t_trace_pim_sym_p;
   pim = r->t_trace_postdot_item;
@@ -6917,7 +6857,7 @@ marpa_next_postdot_item_trace (struct marpa_r *r)
       R_ERROR("no trace pim");
       return failure_indicator;
   }
-  @<Fail recognizer if not trace-safe@>@;
+  @<Fail if not trace-safe@>@;
   if (!current_set) {
       R_ERROR("no trace es");
       return failure_indicator;
@@ -6944,7 +6884,8 @@ Marpa_AHFA_State_ID marpa_postdot_item_symbol(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
-  @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g *g = G_of_R(r);
+  @<Fail if not trace-safe@>@;
   if (!postdot_item) {
       R_ERROR("no trace pim");
       return failure_indicator;
@@ -7319,7 +7260,8 @@ Marpa_Symbol_ID marpa_first_token_link_trace(struct marpa_r *r)
    SRC source;
    guint source_type;
     EIM item = r->t_trace_earley_item;
-    @<Fail recognizer if not trace-safe@>@;
+    struct marpa_g *g = G_of_R(r);
+    @<Fail if not trace-safe@>@;
     @<Set |item|, failing if necessary@>@;
     source_type = Source_Type_of_EIM (item);
     switch (source_type)
@@ -7363,7 +7305,8 @@ Marpa_Symbol_ID marpa_next_token_link_trace(struct marpa_r *r)
    @<Return |-2| on failure@>@;
    SRCL full_link;
     EIM item;
-    @<Fail recognizer if not trace-safe@>@;
+    struct marpa_g *g = G_of_R(r);
+    @<Fail if not trace-safe@>@;
     @<Set |item|, failing if necessary@>@;
     if (r->t_trace_source_type != SOURCE_IS_TOKEN) {
 	trace_source_link_clear(r);
@@ -7396,7 +7339,8 @@ Marpa_Symbol_ID marpa_first_completion_link_trace(struct marpa_r *r)
    SRC source;
    guint source_type;
     EIM item = r->t_trace_earley_item;
-    @<Fail recognizer if not trace-safe@>@;
+    struct marpa_g *g = G_of_R(r);
+    @<Fail if not trace-safe@>@;
     @<Set |item|, failing if necessary@>@;
     switch ((source_type = Source_Type_of_EIM (item)))
       {
@@ -7440,7 +7384,8 @@ Marpa_Symbol_ID marpa_next_completion_link_trace(struct marpa_r *r)
    SRC source;
    SRCL completion_link; 
     EIM item;
-    @<Fail recognizer if not trace-safe@>@;
+    struct marpa_g *g = G_of_R(r);
+    @<Fail if not trace-safe@>@;
     @<Set |item|, failing if necessary@>@;
     if (r->t_trace_source_type != SOURCE_IS_COMPLETION) {
 	trace_source_link_clear(r);
@@ -7475,7 +7420,8 @@ marpa_first_leo_link_trace (struct marpa_r *r)
   SRC source;
   guint source_type;
   EIM item = r->t_trace_earley_item;
-  @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g *g = G_of_R(r);
+  @<Fail if not trace-safe@>@;
   @<Set |item|, failing if necessary@>@;
   switch ((source_type = Source_Type_of_EIM (item)))
 	{
@@ -7522,7 +7468,8 @@ marpa_next_leo_link_trace (struct marpa_r *r)
   SRCL full_link;
   SRC source;
   EIM item;
-  @<Fail recognizer if not trace-safe@>@/
+  struct marpa_g* g = G_of_R(r);
+  @<Fail if not trace-safe@>@/
   @<Set |item|, failing if necessary@>@/
   if (r->t_trace_source_type != SOURCE_IS_LEO)
     {
@@ -7577,7 +7524,8 @@ AHFAID marpa_source_predecessor_state(struct marpa_r *r)
    @<Return |-2| on failure@>@/
    guint source_type;
    SRC source;
-    @<Fail recognizer if not trace-safe@>@/
+  struct marpa_g* g = G_of_R(r);
+    @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
     @<Set source, failing if necessary@>@/
     switch (source_type)
@@ -7619,7 +7567,8 @@ Marpa_Symbol_ID marpa_source_token(struct marpa_r *r, gpointer *value_p)
    @<Return |-2| on failure@>@;
    guint source_type;
    SRC source;
-    @<Fail recognizer if not trace-safe@>@;
+  struct marpa_g* g = G_of_R(r);
+    @<Fail if not trace-safe@>@;
    source_type = r->t_trace_source_type;
     @<Set source, failing if necessary@>@;
     if (source_type == SOURCE_IS_TOKEN) {
@@ -7652,7 +7601,8 @@ Marpa_Symbol_ID marpa_source_leo_transition_symbol(struct marpa_r *r)
    @<Return |-2| on failure@>@/
    guint source_type;
    SRC source;
-    @<Fail recognizer if not trace-safe@>@/
+  struct marpa_g* g = G_of_R(r);
+    @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
     @<Set source, failing if necessary@>@/
     switch (source_type)
@@ -7700,7 +7650,8 @@ Marpa_Earley_Set_ID marpa_source_middle(struct marpa_r* r)
    const EARLEME no_predecessor = -1;
    guint source_type;
    SRC source;
-    @<Fail recognizer if not trace-safe@>@/
+  struct marpa_g* g = G_of_R(r);
+    @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
     @<Set source, failing if necessary@>@/
     switch (source_type)
@@ -8082,7 +8033,7 @@ Marpa_Symbol_ID token_id, gpointer value, gint length);
 gboolean marpa_alternative(struct marpa_r *r,
 Marpa_Symbol_ID token_id, gpointer value, gint length) {
     @<Return |-2| on failure@>@;
-    GRAMMAR_Const g = G_of_R(r);
+    GRAMMAR g = G_of_R(r);
     const gint duplicate_token_indicator = -3;
     const gint unexpected_token_indicator = -1;
     ES current_earley_set;
@@ -8116,8 +8067,8 @@ Marpa_Symbol_ID token_id, gpointer value, gint length) {
 @ @<Set |target_earleme| or fail@> = {
     target_earleme = current_earleme + length;
     if (target_earleme >= EARLEME_THRESHOLD) {
-	r_context_clear(r);
-	r_context_int_add(r, "target_earleme", target_earleme);
+	g_context_clear(g);
+	g_context_int_add(g, "target_earleme", target_earleme);
 	R_ERROR_CXT("parse too long");
 	return failure_indicator;
     }
@@ -10415,8 +10366,9 @@ gint marpa_and_node_count(struct marpa_r *r);
 gint marpa_and_node_count(struct marpa_r *r)
 {
   BOC b = B_of_R(r);
+  struct marpa_g *g = G_of_R(r);
   @<Return |-2| on failure@>@;
-  @<Fail if recognizer has fatal error@>@;
+  @<Fail if fatal error@>@;
   if (!b) {
       R_ERROR("no bocage");
       return failure_indicator;
@@ -10427,7 +10379,7 @@ gint marpa_and_node_count(struct marpa_r *r)
 @ @<Check |r| and |and_node_id|; set |and_node|@> = {
   BOC b = B_of_R(r);
   AND and_nodes;
-  @<Fail if recognizer has fatal error@>@;
+  @<Fail if fatal error@>@;
   if (!b) {
       R_ERROR("no bocage");
       return failure_indicator;
@@ -10454,6 +10406,7 @@ gint marpa_and_node_parent(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |and_node_id|; set |and_node|@>@;
   return ID_of_OR (OR_of_AND (and_node));
 }
@@ -10465,6 +10418,7 @@ gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR predecessor_or = Predecessor_OR_of_AND (and_node);
@@ -10481,6 +10435,7 @@ gint marpa_and_node_cause(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
@@ -10497,6 +10452,7 @@ gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
@@ -10531,6 +10487,7 @@ Marpa_Symbol_ID marpa_and_node_token(struct marpa_r *r,
 {
   AND and_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     return and_node_token(and_node, value_p);
 }
@@ -10660,7 +10617,7 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
 set |end_of_parse_es| and |completed_start_rule|@> =
 {
     EARLEME end_of_parse_earleme;
-    @<Fail if recognizer has fatal error@>@;
+    @<Fail if fatal error@>@;
     if (B_of_R(r)) {
 	R_ERROR ("bocage in use");
 	return failure_indicator;
@@ -10846,7 +10803,8 @@ gint marpa_bocage_free(struct marpa_r* r);
 @ @<Function definitions@> =
 gint marpa_bocage_free(struct marpa_r* r) {
     @<Return |-2| on failure@>@;
-    @<Fail if recognizer has fatal error@>@;
+    struct marpa_g *g = G_of_R(r);
+    @<Fail if fatal error@>@;
     if (Phase_of_R(r) == evaluation_phase) { /* Reset phase if evaluating.
 	    Otherwise leave phase untouched */
 	Phase_of_R(r) = input_phase;
@@ -10876,7 +10834,7 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 @<Check |r| and |or_node_id|; set |or_node|@> = {
   BOC b = B_of_R(r);
   OR* or_nodes;
-  @<Fail if recognizer has fatal error@>@;
+  @<Fail if fatal error@>@;
   if (!b) {
       R_ERROR("no bocage");
       return failure_indicator;
@@ -10905,6 +10863,7 @@ gint marpa_or_node_set(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return ES_Ord_of_OR(or_node);
 }
@@ -10916,6 +10875,7 @@ gint marpa_or_node_origin(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return Origin_Ord_of_OR(or_node);
 }
@@ -10927,6 +10887,7 @@ gint marpa_or_node_rule(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return ID_of_RULE(RULE_of_OR(or_node));
 }
@@ -10938,6 +10899,7 @@ gint marpa_or_node_position(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return Position_of_OR(or_node);
 }
@@ -10949,6 +10911,7 @@ gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node);
 }
@@ -10960,6 +10923,7 @@ gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node)
       + AND_Count_of_OR(or_node) - 1;
@@ -10972,6 +10936,7 @@ gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return AND_Count_of_OR(or_node);
 }
@@ -11061,7 +11026,8 @@ int marpa_tree_new(struct marpa_r* r)
     TREE tree;
     gint first_tree_of_series = 0;
     @<Return |-2| on failure@>@;
-    @<Fail if recognizer has fatal error@>@;
+  GRAMMAR g = G_of_R(r);
+    @<Fail if fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
     tree = TREE_of_RANK(RANK_of_B(b));
     if (TREE_is_Exhausted(tree)) {
@@ -11312,7 +11278,8 @@ gint marpa_parse_count(struct marpa_r* r)
     BOC b;
     TREE tree;
     @<Return |-2| on failure@>@;
-    @<Fail if recognizer has fatal error@>@;
+  GRAMMAR g = G_of_R(r);
+    @<Fail if fatal error@>@;
     b = B_of_R(r);
     if (!b) {
 	return -1;
@@ -11336,7 +11303,8 @@ gint marpa_tree_size(struct marpa_r *r)
   @<Return |-2| on failure@>@;
   BOC b = B_of_R(r);
   TREE tree;
-  @<Fail if recognizer has fatal error@>@;
+  GRAMMAR g = G_of_R(r);
+  @<Fail if fatal error@>@;
   if (!b) {
       R_ERROR("no bocage");
       return failure_indicator;
@@ -11479,6 +11447,7 @@ gint marpa_and_order_set(struct marpa_r *r,
     OR or_node;
     RANK rank;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
     { BOC b = B_of_R(r);
       ANDID** and_node_orderings;
@@ -11587,6 +11556,7 @@ Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_nod
 {
     OR or_node;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   if (ix < 0) {
       R_ERROR("negative and ix");
@@ -11649,7 +11619,7 @@ set |fork|@> = {
   FORK base_fork;
   BOC b = B_of_R(r);
   TREE tree;
-  @<Fail if recognizer has fatal error@>@;
+  @<Fail if fatal error@>@;
   if (!b) {
       R_ERROR("no bocage");
       return failure_indicator;
@@ -11682,6 +11652,7 @@ gint marpa_fork_or_node(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
    @<Check |r| and |fork_id|; set |fork|@>@;
   return ID_of_OR(OR_of_FORK(fork));
 }
@@ -11694,6 +11665,7 @@ gint marpa_fork_choice(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
    @<Check |r| and |fork_id|; set |fork|@>@;
     return Choice_of_FORK(fork);
 }
@@ -11714,6 +11686,7 @@ gint marpa_fork_parent(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
    @<Check |r| and |fork_id|; set |fork|@>@;
     return Parent_of_FORK(fork);
 }
@@ -11726,6 +11699,7 @@ gint marpa_fork_cause_is_ready(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_Cause_is_Ready(fork);
 }
@@ -11738,6 +11712,7 @@ gint marpa_fork_predecessor_is_ready(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_Predecessor_is_Ready(fork);
 }
@@ -11750,6 +11725,7 @@ gint marpa_fork_is_cause(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_is_Cause(fork);
 }
@@ -11762,6 +11738,7 @@ gint marpa_fork_is_predecessor(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_is_Predecessor(fork);
 }
@@ -11887,7 +11864,8 @@ int marpa_val_new(struct marpa_r* r)
     BOC b;
     TREE tree;
     @<Return |-2| on failure@>@;
-    @<Fail if recognizer has fatal error@>@;
+  GRAMMAR g = G_of_R(r);
+    @<Fail if fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
     tree = TREE_of_RANK(RANK_of_B(b));
     if (TREE_is_Exhausted(tree)) {
@@ -11926,7 +11904,7 @@ static inline void val_destroy(VAL val)
 
 @ @<Set |b|, |tree|, |val|;
 return on failure@> = {
-    @<Fail if recognizer has fatal error@>@;
+    @<Fail if fatal error@>@;
     b = B_of_R(r);
     if (!b) {
 	return failure_indicator;
@@ -11946,6 +11924,7 @@ gint marpa_val_trace(struct marpa_r* r, gint flag)
     BOC b;
     TREE tree;
     VAL val;
+  GRAMMAR g = G_of_R(r);
     @<Return |-2| on failure@>@;
     @<Set |b|, |tree|, |val|; return on failure@>@;
     VAL_is_Trace(val) = flag;
@@ -11961,6 +11940,7 @@ Marpa_Fork_ID marpa_val_fork(struct marpa_r* r)
     TREE tree;
     VAL val;
     @<Return |-2| on failure@>@;
+  GRAMMAR g = G_of_R(r);
     @<Set |b|, |tree|, |val|; return on failure@>@;
     return FORK_of_VAL(val);
 }
@@ -11981,6 +11961,7 @@ Marpa_Fork_ID marpa_val_event(struct marpa_r* r, Marpa_Event* event)
     gint arg_n = -1;
     FORKID fork_ix;
     gint continue_with_next_fork;
+  GRAMMAR g = G_of_R(r);
 
     /* event is not changed in case of hard failure */
     @<Return |-2| on failure@>@;
@@ -13301,31 +13282,36 @@ if (Phase_of_R(r) != input_phase) {
     R_ERROR("recce not in input phase");
     return failure_indicator;
 }
-@ @<Fail recognizer if not trace-safe@> =
-switch (Phase_of_R(r)) {
-default:
-    R_ERROR("recce not trace-safe");
+
+@ @<Fail if not trace-safe@> =
+@<Fail if fatal error@>@;
+switch (Phase_of_R (r))
+  {
+  default:
+    R_ERROR ("recce not trace-safe");
     return failure_indicator;
-case input_phase:
-case evaluation_phase:
-break;
-}
-@ @<Fail if recognizer has fatal error@> =
-if (Phase_of_R(r) == error_phase) {
-    R_ERROR(r->t_fatal_error);
+  case input_phase:
+  case evaluation_phase:
+    break;
+  }
+
+@ @<Fail if fatal error@> =
+if (g->t_fatal_error) {
+    R_ERROR(g->t_fatal_error);
     return failure_indicator;
 }
+
 @ @<Fail if recognizer |symid| is invalid@> =
 if (!symbol_is_valid(G_of_R(r), symid)) {
-    r_context_clear(r);
-    r_context_int_add(r, "symid", symid);
+    g_context_clear(g);
+    g_context_int_add(g, "symid", symid);
     R_ERROR_CXT("invalid symid");
     return failure_indicator;
 }
-@ @<Fail recognizer if |GArray| elements are not |sizeof(gint)|@> =
+@ @<Fail if |GArray| elements are not |sizeof(gint)|@> =
 if (sizeof(gint) != g_array_get_element_size(result)) {
-     r_context_clear(r);
-     r_context_int_add(r, "expected size", sizeof(gint));
+     g_context_clear(g);
+     g_context_int_add(g, "expected size", sizeof(gint));
      R_ERROR_CXT("garray size mismatch");
      return failure_indicator;
 }
@@ -13376,9 +13362,10 @@ should actually be invoked only in exceptional circumstances.
 In this case space clearly is much more important than speed.
 @<Function definitions@> =
 static void r_error( struct marpa_r* r, Marpa_Message_ID message, guint flags ) {
-    if (!(flags & CONTEXT_FLAG)) r_context_clear(r);
-    r->t_error = message;
-    if (flags & FATAL_FLAG) r->t_fatal_error = r->t_error;
+    GRAMMAR g = G_of_R(r);
+    if (!(flags & CONTEXT_FLAG)) g_context_clear(g);
+    g->t_error = message;
+    if (flags & FATAL_FLAG) g->t_fatal_error = g->t_error;
 }
 
 @** Messages and Logging.
