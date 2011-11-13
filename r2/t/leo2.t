@@ -19,7 +19,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 10;
 
 use lib 'tool/lib';
 use Marpa::R2::Test;
@@ -109,6 +109,24 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     my $value = $value_ref ? ${$value_ref} : 'No parse';
     Marpa::R2::Test::is( $value, 'a' x $length, 'Leo p166 parse' );
 } ## end for my $leo_flag ( 0, 1 )
+
+{
+    open my $trace_fh, q{>}, \( my $trace_output = q{} );
+    my $recce = Marpa::R2::Recognizer->new(
+        {   grammar               => $grammar,
+            leo                   => 0,
+            too_many_earley_items => $length,
+            trace_fh              => $trace_fh
+        }
+    );
+    for ( 1 .. $length ) { $recce->read( 'a', 'a' ); }
+    my $value_ref = $recce->value( {} );
+    close $trace_fh;
+    my $warning_found = ($trace_output =~ m/Earley[ ]item[ ]count[ ]exceeds[ ]warning[ ]threshold/xms);
+    Test::More::ok($warning_found, 'Warns at earley item threshold');
+    my $value = $value_ref ? ${$value_ref} : 'No parse';
+    Marpa::R2::Test::is( $value, 'a' x $length, 'Leo p166 parse' );
+}
 
 1;    # In case used as "do" file
 
