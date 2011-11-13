@@ -199,26 +199,34 @@ normalize-whitespace: 1
 
 Processes all tokens at the current earleme and advances the current
 earleme by 1.
-Returns the number of terminals acceptable at the new current earleme.
-Note that, in alternative input models,
-a return value of 0 does B<not> necessarily indicate an
-exhausted parser.
+If the earleme cannot be completed,
+an exception is thrown.
+Otherwise, an "event" count is returned.
+If zero is returned, the earleme was completed without event.
 
+In this context,
+an "event" is one of a list of occurrences of special interest during
+the successful completion of an earleme.
+One example of an event is parse exhaustion.
+To determine if one of the events was parse exhaustion,
+the L<C<exhausted> method|/"exhausted">
+can be used.
+
+All tokens read using the C<alternative> method start at one
+location -- the current earleme.
 When reading input using the C<alternative> method,
-C<earleme_complete> is used to move
+C<earleme_complete> is used to move complete processing
+at the current earleme and move
 forward in
 the input stream.
-All tokens read using the C<alternative> method are read at the same
-location -- the current earleme.
-A C<earleme_complete> call causes the tokens
-read using the C<alternative> method to be processed,
-and the current earleme to be advanced.
 
 C<earleme_complete> may be called even if the C<alternative>
 method has been not called since the last
 call to C<earleme_complete>.
-This will create an earleme with no tokens,
-which is often useful.
+This will create an earleme with no tokens.
+In certain input models,
+such as the character-per-earleme model,
+this can be useful.
 
 =head2 exhausted
 

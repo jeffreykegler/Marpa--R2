@@ -942,28 +942,10 @@ sub report_progress {
 } ## end sub report_progress
 
 sub Marpa::R2::Recognizer::read {
-
-    # For efficiency, args are not unpacked
-    my $recce  = shift;
-    my $result = $recce->alternative(@_);
-    return if not $result;
-    $result = $recce->earleme_complete();
-    return $result if $result <= 0;
-    my $exhausted = 0;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    EVENT: for my $event_ix ( 0 .. $result - 1 ) {
-        my $event_type = $recce_c->earleme_event($event_ix);
-        if ( $event_type eq 'exhausted' ) { $exhausted = 1; next EVENT; }
-        if ( $event_type eq 'earley_item_threshold' ) {
-            print {
-                $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] }
-                "Earley item count exceeds warning threshold";
-            next EVENT;
-        } ## end if ( $event_type eq 'earley_item_threshold' )
-        Marpa::R2::exception(
-            "Unknown earleme completion event; type = $event_type");
-    } ## end for my $event_ix ( 0 .. $result - 1 )
-} ## end sub Marpa::R2::Recognizer::read
+    my $recce = shift;
+    return if not $recce->alternative(@_);
+    return $recce->earleme_complete();
+}
 
 sub Marpa::R2::Recognizer::alternative {
 
@@ -1046,15 +1028,19 @@ sub Marpa::R2::Recognizer::earleme_complete {
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
 
-    my $no_of_terminals_expected = $recce_c->earleme_complete();
-    if ( not defined $no_of_terminals_expected ) {
-        my $error = $recce_c->error();
-        if ( $error eq 'parse exhausted' ) {
-            Marpa::R2::exception('parse exhausted');
-        }
-        Marpa::R2::exception( 'Uncaught error from earleme_complete(): ',
-            $recce_c->error() );
-    } ## end if ( not defined $no_of_terminals_expected )
+    my $event_count = $recce_c->earleme_complete();
+    EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
+        my $event_type = $recce_c->earleme_event($event_ix);
+        next EVENT if $event_type eq 'exhausted';
+        if ( $event_type eq 'earley_item_threshold' ) {
+            print {
+                $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] }
+                "Earley item count exceeds warning threshold";
+            next EVENT;
+        } ## end if ( $event_type eq 'earley_item_threshold' )
+        Marpa::R2::exception(
+            "Unknown earleme completion event; type = $event_type");
+    } ## end for my $event_ix ( 0 .. $result - 1 )
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS] ) {
         my $latest_set = $recce_c->latest_earley_set();
@@ -1077,7 +1063,7 @@ sub Marpa::R2::Recognizer::earleme_complete {
         }
     } ## end if ( $trace_terminals > 1 )
 
-    return $no_of_terminals_expected;
+    return $event_count;
 
 } ## end sub Marpa::R2::Recognizer::earleme_complete
 

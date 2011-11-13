@@ -93,7 +93,9 @@ sub run_sequence_test {
         my $last_symbol_ix = $symbol_count - 1;
         SYMBOL_IX: for my $symbol_ix ( 0 .. $last_symbol_ix ) {
             push @expected, 'a';
-            $recce->read( 'A', 'a' ) or die 'Parsing exhausted';
+            $recce->read( 'A', 'a' )
+                and $recce->exhausted()
+                and die 'Parsing exhausted';
             next SYMBOL_IX if $separation eq 'none';
             next SYMBOL_IX
                 if $symbol_ix >= $last_symbol_ix
@@ -101,7 +103,9 @@ sub run_sequence_test {
             if ($keep) {
                 push @expected, q{!};
             }
-            $recce->read( 'sep', q{!} ) or die 'Parsing exhausted';
+            $recce->read( 'sep', q{!} )
+                and $recce->exhausted()
+                and die 'Parsing exhausted';
         } ## end for my $symbol_ix ( 0 .. $last_symbol_ix )
 
         $recce->end_input();
