@@ -68,26 +68,6 @@ xs_g_message_callback(Grammar *g, Marpa_Message_ID id)
 }
 
 static void
-xs_r_message_callback(struct marpa_r *r, Marpa_Message_ID id)
-{
-    SV* cb = marpa_r_message_callback_arg(r);
-    if (!cb) return;
-    if (!SvOK(cb)) return;
-    {
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSViv( marpa_r_id(r))));
-    XPUSHs(sv_2mortal(newSVpv(id, 0)));
-    PUTBACK;
-    call_sv(cb, G_DISCARD);
-    FREETMPS;
-    LEAVE;
-    }
-}
-
-static void
 xs_rule_callback(Grammar *g, Marpa_Rule_ID id)
 {
     SV* cb = marpa_rule_callback_arg(g);
@@ -931,7 +911,6 @@ PPCODE:
     g = g_wrapper->g;
     r = marpa_r_new(g);
     if (!r) { croak ("failure in marpa_r_new: %s", marpa_g_error (g)); };
-    marpa_r_message_callback_set( r, &xs_r_message_callback );
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;
     r_wrapper->g_sv = g_sv;
@@ -950,34 +929,10 @@ PREINIT:
 CODE:
     g_sv = r_wrapper->g_sv;
     r = r_wrapper->r;
-    {
-       SV *sv = marpa_r_message_callback_arg(r);
-	marpa_r_message_callback_arg_set( r, NULL );
-       if (sv) { SvREFCNT_dec(sv); }
-    }
     g_array_free(r_wrapper->gint_array, TRUE);
     marpa_r_free( r );
     SvREFCNT_dec(g_sv);
     Safefree( r_wrapper );
-
- # Note the Perl callback closure
- # is, in the libmarpa context, the *ARGUMENT* of the callback,
- # not the callback itself.
- # The libmarpa callback is a wrapper
- # that calls the Perl closure.
-void
-message_callback_set( r_wrapper, sv )
-    R_Wrapper *r_wrapper;
-    SV *sv;
-PPCODE:
-    {
-       struct marpa_r* r = r_wrapper->r;
-       SV *old_sv = marpa_r_message_callback_arg(r);
-       if (old_sv) {
-       SvREFCNT_dec(old_sv); }
-	marpa_r_message_callback_arg_set( r, sv );
-	SvREFCNT_inc(sv);
-    }
 
 Marpa_Recognizer_ID
 id( r_wrapper )
