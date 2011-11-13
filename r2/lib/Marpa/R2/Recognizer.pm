@@ -78,35 +78,6 @@ package Marpa::R2::Internal::Recognizer;
 use English qw( -no_match_vars );
 
 my $parse_number = 0;
-my %recce_by_id  = ();
-
-sub get_recognizer_by_id {
-    my ($recce_id) = @_;
-    my $recce = $recce_by_id{$recce_id};
-    if ( not defined $recce ) {
-        Carp::croak(
-            "Attempting to use a recognizer which has been garbage collected\n",
-            'Recognizer with id ',
-            q{#},
-            "$recce_id no longer exists\n"
-        );
-    } ## end if ( not defined $recce )
-    return $recce;
-} ## end sub get_recognizer_by_id
-
-sub message_cb {
-    my ( $recce_id, $message_id ) = @_;
-    my $recce    = get_recognizer_by_id($recce_id);
-    my $recce_c  = $recce->[Marpa::R2::Internal::Grammar::C];
-    my $trace_fh = $recce->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
-    if ( $message_id eq 'recce not active' ) {
-        my $phase = $recce_c->phase();
-        Marpa::R2::exception("Recognizer not active, phase is $phase");
-        return;
-    }
-    Marpa::R2::exception(qq{Unexpected message, type "$message_id"});
-    return;
-} ## end sub message_cb
 
 # Returns the new parse object or throws an exception
 sub Marpa::R2::Recognizer::new {
@@ -157,11 +128,6 @@ sub Marpa::R2::Recognizer::new {
             qq{Recognizer created failed with unexpected error code: "$error"}
         );
     } ## end if ( not defined $recce_c )
-    my $recce_id = $recce_c->id();
-    $recce->[Marpa::R2::Internal::Recognizer::ID] = $recce_id;
-    $recce_by_id{$recce_id} = $recce;
-    Scalar::Util::weaken( $recce_by_id{$recce_id} );
-    $recce_c->message_callback_set( \&message_cb );
 
     $recce->[Marpa::R2::Internal::Recognizer::WARNINGS]       = 1;
     $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] = 'none';
