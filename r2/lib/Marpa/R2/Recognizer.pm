@@ -35,7 +35,6 @@ BEGIN {
     :package=Marpa::R2::Internal::Recognizer
 
     C { A C structure }
-    ID { A unique ID provided by libmarpa }
 
     GRAMMAR { the grammar used }
     FINISHED

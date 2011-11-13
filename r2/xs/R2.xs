@@ -934,14 +934,6 @@ CODE:
     SvREFCNT_dec(g_sv);
     Safefree( r_wrapper );
 
-Marpa_Recognizer_ID
-id( r_wrapper )
-    R_Wrapper *r_wrapper;
-CODE:
-    RETVAL = marpa_r_id(r_wrapper->r);
-OUTPUT:
-    RETVAL
-
  # Someday replace this with a function which translates the
  # error
 char *error( r_wrapper )
