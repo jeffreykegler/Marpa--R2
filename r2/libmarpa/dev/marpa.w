@@ -5414,27 +5414,6 @@ g_slice_free(struct marpa_r, r);
 @ @<Public function prototypes@> =
 void marpa_r_free(struct marpa_r *r);
 
-@*0 The Recognizer ID.
-A unique ID for the recognizer.
-This must be unique not just per-thread,
-but process-wide.
-The counter which tracks recognizer ID's
-(|next_recce_id|)
-is (at this writing) the only global
-non-constant, and requires special handling to
-keep |libmarpa| MT-safe.
-(|next_recce_id|) is accessed only via
-|glib|'s special atomic operations.
-@ @<Int aligned recognizer elements@> = gint t_id;
-@ @<Public typedefs@> = typedef gint Marpa_Recognizer_ID;
-@ @<Private global variables@> = static gint next_recce_id = 1;
-@ @<Initialize recognizer elements@> =
-r->t_id = g_atomic_int_exchange_and_add(&next_recce_id, 1);
-@ @<Function definitions@> =
-gint marpa_r_id(struct marpa_r* r) { return r->t_id; }
-@ @<Public function prototypes@> =
-gint marpa_r_id(struct marpa_r* r);
-
 @*0 The Grammar for the Recognizer.
 Initialized in |marpa_r_new|.
 @d G_of_R(r) ((r)->t_grammar)
