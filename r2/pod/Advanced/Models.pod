@@ -138,8 +138,7 @@ that processing of input catches up to the furthest earleme.
 name: Recognizer alternative Synopsis
 normalize-whitespace: 1
 
-    $recce->alternative( 'a', 42, 1 )
-        or return 'First alternative failed';
+    $recce->alternative( 'a', 42, 1 ) or return 'First alternative failed';
 
 =for Marpa::R2::Display::End
 
