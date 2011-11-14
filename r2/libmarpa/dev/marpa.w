@@ -876,6 +876,9 @@ gboolean marpa_start_symbol_set(struct marpa_g*g, Marpa_Symbol_ID id);
 @*0 Start Rules.
 These are the start rules, after the grammar is augmented.
 Only one of these needs to be non-NULL.
+A productive grammar
+with no proper start rule is considered trivial.
+@d G_is_Trivial(g) (!(g)->t_proper_start_rule)
 @<Int aligned grammar elements@> =
 RULE t_null_start_rule;
 RULE t_proper_start_rule;
@@ -2436,10 +2439,12 @@ struct marpa_g* marpa_precompute(struct marpa_g* g)
      if (!census(g)) return NULL;
      if (!CHAF_rewrite(g)) return NULL;
      if (!g_augment(g)) return NULL;
-    loop_detect(g);
-    create_AHFA_items(g);
-    create_AHFA_states(g);
-    @<Populate the Terminal Boolean Vector@>@;
+     if (!G_is_Trivial(g)) {
+	loop_detect(g);
+	create_AHFA_items(g);
+	create_AHFA_states(g);
+	@<Populate the Terminal Boolean Vector@>@;
+    }
      return g;
 }
 @ @<Public function prototypes@> =
@@ -5372,7 +5377,17 @@ struct marpa_r* marpa_r_new( struct marpa_g* g )
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
+    @<Mark |r| exhausted if |g| is trivial@>@;
    return r; }
+
+@ If |g| is trivial (allows only the null parse),
+initialize |r| to exhausted.
+@<Mark |r| exhausted if |g| is trivial@> =
+{
+    if (G_is_Trivial(g)) {
+        R_is_Exhausted(r) = 1;
+    }
+}
 
 @ @<Function definitions@> =
 void marpa_r_free(struct marpa_r *r)
@@ -7924,12 +7939,13 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
     const gint symbol_count_of_g = SYM_Count_of_G(g);
     @<Return |FALSE| on failure@>@;
     @<Fail if recognizer not initial@>@;
+    Phase_of_R(r) = input_phase;
+    LV_Current_Earleme_of_R(r) = 0;
+    if (G_is_Trivial(g)) return TRUE;
     @<Allocate recognizer workareas@>@;
     psar_reset(Dot_PSAR_of_R(r));
     @<Allocate recognizer's bit vectors for symbols@>@;
     @<Initialize Earley item work stacks@>@;
-    Phase_of_R(r) = input_phase;
-    LV_Current_Earleme_of_R(r) = 0;
     set0 = earley_set_new(r, 0);
     LV_Latest_ES_of_R(r) = set0;
     LV_First_ES_of_R(r) = set0;
@@ -10494,17 +10510,19 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     const gint no_parse = -1;
     @<Declare bocage locals@>@;
     @<Return if function guards fail@>@;
-    r_update_earley_sets(r);
-    @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
-    if (end_of_parse_earleme == 0 && !g->t_null_start_rule) goto SOFT_ERROR;
-    if (end_of_parse_earleme > 0 && !g->t_proper_start_rule) goto SOFT_ERROR;
     b = B_of_R(r) = g_slice_new(BOC_Object);
     @<Initialize bocage elements@>@;
+    if (G_is_Trivial(g)) {
+        if (ordinal_arg > 0) goto SOFT_ERROR;
+	return r_create_null_bocage(r, b);
+    }
+    r_update_earley_sets(r);
+    @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
     if (end_of_parse_earleme == 0) {
-	@<Deal with null parse as a special case@>@;
+	if (! g->t_null_start_rule) goto SOFT_ERROR;
+	return r_create_null_bocage(r, b);
     }
     @<Set |completed_start_rule|@>@;
-MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     if (!start_eim) goto SOFT_ERROR;
     Phase_of_R(r) = evaluation_phase;
@@ -10614,8 +10632,13 @@ end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
 is earleme 0, and that null parses are allowed.
 If null parses are allowed, there is guaranteed to be a
 null start rule.
-@<Deal with null parse as a special case@> =
+@<Private function prototypes@> =
+static ORID r_create_null_bocage(RECCE r, BOC b);
+@ Not inline --- should not be called a lot.
+@<Function definitions@> =
+static ORID r_create_null_bocage(RECCE r, BOC b)
 {
+  const GRAMMAR g = G_of_R(r);
   const RULE null_start_rule = g->t_null_start_rule;
   gint rule_length = Length_of_RULE (g->t_null_start_rule);
   OR *or_nodes = ORs_of_B (b) = g_new (OR, 1);
