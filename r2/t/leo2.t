@@ -63,13 +63,12 @@ Marpa::R2::Test::is( $grammar->show_rules,
 2: S -> a S
 3: S -> a S[]
 4: S['] -> S /* vlhs real=1 */
-5: S['][] -> /* empty vlhs real=1 */
+5: S['][] -> /* empty !used vlhs real=1 */
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
 * S0:
 S['] -> . S
-S['][] -> .
  <S> => S2; leo(S['])
 * S1: predict
 S -> . a S

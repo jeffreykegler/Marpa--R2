@@ -76,7 +76,7 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 11: S[R0:2] -> A A[] /* vlhs real=2 */
 12: S[R0:2] -> A[] A /* vlhs real=2 */
 13: S['] -> S /* vlhs real=1 */
-14: S['][] -> /* empty vlhs real=1 */
+14: S['][] -> /* empty !used vlhs real=1 */
 EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,
@@ -166,14 +166,11 @@ AHFA item 23: sort = 0; postdot = "S"
     S['] -> . S
 AHFA item 24: sort = 24; completion
     S['] -> S .
-AHFA item 25: sort = 25; completion
-    S['][] -> .
 EOS
 
 Marpa::R2::Test::is( $grammar->show_AHFA, <<'EOS', 'Aycock/Horspool AHFA' );
 * S0:
 S['] -> . S
-S['][] -> .
  <S> => S2; leo(S['])
 * S1: predict
 A -> . a
