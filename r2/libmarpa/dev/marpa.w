@@ -922,25 +922,32 @@ g->t_max_rule_length = 0;
 
 @*0 Grammar Boolean: Precomputed.
 @ @<Public function prototypes@> =
-gboolean marpa_is_precomputed(const struct marpa_g* const g);
+gboolean marpa_is_precomputed(struct marpa_g* g);
 @ @d G_is_Precomputed(g) ((g)->t_is_precomputed)
 @<Bit aligned grammar elements@> = guint t_is_precomputed:1;
 @ @<Initialize grammar elements@> =
 g->t_is_precomputed = FALSE;
 @ @<Function definitions@> =
-gboolean marpa_is_precomputed(const struct marpa_g* const g)
-{ return G_is_Precomputed(g); }
+gboolean marpa_is_precomputed(struct marpa_g* g)
+{
+   @<Return |-2| on failure@>@/
+    @<Fail if fatal error@>@;
+return G_is_Precomputed(g);
+}
 
-@*0 Grammar Boolean: Has Loop.
+@*0 Grammar boolean: has loop?.
 @<Bit aligned grammar elements@> = guint t_has_loop:1;
 @ @<Initialize grammar elements@> =
 g->t_has_loop = FALSE;
-@ The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
-gboolean marpa_has_loop(struct marpa_g* g)
-{ return g->t_has_loop; }
 @ @<Public function prototypes@> =
 gboolean marpa_has_loop(struct marpa_g* g);
+@ @<Function definitions@> =
+gboolean marpa_has_loop(struct marpa_g* g)
+{
+   @<Return |-2| on failure@>@/
+    @<Fail if fatal error@>@;
+return g->t_has_loop;
+}
 
 @*0 Grammar Boolean: LHS Terminal OK.
 Traditionally, a BNF grammar did {\bf not} allow a symbol
@@ -2151,6 +2158,7 @@ rule_is_nulling (GRAMMAR g, RULE rule)
 static inline gint rule_is_nulling(GRAMMAR g, RULE rule);
 
 @*0 Is Rule Used?.
+Is the rule used in computing the AHFA sets?
 @d RULE_is_Used(rule) ((rule)->t_is_used)
 @<Bit aligned rule elements@> = guint t_is_used:1;
 @ @<Initialize rule elements@> =
@@ -3220,7 +3228,8 @@ Marpa_Symbol_ID alias_by_id(struct marpa_g* g, Marpa_Symbol_ID proper_id);
 @** Adding a New Start Symbol.
 This is such a common rewrite that it has a special name
 in the literature --- it is called ``augmenting the grammar".
-
+@<Private function prototypes@> =
+static inline struct marpa_g* g_augment(struct marpa_g* g);
 @ @<Function definitions@> =
 static inline
 struct marpa_g* g_augment(struct marpa_g* g) {
@@ -3231,11 +3240,9 @@ struct marpa_g* g_augment(struct marpa_g* g) {
     SYM old_start = SYM_by_ID(g->t_start_symid);
     @<Find and classify the old start symbols@>@;
     if (proper_old_start) { @<Set up a new proper start rule@> }
-    if (nulling_old_start) { @<Set up a new nulling start rule@> }
+    if (nulling_old_start) { @<Set up a new nulling start rule@>@; }
     return g;
 }
-@ @<Private function prototypes@> =
-static inline struct marpa_g* g_augment(struct marpa_g* g);
 
 @ @<Find and classify the old start symbols@> =
 if (SYM_is_Nulling(old_start)) {
@@ -3299,7 +3306,7 @@ if there is one.  Otherwise it is a new, nulling, symbol.
   new_start_rule->t_is_start = 1;
   RULE_is_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
-  RULE_is_Used(new_start_rule) = TRUE;
+  RULE_is_Used(new_start_rule) = FALSE;
   g->t_null_start_rule = new_start_rule;
   rule_callback (g, new_start_rule->t_id);
 }
@@ -4459,75 +4466,38 @@ into the |TRANS| structure, for memoization.
 g_free(singleton_duplicates);
 g_tree_destroy(duplicates);
 
-@ @<Construct initial AHFA states@> = {
-   AHFA p_initial_state = DQUEUE_PUSH(states, AHFA_Object);@/
-   Marpa_Rule_ID start_rule_id;
-   AIM start_item;
-   SYM start_symbol = SYM_by_ID(g->t_start_symid);
-   SYM start_alias
-       = symbol_null_alias(start_symbol);
-    gint no_of_items_in_new_state = start_alias ? 2 : 1;
-    AIM* item_list
-	= obstack_alloc(&g->t_obs, no_of_items_in_new_state*sizeof(AIM));
-    start_rule_id = g_array_index(start_symbol->t_lhs, Marpa_Rule_ID, 0); /* The start rule
-	is the unique rule that has the start symbol as its LHS */
-    start_item = g->t_AHFA_items_by_rule[start_rule_id]; /* The start item is the
-       initial item for the start rule */
-    item_list[0] = start_item;
-    if (start_alias) {
-       Marpa_Rule_ID alias_rule_id
-	    = g_array_index(start_alias->t_lhs, Marpa_Rule_ID, 0); /* Start alias
-	    rule is the unique rule that has
-	   the start alias as its LHS */
-	item_list[1] = g->t_AHFA_items_by_rule[alias_rule_id];
-    }
-    p_initial_state->t_items = item_list;
-    p_initial_state->t_item_count = no_of_items_in_new_state;
-    p_initial_state->t_key.t_id = 0;
-    LV_AHFA_is_Predicted(p_initial_state) = 0;
-    LV_Leo_LHS_ID_of_AHFA(p_initial_state) = -1;
-    LV_TRANSs_of_AHFA(p_initial_state) = transitions_new(g);
-    p_initial_state->t_empty_transition = NULL;
-    if (SYM_is_Nulling(start_symbol))
-      {				// Special case the null parse
-	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
-	SYMID completed_symbol_id = ID_of_SYM(start_symbol);
-	*complete_symids = completed_symbol_id;
-	completion_count_inc (&ahfa_work_obs, p_initial_state, completed_symbol_id);
-	LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
-	LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 1;
-	p_initial_state->t_has_completed_start_rule = 1;
-	LV_Postdot_SYM_Count_of_AHFA(p_initial_state) = 0;
-      }
-    else
-      {
-	SYMID* postdot_symbol_ids;
-	LV_Postdot_SYM_Count_of_AHFA(p_initial_state) = 1;
-	postdot_symbol_ids = LV_Postdot_SYMID_Ary_of_AHFA(p_initial_state) = 
-	  obstack_alloc (&g->t_obs, sizeof (SYMID));
-	*postdot_symbol_ids = Postdot_SYMID_of_AIM(start_item);
-	if (start_alias)
-	  {
-	    SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
-	    SYMID completed_symbol_id = ID_of_SYM(start_alias);
-	    *complete_symids = completed_symbol_id;
-	    completion_count_inc(&ahfa_work_obs, p_initial_state, completed_symbol_id);
-	    LV_Complete_SYMIDs_of_AHFA(p_initial_state) = complete_symids;
-	    LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 1;
-	    p_initial_state->t_has_completed_start_rule = 1;
-	  }
-	else
-	  {
-	    LV_Complete_SYM_Count_of_AHFA(p_initial_state) = 0;
-	    p_initial_state->t_has_completed_start_rule = 0;
-	  }
-	    p_initial_state->t_empty_transition =
-	    create_predicted_AHFA_state (g,
-			     matrix_row (prediction_matrix,
-					 (guint)
-					 Postdot_SYMID_of_AIM (start_item)),
-			     rule_by_sort_key, &states, duplicates);
-      }
+@ @<Construct initial AHFA states@> =
+{
+  AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
+  Marpa_Rule_ID start_rule_id;
+  SYMID *postdot_symbol_ids;
+  AIM start_item;
+  SYM start_symbol = SYM_by_ID (g->t_start_symid);
+  AIM *item_list = obstack_alloc (&g->t_obs, sizeof (AIM));
+  /* The start rule is the unique rule that has the start symbol as its LHS */
+  start_rule_id = g_array_index (start_symbol->t_lhs, Marpa_Rule_ID, 0);
+  /* The start item is the initial item for the start rule */
+  start_item = g->t_AHFA_items_by_rule[start_rule_id];
+  item_list[0] = start_item;
+  p_initial_state->t_items = item_list;
+  p_initial_state->t_item_count = 1;
+  p_initial_state->t_key.t_id = 0;
+  LV_AHFA_is_Predicted (p_initial_state) = 0;
+  LV_Leo_LHS_ID_of_AHFA (p_initial_state) = -1;
+  LV_TRANSs_of_AHFA (p_initial_state) = transitions_new (g);
+  LV_Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
+  postdot_symbol_ids = LV_Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
+    obstack_alloc (&g->t_obs, sizeof (SYMID));
+  *postdot_symbol_ids = Postdot_SYMID_of_AIM (start_item);
+  LV_Complete_SYM_Count_of_AHFA (p_initial_state) = 0;
+  p_initial_state->t_has_completed_start_rule = 0;
+  p_initial_state->t_empty_transition =
+    create_predicted_AHFA_state (g,
+				 matrix_row (prediction_matrix,
+					     (guint)
+					     Postdot_SYMID_of_AIM
+					     (start_item)), rule_by_sort_key,
+				 &states, duplicates);
 }
 
 @* Discovered AHFA States.
@@ -9102,46 +9072,6 @@ never on the stack.
 	@<Push child Earley items from completion sources@>@;
 	@<Push child Earley items from Leo sources@>@;
     }
-    @<Unset the PSIA for the start rule prediction@>@;
-}
-
-@ The start rule prediction is a special case ---
-it is the one AHFA prediction item not in an
-predicted AHFA state.
-It's dealt with by letting its entry in the
-PSIA be set spuriously, then unsetting it.
-Not very elegant, but this deals with it at a constant
-cost per parse.
-@<Unset the PSIA for the start rule prediction@> = {
-    const ES first_earley_set = ES_of_R_by_Ord (r, 0);
-    OR** const nodes_by_item = per_es_data[0].t_aexes_by_item;
-    const EIM* const eims_of_es = EIMs_of_ES(first_earley_set);
-    const gint item_count = EIM_Count_of_ES (first_earley_set);
-    gint item_ordinal;
-    for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
-    {
-	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
-	if (nodes_by_aex) {
-	    const EIM earley_item = eims_of_es[item_ordinal];
-	    const Marpa_AHFA_State_ID ahfa_id = AHFAID_of_EIM(earley_item);
-	    /* The prediction start rule will be in AHFA state 0 */
-	    if (ahfa_id) continue;
-	    {
-		const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
-		AEX aex;
-		for (aex = 0; aex < aim_count_of_item; aex++) {
-		    AIM ahfa_item = AIM_of_EIM_by_AEX(earley_item, aex);
-		    if (Position_of_AIM(ahfa_item) == 0) {
-			/* Don't bother with the null count ---
-			there are no nulling symbols in the start rule */
-			nodes_by_aex[aex] = NULL;
-			goto FINISHED_UNSET;
-		    }
-		}
-	    }
-	}
-    }
-    FINISHED_UNSET: ;
 }
 
 @ @<Push ur-node if new@> = {
@@ -10563,13 +10493,13 @@ gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set
     ORID top_or_node_id = failure_indicator;
     const gint no_parse = -1;
     @<Declare bocage locals@>@;
+    @<Return if function guards fail@>@;
     r_update_earley_sets(r);
-    @<Return if function guards fail;
-	set |end_of_parse_es| and |completed_start_rule|@>@;
     b = B_of_R(r) = g_slice_new(BOC_Object);
-MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Initialize bocage elements@>@;
     @<Deal with null parse as a special case@>@;
+    @<Set |end_of_parse_es| and |completed_start_rule|@>@;
+MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     if (!start_eim) goto SOFT_ERROR;
     Phase_of_R(r) = evaluation_phase;
@@ -10588,7 +10518,7 @@ MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
 }
 
 @ @<Declare bocage locals@> =
-const GRAMMAR_Const g = G_of_R(r);
+const GRAMMAR g = G_of_R(r);
 const gint rule_count_of_g = RULE_Count_of_G(g);
 const gint symbol_count_of_g = SYM_Count_of_G(g);
 BOC b;
@@ -10613,50 +10543,55 @@ struct s_bocage_setup_per_es {
 @ @<Declare bocage locals@> =
 struct s_bocage_setup_per_es* per_es_data = NULL;
 
-@ @<Return if function guards fail;
-set |end_of_parse_es| and |completed_start_rule|@> =
+@ @<Return if function guards fail@> =
 {
-    EARLEME end_of_parse_earleme;
-    @<Fail if fatal error@>@;
-    if (B_of_R(r)) {
-	R_ERROR ("bocage in use");
-	return failure_indicator;
+  @<Fail if fatal error@>@;
+  if (B_of_R (r))
+    {
+      R_ERROR ("bocage in use");
+      return failure_indicator;
     }
-    switch (Phase_of_R (r))
-      {
-      default:
-	R_ERROR ("recce not evaluation-ready");
-	return failure_indicator;
-      case input_phase:
-      case evaluation_phase:
-	break;
-      }
+  switch (Phase_of_R (r))
+    {
+    default:
+      R_ERROR ("recce not evaluation-ready");
+      return failure_indicator;
+    case input_phase:
+    case evaluation_phase:
+      break;
+    }
+}
 
-MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
-    if (ordinal == -1)
-      {
-	end_of_parse_es = Current_ES_of_R (r);
-      }
-    else
-      {				// ordinal != -1
-	if (!ES_Ord_is_Valid (r, ordinal))
-	  {
-	    R_ERROR ("invalid es ordinal");
-	    return failure_indicator;
-	  }
-	end_of_parse_es = ES_of_R_by_Ord (r, ordinal);
-      }
+@ @<Set |end_of_parse_es| and |completed_start_rule|@> =
+{
+  EARLEME end_of_parse_earleme;
+  MARPA_OFF_DEBUG2 ("ordinal=%d", ordinal);
+  if (ordinal == -1)
+    {
+      end_of_parse_es = Current_ES_of_R (r);
+    }
+  else
+    {				// ordinal != -1
+      if (!ES_Ord_is_Valid (r, ordinal))
+	{
+	  R_ERROR ("invalid es ordinal");
+	  return failure_indicator;
+	}
+      end_of_parse_es = ES_of_R_by_Ord (r, ordinal);
+    }
 
-    if (!end_of_parse_es)
-      return no_parse;
-    ordinal = Ord_of_ES(end_of_parse_es);
-    end_of_parse_earleme = Earleme_of_ES (end_of_parse_es);
-    if (rule_id == -1) {
-	completed_start_rule =
-	  end_of_parse_earleme ? g->t_proper_start_rule : g->t_null_start_rule;
-	if (!completed_start_rule)
-	  return no_parse;
-    } else {
+  if (!end_of_parse_es)
+    return no_parse;
+  ordinal = Ord_of_ES (end_of_parse_es);
+  end_of_parse_earleme = Earleme_of_ES (end_of_parse_es);
+  if (rule_id == -1)
+    {
+      completed_start_rule = g->t_proper_start_rule;
+      if (!completed_start_rule)
+	return no_parse;
+    }
+  else
+    {
       if (!RULEID_of_G_is_Valid (g, rule_id))
 	{
 	  R_ERROR ("invalid rule id");
@@ -10664,13 +10599,14 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 	}
       completed_start_rule = RULE_by_ID (g, rule_id);
     }
-MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
+  MARPA_OFF_DEBUG2 ("ordinal=%d", ordinal);
 }
 
 @ @<Deal with null parse as a special case@> =
 {
-    if (ordinal == 0) {  // If this is a null parse
-	gint rule_length = Length_of_RULE(completed_start_rule);
+    if (ordinal == 0 && g->t_null_start_rule) {  // If this is a null parse
+	const RULE null_start_rule = g->t_null_start_rule;
+	gint rule_length = Length_of_RULE(g->t_null_start_rule);
 	OR* or_nodes = ORs_of_B (b) = g_new (OR, 1);
         AND and_nodes = ANDs_of_B (b) = g_new (AND_Object, 1);
 	OR or_node = or_nodes[0] = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
@@ -10680,7 +10616,7 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 	OR_Count_of_B(b) = 1;
 	AND_Count_of_B(b) = 1;
 
-	RULE_of_OR(or_node) = completed_start_rule;
+	RULE_of_OR(or_node) = null_start_rule;
 	Position_of_OR(or_node) = rule_length;
 	Origin_Ord_of_OR(or_node) = 0;
 	ID_of_OR(or_node) = null_or_node_id;
@@ -10691,7 +10627,7 @@ MARPA_OFF_DEBUG2("ordinal=%d", ordinal);
 	OR_of_AND(and_nodes) = or_node;
 	Predecessor_OR_of_AND(and_nodes) = NULL;
 	Cause_OR_of_AND (and_nodes) =
-	  (OR)TOK_by_ID_of_R (r, RHS_ID_of_RULE (completed_start_rule, rule_length - 1));
+	  (OR)TOK_by_ID_of_R (r, RHS_ID_of_RULE (null_start_rule, rule_length - 1));
 
 	return null_or_node_id;
     }
@@ -13297,7 +13233,7 @@ switch (Phase_of_R (r))
 
 @ @<Fail if fatal error@> =
 if (g->t_fatal_error) {
-    R_ERROR(g->t_fatal_error);
+    MARPA_ERROR(g->t_fatal_error);
     return failure_indicator;
 }
 
@@ -13349,11 +13285,13 @@ than specifying the flags.
 Not being error-prone
 is important since there are many calls to |r_error|
 in the code.
+@d MARPA_ERROR(message) (marpa_error(g, (message), 0u))
 @d R_ERROR(message) (r_error(r, (message), 0u))
 @d R_ERROR_CXT(message) (r_error(r, (message), CONTEXT_FLAG))
 @d R_FATAL(message) (r_error(r, (message), FATAL_FLAG))
 @d R_FATAL_CXT(message) (r_error(r, (message), CONTEXT_FLAG|FATAL_FLAG))
 @<Private function prototypes@> =
+static void marpa_error( struct marpa_g* g, Marpa_Message_ID message, guint flags );
 static void r_error( struct marpa_r* r, Marpa_Message_ID message, guint flags );
 @ Not inlined.  |r_error|
 occurs in the code quite often,
@@ -13361,11 +13299,20 @@ but |r_error|
 should actually be invoked only in exceptional circumstances.
 In this case space clearly is much more important than speed.
 @<Function definitions@> =
-static void r_error( struct marpa_r* r, Marpa_Message_ID message, guint flags ) {
-    GRAMMAR g = G_of_R(r);
-    if (!(flags & CONTEXT_FLAG)) g_context_clear(g);
-    g->t_error = message;
-    if (flags & FATAL_FLAG) g->t_fatal_error = g->t_error;
+static void
+marpa_error (struct marpa_g *g, Marpa_Message_ID message, guint flags)
+{
+  if (!(flags & CONTEXT_FLAG))
+    g_context_clear (g);
+  g->t_error = message;
+  if (flags & FATAL_FLAG)
+    g->t_fatal_error = g->t_error;
+}
+
+static void
+r_error (struct marpa_r *r, Marpa_Message_ID message, guint flags)
+{
+  marpa_error (G_of_R (r), message, flags);
 }
 
 @** Messages and Logging.
