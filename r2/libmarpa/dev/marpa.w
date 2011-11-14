@@ -10486,19 +10486,24 @@ Earley set must be a null parse.
 
 so that an or-node of 0 
 @<Public function prototypes@> =
-gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal);
+gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg);
 @ @<Function definitions@> =
-gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal) {
+gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg) {
     @<Return |-2| on failure@>@;
     ORID top_or_node_id = failure_indicator;
     const gint no_parse = -1;
     @<Declare bocage locals@>@;
     @<Return if function guards fail@>@;
     r_update_earley_sets(r);
+    @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
+    if (end_of_parse_earleme == 0 && !g->t_null_start_rule) goto SOFT_ERROR;
+    if (end_of_parse_earleme > 0 && !g->t_proper_start_rule) goto SOFT_ERROR;
     b = B_of_R(r) = g_slice_new(BOC_Object);
     @<Initialize bocage elements@>@;
-    @<Deal with null parse as a special case@>@;
-    @<Set |end_of_parse_es| and |completed_start_rule|@>@;
+    if (end_of_parse_earleme == 0) {
+	@<Deal with null parse as a special case@>@;
+    }
+    @<Set |completed_start_rule|@>@;
 MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     if (!start_eim) goto SOFT_ERROR;
@@ -10521,8 +10526,9 @@ MARPA_DEBUG3("%s new bocage B_of_R=%p", G_STRLOC, B_of_R(r));
 const GRAMMAR g = G_of_R(r);
 const gint rule_count_of_g = RULE_Count_of_G(g);
 const gint symbol_count_of_g = SYM_Count_of_G(g);
-BOC b;
-ES end_of_parse_es;
+BOC b = NULL;
+ES end_of_parse_earley_set;
+EARLEME end_of_parse_earleme;
 RULE completed_start_rule;
 EIM start_eim = NULL;
 AIM start_aim = NULL;
@@ -10562,28 +10568,30 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
     }
 }
 
-@ @<Set |end_of_parse_es| and |completed_start_rule|@> =
+@ @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@> =
 {
-  EARLEME end_of_parse_earleme;
-  MARPA_OFF_DEBUG2 ("ordinal=%d", ordinal);
-  if (ordinal == -1)
-    {
-      end_of_parse_es = Current_ES_of_R (r);
-    }
-  else
-    {				// ordinal != -1
-      if (!ES_Ord_is_Valid (r, ordinal))
-	{
-	  R_ERROR ("invalid es ordinal");
-	  return failure_indicator;
-	}
-      end_of_parse_es = ES_of_R_by_Ord (r, ordinal);
-    }
+  MARPA_OFF_DEBUG2 ("ordinal_arg=%d", ordinal_arg);
+if (ordinal_arg == -1)
+  {
+    end_of_parse_earley_set = Current_ES_of_R (r);
+  }
+else
+  {				/* |ordinal_arg| != -1 */
+    if (!ES_Ord_is_Valid (r, ordinal_arg))
+      {
+	R_ERROR ("invalid es ordinal");
+	return failure_indicator;
+      }
+    end_of_parse_earley_set = ES_of_R_by_Ord (r, ordinal_arg);
+  }
 
-  if (!end_of_parse_es)
-    return no_parse;
-  ordinal = Ord_of_ES (end_of_parse_es);
-  end_of_parse_earleme = Earleme_of_ES (end_of_parse_es);
+if (!end_of_parse_earley_set)
+  return no_parse;
+end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
+}
+
+@ @<Set |completed_start_rule|@> = 
+{
   if (rule_id == -1)
     {
       completed_start_rule = g->t_proper_start_rule;
@@ -10602,35 +10610,39 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
   MARPA_OFF_DEBUG2 ("ordinal=%d", ordinal);
 }
 
-@ @<Deal with null parse as a special case@> =
+@ The caller is assumed to have checked that the end of parse
+is earleme 0, and that null parses are allowed.
+If null parses are allowed, there is guaranteed to be a
+null start rule.
+@<Deal with null parse as a special case@> =
 {
-    if (ordinal == 0 && g->t_null_start_rule) {  // If this is a null parse
-	const RULE null_start_rule = g->t_null_start_rule;
-	gint rule_length = Length_of_RULE(g->t_null_start_rule);
-	OR* or_nodes = ORs_of_B (b) = g_new (OR, 1);
-        AND and_nodes = ANDs_of_B (b) = g_new (AND_Object, 1);
-	OR or_node = or_nodes[0] = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
-	ORID null_or_node_id = 0;
-	Top_ORID_of_B(b) = null_or_node_id;
+  const RULE null_start_rule = g->t_null_start_rule;
+  gint rule_length = Length_of_RULE (g->t_null_start_rule);
+  OR *or_nodes = ORs_of_B (b) = g_new (OR, 1);
+  AND and_nodes = ANDs_of_B (b) = g_new (AND_Object, 1);
+  OR or_node = or_nodes[0] =
+    (OR) obstack_alloc (&OBS_of_B (b), sizeof (OR_Object));
+  ORID null_or_node_id = 0;
+  Top_ORID_of_B (b) = null_or_node_id;
 
-	OR_Count_of_B(b) = 1;
-	AND_Count_of_B(b) = 1;
+  OR_Count_of_B (b) = 1;
+  AND_Count_of_B (b) = 1;
 
-	RULE_of_OR(or_node) = null_start_rule;
-	Position_of_OR(or_node) = rule_length;
-	Origin_Ord_of_OR(or_node) = 0;
-	ID_of_OR(or_node) = null_or_node_id;
-	ES_Ord_of_OR(or_node) = 0;
-	First_ANDID_of_OR(or_node) = 0;
-	AND_Count_of_OR(or_node) = 1;
+  RULE_of_OR (or_node) = null_start_rule;
+  Position_of_OR (or_node) = rule_length;
+  Origin_Ord_of_OR (or_node) = 0;
+  ID_of_OR (or_node) = null_or_node_id;
+  ES_Ord_of_OR (or_node) = 0;
+  First_ANDID_of_OR (or_node) = 0;
+  AND_Count_of_OR (or_node) = 1;
 
-	OR_of_AND(and_nodes) = or_node;
-	Predecessor_OR_of_AND(and_nodes) = NULL;
-	Cause_OR_of_AND (and_nodes) =
-	  (OR)TOK_by_ID_of_R (r, RHS_ID_of_RULE (null_start_rule, rule_length - 1));
+  OR_of_AND (and_nodes) = or_node;
+  Predecessor_OR_of_AND (and_nodes) = NULL;
+  Cause_OR_of_AND (and_nodes) =
+    (OR) TOK_by_ID_of_R (r,
+			 RHS_ID_of_RULE (null_start_rule, rule_length - 1));
 
-	return null_or_node_id;
-    }
+  return null_or_node_id;
 }
 
 @
@@ -10689,9 +10701,9 @@ to make sense.
 @<Find |start_eim|, |start_aim| and |start_aex|@> =
 {
     gint eim_ix;
-    EIM* const earley_items = EIMs_of_ES(end_of_parse_es);
+    EIM* const earley_items = EIMs_of_ES(end_of_parse_earley_set);
     const RULEID sought_rule_id = ID_of_RULE(completed_start_rule);
-    const gint earley_item_count = EIM_Count_of_ES(end_of_parse_es);
+    const gint earley_item_count = EIM_Count_of_ES(end_of_parse_earley_set);
     for (eim_ix = 0; eim_ix < earley_item_count; eim_ix++) {
         const EIM earley_item = earley_items[eim_ix];
 	const AHFA ahfa_state = AHFA_of_EIM(earley_item);
@@ -10715,7 +10727,7 @@ to make sense.
 }
 
 @ @<Set |top_or_node_id|@> = {
-    const ESID end_of_parse_ordinal = Ord_of_ES(end_of_parse_es);
+    const ESID end_of_parse_ordinal = Ord_of_ES(end_of_parse_earley_set);
     OR** const nodes_by_item = per_es_data[end_of_parse_ordinal].t_aexes_by_item;
     const gint start_earley_item_ordinal = Ord_of_EIM(start_eim);
     OR* const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
