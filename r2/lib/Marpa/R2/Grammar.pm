@@ -929,14 +929,13 @@ sub Marpa::R2::Grammar::brief_virtual_rule {
     } ## end if ( not defined $chaf_start )
 
     my $text .= "(part of $original_rule_id) ";
-    $text .= $original_lhs->[Marpa::R2::Internal::Symbol::NAME] . ' ->';
+    $text .= $grammar->symbol_name($original_lhs_id) . ' ->';
     my @rhs_names = ();
     for my $ix ( 0 .. $grammar_c->rule_length($original_rule_id) ) {
         my $rhs_symbol_id = $grammar_c->rule_rhs( $original_rule_id, $ix );
-        my $rhs_symbol_name =
-            $symbols->[$rhs_symbol_id]->[Marpa::R2::Internal::Symbol::NAME];
+        my $rhs_symbol_name = $grammar->symbol_name($rhs_symbol_id);
         push @rhs_names, $rhs_symbol_name;
-    } ## end for my $ix ( 0 .. $grammar_c->rule_length($original_rule_id...))
+    }
 
     my @chaf_symbol_start;
     my @chaf_symbol_end;
@@ -1024,7 +1023,7 @@ sub Marpa::R2::Grammar::show_dotted_rule {
     my $lhs_id    = $grammar_c->rule_lhs($rule_id);
     my $lhs       = $symbols->[$lhs_id];
 
-    my $text = $lhs->[Marpa::R2::Internal::Symbol::NAME] . q{ ->};
+    my $text = $grammar->symbol_name($lhs_id) . q{ ->};
 
     # In the bocage, when we are starting a rule and
     # there is no current symbol, the position may
@@ -1044,10 +1043,9 @@ sub Marpa::R2::Grammar::show_dotted_rule {
     my @rhs_names = ();
     for my $ix ( 0 .. $grammar_c->rule_length($rule_id) - 1 ) {
         my $rhs_symbol_id = $grammar_c->rule_rhs( $rule_id, $ix );
-        my $rhs_symbol_name =
-            $symbols->[$rhs_symbol_id]->[Marpa::R2::Internal::Symbol::NAME];
+        my $rhs_symbol_name = $grammar->symbol_name($rhs_symbol_id);
         push @rhs_names, $rhs_symbol_name;
-    } ## end for my $ix ( 0 .. $grammar_c->rule_length($rule_id) -...)
+    }
 
     POSITION: for my $position ( 0 .. scalar @rhs_names ) {
         if ( $position == $dot_position ) {
@@ -1076,8 +1074,7 @@ sub Marpa::R2::show_AHFA_item {
         push @properties, 'completion';
     }
     else {
-        my $postdot_symbol_name =
-            $symbols->[$postdot_id]->[Marpa::R2::Internal::Symbol::NAME];
+        my $postdot_symbol_name = $grammar->symbol_name($postdot_id);
         push @properties, qq{postdot = "$postdot_symbol_name"};
     }
     $text .= join q{; }, @properties;
