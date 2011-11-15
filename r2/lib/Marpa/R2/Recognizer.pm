@@ -461,9 +461,7 @@ sub Marpa::R2::show_leo_item {
     my $predecessor_symbol_id = $recce_c->leo_predecessor_symbol();
     my $base_origin_set_id    = $recce_c->leo_base_origin();
     my $base_origin_earleme   = $recce_c->earleme($base_origin_set_id);
-    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $postdot_symbol_name =
-        $symbols->[$postdot_symbol_id]->[Marpa::R2::Internal::Symbol::NAME];
+    my $postdot_symbol_name = $grammar->symbol_name($postdot_symbol_id);
 
     my $text = sprintf 'L%d@%d', $postdot_symbol_id, $trace_earleme;
     my @link_texts = qq{"$postdot_symbol_name"};
@@ -501,8 +499,7 @@ sub Marpa::R2::show_token_link_choice {
             . $origin_earleme . q{-}
             . $middle_earleme;
     } ## end if ( defined $predecessor_state )
-    my $symbol_name =
-        $symbols->[$token_id]->[Marpa::R2::Internal::Symbol::NAME];
+    my $symbol_name = $grammar->symbol_name($token_id);
     push @pieces, 's=' . $symbol_name;
     my $token_length = $current_earleme - $middle_earleme;
     my $value =
@@ -978,8 +975,7 @@ sub Marpa::R2::Recognizer::terminals_expected {
     my ($recce) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    return [ map { $symbols->[$_]->[Marpa::R2::Internal::Symbol::NAME] }
+    return [ map { $grammar->symbol_name($_) }
             $recce_c->terminals_expected() ];
 } ## end sub Marpa::R2::Recognizer::terminals_expected
 
