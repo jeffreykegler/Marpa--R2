@@ -25,7 +25,7 @@
 
 \begin{document}
 
-\title{An $LR(\pi)$ grammar which is not $O(n)$ for the Leo/Earley algorithm?}
+\title{Notes on Leo Implementation}
 
 %    Remove any unused author tags.
 
@@ -52,10 +52,6 @@ and as preliminary to a claim.
 \begin{abstract}
 In Leo 1991, an algorithm is presented that is
 $O(n)$ for all LR-regular grammars.
-The question is raised whether that algorithm
-is also $O(n)$ where the grammar is $LR(\pi)$,
-where $\pi$ is a finite partition.
-algorithm.
 \end{abstract}
 
 \maketitle
@@ -74,18 +70,6 @@ A \de aAy \\
 A \de ay
 \end{array}
 $$
-\par
-The language of this grammar is $a^c a^d y^d z^c$.
-It is $LR(\pi)$, for the 2-element partition $\pi = { e_1, e_2 }$,
-where $e_1$ is ${ a^x y^d z^c }$ such $x > d$, and $e_2$ is the
-complement of $e_1$.
-\par
-The essential idea of this example is that terminal $a$ can
-be derived by recursion on either non-terminal $A$ or $C$.
-Recursions are "counted" with a trailer containing
-the terminals $y$ and $z$.
-For each $a$ from recursion on C, there is a $z$.
-For each $a$ from recursion on A, there is a $y$.
 \par
 \end{document}
 %-----------------------------------------------------------------------
