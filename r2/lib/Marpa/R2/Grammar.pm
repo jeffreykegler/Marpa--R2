@@ -1221,10 +1221,20 @@ sub message_cb {
 
 sub Marpa::R2::Grammar::symbol_name {
     my ( $grammar, $id ) = @_;
-    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $name    = $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME];
+    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
+    my $name        = $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME];
     return $name if defined $name;
-}
+    my $proper_alias_id = $grammar_c->symbol_proper_alias($id);
+    if ( defined $proper_alias_id ) {
+        my $proper_alias = $symbols->[$proper_alias_id];
+        $name = $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME] =
+            $grammar->symbol_name($proper_alias_id) . '[]';
+        $symbol_hash->{$name} = $id;
+        return $name;
+    } ## end if ( defined $proper_alias_id )
+} ## end sub Marpa::R2::Grammar::symbol_name
 
 sub wrap_symbol_cb {
     my ( $grammar_id, $symbol_id ) = @_;
@@ -1247,13 +1257,8 @@ sub wrap_symbol_cb {
             $grammar_c->symbol_is_nulling($symbol_id) and $name .= '[]';
             last DETERMINE_NAME;
         } ## end if ( defined $old_start_id )
-        my $proper_alias_id = $grammar_c->symbol_proper_alias($symbol_id);
-        if ( defined $proper_alias_id ) {
-            my $proper_alias = $symbols->[$proper_alias_id];
-            $name = $symbol->[Marpa::R2::Internal::Symbol::NAME] =
-                $proper_alias->[Marpa::R2::Internal::Symbol::NAME] . '[]';
-            last DETERMINE_NAME;
-        } ## end if ( defined $proper_alias_id )
+        last DETERMINE_NAME
+            if defined $grammar_c->symbol_proper_alias($symbol_id);
 
         # If we are here, this should be a virtual LHS from the CHAF
         # rewrite.
@@ -1271,13 +1276,13 @@ sub wrap_symbol_cb {
 #>>>
             last DETERMINE_NAME;
         } ## end if ( defined $virtual_end )
-        die 'Internal Marpa Perl wrapper error: No way to name unnamed symbol'
-            if not defined $proper_alias_id;
     } ## end DETERMINE_NAME:
-    $symbol->[Marpa::R2::Internal::Symbol::NAME] = $name;
     $symbol->[Marpa::R2::Internal::Symbol::ID]   = $symbol_id;
     $symbols->[$symbol_id]                       = $symbol;
-    $symbol_hash->{$name}                        = $symbol_id;
+    if ( defined $name ) {
+        $symbol->[Marpa::R2::Internal::Symbol::NAME] = $name;
+        $symbol_hash->{$name} = $symbol_id;
+    }
 
     return;
 } ## end sub wrap_symbol_cb
@@ -1353,17 +1358,6 @@ sub Marpa::R2::Internal::Symbol::new {
     my $symbol_id = $grammar_c->symbol_new();
     return $symbol_id;
 } ## end sub Marpa::R2::Internal::Symbol::new
-
-sub Marpa::R2::Internal::Symbol::null_alias {
-    my ( $symbol, $grammar ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $null_alias_id =
-        $grammar_c->symbol_null_alias(
-        $symbol->[Marpa::R2::Internal::Symbol::ID] );
-    return if not defined $null_alias_id;
-    return $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS]
-        ->[$null_alias_id];
-} ## end sub Marpa::R2::Internal::Symbol::null_alias
 
 sub assign_symbol {
     my ( $grammar, $name ) = @_;
