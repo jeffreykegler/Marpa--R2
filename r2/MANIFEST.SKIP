@@ -72,6 +72,7 @@
 ^libmarpa/test/dev/autom4te.cache/
 ^libmarpa/test/dev/autoscan.log
 ^libmarpa/test/work/
+^libmarpa/theory/
 ^nogit
 ^nogit/
 ^nytprof/
