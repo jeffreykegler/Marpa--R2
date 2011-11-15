@@ -2508,7 +2508,7 @@ symbol_instance_of_ahfa_item_get (AIM aim)
 Marpa's logic divides roughly into three pieces -- grammar precomputation,
 the actual parsing of input tokens,
 and semantic evaluation.
-Precomputing the grammar is complex enought to divide into several
+Precomputing the grammar is complex enough to divide into several
 stages of its own, which are 
 covered in the next few
 sections.
