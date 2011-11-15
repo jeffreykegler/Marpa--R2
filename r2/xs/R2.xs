@@ -961,7 +961,6 @@ CODE:
     case initial_phase: RETVAL = "initial"; break;
     case input_phase: RETVAL = "read"; break;
     case evaluation_phase: RETVAL = "evaluation"; break;
-    case error_phase: RETVAL = "error"; break;
     }
 OUTPUT:
     RETVAL
