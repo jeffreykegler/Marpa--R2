@@ -546,7 +546,7 @@ sub Marpa::R2::Grammar::precompute {
         if ( $error eq 'counted nullable' ) {
             my @counted_nullable_messages = map {
                       q{Nullable symbol "}
-                    . $symbols->[$_]->[Marpa::R2::Internal::Symbol::NAME]
+                    . $grammar->symbol_name($_)
                     . qq{" is on rhs of counted rule\n}
                 }
                 grep {
@@ -562,15 +562,13 @@ sub Marpa::R2::Grammar::precompute {
         }
         if ( $error eq 'start symbol not on LHS' ) {
             my $symbol_id = $grammar_c->context('symid');
-            my $name =
-                $symbols->[$symbol_id]->[Marpa::R2::Internal::Symbol::NAME];
+            my $name      = $grammar->symbol_name($symbol_id);
             Marpa::R2::exception(
                 qq{Start symbol "$name" not on LHS of any rule});
         } ## end if ( $error eq 'start symbol not on LHS' )
         if ( $error eq 'unproductive start symbol' ) {
             my $symbol_id = $grammar_c->context('symid');
-            my $name =
-                $symbols->[$symbol_id]->[Marpa::R2::Internal::Symbol::NAME];
+            my $name      = $grammar->symbol_name($symbol_id);
             Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
         } ## end if ( $error eq 'unproductive start symbol' )
         if ( $error eq 'lhs is terminal' ) {
@@ -579,8 +577,7 @@ sub Marpa::R2::Grammar::precompute {
                 my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
                 my $lhs_id  = $grammar_c->rule_lhs($rule_id);
                 next RULE if not $grammar_c->symbol_is_terminal($lhs_id);
-                my $name =
-                    $symbols->[$lhs_id]->[Marpa::R2::Internal::Symbol::NAME];
+                my $name = $grammar->symbol_name($lhs_id);
                 push @problems,
                     "lhs_terminals option is off, but Symbol $name is both an LHS and a terminal";
             } ## end for my $rule ( @{$rules} )
@@ -669,7 +666,8 @@ sub Marpa::R2::Grammar::precompute {
             next SYMBOL
                 if defined $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE];
 
-            my $symbol_name = $symbol->[Marpa::R2::Internal::Symbol::NAME];
+            my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
+            my $symbol_name = $grammar->symbol_name($symbol_id);
             say {$trace_fh}
                 qq{Zero length sequence for symbol without null value: "$symbol_name"}
                 or Marpa::R2::exception("Could not print: $ERRNO");
@@ -798,7 +796,7 @@ sub Marpa::R2::Grammar::show_symbol {
     my $text      = q{};
     my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
-    my $name = $symbol->[Marpa::R2::Internal::Symbol::NAME];
+    my $name = $grammar->symbol_name($symbol_id);
     $text .= "$symbol_id: $name,";
 
     $text .= sprintf ' lhs=[%s]',
@@ -835,42 +833,32 @@ sub Marpa::R2::Grammar::show_nulling_symbols {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     return join q{ },
-        sort map { $_->[Marpa::R2::Internal::Symbol::NAME] } grep {
-        $grammar_c->symbol_is_nulling( $_->[Marpa::R2::Internal::Symbol::ID] )
-        } @{$symbols};
+        sort map { $grammar->symbol_name($_) }
+        grep     { $grammar_c->symbol_is_nulling($_) } (0 .. $#{$symbols});
 } ## end sub Marpa::R2::Grammar::show_nulling_symbols
 
 sub Marpa::R2::Grammar::show_nullable_symbols {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    return join q{ },
-        sort map { $_->[Marpa::R2::Internal::Symbol::NAME] } grep {
-        $grammar_c->symbol_is_nullable(
-            $_->[Marpa::R2::Internal::Symbol::ID] )
-        } @{$symbols};
+    return join q{ }, sort map { $grammar->symbol_name($_) }
+        grep { $grammar_c->symbol_is_nullable($_) } ( 0 .. $#{$symbols} );
 } ## end sub Marpa::R2::Grammar::show_nullable_symbols
 
 sub Marpa::R2::Grammar::show_productive_symbols {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    return join q{ }, sort map { $_->[Marpa::R2::Internal::Symbol::NAME] }
-        grep {
-        $grammar_c->symbol_is_productive(
-            $_->[Marpa::R2::Internal::Symbol::ID] )
-        } @{$symbols};
+    return join q{ }, sort map { $grammar->symbol_name($_) }
+        grep { $grammar_c->symbol_is_productive($_) } ( 0 .. $#{$symbols} );
 } ## end sub Marpa::R2::Grammar::show_productive_symbols
 
 sub Marpa::R2::Grammar::show_accessible_symbols {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    return join q{ },
-        sort map { $_->[Marpa::R2::Internal::Symbol::NAME] } grep {
-        $grammar_c->symbol_is_accessible(
-            $_->[Marpa::R2::Internal::Symbol::ID] )
-        } @{$symbols};
+    return join q{ }, sort map { $grammar->symbol_name($_) }
+        grep { $grammar_c->symbol_is_accessible($_) } ( 0 .. $#{$symbols} );
 } ## end sub Marpa::R2::Grammar::show_accessible_symbols
 
 sub Marpa::R2::Grammar::inaccessible_symbols {
@@ -878,10 +866,9 @@ sub Marpa::R2::Grammar::inaccessible_symbols {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     return [
-        sort map { $_->[Marpa::R2::Internal::Symbol::NAME] } grep {
-            !$grammar_c->symbol_is_accessible(
-                $_->[Marpa::R2::Internal::Symbol::ID] )
-            } @{$symbols}
+        sort map { $grammar->symbol_name($_) }
+            grep { !$grammar_c->symbol_is_accessible($_) }
+            ( 0 .. $#{$symbols} )
     ];
 } ## end sub Marpa::R2::Grammar::inaccessible_symbols
 
@@ -890,31 +877,23 @@ sub Marpa::R2::Grammar::unproductive_symbols {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     return [
-        sort map { $_->[Marpa::R2::Internal::Symbol::NAME] } grep {
-            !$grammar_c->symbol_is_productive(
-                $_->[Marpa::R2::Internal::Symbol::ID] )
-            } @{$symbols}
+        sort map { $grammar->symbol_name($_) }
+        grep { !$grammar_c->symbol_is_productive($_) } ( 0 .. $#{$symbols} )
     ];
 } ## end sub Marpa::R2::Grammar::unproductive_symbols
 
 sub Marpa::R2::Grammar::brief_rule {
     my ( $grammar, $rule_id ) = @_;
-    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $lhs_id    = $grammar_c->rule_lhs($rule_id);
-    my $text .= $rule_id . ': '
-        . $symbols->[$lhs_id]->[Marpa::R2::Internal::Symbol::NAME] . ' ->';
+    my $text .= $rule_id . ': ' . $grammar->symbol_name($lhs_id) . ' ->';
     if ( my $rh_length = $grammar_c->rule_length($rule_id) ) {
         my @rhs_ids = ();
         for my $ix ( 0 .. $rh_length - 1 ) {
             push @rhs_ids, $grammar_c->rule_rhs( $rule_id, $ix );
         }
         $text .= q{ }
-            . (
-            join q{ },
-            map { $symbols->[$_]->[Marpa::R2::Internal::Symbol::NAME] }
-                @rhs_ids
-            );
+            . ( join q{ }, map { $grammar->symbol_name($_) } @rhs_ids );
     } ## end if ( my $rh_length = $grammar_c->rule_length($rule_id...))
     return $text;
 } ## end sub Marpa::R2::Grammar::brief_rule
