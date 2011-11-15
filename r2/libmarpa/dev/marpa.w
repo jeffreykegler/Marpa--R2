@@ -9058,6 +9058,14 @@ ur_node_pop (URS stack)
   return new_top;
 }
 
+@
+{\bf To Do}: @^To Do@>
+No predictions are used in creating or-nodes.
+Most (all but the start?) are eliminating in creating the PSIA data,
+but then predictions are tested for when creating or-nodes.
+For efficiency, there should be only one check.
+I need to decide where to make it.
+
 @ |predecessor_aim| and |predot|
 are guaranteed to be defined,
 since predictions and the null parse AHFA item are
