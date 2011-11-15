@@ -361,7 +361,7 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
         if ($trace_values) {
             print {$Marpa::R2::Internal::TRACE_FH}
                 'Setting null value for symbol ',
-                $symbol->[Marpa::R2::Internal::Symbol::NAME],
+                $grammar->symbol_name($symbol_id),
                 ' to ', Data::Dumper->new( [ \$null_value ] )->Terse(1)->Dump
                 or Marpa::R2::exception('Could not print to trace file');
         } ## end if ($trace_values)
@@ -483,8 +483,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
         # a fatal error.
         FIND_CLOSURE_BY_LHS: {
             my $lhs_id = $grammar_c->rule_lhs($rule_id);
-            my $action =
-                $symbols->[$lhs_id]->[Marpa::R2::Internal::Symbol::NAME];
+            my $action = $grammar->symbol_name($lhs_id);
             last FIND_CLOSURE_BY_LHS if substr( $action, -1 ) eq ']';
             my $closure =
                 Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
@@ -762,9 +761,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $recce_c->and_node_order_get( $or_node_id, $choice );
             my $token_name;
             if ( defined $token_id ) {
-                $token_name =
-                    $symbols->[$token_id]
-                    ->[Marpa::R2::Internal::Symbol::NAME];
+                $token_name = $grammar->symbol_name($token_id);
             }
 
             print {$Marpa::R2::Internal::TRACE_FH}

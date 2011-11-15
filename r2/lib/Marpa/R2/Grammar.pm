@@ -1245,6 +1245,13 @@ sub message_cb {
     return;
 } ## end sub message_cb
 
+sub Marpa::R2::Grammar::symbol_name {
+    my ( $grammar, $id ) = @_;
+    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $name    = $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME];
+    return $name if defined $name;
+}
+
 sub wrap_symbol_cb {
     my ( $grammar_id, $symbol_id ) = @_;
     my $grammar     = get_grammar_by_id($grammar_id);
