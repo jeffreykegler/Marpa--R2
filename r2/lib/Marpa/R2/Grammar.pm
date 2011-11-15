@@ -1128,8 +1128,7 @@ sub Marpa::R2::Grammar::show_AHFA {
         while ( my ( $symbol_id, $to_state_id ) = splice @raw_transitions, 0,
             2 )
         {
-            my $symbol_name =
-                $symbols->[$symbol_id]->[Marpa::R2::Internal::Symbol::NAME];
+            my $symbol_name = $grammar->symbol_name($symbol_id);
             $transitions{$symbol_name} = $to_state_id;
         } ## end while ( my ( $symbol_id, $to_state_id ) = splice ...)
         for my $transition_symbol ( sort keys %transitions ) {
@@ -1138,8 +1137,7 @@ sub Marpa::R2::Grammar::show_AHFA {
             my @to_descs    = ("S$to_state_id");
             my $lhs_id = $grammar_c->AHFA_state_leo_lhs_symbol($to_state_id);
             if ( defined $lhs_id ) {
-                my $lhs_name =
-                    $symbols->[$lhs_id]->[Marpa::R2::Internal::Symbol::NAME];
+                my $lhs_name = $grammar->symbol_name($lhs_id);
                 push @to_descs, "leo($lhs_name)";
             }
             my $empty_transition_state =
@@ -1441,10 +1439,8 @@ sub Marpa::R2::Internal::Rule::action_set {
     my $rule_id   = $rule->[Marpa::R2::Internal::Rule::ID];
     my $rh_length = $grammar_c->rule_length($rule_id);
     if ( defined $action and $rh_length < 0 ) {
-        my $lhs_id = $grammar_c->rule_lhs($rule_id);
-        my $lhs_name =
-            $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS]->[$lhs_id]
-            ->[Marpa::R2::Internal::Symbol::NAME];
+        my $lhs_id   = $grammar_c->rule_lhs($rule_id);
+        my $lhs_name = $grammar->symbol_name($lhs_id);
         Marpa::R2::exception(
             "Empty Rule cannot have an action\n",
             "  Rule #$rule_id: $lhs_name  -> /* empty */",
@@ -1585,7 +1581,8 @@ sub add_user_rule {
     if ( !defined $rule_name
         and $grammar->[Marpa::R2::Internal::Grammar::RULE_NAME_REQUIRED] )
     {
-        $rule_name = $lhs->[Marpa::R2::Internal::Symbol::NAME];
+        $rule_name =
+            $grammar->symbol_name( $lhs->[Marpa::R2::Internal::Symbol::ID] );
         if ( defined $rules_by_name->{$rule_name} ) {
             push @rule_problems,
                 qq{Cannot name rule from LHS; rule named "$rule_name" already exists};
