@@ -1005,7 +1005,7 @@ sub Marpa::R2::Recognizer::earleme_complete {
             next EVENT;
         } ## end if ( $event_type eq 'earley item count' )
         Marpa::R2::exception(
-            "Unknown earleme completion event; type = $event_type");
+            qq{Unknown earleme completion event; type="$event_type"});
     } ## end for my $event_ix ( 0 .. $event_count - 1 )
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS] ) {
