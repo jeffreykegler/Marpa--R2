@@ -1092,7 +1092,89 @@ union marpa_context_value* marpa_g_context_value(struct marpa_g* g, const gchar*
 @ @<Public function prototypes@> =
 union marpa_context_value* marpa_g_context_value(struct marpa_g* g, const gchar* key);
 
-@*0 The Grammar Obstacks.
+@*0 The event stack.
+Events are designed to be fast,
+but are at the moment
+not expected to have high volumes of data.
+The memory used is that of
+the high water mark,
+with no way of freeing it.
+@<Public defines@> =
+#define MARPA_G_EV_NONE 0@/
+#define MARPA_G_EV_EXHAUSTED 1@/
+#define MARPA_G_EV_EARLEY_ITEM_THRESHOLD 2@/
+@ @<Private incomplete structures@> =
+struct s_g_event;
+typedef struct s_g_event* GEV;
+@ @<Public structures@> =
+struct marpa_g_event {
+     gint t_type;
+};
+@ @<Private structures@> =
+struct s_g_event {
+     gint t_type;
+};
+typedef struct s_g_event GEV_Object;
+@ @d G_EVENT_COUNT(g) DSTACK_LENGTH ((g)->t_events)
+@<Widely aligned grammar elements@> =
+DSTACK_DECLARE(t_events);
+@
+{\bf To Do}: @^To Do@>
+The value of |INITIAL_G_EVENTS_CAPACITY| is 1 for testing while this
+code is being developed.
+Once the code is stable it should be increased.
+@d INITIAL_G_EVENTS_CAPACITY 1
+@<Initialize grammar elements@> =
+DSTACK_INIT(g->t_events, GEV_Object, INITIAL_G_EVENTS_CAPACITY);
+@ @<Destroy grammar elements@> = DSTACK_DESTROY(g->t_events);
+
+@ Callers must be careful.
+A pointer to the new event is returned,
+but it must be written to before another event
+is added,
+because that may cause
+the locations of |DSTACK| elements to change.
+@d G_EVENTS_CLEAR(g) DSTACK_CLEAR((g)->t_events)
+@d G_EVENT_PUSH(g) DSTACK_PUSH((g)->t_events, GEV_Object)
+@<Private function prototypes@> =
+static inline
+GEV g_event_new(struct marpa_g* g, gint type);
+@ @<Function definitions@> =
+static inline
+GEV g_event_new(struct marpa_g* g, gint type)
+{
+  /* may change base of dstack */
+  GEV top_of_stack = G_EVENT_PUSH(g);
+  top_of_stack->t_type = type;
+  return top_of_stack;
+}
+
+@ @<Private function prototypes@> =
+gint marpa_g_event(struct marpa_g *g, struct marpa_g_event *public_event, gint ix);
+@ @<Function definitions@> =
+gint
+marpa_g_event (struct marpa_g *g, struct marpa_g_event *public_event,
+	       gint ix)
+{
+  @<Return |-2| on failure@>@;
+  const gint index_out_of_bounds = -1;
+  DSTACK events = &g->t_events;
+  GEV internal_event;
+  gint type;
+
+  if (ix < 0)
+    return failure_indicator;
+  if (ix > DSTACK_LENGTH (*events))
+    return index_out_of_bounds;
+  internal_event = DSTACK_INDEX (*events, GEV_Object, ix);
+  type = internal_event->t_type;
+  /* At this point there is no data except type
+     for any of the events */
+  public_event->t_type = type;
+  return type;
+}
+
+@*0 The grammar obstacks.
 Two obstacks with the same lifetime as the grammar.
 This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the grammar.
@@ -5771,88 +5853,7 @@ gint marpa_is_exhausted(struct marpa_r* r)
     return r->t_is_exhausted ? 1 : 0;
 }
 
-@*0 The recognizer's event stack.
-Events are designed to be fast,
-but are at the moment
-not expected to have high volumes of data.
-The memory used is that of
-the high water mark,
-with no way of freeing it.
-@<Public defines@> =
-#define MARPA_R_EV_NONE @| 0@/
-#define MARPA_R_EV_EXHAUSTED @| 1@/
-#define MARPA_R_EV_EARLEY_ITEM_THRESHOLD @| 2@/
-@ @<Private incomplete structures@> =
-struct s_r_event;
-typedef struct s_r_event* REV;
-@ @<Public structures@> =
-struct marpa_r_event {
-     gint t_type;
-};
-@ @<Private structures@> =
-struct s_r_event {
-     gint t_type;
-};
-typedef struct s_r_event REV_Object;
-@ @<Widely aligned recognizer elements@> =
-DSTACK_DECLARE(t_events);
-@
-{\bf To Do}: @^To Do@>
-The value of |INITIAL_R_EVENTS_CAPACITY| is 1 for testing while this
-code is being developed.
-Once the code is stable it should be increased.
-@d INITIAL_R_EVENTS_CAPACITY 1
-@<Initialize recognizer elements@> =
-DSTACK_INIT(r->t_events, REV_Object, INITIAL_R_EVENTS_CAPACITY);
-@ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_events);
-
-@ Callers must be careful.
-A pointer to the new event is returned,
-but it must be written to before another event
-is added,
-because that may cause
-the locations of |DSTACK| elements to change.
-@d R_EVENTS_CLEAR(r) DSTACK_CLEAR((r)->t_events)
-@d R_EVENT_PUSH(r) DSTACK_PUSH((r)->t_events, REV_Object)
-@<Private function prototypes@> =
-static inline
-REV r_event_new(struct marpa_r* r, gint type);
-@ @<Function definitions@> =
-static inline
-REV r_event_new(struct marpa_r* r, gint type)
-{
-  /* may change base of dstack */
-  REV top_of_stack = R_EVENT_PUSH(r);
-  top_of_stack->t_type = type;
-  return top_of_stack;
-}
-
-@ @<Private function prototypes@> =
-gint marpa_r_event(struct marpa_r* r, struct marpa_r_event *public_event, gint ix);
-@ @<Function definitions@> =
-gint
-marpa_r_event (struct marpa_r *r, struct marpa_r_event *public_event,
-	       gint ix)
-{
-  @<Return |-2| on failure@>@;
-  const gint index_out_of_bounds = -1;
-  DSTACK events = &r->t_events;
-  REV internal_event;
-  gint type;
-
-  if (ix < 0)
-    return failure_indicator;
-  if (ix > DSTACK_LENGTH (*events))
-    return index_out_of_bounds;
-  internal_event = DSTACK_INDEX (*events, REV_Object, ix);
-  type = internal_event->t_type;
-  /* At this point there is no data except type
-     for any of the events */
-  public_event->t_type = type;
-  return type;
-}
-
-@*0 The Recognizer Obstack.
+@*0 The recognizer obstack.
 Create an obstack with the lifetime of the recognizer.
 This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the recognizer.
@@ -5860,15 +5861,29 @@ resized and which will have the same lifetime as the recognizer.
 @ @<Initialize recognizer obstack@> = obstack_init(&r->t_obs);
 @ @<Destroy recognizer obstack@> = obstack_free(&r->t_obs, NULL);
 
-@*0 Recognizer error handling.
-@ Uses the grammar error strings.
+@ @<Declare and initialize recce objects@> =
+GRAMMAR g = G_of_R(r);
+
+@*0 Recognizer error accessor.
+@ A convenience wrapper for the grammar error strings.
 @ @<Public function prototypes@> =
 Marpa_Error_ID marpa_r_error(const struct marpa_r* r);
 @ @<Function definitions@> =
 Marpa_Error_ID marpa_r_error(const struct marpa_r* r)
 {
-struct marpa_g* g = G_of_R(r);
-return g->t_error ? g->t_error : "unknown error";
+    @<Declare and initialize recce objects@>@;
+  return marpa_g_error (g);
+}
+
+@*0 Recognizer event accessor.
+@ A convenience wrapper for the grammar error strings.
+@ @<Public function prototypes@> =
+gint marpa_r_event(const struct marpa_r* r, struct marpa_g_event *public_event, gint ix);
+@ @<Function definitions@> =
+gint marpa_r_event(const struct marpa_r* r, struct marpa_g_event *public_event, gint ix)
+{
+    @<Declare and initialize recce objects@>@;
+  return marpa_g_event (g, public_event, ix);
 }
 
 @** Earlemes.
@@ -6234,7 +6249,7 @@ if (count >= r->t_earley_item_warning_threshold)
 	R_FATAL ("eim count exceeds fatal threshold");
 	return failure_indicator;
       }
-    r_event_new (r, MARPA_R_EV_EARLEY_ITEM_THRESHOLD);
+    g_event_new (g, MARPA_G_EV_EARLEY_ITEM_THRESHOLD);
   }
 
 @*0 Destructor.
@@ -8166,13 +8181,14 @@ Marpa_Earleme
 marpa_earleme_complete(struct marpa_r* r)
 {
   @<Return |-2| on failure@>@;
+  @<Declare and initialize recce objects@>@;
   EIM* cause_p;
   ES current_earley_set;
   EARLEME current_earleme;
   gint count_of_expected_terminals;
     @<Fail if recognizer not in input phase@>@;
     @<Fail if recognizer exhausted@>@;
-    R_EVENTS_CLEAR(r);
+    G_EVENTS_CLEAR(g);
   psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_symid_is_expected);
     @<Initialize |current_earleme|@>@;
@@ -8193,10 +8209,10 @@ marpa_earleme_complete(struct marpa_r* r)
            uncompleted Earley sets, we can make no further progress.
 	   The parse is ``exhausted". */
 	R_is_Exhausted(r) = 1;
-	r_event_new(r, MARPA_R_EV_EXHAUSTED);
+	g_event_new(g, MARPA_G_EV_EXHAUSTED);
       }
     earley_set_update_items(r, current_earley_set);
-  return DSTACK_LENGTH (r->t_events);
+  return G_EVENT_COUNT(g);
 }
 
 @ @<Initialize |current_earleme|@> = {

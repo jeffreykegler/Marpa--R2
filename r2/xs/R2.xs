@@ -1413,15 +1413,18 @@ earleme_event( r_wrapper, ix )
     int ix;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-      struct marpa_r_event event;
-      char *result_string = "unknown";
+      struct marpa_g_event event;
+      char *result_string = NULL;
         Marpa_Earleme result = marpa_r_event(r, &event, ix);
 	if (result < 0) {
 	  croak ("Problem in r->earleme_event(): %s", marpa_r_error (r));
 	}
 	switch (result)  {
-	case MARPA_R_EV_EXHAUSTED: result_string = "exhausted"; break;
-	case MARPA_R_EV_EARLEY_ITEM_THRESHOLD: result_string = "earley item count"; break;
+	case MARPA_G_EV_EXHAUSTED: result_string = "exhausted"; break;
+	case MARPA_G_EV_EARLEY_ITEM_THRESHOLD: result_string = "earley item count"; break;
+	}
+	if (!result_string) {
+	  croak ("Problem in r->earleme_event(): unknown event %d", result);
 	}
 	XPUSHs( sv_2mortal( newSVpv(result_string, 0) ) );
     }
