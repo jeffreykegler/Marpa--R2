@@ -570,7 +570,7 @@ sub Marpa::R2::Grammar::precompute {
             my $symbol_id = $grammar_c->context('symid');
             my $name      = $grammar->symbol_name($symbol_id);
             Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
-        } ## end if ( $error eq 'unproductive start symbol' )
+        }
         if ( $error eq 'lhs is terminal' ) {
             my @problems = ();
             RULE: for my $rule ( @{$rules} ) {
@@ -666,7 +666,7 @@ sub Marpa::R2::Grammar::precompute {
             next SYMBOL
                 if defined $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE];
 
-            my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
+            my $symbol_id   = $symbol->[Marpa::R2::Internal::Symbol::ID];
             my $symbol_name = $grammar->symbol_name($symbol_id);
             say {$trace_fh}
                 qq{Zero length sequence for symbol without null value: "$symbol_name"}
@@ -832,9 +832,8 @@ sub Marpa::R2::Grammar::show_nulling_symbols {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    return join q{ },
-        sort map { $grammar->symbol_name($_) }
-        grep     { $grammar_c->symbol_is_nulling($_) } (0 .. $#{$symbols});
+    return join q{ }, sort map { $grammar->symbol_name($_) }
+        grep { $grammar_c->symbol_is_nulling($_) } ( 0 .. $#{$symbols} );
 } ## end sub Marpa::R2::Grammar::show_nulling_symbols
 
 sub Marpa::R2::Grammar::show_nullable_symbols {
@@ -878,7 +877,8 @@ sub Marpa::R2::Grammar::unproductive_symbols {
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     return [
         sort map { $grammar->symbol_name($_) }
-        grep { !$grammar_c->symbol_is_productive($_) } ( 0 .. $#{$symbols} )
+            grep { !$grammar_c->symbol_is_productive($_) }
+            ( 0 .. $#{$symbols} )
     ];
 } ## end sub Marpa::R2::Grammar::unproductive_symbols
 
@@ -1277,8 +1277,8 @@ sub wrap_symbol_cb {
             last DETERMINE_NAME;
         } ## end if ( defined $virtual_end )
     } ## end DETERMINE_NAME:
-    $symbol->[Marpa::R2::Internal::Symbol::ID]   = $symbol_id;
-    $symbols->[$symbol_id]                       = $symbol;
+    $symbol->[Marpa::R2::Internal::Symbol::ID] = $symbol_id;
+    $symbols->[$symbol_id] = $symbol;
     if ( defined $name ) {
         $symbol->[Marpa::R2::Internal::Symbol::NAME] = $name;
         $symbol_hash->{$name} = $symbol_id;
