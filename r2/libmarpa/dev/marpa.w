@@ -1290,9 +1290,8 @@ static inline void symbol_free(SYM symbol);
 
 @ Symbol ID: This is the unique identifier for the symbol.
 @d ID_of_SYM(sym) ((sym)->t_symbol_id)
-@d LV_ID_of_SYM(sym) ID_of_SYM(sym)
 @<Int aligned symbol elements@> = SYMID t_symbol_id;
-@ @<Initialize symbol elements@> = LV_ID_of_SYM(symbol) = g->t_symbols->len;
+@ @<Initialize symbol elements@> = ID_of_SYM(symbol) = g->t_symbols->len;
 
 @*0 Symbol LHS Rules Element.
 This tracks the rules for which this symbol is the LHS.
@@ -3357,7 +3356,8 @@ This include the setting of many of the elements of the
 rule structure, and performing the call back.
 @<Set CHAF rule flags and call back@> =
 {
-  gint is_virtual_lhs = (piece_start > 0);
+  const SYM current_lhs = SYM_by_ID(current_lhs_id);
+  const gint is_virtual_lhs = (piece_start > 0);
   RULE_is_Used (chaf_rule) = 1;
   chaf_rule->t_original = rule_id;
   RULE_is_Virtual_LHS (chaf_rule) = is_virtual_lhs;
@@ -3367,6 +3367,7 @@ rule structure, and performing the call back.
   chaf_rule->t_virtual_start = piece_start;
   chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
+  current_lhs->t_virtual_lhs_rule = chaf_rule;
   rule_callback (g, chaf_rule->t_id);
 }
 
@@ -3424,7 +3425,7 @@ old_start->t_is_start = 0;
   g_context_clear (g);
   g_context_int_add (g, "old_start_id", ID_of_SYM(old_start));
   symbol_callback (g, proper_new_start_id);
-  new_start_rule = rule_start (g, proper_new_start_id, &LV_ID_of_SYM(old_start), 1);
+  new_start_rule = rule_start (g, proper_new_start_id, &ID_of_SYM(old_start), 1);
   new_start_rule->t_is_start = 1;
   RULE_is_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;

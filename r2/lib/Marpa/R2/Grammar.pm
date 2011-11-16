@@ -1231,11 +1231,13 @@ sub Marpa::R2::Grammar::symbol_name {
     if ( not defined $virtual_lhs_rule ) {
         die("Cannot name symbol $id");
     }
-    my $virtual_end = $grammar_c->rule_virtual_end($virtual_lhs_rule);
+    my $virtual_start = $grammar_c->rule_virtual_start($virtual_lhs_rule);
+    my $original_rule = $grammar_c->rule_original($virtual_lhs_rule);
+    my $original_lhs_id = $grammar_c->rule_lhs($original_rule);
     $name =
-          $grammar->symbol_name($id) . '[R'
-        . $virtual_lhs_rule . q{:}
-        . ( $virtual_end + 1 ) . ']';
+          $grammar->symbol_name($original_lhs_id) . '[R'
+        . $original_rule . q{:}
+        .  $virtual_start  . ']';
     return $name;
 } ## end sub Marpa::R2::Grammar::symbol_name
 
