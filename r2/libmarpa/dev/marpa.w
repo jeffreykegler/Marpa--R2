@@ -3528,9 +3528,6 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
     rule = RULE_by_ID(g, rule_id);
     rule->t_is_loop = TRUE;
     rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !RULE_is_Virtual_RHS(rule);
-    g_context_clear(g);
-    g_context_int_add(g, "rule_id", rule_id);
-    grammar_message(g, "loop rule");
 } }
 
 @ The higher layers can differ greatly in their treatment
@@ -3544,9 +3541,6 @@ loop rule count, with the final tally.
 {
   GEV event = g_event_new (g, MARPA_G_EV_LOOP_RULES);
   event->t_value = loop_rule_count;
-  g_context_clear (g);
-  g_context_int_add (g, "loop_rule_count", loop_rule_count);
-  grammar_message (g, "loop rule tally");
 }
 
 @** The Aycock-Horspool Finite Automata.
@@ -13364,13 +13358,13 @@ than specifying the flags.
 Not being error-prone
 is important since there are many calls to |r_error|
 in the code.
-@d MARPA_ERROR(message) (marpa_error(g, (message), 0u))
+@d MARPA_ERROR(message) (set_error(g, (message), 0u))
 @d R_ERROR(message) (r_error(r, (message), 0u))
 @d R_ERROR_CXT(message) (r_error(r, (message), CONTEXT_FLAG))
 @d R_FATAL(message) (r_error(r, (message), FATAL_FLAG))
 @d R_FATAL_CXT(message) (r_error(r, (message), CONTEXT_FLAG|FATAL_FLAG))
 @<Private function prototypes@> =
-static void marpa_error( struct marpa_g* g, Marpa_Message_ID message, guint flags );
+static void set_error( struct marpa_g* g, Marpa_Message_ID message, guint flags );
 static void r_error( struct marpa_r* r, Marpa_Message_ID message, guint flags );
 @ Not inlined.  |r_error|
 occurs in the code quite often,
@@ -13379,7 +13373,7 @@ should actually be invoked only in exceptional circumstances.
 In this case space clearly is much more important than speed.
 @<Function definitions@> =
 static void
-marpa_error (struct marpa_g *g, Marpa_Message_ID message, guint flags)
+set_error (struct marpa_g *g, Marpa_Message_ID message, guint flags)
 {
   if (!(flags & CONTEXT_FLAG))
     g_context_clear (g);
@@ -13391,7 +13385,7 @@ marpa_error (struct marpa_g *g, Marpa_Message_ID message, guint flags)
 static void
 r_error (struct marpa_r *r, Marpa_Message_ID message, guint flags)
 {
-  marpa_error (G_of_R (r), message, flags);
+  set_error (G_of_R (r), message, flags);
 }
 
 @** Messages and Logging.
@@ -13447,42 +13441,6 @@ localization and string encoding issues dealt with
 by the upper layers.
 @<Public typedefs@> =
 typedef const gchar* Marpa_Message_ID;
-
-@* Grammar Messages.
-@ Function pointer declarations are
-hard to type and impossible to read.
-This typedef localizes the damage.
-@<Callback typedefs@> =
-typedef void (Marpa_G_Message_Callback)(struct marpa_g *g, Marpa_Message_ID id);
-@ @<Widely aligned grammar elements@> =
-    Marpa_G_Message_Callback* t_message_callback;
-    gpointer t_message_callback_arg;
-@ @<Initialize grammar elements@> =
-g->t_message_callback_arg = NULL;
-g->t_message_callback = NULL;
-@ @<Function definitions@> =
-void marpa_g_message_callback_set(struct marpa_g *g, Marpa_G_Message_Callback*cb)
-{ g->t_message_callback = cb; }
-void marpa_g_message_callback_arg_set(struct marpa_g *g, gpointer cb_arg)
-{ g->t_message_callback_arg = cb_arg; }
-gpointer marpa_g_message_callback_arg(struct marpa_g *g)
-{ return g->t_message_callback_arg; }
-@ @<Public function prototypes@> =
-void marpa_g_message_callback_set(struct marpa_g *g, Marpa_G_Message_Callback*cb);
-void marpa_g_message_callback_arg_set(struct marpa_g *g, gpointer cb_arg);
-gpointer marpa_g_message_callback_arg(struct marpa_g *g);
-@ Do the message callback.
-The name of this function is spelled out to avoid a conflict with a
-|glib| function.
-Note that the memory management assumes that the 
-callback either exits or returns control to |libmarpa|.
-A |longjmp| out of a callback will probably cause a memory leak.
-@<Function definitions@> =
-static inline void grammar_message(struct marpa_g *g, Marpa_Message_ID id)
-{ Marpa_G_Message_Callback* cb = g->t_message_callback;
-if (cb) { (*cb)(g, id); } }
-@ @<Private function prototypes@> =
-static inline void grammar_message(struct marpa_g *g, Marpa_Message_ID id);
 
 @** Debugging.
 The |MARPA_DEBUG| flag enables intrusive debugging logic.
