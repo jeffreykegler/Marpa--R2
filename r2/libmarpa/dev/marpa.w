@@ -1110,9 +1110,11 @@ with no way of freeing it.
 @ @<Private incomplete structures@> =
 struct s_g_event;
 typedef struct s_g_event* GEV;
+@ @<Public typedefs@> =
+typedef gint Marpa_Event_Type;
 @ @<Public structures@> =
 struct marpa_g_event {
-     gint t_type;
+     Marpa_Event_Type t_type;
      gint t_value;
 };
 @ @<Private structures@> =

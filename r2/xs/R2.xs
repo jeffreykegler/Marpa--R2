@@ -48,26 +48,6 @@ static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
 static const char recce_c_class_name[] = "Marpa::R2::Internal::R_C";
 
 static void
-xs_g_message_callback(Grammar *g, Marpa_Message_ID id)
-{
-    SV* cb = marpa_g_message_callback_arg(g);
-    if (!cb) return;
-    if (!SvOK(cb)) return;
-    {
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSViv( marpa_grammar_id(g))));
-    XPUSHs(sv_2mortal(newSVpv(id, 0)));
-    PUTBACK;
-    call_sv(cb, G_DISCARD);
-    FREETMPS;
-    LEAVE;
-    }
-}
-
-static void
 xs_rule_callback(Grammar *g, Marpa_Rule_ID id)
 {
     SV* cb = marpa_rule_callback_arg(g);
@@ -107,6 +87,21 @@ xs_symbol_callback(Grammar *g, Marpa_Symbol_ID id)
     }
 }
 
+static const char *
+event_type_to_string (Marpa_Event_Type type)
+{
+  switch (type)
+    {
+    case MARPA_G_EV_EXHAUSTED:
+      return "exhausted";
+    case MARPA_G_EV_EARLEY_ITEM_THRESHOLD:
+      return "earley item count";
+    case MARPA_G_EV_LOOP_RULES:
+      return "loop rules";
+    }
+  return NULL;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2
 
 PROTOTYPES: DISABLE
@@ -134,7 +129,6 @@ PREINIT:
     G_Wrapper *g_wrapper;
 PPCODE:
     g = marpa_g_new();
-    marpa_g_message_callback_set( g, &xs_g_message_callback );
     marpa_rule_callback_set( g, &xs_rule_callback );
     marpa_symbol_callback_set( g, &xs_symbol_callback );
     Newx( g_wrapper, 1, G_Wrapper );
@@ -152,13 +146,6 @@ PREINIT:
 CODE:
     grammar = g_wrapper->g;
     {
-       SV *sv = marpa_g_message_callback_arg(grammar);
-	marpa_g_message_callback_arg_set( grammar, NULL );
-       if (sv) {
-       SvREFCNT_dec(sv);
-       }
-    }
-    {
        SV *sv = marpa_rule_callback_arg(grammar);
 	marpa_rule_callback_arg_set( grammar, NULL );
        if (sv) { 
@@ -173,23 +160,6 @@ CODE:
     g_array_free(g_wrapper->gint_array, TRUE);
     marpa_g_free( grammar );
     Safefree( g_wrapper );
-
- # Note the Perl callback closure
- # is, in the libmarpa context, the *ARGUMENT* of the callback,
- # not the callback itself.
- # The libmarpa callback is a wrapper
- # that calls the Perl closure.
-void
-message_callback_set( g, sv )
-    Grammar *g;
-    SV *sv;
-PPCODE:
-    {
-       SV *old_sv = marpa_g_message_callback_arg(g);
-       if (old_sv) { SvREFCNT_dec(old_sv); }
-    }
-    marpa_g_message_callback_arg_set( g, sv );
-    SvREFCNT_inc(sv);
 
 void
 rule_callback_set( g, sv )
@@ -269,6 +239,28 @@ PPCODE:
     { gint boolean = marpa_is_precomputed( g );
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
+    }
+
+void
+event( g, ix )
+    Grammar *g;
+    int ix;
+PPCODE:
+    {
+      struct marpa_g_event event;
+      const char *result_string = NULL;
+      Marpa_Event_Type result = marpa_g_event (g, &event, ix);
+      if (result < 0)
+	{
+	  croak ("Problem in r->earleme_event(): %s", marpa_g_error (g));
+	}
+	result_string = event_type_to_string(result);
+      if (!result_string)
+	{
+	  croak ("Problem in g->earleme_event(): unknown event %d", result);
+	}
+      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+      XPUSHs (sv_2mortal (newSViv (event.t_value)));
     }
 
 void
@@ -1418,26 +1410,15 @@ event( r_wrapper, ix )
     int ix;
 PPCODE:
     {
-      struct marpa_r *r = r_wrapper->r;
+      struct marpa_r * const r = r_wrapper->r;
       struct marpa_g_event event;
-      char *result_string = NULL;
-      Marpa_Earleme result = marpa_r_event (r, &event, ix);
+      const char *result_string = NULL;
+      Marpa_Event_Type result = marpa_r_event (r, &event, ix);
       if (result < 0)
 	{
 	  croak ("Problem in r->earleme_event(): %s", marpa_r_error (r));
 	}
-      switch (result)
-	{
-	case MARPA_G_EV_EXHAUSTED:
-	  result_string = "exhausted";
-	  break;
-	case MARPA_G_EV_EARLEY_ITEM_THRESHOLD:
-	  result_string = "earley item count";
-	  break;
-	case MARPA_G_EV_LOOP_RULES:
-	  result_string = "loop rules";
-	  break;
-	}
+	result_string = event_type_to_string(result);
       if (!result_string)
 	{
 	  croak ("Problem in r->earleme_event(): unknown event %d", result);
@@ -1451,7 +1432,7 @@ earleme( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Earley_Set_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
+    { struct marpa_r* const r = r_wrapper->r;
 	gint result = marpa_earleme(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
