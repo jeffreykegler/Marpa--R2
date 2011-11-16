@@ -1490,7 +1490,7 @@ gint symbol_is_start(SYM symbol);
 @ @<Public function prototypes@> =
 gint marpa_symbol_is_start( struct marpa_g*g, Marpa_Symbol_ID id);
 
-@ Symbol Aliasing:
+@*0 Symbol aliasing.
 This is the logic for aliasing symbols.
 In the Aycock-Horspool algorithm, from which Marpa is derived,
 it is essential that there be no ``proper nullable"
@@ -1584,7 +1584,45 @@ SYM symbol_alias_create(GRAMMAR g, SYM symbol)
     return alias;
 }
 
-@ {\bf Symbol callbacks}:  The user can define a callback
+@*0 Virtual symbols.
+This is the logic for keeping track of virtual symbols ---
+symbols created internally by libmarpa.
+In writing sequence rules,
+and breaking up rule for the CHAF logic,
+libmarpa sometimes needs to create a new, virtual, LHS.
+When this is done,
+the rule is said to be the symbol's
+{bf virtual lhs rule}.
+Only virtual symbols have a virtual lhs rule, but
+not all virtual symbol has a virtual lhs rule.
+Null aliases are virtual symbols, but are not on
+the LHS of any rule.
+@ @<Widely aligned symbol elements@> =
+RULE t_virtual_lhs_rule;
+@ @<Initialize symbol elements@> =
+symbol->t_virtual_lhs_rule = NULL;
+
+@ Virtual LHS trace accessor:
+If this symbol is a symbol
+with a virtual LHS rule, returns the rule ID.
+If there is no virtual LHS rule, returns |-1|.
+On other failures, returns |-2|.
+@<Public function prototypes@> =
+Marpa_Rule_ID marpa_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid);
+@ @<Function definitions@> =
+Marpa_Rule_ID marpa_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid)
+{
+    SYM symbol;
+    RULE virtual_lhs_rule;
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    symbol = SYM_by_ID(symid);
+    virtual_lhs_rule = symbol->t_virtual_lhs_rule;
+    return virtual_lhs_rule == NULL ? -1 : ID_of_RULE(virtual_lhs_rule);
+}
+
+@*0 Symbol callbacks.
+The user can define a callback
 (with argument) which is invoked whenever a symbol
 is created.
 @ Function pointer declarations are
@@ -1700,22 +1738,26 @@ Marpa_Rule_ID marpa_sequence_new(struct marpa_g *g,
 Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
 gint min, gint flags )
 {
-    @<Return |-2| on failure@>@;
-    Marpa_Rule_ID original_rule_id;
     RULE original_rule;
-    Marpa_Symbol_ID internal_lhs_id, *temp_rhs;@;
-    if (is_rule_duplicate(g, lhs_id, &rhs_id, 1) == TRUE) {
-	g_context_clear(g);
-	g->t_error = (Marpa_Error_ID)"duplicate rule";
-        return failure_indicator;
-    }
+    RULEID original_rule_id;
+    SYM internal_lhs;
+    SYMID internal_lhs_id, *temp_rhs;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar is precomputed@>@;
+    if (is_rule_duplicate (g, lhs_id, &rhs_id, 1) == TRUE)
+      {
+	g_context_clear (g);
+	g->t_error = (Marpa_Error_ID) "duplicate rule";
+	return failure_indicator;
+      }
 
     @<Add the original rule for a sequence@>@;
     @<Check that the separator is valid or -1@>@;
     @<Mark the counted symbols@>@;
     if (min == 0) { @<Add the nulling rule for a sequence@>@; }
     min = 1;
-    @<Create the internal LHS symbol@>@;
+    @<Create the sequence internal LHS symbol@>@;
     @<Allocate the temporary rhs buffer@>@;
     @<Add the top rule for the sequence@>@;
     if (separator_id >= 0 && !(flags & MARPA_PROPER_SEPARATION)) {
@@ -1758,9 +1800,13 @@ if (separator_id >= 0) { SYM_by_ID(separator_id)->t_is_counted = 1; }
 	rule->t_original = original_rule_id;
 	rule_callback(g, rule->t_id);
 	}
-@ @<Create the internal LHS symbol@> =
-    internal_lhs_id = ID_of_SYM(symbol_new(g));
+@ @<Create the sequence internal LHS symbol@> =
+{
+    internal_lhs = symbol_new(g);
+    internal_lhs_id = ID_of_SYM(internal_lhs);
     symbol_callback(g, internal_lhs_id);
+}
+
 @ The actual size needed for the RHS buffer is determined by
 the longer of minimum rule and the iterating rule.
 The iterating rule may require 3 RHS symbols, if there is
@@ -1776,16 +1822,18 @@ which case it allocates 4 bytes too many.
 temp_rhs = g_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
 @ @<Free the temporary rhs buffer@> = g_free(temp_rhs);
 @ @<Add the top rule for the sequence@> =
-{ RULE rule;
-temp_rhs[0] = internal_lhs_id;
-rule = rule_start(g, lhs_id, temp_rhs, 1);
-if (!rule) { @<Fail with internal grammar error@>@; }
-rule->t_original = original_rule_id;
-rule->t_is_semantic_equivalent = TRUE;
-/* Real symbol count remains at default of 0 */
-RULE_is_Virtual_RHS(rule) = TRUE;
-rule_callback(g, rule->t_id);
+{
+    RULE rule;
+    temp_rhs[0] = internal_lhs_id;
+    rule = rule_start(g, lhs_id, temp_rhs, 1);
+    if (!rule) { @<Fail with internal grammar error@>@; }
+    rule->t_original = original_rule_id;
+    rule->t_is_semantic_equivalent = TRUE;
+    /* Real symbol count remains at default of 0 */
+    RULE_is_Virtual_RHS (rule) = TRUE;
+    rule_callback (g, rule->t_id);
 }
+
 @ This ``alternate" top rule is needed if a final separator is allowed.
 @<Add the alternate top rule for the sequence@> =
 { RULE rule;
@@ -3010,22 +3058,27 @@ g_free(factor_positions);
 @*0 Divide the Rule into Pieces.
 @<Factor the rule into CHAF rules@> =
 RULE_is_Used(rule) = 0; /* Mark the original rule unused */
-{ gint unprocessed_factor_count; /* The number of proper nullables for which CHAF rules have
-yet to be written */
-gint factor_position_ix = 0; /* Current index into the list of factors */
-Marpa_Symbol_ID current_lhs_id = LHS_ID_of_RULE(rule);
-gint piece_end, piece_start = 0; /* The positions, in the original rule, where
-the new (virtual) rule starts and ends */
-for (unprocessed_factor_count = factor_count - factor_position_ix;
-unprocessed_factor_count >= 3;
-unprocessed_factor_count = factor_count - factor_position_ix) {
-    @<Add non-final CHAF rules@>@;
+{
+    /* The number of proper nullables for which CHAF rules have
+	yet to be written */
+    gint unprocessed_factor_count;
+    /* Current index into the list of factors */
+    gint factor_position_ix = 0;
+    Marpa_Symbol_ID current_lhs_id = LHS_ID_of_RULE(rule);
+    /* The positions, in the original rule, where
+	the new (virtual) rule starts and ends */
+    gint piece_end, piece_start = 0;
+    for (unprocessed_factor_count = factor_count - factor_position_ix;
+	unprocessed_factor_count >= 3;
+	unprocessed_factor_count = factor_count - factor_position_ix) {
+	@<Add non-final CHAF rules@>@;
+    }
+    if (unprocessed_factor_count == 2) {
+	    @<Add final CHAF rules for two factors@>@;
+    } else {
+	    @<Add final CHAF rules for one factor@>@;
+    }
 }
-if (unprocessed_factor_count == 2) {
-	@<Add final CHAF rules for two factors@>@;
-} else {
-	@<Add final CHAF rules for one factor@>@;
-} }
 
 @ @<Create a CHAF virtual symbol@> = {
     SYM chaf_virtual_symbol = symbol_new(g);
@@ -3062,7 +3115,7 @@ g_free(remaining_rhs);
 @ As long as I have more than 3 unprocessed factors, I am working on a non-final
 rule.
 @<Add non-final CHAF rules@> =
-    Marpa_Symbol_ID chaf_virtual_symid;
+    SYMID chaf_virtual_symid;
     gint first_factor_position = factor_positions[factor_position_ix];
     gint first_factor_piece_position = first_factor_position - piece_start;
     gint second_factor_position = factor_positions[factor_position_ix+1];
@@ -3102,12 +3155,15 @@ as the first part of |piece_rhs| so I copy it here in preparation
 for the PN rule.
 @<Add PP CHAF rule for nullable continuation@> =
 {
-gint real_symbol_count = piece_end - piece_start + 1;
-for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
-   remaining_rhs[piece_rhs_length] =
-   piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
-}
-piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
+  gint real_symbol_count = piece_end - piece_start + 1;
+  for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count;
+       piece_rhs_length++)
+    {
+      remaining_rhs[piece_rhs_length] =
+	piece_rhs[piece_rhs_length] =
+	RHS_ID_of_RULE (rule, piece_start + piece_rhs_length);
+    }
+  piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
 }
 { RULE  chaf_rule;
     gint real_symbol_count = piece_rhs_length - 1;
@@ -3300,15 +3356,19 @@ them all.
 This include the setting of many of the elements of the 
 rule structure, and performing the call back.
 @<Set CHAF rule flags and call back@> =
-RULE_is_Used (chaf_rule) = 1;
-chaf_rule->t_original = rule_id;
-RULE_is_Virtual_LHS(chaf_rule) = piece_start > 0;
-chaf_rule->t_is_semantic_equivalent = !RULE_is_Virtual_LHS(chaf_rule);
-RULE_is_Virtual_RHS(chaf_rule) = Length_of_RULE (chaf_rule) > real_symbol_count;
-chaf_rule->t_virtual_start = piece_start;
-chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
-Real_SYM_Count_of_RULE(chaf_rule) = real_symbol_count;
-rule_callback (g, chaf_rule->t_id);
+{
+  gint is_virtual_lhs = (piece_start > 0);
+  RULE_is_Used (chaf_rule) = 1;
+  chaf_rule->t_original = rule_id;
+  RULE_is_Virtual_LHS (chaf_rule) = is_virtual_lhs;
+  chaf_rule->t_is_semantic_equivalent = !is_virtual_lhs;
+  RULE_is_Virtual_RHS (chaf_rule) =
+    Length_of_RULE (chaf_rule) > real_symbol_count;
+  chaf_rule->t_virtual_start = piece_start;
+  chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
+  Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
+  rule_callback (g, chaf_rule->t_id);
+}
 
 @ This utility routine translates a proper symbol id to a nulling symbol ID.
 It is assumed that the caller has ensured that

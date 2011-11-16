@@ -425,21 +425,58 @@ Marpa_Symbol_ID
 symbol_null_alias( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
-CODE:
-    RETVAL = marpa_symbol_null_alias(g, symbol_id);
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
+PPCODE:
+    {
+    Marpa_Symbol_ID alias_id = marpa_symbol_null_alias(g, symbol_id);
+      if (alias_id < -1)
+	{
+	  croak ("problem with g->symbol_null_alias: %s",
+		 marpa_g_error (g));
+	}
+      if (alias_id < 0)
+	{
+	  XSRETURN_UNDEF;
+	}
+      XPUSHs (sv_2mortal (newSViv (alias_id)));
+    }
 
 Marpa_Symbol_ID
 symbol_proper_alias( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
-CODE:
-    RETVAL = marpa_symbol_proper_alias(g, symbol_id);
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
+PPCODE:
+    {
+    Marpa_Symbol_ID alias_id = marpa_symbol_proper_alias(g, symbol_id);
+      if (alias_id < -1)
+	{
+	  croak ("problem with g->symbol_proper_alias: %s",
+		 marpa_g_error (g));
+	}
+      if (alias_id < 0)
+	{
+	  XSRETURN_UNDEF;
+	}
+      XPUSHs (sv_2mortal (newSViv (alias_id)));
+    }
+
+Marpa_Rule_ID
+symbol_virtual_lhs_rule( g, symbol_id )
+    Grammar *g;
+    Marpa_Symbol_ID symbol_id;
+PPCODE:
+    {
+      Marpa_Rule_ID rule_id = marpa_symbol_virtual_lhs_rule (g, symbol_id);
+      if (rule_id < -1)
+	{
+	  croak ("problem with g->symbol_virtual_lhs_rule: %s",
+		 marpa_g_error (g));
+	}
+      if (rule_id < 0)
+	{
+	  XSRETURN_UNDEF;
+	}
+      XPUSHs (sv_2mortal (newSViv (rule_id)));
+    }
 
  # Rules
 

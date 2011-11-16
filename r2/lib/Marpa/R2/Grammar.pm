@@ -1227,6 +1227,16 @@ sub Marpa::R2::Grammar::symbol_name {
         $symbol_hash->{$name} = $id;
         return $name;
     } ## end if ( defined $proper_alias_id )
+    my $virtual_lhs_rule = $grammar_c->symbol_virtual_lhs_rule($id);
+    if ( not defined $virtual_lhs_rule ) {
+        die("Cannot name symbol $id");
+    }
+    my $virtual_end = $grammar_c->rule_virtual_end($virtual_lhs_rule);
+    $name =
+          $grammar->symbol_name($id) . '[R'
+        . $virtual_lhs_rule . q{:}
+        . ( $virtual_end + 1 ) . ']';
+    return $name;
 } ## end sub Marpa::R2::Grammar::symbol_name
 
 sub wrap_symbol_cb {
@@ -1250,25 +1260,6 @@ sub wrap_symbol_cb {
             $grammar_c->symbol_is_nulling($symbol_id) and $name .= '[]';
             last DETERMINE_NAME;
         } ## end if ( defined $old_start_id )
-        last DETERMINE_NAME
-            if defined $grammar_c->symbol_proper_alias($symbol_id);
-
-        # If we are here, this should be a virtual LHS from the CHAF
-        # rewrite.
-        my $virtual_end = $grammar_c->context('virtual_end');
-        if ( defined $virtual_end ) {
-            my $rule_id = $grammar_c->context('rule_id') // '[RULE?]';
-            my $lhs_id  = $grammar_c->context('lhs_id')  // '[LHS?]';
-            my $lhs     = $symbols->[$lhs_id];
-
-#<<<  perltidy introduces trailing space on this
-            $name =
-                  $lhs->[Marpa::R2::Internal::Symbol::NAME] . '[R'
-                . $rule_id . q{:}
-                . ( $virtual_end + 1 ) . ']';
-#>>>
-            last DETERMINE_NAME;
-        } ## end if ( defined $virtual_end )
     } ## end DETERMINE_NAME:
     $symbol->[Marpa::R2::Internal::Symbol::ID] = $symbol_id;
     $symbols->[$symbol_id] = $symbol;
