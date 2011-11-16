@@ -991,12 +991,12 @@ sub Marpa::R2::Recognizer::earleme_complete {
 
     my $event_count = $recce_c->earleme_complete();
     EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
-        my $event_type = $recce_c->earleme_event($event_ix);
+        my ($event_type, $value) = $recce_c->event($event_ix);
         next EVENT if $event_type eq 'exhausted';
         if ( $event_type eq 'earley item count' ) {
             say {
                 $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] }
-                "Earley item count exceeds warning threshold"
+                "Earley item count ($value) exceeds warning threshold"
                 or die "say: $ERRNO";
             next EVENT;
         } ## end if ( $event_type eq 'earley item count' )

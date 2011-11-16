@@ -885,8 +885,13 @@ OUTPUT:
 void precompute( g )
     Grammar *g;
 PPCODE:
-    if  (marpa_precompute(g)) { XSRETURN_YES; }
-    XSRETURN_NO;
+    {
+      gint result = marpa_precompute (g);
+      if (result < 0) {
+         XSRETURN_UNDEF;
+      }
+      XPUSHs (sv_2mortal (newSViv (result)));
+    }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::R_C
 
@@ -1408,25 +1413,37 @@ PPCODE:
     }
 
 void
-earleme_event( r_wrapper, ix )
+event( r_wrapper, ix )
     R_Wrapper *r_wrapper;
     int ix;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
+    {
+      struct marpa_r *r = r_wrapper->r;
       struct marpa_g_event event;
       char *result_string = NULL;
-        Marpa_Earleme result = marpa_r_event(r, &event, ix);
-	if (result < 0) {
+      Marpa_Earleme result = marpa_r_event (r, &event, ix);
+      if (result < 0)
+	{
 	  croak ("Problem in r->earleme_event(): %s", marpa_r_error (r));
 	}
-	switch (result)  {
-	case MARPA_G_EV_EXHAUSTED: result_string = "exhausted"; break;
-	case MARPA_G_EV_EARLEY_ITEM_THRESHOLD: result_string = "earley item count"; break;
+      switch (result)
+	{
+	case MARPA_G_EV_EXHAUSTED:
+	  result_string = "exhausted";
+	  break;
+	case MARPA_G_EV_EARLEY_ITEM_THRESHOLD:
+	  result_string = "earley item count";
+	  break;
+	case MARPA_G_EV_LOOP_RULES:
+	  result_string = "loop rules";
+	  break;
 	}
-	if (!result_string) {
+      if (!result_string)
+	{
 	  croak ("Problem in r->earleme_event(): unknown event %d", result);
 	}
-	XPUSHs( sv_2mortal( newSVpv(result_string, 0) ) );
+      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+      XPUSHs (sv_2mortal (newSViv (event.t_value)));
     }
 
 void

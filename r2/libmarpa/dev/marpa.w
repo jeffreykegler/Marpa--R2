@@ -885,6 +885,9 @@ RULE t_proper_start_rule;
 @ @<Initialize grammar elements@> =
 g->t_null_start_rule = NULL;
 g->t_proper_start_rule = NULL;
+@
+{\bf To Do}: @^To Do@>
+Check that all trace functions are safe if G is trivial.
 
 @*0 The Grammar's Size.
 Intuitively,
@@ -1103,16 +1106,19 @@ with no way of freeing it.
 #define MARPA_G_EV_NONE 0@/
 #define MARPA_G_EV_EXHAUSTED 1@/
 #define MARPA_G_EV_EARLEY_ITEM_THRESHOLD 2@/
+#define MARPA_G_EV_LOOP_RULES 3@/
 @ @<Private incomplete structures@> =
 struct s_g_event;
 typedef struct s_g_event* GEV;
 @ @<Public structures@> =
 struct marpa_g_event {
      gint t_type;
+     gint t_value;
 };
 @ @<Private structures@> =
 struct s_g_event {
      gint t_type;
+     gint t_value;
 };
 typedef struct s_g_event GEV_Object;
 @ @d G_EVENT_COUNT(g) DSTACK_LENGTH ((g)->t_events)
@@ -1146,6 +1152,7 @@ GEV g_event_new(struct marpa_g* g, gint type)
   /* may change base of dstack */
   GEV top_of_stack = G_EVENT_PUSH(g);
   top_of_stack->t_type = type;
+  top_of_stack->t_value = 0;
   return top_of_stack;
 }
 
@@ -1168,9 +1175,8 @@ marpa_g_event (struct marpa_g *g, struct marpa_g_event *public_event,
     return index_out_of_bounds;
   internal_event = DSTACK_INDEX (*events, GEV_Object, ix);
   type = internal_event->t_type;
-  /* At this point there is no data except type
-     for any of the events */
   public_event->t_type = type;
+  public_event->t_value = internal_event->t_value;
   return type;
 }
 
@@ -2516,21 +2522,24 @@ This section describes the top-level method for precomputation,
 which is external.
 
 @<Function definitions@> =
-struct marpa_g* marpa_precompute(struct marpa_g* g)
+gint marpa_precompute(struct marpa_g* g)
 {
-     if (!census(g)) return NULL;
-     if (!CHAF_rewrite(g)) return NULL;
-     if (!g_augment(g)) return NULL;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    G_EVENTS_CLEAR(g);
+     if (!census(g)) return failure_indicator;
+     if (!CHAF_rewrite(g)) return failure_indicator;
+     if (!g_augment(g)) return failure_indicator;
      if (!G_is_Trivial(g)) {
 	loop_detect(g);
 	create_AHFA_items(g);
 	create_AHFA_states(g);
 	@<Populate the Terminal Boolean Vector@>@;
     }
-     return g;
+     return G_EVENT_COUNT(g);
 }
 @ @<Public function prototypes@> =
-struct marpa_g* marpa_precompute(struct marpa_g* g);
+gint marpa_precompute(struct marpa_g* g);
 
 @** The Grammar Census.
 
@@ -3454,8 +3463,10 @@ Bit_Matrix unit_transition_matrix
 @<Mark direct unit transitions in |unit_transition_matrix|@>@;
 transitive_closure(unit_transition_matrix);
 @<Mark loop rules@>@;
-if (loop_rule_count) g->t_has_loop = TRUE;
-@<Report loop rule count@>@;
+if (loop_rule_count) {
+    g->t_has_loop = TRUE;
+    @<Report loop rule count@>@;
+}
 matrix_free(unit_transition_matrix);
 }
 @ @<Private function prototypes@> =
@@ -3525,12 +3536,16 @@ of loop rules.  It is perfectly reasonable for a higher layer to treat a loop
 rule as a fatal error.
 It is also reasonable for a higher layer to always silently allow them.
 There are lots of possibilities in between these two extremes.
-To assist the upper layers, the reporting is very thorough ---
-there is not just a message for each loop rule, but also a final tally.
+To assist the upper layers, an event is reported for a non-zero
+loop rule count, with the final tally.
 @<Report loop rule count@> =
-g_context_clear(g);
-g_context_int_add(g, "loop_rule_count", loop_rule_count);
-grammar_message(g, "loop rule tally");
+{
+  GEV event = g_event_new (g, MARPA_G_EV_LOOP_RULES);
+  event->t_value = loop_rule_count;
+  g_context_clear (g);
+  g_context_int_add (g, "loop_rule_count", loop_rule_count);
+  grammar_message (g, "loop rule tally");
+}
 
 @** The Aycock-Horspool Finite Automata.
 
@@ -6249,7 +6264,10 @@ if (count >= r->t_earley_item_warning_threshold)
 	R_FATAL ("eim count exceeds fatal threshold");
 	return failure_indicator;
       }
-    g_event_new (g, MARPA_G_EV_EARLEY_ITEM_THRESHOLD);
+    {
+      GEV event = g_event_new (g, MARPA_G_EV_EARLEY_ITEM_THRESHOLD);
+      event->t_value = count;
+    }
   }
 
 @*0 Destructor.

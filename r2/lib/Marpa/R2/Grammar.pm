@@ -261,7 +261,6 @@ sub Marpa::R2::Grammar::new {
     $grammar->[Marpa::R2::Internal::Grammar::ID] = $grammar_id;
     $grammar_by_id{$grammar_id} = $grammar;
     Scalar::Util::weaken( $grammar_by_id{$grammar_id} );
-    $grammar_c->message_callback_set( \&message_cb );
     $grammar_c->rule_callback_set( \&wrap_rule_cb );
     $grammar_c->symbol_callback_set( \&wrap_symbol_cb );
     $grammar_c->default_value_set(-1);
@@ -527,7 +526,8 @@ sub Marpa::R2::Grammar::precompute {
     return $grammar if $grammar_c->is_precomputed();
 
     set_start_symbol($grammar);
-    if ( not $grammar_c->precompute() ) {
+    my $event_count = $grammar_c->precompute();
+    if ( not defined $event_count ) {
         my $error = $grammar_c->error();
 
         # Be idempotent.  If the grammar is already precomputed, just
@@ -587,7 +587,30 @@ sub Marpa::R2::Grammar::precompute {
             Marpa::R2::exception(@problems);
         } ## end if ( $error eq 'lhs is terminal' )
         Marpa::R2::uncaught_error($error);
-    } ## end if ( not $grammar_c->precompute() )
+    } ## end if ( not defined $event_count )
+
+    my $infinite_action = $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION];
+    EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
+        my ( $event_type, $value ) = $grammar_c->event($event_ix);
+        if ( $event_type eq 'loop rules' ) {
+            next EVENT if $infinite_action eq 'quiet';
+	    my @rule_seen;
+	    RULE: for my $rule_id ( 0 .. $#{$rules} ) {
+		next RULE if not $grammar_c->rule_is_loop($rule_id);
+		my $original_rule_id = $grammar_c->rule_original($rule_id);
+		my $warning_rule_id = $original_rule_id // $rule_id;
+		$rule_seen[$warning_rule_id] = 1;
+		print {$trace_fh}
+		    'Cycle found involving rule: ',
+		    $grammar->brief_rule($warning_rule_id), "\n"
+		    or Marpa::R2::exception("Could not print: $ERRNO");
+	    }
+	    Marpa::R2::exception('Cycles in grammar, fatal error') if  $infinite_action eq 'fatal';
+            next EVENT;
+        } ## end if ( $event_type eq 'loop rules' )
+        Marpa::R2::exception(
+            qq{Unknown earleme completion event; type="$event_type"});
+    } ## end for my $event_ix ( 0 .. $event_count - 1 )
 
     my $default_rank = $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK];
 
@@ -1188,36 +1211,6 @@ sub get_grammar_by_id {
     } ## end if ( not defined $grammar )
     return $grammar;
 } ## end sub get_grammar_by_id
-
-sub message_cb {
-    my ( $grammar_id, $message_id ) = @_;
-    my $grammar   = get_grammar_by_id($grammar_id);
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $trace_fh =
-        $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
-    if ( $message_id eq 'loop rule' ) {
-        return
-            if $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION] eq
-                'quiet';
-        my $loop_rule_id     = $grammar_c->context('rule_id');
-        my $original_rule_id = $grammar_c->rule_original($loop_rule_id);
-        my $warning_rule_id  = $original_rule_id // $loop_rule_id;
-        print {$trace_fh}
-            'Cycle found involving rule: ',
-            $grammar->brief_rule($warning_rule_id), "\n"
-            or Marpa::R2::exception("Could not print: $ERRNO");
-        return;
-    } ## end if ( $message_id eq 'loop rule' )
-    if ( $message_id eq 'loop rule tally' ) {
-        Marpa::R2::exception('Cycle in grammar, fatal error')
-            if $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION] eq
-                'fatal'
-                and $grammar_c->context('loop_rule_count');
-        return;
-    } ## end if ( $message_id eq 'loop rule tally' )
-    Marpa::R2::exception(qq{Unexpected message, type "$message_id"});
-    return;
-} ## end sub message_cb
 
 sub Marpa::R2::Grammar::symbol_name {
     my ( $grammar, $id ) = @_;
