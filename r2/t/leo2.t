@@ -121,8 +121,16 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     for ( 1 .. $length ) { $recce->read( 'a', 'a' ); }
     my $value_ref = $recce->value( {} );
     close $trace_fh;
-    my $warning_found = ($trace_output =~ m/Earley[ ]item[ ]count[ ]exceeds[ ]warning[ ]threshold/xms);
-    Test::More::ok($warning_found, 'Warns at earley item threshold');
+    my $warning_found =
+        ( $trace_output
+            =~ m/Earley[ ]item[ ]count[ ()\d]*exceeds[ ]warning[ ]threshold/xms
+        );
+    if ($warning_found) {
+        Test::More::pass('Warns at earley item threshold');
+    }
+    else {
+        Marpa::R2::Test::is( $trace_output, q{}, 'Leo p166 parse' );
+    }
     my $value = $value_ref ? ${$value_ref} : 'No parse';
     Marpa::R2::Test::is( $value, 'a' x $length, 'Leo p166 parse' );
 }
