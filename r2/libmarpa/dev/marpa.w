@@ -686,7 +686,6 @@ GLIB_VAR const guint marpa_binary_age;@#
 @<Public defines@>@/
 @<Public incomplete structures@>@/
 @<Public typedefs@>@/@\
-@<Callback typedefs@>@/
 @<Public structures@>@/
 @<Public function prototypes@>@/
 
@@ -717,27 +716,6 @@ g_slice_free(struct marpa_g, g);
 }
 @ @<Public function prototypes@> =
 void marpa_g_free(struct marpa_g *g);
-
-@*0 The Grammar ID.
-A unique ID for the grammar.
-This must be unique not just per-thread,
-but process-wide.
-The counter which tracks grammar ID's
-(|next_grammar_id|)
-is (at this writing) the only global
-non-constant, and requires special handling to
-keep |libmarpa| MT-safe.
-(|next_grammar_id|) is accessed only via
-|glib|'s special atomic operations.
-@ @<Int aligned grammar elements@> = gint t_id;
-@ @<Public typedefs@> = typedef gint Marpa_Grammar_ID;
-@ @<Private global variables@> = static gint next_grammar_id = 1;
-@ @<Initialize grammar elements@> =
-g->t_id = g_atomic_int_exchange_and_add(&next_grammar_id, 1);
-@ @<Function definitions@> =
-gint marpa_grammar_id(struct marpa_g* g) { return g->t_id; }
-@ @<Public function prototypes@> =
-gint marpa_grammar_id(struct marpa_g* g);
 
 @*0 The Grammar's Symbol List.
 This lists the symbols for the grammar,
@@ -1013,102 +991,6 @@ can tell if there is a bit vector to be freed.
 @ @<Destroy grammar elements@> =
 if (g->t_bv_symid_is_terminal) { bv_free(g->t_bv_symid_is_terminal); }
 
-@*0 The Grammar's Context.
-The ``context" is a hash of miscellaneous data,
-by keyword.
-It is so called because its purpose is to 
-provide callbacks with ``context" ---
-data about
-|libmarpa|'s state which is not conveniently
-available in other forms.
-@d Context_of_G(g) ((g)->t_context)
-@<Widely aligned grammar elements@> = GHashTable* t_context;
-@ @<Initialize grammar elements@> =
-g->t_context = g_hash_table_new_full( g_str_hash, g_str_equal, NULL, g_free );
-@ @<Destroy grammar elements@> = g_hash_table_destroy(Context_of_G(g));
-
-@ @<Public defines@> =
-#define MARPA_CONTEXT_INT 1@/
-#define MARPA_CONTEXT_CONST 2@/
-#define MARPA_IS_CONTEXT_INT(v) @| @[ ((v)->t_type == MARPA_CONTEXT_INT) @]@/
-#define MARPA_CONTEXT_INT_VALUE(v) @| \
-@[ ((v)->t_type == MARPA_CONTEXT_INT \
-    ? ((struct marpa_context_int_value*)v)->t_data \
-    : G_MININT) @]@/
-#define MARPA_CONTEXT_STRING_VALUE(v) @| \
-@[ ((v)->t_type == MARPA_CONTEXT_CONST \
-    ? ((struct marpa_context_const_value*)v)->t_data \
-    : NULL) @]@/
-@ @<Public structures@> =
-struct marpa_context_int_value {
-   gint t_type;
-   gint t_data;
-};
-@ @<Public structures@> =
-struct marpa_context_const_value {
-   gint t_type;
-   const gchar* t_data;
-};
-@ @<Public structures@> =
-union marpa_context_value {
-   gint t_type;
-   struct marpa_context_int_value t_int_value;
-   struct marpa_context_const_value t_const_value;
-};
-
-@ Add an integer to the context.
-These functions might be converted to be public.
-For now they are only for use by |libmarpa| in setting
-values to be read by the higher layers,
-are therefore internal.
-
-The const qualifier on the key is deliberately discarded.
-As implemented, the keys are treated as const's by
-|g_hash_table_insert|, but the compiler can't know
-that is my intention.
-For type safety, I do want to keep the |const|
-qualifier in other contexts.
-@<Function definitions@> =
-static inline
-void g_context_int_add(struct marpa_g* g, const gchar* key, gint payload)
-{
-    struct marpa_context_int_value* value
-	= g_new(struct marpa_context_int_value, 1);
-    value->t_type = MARPA_CONTEXT_INT;
-    value->t_data = payload;
-    g_hash_table_insert(Context_of_G(g), (gpointer)key, value);
-}
-@ @<Private function prototypes@> =
-static inline
-void g_context_int_add(struct marpa_g* g, const gchar* key, gint value);
-@ @<Function definitions@> =
-static inline
-void context_const_add(struct marpa_g* g, const gchar* key, const gchar* payload)
-{
-    struct marpa_context_const_value* value
-	= g_new(struct marpa_context_const_value, 1);
-    value->t_type = MARPA_CONTEXT_CONST;
-    value->t_data = payload;
-    g_hash_table_insert(Context_of_G(g), (gpointer)key, value);
-}
-@ @<Private function prototypes@> =
-static inline
-void context_const_add(struct marpa_g* g, const gchar* key, const gchar* value);
-
-@ Clear the current context.
-Used to create a ``clean slate" in the context.
-@<Function definitions@> =
-static inline void g_context_clear(struct marpa_g* g) {
-    g_hash_table_remove_all(Context_of_G(g)); }
-@ @<Private function prototypes@> =
-static inline void g_context_clear(struct marpa_g* g);
-
-@ @<Function definitions@> =
-union marpa_context_value* marpa_g_context_value(struct marpa_g* g, const gchar* key)
-{ return g_hash_table_lookup(Context_of_G(g), key); }
-@ @<Public function prototypes@> =
-union marpa_context_value* marpa_g_context_value(struct marpa_g* g, const gchar* key);
-
 @*0 The event stack.
 Events are designed to be fast,
 but are at the moment
@@ -1304,7 +1186,6 @@ Marpa_Symbol_ID
 marpa_symbol_new (struct marpa_g * g)
 {
   SYMID id = ID_of_SYM(symbol_new (g));
-  symbol_callback (g, id);
   return id;
 }
 
@@ -1572,7 +1453,6 @@ SYM alias;
 symbol = SYM_by_ID(symid);
 alias = symbol_null_alias(symbol);
 if (alias == NULL) {
-    g_context_int_add(g, "symid", symid);
     g->t_error = "no alias";
     return -1;
 }
@@ -1645,43 +1525,6 @@ Marpa_Rule_ID marpa_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID s
     virtual_lhs_rule = symbol->t_virtual_lhs_rule;
     return virtual_lhs_rule == NULL ? -1 : ID_of_RULE(virtual_lhs_rule);
 }
-
-@*0 Symbol callbacks.
-The user can define a callback
-(with argument) which is invoked whenever a symbol
-is created.
-@ Function pointer declarations are
-hard to type and impossible to read.
-This typedef localizes the damage.
-@<Callback typedefs@> =
-typedef void (Marpa_Symbol_Callback)(struct marpa_g *g, Marpa_Symbol_ID id);
-@ @<Widely aligned grammar elements@> =
-    Marpa_Symbol_Callback* t_symbol_callback;
-    gpointer t_symbol_callback_arg;
-@ @<Initialize grammar elements@> =
-g->t_symbol_callback_arg = NULL;
-g->t_symbol_callback = NULL;
-@ @<Function definitions@> =
-void marpa_symbol_callback_set(struct marpa_g *g, Marpa_Symbol_Callback*cb)
-{ g->t_symbol_callback = cb; }
-void marpa_symbol_callback_arg_set(struct marpa_g *g, gpointer cb_arg)
-{ g->t_symbol_callback_arg = cb_arg; }
-gpointer marpa_symbol_callback_arg(struct marpa_g *g)
-{ return g->t_symbol_callback_arg; }
-@ @<Public function prototypes@> =
-void marpa_symbol_callback_set(struct marpa_g *g, Marpa_Symbol_Callback*cb);
-void marpa_symbol_callback_arg_set(struct marpa_g *g, gpointer cb_arg);
-gpointer marpa_symbol_callback_arg(struct marpa_g *g);
-@ Do the symbol callback.
-{\bf To Do}: @^To Do@>
-Look at the possibility of leaking memory if the callback
-never returns, but the grammar is destroyed.
-@<Function definitions@> =
-static inline void symbol_callback(struct marpa_g *g, Marpa_Symbol_ID id)
-{ Marpa_Symbol_Callback* cb = g->t_symbol_callback;
-if (cb) { (*cb)(g, id); } }
-@ @<Private function prototypes@> =
-static inline void symbol_callback(struct marpa_g *g, Marpa_Symbol_ID id);
 
 @** Rule (RULE) Code.
 @s Marpa_Rule_ID int
@@ -1771,7 +1614,6 @@ gint min, gint flags )
     @<Fail if grammar is precomputed@>@;
     if (is_rule_duplicate (g, lhs_id, &rhs_id, 1) == TRUE)
       {
-	g_context_clear (g);
 	g->t_error = (Marpa_Error_ID) "duplicate rule";
 	return failure_indicator;
       }
@@ -1800,7 +1642,6 @@ gint min, gint flags )
   original_rule = rule_start (g, lhs_id, &rhs_id, 1);
   if (!original_rule)
     {
-      g_context_clear (g);
       g->t_error = "internal_error";
       return failure_indicator;
     }
@@ -1808,14 +1649,11 @@ gint min, gint flags )
   original_rule_id = original_rule->t_id;
   original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
     && separator_id >= 0;
-  rule_callback (g, original_rule_id);
   int_event_new (g, MARPA_G_EV_NEW_RULE, original_rule_id);
 }
 
 @ @<Check that the separator is valid or -1@> =
 if (separator_id != -1 && !symbol_is_valid(g, separator_id)) {
-    g_context_clear(g);
-    g_context_int_add(g, "symid", separator_id);
     g->t_error = "bad separator";
     return failure_indicator;
 }
@@ -2439,47 +2277,6 @@ return RULE_by_ID(g, rule_id)->t_virtual_end;
 @ @<Public function prototypes@> =
 guint marpa_virtual_end(struct marpa_g *g, Marpa_Rule_ID rule_id);
 
-@*0 Rule Callbacks.
-The user can define a callback
-(with argument) which is invoked whenever a rule
-is created.
-@ Function pointer declarations are
-hard to type and impossible to read.
-This typedef localizes the damage.
-@<Callback typedefs@> =
-typedef void (Marpa_Rule_Callback)(struct marpa_g *g, Marpa_Rule_ID id);
-@ @<Widely aligned grammar elements@> =
-    Marpa_Rule_Callback* t_rule_callback;
-    gpointer t_rule_callback_arg;
-@ @<Initialize grammar elements@> =
-g->t_rule_callback_arg = NULL;
-g->t_rule_callback = NULL;
-@ @<Function definitions@> =
-void marpa_rule_callback_set(struct marpa_g *g, Marpa_Rule_Callback*cb)
-{ g->t_rule_callback = cb; }
-@ @<Public function prototypes@> =
-void marpa_rule_callback_set(struct marpa_g *g, Marpa_Rule_Callback*cb);
-@ @<Function definitions@> =
-void marpa_rule_callback_arg_set(struct marpa_g *g, gpointer cb_arg)
-{ g->t_rule_callback_arg = cb_arg; }
-@ @<Public function prototypes@> =
-void marpa_rule_callback_arg_set(struct marpa_g *g, gpointer cb_arg);
-@ @<Function definitions@> =
-gpointer marpa_rule_callback_arg(struct marpa_g *g)
-{ return g->t_rule_callback_arg; }
-@ @<Public function prototypes@> =
-gpointer marpa_rule_callback_arg(struct marpa_g *g);
-@ Do the rule callback.
-@<Private function prototypes@> =
-static inline void rule_callback(struct marpa_g *g, Marpa_Rule_ID id);
-@ {\bf To Do}: @^To Do@>
-Look at with the possibility of leaking memory if the callback
-never returns, but the grammar is destroyed.
-@<Function definitions@> =
-static inline void rule_callback(struct marpa_g *g, Marpa_Rule_ID id)
-{ Marpa_Rule_Callback* cb = g->t_rule_callback;
-if (cb) { (*cb)(g, id); } }
-
 @*0 Rule Original.
 In many cases, Marpa will rewrite a rule.
 If this rule is the result of a rewriting, this element contains
@@ -2706,20 +2503,15 @@ While at it, set a flag to indicate if there are empty rules.
 
 @ @<Return |NULL| if bad start symbol@> =
 if (original_start_symid < 0) {
-    g_context_clear(g);
     g->t_error = "no start symbol";
     return failure_indicator;
 }
 if (!symbol_is_valid(g, original_start_symid)) {
-    g_context_clear(g);
-    g_context_int_add(g, "symid", original_start_symid);
     g->t_error = "invalid start symbol";
     return failure_indicator;
 }
 original_start_symbol = SYM_by_ID(original_start_symid);
 if (original_start_symbol->t_lhs->len <= 0) {
-    g_context_clear(g);
-    g_context_int_add(g, "symid", original_start_symid);
     g->t_error = "start symbol not on LHS";
     return failure_indicator;
 }
@@ -2860,7 +2652,6 @@ Marpa_Symbol_ID symid;
 @ @<Check that start symbol is productive@> =
 if (!bv_bit_test(productive_v, (guint)g->t_start_symid))
 {
-    g_context_int_add(g, "symid", g->t_start_symid);
     g->t_error = "unproductive start symbol";
     return NULL;
 }
@@ -3051,7 +2842,6 @@ for (symid = 0; symid < no_of_symbols; symid++) {
      if (!symbol->t_is_productive) continue;
      if (symbol_null_alias(symbol)) continue;
     alias = symbol_alias_create(g, symbol);
-    symbol_callback(g, ID_of_SYM(alias));
 } }
 
 @*0 Compute Statistics Needed to Rewrite the Rule.
@@ -3449,9 +3239,6 @@ old_start->t_is_start = 0;
   proper_new_start->t_is_accessible = TRUE;
   proper_new_start->t_is_productive = TRUE;
   proper_new_start->t_is_start = TRUE;
-  g_context_clear (g);
-  g_context_int_add (g, "old_start_id", ID_of_SYM(old_start));
-  symbol_callback (g, proper_new_start_id);
   new_start_rule = rule_start (g, proper_new_start_id, &ID_of_SYM(old_start), 1);
   new_start_rule->t_is_start = 1;
   RULE_is_Virtual_LHS(new_start_rule) = 1;
@@ -3484,9 +3271,6 @@ if there is one.  Otherwise it is a new, nulling, symbol.
       nulling_new_start->t_is_accessible = TRUE;
     }
   nulling_new_start->t_is_start = TRUE;
-  g_context_clear (g);
-  g_context_int_add (g, "old_start_id", ID_of_SYM(old_start));
-  symbol_callback (g, nulling_new_start_id);
   new_start_rule = rule_start (g, nulling_new_start_id, 0, 0);
   new_start_rule->t_is_start = 1;
   RULE_is_Virtual_LHS(new_start_rule) = 1;
@@ -4319,9 +4103,6 @@ Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
     if (item_ix >= state->t_item_count) {
-	g_context_clear(g);
-	g_context_int_add(g, "item_ix", (gint)item_ix);
-	g_context_int_add(g, "AHFA_state_id", AHFA_state_id);
 	g->t_error = "invalid state item ix";
 	return failure_indicator;
     }
@@ -5785,8 +5566,10 @@ gint marpa_terminals_expected(struct marpa_r* r, GArray* result);
 gint marpa_terminals_expected(struct marpa_r* r, GArray* result)
 {
     @<Return |-2| on failure@>@;
-    struct marpa_g *g = G_of_R(r);
+    @<Declare and initialize recce objects@>@;
     guint min, max, start;
+    @<Fail if fatal error@>@;
+    @<Fail if recognizer not in input phase@>@;
     @<Fail if |GArray| elements are not |sizeof(gint)|@>@;
     g_array_set_size(result, 0);
     for (start = 0; bv_scan (r->t_bv_symid_is_expected, start, &min, &max);
@@ -6334,7 +6117,6 @@ if (count >= r->t_earley_item_warning_threshold)
   {
     if (G_UNLIKELY (count >= EIM_FATAL_THRESHOLD))
       {				/* Set the recognizer to a fatal error */
-	g_context_clear (g);
 	R_FATAL ("eim count exceeds fatal threshold");
 	return failure_indicator;
       }
@@ -8157,9 +7939,7 @@ Marpa_Symbol_ID token_id, gpointer value, gint length) {
 @ @<Set |target_earleme| or fail@> = {
     target_earleme = current_earleme + length;
     if (target_earleme >= EARLEME_THRESHOLD) {
-	g_context_clear(g);
-	g_context_int_add(g, "target_earleme", target_earleme);
-	R_ERROR_CXT("parse too long");
+	R_ERROR("parse too long");
 	return failure_indicator;
     }
 }
@@ -13292,53 +13072,40 @@ general failure indicator.
 when one is required.
 @<Fail if grammar is precomputed@> =
 if (G_is_Precomputed(g)) {
-    g_context_clear(g);
     g->t_error = "grammar precomputed";
     return failure_indicator;
 }
 @ @<Fail if grammar not precomputed@> =
 if (!G_is_Precomputed(g)) {
-    g_context_clear(g);
     g->t_error = "grammar not precomputed";
     return failure_indicator;
 }
 @ @<Fail if grammar |symid| is invalid@> =
 if (!symbol_is_valid(g, symid)) {
-    g_context_clear(g);
-    g_context_int_add(g, "symid", symid);
     g->t_error = "invalid symbol id";
     return failure_indicator;
 }
 @ @<Fail if grammar |rule_id| is invalid@> =
 if (!RULEID_of_G_is_Valid(g, rule_id)) {
-    g_context_clear(g);
-    g_context_int_add(g, "rule_id", rule_id);
     g->t_error = "invalid rule id";
     return failure_indicator;
 }
 @ @<Fail if grammar |item_id| is invalid@> =
 if (!item_is_valid(g, item_id)) {
-    g_context_clear(g);
-    g_context_int_add(g, "item_id", item_id);
     g->t_error = "invalid item id";
     return failure_indicator;
 }
 @ @<Fail if grammar |AHFA_state_id| is invalid@> =
 if (!AHFA_state_id_is_valid(g, AHFA_state_id)) {
-    g_context_clear(g);
-    g_context_int_add(g, "AHFA_state_id", AHFA_state_id);
     g->t_error = "invalid AHFA state id";
     return failure_indicator;
 }
 @ @<Fail grammar if elements of |result| are not |sizeof(gint)|@> =
 if (sizeof(gint) != g_array_get_element_size(result)) {
-     g_context_clear(g);
-     g_context_int_add(g, "expected size", sizeof(gint));
      g->t_error = "garray size mismatch";
      return failure_indicator;
 }
 @ @<Fail with internal grammar error@> = {
-    g_context_clear(g);
     g->t_error = "internal error";
     return failure_indicator;
 }
@@ -13387,16 +13154,12 @@ if (g->t_fatal_error) {
 
 @ @<Fail if recognizer |symid| is invalid@> =
 if (!symbol_is_valid(G_of_R(r), symid)) {
-    g_context_clear(g);
-    g_context_int_add(g, "symid", symid);
-    R_ERROR_CXT("invalid symid");
+    R_ERROR("invalid symid");
     return failure_indicator;
 }
 @ @<Fail if |GArray| elements are not |sizeof(gint)|@> =
 if (sizeof(gint) != g_array_get_element_size(result)) {
-     g_context_clear(g);
-     g_context_int_add(g, "expected size", sizeof(gint));
-     R_ERROR_CXT("garray size mismatch");
+     R_ERROR("garray size mismatch");
      return failure_indicator;
 }
 
@@ -13423,10 +13186,6 @@ not a means of dictating to the higher layers that a
 but a way of preventing a recognizer error from becoming
 application-fatal without the application's consent.
 @d FATAL_FLAG (0x1u)
-@ Another flag indicates that the caller set up the
-context.
-By default, |r_error| clears the context.
-@d CONTEXT_FLAG (0x2u)
 @ Several convenience macros are provided.
 These are easier and less error-prone
 than specifying the flags.
@@ -13435,9 +13194,7 @@ is important since there are many calls to |r_error|
 in the code.
 @d MARPA_ERROR(message) (set_error(g, (message), 0u))
 @d R_ERROR(message) (r_error(r, (message), 0u))
-@d R_ERROR_CXT(message) (r_error(r, (message), CONTEXT_FLAG))
 @d R_FATAL(message) (r_error(r, (message), FATAL_FLAG))
-@d R_FATAL_CXT(message) (r_error(r, (message), CONTEXT_FLAG|FATAL_FLAG))
 @<Private function prototypes@> =
 static void set_error( struct marpa_g* g, Marpa_Message_ID message, guint flags );
 static void r_error( struct marpa_r* r, Marpa_Message_ID message, guint flags );
@@ -13450,8 +13207,6 @@ In this case space clearly is much more important than speed.
 static void
 set_error (struct marpa_g *g, Marpa_Message_ID message, guint flags)
 {
-  if (!(flags & CONTEXT_FLAG))
-    g_context_clear (g);
   g->t_error = message;
   if (flags & FATAL_FLAG)
     g->t_fatal_error = g->t_error;
@@ -13464,10 +13219,8 @@ r_error (struct marpa_r *r, Marpa_Message_ID message, guint flags)
 }
 
 @** Messages and Logging.
-The main messaging system for |libmarpa| relies on callbacks
-to upper layers.
-But there are many cases in which it is not appropriate
-to rely on the upper layers.
+There are some cases in which it is not appropriate
+to rely on the upper layers for error messages.
 These cases include
 serious internal problems,
 memory allocation failures,
@@ -13485,19 +13238,24 @@ the domain will be as set by |glib|.
 #undef G_LOG_DOMAIN@/
 #define G_LOG_DOMAIN "Marpa"@/
 
-@*0 Message callbacks.
-The user can define a callback
-(with argument) which is invoked whenever |libmarpa|
-has a message for the upper layers.
-Note a lot of strings are used for convenience
-in these messages.
+@*0 Message "cookie" strings.
+Constant strings are used for convenience
+instead of numeric error and event codes.
 These should be considered ``cookies", 
-as is they were file name or variables names.
-They should not be regarded as part of the user
-interface, even if some default or fallback routines
-may sometimes expose them to the user.
-And they should
-not be subject to internationalization or localization.
+and treated similarly to variable and constant names.
+That is, they should
+{\bf not} be subject to internationalization or localization.
+This is because they
+should not be regarded as part of the user
+interface.
+
+Some user user interfaces may expose the message cookies
+to the user.
+This should be considered be considered the same
+as the interface printing a numeric error code ---
+not the most user-friendly thing to do in general,
+but as acceptable during development
+or for internal errors.
 
 These message cookies are always null-terminated in
 the 7-bit ASCII character set.
@@ -13511,9 +13269,10 @@ as a reason to subject them to translation ---
 at least not unless you are also translating the variable
 names and file names.
 
-The intent is to have all internationalization,
-localization and string encoding issues dealt with
-by the upper layers.
+I emphasize this topic, because I want it to be clear
+that libmarpa leaves all internationalization,
+localization and string encoding issues to
+the upper layers.
 @<Public typedefs@> =
 typedef const gchar* Marpa_Message_ID;
 
