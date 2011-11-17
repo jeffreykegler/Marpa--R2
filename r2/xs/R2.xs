@@ -256,9 +256,9 @@ PPCODE:
       Marpa_Event_Type result = marpa_g_event (g, &event, ix);
       if (result < 0)
 	{
-	  croak ("Problem in r->event(): %s", marpa_g_error (g));
+	  croak ("Problem in g->event(): %s", marpa_g_error (g));
 	}
-	result_string = event_type_to_string(result);
+      result_string = event_type_to_string (result);
       if (!result_string)
 	{
 	  croak ("Problem in g->event(): unknown event %d", result);

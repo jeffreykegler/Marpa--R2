@@ -588,25 +588,27 @@ sub Marpa::R2::Grammar::precompute {
         ( 0 .. $grammar_c->rule_count - 1 ) )
     {
         shadow_rule( $grammar, $rule_id );
-    } ## end for my $rule_id ( grep { defined $rules->[$_] } ( 0 .....))
+    }
 
-    my $infinite_action = $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION];
+    my $infinite_action =
+        $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION];
     EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
         if ( $event_type eq 'loop rules' ) {
             next EVENT if $infinite_action eq 'quiet';
-	    my @rule_seen;
-	    RULE: for my $rule_id ( 0 .. $#{$rules} ) {
-		next RULE if not $grammar_c->rule_is_loop($rule_id);
-		my $original_rule_id = $grammar_c->rule_original($rule_id);
-		my $warning_rule_id = $original_rule_id // $rule_id;
-		$rule_seen[$warning_rule_id] = 1;
-		print {$trace_fh}
-		    'Cycle found involving rule: ',
-		    $grammar->brief_rule($warning_rule_id), "\n"
-		    or Marpa::R2::exception("Could not print: $ERRNO");
-	    }
-	    Marpa::R2::exception('Cycles in grammar, fatal error') if  $infinite_action eq 'fatal';
+            my @rule_seen;
+            RULE: for my $rule_id ( 0 .. $#{$rules} ) {
+                next RULE if not $grammar_c->rule_is_loop($rule_id);
+                my $original_rule_id = $grammar_c->rule_original($rule_id);
+                my $warning_rule_id = $original_rule_id // $rule_id;
+                $rule_seen[$warning_rule_id] = 1;
+                print {$trace_fh}
+                    'Cycle found involving rule: ',
+                    $grammar->brief_rule($warning_rule_id), "\n"
+                    or Marpa::R2::exception("Could not print: $ERRNO");
+            } ## end for my $rule_id ( 0 .. $#{$rules} )
+            Marpa::R2::exception('Cycles in grammar, fatal error')
+                if $infinite_action eq 'fatal';
             next EVENT;
         } ## end if ( $event_type eq 'loop rules' )
         Marpa::R2::exception(
@@ -698,8 +700,8 @@ sub Marpa::R2::Grammar::precompute {
         } ## end for my $symbol ( @{ $grammar->[...]})
     } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::WARNINGS...])
 
-    RULE: for my $rule_id ( 0 .. $grammar_c->rule_count() - 1) {
-        my $rule = $rules->[$rule_id];
+    RULE: for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 ) {
+        my $rule      = $rules->[$rule_id];
         my $rule_rank = $rule->[Marpa::R2::Internal::Rule::RANK];
         my $lhs_id    = $grammar_c->rule_lhs($rule_id);
         my $lhs       = $symbols->[$lhs_id];
@@ -726,15 +728,15 @@ sub Marpa::R2::Grammar::precompute {
             "LHS rank is $lhs_rank; rule rank is ",
             $rule->[Marpa::R2::Internal::Rule::RANK]
         );
-    } ## end for my $rule ( @{$rules} )
+    } ## end for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 )
 
     #
     # Set ranks for chaf rules
     #
 
-    RULE: for my $rule_id ( 0 .. $grammar_c->rule_count() - 1) {
+    RULE: for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 ) {
 
-	my $rule = $rules->[$rule_id];
+        my $rule             = $rules->[$rule_id];
         my $original_rule_id = $grammar_c->rule_original($rule_id);
         my $original_rule =
             defined $original_rule_id ? $rules->[$original_rule_id] : $rule;
@@ -790,7 +792,7 @@ sub Marpa::R2::Grammar::precompute {
         }
         $rule->[Marpa::R2::Internal::Rule::CHAF_RANK] = $rank;
 
-    } ## end for my $rule ( @{$rules} )
+    } ## end for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 )
 
     return $grammar;
 
@@ -1201,13 +1203,14 @@ sub Marpa::R2::Grammar::check_terminal {
 
 sub Marpa::R2::Grammar::symbol_name {
     my ( $grammar, $id ) = @_;
-    my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+
     # The next is a little roundabout to prevent auto-instantiation
-    if (defined $symbols->[$id]) {
-	return $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME];
+    if ( defined $symbols->[$id] ) {
+        return $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME];
     }
     return '[SYMBOL' . $id . 'L' . __LINE__ . ']';
-}
+} ## end sub Marpa::R2::Grammar::symbol_name
 
 sub gen_symbol_name {
     my ( $grammar, $id ) = @_;
@@ -1215,12 +1218,12 @@ sub gen_symbol_name {
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
 
-    if ($grammar_c->symbol_is_start($id)) {
-         my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
-	 $name .= q<[']>;
-	 $name .= q<[]> if $grammar_c->symbol_is_nulling($id);
-	 return $name;
-    }
+    if ( $grammar_c->symbol_is_start($id) ) {
+        my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
+        $name .= q<[']>;
+        $name .= q<[]> if $grammar_c->symbol_is_nulling($id);
+        return $name;
+    } ## end if ( $grammar_c->symbol_is_start($id) )
 
     my $proper_alias_id = $grammar_c->symbol_proper_alias($id);
     if ( defined $proper_alias_id ) {
@@ -1234,8 +1237,8 @@ sub gen_symbol_name {
     if ( not defined $virtual_lhs_rule ) {
         return "[SYMBOL$id]";
     }
-    my $virtual_start = $grammar_c->rule_virtual_start($virtual_lhs_rule);
-    my $original_rule = $grammar_c->rule_original($virtual_lhs_rule);
+    my $virtual_start   = $grammar_c->rule_virtual_start($virtual_lhs_rule);
+    my $original_rule   = $grammar_c->rule_original($virtual_lhs_rule);
     my $original_lhs_id = $grammar_c->rule_lhs($original_rule);
     if ( $id eq $original_lhs_id ) {
         return "[SYMBOL$id]";
@@ -1243,9 +1246,9 @@ sub gen_symbol_name {
     my $name =
           $grammar->symbol_name($original_lhs_id) . '[R'
         . $original_rule . q{:}
-        .  $virtual_start  . ']';
+        . $virtual_start . ']';
     return $name;
-} ## end sub Marpa::R2::Grammar::symbol_name
+} ## end sub gen_symbol_name
 
 sub shadow_symbol {
     my ( $grammar, $symbol_id, $name ) = @_;
@@ -1256,7 +1259,6 @@ sub shadow_symbol {
     $symbol->[Marpa::R2::Internal::Symbol::ID] = $symbol_id;
     $name //= gen_symbol_name( $grammar, $symbol_id );
     $symbol->[Marpa::R2::Internal::Symbol::NAME] = $name;
-    say "Nameing symbol $symbol_id $name";
     $symbol_hash->{$name} = $symbol_id;
     return $symbol;
 } ## end sub shadow_symbol
@@ -1279,22 +1281,24 @@ sub trace_rule {
         . $grammar->symbol_name($lhs_id) . ' ->';
     if ( scalar @rhs_ids ) {
         $rule_desc .= q{ }
-            . join( q{ }, map { $grammar->symbol_name($_) } @rhs_ids );
+            . ( join q{ }, map { $grammar->symbol_name($_) } @rhs_ids );
     }
     say {$trace_fh} $rule_desc
         or Marpa::R2::exception("say: $ERRNO");
+    return 1;
 } ## end sub trace_rule
 
 # Create the structure which "shadows" the libmarpa rule
 sub shadow_rule {
-    my ($grammar, $rule_id)   = @_;
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my ( $grammar, $rule_id ) = @_;
+    my $rules = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $new_rule = $rules->[$rule_id] = [];
     $new_rule->[Marpa::R2::Internal::Rule::ID] = $rule_id;
-    if ( $grammar->[Marpa::R2::Internal::Grammar::TRACE_RULES]) {
-        trace_rule($grammar, $rule_id);
+    if ( $grammar->[Marpa::R2::Internal::Grammar::TRACE_RULES] ) {
+        trace_rule( $grammar, $rule_id );
     }
-}
+    return $new_rule;
+} ## end sub shadow_rule
 
 sub populate_null_values {
     my ($grammar)   = @_;
@@ -1332,7 +1336,7 @@ sub populate_null_values {
 sub assign_symbol {
     my ( $grammar, $name ) = @_;
 
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     my $symbol_id   = $symbol_hash->{$name};
     if ( defined $symbol_id ) {
@@ -1340,7 +1344,6 @@ sub assign_symbol {
         return $symbols->[$symbol_id];
     }
     $symbol_id = $grammar_c->symbol_new();
-    say "Creating symbol $name, $symbol_id";
     return shadow_symbol( $grammar, $symbol_id, $name );
 } ## end sub assign_symbol
 
@@ -1603,7 +1606,7 @@ sub add_user_rule {
                 : qq{Unknown problem ("$error")};
             Marpa::R2::exception("$problem_description: $rule_description");
         } ## end if ( not defined $ordinary_rule_id )
-	shadow_rule($grammar, $ordinary_rule_id);
+        shadow_rule( $grammar, $ordinary_rule_id );
         my $ordinary_rule = $rules->[$ordinary_rule_id];
         action_set( $ordinary_rule_id, $grammar, $action );
         $ordinary_rule->[Marpa::R2::Internal::Rule::RANK] = $rank
@@ -1666,7 +1669,7 @@ sub add_user_rule {
             if ($sequence_symbol_count) {
                 $name .= '[' . $sequence_symbol_count . ']';
             }
-	    shadow_symbol($grammar, $value, $name);
+            shadow_symbol( $grammar, $value, $name );
             $sequence_symbol_count++;
         } ## end if ( $event_type eq 'new symbol' )
         if ( $event_type eq 'new rule' ) {
@@ -1676,7 +1679,7 @@ sub add_user_rule {
     my $original_rule_id;
     for my $new_rule_id (@sequence_rule_ids) {
         shadow_rule( $grammar, $new_rule_id );
-	$original_rule_id //= $grammar_c->rule_original($new_rule_id);
+        $original_rule_id //= $grammar_c->rule_original($new_rule_id);
     }
 
     # The original rule for a sequence rule is
