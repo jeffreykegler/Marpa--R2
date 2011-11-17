@@ -1775,6 +1775,7 @@ gint min, gint flags )
 	g->t_error = (Marpa_Error_ID) "duplicate rule";
 	return failure_indicator;
       }
+    G_EVENTS_CLEAR(g);
 
     @<Add the original rule for a sequence@>@;
     @<Check that the separator is valid or -1@>@;

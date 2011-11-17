@@ -119,15 +119,15 @@ my $show_rules_output = $grammar->show_rules();
 Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace /* !used */
 1: statements -> statement /* !used discard_sep */
-2: statements -> statements[Subseq:8:5] /* vrhs real=0 */
-3: statements -> statements[Subseq:8:5] comma /* vrhs real=1 */
-4: statements[Subseq:8:5] -> statement /* vlhs real=1 */
-5: statements[Subseq:8:5] -> statements[Subseq:8:5] comma statement /* vlhs vrhs real=2 */
+2: statements -> statements[statement+] /* vrhs real=0 */
+3: statements -> statements[statement+] comma /* vrhs real=1 */
+4: statements[statement+] -> statement /* vlhs real=1 */
+5: statements[statement+] -> statements[statement+] comma statement /* vlhs vrhs real=2 */
 6: block -> statements /* !used */
 7: block -> /* empty !used */
-8: block -> block[Subseq:0:8] /* vrhs real=0 */
-9: block[Subseq:0:8] -> statements /* vlhs real=1 */
-10: block[Subseq:0:8] -> block[Subseq:0:8] statements /* vlhs vrhs real=1 */
+8: block -> block[statements*] /* vrhs real=0 */
+9: block[statements*] -> statements /* vlhs real=1 */
+10: block[statements*] -> block[statements*] statements /* vlhs vrhs real=1 */
 11: optional_whitespace -> whitespace
 12: optional_whitespace -> /* empty !used */
 13: optional_modifier -> modifier

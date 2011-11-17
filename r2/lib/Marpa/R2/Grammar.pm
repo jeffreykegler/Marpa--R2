@@ -1234,15 +1234,9 @@ sub gen_symbol_name {
         return $name;
     } ## end if ( defined $proper_alias_id )
     my $virtual_lhs_rule = $grammar_c->symbol_virtual_lhs_rule($id);
-    if ( not defined $virtual_lhs_rule ) {
-        return "[SYMBOL$id]";
-    }
     my $virtual_start   = $grammar_c->rule_virtual_start($virtual_lhs_rule);
     my $original_rule   = $grammar_c->rule_original($virtual_lhs_rule);
     my $original_lhs_id = $grammar_c->rule_lhs($original_rule);
-    if ( $id eq $original_lhs_id ) {
-        return "[SYMBOL$id]";
-    }
     my $name =
           $grammar->symbol_name($original_lhs_id) . '[R'
         . $original_rule . q{:}
@@ -1639,9 +1633,15 @@ sub add_user_rule {
     }
 
     # Name the internal lhs symbol
-    my $sequence_symbol_name_base =
-        $lhs_name . '[' . $rhs_ids[0] . ( $min ? q{+} : q{*} ) . ']';
-    my $sequence_symbol_count = 0;
+    my $sequence_symbol_name_base;
+    {
+        ## Escape any characters in symbol name which may cause dups
+        (my $rhs_desc =  $rhs_names->[0]) =~ s/ [\[\]%] /%$1/gxms;
+        $sequence_symbol_name_base =
+            $lhs_name . '[' . $rhs_desc . ( $min ? q{+} : q{*} ) . ']';
+    }
+    my $sequence_symbol_count      = 0;
+    my $sequence_null_symbol_count = 0;
 
     my @sequence_rule_ids = ();
     my $event_count       = $grammar_c->sequence_new(
@@ -1666,11 +1666,20 @@ sub add_user_rule {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
         if ( $event_type eq 'new symbol' ) {
             my $name = $sequence_symbol_name_base;
-            if ($sequence_symbol_count) {
-                $name .= '[' . $sequence_symbol_count . ']';
-            }
-            shadow_symbol( $grammar, $value, $name );
-            $sequence_symbol_count++;
+            if ( $grammar_c->symbol_is_nulling($value) ) {
+                if ($sequence_null_symbol_count) {
+                    $name .= '[' . $sequence_null_symbol_count . '][]';
+                }
+                shadow_symbol( $grammar, $value, $name );
+                $sequence_null_symbol_count++;
+            } ## end if ( $grammar_c->symbol_is_nulling($value) )
+            else {
+                if ($sequence_symbol_count) {
+                    $name .= '[' . $sequence_symbol_count . ']';
+                }
+                shadow_symbol( $grammar, $value, $name );
+                $sequence_symbol_count++;
+            } ## end else [ if ( $grammar_c->symbol_is_nulling($value) ) ]
         } ## end if ( $event_type eq 'new symbol' )
         if ( $event_type eq 'new rule' ) {
             push @sequence_rule_ids, $value;
