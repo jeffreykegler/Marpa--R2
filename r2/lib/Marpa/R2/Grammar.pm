@@ -85,8 +85,6 @@ BEGIN {
     :package=Marpa::R2::Internal::Grammar
 
     C { A C structure }
-    ID { Unique ID, from libmarpa }
-
     RULES { array of rule refs }
     SYMBOLS { array of symbol refs }
     ACTIONS { Default package in which to find actions }
@@ -549,14 +547,12 @@ sub Marpa::R2::Grammar::precompute {
             Marpa::R2::exception('No start symbol');
         }
         if ( $error eq 'start symbol not on LHS' ) {
-            my $symbol_id = $grammar_c->context('symid');
-            my $name      = $grammar->symbol_name($symbol_id);
+	    my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
             Marpa::R2::exception(
                 qq{Start symbol "$name" not on LHS of any rule});
         } ## end if ( $error eq 'start symbol not on LHS' )
         if ( $error eq 'unproductive start symbol' ) {
-            my $symbol_id = $grammar_c->context('symid');
-            my $name      = $grammar->symbol_name($symbol_id);
+	    my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
             Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
         }
         if ( $error eq 'lhs is terminal' ) {
