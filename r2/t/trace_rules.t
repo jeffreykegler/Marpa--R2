@@ -34,9 +34,10 @@ my $trace_output;
 open my $trace_fh, q{>}, \$trace_output;
 
 my $grammar = Marpa::R2::Grammar->new(
-    { trace_rules => 1, trace_file_handle => $trace_fh },
-    {   start => 'S',
-        rules => [
+    {   trace_file_handle => $trace_fh,
+        trace_rules       => 1,
+        start             => 'S',
+        rules             => [
             [ S      => [qw/Seq0 Seq1/] ],
             [ S      => [qw/Proper Proper Proper Proper/] ],
             [ S      => [qw/X Y Z/] ],
@@ -57,6 +58,7 @@ $grammar->set( { terminals => [qw(x y z a p)] } );
 $grammar->precompute();
 
 Marpa::R2::Test::is( $trace_output, <<'EOS', 'Trace Output' );
+Setting trace_rules
 Added rule #0: S -> Seq0 Seq1
 Added rule #1: S -> Proper Proper Proper Proper
 Added rule #2: S -> X Y Z

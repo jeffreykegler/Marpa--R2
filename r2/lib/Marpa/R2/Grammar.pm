@@ -305,8 +305,12 @@ sub Marpa::R2::Grammar::set {
                 join q{ }, @bad_options );
         } ## end if ( my @bad_options = grep { not $_ ~~ ...})
 
+        # First pass options: These affect processing of other
+        # options and are expected to take force for the other
+        # options, even if specified afterwards
+
         if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
-            $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE] =
+            $trace_fh = $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE] =
                 $value;
         }
 
@@ -324,10 +328,6 @@ sub Marpa::R2::Grammar::set {
                 }
             } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_rules'} ) )
-
-        # First pass options: These affect processing of other
-        # options and are expected to take force for the other
-        # options, even if specified afterwards
 
         if ( defined( my $value = $args->{'default_rank'} ) ) {
             Marpa::R2::exception(
