@@ -761,8 +761,14 @@ GArray *marpa_g_symbols_peek(struct marpa_g* g)
 @ @<Public function prototypes@> =
 GArray *marpa_g_symbols_peek(struct marpa_g* g);
 
-@ Symbol count accesor.
+@ Symbol count accesors.
 @d SYM_Count_of_G(g) ((g)->t_symbols->len)
+@<Public function prototypes@> =
+gint marpa_symbol_count(struct marpa_g* g);
+@ @<Function definitions@> =
+gint marpa_symbol_count(struct marpa_g* g) {
+    return SYM_Count_of_G(g);
+}
 
 @ Symbol by ID.
 @d SYM_by_ID(id) (g_array_index(g->t_symbols, SYM, (id)))
@@ -792,12 +798,20 @@ const struct marpa_g *g, const Marpa_Symbol_ID symid);
 @*0 The Grammar's Rule List.
 This lists the rules for the grammar,
 with their |Marpa_Rule_ID| as the index.
-@d RULE_Count_of_G(g) ((g)->t_rules->len)
 @<Widely aligned grammar elements@> = GArray* t_rules;
 @ @<Initialize grammar elements@> =
 g->t_rules = g_array_new(FALSE, FALSE, sizeof(RULE));
 @ @<Destroy grammar elements@> =
 g_array_free(g->t_rules, TRUE);
+
+@*0 Rule count accessors.
+@ @d RULE_Count_of_G(g) ((g)->t_rules->len)
+@<Public function prototypes@> =
+gint marpa_rule_count(struct marpa_g* g);
+@ @<Function definitions@> =
+gint marpa_rule_count(struct marpa_g* g) {
+    return RULE_Count_of_G(g);
+}
 
 @ The trace accessor returns the GArray.
 It remains ``owned" by the Grammar,
@@ -1107,6 +1121,8 @@ with no way of freeing it.
 #define MARPA_G_EV_EXHAUSTED 1@/
 #define MARPA_G_EV_EARLEY_ITEM_THRESHOLD 2@/
 #define MARPA_G_EV_LOOP_RULES 3@/
+#define MARPA_G_EV_NEW_SYMBOL 4@/
+#define MARPA_G_EV_NEW_RULE 5@/
 @ @<Private incomplete structures@> =
 struct s_g_event;
 typedef struct s_g_event* GEV;
@@ -1146,16 +1162,26 @@ the locations of |DSTACK| elements to change.
 @d G_EVENT_PUSH(g) DSTACK_PUSH((g)->t_events, GEV_Object)
 @<Private function prototypes@> =
 static inline
-GEV g_event_new(struct marpa_g* g, gint type);
+void event_new(struct marpa_g* g, gint type);
 @ @<Function definitions@> =
 static inline
-GEV g_event_new(struct marpa_g* g, gint type)
+void event_new(struct marpa_g* g, gint type)
 {
   /* may change base of dstack */
   GEV top_of_stack = G_EVENT_PUSH(g);
   top_of_stack->t_type = type;
   top_of_stack->t_value = 0;
-  return top_of_stack;
+}
+@ @<Private function prototypes@> =
+static inline
+void int_event_new(struct marpa_g* g, gint type, gint value);
+@ @<Function definitions@> =
+void int_event_new(struct marpa_g* g, gint type, gint value)
+{
+  /* may change base of dstack */
+  GEV top_of_stack = G_EVENT_PUSH(g);
+  top_of_stack->t_type = type;
+  top_of_stack->t_value =  value;
 }
 
 @ @<Private function prototypes@> =
@@ -1724,16 +1750,15 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, gint length)
     rule = rule_start(g, lhs, rhs, length);
     if (!rule) { return -1; }@;
     rule_id = rule->t_id;
-    rule_callback(g, rule_id);
     return rule_id;
 }
 
 @ @<Public function prototypes@> =
-Marpa_Rule_ID marpa_sequence_new(struct marpa_g *g,
+gint marpa_sequence_new(struct marpa_g *g,
 Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
 gint min, gint flags );
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_sequence_new(struct marpa_g *g,
+gint marpa_sequence_new(struct marpa_g *g,
 Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
 gint min, gint flags )
 {
@@ -1765,21 +1790,26 @@ gint min, gint flags )
     @<Add the minimum rule for the sequence@>@;
     @<Add the iterating rule for the sequence@>@;
     @<Free the temporary rhs buffer@>@;
-    return original_rule_id;
+     return G_EVENT_COUNT(g);
 }
+
 @ As a side effect, this checks the LHS and RHS symbols for validity.
 @<Add the original rule for a sequence@> =
-    original_rule = rule_start(g, lhs_id, &rhs_id, 1);
-    if (!original_rule) {
-	g_context_clear(g);
-	g->t_error = "internal_error";
-	return failure_indicator;
+{
+  original_rule = rule_start (g, lhs_id, &rhs_id, 1);
+  if (!original_rule)
+    {
+      g_context_clear (g);
+      g->t_error = "internal_error";
+      return failure_indicator;
     }
-    RULE_is_Used(original_rule) = 0;
-    original_rule_id = original_rule->t_id;
-    original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
-      && separator_id >= 0;
-    rule_callback(g, original_rule_id);
+  RULE_is_Used (original_rule) = 0;
+  original_rule_id = original_rule->t_id;
+  original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
+    && separator_id >= 0;
+  rule_callback (g, original_rule_id);
+  int_event_new (g, MARPA_G_EV_NEW_RULE, original_rule_id);
+}
 
 @ @<Check that the separator is valid or -1@> =
 if (separator_id != -1 && !symbol_is_valid(g, separator_id)) {
@@ -1793,17 +1823,18 @@ if (separator_id != -1 && !symbol_is_valid(g, separator_id)) {
 SYM_by_ID(rhs_id)->t_is_counted = 1;
 if (separator_id >= 0) { SYM_by_ID(separator_id)->t_is_counted = 1; }
 @ @<Add the nulling rule for a sequence@> =
-	{ RULE rule = rule_start(g, lhs_id, 0, 0);
-	if (!rule) { @<Fail with internal grammar error@>@; }
-	rule->t_is_semantic_equivalent = TRUE;
-	rule->t_original = original_rule_id;
-	rule_callback(g, rule->t_id);
-	}
+{
+    RULE rule = rule_start(g, lhs_id, 0, 0);
+    if (!rule) { @<Fail with internal grammar error@>@; }
+    rule->t_is_semantic_equivalent = TRUE;
+    rule->t_original = original_rule_id;
+    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
+}
 @ @<Create the sequence internal LHS symbol@> =
 {
-    internal_lhs = symbol_new(g);
-    internal_lhs_id = ID_of_SYM(internal_lhs);
-    symbol_callback(g, internal_lhs_id);
+  internal_lhs = symbol_new (g);
+  internal_lhs_id = ID_of_SYM (internal_lhs);
+  int_event_new (g, MARPA_G_EV_NEW_SYMBOL, internal_lhs_id);
 }
 
 @ The actual size needed for the RHS buffer is determined by
@@ -1830,7 +1861,7 @@ temp_rhs = g_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     rule->t_is_semantic_equivalent = TRUE;
     /* Real symbol count remains at default of 0 */
     RULE_is_Virtual_RHS (rule) = TRUE;
-    rule_callback (g, rule->t_id);
+    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
 }
 
 @ This ``alternate" top rule is needed if a final separator is allowed.
@@ -1844,7 +1875,7 @@ temp_rhs = g_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     rule->t_is_semantic_equivalent = TRUE;
     RULE_is_Virtual_RHS(rule) = TRUE;
     Real_SYM_Count_of_RULE(rule) = 1;
-    rule_callback(g, rule->t_id);
+    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
 }
 @ The traditional way to write a sequence in BNF is with one
 rule to represent the minimum, and another to deal with iteration.
@@ -1862,7 +1893,7 @@ gint rhs_ix, i;
     if (!rule) { @<Fail with internal grammar error@>@; }
     RULE_is_Virtual_LHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix;
-    rule_callback(g, rule->t_id);
+    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
 }
 @ @<Add the iterating rule for the sequence@> =
 { RULE rule;
@@ -1875,7 +1906,7 @@ gint rhs_ix = 0;
     RULE_is_Virtual_LHS(rule) = 1;
     RULE_is_Virtual_RHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix - 1;
-    rule_callback(g, rule->t_id);
+    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
 }
 
 @ Does this rule duplicate an already existing rule?
@@ -3079,16 +3110,12 @@ RULE_is_Used(rule) = 0; /* Mark the original rule unused */
     }
 }
 
-@ @<Create a CHAF virtual symbol@> = {
-    SYM chaf_virtual_symbol = symbol_new(g);
-    chaf_virtual_symbol->t_is_accessible = 1;
-    chaf_virtual_symbol->t_is_productive = 1;
-    chaf_virtual_symid = ID_of_SYM(chaf_virtual_symbol);
-    g_context_clear(g);
-    g_context_int_add(g, "rule_id", rule_id);
-    g_context_int_add(g, "lhs_id", LHS_ID_of_RULE(rule));
-    g_context_int_add(g, "virtual_end", (gint)piece_end);
-    symbol_callback(g, chaf_virtual_symid);
+@ @<Create a CHAF virtual symbol@> =
+{
+  SYM chaf_virtual_symbol = symbol_new (g);
+  chaf_virtual_symbol->t_is_accessible = 1;
+  chaf_virtual_symbol->t_is_productive = 1;
+  chaf_virtual_symid = ID_of_SYM (chaf_virtual_symbol);
 }
 
 @*0 Temporary buffers for the CHAF right hand sides.
@@ -3368,7 +3395,6 @@ rule structure, and performing the call back.
   chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
   current_lhs->t_virtual_lhs_rule = chaf_rule;
-  rule_callback (g, chaf_rule->t_id);
 }
 
 @ This utility routine translates a proper symbol id to a nulling symbol ID.
@@ -3431,7 +3457,6 @@ old_start->t_is_start = 0;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = 1;
   g->t_proper_start_rule = new_start_rule;
-  rule_callback (g, new_start_rule->t_id);
 }
 
 @ Set up the new nulling start rule, if the old start symbol was
@@ -3467,7 +3492,6 @@ if there is one.  Otherwise it is a new, nulling, symbol.
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = FALSE;
   g->t_null_start_rule = new_start_rule;
-  rule_callback (g, new_start_rule->t_id);
 }
 
 @** Loops.
@@ -3511,26 +3535,31 @@ a production grammar.
 precomputation.
 |libmarpa| assumes that parsing will go through as usual,
 with the loops.
-But it enables the upper layers to make other choices
-by passing a message for every symbol involved in a
-loop,
-as well as a final message with the count of looping symbols.
-
+But it enables the upper layers to make other choices.
+@ The higher layers can differ greatly in their treatment
+of loop rules.  It is perfectly reasonable for a higher layer to treat a loop
+rule as a fatal error.
+It is also reasonable for a higher layer to always silently allow them.
+There are lots of possibilities in between these two extremes.
+To assist the upper layers, an event is reported for a non-zero
+loop rule count, with the final tally.
 @<Function definitions@> =
 static inline
 void loop_detect(struct marpa_g* g)
-{ gint no_of_rules = RULE_Count_of_G(g);
-gint loop_rule_count = 0;
-Bit_Matrix unit_transition_matrix
-    = matrix_create( (guint)no_of_rules , (guint)no_of_rules);
-@<Mark direct unit transitions in |unit_transition_matrix|@>@;
-transitive_closure(unit_transition_matrix);
-@<Mark loop rules@>@;
-if (loop_rule_count) {
-    g->t_has_loop = TRUE;
-    @<Report loop rule count@>@;
-}
-matrix_free(unit_transition_matrix);
+{
+    gint no_of_rules = RULE_Count_of_G(g);
+    gint loop_rule_count = 0;
+    Bit_Matrix unit_transition_matrix =
+	matrix_create ((guint) no_of_rules, (guint) no_of_rules);
+    @<Mark direct unit transitions in |unit_transition_matrix|@>@;
+    transitive_closure(unit_transition_matrix);
+    @<Mark loop rules@>@;
+    if (loop_rule_count)
+      {
+	g->t_has_loop = TRUE;
+	int_event_new (g, MARPA_G_EV_LOOP_RULES, loop_rule_count);
+      }
+    matrix_free(unit_transition_matrix);
 }
 @ @<Private function prototypes@> =
 static inline
@@ -3590,19 +3619,6 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
     rule->t_is_loop = TRUE;
     rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !RULE_is_Virtual_RHS(rule);
 } }
-
-@ The higher layers can differ greatly in their treatment
-of loop rules.  It is perfectly reasonable for a higher layer to treat a loop
-rule as a fatal error.
-It is also reasonable for a higher layer to always silently allow them.
-There are lots of possibilities in between these two extremes.
-To assist the upper layers, an event is reported for a non-zero
-loop rule count, with the final tally.
-@<Report loop rule count@> =
-{
-  GEV event = g_event_new (g, MARPA_G_EV_LOOP_RULES);
-  event->t_value = loop_rule_count;
-}
 
 @** The Aycock-Horspool Finite Automata.
 
@@ -3801,13 +3817,13 @@ gint t_leading_nulls;
 
 @*0 AHFA Item External Accessors.
 @<Function definitions@> =
-guint marpa_AHFA_item_count(struct marpa_g* g) {
+gint marpa_AHFA_item_count(struct marpa_g* g) {
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     return AIM_Count_of_G(g);
 }
 @ @<Public function prototypes@> =
-guint marpa_AHFA_item_count(struct marpa_g* g);
+gint marpa_AHFA_item_count(struct marpa_g* g);
 
 @ @<Function definitions@> =
 Marpa_Rule_ID marpa_AHFA_item_rule(struct marpa_g* g,
@@ -4267,11 +4283,11 @@ const struct marpa_g *g, AHFAID AHFA_state_id);
 
 @*0 AHFA State External Accessors.
 @<Function definitions@> =
-guint marpa_AHFA_state_count(struct marpa_g* g) {
+gint marpa_AHFA_state_count(struct marpa_g* g) {
     return AHFA_Count_of_G(g);
 }
 @ @<Public function prototypes@> =
-guint marpa_AHFA_state_count(struct marpa_g* g);
+gint marpa_AHFA_state_count(struct marpa_g* g);
 
 @ @<Function definitions@> =
 gint
@@ -5639,7 +5655,7 @@ static inline ES current_es_of_r(RECCE r)
 
 @*0 Earley Set Warning Threshold.
 @d DEFAULT_EIM_WARNING_THRESHOLD (100)
-@<Int aligned recognizer elements@> = guint t_earley_item_warning_threshold;
+@<Int aligned recognizer elements@> = gint t_earley_item_warning_threshold;
 @ @<Initialize recognizer elements@> =
 r->t_earley_item_warning_threshold = MAX(DEFAULT_EIM_WARNING_THRESHOLD, AIM_Count_of_G(g)*2);
 @ @<Public function prototypes@> =
@@ -6265,7 +6281,7 @@ static inline EIM earley_item_create(const RECCE r,
   EIM new_item;
   EIM* top_of_work_stack;
   const ES set = key.t_set;
-  const guint count = ++EIM_Count_of_ES(set);
+  const gint count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
   new_item = obstack_alloc (&r->t_obs, sizeof (*new_item));
   new_item->t_key = key;
@@ -6321,10 +6337,7 @@ if (count >= r->t_earley_item_warning_threshold)
 	R_FATAL ("eim count exceeds fatal threshold");
 	return failure_indicator;
       }
-    {
-      GEV event = g_event_new (g, MARPA_G_EV_EARLEY_ITEM_THRESHOLD);
-      event->t_value = count;
-    }
+      int_event_new (g, MARPA_G_EV_EARLEY_ITEM_THRESHOLD, count);
   }
 
 @*0 Destructor.
@@ -8284,7 +8297,7 @@ marpa_earleme_complete(struct marpa_r* r)
            uncompleted Earley sets, we can make no further progress.
 	   The parse is ``exhausted". */
 	R_is_Exhausted(r) = 1;
-	g_event_new(g, MARPA_G_EV_EXHAUSTED);
+	event_new(g, MARPA_G_EV_EXHAUSTED);
       }
     earley_set_update_items(r, current_earley_set);
   return G_EVENT_COUNT(g);

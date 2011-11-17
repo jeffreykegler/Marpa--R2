@@ -735,11 +735,41 @@ PPCODE:
 int
 AHFA_item_count( g )
     Grammar *g;
-CODE:
-    RETVAL = marpa_AHFA_item_count(g );
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
+PPCODE:
+    {
+	gint count = marpa_AHFA_item_count(g );
+	if (count < -1) {
+	  croak ("Problem in g->AFHA_item_count(): %s", marpa_g_error (g));
+	}
+	if (count < 0) { XSRETURN_UNDEF; }
+	XPUSHs( sv_2mortal( newSViv(count) ) );
+    }
+
+int
+rule_count( g )
+    Grammar *g;
+PPCODE:
+    {
+	gint count = marpa_rule_count(g );
+	if (count < -1) {
+	  croak ("Problem in g->rule_count(): %s", marpa_g_error (g));
+	}
+	if (count < 0) { XSRETURN_UNDEF; }
+	XPUSHs( sv_2mortal( newSViv(count) ) );
+    }
+
+int
+symbol_count( g )
+    Grammar *g;
+PPCODE:
+    {
+	gint count = marpa_symbol_count(g );
+	if (count < -1) {
+	  croak ("Problem in g->symbol_count(): %s", marpa_g_error (g));
+	}
+	if (count < 0) { XSRETURN_UNDEF; }
+	XPUSHs( sv_2mortal( newSViv(count) ) );
+    }
 
 Marpa_Rule_ID
 AHFA_item_rule( g, item_id )
