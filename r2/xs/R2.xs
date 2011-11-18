@@ -929,7 +929,7 @@ Marpa_Earleme
 furthest_earleme( r_wrapper )
     R_Wrapper *r_wrapper;
 CODE:
-    RETVAL = marpa_furthest_earleme(r_wrapper->r);
+    RETVAL = marpa_r_furthest_earleme(r_wrapper->r);
 OUTPUT:
     RETVAL
 
@@ -1104,7 +1104,7 @@ first_token_link_trace( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint token_id = marpa_first_token_link_trace(r);
+    gint token_id = marpa_r_first_token_link_trace(r);
     if (token_id <= -2) { croak("Trace first token link problem: %s", marpa_r_error(r)); }
     if (token_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(token_id) ) );
@@ -1115,7 +1115,7 @@ next_token_link_trace( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint token_id = marpa_next_token_link_trace(r);
+    gint token_id = marpa_r_next_token_link_trace(r);
     if (token_id <= -2) { croak("Trace next token link problem: %s", marpa_r_error(r)); }
     if (token_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(token_id) ) );
@@ -1126,7 +1126,7 @@ first_completion_link_trace( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint AHFA_state_id = marpa_first_completion_link_trace(r);
+    gint AHFA_state_id = marpa_r_first_completion_link_trace(r);
     if (AHFA_state_id <= -2) { croak("Trace first completion link problem: %s", marpa_r_error(r)); }
     if (AHFA_state_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(AHFA_state_id) ) );
@@ -1137,7 +1137,7 @@ next_completion_link_trace( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint AHFA_state_id = marpa_next_completion_link_trace(r);
+    gint AHFA_state_id = marpa_r_next_completion_link_trace(r);
     if (AHFA_state_id <= -2) { croak("Trace next completion link problem: %s", marpa_r_error(r)); }
     if (AHFA_state_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(AHFA_state_id) ) );
@@ -1148,7 +1148,7 @@ first_leo_link_trace( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint AHFA_state_id = marpa_first_leo_link_trace(r);
+    gint AHFA_state_id = marpa_r_first_leo_link_trace(r);
     if (AHFA_state_id <= -2) { croak("Trace first completion link problem: %s", marpa_r_error(r)); }
     if (AHFA_state_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(AHFA_state_id) ) );
@@ -1159,7 +1159,7 @@ next_leo_link_trace( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint AHFA_state_id = marpa_next_leo_link_trace(r);
+    gint AHFA_state_id = marpa_r_next_leo_link_trace(r);
     if (AHFA_state_id <= -2) { croak("Trace next completion link problem: %s", marpa_r_error(r)); }
     if (AHFA_state_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(AHFA_state_id) ) );
@@ -1216,7 +1216,7 @@ first_postdot_item_trace( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint postdot_symbol_id = marpa_first_postdot_item_trace(r);
+    gint postdot_symbol_id = marpa_r_first_postdot_item_trace(r);
     if (postdot_symbol_id <= -2) { croak("Trace first postdot item problem: %s", marpa_r_error(r)); }
     if (postdot_symbol_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(postdot_symbol_id) ) );
@@ -1227,7 +1227,7 @@ next_postdot_item_trace( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint postdot_symbol_id = marpa_next_postdot_item_trace(r);
+    gint postdot_symbol_id = marpa_r_next_postdot_item_trace(r);
     if (postdot_symbol_id <= -2) { croak("Trace next postdot item problem: %s", marpa_r_error(r)); }
     if (postdot_symbol_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(postdot_symbol_id) ) );
@@ -1698,7 +1698,7 @@ fork_or_node( r_wrapper, fork_id )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_fork_or_node(r, fork_id);
+    result = marpa_t_fork_or_node(r, fork_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->fork_or_node(): %s", marpa_r_error (r));
@@ -1713,7 +1713,7 @@ fork_choice( r_wrapper, fork_id )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_fork_choice(r, fork_id);
+    result = marpa_t_fork_choice(r, fork_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->fork_choice(): %s", marpa_r_error (r));
@@ -1728,7 +1728,7 @@ fork_parent( r_wrapper, fork_id )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_fork_parent(r, fork_id);
+    result = marpa_t_fork_parent(r, fork_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->fork_parent(): %s", marpa_r_error (r));
@@ -1743,7 +1743,7 @@ fork_is_cause( r_wrapper, fork_id )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_fork_is_cause(r, fork_id);
+    result = marpa_t_fork_is_cause(r, fork_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->fork_is_cause(): %s", marpa_r_error (r));
@@ -1758,7 +1758,7 @@ fork_cause_is_ready( r_wrapper, fork_id )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_fork_cause_is_ready(r, fork_id);
+    result = marpa_t_fork_cause_is_ready(r, fork_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->fork_cause_is_ready(): %s", marpa_r_error (r));
@@ -1774,7 +1774,7 @@ fork_is_predecessor( r_wrapper, fork_id )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_fork_is_predecessor(r, fork_id);
+    result = marpa_t_fork_is_predecessor(r, fork_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->fork_is_predecessor(): %s", marpa_r_error (r));
@@ -1789,7 +1789,7 @@ fork_predecessor_is_ready( r_wrapper, fork_id )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_fork_predecessor_is_ready(r, fork_id);
+    result = marpa_t_fork_predecessor_is_ready(r, fork_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->fork_predecessor_is_ready(): %s", marpa_r_error (r));

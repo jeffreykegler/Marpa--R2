@@ -5505,9 +5505,9 @@ No complete or predicted Earley item will be found after the current earleme.
 @<Int aligned recognizer elements@> = EARLEME t_furthest_earleme;
 @ @<Initialize recognizer elements@> = r->t_furthest_earleme = 0;
 @ @<Public function prototypes@> =
-guint marpa_furthest_earleme(struct marpa_r* r);
+guint marpa_r_furthest_earleme(struct marpa_r* r);
 @ @<Function definitions@> =
-guint marpa_furthest_earleme(struct marpa_r* r)
+guint marpa_r_furthest_earleme(struct marpa_r* r)
 { return Furthest_Earleme_of_R(r); }
 
 @*0 Symbol Workarea.
@@ -6712,10 +6712,10 @@ On other failures, return -2 and clear the trace
 postdot item.
 @<Public function prototypes@> =
 Marpa_Symbol_ID
-marpa_first_postdot_item_trace (struct marpa_r *r);
+marpa_r_first_postdot_item_trace (struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Symbol_ID
-marpa_first_postdot_item_trace (struct marpa_r *r)
+marpa_r_first_postdot_item_trace (struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   ES current_earley_set = r->t_trace_earley_set;
@@ -6746,10 +6746,10 @@ On other failures, return -2 and clear the trace
 postdot item.
 @<Public function prototypes@> =
 Marpa_Symbol_ID
-marpa_next_postdot_item_trace (struct marpa_r *r);
+marpa_r_next_postdot_item_trace (struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Symbol_ID
-marpa_next_postdot_item_trace (struct marpa_r *r)
+marpa_r_next_postdot_item_trace (struct marpa_r *r)
 {
   const SYMID no_more_postdot_symbols = -1;
   @<Return |-2| on failure@>@;
@@ -7160,9 +7160,9 @@ Returns the symbol ID if there was a token source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_first_token_link_trace(struct marpa_r *r);
+Marpa_Symbol_ID marpa_r_first_token_link_trace(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_first_token_link_trace(struct marpa_r *r)
+Marpa_Symbol_ID marpa_r_first_token_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRC source;
@@ -7206,9 +7206,9 @@ a next token source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_next_token_link_trace(struct marpa_r *r);
+Marpa_Symbol_ID marpa_r_next_token_link_trace(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_next_token_link_trace(struct marpa_r *r)
+Marpa_Symbol_ID marpa_r_next_token_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRCL full_link;
@@ -7239,9 +7239,9 @@ if there was a completion source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_first_completion_link_trace(struct marpa_r *r);
+Marpa_Symbol_ID marpa_r_first_completion_link_trace(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_first_completion_link_trace(struct marpa_r *r)
+Marpa_Symbol_ID marpa_r_first_completion_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRC source;
@@ -7284,9 +7284,9 @@ a next completion source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_next_completion_link_trace(struct marpa_r *r);
+Marpa_Symbol_ID marpa_r_next_completion_link_trace(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_next_completion_link_trace(struct marpa_r *r)
+Marpa_Symbol_ID marpa_r_next_completion_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRC source;
@@ -7319,10 +7319,10 @@ if there was a Leo source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_first_leo_link_trace(struct marpa_r *r);
+Marpa_Symbol_ID marpa_r_first_leo_link_trace(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Symbol_ID
-marpa_first_leo_link_trace (struct marpa_r *r)
+marpa_r_first_leo_link_trace (struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   SRC source;
@@ -7367,10 +7367,10 @@ a next Leo source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_next_leo_link_trace(struct marpa_r *r);
+Marpa_Symbol_ID marpa_r_next_leo_link_trace(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Symbol_ID
-marpa_next_leo_link_trace (struct marpa_r *r)
+marpa_r_next_leo_link_trace (struct marpa_r *r)
 {
   @<Return |-2| on failure@>@/
   SRCL full_link;
@@ -11547,9 +11547,9 @@ set |fork|@> = {
 
 @ Return the ID of the or-node for |fork_id|.
 @<Private function prototypes@> =
-gint marpa_fork_or_node(struct marpa_r *r, int fork_id);
+gint marpa_t_fork_or_node(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
-gint marpa_fork_or_node(struct marpa_r *r, int fork_id)
+gint marpa_t_fork_or_node(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
@@ -11560,9 +11560,9 @@ gint marpa_fork_or_node(struct marpa_r *r, int fork_id)
 
 @ Return the current choice for |fork_id|.
 @<Private function prototypes@> =
-gint marpa_fork_choice(struct marpa_r *r, int fork_id);
+gint marpa_t_fork_choice(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
-gint marpa_fork_choice(struct marpa_r *r, int fork_id)
+gint marpa_t_fork_choice(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
@@ -11579,11 +11579,11 @@ but -1 can also be a valid value.
 If that's an issue, the |fork_id| needs
 to be checked with one of the trace functions
 where -1 is never a valid value ---
-for example, |marpa_fork_or_node|.
+for example, |marpa_t_fork_or_node|.
 @<Private function prototypes@> =
-gint marpa_fork_parent(struct marpa_r *r, int fork_id);
+gint marpa_t_fork_parent(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
-gint marpa_fork_parent(struct marpa_r *r, int fork_id)
+gint marpa_t_fork_parent(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
@@ -11594,9 +11594,9 @@ gint marpa_fork_parent(struct marpa_r *r, int fork_id)
 
 @ Return the cause-is-ready bit for |fork_id|.
 @<Private function prototypes@> =
-gint marpa_fork_cause_is_ready(struct marpa_r *r, int fork_id);
+gint marpa_t_fork_cause_is_ready(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
-gint marpa_fork_cause_is_ready(struct marpa_r *r, int fork_id)
+gint marpa_t_fork_cause_is_ready(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
@@ -11607,9 +11607,9 @@ gint marpa_fork_cause_is_ready(struct marpa_r *r, int fork_id)
 
 @ Return the predecessor-is-ready bit for |fork_id|.
 @<Private function prototypes@> =
-gint marpa_fork_predecessor_is_ready(struct marpa_r *r, int fork_id);
+gint marpa_t_fork_predecessor_is_ready(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
-gint marpa_fork_predecessor_is_ready(struct marpa_r *r, int fork_id)
+gint marpa_t_fork_predecessor_is_ready(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
@@ -11620,9 +11620,9 @@ gint marpa_fork_predecessor_is_ready(struct marpa_r *r, int fork_id)
 
 @ Return the is-cause bit for |fork_id|.
 @<Private function prototypes@> =
-gint marpa_fork_is_cause(struct marpa_r *r, int fork_id);
+gint marpa_t_fork_is_cause(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
-gint marpa_fork_is_cause(struct marpa_r *r, int fork_id)
+gint marpa_t_fork_is_cause(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
@@ -11633,9 +11633,9 @@ gint marpa_fork_is_cause(struct marpa_r *r, int fork_id)
 
 @ Return the is-predecessor bit for |fork_id|.
 @<Private function prototypes@> =
-gint marpa_fork_is_predecessor(struct marpa_r *r, int fork_id);
+gint marpa_t_fork_is_predecessor(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
-gint marpa_fork_is_predecessor(struct marpa_r *r, int fork_id)
+gint marpa_t_fork_is_predecessor(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
