@@ -921,7 +921,7 @@ Marpa_Earleme
 current_earleme( r_wrapper )
     R_Wrapper *r_wrapper;
 CODE:
-    RETVAL = marpa_current_earleme(r_wrapper->r);
+    RETVAL = marpa_r_current_earleme(r_wrapper->r);
 OUTPUT:
     RETVAL
 
@@ -1016,7 +1016,7 @@ earley_item_warning_threshold_set( r_wrapper, too_many_earley_items )
     R_Wrapper *r_wrapper;
     unsigned int too_many_earley_items;
 PPCODE:
-    { gboolean result = marpa_earley_item_warning_threshold_set(r_wrapper->r, too_many_earley_items);
+    { gboolean result = marpa_r_earley_item_warning_threshold_set(r_wrapper->r, too_many_earley_items);
     if (result) XSRETURN_YES;
     }
     XSRETURN_NO;
@@ -1025,7 +1025,7 @@ void
 too_many_earley_items( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
-    { guint too_many_earley_items = marpa_earley_item_warning_threshold( r_wrapper->r );
+    { guint too_many_earley_items = marpa_r_earley_item_warning_threshold( r_wrapper->r );
     XPUSHs( sv_2mortal( newSViv(too_many_earley_items) ) );
     }
 
@@ -1051,7 +1051,7 @@ earley_set_size( r_wrapper, set_ordinal )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint earley_set_size = marpa_earley_set_size (r, set_ordinal);
+      gint earley_set_size = marpa_r_earley_set_size (r, set_ordinal);
       if (earley_set_size < 0) {
 	  croak ("Problem in r->earley_set_size(): %s", marpa_r_error (r));
 	}
@@ -1064,7 +1064,7 @@ earley_set_trace( r_wrapper, set_ordinal )
     Marpa_Earley_Set_ID set_ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    Marpa_AHFA_State_ID result = marpa_earley_set_trace(
+    Marpa_AHFA_State_ID result = marpa_r_earley_set_trace(
 	r, set_ordinal );
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) { croak("problem with r->earley_set_trace: %s", marpa_r_error(r)); }
@@ -1077,7 +1077,7 @@ earley_item_trace( r_wrapper, item_ordinal )
     Marpa_Earley_Item_ID item_ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    Marpa_AHFA_State_ID result = marpa_earley_item_trace(
+    Marpa_AHFA_State_ID result = marpa_r_earley_item_trace(
 	r, item_ordinal);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) { croak("problem with r->earley_item_trace: %s", marpa_r_error(r)); }
@@ -1090,7 +1090,7 @@ earley_item_origin( r_wrapper )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint origin_earleme = marpa_earley_item_origin (r);
+      gint origin_earleme = marpa_r_earley_item_origin (r);
       if (origin_earleme < 0)
 	{
       croak ("Problem with r->earley_item_origin(): %s",
@@ -1352,7 +1352,7 @@ earleme_complete( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-        Marpa_Earleme result = marpa_earleme_complete(r);
+        Marpa_Earleme result = marpa_r_earleme_complete(r);
 	if (result < 0) {
 	  croak ("Problem in r->earleme_complete(): %s", marpa_r_error (r));
 	}
@@ -1388,7 +1388,7 @@ earleme( r_wrapper, ordinal )
      Marpa_Earley_Set_ID ordinal;
 PPCODE:
     { struct marpa_r* const r = r_wrapper->r;
-	gint result = marpa_earleme(r, ordinal);
+	gint result = marpa_r_earleme(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->earleme(): %s", marpa_r_error (r));
@@ -1403,7 +1403,7 @@ eval_setup( r_wrapper, rule_id, ordinal )
      Marpa_Earley_Set_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_bocage_new(r, rule_id, ordinal);
+	gint result = marpa_b_new(r, rule_id, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->eval_setup(): %s", marpa_r_error (r));
@@ -1416,7 +1416,7 @@ eval_clear( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_bocage_free(r);
+	gint result = marpa_b_free(r);
 	if (result < 0) {
 	  croak ("Problem in r->eval_clear(): %s", marpa_r_error (r));
 	}
@@ -1627,7 +1627,7 @@ PPCODE:
 	    and_node_ids[i] = SvIV(*elem);
 	}
     }
-    result = marpa_and_order_set(r, or_node_id, and_node_ids, length);
+    result = marpa_o_and_order_set(r, or_node_id, and_node_ids, length);
     Safefree(and_node_ids);
     if (result < 0) { XSRETURN_NO; }
     XSRETURN_YES;
@@ -1641,7 +1641,7 @@ and_node_order_get( r_wrapper, or_node_id, and_ix )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_and_order_get(r, or_node_id, and_ix);
+    result = marpa_o_and_order_get(r, or_node_id, and_ix);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->and_node_order_get(): %s", marpa_r_error (r));

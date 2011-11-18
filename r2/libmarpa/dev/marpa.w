@@ -5456,9 +5456,9 @@ r->t_current_earleme = -1;
 @d Current_Earleme_of_R(r) ((r)->t_current_earleme)
 @d LV_Current_Earleme_of_R(r) (Current_Earleme_of_R(r))
 @ @<Public function prototypes@> =
-guint marpa_current_earleme(struct marpa_r* r);
+guint marpa_r_current_earleme(struct marpa_r* r);
 @ @<Function definitions@> =
-guint marpa_current_earleme(struct marpa_r* r)
+guint marpa_r_current_earleme(struct marpa_r* r)
 { return Current_Earleme_of_R(r); }
 
 @ @d Current_ES_of_R(r) current_es_of_r(r)
@@ -5478,17 +5478,17 @@ static inline ES current_es_of_r(RECCE r)
 @ @<Initialize recognizer elements@> =
 r->t_earley_item_warning_threshold = MAX(DEFAULT_EIM_WARNING_THRESHOLD, AIM_Count_of_G(g)*2);
 @ @<Public function prototypes@> =
-guint marpa_earley_item_warning_threshold(struct marpa_r* r);
+guint marpa_r_earley_item_warning_threshold(struct marpa_r* r);
 @ @<Function definitions@> =
-guint marpa_earley_item_warning_threshold(struct marpa_r* r)
+guint marpa_r_earley_item_warning_threshold(struct marpa_r* r)
 { return r->t_earley_item_warning_threshold; }
 
 @ @<Public function prototypes@> =
-gboolean marpa_earley_item_warning_threshold_set(struct marpa_r*r, guint threshold);
+gboolean marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, guint threshold);
 @ Returns |TRUE| on success,
 |FALSE| on failure.
 @<Function definitions@> =
-gboolean marpa_earley_item_warning_threshold_set(struct marpa_r*r, guint threshold)
+gboolean marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, guint threshold)
 {
     r->t_earley_item_warning_threshold = threshold == 0 ? EIM_FATAL_THRESHOLD : threshold;
     return TRUE;
@@ -5960,9 +5960,9 @@ If the ordinal is out of bounds, this function
 returns -1, which can be treated as a soft failure.
 On other problems, it returns -2.
 @<Public function prototypes@> =
-Marpa_Earleme marpa_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id);
+Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id);
 @ @<Function definitions@> =
-Marpa_Earleme marpa_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
+Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
 {
     const gint es_does_not_exist = -1;
     @<Return |-2| on failure@>@;
@@ -5986,9 +5986,9 @@ Marpa_Earleme marpa_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
 @ Note that this trace function returns the earley set size
 of the {\bf current earley set}.
 @ @<Public function prototypes@> =
-gint marpa_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id);
+gint marpa_r_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id);
 @ @<Function definitions@> =
-gint marpa_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id)
+gint marpa_r_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id)
 {
     @<Return |-2| on failure@>@;
     ES earley_set;
@@ -6282,10 +6282,10 @@ or for other failures, |-2| is returned.
 The upper levels may choose to treat these as hard failures.
 @ @<Public function prototypes@> =
 Marpa_Earleme
-marpa_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id);
+marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id);
 @ @<Function definitions@> =
 Marpa_Earleme
-marpa_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
+marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
 {
   ES earley_set;
   const gint es_does_not_exist = -1;
@@ -6322,11 +6322,11 @@ marpa_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
 
 @ @<Public function prototypes@> =
 Marpa_AHFA_State_ID
-marpa_earley_item_trace (struct marpa_r *r,
+marpa_r_earley_item_trace (struct marpa_r *r,
     Marpa_Earley_Item_ID item_id);
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID
-marpa_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID item_id)
+marpa_r_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID item_id)
 {
   const gint eim_does_not_exist = -1;
   @<Return |-2| on failure@>@;
@@ -6377,9 +6377,9 @@ static inline void trace_earley_item_clear(struct marpa_r* r)
 }
 
 @ @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_earley_item_origin(struct marpa_r *r);
+Marpa_Earley_Set_ID marpa_r_earley_item_origin(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Earley_Set_ID marpa_earley_item_origin(struct marpa_r *r)
+Marpa_Earley_Set_ID marpa_r_earley_item_origin(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   EIM item = r->t_trace_earley_item;
@@ -8081,10 +8081,10 @@ exhausted parse is significant to the higher layers,
 they must explicitly check the phase whenever this function
 returns zero.
 @<Public function prototypes@> =
-Marpa_Earleme marpa_earleme_complete(struct marpa_r* r);
+Marpa_Earleme marpa_r_earleme_complete(struct marpa_r* r);
 @ @<Function definitions@> =
 Marpa_Earleme
-marpa_earleme_complete(struct marpa_r* r)
+marpa_r_earleme_complete(struct marpa_r* r)
 {
   @<Return |-2| on failure@>@;
   @<Declare and initialize recce objects@>@;
@@ -10432,9 +10432,9 @@ Earley set must be a null parse.
 
 so that an or-node of 0 
 @<Public function prototypes@> =
-gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg);
+gint marpa_b_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg);
 @ @<Function definitions@> =
-gint marpa_bocage_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg) {
+gint marpa_b_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg) {
     @<Return |-2| on failure@>@;
     ORID top_or_node_id = failure_indicator;
     const gint no_parse = -1;
@@ -10700,9 +10700,9 @@ to make sense.
 if the bocage already has been freed,
 or was never initialized.
 @<Public function prototypes@> =
-gint marpa_bocage_free(struct marpa_r* r);
+gint marpa_b_free(struct marpa_r* r);
 @ @<Function definitions@> =
-gint marpa_bocage_free(struct marpa_r* r) {
+gint marpa_b_free(struct marpa_r* r) {
     @<Return |-2| on failure@>@;
     struct marpa_g *g = G_of_R(r);
     @<Fail if fatal error@>@;
@@ -11295,7 +11295,7 @@ or if the and-node is specified twice,
 or if an ordering has already been specified for
 the or-node.
 @<Public function prototypes@> =
-gint marpa_and_order_set(struct marpa_r *r,
+gint marpa_o_and_order_set(struct marpa_r *r,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
     gint length);
@@ -11340,7 +11340,7 @@ A purist might insist this needs to be reflected in a structure,
 but to my mind doing this portably makes the code more obscure,
 not less.
 @<Function definitions@> =
-gint marpa_and_order_set(struct marpa_r *r,
+gint marpa_o_and_order_set(struct marpa_r *r,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
     gint length)
@@ -11426,7 +11426,7 @@ gint marpa_and_order_set(struct marpa_r *r,
 @ @<Private function prototypes@> =
 static inline ANDID and_order_get(BOC b, OR or_node, gint ix);
 @ @<Public function prototypes@> =
-Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix);
+Marpa_And_Node_ID marpa_o_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix);
 @ @<Function definitions@> =
 static inline ANDID and_order_get(BOC b, OR or_node, gint ix)
 {
@@ -11453,7 +11453,7 @@ static inline ANDID and_order_get(BOC b, OR or_node, gint ix)
   return First_ANDID_of_OR(or_node) + ix;
 }
 
-Marpa_And_Node_ID marpa_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix)
+Marpa_And_Node_ID marpa_o_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix)
 {
     OR or_node;
   @<Return |-2| on failure@>@;
