@@ -120,9 +120,8 @@ at this point.
 could be seen to violate the spirit of the open source.
 @ This will eventually become a real book describing the
 code.
-It is already approaching that in size.
-Quality is another story.
-Much rewriting and reorganization is being left until the end.
+Much rewriting and reorganization is needed for that
+to happen.
 \par
 Marpa is a very unusual C library -- no system calls, no floating
 point and almost no arithmetic.  A lot of data structures
@@ -130,18 +129,22 @@ and pointer twiddling.
 I have found that a lot of good coding practices in other
 contexts are not in this one.
 \par
-For example, I intended to fully to avoid abbreviations.
+@ As one example, I intended to fully to avoid abbreviations.
 This is good practice -- in most cases all abbreviations save is
 some typing, at a very high cost in readability.
 In |libmarpa|, however, spelling things out usually does
 {\bf not} make them more readable.
-To be sure, |To_AHFA_of_EIM_by_SYMID| is pretty incomprehensible.
+To be sure, when I say
+$$|To_AHFA_of_EIM_by_SYMID|$$
+that is pretty incomprehensible.
 But is
 $$Aycock\_Horspool\_Finite\_Automaton\_To\_State\_of\_Earley\_Item\_by\_Symbol\_ID$$
-better?
-At this point, I have a lot of practice coming back to pages of both, cold, 
+really any better?
+\par
+My experience say no.
+I have a lot of practice coming back to pages of both, cold, 
 and trying to figure them out.
-Both are daunting, but the abbreviations, are more elegant, and look
+Both are daunting, but the abbreviations are more elegant, and look
 better on the page, while unabbreviated names routinely pose almost insoluble
 problems for Cweb's \TeX{} typesetting.
 \par
@@ -290,14 +293,6 @@ glue layer, the situation is more complicated.
 At this writing, I expect to make pointers
 to most structures
 completely invisible except inside |libmarpa|.
-The external accessors do allow the glue layer
-some access
-to |libmarpa|'s internal structures.
-But in the case of the |_peek|
-external accessors,
-it is intuitive that the memory is owned
-by the |libmarpa| layer,
-and expected that any use of it will be quick.
 
 In the case of object pointers, their expected ordinary
 use is be kept around to refer to the object.
@@ -336,10 +331,9 @@ used in a private function.
 
 @*0 Marpa Global Setup.
 
-Marpa does no global initialization at the moment.
+Marpa has no globals as of this writing.
+For thread-safety, among other reasons,
 I'll try to keep it that way.
-If I can't, I will need to deal with the issue
-of thread safety.
 
 @*0 Complexity.
 Considerable attention is paid to time and,
@@ -408,6 +402,45 @@ But a slower library would be the result.
 
 @** Coding conventions.
 @*0 Naming conventions.
+
+@*1 External functions.
+
+All libmarpa's external functions,
+without exception, begin with the
+prefix |marpa_|.
+All libmarpa's external functions
+fall into one of three classes:
+\li Version-number-related
+function follow GNU naming conventions.
+\li The functions for libmarpa's obstacks
+have name with the prefix |marpa_obs_|.
+These are not part of libmarpa's external interface,
+but so they do have external linkage so that they
+can be compiled separately.
+\li Function for one of libmarpa's objects,
+which begin with the prefix
+|marpa_X_|,
+where |X| is a one-letter code
+which designates one of libmarpa's objects.
+\par
+
+@*1 Objects.
+
+When I find it useful,
+libmarpa 
+uses an object-oriented approach.
+One such case is the classification
+and naming of external functions.
+This can be seen as giving libmarpa an object-oriented
+structure, overall.
+The classes of object used by libmarpa have one letter codes.
+
+\li g: grammar.
+\li r: recognizer.
+\li b: bocage.
+\li o: ordering.
+\li t: tree.
+\li v: evaluator.
 
 @*1 Reserved locals.
 Certain symbol names are reserved for certain purposes.
@@ -508,27 +541,6 @@ of object |obj|.
 It is an internal function, and often will be declared
 |static inline|.
 
-\li |marpa_obj_fld_look| returns field |fld|
-of object |obj|.
-It is an external equivalent of |obj_fld_get|.
-The returned value is still owned by object |obj| -- it should
-not be modified or freed.
-In practice, the |look| verb is often omitted.
-
-\li |marpa_obj_fld_peek| returns field |fld|
-of object |obj|.
-It is an external equivalent of |obj_fld_get|.
-The returned value is still owned by object |obj| -- it should
-not be modified or freed.
-
-The difference between ``peek" and ``look" is somewhat
-subjective.
-``Look" functions are expected to be called in the normal
-course of operation, including in production code.
-``Peek" functions break the encapsulation rules.
-Their use is expected to be limited
-to debugging or tracing situations.
-
 \li |marpa_obj_fld_set| sets field |fld|
 of object |obj|.
 It's the external equivalent of |obj_fld_put|.
@@ -538,7 +550,7 @@ of object |obj|.
 It is an external equivalent of |obj_fld_get|.
 The returned value is owned by the caller.
 
-@*0 Abbreviations and Vocabulary.
+@*0 Abbreviations and cocabulary.
 @ Unexplained abbreviations and non-standard vocabulary
 pose unnecessary challenges.
 Particular obstacles to those who are not native speakers
@@ -730,21 +742,12 @@ g->t_symbols = g_array_new(FALSE, FALSE, sizeof(SYM));
 { symbol_free(SYM_by_ID(id)); } }
 g_array_free(g->t_symbols, TRUE);
 
-@ The trace accessor returns the GArray.
-It remains ``owned" by the Grammar,
-and must not be freed or modified.
-@<Function definitions@> =
-GArray *marpa_g_symbols_peek(struct marpa_g* g)
-{ return g->t_symbols; }
-@ @<Public function prototypes@> =
-GArray *marpa_g_symbols_peek(struct marpa_g* g);
-
 @ Symbol count accesors.
 @d SYM_Count_of_G(g) ((g)->t_symbols->len)
 @<Public function prototypes@> =
-gint marpa_symbol_count(struct marpa_g* g);
+gint marpa_g_symbol_count(struct marpa_g* g);
 @ @<Function definitions@> =
-gint marpa_symbol_count(struct marpa_g* g) {
+gint marpa_g_symbol_count(struct marpa_g* g) {
     return SYM_Count_of_G(g);
 }
 
@@ -790,15 +793,6 @@ gint marpa_rule_count(struct marpa_g* g);
 gint marpa_rule_count(struct marpa_g* g) {
     return RULE_Count_of_G(g);
 }
-
-@ The trace accessor returns the GArray.
-It remains ``owned" by the Grammar,
-and must not be freed or modified.
-@<Function definitions@> =
-GArray *marpa_g_rules_peek(struct marpa_g* g)
-{ return g->t_rules; }
-@ @<Public function prototypes@> =
-GArray *marpa_g_rules_peek(struct marpa_g* g);
 
 @ Internal accessor to find a rule by its id.
 @d RULE_by_ID(g, id) (g_array_index((g)->t_rules, RULE, (id)))
@@ -1180,10 +1174,10 @@ symbol_new (struct marpa_g *g)
 }
 
 @ @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_symbol_new(struct marpa_g *g);
+Marpa_Symbol_ID marpa_g_symbol_new(struct marpa_g *g);
 @ @<Function definitions@> =
 Marpa_Symbol_ID
-marpa_symbol_new (struct marpa_g * g)
+marpa_g_symbol_new (struct marpa_g * g)
 {
   SYMID id = ID_of_SYM(symbol_new (g));
   return id;
@@ -1211,25 +1205,47 @@ The implementation is a |GArray|.
 symbol->t_lhs = g_array_new(FALSE, FALSE, sizeof(Marpa_Rule_ID));
 @ @<Free symbol elements@> =
 g_array_free(symbol->t_lhs, TRUE);
-@ The trace accessor returns the GArray.
-It remains ``owned" by the Grammar,
-and must not be freed or modified.
-@<Function definitions@> = 
-GArray *marpa_symbol_lhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid)
-{ @<Return |NULL| on failure@>@;
-@<Fail if grammar |symid| is invalid@>@;
-return SYM_by_ID(symid)->t_lhs; }
+
 @ @<Public function prototypes@> =
-GArray *marpa_symbol_lhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid);
+gint marpa_g_symbol_lhs_count(struct marpa_g* g, Marpa_Symbol_ID symid);
+Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint ix);
+@ @<Function definitions@> = 
+Marpa_Rule_ID marpa_g_symbol_lhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
+{
+    @<Return |-2| on failure@>@;
+    GArray* symbol_lh_rules;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    symbol_lh_rules = SYM_by_ID(symid)->t_lhs;
+    return symbol_lh_rules->len;
+}
+Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint ix)
+{
+    @<Return |-2| on failure@>@;
+    GArray* symbol_lh_rules;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    if (ix < 0) {
+        MARPA_ERROR("symbol lhs index negative");
+	return failure_indicator;
+    }
+    symbol_lh_rules = SYM_by_ID(symid)->t_lhs;
+    if ((guint)ix >= symbol_lh_rules->len) {
+        MARPA_ERROR("symbol lhs index out of bounds");
+	return -1;
+    }
+    return g_array_index(symbol_lh_rules, RULEID, ix);
+}
+
 @ @<Function definitions@> = static inline
 void symbol_lhs_add(SYM symbol, Marpa_Rule_ID rule_id)
 { g_array_append_val(symbol->t_lhs, rule_id); }
 void
-marpa_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID rule_id)
+marpa_g_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID rule_id)
 { symbol_lhs_add(SYM_by_ID(symid), rule_id); }
 @ @<Private function prototypes@> =
 void
-marpa_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID rule_id);
+marpa_g_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID rule_id);
 
 @*0 Symbol RHS Rules Element.
 This tracks the rules for which this symbol is the RHS.
@@ -1245,12 +1261,12 @@ symbol->t_rhs = g_array_new(FALSE, FALSE, sizeof(Marpa_Rule_ID));
 It remains ``owned" by the Grammar,
 and must not be freed or modified.
 @<Function definitions@> = 
-GArray *marpa_symbol_rhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid)
+GArray *marpa_g_symbol_rhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid)
 { @<Return |NULL| on failure@>@;
 @<Fail if grammar |symid| is invalid@>@;
 return SYM_by_ID(symid)->t_rhs; }
 @ @<Public function prototypes@> =
-GArray *marpa_symbol_rhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid);
+GArray *marpa_g_symbol_rhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid);
 @ @<Function definitions@> = static inline
 void symbol_rhs_add(SYM symbol, Marpa_Rule_ID rule_id)
 { g_array_append_val(symbol->t_rhs, rule_id); }
@@ -1270,10 +1286,10 @@ must be changed.
 \par
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_symbol_is_accessible(struct marpa_g* g, Marpa_Symbol_ID id)
+gboolean marpa_g_symbol_is_accessible(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYM_by_ID(id)->t_is_accessible; }
 @ @<Public function prototypes@> =
-gboolean marpa_symbol_is_accessible(struct marpa_g* g, Marpa_Symbol_ID id);
+gboolean marpa_g_symbol_is_accessible(struct marpa_g* g, Marpa_Symbol_ID id);
 
 @ Symbol Is Counted Boolean
 @<Bit aligned symbol elements@> = guint t_is_counted:1;
@@ -1288,10 +1304,10 @@ must be changed.
 \par
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_symbol_is_counted(struct marpa_g* g, Marpa_Symbol_ID id)
+gboolean marpa_g_symbol_is_counted(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYM_by_ID(id)->t_is_counted; }
 @ @<Public function prototypes@> =
-gboolean marpa_symbol_is_counted(struct marpa_g* g, Marpa_Symbol_ID id);
+gboolean marpa_g_symbol_is_counted(struct marpa_g* g, Marpa_Symbol_ID id);
 
 @ Symbol Is Nullable Boolean
 @<Bit aligned symbol elements@> = guint t_is_nullable:1;
@@ -1306,10 +1322,10 @@ must be changed.
 \par
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_symbol_is_nullable(struct marpa_g* g, Marpa_Symbol_ID id)
+gboolean marpa_g_symbol_is_nullable(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYM_by_ID(id)->t_is_nullable; }
 @ @<Public function prototypes@> =
-gboolean marpa_symbol_is_nullable(struct marpa_g* g, Marpa_Symbol_ID id);
+gboolean marpa_g_symbol_is_nullable(struct marpa_g* g, Marpa_Symbol_ID id);
 
 @ Symbol Is Nulling Boolean
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
@@ -1325,12 +1341,12 @@ must be changed.
 \par
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gint marpa_symbol_is_nulling(struct marpa_g* g, Marpa_Symbol_ID symid)
+gint marpa_g_symbol_is_nulling(struct marpa_g* g, Marpa_Symbol_ID symid)
 { @<Return |-2| on failure@>@;
 @<Fail if grammar |symid| is invalid@>@;
 return SYM_is_Nulling(SYM_by_ID(symid)); }
 @ @<Public function prototypes@> =
-gint marpa_symbol_is_nulling(struct marpa_g* g, Marpa_Symbol_ID id);
+gint marpa_g_symbol_is_nulling(struct marpa_g* g, Marpa_Symbol_ID id);
 
 @ Symbol Is Terminal Boolean
 @<Bit aligned symbol elements@> = guint t_is_terminal:1;
@@ -1347,16 +1363,16 @@ The internal accessor would be trivial, so there is none.
 @d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
 @d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
-gboolean marpa_symbol_is_terminal(struct marpa_g* g, Marpa_Symbol_ID id)
+gboolean marpa_g_symbol_is_terminal(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYMID_is_Terminal(id); }
 @ @<Public function prototypes@> =
-gboolean marpa_symbol_is_terminal(struct marpa_g* g, Marpa_Symbol_ID id);
+gboolean marpa_g_symbol_is_terminal(struct marpa_g* g, Marpa_Symbol_ID id);
 @ @<Function definitions@> =
-void marpa_symbol_is_terminal_set(
+void marpa_g_symbol_is_terminal_set(
 struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
 { SYMID_is_Terminal(id) = value; }
 @ @<Public function prototypes@> =
-void marpa_symbol_is_terminal_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
+void marpa_g_symbol_is_terminal_set( struct marpa_g*g, Marpa_Symbol_ID id, gboolean value);
 
 @ Symbol Is Productive Boolean
 @<Bit aligned symbol elements@> = guint t_is_productive:1;
@@ -1371,10 +1387,10 @@ must be changed.
 \par
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_symbol_is_productive(struct marpa_g* g, Marpa_Symbol_ID id)
+gboolean marpa_g_symbol_is_productive(struct marpa_g* g, Marpa_Symbol_ID id)
 { return SYM_by_ID(id)->t_is_productive; }
 @ @<Public function prototypes@> =
-gboolean marpa_symbol_is_productive(struct marpa_g* g, Marpa_Symbol_ID id);
+gboolean marpa_g_symbol_is_productive(struct marpa_g* g, Marpa_Symbol_ID id);
 
 @ Symbol Is Start Boolean
 @<Bit aligned symbol elements@> = guint t_is_start:1;
@@ -1385,7 +1401,7 @@ The internal accessor would be trivial, so there is none.
 static inline
 gint symbol_is_start(SYM symbol)
 { return symbol->t_is_start; }
-gint marpa_symbol_is_start( struct marpa_g*g, Marpa_Symbol_ID symid) 
+gint marpa_g_symbol_is_start( struct marpa_g*g, Marpa_Symbol_ID symid) 
 { @<Return |-2| on failure@>@;
 @<Fail if grammar |symid| is invalid@>@;
    return symbol_is_start(SYM_by_ID(symid));
@@ -1394,7 +1410,7 @@ gint marpa_symbol_is_start( struct marpa_g*g, Marpa_Symbol_ID symid)
 static inline
 gint symbol_is_start(SYM symbol);
 @ @<Public function prototypes@> =
-gint marpa_symbol_is_start( struct marpa_g*g, Marpa_Symbol_ID id);
+gint marpa_g_symbol_is_start( struct marpa_g*g, Marpa_Symbol_ID id);
 
 @*0 Symbol aliasing.
 This is the logic for aliasing symbols.
@@ -1421,7 +1437,7 @@ Otherwise, returns |NULL|.
 static inline
 SYM symbol_proper_alias(SYM symbol)
 { return symbol->t_is_nulling_alias ? symbol->t_alias : NULL; }
-Marpa_Symbol_ID marpa_symbol_proper_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Symbol_ID marpa_g_symbol_proper_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
 SYM symbol;
 SYM proper_alias;
@@ -1434,7 +1450,7 @@ return proper_alias == NULL ? -1 : ID_of_SYM(proper_alias);
 @ @<Private function prototypes@> =
 static inline SYM symbol_proper_alias(SYM symbol);
 @ @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_symbol_proper_alias(struct marpa_g* g, Marpa_Symbol_ID symid);
+Marpa_Symbol_ID marpa_g_symbol_proper_alias(struct marpa_g* g, Marpa_Symbol_ID symid);
 
 @ Nulling Alias Trace Accessor:
 If this symbol is a proper (non-nullable) symbol
@@ -1444,7 +1460,7 @@ Otherwise, returns |NULL|.
 static inline
 SYM symbol_null_alias(SYM symbol)
 { return symbol->t_is_proper_alias ? symbol->t_alias : NULL; }
-Marpa_Symbol_ID marpa_symbol_null_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Symbol_ID marpa_g_symbol_null_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
 SYM symbol;
 SYM alias;
@@ -1461,7 +1477,7 @@ return ID_of_SYM(alias);
 @ @<Private function prototypes@> =
 static inline SYM symbol_null_alias(SYM symbol);
 @ @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_symbol_null_alias(struct marpa_g* g, Marpa_Symbol_ID symid);
+Marpa_Symbol_ID marpa_g_symbol_null_alias(struct marpa_g* g, Marpa_Symbol_ID symid);
 
 @ Given a proper nullable symbol as its argument,
 converts the argument into two ``aliases".
@@ -1513,9 +1529,9 @@ with a virtual LHS rule, returns the rule ID.
 If there is no virtual LHS rule, returns |-1|.
 On other failures, returns |-2|.
 @<Public function prototypes@> =
-Marpa_Rule_ID marpa_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid);
+Marpa_Rule_ID marpa_g_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid);
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Rule_ID marpa_g_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
     SYM symbol;
     RULE virtual_lhs_rule;
@@ -3602,16 +3618,16 @@ gint t_leading_nulls;
 
 @*0 AHFA Item External Accessors.
 @<Function definitions@> =
-gint marpa_AHFA_item_count(struct marpa_g* g) {
+gint marpa_g_AHFA_item_count(struct marpa_g* g) {
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     return AIM_Count_of_G(g);
 }
 @ @<Public function prototypes@> =
-gint marpa_AHFA_item_count(struct marpa_g* g);
+gint marpa_g_AHFA_item_count(struct marpa_g* g);
 
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_AHFA_item_rule(struct marpa_g* g,
+Marpa_Rule_ID marpa_g_AHFA_item_rule(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
@@ -3619,13 +3635,13 @@ Marpa_Rule_ID marpa_AHFA_item_rule(struct marpa_g* g,
     return RULE_of_AIM(AIM_by_ID(item_id))->t_id;
 }
 @ @<Public function prototypes@> =
-Marpa_Rule_ID marpa_AHFA_item_rule(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
+Marpa_Rule_ID marpa_g_AHFA_item_rule(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
 
 @ |-1| is the value for completions, so |-2| is the failure indicator.
 @<Public function prototypes@> =
-gint marpa_AHFA_item_position(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
+gint marpa_g_AHFA_item_position(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
 @ @<Function definitions@> =
-gint marpa_AHFA_item_position(struct marpa_g* g,
+gint marpa_g_AHFA_item_position(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
@@ -3635,9 +3651,9 @@ gint marpa_AHFA_item_position(struct marpa_g* g,
 
 @ |-1| is the value for completions, so |-2| is the failure indicator.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_AHFA_item_postdot(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
+Marpa_Symbol_ID marpa_g_AHFA_item_postdot(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_AHFA_item_postdot(struct marpa_g* g,
+Marpa_Symbol_ID marpa_g_AHFA_item_postdot(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
@@ -3646,9 +3662,9 @@ Marpa_Symbol_ID marpa_AHFA_item_postdot(struct marpa_g* g,
 }
 
 @ @<Public function prototypes@> =
-gint marpa_AHFA_item_sort_key(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
+gint marpa_g_AHFA_item_sort_key(struct marpa_g* g, Marpa_AHFA_Item_ID item_id);
 @ @<Function definitions@> =
-gint marpa_AHFA_item_sort_key(struct marpa_g* g,
+gint marpa_g_AHFA_item_sort_key(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
@@ -4068,15 +4084,15 @@ const struct marpa_g *g, AHFAID AHFA_state_id);
 
 @*0 AHFA State External Accessors.
 @<Function definitions@> =
-gint marpa_AHFA_state_count(struct marpa_g* g) {
+gint marpa_g_AHFA_state_count(struct marpa_g* g) {
     return AHFA_Count_of_G(g);
 }
 @ @<Public function prototypes@> =
-gint marpa_AHFA_state_count(struct marpa_g* g);
+gint marpa_g_AHFA_state_count(struct marpa_g* g);
 
 @ @<Function definitions@> =
 gint
-marpa_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
+marpa_g_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
 { @<Return |-2| on failure@>@/
     AHFA state;
     @<Fail if grammar not precomputed@>@/
@@ -4085,16 +4101,16 @@ marpa_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
     return state->t_item_count;
 }
 @ @<Public function prototypes@> =
-gint marpa_AHFA_state_item_count(struct marpa_g* g, Marpa_AHFA_State_ID AHFA_state_id);
+gint marpa_g_AHFA_state_item_count(struct marpa_g* g, Marpa_AHFA_State_ID AHFA_state_id);
 
 @ @<Public function prototypes@> =
-Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
+Marpa_AHFA_Item_ID marpa_g_AHFA_state_item(struct marpa_g* g,
      Marpa_AHFA_State_ID AHFA_state_id,
 	guint item_ix);
 @ @d AIMID_of_AHFA_by_AEX(g, ahfa, aex)
    ((ahfa)->t_items[aex] - (g)->t_AHFA_items)
 @<Function definitions@> =
-Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
+Marpa_AHFA_Item_ID marpa_g_AHFA_state_item(struct marpa_g* g,
      AHFAID AHFA_state_id,
 	guint item_ix) {
     AHFA state;
@@ -4110,7 +4126,7 @@ Marpa_AHFA_Item_ID marpa_AHFA_state_item(struct marpa_g* g,
 }
 
 @ @<Function definitions@> =
-gint marpa_AHFA_state_is_predict(struct marpa_g* g,
+gint marpa_g_AHFA_state_is_predict(struct marpa_g* g,
 	AHFAID AHFA_state_id) {
     AHFA state;
     @<Return |-2| on failure@>@/
@@ -4120,7 +4136,7 @@ gint marpa_AHFA_state_is_predict(struct marpa_g* g,
     return AHFA_is_Predicted(state);
 }
 @ @<Public function prototypes@> =
-gint marpa_AHFA_state_is_predict(struct marpa_g* g,
+gint marpa_g_AHFA_state_is_predict(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id);
 
 @*0 Completed Start Rule.
@@ -4130,7 +4146,7 @@ Most often there is none, in which case
 |-1| is returned.
 For other failures, |-2| is returned.
 @ @<Public function prototypes@> =
-Marpa_Rule_ID marpa_AHFA_completed_start_rule(struct marpa_g* g,
+Marpa_Rule_ID marpa_g_AHFA_completed_start_rule(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id);
 @ I know that the completed start rule is this AHFA state is
 unique, via the following theorem.
@@ -4155,7 +4171,7 @@ is complete, along with the flag for whether a rule is a start rule
 and the flag for tracking whether an AHFA has a completed start rule.
 
 @<Function definitions@> =
-Marpa_Rule_ID marpa_AHFA_completed_start_rule(struct marpa_g* g,
+Marpa_Rule_ID marpa_g_AHFA_completed_start_rule(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id) {
     const gint no_completed_start_rule = -1;
     @<Return |-2| on failure@>@;
@@ -4194,10 +4210,10 @@ with this AHFA state is eligible to be a Leo completion.
 @d AHFA_is_Leo_Completion(state) (Leo_LHS_ID_of_AHFA(state) >= 0)
 @ @<Int aligned AHFA state elements@> = SYMID t_leo_lhs_sym;
 @ @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
+Marpa_Symbol_ID marpa_g_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
+Marpa_Symbol_ID marpa_g_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id) {
     @<Return |-2| on failure@>@;
     AHFA state;
@@ -5228,11 +5244,11 @@ void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
 
 @*0 Trace Functions.
 @<Public function prototypes@> =
-gint marpa_AHFA_state_transitions(struct marpa_g* g,
+gint marpa_g_AHFA_state_transitions(struct marpa_g* g,
     Marpa_AHFA_State_ID AHFA_state_id,
     GArray *result);
 @ @<Function definitions@> =
-gint marpa_AHFA_state_transitions(struct marpa_g* g,
+gint marpa_g_AHFA_state_transitions(struct marpa_g* g,
     Marpa_AHFA_State_ID AHFA_state_id,
     GArray *result) {
 
@@ -5263,12 +5279,12 @@ gint marpa_AHFA_state_transitions(struct marpa_g* g,
 @*0 Trace Functions.
 @<Public function prototypes@> =
 @ @<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_AHFA_state_empty_transition(struct marpa_g* g,
+Marpa_AHFA_State_ID marpa_g_AHFA_state_empty_transition(struct marpa_g* g,
      Marpa_AHFA_State_ID AHFA_state_id);
 @ In the external accessor,
 -1 is a valid return value, indicating no empty transition.
 @<Function definitions@> =
-AHFAID marpa_AHFA_state_empty_transition(struct marpa_g* g,
+AHFAID marpa_g_AHFA_state_empty_transition(struct marpa_g* g,
      AHFAID AHFA_state_id) {
     AHFA state;
     AHFA empty_transition_state;
@@ -10331,9 +10347,9 @@ Marpa_Symbol_ID marpa_and_node_token(struct marpa_r *r,
     return and_node_token(and_node, value_p);
 }
 @ @<Private function prototypes@> =
-SYMID and_node_token(AND and_node, gpointer* value_p);
+static inline SYMID and_node_token(AND and_node, gpointer* value_p);
 @ @<Function definitions@> =
-SYMID and_node_token(AND and_node, gpointer* value_p)
+static inline SYMID and_node_token(AND and_node, gpointer* value_p)
 {
   const OR cause_or = Cause_OR_of_AND (and_node);
   if (OR_is_Token (cause_or))

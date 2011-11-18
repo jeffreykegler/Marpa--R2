@@ -212,7 +212,7 @@ Marpa_Symbol_ID
 symbol_new( g )
     Grammar *g;
 CODE:
-    RETVAL = marpa_symbol_new(g);
+    RETVAL = marpa_g_symbol_new(g);
 OUTPUT:
     RETVAL
 
@@ -221,17 +221,15 @@ symbol_lhs_rule_ids( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { GArray *rule_id_array = marpa_symbol_lhs_peek( g, symbol_id );
-    guint len = rule_id_array->len;
-    Marpa_Rule_ID* rule_ids = (Marpa_Rule_ID*)rule_id_array->data;
-    if (GIMME == G_ARRAY) {
-        int i;
-        EXTEND(SP, len);
-        for (i = 0; i < len; i++) {
-            PUSHs( sv_2mortal( newSViv(rule_ids[i]) ) );
-        }
-    } else {
-        XPUSHs( sv_2mortal( newSViv(len) ) );
+    {
+    int i;
+    gint count = marpa_g_symbol_lhs_count( g, symbol_id );
+    if (count < -1) { croak("Problem in g->symbol_lhs_rule_ids: %s", marpa_g_error(g)); }
+    if (count == -1) { XSRETURN_UNDEF; }
+    for (i = 0; i < count; i++) {
+	Marpa_Rule_ID rule_id= marpa_g_symbol_lhs( g, symbol_id, i );
+	if (rule_id < 0) { croak("Problem in g->symbol_lhs_rule_ids: %s", marpa_g_error(g)); }
+	XPUSHs( sv_2mortal( newSViv(rule_id) ) );
     }
     }
 
@@ -241,7 +239,7 @@ symbol_rhs_rule_ids( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { GArray *rule_id_array = marpa_symbol_rhs_peek( g, symbol_id );
+    { GArray *rule_id_array = marpa_g_symbol_rhs_peek( g, symbol_id );
     guint len = rule_id_array->len;
     Marpa_Rule_ID* rule_ids = (Marpa_Rule_ID*)rule_id_array->data;
     if (GIMME == G_ARRAY) {
@@ -260,7 +258,7 @@ symbol_is_accessible( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gboolean boolean = marpa_symbol_is_accessible( g, symbol_id );
+    { gboolean boolean = marpa_g_symbol_is_accessible( g, symbol_id );
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -270,7 +268,7 @@ symbol_is_counted( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gboolean boolean = marpa_symbol_is_counted( g, symbol_id );
+    { gboolean boolean = marpa_g_symbol_is_counted( g, symbol_id );
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -280,7 +278,7 @@ symbol_is_nullable( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gboolean boolean = marpa_symbol_is_nullable( g, symbol_id );
+    { gboolean boolean = marpa_g_symbol_is_nullable( g, symbol_id );
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -290,7 +288,7 @@ symbol_is_nulling( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gint result = marpa_symbol_is_nulling( g, symbol_id );
+    { gint result = marpa_g_symbol_is_nulling( g, symbol_id );
     if (result < 0) { croak("Invalid symbol %d", symbol_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -302,14 +300,14 @@ symbol_is_terminal_set( g, symbol_id, boolean )
     Marpa_Symbol_ID symbol_id;
     int boolean;
 PPCODE:
-    marpa_symbol_is_terminal_set( g, symbol_id, (boolean ? TRUE : FALSE));
+    marpa_g_symbol_is_terminal_set( g, symbol_id, (boolean ? TRUE : FALSE));
 
 void
 symbol_is_terminal( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gint result = marpa_symbol_is_terminal( g, symbol_id );
+    { gint result = marpa_g_symbol_is_terminal( g, symbol_id );
     if (result < 0) { croak("Invalid symbol %d", symbol_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -320,7 +318,7 @@ symbol_is_productive( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gint result = marpa_symbol_is_productive( g, symbol_id );
+    { gint result = marpa_g_symbol_is_productive( g, symbol_id );
     if (result < 0) { croak("Invalid symbol %d", symbol_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -331,7 +329,7 @@ symbol_is_start( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gint result = marpa_symbol_is_start( g, symbol_id );
+    { gint result = marpa_g_symbol_is_start( g, symbol_id );
     if (result < 0) { croak("Invalid symbol %d", symbol_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -343,7 +341,7 @@ symbol_null_alias( g, symbol_id )
     Marpa_Symbol_ID symbol_id;
 PPCODE:
     {
-    Marpa_Symbol_ID alias_id = marpa_symbol_null_alias(g, symbol_id);
+    Marpa_Symbol_ID alias_id = marpa_g_symbol_null_alias(g, symbol_id);
       if (alias_id < -1)
 	{
 	  croak ("problem with g->symbol_null_alias: %s",
@@ -362,7 +360,7 @@ symbol_proper_alias( g, symbol_id )
     Marpa_Symbol_ID symbol_id;
 PPCODE:
     {
-    Marpa_Symbol_ID alias_id = marpa_symbol_proper_alias(g, symbol_id);
+    Marpa_Symbol_ID alias_id = marpa_g_symbol_proper_alias(g, symbol_id);
       if (alias_id < -1)
 	{
 	  croak ("problem with g->symbol_proper_alias: %s",
@@ -381,7 +379,7 @@ symbol_virtual_lhs_rule( g, symbol_id )
     Marpa_Symbol_ID symbol_id;
 PPCODE:
     {
-      Marpa_Rule_ID rule_id = marpa_symbol_virtual_lhs_rule (g, symbol_id);
+      Marpa_Rule_ID rule_id = marpa_g_symbol_virtual_lhs_rule (g, symbol_id);
       if (rule_id < -1)
 	{
 	  croak ("problem with g->symbol_virtual_lhs_rule: %s",
@@ -653,7 +651,7 @@ AHFA_item_count( g )
     Grammar *g;
 PPCODE:
     {
-	gint count = marpa_AHFA_item_count(g );
+	gint count = marpa_g_AHFA_item_count(g );
 	if (count < -1) {
 	  croak ("Problem in g->AFHA_item_count(): %s", marpa_g_error (g));
 	}
@@ -679,7 +677,7 @@ symbol_count( g )
     Grammar *g;
 PPCODE:
     {
-	gint count = marpa_symbol_count(g );
+	gint count = marpa_g_symbol_count(g );
 	if (count < -1) {
 	  croak ("Problem in g->symbol_count(): %s", marpa_g_error (g));
 	}
@@ -692,7 +690,7 @@ AHFA_item_rule( g, item_id )
     Grammar *g;
     Marpa_AHFA_Item_ID item_id;
 CODE:
-    RETVAL = marpa_AHFA_item_rule(g, item_id);
+    RETVAL = marpa_g_AHFA_item_rule(g, item_id);
     if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -703,7 +701,7 @@ AHFA_item_position( g, item_id )
     Grammar *g;
     Marpa_AHFA_Item_ID item_id;
 CODE:
-    RETVAL = marpa_AHFA_item_position(g, item_id);
+    RETVAL = marpa_g_AHFA_item_position(g, item_id);
     if (RETVAL <= -2) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -713,7 +711,7 @@ AHFA_item_sort_key( g, item_id )
     Grammar *g;
     Marpa_AHFA_Item_ID item_id;
 CODE:
-    RETVAL = marpa_AHFA_item_sort_key(g, item_id);
+    RETVAL = marpa_g_AHFA_item_sort_key(g, item_id);
     if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -724,7 +722,7 @@ AHFA_item_postdot( g, item_id )
     Grammar *g;
     Marpa_AHFA_Item_ID item_id;
 CODE:
-    RETVAL = marpa_AHFA_item_postdot(g, item_id);
+    RETVAL = marpa_g_AHFA_item_postdot(g, item_id);
     if (RETVAL <= -2) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -733,7 +731,7 @@ int
 AHFA_state_count( g )
     Grammar *g;
 CODE:
-    RETVAL = marpa_AHFA_state_count(g );
+    RETVAL = marpa_g_AHFA_state_count(g );
     if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -744,14 +742,14 @@ AHFA_state_items( g, AHFA_state_id )
     Grammar *g;
     Marpa_AHFA_State_ID AHFA_state_id;
 PPCODE:
-    { gint count = marpa_AHFA_state_item_count(g, AHFA_state_id);
+    { gint count = marpa_g_AHFA_state_item_count(g, AHFA_state_id);
     if (count < 0) { croak("Invalid AHFA state %d", AHFA_state_id); }
     if (GIMME == G_ARRAY) {
         guint item_ix;
         EXTEND(SP, count);
         for (item_ix = 0; item_ix < count; item_ix++) {
 	    Marpa_AHFA_Item_ID item_id
-		= marpa_AHFA_state_item(g, AHFA_state_id, item_ix);
+		= marpa_g_AHFA_state_item(g, AHFA_state_id, item_ix);
             PUSHs( sv_2mortal( newSViv(item_id) ) );
         }
     } else {
@@ -768,7 +766,7 @@ PPCODE:
     {
     Grammar *g = g_wrapper->g;
     GArray* const gint_array = g_wrapper->gint_array;
-    const gint result = marpa_AHFA_state_transitions(g, AHFA_state_id, gint_array);
+    const gint result = marpa_g_AHFA_state_transitions(g, AHFA_state_id, gint_array);
     if (result < 0) {
 	  croak ("Problem in AHFA_state_transitions(): %s", marpa_g_error (g));
     }
@@ -789,7 +787,7 @@ AHFA_state_empty_transition( g, AHFA_state_id )
     Grammar *g;
     Marpa_AHFA_State_ID AHFA_state_id;
 CODE:
-    RETVAL = marpa_AHFA_state_empty_transition(g, AHFA_state_id);
+    RETVAL = marpa_g_AHFA_state_empty_transition(g, AHFA_state_id);
     if (RETVAL <= -2) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -799,7 +797,7 @@ AHFA_state_is_predict( g, AHFA_state_id )
     Grammar *g;
     Marpa_AHFA_State_ID AHFA_state_id;
 PPCODE:
-    { gint result = marpa_AHFA_state_is_predict( g, AHFA_state_id );
+    { gint result = marpa_g_AHFA_state_is_predict( g, AHFA_state_id );
     if (result < 0) { croak("Invalid AHFA state %d", AHFA_state_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -810,7 +808,7 @@ AHFA_state_leo_lhs_symbol( g, AHFA_state_id )
     Grammar *g;
     Marpa_AHFA_State_ID AHFA_state_id;
 PPCODE:
-    { gint result = marpa_AHFA_state_leo_lhs_symbol( g, AHFA_state_id );
+    { gint result = marpa_g_AHFA_state_leo_lhs_symbol( g, AHFA_state_id );
     if (result < -1) { croak("Invalid AHFA state %d", AHFA_state_id); }
     if (result == -1) XSRETURN_UNDEF;
     XPUSHs( sv_2mortal( newSViv(result) ) );
@@ -821,7 +819,7 @@ AHFA_completed_start_rule( g, AHFA_state_id )
     Grammar *g;
     Marpa_AHFA_State_ID AHFA_state_id;
 PPCODE:
-    { gint result = marpa_AHFA_completed_start_rule(g, AHFA_state_id);
+    { gint result = marpa_g_AHFA_completed_start_rule(g, AHFA_state_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < -1) { croak("Invalid AHFA state %d", AHFA_state_id); }
     XPUSHs( sv_2mortal( newSViv(result) ) );
