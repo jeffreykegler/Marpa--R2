@@ -940,7 +940,7 @@ is_use_leo_set( r_wrapper, boolean )
 PPCODE:
 {
   struct marpa_r *r = r_wrapper->r;
-  gboolean result = marpa_is_use_leo_set (r, (boolean ? TRUE : FALSE));
+  gboolean result = marpa_r_is_use_leo_set (r, (boolean ? TRUE : FALSE));
   if (!result)
     {
       croak ("Problem in is_use_leo_set(): %s", marpa_r_error (r));
@@ -953,7 +953,7 @@ is_use_leo( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-     gint boolean = marpa_is_use_leo( r );
+     gint boolean = marpa_r_is_use_leo( r );
      if (boolean < 0) { 
 	 croak("Problem in is_use_leo(): %s", marpa_r_error(r)); }
     if (boolean) XSRETURN_YES;
@@ -965,7 +965,7 @@ is_exhausted( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-     gint boolean = marpa_is_exhausted( r );
+     gint boolean = marpa_r_is_exhausted( r );
      if (boolean < 0) { 
 	 croak("Problem in is_exhausted(): %s", marpa_r_error(r)); }
     if (boolean) XSRETURN_YES;
@@ -1035,7 +1035,7 @@ latest_earley_set( r_wrapper )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint latest_earley_set = marpa_latest_earley_set(r);
+      gint latest_earley_set = marpa_r_latest_earley_set(r);
       if (latest_earley_set < 0)
 	{
       croak ("Problem with r->latest_earley_set(): %s",
@@ -1251,7 +1251,7 @@ leo_base_state( r_wrapper )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint leo_base_state = marpa_leo_base_state (r);
+      gint leo_base_state = marpa_r_leo_base_state (r);
       if (leo_base_state == -1) { XSRETURN_UNDEF; }
       if (leo_base_state < 0) {
 	  croak ("Problem in r->leo_base_state(): %s", marpa_r_error (r));
@@ -1265,7 +1265,7 @@ leo_base_origin( r_wrapper )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint leo_base_origin = marpa_leo_base_origin (r);
+      gint leo_base_origin = marpa_r_leo_base_origin (r);
       if (leo_base_origin == -1) { XSRETURN_UNDEF; }
       if (leo_base_origin < 0) {
 	  croak ("Problem in r->leo_base_origin(): %s", marpa_r_error (r));
@@ -1278,7 +1278,7 @@ leo_expansion_ahfa( r )
     Recce *r;
 PPCODE:
     {
-      gint leo_expansion_ahfa = marpa_leo_expansion_ahfa(r);
+      gint leo_expansion_ahfa = marpa_r_leo_expansion_ahfa(r);
       if (leo_expansion_ahfa == -1) { XSRETURN_UNDEF; }
       if (leo_expansion_ahfa < 0) {
 	  croak ("Problem in r->leo_expansion_ahfa(): %s", marpa_r_error (r));
@@ -1318,7 +1318,7 @@ leo_predecessor_symbol( r_wrapper )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint leo_predecessor_symbol = marpa_leo_predecessor_symbol (r);
+      gint leo_predecessor_symbol = marpa_r_leo_predecessor_symbol (r);
       if (leo_predecessor_symbol == -1) { XSRETURN_UNDEF; }
       if (leo_predecessor_symbol < 0) {
 	  croak ("Problem in r->leo_predecessor_symbol(): %s", marpa_r_error (r));

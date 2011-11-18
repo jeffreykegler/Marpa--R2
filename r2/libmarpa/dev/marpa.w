@@ -5711,9 +5711,9 @@ r->t_is_using_leo = 0;
 0 if not,
 and |-2| if there was an error.
 @<Public function prototypes@> =
-gboolean marpa_is_use_leo(struct marpa_r* r);
+gboolean marpa_r_is_use_leo(struct marpa_r* r);
 @ @<Function definitions@> =
-gint marpa_is_use_leo(struct marpa_r* r)
+gint marpa_r_is_use_leo(struct marpa_r* r)
 {
    @<Return |-2| on failure@>@/
   struct marpa_g* g = G_of_R(r);
@@ -5723,9 +5723,9 @@ gint marpa_is_use_leo(struct marpa_r* r)
 @ Returns |TRUE| on success,
 |FALSE| on failure.
 @<Public function prototypes@> =
-gboolean marpa_is_use_leo_set( struct marpa_r*r, gboolean value);
+gboolean marpa_r_is_use_leo_set( struct marpa_r*r, gboolean value);
 @ @<Function definitions@> =
-gboolean marpa_is_use_leo_set(
+gboolean marpa_r_is_use_leo_set(
 struct marpa_r*r, gboolean value)
 {
    @<Return |FALSE| on failure@>@/
@@ -5752,9 +5752,9 @@ earleme at which the parse became exhausted.
 Once exhausted a parse stays exhausted,
 even though the phase may change.
 @<Public function prototypes@> =
-gboolean marpa_is_exhausted(struct marpa_r* r);
+gboolean marpa_r_is_exhausted(struct marpa_r* r);
 @ @<Function definitions@> =
-gint marpa_is_exhausted(struct marpa_r* r)
+gint marpa_r_is_exhausted(struct marpa_r* r)
 {
    @<Return |-2| on failure@>@/
    struct marpa_g *g = G_of_R(r);
@@ -5941,9 +5941,9 @@ Marpa_Earley_Set_ID marpa_trace_earley_set(struct marpa_r *r)
 }
 
 @ @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_latest_earley_set(struct marpa_r *r);
+Marpa_Earley_Set_ID marpa_r_latest_earley_set(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Earley_Set_ID marpa_latest_earley_set(struct marpa_r *r)
+Marpa_Earley_Set_ID marpa_r_latest_earley_set(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   struct marpa_g *g = G_of_R(r);
@@ -6469,9 +6469,9 @@ The trace Leo item is selected by setting the trace postdot item
 to a Leo item.
 
 @ @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_leo_predecessor_symbol(struct marpa_r *r);
+Marpa_Symbol_ID marpa_r_leo_predecessor_symbol(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_leo_predecessor_symbol(struct marpa_r *r)
+Marpa_Symbol_ID marpa_r_leo_predecessor_symbol(struct marpa_r *r)
 {
   const Marpa_Symbol_ID no_predecessor = -1;
   @<Return |-2| on failure@>@;
@@ -6493,9 +6493,9 @@ Marpa_Symbol_ID marpa_leo_predecessor_symbol(struct marpa_r *r)
 }
 
 @ @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r);
+Marpa_Earley_Set_ID marpa_r_leo_base_origin(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r)
+Marpa_Earley_Set_ID marpa_r_leo_base_origin(struct marpa_r *r)
 {
   const EARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
@@ -6513,9 +6513,9 @@ Marpa_Earley_Set_ID marpa_leo_base_origin(struct marpa_r *r)
 }
 
 @ @<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r);
+Marpa_AHFA_State_ID marpa_r_leo_base_state(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r)
+Marpa_AHFA_State_ID marpa_r_leo_base_state(struct marpa_r *r)
 {
   const EARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
@@ -6535,7 +6535,7 @@ Marpa_AHFA_State_ID marpa_leo_base_state(struct marpa_r *r)
 @ This function
 returns the ``Leo expansion AHFA" of the current trace Leo item.
 @<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_leo_expansion_ahfa(struct marpa_r *r);
+Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa(struct marpa_r *r);
 @ The {\bf Leo expansion AHFA} is the AHFA
 of the {\bf Leo expansion Earley item}.
 for this Leo item.
@@ -6559,7 +6559,7 @@ if a Leo item is the predecessor in
 a Leo source for a Leo completion item,
 the Leo completion item is the expansion of that Leo item.
 @ @<Function definitions@> =
-Marpa_AHFA_State_ID marpa_leo_expansion_ahfa(struct marpa_r *r)
+Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa(struct marpa_r *r)
 {
     const EARLEME pim_is_not_a_leo_item = -1;
     @<Return |-2| on failure@>@;
