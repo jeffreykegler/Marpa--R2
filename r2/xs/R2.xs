@@ -116,7 +116,7 @@ start_symbol_set( g, id )
     Grammar *g;
     Marpa_Symbol_ID id;
 PPCODE:
-    { gboolean result = marpa_start_symbol_set(g, id);
+    { gboolean result = marpa_g_start_symbol_set(g, id);
     if (result) XSRETURN_YES;
     }
     XSRETURN_NO;
@@ -125,7 +125,7 @@ void
 start_symbol( g )
     Grammar *g;
 PPCODE:
-    { Marpa_Symbol_ID id = marpa_start_symbol( g );
+    { Marpa_Symbol_ID id = marpa_g_start_symbol( g );
     if (id < 0) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(id) ) );
     }
@@ -135,7 +135,7 @@ default_value_set( g, value )
     Grammar *g;
     int value;
 PPCODE:
-    { gboolean result = marpa_default_value_set(g, GINT_TO_POINTER(value));
+    { gboolean result = marpa_g_default_value_set(g, GINT_TO_POINTER(value));
     if (result) XSRETURN_YES;
     }
     XSRETURN_NO;
@@ -144,7 +144,7 @@ void
 default_value( g )
     Grammar *g;
 PPCODE:
-    { gpointer value = marpa_default_value( g );
+    { gpointer value = marpa_g_default_value( g );
     XPUSHs( sv_2mortal( newSViv(GPOINTER_TO_INT(value)) ) );
     }
 
@@ -152,7 +152,7 @@ void
 is_precomputed( g )
     Grammar *g;
 PPCODE:
-    { gint boolean = marpa_is_precomputed( g );
+    { gint boolean = marpa_g_is_precomputed( g );
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -183,7 +183,7 @@ void
 has_loop( g )
     Grammar *g;
 PPCODE:
-    { gint boolean = marpa_has_loop( g );
+    { gint boolean = marpa_g_has_loop( g );
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -193,7 +193,7 @@ is_lhs_terminal_ok_set( g, boolean )
     Grammar *g;
     int boolean;
 PPCODE:
-    { gboolean result = marpa_is_lhs_terminal_ok_set(
+    { gboolean result = marpa_g_is_lhs_terminal_ok_set(
 	g, (boolean ? TRUE : FALSE));
     if (result) XSRETURN_YES;
     }
@@ -203,7 +203,7 @@ void
 is_lhs_terminal_ok( g )
     Grammar *g;
 PPCODE:
-    { gboolean boolean = marpa_is_lhs_terminal_ok( g );
+    { gboolean boolean = marpa_g_is_lhs_terminal_ok( g );
     if (boolean) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -417,7 +417,7 @@ PPCODE:
 	    }
 	}
     }
-    new_rule_id = marpa_rule_new(g, lhs, rhs, length);
+    new_rule_id = marpa_g_rule_new(g, lhs, rhs, length);
     Safefree(rhs);
     if (new_rule_id < 0) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(new_rule_id) ) );
@@ -467,7 +467,7 @@ PPCODE:
 	    croak("unknown argument to sequence_new(): %.*s", retlen, key);
 	}
     }
-    new_rule_id = marpa_sequence_new(g, lhs, rhs, separator, min, flags );
+    new_rule_id = marpa_g_sequence_new(g, lhs, rhs, separator, min, flags );
     if (new_rule_id < 0) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(new_rule_id) ) );
 
@@ -476,7 +476,7 @@ rule_lhs( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 CODE:
-    RETVAL = marpa_rule_lhs(g, rule_id);
+    RETVAL = marpa_g_rule_lhs(g, rule_id);
     if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -487,7 +487,7 @@ rule_rhs( g, rule_id, ix )
     Marpa_Rule_ID rule_id;
     unsigned int ix;
 CODE:
-    RETVAL = marpa_rule_rh_symbol(g, rule_id, ix);
+    RETVAL = marpa_g_rule_rh_symbol(g, rule_id, ix);
     if (RETVAL < -1) { croak("Invalid call rule_rhs(%d, %u)", rule_id, ix); }
     if (RETVAL == -1) { XSRETURN_UNDEF; }
 OUTPUT:
@@ -498,7 +498,7 @@ rule_length( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 CODE:
-    RETVAL = marpa_rule_length(g, rule_id);
+    RETVAL = marpa_g_rule_length(g, rule_id);
     if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -508,7 +508,7 @@ rule_is_accessible( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_is_accessible( g, rule_id );
+    { gint result = marpa_g_rule_is_accessible( g, rule_id );
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -519,7 +519,7 @@ rule_is_productive( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_is_productive( g, rule_id );
+    { gint result = marpa_g_rule_is_productive( g, rule_id );
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -530,7 +530,7 @@ rule_is_loop( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_is_loop( g, rule_id );
+    { gint result = marpa_g_rule_is_loop( g, rule_id );
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -541,7 +541,7 @@ rule_is_virtual_loop( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_is_virtual_loop( g, rule_id );
+    { gint result = marpa_g_rule_is_virtual_loop( g, rule_id );
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -552,7 +552,7 @@ rule_virtual_start( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 CODE:
-    RETVAL = marpa_virtual_start( g, rule_id );
+    RETVAL = marpa_g_virtual_start( g, rule_id );
     if (RETVAL <= -2) { croak("Invalid rule %d", rule_id); }
 OUTPUT:
     RETVAL
@@ -562,7 +562,7 @@ rule_virtual_end( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 CODE:
-    RETVAL = marpa_virtual_end( g, rule_id );
+    RETVAL = marpa_g_virtual_end( g, rule_id );
     if (RETVAL <= -2) { croak("Invalid rule %d", rule_id); }
 OUTPUT:
     RETVAL
@@ -572,7 +572,7 @@ rule_is_used( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_is_used( g, rule_id );
+    { gint result = marpa_g_rule_is_used( g, rule_id );
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -583,7 +583,7 @@ rule_is_discard_separation( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_is_discard_separation( g, rule_id );
+    { gint result = marpa_g_rule_is_discard_separation( g, rule_id );
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -594,7 +594,7 @@ rule_is_virtual_lhs( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_is_virtual_lhs( g, rule_id );
+    { gint result = marpa_g_rule_is_virtual_lhs( g, rule_id );
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -605,7 +605,7 @@ rule_is_virtual_rhs( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_is_virtual_rhs( g, rule_id );
+    { gint result = marpa_g_rule_is_virtual_rhs( g, rule_id );
     if (result == -1) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -616,7 +616,7 @@ real_symbol_count( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 CODE:
-    RETVAL = marpa_real_symbol_count(g, rule_id);
+    RETVAL = marpa_g_real_symbol_count(g, rule_id);
 OUTPUT:
     RETVAL
 
@@ -625,7 +625,7 @@ rule_original( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 CODE:
-    RETVAL = marpa_rule_original(g, rule_id);
+    RETVAL = marpa_g_rule_original(g, rule_id);
     if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -635,7 +635,7 @@ semantic_equivalent( g, rule_id )
     Grammar *g;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_rule_semantic_equivalent(g, rule_id);
+    { gint result = marpa_g_rule_semantic_equivalent(g, rule_id);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in g->semantic_equivalent(): %s", marpa_g_error (g));
@@ -661,7 +661,7 @@ rule_count( g )
     Grammar *g;
 PPCODE:
     {
-	gint count = marpa_rule_count(g );
+	gint count = marpa_g_rule_count(g );
 	if (count < -1) {
 	  croak ("Problem in g->rule_count(): %s", marpa_g_error (g));
 	}
@@ -833,7 +833,7 @@ void precompute( g )
     Grammar *g;
 PPCODE:
     {
-      gint result = marpa_precompute (g);
+      gint result = marpa_g_precompute (g);
       if (result < 0) {
          XSRETURN_UNDEF;
       }
