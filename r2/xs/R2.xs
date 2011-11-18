@@ -906,7 +906,7 @@ char *
 phase( r_wrapper )
     R_Wrapper *r_wrapper;
 CODE:
-    Marpa_Phase phase = marpa_phase(r_wrapper->r);
+    Marpa_Phase phase = marpa_r_phase(r_wrapper->r);
     RETVAL = "unknown";
     switch(phase) {
     case no_such_phase: RETVAL = "undefined"; break;
@@ -976,7 +976,7 @@ void
 start_input( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
-    { gboolean result = marpa_start_input(r_wrapper->r);
+    { gboolean result = marpa_r_start_input(r_wrapper->r);
     if (result) XSRETURN_YES;
     }
     XSRETURN_NO;
@@ -1170,7 +1170,7 @@ source_predecessor_state( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint state_id = marpa_source_predecessor_state(r);
+    gint state_id = marpa_r_source_predecessor_state(r);
     if (state_id <= -2) { croak("Problem finding trace source predecessor state: %s", marpa_r_error(r)); }
     if (state_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(state_id) ) );
@@ -1181,7 +1181,7 @@ source_leo_transition_symbol( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint symbol_id = marpa_source_leo_transition_symbol(r);
+    gint symbol_id = marpa_r_source_leo_transition_symbol(r);
     if (symbol_id <= -2) { croak("Problem finding trace source leo transition symbol: %s", marpa_r_error(r)); }
     if (symbol_id == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(symbol_id) ) );
@@ -1193,7 +1193,7 @@ source_token( r_wrapper )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     gpointer value;
-    gint symbol_id = marpa_source_token(r, &value);
+    gint symbol_id = marpa_r_source_token(r, &value);
     if (symbol_id == -1) { XSRETURN_UNDEF; }
     if (symbol_id < 0) { croak("Problem with r->source_token(): %s", marpa_r_error(r)); }
 	XPUSHs( sv_2mortal( newSViv(symbol_id) ) );
@@ -1205,7 +1205,7 @@ source_middle( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gint middle = marpa_source_middle(r);
+    gint middle = marpa_r_source_middle(r);
     if (middle <= -2) { croak("Problem with r->source_middle(): %s", marpa_r_error(r)); }
     if (middle == -1) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(middle) ) );
@@ -1239,7 +1239,7 @@ postdot_symbol_trace( r, symid )
     Marpa_Symbol_ID symid;
 PPCODE:
     { 
-    gint postdot_symbol_id = marpa_postdot_symbol_trace(r, symid);
+    gint postdot_symbol_id = marpa_r_postdot_symbol_trace(r, symid);
     if (postdot_symbol_id == -1) { XSRETURN_UNDEF; }
     if (postdot_symbol_id <= 0) { croak("Problem in r->postdot_symbol_trace: %s", marpa_r_error(r)); }
     XPUSHs( sv_2mortal( newSViv(postdot_symbol_id) ) );
@@ -1292,7 +1292,7 @@ trace_earley_set( r_wrapper )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint trace_earley_set = marpa_trace_earley_set (r);
+      gint trace_earley_set = marpa_r_trace_earley_set (r);
       if (trace_earley_set < 0) {
 	  croak ("Problem in r->trace_earley_set(): %s", marpa_r_error (r));
 	}
@@ -1305,7 +1305,7 @@ postdot_item_symbol( r_wrapper )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gint postdot_item_symbol = marpa_postdot_item_symbol (r);
+      gint postdot_item_symbol = marpa_r_postdot_item_symbol (r);
       if (postdot_item_symbol < 0) {
 	  croak ("Problem in r->postdot_item_symbol(): %s", marpa_r_error (r));
 	}
@@ -1332,7 +1332,7 @@ terminals_expected( r_wrapper )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
         GArray* terminal_ids = r_wrapper->gint_array;
-        gint count = marpa_terminals_expected(r, terminal_ids);
+        gint count = marpa_r_terminals_expected(r, terminal_ids);
 	if (count < 0) {
 	  croak ("Problem in r->terminals_expected(): %s", marpa_r_error (r));
 	}
@@ -1655,7 +1655,7 @@ tree_new( r_wrapper )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int status;
-    status = marpa_tree_new(r);
+    status = marpa_t_new(r);
     if (status == -1) { XSRETURN_UNDEF; }
     if (status < 0) {
       croak ("Problem in r->tree_new(): %s", marpa_r_error (r));
@@ -1669,7 +1669,7 @@ parse_count( r_wrapper )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_parse_count(r);
+    result = marpa_t_parse_count(r);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->parse_count(): %s", marpa_r_error (r));
@@ -1683,7 +1683,7 @@ tree_size( r_wrapper )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int result;
-    result = marpa_tree_size(r);
+    result = marpa_t_size(r);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
       croak ("Problem in r->tree_size(): %s", marpa_r_error (r));
@@ -1803,7 +1803,7 @@ val_new( r_wrapper )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int status;
-    status = marpa_val_new(r);
+    status = marpa_v_new(r);
     if (status == -1) { XSRETURN_UNDEF; }
     if (status < 0) {
       croak ("Problem in r->val_new(): %s", marpa_r_error (r));
@@ -1820,7 +1820,7 @@ PPCODE:
       int status;
       SV* sv;
       Marpa_Event event;
-      status = marpa_val_event (r, &event);
+      status = marpa_v_event (r, &event);
       if (status == -1)
 	{
 	  XSRETURN_UNDEF;
@@ -1849,7 +1849,7 @@ val_trace( r_wrapper, flag )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int status;
-    status = marpa_val_trace(r, flag);
+    status = marpa_v_trace(r, flag);
     if (status == -1) { XSRETURN_UNDEF; }
     if (status < 0) {
       croak ("Problem in r->val_trace(): %s", marpa_r_error (r));
@@ -1863,7 +1863,7 @@ val_fork( r_wrapper )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
     int status;
-    status = marpa_val_fork(r);
+    status = marpa_v_fork(r);
     if (status == -1) { XSRETURN_UNDEF; }
     if (status < 0) {
       croak ("Problem in r->val_fork(): %s", marpa_r_error (r));

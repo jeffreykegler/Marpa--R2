@@ -5428,9 +5428,9 @@ Marpa_Phase t_phase;
 @ @<Initialize recognizer elements@> =
 Phase_of_R(r) = initial_phase;
 @ @<Public function prototypes@> =
-Marpa_Phase marpa_phase(struct marpa_r* r);
+Marpa_Phase marpa_r_phase(struct marpa_r* r);
 @ @<Function definitions@> =
-Marpa_Phase marpa_phase(struct marpa_r* r)
+Marpa_Phase marpa_r_phase(struct marpa_r* r)
 { return Phase_of_R(r); }
 
 @*0 Earley Set Container.
@@ -5598,9 +5598,9 @@ a mismatch might arise as a portability issue,
 and if I do not ``fail fast" here the ultimate problem
 could be very hard to debug.
 @<Public function prototypes@> =
-gint marpa_terminals_expected(struct marpa_r* r, GArray* result);
+gint marpa_r_terminals_expected(struct marpa_r* r, GArray* result);
 @ @<Function definitions@> =
-gint marpa_terminals_expected(struct marpa_r* r, GArray* result)
+gint marpa_r_terminals_expected(struct marpa_r* r, GArray* result)
 {
     @<Return |-2| on failure@>@;
     @<Declare and initialize recce objects@>@;
@@ -5925,9 +5925,9 @@ struct s_earley_set* t_trace_earley_set;
 r->t_trace_earley_set = NULL;
 
 @ @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_trace_earley_set(struct marpa_r *r);
+Marpa_Earley_Set_ID marpa_r_trace_earley_set(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Earley_Set_ID marpa_trace_earley_set(struct marpa_r *r)
+Marpa_Earley_Set_ID marpa_r_trace_earley_set(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   ES trace_earley_set = r->t_trace_earley_set;
@@ -6660,7 +6660,7 @@ union u_postdot_item* t_trace_postdot_item;
 @ @<Initialize recognizer elements@> =
 r->t_trace_pim_sym_p = NULL;
 r->t_trace_postdot_item = NULL;
-@ |marpa_postdot_symbol_trace|
+@ |marpa_r_postdot_symbol_trace|
 takes a recognizer and a symbol ID
 as an argument.
 It sets the trace postdot item to the first
@@ -6673,11 +6673,11 @@ it returns |-2|
 and clears the trace postdot item.
 @<Public function prototypes@> =
 Marpa_Symbol_ID
-marpa_postdot_symbol_trace (struct marpa_r *r,
+marpa_r_postdot_symbol_trace (struct marpa_r *r,
     Marpa_Symbol_ID symid);
 @ @<Function definitions@> =
 Marpa_Symbol_ID
-marpa_postdot_symbol_trace (struct marpa_r *r,
+marpa_r_postdot_symbol_trace (struct marpa_r *r,
     Marpa_Symbol_ID symid)
 {
   @<Return |-2| on failure@>@;
@@ -6786,9 +6786,9 @@ struct marpa_g *g = G_of_R(r);
 }
 
 @ @<Private function prototypes@> =
-Marpa_AHFA_State_ID marpa_postdot_item_symbol(struct marpa_r *r);
+Marpa_AHFA_State_ID marpa_r_postdot_item_symbol(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_AHFA_State_ID marpa_postdot_item_symbol(struct marpa_r *r)
+Marpa_AHFA_State_ID marpa_r_postdot_item_symbol(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
@@ -7425,9 +7425,9 @@ the trace source link is a Leo source,
 or there is some other failure,
 |-2| is returned.
 @<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_source_predecessor_state(struct marpa_r *r);
+Marpa_AHFA_State_ID marpa_r_source_predecessor_state(struct marpa_r *r);
 @ @<Function definitions@> =
-AHFAID marpa_source_predecessor_state(struct marpa_r *r)
+AHFAID marpa_r_source_predecessor_state(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@/
    guint source_type;
@@ -7468,9 +7468,9 @@ which means the symbol ID comes at virtually zero cost.
 Second, whenever the token value is
 wanted, the symbol ID is almost always wanted as well.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_source_token(struct marpa_r *r, gpointer *value_p);
+Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, gpointer *value_p);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_source_token(struct marpa_r *r, gpointer *value_p)
+Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, gpointer *value_p)
 {
    @<Return |-2| on failure@>@;
    guint source_type;
@@ -7502,9 +7502,9 @@ if the trace source link is not a Leo source,
 or there is some other failure,
 |-2| is returned.
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_source_leo_transition_symbol(struct marpa_r *r);
+Marpa_Symbol_ID marpa_r_source_leo_transition_symbol(struct marpa_r *r);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_source_leo_transition_symbol(struct marpa_r *r)
+Marpa_Symbol_ID marpa_r_source_leo_transition_symbol(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@/
    guint source_type;
@@ -7545,14 +7545,14 @@ as the origin of the cause.
 If there is a token,
 the middle earleme is always where the token starts.
 @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_source_middle(struct marpa_r* r);
+Marpa_Earley_Set_ID marpa_r_source_middle(struct marpa_r* r);
 @ The ``predecessor set" is the earleme of the predecessor.
 Returns |-1| if there is no predecessor.
 If there are other failures, such as
 there being no source link,
 |-2| is returned.
 @<Function definitions@> =
-Marpa_Earley_Set_ID marpa_source_middle(struct marpa_r* r)
+Marpa_Earley_Set_ID marpa_r_source_middle(struct marpa_r* r)
 {
    @<Return |-2| on failure@>@/
    const EARLEME no_predecessor = -1;
@@ -7851,8 +7851,8 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
 }
 
 @** Starting Recognizer Input.
-@ @<Public function prototypes@> = gboolean marpa_start_input(struct marpa_r *r);
-@ @<Function definitions@> = gboolean marpa_start_input(struct marpa_r *r)
+@ @<Public function prototypes@> = gboolean marpa_r_start_input(struct marpa_r *r);
+@ @<Function definitions@> = gboolean marpa_r_start_input(struct marpa_r *r)
 {
     ES set0;
     EIM item;
@@ -10919,9 +10919,9 @@ static inline void tree_safe(TREE tree)
 If the bocage iterator is exhausted, returns -1.
 On error, returns -2.
 @<Public function prototypes@> =
-int marpa_tree_new(struct marpa_r* r);
+int marpa_t_new(struct marpa_r* r);
 @ @<Function definitions@> =
-int marpa_tree_new(struct marpa_r* r)
+int marpa_t_new(struct marpa_r* r)
 {
     BOC b;
     TREE tree;
@@ -11172,9 +11172,9 @@ MARPA_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
 @ Soft failure (-1) if no bocage, so that this function
 can be also used to check for the existence of the bocage.
 @<Public function prototypes@> =
-gint marpa_parse_count(struct marpa_r* r);
+gint marpa_t_parse_count(struct marpa_r* r);
 @ @<Function definitions@> =
-gint marpa_parse_count(struct marpa_r* r)
+gint marpa_t_parse_count(struct marpa_r* r)
 {
     BOC b;
     TREE tree;
@@ -11197,9 +11197,9 @@ If there is a serioius error,
 or if the tree is uninitialized, return -2.
 If the tree is exhausted, return -1.
 @<Private function prototypes@> =
-gint marpa_tree_size(struct marpa_r *r);
+gint marpa_t_size(struct marpa_r *r);
 @ @<Function definitions@> =
-gint marpa_tree_size(struct marpa_r *r)
+gint marpa_t_size(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   BOC b = B_of_R(r);
@@ -11719,11 +11719,11 @@ static inline void val_safe(VAL val)
 }
 
 @ @<Public function prototypes@> =
-int marpa_val_new(struct marpa_r* r);
+int marpa_v_new(struct marpa_r* r);
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
 First, there are only a few stack moves per call
-of |marpa_val_event|.
+of |marpa_v_event|.
 Since at least one subroutine call occurs every few
 virtual stack moves,
 virtual stack moves are not really within a tight CPU
@@ -11760,7 +11760,7 @@ $\size{|tree|}/1024$ is a fixed fraction
 of the worst case size, so the number of
 stack reallocations is $O(1)$.
 @<Function definitions@> =
-int marpa_val_new(struct marpa_r* r)
+int marpa_v_new(struct marpa_r* r)
 {
     BOC b;
     TREE tree;
@@ -11818,9 +11818,9 @@ return on failure@> = {
 }
 
 @ @<Public function prototypes@> =
-gint marpa_val_trace(struct marpa_r* r, gint flag);
+gint marpa_v_trace(struct marpa_r* r, gint flag);
 @ @<Function definitions@> =
-gint marpa_val_trace(struct marpa_r* r, gint flag)
+gint marpa_v_trace(struct marpa_r* r, gint flag)
 {
     BOC b;
     TREE tree;
@@ -11833,9 +11833,9 @@ gint marpa_val_trace(struct marpa_r* r, gint flag)
 }
 
 @ @<Public function prototypes@> =
-Marpa_Fork_ID marpa_val_fork(struct marpa_r* r);
+Marpa_Fork_ID marpa_v_fork(struct marpa_r* r);
 @ @<Function definitions@> =
-Marpa_Fork_ID marpa_val_fork(struct marpa_r* r)
+Marpa_Fork_ID marpa_v_fork(struct marpa_r* r)
 {
     BOC b;
     TREE tree;
@@ -11847,9 +11847,9 @@ Marpa_Fork_ID marpa_val_fork(struct marpa_r* r)
 }
 
 @ @<Public function prototypes@> =
-Marpa_Fork_ID marpa_val_event(struct marpa_r* r, Marpa_Event* event);
+Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event);
 @ @<Function definitions@> =
-Marpa_Fork_ID marpa_val_event(struct marpa_r* r, Marpa_Event* event)
+Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 {
     BOC b;
     TREE tree;
