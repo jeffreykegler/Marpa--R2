@@ -7936,10 +7936,10 @@ a hard failure, but it is possible that an application will
 also see this as a normal data path.
 The general failures reported with |-2| will typically be
 treated by the application as fatal errors.
-@<Public function prototypes@> = gboolean marpa_alternative(struct marpa_r *r,
+@<Public function prototypes@> = gboolean marpa_r_alternative(struct marpa_r *r,
 Marpa_Symbol_ID token_id, gpointer value, gint length);
 @ @<Function definitions@> =
-gboolean marpa_alternative(struct marpa_r *r,
+gboolean marpa_r_alternative(struct marpa_r *r,
 Marpa_Symbol_ID token_id, gpointer value, gint length) {
     @<Return |-2| on failure@>@;
     GRAMMAR g = G_of_R(r);
@@ -10237,9 +10237,9 @@ typedef struct s_and_node AND_Object;
 @*0 Trace Functions.
 
 @ @<Private function prototypes@> =
-gint marpa_and_node_count(struct marpa_r *r);
+gint marpa_b_and_node_count(struct marpa_r *r);
 @ @<Function definitions@> =
-gint marpa_and_node_count(struct marpa_r *r)
+gint marpa_b_and_node_count(struct marpa_r *r)
 {
   BOC b = B_of_R(r);
   struct marpa_g *g = G_of_R(r);
@@ -10276,9 +10276,9 @@ gint marpa_and_node_count(struct marpa_r *r)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_and_node_parent(struct marpa_r *r, int and_node_id);
+gint marpa_b_and_node_parent(struct marpa_r *r, int and_node_id);
 @ @<Function definitions@> =
-gint marpa_and_node_parent(struct marpa_r *r, int and_node_id)
+gint marpa_b_and_node_parent(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10288,9 +10288,9 @@ gint marpa_and_node_parent(struct marpa_r *r, int and_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id);
+gint marpa_b_and_node_predecessor(struct marpa_r *r, int and_node_id);
 @ @<Function definitions@> =
-gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id)
+gint marpa_b_and_node_predecessor(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10305,9 +10305,9 @@ gint marpa_and_node_predecessor(struct marpa_r *r, int and_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_and_node_cause(struct marpa_r *r, int and_node_id);
+gint marpa_b_and_node_cause(struct marpa_r *r, int and_node_id);
 @ @<Function definitions@> =
-gint marpa_and_node_cause(struct marpa_r *r, int and_node_id)
+gint marpa_b_and_node_cause(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10322,9 +10322,9 @@ gint marpa_and_node_cause(struct marpa_r *r, int and_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id);
+gint marpa_b_and_node_symbol(struct marpa_r *r, int and_node_id);
 @ @<Function definitions@> =
-gint marpa_and_node_symbol(struct marpa_r *r, int and_node_id)
+gint marpa_b_and_node_symbol(struct marpa_r *r, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10355,10 +10355,10 @@ because of the need to indicate errors, it is just as
 easy to return the symbol ID as well.
 If the
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_and_node_token(struct marpa_r *r,
+Marpa_Symbol_ID marpa_b_and_node_token(struct marpa_r *r,
     Marpa_And_Node_ID and_node_id, gpointer* value_p);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_and_node_token(struct marpa_r *r,
+Marpa_Symbol_ID marpa_b_and_node_token(struct marpa_r *r,
     Marpa_And_Node_ID and_node_id, gpointer* value_p)
 {
   AND and_node;
@@ -10758,9 +10758,9 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 @ Return the ordinal of the current (final) Earley set of
 the or-node.
 @<Private function prototypes@> =
-gint marpa_or_node_set(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_set(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_or_node_set(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_set(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10770,9 +10770,9 @@ gint marpa_or_node_set(struct marpa_r *r, int or_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_or_node_origin(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_origin(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_or_node_origin(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_origin(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10782,9 +10782,9 @@ gint marpa_or_node_origin(struct marpa_r *r, int or_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_or_node_rule(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_rule(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_or_node_rule(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_rule(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10794,9 +10794,9 @@ gint marpa_or_node_rule(struct marpa_r *r, int or_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_or_node_position(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_position(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_or_node_position(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_position(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10806,9 +10806,9 @@ gint marpa_or_node_position(struct marpa_r *r, int or_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_first_and(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_first_and(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10818,9 +10818,9 @@ gint marpa_or_node_first_and(struct marpa_r *r, int or_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_last_and(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_last_and(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10831,9 +10831,9 @@ gint marpa_or_node_last_and(struct marpa_r *r, int or_node_id)
 }
 
 @ @<Private function prototypes@> =
-gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_and_count(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_or_node_and_count(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_and_count(struct marpa_r *r, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;

@@ -995,7 +995,7 @@ PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
       gint result =
-	marpa_alternative (r, symbol_id, GINT_TO_POINTER(value), length);
+	marpa_r_alternative (r, symbol_id, GINT_TO_POINTER(value), length);
       if (result == -1)
 	{
 	  XSRETURN_UNDEF;
@@ -1429,7 +1429,7 @@ or_node_set( r_wrapper, ordinal )
      Marpa_Or_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_or_node_set(r, ordinal);
+	gint result = marpa_b_or_node_set(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_set(): %s", marpa_r_error (r));
@@ -1443,7 +1443,7 @@ or_node_origin( r_wrapper, ordinal )
      Marpa_Or_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_or_node_origin(r, ordinal);
+	gint result = marpa_b_or_node_origin(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_origin(): %s", marpa_r_error (r));
@@ -1457,7 +1457,7 @@ or_node_position( r_wrapper, ordinal )
      Marpa_Or_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_or_node_position(r, ordinal);
+	gint result = marpa_b_or_node_position(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_position(): %s", marpa_r_error (r));
@@ -1471,7 +1471,7 @@ or_node_rule( r_wrapper, ordinal )
      Marpa_Or_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_or_node_rule(r, ordinal);
+	gint result = marpa_b_or_node_rule(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_rule(): %s", marpa_r_error (r));
@@ -1485,7 +1485,7 @@ or_node_first_and( r_wrapper, ordinal )
      Marpa_Or_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_or_node_first_and(r, ordinal);
+	gint result = marpa_b_or_node_first_and(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_first_and(): %s", marpa_r_error (r));
@@ -1499,7 +1499,7 @@ or_node_last_and( r_wrapper, ordinal )
      Marpa_Or_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_or_node_last_and(r, ordinal);
+	gint result = marpa_b_or_node_last_and(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_last_and(): %s", marpa_r_error (r));
@@ -1513,7 +1513,7 @@ or_node_and_count( r_wrapper, ordinal )
      Marpa_Or_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_or_node_and_count(r, ordinal);
+	gint result = marpa_b_or_node_and_count(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_and_count(): %s", marpa_r_error (r));
@@ -1526,7 +1526,7 @@ and_node_count( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_and_node_count(r);
+	gint result = marpa_b_and_node_count(r);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->and_node_count(): %s", marpa_r_error (r));
@@ -1540,7 +1540,7 @@ and_node_parent( r_wrapper, ordinal )
      Marpa_And_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_and_node_parent(r, ordinal);
+	gint result = marpa_b_and_node_parent(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->and_node_parent(): %s", marpa_r_error (r));
@@ -1554,7 +1554,7 @@ and_node_predecessor( r_wrapper, ordinal )
      Marpa_And_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_and_node_predecessor(r, ordinal);
+	gint result = marpa_b_and_node_predecessor(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->and_node_predecessor(): %s", marpa_r_error (r));
@@ -1568,7 +1568,7 @@ and_node_cause( r_wrapper, ordinal )
      Marpa_And_Node_ID ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_and_node_cause(r, ordinal);
+	gint result = marpa_b_and_node_cause(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->and_node_cause(): %s", marpa_r_error (r));
@@ -1582,7 +1582,7 @@ and_node_symbol( r_wrapper, and_node_id )
      Marpa_And_Node_ID and_node_id;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_and_node_symbol(r, and_node_id);
+	gint result = marpa_b_and_node_symbol(r, and_node_id);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->and_node_symbol(): %s", marpa_r_error (r));
@@ -1597,7 +1597,7 @@ and_node_token( r_wrapper, and_node_id )
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
         gpointer value = NULL;
-	gint result = marpa_and_node_token(r, and_node_id, &value);
+	gint result = marpa_b_and_node_token(r, and_node_id, &value);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->and_node_symbol(): %s", marpa_r_error (r));
