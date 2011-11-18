@@ -1194,7 +1194,7 @@ static inline void symbol_free(SYM symbol);
 @<Int aligned symbol elements@> = SYMID t_symbol_id;
 @ @<Initialize symbol elements@> = ID_of_SYM(symbol) = g->t_symbols->len;
 
-@*0 Symbol LHS Rules Element.
+@*0 Symbol LHS rules element.
 This tracks the rules for which this symbol is the LHS.
 It is an optimization --- the same information could be found
 by scanning the rules every time this information is needed.
@@ -1247,7 +1247,7 @@ marpa_g_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID ru
 void
 marpa_g_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID rule_id);
 
-@*0 Symbol RHS Rules Element.
+@*0 Symbol RHS rules element.
 This tracks the rules for which this symbol is the RHS.
 It is an optimization --- the same information could be found
 by scanning the rules every time this information is needed.
@@ -1257,16 +1257,37 @@ The implementation is a |GArray|.
 symbol->t_rhs = g_array_new(FALSE, FALSE, sizeof(Marpa_Rule_ID));
 @ @<Free symbol elements@> = g_array_free(symbol->t_rhs, TRUE);
 
-@ The trace accessor returns the GArray.
-It remains ``owned" by the Grammar,
-and must not be freed or modified.
-@<Function definitions@> = 
-GArray *marpa_g_symbol_rhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid)
-{ @<Return |NULL| on failure@>@;
-@<Fail if grammar |symid| is invalid@>@;
-return SYM_by_ID(symid)->t_rhs; }
 @ @<Public function prototypes@> =
-GArray *marpa_g_symbol_rhs_peek(struct marpa_g* g, Marpa_Symbol_ID symid);
+gint marpa_g_symbol_rhs_count(struct marpa_g* g, Marpa_Symbol_ID symid);
+Marpa_Rule_ID marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint ix);
+@ @<Function definitions@> = 
+Marpa_Rule_ID marpa_g_symbol_rhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
+{
+    @<Return |-2| on failure@>@;
+    GArray* symbol_rh_rules;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    symbol_rh_rules = SYM_by_ID(symid)->t_rhs;
+    return symbol_rh_rules->len;
+}
+Marpa_Rule_ID marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint ix)
+{
+    @<Return |-2| on failure@>@;
+    GArray* symbol_rh_rules;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    if (ix < 0) {
+        MARPA_ERROR("symbol rhs index negative");
+	return failure_indicator;
+    }
+    symbol_rh_rules = SYM_by_ID(symid)->t_rhs;
+    if ((guint)ix >= symbol_rh_rules->len) {
+        MARPA_ERROR("symbol rhs index out of bounds");
+	return -1;
+    }
+    return g_array_index(symbol_rh_rules, RULEID, ix);
+}
+
 @ @<Function definitions@> = static inline
 void symbol_rhs_add(SYM symbol, Marpa_Rule_ID rule_id)
 { g_array_append_val(symbol->t_rhs, rule_id); }

@@ -233,23 +233,20 @@ PPCODE:
     }
     }
 
- # In scalar context, returns the RHS length
 void
 symbol_rhs_rule_ids( g, symbol_id )
     Grammar *g;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { GArray *rule_id_array = marpa_g_symbol_rhs_peek( g, symbol_id );
-    guint len = rule_id_array->len;
-    Marpa_Rule_ID* rule_ids = (Marpa_Rule_ID*)rule_id_array->data;
-    if (GIMME == G_ARRAY) {
-        int i;
-        EXTEND(SP, len);
-        for (i = 0; i < len; i++) {
-            PUSHs( sv_2mortal( newSViv(rule_ids[i]) ) );
-        }
-    } else {
-        XPUSHs( sv_2mortal( newSViv(len) ) );
+    {
+    int i;
+    gint count = marpa_g_symbol_rhs_count( g, symbol_id );
+    if (count < -1) { croak("Problem in g->symbol_rhs_rule_ids: %s", marpa_g_error(g)); }
+    if (count == -1) { XSRETURN_UNDEF; }
+    for (i = 0; i < count; i++) {
+	Marpa_Rule_ID rule_id= marpa_g_symbol_rhs( g, symbol_id, i );
+	if (rule_id < 0) { croak("Problem in g->symbol_rhs_rule_ids: %s", marpa_g_error(g)); }
+	XPUSHs( sv_2mortal( newSViv(rule_id) ) );
     }
     }
 
