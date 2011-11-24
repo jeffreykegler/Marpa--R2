@@ -27,6 +27,7 @@ use English qw( -no_match_vars );
 use File::Spec;
 use Fatal qw(unlink open close);
 use Carp;
+use CPAN::Version;
 
 # capture stderr output into this file
 my $catcherr_file = 'stderr.log';
@@ -116,12 +117,12 @@ sub load_or_skip_all {
         exit 0;
     }
     my $module_version = eval q{$} . $module_name . '::VERSION';
-    if ( !$module_name->VERSION($version_wanted) ) {
+    if ( CPAN::Version->vlt( $module_version, $version_wanted ) ) {
         say
             "1..0 # Skip $module_name version is $module_version; we wanted $version_wanted"
             or Carp::croak("say failed: $ERRNO");
         exit 0;
-    } ## end if ( !$module_name->VERSION($version_wanted) )
+    } ## end if ( vlt( $module_version, $version_wanted ) )
 } ## end sub load_or_skip_all
 
 1;
