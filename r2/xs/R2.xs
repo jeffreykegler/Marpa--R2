@@ -435,7 +435,7 @@ sequence_new( g, lhs, rhs, args )
 PREINIT:
     Marpa_Rule_ID new_rule_id;
     Marpa_Symbol_ID separator = -1;
-    guint min = 1;
+    gint min = 1;
     gint flags = 0;
 PPCODE:
     if (args) {
@@ -443,29 +443,37 @@ PPCODE:
 	char* key;
 	SV* arg_value;
 	hv_iterinit(args);
-	while (arg_value = hv_iternextsv(args, &key, &retlen) ) {
-	    if ((*key == 'k') && strnEQ(key, "keep", retlen)) {
-		if (SvTRUE(arg_value)) flags |= MARPA_KEEP_SEPARATION;
+	while ((arg_value = hv_iternextsv (args, &key, &retlen)))
+	  {
+	    if ((*key == 'k') && strnEQ (key, "keep", (unsigned) retlen))
+	      {
+		if (SvTRUE (arg_value))
+		  flags |= MARPA_KEEP_SEPARATION;
 		continue;
-	    }
-	    if ((*key == 'm') && strnEQ(key, "min", retlen)) {
-		gint raw_min = SvIV(arg_value);
-		if (raw_min < 0) {
-		    croak("sequence_new(): min cannot be less than 0");
-		}
+	      }
+	    if ((*key == 'm') && strnEQ (key, "min", (unsigned) retlen))
+	      {
+		gint raw_min = SvIV (arg_value);
+		if (raw_min < 0)
+		  {
+		    croak ("sequence_new(): min cannot be less than 0");
+		  }
 		min = raw_min;
 		continue;
-	    }
-	    if ((*key == 'p') && strnEQ(key, "proper", retlen)) {
-		if (SvTRUE(arg_value)) flags |= MARPA_PROPER_SEPARATION;
+	      }
+	    if ((*key == 'p') && strnEQ (key, "proper", (unsigned) retlen))
+	      {
+		if (SvTRUE (arg_value))
+		  flags |= MARPA_PROPER_SEPARATION;
 		continue;
-	    }
-	    if ((*key == 's') && strnEQ(key, "separator", retlen)) {
-		separator = SvIV(arg_value);
-		continue;
-	    }
-	    croak("unknown argument to sequence_new(): %.*s", retlen, key);
-	}
+      }
+    if ((*key == 's') && strnEQ (key, "separator", (unsigned) retlen))
+      {
+	separator = SvIV (arg_value);
+	continue;
+      }
+    croak ("unknown argument to sequence_new(): %.*s", (int)retlen, key);
+  }
     }
     new_rule_id = marpa_g_sequence_new(g, lhs, rhs, separator, min, flags );
     if (new_rule_id < 0) { XSRETURN_UNDEF; }
@@ -477,6 +485,9 @@ rule_lhs( g, rule_id )
     Marpa_Rule_ID rule_id;
 CODE:
     RETVAL = marpa_g_rule_lhs(g, rule_id);
+    if (RETVAL < -1) { 
+      croak ("Problem in g->rule_lhs(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -485,11 +496,13 @@ Marpa_Symbol_ID
 rule_rhs( g, rule_id, ix )
     Grammar *g;
     Marpa_Rule_ID rule_id;
-    unsigned int ix;
+    int ix;
 CODE:
     RETVAL = marpa_g_rule_rh_symbol(g, rule_id, ix);
-    if (RETVAL < -1) { croak("Invalid call rule_rhs(%d, %u)", rule_id, ix); }
-    if (RETVAL == -1) { XSRETURN_UNDEF; }
+    if (RETVAL < -1) { 
+      croak ("Problem in g->rule_rhs(%d, %d): %s", rule_id, ix, marpa_g_error (g));
+      }
+    if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
 
@@ -499,6 +512,9 @@ rule_length( g, rule_id )
     Marpa_Rule_ID rule_id;
 CODE:
     RETVAL = marpa_g_rule_length(g, rule_id);
+    if (RETVAL < -1) { 
+      croak ("Problem in g->rule_length(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (RETVAL < 0) { XSRETURN_UNDEF; }
 OUTPUT:
     RETVAL
@@ -509,6 +525,9 @@ rule_is_accessible( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_is_accessible( g, rule_id );
+    if (result < -1) { 
+      croak ("Problem in g->rule_is_accessible(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -520,6 +539,9 @@ rule_is_productive( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_is_productive( g, rule_id );
+    if (result < -1) { 
+      croak ("Problem in g->rule_is_productive(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -531,6 +553,9 @@ rule_is_loop( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_is_loop( g, rule_id );
+    if (result < -1) { 
+      croak ("Problem in g->rule_is_loop(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -542,6 +567,9 @@ rule_is_virtual_loop( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_is_virtual_loop( g, rule_id );
+    if (result < -1) { 
+      croak ("Problem in g->rule_is_virtual_loop(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result < 0) { croak("Invalid rule %d", rule_id); }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
@@ -553,7 +581,9 @@ rule_virtual_start( g, rule_id )
     Marpa_Rule_ID rule_id;
 CODE:
     RETVAL = marpa_g_virtual_start( g, rule_id );
-    if (RETVAL <= -2) { croak("Invalid rule %d", rule_id); }
+    if (RETVAL <= -2) { 
+      croak ("Problem in g->rule_is_virtual_start(%d): %s", rule_id, marpa_g_error (g));
+      }
 OUTPUT:
     RETVAL
 
@@ -563,7 +593,9 @@ rule_virtual_end( g, rule_id )
     Marpa_Rule_ID rule_id;
 CODE:
     RETVAL = marpa_g_virtual_end( g, rule_id );
-    if (RETVAL <= -2) { croak("Invalid rule %d", rule_id); }
+    if (RETVAL <= -2) { 
+      croak ("Problem in g->rule_is_virtual_end(%d): %s", rule_id, marpa_g_error (g));
+      }
 OUTPUT:
     RETVAL
 
@@ -573,7 +605,9 @@ rule_is_used( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_is_used( g, rule_id );
-    if (result < 0) { croak("Invalid rule %d", rule_id); }
+    if (result < 0) { 
+      croak ("Problem in g->rule_is_used(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -584,7 +618,9 @@ rule_is_discard_separation( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_is_discard_separation( g, rule_id );
-    if (result < 0) { croak("Invalid rule %d", rule_id); }
+    if (result < 0) { 
+      croak ("Problem in g->rule_is_discard_separation(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -595,7 +631,9 @@ rule_is_virtual_lhs( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_is_virtual_lhs( g, rule_id );
-    if (result < 0) { croak("Invalid rule %d", rule_id); }
+    if (result < 0) { 
+      croak ("Problem in g->rule_is_virtual_lhs(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -606,7 +644,9 @@ rule_is_virtual_rhs( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_is_virtual_rhs( g, rule_id );
-    if (result == -1) { croak("Invalid rule %d", rule_id); }
+    if (result < 0) { 
+      croak ("Problem in g->rule_is_virtual_rhs(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result) XSRETURN_YES;
     XSRETURN_NO;
     }
@@ -636,10 +676,10 @@ semantic_equivalent( g, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
     { gint result = marpa_g_rule_semantic_equivalent(g, rule_id);
+    if (result <= -2) { 
+      croak ("Problem in g->semantic_equivalent(%d): %s", rule_id, marpa_g_error (g));
+      }
     if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in g->semantic_equivalent(): %s", marpa_g_error (g));
-    }
     XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
@@ -648,12 +688,12 @@ AHFA_item_count( g )
     Grammar *g;
 PPCODE:
     {
-	gint count = marpa_g_AHFA_item_count(g );
-	if (count < -1) {
-	  croak ("Problem in g->AFHA_item_count(): %s", marpa_g_error (g));
+	gint result = marpa_g_AHFA_item_count(g );
+	if (result <= -2) { 
+	      croak ("Problem in g->AHFA_item_count(): %s", marpa_g_error (g));
 	}
-	if (count < 0) { XSRETURN_UNDEF; }
-	XPUSHs( sv_2mortal( newSViv(count) ) );
+	if (result < 0) { XSRETURN_UNDEF; }
+	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
 int
@@ -661,12 +701,12 @@ rule_count( g )
     Grammar *g;
 PPCODE:
     {
-	gint count = marpa_g_rule_count(g );
-	if (count < -1) {
+	gint result = marpa_g_rule_count(g );
+	if (result < -1) {
 	  croak ("Problem in g->rule_count(): %s", marpa_g_error (g));
 	}
-	if (count < 0) { XSRETURN_UNDEF; }
-	XPUSHs( sv_2mortal( newSViv(count) ) );
+	if (result < 0) { XSRETURN_UNDEF; }
+	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
 int
@@ -742,7 +782,7 @@ PPCODE:
     { gint count = marpa_g_AHFA_state_item_count(g, AHFA_state_id);
     if (count < 0) { croak("Invalid AHFA state %d", AHFA_state_id); }
     if (GIMME == G_ARRAY) {
-        guint item_ix;
+        gint item_ix;
         EXTEND(SP, count);
         for (item_ix = 0; item_ix < count; item_ix++) {
 	    Marpa_AHFA_Item_ID item_id
@@ -774,7 +814,7 @@ PPCODE:
 	    XPUSHs (sv_2mortal (newSViv (g_array_index (gint_array, gint, ix))));
         }
     } else {
-        XPUSHs( sv_2mortal( newSViv(gint_array->len) ) );
+        XPUSHs( sv_2mortal( newSViv((gint)gint_array->len) ) );
     }
     }
 
@@ -895,14 +935,14 @@ CODE:
 OUTPUT:
     RETVAL
 
-char *raw_error( r_wrapper )
+const char *raw_error( r_wrapper )
     R_Wrapper *r_wrapper;
 CODE:
-    RETVAL = (gchar*)marpa_r_error(r_wrapper->r);
+    RETVAL = marpa_r_error(r_wrapper->r);
 OUTPUT:
     RETVAL
 
-char *
+const char *
 phase( r_wrapper )
     R_Wrapper *r_wrapper;
 PREINIT:
@@ -1016,7 +1056,7 @@ PPCODE:
 void
 earley_item_warning_threshold_set( r_wrapper, too_many_earley_items )
     R_Wrapper *r_wrapper;
-    unsigned int too_many_earley_items;
+    int too_many_earley_items;
 PPCODE:
     { gboolean result = marpa_r_earley_item_warning_threshold_set(r_wrapper->r, too_many_earley_items);
     if (result) XSRETURN_YES;
@@ -1027,7 +1067,7 @@ void
 too_many_earley_items( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
-    { guint too_many_earley_items = marpa_r_earley_item_warning_threshold( r_wrapper->r );
+    { gint too_many_earley_items = marpa_r_earley_item_warning_threshold( r_wrapper->r );
     XPUSHs( sv_2mortal( newSViv(too_many_earley_items) ) );
     }
 

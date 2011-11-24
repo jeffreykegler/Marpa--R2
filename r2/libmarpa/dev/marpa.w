@@ -1060,7 +1060,7 @@ void int_event_new(struct marpa_g* g, gint type, gint value)
   top_of_stack->t_value =  value;
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_g_event(struct marpa_g *g, struct marpa_g_event *public_event, gint ix);
 @ @<Function definitions@> =
 gint
@@ -4001,7 +4001,7 @@ SYMID* t_complete_symbols;
 @<Widely aligned AHFA state elements@> =
 AIM* t_items;
 @ @<Int aligned AHFA state elements@> =
-guint t_item_count;
+gint t_item_count;
 @ This function assumes that the caller knows that the AHFA item
 is in the AHFA state.
 @<Private function prototypes@> =
@@ -4127,20 +4127,24 @@ gint marpa_g_AHFA_state_item_count(struct marpa_g* g, Marpa_AHFA_State_ID AHFA_s
 @ @<Public function prototypes@> =
 Marpa_AHFA_Item_ID marpa_g_AHFA_state_item(struct marpa_g* g,
      Marpa_AHFA_State_ID AHFA_state_id,
-	guint item_ix);
+	gint item_ix);
 @ @d AIMID_of_AHFA_by_AEX(g, ahfa, aex)
    ((ahfa)->t_items[aex] - (g)->t_AHFA_items)
 @<Function definitions@> =
 Marpa_AHFA_Item_ID marpa_g_AHFA_state_item(struct marpa_g* g,
      AHFAID AHFA_state_id,
-	guint item_ix) {
+	gint item_ix) {
     AHFA state;
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
+    if (item_ix < 0) {
+        MARPA_ERROR("symbol lhs index negative");
+	return failure_indicator;
+    }
     if (item_ix >= state->t_item_count) {
-	g->t_error = "invalid state item ix";
+	MARPA_ERROR("invalid state item ix");
 	return failure_indicator;
     }
     return AIMID_of_AHFA_by_AEX(g, state, item_ix);
@@ -4267,22 +4271,25 @@ static gint AHFA_state_cmp(
     gconstpointer ap,
     gconstpointer bp)
 {
-    guint i;
     AIM* items_a;
     AIM* items_b;
     const AHFA state_a = (AHFA)ap;
     const AHFA state_b = (AHFA)bp;
-    guint length = state_a->t_item_count;
-    gint subkey = length - state_b->t_item_count;
-    if (subkey) return subkey;
-    if (length != state_b->t_item_count) return FALSE;
-    items_a = state_a->t_items;
-    items_b = state_b->t_items;
-    for (i = 0; i < length; i++) {
-    subkey = Sort_Key_of_AIM (items_a[i]) - Sort_Key_of_AIM (items_b[i]);
-   if (subkey) return subkey;
-}
-return 0;
+    const gint length_a = state_a->t_item_count;
+    const gint length_b = state_b->t_item_count;
+    gint major_key = length_a - length_b;
+    if (major_key) return major_key;
+    {
+      gint i, minor_key;
+      items_a = state_a->t_items;
+      items_b = state_b->t_items;
+      for (i = 0; i < length_a; i++)
+	{
+	  minor_key = Sort_Key_of_AIM (items_a[i]) - Sort_Key_of_AIM (items_b[i]);
+	  if (minor_key) return minor_key;
+	}
+    }
+    return 0;
 }
 
 @*0 AHFA State Mutators.
@@ -5478,19 +5485,19 @@ static inline ES current_es_of_r(RECCE r)
 @ @<Initialize recognizer elements@> =
 r->t_earley_item_warning_threshold = MAX(DEFAULT_EIM_WARNING_THRESHOLD, AIM_Count_of_G(g)*2);
 @ @<Public function prototypes@> =
-guint marpa_r_earley_item_warning_threshold(struct marpa_r* r);
+gint marpa_r_earley_item_warning_threshold(struct marpa_r* r);
 @ @<Function definitions@> =
-guint marpa_r_earley_item_warning_threshold(struct marpa_r* r)
+gint marpa_r_earley_item_warning_threshold(struct marpa_r* r)
 { return r->t_earley_item_warning_threshold; }
 
 @ @<Public function prototypes@> =
-gboolean marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, guint threshold);
+gint marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, gint threshold);
 @ Returns |TRUE| on success,
 |FALSE| on failure.
 @<Function definitions@> =
-gboolean marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, guint threshold)
+gint marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, gint threshold)
 {
-    r->t_earley_item_warning_threshold = threshold == 0 ? EIM_FATAL_THRESHOLD : threshold;
+    r->t_earley_item_warning_threshold = threshold <= 0 ? EIM_FATAL_THRESHOLD : threshold;
     return TRUE;
 }
 
@@ -6785,7 +6792,7 @@ struct marpa_g *g = G_of_R(r);
   return Postdot_SYMID_of_PIM(pim);
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 Marpa_AHFA_State_ID marpa_r_postdot_item_symbol(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID marpa_r_postdot_item_symbol(struct marpa_r *r)
