@@ -10236,7 +10236,7 @@ typedef struct s_and_node AND_Object;
 
 @*0 Trace Functions.
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_and_node_count(struct marpa_r *r);
 @ @<Function definitions@> =
 gint marpa_b_and_node_count(struct marpa_r *r)
@@ -10275,7 +10275,7 @@ gint marpa_b_and_node_count(struct marpa_r *r)
   and_node = and_nodes + and_node_id;
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_and_node_parent(struct marpa_r *r, int and_node_id);
 @ @<Function definitions@> =
 gint marpa_b_and_node_parent(struct marpa_r *r, int and_node_id)
@@ -10287,7 +10287,7 @@ gint marpa_b_and_node_parent(struct marpa_r *r, int and_node_id)
   return ID_of_OR (OR_of_AND (and_node));
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_and_node_predecessor(struct marpa_r *r, int and_node_id);
 @ @<Function definitions@> =
 gint marpa_b_and_node_predecessor(struct marpa_r *r, int and_node_id)
@@ -10304,7 +10304,7 @@ gint marpa_b_and_node_predecessor(struct marpa_r *r, int and_node_id)
       }
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_and_node_cause(struct marpa_r *r, int and_node_id);
 @ @<Function definitions@> =
 gint marpa_b_and_node_cause(struct marpa_r *r, int and_node_id)
@@ -10321,7 +10321,7 @@ gint marpa_b_and_node_cause(struct marpa_r *r, int and_node_id)
     }
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_and_node_symbol(struct marpa_r *r, int and_node_id);
 @ @<Function definitions@> =
 gint marpa_b_and_node_symbol(struct marpa_r *r, int and_node_id)
@@ -10757,7 +10757,7 @@ MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 
 @ Return the ordinal of the current (final) Earley set of
 the or-node.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_b_or_node_set(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_set(struct marpa_r *r, int or_node_id)
@@ -10769,7 +10769,7 @@ gint marpa_b_or_node_set(struct marpa_r *r, int or_node_id)
   return ES_Ord_of_OR(or_node);
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_or_node_origin(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_origin(struct marpa_r *r, int or_node_id)
@@ -10781,7 +10781,7 @@ gint marpa_b_or_node_origin(struct marpa_r *r, int or_node_id)
   return Origin_Ord_of_OR(or_node);
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_or_node_rule(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_rule(struct marpa_r *r, int or_node_id)
@@ -10793,7 +10793,7 @@ gint marpa_b_or_node_rule(struct marpa_r *r, int or_node_id)
   return ID_of_RULE(RULE_of_OR(or_node));
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_or_node_position(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_position(struct marpa_r *r, int or_node_id)
@@ -10805,7 +10805,7 @@ gint marpa_b_or_node_position(struct marpa_r *r, int or_node_id)
   return Position_of_OR(or_node);
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_or_node_first_and(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_first_and(struct marpa_r *r, int or_node_id)
@@ -10817,7 +10817,7 @@ gint marpa_b_or_node_first_and(struct marpa_r *r, int or_node_id)
   return First_ANDID_of_OR(or_node);
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_or_node_last_and(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_last_and(struct marpa_r *r, int or_node_id)
@@ -10830,7 +10830,7 @@ gint marpa_b_or_node_last_and(struct marpa_r *r, int or_node_id)
       + AND_Count_of_OR(or_node) - 1;
 }
 
-@ @<Private function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_b_or_node_and_count(struct marpa_r *r, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_and_count(struct marpa_r *r, int or_node_id)
@@ -11196,7 +11196,7 @@ This is the number of |FORK| entries in its stack.
 If there is a serioius error,
 or if the tree is uninitialized, return -2.
 If the tree is exhausted, return -1.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_t_size(struct marpa_r *r);
 @ @<Function definitions@> =
 gint marpa_t_size(struct marpa_r *r)
@@ -11546,7 +11546,7 @@ set |fork|@> = {
 }
 
 @ Return the ID of the or-node for |fork_id|.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_t_fork_or_node(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
 gint marpa_t_fork_or_node(struct marpa_r *r, int fork_id)
@@ -11559,7 +11559,7 @@ gint marpa_t_fork_or_node(struct marpa_r *r, int fork_id)
 }
 
 @ Return the current choice for |fork_id|.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_t_fork_choice(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
 gint marpa_t_fork_choice(struct marpa_r *r, int fork_id)
@@ -11580,7 +11580,7 @@ If that's an issue, the |fork_id| needs
 to be checked with one of the trace functions
 where -1 is never a valid value ---
 for example, |marpa_t_fork_or_node|.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_t_fork_parent(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
 gint marpa_t_fork_parent(struct marpa_r *r, int fork_id)
@@ -11593,7 +11593,7 @@ gint marpa_t_fork_parent(struct marpa_r *r, int fork_id)
 }
 
 @ Return the cause-is-ready bit for |fork_id|.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_t_fork_cause_is_ready(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
 gint marpa_t_fork_cause_is_ready(struct marpa_r *r, int fork_id)
@@ -11606,7 +11606,7 @@ gint marpa_t_fork_cause_is_ready(struct marpa_r *r, int fork_id)
 }
 
 @ Return the predecessor-is-ready bit for |fork_id|.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_t_fork_predecessor_is_ready(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
 gint marpa_t_fork_predecessor_is_ready(struct marpa_r *r, int fork_id)
@@ -11619,7 +11619,7 @@ gint marpa_t_fork_predecessor_is_ready(struct marpa_r *r, int fork_id)
 }
 
 @ Return the is-cause bit for |fork_id|.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_t_fork_is_cause(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
 gint marpa_t_fork_is_cause(struct marpa_r *r, int fork_id)
@@ -11632,7 +11632,7 @@ gint marpa_t_fork_is_cause(struct marpa_r *r, int fork_id)
 }
 
 @ Return the is-predecessor bit for |fork_id|.
-@<Private function prototypes@> =
+@<Public function prototypes@> =
 gint marpa_t_fork_is_predecessor(struct marpa_r *r, int fork_id);
 @ @<Function definitions@> =
 gint marpa_t_fork_is_predecessor(struct marpa_r *r, int fork_id)

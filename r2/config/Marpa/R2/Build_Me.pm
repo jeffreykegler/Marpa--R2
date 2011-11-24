@@ -177,6 +177,18 @@ sub process_xs {
     # .c -> .o
     my $v = $self->dist_version;
     $self->verbose() and say "compiling $spec->{c_file}";
+    if ( $self->config('cc') eq 'gcc' ) {
+        my $ccflags = $self->config('ccflags');
+        $self->config(
+            'ccflags' => (
+                      $ccflags
+                    . ' -Wall -Wno-unused-variable -Wextra -Wpointer-arith'
+                    . ' -Wstrict-prototypes -Wwrite-strings'
+                    . ' -Wdeclaration-after-statement -Winline'
+                    . ' -Wmissing-declarations -Wconversion'
+            )
+        );
+    } ## end if ( $self->config('cc') eq 'gcc' )
     $self->compile_c( $spec->{c_file},
         defines => { VERSION => qq{"$v"}, XS_VERSION => qq{"$v"} } );
 
