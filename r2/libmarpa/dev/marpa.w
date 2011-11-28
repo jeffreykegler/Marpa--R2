@@ -4805,7 +4805,7 @@ if (postdot >= 0)
 The method for building predicted AHFA states is optimized using
 precomputed bit vectors.
 This should be very fast,
-but It is possible to think other methods might
+but it is possible to think other methods might
 be better, at least in some cases.  The bit vectors are $O(s)$ in length, where $s$ is the
 size of the grammar, and so is the time complexity of the method used.
 @ It may be possible to look at a list of
@@ -4904,9 +4904,11 @@ the predictable rules.
 |G_MAXINT| is used for the others, so that they will sort high.
 (|G_MAXINT| is used and not |G_MAXUINT|, because the sort routines
 work with signed values.)
-This first pass fully captures the order, but
-our final result needs to be an unique ID for every ``predictable rule",
-so that it can be used as the index in a bit vector.
+This first pass fully captures the order,
+but in the 
+final result we want the keys to be unique integers
+in a sequence start from 0,
+so that they can be used as the indices of a bit vector.
 @<Populate |sort_key_by_rule_id| with first pass value;
 calculate |no_of_predictable_rules|@> =
 {
