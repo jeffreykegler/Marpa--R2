@@ -289,6 +289,8 @@ sub file_type {
     return \&license_problems_in_pod_file if $filepart =~ /[.]pod \z/xms;
     return \&license_problems_in_c_file
         if $filepart =~ /[.] (xs|c|h) \z /xms;
+    return \&license_problems_in_c_file
+        if $filepart =~ /[.] (xs|c|h) [.] in \z /xms;
     return \&license_problems_in_tex_file
         if $filepart =~ /[.] (w) \z /xms;
     return \&license_problems_in_hash_file
