@@ -31,7 +31,7 @@ m4_define(marpa_configure_in)
 # if backwards compatibility has been broken,
 # set marpa_binary_age _and_ marpa_interface_age to 0.
 #
-m4_define([marpa_major_version], [0])
+m4_define([marpa_major_version], [1])
 m4_define([marpa_minor_version], [1])
 m4_define([marpa_micro_version], [0])
 m4_define([marpa_interface_age], [100])
@@ -112,7 +112,6 @@ LT_INIT([pic-only])
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_CXX
 AC_PROG_LN_S
 
 # Checks for header files.
@@ -225,6 +224,6 @@ AC_DEFINE_UNQUOTED( [MARPA_CAN_INLINE], $marpa_cv_can_inline, [Does header inlin
 PKG_PROG_PKG_CONFIG([0.22])
 PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.22.0] )
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile marpa.h])
 AC_OUTPUT
 

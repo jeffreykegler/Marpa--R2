@@ -107,7 +107,7 @@ libmarpa/dist/m4/ltsugar.m4
 libmarpa/dist/m4/ltversion.m4
 libmarpa/dist/m4/lt~obsolete.m4
 libmarpa/dist/marpa.c
-libmarpa/dist/marpa.h
+libmarpa/dist/marpa.h.in
 libmarpa/dist/marpa_obs.c
 libmarpa/dist/marpa_obs.h
 libmarpa/dist/missing
@@ -150,7 +150,6 @@ pod/Vocabulary.pod
 pperl/Marpa/R2/Perl.pm
 ppport.h
 t/00-load.t
-t/02-load_xs.t
 t/ah2.t
 t/ah_numeric.t
 t/bocage.t

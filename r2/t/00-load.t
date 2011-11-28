@@ -18,10 +18,7 @@ use 5.010;
 use warnings;
 use strict;
 
-use Test::More tests => 5;
-
-use Carp;
-use Data::Dumper;
+use Test::More tests => 3;
 
 BEGIN {
     Test::More::use_ok('Marpa::R2');
@@ -30,15 +27,8 @@ BEGIN {
 defined $INC{'Marpa/R2.pm'}
     or Test::More::BAIL_OUT('Could not load Marpa::R2');
 
-Test::More::ok( defined &Marpa::R2::version, 'Marpa::R2::version defined' );
-
-my @version = Marpa::R2::version();
-Test::More::is( $version[0], 0, 'Marpa::R2 major version' );
-Test::More::is( $version[1], 1, 'Marpa::R2 minor version' );
-Test::More::is( $version[2], 0, 'Marpa::R2 micro version' );
-
-Test::More::diag( 'Using Marpa::R2 ',
-    $Marpa::R2::VERSION, q{ }, $Marpa::R2::TIMESTAMP );
-
-1;    # In case used as "do" file
+Test::More::ok( ( defined $Marpa::R2::VERSION ),
+    'Marpa::R2 version is ' . $Marpa::R2::VERSION );
+Test::More::ok( ( defined $Marpa::R2::STRING_VERSION ),
+    'Marpa::R2 string version is ' . $Marpa::R2::STRING_VERSION );
 

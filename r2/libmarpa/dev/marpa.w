@@ -667,15 +667,30 @@ const guint marpa_minor_version = MARPA_MINOR_VERSION;
 const guint marpa_micro_version = MARPA_MICRO_VERSION;
 const guint marpa_interface_age = MARPA_INTERFACE_AGE;
 const guint marpa_binary_age = MARPA_BINARY_AGE;
-@ Return the version in a 3 element int array
-@<Function definitions@> =
-void marpa_version(int* version) {
-        version[0] = MARPA_MAJOR_VERSION;
-        version[1] = MARPA_MINOR_VERSION,
-        version[2] = MARPA_MICRO_VERSION;
-}
 @ @<Public function prototypes@> =
-void marpa_version(int* version);
+const gchar *
+marpa_check_version (guint required_major,
+                    guint required_minor,
+                    guint required_micro);
+@ @<Function definitions@> =
+const gchar *
+marpa_check_version (guint required_major,
+                    guint required_minor,
+                    guint required_micro)
+{
+  gint marpa_effective_micro = 100 * MARPA_MINOR_VERSION + MARPA_MICRO_VERSION;
+  gint required_effective_micro = 100 * required_minor + required_micro;
+
+  if (required_major > MARPA_MAJOR_VERSION)
+    return "libmarpa version too old (major mismatch)";
+  if (required_major < MARPA_MAJOR_VERSION)
+    return "libmarpa version too new (major mismatch)";
+  if (required_effective_micro < marpa_effective_micro - MARPA_BINARY_AGE)
+    return "libmarpa version too new (micro mismatch)";
+  if (required_effective_micro > marpa_effective_micro)
+    return "libmarpa version too old (micro mismatch)";
+  return NULL;
+}
 
 @*0 Header file.
 |GLIB_VAR| is to
@@ -13464,13 +13479,13 @@ So I add such a comment.
 @<Private inline functions@>@;
 @<Function definitions@>@;
 
-@*0 |marpa.h| Layout.
+@*0 |marpa.h.in| Layout.
 @q This is a separate section in order to get the @>
 @q license language nearer the top of the files. @>
 @q It's hackish, but in a good cause. @>
-@ The physical structure of the |marpa.h| file
+@ The physical structure of the |marpa.h.in| file
 \tenpoint
-@(marpa.h@> =
+@(marpa.h.in@> =
 @=/*@>@/
 @= * Copyright 2011 Jeffrey Kegler@>@/
 @= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
@@ -13494,11 +13509,16 @@ So I add such a comment.
 @= */@>@/
 
 @ \twelvepoint
-@(marpa.h@> =
+@(marpa.h.in@> =
 #ifndef __MARPA_H__
 #define __MARPA_H__ @/
 #include <stdio.h>
 #include <glib.h>
+
+#define MARPA_MAJOR_VERSION @@MARPA_MAJOR_VERSION@@
+#define MARPA_MINOR_VERSION @@MARPA_MINOR_VERSION@@
+#define MARPA_MICRO_VERSION @@MARPA_MICRO_VERSION@@
+
 @<Body of public header file@>
 #endif __MARPA_H__
 

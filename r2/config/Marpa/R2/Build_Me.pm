@@ -166,7 +166,7 @@ sub process_xs {
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
 
-    my $marpa_h = File::Spec->catdir( $self->base_dir(), qw(libmarpa dist marpa.h));
+    my $marpa_h = File::Spec->catdir( $self->base_dir(), qw(libmarpa build marpa.h));
     unless (
         $self->up_to_date( [ 'typemap', 'Build', $marpa_h, $file ], $spec->{c_file} ) )
     {

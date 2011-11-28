@@ -48,17 +48,17 @@ SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 	 pdftex ) pdftex $* ;; \
 	esac
 
-all: marpa.pdf marpa.c marpa.h
+all: marpa.pdf marpa.c marpa.h.in
 
-marpa.c marpa.h: copyright_page_license.w marpa.w
+marpa.c marpa.h.in: copyright_page_license.w marpa.w
 
 marpa.pdf: marpa.tex cwebmac.tex
 
-install: ../dist/marpa.c ../dist/marpa.h
+install: ../dist/marpa.c ../dist/marpa.h.in
 
 ../dist/marpa.c: marpa.c
 	cp $? $@
 
-../dist/marpa.h: marpa.h
+../dist/marpa.h.in: marpa.h.in
 	cp $? $@
 

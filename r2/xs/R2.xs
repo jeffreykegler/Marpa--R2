@@ -66,23 +66,10 @@ event_type_to_string (Marpa_Event_Type type)
   return NULL;
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2
-
-PROTOTYPES: DISABLE
-
-void
-version()
-PPCODE:
-{
-   int version[3];
-   marpa_version(version);
-   EXTEND(SP, 3);
-   mPUSHi( version[0] );
-   mPUSHi( version[1] );
-   mPUSHi( version[2] );
-}
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::G_C
+
+PROTOTYPES: DISABLE
 
 G_Wrapper *
 new( class, non_c_sv )
@@ -91,7 +78,13 @@ PREINIT:
     struct marpa_g *g;
     SV *sv;
     G_Wrapper *g_wrapper;
+    const char *version_error;
 PPCODE:
+    version_error =
+	marpa_check_version(MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
+    if (version_error) {
+	  croak ("Problem in Marpa::R2->new(): %s", version_error);
+    }
     g = marpa_g_new();
     Newx( g_wrapper, 1, G_Wrapper );
     g_wrapper->g = g;

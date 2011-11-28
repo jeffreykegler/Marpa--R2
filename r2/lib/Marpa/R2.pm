@@ -49,12 +49,6 @@ eval {
     1;
 } or Carp::croak("Could not load XS version of Marpa::R2: $EVAL_ERROR");
 
-my $version_found = join q{.}, Marpa::R2::version();
-my $version_wanted = '0.1.0';
-Carp::croak( 'Marpa::R2 ',
-    "fails version check, wanted $version_wanted, found $version_found" )
-    if $version_wanted ne $version_found;
-
 @Marpa::R2::CARP_NOT = ();
 for my $start (qw(Marpa::R2)) {
     for my $middle ( q{}, '::Internal' ) {
