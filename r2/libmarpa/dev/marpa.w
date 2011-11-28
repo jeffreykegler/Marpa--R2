@@ -807,7 +807,7 @@ void rule_add(
     RULE rule)
 {
     g_array_insert_val(g->t_rules, (unsigned)rule_id, rule);
-    LV_Size_of_G(g) += 1 + Length_of_RULE(rule);
+    Size_of_G(g) += 1 + Length_of_RULE(rule);
     g->t_max_rule_length = MAX(Length_of_RULE(rule), g->t_max_rule_length);
 }
 
@@ -894,10 +894,9 @@ from the count.
 The purpose of tracking grammar size is to allocate resources,
 and for that purpose a high-ball estimate is adequate.
 @d Size_of_G(g) ((g)->t_size)
-@d LV_Size_of_G(g) ((g)->t_size)
 @ @<Int aligned grammar elements@> = int t_size;
 @ @<Initialize grammar elements@> =
-LV_Size_of_G(g) = 0;
+Size_of_G(g) = 0;
 
 @*0 The Maximum Rule Length.
 This is a high-ball estimate of the length of the
@@ -3583,7 +3582,6 @@ A lot of code relies on these facts.
    AIM* t_AHFA_items_by_rule;
 @
 @d AIM_Count_of_G(g) ((g)->t_aim_count)
-@d LV_AIM_Count_of_G(g) AIM_Count_of_G(g) 
 @<Int aligned grammar elements@> =
    guint t_aim_count;
 @ The space is allocated during precomputation.
@@ -3718,7 +3716,7 @@ void create_AHFA_items(GRAMMAR g) {
 	}
     }
     SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
-    no_of_items = LV_AIM_Count_of_G(g) = current_item - base_item;
+    no_of_items = AIM_Count_of_G(g) = current_item - base_item;
     g->t_AHFA_items = g_renew(struct s_AHFA_item, base_item, no_of_items);
     @<Set up the items-by-rule list@>@;
     @<Set up the AHFA item ids@>@;
@@ -3983,9 +3981,7 @@ typedef struct s_AHFA_state AHFA_Object;
 
 @*0 Complete Symbols Container.
 @ @d Complete_SYMIDs_of_AHFA(state) ((state)->t_complete_symbols)
-@d LV_Complete_SYMIDs_of_AHFA(state) Complete_SYMIDs_of_AHFA(state)
 @d Complete_SYM_Count_of_AHFA(state) ((state)->t_complete_symbol_count)
-@d LV_Complete_SYM_Count_of_AHFA(state) Complete_SYM_Count_of_AHFA(state)
 @<Int aligned AHFA state elements@> =
 guint t_complete_symbol_count;
 @ @<Widely aligned AHFA state elements@> =
@@ -3994,9 +3990,7 @@ SYMID* t_complete_symbols;
 @*0 AHFA Item Container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
 @d AIM_of_AHFA_by_AEX(ahfa, aex) (AIMs_of_AHFA(ahfa)[aex])
-@d LV_AIMs_of_AHFA(ahfa) AIMs_of_AHFA(ahfa)
 @d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
-@d LV_AIM_Count_of_AHFA(ahfa) AIM_Count_of_AHFA(ahfa)
 @d AEX_of_AHFA_by_AIM(ahfa, aim) aex_of_ahfa_by_aim_get((ahfa), (aim))
 @<Widely aligned AHFA state elements@> =
 AIM* t_items;
@@ -4047,7 +4041,6 @@ and a completion.
 AHFA state 0 is, however, {\bf never}
 a predicted AHFA state.
 @d AHFA_is_Predicted(ahfa) ((ahfa)->t_is_predict)
-@d LV_AHFA_is_Predicted(ahfa) AHFA_is_Predicted(ahfa)
 @d EIM_is_Predicted(eim) AHFA_is_Predicted(AHFA_of_EIM(eim))
 @<Bit aligned AHFA elements@> =
 guint t_is_predict:1;
@@ -4097,9 +4090,7 @@ const struct marpa_g *g, AHFAID AHFA_state_id);
     
 @*0 Postdot Symbols.
 @d Postdot_SYM_Count_of_AHFA(state) ((state)->t_postdot_sym_count)
-@d LV_Postdot_SYM_Count_of_AHFA(state) Postdot_SYM_Count_of_AHFA(state) 
 @d Postdot_SYMID_Ary_of_AHFA(state) ((state)->t_postdot_symid_ary)
-@d LV_Postdot_SYMID_Ary_of_AHFA(state) Postdot_SYMID_Ary_of_AHFA(state)
 @<Widely aligned AHFA state elements@> = Marpa_Symbol_ID* t_postdot_symid_ary;
 @ @<Int aligned AHFA state elements@> = guint t_postdot_sym_count;
 
@@ -4231,7 +4222,6 @@ The value of the Leo completion symbol is used to
 determine if an Earley item
 with this AHFA state is eligible to be a Leo completion.
 @d Leo_LHS_ID_of_AHFA(state) ((state)->t_leo_lhs_sym)
-@d LV_Leo_LHS_ID_of_AHFA(state) Leo_LHS_ID_of_AHFA(state)
 @d AHFA_is_Leo_Completion(state) (Leo_LHS_ID_of_AHFA(state) >= 0)
 @ @<Int aligned AHFA state elements@> = SYMID t_leo_lhs_sym;
 @ @<Public function prototypes@> =
@@ -4483,14 +4473,14 @@ g_tree_destroy(duplicates);
   p_initial_state->t_items = item_list;
   p_initial_state->t_item_count = 1;
   p_initial_state->t_key.t_id = 0;
-  LV_AHFA_is_Predicted (p_initial_state) = 0;
-  LV_Leo_LHS_ID_of_AHFA (p_initial_state) = -1;
+  AHFA_is_Predicted (p_initial_state) = 0;
+  Leo_LHS_ID_of_AHFA (p_initial_state) = -1;
   LV_TRANSs_of_AHFA (p_initial_state) = transitions_new (g);
-  LV_Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
-  postdot_symbol_ids = LV_Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
+  Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
+  postdot_symbol_ids = Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
     obstack_alloc (&g->t_obs, sizeof (SYMID));
   *postdot_symbol_ids = Postdot_SYMID_of_AIM (start_item);
-  LV_Complete_SYM_Count_of_AHFA (p_initial_state) = 0;
+  Complete_SYM_Count_of_AHFA (p_initial_state) = 0;
   p_initial_state->t_has_completed_start_rule = 0;
   p_initial_state->t_empty_transition =
     create_predicted_AHFA_state (g,
@@ -4552,20 +4542,20 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	obstack_alloc (&g->t_obs, sizeof (AIM));
     new_state_item_list[0] = single_item_p;
     p_new_state->t_item_count = 1;
-    LV_AHFA_is_Predicted(p_new_state) = 0;
+    AHFA_is_Predicted(p_new_state) = 0;
     if (AIM_has_Completed_Start_Rule(single_item_p)) {
 	p_new_state->t_has_completed_start_rule = 1;
     } else {
 	p_new_state->t_has_completed_start_rule = 0;
     }
-    LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
+    Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     transition_add (&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
       {
-	LV_Complete_SYM_Count_of_AHFA(p_new_state) = 0;
+	Complete_SYM_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_postdot_sym_count = 1;
 	p_new_state->t_postdot_symid_ary =
 	  obstack_alloc (&g->t_obs, sizeof (SYMID));
@@ -4583,9 +4573,9 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	SYMID lhs_id = LHS_ID_of_AIM(single_item_p);
 	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
-	LV_Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
+	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
 	completion_count_inc(&ahfa_work_obs, p_new_state, lhs_id);
-	LV_Complete_SYM_Count_of_AHFA(p_new_state) = 1;
+	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
 	p_new_state->t_empty_transition = NULL;
 	@<If this state can be a Leo completion,
@@ -4627,7 +4617,7 @@ set the Leo completion symbol to |lhs_id|@> = {
   if (SYMBOL_LHS_RULE_COUNT (SYM_by_ID (predot_symid))
       > 0)
     {
-	LV_Leo_LHS_ID_of_AHFA(p_new_state) = lhs_id;
+	Leo_LHS_ID_of_AHFA(p_new_state) = lhs_id;
     }
 }
 
@@ -4687,9 +4677,9 @@ if (queued_AHFA_state)
   }
     // If we added the new state, finish up its data.
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFA_Object);
-    LV_AHFA_is_Predicted(p_new_state) = 0;
+    AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_has_completed_start_rule = 0;
-    LV_Leo_LHS_ID_of_AHFA(p_new_state) =-1;
+    Leo_LHS_ID_of_AHFA(p_new_state) =-1;
     LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     @<Calculate complete and postdot symbols for discovered state@>@/
     transition_add(&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
@@ -4738,14 +4728,14 @@ if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
       }
   }
     if ((no_of_complete_symbols =
-	 LV_Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (complete_v)))
+	 Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (complete_v)))
       {
 	guint min, max, start;
 	SYMID *complete_symids = obstack_alloc (&g->t_obs,
 						no_of_complete_symbols *
 						sizeof (SYMID));
 	SYMID *p_symbol = complete_symids;
-	LV_Complete_SYMIDs_of_AHFA (p_new_state) = complete_symids;
+	Complete_SYMIDs_of_AHFA (p_new_state) = complete_symids;
 	for (start = 0; bv_scan (complete_v, start, &min, &max); start = max + 2)
 	  {
 	    SYMID complete_symbol_id;
@@ -5074,12 +5064,12 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFA_Object);@/
     }
     // The new state was added -- finish up its data
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE((*states_p), AHFA_Object);
-    LV_AHFA_is_Predicted(p_new_state) = 1;
+    AHFA_is_Predicted(p_new_state) = 1;
     p_new_state->t_has_completed_start_rule = 0;
-    LV_Leo_LHS_ID_of_AHFA(p_new_state) = -1;
+    Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_empty_transition = NULL;
     LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
-    LV_Complete_SYM_Count_of_AHFA(p_new_state) = 0;
+    Complete_SYM_Count_of_AHFA(p_new_state) = 0;
     @<Calculate postdot symbols for predicted state@>@/
     return p_new_state;
 }
@@ -6412,7 +6402,6 @@ a postdot symbol.
 @d EIM_of_EIX(eix) ((eix)->t_earley_item)
 @d LV_EIM_of_EIX(eix) EIM_of_EIX(eix)
 @d Postdot_SYMID_of_EIX(eix) ((eix)->t_postdot_symid)
-@d LV_Postdot_SYMID_of_EIX(eix) Postdot_SYMID_of_EIX(eix)
 @<Private incomplete structures@> =
 struct s_earley_ix;
 typedef struct s_earley_ix* EIX;
@@ -6597,7 +6586,6 @@ for each Earley set.
 @d LIM_of_PIM(pim) ((LIM)(pim))
 @d EIX_of_PIM(pim) ((EIX)(pim))
 @d Postdot_SYMID_of_PIM(pim) (Postdot_SYMID_of_EIX(EIX_of_PIM(pim)))
-@d LV_Postdot_SYMID_of_PIM(pim) Postdot_SYMID_of_PIM(pim)
 @d EIM_of_PIM(pim) (EIM_of_EIX(EIX_of_PIM(pim)))
 @d LV_EIM_of_PIM(pim) EIM_of_PIM(pim)
 @d Next_PIM_of_PIM(pim) (Next_PIM_of_EIX(EIX_of_PIM(pim)))
@@ -8403,7 +8391,7 @@ At this point there are no Leo items.
 	  Marpa_Symbol_ID symid;
 	  new_pim = obstack_alloc (&r->t_obs, sizeof (EIX_Object));
 	  symid = postdot_symbols[symbol_ix];
-	  LV_Postdot_SYMID_of_PIM(new_pim) = symid;
+	  Postdot_SYMID_of_PIM(new_pim) = symid;
 	  LV_EIM_of_PIM(new_pim) = earley_item;
 	  if (bv_bit_test(bv_pim_symbols, (guint)symid))
 	      old_pim = pim_workarea[symid];
