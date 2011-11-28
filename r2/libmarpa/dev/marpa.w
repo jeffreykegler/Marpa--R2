@@ -4068,7 +4068,7 @@ STOLEN_DQUEUE_DATA_FREE(g->t_AHFA);
 
 @ Most of the data is on the obstack, and will be freed with that.
 @<Free AHFA state@> = {
-  TRANS *ahfa_transitions = LV_TRANSs_of_AHFA (ahfa_state);
+  TRANS *ahfa_transitions = TRANSs_of_AHFA (ahfa_state);
   if (ahfa_transitions)
     g_free (TRANSs_of_AHFA (ahfa_state));
 }
@@ -4475,7 +4475,7 @@ g_tree_destroy(duplicates);
   p_initial_state->t_key.t_id = 0;
   AHFA_is_Predicted (p_initial_state) = 0;
   Leo_LHS_ID_of_AHFA (p_initial_state) = -1;
-  LV_TRANSs_of_AHFA (p_initial_state) = transitions_new (g);
+  TRANSs_of_AHFA (p_initial_state) = transitions_new (g);
   Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
   postdot_symbol_ids = Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
     obstack_alloc (&g->t_obs, sizeof (SYMID));
@@ -4550,7 +4550,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     }
     Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
-    LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
+    TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     transition_add (&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
@@ -4680,7 +4680,7 @@ if (queued_AHFA_state)
     AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_has_completed_start_rule = 0;
     Leo_LHS_ID_of_AHFA(p_new_state) =-1;
-    LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
+    TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     @<Calculate complete and postdot symbols for discovered state@>@/
     transition_add(&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
     @<Calculate the predicted rule vector for this state
@@ -5068,7 +5068,7 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFA_Object);@/
     p_new_state->t_has_completed_start_rule = 0;
     Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_empty_transition = NULL;
-    LV_TRANSs_of_AHFA(p_new_state) = transitions_new(g);
+    TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     Complete_SYM_Count_of_AHFA(p_new_state) = 0;
     @<Calculate postdot symbols for predicted state@>@/
     return p_new_state;
@@ -5181,7 +5181,6 @@ struct s_transition {
     AEX t_aex[1];
 };
 @ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
-@d LV_TRANSs_of_AHFA(ahfa) TRANSs_of_AHFA(ahfa)
 @<Widely aligned AHFA state elements@> =
     TRANS* t_transitions;
 @ @<Private function prototypes@> =
@@ -5432,7 +5431,6 @@ Marpa_Phase marpa_r_phase(struct marpa_r* r)
 
 @*0 Earley Set Container.
 @d First_ES_of_R(r) ((r)->t_first_earley_set)
-@d LV_First_ES_of_R(r) First_ES_of_R(r)
 @<Widely aligned recognizer elements@> =
 ES t_first_earley_set;
 ES t_latest_earley_set;
@@ -5449,9 +5447,7 @@ r->t_current_earleme = -1;
 
 @*0 Current Earleme.
 @d Latest_ES_of_R(r) ((r)->t_latest_earley_set)
-@d LV_Latest_ES_of_R(r) Latest_ES_of_R(r)
 @d Current_Earleme_of_R(r) ((r)->t_current_earleme)
-@d LV_Current_Earleme_of_R(r) (Current_Earleme_of_R(r))
 @ @<Public function prototypes@> =
 guint marpa_r_current_earleme(struct marpa_r* r);
 @ @<Function definitions@> =
@@ -5498,7 +5494,6 @@ Marpa allows variable length tokens,
 so it needs to track how far out tokens might be found.
 No complete or predicted Earley item will be found after the current earleme.
 @d Furthest_Earleme_of_R(r) ((r)->t_furthest_earleme)
-@d LV_Furthest_Earleme_of_R(r) Furthest_Earleme_of_R(r)
 @<Int aligned recognizer elements@> = EARLEME t_furthest_earleme;
 @ @<Initialize recognizer elements@> = r->t_furthest_earleme = 0;
 @ @<Public function prototypes@> =
@@ -5822,7 +5817,6 @@ able to handle.
 @<Public typedefs@> = typedef gint Marpa_Earley_Set_ID;
 @ @<Private typedefs@> = typedef Marpa_Earley_Set_ID ESID;
 @ @d Next_ES_of_ES(set) ((set)->t_next_earley_set)
-@d LV_Next_ES_of_ES(set) Next_ES_of_ES(set)
 @d Postdot_SYM_Count_of_ES(set) ((set)->t_postdot_sym_count)
 @d First_PIM_of_ES_by_SYMID(set, symid) (first_pim_of_es_by_symid((set), (symid)))
 @d PIM_SYM_P_of_ES_by_SYMID(set, symid) (pim_sym_p_find((set), (symid)))
@@ -5889,7 +5883,7 @@ earley_set_new( RECCE r, EARLEME id)
   EIM_Count_of_ES(set) = 0;
   set->t_ordinal = r->t_earley_set_count++;
   EIMs_of_ES(set) = NULL;
-  LV_Next_ES_of_ES(set) = NULL;
+  Next_ES_of_ES(set) = NULL;
   @<Initialize Earley set PSL data@>@/
   return set;
 }
@@ -6398,9 +6392,7 @@ The other elements of the EIX are overhead to
 support the chain of postdot items for
 a postdot symbol.
 @d Next_PIM_of_EIX(eix) ((eix)->t_next)
-@d LV_Next_PIM_of_EIX(eix) Next_PIM_of_EIX(eix)
 @d EIM_of_EIX(eix) ((eix)->t_earley_item)
-@d LV_EIM_of_EIX(eix) EIM_of_EIX(eix)
 @d Postdot_SYMID_of_EIX(eix) ((eix)->t_postdot_symid)
 @<Private incomplete structures@> =
 struct s_earley_ix;
@@ -6430,19 +6422,12 @@ but one
 with a |NULL| Earley item pointer.
 @d Postdot_SYMID_of_LIM(leo) (Postdot_SYMID_of_EIX(EIX_of_LIM(leo)))
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_EIX(EIX_of_LIM(leo)))
-@d LV_Next_PIM_of_LIM(leo) Next_PIM_of_LIM(leo)
 @d Origin_of_LIM(leo) ((leo)->t_origin)
-@d LV_Origin_of_LIM(leo) Origin_of_LIM(leo)
 @d Top_AHFA_of_LIM(leo) ((leo)->t_top_ahfa)
-@d LV_Top_AHFA_of_LIM(leo) Top_AHFA_of_LIM(leo)
 @d Predecessor_LIM_of_LIM(leo) ((leo)->t_predecessor)
-@d LV_Predecessor_LIM_of_LIM(leo) Predecessor_LIM_of_LIM(leo)
 @d Base_EIM_of_LIM(leo) ((leo)->t_base)
-@d LV_Base_EIM_of_LIM(leo) Base_EIM_of_LIM(leo)
 @d ES_of_LIM(leo) ((leo)->t_set)
-@d LV_ES_of_LIM(leo) ES_of_LIM(leo)
 @d Chain_Length_of_LIM(leo) ((leo)->t_chain_length)
-@d LV_Chain_Length_of_LIM(leo) Chain_Length_of_LIM(leo)
 @d Earleme_of_LIM(lim) Earleme_of_ES(ES_of_LIM(lim))
 @<Private incomplete structures@> =
 struct s_leo_item;
@@ -6587,9 +6572,7 @@ for each Earley set.
 @d EIX_of_PIM(pim) ((EIX)(pim))
 @d Postdot_SYMID_of_PIM(pim) (Postdot_SYMID_of_EIX(EIX_of_PIM(pim)))
 @d EIM_of_PIM(pim) (EIM_of_EIX(EIX_of_PIM(pim)))
-@d LV_EIM_of_PIM(pim) EIM_of_PIM(pim)
 @d Next_PIM_of_PIM(pim) (Next_PIM_of_EIX(EIX_of_PIM(pim)))
-@d LV_Next_PIM_of_PIM(pim) Next_PIM_of_PIM(pim)
 
 @ |PIM_of_LIM| assumes that PIM is in fact a LIM.
 |PIM_is_LIM| is available to check this.
@@ -6852,7 +6835,6 @@ assure herself that the space she saves in
 the |ambiguous_source| struct was not simply wasted
 by alignment within structures or during memory allocation.
 @d Next_SRCL_of_SRCL(link) ((link)->t_next)
-@d LV_Next_SRCL_of_SRCL(link) Next_SRCL_of_SRCL(link)
 @ @<Private typedefs@> =
 struct s_source;
 typedef struct s_source* SRC;
@@ -6894,7 +6876,6 @@ union u_source_container {
 @d Predecessor_of_SRC(source) Predecessor_of_Source(*(source))
 @d Predecessor_of_EIM(item) Predecessor_of_Source(Source_of_EIM(item))
 @d Predecessor_of_SRCL(link) Predecessor_of_Source(Source_of_SRCL(link))
-@d LV_Predecessor_of_SRCL(link) Predecessor_of_SRCL(link)
 @d Cause_of_Source(srcd) ((srcd).t_cause.t_completion)
 @d Cause_of_SRC(source) Cause_of_Source(*(source))
 @d Cause_of_EIM(item) Cause_of_Source(Source_of_EIM(item))
@@ -6915,11 +6896,8 @@ union u_source_container {
 
 @
 @d First_Completion_Link_of_EIM(item) ((item)->t_container.t_ambiguous.t_completion)
-@d LV_First_Completion_Link_of_EIM(item) First_Completion_Link_of_EIM(item)
 @d First_Token_Link_of_EIM(item) ((item)->t_container.t_ambiguous.t_token)
-@d LV_First_Token_Link_of_EIM(item) First_Token_Link_of_EIM(item)
 @d First_Leo_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_leo)
-@d LV_First_Leo_SRCL_of_EIM(item) First_Leo_SRCL_of_EIM(item)
 
 @ @<Private function prototypes@> = static inline void
 token_link_add (struct marpa_r *r,
@@ -6950,7 +6928,7 @@ token_link_add (struct marpa_r *r,
   new_link->t_next = First_Token_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   TOK_of_Source(new_link->t_source) = token;
-  LV_First_Token_Link_of_EIM (item) = new_link;
+  First_Token_Link_of_EIM (item) = new_link;
 }
 
 @ @<Private function prototypes@> = static inline void
@@ -7031,7 +7009,7 @@ completion_link_add (struct marpa_r *r,
   new_link->t_next = First_Completion_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
-  LV_First_Completion_Link_of_EIM (item) = new_link;
+  First_Completion_Link_of_EIM (item) = new_link;
 }
 
 @ @<Function definitions@> = static inline
@@ -7058,7 +7036,7 @@ leo_link_add (struct marpa_r *r,
   new_link->t_next = First_Leo_SRCL_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
-  LV_First_Leo_SRCL_of_EIM(item) = new_link;
+  First_Leo_SRCL_of_EIM(item) = new_link;
 }
 @ @<Private function prototypes@> = static inline void
 leo_link_add (struct marpa_r *r,
@@ -7108,27 +7086,27 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item);
   SRCL new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = NULL;
   new_link->t_source = item->t_container.t_unique;
-  LV_First_Leo_SRCL_of_EIM (item) = NULL;
-  LV_First_Completion_Link_of_EIM (item) = NULL;
-  LV_First_Token_Link_of_EIM (item) = new_link;
+  First_Leo_SRCL_of_EIM (item) = NULL;
+  First_Completion_Link_of_EIM (item) = NULL;
+  First_Token_Link_of_EIM (item) = new_link;
 }
 
 @ @<Ambiguate completion source@> = {
   SRCL new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = NULL;
   new_link->t_source = item->t_container.t_unique;
-  LV_First_Leo_SRCL_of_EIM (item) = NULL;
-  LV_First_Completion_Link_of_EIM (item) = new_link;
-  LV_First_Token_Link_of_EIM (item) = NULL;
+  First_Leo_SRCL_of_EIM (item) = NULL;
+  First_Completion_Link_of_EIM (item) = new_link;
+  First_Token_Link_of_EIM (item) = NULL;
 }
 
 @ @<Ambiguate Leo source@> = {
   SRCL new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = NULL;
   new_link->t_source = item->t_container.t_unique;
-  LV_First_Leo_SRCL_of_EIM (item) = new_link;
-  LV_First_Completion_Link_of_EIM (item) = NULL;
-  LV_First_Token_Link_of_EIM (item) = NULL;
+  First_Leo_SRCL_of_EIM (item) = new_link;
+  First_Completion_Link_of_EIM (item) = NULL;
+  First_Token_Link_of_EIM (item) = NULL;
 }
 
 @*0 Trace Functions.
@@ -7858,15 +7836,15 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
     @<Return |FALSE| on failure@>@;
     @<Fail if recognizer not initial@>@;
     Phase_of_R(r) = input_phase;
-    LV_Current_Earleme_of_R(r) = 0;
+    Current_Earleme_of_R(r) = 0;
     if (G_is_Trivial(g)) return TRUE;
     @<Allocate recognizer workareas@>@;
     psar_reset(Dot_PSAR_of_R(r));
     @<Allocate recognizer's bit vectors for symbols@>@;
     @<Initialize Earley item work stacks@>@;
     set0 = earley_set_new(r, 0);
-    LV_Latest_ES_of_R(r) = set0;
-    LV_First_ES_of_R(r) = set0;
+    Latest_ES_of_R(r) = set0;
+    First_ES_of_R(r) = set0;
     state = AHFA_of_G_by_ID(g, 0);
     key.t_origin = set0;
     key.t_state = state;
@@ -8011,7 +7989,7 @@ altered by the attempt.
   TOK token = token_new (r, token_id, value);
   ALT_Object alternative;
   if (Furthest_Earleme_of_R (r) < target_earleme)
-    LV_Furthest_Earleme_of_R (r) = target_earleme;
+    Furthest_Earleme_of_R (r) = target_earleme;
   alternative.t_token = token;
   alternative.t_start_earley_set = current_earley_set;
   alternative.t_end_earleme = target_earleme;
@@ -8117,7 +8095,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
 }
 
 @ @<Initialize |current_earleme|@> = {
-  current_earleme = ++(LV_Current_Earleme_of_R(r));
+  current_earleme = ++(Current_Earleme_of_R(r));
   if (current_earleme > Furthest_Earleme_of_R (r))
     {
 	R_is_Exhausted(r) = 1;
@@ -8130,8 +8108,8 @@ marpa_r_earleme_complete(struct marpa_r* r)
 exist.
 @<Initialize |current_earley_set|@> = {
     current_earley_set = earley_set_new (r, current_earleme);
-    LV_Next_ES_of_ES(Latest_ES_of_R(r)) = current_earley_set;
-    LV_Latest_ES_of_R(r) = current_earley_set;
+    Next_ES_of_ES(Latest_ES_of_R(r)) = current_earley_set;
+    Latest_ES_of_R(r) = current_earley_set;
 }
 
 @ If there are no alternatives for this earleme
@@ -8392,13 +8370,13 @@ At this point there are no Leo items.
 	  new_pim = obstack_alloc (&r->t_obs, sizeof (EIX_Object));
 	  symid = postdot_symbols[symbol_ix];
 	  Postdot_SYMID_of_PIM(new_pim) = symid;
-	  LV_EIM_of_PIM(new_pim) = earley_item;
+	  EIM_of_PIM(new_pim) = earley_item;
 	  if (bv_bit_test(bv_pim_symbols, (guint)symid))
 	      old_pim = pim_workarea[symid];
 	  if (old_pim) {
-	      LV_Next_PIM_of_PIM(new_pim) = old_pim;
+	      Next_PIM_of_PIM(new_pim) = old_pim;
 	  } else {
-	      LV_Next_PIM_of_PIM(new_pim) = NULL;
+	      Next_PIM_of_PIM(new_pim) = NULL;
 	      current_earley_set->t_postdot_sym_count++;
 	  }
 	  pim_workarea[symid] = new_pim;
@@ -8451,14 +8429,14 @@ once it is populated.
     LIM new_lim;
     new_lim = obstack_alloc(&r->t_obs, sizeof(*new_lim));
     Postdot_SYMID_of_LIM(new_lim) = symid;
-    LV_EIM_of_PIM(new_lim) = NULL;
-    LV_Predecessor_LIM_of_LIM(new_lim) = NULL;
-    LV_Origin_of_LIM(new_lim) = NULL;
-    LV_Chain_Length_of_LIM(new_lim) = -1;
-    LV_Top_AHFA_of_LIM(new_lim) = base_to_ahfa;
-    LV_Base_EIM_of_LIM(new_lim) = leo_base;
-    LV_ES_of_LIM(new_lim) = current_earley_set;
-    LV_Next_PIM_of_LIM(new_lim) = this_pim;
+    EIM_of_PIM(new_lim) = NULL;
+    Predecessor_LIM_of_LIM(new_lim) = NULL;
+    Origin_of_LIM(new_lim) = NULL;
+    Chain_Length_of_LIM(new_lim) = -1;
+    Top_AHFA_of_LIM(new_lim) = base_to_ahfa;
+    Base_EIM_of_LIM(new_lim) = leo_base;
+    ES_of_LIM(new_lim) = current_earley_set;
+    Next_PIM_of_LIM(new_lim) = this_pim;
     pim_workarea[symid] = new_lim;
     bv_bit_set(bv_lim_symbols, (guint)symid);
 }
@@ -8684,11 +8662,11 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
 }
 
 @ @<Populate |lim_to_process| from |predecessor_lim|@> = {
-LV_Predecessor_LIM_of_LIM(lim_to_process) = predecessor_lim;
-LV_Origin_of_LIM(lim_to_process) = Origin_of_LIM(predecessor_lim);
-LV_Chain_Length_of_LIM(lim_to_process) = 
+Predecessor_LIM_of_LIM(lim_to_process) = predecessor_lim;
+Origin_of_LIM(lim_to_process) = Origin_of_LIM(predecessor_lim);
+Chain_Length_of_LIM(lim_to_process) = 
     Chain_Length_of_LIM(lim_to_process)+1;
-LV_Top_AHFA_of_LIM(lim_to_process) = Top_AHFA_of_LIM(predecessor_lim);
+Top_AHFA_of_LIM(lim_to_process) = Top_AHFA_of_LIM(predecessor_lim);
 }
 
 @ If we have reached this code, either we do not have a predecessor
@@ -8706,8 +8684,8 @@ and the top AHFA to-state was initialized to the AHFA to-state
 of the base EIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
   EIM base_eim = Base_EIM_of_LIM(lim_to_process);
-  LV_Origin_of_LIM (lim_to_process) = Origin_of_EIM (base_eim);
-  LV_Chain_Length_of_LIM(lim_to_process) =  0;
+  Origin_of_LIM (lim_to_process) = Origin_of_EIM (base_eim);
+  Chain_Length_of_LIM(lim_to_process) =  0;
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
@@ -8875,13 +8853,9 @@ for the alternatives.
 In that case some of these structures
 will need to be changed.
 @d Prev_UR_of_UR(ur) ((ur)->t_prev)
-@d LV_Prev_UR_of_UR(ur) Prev_UR_of_UR(ur)
 @d Next_UR_of_UR(ur) ((ur)->t_next)
-@d LV_Next_UR_of_UR(ur) Next_UR_of_UR(ur)
 @d EIM_of_UR(ur) ((ur)->t_earley_item)
-@d LV_EIM_of_UR(ur) EIM_of_UR(ur)
 @d AEX_of_UR(ur) ((ur)->t_aex)
-@d LV_AEX_of_UR(ur) AEX_of_UR(ur)
 
 @<Private structures@> =
 struct s_ur_node_stack {
@@ -8940,8 +8914,8 @@ static inline UR ur_node_new(URS stack, UR prev);
 static inline UR ur_node_new(URS stack, UR prev) {
     UR new_ur_node;
     new_ur_node = obstack_alloc(&stack->t_obs, sizeof(new_ur_node[0]));
-    LV_Next_UR_of_UR(new_ur_node) = 0;
-    LV_Prev_UR_of_UR(new_ur_node) = prev;
+    Next_UR_of_UR(new_ur_node) = 0;
+    Prev_UR_of_UR(new_ur_node) = prev;
     return new_ur_node;
 }
 
@@ -8953,12 +8927,12 @@ ur_node_push (URS stack, EIM earley_item, AEX aex)
 {
   UR top = stack->t_top;
   UR new_top = Next_UR_of_UR (top);
-  LV_EIM_of_UR (top) = earley_item;
-  LV_AEX_of_UR (top) = aex;
+  EIM_of_UR (top) = earley_item;
+  AEX_of_UR (top) = aex;
   if (!new_top)
     {
       new_top = ur_node_new (stack, top);
-      LV_Next_UR_of_UR (top) = new_top;
+      Next_UR_of_UR (top) = new_top;
     }
   stack->t_top = new_top;
 }
