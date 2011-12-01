@@ -28,6 +28,7 @@ use Module::Build;
 use Fatal qw(open close chdir chmod utime);
 use English qw( -no_match_vars );
 use Time::Piece;
+use Glib::Install::Files;
 
 use Marpa::R2::Config;
 
@@ -179,6 +180,7 @@ sub process_xs {
     $self->verbose() and say "compiling $spec->{c_file}";
     if ( $self->config('cc') eq 'gcc' ) {
         my $ccflags = $self->config('ccflags');
+	my $gperl_h_location = $Glib::Install::Files::CORE;
         $self->config(
             'ccflags' => (
                       $ccflags
@@ -186,6 +188,7 @@ sub process_xs {
                     . ' -Wstrict-prototypes -Wwrite-strings'
                     . ' -Wdeclaration-after-statement -Winline'
                     . ' -Wmissing-declarations -Wconversion'
+		    . " -isystem $gperl_h_location "
             )
         );
     } ## end if ( $self->config('cc') eq 'gcc' )
