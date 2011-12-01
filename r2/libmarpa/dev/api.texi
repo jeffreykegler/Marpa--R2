@@ -31,16 +31,17 @@ Published by Jeffrey Kegler
 This manual is for libmarpa, version 0.0.0. 
 @end ifnottex 
 @menu 
-* First Chapter:: One
-* Second Chapter:: Two
+* Grammars:: Marpa Grammar Objects
+* Recognizers:: Marpa Recognizer Objects
 @end menu 
-@node First Chapter 
-@chapter First Chapter 
-@cindex first chapter 
-@cindex chapter, first 
+@node Grammars
+@chapter Grammars
+@cindex grammars
 
-@deftypefun char* glib_check_version
-    (int @var{required_major}, int @var{required_minor}, int @var{required_micro})
+@deftypefun const char* marpa_check_version @
+    (unsigned int @var{required_major}, @
+    unsigned int @var{required_minor}, @
+    unsigned int @var{required_micro})
 
 Checks that the GLib library in use is compatible with the
 given version. Generally you would pass in the constants
@@ -66,7 +67,7 @@ Return value: %NULL if the GLib library is compatible with the
 
 @end deftypefun
 
-@node Second Chapter 
-@chapter Second Chapter 
+@node Recognizers
+@chapter Recognizer Objects
 
 @bye

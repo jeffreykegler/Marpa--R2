@@ -667,11 +667,6 @@ const guint marpa_minor_version = MARPA_MINOR_VERSION;
 const guint marpa_micro_version = MARPA_MICRO_VERSION;
 const guint marpa_interface_age = MARPA_INTERFACE_AGE;
 const guint marpa_binary_age = MARPA_BINARY_AGE;
-@ @<Public function prototypes@> =
-const gchar *
-marpa_check_version (guint required_major,
-                    guint required_minor,
-                    guint required_micro);
 @ @<Function definitions@> =
 const gchar *
 marpa_check_version (guint required_major,
