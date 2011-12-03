@@ -9826,7 +9826,7 @@ void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause
 }
 
 @ From an or-node, which may be nulling, determine its proper
-predecessor.  Set |or-node| to 0 if there is none.
+predecessor.  Set |or_node| to 0 if there is none.
 @d Move_OR_to_Proper_OR(or_node) {
     while (or_node)  {
 	DAND draft_and_node = DANDs_of_OR(or_node);
@@ -12811,7 +12811,7 @@ scanned items.
 Since they are predictions, their current Earley set
 and origin are at the same earleme.
 This earleme will be somewhere after the current earleme.
-@s PSAR_Object
+@s PSAR_Object int
 @<Private structures@> =
 struct s_per_earley_set_arena {
       gint t_psl_length;
@@ -13367,6 +13367,7 @@ PRIVATE_NOT_INLINE gchar* eim_tag(EIM eim);
 PRIVATE_NOT_INLINE gchar *
 eim_tag_safe (gchar * buffer, EIM eim)
 {
+  if (!eim) return "NULL";
   sprintf (buffer, "S%d@@%d-%d",
 	   AHFAID_of_EIM (eim), Origin_Earleme_of_EIM (eim),
 	   Earleme_of_EIM (eim));

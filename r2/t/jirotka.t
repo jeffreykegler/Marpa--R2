@@ -19,7 +19,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use lib 'tool/lib';
 use Marpa::R2::Test;
@@ -128,9 +128,10 @@ my $grammar = Marpa::R2::Grammar->new(
 );
 
 $grammar->precompute();
-say STDERR $grammar->show_symbols();
-say STDERR $grammar->show_rules();
-say STDERR $grammar->show_AHFA();
+say STDERR "GRAMMAR:\n",$grammar->show_symbols();
+say STDERR "RULES:", $grammar->show_rules();
+say STDERR "AHFA:\n", $grammar->show_AHFA();
+say STDERR "AHFA ITEMS:\n", $grammar->show_AHFA_items();
 my $recog = Marpa::R2::Recognizer->new( { grammar => $grammar ,
     trace_terminals => 1,
 trace_values=>3 } );
