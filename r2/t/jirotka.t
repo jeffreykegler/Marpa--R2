@@ -141,31 +141,32 @@ say "AND NODES:\n", $recog->show_and_nodes(), "\n";
 say "OR NODES:\n", $recog->show_or_nodes(), "\n";
 Marpa::R2::Test::is( Dumper( \@result ), <<'END_OF_STRING', 'Jirotka test');
 $VAR1 = [
-         \[
-             [
-               'Create',
-               [
-                 'Metric',
-                 'm',
-                 'As',
-                 [
-                   'Select',
-                   [
-                     1
-                   ],
-                   undef,
-                   undef,
-                   [
-                     'Where',
-                     [
-                       'True'
-                     ]
-                   ],
-                   undef
-                 ]
-               ]
-             ]
-           ]
+          \[
+              [
+                'Create',
+                [
+                  'Metric',
+                  'm',
+                  'As',
+                  [
+                    'Select',
+                    [
+                      1
+                    ],
+                    undef,
+                    undef,
+                    [
+                      'Where',
+                      [
+                        'True'
+                      ]
+                    ],
+                    undef
+                  ]
+                ]
+              ]
+            ]
+        ];
 END_OF_STRING
 
 #############################################################################
