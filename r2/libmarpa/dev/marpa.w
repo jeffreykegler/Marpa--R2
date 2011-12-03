@@ -9461,7 +9461,7 @@ MARPA_DEBUG3("%s: adding or-nodes for aim=%s", G_STRLOC, aim_tag(ahfa_item));
     it is kept for documentation, but eventually should be removed */
     MARPA_OFF_ASSERT (psia_or_node)@;
     work_nodes_by_aex[work_aex] = psia_or_node;
-    @<Add Leo or-nodes@>@;
+    @<Add Leo or-nodes for |work_earley_item| and |work_aex|@>@;
 }
 
 @*0 Non-Leo Or-Nodes.
@@ -9568,7 +9568,7 @@ MARPA_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 }
 
 @*0 Leo Or-Nodes.
-@<Add Leo or-nodes@> = {
+@<Add Leo or-nodes for |work_earley_item| and |work_aex|@> = {
   SRCL source_link = NULL;
   EIM cause_earley_item = NULL;
   LIM leo_predecessor = NULL;
@@ -9624,7 +9624,7 @@ requirements in the process.
     }
 }
 
-@ Get the base data for a Leo item -- it's base Earley item
+@ Get the base data for a Leo item -- its base Earley item
 and the index of the relevant AHFA item.
 @<Private function prototypes@> =
 static inline AEX lim_base_data_get(LIM leo_item, EIM* p_base);
@@ -9745,6 +9745,7 @@ Both draft and final and-nodes contain the predecessor
 and cause.
 Draft and-nodes need to be in a linked list,
 so they have a link to the next and-node.
+@s DAND int
 @<Private incomplete structures@> =
 struct s_draft_and_node;
 typedef struct s_draft_and_node* DAND;
@@ -10175,7 +10176,8 @@ typedef gint Marpa_And_Node_ID;
 @ @<Private typedefs@> =
 typedef Marpa_And_Node_ID ANDID;
 
-@ @<Private incomplete structures@> =
+@ @s AND int
+@<Private incomplete structures@> =
 struct s_and_node;
 typedef struct s_and_node* AND;
 @
@@ -12809,6 +12811,7 @@ scanned items.
 Since they are predictions, their current Earley set
 and origin are at the same earleme.
 This earleme will be somewhere after the current earleme.
+@s PSAR_Object
 @<Private structures@> =
 struct s_per_earley_set_arena {
       gint t_psl_length;
