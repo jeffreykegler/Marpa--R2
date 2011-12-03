@@ -732,7 +732,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             $recce_c->val_event();
         last EVENT if not defined $arg_n;
         if ( $trace_values >= 3 ) {
-            for my $i ( reverse 0 .. $arg_n ) {
+            for my $i ( reverse 0 .. $arg_n - 1 ) {
                 printf {$Marpa::R2::Internal::TRACE_FH} 'Stack position %3d:',
                     $i
                     or Marpa::R2::exception('print to trace handle failed');
@@ -740,7 +740,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
                     ->Dump
                     or Marpa::R2::exception('print to trace handle failed');
-            } ## end for my $i ( reverse 0 .. $arg_n )
+            } ## end for my $i ( reverse 0 .. $arg_n - 1 )
         } ## end if ( $trace_values >= 3 )
 
         ADD_TOKEN: {

@@ -9443,6 +9443,9 @@ AND_Count_of_B(b) = 0;
   AIM ahfa_item = AIM_of_EIM_by_AEX(work_earley_item, work_aex);
   SYMI ahfa_item_symbol_instance;
   OR psia_or_node = NULL;
+MARPA_DEBUG4("%s: adding or-nodes for eim %s, aex=%d",
+    G_STRLOC, eim_tag(work_earley_item), work_aex);
+MARPA_DEBUG3("%s: adding or-nodes for aim=%s", G_STRLOC, aim_tag(ahfa_item));
   ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
   {
 	    PSL or_psl;
@@ -9454,7 +9457,9 @@ AND_Count_of_B(b) = 0;
     }
     /* Replace the dummy or-node with
     the last one added */
-    MARPA_ASSERT (psia_or_node)@;
+    /* The following assertion is now not necessarily true.
+    it is kept for documentation, but eventually should be removed */
+    MARPA_OFF_ASSERT (psia_or_node)@;
     work_nodes_by_aex[work_aex] = psia_or_node;
     @<Add Leo or-nodes@>@;
 }
@@ -9529,12 +9534,15 @@ and this is the case if |Position_of_OR(or_node) == 0|.
       const gint first_null_symbol_instance =
 	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
       gint i;
+MARPA_DEBUG3("about to add nulling token ORs rule=%d null_count=%d",
+		ID_of_RULE (rule ), null_count);
       for (i = 0; i < null_count; i++)
 	{
 	  const gint symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
-    eim_tag(work_earley_item), work_aex);
+MARPA_DEBUG3("adding nulling token or-node rule=%d i=%d",
+		ID_of_RULE (rule ),
+		( symbol_instance - SYMI_of_RULE(rule)));
 	  if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal) {
 		DAND draft_and_node;
 		const gint rhs_ix = symbol_instance - SYMI_of_RULE(rule);
@@ -9545,13 +9553,13 @@ MARPA_OFF_DEBUG3("adding nulling token or-node EIM = %s aex=%d",
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
 		ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
-MARPA_OFF_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
+MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 		draft_and_node = DANDs_of_OR (or_node) =
 		  draft_and_node_new (&bocage_setup_obs, predecessor,
 		      cause);
-MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
+MARPA_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 		Next_DAND_of_DAND (draft_and_node) = NULL;
 	      }
 	      psia_or_node = or_node;
@@ -9785,7 +9793,10 @@ void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause
 static inline
 void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
 {
-    MARPA_ASSERT(Position_of_OR(parent) <= 1 || predecessor)
+    MARPA_OFF_ASSERT(Position_of_OR(parent) <= 1 || predecessor)
+    MARPA_DEBUG3("%s: Assertion=%d", G_STRLOC, (Position_of_OR(parent) <= 1 || predecessor));
+    MARPA_DEBUG4("%s: position of OR = %d predecessor=%p",
+	G_STRLOC, Position_of_OR(parent), predecessor);
     const DAND new = draft_and_node_new(obs, predecessor, cause);
     Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
     DANDs_of_OR(parent) = new;
@@ -9932,6 +9943,10 @@ predecessor.  Set |or-node| to 0 if there is none.
       const AEX cause_aex = aexes[ix];
       OR dand_cause;
       Set_OR_from_EIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
+MARPA_DEBUG3("%s eim=%s", G_STRLOC, eim_tag(cause_earley_item));
+MARPA_DEBUG3("%s path or=%s", G_STRLOC, or_tag(path_or_node));
+MARPA_DEBUG3("%s dand_predecessor=%s", G_STRLOC, or_tag(dand_predecessor));
+MARPA_DEBUG3("%s dand_cause=%s", G_STRLOC, or_tag(dand_cause));
       draft_and_node_add (&bocage_setup_obs, path_or_node,
 			  dand_predecessor, dand_cause);
     }
@@ -9965,6 +9980,7 @@ predecessor.  Set |or-node| to 0 if there is none.
   const SYMI symbol_instance = SYMI_of_Completed_RULE(previous_path_rule);
   const gint origin_ordinal = Ord_of_ES(ES_of_LIM(path_leo_item));
   Set_OR_from_Ord_and_SYMI(dand_cause, origin_ordinal, symbol_instance);
+MARPA_DEBUG2("lim=%s", lim_tag(path_leo_item));
   draft_and_node_add (&bocage_setup_obs, path_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -10003,6 +10019,7 @@ predecessor.  Set |or-node| to 0 if there is none.
 {
   OR dand_predecessor;
   @<Set |dand_predecessor|@>@;
+MARPA_DEBUG2("or=%s", or_tag(work_proper_or_node));
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, (OR)token);
 }
@@ -10068,6 +10085,7 @@ predecessor.  Set |or-node| to 0 if there is none.
       SYMI_of_Completed_RULE(RULE_of_AIM(cause_ahfa_item));
   @<Set |dand_predecessor|@>@;
   Set_OR_from_Ord_and_SYMI(dand_cause, middle_ordinal, cause_symbol_instance);
+MARPA_DEBUG2("completion source, or=%s", or_tag(work_proper_or_node));
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -11874,6 +11892,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 	}
 	if (token_id >= 0) {
 	    arg_0 = ++arg_n;
+MARPA_DEBUG3("symbol %d at %d", token_id, arg_0);
 	    continue_with_next_fork = 0;
 	}
 	fork_rule = RULE_of_OR(or);
@@ -13306,8 +13325,8 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @d MARPA_OFF_ASSERT(expr)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
-#define MARPA_ENABLE_ASSERT @[ 0 @]
+#define MARPA_DEBUG @[ 1 @]
+#define MARPA_ENABLE_ASSERT @[ 1 @]
 #if MARPA_DEBUG
 #define MARPA_DEBUG1(a) @[ g_debug((a)); @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)); @]
@@ -13364,19 +13383,26 @@ A function to print a descriptive tag for
 an Leo item.
 @<Private function prototypes@> =
 #if MARPA_DEBUG
-static inline gchar*
-lim_tag (gchar *buffer, LIM lim);
+PRIVATE_NOT_INLINE gchar* lim_tag_safe (gchar *buffer, LIM lim);
+PRIVATE_NOT_INLINE gchar* lim_tag (LIM lim);
 #endif
 @ This function is passed a buffer to keep it thread-safe.
 be made thread-safe.
 @<Function definitions@> =
 #if MARPA_DEBUG
-static inline gchar*
-lim_tag (gchar *buffer, LIM lim)
+PRIVATE_NOT_INLINE gchar*
+lim_tag_safe (gchar *buffer, LIM lim)
 {
   sprintf (buffer, "L%d@@%d",
 	   Postdot_SYMID_of_LIM (lim), Earleme_of_LIM (lim));
 	return buffer;
+}
+
+static char DEBUG_lim_tag_buffer[1000];
+PRIVATE_NOT_INLINE gchar*
+lim_tag (LIM lim)
+{
+  return lim_tag_safe (DEBUG_lim_tag_buffer, lim);
 }
 #endif
 
@@ -13396,6 +13422,7 @@ PRIVATE_NOT_INLINE const gchar* or_tag(OR or);
 PRIVATE_NOT_INLINE const gchar *
 or_tag_safe (gchar * buffer, OR or)
 {
+  if (!or) return "NULL";
   if (OR_is_Token(or)) return "TOKEN";
   if (Type_of_OR(or) == DUMMY_OR_NODE) return "DUMMY";
   sprintf (buffer, "R%d:%d@@%d-%d",
@@ -13410,6 +13437,41 @@ PRIVATE_NOT_INLINE const gchar*
 or_tag (OR or)
 {
   return or_tag_safe (DEBUG_or_tag_buffer, or);
+}
+#endif
+
+@*0 AHFA Item Tag.
+Functions to print a descriptive tag for
+an AHFA item.
+One is passed a buffer to keep it thread-safe.
+The other uses a global buffer,
+which is not thread-safe, but
+convenient when debugging in a non-threaded environment.
+@<Private function prototypes@> =
+#if MARPA_DEBUG
+PRIVATE_NOT_INLINE const gchar* aim_tag_safe(gchar *buffer, AIM aim);
+PRIVATE_NOT_INLINE const gchar* aim_tag(AIM aim);
+#endif
+@ @<Function definitions@> =
+#if MARPA_DEBUG
+PRIVATE_NOT_INLINE const gchar *
+aim_tag_safe (gchar * buffer, AIM aim)
+{
+  if (!aim) return "NULL";
+  const gint aim_position = Position_of_AIM (aim);
+  if (aim_position >= 0) {
+      sprintf (buffer, "R%d@@%d", RULEID_of_AIM (aim), Position_of_AIM (aim));
+  } else {
+      sprintf (buffer, "R%d@@end", RULEID_of_AIM (aim));
+  }
+  return buffer;
+}
+
+static char DEBUG_aim_tag_buffer[1000];
+PRIVATE_NOT_INLINE const gchar*
+aim_tag (AIM aim)
+{
+  return aim_tag_safe (DEBUG_aim_tag_buffer, aim);
 }
 #endif
 
