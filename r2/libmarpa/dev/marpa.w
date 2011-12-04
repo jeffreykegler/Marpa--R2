@@ -9070,7 +9070,7 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
 	if (predecessor_earley_item)
 	  {
 	    if (EIM_is_Predicted(predecessor_earley_item)) {
-		  @<Set boolean in PSIA for initial nulls@>@;
+		Set_boolean_in_PSIA_for_initial_nulls(predecessor_earley_item, predecessor_aim);
 	    } else {
 		const EIM ur_earley_item = predecessor_earley_item;
 		const AEX ur_aex =
@@ -9090,15 +9090,29 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
 so that I will know to create the chain of or-nodes for them.
 We don't need to stack the prediction, because it can have
 no other descendants.
-@<Set boolean in PSIA for initial nulls@> = {
-    if (Position_of_AIM(predecessor_aim) > 0) {
-	const gint null_count = Null_Count_of_AIM(predecessor_aim);
+@d Set_boolean_in_PSIA_for_initial_nulls(eim, aim) {
+
+MARPA_DEBUG3("%s: setting boolean for initial nulls, eim=%s",
+G_STRLOC, eim_tag(eim));
+MARPA_DEBUG3("%s: setting boolean for initial nulls, aim=%s",
+G_STRLOC, aim_tag(aim));
+
+    if (Position_of_AIM(aim) > 0) {
+	const gint null_count = Null_Count_of_AIM(aim);
+
+MARPA_DEBUG4("%s: setting boolean for initial nulls, eim=%s, null count = %d",
+G_STRLOC, eim_tag(eim), null_count);
+
 	if (null_count) {
-	    AEX predecessor_aex = AEX_of_EIM_by_AIM(predecessor_earley_item,
-		predecessor_aim);
+	    AEX aex = AEX_of_EIM_by_AIM((eim),
+		(aim));
+
+MARPA_DEBUG4("%s: setting boolean for initial nulls, eim=%s, aex=%d",
+G_STRLOC, eim_tag(eim), aex);
+
 	    or_node_estimate += null_count;
 	    psia_test_and_set(&bocage_setup_obs, per_es_data, 
-		predecessor_earley_item, predecessor_aex);
+		(eim), aex);
 	}
     }
 }
@@ -9131,7 +9145,7 @@ no other descendants.
 	  {
 	    if (EIM_is_Predicted (predecessor_earley_item))
 	      {
-		@<Set boolean in PSIA for initial nulls@>@;
+		Set_boolean_in_PSIA_for_initial_nulls(predecessor_earley_item, predecessor_aim);
 	      }
 	    else
 	      {
@@ -9210,7 +9224,7 @@ no other descendants.
 	if (EIM_is_Predicted (ur_earley_item))
 	  {
 	    const EIM predecessor_earley_item = ur_earley_item;
-	    @<Set boolean in PSIA for initial nulls@>@;
+	    Set_boolean_in_PSIA_for_initial_nulls(ur_earley_item, ur_aim);
 	  } else {
 	      @<Push ur-node if new@>@;
 	  }
