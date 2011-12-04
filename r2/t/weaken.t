@@ -19,6 +19,7 @@ use strict;
 use warnings;
 
 use Test::More;
+use CPAN::Version;
 
 # Perhaps make this a command line option someday
 my $verbose = 0;
@@ -34,8 +35,8 @@ BEGIN {
             $problem = 'Test::Weaken not installed';
             last CHECK_FOR_PROBLEM;
         }
-        if ( Test::Weaken->VERSION() != 3.004000 ) {
-            $problem = 'Test::Weaken 3.004000 not installed';
+        if ( CPAN::Version->vlt(Test::Weaken->VERSION(), 3.004000) ) {
+            $problem = 'Test::Weaken 3.004000 or later not installed';
             last CHECK_FOR_PROBLEM;
         }
     } ## end CHECK_FOR_PROBLEM:

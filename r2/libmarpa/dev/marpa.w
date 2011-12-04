@@ -8858,7 +8858,6 @@ typedef struct s_ur_node_stack* URS;
 typedef struct s_ur_node* UR;
 typedef const struct s_ur_node* UR_Const;
 @
-@
 {\bf To Do}: @^To Do@>
 It may make sense to reuse this stack
 for the alternatives.
@@ -8971,7 +8970,7 @@ I need to decide where to make it.
 
 @ |predecessor_aim| and |predot|
 are guaranteed to be defined,
-since predictions and the null parse AHFA item are
+since predictions are
 never on the stack.
 @<Populate the PSIA data@>=
 {
@@ -9012,8 +9011,8 @@ never on the stack.
 
 @ The |PSIA| is a container of data that is per Earley-set, per Earley item,
 and per AEX.  Thus, Per-Set-Item-Aex, or PSIA.
-This function ensures that the appropriate |PSIA| boolean is set,
-and returns that boolean's value prior to the call.
+This function ensures that the appropriate |PSIA| boolean is set.
+It returns that boolean's value {\bf prior} to the call.
 @<Private function prototypes@> =
 static inline gint psia_test_and_set(
     struct obstack* obs,

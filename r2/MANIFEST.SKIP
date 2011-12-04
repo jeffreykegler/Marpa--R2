@@ -3,6 +3,7 @@
 /errs$
 /junk$
 [.]DS_Store$
+[/]nogit_
 \.a$
 \.la$
 \.lo$
@@ -82,6 +83,7 @@
 ^libmarpa/dist/config.h.in~
 ^libmarpa/dist/configure.scan
 ^libmarpa/dist/libtool
+^libmarpa/dist/proto[.]h[.]in
 ^libmarpa/test/dev/autom4te.cache/
 ^libmarpa/test/dev/autoscan.log
 ^libmarpa/test/work/

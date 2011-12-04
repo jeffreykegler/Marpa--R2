@@ -24,7 +24,6 @@ use Test::More tests => 9;
 use lib 'tool/lib';
 use Marpa::R2::Test;
 
-use Modern::Perl;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Fatal qw( close open );

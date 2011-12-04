@@ -89,6 +89,8 @@ libmarpa/dev/cwebmac.tex
 libmarpa/dev/marpa.w
 libmarpa/dev/old_pod/Algorithm.pod
 libmarpa/dev/old_pod/Implementation.pod
+libmarpa/dev/proto.h.in
+libmarpa/dev/texi2proto.pl
 libmarpa/dist/Makefile.am
 libmarpa/dist/Makefile.in
 libmarpa/dist/README
@@ -169,6 +171,7 @@ t/infinite.t
 t/infinite2.t
 t/infinite_plex.t
 t/initial_nulls.t
+t/jirotka.t
 t/leo.t
 t/leo2.t
 t/leo3.t
