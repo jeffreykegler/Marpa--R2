@@ -20,10 +20,8 @@ dummy:
 basic_test:
 	(cd r2 && ./Build test)
 
-etc_make:
-	(cd r2/etc && make)
-
 full_test: etc_make
+	(cd r2/etc && make) 2>&1 | tee full_test.out
 
 install:
 	(cd r2/libmarpa/dev && make)

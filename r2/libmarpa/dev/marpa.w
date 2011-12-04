@@ -9222,7 +9222,6 @@ G_STRLOC, eim_tag(eim), aex);
       or_node_estimate += 1 + Null_Count_of_AIM(ur_aim+1);
 	if (EIM_is_Predicted (ur_earley_item))
 	  {
-	    const EIM predecessor_earley_item = ur_earley_item;
 	    Set_boolean_in_PSIA_for_initial_nulls(ur_earley_item, ur_aim);
 	  } else {
 	      @<Push ur-node if new@>@;
@@ -9808,9 +9807,6 @@ static inline
 void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
 {
     MARPA_OFF_ASSERT(Position_of_OR(parent) <= 1 || predecessor)
-    MARPA_DEBUG3("%s: Assertion=%d", G_STRLOC, (Position_of_OR(parent) <= 1 || predecessor));
-    MARPA_DEBUG4("%s: position of OR = %d predecessor=%p",
-	G_STRLOC, Position_of_OR(parent), predecessor);
     const DAND new = draft_and_node_new(obs, predecessor, cause);
     Next_DAND_of_DAND(new) = DANDs_of_OR(parent);
     DANDs_of_OR(parent) = new;
