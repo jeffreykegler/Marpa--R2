@@ -33,6 +33,9 @@ use Marpa::R2::Config;
 
 my $gperl_h_location = $Glib::Install::Files::CORE;
 
+if ( !ExtUtils::PkgConfig->atleast_version( 'glib-2.0', '2.22.0' ) ) {
+    die 'no support for Glib < 2.22.0';
+}
 my %glib2_info              = ExtUtils::PkgConfig->find('glib-2.0');
 my $glib_2_0_compiler_flags = $glib2_info{cflags};
 my $glib_2_0_linker_flags   = $glib2_info{libs};
