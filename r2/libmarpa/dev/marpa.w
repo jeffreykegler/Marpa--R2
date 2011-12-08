@@ -770,8 +770,10 @@ marpa_g_ref (Marpa_G g)
 
 @ @<Function definitions@> =
 void grammar_free(struct marpa_g *g)
-{ @<Destroy grammar elements@>@;
-g_slice_free(struct marpa_g, g);
+{
+MARPA_DEBUG3("%s: Destroying grammar %p", G_STRLOC, g);
+    @<Destroy grammar elements@>@;
+    g_slice_free(struct marpa_g, g);
 }
 @ @<Private function prototypes@> =
 static inline void
@@ -9132,22 +9134,22 @@ We don't need to stack the prediction, because it can have
 no other descendants.
 @d Set_boolean_in_PSIA_for_initial_nulls(eim, aim) {
 
-MARPA_DEBUG3("%s: setting boolean for initial nulls, eim=%s",
+MARPA_OFF_DEBUG3("%s: setting boolean for initial nulls, eim=%s",
 G_STRLOC, eim_tag(eim));
-MARPA_DEBUG3("%s: setting boolean for initial nulls, aim=%s",
+MARPA_OFF_DEBUG3("%s: setting boolean for initial nulls, aim=%s",
 G_STRLOC, aim_tag(aim));
 
     if (Position_of_AIM(aim) > 0) {
 	const gint null_count = Null_Count_of_AIM(aim);
 
-MARPA_DEBUG4("%s: setting boolean for initial nulls, eim=%s, null count = %d",
+MARPA_OFF_DEBUG4("%s: setting boolean for initial nulls, eim=%s, null count = %d",
 G_STRLOC, eim_tag(eim), null_count);
 
 	if (null_count) {
 	    AEX aex = AEX_of_EIM_by_AIM((eim),
 		(aim));
 
-MARPA_DEBUG4("%s: setting boolean for initial nulls, eim=%s, aex=%d",
+MARPA_OFF_DEBUG4("%s: setting boolean for initial nulls, eim=%s, aex=%d",
 G_STRLOC, eim_tag(eim), aex);
 
 	    or_node_estimate += null_count;
@@ -9496,9 +9498,9 @@ AND_Count_of_B(b) = 0;
   AIM ahfa_item = AIM_of_EIM_by_AEX(work_earley_item, work_aex);
   SYMI ahfa_item_symbol_instance;
   OR psia_or_node = NULL;
-MARPA_DEBUG4("%s: adding or-nodes for eim %s, aex=%d",
+MARPA_OFF_DEBUG4("%s: adding or-nodes for eim %s, aex=%d",
     G_STRLOC, eim_tag(work_earley_item), work_aex);
-MARPA_DEBUG3("%s: adding or-nodes for aim=%s", G_STRLOC, aim_tag(ahfa_item));
+MARPA_OFF_DEBUG3("%s: adding or-nodes for aim=%s", G_STRLOC, aim_tag(ahfa_item));
   ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
   {
 	    PSL or_psl;
@@ -9587,13 +9589,13 @@ and this is the case if |Position_of_OR(or_node) == 0|.
       const gint first_null_symbol_instance =
 	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
       gint i;
-MARPA_DEBUG3("about to add nulling token ORs rule=%d null_count=%d",
+MARPA_OFF_DEBUG3("about to add nulling token ORs rule=%d null_count=%d",
 		ID_of_RULE (rule ), null_count);
       for (i = 0; i < null_count; i++)
 	{
 	  const gint symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-MARPA_DEBUG3("adding nulling token or-node rule=%d i=%d",
+MARPA_OFF_DEBUG3("adding nulling token or-node rule=%d i=%d",
 		ID_of_RULE (rule ),
 		( symbol_instance - SYMI_of_RULE(rule)));
 	  if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal) {
@@ -9606,13 +9608,13 @@ MARPA_DEBUG3("adding nulling token or-node rule=%d i=%d",
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
 		ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
-MARPA_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
+MARPA_OFF_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 		draft_and_node = DANDs_of_OR (or_node) =
 		  draft_and_node_new (&bocage_setup_obs, predecessor,
 		      cause);
-MARPA_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
+MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 		Next_DAND_of_DAND (draft_and_node) = NULL;
 	      }
 	      psia_or_node = or_node;
@@ -9994,10 +9996,10 @@ predecessor.  Set |or_node| to 0 if there is none.
       const AEX cause_aex = aexes[ix];
       OR dand_cause;
       Set_OR_from_EIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
-MARPA_DEBUG3("%s eim=%s", G_STRLOC, eim_tag(cause_earley_item));
-MARPA_DEBUG3("%s path or=%s", G_STRLOC, or_tag(path_or_node));
-MARPA_DEBUG3("%s dand_predecessor=%s", G_STRLOC, or_tag(dand_predecessor));
-MARPA_DEBUG3("%s dand_cause=%s", G_STRLOC, or_tag(dand_cause));
+MARPA_OFF_DEBUG3("%s eim=%s", G_STRLOC, eim_tag(cause_earley_item));
+MARPA_OFF_DEBUG3("%s path or=%s", G_STRLOC, or_tag(path_or_node));
+MARPA_OFF_DEBUG3("%s dand_predecessor=%s", G_STRLOC, or_tag(dand_predecessor));
+MARPA_OFF_DEBUG3("%s dand_cause=%s", G_STRLOC, or_tag(dand_cause));
       draft_and_node_add (&bocage_setup_obs, path_or_node,
 			  dand_predecessor, dand_cause);
     }
@@ -10031,7 +10033,7 @@ MARPA_DEBUG3("%s dand_cause=%s", G_STRLOC, or_tag(dand_cause));
   const SYMI symbol_instance = SYMI_of_Completed_RULE(previous_path_rule);
   const gint origin_ordinal = Ord_of_ES(ES_of_LIM(path_leo_item));
   Set_OR_from_Ord_and_SYMI(dand_cause, origin_ordinal, symbol_instance);
-MARPA_DEBUG2("lim=%s", lim_tag(path_leo_item));
+MARPA_OFF_DEBUG2("lim=%s", lim_tag(path_leo_item));
   draft_and_node_add (&bocage_setup_obs, path_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -10070,7 +10072,7 @@ MARPA_DEBUG2("lim=%s", lim_tag(path_leo_item));
 {
   OR dand_predecessor;
   @<Set |dand_predecessor|@>@;
-MARPA_DEBUG2("or=%s", or_tag(work_proper_or_node));
+MARPA_OFF_DEBUG2("or=%s", or_tag(work_proper_or_node));
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, (OR)token);
 }
@@ -10136,7 +10138,7 @@ MARPA_DEBUG2("or=%s", or_tag(work_proper_or_node));
       SYMI_of_Completed_RULE(RULE_of_AIM(cause_ahfa_item));
   @<Set |dand_predecessor|@>@;
   Set_OR_from_Ord_and_SYMI(dand_cause, middle_ordinal, cause_symbol_instance);
-MARPA_DEBUG2("completion source, or=%s", or_tag(work_proper_or_node));
+MARPA_OFF_DEBUG2("completion source, or=%s", or_tag(work_proper_or_node));
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -10771,13 +10773,13 @@ static inline void bocage_destroy(struct marpa_r* r);
 static inline void bocage_destroy(struct marpa_r* r)
 {
     BOC b = B_of_R(r);
-MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
+MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     if (b) {
 	@<Destroy bocage elements, all phases@>;
 	g_slice_free(BOC_Object, b);
 	B_of_R(r) = NULL;
     }
-MARPA_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
+MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 }
 
 @*0 Trace Functions.
@@ -11217,7 +11219,7 @@ static inline void tree_destroy(TREE tree)
 {
     tree_exhaust(tree);
     tree->t_parse_count = -1;
-MARPA_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
+MARPA_OFF_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
 }
 
 @ Soft failure (-1) if no bocage, so that this function
@@ -11237,8 +11239,8 @@ gint marpa_t_parse_count(struct marpa_r* r)
 	return -1;
     }
     tree = TREE_of_RANK(RANK_of_B(b));
-MARPA_DEBUG3("%s b=%p", G_STRLOC, b);
-MARPA_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
+MARPA_OFF_DEBUG3("%s b=%p", G_STRLOC, b);
+MARPA_OFF_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
     return tree->t_parse_count;
 }
 
@@ -11297,7 +11299,7 @@ typedef struct s_bocage_rank RANK_Object;
 @<Widely aligned bocage elements@> =
 RANK_Object t_rank;
 @ @<Initialize bocage elements@> =
-MARPA_DEBUG3("%s rank_safe where b=%p", G_STRLOC, b);
+MARPA_OFF_DEBUG3("%s rank_safe where b=%p", G_STRLOC, b);
 rank_safe(RANK_of_B(b));
 @ @<Private function prototypes@> =
 static inline void rank_safe(RANK rank);
@@ -11944,7 +11946,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 	}
 	if (token_id >= 0) {
 	    arg_0 = ++arg_n;
-MARPA_DEBUG3("symbol %d at %d", token_id, arg_0);
+MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 	    continue_with_next_fork = 0;
 	}
 	fork_rule = RULE_of_OR(or);
