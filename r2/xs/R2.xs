@@ -40,7 +40,6 @@ typedef struct {
 typedef struct marpa_r Recce;
 typedef struct {
      Recce *r;
-     SV *g_sv;
      GArray* gint_array;
 } R_Wrapper;
 
@@ -101,7 +100,7 @@ PREINIT:
 CODE:
     grammar = g_wrapper->g;
     g_array_free(g_wrapper->gint_array, TRUE);
-    marpa_g_free( grammar );
+    marpa_g_unref( grammar );
     Safefree( g_wrapper );
 
 void
@@ -876,31 +875,19 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::R_C
 
 void
-new( class, g_sv )
+new( class, g )
     char * class;
-    SV *g_sv;
+    Grammar *g;
 PREINIT:
-    G_Wrapper *g_wrapper;
-    struct marpa_g* g;
-    IV tmp;
     SV *sv;
     R_Wrapper *r_wrapper;
     struct marpa_r* r;
 PPCODE:
-    if (! sv_isa(g_sv, grammar_c_class_name)) {
-        g_debug("Marpa::Recognizer::new grammar arg is not in class %s",
-            grammar_c_class_name);
-    }
-    tmp = SvIV((SV*)SvRV(g_sv));
-    g_wrapper = GINT_TO_POINTER(tmp);
-    g = g_wrapper->g;
     r = marpa_r_new(g);
     if (!r) { croak ("failure in marpa_r_new: %s", marpa_g_error (g)); };
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;
-    r_wrapper->g_sv = g_sv;
     r_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
-    SvREFCNT_inc(g_sv);
     sv = sv_newmortal();
     sv_setref_pv(sv, recce_c_class_name, (void*)r_wrapper);
     XPUSHs(sv);
@@ -909,14 +896,11 @@ void
 DESTROY( r_wrapper )
     R_Wrapper *r_wrapper;
 PREINIT:
-    SV *g_sv;
     struct marpa_r *r;
 CODE:
-    g_sv = r_wrapper->g_sv;
     r = r_wrapper->r;
     g_array_free(r_wrapper->gint_array, TRUE);
     marpa_r_free( r );
-    SvREFCNT_dec(g_sv);
     Safefree( r_wrapper );
 
  # Someday replace this with a function which translates the

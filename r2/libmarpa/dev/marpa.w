@@ -712,7 +712,9 @@ GLIB_VAR const guint marpa_binary_age;@#
 @<Public function prototypes@>@/
 
 @** Grammar (GRAMMAR) Code.
-@<Public incomplete structures@> = struct marpa_g;
+@<Public incomplete structures@> =
+struct marpa_g;
+typedef struct marpa_g* Marpa_G;
 @ @<Private structures@> = struct marpa_g {
 @<Widely aligned grammar elements@>@;
 @<Int aligned grammar elements@>@;
@@ -723,6 +725,7 @@ typedef struct marpa_g GRAMMARD;
 typedef struct marpa_g* GRAMMAR;
 typedef const struct marpa_g* GRAMMAR_Const;
 
+@*0 Constructors.
 @ @<Function definitions@> =
 struct marpa_g* marpa_g_new( void)
 { struct marpa_g* g = g_slice_new(struct marpa_g);
@@ -731,13 +734,48 @@ struct marpa_g* marpa_g_new( void)
 @ @<Public function prototypes@> =
 struct marpa_g* marpa_g_new(void);
 
+@*0 Reference Counting and Destructors.
+@ @<Int aligned grammar elements@>= gint ref_count;
+@ @<Initialize grammar elements@> =
+g->ref_count = 1;
+
+@ Decrement the grammar reference count.
+GNU practice seems to be to return |void|,
+and not the reference count.
+True, that would be mainly useful to help
+a user shot himself in the foot,
+but it is in a long-standing UNIX tradition
+to allow the user that choice.
+@<Function definitions@> =
+void
+marpa_g_unref (Marpa_G g)
+{
+  MARPA_ASSERT (g->ref_count > 0)
+  g->ref_count--;
+  if (g->ref_count <= 0)
+    {
+      grammar_free(g);
+    }
+}
+
+@ Increment the grammar reference count.
+@<Function definitions@> =
+Marpa_G 
+marpa_g_ref (Marpa_G g)
+{
+  MARPA_ASSERT(g->ref_count > 0)
+  g->ref_count++;
+  return g;
+}
+
 @ @<Function definitions@> =
-void marpa_g_free(struct marpa_g *g)
+void grammar_free(struct marpa_g *g)
 { @<Destroy grammar elements@>@;
 g_slice_free(struct marpa_g, g);
 }
-@ @<Public function prototypes@> =
-void marpa_g_free(struct marpa_g *g);
+@ @<Private function prototypes@> =
+static inline void
+grammar_free(struct marpa_g *g);
 
 @*0 The Grammar's Symbol List.
 This lists the symbols for the grammar,
@@ -5361,7 +5399,7 @@ In the event of an error creating the recognizer,
 of the {\bf grammar} is set.
 For this reason, the grammar is not |const|.
 @<Function definitions@> =
-struct marpa_r* marpa_r_new( struct marpa_g* g )
+struct marpa_r* marpa_r_new( Marpa_G g )
 { RECCE r;
     gint symbol_count_of_g;
     @<Return |NULL| on failure@>@/
@@ -5371,11 +5409,13 @@ struct marpa_r* marpa_r_new( struct marpa_g* g )
     }
     r = g_slice_new(struct marpa_r);
     r->t_grammar = g;
+    marpa_g_ref(g);
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
     @<Mark |r| exhausted if |g| is trivial@>@;
-   return r; }
+   return r;
+}
 
 @ If |g| is trivial (allows only the null parse),
 initialize |r| to exhausted.
@@ -5390,6 +5430,7 @@ initialize |r| to exhausted.
 void marpa_r_free(struct marpa_r *r)
 {
 @<Destroy recognizer elements@>@;
+marpa_g_unref(r->t_grammar);
 if (r->t_sym_workarea) g_free(r->t_sym_workarea);
 if (r->t_workarea2) g_free(r->t_workarea2);
 @<Free working bit vectors for symbols@>@;

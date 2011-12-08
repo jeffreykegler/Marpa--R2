@@ -67,6 +67,12 @@ Return value: %NULL if the GLib library is compatible with the
 
 @end deftypefun
 
+@deftypefun void marpa_g_unref (Marpa_G g)
+@end deftypefun
+
+@deftypefun Marpa_G marpa_g_ref (Marpa_G @var{g})
+@end deftypefun
+
 @node Recognizers
 @chapter Recognizer Objects
 
