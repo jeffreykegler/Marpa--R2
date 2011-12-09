@@ -48,7 +48,15 @@ SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 	 pdftex ) pdftex $* ;; \
 	esac
 
-all: marpa.pdf marpa.c marpa.h.in proto.h.in
+all: marpa.pdf marpa.c marpa.h.in proto.h.in docs
+
+docs: api.pdf api/index.html
+
+api/index.html: api.texi
+	makeinfo --html api.texi
+
+api.pdf: api.texi
+	texi2dvi --pdf api.texi
 
 marpa.c marpa.h.in: copyright_page_license.w marpa.w
 
