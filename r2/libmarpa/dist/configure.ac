@@ -140,6 +140,6 @@ AC_C_INLINE
 PKG_PROG_PKG_CONFIG([0.22])
 PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.22.0] )
 
-AC_CONFIG_FILES([Makefile] [marpa.h:marpa.h.in:proto.h.in])
+AC_CONFIG_FILES([Makefile] [marpa.h:marpa.h.in:proto.h.in api.c])
 AC_OUTPUT
 

@@ -31,8 +31,9 @@ Published by Jeffrey Kegler
 This manual is for libmarpa, version 0.0.0. 
 @end ifnottex 
 @menu 
-* Grammars:: Marpa Grammar Objects
-* Recognizers:: Marpa Recognizer Objects
+* Grammars:: Grammar Objects
+* Recognizers:: Recognizer Objects
+* Error Codes:: Error Codes
 @end menu 
 @node Grammars
 @chapter Grammars
@@ -75,5 +76,79 @@ Return value: %NULL if the GLib library is compatible with the
 
 @node Recognizers
 @chapter Recognizer Objects
+
+@node Error Codes
+@chapter Error Codes
+
+@section Soft and Hard Errors
+
+Soft errors are errors which may be a result of normal processing.
+Soft errors often do not disrupt the flow of processing,
+and applications typically do not treat soft errors
+as fatal errors.
+When a soft error is an interruption of normal processing,
+the disruption is usually recoverable.
+
+Hard errors are errors which are never the result of
+normal processing.
+They almost always disrupt the flow of processing.
+Recovery from a hard error is usually not possible,
+and an application will usually treat a hard error
+as a fatal error.
+
+The difference between hard and soft errors can
+depend, to a certain extent,
+on the application.
+libmarpa has its own idea of what is a hard
+and soft error but,
+whenever possible,
+it does not enforce this on the application.
+An application is also free to treat a soft
+error as a hard error.
+And libmarpa makes
+every attempt to allow an application to
+reinterpret a hard error as a soft error.
+
+@deftypevr Macro int MARPA_ERRCODE_COUNT
+The number of error codes.
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NONE
+No error.
+Suggested message: "No error."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_UNKNOWN
+The cause of the error could not be determined.
+This usually indicates a problem in the error handling
+logic itself.
+This will usually be a hard error.
+Suggested message: "Unknown error."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_PARSE
+The application attempted to create a bocage
+from a recognizer without a parse.
+The application will often treat this as
+a soft error.
+Suggested message: "No parse."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_DEVEL
+Development errors are being used
+while libmarpa is in development,
+they are used for errors which
+have not yet been classified.
+Suggested message: "Development error, see string."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_INTERNAL
+Internal errors are errors which
+"should not happen".
+They could result when the calling program
+overwrites libmarpa's internal data.
+They may also indicate a bug in libmarpa.
+Suggested message: "Internal error."
+@end deftypevr
 
 @bye

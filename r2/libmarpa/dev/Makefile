@@ -48,7 +48,7 @@ SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 	 pdftex ) pdftex $* ;; \
 	esac
 
-all: marpa.pdf marpa.c marpa.h.in proto.h.in docs
+all: marpa.pdf marpa.c marpa.h.in api.h.in api.c.in docs
 
 docs: api.pdf api/index.html
 
@@ -60,17 +60,23 @@ api.pdf: api.texi
 
 marpa.c marpa.h.in: copyright_page_license.w marpa.w
 
-proto.h.in: api.texi
-	perl texi2proto.pl < $? > $@
+api.c.in api.h.in error.list: api.texi
+	perl texi2code.pl api.h.in api.c.in error.list < $?
 
 marpa.pdf: marpa.tex cwebmac.tex
 
-install: ../dist/marpa.c ../dist/marpa.h.in ../dist/proto.h.in
+install: ../dist/marpa.c ../dist/marpa.h.in ../dist/api.h.in ../dist/api.c.in ../dist/error.list
 
 ../dist/marpa.c: marpa.c
 	cp $? $@
 
-../dist/proto.h.in: proto.h.in
+../dist/api.h.in: api.h.in
+	cp $? $@
+
+../dist/api.c.in: api.c.in
+	cp $? $@
+
+../dist/error.list: error.list
 	cp $? $@
 
 ../dist/marpa.h.in: marpa.h.in
