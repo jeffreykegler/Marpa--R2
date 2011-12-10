@@ -1,8 +1,14 @@
 /*[.]swp
+/api/
 /api[.]aux
+/api[.]c[.]in
 /api[.]cp
+/api[.]cps
 /api[.]fn
+/api[.]fns
+/api[.]h[.]in
 /api[.]idx
+/api[.]info
 /api[.]ky
 /api[.]log
 /api[.]pdf
@@ -12,6 +18,8 @@
 /api[.]toc
 /api[.]tp
 /api[.]vr
+/api[.]vrs
+/error[.]list
 /marpa[.]c
 /marpa[.]h[.]in
 /marpa[.]idx
@@ -20,4 +28,3 @@
 /marpa[.]scn
 /marpa[.]tex
 /marpa[.]toc
-/proto[.]h[.]in
