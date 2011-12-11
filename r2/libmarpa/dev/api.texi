@@ -68,7 +68,7 @@ Return value: %NULL if the GLib library is compatible with the
 
 @end deftypefun
 
-@deftypefun void marpa_g_unref (Marpa_G g)
+@deftypefun void marpa_g_unref (Marpa_G @var{g})
 @end deftypefun
 
 @deftypefun Marpa_G marpa_g_ref (Marpa_G @var{g})
@@ -77,8 +77,13 @@ Return value: %NULL if the GLib library is compatible with the
 @node Recognizers
 @chapter Recognizer Objects
 
-@node Error Codes
-@chapter Error Codes
+@deftypefun Marpa_Error_Code marpa_r_error @
+    (const struct marpa_r* @var{r}, @
+    const char** @var{p_error_string})
+@end deftypefun
+
+@node Error Handling
+@chapter Error Handling
 
 @section Soft and Hard Errors
 
@@ -109,6 +114,15 @@ And libmarpa makes
 every attempt to allow an application to
 reinterpret a hard error as a soft error.
 
+@section Methods
+
+@deftypefun Marpa_Error_Code marpa_g_error @
+    ( Marpa_G @var{g}, @
+    const char** @var{p_error_string})
+@end deftypefun
+
+@section Error Codes
+
 @deftypevr Macro int MARPA_ERRCODE_COUNT
 The number of error codes.
 @end deftypevr
@@ -134,11 +148,18 @@ a soft error.
 Suggested message: "No parse."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_DEVEL
-Development errors are being used
-while libmarpa is in development,
-they are used for errors which
-have not yet been classified.
+@deftypevr Macro int MARPA_ERR_DEVELOPMENT
+The "development" errors is for use during
+libmarpa's development,
+while it is not yet clear how precisely
+to classify every error condition.
+The error string is a
+short 7-bit ASCII error string
+which describes the error.
+Classifying an error as "development"
+is a temporary measure,
+taken until the error can be more
+precisely defined and classed.
 Suggested message: "Development error, see string."
 @end deftypevr
 
@@ -148,7 +169,37 @@ Internal errors are errors which
 They could result when the calling program
 overwrites libmarpa's internal data.
 They may also indicate a bug in libmarpa.
+An internal error will usually be a hard error.
 Suggested message: "Internal error."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_EIM_COUNT
+libmarpa allows a maximum number of earley
+items per Earley set.
+This error code indicates that limit was
+exceeded.
+Note that this limit is different from
+the optional earley item
+warning threshold, which can be set
+by the application.
+Exceeding the warning threshold causes
+a libmarpa event, which the application
+is free to treat as a hard or soft error.
+
+Most likely, memory will run out for
+other reasons long before this error can
+occur.
+The maximum earley item count for the
+purposes of this error code
+is over a billion.
+As a contrast, a reasonable setting for the
+warning threshold,
+even when exceeding the threshold is
+treated as a fatal error,
+will usually be well under 1000.
+If this error code ever does occur,
+it is almost certainly both a hard and a 
+fatal error.
 @end deftypevr
 
 @bye
