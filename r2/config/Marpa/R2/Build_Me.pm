@@ -167,13 +167,19 @@ sub process_xs {
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
 
-    my $marpa_h = File::Spec->catdir( $self->base_dir(), qw(libmarpa build marpa.h));
-    unless (
-        $self->up_to_date( [ 'typemap', 'Build', $marpa_h, $file ], $spec->{c_file} ) )
+    my $marpa_h =
+        File::Spec->catdir( $self->base_dir(), qw(libmarpa build marpa.h) );
+    my $suggested_c =
+        File::Spec->catdir( $self->base_dir(), qw(xs suggested.c ) );
+    if (not $self->up_to_date(
+            [ 'typemap', 'Build', $marpa_h, $file, $suggested_c ],
+            $spec->{c_file}
+        )
+        )
     {
-	$self->verbose() and say "compiling $file";
+        $self->verbose() and say "compiling $file";
         $self->compile_xs( $file, outfile => $spec->{c_file} );
-    }
+    } ## end if ( not $self->up_to_date( [ 'typemap', 'Build', $marpa_h...]))
 
     # .c -> .o
     my $v = $self->dist_version;
@@ -273,6 +279,22 @@ sub marpa_link_c {
 
     return $spec->{lib_file};
 } ## end sub marpa_link_c
+
+sub do_suggested {
+    my $self         = shift;
+    my $base_dir     = $self->base_dir();
+    my $error_list = File::Spec->catdir( $base_dir, qw(libmarpa dist error.list) );
+    my @suggested_xs = qw(xs suggested.c );
+    my $suggested_xs = File::Spec->catdir( $base_dir, @suggested_xs );
+    if (not $self->up_to_date( [ $error_list ], $suggested_xs ) )
+    {
+	$self->verbose() and say "creating $suggested_xs";
+	require xs::Suggested;
+	my $contents = Marpa::R2::Suggested::suggested_xs_contents($error_list);
+	return $self->write_file( $contents, @suggested_xs );
+    }
+    return 1;
+}
 
 sub do_libmarpa {
     my $self         = shift;
@@ -400,6 +422,7 @@ sub ACTION_code {
     my $version_pm = xs_version_contents( $self, 'Marpa::R2' );
     $self->write_file( $version_pm,      qw(lib Marpa R2 Version.pm) );
     $self->write_file( $perl_version_pm, qw(pperl Marpa R2 Perl Version.pm) );
+    $self->do_suggested();
     $self->do_libmarpa();
     return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code

@@ -65,6 +65,30 @@ event_type_to_string (Marpa_Event_Type type)
   return NULL;
 }
 
+#include "suggested.c"
+
+/* This routine handles is exceptions which originate
+   in libmarpa, and which do not receive special handling
+   by the XS logic.
+*/
+static void libmarpa_exception(struct marpa_r *r, const char* prefix)
+{
+    const char * error_string;
+    int error_code = marpa_r_error(r, &error_string);
+    const char * suggested_description;
+    switch (error_code) {
+    case MARPA_ERR_DEVELOPMENT: 
+	  croak ("%s: (development) %s", prefix, error_string);
+    case MARPA_ERR_INTERNAL: 
+	  croak ("%s: Internal error at %s", prefix, error_string);
+    }
+    suggested_description = suggested_message(error_code);
+    if (error_string) {
+	  croak ("%s: %s; %s", prefix, suggested_description, error_string);
+    } else {
+	  croak ("%s: %s", prefix, suggested_description);
+    }
+}
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::G_C
 
