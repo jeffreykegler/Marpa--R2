@@ -43,7 +43,7 @@ while ( my $line = <STDIN> ) {
     if ( $line =~ /[@]deftypevr/xms ) {
         my ($error) = ($line =~ m/(MARPA_ERR_.*)\b/xms);
 	if ($error) {
-	    $pending_error_list_line = $error_count . " ";
+	    $pending_error_list_line = "$error $error_count ";
 	    $errors[$error_count++] = $error;
 	}
     }

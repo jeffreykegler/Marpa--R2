@@ -185,6 +185,7 @@ by the application.
 Exceeding the warning threshold causes
 a libmarpa event, which the application
 is free to treat as a hard or soft error.
+Suggested message: "Maximum number of earley items exceeded."
 
 Most likely, memory will run out for
 other reasons long before this error can
