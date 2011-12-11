@@ -66,6 +66,16 @@ version 3 should be in a file named "COPYING.LESSER" and the The GNU
 General Public License version 3 should be in a file named "COPYING".
 END_OF_STRING
 
+my $fdl_license = <<'END_OF_FDL_LANGUAGE';
+Copyright @copyright{} 2011 Jeffrey Kegler.
+@quotation 
+Permission is granted to copy, distribute and/or modify this document 
+under the terms of the GNU Free Documentation License, Version 1.2 or 
+any later version published by the Free Software Foundation;
+@end quotation 
+@end copying 
+END_OF_FDL_LANGUAGE
+
 sub hash_comment {
     my ( $text, $char ) = @_;
     $char //= q{#};
@@ -219,19 +229,19 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
-    'LICENSE'   => \&license_problems_in_license_file,
-    'META.json' => \&ignored
-    ,    # not source, and not clear how to add license at top
-    'META.yml' => \&ignored
-    ,    # not source, and not clear how to add license at top
+    'LICENSE' => \&license_problems_in_license_file,
+    'META.json' =>
+        \&ignored,    # not source, and not clear how to add license at top
+    'META.yml' =>
+        \&ignored,    # not source, and not clear how to add license at top
     'ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
     'COPYING'        => \&ignored,    # GNU license text, leave it alone
     'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
-    'libmarpa/dev/cwebmac.tex' => \&ignored
-    ,                               # originally from Cweb, leave it alone
+    'libmarpa/dev/cwebmac.tex' =>
+        \&ignored,                    # originally from Cweb, leave it alone
 
-    'html/script/marpa_r2_html_fmt'             => \&license_problems_in_perl_file,
-    'html/script/marpa_r2_html_score'           => \&license_problems_in_perl_file,
+    'html/script/marpa_r2_html_fmt'    => \&license_problems_in_perl_file,
+    'html/script/marpa_r2_html_score'  => \&license_problems_in_perl_file,
     'html/t/no_tang.html'              => \&ignored,
     'html/t/test.html'                 => \&ignored,
     'html/t/fmt_t_data/expected1.html' => \&ignored,
@@ -240,22 +250,22 @@ my %files_by_type = (
     'html/t/fmt_t_data/input2.html'    => \&trivial,
     'html/t/fmt_t_data/score_expected1.html' => \&trivial,
     'html/t/fmt_t_data/score_expected2.html' => \&trivial,
-
-    # Mostly from Andy Lester, leave alone
-    'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
-    'Makefile.PL'                           => \&trivial,
-    'libmarpa/dist/README'                  => \&trivial,
-    'libmarpa/dev/README'                   => \&trivial,
-    'libmarpa/test/README'                  => \&trivial,
-    'libmarpa/test/Makefile'                => \&trivial,
-    'README'                                => \&trivial,
-    'TODO'                                  => \&trivial,
-    'author.t/accept_tidy'                  => \&trivial,
-    'author.t/critic1'                      => \&trivial,
-    'author.t/perltidyrc'                   => \&trivial,
-    'author.t/spelling_exceptions.list'     => \&trivial,
-    'author.t/tidy1'                        => \&trivial,
-    'inc/proof/README' => \&ignored, # discussion of licensing in that directory
+    'libmarpa/dev/copyright_page_license.w'  => \&copyright_page,
+    'Makefile.PL'                            => \&trivial,
+    'libmarpa/dist/README'                   => \&trivial,
+    'libmarpa/dev/README'                    => \&trivial,
+    'libmarpa/dev/api.texi'             => \&license_problems_in_fdl_file,
+    'libmarpa/test/README'              => \&trivial,
+    'libmarpa/test/Makefile'            => \&trivial,
+    'README'                            => \&trivial,
+    'TODO'                              => \&trivial,
+    'author.t/accept_tidy'              => \&trivial,
+    'author.t/critic1'                  => \&trivial,
+    'author.t/perltidyrc'               => \&trivial,
+    'author.t/spelling_exceptions.list' => \&trivial,
+    'author.t/tidy1'                    => \&trivial,
+    'inc/proof/README' =>
+        \&ignored,    # discussion of licensing in that directory
     'inc/proof/ah_to_leo.lyx'      => \&tex_closed,
     'inc/proof/ah2002_notes.lyx'   => \&tex_closed,
     'inc/proof/proof.lyx'          => \&tex_closed,
@@ -648,6 +658,34 @@ sub license_problems_in_text_file {
     } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
 } ## end sub license_problems_in_text_file
+
+# In "Text" files, just look for the full language.
+# No need to comment it out.
+sub license_problems_in_fdl_file {
+    my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as FDL file"
+            or die "say failed: $ERRNO";
+    }
+    my @problems = ();
+    my $text     = slurp_top($filename);
+    if ( ( index ${$text}, $fdl_license ) < 0 ) {
+        my $problem = "FDL language missing in text file $filename\n";
+        if ($verbose) {
+            $problem .= "\nMissing FDL license language:\n"
+                . Text::Diff::diff( $text, \$fdl_license );
+        }
+        push @problems, $problem;
+    } ## end if ( ( index ${$text}, $fdl_license ) < 0 )
+    if ( scalar @problems and $verbose >= 2 ) {
+        my $problem =
+            "=== FDL licensing section for $filename should be as follows:\n"
+            . $pod_section
+            . ( q{=} x 30 );
+        push @problems, $problem;
+    } ## end if ( scalar @problems and $verbose >= 2 )
+    return @problems;
+} ## end sub license_problems_in_fdl_file
 
 1;
 

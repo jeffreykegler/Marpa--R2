@@ -69,7 +69,6 @@
 ^libmarpa/dev/api[.]pdf
 ^libmarpa/dev/api[.]pg
 ^libmarpa/dev/api[.]scn
-^libmarpa/dev/api[.]tex
 ^libmarpa/dev/api[.]toc
 ^libmarpa/dev/api[.]tp
 ^libmarpa/dev/api[.]vr
