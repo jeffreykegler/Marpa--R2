@@ -8,6 +8,8 @@
 /config[.]sub
 /configure
 /depcomp
+/error[.]c[.]in
+/error[.]h[.]in
 /error[.]list
 /install-sh
 /ltmain[.]sh
