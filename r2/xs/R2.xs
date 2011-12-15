@@ -34,12 +34,14 @@
 typedef struct marpa_g Grammar;
 typedef struct {
      Grammar *g;
+     char *message_buffer;
      GArray* gint_array;
 } G_Wrapper;
 
 typedef struct marpa_r Recce;
 typedef struct {
      Recce *r;
+     char *message_buffer;
      GArray* gint_array;
 } R_Wrapper;
 
@@ -67,27 +69,73 @@ event_type_to_string (Marpa_Event_Type type)
 
 #include "suggested.c"
 
-/* This routine handles is exceptions which originate
-   in libmarpa, and which do not receive special handling
-   by the XS logic.
+
+/* This routine is for the handling exceptions
+   from libmarpa.  It is used when in the general
+   cases, for those exception which are not singled
+   out for special handling by the XS logic.
+   It returns a buffer which must be g_free()'d.
 */
-static void libmarpa_exception(struct marpa_r *r, const char* prefix)
+static char *
+libmarpa_exception (int error_code, const char *error_string)
 {
-    const char * error_string;
-    int error_code = marpa_r_error(r, &error_string);
-    const char * suggested_description;
-    switch (error_code) {
-    case MARPA_ERR_DEVELOPMENT: 
-	  croak ("%s: (development) %s", prefix, error_string);
-    case MARPA_ERR_INTERNAL: 
-	  croak ("%s: Internal error at %s", prefix, error_string);
+  char *template;
+  const char *suggested_description;
+  switch (error_code)
+    {
+    case MARPA_ERR_DEVELOPMENT:
+      return g_strdup_printf ("(development) %s",
+			      (error_string ? error_string : "(null)"));
+    case MARPA_ERR_INTERNAL:
+      return g_strdup_printf ("Internal error at %s",
+			      (error_string ? error_string : "(null)"));
     }
-    suggested_description = suggested_message(error_code);
-    if (error_string) {
-	  croak ("%s: %s; %s", prefix, suggested_description, error_string);
-    } else {
-	  croak ("%s: %s", prefix, suggested_description);
+  suggested_description = suggested_message (error_code);
+  if (!suggested_description)
+    {
+      if (error_string)
+	{
+	  return g_strdup_printf ("libmarpa error code %d: %s", error_code,
+				  error_string);
+	}
+      else
+	{
+	  return g_strdup_printf ("libmarpa error code %d", error_code);
+	}
     }
+  if (error_string)
+    {
+      return g_strconcat (suggested_description, "; ", error_string, NULL);
+    }
+  return g_strdup (suggested_description);
+}
+
+/* Return value must be g_free()'d */
+static const char *
+error_g (G_Wrapper * g_wrapper)
+{
+  const char *error_string;
+  struct marpa_g *g = g_wrapper->g;
+  const int error_code = marpa_g_error (g, &error_string);
+  char *buffer = g_wrapper->message_buffer;
+  g_free (buffer);
+  g_wrapper->message_buffer = buffer =
+    libmarpa_exception (error_code, error_string);
+  return buffer;
+}
+
+/* Return value must be g_free()'d */
+static const char *
+error_r (R_Wrapper * r_wrapper)
+{
+  const char *error_string;
+  struct marpa_r *r = r_wrapper->r;
+  const int error_code = marpa_r_error (r, &error_string);
+  char *buffer = r_wrapper->message_buffer;
+  g_free (buffer);
+  r_wrapper->message_buffer = buffer =
+    libmarpa_exception (error_code, error_string);
+  return buffer;
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::G_C
@@ -111,6 +159,7 @@ PPCODE:
     g = marpa_g_new();
     Newx( g_wrapper, 1, G_Wrapper );
     g_wrapper->g = g;
+    g_wrapper->message_buffer = NULL;
     g_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
     sv = sv_newmortal();
     sv_setref_pv(sv, grammar_c_class_name, (void*)g_wrapper);
@@ -122,6 +171,7 @@ DESTROY( g_wrapper )
 PREINIT:
     struct marpa_g * grammar;
 CODE:
+    g_free(g_wrapper->message_buffer);
     grammar = g_wrapper->g;
     g_array_free(g_wrapper->gint_array, TRUE);
     marpa_g_unref( grammar );
@@ -174,26 +224,27 @@ PPCODE:
     }
 
 void
-event( g, ix )
-    Grammar *g;
+event( g_wrapper, ix )
+    G_Wrapper *g_wrapper;
     int ix;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  struct marpa_g_event event;
+  const char *result_string = NULL;
+  Marpa_Event_Type result = marpa_g_event (g, &event, ix);
+  if (result < 0)
     {
-      struct marpa_g_event event;
-      const char *result_string = NULL;
-      Marpa_Event_Type result = marpa_g_event (g, &event, ix);
-      if (result < 0)
-	{
-	  croak ("Problem in g->event(): %s", marpa_g_error (g));
-	}
-      result_string = event_type_to_string (result);
-      if (!result_string)
-	{
-	  croak ("Problem in g->event(): unknown event %d", result);
-	}
-      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-      XPUSHs (sv_2mortal (newSViv (event.t_value)));
+      croak ("Problem in g->event(): %s", error_g (g_wrapper));
     }
+  result_string = event_type_to_string (result);
+  if (!result_string)
+    {
+      croak ("Problem in g->event(): unknown event %d", result);
+    }
+  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+  XPUSHs (sv_2mortal (newSViv (event.t_value)));
+}
 
 void
 has_loop( g )
@@ -233,38 +284,62 @@ OUTPUT:
     RETVAL
 
 void
-symbol_lhs_rule_ids( g, symbol_id )
-    Grammar *g;
+symbol_lhs_rule_ids( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  int i;
+  gint count = marpa_g_symbol_lhs_count (g, symbol_id);
+  if (count < -1)
     {
-    int i;
-    gint count = marpa_g_symbol_lhs_count( g, symbol_id );
-    if (count < -1) { croak("Problem in g->symbol_lhs_rule_ids: %s", marpa_g_error(g)); }
-    if (count == -1) { XSRETURN_UNDEF; }
-    for (i = 0; i < count; i++) {
-	Marpa_Rule_ID rule_id= marpa_g_symbol_lhs( g, symbol_id, i );
-	if (rule_id < 0) { croak("Problem in g->symbol_lhs_rule_ids: %s", marpa_g_error(g)); }
-	XPUSHs( sv_2mortal( newSViv(rule_id) ) );
+      croak ("Problem in g->symbol_lhs_rule_ids: %s", error_g (g_wrapper));
     }
+  if (count == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  for (i = 0; i < count; i++)
+    {
+      Marpa_Rule_ID rule_id = marpa_g_symbol_lhs (g, symbol_id, i);
+      if (rule_id < 0)
+	{
+	  croak ("Problem in g->symbol_lhs_rule_ids: %s",
+		 error_g (g_wrapper));
+	}
+      XPUSHs (sv_2mortal (newSViv (rule_id)));
+    }
+}
 
 void
-symbol_rhs_rule_ids( g, symbol_id )
-    Grammar *g;
+symbol_rhs_rule_ids( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  int i;
+  gint count = marpa_g_symbol_rhs_count (g, symbol_id);
+  if (count < -1)
     {
-    int i;
-    gint count = marpa_g_symbol_rhs_count( g, symbol_id );
-    if (count < -1) { croak("Problem in g->symbol_rhs_rule_ids: %s", marpa_g_error(g)); }
-    if (count == -1) { XSRETURN_UNDEF; }
-    for (i = 0; i < count; i++) {
-	Marpa_Rule_ID rule_id= marpa_g_symbol_rhs( g, symbol_id, i );
-	if (rule_id < 0) { croak("Problem in g->symbol_rhs_rule_ids: %s", marpa_g_error(g)); }
-	XPUSHs( sv_2mortal( newSViv(rule_id) ) );
+      croak ("Problem in g->symbol_rhs_rule_ids: %s", error_g (g_wrapper));
     }
+  if (count == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  for (i = 0; i < count; i++)
+    {
+      Marpa_Rule_ID rule_id = marpa_g_symbol_rhs (g, symbol_id, i);
+      if (rule_id < 0)
+	{
+	  croak ("Problem in g->symbol_rhs_rule_ids: %s",
+		 error_g (g_wrapper));
+	}
+      XPUSHs (sv_2mortal (newSViv (rule_id)));
+    }
+}
 
 void
 symbol_is_accessible( g, symbol_id )
@@ -349,61 +424,62 @@ PPCODE:
     }
 
 Marpa_Symbol_ID
-symbol_null_alias( g, symbol_id )
-    Grammar *g;
+symbol_null_alias( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  Marpa_Symbol_ID alias_id = marpa_g_symbol_null_alias (g, symbol_id);
+  if (alias_id < -1)
     {
-    Marpa_Symbol_ID alias_id = marpa_g_symbol_null_alias(g, symbol_id);
-      if (alias_id < -1)
-	{
-	  croak ("problem with g->symbol_null_alias: %s",
-		 marpa_g_error (g));
-	}
-      if (alias_id < 0)
-	{
-	  XSRETURN_UNDEF;
-	}
-      XPUSHs (sv_2mortal (newSViv (alias_id)));
+      croak ("problem with g->symbol_null_alias: %s", error_g (g_wrapper));
     }
+  if (alias_id < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (alias_id)));
+}
 
 Marpa_Symbol_ID
-symbol_proper_alias( g, symbol_id )
-    Grammar *g;
+symbol_proper_alias( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  Marpa_Symbol_ID alias_id = marpa_g_symbol_proper_alias (g, symbol_id);
+  if (alias_id < -1)
     {
-    Marpa_Symbol_ID alias_id = marpa_g_symbol_proper_alias(g, symbol_id);
-      if (alias_id < -1)
-	{
-	  croak ("problem with g->symbol_proper_alias: %s",
-		 marpa_g_error (g));
-	}
-      if (alias_id < 0)
-	{
-	  XSRETURN_UNDEF;
-	}
-      XPUSHs (sv_2mortal (newSViv (alias_id)));
+      croak ("problem with g->symbol_proper_alias: %s", error_g (g_wrapper));
     }
+  if (alias_id < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (alias_id)));
+}
 
 Marpa_Rule_ID
-symbol_virtual_lhs_rule( g, symbol_id )
-    Grammar *g;
+symbol_virtual_lhs_rule( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  Marpa_Rule_ID rule_id = marpa_g_symbol_virtual_lhs_rule (g, symbol_id);
+  if (rule_id < -1)
     {
-      Marpa_Rule_ID rule_id = marpa_g_symbol_virtual_lhs_rule (g, symbol_id);
-      if (rule_id < -1)
-	{
-	  croak ("problem with g->symbol_virtual_lhs_rule: %s",
-		 marpa_g_error (g));
-	}
-      if (rule_id < 0)
-	{
-	  XSRETURN_UNDEF;
-	}
-      XPUSHs (sv_2mortal (newSViv (rule_id)));
+      croak ("problem with g->symbol_virtual_lhs_rule: %s",
+	     error_g (g_wrapper));
     }
+  if (rule_id < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (rule_id)));
+}
 
  # Rules
 
@@ -496,72 +572,99 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(new_rule_id) ) );
 
 Marpa_Symbol_ID
-rule_lhs( g, rule_id )
-    Grammar *g;
+rule_lhs( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
-CODE:
-    RETVAL = marpa_g_rule_lhs(g, rule_id);
-    if (RETVAL < -1) { 
-      croak ("Problem in g->rule_lhs(%d): %s", rule_id, marpa_g_error (g));
+PPCODE:
+{
+    struct marpa_g* g = g_wrapper->g;
+    int result = marpa_g_rule_lhs(g, rule_id);
+    if (result < -1) { 
+      croak ("Problem in g->rule_lhs(%d): %s", rule_id, error_g (g_wrapper));
       }
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
+    if (result < 0) { XSRETURN_UNDEF; }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+}
 
 Marpa_Symbol_ID
-rule_rhs( g, rule_id, ix )
-    Grammar *g;
+rule_rhs( g_wrapper, rule_id, ix )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
     int ix;
-CODE:
-    RETVAL = marpa_g_rule_rh_symbol(g, rule_id, ix);
-    if (RETVAL < -1) { 
-      croak ("Problem in g->rule_rhs(%d, %d): %s", rule_id, ix, marpa_g_error (g));
+PPCODE:
+{
+    struct marpa_g* g = g_wrapper->g;
+    int result = marpa_g_rule_rh_symbol(g, rule_id, ix);
+    if (result < -1) { 
+      croak ("Problem in g->rule_rhs(%d, %d): %s", rule_id, ix, error_g (g_wrapper));
       }
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
+    if (result < 0) { XSRETURN_UNDEF; }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+}
 
 int
-rule_length( g, rule_id )
-    Grammar *g;
-    Marpa_Rule_ID rule_id;
-CODE:
-    RETVAL = marpa_g_rule_length(g, rule_id);
-    if (RETVAL < -1) { 
-      croak ("Problem in g->rule_length(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
-
-void
-rule_is_accessible( g, rule_id )
-    Grammar *g;
+rule_length( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_is_accessible( g, rule_id );
-    if (result < -1) { 
-      croak ("Problem in g->rule_is_accessible(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result < 0) { croak("Invalid rule %d", rule_id); }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  struct marpa_g *g = g_wrapper->g;
+  int result = marpa_g_rule_length (g, rule_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->rule_length(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
-rule_is_productive( g, rule_id )
-    Grammar *g;
+rule_is_accessible( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_is_productive( g, rule_id );
-    if (result < -1) { 
-      croak ("Problem in g->rule_is_productive(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result < 0) { croak("Invalid rule %d", rule_id); }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_is_accessible (g, rule_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->rule_is_accessible(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  if (result < 0)
+    {
+      croak ("Invalid rule %d", rule_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+rule_is_productive( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_is_productive (g, rule_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->rule_is_productive(%d): %s", rule_id,
+	     error_g (g_wrapper));
+    }
+  if (result < 0)
+    {
+      croak ("Invalid rule %d", rule_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
 rule_is_loop( g, rule_id )
@@ -912,6 +1015,7 @@ PPCODE:
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;
     r_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
+    r_wrapper->message_buffer = NULL;
     sv = sv_newmortal();
     sv_setref_pv(sv, recce_c_class_name, (void*)r_wrapper);
     XPUSHs(sv);
@@ -922,6 +1026,7 @@ DESTROY( r_wrapper )
 PREINIT:
     struct marpa_r *r;
 CODE:
+    g_free(r_wrapper->message_buffer);
     r = r_wrapper->r;
     g_array_free(r_wrapper->gint_array, TRUE);
     marpa_r_free( r );

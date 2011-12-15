@@ -38,7 +38,7 @@ static const char* suggested_message(int error_code)
 PREFIX
 
 my $suffix = <<"SUFFIX";
-    default: return "Error code not known to Marpa::R2.";
+    default: return NULL;
     }
 }
 SUFFIX
