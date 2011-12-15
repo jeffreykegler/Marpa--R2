@@ -67,8 +67,8 @@ event_type_to_string (Marpa_Event_Type type)
   return NULL;
 }
 
-#include "suggested.c"
-
+#include "error.h"
+#include "error.c"
 
 /* This routine is for the handling exceptions
    from libmarpa.  It is used when in the general
@@ -81,6 +81,7 @@ libmarpa_exception (int error_code, const char *error_string)
 {
   char *template;
   const char *suggested_description;
+  const char *error_name;
   switch (error_code)
     {
     case MARPA_ERR_DEVELOPMENT:
@@ -90,17 +91,20 @@ libmarpa_exception (int error_code, const char *error_string)
       return g_strdup_printf ("Internal error at %s",
 			      (error_string ? error_string : "(null)"));
     }
-  suggested_description = suggested_message (error_code);
+  if (error_code >= 0 && error_code < MARPA_ERROR_COUNT) {
+      suggested_description = marpa_error_description[error_code].suggested;
+      error_name = marpa_error_description[error_code].name;
+  }
   if (!suggested_description)
     {
       if (error_string)
 	{
-	  return g_strdup_printf ("libmarpa error code %d: %s", error_code,
-				  error_string);
+	  return g_strdup_printf ("libmarpa error %d: %s; %s",
+	  error_name, error_code, error_string);
 	}
       else
 	{
-	  return g_strdup_printf ("libmarpa error code %d", error_code);
+	  return g_strdup_printf ("libmarpa error %d: %s", error_code, error_name);
 	}
     }
   if (error_string)

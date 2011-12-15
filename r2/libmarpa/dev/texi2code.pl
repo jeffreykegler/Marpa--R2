@@ -100,7 +100,7 @@ my $notlib_preamble = <<'NOTLIB_PREAMBLE';
 NOTLIB_PREAMBLE
 
 print {$error_h_in} $common_preamble, $notlib_preamble, <<'STRUCT_DECLARATION';
-struct marpa_error_description {
+struct s_marpa_error_description {
     Marpa_Error_Code error_code;
     const char* name;
     const char* suggested_description;
@@ -119,7 +119,15 @@ for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
 }
 
 print {$error_c_in} $common_preamble, $notlib_preamble;
-say {$error_c_in} '#include "error.h"';
+say {$error_c_in} <<'COMMENT';
+/*
+ * This is not a complete C file and for separate compilation.
+ * In particular, it lacks a definition of s_marpa_error_description.
+ * To compile this code, you can include it in a larger file.
+ * Applications may prefer to get the information by reading it
+ * as a text file.
+ */;
+COMMENT
 say {$error_c_in} 'const struct s_marpa_error_description[] = {';
 my @lines = ();
 for (my $error_number = 0; $error_number < $error_count; $error_number++) {

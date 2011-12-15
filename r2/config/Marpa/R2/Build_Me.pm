@@ -23,6 +23,7 @@ use warnings;
 
 use Config;
 use File::Copy;
+use Cwd 'abs_path';
 use IPC::Cmd;
 use Module::Build;
 use Fatal qw(open close chdir chmod utime);
@@ -226,7 +227,7 @@ sub process_xs {
             {
                 say {*STDERR} "Failed: $ranlib $final_libmarpa_a"
                     or die "say failed: $ERRNO";
-                die 'Cannot run libmarpa configure';
+                die 'Cannot run libmarpa ranlib';
             } ## end if ( not IPC::Cmd::run( command => [ ( split /\s+/xms...)]))
         } ## end if ( $ranlib ne q{:} )
     } ## end if ( not $self->up_to_date( $unfinished_libmarpa_a, ...))
@@ -317,8 +318,12 @@ sub do_libmarpa {
         $shell or die q{No Bourne shell available says $Config{sh}};
 ##use critic
 
+    my $install_dir = File::Spec->catdir( $updir, 'install' );
+    $install_dir = abs_path($install_dir);
+    -d $install_dir or mkdir $install_dir;
+
         if (not IPC::Cmd::run(
-                command => [ $shell, $configure_script ],
+                command => [ $shell, $configure_script, "--prefix=$install_dir" ],
                 verbose => 1
             )
             )
@@ -346,8 +351,10 @@ sub do_libmarpa {
         $perm |= oct 200;
         chmod $perm, $configure_script;
     }
-    die 'Making libmarpa: Failure'
+    die 'Making libmarpa: make Failure'
         if not IPC::Cmd::run( command => ['make'], verbose => 1 );
+    die 'Making libmarpa: make Failure'
+        if not IPC::Cmd::run( command => ['make', 'install'], verbose => 1 );
     chdir $cwd;
     return 1;
 
