@@ -95,7 +95,6 @@ libmarpa/dist/Makefile.am
 libmarpa/dist/Makefile.in
 libmarpa/dist/README
 libmarpa/dist/aclocal.m4
-libmarpa/dist/api.c.in
 libmarpa/dist/api.h.in
 libmarpa/dist/config.guess
 libmarpa/dist/config.h.in

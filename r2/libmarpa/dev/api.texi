@@ -33,7 +33,7 @@ This manual is for libmarpa, version 0.0.0.
 @menu 
 * Grammars:: Grammar Objects
 * Recognizers:: Recognizer Objects
-* Error Codes:: Error Codes
+* Error Handling:: Error Handling
 @end menu 
 @node Grammars
 @chapter Grammars

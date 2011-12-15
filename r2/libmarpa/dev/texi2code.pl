@@ -21,30 +21,31 @@ use English qw( -no_match_vars );
 use Fatal qw(open close);
 
 if (scalar @ARGV != 3) {
-    die("usage: $PROGRAM_NAME api.h.in api.c.in error.list");
+    die("usage: $PROGRAM_NAME api.h.in error.h.in error.c.in");
 }
 
 open my $api_h_in, '>', $ARGV[0];
-open my $api_c_in, '>', $ARGV[1];
-open my $error_list, '>', $ARGV[2];
+open my $error_h_in, '>', $ARGV[1];
+open my $error_c_in, '>', $ARGV[2];
 
 my @errors = ();
-my $error_count = 0;
+my $next_error_code = 0;
 my @defs = ();
-my $pending_error_list_line = undef;
+my $current_error_code = undef;
+my @suggested = ();
 while ( my $line = <STDIN> ) {
-    if ( $pending_error_list_line ) {
-	my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
-	if ($message) {
-	    say {$error_list} $pending_error_list_line. $message;
-	    $pending_error_list_line = undef;
-	}
-    }
+     if ( defined $current_error_code ) {
+        my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
+        if ($message) {
+            $suggested[$current_error_code] = $message;
+            $current_error_code = undef;
+        }
+     }
     if ( $line =~ /[@]deftypevr/xms ) {
         my ($error) = ($line =~ m/(MARPA_ERR_.*)\b/xms);
 	if ($error) {
-	    $pending_error_list_line = "$error $error_count ";
-	    $errors[$error_count++] = $error;
+	    $current_error_code = $next_error_code++;
+	    $errors[$current_error_code] = $error;
 	}
     }
     if ( $line =~ /[@]deftypefun/xms ) {
@@ -63,7 +64,7 @@ while ( my $line = <STDIN> ) {
     } ## end if ( $line =~ /[@]deftypefun/xms )
 } ## end while ( my $line = <STDIN> )
 
-my $preamble = <<'PREAMBLE';
+my $common_preamble = <<'COMMON_PREAMBLE';
 /*
  * Copyright 2011 Jeffrey Kegler
  * This file is part of Marpa::R2.  Marpa::R2 is free software: you can
@@ -86,20 +87,45 @@ my $preamble = <<'PREAMBLE';
  * It is not intended to be modified directly
  */
 
-PREAMBLE
+COMMON_PREAMBLE
 
-say {$api_h_in} $preamble;
+my $notlib_preamble = <<'NOTLIB_PREAMBLE';
+/*
+ * This file is not part of libmarpa
+ * It exists so that the higher levels,
+ * which can either compile it as a C file,
+ * or read it a a text file.
+ */
+
+NOTLIB_PREAMBLE
+
+print {$error_h_in} $common_preamble, $notlib_preamble, <<'STRUCT_DECLARATION';
+struct marpa_error_description {
+    Marpa_Error_Code error_code;
+    const char* name;
+    const char* suggested_description;
+};
+
+STRUCT_DECLARATION
+
+say {$api_h_in} $common_preamble;
 say {$api_h_in} join "\n", @defs;
-say {$api_h_in} "extern const char* s_marpa_error_description[];";
-for (my $error_number = 0; $error_number < $error_count; $error_number++)
-{
-   say {$api_h_in} '#define ' . $errors[$error_number] . q{ } . $error_number;
+my $error_count = scalar @errors;
+say {$api_h_in} "#define MARPA_ERROR_COUNT $error_count";
+for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
+    say {$api_h_in} '#define '
+        . $errors[$error_number] . q{ }
+        . $error_number;
 }
 
-say {$api_c_in} $preamble;
-say {$api_c_in} "const char* s_marpa_error_description[$error_count] = {";
+print {$error_c_in} $common_preamble, $notlib_preamble;
+say {$error_c_in} '#include "error.h"';
+say {$error_c_in} 'const struct s_marpa_error_description[] = {';
 my @lines = ();
 for (my $error_number = 0; $error_number < $error_count; $error_number++) {
-   push @lines, q{  "} . $errors[$error_number] . q{"};
+   my $suggested_description = $suggested[$error_number] // "Unknown error";
+   my $error_name = $errors[$error_number];
+   say {$error_c_in} qq[  { $error_number, "$error_name", "$suggested_description" },];
 }
-say {$api_c_in} +(join ",\n", @lines), "\n};\n";
+say {$error_c_in} '};';
+

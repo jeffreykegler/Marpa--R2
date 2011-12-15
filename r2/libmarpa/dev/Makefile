@@ -48,7 +48,7 @@ SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 	 pdftex ) pdftex $* ;; \
 	esac
 
-all: marpa.pdf marpa.c marpa.h.in api.h.in api.c.in docs
+all: marpa.pdf marpa.c marpa.h.in api.h.in error.h.in error.c.in docs
 
 docs: api.pdf api/index.html
 
@@ -60,12 +60,12 @@ api.pdf: api.texi
 
 marpa.c marpa.h.in: copyright_page_license.w marpa.w
 
-api.c.in api.h.in error.list: api.texi
-	perl texi2code.pl api.h.in api.c.in error.list < $?
+error.c.in error.h.in api.h.in: api.texi texi2code.pl
+	perl texi2code.pl api.h.in error.h.in error.c.in < api.texi
 
 marpa.pdf: marpa.tex cwebmac.tex
 
-install: ../dist/marpa.c ../dist/marpa.h.in ../dist/api.h.in ../dist/api.c.in ../dist/error.list
+install: ../dist/marpa.c ../dist/marpa.h.in ../dist/api.h.in ../dist/error.c.in ../dist/error.h.in
 
 ../dist/marpa.c: marpa.c
 	cp $? $@
@@ -73,10 +73,10 @@ install: ../dist/marpa.c ../dist/marpa.h.in ../dist/api.h.in ../dist/api.c.in ..
 ../dist/api.h.in: api.h.in
 	cp $? $@
 
-../dist/api.c.in: api.c.in
+../dist/error.h.in: error.h.in
 	cp $? $@
 
-../dist/error.list: error.list
+../dist/error.c.in: error.c.in
 	cp $? $@
 
 ../dist/marpa.h.in: marpa.h.in
