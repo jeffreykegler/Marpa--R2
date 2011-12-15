@@ -667,108 +667,152 @@ PPCODE:
 }
 
 void
-rule_is_loop( g, rule_id )
-    Grammar *g;
+rule_is_loop( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_is_loop( g, rule_id );
-    if (result < -1) { 
-      croak ("Problem in g->rule_is_loop(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result < 0) { croak("Invalid rule %d", rule_id); }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_is_loop (g, rule_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->rule_is_loop(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  if (result < 0)
+    {
+      croak ("Invalid rule %d", rule_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
-rule_is_virtual_loop( g, rule_id )
-    Grammar *g;
+rule_is_virtual_loop( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_is_virtual_loop( g, rule_id );
-    if (result < -1) { 
-      croak ("Problem in g->rule_is_virtual_loop(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result < 0) { croak("Invalid rule %d", rule_id); }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_is_virtual_loop (g, rule_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->rule_is_virtual_loop(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  if (result < 0)
+    {
+      croak ("Invalid rule %d", rule_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 int
-rule_virtual_start( g, rule_id )
-    Grammar *g;
+rule_virtual_start( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
-CODE:
-    RETVAL = marpa_g_virtual_start( g, rule_id );
-    if (RETVAL <= -2) { 
-      croak ("Problem in g->rule_is_virtual_start(%d): %s", rule_id, marpa_g_error (g));
-      }
-OUTPUT:
-    RETVAL
+PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  int result = marpa_g_virtual_start (g, rule_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->rule_is_virtual_start(%d): %s", rule_id,
+	     error_g (g_wrapper));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+}
 
 int
-rule_virtual_end( g, rule_id )
-    Grammar *g;
-    Marpa_Rule_ID rule_id;
-CODE:
-    RETVAL = marpa_g_virtual_end( g, rule_id );
-    if (RETVAL <= -2) { 
-      croak ("Problem in g->rule_is_virtual_end(%d): %s", rule_id, marpa_g_error (g));
-      }
-OUTPUT:
-    RETVAL
-
-void
-rule_is_used( g, rule_id )
-    Grammar *g;
+rule_virtual_end( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_is_used( g, rule_id );
-    if (result < 0) { 
-      croak ("Problem in g->rule_is_used(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  struct marpa_g *g = g_wrapper->g;
+  int result = marpa_g_virtual_end (g, rule_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->rule_is_virtual_end(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
-rule_is_discard_separation( g, rule_id )
-    Grammar *g;
+rule_is_used( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_is_discard_separation( g, rule_id );
-    if (result < 0) { 
-      croak ("Problem in g->rule_is_discard_separation(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_is_used (g, rule_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->rule_is_used(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
-rule_is_virtual_lhs( g, rule_id )
-    Grammar *g;
+rule_is_discard_separation( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_is_virtual_lhs( g, rule_id );
-    if (result < 0) { 
-      croak ("Problem in g->rule_is_virtual_lhs(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_is_discard_separation (g, rule_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->rule_is_discard_separation(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
-rule_is_virtual_rhs( g, rule_id )
-    Grammar *g;
+rule_is_virtual_lhs( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_is_virtual_rhs( g, rule_id );
-    if (result < 0) { 
-      croak ("Problem in g->rule_is_virtual_rhs(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_is_virtual_lhs (g, rule_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->rule_is_virtual_lhs(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+rule_is_virtual_rhs( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_is_virtual_rhs (g, rule_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->rule_is_virtual_rhs(%d): %s", rule_id,
+	     error_g (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 Marpa_Rule_ID
 real_symbol_count( g, rule_id )
@@ -790,56 +834,78 @@ OUTPUT:
     RETVAL
 
 Marpa_Rule_ID
-semantic_equivalent( g, rule_id )
-    Grammar *g;
+semantic_equivalent( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
 PPCODE:
-    { gint result = marpa_g_rule_semantic_equivalent(g, rule_id);
-    if (result <= -2) { 
-      croak ("Problem in g->semantic_equivalent(%d): %s", rule_id, marpa_g_error (g));
-      }
-    if (result == -1) { XSRETURN_UNDEF; }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_semantic_equivalent (g, rule_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->semantic_equivalent(%d): %s", rule_id,
+	     error_g (g_wrapper));
     }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 int
-AHFA_item_count( g )
-    Grammar *g;
+AHFA_item_count( g_wrapper )
+    G_Wrapper *g_wrapper;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_AHFA_item_count (g);
+  if (result <= -2)
     {
-	gint result = marpa_g_AHFA_item_count(g );
-	if (result <= -2) { 
-	      croak ("Problem in g->AHFA_item_count(): %s", marpa_g_error (g));
-	}
-	if (result < 0) { XSRETURN_UNDEF; }
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+      croak ("Problem in g->AHFA_item_count(): %s", error_g (g_wrapper));
     }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 int
-rule_count( g )
-    Grammar *g;
+rule_count( g_wrapper )
+    G_Wrapper *g_wrapper;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_count (g);
+  if (result < -1)
     {
-	gint result = marpa_g_rule_count(g );
-	if (result < -1) {
-	  croak ("Problem in g->rule_count(): %s", marpa_g_error (g));
-	}
-	if (result < 0) { XSRETURN_UNDEF; }
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+      croak ("Problem in g->rule_count(): %s", error_g (g_wrapper));
     }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 int
-symbol_count( g )
-    Grammar *g;
+symbol_count( g_wrapper )
+    G_Wrapper *g_wrapper;
 PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint count = marpa_g_symbol_count (g);
+  if (count < -1)
     {
-	gint count = marpa_g_symbol_count(g );
-	if (count < -1) {
-	  croak ("Problem in g->symbol_count(): %s", marpa_g_error (g));
-	}
-	if (count < 0) { XSRETURN_UNDEF; }
-	XPUSHs( sv_2mortal( newSViv(count) ) );
+      croak ("Problem in g->symbol_count(): %s", error_g (g_wrapper));
     }
+  if (count < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (count)));
+}
 
 Marpa_Rule_ID
 AHFA_item_rule( g, item_id )
@@ -919,23 +985,30 @@ AHFA_state_transitions( g_wrapper, AHFA_state_id )
     G_Wrapper *g_wrapper;
     Marpa_AHFA_State_ID AHFA_state_id;
 PPCODE:
+{
+  Grammar *g = g_wrapper->g;
+  GArray *const gint_array = g_wrapper->gint_array;
+  const gint result =
+    marpa_g_AHFA_state_transitions (g, AHFA_state_id, gint_array);
+  if (result < 0)
     {
-    Grammar *g = g_wrapper->g;
-    GArray* const gint_array = g_wrapper->gint_array;
-    const gint result = marpa_g_AHFA_state_transitions(g, AHFA_state_id, gint_array);
-    if (result < 0) {
-	  croak ("Problem in AHFA_state_transitions(): %s", marpa_g_error (g));
+      croak ("Problem in AHFA_state_transitions(): %s", error_g (g_wrapper));
     }
-    if (GIMME == G_ARRAY) {
-        const gint count = gint_array->len;
-	gint ix;
-        for (ix = 0; ix < count; ix++) {
-	    XPUSHs (sv_2mortal (newSViv (g_array_index (gint_array, gint, ix))));
-        }
-    } else {
-        XPUSHs( sv_2mortal( newSViv((gint)gint_array->len) ) );
+  if (GIMME == G_ARRAY)
+    {
+      const gint count = gint_array->len;
+      gint ix;
+      for (ix = 0; ix < count; ix++)
+	{
+	  XPUSHs (sv_2mortal
+		  (newSViv (g_array_index (gint_array, gint, ix))));
+	}
     }
+  else
+    {
+      XPUSHs (sv_2mortal (newSViv ((gint) gint_array->len)));
     }
+}
 
  # -1 is a valid return value, and -2 indicates an error
 Marpa_AHFA_State_ID
@@ -981,12 +1054,13 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
-char *error( g )
-    Grammar *g;
-CODE:
-    RETVAL = (gchar*)marpa_g_error(g);
-OUTPUT:
-    RETVAL
+voi error( g_wrapper )
+    G_Wrapper *g;
+PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  XPUSHs (sv_2mortal (newSVpv (error_g (g_wrapper), 0)));
+}
 
 void precompute( g )
     Grammar *g;
