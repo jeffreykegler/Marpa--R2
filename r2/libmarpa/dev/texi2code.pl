@@ -103,7 +103,7 @@ print {$error_h_in} $common_preamble, $notlib_preamble, <<'STRUCT_DECLARATION';
 struct s_marpa_error_description {
     Marpa_Error_Code error_code;
     const char* name;
-    const char* suggested_description;
+    const char* suggested;
 };
 
 STRUCT_DECLARATION
@@ -128,7 +128,7 @@ say {$error_c_in} <<'COMMENT';
  * as a text file.
  */;
 COMMENT
-say {$error_c_in} 'const struct s_marpa_error_description[] = {';
+say {$error_c_in} 'const struct s_marpa_error_description marpa_error_description[] = {';
 my @lines = ();
 for (my $error_number = 0; $error_number < $error_count; $error_number++) {
    my $suggested_description = $suggested[$error_number] // "Unknown error";

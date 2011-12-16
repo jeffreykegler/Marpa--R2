@@ -79,9 +79,12 @@ event_type_to_string (Marpa_Event_Type type)
 static char *
 libmarpa_exception (int error_code, const char *error_string)
 {
-  char *template;
-  const char *suggested_description;
-  const char *error_name;
+  const char *suggested_description = NULL;
+  /*
+   * error_name should always be set when suggested_description is,
+   * so this initialization should never be used.
+   */
+  const char *error_name = "-";
   switch (error_code)
     {
     case MARPA_ERR_DEVELOPMENT:
@@ -99,13 +102,10 @@ libmarpa_exception (int error_code, const char *error_string)
     {
       if (error_string)
 	{
-	  return g_strdup_printf ("libmarpa error %d: %s; %s",
-	  error_name, error_code, error_string);
+	  return g_strdup_printf ("libmarpa error %d %s: %s",
+	  error_code, error_name, error_string);
 	}
-      else
-	{
-	  return g_strdup_printf ("libmarpa error %d: %s", error_code, error_name);
-	}
+      return g_strdup_printf ("libmarpa error %d %s", error_code, error_name);
     }
   if (error_string)
     {

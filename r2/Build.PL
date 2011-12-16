@@ -111,34 +111,39 @@ my @files_to_cleanup = (
 );
 
 my $build = Marpa::R2::Build_Me->new(
-    add_to_cleanup     => \@files_to_cleanup,
-    module_name        => 'Marpa::R2',
-    dist_author        => 'Jeffrey Kegler',
-    dist_abstract      => 'Release 2 of Marpa',
-    recommends         => \%recommends,
-    requires           => \%requires,
-    configure_requires => \%configure_requires,
-    build_requires     => \%build_requires,
-    dynamic_config     => 1,
-    extra_compiler_flags =>
-        "$glib_2_0_compiler_flags -I$gperl_h_location -Ilibmarpa/build -Ixs",
+    add_to_cleanup       => \@files_to_cleanup,
+    module_name          => 'Marpa::R2',
+    dist_author          => 'Jeffrey Kegler',
+    dist_abstract        => 'Release 2 of Marpa',
+    recommends           => \%recommends,
+    requires             => \%requires,
+    configure_requires   => \%configure_requires,
+    build_requires       => \%build_requires,
+    dynamic_config       => 1,
+    extra_compiler_flags => (
+              "$glib_2_0_compiler_flags -I$gperl_h_location "
+            . "-Ilibmarpa/install/share -Ilibmarpa/install/include"
+    ),
     extra_linker_flags => "$glib_2_0_linker_flags",
     PL_files           => {},
     pm_files           => \%pm_files,
-    script_files => [ 'html/script/marpa_r2_html_fmt', 'html/script/marpa_r2_html_score', ],
-    xs_files           => { 'xs/R2.xs' => 'lib/Marpa/R2.xs' },
-    meta_merge         => {
+    script_files       => [
+        'html/script/marpa_r2_html_fmt',
+        'html/script/marpa_r2_html_score',
+    ],
+    xs_files   => { 'xs/R2.xs' => 'lib/Marpa/R2.xs' },
+    meta_merge => {
         resources =>
             { repository => 'git://github.com/jeffreykegler/Marpa-R2.git', },
         no_index => {
-            directory =>
-                [qw( pperl config inc tool t html devlib libmarpa author.t
-		    html/etc html/sandbox html/script html/t
-		)],
+            directory => [
+                qw( pperl config inc tool t html devlib libmarpa author.t
+                    html/etc html/sandbox html/script html/t
+                    )
+            ],
             namespace => [
                 'Marpa::R2::Recognizer', 'Marpa::R2::Grammar',
-                'Marpa::R2::HTML',
-                @no_index_namespace_inclusive
+                'Marpa::R2::HTML',       @no_index_namespace_inclusive
             ],
             package => [@no_index_namespace_inclusive],
         }
