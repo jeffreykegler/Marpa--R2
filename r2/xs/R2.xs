@@ -35,6 +35,7 @@ typedef struct marpa_g Grammar;
 typedef struct {
      Grammar *g;
      char *message_buffer;
+     Marpa_Error_Code error_code;
      GArray* gint_array;
 } G_Wrapper;
 
@@ -42,6 +43,7 @@ typedef struct marpa_r Recce;
 typedef struct {
      Recce *r;
      char *message_buffer;
+     Marpa_Error_Code error_code;
      GArray* gint_array;
 } R_Wrapper;
 
@@ -84,7 +86,7 @@ libmarpa_exception (int error_code, const char *error_string)
    * error_name should always be set when suggested_description is,
    * so this initialization should never be used.
    */
-  const char *error_name = "-";
+  const char *error_name = "not libmarpa error";
   switch (error_code)
     {
     case MARPA_ERR_DEVELOPMENT:
@@ -122,6 +124,7 @@ error_g (G_Wrapper * g_wrapper)
   struct marpa_g *g = g_wrapper->g;
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = g_wrapper->message_buffer;
+  g_wrapper->error_code = error_code;
   g_free (buffer);
   g_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
@@ -136,6 +139,7 @@ error_r (R_Wrapper * r_wrapper)
   struct marpa_r *r = r_wrapper->r;
   const int error_code = marpa_r_error (r, &error_string);
   char *buffer = r_wrapper->message_buffer;
+  r_wrapper->error_code = error_code;
   g_free (buffer);
   r_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
@@ -178,6 +182,7 @@ PPCODE:
     Newx( g_wrapper, 1, G_Wrapper );
     g_wrapper->g = g;
     g_wrapper->message_buffer = NULL;
+    g_wrapper->error_code = -1;
     g_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
     sv = sv_newmortal();
     sv_setref_pv(sv, grammar_c_class_name, (void*)g_wrapper);
@@ -1072,12 +1077,25 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
-void error( g_wrapper )
+void
+error( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
   struct marpa_g *g = g_wrapper->g;
   XPUSHs (sv_2mortal (newSVpv (error_g (g_wrapper), 0)));
+}
+
+void
+error_code( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  const Marpa_Error_Code error_code = g_wrapper->error_code;
+  if (error_code < 0) {
+	  XSRETURN_UNDEF;
+  }
+  XPUSHs (sv_2mortal (newSViv (error_code)));
 }
 
 void precompute( g )
@@ -1109,6 +1127,7 @@ PPCODE:
     r_wrapper->r = r;
     r_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
     r_wrapper->message_buffer = NULL;
+    r_wrapper->error_code = -1;
     sv = sv_newmortal();
     sv_setref_pv(sv, recce_c_class_name, (void*)r_wrapper);
     XPUSHs(sv);
@@ -1126,12 +1145,25 @@ CODE:
     marpa_r_free( r );
     Safefree( r_wrapper );
 
-void error( r_wrapper )
+void
+error( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
 {
   struct marpa_r *r = r_wrapper->r;
   XPUSHs (sv_2mortal (newSVpv (error_r (r_wrapper), 0)));
+}
+
+void
+error_code( r_wrapper )
+    R_Wrapper *r_wrapper;
+PPCODE:
+{
+  const Marpa_Error_Code error_code = r_wrapper->error_code;
+  if (error_code < 0) {
+	  XSRETURN_UNDEF;
+  }
+  XPUSHs (sv_2mortal (newSViv (error_code)));
 }
 
 const char *
