@@ -716,6 +716,7 @@ GLIB_VAR const guint marpa_binary_age;@#
 struct marpa_g;
 typedef struct marpa_g* Marpa_G;
 @ @<Private structures@> = struct marpa_g {
+@<First grammar element@>@;
 @<Widely aligned grammar elements@>@;
 @<Int aligned grammar elements@>@;
 @<Bit aligned grammar elements@>@;
@@ -729,7 +730,11 @@ typedef const struct marpa_g* GRAMMAR_Const;
 @ @<Function definitions@> =
 struct marpa_g* marpa_g_new( void)
 { struct marpa_g* g = g_slice_new(struct marpa_g);
+    /* Set |t_is_ok| to a bad value, just in case */
+    g->t_is_ok = 0;
     @<Initialize grammar elements@>@;
+    /* Properly initialized, so set |t_is_ok| to its proper value */
+    g->t_is_ok = I_AM_OK;
    return g; }
 @ @<Public function prototypes@> =
 struct marpa_g* marpa_g_new(void);
@@ -1155,6 +1160,29 @@ obstack_init(&g->t_obs_tricky);
 obstack_free(&g->t_obs, NULL);
 obstack_free(&g->t_obs_tricky, NULL);
 
+@*0 The "is OK" Word.
+The grammar needs a flag for a fatal error.
+This is an |int| for defensive coding reasons.
+Since I am paying the code of an |int|,
+I also use this word as a sanity test ---
+testing that arguments that are passed
+as Marpa grammars actually do point to
+properly initialized
+Marpa grammars.
+It is also possible this will catch certain
+memory overwrites.
+@ The word is placed first, because references
+to the first word of a bogus pointer
+are the most likely to be handled without
+a memory access error.
+Also, there it is somewhat more
+likely to catch memory overwrite errors.
+|0x69734f4b| is the ASCII for 'isOK'.
+@d I_AM_OK 0x69734f4b
+@d IS_G_OK(g) ((g)->t_is_ok == I_AM_OK)
+@<First grammar element@> =
+gint t_is_ok;
+
 @*0 The Grammar's Error ID.
 This is an error flag for the grammar.
 Error status is not necessarily cleared
@@ -1169,26 +1197,32 @@ messages.
 typedef gint Marpa_Error_Code;
 @ @<Widely aligned grammar elements@> =
 const gchar* t_error_string;
-const gchar* t_fatal_error;
 @ @<Int aligned grammar elements@> =
 Marpa_Error_Code t_error;
 @ @<Initialize grammar elements@> =
 g->t_error = MARPA_ERR_NONE;
 g->t_error_string = NULL;
-g->t_fatal_error = NULL;
 @ There is no destructor.
 The error strings are assummed to be
 {\bf not} error messages, but ``cookies".
 These cookies are constants residing in static memory
 (which may be read-only depending on implementation).
 They cannot and should not be de-allocated.
-@ @<Function definitions@> =
+@ As a side effect, the current error is cleared
+if it is non=fatal.
+@<Function definitions@> =
 Marpa_Error_Code marpa_g_error(Marpa_G g, const char** p_error_string)
 {
-    if (p_error_string) {
-       *p_error_string = g->t_error_string;
+    const Marpa_Error_Code error_code = g->t_error;
+    const char* error_string = g->t_error_string;
+    if (IS_G_OK(g)) {
+        g->t_error = MARPA_ERR_NONE;
+        g->t_error_string = NULL;
     }
-    return g->t_error;
+    if (p_error_string) {
+       *p_error_string = error_string;
+    }
+    return error_code;
 }
 
 @** Symbol (SYM) Code.
@@ -13243,8 +13277,8 @@ switch (Phase_of_R (r))
   }
 
 @ @<Fail if fatal error@> =
-if (g->t_fatal_error) {
-    MARPA_DEV_ERROR(g->t_fatal_error);
+if (!IS_G_OK(g)) {
+    MARPA_DEV_ERROR(g->t_error_string);
     return failure_indicator;
 }
 
@@ -13310,7 +13344,7 @@ set_error (struct marpa_g *g, Marpa_Error_Code code, const char* message, guint 
   g->t_error = code;
   g->t_error_string = message;
   if (flags & FATAL_FLAG)
-    g->t_fatal_error = message ? message : "Fatal error";
+    g->t_is_ok = 0;
 }
 
 static void
