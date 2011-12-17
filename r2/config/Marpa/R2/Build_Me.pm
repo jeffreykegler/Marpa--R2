@@ -281,22 +281,6 @@ sub marpa_link_c {
     return $spec->{lib_file};
 } ## end sub marpa_link_c
 
-sub do_suggested {
-    my $self         = shift;
-    my $base_dir     = $self->base_dir();
-    my $error_list = File::Spec->catdir( $base_dir, qw(libmarpa dist error.list) );
-    my @suggested_xs = qw(xs suggested.c );
-    my $suggested_xs = File::Spec->catdir( $base_dir, @suggested_xs );
-    if (not $self->up_to_date( [ $error_list ], $suggested_xs ) )
-    {
-	$self->verbose() and say "creating $suggested_xs";
-	require xs::Suggested;
-	my $contents = Marpa::R2::Suggested::suggested_xs_contents($error_list);
-	return $self->write_file( $contents, @suggested_xs );
-    }
-    return 1;
-}
-
 sub do_libmarpa {
     my $self         = shift;
     my $cwd          = $self->cwd();
@@ -429,7 +413,6 @@ sub ACTION_code {
     my $version_pm = xs_version_contents( $self, 'Marpa::R2' );
     $self->write_file( $version_pm,      qw(lib Marpa R2 Version.pm) );
     $self->write_file( $perl_version_pm, qw(pperl Marpa R2 Perl Version.pm) );
-    $self->do_suggested();
     $self->do_libmarpa();
     return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code
