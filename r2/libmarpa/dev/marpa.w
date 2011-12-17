@@ -2778,7 +2778,7 @@ Marpa_Symbol_ID symid;
 @ @<Check that start symbol is productive@> =
 if (!bv_bit_test(productive_v, (guint)g->t_start_symid))
 {
-    MARPA_DEV_ERROR("unproductive start symbol");
+    MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     return NULL;
 }
 @ @<Declare census variables@> =
@@ -13322,8 +13322,8 @@ than specifying the flags.
 Not being error-prone
 is important since there are many calls to |r_error|
 in the code.
-@d MARPA_DEV_ERROR(message) MARPA_ERROR(MARPA_ERR_DEVELOPMENT, (message))
-@d MARPA_ERROR(code, message) (set_error(g, (code), (message), 0u))
+@d MARPA_DEV_ERROR(message) (set_error(g, MARPA_ERR_DEVELOPMENT, (message), 0u))
+@d MARPA_ERROR(code) (set_error(g, (code), NULL, 0u))
 @d R_DEV_ERROR(message) (r_error(r, MARPA_ERR_DEVELOPMENT, (message), 0u))
 @d R_ERROR(code, message) (r_error(r, (code), (message), 0u))
 @d R_FATAL(code, message) (r_error(r, (code), (message), FATAL_FLAG))

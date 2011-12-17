@@ -79,6 +79,18 @@ sub version_ok {
     return;
 } ## end sub version_ok
 
+# Set up the error values
+my @error_names = Marpa::R2::Internal::error_names();
+for ( my $error = 0; $error <= $#error_names; ) {
+    my $current_error = $error;
+    (my $name = $error_names[$error] ) =~ s/\A MARPA_ERR_//xms;
+    no strict 'refs';
+    *{ "Marpa::R2::Error::$name" } = \$current_error;
+    # This shuts up the "used only once" warning
+    my $dummy = eval q{$} . 'Marpa::R2::Error::' . $name;
+    $error++;
+}
+
 my $version_result;
 require Marpa::R2::Internal;
 ( $version_result = version_ok($Marpa::R2::Internal::VERSION) )
@@ -95,13 +107,5 @@ require Marpa::R2::Recognizer;
 require Marpa::R2::Value;
 ( $version_result = version_ok($Marpa::R2::Value::VERSION) )
     and die 'Marpa::R2::Value::VERSION ', $version_result;
-
-# Set up the error values
-my @error_names = Marpa::R2::Internal::error_names();
-for ( my $error = 0; $error <= $#error_names; $error++ ) {
-    (my $name = $error_names[$error] ) =~ s/\A MARPA_ERR_//xms;
-    no strict 'refs';
-    *{ "Marpa::R2::Error::$name" } = \$error;
-}
 
 1;

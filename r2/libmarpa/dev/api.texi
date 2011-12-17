@@ -203,4 +203,12 @@ it is almost certainly both a hard and a
 fatal error.
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_UNPRODUCTIVE_START
+The start symbol is unproductive.
+That means it could never match any possible input,
+not even the null string.
+Presumably, an error in writing the grammar.
+Suggested message: "Unproductive start symbol."
+@end deftypevr
+
 @bye
