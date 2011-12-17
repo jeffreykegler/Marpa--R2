@@ -2638,7 +2638,7 @@ if (!symbol_is_valid(g, original_start_symid)) {
 }
 original_start_symbol = SYM_by_ID(original_start_symid);
 if (original_start_symbol->t_lhs->len <= 0) {
-    MARPA_DEV_ERROR("start symbol not on LHS");
+    MARPA_ERROR(MARPA_ERR_START_NOT_LHS);
     return failure_indicator;
 }
 

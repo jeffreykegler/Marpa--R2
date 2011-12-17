@@ -546,7 +546,7 @@ sub Marpa::R2::Grammar::precompute {
         if ( $error_code eq 'no start symbol' ) {
             Marpa::R2::exception('No start symbol');
         }
-        if ( $error_code eq 'start symbol not on LHS' ) {
+        if ( $error_code == $Marpa::R2::Error::START_NOT_LHS ) {
 	    my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
             Marpa::R2::exception(
                 qq{Start symbol "$name" not on LHS of any rule});

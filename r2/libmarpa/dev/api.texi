@@ -211,4 +211,13 @@ Presumably, an error in writing the grammar.
 Suggested message: "Unproductive start symbol."
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_START_NOT_LHS
+The start symbol is not on the LHS on
+any rule.
+That means it could never match any possible input,
+not even the null string.
+Presumably, an error in writing the grammar.
+Suggested message: "Start symbol not on LHS of any rule."
+@end deftypevr
+
 @bye
