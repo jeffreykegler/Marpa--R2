@@ -260,4 +260,73 @@ This definition applies to sequence rules, as well as to ordinary rules. As a co
 Suggested message: "Duplicate rule."
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS
+Marpa allows all symbols to be terminals, even those on the LHS,
+and this is the default.
+But when there is an null rule in the grammar,
+having lots of terminals is an efficiency hit.
+For that reason, if a grammar has a null rule,
+libmarpa requires the application to explictly
+indicate which symbols are terminals,
+and will not accept the default.
+
+An application is still able to have as many terminals
+as it wants,
+including terminals on the LHS of rules.
+The only requirement is the the user explicitly
+set those symbols which are terminals.
+Terminals may be explicitly marked on a per-symbol
+basis.
+The application can
+also prevent this error by
+unsetting the LHS terminals flag for a grammar.
+Suggested message: "A grammar with null rules must mark its terminals."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_LHS_IS_TERMINAL
+By default,
+and unlike most parsing algorithms,
+libmarpa allow LHS terminals
+-- symbols on the LHS side of a rule,
+but which may also be terminals.
+This behavior is configurable,
+and if
+the LHS terminals flag for a grammar is unset,
+LHS terminals become illegal,
+and cause this error.
+Suggested message: "There is a LHS terminal in a grammar which has disallowed them."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_RULES
+A grammar which has no rules is being used
+in a way that is not allowed.
+Usually the problem is that the user is
+trying to precompute the grammar.
+The precomputations are not defined
+for grammar without rules,
+in large part because it would be useless to do so.
+Suggested message: "This grammar does not have any rules."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_PRECOMPUTED
+An attempt was made to use a precomputed grammar
+in a way that is not allowed.
+After a grammar is precomputed,
+any changes to it that would invalidate
+the precomputation
+is not allowed.
+Almost all changes to a grammar invalidate
+the precomputations.
+Suggested message: "This grammar is precomputed."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_START_SYMBOL
+The grammar has no start symbol,
+and an attempt was made to perform an
+operation which requires one.
+For example, no grammar without a start
+symbol can be precomputed.
+Suggested message: "This grammar has no start symbol."
+@end deftypevr
+
 @bye

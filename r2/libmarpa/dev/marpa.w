@@ -1016,7 +1016,7 @@ gboolean marpa_g_is_lhs_terminal_ok_set(
 struct marpa_g*g, gboolean value)
 {
     if (G_is_Precomputed(g)) {
-        MARPA_DEV_ERROR("precomputed");
+        MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
 	return FALSE;
     }
     g->t_is_lhs_terminal_ok = value;
@@ -2615,21 +2615,23 @@ guint pre_rewrite_rule_count = g->t_rules->len;
 guint pre_rewrite_symbol_count = g->t_symbols->len;
 
 @ @<Return |NULL| if empty grammar@> =
-if (g->t_rules->len <= 0) { MARPA_DEV_ERROR("no rules"); return NULL; }
+if (g->t_rules->len <= 0) { MARPA_ERROR(MARPA_ERR_NO_RULES); return NULL; }
 @ The upper layers have a lot of latitude with this one.
 There's no harm done, so the upper layers can simply ignore this one.
 On the other hand, the upper layer may see this as a sign of a major
 logic error, and treat it as a fatal error.
 Anything in between these two extremes is also possible.
 @<Return |NULL| if already precomputed@> =
-if (G_is_Precomputed(g)) { MARPA_DEV_ERROR("precomputed"); return NULL; }
+if (G_is_Precomputed(g)) {
+    MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
+return NULL; }
 @ Loop over the rules, producing bit vector of LHS symbols, and of
 symbols which are the LHS of empty rules.
 While at it, set a flag to indicate if there are empty rules.
 
 @ @<Return |NULL| if bad start symbol@> =
 if (original_start_symid < 0) {
-    MARPA_DEV_ERROR("no start symbol");
+    MARPA_ERROR(MARPA_ERR_NO_START_SYMBOL);
     return failure_indicator;
 }
 if (!symbol_is_valid(g, original_start_symid)) {
@@ -2687,7 +2689,7 @@ gboolean have_marked_terminals = 0;
 
 @ @<Fatal if empty rule and unmarked terminals@> =
 if (have_empty_rule && g->t_is_lhs_terminal_ok) {
-    MARPA_DEV_ERROR("empty rule and unmarked terminals");
+    MARPA_ERROR(MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS);
     return NULL;
 }
 @ Any optimization should be for the non-error case.
@@ -2707,7 +2709,7 @@ if (!g->t_is_lhs_terminal_ok) {
     no_lhs_terminals = bv_is_empty(bad_lhs_v);
     bv_free(bad_lhs_v);
     if (!no_lhs_terminals) {
-        MARPA_DEV_ERROR("lhs is terminal");
+        MARPA_ERROR(MARPA_ERR_LHS_IS_TERMINAL);
 	return NULL;
     }
 }
@@ -5446,7 +5448,7 @@ struct marpa_r* marpa_r_new( Marpa_G g )
     gint symbol_count_of_g;
     @<Return |NULL| on failure@>@/
     if (!G_is_Precomputed(g)) {
-        MARPA_DEV_ERROR("precomputed");
+        MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
 	return failure_indicator;
     }
     r = g_slice_new(struct marpa_r);
