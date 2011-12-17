@@ -56,6 +56,7 @@
 ^lib/Marpa/R2\.c
 ^lib/Marpa/R2\.xs
 ^libmarpa/build/
+^libmarpa/install/
 ^libmarpa/dev/api/
 ^libmarpa/dev/api[.]aux
 ^libmarpa/dev/api[.]cp
@@ -73,6 +74,8 @@
 ^libmarpa/dev/api[.]vr
 ^libmarpa/dev/fragments/
 ^libmarpa/dev/marpa.log
+^libmarpa/dev/error[.]c[.]in
+^libmarpa/dev/error[.]h[.]in
 ^libmarpa/dev/marpa.scn
 ^libmarpa/dev/marpa[.]c
 ^libmarpa/dev/marpa[.]h[.]in
