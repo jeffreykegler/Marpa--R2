@@ -514,7 +514,12 @@ sub Marpa::R2::Grammar::precompute {
     set_start_symbol($grammar);
     my $event_count = $grammar_c->precompute();
     if ( not defined $event_count ) {
-        my $error_code = $grammar_c->error_code() // -1;
+        my $error_code = $grammar_c->error_code();
+
+        if ( not defined $error_code ) {
+            Marpa::R2::exception(
+                'libmarpa error, but no error code returned');
+        }
 
         # Be idempotent.  If the grammar is already precomputed, just
         # return success without doing anything.
@@ -529,7 +534,7 @@ sub Marpa::R2::Grammar::precompute {
                 'A grammar with empty rules must mark its terminals or unset lhs_terminals'
             );
         }
-        if ( $error_code eq 'counted nullable' ) {
+        if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE ) {
             my @counted_nullable_messages = map {
                       q{Nullable symbol "}
                     . $grammar->symbol_name($_)
@@ -542,17 +547,17 @@ sub Marpa::R2::Grammar::precompute {
             Marpa::R2::exception( @counted_nullable_messages,
                 'Counted nullables confuse Marpa -- please rewrite the grammar'
             );
-        } ## end if ( $error_code eq 'counted nullable' )
+        } ## end if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE)
         if ( $error_code eq 'no start symbol' ) {
             Marpa::R2::exception('No start symbol');
         }
         if ( $error_code == $Marpa::R2::Error::START_NOT_LHS ) {
-	    my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
+            my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
             Marpa::R2::exception(
                 qq{Start symbol "$name" not on LHS of any rule});
-        } ## end if ( $error_code eq 'start symbol not on LHS' )
+        }
         if ( $error_code == $Marpa::R2::Error::UNPRODUCTIVE_START ) {
-	    my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
+            my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
             Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
         }
         if ( $error_code eq 'lhs is terminal' ) {
@@ -1589,11 +1594,11 @@ sub add_user_rule {
         if ( not defined $ordinary_rule_id ) {
             my $rule_description =
                 "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
-            my $error = $grammar_c->error_code() // -1;
+            my $error_code = $grammar_c->error_code() // q{};
             my $problem_description =
-                $error eq 'duplicate rule'
+		$error_code == $Marpa::R2::Error::DUPLICATE_RULE
                 ? 'Duplicate rule'
-                : qq{Unknown problem ("$error")};
+                : $grammar_c->error();
             Marpa::R2::exception("$problem_description: $rule_description");
         } ## end if ( not defined $ordinary_rule_id )
         shadow_rule( $grammar, $ordinary_rule_id );
@@ -1651,11 +1656,11 @@ sub add_user_rule {
     );
     if ( not defined $event_count ) {
         my $rule_description = "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
-        my $error = $grammar_c->error_code() // -1;
+        my $error_code = $grammar_c->error_code() // q{};
         my $problem_description =
-            $error eq 'duplicate rule'
+            $error_code == $Marpa::R2::Error::DUPLICATE_RULE
             ? 'Duplicate rule'
-            : qq{Unknown problem ("$error")};
+            : $grammar_c->error();
         Marpa::R2::exception("$problem_description: $rule_description");
     } ## end if ( not defined $event_count )
     for my $event_ix ( 0 .. $event_count - 1 ) {

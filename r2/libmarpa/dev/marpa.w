@@ -1713,7 +1713,7 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, gint length)
         return -1;
     }
     if (is_rule_duplicate(g, lhs, rhs, length) == TRUE) {
-	MARPA_DEV_ERROR("duplicate rule");
+	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
         return -1;
     }
     rule = rule_start(g, lhs, rhs, length);
@@ -2752,7 +2752,7 @@ gint counted_nullables = 0;
 	    symbol->t_is_nullable = 1;
 } }
 if (counted_nullables) {
-    MARPA_DEV_ERROR("counted nullable");
+    MARPA_ERROR(MARPA_ERR_COUNTED_NULLABLE);
     return NULL;
 }
 }

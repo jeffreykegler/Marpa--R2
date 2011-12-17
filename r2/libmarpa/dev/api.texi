@@ -220,4 +220,44 @@ Presumably, an error in writing the grammar.
 Suggested message: "Start symbol not on LHS of any rule."
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE
+A "counted" symbol is also a nullable symbol.
+A "counted" symbol is one that appears on the RHS
+of a sequence rule.
+If a symbol is nullable,
+counting occurrences of it,
+which is what sequence rules do for their RHS
+symbols,
+becomes very difficult.
+All sorts of questions of definition and
+problems of implementation arise.
+At a minimum, such a sequence would be wildly
+ambigious.
+
+Sequence rules are simply an optimized shorthand
+for rules that can also be written in ordinary BNF.
+If the equivalent of a sequence of nullables is
+really what your application needs,
+nothing in libmarpa prevents you from specifying
+that sequence
+with ordinary BNF rules.
+Suggested message: "Nullable symbol on RHS of a sequence rule."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_DUPLICATE_RULE
+This error indicates an attempt to add a rule which
+is a duplicate of a rule already in the grammar.
+Two rules are considered duplicates if
+
+@itemize @bullet
+@item
+Both rules have the same left hand symbol.
+@item
+Both rules have the same right hand symbols in the same order.
+@end itemize
+
+This definition applies to sequence rules, as well as to ordinary rules. As a consequence, sequence rules can be considered duplicates even when they have different separators and/or different minimum counts.
+Suggested message: "Duplicate rule."
+@end deftypevr
+
 @bye
