@@ -96,4 +96,12 @@ require Marpa::R2::Value;
 ( $version_result = version_ok($Marpa::R2::Value::VERSION) )
     and die 'Marpa::R2::Value::VERSION ', $version_result;
 
+# Set up the error values
+my @error_names = Marpa::R2::Internal::error_names();
+for ( my $error = 0; $error <= $#error_names; $error++ ) {
+    (my $name = $error_names[$error] ) =~ s/\A MARPA_ERR_//xms;
+    no strict 'refs';
+    *{ "Marpa::R2::Error::$name" } = \$error;
+}
+
 1;

@@ -142,9 +142,23 @@ error_r (R_Wrapper * r_wrapper)
   return buffer;
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::G_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal
 
 PROTOTYPES: DISABLE
+
+void
+error_names()
+PPCODE:
+{
+  int error_code;
+  for (error_code = 0; error_code < MARPA_ERROR_COUNT; error_code++)
+    {
+      const char *error_name = marpa_error_description[error_code].name;
+      XPUSHs (sv_2mortal (newSVpv (error_name, 0)));
+    }
+}
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::G_C
 
 G_Wrapper *
 new( class, non_c_sv )
