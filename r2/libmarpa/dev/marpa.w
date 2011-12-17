@@ -1740,7 +1740,7 @@ gint min, gint flags )
     @<Fail if grammar is precomputed@>@;
     if (is_rule_duplicate (g, lhs_id, &rhs_id, 1) == TRUE)
       {
-	MARPA_DEV_ERROR("duplicate rule");
+	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
 	return failure_indicator;
       }
     G_EVENTS_CLEAR(g);
@@ -13204,7 +13204,7 @@ general failure indicator.
 when one is required.
 @<Fail if grammar is precomputed@> =
 if (G_is_Precomputed(g)) {
-    MARPA_DEV_ERROR("grammar precomputed");
+    MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
     return failure_indicator;
 }
 @ @<Fail if grammar not precomputed@> =
