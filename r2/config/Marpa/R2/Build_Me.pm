@@ -158,28 +158,25 @@ sub marpa_infer_xs_spec {
 # The following initially copied from Module::Build, to be customized for
 # Marpa.
 sub process_xs {
-    my ( $self, $file ) = @_;
+    my ( $self, $xs_file ) = @_;
 
-    my $spec = marpa_infer_xs_spec( $self, $file );
-
-    # File name, minus the suffix
-    ( my $file_base = $file ) =~ s/\. [^.]+ \z//xms;
+    my $spec = marpa_infer_xs_spec( $self, $xs_file );
 
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
 
     my $marpa_h =
-        File::Spec->catdir( $self->base_dir(), qw(libmarpa build marpa.h) );
-    my $suggested_c =
-        File::Spec->catdir( $self->base_dir(), qw(xs suggested.c ) );
+        File::Spec->catdir( $self->base_dir(), qw(libmarpa install include marpa.h) );
+    my $error_h = File::Spec->catdir( $self->base_dir(), qw(libmarpa install share error.h) );
+    my $error_c = File::Spec->catdir( $self->base_dir(), qw(libmarpa install share error.c) );
     if (not $self->up_to_date(
-            [ 'typemap', 'Build', $marpa_h, $file, $suggested_c ],
+            [ 'typemap', 'Build', $marpa_h, $error_h, $error_c, $xs_file ],
             $spec->{c_file}
         )
         )
     {
-        $self->verbose() and say "compiling $file";
-        $self->compile_xs( $file, outfile => $spec->{c_file} );
+        $self->verbose() and say "compiling $xs_file";
+        $self->compile_xs( $xs_file, outfile => $spec->{c_file} );
     } ## end if ( not $self->up_to_date( [ 'typemap', 'Build', $marpa_h...]))
 
     # .c -> .o
@@ -236,7 +233,7 @@ sub process_xs {
 
     # .xs -> .bs
     $self->add_to_cleanup( $spec->{bs_file} );
-    unless ( $self->up_to_date( $file, $spec->{bs_file} ) ) {
+    unless ( $self->up_to_date( $xs_file, $spec->{bs_file} ) ) {
         require ExtUtils::Mkbootstrap;
         $self->log_info(
             "ExtUtils::Mkbootstrap::Mkbootstrap('$spec->{bs_file}')\n");
@@ -245,7 +242,7 @@ sub process_xs {
         { my $fh = IO::File->new(">> $spec->{bs_file}") }    # create
         my $time = time;
         utime $time, $time, $spec->{bs_file};                # touch
-    } ## end unless ( $self->up_to_date( $file, $spec->{bs_file} ) )
+    } ## end unless ( $self->up_to_date( $xs_file, $spec->{bs_file} ) )
 
     # .o -> .(a|bundle)
     return marpa_link_c( $self, $spec );
