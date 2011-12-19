@@ -281,6 +281,123 @@ Return value: %NULL if the GLib library is compatible with the
     const char** @var{p_error_string})
 @end deftypefun
 
+@deftypefun struct marpa_r* marpa_r_new ( struct marpa_g* @var{g} )
+@end deftypefun
+
+@deftypefun Marpa_Phase marpa_r_phase (struct marpa_r* @var{r})
+@end deftypefun
+
+@deftypefun guint marpa_r_current_earleme (struct marpa_r* @var{r})
+@end deftypefun
+
+@deftypefun gint marpa_r_earley_item_warning_threshold (struct marpa_r* @var{r})
+@end deftypefun
+
+@deftypefun gint marpa_r_earley_item_warning_threshold_set (struct marpa_r*@var{r}, gint @var{threshold})
+@end deftypefun
+
+@deftypefun guint marpa_r_furthest_earleme (struct marpa_r* @var{r})
+@end deftypefun
+
+@deftypefun gint marpa_r_terminals_expected (struct marpa_r* @var{r}, GArray* @var{result})
+@end deftypefun
+
+@deftypefun gboolean marpa_r_is_use_leo (struct marpa_r* @var{r})
+@end deftypefun
+
+@deftypefun gboolean marpa_r_is_use_leo_set ( struct marpa_r*@var{r}, gboolean @var{value})
+@end deftypefun
+
+@deftypefun gboolean marpa_r_is_exhausted (struct marpa_r* @var{r})
+@end deftypefun
+
+@deftypefun gint marpa_r_event (const struct marpa_r* @var{r}, struct marpa_g_event *@var{public_event}, gint @var{ix})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID marpa_r_trace_earley_set (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Earleme marpa_r_earleme (struct marpa_r* r, Marpa_Earley_Set_ID @var{set_id})
+@end deftypefun
+
+@deftypefun gint marpa_r_earley_set_size (struct marpa_r *r, Marpa_Earley_Set_ID @var{set_id})
+@end deftypefun
+
+@deftypefun Marpa_Earleme marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID @var{set_id})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID marpa_r_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID @var{item_id})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID marpa_r_earley_item_origin (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_leo_predecessor_symbol (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID marpa_r_leo_base_origin (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID marpa_r_leo_base_state (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_postdot_symbol_trace (struct marpa_r *r, Marpa_Symbol_ID @var{symid})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_first_postdot_item_trace (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_next_postdot_item_trace (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID marpa_r_postdot_item_symbol (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_first_token_link_trace (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_next_token_link_trace (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_first_completion_link_trace (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_next_completion_link_trace (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_first_leo_link_trace (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_next_leo_link_trace (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID marpa_r_source_predecessor_state (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_source_token (struct marpa_r *r, gpointer *@var{value_p})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_r_source_leo_transition_symbol (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID marpa_r_source_middle (struct marpa_r* @var{r})
+@end deftypefun
+
+@deftypefun gboolean marpa_r_start_input (struct marpa_r *@var{r})
+@end deftypefun
+
+@deftypefun gboolean marpa_r_alternative (struct marpa_r *r, Marpa_Symbol_ID @var{token_id}, gpointer @var{value}, gint @var{length})
+@end deftypefun
+
+@deftypefun Marpa_Earleme marpa_r_earleme_complete (struct marpa_r* @var{r})
+@end deftypefun
+
 @node Error handling
 @chapter Error handling
 

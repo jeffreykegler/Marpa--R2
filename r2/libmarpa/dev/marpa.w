@@ -5390,8 +5390,9 @@ marpa_r_ref (Marpa_R r)
 static inline
 void r_free(struct marpa_r *r)
 {
+    @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
-    marpa_g_unref(r->t_grammar);
+    marpa_g_unref(g);
     if (r->t_sym_workarea) g_free(r->t_sym_workarea);
     if (r->t_workarea2) g_free(r->t_workarea2);
     @<Free working bit vectors for symbols@>@;
@@ -5406,6 +5407,9 @@ void r_free(struct marpa_r *r);
 Initialized in |marpa_r_new|.
 @d G_of_R(r) ((r)->t_grammar)
 @d AHFA_Count_of_R(r) AHFA_Count_of_G(G_of_R(r))
+@<Unpack recognizer objects@> =
+const Marpa_G g = G_of_R(r);
+
 @ @<Widely aligned recognizer elements@> = struct marpa_g *t_grammar;
 
 @*0 Recognizer Phase.
@@ -5438,8 +5442,6 @@ typedef enum marpa_phase Marpa_Phase;
 Marpa_Phase t_phase;
 @ @<Initialize recognizer elements@> =
 Phase_of_R(r) = initial_phase;
-@ @<Public function prototypes@> =
-Marpa_Phase marpa_r_phase(struct marpa_r* r);
 @ @<Function definitions@> =
 Marpa_Phase marpa_r_phase(struct marpa_r* r)
 { return Phase_of_R(r); }
@@ -5458,9 +5460,7 @@ r->t_current_earleme = -1;
 @*0 Current Earleme.
 @d Latest_ES_of_R(r) ((r)->t_latest_earley_set)
 @d Current_Earleme_of_R(r) ((r)->t_current_earleme)
-@ @<Public function prototypes@> =
-guint marpa_r_current_earleme(struct marpa_r* r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 guint marpa_r_current_earleme(struct marpa_r* r)
 { return Current_Earleme_of_R(r); }
 
@@ -5480,14 +5480,10 @@ static inline ES current_es_of_r(RECCE r)
 @<Int aligned recognizer elements@> = gint t_earley_item_warning_threshold;
 @ @<Initialize recognizer elements@> =
 r->t_earley_item_warning_threshold = MAX(DEFAULT_EIM_WARNING_THRESHOLD, AIM_Count_of_G(g)*2);
-@ @<Public function prototypes@> =
-gint marpa_r_earley_item_warning_threshold(struct marpa_r* r);
 @ @<Function definitions@> =
 gint marpa_r_earley_item_warning_threshold(struct marpa_r* r)
 { return r->t_earley_item_warning_threshold; }
 
-@ @<Public function prototypes@> =
-gint marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, gint threshold);
 @ Returns |TRUE| on success,
 |FALSE| on failure.
 @<Function definitions@> =
@@ -5506,8 +5502,6 @@ No complete or predicted Earley item will be found after the current earleme.
 @d Furthest_Earleme_of_R(r) ((r)->t_furthest_earleme)
 @<Int aligned recognizer elements@> = EARLEME t_furthest_earleme;
 @ @<Initialize recognizer elements@> = r->t_furthest_earleme = 0;
-@ @<Public function prototypes@> =
-guint marpa_r_furthest_earleme(struct marpa_r* r);
 @ @<Function definitions@> =
 guint marpa_r_furthest_earleme(struct marpa_r* r)
 { return Furthest_Earleme_of_R(r); }
@@ -5599,13 +5593,11 @@ Mistakes happen,
 a mismatch might arise as a portability issue,
 and if I do not ``fail fast" here the ultimate problem
 could be very hard to debug.
-@<Public function prototypes@> =
-gint marpa_r_terminals_expected(struct marpa_r* r, GArray* result);
-@ @<Function definitions@> =
+@<Function definitions@> =
 gint marpa_r_terminals_expected(struct marpa_r* r, GArray* result)
 {
     @<Return |-2| on failure@>@;
-    @<Declare and initialize recce objects@>@;
+      @<Unpack recognizer objects@>@;
     guint min, max, start;
     @<Fail if fatal error@>@;
     @<Fail if recognizer not in input phase@>@;
@@ -5691,26 +5683,22 @@ r->t_is_using_leo = 0;
 @ Returns 1 if the ``use Leo" flag is set,
 0 if not,
 and |-2| if there was an error.
-@<Public function prototypes@> =
-gboolean marpa_r_is_use_leo(struct marpa_r* r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 gint marpa_r_is_use_leo(struct marpa_r* r)
 {
-   @<Return |-2| on failure@>@/
-  struct marpa_g* g = G_of_R(r);
+   @<Unpack recognizer objects@>@;
+   @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     return r->t_use_leo_flag ? 1 : 0;
 }
 @ Returns |TRUE| on success,
 |FALSE| on failure.
-@<Public function prototypes@> =
-gboolean marpa_r_is_use_leo_set( struct marpa_r*r, gboolean value);
-@ @<Function definitions@> =
+@<Function definitions@> =
 gboolean marpa_r_is_use_leo_set(
 struct marpa_r*r, gboolean value)
 {
+   @<Unpack recognizer objects@>@;
    @<Return |FALSE| on failure@>@/
-  struct marpa_g* g = G_of_R(r);
     @<Fail if fatal error@>@;
     @<Fail if recognizer not initial@>@;
     r->t_use_leo_flag = value;
@@ -5732,13 +5720,11 @@ earleme at which the parse became exhausted.
 @ Exhaustion is a boolean, not a phase.
 Once exhausted a parse stays exhausted,
 even though the phase may change.
-@<Public function prototypes@> =
-gboolean marpa_r_is_exhausted(struct marpa_r* r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 gint marpa_r_is_exhausted(struct marpa_r* r)
 {
+   @<Unpack recognizer objects@>@;
    @<Return |-2| on failure@>@/
-   struct marpa_g *g = G_of_R(r);
     @<Fail if fatal error@>@;
     return r->t_is_exhausted ? 1 : 0;
 }
@@ -5751,26 +5737,21 @@ resized and which will have the same lifetime as the recognizer.
 @ @<Initialize recognizer obstack@> = obstack_init(&r->t_obs);
 @ @<Destroy recognizer obstack@> = obstack_free(&r->t_obs, NULL);
 
-@ @<Declare and initialize recce objects@> =
-GRAMMAR g = G_of_R(r);
-
 @*0 Recognizer error accessor.
 @ A convenience wrapper for the grammar error strings.
 @<Function definitions@> =
 Marpa_Error_Code marpa_r_error(const struct marpa_r* r, const char** p_error_string)
 {
-    @<Declare and initialize recce objects@>@;
+    @<Unpack recognizer objects@>@;
   return marpa_g_error (g, p_error_string);
 }
 
 @*0 Recognizer event accessor.
 @ A convenience wrapper for the grammar error strings.
-@ @<Public function prototypes@> =
-gint marpa_r_event(const struct marpa_r* r, struct marpa_g_event *public_event, gint ix);
-@ @<Function definitions@> =
+@<Function definitions@> =
 gint marpa_r_event(const struct marpa_r* r, struct marpa_g_event *public_event, gint ix)
 {
-    @<Declare and initialize recce objects@>@;
+    @<Unpack recognizer objects@>@;
   return marpa_g_event (g, public_event, ix);
 }
 
@@ -5902,14 +5883,12 @@ struct s_earley_set* t_trace_earley_set;
 @ @<Initialize recognizer elements@> =
 r->t_trace_earley_set = NULL;
 
-@ @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_r_trace_earley_set(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Earley_Set_ID marpa_r_trace_earley_set(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
   ES trace_earley_set = r->t_trace_earley_set;
-  struct marpa_g *g = G_of_R(r);
   @<Fail if not trace-safe@>@;
   if (!trace_earley_set) {
       R_DEV_ERROR("no trace es");
@@ -5918,13 +5897,11 @@ Marpa_Earley_Set_ID marpa_r_trace_earley_set(struct marpa_r *r)
   return Ord_of_ES(trace_earley_set);
 }
 
-@ @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_r_latest_earley_set(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Earley_Set_ID marpa_r_latest_earley_set(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   return Ord_of_ES(Latest_ES_of_R(r));
 }
@@ -5943,9 +5920,9 @@ Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id);
 Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
 {
     const gint es_does_not_exist = -1;
+  @<Unpack recognizer objects@>@;
     @<Return |-2| on failure@>@;
     ES earley_set;
-    struct marpa_g *g = G_of_R(r);
     @<Fail if recognizer initial@>@;
     @<Fail if fatal error@>@;
     if (set_id < 0) {
@@ -5963,14 +5940,12 @@ Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
 
 @ Note that this trace function returns the earley set size
 of the {\bf current earley set}.
-@ @<Public function prototypes@> =
-gint marpa_r_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id);
 @ @<Function definitions@> =
 gint marpa_r_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id)
 {
     @<Return |-2| on failure@>@;
     ES earley_set;
-    struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if recognizer initial@>@;
     @<Fail if fatal error@>@;
     r_update_earley_sets (r);
@@ -6076,7 +6051,7 @@ static inline EIM earley_item_create(const RECCE r,
     const EIK_Object key)
 {
   @<Return |NULL| on failure@>@;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   EIM new_item;
   EIM* top_of_work_stack;
   const ES set = key.t_set;
@@ -6224,9 +6199,6 @@ This may be treated as a soft failure by the upper levels.
 On failure because the ID is illegal (less than zero)
 or for other failures, |-2| is returned.
 The upper levels may choose to treat these as hard failures.
-@ @<Public function prototypes@> =
-Marpa_Earleme
-marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id);
 @ @<Function definitions@> =
 Marpa_Earleme
 marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
@@ -6234,7 +6206,7 @@ marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
   ES earley_set;
   const gint es_does_not_exist = -1;
   @<Return |-2| on failure@>@/
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
     if (r->t_trace_earley_set && Ord_of_ES (r->t_trace_earley_set) == set_id)
       { /* If the set is already
@@ -6264,10 +6236,6 @@ marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
   @<Clear trace postdot item data@>@;
 }
 
-@ @<Public function prototypes@> =
-Marpa_AHFA_State_ID
-marpa_r_earley_item_trace (struct marpa_r *r,
-    Marpa_Earley_Item_ID item_id);
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID
 marpa_r_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID item_id)
@@ -6277,7 +6245,7 @@ marpa_r_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID item_id)
   ES trace_earley_set;
   EIM earley_item;
   EIM *earley_items;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   trace_earley_set = r->t_trace_earley_set;
   if (!trace_earley_set)
@@ -6320,8 +6288,6 @@ static inline void trace_earley_item_clear(struct marpa_r* r)
     trace_source_link_clear(r);
 }
 
-@ @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_r_earley_item_origin(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Earley_Set_ID marpa_r_earley_item_origin(struct marpa_r *r)
 {
@@ -6402,8 +6368,6 @@ The functions in this section are all accessors.
 The trace Leo item is selected by setting the trace postdot item
 to a Leo item.
 
-@ @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_leo_predecessor_symbol(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Symbol_ID marpa_r_leo_predecessor_symbol(struct marpa_r *r)
 {
@@ -6411,7 +6375,7 @@ Marpa_Symbol_ID marpa_r_leo_predecessor_symbol(struct marpa_r *r)
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
   LIM predecessor_leo_item;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   if (!postdot_item) {
       R_DEV_ERROR("no trace pim");
@@ -6426,15 +6390,13 @@ Marpa_Symbol_ID marpa_r_leo_predecessor_symbol(struct marpa_r *r)
   return Postdot_SYMID_of_LIM(predecessor_leo_item);
 }
 
-@ @<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_r_leo_base_origin(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_Earley_Set_ID marpa_r_leo_base_origin(struct marpa_r *r)
 {
   const EARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   EIM base_earley_item;
   @<Fail if not trace-safe@>@;
   if (!postdot_item) {
@@ -6446,8 +6408,6 @@ Marpa_Earley_Set_ID marpa_r_leo_base_origin(struct marpa_r *r)
   return Origin_Ord_of_EIM(base_earley_item);
 }
 
-@ @<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_r_leo_base_state(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID marpa_r_leo_base_state(struct marpa_r *r)
 {
@@ -6455,7 +6415,7 @@ Marpa_AHFA_State_ID marpa_r_leo_base_state(struct marpa_r *r)
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
   EIM base_earley_item;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   if (!postdot_item) {
       R_DEV_ERROR("no trace pim");
@@ -6468,9 +6428,7 @@ Marpa_AHFA_State_ID marpa_r_leo_base_state(struct marpa_r *r)
 
 @ This function
 returns the ``Leo expansion AHFA" of the current trace Leo item.
-@<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa(struct marpa_r *r);
-@ The {\bf Leo expansion AHFA} is the AHFA
+The {\bf Leo expansion AHFA} is the AHFA
 of the {\bf Leo expansion Earley item}.
 for this Leo item.
 {\bf Leo expansion Earley items}, when
@@ -6498,7 +6456,7 @@ Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa(struct marpa_r *r)
     const EARLEME pim_is_not_a_leo_item = -1;
     @<Return |-2| on failure@>@;
     const PIM postdot_item = r->t_trace_postdot_item;
-    struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
     if (!postdot_item)
       {
@@ -6602,11 +6560,7 @@ it returns |-1|.
 On failure for other reasons,
 it returns |-2|
 and clears the trace postdot item.
-@<Public function prototypes@> =
-Marpa_Symbol_ID
-marpa_r_postdot_symbol_trace (struct marpa_r *r,
-    Marpa_Symbol_ID symid);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID
 marpa_r_postdot_symbol_trace (struct marpa_r *r,
     Marpa_Symbol_ID symid)
@@ -6615,7 +6569,7 @@ marpa_r_postdot_symbol_trace (struct marpa_r *r,
   ES current_es = r->t_trace_earley_set;
   PIM* pim_sym_p;
   PIM pim;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Clear trace postdot item data@>@;
   @<Fail if not trace-safe@>@;
   @<Fail if recognizer |symid| is invalid@>@;
@@ -6641,17 +6595,14 @@ If the trace Earley set has no postdot items, return -1 and
 clear the trace postdot item.
 On other failures, return -2 and clear the trace
 postdot item.
-@<Public function prototypes@> =
-Marpa_Symbol_ID
-marpa_r_first_postdot_item_trace (struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID
 marpa_r_first_postdot_item_trace (struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   ES current_earley_set = r->t_trace_earley_set;
   PIM pim;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   PIM* pim_sym_p;
   @<Clear trace postdot item data@>@;
   @<Fail if not trace-safe@>@;
@@ -6675,10 +6626,7 @@ If the current trace postdot item is the last,
 return -1 and clear the trace postdot item.
 On other failures, return -2 and clear the trace
 postdot item.
-@<Public function prototypes@> =
-Marpa_Symbol_ID
-marpa_r_next_postdot_item_trace (struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID
 marpa_r_next_postdot_item_trace (struct marpa_r *r)
 {
@@ -6687,7 +6635,7 @@ marpa_r_next_postdot_item_trace (struct marpa_r *r)
   ES current_set = r->t_trace_earley_set;
   PIM pim;
   PIM* pim_sym_p;
-struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
 
   pim_sym_p = r->t_trace_pim_sym_p;
   pim = r->t_trace_postdot_item;
@@ -6716,14 +6664,12 @@ struct marpa_g *g = G_of_R(r);
   return Postdot_SYMID_of_PIM(pim);
 }
 
-@ @<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_r_postdot_item_symbol(struct marpa_r *r);
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID marpa_r_postdot_item_symbol(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   if (!postdot_item) {
       R_DEV_ERROR("no trace pim");
@@ -7085,16 +7031,14 @@ if there is one, otherwise clear the trace source link.
 Returns the symbol ID if there was a token source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_first_token_link_trace(struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID marpa_r_first_token_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRC source;
    guint source_type;
     EIM item = r->t_trace_earley_item;
-    struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
     @<Set |item|, failing if necessary@>@;
     source_type = Source_Type_of_EIM (item);
@@ -7131,15 +7075,13 @@ Otherwise clear the trace source link.
 a next token source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_next_token_link_trace(struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID marpa_r_next_token_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRCL full_link;
     EIM item;
-    struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
     @<Set |item|, failing if necessary@>@;
     if (r->t_trace_source_type != SOURCE_IS_TOKEN) {
@@ -7164,16 +7106,14 @@ Returns the AHFA state ID of the cause
 if there was a completion source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_first_completion_link_trace(struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID marpa_r_first_completion_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRC source;
    guint source_type;
     EIM item = r->t_trace_earley_item;
-    struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
     @<Set |item|, failing if necessary@>@;
     switch ((source_type = Source_Type_of_EIM (item)))
@@ -7209,16 +7149,14 @@ Otherwise clear the trace source link.
 a next completion source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_next_completion_link_trace(struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID marpa_r_next_completion_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRC source;
    SRCL completion_link; 
     EIM item;
-    struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
     @<Set |item|, failing if necessary@>@;
     if (r->t_trace_source_type != SOURCE_IS_COMPLETION) {
@@ -7244,9 +7182,7 @@ Returns the AHFA state ID of the cause
 if there was a Leo source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_first_leo_link_trace(struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID
 marpa_r_first_leo_link_trace (struct marpa_r *r)
 {
@@ -7254,7 +7190,7 @@ marpa_r_first_leo_link_trace (struct marpa_r *r)
   SRC source;
   guint source_type;
   EIM item = r->t_trace_earley_item;
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   @<Set |item|, failing if necessary@>@;
   switch ((source_type = Source_Type_of_EIM (item)))
@@ -7292,9 +7228,7 @@ Otherwise clear the trace source link.
 a next Leo source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_next_leo_link_trace(struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID
 marpa_r_next_leo_link_trace (struct marpa_r *r)
 {
@@ -7302,7 +7236,7 @@ marpa_r_next_leo_link_trace (struct marpa_r *r)
   SRCL full_link;
   SRC source;
   EIM item;
-  struct marpa_g* g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@/
   @<Set |item|, failing if necessary@>@/
   if (r->t_trace_source_type != SOURCE_IS_LEO)
@@ -7350,15 +7284,13 @@ there is no trace source link,
 the trace source link is a Leo source,
 or there is some other failure,
 |-2| is returned.
-@<Public function prototypes@> =
-Marpa_AHFA_State_ID marpa_r_source_predecessor_state(struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 AHFAID marpa_r_source_predecessor_state(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@/
    guint source_type;
    SRC source;
-  struct marpa_g* g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
     @<Set source, failing if necessary@>@/
@@ -7393,15 +7325,13 @@ an additional return value is needed to indicate errors,
 which means the symbol ID comes at virtually zero cost.
 Second, whenever the token value is
 wanted, the symbol ID is almost always wanted as well.
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, gpointer *value_p);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, gpointer *value_p)
 {
    @<Return |-2| on failure@>@;
    guint source_type;
    SRC source;
-  struct marpa_g* g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
    source_type = r->t_trace_source_type;
     @<Set source, failing if necessary@>@;
@@ -7427,15 +7357,13 @@ if there is no trace source link,
 if the trace source link is not a Leo source,
 or there is some other failure,
 |-2| is returned.
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_r_source_leo_transition_symbol(struct marpa_r *r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Symbol_ID marpa_r_source_leo_transition_symbol(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@/
    guint source_type;
    SRC source;
-  struct marpa_g* g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
     @<Set source, failing if necessary@>@/
@@ -7470,8 +7398,6 @@ If there is a cause, the middle earleme is always the same
 as the origin of the cause.
 If there is a token,
 the middle earleme is always where the token starts.
-@<Public function prototypes@> =
-Marpa_Earley_Set_ID marpa_r_source_middle(struct marpa_r* r);
 @ The ``predecessor set" is the earleme of the predecessor.
 Returns |-1| if there is no predecessor.
 If there are other failures, such as
@@ -7484,7 +7410,7 @@ Marpa_Earley_Set_ID marpa_r_source_middle(struct marpa_r* r)
    const EARLEME no_predecessor = -1;
    guint source_type;
    SRC source;
-  struct marpa_g* g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
     @<Set source, failing if necessary@>@/
@@ -7777,14 +7703,13 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
 }
 
 @** Starting Recognizer Input.
-@ @<Public function prototypes@> = gboolean marpa_r_start_input(struct marpa_r *r);
-@ @<Function definitions@> = gboolean marpa_r_start_input(struct marpa_r *r)
+@<Function definitions@> = gboolean marpa_r_start_input(struct marpa_r *r)
 {
     ES set0;
     EIM item;
     EIK_Object key;
     AHFA state;
-    GRAMMAR_Const g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     const gint symbol_count_of_g = SYM_Count_of_G(g);
     @<Return |FALSE| on failure@>@;
     @<Fail if recognizer not initial@>@;
@@ -7862,13 +7787,11 @@ a hard failure, but it is possible that an application will
 also see this as a normal data path.
 The general failures reported with |-2| will typically be
 treated by the application as fatal errors.
-@<Public function prototypes@> = gboolean marpa_r_alternative(struct marpa_r *r,
-Marpa_Symbol_ID token_id, gpointer value, gint length);
-@ @<Function definitions@> =
+@<Function definitions@> =
 gboolean marpa_r_alternative(struct marpa_r *r,
 Marpa_Symbol_ID token_id, gpointer value, gint length) {
     @<Return |-2| on failure@>@;
-    GRAMMAR g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     const gint duplicate_token_indicator = -3;
     const gint unexpected_token_indicator = -1;
     ES current_earley_set;
@@ -8006,14 +7929,12 @@ if the distinction between zero terminals expected and an
 exhausted parse is significant to the higher layers,
 they must explicitly check the phase whenever this function
 returns zero.
-@<Public function prototypes@> =
-Marpa_Earleme marpa_r_earleme_complete(struct marpa_r* r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 Marpa_Earleme
 marpa_r_earleme_complete(struct marpa_r* r)
 {
   @<Return |-2| on failure@>@;
-  @<Declare and initialize recce objects@>@;
+  @<Unpack recognizer objects@>@;
   EIM* cause_p;
   ES current_earley_set;
   EARLEME current_earleme;
@@ -8285,7 +8206,7 @@ static void
 postdot_items_create (struct marpa_r *r, ES current_earley_set)
 {
     gpointer * const pim_workarea = r->t_sym_workarea;
-    GRAMMAR_Const g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
     EARLEME current_earley_set_id = Earleme_of_ES(current_earley_set);
     Bit_Vector bv_pim_symbols = r->t_bv_sym;
     Bit_Vector bv_lim_symbols = r->t_bv_sym2;
@@ -10193,7 +10114,7 @@ gint marpa_b_and_node_count(struct marpa_r *r);
 gint marpa_b_and_node_count(struct marpa_r *r)
 {
   BOC b = B_of_R(r);
-  struct marpa_g *g = G_of_R(r);
+  @<Unpack recognizer objects@>@;
   @<Return |-2| on failure@>@;
   @<Fail if fatal error@>@;
   if (!b) {
