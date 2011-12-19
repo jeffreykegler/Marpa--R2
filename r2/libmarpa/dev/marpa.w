@@ -637,9 +637,11 @@ True, that would be mainly useful to help
 a user shot himself in the foot,
 but it is in a long-standing UNIX tradition
 to allow the user that choice.
-@<Function definitions@> =
+@<Private function prototypes@> =
+void grammar_unref (GRAMMAR g);
+@ @<Function definitions@> =
 void
-marpa_g_unref (Marpa_Grammar g)
+grammar_unref (GRAMMAR g)
 {
   MARPA_ASSERT (g->ref_count > 0)
   g->ref_count--;
@@ -648,16 +650,24 @@ marpa_g_unref (Marpa_Grammar g)
       grammar_free(g);
     }
 }
+void
+marpa_g_unref (Marpa_Grammar g)
+{ grammar_unref(g); }
 
 @ Increment the grammar reference count.
-@<Function definitions@> =
-Marpa_Grammar 
-marpa_g_ref (Marpa_Grammar g)
+@<Private function prototypes@> =
+static inline GRAMMAR grammar_ref (GRAMMAR g);
+@ @<Function definitions@> =
+static inline GRAMMAR
+grammar_ref (GRAMMAR g)
 {
   MARPA_ASSERT(g->ref_count > 0)
   g->ref_count++;
   return g;
 }
+Marpa_Grammar 
+marpa_g_ref (Marpa_Grammar g)
+{ return grammar_ref(g); }
 
 @ @<Function definitions@> =
 void grammar_free(struct marpa_g *g)
@@ -5342,7 +5352,7 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
     }
     r = g_slice_new(struct marpa_r);
     r->t_grammar = g;
-    marpa_g_ref(g);
+    grammar_ref(g);
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
@@ -5365,9 +5375,11 @@ initialize |r| to exhausted.
 r->ref_count = 1;
 
 @ Decrement the recognizer reference count.
-@<Function definitions@> =
-void
-marpa_r_unref (Marpa_Recognizer r)
+@<Private function prototypes@> =
+static inline void r_unref (RECCE r);
+@ @<Function definitions@> =
+static inline void
+r_unref (RECCE r)
 {
   MARPA_ASSERT (r->ref_count > 0)
   r->ref_count--;
@@ -5376,15 +5388,27 @@ marpa_r_unref (Marpa_Recognizer r)
       r_free(r);
     }
 }
+void
+marpa_r_unref (Marpa_Recognizer r)
+{
+   r_unref(r);
+}
 
 @ Increment the recognizer reference count.
-@<Function definitions@> =
-Marpa_Recognizer
-marpa_r_ref (Marpa_Recognizer r)
+@<Private function prototypes@> =
+static inline RECCE r_ref (RECCE r);
+@ @<Function definitions@> =
+static inline
+RECCE r_ref (RECCE r)
 {
   MARPA_ASSERT(r->ref_count > 0)
   r->ref_count++;
   return r;
+}
+Marpa_Recognizer
+marpa_r_ref (Marpa_Recognizer r)
+{
+   return r_ref(r);
 }
 
 @ @<Function definitions@> =
@@ -5393,7 +5417,7 @@ void r_free(struct marpa_r *r)
 {
     @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
-    marpa_g_unref(g);
+    grammar_unref(g);
     if (r->t_sym_workarea) g_free(r->t_sym_workarea);
     if (r->t_workarea2) g_free(r->t_workarea2);
     @<Free working bit vectors for symbols@>@;
