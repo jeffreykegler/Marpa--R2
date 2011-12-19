@@ -10307,44 +10307,39 @@ and any parse whose top or-node is in the first
 Earley set must be a null parse.
 
 so that an or-node of 0 
-@<Public function prototypes@> =
-gint marpa_b_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg);
 @ @<Function definitions@> =
-gint marpa_b_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg) {
-    @<Return |-2| on failure@>@;
-    ORID top_or_node_id = failure_indicator;
-    const gint no_parse = -1;
+Marpa_B marpa_b_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg) {
+    @<Return |NULL| on failure@>@;
     @<Declare bocage locals@>@;
     @<Return if function guards fail@>@;
     b = B_of_R(r) = g_slice_new(struct s_bocage);
     R_of_B(b) = r;
     @<Initialize bocage elements@>@;
     if (G_is_Trivial(g)) {
-        if (ordinal_arg > 0) goto SOFT_ERROR;
+        if (ordinal_arg > 0) goto B_NEW_ERROR;
 	return r_create_null_bocage(r, b);
     }
     r_update_earley_sets(r);
     @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
     if (end_of_parse_earleme == 0) {
-	if (! g->t_null_start_rule) goto SOFT_ERROR;
+	if (! g->t_null_start_rule) goto B_NEW_ERROR;
 	return r_create_null_bocage(r, b);
     }
     @<Set |completed_start_rule|@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
-    if (!start_eim) goto SOFT_ERROR;
+    if (!start_eim) goto B_NEW_ERROR;
     Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
     @<Populate the PSIA data@>@;
     @<Create the or-nodes for all earley sets@>@;
     @<Create the final and-nodes for all earley sets@>@;
-    @<Set |top_or_node_id|@>@;
+    @<Set top or node id in |b|@>;
     obstack_free(&bocage_setup_obs, NULL);
-    Top_ORID_of_B(b) = top_or_node_id;
-    return top_or_node_id;
-    SOFT_ERROR: ;
+    return b;
+    B_NEW_ERROR: ;
     @<Destroy bocage elements, all phases@>;
-    return no_parse;
+    return NULL;
 }
 
 @ @<Declare bocage locals@> =
@@ -10395,24 +10390,23 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
 
 @ @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@> =
 {
-  MARPA_OFF_DEBUG2 ("ordinal_arg=%d", ordinal_arg);
-if (ordinal_arg == -1)
-  {
-    end_of_parse_earley_set = Current_ES_of_R (r);
-  }
-else
-  {				/* |ordinal_arg| != -1 */
-    if (!ES_Ord_is_Valid (r, ordinal_arg))
-      {
-	R_DEV_ERROR ("invalid es ordinal");
-	return failure_indicator;
-      }
-    end_of_parse_earley_set = ES_of_R_by_Ord (r, ordinal_arg);
-  }
+  if (ordinal_arg == -1)
+    {
+      end_of_parse_earley_set = Current_ES_of_R (r);
+    }
+  else
+    {				/* |ordinal_arg| != -1 */
+      if (!ES_Ord_is_Valid (r, ordinal_arg))
+	{
+	  R_DEV_ERROR ("invalid es ordinal");
+	  return failure_indicator;
+	}
+      end_of_parse_earley_set = ES_of_R_by_Ord (r, ordinal_arg);
+    }
 
-if (!end_of_parse_earley_set)
-  return no_parse;
-end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
+  if (!end_of_parse_earley_set)
+    goto B_NEW_ERROR;
+  end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
 }
 
 @ @<Set |completed_start_rule|@> = 
@@ -10420,8 +10414,7 @@ end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
   if (rule_id == -1)
     {
       completed_start_rule = g->t_proper_start_rule;
-      if (!completed_start_rule)
-	return no_parse;
+      if (!completed_start_rule) goto B_NEW_ERROR;
     }
   else
     {
@@ -10440,10 +10433,10 @@ is earleme 0, and that null parses are allowed.
 If null parses are allowed, there is guaranteed to be a
 null start rule.
 @<Private function prototypes@> =
-static ORID r_create_null_bocage(RECCE r, BOCAGE b);
+PRIVATE_NOT_INLINE Marpa_B r_create_null_bocage(RECCE r, BOCAGE b);
 @ Not inline --- should not be called a lot.
 @<Function definitions@> =
-static ORID r_create_null_bocage(RECCE r, BOCAGE b)
+PRIVATE_NOT_INLINE Marpa_B r_create_null_bocage(RECCE r, BOCAGE b)
 {
   const GRAMMAR g = G_of_R(r);
   const RULE null_start_rule = g->t_null_start_rule;
@@ -10472,7 +10465,7 @@ static ORID r_create_null_bocage(RECCE r, BOCAGE b)
     (OR) TOK_by_ID_of_R (r,
 			 RHS_ID_of_RULE (null_start_rule, rule_length - 1));
 
-  return null_or_node_id;
+  return b;
 }
 
 @
@@ -10556,13 +10549,15 @@ to make sense.
     }
 }
 
-@ @<Set |top_or_node_id|@> = {
-    const ESID end_of_parse_ordinal = Ord_of_ES(end_of_parse_earley_set);
-    OR** const nodes_by_item = per_es_data[end_of_parse_ordinal].t_aexes_by_item;
-    const gint start_earley_item_ordinal = Ord_of_EIM(start_eim);
-    OR* const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
-    const OR top_or_node = nodes_by_aex[start_aex];
-    top_or_node_id = ID_of_OR(top_or_node);
+@ @<Set top or node id in |b|@> =
+{
+  const ESID end_of_parse_ordinal = Ord_of_ES (end_of_parse_earley_set);
+  OR **const nodes_by_item =
+    per_es_data[end_of_parse_ordinal].t_aexes_by_item;
+  const gint start_earley_item_ordinal = Ord_of_EIM (start_eim);
+  OR *const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
+  const OR top_or_node = nodes_by_aex[start_aex];
+  Top_ORID_of_B (b) = ID_of_OR (top_or_node);
 }
 
 @*0 Top Or Node.
@@ -10738,7 +10733,7 @@ gint marpa_b_or_node_and_count(struct marpa_r *r, int or_node_id)
   return AND_Count_of_OR(or_node);
 }
 
-@** Parse Tree (TREE) Code.
+@** Parse Tree (T, TREE) Code.
 Within Marpa,
 when it makes sense in context,
 "tree" means a parse tree.
@@ -10750,9 +10745,11 @@ are its parse trees.
 Marpa's parse trees are produced by iterating
 the Marpa bocage.
 Therefore, Marpa parse trees are also bocage iterators.
-@<Private incomplete structures@> =
+@<Public incomplete structures@> =
 struct s_tree;
-typedef struct s_tree* TREE;
+typedef struct s_tree* Marpa_T;
+@ @<Private incomplete structures@> =
+typedef Marpa_T TREE;
 @ An exhausted bocage iterator (or parse tree)
 does not need a worklist
 or a stack, so they are destroyed.
@@ -10826,7 +10823,7 @@ int marpa_t_new(struct marpa_r* r)
   GRAMMAR g = G_of_R(r);
     @<Fail if fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
-    tree = TREE_of_RANK(RANK_of_B(b));
+    tree = TREE_of_ORDER(ORDER_of_B(b));
     if (TREE_is_Exhausted(tree)) {
        return -1;
     }
@@ -11081,7 +11078,7 @@ gint marpa_t_parse_count(struct marpa_r* r)
     if (!b) {
 	return -1;
     }
-    tree = TREE_of_RANK(RANK_of_B(b));
+    tree = TREE_of_ORDER(ORDER_of_B(b));
 MARPA_OFF_DEBUG3("%s b=%p", G_STRLOC, b);
 MARPA_OFF_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
     return tree->t_parse_count;
@@ -11106,7 +11103,7 @@ gint marpa_t_size(struct marpa_r *r)
       R_DEV_ERROR("no bocage");
       return failure_indicator;
   }
-  tree = TREE_of_RANK(RANK_of_B(b));
+  tree = TREE_of_ORDER(ORDER_of_B(b));
   if (!TREE_is_Initialized(tree)) {
       R_DEV_ERROR("tree not initialized");
       return failure_indicator;
@@ -11117,69 +11114,69 @@ gint marpa_t_size(struct marpa_r *r)
   return FSTACK_LENGTH(tree->t_fork_stack);
 }
 
-@** Bocage Ranking (RANK) Code.
-@<Private incomplete structures@> =
-struct s_bocage_rank;
-typedef struct s_bocage_rank* RANK;
-@
-|t_and_node_orderings| is used as the "safe boolean"
+@** Bocage Ordering (O, ORDER) Code.
+@<Public incomplete structures@> =
+struct s_order;
+typedef struct s_order* Marpa_O;
+@ @<Public incomplete structures@> =
+typedef Marpa_O ORDER;
+@ |t_and_node_orderings| is used as the "safe boolean"
 for the obstack.  They have the same lifetime, so
 that it is safe to destroy the obstack if
 |t_and_node_orderings| is not null.
-@d TREE_of_RANK(rank) (&(rank)->t_tree)
-@d OBS_of_RANK(rank) ((rank)->t_obs)
+@d TREE_of_ORDER(order) (&(order)->t_tree)
+@d OBS_of_ORDER(order) ((order)->t_obs)
 @<Private structures@> =
-struct s_bocage_rank {
+struct s_order {
     struct obstack t_obs;
     Bit_Vector t_and_node_in_use;
     ANDID** t_and_node_orderings;
     TREE_Object t_tree;
 };
-typedef struct s_bocage_rank RANK_Object;
 
 @
-@d RANK_of_B(b) (&(b)->t_rank)
+@d ORDER_of_B(b) (&(b)->t_order)
 @<Widely aligned bocage elements@> =
-RANK_Object t_rank;
+struct s_order t_order;
 @ @<Initialize bocage elements@> =
-MARPA_OFF_DEBUG3("%s rank_safe where b=%p", G_STRLOC, b);
-rank_safe(RANK_of_B(b));
+MARPA_OFF_DEBUG3("%s order_safe where b=%p", G_STRLOC, b);
+order_safe(ORDER_of_B(b));
 @ @<Private function prototypes@> =
-static inline void rank_safe(RANK rank);
+static inline void order_safe(ORDER order);
 @ @<Function definitions@> =
-static inline void rank_safe(RANK rank)
+static inline void order_safe(ORDER order)
 {
-    rank->t_and_node_in_use = NULL;
-    rank->t_and_node_orderings = NULL;
-    tree_safe(TREE_of_RANK(rank));
+    order->t_and_node_in_use = NULL;
+    order->t_and_node_orderings = NULL;
+    tree_safe(TREE_of_ORDER(order));
 }
 
 @ @<Destroy bocage elements, main phase@> =
-rank_destroy(RANK_of_B(b));
+order_destroy(ORDER_of_B(b));
 @ @<Private function prototypes@> =
-static inline void rank_freeze(RANK rank);
-static inline void rank_destroy(RANK rank);
+static inline void order_freeze(ORDER order);
+static inline void order_destroy(ORDER order);
 @ @<Function definitions@> =
-static inline void rank_freeze(RANK rank)
+static inline void order_freeze(ORDER order)
 {
-  if (rank->t_and_node_in_use)
+  if (order->t_and_node_in_use)
     {
-      bv_free (rank->t_and_node_in_use);
-	rank->t_and_node_in_use = NULL;
+      bv_free (order->t_and_node_in_use);
+	order->t_and_node_in_use = NULL;
     }
 }
-static inline void rank_destroy(RANK rank)
+static inline void order_destroy(ORDER order)
 {
-  tree_destroy(TREE_of_RANK(rank));
-  rank_freeze(rank);
-  if (rank->t_and_node_orderings) {
-      rank->t_and_node_orderings = NULL;
-      obstack_free(&OBS_of_RANK(rank), NULL);
+  tree_destroy(TREE_of_ORDER(order));
+  order_freeze(order);
+  if (order->t_and_node_orderings) {
+      order->t_and_node_orderings = NULL;
+      obstack_free(&OBS_of_ORDER(order), NULL);
   }
 }
 
-@*0 The RANK Obstack.
-An obstack with the lifetime of the bocage ranker.
+@*0 The ORDER Obstack.
+An obstack with the lifetime of the bocage order.
 
 @*0 Set the Order of And-nodes.
 This function
@@ -11242,7 +11239,7 @@ gint marpa_o_and_order_set(struct marpa_r *r,
     gint length)
 {
     OR or_node;
-    RANK rank;
+    ORDER order;
   @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
@@ -11256,13 +11253,13 @@ gint marpa_o_and_order_set(struct marpa_r *r,
 	      R_DEV_ERROR("no bocage");
 	      return failure_indicator;
 	  }
-	rank = RANK_of_B(b);
-	and_node_orderings = rank->t_and_node_orderings;
-	and_node_in_use = rank->t_and_node_in_use;
-	obs = &OBS_of_RANK(rank);
+	order = ORDER_of_B(b);
+	and_node_orderings = order->t_and_node_orderings;
+	and_node_in_use = order->t_and_node_in_use;
+	obs = &OBS_of_ORDER(order);
 	if (and_node_orderings && !and_node_in_use)
 	{
-	  R_DEV_ERROR("ranker frozen");
+	  R_DEV_ERROR("order frozen");
 	  return failure_indicator;
 	}
 	if (!and_node_orderings)
@@ -11270,14 +11267,14 @@ gint marpa_o_and_order_set(struct marpa_r *r,
 	    gint and_id;
 	    const gint and_count_of_r = AND_Count_of_B (b);
 	    obstack_init(obs);
-	    rank->t_and_node_orderings =
+	    order->t_and_node_orderings =
 	      and_node_orderings =
 	      obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
 	    for (and_id = 0; and_id < and_count_of_r; and_id++)
 	      {
 		and_node_orderings[and_id] = (ANDID *) NULL;
 	      }
-	     rank->t_and_node_in_use =
+	     order->t_and_node_in_use =
 	     and_node_in_use = bv_create ((guint)and_count_of_r);
 	  }
 	  first_and_node_id = First_ANDID_of_OR(or_node);
@@ -11326,14 +11323,14 @@ Marpa_And_Node_ID marpa_o_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_n
 @ @<Function definitions@> =
 static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix)
 {
-  RANK rank;
+  ORDER order;
   ANDID **and_node_orderings;
   if (ix >= AND_Count_of_OR (or_node))
     {
       return -1;
     }
-  rank = RANK_of_B (b);
-  and_node_orderings = rank->t_and_node_orderings;
+  order = ORDER_of_B (b);
+  and_node_orderings = order->t_and_node_orderings;
   if (and_node_orderings)
     {
       ORID or_node_id = ID_of_OR(or_node);
@@ -11421,7 +11418,7 @@ set |fork|@> = {
       R_DEV_ERROR("no bocage");
       return failure_indicator;
   }
-  tree = TREE_of_RANK(RANK_of_B(b));
+  tree = TREE_of_ORDER(ORDER_of_B(b));
   if (!TREE_is_Initialized(tree)) {
       R_DEV_ERROR("tree not initialized");
       return failure_indicator;
@@ -11559,7 +11556,7 @@ typedef struct marpa_event Marpa_Event;
 @ @<Private typedefs@> =
 typedef Marpa_Event *EVE;
 
-@** Evaluation (VAL) Code.
+@** Evaluation (V, VAL) Code.
 This code helps
 compute a value for
 a parse tree.
@@ -11575,8 +11572,10 @@ If it were not for that, it would probably be
 just as easy to provide a parse tree to the
 higher level and let them decide how to
 evaluation it.
-@<Private incomplete structures@> =
+@<Public incomplete structures@> =
 struct s_value;
+typedef struct s_value* Marpa_V;
+@ @<Private incomplete structures@> =
 typedef struct s_value* VAL;
 @ This structure tracks the top of the evaluation
 stack, but does {\bf not} actually maintain the
@@ -11664,7 +11663,7 @@ int marpa_v_new(struct marpa_r* r)
   GRAMMAR g = G_of_R(r);
     @<Fail if fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
-    tree = TREE_of_RANK(RANK_of_B(b));
+    tree = TREE_of_ORDER(ORDER_of_B(b));
     if (TREE_is_Exhausted(tree)) {
        return -1;
     }
@@ -11706,7 +11705,7 @@ return on failure@> = {
     if (!b) {
 	return failure_indicator;
     }
-    tree = TREE_of_RANK(RANK_of_B(b));
+    tree = TREE_of_ORDER(ORDER_of_B(b));
     val = VAL_of_TREE(tree);
     if (!VAL_is_Active(val)) {
 	return failure_indicator;

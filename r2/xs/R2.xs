@@ -43,6 +43,10 @@ typedef struct {
      Recce *r;
      char *message_buffer;
      GArray* gint_array;
+     Marpa_B b;
+     Marpa_O o;
+     Marpa_T t;
+     Marpa_V v;
 } R_Wrapper;
 
 static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
@@ -1121,6 +1125,10 @@ PPCODE:
     if (!r) { croak ("failure in marpa_r_new: %s", error_g (g_wrapper)); };
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;
+    r_wrapper->b = NULL;
+    r_wrapper->o = NULL;
+    r_wrapper->t = NULL;
+    r_wrapper->v = NULL;
     r_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
     r_wrapper->message_buffer = NULL;
     sv = sv_newmortal();
@@ -1691,23 +1699,29 @@ bocage_setup( r_wrapper, rule_id, ordinal )
      Marpa_Rule_ID rule_id;
      Marpa_Earley_Set_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_new(r, rule_id, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->eval_setup(): %s", error_r(r_wrapper));
+    {
+	Marpa_R r = r_wrapper->r;
+	Marpa_B b = r_wrapper->b;
+	if (b) {
+	  croak ("Problem in r->bocage_setup(): recognizer already has bocage");
 	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+	b = marpa_b_new(r, rule_id, ordinal);
+	r_wrapper->b = b;
+	if (!b) {
+	  croak ("Problem in r->bocage_setup(): %s", error_r(r_wrapper));
+	}
+	XSRETURN_YES;
     }
 
 void
 bocage_clear( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
+    { Marpa_R r = r_wrapper->r;
 	gint result = marpa_b_free(r);
+        r_wrapper->b = 0;
 	if (result < 0) {
-	  croak ("Problem in r->eval_clear(): %s", error_r(r_wrapper));
+	  croak ("Problem in r->bocage_clear(): %s", error_r(r_wrapper));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }

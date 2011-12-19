@@ -35,6 +35,7 @@ This manual is for libmarpa, version 0.0.0.
 * About libmarpa:: About libmarpa
 * Grammars:: Grammar objects
 * Recognizers:: Recognizer objects
+* Bocage:: Bocage objects
 * Error handling:: Error handling
 @end menu 
 
@@ -396,6 +397,14 @@ Return value: %NULL if the GLib library is compatible with the
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (struct marpa_r* @var{r})
+@end deftypefun
+
+@node Bocage
+@chapter Bocage objects
+
+@deftypefun Marpa_B marpa_b_new (struct marpa_r* @var{r}, @
+    Marpa_Rule_ID @var{rule_id}, @
+    Marpa_Earley_Set_ID @var{ordinal_arg})
 @end deftypefun
 
 @node Error handling
