@@ -1717,8 +1717,13 @@ void
 bocage_clear( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
-    { Marpa_Recognizer r = r_wrapper->r;
-	gint result = marpa_b_free(r);
+    {
+	gint result;
+        Marpa_Bocage b = r_wrapper->b;
+	if (!b) {
+	    XSRETURN_YES;
+	}
+	result = marpa_b_free(b);
         r_wrapper->b = 0;
 	if (result < 0) {
 	  croak ("Problem in r->bocage_clear(): %s", error_r(r_wrapper));
@@ -1730,8 +1735,8 @@ void
 top_or_node( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
-    { Marpa_Recognizer r = r_wrapper->r;
-	gint result = marpa_b_top_or_node(r);
+    { Marpa_Bocage b = r_wrapper->b;
+	gint result = marpa_b_top_or_node(b);
 	if (result < 0) {
 	  croak ("Problem in r->top_or_node(): %s", error_r(r_wrapper));
 	}
@@ -1743,8 +1748,9 @@ or_node_set( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Or_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_or_node_set(r, ordinal);
+    {
+	Marpa_Bocage b = r_wrapper->b;
+	gint result = marpa_b_or_node_set(b, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_set(): %s", error_r(r_wrapper));
@@ -1757,8 +1763,9 @@ or_node_origin( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Or_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_or_node_origin(r, ordinal);
+    {
+	Marpa_Bocage b = r_wrapper->b;
+	gint result = marpa_b_or_node_origin(b, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_origin(): %s", error_r(r_wrapper));
@@ -1771,8 +1778,9 @@ or_node_position( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Or_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_or_node_position(r, ordinal);
+    {
+	Marpa_Bocage b = r_wrapper->b;
+	gint result = marpa_b_or_node_position(b, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_position(): %s", error_r(r_wrapper));
@@ -1785,8 +1793,9 @@ or_node_rule( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Or_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_or_node_rule(r, ordinal);
+    {
+	Marpa_Bocage b = r_wrapper->b;
+	gint result = marpa_b_or_node_rule(b, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
 	  croak ("Problem in r->or_node_rule(): %s", error_r(r_wrapper));
@@ -1799,127 +1808,172 @@ or_node_first_and( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Or_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_or_node_first_and(r, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->or_node_first_and(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gint result = marpa_b_or_node_first_and (b, ordinal);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->or_node_first_and(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 or_node_last_and( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Or_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_or_node_last_and(r, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->or_node_last_and(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gint result = marpa_b_or_node_last_and (b, ordinal);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->or_node_last_and(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 or_node_and_count( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Or_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_or_node_and_count(r, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->or_node_and_count(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gint result = marpa_b_or_node_and_count (b, ordinal);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->or_node_and_count(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 and_node_count( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_and_node_count(r);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->and_node_count(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gint result = marpa_b_and_node_count (b);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->and_node_count(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 and_node_parent( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_And_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_and_node_parent(r, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->and_node_parent(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gint result = marpa_b_and_node_parent (b, ordinal);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->and_node_parent(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 and_node_predecessor( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_And_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_and_node_predecessor(r, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->and_node_predecessor(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gint result = marpa_b_and_node_predecessor (b, ordinal);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->and_node_predecessor(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 and_node_cause( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_And_Node_ID ordinal;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_and_node_cause(r, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->and_node_cause(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gint result = marpa_b_and_node_cause (b, ordinal);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->and_node_cause(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 and_node_symbol( r_wrapper, and_node_id )
      R_Wrapper *r_wrapper;
      Marpa_And_Node_ID and_node_id;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-	gint result = marpa_b_and_node_symbol(r, and_node_id);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->and_node_symbol(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gint result = marpa_b_and_node_symbol (b, and_node_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->and_node_symbol(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 and_node_token( r_wrapper, and_node_id )
      R_Wrapper *r_wrapper;
      Marpa_And_Node_ID and_node_id;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-        gpointer value = NULL;
-	gint result = marpa_b_and_node_token(r, and_node_id, &value);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->and_node_symbol(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
-	XPUSHs( sv_2mortal( newSViv(GPOINTER_TO_INT(value)) ) );
+{
+  Marpa_Bocage b = r_wrapper->b;
+  gpointer value = NULL;
+  gint result = marpa_b_and_node_token (b, and_node_id, &value);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (result < 0)
+    {
+      croak ("Problem in r->and_node_symbol(): %s", error_r (r_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+  XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (value))));
+}
 
 int
 and_node_order_set( r_wrapper, or_node_id, and_node_id_av )

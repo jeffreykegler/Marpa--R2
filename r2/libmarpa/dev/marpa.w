@@ -10110,29 +10110,19 @@ typedef struct s_and_node AND_Object;
 @*0 Trace Functions.
 
 @ @<Public function prototypes@> =
-gint marpa_b_and_node_count(struct marpa_r *r);
+gint marpa_b_and_node_count(Marpa_Bocage b);
 @ @<Function definitions@> =
-gint marpa_b_and_node_count(struct marpa_r *r)
+gint marpa_b_and_node_count(Marpa_Bocage b)
 {
-  BOCAGE b = B_of_R(r);
-  @<Unpack recognizer objects@>@;
+  @<Unpack bocage objects@>@;
   @<Return |-2| on failure@>@;
   @<Fail if fatal error@>@;
-  if (!b) {
-      R_DEV_ERROR("no bocage");
-      return failure_indicator;
-  }
   return AND_Count_of_B(b);
 }
 
 @ @<Check |r| and |and_node_id|; set |and_node|@> = {
-  BOCAGE b = B_of_R(r);
   AND and_nodes;
   @<Fail if fatal error@>@;
-  if (!b) {
-      R_DEV_ERROR("no bocage");
-      return failure_indicator;
-  }
   and_nodes = ANDs_of_B(b);
   if (!and_nodes) {
       R_DEV_ERROR("no and nodes");
@@ -10149,25 +10139,25 @@ gint marpa_b_and_node_count(struct marpa_r *r)
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_and_node_parent(struct marpa_r *r, int and_node_id);
+gint marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id);
 @ @<Function definitions@> =
-gint marpa_b_and_node_parent(struct marpa_r *r, int and_node_id)
+gint marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
   return ID_of_OR (OR_of_AND (and_node));
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_and_node_predecessor(struct marpa_r *r, int and_node_id);
+gint marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id);
 @ @<Function definitions@> =
-gint marpa_b_and_node_predecessor(struct marpa_r *r, int and_node_id)
+gint marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR predecessor_or = Predecessor_OR_of_AND (and_node);
@@ -10178,13 +10168,13 @@ gint marpa_b_and_node_predecessor(struct marpa_r *r, int and_node_id)
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_and_node_cause(struct marpa_r *r, int and_node_id);
+gint marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id);
 @ @<Function definitions@> =
-gint marpa_b_and_node_cause(struct marpa_r *r, int and_node_id)
+gint marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
@@ -10195,13 +10185,13 @@ gint marpa_b_and_node_cause(struct marpa_r *r, int and_node_id)
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_and_node_symbol(struct marpa_r *r, int and_node_id);
+gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id);
 @ @<Function definitions@> =
-gint marpa_b_and_node_symbol(struct marpa_r *r, int and_node_id)
+gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
@@ -10228,15 +10218,15 @@ because of the need to indicate errors, it is just as
 easy to return the symbol ID as well.
 If the
 @<Public function prototypes@> =
-Marpa_Symbol_ID marpa_b_and_node_token(struct marpa_r *r,
+Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
     Marpa_And_Node_ID and_node_id, gpointer* value_p);
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_b_and_node_token(struct marpa_r *r,
+Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
     Marpa_And_Node_ID and_node_id, gpointer* value_p)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |and_node_id|; set |and_node|@>@;
     return and_node_token(and_node, value_p);
 }
@@ -10274,11 +10264,16 @@ struct s_bocage {
 @ @d B_of_R(r) ((r)->t_bocage)
 @<Widely aligned recognizer elements@> =
 Marpa_Bocage t_bocage;
-@ @ @d R_of_B(b) ((b)->t_recognizer)
-@<Widely aligned bocage elements@> =
-Marpa_Recognizer t_recognizer;
 @ @<Initialize recognizer elements@> =
 B_of_R(r) = NULL;
+
+@*0 The Recognizer of the Bocage.
+@ @d R_of_B(b) ((b)->t_recognizer)
+@<Widely aligned bocage elements@> =
+Marpa_Recognizer t_recognizer;
+@ @<Unpack bocage objects@> =
+    const RECCE r = R_of_B(b);
+    @<Unpack recognizer objects@>@;
 
 @*0 The Bocage Obstack.
 An obstack with the lifetime of the bocage.
@@ -10568,18 +10563,13 @@ to make sense.
 @ For an initialized bocage, return the ID of the top
 or-node.
 @<Public function prototypes@> =
-Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Recognizer r);
+Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b);
 @ @<Function definitions@> =
-Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Recognizer r)
+Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b)
 {
   @<Return |-2| on failure@>@;
-  @<Unpack recognizer objects@>@;
+  @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-  BOCAGE b = B_of_R(r);
-  if (!b) {
-      R_DEV_ERROR("no bocage");
-      return failure_indicator;
-  }
   return Top_ORID_of_B(b);
 }
 
@@ -10589,46 +10579,45 @@ Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Recognizer r)
 @<Destroy bocage elements, final phase@>;
 
 @ Destroy the bocage elements when I destroy the recognizer.
-@<Destroy recognizer elements@> = bocage_destroy(r);
+@<Destroy recognizer elements@> =
+{
+    BOCAGE b = B_of_R(r);
+    if (b) bocage_destroy(b);
+    B_of_R(r) = NULL;
+}
 
 @ This function is safe to call even
 if the bocage already has been freed,
 or was never initialized.
 @<Public function prototypes@> =
-gint marpa_b_free(struct marpa_r* r);
+gint marpa_b_free(Marpa_Bocage b);
 @ @<Function definitions@> =
-gint marpa_b_free(struct marpa_r* r) {
+gint marpa_b_free(Marpa_Bocage b) {
     @<Return |-2| on failure@>@;
-    struct marpa_g *g = G_of_R(r);
+      @<Unpack bocage objects@>@;
     @<Fail if fatal error@>@;
     if (Phase_of_R(r) == evaluation_phase) { /* Reset phase if evaluating.
 	    Otherwise leave phase untouched */
 	Phase_of_R(r) = input_phase;
     }
-    bocage_destroy(r);
+    if (b) bocage_destroy(b);
+    B_of_R(r) = NULL;
     return 1;
 }
 
 @ @<Private function prototypes@> =
-static inline void bocage_destroy(struct marpa_r* r);
+static inline void bocage_destroy(BOCAGE b);
 @ @<Function definitions@> =
-static inline void bocage_destroy(struct marpa_r* r)
+static inline void bocage_destroy(BOCAGE b)
 {
-    BOCAGE b = B_of_R(r);
-MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
-    if (b) {
-	@<Destroy bocage elements, all phases@>;
-	g_slice_free(struct s_bocage, b);
-	B_of_R(r) = NULL;
-    }
-MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
+    @<Destroy bocage elements, all phases@>;
+    g_slice_free(struct s_bocage, b);
 }
 
 @*0 Trace Functions.
 
 @ This is common logic in the or-node trace functions.
 @<Check |r| and |or_node_id|; set |or_node|@> = {
-  BOCAGE b = B_of_R(r);
   OR* or_nodes;
   @<Fail if fatal error@>@;
   if (!b) {
@@ -10653,86 +10642,86 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 @ Return the ordinal of the current (final) Earley set of
 the or-node.
 @<Public function prototypes@> =
-gint marpa_b_or_node_set(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_set(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_b_or_node_set(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_set(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return ES_Ord_of_OR(or_node);
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_or_node_origin(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_b_or_node_origin(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return Origin_Ord_of_OR(or_node);
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_or_node_rule(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_b_or_node_rule(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return ID_of_RULE(RULE_of_OR(or_node));
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_or_node_position(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_position(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_b_or_node_position(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_position(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return Position_of_OR(or_node);
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_or_node_first_and(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_b_or_node_first_and(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node);
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_or_node_last_and(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_b_or_node_last_and(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node)
       + AND_Count_of_OR(or_node) - 1;
 }
 
 @ @<Public function prototypes@> =
-gint marpa_b_or_node_and_count(struct marpa_r *r, int or_node_id);
+gint marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
-gint marpa_b_or_node_and_count(struct marpa_r *r, int or_node_id)
+gint marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack bocage objects@>@;
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   return AND_Count_of_OR(or_node);
 }
@@ -11246,17 +11235,14 @@ gint marpa_o_and_order_set(struct marpa_r *r,
     ORDER order;
   @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
+    BOCAGE b = B_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
-    { BOCAGE b = B_of_R(r);
+    {
       ANDID** and_node_orderings;
       Bit_Vector and_node_in_use;
       struct obstack *obs;
       ANDID first_and_node_id;
       ANDID and_count_of_or;
-	  if (!b) {
-	      R_DEV_ERROR("no bocage");
-	      return failure_indicator;
-	  }
 	order = ORDER_of_B(b);
 	and_node_orderings = order->t_and_node_orderings;
 	and_node_in_use = order->t_and_node_in_use;
@@ -11355,20 +11341,13 @@ Marpa_And_Node_ID marpa_o_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_n
     OR or_node;
   @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
+      BOCAGE b = B_of_R (r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
   if (ix < 0) {
       R_DEV_ERROR("negative and ix");
       return failure_indicator;
   }
-    {
-      BOCAGE b = B_of_R (r);
-      if (!b)
-	{
-	  R_DEV_ERROR ("no bocage");
-	  return failure_indicator;
-	}
-	return and_order_get(b, or_node, ix);
-	}
+    return and_order_get(b, or_node, ix);
 }
 
 @** Fork (FORK) Code.
