@@ -600,7 +600,7 @@ GLIB_VAR const guint marpa_binary_age;@#
 @** Grammar (GRAMMAR) Code.
 @<Public incomplete structures@> =
 struct marpa_g;
-typedef struct marpa_g* Marpa_G;
+typedef struct marpa_g* Marpa_Grammar;
 @ @<Private structures@> = struct marpa_g {
 @<First grammar element@>@;
 @<Widely aligned grammar elements@>@;
@@ -639,7 +639,7 @@ but it is in a long-standing UNIX tradition
 to allow the user that choice.
 @<Function definitions@> =
 void
-marpa_g_unref (Marpa_G g)
+marpa_g_unref (Marpa_Grammar g)
 {
   MARPA_ASSERT (g->ref_count > 0)
   g->ref_count--;
@@ -651,8 +651,8 @@ marpa_g_unref (Marpa_G g)
 
 @ Increment the grammar reference count.
 @<Function definitions@> =
-Marpa_G 
-marpa_g_ref (Marpa_G g)
+Marpa_Grammar 
+marpa_g_ref (Marpa_Grammar g)
 {
   MARPA_ASSERT(g->ref_count > 0)
   g->ref_count++;
@@ -1097,7 +1097,7 @@ They cannot and should not be de-allocated.
 @ As a side effect, the current error is cleared
 if it is non=fatal.
 @<Function definitions@> =
-Marpa_Error_Code marpa_g_error(Marpa_G g, const char** p_error_string)
+Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
 {
     const Marpa_Error_Code error_code = g->t_error;
     const char* error_string = g->t_error_string;
@@ -5311,7 +5311,8 @@ AHFAID marpa_g_AHFA_state_empty_transition(struct marpa_g* g,
 @** Recognizer (RECCE) Code.
 @<Public incomplete structures@> =
 struct marpa_r;
-typedef struct marpa_r* Marpa_R;
+typedef struct marpa_r* Marpa_Recognizer;
+typedef Marpa_Recognizer Marpa_Recce;
 @ @<Private typedefs@> =
 typedef struct marpa_r* RECCE;
 @ @<Recognizer structure@> =
@@ -5330,9 +5331,9 @@ In the event of an error creating the recognizer,
 of the {\bf grammar} is set.
 For this reason, the grammar is not |const|.
 @<Function definitions@> =
-Marpa_R marpa_r_new( Marpa_G g )
+Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 {
-    Marpa_R r;
+    Marpa_Recognizer r;
     gint symbol_count_of_g;
     @<Return |NULL| on failure@>@/
     if (!G_is_Precomputed(g)) {
@@ -5366,7 +5367,7 @@ r->ref_count = 1;
 @ Decrement the recognizer reference count.
 @<Function definitions@> =
 void
-marpa_r_unref (Marpa_R r)
+marpa_r_unref (Marpa_Recognizer r)
 {
   MARPA_ASSERT (r->ref_count > 0)
   r->ref_count--;
@@ -5378,8 +5379,8 @@ marpa_r_unref (Marpa_R r)
 
 @ Increment the recognizer reference count.
 @<Function definitions@> =
-Marpa_R
-marpa_r_ref (Marpa_R r)
+Marpa_Recognizer
+marpa_r_ref (Marpa_Recognizer r)
 {
   MARPA_ASSERT(r->ref_count > 0)
   r->ref_count++;
@@ -5408,7 +5409,7 @@ Initialized in |marpa_r_new|.
 @d G_of_R(r) ((r)->t_grammar)
 @d AHFA_Count_of_R(r) AHFA_Count_of_G(G_of_R(r))
 @<Unpack recognizer objects@> =
-const Marpa_G g = G_of_R(r);
+const Marpa_Grammar g = G_of_R(r);
 
 @ @<Widely aligned recognizer elements@> = struct marpa_g *t_grammar;
 
@@ -10261,7 +10262,7 @@ to be called.  Often it is setting the value to zero, so that the deallocation
 logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
 @<Public incomplete structures@> =
 struct s_bocage;
-typedef struct s_bocage* Marpa_B;
+typedef struct s_bocage* Marpa_Bocage;
 @ @<Private incomplete structures@> =
 typedef struct s_bocage* BOCAGE;
 @ @<Bocage structure@> =
@@ -10272,10 +10273,10 @@ struct s_bocage {
 };
 @ @d B_of_R(r) ((r)->t_bocage)
 @<Widely aligned recognizer elements@> =
-Marpa_B t_bocage;
+Marpa_Bocage t_bocage;
 @ @ @d R_of_B(b) ((b)->t_recognizer)
 @<Widely aligned bocage elements@> =
-Marpa_R t_recognizer;
+Marpa_Recognizer t_recognizer;
 @ @<Initialize recognizer elements@> =
 B_of_R(r) = NULL;
 
@@ -10308,7 +10309,10 @@ Earley set must be a null parse.
 
 so that an or-node of 0 
 @ @<Function definitions@> =
-Marpa_B marpa_b_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID ordinal_arg) {
+Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
+    Marpa_Rule_ID rule_id,
+    Marpa_Earley_Set_ID ordinal_arg)
+{
     @<Return |NULL| on failure@>@;
     @<Declare bocage locals@>@;
     @<Return if function guards fail@>@;
@@ -10433,10 +10437,10 @@ is earleme 0, and that null parses are allowed.
 If null parses are allowed, there is guaranteed to be a
 null start rule.
 @<Private function prototypes@> =
-PRIVATE_NOT_INLINE Marpa_B r_create_null_bocage(RECCE r, BOCAGE b);
+PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b);
 @ Not inline --- should not be called a lot.
 @<Function definitions@> =
-PRIVATE_NOT_INLINE Marpa_B r_create_null_bocage(RECCE r, BOCAGE b)
+PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
 {
   const GRAMMAR g = G_of_R(r);
   const RULE null_start_rule = g->t_null_start_rule;
@@ -10564,9 +10568,9 @@ to make sense.
 @ For an initialized bocage, return the ID of the top
 or-node.
 @<Public function prototypes@> =
-Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_R r);
+Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Recognizer r);
 @ @<Function definitions@> =
-Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_R r)
+Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
@@ -10747,9 +10751,9 @@ the Marpa bocage.
 Therefore, Marpa parse trees are also bocage iterators.
 @<Public incomplete structures@> =
 struct s_tree;
-typedef struct s_tree* Marpa_T;
+typedef struct s_tree* Marpa_Tree;
 @ @<Private incomplete structures@> =
-typedef Marpa_T TREE;
+typedef Marpa_Tree TREE;
 @ An exhausted bocage iterator (or parse tree)
 does not need a worklist
 or a stack, so they are destroyed.
@@ -10759,19 +10763,19 @@ it is exhausted.
 @d TREE_is_Initialized(tree) ((tree)->t_parse_count >= 0)
 @d TREE_is_Exhausted(tree) (TREE_is_Initialized(tree)
     && !FSTACK_IS_INITIALIZED((tree)->t_fork_stack))
-@d VAL_of_TREE(tree) (&(tree)->t_val)
+@d VALUE_of_TREE(tree) (&(tree)->t_val)
 @d Size_of_TREE(tree) FSTACK_LENGTH((tree)->t_fork_stack)
 @d FORK_of_TREE_by_IX(tree, fork_id)
     FSTACK_INDEX((tree)->t_fork_stack, FORK_Object, fork_id)
 @<Private structures@> =
 @<FORK structure@>@;
-@<VAL structure@>@;
+@<VALUE structure@>@;
 struct s_tree {
     FSTACK_DECLARE(t_fork_stack, FORK_Object)@;
     FSTACK_DECLARE(t_fork_worklist, gint)@;
     Bit_Vector t_and_node_in_use;
     gint t_parse_count;
-    VAL_Object t_val;
+    struct s_value t_val;
 };
 typedef struct s_tree TREE_Object;
 
@@ -10805,7 +10809,7 @@ static inline void tree_safe(TREE tree)
     FSTACK_SAFE(tree->t_fork_worklist);
     tree->t_and_node_in_use = NULL;
     tree->t_parse_count = -1;
-    val_safe(VAL_of_TREE(tree));
+    val_safe(VALUE_of_TREE(tree));
 }
 
 @ Returns the size of the tree.
@@ -10827,7 +10831,7 @@ int marpa_t_new(struct marpa_r* r)
     if (TREE_is_Exhausted(tree)) {
        return -1;
     }
-    val_destroy(VAL_of_TREE(tree));
+    val_destroy(VALUE_of_TREE(tree));
     if (!TREE_is_Initialized(tree))
       {
 	first_tree_of_series = 1;
@@ -11117,9 +11121,9 @@ gint marpa_t_size(struct marpa_r *r)
 @** Bocage Ordering (O, ORDER) Code.
 @<Public incomplete structures@> =
 struct s_order;
-typedef struct s_order* Marpa_O;
+typedef struct s_order* Marpa_Order;
 @ @<Public incomplete structures@> =
-typedef Marpa_O ORDER;
+typedef Marpa_Order ORDER;
 @ |t_and_node_orderings| is used as the "safe boolean"
 for the obstack.  They have the same lifetime, so
 that it is safe to destroy the obstack if
@@ -11556,7 +11560,7 @@ typedef struct marpa_event Marpa_Event;
 @ @<Private typedefs@> =
 typedef Marpa_Event *EVE;
 
-@** Evaluation (V, VAL) Code.
+@** Evaluation (v, VALUE) Code.
 This code helps
 compute a value for
 a parse tree.
@@ -11574,9 +11578,9 @@ higher level and let them decide how to
 evaluation it.
 @<Public incomplete structures@> =
 struct s_value;
-typedef struct s_value* Marpa_V;
+typedef struct s_value* Marpa_Value;
 @ @<Private incomplete structures@> =
-typedef struct s_value* VAL;
+typedef struct s_value* VALUE;
 @ This structure tracks the top of the evaluation
 stack, but does {\bf not} actually maintain the
 actual evaluation stack ---
@@ -11586,12 +11590,12 @@ of symbols in the
 original (or "virtual") rules.
 This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
-@d VAL_is_Active(val) ((val)->t_active)
-@d VAL_is_Trace(val) ((val)->t_trace)
-@d FORK_of_VAL(val) ((val)->t_fork)
-@d TOS_of_VAL(val) ((val)->t_tos)
-@d VStack_of_VAL(val) ((val)->t_virtual_stack)
-@<VAL structure@> =
+@d VALUE_is_Active(val) ((val)->t_active)
+@d VALUE_is_Trace(val) ((val)->t_trace)
+@d FORK_of_VALUE(val) ((val)->t_fork)
+@d TOS_of_VALUE(val) ((val)->t_tos)
+@d VStack_of_VALUE(val) ((val)->t_virtual_stack)
+@<VALUE structure@> =
 struct s_value {
     DSTACK_DECLARE(t_virtual_stack);
     FORKID t_fork;
@@ -11599,18 +11603,17 @@ struct s_value {
     guint t_trace:1;
     guint t_active:1;
 };
-typedef struct s_value VAL_Object;
 
 @ @<Private function prototypes@> =
-static inline void val_safe(VAL val);
+static inline void val_safe(VALUE val);
 @ @<Function definitions@> =
-static inline void val_safe(VAL val)
+static inline void val_safe(VALUE val)
 {
     DSTACK_SAFE(val->t_virtual_stack);
-    VAL_is_Active(val) = 0;
-    VAL_is_Trace(val) = 0;
-    TOS_of_VAL(val) = -1;
-    FORK_of_VAL(val) = -1;
+    VALUE_is_Active(val) = 0;
+    VALUE_is_Trace(val) = 0;
+    TOS_of_VALUE(val) = -1;
+    FORK_of_VALUE(val) = -1;
 }
 
 @ @<Public function prototypes@> =
@@ -11673,21 +11676,21 @@ int marpa_v_new(struct marpa_r* r)
 	return failure_indicator;
       }
     {
-      VAL val = VAL_of_TREE (tree);
+      VALUE val = VALUE_of_TREE (tree);
       const gint minimum_stack_size = (8192 / sizeof (gint));
 	const gint initial_stack_size =
 	MAX (Size_of_TREE (tree) / 1024, minimum_stack_size);
       val_destroy (val);
-      DSTACK_INIT (VStack_of_VAL (val), gint, initial_stack_size);
-      VAL_is_Active(val) = 1;
+      DSTACK_INIT (VStack_of_VALUE (val), gint, initial_stack_size);
+      VALUE_is_Active(val) = 1;
     }
     return 1;
 }
 
 @ @<Private function prototypes@> =
-static inline void val_destroy(VAL val);
+static inline void val_destroy(VALUE val);
 @ @<Function definitions@> =
-static inline void val_destroy(VAL val)
+static inline void val_destroy(VALUE val)
 {
 
   if (DSTACK_IS_INITIALIZED(val->t_virtual_stack))
@@ -11706,8 +11709,8 @@ return on failure@> = {
 	return failure_indicator;
     }
     tree = TREE_of_ORDER(ORDER_of_B(b));
-    val = VAL_of_TREE(tree);
-    if (!VAL_is_Active(val)) {
+    val = VALUE_of_TREE(tree);
+    if (!VALUE_is_Active(val)) {
 	return failure_indicator;
     }
 }
@@ -11719,11 +11722,11 @@ gint marpa_v_trace(struct marpa_r* r, gint flag)
 {
     BOCAGE b;
     TREE tree;
-    VAL val;
+    VALUE val;
   GRAMMAR g = G_of_R(r);
     @<Return |-2| on failure@>@;
     @<Set |b|, |tree|, |val|; return on failure@>@;
-    VAL_is_Trace(val) = flag;
+    VALUE_is_Trace(val) = flag;
     return 1;
 }
 
@@ -11734,11 +11737,11 @@ Marpa_Fork_ID marpa_v_fork(struct marpa_r* r)
 {
     BOCAGE b;
     TREE tree;
-    VAL val;
+    VALUE val;
     @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
     @<Set |b|, |tree|, |val|; return on failure@>@;
-    return FORK_of_VAL(val);
+    return FORK_of_VALUE(val);
 }
 
 @ @<Public function prototypes@> =
@@ -11748,7 +11751,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 {
     BOCAGE b;
     TREE tree;
-    VAL val;
+    VALUE val;
     AND and_nodes;
     gint semantic_rule_id = -1;
     gint token_id = -1;
@@ -11764,12 +11767,12 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
     @<Set |b|, |tree|, |val|; return on failure@>@;
     and_nodes = ANDs_of_B(b);
 
-    arg_0 = arg_n = TOS_of_VAL(val);
-    fork_ix = FORK_of_VAL(val);
+    arg_0 = arg_n = TOS_of_VALUE(val);
+    fork_ix = FORK_of_VALUE(val);
     if (fork_ix < 0) {
 	fork_ix = Size_of_TREE(tree);
     }
-    continue_with_next_fork = !VAL_is_Trace(val);
+    continue_with_next_fork = !VALUE_is_Trace(val);
 
     while (1) {
 	OR or;
@@ -11796,7 +11799,7 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 	    gint virtual_rhs = RULE_is_Virtual_RHS(fork_rule);
 	    gint virtual_lhs = RULE_is_Virtual_LHS(fork_rule);
 	    gint real_symbol_count;
-	    const DSTACK virtual_stack = &VStack_of_VAL(val);
+	    const DSTACK virtual_stack = &VStack_of_VALUE(val);
 	    if (virtual_lhs) {
 	        real_symbol_count = Real_SYM_Count_of_RULE(fork_rule);
 		if (virtual_rhs) {
@@ -11823,7 +11826,7 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     }
 
     @<Write results to |val| and |event|@>@;
-    return FORK_of_VAL(val);
+    return FORK_of_VALUE(val);
 
     RETURN_SOFT_ERROR: ;
     @<Write results to |val| and |event|@>@;
@@ -11836,8 +11839,8 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     SYMID_of_EVE(event) = token_id;
     Value_of_EVE(event) = token_value;
     RULEID_of_EVE(event) = semantic_rule_id;
-    TOS_of_VAL(val) = Arg0_of_EVE(event) = arg_0;
-    FORK_of_VAL(val) = fork_ix;
+    TOS_of_VALUE(val) = Arg0_of_EVE(event) = arg_0;
+    FORK_of_VALUE(val) = fork_ix;
     ArgN_of_EVE(event) = arg_n;
 }
 

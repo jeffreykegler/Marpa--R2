@@ -262,19 +262,19 @@ Return value: %NULL if the GLib library is compatible with the
 
 @end deftypefun
 
-@deftypefun void marpa_g_unref (Marpa_G @var{g})
+@deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
 @end deftypefun
 
-@deftypefun Marpa_G marpa_g_ref (Marpa_G @var{g})
+@deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
 @end deftypefun
 
 @node Recognizers
 @chapter Recognizer objects
 
-@deftypefun Marpa_R marpa_r_ref (Marpa_R @var{r})
+@deftypefun Marpa_Recognizer marpa_r_ref (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun void marpa_r_unref (Marpa_R @var{r})
+@deftypefun void marpa_r_unref (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun Marpa_Error_Code marpa_r_error @
@@ -402,7 +402,7 @@ Return value: %NULL if the GLib library is compatible with the
 @node Bocage
 @chapter Bocage objects
 
-@deftypefun Marpa_B marpa_b_new (struct marpa_r* @var{r}, @
+@deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
     Marpa_Rule_ID @var{rule_id}, @
     Marpa_Earley_Set_ID @var{ordinal_arg})
 @end deftypefun
@@ -442,7 +442,7 @@ reinterpret a hard error as a soft error.
 @section Methods
 
 @deftypefun Marpa_Error_Code marpa_g_error @
-    ( Marpa_G @var{g}, @
+    ( Marpa_Grammar @var{g}, @
     const char** @var{p_error_string})
 @end deftypefun
 

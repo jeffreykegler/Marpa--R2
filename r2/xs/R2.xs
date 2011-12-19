@@ -43,10 +43,10 @@ typedef struct {
      Recce *r;
      char *message_buffer;
      GArray* gint_array;
-     Marpa_B b;
-     Marpa_O o;
-     Marpa_T t;
-     Marpa_V v;
+     Marpa_Bocage b;
+     Marpa_Order o;
+     Marpa_Tree t;
+     Marpa_Value v;
 } R_Wrapper;
 
 static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
@@ -1700,8 +1700,8 @@ bocage_setup( r_wrapper, rule_id, ordinal )
      Marpa_Earley_Set_ID ordinal;
 PPCODE:
     {
-	Marpa_R r = r_wrapper->r;
-	Marpa_B b = r_wrapper->b;
+	Marpa_Recognizer r = r_wrapper->r;
+	Marpa_Bocage b = r_wrapper->b;
 	if (b) {
 	  croak ("Problem in r->bocage_setup(): recognizer already has bocage");
 	}
@@ -1717,7 +1717,7 @@ void
 bocage_clear( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
-    { Marpa_R r = r_wrapper->r;
+    { Marpa_Recognizer r = r_wrapper->r;
 	gint result = marpa_b_free(r);
         r_wrapper->b = 0;
 	if (result < 0) {
@@ -1730,7 +1730,7 @@ void
 top_or_node( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
-    { Marpa_R r = r_wrapper->r;
+    { Marpa_Recognizer r = r_wrapper->r;
 	gint result = marpa_b_top_or_node(r);
 	if (result < 0) {
 	  croak ("Problem in r->top_or_node(): %s", error_r(r_wrapper));
