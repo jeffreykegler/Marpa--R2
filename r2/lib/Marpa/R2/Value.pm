@@ -520,8 +520,7 @@ sub do_high_rule_only {
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
 
-    my @or_nodes =
-        ( $recce->[Marpa::R2::Internal::Recognizer::TOP_OR_NODE_ID] );
+    my @or_nodes = ( $recce_c->top_or_node() );
 
     # Set up ranks by symbol
     my @rank_by_symbol = ();
@@ -595,8 +594,7 @@ sub do_rank_by_rule {
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
 
-    my @or_nodes =
-        ( $recce->[Marpa::R2::Internal::Recognizer::TOP_OR_NODE_ID] );
+    my @or_nodes = ( $recce_c->top_or_node() );
 
     # Set up ranks by symbol
     my @rank_by_symbol = ();
@@ -958,7 +956,6 @@ sub Marpa::R2::Recognizer::value {
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
 
-    my $top_or_node_id;
     if ( not $parse_count ) {
 
         # Perhaps this call should be moved.
@@ -968,15 +965,10 @@ sub Marpa::R2::Recognizer::value {
             Marpa::R2::Internal::Recognizer::set_null_values($recce);
         Marpa::R2::Internal::Recognizer::set_actions($recce);
 
-        $recce_c->eval_clear();
-        $top_or_node_id =
-            $recce_c->eval_setup( -1, ( $parse_set_arg // -1 ) );
+        $recce_c->bocage_clear();
+	my $result = $recce_c->bocage_setup( -1, ( $parse_set_arg // -1 ) );
 
-        # No parse
-        return if not defined $top_or_node_id;
-
-        $recce->[Marpa::R2::Internal::Recognizer::TOP_OR_NODE_ID] =
-            $top_or_node_id;
+        return if not defined $result;
 
         given ( $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] ) {
             when ('high_rule_only') { do_high_rule_only($recce); }

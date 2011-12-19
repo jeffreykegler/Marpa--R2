@@ -1686,7 +1686,7 @@ PPCODE:
     }
 
 void
-eval_setup( r_wrapper, rule_id, ordinal )
+bocage_setup( r_wrapper, rule_id, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Rule_ID rule_id;
      Marpa_Earley_Set_ID ordinal;
@@ -1701,13 +1701,25 @@ PPCODE:
     }
 
 void
-eval_clear( r_wrapper )
+bocage_clear( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
 	gint result = marpa_b_free(r);
 	if (result < 0) {
 	  croak ("Problem in r->eval_clear(): %s", error_r(r_wrapper));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
+top_or_node( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+    { Marpa_R r = r_wrapper->r;
+	gint result = marpa_b_top_or_node(r);
+	if (result < 0) {
+	  croak ("Problem in r->top_or_node(): %s", error_r(r_wrapper));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }

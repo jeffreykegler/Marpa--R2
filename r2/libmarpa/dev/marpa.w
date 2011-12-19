@@ -10565,6 +10565,25 @@ to make sense.
     top_or_node_id = ID_of_OR(top_or_node);
 }
 
+@*0 Top Or Node.
+@ For an initialized bocage, return the ID of the top
+or-node.
+@<Public function prototypes@> =
+Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_R r);
+@ @<Function definitions@> =
+Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_R r)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  BOCAGE b = B_of_R(r);
+  if (!b) {
+      R_DEV_ERROR("no bocage");
+      return failure_indicator;
+  }
+  return Top_ORID_of_B(b);
+}
+
 @*0 Bocage Destruction.
 @<Destroy bocage elements, all phases@> =
 @<Destroy bocage elements, main phase@>;
