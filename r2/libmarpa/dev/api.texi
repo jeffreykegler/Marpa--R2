@@ -31,10 +31,203 @@ Published by Jeffrey Kegler
 This manual is for libmarpa, version 0.0.0. 
 @end ifnottex 
 @menu 
-* Grammars:: Grammar Objects
-* Recognizers:: Recognizer Objects
-* Error Handling:: Error Handling
+* About this document:: About this document
+* About libmarpa:: About libmarpa
+* Grammars:: Grammar objects
+* Recognizers:: Recognizer objects
+* Error handling:: Error handling
 @end menu 
+
+@node About this document
+@chapter About this document
+
+This document is intended as a reference manual
+for a complex low-level tool.
+The reader might compare it to the GNU C Language
+manual, which makes no attempt to teach much of
+the technical knowledge required to appreciate its
+contents or, for that matter,
+even the C language itself.
+
+This document assumes the reader has read the documents
+for one of libmarpa's upper layers.
+I hope that will soon change,
+but currently all of libmarpa's upper layers
+are Perl distributions.
+The most up-to-date Marpa upper layer is Marpa::R2.
+
+This document also assumes an acquaintance
+with parsing theory.
+As a test of whether he needs to refresh
+his knowledge before tackling
+this document,
+I hope the reader will find it helpful to
+ask himself the
+following list of questions.
+@itemize @bullet
+@item
+What is a BNF rule?
+@item
+What is a Marpa sequence rule?
+@item
+As a reminder,
+Marpa's sequence rules are implemented
+as left recursions.
+What does that mean?
+@item
+If you were given a Marpa sequence rule,
+could you rewrite it in BNF?
+@item
+Would you know whether your rewrite was
+left- or right-recursive?
+@item
+Could you change it from one to the other?
+@end itemize
+For a reader to be satisfied with the level of detail
+in the following pages,
+he probably should be able to answer all the questions
+in the above list either off the top of his head,
+or after a moment of thought.
+
+On the encouraging side,
+while BNF has been overshadowed
+by regular expressions, and is now considered
+an advanced skill,
+BNF is in fact as easy (or easier) to learn
+and manipulation than regular expressions.
+If a reader who has learned how to use
+one of the packages that extend
+regular expressions,
+he should have no trouble with BNF.
+
+@node About libmarpa
+@chapter About libmarpa
+This is the reference manual for libmarpa.
+libmarpa implements the Marpa parsing algorithm.
+Marpa is my creation.
+I named it
+after the legendary 11th century Tibetan translator,
+Marpa Lotsawa.
+In creating Marpa,
+I depended heavily on previous work by Jay Earley,
+Joop Leo,
+John Aycock and Nigel Horspool.
+
+libmarpa implements the entire Marpa algorithm.
+This library does
+the necessary grammar preprocessing, recognizes the input,
+and produces parse trees.
+It also supports the ordering and evaluation of the parse
+trees.
+
+However, it is very low-level.
+libmarpa, for example, has no strings.
+Rules, symbols, and token values are all represented
+by integers.
+This, of course, will not suffice for most applications.
+A user will almost always want,
+at a minimum,
+names for the symbols and non-integer values for
+tokens.
+Typically, an application will use arrays to
+translate libmarpa's integer IDs to strings or other
+values as required.
+
+libmarpa also does NOT implement most of the semantics.
+libmarpa does have an evaluator, but it does NOT
+manipulate the stack directly.
+Instead, libmarpa,
+based on its traversal of the parse tree,
+passes step by step stack manipulation
+instructions to the upper layer.
+These instructions indicate the token or rule involved
+involved,
+and the proper location for the true token value or
+the result of the rule evaluation.
+For rule evaluations, the instructions include the stack location
+of the arguments.
+
+While libmarpa passes instruction for stack manipulation,
+it does not actually maintain a stack.
+This leaves the upper layer in total control of the
+stack and the values which are placed on it.
+
+As example may make this clearer.
+Suppose the evalution is at a place in the parse tree
+where an addition is being performed.
+libmarpa does not know that the operation
+is an addition.
+It will tell the application that rule number R
+is to be applied to the arguments at stack locations
+N and N+, and that the result is to placed in
+stack location N.
+
+In this system,
+The application keeps track of the semantics for all
+rules, so it looks up rule R and determines that it
+is an addition.
+The application can do this by using R as an index
+into an array of callbacks, or by any other method
+it chooses.
+Let's assume a callback implements the semantics
+for rule R.
+libmarpa has told the application that two arguments
+are available for this operation, and that they are
+at locations N and N+1 in the stack.
+They might be the numbers 42 and 711.
+So the callback is called with its two arguments,
+and produces a return value, let's say, 753.
+libmarpa has told the application that the result
+belongs at location N in the stack,
+so the application writes 752 to location N.
+
+Since libmarpa knows nothing about the semantics,
+the operation for rule R could be string concatenation
+instead of addition.
+Or, if it is addition, it could allow for its arguments
+to be floating point or complex numbers.
+Since the application maintains the stack, it is up
+to the application whether the stack contains integers,
+strings, complex numbers; or objects which may be any
+or all of these and more.
+
+This technique
+hides libmarpa's grammar rewrites from the application,
+and is actually quite efficient.
+libmarpa knows which rules are sequences
+and optimizes stack manipulations based on this knowledge.
+Many practical grammars use long sequences heavily,
+and for these libmarpa the series of steps
+suggest by libmarpa will be significantly faster than the standard 
+stack evaluation algorithm in the textbooks.
+
+To make it clear,
+I am under no illusion that libmarpa's evaluator will be found
+satisfactory even to most application programmers.
+I certainly avoid using it directly.
+It is intended to be used via an upper layer,
+one which does know about semantics.
+
+But, by isolating libmarpa from semantics, libmarpa avoids
+imposing any arbitrary restrictions on the semantics used
+with the Marpa algorithm.
+To see the advantage suppose, as I expect will often be the case,
+libmarpa is used as the basis
+for a higher-level language which needs callbacks in that higher level language.
+For generality, libmarpa would have to deal in C callback,
+which wrapper the callbacks in the higher level language.
+This is complex to code and inefficient,
+but that is not its worst aspect.
+The worst aspect happens when there is a programming error.
+This error will occur inside libmarpa,
+and inside code about which libmarpa can make no assumptions.
+
+If all semantics are implemented in the application,
+the application is in a much better position to prevent errors,
+to catch them at runtime or
+failing all else,
+to successfully debug the logic.
+
 @node Grammars
 @chapter Grammars
 @cindex grammars
@@ -75,17 +268,17 @@ Return value: %NULL if the GLib library is compatible with the
 @end deftypefun
 
 @node Recognizers
-@chapter Recognizer Objects
+@chapter Recognizer objects
 
 @deftypefun Marpa_Error_Code marpa_r_error @
     (const struct marpa_r* @var{r}, @
     const char** @var{p_error_string})
 @end deftypefun
 
-@node Error Handling
-@chapter Error Handling
+@node Error handling
+@chapter Error handling
 
-@section Soft and Hard Errors
+@section Soft and hard errors
 
 Soft errors are errors which may be a result of normal processing.
 Soft errors often do not disrupt the flow of processing,
@@ -121,31 +314,44 @@ reinterpret a hard error as a soft error.
     const char** @var{p_error_string})
 @end deftypefun
 
-@section Error Codes
+@section Error Macros
 
 @deftypevr Macro int MARPA_ERRCODE_COUNT
 The number of error codes.
 @end deftypevr
 
+@section Error Codes
+
 @deftypevr Macro int MARPA_ERR_NONE
-No error.
+No error condition since the last time the
+error code was reset or,
+if there was no reset,
+since grammar initialization.
 Suggested message: "No error."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_UNKNOWN
-The cause of the error could not be determined.
-This usually indicates a problem in the error handling
-logic itself.
-This will usually be a hard error.
-Suggested message: "Unknown error."
-@end deftypevr
+@deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE
+A "counted" symbol is also a nullable symbol.
+A "counted" symbol is one that appears on the RHS
+of a sequence rule.
+If a symbol is nullable,
+counting occurrences of it,
+which is what sequence rules do for their RHS
+symbols,
+becomes very difficult.
+All sorts of questions of definition and
+problems of implementation arise.
+At a minimum, such a sequence would be wildly
+ambigious.
 
-@deftypevr Macro int MARPA_ERR_NO_PARSE
-The application attempted to create a bocage
-from a recognizer without a parse.
-The application will often treat this as
-a soft error.
-Suggested message: "No parse."
+Sequence rules are simply an optimized shorthand
+for rules that can also be written in ordinary BNF.
+If the equivalent of a sequence of nullables is
+really what your application needs,
+nothing in libmarpa prevents you from specifying
+that sequence
+with ordinary BNF rules.
+Suggested message: "Nullable symbol on RHS of a sequence rule."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_DEVELOPMENT
@@ -163,14 +369,20 @@ precisely defined and classed.
 Suggested message: "Development error, see string."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_INTERNAL
-Internal errors are errors which
-"should not happen".
-They could result when the calling program
-overwrites libmarpa's internal data.
-They may also indicate a bug in libmarpa.
-An internal error will usually be a hard error.
-Suggested message: "Internal error."
+@deftypevr Macro int MARPA_ERR_DUPLICATE_RULE
+This error indicates an attempt to add a rule which
+is a duplicate of a rule already in the grammar.
+Two rules are considered duplicates if
+
+@itemize @bullet
+@item
+Both rules have the same left hand symbol.
+@item
+Both rules have the same right hand symbols in the same order.
+@end itemize
+
+This definition applies to sequence rules, as well as to ordinary rules. As a consequence, sequence rules can be considered duplicates even when they have different separators and/or different minimum counts.
+Suggested message: "Duplicate rule."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_EIM_COUNT
@@ -203,61 +415,28 @@ it is almost certainly both a hard and a
 fatal error.
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_UNPRODUCTIVE_START
-The start symbol is unproductive.
-That means it could never match any possible input,
-not even the null string.
-Presumably, an error in writing the grammar.
-Suggested message: "Unproductive start symbol."
+@deftypevr Macro int MARPA_ERR_INTERNAL
+Internal errors are errors which
+"should not happen".
+They could result when the calling program
+overwrites libmarpa's internal data.
+They may also indicate a bug in libmarpa.
+An internal error will usually be a hard error.
+Suggested message: "Internal error."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_START_NOT_LHS
-The start symbol is not on the LHS on
-any rule.
-That means it could never match any possible input,
-not even the null string.
-Presumably, an error in writing the grammar.
-Suggested message: "Start symbol not on LHS of any rule."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE
-A "counted" symbol is also a nullable symbol.
-A "counted" symbol is one that appears on the RHS
-of a sequence rule.
-If a symbol is nullable,
-counting occurrences of it,
-which is what sequence rules do for their RHS
-symbols,
-becomes very difficult.
-All sorts of questions of definition and
-problems of implementation arise.
-At a minimum, such a sequence would be wildly
-ambigious.
-
-Sequence rules are simply an optimized shorthand
-for rules that can also be written in ordinary BNF.
-If the equivalent of a sequence of nullables is
-really what your application needs,
-nothing in libmarpa prevents you from specifying
-that sequence
-with ordinary BNF rules.
-Suggested message: "Nullable symbol on RHS of a sequence rule."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_DUPLICATE_RULE
-This error indicates an attempt to add a rule which
-is a duplicate of a rule already in the grammar.
-Two rules are considered duplicates if
-
-@itemize @bullet
-@item
-Both rules have the same left hand symbol.
-@item
-Both rules have the same right hand symbols in the same order.
-@end itemize
-
-This definition applies to sequence rules, as well as to ordinary rules. As a consequence, sequence rules can be considered duplicates even when they have different separators and/or different minimum counts.
-Suggested message: "Duplicate rule."
+@deftypevr Macro int MARPA_ERR_LHS_IS_TERMINAL
+By default,
+and unlike most parsing algorithms,
+libmarpa allow LHS terminals
+-- symbols on the LHS side of a rule,
+but which may also be terminals.
+This behavior is configurable,
+and if
+the LHS terminals flag for a grammar is unset,
+LHS terminals become illegal,
+and cause this error.
+Suggested message: "There is a LHS terminal in a grammar which has disallowed them."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS
@@ -283,18 +462,24 @@ unsetting the LHS terminals flag for a grammar.
 Suggested message: "A grammar with null rules must mark its terminals."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_LHS_IS_TERMINAL
-By default,
-and unlike most parsing algorithms,
-libmarpa allow LHS terminals
--- symbols on the LHS side of a rule,
-but which may also be terminals.
-This behavior is configurable,
-and if
-the LHS terminals flag for a grammar is unset,
-LHS terminals become illegal,
-and cause this error.
-Suggested message: "There is a LHS terminal in a grammar which has disallowed them."
+@deftypevr Macro int MARPA_ERR_PRECOMPUTED
+An attempt was made to use a precomputed grammar
+in a way that is not allowed.
+After a grammar is precomputed,
+any changes to it that would invalidate
+the precomputation
+is not allowed.
+Almost all changes to a grammar invalidate
+the precomputations.
+Suggested message: "This grammar is precomputed."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_PARSE
+The application attempted to create a bocage
+from a recognizer without a parse.
+The application will often treat this as
+a soft error.
+Suggested message: "No parse."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_RULES
@@ -308,18 +493,6 @@ in large part because it would be useless to do so.
 Suggested message: "This grammar does not have any rules."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_PRECOMPUTED
-An attempt was made to use a precomputed grammar
-in a way that is not allowed.
-After a grammar is precomputed,
-any changes to it that would invalidate
-the precomputation
-is not allowed.
-Almost all changes to a grammar invalidate
-the precomputations.
-Suggested message: "This grammar is precomputed."
-@end deftypevr
-
 @deftypevr Macro int MARPA_ERR_NO_START_SYMBOL
 The grammar has no start symbol,
 and an attempt was made to perform an
@@ -327,6 +500,31 @@ operation which requires one.
 For example, no grammar without a start
 symbol can be precomputed.
 Suggested message: "This grammar has no start symbol."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_START_NOT_LHS
+The start symbol is not on the LHS on
+any rule.
+That means it could never match any possible input,
+not even the null string.
+Presumably, an error in writing the grammar.
+Suggested message: "Start symbol not on LHS of any rule."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_UNKNOWN
+The cause of the error could not be determined.
+This usually indicates a problem in the error handling
+logic itself.
+This will usually be a hard error.
+Suggested message: "Unknown error."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_UNPRODUCTIVE_START
+The start symbol is unproductive.
+That means it could never match any possible input,
+not even the null string.
+Presumably, an error in writing the grammar.
+Suggested message: "Unproductive start symbol."
 @end deftypevr
 
 @bye

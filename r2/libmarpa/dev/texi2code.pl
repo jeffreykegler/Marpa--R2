@@ -28,24 +28,62 @@ open my $api_h_in, '>', $ARGV[0];
 open my $error_h_in, '>', $ARGV[1];
 open my $error_c_in, '>', $ARGV[2];
 
+# In addition to be taken from the texinfo, document
+# error codes are checked against this list.
+# The actual numeric value is based on order in
+# this list, not in the document.
+# This is to allow the descriptions of the error
+# codes in the list to be reordered without
+# impacting the code.
+#
+# So that data for error codes can be kept
+# memory-efficiently in an array,
+# error codes are assigned numbers in sequence
+# and based on their order in this list.
+# For backward compatibility, new error codes
+# should always be added at the end.
+my @error_codes = qw(
+MARPA_ERR_NONE
+MARPA_ERR_UNKNOWN
+MARPA_ERR_INTERNAL
+MARPA_ERR_DEVELOPMENT
+MARPA_ERR_COUNTED_NULLABLE
+MARPA_ERR_DUPLICATE_RULE
+MARPA_ERR_EIM_COUNT
+MARPA_ERR_LHS_IS_TERMINAL
+MARPA_ERR_NO_PARSE
+MARPA_ERR_NO_RULES
+MARPA_ERR_NO_START_SYMBOL
+MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS
+MARPA_ERR_PRECOMPUTED
+MARPA_ERR_START_NOT_LHS
+MARPA_ERR_UNPRODUCTIVE_START
+);
+
+my %error_number = map { $error_codes[$_], $_ } (0 .. $#error_codes);
+my @errors_seen = ();
+
 my @errors = ();
 my $next_error_code = 0;
 my @defs = ();
-my $current_error_code = undef;
+my $current_error_number = undef;
 my @suggested = ();
 while ( my $line = <STDIN> ) {
-     if ( defined $current_error_code ) {
+     if ( defined $current_error_number ) {
         my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
         if ($message) {
-            $suggested[$current_error_code] = $message;
-            $current_error_code = undef;
+            $suggested[$current_error_number] = $message;
+            $current_error_number = undef;
         }
      }
     if ( $line =~ /[@]deftypevr/xms ) {
         my ($error) = ($line =~ m/(MARPA_ERR_.*)\b/xms);
 	if ($error) {
-	    $current_error_code = $next_error_code++;
-	    $errors[$current_error_code] = $error;
+	    my $error_number = $error_number{$error};
+	    die("$error not in list in $PROGRAM_NAME") if not defined $error_number;
+	    $current_error_number = $error_number;
+	    $errors_seen[$error_number] = 1;
+	    $errors[$current_error_number] = $error;
 	}
     }
     if ( $line =~ /[@]deftypefun/xms ) {
@@ -63,6 +101,10 @@ while ( my $line = <STDIN> ) {
         push @defs, $def;
     } ## end if ( $line =~ /[@]deftypefun/xms )
 } ## end while ( my $line = <STDIN> )
+
+for my $error_not_seen ( grep { !$errors_seen[$_] } (0 .. $#error_codes) ) {
+    say STDERR "Error not in document: ", $error_codes[$error_not_seen];
+}
 
 my $common_preamble = <<'COMMON_PREAMBLE';
 /*

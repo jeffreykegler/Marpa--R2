@@ -220,109 +220,16 @@ Iterfaces between layers are named after the lower
 of the two layers.  For example the interface between
 |libmarpa| and the glue layer is the |libmarpa| interface.
 
-@*0 Representing Objects.
-Representation of objects is most commonly in one
-of three forms: cookies, ID's or pointers to C structures.
-
-@*1 Object ID's.
-Object ID's are integers.  They are always issued in sequence.
-They are guaranteed unique.
-(Note that in C,
-pointers to identical objects do {\bf not} necessarily
-compare equal.)
-If desired, they can be checked easily without risking a memory
-violation.
-
-ID's are the only object representation
-that can be used in any layer or any interface,
-and they are the preferred representation
-in the application layer
-and the package interface.
-
-Wraparound issues for object ID's are ignored.
-By the time any object ID wraps, memory will have long
-since overflowed.
-
-@*1 Object Cookies.
-Ideally, outside of the |libmarpa| layer,
-all objects would be represented by their ID.
-However, an exception is made recognizers and grammars,
-even though they do have ID's.
-This is because looking up ID's for these global objects
-is not thread-safe.
-
-@ To make ID lookup for global objects could be made thread-safe,
-but this involves locking data.
-It is possible to do this portably, using Glib, but it seems simply
-and safer to expect the calling environment to respect the opaque
-nature of the grammar and recognizer cookies.
-
-``Respecting the opaque nature of a cookie",
-means not
-accessing its internal contents -- using the
-cookie only as a cookie.
-The overall idea is that,
-if an programmer 
-writes trick-free higher-level code
-using cookies,
-any resulting errors occur
-in the package or application layer.
-
-The contents of Object Cookies are dependent on
-the choice of higher-level language (HLL).
-For this reason,
-The cookies are never visible in the |libmarpa| layer.
-
-In Perl's cookies, a major consideration is ensuring
-that, during the lifetime of a cookie,
-all the objects implied by the cookie also exist.
-This means that so long as
-a recognizer object cookie exists,
-the underlying grammar cannot be destroyed.
-
 @*1 Object pointers.
-The most efficient representation of objects
-are pointers to structures.
-These are the main representation of objects
-in the |libmarpa| layer.
-These must not be visible in the package and application
-layers.
-
-With regard to the visibility of object pointers in the
-glue layer, the situation is more complicated.
-At this writing, I expect to make pointers
-to most structures
-completely invisible except inside |libmarpa|.
-
-In the case of object pointers, their expected ordinary
-use is be kept around to refer to the object.
-But, for example, symbol object pointers must not
-be freed by the glue layer, but will become invalid
-when their associated grammar layer is destroyed.
-
-This behavior is not completely unintuitive to an
-experienced C programmer -- functions (like |ctime|)
-which return
-transient information in memory unowned by the caller
-have a long tradition in UNIX.
-But these are now deprecated.
-
-But tracking the lifetime of symbol object pointers 
-in the glue layer
-would be tricky, so as this writing the thought is to
-avoid the issue, for it and most other object pointers.
-The exceptions are grammar and recognizer objects.
-The base objects for these {\bf are} owned by
-the glue layer, so these do not present the same
-issues.
-The glue layer creates
-grammar and recognizer objects,
-it owns them during their lifetime,
-and it is up to the glue layer to destroy them.
+The major objects of the |libmarpa| layer are passed
+to upper layers as pointer,
+which hopefully will be treated as opaque.
+|libmarpa| objects are reference-counted.
 
 @*0 Inlining.
-Most of this code is expected to be freqently executed
-and inlining is used a lot.
+Most of this code in |libmarpa|
+will be frequently executed.
+Inlining is used a lot.
 Enough so
 that it is useful to define a macro to let me know when inlining is not
 used in a private function.
@@ -401,9 +308,8 @@ go through |libmarpa| and replace all sorts with a merge sort.
 But a slower library would be the result.
 
 @** Coding conventions.
-@*0 Naming conventions.
 
-@*1 External functions.
+@*0 External functions.
 
 All libmarpa's external functions,
 without exception, begin with the
@@ -424,7 +330,7 @@ where |X| is a one-letter code
 which designates one of libmarpa's objects.
 \par
 
-@*1 Objects.
+@*0 Objects.
 
 When I find it useful,
 libmarpa 
@@ -442,7 +348,7 @@ The classes of object used by libmarpa have one letter codes.
 \li t: tree.
 \li v: evaluator.
 
-@*1 Reserved locals.
+@*0 Reserved locals.
 Certain symbol names are reserved for certain purposes.
 They are not necessarily defined, but if defined they
 must be used for the designated purpose.
@@ -466,7 +372,7 @@ is a feature.
 \li |r| is always the recognizer of most interest in the context.
 \li |rule_count_of_g| is the number of rules in |g|.
 
-@*1 Mixed Case Macros.
+@*0 Mixed Case Macros.
 In programming in general, accessors are very common.
 In |libmarpa|, the percentage of the logic the consists
 of accessors is even higher than usual,
@@ -502,14 +408,14 @@ Look at one of the many macro-heavy pages in this code
 and ask yourself -- do you genuinely wish more of this
 page was in caps?
 
-@*1 External Names.
+@*0 External Names.
 External Names have |marpa_| or |MARPA_| as their prefix,
 as appropriate under the capitalization conventions.
 Many names begin with one of the major ``objects" of Marpa:
 grammars, recognizers, symbols, etc.
 Names of functions typically end with a verb.
 
-@*1 Booleans.
+@*0 Booleans.
 Names of booleans are often
 of the form |is_x|, where |x| is some
 property.  For example, the element of the symbol structure
@@ -524,33 +430,7 @@ Where possible, consistent with brevity and accuracy,
 positive names (|is_found|) are preferred
 to negative names (|is_not_lost|).
 
-@*1 Function names.
-For function names, some final verbs have special meanings.
-In the description below |obj| stands for an object,
-and |fld| for a field of that object.
-In cases where there is not ambiguity about which
-object a field might belong to, |obj| will often be omitted.
-
-\li |obj_fld_get| returns field |fld|
-of object |obj|.
-It is an internal function, and often will be declared
-|static inline|.
-
-\li |obj_fld_put| assigns a value to field |fld|
-of object |obj|.
-It is an internal function, and often will be declared
-|static inline|.
-
-\li |marpa_obj_fld_set| sets field |fld|
-of object |obj|.
-It's the external equivalent of |obj_fld_put|.
-
-\li |marpa_obj_fld_value| returns field |fld|
-of object |obj|.
-It is an external equivalent of |obj_fld_get|.
-The returned value is owned by the caller.
-
-@*0 Abbreviations and cocabulary.
+@*0 Abbreviations and vocabulary.
 @ Unexplained abbreviations and non-standard vocabulary
 pose unnecessary challenges.
 Particular obstacles to those who are not native speakers
@@ -629,28 +509,34 @@ object.
 \li |u_|: Prefix for a union tag.  Cweb does not C code format well
 unless tag names are distinct from other names.
 
+@** Maintenance notes.
+
+@*0 Where is the source?.
+
+Most of the source code for |libmarpa| in the
+Cweb file |marpa.w|,
+which is also the source for this document.
+But error codes and public function prototypes
+are taken from |api.texi|,
+the API document.
+(This helps
+keep the API documentation in sync with
+the source code.)
+To change error codes or public function
+prototypes, look at 
+|api.texi| and the scripts which process it.
+
 @** To Do.
 
-@ These are notes to myself,
-most of which will only be relevant
-while |libmarpa| is being written.
-These notes will be 
-deleted once development is finished.
-
-@ \li Eliminate all memoization and
+\li Eliminate all memoization and
 references to start symbol,
 start rule, etc., which are not needed for the recognizer.
 Evaluation should allow the user to specify an
 alternative start symbol, and not prefer the
 recognizer's.
 
-@ \li Make tracing no longer the default in the recognizer.
-
-\li Add a ``tracing" flag to the recognizer.  Also add a
-warning message when tracing is turned on.  The flag
-turns off the message.
-
-\li When (if?) I convert Marpa to use Marpa::R2 or Marpa::XS,
+\li If I convert Marpa to use Marpa::R2 or Marpa::XS,
+and if I decide to continue to implement the |tokens()| call,
 make sure the ``interactive" flag works.
 
 \li Within libmarpa, eliminate some of the
@@ -5425,6 +5311,7 @@ AHFAID marpa_g_AHFA_state_empty_transition(struct marpa_g* g,
 @** Recognizer (RECCE) Code.
 @<Public incomplete structures@> =
 struct marpa_r;
+typedef struct marpa_r* Marpa_R;
 @ @<Private typedefs@> =
 typedef struct marpa_r* RECCE;
 @ @<Recognizer structure@> =
@@ -5443,8 +5330,9 @@ In the event of an error creating the recognizer,
 of the {\bf grammar} is set.
 For this reason, the grammar is not |const|.
 @<Function definitions@> =
-struct marpa_r* marpa_r_new( Marpa_G g )
-{ RECCE r;
+Marpa_R marpa_r_new( Marpa_G g )
+{
+    Marpa_R r;
     gint symbol_count_of_g;
     @<Return |NULL| on failure@>@/
     if (!G_is_Precomputed(g)) {
@@ -5473,13 +5361,13 @@ initialize |r| to exhausted.
 @ @<Function definitions@> =
 void marpa_r_free(struct marpa_r *r)
 {
-@<Destroy recognizer elements@>@;
-marpa_g_unref(r->t_grammar);
-if (r->t_sym_workarea) g_free(r->t_sym_workarea);
-if (r->t_workarea2) g_free(r->t_workarea2);
-@<Free working bit vectors for symbols@>@;
-@<Destroy recognizer obstack@>@;
-g_slice_free(struct marpa_r, r);
+    @<Destroy recognizer elements@>@;
+    marpa_g_unref(r->t_grammar);
+    if (r->t_sym_workarea) g_free(r->t_sym_workarea);
+    if (r->t_workarea2) g_free(r->t_workarea2);
+    @<Free working bit vectors for symbols@>@;
+    @<Destroy recognizer obstack@>@;
+    g_slice_free(struct marpa_r, r);
 }
 @ @<Public function prototypes@> =
 void marpa_r_free(struct marpa_r *r);
@@ -5536,11 +5424,6 @@ EARLEME t_current_earleme;
 r->t_first_earley_set = NULL;
 r->t_latest_earley_set = NULL;
 r->t_current_earleme = -1;
-@ @<Destroy recognizer elements@> =
-{
-  if (r->t_earley_item_tree)
-    g_tree_destroy (r->t_earley_item_tree);
-}
 
 @*0 Current Earleme.
 @d Latest_ES_of_R(r) ((r)->t_latest_earley_set)
@@ -5709,27 +5592,6 @@ gint marpa_r_terminals_expected(struct marpa_r* r, GArray* result)
       }
     return (gint)result->len;
 }
-
-@*0 Tracing.
-A boolean, set if we are tracing earley sets.
-If set, a |GTree| is used to allow fast lookup
-of earley sets by earleme.
-Keeping this tree takes $O(n \log n)$ time,
-which means that the grammar's time complexity becomes
-$O( s(n) \cdot n \log n )$, where $s(n)$ is the time it takes to
-process an earley set.
-
-Without tracing the time complexity is
-$O( s(n) \cdot n )$, so tracing worsens the time complexity by
-a factor of $\log n$.
-Unless otherwise stated,
-time complexity results elsewhere in this document
-assume that tracing is not enabled.
-@ @<Widely aligned recognizer elements@> =
-GTree* t_earley_item_tree;
-@
-@<Initialize recognizer elements@> =
-r->t_earley_item_tree = g_tree_new(trace_earley_item_cmp);
 
 @*0 Leo-Related Booleans.
 @*1 Turning Leo Logic Off and On.
@@ -6196,7 +6058,6 @@ static inline EIM earley_item_create(const RECCE r,
   Ord_of_EIM(new_item) = count - 1;
   top_of_work_stack = WORK_EIM_PUSH(r);
   *top_of_work_stack = new_item;
-  g_tree_insert(r->t_earley_item_tree, new_item, new_item);
   return new_item;
 }
 
