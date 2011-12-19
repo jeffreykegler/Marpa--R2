@@ -10113,7 +10113,7 @@ gint marpa_b_and_node_count(struct marpa_r *r);
 @ @<Function definitions@> =
 gint marpa_b_and_node_count(struct marpa_r *r)
 {
-  BOC b = B_of_R(r);
+  BOCAGE b = B_of_R(r);
   @<Unpack recognizer objects@>@;
   @<Return |-2| on failure@>@;
   @<Fail if fatal error@>@;
@@ -10125,7 +10125,7 @@ gint marpa_b_and_node_count(struct marpa_r *r)
 }
 
 @ @<Check |r| and |and_node_id|; set |and_node|@> = {
-  BOC b = B_of_R(r);
+  BOCAGE b = B_of_R(r);
   AND and_nodes;
   @<Fail if fatal error@>@;
   if (!b) {
@@ -10255,23 +10255,27 @@ static inline SYMID and_node_token(AND and_node, gpointer* value_p)
     return -1;
 }
 
-@** Parse Bocage Code (BOC).
+@** Parse Bocage Code (B, BOCAGE).
 @ Pre-initialization is making the elements safe for the deallocation logic
 to be called.  Often it is setting the value to zero, so that the deallocation
 logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
-@<Private incomplete structures@> =
+@<Public incomplete structures@> =
 struct s_bocage;
-typedef struct s_bocage* BOC;
+typedef struct s_bocage* Marpa_B;
+@ @<Private incomplete structures@> =
+typedef struct s_bocage* BOCAGE;
 @ @<Bocage structure@> =
 struct s_bocage {
     @<Widely aligned bocage elements@>@;
     @<Int aligned bocage elements@>@;
     @<Bit aligned bocage elements@>@;
 };
-typedef struct s_bocage BOC_Object;
 @ @d B_of_R(r) ((r)->t_bocage)
 @<Widely aligned recognizer elements@> =
-BOC t_bocage;
+Marpa_B t_bocage;
+@ @ @d R_of_B(b) ((b)->t_recognizer)
+@<Widely aligned bocage elements@> =
+Marpa_R t_recognizer;
 @ @<Initialize recognizer elements@> =
 B_of_R(r) = NULL;
 
@@ -10312,7 +10316,8 @@ gint marpa_b_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID o
     const gint no_parse = -1;
     @<Declare bocage locals@>@;
     @<Return if function guards fail@>@;
-    b = B_of_R(r) = g_slice_new(BOC_Object);
+    b = B_of_R(r) = g_slice_new(struct s_bocage);
+    R_of_B(b) = r;
     @<Initialize bocage elements@>@;
     if (G_is_Trivial(g)) {
         if (ordinal_arg > 0) goto SOFT_ERROR;
@@ -10346,7 +10351,7 @@ gint marpa_b_new(struct marpa_r* r, Marpa_Rule_ID rule_id, Marpa_Earley_Set_ID o
 const GRAMMAR g = G_of_R(r);
 const gint rule_count_of_g = RULE_Count_of_G(g);
 const gint symbol_count_of_g = SYM_Count_of_G(g);
-BOC b = NULL;
+BOCAGE b = NULL;
 ES end_of_parse_earley_set;
 EARLEME end_of_parse_earleme;
 RULE completed_start_rule;
@@ -10435,10 +10440,10 @@ is earleme 0, and that null parses are allowed.
 If null parses are allowed, there is guaranteed to be a
 null start rule.
 @<Private function prototypes@> =
-static ORID r_create_null_bocage(RECCE r, BOC b);
+static ORID r_create_null_bocage(RECCE r, BOCAGE b);
 @ Not inline --- should not be called a lot.
 @<Function definitions@> =
-static ORID r_create_null_bocage(RECCE r, BOC b)
+static ORID r_create_null_bocage(RECCE r, BOCAGE b)
 {
   const GRAMMAR g = G_of_R(r);
   const RULE null_start_rule = g->t_null_start_rule;
@@ -10591,11 +10596,11 @@ static inline void bocage_destroy(struct marpa_r* r);
 @ @<Function definitions@> =
 static inline void bocage_destroy(struct marpa_r* r)
 {
-    BOC b = B_of_R(r);
+    BOCAGE b = B_of_R(r);
 MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
     if (b) {
 	@<Destroy bocage elements, all phases@>;
-	g_slice_free(BOC_Object, b);
+	g_slice_free(struct s_bocage, b);
 	B_of_R(r) = NULL;
     }
 MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
@@ -10605,7 +10610,7 @@ MARPA_OFF_DEBUG3("%s B_of_R=%p", G_STRLOC, B_of_R(r));
 
 @ This is common logic in the or-node trace functions.
 @<Check |r| and |or_node_id|; set |or_node|@> = {
-  BOC b = B_of_R(r);
+  BOCAGE b = B_of_R(r);
   OR* or_nodes;
   @<Fail if fatal error@>@;
   if (!b) {
@@ -10795,7 +10800,7 @@ int marpa_t_new(struct marpa_r* r);
 @ @<Function definitions@> =
 int marpa_t_new(struct marpa_r* r)
 {
-    BOC b;
+    BOCAGE b;
     TREE tree;
     gint first_tree_of_series = 0;
     @<Return |-2| on failure@>@;
@@ -10990,9 +10995,9 @@ Otherwise, the tree is exhausted.
 }
 
 @ @<Private function prototypes@> =
-static inline gint or_node_next_choice(BOC b, TREE tree, OR or_node, gint start_choice);
+static inline gint or_node_next_choice(BOCAGE b, TREE tree, OR or_node, gint start_choice);
 @ @<Function definitions@> =
-static inline gint or_node_next_choice(BOC b, TREE tree, OR or_node, gint start_choice)
+static inline gint or_node_next_choice(BOCAGE b, TREE tree, OR or_node, gint start_choice)
 {
     gint choice = start_choice;
     while (1) {
@@ -11048,7 +11053,7 @@ gint marpa_t_parse_count(struct marpa_r* r);
 @ @<Function definitions@> =
 gint marpa_t_parse_count(struct marpa_r* r)
 {
-    BOC b;
+    BOCAGE b;
     TREE tree;
     @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
@@ -11074,7 +11079,7 @@ gint marpa_t_size(struct marpa_r *r);
 gint marpa_t_size(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
-  BOC b = B_of_R(r);
+  BOCAGE b = B_of_R(r);
   TREE tree;
   GRAMMAR g = G_of_R(r);
   @<Fail if fatal error@>@;
@@ -11222,7 +11227,7 @@ gint marpa_o_and_order_set(struct marpa_r *r,
   @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
     @<Check |r| and |or_node_id|; set |or_node|@>@;
-    { BOC b = B_of_R(r);
+    { BOCAGE b = B_of_R(r);
       ANDID** and_node_orderings;
       Bit_Vector and_node_in_use;
       struct obstack *obs;
@@ -11296,11 +11301,11 @@ gint marpa_o_and_order_set(struct marpa_r *r,
 
 @*0 Get an And-node by Order within its Or-Node.
 @ @<Private function prototypes@> =
-static inline ANDID and_order_get(BOC b, OR or_node, gint ix);
+static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix);
 @ @<Public function prototypes@> =
 Marpa_And_Node_ID marpa_o_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix);
 @ @<Function definitions@> =
-static inline ANDID and_order_get(BOC b, OR or_node, gint ix)
+static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix)
 {
   RANK rank;
   ANDID **and_node_orderings;
@@ -11336,7 +11341,7 @@ Marpa_And_Node_ID marpa_o_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_n
       return failure_indicator;
   }
     {
-      BOC b = B_of_R (r);
+      BOCAGE b = B_of_R (r);
       if (!b)
 	{
 	  R_DEV_ERROR ("no bocage");
@@ -11390,7 +11395,7 @@ typedef struct s_fork FORK_Object;
 @<Check |r| and |fork_id|;
 set |fork|@> = {
   FORK base_fork;
-  BOC b = B_of_R(r);
+  BOCAGE b = B_of_R(r);
   TREE tree;
   @<Fail if fatal error@>@;
   if (!b) {
@@ -11634,7 +11639,7 @@ stack reallocations is $O(1)$.
 @<Function definitions@> =
 int marpa_v_new(struct marpa_r* r)
 {
-    BOC b;
+    BOCAGE b;
     TREE tree;
     @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
@@ -11694,7 +11699,7 @@ gint marpa_v_trace(struct marpa_r* r, gint flag);
 @ @<Function definitions@> =
 gint marpa_v_trace(struct marpa_r* r, gint flag)
 {
-    BOC b;
+    BOCAGE b;
     TREE tree;
     VAL val;
   GRAMMAR g = G_of_R(r);
@@ -11709,7 +11714,7 @@ Marpa_Fork_ID marpa_v_fork(struct marpa_r* r);
 @ @<Function definitions@> =
 Marpa_Fork_ID marpa_v_fork(struct marpa_r* r)
 {
-    BOC b;
+    BOCAGE b;
     TREE tree;
     VAL val;
     @<Return |-2| on failure@>@;
@@ -11723,7 +11728,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event);
 @ @<Function definitions@> =
 Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 {
-    BOC b;
+    BOCAGE b;
     TREE tree;
     VAL val;
     AND and_nodes;
