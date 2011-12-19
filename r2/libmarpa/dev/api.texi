@@ -270,6 +270,12 @@ Return value: %NULL if the GLib library is compatible with the
 @node Recognizers
 @chapter Recognizer objects
 
+@deftypefun Marpa_R marpa_r_ref (Marpa_R @var{r})
+@end deftypefun
+
+@deftypefun void marpa_r_unref (Marpa_R @var{r})
+@end deftypefun
+
 @deftypefun Marpa_Error_Code marpa_r_error @
     (const struct marpa_r* @var{r}, @
     const char** @var{p_error_string})

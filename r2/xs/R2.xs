@@ -1137,7 +1137,7 @@ CODE:
     g_free(r_wrapper->message_buffer);
     r = r_wrapper->r;
     g_array_free(r_wrapper->gint_array, TRUE);
-    marpa_r_free( r );
+    marpa_r_unref( r );
     Safefree( r_wrapper );
 
 void
