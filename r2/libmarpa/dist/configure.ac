@@ -107,7 +107,7 @@ AC_ARG_ENABLE(debug,
                              [turn on debugging @<:@default=marpa_debug_default@:>@]),,
               enable_debug=marpa_debug_default)
 
-LT_INIT([pic-only])
+LT_INIT([])
 
 # Checks for programs.
 AC_PROG_CC
