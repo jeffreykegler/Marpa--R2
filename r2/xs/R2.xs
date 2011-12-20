@@ -49,7 +49,6 @@ typedef struct marpa_b Bocage;
 typedef struct {
      Bocage *b;
      char *message_buffer;
-     GArray* gint_array;
 } B_Wrapper;
 
 static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
@@ -146,6 +145,21 @@ error_r (R_Wrapper * r_wrapper)
   char *buffer = r_wrapper->message_buffer;
   g_free (buffer);
   r_wrapper->message_buffer = buffer =
+    libmarpa_exception (error_code, error_string);
+  return buffer;
+}
+
+/* Return value must be g_free()'d */
+static const char *
+error_b (B_Wrapper * b_wrapper)
+{
+  const char *error_string;
+  Marpa_Bocage b = b_wrapper->b;
+  Marpa_Recce r = marpa_b_g(b);
+  const int error_code = marpa_g_error (g, &error_string);
+  char *buffer = b_wrapper->message_buffer;
+  g_free (buffer);
+  b_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
@@ -1129,10 +1143,6 @@ PPCODE:
     if (!r) { croak ("failure in marpa_r_new: %s", error_g (g_wrapper)); };
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;
-    r_wrapper->b = NULL;
-    r_wrapper->o = NULL;
-    r_wrapper->t = NULL;
-    r_wrapper->v = NULL;
     r_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
     r_wrapper->message_buffer = NULL;
     sv = sv_newmortal();
@@ -1965,51 +1975,46 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::B_C
 
 void
-bocage_setup( r_wrapper, rule_id, ordinal )
+new( r_wrapper, rule_id, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Rule_ID rule_id;
      Marpa_Earley_Set_ID ordinal;
 PPCODE:
+{
+  SV *sv;
+  Marpa_Recognizer r = r_wrapper->r;
+  b = marpa_b_new (r, rule_id, ordinal);
+  if (!b)
     {
-	Marpa_Recognizer r = r_wrapper->r;
-	Marpa_Bocage b = r_wrapper->b;
-	if (b) {
-	  croak ("Problem in r->bocage_setup(): recognizer already has bocage");
-	}
-	b = marpa_b_new(r, rule_id, ordinal);
-	r_wrapper->b = b;
-	if (!b) {
-	  croak ("Problem in r->bocage_setup(): %s", error_r(r_wrapper));
-	}
-	XSRETURN_YES;
+      croak ("Problem in b->new(): %s", error_r (r_wrapper));
     }
+  Newx (b_wrapper, 1, B_Wrapper);
+  b_wrapper->message_buffer = NULL;
+  sv = sv_newmortal ();
+  sv_setref_pv (sv, bocage_c_class_name, (void *) b_wrapper);
+  XPUSHs (sv);
+}
 
 void
-bocage_clear( r_wrapper )
-     R_Wrapper *r_wrapper;
+DESTROY( b_wrapper )
+    B_Wrapper *b_wrapper;
 PPCODE:
-    {
-	gint result;
-        Marpa_Bocage b = r_wrapper->b;
-	if (!b) {
-	    XSRETURN_YES;
-	}
-	result = marpa_b_free(b);
-        r_wrapper->b = 0;
-	if (result < 0) {
-	  croak ("Problem in r->bocage_clear(): %s", error_r(r_wrapper));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
+{
+    const Marpa_Bocage b = b_wrapper->b;
+    marpa_b_unref(b);
+    g_free(b_wrapper->message_buffer);
+    Safefree( b_wrapper );
+}
 
 void
-top_or_node( r_wrapper )
-     R_Wrapper *r_wrapper;
+top_or_node( b_wrapper )
+     B_Wrapper *b_wrapper;
 PPCODE:
-    { Marpa_Bocage b = r_wrapper->b;
+    {
+	Marpa_Bocage b = b_wrapper->b;
 	gint result = marpa_b_top_or_node(b);
 	if (result < 0) {
-	  croak ("Problem in r->top_or_node(): %s", error_r(r_wrapper));
+	  croak ("Problem in r->top_or_node(): %s", error_b(b_wrapper));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }

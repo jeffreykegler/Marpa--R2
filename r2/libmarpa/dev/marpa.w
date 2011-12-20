@@ -10301,11 +10301,15 @@ Marpa_Bocage t_bocage;
 @ @<Initialize recognizer elements@> =
 B_of_R(r) = NULL;
 
-@*0 The Recognizer of the Bocage.
+@*0 The base objects of the bocage.
 @ @d I_of_B(b) ((b)->t_input)
+@ @d R_of_B(b) ((b)->t_recce)
 @<Widely aligned bocage elements@> =
     INPUT t_input;
+/* Remove |R_of_B| and |t_recce| after interface conversion */
+    RECCE t_recce;
 @
+
 @<Unpack bocage objects@> =
     const INPUT input = I_of_B(b);
     const GRAMMAR g = G_of_I(input);
@@ -10347,21 +10351,28 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Declare bocage locals@>@;
     @<Return if function guards fail@>@;
     b = B_of_R(r) = g_slice_new(struct s_bocage);
+    if (b) {
+	R_DEV_ERROR ("bocage already set");
+	goto B_NEW_RETURN_ERROR;
+    }
+    r_ref(r);
     I_of_B(b) = I_of_R(r);
+    /* Remove |R_of_B| and |t_recce| after interface conversion */
+    R_of_B(b) = r;
     @<Initialize bocage elements@>@;
     if (G_is_Trivial(g)) {
-        if (ordinal_arg > 0) goto B_NEW_ERROR;
+        if (ordinal_arg > 0) goto B_NEW_RETURN_ERROR;
 	return r_create_null_bocage(r, b);
     }
     r_update_earley_sets(r);
     @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
     if (end_of_parse_earleme == 0) {
-	if (! g->t_null_start_rule) goto B_NEW_ERROR;
+	if (! g->t_null_start_rule) goto B_NEW_RETURN_ERROR;
 	return r_create_null_bocage(r, b);
     }
     @<Set |completed_start_rule|@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
-    if (!start_eim) goto B_NEW_ERROR;
+    if (!start_eim) goto B_NEW_RETURN_ERROR;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
     @<Populate the PSIA data@>@;
@@ -10369,9 +10380,10 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Create the final and-nodes for all earley sets@>@;
     @<Set top or node id in |b|@>;
     obstack_free(&bocage_setup_obs, NULL);
-    r_ref(r);
     return b;
-    B_NEW_ERROR: ;
+    B_NEW_RETURN_ERROR: ;
+    r_unref(r);
+    B_of_R(r) = NULL;
     @<Destroy bocage elements, all phases@>;
     return NULL;
 }
@@ -10438,7 +10450,7 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
     }
 
   if (!end_of_parse_earley_set)
-    goto B_NEW_ERROR;
+    goto B_NEW_RETURN_ERROR;
   end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
 }
 
@@ -10447,7 +10459,7 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
   if (rule_id == -1)
     {
       completed_start_rule = g->t_proper_start_rule;
-      if (!completed_start_rule) goto B_NEW_ERROR;
+      if (!completed_start_rule) goto B_NEW_RETURN_ERROR;
     }
   else
     {
@@ -10593,9 +10605,27 @@ to make sense.
   Top_ORID_of_B (b) = ID_of_OR (top_or_node);
 }
 
-@*0 Top Or Node.
-@ For an initialized bocage, return the ID of the top
-or-node.
+@*0 The grammar of the bocage.
+@ This function returns the grammar of the bocage.
+It never returns an error.
+The grammar is always set when the bocage is initialized,
+and is never changed while the bocage exists.
+Fatal state is not reported,
+because it is kept in the grammar,
+so that
+either we can return the grammar in spite of
+its fatal state,
+or the problem is so severe than no
+errors can be properly reported.
+@<Function definitions@> =
+Marpa_Grammar marpa_b_g(Marpa_Bocage b)
+{
+  @<Unpack bocage objects@>@;
+  return g;
+}
+
+@*0 Top or-node.
+@ Return the ID of the top or-node.
 @<Public function prototypes@> =
 Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b);
 @ @<Function definitions@> =
@@ -10658,17 +10688,21 @@ marpa_b_ref (Marpa_Bocage b)
 if the bocage already has been freed,
 or was never initialized.
 @<Private function prototypes@> =
-gint b_free(BOCAGE b);
+void
+b_free(BOCAGE b);
 @ @<Function definitions@> =
-gint b_free(BOCAGE b) {
-    @<Return |-2| on failure@>@;
-      @<Unpack bocage objects@>@;
-    @<Fail if fatal error@>@;
-    if (b) {
-	@<Destroy bocage elements, all phases@>;
-	g_slice_free(struct s_bocage, b);
+void
+b_free (BOCAGE b)
+{
+  const RECCE r = R_of_B (b);
+  @<Unpack bocage objects@>@;
+  B_of_R (r) = NULL;
+  r_unref (r);
+  if (b)
+    {
+      @<Destroy bocage elements, all phases@>;
+      g_slice_free (struct s_bocage, b);
     }
-    return 1;
 }
 
 @*0 Trace Functions.
