@@ -407,6 +407,26 @@ Return value: %NULL if the GLib library is compatible with the
     Marpa_Earley_Set_ID @var{ordinal_arg})
 @end deftypefun
 
+@deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
+@end deftypefun
+
+@deftypefun void marpa_b_unref (Marpa_Bocage @var{b})
+@end deftypefun
+
+@node Order
+@chapter Order objects
+
+@deftypefun gint marpa_o_and_order_set(Marpa_Bocage b, @
+    Marpa_Or_Node_ID or_node_id, @
+    Marpa_And_Node_ID* and_node_ids, @
+    gint length)
+@end deftypefun
+
+@deftypefun Marpa_And_Node_ID marpa_o_and_order_get( @
+    Marpa_Bocage b, @
+    Marpa_Or_Node_ID or_node_id, gint ix)
+@end deftypefun
+
 @node Error handling
 @chapter Error handling
 

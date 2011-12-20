@@ -5325,11 +5325,17 @@ typedef struct marpa_r* Marpa_Recognizer;
 typedef Marpa_Recognizer Marpa_Recce;
 @ @<Private typedefs@> =
 typedef struct marpa_r* RECCE;
-@ @<Recognizer structure@> =
+typedef struct marpa_input* INPUT;
+@ @d I_of_R(r) (&(r)->t_input)
+@<Recognizer structure@> =
+struct marpa_input {
+    @<Widely aligned input elements@>@;
+};
 struct marpa_r {
-@<Widely aligned recognizer elements@>@/
-@<Int aligned recognizer elements@>@/
-@<Bit aligned recognizer elements@>@/
+    struct marpa_input t_input;
+    @<Widely aligned recognizer elements@>@;
+    @<Int aligned recognizer elements@>@;
+    @<Bit aligned recognizer elements@>@;
 };
 
 @ @<Public function prototypes@> =
@@ -5343,7 +5349,7 @@ For this reason, the grammar is not |const|.
 @<Function definitions@> =
 Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 {
-    Marpa_Recognizer r;
+    RECCE r;
     gint symbol_count_of_g;
     @<Return |NULL| on failure@>@/
     if (!G_is_Precomputed(g)) {
@@ -5351,7 +5357,7 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 	return failure_indicator;
     }
     r = g_slice_new(struct marpa_r);
-    r->t_grammar = g;
+    G_of_R(r) = g;
     grammar_ref(g);
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
@@ -5430,12 +5436,14 @@ void r_free(struct marpa_r *r);
 
 @*0 The Grammar for the Recognizer.
 Initialized in |marpa_r_new|.
-@d G_of_R(r) ((r)->t_grammar)
+@d G_of_R(r) (G_of_I(&((r)->t_input)))
 @d AHFA_Count_of_R(r) AHFA_Count_of_G(G_of_R(r))
 @<Unpack recognizer objects@> =
 const Marpa_Grammar g = G_of_R(r);
 
-@ @<Widely aligned recognizer elements@> = struct marpa_g *t_grammar;
+@ @d G_of_I(i) ((i)->t_grammar)
+@<Widely aligned input elements@> =
+    struct marpa_g *t_grammar;
 
 @*0 Recognizer Phase.
 The recognizer has phases, such as ``input"
@@ -5458,8 +5466,7 @@ the recognizer.
 enum marpa_phase {
     no_such_phase = 0, // 0 is never a valid phase
     initial_phase,
-    input_phase,
-    evaluation_phase
+    input_phase
 };
 typedef enum marpa_phase Marpa_Phase;
 @ @d Phase_of_R(r) ((r)->t_phase)
@@ -7525,7 +7532,6 @@ struct s_token {
     SYMID t_symbol_id;
     gpointer t_value;
 };
-typedef struct s_token TOK_Object;
 
 @ An obstack dedicated to the tokens and an array
 with default tokens for each symbol.
@@ -7539,11 +7545,16 @@ data.
 Once the bocage is built, the token data is all that
 it needs, and someday I may want to take advantage of
 this fact by freeing up the rest of recognizer memory.
-@d TOK_Obs_of_R(r) (&(r)->t_token_obs)
-@d TOKs_by_SYMID_of_R(r) ((r)->t_tokens_by_symid)
-@d TOK_Obs TOK_Obs_of_R(r)
-@d TOK_by_ID_of_R(r, symbol_id) (TOKs_by_SYMID_of_R(r)[symbol_id])
-@<Widely aligned recognizer elements@> =
+@d TOK_Obs_of_I(i)
+    (&(i)->t_token_obs)
+@d TOKs_by_SYMID_of_I(i)
+    ((i)->t_tokens_by_symid)
+@d TOK_by_ID_of_I(i, symbol_id)
+    (TOKs_by_SYMID_of_I(i)[symbol_id])
+@d TOK_Obs_of_R(r) TOK_Obs_of_I(I_of_R(r))
+@d TOKs_by_SYMID_of_R(r) TOKs_by_SYMID_of_I(I_of_R(r))
+@d TOK_by_ID_of_R(r, symbol_id) TOK_by_ID_of_I(I_of_R(r), (symbol_id))
+@<Widely aligned input elements@> =
 struct obstack t_token_obs;
 TOK *t_tokens_by_symid;
 @ @<Initialize recognizer elements@> =
@@ -7551,9 +7562,9 @@ TOK *t_tokens_by_symid;
   gpointer default_value = Default_Value_of_G(g);
   gint i;
   TOK *tokens_by_symid;
-  obstack_init (TOK_Obs);
+  obstack_init (TOK_Obs_of_R(r));
   tokens_by_symid =
-    obstack_alloc (TOK_Obs, sizeof (TOK) * symbol_count_of_g);
+    obstack_alloc (TOK_Obs_of_R(r), sizeof (TOK) * symbol_count_of_g);
   for (i = 0; i < symbol_count_of_g; i++)
     {
       tokens_by_symid[i] = token_new (r, i, default_value);
@@ -7564,7 +7575,7 @@ TOK *t_tokens_by_symid;
 {
     TOK* tokens_by_symid = TOKs_by_SYMID_of_R(r);
     if (tokens_by_symid) {
-	obstack_free(TOK_Obs, NULL);
+	obstack_free(TOK_Obs_of_R(r), NULL);
 	TOKs_by_SYMID_of_R(r) = NULL;
     }
 }
@@ -7577,7 +7588,7 @@ static inline
 TOK token_new(struct marpa_r *r, SYMID symbol_id, gpointer value)
 {
   TOK token;
-    token = obstack_alloc (TOK_Obs, sizeof(*token));
+    token = obstack_alloc (TOK_Obs_of_R(r), sizeof(*token));
     Type_of_TOK(token) = TOKEN_OR_NODE;
     SYMID_of_TOK(token) = symbol_id;
     Value_of_TOK(token) = value;
@@ -7587,7 +7598,7 @@ TOK token_new(struct marpa_r *r, SYMID symbol_id, gpointer value)
 @ Recover |token| from the token obstack.
 The intended use is to recover the one token
 most recently added in case of an error.
-@<Recover |token|@> = obstack_free (TOK_Obs, token);
+@<Recover |token|@> = obstack_free (TOK_Obs_of_R(r), token);
 
 @** Alternative Tokens (ALT) Code.
 Because Marpa allows more than one token at every
@@ -10144,16 +10155,15 @@ gint marpa_b_and_node_count(Marpa_Bocage b)
   return AND_Count_of_B(b);
 }
 
-@ @<Check |r| and |and_node_id|; set |and_node|@> = {
+@ @<Check |and_node_id|; set |and_node|@> = {
   AND and_nodes;
-  @<Fail if fatal error@>@;
   and_nodes = ANDs_of_B(b);
   if (!and_nodes) {
-      R_DEV_ERROR("no and nodes");
+      MARPA_DEV_ERROR("no and nodes");
       return failure_indicator;
   }
   if (and_node_id < 0) {
-      R_DEV_ERROR("bad and node id");
+      MARPA_DEV_ERROR("bad and node id");
       return failure_indicator;
   }
   if (and_node_id >= AND_Count_of_B(b)) {
@@ -10170,7 +10180,7 @@ gint marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id)
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    @<Check |and_node_id|; set |and_node|@>@;
   return ID_of_OR (OR_of_AND (and_node));
 }
 
@@ -10182,7 +10192,7 @@ gint marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    @<Check |and_node_id|; set |and_node|@>@;
     {
       const OR predecessor_or = Predecessor_OR_of_AND (and_node);
       const ORID predecessor_or_id =
@@ -10199,7 +10209,7 @@ gint marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    @<Check |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
       const ORID cause_or_id =
@@ -10216,7 +10226,7 @@ gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    @<Check |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
       const SYMID symbol_id =
@@ -10251,7 +10261,7 @@ Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |and_node_id|; set |and_node|@>@;
+    @<Check |and_node_id|; set |and_node|@>@;
     return and_node_token(and_node, value_p);
 }
 @ @<Private function prototypes@> =
@@ -10292,12 +10302,13 @@ Marpa_Bocage t_bocage;
 B_of_R(r) = NULL;
 
 @*0 The Recognizer of the Bocage.
-@ @d R_of_B(b) ((b)->t_recognizer)
+@ @d I_of_B(b) ((b)->t_input)
 @<Widely aligned bocage elements@> =
-Marpa_Recognizer t_recognizer;
-@ @<Unpack bocage objects@> =
-    const RECCE r = R_of_B(b);
-    @<Unpack recognizer objects@>@;
+    INPUT t_input;
+@
+@<Unpack bocage objects@> =
+    const INPUT input = I_of_B(b);
+    const GRAMMAR g = G_of_I(input);
 
 @*0 The Bocage Obstack.
 An obstack with the lifetime of the bocage.
@@ -10336,7 +10347,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Declare bocage locals@>@;
     @<Return if function guards fail@>@;
     b = B_of_R(r) = g_slice_new(struct s_bocage);
-    R_of_B(b) = r;
+    I_of_B(b) = I_of_R(r);
     @<Initialize bocage elements@>@;
     if (G_is_Trivial(g)) {
         if (ordinal_arg > 0) goto B_NEW_ERROR;
@@ -10351,7 +10362,6 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Set |completed_start_rule|@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     if (!start_eim) goto B_NEW_ERROR;
-    Phase_of_R(r) = evaluation_phase;
     obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
     @<Populate the PSIA data@>@;
@@ -10359,6 +10369,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Create the final and-nodes for all earley sets@>@;
     @<Set top or node id in |b|@>;
     obstack_free(&bocage_setup_obs, NULL);
+    r_ref(r);
     return b;
     B_NEW_ERROR: ;
     @<Destroy bocage elements, all phases@>;
@@ -10406,7 +10417,6 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
       R_DEV_ERROR ("recce not evaluation-ready");
       return failure_indicator;
     case input_phase:
-    case evaluation_phase:
       break;
     }
 }
@@ -10597,64 +10607,82 @@ Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b)
   return Top_ORID_of_B(b);
 }
 
+@*0 Reference Counting and Destructors.
+@ @<Int aligned bocage elements@>= gint ref_count;
+@ @<Initialize bocage elements@> =
+b->ref_count = 1;
+
+@ Decrement the bocage reference count.
+@<Private function prototypes@> =
+static inline void b_unref (BOCAGE b);
+@ @<Function definitions@> =
+static inline void
+b_unref (BOCAGE b)
+{
+  MARPA_ASSERT (b->ref_count > 0)
+  b->ref_count--;
+  if (b->ref_count <= 0)
+    {
+      b_free(b);
+    }
+}
+void
+marpa_b_unref (Marpa_Bocage b)
+{
+   b_unref(b);
+}
+
+@ Increment the bocage reference count.
+@<Private function prototypes@> =
+static inline BOCAGE b_ref (BOCAGE b);
+@ @<Function definitions@> =
+static inline BOCAGE
+b_ref (BOCAGE b)
+{
+  MARPA_ASSERT(b->ref_count > 0)
+  b->ref_count++;
+  return b;
+}
+Marpa_Bocage
+marpa_b_ref (Marpa_Bocage b)
+{
+   return b_ref(b);
+}
+
 @*0 Bocage Destruction.
 @<Destroy bocage elements, all phases@> =
 @<Destroy bocage elements, main phase@>;
 @<Destroy bocage elements, final phase@>;
 
-@ Destroy the bocage elements when I destroy the recognizer.
-@<Destroy recognizer elements@> =
-{
-    BOCAGE b = B_of_R(r);
-    if (b) bocage_destroy(b);
-    B_of_R(r) = NULL;
-}
-
 @ This function is safe to call even
 if the bocage already has been freed,
 or was never initialized.
-@<Public function prototypes@> =
-gint marpa_b_free(Marpa_Bocage b);
+@<Private function prototypes@> =
+gint b_free(BOCAGE b);
 @ @<Function definitions@> =
-gint marpa_b_free(Marpa_Bocage b) {
+gint b_free(BOCAGE b) {
     @<Return |-2| on failure@>@;
       @<Unpack bocage objects@>@;
     @<Fail if fatal error@>@;
-    if (Phase_of_R(r) == evaluation_phase) { /* Reset phase if evaluating.
-	    Otherwise leave phase untouched */
-	Phase_of_R(r) = input_phase;
+    if (b) {
+	@<Destroy bocage elements, all phases@>;
+	g_slice_free(struct s_bocage, b);
     }
-    if (b) bocage_destroy(b);
-    B_of_R(r) = NULL;
     return 1;
-}
-
-@ @<Private function prototypes@> =
-static inline void bocage_destroy(BOCAGE b);
-@ @<Function definitions@> =
-static inline void bocage_destroy(BOCAGE b)
-{
-    @<Destroy bocage elements, all phases@>;
-    g_slice_free(struct s_bocage, b);
 }
 
 @*0 Trace Functions.
 
 @ This is common logic in the or-node trace functions.
-@<Check |r| and |or_node_id|; set |or_node|@> = {
+@<Check |or_node_id|; set |or_node|@> = {
   OR* or_nodes;
-  @<Fail if fatal error@>@;
-  if (!b) {
-      R_DEV_ERROR("no bocage");
-      return failure_indicator;
-  }
   or_nodes = ORs_of_B(b);
   if (!or_nodes) {
-      R_DEV_ERROR("no or nodes");
+      MARPA_DEV_ERROR("no or nodes");
       return failure_indicator;
   }
   if (or_node_id < 0) {
-      R_DEV_ERROR("bad or node id");
+      MARPA_DEV_ERROR("bad or node id");
       return failure_indicator;
   }
   if (or_node_id >= OR_Count_of_B(b)) {
@@ -10673,7 +10701,8 @@ gint marpa_b_or_node_set(Marpa_Bocage b, int or_node_id)
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
   return ES_Ord_of_OR(or_node);
 }
 
@@ -10685,7 +10714,8 @@ gint marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id)
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
   return Origin_Ord_of_OR(or_node);
 }
 
@@ -10697,7 +10727,8 @@ gint marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id)
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
   return ID_of_RULE(RULE_of_OR(or_node));
 }
 
@@ -10709,7 +10740,8 @@ gint marpa_b_or_node_position(Marpa_Bocage b, int or_node_id)
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
   return Position_of_OR(or_node);
 }
 
@@ -10721,7 +10753,8 @@ gint marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id)
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node);
 }
 
@@ -10733,7 +10766,8 @@ gint marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id)
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node)
       + AND_Count_of_OR(or_node) - 1;
 }
@@ -10746,7 +10780,8 @@ gint marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id)
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
   return AND_Count_of_OR(or_node);
 }
 
@@ -11204,11 +11239,6 @@ immediate child of the specified or-node,
 or if the and-node is specified twice,
 or if an ordering has already been specified for
 the or-node.
-@<Public function prototypes@> =
-gint marpa_o_and_order_set(struct marpa_r *r,
-    Marpa_Or_Node_ID or_node_id,
-    Marpa_And_Node_ID* and_node_ids,
-    gint length);
 @ For a given bocage,
 this function may not be used to order
 the same or-node more than once.
@@ -11250,7 +11280,7 @@ A purist might insist this needs to be reflected in a structure,
 but to my mind doing this portably makes the code more obscure,
 not less.
 @<Function definitions@> =
-gint marpa_o_and_order_set(struct marpa_r *r,
+gint marpa_o_and_order_set(Marpa_Bocage b,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
     gint length)
@@ -11258,9 +11288,9 @@ gint marpa_o_and_order_set(struct marpa_r *r,
     OR or_node;
     ORDER order;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
-    BOCAGE b = B_of_R(r);
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
     {
       ANDID** and_node_orderings;
       Bit_Vector and_node_in_use;
@@ -11273,7 +11303,7 @@ gint marpa_o_and_order_set(struct marpa_r *r,
 	obs = &OBS_of_ORDER(order);
 	if (and_node_orderings && !and_node_in_use)
 	{
-	  R_DEV_ERROR("order frozen");
+	  MARPA_DEV_ERROR("order frozen");
 	  return failure_indicator;
 	}
 	if (!and_node_orderings)
@@ -11300,19 +11330,19 @@ gint marpa_o_and_order_set(struct marpa_r *r,
 		  ANDID and_node_id = and_node_ids[and_ix];
 		  if (and_node_id < first_and_node_id ||
 			  and_node_id - first_and_node_id >= and_count_of_or) {
-		      R_DEV_ERROR ("and node not in or node");
+		      MARPA_DEV_ERROR ("and node not in or node");
 		      return failure_indicator;
 		    }
 		  if (bv_bit_test (and_node_in_use, (guint)and_node_id))
 		    {
-		      R_DEV_ERROR ("dup and node");
+		      MARPA_DEV_ERROR ("dup and node");
 		      return failure_indicator;
 		    }
 		  bv_bit_set (and_node_in_use, (guint)and_node_id);
 		}
 	    }
 	    if (and_node_orderings[or_node_id]) {
-		      R_DEV_ERROR ("or node already ordered");
+		      MARPA_DEV_ERROR ("or node already ordered");
 		      return failure_indicator;
 	    }
 	    {
@@ -11332,8 +11362,6 @@ gint marpa_o_and_order_set(struct marpa_r *r,
 @*0 Get an And-node by Order within its Or-Node.
 @ @<Private function prototypes@> =
 static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix);
-@ @<Public function prototypes@> =
-Marpa_And_Node_ID marpa_o_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix);
 @ @<Function definitions@> =
 static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix)
 {
@@ -11360,15 +11388,16 @@ static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix)
   return First_ANDID_of_OR(or_node) + ix;
 }
 
-Marpa_And_Node_ID marpa_o_and_order_get(struct marpa_r *r, Marpa_Or_Node_ID or_node_id, gint ix)
+Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Bocage b,
+    Marpa_Or_Node_ID or_node_id, gint ix)
 {
     OR or_node;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
-      BOCAGE b = B_of_R (r);
-    @<Check |r| and |or_node_id|; set |or_node|@>@;
+  @<Unpack bocage objects@>
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
   if (ix < 0) {
-      R_DEV_ERROR("negative and ix");
+      MARPA_DEV_ERROR("negative and ix");
       return failure_indicator;
   }
     return and_order_get(b, or_node, ix);
@@ -13082,7 +13111,6 @@ switch (Phase_of_R (r))
     R_DEV_ERROR ("recce not trace-safe");
     return failure_indicator;
   case input_phase:
-  case evaluation_phase:
     break;
   }
 
