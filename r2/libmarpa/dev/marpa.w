@@ -11314,7 +11314,7 @@ A purist might insist this needs to be reflected in a structure,
 but to my mind doing this portably makes the code more obscure,
 not less.
 @<Function definitions@> =
-gint marpa_o_and_order_set(Marpa_Bocage b,
+gint marpa_o_and_order_set(Marpa_Recognizer r,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
     gint length)
@@ -11322,8 +11322,13 @@ gint marpa_o_and_order_set(Marpa_Bocage b,
     OR or_node;
     ORDER order;
   @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
+  @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
+  BOCAGE b = B_of_R(r);
+  if (!b) {
+      MARPA_DEV_ERROR("no bocage");
+      return failure_indicator;
+  }
     @<Check |or_node_id|; set |or_node|@>@;
     {
       ANDID** and_node_orderings;
@@ -11422,12 +11427,17 @@ static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix)
   return First_ANDID_of_OR(or_node) + ix;
 }
 
-Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Bocage b,
+Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Recognizer r,
     Marpa_Or_Node_ID or_node_id, gint ix)
 {
     OR or_node;
   @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>
+  @<Unpack recognizer objects@>
+  BOCAGE b = B_of_R(r);
+  if (!b) {
+      MARPA_DEV_ERROR("no bocage");
+      return failure_indicator;
+  }
   @<Fail if fatal error@>@;
     @<Check |or_node_id|; set |or_node|@>@;
   if (ix < 0) {
