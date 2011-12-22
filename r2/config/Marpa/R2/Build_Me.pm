@@ -165,19 +165,24 @@ sub process_xs {
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
 
-    my $marpa_h =
-        File::Spec->catdir( $self->base_dir(), qw(libmarpa install include marpa.h) );
-    my $error_h = File::Spec->catdir( $self->base_dir(), qw(libmarpa install share error.h) );
-    my $error_c = File::Spec->catdir( $self->base_dir(), qw(libmarpa install share error.c) );
-    if (not $self->up_to_date(
-            [ 'typemap', 'Build', $marpa_h, $error_h, $error_c, $xs_file ],
-            $spec->{c_file}
-        )
-        )
-    {
+    my $xs_dir = File::Spec->catdir( $self->base_dir(), 'xs' );
+    my $xs_include_dir =
+        File::Spec->catdir( $self->base_dir(), qw(xs include) );
+    -d $xs_include_dir or mkdir $xs_include_dir;
+    my $libmarpa_build_dir =
+        File::Spec->catdir( $self->base_dir(), qw(libmarpa build) );
+    my @xs_dependencies = ( 'typemap', 'Build', $xs_file );
+    for my $file (qw(marpa.h error.h error.c)) {
+        my $from_file = File::Spec->catfile( $libmarpa_build_dir, $file );
+        my $to_file   = File::Spec->catfile( $xs_include_dir,     $file );
+        $self->copy_if_modified( from => $from_file, to => $to_file );
+        push @xs_dependencies, $to_file;
+    } ## end for my $file (qw(marpa.h error.h error.c))
+
+    if ( not $self->up_to_date( \@xs_dependencies, $spec->{c_file} ) ) {
         $self->verbose() and say "compiling $xs_file";
         $self->compile_xs( $xs_file, outfile => $spec->{c_file} );
-    } ## end if ( not $self->up_to_date( [ 'typemap', 'Build', $marpa_h...]))
+    }
 
     # .c -> .o
     my $v = $self->dist_version;
@@ -206,30 +211,14 @@ sub process_xs {
     # finalize libmarpa.a
     my $libmarpa_libs_dir =
         File::Spec->catdir( $self->base_dir(), qw(libmarpa build .libs) );
-    my $unfinished_libmarpa_a =
-        File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
-    my $xs_dir = File::Spec->catdir( $self->base_dir(), 'xs' );
-    my $final_libmarpa_a = File::Spec->catfile( $xs_dir, 'libmarpa.a' );
-    if ( not $self->up_to_date( $unfinished_libmarpa_a, $final_libmarpa_a ) )
-    {
-        File::Copy::syscopy( $unfinished_libmarpa_a, $final_libmarpa_a );
-        my $ranlib = $Config{ranlib};
-        if ( $ranlib ne q{:} ) {
-            if (not IPC::Cmd::run(
-                    command =>
-                        [ ( split /\s+/xms, $ranlib ), $final_libmarpa_a ],
-                    verbose => 1
-                )
-                )
-            {
-                say {*STDERR} "Failed: $ranlib $final_libmarpa_a"
-                    or die "say failed: $ERRNO";
-                die 'Cannot run libmarpa ranlib';
-            } ## end if ( not IPC::Cmd::run( command => [ ( split /\s+/xms...)]))
-        } ## end if ( $ranlib ne q{:} )
-    } ## end if ( not $self->up_to_date( $unfinished_libmarpa_a, ...))
 
-    push @{ $self->{properties}->{objects} }, $final_libmarpa_a;
+    for my $object (qw(libmarpa_la-marpa.o libmarpa_la-marpa_obs.o)) {
+	my $from_object =
+	    File::Spec->catfile( $libmarpa_libs_dir, $object );
+	my $to_object = File::Spec->catfile( $xs_dir, $object );
+	$self->copy_if_modified(from => $from_object, to => $to_object);
+	push @{ $self->{properties}->{objects} }, $to_object;
+    }
 
     # .xs -> .bs
     $self->add_to_cleanup( $spec->{bs_file} );
@@ -304,7 +293,7 @@ sub do_libmarpa {
     -d $install_dir or mkdir $install_dir;
 
         if (not IPC::Cmd::run(
-                command => [ $shell, $configure_script, "--prefix=$install_dir" ],
+                command => [ $shell, $configure_script ],
                 verbose => 1
             )
             )
@@ -334,8 +323,7 @@ sub do_libmarpa {
     }
     die 'Making libmarpa: make Failure'
         if not IPC::Cmd::run( command => ['make'], verbose => 1 );
-    die 'Making libmarpa: make Failure'
-        if not IPC::Cmd::run( command => ['make', 'install'], verbose => 1 );
+
     chdir $cwd;
     return 1;
 

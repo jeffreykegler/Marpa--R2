@@ -111,19 +111,17 @@ my @files_to_cleanup = (
 );
 
 my $build = Marpa::R2::Build_Me->new(
-    add_to_cleanup       => \@files_to_cleanup,
-    module_name          => 'Marpa::R2',
-    dist_author          => 'Jeffrey Kegler',
-    dist_abstract        => 'Release 2 of Marpa',
-    recommends           => \%recommends,
-    requires             => \%requires,
-    configure_requires   => \%configure_requires,
-    build_requires       => \%build_requires,
-    dynamic_config       => 1,
-    extra_compiler_flags => (
-              "$glib_2_0_compiler_flags -I$gperl_h_location "
-            . "-Ilibmarpa/install/share -Ilibmarpa/install/include"
-    ),
+    add_to_cleanup     => \@files_to_cleanup,
+    module_name        => 'Marpa::R2',
+    dist_author        => 'Jeffrey Kegler',
+    dist_abstract      => 'Release 2 of Marpa',
+    recommends         => \%recommends,
+    requires           => \%requires,
+    configure_requires => \%configure_requires,
+    build_requires     => \%build_requires,
+    dynamic_config     => 1,
+    extra_compiler_flags =>
+        ( "$glib_2_0_compiler_flags -I$gperl_h_location -Ixs/include " ),
     extra_linker_flags => "$glib_2_0_linker_flags",
     PL_files           => {},
     pm_files           => \%pm_files,
