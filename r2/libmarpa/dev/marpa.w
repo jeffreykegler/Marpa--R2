@@ -10312,7 +10312,7 @@ B_of_R(r) = NULL;
 
 @<Unpack bocage objects@> =
     const INPUT input = I_of_B(b);
-    const GRAMMAR g = G_of_I(input);
+    const GRAMMAR g G_GNUC_UNUSED = G_of_I(input);
 
 @*0 The Bocage Obstack.
 An obstack with the lifetime of the bocage.
@@ -11327,8 +11327,8 @@ gint marpa_o_and_order_set(Marpa_Recognizer r,
     ORDER order;
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
-  @<Fail if fatal error@>@;
   BOCAGE b = B_of_R(r);
+  @<Fail if fatal error@>@;
   if (!b) {
       MARPA_DEV_ERROR("no bocage");
       return failure_indicator;

@@ -51,16 +51,16 @@ no_index:
 provides:
   Marpa::R2:
     file: lib/Marpa/R2.pm
-    version: 0.001_011
+    version: 0.001_012
   Marpa::R2::Grammar:
     file: lib/Marpa/R2/Grammar.pm
-    version: 0.001_011
+    version: 0.001_012
   Marpa::R2::HTML:
     file: html/lib/Marpa/R2/HTML.pm
-    version: 0.001_011
+    version: 0.001_012
   Marpa::R2::HTML::Callback:
     file: html/lib/Marpa/R2/HTML/Callback.pm
-    version: 0.001_011
+    version: 0.001_012
   Marpa::R2::HTML::Internal:
     file: html/lib/Marpa/R2/HTML.pm
     version: 0
@@ -69,7 +69,7 @@ provides:
     version: 0
   Marpa::R2::Internal:
     file: lib/Marpa/R2/Internal.pm
-    version: 0.001_011
+    version: 0.001_012
   Marpa::R2::Internal::Grammar:
     file: lib/Marpa/R2/Grammar.pm
     version: 0
@@ -81,10 +81,10 @@ provides:
     version: 0
   Marpa::R2::Recognizer:
     file: lib/Marpa/R2/Recognizer.pm
-    version: 0.001_011
+    version: 0.001_012
   Marpa::R2::Value:
     file: lib/Marpa/R2/Value.pm
-    version: 0.001_011
+    version: 0.001_012
 recommends:
   HTML::Entities: 3.68
   HTML::Parser: 3.64
@@ -101,4 +101,4 @@ requires:
   Task::Weaken: 0
 resources:
   repository: git://github.com/jeffreykegler/Marpa-R2.git
-version: 0.001_011
+version: 0.001_012
