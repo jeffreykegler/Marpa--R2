@@ -1974,10 +1974,11 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::B_C
 
 void
-new( r_wrapper, rule_id, ordinal )
-     R_Wrapper *r_wrapper;
-     Marpa_Rule_ID rule_id;
-     Marpa_Earley_Set_ID ordinal;
+new( class, r_wrapper, rule_id, ordinal )
+    char * class;
+    R_Wrapper *r_wrapper;
+    Marpa_Rule_ID rule_id;
+    Marpa_Earley_Set_ID ordinal;
 PPCODE:
 {
   SV *sv;

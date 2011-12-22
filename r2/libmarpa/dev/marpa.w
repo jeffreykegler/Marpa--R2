@@ -10350,16 +10350,18 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Return |NULL| on failure@>@;
     @<Declare bocage locals@>@;
     @<Return if function guards fail@>@;
-    b = B_of_R(r) = g_slice_new(struct s_bocage);
-    if (b) {
+    if (B_of_R(r)) {
 	R_DEV_ERROR ("bocage already set");
 	goto B_NEW_RETURN_ERROR;
     }
-    r_ref(r);
+    b = B_of_R(r) = g_slice_new(struct s_bocage);
+    @<Initialize bocage elements@>@;
     I_of_B(b) = I_of_R(r);
+
     /* Remove |R_of_B| and |t_recce| after interface conversion */
     R_of_B(b) = r;
-    @<Initialize bocage elements@>@;
+    r_ref(r);
+
     if (G_is_Trivial(g)) {
         if (ordinal_arg > 0) goto B_NEW_RETURN_ERROR;
 	return r_create_null_bocage(r, b);
@@ -10384,7 +10386,9 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     B_NEW_RETURN_ERROR: ;
     r_unref(r);
     B_of_R(r) = NULL;
-    @<Destroy bocage elements, all phases@>;
+    if (b) {
+	@<Destroy bocage elements, all phases@>;
+    }
     return NULL;
 }
 
