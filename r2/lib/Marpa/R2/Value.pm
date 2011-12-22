@@ -45,38 +45,39 @@ sub Marpa::R2::Recognizer::show_bocage {
     my @data        = ();
     my $id          = 0;
     my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
-        my $rule = $recce_c->or_node_rule($or_node_id);
+        my $rule = $bocage->or_node_rule($or_node_id);
         last OR_NODE if not defined $rule;
-        my $position        = $recce_c->or_node_position($or_node_id);
-        my $or_origin       = $recce_c->or_node_origin($or_node_id);
+        my $position        = $bocage->or_node_position($or_node_id);
+        my $or_origin       = $bocage->or_node_origin($or_node_id);
         my $origin_earleme  = $recce_c->earleme($or_origin);
-        my $or_set          = $recce_c->or_node_set($or_node_id);
+        my $or_set          = $bocage->or_node_set($or_node_id);
         my $current_earleme = $recce_c->earleme($or_set);
         my @and_node_ids =
-            ( $recce_c->or_node_first_and($or_node_id)
-                .. $recce_c->or_node_last_and($or_node_id) );
+            ( $bocage->or_node_first_and($or_node_id)
+                .. $bocage->or_node_last_and($or_node_id) );
         AND_NODE:
 
         for my $and_node_id (@and_node_ids) {
-            my $symbol = $recce_c->and_node_symbol($and_node_id);
+            my $symbol = $bocage->and_node_symbol($and_node_id);
             my $cause_tag;
 
             if ( defined $symbol ) {
                 $cause_tag = "S$symbol";
             }
             my $cause_rule = -1;
-            my $cause_id   = $recce_c->and_node_cause($and_node_id);
+            my $cause_id   = $bocage->and_node_cause($and_node_id);
             if ( defined $cause_id ) {
-                $cause_rule = $recce_c->or_node_rule($cause_id);
+                $cause_rule = $bocage->or_node_rule($cause_id);
                 $cause_tag =
                     Marpa::R2::Recognizer::or_node_tag( $recce, $cause_id );
             }
             my $parent_tag =
                 Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
-            my $predecessor_id = $recce_c->and_node_predecessor($and_node_id);
+            my $predecessor_id = $bocage->and_node_predecessor($and_node_id);
             my $predecessor_tag = q{-};
             if ( defined $predecessor_id ) {
                 $predecessor_tag = Marpa::R2::Recognizer::or_node_tag( $recce,
@@ -85,7 +86,7 @@ sub Marpa::R2::Recognizer::show_bocage {
             my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
             my $middle_earleme = $origin_earleme;
             if ( defined $predecessor_id ) {
-                my $predecessor_set = $recce_c->or_node_set($predecessor_id);
+                my $predecessor_set = $bocage->or_node_set($predecessor_id);
                 $middle_earleme = $recce_c->earleme($predecessor_set);
             }
 
@@ -111,21 +112,22 @@ sub Marpa::R2::Recognizer::show_bocage {
 
 sub Marpa::R2::Recognizer::and_node_tag {
     my ( $recce, $and_node_id ) = @_;
+    my $bocage             = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $recce_c            = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $parent_or_node_id  = $recce_c->and_node_parent($and_node_id);
-    my $origin             = $recce_c->or_node_origin($parent_or_node_id);
+    my $parent_or_node_id  = $bocage->and_node_parent($and_node_id);
+    my $origin             = $bocage->or_node_origin($parent_or_node_id);
     my $origin_earleme     = $recce_c->earleme($origin);
-    my $current_earley_set = $recce_c->or_node_set($parent_or_node_id);
+    my $current_earley_set = $bocage->or_node_set($parent_or_node_id);
     my $current_earleme    = $recce_c->earleme($current_earley_set);
-    my $cause_id           = $recce_c->and_node_cause($and_node_id);
-    my $predecessor_id     = $recce_c->and_node_predecessor($and_node_id);
+    my $cause_id           = $bocage->and_node_cause($and_node_id);
+    my $predecessor_id     = $bocage->and_node_predecessor($and_node_id);
     my $middle_earleme     = $origin_earleme;
     if ( defined $predecessor_id ) {
-        my $middle_set = $recce_c->or_node_set($predecessor_id);
+        my $middle_set = $bocage->or_node_set($predecessor_id);
         $middle_earleme = $recce_c->earleme($middle_set);
     }
-    my $position = $recce_c->or_node_position($parent_or_node_id);
-    my $rule     = $recce_c->or_node_rule($parent_or_node_id);
+    my $position = $bocage->or_node_position($parent_or_node_id);
+    my $rule     = $bocage->or_node_rule($parent_or_node_id);
 
 #<<<  perltidy introduces trailing space on this
     my $tag =
@@ -136,11 +138,11 @@ sub Marpa::R2::Recognizer::and_node_tag {
         . $current_earleme;
 #>>>
     if ( defined $cause_id ) {
-        my $cause_rule = $recce_c->or_node_rule($cause_id);
+        my $cause_rule = $bocage->or_node_rule($cause_id);
         $tag .= 'C' . $cause_rule;
     }
     else {
-        my $symbol = $recce_c->and_node_symbol($and_node_id);
+        my $symbol = $bocage->and_node_symbol($and_node_id);
         $tag .= 'S' . $symbol;
     }
     $tag .= q{@} . $middle_earleme;
@@ -150,24 +152,25 @@ sub Marpa::R2::Recognizer::and_node_tag {
 sub Marpa::R2::Recognizer::show_and_nodes {
     my ($recce) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $text;
     my @data = ();
     AND_NODE: for ( my $id = 0;; $id++ ) {
-        my $parent      = $recce_c->and_node_parent($id);
-        my $predecessor = $recce_c->and_node_predecessor($id);
-        my $cause       = $recce_c->and_node_cause($id);
-        my $symbol      = $recce_c->and_node_symbol($id);
+        my $parent      = $bocage->and_node_parent($id);
+        my $predecessor = $bocage->and_node_predecessor($id);
+        my $cause       = $bocage->and_node_cause($id);
+        my $symbol      = $bocage->and_node_symbol($id);
         last AND_NODE if not defined $parent;
-        my $origin          = $recce_c->or_node_origin($parent);
-        my $set             = $recce_c->or_node_set($parent);
-        my $rule            = $recce_c->or_node_rule($parent);
-        my $position        = $recce_c->or_node_position($parent);
+        my $origin          = $bocage->or_node_origin($parent);
+        my $set             = $bocage->or_node_set($parent);
+        my $rule            = $bocage->or_node_rule($parent);
+        my $position        = $bocage->or_node_position($parent);
         my $origin_earleme  = $recce_c->earleme($origin);
         my $current_earleme = $recce_c->earleme($set);
         my $middle_earleme  = $origin_earleme;
 
         if ( defined $predecessor ) {
-            my $predecessor_set = $recce_c->or_node_set($predecessor);
+            my $predecessor_set = $bocage->or_node_set($predecessor);
             $middle_earleme = $recce_c->earleme($predecessor_set);
         }
 
@@ -181,7 +184,7 @@ sub Marpa::R2::Recognizer::show_and_nodes {
 #>>>
         my $cause_rule = -1;
         if ( defined $cause ) {
-            $cause_rule = $recce_c->or_node_rule($cause);
+            $cause_rule = $bocage->or_node_rule($cause);
             $desc .= 'C' . $cause_rule;
         }
         else {
@@ -209,25 +212,26 @@ sub Marpa::R2::Recognizer::show_and_nodes {
 
 sub Marpa::R2::Recognizer::or_node_tag {
     my ( $recce, $or_node_id ) = @_;
-    my $recce_c  = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $set      = $recce_c->or_node_set($or_node_id);
-    my $rule     = $recce_c->or_node_rule($or_node_id);
-    my $origin   = $recce_c->or_node_origin($or_node_id);
-    my $position = $recce_c->or_node_position($or_node_id);
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $set      = $bocage->or_node_set($or_node_id);
+    my $rule     = $bocage->or_node_rule($or_node_id);
+    my $origin   = $bocage->or_node_origin($or_node_id);
+    my $position = $bocage->or_node_position($or_node_id);
     return 'R' . $rule . q{:} . $position . q{@} . $origin . q{-} . $set;
 } ## end sub Marpa::R2::Recognizer::or_node_tag
 
 sub Marpa::R2::Recognizer::show_or_nodes {
     my ( $recce, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $text;
     my @data = ();
     my $id   = 0;
     OR_NODE: for ( ;; ) {
-        my $origin   = $recce_c->or_node_origin($id);
-        my $set      = $recce_c->or_node_set($id);
-        my $rule     = $recce_c->or_node_rule($id);
-        my $position = $recce_c->or_node_position($id);
+        my $origin   = $bocage->or_node_origin($id);
+        my $set      = $bocage->or_node_set($id);
+        my $rule     = $bocage->or_node_rule($id);
+        my $position = $bocage->or_node_position($id);
         $id++;
         last OR_NODE if not defined $origin;
         my $origin_earleme  = $recce_c->earleme($origin);
@@ -577,7 +581,7 @@ sub do_high_rule_only {
             last AND_DATUM if $chaf_rank < $high_chaf_rank;
             push @selected_and_nodes, $and_node;
         } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
-        $bocage->and_node_order_set( $or_node, \@selected_and_nodes );
+        $recce_c->and_node_order_set( $or_node, \@selected_and_nodes );
         push @or_nodes, grep {defined} map {
             (   $bocage->and_node_predecessor($_),
                 $bocage->and_node_cause($_)
@@ -617,21 +621,21 @@ sub do_rank_by_rule {
         last OR_NODE if not defined $or_node;
         next OR_NODE if vec $seen, $or_node, 1;
         vec( $seen, $or_node, 1 ) = 1;
-        my $first_and_node = $recce_c->or_node_first_and($or_node);
-        my $last_and_node  = $recce_c->or_node_last_and($or_node);
+        my $first_and_node = $bocage->or_node_first_and($or_node);
+        my $last_and_node  = $bocage->or_node_last_and($or_node);
         my @ranking_data   = ();
         my @and_nodes      = $first_and_node .. $last_and_node;
         AND_NODE:
 
         for my $and_node (@and_nodes) {
-            my $token = $recce_c->and_node_symbol($and_node);
+            my $token = $bocage->and_node_symbol($and_node);
             if ( defined $token ) {
                 push @ranking_data,
                     [ $and_node, $rank_by_symbol[$token], 99 ];
                 next AND_NODE;
             }
-            my $cause   = $recce_c->and_node_cause($and_node);
-            my $rule_id = $recce_c->or_node_rule($cause);
+            my $cause   = $bocage->and_node_cause($and_node);
+            my $rule_id = $bocage->or_node_rule($cause);
             my $rule    = $rules->[$rule_id];
             push @ranking_data,
                 [
@@ -648,8 +652,8 @@ sub do_rank_by_rule {
 
         $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
         push @or_nodes, grep {defined} map {
-            (   $recce_c->and_node_predecessor($_),
-                $recce_c->and_node_cause($_)
+            (   $bocage->and_node_predecessor($_),
+                $bocage->and_node_cause($_)
                 )
         } @ranked_and_nodes;
     } ## end while ( my $or_node = pop @or_nodes )
@@ -660,6 +664,7 @@ sub do_rank_by_rule {
 sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
     my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_values =
@@ -783,12 +788,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             my $choice     = $recce_c->fork_choice($fork_ix);
             my $and_node_id =
                 $recce_c->and_node_order_get( $or_node_id, $choice );
-            my $trace_rule_id = $recce_c->or_node_rule($or_node_id);
+            my $trace_rule_id = $bocage->or_node_rule($or_node_id);
             my $virtual_rhs = $grammar_c->rule_is_virtual_rhs($trace_rule_id);
             my $virtual_lhs = $grammar_c->rule_is_virtual_lhs($trace_rule_id);
 
             next EVENT
-                if $recce_c->or_node_position($or_node_id)
+                if $bocage->or_node_position($or_node_id)
                     != $grammar_c->rule_length($trace_rule_id);
 
             if ( not $virtual_rhs and not $virtual_lhs ) {
