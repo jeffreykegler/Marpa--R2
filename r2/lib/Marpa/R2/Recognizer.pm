@@ -34,7 +34,8 @@ BEGIN {
 
     :package=Marpa::R2::Internal::Recognizer
 
-    C { A C structure }
+    C { C structure for the recognizer }
+    B_C { C structure for the bocage }
 
     GRAMMAR { the grammar used }
     FINISHED
@@ -186,14 +187,9 @@ use constant RECOGNIZER_OPTIONS => [
 
 sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $result  = $recce_c->bocage_clear();
-    if ( not defined $result ) {
-        Marpa::R2::exception("bocage_clear() failed\n");
-    }
+    $recce->[Marpa::R2::Internal::Recognizer::B_C]            = undef;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]  = [];
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CONSTANTS] = [];
-
     return;
 } ## end sub Marpa::R2::Recognizer::reset_evaluation
 

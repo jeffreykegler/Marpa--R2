@@ -515,12 +515,13 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 sub do_high_rule_only {
     my ($recce)   = @_;
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
 
-    my @or_nodes = ( $recce_c->top_or_node() );
+    my @or_nodes = ( $bocage->top_or_node() );
 
     # Set up ranks by symbol
     my @rank_by_symbol = ();
@@ -537,22 +538,22 @@ sub do_high_rule_only {
     }    # end for my $rule ( @{$rules} )
 
     OR_NODE: for ( my $or_node = 0;; $or_node++ ) {
-        my $first_and_node = $recce_c->or_node_first_and($or_node);
+        my $first_and_node = $bocage->or_node_first_and($or_node);
         last OR_NODE if not defined $first_and_node;
-        my $last_and_node = $recce_c->or_node_last_and($or_node);
+        my $last_and_node = $bocage->or_node_last_and($or_node);
         my @ranking_data  = ();
         my @and_nodes     = $first_and_node .. $last_and_node;
         AND_NODE:
 
         for my $and_node (@and_nodes) {
-            my $token = $recce_c->and_node_symbol($and_node);
+            my $token = $bocage->and_node_symbol($and_node);
             if ( defined $token ) {
                 push @ranking_data,
                     [ $and_node, $rank_by_symbol[$token], 99 ];
                 next AND_NODE;
             }
-            my $cause   = $recce_c->and_node_cause($and_node);
-            my $rule_id = $recce_c->or_node_rule($cause);
+            my $cause   = $bocage->and_node_cause($and_node);
+            my $rule_id = $bocage->or_node_rule($cause);
             my $rule    = $rules->[$rule_id];
             push @ranking_data,
                 [
@@ -576,10 +577,10 @@ sub do_high_rule_only {
             last AND_DATUM if $chaf_rank < $high_chaf_rank;
             push @selected_and_nodes, $and_node;
         } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
-        $recce_c->and_node_order_set( $or_node, \@selected_and_nodes );
+        $bocage->and_node_order_set( $or_node, \@selected_and_nodes );
         push @or_nodes, grep {defined} map {
-            (   $recce_c->and_node_predecessor($_),
-                $recce_c->and_node_cause($_)
+            (   $bocage->and_node_predecessor($_),
+                $bocage->and_node_cause($_)
                 )
         } @selected_and_nodes;
     } ## end for ( my $or_node = 0;; $or_node++ )
@@ -589,12 +590,13 @@ sub do_high_rule_only {
 sub do_rank_by_rule {
     my ($recce)   = @_;
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
 
-    my @or_nodes = ( $recce_c->top_or_node() );
+    my @or_nodes = ( $bocage->top_or_node() );
 
     # Set up ranks by symbol
     my @rank_by_symbol = ();
@@ -965,10 +967,11 @@ sub Marpa::R2::Recognizer::value {
             Marpa::R2::Internal::Recognizer::set_null_values($recce);
         Marpa::R2::Internal::Recognizer::set_actions($recce);
 
-        $recce_c->bocage_clear();
-	my $result = $recce_c->bocage_setup( -1, ( $parse_set_arg // -1 ) );
+        my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+            Marpa::R2::Internal::B_C->new( $recce_c, -1,
+            ( $parse_set_arg // -1 ) );
 
-        return if not defined $result;
+        return if not defined $bocage;
 
         given ( $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] ) {
             when ('high_rule_only') { do_high_rule_only($recce); }
