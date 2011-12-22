@@ -45,7 +45,7 @@ sub Marpa::R2::Recognizer::show_bocage {
     my @data        = ();
     my $id          = 0;
     my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
@@ -77,7 +77,7 @@ sub Marpa::R2::Recognizer::show_bocage {
             }
             my $parent_tag =
                 Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
-            my $predecessor_id = $bocage->and_node_predecessor($and_node_id);
+            my $predecessor_id  = $bocage->and_node_predecessor($and_node_id);
             my $predecessor_tag = q{-};
             if ( defined $predecessor_id ) {
                 $predecessor_tag = Marpa::R2::Recognizer::or_node_tag( $recce,
@@ -152,7 +152,7 @@ sub Marpa::R2::Recognizer::and_node_tag {
 sub Marpa::R2::Recognizer::show_and_nodes {
     my ($recce) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $text;
     my @data = ();
     AND_NODE: for ( my $id = 0;; $id++ ) {
@@ -212,7 +212,7 @@ sub Marpa::R2::Recognizer::show_and_nodes {
 
 sub Marpa::R2::Recognizer::or_node_tag {
     my ( $recce, $or_node_id ) = @_;
-    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $set      = $bocage->or_node_set($or_node_id);
     my $rule     = $bocage->or_node_rule($or_node_id);
     my $origin   = $bocage->or_node_origin($or_node_id);
@@ -223,7 +223,7 @@ sub Marpa::R2::Recognizer::or_node_tag {
 sub Marpa::R2::Recognizer::show_or_nodes {
     my ( $recce, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $text;
     my @data = ();
     my $id   = 0;
@@ -519,7 +519,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 sub do_high_rule_only {
     my ($recce)   = @_;
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
@@ -583,9 +583,7 @@ sub do_high_rule_only {
         } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
         $recce_c->and_node_order_set( $or_node, \@selected_and_nodes );
         push @or_nodes, grep {defined} map {
-            (   $bocage->and_node_predecessor($_),
-                $bocage->and_node_cause($_)
-                )
+            ( $bocage->and_node_predecessor($_), $bocage->and_node_cause($_) )
         } @selected_and_nodes;
     } ## end for ( my $or_node = 0;; $or_node++ )
     return 1;
@@ -652,9 +650,7 @@ sub do_rank_by_rule {
 
         $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
         push @or_nodes, grep {defined} map {
-            (   $bocage->and_node_predecessor($_),
-                $bocage->and_node_cause($_)
-                )
+            ( $bocage->and_node_predecessor($_), $bocage->and_node_cause($_) )
         } @ranked_and_nodes;
     } ## end while ( my $or_node = pop @or_nodes )
     return 1;
@@ -664,7 +660,7 @@ sub do_rank_by_rule {
 sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
     my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_values =
