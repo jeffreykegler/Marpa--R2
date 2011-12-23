@@ -11431,6 +11431,7 @@ static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix)
   return First_ANDID_of_OR(or_node) + ix;
 }
 
+@ @<Function definitions@> =
 Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Recognizer r,
     Marpa_Or_Node_ID or_node_id, gint ix)
 {
