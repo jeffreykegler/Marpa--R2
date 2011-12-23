@@ -286,9 +286,6 @@ Return value: %NULL if the GLib library is compatible with the
 @deftypefun struct marpa_r* marpa_r_new ( struct marpa_g* @var{g} )
 @end deftypefun
 
-@deftypefun Marpa_Phase marpa_r_phase (struct marpa_r* @var{r})
-@end deftypefun
-
 @deftypefun guint marpa_r_current_earleme (struct marpa_r* @var{r})
 @end deftypefun
 

@@ -1184,22 +1184,6 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (error_code)));
 }
 
-const char *
-phase( r_wrapper )
-    R_Wrapper *r_wrapper;
-PREINIT:
-    Marpa_Phase phase;
-CODE:
-    phase = marpa_r_phase(r_wrapper->r);
-    RETVAL = "unknown";
-    switch(phase) {
-    case no_such_phase: RETVAL = "undefined"; break;
-    case initial_phase: RETVAL = "initial"; break;
-    case input_phase: RETVAL = "read"; break;
-    }
-OUTPUT:
-    RETVAL
-
 Marpa_Earleme
 current_earleme( r_wrapper )
     R_Wrapper *r_wrapper;

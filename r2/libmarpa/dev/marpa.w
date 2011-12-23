@@ -5362,17 +5362,7 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
-    @<Mark |r| exhausted if |g| is trivial@>@;
    return r;
-}
-
-@ If |g| is trivial (allows only the null parse),
-initialize |r| to exhausted.
-@<Mark |r| exhausted if |g| is trivial@> =
-{
-    if (G_is_Trivial(g)) {
-        R_is_Exhausted(r) = 1;
-    }
 }
 
 @*0 Reference Counting and Destructors.
@@ -5445,38 +5435,19 @@ const Marpa_Grammar g = G_of_R(r);
 @<Widely aligned input elements@> =
     struct marpa_g *t_grammar;
 
-@*0 Recognizer Phase.
-The recognizer has phases, such as ``input"
-and ``evaluation",
-and states, such as ``exhausted".
-The main distinction is that the
-phases are mutually exclusive---%
-entering one means leaving another.
-``Exhausted" is not a phase, because when a parser is
-exhausted it may gone into the evaluation phase, then
-return to the input phase,
-All that time it will remain ``exhausted".
-@ {\bf To Do}: @^To Do@>
-Once I refactor the objects, these phases will need to be
-revisited.
-|evaluation_phase| should probably be eliminated at that point,
-assuming that the bocage object can be made independent of
-the recognizer.
-@<Public typedefs@> =
-enum marpa_phase {
-    no_such_phase = 0, // 0 is never a valid phase
-    initial_phase,
-    input_phase
-};
-typedef enum marpa_phase Marpa_Phase;
-@ @d Phase_of_R(r) ((r)->t_phase)
-@<Int aligned recognizer elements@> = 
-Marpa_Phase t_phase;
+@*0 Input Phase.
+The recognizer always has
+an phase: |R_BEFORE_INPUT|,
+|R_DURING_INPUT|
+or |R_AFTER_INPUT|.
+@d R_BEFORE_INPUT 0x1
+@d R_DURING_INPUT 0x2
+@d R_AFTER_INPUT 0x3
+@<Bit aligned recognizer elements@> =
+   guint t_input_phase:2;
+@ @d Input_Phase_of_R(r) ((r)->t_input_phase)
 @ @<Initialize recognizer elements@> =
-Phase_of_R(r) = initial_phase;
-@ @<Function definitions@> =
-Marpa_Phase marpa_r_phase(struct marpa_r* r)
-{ return Phase_of_R(r); }
+    Input_Phase_of_R(r) = R_BEFORE_INPUT;
 
 @*0 Earley Set Container.
 @d First_ES_of_R(r) ((r)->t_first_earley_set)
@@ -5632,7 +5603,7 @@ gint marpa_r_terminals_expected(struct marpa_r* r, GArray* result)
       @<Unpack recognizer objects@>@;
     guint min, max, start;
     @<Fail if fatal error@>@;
-    @<Fail if recognizer not in input phase@>@;
+    @<Fail if recognizer not started@>@;
     @<Fail if |GArray| elements are not |sizeof(gint)|@>@;
     g_array_set_size(result, 0);
     for (start = 0; bv_scan (r->t_bv_symid_is_expected, start, &min, &max);
@@ -5732,7 +5703,7 @@ struct marpa_r*r, gboolean value)
    @<Unpack recognizer objects@>@;
    @<Return |FALSE| on failure@>@/
     @<Fail if fatal error@>@;
-    @<Fail if recognizer not initial@>@;
+    @<Fail if recognizer started@>@;
     r->t_use_leo_flag = value;
     return TRUE;
 }
@@ -5749,6 +5720,12 @@ earleme at which the parse became exhausted.
 @d R_is_Exhausted(r) ((r)->t_is_exhausted)
 @<Bit aligned recognizer elements@> = guint t_is_exhausted:1;
 @ @<Initialize recognizer elements@> = r->t_is_exhausted = 0;
+@ @<Set |r| exhausted@> = 
+{
+     R_is_Exhausted(r) = 1;
+     Input_Phase_of_R(r) = R_AFTER_INPUT;
+}
+
 @ Exhaustion is a boolean, not a phase.
 Once exhausted a parse stays exhausted,
 even though the phase may change.
@@ -5758,7 +5735,7 @@ gint marpa_r_is_exhausted(struct marpa_r* r)
    @<Unpack recognizer objects@>@;
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
-    return r->t_is_exhausted ? 1 : 0;
+    return R_is_Exhausted(r);
 }
 
 @*0 The recognizer obstack.
@@ -5955,7 +5932,7 @@ Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
   @<Unpack recognizer objects@>@;
     @<Return |-2| on failure@>@;
     ES earley_set;
-    @<Fail if recognizer initial@>@;
+    @<Fail if recognizer not started@>@;
     @<Fail if fatal error@>@;
     if (set_id < 0) {
         R_DEV_ERROR("invalid es ordinal");
@@ -5978,7 +5955,7 @@ gint marpa_r_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id)
     @<Return |-2| on failure@>@;
     ES earley_set;
   @<Unpack recognizer objects@>@;
-    @<Fail if recognizer initial@>@;
+    @<Fail if recognizer not started@>@;
     @<Fail if fatal error@>@;
     r_update_earley_sets (r);
     if (!ES_Ord_is_Valid (r, set_id))
@@ -6323,15 +6300,15 @@ static inline void trace_earley_item_clear(struct marpa_r* r)
 @ @<Function definitions@> =
 Marpa_Earley_Set_ID marpa_r_earley_item_origin(struct marpa_r *r)
 {
-  @<Return |-2| on failure@>@;
-  EIM item = r->t_trace_earley_item;
-  @<Fail if recognizer initial@>@;
-  if (!item) {
-      @<Clear trace Earley item data@>@;
-      R_DEV_ERROR("no trace eim");
-      return failure_indicator;
-  }
-  return Origin_Ord_of_EIM(item);
+    @<Return |-2| on failure@>@;
+    EIM item = r->t_trace_earley_item;
+    @<Fail if recognizer not started@>@;
+    if (!item) {
+        @<Clear trace Earley item data@>@;
+        R_DEV_ERROR("no trace eim");
+        return failure_indicator;
+    }
+    return Origin_Ord_of_EIM(item);
 }
 
 @** Earley Index (EIX) Code.
@@ -7748,10 +7725,13 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
   @<Unpack recognizer objects@>@;
     const gint symbol_count_of_g = SYM_Count_of_G(g);
     @<Return |FALSE| on failure@>@;
-    @<Fail if recognizer not initial@>@;
-    Phase_of_R(r) = input_phase;
+    @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
-    if (G_is_Trivial(g)) return TRUE;
+    if (G_is_Trivial(g)) {
+	@<Set |r| exhausted@>@;
+	return TRUE;
+    }
+    Input_Phase_of_R(r) = R_DURING_INPUT;
     @<Allocate recognizer workareas@>@;
     psar_reset(Dot_PSAR_of_R(r));
     @<Allocate recognizer's bit vectors for symbols@>@;
@@ -7833,8 +7813,7 @@ Marpa_Symbol_ID token_id, gpointer value, gint length) {
     ES current_earley_set;
     const EARLEME current_earleme = Current_Earleme_of_R(r);
     EARLEME target_earleme;
-    @<Fail if recognizer not in input phase@>@;
-    @<Fail if recognizer exhausted@>@;
+    @<Fail if recognizer not accepting input@>@;
     @<|marpa_alternative| initial check for failure conditions@>@;
     @<Set |current_earley_set|, failing if token is unexpected@>@;
     @<Set |target_earleme| or fail@>@;
@@ -7975,8 +7954,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
   ES current_earley_set;
   EARLEME current_earleme;
   gint count_of_expected_terminals;
-    @<Fail if recognizer not in input phase@>@;
-    @<Fail if recognizer exhausted@>@;
+    @<Fail if recognizer not accepting input@>@;
     G_EVENTS_CLEAR(g);
   psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_symid_is_expected);
@@ -7997,7 +7975,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
       { /* If no terminals are expected, and there are no Earley items in
            uncompleted Earley sets, we can make no further progress.
 	   The parse is ``exhausted". */
-	R_is_Exhausted(r) = 1;
+	@<Set |r| exhausted@>@;
 	event_new(g, MARPA_G_EV_EXHAUSTED);
       }
     earley_set_update_items(r, current_earley_set);
@@ -8008,7 +7986,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
   current_earleme = ++(Current_Earleme_of_R(r));
   if (current_earleme > Furthest_Earleme_of_R (r))
     {
-	R_is_Exhausted(r) = 1;
+	@<Set |r| exhausted@>@;
 	R_DEV_ERROR("parse exhausted");
 	return failure_indicator;
      }
@@ -10345,7 +10323,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 {
     @<Return |NULL| on failure@>@;
     @<Declare bocage locals@>@;
-    @<Return if function guards fail@>@;
+    @<Return if |marpa_b_new| function guards fail@>@;
     if (B_of_R(r)) {
 	R_DEV_ERROR ("bocage already set");
 	goto B_NEW_RETURN_ERROR;
@@ -10415,7 +10393,7 @@ struct s_bocage_setup_per_es {
 @ @<Declare bocage locals@> =
 struct s_bocage_setup_per_es* per_es_data = NULL;
 
-@ @<Return if function guards fail@> =
+@ @<Return if |marpa_b_new| function guards fail@> =
 {
   @<Fail if fatal error@>@;
   if (B_of_R (r))
@@ -10423,14 +10401,7 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
       R_DEV_ERROR ("bocage in use");
       return failure_indicator;
     }
-  switch (Phase_of_R (r))
-    {
-    default:
-      R_DEV_ERROR ("recce not evaluation-ready");
-      return failure_indicator;
-    case input_phase:
-      break;
-    }
+  @<Fail if recognizer not started@>@;
 }
 
 @ @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@> =
@@ -13153,14 +13124,19 @@ if (sizeof(gint) != g_array_get_element_size(result)) {
 @*0 Recognizer Failures.
 |r| is assumed to be the value of the relevant recognizer,
 when one is required.
-@<Fail if recognizer not initial@> =
-if (Phase_of_R(r) != initial_phase) {
-    R_DEV_ERROR("not initial recce phase");
+@<Fail if recognizer started@> =
+if (Input_Phase_of_R(r) != R_BEFORE_INPUT) {
+    R_DEV_ERROR("recce started");
     return failure_indicator;
 }
-@ @<Fail if recognizer initial@> =
-if (Phase_of_R(r) == initial_phase) {
-    R_DEV_ERROR("initial recce phase");
+@ @<Fail if recognizer not started@> =
+if (Input_Phase_of_R(r) == R_BEFORE_INPUT) {
+    R_DEV_ERROR("recce not started");
+    return failure_indicator;
+}
+@ @<Fail if recognizer not accepting input@> =
+if (Input_Phase_of_R(r) != R_DURING_INPUT) {
+    R_DEV_ERROR("recce not accepting input");
     return failure_indicator;
 }
 @ @<Fail if recognizer exhausted@> =
@@ -13168,22 +13144,10 @@ if (R_is_Exhausted(r)) {
     R_DEV_ERROR("recce exhausted");
     return failure_indicator;
 }
-@ @<Fail if recognizer not in input phase@> =
-if (Phase_of_R(r) != input_phase) {
-    R_DEV_ERROR("recce not in input phase");
-    return failure_indicator;
-}
 
 @ @<Fail if not trace-safe@> =
-@<Fail if fatal error@>@;
-switch (Phase_of_R (r))
-  {
-  default:
-    R_DEV_ERROR ("recce not trace-safe");
-    return failure_indicator;
-  case input_phase:
-    break;
-  }
+    @<Fail if fatal error@>@;
+    @<Fail if recognizer not started@>@;
 
 @ @<Fail if fatal error@> =
 if (!IS_G_OK(g)) {
