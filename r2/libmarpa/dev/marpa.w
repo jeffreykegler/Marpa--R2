@@ -10909,6 +10909,7 @@ int marpa_t_new(struct marpa_r* r)
   GRAMMAR g = G_of_R(r);
     @<Fail if fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
+    order_freeze(ORDER_of_B(b));
     tree = T_of_R(r);
     if (TREE_is_Exhausted(tree)) {
        return -1;
@@ -10917,9 +10918,7 @@ int marpa_t_new(struct marpa_r* r)
     if (!TREE_is_Initialized(tree))
       {
 	first_tree_of_series = 1;
-	@<Initialize the tree iterator;
-	return -1 if fails
-	@>@;
+	@<Initialize the tree iterator; return -1 if fails@>@;
       }
       while (1) {
 	 const AND ands_of_b = ANDs_of_B(b);
@@ -11225,7 +11224,6 @@ struct s_order {
     struct obstack t_obs;
     Bit_Vector t_and_node_in_use;
     ANDID** t_and_node_orderings;
-    TREE_Object t_tree;
 };
 
 @
@@ -11249,7 +11247,9 @@ order_destroy(ORDER_of_B(b));
 @ @<Private function prototypes@> =
 static inline void order_freeze(ORDER order);
 static inline void order_destroy(ORDER order);
-@ @<Function definitions@> =
+@ @d IS_O_FROZEN(o)
+    ((o)->t_and_node_orderings && !(o)->t_and_node_in_use)
+@<Function definitions@> =
 static inline void order_freeze(ORDER order)
 {
   if (order->t_and_node_in_use)
@@ -11331,10 +11331,17 @@ gint marpa_o_and_order_set(Marpa_Recognizer r,
   @<Unpack recognizer objects@>@;
   BOCAGE b = B_of_R(r);
   @<Fail if fatal error@>@;
-  if (!b) {
-      MARPA_DEV_ERROR("no bocage");
-      return failure_indicator;
-  }
+    if (!b)
+      {
+	MARPA_DEV_ERROR ("no bocage");
+	return failure_indicator;
+      }
+    order = ORDER_of_B (b);
+    if (IS_O_FROZEN (order))
+      {
+	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
+	return failure_indicator;
+      }
     @<Check |or_node_id|; set |or_node|@>@;
     {
       ANDID** and_node_orderings;
@@ -11342,15 +11349,9 @@ gint marpa_o_and_order_set(Marpa_Recognizer r,
       struct obstack *obs;
       ANDID first_and_node_id;
       ANDID and_count_of_or;
-	order = ORDER_of_B(b);
 	and_node_orderings = order->t_and_node_orderings;
 	and_node_in_use = order->t_and_node_in_use;
 	obs = &OBS_of_O(order);
-	if (and_node_orderings && !and_node_in_use)
-	{
-	  MARPA_DEV_ERROR("order frozen");
-	  return failure_indicator;
-	}
 	if (!and_node_orderings)
 	  {
 	    gint and_id;
