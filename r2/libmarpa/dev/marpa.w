@@ -10295,18 +10295,14 @@ struct s_bocage {
     @<Int aligned bocage elements@>@;
     @<Bit aligned bocage elements@>@;
 };
-@ @d B_of_R(r) ((r)->t_bocage)
-@<Widely aligned recognizer elements@> =
-Marpa_Bocage t_bocage;
-@ @<Initialize recognizer elements@> =
-B_of_R(r) = NULL;
 
 @*0 The base objects of the bocage.
+@ {\bf To Do}: @^To Do@>
+Remove |R_of_B| and |t_recce| after interface conversion.
 @ @d I_of_B(b) ((b)->t_input)
 @ @d R_of_B(b) ((b)->t_recce)
 @<Widely aligned bocage elements@> =
     INPUT t_input;
-/* Remove |R_of_B| and |t_recce| after interface conversion */
     RECCE t_recce;
 @
 
@@ -10913,7 +10909,7 @@ int marpa_t_new(struct marpa_r* r)
   GRAMMAR g = G_of_R(r);
     @<Fail if fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
-    tree = TREE_of_ORDER(ORDER_of_B(b));
+    tree = T_of_R(r);
     if (TREE_is_Exhausted(tree)) {
        return -1;
     }
@@ -11142,6 +11138,15 @@ static inline gint or_node_next_choice(BOCAGE b, TREE tree, OR or_node, gint sta
     }
 }
 
+@ {\bf To Do}: @^To Do@>
+For the moment destroy the tree with the bocage.
+@<Destroy bocage elements, main phase@> =
+{
+    const TREE t = T_of_R(r);
+    tree_destroy(t);
+    tree_safe(t);
+}
+
 @ @<Private function prototypes@> =
 static inline void tree_destroy(TREE tree);
 @ @<Function definitions@> =
@@ -11168,7 +11173,7 @@ gint marpa_t_parse_count(struct marpa_r* r)
     if (!b) {
 	return -1;
     }
-    tree = TREE_of_ORDER(ORDER_of_B(b));
+    tree = T_of_R(r);
 MARPA_OFF_DEBUG3("%s b=%p", G_STRLOC, b);
 MARPA_OFF_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
     return tree->t_parse_count;
@@ -11193,7 +11198,7 @@ gint marpa_t_size(struct marpa_r *r)
       R_DEV_ERROR("no bocage");
       return failure_indicator;
   }
-  tree = TREE_of_ORDER(ORDER_of_B(b));
+  tree = T_of_R(r);
   if (!TREE_is_Initialized(tree)) {
       R_DEV_ERROR("tree not initialized");
       return failure_indicator;
@@ -11214,8 +11219,7 @@ typedef Marpa_Order ORDER;
 for the obstack.  They have the same lifetime, so
 that it is safe to destroy the obstack if
 |t_and_node_orderings| is not null.
-@d TREE_of_ORDER(order) (&(order)->t_tree)
-@d OBS_of_ORDER(order) ((order)->t_obs)
+@d OBS_of_O(order) ((order)->t_obs)
 @<Private structures@> =
 struct s_order {
     struct obstack t_obs;
@@ -11238,7 +11242,6 @@ static inline void order_safe(ORDER order)
 {
     order->t_and_node_in_use = NULL;
     order->t_and_node_orderings = NULL;
-    tree_safe(TREE_of_ORDER(order));
 }
 
 @ @<Destroy bocage elements, main phase@> =
@@ -11257,11 +11260,10 @@ static inline void order_freeze(ORDER order)
 }
 static inline void order_destroy(ORDER order)
 {
-  tree_destroy(TREE_of_ORDER(order));
   order_freeze(order);
   if (order->t_and_node_orderings) {
       order->t_and_node_orderings = NULL;
-      obstack_free(&OBS_of_ORDER(order), NULL);
+      obstack_free(&OBS_of_O(order), NULL);
   }
 }
 
@@ -11296,7 +11298,7 @@ instead of the and-node ID, would seem to allow
 an space efficiency: the size of the bit vector
 could be reduced to the maximum number of descendents
 of any or-node.
-But in fact, improvements from this approach are evasive.
+But in fact, improvements from this approach are elusive.
 
 In the worst cases, these counts are the same, or
 almost the same.
@@ -11343,7 +11345,7 @@ gint marpa_o_and_order_set(Marpa_Recognizer r,
 	order = ORDER_of_B(b);
 	and_node_orderings = order->t_and_node_orderings;
 	and_node_in_use = order->t_and_node_in_use;
-	obs = &OBS_of_ORDER(order);
+	obs = &OBS_of_O(order);
 	if (and_node_orderings && !and_node_in_use)
 	{
 	  MARPA_DEV_ERROR("order frozen");
@@ -11503,7 +11505,7 @@ set |fork|@> = {
       R_DEV_ERROR("no bocage");
       return failure_indicator;
   }
-  tree = TREE_of_ORDER(ORDER_of_B(b));
+  tree = T_of_R(r);
   if (!TREE_is_Initialized(tree)) {
       R_DEV_ERROR("tree not initialized");
       return failure_indicator;
@@ -11641,8 +11643,24 @@ typedef struct marpa_event Marpa_Event;
 @ @<Private typedefs@> =
 typedef Marpa_Event *EVE;
 
-@** Evaluation (v, VALUE) Code.
-This code helps
+@** Evaluation (V, VALUE) Code.
+@*0 DEPRECATED: Up-hierarchy fields.
+@ {\bf To Do}: @^To Do@>
+Code to be removed once the new interface
+is completed.
+@d B_of_R(r) ((r)->t_bocage)
+@d O_of_R(r) ((r)->t_order)
+@d T_of_R(r) (&(r)->t_tree)
+@<Widely aligned recognizer elements@> =
+Marpa_Bocage t_bocage;
+Marpa_Order t_order;
+struct s_tree t_tree;
+@ @<Initialize recognizer elements@> =
+B_of_R(r) = NULL;
+O_of_R(r) = NULL;
+tree_safe(T_of_R(r));
+
+@ This code helps
 compute a value for
 a parse tree.
 I say "helps" because evaluating a parse tree
@@ -11747,7 +11765,7 @@ int marpa_v_new(struct marpa_r* r)
   GRAMMAR g = G_of_R(r);
     @<Fail if fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
-    tree = TREE_of_ORDER(ORDER_of_B(b));
+    tree = T_of_R(r);
     if (TREE_is_Exhausted(tree)) {
        return -1;
     }
@@ -11789,7 +11807,7 @@ return on failure@> = {
     if (!b) {
 	return failure_indicator;
     }
-    tree = TREE_of_ORDER(ORDER_of_B(b));
+    tree = T_of_R(r);
     val = VALUE_of_TREE(tree);
     if (!VALUE_is_Active(val)) {
 	return failure_indicator;
