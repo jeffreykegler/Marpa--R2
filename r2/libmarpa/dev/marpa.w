@@ -11185,16 +11185,22 @@ struct s_order;
 typedef struct s_order* Marpa_Order;
 @ @<Public incomplete structures@> =
 typedef Marpa_Order ORDER;
-@ |t_and_node_orderings| is used as the "safe boolean"
+@
+|t_obs| is
+an obstack with the lifetime of the Marpa order object.
+|t_and_node_orderings| is used as the "safe boolean"
 for the obstack.  They have the same lifetime, so
 that it is safe to destroy the obstack if
-|t_and_node_orderings| is not null.
+and only if
+|t_and_node_orderings| is non-null.
 @d OBS_of_O(order) ((order)->t_obs)
+@d O_is_Frozen(o) ((o)->t_is_frozen)
 @<Private structures@> =
 struct s_order {
     struct obstack t_obs;
     Bit_Vector t_and_node_in_use;
     ANDID** t_and_node_orderings;
+    guint t_is_frozen:1;
 };
 
 @
@@ -11211,35 +11217,41 @@ static inline void order_safe(ORDER order)
 {
     order->t_and_node_in_use = NULL;
     order->t_and_node_orderings = NULL;
+    order->t_is_frozen = 0;
 }
 
 @ @<Destroy bocage elements, main phase@> =
 order_destroy(ORDER_of_B(b));
 @ @<Private function prototypes@> =
-static inline void order_freeze(ORDER order);
-static inline void order_destroy(ORDER order);
-@ @d IS_O_FROZEN(o)
-    ((o)->t_and_node_orderings && !(o)->t_and_node_in_use)
-@<Function definitions@> =
-static inline void order_freeze(ORDER order)
+static inline void order_strip(ORDER o);
+@ @<Function definitions@> =
+static inline void order_strip(ORDER o)
 {
-  if (order->t_and_node_in_use)
+  if (o->t_and_node_in_use)
     {
-      bv_free (order->t_and_node_in_use);
-	order->t_and_node_in_use = NULL;
+      bv_free (o->t_and_node_in_use);
+	o->t_and_node_in_use = NULL;
     }
 }
-static inline void order_destroy(ORDER order)
+@ @<Private function prototypes@> =
+static inline void order_freeze(ORDER o);
+@ @<Function definitions@> =
+static inline void order_freeze(ORDER o)
 {
-  order_freeze(order);
-  if (order->t_and_node_orderings) {
-      order->t_and_node_orderings = NULL;
-      obstack_free(&OBS_of_O(order), NULL);
+  order_strip(o);
+  O_is_Frozen(o) = 0;
+}
+@ @<Private function prototypes@> =
+static inline void order_destroy(ORDER o);
+@ @<Function definitions@> =
+static inline void order_destroy(ORDER o)
+{
+  order_strip(o);
+  if (o->t_and_node_orderings) {
+      o->t_and_node_orderings = NULL;
+      obstack_free(&OBS_of_O(o), NULL);
   }
 }
-
-@*0 The ORDER Obstack.
-An obstack with the lifetime of the bocage order.
 
 @*0 Set the Order of And-nodes.
 This function
@@ -11308,7 +11320,7 @@ gint marpa_o_and_order_set(Marpa_Recognizer r,
 	return failure_indicator;
       }
     order = ORDER_of_B (b);
-    if (IS_O_FROZEN (order))
+    if (O_is_Frozen (order))
       {
 	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
 	return failure_indicator;
