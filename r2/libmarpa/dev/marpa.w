@@ -11645,22 +11645,6 @@ typedef struct marpa_event Marpa_Event;
 typedef Marpa_Event *EVE;
 
 @** Evaluation (V, VALUE) Code.
-@*0 DEPRECATED: Up-hierarchy fields.
-@ {\bf To Do}: @^To Do@>
-Code to be removed once the new interface
-is completed.
-@d B_of_R(r) ((r)->t_bocage)
-@d O_of_R(r) ((r)->t_order)
-@d T_of_R(r) (&(r)->t_tree)
-@<Widely aligned recognizer elements@> =
-Marpa_Bocage t_bocage;
-Marpa_Order t_order;
-struct s_tree t_tree;
-@ @<Initialize recognizer elements@> =
-B_of_R(r) = NULL;
-O_of_R(r) = NULL;
-tree_safe(T_of_R(r));
-
 @ This code helps
 compute a value for
 a parse tree.
@@ -11943,6 +11927,25 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     FORK_of_VALUE(val) = fork_ix;
     ArgN_of_EVE(event) = arg_n;
 }
+
+@*0 DEPRECATED: Up-hierarchy fields.
+@ {\bf To Do}: @^To Do@>
+Code to be removed once the new interface
+is completed.
+@d B_of_R(r) ((r)->t_bocage)
+@d O_of_R(r) ((r)->t_order)
+@d T_of_R(r) (&(r)->t_tree)
+@<Widely aligned recognizer elements@> =
+Marpa_Bocage t_bocage;
+Marpa_Order t_order;
+struct s_tree t_tree;
+@ @<Initialize recognizer elements@> =
+B_of_R(r) = NULL;
+O_of_R(r) = NULL;
+tree_safe(T_of_R(r));
+
+@ {\bf To Do}: @^To Do@>
+Remove all the "no bocage" messages.
 
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from

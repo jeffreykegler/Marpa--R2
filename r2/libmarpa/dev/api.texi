@@ -688,9 +688,9 @@ Suggested message: "Unproductive start symbol."
 @deftypevr Macro int MARPA_ERR_ORDER_FROZEN
 The Marpa order object has been frozen.
 Multiple trees can share a Marpa order object,
-but that order object is @def{frozen} after the first tree
+but that order object is @dfn{frozen} after the first tree
 is created from it.
-If a Marpa order object is @def{frozen}, it cannot be
+If a Marpa order object is @dfn{frozen}, it cannot be
 changed.
 Applications can order an bocage in many ways,
 but they must do so by creating multiple order objects.
