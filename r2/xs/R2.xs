@@ -51,16 +51,9 @@ typedef struct {
      char *message_buffer;
 } B_Wrapper;
 
-typedef struct marpa_o Order;
-typedef struct {
-     Marpa_Order o;
-     char *message_buffer;
-} O_Wrapper;
-
 static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
 static const char recce_c_class_name[] = "Marpa::R2::Internal::R_C";
 static const char bocage_c_class_name[] = "Marpa::R2::Internal::B_C";
-static const char order_c_class_name[] = "Marpa::R2::Internal::O_C";
 
 static const char *
 event_type_to_string (Marpa_Event_Type type)
@@ -2275,43 +2268,6 @@ PPCODE:
     }
   XPUSHs (sv_2mortal (newSViv (result)));
   XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (value))));
-}
-
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::B_C
-
-void
-new( class, b_wrapper, rule_id, ordinal )
-    char * class;
-    B_Wrapper *b_wrapper;
-    Marpa_Rule_ID rule_id;
-    Marpa_Earley_Set_ID ordinal;
-PPCODE:
-{
-  SV *sv;
-  Marpa_Bocage b = b_wrapper->b;
-  O_Wrapper *o_wrapper;
-  Marpa_Order o = marpa_o_new (b, rule_id, ordinal);
-  if (!o)
-    {
-      croak ("Problem in o->new(): %s", error_b (b_wrapper));
-    }
-  Newx (o_wrapper, 1, O_Wrapper);
-  o_wrapper->message_buffer = NULL;
-  o_wrapper->o = o;
-  sv = sv_newmortal ();
-  sv_setref_pv (sv, bocage_c_class_name, (void *) o_wrapper);
-  XPUSHs (sv);
-}
-
-void
-DESTROY( o_wrapper )
-    O_Wrapper *o_wrapper;
-PPCODE:
-{
-    const Marpa_Order o = o_wrapper->o;
-    marpa_o_unref(o);
-    g_free(o_wrapper->message_buffer);
-    Safefree( o_wrapper );
 }
 
 BOOT:
