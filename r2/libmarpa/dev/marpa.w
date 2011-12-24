@@ -10819,6 +10819,11 @@ struct s_tree {
 };
 typedef struct s_tree TREE_Object;
 
+@ @<Unpack tree objects@> =
+    TREE t = T_of_R(r);
+    ORDER o = O_of_R(r);
+    @<Unpack order objects@>;
+
 @ @<Private function prototypes@> =
 static inline void tree_exhaust(TREE tree);
 @ @<Function definitions@> =
@@ -11534,28 +11539,25 @@ typedef struct s_fork FORK_Object;
 @<Check |r| and |fork_id|;
 set |fork|@> = {
   FORK base_fork;
-  BOCAGE b = B_of_R(r);
-  TREE tree;
   @<Fail if fatal error@>@;
   if (!b) {
       R_DEV_ERROR("no bocage");
       return failure_indicator;
   }
-  tree = T_of_R(r);
-  if (!TREE_is_Initialized(tree)) {
+  if (!TREE_is_Initialized(t)) {
       R_DEV_ERROR("tree not initialized");
       return failure_indicator;
   }
-  if (TREE_is_Exhausted(tree)) {
+  if (TREE_is_Exhausted(t)) {
       R_DEV_ERROR("bocage iteration exhausted");
       return failure_indicator;
   }
-  base_fork = FSTACK_BASE(tree->t_fork_stack, FORK_Object);
+  base_fork = FSTACK_BASE(t->t_fork_stack, FORK_Object);
   if (fork_id < 0) {
       R_DEV_ERROR("bad fork id");
       return failure_indicator;
   }
-  if (fork_id >= FSTACK_LENGTH(tree->t_fork_stack)) {
+  if (fork_id >= FSTACK_LENGTH(t->t_fork_stack)) {
       return -1;
   }
   fork = base_fork + fork_id;
@@ -11569,7 +11571,7 @@ gint marpa_t_fork_or_node(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack tree objects@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
   return ID_of_OR(OR_of_FORK(fork));
 }
@@ -11582,7 +11584,7 @@ gint marpa_t_fork_choice(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack tree objects@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
     return Choice_of_FORK(fork);
 }
@@ -11603,7 +11605,7 @@ gint marpa_t_fork_parent(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack tree objects@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
     return Parent_of_FORK(fork);
 }
@@ -11616,7 +11618,7 @@ gint marpa_t_fork_cause_is_ready(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack tree objects@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_Cause_is_Ready(fork);
 }
@@ -11629,7 +11631,7 @@ gint marpa_t_fork_predecessor_is_ready(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack tree objects@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_Predecessor_is_Ready(fork);
 }
@@ -11642,7 +11644,7 @@ gint marpa_t_fork_is_cause(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack tree objects@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_is_Cause(fork);
 }
@@ -11655,7 +11657,7 @@ gint marpa_t_fork_is_predecessor(struct marpa_r *r, int fork_id)
 {
   FORK fork;
   @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack tree objects@>@;
    @<Check |r| and |fork_id|; set |fork|@>@;
     return FORK_is_Predecessor(fork);
 }
@@ -11820,16 +11822,19 @@ static inline void val_destroy(VALUE val)
     val_safe(val);
 }
 
-@ @<Set |o|, |tree|, |val|;
-return on failure@> = {
+@ @<Unpack value objects@> =
+    ORDER o = O_of_R(r);
+    TREE t = T_of_R(r);
+    VALUE v = VALUE_of_TREE(t);
+    @<Unpack order objects@>@;
+
+@ @<Check |r|, |o|, |v|@> =
+{
     @<Fail if fatal error@>@;
-    o = O_of_R(r);
     if (!o) {
 	return failure_indicator;
     }
-    tree = T_of_R(r);
-    val = VALUE_of_TREE(tree);
-    if (!VALUE_is_Active(val)) {
+    if (!VALUE_is_Active(v)) {
 	return failure_indicator;
     }
 }
@@ -11839,13 +11844,10 @@ gint marpa_v_trace(struct marpa_r* r, gint flag);
 @ @<Function definitions@> =
 gint marpa_v_trace(struct marpa_r* r, gint flag)
 {
-    ORDER o;
-    TREE tree;
-    VALUE val;
-  GRAMMAR g = G_of_R(r);
     @<Return |-2| on failure@>@;
-    @<Set |o|, |tree|, |val|; return on failure@>@;
-    VALUE_is_Trace(val) = flag;
+    @<Unpack value objects@>@;
+    @<Check |r|, |o|, |v|@>@;
+    VALUE_is_Trace(v) = flag;
     return 1;
 }
 
@@ -11854,13 +11856,10 @@ Marpa_Fork_ID marpa_v_fork(struct marpa_r* r);
 @ @<Function definitions@> =
 Marpa_Fork_ID marpa_v_fork(struct marpa_r* r)
 {
-    ORDER o;
-    TREE tree;
-    VALUE val;
     @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
-    @<Set |o|, |tree|, |val|; return on failure@>@;
-    return FORK_of_VALUE(val);
+    @<Unpack value objects@>@;
+    @<Check |r|, |o|, |v|@>@;
+    return FORK_of_VALUE(v);
 }
 
 @ @<Public function prototypes@> =
@@ -11868,9 +11867,8 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event);
 @ @<Function definitions@> =
 Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 {
-    ORDER o;
-    TREE tree;
-    VALUE val;
+    @<Return |-2| on failure@>@;
+    @<Unpack value objects@>@;
     AND and_nodes;
     gint semantic_rule_id = -1;
     gint token_id = -1;
@@ -11879,19 +11877,18 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
     gint arg_n = -1;
     FORKID fork_ix;
     gint continue_with_next_fork;
-  GRAMMAR g = G_of_R(r);
 
     /* event is not changed in case of hard failure */
-    @<Return |-2| on failure@>@;
-    @<Set |o|, |tree|, |val|; return on failure@>@;
+    @<Check |r|, |o|, |v|@>@;
+
     and_nodes = ANDs_of_B(B_of_O(o));
 
-    arg_0 = arg_n = TOS_of_VALUE(val);
-    fork_ix = FORK_of_VALUE(val);
+    arg_0 = arg_n = TOS_of_VALUE(v);
+    fork_ix = FORK_of_VALUE(v);
     if (fork_ix < 0) {
-	fork_ix = Size_of_TREE(tree);
+	fork_ix = Size_of_TREE(t);
     }
-    continue_with_next_fork = !VALUE_is_Trace(val);
+    continue_with_next_fork = !VALUE_is_Trace(v);
 
     while (1) {
 	OR or;
@@ -11901,7 +11898,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 	{
 	    ANDID and_node_id;
 	    AND and_node;
-	    const FORK fork = FORK_of_TREE_by_IX(tree, fork_ix);
+	    const FORK fork = FORK_of_TREE_by_IX(t, fork_ix);
 	    const gint choice = Choice_of_FORK(fork);
 	    or = OR_of_FORK(fork);
 	    and_node_id = and_order_get(o, or, choice);
@@ -11918,7 +11915,7 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 	    gint virtual_rhs = RULE_is_Virtual_RHS(fork_rule);
 	    gint virtual_lhs = RULE_is_Virtual_LHS(fork_rule);
 	    gint real_symbol_count;
-	    const DSTACK virtual_stack = &VStack_of_VALUE(val);
+	    const DSTACK virtual_stack = &VStack_of_VALUE(v);
 	    if (virtual_lhs) {
 	        real_symbol_count = Real_SYM_Count_of_RULE(fork_rule);
 		if (virtual_rhs) {
@@ -11944,22 +11941,22 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 	if (!continue_with_next_fork) break;
     }
 
-    @<Write results to |val| and |event|@>@;
-    return FORK_of_VALUE(val);
+    @<Write results to |v| and |event|@>@;
+    return FORK_of_VALUE(v);
 
     RETURN_SOFT_ERROR: ;
-    @<Write results to |val| and |event|@>@;
+    @<Write results to |v| and |event|@>@;
     return -1;
 
 }
 
-@ @<Write results to |val| and |event|@> =
+@ @<Write results to |v| and |event|@> =
 {
     SYMID_of_EVE(event) = token_id;
     Value_of_EVE(event) = token_value;
     RULEID_of_EVE(event) = semantic_rule_id;
-    TOS_of_VALUE(val) = Arg0_of_EVE(event) = arg_0;
-    FORK_of_VALUE(val) = fork_ix;
+    TOS_of_VALUE(v) = Arg0_of_EVE(event) = arg_0;
+    FORK_of_VALUE(v) = fork_ix;
     ArgN_of_EVE(event) = arg_n;
 }
 
