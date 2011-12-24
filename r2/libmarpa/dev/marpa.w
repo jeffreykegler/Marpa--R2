@@ -10322,12 +10322,11 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 {
     @<Return |NULL| on failure@>@;
     @<Declare bocage locals@>@;
-    @<Return if |marpa_b_new| function guards fail@>@;
-    if (B_of_R(r)) {
-	R_DEV_ERROR ("bocage already set");
-	goto B_NEW_RETURN_ERROR;
-    }
-    b = B_of_R(r) = g_slice_new(struct s_bocage);
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+    @<Fail if up-ref of |b|@>@;
+    b = g_slice_new(struct s_bocage);
+    @<Add up-ref of |b|@>@;
     @<Initialize bocage elements@>@;
     I_of_B(b) = I_of_R(r);
 
@@ -10358,7 +10357,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     return b;
     B_NEW_RETURN_ERROR: ;
     r_unref(r);
-    B_of_R(r) = NULL;
+    @<Delete up-ref of |b|@>@;
     if (b) {
 	@<Destroy bocage elements, all phases@>;
     }
@@ -10391,17 +10390,6 @@ struct s_bocage_setup_per_es {
 };
 @ @<Declare bocage locals@> =
 struct s_bocage_setup_per_es* per_es_data = NULL;
-
-@ @<Return if |marpa_b_new| function guards fail@> =
-{
-  @<Fail if fatal error@>@;
-  if (B_of_R (r))
-    {
-      R_DEV_ERROR ("bocage in use");
-      return failure_indicator;
-    }
-  @<Fail if recognizer not started@>@;
-}
 
 @ @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@> =
 {
@@ -10666,7 +10654,7 @@ b_free (BOCAGE b)
 {
   const RECCE r = R_of_B (b);
   @<Unpack bocage objects@>@;
-  B_of_R (r) = NULL;
+  @<Delete up-ref of |b|@>@;
   r_unref (r);
   if (b)
     {
@@ -11103,10 +11091,7 @@ static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint star
 @ @<Set |b| to bocage; fail if none@> =
 {
     b = B_of_R(r);
-    if (!b) {
-	R_DEV_ERROR ("no bocage");
-	return failure_indicator;
-    }
+    @<Fail if no up-ref of |b|@>@;
 }
 
 @ {\bf To Do}: @^To Do@>
@@ -11222,13 +11207,11 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
 {
     @<Return |NULL| on failure@>@;
     @<Unpack bocage objects@>@;
-    ORDER o = O_of_R(r);
+    ORDER o;
       @<Fail if fatal error@>@;
-    if (o) {
-	R_DEV_ERROR ("order in use");
-	return failure_indicator;
-    }
-    o = O_of_R(r) = g_slice_new(struct s_order);
+    @<Fail if up-ref of |o|@>@;
+    o = g_slice_new(struct s_order);
+    @<Add up-ref of |o|@>@;
     B_of_O(o) = b;
     b_ref(b);
     @<Initialize order elements@>@;
@@ -11314,6 +11297,25 @@ static inline void o_free(ORDER o)
     const BOCAGE b = B_of_O(o);
     @<Unpack bocage objects@>@;
 
+@*0 The grammar of the order.
+@ This function returns the grammar of the order.
+It never returns an error.
+The grammar is always set when the bocage is initialized,
+and is never changed while the bocage exists.
+Fatal state is not reported,
+because it is kept in the grammar,
+so that
+either we can return the grammar in spite of
+its fatal state,
+or the problem is so severe than no
+errors can be properly reported.
+@<Function definitions@> =
+Marpa_Grammar marpa_o_g(Marpa_Order o)
+{
+  @<Unpack order objects@>@;
+  return g;
+}
+
 @*0 Set the Order of And-nodes.
 This function
 sets the order in which the and-nodes of an
@@ -11371,7 +11373,6 @@ gint marpa_o_and_order_set(
     gint length)
 {
     OR or_node;
-    ORDER order;
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
@@ -11860,7 +11861,7 @@ Marpa_Fork_ID marpa_v_fork(struct marpa_r* r);
 @ @<Function definitions@> =
 Marpa_Fork_ID marpa_v_fork(struct marpa_r* r)
 {
-    BOCAGE b;
+    ORDER o;
     TREE tree;
     VALUE val;
     @<Return |-2| on failure@>@;
@@ -11890,7 +11891,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
     /* event is not changed in case of hard failure */
     @<Return |-2| on failure@>@;
     @<Set |o|, |tree|, |val|; return on failure@>@;
-    and_nodes = ANDs_of_B(b);
+    and_nodes = ANDs_of_B(B_of_O(o));
 
     arg_0 = arg_n = TOS_of_VALUE(val);
     fork_ix = FORK_of_VALUE(val);
@@ -11991,8 +11992,58 @@ For the moment destroy these objects with the bocage.
     const TREE t = T_of_R(r);
     const ORDER o = O_of_R(r);
     o_unref(o);
+    @<Delete up-ref of |o|@>@;
     tree_destroy(t);
     tree_safe(t);
+}
+
+@ @<Fail if up-ref of |o|@> =
+{
+    const RECCE r = R_of_B(b);
+    if (O_of_R(r)) {
+	MARPA_DEV_ERROR ("order in use");
+	return failure_indicator;
+    }
+}
+@ @<Add up-ref of |o|@> =
+{
+    const RECCE r = R_of_B(b);
+    O_of_R(r) = o;
+    o_ref(o);
+}
+@ @<Delete up-ref of |o|@> =
+{
+    if (O_of_R(r)) {
+	o_unref(O_of_R(r));
+	O_of_R(r) = NULL;
+    }
+}
+
+@ @<Fail if up-ref of |b|@> =
+{
+    if (B_of_R(r)) {
+	MARPA_DEV_ERROR ("bocage in use");
+	return failure_indicator;
+    }
+}
+@ @<Fail if no up-ref of |b|@> =
+{
+    if (!B_of_R(r)) {
+	MARPA_DEV_ERROR ("no bocage");
+	return failure_indicator;
+    }
+}
+@ @<Add up-ref of |b|@> =
+{
+    B_of_R(r) = b;
+    b_ref(b);
+}
+@ @<Delete up-ref of |b|@> =
+{
+    if (B_of_R(r)) {
+	b_unref(B_of_R(r));
+	B_of_R(r) = NULL;
+    }
 }
 
 @ {\bf To Do}: @^To Do@>

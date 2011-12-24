@@ -267,6 +267,7 @@ sub Marpa::R2::show_rank_ref {
 sub Marpa::R2::Recognizer::show_fork {
     my ( $recce, $fork_id, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my $or_node_id = $recce_c->fork_or_node($fork_id);
     return if not defined $or_node_id;
@@ -298,7 +299,7 @@ sub Marpa::R2::Recognizer::show_fork {
         my $this_choice = $recce_c->fork_choice($fork_id);
         CHOICE: for ( my $choice_ix = 0;; $choice_ix++ ) {
             my $and_node_id =
-                $recce_c->and_node_order_get( $or_node_id, $choice_ix );
+                $order->and_node_order_get( $or_node_id, $choice_ix );
             last CHOICE if not defined $and_node_id;
             $text .= " o$or_node_id" . '[' . $choice_ix . ']';
             if ( defined $this_choice and $this_choice == $choice_ix ) {
@@ -520,6 +521,7 @@ sub do_high_rule_only {
     my ($recce)   = @_;
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order    = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
@@ -581,7 +583,7 @@ sub do_high_rule_only {
             last AND_DATUM if $chaf_rank < $high_chaf_rank;
             push @selected_and_nodes, $and_node;
         } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
-        $recce_c->and_node_order_set( $or_node, \@selected_and_nodes );
+        $order->and_node_order_set( $or_node, \@selected_and_nodes );
         push @or_nodes, grep {defined} map {
             ( $bocage->and_node_predecessor($_), $bocage->and_node_cause($_) )
         } @selected_and_nodes;
@@ -593,6 +595,7 @@ sub do_rank_by_rule {
     my ($recce)   = @_;
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order    = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
@@ -648,7 +651,7 @@ sub do_rank_by_rule {
             sort { $b->[1] <=> $a->[1] or $b->[2] <=> $a->[2] } @ranking_data;
 ## use critic
 
-        $recce_c->and_node_order_set( $or_node, \@ranked_and_nodes );
+        $order->and_node_order_set( $or_node, \@ranked_and_nodes );
         push @or_nodes, grep {defined} map {
             ( $bocage->and_node_predecessor($_), $bocage->and_node_cause($_) )
         } @ranked_and_nodes;
@@ -661,6 +664,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
     my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_values =
@@ -759,7 +763,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             my $or_node_id = $recce_c->fork_or_node($fork_ix);
             my $choice     = $recce_c->fork_choice($fork_ix);
             my $and_node_id =
-                $recce_c->and_node_order_get( $or_node_id, $choice );
+                $order->and_node_order_get( $or_node_id, $choice );
             my $token_name;
             if ( defined $token_id ) {
                 $token_name = $grammar->symbol_name($token_id);
@@ -783,7 +787,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             my $or_node_id = $recce_c->fork_or_node($fork_ix);
             my $choice     = $recce_c->fork_choice($fork_ix);
             my $and_node_id =
-                $recce_c->and_node_order_get( $or_node_id, $choice );
+                $order->and_node_order_get( $or_node_id, $choice );
             my $trace_rule_id = $bocage->or_node_rule($or_node_id);
             my $virtual_rhs = $grammar_c->rule_is_virtual_rhs($trace_rule_id);
             my $virtual_lhs = $grammar_c->rule_is_virtual_lhs($trace_rule_id);
@@ -973,6 +977,9 @@ sub Marpa::R2::Recognizer::value {
             ( $parse_set_arg // -1 ) );
 
         return if not defined $bocage;
+
+	my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
+            Marpa::R2::Internal::O_C->new( $bocage );
 
         given ( $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] ) {
             when ('high_rule_only') { do_high_rule_only($recce); }

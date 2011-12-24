@@ -417,17 +417,33 @@ Return value: %NULL if the GLib library is compatible with the
 @node Order
 @chapter Order objects
 
+@deftypefun Marpa_Order marpa_o_new ( @
+    Marpa_Bocage @var{b})
+@end deftypefun
+
+@deftypefun void marpa_o_unref ( @
+    Marpa_Order @var{o})
+@end deftypefun
+
+@deftypefun Marpa_Order marpa_o_ref ( @
+    Marpa_Order @var{o})
+@end deftypefun
+
+@deftypefun Marpa_Grammar marpa_o_g ( @
+    Marpa_Order @var{o})
+@end deftypefun
+
 @deftypefun gint marpa_o_and_order_set ( @
-    Marpa_Recognizer r, @
-    Marpa_Or_Node_ID or_node_id, @
-    Marpa_And_Node_ID* and_node_ids, @
-    gint length)
+    Marpa_Order @var{o}, @
+    Marpa_Or_Node_ID @var{or_node_id}, @
+    Marpa_And_Node_ID* @var{and_node_ids}, @
+    gint @var{length})
 @end deftypefun
 
 @deftypefun Marpa_And_Node_ID marpa_o_and_order_get ( @
-    Marpa_Recognizer r, @
-    Marpa_Or_Node_ID or_node_id, @
-    gint ix)
+    Marpa_Order @var{o}, @
+    Marpa_Or_Node_ID @var{or_node_id}, @
+    gint @var{ix})
 @end deftypefun
 
 @node Error handling

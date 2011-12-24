@@ -36,6 +36,7 @@ BEGIN {
 
     C { C structure for the recognizer }
     B_C { C structure for the bocage }
+    O_C { C structure for the Marpa order object }
 
     GRAMMAR { the grammar used }
     FINISHED
@@ -188,6 +189,7 @@ use constant RECOGNIZER_OPTIONS => [
 sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;
     $recce->[Marpa::R2::Internal::Recognizer::B_C]            = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::O_C]            = undef;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]  = [];
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CONSTANTS] = [];
     return;

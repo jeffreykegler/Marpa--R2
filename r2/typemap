@@ -20,7 +20,7 @@ R_Wrapper * T_MARPA_R_W
 Bocage * T_MARPA_B_C
 B_Wrapper * T_MARPA_B_W
 Order * T_MARPA_O_C
-B_Order * T_MARPA_O_W
+O_Wrapper * T_MARPA_O_W
 
 Marpa_Symbol_ID T_IV
 Marpa_Rule_ID T_IV

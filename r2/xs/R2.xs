@@ -176,7 +176,7 @@ static const char *
 error_o (O_Wrapper * o_wrapper)
 {
   const char *error_string;
-  Marpa_Order o = o_wrapper->b;
+  Marpa_Order o = o_wrapper->o;
   Marpa_Grammar g = marpa_o_g(o);
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = o_wrapper->message_buffer;
@@ -2236,17 +2236,15 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::O_C
 
 void
-new( class, b_wrapper, rule_id, ordinal )
+new( class, b_wrapper )
     char * class;
     B_Wrapper *b_wrapper;
-    Marpa_Rule_ID rule_id;
-    Marpa_Earley_Set_ID ordinal;
 PPCODE:
 {
   SV *sv;
   Marpa_Bocage b = b_wrapper->b;
   O_Wrapper *o_wrapper;
-  Marpa_Order o = marpa_o_new (b, rule_id, ordinal);
+  Marpa_Order o = marpa_o_new (b);
   if (!o)
     {
       croak ("Problem in o->new(): %s", error_b (b_wrapper));
@@ -2255,7 +2253,7 @@ PPCODE:
   o_wrapper->message_buffer = NULL;
   o_wrapper->o = o;
   sv = sv_newmortal ();
-  sv_setref_pv (sv, bocage_c_class_name, (void *) o_wrapper);
+  sv_setref_pv (sv, order_c_class_name, (void *) o_wrapper);
   XPUSHs (sv);
 }
 
@@ -2312,7 +2310,7 @@ and_node_order_get( o_wrapper, or_node_id, and_ix )
     int and_ix;
 PPCODE:
 {
-    Marpa_Object o = o_wrapper->o;
+    Marpa_Order o = o_wrapper->o;
     int result;
     result = marpa_o_and_order_get(o, or_node_id, and_ix);
     if (result == -1) { XSRETURN_UNDEF; }
