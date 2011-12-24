@@ -33,12 +33,6 @@ use English qw( -no_match_vars );
 
 use constant SKIP => -1;
 
-sub Marpa::R2::Recognizer::parse_count {
-    my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    return $recce_c->parse_count();
-}
-
 sub Marpa::R2::Recognizer::show_bocage {
     my ($recce) = @_;
     my $text;

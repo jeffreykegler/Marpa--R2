@@ -91,8 +91,10 @@ for my $input_length ( 1 .. 9 ) {
         { grammar => $grammar, max_parses => 100 } );
     for ( 1 .. $input_length ) { $recce->read( 't', 't' ); }
     my $expected = 1;
+    my $parse_count = 0;
     while ( $expected and my $value_ref = $recce->value() ) {
         $expected = 0;
+        $parse_count++;
         my $value = ${$value_ref};
         if ($value =~ m{
             \A
@@ -130,7 +132,6 @@ for my $input_length ( 1 .. 9 ) {
     } ## end while ( $expected and my $value_ref = $recce->value() )
     if ($expected) {
         my $expected_count = $expected_count[$input_length];
-        my $parse_count    = $recce->parse_count();
         if ( $parse_count == $expected_count ) {
             Test::More::pass(
                 qq{Good parse count $parse_count; input length=$input_length}
