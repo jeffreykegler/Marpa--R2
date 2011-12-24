@@ -51,9 +51,16 @@ typedef struct {
      char *message_buffer;
 } B_Wrapper;
 
+typedef struct marpa_o Order;
+typedef struct {
+     Marpa_Order o;
+     char *message_buffer;
+} O_Wrapper;
+
 static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
 static const char recce_c_class_name[] = "Marpa::R2::Internal::R_C";
 static const char bocage_c_class_name[] = "Marpa::R2::Internal::B_C";
+static const char order_c_class_name[] = "Marpa::R2::Internal::O_C";
 
 static const char *
 event_type_to_string (Marpa_Event_Type type)
@@ -160,6 +167,21 @@ error_b (B_Wrapper * b_wrapper)
   char *buffer = b_wrapper->message_buffer;
   g_free (buffer);
   b_wrapper->message_buffer = buffer =
+    libmarpa_exception (error_code, error_string);
+  return buffer;
+}
+
+/* Return value must be g_free()'d */
+static const char *
+error_o (O_Wrapper * o_wrapper)
+{
+  const char *error_string;
+  Marpa_Order o = o_wrapper->b;
+  Marpa_Grammar g = marpa_o_g(o);
+  const int error_code = marpa_g_error (g, &error_string);
+  char *buffer = o_wrapper->message_buffer;
+  g_free (buffer);
+  o_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
@@ -1691,49 +1713,6 @@ PPCODE:
     }
 
 int
-and_node_order_set( r_wrapper, or_node_id, and_node_id_av )
-    R_Wrapper *r_wrapper;
-    Marpa_Or_Node_ID or_node_id;
-    AV *and_node_id_av;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int length = av_len(and_node_id_av)+1;
-    int result;
-    Marpa_And_Node_ID* and_node_ids;
-    int i;
-    Newx(and_node_ids, length, Marpa_And_Node_ID);
-    for (i = 0; i < length; i++) {
-	SV** elem = av_fetch(and_node_id_av, i, 0);
-	if (elem == NULL) {
-	    Safefree(and_node_ids);
-	    XSRETURN_UNDEF;
-	} else {
-	    and_node_ids[i] = SvIV(*elem);
-	}
-    }
-    result = marpa_o_and_order_set(r, or_node_id, and_node_ids, length);
-    Safefree(and_node_ids);
-    if (result < 0) { XSRETURN_NO; }
-    XSRETURN_YES;
-    }
-
-int
-and_node_order_get( r_wrapper, or_node_id, and_ix )
-    R_Wrapper *r_wrapper;
-    Marpa_Or_Node_ID or_node_id;
-    int and_ix;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_o_and_order_get(r, or_node_id, and_ix);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->and_node_order_get(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-int
 tree_new( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
@@ -2252,6 +2231,95 @@ PPCODE:
     }
   XPUSHs (sv_2mortal (newSViv (result)));
   XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (value))));
+}
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::O_C
+
+void
+new( class, b_wrapper, rule_id, ordinal )
+    char * class;
+    B_Wrapper *b_wrapper;
+    Marpa_Rule_ID rule_id;
+    Marpa_Earley_Set_ID ordinal;
+PPCODE:
+{
+  SV *sv;
+  Marpa_Bocage b = b_wrapper->b;
+  O_Wrapper *o_wrapper;
+  Marpa_Order o = marpa_o_new (b, rule_id, ordinal);
+  if (!o)
+    {
+      croak ("Problem in o->new(): %s", error_b (b_wrapper));
+    }
+  Newx (o_wrapper, 1, O_Wrapper);
+  o_wrapper->message_buffer = NULL;
+  o_wrapper->o = o;
+  sv = sv_newmortal ();
+  sv_setref_pv (sv, bocage_c_class_name, (void *) o_wrapper);
+  XPUSHs (sv);
+}
+
+void
+DESTROY( o_wrapper )
+    O_Wrapper *o_wrapper;
+PPCODE:
+{
+    const Marpa_Order o = o_wrapper->o;
+    marpa_o_unref(o);
+    g_free(o_wrapper->message_buffer);
+    Safefree( o_wrapper );
+}
+
+int
+and_node_order_set( o_wrapper, or_node_id, and_node_id_av )
+    O_Wrapper *o_wrapper;
+    Marpa_Or_Node_ID or_node_id;
+    AV *and_node_id_av;
+PPCODE:
+{
+  Marpa_Order o = o_wrapper->o;
+  int length = av_len (and_node_id_av) + 1;
+  int result;
+  Marpa_And_Node_ID *and_node_ids;
+  int i;
+  Newx (and_node_ids, length, Marpa_And_Node_ID);
+  for (i = 0; i < length; i++)
+    {
+      SV **elem = av_fetch (and_node_id_av, i, 0);
+      if (elem == NULL)
+	{
+	  Safefree (and_node_ids);
+	  XSRETURN_UNDEF;
+	}
+      else
+	{
+	  and_node_ids[i] = SvIV (*elem);
+	}
+    }
+  result = marpa_o_and_order_set (o, or_node_id, and_node_ids, length);
+  Safefree (and_node_ids);
+  if (result < 0)
+    {
+      XSRETURN_NO;
+    }
+  XSRETURN_YES;
+}
+
+int
+and_node_order_get( o_wrapper, or_node_id, and_ix )
+    O_Wrapper *o_wrapper;
+    Marpa_Or_Node_ID or_node_id;
+    int and_ix;
+PPCODE:
+{
+    Marpa_Object o = o_wrapper->o;
+    int result;
+    result = marpa_o_and_order_get(o, or_node_id, and_ix);
+    if (result == -1) { XSRETURN_UNDEF; }
+    if (result < 0) {
+      croak ("Problem in o->and_node_order_get(): %s", error_o(o_wrapper));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
 }
 
 BOOT:

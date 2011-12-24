@@ -10282,9 +10282,8 @@ Remove |R_of_B| and |t_recce| after interface conversion.
 @<Widely aligned bocage elements@> =
     INPUT t_input;
     RECCE t_recce;
-@
 
-@<Unpack bocage objects@> =
+@ @<Unpack bocage objects@> =
     const INPUT input = I_of_B(b);
     const GRAMMAR g G_GNUC_UNUSED = G_of_I(input);
 
@@ -10878,9 +10877,11 @@ int marpa_t_new(struct marpa_r* r)
     gint first_tree_of_series = 0;
     @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
+    ORDER o = O_of_R(r);
     @<Fail if fatal error@>@;
     @<Set |b| to bocage; fail if none@>@;
-    order_freeze(ORDER_of_B(b));
+    o_ref(o);
+    o_freeze(o);
     tree = T_of_R(r);
     if (TREE_is_Exhausted(tree)) {
        return -1;
@@ -10948,7 +10949,7 @@ return -1 if fails@> =
     tree->t_and_node_in_use = bv_create ((guint) and_count);
   FSTACK_INIT (tree->t_fork_stack, FORK_Object, and_count);
   FSTACK_INIT (tree->t_fork_worklist, gint, and_count);
-    choice = or_node_next_choice(b, tree, top_or_node, 0);
+    choice = or_node_next_choice(o, tree, top_or_node, 0);
 	/* Due to skipping, even the top or-node can have no
 	   valid choices, in which case there is no parse */
 	if (choice < 0) goto TREE_IS_EXHAUSTED;
@@ -10975,9 +10976,9 @@ Otherwise, the tree is exhausted.
 	MARPA_ASSERT(choice >= 0);
 	{
 	    OR or_node = OR_of_FORK(iteration_candidate);
-	    ANDID and_node_id = and_order_get(b, or_node, choice);
+	    ANDID and_node_id = and_order_get(o, or_node, choice);
 	    tree_and_node_release(tree, and_node_id);
-	    choice = or_node_next_choice(b, tree, or_node, choice+1);
+	    choice = or_node_next_choice(o, tree, or_node, choice+1);
 	}
 	if (choice >= 0) {
 	    /* We have found a fork we can iterate.
@@ -11035,7 +11036,7 @@ Otherwise, the tree is exhausted.
 	}
 	work_fork = FORK_of_TREE_by_IX(tree, *p_work_fork_id);
 	work_or_node = OR_of_FORK(work_fork);
-	work_and_node_id = and_order_get(b, work_or_node, Choice_of_FORK(work_fork));
+	work_and_node_id = and_order_get(o, work_or_node, Choice_of_FORK(work_fork));
 	work_and_node = ands_of_b + work_and_node_id;
 	if (!FORK_Cause_is_Ready(work_fork)) {
 	    child_or_node = Cause_OR_of_AND(work_and_node);
@@ -11058,7 +11059,7 @@ Otherwise, the tree is exhausted.
 	    FSTACK_POP(tree->t_fork_worklist);
 	    goto NEXT_FORK_ON_WORKLIST;
 	}
-	choice = or_node_next_choice(b, tree, child_or_node, 0);
+	choice = or_node_next_choice(o, tree, child_or_node, 0);
 	if (choice < 0) goto NEXT_TREE;
 	@<Add new fork to tree@>;
 	NEXT_FORK_ON_WORKLIST: ;
@@ -11067,13 +11068,13 @@ Otherwise, the tree is exhausted.
 }
 
 @ @<Private function prototypes@> =
-static inline gint or_node_next_choice(BOCAGE b, TREE tree, OR or_node, gint start_choice);
+static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choice);
 @ @<Function definitions@> =
-static inline gint or_node_next_choice(BOCAGE b, TREE tree, OR or_node, gint start_choice)
+static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choice)
 {
     gint choice = start_choice;
     while (1) {
-	ANDID and_node_id = and_order_get(b, or_node, choice);
+	ANDID and_node_id = and_order_get(o, or_node, choice);
 	if (and_node_id < 0) return -1;
 	if (tree_and_node_try(tree, and_node_id)) return choice;
 	choice++;
@@ -11200,32 +11201,86 @@ struct s_order {
     struct obstack t_obs;
     Bit_Vector t_and_node_in_use;
     ANDID** t_and_node_orderings;
+    @<Widely aligned order elements@>@;
+    @<Int aligned order elements@>@;
     guint t_is_frozen:1;
 };
-
-@
-@d ORDER_of_B(b) (&(b)->t_order)
-@<Widely aligned bocage elements@> =
-struct s_order t_order;
-@ @<Initialize bocage elements@> =
-MARPA_OFF_DEBUG3("%s order_safe where b=%p", G_STRLOC, b);
-order_safe(ORDER_of_B(b));
-@ @<Private function prototypes@> =
-static inline void order_safe(ORDER order);
-@ @<Function definitions@> =
-static inline void order_safe(ORDER order)
+@ @<Initialize order elements@> =
 {
-    order->t_and_node_in_use = NULL;
-    order->t_and_node_orderings = NULL;
-    order->t_is_frozen = 0;
+    o->t_and_node_in_use = NULL;
+    o->t_and_node_orderings = NULL;
+    o->t_is_frozen = 0;
 }
 
-@ @<Destroy bocage elements, main phase@> =
-order_destroy(ORDER_of_B(b));
-@ @<Private function prototypes@> =
-static inline void order_strip(ORDER o);
+@*0 The base objects of the bocage.
+@ @d B_of_O(b) ((b)->t_bocage)
+@<Widely aligned order elements@> =
+    BOCAGE t_bocage;
+
 @ @<Function definitions@> =
-static inline void order_strip(ORDER o)
+Marpa_Order marpa_o_new(Marpa_Bocage b)
+{
+    @<Return |NULL| on failure@>@;
+    @<Unpack bocage objects@>@;
+    ORDER o = O_of_R(r);
+      @<Fail if fatal error@>@;
+    if (o) {
+	R_DEV_ERROR ("order in use");
+	return failure_indicator;
+    }
+    o = O_of_R(r) = g_slice_new(struct s_order);
+    B_of_O(o) = b;
+    b_ref(b);
+    @<Initialize order elements@>@;
+    return o;
+}
+
+@*0 Reference Counting and Destructors.
+@ @<Int aligned order elements@>= gint ref_count;
+@ @<Initialize order elements@> =
+    o->ref_count = 1;
+
+@ Decrement the order reference count.
+@<Private function prototypes@> =
+static inline void o_unref (ORDER o);
+@ @<Function definitions@> =
+static inline void
+o_unref (ORDER o)
+{
+  MARPA_ASSERT (o->ref_count > 0)
+  o->ref_count--;
+  if (o->ref_count <= 0)
+    {
+      o_free(o);
+    }
+}
+void
+marpa_o_unref (Marpa_Order o)
+{
+   o_unref(o);
+}
+
+@ Increment the order reference count.
+@<Private function prototypes@> =
+static inline ORDER o_ref (ORDER o);
+@ @<Function definitions@> =
+static inline ORDER
+o_ref (ORDER o)
+{
+  MARPA_ASSERT(o->ref_count > 0)
+  o->ref_count++;
+  return o;
+}
+Marpa_Order
+marpa_o_ref (Marpa_Order o)
+{
+   return o_ref(o);
+}
+
+@ @<Private function prototypes@> =
+static inline void o_strip(ORDER o);
+@ @<Function definitions@> =
+static inline void o_strip(ORDER o)
 {
   if (o->t_and_node_in_use)
     {
@@ -11234,24 +11289,30 @@ static inline void order_strip(ORDER o)
     }
 }
 @ @<Private function prototypes@> =
-static inline void order_freeze(ORDER o);
+static inline void o_freeze(ORDER o);
 @ @<Function definitions@> =
-static inline void order_freeze(ORDER o)
+static inline void o_freeze(ORDER o)
 {
-  order_strip(o);
+  o_strip(o);
   O_is_Frozen(o) = 0;
 }
 @ @<Private function prototypes@> =
-static inline void order_destroy(ORDER o);
+static inline void o_free(ORDER o);
 @ @<Function definitions@> =
-static inline void order_destroy(ORDER o)
+static inline void o_free(ORDER o)
 {
-  order_strip(o);
+  @<Unpack order objects@>@;
+  b_unref(b);
+  o_strip(o);
   if (o->t_and_node_orderings) {
       o->t_and_node_orderings = NULL;
       obstack_free(&OBS_of_O(o), NULL);
   }
 }
+
+@ @<Unpack order objects@> =
+    const BOCAGE b = B_of_O(o);
+    @<Unpack bocage objects@>@;
 
 @*0 Set the Order of And-nodes.
 This function
@@ -11303,7 +11364,8 @@ A purist might insist this needs to be reflected in a structure,
 but to my mind doing this portably makes the code more obscure,
 not less.
 @<Function definitions@> =
-gint marpa_o_and_order_set(Marpa_Recognizer r,
+gint marpa_o_and_order_set(
+    Marpa_Order o,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
     gint length)
@@ -11311,16 +11373,14 @@ gint marpa_o_and_order_set(Marpa_Recognizer r,
     OR or_node;
     ORDER order;
   @<Return |-2| on failure@>@;
-  @<Unpack recognizer objects@>@;
-  BOCAGE b = B_of_R(r);
+  @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
     if (!b)
       {
 	MARPA_DEV_ERROR ("no bocage");
 	return failure_indicator;
       }
-    order = ORDER_of_B (b);
-    if (O_is_Frozen (order))
+    if (O_is_Frozen (o))
       {
 	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
 	return failure_indicator;
@@ -11332,22 +11392,22 @@ gint marpa_o_and_order_set(Marpa_Recognizer r,
       struct obstack *obs;
       ANDID first_and_node_id;
       ANDID and_count_of_or;
-	and_node_orderings = order->t_and_node_orderings;
-	and_node_in_use = order->t_and_node_in_use;
-	obs = &OBS_of_O(order);
+	and_node_orderings = o->t_and_node_orderings;
+	and_node_in_use = o->t_and_node_in_use;
+	obs = &OBS_of_O(o);
 	if (!and_node_orderings)
 	  {
 	    gint and_id;
 	    const gint and_count_of_r = AND_Count_of_B (b);
 	    obstack_init(obs);
-	    order->t_and_node_orderings =
+	    o->t_and_node_orderings =
 	      and_node_orderings =
 	      obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
 	    for (and_id = 0; and_id < and_count_of_r; and_id++)
 	      {
 		and_node_orderings[and_id] = (ANDID *) NULL;
 	      }
-	     order->t_and_node_in_use =
+	     o->t_and_node_in_use =
 	     and_node_in_use = bv_create ((guint)and_count_of_r);
 	  }
 	  first_and_node_id = First_ANDID_of_OR(or_node);
@@ -11390,18 +11450,17 @@ gint marpa_o_and_order_set(Marpa_Recognizer r,
 
 @*0 Get an And-node by Order within its Or-Node.
 @ @<Private function prototypes@> =
-static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix);
+static inline ANDID and_order_get(ORDER o, OR or_node, gint ix);
 @ @<Function definitions@> =
-static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix)
+static inline ANDID and_order_get(ORDER o, OR or_node, gint ix)
 {
-  ORDER order;
+  @<Unpack order objects@>@;
   ANDID **and_node_orderings;
   if (ix >= AND_Count_of_OR (or_node))
     {
       return -1;
     }
-  order = ORDER_of_B (b);
-  and_node_orderings = order->t_and_node_orderings;
+  and_node_orderings = o->t_and_node_orderings;
   if (and_node_orderings)
     {
       ORID or_node_id = ID_of_OR(or_node);
@@ -11418,13 +11477,12 @@ static inline ANDID and_order_get(BOCAGE b, OR or_node, gint ix)
 }
 
 @ @<Function definitions@> =
-Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Recognizer r,
+Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
     Marpa_Or_Node_ID or_node_id, gint ix)
 {
     OR or_node;
   @<Return |-2| on failure@>@;
-  @<Unpack recognizer objects@>
-  BOCAGE b = B_of_R(r);
+  @<Unpack order objects@>@;
   if (!b) {
       MARPA_DEV_ERROR("no bocage");
       return failure_indicator;
@@ -11435,7 +11493,7 @@ Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Recognizer r,
       MARPA_DEV_ERROR("negative and ix");
       return failure_indicator;
   }
-    return and_order_get(b, or_node, ix);
+    return and_order_get(o, or_node, ix);
 }
 
 @** Fork (FORK) Code.
@@ -11768,11 +11826,11 @@ static inline void val_destroy(VALUE val)
     val_safe(val);
 }
 
-@ @<Set |b|, |tree|, |val|;
+@ @<Set |o|, |tree|, |val|;
 return on failure@> = {
     @<Fail if fatal error@>@;
-    b = B_of_R(r);
-    if (!b) {
+    o = O_of_R(r);
+    if (!o) {
 	return failure_indicator;
     }
     tree = T_of_R(r);
@@ -11787,12 +11845,12 @@ gint marpa_v_trace(struct marpa_r* r, gint flag);
 @ @<Function definitions@> =
 gint marpa_v_trace(struct marpa_r* r, gint flag)
 {
-    BOCAGE b;
+    ORDER o;
     TREE tree;
     VALUE val;
   GRAMMAR g = G_of_R(r);
     @<Return |-2| on failure@>@;
-    @<Set |b|, |tree|, |val|; return on failure@>@;
+    @<Set |o|, |tree|, |val|; return on failure@>@;
     VALUE_is_Trace(val) = flag;
     return 1;
 }
@@ -11807,7 +11865,7 @@ Marpa_Fork_ID marpa_v_fork(struct marpa_r* r)
     VALUE val;
     @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
-    @<Set |b|, |tree|, |val|; return on failure@>@;
+    @<Set |o|, |tree|, |val|; return on failure@>@;
     return FORK_of_VALUE(val);
 }
 
@@ -11816,7 +11874,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event);
 @ @<Function definitions@> =
 Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 {
-    BOCAGE b;
+    ORDER o;
     TREE tree;
     VALUE val;
     AND and_nodes;
@@ -11831,7 +11889,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 
     /* event is not changed in case of hard failure */
     @<Return |-2| on failure@>@;
-    @<Set |b|, |tree|, |val|; return on failure@>@;
+    @<Set |o|, |tree|, |val|; return on failure@>@;
     and_nodes = ANDs_of_B(b);
 
     arg_0 = arg_n = TOS_of_VALUE(val);
@@ -11852,7 +11910,7 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
 	    const FORK fork = FORK_of_TREE_by_IX(tree, fork_ix);
 	    const gint choice = Choice_of_FORK(fork);
 	    or = OR_of_FORK(fork);
-	    and_node_id = and_order_get(b, or, choice);
+	    and_node_id = and_order_get(o, or, choice);
 	    and_node = and_nodes + and_node_id;
 	    token_id = and_node_token(and_node, &token_value);
 	}
@@ -11926,6 +11984,16 @@ struct s_tree t_tree;
 B_of_R(r) = NULL;
 O_of_R(r) = NULL;
 tree_safe(T_of_R(r));
+@ {\bf To Do}: @^To Do@>
+For the moment destroy these objects with the bocage.
+@<Destroy bocage elements, main phase@> =
+{
+    const TREE t = T_of_R(r);
+    const ORDER o = O_of_R(r);
+    o_unref(o);
+    tree_destroy(t);
+    tree_safe(t);
+}
 
 @ {\bf To Do}: @^To Do@>
 Remove all the "no bocage" messages.
@@ -13149,11 +13217,6 @@ if (Input_Phase_of_R(r) == R_BEFORE_INPUT) {
 @ @<Fail if recognizer not accepting input@> =
 if (Input_Phase_of_R(r) != R_DURING_INPUT) {
     R_DEV_ERROR("recce not accepting input");
-    return failure_indicator;
-}
-@ @<Fail if recognizer exhausted@> =
-if (R_is_Exhausted(r)) {
-    R_DEV_ERROR("recce exhausted");
     return failure_indicator;
 }
 
