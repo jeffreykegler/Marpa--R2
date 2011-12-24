@@ -10324,9 +10324,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Declare bocage locals@>@;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
-    @<Fail if up-ref of |b|@>@;
     b = g_slice_new(struct s_bocage);
-    @<Add up-ref of |b|@>@;
     @<Initialize bocage elements@>@;
     I_of_B(b) = I_of_R(r);
 
@@ -10357,7 +10355,6 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     return b;
     B_NEW_RETURN_ERROR: ;
     r_unref(r);
-    @<Delete up-ref of |b|@>@;
     if (b) {
 	@<Destroy bocage elements, all phases@>;
     }
@@ -10654,7 +10651,6 @@ b_free (BOCAGE b)
 {
   const RECCE r = R_of_B (b);
   @<Unpack bocage objects@>@;
-  @<Delete up-ref of |b|@>@;
   r_unref (r);
   if (b)
     {
@@ -10865,22 +10861,19 @@ int marpa_t_new(struct marpa_r* r);
 @ @<Function definitions@> =
 int marpa_t_new(struct marpa_r* r)
 {
-    BOCAGE b;
-    TREE tree;
     gint first_tree_of_series = 0;
     @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
     ORDER o = O_of_R(r);
+    @<Unpack order objects@>@;
+    TREE t = T_of_R(r);
     @<Fail if fatal error@>@;
-    @<Set |b| to bocage; fail if none@>@;
     o_ref(o);
     o_freeze(o);
-    tree = T_of_R(r);
-    if (TREE_is_Exhausted(tree)) {
+    if (TREE_is_Exhausted(t)) {
        return -1;
     }
-    val_destroy(VALUE_of_TREE(tree));
-    if (!TREE_is_Initialized(tree))
+    val_destroy(VALUE_of_TREE(t));
+    if (!TREE_is_Initialized(t))
       {
 	first_tree_of_series = 1;
 	@<Initialize the tree iterator; return -1 if fails@>@;
@@ -10894,10 +10887,10 @@ int marpa_t_new(struct marpa_r* r)
 	 @<Finish tree if possible@>@;
      }
      TREE_IS_FINISHED: ;
-    tree->t_parse_count++;
-      return FSTACK_LENGTH(tree->t_fork_stack);
+    t->t_parse_count++;
+      return FSTACK_LENGTH(t->t_fork_stack);
     TREE_IS_EXHAUSTED: ;
-   tree_exhaust(tree);
+   tree_exhaust(t);
    return -1;
 }
 
@@ -10933,28 +10926,29 @@ static inline gint tree_and_node_try(TREE tree, ANDID and_node_id)
 @ @<Initialize the tree iterator;
 return -1 if fails@> =
 {
-    ORID top_or_id = Top_ORID_of_B(b);
-    OR top_or_node = OR_of_B_by_ID(b, top_or_id);
+  ORID top_or_id = Top_ORID_of_B (b);
+  OR top_or_node = OR_of_B_by_ID (b, top_or_id);
   FORK fork;
   gint choice;
   const gint and_count = AND_Count_of_B (b);
-  tree->t_parse_count = 0;
-    tree->t_and_node_in_use = bv_create ((guint) and_count);
-  FSTACK_INIT (tree->t_fork_stack, FORK_Object, and_count);
-  FSTACK_INIT (tree->t_fork_worklist, gint, and_count);
-    choice = or_node_next_choice(o, tree, top_or_node, 0);
-	/* Due to skipping, even the top or-node can have no
-	   valid choices, in which case there is no parse */
-	if (choice < 0) goto TREE_IS_EXHAUSTED;
-  fork = FSTACK_PUSH (tree->t_fork_stack);
-    OR_of_FORK(fork) = top_or_node;
-    Choice_of_FORK(fork) = choice;
-    Parent_of_FORK(fork) = -1;
-    FORK_Cause_is_Ready(fork) = 0;
-    FORK_is_Cause(fork) = 0;
-    FORK_Predecessor_is_Ready(fork) = 0;
-    FORK_is_Predecessor(fork) = 0;
-  *(FSTACK_PUSH (tree->t_fork_worklist)) = 0;
+  t->t_parse_count = 0;
+  t->t_and_node_in_use = bv_create ((guint) and_count);
+  FSTACK_INIT (t->t_fork_stack, FORK_Object, and_count);
+  FSTACK_INIT (t->t_fork_worklist, gint, and_count);
+  choice = or_node_next_choice (o, t, top_or_node, 0);
+  /* Due to skipping, even the top or-node can have no
+     valid choices, in which case there is no parse */
+  if (choice < 0)
+    goto TREE_IS_EXHAUSTED;
+  fork = FSTACK_PUSH (t->t_fork_stack);
+  OR_of_FORK (fork) = top_or_node;
+  Choice_of_FORK (fork) = choice;
+  Parent_of_FORK (fork) = -1;
+  FORK_Cause_is_Ready (fork) = 0;
+  FORK_is_Cause (fork) = 0;
+  FORK_Predecessor_is_Ready (fork) = 0;
+  FORK_is_Predecessor (fork) = 0;
+  *(FSTACK_PUSH (t->t_fork_worklist)) = 0;
 }
 
 @ Look for a fork to iterate.
@@ -10962,7 +10956,7 @@ If there is one, set it to the next choice.
 Otherwise, the tree is exhausted.
 @<Start a new iteration of the tree@> = {
     while (1) {
-	FORK iteration_candidate = FSTACK_TOP(tree->t_fork_stack, FORK_Object);
+	FORK iteration_candidate = FSTACK_TOP(t->t_fork_stack, FORK_Object);
 	gint choice;
 	if (!iteration_candidate) break;
 	choice = Choice_of_FORK(iteration_candidate);
@@ -10970,8 +10964,8 @@ Otherwise, the tree is exhausted.
 	{
 	    OR or_node = OR_of_FORK(iteration_candidate);
 	    ANDID and_node_id = and_order_get(o, or_node, choice);
-	    tree_and_node_release(tree, and_node_id);
-	    choice = or_node_next_choice(o, tree, or_node, choice+1);
+	    tree_and_node_release(t, and_node_id);
+	    choice = or_node_next_choice(o, t, or_node, choice+1);
 	}
 	if (choice >= 0) {
 	    /* We have found a fork we can iterate.
@@ -10988,7 +10982,7 @@ Otherwise, the tree is exhausted.
 	    /* Dirty the corresponding bit in the parent */
 	    const gint parent_fork_ix = Parent_of_FORK(iteration_candidate);
 	    if (parent_fork_ix >= 0) {
-		FORK parent_fork = FORK_of_TREE_by_IX(tree, parent_fork_ix);
+		FORK parent_fork = FORK_of_TREE_by_IX(t, parent_fork_ix);
 		if (FORK_is_Cause(iteration_candidate)) {
 		    FORK_Cause_is_Ready(parent_fork) = 0;
 		}
@@ -10998,16 +10992,16 @@ Otherwise, the tree is exhausted.
 	    }
 
 	    /* Continue with the next item on the stack */
-	    FSTACK_POP(tree->t_fork_stack);
+	    FSTACK_POP(t->t_fork_stack);
 	}
     }
     {
-	gint stack_length = FSTACK_LENGTH(tree->t_fork_stack);
+	gint stack_length = FSTACK_LENGTH(t->t_fork_stack);
 	gint i;
 	if (stack_length <= 0) goto TREE_IS_EXHAUSTED;
-	FSTACK_CLEAR(tree->t_fork_worklist);
+	FSTACK_CLEAR(t->t_fork_worklist);
 	for (i = 0; i < stack_length; i++) {
-	    *(FSTACK_PUSH(tree->t_fork_worklist)) = i;
+	    *(FSTACK_PUSH(t->t_fork_worklist)) = i;
 	}
     }
 }
@@ -11023,11 +11017,11 @@ Otherwise, the tree is exhausted.
 	gint choice;
 	gint child_is_cause = 0;
 	gint child_is_predecessor = 0;
-	p_work_fork_id = FSTACK_TOP(tree->t_fork_worklist, FORKID);
+	p_work_fork_id = FSTACK_TOP(t->t_fork_worklist, FORKID);
 	if (!p_work_fork_id) {
 	    goto TREE_IS_FINISHED;
 	}
-	work_fork = FORK_of_TREE_by_IX(tree, *p_work_fork_id);
+	work_fork = FORK_of_TREE_by_IX(t, *p_work_fork_id);
 	work_or_node = OR_of_FORK(work_fork);
 	work_and_node_id = and_order_get(o, work_or_node, Choice_of_FORK(work_fork));
 	work_and_node = ands_of_b + work_and_node_id;
@@ -11049,10 +11043,10 @@ Otherwise, the tree is exhausted.
 	    }
 	}
 	if (!child_or_node) {
-	    FSTACK_POP(tree->t_fork_worklist);
+	    FSTACK_POP(t->t_fork_worklist);
 	    goto NEXT_FORK_ON_WORKLIST;
 	}
-	choice = or_node_next_choice(o, tree, child_or_node, 0);
+	choice = or_node_next_choice(o, t, child_or_node, 0);
 	if (choice < 0) goto NEXT_TREE;
 	@<Add new fork to tree@>;
 	NEXT_FORK_ON_WORKLIST: ;
@@ -11077,9 +11071,9 @@ static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint star
 
 @ @<Add new fork to tree@> =
 {
-   FORKID new_fork_id = FSTACK_LENGTH(tree->t_fork_stack);
-   FORK new_fork = FSTACK_PUSH(tree->t_fork_stack);
-    *(FSTACK_PUSH(tree->t_fork_worklist)) = new_fork_id;
+   FORKID new_fork_id = FSTACK_LENGTH(t->t_fork_stack);
+   FORK new_fork = FSTACK_PUSH(t->t_fork_stack);
+    *(FSTACK_PUSH(t->t_fork_worklist)) = new_fork_id;
     Parent_of_FORK(new_fork) = *p_work_fork_id;
     Choice_of_FORK(new_fork) = choice;
     OR_of_FORK(new_fork) = child_or_node;
@@ -11091,12 +11085,6 @@ static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint star
     if ( ( FORK_is_Predecessor(new_fork) = child_is_predecessor ) ) {
 	FORK_Predecessor_is_Ready(work_fork) = 1;
     }
-}
-
-@ @<Set |b| to bocage; fail if none@> =
-{
-    b = B_of_R(r);
-    @<Fail if no up-ref of |b|@>@;
 }
 
 @ {\bf To Do}: @^To Do@>
@@ -11144,23 +11132,20 @@ gint marpa_t_size(struct marpa_r *r);
 gint marpa_t_size(struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
-  BOCAGE b = B_of_R(r);
-  TREE tree;
-  GRAMMAR g = G_of_R(r);
+  @<Unpack tree objects@>@;
   @<Fail if fatal error@>@;
   if (!b) {
       R_DEV_ERROR("no bocage");
       return failure_indicator;
   }
-  tree = T_of_R(r);
-  if (!TREE_is_Initialized(tree)) {
+  if (!TREE_is_Initialized(t)) {
       R_DEV_ERROR("tree not initialized");
       return failure_indicator;
   }
-  if (TREE_is_Exhausted(tree)) {
+  if (TREE_is_Exhausted(t)) {
       return -1;
   }
-  return FSTACK_LENGTH(tree->t_fork_stack);
+  return FSTACK_LENGTH(t->t_fork_stack);
 }
 
 @** Bocage Ordering (O, ORDER) Code.
@@ -11781,29 +11766,27 @@ stack reallocations is $O(1)$.
 @<Function definitions@> =
 int marpa_v_new(struct marpa_r* r)
 {
-    BOCAGE b;
-    TREE tree;
     @<Return |-2| on failure@>@;
-  GRAMMAR g = G_of_R(r);
+    TREE t = T_of_R(r);
+  const ORDER o = O_of_R(r);
+    @<Unpack order objects@>;
     @<Fail if fatal error@>@;
-    @<Set |b| to bocage; fail if none@>@;
-    tree = T_of_R(r);
-    if (TREE_is_Exhausted(tree)) {
+    if (TREE_is_Exhausted(t)) {
        return -1;
     }
-    if (!TREE_is_Initialized(tree))
+    if (!TREE_is_Initialized(t))
       {
 	R_DEV_ERROR ("tree not initialized");
 	return failure_indicator;
       }
     {
-      VALUE val = VALUE_of_TREE (tree);
+      VALUE v = VALUE_of_TREE (t);
       const gint minimum_stack_size = (8192 / sizeof (gint));
 	const gint initial_stack_size =
-	MAX (Size_of_TREE (tree) / 1024, minimum_stack_size);
-      val_destroy (val);
-      DSTACK_INIT (VStack_of_VALUE (val), gint, initial_stack_size);
-      VALUE_is_Active(val) = 1;
+	MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
+      val_destroy (v);
+      DSTACK_INIT (VStack_of_VALUE (v), gint, initial_stack_size);
+      VALUE_is_Active(v) = 1;
     }
     return 1;
 }
@@ -11964,15 +11947,12 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 @ {\bf To Do}: @^To Do@>
 Code to be removed once the new interface
 is completed.
-@d B_of_R(r) ((r)->t_bocage)
 @d O_of_R(r) ((r)->t_order)
 @d T_of_R(r) (&(r)->t_tree)
 @<Widely aligned recognizer elements@> =
-Marpa_Bocage t_bocage;
 Marpa_Order t_order;
 struct s_tree t_tree;
 @ @<Initialize recognizer elements@> =
-B_of_R(r) = NULL;
 O_of_R(r) = NULL;
 tree_safe(T_of_R(r));
 @ {\bf To Do}: @^To Do@>
@@ -12006,33 +11986,6 @@ For the moment destroy these objects with the bocage.
     if (O_of_R(r)) {
 	o_unref(O_of_R(r));
 	O_of_R(r) = NULL;
-    }
-}
-
-@ @<Fail if up-ref of |b|@> =
-{
-    if (B_of_R(r)) {
-	MARPA_DEV_ERROR ("bocage in use");
-	return failure_indicator;
-    }
-}
-@ @<Fail if no up-ref of |b|@> =
-{
-    if (!B_of_R(r)) {
-	MARPA_DEV_ERROR ("no bocage");
-	return failure_indicator;
-    }
-}
-@ @<Add up-ref of |b|@> =
-{
-    B_of_R(r) = b;
-    b_ref(b);
-}
-@ @<Delete up-ref of |b|@> =
-{
-    if (B_of_R(r)) {
-	b_unref(B_of_R(r));
-	B_of_R(r) = NULL;
     }
 }
 
