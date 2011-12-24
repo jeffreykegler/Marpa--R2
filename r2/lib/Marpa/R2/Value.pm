@@ -934,20 +934,15 @@ sub Marpa::R2::Recognizer::value {
     my ( $recce, @arg_hashes ) = @_;
 
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my $parse_set_arg = $recce->[Marpa::R2::Internal::Recognizer::END];
 
-    my $parse_count = $recce_c->parse_count() // 0;
 
     $recce->set(@arg_hashes);
 
     local $Marpa::R2::Internal::TRACE_FH =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
-
-    my $max_parses = $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
-    if ( $max_parses and $parse_count > $max_parses ) {
-        Marpa::R2::exception("Maximum parse count ($max_parses) exceeded");
-    }
 
     my $furthest_earleme       = $recce_c->furthest_earleme();
     my $last_completed_earleme = $recce_c->current_earleme();
@@ -957,7 +952,18 @@ sub Marpa::R2::Recognizer::value {
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
 
-    if ( not $parse_count ) {
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    if ($bocage) {
+        my $max_parses =
+            $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
+        my $parse_count = $recce_c->parse_count();
+        if ( $max_parses and $parse_count > $max_parses ) {
+            Marpa::R2::exception(
+                "Maximum parse count ($max_parses) exceeded");
+        }
+
+    } ## end if ($bocage)
+    else {
 
         # Perhaps this call should be moved.
         # The null values are currently a function of the grammar,
@@ -966,21 +972,21 @@ sub Marpa::R2::Recognizer::value {
             Marpa::R2::Internal::Recognizer::set_null_values($recce);
         Marpa::R2::Internal::Recognizer::set_actions($recce);
 
-        my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+        $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Internal::B_C->new( $recce_c, -1,
             ( $parse_set_arg // -1 ) );
 
         return if not defined $bocage;
 
-	my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
-            Marpa::R2::Internal::O_C->new( $bocage );
+        my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
+            Marpa::R2::Internal::O_C->new($bocage);
 
         given ( $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] ) {
             when ('high_rule_only') { do_high_rule_only($recce); }
             when ('rule')           { do_rank_by_rule($recce); }
         }
 
-    } ## end if ( not $parse_count )
+    } ## end else [ if ($bocage) ]
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_AND_NODES] ) {
         print {$Marpa::R2::Internal::TRACE_FH} 'AND_NODES: ',
