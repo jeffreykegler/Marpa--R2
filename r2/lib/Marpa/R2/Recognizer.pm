@@ -242,7 +242,7 @@ sub Marpa::R2::Recognizer::set {
         if ( defined( my $value = $args->{'ranking_method'} ) ) {
 
             # Not allowed once parsing is started
-            if ( $recce_c->parse_count() ) {
+            if ( defined $recce->[Marpa::R2::Internal::Recognizer::B_C]) {
                 Marpa::R2::exception(
                     q{Cannot change ranking method once parsing has started});
             }
@@ -351,7 +351,7 @@ sub Marpa::R2::Recognizer::set {
         if ( defined( my $value = $args->{'end'} ) ) {
 
             # Not allowed once evaluation is started
-            if ( $recce_c->parse_count() ) {
+            if ( defined $recce->[Marpa::R2::Internal::Recognizer::B_C]) {
                 Marpa::R2::exception(
                     q{Cannot reset end once evaluation has started});
             }
@@ -361,9 +361,9 @@ sub Marpa::R2::Recognizer::set {
         if ( defined( my $value = $args->{'closures'} ) ) {
 
             # Not allowed once evaluation is started
-            if ( $recce_c->parse_count() ) {
+            if ( defined $recce->[Marpa::R2::Internal::Recognizer::B_C]) {
                 Marpa::R2::exception(
-                    q{Cannot reset end once evaluation has started});
+                    q{Cannot reset closures once evaluation has started});
             }
             my $closures =
                 $recce->[Marpa::R2::Internal::Recognizer::CLOSURES] = $value;

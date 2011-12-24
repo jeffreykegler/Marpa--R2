@@ -11113,22 +11113,15 @@ static inline void tree_destroy(TREE tree)
 MARPA_OFF_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
 }
 
-@ Soft failure (-1) if no bocage, so that this function
-can be also used to check for the existence of the bocage.
-@<Public function prototypes@> =
+@ @<Public function prototypes@> =
 gint marpa_t_parse_count(struct marpa_r* r);
 @ @<Function definitions@> =
 gint marpa_t_parse_count(struct marpa_r* r)
 {
-    BOCAGE b;
     TREE tree;
     @<Return |-2| on failure@>@;
   GRAMMAR g = G_of_R(r);
     @<Fail if fatal error@>@;
-    b = B_of_R(r);
-    if (!b) {
-	return -1;
-    }
     tree = T_of_R(r);
 MARPA_OFF_DEBUG3("%s b=%p", G_STRLOC, b);
 MARPA_OFF_DEBUG4("%s tree=%p parse_count=%d", G_STRLOC, tree, tree->t_parse_count);
