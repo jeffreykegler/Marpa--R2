@@ -5374,31 +5374,31 @@ r->ref_count = 1;
 
 @ Decrement the recognizer reference count.
 @<Private function prototypes@> =
-static inline void r_unref (RECCE r);
+static inline void recce_unref (RECCE r);
 @ @<Function definitions@> =
 static inline void
-r_unref (RECCE r)
+recce_unref (RECCE r)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->ref_count);
   MARPA_ASSERT (r->ref_count > 0)
   r->ref_count--;
   if (r->ref_count <= 0)
     {
-      r_free(r);
+      recce_free(r);
     }
 }
 void
 marpa_r_unref (Marpa_Recognizer r)
 {
-   r_unref(r);
+   recce_unref(r);
 }
 
 @ Increment the recognizer reference count.
 @<Private function prototypes@> =
-static inline RECCE r_ref (RECCE r);
+static inline RECCE recce_ref (RECCE r);
 @ @<Function definitions@> =
 static inline
-RECCE r_ref (RECCE r)
+RECCE recce_ref (RECCE r)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->ref_count);
   MARPA_ASSERT(r->ref_count > 0)
@@ -5408,14 +5408,14 @@ RECCE r_ref (RECCE r)
 Marpa_Recognizer
 marpa_r_ref (Marpa_Recognizer r)
 {
-   return r_ref(r);
+   return recce_ref(r);
 }
 
 @ @<Function definitions@> =
 static inline
-void r_free(struct marpa_r *r)
+void recce_free(struct marpa_r *r)
 {
-    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, r);
+    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, r)
     @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
     grammar_unref(g);
@@ -5427,7 +5427,7 @@ void r_free(struct marpa_r *r)
 }
 @ @<Private function prototypes@> =
 static inline
-void r_free(struct marpa_r *r);
+void recce_free(struct marpa_r *r);
 
 @*0 The Grammar for the Recognizer.
 Initialized in |marpa_r_new|.
@@ -10335,7 +10335,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 
     /* Remove |R_of_B| and |t_recce| after interface conversion */
     R_of_B(b) = r;
-    r_ref(r);
+    recce_ref(r);
 
     if (G_is_Trivial(g)) {
         if (ordinal_arg > 0) goto B_NEW_RETURN_ERROR;
@@ -10359,7 +10359,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     obstack_free(&bocage_setup_obs, NULL);
     return b;
     B_NEW_RETURN_ERROR: ;
-    r_unref(r);
+    recce_unref(r);
     if (b) {
 	@<Destroy bocage elements, all phases@>;
     }
@@ -10604,31 +10604,31 @@ b->ref_count = 1;
 
 @ Decrement the bocage reference count.
 @<Private function prototypes@> =
-static inline void b_unref (BOCAGE b);
+static inline void bocage_unref (BOCAGE b);
 @ @<Function definitions@> =
 static inline void
-b_unref (BOCAGE b)
+bocage_unref (BOCAGE b)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->ref_count);
   MARPA_ASSERT (b->ref_count > 0)
   b->ref_count--;
   if (b->ref_count <= 0)
     {
-      b_free(b);
+      bocage_free(b);
     }
 }
 void
 marpa_b_unref (Marpa_Bocage b)
 {
-   b_unref(b);
+   bocage_unref(b);
 }
 
 @ Increment the bocage reference count.
 @<Private function prototypes@> =
-static inline BOCAGE b_ref (BOCAGE b);
+static inline BOCAGE bocage_ref (BOCAGE b);
 @ @<Function definitions@> =
 static inline BOCAGE
-b_ref (BOCAGE b)
+bocage_ref (BOCAGE b)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->ref_count);
   MARPA_ASSERT(b->ref_count > 0)
@@ -10638,7 +10638,7 @@ b_ref (BOCAGE b)
 Marpa_Bocage
 marpa_b_ref (Marpa_Bocage b)
 {
-   return b_ref(b);
+   return bocage_ref(b);
 }
 
 @*0 Bocage Destruction.
@@ -10651,15 +10651,15 @@ if the bocage already has been freed,
 or was never initialized.
 @<Private function prototypes@> =
 void
-b_free(BOCAGE b);
+bocage_free(BOCAGE b);
 @ @<Function definitions@> =
 void
-b_free (BOCAGE b)
+bocage_free (BOCAGE b)
 {
-    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, b);
+    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, b)
   const RECCE r = R_of_B (b);
   @<Unpack bocage objects@>@;
-  r_unref (r);
+  recce_unref (r);
   if (b)
     {
       @<Destroy bocage elements, all phases@>;
@@ -10876,7 +10876,7 @@ int marpa_t_new(struct marpa_r* r)
     TREE t = T_of_R(r);
     @<Fail if fatal error@>@;
     /* |order_ref(o);| here */
-    o_freeze(o);
+    order_freeze(o);
     if (TREE_is_Exhausted(t)) {
        return -1;
     }
@@ -11204,7 +11204,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     o = g_slice_new(struct s_order);
     @<Add up-ref of |o|@>@;
     B_of_O(o) = b;
-    b_ref(b);
+    bocage_ref(b);
     @<Initialize order elements@>@;
     return o;
 }
@@ -11226,7 +11226,7 @@ order_unref (ORDER o)
   o->ref_count--;
   if (o->ref_count <= 0)
     {
-      o_free(o);
+      order_free(o);
     }
 }
 void
@@ -11254,9 +11254,9 @@ marpa_o_ref (Marpa_Order o)
 }
 
 @ @<Private function prototypes@> =
-static inline void o_strip(ORDER o);
+static inline void order_strip(ORDER o);
 @ @<Function definitions@> =
-static inline void o_strip(ORDER o)
+static inline void order_strip(ORDER o)
 {
   if (o->t_and_node_in_use)
     {
@@ -11265,22 +11265,22 @@ static inline void o_strip(ORDER o)
     }
 }
 @ @<Private function prototypes@> =
-static inline void o_freeze(ORDER o);
+static inline void order_freeze(ORDER o);
 @ @<Function definitions@> =
-static inline void o_freeze(ORDER o)
+static inline void order_freeze(ORDER o)
 {
-  o_strip(o);
+  order_strip(o);
   O_is_Frozen(o) = 0;
 }
 @ @<Private function prototypes@> =
-static inline void o_free(ORDER o);
+static inline void order_free(ORDER o);
 @ @<Function definitions@> =
-static inline void o_free(ORDER o)
+static inline void order_free(ORDER o)
 {
-    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, o);
+    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, o)
   @<Unpack order objects@>@;
-  b_unref(b);
-  o_strip(o);
+  bocage_unref(b);
+  order_strip(o);
   if (o->t_and_node_orderings) {
       o->t_and_node_orderings = NULL;
       obstack_free(&OBS_of_O(o), NULL);
@@ -11971,7 +11971,6 @@ For the moment destroy these objects with the bocage.
 @<Destroy bocage elements, main phase@> =
 {
     const TREE t = T_of_R(r);
-    const ORDER o = O_of_R(r);
     @<Delete up-ref of |o|@>@;
     tree_destroy(t);
     tree_safe(t);
@@ -13364,6 +13363,9 @@ The |MARPA_DEBUG| flag enables intrusive debugging logic.
 ``Intrusive" debugging includes things which would
 be annoying in production, such as detailed messages about
 internal matters on |STDERR|.
+|MARPA_DEBUG| is expected to be defined in the |CFLAGS|.
+|MARPA_DEBUG| implies |MARPA_ENABLE_ASSERT|, but not
+vice versa.
 @d MARPA_OFF_DEBUG1(a)
 @d MARPA_OFF_DEBUG2(a, b)
 @d MARPA_OFF_DEBUG3(a, b, c)
@@ -13371,9 +13373,11 @@ internal matters on |STDERR|.
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @d MARPA_OFF_ASSERT(expr)
 @<Debug macros@> =
-#define MARPA_DEBUG @[ 0 @]
-#define MARPA_ENABLE_ASSERT @[ 0 @]
 #if MARPA_DEBUG
+
+#undef MARPA_ENABLE_ASSERT
+#define MARPA_ENABLE_ASSERT 1
+
 #define MARPA_DEBUG1(a) @[ g_debug((a)); @]
 #define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)); @]
 #define MARPA_DEBUG3(a, b, c) @[ g_debug((a),(b),(c)); @]
