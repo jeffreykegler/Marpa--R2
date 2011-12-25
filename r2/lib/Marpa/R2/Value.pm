@@ -952,17 +952,20 @@ sub Marpa::R2::Recognizer::value {
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
 
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    if ($bocage) {
+    my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $tree_result;
+    my $parse_count;
+
+    if ($tree) {
         my $max_parses =
             $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
-        my $parse_count = $recce_c->parse_count();
+        my $parse_count = $tree->parse_count();
         if ( $max_parses and $parse_count > $max_parses ) {
             Marpa::R2::exception(
                 "Maximum parse count ($max_parses) exceeded");
         }
 
-    } ## end if ($bocage)
+    } ## end if ($tree)
     else {
 
         # Perhaps this call should be moved.
@@ -986,6 +989,9 @@ sub Marpa::R2::Recognizer::value {
             when ('rule')           { do_rank_by_rule($recce); }
         }
 
+        $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
+            Marpa::R2::Internal::T_C->new($order);
+
     } ## end else [ if ($bocage) ]
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_AND_NODES] ) {
@@ -1006,8 +1012,8 @@ sub Marpa::R2::Recognizer::value {
             or Marpa::R2::exception('print to trace handle failed');
     }
 
-    $recce_c->tree_new();
-    return if not defined $recce_c->tree_size();
+    return
+        if not defined( $parse_count ? $tree->tree_next() : $tree->first() );
     return Marpa::R2::Internal::Recognizer::evaluate($recce);
 
 } ## end sub Marpa::R2::Recognizer::value

@@ -11218,9 +11218,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     @<Unpack bocage objects@>@;
     ORDER o;
       @<Fail if fatal error@>@;
-    @<Fail if up-ref of |o|@>@;
     o = g_slice_new(struct s_order);
-    @<Add up-ref of |o|@>@;
     B_of_O(o) = b;
     bocage_ref(b);
     @<Initialize order elements@>@;
@@ -11980,7 +11978,7 @@ For the moment destroy these objects with the bocage.
 @<Destroy bocage elements, main phase@> =
 {
     const VALUE v = V_of_R(r);
-    @<Delete up-ref of |t|@>@;
+    T_of_R(r) = NULL;
     value_destroy(v);
     value_safe(v);
 }
@@ -11995,10 +11993,6 @@ For the moment destroy these objects with the bocage.
 @ @<Add up-ref of |t|@> =
 {
     T_of_R(r) = t;
-}
-@ @<Delete up-ref of |o|@> =
-{
-    T_of_R(r) = NULL;
 }
 
 @ {\bf To Do}: @^To Do@>
