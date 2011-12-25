@@ -37,6 +37,8 @@ This manual is for libmarpa, version 0.0.0.
 * Recognizers:: Recognizer objects
 * Bocage:: Bocage objects
 * Order:: Order objects
+* Tree:: Tree objects
+* Value:: Value objects
 * Error handling:: Error handling
 @end menu 
 
@@ -445,6 +447,15 @@ Return value: %NULL if the GLib library is compatible with the
     Marpa_Or_Node_ID @var{or_node_id}, @
     gint @var{ix})
 @end deftypefun
+
+@node Tree
+@chapter Tree objects
+
+@deftypefun Marpa_Grammar marpa_t_g (Marpa_Tree @var{o})
+@end deftypefun
+
+@node Value
+@chapter Value objects
 
 @node Error handling
 @chapter Error handling

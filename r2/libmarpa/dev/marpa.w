@@ -10821,7 +10821,6 @@ struct s_tree {
     gint t_parse_count;
     struct s_value t_val;
 };
-typedef struct s_tree TREE_Object;
 
 @ @<Unpack tree objects@> =
     TREE t = T_of_R(r);
@@ -10900,6 +10899,25 @@ int marpa_t_new(struct marpa_r* r)
     TREE_IS_EXHAUSTED: ;
    tree_exhaust(t);
    return -1;
+}
+
+@*0 The grammar of the tree.
+@ This function returns the grammar of the tree.
+It never returns an error.
+The grammar is always set when the tree is initialized,
+and is never changed while the tree exists.
+Fatal state is not reported,
+because it is kept in the grammar,
+so that
+either we can return the grammar in spite of
+its fatal state,
+or the problem is so severe than no
+errors can be properly reported.
+@<Function definitions@> =
+Marpa_Grammar marpa_t_g(Marpa_Tree o)
+{
+  @<Unpack tree objects@>@;
+  return g;
 }
 
 @*0 Claiming and Releasing And-nodes.
@@ -11294,8 +11312,8 @@ static inline void order_free(ORDER o)
 @*0 The grammar of the order.
 @ This function returns the grammar of the order.
 It never returns an error.
-The grammar is always set when the bocage is initialized,
-and is never changed while the bocage exists.
+The grammar is always set when the order is initialized,
+and is never changed while the order exists.
 Fatal state is not reported,
 because it is kept in the grammar,
 so that
@@ -11370,11 +11388,6 @@ gint marpa_o_and_order_set(
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
-    if (!b)
-      {
-	MARPA_DEV_ERROR ("no bocage");
-	return failure_indicator;
-      }
     if (O_is_Frozen (o))
       {
 	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
@@ -11478,10 +11491,6 @@ Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
     OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
-  if (!b) {
-      MARPA_DEV_ERROR("no bocage");
-      return failure_indicator;
-  }
   @<Fail if fatal error@>@;
     @<Check |or_node_id|; set |or_node|@>@;
   if (ix < 0) {
@@ -11958,40 +11967,38 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 @ {\bf To Do}: @^To Do@>
 Code to be removed once the new interface
 is completed.
-@d O_of_R(r) ((r)->t_order)
-@d T_of_R(r) (&(r)->t_tree)
+@d T_of_R(r) ((r)->t_tree)
+@d V_of_R(r) (&(r)->t_value)
 @<Widely aligned recognizer elements@> =
-Marpa_Order t_order;
-struct s_tree t_tree;
+Marpa_Tree t_tree;
+struct s_value t_value;
 @ @<Initialize recognizer elements@> =
-O_of_R(r) = NULL;
-tree_safe(T_of_R(r));
+T_of_R(r) = NULL;
+value_safe(V_of_R(r));
 @ {\bf To Do}: @^To Do@>
 For the moment destroy these objects with the bocage.
 @<Destroy bocage elements, main phase@> =
 {
-    const TREE t = T_of_R(r);
-    @<Delete up-ref of |o|@>@;
-    tree_destroy(t);
-    tree_safe(t);
+    const VALUE v = V_of_R(r);
+    @<Delete up-ref of |t|@>@;
+    value_destroy(v);
+    value_safe(v);
 }
 
-@ @<Fail if up-ref of |o|@> =
+@ @<Fail if up-ref of |t|@> =
 {
-    const RECCE r = R_of_B(b);
-    if (O_of_R(r)) {
-	MARPA_DEV_ERROR ("order in use");
+    if (T_of_R(r)) {
+	MARPA_DEV_ERROR ("tree in use");
 	return failure_indicator;
     }
 }
-@ @<Add up-ref of |o|@> =
+@ @<Add up-ref of |t|@> =
 {
-    const RECCE r = R_of_B(b);
-    O_of_R(r) = o;
+    T_of_R(r) = t;
 }
 @ @<Delete up-ref of |o|@> =
 {
-    O_of_R(r) = NULL;
+    T_of_R(r) = NULL;
 }
 
 @ {\bf To Do}: @^To Do@>

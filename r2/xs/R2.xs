@@ -57,10 +57,17 @@ typedef struct {
      char *message_buffer;
 } O_Wrapper;
 
+typedef struct marpa_t Tree;
+typedef struct {
+     Marpa_Tree t;
+     char *message_buffer;
+} T_Wrapper;
+
 static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
 static const char recce_c_class_name[] = "Marpa::R2::Internal::R_C";
 static const char bocage_c_class_name[] = "Marpa::R2::Internal::B_C";
 static const char order_c_class_name[] = "Marpa::R2::Internal::O_C";
+static const char tree_c_class_name[] = "Marpa::R2::Internal::T_C";
 
 static const char *
 event_type_to_string (Marpa_Event_Type type)
@@ -182,6 +189,21 @@ error_o (O_Wrapper * o_wrapper)
   char *buffer = o_wrapper->message_buffer;
   g_free (buffer);
   o_wrapper->message_buffer = buffer =
+    libmarpa_exception (error_code, error_string);
+  return buffer;
+}
+
+/* Return value must be g_free()'d */
+static const char *
+error_t (T_Wrapper * t_wrapper)
+{
+  const char *error_string;
+  Marpa_Tree t = t_wrapper->t;
+  Marpa_Grammar g = marpa_t_g(o);
+  const int error_code = marpa_g_error (g, &error_string);
+  char *buffer = t_wrapper->message_buffer;
+  g_free (buffer);
+  t_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
@@ -1712,154 +1734,6 @@ PPCODE:
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
-int
-tree_new( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int status;
-    status = marpa_t_new(r);
-    if (status == -1) { XSRETURN_UNDEF; }
-    if (status < 0) {
-      croak ("Problem in r->tree_new(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(status) ) );
-    }
-
-int
-parse_count( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_parse_count(r);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->parse_count(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-int
-tree_size( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_size(r);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->tree_size(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-int
-fork_or_node( r_wrapper, fork_id )
-    R_Wrapper *r_wrapper;
-    Marpa_Fork_ID fork_id;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_fork_or_node(r, fork_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->fork_or_node(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-int
-fork_choice( r_wrapper, fork_id )
-    R_Wrapper *r_wrapper;
-    Marpa_Fork_ID fork_id;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_fork_choice(r, fork_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->fork_choice(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-int
-fork_parent( r_wrapper, fork_id )
-    R_Wrapper *r_wrapper;
-    Marpa_Fork_ID fork_id;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_fork_parent(r, fork_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->fork_parent(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-int
-fork_is_cause( r_wrapper, fork_id )
-    R_Wrapper *r_wrapper;
-    Marpa_Fork_ID fork_id;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_fork_is_cause(r, fork_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->fork_is_cause(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-int
-fork_cause_is_ready( r_wrapper, fork_id )
-    R_Wrapper *r_wrapper;
-    Marpa_Fork_ID fork_id;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_fork_cause_is_ready(r, fork_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->fork_cause_is_ready(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-
-int
-fork_is_predecessor( r_wrapper, fork_id )
-    R_Wrapper *r_wrapper;
-    Marpa_Fork_ID fork_id;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_fork_is_predecessor(r, fork_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->fork_is_predecessor(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-int
-fork_predecessor_is_ready( r_wrapper, fork_id )
-    R_Wrapper *r_wrapper;
-    Marpa_Fork_ID fork_id;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int result;
-    result = marpa_t_fork_predecessor_is_ready(r, fork_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < 0) {
-      croak ("Problem in r->fork_predecessor_is_ready(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
 void
 val_new( r_wrapper )
     R_Wrapper *r_wrapper;
@@ -2318,6 +2192,221 @@ PPCODE:
       croak ("Problem in o->and_node_order_get(): %s", error_o(o_wrapper));
     }
     XPUSHs( sv_2mortal( newSViv(result) ) );
+}
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::T_C
+
+void
+new( class, o_wrapper )
+    char * class;
+    O_Wrapper *o_wrapper;
+PPCODE:
+{
+  SV *sv;
+  Marpa_Order o = o_wrapper->o;
+  T_Wrapper *t_wrapper;
+  Marpa_Tree t = marpa_t_new (o);
+  if (!t)
+    {
+      croak ("Problem in t->new(): %s", error_o (o_wrapper));
+    }
+  Newx (t_wrapper, 1, T_Wrapper);
+  t_wrapper->message_buffer = NULL;
+  t_wrapper->t = t;
+  sv = sv_newmortal ();
+  sv_setref_pv (sv, tree_c_class_name, (void *) t_wrapper);
+  XPUSHs (sv);
+}
+
+void
+DESTROY( t_wrapper )
+    T_Wrapper *t_wrapper;
+PPCODE:
+{
+    const Marpa_Tree t = t_wrapper->t;
+    marpa_t_unref(t);
+    g_free(t_wrapper->message_buffer);
+    Safefree( t_wrapper );
+}
+
+int
+parse_count( t_wrapper )
+    T_Wrapper *t_wrapper;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_parse_count (t);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->parse_count(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+size( t_wrapper )
+    T_Wrapper *t_wrapper;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_size (t);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->size(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+fork_or_node( t_wrapper, fork_id )
+    T_Wrapper *t_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_fork_or_node (t, fork_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->fork_or_node(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+fork_choice( t_wrapper, fork_id )
+    T_Wrapper *t_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_fork_choice (t, fork_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->fork_choice(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+fork_parent( t_wrapper, fork_id )
+    T_Wrapper *t_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_fork_parent (t, fork_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->fork_parent(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+fork_is_cause( t_wrapper, fork_id )
+    T_Wrapper *t_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_fork_is_cause (t, fork_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->fork_is_cause(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+fork_cause_is_ready( t_wrapper, fork_id )
+    T_Wrapper *t_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_fork_cause_is_ready (t, fork_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->fork_cause_is_ready(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+
+int
+fork_is_predecessor( t_wrapper, fork_id )
+    T_Wrapper *T_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_fork_is_predecessor (t, fork_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->fork_is_predecessor(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+fork_predecessor_is_ready( t_wrapper, fork_id )
+    T_Wrapper *t_wrapper;
+    Marpa_Fork_ID fork_id;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_fork_predecessor_is_ready (t, fork_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->fork_predecessor_is_ready(): %s",
+	     error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 BOOT:
