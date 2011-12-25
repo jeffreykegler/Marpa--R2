@@ -643,6 +643,7 @@ void grammar_unref (GRAMMAR g);
 void
 grammar_unref (GRAMMAR g)
 {
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->ref_count);
   MARPA_ASSERT (g->ref_count > 0)
   g->ref_count--;
   if (g->ref_count <= 0)
@@ -661,6 +662,7 @@ static inline GRAMMAR grammar_ref (GRAMMAR g);
 static inline GRAMMAR
 grammar_ref (GRAMMAR g)
 {
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->ref_count);
   MARPA_ASSERT(g->ref_count > 0)
   g->ref_count++;
   return g;
@@ -5377,6 +5379,7 @@ static inline void r_unref (RECCE r);
 static inline void
 r_unref (RECCE r)
 {
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->ref_count);
   MARPA_ASSERT (r->ref_count > 0)
   r->ref_count--;
   if (r->ref_count <= 0)
@@ -5397,6 +5400,7 @@ static inline RECCE r_ref (RECCE r);
 static inline
 RECCE r_ref (RECCE r)
 {
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->ref_count);
   MARPA_ASSERT(r->ref_count > 0)
   r->ref_count++;
   return r;
@@ -5411,6 +5415,7 @@ marpa_r_ref (Marpa_Recognizer r)
 static inline
 void r_free(struct marpa_r *r)
 {
+    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, r);
     @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
     grammar_unref(g);
@@ -10604,6 +10609,7 @@ static inline void b_unref (BOCAGE b);
 static inline void
 b_unref (BOCAGE b)
 {
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->ref_count);
   MARPA_ASSERT (b->ref_count > 0)
   b->ref_count--;
   if (b->ref_count <= 0)
@@ -10624,6 +10630,7 @@ static inline BOCAGE b_ref (BOCAGE b);
 static inline BOCAGE
 b_ref (BOCAGE b)
 {
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->ref_count);
   MARPA_ASSERT(b->ref_count > 0)
   b->ref_count++;
   return b;
@@ -10649,6 +10656,7 @@ b_free(BOCAGE b);
 void
 b_free (BOCAGE b)
 {
+    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, b);
   const RECCE r = R_of_B (b);
   @<Unpack bocage objects@>@;
   r_unref (r);
@@ -10867,7 +10875,7 @@ int marpa_t_new(struct marpa_r* r)
     @<Unpack order objects@>@;
     TREE t = T_of_R(r);
     @<Fail if fatal error@>@;
-    o_ref(o);
+    /* |order_ref(o);| here */
     o_freeze(o);
     if (TREE_is_Exhausted(t)) {
        return -1;
@@ -11208,11 +11216,12 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
 
 @ Decrement the order reference count.
 @<Private function prototypes@> =
-static inline void o_unref (ORDER o);
+static inline void order_unref (ORDER o);
 @ @<Function definitions@> =
 static inline void
-o_unref (ORDER o)
+order_unref (ORDER o)
 {
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->ref_count);
   MARPA_ASSERT (o->ref_count > 0)
   o->ref_count--;
   if (o->ref_count <= 0)
@@ -11223,16 +11232,17 @@ o_unref (ORDER o)
 void
 marpa_o_unref (Marpa_Order o)
 {
-   o_unref(o);
+   order_unref(o);
 }
 
 @ Increment the order reference count.
 @<Private function prototypes@> =
-static inline ORDER o_ref (ORDER o);
+static inline ORDER order_ref (ORDER o);
 @ @<Function definitions@> =
 static inline ORDER
-o_ref (ORDER o)
+order_ref (ORDER o)
 {
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->ref_count);
   MARPA_ASSERT(o->ref_count > 0)
   o->ref_count++;
   return o;
@@ -11240,7 +11250,7 @@ o_ref (ORDER o)
 Marpa_Order
 marpa_o_ref (Marpa_Order o)
 {
-   return o_ref(o);
+   return order_ref(o);
 }
 
 @ @<Private function prototypes@> =
@@ -11267,6 +11277,7 @@ static inline void o_free(ORDER o);
 @ @<Function definitions@> =
 static inline void o_free(ORDER o)
 {
+    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, o);
   @<Unpack order objects@>@;
   b_unref(b);
   o_strip(o);
@@ -11961,7 +11972,6 @@ For the moment destroy these objects with the bocage.
 {
     const TREE t = T_of_R(r);
     const ORDER o = O_of_R(r);
-    o_unref(o);
     @<Delete up-ref of |o|@>@;
     tree_destroy(t);
     tree_safe(t);
@@ -11979,14 +11989,10 @@ For the moment destroy these objects with the bocage.
 {
     const RECCE r = R_of_B(b);
     O_of_R(r) = o;
-    o_ref(o);
 }
 @ @<Delete up-ref of |o|@> =
 {
-    if (O_of_R(r)) {
-	o_unref(O_of_R(r));
-	O_of_R(r) = NULL;
-    }
+    O_of_R(r) = NULL;
 }
 
 @ {\bf To Do}: @^To Do@>
