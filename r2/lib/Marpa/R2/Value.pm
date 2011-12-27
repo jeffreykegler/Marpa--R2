@@ -975,7 +975,7 @@ sub Marpa::R2::Recognizer::value {
             Marpa::R2::Internal::Recognizer::set_null_values($recce);
         Marpa::R2::Internal::Recognizer::set_actions($recce);
 
-        $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+        my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Internal::B_C->new( $recce_c, -1,
             ( $parse_set_arg // -1 ) );
 
@@ -1012,8 +1012,7 @@ sub Marpa::R2::Recognizer::value {
             or Marpa::R2::exception('print to trace handle failed');
     }
 
-    return
-        if not defined( $parse_count ? $tree->tree_next() : $tree->first() );
+    return if not defined $tree->next();
     return Marpa::R2::Internal::Recognizer::evaluate($recce);
 
 } ## end sub Marpa::R2::Recognizer::value

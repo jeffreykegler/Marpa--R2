@@ -451,6 +451,12 @@ Return value: %NULL if the GLib library is compatible with the
 @node Tree
 @chapter Tree objects
 
+@deftypefun Marpa_Tree marpa_t_ref (Marpa_Tree @var{t})
+@end deftypefun
+
+@deftypefun void marpa_t_unref (Marpa_Tree @var{t})
+@end deftypefun
+
 @deftypefun Marpa_Grammar marpa_t_g (Marpa_Tree @var{o})
 @end deftypefun
 

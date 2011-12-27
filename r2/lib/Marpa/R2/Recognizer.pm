@@ -37,6 +37,7 @@ BEGIN {
     C { C structure for the recognizer }
     B_C { C structure for the bocage }
     O_C { C structure for the Marpa order object }
+    T_C { C structure for the Marpa tree iterator }
 
     GRAMMAR { the grammar used }
     FINISHED

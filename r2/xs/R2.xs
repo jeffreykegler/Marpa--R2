@@ -199,7 +199,7 @@ error_t (T_Wrapper * t_wrapper)
 {
   const char *error_string;
   Marpa_Tree t = t_wrapper->t;
-  Marpa_Grammar g = marpa_t_g(o);
+  Marpa_Grammar g = marpa_t_g(t);
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = t_wrapper->message_buffer;
   g_free (buffer);
@@ -2229,7 +2229,26 @@ PPCODE:
     Safefree( t_wrapper );
 }
 
-int
+void
+next( t_wrapper )
+    T_Wrapper *t_wrapper;
+PPCODE:
+{
+  Marpa_Tree t = t_wrapper->t;
+  int result;
+  result = marpa_t_next (t);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in t->next(): %s", error_t (t_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+void
 parse_count( t_wrapper )
     T_Wrapper *t_wrapper;
 PPCODE:
@@ -2370,7 +2389,7 @@ PPCODE:
 
 int
 fork_is_predecessor( t_wrapper, fork_id )
-    T_Wrapper *T_wrapper;
+    T_Wrapper *t_wrapper;
     Marpa_Fork_ID fork_id;
 PPCODE:
 {
