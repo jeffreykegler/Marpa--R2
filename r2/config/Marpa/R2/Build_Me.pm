@@ -196,7 +196,7 @@ sub process_xs {
                     . ' -Wall -Wno-unused-variable -Wextra -Wpointer-arith'
                     . ' -Wstrict-prototypes -Wwrite-strings'
                     . ' -Wdeclaration-after-statement -Winline'
-                    . ' -Wmissing-declarations -Wconversion'
+                    . ' -Wmissing-declarations '
 		    . " -isystem $gperl_h_location "
             )
         );
