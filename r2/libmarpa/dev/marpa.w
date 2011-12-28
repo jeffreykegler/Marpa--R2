@@ -10875,16 +10875,22 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     O_of_T(t) = o;
     order_ref(o);
     order_freeze(o);
-    tree_safe(t);
-    @<Add up-ref of |t|@>@;
     @<Initialize tree elements@>@;
+    @<Add up-ref of |t|@>@;
     return t;
 }
 
 @*0 Reference Counting and Destructors.
 @ @<Int aligned tree elements@>= gint ref_count;
 @ @<Initialize tree elements@> =
+{
+    const gint and_count = AND_Count_of_B (b);
     t->ref_count = 1;
+    t->t_parse_count = 0;
+    t->t_and_node_in_use = bv_create ((guint) and_count);
+    FSTACK_INIT (t->t_fork_stack, FORK_Object, and_count);
+    FSTACK_INIT (t->t_fork_worklist, gint, and_count);
+}
 
 @ Decrement the tree reference count.
 @<Private function prototypes@> =
@@ -10963,19 +10969,24 @@ gint marpa_t_next(Marpa_Tree t)
     @<Return |-2| on failure@>@;
     gint is_first_tree_attempt = 0;
     @<Unpack tree objects@>@;
+MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
     @<Fail if fatal error@>@;
     if (TREE_is_Exhausted (t))
       {
+MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
 	return -1;
       }
     value_destroy (V_of_R (R_of_B (b)));
 
+MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
     if (t->t_parse_count < 1)
       {
+MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
        is_first_tree_attempt = 1;
-       @<Initialize the tree iterator; return -1 if fails@>@;
+       @<Initialize the tree iterator@>@;
       }
       while (1) {
+MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
         const AND ands_of_b = ANDs_of_B(b);
 	 if (is_first_tree_attempt) {
 	    is_first_tree_attempt = 0;
@@ -10988,6 +10999,7 @@ gint marpa_t_next(Marpa_Tree t)
     t->t_parse_count++;
     return FSTACK_LENGTH(t->t_fork_stack);
     TREE_IS_EXHAUSTED: ;
+MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
     tree_exhaust(t);
     return -1;
 
@@ -11022,23 +11034,19 @@ static inline gint tree_and_node_try(TREE tree, ANDID and_node_id)
     return !bv_bit_test_and_set(tree->t_and_node_in_use, (guint)and_node_id);
 }
 
-@ @<Initialize the tree iterator;
-return -1 if fails@> =
+@ @<Initialize the tree iterator@> =
 {
   ORID top_or_id = Top_ORID_of_B (b);
   OR top_or_node = OR_of_B_by_ID (b, top_or_id);
   FORK fork;
   gint choice;
-  const gint and_count = AND_Count_of_B (b);
-  t->t_parse_count = 0;
-  t->t_and_node_in_use = bv_create ((guint) and_count);
-  FSTACK_INIT (t->t_fork_stack, FORK_Object, and_count);
-  FSTACK_INIT (t->t_fork_worklist, gint, and_count);
   choice = or_node_next_choice (o, t, top_or_node, 0);
   /* Due to skipping, even the top or-node can have no
      valid choices, in which case there is no parse */
+MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
   if (choice < 0)
     goto TREE_IS_EXHAUSTED;
+MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
   fork = FSTACK_PUSH (t->t_fork_stack);
   OR_of_FORK (fork) = top_or_node;
   Choice_of_FORK (fork) = choice;

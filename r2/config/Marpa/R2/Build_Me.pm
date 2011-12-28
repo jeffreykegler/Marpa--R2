@@ -271,9 +271,9 @@ sub do_libmarpa {
     my $self         = shift;
     my $cwd          = $self->cwd();
     my $base_dir     = $self->base_dir();
-    my $libmarpa_dir = File::Spec->catdir( $base_dir, qw(libmarpa build) );
-    -d $libmarpa_dir or mkdir $libmarpa_dir;
-    chdir $libmarpa_dir;
+    my $build_dir = File::Spec->catdir( $base_dir, qw(libmarpa build) );
+    -d $build_dir or mkdir $build_dir;
+    chdir $build_dir;
     my $updir = File::Spec->updir();
     my $configure_script = File::Spec->catfile( $updir, 'dist', 'configure' );
     if ( not -r 'stamp-h1' ) {
@@ -288,22 +288,26 @@ sub do_libmarpa {
         $shell or die q{No Bourne shell available says $Config{sh}};
 ##use critic
 
-    my $install_dir = File::Spec->catdir( $updir, 'install' );
-    $install_dir = abs_path($install_dir);
-    -d $install_dir or mkdir $install_dir;
+	{
+	    local $ENV{CFLAGS} = undef;
+	    if ( my $marpa_cflags = $self->args('marpa_cflags') ) {
+	       $ENV{CFLAGS} = $marpa_cflags;
+	    }
 
-        if (not IPC::Cmd::run(
-                command => [ $shell, $configure_script ],
-                verbose => 1
-            )
-            )
-        {
-            say {*STDERR} "Failed: $configure_script"
-                or die "say failed: $ERRNO";
-            say {*STDERR} "Current directory: $libmarpa_dir"
-                or die "say failed: $ERRNO";
-            die 'Cannot run libmarpa configure';
-        } ## end if ( not IPC::Cmd::run( command => [ $shell, ...]))
+	    if (not IPC::Cmd::run(
+		    command => [ $shell, $configure_script ],
+		    verbose => 1
+		)
+		)
+	    {
+		say {*STDERR} "Failed: $configure_script"
+		    or die "say failed: $ERRNO";
+		say {*STDERR} "Current directory: $build_dir"
+		    or die "say failed: $ERRNO";
+		die 'Cannot run libmarpa configure';
+	    } ## end if ( not IPC::Cmd::run( command => [ $shell, ...]))
+	}
+
     } ## end if ( not -r 'stamp-h1' )
     else {
         if ( $self->verbose() ) {

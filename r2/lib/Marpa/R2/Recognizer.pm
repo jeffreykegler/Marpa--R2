@@ -191,6 +191,7 @@ sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;
     $recce->[Marpa::R2::Internal::Recognizer::B_C]            = undef;
     $recce->[Marpa::R2::Internal::Recognizer::O_C]            = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::T_C]            = undef;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]  = [];
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CONSTANTS] = [];
     return;
