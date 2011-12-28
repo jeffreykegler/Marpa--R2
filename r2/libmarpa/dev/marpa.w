@@ -626,9 +626,9 @@ struct marpa_g* marpa_g_new( void)
 struct marpa_g* marpa_g_new(void);
 
 @*0 Reference Counting and Destructors.
-@ @<Int aligned grammar elements@>= gint ref_count;
+@ @<Int aligned grammar elements@>= gint t_ref_count;
 @ @<Initialize grammar elements@> =
-g->ref_count = 1;
+g->t_ref_count = 1;
 
 @ Decrement the grammar reference count.
 GNU practice seems to be to return |void|,
@@ -643,10 +643,10 @@ void grammar_unref (GRAMMAR g);
 void
 grammar_unref (GRAMMAR g)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->ref_count);
-  MARPA_ASSERT (g->ref_count > 0)
-  g->ref_count--;
-  if (g->ref_count <= 0)
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->t_ref_count);
+  MARPA_ASSERT (g->t_ref_count > 0)
+  g->t_ref_count--;
+  if (g->t_ref_count <= 0)
     {
       grammar_free(g);
     }
@@ -662,9 +662,9 @@ static inline GRAMMAR grammar_ref (GRAMMAR g);
 static inline GRAMMAR
 grammar_ref (GRAMMAR g)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->ref_count);
-  MARPA_ASSERT(g->ref_count > 0)
-  g->ref_count++;
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->t_ref_count);
+  MARPA_ASSERT(g->t_ref_count > 0)
+  g->t_ref_count++;
   return g;
 }
 Marpa_Grammar 
@@ -5368,9 +5368,9 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 }
 
 @*0 Reference Counting and Destructors.
-@ @<Int aligned recognizer elements@>= gint ref_count;
+@ @<Int aligned recognizer elements@>= gint t_ref_count;
 @ @<Initialize recognizer elements@> =
-r->ref_count = 1;
+r->t_ref_count = 1;
 
 @ Decrement the recognizer reference count.
 @<Private function prototypes@> =
@@ -5379,10 +5379,10 @@ static inline void recce_unref (RECCE r);
 static inline void
 recce_unref (RECCE r)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->ref_count);
-  MARPA_ASSERT (r->ref_count > 0)
-  r->ref_count--;
-  if (r->ref_count <= 0)
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->t_ref_count);
+  MARPA_ASSERT (r->t_ref_count > 0)
+  r->t_ref_count--;
+  if (r->t_ref_count <= 0)
     {
       recce_free(r);
     }
@@ -5400,9 +5400,9 @@ static inline RECCE recce_ref (RECCE r);
 static inline
 RECCE recce_ref (RECCE r)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->ref_count);
-  MARPA_ASSERT(r->ref_count > 0)
-  r->ref_count++;
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->t_ref_count);
+  MARPA_ASSERT(r->t_ref_count > 0)
+  r->t_ref_count++;
   return r;
 }
 Marpa_Recognizer
@@ -10598,9 +10598,9 @@ Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b)
 }
 
 @*0 Reference Counting and Destructors.
-@ @<Int aligned bocage elements@>= gint ref_count;
+@ @<Int aligned bocage elements@>= gint t_ref_count;
 @ @<Initialize bocage elements@> =
-b->ref_count = 1;
+b->t_ref_count = 1;
 
 @ Decrement the bocage reference count.
 @<Private function prototypes@> =
@@ -10609,10 +10609,10 @@ static inline void bocage_unref (BOCAGE b);
 static inline void
 bocage_unref (BOCAGE b)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->ref_count);
-  MARPA_ASSERT (b->ref_count > 0)
-  b->ref_count--;
-  if (b->ref_count <= 0)
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->t_ref_count);
+  MARPA_ASSERT (b->t_ref_count > 0)
+  b->t_ref_count--;
+  if (b->t_ref_count <= 0)
     {
       bocage_free(b);
     }
@@ -10630,9 +10630,9 @@ static inline BOCAGE bocage_ref (BOCAGE b);
 static inline BOCAGE
 bocage_ref (BOCAGE b)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->ref_count);
-  MARPA_ASSERT(b->ref_count > 0)
-  b->ref_count++;
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->t_ref_count);
+  MARPA_ASSERT(b->t_ref_count > 0)
+  b->t_ref_count++;
   return b;
 }
 Marpa_Bocage
@@ -10878,9 +10878,9 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
 
 @*0 Reference Counting and Destructors.
 @ @<Int aligned tree elements@>=
-    gint ref_count;
+    gint t_ref_count;
 @ @<Initialize tree elements@> =
-    t->ref_count = 1;
+    t->t_ref_count = 1;
 
 @ Decrement the tree reference count.
 @<Private function prototypes@> =
@@ -10889,10 +10889,10 @@ static inline void tree_unref (TREE t);
 static inline void
 tree_unref (TREE t)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, t->ref_count);
-  MARPA_ASSERT (t->ref_count > 0)
-  t->ref_count--;
-  if (t->ref_count <= 0)
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, t->t_ref_count);
+  MARPA_ASSERT (t->t_ref_count > 0)
+  t->t_ref_count--;
+  if (t->t_ref_count <= 0)
     {
       tree_free(t);
     }
@@ -10910,9 +10910,9 @@ static inline TREE tree_ref (TREE t);
 static inline TREE
 tree_ref (TREE t)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, t->ref_count);
-  MARPA_ASSERT(t->ref_count > 0)
-  t->ref_count++;
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, t->t_ref_count);
+  MARPA_ASSERT(t->t_ref_count > 0)
+  t->t_ref_count++;
   return t;
 }
 Marpa_Tree
@@ -10975,8 +10975,8 @@ static inline void
 tree_pause (TREE t)
 {
     MARPA_ASSERT(t->t_pause_counter >= 0);
-    MARPA_ASSERT(t->t_pause_counter >= t->ref_count);
-    t->t_pause_counter--;
+    MARPA_ASSERT(t->t_ref_count >= t->t_pause_counter);
+    t->t_pause_counter++;
     tree_ref(t);
 }
 @ @<Function definitions@> =
@@ -10984,8 +10984,8 @@ static inline void
 tree_unpause (TREE t)
 {
     MARPA_ASSERT(t->t_pause_counter > 0);
-    MARPA_ASSERT(t->t_pause_counter >= t->ref_count);
-    t->t_pause_counter++;
+    MARPA_ASSERT(t->t_ref_count >= t->t_pause_counter);
+    t->t_pause_counter--;
     tree_unref(t);
 }
 
@@ -11319,9 +11319,9 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
 }
 
 @*0 Reference Counting and Destructors.
-@ @<Int aligned order elements@>= gint ref_count;
+@ @<Int aligned order elements@>= gint t_ref_count;
 @ @<Initialize order elements@> =
-    o->ref_count = 1;
+    o->t_ref_count = 1;
 
 @ Decrement the order reference count.
 @<Private function prototypes@> =
@@ -11330,10 +11330,10 @@ static inline void order_unref (ORDER o);
 static inline void
 order_unref (ORDER o)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->ref_count);
-  MARPA_ASSERT (o->ref_count > 0)
-  o->ref_count--;
-  if (o->ref_count <= 0)
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
+  MARPA_ASSERT (o->t_ref_count > 0)
+  o->t_ref_count--;
+  if (o->t_ref_count <= 0)
     {
       order_free(o);
     }
@@ -11351,9 +11351,9 @@ static inline ORDER order_ref (ORDER o);
 static inline ORDER
 order_ref (ORDER o)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->ref_count);
-  MARPA_ASSERT(o->ref_count > 0)
-  o->ref_count++;
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
+  MARPA_ASSERT(o->t_ref_count > 0)
+  o->t_ref_count++;
   return o;
 }
 Marpa_Order
@@ -11817,19 +11817,6 @@ struct s_value {
     guint t_active:1;
 };
 
-@ @<Private function prototypes@> =
-static inline void value_safe(VALUE val);
-@ @<Function definitions@> =
-static inline void value_safe(VALUE v)
-{
-    DSTACK_SAFE(v->t_virtual_stack);
-    VALUE_is_Active(v) = 0;
-    VALUE_is_Trace(v) = 0;
-    TOS_of_VALUE(v) = -1;
-    FORK_of_VALUE(v) = -1;
-    @<Safen value elements@>@;
-}
-
 @ @<Public function prototypes@> =
 Marpa_Value marpa_v_new(Marpa_Tree t);
 @ A dynamic stack is used here instead of a fixed
@@ -11885,6 +11872,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
 	DSTACK_INIT (VStack_of_VALUE (v), gint, initial_stack_size);
 	VALUE_is_Active (v) = 1;
+	@<Initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
 	return v;
@@ -11895,9 +11883,9 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 
 @*0 Reference Counting and Destructors.
 @ @<Int aligned value elements@>=
-    int ref_count;
-@ @<Safen value elements@> =
-    v->ref_count = 1;
+    int t_ref_count;
+@ @<Initialize value elements@> =
+    v->t_ref_count = 1;
 
 @ Decrement the value reference count.
 @<Private function prototypes@> =
@@ -11906,10 +11894,10 @@ static inline void value_unref (VALUE v);
 static inline void
 value_unref (VALUE v)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->ref_count);
-  MARPA_ASSERT (v->ref_count > 0)
-  v->ref_count--;
-  if (v->ref_count <= 0)
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->t_ref_count);
+  MARPA_ASSERT (v->t_ref_count > 0)
+  v->t_ref_count--;
+  if (v->t_ref_count <= 0)
     {
 	value_free(v);
     }
@@ -11927,9 +11915,9 @@ static inline VALUE value_ref (VALUE v);
 static inline VALUE
 value_ref (VALUE v)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->ref_count);
-  MARPA_ASSERT(v->ref_count > 0)
-  v->ref_count++;
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->t_ref_count);
+  MARPA_ASSERT(v->t_ref_count > 0)
+  v->t_ref_count++;
   return v;
 }
 Marpa_Value

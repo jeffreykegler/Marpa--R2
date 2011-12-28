@@ -293,6 +293,10 @@ sub do_libmarpa {
             push @configure_command_args, "CFLAGS=-DMARPA_DEBUG";
         }
 
+        if ( $self->verbose() ) {
+            say join "Running command: ", $shell, $configure_script, @configure_command_args
+                or die "print failed: $ERRNO";
+        }
         if (not IPC::Cmd::run(
                 command =>
                     [ $shell, $configure_script, @configure_command_args ],
