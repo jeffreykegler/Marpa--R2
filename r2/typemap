@@ -17,9 +17,7 @@ Grammar * T_MARPA_G_C
 G_Wrapper * T_MARPA_G_W
 Recce * T_MARPA_R_C
 R_Wrapper * T_MARPA_R_W
-Bocage * T_MARPA_B_C
 B_Wrapper * T_MARPA_B_W
-Order * T_MARPA_O_C
 O_Wrapper * T_MARPA_O_W
 T_Wrapper * T_MARPA_T_W
 
@@ -74,32 +72,12 @@ T_MARPA_R_W
 			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
 			\"$var\")
 
-T_MARPA_B_C
-	if (sv_isa($arg, \"Marpa::R2::Internal::B_C\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    B_Wrapper * b_wrapper = INT2PTR(B_Wrapper *, tmp);
-	    $var = b_wrapper->b;
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Internal::B_C\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
-
 T_MARPA_B_W
 	if (sv_isa($arg, \"Marpa::R2::Internal::B_C\")) {
 	    IV tmp = SvIV((SV*)SvRV($arg));
 	    $var = INT2PTR(B_Wrapper *, tmp);
 	} else
 	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Internal::B_C\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
-
-T_MARPA_O_C
-	if (sv_isa($arg, \"Marpa::R2::Internal::O_C\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    O_Wrapper * o_wrapper = INT2PTR(O_Wrapper *, tmp);
-	    $var = o_wrapper->o;
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Internal::O_C\",
 			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
 			\"$var\")
 
