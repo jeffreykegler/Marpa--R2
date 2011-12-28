@@ -10847,17 +10847,6 @@ static inline void tree_exhaust(TREE t)
     }
 }
 
-@ @<Private function prototypes@> =
-static inline void tree_safe(TREE t);
-@ @<Function definitions@> =
-static inline void tree_safe(TREE t)
-{
-    FSTACK_SAFE(t->t_fork_stack);
-    FSTACK_SAFE(t->t_fork_worklist);
-    t->t_and_node_in_use = NULL;
-    t->t_parse_count = -1;
-}
-
 @ Returns the size of the tree.
 If the bocage iterator is exhausted, returns -1.
 On error, returns -2.
@@ -10880,17 +10869,20 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     return t;
 }
 
-@*0 Reference Counting and Destructors.
-@ @<Int aligned tree elements@>= gint ref_count;
 @ @<Initialize tree elements@> =
 {
     const gint and_count = AND_Count_of_B (b);
-    t->ref_count = 1;
     t->t_parse_count = 0;
     t->t_and_node_in_use = bv_create ((guint) and_count);
     FSTACK_INIT (t->t_fork_stack, FORK_Object, and_count);
     FSTACK_INIT (t->t_fork_worklist, gint, and_count);
 }
+
+@*0 Reference Counting and Destructors.
+@ @<Int aligned tree elements@>=
+    gint ref_count;
+@ @<Initialize tree elements@> =
+    t->ref_count = 1;
 
 @ Decrement the tree reference count.
 @<Private function prototypes@> =
@@ -10940,7 +10932,6 @@ static inline void tree_free(TREE t)
     tree_exhaust(t);
     g_slice_free(struct s_tree, t);
 }
-
 
 @*0 The grammar of the tree.
 @ This function returns the grammar of the tree.
@@ -11759,6 +11750,7 @@ the grammar invisible to the semantics.
 struct s_value {
     DSTACK_DECLARE(t_virtual_stack);
     FORKID t_fork;
+    @<Int aligned value elements@>@;
     gint t_tos;
     guint t_trace:1;
     guint t_active:1;
@@ -11767,13 +11759,14 @@ struct s_value {
 @ @<Private function prototypes@> =
 static inline void value_safe(VALUE val);
 @ @<Function definitions@> =
-static inline void value_safe(VALUE val)
+static inline void value_safe(VALUE v)
 {
-    DSTACK_SAFE(val->t_virtual_stack);
-    VALUE_is_Active(val) = 0;
-    VALUE_is_Trace(val) = 0;
-    TOS_of_VALUE(val) = -1;
-    FORK_of_VALUE(val) = -1;
+    DSTACK_SAFE(v->t_virtual_stack);
+    VALUE_is_Active(v) = 0;
+    VALUE_is_Trace(v) = 0;
+    TOS_of_VALUE(v) = -1;
+    FORK_of_VALUE(v) = -1;
+    @<Safen value elements@>@;
 }
 
 @ @<Public function prototypes@> =
@@ -11839,6 +11832,51 @@ int marpa_v_new(struct marpa_r* r)
     return 1;
 }
 
+@*0 Reference Counting and Destructors.
+@ @<Int aligned value elements@>=
+    int ref_count;
+@ @<Safen value elements@> =
+    v->ref_count = 1;
+
+@ Decrement the value reference count.
+@<Private function prototypes@> =
+static inline void value_unref (VALUE v);
+@ @<Function definitions@> =
+static inline void
+value_unref (VALUE v)
+{
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->ref_count);
+  MARPA_ASSERT (v->ref_count > 0)
+  v->ref_count--;
+  if (v->ref_count <= 0)
+    {
+/* |value_free(v);| */
+    }
+}
+void
+marpa_v_unref (Marpa_Value v)
+{
+   value_unref(v);
+}
+
+@ Increment the value reference count.
+@<Private function prototypes@> =
+static inline VALUE value_ref (VALUE v);
+@ @<Function definitions@> =
+static inline VALUE
+value_ref (VALUE v)
+{
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->ref_count);
+  MARPA_ASSERT(v->ref_count > 0)
+  v->ref_count++;
+  return v;
+}
+Marpa_Value
+marpa_v_ref (Marpa_Value v)
+{
+   return value_ref(v);
+}
+
 @ {\bf To Do}: @^To Do@>
 For the moment destroy the value with the bocage.
 @<Destroy bocage elements, main phase@> =
@@ -11863,8 +11901,7 @@ static inline void value_destroy(VALUE val)
 }
 
 @ @<Unpack value objects@> =
-    TREE t = T_of_R(r);
-    VALUE v = V_of_R(r);
+    TREE t = T_of_V(r);
     @<Unpack tree objects@>@;
 
 @ @<Check |r|, |o|, |v|@> =
@@ -11876,6 +11913,25 @@ static inline void value_destroy(VALUE val)
     if (!VALUE_is_Active(v)) {
 	return failure_indicator;
     }
+}
+
+@*0 The grammar of the value object.
+@ This function returns the grammar of the value.
+It never returns an error.
+The grammar is always set when the value is initialized,
+and is never changed while the value exists.
+Fatal state is not reported,
+because it is kept in the grammar,
+so that
+either we can return the grammar in spite of
+its fatal state,
+or the problem is so severe than no
+errors can be properly reported.
+@<Function definitions@> =
+Marpa_Grammar marpa_v_g(Marpa_Value v)
+{
+  @<Unpack value objects@>@;
+  return g;
 }
 
 @ @<Public function prototypes@> =

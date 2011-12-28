@@ -463,6 +463,15 @@ Return value: %NULL if the GLib library is compatible with the
 @node Value
 @chapter Value objects
 
+@deftypefun void marpa_v_unref (Marpa_Value @var{v})
+@end deftypefun
+
+@deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
+@end deftypefun
+
+@deftypefun Marpa_Grammar marpa_v_g (Marpa_Value @var{v})
+@end deftypefun
+
 @node Error handling
 @chapter Error handling
 
