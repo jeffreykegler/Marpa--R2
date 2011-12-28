@@ -262,18 +262,19 @@ sub Marpa::R2::Recognizer::show_fork {
     my ( $recce, $fork_id, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
-    my $or_node_id = $recce_c->fork_or_node($fork_id);
+    my $or_node_id = $tree->fork_or_node($fork_id);
     return if not defined $or_node_id;
 
     my $text = "o$or_node_id";
-    my $parent = $recce_c->fork_parent($fork_id) // q{-};
+    my $parent = $tree->fork_parent($fork_id) // q{-};
     CHILD_TYPE: {
-        if ( $recce_c->fork_is_cause($fork_id) ) {
+        if ( $tree->fork_is_cause($fork_id) ) {
             $text .= "[c$parent]";
             last CHILD_TYPE;
         }
-        if ( $recce_c->fork_is_predecessor($fork_id) ) {
+        if ( $tree->fork_is_predecessor($fork_id) ) {
             $text .= "[p$parent]";
             last CHILD_TYPE;
         }
@@ -284,13 +285,13 @@ sub Marpa::R2::Recognizer::show_fork {
     $text .= " $or_node_tag";
 
     $text .= ' p';
-    $text .= $recce_c->fork_predecessor_is_ready($fork_id) ? q{=ok} : q{-};
+    $text .= $tree->fork_predecessor_is_ready($fork_id) ? q{=ok} : q{-};
     $text .= ' c';
-    $text .= $recce_c->fork_cause_is_ready($fork_id) ? q{=ok} : q{-};
+    $text .= $tree->fork_cause_is_ready($fork_id) ? q{=ok} : q{-};
     $text .= "\n";
 
     DESCRIBE_CHOICES: {
-        my $this_choice = $recce_c->fork_choice($fork_id);
+        my $this_choice = $tree->fork_choice($fork_id);
         CHOICE: for ( my $choice_ix = 0;; $choice_ix++ ) {
             my $and_node_id =
                 $order->and_node_order_get( $or_node_id, $choice_ix );
@@ -659,6 +660,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree      = $recce->[Marpa::R2::Internal::Recognizer::T_C];
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_values =
@@ -754,8 +756,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             last ADD_TOKEN if not $trace_values;
 
             my $fork_ix    = $recce_c->val_fork();
-            my $or_node_id = $recce_c->fork_or_node($fork_ix);
-            my $choice     = $recce_c->fork_choice($fork_ix);
+            my $or_node_id = $tree->fork_or_node($fork_ix);
+            my $choice     = $tree->fork_choice($fork_ix);
             my $and_node_id =
                 $order->and_node_order_get( $or_node_id, $choice );
             my $token_name;
@@ -778,8 +780,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             last TRACE_OP if not $trace_values;
 
             my $fork_ix    = $recce_c->val_fork();
-            my $or_node_id = $recce_c->fork_or_node($fork_ix);
-            my $choice     = $recce_c->fork_choice($fork_ix);
+            my $or_node_id = $tree->fork_or_node($fork_ix);
+            my $choice     = $tree->fork_choice($fork_ix);
             my $and_node_id =
                 $order->and_node_order_get( $or_node_id, $choice );
             my $trace_rule_id = $bocage->or_node_rule($or_node_id);
