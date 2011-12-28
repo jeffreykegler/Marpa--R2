@@ -10804,7 +10804,7 @@ or a stack, so they are destroyed.
 if the bocage iterator has a parse count,
 but no stack,
 it is exhausted.
-@d TREE_is_Exhausted(tree)
+@d T_is_Exhausted(tree)
     (!FSTACK_IS_INITIALIZED((tree)->t_fork_stack))
 @d Size_of_TREE(tree) FSTACK_LENGTH((tree)->t_fork_stack)
 @d FORK_of_TREE_by_IX(tree, fork_id)
@@ -10931,6 +10931,64 @@ static inline void tree_free(TREE t)
     g_slice_free(struct s_tree, t);
 }
 
+@*0 Tree pause counting.
+Trees referenced by an active |VALUE| object
+cannot be moved for the lifetime of that
+|VALUE| object.
+This is enforced by "pausing" the tree.
+Because there may be multiple |VALUE| objects
+for each |TREE| object,
+a pause counter is used.
+@ The |TREE| object's "pause counter
+works much the same as a reference counter.
+And the two are tied together.
+Every time the pause counter is incremented,
+the |TREE| object's reference counter is also
+incremented.
+Similarly,
+every time the pause counter is decremented,
+the |TREE| object's reference counter is also
+decremented.
+For this reason, it is important that every
+tree "pause" be matched with a "tree unpause".
+@ "Pausing" is used because the expected use of
+multiple |VALUE| objects is to evaluation a single
+tree instance in multiple ways ---
+|VALUE| objects are not expected to need to live
+into the next iteration of the |TREE| object.
+If a more complex relationship between |TREE| objects
+and |VALUE| objects becomes desirable, a cloning
+mechanism could be introduced.
+At this point,
+|TREE| objects are iterated directly for efficiency ---
+copying the |TREE| iterator to a tree instance would impose
+an overhead, one which adds absolutely no value
+for most applications.
+@d T_is_Paused(t) ((t)->t_pause_counter > 0)
+@<Int aligned tree elements@> = gint t_pause_counter;
+@ @<Private function prototypes@> =
+static inline void tree_pause (TREE t);
+static inline void tree_unpause (TREE t);
+@ @<Initialize tree elements@> = t->t_pause_counter = 0;
+@ @<Function definitions@> =
+static inline void
+tree_pause (TREE t)
+{
+    MARPA_ASSERT(t->t_pause_counter >= 0);
+    MARPA_ASSERT(t->t_pause_counter >= t->ref_count);
+    t->t_pause_counter--;
+    tree_ref(t);
+}
+@ @<Function definitions@> =
+static inline void
+tree_unpause (TREE t)
+{
+    MARPA_ASSERT(t->t_pause_counter > 0);
+    MARPA_ASSERT(t->t_pause_counter >= t->ref_count);
+    t->t_pause_counter++;
+    tree_unref(t);
+}
+
 @*0 The grammar of the tree.
 @ This function returns the grammar of the tree.
 It never returns an error.
@@ -10959,11 +11017,11 @@ gint marpa_t_next(Marpa_Tree t)
     gint is_first_tree_attempt = 0;
     @<Unpack tree objects@>@;
     @<Fail if fatal error@>@;
-    if (TREE_is_Paused(t)) {
+    if (T_is_Paused(t)) {
 	  MARPA_DEV_ERROR ("tree is paused");
 	  return failure_indicator;
     }
-    if (TREE_is_Exhausted (t))
+    if (T_is_Exhausted (t))
       {
 	return -1;
       }
@@ -11203,7 +11261,7 @@ gint marpa_t_size(Marpa_Tree t)
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
   @<Fail if fatal error@>@;
-  if (TREE_is_Exhausted(t)) {
+  if (T_is_Exhausted(t)) {
       return -1;
   }
   return Size_of_T(t);
@@ -11579,7 +11637,7 @@ typedef struct s_fork FORK_Object;
 set |fork|@> = {
   FORK base_fork;
   @<Fail if fatal error@>@;
-  if (TREE_is_Exhausted(t)) {
+  if (T_is_Exhausted(t)) {
       MARPA_DEV_ERROR("bocage iteration exhausted");
       return failure_indicator;
   }
@@ -11773,7 +11831,7 @@ static inline void value_safe(VALUE v)
 }
 
 @ @<Public function prototypes@> =
-int marpa_v_new(Marpa_Tree t);
+Marpa_Value marpa_v_new(Marpa_Tree t);
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
 First, there are only a few stack moves per call
@@ -11819,19 +11877,20 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     @<Return |NULL| on failure@>@;
     @<Unpack tree objects@>;
     @<Fail if fatal error@>@;
-    if (TREE_is_Exhausted(t)) {
-       return -1;
-    }
-    {
-      VALUE v = g_slice_new(struct s_value);
-      const gint minimum_stack_size = (8192 / sizeof (gint));
+    if (!T_is_Exhausted (t))
+      {
+	VALUE v = g_slice_new (struct s_value);
+	const gint minimum_stack_size = (8192 / sizeof (gint));
 	const gint initial_stack_size =
-	MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
-      DSTACK_INIT (VStack_of_VALUE (v), gint, initial_stack_size);
-      VALUE_is_Active(v) = 1;
-      tree_pause(t);
-    }
-    return 1;
+	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
+	DSTACK_INIT (VStack_of_VALUE (v), gint, initial_stack_size);
+	VALUE_is_Active (v) = 1;
+	tree_pause (t);
+	T_of_V(v) = t;
+	return v;
+      }
+    MARPA_DEV_ERROR("tree is exhausted");
+    return NULL;
 }
 
 @*0 Reference Counting and Destructors.
@@ -11893,7 +11952,7 @@ static inline void value_free(VALUE v)
 }
 
 @ @<Unpack value objects@> =
-    TREE t = T_of_V(r);
+    TREE t = T_of_V(v);
     @<Unpack tree objects@>@;
 
 @*0 The grammar of the value object.

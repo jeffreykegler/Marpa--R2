@@ -723,14 +723,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     $action_object //= {};
 
-    $recce_c->val_new();
+    my $value = Marpa::R2::Internal::V_C->new( $tree );
     my @evaluation_stack = ();
-    $recce_c->val_trace( $trace_values ? 1 : 0 );
+    $value->trace( $trace_values ? 1 : 0 );
 
     EVENT:
     while (1) {
         my ( $token_id, $value_ix, $rule_id, $arg_0, $arg_n ) =
-            $recce_c->val_event();
+            $value->event();
         last EVENT if not defined $arg_n;
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $arg_n - 1 ) {
@@ -755,7 +755,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             last ADD_TOKEN if not $trace_values;
 
-            my $fork_ix    = $recce_c->val_fork();
+            my $fork_ix    = $value->fork();
             my $or_node_id = $tree->fork_or_node($fork_ix);
             my $choice     = $tree->fork_choice($fork_ix);
             my $and_node_id =
@@ -779,7 +779,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             last TRACE_OP if not $trace_values;
 
-            my $fork_ix    = $recce_c->val_fork();
+            my $fork_ix    = $value->fork();
             my $or_node_id = $tree->fork_or_node($fork_ix);
             my $choice     = $tree->fork_choice($fork_ix);
             my $and_node_id =

@@ -1756,80 +1756,6 @@ PPCODE:
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
-void
-val_new( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int status;
-    status = marpa_v_new(r);
-    if (status == -1) { XSRETURN_UNDEF; }
-    if (status < 0) {
-      croak ("Problem in r->val_new(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(status) ) );
-    }
-
-void
-val_event( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    {
-      struct marpa_r *r = r_wrapper->r;
-      int status;
-      SV* sv;
-      Marpa_Event event;
-      status = marpa_v_event (r, &event);
-      if (status == -1)
-	{
-	  XSRETURN_UNDEF;
-	}
-      if (status < 0)
-	{
-	  croak ("Problem in r->val_event(): %s", error_r(r_wrapper));
-	}
-      if ( event.marpa_token_id < 0 ) {
-	  XPUSHs (&PL_sv_undef);
-	  XPUSHs (&PL_sv_undef);
-      } else {
-	  XPUSHs ( sv_2mortal (newSViv (event.marpa_token_id)) );
-	  XPUSHs ( sv_2mortal (newSViv (GPOINTER_TO_INT(event.marpa_value))));
-      }
-      sv = event.marpa_rule_id < 0 ? &PL_sv_undef : sv_2mortal (newSViv (event.marpa_rule_id));
-      XPUSHs (sv);
-	XPUSHs( sv_2mortal( newSViv(event.marpa_arg_0) ) );
-	XPUSHs( sv_2mortal( newSViv(event.marpa_arg_n) ) );
-    }
-
-void
-val_trace( r_wrapper, flag )
-    R_Wrapper *r_wrapper;
-    int flag;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int status;
-    status = marpa_v_trace(r, flag);
-    if (status == -1) { XSRETURN_UNDEF; }
-    if (status < 0) {
-      croak ("Problem in r->val_trace(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(status) ) );
-    }
-
-void
-val_fork( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-    int status;
-    status = marpa_v_fork(r);
-    if (status == -1) { XSRETURN_UNDEF; }
-    if (status < 0) {
-      croak ("Problem in r->val_fork(): %s", error_r(r_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(status) ) );
-    }
-
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::B_C
 
 void
@@ -2448,6 +2374,116 @@ PPCODE:
 	     error_t (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::V_C
+
+void
+new( class, t_wrapper )
+    char * class;
+    T_Wrapper *t_wrapper;
+PPCODE:
+{
+  SV *sv;
+  Marpa_Tree t = t_wrapper->t;
+  V_Wrapper *v_wrapper;
+  Marpa_Value v = marpa_v_new (t);
+  if (!v)
+    {
+      croak ("Problem in v->new(): %s", error_t (t_wrapper));
+    }
+  Newx (v_wrapper, 1, V_Wrapper);
+  v_wrapper->message_buffer = NULL;
+  v_wrapper->v = v;
+  sv = sv_newmortal ();
+  sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
+  XPUSHs (sv);
+}
+
+void
+DESTROY( v_wrapper )
+    V_Wrapper *v_wrapper;
+PPCODE:
+{
+    const Marpa_Value v = v_wrapper->v;
+    marpa_v_unref(v);
+    g_free(v_wrapper->message_buffer);
+    Safefree( v_wrapper );
+}
+
+void
+event( v_wrapper )
+    V_Wrapper *v_wrapper;
+PPCODE:
+{
+  const Marpa_Value v = v_wrapper->v;
+  int status;
+  SV *sv;
+  Marpa_Event event;
+  status = marpa_v_event (v, &event);
+  if (status == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (status < 0)
+    {
+      croak ("Problem in v->event(): %s", error_v (v_wrapper));
+    }
+  if (event.marpa_token_id < 0)
+    {
+      XPUSHs (&PL_sv_undef);
+      XPUSHs (&PL_sv_undef);
+    }
+  else
+    {
+      XPUSHs (sv_2mortal (newSViv (event.marpa_token_id)));
+      XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (event.marpa_value))));
+    }
+  sv =
+    event.marpa_rule_id <
+    0 ? &PL_sv_undef : sv_2mortal (newSViv (event.marpa_rule_id));
+  XPUSHs (sv);
+  XPUSHs (sv_2mortal (newSViv (event.marpa_arg_0)));
+  XPUSHs (sv_2mortal (newSViv (event.marpa_arg_n)));
+}
+
+void
+trace( v_wrapper, flag )
+    V_Wrapper *v_wrapper;
+    int flag;
+PPCODE:
+{
+  const Marpa_Value v = v_wrapper->v;
+  int status;
+  status = marpa_v_trace (v, flag);
+  if (status == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (status < 0)
+    {
+      croak ("Problem in v->trace(): %s", error_v (v_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (status)));
+}
+
+void
+fork( v_wrapper )
+    V_Wrapper *v_wrapper;
+PPCODE:
+{
+  const Marpa_Value v = v_wrapper->v;
+  int status;
+  status = marpa_v_fork (v);
+  if (status == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (status < 0)
+    {
+      croak ("Problem in v->fork(): %s", error_v (v_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (status)));
 }
 
 BOOT:
