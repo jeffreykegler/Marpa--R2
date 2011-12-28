@@ -10859,13 +10859,11 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     TREE t;
     @<Unpack order objects@>@;
     @<Fail if fatal error@>@;
-    @<Fail if up-ref of |t|@>@;
     t = g_slice_new(struct s_tree);
     O_of_T(t) = o;
     order_ref(o);
     order_freeze(o);
     @<Initialize tree elements@>@;
-    @<Add up-ref of |t|@>@;
     return t;
 }
 
@@ -10961,11 +10959,14 @@ gint marpa_t_next(Marpa_Tree t)
     gint is_first_tree_attempt = 0;
     @<Unpack tree objects@>@;
     @<Fail if fatal error@>@;
+    if (TREE_is_Paused(t)) {
+	  MARPA_DEV_ERROR ("tree is paused");
+	  return failure_indicator;
+    }
     if (TREE_is_Exhausted (t))
       {
 	return -1;
       }
-    value_destroy (V_of_R (R_of_B (b)));
 
     if (t->t_parse_count < 1)
       {
@@ -11746,10 +11747,12 @@ the grammar invisible to the semantics.
 @d FORK_of_VALUE(val) ((val)->t_fork)
 @d TOS_of_VALUE(val) ((val)->t_tos)
 @d VStack_of_VALUE(val) ((val)->t_virtual_stack)
+@d T_of_V(v) ((v)->t_tree)
 @<VALUE structure@> =
 struct s_value {
     DSTACK_DECLARE(t_virtual_stack);
     FORKID t_fork;
+    Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
     gint t_tos;
     guint t_trace:1;
@@ -11770,7 +11773,7 @@ static inline void value_safe(VALUE v)
 }
 
 @ @<Public function prototypes@> =
-int marpa_v_new(struct marpa_r* r);
+int marpa_v_new(Marpa_Tree t);
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
 First, there are only a few stack moves per call
@@ -11811,23 +11814,22 @@ $\size{|tree|}/1024$ is a fixed fraction
 of the worst case size, so the number of
 stack reallocations is $O(1)$.
 @<Function definitions@> =
-int marpa_v_new(struct marpa_r* r)
+Marpa_Value marpa_v_new(Marpa_Tree t)
 {
-    @<Return |-2| on failure@>@;
-    TREE t = T_of_R(r);
+    @<Return |NULL| on failure@>@;
     @<Unpack tree objects@>;
     @<Fail if fatal error@>@;
     if (TREE_is_Exhausted(t)) {
        return -1;
     }
     {
-      VALUE v = V_of_R(r);
+      VALUE v = g_slice_new(struct s_value);
       const gint minimum_stack_size = (8192 / sizeof (gint));
 	const gint initial_stack_size =
 	MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
-      value_destroy (v);
       DSTACK_INIT (VStack_of_VALUE (v), gint, initial_stack_size);
       VALUE_is_Active(v) = 1;
+      tree_pause(t);
     }
     return 1;
 }
@@ -11850,7 +11852,7 @@ value_unref (VALUE v)
   v->ref_count--;
   if (v->ref_count <= 0)
     {
-/* |value_free(v);| */
+	value_free(v);
     }
 }
 void
@@ -11877,43 +11879,22 @@ marpa_v_ref (Marpa_Value v)
    return value_ref(v);
 }
 
-@ {\bf To Do}: @^To Do@>
-For the moment destroy the value with the bocage.
-@<Destroy bocage elements, main phase@> =
-{
-    const VALUE v = V_of_R(r);
-    value_destroy(v);
-    value_safe(v);
-}
-
 @ @<Private function prototypes@> =
-static inline void value_destroy(VALUE val);
+static inline void value_free(VALUE v);
 @ @<Function definitions@> =
-static inline void value_destroy(VALUE val)
+static inline void value_free(VALUE v)
 {
-
-  if (DSTACK_IS_INITIALIZED(val->t_virtual_stack))
+    tree_unpause(T_of_V(v));
+    if (DSTACK_IS_INITIALIZED(v->t_virtual_stack))
     {
-      DSTACK_DESTROY(val->t_virtual_stack);
-      DSTACK_SAFE(val->t_virtual_stack);
+        DSTACK_DESTROY(v->t_virtual_stack);
     }
-    value_safe(val);
+    g_slice_free(struct s_value, v);
 }
 
 @ @<Unpack value objects@> =
     TREE t = T_of_V(r);
     @<Unpack tree objects@>@;
-
-@ @<Check |r|, |o|, |v|@> =
-{
-    @<Fail if fatal error@>@;
-    if (!o) {
-	return failure_indicator;
-    }
-    if (!VALUE_is_Active(v)) {
-	return failure_indicator;
-    }
-}
 
 @*0 The grammar of the value object.
 @ This function returns the grammar of the value.
@@ -11935,32 +11916,38 @@ Marpa_Grammar marpa_v_g(Marpa_Value v)
 }
 
 @ @<Public function prototypes@> =
-gint marpa_v_trace(struct marpa_r* r, gint flag);
+gint marpa_v_trace(Marpa_Value v, gint flag);
 @ @<Function definitions@> =
-gint marpa_v_trace(struct marpa_r* r, gint flag)
+gint marpa_v_trace(Marpa_Value v, gint flag)
 {
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
-    @<Check |r|, |o|, |v|@>@;
+    @<Fail if fatal error@>@;
+    if (!VALUE_is_Active(v)) {
+	return failure_indicator;
+    }
     VALUE_is_Trace(v) = flag;
     return 1;
 }
 
 @ @<Public function prototypes@> =
-Marpa_Fork_ID marpa_v_fork(struct marpa_r* r);
+Marpa_Fork_ID marpa_v_fork(Marpa_Value v);
 @ @<Function definitions@> =
-Marpa_Fork_ID marpa_v_fork(struct marpa_r* r)
+Marpa_Fork_ID marpa_v_fork(Marpa_Value v)
 {
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
-    @<Check |r|, |o|, |v|@>@;
+    @<Fail if fatal error@>@;
+    if (!VALUE_is_Active(v)) {
+	return failure_indicator;
+    }
     return FORK_of_VALUE(v);
 }
 
 @ @<Public function prototypes@> =
-Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event);
+Marpa_Fork_ID marpa_v_event(Marpa_Value v, Marpa_Event* event);
 @ @<Function definitions@> =
-Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
+Marpa_Fork_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
 {
     @<Return |-2| on failure@>@;
     AND and_nodes;
@@ -11974,7 +11961,10 @@ Marpa_Fork_ID marpa_v_event(struct marpa_r* r, Marpa_Event* event)
     @<Unpack value objects@>@;
 
     /* event is not changed in case of hard failure */
-    @<Check |r|, |o|, |v|@>@;
+    @<Fail if fatal error@>@;
+    if (!VALUE_is_Active(v)) {
+	return failure_indicator;
+    }
 
     and_nodes = ANDs_of_B(B_of_O(o));
 
@@ -12053,40 +12043,6 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     TOS_of_VALUE(v) = Arg0_of_EVE(event) = arg_0;
     FORK_of_VALUE(v) = fork_ix;
     ArgN_of_EVE(event) = arg_n;
-}
-
-@*0 DEPRECATED: Up-hierarchy fields.
-@ {\bf To Do}: @^To Do@>
-Code to be removed once the new interface
-is completed.
-@d T_of_R(r) ((r)->t_tree)
-@d V_of_R(r) (&(r)->t_value)
-@<Widely aligned recognizer elements@> =
-Marpa_Tree t_tree;
-struct s_value t_value;
-@ @<Initialize recognizer elements@> =
-T_of_R(r) = NULL;
-value_safe(V_of_R(r));
-@ {\bf To Do}: @^To Do@>
-For the moment destroy these objects with the bocage.
-@<Destroy bocage elements, main phase@> =
-{
-    const VALUE v = V_of_R(r);
-    T_of_R(r) = NULL;
-    value_destroy(v);
-    value_safe(v);
-}
-
-@ @<Fail if up-ref of |t|@> =
-{
-    if (T_of_R(R_of_B(b))) {
-	MARPA_DEV_ERROR ("tree in use");
-	return failure_indicator;
-    }
-}
-@ @<Add up-ref of |t|@> =
-{
-    T_of_R(R_of_B(b)) = t;
 }
 
 @ {\bf To Do}: @^To Do@>
