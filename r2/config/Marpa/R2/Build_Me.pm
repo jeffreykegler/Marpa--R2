@@ -288,25 +288,24 @@ sub do_libmarpa {
         $shell or die q{No Bourne shell available says $Config{sh}};
 ##use critic
 
-	{
-	    local $ENV{CFLAGS} = undef;
-	    if ( my $marpa_cflags = $self->args('marpa_cflags') ) {
-	       $ENV{CFLAGS} = $marpa_cflags;
-	    }
+        my @configure_command_args = ();
+        if ( defined $self->args('marpa_debug') ) {
+            push @configure_command_args, "CFLAGS=-DMARPA_DEBUG";
+        }
 
-	    if (not IPC::Cmd::run(
-		    command => [ $shell, $configure_script ],
-		    verbose => 1
-		)
-		)
-	    {
-		say {*STDERR} "Failed: $configure_script"
-		    or die "say failed: $ERRNO";
-		say {*STDERR} "Current directory: $build_dir"
-		    or die "say failed: $ERRNO";
-		die 'Cannot run libmarpa configure';
-	    } ## end if ( not IPC::Cmd::run( command => [ $shell, ...]))
-	}
+        if (not IPC::Cmd::run(
+                command =>
+                    [ $shell, $configure_script, @configure_command_args ],
+                verbose => 1
+            )
+            )
+        {
+            say {*STDERR} "Failed: $configure_script"
+                or die "say failed: $ERRNO";
+            say {*STDERR} "Current directory: $build_dir"
+                or die "say failed: $ERRNO";
+            die 'Cannot run libmarpa configure';
+        } ## end if ( not IPC::Cmd::run( command => [ $shell, ...]))
 
     } ## end if ( not -r 'stamp-h1' )
     else {

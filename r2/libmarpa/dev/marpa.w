@@ -10969,24 +10969,19 @@ gint marpa_t_next(Marpa_Tree t)
     @<Return |-2| on failure@>@;
     gint is_first_tree_attempt = 0;
     @<Unpack tree objects@>@;
-MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
     @<Fail if fatal error@>@;
     if (TREE_is_Exhausted (t))
       {
-MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
 	return -1;
       }
     value_destroy (V_of_R (R_of_B (b)));
 
-MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
     if (t->t_parse_count < 1)
       {
-MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
        is_first_tree_attempt = 1;
        @<Initialize the tree iterator@>@;
       }
       while (1) {
-MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
         const AND ands_of_b = ANDs_of_B(b);
 	 if (is_first_tree_attempt) {
 	    is_first_tree_attempt = 0;
@@ -10999,7 +10994,6 @@ MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
     t->t_parse_count++;
     return FSTACK_LENGTH(t->t_fork_stack);
     TREE_IS_EXHAUSTED: ;
-MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
     tree_exhaust(t);
     return -1;
 
