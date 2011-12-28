@@ -63,11 +63,18 @@ typedef struct {
      char *message_buffer;
 } T_Wrapper;
 
+typedef struct marpa_v Value;
+typedef struct {
+     Marpa_Value v;
+     char *message_buffer;
+} V_Wrapper;
+
 static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
 static const char recce_c_class_name[] = "Marpa::R2::Internal::R_C";
 static const char bocage_c_class_name[] = "Marpa::R2::Internal::B_C";
 static const char order_c_class_name[] = "Marpa::R2::Internal::O_C";
 static const char tree_c_class_name[] = "Marpa::R2::Internal::T_C";
+static const char value_c_class_name[] = "Marpa::R2::Internal::V_C";
 
 static const char *
 event_type_to_string (Marpa_Event_Type type)
@@ -204,6 +211,21 @@ error_t (T_Wrapper * t_wrapper)
   char *buffer = t_wrapper->message_buffer;
   g_free (buffer);
   t_wrapper->message_buffer = buffer =
+    libmarpa_exception (error_code, error_string);
+  return buffer;
+}
+
+/* Return value must be g_free()'d */
+static const char *
+error_v (V_Wrapper * v_wrapper)
+{
+  const char *error_string;
+  Marpa_Value v = v_wrapper->v;
+  Marpa_Grammar g = marpa_v_g(v);
+  const int error_code = marpa_g_error (g, &error_string);
+  char *buffer = v_wrapper->message_buffer;
+  g_free (buffer);
+  v_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }

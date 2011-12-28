@@ -19,6 +19,7 @@ R_Wrapper * T_MARPA_R_W
 B_Wrapper * T_MARPA_B_W
 O_Wrapper * T_MARPA_O_W
 T_Wrapper * T_MARPA_T_W
+V_Wrapper * T_MARPA_V_W
 
 Marpa_Symbol_ID T_IV
 Marpa_Rule_ID T_IV
@@ -85,6 +86,15 @@ T_MARPA_T_W
 	    $var = INT2PTR(T_Wrapper *, tmp);
 	} else
 	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Internal::T_C\",
+			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+			\"$var\")
+
+T_MARPA_V_W
+	if (sv_isa($arg, \"Marpa::R2::Internal::V_C\")) {
+	    IV tmp = SvIV((SV*)SvRV($arg));
+	    $var = INT2PTR(V_Wrapper *, tmp);
+	} else
+	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Internal::V_C\",
 			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
 			\"$var\")
 
