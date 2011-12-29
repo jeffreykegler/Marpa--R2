@@ -11800,11 +11800,11 @@ of symbols in the
 original (or "virtual") rules.
 This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
-@d VALUE_is_Active(val) ((val)->t_active)
-@d VALUE_is_Trace(val) ((val)->t_trace)
-@d FORK_of_VALUE(val) ((val)->t_fork)
-@d TOS_of_VALUE(val) ((val)->t_tos)
-@d VStack_of_VALUE(val) ((val)->t_virtual_stack)
+@d V_is_Active(val) ((val)->t_active)
+@d V_is_Trace(val) ((val)->t_trace)
+@d FORK_of_V(val) ((val)->t_fork)
+@d TOS_of_V(val) ((val)->t_tos)
+@d VStack_of_V(val) ((val)->t_virtual_stack)
 @d T_of_V(v) ((v)->t_tree)
 @<VALUE structure@> =
 struct s_value {
@@ -11870,8 +11870,11 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	const gint minimum_stack_size = (8192 / sizeof (gint));
 	const gint initial_stack_size =
 	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
-	DSTACK_INIT (VStack_of_VALUE (v), gint, initial_stack_size);
-	VALUE_is_Active (v) = 1;
+	DSTACK_INIT (VStack_of_V (v), gint, initial_stack_size);
+	V_is_Active (v) = 1;
+	V_is_Trace (v) = 1;
+	TOS_of_V(v) = -1;
+	FORK_of_V(v) = -1;
 	@<Initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
@@ -11970,10 +11973,10 @@ gint marpa_v_trace(Marpa_Value v, gint flag)
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    if (!VALUE_is_Active(v)) {
+    if (!V_is_Active(v)) {
 	return failure_indicator;
     }
-    VALUE_is_Trace(v) = flag;
+    V_is_Trace(v) = flag;
     return 1;
 }
 
@@ -11985,10 +11988,10 @@ Marpa_Fork_ID marpa_v_fork(Marpa_Value v)
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    if (!VALUE_is_Active(v)) {
+    if (!V_is_Active(v)) {
 	return failure_indicator;
     }
-    return FORK_of_VALUE(v);
+    return FORK_of_V(v);
 }
 
 @ @<Public function prototypes@> =
@@ -12009,18 +12012,18 @@ Marpa_Fork_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
 
     /* event is not changed in case of hard failure */
     @<Fail if fatal error@>@;
-    if (!VALUE_is_Active(v)) {
+    if (!V_is_Active(v)) {
 	return failure_indicator;
     }
 
     and_nodes = ANDs_of_B(B_of_O(o));
 
-    arg_0 = arg_n = TOS_of_VALUE(v);
-    fork_ix = FORK_of_VALUE(v);
+    arg_0 = arg_n = TOS_of_V(v);
+    fork_ix = FORK_of_V(v);
     if (fork_ix < 0) {
 	fork_ix = Size_of_TREE(t);
     }
-    continue_with_next_fork = !VALUE_is_Trace(v);
+    continue_with_next_fork = !V_is_Trace(v);
 
     while (1) {
 	OR or;
@@ -12047,7 +12050,7 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 	    gint virtual_rhs = RULE_is_Virtual_RHS(fork_rule);
 	    gint virtual_lhs = RULE_is_Virtual_LHS(fork_rule);
 	    gint real_symbol_count;
-	    const DSTACK virtual_stack = &VStack_of_VALUE(v);
+	    const DSTACK virtual_stack = &VStack_of_V(v);
 	    if (virtual_lhs) {
 	        real_symbol_count = Real_SYM_Count_of_RULE(fork_rule);
 		if (virtual_rhs) {
@@ -12074,7 +12077,7 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     }
 
     @<Write results to |v| and |event|@>@;
-    return FORK_of_VALUE(v);
+    return FORK_of_V(v);
 
     RETURN_SOFT_ERROR: ;
     @<Write results to |v| and |event|@>@;
@@ -12087,8 +12090,8 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     SYMID_of_EVE(event) = token_id;
     Value_of_EVE(event) = token_value;
     RULEID_of_EVE(event) = semantic_rule_id;
-    TOS_of_VALUE(v) = Arg0_of_EVE(event) = arg_0;
-    FORK_of_VALUE(v) = fork_ix;
+    TOS_of_V(v) = Arg0_of_EVE(event) = arg_0;
+    FORK_of_V(v) = fork_ix;
     ArgN_of_EVE(event) = arg_n;
 }
 
