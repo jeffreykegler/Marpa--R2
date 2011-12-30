@@ -5320,21 +5320,90 @@ AHFAID marpa_g_AHFA_state_empty_transition(struct marpa_g* g,
     }
 }
 
-@** Recognizer (RECCE) Code.
+@** Input (I, INPUT) Code.
+|INPUT| is a "hidden" class.
+It is manipulated
+entirely via the Recognizer class ---
+there are no public
+methods for it.
+@ @<Private typedefs@> =
+struct s_input;
+typedef struct s_input* INPUT;
+@ @<Private structures@> =
+struct s_input {
+    @<Widely aligned input elements@>@;
+};
+@ @d G_of_I(i) ((i)->t_grammar)
+@<Widely aligned input elements@> =
+    GRAMMAR t_grammar;
+
+@ An obstack dedicated to the tokens and an array
+with default tokens for each symbol.
+Currently,
+the default tokens are used to provide
+null values, since all non-tokens are given
+values when read.
+There is a special obstack for the tokens, to
+to separate the token stream from the rest of the recognizer
+data.
+Once the bocage is built, the token data is all that
+it needs, and someday I may want to take advantage of
+this fact by freeing up the rest of recognizer memory.
+@d TOK_Obs_of_I(i)
+    (&(i)->t_token_obs)
+@d TOKs_by_SYMID_of_I(i)
+    ((i)->t_tokens_by_symid)
+@d TOK_by_ID_of_I(i, symbol_id)
+    (TOKs_by_SYMID_of_I(i)[symbol_id])
+@<Widely aligned input elements@> =
+struct obstack t_token_obs;
+TOK *t_tokens_by_symid;
+
+@ @<Private function prototypes@> =
+static inline INPUT input_new(GRAMMAR g);
+@ @<Function definitions@> =
+static inline INPUT
+input_new (GRAMMAR g)
+{
+  gint ix;
+  const gint symbol_count_of_g = SYM_Count_of_G (g);
+  TOK *tokens_by_symid;
+  INPUT input = g_slice_new (struct s_input);
+  obstack_init (TOK_Obs_of_I (input));
+  tokens_by_symid =
+    obstack_alloc (TOK_Obs_of_I (input), sizeof (TOK) * symbol_count_of_g);
+  for (ix = 0; ix < symbol_count_of_g; ix++)
+    {
+      tokens_by_symid[ix] = token_new (input, ix, Default_Value_of_G (g));
+    }
+  TOKs_by_SYMID_of_I (input) = tokens_by_symid;
+    G_of_I(input) = g;
+    grammar_ref(g);
+  return input;
+}
+
+@ @<Private function prototypes@> =
+static inline void input_free(INPUT input);
+@ @<Function definitions@> =
+static inline void input_free(INPUT input) {
+    TOK* tokens_by_symid = TOKs_by_SYMID_of_I(input);
+    if (tokens_by_symid) {
+	obstack_free(TOK_Obs_of_I(input), NULL);
+	TOKs_by_SYMID_of_I(input) = NULL;
+    }
+}
+
+@** Recognizer (R, RECCE) Code.
 @<Public incomplete structures@> =
 struct marpa_r;
 typedef struct marpa_r* Marpa_Recognizer;
 typedef Marpa_Recognizer Marpa_Recce;
 @ @<Private typedefs@> =
 typedef struct marpa_r* RECCE;
-typedef struct marpa_input* INPUT;
-@ @d I_of_R(r) (&(r)->t_input)
+@ @d I_of_R(r) ((r)->t_input)
 @<Recognizer structure@> =
-struct marpa_input {
-    @<Widely aligned input elements@>@;
-};
 struct marpa_r {
-    struct marpa_input t_input;
+    INPUT t_input;
     @<Widely aligned recognizer elements@>@;
     @<Int aligned recognizer elements@>@;
     @<Bit aligned recognizer elements@>@;
@@ -5359,8 +5428,6 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 	return failure_indicator;
     }
     r = g_slice_new(struct marpa_r);
-    G_of_R(r) = g;
-    grammar_ref(g);
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
@@ -5429,16 +5496,14 @@ void recce_free(struct marpa_r *r)
 static inline
 void recce_free(struct marpa_r *r);
 
-@*0 The Grammar for the Recognizer.
+@*0 Base Objects.
 Initialized in |marpa_r_new|.
-@d G_of_R(r) (G_of_I(&((r)->t_input)))
+@d G_of_R(r) (G_of_I((r)->t_input))
 @d AHFA_Count_of_R(r) AHFA_Count_of_G(G_of_R(r))
 @<Unpack recognizer objects@> =
-const Marpa_Grammar g = G_of_R(r);
-
-@ @d G_of_I(i) ((i)->t_grammar)
-@<Widely aligned input elements@> =
-    struct marpa_g *t_grammar;
+const INPUT input = I_of_R(r);
+const GRAMMAR g = G_of_I(input);
+@ @<Destroy recognizer elements@> = input_free(input);
 
 @*0 Input Phase.
 The recognizer always has
@@ -7515,62 +7580,22 @@ struct s_token {
     gpointer t_value;
 };
 
-@ An obstack dedicated to the tokens and an array
-with default tokens for each symbol.
-Currently,
-the default tokens are used to provide
-null values, since all non-tokens are given
-values when read.
-There is a special obstack for the tokens, to
-to separate the token stream from the rest of the recognizer
-data.
-Once the bocage is built, the token data is all that
-it needs, and someday I may want to take advantage of
-this fact by freeing up the rest of recognizer memory.
-@d TOK_Obs_of_I(i)
-    (&(i)->t_token_obs)
-@d TOKs_by_SYMID_of_I(i)
-    ((i)->t_tokens_by_symid)
-@d TOK_by_ID_of_I(i, symbol_id)
-    (TOKs_by_SYMID_of_I(i)[symbol_id])
-@d TOK_Obs_of_R(r) TOK_Obs_of_I(I_of_R(r))
-@d TOKs_by_SYMID_of_R(r) TOKs_by_SYMID_of_I(I_of_R(r))
+@ @d TOK_Obs_of_R(r) TOK_Obs_of_I(I_of_R(r))
 @d TOK_by_ID_of_R(r, symbol_id) TOK_by_ID_of_I(I_of_R(r), (symbol_id))
-@<Widely aligned input elements@> =
-struct obstack t_token_obs;
-TOK *t_tokens_by_symid;
 @ @<Initialize recognizer elements@> =
 {
-  gpointer default_value = Default_Value_of_G(g);
-  gint i;
-  TOK *tokens_by_symid;
-  obstack_init (TOK_Obs_of_R(r));
-  tokens_by_symid =
-    obstack_alloc (TOK_Obs_of_R(r), sizeof (TOK) * symbol_count_of_g);
-  for (i = 0; i < symbol_count_of_g; i++)
-    {
-      tokens_by_symid[i] = token_new (r, i, default_value);
-    }
-  TOKs_by_SYMID_of_R(r) = tokens_by_symid;
-}
-@ @<Destroy recognizer elements@> =
-{
-    TOK* tokens_by_symid = TOKs_by_SYMID_of_R(r);
-    if (tokens_by_symid) {
-	obstack_free(TOK_Obs_of_R(r), NULL);
-	TOKs_by_SYMID_of_R(r) = NULL;
-    }
+  I_of_R(r) = input_new(g);
 }
 
 @ @<Private function prototypes@> =
 static inline
-TOK token_new(struct marpa_r *r, SYMID symbol_id, gpointer value);
+TOK token_new(INPUT input, SYMID symbol_id, gpointer value);
 @ @<Function definitions@> =
 static inline
-TOK token_new(struct marpa_r *r, SYMID symbol_id, gpointer value)
+TOK token_new(INPUT input, SYMID symbol_id, gpointer value)
 {
   TOK token;
-    token = obstack_alloc (TOK_Obs_of_R(r), sizeof(*token));
+    token = obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
     Type_of_TOK(token) = TOKEN_OR_NODE;
     SYMID_of_TOK(token) = symbol_id;
     Value_of_TOK(token) = value;
@@ -7882,7 +7907,7 @@ The Earley sets and items will not have been
 altered by the attempt.
 @<Insert alternative into stack, failing if token is duplicate@> =
 {
-  TOK token = token_new (r, token_id, value);
+  TOK token = token_new (input, token_id, value);
   ALT_Object alternative;
   if (Furthest_Earleme_of_R (r) < target_earleme)
     Furthest_Earleme_of_R (r) = target_earleme;
