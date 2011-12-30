@@ -5332,11 +5332,65 @@ typedef struct s_input* INPUT;
 @ @<Private structures@> =
 struct s_input {
     @<Widely aligned input elements@>@;
+    @<Int aligned input elements@>@;
 };
-@ @d G_of_I(i) ((i)->t_grammar)
-@<Widely aligned input elements@> =
-    GRAMMAR t_grammar;
 
+@ @<Private function prototypes@> =
+static inline INPUT input_new(GRAMMAR g);
+@ @<Function definitions@> =
+static inline INPUT
+input_new (GRAMMAR g)
+{
+  const gint symbol_count_of_g = SYM_Count_of_G (g);
+  TOK *tokens_by_symid;
+  INPUT input = g_slice_new (struct s_input);
+  @<Initialize input elements@>@;
+  return input;
+}
+
+@*0 Reference Counting and Destructors.
+@ @<Int aligned input elements@>=
+    int t_ref_count;
+@ @<Initialize input elements@> =
+    input->t_ref_count = 1;
+
+@ Decrement the input reference count.
+@<Private function prototypes@> =
+static inline void input_unref (INPUT input);
+@ @<Function definitions@> =
+static inline void
+input_unref (INPUT input)
+{
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, input->t_ref_count);
+  MARPA_ASSERT (input->t_ref_count > 0)
+  input->t_ref_count--;
+  if (input->t_ref_count <= 0)
+    {
+	input_free(input);
+    }
+}
+
+@ Increment the input reference count.
+@<Private function prototypes@> =
+static inline INPUT input_ref (INPUT input);
+@ @<Function definitions@> =
+static inline INPUT
+input_ref (INPUT input)
+{
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, input->t_ref_count);
+  MARPA_ASSERT(input->t_ref_count > 0)
+  input->t_ref_count++;
+  return input;
+}
+
+@ @<Private function prototypes@> =
+static inline void input_free(INPUT input);
+@ @<Function definitions@> =
+static inline void input_free(INPUT input) {
+    @<Destroy input elements@>@;
+}
+
+@*0 Token obstack.
 @ An obstack dedicated to the tokens and an array
 with default tokens for each symbol.
 Currently,
@@ -5359,16 +5413,9 @@ this fact by freeing up the rest of recognizer memory.
 struct obstack t_token_obs;
 TOK *t_tokens_by_symid;
 
-@ @<Private function prototypes@> =
-static inline INPUT input_new(GRAMMAR g);
-@ @<Function definitions@> =
-static inline INPUT
-input_new (GRAMMAR g)
+@ @<Initialize input elements@> =
 {
   gint ix;
-  const gint symbol_count_of_g = SYM_Count_of_G (g);
-  TOK *tokens_by_symid;
-  INPUT input = g_slice_new (struct s_input);
   obstack_init (TOK_Obs_of_I (input));
   tokens_by_symid =
     obstack_alloc (TOK_Obs_of_I (input), sizeof (TOK) * symbol_count_of_g);
@@ -5377,20 +5424,24 @@ input_new (GRAMMAR g)
       tokens_by_symid[ix] = token_new (input, ix, Default_Value_of_G (g));
     }
   TOKs_by_SYMID_of_I (input) = tokens_by_symid;
-    G_of_I(input) = g;
-    grammar_ref(g);
-  return input;
 }
-
-@ @<Private function prototypes@> =
-static inline void input_free(INPUT input);
-@ @<Function definitions@> =
-static inline void input_free(INPUT input) {
+@ @<Destroy input elements@> =
+{
     TOK* tokens_by_symid = TOKs_by_SYMID_of_I(input);
     if (tokens_by_symid) {
 	obstack_free(TOK_Obs_of_I(input), NULL);
 	TOKs_by_SYMID_of_I(input) = NULL;
     }
+}
+
+@*0 Base objects.
+@ @d G_of_I(i) ((i)->t_grammar)
+@<Widely aligned input elements@> =
+    GRAMMAR t_grammar;
+@ @<Initialize input elements@> =
+{
+    G_of_I(input) = g;
+    grammar_ref(g);
 }
 
 @** Recognizer (R, RECCE) Code.
@@ -5503,7 +5554,7 @@ Initialized in |marpa_r_new|.
 @<Unpack recognizer objects@> =
 const INPUT input = I_of_R(r);
 const GRAMMAR g = G_of_I(input);
-@ @<Destroy recognizer elements@> = input_free(input);
+@ @<Destroy recognizer elements@> = input_unref(input);
 
 @*0 Input Phase.
 The recognizer always has
