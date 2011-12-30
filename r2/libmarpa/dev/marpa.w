@@ -10356,13 +10356,9 @@ struct s_bocage {
 };
 
 @*0 The base objects of the bocage.
-@ {\bf To Do}: @^To Do@>
-Remove |R_of_B| and |t_recce| after interface conversion.
 @ @d I_of_B(b) ((b)->t_input)
-@ @d R_of_B(b) ((b)->t_recce)
 @<Widely aligned bocage elements@> =
     INPUT t_input;
-    RECCE t_recce;
 
 @ @<Unpack bocage objects@> =
     const INPUT input = I_of_B(b);
@@ -10403,15 +10399,13 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 {
     @<Return |NULL| on failure@>@;
     @<Declare bocage locals@>@;
+    INPUT input;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
     b = g_slice_new(struct s_bocage);
     @<Initialize bocage elements@>@;
-    I_of_B(b) = I_of_R(r);
-
-    /* Remove |R_of_B| and |t_recce| after interface conversion */
-    R_of_B(b) = r;
-    recce_ref(r);
+    input = I_of_B(b) = I_of_R(r);
+    input_ref(input);
 
     if (G_is_Trivial(g)) {
         if (ordinal_arg > 0) goto B_NEW_RETURN_ERROR;
@@ -10435,7 +10429,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     obstack_free(&bocage_setup_obs, NULL);
     return b;
     B_NEW_RETURN_ERROR: ;
-    recce_unref(r);
+    input_unref(input);
     if (b) {
 	@<Destroy bocage elements, all phases@>;
     }
@@ -10733,9 +10727,8 @@ void
 bocage_free (BOCAGE b)
 {
     MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, b)
-  const RECCE r = R_of_B (b);
   @<Unpack bocage objects@>@;
-  recce_unref (r);
+  input_unref (input);
   if (b)
     {
       @<Destroy bocage elements, all phases@>;
