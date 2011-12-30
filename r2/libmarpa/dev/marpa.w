@@ -5388,6 +5388,7 @@ static inline void input_free(INPUT input);
 @ @<Function definitions@> =
 static inline void input_free(INPUT input) {
     @<Destroy input elements@>@;
+    g_slice_free(struct s_input, input);
 }
 
 @*0 Token obstack.

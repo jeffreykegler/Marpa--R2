@@ -12,8 +12,10 @@ To install
 
 2) (cd dev; autoreconf -ivf)
 
-To build in it:
+To build:
 
-1) sh configure
+1) Change to the work directory
 
-2) make
+2) sh ../dev/configure
+
+3) make
