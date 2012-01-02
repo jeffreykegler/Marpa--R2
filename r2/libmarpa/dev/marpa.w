@@ -8306,7 +8306,6 @@ static inline void r_update_earley_sets(RECCE r) {
 @** Create the Postdot Items.
 @ This function inserts regular (non-Leo) postdot items into
 the postdot list.
-It is assumed that the caller has ensured this is not a duplicate.
 @<Private function prototypes@> =
 static void
 postdot_items_create (struct marpa_r *r, ES set);
@@ -8318,11 +8317,20 @@ might be a good idea to have
 separate code to handle it,
 in which case both could be inlined.
 @ Leo items are not created for Earley set 0.
-They are always optional, and add little at that point.
-In that way I can avoid dealing with empty productions in
-the Leo logic.
-Empty productions only occur in dealing with the null parse,
-and only in Earley set 0.
+Originally this was to avoid dealing with the null productions
+that might be in Earley set 0.
+These have been eliminated with the special-casing of the
+null parse.
+But Leo items are always optional,
+and may not be worth it for Earley set 0.
+@ @ {\bf To Do}: @^To Do@>
+Another look at the degree and kind
+of memoization here might be in order.
+Would it be useful to memoize the |TRANS| structure
+in the PIM's?
+On the efficiency question,
+this ties in with whether Leo items are calculated
+in the absense of right recursion or not.
 @<Function definitions@> =
 static void
 postdot_items_create (struct marpa_r *r, ES current_earley_set)
@@ -8369,24 +8377,33 @@ At this point there are no Leo items.
 	  EIM_of_PIM(new_pim) = earley_item;
 	  if (bv_bit_test(bv_pim_symbols, (guint)symid))
 	      old_pim = pim_workarea[symid];
-	  if (old_pim) {
-	      Next_PIM_of_PIM(new_pim) = old_pim;
-	  } else {
-	      Next_PIM_of_PIM(new_pim) = NULL;
-	      current_earley_set->t_postdot_sym_count++;
-	  }
+	  Next_PIM_of_PIM(new_pim) = old_pim;
+	  if (!old_pim) current_earley_set->t_postdot_sym_count++;
 	  pim_workarea[symid] = new_pim;
 	  bv_bit_set(bv_pim_symbols, (guint)symid);
 	}
     }
 }
 
+@ {\bf To Do}: @^To Do@>
+Right now Leo items are created even where there is no
+right-recursion.  This follows Leo's original algorithm.
+It might be better to restrict the Leo logic to symbols
+which actually right-recurse,
+eliminating the overhead of tracking the others.
+The tradeoff is that the Leo logic may save some space,
+even in the absense of right recursion.
+It may be a good idea to allow it to be configured,
+with a flag determining whether the Leo logic (if enabled
+at all) is used for all LHS symbols,
+or only where there is right recursion.
+
 @ This code creates the Earley indexes in the PIM workarea.
 The Leo items do not contain predecessors or have the
 predecessor-dependent information set at this point.
 @ The origin and predecessor will be filled in later,
 when the predecessor is known.
-The top AHFA to-state is set to |NULL|,
+The origin is set to |NULL|,
 and that will be used as an indicator that the fields
 of this 
 Leo item have not been fully populated.
