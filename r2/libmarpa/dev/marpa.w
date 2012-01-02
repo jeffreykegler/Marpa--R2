@@ -4435,10 +4435,10 @@ You can get the AIM from the AEX, but not vice versa.
   gint ahfa_id;
   for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
     {
-      AHFA ahfa = AHFA_of_G_by_ID (g, ahfa_id);
-      TRANS *const transitions = TRANSs_of_AHFA (ahfa);
-      AIM *aims = AIMs_of_AHFA (ahfa);
-      gint aim_count = AIM_Count_of_AHFA (ahfa);
+      AHFA from_ahfa = AHFA_of_G_by_ID (g, ahfa_id);
+      TRANS *const transitions = TRANSs_of_AHFA (from_ahfa);
+      AIM *aims = AIMs_of_AHFA (from_ahfa);
+      gint aim_count = AIM_Count_of_AHFA (from_ahfa);
       AEX aex;
       g_qsort_with_data (aims, aim_count, sizeof (AIM *), cmp_by_aimid, NULL);
       for (aex = 0; aex < aim_count; aex++)
@@ -4449,8 +4449,15 @@ You can get the AIM from the AEX, but not vice versa.
 	    {
 	      TRANS transition = transitions[postdot];
 	      AHFA to_ahfa = To_AHFA_of_TRANS (transition);
-	      Leo_Base_AEX_of_TRANS (transition) =
-		AHFA_is_Leo_Completion (to_ahfa) ? aex : -1;
+	      if (AHFA_is_Leo_Completion (to_ahfa))
+		{
+		  Leo_Base_AEX_of_TRANS (transition) = aex;
+		  AHFA_is_Potential_Leo_Base (from_ahfa) = 1;
+		}
+	      else
+		{
+		  Leo_Base_AEX_of_TRANS (transition) = -1;
+		}
 	    }
 	}
     }
@@ -8395,13 +8402,17 @@ Leo item have not been fully populated.
 	{
 	  PIM this_pim = pim_workarea[symid];
 	  if (!Next_PIM_of_PIM (this_pim))
-	    { /* Only create a Leo item if there is more
-	         than one EIX */
+	    {			/* Do not create a Leo item if there is more
+				   than one EIX */
 	      EIM leo_base = EIM_of_PIM (this_pim);
-	      AHFA base_to_ahfa = To_AHFA_of_EIM_by_SYMID (leo_base, symid);
-	      if (AHFA_is_Leo_Completion (base_to_ahfa))
+	      if (EIM_is_Potential_Leo_Base (leo_base))
 		{
-		  @<Create a new, unpopulated, LIM@>@;
+		  AHFA base_to_ahfa =
+		    To_AHFA_of_EIM_by_SYMID (leo_base, symid);
+		  if (AHFA_is_Leo_Completion (base_to_ahfa))
+		    {
+		      @<Create a new, unpopulated, LIM@>@;
+		    }
 		}
 	    }
 	}
