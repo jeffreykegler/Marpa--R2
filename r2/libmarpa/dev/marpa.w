@@ -3969,6 +3969,17 @@ struct s_AHFA_state {
 };
 typedef struct s_AHFA_state AHFA_Object;
 
+@*0 Initialization.
+Only a few AHFA items are initialized.
+Most are set dependent on context.
+@<Private function prototypes@> =
+static inline void AHFA_initialize(AHFA ahfa);
+@ @<Function definitions@> =
+static inline void AHFA_initialize(AHFA ahfa)
+{
+    @<Initialize AHFA@>@;
+}
+
 @*0 Complete Symbols Container.
 @ @d Complete_SYMIDs_of_AHFA(state) ((state)->t_complete_symbols)
 @d Complete_SYM_Count_of_AHFA(state) ((state)->t_complete_symbol_count)
@@ -4024,16 +4035,20 @@ static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM sought_aim)
 as opposed to whether it contains any predicted 
 AHFA items.
 This makes a difference in AHFA state 0.
-When the null parse is allowed.
-AHFA state 0 will contain an AHFA item
-which is {\bf both} a prediction
-and a completion.
-AHFA state 0 is, however, {\bf never}
-a predicted AHFA state.
+AHFA state 0 is {\bf not} a predicted AHFA state.
 @d AHFA_is_Predicted(ahfa) ((ahfa)->t_is_predict)
 @d EIM_is_Predicted(eim) AHFA_is_Predicted(AHFA_of_EIM(eim))
 @<Bit aligned AHFA elements@> =
 guint t_is_predict:1;
+
+@*0 Is AHFA a potential Leo base?.
+@ This boolean indicates whether the
+AHFA state could be a Leo base.
+@d AHFA_is_Potential_Leo_Base(ahfa) ((ahfa)->t_is_potential_leo_base)
+@d EIM_is_Potential_Leo_Base(eim) AHFA_is_Potential_Leo_Base(AHFA_of_EIM(eim))
+@ @<Bit aligned AHFA elements@> =
+guint t_is_potential_leo_base:1;
+@ @<Initialize AHFA@> = AHFA_is_Potential_Leo_Base(ahfa) = 0;
 
 @ @<Private typedefs@> =
 typedef struct s_AHFA_state* AHFA;
@@ -4214,6 +4229,7 @@ with this AHFA state is eligible to be a Leo completion.
 @d Leo_LHS_ID_of_AHFA(state) ((state)->t_leo_lhs_sym)
 @d AHFA_is_Leo_Completion(state) (Leo_LHS_ID_of_AHFA(state) >= 0)
 @ @<Int aligned AHFA state elements@> = SYMID t_leo_lhs_sym;
+@ @<Initialize AHFA@> = Leo_LHS_ID_of_AHFA(ahfa) = -1;
 @ @<Public function prototypes@> =
 Marpa_Symbol_ID marpa_g_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id);
@@ -4463,11 +4479,11 @@ g_tree_destroy(duplicates);
   /* The start item is the initial item for the start rule */
   start_item = g->t_AHFA_items_by_rule[start_rule_id];
   item_list[0] = start_item;
+  AHFA_initialize(p_initial_state);
   p_initial_state->t_items = item_list;
   p_initial_state->t_item_count = 1;
   p_initial_state->t_key.t_id = 0;
   AHFA_is_Predicted (p_initial_state) = 0;
-  Leo_LHS_ID_of_AHFA (p_initial_state) = -1;
   TRANSs_of_AHFA (p_initial_state) = transitions_new (g);
   Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
   postdot_symbol_ids = Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
@@ -4530,6 +4546,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
       }
     p_new_state = DQUEUE_PUSH (states, AHFA_Object);
     /* Create a new AHFA state */
+    AHFA_initialize(p_new_state);
     singleton_duplicates[single_item_id] = p_new_state;
     new_state_item_list = p_new_state->t_items =
 	obstack_alloc (&g->t_obs, sizeof (AIM));
@@ -4541,7 +4558,6 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     } else {
 	p_new_state->t_has_completed_start_rule = 0;
     }
-    Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     transition_add (&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
@@ -4670,9 +4686,9 @@ if (queued_AHFA_state)
   }
     // If we added the new state, finish up its data.
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFA_Object);
+    AHFA_initialize(p_new_state);
     AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_has_completed_start_rule = 0;
-    Leo_LHS_ID_of_AHFA(p_new_state) =-1;
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     @<Calculate complete and postdot symbols for discovered state@>@/
     transition_add(&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
@@ -5045,7 +5061,8 @@ item_list_for_new_state = obstack_alloc (&g->t_obs,
 	}
     }
 }
-p_new_state = DQUEUE_PUSH((*states_p), AHFA_Object);@/
+    p_new_state = DQUEUE_PUSH((*states_p), AHFA_Object);
+    AHFA_initialize(p_new_state);
     p_new_state->t_items = item_list_for_new_state;
     p_new_state->t_item_count = no_of_items_in_new_state;
     { AHFA queued_AHFA_state = assign_AHFA_state(p_new_state, duplicates);
@@ -5061,7 +5078,6 @@ p_new_state = DQUEUE_PUSH((*states_p), AHFA_Object);@/
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE((*states_p), AHFA_Object);
     AHFA_is_Predicted(p_new_state) = 1;
     p_new_state->t_has_completed_start_rule = 0;
-    Leo_LHS_ID_of_AHFA(p_new_state) = -1;
     p_new_state->t_empty_transition = NULL;
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     Complete_SYM_Count_of_AHFA(p_new_state) = 0;
