@@ -1149,17 +1149,6 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
-Marpa_Rule_ID
-AHFA_completed_start_rule( g, AHFA_state_id )
-    Grammar *g;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-    { gint result = marpa_g_AHFA_completed_start_rule(g, AHFA_state_id);
-    if (result == -1) { XSRETURN_UNDEF; }
-    if (result < -1) { croak("Invalid AHFA state %d", AHFA_state_id); }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
 void
 error( g_wrapper )
     G_Wrapper *g_wrapper;

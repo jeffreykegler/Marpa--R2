@@ -2208,22 +2208,6 @@ return RULE_is_Used(RULE_by_ID(g, rule_id)); }
 @ @<Public function prototypes@> =
 gint marpa_g_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
-@*0 Is This a Start Rule?.
-@d RULE_is_Start(rule) ((rule)->t_is_start)
-@<Bit aligned rule elements@> = guint t_is_start:1;
-@ @<Initialize rule elements@> =
-rule->t_is_start = FALSE;
-@ This is the external accessor.
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
-gint marpa_g_rule_is_start(struct marpa_g* g, Marpa_Rule_ID rule_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-return RULE_by_ID(g, rule_id)->t_is_start; }
-@ @<Public function prototypes@> =
-gint marpa_g_rule_is_start(struct marpa_g* g, Marpa_Rule_ID rule_id);
-
 @*0 Rule Boolean: Virtual LHS.
 This is for Marpa's ``internal semantics".
 When Marpa rewrites rules, it does so in a way invisible to
@@ -3266,7 +3250,6 @@ old_start->t_is_start = 0;
   proper_new_start->t_is_productive = TRUE;
   proper_new_start->t_is_start = TRUE;
   new_start_rule = rule_start (g, proper_new_start_id, &ID_of_SYM(old_start), 1);
-  new_start_rule->t_is_start = 1;
   RULE_is_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = 1;
@@ -3298,7 +3281,6 @@ if there is one.  Otherwise it is a new, nulling, symbol.
     }
   nulling_new_start->t_is_start = TRUE;
   new_start_rule = rule_start (g, nulling_new_start_id, 0, 0);
-  new_start_rule->t_is_start = 1;
   RULE_is_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = FALSE;
@@ -3611,8 +3593,6 @@ gint t_position;
 |-1| if the item is a completion.
 @d Postdot_SYMID_of_AIM(item) ((item)->t_postdot)
 @d AIM_is_Completion(aim) (Postdot_SYMID_of_AIM(aim) < 0)
-@d AIM_has_Completed_Start_Rule(aim)
-    (AIM_is_Completion(aim) && RULE_is_Start(RULE_of_AIM(aim)))
 @<Int aligned AHFA item elements@> = Marpa_Symbol_ID t_postdot;
 
 @*0 Leading Nulls.
@@ -3953,7 +3933,6 @@ The total is ${s \over 2} + {s \over 2} + s = 2s$.
 Typically, the number of AHFA states should be less than this estimate.
 
 @d AHFA_of_G_by_ID(g, id) ((g)->t_AHFA+(id))
-@d AHFA_has_Completed_Start_Rule(ahfa) ((ahfa)->t_has_completed_start_rule)
 @<Private incomplete structures@> = struct s_AHFA_state;
 @ @<Private structures@> =
 struct s_AHFA_state_key {
@@ -3964,7 +3943,6 @@ struct s_AHFA_state {
     struct s_AHFA_state* t_empty_transition;
     @<Widely aligned AHFA state elements@>@;
     @<Int aligned AHFA state elements@>@;
-    guint t_has_completed_start_rule:1;
     @<Bit aligned AHFA elements@>@;
 };
 typedef struct s_AHFA_state AHFA_Object;
@@ -4159,65 +4137,6 @@ gint marpa_g_AHFA_state_is_predict(struct marpa_g* g,
 @ @<Public function prototypes@> =
 gint marpa_g_AHFA_state_is_predict(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id);
-
-@*0 Completed Start Rule.
-This external acccessor returns the rule ID of
-the completed start rule of an AHFA state.
-Most often there is none, in which case
-|-1| is returned.
-For other failures, |-2| is returned.
-@ @<Public function prototypes@> =
-Marpa_Rule_ID marpa_g_AHFA_completed_start_rule(struct marpa_g* g,
-	Marpa_AHFA_State_ID AHFA_state_id);
-@ I know that the completed start rule is this AHFA state is
-unique, via the following theorem.
-\Theorem/ No AHFA state contains more than one completed start rule.
-\Proof/: As proved elsewhere in this document,
-an AHFA state with a completed start rule is either AHFA state 0
-or a 1-item discovered AHFA state.
-Clearly the AHFA item which is the completed start rule is 
-unique in a 1-item AHFA state.
-From its construction we know that
-AHFA state 0 contains at most two rules:
-a predicted non-null start rule
-and a predicted null start rule.
-A predicted non-null rule is not a completed rule.
-Therefore only the predicted null start rule
-can be a completed start rule in AHFA state 0.
-\QED/.
-@
-{\bf To Do}: @^To Do@>
-This function can probably be eliminated after conversion
-is complete, along with the flag for whether a rule is a start rule
-and the flag for tracking whether an AHFA has a completed start rule.
-
-@<Function definitions@> =
-Marpa_Rule_ID marpa_g_AHFA_completed_start_rule(struct marpa_g* g,
-	Marpa_AHFA_State_ID AHFA_state_id) {
-    const gint no_completed_start_rule = -1;
-    @<Return |-2| on failure@>@;
-    AHFA state;
-    @<Fail if grammar not precomputed@>@;
-    @<Fail if grammar |AHFA_state_id| is invalid@>@;
-    state = AHFA_of_G_by_ID (g, AHFA_state_id);
-    if (AHFA_has_Completed_Start_Rule(state)) {
-	const gint ahfa_item_count = state->t_item_count;
-	const AIM* ahfa_items = state->t_items;
-	gint ahfa_ix;
-	for (ahfa_ix = 0; ahfa_ix < ahfa_item_count; ahfa_ix++)
-	  {
-	    const AIM ahfa_item = ahfa_items[ahfa_ix];
-	    if (AIM_is_Completion (ahfa_item))
-	      {
-		const RULE rule = RULE_of_AIM (ahfa_item);
-		if (RULE_is_Start (rule))
-		  return ID_of_RULE (rule);
-	      }
-	  }
-      @<Fail with internal grammar error@>@;
-  }
-  return no_completed_start_rule;
-}
 
 @*0 Leo LHS Symbol.
 The Leo LHS symbol is the LHS of the AHFA state's rule,
@@ -4497,7 +4416,6 @@ g_tree_destroy(duplicates);
     obstack_alloc (&g->t_obs, sizeof (SYMID));
   *postdot_symbol_ids = Postdot_SYMID_of_AIM (start_item);
   Complete_SYM_Count_of_AHFA (p_initial_state) = 0;
-  p_initial_state->t_has_completed_start_rule = 0;
   p_initial_state->t_empty_transition =
     create_predicted_AHFA_state (g,
 				 matrix_row (prediction_matrix,
@@ -4560,11 +4478,6 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     new_state_item_list[0] = single_item_p;
     p_new_state->t_item_count = 1;
     AHFA_is_Predicted(p_new_state) = 0;
-    if (AIM_has_Completed_Start_Rule(single_item_p)) {
-	p_new_state->t_has_completed_start_rule = 1;
-    } else {
-	p_new_state->t_has_completed_start_rule = 0;
-    }
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     transition_add (&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
@@ -4695,7 +4608,6 @@ if (queued_AHFA_state)
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFA_Object);
     AHFA_initialize(p_new_state);
     AHFA_is_Predicted(p_new_state) = 0;
-    p_new_state->t_has_completed_start_rule = 0;
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     @<Calculate complete and postdot symbols for discovered state@>@/
     transition_add(&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
@@ -5084,7 +4996,6 @@ item_list_for_new_state = obstack_alloc (&g->t_obs,
     // The new state was added -- finish up its data
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE((*states_p), AHFA_Object);
     AHFA_is_Predicted(p_new_state) = 1;
-    p_new_state->t_has_completed_start_rule = 0;
     p_new_state->t_empty_transition = NULL;
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     Complete_SYM_Count_of_AHFA(p_new_state) = 0;
