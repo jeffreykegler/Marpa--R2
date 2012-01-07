@@ -8323,14 +8323,14 @@ These have been eliminated with the special-casing of the
 null parse.
 But Leo items are always optional,
 and may not be worth it for Earley set 0.
-@ @ {\bf To Do}: @^To Do@>
+@ @ {\bf Further Research}: @^Further Research@>
 Another look at the degree and kind
-of memoization here might be in order.
-Would it be useful to memoize the |TRANS| structure
-in the PIM's?
-On the efficiency question,
-this ties in with whether Leo items are calculated
-in the absense of right recursion or not.
+of memoization here will be in order
+once the question of when to use Leo items
+(right recursion or per Leo's original paper?)
+is completely settled.
+This will require making the Leo behavior configurable
+and running benchmarks.
 @<Function definitions@> =
 static void
 postdot_items_create (struct marpa_r *r, ES current_earley_set)
@@ -8397,6 +8397,9 @@ It may be a good idea to allow it to be configured,
 with a flag determining whether the Leo logic (if enabled
 at all) is used for all LHS symbols,
 or only where there is right recursion.
+
+@ {\bf To Do}: @^To Do@>
+Memoize the |TRANS| pointer in the Leo items?
 
 @ This code creates the Earley indexes in the PIM workarea.
 The Leo items do not contain predecessors or have the
@@ -10922,17 +10925,17 @@ if the bocage iterator has a parse count,
 but no stack,
 it is exhausted.
 @d T_is_Exhausted(tree)
-    (!FSTACK_IS_INITIALIZED((tree)->t_fork_stack))
-@d Size_of_TREE(tree) FSTACK_LENGTH((tree)->t_fork_stack)
-@d FORK_of_TREE_by_IX(tree, fork_id)
-    FSTACK_INDEX((tree)->t_fork_stack, FORK_Object, fork_id)
+    (!FSTACK_IS_INITIALIZED((tree)->t_nook_stack))
+@d Size_of_TREE(tree) FSTACK_LENGTH((tree)->t_nook_stack)
+@d NOOK_of_TREE_by_IX(tree, nook_id)
+    FSTACK_INDEX((tree)->t_nook_stack, NOOK_Object, nook_id)
 @d O_of_T(t) ((t)->t_order)
 @<Private structures@> =
-@<FORK structure@>@;
+@<NOOK structure@>@;
 @<VALUE structure@>@;
 struct s_tree {
-    FSTACK_DECLARE(t_fork_stack, FORK_Object)@;
-    FSTACK_DECLARE(t_fork_worklist, gint)@;
+    FSTACK_DECLARE(t_nook_stack, NOOK_Object)@;
+    FSTACK_DECLARE(t_nook_worklist, gint)@;
     Bit_Vector t_and_node_in_use;
     Marpa_Order t_order;
     @<Int aligned tree elements@>@;
@@ -10948,15 +10951,15 @@ static inline void tree_exhaust(TREE t);
 @ @<Function definitions@> =
 static inline void tree_exhaust(TREE t)
 {
-  if (FSTACK_IS_INITIALIZED(t->t_fork_stack))
+  if (FSTACK_IS_INITIALIZED(t->t_nook_stack))
     {
-      FSTACK_DESTROY(t->t_fork_stack);
-      FSTACK_SAFE(t->t_fork_stack);
+      FSTACK_DESTROY(t->t_nook_stack);
+      FSTACK_SAFE(t->t_nook_stack);
     }
-  if (FSTACK_IS_INITIALIZED(t->t_fork_worklist))
+  if (FSTACK_IS_INITIALIZED(t->t_nook_worklist))
     {
-      FSTACK_DESTROY(t->t_fork_worklist);
-      FSTACK_SAFE(t->t_fork_worklist);
+      FSTACK_DESTROY(t->t_nook_worklist);
+      FSTACK_SAFE(t->t_nook_worklist);
     }
     if (t->t_and_node_in_use) {
 	  bv_free (t->t_and_node_in_use);
@@ -10989,8 +10992,8 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     const gint and_count = AND_Count_of_B (b);
     t->t_parse_count = 0;
     t->t_and_node_in_use = bv_create ((guint) and_count);
-    FSTACK_INIT (t->t_fork_stack, FORK_Object, and_count);
-    FSTACK_INIT (t->t_fork_worklist, gint, and_count);
+    FSTACK_INIT (t->t_nook_stack, NOOK_Object, and_count);
+    FSTACK_INIT (t->t_nook_worklist, gint, and_count);
 }
 
 @*0 Reference Counting and Destructors.
@@ -11159,7 +11162,7 @@ gint marpa_t_next(Marpa_Tree t)
         }
     TREE_IS_FINISHED: ;
     t->t_parse_count++;
-    return FSTACK_LENGTH(t->t_fork_stack);
+    return FSTACK_LENGTH(t->t_nook_stack);
     TREE_IS_EXHAUSTED: ;
     tree_exhaust(t);
     return -1;
@@ -11199,7 +11202,7 @@ static inline gint tree_and_node_try(TREE tree, ANDID and_node_id)
 {
   ORID top_or_id = Top_ORID_of_B (b);
   OR top_or_node = OR_of_B_by_ID (b, top_or_id);
-  FORK fork;
+  NOOK nook;
   gint choice;
   choice = or_node_next_choice (o, t, top_or_node, 0);
   /* Due to skipping, even the top or-node can have no
@@ -11208,76 +11211,76 @@ MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
   if (choice < 0)
     goto TREE_IS_EXHAUSTED;
 MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
-  fork = FSTACK_PUSH (t->t_fork_stack);
-  OR_of_FORK (fork) = top_or_node;
-  Choice_of_FORK (fork) = choice;
-  Parent_of_FORK (fork) = -1;
-  FORK_Cause_is_Ready (fork) = 0;
-  FORK_is_Cause (fork) = 0;
-  FORK_Predecessor_is_Ready (fork) = 0;
-  FORK_is_Predecessor (fork) = 0;
-  *(FSTACK_PUSH (t->t_fork_worklist)) = 0;
+  nook = FSTACK_PUSH (t->t_nook_stack);
+  OR_of_NOOK (nook) = top_or_node;
+  Choice_of_NOOK (nook) = choice;
+  Parent_of_NOOK (nook) = -1;
+  NOOK_Cause_is_Ready (nook) = 0;
+  NOOK_is_Cause (nook) = 0;
+  NOOK_Predecessor_is_Ready (nook) = 0;
+  NOOK_is_Predecessor (nook) = 0;
+  *(FSTACK_PUSH (t->t_nook_worklist)) = 0;
 }
 
-@ Look for a fork to iterate.
+@ Look for a nook to iterate.
 If there is one, set it to the next choice.
 Otherwise, the tree is exhausted.
 @<Start a new iteration of the tree@> = {
     while (1) {
-	FORK iteration_candidate = FSTACK_TOP(t->t_fork_stack, FORK_Object);
+	NOOK iteration_candidate = FSTACK_TOP(t->t_nook_stack, NOOK_Object);
 	gint choice;
 	if (!iteration_candidate) break;
-	choice = Choice_of_FORK(iteration_candidate);
+	choice = Choice_of_NOOK(iteration_candidate);
 	MARPA_ASSERT(choice >= 0);
 	{
-	    OR or_node = OR_of_FORK(iteration_candidate);
+	    OR or_node = OR_of_NOOK(iteration_candidate);
 	    ANDID and_node_id = and_order_get(o, or_node, choice);
 	    tree_and_node_release(t, and_node_id);
 	    choice = or_node_next_choice(o, t, or_node, choice+1);
 	}
 	if (choice >= 0) {
-	    /* We have found a fork we can iterate.
+	    /* We have found a nook we can iterate.
 	        Set the new choice,
-		dirty the child bits in the current working fork,
+		dirty the child bits in the current working nook,
 		and break out of the loop.
 	    */
-	    Choice_of_FORK(iteration_candidate) = choice;
-	    FORK_Cause_is_Ready(iteration_candidate) = 0;
-	    FORK_Predecessor_is_Ready(iteration_candidate) = 0;
+	    Choice_of_NOOK(iteration_candidate) = choice;
+	    NOOK_Cause_is_Ready(iteration_candidate) = 0;
+	    NOOK_Predecessor_is_Ready(iteration_candidate) = 0;
 	    break;
 	}
 	{
 	    /* Dirty the corresponding bit in the parent */
-	    const gint parent_fork_ix = Parent_of_FORK(iteration_candidate);
-	    if (parent_fork_ix >= 0) {
-		FORK parent_fork = FORK_of_TREE_by_IX(t, parent_fork_ix);
-		if (FORK_is_Cause(iteration_candidate)) {
-		    FORK_Cause_is_Ready(parent_fork) = 0;
+	    const gint parent_nook_ix = Parent_of_NOOK(iteration_candidate);
+	    if (parent_nook_ix >= 0) {
+		NOOK parent_nook = NOOK_of_TREE_by_IX(t, parent_nook_ix);
+		if (NOOK_is_Cause(iteration_candidate)) {
+		    NOOK_Cause_is_Ready(parent_nook) = 0;
 		}
-		if (FORK_is_Predecessor(iteration_candidate)) {
-		    FORK_Predecessor_is_Ready(parent_fork) = 0;
+		if (NOOK_is_Predecessor(iteration_candidate)) {
+		    NOOK_Predecessor_is_Ready(parent_nook) = 0;
 		}
 	    }
 
 	    /* Continue with the next item on the stack */
-	    FSTACK_POP(t->t_fork_stack);
+	    FSTACK_POP(t->t_nook_stack);
 	}
     }
     {
 	gint stack_length = Size_of_T(t);
 	gint i;
 	if (stack_length <= 0) goto TREE_IS_EXHAUSTED;
-	FSTACK_CLEAR(t->t_fork_worklist);
+	FSTACK_CLEAR(t->t_nook_worklist);
 	for (i = 0; i < stack_length; i++) {
-	    *(FSTACK_PUSH(t->t_fork_worklist)) = i;
+	    *(FSTACK_PUSH(t->t_nook_worklist)) = i;
 	}
     }
 }
 
 @ @<Finish tree if possible@> = {
     while (1) {
-	FORKID* p_work_fork_id;
-	FORK work_fork;
+	NOOKID* p_work_nook_id;
+	NOOK work_nook;
 	ANDID work_and_node_id;
 	AND work_and_node;
 	OR work_or_node;
@@ -11285,39 +11288,39 @@ Otherwise, the tree is exhausted.
 	gint choice;
 	gint child_is_cause = 0;
 	gint child_is_predecessor = 0;
-	p_work_fork_id = FSTACK_TOP(t->t_fork_worklist, FORKID);
-	if (!p_work_fork_id) {
+	p_work_nook_id = FSTACK_TOP(t->t_nook_worklist, NOOKID);
+	if (!p_work_nook_id) {
 	    goto TREE_IS_FINISHED;
 	}
-	work_fork = FORK_of_TREE_by_IX(t, *p_work_fork_id);
-	work_or_node = OR_of_FORK(work_fork);
-	work_and_node_id = and_order_get(o, work_or_node, Choice_of_FORK(work_fork));
+	work_nook = NOOK_of_TREE_by_IX(t, *p_work_nook_id);
+	work_or_node = OR_of_NOOK(work_nook);
+	work_and_node_id = and_order_get(o, work_or_node, Choice_of_NOOK(work_nook));
 	work_and_node = ands_of_b + work_and_node_id;
-	if (!FORK_Cause_is_Ready(work_fork)) {
+	if (!NOOK_Cause_is_Ready(work_nook)) {
 	    child_or_node = Cause_OR_of_AND(work_and_node);
 	    if (child_or_node && OR_is_Token(child_or_node)) child_or_node = NULL;
 	    if (child_or_node) {
 		child_is_cause = 1;
 	    } else {
-		FORK_Cause_is_Ready(work_fork) = 1;
+		NOOK_Cause_is_Ready(work_nook) = 1;
 	    }
 	}
-	if (!child_or_node && !FORK_Predecessor_is_Ready(work_fork)) {
+	if (!child_or_node && !NOOK_Predecessor_is_Ready(work_nook)) {
 	    child_or_node = Predecessor_OR_of_AND(work_and_node);
 	    if (child_or_node) {
 		child_is_predecessor = 1;
 	    } else {
-		FORK_Predecessor_is_Ready(work_fork) = 1;
+		NOOK_Predecessor_is_Ready(work_nook) = 1;
 	    }
 	}
 	if (!child_or_node) {
-	    FSTACK_POP(t->t_fork_worklist);
-	    goto NEXT_FORK_ON_WORKLIST;
+	    FSTACK_POP(t->t_nook_worklist);
+	    goto NEXT_NOOK_ON_WORKLIST;
 	}
 	choice = or_node_next_choice(o, t, child_or_node, 0);
 	if (choice < 0) goto NEXT_TREE;
-	@<Add new fork to tree@>;
-	NEXT_FORK_ON_WORKLIST: ;
+	@<Add new nook to tree@>;
+	NEXT_NOOK_ON_WORKLIST: ;
     }
     NEXT_TREE: ;
 }
@@ -11337,21 +11340,21 @@ static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint star
     return -1;
 }
 
-@ @<Add new fork to tree@> =
+@ @<Add new nook to tree@> =
 {
-   FORKID new_fork_id = Size_of_T(t);
-   FORK new_fork = FSTACK_PUSH(t->t_fork_stack);
-    *(FSTACK_PUSH(t->t_fork_worklist)) = new_fork_id;
-    Parent_of_FORK(new_fork) = *p_work_fork_id;
-    Choice_of_FORK(new_fork) = choice;
-    OR_of_FORK(new_fork) = child_or_node;
-    FORK_Cause_is_Ready(new_fork) = 0;
-    if ( ( FORK_is_Cause(new_fork) = child_is_cause ) ) {
-	FORK_Cause_is_Ready(work_fork) = 1;
+   NOOKID new_nook_id = Size_of_T(t);
+   NOOK new_nook = FSTACK_PUSH(t->t_nook_stack);
+    *(FSTACK_PUSH(t->t_nook_worklist)) = new_nook_id;
+    Parent_of_NOOK(new_nook) = *p_work_nook_id;
+    Choice_of_NOOK(new_nook) = choice;
+    OR_of_NOOK(new_nook) = child_or_node;
+    NOOK_Cause_is_Ready(new_nook) = 0;
+    if ( ( NOOK_is_Cause(new_nook) = child_is_cause ) ) {
+	NOOK_Cause_is_Ready(work_nook) = 1;
     }
-    FORK_Predecessor_is_Ready(new_fork) = 0;
-    if ( ( FORK_is_Predecessor(new_fork) = child_is_predecessor ) ) {
-	FORK_Predecessor_is_Ready(work_fork) = 1;
+    NOOK_Predecessor_is_Ready(new_nook) = 0;
+    if ( ( NOOK_is_Predecessor(new_nook) = child_is_predecessor ) ) {
+	NOOK_Predecessor_is_Ready(work_nook) = 1;
     }
 }
 
@@ -11364,14 +11367,14 @@ gint marpa_t_parse_count(Marpa_Tree t)
 }
 
 @ Return the size of the parse tree.
-This is the number of |FORK| entries in its stack.
+This is the number of |NOOK| entries in its stack.
 If there is a serioius error,
 or if the tree is uninitialized, return -2.
 If the tree is exhausted, return -1.
 @<Public function prototypes@> =
 gint marpa_t_size(Marpa_Tree t);
 @
-@d Size_of_T(t) FSTACK_LENGTH((t)->t_fork_stack)
+@d Size_of_T(t) FSTACK_LENGTH((t)->t_nook_stack)
 @<Function definitions@> =
 gint marpa_t_size(Marpa_Tree t)
 {
@@ -11709,163 +11712,163 @@ Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
     return and_order_get(o, or_node, ix);
 }
 
-@** Fork (FORK) Code.
-In Marpa, a fork is any node of a parse tree.
+@** Nook (NOOK) Code.
+In Marpa, a nook is any node of a parse tree.
 In discussed Marpa's parse trees,
-a leaf node is a special kind of |FORK|.
+a leaf node is a special kind of |NOOK|.
 This terminology, while not unprecedented,
 is unusual -- the usual term is "node".
 The problem is that within Marpa,
 the word "node" is already heavily overloaded.
 So what most texts call "tree nodes" are here
-called "forks".
+called "nooks".
 @<Public typedefs@> =
-typedef gint Marpa_Fork_ID;
+typedef gint Marpa_Nook_ID;
 @ @<Private typedefs@> =
-typedef Marpa_Fork_ID FORKID;
-@ @s FORK int
+typedef Marpa_Nook_ID NOOKID;
+@ @s NOOK int
 @<Private incomplete structures@> =
-struct s_fork;
-typedef struct s_fork* FORK;
-@ @d OR_of_FORK(fork) ((fork)->t_or_node)
-@d Choice_of_FORK(fork) ((fork)->t_choice)
-@d Parent_of_FORK(fork) ((fork)->t_parent)
-@d FORK_Cause_is_Ready(fork) ((fork)->t_is_cause_ready)
-@d FORK_is_Cause(fork) ((fork)->t_is_cause_of_parent)
-@d FORK_Predecessor_is_Ready(fork) ((fork)->t_is_predecessor_ready)
-@d FORK_is_Predecessor(fork) ((fork)->t_is_predecessor_of_parent)
-@s FORK_Object int
-@<FORK structure@> =
-struct s_fork {
+struct s_nook;
+typedef struct s_nook* NOOK;
+@ @d OR_of_NOOK(nook) ((nook)->t_or_node)
+@d Choice_of_NOOK(nook) ((nook)->t_choice)
+@d Parent_of_NOOK(nook) ((nook)->t_parent)
+@d NOOK_Cause_is_Ready(nook) ((nook)->t_is_cause_ready)
+@d NOOK_is_Cause(nook) ((nook)->t_is_cause_of_parent)
+@d NOOK_Predecessor_is_Ready(nook) ((nook)->t_is_predecessor_ready)
+@d NOOK_is_Predecessor(nook) ((nook)->t_is_predecessor_of_parent)
+@s NOOK_Object int
+@<NOOK structure@> =
+struct s_nook {
     OR t_or_node;
     gint t_choice;
-    FORKID t_parent;
+    NOOKID t_parent;
     guint t_is_cause_ready:1;
     guint t_is_predecessor_ready:1;
     guint t_is_cause_of_parent:1;
     guint t_is_predecessor_of_parent:1;
 };
-typedef struct s_fork FORK_Object;
+typedef struct s_nook NOOK_Object;
 
 @*0 Trace Functions.
 
-@ This is common logic in the |FORK| trace functions.
-@<Check |r| and |fork_id|;
-set |fork|@> = {
-  FORK base_fork;
+@ This is common logic in the |NOOK| trace functions.
+@<Check |r| and |nook_id|;
+set |nook|@> = {
+  NOOK base_nook;
   @<Fail if fatal error@>@;
   if (T_is_Exhausted(t)) {
       MARPA_DEV_ERROR("bocage iteration exhausted");
       return failure_indicator;
   }
-  base_fork = FSTACK_BASE(t->t_fork_stack, FORK_Object);
-  if (fork_id < 0) {
-      MARPA_DEV_ERROR("bad fork id");
+  base_nook = FSTACK_BASE(t->t_nook_stack, NOOK_Object);
+  if (nook_id < 0) {
+      MARPA_DEV_ERROR("bad nook id");
       return failure_indicator;
   }
-  if (fork_id >= Size_of_T(t)) {
+  if (nook_id >= Size_of_T(t)) {
       return -1;
   }
-  fork = base_fork + fork_id;
+  nook = base_nook + nook_id;
 }
 
-@ Return the ID of the or-node for |fork_id|.
+@ Return the ID of the or-node for |nook_id|.
 @<Public function prototypes@> =
-gint marpa_t_fork_or_node(Marpa_Tree t, int fork_id);
+gint marpa_t_nook_or_node(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
-gint marpa_t_fork_or_node(Marpa_Tree t, int fork_id)
+gint marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
 {
-  FORK fork;
+  NOOK nook;
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
-   @<Check |r| and |fork_id|; set |fork|@>@;
-  return ID_of_OR(OR_of_FORK(fork));
+   @<Check |r| and |nook_id|; set |nook|@>@;
+  return ID_of_OR(OR_of_NOOK(nook));
 }
 
-@ Return the current choice for |fork_id|.
+@ Return the current choice for |nook_id|.
 @<Public function prototypes@> =
-gint marpa_t_fork_choice(Marpa_Tree t, int fork_id);
+gint marpa_t_nook_choice(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
-gint marpa_t_fork_choice(Marpa_Tree t, int fork_id)
+gint marpa_t_nook_choice(Marpa_Tree t, int nook_id)
 {
-  FORK fork;
+  NOOK nook;
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
-   @<Check |r| and |fork_id|; set |fork|@>@;
-    return Choice_of_FORK(fork);
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return Choice_of_NOOK(nook);
 }
 
-@ Return the parent fork's ID for |fork_id|.
-As with the other fork trace functions,
--1 is returned if |fork_id| is not the ID of
-a fork on the stack,
+@ Return the parent nook's ID for |nook_id|.
+As with the other nook trace functions,
+-1 is returned if |nook_id| is not the ID of
+a nook on the stack,
 but -1 can also be a valid value.
-If that's an issue, the |fork_id| needs
+If that's an issue, the |nook_id| needs
 to be checked with one of the trace functions
 where -1 is never a valid value ---
-for example, |marpa_t_fork_or_node|.
+for example, |marpa_t_nook_or_node|.
 @<Public function prototypes@> =
-gint marpa_t_fork_parent(Marpa_Tree t, int fork_id);
+gint marpa_t_nook_parent(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
-gint marpa_t_fork_parent(Marpa_Tree t, int fork_id)
+gint marpa_t_nook_parent(Marpa_Tree t, int nook_id)
 {
-  FORK fork;
+  NOOK nook;
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
-   @<Check |r| and |fork_id|; set |fork|@>@;
-    return Parent_of_FORK(fork);
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return Parent_of_NOOK(nook);
 }
 
-@ Return the cause-is-ready bit for |fork_id|.
+@ Return the cause-is-ready bit for |nook_id|.
 @<Public function prototypes@> =
-gint marpa_t_fork_cause_is_ready(Marpa_Tree t, int fork_id);
+gint marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
-gint marpa_t_fork_cause_is_ready(Marpa_Tree t, int fork_id)
+gint marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
 {
-  FORK fork;
+  NOOK nook;
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
-   @<Check |r| and |fork_id|; set |fork|@>@;
-    return FORK_Cause_is_Ready(fork);
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return NOOK_Cause_is_Ready(nook);
 }
 
-@ Return the predecessor-is-ready bit for |fork_id|.
+@ Return the predecessor-is-ready bit for |nook_id|.
 @<Public function prototypes@> =
-gint marpa_t_fork_predecessor_is_ready(Marpa_Tree t, int fork_id);
+gint marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
-gint marpa_t_fork_predecessor_is_ready(Marpa_Tree t, int fork_id)
+gint marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
 {
-  FORK fork;
+  NOOK nook;
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
-   @<Check |r| and |fork_id|; set |fork|@>@;
-    return FORK_Predecessor_is_Ready(fork);
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return NOOK_Predecessor_is_Ready(nook);
 }
 
-@ Return the is-cause bit for |fork_id|.
+@ Return the is-cause bit for |nook_id|.
 @<Public function prototypes@> =
-gint marpa_t_fork_is_cause(Marpa_Tree t, int fork_id);
+gint marpa_t_nook_is_cause(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
-gint marpa_t_fork_is_cause(Marpa_Tree t, int fork_id)
+gint marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
 {
-  FORK fork;
+  NOOK nook;
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
-   @<Check |r| and |fork_id|; set |fork|@>@;
-    return FORK_is_Cause(fork);
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return NOOK_is_Cause(nook);
 }
 
-@ Return the is-predecessor bit for |fork_id|.
+@ Return the is-predecessor bit for |nook_id|.
 @<Public function prototypes@> =
-gint marpa_t_fork_is_predecessor(Marpa_Tree t, int fork_id);
+gint marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
-gint marpa_t_fork_is_predecessor(Marpa_Tree t, int fork_id)
+gint marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
 {
-  FORK fork;
+  NOOK nook;
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
-   @<Check |r| and |fork_id|; set |fork|@>@;
-    return FORK_is_Predecessor(fork);
+   @<Check |r| and |nook_id|; set |nook|@>@;
+    return NOOK_is_Predecessor(nook);
 }
 
 @** Event (EVE) Code.
@@ -11919,14 +11922,14 @@ This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
 @d V_is_Active(val) ((val)->t_active)
 @d V_is_Trace(val) ((val)->t_trace)
-@d FORK_of_V(val) ((val)->t_fork)
+@d NOOK_of_V(val) ((val)->t_nook)
 @d TOS_of_V(val) ((val)->t_tos)
 @d VStack_of_V(val) ((val)->t_virtual_stack)
 @d T_of_V(v) ((v)->t_tree)
 @<VALUE structure@> =
 struct s_value {
     DSTACK_DECLARE(t_virtual_stack);
-    FORKID t_fork;
+    NOOKID t_nook;
     Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
     gint t_tos;
@@ -11991,7 +11994,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	V_is_Active (v) = 1;
 	V_is_Trace (v) = 1;
 	TOS_of_V(v) = -1;
-	FORK_of_V(v) = -1;
+	NOOK_of_V(v) = -1;
 	@<Initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
@@ -12098,9 +12101,9 @@ gint marpa_v_trace(Marpa_Value v, gint flag)
 }
 
 @ @<Public function prototypes@> =
-Marpa_Fork_ID marpa_v_fork(Marpa_Value v);
+Marpa_Nook_ID marpa_v_nook(Marpa_Value v);
 @ @<Function definitions@> =
-Marpa_Fork_ID marpa_v_fork(Marpa_Value v)
+Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
 {
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
@@ -12108,13 +12111,13 @@ Marpa_Fork_ID marpa_v_fork(Marpa_Value v)
     if (!V_is_Active(v)) {
 	return failure_indicator;
     }
-    return FORK_of_V(v);
+    return NOOK_of_V(v);
 }
 
 @ @<Public function prototypes@> =
-Marpa_Fork_ID marpa_v_event(Marpa_Value v, Marpa_Event* event);
+Marpa_Nook_ID marpa_v_event(Marpa_Value v, Marpa_Event* event);
 @ @<Function definitions@> =
-Marpa_Fork_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
+Marpa_Nook_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
 {
     @<Return |-2| on failure@>@;
     AND and_nodes;
@@ -12123,8 +12126,8 @@ Marpa_Fork_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
     gpointer token_value = NULL;
     gint arg_0 = -1;
     gint arg_n = -1;
-    FORKID fork_ix;
-    gint continue_with_next_fork;
+    NOOKID nook_ix;
+    gint continue_with_next_nook;
     @<Unpack value objects@>@;
 
     /* event is not changed in case of hard failure */
@@ -12136,23 +12139,23 @@ Marpa_Fork_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
     and_nodes = ANDs_of_B(B_of_O(o));
 
     arg_0 = arg_n = TOS_of_V(v);
-    fork_ix = FORK_of_V(v);
-    if (fork_ix < 0) {
-	fork_ix = Size_of_TREE(t);
+    nook_ix = NOOK_of_V(v);
+    if (nook_ix < 0) {
+	nook_ix = Size_of_TREE(t);
     }
-    continue_with_next_fork = !V_is_Trace(v);
+    continue_with_next_nook = !V_is_Trace(v);
 
     while (1) {
 	OR or;
-	RULE fork_rule;
-	fork_ix--;
-	if (fork_ix < 0) goto RETURN_SOFT_ERROR;
+	RULE nook_rule;
+	nook_ix--;
+	if (nook_ix < 0) goto RETURN_SOFT_ERROR;
 	{
 	    ANDID and_node_id;
 	    AND and_node;
-	    const FORK fork = FORK_of_TREE_by_IX(t, fork_ix);
-	    const gint choice = Choice_of_FORK(fork);
-	    or = OR_of_FORK(fork);
+	    const NOOK nook = NOOK_of_TREE_by_IX(t, nook_ix);
+	    const gint choice = Choice_of_NOOK(nook);
+	    or = OR_of_NOOK(nook);
 	    and_node_id = and_order_get(o, or, choice);
 	    and_node = and_nodes + and_node_id;
 	    token_id = and_node_token(and_node, &token_value);
@@ -12160,41 +12163,41 @@ Marpa_Fork_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
 	if (token_id >= 0) {
 	    arg_0 = ++arg_n;
 MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
-	    continue_with_next_fork = 0;
+	    continue_with_next_nook = 0;
 	}
-	fork_rule = RULE_of_OR(or);
-	if (Position_of_OR(or) == Length_of_RULE(fork_rule)) {
-	    gint virtual_rhs = RULE_is_Virtual_RHS(fork_rule);
-	    gint virtual_lhs = RULE_is_Virtual_LHS(fork_rule);
+	nook_rule = RULE_of_OR(or);
+	if (Position_of_OR(or) == Length_of_RULE(nook_rule)) {
+	    gint virtual_rhs = RULE_is_Virtual_RHS(nook_rule);
+	    gint virtual_lhs = RULE_is_Virtual_LHS(nook_rule);
 	    gint real_symbol_count;
 	    const DSTACK virtual_stack = &VStack_of_V(v);
 	    if (virtual_lhs) {
-	        real_symbol_count = Real_SYM_Count_of_RULE(fork_rule);
+	        real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
 		if (virtual_rhs) {
 		    *(DSTACK_TOP(*virtual_stack, gint)) += real_symbol_count;
 		} else {
 		    *DSTACK_PUSH(*virtual_stack, gint) = real_symbol_count;
 		}
-		goto NEXT_FORK;
+		goto NEXT_NOOK;
 	    }
 	    if (virtual_rhs) {
-	        real_symbol_count = Real_SYM_Count_of_RULE(fork_rule);
+	        real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
 		real_symbol_count += *DSTACK_POP(*virtual_stack, gint);
 	    } else {
-	        real_symbol_count = Length_of_RULE(fork_rule);
+	        real_symbol_count = Length_of_RULE(nook_rule);
 	    }
 	    arg_0 = arg_n - real_symbol_count + 1;
 	    semantic_rule_id =
-	      fork_rule->t_is_semantic_equivalent ?
-		  fork_rule->t_original : ID_of_RULE(fork_rule);
-	    continue_with_next_fork = 0;
+	      nook_rule->t_is_semantic_equivalent ?
+		  nook_rule->t_original : ID_of_RULE(nook_rule);
+	    continue_with_next_nook = 0;
 	}
-	NEXT_FORK: ;
-	if (!continue_with_next_fork) break;
+	NEXT_NOOK: ;
+	if (!continue_with_next_nook) break;
     }
 
     @<Write results to |v| and |event|@>@;
-    return FORK_of_V(v);
+    return NOOK_of_V(v);
 
     RETURN_SOFT_ERROR: ;
     @<Write results to |v| and |event|@>@;
@@ -12208,7 +12211,7 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     Value_of_EVE(event) = token_value;
     RULEID_of_EVE(event) = semantic_rule_id;
     TOS_of_V(v) = Arg0_of_EVE(event) = arg_0;
-    FORK_of_V(v) = fork_ix;
+    NOOK_of_V(v) = nook_ix;
     ArgN_of_EVE(event) = arg_n;
 }
 

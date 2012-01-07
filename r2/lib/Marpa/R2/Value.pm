@@ -258,23 +258,23 @@ sub Marpa::R2::show_rank_ref {
     return ${$rank_ref};
 } ## end sub Marpa::R2::show_rank_ref
 
-sub Marpa::R2::Recognizer::show_fork {
-    my ( $recce, $fork_id, $verbose ) = @_;
+sub Marpa::R2::Recognizer::show_nook {
+    my ( $recce, $nook_id, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
-    my $or_node_id = $tree->fork_or_node($fork_id);
+    my $or_node_id = $tree->nook_or_node($nook_id);
     return if not defined $or_node_id;
 
     my $text = "o$or_node_id";
-    my $parent = $tree->fork_parent($fork_id) // q{-};
+    my $parent = $tree->nook_parent($nook_id) // q{-};
     CHILD_TYPE: {
-        if ( $tree->fork_is_cause($fork_id) ) {
+        if ( $tree->nook_is_cause($nook_id) ) {
             $text .= "[c$parent]";
             last CHILD_TYPE;
         }
-        if ( $tree->fork_is_predecessor($fork_id) ) {
+        if ( $tree->nook_is_predecessor($nook_id) ) {
             $text .= "[p$parent]";
             last CHILD_TYPE;
         }
@@ -285,13 +285,13 @@ sub Marpa::R2::Recognizer::show_fork {
     $text .= " $or_node_tag";
 
     $text .= ' p';
-    $text .= $tree->fork_predecessor_is_ready($fork_id) ? q{=ok} : q{-};
+    $text .= $tree->nook_predecessor_is_ready($nook_id) ? q{=ok} : q{-};
     $text .= ' c';
-    $text .= $tree->fork_cause_is_ready($fork_id) ? q{=ok} : q{-};
+    $text .= $tree->nook_cause_is_ready($nook_id) ? q{=ok} : q{-};
     $text .= "\n";
 
     DESCRIBE_CHOICES: {
-        my $this_choice = $tree->fork_choice($fork_id);
+        my $this_choice = $tree->nook_choice($nook_id);
         CHOICE: for ( my $choice_ix = 0;; $choice_ix++ ) {
             my $and_node_id =
                 $order->and_node_order_get( $or_node_id, $choice_ix );
@@ -307,15 +307,15 @@ sub Marpa::R2::Recognizer::show_fork {
         } ## end for ( my $choice_ix = 0;; $choice_ix++ )
     } ## end DESCRIBE_CHOICES:
     return $text;
-} ## end sub Marpa::R2::Recognizer::show_fork
+} ## end sub Marpa::R2::Recognizer::show_nook
 
 sub Marpa::R2::Recognizer::show_tree {
     my ( $recce, $verbose ) = @_;
     my $text = q{};
-    FORK: for ( my $fork_id = 0; 1; $fork_id++ ) {
-        my $fork_text = $recce->show_fork( $fork_id, $verbose );
-        last FORK if not defined $fork_text;
-        $text .= "$fork_id: $fork_text";
+    NOOK: for ( my $nook_id = 0; 1; $nook_id++ ) {
+        my $nook_text = $recce->show_nook( $nook_id, $verbose );
+        last NOOK if not defined $nook_text;
+        $text .= "$nook_id: $nook_text";
     }
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_tree
@@ -755,9 +755,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             last ADD_TOKEN if not $trace_values;
 
-            my $fork_ix    = $value->fork();
-            my $or_node_id = $tree->fork_or_node($fork_ix);
-            my $choice     = $tree->fork_choice($fork_ix);
+            my $nook_ix    = $value->nook();
+            my $or_node_id = $tree->nook_or_node($nook_ix);
+            my $choice     = $tree->nook_choice($nook_ix);
             my $and_node_id =
                 $order->and_node_order_get( $or_node_id, $choice );
             my $token_name;
@@ -779,9 +779,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             last TRACE_OP if not $trace_values;
 
-            my $fork_ix    = $value->fork();
-            my $or_node_id = $tree->fork_or_node($fork_ix);
-            my $choice     = $tree->fork_choice($fork_ix);
+            my $nook_ix    = $value->nook();
+            my $or_node_id = $tree->nook_or_node($nook_ix);
+            my $choice     = $tree->nook_choice($nook_ix);
             my $and_node_id =
                 $order->and_node_order_get( $or_node_id, $choice );
             my $trace_rule_id = $bocage->or_node_rule($or_node_id);
