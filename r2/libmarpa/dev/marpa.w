@@ -526,25 +526,6 @@ To change error codes or public function
 prototypes, look at 
 |api.texi| and the scripts which process it.
 
-@** To Do.
-
-\li Eliminate all memoization and
-references to start symbol,
-start rule, etc., which are not needed for the recognizer.
-Evaluation should allow the user to specify an
-alternative start symbol, and not prefer the
-recognizer's.
-
-\li If I convert Marpa to use Marpa::R2 or Marpa::XS,
-and if I decide to continue to implement the |tokens()| call,
-make sure the ``interactive" flag works.
-
-\li Within libmarpa, eliminate some of the
-tracking of start symbols and rules?
-In particular, to the extent that the
-tracking implements semantics, leave it to
-the higher layers.
-
 @** The Public Header File.
 @*0 Version Constants.
 @<Private global variables@> =
@@ -5575,11 +5556,7 @@ It is used in building the list of postdot items,
 and when building the Leo items.
 It is sized to hold one |gpointer| for
 every symbol.
-@
-{\bf To Do}: @^To Do@>
-It may be possible to free this space when the recognition phase
-is finished.
-@<Widely aligned recognizer elements@> = gpointer* t_sym_workarea;
+@ @<Widely aligned recognizer elements@> = gpointer* t_sym_workarea;
 @ @<Initialize recognizer elements@> = r->t_sym_workarea = NULL;
 @ @<Allocate symbol workarea@> =
     r->t_sym_workarea = g_malloc(sym_workarea_size);
@@ -5590,11 +5567,7 @@ phase for each Earley set.
 when building the Leo items.
 It is sized to hold two |gpointer|'s for
 every symbol.
-@
-{\bf To Do}: @^To Do@>
-It may be possible to free this space when the recognition phase
-is finished.
-@<Widely aligned recognizer elements@> = gpointer* t_workarea2;
+@ @<Widely aligned recognizer elements@> = gpointer* t_workarea2;
 @ @<Initialize recognizer elements@> = r->t_workarea2 = NULL;
 @ @<Allocate recognizer workareas@> =
 {
@@ -5611,11 +5584,7 @@ They are used in the completion
 phase for each Earley set,
 to keep track of the new postdot items and
 Leo items.
-@
-{\bf To Do}: @^To Do@>
-It may be possible to free this space when the recognition phase
-is finished.
-@<Widely aligned recognizer elements@> =
+@ @<Widely aligned recognizer elements@> =
 Bit_Vector t_bv_sym;
 Bit_Vector t_bv_sym2;
 Bit_Vector t_bv_sym3;
@@ -12124,9 +12093,6 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     NOOK_of_V(v) = nook_ix;
     ArgN_of_STEP(step) = arg_n;
 }
-
-@ {\bf To Do}: @^To Do@>
-Remove all the "no bocage" messages.
 
 @** Boolean Vectors.
 Marpa's boolean vectors are adapted from
