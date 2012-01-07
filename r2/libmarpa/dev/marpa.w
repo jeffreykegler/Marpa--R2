@@ -11714,14 +11714,13 @@ Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
 
 @** Nook (NOOK) Code.
 In Marpa, a nook is any node of a parse tree.
-In discussed Marpa's parse trees,
-a leaf node is a special kind of |NOOK|.
-This terminology, while not unprecedented,
-is unusual -- the usual term is "node".
-The problem is that within Marpa,
+The usual term is "node",
+but within Marpa,
 the word "node" is already heavily overloaded.
 So what most texts call "tree nodes" are here
 called "nooks".
+"Nook" can be thought of as a pun on both
+"node" and "fork".
 @<Public typedefs@> =
 typedef gint Marpa_Nook_ID;
 @ @<Private typedefs@> =
@@ -11871,24 +11870,24 @@ gint marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
     return NOOK_is_Predecessor(nook);
 }
 
-@** Event (EVE) Code.
+@** Step (STEP) Code.
 @
-@d SYMID_of_EVE(eve) ((eve)->marpa_token_id)
-@d Value_of_EVE(eve) ((eve)->marpa_value)
-@d RULEID_of_EVE(eve) ((eve)->marpa_rule_id)
-@d Arg0_of_EVE(eve) ((eve)->marpa_arg_0)
-@d ArgN_of_EVE(eve) ((eve)->marpa_arg_n)
+@d SYMID_of_STEP(step) ((step)->marpa_token_id)
+@d Value_of_STEP(step) ((step)->marpa_value)
+@d RULEID_of_STEP(step) ((step)->marpa_rule_id)
+@d Arg0_of_STEP(step) ((step)->marpa_arg_0)
+@d ArgN_of_STEP(step) ((step)->marpa_arg_n)
 @<Public structures@> =
-struct marpa_event {
+struct marpa_step {
     Marpa_Symbol_ID marpa_token_id;
     gpointer marpa_value;
     Marpa_Rule_ID marpa_rule_id;
     gint marpa_arg_0;
     gint marpa_arg_n;
 };
-typedef struct marpa_event Marpa_Event;
+typedef struct marpa_step Marpa_Step;
 @ @<Private typedefs@> =
-typedef Marpa_Event *EVE;
+typedef Marpa_Step *STEP;
 
 @** Evaluation (V, VALUE) Code.
 @ This code helps
@@ -11942,7 +11941,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t);
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
 First, there are only a few stack moves per call
-of |marpa_v_event|.
+of |marpa_v_step|.
 Since at least one subroutine call occurs every few
 virtual stack moves,
 virtual stack moves are not really within a tight CPU
@@ -12115,9 +12114,9 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
 }
 
 @ @<Public function prototypes@> =
-Marpa_Nook_ID marpa_v_event(Marpa_Value v, Marpa_Event* event);
+Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step);
 @ @<Function definitions@> =
-Marpa_Nook_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
+Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 {
     @<Return |-2| on failure@>@;
     AND and_nodes;
@@ -12130,7 +12129,7 @@ Marpa_Nook_ID marpa_v_event(Marpa_Value v, Marpa_Event* event)
     gint continue_with_next_nook;
     @<Unpack value objects@>@;
 
-    /* event is not changed in case of hard failure */
+    /* step is not changed in case of hard failure */
     @<Fail if fatal error@>@;
     if (!V_is_Active(v)) {
 	return failure_indicator;
@@ -12196,23 +12195,23 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 	if (!continue_with_next_nook) break;
     }
 
-    @<Write results to |v| and |event|@>@;
+    @<Write results to |v| and |step|@>@;
     return NOOK_of_V(v);
 
     RETURN_SOFT_ERROR: ;
-    @<Write results to |v| and |event|@>@;
+    @<Write results to |v| and |step|@>@;
     return -1;
 
 }
 
-@ @<Write results to |v| and |event|@> =
+@ @<Write results to |v| and |step|@> =
 {
-    SYMID_of_EVE(event) = token_id;
-    Value_of_EVE(event) = token_value;
-    RULEID_of_EVE(event) = semantic_rule_id;
-    TOS_of_V(v) = Arg0_of_EVE(event) = arg_0;
+    SYMID_of_STEP(step) = token_id;
+    Value_of_STEP(step) = token_value;
+    RULEID_of_STEP(step) = semantic_rule_id;
+    TOS_of_V(v) = Arg0_of_STEP(step) = arg_0;
     NOOK_of_V(v) = nook_ix;
-    ArgN_of_EVE(event) = arg_n;
+    ArgN_of_STEP(step) = arg_n;
 }
 
 @ {\bf To Do}: @^To Do@>

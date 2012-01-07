@@ -730,7 +730,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     EVENT:
     while (1) {
         my ( $token_id, $value_ix, $rule_id, $arg_0, $arg_n ) =
-            $value->event();
+            $value->step();
         last EVENT if not defined $arg_n;
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $arg_n - 1 ) {

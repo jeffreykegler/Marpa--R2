@@ -2412,39 +2412,39 @@ PPCODE:
 }
 
 void
-event( v_wrapper )
+step( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:
 {
   const Marpa_Value v = v_wrapper->v;
   int status;
   SV *sv;
-  Marpa_Event event;
-  status = marpa_v_event (v, &event);
+  Marpa_Step step;
+  status = marpa_v_step (v, &step);
   if (status == -1)
     {
       XSRETURN_UNDEF;
     }
   if (status < 0)
     {
-      croak ("Problem in v->event(): %s", xs_v_error (v_wrapper));
+      croak ("Problem in v->step(): %s", xs_v_error (v_wrapper));
     }
-  if (event.marpa_token_id < 0)
+  if (step.marpa_token_id < 0)
     {
       XPUSHs (&PL_sv_undef);
       XPUSHs (&PL_sv_undef);
     }
   else
     {
-      XPUSHs (sv_2mortal (newSViv (event.marpa_token_id)));
-      XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (event.marpa_value))));
+      XPUSHs (sv_2mortal (newSViv (step.marpa_token_id)));
+      XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (step.marpa_value))));
     }
   sv =
-    event.marpa_rule_id <
-    0 ? &PL_sv_undef : sv_2mortal (newSViv (event.marpa_rule_id));
+    step.marpa_rule_id <
+    0 ? &PL_sv_undef : sv_2mortal (newSViv (step.marpa_rule_id));
   XPUSHs (sv);
-  XPUSHs (sv_2mortal (newSViv (event.marpa_arg_0)));
-  XPUSHs (sv_2mortal (newSViv (event.marpa_arg_n)));
+  XPUSHs (sv_2mortal (newSViv (step.marpa_arg_0)));
+  XPUSHs (sv_2mortal (newSViv (step.marpa_arg_n)));
 }
 
 void
