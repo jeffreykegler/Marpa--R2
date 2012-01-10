@@ -11781,18 +11781,20 @@ typedef Marpa_Step *STEP;
 @ This code helps
 compute a value for
 a parse tree.
-I say "helps" because evaluating a parse tree
+I say ``helps" because evaluating a parse tree
 involves semantics, and libmarpa has only
 limited knowledge of the semantics.
-This code is really just routines to assist
-the higher level in tracking the evaluation stack.
+This code is really just to assist
+the higher level in keeping an evaluation stack.
 \par
-The main reason for this code is to hide libmarpa's
+The main reason to have evaluation logic
+in libmarpa at all
+is to hide libmarpa's
 internal rewrites from the semantics.
 If it were not for that, it would probably be
 just as easy to provide a parse tree to the
 higher level and let them decide how to
-evaluation it.
+evaluate it.
 @<Public incomplete structures@> =
 struct s_value;
 typedef struct s_value* Marpa_Value;
@@ -11840,8 +11842,9 @@ in other places.
 @ Second, the fixed stack, to accomodate the worst
 case, would have to be many times larger than
 what will usually be needed.
-I calculate the 
-worst case for virtual stack size, as follows.
+My current best bound on the
+worst case for virtual stack size is as follows.
+\par
 The virtual stack only grows once for each virtual
 rules.
 To be virtual, a rule must divide into a least two
@@ -11905,7 +11908,7 @@ static inline void
 value_unref (VALUE v)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->t_ref_count);
-  MARPA_ASSERT (v->t_ref_count > 0)
+  MARPA_ASSERT (v->t_ref_count > 0)@;
   v->t_ref_count--;
   if (v->t_ref_count <= 0)
     {
@@ -12835,7 +12838,7 @@ to help the ``thief" container
 deallocate the data it now has ``stolen".
 @d STOLEN_DSTACK_DATA_FREE(data) ((data) && (g_free(data), 1))
 @d DSTACK_DESTROY(this) STOLEN_DSTACK_DATA_FREE(this.t_base)
-
+@s DSTACK
 @<Private incomplete structures@> =
 struct s_dstack;
 typedef struct s_dstack* DSTACK;
