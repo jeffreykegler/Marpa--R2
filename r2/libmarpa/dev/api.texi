@@ -400,6 +400,64 @@ Return value: %NULL if the Marpa library is compatible with the
     gint @var{ix})
 @end deftypefun
 
+@deftypefun gboolean marpa_g_rule_has_semantics ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+
+Most of the semantics must be implemented by Marpa's
+higher layers.
+In some cases, libmarpa can implement
+the semantics as a stack no-op.
+These cases, while very limited are also common.
+One such case is when the value of a rule
+can be arbitrary -- the application simply does not care.
+The other case is when the value should be the value
+of the first child.
+
+Return value: 1 if the Marpa library believes that rules
+  has semantics that it requires the application to
+  implement; 0 if libmarpa believes it can implement
+  the semantics interally;
+  -2 if there was an error.
+
+@end deftypefun
+
+@deftypefun gint marpa_g_rule_has_semantics_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id}, @
+    gboolean @var{semantics})
+
+This function allows an application to specify the rule's
+semantics.
+If the application wants to implement a semantics
+(and very often it must) @var{semantics} should be -2.
+If the semantics can be arbitrary -- the application simply
+does not care about the result, @var{semantics} should be -1.
+This is the default.
+
+In the current implementation
+first child semantics can be implemented very efficiently
+as a stack no-op.
+To say that a rule has @dfn{first child semantics} means
+that its value is the value of its first child.
+If first child semantics is desired,
+the value of the @var{semantics} argument should be 0.
+In future implementations,
+libmarpa may be unable to implement first child semantics
+internally.
+When and if that happens,
+rules with
+first-child semantics will be returned to the application as evalution
+steps.
+
+Any value of @var{semantics} other than 0, -1, or -2
+is a fatal error,
+as is an inappropriate @var{rule_id}.
+
+Return value: Same as @code{marpa_g_rule_has_semantics}.
+
+@end deftypefun
+
 @node Symbols
 @section Methods that deal with symbols
 
@@ -772,6 +830,16 @@ error code was reset or,
 if there was no reset,
 since grammar initialization.
 Suggested message: "No error."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_BAD_SEMANTICS
+The application requested a semantics
+which libmarpa does not know how to implement.
+Marpa leaves most semantics to the upper
+layers.
+The only requests for semantics it can honor
+are those that it implements as a stack no-op:
+Suggested message: "Bad semantics requested."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE

@@ -2119,7 +2119,7 @@ gint marpa_g_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
     @<Fail if grammar |rule_id| is invalid@>@;
 return RULE_is_Used(RULE_by_ID(g, rule_id)); }
 
-@*0 Rule Boolean: Virtual LHS.
+@*0 Rule has virtual LHS?.
 This is for Marpa's ``internal semantics".
 When Marpa rewrites rules, it does so in a way invisible to
 the user's semantics.
@@ -2147,7 +2147,7 @@ gboolean marpa_g_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID rule_id)
 @<Fail if grammar |rule_id| is invalid@>@;
 return RULE_has_Virtual_LHS(RULE_by_ID(g, rule_id)); }
 
-@*0 Rule Boolean: Virtual RHS.
+@*0 Rule has Virtual RHS?.
 @d RULE_has_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
 @<Bit aligned rule elements@> = guint t_is_virtual_rhs:1;
 @ @<Initialize rule elements@> =
@@ -2217,6 +2217,61 @@ gint marpa_g_real_symbol_count(struct marpa_g *g, Marpa_Rule_ID rule_id)
 @<Return |-2| on failure@>@;
 @<Fail if grammar |rule_id| is invalid@>@;
 return Real_SYM_Count_of_RULE(RULE_by_ID(g, rule_id));
+}
+
+@*0 Rule has semantics?.
+This value describes the rule's semantics.
+Most of the semantics are left up to the higher
+layers, but there are two cases where Marpa
+can help optimize.
+The first is the case where the application
+does not care -- that is, the semantics
+is arbitrary.
+The second case is where the application wants
+the value of a rule to be the value of its
+first child, which under the current implementation
+is a stack no-op.
+@d RULE_has_Semantics(rule) ((rule)->t_has_semantics)
+@<Int aligned rule elements@> = guint t_has_semantics:1;
+@ @<Initialize rule elements@> =
+    RULE_has_Semantics(rule) = FALSE;
+@ @<Function definitions@> =
+gboolean marpa_g_rule_has_semantics(Marpa_Grammar g, Marpa_Rule_ID rule_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return RULE_has_Semantics(RULE_by_ID(g, rule_id));
+}
+@ The application can specify the zero-based
+number of a child as the semantics of a rule.
+Marpa will implement that internally if it can,
+otherwise it will return the rule in an evaluation
+step to the higher layer.
+If the child number is -2, the application
+wants to implement the semantics itself.
+If the child number is -1, the value desired
+is arbitrary ---
+Marpa guarantees it can implement that.
+In the current implementation,
+if the child number is specified as zero,
+Marpa can implement that as a stack no-op,
+and will do so,
+but may not in some future implementation.
+The result of any other value is a failure.
+@<Function definitions@> =
+gint marpa_g_rule_has_semantics_set(
+    Marpa_Grammar g, Marpa_Rule_ID rule_id, gboolean semantics)
+{
+    RULE rule;
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    rule = RULE_by_ID(g, rule_id);
+    switch (semantics) {
+	case 0: case -1: return RULE_has_Semantics(rule) = 0;
+	case -2: return RULE_has_Semantics(rule) = 1;
+    }
+    MARPA_ERROR(MARPA_ERR_BAD_SEMANTICS);
+    return -2;
 }
 
 @*0 Semantic Equivalents.
