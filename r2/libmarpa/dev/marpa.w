@@ -529,6 +529,7 @@ prototypes, look at
 @** The Public Header File.
 @*0 Version Constants.
 @<Private global variables@> =
+const guint marpa_variant = MARPA_VARIANT;
 const guint marpa_major_version = MARPA_MAJOR_VERSION;
 const guint marpa_minor_version = MARPA_MINOR_VERSION;
 const guint marpa_micro_version = MARPA_MICRO_VERSION;
@@ -538,11 +539,14 @@ const guint marpa_binary_age = MARPA_BINARY_AGE;
 const gchar *
 marpa_check_version (guint required_major,
                     guint required_minor,
-                    guint required_micro)
+                    guint required_micro,
+		    guint required_variant)
 {
   gint marpa_effective_micro = 100 * MARPA_MINOR_VERSION + MARPA_MICRO_VERSION;
   gint required_effective_micro = 100 * required_minor + required_micro;
 
+  if (required_variant != MARPA_VARIANT)
+    return "libmarpa variant mismatch)";
   if (required_major > MARPA_MAJOR_VERSION)
     return "libmarpa version too old (major mismatch)";
   if (required_major < MARPA_MAJOR_VERSION)
@@ -588,23 +592,27 @@ typedef struct marpa_g* Marpa_Grammar;
 @<Int aligned grammar elements@>@;
 @<Bit aligned grammar elements@>@;
 };
-typedef struct marpa_g GRAMMARD;
 @ @<Private typedefs@> =
 typedef struct marpa_g* GRAMMAR;
-typedef const struct marpa_g* GRAMMAR_Const;
 
 @*0 Constructors.
 @ @<Function definitions@> =
-struct marpa_g* marpa_g_new( void)
-{ struct marpa_g* g = g_slice_new(struct marpa_g);
+Marpa_Grammar marpa_g_new( guint variant )
+{
+    GRAMMAR g;
+    if (variant != MARPA_VARIANT) {
+        return NULL;
+    }
+    g = g_slice_new(struct marpa_g);
     /* Set |t_is_ok| to a bad value, just in case */
     g->t_is_ok = 0;
     @<Initialize grammar elements@>@;
     /* Properly initialized, so set |t_is_ok| to its proper value */
     g->t_is_ok = I_AM_OK;
-   return g; }
+   return g;
+}
 @ @<Public function prototypes@> =
-struct marpa_g* marpa_g_new(void);
+Marpa_Grammar marpa_g_new( guint variant );
 
 @*0 Reference Counting and Destructors.
 @ @<Int aligned grammar elements@>= gint t_ref_count;
@@ -3550,12 +3558,12 @@ if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
 @ Check that AHFA item ID is in valid range.
 @<Function definitions@> =
 static inline gboolean item_is_valid(
-GRAMMAR_Const g, AIMID item_id) {
+GRAMMAR g, AIMID item_id) {
 return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 }
 @ @<Private function prototypes@> =
 static inline gboolean item_is_valid(
-GRAMMAR_Const g, AIMID item_id);
+GRAMMAR g, AIMID item_id);
 
 @*0 Rule.
 @d RULE_of_AIM(item) ((item)->t_rule)
@@ -10781,6 +10789,331 @@ gint marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id)
   return AND_Count_of_OR(or_node);
 }
 
+@** Bocage Ordering (O, ORDER) Code.
+@<Public incomplete structures@> =
+struct s_order;
+typedef struct s_order* Marpa_Order;
+@ @<Public incomplete structures@> =
+typedef Marpa_Order ORDER;
+@
+|t_obs| is
+an obstack with the lifetime of the Marpa order object.
+|t_and_node_orderings| is used as the "safe boolean"
+for the obstack.  They have the same lifetime, so
+that it is safe to destroy the obstack if
+and only if
+|t_and_node_orderings| is non-null.
+@d OBS_of_O(order) ((order)->t_obs)
+@d O_is_Frozen(o) ((o)->t_is_frozen)
+@<Private structures@> =
+struct s_order {
+    struct obstack t_obs;
+    Bit_Vector t_and_node_in_use;
+    ANDID** t_and_node_orderings;
+    @<Widely aligned order elements@>@;
+    @<Int aligned order elements@>@;
+    guint t_is_frozen:1;
+};
+@ @<Initialize order elements@> =
+{
+    o->t_and_node_in_use = NULL;
+    o->t_and_node_orderings = NULL;
+    o->t_is_frozen = 0;
+}
+
+@*0 The base objects of the bocage.
+@ @d B_of_O(b) ((b)->t_bocage)
+@<Widely aligned order elements@> =
+    BOCAGE t_bocage;
+
+@ @<Function definitions@> =
+Marpa_Order marpa_o_new(Marpa_Bocage b)
+{
+    @<Return |NULL| on failure@>@;
+    @<Unpack bocage objects@>@;
+    ORDER o;
+      @<Fail if fatal error@>@;
+    o = g_slice_new(struct s_order);
+    B_of_O(o) = b;
+    bocage_ref(b);
+    @<Initialize order elements@>@;
+    return o;
+}
+
+@*0 Reference Counting and Destructors.
+@ @<Int aligned order elements@>= gint t_ref_count;
+@ @<Initialize order elements@> =
+    o->t_ref_count = 1;
+
+@ Decrement the order reference count.
+@<Private function prototypes@> =
+static inline void order_unref (ORDER o);
+@ @<Function definitions@> =
+static inline void
+order_unref (ORDER o)
+{
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
+  MARPA_ASSERT (o->t_ref_count > 0)
+  o->t_ref_count--;
+  if (o->t_ref_count <= 0)
+    {
+      order_free(o);
+    }
+}
+void
+marpa_o_unref (Marpa_Order o)
+{
+   order_unref(o);
+}
+
+@ Increment the order reference count.
+@<Private function prototypes@> =
+static inline ORDER order_ref (ORDER o);
+@ @<Function definitions@> =
+static inline ORDER
+order_ref (ORDER o)
+{
+  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
+  MARPA_ASSERT(o->t_ref_count > 0)
+  o->t_ref_count++;
+  return o;
+}
+Marpa_Order
+marpa_o_ref (Marpa_Order o)
+{
+   return order_ref(o);
+}
+
+@ @<Private function prototypes@> =
+static inline void order_strip(ORDER o);
+@ @<Function definitions@> =
+static inline void order_strip(ORDER o)
+{
+  if (o->t_and_node_in_use)
+    {
+      bv_free (o->t_and_node_in_use);
+	o->t_and_node_in_use = NULL;
+    }
+}
+@ @<Private function prototypes@> =
+static inline void order_freeze(ORDER o);
+@ @<Function definitions@> =
+static inline void order_freeze(ORDER o)
+{
+  order_strip(o);
+  O_is_Frozen(o) = 0;
+}
+@ @<Private function prototypes@> =
+static inline void order_free(ORDER o);
+@ @<Function definitions@> =
+static inline void order_free(ORDER o)
+{
+    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, o)
+  @<Unpack order objects@>@;
+  bocage_unref(b);
+  order_strip(o);
+  if (o->t_and_node_orderings) {
+      o->t_and_node_orderings = NULL;
+      obstack_free(&OBS_of_O(o), NULL);
+  }
+  g_slice_free(struct s_order, o);
+}
+
+@ @<Unpack order objects@> =
+    const BOCAGE b = B_of_O(o);
+    @<Unpack bocage objects@>@;
+
+@*0 The grammar of the order.
+@ This function returns the grammar of the order.
+It never returns an error.
+The grammar is always set when the order is initialized,
+and is never changed while the order exists.
+Fatal state is not reported,
+because it is kept in the grammar,
+so that
+either we can return the grammar in spite of
+its fatal state,
+or the problem is so severe than no
+errors can be properly reported.
+@<Function definitions@> =
+Marpa_Grammar marpa_o_g(Marpa_Order o)
+{
+  @<Unpack order objects@>@;
+  return g;
+}
+
+@*0 Set the Order of And-nodes.
+This function
+sets the order in which the and-nodes of an
+or-node are used.
+It is an error if an and-node ID is not the 
+immediate child of the specified or-node,
+or if the and-node is specified twice,
+or if an ordering has already been specified for
+the or-node.
+@ For a given bocage,
+this function may not be used to order
+the same or-node more than once.
+In other words, after you have once specified an order
+for the and-nodes within an or-node,
+you cannot change it.
+Some applications might find this inconvenient,
+and will have to resort to their own buffering
+to prevent multiple changes.
+But most applications won't care, and
+will benefit from the faster memory allocation
+this restriction allows.
+
+@ Using a bit vector for
+the index of an and-node within an or-node,
+instead of the and-node ID, would seem to allow
+an space efficiency: the size of the bit vector
+could be reduced to the maximum number of descendents
+of any or-node.
+But in fact, improvements from this approach are elusive.
+
+In the worst cases, these counts are the same, or
+almost the same.
+Any attempt to economize on space seems to always
+be counter-productive in terms of speed.
+And since
+allocating a bit vector for the worst case does
+not increase the memory high water mark,
+it would seems to be the most reasonable tradeoff.
+
+This in turn suggests there is no advantage is using
+a within-or-node index to index the bit vector,
+instead of using the and-node id to index the bit vector.
+Using the and-node ID does have the advantage that the bit
+vector does not need to be cleared for each or-node.
+@ The first position in each |and_node_orderings| array is not
+actually an |ANDID|, but a count.
+A purist might insist this needs to be reflected in a structure,
+but to my mind doing this portably makes the code more obscure,
+not less.
+@<Function definitions@> =
+gint marpa_o_and_order_set(
+    Marpa_Order o,
+    Marpa_Or_Node_ID or_node_id,
+    Marpa_And_Node_ID* and_node_ids,
+    gint length)
+{
+    OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+    if (O_is_Frozen (o))
+      {
+	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
+	return failure_indicator;
+      }
+    @<Check |or_node_id|; set |or_node|@>@;
+    {
+      ANDID** and_node_orderings;
+      Bit_Vector and_node_in_use;
+      struct obstack *obs;
+      ANDID first_and_node_id;
+      ANDID and_count_of_or;
+	and_node_orderings = o->t_and_node_orderings;
+	and_node_in_use = o->t_and_node_in_use;
+	obs = &OBS_of_O(o);
+	if (!and_node_orderings)
+	  {
+	    gint and_id;
+	    const gint and_count_of_r = AND_Count_of_B (b);
+	    obstack_init(obs);
+	    o->t_and_node_orderings =
+	      and_node_orderings =
+	      obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
+	    for (and_id = 0; and_id < and_count_of_r; and_id++)
+	      {
+		and_node_orderings[and_id] = (ANDID *) NULL;
+	      }
+	     o->t_and_node_in_use =
+	     and_node_in_use = bv_create ((guint)and_count_of_r);
+	  }
+	  first_and_node_id = First_ANDID_of_OR(or_node);
+	  and_count_of_or = AND_Count_of_OR(or_node);
+	    {
+	      gint and_ix;
+	      for (and_ix = 0; and_ix < length; and_ix++)
+		{
+		  ANDID and_node_id = and_node_ids[and_ix];
+		  if (and_node_id < first_and_node_id ||
+			  and_node_id - first_and_node_id >= and_count_of_or) {
+		      MARPA_DEV_ERROR ("and node not in or node");
+		      return failure_indicator;
+		    }
+		  if (bv_bit_test (and_node_in_use, (guint)and_node_id))
+		    {
+		      MARPA_DEV_ERROR ("dup and node");
+		      return failure_indicator;
+		    }
+		  bv_bit_set (and_node_in_use, (guint)and_node_id);
+		}
+	    }
+	    if (and_node_orderings[or_node_id]) {
+		      MARPA_DEV_ERROR ("or node already ordered");
+		      return failure_indicator;
+	    }
+	    {
+	      ANDID *orderings = obstack_alloc (obs, sizeof (ANDID) * (length + 1));
+	      gint i;
+	      and_node_orderings[or_node_id] = orderings;
+	      *orderings++ = length;
+	      for (i = 0; i < length; i++)
+		{
+		  *orderings++ = and_node_ids[i];
+		}
+	    }
+    }
+  return 1;
+}
+
+@*0 Get an And-node by Order within its Or-Node.
+@ @<Private function prototypes@> =
+static inline ANDID and_order_get(ORDER o, OR or_node, gint ix);
+@ @<Function definitions@> =
+static inline ANDID and_order_get(ORDER o, OR or_node, gint ix)
+{
+  @<Unpack order objects@>@;
+  ANDID **and_node_orderings;
+  if (ix >= AND_Count_of_OR (or_node))
+    {
+      return -1;
+    }
+  and_node_orderings = o->t_and_node_orderings;
+  if (and_node_orderings)
+    {
+      ORID or_node_id = ID_of_OR(or_node);
+      ANDID *ordering = and_node_orderings[or_node_id];
+      if (ordering)
+	{
+	  gint length = ordering[0];
+	  if (ix >= length)
+	    return -1;
+	  return ordering[1 + ix];
+	}
+    }
+  return First_ANDID_of_OR(or_node) + ix;
+}
+
+@ @<Function definitions@> =
+Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
+    Marpa_Or_Node_ID or_node_id, gint ix)
+{
+    OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+    @<Check |or_node_id|; set |or_node|@>@;
+  if (ix < 0) {
+      MARPA_DEV_ERROR("negative and ix");
+      return failure_indicator;
+  }
+    return and_order_get(o, or_node, ix);
+}
+
 @** Parse Tree (T, TREE) Code.
 Within Marpa,
 when it makes sense in context,
@@ -11265,331 +11598,6 @@ gint marpa_t_size(Marpa_Tree t)
       return -1;
   }
   return Size_of_T(t);
-}
-
-@** Bocage Ordering (O, ORDER) Code.
-@<Public incomplete structures@> =
-struct s_order;
-typedef struct s_order* Marpa_Order;
-@ @<Public incomplete structures@> =
-typedef Marpa_Order ORDER;
-@
-|t_obs| is
-an obstack with the lifetime of the Marpa order object.
-|t_and_node_orderings| is used as the "safe boolean"
-for the obstack.  They have the same lifetime, so
-that it is safe to destroy the obstack if
-and only if
-|t_and_node_orderings| is non-null.
-@d OBS_of_O(order) ((order)->t_obs)
-@d O_is_Frozen(o) ((o)->t_is_frozen)
-@<Private structures@> =
-struct s_order {
-    struct obstack t_obs;
-    Bit_Vector t_and_node_in_use;
-    ANDID** t_and_node_orderings;
-    @<Widely aligned order elements@>@;
-    @<Int aligned order elements@>@;
-    guint t_is_frozen:1;
-};
-@ @<Initialize order elements@> =
-{
-    o->t_and_node_in_use = NULL;
-    o->t_and_node_orderings = NULL;
-    o->t_is_frozen = 0;
-}
-
-@*0 The base objects of the bocage.
-@ @d B_of_O(b) ((b)->t_bocage)
-@<Widely aligned order elements@> =
-    BOCAGE t_bocage;
-
-@ @<Function definitions@> =
-Marpa_Order marpa_o_new(Marpa_Bocage b)
-{
-    @<Return |NULL| on failure@>@;
-    @<Unpack bocage objects@>@;
-    ORDER o;
-      @<Fail if fatal error@>@;
-    o = g_slice_new(struct s_order);
-    B_of_O(o) = b;
-    bocage_ref(b);
-    @<Initialize order elements@>@;
-    return o;
-}
-
-@*0 Reference Counting and Destructors.
-@ @<Int aligned order elements@>= gint t_ref_count;
-@ @<Initialize order elements@> =
-    o->t_ref_count = 1;
-
-@ Decrement the order reference count.
-@<Private function prototypes@> =
-static inline void order_unref (ORDER o);
-@ @<Function definitions@> =
-static inline void
-order_unref (ORDER o)
-{
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
-  MARPA_ASSERT (o->t_ref_count > 0)
-  o->t_ref_count--;
-  if (o->t_ref_count <= 0)
-    {
-      order_free(o);
-    }
-}
-void
-marpa_o_unref (Marpa_Order o)
-{
-   order_unref(o);
-}
-
-@ Increment the order reference count.
-@<Private function prototypes@> =
-static inline ORDER order_ref (ORDER o);
-@ @<Function definitions@> =
-static inline ORDER
-order_ref (ORDER o)
-{
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
-  MARPA_ASSERT(o->t_ref_count > 0)
-  o->t_ref_count++;
-  return o;
-}
-Marpa_Order
-marpa_o_ref (Marpa_Order o)
-{
-   return order_ref(o);
-}
-
-@ @<Private function prototypes@> =
-static inline void order_strip(ORDER o);
-@ @<Function definitions@> =
-static inline void order_strip(ORDER o)
-{
-  if (o->t_and_node_in_use)
-    {
-      bv_free (o->t_and_node_in_use);
-	o->t_and_node_in_use = NULL;
-    }
-}
-@ @<Private function prototypes@> =
-static inline void order_freeze(ORDER o);
-@ @<Function definitions@> =
-static inline void order_freeze(ORDER o)
-{
-  order_strip(o);
-  O_is_Frozen(o) = 0;
-}
-@ @<Private function prototypes@> =
-static inline void order_free(ORDER o);
-@ @<Function definitions@> =
-static inline void order_free(ORDER o)
-{
-    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, o)
-  @<Unpack order objects@>@;
-  bocage_unref(b);
-  order_strip(o);
-  if (o->t_and_node_orderings) {
-      o->t_and_node_orderings = NULL;
-      obstack_free(&OBS_of_O(o), NULL);
-  }
-  g_slice_free(struct s_order, o);
-}
-
-@ @<Unpack order objects@> =
-    const BOCAGE b = B_of_O(o);
-    @<Unpack bocage objects@>@;
-
-@*0 The grammar of the order.
-@ This function returns the grammar of the order.
-It never returns an error.
-The grammar is always set when the order is initialized,
-and is never changed while the order exists.
-Fatal state is not reported,
-because it is kept in the grammar,
-so that
-either we can return the grammar in spite of
-its fatal state,
-or the problem is so severe than no
-errors can be properly reported.
-@<Function definitions@> =
-Marpa_Grammar marpa_o_g(Marpa_Order o)
-{
-  @<Unpack order objects@>@;
-  return g;
-}
-
-@*0 Set the Order of And-nodes.
-This function
-sets the order in which the and-nodes of an
-or-node are used.
-It is an error if an and-node ID is not the 
-immediate child of the specified or-node,
-or if the and-node is specified twice,
-or if an ordering has already been specified for
-the or-node.
-@ For a given bocage,
-this function may not be used to order
-the same or-node more than once.
-In other words, after you have once specified an order
-for the and-nodes within an or-node,
-you cannot change it.
-Some applications might find this inconvenient,
-and will have to resort to their own buffering
-to prevent multiple changes.
-But most applications won't care, and
-will benefit from the faster memory allocation
-this restriction allows.
-
-@ Using a bit vector for
-the index of an and-node within an or-node,
-instead of the and-node ID, would seem to allow
-an space efficiency: the size of the bit vector
-could be reduced to the maximum number of descendents
-of any or-node.
-But in fact, improvements from this approach are elusive.
-
-In the worst cases, these counts are the same, or
-almost the same.
-Any attempt to economize on space seems to always
-be counter-productive in terms of speed.
-And since
-allocating a bit vector for the worst case does
-not increase the memory high water mark,
-it would seems to be the most reasonable tradeoff.
-
-This in turn suggests there is no advantage is using
-a within-or-node index to index the bit vector,
-instead of using the and-node id to index the bit vector.
-Using the and-node ID does have the advantage that the bit
-vector does not need to be cleared for each or-node.
-@ The first position in each |and_node_orderings| array is not
-actually an |ANDID|, but a count.
-A purist might insist this needs to be reflected in a structure,
-but to my mind doing this portably makes the code more obscure,
-not less.
-@<Function definitions@> =
-gint marpa_o_and_order_set(
-    Marpa_Order o,
-    Marpa_Or_Node_ID or_node_id,
-    Marpa_And_Node_ID* and_node_ids,
-    gint length)
-{
-    OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack order objects@>@;
-  @<Fail if fatal error@>@;
-    if (O_is_Frozen (o))
-      {
-	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
-	return failure_indicator;
-      }
-    @<Check |or_node_id|; set |or_node|@>@;
-    {
-      ANDID** and_node_orderings;
-      Bit_Vector and_node_in_use;
-      struct obstack *obs;
-      ANDID first_and_node_id;
-      ANDID and_count_of_or;
-	and_node_orderings = o->t_and_node_orderings;
-	and_node_in_use = o->t_and_node_in_use;
-	obs = &OBS_of_O(o);
-	if (!and_node_orderings)
-	  {
-	    gint and_id;
-	    const gint and_count_of_r = AND_Count_of_B (b);
-	    obstack_init(obs);
-	    o->t_and_node_orderings =
-	      and_node_orderings =
-	      obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
-	    for (and_id = 0; and_id < and_count_of_r; and_id++)
-	      {
-		and_node_orderings[and_id] = (ANDID *) NULL;
-	      }
-	     o->t_and_node_in_use =
-	     and_node_in_use = bv_create ((guint)and_count_of_r);
-	  }
-	  first_and_node_id = First_ANDID_of_OR(or_node);
-	  and_count_of_or = AND_Count_of_OR(or_node);
-	    {
-	      gint and_ix;
-	      for (and_ix = 0; and_ix < length; and_ix++)
-		{
-		  ANDID and_node_id = and_node_ids[and_ix];
-		  if (and_node_id < first_and_node_id ||
-			  and_node_id - first_and_node_id >= and_count_of_or) {
-		      MARPA_DEV_ERROR ("and node not in or node");
-		      return failure_indicator;
-		    }
-		  if (bv_bit_test (and_node_in_use, (guint)and_node_id))
-		    {
-		      MARPA_DEV_ERROR ("dup and node");
-		      return failure_indicator;
-		    }
-		  bv_bit_set (and_node_in_use, (guint)and_node_id);
-		}
-	    }
-	    if (and_node_orderings[or_node_id]) {
-		      MARPA_DEV_ERROR ("or node already ordered");
-		      return failure_indicator;
-	    }
-	    {
-	      ANDID *orderings = obstack_alloc (obs, sizeof (ANDID) * (length + 1));
-	      gint i;
-	      and_node_orderings[or_node_id] = orderings;
-	      *orderings++ = length;
-	      for (i = 0; i < length; i++)
-		{
-		  *orderings++ = and_node_ids[i];
-		}
-	    }
-    }
-  return 1;
-}
-
-@*0 Get an And-node by Order within its Or-Node.
-@ @<Private function prototypes@> =
-static inline ANDID and_order_get(ORDER o, OR or_node, gint ix);
-@ @<Function definitions@> =
-static inline ANDID and_order_get(ORDER o, OR or_node, gint ix)
-{
-  @<Unpack order objects@>@;
-  ANDID **and_node_orderings;
-  if (ix >= AND_Count_of_OR (or_node))
-    {
-      return -1;
-    }
-  and_node_orderings = o->t_and_node_orderings;
-  if (and_node_orderings)
-    {
-      ORID or_node_id = ID_of_OR(or_node);
-      ANDID *ordering = and_node_orderings[or_node_id];
-      if (ordering)
-	{
-	  gint length = ordering[0];
-	  if (ix >= length)
-	    return -1;
-	  return ordering[1 + ix];
-	}
-    }
-  return First_ANDID_of_OR(or_node) + ix;
-}
-
-@ @<Function definitions@> =
-Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
-    Marpa_Or_Node_ID or_node_id, gint ix)
-{
-    OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack order objects@>@;
-  @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
-  if (ix < 0) {
-      MARPA_DEV_ERROR("negative and ix");
-      return failure_indicator;
-  }
-    return and_order_get(o, or_node, ix);
 }
 
 @** Nook (NOOK) Code.

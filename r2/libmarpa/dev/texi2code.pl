@@ -68,8 +68,16 @@ my @errors = ();
 my $next_error_code = 0;
 my @defs = ();
 my $current_error_number = undef;
+my $current_variant;
 my @suggested = ();
 while ( my $line = <STDIN> ) {
+     if ($line =~ /\s variant \s+ (\d+) \.? \s* \z/xmsi) {
+	 my $variant = $1;
+         if (defined $current_variant and $variant != $current_variant) {
+	     die "Variant does not match current ($current_variant): $line";
+	 }
+	 $current_variant = $variant;
+     }
      if ( defined $current_error_number ) {
         my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
         if ($message) {
@@ -153,6 +161,8 @@ STRUCT_DECLARATION
 
 say {$api_h_in} $common_preamble;
 say {$api_h_in} join "\n", @defs;
+die "Variant never defined" if not defined $current_variant;
+say {$api_h_in} "#define MARPA_VARIANT $current_variant";
 my $error_count = scalar @errors;
 say {$api_h_in} "#define MARPA_ERROR_COUNT $error_count";
 for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {

@@ -258,11 +258,12 @@ PREINIT:
     const char *version_error;
 PPCODE:
     version_error =
-	marpa_check_version(MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
+	marpa_check_version(MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION,
+	   MARPA_VARIANT);
     if (version_error) {
 	  croak ("Problem in Marpa::R2->new(): %s", version_error);
     }
-    g = marpa_g_new();
+    g = marpa_g_new(MARPA_VARIANT);
     Newx( g_wrapper, 1, G_Wrapper );
     g_wrapper->g = g;
     g_wrapper->message_buffer = NULL;
