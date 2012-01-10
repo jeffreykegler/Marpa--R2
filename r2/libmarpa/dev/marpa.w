@@ -1704,7 +1704,7 @@ temp_rhs = g_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     rule->t_original = original_rule_id;
     rule->t_is_semantic_equivalent = TRUE;
     /* Real symbol count remains at default of 0 */
-    RULE_is_Virtual_RHS (rule) = TRUE;
+    RULE_has_Virtual_RHS (rule) = TRUE;
     int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
 }
 
@@ -1717,7 +1717,7 @@ temp_rhs = g_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     if (!rule) { @<Fail with internal grammar error@>@; }
     rule->t_original = original_rule_id;
     rule->t_is_semantic_equivalent = TRUE;
-    RULE_is_Virtual_RHS(rule) = TRUE;
+    RULE_has_Virtual_RHS(rule) = TRUE;
     Real_SYM_Count_of_RULE(rule) = 1;
     int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
 }
@@ -1735,7 +1735,7 @@ gint rhs_ix, i;
     }
     rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
     if (!rule) { @<Fail with internal grammar error@>@; }
-    RULE_is_Virtual_LHS(rule) = 1;
+    RULE_has_Virtual_LHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix;
     int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
 }
@@ -1747,8 +1747,8 @@ gint rhs_ix = 0;
     temp_rhs[rhs_ix++] = rhs_id;
     rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
     if (!rule) { @<Fail with internal grammar error@>@; }
-    RULE_is_Virtual_LHS(rule) = 1;
-    RULE_is_Virtual_RHS(rule) = 1;
+    RULE_has_Virtual_LHS(rule) = 1;
+    RULE_has_Virtual_RHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix - 1;
     int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
 }
@@ -2205,32 +2205,32 @@ Marpa's design criteria.
 It was an especially non-negotiable criteria, because
 almost the only reason for parsing a grammar is to apply the
 semantics specified for the original grammar.
-@d RULE_is_Virtual_LHS(rule) ((rule)->t_is_virtual_lhs)
+@d RULE_has_Virtual_LHS(rule) ((rule)->t_is_virtual_lhs)
 @<Bit aligned rule elements@> = guint t_is_virtual_lhs:1;
 @ @<Initialize rule elements@> =
-RULE_is_Virtual_LHS(rule) = FALSE;
+RULE_has_Virtual_LHS(rule) = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
 gboolean marpa_g_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
 @<Return |-2| on failure@>@;
 @<Fail if grammar |rule_id| is invalid@>@;
-return RULE_is_Virtual_LHS(RULE_by_ID(g, rule_id)); }
+return RULE_has_Virtual_LHS(RULE_by_ID(g, rule_id)); }
 @ @<Public function prototypes@> =
 gboolean marpa_g_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
 @*0 Rule Boolean: Virtual RHS.
-@d RULE_is_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
+@d RULE_has_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
 @<Bit aligned rule elements@> = guint t_is_virtual_rhs:1;
 @ @<Initialize rule elements@> =
-RULE_is_Virtual_RHS(rule) = FALSE;
+RULE_has_Virtual_RHS(rule) = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
 gboolean marpa_g_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
 @<Return |-2| on failure@>@;
 @<Fail if grammar |rule_id| is invalid@>@;
-return RULE_is_Virtual_RHS(RULE_by_ID(g, rule_id)); }
+return RULE_has_Virtual_RHS(RULE_by_ID(g, rule_id)); }
 @ @<Public function prototypes@> =
 gboolean marpa_g_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID rule_id);
 
@@ -2324,7 +2324,7 @@ marpa_g_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID rule_id)
 @<Return |-2| on failure@>@;
 @<Fail if grammar |rule_id| is invalid@>@;
   rule = RULE_by_ID (g, rule_id);
-  if (RULE_is_Virtual_LHS(rule)) return -1;
+  if (RULE_has_Virtual_LHS(rule)) return -1;
   if (rule->t_is_semantic_equivalent) return rule->t_original;
   return rule_id;
 }
@@ -3169,9 +3169,9 @@ rule structure, and performing the call back.
   const gint is_virtual_lhs = (piece_start > 0);
   RULE_is_Used (chaf_rule) = 1;
   chaf_rule->t_original = rule_id;
-  RULE_is_Virtual_LHS (chaf_rule) = is_virtual_lhs;
+  RULE_has_Virtual_LHS (chaf_rule) = is_virtual_lhs;
   chaf_rule->t_is_semantic_equivalent = !is_virtual_lhs;
-  RULE_is_Virtual_RHS (chaf_rule) =
+  RULE_has_Virtual_RHS (chaf_rule) =
     Length_of_RULE (chaf_rule) > real_symbol_count;
   chaf_rule->t_virtual_start = piece_start;
   chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
@@ -3231,7 +3231,7 @@ old_start->t_is_start = 0;
   proper_new_start->t_is_productive = TRUE;
   proper_new_start->t_is_start = TRUE;
   new_start_rule = rule_start (g, proper_new_start_id, &ID_of_SYM(old_start), 1);
-  RULE_is_Virtual_LHS(new_start_rule) = 1;
+  RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = 1;
   g->t_proper_start_rule = new_start_rule;
@@ -3262,7 +3262,7 @@ if there is one.  Otherwise it is a new, nulling, symbol.
     }
   nulling_new_start->t_is_start = TRUE;
   new_start_rule = rule_start (g, nulling_new_start_id, 0, 0);
-  RULE_is_Virtual_LHS(new_start_rule) = 1;
+  RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = FALSE;
   g->t_null_start_rule = new_start_rule;
@@ -3391,7 +3391,7 @@ for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
     loop_rule_count++;
     rule = RULE_by_ID(g, rule_id);
     rule->t_is_loop = TRUE;
-    rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !RULE_is_Virtual_RHS(rule);
+    rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !RULE_has_Virtual_RHS(rule);
 } }
 
 @** The Aycock-Horspool Finite Automata.
@@ -12046,8 +12046,8 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 	}
 	nook_rule = RULE_of_OR(or);
 	if (Position_of_OR(or) == Length_of_RULE(nook_rule)) {
-	    gint virtual_rhs = RULE_is_Virtual_RHS(nook_rule);
-	    gint virtual_lhs = RULE_is_Virtual_LHS(nook_rule);
+	    gint virtual_rhs = RULE_has_Virtual_RHS(nook_rule);
+	    gint virtual_lhs = RULE_has_Virtual_LHS(nook_rule);
 	    gint real_symbol_count;
 	    const DSTACK virtual_stack = &VStack_of_V(v);
 	    if (virtual_lhs) {
@@ -12079,7 +12079,7 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
     return NOOK_of_V(v);
 
     RETURN_SOFT_ERROR: ;
-    @<Write results to |v| and |step|@>@;
+    V_is_Active(v) = 0;
     return -1;
 
 }
