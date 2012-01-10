@@ -336,8 +336,8 @@ event( g_wrapper, ix )
     int ix;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
-  struct marpa_g_event event;
+  Marpa_Grammar g = g_wrapper->g;
+  struct marpa_event event;
   const char *result_string = NULL;
   Marpa_Event_Type result = marpa_g_event (g, &event, ix);
   if (result < 0)
@@ -1716,7 +1716,7 @@ event( r_wrapper, ix )
 PPCODE:
     {
       struct marpa_r * const r = r_wrapper->r;
-      struct marpa_g_event event;
+      struct marpa_event event;
       const char *result_string = NULL;
       Marpa_Event_Type result = marpa_r_event (r, &event, ix);
       if (result < 0)
