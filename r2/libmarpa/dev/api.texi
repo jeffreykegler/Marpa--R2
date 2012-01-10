@@ -288,8 +288,10 @@ Return value: %NULL if the Marpa library is compatible with the
 
 @menu 
 * Grammar referencers:: Grammar methods that change the reference count
+* Grammar common:: Commonly-used methods
 * Rules:: Methods that deal with rules
 * Symbols:: Methods that deal with symbols
+* Grammar internals:: Methods that deal with grammar internals
 @end menu 
 
 @node Grammar referencers
@@ -312,7 +314,16 @@ Return value: %NULL if the Marpa library is compatible with the
 	       gint @var{ix})
 @end deftypefun
 
-@deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
+@node Grammar common
+@section Commonly-used methods
+
+@deftypefun gint marpa_g_precompute (Marpa_Grammar @var{g})
+@end deftypefun
+
+@deftypefun gboolean marpa_g_is_precomputed (Marpa_Grammar @var{g})
+@end deftypefun
+
+@deftypefun gboolean marpa_g_has_loop (Marpa_Grammar @var{g})
 @end deftypefun
 
 @node Rules
@@ -368,23 +379,29 @@ Return value: %NULL if the Marpa library is compatible with the
 @deftypefun Marpa_Rule_ID marpa_g_rule_semantic_equivalent (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
+@deftypefun Marpa_Symbol_ID marpa_g_rule_lhs ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+
+@deftypefun gint marpa_g_rule_length ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+
+@deftypefun gboolean marpa_g_rule_is_discard_separation ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{id})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_g_rule_rh_symbol ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id}, @
+    gint @var{ix})
+@end deftypefun
 
 @node Symbols
 @section Methods that deal with symbols
-
-@deftypefun Marpa_Grammar marpa_g_new ( guint @var{variant} )
-@end deftypefun
-
-@deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
-@end deftypefun
-
-@deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
-@end deftypefun
-
-@deftypefun gint marpa_g_event (Marpa_Grammar @var{g}, @
-    Marpa_Event @var{public_event}, @
-	       gint @var{ix})
-@end deftypefun
 
 @deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
 @end deftypefun
@@ -394,24 +411,20 @@ Return value: %NULL if the Marpa library is compatible with the
 @deftypefun gboolean marpa_g_default_value_set (Marpa_Grammar @var{g}, @
     gpointer @var{default_value})
 @end deftypefun
+
 @deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
 @end deftypefun
+
 @deftypefun gboolean marpa_g_start_symbol_set (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{id})
 @end deftypefun
-@deftypefun gboolean marpa_g_is_precomputed (Marpa_Grammar @var{g})
-@end deftypefun
-@deftypefun gboolean marpa_g_has_loop (Marpa_Grammar @var{g})
-@end deftypefun
+
 @deftypefun gboolean marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun gboolean marpa_g_is_lhs_terminal_ok_set ( Marpa_Grammar @var{g}, @
     gboolean @var{value})
 @end deftypefun
-@deftypefun gint marpa_g_event (Marpa_Grammar @var{g}, @
-    Marpa_Event @var{event}, @
-     gint @var{ix})
-@end deftypefun
+
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun gint marpa_g_symbol_lhs_count (Marpa_Grammar @var{g}, @
@@ -462,8 +475,10 @@ Return value: %NULL if the Marpa library is compatible with the
 @deftypefun Marpa_Rule_ID marpa_g_symbol_virtual_lhs_rule (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun gint marpa_g_precompute (Marpa_Grammar @var{g})
-@end deftypefun
+
+@node Grammar internals
+@section Methods that deal with grammar internals
+
 @deftypefun gint marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun Marpa_Rule_ID marpa_g_AHFA_item_rule (Marpa_Grammar @var{g}, @
@@ -499,27 +514,6 @@ Return value: %NULL if the Marpa library is compatible with the
 @end deftypefun
 @deftypefun Marpa_AHFA_State_ID marpa_g_AHFA_state_empty_transition (Marpa_Grammar @var{g}, @
      Marpa_AHFA_Item_ID @var{AHFA_item_id})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID marpa_g_rule_lhs ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-
-@deftypefun gint marpa_g_rule_length ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-
-@deftypefun gboolean marpa_g_rule_is_discard_separation ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{id})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID marpa_g_rule_rh_symbol ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id}, @
-    gint @var{ix})
 @end deftypefun
 
 @node Recognizers
