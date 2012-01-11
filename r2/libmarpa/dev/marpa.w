@@ -11959,14 +11959,13 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 	nook_ix = Size_of_TREE(t);
     }
 
-    while (1) {
+    while (nook_ix >= 1) {
 	OR or;
 	RULE nook_rule;
 	gint semantic_rule_id = -1;
 	gint token_id = -1;
 	gpointer token_value = NULL;
 	nook_ix--;
-	if (nook_ix < 0) goto RETURN_SOFT_ERROR;
 	{
 	    ANDID and_node_id;
 	    AND and_node;
@@ -12011,10 +12010,8 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 	    @<Write results to |v| and |step|@>@;
 	    return NOOK_of_V(v);
 	}
-	NEXT_NOOK: ;
     }
 
-    RETURN_SOFT_ERROR: ;
     V_is_Active(v) = 0;
     return -1;
 
