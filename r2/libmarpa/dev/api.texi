@@ -398,34 +398,56 @@ Return value: %NULL if the Marpa library is compatible with the
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id}, @
     gint @var{ix})
-@end deftypefun
 
-@deftypefun gboolean marpa_g_rule_has_semantics ( @
+@deftypefun gboolean marpa_g_rule_whatever_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
-
-Most of the semantics must be implemented by Marpa's
-higher layers.
-In some cases, libmarpa can implement
-the semantics as a stack no-op.
-These cases, while very limited are also common.
-One such case is when the value of a rule
-can be arbitrary -- the application simply does not care.
-The other case is when the value should be the value
-of the first child.
-
-Return value: 1 if the Marpa library believes that rules
-  has semantics that it requires the application to
-  implement; 0 if libmarpa believes it can implement
-  the semantics interally;
-  -2 if there was an error.
-
+@deftypefunx gboolean marpa_g_rule_first_child_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@deftypefunx gboolean marpa_g_rule_ask_me_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@deftypefunx gboolean marpa_g_rule_is_ask_me ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 
-@deftypefun gint marpa_g_rule_has_semantics_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id}, @
-    gboolean @var{semantics})
+Usually,
+most of the semantics must be implemented by Marpa's
+higher layers.
+This is called @dfn{"ask me" semantics}.
+In two special but common cases, however,
+Marpa can implement the semantics internally,
+eliminating an evaluation step.
+This can be an considerable efficiency.
+
+The two optimizable cases are "whatever} semantics
+and "first child" semantics.
+If a rule has
+@dfn{whatever semantics}, that means
+that the higher layers
+do not care about the value of the rule.
+If a rule has
+@dfn{first child semantics}, the value of the rule
+should be the value of its first child node.
+In the current implementation, both of these
+can be implemented as stack no-ops.
+
+In the current implementation,
+first child semantics is equivalent to whatever semantics.
+It is possible that a future implementation will
+be unable to implement first child semantics as a stack
+no-op.
+At that point first child semantics will made equivalent
+to "ask me" semantics.
+
+Return value: -2 if there was an error.
+  On success, 1 if the resulting semantics after
+  the function call is the "ask me" semantics.
+  Otherise, 0 otherwise.
+
+@end deftypefun
 
 This function allows an application to specify the rule's
 semantics.
@@ -830,16 +852,6 @@ error code was reset or,
 if there was no reset,
 since grammar initialization.
 Suggested message: "No error."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_BAD_SEMANTICS
-The application requested a semantics
-which libmarpa does not know how to implement.
-Marpa leaves most semantics to the upper
-layers.
-The only requests for semantics it can honor
-are those that it implements as a stack no-op:
-Suggested message: "Bad semantics requested."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE

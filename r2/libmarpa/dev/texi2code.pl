@@ -47,7 +47,6 @@ MARPA_ERR_NONE
 MARPA_ERR_UNKNOWN
 MARPA_ERR_INTERNAL
 MARPA_ERR_DEVELOPMENT
-MARPA_ERR_BAD_SEMANTICS
 MARPA_ERR_COUNTED_NULLABLE
 MARPA_ERR_DUPLICATE_RULE
 MARPA_ERR_EIM_COUNT
@@ -104,7 +103,7 @@ while ( my $line = <STDIN> ) {
             $line = <STDIN>;
         }
         $def .= $line;
-        $def =~ s/\A \s* [@] deftypefun \s* //xms;
+        $def =~ s/\A \s* [@] deftypefun x? \s* //xms;
         $def =~ s/ [@]var[{] ([^}]*) [}]/$1/xmsg;
         $def =~ s/\s+/ /xmsg;
         $def =~ s/\s \z/;/xmsg;

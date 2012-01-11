@@ -2231,16 +2231,16 @@ The second case is where the application wants
 the value of a rule to be the value of its
 first child, which under the current implementation
 is a stack no-op.
-@d RULE_has_Semantics(rule) ((rule)->t_has_semantics)
-@<Int aligned rule elements@> = guint t_has_semantics:1;
+@d RULE_is_Ask_ME(rule) ((rule)->t_is_ask_me)
+@<Int aligned rule elements@> = guint t_is_ask_me:1;
 @ @<Initialize rule elements@> =
-    RULE_has_Semantics(rule) = FALSE;
+    RULE_is_Ask_ME(rule) = FALSE;
 @ @<Function definitions@> =
-gboolean marpa_g_rule_has_semantics(Marpa_Grammar g, Marpa_Rule_ID rule_id)
+gboolean marpa_g_rule_is_ask_me(Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_has_Semantics(RULE_by_ID(g, rule_id));
+    return RULE_is_Ask_ME(RULE_by_ID(g, rule_id));
 }
 @ The application can specify the zero-based
 number of a child as the semantics of a rule.
@@ -2259,19 +2259,32 @@ and will do so,
 but may not in some future implementation.
 The result of any other value is a failure.
 @<Function definitions@> =
-gint marpa_g_rule_has_semantics_set(
-    Marpa_Grammar g, Marpa_Rule_ID rule_id, gboolean semantics)
+gint marpa_g_rule_whatever_set(
+    Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     RULE rule;
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     rule = RULE_by_ID(g, rule_id);
-    switch (semantics) {
-	case 0: case -1: return RULE_has_Semantics(rule) = 0;
-	case -2: return RULE_has_Semantics(rule) = 1;
-    }
-    MARPA_ERROR(MARPA_ERR_BAD_SEMANTICS);
-    return -2;
+    return RULE_is_Ask_ME(rule) = 0;
+}
+gint marpa_g_rule_ask_me_set(
+    Marpa_Grammar g, Marpa_Rule_ID rule_id)
+{
+    RULE rule;
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    rule = RULE_by_ID(g, rule_id);
+    return RULE_is_Ask_ME(rule) = 1;
+}
+gint marpa_g_rule_first_child_set(
+    Marpa_Grammar g, Marpa_Rule_ID rule_id)
+{
+    RULE rule;
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    rule = RULE_by_ID(g, rule_id);
+    return RULE_is_Ask_ME(rule) = 0;
 }
 
 @*0 Semantic Equivalents.
