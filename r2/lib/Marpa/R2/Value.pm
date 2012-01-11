@@ -320,9 +320,6 @@ sub Marpa::R2::Recognizer::show_tree {
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_tree
 
-package Marpa::R2::Internal::Recognizer;
-our $DEFAULT_ACTION_VALUE = \undef;
-
 package Marpa::R2::Internal::Value;
 
 sub Marpa::R2::Internal::Recognizer::set_null_values {
@@ -449,7 +446,6 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
         $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_ACTION];
 
     my $rule_closures  = [];
-    my $rule_constants = [];
 
     my $default_action_closure;
     if ( defined $default_action ) {
@@ -498,16 +494,12 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             next RULE;
         }
 
-        # If there is no default action specified, the fallback
-        # is to return an undef
-        $rule_constants->[$rule_id] =
-            $Marpa::R2::Internal::Recognizer::DEFAULT_ACTION_VALUE;
-
     } ## end for my $rule ( @{$rules} )
 
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_CONSTANTS] =
-        $rule_constants;
+    for my $rule_id (grep { defined } 0 .. $#{$rule_closures}) {
+         $grammar_c->rule_ask_me_set($rule_id);
+    }
 
     return 1;
 }    # set_actions
@@ -670,8 +662,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
         // 0;
 
-    my $rule_constants =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_CONSTANTS];
     my $rule_closures =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
 
@@ -912,17 +902,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         } ## end if ( defined $closure )
 
-        {
-            my $constant_result = $rule_constants->[$rule_id];
-            $evaluation_stack[$arg_0] = $constant_result;
-            if ($trace_values) {
-                print {$Marpa::R2::Internal::TRACE_FH}
-                    'Constant result: ',
-                    'Pushing 1 value on stack: ',
-                    Data::Dumper->new( [$constant_result] )->Terse(1)->Dump
-                    or Marpa::R2::exception('Could not print to trace file');
-            } ## end if ($trace_values)
-        } ## end when (Marpa::R2::Internal::Op::CONSTANT_RESULT)
     } ## end while (1)
 
     my $top_value = $evaluation_stack[0];

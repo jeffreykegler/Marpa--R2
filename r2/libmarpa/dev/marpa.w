@@ -2231,16 +2231,16 @@ The second case is where the application wants
 the value of a rule to be the value of its
 first child, which under the current implementation
 is a stack no-op.
-@d RULE_is_Ask_ME(rule) ((rule)->t_is_ask_me)
+@d RULE_is_Ask_Me(rule) ((rule)->t_is_ask_me)
 @<Int aligned rule elements@> = guint t_is_ask_me:1;
 @ @<Initialize rule elements@> =
-    RULE_is_Ask_ME(rule) = FALSE;
+    RULE_is_Ask_Me(rule) = FALSE;
 @ @<Function definitions@> =
 gboolean marpa_g_rule_is_ask_me(Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_is_Ask_ME(RULE_by_ID(g, rule_id));
+    return RULE_is_Ask_Me(RULE_by_ID(g, rule_id));
 }
 @ The application can specify the zero-based
 number of a child as the semantics of a rule.
@@ -2266,7 +2266,7 @@ gint marpa_g_rule_whatever_set(
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     rule = RULE_by_ID(g, rule_id);
-    return RULE_is_Ask_ME(rule) = 0;
+    return RULE_is_Ask_Me(rule) = 0;
 }
 gint marpa_g_rule_ask_me_set(
     Marpa_Grammar g, Marpa_Rule_ID rule_id)
@@ -2275,7 +2275,7 @@ gint marpa_g_rule_ask_me_set(
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     rule = RULE_by_ID(g, rule_id);
-    return RULE_is_Ask_ME(rule) = 1;
+    return RULE_is_Ask_Me(rule) = 1;
 }
 gint marpa_g_rule_first_child_set(
     Marpa_Grammar g, Marpa_Rule_ID rule_id)
@@ -2284,7 +2284,7 @@ gint marpa_g_rule_first_child_set(
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     rule = RULE_by_ID(g, rule_id);
-    return RULE_is_Ask_ME(rule) = 0;
+    return RULE_is_Ask_Me(rule) = 0;
 }
 
 @*0 Semantic Equivalents.
@@ -12017,6 +12017,11 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 	    semantic_rule_id =
 	      nook_rule->t_is_semantic_equivalent ?
 		  nook_rule->t_original : ID_of_RULE(nook_rule);
+	}
+	if (semantic_rule_id >= 0
+		&& !RULE_is_Ask_Me(RULE_by_ID(g, semantic_rule_id))) {
+	    semantic_rule_id = -1;
+	    arg_n = arg_0;
 	}
 	RETURN_VALUE_IF_APPROPRIATE: ;
 	if ( semantic_rule_id >= 0 || token_id >= 0 || V_is_Trace(v)) {

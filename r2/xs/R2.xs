@@ -940,6 +940,26 @@ CODE:
 OUTPUT:
     RETVAL
 
+void
+rule_ask_me_set( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  struct marpa_g *g = g_wrapper->g;
+  gint result = marpa_g_rule_ask_me_set (g, rule_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->rule_ask_me_set(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
 Marpa_Rule_ID
 semantic_equivalent( g_wrapper, rule_id )
     G_Wrapper *g_wrapper;
