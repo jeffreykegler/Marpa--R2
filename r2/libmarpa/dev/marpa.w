@@ -11940,13 +11940,9 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 {
     @<Return |-2| on failure@>@;
     AND and_nodes;
-    gint semantic_rule_id = -1;
-    gint token_id = -1;
-    gpointer token_value = NULL;
+    NOOKID nook_ix;
     gint arg_0 = -1;
     gint arg_n = -1;
-    NOOKID nook_ix;
-    gint continue_with_next_nook;
     @<Unpack value objects@>@;
 
     /* step is not changed in case of hard failure */
@@ -11962,11 +11958,13 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
     if (nook_ix < 0) {
 	nook_ix = Size_of_TREE(t);
     }
-    continue_with_next_nook = !V_is_Trace(v);
 
     while (1) {
 	OR or;
 	RULE nook_rule;
+	gint semantic_rule_id = -1;
+	gint token_id = -1;
+	gpointer token_value = NULL;
 	nook_ix--;
 	if (nook_ix < 0) goto RETURN_SOFT_ERROR;
 	{
@@ -11981,8 +11979,6 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 	}
 	if (token_id >= 0) {
 	    arg_0 = ++arg_n;
-MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
-	    continue_with_next_nook = 0;
 	}
 	nook_rule = RULE_of_OR(or);
 	if (Position_of_OR(or) == Length_of_RULE(nook_rule)) {
@@ -11997,7 +11993,7 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 		} else {
 		    *DSTACK_PUSH(*virtual_stack, gint) = real_symbol_count;
 		}
-		goto NEXT_NOOK;
+		goto RETURN_VALUE_IF_APPROPRIATE;
 	    }
 	    if (virtual_rhs) {
 	        real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
@@ -12009,14 +12005,14 @@ MARPA_OFF_DEBUG3("symbol %d at %d", token_id, arg_0);
 	    semantic_rule_id =
 	      nook_rule->t_is_semantic_equivalent ?
 		  nook_rule->t_original : ID_of_RULE(nook_rule);
-	    continue_with_next_nook = 0;
+	}
+	RETURN_VALUE_IF_APPROPRIATE: ;
+	if ( semantic_rule_id >= 0 || token_id >= 0 || V_is_Trace(v)) {
+	    @<Write results to |v| and |step|@>@;
+	    return NOOK_of_V(v);
 	}
 	NEXT_NOOK: ;
-	if (!continue_with_next_nook) break;
     }
-
-    @<Write results to |v| and |step|@>@;
-    return NOOK_of_V(v);
 
     RETURN_SOFT_ERROR: ;
     V_is_Active(v) = 0;
