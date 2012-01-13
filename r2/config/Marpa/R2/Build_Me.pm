@@ -212,7 +212,7 @@ sub process_xs {
     my $libmarpa_libs_dir =
         File::Spec->catdir( $self->base_dir(), qw(libmarpa build .libs) );
 
-    for my $object (qw(libmarpa_la-marpa.o libmarpa_la-marpa_obs.o)) {
+    for my $object (qw(marpa.o marpa_obs.o)) {
 	my $from_object =
 	    File::Spec->catfile( $libmarpa_libs_dir, $object );
 	my $to_object = File::Spec->catfile( $xs_dir, $object );
