@@ -15,7 +15,7 @@
 
 dnl Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.59)
+AC_PREREQ([2.68])
 
 dnl ***********************************
 dnl *** include special marpa macros ***
@@ -54,8 +54,7 @@ m4_define([marpa_lt_current_minus_age],
 m4_define([marpa_debug_default],
           [m4_if(m4_eval(marpa_minor_version % 2), [1], [yes], [minimum])])dnl
 
-AC_INIT([marpa], [marpa_version],
-    [http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa])
+AC_INIT([marpa],[marpa_version],[http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa])
 
 AC_CONFIG_MACRO_DIR([m4])
 

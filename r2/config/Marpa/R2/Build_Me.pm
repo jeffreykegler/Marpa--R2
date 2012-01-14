@@ -285,7 +285,7 @@ sub do_libmarpa {
         $shell or die q{No Bourne shell available says $Config{sh}};
 ##use critic
 
-        my @configure_command_args = ();
+        my @configure_command_args = ('--disable-static');
         if ( defined $self->args('marpa_debug') ) {
             push @configure_command_args, "CFLAGS=-DMARPA_DEBUG";
         }
