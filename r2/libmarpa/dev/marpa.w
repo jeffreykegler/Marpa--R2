@@ -1265,24 +1265,27 @@ must be changed.
 \par
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_g_symbol_is_accessible(struct marpa_g* g, Marpa_Symbol_ID id)
-{ return SYM_by_ID(id)->t_is_accessible; }
+gboolean marpa_g_symbol_is_accessible(GRAMMAR g, SYMID symid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return SYM_by_ID(symid)->t_is_accessible;
+}
 
 @ Symbol Is Counted Boolean
 @<Bit aligned symbol elements@> = guint t_is_counted:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_counted = FALSE;
-@ The trace accessor returns the Boolean value.
-Right now this function uses a pointer
-to the symbol function.
-If that becomes private,
-the prototype of this function
-must be changed.
-\par
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
-gboolean marpa_g_symbol_is_counted(struct marpa_g* g, Marpa_Symbol_ID id)
-{ return SYM_by_ID(id)->t_is_counted; }
+@ @<Function definitions@> =
+gboolean marpa_g_symbol_is_counted(GRAMMAR g, SYMID symid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return SYM_by_ID(symid)->t_is_counted;
+}
 
 @ Symbol Is Nullable Boolean
 @<Bit aligned symbol elements@> = guint t_is_nullable:1;
@@ -1291,10 +1294,10 @@ symbol->t_is_nullable = FALSE;
 @ @<Function definitions@> =
 gint marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
 {
-@<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
-@<Fail if grammar |symid| is invalid@>@;
-return SYM_by_ID(symid)->t_is_nullable;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return SYM_by_ID(symid)->t_is_nullable;
 }
 
 @ Symbol Is Nulling Boolean
@@ -1305,10 +1308,11 @@ symbol->t_is_nulling = FALSE;
 @ @<Function definitions@> =
 gint marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 {
-@<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
-@<Fail if grammar |symid| is invalid@>@;
-return SYM_is_Nulling(SYM_by_ID(symid)); }
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return SYM_is_Nulling(SYM_by_ID(symid));
+}
 
 @ Symbol Is Terminal Boolean
 @<Bit aligned symbol elements@> = guint t_is_terminal:1;
@@ -1320,6 +1324,7 @@ symbol->t_is_terminal = FALSE;
 gint marpa_g_symbol_is_terminal(GRAMMAR g, SYMID symid)
 {
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if grammar |symid| is invalid@>@;
     return SYMID_is_Terminal(symid);
 }

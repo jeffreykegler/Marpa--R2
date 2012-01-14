@@ -515,7 +515,7 @@ PPCODE:
   gint result = marpa_g_symbol_is_accessible (g, symbol_id);
   if (result < 0)
     {
-      croak ("Problem in g->symbol_is_counted(): %s", xs_g_error (g_wrapper));
+      croak ("Problem in g->symbol_is_accessible(): %s", xs_g_error (g_wrapper));
     }
   if (result)
     XSRETURN_YES;
@@ -534,7 +534,9 @@ PPCODE:
     {
       croak ("Problem in g->symbol_is_counted(): %s", xs_g_error (g_wrapper));
     }
-  XSRETURN_YES;
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
 }
 
 void
@@ -550,7 +552,9 @@ PPCODE:
       croak ("Problem in g->symbol_is_nullable(): %s",
 	     xs_g_error (g_wrapper));
     }
-  XSRETURN_YES;
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
 }
 
 void
@@ -563,7 +567,8 @@ PPCODE:
   gint result = marpa_g_symbol_is_nulling (g, symbol_id);
   if (result < 0)
     {
-      croak ("Invalid symbol %d", symbol_id);
+      croak ("Problem in g->symbol_is_nulling(%d): %s", symbol_id,
+	     xs_g_error (g_wrapper));
     }
   if (result)
     XSRETURN_YES;
