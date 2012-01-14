@@ -750,21 +750,29 @@ void rule_add(
 @d RULEID_of_G_is_Valid(g, rule_id)
     ((rule_id) >= 0 && (guint)(rule_id) < (g)->t_rules->len)
 
-@*0 Default Value.
-@d Default_Value_of_G(g) ((g)->t_default_value)
-@<Widely aligned grammar elements@> = gpointer t_default_value;
+@*0 Default token value.
+@d Default_Token_Value_of_G(g) ((g)->t_default_token_value)
+@<Widely aligned grammar elements@> = gpointer t_default_token_value;
 @ @<Initialize grammar elements@> =
-Default_Value_of_G(g) = NULL;
-@ @<Function definitions@> =
-gpointer marpa_g_default_value(struct marpa_g* g)
-{ return Default_Value_of_G(g); }
-@ @<Function definitions@> =
-gboolean marpa_g_default_value_set(struct marpa_g*g, gpointer default_value)
+Default_Token_Value_of_G(g) = NULL;
+@ This function never fails, but that may change,
+so its interface allows for an error return.
+@<Function definitions@> =
+gint marpa_g_default_token_value(GRAMMAR g, gpointer* value)
 {
-   @<Return |FALSE| on failure@>@;
+   @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    *value = Default_Token_Value_of_G(g);
+    return 1;
+}
+@ @<Function definitions@> =
+gint marpa_g_default_token_value_set(GRAMMAR g, gpointer default_value)
+{
+   @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if grammar is precomputed@>@;
-    Default_Value_of_G(g) = default_value;
-    return TRUE;
+    Default_Token_Value_of_G(g) = default_value;
+    return 1;
 }
 
 @*0 Start Symbol.
@@ -772,18 +780,23 @@ gboolean marpa_g_default_value_set(struct marpa_g*g, gpointer default_value)
 @ @<Initialize grammar elements@> =
 g->t_start_symid = -1;
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_start_symbol(struct marpa_g* g)
-{ return g->t_start_symid; }
-@ Returns |TRUE| on success,
-|FALSE| on failure.
-@<Function definitions@> =
-gboolean marpa_g_start_symbol_set(struct marpa_g*g, Marpa_Symbol_ID symid)
+SYMID marpa_g_start_symbol(GRAMMAR g)
 {
-   @<Return |FALSE| on failure@>@;
+   @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar is precomputed@>@;
+    return g->t_start_symid;
+}
+@ Returns the symbol ID on success,
+|-2| on failure.
+@<Function definitions@> =
+SYMID marpa_g_start_symbol_set(GRAMMAR g, SYMID symid)
+{
+   @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if grammar is precomputed@>@;
     @<Fail if grammar |symid| is invalid@>@;
-    g->t_start_symid = symid;
-    return TRUE;
+    return g->t_start_symid = symid;
 }
 
 @*0 Start Rules.
@@ -1275,34 +1288,25 @@ gboolean marpa_g_symbol_is_counted(struct marpa_g* g, Marpa_Symbol_ID id)
 @<Bit aligned symbol elements@> = guint t_is_nullable:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nullable = FALSE;
-@ The trace accessor returns the Boolean value.
-Right now this function uses a pointer
-to the symbol function.
-If that becomes private,
-the prototype of this function
-must be changed.
-\par
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
-gboolean marpa_g_symbol_is_nullable(struct marpa_g* g, Marpa_Symbol_ID id)
-{ return SYM_by_ID(id)->t_is_nullable; }
+@ @<Function definitions@> =
+gint marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
+{
+@<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
+@<Fail if grammar |symid| is invalid@>@;
+return SYM_by_ID(symid)->t_is_nullable;
+}
 
 @ Symbol Is Nulling Boolean
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
 @<Bit aligned symbol elements@> = guint t_is_nulling:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nulling = FALSE;
-@ The trace accessor returns the Boolean value.
-Right now this function uses a pointer
-to the symbol function.
-If that becomes private,
-the prototype of this function
-must be changed.
-\par
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
-gint marpa_g_symbol_is_nulling(struct marpa_g* g, Marpa_Symbol_ID symid)
-{ @<Return |-2| on failure@>@;
+@ @<Function definitions@> =
+gint marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
+{
+@<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
 @<Fail if grammar |symid| is invalid@>@;
 return SYM_is_Nulling(SYM_by_ID(symid)); }
 
@@ -1310,57 +1314,49 @@ return SYM_is_Nulling(SYM_by_ID(symid)); }
 @<Bit aligned symbol elements@> = guint t_is_terminal:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_terminal = FALSE;
-@ The trace accessor returns the Boolean value.
-Right now this function uses a pointer
-to the symbol function.
-If that becomes private,
-the prototype of this function
-must be changed.
-\par
-The internal accessor would be trivial, so there is none.
-@d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
+@ @d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
 @d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
-gboolean marpa_g_symbol_is_terminal(struct marpa_g* g, Marpa_Symbol_ID id)
-{ return SYMID_is_Terminal(id); }
+gint marpa_g_symbol_is_terminal(GRAMMAR g, SYMID symid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return SYMID_is_Terminal(symid);
+}
 @ @<Function definitions@> =
-void marpa_g_symbol_is_terminal_set(
-struct marpa_g*g, Marpa_Symbol_ID id, gboolean value)
-{ SYMID_is_Terminal(id) = value; }
+gint marpa_g_symbol_is_terminal_set(
+GRAMMAR g, SYMID symid, gboolean value)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar is precomputed@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return SYMID_is_Terminal(symid) = value;
+}
 
 @ Symbol Is Productive Boolean
 @<Bit aligned symbol elements@> = guint t_is_productive:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_productive = FALSE;
-@ The trace accessor returns the Boolean value.
-Right now this function uses a pointer
-to the symbol function.
-If that becomes private,
-the prototype of this function
-must be changed.
-\par
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
-gboolean marpa_g_symbol_is_productive(struct marpa_g* g, Marpa_Symbol_ID id)
-{ return SYM_by_ID(id)->t_is_productive; }
+@ @<Function definitions@> =
+gint marpa_g_symbol_is_productive(GRAMMAR g, SYMID symid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return SYM_by_ID(symid)->t_is_productive;
+}
 
 @ Symbol Is Start Boolean
 @<Bit aligned symbol elements@> = guint t_is_start:1;
 @ @<Initialize symbol elements@> = symbol->t_is_start = FALSE;
-@ Accessor: The trace accessor returns the Boolean value.
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
-static inline
-gint symbol_is_start(SYM symbol)
-{ return symbol->t_is_start; }
-gint marpa_g_symbol_is_start( struct marpa_g*g, Marpa_Symbol_ID symid) 
-{ @<Return |-2| on failure@>@;
-@<Fail if grammar |symid| is invalid@>@;
-   return symbol_is_start(SYM_by_ID(symid));
+@ @<Function definitions@> =
+gint marpa_g_symbol_is_start( GRAMMAR g, SYMID symid) 
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+   return SYM_by_ID(symid)->t_is_start;
 }
-@ @<Private function prototypes@> =
-static inline
-gint symbol_is_start(SYM symbol);
 
 @*0 Symbol aliasing.
 This is the logic for aliasing symbols.
@@ -5290,7 +5286,7 @@ TOK *t_tokens_by_symid;
     obstack_alloc (TOK_Obs_of_I (input), sizeof (TOK) * symbol_count_of_g);
   for (ix = 0; ix < symbol_count_of_g; ix++)
     {
-      tokens_by_symid[ix] = token_new (input, ix, Default_Value_of_G (g));
+      tokens_by_symid[ix] = token_new (input, ix, Default_Token_Value_of_G (g));
     }
   TOKs_by_SYMID_of_I (input) = tokens_by_symid;
 }
@@ -5670,18 +5666,15 @@ gint marpa_r_is_use_leo(struct marpa_r* r)
     @<Fail if fatal error@>@;
     return r->t_use_leo_flag ? 1 : 0;
 }
-@ Returns |TRUE| on success,
-|FALSE| on failure.
-@<Function definitions@> =
-gboolean marpa_r_is_use_leo_set(
+@ @<Function definitions@> =
+gint marpa_r_is_use_leo_set(
 struct marpa_r*r, gboolean value)
 {
    @<Unpack recognizer objects@>@;
-   @<Return |FALSE| on failure@>@/
+   @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
     @<Fail if recognizer started@>@;
-    r->t_use_leo_flag = value;
-    return TRUE;
+    return r->t_use_leo_flag = value;
 }
 
 @*1 Is The Parser Exhausted?.
@@ -7652,7 +7645,7 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
 }
 
 @** Starting Recognizer Input.
-@<Function definitions@> = gboolean marpa_r_start_input(struct marpa_r *r)
+@<Function definitions@> = gint marpa_r_start_input(struct marpa_r *r)
 {
     ES set0;
     EIM item;
@@ -7660,7 +7653,7 @@ static inline gint alternative_insert(RECCE r, ALT new_alternative)
     AHFA state;
   @<Unpack recognizer objects@>@;
     const gint symbol_count_of_g = SYM_Count_of_G(g);
-    @<Return |FALSE| on failure@>@;
+    @<Return |-2| on failure@>@;
     @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
     if (G_is_Trivial(g)) {
@@ -13195,9 +13188,8 @@ to be set in the scope in which it is used.
 All failures treated in this section are general failures,
 so that |-1| is not used as a return value.
 
-@ Routines with nothing else to return often use |FALSE| as the failure indicator.
-@<Return |FALSE| on failure@> = const gboolean failure_indicator = FALSE;
-@ Routines returning pointers often use |NULL| as the failure indicator.
+@ Routines returning pointers typically use |NULL| as
+the general failure indicator.
 @<Return |NULL| on failure@> = const gpointer failure_indicator = NULL;
 @ Routines returning integer value use |-2| as the
 general failure indicator.

@@ -33,6 +33,7 @@ This manual is for libmarpa, version 0.0.0, variant 0.
 @menu 
 * About this document:: About this document
 * About libmarpa:: About libmarpa
+* Concepts:: libmarpa Concepts
 * Static:: Static methods
 * Grammars:: Grammar objects
 * Recognizers:: Recognizer objects
@@ -233,6 +234,57 @@ to catch them at runtime or
 failing all else,
 to successfully debug the logic.
 
+@node Concepts
+@chapter libmarpa Concepts
+
+@menu 
+* Token values:: Token values
+@end menu 
+
+@node Token values
+@section Token values
+
+Token values are @code{gpointer}'s.
+(In Glib, @code{gpointer}'s is @code{typedef}'d to @code{void *}.)
+libmarpa does nothing with token values except accept
+them from the application and return them during
+parse evaluation.
+
+In fact,
+the author recommends that token values always
+be integers.
+While token values are simply passed into libmarpa and back out,
+but the user may need to check their validity.
+This could be the case, for example, during development.
+When the values are integers, validity checking is easy
+to do safely.
+When they are pointers,
+validity checking without risking an abend is hard
+or impossible.
+Integers can be used to access any kind of data
+using an array,
+so that the higher levels can translate integers back
+and forth into whatever the application requires.
+
+Integers of types @code{gint}, @code{guint}, @code{gsize}
+can be portably converted into @code{gpointer}'s using
+Glib macros.
+These are described in the "Type Conversion Macros" section
+of the Glib Reference Manual ( @code{GINT_TO_POINTER}, etc.)
+
+Since the author strongly recommends using integers,
+why are token values always @code{gpointer}'s?
+Pointers can portably be converted into integers
+and back,
+while the reverse is not true.
+In some circumstances an
+application programmer may find minor
+efficiencies from the direct use of pointers,
+and may believe these outweigh the safety
+issues advanced by this author.
+It is in the UNIX and Perl traditions to
+avoid imposing choices on the user.
+
 @node Static
 @chapter Static Methods
 @cindex static
@@ -292,6 +344,7 @@ Return value: %NULL if the Marpa library is compatible with the
 * Grammar common:: Commonly-used methods
 * Rules:: Methods that deal with rules
 * Symbols:: Methods that deal with symbols
+* Symbol internals:: Methods that deal with symbol internals
 * Grammar internals:: Methods that deal with grammar internals
 @end menu 
 
@@ -325,10 +378,10 @@ Return value: %NULL if the Marpa library is compatible with the
 @deftypefun gint marpa_g_precompute (Marpa_Grammar @var{g})
 @end deftypefun
 
-@deftypefun gboolean marpa_g_is_precomputed (Marpa_Grammar @var{g})
+@deftypefun gint marpa_g_is_precomputed (Marpa_Grammar @var{g})
 @end deftypefun
 
-@deftypefun gboolean marpa_g_has_loop (Marpa_Grammar @var{g})
+@deftypefun gint marpa_g_has_loop (Marpa_Grammar @var{g})
 @end deftypefun
 
 @node Rules
@@ -363,10 +416,10 @@ Return value: %NULL if the Marpa library is compatible with the
 @deftypefun gint marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun gboolean marpa_g_rule_is_virtual_lhs (Marpa_Grammar @var{g}, @
+@deftypefun gint marpa_g_rule_is_virtual_lhs (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun gboolean marpa_g_rule_is_virtual_rhs (Marpa_Grammar @var{g}, @
+@deftypefun gint marpa_g_rule_is_virtual_rhs (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 @deftypefun guint marpa_g_virtual_start (Marpa_Grammar @var{g}, @
@@ -394,7 +447,7 @@ Return value: %NULL if the Marpa library is compatible with the
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 
-@deftypefun gboolean marpa_g_rule_is_discard_separation ( @
+@deftypefun gint marpa_g_rule_is_discard_separation ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 @end deftypefun
@@ -403,20 +456,20 @@ Return value: %NULL if the Marpa library is compatible with the
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id}, @
     gint @var{ix})
-
-@deftypefun gboolean marpa_g_rule_whatever_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@deftypefunx gboolean marpa_g_rule_first_child_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@deftypefunx gboolean marpa_g_rule_ask_me_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@deftypefunx gboolean marpa_g_rule_is_ask_me ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
 @end deftypefun
+
+@deftypefun gint marpa_g_rule_whatever_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@deftypefunx gint marpa_g_rule_first_child_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@deftypefunx gint marpa_g_rule_ask_me_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@deftypefunx gint marpa_g_rule_is_ask_me ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
 
 Usually,
 most of the semantics must be implemented by Marpa's
@@ -457,30 +510,106 @@ Return value: -2 if there was an error.
 @node Symbols
 @section Methods that deal with symbols
 
+@deftypefun gint marpa_g_default_token_value ( @
+    Marpa_Grammar @var{g}, @
+    gpointer* @var{value_pointer})
+
+For each grammar, there is a default token value, which is passed
+on to its recognizers.
+@code{marpa_g_default_token_value}
+assumes that the caller has made sure that @var{value_pointer} is
+a valid location,
+and writes the current default token there.
+
+Return value: -2 if there was an error;
+    Otherwise a non-negative integer.
+
+@end deftypefun
+
+@deftypefun gint marpa_g_default_token_value_set ( @
+    Marpa_Grammar @var{g}, @
+    gpointer @var{value})
+
+For each grammar, there is a default token value, which is passed
+on to its recognizers.
+@code{marpa_g_default_token_value_set} sets this value
+to @var{value}.
+Marpa will never dereference @var{value},
+so that @var{value} does not need to be a valid pointer,
+and may be @code{NULL}.
+
+Return value: -2 if there was an error;
+    Otherwise a non-negative integer.
+
+@end deftypefun
+
 @deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
 @end deftypefun
 
-@deftypefun gpointer marpa_g_default_value (Marpa_Grammar @var{g})
-@end deftypefun
-@deftypefun gboolean marpa_g_default_value_set (Marpa_Grammar @var{g}, @
-    gpointer @var{default_value})
-@end deftypefun
-
 @deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
-@end deftypefun
-
-@deftypefun gboolean marpa_g_start_symbol_set (Marpa_Grammar @var{g}, @
+@deftypefunx gint marpa_g_start_symbol_set (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{id})
 @end deftypefun
 
-@deftypefun gboolean marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
-@end deftypefun
-@deftypefun gboolean marpa_g_is_lhs_terminal_ok_set ( Marpa_Grammar @var{g}, @
+@deftypefun gint marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
+@deftypefunx gint marpa_g_is_lhs_terminal_ok_set ( @
+    Marpa_Grammar @var{g}, @
     gboolean @var{value})
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
 @end deftypefun
+
+@deftypefun gint marpa_g_symbol_is_terminal ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@deftypefunx gint marpa_g_symbol_is_terminal_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid}, @
+ gboolean @var{value})
+@end deftypefun
+
+@node Symbol internals
+@section Methods that deal with symbol internals
+
+@deftypefun gint marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+
+This return value of this call indicates whether @var{symid}
+is the ID of one of Marpa's internal start symbols.
+Marpa rewrites its grammars to add
+a new start rule
+and one or two new, internal, start symbols.
+The first start symbol is always non-nullable.
+It is the LHS of the new start rule,
+and that is its only occurrence in any rule.
+
+The second start symbol is 
+a nulling start symbol.
+It is only present
+if the grammar allows the null parse.
+For Marpa, null parses are handled as
+a very special case.
+The nulling start symbol is used,
+but no nulling rule is created,
+so that the nulling start symbol is
+never on the LHS or RHS of any rule.
+
+Rewriting a grammar to add a new start
+is a very standard procedure,
+so much so that it has a special
+name:
+@dfn{augmenting the grammar}.
+The rewritten grammar is called
+an @dfn{augmented grammar}.
+
+Return value: -2 if the grammar is not precomputed or
+    @var{symid} is not valid;
+    1 if @var{symid} is a start symbol in the rewritten grammar;
+    0 otherwise.
+
+@end deftypefun
+
 @deftypefun gint marpa_g_symbol_lhs_count (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
@@ -495,29 +624,19 @@ Return value: -2 if there was an error.
     Marpa_Symbol_ID @var{symid}, @
  gint @var{ix})
 @end deftypefun
-@deftypefun gboolean marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
+@deftypefun gint marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun gboolean marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
+@deftypefun gint marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun gboolean marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
+@deftypefun gint marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 @deftypefun gint marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun gboolean marpa_g_symbol_is_terminal (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun void marpa_g_symbol_is_terminal_set ( Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid}, @
- gboolean @var{value})
-@end deftypefun
-@deftypefun gboolean marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun gint marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
+@deftypefun gint marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_proper_alias (Marpa_Grammar @var{g}, @
@@ -598,10 +717,10 @@ Return value: -2 if there was an error.
 @node Recognizer life
 @section Taking a recognizer through its life cycle
 
-@deftypefun gboolean marpa_r_start_input (Marpa_Recognizer @var{r})
+@deftypefun gint marpa_r_start_input (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gboolean marpa_r_alternative (Marpa_Recognizer r, Marpa_Symbol_ID @var{token_id}, gpointer @var{value}, gint @var{length})
+@deftypefun gint marpa_r_alternative (Marpa_Recognizer r, Marpa_Symbol_ID @var{token_id}, gpointer @var{value}, gint @var{length})
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
@@ -628,14 +747,14 @@ Return value: -2 if there was an error.
 @deftypefun gint marpa_r_terminals_expected (Marpa_Recognizer @var{r}, GArray* @var{result})
 @end deftypefun
 
-@deftypefun gboolean marpa_r_is_use_leo (Marpa_Recognizer @var{r})
+@deftypefun gint marpa_r_is_use_leo (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gboolean marpa_r_is_use_leo_set ( Marpa_Recognizer @var{r}, @
+@deftypefun gint marpa_r_is_use_leo_set ( Marpa_Recognizer @var{r}, @
     gboolean @var{value})
 @end deftypefun
 
-@deftypefun gboolean marpa_r_is_exhausted (Marpa_Recognizer @var{r})
+@deftypefun gint marpa_r_is_exhausted (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun gint marpa_r_event (Marpa_Recognizer @var{r}, @

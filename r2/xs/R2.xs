@@ -285,50 +285,89 @@ CODE:
     Safefree( g_wrapper );
 
 void
-start_symbol_set( g, id )
-    Grammar *g;
+start_symbol_set( g_wrapper, id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID id;
 PPCODE:
-    { gboolean result = marpa_g_start_symbol_set(g, id);
-    if (result) XSRETURN_YES;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_start_symbol_set (g, id);
+  if (result < 0)
+    {
+      croak ("Problem in g->start_symbol_set(): %s", xs_g_error (g_wrapper));
     }
-    XSRETURN_NO;
+  XSRETURN_YES;
+}
 
 void
-start_symbol( g )
-    Grammar *g;
+start_symbol( g_wrapper )
+    G_Wrapper *g_wrapper;
 PPCODE:
-    { Marpa_Symbol_ID id = marpa_g_start_symbol( g );
-    if (id < 0) { XSRETURN_UNDEF; }
-    XPUSHs( sv_2mortal( newSViv(id) ) );
+{
+  Marpa_Grammar g = g_wrapper->g;
+  Marpa_Symbol_ID id = marpa_g_start_symbol (g);
+  if (id <= -2)
+    {
+      croak ("Problem in g->start_symbol(): %s", xs_g_error (g_wrapper));
     }
+  if (id < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (id)));
+}
 
 void
-default_value_set( g, value )
-    Grammar *g;
+default_value_set( g_wrapper, value )
+    G_Wrapper *g_wrapper;
     int value;
 PPCODE:
-    { gboolean result = marpa_g_default_value_set(g, GINT_TO_POINTER(value));
-    if (result) XSRETURN_YES;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_default_token_value_set (g, GINT_TO_POINTER (value));
+  if (result < 0)
+    {
+      croak ("Problem in g->default_token_value_set(): %s", xs_g_error (g_wrapper));
     }
-    XSRETURN_NO;
+  XSRETURN_YES;
+}
 
 void
-default_value( g )
-    Grammar *g;
+default_value( g_wrapper )
+    G_Wrapper *g_wrapper;
 PPCODE:
-    { gpointer value = marpa_g_default_value( g );
-    XPUSHs( sv_2mortal( newSViv(GPOINTER_TO_INT(value)) ) );
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gpointer value;
+  gint result = marpa_g_default_token_value (g, &value);
+  if (result < 0)
+    {
+      croak ("Problem in g->default_token_value(): %s",
+	     xs_g_error (g_wrapper));
     }
+  if (!value)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (value))));
+}
 
 void
-is_precomputed( g )
-    Grammar *g;
+is_precomputed( g_wrapper )
+    G_Wrapper *g_wrapper;
 PPCODE:
-    { gint boolean = marpa_g_is_precomputed( g );
-    if (boolean) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_is_precomputed (g);
+  if (result < 0)
+    {
+      croak ("Problem in g->default_token_value(): %s",
+	     xs_g_error (g_wrapper));
     }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
 event( g_wrapper, ix )
@@ -354,33 +393,51 @@ PPCODE:
 }
 
 void
-has_loop( g )
-    Grammar *g;
+has_loop( g_wrapper )
+    G_Wrapper *g_wrapper;
 PPCODE:
-    { gint boolean = marpa_g_has_loop( g );
-    if (boolean) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_has_loop (g);
+  if (result < 0)
+    {
+      croak ("Problem in g->has_loop(): %s", xs_g_error (g_wrapper));
     }
+  if (result) XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
-is_lhs_terminal_ok_set( g, boolean )
-    Grammar *g;
+is_lhs_terminal_ok_set( g_wrapper, boolean )
+    G_Wrapper *g_wrapper;
     int boolean;
 PPCODE:
-    { gboolean result = marpa_g_is_lhs_terminal_ok_set(
-	g, (boolean ? TRUE : FALSE));
-    if (result) XSRETURN_YES;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_is_lhs_terminal_ok_set (g, (boolean ? TRUE : FALSE));
+  if (result < 0)
+    {
+      croak ("Problem in g->is_lhs_terminal_ok_set(): %s", xs_g_error (g_wrapper));
     }
-    XSRETURN_NO;
+  XSRETURN_YES;
+}
 
 void
-is_lhs_terminal_ok( g )
-    Grammar *g;
+is_lhs_terminal_ok( g_wrapper )
+    G_Wrapper *g_wrapper;
 PPCODE:
-    { gboolean boolean = marpa_g_is_lhs_terminal_ok( g );
-    if (boolean) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_is_lhs_terminal_ok (g);
+  if (result < 0)
+    {
+      croak ("Problem in g->is_lhs_terminal_ok(): %s",
+	     xs_g_error (g_wrapper));
     }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 Marpa_Symbol_ID
 symbol_new( g )
@@ -449,64 +506,104 @@ PPCODE:
 }
 
 void
-symbol_is_accessible( g, symbol_id )
-    Grammar *g;
+symbol_is_accessible( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gboolean boolean = marpa_g_symbol_is_accessible( g, symbol_id );
-    if (boolean) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_symbol_is_accessible (g, symbol_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->symbol_is_counted(): %s", xs_g_error (g_wrapper));
     }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
-symbol_is_counted( g, symbol_id )
-    Grammar *g;
+symbol_is_counted( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gboolean boolean = marpa_g_symbol_is_counted( g, symbol_id );
-    if (boolean) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_symbol_is_counted (g, symbol_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->symbol_is_counted(): %s", xs_g_error (g_wrapper));
     }
+  XSRETURN_YES;
+}
 
 void
-symbol_is_nullable( g, symbol_id )
-    Grammar *g;
+symbol_is_nullable( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gboolean boolean = marpa_g_symbol_is_nullable( g, symbol_id );
-    if (boolean) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_symbol_is_nullable (g, symbol_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->symbol_is_nullable(): %s",
+	     xs_g_error (g_wrapper));
     }
+  XSRETURN_YES;
+}
 
 void
-symbol_is_nulling( g, symbol_id )
-    Grammar *g;
+symbol_is_nulling( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gint result = marpa_g_symbol_is_nulling( g, symbol_id );
-    if (result < 0) { croak("Invalid symbol %d", symbol_id); }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_symbol_is_nulling (g, symbol_id);
+  if (result < 0)
+    {
+      croak ("Invalid symbol %d", symbol_id);
     }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
-symbol_is_terminal_set( g, symbol_id, boolean )
-    Grammar *g;
+symbol_is_terminal_set( g_wrapper, symbol_id, boolean )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
     int boolean;
 PPCODE:
-    marpa_g_symbol_is_terminal_set( g, symbol_id, (boolean ? TRUE : FALSE));
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result =
+    marpa_g_symbol_is_terminal_set (g, symbol_id, (boolean ? TRUE : FALSE));
+  if (result < 0)
+    {
+      croak ("Problem in g->symbol_is_terminal_set(%d, %d): %s",
+	     symbol_id, boolean, xs_g_error (g_wrapper));
+    }
+}
 
 void
-symbol_is_terminal( g, symbol_id )
-    Grammar *g;
+symbol_is_terminal( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
-    { gint result = marpa_g_symbol_is_terminal( g, symbol_id );
-    if (result < 0) { croak("Invalid symbol %d", symbol_id); }
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+{
+  Marpa_Grammar g = g_wrapper->g;
+  gint result = marpa_g_symbol_is_terminal (g, symbol_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->symbol_is_terminal(%d): %s",
+	     symbol_id, xs_g_error (g_wrapper));
     }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
 
 void
 symbol_is_productive( g, symbol_id )
@@ -1283,8 +1380,8 @@ is_use_leo_set( r_wrapper, boolean )
 PPCODE:
 {
   struct marpa_r *r = r_wrapper->r;
-  gboolean result = marpa_r_is_use_leo_set (r, (boolean ? TRUE : FALSE));
-  if (!result)
+  gint result = marpa_r_is_use_leo_set (r, (boolean ? TRUE : FALSE));
+  if (result < 0)
     {
       croak ("Problem in is_use_leo_set(): %s", xs_r_error (r_wrapper));
     }
@@ -1328,9 +1425,12 @@ start_input( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
 {
-    gboolean result = marpa_r_start_input(r_wrapper->r);
-    if (result) XSRETURN_YES;
-    XSRETURN_NO;
+    gint result = marpa_r_start_input(r_wrapper->r);
+  if (result < 0)
+    {
+      croak ("Problem in r->start_input(): %s", xs_r_error (r_wrapper));
+    }
+    XSRETURN_YES;
 }
 
  # current earleme on success -- return that directly
@@ -1369,12 +1469,14 @@ earley_item_warning_threshold_set( r_wrapper, too_many_earley_items )
     int too_many_earley_items;
 PPCODE:
 {
-  gboolean result =
+  gint result =
     marpa_r_earley_item_warning_threshold_set (r_wrapper->r,
 					       too_many_earley_items);
-  if (result)
+      if (result < 0)
+	{
+	  croak ("Problem in r->earley_item_warning_threshold: %s", xs_r_error (r_wrapper));
+	}
     XSRETURN_YES;
-  XSRETURN_NO;
 }
 
 void
