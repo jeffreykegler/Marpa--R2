@@ -208,16 +208,13 @@ sub process_xs {
     File::Path::mkpath( $spec->{archdir}, 0, ( oct 777 ) )
         if not -d $spec->{archdir};
 
-    # finalize libmarpa.a
-    my $libmarpa_libs_dir =
-        File::Spec->catdir( $self->base_dir(), qw(libmarpa build .libs) );
-
-    for my $object (qw(marpa.o marpa_obs.o)) {
-	my $from_object =
-	    File::Spec->catfile( $libmarpa_libs_dir, $object );
-	my $to_object = File::Spec->catfile( $xs_dir, $object );
-	$self->copy_if_modified(from => $from_object, to => $to_object);
-	push @{ $self->{properties}->{objects} }, $to_object;
+    {
+        # finalize libmarpa.a
+        my $libmarpa_libs_dir =
+            File::Spec->catdir( $self->base_dir(), qw(libmarpa build .libs) );
+        my $libmarpa_archive =
+            File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
+        push @{ $self->{properties}->{objects} }, $libmarpa_archive;
     }
 
     # .xs -> .bs
