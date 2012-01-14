@@ -159,7 +159,9 @@ struct s_marpa_error_description {
 
 STRUCT_DECLARATION
 
+my $preamble_lines = scalar (my $copy = $common_preamble) =~ tr/\n//;
 say {$api_h_in} $common_preamble;
+say {$api_h_in} join q{ }, '#line', $preamble_lines+3, q{"api.h.in"};
 say {$api_h_in} join "\n", @defs;
 die "Variant never defined" if not defined $current_variant;
 say {$api_h_in} "#define MARPA_VARIANT $current_variant";

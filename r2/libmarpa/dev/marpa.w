@@ -5329,8 +5329,6 @@ struct marpa_r {
     @<Bit aligned recognizer elements@>@;
 };
 
-@ @<Public function prototypes@> =
-struct marpa_r* marpa_r_new( struct marpa_g* g );
 @ The grammar must not be deallocated for the life of the
 recognizer.
 In the event of an error creating the recognizer,

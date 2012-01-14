@@ -287,21 +287,26 @@ Return value: %NULL if the Marpa library is compatible with the
 @cindex grammars
 
 @menu 
-* Grammar referencers:: Grammar methods that change the reference count
+* Grammar constructor:: Creating a new grammar
+* Grammar reference counting:: Tracking the reference count of the grammar
 * Grammar common:: Commonly-used methods
 * Rules:: Methods that deal with rules
 * Symbols:: Methods that deal with symbols
 * Grammar internals:: Methods that deal with grammar internals
 @end menu 
 
-@node Grammar referencers
-@section Grammar methods that change the reference count
+@node Grammar constructor
+@section Creating a new grammar
 @cindex grammar constructor
-@cindex grammar destructor
-@cindex grammar reference
 
 @deftypefun Marpa_Grammar marpa_g_new ( guint @var{variant} )
 @end deftypefun
+
+@node Grammar reference counting
+@section Tracking the reference count of the grammar
+@cindex grammar destructor
+@cindex grammar reference
+@cindex grammar reference count
 
 @deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
 @end deftypefun
@@ -422,7 +427,7 @@ Marpa can implement the semantics internally,
 eliminating an evaluation step.
 This can be an considerable efficiency.
 
-The two optimizable cases are "whatever} semantics
+The two optimizable cases are "whatever semantics
 and "first child" semantics.
 If a rule has
 @dfn{whatever semantics}, that means
@@ -446,37 +451,6 @@ Return value: -2 if there was an error.
   On success, 1 if the resulting semantics after
   the function call is the "ask me" semantics.
   Otherise, 0 otherwise.
-
-@end deftypefun
-
-This function allows an application to specify the rule's
-semantics.
-If the application wants to implement a semantics
-(and very often it must) @var{semantics} should be -2.
-If the semantics can be arbitrary -- the application simply
-does not care about the result, @var{semantics} should be -1.
-This is the default.
-
-In the current implementation
-first child semantics can be implemented very efficiently
-as a stack no-op.
-To say that a rule has @dfn{first child semantics} means
-that its value is the value of its first child.
-If first child semantics is desired,
-the value of the @var{semantics} argument should be 0.
-In future implementations,
-libmarpa may be unable to implement first child semantics
-internally.
-When and if that happens,
-rules with
-first-child semantics will be returned to the application as evalution
-steps.
-
-Any value of @var{semantics} other than 0, -1, or -2
-is a fatal error,
-as is an inappropriate @var{rule_id}.
-
-Return value: Same as @code{marpa_g_rule_has_semantics}.
 
 @end deftypefun
 
@@ -599,10 +573,38 @@ Return value: Same as @code{marpa_g_rule_has_semantics}.
 @node Recognizers
 @chapter Recognizer objects
 
+@menu 
+* Recognizer constructor:: Creating a new recognizer
+* Recognizer reference counting:: Keeping the reference count of a recognizer
+* Recognizer life:: Taking a recognizer through its life cycle
+* Recognizer internals:: Meddling with the recognizer internals
+@end menu 
+
+@node Recognizer constructor
+@section Creating a new recognizer
+
+@deftypefun Marpa_Recognizer marpa_r_new ( Marpa_Grammar @var{g} )
+@end deftypefun
+
+@node Recognizer reference counting
+@section Keeping the reference count of a recognizer
+
 @deftypefun Marpa_Recognizer marpa_r_ref (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun void marpa_r_unref (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@node Recognizer life
+@section Taking a recognizer through its life cycle
+
+@deftypefun gboolean marpa_r_start_input (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun gboolean marpa_r_alternative (Marpa_Recognizer r, Marpa_Symbol_ID @var{token_id}, gpointer @var{value}, gint @var{length})
+@end deftypefun
+
+@deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun Marpa_Error_Code marpa_r_error @
@@ -610,31 +612,30 @@ Return value: Same as @code{marpa_g_rule_has_semantics}.
     const char** @var{p_error_string})
 @end deftypefun
 
-@deftypefun struct marpa_r* marpa_r_new ( Marpa_Grammar @var{g} )
-@end deftypefun
-
 @deftypefun guint marpa_r_current_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_earley_item_warning_threshold (struct marpa_r* @var{r})
+@deftypefun gint marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_earley_item_warning_threshold_set (struct marpa_r*@var{r}, gint @var{threshold})
+@deftypefun gint marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer @var{r}, @
+    gint @var{threshold})
 @end deftypefun
 
-@deftypefun guint marpa_r_furthest_earleme (struct marpa_r* @var{r})
+@deftypefun guint marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_terminals_expected (struct marpa_r* @var{r}, GArray* @var{result})
+@deftypefun gint marpa_r_terminals_expected (Marpa_Recognizer @var{r}, GArray* @var{result})
 @end deftypefun
 
-@deftypefun gboolean marpa_r_is_use_leo (struct marpa_r* @var{r})
+@deftypefun gboolean marpa_r_is_use_leo (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gboolean marpa_r_is_use_leo_set ( struct marpa_r*@var{r}, gboolean @var{value})
+@deftypefun gboolean marpa_r_is_use_leo_set ( Marpa_Recognizer @var{r}, @
+    gboolean @var{value})
 @end deftypefun
 
-@deftypefun gboolean marpa_r_is_exhausted (struct marpa_r* @var{r})
+@deftypefun gboolean marpa_r_is_exhausted (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun gint marpa_r_event (Marpa_Recognizer @var{r}, @
@@ -642,88 +643,83 @@ Return value: Same as @code{marpa_g_rule_has_semantics}.
     gint @var{ix})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_trace_earley_set (struct marpa_r *@var{r})
+@deftypefun Marpa_Earley_Set_ID marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (struct marpa_r *@var{r})
+@deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Earleme marpa_r_earleme (struct marpa_r* r, Marpa_Earley_Set_ID @var{set_id})
+@deftypefun Marpa_Earleme marpa_r_earleme (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
 
-@deftypefun gint marpa_r_earley_set_size (struct marpa_r *r, Marpa_Earley_Set_ID @var{set_id})
+
+@node Recognizer internals
+@section Meddling with the recognizer internals
+
+@deftypefun gint marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
 
-@deftypefun Marpa_Earleme marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID @var{set_id})
+@deftypefun Marpa_Earleme marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID @var{item_id})
+@deftypefun Marpa_AHFA_State_ID marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_earley_item_origin (struct marpa_r *@var{r})
+@deftypefun Marpa_Earley_Set_ID marpa_r_earley_item_origin (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_leo_predecessor_symbol (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_leo_predecessor_symbol (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_leo_base_origin (struct marpa_r *@var{r})
+@deftypefun Marpa_Earley_Set_ID marpa_r_leo_base_origin (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_leo_base_state (struct marpa_r *@var{r})
+@deftypefun Marpa_AHFA_State_ID marpa_r_leo_base_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa (struct marpa_r *@var{r})
+@deftypefun Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_postdot_symbol_trace (struct marpa_r *r, Marpa_Symbol_ID @var{symid})
+@deftypefun Marpa_Symbol_ID marpa_r_postdot_symbol_trace (Marpa_Recognizer r, Marpa_Symbol_ID @var{symid})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_first_postdot_item_trace (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_first_postdot_item_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_next_postdot_item_trace (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_next_postdot_item_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_postdot_item_symbol (struct marpa_r *@var{r})
+@deftypefun Marpa_AHFA_State_ID marpa_r_postdot_item_symbol (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_first_token_link_trace (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_first_token_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_next_token_link_trace (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_next_token_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_first_completion_link_trace (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_first_completion_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_next_completion_link_trace (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_next_completion_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_first_leo_link_trace (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_first_leo_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_next_leo_link_trace (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_next_leo_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_source_predecessor_state (struct marpa_r *@var{r})
+@deftypefun Marpa_AHFA_State_ID marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_source_token (struct marpa_r *r, gpointer *@var{value_p})
+@deftypefun Marpa_Symbol_ID marpa_r_source_token (Marpa_Recognizer r, gpointer *@var{value_p})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_source_leo_transition_symbol (struct marpa_r *@var{r})
+@deftypefun Marpa_Symbol_ID marpa_r_source_leo_transition_symbol (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_source_middle (struct marpa_r* @var{r})
-@end deftypefun
-
-@deftypefun gboolean marpa_r_start_input (struct marpa_r *@var{r})
-@end deftypefun
-
-@deftypefun gboolean marpa_r_alternative (struct marpa_r *r, Marpa_Symbol_ID @var{token_id}, gpointer @var{value}, gint @var{length})
-@end deftypefun
-
-@deftypefun Marpa_Earleme marpa_r_earleme_complete (struct marpa_r* @var{r})
+@deftypefun Marpa_Earley_Set_ID marpa_r_source_middle (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @node Bocage
