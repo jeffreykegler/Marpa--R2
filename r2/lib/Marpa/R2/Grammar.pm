@@ -535,15 +535,21 @@ sub Marpa::R2::Grammar::precompute {
             );
         }
         if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE ) {
+            my @counted_nullables = ();
+            my $event_ix          = 0;
+            EVENT: while ( my ( $event_type, $value ) =
+                $grammar_c->event( $event_ix++ ) )
+            {
+                last EVENT if not defined $event_type;
+                if ( $event_type eq 'counted nullable' ) {
+                    push @counted_nullables, $grammar->symbol_name($value);
+                }
+            } ## end while ( my ( $event_type, $value ) = $grammar_c->event(...))
             my @counted_nullable_messages = map {
                       q{Nullable symbol "}
-                    . $grammar->symbol_name($_)
+                    . $_
                     . qq{" is on rhs of counted rule\n}
-                }
-                grep {
-                        $grammar_c->symbol_is_counted($_)
-                    and $grammar_c->symbol_is_nullable($_)
-                } ( 0 .. $#{$symbols} );
+            } @counted_nullables;
             Marpa::R2::exception( @counted_nullable_messages,
                 'Counted nullables confuse Marpa -- please rewrite the grammar'
             );
@@ -1667,20 +1673,11 @@ sub add_user_rule {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
         if ( $event_type eq 'new symbol' ) {
             my $name = $sequence_symbol_name_base;
-            if ( $grammar_c->symbol_is_nulling($value) ) {
-                if ($sequence_null_symbol_count) {
-                    $name .= '[' . $sequence_null_symbol_count . '][]';
-                }
-                shadow_symbol( $grammar, $value, $name );
-                $sequence_null_symbol_count++;
-            } ## end if ( $grammar_c->symbol_is_nulling($value) )
-            else {
-                if ($sequence_symbol_count) {
-                    $name .= '[' . $sequence_symbol_count . ']';
-                }
-                shadow_symbol( $grammar, $value, $name );
-                $sequence_symbol_count++;
-            } ## end else [ if ( $grammar_c->symbol_is_nulling($value) ) ]
+            if ($sequence_symbol_count) {
+                $name .= '[' . $sequence_symbol_count . ']';
+            }
+            shadow_symbol( $grammar, $value, $name );
+            $sequence_symbol_count++;
         } ## end if ( $event_type eq 'new symbol' )
         if ( $event_type eq 'new rule' ) {
             push @sequence_rule_ids, $value;

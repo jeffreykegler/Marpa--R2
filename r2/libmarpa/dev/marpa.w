@@ -924,12 +924,13 @@ The memory used is that of
 the high water mark,
 with no way of freeing it.
 @<Public defines@> =
-#define MARPA_G_EV_NONE 0@/
-#define MARPA_G_EV_EXHAUSTED 1@/
-#define MARPA_G_EV_EARLEY_ITEM_THRESHOLD 2@/
-#define MARPA_G_EV_LOOP_RULES 3@/
-#define MARPA_G_EV_NEW_SYMBOL 4@/
-#define MARPA_G_EV_NEW_RULE 5@/
+#define MARPA_EVENT_NONE 0@/
+#define MARPA_EVENT_EXHAUSTED 1@/
+#define MARPA_EVENT_EARLEY_ITEM_THRESHOLD 2@/
+#define MARPA_EVENT_LOOP_RULES 3@/
+#define MARPA_EVENT_NEW_SYMBOL 4@/
+#define MARPA_EVENT_NEW_RULE 5@/
+#define MARPA_EVENT_COUNTED_NULLABLE 6@/
 @ @<Private incomplete structures@> =
 struct s_g_event;
 typedef struct s_g_event* GEV;
@@ -1296,6 +1297,7 @@ gint marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
+    @<Fail if grammar not precomputed@>@;
     @<Fail if grammar |symid| is invalid@>@;
     return SYM_by_ID(symid)->t_is_nullable;
 }
@@ -1310,6 +1312,7 @@ gint marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
+    @<Fail if grammar not precomputed@>@;
     @<Fail if grammar |symid| is invalid@>@;
     return SYM_is_Nulling(SYM_by_ID(symid));
 }
@@ -1603,7 +1606,7 @@ gint min, gint flags )
   original_rule_id = original_rule->t_id;
   original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
     && separator_id >= 0;
-  int_event_new (g, MARPA_G_EV_NEW_RULE, original_rule_id);
+  int_event_new (g, MARPA_EVENT_NEW_RULE, original_rule_id);
 }
 
 @ @<Check that the separator is valid or -1@> =
@@ -1621,13 +1624,13 @@ if (separator_id >= 0) { SYM_by_ID(separator_id)->t_is_counted = 1; }
     if (!rule) { @<Fail with internal grammar error@>@; }
     rule->t_is_semantic_equivalent = TRUE;
     rule->t_original = original_rule_id;
-    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
+    int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
 }
 @ @<Create the sequence internal LHS symbol@> =
 {
   internal_lhs = symbol_new (g);
   internal_lhs_id = ID_of_SYM (internal_lhs);
-  int_event_new (g, MARPA_G_EV_NEW_SYMBOL, internal_lhs_id);
+  int_event_new (g, MARPA_EVENT_NEW_SYMBOL, internal_lhs_id);
 }
 
 @ The actual size needed for the RHS buffer is determined by
@@ -1654,7 +1657,7 @@ temp_rhs = g_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     rule->t_is_semantic_equivalent = TRUE;
     /* Real symbol count remains at default of 0 */
     RULE_has_Virtual_RHS (rule) = TRUE;
-    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
+    int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
 }
 
 @ This ``alternate" top rule is needed if a final separator is allowed.
@@ -1668,7 +1671,7 @@ temp_rhs = g_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     rule->t_is_semantic_equivalent = TRUE;
     RULE_has_Virtual_RHS(rule) = TRUE;
     Real_SYM_Count_of_RULE(rule) = 1;
-    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
+    int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
 }
 @ The traditional way to write a sequence in BNF is with one
 rule to represent the minimum, and another to deal with iteration.
@@ -1686,7 +1689,7 @@ gint rhs_ix, i;
     if (!rule) { @<Fail with internal grammar error@>@; }
     RULE_has_Virtual_LHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix;
-    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
+    int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
 }
 @ @<Add the iterating rule for the sequence@> =
 { RULE rule;
@@ -1699,7 +1702,7 @@ gint rhs_ix = 0;
     RULE_has_Virtual_LHS(rule) = 1;
     RULE_has_Virtual_RHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix - 1;
-    int_event_new (g, MARPA_G_EV_NEW_RULE, rule->t_id);
+    int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
 }
 
 @ Does this rule duplicate an already existing rule?
@@ -2586,23 +2589,31 @@ Bit_Vector empty_lhs_v;
 gboolean have_empty_rule = 0;
 
 @ @<Census nullable symbols@> = 
-nullable_v = bv_clone(empty_lhs_v);
-rhs_closure(g, nullable_v);
-{ guint min, max, start;
-Marpa_Symbol_ID symid;
-gint counted_nullables = 0;
-    for ( start = 0; bv_scan(nullable_v, start, &min, &max); start = max+2 ) {
-	for (symid = (Marpa_Symbol_ID)min; symid <= (Marpa_Symbol_ID)max; symid++) {
-	    SYM symbol = SYM_by_ID(symid);
-	    if (symbol->t_is_counted) {
-		counted_nullables++;
+{
+  guint min, max, start;
+  nullable_v = bv_clone (empty_lhs_v);
+  rhs_closure (g, nullable_v);
+  Marpa_Symbol_ID symid;
+  gint counted_nullables = 0;
+  for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
+    {
+      for (symid = (Marpa_Symbol_ID) min; symid <= (Marpa_Symbol_ID) max;
+	   symid++)
+	{
+	  SYM symbol = SYM_by_ID (symid);
+	  if (symbol->t_is_counted)
+	    {
+	      counted_nullables++;
+	      int_event_new (g, MARPA_EVENT_COUNTED_NULLABLE, symid);
 	    }
-	    symbol->t_is_nullable = 1;
-} }
-if (counted_nullables) {
-    MARPA_ERROR(MARPA_ERR_COUNTED_NULLABLE);
-    return NULL;
-}
+	  symbol->t_is_nullable = 1;
+	}
+    }
+  if (counted_nullables)
+    {
+      MARPA_ERROR (MARPA_ERR_COUNTED_NULLABLE);
+      return NULL;
+    }
 }
 @ @<Declare census variables@> =
 Bit_Vector nullable_v;
@@ -3314,7 +3325,7 @@ void loop_detect(struct marpa_g* g)
     if (loop_rule_count)
       {
 	g->t_has_loop = TRUE;
-	int_event_new (g, MARPA_G_EV_LOOP_RULES, loop_rule_count);
+	int_event_new (g, MARPA_EVENT_LOOP_RULES, loop_rule_count);
       }
     matrix_free(unit_transition_matrix);
 }
@@ -6092,7 +6103,7 @@ if (count >= r->t_earley_item_warning_threshold)
 	R_FATAL (MARPA_ERR_EIM_COUNT, "eim count exceeds fatal threshold");
 	return failure_indicator;
       }
-      int_event_new (g, MARPA_G_EV_EARLEY_ITEM_THRESHOLD, count);
+      int_event_new (g, MARPA_EVENT_EARLEY_ITEM_THRESHOLD, count);
   }
 
 @*0 Destructor.
@@ -7910,7 +7921,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
            uncompleted Earley sets, we can make no further progress.
 	   The parse is ``exhausted". */
 	@<Set |r| exhausted@>@;
-	event_new(g, MARPA_G_EV_EXHAUSTED);
+	event_new(g, MARPA_EVENT_EXHAUSTED);
       }
     earley_set_update_items(r, current_earley_set);
   return G_EVENT_COUNT(g);

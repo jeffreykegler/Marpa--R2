@@ -81,7 +81,7 @@ marpa.pdf: marpa.tex cwebmac.tex
 	cp ../build_dist/VERSION ../VERSION
 	version=`cat ../VERSION`; \
 	    cd ..  \
-	    && tar -xvzf build_dist/marpa.tar.gz \
+	    && tar -xzf build_dist/marpa.tar.gz \
 	    && rm -rf dist \
 	    && mv marpa-$$version dist
 

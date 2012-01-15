@@ -81,16 +81,18 @@ event_type_to_string (Marpa_Event_Type type)
 {
   switch (type)
     {
-    case MARPA_G_EV_EXHAUSTED:
+    case MARPA_EVENT_EXHAUSTED:
       return "exhausted";
-    case MARPA_G_EV_EARLEY_ITEM_THRESHOLD:
+    case MARPA_EVENT_EARLEY_ITEM_THRESHOLD:
       return "earley item count";
-    case MARPA_G_EV_LOOP_RULES:
+    case MARPA_EVENT_LOOP_RULES:
       return "loop rules";
-    case MARPA_G_EV_NEW_SYMBOL:
+    case MARPA_EVENT_NEW_SYMBOL:
       return "new symbol";
-    case MARPA_G_EV_NEW_RULE:
+    case MARPA_EVENT_NEW_RULE:
       return "new rule";
+    case MARPA_EVENT_COUNTED_NULLABLE:
+      return "counted nullable";
     }
   return NULL;
 }
@@ -379,6 +381,10 @@ PPCODE:
   struct marpa_event event;
   const char *result_string = NULL;
   Marpa_Event_Type result = marpa_g_event (g, &event, ix);
+  if (result == -1)
+  {
+      XSRETURN_UNDEF;
+  }
   if (result < 0)
     {
       croak ("Problem in g->event(): %s", xs_g_error (g_wrapper));
