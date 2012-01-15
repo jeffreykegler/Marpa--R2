@@ -56,6 +56,7 @@
 ^lib/Marpa/R2\.c
 ^lib/Marpa/R2\.xs
 ^libmarpa/build/
+^libmarpa/build_dist/
 ^libmarpa/install/
 ^libmarpa/dev/api/
 ^libmarpa/dev/api[.]aux
@@ -87,6 +88,11 @@
 ^libmarpa/dist/config.h.in~
 ^libmarpa/dist/configure.scan
 ^libmarpa/dist/libtool
+^libmarpa/stage_dist/autom4te.cache/
+^libmarpa/stage_dist/autoscan.log
+^libmarpa/stage_dist/config.h.in~
+^libmarpa/stage_dist/configure.scan
+^libmarpa/stage_dist/libtool
 ^libmarpa/test/dev/autom4te.cache/
 ^libmarpa/test/dev/autoscan.log
 ^libmarpa/test/work/

@@ -65,19 +65,24 @@ error.c.in error.h.in api.h.in: api.texi texi2code.pl
 
 marpa.pdf: marpa.tex cwebmac.tex
 
-../build_dist/stamp-h1: marpa.c \
+../build_dist/marpa.tar.gz: marpa.c \
     marpa.h.in api.h.in error.c.in error.h.in \
     ../build_dist/Makefile
 	cp marpa.c api.h.in error.h.in error.c.in marpa.h.in ../stage_dist
 	cd ../build_dist && make dist
+	version=`cat ../build_dist/VERSION`; \
+	    cd ../build_dist \
+	    && mv marpa-$$version.tar.gz marpa.tar.gz
 
 ../build_dist/Makefile: ../stage_dist/configure ../stage_dist/Makefile.in
 	cd ../build_dist && ../stage_dist/configure
 
-../dist/VERSION: ../build_dist/VERSION ../build_dist/stamp-h1
-	cp ../build_dist/VERSION ../dist/VERSION
-	version=`cat ../dist/VERSION`; \
-	cd ../dist \
-	    && tar -xvzf ../build_dist/marpa-$$version.tar.gz
+../VERSION: ../build_dist/VERSION ../build_dist/marpa.tar.gz
+	cp ../build_dist/VERSION ../VERSION
+	version=`cat ../VERSION`; \
+	    cd ..  \
+	    && tar -xvzf build_dist/marpa.tar.gz \
+	    && rm -rf dist \
+	    && mv marpa-$$version dist
 
-install: ../dist/VERSION
+install: ../VERSION

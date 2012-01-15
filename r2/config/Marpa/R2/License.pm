@@ -129,11 +129,16 @@ END_OF_STRING
 my %original = (
     'libmarpa/dist/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
     'libmarpa/dist/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
+    'libmarpa/stage_dist/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
+    'libmarpa/stage_dist/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
 );
 
 my %GNU_file =
-    map { ( 'libmarpa/dist/' . $_, 1, 'libmarpa/test/dev/' . $_, 1 ) }
-    qw(
+    map {
+    (   'libmarpa/stage_dist/' . $_, 1, 'libmarpa/dist/' . $_, 1,
+        'libmarpa/test/dev/' . $_,   1
+        )
+    } qw(
     aclocal.m4
     config.guess
     config.sub
@@ -253,6 +258,10 @@ my %files_by_type = (
     'libmarpa/dev/copyright_page_license.w'  => \&copyright_page,
     'Makefile.PL'                            => \&trivial,
     'libmarpa/dist/README'                   => \&trivial,
+    'libmarpa/stage_dist/README'                   => \&trivial,
+    'libmarpa/stage_dist/VERSION.in'                   => \&trivial,
+    'libmarpa/dist/VERSION.in'                   => \&trivial,
+    'libmarpa/VERSION'                   => \&trivial,
     'libmarpa/dev/README'                    => \&trivial,
     'libmarpa/dev/api.texi'             => \&license_problems_in_fdl_file,
     'libmarpa/test/README'              => \&trivial,
@@ -270,7 +279,10 @@ my %files_by_type = (
     'inc/proof/ah2002_notes.lyx'   => \&tex_closed,
     'inc/proof/proof.lyx'          => \&tex_closed,
     'libmarpa/dist/install-sh'     => \&check_X_copyright,
+    'libmarpa/stage_dist/install-sh'     => \&check_X_copyright,
     'libmarpa/test/dev/install-sh' => \&check_X_copyright,
+    'libmarpa/stage_dist/config.h.in' =>
+        check_tag( 'Generated from configure.ac by autoheader', 250 ),
     'libmarpa/dist/config.h.in' =>
         check_tag( 'Generated from configure.ac by autoheader', 250 ),
 );
