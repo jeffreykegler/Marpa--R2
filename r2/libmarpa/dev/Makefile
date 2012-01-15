@@ -48,7 +48,7 @@ SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 	 pdftex ) pdftex $* ;; \
 	esac
 
-all: marpa.pdf marpa.c marpa.h.in api.h.in error.h.in error.c.in docs
+all: marpa.pdf marpa.c marpa.h.in api.h.in codes.h.in codes.c.in docs
 
 docs: api.pdf api/index.html
 
@@ -60,15 +60,19 @@ api.pdf: api.texi
 
 marpa.c marpa.h.in: copyright_page_license.w marpa.w
 
-error.c.in error.h.in api.h.in: api.texi texi2code.pl
-	perl texi2code.pl api.h.in error.h.in error.c.in < api.texi
+codes.c.in codes.h.in api.h.in: api.texi texi2code.pl
+	perl texi2code.pl api.h.in codes.h.in codes.c.in < api.texi
+
+private.h: marpa.w w2private_h.pl
+	perl w2private_h.pl private.h < marpa.w
 
 marpa.pdf: marpa.tex cwebmac.tex
 
 ../build_dist/marpa.tar.gz: marpa.c \
-    marpa.h.in api.h.in error.c.in error.h.in \
+    private.h marpa.h.in api.h.in \
+    codes.c.in codes.h.in \
     ../build_dist/Makefile
-	cp marpa.c api.h.in error.h.in error.c.in marpa.h.in ../stage_dist
+	cp marpa.c private.h api.h.in codes.h.in codes.c.in marpa.h.in ../stage_dist
 	cd ../build_dist && make dist
 	version=`cat ../build_dist/VERSION`; \
 	    cd ../build_dist \

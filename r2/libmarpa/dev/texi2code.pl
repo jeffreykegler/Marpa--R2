@@ -21,12 +21,12 @@ use English qw( -no_match_vars );
 use Fatal qw(open close);
 
 if (scalar @ARGV != 3) {
-    die("usage: $PROGRAM_NAME api.h.in error.h.in error.c.in");
+    die("usage: $PROGRAM_NAME api.h.in codes.h.in codes.c.in");
 }
 
 open my $api_h_in, '>', $ARGV[0];
-open my $error_h_in, '>', $ARGV[1];
-open my $error_c_in, '>', $ARGV[2];
+open my $codes_h_in, '>', $ARGV[1];
+open my $codes_c_in, '>', $ARGV[2];
 
 # In addition to be taken from the texinfo, document
 # error codes are checked against this list.
@@ -150,7 +150,7 @@ my $notlib_preamble = <<'NOTLIB_PREAMBLE';
 
 NOTLIB_PREAMBLE
 
-print {$error_h_in} $common_preamble, $notlib_preamble, <<'STRUCT_DECLARATION';
+print {$codes_h_in} $common_preamble, $notlib_preamble, <<'STRUCT_DECLARATION';
 struct s_marpa_error_description {
     Marpa_Error_Code error_code;
     const char* name;
@@ -173,8 +173,8 @@ for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
         . $error_number;
 }
 
-print {$error_c_in} $common_preamble, $notlib_preamble;
-say {$error_c_in} <<'COMMENT';
+print {$codes_c_in} $common_preamble, $notlib_preamble;
+say {$codes_c_in} <<'COMMENT';
 /*
  * This is not a complete C file and for separate compilation.
  * In particular, it lacks a definition of s_marpa_error_description.
@@ -183,12 +183,12 @@ say {$error_c_in} <<'COMMENT';
  * as a text file.
  */;
 COMMENT
-say {$error_c_in} 'const struct s_marpa_error_description marpa_error_description[] = {';
+say {$codes_c_in} 'const struct s_marpa_error_description marpa_error_description[] = {';
 my @lines = ();
 for (my $error_number = 0; $error_number < $error_count; $error_number++) {
    my $suggested_description = $suggested[$error_number] // "Unknown error";
    my $error_name = $errors[$error_number];
-   say {$error_c_in} qq[  { $error_number, "$error_name", "$suggested_description" },];
+   say {$codes_c_in} qq[  { $error_number, "$error_name", "$suggested_description" },];
 }
-say {$error_c_in} '};';
+say {$codes_c_in} '};';
 

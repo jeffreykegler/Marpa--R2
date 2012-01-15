@@ -234,7 +234,9 @@ Enough so
 that it is useful to define a macro to let me know when inlining is not
 used in a private function.
 @s PRIVATE_NOT_INLINE int
+@s PRIVATE int
 @d PRIVATE_NOT_INLINE static
+@d PRIVATE static inline
 
 @*0 Marpa Global Setup.
 
@@ -623,9 +625,8 @@ True, that would be mainly useful to help
 a user shot himself in the foot,
 but it is in a long-standing UNIX tradition
 to allow the user that choice.
-@<Private function prototypes@> =
-void grammar_unref (GRAMMAR g);
-@ @<Function definitions@> =
+@<Function definitions@> =
+PRIVATE
 void
 grammar_unref (GRAMMAR g)
 {
@@ -642,10 +643,8 @@ marpa_g_unref (Marpa_Grammar g)
 { grammar_unref(g); }
 
 @ Increment the grammar reference count.
-@<Private function prototypes@> =
-static inline GRAMMAR grammar_ref (GRAMMAR g);
 @ @<Function definitions@> =
-static inline GRAMMAR
+PRIVATE GRAMMAR
 grammar_ref (GRAMMAR g)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->t_ref_count);
@@ -658,15 +657,13 @@ marpa_g_ref (Marpa_Grammar g)
 { return grammar_ref(g); }
 
 @ @<Function definitions@> =
-void grammar_free(struct marpa_g *g)
+PRIVATE
+void grammar_free(GRAMMAR g)
 {
 MARPA_DEBUG3("%s: Destroying grammar %p", G_STRLOC, g);
     @<Destroy grammar elements@>@;
     g_slice_free(struct marpa_g, g);
 }
-@ @<Private function prototypes@> =
-static inline void
-grammar_free(struct marpa_g *g);
 
 @*0 The Grammar's Symbol List.
 This lists the symbols for the grammar,
@@ -694,7 +691,7 @@ gint marpa_g_symbol_count(struct marpa_g* g) {
 @ Adds the symbol to the list of symbols kept by the Grammar
 object.
 @<Private inline functions@> =
-static inline
+PRIVATE
 void g_symbol_add(
     struct marpa_g *g,
     Marpa_Symbol_ID symid,
@@ -705,13 +702,10 @@ void g_symbol_add(
 
 @ Check that symbol is in valid range.
 @<Function definitions@> =
-static inline gint symbol_is_valid(
-const struct marpa_g *g, const Marpa_Symbol_ID symid) {
+PRIVATE gint symbol_is_valid(GRAMMAR g, SYMID symid)
+{
 return symid >= 0 && (guint)symid < g->t_symbols->len;
 }
-@ @<Private function prototypes@> =
-static inline gint symbol_is_valid(
-const struct marpa_g *g, const Marpa_Symbol_ID symid);
 
 @*0 The Grammar's Rule List.
 This lists the rules for the grammar,
@@ -735,9 +729,9 @@ gint marpa_g_rule_count(struct marpa_g* g) {
 @ Adds the rule to the list of rules kept by the Grammar
 object.
 @<Private inline functions@> =
-static inline
+PRIVATE
 void rule_add(
-    struct marpa_g *g,
+    GRAMMAR g,
     RULEID rule_id,
     RULE rule)
 {
@@ -13637,6 +13631,7 @@ So I add such a comment.
 @<Source object structure@>@;
 @<Earley item structure@>@;
 @<Bocage structure@>@;
+#include "private.h"
 @<Private function prototypes@>@;
 @<Private inline functions@>@;
 @<Function definitions@>@;
