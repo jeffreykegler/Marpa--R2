@@ -1,4 +1,5 @@
 /Makefile[.]in
+/VERSION
 /aclocal[.]m4
 /api[.]h[.]in
 /autom4te[.]cache

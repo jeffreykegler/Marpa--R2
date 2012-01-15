@@ -268,11 +268,21 @@ sub do_libmarpa {
     my $self         = shift;
     my $cwd          = $self->cwd();
     my $base_dir     = $self->base_dir();
+
+    # get the libmarpa version number
+    my $version_file = File::Spec->catfile( $base_dir, 'libmarpa', 'dist', 'VERSION' );
+    open my $version_fh, q{<}, $version_file;
+    my $libmarpa_version = <$version_fh>;
+    close $version_fh;
+
     my $build_dir = File::Spec->catdir( $base_dir, qw(libmarpa build) );
     -d $build_dir or mkdir $build_dir;
     chdir $build_dir;
     my $updir = File::Spec->updir();
-    my $configure_script = File::Spec->catfile( $updir, 'dist', 'configure' );
+    chomp $libmarpa_version;
+    my $configure_script =
+        File::Spec->catfile( $updir, 'dist', "marpa-$libmarpa_version",
+        'configure' );
     if ( not -r 'stamp-h1' ) {
 
         if ( $self->verbose() ) {
