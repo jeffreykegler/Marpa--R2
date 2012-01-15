@@ -12,6 +12,7 @@ under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation;
 @end quotation 
 @end copying 
+@finalout
 @titlepage 
 @title libmarpa
 @author Jeffrey Kegler
@@ -31,7 +32,7 @@ Published by Jeffrey Kegler
 This manual is for libmarpa, version 0.0.0, variant 0. 
 @end ifnottex 
 @menu 
-* About this document:: About this document
+* How to read this document:: How to read this document
 * About libmarpa:: About libmarpa
 * Concepts:: libmarpa Concepts
 * Static:: Static methods
@@ -44,8 +45,18 @@ This manual is for libmarpa, version 0.0.0, variant 0.
 * Error handling:: Error handling
 @end menu 
 
-@node About this document
-@chapter About this document
+@node How to read this document
+@chapter How to read this document
+
+@menu 
+* What is this document::What is this document?
+* Prerequisites::Prerequisites
+* Which chapters to read first::Which chapters to read first
+* Parsing theory::Parsing theory
+@end menu 
+
+@node What is this document
+@section What is this document?
 
 This document is intended as a reference manual
 for a complex low-level tool.
@@ -55,12 +66,46 @@ the technical knowledge required to appreciate its
 contents or, for that matter,
 even the C language itself.
 
-This document assumes the reader has read the documents
-for one of libmarpa's upper layers.
-I hope that will soon change,
-but currently all of libmarpa's upper layers
-are Perl distributions.
-The most up-to-date Marpa upper layer is Marpa::R2.
+@node Prerequisites
+@section Prerequisites
+
+This document is very far from self-contained.
+It assumes the following:
+@itemize
+@item
+The reader knows the C programming language.
+@item
+The reader
+has read the documents for one of libmarpa's upper layers.
+@item
+The reader
+is at least slightly familiar with Glib,
+and has the @cite{Glib Reference  Manual} available.
+In particular, the reader should know the type system
+described in its "Basic Types" section.
+@item
+The reader knows some parsing theory.
+@xref{Parsing theory}.
+@end itemize
+
+@node Which chapters to read first
+@section Which chapters to read first
+
+Early chapters of this document lay out concepts,
+while later chapters describe libmarpa's object in
+detail,
+or deal with optional topics.
+This document expects the reader will read its
+"concept" chapters first, and in the order of
+presentation.
+With those as background, the reader should
+then be able to read the rest of the material
+in the order,
+and to the extent,
+of his interest.
+
+@node Parsing theory
+@section Parsing theory
 
 This document also assumes an acquaintance
 with parsing theory.
@@ -109,9 +154,8 @@ he should have no trouble with BNF.
 @node About libmarpa
 @chapter About libmarpa
 This is the reference manual for libmarpa.
-libmarpa implements the Marpa parsing algorithm.
-Marpa is my creation.
-I named it
+Libmarpa implements the Marpa parsing algorithm.
+Marpa is named
 after the legendary 11th century Tibetan translator,
 Marpa Lotsawa.
 In creating Marpa,
@@ -119,7 +163,7 @@ I depended heavily on previous work by Jay Earley,
 Joop Leo,
 John Aycock and Nigel Horspool.
 
-libmarpa implements the entire Marpa algorithm.
+Libmarpa implements the entire Marpa algorithm.
 This library does
 the necessary grammar preprocessing, recognizes the input,
 and produces parse trees.
@@ -651,6 +695,13 @@ Return value: -2 if the grammar is not precomputed or
 
 @node Grammar internals
 @section Methods that deal with grammar internals
+
+The methods in this section are accessors for libmarpa's
+AHFA items and states.
+Their use requires familiarity with
+Marpa's internals, as described in
+@cite{Marpa: The Program}.
+These methods will not be of interest to most users.
 
 @deftypefun gint marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
 @end deftypefun
