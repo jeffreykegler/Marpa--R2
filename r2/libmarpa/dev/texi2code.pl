@@ -1,5 +1,5 @@
 #!perl
-# Copyright 2011 Jeffrey Kegler
+# Copyright 2012 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
@@ -117,7 +117,7 @@ for my $error_not_seen ( grep { !$errors_seen[$_] } (0 .. $#error_codes) ) {
 
 my $common_preamble = <<'COMMON_PREAMBLE';
 /*
- * Copyright 2011 Jeffrey Kegler
+ * Copyright 2012 Jeffrey Kegler
  * This file is part of Marpa::R2.  Marpa::R2 is free software: you can
  * redistribute it and/or modify it under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation,

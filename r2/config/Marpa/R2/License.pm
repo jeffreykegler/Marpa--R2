@@ -1,4 +1,4 @@
-# Copyright 2011 Jeffrey Kegler
+# Copyright 2012 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
@@ -24,7 +24,7 @@ use Fatal qw(open close read);
 use File::Spec;
 use Text::Diff ();
 
-my $copyright_line = q{Copyright 2011 Jeffrey Kegler};
+my $copyright_line = q{Copyright 2012 Jeffrey Kegler};
 ( my $copyright_line_in_tex = $copyright_line )
     =~ s/ ^ Copyright \s /Copyright \\copyright\\ /xms;
 
@@ -67,7 +67,7 @@ General Public License version 3 should be in a file named "COPYING".
 END_OF_STRING
 
 my $fdl_license = <<'END_OF_FDL_LANGUAGE';
-Copyright @copyright{} 2011 Jeffrey Kegler.
+Copyright @copyright{} 2012 Jeffrey Kegler.
 @quotation 
 Permission is granted to copy, distribute and/or modify this document 
 under the terms of the GNU Free Documentation License, Version 1.2 or 
