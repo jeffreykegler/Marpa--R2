@@ -1,4 +1,5 @@
 \input texinfo @c -*-texinfo-*- 
+@include version.texi
 @c %**start of header 
 @setfilename api.info 
 @settitle libmarpa variant 0
@@ -30,17 +31,20 @@ Published by Jeffrey Kegler
 @node Top 
 @top title 
 This manual is for libmarpa, version 0.0.0, variant 0. 
+
+@value{UPDATED}
 @end ifnottex 
 @menu 
 * How to read this document:: How to read this document
 * About libmarpa:: About libmarpa
 * Concepts:: libmarpa Concepts
 * Static:: Static methods
-* Grammars:: Grammar objects
-* Recognizers:: Recognizer objects
+* Grammars:: Grammars
+* Events:: Events
+* Recognizers:: Recognizers
 * Bocage:: Bocage objects
 * Order:: Order objects
-* Tree:: Tree objects
+* Tree:: Parse Trees
 * Value:: Value objects
 * Error handling:: Error handling
 @end menu 
@@ -739,6 +743,37 @@ These methods will not be of interest to most users.
 @deftypefun Marpa_AHFA_State_ID marpa_g_AHFA_state_empty_transition (Marpa_Grammar @var{g}, @
      Marpa_AHFA_Item_ID @var{AHFA_item_id})
 @end deftypefun
+
+@node Events
+@chapter Events
+
+@deftypevr Macro int MARPA_EVENT_NONE
+Suggested message: "No error."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_EXHAUSTED
+Suggested message: "Recognizer is exhausted."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+Suggested message: "Too many Earley items."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_LOOP_RULES
+Suggested message: "A rule is part of a infinite loop."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_NEW_SYMBOL
+Suggested message: "New symbol."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_NEW_RULE
+Suggested message: "New rule."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
+Suggested message: "Grammar has a counted nullable."
+@end deftypevr
 
 @node Recognizers
 @chapter Recognizer objects

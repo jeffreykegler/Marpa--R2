@@ -541,7 +541,7 @@ sub Marpa::R2::Grammar::precompute {
                 $grammar_c->event( $event_ix++ ) )
             {
                 last EVENT if not defined $event_type;
-                if ( $event_type eq 'counted nullable' ) {
+                if ( $event_type eq 'MARPA_EVENT_COUNTED_NULLABLE') {
                     push @counted_nullables, $grammar->symbol_name($value);
                 }
             } ## end while ( my ( $event_type, $value ) = $grammar_c->event(...))
@@ -601,7 +601,7 @@ sub Marpa::R2::Grammar::precompute {
         $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION];
     EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
-        if ( $event_type eq 'loop rules' ) {
+        if ( $event_type eq 'MARPA_EVENT_LOOP_RULES' ) {
             next EVENT if $infinite_action eq 'quiet';
             my @rule_seen;
             RULE: for my $rule_id ( 0 .. $#{$rules} ) {
@@ -617,7 +617,7 @@ sub Marpa::R2::Grammar::precompute {
             Marpa::R2::exception('Cycles in grammar, fatal error')
                 if $infinite_action eq 'fatal';
             next EVENT;
-        } ## end if ( $event_type eq 'loop rules' )
+        } ## end if ( $event_type eq 'MARPA_EVENT_LOOP_RULES' )
         Marpa::R2::exception(
             qq{Unknown earleme completion event; type="$event_type"});
     } ## end for my $event_ix ( 0 .. $event_count - 1 )
@@ -1671,14 +1671,14 @@ sub add_user_rule {
     } ## end if ( not defined $event_count )
     for my $event_ix ( 0 .. $event_count - 1 ) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
-        if ( $event_type eq 'new symbol' ) {
+        if ( $event_type eq 'MARPA_EVENT_NEW_SYMBOL' ) {
             my $name = $sequence_symbol_name_base;
             if ($sequence_symbol_count) {
                 $name .= '[' . $sequence_symbol_count . ']';
             }
             shadow_symbol( $grammar, $value, $name );
             $sequence_symbol_count++;
-        } ## end if ( $event_type eq 'new symbol' )
+        } ## end if ( $event_type eq 'MARPA_EVENT_NEW_SYMBOL' )
         if ( $event_type eq 'new rule' ) {
             push @sequence_rule_ids, $value;
         }

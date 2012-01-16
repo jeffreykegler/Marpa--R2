@@ -914,15 +914,7 @@ not expected to have high volumes of data.
 The memory used is that of
 the high water mark,
 with no way of freeing it.
-@<Public defines@> =
-#define MARPA_EVENT_NONE 0@/
-#define MARPA_EVENT_EXHAUSTED 1@/
-#define MARPA_EVENT_EARLEY_ITEM_THRESHOLD 2@/
-#define MARPA_EVENT_LOOP_RULES 3@/
-#define MARPA_EVENT_NEW_SYMBOL 4@/
-#define MARPA_EVENT_NEW_RULE 5@/
-#define MARPA_EVENT_COUNTED_NULLABLE 6@/
-@ @<Private incomplete structures@> =
+@<Private incomplete structures@> =
 struct s_g_event;
 typedef struct s_g_event* GEV;
 @ @<Public typedefs@> =
@@ -13362,9 +13354,10 @@ So I add such a comment.
 #include <stdio.h>
 #include <glib.h>
 #include "marpa_config.h"
-#include "marpa_api.h"
 
 @<Body of public header file@>
+
+#include "marpa_api.h"
 #endif __MARPA_H__
 
 @** Proofs.

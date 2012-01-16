@@ -61,15 +61,31 @@ MARPA_ERR_START_NOT_LHS
 MARPA_ERR_UNPRODUCTIVE_START
 );
 
+my @event_codes = qw(
+MARPA_EVENT_NONE
+MARPA_EVENT_EXHAUSTED
+MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+MARPA_EVENT_LOOP_RULES
+MARPA_EVENT_NEW_SYMBOL
+MARPA_EVENT_NEW_RULE
+MARPA_EVENT_COUNTED_NULLABLE
+);
+
+my @defs = ();
+my $current_variant;
+
 my %error_number = map { $error_codes[$_], $_ } (0 .. $#error_codes);
 my @errors_seen = ();
-
 my @errors = ();
-my $next_error_code = 0;
-my @defs = ();
 my $current_error_number = undef;
-my $current_variant;
-my @suggested = ();
+my @error_suggested_messages = ();
+
+my %event_number = map { $event_codes[$_], $_ } (0 .. $#event_codes);
+my @events_seen = ();
+my @events = ();
+my $current_event_number = undef;
+my @event_suggested_messages = ();
+
 while ( my $line = <STDIN> ) {
      if ($line =~ /\s variant \s+ (\d+) \.? \s* \z/xmsi) {
 	 my $variant = $1;
@@ -78,10 +94,11 @@ while ( my $line = <STDIN> ) {
 	 }
 	 $current_variant = $variant;
      }
+
      if ( defined $current_error_number ) {
         my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
         if ($message) {
-            $suggested[$current_error_number] = $message;
+            $error_suggested_messages[$current_error_number] = $message;
             $current_error_number = undef;
         }
      }
@@ -95,6 +112,25 @@ while ( my $line = <STDIN> ) {
 	    $errors[$current_error_number] = $error;
 	}
     }
+
+     if ( defined $current_event_number ) {
+        my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
+        if ($message) {
+            $event_suggested_messages[$current_event_number] = $message;
+            $current_event_number = undef;
+        }
+     }
+    if ( $line =~ /[@]deftypevr/xms ) {
+        my ($event) = ($line =~ m/(MARPA_EVENT_.*)\b/xms);
+	if ($event) {
+	    my $event_number = $event_number{$event};
+	    die("$event not in list in $PROGRAM_NAME") if not defined $event_number;
+	    $current_event_number = $event_number;
+	    $events_seen[$event_number] = 1;
+	    $events[$current_event_number] = $event;
+	}
+    }
+
     if ( $line =~ /[@]deftypefun/xms ) {
         my $def = q{};
         while ( $line =~ / [@] \s* \z /xms ) {
@@ -109,6 +145,7 @@ while ( my $line = <STDIN> ) {
         $def =~ s/\s \z/;/xmsg;
         push @defs, $def;
     } ## end if ( $line =~ /[@]deftypefun/xms )
+
 } ## end while ( my $line = <STDIN> )
 
 for my $error_not_seen ( grep { !$errors_seen[$_] } (0 .. $#error_codes) ) {
@@ -142,8 +179,8 @@ COMMON_PREAMBLE
 
 my $notlib_preamble = <<'NOTLIB_PREAMBLE';
 /*
- * This file is not part of libmarpa
- * It exists so that the higher levels,
+ * This file is not part compiled into libmarpa
+ * It exists for use by the higher levels,
  * which can either compile it as a C file,
  * or read it a a text file.
  */
@@ -156,15 +193,19 @@ struct s_marpa_error_description {
     const char* name;
     const char* suggested;
 };
+struct s_marpa_event_description {
+    Marpa_Event_Type event_code;
+    const char* name;
+    const char* suggested;
+};
 
 STRUCT_DECLARATION
 
-my $preamble_lines = scalar (my $copy = $common_preamble) =~ tr/\n//;
 say {$api_h} $common_preamble;
-say {$api_h} join q{ }, '#line', $preamble_lines+3, q{"api.h"};
 say {$api_h} join "\n", @defs;
 die "Variant never defined" if not defined $current_variant;
 say {$api_h} "#define MARPA_VARIANT $current_variant";
+
 my $error_count = scalar @errors;
 say {$api_h} "#define MARPA_ERROR_COUNT $error_count";
 for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
@@ -173,22 +214,37 @@ for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
         . $error_number;
 }
 
+my $event_count = scalar @events;
+say {$api_h} "#define MARPA_EVENT_COUNT $event_count";
+for ( my $event_number = 0; $event_number < $event_count; $event_number++ ) {
+    say {$api_h} '#define '
+        . $events[$event_number] . q{ }
+        . $event_number;
+}
+
 print {$codes_c} $common_preamble, $notlib_preamble;
 say {$codes_c} <<'COMMENT';
 /*
- * This is not a complete C file and for separate compilation.
- * In particular, it lacks a definition of s_marpa_error_description.
- * To compile this code, you can include it in a larger file.
- * Applications may prefer to get the information by reading it
- * as a text file.
+ * This is not a complete C file.
+ * In particular, it lacks definitions of its structures.
+ * To compile this code, you must include it in a larger file.
+ * Applications may prefer to read it as a text file.
  */;
 COMMENT
+
 say {$codes_c} 'const struct s_marpa_error_description marpa_error_description[] = {';
-my @lines = ();
 for (my $error_number = 0; $error_number < $error_count; $error_number++) {
-   my $suggested_description = $suggested[$error_number] // "Unknown error";
+   my $suggested_description = $error_suggested_messages[$error_number] // "Unknown error";
    my $error_name = $errors[$error_number];
    say {$codes_c} qq[  { $error_number, "$error_name", "$suggested_description" },];
+}
+say {$codes_c} '};';
+
+say {$codes_c} 'const struct s_marpa_event_description marpa_event_description[] = {';
+for (my $event_number = 0; $event_number < $event_count; $event_number++) {
+   my $suggested_description = $event_suggested_messages[$event_number] // "Unknown event";
+   my $event_name = $events[$event_number];
+   say {$codes_c} qq[  { $event_number, "$event_name", "$suggested_description" },];
 }
 say {$codes_c} '};';
 

@@ -48,15 +48,9 @@ SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 	 pdftex ) pdftex $* ;; \
 	esac
 
-all: marpa.pdf marpa.c marpa.h marpa_api.h codes.h codes.c docs
+all: marpa.pdf sources
 
-docs: api.pdf api/index.html
-
-api/index.html: api.texi
-	makeinfo --html api.texi
-
-api.pdf: api.texi
-	texi2dvi --pdf api.texi
+sources: marpa.c marpa.h marpa_api.h codes.h codes.c
 
 marpa.c marpa.h: copyright_page_license.w marpa.w
 
@@ -72,10 +66,12 @@ marpa.pdf: marpa.tex cwebmac.tex
 	test -d ../stage_dist/m4 || mkdir ../stage_dist/m4
 	cd ../stage_dist && autoreconf -ivf
 
-../build_dist/Makefile: $(STAGE_FILES) ../stage_dist/configure
+../build_dist/stamp-h1: $(STAGE_FILES) ../stage_dist/configure
+	test -d ../build_dist && rm -rf ../build_dist
+	mkdir ../build_dist
 	cd ../build_dist && ../stage_dist/configure
 
-../build_dist/marpa.tar.gz: ../build_dist/VERSION $(STAGE_FILES) ../build_dist/Makefile
+../build_dist/marpa.tar.gz: ../build_dist/VERSION $(STAGE_FILES) ../build_dist/stamp-h1
 	cd ../build_dist && make dist
 	version=`cat ../build_dist/VERSION`; \
 	    cd ../build_dist \
@@ -139,11 +135,11 @@ STAGE_FILES = \
 ../stage_dist/marpa_obs.h: marpa_obs.h
 	cp $? $@
 
-install: $(STAGE_FILES) ../VERSION
+install: sources ../VERSION
 
-../docs/Makefile: ../stage_dist/configure
+../docs/stamp-h1: ../stage_dist/configure
 	test -d ../docs || mkdir ../docs
 	cd ../docs && ../stage_dist/configure
 
-docs: ../docs/Makefile
+docs: ../docs/stamp-h1
 	cd ../docs && make pdf

@@ -76,29 +76,18 @@ static const char order_c_class_name[] = "Marpa::R2::Internal::O_C";
 static const char tree_c_class_name[] = "Marpa::R2::Internal::T_C";
 static const char value_c_class_name[] = "Marpa::R2::Internal::V_C";
 
-static const char *
-event_type_to_string (Marpa_Event_Type type)
-{
-  switch (type)
-    {
-    case MARPA_EVENT_EXHAUSTED:
-      return "exhausted";
-    case MARPA_EVENT_EARLEY_ITEM_THRESHOLD:
-      return "earley item count";
-    case MARPA_EVENT_LOOP_RULES:
-      return "loop rules";
-    case MARPA_EVENT_NEW_SYMBOL:
-      return "new symbol";
-    case MARPA_EVENT_NEW_RULE:
-      return "new rule";
-    case MARPA_EVENT_COUNTED_NULLABLE:
-      return "counted nullable";
-    }
-  return NULL;
-}
-
 #include "codes.h"
 #include "codes.c"
+
+static const char *
+event_type_to_string (Marpa_Event_Type event_code)
+{
+  const char *event_name = NULL;
+  if (event_code >= 0 && event_code < MARPA_ERROR_COUNT) {
+      event_name = marpa_event_description[event_code].name;
+  }
+  return event_name;
+}
 
 /* This routine is for the handling exceptions
    from libmarpa.  It is used when in the general
