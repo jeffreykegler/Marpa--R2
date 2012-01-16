@@ -5,7 +5,7 @@
 /api[.]cps
 /api[.]fn
 /api[.]fns
-/api[.]h[.]in
+/marpa_api[.]h
 /api[.]idx
 /api[.]info
 /api[.]ky
@@ -18,10 +18,10 @@
 /api[.]tp
 /api[.]vr
 /api[.]vrs
-/codes[.]c[.]in
-/codes[.]h[.]in
+/codes[.]c
+/codes[.]h
 /marpa[.]c
-/marpa[.]h[.]in
+/marpa[.]h
 /marpa[.]idx
 /marpa[.]log
 /marpa[.]pdf

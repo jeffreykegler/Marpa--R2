@@ -1,10 +1,9 @@
 /Makefile[.]in
 /VERSION
 /aclocal[.]m4
-/api[.]h[.]in
 /autom4te[.]cache
-/codes[.]c[.]in
-/codes[.]h[.]in
+/codes[.]c
+/codes[.]h
 /config[.]guess
 /config[.]h[.]in
 /config[.]h[.]in~
@@ -15,7 +14,8 @@
 /ltmain[.]sh
 /m4
 /marpa[.]c
-/marpa[.]h[.]in
+/marpa[.]h
+/marpa_api[.]h
 /missing
 /private[.]h
 /standalone[.]c
