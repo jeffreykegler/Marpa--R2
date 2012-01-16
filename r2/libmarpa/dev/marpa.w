@@ -1139,8 +1139,6 @@ PRIVATE void symbol_free(SYM symbol)
 {
     @<Free symbol elements@>@; g_free(symbol);
 }
-@ @<Private function prototypes@> =
-static inline void symbol_free(SYM symbol);
 
 @ Symbol ID: This is the unique identifier for the symbol.
 @d ID_of_SYM(sym) ((sym)->t_symbol_id)
@@ -1410,8 +1408,6 @@ if (alias == NULL) {
 }
 return ID_of_SYM(alias);
 }
-@ @<Private function prototypes@> =
-static inline SYM symbol_null_alias(SYM symbol);
 
 @ Given a proper nullable symbol as its argument,
 converts the argument into two ``aliases".
@@ -1419,9 +1415,6 @@ The proper (non-nullable) alias will have the same symbol ID
 as the arugment.
 The nulling alias will have a new symbol ID.
 The return value is a pointer to the nulling alias.
-@ @<Private function prototypes@> = 
-static inline
-SYM symbol_alias_create(GRAMMAR g, SYM symbol);
 @ @<Function definitions@> =
 PRIVATE
 SYM symbol_alias_create(GRAMMAR g, SYM symbol)
@@ -1909,8 +1902,6 @@ rule->t_symbols[0] = lhs;
 PRIVATE Marpa_Symbol_ID rule_lhs_get(RULE rule)
 {
     return rule->t_symbols[0]; }
-@ @<Private function prototypes@> =
-static inline Marpa_Symbol_ID rule_lhs_get(RULE rule);
 @ @<Function definitions@> =
 Marpa_Symbol_ID marpa_g_rule_lhs(struct marpa_g *g, Marpa_Rule_ID rule_id) {
     @<Return |-2| on failure@>@;
@@ -1920,8 +1911,6 @@ Marpa_Symbol_ID marpa_g_rule_lhs(struct marpa_g *g, Marpa_Rule_ID rule_id) {
 PRIVATE Marpa_Symbol_ID* rule_rhs_get(RULE rule)
 {
     return rule->t_symbols+1; }
-@ @<Private function prototypes@> =
-static inline Marpa_Symbol_ID* rule_rhs_get(RULE rule);
 @ @<Function definitions@> =
 Marpa_Symbol_ID marpa_g_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, gint ix) {
     RULE rule;
@@ -1935,8 +1924,6 @@ Marpa_Symbol_ID marpa_g_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id,
 PRIVATE gsize rule_length_get(RULE rule)
 {
     return Length_of_RULE(rule); }
-@ @<Private function prototypes@> =
-static inline gsize rule_length_get(RULE rule);
 @ @<Function definitions@> =
 gint marpa_g_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
     @<Return |-2| on failure@>@;
@@ -2011,8 +1998,6 @@ RULE  rule;
 rule = RULE_by_ID(g, rule_id);
 return rule_is_accessible(g, rule);
 }
-@ @<Private function prototypes@> =
-static inline gint rule_is_accessible(struct marpa_g* g, RULE  rule);
 
 @*0 Productive Rules.
 @ A rule is productive if every symbol on its RHS is productive.
@@ -2033,8 +2018,6 @@ RULE  rule;
 rule = RULE_by_ID(g, rule_id);
 return rule_is_productive(g, rule);
 }
-@ @<Private function prototypes@> =
-static inline gint rule_is_productive(struct marpa_g* g, RULE  rule);
 
 @*0 Loop Rule.
 @ A rule is a loop rule if it non-trivially
@@ -2089,8 +2072,6 @@ rule_is_nulling (GRAMMAR g, RULE rule)
     }
   return TRUE;
 }
-@ @<Private function prototypes@> =
-static inline gint rule_is_nulling(GRAMMAR g, RULE rule);
 
 @*0 Is Rule Used?.
 Is the rule used in computing the AHFA sets?
@@ -2320,8 +2301,6 @@ gint t_symbol_instance_base;
 gint t_last_proper_symi;
 @ @<Initialize rule elements@> =
 Last_Proper_SYMI_of_RULE(rule) = -1;
-@ @<Private function prototypes@> =
-static inline gint symbol_instance_of_ahfa_item_get(AIM aim);
 @ Symbol instances are for the {\bf predot} symbol.
 In parsing the emphasis is on what is to come ---
 on what follows the dot.
@@ -2765,7 +2744,7 @@ And rule ID's increase by one each time,
 so that all the new
 rules will have ID's equal to or greater than |no_of_rules|.
 @ @<Function definitions@> =
-static inline struct marpa_g* CHAF_rewrite(struct marpa_g* g)
+PRIVATE struct marpa_g* CHAF_rewrite(struct marpa_g* g)
 {
     @<CHAF rewrite declarations@>@;
     @<CHAF rewrite allocations@>@;
@@ -3161,23 +3140,20 @@ rule structure, and performing the call back.
 It is assumed that the caller has ensured that
 |proper_id| is valid and that an alias actually exists.
 @<Function definitions@> =
-static inline
-Marpa_Symbol_ID alias_by_id(struct marpa_g* g, Marpa_Symbol_ID proper_id) {
+PRIVATE
+SYMID alias_by_id(GRAMMAR g, SYMID proper_id)
+{
      SYM alias = symbol_null_alias(SYM_by_ID(proper_id));
      return ID_of_SYM(alias);
 }
-@ @<Private function prototypes@> =
-static inline
-Marpa_Symbol_ID alias_by_id(struct marpa_g* g, Marpa_Symbol_ID proper_id);
 
 @** Adding a New Start Symbol.
 This is such a common rewrite that it has a special name
 in the literature --- it is called ``augmenting the grammar".
-@<Private function prototypes@> =
-static inline struct marpa_g* g_augment(struct marpa_g* g);
 @ @<Function definitions@> =
-static inline
-struct marpa_g* g_augment(struct marpa_g* g) {
+PRIVATE
+GRAMMAR g_augment(GRAMMAR g)
+{
     Marpa_Symbol_ID proper_new_start_id = -1;
     SYM proper_old_start = NULL;
     SYM nulling_old_start = NULL;
@@ -3296,7 +3272,7 @@ There are lots of possibilities in between these two extremes.
 To assist the upper layers, an event is reported for a non-zero
 loop rule count, with the final tally.
 @<Function definitions@> =
-static inline
+PRIVATE
 void loop_detect(struct marpa_g* g)
 {
     gint no_of_rules = RULE_Count_of_G(g);
@@ -3527,8 +3503,9 @@ if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
 
 @ Check that AHFA item ID is in valid range.
 @<Function definitions@> =
-static inline gboolean item_is_valid(
-GRAMMAR g, AIMID item_id) {
+PRIVATE gboolean item_is_valid(
+GRAMMAR g, AIMID item_id)
+{
 return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 }
 @ @<Private function prototypes@> =
@@ -3618,8 +3595,9 @@ or equal to the final numbers of items.
 That means that I can avoid the overhead of checking the array
 size when adding each new AHFA item.
 @<Function definitions@> =
-static inline
-void create_AHFA_items(GRAMMAR g) {
+PRIVATE
+void create_AHFA_items(GRAMMAR g)
+{
     RULEID rule_id;
     guint no_of_items;
     guint no_of_rules = RULE_Count_of_G(g);
@@ -3902,7 +3880,7 @@ Most are set dependent on context.
 @<Private function prototypes@> =
 static inline void AHFA_initialize(AHFA ahfa);
 @ @<Function definitions@> =
-static inline void AHFA_initialize(AHFA ahfa)
+PRIVATE void AHFA_initialize(AHFA ahfa)
 {
     @<Initialize AHFA@>@;
 }
@@ -3937,7 +3915,7 @@ of AIM items, but that is more overhead.
 Perhaps better to just search than
 to spend cycles figuring out how to search.
 @<Function definitions@> =
-static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM sought_aim)
+PRIVATE AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM sought_aim)
 {
     AIM* const aims = AIMs_of_AHFA(ahfa);
     gint aim_count = AIM_Count_of_AHFA(ahfa);
@@ -4011,13 +3989,10 @@ STOLEN_DQUEUE_DATA_FREE(g->t_AHFA);
 @*0 Validate AHFA ID.
 Check that AHFA ID is in valid range.
 @<Function definitions@> =
-static inline gint AHFA_state_id_is_valid(
-const struct marpa_g *g, AHFAID AHFA_state_id) {
-return AHFA_state_id < AHFA_Count_of_G(g) && AHFA_state_id >= 0;
+PRIVATE gint AHFA_state_id_is_valid(GRAMMAR g, AHFAID AHFA_state_id)
+{
+    return AHFA_state_id < AHFA_Count_of_G(g) && AHFA_state_id >= 0;
 }
-@ @<Private function prototypes@> =
-static inline gint AHFA_state_id_is_valid(
-const struct marpa_g *g, AHFAID AHFA_state_id);
 
     
 @*0 Postdot Symbols.
@@ -4028,7 +4003,7 @@ const struct marpa_g *g, AHFAID AHFA_state_id);
 
 @*0 AHFA State External Accessors.
 @<Function definitions@> =
-gint marpa_g_AHFA_state_count(struct marpa_g* g) {
+gint marpa_g_AHFA_state_count(Marpa_Grammar g) {
     return AHFA_Count_of_G(g);
 }
 
@@ -4623,7 +4598,7 @@ When it does exist, return a pointer to it.
 static inline AHFA assign_AHFA_state(
 AHFA state_p, GTree* duplicates);
 @ @<Function definitions@> =
-static inline AHFA
+PRIVATE AHFA
 assign_AHFA_state (AHFA sought_state, GTree* duplicates)
 {
   const AHFA state_found = g_tree_lookup(duplicates, sought_state);
@@ -5047,27 +5022,23 @@ struct s_transition {
 @ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
 @<Widely aligned AHFA state elements@> =
     TRANS* t_transitions;
-@ @<Private function prototypes@> =
-static inline AHFA to_ahfa_of_transition_get(TRANS transition);
 @ @<Function definitions@> =
-static inline AHFA to_ahfa_of_transition_get(TRANS transition) {
+PRIVATE AHFA to_ahfa_of_transition_get(TRANS transition)
+{
      if (!transition) return NULL;
      return transition->t_ur.t_to_ahfa;
 }
-@ @<Private function prototypes@> =
-static inline gint completion_count_of_transition_get(TRANS transition);
 @ @<Function definitions@> =
-static inline gint completion_count_of_transition_get(TRANS transition) {
+PRIVATE gint completion_count_of_transition_get(TRANS transition)
+{
      if (!transition) return 0;
      return transition->t_ur.t_completion_count;
 }
 
-@ @<Private function prototypes@> =
-static inline
-URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix);
 @ @<Function definitions@> =
-static inline
-URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix) {
+PRIVATE
+URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix)
+{
      URTRANS transition;
      transition = obstack_alloc (obstack, sizeof (transition[0]));
      transition->t_to_ahfa = to_ahfa;
@@ -5075,10 +5046,9 @@ URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, gint aim_ix) {
      return transition;
 }
 
-@ @<Private function prototypes@> = static inline
-TRANS* transitions_new(struct marpa_g* g);
-@ @<Function definitions@> = static inline
-TRANS* transitions_new(struct marpa_g* g) {
+@ @<Function definitions@> =
+PRIVATE TRANS* transitions_new(GRAMMAR g)
+{
     gint symbol_count = SYM_Count_of_G(g);
     gint symid = 0;
     TRANS* transitions;
@@ -5089,11 +5059,8 @@ TRANS* transitions_new(struct marpa_g* g) {
     return transitions;
 }
 
-@ @<Private function prototypes@> =
-static inline
-void transition_add(struct obstack *obstack, AHFA from_ahfa, SYMID symid, AHFA to_ahfa);
 @ @<Function definitions@> =
-static inline
+PRIVATE
 void transition_add(struct obstack *obstack, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
