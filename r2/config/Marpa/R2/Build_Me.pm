@@ -167,6 +167,9 @@ sub process_xs {
 
     my $libmarpa_build_dir =
         File::Spec->catdir( $self->base_dir(), qw(libmarpa build) );
+    my $libmarpa_dist_dir =
+        File::Spec->catdir( $self->base_dir(), qw(libmarpa dist) );
+
     my @xs_dependencies = ( 'typemap', 'Build', $xs_file );
 
     if ( not $self->up_to_date( \@xs_dependencies, $spec->{c_file} ) ) {
@@ -177,7 +180,7 @@ sub process_xs {
     # .c -> .o
     my $v = $self->dist_version;
     $self->verbose() and say "compiling $spec->{c_file}";
-    my @new_ccflags = ('-I',  $libmarpa_build_dir);
+    my @new_ccflags = ( '-I', $libmarpa_build_dir, '-I', $libmarpa_dist_dir );
     if ( $self->config('cc') eq 'gcc' ) {
         my $gperl_h_location = $Glib::Install::Files::CORE;
         push @new_ccflags,
@@ -402,8 +405,11 @@ sub ACTION_clean {
     if ( $self->verbose ) {
         print "Cleaning libmarpa\n" or die "print failed: $ERRNO";
     }
-    my $libmarpa_dir = File::Spec->catdir( $curdir, qw(libmarpa build) );
-    File::Path::rmtree( $libmarpa_dir, { keep_root => 1 } );
+    for my $libmarpa_subdir (qw(build))
+    {
+	my $dir_to_clean = File::Spec->catdir( $curdir, 'libmarpa', $libmarpa_subdir );
+	File::Path::rmtree( $dir_to_clean );
+    }
 
     return $self->SUPER::ACTION_clean;
 } ## end sub ACTION_clean
