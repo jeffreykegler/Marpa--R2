@@ -2552,9 +2552,9 @@ gboolean have_empty_rule = 0;
 @ @<Census nullable symbols@> = 
 {
   guint min, max, start;
+  SYMID symid;
   nullable_v = bv_clone (empty_lhs_v);
   rhs_closure (g, nullable_v);
-  Marpa_Symbol_ID symid;
   gint counted_nullables = 0;
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
@@ -8656,8 +8656,6 @@ ur_node_push (URS stack, EIM earley_item, AEX aex)
   stack->t_top = new_top;
 }
 
-@ @<Private function prototypes@> =
-static inline UR ur_node_pop(URS stack);
 @ @<Function definitions@> =
 PRIVATE UR
 ur_node_pop (URS stack)
@@ -8721,13 +8719,7 @@ never on the stack.
 and per AEX.  Thus, Per-Set-Item-Aex, or PSIA.
 This function ensures that the appropriate |PSIA| boolean is set.
 It returns that boolean's value {\bf prior} to the call.
-@<Private function prototypes@> =
-static inline gint psia_test_and_set(
-    struct obstack* obs,
-    struct s_bocage_setup_per_es* per_es_data,
-    EIM earley_item,
-    AEX ahfa_element_ix);
-@ @<Function definitions@> = 
+@<Function definitions@> = 
 PRIVATE gint psia_test_and_set(
     struct obstack* obs,
     struct s_bocage_setup_per_es* per_es_data,
@@ -9346,9 +9338,7 @@ requirements in the process.
 
 @ Get the base data for a Leo item -- its base Earley item
 and the index of the relevant AHFA item.
-@<Private function prototypes@> =
-static inline AEX lim_base_data_get(LIM leo_item, EIM* p_base);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE AEX lim_base_data_get(LIM leo_item, EIM* p_base)
 {
       const SYMID postdot = Postdot_SYMID_of_LIM (leo_item);
@@ -9360,9 +9350,7 @@ PRIVATE AEX lim_base_data_get(LIM leo_item, EIM* p_base)
 
 @ @d Path_AIM_of_LIM(lim) (base_aim_of_lim(lim)+1)
 @d Base_AIM_of_LIM(lim) (base_aim_of_lim(lim))
-@<Private function prototypes@> =
-static inline AIM base_aim_of_lim(LIM leo_item);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE AIM base_aim_of_lim(LIM leo_item)
 {
       EIM base;
@@ -9481,9 +9469,6 @@ struct s_draft_and_node {
 };
 typedef struct s_draft_and_node DAND_Object;
 
-@ @<Private function prototypes@> =
-static inline
-DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause);
 @ @<Function definitions@> =
 PRIVATE
 DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
@@ -9507,10 +9492,7 @@ the search to the first $n$ draft and-nodes.
 rely on chains of length less than $n$ being non-duplicated,
 and the PSARs can be reserved for the unusual case where this
 is not sufficient.
-@<Private function prototypes@> =
-static inline
-void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE
 void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
 {
@@ -10074,8 +10056,6 @@ Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
     @<Check |and_node_id|; set |and_node|@>@;
     return and_node_token(and_node, value_p);
 }
-@ @<Private function prototypes@> =
-static inline SYMID and_node_token(AND and_node, gpointer* value_p);
 @ @<Function definitions@> =
 PRIVATE SYMID and_node_token(AND and_node, gpointer* value_p)
 {
@@ -10424,9 +10404,7 @@ Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b)
 b->t_ref_count = 1;
 
 @ Decrement the bocage reference count.
-@<Private function prototypes@> =
-static inline void bocage_unref (BOCAGE b);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE void
 bocage_unref (BOCAGE b)
 {
@@ -10445,9 +10423,7 @@ marpa_b_unref (Marpa_Bocage b)
 }
 
 @ Increment the bocage reference count.
-@<Private function prototypes@> =
-static inline BOCAGE bocage_ref (BOCAGE b);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE BOCAGE
 bocage_ref (BOCAGE b)
 {
@@ -10658,9 +10634,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     o->t_ref_count = 1;
 
 @ Decrement the order reference count.
-@<Private function prototypes@> =
-static inline void order_unref (ORDER o);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE void
 order_unref (ORDER o)
 {
@@ -10679,9 +10653,7 @@ marpa_o_unref (Marpa_Order o)
 }
 
 @ Increment the order reference count.
-@<Private function prototypes@> =
-static inline ORDER order_ref (ORDER o);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE ORDER
 order_ref (ORDER o)
 {
@@ -10696,8 +10668,6 @@ marpa_o_ref (Marpa_Order o)
    return order_ref(o);
 }
 
-@ @<Private function prototypes@> =
-static inline void order_strip(ORDER o);
 @ @<Function definitions@> =
 PRIVATE void order_strip(ORDER o)
 {
@@ -10707,16 +10677,12 @@ PRIVATE void order_strip(ORDER o)
 	o->t_and_node_in_use = NULL;
     }
 }
-@ @<Private function prototypes@> =
-static inline void order_freeze(ORDER o);
 @ @<Function definitions@> =
 PRIVATE void order_freeze(ORDER o)
 {
   order_strip(o);
   O_is_Frozen(o) = 0;
 }
-@ @<Private function prototypes@> =
-static inline void order_free(ORDER o);
 @ @<Function definitions@> =
 PRIVATE void order_free(ORDER o)
 {
@@ -10883,9 +10849,7 @@ gint marpa_o_and_order_set(
 }
 
 @*0 Get an And-node by Order within its Or-Node.
-@ @<Private function prototypes@> =
-static inline ANDID and_order_get(ORDER o, OR or_node, gint ix);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE ANDID and_order_get(ORDER o, OR or_node, gint ix)
 {
   @<Unpack order objects@>@;
@@ -10971,8 +10935,6 @@ struct s_tree {
     ORDER o = O_of_T(t);
     @<Unpack order objects@>;
 
-@ @<Private function prototypes@> =
-static inline void tree_exhaust(TREE t);
 @ @<Function definitions@> =
 PRIVATE void tree_exhaust(TREE t)
 {
@@ -11028,9 +10990,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     t->t_ref_count = 1;
 
 @ Decrement the tree reference count.
-@<Private function prototypes@> =
-static inline void tree_unref (TREE t);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE void
 tree_unref (TREE t)
 {
@@ -11049,9 +11009,7 @@ marpa_t_unref (Marpa_Tree t)
 }
 
 @ Increment the tree reference count.
-@<Private function prototypes@> =
-static inline TREE tree_ref (TREE t);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE TREE
 tree_ref (TREE t)
 {
@@ -11066,8 +11024,6 @@ marpa_t_ref (Marpa_Tree t)
    return tree_ref(t);
 }
 
-@ @<Private function prototypes@> =
-static inline void tree_free(TREE t);
 @ @<Function definitions@> =
 PRIVATE void tree_free(TREE t)
 {
@@ -11111,9 +11067,6 @@ an overhead, one which adds absolutely no value
 for most applications.
 @d T_is_Paused(t) ((t)->t_pause_counter > 0)
 @<Int aligned tree elements@> = gint t_pause_counter;
-@ @<Private function prototypes@> =
-static inline void tree_pause (TREE t);
-static inline void tree_unpause (TREE t);
 @ @<Initialize tree elements@> = t->t_pause_counter = 0;
 @ @<Function definitions@> =
 PRIVATE void
@@ -11198,10 +11151,6 @@ gint marpa_t_next(Marpa_Tree t)
 To avoid cycles, the same and node is not allowed to occur twice
 in the parse tree.
 A bit vector, accessed by these functions, enforces this.
-@<Private function prototypes@> =
-static inline void tree_and_node_claim(TREE tree, ANDID and_node_id);
-static inline void tree_and_node_release(TREE tree, ANDID and_node_id);
-static inline gint tree_and_node_try(TREE tree, ANDID and_node_id);
 @ Claim the and-node by setting its bit.
 @<Function definitions@> =
 PRIVATE void tree_and_node_claim(TREE tree, ANDID and_node_id)
@@ -11350,8 +11299,6 @@ Otherwise, the tree is exhausted.
     NEXT_TREE: ;
 }
 
-@ @<Private function prototypes@> =
-static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choice);
 @ @<Function definitions@> =
 PRIVATE gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choice)
 {
@@ -11713,9 +11660,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     v->t_ref_count = 1;
 
 @ Decrement the value reference count.
-@<Private function prototypes@> =
-static inline void value_unref (VALUE v);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE void
 value_unref (VALUE v)
 {
@@ -11734,9 +11679,7 @@ marpa_v_unref (Marpa_Value v)
 }
 
 @ Increment the value reference count.
-@<Private function prototypes@> =
-static inline VALUE value_ref (VALUE v);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE VALUE
 value_ref (VALUE v)
 {
@@ -11751,8 +11694,6 @@ marpa_v_ref (Marpa_Value v)
    return value_ref(v);
 }
 
-@ @<Private function prototypes@> =
-static inline void value_free(VALUE v);
 @ @<Function definitions@> =
 PRIVATE void value_free(VALUE v)
 {
@@ -11940,33 +11881,27 @@ static const guint bv_msb = (1u << (sizeof(Bit_Vector_Word)*8u-1u));
 
 @ Given a number of bits, compute the size.
 @<Function definitions@> =
-static inline guint bv_bits_to_size(guint bits)
+PRIVATE guint bv_bits_to_size(guint bits)
 {
     return (bits+bv_modmask)/bv_wordbits;
 }
-@ @<Private function prototypes@> =
-static inline guint bv_bits_to_size(guint bits);
 @ Given a number of bits, compute the unused-bit mask.
 @<Function definitions@> =
-static inline guint bv_bits_to_unused_mask(guint bits)
+PRIVATE guint bv_bits_to_unused_mask(guint bits)
 {
     guint mask = bits & bv_modmask;
     if (mask) mask = (guint) ~(~0uL << mask); else mask = (guint) ~0uL;
     return(mask);
 }
-@ @<Private function prototypes@> =
-static inline guint bv_bits_to_unused_mask(guint bits);
 
 @*0 Create a Boolean Vector.
-@<Private function prototypes@> =
-static inline Bit_Vector bv_create(guint bits);
 @ Always start with an all-zero vector.
 Note this code is a bit tricky ---
 the pointer returned is to the data.
 This is offset from the |g_malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
-static inline Bit_Vector bv_create(guint bits)
+PRIVATE Bit_Vector bv_create(guint bits)
 {
     guint size = bv_bits_to_size(bits);
     guint bytes = (size + bv_hiddenwords) << sizeof(guint);
@@ -11978,15 +11913,13 @@ static inline Bit_Vector bv_create(guint bits)
 }
 
 @*0 Create a Boolean Vector on an Obstack.
-@<Private function prototypes@> =
-static inline Bit_Vector bv_obs_create(struct obstack *obs, guint bits);
 @ Always start with an all-zero vector.
 Note this code is a bit tricky ---
 the pointer returned is to the data.
 This is offset from the |g_malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
-static inline Bit_Vector
+PRIVATE Bit_Vector
 bv_obs_create (struct obstack *obs, guint bits)
 {
   guint size = bv_bits_to_size (bits);
@@ -12007,18 +11940,17 @@ bv_obs_create (struct obstack *obs, guint bits)
 Create another vector the same size as the original, but with
 all bits unset.
 @<Function definitions@> =
-static inline Bit_Vector bv_shadow(Bit_Vector bv)
+PRIVATE Bit_Vector bv_shadow(Bit_Vector bv)
 {
     return bv_create(BV_BITS(bv));
 }
-@ @<Private function prototypes@> =
-static inline Bit_Vector bv_shadow(Bit_Vector bv);
 
 @*0 Clone a Boolean Vector.
 Given a boolean vector, creates a new vector which is
 an exact duplicate.
 This call allocates a new vector, which must be |g_free|'d.
-@<Function definitions@> = static inline
+@<Function definitions@> =
+PRIVATE
 Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from)
 {
     guint *p_to = bv_to;
