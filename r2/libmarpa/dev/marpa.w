@@ -31,9 +31,9 @@
 
 \secpagedepth=1
 
-\def\title{Code for Marpa}
+\def\title{Marpa: the program}
 \def\topofcontents{\null\vfill
-  \centerline{\titlefont Code for Marpa}
+  \centerline{\titlefont Marpa: the program}
   \vfill}
 \def\botofcontents{\vfill
 \noindent
@@ -2544,9 +2544,9 @@ gboolean have_empty_rule = 0;
 {
   guint min, max, start;
   SYMID symid;
+  gint counted_nullables = 0;
   nullable_v = bv_clone (empty_lhs_v);
   rhs_closure (g, nullable_v);
-  gint counted_nullables = 0;
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
       for (symid = (Marpa_Symbol_ID) min; symid <= (Marpa_Symbol_ID) max;
