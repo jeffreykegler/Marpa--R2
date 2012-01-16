@@ -165,19 +165,9 @@ sub process_xs {
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
 
-    my $xs_dir = File::Spec->catdir( $self->base_dir(), 'xs' );
-    my $xs_include_dir =
-        File::Spec->catdir( $self->base_dir(), qw(xs include) );
-    -d $xs_include_dir or mkdir $xs_include_dir;
     my $libmarpa_build_dir =
         File::Spec->catdir( $self->base_dir(), qw(libmarpa build) );
     my @xs_dependencies = ( 'typemap', 'Build', $xs_file );
-    for my $file (qw(marpa.h error.h error.c)) {
-        my $from_file = File::Spec->catfile( $libmarpa_build_dir, $file );
-        my $to_file   = File::Spec->catfile( $xs_include_dir,     $file );
-        $self->copy_if_modified( from => $from_file, to => $to_file );
-        push @xs_dependencies, $to_file;
-    } ## end for my $file (qw(marpa.h error.h error.c))
 
     if ( not $self->up_to_date( \@xs_dependencies, $spec->{c_file} ) ) {
         $self->verbose() and say "compiling $xs_file";
@@ -187,20 +177,17 @@ sub process_xs {
     # .c -> .o
     my $v = $self->dist_version;
     $self->verbose() and say "compiling $spec->{c_file}";
+    my @new_ccflags = ('-I',  $libmarpa_build_dir);
     if ( $self->config('cc') eq 'gcc' ) {
-        my $ccflags = $self->config('ccflags');
-	my $gperl_h_location = $Glib::Install::Files::CORE;
-        $self->config(
-            'ccflags' => (
-                      $ccflags
-                    . ' -Wall -Wno-unused-variable -Wextra -Wpointer-arith'
-                    . ' -Wstrict-prototypes -Wwrite-strings'
-                    . ' -Wdeclaration-after-statement -Winline'
-                    . ' -Wmissing-declarations '
-		    . " -isystem $gperl_h_location "
-            )
-        );
+        my $gperl_h_location = $Glib::Install::Files::CORE;
+        push @new_ccflags,
+            qw( -Wall -Wno-unused-variable -Wextra -Wpointer-arith
+            -Wstrict-prototypes -Wwrite-strings
+            -Wdeclaration-after-statement -Winline
+            -Wmissing-declarations ), '-isystem', $gperl_h_location;
     } ## end if ( $self->config('cc') eq 'gcc' )
+    my $ccflags = $self->config('ccflags');
+    $self->config( ccflags => ( $ccflags . q{ } . join q{ }, @new_ccflags ) );
     $self->compile_c( $spec->{c_file},
         defines => { VERSION => qq{"$v"}, XS_VERSION => qq{"$v"} } );
 

@@ -121,7 +121,7 @@ my $build = Marpa::R2::Build_Me->new(
     build_requires     => \%build_requires,
     dynamic_config     => 1,
     extra_compiler_flags =>
-        ( "$glib_2_0_compiler_flags -I$gperl_h_location -Ixs/include " ),
+        ( "$glib_2_0_compiler_flags -I$gperl_h_location " ),
     extra_linker_flags => "$glib_2_0_linker_flags",
     PL_files           => {},
     pm_files           => \%pm_files,

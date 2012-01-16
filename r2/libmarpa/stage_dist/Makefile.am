@@ -20,7 +20,7 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = README
 noinst_LTLIBRARIES = libmarpa.la
 libmarpa_la_SOURCES = marpa_obs.c marpa.c marpa_obs.h marpa.h private.h
-data_DATA = error.h error.c
+data_DATA = codes.h codes.c
 libmarpa_la_LIBADD = $(LIBOBJS)
 include_HEADERS = marpa.h
 

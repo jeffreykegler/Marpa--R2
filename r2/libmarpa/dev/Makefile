@@ -68,6 +68,11 @@ private.h: marpa.w w2private_h.pl
 
 marpa.pdf: marpa.tex cwebmac.tex
 
+../build_dist/Makefile: ../stage_dist/configure ../stage_dist/Makefile.in
+	cd ../build_dist && ../stage_dist/configure
+
+../build_dist/VERSION: ../build_dist/Makefile
+
 ../build_dist/marpa.tar.gz: marpa.c \
     private.h marpa.h.in api.h.in \
     codes.c.in codes.h.in \
@@ -77,9 +82,6 @@ marpa.pdf: marpa.tex cwebmac.tex
 	version=`cat ../build_dist/VERSION`; \
 	    cd ../build_dist \
 	    && mv marpa-$$version.tar.gz marpa.tar.gz
-
-../build_dist/Makefile: ../stage_dist/configure ../stage_dist/Makefile.in
-	cd ../build_dist && ../stage_dist/configure
 
 ../VERSION: ../build_dist/VERSION ../build_dist/marpa.tar.gz
 	cp ../build_dist/VERSION ../VERSION

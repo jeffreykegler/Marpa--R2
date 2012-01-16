@@ -18,8 +18,8 @@
 /api[.]tp
 /api[.]vr
 /api[.]vrs
-/error[.]c[.]in
-/error[.]h[.]in
+/codes[.]c[.]in
+/codes[.]h[.]in
 /marpa[.]c
 /marpa[.]h[.]in
 /marpa[.]idx
@@ -28,3 +28,4 @@
 /marpa[.]scn
 /marpa[.]tex
 /marpa[.]toc
+/private[.]h

@@ -97,8 +97,8 @@ event_type_to_string (Marpa_Event_Type type)
   return NULL;
 }
 
-#include "error.h"
-#include "error.c"
+#include "codes.h"
+#include "codes.c"
 
 /* This routine is for the handling exceptions
    from libmarpa.  It is used when in the general

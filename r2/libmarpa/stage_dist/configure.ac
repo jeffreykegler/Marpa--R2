@@ -140,7 +140,7 @@ PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.22.0] )
 
 AC_CONFIG_FILES(
     [Makefile]
-    [marpa.h:marpa.h.in:api.h.in error.c error.h]
+    [marpa.h:marpa.h.in:api.h.in codes.c codes.h]
     [VERSION]
     )
 AC_OUTPUT

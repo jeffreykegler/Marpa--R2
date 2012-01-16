@@ -964,11 +964,8 @@ because that may cause
 the locations of |DSTACK| elements to change.
 @d G_EVENTS_CLEAR(g) DSTACK_CLEAR((g)->t_events)
 @d G_EVENT_PUSH(g) DSTACK_PUSH((g)->t_events, GEV_Object)
-@<Private function prototypes@> =
-static inline
-void event_new(struct marpa_g* g, gint type);
 @ @<Function definitions@> =
-static inline
+PRIVATE
 void event_new(struct marpa_g* g, gint type)
 {
   /* may change base of dstack */
@@ -976,10 +973,8 @@ void event_new(struct marpa_g* g, gint type)
   top_of_stack->t_type = type;
   top_of_stack->t_value = 0;
 }
-@ @<Private function prototypes@> =
-static inline
-void int_event_new(struct marpa_g* g, gint type, gint value);
 @ @<Function definitions@> =
+PRIVATE
 void int_event_new(struct marpa_g* g, gint type, gint value)
 {
   /* may change base of dstack */
@@ -1118,11 +1113,8 @@ struct s_symbol {
 };
 typedef struct s_symbol SYM_Object;
 
-@ @<Private function prototypes@> =
-static inline
-SYM symbol_new(struct marpa_g *g);
 @ @<Function definitions@> =
-static inline SYM
+PRIVATE SYM
 symbol_new (struct marpa_g *g)
 {
   SYM symbol = g_malloc (sizeof (SYM_Object));
@@ -1143,8 +1135,10 @@ marpa_g_symbol_new (struct marpa_g * g)
 }
 
 @ @<Function definitions@> =
-static inline void symbol_free(SYM symbol)
-{ @<Free symbol elements@>@; g_free(symbol); }
+PRIVATE void symbol_free(SYM symbol)
+{
+    @<Free symbol elements@>@; g_free(symbol);
+}
 @ @<Private function prototypes@> =
 static inline void symbol_free(SYM symbol);
 
@@ -1193,15 +1187,14 @@ Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint 
     return g_array_index(symbol_lh_rules, RULEID, ix);
 }
 
-@ @<Function definitions@> = static inline
+@ @<Function definitions@> =
+PRIVATE
 void symbol_lhs_add(SYM symbol, Marpa_Rule_ID rule_id)
-{ g_array_append_val(symbol->t_lhs, rule_id); }
+{
+g_array_append_val(symbol->t_lhs, rule_id); }
 void
 marpa_g_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID rule_id)
 { symbol_lhs_add(SYM_by_ID(symid), rule_id); }
-@ @<Private function prototypes@> =
-void
-marpa_g_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID rule_id);
 
 @*0 Symbol RHS rules element.
 This tracks the rules for which this symbol is the RHS.
@@ -1241,11 +1234,10 @@ Marpa_Rule_ID marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint 
     return g_array_index(symbol_rh_rules, RULEID, ix);
 }
 
-@ @<Function definitions@> = static inline
+@ @<Function definitions@> =
+PRIVATE
 void symbol_rhs_add(SYM symbol, Marpa_Rule_ID rule_id)
 { g_array_append_val(symbol->t_rhs, rule_id); }
-@ @<Private function prototypes@> = static inline
-void symbol_rhs_add(SYM symbol, Marpa_Rule_ID rule_id);
 
 @ Symbol Is Accessible Boolean
 @<Bit aligned symbol elements@> = guint t_is_accessible:1;
@@ -1382,7 +1374,7 @@ If this symbol is a nulling symbol
 with a proper alias, returns the proper alias.
 Otherwise, returns |NULL|.
 @<Function definitions@> =
-static inline
+PRIVATE
 SYM symbol_proper_alias(SYM symbol)
 { return symbol->t_is_nulling_alias ? symbol->t_alias : NULL; }
 Marpa_Symbol_ID marpa_g_symbol_proper_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
@@ -1395,15 +1387,13 @@ symbol = SYM_by_ID(symid);
 proper_alias = symbol_proper_alias(symbol);
 return proper_alias == NULL ? -1 : ID_of_SYM(proper_alias);
 }
-@ @<Private function prototypes@> =
-static inline SYM symbol_proper_alias(SYM symbol);
 
 @ Nulling Alias Trace Accessor:
 If this symbol is a proper (non-nullable) symbol
 with a nulling alias, returns the nulling alias.
 Otherwise, returns |NULL|.
 @<Function definitions@> =
-static inline
+PRIVATE
 SYM symbol_null_alias(SYM symbol)
 { return symbol->t_is_proper_alias ? symbol->t_alias : NULL; }
 Marpa_Symbol_ID marpa_g_symbol_null_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
@@ -1432,7 +1422,8 @@ The return value is a pointer to the nulling alias.
 @ @<Private function prototypes@> = 
 static inline
 SYM symbol_alias_create(GRAMMAR g, SYM symbol);
-@ @<Function definitions@> = static inline
+@ @<Function definitions@> =
+PRIVATE
 SYM symbol_alias_create(GRAMMAR g, SYM symbol)
 {
     SYM alias = symbol_new(g);
@@ -1741,14 +1732,10 @@ If, after having done the comparison for all
 the ``same LHS" rules, I have found no duplicates,
 then I conclude there is no duplicate of the new
 rule, and return |FALSE|.
-@ @<Private function prototypes@> =
-static inline
-gboolean is_rule_duplicate(struct marpa_g* g,
-Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, gint length);
 @ @<Function definitions@> =
-static inline
-gboolean is_rule_duplicate(struct marpa_g* g,
-Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID* rhs_ids, gint length)
+PRIVATE
+gboolean is_rule_duplicate(GRAMMAR g,
+SYMID lhs_id, SYMID* rhs_ids, gint length)
 {
     gint ix;
     SYM lhs = SYM_by_ID(lhs_id);
@@ -1919,7 +1906,8 @@ rule->t_symbols[0] = lhs;
 { gint i; for (i = 0; i<length; i++) {
     rule->t_symbols[i+1] = rhs[i]; } }
 @ @<Function definitions@> =
-static inline Marpa_Symbol_ID rule_lhs_get(RULE rule) {
+PRIVATE Marpa_Symbol_ID rule_lhs_get(RULE rule)
+{
     return rule->t_symbols[0]; }
 @ @<Private function prototypes@> =
 static inline Marpa_Symbol_ID rule_lhs_get(RULE rule);
@@ -1929,7 +1917,8 @@ Marpa_Symbol_ID marpa_g_rule_lhs(struct marpa_g *g, Marpa_Rule_ID rule_id) {
     @<Fail if grammar |rule_id| is invalid@>@;
     return rule_lhs_get(RULE_by_ID(g, rule_id)); }
 @ @<Function definitions@> =
-static inline Marpa_Symbol_ID* rule_rhs_get(RULE rule) {
+PRIVATE Marpa_Symbol_ID* rule_rhs_get(RULE rule)
+{
     return rule->t_symbols+1; }
 @ @<Private function prototypes@> =
 static inline Marpa_Symbol_ID* rule_rhs_get(RULE rule);
@@ -1943,7 +1932,8 @@ Marpa_Symbol_ID marpa_g_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id,
     return RHS_ID_of_RULE(rule, ix);
 }
 @ @<Function definitions@> =
-static inline gsize rule_length_get(RULE rule) {
+PRIVATE gsize rule_length_get(RULE rule)
+{
     return Length_of_RULE(rule); }
 @ @<Private function prototypes@> =
 static inline gsize rule_length_get(RULE rule);
@@ -2009,7 +1999,7 @@ taken care of in the rewrite itself.
 @*0 Accessible Rules.
 @ A rule is accessible if its LHS is accessible.
 @<Function definitions@> =
-static inline gint rule_is_accessible(struct marpa_g* g, RULE  rule)
+PRIVATE gint rule_is_accessible(struct marpa_g* g, RULE  rule)
 {
 Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
  return SYM_by_ID(lhs_id)->t_is_accessible; }
@@ -2027,7 +2017,7 @@ static inline gint rule_is_accessible(struct marpa_g* g, RULE  rule);
 @*0 Productive Rules.
 @ A rule is productive if every symbol on its RHS is productive.
 @<Function definitions@> =
-static inline gint rule_is_productive(struct marpa_g* g, RULE  rule)
+PRIVATE gint rule_is_productive(struct marpa_g* g, RULE  rule)
 {
 gint rh_ix;
 for (rh_ix = 0; rh_ix < Length_of_RULE(rule); rh_ix++) {
@@ -2087,7 +2077,7 @@ return RULE_by_ID(g, rule_id)->t_is_virtual_loop; }
 @ A rule is nulling if every symbol on its RHS is nulling.
 Note that this can be vacuously true --- an empty rule is nulling.
 @<Function definitions@> =
-static inline gint
+PRIVATE gint
 rule_is_nulling (GRAMMAR g, RULE rule)
 {
   gint rh_ix;
@@ -2345,7 +2335,7 @@ In that case the symbol instance is the
 base symbol instance for
 the rule, offset by the position of that preceding AHFA item.
 @<Function definitions@> =
-static inline gint
+PRIVATE gint
 symbol_instance_of_ahfa_item_get (AIM aim)
 {
   gint position = Position_of_AIM (aim);

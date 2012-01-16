@@ -104,8 +104,8 @@ libmarpa/dist/config.sub
 libmarpa/dist/configure
 libmarpa/dist/configure.ac
 libmarpa/dist/depcomp
-libmarpa/dist/error.c.in
-libmarpa/dist/error.h.in
+libmarpa/dist/codes.c.in
+libmarpa/dist/codes.h.in
 libmarpa/dist/install-sh
 libmarpa/dist/ltmain.sh
 libmarpa/dist/m4/libtool.m4
