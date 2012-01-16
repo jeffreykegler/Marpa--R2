@@ -2764,8 +2764,6 @@ PRIVATE struct marpa_g* CHAF_rewrite(struct marpa_g* g)
     @<CHAF rewrite deallocations@>@;
     return g;
 }
-@ @<Private function prototypes@> =
-static inline struct marpa_g* CHAF_rewrite(struct marpa_g* g);
 @ @<CHAF rewrite declarations@> =
 Marpa_Rule_ID rule_id;
 gint no_of_rules;
@@ -3289,9 +3287,6 @@ void loop_detect(struct marpa_g* g)
       }
     matrix_free(unit_transition_matrix);
 }
-@ @<Private function prototypes@> =
-static inline
-void loop_detect(struct marpa_g* g);
 
 @ Note that direct transitions are marked in advance,
 but not trivial ones.
@@ -3508,9 +3503,6 @@ GRAMMAR g, AIMID item_id)
 {
 return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 }
-@ @<Private function prototypes@> =
-static inline gboolean item_is_valid(
-GRAMMAR g, AIMID item_id);
 
 @*0 Rule.
 @d RULE_of_AIM(item) ((item)->t_rule)
@@ -3618,8 +3610,6 @@ void create_AHFA_items(GRAMMAR g)
     @<Set up the items-by-rule list@>@;
     @<Set up the AHFA item ids@>@;
 }
-@ @<Private function prototypes@> =
-static inline void create_AHFA_items(struct marpa_g* g);
 
 @ @<Create the AHFA items for a rule@> =
 {
@@ -3877,9 +3867,7 @@ typedef struct s_AHFA_state AHFA_Object;
 @*0 Initialization.
 Only a few AHFA items are initialized.
 Most are set dependent on context.
-@<Private function prototypes@> =
-static inline void AHFA_initialize(AHFA ahfa);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE void AHFA_initialize(AHFA ahfa)
 {
     @<Initialize AHFA@>@;
@@ -3896,16 +3884,12 @@ SYMID* t_complete_symbols;
 @*0 AHFA Item Container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
 @d AIM_of_AHFA_by_AEX(ahfa, aex) (AIMs_of_AHFA(ahfa)[aex])
-@d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
 @d AEX_of_AHFA_by_AIM(ahfa, aim) aex_of_ahfa_by_aim_get((ahfa), (aim))
 @<Widely aligned AHFA state elements@> =
 AIM* t_items;
-@ @<Int aligned AHFA state elements@> =
+@ @d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
+@<Int aligned AHFA state elements@> =
 gint t_item_count;
-@ This function assumes that the caller knows that the AHFA item
-is in the AHFA state.
-@<Private function prototypes@> =
-static inline AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM aim_sought);
 @ Binary search is overkill for discovered states,
 not even repaying the overhead.
 But prediction states can get larger,
@@ -3914,6 +3898,8 @@ An alternative is to have different search routines based on the number
 of AIM items, but that is more overhead.
 Perhaps better to just search than
 to spend cycles figuring out how to search.
+@ This function assumes that the caller knows that the AHFA item
+is in the AHFA state.
 @<Function definitions@> =
 PRIVATE AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM sought_aim)
 {
@@ -4594,10 +4580,7 @@ When it does not exist, insert it
 in the sequence of states
 and return |NULL|.
 When it does exist, return a pointer to it.
-@ @<Private function prototypes@> =
-static inline AHFA assign_AHFA_state(
-AHFA state_p, GTree* duplicates);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE AHFA
 assign_AHFA_state (AHFA sought_state, GTree* duplicates)
 {
@@ -5073,11 +5056,8 @@ void transition_add(struct obstack *obstack, AHFA from_ahfa, SYMID symid, AHFA t
     return;
 }
 
-@ @<Private function prototypes@> =
-static inline
-void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid);
 @ @<Function definitions@> =
-static inline
+PRIVATE
 void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
@@ -5169,7 +5149,7 @@ struct s_input {
 @ @<Private function prototypes@> =
 static inline INPUT input_new(GRAMMAR g);
 @ @<Function definitions@> =
-static inline INPUT
+PRIVATE INPUT
 input_new (GRAMMAR g)
 {
   const gint symbol_count_of_g = SYM_Count_of_G (g);
@@ -5189,7 +5169,7 @@ input_new (GRAMMAR g)
 @<Private function prototypes@> =
 static inline void input_unref (INPUT input);
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 input_unref (INPUT input)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, input->t_ref_count);
@@ -5205,7 +5185,7 @@ input_unref (INPUT input)
 @<Private function prototypes@> =
 static inline INPUT input_ref (INPUT input);
 @ @<Function definitions@> =
-static inline INPUT
+PRIVATE INPUT
 input_ref (INPUT input)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, input->t_ref_count);
@@ -5217,7 +5197,8 @@ input_ref (INPUT input)
 @ @<Private function prototypes@> =
 static inline void input_free(INPUT input);
 @ @<Function definitions@> =
-static inline void input_free(INPUT input) {
+PRIVATE void input_free(INPUT input)
+{
     @<Destroy input elements@>@;
     g_slice_free(struct s_input, input);
 }
@@ -5321,10 +5302,8 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 r->t_ref_count = 1;
 
 @ Decrement the recognizer reference count.
-@<Private function prototypes@> =
-static inline void recce_unref (RECCE r);
-@ @<Function definitions@> =
-static inline void
+@<Function definitions@> =
+PRIVATE void
 recce_unref (RECCE r)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->t_ref_count);
@@ -5342,10 +5321,8 @@ marpa_r_unref (Marpa_Recognizer r)
 }
 
 @ Increment the recognizer reference count.
-@<Private function prototypes@> =
-static inline RECCE recce_ref (RECCE r);
-@ @<Function definitions@> =
-static inline
+@<Function definitions@> =
+PRIVATE
 RECCE recce_ref (RECCE r)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->t_ref_count);
@@ -5360,7 +5337,7 @@ marpa_r_ref (Marpa_Recognizer r)
 }
 
 @ @<Function definitions@> =
-static inline
+PRIVATE
 void recce_free(struct marpa_r *r)
 {
     MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, r)
@@ -5422,7 +5399,7 @@ guint marpa_r_current_earleme(struct marpa_r* r)
 @<Private function prototypes@> =
 static inline ES current_es_of_r(RECCE r);
 @ @<Function definitions@> =
-static inline ES current_es_of_r(RECCE r)
+PRIVATE ES current_es_of_r(RECCE r)
 {
     const ES latest = Latest_ES_of_R(r);
     if (Earleme_of_ES(latest) == Current_Earleme_of_R(r)) return latest;
@@ -5783,7 +5760,7 @@ r->t_earley_set_count = 0;
 @<Private function prototypes@> =
 static inline ES earley_set_new (RECCE r, EARLEME id);
 @ @<Function definitions@> =
-static inline ES
+PRIVATE ES
 earley_set_new( RECCE r, EARLEME id)
 {
   ESK_Object key;
@@ -5992,7 +5969,7 @@ These are not worth optimizing for.
 static inline EIM earley_item_create(const RECCE r,
     const EIK_Object key);
 @ @<Function definitions@> =
-static inline EIM earley_item_create(const RECCE r,
+PRIVATE EIM earley_item_create(const RECCE r,
     const EIK_Object key)
 {
   @<Return |NULL| on failure@>@;
@@ -6015,7 +5992,7 @@ static inline EIM earley_item_create(const RECCE r,
 static inline
 EIM earley_item_assign (const RECCE r, const ES set, const ES origin, const AHFA state);
 @ @<Function definitions@> =
-static inline EIM
+PRIVATE EIM
 earley_item_assign (const RECCE r, const ES set, const ES origin,
 		    const AHFA state)
 {
@@ -6227,7 +6204,7 @@ also clears the source link.
 @ @<Private function prototypes@> =
 static inline void trace_earley_item_clear(struct marpa_r* r);
 @ @<Function definitions@> =
-static inline void trace_earley_item_clear(struct marpa_r* r)
+PRIVATE void trace_earley_item_clear(struct marpa_r* r)
 {
     @<Clear trace Earley item data@>@/
     trace_source_link_clear(r);
@@ -6454,7 +6431,7 @@ If it fails, it returns |NULL|.
 @<Private function prototypes@> =
 static inline PIM* pim_sym_p_find(ES set, SYMID symid);
 @ @<Function definitions@> =
-static inline PIM*
+PRIVATE PIM*
 pim_sym_p_find (ES set, SYMID symid)
 {
   gint lo = 0;
@@ -6476,7 +6453,7 @@ pim_sym_p_find (ES set, SYMID symid)
 @ @<Private function prototypes@> =
 static inline PIM first_pim_of_es_by_symid(ES set, SYMID symid);
 @ @<Function definitions@> =
-static inline PIM first_pim_of_es_by_symid(ES set, SYMID symid)
+PRIVATE PIM first_pim_of_es_by_symid(ES set, SYMID symid)
 {
    PIM* pim_sym_p = pim_sym_p_find(set, symid);
    return pim_sym_p ? *pim_sym_p : NULL;
@@ -6748,7 +6725,7 @@ token_link_add (struct marpa_r *r,
 		EIM item,
 		EIM predecessor,
 		TOK token);
-@ @<Function definitions@> = static inline
+@ @<Function definitions@> = PRIVATE
 void
 token_link_add (struct marpa_r *r,
 		EIM item,
@@ -6829,9 +6806,10 @@ is time efficiency.
 Duplicate completion links should be eliminated
 at the point where that elimination can be accomplished
 most efficiently.
-@<Function definitions@> = static inline
+@<Function definitions@> =
+PRIVATE
 void
-completion_link_add (struct marpa_r *r,
+completion_link_add (RECCE r,
 		EIM item,
 		EIM predecessor,
 		EIM cause)

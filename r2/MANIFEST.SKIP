@@ -72,8 +72,8 @@
 ^libmarpa/dev/api[.]toc
 ^libmarpa/dev/api[.]tp
 ^libmarpa/dev/api[.]vr
-^libmarpa/dev/error[.]c[.]in
-^libmarpa/dev/error[.]h[.]in
+^libmarpa/dev/codes[.]c[.]in
+^libmarpa/dev/codes[.]h[.]in
 ^libmarpa/dev/fragments/
 ^libmarpa/dev/marpa.log
 ^libmarpa/dev/marpa.scn
@@ -100,8 +100,8 @@
 ^libmarpa/stage_dist/configure$
 ^libmarpa/stage_dist/configure.scan
 ^libmarpa/stage_dist/depcomp$
-^libmarpa/stage_dist/error[.]c[.]in$
-^libmarpa/stage_dist/error[.]h[.]in$
+^libmarpa/stage_dist/codes[.]c[.]in$
+^libmarpa/stage_dist/codes[.]h[.]in$
 ^libmarpa/stage_dist/install-sh$
 ^libmarpa/stage_dist/libtool
 ^libmarpa/stage_dist/ltmain[.]sh$
@@ -140,6 +140,3 @@
 ^pod2htmi.tmp
 ^pperl/Marpa/R2/Perl/Installed[.]pm$
 ^pperl/Marpa/R2/Perl/Version[.]pm$
-^xs/include/error[.]c$
-^xs/include/error[.]h$
-^xs/include/marpa[.]h$
