@@ -1189,10 +1189,8 @@ Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint 
 PRIVATE
 void symbol_lhs_add(SYM symbol, Marpa_Rule_ID rule_id)
 {
-g_array_append_val(symbol->t_lhs, rule_id); }
-void
-marpa_g_symbol_lhs_add(struct marpa_g*g, Marpa_Symbol_ID symid, Marpa_Rule_ID rule_id)
-{ symbol_lhs_add(SYM_by_ID(symid), rule_id); }
+    g_array_append_val(symbol->t_lhs, rule_id);
+}
 
 @*0 Symbol RHS rules element.
 This tracks the rules for which this symbol is the RHS.
@@ -5146,8 +5144,6 @@ struct s_input {
     @<Int aligned input elements@>@;
 };
 
-@ @<Private function prototypes@> =
-static inline INPUT input_new(GRAMMAR g);
 @ @<Function definitions@> =
 PRIVATE INPUT
 input_new (GRAMMAR g)
@@ -5166,9 +5162,7 @@ input_new (GRAMMAR g)
     input->t_ref_count = 1;
 
 @ Decrement the input reference count.
-@<Private function prototypes@> =
-static inline void input_unref (INPUT input);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE void
 input_unref (INPUT input)
 {
@@ -5182,9 +5176,7 @@ input_unref (INPUT input)
 }
 
 @ Increment the input reference count.
-@<Private function prototypes@> =
-static inline INPUT input_ref (INPUT input);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE INPUT
 input_ref (INPUT input)
 {
@@ -5194,8 +5186,6 @@ input_ref (INPUT input)
   return input;
 }
 
-@ @<Private function prototypes@> =
-static inline void input_free(INPUT input);
 @ @<Function definitions@> =
 PRIVATE void input_free(INPUT input)
 {
@@ -5350,9 +5340,6 @@ void recce_free(struct marpa_r *r)
     @<Destroy recognizer obstack@>@;
     g_slice_free(struct marpa_r, r);
 }
-@ @<Private function prototypes@> =
-static inline
-void recce_free(struct marpa_r *r);
 
 @*0 Base Objects.
 Initialized in |marpa_r_new|.
@@ -5396,9 +5383,7 @@ guint marpa_r_current_earleme(struct marpa_r* r)
 { return Current_Earleme_of_R(r); }
 
 @ @d Current_ES_of_R(r) current_es_of_r(r)
-@<Private function prototypes@> =
-static inline ES current_es_of_r(RECCE r);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE ES current_es_of_r(RECCE r)
 {
     const ES latest = Latest_ES_of_R(r);
@@ -5757,9 +5742,7 @@ gint t_earley_set_count;
 r->t_earley_set_count = 0;
 
 @*0 Constructor.
-@<Private function prototypes@> =
-static inline ES earley_set_new (RECCE r, EARLEME id);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE ES
 earley_set_new( RECCE r, EARLEME id)
 {
@@ -5965,10 +5948,7 @@ Only in a couple of cases per parse (in AHFA state 0),
 do we already
 know that the Earley item is unique in the set.
 These are not worth optimizing for.
-@<Private function prototypes@> =
-static inline EIM earley_item_create(const RECCE r,
-    const EIK_Object key);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE EIM earley_item_create(const RECCE r,
     const EIK_Object key)
 {
@@ -5988,9 +5968,6 @@ PRIVATE EIM earley_item_create(const RECCE r,
   return new_item;
 }
 
-@ @<Private function prototypes@> =
-static inline
-EIM earley_item_assign (const RECCE r, const ES set, const ES origin, const AHFA state);
 @ @<Function definitions@> =
 PRIVATE EIM
 earley_item_assign (const RECCE r, const ES set, const ES origin,
@@ -6201,8 +6178,6 @@ also clears the source link.
 @<Clear trace Earley item data@> =
       r->t_trace_earley_item = NULL;
 
-@ @<Private function prototypes@> =
-static inline void trace_earley_item_clear(struct marpa_r* r);
 @ @<Function definitions@> =
 PRIVATE void trace_earley_item_clear(struct marpa_r* r)
 {
@@ -6428,9 +6403,7 @@ and a symbol ID.
 If successful, it
 returns that postdot item.
 If it fails, it returns |NULL|.
-@<Private function prototypes@> =
-static inline PIM* pim_sym_p_find(ES set, SYMID symid);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE PIM*
 pim_sym_p_find (ES set, SYMID symid)
 {
@@ -6450,8 +6423,6 @@ pim_sym_p_find (ES set, SYMID symid)
   }
   return NULL;
 }
-@ @<Private function prototypes@> =
-static inline PIM first_pim_of_es_by_symid(ES set, SYMID symid);
 @ @<Function definitions@> =
 PRIVATE PIM first_pim_of_es_by_symid(ES set, SYMID symid)
 {
@@ -6720,14 +6691,9 @@ union u_source_container {
 @d First_Token_Link_of_EIM(item) ((item)->t_container.t_ambiguous.t_token)
 @d First_Leo_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_leo)
 
-@ @<Private function prototypes@> = static inline void
-token_link_add (struct marpa_r *r,
-		EIM item,
-		EIM predecessor,
-		TOK token);
 @ @<Function definitions@> = PRIVATE
 void
-token_link_add (struct marpa_r *r,
+token_link_add (RECCE r,
 		EIM item,
 		EIM predecessor,
 		TOK token)
@@ -6752,11 +6718,6 @@ token_link_add (struct marpa_r *r,
   First_Token_Link_of_EIM (item) = new_link;
 }
 
-@ @<Private function prototypes@> = static inline void
-completion_link_add (struct marpa_r *r,
-		EIM item,
-		EIM predecessor,
-		EIM cause);
 @
 Each possible cause
 link is only visited once.
@@ -6834,9 +6795,9 @@ completion_link_add (RECCE r,
   First_Completion_Link_of_EIM (item) = new_link;
 }
 
-@ @<Function definitions@> = static inline
-void
-leo_link_add (struct marpa_r *r,
+@ @<Function definitions@> =
+PRIVATE void
+leo_link_add (RECCE r,
 		EIM item,
 		LIM predecessor,
 		EIM cause)
@@ -6860,11 +6821,6 @@ leo_link_add (struct marpa_r *r,
   Cause_of_Source(new_link->t_source) = cause;
   First_Leo_SRCL_of_EIM(item) = new_link;
 }
-@ @<Private function prototypes@> = static inline void
-leo_link_add (struct marpa_r *r,
-		EIM item,
-		LIM predecessor,
-		EIM cause);
 
 @ {\bf Convert an Earley item to an ambiguous one.}
 |earley_item_ambiguate|
@@ -7190,10 +7146,9 @@ marpa_r_next_leo_link_trace (struct marpa_r *r)
     }
 
 @*1 Clear Trace Source Link.
-@ @<Private function prototypes@> =
-static inline void trace_source_link_clear(struct marpa_r* r);
-@ @<Function definitions@> =
-static inline void trace_source_link_clear(struct marpa_r* r) {
+@<Function definitions@> =
+PRIVATE void trace_source_link_clear(RECCE r)
+{
     r->t_trace_next_source_link = NULL;
     r->t_trace_source = NULL;
     r->t_trace_source_type = NO_SOURCE;
@@ -7431,11 +7386,8 @@ struct s_token {
   I_of_R(r) = input_new(g);
 }
 
-@ @<Private function prototypes@> =
-static inline
-TOK token_new(INPUT input, SYMID symbol_id, gpointer value);
 @ @<Function definitions@> =
-static inline
+PRIVATE
 TOK token_new(INPUT input, SYMID symbol_id, gpointer value)
 {
   TOK token;
@@ -7487,11 +7439,9 @@ DSTACK_INIT(r->t_alternatives, ALT_Object, INITIAL_ALTERNATIVES_CAPACITY);
 @ This functions returns the index at which to insert a new
 alternative, or -1 if the new alternative is a duplicate.
 (Duplicate alternatives should not be inserted.)
-@<Private function prototypes@> =
-static inline gint alternative_insertion_point(RECCE r, ALT new_alternative);
 @ A variation of binary search.
 @<Function definitions@> = 
-static inline gint
+PRIVATE gint
 alternative_insertion_point (RECCE r, ALT new_alternative)
 {
   DSTACK alternatives = &r->t_alternatives;
@@ -7528,8 +7478,6 @@ The alternatives array also acts as a stack, with the alternatives
 ending at the lowest numbered earleme on top of the stack.
 This allows alternatives to be popped off the stack as the
 earlemes are processed in numerical order.
-@<Private function prototypes@> =
-static inline gint alternative_cmp(const ALT_Const a, const ALT_Const b);
 @ So that the alternatives array can act as a stack,
 the end earleme of the alternatives must be the major key,
 and must sort in reverse order.
@@ -7537,7 +7485,8 @@ Of the remaining two keys,
 the more minor key is the start earleme, because that way its slightly
 costlier evaluation can sometimes be avoided.
 @<Function definitions@> =
-static inline gint alternative_cmp(const ALT_Const a, const ALT_Const b) {
+PRIVATE gint alternative_cmp(const ALT_Const a, const ALT_Const b)
+{
      gint subkey = End_Earleme_of_ALT(b) - End_Earleme_of_ALT(a);
      if (subkey) return subkey;
      subkey = SYMID_of_ALT(a) - SYMID_of_ALT(b);
@@ -7552,10 +7501,8 @@ earleme argument, |NULL| is returned.
 The data pointed to by the return value may be overwritten when
 new alternatives are added, so it must be used before the next
 call that adds data to the alternatives stack.
-@<Private function prototypes@> =
-static inline ALT alternative_pop(RECCE r, EARLEME earleme);
-@ @<Function definitions@> =
-static inline ALT alternative_pop(RECCE r, EARLEME earleme)
+@<Function definitions@> =
+PRIVATE ALT alternative_pop(RECCE r, EARLEME earleme)
 {
     DSTACK alternatives = &r->t_alternatives;
     ALT top_of_stack = DSTACK_TOP(*alternatives, ALT_Object);
@@ -7569,10 +7516,8 @@ in sorted order,
 if the alternative is not a duplicate.
 It returns -1 if the alternative is a duplicate,
 and the insertion point (which must be zero or more) otherwise.
-@<Private function prototypes@> =
-static inline gint alternative_insert(RECCE r, ALT alternative);
-@ @<Function definitions@> =
-static inline gint alternative_insert(RECCE r, ALT new_alternative)
+@<Function definitions@> =
+PRIVATE gint alternative_insert(RECCE r, ALT new_alternative)
 {
   ALT top_of_stack, base_of_stack;
   DSTACK alternatives = &r->t_alternatives;
@@ -8023,10 +7968,9 @@ add those Earley items it ``causes".
     leo_link_add (r, effect, leo_item, cause);
 }
 
-@ @<Private function prototypes@> =
-static inline void earley_set_update_items(RECCE r, ES set);
 @ @<Function definitions@> =
-static inline void earley_set_update_items(RECCE r, ES set) {
+PRIVATE void earley_set_update_items(RECCE r, ES set)
+{
     EIM* working_earley_items;
     EIM* finished_earley_items;
     gint working_earley_item_count;
@@ -8047,12 +7991,11 @@ static inline void earley_set_update_items(RECCE r, ES set) {
     WORK_EIMS_CLEAR(r);
 }
 
-@ @<Private function prototypes@> =
-static inline void r_update_earley_sets(RECCE r);
 @ @d P_ES_of_R_by_Ord(r, ord) DSTACK_INDEX((r)->t_earley_set_stack, ES, (ord))
 @d ES_of_R_by_Ord(r, ord) (*P_ES_of_R_by_Ord((r), (ord)))
 @<Function definitions@> =
-static inline void r_update_earley_sets(RECCE r) {
+PRIVATE void r_update_earley_sets(RECCE r)
+{
     ES set;
     ES first_unstacked_earley_set;
     if (!DSTACK_IS_INITIALIZED(r->t_earley_set_stack)) {
@@ -8666,37 +8609,30 @@ are settled.
 @ @<Destroy recognizer elements@> =
     ur_node_stack_destroy(URS_of_R(r));
 
-@ @<Private function prototypes@> =
-static inline void ur_node_stack_init(URS stack);
 @ @<Function definitions@> =
-static inline void ur_node_stack_init(URS stack) {
-MARPA_OFF_DEBUG2("ur_node_stack_init %s", G_STRLOC);
+PRIVATE void ur_node_stack_init(URS stack)
+{
     obstack_init(&stack->t_obs);
     stack->t_base = ur_node_new(stack, 0);
     ur_node_stack_reset(stack);
 }
 
-@ @<Private function prototypes@> =
-static inline void ur_node_stack_reset(URS stack);
 @ @<Function definitions@> =
-static inline void ur_node_stack_reset(URS stack) {
+PRIVATE void ur_node_stack_reset(URS stack)
+{
     stack->t_top = stack->t_base;
 }
 
-@ @<Private function prototypes@> =
-static inline void ur_node_stack_destroy(URS stack);
 @ @<Function definitions@> =
-static inline void ur_node_stack_destroy(URS stack) {
-MARPA_OFF_DEBUG2("ur_node_stack_destroy %s", G_STRLOC);
+PRIVATE void ur_node_stack_destroy(URS stack)
+{
     if (stack->t_base) obstack_free(&stack->t_obs, NULL);
     stack->t_base = NULL;
-MARPA_OFF_DEBUG2("ur_node_stack_destroy %s", G_STRLOC);
 }
 
-@ @<Private function prototypes@> =
-static inline UR ur_node_new(URS stack, UR prev);
 @ @<Function definitions@> =
-static inline UR ur_node_new(URS stack, UR prev) {
+PRIVATE UR ur_node_new(URS stack, UR prev)
+{
     UR new_ur_node;
     new_ur_node = obstack_alloc(&stack->t_obs, sizeof(new_ur_node[0]));
     Next_UR_of_UR(new_ur_node) = 0;
@@ -8704,10 +8640,8 @@ static inline UR ur_node_new(URS stack, UR prev) {
     return new_ur_node;
 }
 
-@ @<Private function prototypes@> =
-static inline void ur_node_push(URS stack, EIM earley_item, AEX aex);
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 ur_node_push (URS stack, EIM earley_item, AEX aex)
 {
   UR top = stack->t_top;
@@ -8725,7 +8659,7 @@ ur_node_push (URS stack, EIM earley_item, AEX aex)
 @ @<Private function prototypes@> =
 static inline UR ur_node_pop(URS stack);
 @ @<Function definitions@> =
-static inline UR
+PRIVATE UR
 ur_node_pop (URS stack)
 {
   UR new_top = Prev_UR_of_UR (stack->t_top);
@@ -8794,7 +8728,7 @@ static inline gint psia_test_and_set(
     EIM earley_item,
     AEX ahfa_element_ix);
 @ @<Function definitions@> = 
-static inline gint psia_test_and_set(
+PRIVATE gint psia_test_and_set(
     struct obstack* obs,
     struct s_bocage_setup_per_es* per_es_data,
     EIM earley_item,
@@ -9415,7 +9349,7 @@ and the index of the relevant AHFA item.
 @<Private function prototypes@> =
 static inline AEX lim_base_data_get(LIM leo_item, EIM* p_base);
 @ @<Function definitions@> =
-static inline AEX lim_base_data_get(LIM leo_item, EIM* p_base)
+PRIVATE AEX lim_base_data_get(LIM leo_item, EIM* p_base)
 {
       const SYMID postdot = Postdot_SYMID_of_LIM (leo_item);
       const EIM base = Base_EIM_of_LIM(leo_item);
@@ -9429,7 +9363,7 @@ static inline AEX lim_base_data_get(LIM leo_item, EIM* p_base)
 @<Private function prototypes@> =
 static inline AIM base_aim_of_lim(LIM leo_item);
 @ @<Function definitions@> =
-static inline AIM base_aim_of_lim(LIM leo_item)
+PRIVATE AIM base_aim_of_lim(LIM leo_item)
 {
       EIM base;
       const AEX base_aex = lim_base_data_get(leo_item, &base);
@@ -9551,7 +9485,7 @@ typedef struct s_draft_and_node DAND_Object;
 static inline
 DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause);
 @ @<Function definitions@> =
-static inline
+PRIVATE
 DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
 {
     DAND draft_and_node = obstack_alloc (obs, sizeof(DAND_Object));
@@ -9577,7 +9511,7 @@ is not sufficient.
 static inline
 void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause);
 @ @<Function definitions@> =
-static inline
+PRIVATE
 void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
 {
     MARPA_OFF_ASSERT(Position_of_OR(parent) <= 1 || predecessor)
@@ -10143,7 +10077,7 @@ Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
 @ @<Private function prototypes@> =
 static inline SYMID and_node_token(AND and_node, gpointer* value_p);
 @ @<Function definitions@> =
-static inline SYMID and_node_token(AND and_node, gpointer* value_p)
+PRIVATE SYMID and_node_token(AND and_node, gpointer* value_p)
 {
   const OR cause_or = Cause_OR_of_AND (and_node);
   if (OR_is_Token (cause_or))
@@ -10493,7 +10427,7 @@ b->t_ref_count = 1;
 @<Private function prototypes@> =
 static inline void bocage_unref (BOCAGE b);
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 bocage_unref (BOCAGE b)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->t_ref_count);
@@ -10514,7 +10448,7 @@ marpa_b_unref (Marpa_Bocage b)
 @<Private function prototypes@> =
 static inline BOCAGE bocage_ref (BOCAGE b);
 @ @<Function definitions@> =
-static inline BOCAGE
+PRIVATE BOCAGE
 bocage_ref (BOCAGE b)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->t_ref_count);
@@ -10727,7 +10661,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
 @<Private function prototypes@> =
 static inline void order_unref (ORDER o);
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 order_unref (ORDER o)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
@@ -10748,7 +10682,7 @@ marpa_o_unref (Marpa_Order o)
 @<Private function prototypes@> =
 static inline ORDER order_ref (ORDER o);
 @ @<Function definitions@> =
-static inline ORDER
+PRIVATE ORDER
 order_ref (ORDER o)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
@@ -10765,7 +10699,7 @@ marpa_o_ref (Marpa_Order o)
 @ @<Private function prototypes@> =
 static inline void order_strip(ORDER o);
 @ @<Function definitions@> =
-static inline void order_strip(ORDER o)
+PRIVATE void order_strip(ORDER o)
 {
   if (o->t_and_node_in_use)
     {
@@ -10776,7 +10710,7 @@ static inline void order_strip(ORDER o)
 @ @<Private function prototypes@> =
 static inline void order_freeze(ORDER o);
 @ @<Function definitions@> =
-static inline void order_freeze(ORDER o)
+PRIVATE void order_freeze(ORDER o)
 {
   order_strip(o);
   O_is_Frozen(o) = 0;
@@ -10784,7 +10718,7 @@ static inline void order_freeze(ORDER o)
 @ @<Private function prototypes@> =
 static inline void order_free(ORDER o);
 @ @<Function definitions@> =
-static inline void order_free(ORDER o)
+PRIVATE void order_free(ORDER o)
 {
     MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, o)
   @<Unpack order objects@>@;
@@ -10952,7 +10886,7 @@ gint marpa_o_and_order_set(
 @ @<Private function prototypes@> =
 static inline ANDID and_order_get(ORDER o, OR or_node, gint ix);
 @ @<Function definitions@> =
-static inline ANDID and_order_get(ORDER o, OR or_node, gint ix)
+PRIVATE ANDID and_order_get(ORDER o, OR or_node, gint ix)
 {
   @<Unpack order objects@>@;
   ANDID **and_node_orderings;
@@ -11040,7 +10974,7 @@ struct s_tree {
 @ @<Private function prototypes@> =
 static inline void tree_exhaust(TREE t);
 @ @<Function definitions@> =
-static inline void tree_exhaust(TREE t)
+PRIVATE void tree_exhaust(TREE t)
 {
   if (FSTACK_IS_INITIALIZED(t->t_nook_stack))
     {
@@ -11097,7 +11031,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
 @<Private function prototypes@> =
 static inline void tree_unref (TREE t);
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 tree_unref (TREE t)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, t->t_ref_count);
@@ -11118,7 +11052,7 @@ marpa_t_unref (Marpa_Tree t)
 @<Private function prototypes@> =
 static inline TREE tree_ref (TREE t);
 @ @<Function definitions@> =
-static inline TREE
+PRIVATE TREE
 tree_ref (TREE t)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, t->t_ref_count);
@@ -11135,7 +11069,7 @@ marpa_t_ref (Marpa_Tree t)
 @ @<Private function prototypes@> =
 static inline void tree_free(TREE t);
 @ @<Function definitions@> =
-static inline void tree_free(TREE t)
+PRIVATE void tree_free(TREE t)
 {
     order_unref(O_of_T(t));
     tree_exhaust(t);
@@ -11182,7 +11116,7 @@ static inline void tree_pause (TREE t);
 static inline void tree_unpause (TREE t);
 @ @<Initialize tree elements@> = t->t_pause_counter = 0;
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 tree_pause (TREE t)
 {
     MARPA_ASSERT(t->t_pause_counter >= 0);
@@ -11191,7 +11125,7 @@ tree_pause (TREE t)
     tree_ref(t);
 }
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 tree_unpause (TREE t)
 {
     MARPA_ASSERT(t->t_pause_counter > 0);
@@ -11270,13 +11204,13 @@ static inline void tree_and_node_release(TREE tree, ANDID and_node_id);
 static inline gint tree_and_node_try(TREE tree, ANDID and_node_id);
 @ Claim the and-node by setting its bit.
 @<Function definitions@> =
-static inline void tree_and_node_claim(TREE tree, ANDID and_node_id)
+PRIVATE void tree_and_node_claim(TREE tree, ANDID and_node_id)
 {
     bv_bit_set(tree->t_and_node_in_use, (guint)and_node_id);
 }
 @ Release the and-node by unsetting its bit.
 @<Function definitions@> =
-static inline void tree_and_node_release(TREE tree, ANDID and_node_id)
+PRIVATE void tree_and_node_release(TREE tree, ANDID and_node_id)
 {
     bv_bit_clear(tree->t_and_node_in_use, (guint)and_node_id);
 }
@@ -11284,7 +11218,7 @@ static inline void tree_and_node_release(TREE tree, ANDID and_node_id)
 If it was already claimed, return 0, otherwise claim it (that is,
 set the bit) and return 1.
 @<Function definitions@> =
-static inline gint tree_and_node_try(TREE tree, ANDID and_node_id)
+PRIVATE gint tree_and_node_try(TREE tree, ANDID and_node_id)
 {
     return !bv_bit_test_and_set(tree->t_and_node_in_use, (guint)and_node_id);
 }
@@ -11419,7 +11353,7 @@ Otherwise, the tree is exhausted.
 @ @<Private function prototypes@> =
 static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choice);
 @ @<Function definitions@> =
-static inline gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choice)
+PRIVATE gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choice)
 {
     gint choice = start_choice;
     while (1) {
@@ -11782,7 +11716,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 @<Private function prototypes@> =
 static inline void value_unref (VALUE v);
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 value_unref (VALUE v)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->t_ref_count);
@@ -11803,7 +11737,7 @@ marpa_v_unref (Marpa_Value v)
 @<Private function prototypes@> =
 static inline VALUE value_ref (VALUE v);
 @ @<Function definitions@> =
-static inline VALUE
+PRIVATE VALUE
 value_ref (VALUE v)
 {
   MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->t_ref_count);
@@ -11820,7 +11754,7 @@ marpa_v_ref (Marpa_Value v)
 @ @<Private function prototypes@> =
 static inline void value_free(VALUE v);
 @ @<Function definitions@> =
-static inline void value_free(VALUE v)
+PRIVATE void value_free(VALUE v)
 {
     tree_unpause(T_of_V(v));
     if (DSTACK_IS_INITIALIZED(v->t_virtual_stack))
