@@ -82,6 +82,7 @@
 ^libmarpa/dev/marpa[.]idx
 ^libmarpa/dev/marpa[.]tex
 ^libmarpa/dev/marpa[.]toc
+^libmarpa/dev/private[.]h$
 ^libmarpa/dist/autom4te.cache/
 ^libmarpa/dist/autoscan.log
 ^libmarpa/dist/config.h.in~
@@ -93,6 +94,8 @@
 ^libmarpa/stage_dist/api[.]h[.]in$
 ^libmarpa/stage_dist/autom4te.cache/
 ^libmarpa/stage_dist/autoscan.log
+^libmarpa/stage_dist/codes[.]c[.]in$
+^libmarpa/stage_dist/codes[.]h[.]in$
 ^libmarpa/stage_dist/config.h.in~
 ^libmarpa/stage_dist/config[.]guess$
 ^libmarpa/stage_dist/config[.]h[.]in$
@@ -100,8 +103,6 @@
 ^libmarpa/stage_dist/configure$
 ^libmarpa/stage_dist/configure.scan
 ^libmarpa/stage_dist/depcomp$
-^libmarpa/stage_dist/codes[.]c[.]in$
-^libmarpa/stage_dist/codes[.]h[.]in$
 ^libmarpa/stage_dist/install-sh$
 ^libmarpa/stage_dist/libtool
 ^libmarpa/stage_dist/ltmain[.]sh$
@@ -113,6 +114,7 @@
 ^libmarpa/stage_dist/marpa[.]c$
 ^libmarpa/stage_dist/marpa[.]h[.]in$
 ^libmarpa/stage_dist/missing$
+^libmarpa/stage_dist/private[.]h$
 ^libmarpa/test/dev/Makefile[.]in$
 ^libmarpa/test/dev/aclocal[.]m4$
 ^libmarpa/test/dev/autom4te.cache/
