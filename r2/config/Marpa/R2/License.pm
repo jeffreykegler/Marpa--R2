@@ -129,8 +129,8 @@ END_OF_STRING
 my %original = (
     'libmarpa/dist/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
     'libmarpa/dist/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
-    'libmarpa/stage_dist/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
-    'libmarpa/stage_dist/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
+    'libmarpa/dev/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
+    'libmarpa/dev/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
 );
 
 my %GNU_file =
@@ -170,6 +170,12 @@ sub trivial {
     }
     my $length   = 1000;
     my @problems = ();
+    my $actual_length = -s $filename;
+    if (not defined $actual_length) {
+        my $problem =
+            qq{"Trivial" file does not exit: "$filename"\n};
+        return $problem;
+    }
     if ( -s $filename > $length ) {
         my $problem =
             qq{"Trivial" file is more than $length characters: "$filename"\n};
@@ -257,9 +263,7 @@ my %files_by_type = (
     'html/t/fmt_t_data/score_expected2.html' => \&trivial,
     'libmarpa/dev/copyright_page_license.w'  => \&copyright_page,
     'Makefile.PL'                            => \&trivial,
-    'libmarpa/dist/README'                   => \&trivial,
-    'libmarpa/stage_dist/README'                   => \&trivial,
-    'libmarpa/stage_dist/VERSION.in'                   => \&trivial,
+    'libmarpa/dev/VERSION.in'                   => \&trivial,
     'libmarpa/dist/VERSION.in'                   => \&trivial,
     'libmarpa/VERSION'                   => \&trivial,
     'libmarpa/dev/README'                    => \&trivial,

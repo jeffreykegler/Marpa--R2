@@ -95,7 +95,6 @@ libmarpa/dev/texi2code.pl
 libmarpa/dev/w2private_h.pl
 libmarpa/dist/Makefile.am
 libmarpa/dist/Makefile.in
-libmarpa/dist/README
 libmarpa/dist/VERSION.in
 libmarpa/dist/aclocal.m4
 libmarpa/dist/marpa_api.h
@@ -122,12 +121,11 @@ libmarpa/dist/missing
 libmarpa/dist/private.h
 libmarpa/orig/gnu/obstack.c
 libmarpa/orig/gnu/obstack.h
-libmarpa/stage_dist/Makefile.am
-libmarpa/stage_dist/README
-libmarpa/stage_dist/VERSION.in
-libmarpa/stage_dist/configure.ac
-libmarpa/stage_dist/marpa_obs.c
-libmarpa/stage_dist/marpa_obs.h
+libmarpa/dev/Makefile.am
+libmarpa/dev/VERSION.in
+libmarpa/dev/configure.ac
+libmarpa/dev/marpa_obs.c
+libmarpa/dev/marpa_obs.h
 libmarpa/test/Makefile
 libmarpa/test/README
 libmarpa/test/dev/Makefile.am
