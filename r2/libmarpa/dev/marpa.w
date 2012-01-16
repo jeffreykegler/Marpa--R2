@@ -12338,8 +12338,6 @@ PRIVATE void matrix_free(Bit_Matrix matrix)
 {
     g_free(matrix);
 }
-@ @<Private function prototypes@> =
-static inline void matrix_free(Bit_Matrix matrix);
 
 @*0 Find the Number of Columns in a Boolean Matrix.
 The column count returned is for the first row.
@@ -12348,12 +12346,11 @@ all rows have the same number of columns.
 Note that, in this implementation, the matrix has no
 idea internally of how many rows it has.
 @<Function definitions@> =
-static inline gint matrix_columns(Bit_Matrix matrix) {
+PRIVATE gint matrix_columns(Bit_Matrix matrix)
+{
     Bit_Vector row0 = matrix+bv_hiddenwords;
      return BV_BITS(row0);
 }
-@ @<Private function prototypes@> =
-static inline gint matrix_columns(Bit_Matrix matrix);
 
 @*0 Find a Row of a Boolean Matrix.
 Here's where the slight extra overhead of repeating
@@ -12365,40 +12362,36 @@ If it is changed, the vector should be cloned.
 There is a bit of arithmetic, to deal with the
 hidden words offset.
 @<Function definitions@> =
-static inline Bit_Vector matrix_row(Bit_Matrix matrix, guint row) {
+PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, guint row)
+{
     Bit_Vector row0 = matrix+bv_hiddenwords;
     guint words_per_row = BV_SIZE(row0)+bv_hiddenwords;
     return row0 + row*words_per_row;
 }
-@ @<Private function prototypes@> =
-static inline Bit_Vector matrix_row(Bit_Matrix matrix, guint row);
 
 @*0 Set a Boolean Matrix Bit.
 @ @<Function definitions@> =
-static inline void matrix_bit_set(Bit_Matrix matrix, guint row, guint column) {
+PRIVATE void matrix_bit_set(Bit_Matrix matrix, guint row, guint column)
+{
     Bit_Vector vector = matrix_row(matrix, row);
     bv_bit_set(vector, column);
 }
-@ @<Private function prototypes@> =
-static inline void matrix_bit_set(Bit_Matrix matrix, guint row, guint column);
 
 @*0 Clear a Boolean Matrix Bit.
 @ @<Function definitions@> =
-static inline void matrix_bit_clear(Bit_Matrix matrix, guint row, guint column) {
+PRIVATE void matrix_bit_clear(Bit_Matrix matrix, guint row, guint column)
+{
     Bit_Vector vector = matrix_row(matrix, row);
     bv_bit_clear(vector, column);
 }
-@ @<Private function prototypes@> =
-static inline void matrix_bit_clear(Bit_Matrix matrix, guint row, guint column);
 
 @*0 Test a Boolean Matrix Bit.
 @ @<Function definitions@> =
-static inline gboolean matrix_bit_test(Bit_Matrix matrix, guint row, guint column) {
+PRIVATE gboolean matrix_bit_test(Bit_Matrix matrix, guint row, guint column)
+{
     Bit_Vector vector = matrix_row(matrix, row);
     return bv_bit_test(vector, column);
 }
-@ @<Private function prototypes@> =
-static inline gboolean matrix_bit_test(Bit_Matrix matrix, guint row, guint column);
 
 @*0 Produce the Transitive Closure of a Boolean Matrix.
 This routine takes a matrix representing a relation
@@ -12551,13 +12544,12 @@ typedef struct s_dstack* DSTACK;
 @ @<Private utility structures@> =
 struct s_dstack { gint t_count; gint t_capacity; gpointer t_base; };
 @ @<Function definitions@> =
-static inline gpointer dstack_resize(struct s_dstack* this, gsize type_bytes) {
+PRIVATE gpointer dstack_resize(struct s_dstack* this, gsize type_bytes)
+{
     this->t_capacity *= 2;
     this->t_base = g_realloc(this->t_base, this->t_capacity*type_bytes);
     return this->t_base;
 }
-@ @<Private function prototypes@> =
-static inline gpointer dstack_resize(struct s_dstack* this, gsize type_size);
 
 @*0 Dynamic Queues.
 This is simply a dynamic stack extended with a second
@@ -12690,19 +12682,15 @@ PSAR_Object t_dot_psar_object;
   psar_init(Dot_PSAR_of_R(r), AHFA_Count_of_R (r));
 @ @<Destroy recognizer elements@> =
   psar_destroy(Dot_PSAR_of_R(r));
-@ @<Private function prototypes@> =
-static inline void psar_init(const PSAR psar, gint length);
-static inline void psar_destroy(const PSAR psar);
-static inline PSL psl_new(const PSAR psar);
 @ @<Function definitions@> =
-static inline void
+PRIVATE void
 psar_init (const PSAR psar, gint length)
 {
   psar->t_psl_length = length;
   psar->t_first_psl = psar->t_first_free_psl = psl_new (psar);
 }
 @ @<Function definitions@> =
-static inline void psar_destroy(const PSAR psar)
+PRIVATE void psar_destroy(const PSAR psar)
 {
     PSL psl = psar->t_first_psl;
 MARPA_OFF_DEBUG3("%s psl=%p", G_STRLOC, psl);
@@ -12719,7 +12707,8 @@ MARPA_OFF_DEBUG3("%s psl=%p", G_STRLOC, psl);
       }
 }
 @ @<Function definitions@> =
-static inline PSL psl_new(const PSAR psar) {
+PRIVATE PSL psl_new(const PSAR psar)
+{
      gint i;
      PSL new_psl = g_slice_alloc(Sizeof_PSL(psar));
      new_psl->t_next = NULL;
@@ -12748,10 +12737,9 @@ But when the PSAR is needed for a
 a different type of PSL data,
 one which will require different stale-detection logic,
 the old PSL data need to be nulled.
-@<Private function prototypes@> =
-static inline void psar_reset(const PSAR psar);
-@ @<Function definitions@> =
-static inline void psar_reset(const PSAR psar) {
+@<Function definitions@> =
+PRIVATE void psar_reset(const PSAR psar)
+{
     PSL psl = psar->t_first_psl;
     while (psl && psl->t_owner) {
 	gint i;
