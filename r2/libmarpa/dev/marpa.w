@@ -13326,13 +13326,13 @@ So I add such a comment.
 #endif
 @<Function definitions@>@;
 
-@*0 |marpa.h.in| Layout.
+@*0 |marpa.h| Layout.
 @q This is a separate section in order to get the @>
 @q license language nearer the top of the files. @>
 @q It's hackish, but in a good cause. @>
-@ The physical structure of the |marpa.h.in| file
+@ The physical structure of the |marpa.h| file
 \tenpoint
-@(marpa.h.in@> =
+@(marpa.h@> =
 @=/*@>@/
 @= * Copyright 2012 Jeffrey Kegler@>@/
 @= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
@@ -13356,15 +13356,13 @@ So I add such a comment.
 @= */@>@/
 
 @ \twelvepoint
-@(marpa.h.in@> =
+@(marpa.h@> =
 #ifndef __MARPA_H__
 #define __MARPA_H__ @/
 #include <stdio.h>
 #include <glib.h>
-
-#define MARPA_MAJOR_VERSION @@MARPA_MAJOR_VERSION@@
-#define MARPA_MINOR_VERSION @@MARPA_MINOR_VERSION@@
-#define MARPA_MICRO_VERSION @@MARPA_MICRO_VERSION@@
+#include "marpa_config.h"
+#include "marpa_api.h"
 
 @<Body of public header file@>
 #endif __MARPA_H__

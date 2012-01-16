@@ -132,6 +132,42 @@ if test x"$GCC" = xyes; then
     -ansi -pedantic"
 fi
 
+dnl this section will only be run if config.status is invoked with no
+dnl arguments, or with "marpa_config.h" as an argument.
+AC_CONFIG_COMMANDS([marpa_config.h],
+[
+	outfile=marpa_config.h-tmp
+	cat > $outfile <<_______EOF
+/* marpa_config.h
+ *
+ * This is a generated file.  Please modify 'configure.ac'
+ */
+
+#ifndef __MARPA_CONFIG_H__
+#define __MARPA_CONFIG_H__
+
+$marpa_defines
+
+#ifndef __MARPA_CONFIG_H__
+
+_______EOF
+
+	if cmp -s $outfile marpa_config.h; then
+	  AC_MSG_NOTICE([marpa_config.h is unchanged])
+	  rm -f $outfile
+	else
+	  mv $outfile marpa_config.h
+	fi
+],[
+
+marpa_defines="
+#define MARPA_MAJOR_VERSION $MARPA_MAJOR_VERSION
+#define MARPA_MINOR_VERSION $MARPA_MINOR_VERSION
+#define MARPA_MICRO_VERSION $MARPA_MICRO_VERSION
+"
+
+])
+
 AC_SUBST(WARNING_CFLAGS)
 AC_C_INLINE
 
@@ -140,7 +176,6 @@ PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.22.0] )
 
 AC_CONFIG_FILES(
     [Makefile]
-    [marpa.h:marpa.h.in:api.h.in codes.c codes.h]
     [VERSION]
     )
 AC_OUTPUT
