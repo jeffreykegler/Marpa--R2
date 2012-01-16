@@ -55,10 +55,12 @@ say {$private_h} $common_preamble;
 my $file = do { local $RS = undef; <STDIN>; };
 for my $prototype ($file =~ m/^PRIVATE_NOT_INLINE \b (.*?) \s* ^[{]/gxms)
 {
+   $prototype =~ s/[@][,]//g; # Remove Cweb spacing
    say {$private_h} 'static ' . $prototype . q{;};
 }
 for my $prototype ($file =~ m/^PRIVATE \b (.*?) \s* ^[{]/gxms)
 {
+   $prototype =~ s/[@][,]//g; # Remove Cweb spacing
    say {$private_h} 'static inline ' . $prototype . q{;};
 }
 

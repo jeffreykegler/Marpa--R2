@@ -2384,7 +2384,7 @@ The upside is that in the more frequent cases, the user is spared
 a lot of useless diagnostics.
 
 @<Function definitions@> =
-static struct marpa_g* census(struct marpa_g* g)
+PRIVATE_NOT_INLINE GRAMMAR census(GRAMMAR g)
 {
     @<Return |NULL| on failure@>@;
     @<Declare census variables@>@;
@@ -2414,8 +2414,6 @@ static struct marpa_g* census(struct marpa_g* g)
     g->t_is_precomputed = TRUE;
     return g;
 }
-@ @<Private function prototypes@> =
-static struct marpa_g* census(struct marpa_g* g);
 @ @<Declare census variables@> =
 guint pre_rewrite_rule_count = g->t_rules->len;
 guint pre_rewrite_symbol_count = g->t_symbols->len;
@@ -3677,9 +3675,6 @@ you want to follow the rules.
   g->t_AHFA_items_by_rule = items_by_rule;
 }
 
-@ @<Private function prototypes@> =
-static gint cmp_by_aimid (gconstpointer a,
-	gconstpointer b, gpointer user_data);
 @ This functions sorts a list of pointers to
 AHFA items by AHFA item id,
 which is their most natural order.
@@ -3688,17 +3683,15 @@ they are restored to this order.
 For portability,
 it requires the AIMs to be in an array.
 @ @<Function definitions@> =
-static gint cmp_by_aimid (gconstpointer ap,
+PRIVATE_NOT_INLINE gint cmp_by_aimid (gconstpointer ap,
 	gconstpointer bp,
-	gpointer user_data @, G_GNUC_UNUSED) {
+	gpointer user_data @, G_GNUC_UNUSED)
+{
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
     return a-b;
 }
 
-@ @<Private function prototypes@> =
-static gint cmp_by_postdot_and_aimid (gconstpointer a,
-	gconstpointer b, gpointer user_data);
 @ The AHFA items were created with a temporary ID which sorts them
 by rule, then by position within that rule.  We need one that sort the AHFA items
 by (from major to minor) postdot symbol, then rule, then position.
@@ -3706,8 +3699,9 @@ A postdot symbol of $-1$ should sort high.
 This comparison function is used in the logic to change the AHFA item ID's
 from their temporary values to their final ones.
 @ @<Function definitions@> =
-static gint cmp_by_postdot_and_aimid (gconstpointer ap,
-	gconstpointer bp, gpointer user_data @, G_GNUC_UNUSED) {
+PRIVATE_NOT_INLINE gint cmp_by_postdot_and_aimid (gconstpointer ap,
+	gconstpointer bp, gpointer user_data @, G_GNUC_UNUSED)
+{
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
     gint a_postdot = Postdot_SYMID_of_AIM(a);
@@ -4069,10 +4063,8 @@ Note that this function is not used for discovered AHFA states of
 size 1.
 Checking those for duplicates is optimized, using an array
 indexed by the ID of their only AHFA item.
-@<Private function prototypes@> =
-static gint AHFA_state_cmp(gconstpointer a, gconstpointer b);
 @ @<Function definitions@> =
-static gint AHFA_state_cmp(
+PRIVATE_NOT_INLINE gint AHFA_state_cmp(
     gconstpointer ap,
     gconstpointer bp)
 {
@@ -4826,24 +4818,16 @@ populate the index from rule id to sort key.
     }
 }
 
-@ @<Private function prototypes@> =
-static AHFA
-create_predicted_AHFA_state(
-     struct marpa_g* g,
-     Bit_Vector prediction_rule_vector,
-     RULE* rule_by_sort_key,
-     DQUEUE states_p,
-     GTree* duplicates
-     );
 @ @<Function definitions@> =
-static AHFA
+PRIVATE_NOT_INLINE AHFA
 create_predicted_AHFA_state(
-     struct marpa_g* g,
+     GRAMMAR g,
      Bit_Vector prediction_rule_vector,
      RULE* rule_by_sort_key,
      DQUEUE states_p,
      GTree* duplicates
-     ) {
+     )
+{
 AIM* item_list_for_new_state;
 AHFA p_new_state;
 guint item_list_ix = 0;
@@ -6025,12 +6009,11 @@ The Earley item itself is on the obstack.
 @<Bit aligned Earley item elements@> =
 guint t_source_type:3;
 
-@ @<Private function prototypes@> =
-static const char* invalid_source_type_message(guint type);
 @ Not inline, because not used in critical paths.
 This is for creating error messages.
 @<Function definitions@> =
-static const char* invalid_source_type_message(guint type) {
+PRIVATE_NOT_INLINE const char* invalid_source_type_message(guint type)
+{
      switch (type) {
     case NO_SOURCE:
     return "invalid source type: none";
@@ -8010,9 +7993,6 @@ PRIVATE void r_update_earley_sets(RECCE r)
 @** Create the Postdot Items.
 @ This function inserts regular (non-Leo) postdot items into
 the postdot list.
-@<Private function prototypes@> =
-static void
-postdot_items_create (struct marpa_r *r, ES set);
 @ Not inlined, because of its size, and because it is used
 twice -- once in initializing the Earley set 0,
 and once for completing later Earley sets.
@@ -8036,8 +8016,8 @@ is completely settled.
 This will require making the Leo behavior configurable
 and running benchmarks.
 @<Function definitions@> =
-static void
-postdot_items_create (struct marpa_r *r, ES current_earley_set)
+PRIVATE_NOT_INLINE void
+postdot_items_create (RECCE r, ES current_earley_set)
 {
     gpointer * const pim_workarea = r->t_sym_workarea;
   @<Unpack recognizer objects@>@;
@@ -12230,8 +12210,8 @@ If I decide rules should have a unique right hand symbol list,
 this is one place to use it.
 Duplicate symbols on the RHS are visited uselessly.
 @<Function definitions@> =
-static void
-rhs_closure (struct marpa_g *g, Bit_Vector bv)
+PRIVATE_NOT_INLINE void
+rhs_closure (GRAMMAR g, Bit_Vector bv)
 {
   guint min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
@@ -12276,8 +12256,6 @@ rhs_closure (struct marpa_g *g, Bit_Vector bv)
     }
   FSTACK_DESTROY (stack);
 }
-@ @<Private function prototypes@> =
-static void rhs_closure(struct marpa_g* g, Bit_Vector bv);
 
 @** Boolean Matrixes.
 Marpa's Boolean matrixes are implemented differently
@@ -12393,7 +12371,7 @@ of the relation.
 The matrix is assumed to be square.
 The input matrix will be destroyed.
 @<Function definitions@> =
-static void transitive_closure(Bit_Matrix matrix)
+PRIVATE_NOT_INLINE void transitive_closure(Bit_Matrix matrix)
 {
       struct transition { guint from, to; } * top_of_stack = NULL;
       guint size = matrix_columns(matrix);
@@ -12436,8 +12414,6 @@ static void transitive_closure(Bit_Matrix matrix)
     }
       DSTACK_DESTROY(stack);
 }
-@ @<Private function prototypes@> =
-static void transitive_closure(Bit_Matrix matrix);
 
 @** Efficient Stacks and Queues.
 @ The interface for these macros is somewhat hackish,
@@ -13064,18 +13040,13 @@ in the code.
 @d R_DEV_ERROR(message) (r_error(r, MARPA_ERR_DEVELOPMENT, (message), 0u))
 @d R_ERROR(code, message) (r_error(r, (code), (message), 0u))
 @d R_FATAL(code, message) (r_error(r, (code), (message), FATAL_FLAG))
-@<Private function prototypes@> =
-static void set_error( struct marpa_g* g, Marpa_Error_Code code,
-    const char* message, guint flags );
-static void r_error( struct marpa_r* r, Marpa_Error_Code code,
-    const char* message, guint flags );
 @ Not inlined.  |r_error|
 occurs in the code quite often,
 but |r_error|
 should actually be invoked only in exceptional circumstances.
 In this case space clearly is much more important than speed.
 @<Function definitions@> =
-static void
+PRIVATE_NOT_INLINE void
 set_error (struct marpa_g *g, Marpa_Error_Code code, const char* message, guint flags)
 {
   g->t_error = code;
@@ -13084,7 +13055,7 @@ set_error (struct marpa_g *g, Marpa_Error_Code code, const char* message, guint 
     g->t_is_ok = 0;
 }
 
-static void
+PRIVATE_NOT_INLINE void
 r_error (struct marpa_r *r, Marpa_Error_Code code, const char* message, guint flags)
 {
   set_error (G_of_R (r), code, message, flags);
