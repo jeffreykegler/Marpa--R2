@@ -11962,43 +11962,36 @@ Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from)
     }
     return(bv_to);
 }
-@ @<Private function prototypes@> =
-static inline
-Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from);
 
 @*0 Clone a Boolean Vector.
 Given a boolean vector, creates a new vector which is
 an exact duplicate.
 This call allocates a new vector, which must be |g_free|'d.
-@<Function definitions@> = static inline
+@<Function definitions@> =
+PRIVATE
 Bit_Vector bv_clone(Bit_Vector bv)
 {
     return bv_copy(bv_shadow(bv), bv);
 }
-@ @<Private function prototypes@> =
-static inline
-Bit_Vector bv_clone(Bit_Vector bv);
 
 @*0 Free a Boolean Vector.
 @<Function definitions@> =
-static inline void bv_free(Bit_Vector vector) {
+PRIVATE void bv_free(Bit_Vector vector)
+{
     vector -= bv_hiddenwords;
     g_free(vector);
 }
-@ @<Private function prototypes@> =
-static inline void bv_free(Bit_Vector vector);
 
 @*0 The Number of Bytes in a Boolean Vector.
 @<Function definitions@> =
-static inline gint bv_bytes(Bit_Vector bv) {
+PRIVATE gint bv_bytes(Bit_Vector bv)
+{
     return (BV_SIZE(bv)+bv_hiddenwords)*sizeof(Bit_Vector_Word);
 }
-@ @<Private function prototypes@> =
-static inline gint bv_bytes(Bit_Vector bv);
 
 @*0 Fill a Boolean Vector.
 @<Function definitions@> =
-static inline void bv_fill(Bit_Vector bv)
+PRIVATE void bv_fill(Bit_Vector bv)
 {
     guint size = BV_SIZE(bv);
     if (size <= 0) return;
@@ -12006,14 +11999,10 @@ static inline void bv_fill(Bit_Vector bv)
     --bv;
     *bv &= BV_MASK(bv);
 }
-@ @<Private function prototypes@> =
-static inline void bv_fill(Bit_Vector bv);
 
 @*0 Clear a Boolean Vector.
-@ @<Private function prototypes@> =
-static inline void bv_clear(Bit_Vector bv);
-@ @<Function definitions@> =
-static inline void bv_clear(Bit_Vector bv)
+@<Function definitions@> =
+PRIVATE void bv_clear(Bit_Vector bv)
 {
     guint size = BV_SIZE(bv);
     if (size <= 0) return;
@@ -12026,10 +12015,8 @@ It clears a prefix of the bit vector faster
 than an interval clear, at the expense of often
 clearing more bits than were requested.
 In some situations clearing the extra bits is OK.
-@<Private function prototypes@> =
-static inline void bv_over_clear(Bit_Vector bv, guint bit);
 @ @<Function definitions@> =
-static inline void bv_over_clear(Bit_Vector bv, guint bit)
+PRIVATE void bv_over_clear(Bit_Vector bv, guint bit)
 {
     guint length = bit/bv_wordbits+1;
     while (length--) *bv++ = 0u;
@@ -12037,7 +12024,8 @@ static inline void bv_over_clear(Bit_Vector bv, guint bit)
 
 @*0 Set a Boolean Vector Bit.
 @ @<Function definitions@> =
-static inline void bv_bit_set(Bit_Vector vector, guint bit) {
+PRIVATE void bv_bit_set(Bit_Vector vector, guint bit)
+{
     *(vector+(bit/bv_wordbits)) |= (bv_lsb << (bit%bv_wordbits));
 }
 @ @<Private function prototypes@> =
