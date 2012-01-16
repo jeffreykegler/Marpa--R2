@@ -690,12 +690,9 @@ gint marpa_g_symbol_count(struct marpa_g* g) {
 
 @ Adds the symbol to the list of symbols kept by the Grammar
 object.
-@<Private inline functions@> =
+@<Function definitions@> =
 PRIVATE
-void g_symbol_add(
-    struct marpa_g *g,
-    Marpa_Symbol_ID symid,
-    SYM symbol)
+void g_symbol_add( GRAMMAR g, SYMID symid, SYM symbol)
 {
     g_array_insert_val(g->t_symbols, (unsigned)symid, symbol);
 }
@@ -728,7 +725,7 @@ gint marpa_g_rule_count(struct marpa_g* g) {
 
 @ Adds the rule to the list of rules kept by the Grammar
 object.
-@<Private inline functions@> =
+@<Function definitions@> =
 PRIVATE
 void rule_add(
     GRAMMAR g,
@@ -4748,9 +4745,11 @@ calculate |no_of_predictable_rules|@> =
 		     (gpointer) sort_key_by_rule_id);
 }
 
-@ @<Function definitions@> = static gint
+@ @<Function definitions@> =
+PRIVATE_NOT_INLINE gint
 cmp_by_rule_sort_key(gconstpointer ap,
-	gconstpointer bp, gpointer user_data) {
+	gconstpointer bp, gpointer user_data)
+{
     RULE a = *(RULE*)ap;
     RULE b = *(RULE*)bp;
     guint* sort_key_by_rule_id = (guint*)user_data;
@@ -4761,9 +4760,6 @@ cmp_by_rule_sort_key(gconstpointer ap,
     if (sort_key_a == sort_key_b) return a_id - b_id;
     return sort_key_a - sort_key_b;
 }
-@ @<Private function prototypes@> = static
-gint cmp_by_rule_sort_key(gconstpointer ap,
-	gconstpointer bp, gpointer user_data);
 
 @ We have now sorted the rules into the final sort key order.
 With this final version of the sort keys,
@@ -6820,7 +6816,8 @@ it is referenced in several places,
 it is only called for ambiguous Earley items,
 and even for these it is only called when the
 Earley item first becomes ambiguous.
-@<Function definitions@> = static 
+@<Function definitions@> =
+PRIVATE_NOT_INLINE
 void earley_item_ambiguate (struct marpa_r * r, EIM item)
 {
   guint previous_source_type = Source_Type_of_EIM (item);
@@ -6835,8 +6832,6 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
       return;
     }
 }
-@ @<Private function prototypes@> = static 
-void earley_item_ambiguate (struct marpa_r * r, EIM item);
 
 @ @<Ambiguate token source@> = {
   SRCL new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
@@ -10419,11 +10414,8 @@ marpa_b_ref (Marpa_Bocage b)
 @ This function is safe to call even
 if the bocage already has been freed,
 or was never initialized.
-@<Private function prototypes@> =
-void
-bocage_free(BOCAGE b);
-@ @<Function definitions@> =
-void
+@<Function definitions@> =
+PRIVATE void
 bocage_free (BOCAGE b)
 {
     MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, b)
@@ -13164,14 +13156,11 @@ vice versa.
 @*0 Earley Item Tag.
 A function to print a descriptive tag for
 an Earley item.
-@<Private function prototypes@> =
-#if MARPA_DEBUG
+@<Debug function prototypes@> =
 static gchar* eim_tag_safe(gchar *buffer, EIM eim);
 static gchar* eim_tag(EIM eim);
-#endif
 @ It is passed a buffer to keep it thread-safe.
-@<Function definitions@> =
-#if MARPA_DEBUG
+@<Debug function definitions@> =
 static gchar *
 eim_tag_safe (gchar * buffer, EIM eim)
 {
@@ -13188,20 +13177,16 @@ eim_tag (EIM eim)
 {
   return eim_tag_safe (DEBUG_eim_tag_buffer, eim);
 }
-#endif
 
 @*0 Leo Item Tag.
 A function to print a descriptive tag for
 an Leo item.
-@<Private function prototypes@> =
-#if MARPA_DEBUG
+@<Debug function prototypes@> =
 static gchar* lim_tag_safe (gchar *buffer, LIM lim);
 static gchar* lim_tag (LIM lim);
-#endif
 @ This function is passed a buffer to keep it thread-safe.
 be made thread-safe.
-@<Function definitions@> =
-#if MARPA_DEBUG
+@<Debug function definitions@> =
 static gchar*
 lim_tag_safe (gchar *buffer, LIM lim)
 {
@@ -13216,21 +13201,17 @@ lim_tag (LIM lim)
 {
   return lim_tag_safe (DEBUG_lim_tag_buffer, lim);
 }
-#endif
 
 @*0 Or-Node Tag.
 Functions to print a descriptive tag for
 an or-node item.
 One is thread-safe, the other is
 more convenient but not thread-safe.
-@<Private function prototypes@> =
-#if MARPA_DEBUG
+@<Debug function prototypes@> =
 static const gchar* or_tag_safe(gchar *buffer, OR or);
 static const gchar* or_tag(OR or);
-#endif
 @ It is passed a buffer to keep it thread-safe.
-@<Function definitions@> =
-#if MARPA_DEBUG
+@<Debug function definitions@> =
 static const gchar *
 or_tag_safe (gchar * buffer, OR or)
 {
@@ -13250,7 +13231,6 @@ or_tag (OR or)
 {
   return or_tag_safe (DEBUG_or_tag_buffer, or);
 }
-#endif
 
 @*0 AHFA Item Tag.
 Functions to print a descriptive tag for
@@ -13259,13 +13239,10 @@ One is passed a buffer to keep it thread-safe.
 The other uses a global buffer,
 which is not thread-safe, but
 convenient when debugging in a non-threaded environment.
-@<Private function prototypes@> =
-#if MARPA_DEBUG
+@<Debug function prototypes@> =
 static const gchar* aim_tag_safe(gchar *buffer, AIM aim);
 static const gchar* aim_tag(AIM aim);
-#endif
-@ @<Function definitions@> =
-#if MARPA_DEBUG
+@ @<Debug function definitions@> =
 static const gchar *
 aim_tag_safe (gchar * buffer, AIM aim)
 {
@@ -13285,8 +13262,6 @@ aim_tag (AIM aim)
 {
   return aim_tag_safe (DEBUG_aim_tag_buffer, aim);
 }
-#endif
-
 
 @** File Layout.  
 @ The output files are {\bf not} source files,
@@ -13345,8 +13320,10 @@ So I add such a comment.
 @<Earley item structure@>@;
 @<Bocage structure@>@;
 #include "private.h"
-@<Private function prototypes@>@;
-@<Private inline functions@>@;
+#if MARPA_DEBUG
+@<Debug function prototypes@>@;
+@<Debug function definitions@>@;
+#endif
 @<Function definitions@>@;
 
 @*0 |marpa.h.in| Layout.
