@@ -1489,10 +1489,6 @@ typedef Marpa_Rule_ID RULEID;
 This logic is intended to be common to all individual rules.
 The name comes from the idea that this logic ``starts"
 the initialization of a rule.
-@ @<Private function prototypes@> =
-PRIVATE_NOT_INLINE
-RULE rule_start(GRAMMAR g,
-SYMID lhs, SYMID *rhs, gint length);
 @ GCC complains about inlining |rule_start| -- it is
 not a tiny function, and it is repeated often.
 @<Function definitions@> =
@@ -4102,11 +4098,10 @@ static gint AHFA_state_cmp(
 }
 
 @*0 AHFA State Mutators.
-@ @<Private function prototypes@> =
-PRIVATE_NOT_INLINE void create_AHFA_states(struct marpa_g* g);
-@ @<Function definitions@> =
+@<Function definitions@> =
 PRIVATE_NOT_INLINE
-void create_AHFA_states(struct marpa_g* g) {
+void create_AHFA_states(struct marpa_g* g)
+{
     @<Declare locals for creating AHFA states@>@;
     @<Initialize locals for creating AHFA states@>@;
    @<Construct prediction matrix@>@;
@@ -10238,8 +10233,6 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
 is earleme 0, and that null parses are allowed.
 If null parses are allowed, there is guaranteed to be a
 null start rule.
-@<Private function prototypes@> =
-PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b);
 @ Not inline --- should not be called a lot.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
@@ -12755,10 +12748,9 @@ PRIVATE void psar_reset(const PSAR psar)
 its PSLs,
 and puts them back on the free list.
 It does {\bf not} null out the stale PSL items.
-@<Private function prototypes@> =
-static inline void psar_dealloc(const PSAR psar);
 @ @<Function definitions@> =
-static inline void psar_dealloc(const PSAR psar) {
+PRIVATE void psar_dealloc(const PSAR psar)
+{
     PSL psl = psar->t_first_psl;
     while (psl) {
 	PSL* owner = psl->t_owner;
@@ -12776,12 +12768,10 @@ from which to claim it are arguments.
 The caller must ensure that
 there is not a PSL already
 at the claiming address.
-@<Private function prototypes@> =
-static inline void psl_claim(
-    PSL* const psl_owner, const PSAR psar);
 @ @<Function definitions@> =
-static inline void psl_claim(
-    PSL* const psl_owner, const PSAR psar) {
+PRIVATE void psl_claim(
+    PSL* const psl_owner, const PSAR psar)
+{
      PSL new_psl = psl_alloc(psar);
      (*psl_owner) = new_psl;
      new_psl->t_owner = psl_owner;
@@ -12802,10 +12792,9 @@ It gets a free PSL from the PSAR.
 There must always be at least one free PSL in a PSAR.
 This function replaces the allocated PSL with
 a new free PSL when necessary.
-@ @<Private function prototypes@> =
-static inline PSL psl_alloc(const PSAR psar);
-@ @<Function definitions@> =
-static inline PSL psl_alloc(const PSAR psar) {
+@<Function definitions@> =
+PRIVATE PSL psl_alloc(const PSAR psar)
+{
     PSL free_psl = psar->t_first_free_psl;
     PSL next_psl = free_psl->t_next;
     if (!next_psl) {
@@ -13206,13 +13195,13 @@ A function to print a descriptive tag for
 an Earley item.
 @<Private function prototypes@> =
 #if MARPA_DEBUG
-PRIVATE_NOT_INLINE gchar* eim_tag_safe(gchar *buffer, EIM eim);
-PRIVATE_NOT_INLINE gchar* eim_tag(EIM eim);
+static gchar* eim_tag_safe(gchar *buffer, EIM eim);
+static gchar* eim_tag(EIM eim);
 #endif
 @ It is passed a buffer to keep it thread-safe.
 @<Function definitions@> =
 #if MARPA_DEBUG
-PRIVATE_NOT_INLINE gchar *
+static gchar *
 eim_tag_safe (gchar * buffer, EIM eim)
 {
   if (!eim) return "NULL";
@@ -13223,7 +13212,7 @@ eim_tag_safe (gchar * buffer, EIM eim)
 }
 
 static char DEBUG_eim_tag_buffer[1000];
-PRIVATE_NOT_INLINE gchar*
+static gchar*
 eim_tag (EIM eim)
 {
   return eim_tag_safe (DEBUG_eim_tag_buffer, eim);
@@ -13235,14 +13224,14 @@ A function to print a descriptive tag for
 an Leo item.
 @<Private function prototypes@> =
 #if MARPA_DEBUG
-PRIVATE_NOT_INLINE gchar* lim_tag_safe (gchar *buffer, LIM lim);
-PRIVATE_NOT_INLINE gchar* lim_tag (LIM lim);
+static gchar* lim_tag_safe (gchar *buffer, LIM lim);
+static gchar* lim_tag (LIM lim);
 #endif
 @ This function is passed a buffer to keep it thread-safe.
 be made thread-safe.
 @<Function definitions@> =
 #if MARPA_DEBUG
-PRIVATE_NOT_INLINE gchar*
+static gchar*
 lim_tag_safe (gchar *buffer, LIM lim)
 {
   sprintf (buffer, "L%d@@%d",
@@ -13251,7 +13240,7 @@ lim_tag_safe (gchar *buffer, LIM lim)
 }
 
 static char DEBUG_lim_tag_buffer[1000];
-PRIVATE_NOT_INLINE gchar*
+static gchar*
 lim_tag (LIM lim)
 {
   return lim_tag_safe (DEBUG_lim_tag_buffer, lim);
@@ -13265,13 +13254,13 @@ One is thread-safe, the other is
 more convenient but not thread-safe.
 @<Private function prototypes@> =
 #if MARPA_DEBUG
-PRIVATE_NOT_INLINE const gchar* or_tag_safe(gchar *buffer, OR or);
-PRIVATE_NOT_INLINE const gchar* or_tag(OR or);
+static const gchar* or_tag_safe(gchar *buffer, OR or);
+static const gchar* or_tag(OR or);
 #endif
 @ It is passed a buffer to keep it thread-safe.
 @<Function definitions@> =
 #if MARPA_DEBUG
-PRIVATE_NOT_INLINE const gchar *
+static const gchar *
 or_tag_safe (gchar * buffer, OR or)
 {
   if (!or) return "NULL";
@@ -13285,7 +13274,7 @@ or_tag_safe (gchar * buffer, OR or)
 }
 
 static char DEBUG_or_tag_buffer[1000];
-PRIVATE_NOT_INLINE const gchar*
+static const gchar*
 or_tag (OR or)
 {
   return or_tag_safe (DEBUG_or_tag_buffer, or);
@@ -13301,12 +13290,12 @@ which is not thread-safe, but
 convenient when debugging in a non-threaded environment.
 @<Private function prototypes@> =
 #if MARPA_DEBUG
-PRIVATE_NOT_INLINE const gchar* aim_tag_safe(gchar *buffer, AIM aim);
-PRIVATE_NOT_INLINE const gchar* aim_tag(AIM aim);
+static const gchar* aim_tag_safe(gchar *buffer, AIM aim);
+static const gchar* aim_tag(AIM aim);
 #endif
 @ @<Function definitions@> =
 #if MARPA_DEBUG
-PRIVATE_NOT_INLINE const gchar *
+static const gchar *
 aim_tag_safe (gchar * buffer, AIM aim)
 {
   if (!aim) return "NULL";
@@ -13320,7 +13309,7 @@ aim_tag_safe (gchar * buffer, AIM aim)
 }
 
 static char DEBUG_aim_tag_buffer[1000];
-PRIVATE_NOT_INLINE const gchar*
+static const gchar*
 aim_tag (AIM aim)
 {
   return aim_tag_safe (DEBUG_aim_tag_buffer, aim);
