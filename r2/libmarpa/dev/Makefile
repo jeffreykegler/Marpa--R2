@@ -68,22 +68,20 @@ private.h: marpa.w w2private_h.pl
 
 marpa.pdf: marpa.tex cwebmac.tex
 
-../build_dist/Makefile: ../stage_dist/configure ../stage_dist/Makefile.in
+../stage_dist/configure:  ../stage_dist/configure.ac ../stage_dist/Makefile.am
+	test -d ../stage_dist/m4 || mkdir ../stage_dist/m4
+	cd ../stage_dist && autoreconf -ivf
+
+../build_dist/Makefile: $(STAGE_FILES) ../stage_dist/configure
 	cd ../build_dist && ../stage_dist/configure
 
-../build_dist/VERSION: ../build_dist/Makefile
-
-../build_dist/marpa.tar.gz: marpa.c \
-    private.h marpa.h marpa_api.h \
-    codes.c codes.h \
-    ../build_dist/Makefile
-	cp marpa.c private.h marpa_api.h codes.h codes.c marpa.h ../stage_dist
+../build_dist/marpa.tar.gz: ../build_dist/VERSION $(STAGE_FILES) ../build_dist/Makefile
 	cd ../build_dist && make dist
 	version=`cat ../build_dist/VERSION`; \
 	    cd ../build_dist \
 	    && mv marpa-$$version.tar.gz marpa.tar.gz
 
-../VERSION: ../build_dist/VERSION ../build_dist/marpa.tar.gz
+../VERSION: ../build_dist/marpa.tar.gz
 	cp ../build_dist/VERSION ../VERSION
 	version=`cat ../VERSION`; \
 	    cd ..  \
@@ -91,4 +89,61 @@ marpa.pdf: marpa.tex cwebmac.tex
 	    && rm -rf dist \
 	    && mv marpa-$$version dist
 
-install: ../VERSION
+STAGE_FILES = \
+    ../stage_dist/Makefile.am \
+    ../stage_dist/VERSION.in \
+    ../stage_dist/api.texi \
+    ../stage_dist/codes.c \
+    ../stage_dist/codes.h \
+    ../stage_dist/configure.ac \
+    ../stage_dist/marpa.c \
+    ../stage_dist/marpa.h \
+    ../stage_dist/marpa_api.h \
+    ../stage_dist/marpa_obs.c \
+    ../stage_dist/marpa_obs.h \
+    ../stage_dist/private.h
+
+../stage_dist/api.texi: api.texi
+	cp $? $@
+
+../stage_dist/marpa.c: marpa.c
+	cp $? $@
+
+../stage_dist/marpa.h: marpa.h
+	cp $? $@
+
+../stage_dist/marpa_api.h: marpa_api.h
+	cp $? $@
+
+../stage_dist/codes.c: codes.c
+	cp $? $@
+
+../stage_dist/codes.h: codes.h
+	cp $? $@
+
+../stage_dist/private.h: private.h
+	cp $? $@
+
+../stage_dist/configure.ac: configure.ac
+	cp $? $@
+
+../stage_dist/Makefile.am: Makefile.am
+	cp $? $@
+
+../stage_dist/VERSION.in: VERSION.in
+	cp $? $@
+
+../stage_dist/marpa_obs.c: marpa_obs.c
+	cp $? $@
+
+../stage_dist/marpa_obs.h: marpa_obs.h
+	cp $? $@
+
+install: $(STAGE_FILES) ../VERSION
+
+../docs/Makefile: ../stage_dist/configure
+	test -d ../docs || mkdir ../docs
+	cd ../docs && ../stage_dist/configure
+
+docs: ../docs/Makefile
+	cd ../docs && make pdf

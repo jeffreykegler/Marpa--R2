@@ -1,4 +1,6 @@
 build/
+stage_dist/
+docs/
 dist/
 VERSION
 build_dist/

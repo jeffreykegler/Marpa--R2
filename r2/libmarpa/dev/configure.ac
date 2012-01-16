@@ -148,7 +148,7 @@ AC_CONFIG_COMMANDS([marpa_config.h],
 
 $marpa_defines
 
-#ifndef __MARPA_CONFIG_H__
+#endif __MARPA_CONFIG_H__
 
 _______EOF
 
