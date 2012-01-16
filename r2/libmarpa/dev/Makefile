@@ -138,8 +138,14 @@ STAGE_FILES = \
 install: sources ../VERSION
 
 ../docs/stamp-h1: ../stage_dist/configure
-	test -d ../docs || mkdir ../docs
+	test -d ../docs && rm -rf ../docs
+	mkdir ../docs
 	cd ../docs && ../stage_dist/configure
 
-docs: ../docs/stamp-h1
-	cd ../docs && make pdf
+docs: ../build_dist/marpa.tar.gz ../build_dist/VERSION
+	rm -rf ../docs
+	cd .. && tar -xzf build_dist/marpa.tar.gz
+	version=`cat ../build_dist/VERSION`; \
+	    cd .. \
+	    && mv marpa-$$version docs
+	cd ../docs && ./configure --silent && make pdf
