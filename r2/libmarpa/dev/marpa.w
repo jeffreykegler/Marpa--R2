@@ -12028,31 +12028,25 @@ PRIVATE void bv_bit_set(Bit_Vector vector, guint bit)
 {
     *(vector+(bit/bv_wordbits)) |= (bv_lsb << (bit%bv_wordbits));
 }
-@ @<Private function prototypes@> =
-static inline void bv_bit_set(Bit_Vector vector, guint bit);
 
 @*0 Clear a Boolean Vector Bit.
 @<Function definitions@> =
-static inline void bv_bit_clear(Bit_Vector vector, guint bit) {
+PRIVATE void bv_bit_clear(Bit_Vector vector, guint bit)
+{
     *(vector+(bit/bv_wordbits)) &= ~ (bv_lsb << (bit%bv_wordbits));
 }
-@ @<Private function prototypes@> =
-static inline void bv_bit_clear(Bit_Vector vector, guint bit);
 
 @*0 Test a Boolean Vector Bit.
 @<Function definitions@> =
-static inline gboolean bv_bit_test(Bit_Vector vector, guint bit) {
+PRIVATE gboolean bv_bit_test(Bit_Vector vector, guint bit)
+{
     return (*(vector+(bit/bv_wordbits)) & (bv_lsb << (bit%bv_wordbits))) != 0u;
 }
-@ @<Private function prototypes@> =
-static inline gboolean bv_bit_test(Bit_Vector vector, guint bit);
 
 @*0 Test and Set a Boolean Vector Bit.
 Ensure that a bit is set and returning its value to the call.
-@ @<Private function prototypes@> =
-static inline gboolean bv_bit_test_and_set(Bit_Vector vector, guint bit);
-@ @<Function definitions@> =
-static inline gboolean
+@<Function definitions@> =
+PRIVATE gboolean
 bv_bit_test_and_set (Bit_Vector vector, guint bit)
 {
   Bit_Vector addr = vector + (bit / bv_wordbits);
@@ -12065,7 +12059,7 @@ bv_bit_test_and_set (Bit_Vector vector, guint bit)
 
 @*0 Test a Boolean Vector for all Zeroes.
 @<Function definitions@> =
-static inline
+PRIVATE
 gboolean bv_is_empty(Bit_Vector addr)
 {
     guint  size = BV_SIZE(addr);
@@ -12076,61 +12070,50 @@ gboolean bv_is_empty(Bit_Vector addr)
     }
     return(r);
 }
-@ @<Private function prototypes@> =
-static inline
-gboolean bv_is_empty(Bit_Vector addr);
 
 @*0 Bitwise-negate a Boolean Vector.
 @<Function definitions@>=
-static inline void bv_not(Bit_Vector X, Bit_Vector Y)
+PRIVATE void bv_not(Bit_Vector X, Bit_Vector Y)
 {
     guint size = BV_SIZE(X);
     guint mask = BV_MASK(X);
     while (size-- > 0) *X++ = ~*Y++;
     *(--X) &= mask;
 }
-@ @<Private function prototypes@> =
-static inline void bv_not(Bit_Vector X, Bit_Vector Y);
 
 @*0 Bitwise-and a Boolean Vector.
 @<Function definitions@>=
-static inline void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
+PRIVATE void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 {
     guint size = BV_SIZE(X);
     guint mask = BV_MASK(X);
     while (size-- > 0) *X++ = *Y++ & *Z++;
     *(--X) &= mask;
 }
-@ @<Private function prototypes@> =
-static inline void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z);
 
 @*0 Bitwise-or a Boolean Vector.
 @<Function definitions@>=
-static inline void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
+PRIVATE void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 {
     guint size = BV_SIZE(X);
     guint mask = BV_MASK(X);
     while (size-- > 0) *X++ = *Y++ | *Z++;
     *(--X) &= mask;
 }
-@ @<Private function prototypes@> =
-static inline void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z);
 
 @*0 Bitwise-or-assign a Boolean Vector.
 @<Function definitions@>=
-static inline void bv_or_assign(Bit_Vector X, Bit_Vector Y)
+PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 {
     guint size = BV_SIZE(X);
     guint mask = BV_MASK(X);
     while (size-- > 0) *X++ |= *Y++;
     *(--X) &= mask;
 }
-@ @<Private function prototypes@> =
-static inline void bv_or_assign(Bit_Vector X, Bit_Vector Y);
 
 @*0 Scan a Boolean Vector.
 @<Function definitions@>=
-static inline
+PRIVATE
 gboolean bv_scan(Bit_Vector bv, guint start,
                                     guint* min, guint* max)
 {
@@ -12199,14 +12182,10 @@ gboolean bv_scan(Bit_Vector bv, guint start,
     *max = --start;
     return TRUE;
 }
-@ @<Private function prototypes@> =
-static inline
-gboolean bv_scan(
-    Bit_Vector bv, guint start, guint* min, guint* max);
 
 @*0 Count the bits in a Boolean Vector.
 @<Function definitions@>=
-static inline guint
+PRIVATE guint
 bv_count (Bit_Vector v)
 {
   guint start, min, max;
@@ -12217,8 +12196,6 @@ bv_count (Bit_Vector v)
     }
     return count;
 }
-@ @<Private function prototypes@> =
-static inline guint bv_count (Bit_Vector v);
 
 @*0 The RHS Closure of a Vector.
 Despite the fact that they are actually tied closely to their
@@ -12339,7 +12316,7 @@ typedef Bit_Vector_Word* Bit_Matrix;
 This is {\bf not} the case with vectors, whose pointer is offset for
 the ``hidden words".
 @<Function definitions@> =
-static inline Bit_Matrix matrix_create(guint rows, guint columns)
+PRIVATE Bit_Matrix matrix_create(guint rows, guint columns)
 {
     guint bv_data_words = bv_bits_to_size(columns);
     guint row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
@@ -12354,12 +12331,11 @@ static inline Bit_Matrix matrix_create(guint rows, guint columns)
     }
     return matrix_addr;
 }
-@ @<Private function prototypes@> =
-static inline Bit_Matrix matrix_create(guint rows, guint columns);
 
 @*0 Free a Boolean Matrix.
 @<Function definitions@> =
-static inline void matrix_free(Bit_Matrix matrix) {
+PRIVATE void matrix_free(Bit_Matrix matrix)
+{
     g_free(matrix);
 }
 @ @<Private function prototypes@> =
