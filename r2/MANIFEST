@@ -99,7 +99,6 @@ libmarpa/dist/README
 libmarpa/dist/VERSION.in
 libmarpa/dist/aclocal.m4
 libmarpa/dist/marpa_api.h
-libmarpa/dist/marpa_config.h
 libmarpa/dist/codes.c
 libmarpa/dist/codes.h
 libmarpa/dist/config.guess
