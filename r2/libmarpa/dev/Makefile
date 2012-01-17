@@ -81,18 +81,16 @@ marpa.pdf: marpa.tex cwebmac.tex
 ../marpa.tar.gz: $(SOURCES)
 	cp $(SOURCES) ../stage_dist
 	test -d ../stage_dist/m4 || mkdir ../stage_dist/m4
-	cd ../stage_dist && autoreconf -ivf
-	test -d ../build_dist && rm -rf ../build_dist
-	mkdir ../build_dist
-	cd ../build_dist \
-	    && ../stage_dist/configure \
+	cd ../stage_dist \
+	    && autoreconf -ivf \
+	    && ./configure \
 	    && make dist
-	version=`cat ../build_dist/VERSION`; \
-	    cd ../build_dist \
+	version=`cat ../stage_dist/VERSION`; \
+	    cd ../stage_dist \
 	    && mv marpa-$$version.tar.gz ../marpa.tar.gz
 
 ../VERSION: ../marpa.tar.gz
-	cp ../build_dist/VERSION ../VERSION
+	cp ../stage_dist/VERSION ../VERSION
 
 ../dist/configure: ../marpa.tar.gz  ../VERSION
 	rm -rf ../dist
