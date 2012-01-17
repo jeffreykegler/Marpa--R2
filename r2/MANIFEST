@@ -96,7 +96,6 @@ libmarpa/dist/Makefile.am
 libmarpa/dist/Makefile.in
 libmarpa/dist/VERSION.in
 libmarpa/dist/aclocal.m4
-libmarpa/dist/api.info
 libmarpa/dist/api.texi
 libmarpa/dist/codes.c
 libmarpa/dist/codes.h

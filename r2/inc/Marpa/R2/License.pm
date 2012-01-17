@@ -144,6 +144,8 @@ my %GNU_file =
     config.sub
     configure
     depcomp
+    mdate-sh
+    texinfo.tex
     ltmain.sh
     m4/libtool.m4
     m4/ltoptions.m4
@@ -258,6 +260,8 @@ my %files_by_type = (
     'html/t/fmt_t_data/expected1.html' => \&ignored,
     'html/t/fmt_t_data/expected2.html' => \&ignored,
     'html/t/fmt_t_data/input1.html'    => \&trivial,
+    'libmarpa/dist/stamp-vti' => \&trivial,
+    'libmarpa/dist/version.texi' => \&trivial,
     'html/t/fmt_t_data/input2.html'    => \&trivial,
     'html/t/fmt_t_data/score_expected1.html' => \&trivial,
     'html/t/fmt_t_data/score_expected2.html' => \&trivial,
