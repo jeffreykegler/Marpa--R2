@@ -20,7 +20,23 @@ PDFTEX = pdftex
 CWEAVE = cweave
 CTANGLE = ctangle
 
-SOURCES = cwebmac.tex marpa.w copyright_page_license.w
+MARPA_PDF_SOURCES = cwebmac.tex marpa.w copyright_page_license.w
+
+CONFIGURE_SOURCES = \
+    Makefile.am \
+    configure.ac
+
+SOURCES = $(CONFIGURE_SOURCES) \
+    VERSION.in \
+    api.texi \
+    codes.c \
+    codes.h \
+    marpa.c \
+    marpa.h \
+    marpa_api.h \
+    marpa_obs.c \
+    marpa_obs.h \
+    private.h
 
 .SUFFIXES: .dvi .tex .w .pdf
 
@@ -62,90 +78,40 @@ private.h: marpa.w w2private_h.pl
 
 marpa.pdf: marpa.tex cwebmac.tex
 
-../stage_dist/configure:  ../stage_dist/configure.ac ../stage_dist/Makefile.am
+../marpa.tar.gz: $(SOURCES)
+	cp $(SOURCES) ../stage_dist
 	test -d ../stage_dist/m4 || mkdir ../stage_dist/m4
 	cd ../stage_dist && autoreconf -ivf
-
-../build_dist/stamp-h1: $(STAGE_FILES) ../stage_dist/configure
 	test -d ../build_dist && rm -rf ../build_dist
 	mkdir ../build_dist
-	cd ../build_dist && ../stage_dist/configure
-
-../build_dist/marpa.tar.gz: ../build_dist/VERSION $(STAGE_FILES) ../build_dist/stamp-h1
-	cd ../build_dist && make dist
+	cd ../build_dist \
+	    && ../stage_dist/configure \
+	    && make dist
 	version=`cat ../build_dist/VERSION`; \
 	    cd ../build_dist \
-	    && mv marpa-$$version.tar.gz marpa.tar.gz
+	    && mv marpa-$$version.tar.gz ../marpa.tar.gz
 
-../VERSION: ../build_dist/marpa.tar.gz
+../VERSION: ../marpa.tar.gz
 	cp ../build_dist/VERSION ../VERSION
+
+../dist/configure: ../marpa.tar.gz  ../VERSION
+	rm -rf ../dist
+	cd .. && tar -xzf marpa.tar.gz
 	version=`cat ../VERSION`; \
-	    cd ..  \
-	    && tar -xzf build_dist/marpa.tar.gz \
-	    && rm -rf dist \
+	    cd .. \
 	    && mv marpa-$$version dist
 
-STAGE_FILES = \
-    ../stage_dist/Makefile.am \
-    ../stage_dist/VERSION.in \
-    ../stage_dist/api.texi \
-    ../stage_dist/codes.c \
-    ../stage_dist/codes.h \
-    ../stage_dist/configure.ac \
-    ../stage_dist/marpa.c \
-    ../stage_dist/marpa.h \
-    ../stage_dist/marpa_api.h \
-    ../stage_dist/marpa_obs.c \
-    ../stage_dist/marpa_obs.h \
-    ../stage_dist/private.h
-
-../stage_dist/api.texi: api.texi
-	cp $? $@
-
-../stage_dist/marpa.c: marpa.c
-	cp $? $@
-
-../stage_dist/marpa.h: marpa.h
-	cp $? $@
-
-../stage_dist/marpa_api.h: marpa_api.h
-	cp $? $@
-
-../stage_dist/codes.c: codes.c
-	cp $? $@
-
-../stage_dist/codes.h: codes.h
-	cp $? $@
-
-../stage_dist/private.h: private.h
-	cp $? $@
-
-../stage_dist/configure.ac: configure.ac
-	cp $? $@
-
-../stage_dist/Makefile.am: Makefile.am
-	cp $? $@
-
-../stage_dist/VERSION.in: VERSION.in
-	cp $? $@
-
-../stage_dist/marpa_obs.c: marpa_obs.c
-	cp $? $@
-
-../stage_dist/marpa_obs.h: marpa_obs.h
-	cp $? $@
-
-install: sources ../VERSION
-
-../docs/stamp-h1: ../stage_dist/configure
-	test -d ../docs && rm -rf ../docs
-	mkdir ../docs
-	cd ../docs && ../stage_dist/configure
-
-docs: ../build_dist/marpa.tar.gz ../build_dist/VERSION
+../docs/api.pdf: ../marpa.tar.gz ../VERSION
 	rm -rf ../docs
-	cd .. && tar -xzf build_dist/marpa.tar.gz
-	version=`cat ../build_dist/VERSION`; \
+	cd .. && tar -xzf marpa.tar.gz
+	version=`cat ../VERSION`; \
 	    cd .. \
-	    && mv marpa-$$version docs
-	cd ../docs && ./configure --silent && make pdf
+	    && mv marpa-$$version docs \
+	    && cd docs \
+	    && ../stage_dist/configure \
+	    && ./configure --silent \
+	    && make pdf
+
+install: ../dist/configure
+
+docs: marpa.pdf ../docs/api.pdf
