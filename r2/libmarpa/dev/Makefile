@@ -104,16 +104,9 @@ marpa.pdf: marpa.tex cwebmac.tex
 	    && test -r configure \
 	    && touch configure
 
-../docs/api.pdf: ../marpa.tar.gz
-	rm -rf ../docs
-	cd .. && tar -xzf marpa.tar.gz
-	version=`cat ../VERSION`; \
-	    cd .. \
-	    && mv marpa-$$version docs \
-	    && cd docs \
-	    && ./configure \
-	    && make pdf
+../stage_dist/api.pdf: ../marpa.tar.gz
+	cd ../stage_dist && make pdf
 
 install: sources ../dist/configure
 
-docs: marpa.pdf ../docs/api.pdf
+docs: marpa.pdf ../stage_dist/api.pdf

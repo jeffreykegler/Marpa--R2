@@ -710,7 +710,7 @@ gint marpa_g_symbol_count(struct marpa_g* g) {
 object.
 @<Function definitions@> =
 PRIVATE
-void g_symbol_add( GRAMMAR g, SYMID symid, SYM symbol)
+void symbol_add( GRAMMAR g, SYMID symid, SYM symbol)
 {
     g_array_insert_val(g->t_symbols, (unsigned)symid, symbol);
 }
@@ -785,27 +785,26 @@ gint marpa_g_default_token_value_set(GRAMMAR g, gpointer default_value)
 }
 
 @*0 Start Symbol.
-@<Int aligned grammar elements@> = Marpa_Symbol_ID t_start_symid;
+@<Int aligned grammar elements@> = Marpa_Symbol_ID t_original_start_symid;
 @ @<Initialize grammar elements@> =
-g->t_start_symid = -1;
+g->t_original_start_symid = -1;
 @ @<Function definitions@> =
-SYMID marpa_g_start_symbol(GRAMMAR g)
+Marpa_Symbol_ID marpa_g_start_symbol(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar is precomputed@>@;
-    return g->t_start_symid;
+    return g->t_original_start_symid;
 }
 @ Returns the symbol ID on success,
 |-2| on failure.
 @<Function definitions@> =
-SYMID marpa_g_start_symbol_set(GRAMMAR g, SYMID symid)
+Marpa_Symbol_ID marpa_g_start_symbol_set(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if grammar is precomputed@>@;
     @<Fail if grammar |symid| is invalid@>@;
-    return g->t_start_symid = symid;
+    return g->t_original_start_symid = symid;
 }
 
 @*0 Start Rules.
@@ -1128,7 +1127,7 @@ symbol_new (struct marpa_g *g)
   @<Initialize symbol elements @>@/
   {
     SYMID id = ID_of_SYM(symbol);
-    g_symbol_add (g, id, symbol);
+    symbol_add (g, id, symbol);
   }
   return symbol;
 }
@@ -2456,7 +2455,7 @@ if (original_start_symbol->t_lhs->len <= 0) {
 }
 
 @ @<Declare census variables@> =
-Marpa_Symbol_ID original_start_symid = g->t_start_symid;
+Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 SYM original_start_symbol;
 
 @ @<Census LHS symbols@> =
@@ -2597,7 +2596,7 @@ Marpa_Symbol_ID symid;
 } }
 }
 @ @<Check that start symbol is productive@> =
-if (!bv_bit_test(productive_v, (guint)g->t_start_symid))
+if (!bv_bit_test(productive_v, (guint)original_start_symid))
 {
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     return NULL;
@@ -3155,7 +3154,7 @@ GRAMMAR g_augment(GRAMMAR g)
     SYM proper_old_start = NULL;
     SYM nulling_old_start = NULL;
     SYM proper_new_start = NULL;
-    SYM old_start = SYM_by_ID(g->t_start_symid);
+    SYM old_start = SYM_by_ID(g->t_original_start_symid);
     @<Find and classify the old start symbols@>@;
     if (proper_old_start) { @<Set up a new proper start rule@> }
     if (nulling_old_start) { @<Set up a new nulling start rule@>@; }
@@ -3177,7 +3176,6 @@ old_start->t_is_start = 0;
   proper_old_start->t_is_start = 0;
   proper_new_start = symbol_new (g);
   proper_new_start_id = ID_of_SYM(proper_new_start);
-  g->t_start_symid = proper_new_start_id;
   proper_new_start->t_is_accessible = TRUE;
   proper_new_start->t_is_productive = TRUE;
   proper_new_start->t_is_start = TRUE;
@@ -3205,7 +3203,6 @@ if there is one.  Otherwise it is a new, nulling, symbol.
     {				/* The only start symbol is a nulling symbol */
       nulling_new_start = symbol_new (g);
       nulling_new_start_id = ID_of_SYM(nulling_new_start);
-      g->t_start_symid = nulling_new_start_id;
       SYM_is_Nulling(nulling_new_start) = TRUE;
       nulling_new_start->t_is_nullable = TRUE;
       nulling_new_start->t_is_productive = TRUE;
@@ -4286,7 +4283,7 @@ g_tree_destroy(duplicates);
   Marpa_Rule_ID start_rule_id;
   SYMID *postdot_symbol_ids;
   AIM start_item;
-  SYM start_symbol = SYM_by_ID (g->t_start_symid);
+  SYM start_symbol = SYM_by_ID (LHS_ID_of_RULE (g->t_proper_start_rule));
   AIM *item_list = obstack_alloc (&g->t_obs, sizeof (AIM));
   /* The start rule is the unique rule that has the start symbol as its LHS */
   start_rule_id = g_array_index (start_symbol->t_lhs, Marpa_Rule_ID, 0);

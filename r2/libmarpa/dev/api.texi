@@ -16,8 +16,7 @@ any later version published by the Free Software Foundation;
 @finalout
 @titlepage 
 @title libmarpa
-@subtitle @value{VERSION}
-@subtitle @value{UPDATED}
+@subtitle @value{VERSION}, @value{UPDATED}
 @author Jeffrey Kegler
 @c The following two commands 
 @c start the copyright page. 
@@ -392,9 +391,10 @@ Return value: %NULL if the Marpa library is compatible with the
 @menu 
 * Grammar constructor:: Creating a new grammar
 * Grammar reference counting:: Tracking the reference count of the grammar
-* Symbols:: Methods that deal with symbols
+* Symbols:: Symbols
+* Terminals:: Terminal symbols
 * Grammar precomputation::Precomputing the Grammar
-* Rules:: Methods that deal with rules
+* Rules:: Rules
 * Symbol internals:: Methods that deal with symbol internals
 * Grammar internals:: Methods that deal with grammar internals
 @end menu 
@@ -409,8 +409,13 @@ Return value: %NULL if the Marpa library is compatible with the
     guint @var{required_micro})
 
 Creates a new grammar time object.
-The grammar object will be in initial state,
-and ready for the addition of rules and symbols.
+The returned grammar object not be precomputed,
+and will have no symbols and rules.
+Its reference count will be 1.
+
+After a marpa_g_new call, the next step is
+usually the addition of rules and symbols
+in preparation for grammar precomputation.
 
 The expected major, minor and micro version
 numbers must be passed as arguments,
@@ -429,14 +434,78 @@ On failure, @code{NULL}.
 @cindex grammar reference
 @cindex grammar reference count
 
+Grammar time objects are created by
+@code{marpa_g_new} with a reference count of 1.
+@code{marpa_r_new} and @code{marpa_g_ref} increment the
+reference count by 1.
+@code{marpa_g_unref} decrements the reference count by 1.
+
 @deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
 @end deftypefun
+
+Decreases the reference count by 1,
+destroying @var{g} once the reference count reaches
+zero.
+Libmarpa time objects have no explicit destructor.
+They are destroyed by reducing their reference count to zero.
+
+Return value: None
 
 @deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
 @end deftypefun
 
+Increases the reference count.
+
+Return value:
+On success, the grammar object it was called with;
+@code{NULL} on failure.
+
 @node Symbols
-@section Methods that deal with symbols
+@section Symbols
+
+@deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
+
+Creates a new symbol.
+Symbols are initialized to non-terminals.
+
+Return value: On success, the ID of the new symbol; 
+On failure, -2.
+
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_g_start_symbol_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{id})
+
+Sets the start symbol of grammar @var{g} to symbol @code{id}.
+To be precomputed, a grammar must have a start symbol.
+
+Return value: On success, the ID of the new start symbol.
+On failure, -2.
+
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
+
+Returns current value of the start symbol of grammar @var{g}.
+The value is that of the user's start
+symbol, as specified in the @var{marpa_g_start_symbol_set} call,
+if there has been one.
+Marpa "augments" its grammars,
+creating one or two new, internal start symbols.
+
+Return value:
+On failure, -2;
+-1 if there is no start symbol yet;
+otherwise the ID of the new start symbol.
+
+@end deftypefun
+
+@deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
+@end deftypefun
+
+@node Terminals
+@section Methods that deal with terminal symbols
 
 @deftypefun gint marpa_g_default_token_value ( @
     Marpa_Grammar @var{g}, @
@@ -471,21 +540,10 @@ Return value: -2 if there was an error;
 
 @end deftypefun
 
-@deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
-@deftypefunx gint marpa_g_start_symbol_set (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{id})
-@end deftypefun
-
 @deftypefun gint marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
 @deftypefunx gint marpa_g_is_lhs_terminal_ok_set ( @
     Marpa_Grammar @var{g}, @
     gboolean @var{value})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
 @end deftypefun
 
 @deftypefun gint marpa_g_symbol_is_terminal ( @
