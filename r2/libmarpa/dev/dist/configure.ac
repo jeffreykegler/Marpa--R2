@@ -31,9 +31,9 @@ m4_define(marpa_configure_in)
 # if backwards compatibility has been broken,
 # set marpa_binary_age _and_ marpa_interface_age to 0.
 #
-m4_define([marpa_major_version], [1])
-m4_define([marpa_minor_version], [1])
-m4_define([marpa_micro_version], [0])
+m4_define([marpa_major_version], [2])
+m4_define([marpa_minor_version], [0])
+m4_define([marpa_micro_version], [1])
 m4_define([marpa_interface_age], [100])
 m4_define([marpa_binary_age],
           [m4_eval(100 * marpa_minor_version + marpa_micro_version)])
@@ -49,10 +49,13 @@ m4_define([marpa_lt_age], [m4_eval(marpa_binary_age - marpa_interface_age)])
 m4_define([marpa_lt_current_minus_age],
           [m4_eval(marpa_lt_current - marpa_lt_age)])
 
+# I am not using this system, so I've commented it out, while I decide
+# whether to delete these lines or switch to this system.
+#
 # if the minor version number is odd, then we want debugging.  Otherwise
 # we only want minimal debugging support.
-m4_define([marpa_debug_default],
-          [m4_if(m4_eval(marpa_minor_version % 2), [1], [yes], [minimum])])dnl
+# m4_define([marpa_debug_default],
+#          [m4_if(m4_eval(marpa_minor_version % 2), [1], [yes], [minimum])])dnl
 
 AC_INIT([marpa],[marpa_version],[http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa])
 
@@ -100,11 +103,14 @@ AC_SUBST(LT_REVISION)
 AC_SUBST(LT_AGE)
 AC_SUBST(LT_CURRENT_MINUS_AGE)
 
-dnl declare --enable-* args and collect ac_help strings
-AC_ARG_ENABLE(debug,
-              AS_HELP_STRING([--enable-debug=@<:@no/minimum/yes@:>@],
-                             [turn on debugging @<:@default=marpa_debug_default@:>@]),,
-              enable_debug=marpa_debug_default)
+# I am not using this enable-debug, so I've commented it out, while I decide
+# whether to delete these lines or switch to this system.
+#
+# dnl declare --enable-* args and collect ac_help strings
+# AC_ARG_ENABLE(debug,
+#               AS_HELP_STRING([--enable-debug=@<:@no/minimum/yes@:>@],
+#                              [turn on debugging @<:@default=marpa_debug_default@:>@]),,
+#               enable_debug=marpa_debug_default)
 
 LT_INIT([])
 

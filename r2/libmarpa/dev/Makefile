@@ -26,7 +26,7 @@ CONFIGURE_SOURCES = \
     dist/Makefile.am \
     dist/configure.ac
 
-SOURCES = $(CONFIGURE_SOURCES) \
+CODE_SOURCES = \
     VERSION.in \
     api.texi \
     codes.c \
@@ -68,7 +68,8 @@ all: marpa.pdf sources
 
 sources: marpa.c marpa.h marpa_api.h codes.h codes.c
 
-marpa.c marpa.h: copyright_page_license.w marpa.w
+marpa.h marpa.c: copyright_page_license.w marpa.w
+	$(CTANGLE) marpa.w
 
 codes.c codes.h marpa_api.h: api.texi texi2code.pl
 	perl texi2code.pl marpa_api.h codes.h codes.c < api.texi
@@ -78,38 +79,41 @@ private.h: marpa.w w2private_h.pl
 
 marpa.pdf: marpa.tex cwebmac.tex
 
-../marpa.tar.gz: $(SOURCES)
-	cp $(SOURCES) ../stage_dist
+../stage_dist/configure: $(CONFIGURE_SOURCES)
+	cp $(CONFIGURE_SOURCES) ../stage_dist
 	test -d ../stage_dist/m4 || mkdir ../stage_dist/m4
+	cd ../stage_dist && autoreconf -ivf
+
+../marpa.tar.gz: $(CODE_SOURCES) ../stage_dist/configure
+	cp $(CODE_SOURCES) ../stage_dist
 	cd ../stage_dist \
-	    && autoreconf -ivf \
 	    && ./configure \
 	    && make dist
+	cp ../stage_dist/VERSION ../VERSION
 	version=`cat ../stage_dist/VERSION`; \
 	    cd ../stage_dist \
 	    && mv marpa-$$version.tar.gz ../marpa.tar.gz
 
-../VERSION: ../marpa.tar.gz
-	cp ../stage_dist/VERSION ../VERSION
-
-../dist/configure: ../marpa.tar.gz  ../VERSION
+../dist/configure: ../marpa.tar.gz
 	rm -rf ../dist
 	cd .. && tar -xzf marpa.tar.gz
 	version=`cat ../VERSION`; \
 	    cd .. \
-	    && mv marpa-$$version dist
+	    && mv marpa-$$version dist \
+	    && cd dist \
+	    && test -r configure \
+	    && touch configure
 
-../docs/api.pdf: ../marpa.tar.gz ../VERSION
+../docs/api.pdf: ../marpa.tar.gz
 	rm -rf ../docs
 	cd .. && tar -xzf marpa.tar.gz
 	version=`cat ../VERSION`; \
 	    cd .. \
 	    && mv marpa-$$version docs \
 	    && cd docs \
-	    && ../stage_dist/configure \
-	    && ./configure --silent \
+	    && ./configure \
 	    && make pdf
 
-install: ../dist/configure
+install: sources ../dist/configure
 
 docs: marpa.pdf ../docs/api.pdf

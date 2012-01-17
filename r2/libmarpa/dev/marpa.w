@@ -531,24 +531,40 @@ prototypes, look at
 @** The Public Header File.
 @*0 Version Constants.
 @<Private global variables@> =
-const guint marpa_variant = MARPA_VARIANT;
 const guint marpa_major_version = MARPA_MAJOR_VERSION;
 const guint marpa_minor_version = MARPA_MINOR_VERSION;
 const guint marpa_micro_version = MARPA_MICRO_VERSION;
 const guint marpa_interface_age = MARPA_INTERFACE_AGE;
 const guint marpa_binary_age = MARPA_BINARY_AGE;
 @ @<Function definitions@> =
+PRIVATE
+const gchar* check_alpha_version(
+    guint required_major,
+		guint required_minor,
+		guint required_micro)
+{
+  if (required_major != MARPA_MAJOR_VERSION)
+    return "major mismatch in alpha version";
+  if (required_minor != MARPA_MINOR_VERSION)
+    return "minor mismatch in alpha version";
+  if (required_micro != MARPA_MICRO_VERSION)
+    return "micro mismatch in alpha version";
+  return NULL;
+}
+
+@ @<Function definitions@> =
 const gchar *
 marpa_check_version (guint required_major,
                     guint required_minor,
-                    guint required_micro,
-		    guint required_variant)
+                    guint required_micro)
 {
-  gint marpa_effective_micro = 100 * MARPA_MINOR_VERSION + MARPA_MICRO_VERSION;
+  gint marpa_effective_micro =
+    100 * MARPA_MINOR_VERSION + MARPA_MICRO_VERSION;
   gint required_effective_micro = 100 * required_minor + required_micro;
 
-  if (required_variant != MARPA_VARIANT)
-    return "libmarpa variant mismatch)";
+  if (required_major <= 2)
+    return check_alpha_version (required_major, required_minor,
+				required_micro);
   if (required_major > MARPA_MAJOR_VERSION)
     return "libmarpa version too old (major mismatch)";
   if (required_major < MARPA_MAJOR_VERSION)
@@ -599,12 +615,14 @@ typedef struct marpa_g* GRAMMAR;
 
 @*0 Constructors.
 @ @<Function definitions@> =
-Marpa_Grammar marpa_g_new( guint variant )
+Marpa_Grammar marpa_g_new (guint required_major,
+                    guint required_minor,
+                    guint required_micro)
 {
     GRAMMAR g;
-    if (variant != MARPA_VARIANT) {
-        return NULL;
-    }
+    /* While alpha, require an exact version match */
+    if (check_alpha_version (required_major, required_minor, required_micro))
+      return NULL;
     g = g_slice_new(struct marpa_g);
     /* Set |t_is_ok| to a bad value, just in case */
     g->t_is_ok = 0;

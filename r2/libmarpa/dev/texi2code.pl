@@ -72,7 +72,6 @@ MARPA_EVENT_COUNTED_NULLABLE
 );
 
 my @defs = ();
-my $current_variant;
 
 my %error_number = map { $error_codes[$_], $_ } (0 .. $#error_codes);
 my @errors_seen = ();
@@ -87,13 +86,6 @@ my $current_event_number = undef;
 my @event_suggested_messages = ();
 
 while ( my $line = <STDIN> ) {
-     if ($line =~ /\s variant \s+ (\d+) \.? \s* \z/xmsi) {
-	 my $variant = $1;
-         if (defined $current_variant and $variant != $current_variant) {
-	     die "Variant does not match current ($current_variant): $line";
-	 }
-	 $current_variant = $variant;
-     }
 
      if ( defined $current_error_number ) {
         my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
@@ -203,8 +195,6 @@ STRUCT_DECLARATION
 
 say {$api_h} $common_preamble;
 say {$api_h} join "\n", @defs;
-die "Variant never defined" if not defined $current_variant;
-say {$api_h} "#define MARPA_VARIANT $current_variant";
 
 my $error_count = scalar @errors;
 say {$api_h} "#define MARPA_ERROR_COUNT $error_count";

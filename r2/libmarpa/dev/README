@@ -1,5 +1,6 @@
-This is the developer's directory.  Files here are not necessary to
-build libmarpa.  They are necessary if you want to change the code.
+This is the developer's directory.  The distribution should *NOT*
+be built in this directory -- instead files are copied to a staging
+directory.  See the Makefile for details.
 
 Special tools (such as Cweb) are required.  These tools are all free,
 readily available, and highly portable.  *But* these tools are not

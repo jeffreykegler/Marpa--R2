@@ -2,10 +2,10 @@
 @include version.texi
 @c %**start of header 
 @setfilename api.info 
-@settitle libmarpa variant 0
+@settitle libmarpa @value{VERSION}
 @c %**end of header 
 @copying 
-This manual is for libmarpa @value{VERSION}, Variant 0. 
+This manual is for libmarpa @value{VERSION}. 
 Copyright @copyright{} 2012 Jeffrey Kegler.
 @quotation 
 Permission is granted to copy, distribute and/or modify this document 
@@ -16,6 +16,8 @@ any later version published by the Free Software Foundation;
 @finalout
 @titlepage 
 @title libmarpa
+@subtitle @value{VERSION}
+@subtitle @value{UPDATED}
 @author Jeffrey Kegler
 @c The following two commands 
 @c start the copyright page. 
@@ -31,14 +33,14 @@ Published @value{UPDATED} by Jeffrey Kegler
 @node Top 
 @top title 
 
-This manual is for libmarpa, version @value{VERSION}, variant 0. 
+This manual is for libmarpa, version @value{VERSION}. 
 
 @end ifnottex 
 @menu 
 * How to read this document:: How to read this document
 * About libmarpa:: About libmarpa
 * Concepts:: libmarpa Concepts
-* Static:: Static methods
+* Version checking:: Checking the libmarpa version
 * Grammars:: Grammars
 * Events:: Events
 * Recognizers:: Recognizers
@@ -333,28 +335,28 @@ issues advanced by this author.
 It is in the UNIX and Perl traditions to
 avoid imposing choices on the user.
 
-@node Static
-@chapter Static Methods
-@cindex static
+@node Version checking
+@chapter Checking the libmarpa version
+@cindex version checking
 
 @deftypefun const char* marpa_check_version @
     (unsigned int @var{required_major}, @
     unsigned int @var{required_minor}, @
-    unsigned int @var{required_micro}, @
-    unsigned int @var{required_variant} @
+    unsigned int @var{required_micro} @
     )
 
 Checks that the Marpa library in use is compatible with the
 given version. Generally you would pass in the constants
-@var{MARPA_MAJOR_VERSION},
-@var{MARPA_MINOR_VERSION},
-@var{MARPA_MICRO_VERSION}
+@code{MARPA_MAJOR_VERSION},
+@code{MARPA_MINOR_VERSION},
+@code{MARPA_MICRO_VERSION}
 as the three arguments to this function; that produces
 a check that the library in use is compatible with
 the version of libmarpa the application or module was compiled
 against.
 
-Compatibility is defined by three things:
+Once we are beyond alpha releases,
+compatibility will be defined by three things:
 first the version
 of the running library is newer than the version
 @var{required_major}.@var{required_minor}.@var{required_micro}.
@@ -364,16 +366,17 @@ version
 @var{required_major}.@var{required_minor}.@var{required_micro}
 (same major version.)
 
-Third, the @var{variant} must match exactly.
 Currently libmarpa is undergoing rapid development,
 and backward compatibility is not maintained.
-For this reason, libmarpa currently supplement the usual
-version checking with numbered variants.
-It is expected that eventually libmarpa will follow
-a more standard compatibility scheme, which only
-requires the major, minor and micro version numbers.
-At that point this interface will be changed and
-the variant numbers eliminated.
+This will be the case as long as libmarpa stays
+alpha.
+
+While libmarpa is still alpha, much stricter compatibility
+will be enforced.
+While libmarpa is alpha 
+the major, minor and micro numbers must match exactly.
+Technically, the post-alpha rules can be said to apply
+because the very strict alpha rules imply them.
 
 Return value: %NULL if the Marpa library is compatible with the
   given version, or a string describing the version mismatch.
@@ -389,9 +392,9 @@ Return value: %NULL if the Marpa library is compatible with the
 @menu 
 * Grammar constructor:: Creating a new grammar
 * Grammar reference counting:: Tracking the reference count of the grammar
-* Grammar common:: Commonly-used methods
-* Rules:: Methods that deal with rules
 * Symbols:: Methods that deal with symbols
+* Grammar precomputation::Precomputing the Grammar
+* Rules:: Methods that deal with rules
 * Symbol internals:: Methods that deal with symbol internals
 * Grammar internals:: Methods that deal with grammar internals
 @end menu 
@@ -400,7 +403,24 @@ Return value: %NULL if the Marpa library is compatible with the
 @section Creating a new grammar
 @cindex grammar constructor
 
-@deftypefun Marpa_Grammar marpa_g_new ( guint @var{variant} )
+@deftypefun Marpa_Grammar marpa_g_new ( @
+    guint @var{required_major}, @
+    guint @var{required_minor}, @
+    guint @var{required_micro})
+
+Creates a new grammar time object.
+The grammar object will be in initial state,
+and ready for the addition of rules and symbols.
+
+The expected major, minor and micro version
+numbers must be passed as arguments,
+While libmarpa is alpha,
+any mismatch with the actual version will
+cause a failure.
+
+Return value: On success, the grammar object.
+On failure, @code{NULL}.
+
 @end deftypefun
 
 @node Grammar reference counting
@@ -415,13 +435,70 @@ Return value: %NULL if the Marpa library is compatible with the
 @deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
 @end deftypefun
 
-@deftypefun gint marpa_g_event (Marpa_Grammar @var{g}, @
-    Marpa_Event @var{public_event}, @
-	       gint @var{ix})
+@node Symbols
+@section Methods that deal with symbols
+
+@deftypefun gint marpa_g_default_token_value ( @
+    Marpa_Grammar @var{g}, @
+    gpointer* @var{value_pointer})
+
+For each grammar, there is a default token value, which is passed
+on to its recognizers.
+@code{marpa_g_default_token_value}
+assumes that the caller has made sure that @var{value_pointer} is
+a valid location,
+and writes the current default token there.
+
+Return value: -2 if there was an error;
+    Otherwise a non-negative integer.
+
 @end deftypefun
 
-@node Grammar common
-@section Commonly-used methods
+@deftypefun gint marpa_g_default_token_value_set ( @
+    Marpa_Grammar @var{g}, @
+    gpointer @var{value})
+
+For each grammar, there is a default token value, which is passed
+on to its recognizers.
+@code{marpa_g_default_token_value_set} sets this value
+to @var{value}.
+Marpa will never dereference @var{value},
+so that @var{value} does not need to be a valid pointer,
+and may be @code{NULL}.
+
+Return value: -2 if there was an error;
+    Otherwise a non-negative integer.
+
+@end deftypefun
+
+@deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
+@deftypefunx gint marpa_g_start_symbol_set (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{id})
+@end deftypefun
+
+@deftypefun gint marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
+@deftypefunx gint marpa_g_is_lhs_terminal_ok_set ( @
+    Marpa_Grammar @var{g}, @
+    gboolean @var{value})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
+@end deftypefun
+
+@deftypefun gint marpa_g_symbol_is_terminal ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@deftypefunx gint marpa_g_symbol_is_terminal_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid}, @
+ gboolean @var{value})
+@end deftypefun
+
+@node Grammar precomputation
+@section Precomputing the Grammar
 
 @deftypefun gint marpa_g_precompute (Marpa_Grammar @var{g})
 @end deftypefun
@@ -442,6 +519,7 @@ Return value: %NULL if the Marpa library is compatible with the
  Marpa_Symbol_ID *@var{rhs}, @
      gint @var{length})
 @end deftypefun
+
 @deftypefun gint marpa_g_sequence_new (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{lhs_id}, @
  Marpa_Symbol_ID @var{rhs_id}, @
@@ -449,12 +527,14 @@ Return value: %NULL if the Marpa library is compatible with the
     gint @var{min}, @
  gint @var{flags} )
 @end deftypefun
+
 @deftypefun gint marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 @end deftypefun
 @deftypefun gint marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 @end deftypefun
+
 @deftypefun gint marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
@@ -553,68 +633,6 @@ Return value: -2 if there was an error.
   the function call is the "ask me" semantics.
   Otherise, 0 otherwise.
 
-@end deftypefun
-
-@node Symbols
-@section Methods that deal with symbols
-
-@deftypefun gint marpa_g_default_token_value ( @
-    Marpa_Grammar @var{g}, @
-    gpointer* @var{value_pointer})
-
-For each grammar, there is a default token value, which is passed
-on to its recognizers.
-@code{marpa_g_default_token_value}
-assumes that the caller has made sure that @var{value_pointer} is
-a valid location,
-and writes the current default token there.
-
-Return value: -2 if there was an error;
-    Otherwise a non-negative integer.
-
-@end deftypefun
-
-@deftypefun gint marpa_g_default_token_value_set ( @
-    Marpa_Grammar @var{g}, @
-    gpointer @var{value})
-
-For each grammar, there is a default token value, which is passed
-on to its recognizers.
-@code{marpa_g_default_token_value_set} sets this value
-to @var{value}.
-Marpa will never dereference @var{value},
-so that @var{value} does not need to be a valid pointer,
-and may be @code{NULL}.
-
-Return value: -2 if there was an error;
-    Otherwise a non-negative integer.
-
-@end deftypefun
-
-@deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
-@deftypefunx gint marpa_g_start_symbol_set (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{id})
-@end deftypefun
-
-@deftypefun gint marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
-@deftypefunx gint marpa_g_is_lhs_terminal_ok_set ( @
-    Marpa_Grammar @var{g}, @
-    gboolean @var{value})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
-@end deftypefun
-
-@deftypefun gint marpa_g_symbol_is_terminal ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@deftypefunx gint marpa_g_symbol_is_terminal_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid}, @
- gboolean @var{value})
 @end deftypefun
 
 @node Symbol internals
@@ -746,6 +764,22 @@ These methods will not be of interest to most users.
 
 @node Events
 @chapter Events
+
+@menu
+* Event accessor::Event accessor
+* Event codes::Event codes
+@end menu
+
+@node Event accessor
+@section Accessing events
+
+@deftypefun gint marpa_g_event (Marpa_Grammar @var{g}, @
+    Marpa_Event @var{public_event}, @
+	       gint @var{ix})
+@end deftypefun
+
+@node Event codes
+@section Event codes
 
 @deftypevr Macro int MARPA_EVENT_NONE
 Suggested message: "No error."
