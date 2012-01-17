@@ -98,8 +98,6 @@ marpa.pdf: marpa.tex cwebmac.tex
 	version=`cat ../VERSION`; \
 	    cd .. \
 	    && mv marpa-$$version dist
-	    && cd ../dist
-	    && chmod u+w configure stamp-*
 
 ../docs/api.pdf: ../marpa.tar.gz ../VERSION
 	rm -rf ../docs
