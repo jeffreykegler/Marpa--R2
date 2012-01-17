@@ -1679,7 +1679,7 @@ sub add_user_rule {
             shadow_symbol( $grammar, $value, $name );
             $sequence_symbol_count++;
         } ## end if ( $event_type eq 'MARPA_EVENT_NEW_SYMBOL' )
-        if ( $event_type eq 'new rule' ) {
+        if ( $event_type eq 'MARPA_EVENT_NEW_RULE' ) {
             push @sequence_rule_ids, $value;
         }
     } ## end for my $event_ix ( 0 .. $event_count - 1 )
