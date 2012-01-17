@@ -4280,13 +4280,10 @@ g_tree_destroy(duplicates);
 @ @<Construct initial AHFA states@> =
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
-  Marpa_Rule_ID start_rule_id;
+  Marpa_Rule_ID start_rule_id = ID_of_RULE( g->t_proper_start_rule);
   SYMID *postdot_symbol_ids;
   AIM start_item;
-  SYM start_symbol = SYM_by_ID (LHS_ID_of_RULE (g->t_proper_start_rule));
   AIM *item_list = obstack_alloc (&g->t_obs, sizeof (AIM));
-  /* The start rule is the unique rule that has the start symbol as its LHS */
-  start_rule_id = g_array_index (start_symbol->t_lhs, Marpa_Rule_ID, 0);
   /* The start item is the initial item for the start rule */
   start_item = g->t_AHFA_items_by_rule[start_rule_id];
   item_list[0] = start_item;
