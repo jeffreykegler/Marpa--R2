@@ -94,7 +94,6 @@
 ^libmarpa/test/dev/m4/lt~obsolete[.]m4$
 ^libmarpa/test/dev/missing$
 ^libmarpa/test/work/
-^libmarpa/theory/
 ^nogit
 ^nogit/
 ^nytprof/

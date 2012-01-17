@@ -277,11 +277,11 @@ my %files_by_type = (
     'author.t/perltidyrc'               => \&trivial,
     'author.t/spelling_exceptions.list' => \&trivial,
     'author.t/tidy1'                    => \&trivial,
-    'inc/proof/README' =>
+    'libmarpa/theory/README' =>
         \&ignored,    # discussion of licensing in that directory
-    'inc/proof/ah_to_leo.lyx'      => \&tex_closed,
-    'inc/proof/ah2002_notes.lyx'   => \&tex_closed,
-    'inc/proof/proof.lyx'          => \&tex_closed,
+    'libmarpa/theory/ah_to_leo.lyx'      => \&tex_closed,
+    'libmarpa/theory/ah2002_notes.lyx'   => \&tex_closed,
+    'libmarpa/theory/proof.lyx'          => \&tex_closed,
     'libmarpa/dist/install-sh'     => \&check_X_copyright,
     'libmarpa/stage_dist/install-sh'     => \&check_X_copyright,
     'libmarpa/test/dev/install-sh' => \&check_X_copyright,

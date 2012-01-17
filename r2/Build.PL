@@ -27,7 +27,7 @@ use Module::Build;
 use ExtUtils::PkgConfig;
 use Glib::Install::Files;
 
-use lib File::Spec->catdir('config');
+use lib File::Spec->catdir('inc');
 use Marpa::R2::Build_Me;
 use Marpa::R2::Config;
 
@@ -135,7 +135,7 @@ my $build = Marpa::R2::Build_Me->new(
             { repository => 'git://github.com/jeffreykegler/Marpa-R2.git', },
         no_index => {
             directory => [
-                qw( pperl config inc tool t html devlib libmarpa author.t
+                qw( pperl tool html libmarpa author.t
                     html/etc html/sandbox html/script html/t
                     )
             ],
