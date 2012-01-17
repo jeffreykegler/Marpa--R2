@@ -23,8 +23,8 @@ CTANGLE = ctangle
 MARPA_PDF_SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 
 CONFIGURE_SOURCES = \
-    Makefile.am \
-    configure.ac
+    dist/Makefile.am \
+    dist/configure.ac
 
 SOURCES = $(CONFIGURE_SOURCES) \
     VERSION.in \
