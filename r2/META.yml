@@ -19,12 +19,8 @@ name: Marpa-R2
 no_index:
   directory:
     - pperl
-    - config
-    - inc
     - tool
-    - t
     - html
-    - devlib
     - libmarpa
     - author.t
     - html/etc

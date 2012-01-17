@@ -310,13 +310,12 @@ sub do_libmarpa {
     if ( $self->verbose() ) {
         print "Making libmarpa: Start\n" or die "Cannot print: $ERRNO";
     }
-    {
-
+    # {
         # Make sure "configure" is writeable
-        my $perm = ( stat $configure_script )[2] & ( oct 7777 );
-        $perm |= oct 200;
-        chmod $perm, $configure_script;
-    }
+        # my $perm = ( stat $configure_script )[2] & ( oct 7777 );
+        # $perm |= oct 200;
+        # chmod $perm, $configure_script;
+    # }
     die 'Making libmarpa: make Failure'
         if not IPC::Cmd::run( command => ['make'], verbose => 1 );
 
