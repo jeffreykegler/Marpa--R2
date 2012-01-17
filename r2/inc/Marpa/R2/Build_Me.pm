@@ -333,9 +333,7 @@ sub ACTION_manifest {
 sub ACTION_licensecheck {
     my $self = shift;
 
-## no critic(Modules::RequireBarewordIncludes)
-    require 'config/Marpa/R2/License.pm';
-## use critic
+    require inc::Marpa::R2::License;
 
     my @manifest = do {
         open my $fh, q{<}, 'MANIFEST';

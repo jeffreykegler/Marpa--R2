@@ -268,6 +268,7 @@ my %files_by_type = (
     'libmarpa/VERSION'                   => \&trivial,
     'libmarpa/dev/README'                    => \&trivial,
     'libmarpa/dev/api.texi'             => \&license_problems_in_fdl_file,
+    'libmarpa/dist/api.texi'             => \&license_problems_in_fdl_file,
     'libmarpa/test/README'              => \&trivial,
     'libmarpa/test/Makefile'            => \&trivial,
     'README'                            => \&trivial,
