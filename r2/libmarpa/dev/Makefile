@@ -22,23 +22,19 @@ CTANGLE = ctangle
 
 MARPA_PDF_SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 
-CONFIGURE_SOURCES = \
-    dist/Makefile.am \
-    dist/configure.ac
-
-MAKEFILE_SOURCES = \
-    VERSION.in
-
-CODE_SOURCES = \
-    api.texi \
-    codes.c \
-    codes.h \
-    marpa.c \
-    marpa.h \
-    marpa_api.h \
-    marpa_obs.c \
-    marpa_obs.h \
-    private.h
+STAGE_FILES = \
+    ../stage/Makefile.am \
+    ../stage/configure.ac \
+    ../stage/VERSION.in \
+    ../stage/api.texi \
+    ../stage/codes.c \
+    ../stage/codes.h \
+    ../stage/marpa.c \
+    ../stage/marpa.h \
+    ../stage/marpa_api.h \
+    ../stage/marpa_obs.c \
+    ../stage/marpa_obs.h \
+    ../stage/private.h
 
 .SUFFIXES: .dvi .tex .w .pdf
 
@@ -81,35 +77,53 @@ private.h: marpa.w w2private_h.pl
 
 marpa.pdf: marpa.tex cwebmac.tex
 
-../stage_dist/configure: $(CONFIGURE_SOURCES)
-	cp $(CONFIGURE_SOURCES) ../stage_dist
-	test -d ../stage_dist/m4 || mkdir ../stage_dist/m4
-	cd ../stage_dist && autoreconf -ivf
+../stage/configure.ac: dist/configure.ac
+	cp $? $@
 
-../stage_dist/Makefile: ../stage_dist/configure $(MAKEFILE_SOURCES)
-	cp $(MAKEFILE_SOURCES) ../stage_dist
-	cd ../stage_dist && ./configure
+../stage/Makefile.am: dist/Makefile.am
+	cp $? $@
 
-../marpa.tar.gz: ../stage_dist/configure $(CODE_SOURCES)
-	cp $(CODE_SOURCES) ../stage_dist
-	cd ../stage_dist && make dist
-	cp ../stage_dist/VERSION ../VERSION
-	version=`cat ../VERSION`; \
-	    mv ../stage_dist/marpa-$$version.tar.gz ../marpa.tar.gz
+../stage/VERSION.in: VERSION.in
+	cp $? $@
 
-../dist/configure: ../marpa.tar.gz
-	rm -rf ../dist
-	cd .. && tar -xzf marpa.tar.gz
-	version=`cat ../VERSION`; \
-	    cd .. \
-	    && mv marpa-$$version dist \
-	    && cd dist \
-	    && test -r configure \
-	    && touch configure
+../stage/api.texi: api.texi
+	cp $? $@
 
-../stage_dist/api.pdf: ../marpa.tar.gz
-	cd ../stage_dist && make pdf
+../stage/codes.c: codes.c
+	cp $? $@
+
+../stage/codes.h: codes.h
+	cp $? $@
+
+../stage/marpa.c: marpa.c
+	cp $? $@
+
+../stage/marpa.h: marpa.h
+	cp $? $@
+
+../stage/marpa_api.h: marpa_api.h
+	cp $? $@
+
+../stage/marpa_obs.c: marpa_obs.c
+	cp $? $@
+
+../stage/marpa_obs.h: marpa_obs.h
+	cp $? $@
+
+../stage/private.h: private.h
+	cp $? $@
+
+../stage/configure: $(STAGE_FILES)
+	test -d ../stage/m4 || mkdir ../stage/m4
+	cd ../stage && autoreconf -iv
+
+../build/stamp-h1:
+	test -d ../build || mkdir ../build
+	cd ../build && ../stage/configure
+
+../build/api.pdf: ../build/stamp-h1
+	cd ../build && make pdf
 
 install: sources ../dist/configure
 
-docs: marpa.pdf ../stage_dist/api.pdf
+docs: marpa.pdf ../stage/api.pdf

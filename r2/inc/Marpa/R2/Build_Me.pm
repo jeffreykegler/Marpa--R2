@@ -165,8 +165,8 @@ sub process_xs {
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
 
-    my $libmarpa_dist_dir =
-        File::Spec->catdir( $self->base_dir(), qw(libmarpa dist) );
+    my $libmarpa_build_dir =
+        File::Spec->catdir( $self->base_dir(), qw(libmarpa build) );
 
     my @xs_dependencies = ( 'typemap', 'Build', $xs_file );
 
@@ -178,7 +178,7 @@ sub process_xs {
     # .c -> .o
     my $v = $self->dist_version;
     $self->verbose() and say "compiling $spec->{c_file}";
-    my @new_ccflags = ( '-I', $libmarpa_dist_dir );
+    my @new_ccflags = ( '-I', $libmarpa_build_dir );
     if ( $self->config('cc') eq 'gcc' ) {
         my $gperl_h_location = $Glib::Install::Files::CORE;
         push @new_ccflags,
@@ -199,7 +199,7 @@ sub process_xs {
     {
         # finalize libmarpa.a
         my $libmarpa_libs_dir =
-            File::Spec->catdir( $self->base_dir(), qw(libmarpa dist .libs) );
+            File::Spec->catdir( $self->base_dir(), qw(libmarpa build .libs) );
         my $libmarpa_archive =
             File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
         push @{ $self->{properties}->{objects} }, $libmarpa_archive;
@@ -257,10 +257,10 @@ sub do_libmarpa {
     my $cwd          = $self->cwd();
     my $base_dir     = $self->base_dir();
 
-    my $dist_dir = File::Spec->catdir( $base_dir, qw(libmarpa dist) );
-    chdir $dist_dir;
+    my $build_dir = File::Spec->catdir( $base_dir, qw(libmarpa build) );
+    chdir $build_dir;
     my $configure_script =
-        File::Spec->catfile( $dist_dir, 'configure' );
+        File::Spec->catfile( $build_dir, 'configure' );
     if ( not -r 'stamp-h1' ) {
 
         if ( $self->verbose() ) {
@@ -291,7 +291,7 @@ sub do_libmarpa {
         {
             say {*STDERR} "Failed: $configure_script"
                 or die "say failed: $ERRNO";
-            say {*STDERR} "Current directory: $dist_dir"
+            say {*STDERR} "Current directory: $build_dir"
                 or die "say failed: $ERRNO";
             die 'Cannot run libmarpa configure';
         } ## end if ( not IPC::Cmd::run( command => [ $shell, ...]))
@@ -310,7 +310,7 @@ sub do_libmarpa {
         ## Make sure "configure" and stamp files are owner-writeable
         my @must_be_writeable = ($configure_script);
         push @must_be_writeable,
-            File::Spec->catfile( $dist_dir, 'stamp-vti' );
+            File::Spec->catfile( $build_dir, 'stamp-vti' );
         for my $file (@must_be_writeable) {
             my $current_mode = ( stat $file )[2];
             chmod $current_mode | (oct 200), $file;

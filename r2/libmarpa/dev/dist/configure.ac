@@ -61,7 +61,7 @@ AC_INIT([marpa],[marpa_version],[http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa]
 
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign no-dist no-installinfo])
 
 # Specify a configuration file
 AC_CONFIG_HEADERS([config.h])

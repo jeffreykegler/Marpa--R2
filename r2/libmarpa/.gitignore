@@ -1,6 +1,3 @@
 build/
-marpa[.]tar[.]gz
-stage_dist/
+stage/
 docs/
-dist/
-VERSION
