@@ -11716,17 +11716,6 @@ PRIVATE void value_free(VALUE v)
     @<Unpack tree objects@>@;
 
 @*0 The grammar of the value object.
-@ This function returns the grammar of the value.
-It never returns an error.
-The grammar is always set when the value is initialized,
-and is never changed while the value exists.
-Fatal state is not reported,
-because it is kept in the grammar,
-so that
-either we can return the grammar in spite of
-its fatal state,
-or the problem is so severe than no
-errors can be properly reported.
 @<Function definitions@> =
 Marpa_Grammar marpa_v_g(Marpa_Value v)
 {
@@ -11734,8 +11723,6 @@ Marpa_Grammar marpa_v_g(Marpa_Value v)
   return g;
 }
 
-@ @<Public function prototypes@> =
-gint marpa_v_trace(Marpa_Value v, gint flag);
 @ @<Function definitions@> =
 gint marpa_v_trace(Marpa_Value v, gint flag)
 {
@@ -11749,8 +11736,6 @@ gint marpa_v_trace(Marpa_Value v, gint flag)
     return 1;
 }
 
-@ @<Public function prototypes@> =
-Marpa_Nook_ID marpa_v_nook(Marpa_Value v);
 @ @<Function definitions@> =
 Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
 {
@@ -11763,8 +11748,6 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
     return NOOK_of_V(v);
 }
 
-@ @<Public function prototypes@> =
-Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step);
 @ @<Function definitions@> =
 Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 {
