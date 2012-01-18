@@ -597,7 +597,6 @@ GLIB_VAR const guint marpa_binary_age;@#
 @<Public incomplete structures@>@/
 @<Public typedefs@>@/@\
 @<Public structures@>@/
-@<Public function prototypes@>@/
 
 @** Grammar (GRAMMAR) Code.
 @<Public incomplete structures@> =
@@ -5823,16 +5822,6 @@ Marpa_Earley_Set_ID marpa_r_latest_earley_set(struct marpa_r *r)
   return Ord_of_ES(Latest_ES_of_R(r));
 }
 
-@ Given the ID (ordinal) of an Earley set,
-return the earleme.
-In the default, token-stream model, ID and earleme
-are the same, but this is not the case in other input
-models.
-If the ordinal is out of bounds, this function
-returns -1, which can be treated as a soft failure.
-On other problems, it returns -2.
-@<Public function prototypes@> =
-Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id);
 @ @<Function definitions@> =
 Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
 {
@@ -9947,8 +9936,6 @@ typedef struct s_and_node AND_Object;
 
 @*0 Trace Functions.
 
-@ @<Public function prototypes@> =
-gint marpa_b_and_node_count(Marpa_Bocage b);
 @ @<Function definitions@> =
 gint marpa_b_and_node_count(Marpa_Bocage b)
 {
@@ -9975,8 +9962,6 @@ gint marpa_b_and_node_count(Marpa_Bocage b)
   and_node = and_nodes + and_node_id;
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id);
 @ @<Function definitions@> =
 gint marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id)
 {
@@ -9987,8 +9972,6 @@ gint marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id)
   return ID_of_OR (OR_of_AND (and_node));
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id);
 @ @<Function definitions@> =
 gint marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
 {
@@ -10004,8 +9987,6 @@ gint marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
       }
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id);
 @ @<Function definitions@> =
 gint marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
 {
@@ -10021,8 +10002,6 @@ gint marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
     }
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id);
 @ @<Function definitions@> =
 gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
 {
@@ -10038,25 +10017,6 @@ gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
     }
 }
 
-@ Returns the data for the token of the and-node.
-The symbol id is the return value,
-and the token value is placed
-in the location pointed
-to by |value_p|, if that is non-null.
-If |and_node_id| is not the ID of an and-node
-whose cause is a token,
-returns -1,
-without changing |*value_p|.
-On hard failure, returns -2 without changing
-|*value_p|.
-\par
-There is no function to simply return the token value --
-because of the need to indicate errors, it is just as
-easy to return the symbol ID as well.
-If the
-@<Public function prototypes@> =
-Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
-    Marpa_And_Node_ID and_node_id, gpointer* value_p);
 @ @<Function definitions@> =
 Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
     Marpa_And_Node_ID and_node_id, gpointer* value_p)
@@ -10395,9 +10355,6 @@ Marpa_Grammar marpa_b_g(Marpa_Bocage b)
 }
 
 @*0 Top or-node.
-@ Return the ID of the top or-node.
-@<Public function prototypes@> =
-Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b);
 @ @<Function definitions@> =
 Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b)
 {
@@ -10489,10 +10446,6 @@ bocage_free (BOCAGE b)
   or_node = or_nodes[or_node_id];
 }
 
-@ Return the ordinal of the current (final) Earley set of
-the or-node.
-@<Public function prototypes@> =
-gint marpa_b_or_node_set(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_set(Marpa_Bocage b, int or_node_id)
 {
@@ -10504,8 +10457,6 @@ gint marpa_b_or_node_set(Marpa_Bocage b, int or_node_id)
   return ES_Ord_of_OR(or_node);
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id)
 {
@@ -10517,8 +10468,6 @@ gint marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id)
   return Origin_Ord_of_OR(or_node);
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id)
 {
@@ -10530,8 +10479,6 @@ gint marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id)
   return ID_of_RULE(RULE_of_OR(or_node));
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_or_node_position(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_position(Marpa_Bocage b, int or_node_id)
 {
@@ -10543,8 +10490,6 @@ gint marpa_b_or_node_position(Marpa_Bocage b, int or_node_id)
   return Position_of_OR(or_node);
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id)
 {
@@ -10556,8 +10501,6 @@ gint marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id)
   return First_ANDID_of_OR(or_node);
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id)
 {
@@ -10570,8 +10513,6 @@ gint marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id)
       + AND_Count_of_OR(or_node) - 1;
 }
 
-@ @<Public function prototypes@> =
-gint marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id);
 @ @<Function definitions@> =
 gint marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id)
 {
