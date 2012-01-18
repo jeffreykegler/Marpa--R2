@@ -1018,23 +1018,44 @@ PPCODE:
 }
 
 Marpa_Rule_ID
-real_symbol_count( g, rule_id )
-    Grammar *g;
+real_symbol_count( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
-CODE:
-    RETVAL = marpa_g_real_symbol_count(g, rule_id);
-OUTPUT:
-    RETVAL
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+    gint result = marpa_g_real_symbol_count(g, rule_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->rule_original(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 Marpa_Rule_ID
-rule_original( g, rule_id )
-    Grammar *g;
+rule_original( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
-CODE:
-    RETVAL = marpa_g_rule_original(g, rule_id);
-    if (RETVAL < 0) { XSRETURN_UNDEF; }
-OUTPUT:
-    RETVAL
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+    gint result = marpa_g_rule_original(g, rule_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->rule_original(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
 
 void
 rule_ask_me_set( g_wrapper, rule_id )
@@ -1042,7 +1063,7 @@ rule_ask_me_set( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   gint result = marpa_g_rule_ask_me_set (g, rule_id);
   if (result <= -2)
     {

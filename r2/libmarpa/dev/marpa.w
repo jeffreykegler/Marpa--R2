@@ -102,7 +102,6 @@
 @s gpointer int
 @s gint int
 @s guint int
-@s gboolean int
 @s PSAR int
 @s PSL int
 
@@ -1315,7 +1314,8 @@ symbol->t_is_terminal = FALSE;
 @ @d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
 @d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
-gint marpa_g_symbol_is_terminal(GRAMMAR g, SYMID symid)
+gint marpa_g_symbol_is_terminal(Marpa_Grammar g,
+Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -1324,7 +1324,7 @@ gint marpa_g_symbol_is_terminal(GRAMMAR g, SYMID symid)
 }
 @ @<Function definitions@> =
 gint marpa_g_symbol_is_terminal_set(
-GRAMMAR g, SYMID symid, gboolean value)
+Marpa_Grammar g, Marpa_Symbol_ID symid, gint value)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar is precomputed@>@;
@@ -1337,7 +1337,9 @@ GRAMMAR g, SYMID symid, gboolean value)
 @ @<Initialize symbol elements@> =
 symbol->t_is_productive = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_productive(GRAMMAR g, SYMID symid)
+gint marpa_g_symbol_is_productive(
+    Marpa_Grammar g,
+    Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar not precomputed@>@;
@@ -1349,7 +1351,7 @@ gint marpa_g_symbol_is_productive(GRAMMAR g, SYMID symid)
 @<Bit aligned symbol elements@> = guint t_is_start:1;
 @ @<Initialize symbol elements@> = symbol->t_is_start = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_start( GRAMMAR g, SYMID symid) 
+gint marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar not precomputed@>@;
@@ -1730,7 +1732,7 @@ then I conclude there is no duplicate of the new
 rule, and return |FALSE|.
 @ @<Function definitions@> =
 PRIVATE
-gboolean is_rule_duplicate(GRAMMAR g,
+gint is_rule_duplicate(GRAMMAR g,
 SYMID lhs_id, SYMID* rhs_ids, gint length)
 {
     gint ix;
@@ -1958,8 +1960,15 @@ For non-sequence rules, this flag should be false.
 @ @<Initialize rule elements@> =
 rule->t_is_discard = FALSE;
 @ @<Function definitions@> =
-gboolean marpa_g_rule_is_discard_separation(struct marpa_g* g, Marpa_Rule_ID id)
-{ return RULE_by_ID(g, id)->t_is_discard; }
+gint marpa_g_rule_is_discard_separation(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return RULE_by_ID(g, rule_id)->t_is_discard;
+}
 
 @*0 Rule Boolean: Proper Separation.
 In Marpa's terminology,
@@ -2113,11 +2122,15 @@ semantics specified for the original grammar.
 RULE_has_Virtual_LHS(rule) = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_g_rule_is_virtual_lhs(struct marpa_g* g, Marpa_Rule_ID rule_id)
+gint marpa_g_rule_is_virtual_lhs(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
 {
-@<Return |-2| on failure@>@;
-@<Fail if grammar |rule_id| is invalid@>@;
-return RULE_has_Virtual_LHS(RULE_by_ID(g, rule_id)); }
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return RULE_has_Virtual_LHS(RULE_by_ID(g, rule_id));
+}
 
 @*0 Rule has Virtual RHS?.
 @d RULE_has_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
@@ -2126,11 +2139,15 @@ return RULE_has_Virtual_LHS(RULE_by_ID(g, rule_id)); }
 RULE_has_Virtual_RHS(rule) = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_g_rule_is_virtual_rhs(struct marpa_g* g, Marpa_Rule_ID rule_id)
+gint marpa_g_rule_is_virtual_rhs(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
 {
-@<Return |-2| on failure@>@;
-@<Fail if grammar |rule_id| is invalid@>@;
-return RULE_has_Virtual_RHS(RULE_by_ID(g, rule_id)); }
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return RULE_has_Virtual_RHS(RULE_by_ID(g, rule_id));
+}
 
 @*0 Virtual Start Position.
 For a virtual rule,
@@ -2139,11 +2156,14 @@ where this one starts.
 @<Int aligned rule elements@> = gint t_virtual_start;
 @ @<Initialize rule elements@> = rule->t_virtual_start = -1;
 @ @<Function definitions@> =
-guint marpa_g_virtual_start(struct marpa_g *g, Marpa_Rule_ID rule_id)
+guint marpa_g_virtual_start(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
 {
-@<Return |-2| on failure@>@;
-@<Fail if grammar |rule_id| is invalid@>@;
-return RULE_by_ID(g, rule_id)->t_virtual_start;
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return RULE_by_ID(g, rule_id)->t_virtual_start;
 }
 
 @*0 Virtual End Position.
@@ -2153,11 +2173,14 @@ at which this one ends.
 @<Int aligned rule elements@> = gint t_virtual_end;
 @ @<Initialize rule elements@> = rule->t_virtual_end = -1;
 @ @<Function definitions@> =
-guint marpa_g_virtual_end(struct marpa_g *g, Marpa_Rule_ID rule_id)
+guint marpa_g_virtual_end(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
 {
-@<Return |-2| on failure@>@;
-@<Fail if grammar |rule_id| is invalid@>@;
-return RULE_by_ID(g, rule_id)->t_virtual_end;
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return RULE_by_ID(g, rule_id)->t_virtual_end;
 }
 
 @*0 Rule Original.
@@ -2167,11 +2190,13 @@ the ID of the original rule.
 @ @<Int aligned rule elements@> = Marpa_Rule_ID t_original;
 @ @<Initialize rule elements@> = rule->t_original = -1;
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_g_rule_original(struct marpa_g *g, Marpa_Rule_ID rule_id)
+Marpa_Rule_ID marpa_g_rule_original(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
 {
-@<Return |-2| on failure@>@;
-@<Fail if grammar |rule_id| is invalid@>@;
-return RULE_by_ID(g, rule_id)->t_original;
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return RULE_by_ID(g, rule_id)->t_original;
 }
 
 @*0 Rule Real Symbol Count.
@@ -2184,11 +2209,14 @@ the rule has a virtual rhs or a virtual lhs.
 @ @<Int aligned rule elements@> = gint t_real_symbol_count;
 @ @<Initialize rule elements@> = Real_SYM_Count_of_RULE(rule) = 0;
 @ @<Function definitions@> =
-gint marpa_g_real_symbol_count(struct marpa_g *g, Marpa_Rule_ID rule_id)
+gint marpa_g_real_symbol_count(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
 {
-@<Return |-2| on failure@>@;
-@<Fail if grammar |rule_id| is invalid@>@;
-return Real_SYM_Count_of_RULE(RULE_by_ID(g, rule_id));
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar not precomputed@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return Real_SYM_Count_of_RULE(RULE_by_ID(g, rule_id));
 }
 
 @*0 Rule has semantics?.
@@ -2208,7 +2236,9 @@ is a stack no-op.
 @ @<Initialize rule elements@> =
     RULE_is_Ask_Me(rule) = FALSE;
 @ @<Function definitions@> =
-gboolean marpa_g_rule_is_ask_me(Marpa_Grammar g, Marpa_Rule_ID rule_id)
+gint marpa_g_rule_is_ask_me(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
@@ -2498,7 +2528,7 @@ bv_free(terminal_v);
 @s Bit_Vector int
 @<Declare census variables@> =
 Bit_Vector terminal_v;
-gboolean have_marked_terminals = 0;
+gint have_marked_terminals = 0;
 
 @ @<Fatal if empty rule and unmarked terminals@> =
 if (have_empty_rule && g->t_is_lhs_terminal_ok) {
@@ -2550,7 +2580,7 @@ bv_free(empty_lhs_v);
 @ @<Declare census variables@> =
 Bit_Vector lhs_v;
 Bit_Vector empty_lhs_v;
-gboolean have_empty_rule = 0;
+gint have_empty_rule = 0;
 
 @ @<Census nullable symbols@> = 
 {
@@ -3497,7 +3527,7 @@ if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
 
 @ Check that AHFA item ID is in valid range.
 @<Function definitions@> =
-PRIVATE gboolean item_is_valid(
+PRIVATE gint item_is_valid(
 GRAMMAR g, AIMID item_id)
 {
 return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
@@ -5570,22 +5600,22 @@ r->t_is_using_leo = 0;
 0 if not,
 and |-2| if there was an error.
 @<Function definitions@> =
-gint marpa_r_is_use_leo(struct marpa_r* r)
+gint marpa_r_is_use_leo(Marpa_Recognizer  r)
 {
    @<Unpack recognizer objects@>@;
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    return r->t_use_leo_flag ? 1 : 0;
+    return r->t_use_leo_flag;
 }
 @ @<Function definitions@> =
 gint marpa_r_is_use_leo_set(
-struct marpa_r*r, gboolean value)
+Marpa_Recognizer r, gint value)
 {
    @<Unpack recognizer objects@>@;
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
     @<Fail if recognizer started@>@;
-    return r->t_use_leo_flag = value;
+    return r->t_use_leo_flag = value ? 1 : 0;
 }
 
 @*1 Is The Parser Exhausted?.
@@ -7603,8 +7633,12 @@ also see this as a normal data path.
 The general failures reported with |-2| will typically be
 treated by the application as fatal errors.
 @<Function definitions@> =
-gboolean marpa_r_alternative(struct marpa_r *r,
-Marpa_Symbol_ID token_id, gpointer value, gint length) {
+Marpa_Earleme marpa_r_alternative(
+    Marpa_Recognizer r,
+    Marpa_Symbol_ID token_id,
+    gpointer value,
+    gint length)
+{
     @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
     const gint duplicate_token_indicator = -3;
@@ -12010,7 +12044,7 @@ PRIVATE void bv_bit_clear(Bit_Vector vector, guint bit)
 
 @*0 Test a Boolean Vector Bit.
 @<Function definitions@> =
-PRIVATE gboolean bv_bit_test(Bit_Vector vector, guint bit)
+PRIVATE gint bv_bit_test(Bit_Vector vector, guint bit)
 {
     return (*(vector+(bit/bv_wordbits)) & (bv_lsb << (bit%bv_wordbits))) != 0u;
 }
@@ -12018,7 +12052,7 @@ PRIVATE gboolean bv_bit_test(Bit_Vector vector, guint bit)
 @*0 Test and Set a Boolean Vector Bit.
 Ensure that a bit is set and returning its value to the call.
 @<Function definitions@> =
-PRIVATE gboolean
+PRIVATE gint
 bv_bit_test_and_set (Bit_Vector vector, guint bit)
 {
   Bit_Vector addr = vector + (bit / bv_wordbits);
@@ -12032,10 +12066,10 @@ bv_bit_test_and_set (Bit_Vector vector, guint bit)
 @*0 Test a Boolean Vector for all Zeroes.
 @<Function definitions@> =
 PRIVATE
-gboolean bv_is_empty(Bit_Vector addr)
+gint bv_is_empty(Bit_Vector addr)
 {
     guint  size = BV_SIZE(addr);
-    gboolean r = TRUE;
+    gint r = TRUE;
     if (size > 0) {
         *(addr+size-1) &= BV_MASK(addr);
         while (r && (size-- > 0)) r = ( *addr++ == 0 );
@@ -12086,7 +12120,7 @@ PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 @*0 Scan a Boolean Vector.
 @<Function definitions@>=
 PRIVATE
-gboolean bv_scan(Bit_Vector bv, guint start,
+gint bv_scan(Bit_Vector bv, guint start,
                                     guint* min, guint* max)
 {
     guint  size = BV_SIZE(bv);
@@ -12094,7 +12128,7 @@ gboolean bv_scan(Bit_Vector bv, guint start,
     guint  offset;
     guint  bitmask;
     guint  value;
-    gboolean empty;
+    gint empty;
 
     if (size == 0) return FALSE;
     if (start >= BV_BITS(bv)) return FALSE;
@@ -12357,7 +12391,7 @@ PRIVATE void matrix_bit_clear(Bit_Matrix matrix, guint row, guint column)
 
 @*0 Test a Boolean Matrix Bit.
 @ @<Function definitions@> =
-PRIVATE gboolean matrix_bit_test(Bit_Matrix matrix, guint row, guint column)
+PRIVATE gint matrix_bit_test(Bit_Matrix matrix, guint row, guint column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     return bv_bit_test(vector, column);

@@ -543,7 +543,7 @@ Return value: -2 if there was an error;
 @deftypefun gint marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
 @deftypefunx gint marpa_g_is_lhs_terminal_ok_set ( @
     Marpa_Grammar @var{g}, @
-    gboolean @var{value})
+    gint @var{value})
 @end deftypefun
 
 @deftypefun gint marpa_g_symbol_is_terminal ( @
@@ -552,7 +552,7 @@ Return value: -2 if there was an error;
 @deftypefunx gint marpa_g_symbol_is_terminal_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid}, @
- gboolean @var{value})
+ gint @var{value})
 @end deftypefun
 
 @node Grammar precomputation
@@ -929,7 +929,7 @@ Suggested message: "Grammar has a counted nullable."
 @end deftypefun
 
 @deftypefun gint marpa_r_is_use_leo_set ( Marpa_Recognizer @var{r}, @
-    gboolean @var{value})
+    gint @var{value})
 @end deftypefun
 
 @deftypefun gint marpa_r_is_exhausted (Marpa_Recognizer @var{r})
