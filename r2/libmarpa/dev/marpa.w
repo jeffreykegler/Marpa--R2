@@ -10960,11 +10960,6 @@ PRIVATE void tree_exhaust(TREE t)
     }
 }
 
-@ Returns the size of the tree.
-If the bocage iterator is exhausted, returns -1.
-On error, returns -2.
-@<Public function prototypes@> =
-Marpa_Tree marpa_t_new(Marpa_Order o);
 @ @<Function definitions@> =
 Marpa_Tree marpa_t_new(Marpa_Order o)
 {
@@ -11112,8 +11107,6 @@ Marpa_Grammar marpa_t_g(Marpa_Tree t)
   return g;
 }
 
-@ @<Public function prototypes@> =
-gint marpa_t_next(Marpa_Tree t);
 @ @<Function definitions@> =
 gint marpa_t_next(Marpa_Tree t)
 {
@@ -11336,21 +11329,12 @@ PRIVATE gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choi
     }
 }
 
-@ @<Public function prototypes@> =
-gint marpa_t_parse_count(Marpa_Tree t);
 @ @<Function definitions@> =
 gint marpa_t_parse_count(Marpa_Tree t)
 {
     return t->t_parse_count;
 }
 
-@ Return the size of the parse tree.
-This is the number of |NOOK| entries in its stack.
-If there is a serioius error,
-or if the tree is uninitialized, return -2.
-If the tree is exhausted, return -1.
-@<Public function prototypes@> =
-gint marpa_t_size(Marpa_Tree t);
 @
 @d Size_of_T(t) FSTACK_LENGTH((t)->t_nook_stack)
 @<Function definitions@> =
@@ -11366,14 +11350,6 @@ gint marpa_t_size(Marpa_Tree t)
 }
 
 @** Nook (NOOK) Code.
-In Marpa, a nook is any node of a parse tree.
-The usual term is "node",
-but within Marpa,
-the word "node" is already heavily overloaded.
-So what most texts call "tree nodes" are here
-called "nooks".
-"Nook" can be thought of as a pun on both
-"node" and "fork".
 @<Public typedefs@> =
 typedef gint Marpa_Nook_ID;
 @ @<Private typedefs@> =
@@ -11424,9 +11400,6 @@ set |nook|@> = {
   nook = base_nook + nook_id;
 }
 
-@ Return the ID of the or-node for |nook_id|.
-@<Public function prototypes@> =
-gint marpa_t_nook_or_node(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
 gint marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
 {
@@ -11437,9 +11410,6 @@ gint marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
   return ID_of_OR(OR_of_NOOK(nook));
 }
 
-@ Return the current choice for |nook_id|.
-@<Public function prototypes@> =
-gint marpa_t_nook_choice(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
 gint marpa_t_nook_choice(Marpa_Tree t, int nook_id)
 {
@@ -11450,17 +11420,6 @@ gint marpa_t_nook_choice(Marpa_Tree t, int nook_id)
     return Choice_of_NOOK(nook);
 }
 
-@ Return the parent nook's ID for |nook_id|.
-As with the other nook trace functions,
--1 is returned if |nook_id| is not the ID of
-a nook on the stack,
-but -1 can also be a valid value.
-If that's an issue, the |nook_id| needs
-to be checked with one of the trace functions
-where -1 is never a valid value ---
-for example, |marpa_t_nook_or_node|.
-@<Public function prototypes@> =
-gint marpa_t_nook_parent(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
 gint marpa_t_nook_parent(Marpa_Tree t, int nook_id)
 {
@@ -11471,9 +11430,6 @@ gint marpa_t_nook_parent(Marpa_Tree t, int nook_id)
     return Parent_of_NOOK(nook);
 }
 
-@ Return the cause-is-ready bit for |nook_id|.
-@<Public function prototypes@> =
-gint marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
 gint marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
 {
@@ -11484,9 +11440,6 @@ gint marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
     return NOOK_Cause_is_Ready(nook);
 }
 
-@ Return the predecessor-is-ready bit for |nook_id|.
-@<Public function prototypes@> =
-gint marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
 gint marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
 {
@@ -11497,9 +11450,6 @@ gint marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
     return NOOK_Predecessor_is_Ready(nook);
 }
 
-@ Return the is-cause bit for |nook_id|.
-@<Public function prototypes@> =
-gint marpa_t_nook_is_cause(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
 gint marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
 {
@@ -11510,9 +11460,6 @@ gint marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
     return NOOK_is_Cause(nook);
 }
 
-@ Return the is-predecessor bit for |nook_id|.
-@<Public function prototypes@> =
-gint marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id);
 @ @<Function definitions@> =
 gint marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
 {
@@ -11591,8 +11538,6 @@ struct s_value {
     guint t_active:1;
 };
 
-@ @<Public function prototypes@> =
-Marpa_Value marpa_v_new(Marpa_Tree t);
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
 First, there are only a few stack moves per call

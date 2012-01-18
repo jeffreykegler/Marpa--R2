@@ -1069,7 +1069,35 @@ Suggested message: "Grammar has a counted nullable."
 @end deftypefun
 
 @node Tree
-@chapter Tree objects
+@chapter Tree time objects
+
+Within Marpa,
+when it makes sense in context,
+"tree" means a parse tree.
+Marpa's parse trees are also bocage iterators.
+
+@menu
+* Tree internals::Internals
+@end menu
+
+@deftypefun Marpa_Tree marpa_t_new (Marpa_Order @var{o})
+@end deftypefun
+
+@deftypefun Marpa_Grammar marpa_t_g (Marpa_Tree @var{o})
+
+This function returns the grammar of the tree.
+It never returns an error.
+The grammar is always set when the tree is initialized,
+and is never changed while the tree exists.
+Fatal state is not reported,
+because it is kept in the grammar,
+so that
+either we can return the grammar in spite of
+its fatal state,
+or the problem is so severe than no
+errors can be properly reported.
+
+@end deftypefun
 
 @deftypefun Marpa_Tree marpa_t_ref (Marpa_Tree @var{t})
 @end deftypefun
@@ -1077,11 +1105,104 @@ Suggested message: "Grammar has a counted nullable."
 @deftypefun void marpa_t_unref (Marpa_Tree @var{t})
 @end deftypefun
 
-@deftypefun Marpa_Grammar marpa_t_g (Marpa_Tree @var{o})
+@deftypefun gint marpa_t_next ( @
+	Marpa_Tree @var{t})
+@end deftypefun
+
+@deftypefun gint marpa_t_parse_count ( @
+	Marpa_Tree @var{t})
+@end deftypefun
+
+@node Tree internals
+@section Internals
+
+In Marpa, a nook is any node of a parse tree.
+The usual term is "node",
+but within Marpa,
+the word "node" is already heavily overloaded.
+So what most texts call "tree nodes" are here
+called "nooks".
+"Nook" can be thought of as a pun on both
+"node" and "fork".
+
+@deftypefun gint marpa_t_size ( @
+	Marpa_Tree @var{t})
+
+Return the size of the parse tree.
+This is the number of nooks in its stack.
+If there is a serioius error,
+or if the tree is uninitialized, return -2.
+If the tree is exhausted, return -1.
+@end deftypefun
+
+@deftypefun Marpa_Or_Node_ID marpa_t_nook_or_node ( @
+    Marpa_Tree @var{t}, @
+    Marpa_Nook_ID @var{nook_id})
+
+Return the ID of the or-node for @var{nook_id}.
+@end deftypefun
+
+@deftypefun gint marpa_t_nook_choice ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the current choice for @var{nook_id}.
+@end deftypefun
+
+@deftypefun gint marpa_t_nook_parent ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the parent nook's ID for @var{nook_id}.
+As with the other nook trace functions,
+-1 is returned if @var{nook_id} is not the ID of
+a nook on the stack,
+but -1 can also be a valid value.
+If that's an issue, the @var{nook_id} needs
+to be checked with one of the trace functions
+where -1 is never a valid value ---
+for example, @code{marpa_t_nook_or_node}.
+@end deftypefun 
+@deftypefun gint marpa_t_nook_cause_is_ready ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the cause-is-ready bit for @var{nook_id}.
+@end deftypefun
+
+@deftypefun gint marpa_t_nook_predecessor_is_ready ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the predecessor-is-ready bit for @var{nook_id}.
+@end deftypefun
+
+@deftypefun gint marpa_t_nook_is_cause ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the is-cause bit for @var{nook_id}.
+@end deftypefun
+
+@deftypefun gint marpa_t_nook_is_predecessor ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the is-predecessor bit for @var{nook_id}.
 @end deftypefun
 
 @node Value
 @chapter Value objects
+
+@deftypefun Marpa_Value marpa_v_new ( @
+    Marpa_Tree @var{t})
+@end deftypefun
 
 @deftypefun void marpa_v_unref (Marpa_Value @var{v})
 @end deftypefun
@@ -1090,6 +1211,33 @@ Suggested message: "Grammar has a counted nullable."
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_v_g (Marpa_Value @var{v})
+
+Returns the grammar of the value.
+It never returns an error.
+The grammar is always set when the value is initialized,
+and is never changed while the value exists.
+Fatal state is not reported,
+because it is kept in the grammar,
+so that
+either we can return the grammar in spite of
+its fatal state,
+or the problem is so severe than no
+errors can be properly reported.
+
+@end deftypefun
+
+@deftypefun Marpa_Nook_ID marpa_v_step ( @
+    Marpa_Value @var{v}, @
+    Marpa_Step* @var{step})
+@end deftypefun
+
+@deftypefun gint marpa_v_trace ( @
+    Marpa_Value @var{v}, @
+    gint @var{flag})
+@end deftypefun
+
+@deftypefun Marpa_Nook_ID marpa_v_nook ( @
+    Marpa_Value @var{v})
 @end deftypefun
 
 @node Error handling
