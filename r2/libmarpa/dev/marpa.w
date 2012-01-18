@@ -865,7 +865,7 @@ g->t_max_rule_length = 0;
 @ @<Initialize grammar elements@> =
 g->t_is_precomputed = FALSE;
 @ @<Function definitions@> =
-gboolean marpa_g_is_precomputed(struct marpa_g* g)
+gint marpa_g_is_precomputed(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
@@ -877,7 +877,7 @@ return G_is_Precomputed(g);
 @ @<Initialize grammar elements@> =
 g->t_has_loop = FALSE;
 @ @<Function definitions@> =
-gboolean marpa_g_has_loop(struct marpa_g* g)
+gint marpa_g_has_loop(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
@@ -894,20 +894,22 @@ By default, this is allowed under Marpa.
 g->t_is_lhs_terminal_ok = TRUE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_g_is_lhs_terminal_ok(struct marpa_g* g)
-{ return g->t_is_lhs_terminal_ok; }
+gint marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
+{
+   @<Return |-2| on failure@>@/
+    @<Fail if fatal error@>@;
+    return g->t_is_lhs_terminal_ok;
+}
 @ Returns |TRUE| on success,
 |FALSE| on failure.
 @<Function definitions@> =
-gboolean marpa_g_is_lhs_terminal_ok_set(
-struct marpa_g*g, gboolean value)
+gint marpa_g_is_lhs_terminal_ok_set(
+struct marpa_g*g, gint value)
 {
-    if (G_is_Precomputed(g)) {
-        MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
-	return FALSE;
-    }
-    g->t_is_lhs_terminal_ok = value;
-    return TRUE;
+   @<Return |-2| on failure@>@/
+    @<Fail if fatal error@>@;
+    @<Fail if grammar is precomputed@>
+    return g->t_is_lhs_terminal_ok = value ? 1 : 0;
 }
 
 @*0 Terminal Boolean Vector.
@@ -1254,7 +1256,7 @@ must be changed.
 \par
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gboolean marpa_g_symbol_is_accessible(GRAMMAR g, SYMID symid)
+gint marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -1268,7 +1270,8 @@ gboolean marpa_g_symbol_is_accessible(GRAMMAR g, SYMID symid)
 @ @<Initialize symbol elements@> =
 symbol->t_is_counted = FALSE;
 @ @<Function definitions@> =
-gboolean marpa_g_symbol_is_counted(GRAMMAR g, SYMID symid)
+gint marpa_g_symbol_is_counted(Marpa_Grammar g,
+Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;

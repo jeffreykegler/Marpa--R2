@@ -26,8 +26,10 @@ CONFIGURE_SOURCES = \
     dist/Makefile.am \
     dist/configure.ac
 
+MAKEFILE_SOURCES = \
+    VERSION.in
+
 CODE_SOURCES = \
-    VERSION.in \
     api.texi \
     codes.c \
     codes.h \
@@ -84,15 +86,16 @@ marpa.pdf: marpa.tex cwebmac.tex
 	test -d ../stage_dist/m4 || mkdir ../stage_dist/m4
 	cd ../stage_dist && autoreconf -ivf
 
-../marpa.tar.gz: $(CODE_SOURCES) ../stage_dist/configure
+../stage_dist/Makefile: ../stage_dist/configure $(MAKEFILE_SOURCES)
+	cp $(MAKEFILE_SOURCES) ../stage_dist
+	cd ../stage_dist && ./configure
+
+../marpa.tar.gz: ../stage_dist/configure $(CODE_SOURCES)
 	cp $(CODE_SOURCES) ../stage_dist
-	cd ../stage_dist \
-	    && ./configure \
-	    && make dist
+	cd ../stage_dist && make dist
 	cp ../stage_dist/VERSION ../VERSION
-	version=`cat ../stage_dist/VERSION`; \
-	    cd ../stage_dist \
-	    && mv marpa-$$version.tar.gz ../marpa.tar.gz
+	version=`cat ../VERSION`; \
+	    mv ../stage_dist/marpa-$$version.tar.gz ../marpa.tar.gz
 
 ../dist/configure: ../marpa.tar.gz
 	rm -rf ../dist
