@@ -311,6 +311,8 @@ sub file_type {
             and $dirs[0] eq 'libmarpa'
             and $dirs[1] eq 'orig';
     return \&trivial if $filepart eq '.gitignore';
+    return \&trivial if $filepart eq '.gitattributes';
+    return \&trivial if $filepart eq '.gdbinit';
     return \&check_GNU_copyright
         if $GNU_file{$filename};
     return \&license_problems_in_perl_file

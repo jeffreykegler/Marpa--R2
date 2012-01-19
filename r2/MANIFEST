@@ -13,6 +13,8 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+.gdbinit
+.gitattributes
 .gitignore
 Build.PL
 COPYING
@@ -20,7 +22,7 @@ COPYING.LESSER
 Changes
 LICENSE
 MANIFEST
-META.json
+MANIFEST.SKIP
 META.json
 META.yml
 Makefile.PL
@@ -44,8 +46,11 @@ etc/.gitignore
 etc/Makefile
 etc/check_license.pl
 etc/check_links.pl
+html/.gitignore
+html/etc/.gitignore
 html/etc/drafts/Implementation.pod
 html/lib/Marpa/R2/HTML.pm
+html/lib/Marpa/R2/HTML/.gitignore
 html/lib/Marpa/R2/HTML/Callback.pm
 html/pod/HTML.pod
 html/script/marpa_r2_html_fmt
@@ -71,25 +76,15 @@ inc/Marpa/R2/Build_Me.pm
 inc/Marpa/R2/Config.pm
 inc/Marpa/R2/License.pm
 inc/drafts/undocumented.list
+lib/Marpa/.gitignore
 lib/Marpa/R2.pm
+lib/Marpa/R2/.gitignore
 lib/Marpa/R2/Grammar.pm
 lib/Marpa/R2/Internal.pm
+lib/Marpa/R2/PP/.gitignore
 lib/Marpa/R2/Recognizer.pm
 lib/Marpa/R2/Value.pm
-libmarpa/dev/Makefile
-libmarpa/dev/README
-libmarpa/dev/api.texi
-libmarpa/dev/dist/configure.ac
-libmarpa/dev/dist/Makefile.am
-libmarpa/dev/copyright_page_license.w
-libmarpa/dev/cwebmac.tex
-libmarpa/dev/marpa.w
-libmarpa/dev/marpa_obs.c
-libmarpa/dev/marpa_obs.h
-libmarpa/dev/old_pod/Algorithm.pod
-libmarpa/dev/old_pod/Implementation.pod
-libmarpa/dev/texi2code.pl
-libmarpa/dev/w2private_h.pl
+libmarpa/.gitignore
 libmarpa/build/Makefile.am
 libmarpa/build/Makefile.in
 libmarpa/build/aclocal.m4
@@ -119,8 +114,27 @@ libmarpa/build/missing
 libmarpa/build/private.h
 libmarpa/build/texinfo.tex
 libmarpa/build/version.texi
+libmarpa/dev/.gitignore
+libmarpa/dev/Makefile
+libmarpa/dev/README
+libmarpa/dev/api.texi
+libmarpa/dev/copyright_page_license.w
+libmarpa/dev/cwebmac.tex
+libmarpa/dev/dist/Makefile.am
+libmarpa/dev/dist/configure.ac
+libmarpa/dev/marpa.w
+libmarpa/dev/marpa_obs.c
+libmarpa/dev/marpa_obs.h
+libmarpa/dev/old_pod/Algorithm.pod
+libmarpa/dev/old_pod/Implementation.pod
+libmarpa/dev/texi2code.pl
+libmarpa/dev/w2private_h.pl
+libmarpa/orig/gnu/obstack.c
+libmarpa/orig/gnu/obstack.h
+libmarpa/test/.gitignore
 libmarpa/test/Makefile
 libmarpa/test/README
+libmarpa/test/dev/.gitignore
 libmarpa/test/dev/Makefile.am
 libmarpa/test/dev/balanced.c
 libmarpa/test/dev/configure.ac
@@ -146,7 +160,9 @@ pod/Support.pod
 pod/Tracing.pod
 pod/Vocabulary.pod
 pperl/Marpa/R2/Perl.pm
+pperl/Marpa/R2/Perl/.gitignore
 ppport.h
+t/.gitignore
 t/00-load.t
 t/ah2.t
 t/ah_numeric.t
@@ -195,4 +211,5 @@ t/weaken.t
 tool/lib/Marpa/R2/Display.pm
 tool/lib/Marpa/R2/Test.pm
 typemap
+xs/.gitignore
 xs/R2.xs
