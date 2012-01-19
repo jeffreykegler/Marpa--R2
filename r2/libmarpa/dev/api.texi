@@ -1,9 +1,9 @@
 \input texinfo @c -*-texinfo-*- 
-@include version.texi
 @c %**start of header 
 @setfilename api.info 
 @settitle libmarpa @value{VERSION}
 @c %**end of header 
+@include version.texi
 @copying 
 This manual is for libmarpa @value{VERSION}. 
 Copyright @copyright{} 2012 Jeffrey Kegler.
