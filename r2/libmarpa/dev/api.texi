@@ -16,7 +16,8 @@ any later version published by the Free Software Foundation;
 @finalout
 @titlepage 
 @title libmarpa
-@subtitle @value{VERSION}, @value{UPDATED}
+@subtitle Version @value{VERSION}
+@subtitle @value{UPDATED}
 @author Jeffrey Kegler
 @c The following two commands 
 @c start the copyright page. 
