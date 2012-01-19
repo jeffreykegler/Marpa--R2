@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*- 
-@c %**start of header 
+c %**start of texinfo-master-menueader 
 @setfilename api.info 
 @settitle libmarpa @value{VERSION}
 @c %**end of header 
@@ -37,18 +37,18 @@ This manual is for libmarpa, version @value{VERSION}.
 
 @end ifnottex 
 @menu
-* How to read this document:: How to read this document.  How to read this document
-* About libmarpa:: About libmarpa.  About libmarpa
-* Concepts::                    libmarpa Concepts
-* Version checking::            Checking the libmarpa version
-* Grammars:: Grammars.          Grammars
-* Events:: Events.              Events
-* Recognizers:: Recognizers.    Recognizers
-* Bocage::                      Bocage objects
-* Order::                       Order objects
-* Tree::                        Parse Trees
-* Value::                       Value objects
-* Error handling:: Error handling.  Error handling
+* How to read this document:: How to read this document.
+* About libmarpa:: About libmarpa.
+* Concepts::                    libmarpa Concepts.
+* Version checking::            Checking the libmarpa version.
+* Grammars:: Grammars.
+* Events:: Events.
+* Recognizers:: Recognizers.
+* Bocage::                      Bocage objects.
+* Order::                       Order objects.
+* Tree::                        Parse Trees.
+* Value::                       Value objects.
+* Error handling:: Error handling.
 @end menu 
 
 @node How to read this document
@@ -56,9 +56,9 @@ This manual is for libmarpa, version @value{VERSION}.
 
 @menu
 * What is this document::       What is this document?
-* Prerequisites::               Prerequisites
-* Which chapters to read first::  Which chapters to read first
-* Parsing theory::              Parsing theory
+* Prerequisites::               Prerequisites.
+* Which chapters to read first::  Which chapters to read first.
+* Parsing theory::              Parsing theory.
 @end menu 
 
 @node What is this document
@@ -288,7 +288,7 @@ to successfully debug the logic.
 @chapter libmarpa Concepts
 
 @menu
-* Token values:: Token values.  Token values
+* Token values:: Token values.
 @end menu 
 
 @node Token values
@@ -390,14 +390,14 @@ Return value: %NULL if the Marpa library is compatible with the
 @cindex grammars
 
 @menu
-* Grammar constructor::         Creating a new grammar
-* Grammar reference counting::  Tracking the reference count of the grammar
-* Symbols:: Symbols.            Symbols
-* Terminals::                   Terminal symbols
-* Grammar precomputation::      Precomputing the Grammar
-* Rules:: Rules.                Rules
-* Symbol internals::            Methods that deal with symbol internals
-* Grammar internals::           Methods that deal with grammar internals
+* Grammar constructor::         Creating a new grammar.
+* Grammar reference counting::  Tracking the reference count of the grammar.
+* Symbols:: Symbols.
+* Terminals::                   Terminal symbols.
+* Grammar precomputation::      Precomputing the Grammar.
+* Rules:: Rules.
+* Symbol internals::            Methods that deal with symbol internals.
+* Grammar internals::           Methods that deal with grammar internals.
 @end menu 
 
 @node Grammar constructor
@@ -825,8 +825,8 @@ These methods will not be of interest to most users.
 @chapter Events
 
 @menu
-* Event accessor::              Event accessor
-* Event codes::                 Event codes
+* Event accessor::              Event accessor.
+* Event codes::                 Event codes.
 @end menu
 
 @node Event accessor
@@ -872,10 +872,10 @@ Suggested message: "Grammar has a counted nullable."
 @chapter Recognizer objects
 
 @menu
-* Recognizer constructor::      Creating a new recognizer
-* Recognizer reference counting::  Keeping the reference count of a recognizer
-* Recognizer life::             Taking a recognizer through its life cycle
-* Recognizer internals::        Meddling with the recognizer internals
+* Recognizer constructor::      Creating a new recognizer.
+* Recognizer reference counting::  Keeping the reference count of a recognizer.
+* Recognizer life::             Taking a recognizer through its life cycle.
+* Recognizer internals::        Meddling with the recognizer internals.
 @end menu 
 
 @node Recognizer constructor
@@ -1038,7 +1038,7 @@ On other problems, it returns -2.
 @chapter Bocage objects
 
 @menu
-* Bocage internals::            Bocage internals
+* Bocage internals::            Bocage internals.
 @end menu
 
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
@@ -1189,7 +1189,7 @@ when it makes sense in context,
 Marpa's parse trees are also bocage iterators.
 
 @menu
-* Tree internals::              Internals
+* Tree internals::              Internals.
 @end menu
 
 @deftypefun Marpa_Tree marpa_t_new (Marpa_Order @var{o})
