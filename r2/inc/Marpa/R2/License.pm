@@ -127,15 +127,15 @@ END_OF_STRING
 =cut
 
 my %original = (
-    'libmarpa/dist/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
-    'libmarpa/dist/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
+    'libmarpa/build/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
+    'libmarpa/build/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
     'libmarpa/dev/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
     'libmarpa/dev/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
 );
 
 my %GNU_file =
     map {
-    (   'libmarpa/stage_dist/' . $_, 1, 'libmarpa/dist/' . $_, 1,
+    (   'libmarpa/stage/' . $_, 1, 'libmarpa/build/' . $_, 1,
         'libmarpa/test/dev/' . $_,   1
         )
     } qw(
@@ -261,7 +261,7 @@ my %files_by_type = (
     'html/t/fmt_t_data/expected2.html' => \&ignored,
     'html/t/fmt_t_data/input1.html'    => \&trivial,
     'libmarpa/dist/stamp-vti' => \&trivial,
-    'libmarpa/dist/version.texi' => \&trivial,
+    'libmarpa/build/version.texi' => \&trivial,
     'html/t/fmt_t_data/input2.html'    => \&trivial,
     'html/t/fmt_t_data/score_expected1.html' => \&trivial,
     'html/t/fmt_t_data/score_expected2.html' => \&trivial,
@@ -272,7 +272,7 @@ my %files_by_type = (
     'libmarpa/VERSION'                   => \&trivial,
     'libmarpa/dev/README'                    => \&trivial,
     'libmarpa/dev/api.texi'             => \&license_problems_in_fdl_file,
-    'libmarpa/dist/api.texi'             => \&license_problems_in_fdl_file,
+    'libmarpa/build/api.texi'             => \&license_problems_in_fdl_file,
     'libmarpa/test/README'              => \&trivial,
     'libmarpa/test/Makefile'            => \&trivial,
     'README'                            => \&trivial,
@@ -287,12 +287,12 @@ my %files_by_type = (
     'libmarpa/theory/ah_to_leo.lyx'      => \&tex_closed,
     'libmarpa/theory/ah2002_notes.lyx'   => \&tex_closed,
     'libmarpa/theory/proof.lyx'          => \&tex_closed,
-    'libmarpa/dist/install-sh'     => \&check_X_copyright,
+    'libmarpa/build/install-sh'     => \&check_X_copyright,
     'libmarpa/stage_dist/install-sh'     => \&check_X_copyright,
     'libmarpa/test/dev/install-sh' => \&check_X_copyright,
-    'libmarpa/stage_dist/config.h.in' =>
+    'libmarpa/stage/config.h.in' =>
         check_tag( 'Generated from configure.ac by autoheader', 250 ),
-    'libmarpa/dist/config.h.in' =>
+    'libmarpa/build/config.h.in' =>
         check_tag( 'Generated from configure.ac by autoheader', 250 ),
 );
 

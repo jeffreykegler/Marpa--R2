@@ -349,7 +349,7 @@ sub ACTION_licensecheck {
 
     require inc::Marpa::R2::License;
 
-    my $manifest = keys %{ExtUtils::Manifest::maniread()};
+    my $manifest = [keys %{ExtUtils::Manifest::maniread()}];
     my @license_problems =
         Marpa::R2::License::license_problems( $manifest, $self->verbose() );
     if (@license_problems) {
