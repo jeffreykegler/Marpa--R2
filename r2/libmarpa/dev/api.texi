@@ -37,18 +37,18 @@ This manual is for libmarpa, version @value{VERSION}.
 
 @end ifnottex 
 @menu
-* How to read this document:: How to read this document.  How to read this document.
-* About libmarpa:: About libmarpa.  About libmarpa.
+* How to read this document::   
+* About libmarpa::              What is libmarpa?
 * Time objects::                
 * Version checking::            Checking the libmarpa version.
-* Grammars:: Grammars.          Grammars.
-* Events:: Events.              Events.
-* Recognizers:: Recognizers.    Recognizers.
+* Grammars::                    Grammar time objects
+* Events::                      libmarpa Events
+* Recognizers::                 Recognizers.
 * Bocage::                      Bocage objects.
 * Order::                       Order objects.
 * Tree::                        Parse Trees.
 * Value::                       Value objects.
-* Error handling:: Error handling.  Error handling.
+* Error handling::              
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -63,7 +63,7 @@ How to read this document
 Time objects
 
 * The sequence of time objects::  
-* The lifetime of item objecs::  
+* The lifetime of item objects::  
 * Threads::                     
 * Numbered objects::            
 * Token values::                
@@ -72,10 +72,10 @@ Grammars
 
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
-* Symbols:: Symbols.            Symbols.
+* Symbols::                     
 * Terminals::                   Terminal symbols.
 * Grammar precomputation::      Precomputing the Grammar.
-* Rules:: Rules.                Rules.
+* Rules::                       
 * Symbol internals::            Methods that deal with symbol internals.
 * Grammar internals::           Methods that deal with grammar internals.
 
@@ -364,13 +364,13 @@ The time objects are, in sequence:
 
 @menu
 * The sequence of time objects::  
-* The lifetime of item objecs::  
+* The lifetime of item objects::  
 * Threads::                     
 * Numbered objects::            
 * Token values::                
 @end menu
 
-@node The sequence of time objects, The lifetime of item objecs, Time objects, Time objects
+@node The sequence of time objects, The lifetime of item objects, Time objects, Time objects
 @section The sequence of time objects
 
 Above I said "in sequence".
@@ -402,8 +402,8 @@ the base grammar of a bocage is the base
 grammar of the recognizer that it was created
 with.
 
-@node The lifetime of item objecs, Threads, The sequence of time objects, Time objects
-@section The lifetime of item objecs
+@node The lifetime of item objects, Threads, The sequence of time objects, Time objects
+@section The lifetime of item objects
 
 Time objects are reference-counted.
 Every time object is created with a reference count of 1.
@@ -428,7 +428,7 @@ For such situations,
 every time object has a method to increment
 the reference count.
 
-@node Threads, Numbered objects, The lifetime of item objecs, Time objects
+@node Threads, Numbered objects, The lifetime of item objects, Time objects
 @section Threads
 
 Libmarpa is thread-safe, with a restriction.
@@ -558,10 +558,10 @@ Return value: %NULL if the Marpa library is compatible with the
 @menu
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
-* Symbols:: Symbols.            Symbols.
+* Symbols::                     
 * Terminals::                   Terminal symbols.
 * Grammar precomputation::      Precomputing the Grammar.
-* Rules:: Rules.                Rules.
+* Rules::                       
 * Symbol internals::            Methods that deal with symbol internals.
 * Grammar internals::           Methods that deal with grammar internals.
 @end menu 
