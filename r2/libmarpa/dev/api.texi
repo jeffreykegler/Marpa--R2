@@ -284,8 +284,116 @@ to catch them at runtime or
 failing all else,
 to successfully debug the logic.
 
-@node Concepts
-@chapter libmarpa Concepts
+@chapter Time objects
+
+Libmarpa's most important objects are time objects.
+Grammars and recognizers are examples of time objects.
+Time objects are so called for two related reasons.
+First, they relate to a "time" in the progress of a parse.
+Second, each time object has a lifetime and is reference counted.
+
+Libmarpa's major objects are called "time" objects instead
+of phase objects,
+because when one phase ends, another begins.
+Time objects are often in use simulataneously.
+For example, infancy, adolescent and adulthood are phases in
+our lives.
+Work and play are different times.
+
+The time objects are, in sequence:
+@itemize 
+@item Grammars.
+@item Recognizers.
+@item Bocages.
+@item Orderings.
+@item Trees.
+@item Valuators.
+@end itemize 
+
+@section The sequence of time objects
+
+Above I said "in sequence".
+While time objects do not correspond to phases,
+they do have a well-defined sequence.
+Except for grammars,
+all time objects are created from another time
+object.
+A recognizer cannot be created without a precomputed grammar;
+a bocage cannot be created without a recognizer;
+and so on.
+When one time object is used to create a second
+time object,
+the first time object is the @dfn{parent object}
+and the second time object is the @dfn{child object}.
+For example, when a bocage is created from a
+recognizer,
+the recognizer is the parent object,
+and the bocage is the child object.
+
+Every time object has a @dfn{base grammar}.
+A grammar object is its own base grammar.
+The base grammar of a recognizer is the grammar
+that it was created with.
+The base grammar of any other time object is the base
+grammar of its parent object.
+For example,
+the base grammar of a bocage is the base
+grammar of the recognizer that it was created
+with.
+
+@section The lifetime of item objecs
+
+Time objects are reference-counted.
+Every time object is created with a reference count of 1.
+Whenever one time object is created from another,
+the parent time object has its reference count incremented
+by 1.
+
+Every time object has a method which decrements its
+reference count by 1.
+Time objects do not have explicit destructors.
+When the reference count of a time object reaches
+0, that time object is destroyed.
+
+In ordinary circumstances, all an application has to
+do is keep in mind that it "owns" the time objects
+it has created, and that it must call to method
+to "unreference" that object when it is finished.
+
+In some applications, multiple parts of it
+may need to share ownership of an object.
+For such situations,
+every time object has a method to increment
+the reference count.
+
+@section Threads
+
+Libmarpa is thread-safe, with a restriction.
+No attempt is make to lock a parent object
+which it is used by child time object.
+In particular,
+every time object with the same base grammar shares data
+from that grammar.
+This means that, for every base grammar,
+its time objects can be used safely in at most one thread.
+
+Libmarpa uses no global data.
+As long as libmarpa time objects which have
+the same base grammar are not
+used in two different threads,
+libmarpa is thread-safe.
+
+Libmarpa makes heavy use of GNU's glib,
+but Glib is thread-safe internally,
+and libmarpa's use of Glib structures is thread-safe
+if the above mentioned restriction is obeyed.
+Except for Glib,
+libmarpa makes little use of outside libraries,
+and always in a thread-safe fashion.
+
+@section Numbered objects
+
+@chapter Token values
 
 @menu
 * Token values:: Token values.
