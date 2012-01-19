@@ -122,6 +122,9 @@ marpa.pdf: marpa.tex cwebmac.tex
 ../stage/api.pdf: ../stage/Makefile ../stage/api.texi
 	cd ../stage && make pdf
 
+../stage/api.html/index.html: ../stage/Makefile ../stage/api.texi
+	cd ../stage && make html
+
 install: $(STAGE_FILES) ../stage/configure
 
-docs: marpa.pdf ../stage/api.pdf
+docs: marpa.pdf ../stage/api.pdf ../stage/api.html/index.html
