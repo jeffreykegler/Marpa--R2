@@ -61,7 +61,7 @@ AC_INIT([marpa],[marpa_version],[http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa]
 
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([foreign no-dist no-installinfo])
+AM_INIT_AUTOMAKE([foreign no-installinfo])
 
 # Specify a configuration file
 AC_CONFIG_HEADERS([config.h])
@@ -180,9 +180,6 @@ AC_C_INLINE
 PKG_PROG_PKG_CONFIG([0.22])
 PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.22.0] )
 
-AC_CONFIG_FILES(
-    [Makefile]
-    [VERSION]
-    )
+AC_CONFIG_FILES( [Makefile])
 AC_OUTPUT
 

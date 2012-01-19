@@ -25,7 +25,6 @@ MARPA_PDF_SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 STAGE_FILES = \
     ../stage/Makefile.am \
     ../stage/configure.ac \
-    ../stage/VERSION.in \
     ../stage/api.texi \
     ../stage/codes.c \
     ../stage/codes.h \
@@ -83,9 +82,6 @@ marpa.pdf: marpa.tex cwebmac.tex
 ../stage/Makefile.am: dist/Makefile.am
 	cp $? $@
 
-../stage/VERSION.in: VERSION.in
-	cp $? $@
-
 ../stage/api.texi: api.texi
 	cp $? $@
 
@@ -124,6 +120,6 @@ marpa.pdf: marpa.tex cwebmac.tex
 ../build/api.pdf: ../build/stamp-h1
 	cd ../build && make pdf
 
-install: sources ../dist/configure
+install: sources ../stage/configure
 
 docs: marpa.pdf ../stage/api.pdf

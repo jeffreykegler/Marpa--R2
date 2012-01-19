@@ -22,6 +22,7 @@ use warnings;
 @Marpa::R2::Build_Me::ISA = ('Module::Build');
 
 use Config;
+use ExtUtils::Manifest;
 use File::Copy;
 use Cwd 'abs_path';
 use IPC::Cmd;
@@ -257,10 +258,24 @@ sub do_libmarpa {
     my $cwd          = $self->cwd();
     my $base_dir     = $self->base_dir();
 
+    # read MANIFEST before chdir
+    my $manifest_hash = ExtUtils::Manifest::maniread();
     my $build_dir = File::Spec->catdir( $base_dir, qw(libmarpa build) );
+    my $stage_dir = File::Spec->catdir( $base_dir, qw(libmarpa stage) );
+    -d $build_dir or mkdir $build_dir;
+    chdir $stage_dir;
+    BUILD_FILE: for my $build_file (keys %{$manifest_hash})
+    {
+	# names in MANIFEST are always UNIX-style
+	$build_file =~ s{ \A libmarpa / build / }{}xms or next BUILD_FILE;
+	my $localized_file = File::Spec->catfile( split m{/}xms, $build_file );
+	$self->copy_if_modified($localized_file, $build_dir);
+    }
+    chdir $cwd;
     chdir $build_dir;
-    my $configure_script =
-        File::Spec->catfile( $build_dir, 'configure' );
+
+    my $configure_script = 'configure';
+    make_writeable($configure_script);
     if ( not -r 'stamp-h1' ) {
 
         if ( $self->verbose() ) {
@@ -279,7 +294,7 @@ sub do_libmarpa {
         }
 
         if ( $self->verbose() ) {
-            say join "Running command: ", $shell, $configure_script, @configure_command_args
+            say join q{ }, "Running command:", $shell, $configure_script, @configure_command_args
                 or die "print failed: $ERRNO";
         }
         if (not IPC::Cmd::run(
@@ -306,16 +321,6 @@ sub do_libmarpa {
     if ( $self->verbose() ) {
         print "Making libmarpa: Start\n" or die "Cannot print: $ERRNO";
     }
-    {
-        ## Make sure "configure" and stamp files are owner-writeable
-        my @must_be_writeable = ($configure_script);
-        push @must_be_writeable,
-            File::Spec->catfile( $build_dir, 'stamp-vti' );
-        for my $file (@must_be_writeable) {
-            my $current_mode = ( stat $file )[2];
-            chmod $current_mode | (oct 200), $file;
-        }
-    }
     die 'Making libmarpa: make Failure'
         if not IPC::Cmd::run( command => ['make'], verbose => 1 );
 
@@ -329,21 +334,21 @@ sub ACTION_manifest {
         . qq{The Marpa MANIFEST file is handwritten\n};
 }
 
+sub make_writeable {
+    my $file = shift;
+    my $current_mode =  (stat $file)[2];
+    die qq{mode not defined for $file} if not defined $current_mode;
+    chmod $current_mode | (oct 200), $file;
+}
+
 sub ACTION_licensecheck {
     my $self = shift;
 
     require inc::Marpa::R2::License;
 
-    my @manifest = do {
-        open my $fh, q{<}, 'MANIFEST';
-        local $RS = undef;
-        my $text = <$fh>;
-        close $fh;
-        $text =~ s/[#] [^\n]* $//gxms;
-        grep { defined and not / \A \s* \z /xms } split /\n/xms, $text;
-    };
+    my $manifest = keys %{ExtUtils::Manifest::maniread()};
     my @license_problems =
-        Marpa::R2::License::license_problems( \@manifest, $self->verbose() );
+        Marpa::R2::License::license_problems( $manifest, $self->verbose() );
     if (@license_problems) {
         print {*STDERR} join q{}, @license_problems
             or die "Cannot print: $ERRNO";
