@@ -114,11 +114,28 @@ Recognizer objects
 
 Bocage objects
 
+* Bocage reference counting::   
 * Bocage internals::            Bocage internals.
 
-Tree time objects
+Orderings
 
+* Ordering constructor::        
+* Ordering reference counting::  
+* Ordering internals::          
+
+Tree iterators
+
+* Tree constructor::            
+* Tree reference counting::     
+* Tree iteration::              
 * Tree internals::              Internals.
+
+Value objects
+
+* Valuator constructor::        
+* Valuator reference counting::  
+* Valuator stepping::           
+* Valuator tracing::            
 
 @end detailmenu
 @end menu
@@ -1370,18 +1387,14 @@ On other problems, it returns -2.
     gint @var{ix})
 @end deftypefun
 
+@node Recognizer internals,  , Recognizer life, Recognizers
+@section Meddling with the recognizer internals
+
 @deftypefun Marpa_Earley_Set_ID marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
-
-@deftypefun Marpa_Earleme marpa_r_earleme (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
-@end deftypefun
-
-
-@node Recognizer internals,  , Recognizer life, Recognizers
-@section Meddling with the recognizer internals
 
 @deftypefun gint marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
@@ -1453,6 +1466,7 @@ On other problems, it returns -2.
 @chapter Bocage objects
 
 @menu
+* Bocage reference counting::   
 * Bocage internals::            Bocage internals.
 @end menu
 
@@ -1461,16 +1475,18 @@ On other problems, it returns -2.
     Marpa_Earley_Set_ID @var{ordinal_arg})
 @end deftypefun
 
+@deftypefun Marpa_Grammar marpa_b_g (Marpa_Bocage @var{b})
+@end deftypefun
+
+@node Bocage reference counting, Bocage internals, Bocage, Bocage
+@section  Reference counting
 @deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
 @end deftypefun
 
 @deftypefun void marpa_b_unref (Marpa_Bocage @var{b})
 @end deftypefun
 
-@deftypefun Marpa_Grammar marpa_b_g (Marpa_Bocage @var{b})
-@end deftypefun
-
-@node Bocage internals,  , Bocage, Bocage
+@node Bocage internals,  , Bocage reference counting, Bocage
 @section Internals
 
 @deftypefun gint marpa_b_and_node_count ( @
@@ -1564,11 +1580,27 @@ the or-node.
 @end deftypefun
 
 @node Order, Tree, Bocage, Top
-@chapter Order objects
+@chapter Orderings
+
+@menu
+* Ordering constructor::        
+* Ordering reference counting::  
+* Ordering internals::          
+@end menu
+
+@node Ordering constructor, Ordering reference counting, Order, Order
+@section Creating an ordering
 
 @deftypefun Marpa_Order marpa_o_new ( @
     Marpa_Bocage @var{b})
 @end deftypefun
+
+@deftypefun Marpa_Grammar marpa_o_g ( @
+    Marpa_Order @var{o})
+@end deftypefun
+
+@node Ordering reference counting, Ordering internals, Ordering constructor, Order
+@section Reference counting
 
 @deftypefun void marpa_o_unref ( @
     Marpa_Order @var{o})
@@ -1578,9 +1610,8 @@ the or-node.
     Marpa_Order @var{o})
 @end deftypefun
 
-@deftypefun Marpa_Grammar marpa_o_g ( @
-    Marpa_Order @var{o})
-@end deftypefun
+@node Ordering internals,  , Ordering reference counting, Order
+@section Internals
 
 @deftypefun gint marpa_o_and_order_set ( @
     Marpa_Order @var{o}, @
@@ -1596,7 +1627,7 @@ the or-node.
 @end deftypefun
 
 @node Tree, Value, Order, Top
-@chapter Tree time objects
+@chapter Tree iterators
 
 Within Marpa,
 when it makes sense in context,
@@ -1604,8 +1635,14 @@ when it makes sense in context,
 Marpa's parse trees are also bocage iterators.
 
 @menu
+* Tree constructor::            
+* Tree reference counting::     
+* Tree iteration::              
 * Tree internals::              Internals.
 @end menu
+
+@node Tree constructor, Tree reference counting, Tree, Tree
+@section Creating a new tree iterator
 
 @deftypefun Marpa_Tree marpa_t_new (Marpa_Order @var{o})
 @end deftypefun
@@ -1626,11 +1663,17 @@ errors can be properly reported.
 
 @end deftypefun
 
+@node Tree reference counting, Tree iteration, Tree constructor, Tree
+@section Reference counting
+
 @deftypefun Marpa_Tree marpa_t_ref (Marpa_Tree @var{t})
 @end deftypefun
 
 @deftypefun void marpa_t_unref (Marpa_Tree @var{t})
 @end deftypefun
+
+@node Tree iteration, Tree internals, Tree reference counting, Tree
+@section Iterating through the trees
 
 @deftypefun gint marpa_t_next ( @
 	Marpa_Tree @var{t})
@@ -1640,7 +1683,7 @@ errors can be properly reported.
 	Marpa_Tree @var{t})
 @end deftypefun
 
-@node Tree internals,  , Tree, Tree
+@node Tree internals,  , Tree iteration, Tree
 @section Internals
 
 In Marpa, a nook is any node of a parse tree.
@@ -1727,17 +1770,30 @@ Return the is-predecessor bit for @var{nook_id}.
 @node Value, Error handling, Tree, Top
 @chapter Value objects
 
+@menu
+* Valuator constructor::        
+* Valuator reference counting::  
+* Valuator stepping::           
+* Valuator tracing::            
+@end menu
+
+@node Valuator constructor, Valuator reference counting, Value, Value
+@section Creating a new valuator
+
 @deftypefun Marpa_Value marpa_v_new ( @
     Marpa_Tree @var{t})
+@end deftypefun
+
+@deftypefun Marpa_Grammar marpa_v_g (Marpa_Value @var{v})
 @end deftypefun
 
 @deftypefun void marpa_v_unref (Marpa_Value @var{v})
 @end deftypefun
 
-@deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
-@end deftypefun
+@node Valuator reference counting, Valuator stepping, Valuator constructor, Value
+@section Reference counting
 
-@deftypefun Marpa_Grammar marpa_v_g (Marpa_Value @var{v})
+@deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
 
 Returns the grammar of the value.
 It never returns an error.
@@ -1753,10 +1809,16 @@ errors can be properly reported.
 
 @end deftypefun
 
+@node Valuator stepping, Valuator tracing, Valuator reference counting, Value
+@section Stepping throught the valuator
+
 @deftypefun Marpa_Nook_ID marpa_v_step ( @
     Marpa_Value @var{v}, @
     Marpa_Step* @var{step})
 @end deftypefun
+
+@node Valuator tracing,  , Valuator stepping, Value
+@section Tracing the valuator
 
 @deftypefun gint marpa_v_trace ( @
     Marpa_Value @var{v}, @
