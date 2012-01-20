@@ -72,7 +72,7 @@ Time objects
 
 The architecture of Marpa
 
-* Architecture: grammar::       
+* Architecture - Grammar::      
 * Recognition versus parsing::  
 * Why so many time objects::    
 
@@ -462,12 +462,12 @@ the reference count.
 @chapter The architecture of Marpa
 
 @menu
-* Architecture: grammar::       
+* Architecture - Grammar::      
 * Recognition versus parsing::  
 * Why so many time objects::    
 @end menu
 
-@node Architecture: grammar, Recognition versus parsing, The architecture of Marpa, The architecture of Marpa
+@node Architecture - Grammar, Recognition versus parsing, The architecture of Marpa, The architecture of Marpa
 @section Grammars
 
 As per parsing theory,
@@ -527,7 +527,7 @@ to restore it, partially or completely.
 * Precomputation::              
 @end menu
 
-@node Precomputation,  , Architecture: grammar, Architecture: grammar
+@node Precomputation,  , Architecture - Grammar, Architecture - Grammar
 @subsection Precomputation
 
 Before a recognizer can be created from a grammar,
@@ -549,7 +549,7 @@ to a precomputed grammar
 are disallowed,
 as are most other changes.
 
-@node Recognition versus parsing, Why so many time objects, Architecture: grammar, The architecture of Marpa
+@node Recognition versus parsing, Why so many time objects, Architecture - Grammar, The architecture of Marpa
 @section Recognition versus parsing
 
 Even in the academic literature,
