@@ -354,8 +354,9 @@ Second, each time object has a lifetime and is reference counted.
 
 Libmarpa's major objects are called "time" objects instead
 of phase objects,
-because when one phase ends, another begins.
-Time objects are often in use simulataneously.
+because phases are exclusive and non-simultaneous
+-- when one phase ends, another begins.
+Time objects are often in use simultaneously.
 For example, infancy, adolescent and adulthood are phases in
 our lives.
 Work and play are different times.
@@ -387,6 +388,10 @@ object.
 A recognizer cannot be created without a precomputed grammar;
 a bocage cannot be created without a recognizer;
 and so on.
+
+@node Base grammars
+@section Every time object has a base grammar
+
 When one time object is used to create a second
 time object,
 the first time object is the @dfn{parent object}
@@ -395,6 +400,13 @@ For example, when a bocage is created from a
 recognizer,
 the recognizer is the parent object,
 and the bocage is the child object.
+
+Grammars have no parent object.
+Every other time object has exactly one parent object.
+Valuation objects have no child objects.
+All other time objects can have any number of children,
+from zero up to a number determined by the memory limits
+or the architecture.
 
 Every time object has a @dfn{base grammar}.
 A grammar object is its own base grammar.
@@ -432,6 +444,160 @@ may need to share ownership of an object.
 For such situations,
 every time object has a method to increment
 the reference count.
+
+@node The architecture of Marpa
+@chapter The architecture of Marpa
+
+@node Architecture: grammar
+@section Grammars
+
+As per parsing theory,
+before an input can be parsed,
+a grammar must be defined.
+Traditionally,
+A grammar consists of a set of terminal symbols,
+a set of non-terminal symbols,
+a set of rules,
+and a distinguished start symbol.
+
+A terminal symbol is symbol which
+may appear in the input.
+The rules have a single symbol
+on their left hand side (LHS),
+and a right hand side which consists of zero or more
+symbols.
+RHS symbols can be either terminals or non-terminals.
+Traditionally,
+all LHS symbols, as well as
+the start symbol, must be non-terminals.
+
+Marpa's grammars differ from the traditional ones
+in that there is no necessary distinction between
+terminals and non-terminals.
+In Marpa,
+a terminal may be the start symbols,
+and may appear on the LHS of a rule.
+By default, all symbols are terminals.
+
+Marpa's idea
+in losing the sharp division between terminals
+and non-terminals is that the distinction,
+while helpful for proving theorems,
+is not essential in practice.
+If LHS symbols 
+appear in the input they, in effect,
+"short circuiting" the rules in which they occur.
+This may
+be helpful in debugging, or have other applications.
+
+However,
+it also can be useful, 
+for checking input validity as well as for efficiency,
+to follow tradition and distingush
+non-terminals from terminals.
+Marpa allows the user to mark each symbol
+as a terminal or a non-terminal.
+Symbols marked as non-terminals will not be allowed as input.
+The user also has the option of banning terminals from
+the LHS of rules.
+Marpa allows a
+user who prefers the tradition distinction
+to restore it, partially or completely.
+
+@node Precomputation
+@subsection Precomputation
+
+Before a recognizer can be created from a grammar,
+it must be precomputed.
+Internally, precomputation is what the term
+suggests --
+the precomputation of a large number
+of facts about the grammar that allow
+the recognizer to proceed very efficiently.
+
+Whether or not to precompute is another case
+of the common choice between lazy and eager evaluation.
+It is Marpa's strategy to make very aggressive use of
+precomputation at grammar time.
+
+Precomputation "freezes" a grammar.
+New symbols, rules and sequences cannot be added
+to a precomputed grammar
+are disallowed,
+as are most other changes.
+
+@node Recognition versus parsing
+@section Recognition versus parsing
+
+Even in the academic literature,
+parsing is used in many senses,
+Some algorithms,
+distinguish between between determining whether
+a given string matches the grammar,
+and finding the structure of the recognized string
+according to the grammar.
+Earley's algorithm was one such algorithm.
+Marpa is another.
+
+Determining whether a string matches a grammar is called
+@dfn{recognition}.
+Finding the structure of the recognized string according
+to the grammar is
+@dfn{parsing} in a very strict sense of the term.
+Strictly speaking,
+Earley's algorithm was a recognizer,
+and not a parser.
+Marpa contains both a recognizer
+and a parser in the strict sense.
+Marpa's recognizer is implemented by its recognizer time objects.
+Marpa's parser in the strict sense
+is implemented by its bocage class and the classes
+which follow the bocage in the time object sequence.
+
+@node Why so many time objects
+@section Why so many time objects?
+
+Readers accustomed to other appraoches to parsing,
+particular those in fashion at this writing,
+may wonder on the number of time objects
+in the Marpa architecture.
+Several of Marpa's time objects (bocages,
+orderings and trees) are required
+because Marpa allows,
+and offers powerful tools for dealing with,
+ambigious grammars.
+
+It may seem, then, that users of unambiguous grammars,
+are paying a considerable price in time effiency
+for the ability to parse
+ambiguous ones.
+This is not the case.
+In the trivial case, the cost of the orderings
+object is a single, very brief, subroutine call.
+
+Bocage objects come at minimal cost,
+because the same pass which creates the bocage
+also deals with other issues which are of major
+significance even for unambiguous parses.
+The same pass which creates the bocage
+enables Marpa to do both left-
+and right-recursion in linear time.
+
+Tree objects come at mininal cost to unambiguous grammars,
+because the same pass that allows iteration through multiple
+parse trees does the tree traversal, so that the valuation time object
+has very litle to do -- it just steps through the sequence.
+
+But what about the many passes over the data this requires?
+Marpa is an aggressively multi-pass algorithm.
+Marpa achieves its efficiency,
+not in spite of making multiple
+passes over the data, but because of it.
+Marpa is @math{O(n)} for LR-regular grammars,
+both in theory and in implementation,
+because Marpa regularly substitutes
+two fast @math{O(n)} passes for a single
+@math{O(n log n)} pass.
 
 @node Threads, Numbered objects, Time objects, Top
 @chapter Threads
