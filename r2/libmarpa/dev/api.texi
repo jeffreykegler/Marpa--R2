@@ -31,7 +31,7 @@ Published @value{UPDATED} by Jeffrey Kegler
 @contents 
 @ifnottex 
 @node Top, How to read this document, (dir), (dir)
-@top title 
+@top libmarpa: The Marpa low-level library
 
 This manual is for libmarpa, version @value{VERSION}. 
 
@@ -39,7 +39,10 @@ This manual is for libmarpa, version @value{VERSION}.
 @menu
 * How to read this document::   
 * About libmarpa::              What is libmarpa?
-* Time objects::                
+* Time objects@item::                
+* Threads::                     
+* Numbered objects::            
+* Semantics::                   
 * Version checking::            Checking the libmarpa version.
 * Grammars::                    Grammar time objects
 * Events::                      libmarpa Events
@@ -64,8 +67,13 @@ Time objects
 
 * The sequence of time objects::  
 * The lifetime of item objects::  
-* Threads::                     
-* Numbered objects::            
+
+Numbered objects
+
+* Numbered object implementation::  
+
+Semantics
+
 * Token values::                
 
 Grammars
@@ -335,7 +343,7 @@ to catch them at runtime or
 failing all else,
 to successfully debug the logic.
 
-@node Time objects, Version checking, About libmarpa, Top
+@node Time objects, Threads, About libmarpa, Top
 @chapter Time objects
 
 Libmarpa's most important objects are time objects.
@@ -365,9 +373,6 @@ The time objects are, in sequence:
 @menu
 * The sequence of time objects::  
 * The lifetime of item objects::  
-* Threads::                     
-* Numbered objects::            
-* Token values::                
 @end menu
 
 @node The sequence of time objects, The lifetime of item objects, Time objects, Time objects
@@ -402,7 +407,7 @@ the base grammar of a bocage is the base
 grammar of the recognizer that it was created
 with.
 
-@node The lifetime of item objects, Threads, The sequence of time objects, Time objects
+@node The lifetime of item objects,  , The sequence of time objects, Time objects
 @section The lifetime of item objects
 
 Time objects are reference-counted.
@@ -428,8 +433,8 @@ For such situations,
 every time object has a method to increment
 the reference count.
 
-@node Threads, Numbered objects, The lifetime of item objects, Time objects
-@section Threads
+@node Threads, Numbered objects, Time objects, Top
+@chapter Threads
 
 Libmarpa is thread-safe, with a restriction.
 No attempt is make to lock a parent object
@@ -454,10 +459,57 @@ Except for Glib,
 libmarpa makes little use of outside libraries,
 and always in a thread-safe fashion.
 
-@node Numbered objects, Token values, Threads, Time objects
-@section Numbered objects
+@node Numbered objects, Semantics, Threads, Top
+@chapter Numbered objects
 
-@node Token values,  , Numbered objects, Time objects
+In addition to its major, "time" objects, libmarpa also has
+numbered objects
+Examples of numbered objects are rules and symbols.
+Numbered objects do not have lifetimes of their own.
+Every numbered object belongs to a timed object,
+and is destroyed with it.
+
+@menu
+* Numbered object implementation::  
+@end menu
+
+@node Numbered object implementation,  , Numbered objects, Numbered objects
+@section Implementation
+
+Numbered objects are implemented as integers, and not as
+pointers.
+Pointers cannot easily be checked for validity.
+Integers on the other hand, especially if they are assigned
+in sequence, are easy to check safely and portably.
+It is easy to safely check an integer for validity.
+
+There are efficiency tradeoffs between pointers and
+integers but these go both ways.
+Pointers can be faster, but integers can be used
+as indexes into more than one data structure.
+Which is actually faster depends on the design,
+and since integers allow for a more flexible design,
+careful programming can make them a win,
+possibly a very big one.
+
+The author decided to settle on integers from the
+outset, and to design libmnarpa taking full
+advantage of that choice.
+In many or most cases, that would make integers
+more efficient.
+In the cases where pointers were faster, it would
+not be by much --
+a small price to pay for
+safe, portable validity checking.
+
+@node Semantics, Version checking, Numbered objects, Top
+@chapter Semantics
+
+@menu
+* Token values::                
+@end menu
+
+@node Token values,  , Semantics, Semantics
 @section Token values
 
 Token values are @code{gpointer}'s.
@@ -501,7 +553,7 @@ issues advanced by this author.
 It is in the UNIX and Perl traditions to
 avoid imposing choices on the user.
 
-@node Version checking, Grammars, Time objects, Top
+@node Version checking, Grammars, Semantics, Top
 @chapter Checking the libmarpa version
 @cindex version checking
 
