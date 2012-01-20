@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*- 
-c %**start of texinfo-master-menueader 
+@c %**start of header
 @setfilename api.info 
 @settitle libmarpa @value{VERSION}
 @c %**end of header 
@@ -94,9 +94,10 @@ Grammars
 * Grammar reference counting::  Tracking the reference count of the grammar.
 * Symbols::                     
 * Terminals::                   Terminal symbols.
-* Grammar precomputation::      Precomputing the Grammar.
 * Rules::                       
+* Grammar precomputation::      Precomputing the Grammar.
 * Symbol internals::            Methods that deal with symbol internals.
+* Rule internals::              
 * Grammar internals::           Methods that deal with grammar internals.
 
 Events
@@ -801,9 +802,10 @@ Return value: %NULL if the Marpa library is compatible with the
 * Grammar reference counting::  Tracking the reference count of the grammar.
 * Symbols::                     
 * Terminals::                   Terminal symbols.
-* Grammar precomputation::      Precomputing the Grammar.
 * Rules::                       
+* Grammar precomputation::      Precomputing the Grammar.
 * Symbol internals::            Methods that deal with symbol internals.
+* Rule internals::              
 * Grammar internals::           Methods that deal with grammar internals.
 @end menu 
 
@@ -912,7 +914,7 @@ otherwise the ID of the new start symbol.
 @deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
 @end deftypefun
 
-@node Terminals, Grammar precomputation, Symbols, Grammars
+@node Terminals, Rules, Symbols, Grammars
 @section Methods that deal with terminal symbols
 
 @deftypefun gint marpa_g_default_token_value ( @
@@ -963,20 +965,24 @@ Return value: -2 if there was an error;
  gint @var{value})
 @end deftypefun
 
-@node Grammar precomputation, Rules, Terminals, Grammars
-@section Precomputing the Grammar
-
-@deftypefun gint marpa_g_precompute (Marpa_Grammar @var{g})
+@deftypefun gint marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun gint marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun gint marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun gint marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun gint marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
 @end deftypefun
 
-@deftypefun gint marpa_g_is_precomputed (Marpa_Grammar @var{g})
-@end deftypefun
-
-@deftypefun gint marpa_g_has_loop (Marpa_Grammar @var{g})
-@end deftypefun
-
-@node Rules, Symbol internals, Grammar precomputation, Grammars
-@section Methods that deal with rules
+@node Rules, Grammar precomputation, Terminals, Grammars
+@section Rules
 
 @deftypefun gint marpa_g_rule_count (Marpa_Grammar @var{g})
 @end deftypefun
@@ -1004,33 +1010,7 @@ Return value: -2 if there was an error;
 @deftypefun gint marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun gint marpa_g_rule_is_virtual_loop (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun gint marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun gint marpa_g_rule_is_virtual_lhs (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun gint marpa_g_rule_is_virtual_rhs (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun guint marpa_g_virtual_start (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun guint marpa_g_virtual_end (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun Marpa_Rule_ID marpa_g_rule_original (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun gint marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun Marpa_Rule_ID marpa_g_rule_semantic_equivalent (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
+
 @deftypefun Marpa_Symbol_ID marpa_g_rule_lhs ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
@@ -1101,7 +1081,19 @@ Return value: -2 if there was an error.
 
 @end deftypefun
 
-@node Symbol internals, Grammar internals, Rules, Grammars
+@node Grammar precomputation, Symbol internals, Rules, Grammars
+@section Precomputing the Grammar
+
+@deftypefun gint marpa_g_precompute (Marpa_Grammar @var{g})
+@end deftypefun
+
+@deftypefun gint marpa_g_is_precomputed (Marpa_Grammar @var{g})
+@end deftypefun
+
+@deftypefun gint marpa_g_has_loop (Marpa_Grammar @var{g})
+@end deftypefun
+
+@node Symbol internals, Rule internals, Grammar precomputation, Grammars
 @section Methods that deal with symbol internals
 
 @deftypefun gint marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
@@ -1156,21 +1148,6 @@ Return value: -2 if the grammar is not precomputed or
     Marpa_Symbol_ID @var{symid}, @
  gint @var{ix})
 @end deftypefun
-@deftypefun gint marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun gint marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun gint marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun gint marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun gint marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_proper_alias (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
@@ -1181,7 +1158,38 @@ Return value: -2 if the grammar is not precomputed or
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 
-@node Grammar internals,  , Symbol internals, Grammars
+@node Rule internals, Grammar internals, Symbol internals, Grammars
+@section Rule internals
+
+@deftypefun gint marpa_g_rule_is_virtual_loop (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun gint marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun gint marpa_g_rule_is_virtual_lhs (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun gint marpa_g_rule_is_virtual_rhs (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun guint marpa_g_virtual_start (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun guint marpa_g_virtual_end (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun Marpa_Rule_ID marpa_g_rule_original (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun gint marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun Marpa_Rule_ID marpa_g_rule_semantic_equivalent (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+
+@node Grammar internals,  , Rule internals, Grammars
 @section Methods that deal with grammar internals
 
 The methods in this section are accessors for libmarpa's
