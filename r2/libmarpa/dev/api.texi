@@ -39,7 +39,7 @@ This manual is for libmarpa, version @value{VERSION}.
 @menu
 * How to read this document::   
 * About libmarpa::              What is libmarpa?
-* Time objects@item::                
+* Time objects::                
 * Threads::                     
 * Numbered objects::            
 * Semantics::                   
@@ -66,7 +66,7 @@ How to read this document
 Time objects
 
 * The sequence of time objects::  
-* The lifetime of item objects::  
+* The lifetime of time objects::  
 
 Numbered objects
 
@@ -372,10 +372,10 @@ The time objects are, in sequence:
 
 @menu
 * The sequence of time objects::  
-* The lifetime of item objects::  
+* The lifetime of time objects::  
 @end menu
 
-@node The sequence of time objects, The lifetime of item objects, Time objects, Time objects
+@node The sequence of time objects, The lifetime of time objects, Time objects, Time objects
 @section The sequence of time objects
 
 Above I said "in sequence".
@@ -407,8 +407,8 @@ the base grammar of a bocage is the base
 grammar of the recognizer that it was created
 with.
 
-@node The lifetime of item objects,  , The sequence of time objects, Time objects
-@section The lifetime of item objects
+@node The lifetime of time objects,  , The sequence of time objects, Time objects
+@section The lifetime of time objects
 
 Time objects are reference-counted.
 Every time object is created with a reference count of 1.
