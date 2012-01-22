@@ -1,0 +1,144 @@
+\documentclass{amsart}
+
+\newcommand{\comment}[1]{}
+\newcommand{\myspace}{\mbox{ }\ \ \ \ }
+\newcommand{\myspacem}{\;\;\;\;\;}
+\newcommand{\sep}{\,\mid\,}
+\newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
+\newcommand{\size}[1]{\left | {#1} \right |} 
+\newcommand{\rank}[1]{\mbox{$r({#1})$}} 
+\newcommand{\order}[1]{O(#1)}
+
+\newcommand{\cfg}{CFG}
+
+\newcommand{\nonterm}{\mbox{$V_{{\rm N}}$}}
+\newcommand{\myterm}{\mbox{$V_{{\rm T}}$}}
+
+\newcommand{\de}{\rightarrow}
+\newcommand{\derivg}[1]{\mathrel{\mbox{$\:\Rightarrow\:$}}}
+\newcommand{\derivrg}[2]{\mathrel{\mbox{$\:\stackrel{\!{#1}}%
+        {\Rightarrow\!}\:$}}}
+
+\newcommand{\rlc}{\mathrel{\angle}}
+\newcommand{\rlcp}{\mathrel{\angle^+}}
+\newcommand{\rlcm}{\mathrel{\angle^\ast}}
+\newcommand{\ep}{\varepsilon}
+
+\newcommand{\goto}{\mbox{{\it goto\/}}}
+\newcommand{\prd}{\mbox{{\it prd\/}}}
+\newcommand{\gto}{\mbox{$goto_1$}}
+\newcommand{\gtt}{\mbox{$goto_2$}}
+
+\newcommand{\eset}{I_{{\rm E}}}
+\newcommand{\ieset}{I_{{\rm V}}}
+\newcommand{\chartset}{I_{{\rm C}}}
+\newcommand{\pred}{\mbox{{\it pred\/}}}
+
+\newtheorem{alg}{Algorithm}%[section]
+
+\hyphenation{ALGOL}
+
+\begin{document}
+
+\title{The Marpa Recognizer}
+
+\author{Jeffrey Kegler}
+
+\begin{abstract}
+This paper reports describes the recognizer portion
+of the Marpa algorithm.
+The Marpa algorithm is a practical, and fully implemented,
+algorithm for the recognition,
+parsing and evaluation of context-free grammars.
+Marpa's recognizer is based
+an Earley's algorithm,
+and merges the improvements to Earley's
+from Leo~\cite{LEO91}
+and Aycock and Horspool~\cite{AH2002}.
+Their combination in the marpa parse engine
+has an added feature:
+It makes available,
+before each token is scanned,
+full knowledge of the state of the parse so far.
+This allows input to be altered as the parse progresses,
+which can be an extremely powerful technique.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+Despite the promise of general context-free parsing,
+and the strong academic literature behind it,
+it has never been incorporated into a tool
+as widely available as yacc or
+regular expressions.
+The Marpa project was begun to end this neglect by
+pulling the best results from the literature,
+and to turn them into a widely-available tool.
+A stable version of this tool, Marpa::XS, was
+delivered to the CPAN Perl archive on Solstice Day
+in 2011.
+
+Marpa::XS is a complete implementation of a parser
+generator.
+Its recognizer is built around a parse engine,
+which is new, but which also owes a great debt
+to previous work.
+
+\section{Preliminaries}
+\label{s:prel}
+
+I assume familiarity with standard grammar notation
+(pages 14-15 in~\cite{GJ2002}).
+Let grammar 
+$G$ be $(\myterm, \nonterm, P, S)$,
+has been augmented with a dedicated start rule
+$Start_RULE = [ Start_SYM \de S' ]$
+and that the dedicated start symbol
+$Start_SYM$ such that
+$Start_SYM \in \nonterm, Start_SYM \neg S'$
+appears only in $Start_RULE$.
+
+Let an FA be 
+a "split LR(0) $\epsilon$-DFA"
+as described in~\cite{AH2002}.
+Let an FA be an AHFA
+(Aycock-Horspool Finite Automaton).
+
+\section{Earley Parsing}
+\label{s:earley}
+
+\section{Concluding Remarks}
+\label{s:disc}
+
+\bibliographystyle{plain}
+
+\begin{thebibliography}{10}
+
+\bibitem{AH2002}
+John~Aycock and R.~Nigel~Horspool
+\newblock Practical Earley Parsing
+\newblock \em{The Computer Journal},
+    Vol. 45, No. 6, 2002, pp. 620-630.
+
+\bibitem{Earley:70}
+J.~Earley.
+\newblock An efficient context-free parsing algorithm.
+\newblock {\em Communications of the Association for Computing Machinery},
+  13(2):94--102, 1970.
+
+\bibitem{GJ2008}
+Dirk~Grune and Ceriel~J.H Jacobs
+\newblock {\em Parsing Techniques: A Practical Guide}.
+\newblock Springer, Amsterdam, 2008.
+
+\bibitem{LEO91}
+J.~M. I.~M. Leo.
+\newblock A general context-free parsing algorithm running in linear time on
+  every {LR($k$)} grammar without using lookahead.
+\newblock {\em Theoretical Computer Science}, 82:165--176, 1991.
+
+\end{thebibliography}
+ 
+\end{document}

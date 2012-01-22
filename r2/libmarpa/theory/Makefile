@@ -13,13 +13,19 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-all: proof.pdf ah2002_notes.pdf ah_to_leo.pdf
+all: proof.pdf ah2002_notes.pdf ah_to_leo.pdf recce.pdf
 
-proof.pdf: proof.lyx
-	lyx --export pdf proof.lyx
+recce.pdf: recce.ltx
+	pdflatex $?
 
-ah2002_notes.pdf: ah2002_notes.lyx
-	lyx --export pdf ah2002_notes.lyx
+proof.pdf: proof.ltx
+	pdflatex $?
+	# lyx --export pdf proof.lyx
 
-ah_to_leo.pdf: ah_to_leo.lyx
-	lyx --export pdf ah_to_leo.lyx
+ah2002_notes.pdf: ah2002_notes.ltx
+	pdflatex $?
+	# lyx --export pdf ah2002_notes.lyx
+
+ah_to_leo.pdf: ah_to_leo.ltx
+	pdflatex $?
+	# lyx --export pdf ah_to_leo.lyx
