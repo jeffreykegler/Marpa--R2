@@ -1,4 +1,5 @@
 \documentclass{amsart}
+\usepackage{algpseudocode}
 
 \newcommand{\comment}[1]{}
 \newcommand{\myspace}{\mbox{ }\ \ \ \ }
@@ -94,20 +95,72 @@ I assume familiarity with standard grammar notation
 Let grammar 
 $G$ be $(\myterm, \nonterm, P, S)$,
 has been augmented with a dedicated start rule
-$Start_RULE = [ Start_SYM \de S' ]$
+$Start_{RULE} = [ Start_{SYM} \de S' ]$
 and that the dedicated start symbol
-$Start_SYM$ such that
-$Start_SYM \in \nonterm, Start_SYM \neg S'$
-appears only in $Start_RULE$.
+$Start_{SYM}$ such that
+$Start_{SYM} \in \nonterm, Start_{SYM} \neg S'$
+appears only in $Start_{RULE}$.
 
-Let an FA be 
-a "split LR(0) $\epsilon$-DFA"
+In this paper a
+"split LR(0) $\epsilon$-DFA"
+a described by Aycock and Horspool~\cite{AH2002},
+will be called an Aycock-Horspool Finite Automaton,
+or AHFA.
+Let FA be the AHFA derived from $G$.
 as described in~\cite{AH2002}.
-Let an FA be an AHFA
-(Aycock-Horspool Finite Automaton).
 
-\section{Earley Parsing}
-\label{s:earley}
+\section{AHFA States}
+\label{s:AHFA}
+
+A full description of how to derive an AHFA in theory
+can be found in \cite{AH2002},
+and examples of how to derive it in practice
+can be found in the code for various release of Marpa.
+Here I will just summarize the central ideas behind AHFA's.
+
+Aycock and Horspool based their AHFA's
+on a few observations.
+First, in practice, Earley items with the same dotted rule
+often appear in groups in the Earley sets,
+where the entire shares the same origin.
+Second, there was already in the literature a method
+for associating groups of dotted rules that often appear together
+when parsing.
+This method was the LR(0) DFA used in the much-studied
+LALR and LR parsers.
+Third, the LR(0) items that are the components of LR(0)
+states are, exactly, dotted rules.
+Fourth, by taking into account symbols which derive the
+null string, the LR(0) DFA could be turned into an
+LR(0) $\epsilon$-DFA, which would be even more effective
+at grouping dotted rules which occur together.
+
+AHFA states are sets of dotted rules.
+Aycock and Horspool realized that by changing Earley items
+to track AHFA states, instead of individual dotted rules,
+the size of Earley sets could be reduced,
+and Earley's algorithm made faster in practice.
+In short, then, AHFA states are a shorthand that Earley items
+can use for groups of dotted rules that occur together frequently.
+The original Earley items could be represented as $(r_{DOTTED}, origin)$
+duples, where $r_{DOTTED}$ is a dotted rule.
+Aycock and Horspool modified their Earley items to be $(L_{STATE}, origin)$
+duples, where $L_{STATE}$ is an AHFA state.
+
+\section{The Marpa Recognizer}
+\label{s:recce}
+
+\begin{algorithmic}[1] 
+\Procedure{Scan}{$i,a$}
+\Comment{Scan a token $a$, which starts at Earley set $i$}
+\For{each Earley item $x_{EITEM}$ in $ES[i]$}
+\State $to_{AHFA} \gets GOTO(x_{EITEM}.AHFA, a)$
+\If{$to_{AHFA} \neg \Lambda$}
+\State add Earley item $[to_{STATE}, origin]$ to $ES[i+1]$
+\EndIf
+\EndFor
+\EndProcedure
+\end{algorithmic} 
 
 \section{Concluding Remarks}
 \label{s:disc}
