@@ -1,4 +1,5 @@
 \documentclass{amsart}
+\usepackage{algorithm}
 \usepackage{algpseudocode}
 
 \newcommand{\comment}[1]{}
@@ -8,7 +9,7 @@
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
 \newcommand{\size}[1]{\left | {#1} \right |} 
 \newcommand{\rank}[1]{\mbox{$r({#1})$}} 
-\newcommand{\order}[1]{O(#1)}
+\newcommand{\order}[1]{\cal O(#1)}
 
 \newcommand{\cfg}{CFG}
 
@@ -34,6 +35,11 @@
 \newcommand{\ieset}{I_{{\rm V}}}
 \newcommand{\chartset}{I_{{\rm C}}}
 \newcommand{\pred}{\mbox{{\it pred\/}}}
+
+\mathchardef\mhyphen="2D
+\newcommand{\of}{\mhyphen of}
+\newcommand{\eim}[1]{#1_{EIM}}
+\newcommand{\ah}[1]{#1_{AH}}
 
 \newtheorem{alg}{Algorithm}%[section]
 
@@ -98,7 +104,7 @@ has been augmented with a dedicated start rule
 $Start_{RULE} = [ Start_{SYM} \de S' ]$
 and that the dedicated start symbol
 $Start_{SYM}$ such that
-$Start_{SYM} \in \nonterm, Start_{SYM} \neg S'$
+$Start_{SYM} \in \nonterm, Start_{SYM} \neq S'$
 appears only in $Start_{RULE}$.
 
 In this paper a
@@ -144,21 +150,22 @@ In short, then, AHFA states are a shorthand that Earley items
 can use for groups of dotted rules that occur together frequently.
 The original Earley items could be represented as $(r_{DOTTED}, origin)$
 duples, where $r_{DOTTED}$ is a dotted rule.
-Aycock and Horspool modified their Earley items to be $(L_{STATE}, origin)$
-duples, where $L_{STATE}$ is an AHFA state.
+Aycock and Horspool modified their Earley items to be $(\ah{L}, origin)$
+duples, where $\ah{L}$ is an AHFA state.
 
 \section{The Marpa Recognizer}
 \label{s:recce}
 
-Scan a token $a$, which starts at Earley set $i$.
+\begin{algorithm}
+\caption{The Marpa Recognizer}
 \begin{algorithmic}[1] 
 \Procedure{Scan}{$i,a$}
 \Comment{Scan a token $a$, which starts at Earley set $i$}
-\For{each Earley item $x_{EITEM}$ in $ES[i]$}
-\State $to_{AHFA} \gets GOTO(x_{EITEM}.AHFA, a)$
-\State $AddState(i+1, to_{AHFA}, x_{EITEM}.origin)$
-\If{$to_{AHFA} \neg \Lambda$}
-\State add Earley item $[to_{STATE}, origin]$ to $ES[i+1]$
+\For{each Earley item $\eim{x}$ in $ES[i]$}
+\State $\ah{to} \gets GOTO(\eim{x}.AHFA, a)$
+\Call{AddState}{$i+1, \ah{to}, Origin\of(\eim{x}$}
+\If{$\ah{to} \neq \Lambda$}
+\State add Earley item $[\ah{to}, origin]$ to $ES[i+1]$
 \EndIf
 \EndFor
 \EndProcedure
@@ -166,11 +173,11 @@ Scan a token $a$, which starts at Earley set $i$.
 
 \begin{algorithmic}[1] 
 \Procedure{Complete}{$i_{LOC}$}
-\For{each Earley item $work_{EITEM} \in ES[i]$}
+\For{each Earley item $\eim{work} \in ES[i]$}
 \For{each completed rule, $LHS_{SYM} \de RHS_{SYM}[0], ...$}
-\For{each $predecessor_{EITEM} \in ES[work_{EITEM}.origin]$}
-\State $to_{AHFA} \gets GOTO(predecessor_{EITEM}.AHFA, LHS_{SYM})$
-\State $AddState(to_{AHFA}, predecessor_{EITEM}.origin)$
+\For{each $\eim{predecessor} \in ES[Origin\of \eim{work}]$}
+\State $\ah{to} \gets GOTO(AHFA\of \eim{predecessor}, LHS_{SYM})$
+\Call{AddState}{$to_{AHFA}, Origin\of \eim{predecessor}$}
 \EndFor
 \EndFor
 \EndFor
@@ -178,17 +185,18 @@ Scan a token $a$, which starts at Earley set $i$.
 \end{algorithmic} 
 
 \begin{algorithmic}[1] 
-\Procedure{Add State}{$i_{LOC},discovered_{STATE},origin_{LOC}$}
-\State $predicted_{STATE} \gets \Lambda$
-\If{$to_{STATE} \neg \Lambda$}
-\State add Earley item $[to_{STATE}, origin_{LOC}]$ to $ES[i]$
-\State $predicted_{STATE} \gets GOTO(to_{STATE}, \epsilon)$
+\Procedure{Add State}{$i_{LOC},\ah{discovered},origin_{LOC}$}
+\State $\ah{predicted} \gets \Lambda$
+\If{$\ah{to} \neq \Lambda$}
+\State add Earley item $[\ah{to}, origin_{LOC}]$ to $ES[i]$
+\State $\ah{predicted} \gets GOTO(\ah{to}, \epsilon)$
 \EndIf
-\If{$predicted_{AHFA} \neg \Lambda$}
-\State add Earley item $[predicted_{STATE}, i]$ to $ES[i]$
+\If{$predicted_{AHFA} \neq \Lambda$}
+\State add Earley item $[\ah{predicted}, i]$ to $ES[i]$
 \EndIf
 \EndProcedure
 \end{algorithmic} 
+\end{algorithm} 
 
 \section{Concluding Remarks}
 \label{s:disc}
