@@ -91,7 +91,7 @@ to previous work.
 \label{s:prel}
 
 I assume familiarity with standard grammar notation
-(pages 14-15 in~\cite{GJ2002}).
+(pages 14-15 in~\cite{GJ2008}).
 Let grammar 
 $G$ be $(\myterm, \nonterm, P, S)$,
 has been augmented with a dedicated start rule
@@ -150,15 +150,43 @@ duples, where $L_{STATE}$ is an AHFA state.
 \section{The Marpa Recognizer}
 \label{s:recce}
 
+Scan a token $a$, which starts at Earley set $i$.
 \begin{algorithmic}[1] 
 \Procedure{Scan}{$i,a$}
 \Comment{Scan a token $a$, which starts at Earley set $i$}
 \For{each Earley item $x_{EITEM}$ in $ES[i]$}
 \State $to_{AHFA} \gets GOTO(x_{EITEM}.AHFA, a)$
+\State $AddState(i+1, to_{AHFA}, x_{EITEM}.origin)$
 \If{$to_{AHFA} \neg \Lambda$}
 \State add Earley item $[to_{STATE}, origin]$ to $ES[i+1]$
 \EndIf
 \EndFor
+\EndProcedure
+\end{algorithmic} 
+
+\begin{algorithmic}[1] 
+\Procedure{Complete}{$i_{LOC}$}
+\For{each Earley item $work_{EITEM} \in ES[i]$}
+\For{each completed rule, $LHS_{SYM} \de RHS_{SYM}[0], ...$}
+\For{each $predecessor_{EITEM} \in ES[work_{EITEM}.origin]$}
+\State $to_{AHFA} \gets GOTO(predecessor_{EITEM}.AHFA, LHS_{SYM})$
+\State $AddState(to_{AHFA}, predecessor_{EITEM}.origin)$
+\EndFor
+\EndFor
+\EndFor
+\EndProcedure
+\end{algorithmic} 
+
+\begin{algorithmic}[1] 
+\Procedure{Add State}{$i_{LOC},discovered_{STATE},origin_{LOC}$}
+\State $predicted_{STATE} \gets \Lambda$
+\If{$to_{STATE} \neg \Lambda$}
+\State add Earley item $[to_{STATE}, origin_{LOC}]$ to $ES[i]$
+\State $predicted_{STATE} \gets GOTO(to_{STATE}, \epsilon)$
+\EndIf
+\If{$predicted_{AHFA} \neg \Lambda$}
+\State add Earley item $[predicted_{STATE}, i]$ to $ES[i]$
+\EndIf
 \EndProcedure
 \end{algorithmic} 
 
