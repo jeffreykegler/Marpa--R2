@@ -284,9 +284,14 @@ my %files_by_type = (
     'author.t/tidy1'                    => \&trivial,
     'libmarpa/theory/README' =>
         \&ignored,    # discussion of licensing in that directory
-    'libmarpa/theory/ah_to_leo.lyx'      => \&tex_closed,
-    'libmarpa/theory/ah2002_notes.lyx'   => \&tex_closed,
-    'libmarpa/theory/proof.lyx'          => \&tex_closed,
+    'libmarpa/theory/lyx.d/ah_to_leo.lyx'      => \&tex_closed,
+    'libmarpa/theory/lyx.d/ah_to_leo.lyx'      => \&tex_closed,
+    'libmarpa/theory/lyx.d/ah2002_notes.lyx'   => \&tex_closed,
+    'libmarpa/theory/lyx.d/proof.lyx'          => \&tex_closed,
+    'libmarpa/theory/ah2002_notes.ltx'   => \&tex_closed,
+    'libmarpa/theory/ah_to_leo.ltx'      => \&tex_closed,
+    'libmarpa/theory/proof.ltx'          => \&tex_closed,
+    'libmarpa/theory/recce.ltx'          => \&tex_closed,
     'libmarpa/build/install-sh'     => \&check_X_copyright,
     'libmarpa/stage_dist/install-sh'     => \&check_X_copyright,
     'libmarpa/test/dev/install-sh' => \&check_X_copyright,

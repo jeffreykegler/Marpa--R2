@@ -74,7 +74,9 @@ html/t/test.html
 html/tool/lib/Marpa/R2/HTML/Test/Util.pm
 inc/Marpa/R2/Build_Me.pm
 inc/Marpa/R2/Config.pm
+inc/Marpa/R2/Display.pm
 inc/Marpa/R2/License.pm
+inc/Marpa/R2/Test.pm
 inc/drafts/undocumented.list
 lib/Marpa/.gitignore
 lib/Marpa/R2.pm
@@ -142,9 +144,13 @@ libmarpa/test/dev/testleak.c
 libmarpa/theory/.gitignore
 libmarpa/theory/Makefile
 libmarpa/theory/README
-libmarpa/theory/ah2002_notes.lyx
-libmarpa/theory/ah_to_leo.lyx
-libmarpa/theory/proof.lyx
+libmarpa/theory/ah2002_notes.ltx
+libmarpa/theory/ah_to_leo.ltx
+libmarpa/theory/lyx.d/ah2002_notes.lyx
+libmarpa/theory/lyx.d/ah_to_leo.lyx
+libmarpa/theory/lyx.d/proof.lyx
+libmarpa/theory/proof.ltx
+libmarpa/theory/recce.ltx
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod
 pod/Debug.pod
@@ -207,9 +213,6 @@ t/timeflies.t
 t/trace_rules.t
 t/use.t
 t/wall.t
-t/weaken.t
-inc/Marpa/R2/Display.pm
-inc/Marpa/R2/Test.pm
 typemap
 xs/.gitignore
 xs/R2.xs
