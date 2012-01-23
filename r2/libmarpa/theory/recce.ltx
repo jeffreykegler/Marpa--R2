@@ -39,9 +39,16 @@
 \mathchardef\mhyphen="2D
 \newcommand{\of}{\mhyphen of}
 \newcommand{\eim}[1]{#1_{EIM}}
+\newcommand{\term}[1]{#1_{TERM}}
+\newcommand{\es}[1]{#1_{ES}}
 \newcommand{\ah}[1]{#1_{AH}}
 
-\newtheorem{alg}{Algorithm}%[section]
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\DeclareMathOperator{\scanned}{scanned}
+\DeclareMathOperator{\Hyp}{Hyp}
+% We want to use this outside of pseudocode, as well
+\newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
 
 \hyphenation{ALGOL}
 
@@ -153,11 +160,20 @@ duples, where $r_{DOTTED}$ is a dotted rule.
 Aycock and Horspool modified their Earley items to be $(\ah{L}, origin)$
 duples, where $\ah{L}$ is an AHFA state.
 
-\section{The Marpa Recognizer}
+\section{The Ruby Slippers Recognizer}
 \label{s:recce}
 
 \begin{algorithm}
-\caption{The Marpa Recognizer}
+\caption{Ruby Slippers Initialization}\label{a:rs:initial}
+\begin{algorithmic}[1] 
+\Procedure{Initial}{$i,a$}
+\State \Call{AddItems}{$0, \ah{start}, 0$}
+\EndProcedure
+\end{algorithmic} 
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Ruby Slippers Scanning}\label{a:rs:scan}
 \begin{algorithmic}[1] 
 \Procedure{Scan}{$i,a$}
 \Comment{Scan a token $a$, which starts at Earley set $i$}
@@ -170,7 +186,10 @@ duples, where $\ah{L}$ is an AHFA state.
 \EndFor
 \EndProcedure
 \end{algorithmic} 
+\end{algorithm}
 
+\begin{algorithm}
+\caption{Ruby Slippers Completion}\label{a:rs:complete}
 \begin{algorithmic}[1] 
 \Procedure{Complete}{$i_{LOC}$}
 \For{each Earley item $\eim{work} \in ES[i]$}
@@ -183,9 +202,12 @@ duples, where $\ah{L}$ is an AHFA state.
 \EndFor
 \EndProcedure
 \end{algorithmic} 
+\end{algorithm}
 
+\begin{algorithm}
+\caption{Ruby Slippers, Adding EIM Pairs}\label{a:rs:pair}
 \begin{algorithmic}[1] 
-\Procedure{Add State}{$i_{LOC},\ah{discovered},origin_{LOC}$}
+\Procedure{Add EIMs}{$i_{LOC},\ah{discovered},origin_{LOC}$}
 \State $\ah{predicted} \gets \Lambda$
 \If{$\ah{to} \neq \Lambda$}
 \State add Earley item $[\ah{to}, origin_{LOC}]$ to $ES[i]$
@@ -197,6 +219,77 @@ duples, where $\ah{L}$ is an AHFA state.
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm} 
+
+\section{Correctness without Leo items}
+\label{s:leo:proof}
+
+In this section I will show that a
+Ruby Slippers
+parse engine without Leo items
+produces the same Earley items
+as AH2002,
+so that
+correctness follows
+from the correctness proofs
+in AH2002\cite{AH2002}.
+In the following,
+$\es{AH[i]}$ is Earley set $i$ according
+to AH2002;
+$\es{RS[i]}$ is Earley set $i$ according
+to the Ruby Slippers algorithm;
+and $\scanned(\es{x})$ is the subset
+of $\es{x}$,
+that consists of all, and of only,
+the its scanned Earley items.
+Let the induction hypothesis, $Hyp(n)$ be
+$\forall i, 0<i<n, \es{AH[i]} = \es{RS[i]}$.
+
+\begin{lemma}\label{t:rs:correct:basis}
+$Hyp(0)$
+\end{lemma}
+\begin{proof}
+Note that Earley set 0 never contains scanned items.
+By inspection of \ref{a:rs:initial},
+and comparision with AH2002, we have
+$\es{AH[0]} = \es{RS[0]}$.
+\end{proof}
+
+\begin{lemma}\label{t:rs:correct:step0}
+\begin{multline*}
+\Hyp(i) \wedge \call{Scan}{i,\term{input[i]}} \Longrightarrow \\
+\Hyp(i) \wedge \scanned(\es{AH[i+1]}) = \scanned(\es{RS[i+1]})
+\end{multline*}
+\end{lemma}
+\begin{proof}
+From inspection of \ref{a:rs:scan}
+and comparision with AH2002.
+\end{proof}
+
+\begin{lemma}\label{t:rs:correct:step1}
+\begin{multline*}
+\Hyp(i) \wedge \scanned(\es{AH[i+1]}) = \scanned(\es{RS[i+1]})
+\wedge \call{Complete}{i+1} \Longrightarrow \\
+\Hyp(i+1)
+\end{multline*}
+\end{lemma}
+\begin{proof}
+From inspection of \ref{a:rs:complete}
+and comparision with AH2002.
+\end{proof}
+
+\begin{theorem}
+\begin{equation*}
+\forall n, 0<n<\size(input) \rightarrow \Hyp(n)
+\end{equation*}
+\end{theorem}
+\begin{proof}
+By induction, with \ref{t:rs:correct:basis}
+as the basis and 
+\ref{t:rs:correct:step1}
+and 
+\ref{t:rs:correct:step2}
+as the steps.
+\end{proof}
 
 \section{Concluding Remarks}
 \label{s:disc}

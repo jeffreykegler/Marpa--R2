@@ -21,7 +21,7 @@ use strict;
 use Test::More tests => 5;
 use lib 'lib';
 use lib 'blib/arch';
-use lib 'tool/lib';
+use lib 'inc';
 use lib 'pperl';
 
 BEGIN {

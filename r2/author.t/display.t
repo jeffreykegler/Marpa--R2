@@ -29,7 +29,7 @@ use Carp;
 use Perl::Tidy;
 use Text::Wrap;
 
-use lib 'tool/lib';
+use lib 'inc';
 use Marpa::R2::Display;
 
 my $warnings = 0;
