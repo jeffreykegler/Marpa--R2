@@ -24,7 +24,7 @@ use warnings;
 
 use Test::More tests => 33;
 use English qw( -no_match_vars );
-use lib 'tool/lib';
+use lib 'inc';
 use Marpa::R2::Test;
 
 BEGIN {

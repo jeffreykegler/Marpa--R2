@@ -22,7 +22,7 @@ use Test::More tests => 4;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
-use lib 'tool/lib';
+use lib 'inc';
 use Marpa::R2::Test;
 
 BEGIN {

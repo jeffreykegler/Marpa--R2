@@ -45,7 +45,7 @@ BEGIN {
     Test::More::use_ok('Marpa::R2::Perl');
 } ## end BEGIN
 
-use lib 'tool/lib';
+use lib 'inc';
 use Marpa::R2::Test;
 
 # Run in utility mode?

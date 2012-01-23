@@ -208,8 +208,8 @@ t/trace_rules.t
 t/use.t
 t/wall.t
 t/weaken.t
-tool/lib/Marpa/R2/Display.pm
-tool/lib/Marpa/R2/Test.pm
+inc/Marpa/R2/Display.pm
+inc/Marpa/R2/Test.pm
 typemap
 xs/.gitignore
 xs/R2.xs

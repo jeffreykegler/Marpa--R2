@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use Test::More tests => 31;
-use lib 'tool/lib';
+use lib 'inc';
 use Marpa::R2::Test;
 
 BEGIN {
