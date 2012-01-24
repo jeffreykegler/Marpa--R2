@@ -14,11 +14,9 @@
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
 \newcommand{\size}[1]{\left | {#1} \right |} 
-\newcommand{\rank}[1]{\mbox{$r({#1})$}} 
-\newcommand{\order}[1]{\cal O(#1)}
+\newcommand{\order}[1]{{\cal O}(#1)}
 
 \newcommand{\cfg}{CFG}
-
 \newcommand{\nonterm}{\mbox{$V_{{\rm N}}$}}
 \newcommand{\myterm}{\mbox{$V_{{\rm T}}$}}
 
@@ -27,32 +25,22 @@
 \newcommand{\derivrg}[2]{\mathrel{\mbox{$\:\stackrel{\!{#1}}%
         {\Rightarrow\!}\:$}}}
 
-\newcommand{\rlc}{\mathrel{\angle}}
-\newcommand{\rlcp}{\mathrel{\angle^+}}
-\newcommand{\rlcm}{\mathrel{\angle^\ast}}
 \newcommand{\ep}{\varepsilon}
-
-\newcommand{\goto}{\mbox{{\it goto\/}}}
-\newcommand{\prd}{\mbox{{\it prd\/}}}
-\newcommand{\gto}{\mbox{$goto_1$}}
-\newcommand{\gtt}{\mbox{$goto_2$}}
-
-\newcommand{\eset}{I_{{\rm E}}}
-\newcommand{\ieset}{I_{{\rm V}}}
-\newcommand{\chartset}{I_{{\rm C}}}
-\newcommand{\pred}{\mbox{{\it pred\/}}}
 
 \mathchardef\mhyphen="2D
 \newcommand{\of}{\mhyphen of}
-\newcommand{\eim}[1]{#1_{EIM}}
-\newcommand{\term}[1]{#1_{TERM}}
-\newcommand{\es}[1]{#1_{ES}}
+
 \newcommand{\ah}[1]{#1_{AH}}
+\newcommand{\eim}[1]{#1_{EIM}}
+\newcommand{\es}[1]{#1_{ES}}
+\newcommand{\sym}[1]{#1_{SYM}}
+\newcommand{\term}[1]{#1_{TERM}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \DeclareMathOperator{\scanned}{scanned}
 \DeclareMathOperator{\Hyp}{Hyp}
+\DeclareMathOperator{\myL}{L}
 % We want to use this outside of pseudocode, as well
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
 
@@ -73,7 +61,7 @@ parsing and evaluation of context-free grammars.
 Marpa's recognizer is based
 an Earley's algorithm,
 and merges the improvements to Earley's
-from Leo~\cite{LEO91}
+from Leo~\cite{Leo::1991}
 and Aycock and Horspool~\cite{AH2002}.
 Their combination in the marpa parse engine
 has an added feature:
@@ -110,15 +98,99 @@ to previous work.
 \label{s:prel}
 
 I assume familiarity with standard grammar notation
-(pages 14-15 in~\cite{GJ2008}).
-Let grammar 
-$G$ be $(\myterm, \nonterm, P, S)$,
-has been augmented with a dedicated start rule
-$Start_{RULE} = [ Start_{SYM} \de S' ]$
-and that the dedicated start symbol
-$Start_{SYM}$ such that
-$Start_{SYM} \in \nonterm, Start_{SYM} \neq S'$
-appears only in $Start_{RULE}$.
+(pages 14-15 in Aho and Ullman~\cite{AU1972}).
+In the past,
+The type system required to support
+a theory of parsing has been taken
+as a challenge to the typographic
+imagination,
+and often resulted in one to the eyesight.
+This paper will often
+supplement the standard notation,
+using subscripts to indicate the commonly occuring types.
+In general, variable will contain a capital
+letter, constants will be all lower case.
+For example, $\sym{a}$ and $\sym{b}$ would be symbol constants,
+while $\sym{X}$ will be a variable whose value is a symbol.
+
+Where $ABC$ is a set of symbols,
+let $ABC^\ast$ be the set of all strings formed
+from those symbols.
+Let $ABC^+$ be the subset of $ABC^\ast$ that
+contains all of its elements that are not of zero length.
+
+For the purposes of this paper consider,
+without loss of generality,
+a grammar $g$,
+and a set of symbols, $alphabet$.
+Call the language of $g$, $\myL(g)$,
+where $\myL(g) \in alphabet^\ast$
+Let its input be $w$, $w \in alphabet$.
+Divide $alphabet$ into two disjoint sets,
+$term$ and $nonterm$.
+
+For the rewriting, designate a set of duples, $rules$,
+where $\forall Rule \sep Rule \in rules$,
+$Rule$ takes the form $\sym{l} \de r$,
+where $\sym{l} \in nonterm$ and 
+$r \in (nonterm \cup term)^+$. 
+$sym{l}$ is referred to as the left hand side (LHS)
+of $Rule$.
+$r$ is referred to as the right hand side (RHS)
+of $Rule$.
+This definition differs from the traditional one in
+that the empty RHS is not allowed.
+Let one symbol $\sym{start}$, $\sym{start} \in nonterm$,
+be a dedicated start symbol.
+
+The grammar $g$ can be defined as the 4-tuple
+$(term, nonterm, rules, \sym{start})$.
+Without loss of generality,
+it is assumed that $g$ is "augmented",
+so that there is a rule $\sym{start} \de \sym{old\mhyphen start}$,
+and that $\sym{start}$ is not the LHS of any other rule,
+or in the RHS of any rule.
+
+I was already noted
+that no rules of $g$ is allowed to be empty -- to
+have a zero-length RHS.
+Further, no symbol may be a proper nullable --
+all symbol must be either nulling or non-nullable.
+These restrictions follow Aycock and Horspool~\cite{AH2002}.
+
+Aycock and Horspool did allow a single empty start rule
+to deal with null parses.
+Marpa eliminates all need for empty rules in its grammar
+by dealing with null parses as a special case.
+Marpa also deals with
+trivial grammars (those which recognize only the null string)
+as a special case.
+
+The elimination of empty rules and proper nullables
+is done by rewriting the grammar.
+This can be done without loss of generality
+and, In their paper~\cite{AH2002},
+Aycock and Horspool
+show how to do this
+without effect on the time complexity
+as a function of the input size.
+Very importantly,
+this rewrite is done in such a way that the semantics
+of the original grammar can be efficiently reconstructed
+at evaluation time.
+
+In this paper, $Earley$ will refer to the Earley's original
+recognizer~\cite{Earley:1970}.
+$Leo$ will refer to Leo's revision of $Earley$
+as described in his 1991 paper~\cite{Leo:1991}.
+$AH$ will refer to the Aycock and Horsool's revision
+of $Earley$
+as described in their 2002 paper~\cite{AH:2002}.
+Where $Recce$ is a recognizer,
+$\call{Recce}{g}$ will be the language accepted by $Recce$.
+
+\section{AHFA States}
+\label{s:AHFA}
 
 In this paper a
 "split LR(0) $\epsilon$-DFA"
@@ -127,9 +199,6 @@ will be called an Aycock-Horspool Finite Automaton,
 or AHFA.
 Let FA be the AHFA derived from $G$.
 as described in~\cite{AH2002}.
-
-\section{AHFA States}
-\label{s:AHFA}
 
 A full description of how to derive an AHFA in theory
 can be found in \cite{AH2002},
@@ -226,7 +295,7 @@ duples, where $\ah{L}$ is an AHFA state.
 \end{algorithmic} 
 \end{algorithm} 
 
-\section{Correctness without Leo items}
+\section{Ruby Slippers Correctness}
 \label{s:leo:proof}
 
 In this section I will show that a
@@ -250,7 +319,7 @@ the its scanned Earley items.
 Let the induction hypothesis, $Hyp(n)$ be
 $\forall i, 0<i<n, \es{AH[i]} = \es{RS[i]}$.
 
-\begin{lemma}\label{t:rs:correct:basis}
+\begin{lemma}\label{t:rs:correctness:basis}
 $Hyp(0)$
 \end{lemma}
 \begin{proof}
@@ -260,7 +329,7 @@ and comparision with AH2002, we have
 $\es{AH[0]} = \es{RS[0]}$.
 \end{proof}
 
-\begin{lemma}\label{t:rs:correct:step0}
+\begin{lemma}\label{t:rs:correctness:step1}
 \begin{multline*}
 \Hyp(i) \wedge \call{Scan}{i,\term{input[i]}} \Longrightarrow \\
 \Hyp(i) \wedge \scanned(\es{AH[i+1]}) = \scanned(\es{RS[i+1]})
@@ -271,7 +340,7 @@ From inspection of \ref{a:rs:scan}
 and comparision with AH2002.
 \end{proof}
 
-\begin{lemma}\label{t:rs:correct:step1}
+\begin{lemma}\label{t:rs:correctness:step2}
 \begin{multline*}
 \Hyp(i) \wedge \scanned(\es{AH[i+1]}) = \scanned(\es{RS[i+1]})
 \wedge \call{Complete}{i+1} \Longrightarrow \\
@@ -289,23 +358,40 @@ and comparision with AH2002.
 \end{equation*}
 \end{theorem}
 \begin{proof}
-By induction, with \ref{t:rs:correct:basis}
+By induction, with \ref{t:rs:correctness:basis}
 as the basis and 
-\ref{t:rs:correct:step1}
+\ref{t:rs:correctness:step1}
 and 
-\ref{t:rs:correct:step2}
+\ref{t:rs:correctness:step2}
 as the steps.
 \end{proof}
 
-\section{Ruby Slippers Time Complexity}
+\section{Ruby Slippers time complexity}
 \label{s:rs:complexity}
 
-\section{Concluding Remarks}
+\section{Marpa recognizer correctness}
+\label{s:rs:correctness}
+
+\begin{theorem}
+\begin{equation*}
+\call{Marpa}{g} = \myL{g}
+\end{equation*}
+\end{theorem}
+
+\section{Marpa recognizer time complexity}
+\label{s:rs:complexity}
+
+\section{Concluding remarks}
 \label{s:disc}
 
 \bibliographystyle{plain}
 
 \begin{thebibliography}{10}
+
+\bibitem{AU1972}
+Alfred H.~Aho and Jeffrey D.~Ullman
+\newblock The Theory of Parsing, Translation, and Computing
+\newblock Prentice-Hall, Englewood Cliff, N.J., 1972.
 
 \bibitem{AH2002}
 John~Aycock and R.~Nigel~Horspool
@@ -324,7 +410,11 @@ Dirk~Grune and Ceriel~J.H Jacobs
 \newblock {\em Parsing Techniques: A Practical Guide}.
 \newblock Springer, Amsterdam, 2008.
 
-\bibitem{LEO91}
+\bibitem{JK2011}
+Jeffrey~Kegler, 2011: Marpa-XS-1.002000.
+\newblock [Available online at http://search.cpan.org/dist/Marpa-XS/.]
+
+\bibitem{Leo::1991}
 J.~M. I.~M. Leo.
 \newblock A general context-free parsing algorithm running in linear time on
   every {LR($k$)} grammar without using lookahead.
