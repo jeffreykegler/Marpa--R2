@@ -76,6 +76,14 @@ any later version published by the Free Software Foundation;
 @end copying 
 END_OF_FDL_LANGUAGE
 
+my $cc_a_nd_body = <<'END_OF_CC_A_ND_LANGUAGE';
+This document is licensed under
+a Creative Commons Attribution-NoDerivs 3.0 United States License.
+END_OF_CC_A_ND_LANGUAGE
+
+my $cc_a_nd_license = "$copyright_line\n$cc_a_nd_body";
+my $cc_a_nd_thanks = $copyright_line_in_tex . q{.} . "\n$cc_a_nd_body";
+
 sub hash_comment {
     my ( $text, $char ) = @_;
     $char //= q{#};
@@ -96,6 +104,7 @@ my $c_license          = c_comment($license);
 my $r2_hash_license    = hash_comment($license);
 my $tex_closed_license = hash_comment( $closed_license, q{%} );
 my $tex_license        = hash_comment( $license, q{%} );
+my $tex_cc_a_nd_license = hash_comment( $cc_a_nd_license, q{%} );
 my $indented_license   = $license;
 $indented_license =~ s/^/  /gxms;
 
@@ -288,10 +297,10 @@ my %files_by_type = (
     'libmarpa/theory/lyx.d/ah_to_leo.lyx'      => \&tex_closed,
     'libmarpa/theory/lyx.d/ah2002_notes.lyx'   => \&tex_closed,
     'libmarpa/theory/lyx.d/proof.lyx'          => \&tex_closed,
-    'libmarpa/theory/ah2002_notes.ltx'   => \&tex_closed,
-    'libmarpa/theory/ah_to_leo.ltx'      => \&tex_closed,
-    'libmarpa/theory/proof.ltx'          => \&tex_closed,
-    'libmarpa/theory/recce.ltx'          => \&tex_closed,
+    'libmarpa/theory/ah2002_notes.ltx'   => \&tex_cc_a_nd,
+    'libmarpa/theory/ah_to_leo.ltx'      => \&tex_cc_a_nd,
+    'libmarpa/theory/proof.ltx'          => \&tex_cc_a_nd,
+    'libmarpa/theory/recce.ltx'          => \&tex_cc_a_nd,
     'libmarpa/build/install-sh'     => \&check_X_copyright,
     'libmarpa/stage_dist/install-sh'     => \&check_X_copyright,
     'libmarpa/test/dev/install-sh' => \&check_X_copyright,
@@ -562,12 +571,13 @@ sub license_problems_in_tex_file {
     return @problems;
 } ## end sub license_problems_in_tex_file
 
+# This was the license for the lyx documents
+# For the Latex versions, I switched to CC-A_ND
 sub tex_closed {
     my ( $filename, $verbose ) = @_;
     my @problems = ();
     my $text = slurp_top( $filename, 400 + length $tex_closed_license );
 
-    # ${$text} =~ s{ \A [%] \s+ DO \s+ NOT \s+ EDIT \s+ DIRECTLY [^\n]* \n }{}xms;
     if ( ( index ${$text}, $tex_closed_license ) < 0 ) {
         my $problem = "No license language in $filename (TeX style)\n";
         if ($verbose) {
@@ -578,6 +588,33 @@ sub tex_closed {
         } ## end if ($verbose)
         push @problems, $problem;
     } ## end if ( ( index ${$text}, $tex_closed_license ) < 0 )
+    if ( scalar @problems and $verbose >= 2 ) {
+        my $problem =
+              "=== license for $filename should be as follows:\n"
+            . $tex_closed_license
+            . ( q{=} x 30 );
+        push @problems, $problem;
+    } ## end if ( scalar @problems and $verbose >= 2 )
+    return @problems;
+} ## end sub tex_closed
+
+sub tex_cc_a_nd {
+    my ( $filename, $verbose ) = @_;
+    my @problems = ();
+    my $text = slurp( $filename );
+
+# say "=== Looking for\n", $tex_cc_a_nd_license, "===";
+# say "=== Looking in\n", ${$text}, "===";
+# say STDERR index ${$text}, $tex_cc_a_nd_license ;
+
+    if ( ( index ${$text}, $tex_cc_a_nd_license ) != 0 ) {
+        my $problem = "No CC-A-ND language in $filename (TeX style)\n";
+        push @problems, $problem;
+    } ## end if ( ( index ${$text}, $tex_cc_a_nd_license ) != 0 )
+    if ( ( index ${$text}, $cc_a_nd_thanks ) < 0 ) {
+        my $problem = "No CC-A-ND LaTeX thanks in $filename\n";
+        push @problems, $problem;
+    } ## end if ( ( index ${$text}, $tex_cc_a_nd_license ) != 0 )
     if ( scalar @problems and $verbose >= 2 ) {
         my $problem =
               "=== license for $filename should be as follows:\n"

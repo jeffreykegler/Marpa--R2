@@ -1,9 +1,6 @@
 % Copyright 2012 Jeffrey Kegler
-% This document is not part of the Marpa or Marpa::R2 source.
-% Although it may be included with a Marpa distribution that
-% is under an open source license, this document is
-% not under that open source license.
-% Jeffrey Kegler retains full rights.
+% This document is licensed under
+% a Creative Commons Attribution-NoDerivs 3.0 United States License.
 \documentclass[12pt,english]{article}
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
@@ -13,13 +10,6 @@
 \usepackage{amsmath}
 
 \makeatletter
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
-% Copyright 2012 Jeffrey Kegler
-% This document is not part of the Marpa or Marpa::R2 source.
-% Although it may be included with a Marpa distribution that
-% is under an open source license, this document is
-% not under that open source license.
-% Jeffrey Kegler retains full rights.
 
 \makeatother
 
@@ -30,7 +20,13 @@
 \title{Leo 1991 and Aycock-Horspool 2002 Work Together: A Proof}
 
 
-\author{Jeffrey Kegler}
+\author{Jeffrey Kegler
+\thanks{
+Copyright \copyright\ 2012 Jeffrey Kegler.
+This document is licensed under
+a Creative Commons Attribution-NoDerivs 3.0 United States License.
+}
+}
 \maketitle
 \begin{abstract}
 Joop Leo in a 1991 article modified Earley's algorithm to run in O(n)
@@ -42,7 +38,6 @@ modified Earley's items to contain sets of dotted rules which were
 states of a finite automata (AHFA states). Proof is given that Marpa's
 adaptation of the Leo algorithm to use AHFA states is correct.
 
-\tableofcontents{}
 \end{abstract}
 
 \section{Introduction}
@@ -908,4 +903,5 @@ state contains a candidate for Leo completion. The previous section
 \eqref{sec:All-Leo-Candidates} showed that these these AHFA states
 are always singletons. Therefore Leo completions will always be singletons.
 QED
+\tableofcontents{}
 \end{document}
