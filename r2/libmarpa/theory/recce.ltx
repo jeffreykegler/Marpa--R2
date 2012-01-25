@@ -33,8 +33,12 @@
 \newcommand{\ah}[1]{#1_{AH}}
 \newcommand{\eim}[1]{#1_{EIM}}
 \newcommand{\es}[1]{#1_{ES}}
+\newcommand{\loc}[1]{#1_{LOC}}
+\newcommand{\production}[1]{#1_{RULE}}
 \newcommand{\sym}[1]{#1_{SYM}}
+\newcommand{\symset}[1]{#1_{\lbrace SYM \rbrace} }
 \newcommand{\term}[1]{#1_{TERM}}
+\newcommand{\token}[1]{#1_{TOK}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -253,11 +257,8 @@ duples, where $\ah{L}$ is an AHFA state.
 \Procedure{Scan}{$i,a$}
 \Comment{Scan a token $a$, which starts at Earley set $i$}
 \For{each Earley item $\eim{x}$ in $ES[i]$}
-\State $\ah{to} \gets GOTO(\eim{x}.AHFA, a)$
-\Call{AddState}{$i+1, \ah{to}, Origin\of(\eim{x}$}
-\If{$\ah{to} \neq \Lambda$}
-\State add Earley item $[\ah{to}, origin]$ to $ES[i+1]$
-\EndIf
+\State $\ah{to} \gets GOTO(AHFA\of(\eim{x}), a)$
+\State \Call{Add EIM Pair}{$i+1, \ah{to}, Origin\of(\eim{x}$}
 \EndFor
 \EndProcedure
 \end{algorithmic} 
@@ -268,13 +269,14 @@ duples, where $\ah{L}$ is an AHFA state.
 \begin{algorithmic}[1] 
 \Procedure{Complete}{$i_{LOC}$}
 \For{each Earley item $\eim{work} \in ES[i]$}
-\For{each completed rule, $LHS_{SYM} \de RHS_{SYM}[0], ...$}
+\For{each completed rule, $\production{C}$}
 \For{each $\eim{predecessor} \in ES[Origin\of \eim{work}]$}
 \State $\ah{to} \gets GOTO(AHFA\of \eim{predecessor}, LHS_{SYM})$
-\Call{AddState}{$to_{AHFA}, Origin\of \eim{predecessor}$}
+\State \Call{Add EIM Pair}{$to_{AHFA}, Origin\of \eim{predecessor}$}
 \EndFor
 \EndFor
 \EndFor
+\State Construct $transitions[i]$
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
@@ -282,16 +284,24 @@ duples, where $\ah{L}$ is an AHFA state.
 \begin{algorithm}[H]
 \caption{Ruby Slippers, Adding EIM Pairs}\label{a:rs:pair}
 \begin{algorithmic}[1] 
-\Procedure{Add EIMs}{$i_{LOC},\ah{discovered},origin_{LOC}$}
+\Function{Add EIM Pair}{$i_{LOC},\ah{discovered},origin_{LOC}$}
 \State $\ah{predicted} \gets \Lambda$
+\State $\eim{discovered} \gets \Lambda$
 \If{$\ah{to} \neq \Lambda$}
-\State add Earley item $[\ah{to}, origin_{LOC}]$ to $ES[i]$
+\State $\eim{discovered} \gets [\ah{to}, origin_{LOC}]$
+\If{$eim{discovered}$ is new}
+\State add Earley item $\eim{discovered}$ to $ES[i] if new$
 \State $\ah{predicted} \gets GOTO(\ah{to}, \epsilon)$
 \EndIf
+\EndIf
 \If{$predicted_{AHFA} \neq \Lambda$}
+\State $\eim{predicted} \gets [\ah{predicted}, i]$
+\If{$eim{predicted}$ is new}
 \State add Earley item $[\ah{predicted}, i]$ to $ES[i]$
 \EndIf
-\EndProcedure
+\EndIf
+\Return{$\eim{discovered}$}
+\EndFunction
 \end{algorithmic} 
 \end{algorithm} 
 
@@ -354,7 +364,7 @@ and comparision with AH2002.
 
 \begin{theorem}
 \begin{equation*}
-\forall n, 0<n<\size(input) \rightarrow \Hyp(n)
+\forall n( 0<n<\size{input} \implies \Hyp(n))
 \end{equation*}
 \end{theorem}
 \begin{proof}
@@ -369,6 +379,9 @@ as the steps.
 \section{Ruby Slippers time complexity}
 \label{s:rs:complexity}
 
+\section{The Marpa recognizer}
+\label{s:rs}
+
 \section{Marpa recognizer correctness}
 \label{s:rs:correctness}
 
@@ -381,6 +394,72 @@ as the steps.
 \section{Marpa recognizer time complexity}
 \label{s:rs:complexity}
 
+\section{Generalizing the definition of a grammar}
+\label{s:rs:complexity}
+
+This section deals with certain modifications
+to the
+definition of a grammar made by Marpa.
+They
+are minor from a theoretical point of view,
+and their discussion has been deferred so that the
+proofs up to this point might more closely follow
+tradition.
+
+First, Marpa does not require that $\symset{lh}$
+and $\symset{term}$ be disjoint.
+In other words a Marpa symbol may be both a terminal
+and a LHS.
+This expansion of the grammar definition 
+is made without loss of generalization,
+or effect on the results so far.
+
+Second, Marpa's input model is a generalization of
+the traditional input stream model
+used so far.
+Marpa's input is a set of tokens,
+$toks$,
+whose elements are triples of symbol,
+start location and end location:
+$(\sym{t}, \loc{start}, length)$
+such that $\sym{t} \in \symset{term} \wedge length \ge 1 \wedge \loc{start} \ge 0$.
+The size of the input, $\size{toks}$ is the maximum over
+$toks$ of $\loc{start}+length$.
+Tokens may overlap,
+but gaps are not allowed:
+$\forall \loc{i} (\exists \token{t} \sep \token{t} \in toks
+\wedge t = (\sym{t}, \loc{start}, length)
+\wedge \loc{start} \le \loc{i} \le \loc{start}+length$.
+
+The traditional input stream is the special case of
+a Marpa input stream where 
+$\forall \token{tok} \sep \token{tok} \in toks \implies 
+\token{tok} = (\sym{s}, \loc{start}, 1)
+$
+and
+$\forall \token{tok1}, \token{tok2} \in toks \sep
+\token{tok1} = (\sym{s1}, \loc{start1}, 1)
+\wedge
+\token{tok2} = (\sym{s2}, \loc{start2}, 1)
+\wedge (\loc{start1} = \loc{start2} \implies \token{tok1} = \token{tok2})
+$.
+
+The correctness results hold for Marpa input streams,
+but to preserve the time complexity bounds,
+certain restriction must be imposed on them.
+Call an Earley set, $\es{chart[j]}$
+a "lookahead set" at $\loc{i}$
+if $j>i \wedge$
+and there exists some token $\token{tok} = (\sym{s}, \loc{start}, length)$
+such that $\loc{start} \le i \wedge \loc{start}+length = \loc{j}$.
+If, at every location,
+the number of tokens which start there,
+and the number of lookahead sets in play at that location
+is less than a finite constant,
+then Earley items can be added in amortized constant time
+and the complexity results for $Ruby Slippers$ and $Marpa$
+stand.
+
 \section{Concluding remarks}
 \label{s:disc}
 
@@ -389,14 +468,14 @@ as the steps.
 \begin{thebibliography}{10}
 
 \bibitem{AU1972}
-Alfred H.~Aho and Jeffrey D.~Ullman
+Alfred H.~Aho and Jeffrey D.~Ullman.
 \newblock The Theory of Parsing, Translation, and Computing
 \newblock Prentice-Hall, Englewood Cliff, N.J., 1972.
 
 \bibitem{AH2002}
-John~Aycock and R.~Nigel~Horspool
+John~Aycock and R.~Nigel~Horspool.
 \newblock Practical Earley Parsing
-\newblock \em{The Computer Journal},
+\newblock {\em The Computer Journal},
     Vol. 45, No. 6, 2002, pp. 620-630.
 
 \bibitem{Earley:70}
