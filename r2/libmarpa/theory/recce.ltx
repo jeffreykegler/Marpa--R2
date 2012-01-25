@@ -289,18 +289,18 @@ duples, where $\ah{L}$ is an AHFA state.
 \State $\eim{discovered} \gets \Lambda$
 \If{$\ah{to} \neq \Lambda$}
 \State $\eim{discovered} \gets [\ah{to}, origin_{LOC}]$
-\If{$eim{discovered}$ is new}
-\State add Earley item $\eim{discovered}$ to $ES[i] if new$
+\If{$\eim{discovered}$ is new}
+\State Add $\eim{discovered}$ to $ES[i]$
 \State $\ah{predicted} \gets GOTO(\ah{to}, \epsilon)$
 \EndIf
 \EndIf
 \If{$predicted_{AHFA} \neq \Lambda$}
 \State $\eim{predicted} \gets [\ah{predicted}, i]$
 \If{$eim{predicted}$ is new}
-\State add Earley item $[\ah{predicted}, i]$ to $ES[i]$
+\State Add $\eim{predicted}$ to $ES[i]$
 \EndIf
 \EndIf
-\Return{$\eim{discovered}$}
+\State \textbf{Return} $\eim{discovered}$
 \EndFunction
 \end{algorithmic} 
 \end{algorithm} 
