@@ -528,11 +528,32 @@ can result in at most $2^c$
 $\AH$ Earley items.
 So, we have
 \begin{align}
-\order{\size{\chart{\AH,i}}} &
- & = 2^c \order{\size{\chart{\Earley,i}}}
+\order{\size{\chart{\AH,i}}} & \\
+ & = 2^c \order{\size{\chart{\Earley,i}}} \\
  & = \order{\size{\chart{\Earley,i}}}
 \end{align}
 
+\end{proof}
+
+\begin{theorem}\label{t:rs:constant-per-EIM}
+All time in $\Rubyslippers$ can be allocated
+to the Earley items,
+and in such a way that processing each Earley item
+requires $\order{1}$ time.
+\end{theorem}
+
+\begin{proof}
+It is known that the time taken by
+the traditional Earley recognizer
+for its operations
+operations can be done in amortized $\order(1)$
+time per Earley item~\cite[Vol. 1, pages 326-327]{AU1972}.
+Inspection of the algorithm for $\Rubyslippers$ will show
+that any operations considered to be new to it
+can be assigned to the Earley items in
+an obivous way,
+and 
+trivially shown to be $\order{1}$.
 \end{proof}
 
 \begin{theorem}
@@ -541,6 +562,28 @@ the time and space complexity
 of $\Rubyslippers$ is as good or better
 than that of Earley's algorithm.
 \end{theorem}
+
+\begin{proof}
+The time and space complexity
+results for $\Earley$ are based
+on establishing the order of the number of Earley items,
+and showing that $\Earley$ takes
+$\order{1}$ time and 
+$\order{1}$ space
+for each Earley
+item.~\cite[Vol. 1, pages 325-327]{AU1972}.
+By Theorem \ref{a:rs:eim-order},
+for any grammar, the order of the number of Earley
+items is the same in $\Rubyslippers$ as it is
+in $\Earley$.
+It is trivial to show that the space requirements for
+$\Rubyslippers$ are $\order{1}$ time for each Earley item.
+By Theorem ref{t:rs:constant-per-EIM},
+the time requirements for
+$\Rubyslippers$ are also $\order{1}$ for each Earley item.
+Therefore the time and space complexity results for $\Earley$
+hold for $\Rubyslippers$.
+\end{proof}
 
 \section{The Marpa recognizer}
 \label{s:rs}
