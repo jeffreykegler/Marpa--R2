@@ -11,7 +11,7 @@
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
 \newcommand{\size}[1]{\left | {#1} \right |} 
-\newcommand{\order}[1]{{\cal O}(#1)}
+\newcommand{\order}[1]{{\mathcal O}(#1)}
 
 \newcommand{\cfg}{CFG}
 \newcommand{\nonterm}{\mbox{$V_{{\rm N}}$}}
@@ -28,6 +28,7 @@
 \newcommand{\of}{\mhyphen of}
 
 \newcommand{\ah}[1]{#1_{AH}}
+\newcommand{\aim}[1]{#1_{AIM}}
 \newcommand{\eim}[1]{#1_{EIM}}
 \newcommand{\es}[1]{#1_{ES}}
 \newcommand{\loc}[1]{#1_{LOC}}
@@ -429,6 +430,110 @@ and Theorem
 
 \section{Ruby Slippers time complexity}
 \label{s:rs:complexity}
+
+\begin{theorem}
+For all $\loc{i}$,
+$\size{\chart{\Rubyslippers,i}} = \size{\chart{\AH,i}}$
+\end{theorem}
+
+\begin{proof}
+From Theorem \ref{t:rs:ah-reduction}.
+\end{proof}
+
+On \cite[page 626]{AH2002} it is stated that
+"[i]n the worst case,
+each split LR(0) $\epsilon$-DFA
+state
+would contain a single item,
+effectively reducing it to Earley's
+original algorithm".
+(In this paper,
+n split LR(0) $\epsilon$-DFA is called an AHFA.)
+No argument is presented for this statement.
+In fact, an AHFA is not a partition of the dotted
+rules, and
+a single dotted rule can occur
+in more than one AHFA state.
+This does not happen frequently,
+but it does happens often enough,
+even in practical grammars,
+that the Marpa implementation has to provide for it.
+
+What does not seem to happen in practical grammars
+the size of $\AH$ Earley set to grow larger
+than that of one of Earley's original sets.
+That is, it seems the AHFA is always a win,
+at least for practical grammars.
+
+What can be shown is that the time and space
+complexity of $\AH$ is never worse than that of $\Earley$.
+The next lemma is sufficient for that purpose.
+
+\begin{lemma}
+For all $\loc{i}$,
+$\order{\size{\chart{\AH,i}}} = \order{\size{\chart{\Earley,i}}}$
+\end{lemma}
+
+A dotted rule with the dot before the first
+non-nullable symbol is called a prediction.
+A dotted rule with the dot after the last symbol of
+a rule is called a prediction.
+In the proof,
+a dotted rule that is not a prediction will
+be called a kernel rule.
+In $\AH$, $\Rubyslippers$ and $\Marpa$,
+there are no dotted rules with the dot before
+a nulling symbol.
+Informally, nulling symbols can said to be "skipped".
+
+Progress through a rule can be thought of as moving the
+dot forward over one of the rule's symbols.
+Consider a dotted rule $\aim{d\mhyphen to}$
+results from moving the dot forward,
+skipping nulling symbols,
+from another dotted rule
+$\aim{d\mhyphen from}$.
+$\aim{d\mhyphen from}$ is called the predecessor
+of $\aim{d\mhyphen to}$; and
+$\aim{d\mhyphen to}$ is called the successor
+of $\aim{d\mhyphen from}$.
+
+\begin{proof}
+AHFA states are of two types: predicted and discovered.
+Predicted AHFA state are
+those which contain predictions (the initial states and the non-kernel states).
+Discovered AHFA state are
+and those which do not (non-initial kernel states).
+The predicted AHFA states are constructed from sets of symbols
+by a transitive closure operation,
+and therefore there cannot be more than $2^c$ predicted AHFA states,
+where $c$ is the number of LHS symbols.
+Since only a predicted AHFA state can contain a prediction,
+no prediction occurs in more than $2^c$ AHFA states.
+
+Kernel rules are subject to the same bound:
+no kernel rule occurs in more than $2^c$ AHFA states.
+This can be shown from the construction of the AHFA states.
+Each occurence of a kernel rule in an AFHA state is
+is the product of a transition from another
+AHFA state over a symbol.
+Each such transition puts the new kernel rule into
+at most one new AHFA state.
+There for, for each predecessor dotted rule,
+there can be at most one successor.
+
+Each traditional Earley item has a single dotted rule,
+so that a translation from a traditional Earley items
+can result in at most $2^c$
+$\AH$ Earley items.
+So, we have
+\begin{align}
+\order{\size{\chart{\AH,i}}} &
+ & = 2^c \order{\size{\chart{\Earley,i}}}
+ & = \order{\size{\chart{\Earley,i}}}
+\end{align}
+
+\end{proof}
 
 \begin{theorem}
 For all context-free grammars,
