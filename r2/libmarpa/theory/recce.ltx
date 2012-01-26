@@ -36,13 +36,22 @@
 \newcommand{\symset}[1]{#1_{\lbrace SYM \rbrace} }
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
+\newcommand{\alg}[1]{\textsc{#1}}
+\newcommand{\AH}{\alg{AH}}
+\newcommand{\Earley}{\alg{Earley}}
+\newcommand{\Marpa}{\alg{Marpa}}
+\newcommand{\Rubyslippers}{\alg{Ruby$\mhyphen$Slippers}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \DeclareMathOperator{\scanned}{scanned}
 \DeclareMathOperator{\Hyp}{Hyp}
-\DeclareMathOperator{\myL}{L}
-% We want to use this outside of pseudocode, as well
+\DeclareMathOperator{\opL}{L}
+\DeclareMathOperator{\opChart}{chart}
+\newcommand\myL[1]{\opL(#1)}
+\newcommand\chart[1]{\es{\opChart(#1)}}
+
+% I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
 
 \hyphenation{ALGOL}
@@ -67,7 +76,7 @@ parsing and evaluation of context-free grammars.
 Marpa's recognizer is based
 an Earley's algorithm,
 and merges the improvements to Earley's
-from Leo~\cite{Leo::1991}
+from Leo~\cite{Leo1991}
 and Aycock and Horspool~\cite{AH2002}.
 Their combination in the marpa parse engine
 has an added feature:
@@ -79,6 +88,19 @@ which can be an extremely powerful technique.
 \end{abstract}
 
 \maketitle
+
+\section{THIS IS AN EARLY DRAFT}
+
+This a very early draft of this paper,
+and is largely unchecked.
+The spirit and culture of the open source community
+currently dictates that works of this kind and at
+this very early stage be made
+available on-line in public repositories.
+The reader should see the availability of this document
+as compliance with that spirit and culture,
+and not as in any way suggesting or
+encouraging reliance on its contents.
 
 \section{Introduction}
 
@@ -129,8 +151,8 @@ For the purposes of this paper consider,
 without loss of generality,
 a grammar $g$,
 and a set of symbols, $alphabet$.
-Call the language of $g$, $\myL(g)$,
-where $\myL(g) \in alphabet^\ast$
+Call the language of $g$, $\myL{g}$,
+where $\myL{g} \in alphabet^\ast$
 Let its input be $w$, $w \in alphabet$.
 Divide $alphabet$ into two disjoint sets,
 $term$ and $nonterm$.
@@ -186,14 +208,15 @@ of the original grammar can be efficiently reconstructed
 at evaluation time.
 
 In this paper, $Earley$ will refer to the Earley's original
-recognizer~\cite{Earley:1970}.
+recognizer~\cite{Earley1970}.
 $Leo$ will refer to Leo's revision of $Earley$
-as described in his 1991 paper~\cite{Leo:1991}.
+as described in his 1991 paper~\cite{Leo1991}.
 $AH$ will refer to the Aycock and Horsool's revision
 of $Earley$
-as described in their 2002 paper~\cite{AH:2002}.
-Where $Recce$ is a recognizer,
-$\call{Recce}{g}$ will be the language accepted by $Recce$.
+as described in their 2002 paper~\cite{AH2002}.
+Where $\alg{Recce}$ is a recognizer,
+$\myL{\alg{Recce},g}$ will be the language accepted by $\alg{Recce}$
+when parsing grammar $g$.
 
 \section{AHFA States}
 \label{s:AHFA}
@@ -342,10 +365,14 @@ $\es{AH[0]} = \es{RS[0]}$.
 \end{proof}
 
 \begin{lemma}\label{t:rs:correctness:step1}
-\begin{multline*}
-\Hyp(i) \wedge \call{Scan}{i,\term{input[i]}} \Longrightarrow \\
-\Hyp(i) \wedge \scanned(\es{AH[i+1]}) = \scanned(\es{RS[i+1]})
-\end{multline*}
+In $\Rubyslippers$,
+Let $t\mhyphen before$ be the point in time just before a call 
+to
+$\call{Scan}{i,\term{input[i]}}$,
+and $t\mhyphen after$ the point just after.
+If $\Hyp(i)$ at $t\mhyphen before$,
+then at $t\mhyphen after$
+$$ \Hyp(i) \wedge \chart{\AH, i+1} = \chart{\Rubyslippers, i+1} $$
 \end{lemma}
 \begin{proof}
 From inspection of \ref{a:rs:scan}
@@ -364,11 +391,10 @@ From inspection of \ref{a:rs:complete}
 and comparision with AH2002.
 \end{proof}
 
-\begin{theorem}
-\begin{equation*}
-\forall n( 0<n<\size{input} \implies \Hyp(n))
-\end{equation*}
+\begin{theorem}\label{t:rs:ah-reduction}
+$\forall n( 0<n<\size{input} \implies \Hyp(n))$
 \end{theorem}
+
 \begin{proof}
 By induction, with \ref{t:rs:correctness:basis}
 as the basis and 
@@ -378,8 +404,38 @@ and
 as the steps.
 \end{proof}
 
+\begin{theorem}\label{t:ah:correct}
+$\myL{\AH ,g} = \myL{g}$
+\end{theorem}
+
+\begin{proof}
+This is asserted in~\cite{AH2002},
+and follows
+from the formally stated theorems
+and the detailed construction of the
+AHFA presented in that paper.
+\end{proof}
+
+\begin{theorem}
+$\myL{\Rubyslippers ,g} = \myL{g}$
+\end{theorem}
+
+\begin{proof}
+From Theorem
+\ref{t:ah:correct}
+and Theorem
+\ref{t:rs:ah-reduction}.
+\end{proof}
+
 \section{Ruby Slippers time complexity}
 \label{s:rs:complexity}
+
+\begin{theorem}
+For all context-free grammars,
+the time and space complexity
+of $\Rubyslippers$ is as good or better
+than that of Earley's algorithm.
+\end{theorem}
 
 \section{The Marpa recognizer}
 \label{s:rs}
@@ -388,16 +444,26 @@ as the steps.
 \label{s:rs:correctness}
 
 \begin{theorem}
-\begin{equation*}
-\call{Marpa}{g} = \myL{g}
-\end{equation*}
+$\myL{\alg{Marpa},g} = \myL{g}$
 \end{theorem}
 
 \section{Marpa recognizer time complexity}
-\label{s:rs:complexity}
+\label{s:marpa:complexity}
 
-\section{Generalizing the definition of a grammar}
-\label{s:rs:complexity}
+\begin{theorem}
+For all context-free grammars,
+the time and space complexity
+of $\Marpa$ is as good or better
+than that of Earley's algorithm.
+\end{theorem}
+
+\begin{theorem}
+For every LR-regular grammar,
+$\Marpa$ runs in linear time and linear space.
+\end{theorem}
+
+\section{Generalizing the grammar}
+\label{s:generalizing}
 
 This section deals with certain modifications
 to the
@@ -462,8 +528,8 @@ then Earley items can be added in amortized constant time
 and the complexity results for $Ruby Slippers$ and $Marpa$
 stand.
 
-\section{Concluding remarks}
-\label{s:disc}
+\section{Conclusion}
+\label{s:conclusion}
 
 \bibliographystyle{plain}
 
@@ -480,7 +546,7 @@ John~Aycock and R.~Nigel~Horspool.
 \newblock {\em The Computer Journal},
     Vol. 45, No. 6, 2002, pp. 620-630.
 
-\bibitem{Earley:70}
+\bibitem{Earley1970}
 J.~Earley.
 \newblock An efficient context-free parsing algorithm.
 \newblock {\em Communications of the Association for Computing Machinery},
@@ -495,7 +561,7 @@ Dirk~Grune and Ceriel~J.H Jacobs
 Jeffrey~Kegler, 2011: Marpa-XS-1.002000.
 \newblock [Available online at http://search.cpan.org/dist/Marpa-XS/.]
 
-\bibitem{Leo::1991}
+\bibitem{Leo1991}
 J.~M. I.~M. Leo.
 \newblock A general context-free parsing algorithm running in linear time on
   every {LR($k$)} grammar without using lookahead.
