@@ -50,7 +50,7 @@
 \DeclareMathOperator{\scanned}{scanned}
 \DeclareMathOperator{\Hyp}{Hyp}
 \newcommand\myL[1]{\operatorname{L}(#1)}
-\newcommand\table[1]{\es{\operatorname{table}(#1)}}
+\newcommand\tables[1]{\es{\operatorname{table}(#1)}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -373,7 +373,7 @@ $\call{Scan}{i,\term{input[i]}}$,
 and $t-after$ the point just after.
 If $\Hyp(i)$ at $t-before$,
 then at $t-after$
-$$ \Hyp(i) \wedge \table{\AH, i+1} = \table{\Rubyslippers, i+1} $$
+$$ \Hyp(i) \wedge \tables{\AH, i+1} = \tables{\Rubyslippers, i+1} $$
 \end{lemma}
 \begin{proof}
 From inspection of \ref{a:rs:scan}
@@ -433,7 +433,7 @@ and Theorem
 
 \begin{theorem}
 For all $\loc{i}$,
-$\size{\table{\Rubyslippers,i}} = \size{\table{\AH,i}}$
+$\size{\tables{\Rubyslippers,i}} = \size{\tables{\AH,i}}$
 \end{theorem}
 
 \begin{proof}
@@ -471,7 +471,7 @@ The next lemma is sufficient for that purpose.
 
 \begin{lemma}
 For all $\loc{i}$,
-$\order{\size{\table{\AH,i}}} = \order{\size{\table{\Earley,i}}}$
+$\order{\size{\tables{\AH,i}}} = \order{\size{\tables{\Earley,i}}}$
 \end{lemma}
 
 A dotted rule with the dot before the first
@@ -528,9 +528,9 @@ can result in at most $2^c$
 \AH Earley items.
 So, we have
 \begin{align}
-\order{\size{\table{\AH,i}}} & \\
- & = 2^c \order{\size{\table{\Earley,i}}} \\
- & = \order{\size{\table{\Earley,i}}}
+\order{\size{\tables{\AH,i}}} & \\
+ & = 2^c \order{\size{\tables{\Earley,i}}} \\
+ & = \order{\size{\tables{\Earley,i}}}
 \end{align}
 
 \end{proof}
@@ -762,9 +762,9 @@ We now show that \alg{Leo-ordered} produces
 all the Earley items of \Leo.
 
 \begin{theorem}
-\operatorname{table}(\alg{Leo-ordered},g)
+$\operatorname{table}(\alg{Leo-ordered},g)
 \supset
-\operatorname{table}(\alg{Leo},g)
+\operatorname{table}(\alg{Leo},g)$
 \end{theorem}
 
 \begin{proof}
