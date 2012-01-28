@@ -1,7 +1,7 @@
 % Copyright 2012 Jeffrey Kegler
 % This document is licensed under
 % a Creative Commons Attribution-NoDerivs 3.0 United States License.
-\documentclass{amsart}
+\documentclass[12pt]{amsart}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
@@ -12,6 +12,8 @@
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
 \newcommand{\size}[1]{\left | {#1} \right |} 
 \newcommand{\order}[1]{{\mathcal O}(#1)}
+
+\newcommand{\var}[1]{\ensuremath{\textbf{#1}}}
 
 \newcommand{\cfg}{CFG}
 \newcommand{\nonterm}{\mbox{$V_{{\rm N}}$}}
@@ -24,9 +26,6 @@
 
 \newcommand{\ep}{\varepsilon}
 
-\mathchardef\mhyphen="2D
-\newcommand{\of}{\mhyphen of}
-
 \newcommand{\ah}[1]{#1_{AH}}
 \newcommand{\aim}[1]{#1_{AIM}}
 \newcommand{\eim}[1]{#1_{EIM}}
@@ -38,19 +37,18 @@
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
 \newcommand{\alg}[1]{\textsc{#1}}
-\newcommand{\AH}{\alg{AH}}
-\newcommand{\Earley}{\alg{Earley}}
-\newcommand{\Marpa}{\alg{Marpa}}
-\newcommand{\Rubyslippers}{\alg{Ruby$\mhyphen$Slippers}}
+\newcommand{\AH}{\ensuremath{\alg{AH}}}
+\newcommand{\Earley}{\ensuremath{\alg{Earley}}}
+\newcommand{\Leo}{\ensuremath{\alg{Leo}}}
+\newcommand{\Marpa}{\ensuremath{\alg{Marpa}}}
+\newcommand{\Rubyslippers}{\ensuremath{\alg{Ruby-Slippers}}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \DeclareMathOperator{\scanned}{scanned}
 \DeclareMathOperator{\Hyp}{Hyp}
-\DeclareMathOperator{\opL}{L}
-\DeclareMathOperator{\opChart}{chart}
-\newcommand\myL[1]{\opL(#1)}
-\newcommand\chart[1]{\es{\opChart(#1)}}
+\newcommand\myL[1]{\operatorname{L}(#1)}
+\newcommand\chart[1]{\es{\operatorname{chart}(#1)}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -176,7 +174,7 @@ The grammar $g$ can be defined as the 4-tuple
 $(term, nonterm, rules, \sym{start})$.
 Without loss of generality,
 it is assumed that $g$ is "augmented",
-so that there is a rule $\sym{start} \de \sym{old\mhyphen start}$,
+so that there is a rule $\sym{start} \de \sym{old-start}$,
 and that $\sym{start}$ is not the LHS of any other rule,
 or in the RHS of any rule.
 
@@ -283,8 +281,8 @@ duples, where $\ah{L}$ is an AHFA state.
 \Procedure{Scan}{$i,a$}
 \Comment{Scan a token $a$, which starts at Earley set $i$}
 \For{each Earley item $\eim{x}$ in $ES[i]$}
-\State $\ah{to} \gets GOTO(AHFA\of(\eim{x}), a)$
-\State \Call{Add EIM Pair}{$i+1, \ah{to}, Origin\of(\eim{x}$}
+\State $\ah{to} \gets GOTO(\operatorname{AHFA-of}(\eim{x}), a)$
+\State \Call{Add EIM Pair}{$i+1, \ah{to}, \operatorname{Origin-of}(\eim{x}$}
 \EndFor
 \EndProcedure
 \end{algorithmic} 
@@ -296,9 +294,9 @@ duples, where $\ah{L}$ is an AHFA state.
 \Procedure{Complete}{$i_{LOC}$}
 \For{each Earley item $\eim{work} \in ES[i]$}
 \For{each completed rule, $\production{C}$}
-\For{each $\eim{predecessor} \in ES[Origin\of \eim{work}]$}
-\State $\ah{to} \gets GOTO(AHFA\of \eim{predecessor}, LHS_{SYM})$
-\State \Call{Add EIM Pair}{$to_{AHFA}, Origin\of \eim{predecessor}$}
+\For{each $\eim{predecessor} \in ES[\operatorname{Origin-of} \eim{work}]$}
+\State $\ah{to} \gets GOTO(\operatorname{AHFA-of} \eim{predecessor}, LHS_{SYM})$
+\State \Call{Add EIM Pair}{$to_{AHFA}, \operatorname{Origin-of} \eim{predecessor}$}
 \EndFor
 \EndFor
 \EndFor
@@ -366,13 +364,13 @@ $\es{AH[0]} = \es{RS[0]}$.
 \end{proof}
 
 \begin{lemma}\label{t:rs:correctness:step1}
-In $\Rubyslippers$,
-Let $t\mhyphen before$ be the point in time just before a call 
+In \Rubyslippers,
+Let $t-before$ be the point in time just before a call 
 to
 $\call{Scan}{i,\term{input[i]}}$,
-and $t\mhyphen after$ the point just after.
-If $\Hyp(i)$ at $t\mhyphen before$,
-then at $t\mhyphen after$
+and $t-after$ the point just after.
+If $\Hyp(i)$ at $t-before$,
+then at $t-after$
 $$ \Hyp(i) \wedge \chart{\AH, i+1} = \chart{\Rubyslippers, i+1} $$
 \end{lemma}
 \begin{proof}
@@ -460,13 +458,13 @@ even in practical grammars,
 that the Marpa implementation has to provide for it.
 
 What does not seem to happen in practical grammars
-the size of $\AH$ Earley set to grow larger
+the size of \AH Earley set to grow larger
 than that of one of Earley's original sets.
 That is, it seems the AHFA is always a win,
 at least for practical grammars.
 
 What can be shown is that the time and space
-complexity of $\AH$ is never worse than that of $\Earley$.
+complexity of \AH is never worse than that of $\Earley$.
 The next lemma is sufficient for that purpose.
 
 \begin{lemma}
@@ -481,22 +479,22 @@ a rule is called a prediction.
 In the proof,
 a dotted rule that is not a prediction will
 be called a kernel rule.
-In $\AH$, $\Rubyslippers$ and $\Marpa$,
+In \AH, \Rubyslippers{} and \Marpa,
 there are no dotted rules with the dot before
 a nulling symbol.
 Informally, nulling symbols can said to be "skipped".
 
 Progress through a rule can be thought of as moving the
 dot forward over one of the rule's symbols.
-Consider a dotted rule $\aim{d\mhyphen to}$
+Consider a dotted rule $\aim{\var{d-to}}$
 results from moving the dot forward,
 skipping nulling symbols,
 from another dotted rule
-$\aim{d\mhyphen from}$.
-$\aim{d\mhyphen from}$ is called the predecessor
-of $\aim{d\mhyphen to}$; and
-$\aim{d\mhyphen to}$ is called the successor
-of $\aim{d\mhyphen from}$.
+$\aim{\var{d-from}}$.
+$\aim{\var{d-from}}$ is called the predecessor
+of $\aim{\var{d-to}}$; and
+$\aim{\var{d-to}}$ is called the successor
+of $\aim{\var{d-from}}$.
 
 \begin{proof}
 AHFA states are of two types: predicted and discovered.
@@ -525,7 +523,7 @@ there can be at most one successor.
 Each traditional Earley item has a single dotted rule,
 so that a translation from a traditional Earley items
 can result in at most $2^c$
-$\AH$ Earley items.
+\AH Earley items.
 So, we have
 \begin{align}
 \order{\size{\chart{\AH,i}}} & \\
@@ -536,7 +534,7 @@ So, we have
 \end{proof}
 
 \begin{theorem}\label{t:rs:constant-per-EIM}
-All time in $\Rubyslippers$ can be allocated
+All time in \Rubyslippers{} can be allocated
 to the Earley items,
 and in such a way that processing each Earley item
 requires $\order{1}$ time.
@@ -548,7 +546,7 @@ the traditional Earley recognizer
 for its operations
 operations can be done in amortized $\order(1)$
 time per Earley item~\cite[Vol. 1, pages 326-327]{AU1972}.
-Inspection of the algorithm for $\Rubyslippers$ will show
+Inspection of the algorithm for \Rubyslippers{} will show
 that any operations considered to be new to it
 can be assigned to the Earley items in
 an obivous way,
@@ -559,7 +557,7 @@ trivially shown to be $\order{1}$.
 \begin{theorem}
 For all context-free grammars,
 the time and space complexity
-of $\Rubyslippers$ is as good or better
+of \Rubyslippers{} is as good or better
 than that of Earley's algorithm.
 \end{theorem}
 
@@ -574,19 +572,65 @@ for each Earley
 item.~\cite[Vol. 1, pages 325-327]{AU1972}.
 By Theorem \ref{a:rs:eim-order},
 for any grammar, the order of the number of Earley
-items is the same in $\Rubyslippers$ as it is
+items is the same in \Rubyslippers{} as it is
 in $\Earley$.
 It is trivial to show that the space requirements for
-$\Rubyslippers$ are $\order{1}$ time for each Earley item.
+\Rubyslippers{} are $\order{1}$ time for each Earley item.
 By Theorem ref{t:rs:constant-per-EIM},
 the time requirements for
-$\Rubyslippers$ are also $\order{1}$ for each Earley item.
+\Rubyslippers{} are also $\order{1}$ for each Earley item.
 Therefore the time and space complexity results for $\Earley$
-hold for $\Rubyslippers$.
+hold for \Rubyslippers.
 \end{proof}
 
 \section{The Marpa recognizer}
 \label{s:rs}
+
+\section{The "as-if" ordering}
+\label{s:rs}
+
+The correctness proof of \Marpa{}
+will proceed by
+induction on an "as-if" reordering of
+the operations in both \Leo{}
+and \Marpa{}.
+This ordering is not the actual one
+used in either algorithm,
+but it can be shown that,
+once parsing is complete,
+the ordering is that same "as if"
+the actual \Marpa{} and \Leo{} 
+ordering were used.
+
+As mentioned, Marpa grammars are 
+rewritten to eliminate proper nullable
+symbols and empty rules.
+adn the AHFA states collect dotted rules
+which always appear together.
+Some AHFA states ("kernel states")
+have an $\epsilon$ transition
+to one other AHFA state (a "non-kernel" state).
+A non-kernel state never has an $\epsilon$ transition,
+so and the $\epsilon$ transitions can be seen
+as defined a partition of AHFA states into
+sets of cardinality 1 or 2.
+
+This following restrictions on the order
+of operations in \Marpa{} exist:
+
+\begin{itemize}
+\item The initial EIM pair  must be created first.
+\item For every location $i$,
+all scanned EIM pairs must be added before any
+completed EIM pairs.
+\item For every location $i$,
+all completed EIM pairs must be added before
+the Leo items at $i$ can be determined.
+\item For every location $i$,
+All EIM pairs must be added at location $i$,
+before any scanned items at locations greater
+than $i$ are added.
+\end{itemize}
 
 \section{Marpa recognizer correctness}
 \label{s:rs:correctness}
@@ -601,13 +645,13 @@ $\myL{\alg{Marpa},g} = \myL{g}$
 \begin{theorem}
 For all context-free grammars,
 the time and space complexity
-of $\Marpa$ is as good or better
+of \Marpa{} is as good or better
 than that of Earley's algorithm.
 \end{theorem}
 
 \begin{theorem}
 For every LR-regular grammar,
-$\Marpa$ runs in linear time and linear space.
+\Marpa{} runs in linear time and linear space.
 \end{theorem}
 
 \section{Generalizing the grammar}
@@ -673,7 +717,8 @@ the number of tokens which start there,
 and the number of lookahead sets in play at that location
 is less than a finite constant,
 then Earley items can be added in amortized constant time
-and the complexity results for $Ruby Slippers$ and $Marpa$
+and the complexity results for
+\Rubyslippers{} and \Marpa{}
 stand.
 
 \section{Conclusion}
