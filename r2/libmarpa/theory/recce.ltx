@@ -45,10 +45,12 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
 \DeclareMathOperator{\scanned}{scanned}
 \DeclareMathOperator{\Hyp}{Hyp}
 \newcommand\myL[1]{\operatorname{L}(#1)}
-\newcommand\chart[1]{\es{\operatorname{chart}(#1)}}
+\newcommand\table[1]{\es{\operatorname{table}(#1)}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -371,7 +373,7 @@ $\call{Scan}{i,\term{input[i]}}$,
 and $t-after$ the point just after.
 If $\Hyp(i)$ at $t-before$,
 then at $t-after$
-$$ \Hyp(i) \wedge \chart{\AH, i+1} = \chart{\Rubyslippers, i+1} $$
+$$ \Hyp(i) \wedge \table{\AH, i+1} = \table{\Rubyslippers, i+1} $$
 \end{lemma}
 \begin{proof}
 From inspection of \ref{a:rs:scan}
@@ -431,7 +433,7 @@ and Theorem
 
 \begin{theorem}
 For all $\loc{i}$,
-$\size{\chart{\Rubyslippers,i}} = \size{\chart{\AH,i}}$
+$\size{\table{\Rubyslippers,i}} = \size{\table{\AH,i}}$
 \end{theorem}
 
 \begin{proof}
@@ -469,7 +471,7 @@ The next lemma is sufficient for that purpose.
 
 \begin{lemma}
 For all $\loc{i}$,
-$\order{\size{\chart{\AH,i}}} = \order{\size{\chart{\Earley,i}}}$
+$\order{\size{\table{\AH,i}}} = \order{\size{\table{\Earley,i}}}$
 \end{lemma}
 
 A dotted rule with the dot before the first
@@ -526,9 +528,9 @@ can result in at most $2^c$
 \AH Earley items.
 So, we have
 \begin{align}
-\order{\size{\chart{\AH,i}}} & \\
- & = 2^c \order{\size{\chart{\Earley,i}}} \\
- & = \order{\size{\chart{\Earley,i}}}
+\order{\size{\table{\AH,i}}} & \\
+ & = 2^c \order{\size{\table{\Earley,i}}} \\
+ & = \order{\size{\table{\Earley,i}}}
 \end{align}
 
 \end{proof}
@@ -699,49 +701,120 @@ is its EIM-causality.
 \end{itemize}
 
 \alg{Leo-ordered} proceeds the same as \Leo{},
-with the following modifications:
+first performing its scanning operation,
+then visiting every item of the Earley set
+for its completion operation.
+However, to guarantee that all Earley items will
+appear in the Earley set in an order consistent
+with their grouping into AHFA states,
+a buffering operation is interposed.
+An new Earley item is first inserted into a buffer.
+Each Earley item to be added after that is checked
+to see if it is co-occuring.
+If it is co-occuring, it also is added to the buffer.
+If it a new Earley item is not co-occuring, the buffer
+is processed so that the new Earley item can be inserted into
+an empty buffer.
+The buffer is also processed and emptied at the end of
+processing for each Earley set.
+
+Processing a buffer consists of sorting its Earley items,
+adding them to the current Earley set,
+and emptying the buffer.
+The sorting order is fixed.
+Earley items that would be duplicates are never added
+to an Earley set.
+
+In effect, the buffer uses the idea of co-occurrence in
+an AHFA state to ensure the eager addition of Earley items
+which belong to the same AHFA state, as soon as any one
+of them is added.
+The normal \Leo{} is then allowed to proceed.
+This may attempt to add an Earley item already added
+due to co-occurrence, but that is harmless,
+since duplicate Earley items are not added to an Earley set.
+
+Note that no complexity results will be
+claimed for \alg{Leo-ordered}.
+While the author conjectures that \alg{Leo-ordered}
+has the same bounds as \Leo{},
+\alg{Leo-ordered} is a theoretical construct to show
+correctness.
+Its purpose is to show that \Leo{} models \Marpa{}.
+
+When each Earley item is added to the
+buffer.
 \begin{itemize}
-\item Before being added to an Earley set,
-new Earley items are put into a EIM-group buffer.
-\item Whenever an Earley item is added to the buffer,
-all co-occuring Earley items are added.
-Predicted EIM's are always added in this way,
-so that their causality need not be tracked.
-\item When initializing,
-All EIM's are added to the buffer until initialization
-is complete,
-then the buffer is processed.
-\item When scanning,
-All scanned EIM's with the same token
-and whose predecessor EIM
-belong to the same EIM-group are added to the buffer,
-then it is processed.
-\item When completing,
-All items with the same completed rule,
-and whose predecessor EIM's
-belong to the same EIM-group are added to the buffer,
-then it is processed.
+\item If the added Earley item has a nulling predot or postdot
+symbol, the dot is moved over the nulling symbols,
+and the resulting Earley items are also added.
+\item All co-occuring Earley items are added.
 \end{itemize}
+As new items are added,
+these two steps are performed repeatedly,
+until no more new Earley items can be added.
 
 The EIM-group buffer is processed by sorting it into
 some fixed order,
 then adding it to the Earley set.
-Earley items that would be duplicates are not added.
 
-We now show that \alg{Leo-ordered} preserves
-correctness.
+We now show that \alg{Leo-ordered} produces
+all the Earley items of \Leo.
 
 \begin{theorem}
-\L{\alg{Leo-ordered},g} = \L{g}
+\operatorname{table}(\alg{Leo-ordered},g)
+\supset
+\operatorname{table}(\alg{Leo},g)
 \end{theorem}
 
 \begin{proof}
+By the construction of the AHFA states,
+we note that the buffering does all the work
+of prediction and $\epsilon$-transition for
+\alg{Leo-modified}.
+Because of this,
+the prediction step of the pseudocode
+\Leo~\cite[page 179]{Leo1991}
+may be omitted without effect.
+For \alg{Leo-modified},
+we may also ignore \Leo's scans of nullable symbols,
+as they contribute nothing beyond what what is done
+in the buffering.
+
+We can show that,
+with buffering as described and grammars as rewritten
+for Marpa,
+the reordering of the predictions in an Earley set $i$
+is without effect on Earley set $i$.
+In \alg{Leo-modified}.
+no new Earley items can be introduced into the current
+Earley set as a result of a prediction Earley item,
+once that prediction has left the buffer.
+This is because in the Marpa grammar, there are no
+proper nullable symbols,
+and all of the $\epsilon$-transitions
+have already been performed in the buffer.
+
 The pseudo-code of \Leo~\cite[page 179]{Leo1991}
-is not strict as to the order of the completion operation,
-and that of \alg{Leo-modified} is consistent with it.
-\alg{Leo-modified} might reorder prediction Earley items,
-adding earlier than in \Leo{}.
-[ Finish this. ]
+specifies that all items in an Earley set must be visited
+for the completion operation,
+and assumes that $\epsilon$-transitions are performed,
+both of which \alg{Leo-modified} clearly does.
+But the pseudocode does not specify the order that
+the Earley items will be visited
+for the completion operation,
+or the details of how
+$\epsilon$-transitions are performed.
+In both these respects, then
+\alg{Leo-modified} is a more detailed
+specification of \Leo.
+
+From the foregoing, we see that all 
+the steps of \Leo{} are either omitted
+without effect,
+or executed as specified in \Leo{}.
+Therefore \alg{Leo-modified} produces at least those
+Earley items produced by \Leo.
 \end{proof}
 
 \begin{theorem}
@@ -816,7 +889,7 @@ $.
 The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
 certain restriction must be imposed on them.
-Call an Earley set, $\es{chart[j]}$
+Call an Earley set, $\es{table[j]}$
 a "lookahead set" at $\loc{i}$
 if $j>i \wedge$
 and there exists some token $\token{tok} = (\sym{s}, \loc{start}, length)$
