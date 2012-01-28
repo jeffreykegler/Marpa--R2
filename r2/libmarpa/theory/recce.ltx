@@ -111,9 +111,9 @@ regular expressions.
 The Marpa project was begun to end this neglect by
 pulling the best results from the literature,
 and to turn them into a widely-available tool.
-A stable version of this tool, Marpa::XS, was
-delivered to the CPAN Perl archive on Solstice Day
-in 2011.
+A stable version of this tool, Marpa::XS~\cite{Marpa-XS},
+was uploaded to the CPAN Perl archive
+on Solstice Day in 2011.
 
 Marpa::XS is a complete implementation of a parser
 generator.
@@ -633,7 +633,116 @@ than $i$ are added.
 \end{itemize}
 
 \section{Marpa recognizer correctness}
-\label{s:rs:correctness}
+\label{s:marpa:correctness}
+
+\subsection{The Earley operations produce the Earley items}
+
+\Marpa's operations may be divided into
+two types: those it inherits from the traditional \Earley,
+and those it inherits from Leo.
+This section shows that the operations that \Marpa{}
+inherits from Earley's algorithm produce AH Earley items
+which translate to the same Earley items as those of \Earley.
+This result will be used in a proof by induction that
+the combined Leo and traditional Earley operations of
+\Marpa{} are correct,
+so care is taken about the order in which the results
+enter the Earley sets.
+
+We define a new algorithm,
+\alg{Leo-ordered} based on \Leo.
+Call an EIM-group an set of traditional Earley items which
+correspond to a single AH Earley item.
+We modify it so that the Earley sets are ordered,
+so that all the traditional Earley items
+from a single EIM-group occur together in the sequence.
+Where a traditional Earley item correspond to more
+than one AH Earley item in the same Earley set,
+it will occur with the first EIM-group that applies.
+
+For the purpose of this section,
+two traditional Earley items are said to {bf co-occur}
+if whenever either appears in an AHFA state,
+the other also does.
+
+Informally, an EIM-causality is the set of factors
+which are necessary to cause the addition of a traditional
+Earley item to an Earley set.
+The initialization of the Earley table is one such factor.
+The other factors are tokens and other Earley items.
+
+\begin{itemize}
+\item The EIM-causality of a predicted EIM is a single EIM:
+the one which predicts it
+by having the predicted EIM's LHS
+as a postdot symbol.
+\item
+The EIM-causality of
+a scanned EIM is its token and its predecessor EIM.
+The predecessor EIM is the EIM in the previous Earley
+set which had the token as its postdot symbol.
+\item
+The EIM-causality of a completion EIM is a pair of EIM's:
+a cause EIM and a predecessor EIM.
+Recall that a completion EIM is added as a result of finding
+a completed rule in another EIM.
+The cause EIM is the EIM with the completed rule.
+The predecessor EIM of a completed EIM
+will be found in the Earley set that is origin
+of the cause
+and will have the LHS of the completed rule
+as its postdot symbol.
+\item
+For an initial EIM, 
+the initialization of the Earley tables
+is its EIM-causality.
+\end{itemize}
+
+\alg{Leo-ordered} proceeds the same as \Leo{},
+with the following modifications:
+\begin{itemize}
+\item Before being added to an Earley set,
+new Earley items are put into a EIM-group buffer.
+\item Whenever an Earley item is added to the buffer,
+all co-occuring Earley items are added.
+Predicted EIM's are always added in this way,
+so that their causality need not be tracked.
+\item When initializing,
+All EIM's are added to the buffer until initialization
+is complete,
+then the buffer is processed.
+\item When scanning,
+All scanned EIM's with the same token
+and whose predecessor EIM
+belong to the same EIM-group are added to the buffer,
+then it is processed.
+\item When completing,
+All items with the same completed rule,
+and whose predecessor EIM's
+belong to the same EIM-group are added to the buffer,
+then it is processed.
+\end{itemize}
+
+The EIM-group buffer is processed by sorting it into
+some fixed order,
+then adding it to the Earley set.
+Earley items that would be duplicates are not added.
+
+We now show that \alg{Leo-ordered} preserves
+correctness.
+
+\begin{theorem}
+\L{\alg{Leo-ordered},g} = \L{g}
+\end{theorem}
+
+\begin{proof}
+The pseudo-code of \Leo~\cite[page 179]{Leo1991}
+is not strict as to the order of the completion operation,
+and that of \alg{Leo-modified} is consistent with it.
+\alg{Leo-modified} might reorder prediction Earley items,
+adding earlier than in \Leo{}.
+[ Finish this. ]
+\end{proof}
 
 \begin{theorem}
 $\myL{\alg{Marpa},g} = \myL{g}$
@@ -721,9 +830,6 @@ and the complexity results for
 \Rubyslippers{} and \Marpa{}
 stand.
 
-\section{Conclusion}
-\label{s:conclusion}
-
 \bibliographystyle{plain}
 
 \begin{thebibliography}{10}
@@ -750,9 +856,9 @@ Dirk~Grune and Ceriel~J.H Jacobs
 \newblock {\em Parsing Techniques: A Practical Guide}.
 \newblock Springer, Amsterdam, 2008.
 
-\bibitem{JK2011}
+\bibitem{Marpa-XS}
 Jeffrey~Kegler, 2011: Marpa-XS-1.002000.
-\newblock [Available online at http://search.cpan.org/dist/Marpa-XS/.]
+\newblock [ Available online at http://search.cpan.org/dist/Marpa-XS/. ]
 
 \bibitem{Leo1991}
 J.~M. I.~M. Leo.
