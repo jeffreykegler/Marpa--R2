@@ -59,7 +59,7 @@
 
 \begin{document}
 
-\title{The Marpa Recognizer}
+\title{Marpa, a practical general parser: the recognizer}
 
 \author{Jeffrey Kegler}
 \thanks{
@@ -528,7 +528,7 @@ can result in at most $2^c$
 \AH Earley items.
 So, we have
 \begin{align}
-\order{\size{\tables{\AH,i}}} & \\
+\order{\size{\tables{\AH,i}}} 
  & = 2^c \order{\size{\tables{\Earley,i}}} \\
  & = \order{\size{\tables{\Earley,i}}}
 \end{align}
@@ -637,19 +637,36 @@ than $i$ are added.
 \section{Marpa recognizer correctness}
 \label{s:marpa:correctness}
 
-\subsection{The Earley operations produce the Earley items}
+\subsection{Proof strategy}
 
-\Marpa's operations may be divided into
-two types: those it inherits from the traditional \Earley,
-and those it inherits from Leo.
-This section shows that the operations that \Marpa{}
-inherits from Earley's algorithm produce AH Earley items
-which translate to the same Earley items as those of \Earley.
-This result will be used in a proof by induction that
-the combined Leo and traditional Earley operations of
-\Marpa{} are correct,
-so care is taken about the order in which the results
-enter the Earley sets.
+Marpa's correctness will shown based the correctness
+proved for \Leo in~\cite{Leo1991}.
+An inductive proof with recognizer operations as steps,
+but in order for the induction to work,
+the operations of \Marpa and \Leo must be dealt with
+as if they occurred in the same order.
+This will be accomplished by constructing two
+recognizers, \alg{Marpa-ordered} and \alg{Leo-ordered}.
+These will be variants, respectively, of 
+\alg{Marpa} and \alg{Leo},
+with a well-defined and identical order
+of operations.
+
+Call two recognizers correctness-equivalent if and only
+they accept the same languages.
+\alg{Marpa-ordered} will be shown to be
+correctness-equivalent to \Marpa,
+and 
+\alg{Leo-ordered} will be shown to be
+correctness-equivalent to \Leo.
+Then the proof
+of correctness-equivalence
+between 
+\alg{Marpa-ordered} and \alg{Leo-ordered}
+will be done,
+by induction on the recognizer operations.
+
+\subsection{The ordered Leo recognizer}
 
 We define a new algorithm,
 \alg{Leo-ordered} based on \Leo.
@@ -813,9 +830,165 @@ From the foregoing, we see that all
 the steps of \Leo{} are either omitted
 without effect,
 or executed as specified in \Leo{}.
-Therefore \alg{Leo-modified} produces at least those
+Therefore \alg{Leo-ordered} produces at least those
 Earley items produced by \Leo.
 \end{proof}
+
+\section{Tagged Earley item sequence correctness}
+
+It is necessary to show that the tagged Earley item sequences
+in \alg{Leo-ordered} are complete and consistent --
+that is, they they contain all, and only
+the dotted rules for the appropriate AHFA state.
+Because dotted rules can appear in more than one AHFA state,
+the dotted rules which co-occur may not be the full
+set in an AHFA-pair, 
+and also can be a subset of more than one AHFA-pair.
+
+\begin{lemma}
+All the
+Marpa-valid tagged Earley items 
+in a tagged Earley item sequence are consistent --
+they correspond
+to the dotted rules of a single AHFA state pair.
+\end{lemma}
+
+\begin{proof}
+As a reminder, a tagged Earley item is Marpa-valid
+if it does not have a nullable postdot symbol.
+Consider the set of EIMT's that result from
+the $\epsilon$-transitions of a single EIMT.
+(In the trivial case, where there are no nullable
+symbols before or after the dot, the only member
+of this set is the original EIMT.)
+Only one member of this set can be a Marpa-valid EIMT.
+For the purpose of this proof,
+every member of this set
+can be considered as the equivalent of the Marpa-valid
+EIMT and duplicates can be ignored.
+
+We now show, by induction,
+that the EIMT buffer will never become inconsistent.
+We take as the basis of the induction the introduction
+of the first EIMT.
+Trivially, a buffer with a single EIMT is consistent.
+We take as the induction hypothesis that the buffer is
+consistent,
+and show the induction step by cases.
+
+Marpa-valid items added to the EIMT buffer after
+the first are either co-occurring EIMT's,
+or are EIMT's with the same AHFA-causality.
+If an EIMT is added because it
+co-occurs with an EIMT previously added
+to the sequence,
+it belongs to the same AHFA pair as
+the EIMT previously added.
+Therefore, the buffer remains consistent.
+
+The remaining case is that where
+a newly added EIMT shares the same AHFA-causality as an
+Earley item already added to the sequence.
+The definition of AHFA-causality tracks the
+definition of the AHFA,
+so that Two EIMT's with the same AHFA-causality must
+belong to the same AHFA pair.
+The buffer will remain consistent.
+
+These two cases show the induction step,
+and complete the inductnion and the proof.
+\end{proof}
+
+\begin{lemma}
+Each sequence of tagged Earley items 
+is complete -- it contains
+all the dotted rules of some AHFA state pair.
+\end{lemma}
+
+\begin{proof}
+We will show this by induction on the Earley sets.
+The induction hypothesis is that any EIMT that
+has left the buffer and been added to an Earley set
+is part of a complete EIMT sequence.
+
+As the basis of the induction.
+Earley set 0 contains only one EIMT sequence,
+and this contains a predicted start rule,
+and EIMT's for its co-occurring dotted rules.
+The predicted start rule does not appear in more
+than one AHFA pair, and therefore its
+co-occurring dotted rules are the full 
+set of rules for that AHFA pair.
+
+The dotted rules in every AHFA pair can be seen as
+effects and first causes.
+If all those dotted rules which are first causes
+are present, then clearly all their effects will be.
+The initial AHFA was dealt with in the basis
+of the induction.
+For all others, the predicted rules are effects
+of the discovered rules.
+So to show the induction step, we must show that 
+the discovered rules in an EIMT sequence will be the
+full set of discovered rules for some AHFA state.
+
+Consider the scan of a particular token.
+By the definition of \alg{Leo-ordered},
+the scan considers its
+predecessor Earley items in an order
+which ensures that, if predecessor EIMT's
+are part of a single EIMT sequence
+are considered in sequence.
+This ensures that all cases of the same AHFA
+causality are considered in sequence.
+
+By construction of an AHFA, all discovered dotted
+rules are transitions over a single symbol from
+exactly one other AHFA state.
+Scans are always of non-nullable symbols,
+so that predecessor EIMT's are in the Earley
+set prior to the current one,
+and therefore by the induction hypothesis,
+must be part of a complete EIMT sequence.
+Therefore the scan will examine
+a predecessor corresponding to every dotted rule of
+the predecessor AHFA state,
+and will add to the sequence in the buffer
+an EIMT corresponding to every dotted rule
+that results from 
+the transition from the predecessor AHFA over
+the scanned symbol.
+We know that this new set of discovered rules
+correspond to an AHFA state because,
+for every possible transition from
+an AHFA state,
+the construction of an AHFA ensures that
+a "to-state" exists.
+(In effect, the scan duplicates the construction
+of the AHFA.)
+
+The proof for the completion operation
+is the same as that for the scan operation.
+For the completion operation, we can also
+assume that the predecessor EIMT's are part
+of a complete EIMT sequence,
+though the argument is slightly different.
+In the case of completions,
+we know
+that AHFA transitions are always
+over non-nullable symbols,
+and therefore that the predecessor EIMT's are
+in a previous Earley set.
+From these, and the induction hypothesis,
+we can assume the predecessor EIMT sequence
+is complete.
+
+This completes the induction step, the induction
+and the proof.
+
+\end{proof}
+
+\section{Ordered Leo Correctness}
 
 \begin{theorem}
 $\myL{\alg{Marpa},g} = \myL{g}$
