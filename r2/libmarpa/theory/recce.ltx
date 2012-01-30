@@ -41,7 +41,6 @@
 \newcommand{\Earley}{\ensuremath{\alg{Earley}}}
 \newcommand{\Leo}{\ensuremath{\alg{Leo}}}
 \newcommand{\Marpa}{\ensuremath{\alg{Marpa}}}
-\newcommand{\Rubyslippers}{\ensuremath{\alg{Ruby-Slippers}}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -95,8 +94,8 @@ which can be an extremely powerful technique.
 This a very early draft of this paper,
 and is largely unchecked.
 The spirit and culture of the open source community
-currently dictates that works of this kind and at
-this very early stage be made
+dictates that works of this kind and
+at even this very early stage be made
 available on-line in public repositories.
 The reader should see the availability of this document
 as compliance with that spirit and culture,
@@ -112,7 +111,7 @@ as widely available as yacc or
 regular expressions.
 The Marpa project was begun to end this neglect by
 pulling the best results from the literature,
-and to turn them into a widely-available tool.
+and to turning them into a widely-available tool.
 A stable version of this tool, Marpa::XS~\cite{Marpa-XS},
 was uploaded to the CPAN Perl archive
 on Solstice Day in 2011.
@@ -319,11 +318,11 @@ $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 
 \section{The Leo algorithms}
 
-\section{The Ruby Slippers Recognizer}
+\section{The Marpa Recognizer}
 \label{s:recce}
 
 \begin{algorithm}[H]
-\caption{Ruby Slippers Initialization}\label{a:rs:initial}
+\caption{Marpa Initialization}\label{a:initial}
 \begin{algorithmic}[1] 
 \Procedure{Initial}{$i,a$}
 \State \Call{AddItems}{$0, \ah{start}, 0$}
@@ -332,7 +331,7 @@ $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 \end{algorithm}
 
 \begin{algorithm}[H]
-\caption{Ruby Slippers Scanning}\label{a:rs:scan}
+\caption{Marpa Scanning}\label{a:scan}
 \begin{algorithmic}[1] 
 \Procedure{Scan}{$i,a$}
 \Comment{Scan a token $a$, which starts at Earley set $i$}
@@ -345,7 +344,7 @@ $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 \end{algorithm}
 
 \begin{algorithm}[H]
-\caption{Ruby Slippers Completion}\label{a:rs:complete}
+\caption{Marpa Completion}\label{a:complete}
 \begin{algorithmic}[1] 
 \Procedure{Complete}{$i_{LOC}$}
 \For{each Earley item $\eim{work} \in ES[i]$}
@@ -362,7 +361,7 @@ $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 \end{algorithm}
 
 \begin{algorithm}[H]
-\caption{Ruby Slippers, Adding EIM Pairs}\label{a:rs:pair}
+\caption{Adding EIM Pairs}\label{a:pair}
 \begin{algorithmic}[1] 
 \Function{Add EIM Pair}{$i_{LOC},\ah{discovered},origin_{LOC}$}
 \State $\ah{predicted} \gets \Lambda$
@@ -761,8 +760,8 @@ $\myL{\alg{Marpa},g} = \myL{g}$
 \section{Marpa recognizer time complexity}
 \label{s:marpa:complexity}
 
-\begin{theorem}\label{t:rs:constant-per-EIM}
-All time in \Rubyslippers{} can be allocated
+\begin{theorem}\label{t:constant-per-EIM}
+All time in \Marpa{} can be allocated
 to the Earley items,
 and in such a way that processing each Earley item
 requires $\order{1}$ time.
@@ -774,7 +773,7 @@ the traditional Earley recognizer
 for its operations
 operations can be done in amortized $\order(1)$
 time per Earley item~\cite[Vol. 1, pages 326-327]{AU1972}.
-Inspection of the algorithm for \Rubyslippers{} will show
+Inspection of the algorithm for \Marpa{} will show
 that any operations considered to be new to it
 can be assigned to the Earley items in
 an obivous way,
@@ -785,7 +784,7 @@ trivially shown to be $\order{1}$.
 \begin{theorem}
 For all context-free grammars,
 the time and space complexity
-of \Rubyslippers{} is as good or better
+of \Marpa{} is as good or better
 than that of Earley's algorithm.
 \end{theorem}
 
@@ -798,17 +797,17 @@ $\order{1}$ time and
 $\order{1}$ space
 for each Earley
 item.~\cite[Vol. 1, pages 325-327]{AU1972}.
-By Theorem \ref{a:rs:eim-order},
+By Theorem \ref{a:eim-order},
 for any grammar, the order of the number of Earley
-items is the same in \Rubyslippers{} as it is
+items is the same in \Marpa{} as it is
 in $\Earley$.
 It is trivial to show that the space requirements for
-\Rubyslippers{} are $\order{1}$ time for each Earley item.
-By Theorem ref{t:rs:constant-per-EIM},
+\Marpa{} are $\order{1}$ time for each Earley item.
+By Theorem ref{t:constant-per-EIM},
 the time requirements for
-\Rubyslippers{} are also $\order{1}$ for each Earley item.
+\Marpa{} are also $\order{1}$ for each Earley item.
 Therefore the time and space complexity results for $\Earley$
-hold for \Rubyslippers.
+hold for \Marpa.
 \end{proof}
 
 \begin{theorem}
@@ -887,8 +886,7 @@ and the number of lookahead sets in play at that location
 is less than a finite constant,
 then Earley items can be added in amortized constant time
 and the complexity results for
-\Rubyslippers{} and \Marpa{}
-stand.
+\Marpa{} stand.
 
 \bibliographystyle{plain}
 
