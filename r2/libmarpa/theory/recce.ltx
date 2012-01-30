@@ -219,7 +219,7 @@ Where $\alg{Recce}$ is a recognizer,
 $\myL{\alg{Recce},g}$ will be the language accepted by $\alg{Recce}$
 when parsing grammar $g$.
 
-\section{AHFA States}
+\section{The AHFA Finite Automatio}
 \label{s:AHFA}
 
 In this paper a
@@ -264,6 +264,50 @@ The original Earley items could be represented as $(r_{DOTTED}, origin)$
 duples, where $r_{DOTTED}$ is a dotted rule.
 Aycock and Horspool modified their Earley items to be $(\ah{L}, origin)$
 duples, where $\ah{L}$ is an AHFA state.
+
+It is important to note that
+an AHFA is not a partition of the dotted
+rules --
+a single dotted rule can occur
+in more than one AHFA state.
+This does not happen frequently,
+but it does happens often enough,
+even in practical grammars,
+that the Marpa implementation has to provide for it.
+
+What does not seem to happen in practical grammars
+the size of \AH Earley set to grow larger
+than that of one of Earley's original sets.
+That is, it seems the AHFA is always a win,
+at least for practical grammars.
+
+Use of the AHFA states in EIM's can
+be proved to be break-even for
+time and space complexity purposes.
+The next observation is useful for that purpose.
+
+\begin{lemma}
+Let $\var{S-t}$ be a set of traditional Earley items
+$[\dot{r}, origin]$
+at parse location $i$,
+Let $\var{S-m}$ be a set of Marpa's Earley items
+$[\ah{state}, origin]$
+formed by grouping the dotted rules of $\var{S-t}$
+into AHFA states.
+Then 
+$\size{\var{S-t}} < c \times \size{\var{S-m}}$,
+where $c$ is the number of AHFA states.
+\end{lemma}
+
+\begin{proof}
+The worst case is that every rule of 
+$\var{S-t}$ has a different $origin$,
+Worst case for grouping dotted rules into $c$ unique states
+is that every dotted rule appears in $c - 1$ states.
+$\size{\var{S-t}} < c \times \size{\var{S-m}}$.
+\end{proof}
+
+\section{The Leo algorithms}
 
 \section{The Ruby Slippers Recognizer}
 \label{s:recce}
@@ -331,278 +375,8 @@ duples, where $\ah{L}$ is an AHFA state.
 \end{algorithmic} 
 \end{algorithm} 
 
-\section{Ruby Slippers Correctness}
-\label{s:leo:proof}
-
-In this section I will show that a
-Ruby Slippers
-parse engine without Leo items
-produces the same Earley items
-as AH2002,
-so that
-correctness follows
-from the correctness proofs
-in AH2002\cite{AH2002}.
-In the following,
-$\es{AH[i]}$ is Earley set $i$ according
-to AH2002;
-$\es{RS[i]}$ is Earley set $i$ according
-to the Ruby Slippers algorithm;
-and $\scanned(\es{x})$ is the subset
-of $\es{x}$,
-that consists of all, and of only,
-the its scanned Earley items.
-Let the induction hypothesis, $Hyp(n)$ be
-$\forall i, 0<i<n, \es{AH[i]} = \es{RS[i]}$.
-
-\begin{lemma}\label{t:rs:correctness:basis}
-$Hyp(0)$
-\end{lemma}
-\begin{proof}
-Note that Earley set 0 never contains scanned items.
-By inspection of \ref{a:rs:initial},
-and comparision with AH2002, we have
-$\es{AH[0]} = \es{RS[0]}$.
-\end{proof}
-
-\begin{lemma}\label{t:rs:correctness:step1}
-In \Rubyslippers,
-Let $t-before$ be the point in time just before a call 
-to
-$\call{Scan}{i,\term{input[i]}}$,
-and $t-after$ the point just after.
-If $\Hyp(i)$ at $t-before$,
-then at $t-after$
-$$ \Hyp(i) \wedge \tables{\AH, i+1} = \tables{\Rubyslippers, i+1} $$
-\end{lemma}
-\begin{proof}
-From inspection of \ref{a:rs:scan}
-and comparision with AH2002.
-\end{proof}
-
-\begin{lemma}\label{t:rs:correctness:step2}
-\begin{multline*}
-\Hyp(i) \wedge \scanned(\es{AH[i+1]}) = \scanned(\es{RS[i+1]})
-\wedge \call{Complete}{i+1} \Longrightarrow \\
-\Hyp(i+1)
-\end{multline*}
-\end{lemma}
-\begin{proof}
-From inspection of \ref{a:rs:complete}
-and comparision with AH2002.
-\end{proof}
-
-\begin{theorem}\label{t:rs:ah-reduction}
-$\forall n( 0<n<\size{input} \implies \Hyp(n))$
-\end{theorem}
-
-\begin{proof}
-By induction, with \ref{t:rs:correctness:basis}
-as the basis and 
-\ref{t:rs:correctness:step1}
-and 
-\ref{t:rs:correctness:step2}
-as the steps.
-\end{proof}
-
-\begin{theorem}\label{t:ah:correct}
-$\myL{\AH ,g} = \myL{g}$
-\end{theorem}
-
-\begin{proof}
-This is asserted in~\cite{AH2002},
-and follows
-from the formally stated theorems
-and the detailed construction of the
-AHFA presented in that paper.
-\end{proof}
-
-\begin{theorem}
-$\myL{\Rubyslippers ,g} = \myL{g}$
-\end{theorem}
-
-\begin{proof}
-From Theorem
-\ref{t:ah:correct}
-and Theorem
-\ref{t:rs:ah-reduction}.
-\end{proof}
-
-\section{Ruby Slippers time complexity}
-\label{s:rs:complexity}
-
-\begin{theorem}
-For all $\loc{i}$,
-$\size{\tables{\Rubyslippers,i}} = \size{\tables{\AH,i}}$
-\end{theorem}
-
-\begin{proof}
-From Theorem \ref{t:rs:ah-reduction}.
-\end{proof}
-
-On \cite[page 626]{AH2002} it is stated that
-"[i]n the worst case,
-each split LR(0) $\epsilon$-DFA
-state
-would contain a single item,
-effectively reducing it to Earley's
-original algorithm".
-(In this paper,
-n split LR(0) $\epsilon$-DFA is called an AHFA.)
-No argument is presented for this statement.
-In fact, an AHFA is not a partition of the dotted
-rules, and
-a single dotted rule can occur
-in more than one AHFA state.
-This does not happen frequently,
-but it does happens often enough,
-even in practical grammars,
-that the Marpa implementation has to provide for it.
-
-What does not seem to happen in practical grammars
-the size of \AH Earley set to grow larger
-than that of one of Earley's original sets.
-That is, it seems the AHFA is always a win,
-at least for practical grammars.
-
-What can be shown is that the time and space
-complexity of \AH is never worse than that of $\Earley$.
-The next lemma is sufficient for that purpose.
-
-\begin{lemma}
-For all $\loc{i}$,
-$\order{\size{\tables{\AH,i}}} = \order{\size{\tables{\Earley,i}}}$
-\end{lemma}
-
-A dotted rule with the dot before the first
-non-nullable symbol is called a prediction.
-A dotted rule with the dot after the last symbol of
-a rule is called a prediction.
-In the proof,
-a dotted rule that is not a prediction will
-be called a kernel rule.
-In \AH, \Rubyslippers{} and \Marpa,
-there are no dotted rules with the dot before
-a nulling symbol.
-Informally, nulling symbols can said to be "skipped".
-
-Progress through a rule can be thought of as moving the
-dot forward over one of the rule's symbols.
-Consider a dotted rule $\aim{\var{d-to}}$
-results from moving the dot forward,
-skipping nulling symbols,
-from another dotted rule
-$\aim{\var{d-from}}$.
-$\aim{\var{d-from}}$ is called the predecessor
-of $\aim{\var{d-to}}$; and
-$\aim{\var{d-to}}$ is called the successor
-of $\aim{\var{d-from}}$.
-
-\begin{proof}
-AHFA states are of two types: predicted and discovered.
-Predicted AHFA state are
-those which contain predictions (the initial states and the non-kernel states).
-Discovered AHFA state are
-and those which do not (non-initial kernel states).
-The predicted AHFA states are constructed from sets of symbols
-by a transitive closure operation,
-and therefore there cannot be more than $2^c$ predicted AHFA states,
-where $c$ is the number of LHS symbols.
-Since only a predicted AHFA state can contain a prediction,
-no prediction occurs in more than $2^c$ AHFA states.
-
-Kernel rules are subject to the same bound:
-no kernel rule occurs in more than $2^c$ AHFA states.
-This can be shown from the construction of the AHFA states.
-Each occurrence of a kernel rule in an AFHA state is
-is the product of a transition from another
-AHFA state over a symbol.
-Each such transition puts the new kernel rule into
-at most one new AHFA state.
-There for, for each predecessor dotted rule,
-there can be at most one successor.
-
-Each traditional Earley item has a single dotted rule,
-so that a translation from a traditional Earley items
-can result in at most $2^c$
-\AH Earley items.
-So, we have
-\begin{align}
-\order{\size{\tables{\AH,i}}} 
- & = 2^c \order{\size{\tables{\Earley,i}}} \\
- & = \order{\size{\tables{\Earley,i}}}
-\end{align}
-
-\end{proof}
-
-\begin{theorem}\label{t:rs:constant-per-EIM}
-All time in \Rubyslippers{} can be allocated
-to the Earley items,
-and in such a way that processing each Earley item
-requires $\order{1}$ time.
-\end{theorem}
-
-\begin{proof}
-It is known that the time taken by
-the traditional Earley recognizer
-for its operations
-operations can be done in amortized $\order(1)$
-time per Earley item~\cite[Vol. 1, pages 326-327]{AU1972}.
-Inspection of the algorithm for \Rubyslippers{} will show
-that any operations considered to be new to it
-can be assigned to the Earley items in
-an obivous way,
-and 
-trivially shown to be $\order{1}$.
-\end{proof}
-
-\begin{theorem}
-For all context-free grammars,
-the time and space complexity
-of \Rubyslippers{} is as good or better
-than that of Earley's algorithm.
-\end{theorem}
-
-\begin{proof}
-The time and space complexity
-results for $\Earley$ are based
-on establishing the order of the number of Earley items,
-and showing that $\Earley$ takes
-$\order{1}$ time and 
-$\order{1}$ space
-for each Earley
-item.~\cite[Vol. 1, pages 325-327]{AU1972}.
-By Theorem \ref{a:rs:eim-order},
-for any grammar, the order of the number of Earley
-items is the same in \Rubyslippers{} as it is
-in $\Earley$.
-It is trivial to show that the space requirements for
-\Rubyslippers{} are $\order{1}$ time for each Earley item.
-By Theorem ref{t:rs:constant-per-EIM},
-the time requirements for
-\Rubyslippers{} are also $\order{1}$ for each Earley item.
-Therefore the time and space complexity results for $\Earley$
-hold for \Rubyslippers.
-\end{proof}
-
-\section{The Marpa recognizer}
-\label{s:rs}
-
-\section{The "as-if" ordering}
-\label{s:rs}
-
-The correctness proof of \Marpa{}
-will proceed by
-induction on an "as-if" reordering of
-the operations in both \Leo{}
-and \Marpa{}.
-This ordering is not the actual one
-used in either algorithm,
-but it can be shown that,
-once parsing is complete,
-the ordering is that same "as if"
-the actual \Marpa{} and \Leo{} 
-ordering were used.
+\section{Marpa recognizer correctness}
+\label{s:marpa:correctness}
 
 As mentioned, Marpa grammars are 
 rewritten to eliminate proper nullable
@@ -616,26 +390,6 @@ A non-kernel state never has an $\epsilon$ transition,
 so and the $\epsilon$ transitions can be seen
 as defined a partition of AHFA states into
 sets of cardinality 1 or 2.
-
-This following restrictions on the order
-of operations in \Marpa{} exist:
-
-\begin{itemize}
-\item The initial EIM pair  must be created first.
-\item For every location $i$,
-all scanned EIM pairs must be added before any
-completed EIM pairs.
-\item For every location $i$,
-all completed EIM pairs must be added before
-the Leo items at $i$ can be determined.
-\item For every location $i$,
-All EIM pairs must be added at location $i$,
-before any scanned items at locations greater
-than $i$ are added.
-\end{itemize}
-
-\section{Marpa recognizer correctness}
-\label{s:marpa:correctness}
 
 \subsection{Proof strategy}
 
@@ -996,6 +750,56 @@ $\myL{\alg{Marpa},g} = \myL{g}$
 
 \section{Marpa recognizer time complexity}
 \label{s:marpa:complexity}
+
+\begin{theorem}\label{t:rs:constant-per-EIM}
+All time in \Rubyslippers{} can be allocated
+to the Earley items,
+and in such a way that processing each Earley item
+requires $\order{1}$ time.
+\end{theorem}
+
+\begin{proof}
+It is known that the time taken by
+the traditional Earley recognizer
+for its operations
+operations can be done in amortized $\order(1)$
+time per Earley item~\cite[Vol. 1, pages 326-327]{AU1972}.
+Inspection of the algorithm for \Rubyslippers{} will show
+that any operations considered to be new to it
+can be assigned to the Earley items in
+an obivous way,
+and 
+trivially shown to be $\order{1}$.
+\end{proof}
+
+\begin{theorem}
+For all context-free grammars,
+the time and space complexity
+of \Rubyslippers{} is as good or better
+than that of Earley's algorithm.
+\end{theorem}
+
+\begin{proof}
+The time and space complexity
+results for $\Earley$ are based
+on establishing the order of the number of Earley items,
+and showing that $\Earley$ takes
+$\order{1}$ time and 
+$\order{1}$ space
+for each Earley
+item.~\cite[Vol. 1, pages 325-327]{AU1972}.
+By Theorem \ref{a:rs:eim-order},
+for any grammar, the order of the number of Earley
+items is the same in \Rubyslippers{} as it is
+in $\Earley$.
+It is trivial to show that the space requirements for
+\Rubyslippers{} are $\order{1}$ time for each Earley item.
+By Theorem ref{t:rs:constant-per-EIM},
+the time requirements for
+\Rubyslippers{} are also $\order{1}$ for each Earley item.
+Therefore the time and space complexity results for $\Earley$
+hold for \Rubyslippers.
+\end{proof}
 
 \begin{theorem}
 For all context-free grammars,
