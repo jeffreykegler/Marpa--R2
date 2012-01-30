@@ -27,7 +27,7 @@
 \newcommand{\ep}{\varepsilon}
 
 \newcommand{\ah}[1]{#1_{AH}}
-\newcommand{\aim}[1]{#1_{AIM}}
+\newcommand{\dr}[1]{#1_{DR}}
 \newcommand{\eim}[1]{#1_{EIM}}
 \newcommand{\es}[1]{#1_{ES}}
 \newcommand{\loc}[1]{#1_{LOC}}
@@ -287,16 +287,26 @@ time and space complexity purposes.
 The next observation is useful for that purpose.
 
 \begin{lemma}
-Let $\var{S-t}$ be a set of traditional Earley items
-$[\dot{r}, origin]$
-at parse location $i$,
-Let $\var{S-m}$ be a set of Marpa's Earley items
-$[\ah{state}, origin]$
-formed by grouping the dotted rules of $\var{S-t}$
-into AHFA states.
+Let $g$ be a grammar as defined in this
+document,
+and let $fa$ be the AHFA for this grammar.
+Let $\var{S-t}$ be
+Earley set $i$ of a traditional earley parse.
+Let $\var{S-m}$ be an set
+of Earley items of the Aycock-Horspool form (EIMA),
+such that
+\begin{gather*}
+\forall r, origin
+\exists \ah{state} \sep \\
+[\dr{r}, origin] \in \var{S-t} \\
+\implies
+\ah{state} \in fa
+\land \dr{r} \in \ah{state}
+\land [\ah{state}, origin] \in \var{S-m}
+\end{gather*}
 Then 
-$\size{\var{S-t}} < c \times \size{\var{S-m}}$,
-where $c$ is the number of AHFA states.
+$\size{\var{S-m}} < c \times \size{\var{S-t}}$,
+where $c$ is the number of states in $fa$.
 \end{lemma}
 
 \begin{proof}
