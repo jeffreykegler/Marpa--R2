@@ -31,7 +31,7 @@
 \newcommand{\loc}[1]{#1_{LOC}}
 \newcommand{\production}[1]{#1_{RULE}}
 \newcommand{\sym}[1]{#1_{SYM}}
-\newcommand{\vsym}[1]{\ensuremath{var{#1}_{SYM}}}
+\newcommand{\vsym}[1]{\ensuremath{\var{#1}_{SYM}}}
 \newcommand{\symset}[1]{#1_{\lbrace SYM \rbrace} }
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
@@ -146,9 +146,9 @@ For the purposes of this document consider,
 without loss of generality,
 a grammar $g$,
 and a set of symbols, $alphabet$.
-Call the language of $g$, $\myL{g}$,
+Call the language of \var{g}, $\myL{g}$,
 where $\myL{g} \in alphabet^\ast$
-Let its input be $w$, $w \in alphabet$.
+Let its input be \var{w}, $\var{w} \in \var{alphabet}^\ast$.
 Divide $alphabet$ into two disjoint sets,
 $lh$ and $term$.
 
@@ -163,7 +163,7 @@ $r$ is referred to as the right hand side (RHS)
 of $Rule$.
 This definition differs from the traditional one in
 that the empty RHS is not allowed.
-Let one symbol $\sym{start}$, $\sym{start} \in lh$,
+Let one symbol \vsym{start}, $\vsym{start} \in lh$,
 be a dedicated start symbol.
 
 The grammar $g$ can be defined as the 4-tuple
@@ -171,11 +171,11 @@ $(lh, term, rules, \sym{start})$.
 Without loss of generality,
 it is assumed that $g$ is "augmented",
 so that there is a rule $\vsym{start} \de \vsym{old-start}$,
-and that $\sym{start}$ is not the LHS of any other rule,
+and that \vsym{start} is not the LHS of any other rule,
 or in the RHS of any rule.
 
-I was already noted
-that no rules of $g$ is allowed to be empty -- to
+We have already noted
+that no rules of \var{g}
 have a zero-length RHS.
 Further, no symbol may be a proper nullable --
 all symbol must be either nulling or non-nullable.
