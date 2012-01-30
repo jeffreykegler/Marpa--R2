@@ -26,13 +26,14 @@
 
 \newcommand{\ah}[1]{#1_{AH}}
 \newcommand{\dr}[1]{#1_{DR}}
-\newcommand{\vdr}[1]{\ensuremath{\var{#1}_{DR}}}
+\newcommand{\Vdr}[1]{\ensuremath{\var{#1}_{DR}}}
 \newcommand{\eim}[1]{#1_{EIM}}
+\newcommand{\Veim}[1]{\ensuremath{\var{#1}_{EIM}}}
 \newcommand{\es}[1]{#1_{ES}}
 \newcommand{\loc}[1]{#1_{LOC}}
-\newcommand{\production}[1]{#1_{RULE}}
+\newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
 \newcommand{\sym}[1]{#1_{SYM}}
-\newcommand{\vsym}[1]{\ensuremath{\var{#1}_{SYM}}}
+\newcommand{\Vsym}[1]{\ensuremath{\var{#1}_{SYM}}}
 \newcommand{\symset}[1]{#1_{\lbrace SYM \rbrace} }
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
@@ -164,15 +165,15 @@ $r$ is referred to as the right hand side (RHS)
 of $Rule$.
 This definition differs from the traditional one in
 that the empty RHS is not allowed.
-Let one symbol \vsym{start}, $\vsym{start} \in lh$,
+Let one symbol \Vsym{start}, $\Vsym{start} \in lh$,
 be a dedicated start symbol.
 
 The grammar $g$ can be defined as the 4-tuple
 $(lh, term, rules, \sym{start})$.
 Without loss of generality,
 it is assumed that $g$ is "augmented",
-so that there is a rule $\vsym{start} \de \vsym{old-start}$,
-and that \vsym{start} is not the LHS of any other rule,
+so that there is a rule $\Vsym{start} \de \Vsym{old-start}$,
+and that \Vsym{start} is not the LHS of any other rule,
 or in the RHS of any rule.
 
 We have already noted
@@ -257,8 +258,8 @@ the size of Earley sets could be reduced,
 and Earley's algorithm made faster in practice.
 In short, then, AHFA states are a shorthand that Earley items
 can use for groups of dotted rules that occur together frequently.
-The original Earley items could be represented as $(\vdr{r}, origin)$
-duples, where \vdr{r} is a dotted rule.
+The original Earley items could be represented as $(\Vdr{r}, origin)$
+duples, where \Vdr{r} is a dotted rule.
 Aycock and Horspool modified their Earley items to be $(\ah{L}, origin)$
 duples, where $\ah{L}$ is an AHFA state.
 
@@ -295,10 +296,10 @@ such that
 \begin{gather*}
 \forall r, origin
 \exists \ah{state} \sep \\
-[\vdr{r}, origin] \in \var{S-t} \\
+[\Vdr{r}, origin] \in \var{S-t} \\
 \implies
 \ah{state} \in fa
-\land \vdr{r} \in \ah{state}
+\land \Vdr{r} \in \ah{state}
 \land [\ah{state}, origin] \in \var{S-m}
 \end{gather*}
 Then 
@@ -314,7 +315,73 @@ is that every dotted rule appears in $c - 1$ states.
 $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 \end{proof}
 
-\section{The Leo algorithms}
+\section{The Leo algorithm}
+
+\begin{theorem}
+If a Marpa Earley item (EIMM) is a Leo completion,
+its AHFA state contains only one dotted rule.
+\end{theorem}
+
+\begin{proof}
+Suppose, for a reduction to absurdity,
+that \Veim{e} is a EIMM,
+and that it contains dotted rules \Vdr{complete}
+and \Vdr{other},
+$\Vdr{complete} \neq \Vdr{other}$,
+and \Vdr{complete} is a completion.
+Let \Vrule{c} be the rule of \Vdr{complete},
+and \var{cp} its dot position.
+Similarly, let
+\Vrule{o} be the rule of \Vdr{other},
+and \var{op} its dot position.
+$\var{cp} > 0$ because completions are never
+predictions.
+$\var{op} > 0$ because no prediction ever appears
+in the same AHFA state as a completion.
+
+To create a contradiction, we first prove that
+$\Vrule{c} \neq \Vrule{o}$,
+then that 
+$\Vrule{c} = \Vrule{o}$.
+
+By the construction of an AHFA
+state, both resulted from the same series
+of transitions.
+But the same series of transitions over the
+same rule would result in the same dot position,
+$\var{cp} = \var{op}$
+so that if $\Vrule{c} = \Vrule{o}$,
+$\Vdr{complete} = \Vdr{other}$,
+which is contrary to the assumption for the reduction.
+Therefore, under the assumption for the reduction,
+$\Vrule{c} \neq \Vrule{o}$.
+
+Next we show that, under the assumption for the reduction,
+that $\Vrule{c} = \Vrule{o}$
+follows from Leo's uniqueness requirement.
+Since 
+\Vdr{complete} and \Vdr{other} are in the same
+EIMM, they share the same origin.
+Since they are in the same EIMM and are not predictions,
+they must result from transitions,
+and their transitions must have been from the same Earley set
+and over the same transition symbol.
+Leo requires that, for each Earley set, origin, and transition symbol,
+that the transition be from a single rule.
+The assumption for the reduction is that \Vdr{complete}
+and \Vdr{other} are in the same Leo completion state,
+and in order for them to have obeyed the Leo uniqueness
+requirement,
+we have $\Vrule{c} = \Vrule{o}$.
+
+We now have both
+$\Vrule{c} = \Vrule{o}$
+and 
+$\Vrule{c} \neq \Vrule{o}$,
+completing the reduction to absurdity.
+When \Vdr{complete} is in a Leo completion EIMM,
+it must be the only dotted rule in that EIMM.
+\end{proof}
 
 \section{The Marpa Recognizer}
 \label{s:recce}
@@ -346,7 +413,7 @@ $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 \begin{algorithmic}[1] 
 \Procedure{Complete}{$i_{LOC}$}
 \For{each Earley item $\eim{work} \in ES[i]$}
-\For{each completed rule, $\production{C}$}
+\For{each completed rule, $\Vrule{C}$}
 \For{each $\eim{predecessor} \in ES[\operatorname{Origin-of} \eim{work}]$}
 \State $\ah{to} \gets GOTO(\operatorname{AHFA-of} \eim{predecessor}, LHS_{SYM})$
 \State \Call{Add EIM Pair}{$to_{AHFA}, \operatorname{Origin-of} \eim{predecessor}$}
