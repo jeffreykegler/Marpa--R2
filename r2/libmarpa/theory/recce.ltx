@@ -318,34 +318,38 @@ $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 \section{The Leo algorithm}
 
 \begin{theorem}
-If a Marpa Earley item (EIMM) is a Leo completion,
-its AHFA state contains only one dotted rule.
+If the AHFA state of
+a Marpa Earley item (EIMM) is the result of a
+Leo completion,
+then its AHFA state contains only one dotted rule.
 \end{theorem}
 
 \begin{proof}
-Suppose, for a reduction to absurdity,
-that \Veim{e} is a EIMM,
-and that it contains dotted rules \Vdr{complete}
-and \Vdr{other},
-$\Vdr{complete} \neq \Vdr{other}$,
-and \Vdr{complete} is a completion.
+Since the Earley item is the result of a Leo completion,
+we know that its AHFA state contains a completed rule.
+Call that completed rule, \Vdr{complete}.
 Let \Vrule{c} be the rule of \Vdr{complete},
 and \var{cp} its dot position.
-Similarly, let
-\Vrule{o} be the rule of \Vdr{other},
-and \var{op} its dot position.
 $\var{cp} > 0$ because completions are never
 predictions.
-$\var{op} > 0$ because no prediction ever appears
-in the same AHFA state as a completion.
+
+Suppose, for a reduction to absurdity,
+and that the AHFA state contains another dotted rules,
+\Vdr{other},
+$\Vdr{complete} \neq \Vdr{other}$.
+Let \Vrule{o} be the rule of \Vdr{other},
+and \var{op} its dot position.
+An AHFA construction never places predictions in the same
+AHFA state as a completion, so
+\Vdr{other} is not a prediction.
+Therefore, $\var{op} > 0$.
 
 To create a contradiction, we first prove that
 $\Vrule{c} \neq \Vrule{o}$,
 then that 
 $\Vrule{c} = \Vrule{o}$.
-
 By the construction of an AHFA
-state, both resulted from the same series
+state, both dotted rules resulted from the same series
 of transitions.
 But the same series of transitions over the
 same rule would result in the same dot position,
@@ -359,14 +363,15 @@ $\Vrule{c} \neq \Vrule{o}$.
 Next we show that, under the assumption for the reduction,
 that $\Vrule{c} = \Vrule{o}$
 follows from Leo's uniqueness requirement.
-Since 
-\Vdr{complete} and \Vdr{other} are in the same
-EIMM, they share the same origin.
-Since they are in the same EIMM and are not predictions,
-they must result from transitions,
-and their transitions must have been from the same Earley set
-and over the same transition symbol.
-Leo requires that, for each Earley set, origin, and transition symbol,
+Since both dotted rules are in the same EIMM
+and neither is a predictions,
+both must result from transitions,
+and their transitions must have been from the same Earley set.
+Since they are in the same AHFA state,
+by the AHFA construction,
+that transition must have been
+over the same transition symbol.
+Leo requires that, for each predecessor Earley set and transition symbol,
 that the transition be from a single rule.
 The assumption for the reduction is that \Vdr{complete}
 and \Vdr{other} are in the same Leo completion state,
