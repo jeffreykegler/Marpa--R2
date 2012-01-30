@@ -24,11 +24,20 @@
 
 \newcommand{\ep}{\varepsilon}
 
+\newcommand{\set}[1]{{\lbrace #1 \rbrace} }
 \newcommand{\ah}[1]{#1_{AH}}
+\newcommand{\Vah}[1]{\ensuremath{\var{#1}_{AH}}}
 \newcommand{\dr}[1]{#1_{DR}}
 \newcommand{\Vdr}[1]{\ensuremath{\var{#1}_{DR}}}
 \newcommand{\eim}[1]{#1_{EIM}}
 \newcommand{\Veim}[1]{\ensuremath{\var{#1}_{EIM}}}
+\newcommand{\Veimt}[1]{\ensuremath{\var{#1}_{EIMT}}}
+\newcommand{\Veimx}[1]{\ensuremath{\var{#1}_{EIMX}}}
+\newcommand{\Veimm}[1]{\ensuremath{\var{#1}_{EIMM}}}
+\newcommand{\Veimset}[1]{\ensuremath{\var{#1}_{\set{EIM}}}}
+\newcommand{\Veimtset}[1]{\ensuremath{\var{#1}_{\set{EIMT}}}}
+\newcommand{\Veimxset}[1]{\ensuremath{\var{#1}_{\set{EIMX}}}}
+\newcommand{\Veimmset}[1]{\ensuremath{\var{#1}_{\set{EIMM}}}}
 \newcommand{\es}[1]{#1_{ES}}
 \newcommand{\loc}[1]{#1_{LOC}}
 \newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
@@ -37,18 +46,25 @@
 \newcommand{\symset}[1]{#1_{\lbrace SYM \rbrace} }
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
-\newcommand{\alg}[1]{\textsc{#1}}
+\newcommand{\alg}[1]{\ensuremath{\textsc{#1}}}
 \newcommand{\AH}{\ensuremath{\alg{AH}}}
 \newcommand{\Earley}{\ensuremath{\alg{Earley}}}
 \newcommand{\Leo}{\ensuremath{\alg{Leo}}}
 \newcommand{\Marpa}{\ensuremath{\alg{Marpa}}}
+\newcommand{\Emulator}{\ensuremath{\alg{Emulator}}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
+
 \DeclareMathOperator{\scanned}{scanned}
 \DeclareMathOperator{\Hyp}{Hyp}
+\DeclareMathOperator{\GOTO}{GOTO}
 \newcommand\myL[1]{\operatorname{L}(#1)}
 \newcommand\tables[1]{\es{\operatorname{table}(#1)}}
 
@@ -263,6 +279,11 @@ duples, where \Vdr{r} is a dotted rule.
 Aycock and Horspool modified their Earley items to be $(\ah{L}, origin)$
 duples, where $\ah{L}$ is an AHFA state.
 
+\begin{definition}
+A dotted rule is {\bf Marpa-valid} if and only if
+it does not have a nulling postdot symbol.
+\end{definition}
+
 It is important to note that
 an AHFA is not a partition of the dotted
 rules --
@@ -406,7 +427,7 @@ it must be the only dotted rule in that EIMM.
 \Procedure{Scan}{$i,a$}
 \Comment{Scan a token $a$, which starts at Earley set $i$}
 \For{each Earley item $\eim{x}$ in $ES[i]$}
-\State $\ah{to} \gets GOTO(\operatorname{AHFA-of}(\eim{x}), a)$
+\State $\ah{to} \gets \GOTO(\operatorname{AHFA-of}(\eim{x}), a)$
 \State \Call{Add EIM Pair}{$i+1, \ah{to}, \operatorname{Origin-of}(\eim{x}$}
 \EndFor
 \EndProcedure
@@ -420,7 +441,7 @@ it must be the only dotted rule in that EIMM.
 \For{each Earley item $\eim{work} \in ES[i]$}
 \For{each completed rule, $\Vrule{C}$}
 \For{each $\eim{predecessor} \in ES[\operatorname{Origin-of} \eim{work}]$}
-\State $\ah{to} \gets GOTO(\operatorname{AHFA-of} \eim{predecessor}, LHS_{SYM})$
+\State $\ah{to} \gets \GOTO(\operatorname{AHFA-of} \eim{predecessor}, LHS_{SYM})$
 \State \Call{Add EIM Pair}{$to_{AHFA}, \operatorname{Origin-of} \eim{predecessor}$}
 \EndFor
 \EndFor
@@ -440,7 +461,7 @@ it must be the only dotted rule in that EIMM.
 \State $\eim{discovered} \gets [\ah{to}, origin_{LOC}]$
 \If{$\eim{discovered}$ is new}
 \State Add $\eim{discovered}$ to $ES[i]$
-\State $\ah{predicted} \gets GOTO(\ah{to}, \epsilon)$
+\State $\ah{predicted} \gets \GOTO(\ah{to}, \epsilon)$
 \EndIf
 \EndIf
 \If{$predicted_{AHFA} \neq \Lambda$}
@@ -478,41 +499,123 @@ An inductive proof with recognizer operations as steps,
 but in order for the induction to work,
 the operations of \Marpa and \Leo must be dealt with
 as if they occurred in the same order.
-This will be accomplished by constructing two
-recognizers, \alg{Marpa-ordered} and \alg{Leo-ordered}.
-These will be variants, respectively, of 
-\alg{Marpa} and \alg{Leo},
-with a well-defined and identical order
+This will be accomplished by constructing a third
+recognizers, \alg{Emulator}, which will,
+in effect, emulate \Marpa{} using \Leo{}.
 of operations.
 
-Call two recognizers correctness-equivalent if and only
-they accept the same languages.
-\alg{Marpa-ordered} will be shown to be
-correctness-equivalent to \Marpa,
-and 
-\alg{Leo-ordered} will be shown to be
-correctness-equivalent to \Leo.
-Then the proof
-of correctness-equivalence
-between 
-\alg{Marpa-ordered} and \alg{Leo-ordered}
-will be done,
-by induction on the recognizer operations.
-
-\subsection{The ordered Leo recognizer}
+\subsection{The emulator}
 
 We define a new algorithm,
-\alg{Leo-ordered} based on \Leo.
-Call an EIM-group an set of traditional Earley items which
-correspond to a single AH Earley item.
-We modify it so that the Earley sets are ordered,
-so that all the traditional Earley items
-from a single EIM-group occur together in the sequence.
-Where a traditional Earley item correspond to more
-than one AH Earley item in the same Earley set,
-it will occur with the first EIM-group that applies.
+\alg{Emulator}.
+\Emulator will be \Leo,
+with the following modifications and additional
+specifications.
 
-For the purpose of this section,
+\subsubsection{Calculating the AHFA}
+
+\alg{Emulator}, as part of its precomputations
+on its grammar, \var{g},
+will calculate \var{ah}, the AHFA
+It will also calculate $\GOTO: \var{ah},\var{alphabet} \mapsto \var{ah}$,
+the transition function for \var{ah}.
+
+\subsubsection{Extending the Earley items}
+
+The Earley sets of \Emulator{} will contain extended
+Earley items, EIMX's.  Each EIMX will have the form
+$$[\Vah{state}, \Vdr{dr}, \var{origin}]$$
+where \Vah{state} is an AHFA state,
+\Vdr{dr} is a dotted rule,
+\var{origin} is the origin.
+EIMX's can be viewed as
+crosses ("X") between traditional Earley items (EIMT's)
+and Marpa's Earley items (EIMM's).
+
+A set of EIMX's (\Veimset{X}) and a set of EIMT's
+(\Veimset{T})
+are congruent ($\Veimset{X} \cong \Veimset{T})$)
+if and only if
+$$\forall \Vah{x}, \Vdr{x}, \var{xorig} \sep
+\Vah{x}, \Vdr{x}, \var{xorig} \in \in \Veimxset{X} \iff
+[\Vdr{t}, \var{torig}] \in \Veimtset{T}
+$$
+
+\subsubsection{Adding extended Earley items}
+
+\Emulator applies the same logic as is described in \Leo
+in its initialization, non-nullable scan, and discovery
+operations.
+\Emulator implements the scanning of nullables and the
+its prediction operations as no-ops.
+We will show below that this is safe to do.
+
+For those operation that \Emulator does not implement
+as a no-op,
+it first calculates \Veimt{new},
+a traditional Earley item to be added.
+To do this, it treating the EIMX's in its Earley sets
+as if they were EIMT's, ignoring the AHFA state information.
+
+At the same time as it calculates \Veimt{new},
+\Emulator{} also determines \Vah{new}, the AHFA state of \Veimt{new}
+as follows:
+\begin{itemize}
+\item If it is initializing, $Vah{new} = \Vah{start}$,
+where \Vah{start} is the start AHFA state.
+\item If it is scanning \Vsym{token},
+a non-nullable token,
+$Vah{new} = \GOTO{\Vah{predecessor}, \Vsym{token}}$,
+where 
+where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
+\item If it is scanning \Vsym{null},
+an nulling token, it does nothing.
+As we will show below,
+all appropriate EIM
+\item If it is discovering, and Leo discovery does not
+apply, then
+$Vah{new} = \GOTO{\Vah{predecessor}, \Vsym{lhs}}$,
+where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
+and \Vsym{lhs} is the LHS of the completed rule.
+\item If it is discovering, and Leo discovery does apply,
+$Vah{new} = \Vah{leo}$, where \Vah{leo} is
+the state in the extended Leo item.
+Leo discovery in the \Emulator{}
+will be described below.
+\end{itemize}
+
+Having calculated \Vah{new} and Veimt{new},
+\Emulator then adds to the current Earley set,
+an EIMX
+for every EIMX in the $\epsilon$-closure of \Vah{new}.
+It adds these in Emulator Dotted Rule Order.
+Emulator Dotted Rule Order places
+predictions last,
+and orders completed rules
+in Emulator Dotted Symbol Order by LHS.
+Emulator Dotted Symbol Order 
+Emulator Dotted Rule Order 
+must be total orderings,
+Emulator Dotted Symbol Order 
+must be fixed so that that it can be
+shared with Mapra{}.
+
+\subsubsection{Changes to the Leo items}
+
+Leo items (LIM's) will also be extended.
+The extended Leo items will take the form
+$$[\Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
+where 
+$$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$ is the original
+Leo item and 
+\Vah{state} will be the state of the Leo discovery item
+that will be added when the Leo item is used.
+Unlike the algorithm in \Leo,
+\Emulator will compute the LIMX's on an eager basis,
+once each Earley set is finished.
+
+\subsubsection{Changes to the Leo items}
+
 two traditional Earley items are said to {bf co-occur}
 if whenever either appears in an AHFA state,
 the other also does.
@@ -558,25 +661,79 @@ However, to guarantee that all Earley items will
 appear in the Earley set in an order consistent
 with their grouping into AHFA states,
 a buffering operation is interposed.
-An new Earley item is first inserted into a buffer.
+Every new Earley item is first inserted into the EIMT buffer.
+
+If the EIMT buffer is not empty when a new Earley item
+is added, it has an AHFA-causality.
+An new Earley item will only be added to the buffer
+if the buffer is empty, or if the
+new Earley item has the same AHFA-causality
+as the current contents of the EIMT buffer.
+
+If the buffer is not empty,
+and a new Earley item does not have the same AHFA-causality
+as the contents of the buffer, the following actions
+are taken in this sequence:
+\begin{itemize}
+\item The EIMT buffer is processed and cleared.
+"Processing and clearing" an EIMT buffer is described below.
+\item The new Earley item is added to the EIMT buffer.
+\end{itemize}
+
+The EIMT buffer is initalized to empty.
+When processing for an Earley set is finished,
+the EIMT buffer is processed and cleared, as
+described below.
+
+Whenever a new Earley item is added to the
+buffer.
+these two steps are performed repeatedly,
+until no more new Earley items can be added.
+\begin{itemize}
+\item All the $\epsilon$-transitions are added.
+That is, for every Earley item with nulling predot or postdot
+symbol, the dot is moved over the nulling symbols,
+and the resulting Earley items are also added.
+\item All co-occurring Earley items are added.
+\end{itemize}
+All Earley items 
+
 Each Earley item to be added after that is checked
-to see if it is co-occurring.
-If it is co-occurring, it also is added to the buffer.
-If it a new Earley item is not co-occurring, the buffer
+to see if it shares the same AHFA-causality as the 
+If it shares the same AHFA-causality,
+it also is added to the buffer.
+If a new Earley item does not share the same AHFA-causality,
+the buffer
 is processed so that the new Earley item can be inserted into
 an empty buffer.
 The buffer is also processed and emptied at the end of
 processing for each Earley set.
 
-Processing a buffer consists of sorting its Earley items,
-adding them to the current Earley set,
-and emptying the buffer.
-The sorting order is fixed.
-Earley items that would be duplicates are never added
-to an Earley set.
+\begin{definition}
+{\bf Processing and clearing an EIMT buffer} consists
+of
+\begin{itemize}
+\item Ensuring it contains no duplicate Earley items.
+\item Sorting its Earley items.
+The sorting order is fixed,
+and is chosen for the purpose of the emulation.
+\item Converting the traditional Earley items (EIMJ's)
+to tagged Earley items (EIMT's).
+This is done by identifying the AHFA state the corresponds
+to them and added the state as a tag.
+\item Adding the EIMT's to the current Earley set,
+if they are not duplicates of EIMT's already in the Earley set.
+Duplication of tagged Earley items is possible, because
+several rules with the same LHS can be completed in
+Earley items with the same origin.
+\item Emptying the buffer.  An empty buffer
+no longer has an AHFA-causality.
+\end{itemize}
+\end{definition}
 
-In effect, the buffer uses the idea of co-occurrence in
-an AHFA state to ensure the eager addition of Earley items
+In effect, the buffer uses the ideas of co-occurrence in
+an AHFA state and shared AHFA-causality
+to ensure the eager addition of Earley items
 which belong to the same AHFA state, as soon as any one
 of them is added.
 The normal \Leo{} is then allowed to proceed.
@@ -591,18 +748,6 @@ has the same bounds as \Leo{},
 \alg{Leo-ordered} is a theoretical construct to show
 correctness.
 Its purpose is to show that \Leo{} models \Marpa{}.
-
-When each Earley item is added to the
-buffer.
-\begin{itemize}
-\item If the added Earley item has a nulling predot or postdot
-symbol, the dot is moved over the nulling symbols,
-and the resulting Earley items are also added.
-\item All co-occurring Earley items are added.
-\end{itemize}
-As new items are added,
-these two steps are performed repeatedly,
-until no more new Earley items can be added.
 
 The EIM-group buffer is processed by sorting it into
 some fixed order,
@@ -724,7 +869,7 @@ a newly added EIMT shares the same AHFA-causality as an
 Earley item already added to the sequence.
 The definition of AHFA-causality tracks the
 definition of the AHFA,
-so that Two EIMT's with the same AHFA-causality must
+so that two EIMT's with the same AHFA-causality must
 belong to the same AHFA pair.
 The buffer will remain consistent.
 
@@ -739,7 +884,13 @@ all the dotted rules of some AHFA state pair.
 \end{lemma}
 
 \begin{proof}
-We will show this by induction on the Earley sets.
+Whenver an EIML is added to the buffer,
+by definition of \Emulator{},
+its $epsilon$-set will also be added.
+That Marpa-valid $epsilon$-equivalent will be
+the only one which is part of an AHFA state pair.
+
+We will show this by induction on the EIMT sequences.
 The induction hypothesis is that any EIMT that
 has left the buffer and been added to an Earley set
 is part of a complete EIMT sequence.
@@ -787,12 +938,13 @@ Therefore the scan will examine
 a predecessor corresponding to every dotted rule of
 the predecessor AHFA state,
 and will add to the sequence in the buffer
-an EIMT corresponding to every dotted rule
+an EIMT (or its $\epsilon$-equivalent)
+corresponding to every dotted rule
 that results from 
 the transition from the predecessor AHFA over
 the scanned symbol.
 We know that this new set of discovered rules
-correspond to an AHFA state because,
+corresponds to an AHFA state because,
 for every possible transition from
 an AHFA state,
 the construction of an AHFA ensures that
@@ -815,6 +967,13 @@ in a previous Earley set.
 From these, and the induction hypothesis,
 we can assume the predecessor EIMT sequence
 is complete.
+
+For Leo completions,
+by Theorem \ref{t:leo-singleton},
+there is only one discovered rule,
+so the set is complete with the addition
+of that first rule, its co-occuring rules,
+and its $\epsilon$-equivalents.
 
 This completes the induction step, the induction
 and the proof.
