@@ -543,62 +543,101 @@ $$
 
 \subsubsection{Adding extended Earley items}
 
-\Emulator applies the same logic as is described in \Leo
-in its initialization, non-nullable scan, and discovery
-operations.
-\Emulator implements the scanning of nullables and the
-its prediction operations as no-ops.
-We will show below that this is safe to do.
+Initialization is handled as a special case.
+Earley set 0 contains the $\epsilon$-closure of the start
+rule,
 
-For those operation that \Emulator does not implement
-as a no-op,
-it first calculates \Veimt{new},
-a traditional Earley item to be added.
-To do this, it treating the EIMX's in its Earley sets
-as if they were EIMT's, ignoring the AHFA state information.
+For scanning, discovery and prediction,
+uses the \Leo{} logic.
+In dealing with EIMX's as predecessors
+and causes,
+the \Leo logic
+treats them as if they were EIMT's,
+Applying the \Leo{} logic in this manner
+\Emulator calculates a new traditional Earley item,
+\Veimt{new}.
 
-At the same time as it calculates \Veimt{new},
-\Emulator{} also determines \Vah{new}, the AHFA state of \Veimt{new}
+\Emulator{} next determines \Vah{new},
+and \Vah{predict}
+two AHFA statess,
 as follows:
 \begin{itemize}
-\item If it is initializing, $Vah{new} = \Vah{start}$,
-where \Vah{start} is the start AHFA state.
-\item If it is scanning \Vsym{token},
+\item
+If it is scanning \Vsym{token},
 a non-nullable token,
 $Vah{new} = \GOTO{\Vah{predecessor}, \Vsym{token}}$,
 where 
 where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
-\item If it is scanning \Vsym{null},
-an nulling token, it does nothing.
-As we will show below,
-all appropriate EIM
-\item If it is discovering, and Leo discovery does not
+If it is scanning an and \Vsym{token}
+is nulling, $\Vah{new} = \Vah{predecessor}$.
+\Vah{predict} is set to $\GOTO(\Vah{predecessor}, \epsilon)$
+\item
+If it is discovering, and Leo discovery does not
 apply, then
 $Vah{new} = \GOTO{\Vah{predecessor}, \Vsym{lhs}}$,
 where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
 and \Vsym{lhs} is the LHS of the completed rule.
-\item If it is discovering, and Leo discovery does apply,
+\item
+If it is discovering, and Leo discovery does apply,
 $Vah{new} = \Vah{leo}$, where \Vah{leo} is
 the state in the extended Leo item.
 Leo discovery in the \Emulator{}
 will be described below.
+\Vah{predict} is set to $\GOTO(\Vah{predecessor}, \epsilon)$
+\item For predictions, $\Vah{new} = \Lambda$.
+Call \Vah{cause}, the AHFA state of the EIMX that caused
+the prediction.
+If \Vah{cause} is itself a prediction, $\Vah{predict} = \Vah{cause}$.
+If \Vah{cause} is not a prediction, $\Vah{predict} = \GOTO(\Vah{cause}, \epsilon)$.
 \end{itemize}
 
-Having calculated \Vah{new} and Veimt{new},
-\Emulator then adds to the current Earley set,
-an EIMX
-for every EIMX in the $\epsilon$-closure of \Vah{new}.
-It adds these in Emulator Dotted Rule Order.
-Emulator Dotted Rule Order places
-predictions last,
-and orders completed rules
+if $\Vah{new} \neg \Lambda$,
+\Emulator produces the \Veimtset{discovered}, where
+\begin{equation}
+\Veimtset{discovered}  =
+{ [ \Vah{new}, \Vdr{dr}, \var{origin} ] \sep \Vdr{dr} \in \epsilon(\Vah{new}) }
+\end{equation}
+where \var{origin} is the origin of \Veimt{new},
+and 
+$\epsilon(\Vah{new})$ is the $\epsilon$-closure of the dotted rules in \Vah{new}.
+The EIMX's from 
+\Veimtset{discovered} are added to the current Earley set
+in Emulator Dotted Rule Order.
+Emulator Dotted Rule Order is some fixed, total
+ordering,
+which must order completed rules
 in Emulator Dotted Symbol Order by LHS.
-Emulator Dotted Symbol Order 
-Emulator Dotted Rule Order 
-must be total orderings,
-Emulator Dotted Symbol Order 
-must be fixed so that that it can be
-shared with Mapra{}.
+(The order must be fixed
+so that that it can be
+shared with \Marpa{}.)
+
+Next, if $\Vah{predict} neg \Lambda$,
+\Emulator produces,
+for every EIMX in the $\epsilon$-closure of \Vah{new},
+${ [ \Vah{predict}, \Vdr{dr}, \var{current} ] \sep \Vdr{dr} \in \epsilon(\Vah{predict}) }$,
+where \var{current} is the current Earley set.
+The EIMX's from 
+Veimtset{predicted} are added to the current Earley set
+in Emulator Dotted Rule Order.
+
+\subsubsection{Initialization in the Emulator}
+
+It is convenient to treat \Emulator{}
+initialization is handled as a special case.
+To build Earley set 0, \Emulator{}
+first adds the set
+\begin{equation}
+{ [ \Vah{start}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \epsilon(\Vah{start}) }
+\end{equation}
+in Dotted Rule Order.
+It then examines \Vah{prediciton},
+where $\Vah{prediction} = \GOTO(\Vah{cause}, \epsilon)$.
+If $\Vah{prediction} \neq \Lambda$,
+Emulator add the set
+\begin{equation}
+{ [ \Vah{predicted}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \epsilon(\Vah{predicted}) }
+\end{equation}
+in Emulator Dotted Rule Order.
 
 \subsubsection{Changes to the Leo items}
 
@@ -610,151 +649,19 @@ $$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$ is the original
 Leo item and 
 \Vah{state} will be the state of the Leo discovery item
 that will be added when the Leo item is used.
-Unlike the algorithm in \Leo,
-\Emulator will compute the LIMX's on an eager basis,
-once each Earley set is finished.
+Unlike \Leo,
+\Emulator compute the LIMX's on an eager basis,
+immediately
+after each Earley set is finished.
+This is possible because there is enough information
+in the Earley set to identify potential LIM's.
 
-\subsubsection{Changes to the Leo items}
+\section{The emulator is correct}
 
-two traditional Earley items are said to {bf co-occur}
-if whenever either appears in an AHFA state,
-the other also does.
-
-Informally, an EIM-causality is the set of factors
-which are necessary to cause the addition of a traditional
-Earley item to an Earley set.
-The initialization of the Earley table is one such factor.
-The other factors are tokens and other Earley items.
-
-\begin{itemize}
-\item The EIM-causality of a predicted EIM is a single EIM:
-the one which predicts it
-by having the predicted EIM's LHS
-as a postdot symbol.
-\item
-The EIM-causality of
-a scanned EIM is its token and its predecessor EIM.
-The predecessor EIM is the EIM in the previous Earley
-set which had the token as its postdot symbol.
-\item
-The EIM-causality of a completion EIM is a pair of EIM's:
-a cause EIM and a predecessor EIM.
-Recall that a completion EIM is added as a result of finding
-a completed rule in another EIM.
-The cause EIM is the EIM with the completed rule.
-The predecessor EIM of a completed EIM
-will be found in the Earley set that is origin
-of the cause
-and will have the LHS of the completed rule
-as its postdot symbol.
-\item
-For an initial EIM, 
-the initialization of the Earley tables
-is its EIM-causality.
-\end{itemize}
-
-\alg{Leo-ordered} proceeds the same as \Leo{},
-first performing its scanning operation,
-then visiting every item of the Earley set
-for its completion operation.
-However, to guarantee that all Earley items will
-appear in the Earley set in an order consistent
-with their grouping into AHFA states,
-a buffering operation is interposed.
-Every new Earley item is first inserted into the EIMT buffer.
-
-If the EIMT buffer is not empty when a new Earley item
-is added, it has an AHFA-causality.
-An new Earley item will only be added to the buffer
-if the buffer is empty, or if the
-new Earley item has the same AHFA-causality
-as the current contents of the EIMT buffer.
-
-If the buffer is not empty,
-and a new Earley item does not have the same AHFA-causality
-as the contents of the buffer, the following actions
-are taken in this sequence:
-\begin{itemize}
-\item The EIMT buffer is processed and cleared.
-"Processing and clearing" an EIMT buffer is described below.
-\item The new Earley item is added to the EIMT buffer.
-\end{itemize}
-
-The EIMT buffer is initalized to empty.
-When processing for an Earley set is finished,
-the EIMT buffer is processed and cleared, as
-described below.
-
-Whenever a new Earley item is added to the
-buffer.
-these two steps are performed repeatedly,
-until no more new Earley items can be added.
-\begin{itemize}
-\item All the $\epsilon$-transitions are added.
-That is, for every Earley item with nulling predot or postdot
-symbol, the dot is moved over the nulling symbols,
-and the resulting Earley items are also added.
-\item All co-occurring Earley items are added.
-\end{itemize}
-All Earley items 
-
-Each Earley item to be added after that is checked
-to see if it shares the same AHFA-causality as the 
-If it shares the same AHFA-causality,
-it also is added to the buffer.
-If a new Earley item does not share the same AHFA-causality,
-the buffer
-is processed so that the new Earley item can be inserted into
-an empty buffer.
-The buffer is also processed and emptied at the end of
-processing for each Earley set.
-
-\begin{definition}
-{\bf Processing and clearing an EIMT buffer} consists
-of
-\begin{itemize}
-\item Ensuring it contains no duplicate Earley items.
-\item Sorting its Earley items.
-The sorting order is fixed,
-and is chosen for the purpose of the emulation.
-\item Converting the traditional Earley items (EIMJ's)
-to tagged Earley items (EIMT's).
-This is done by identifying the AHFA state the corresponds
-to them and added the state as a tag.
-\item Adding the EIMT's to the current Earley set,
-if they are not duplicates of EIMT's already in the Earley set.
-Duplication of tagged Earley items is possible, because
-several rules with the same LHS can be completed in
-Earley items with the same origin.
-\item Emptying the buffer.  An empty buffer
-no longer has an AHFA-causality.
-\end{itemize}
-\end{definition}
-
-In effect, the buffer uses the ideas of co-occurrence in
-an AHFA state and shared AHFA-causality
-to ensure the eager addition of Earley items
-which belong to the same AHFA state, as soon as any one
-of them is added.
-The normal \Leo{} is then allowed to proceed.
-This may attempt to add an Earley item already added
-due to co-occurrence, but that is harmless,
-since duplicate Earley items are not added to an Earley set.
-
-Note that no complexity results will be
-claimed for \alg{Leo-ordered}.
-While the author conjectures that \alg{Leo-ordered}
-has the same bounds as \Leo{},
-\alg{Leo-ordered} is a theoretical construct to show
-correctness.
-Its purpose is to show that \Leo{} models \Marpa{}.
-
-The EIM-group buffer is processed by sorting it into
-some fixed order,
-then adding it to the Earley set.
-
-We now show that \alg{Leo-ordered} produces
-all the Earley items of \Leo.
+We now show that,
+for a given grammar \var{g} and input \var{w},
+the Earley sets of \Emulator{} are always congruent
+to those of \Leo.
 
 \begin{theorem}
 $\operatorname{table}(\alg{Leo-ordered},g)
