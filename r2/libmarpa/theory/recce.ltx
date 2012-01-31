@@ -542,19 +542,31 @@ for all
 [\Vdr{t}, \var{torig}] \in \Veimtset{T}
 \end{equation*}
 
-\subsubsection{Adding extended Earley items}
-
-Initialization is handled as a special case.
-Earley set 0 contains the $\epsilon$-closure of the start
-rule,
+\subsubsection{The emulation engine}
 
 For scanning, discovery and prediction,
+\Emulator follows
 uses the \Leo{} logic.
+We define the \Emulator so that it look over each
+Earley set repeatedly,
+until either no new EIMX's can be added.
+EIMX's are never added if they are duplicates,
+and the number of possible EIMX's for a given Earley set
+is finite,
+so that we know the loop will terminate.
+
 In dealing with EIMX's as predecessors
 and causes,
 the \Leo logic
-treats them as if they were EIMT's,
-Applying the \Leo{} logic in this manner
+ignores the AHFA state and
+treats them as if they were EIMT's.
+In similar fashion,
+when dealing with the extended Leo item's,
+to be described below,
+the \Leo logic
+ignores the AHFA state and
+treats them as if they had the form they have in \Leo.
+By applying the \Leo{} logic in this manner,
 \Emulator calculates a new traditional Earley item,
 \Veimt{new}.
 
@@ -621,6 +633,7 @@ The EIMX's from
 Veimtset{predicted} are added to the current Earley set
 in Emulator Dotted Rule Order.
 
+
 \subsubsection{Initialization in the Emulator}
 
 It is convenient to treat \Emulator{}
@@ -674,6 +687,35 @@ be Earley set $i$ in \Emulator.
 \operatorname{E}[i]
 \end{equation*}
 \end{theorem}
+
+\begin{proof}
+The proof proceeds by examining the modifications
+to \Leo{} for \Emulator{} one or two at a time,
+confirming that congruence at each point.
+We first examine initialization and the
+addition of EIMX's to the Earley sets.
+It is straightforward to confirm, as the basis
+of an induction, that 
+$$ \operatorname{L}[0] \cong \operatorname{E}[0]$$.
+
+\Emulator{} is defined in terms of the logic
+of \Leo{}.
+Suppose that,
+at the beginning of
+every operation of the emulation engine,
+the Earley sets produced by \Emulator were congruent to \Leo.
+The emulation engine will treat the EIMX's as traditional EIMT's,
+and the LIMX's as Leo items,
+and will produce the a new traditional Earley item \Veimt{new}.
+Clearly, if \Leo and \Emulator are operating side by side,
+\Veimt{new} is also the item that \Leo produces.
+It is also clear that \Emulator one of the EIMX's that \Emulator attempts
+to add to its Earley sets
+is \Veimx{new}, the EIMX that is congruent to \Veimt.
+\Emulator will only fail to fail to add 
+\Veimx{new} if it already exists in the Earley set.
+
+\end{proof}
 
 \section{Marpa recognizer time complexity}
 \label{s:marpa:complexity}
