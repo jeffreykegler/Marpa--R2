@@ -578,8 +578,8 @@ EIMX's are not duplicates
 if they differ in their AHFA states.
 
 While \Leo{} expects EIMT's,
-during its operations \Emulator will encounter EIMX's.
-Let the EIMX that \Emulator encounters be
+during its operations \Emulator{} will encounter EIMX's.
+Let the EIMX that \Emulator{} encounters be
 $$\Veimx{cause} =
 [\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
 \Veimx{cause} may be enountered
@@ -595,12 +595,12 @@ If \Vbool{active} is true, treats \Veimx{cause} as
 if it were the following EIMT:
 $$[\Vdr{dr}, \var{origin}]$$
 Informally, for use in its Earley operations,
-\Emulator strips its extended information from an active EIMX,
+\Emulator{} strips its extended information from an active EIMX,
 and ignores inactive EIMX's.
 
 Similarly, 
 while \Leo{} uses LIM's,
-during \Emulator will encounter LIMX's.
+during \Emulator{} will encounter LIMX's.
 LIMX's are encountered as predecessors
 during Leo discovery.
 Let an encountered LIMX be
@@ -613,7 +613,7 @@ If \Vbool{active} is true, treats \Vlimx{predecessor} as
 if it were the following LIM:
 $$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$
 Informally, for use in Leo discovery,
-\Emulator strips its extended information from an active LIMX,
+\Emulator{} strips its extended information from an active LIMX,
 and ignores inactive LIMX's.
 
 Once it has found the causes for an Earley operation,
@@ -708,7 +708,7 @@ in Emulator Dotted Rule Order.
 
 The emulator runs in modes.
 The intent of Leo mode is to emulate \Leo.
-\Emulator is "eager" in its creation of Earley items
+\Emulator{} is "eager" in its creation of Earley items
 and the idea behind the following rules is
 for the active boolean to indicates whether
 \Leo{} would have created the EIMX as this point.
@@ -753,12 +753,12 @@ be Earley set $i$ in \Emulator.
 \end{theorem}
 
 \begin{proof}
-We assume that \Emulator is in Leo mode.
+We assume that \Emulator{} is in Leo mode.
 It is straightforward to confirm that
 $$ \operatorname{L}[0] \cong \operatorname{E}[0]$$,
 We next consider
 Earley operations in the sets after Earley set 0.
-By design, \Emulator in \Leo mode is
+By design, \Emulator{} in \Leo mode is
 a redefinition of \Leo.
 The Earley operations of \Emulator
 will produce Earley sets where the every EIMX
@@ -859,7 +859,7 @@ have produced identical Earleys sets 0 through $i - 1$,
 then the two activation methods will also produce
 identical Earleys sets at $i$.
 
-By Lemma \cite{l:lazy-comlete},
+By Lemma \cite{l:lazy-complete},
 Once processing for an Earley set is complete,
 all of its EIMX's are activated,
 whether activation is lazy or eager,
@@ -963,7 +963,7 @@ important,
 and the pseudocode for each leaves that order open.
 To simplify the induction on operations in the correctness
 proof, however, it is convenient to synchronize the operations
-of \Emulator in Marpa mode,
+of \Emulator{} in Marpa mode,
 with those of Marpa.
 For this purpose, we treat the Earley sets as ordered sets,
 which containing the Earley item in the order in which
@@ -1014,6 +1014,39 @@ state is added, all its co-occurring EIMX's are added
 as well,
 so that later attempts to add EIMX's in that AHFA state
 will be rejected as attempts to add duplicates.
+
+We now show that,
+for a given grammar \var{g} and input \var{w},
+the Earley sets of \Emulator{} are always congruent
+to those of \Marpa.
+
+\begin{theorem}
+Assume that \Emulator{} is in Marpa mode,
+and that the \Marpa{} and
+\Emulator{} operate using
+Emulator Symbol Order and Emulator Dotted Rule Order.
+Let
+$\operatorname{E}[i]$
+be Earley set $i$ in \Emulator.
+and $\operatorname{M}[i]$
+be Earley set $i$ in \Marpa,
+\begin{equation*}
+\forall i \sep 0<i<\size{w} \implies
+\operatorname{E}[i] \cong \operatorname{M}[i]
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+The proof is by double induction.
+The outer induction is on the Earley sets,
+and the inner induction on the Earley operations
+(scanning, discovery and prediction).
+
+It is straightforward to confirm,
+as the basis of the outer induction,
+that
+$$ \operatorname{E}[0] \cong \operatorname{M}[0]$$
+\end{proof}
 
 \section{Marpa recognizer time complexity}
 \label{s:marpa:complexity}
