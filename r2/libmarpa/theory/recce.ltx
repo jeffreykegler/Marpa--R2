@@ -27,6 +27,8 @@
 \newcommand{\set}[1]{{\lbrace #1 \rbrace} }
 \newcommand{\ah}[1]{#1_{AH}}
 \newcommand{\Vah}[1]{\ensuremath{\var{#1}_{AH}}}
+\newcommand{\bool}[1]{\var{#1}_{BOOL}}
+\newcommand{\Vbool}[1]{\ensuremath{\bool{#1}}}
 \newcommand{\dr}[1]{#1_{DR}}
 \newcommand{\Vdr}[1]{\ensuremath{\var{#1}_{DR}}}
 \newcommand{\eim}[1]{#1_{EIM}}
@@ -39,7 +41,10 @@
 \newcommand{\Veimxset}[1]{\ensuremath{\var{#1}_{\set{EIMX}}}}
 \newcommand{\Veimmset}[1]{\ensuremath{\var{#1}_{\set{EIMM}}}}
 \newcommand{\es}[1]{#1_{ES}}
+\newcommand{\Vlim}[1]{\ensuremath{\var{#1}_{LIM}}}
+\newcommand{\Vlimx}[1]{\ensuremath{\var{#1}_{LIMX}}}
 \newcommand{\loc}[1]{#1_{LOC}}
+\newcommand{\Vloc}[1]{\ensuremath{\loc{#1}}}
 \newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
 \newcommand{\sym}[1]{#1_{SYM}}
 \newcommand{\Vsym}[1]{\ensuremath{\var{#1}_{SYM}}}
@@ -478,27 +483,15 @@ it must be the only dotted rule in that EIMM.
 \section{Marpa recognizer correctness}
 \label{s:marpa:correctness}
 
-As mentioned, Marpa grammars are 
-rewritten to eliminate proper nullable
-symbols and empty rules.
-adn the AHFA states collect dotted rules
-which always appear together.
-Some AHFA states ("kernel states")
-have an $\epsilon$ transition
-to one other AHFA state (a "non-kernel" state).
-A non-kernel state never has an $\epsilon$ transition,
-so and the $\epsilon$ transitions can be seen
-as defined a partition of AHFA states into
-sets of cardinality 1 or 2.
-
 \subsection{Proof strategy}
 
 Marpa's correctness will shown based the correctness
-proved for \Leo in~\cite{Leo1991}.
-An inductive proof with recognizer operations as steps,
-but in order for the induction to work,
-the operations of \Marpa and \Leo must be dealt with
-as if they occurred in the same order.
+proved for \Leo{} in~\cite{Leo1991}.
+The proof will be by induction
+on the operations of the two recognizers.
+For this induction,
+the operations will need to happen
+in the same order.
 This will be accomplished by constructing a third
 recognizers, \alg{Emulator}, which will,
 in effect, emulate \Marpa{} using \Leo{}.
@@ -506,14 +499,12 @@ of operations.
 
 \subsection{The emulator}
 
-We define a new algorithm,
-\alg{Emulator}.
-\Emulator will be \Leo,
+\Emulator{} will be \Leo,
 with the following modifications.
 
 \subsubsection{Calculating the AHFA}
 
-\alg{Emulator}, as part of its precomputations
+\Emulator, as part of its precomputations
 on its grammar, \var{g},
 will calculate \var{ah}, the AHFA
 It will also calculate $\GOTO: \var{ah},\var{alphabet} \mapsto \var{ah}$,
@@ -523,31 +514,50 @@ the transition function for \var{ah}.
 
 The Earley sets of \Emulator{} will contain extended
 Earley items, EIMX's.  Each EIMX will have the form
-$$[\Vah{state}, \Vdr{dr}, \var{origin}]$$
-where \Vah{state} is an AHFA state,
+$$[\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
+where
+\Vah{state} is an AHFA state,
 \Vdr{dr} is a dotted rule,
-\var{origin} is the origin.
+\var{origin} is the origin,
+and \Vbool{active} is a boolean whose use will be
+explained.
 EIMX's can be viewed as
-crosses ("X") between traditional Earley items (EIMT's)
+crosses (``X") between traditional Earley items (EIMT's)
 and Marpa's Earley items (EIMM's).
 
-A set of EIMX's (\Veimset{X}) and a set of EIMT's
+\subsubsection{Extending the Leo items}
+
+Leo items (LIM's) will also be extended.
+The extended Leo items will take the form
+$$[\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
+where 
+$$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$ is the original
+Leo item,
+\Vah{state} is the state of the Leo discovery item
+that will be added when the Leo item is used,
+and \Vbool{active} is a boolean whose use will be
+explained.
+
+\subsubsection{Leo-Emulator Congruence}
+
+A set of EIMX's (\Veimxset{X}) and a set of EIMT's
 (\Veimset{T})
-are congruent ($\Veimset{X} \cong \Veimset{T})$)
+are congruent 
+$$\Veimtset{X} \cong \Veimtset{T}$$
 if and only if
 for all
 \Vah{x}, \Vdr{x}, \var{xorig}
 \begin{equation*}
 \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X} \iff
-[\Vdr{t}, \var{torig}] \in \Veimtset{T}
+[\Vdr{x}, \var{xorig}] \in \Veimtset{T}
 \end{equation*}
 
 \subsubsection{The emulation engine}
 
 For scanning, discovery and prediction,
-\Emulator follows
-uses the \Leo{} logic.
-We define the \Emulator so that it look over each
+\Emulator{} follows
+the \Leo{} logic.
+We define the \Emulator{} so that it look over each
 Earley set repeatedly,
 until either no new EIMX's can be added.
 EIMX's are never added if they are duplicates,
@@ -555,44 +565,65 @@ and the number of possible EIMX's for a given Earley set
 is finite,
 so that we know the loop will terminate.
 
-In dealing with EIMX's as predecessors
-and causes,
-the \Leo logic
-ignores the AHFA state and
-treats them as if they were EIMT's.
-In similar fashion,
-when dealing with the extended Leo item's,
-to be described below,
-the \Leo logic
-ignores the AHFA state and
-treats them as if they had the form they have in \Leo.
-By applying the \Leo{} logic in this manner,
-\Emulator calculates a new traditional Earley item,
-\Veimt{new}.
+While \Leo{} expects EIMT's,
+during its operations \Emulator will encounter EIMX's.
+Let the EIMX that \Emulator encounters be
+$$\Veimx{cause} =
+[\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
+\Veimx{cause} may be enountered
+as the predecessor in a scan operation;
+as the predecessor or component in a discovery operation;
+or as the predecessor in a prediction operation.
+In each of these cases,
+\Emulator{} first checks the
+\var{active} boolean of the EIMX.
+If it is false, the Emulator ignores the EIMX
+as if it did not exist.
+If \Vbool{active} is true, treats \Veimx{cause} as
+if it were the following EIMT:
+$$[\Vdr{dr}, \var{origin}]$$
+Informally, for use in its Earley operations,
+\Emulator strips its extended information from an active EIMX,
+and ignores inactive EIMX's.
 
-\Emulator{} next determines \Vah{new},
-and \Vah{predict}
-two AHFA statess,
-as follows:
+Similarly, 
+while \Leo{} uses LIM's,
+during \Emulator will encounter LIMX's.
+LIMX's are encountered as predecessors
+during Leo discovery.
+Let an encountered LIMX be
+$$\Vlimx{predecessor} = [\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
+\Emulator{} first checks the
+\var{active} boolean of the LIMX.
+If it is false, the Emulator ignores the LIMX
+as if it did not exist.
+If \Vbool{active} is true, treats \Vlimx{predecessor} as
+if it were the following LIM:
+$$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$
+Informally, for use in Leo discovery,
+\Emulator strips its extended information from an active LIMX,
+and ignores inactive LIMX's.
+
+Once it has found the causes for an Earley operation,
+\Emulator{} proceeds to determine
+\Vah{new} and \Vah{predict},
+two AHFA states.
+It does this as follows:
 \begin{itemize}
 \item
 If it is scanning \Vsym{token},
-a non-nullable token,
-$Vah{new} = \GOTO{\Vah{predecessor}, \Vsym{token}}$,
+$Vah{new} = \GOTO(\Vah{predecessor}, \Vsym{token})$,
 where 
 where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
-If it is scanning an and \Vsym{token}
-is nulling, $\Vah{new} = \Vah{predecessor}$.
-\Vah{predict} is set to $\GOTO(\Vah{predecessor}, \epsilon)$
 \item
 If it is discovering, and Leo discovery does not
 apply, then
-$Vah{new} = \GOTO{\Vah{predecessor}, \Vsym{lhs}}$,
+$Vah{new} = \GOTO(\Vah{predecessor}, \Vsym{lhs})$,
 where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
 and \Vsym{lhs} is the LHS of the completed rule.
 \item
 If it is discovering, and Leo discovery does apply,
-$Vah{new} = \Vah{leo}$, where \Vah{leo} is
+$\Vah{new} = \Vah{leo}$, where \Vah{leo} is
 the state in the extended Leo item.
 Leo discovery in the \Emulator{}
 will be described below.
@@ -604,12 +635,12 @@ If \Vah{cause} is itself a prediction, $\Vah{predict} = \Vah{cause}$.
 If \Vah{cause} is not a prediction, $\Vah{predict} = \GOTO(\Vah{cause}, \epsilon)$.
 \end{itemize}
 
-if $\Vah{new} \neg \Lambda$,
-\Emulator produces the \Veimtset{discovered}, where
-\begin{equation}
+if $\Vah{new} \neq \Lambda$,
+\Emulator{} produces the \Veimtset{discovered}, where
+\begin{equation*}
 \Veimtset{discovered}  =
-{ [ \Vah{new}, \Vdr{dr}, \var{origin} ] \sep \Vdr{dr} \in \epsilon(\Vah{new}) }
-\end{equation}
+\set{ [ \Vah{new}, \Vdr{dr}, \var{origin} ] \sep \Vdr{dr} \in \epsilon(\Vah{new}) }
+\end{equation*}
 where \var{origin} is the origin of \Veimt{new},
 and 
 $\epsilon(\Vah{new})$ is the $\epsilon$-closure of the dotted rules in \Vah{new}.
@@ -624,13 +655,13 @@ in Emulator Dotted Symbol Order by LHS.
 so that that it can be
 shared with \Marpa{}.)
 
-Next, if $\Vah{predict} neg \Lambda$,
-\Emulator produces,
+Next, if $\Vah{predict} \neq \Lambda$,
+\Emulator{} produces,
 for every EIMX in the $\epsilon$-closure of \Vah{new},
-${ [ \Vah{predict}, \Vdr{dr}, \var{current} ] \sep \Vdr{dr} \in \epsilon(\Vah{predict}) }$,
+$${ [ \Vah{predict}, \Vdr{dr}, \var{current} ] \sep \Vdr{dr} \in \epsilon(\Vah{predict}) }$$
 where \var{current} is the current Earley set.
 The EIMX's from 
-Veimtset{predicted} are added to the current Earley set
+\Veimtset{predicted} are added to the current Earley set
 in Emulator Dotted Rule Order.
 
 
@@ -640,37 +671,22 @@ It is convenient to treat \Emulator{}
 initialization is handled as a special case.
 To build Earley set 0, \Emulator{}
 first adds the set
-\begin{equation}
-{ [ \Vah{start}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \epsilon(\Vah{start}) }
-\end{equation}
+\begin{equation*}
+\set{ [ \Vah{start}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \epsilon(\Vah{start}) }
+\end{equation*}
 in Dotted Rule Order.
 It then examines \Vah{prediciton},
 where $\Vah{prediction} = \GOTO(\Vah{cause}, \epsilon)$.
 If $\Vah{prediction} \neq \Lambda$,
-Emulator add the set
+Emulator adds the set
 \begin{equation}
-{ [ \Vah{predicted}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \epsilon(\Vah{predicted}) }
+\set{ [ \Vah{predicted}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \epsilon(\Vah{predicted}) }
 \end{equation}
 in Emulator Dotted Rule Order.
 
-\subsubsection{Changes to the Leo items}
+\section{Leo emulation}
 
-Leo items (LIM's) will also be extended.
-The extended Leo items will take the form
-$$[\Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
-where 
-$$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$ is the original
-Leo item and 
-\Vah{state} will be the state of the Leo discovery item
-that will be added when the Leo item is used.
-Unlike \Leo,
-\Emulator compute the LIMX's on an eager basis,
-immediately
-after each Earley set is finished.
-This is possible because there is enough information
-in the Earley set to identify potential LIM's.
-
-\section{The emulator is correct}
+\section{The emulator in Leo mode is correct}
 
 We now show that,
 for a given grammar \var{g} and input \var{w},
@@ -683,39 +699,34 @@ be Earley set $i$ in \Leo,
 and $\operatorname{E}[i]$
 be Earley set $i$ in \Emulator.
 \begin{equation*}
-\forall i \sep \operatorname{L}[i] \cong
-\operatorname{E}[i]
+\forall i \sep 0<i<\size{w} \implies
+\operatorname{L}[i] \cong \operatorname{E}[i]
 \end{equation*}
 \end{theorem}
 
 \begin{proof}
-The proof proceeds by examining the modifications
-to \Leo{} for \Emulator{} one or two at a time,
-confirming that congruence at each point.
-We first examine initialization and the
-addition of EIMX's to the Earley sets.
-It is straightforward to confirm, as the basis
-of an induction, that 
-$$ \operatorname{L}[0] \cong \operatorname{E}[0]$$.
-
-\Emulator{} is defined in terms of the logic
-of \Leo{}.
-Suppose that,
-at the beginning of
-every operation of the emulation engine,
-the Earley sets produced by \Emulator were congruent to \Leo.
-The emulation engine will treat the EIMX's as traditional EIMT's,
-and the LIMX's as Leo items,
-and will produce the a new traditional Earley item \Veimt{new}.
-Clearly, if \Leo and \Emulator are operating side by side,
-\Veimt{new} is also the item that \Leo produces.
-It is also clear that \Emulator one of the EIMX's that \Emulator attempts
-to add to its Earley sets
-is \Veimx{new}, the EIMX that is congruent to \Veimt.
-\Emulator will only fail to fail to add 
-\Veimx{new} if it already exists in the Earley set.
-
+We assume that \Emulator is in Leo mode.
+It is straightforward to confirm that
+$$ \operatorname{L}[0] \cong \operatorname{E}[0]$$,
+We next consider
+Earley operations in the sets after Earley set 0.
+By design, \Emulator in \Leo mode can be seen
+to be simply
+a redefinition of \Leo,
+and the Earley operations of \Emulator
+will produce Earley sets where the EIMX's
+correspond one-to-one with those of \Leo.
+Congruence follows directly.
 \end{proof}
+
+\section{Marpa emulation}
+
+Unlike \Leo,
+\Emulator{} compute the LIMX's on an eager basis,
+immediately
+after each Earley set is finished.
+This is possible because there is enough information
+in the Earley set to identify potential LIM's.
 
 \section{Marpa recognizer time complexity}
 \label{s:marpa:complexity}
