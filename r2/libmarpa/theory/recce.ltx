@@ -898,13 +898,122 @@ always create duplicate EIMX's,
 and since duplicates are not added,
 will not change the Earley set.
 
-For discovery, the predecessor EIMX must be
-in a previous Earley set,
-because the Marpa rewrite does not allow
-nullable rules.
-However, the component EIMX will always
-be in the current Earley set.
+For discovery,
+we now show,
+for eager activiation,
+the basis of an induction on
+the discovery loop's visits to
+the potential component Earley items in an Earley set.
+We note from the forgoing that, under eager activation,
+all non-discovered Earley items exist and are active,
+before the emulator's discovery loop begins.
+Scanned items already exist and are active because scanning
+was done first and we have just shown it complete and correct.
+Prediction will come afterwards, but we have just shown it
+will not add new EIMX's or activate any old ones.
+
+The \Leo pseudocode (and therefore \Emulator) creates
+discovered EIMX's by repeatedly looping
+through potential component EIMX's,
+looking for predecessor's as it goes.
+Because we are running in eager mode,
+we can rely on all of these component EIMX's being already
+active.
+Marpa allows no nullable rules, so component
+will be zero length,
+and the EIMX's predecessors must be in previous Earley sets.
+For for every potential component, its matching
+predecessors will exist and be active when the component is visited.
+The logic will always add the discovered EIMX's.
+That these are identical to those that would be added
+under lazy activation can be seen by noting that once
+the causes are identified and the active status checked,
+both use the same logic.
+This shows the induction step on the eager discovery
+loop, and the induction on eager discovery.
+
+Since prediction, scanning and discovery create
+the same EIMX's in the two modes,
+and, and since in either mode, all are activated when
+the Earley set is finished,
+we have shown the induction step for the Earley sets.
+This completes the induction on the Earley sets,
+and the proof.
 \end{proof}
+
+\subsection{Marpa is correct}
+
+A set of EIMX's (\Veimxset{X}) and a set of EIMM's
+(\Veimset{M})
+are congruent 
+$$\Veimtset{X} \cong \Veimtset{M}$$
+if and only if
+for all
+\Vbool{x}, \Vah{x}, \Vdr{x}, \var{xorig}
+\begin{equation*}
+\Vbool{x}, \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X} \iff
+[\Vah{x}, \var{xorig}] \in \Veimmset{M}
+\end{equation*}
+
+\subsection{Refining the order of operations}
+
+For normal operation of 
+\Leo and \Marpa, the precise order of items in the Earley sets is not
+important,
+and the pseudocode for each leaves that order open.
+To simplify the induction on operations in the correctness
+proof, however, it is convenient to synchronize the operations
+of \Emulator in Marpa mode,
+with those of Marpa.
+For this purpose, we treat the Earley sets as ordered sets,
+which containing the Earley item in the order in which
+they were added.
+
+Call Emulation Symbol Order,
+some total ordering of the symbols.
+Emulation Symbol Order may be arbitrary but must stay fixed for the life
+of the induction.
+
+Call some total ordering of the dotted rules,
+Emulation Dotted Rule Order.
+This ordering must place completed rules in Emulation Symbol Order by
+LHS.
+Otherwise, Emulation Dotted Rule Order
+may be arbitrary except that it
+must stay fixed for the life
+of the induction.
+
+We refine the order of operations as follows:
+Both \Emulator{} and \Marpa{},
+when scanning, scan the tokens in
+Emulation Symbol Order.
+Both \Marpa{},
+in considering the left hand sides of completed rules
+during discovery,
+does so in Emulation Symbol Order.
+Both \Emulator{} and \Marpa{},
+when creating Earley set 0,
+create it in order by Emulation Dotted Rule
+Order within AHFA state.
+Finally, \Emulator{},
+when adding the EIMX's for an AHFA state,
+does so in Emulation Dotted Rule Order.
+
+For Earley sets after Earley set 0,
+we require that the order of Earley items follow the
+order in which they were added.
+This definition ensures that,
+that all EIMX's belonging
+to the same AHFA state occur together
+in an Earley set.
+It is possible for the \Emulator{} to attempt
+to add EIMX's belonging to a 
+single AHFA state at several points while building
+an Earley set, but when the first EIMX of an AHFA
+state is added, all its co-occurring EIMX's are added
+as well,
+so that later attempts to add EIMX's in that AHFA state
+will be rejected as attempts to add duplicates.
 
 \section{Marpa recognizer time complexity}
 \label{s:marpa:complexity}
