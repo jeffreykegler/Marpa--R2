@@ -556,14 +556,26 @@ for all
 
 For scanning, discovery and prediction,
 \Emulator{} follows
-the \Leo{} logic.
-We define the \Emulator{} so that it look over each
-Earley set repeatedly,
-until either no new EIMX's can be added.
+the \Leo{} logic,
+except that it uses EIMX's instead of EIMT's.
+\Emulator{} runs through each Earley set repeatedly,
+until no new EIMX's can be added.
 EIMX's are never added if they are duplicates,
 and the number of possible EIMX's for a given Earley set
 is finite,
 so that we know the loop will terminate.
+
+\Veimx{a} and \Veimx{b} are considered duplicates if
+\begin{gather*}
+\Veimx{a} = [\Vbool{a}, \Vah{a}, \Vdr{a}, \Vloc{a}]
+\land \Veimx{b} = [\Vbool{b}, \Vah{a}, \Vdr{a}, \Vloc{a}]
+\end{gather*}
+Two EIMX's which differs only in their active boolean
+are considered identical.
+It is quite possible that two EIMX's may differ when
+their corresponding EIMT's are duplicates --
+EIMX's are not duplicates
+if they differ in their AHFA states.
 
 While \Leo{} expects EIMT's,
 during its operations \Emulator will encounter EIMX's.
@@ -664,6 +676,14 @@ The EIMX's from
 \Veimtset{predicted} are added to the current Earley set
 in Emulator Dotted Rule Order.
 
+\subsubsection{Creating Leo items}
+
+Unlike \Leo,
+\Emulator{} compute the LIMX's on an eager basis,
+immediately
+after each Earley set is finished.
+This is possible because there is enough information
+in the Earley set to identify potential LIM's.
 
 \subsubsection{Initialization in the Emulator}
 
@@ -684,7 +704,35 @@ Emulator adds the set
 \end{equation}
 in Emulator Dotted Rule Order.
 
-\section{Leo emulation}
+\section{Leo mode}
+
+The emulator runs in modes.
+The intent of Leo mode is to emulate \Leo.
+\Emulator is "eager" in its creation of Earley items
+and the idea behind the following rules is
+for the active boolean to indicates whether
+\Leo{} would have created the EIMX as this point.
+\begin{itemize}
+\item EIMX's in Earley set 0 are always
+created with their active booleans
+set to true, regardless of any other rules.
+\item The EIMX of the base EIMX is set to true.
+This is the case whether the base EIMX is being created,
+or already exists.
+\item If an EIMX already exists,
+and it is not the base EIMX,
+it active boolean is left as it was.
+\item
+\item If an EIMX does not exist,
+and is being created,
+it is created with its active boolean set to false.
+\item When an LIMX is created, its active boolean is set to false.
+\item When an LIMX is used in Leo discovery, its active boolean
+is set to true.
+\item
+Once the active boolean of an EIMX or LIMX is true, its value
+will never change.
+\end{itemize}
 
 \section{The emulator in Leo mode is correct}
 
@@ -710,23 +758,153 @@ It is straightforward to confirm that
 $$ \operatorname{L}[0] \cong \operatorname{E}[0]$$,
 We next consider
 Earley operations in the sets after Earley set 0.
-By design, \Emulator in \Leo mode can be seen
-to be simply
-a redefinition of \Leo,
-and the Earley operations of \Emulator
-will produce Earley sets where the EIMX's
-correspond one-to-one with those of \Leo.
+By design, \Emulator in \Leo mode is
+a redefinition of \Leo.
+The Earley operations of \Emulator
+will produce Earley sets where the every EIMX
+corresponds to an EIMT created by \Leo.
 Congruence follows directly.
 \end{proof}
 
-\section{Marpa emulation}
+\section{Marpa mode}
 
-Unlike \Leo,
-\Emulator{} compute the LIMX's on an eager basis,
-immediately
-after each Earley set is finished.
-This is possible because there is enough information
-in the Earley set to identify potential LIM's.
+Marpa mode uses "eager" activation.
+In Marpa mode,
+all EIMX's and LIMX's are created with their active
+boolean set to true.
+Once set to true, an active boolean remains true.
+
+\section{The emulator in Marpa mode is correct}
+
+To prove correctness,
+we show that the emulator in Marpa mode produces
+the same Earley sets as the emulator in Leo mode.
+
+\begin{lemma}
+An emulator with eager activation of Leo items,
+produces the same Earley sets as the emulator with
+lazy activation of Leo items.
+\end{lemma}
+
+\begin{proof}
+Inspection of the logic will show that the active boolean
+is useless bookkeeping, with no effect on Earley sets.
+\end{proof}
+
+An EIMX is correct in Earley set $i$
+if and only if its corresponding EIMT would
+also be in Earley set $i$.
+
+\begin{lemma}\label{l:eimx-correct}
+All EIMX's, whether active or not,
+are correct.
+\end{lemma}
+
+\begin{proof}
+The base EIMX is correct because it results from
+the \Leo logic, which is known to be correct.
+The dotted rules produced by $\epsilon$-closure are
+correct, because 
+$\epsilon$-closure is correct,
+and therefore the EIMX's produced from them are correct.
+
+By construction of the AHFA,
+it includes in an AHFA state pair
+are correct for the the AHFA state's Earley set,
+if the AHFA transition rules are followed.
+\Emulator's calculation of the AHFA state follows
+the AHFA transition rules.
+Therefore
+all the EIMX's added because they are in the base
+EIMX AFHA state pair are correct.
+
+EIMX's are only created as base EIMX's,
+through $\epsilon$-transitions,
+or because they co-occur in an AHFA state pair
+that results according to the AHFA state transitions.
+Therefore all EIMX's are correct.
+\end{proof}
+
+\begin{lemma}{l:lazy-complete}
+Even with lazy activation of EIMX's,
+all EIMX's in Earley set $i$
+will be active once processing for Earley set $i$
+is complete.
+\end{lemma}
+
+\begin{proof}
+By Lemma \cite{l:eimx-correct},
+all EIMX's created by the emulator engine are
+correct.
+Lazy activation simulates Leo and Leo has been
+shown to include all the correct EIMT's
+in every Earley set.
+Lazy activation activate all the corresponding
+EIMX's for any EIMT.
+Therefore lazy activation activates all the
+EIMX's in any Earley set.
+\end{proof}
+
+\begin{lemma}
+An emulator with eager activation of Earley items,
+produces the same Earley sets as the emulator with
+lazy activation of Earley items.
+\end{lemma}
+
+\begin{proof}
+The proof is by induction the Earleys sets.
+The two modes do not differ for Earley set 0.
+We proceed to show that if eager and lazy activation
+have produced identical Earleys sets 0 through $i - 1$,
+then the two activation methods will also produce
+identical Earleys sets at $i$.
+
+By Lemma \cite{l:lazy-comlete},
+Once processing for an Earley set is complete,
+all of its EIMX's are activated,
+whether activation is lazy or eager,
+and activated EIMX's never change their activation status.
+This means that to show that the Earley sets
+are identical we need to examine show that each
+operation create the same EIMX's
+under both modes.
+It also means that
+an operation will behaves
+differently under lazy activation and
+eager activation only if it
+depends on an EIMX in the current Earley set.
+
+We examine those cases where
+creation of an Earley item in Earley set $i$,
+depends on another Earley item in Earley set $i$.
+For scanning, the predecessor EIMX must be
+in the previous Earley set, so that
+this will never be the case.
+Scanning therefore produces the new
+EIMX's
+whether activation is lazy or eager.
+
+For prediction, the predecessor EIMX will always
+be in the current Earley set.
+But the predecessor EIMX, when it created
+and activated EIMX's for all the dotted rules in its
+AHFA state pair, created and activated of its
+predictions.
+This means that all predictions will already
+exist and be activated before any \Emulator
+prediction operation.
+There an Emulator prediction operation will
+always create duplicate EIMX's,
+and since duplicates are not added,
+will not change the Earley set.
+
+For discovery, the predecessor EIMX must be
+in a previous Earley set,
+because the Marpa rewrite does not allow
+nullable rules.
+However, the component EIMX will always
+be in the current Earley set.
+\end{proof}
 
 \section{Marpa recognizer time complexity}
 \label{s:marpa:complexity}
