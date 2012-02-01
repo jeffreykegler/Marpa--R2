@@ -997,7 +997,11 @@ create it in order by Emulation Dotted Rule
 Order within AHFA state.
 Finally, \Emulator{},
 when adding the EIMX's for an AHFA state,
-does so in Emulation Dotted Rule Order.
+does so in Emulator Dotted Rule Order.
+Together,
+Emulator Symbol Order
+and Emulator Dotted Rule Order are
+referred to as Emulator Order.
 
 For Earley sets after Earley set 0,
 we require that the order of Earley items follow the
@@ -1024,7 +1028,7 @@ to those of \Marpa.
 Assume that \Emulator{} is in Marpa mode,
 and that the \Marpa{} and
 \Emulator{} operate using
-Emulator Symbol Order and Emulator Dotted Rule Order.
+Emulator Order.
 Let
 $\operatorname{E}[i]$
 be Earley set $i$ in \Emulator.
@@ -1046,6 +1050,29 @@ It is straightforward to confirm,
 as the basis of the outer induction,
 that
 $$ \operatorname{E}[0] \cong \operatorname{M}[0]$$
+As the basis of inner induction, we observe
+that, trivaily, the Earley sets are congruent when empty
+and that the first operation in both recognizers will be
+the scan whose predecessor comes first in the 
+the previous Earley set.
+
+The step of the inner induction is made by cases,
+where scanning, Earley discovery,
+Leo discovery and prediction are the cases.
+
+For the case of scanning,
+we recall that both \Marpa{} and \Emulator{}
+track the transition logic of AHFA's,
+and that \Emulator{} causes all of the EIMX's of an AHFA to be
+added to the Emulator Earley set in Emulator Order.
+The two Earley sets remain congruent,
+Emulator order is preserved,
+and the next operation in both will be
+the scan whose predecessor comes next in the previous
+Earley set or,
+if there is no such predecessor,
+discovery for the first Earley item in both Earley sets.
+
 \end{proof}
 
 \section{Marpa recognizer time complexity}
