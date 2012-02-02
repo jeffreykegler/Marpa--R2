@@ -31,6 +31,7 @@
 \newcommand{\Vbool}[1]{\ensuremath{\bool{#1}}}
 \newcommand{\dr}[1]{#1_{DR}}
 \newcommand{\Vdr}[1]{\ensuremath{\var{#1}_{DR}}}
+\newcommand{\Vdrset}[1]{\ensuremath{\var{#1}_{\set{DR}}}}
 \newcommand{\eim}[1]{#1_{EIM}}
 \newcommand{\Veim}[1]{\ensuremath{\var{#1}_{EIM}}}
 \newcommand{\Veimt}[1]{\ensuremath{\var{#1}_{EIMT}}}
@@ -49,6 +50,7 @@
 \newcommand{\sym}[1]{#1_{SYM}}
 \newcommand{\Vsym}[1]{\ensuremath{\var{#1}_{SYM}}}
 \newcommand{\symset}[1]{#1_{\lbrace SYM \rbrace} }
+\newcommand{\Vsymset}[1]{\ensuremath{\var{#1}_{\set{SYM}}}}
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
 \newcommand{\alg}[1]{\ensuremath{\textsc{#1}}}
@@ -96,17 +98,17 @@ The Marpa algorithm is a practical, and fully implemented,
 algorithm for the recognition,
 parsing and evaluation of context-free grammars.
 Marpa's recognizer is based
-an Earley's algorithm,
+on Earley's algorithm,
 and merges the improvements to Earley's
 from Leo~\cite{Leo1991}
 and Aycock and Horspool~\cite{AH2002}.
-Their combination in the marpa parse engine
+Their combination in the Marpa parse engine
 has an added feature:
-It makes available,
-before each token is scanned,
-full knowledge of the state of the parse so far.
-This allows input to be altered as the parse progresses,
-which can be an extremely powerful technique.
+as tokens are being scanned,
+full knowledge of the state of the parse is available.
+Advantageous for error detection,
+this also allows input to be altered as the parse progresses,
+which is an extremely powerful technique.
 \end{abstract}
 
 \maketitle
@@ -116,7 +118,7 @@ which can be an extremely powerful technique.
 This a very early draft of this document,
 and is largely unchecked.
 The spirit and culture of the open source community
-dictates that works of this kind and
+dictate that works of this kind and
 at even this very early stage be made
 available on-line in public repositories.
 The reader should see the availability of this document
@@ -132,17 +134,11 @@ it has never been incorporated into a tool
 as widely available as yacc or
 regular expressions.
 The Marpa project was begun to end this neglect by
-pulling the best results from the literature,
-and to turning them into a widely-available tool.
+turning the best results from that literature
+into a widely-available tool.
 A stable version of this tool, Marpa::XS~\cite{Marpa-XS},
 was uploaded to the CPAN Perl archive
 on Solstice Day in 2011.
-
-Marpa::XS is a complete implementation of a parser
-generator.
-Its recognizer is built around a parse engine,
-which is new, but which also owes a great debt
-to previous work.
 
 \section{Preliminaries}
 \label{s:prel}
@@ -151,10 +147,10 @@ I assume familiarity with standard grammar notation
 (pages 14-15 in Aho and Ullman~\cite{AU1972}).
 In the past,
 the type system required to support
-a theory of parsing has been taken
+a theory of parsing has been seen
 as a challenge to the typographic
 imagination,
-and often become one to the eyesight.
+often to become one to the eyesight.
 This document will 
 often use subscripts to indicate the commonly occurring types.
 For example, $\sym{a}$ and $\sym{X}$ will be symbols.
@@ -176,40 +172,42 @@ Divide $alphabet$ into two disjoint sets,
 $lh$ and $term$.
 
 For the rewriting, designate a set of duples, $rules$,
-where $\forall Rule \sep Rule \in rules$,
-$Rule$ takes the form $\sym{l} \de r$,
-where $\sym{l} \in term$ and 
-$r \in (term \cup lh)^+$. 
-$\sym{l}$ is referred to as the left hand side (LHS)
-of $Rule$.
-$r$ is referred to as the right hand side (RHS)
-of $Rule$.
-This definition differs from the traditional one in
-that the empty RHS is not allowed.
-Let one symbol \Vsym{start}, $\Vsym{start} \in lh$,
-be a dedicated start symbol.
+where $\forall \Vrule{r} \sep \Vrule{r} \in rules$,
+\Vrule{r} takes the form $\Vsym{lhs} \de \Vsymset{rhs}$,
+where $\sym{lhs} \in term$ and 
+$rhs \in alphabet^+$. 
+\Vsym{lhs} is referred to as the left hand side (LHS)
+of \Vrule{r}.
+\Vsymset{rhs} is referred to as the right hand side (RHS)
+of \Vrule{r}.
+This definition follows \cite{AH2002},
+which departs from tradition by disallowing an empty RHS.
 
 The grammar $g$ can be defined as the 4-tuple
-$(lh, term, rules, \sym{start})$.
+$$(\Vsymset{alphabet}, \Vsymset{term}, rules, \Vsym{start})$$.
 Without loss of generality,
 it is assumed that $g$ is "augmented",
-so that there is a rule $\Vsym{start} \de \Vsym{old-start}$,
-and that \Vsym{start} is not the LHS of any other rule,
-or in the RHS of any rule.
+so that \Vsym{start} is a dedicated start symbol
+and
+$\Vrule{start} = [ \Vsym{start} \de \Vsym{goal} ] $
+is a dedicated start rule
+such that for every rule, $\Vrule{x} = [ \Vsym{lhs} \de \Vsymset{rhs} ]$
+\begin{center}
+\begin{tabular}{ll}
+1.\hspace{.5em} & 
+$  \Vsym{start} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{start} $ \\
+2. &
+$  \Vsym{start} \notin \Vsymset{rhs} $ \\
+\end{tabular}
+\end{center}
 
 We have already noted
 that no rules of \var{g}
 have a zero-length RHS.
-Further, no symbol may be a proper nullable --
-all symbol must be either nulling or non-nullable.
+Further, no rule can be nullable
+and all symbols must be either nulling or non-nullable --
+no symbol can be a proper nullable.
 These restrictions follow Aycock and Horspool~\cite{AH2002}.
-
-Aycock and Horspool did allow a single empty start rule
-to deal with null parses.
-Marpa completely eliminates the need for empty rules in its grammars
-by treating null parses and trivial grammars as special cases.
-(Trivial grammars are those which recognize only the null string.)
-
 The elimination of empty rules and proper nullables
 is done by rewriting the grammar.
 This can be done without loss of generality
@@ -223,18 +221,24 @@ this rewrite is done in such a way that the semantics
 of the original grammar can be efficiently reconstructed
 at evaluation time.
 
-In this document, $Earley$ will refer to the Earley's original
+Aycock and Horspool did allow a single empty start rule
+to deal with null parses.
+Marpa completely eliminates the need for empty rules in its grammars
+by treating null parses and trivial grammars as special cases.
+(Trivial grammars are those which recognize only the null string.)
+
+In this document, \Earley{} will refer to the Earley's original
 recognizer~\cite{Earley1970}.
-$Leo$ will refer to Leo's revision of $Earley$
-as described in his 1991 paper~\cite{Leo1991}.
-$AH$ will refer to the Aycock and Horsool's revision
-of $Earley$
-as described in their 2002 paper~\cite{AH2002}.
+\Leo will refer to Leo's revision of \Earley
+as described in~\cite{Leo1991}.
+\AH will refer to the Aycock and Horsool's revision
+of \Earley
+as described in~\cite{AH2002}.
 Where $\alg{Recce}$ is a recognizer,
 $\myL{\alg{Recce},g}$ will be the language accepted by $\alg{Recce}$
 when parsing grammar $g$.
 
-\section{The AHFA Finite Automatio}
+\section{The AHFA Finite Automaton}
 \label{s:AHFA}
 
 In this document a
@@ -285,9 +289,38 @@ Aycock and Horspool modified their Earley items to be $(\ah{L}, origin)$
 duples, where $\ah{L}$ is an AHFA state.
 
 \begin{definition}
+The {\bf $\epsilon$-transition } partial function forms dotted rule from another
+by moving the dot forward.
+The {\bf $\epsilon$-closure } of a dotted rule
+is the set of dotted rules
+that can be formed by 
+$\epsilon$-transition and its inverse.
+$\epsilon(\Vdr{d})$ is the $\epsilon$-closure of \Vdr{d}.
+The {\bf $\epsilon$-closure } of a set of dotted rules is the union
+of their $\epsilon$-closures.
+$\epsilon(\Vdrset{ds})$ is the $\epsilon$-closure of \Vdrset{ds}.
+\end{definition}
+
+\begin{definition}
 A dotted rule is {\bf Marpa-valid} if and only if
 it does not have a nulling postdot symbol.
+One and only one dotted rule of every
+{\bf $\epsilon$-closure } will be Marpa-valid.
 \end{definition}
+
+\begin{definition}
+In \cite{AH2002}, {\bf $\epsilon$-transition } is also defined for AHFA states.
+The {\bf AHFA $\epsilon$-sets} are the sets formed by the closure
+of $\epsilon$-transition for AHFA states.
+\end{definition}
+
+No AHFA $\epsilon$-set contains more than two AHFA states.
+If an AHFA $\epsilon$-set contains one AHFA state, it is either
+the initial AHFA state or a discovered state
+(what in \cite{AH2002} are called the "kernel states").
+If an AHFA $\epsilon$-set contains two AHFA states, the from-state
+is either the initial AHFA state or a discovered state,
+and the to-state is always a predicted state.
 
 It is important to note that
 an AHFA is not a partition of the dotted
@@ -420,7 +453,7 @@ it must be the only dotted rule in that EIMM.
 \begin{algorithm}[H]
 \caption{Marpa Initialization}\label{a:initial}
 \begin{algorithmic}[1] 
-\Procedure{Initial}{$i,a$}
+\Procedure{Initial}{}
 \State \Call{AddItems}{$0, \ah{start}, 0$}
 \EndProcedure
 \end{algorithmic} 
@@ -430,7 +463,6 @@ it must be the only dotted rule in that EIMM.
 \caption{Marpa Scanning}\label{a:scan}
 \begin{algorithmic}[1] 
 \Procedure{Scan}{$i,a$}
-\Comment{Scan a token $a$, which starts at Earley set $i$}
 \For{each Earley item $\eim{x}$ in $ES[i]$}
 \State $\ah{to} \gets \GOTO(\operatorname{AHFA-of}(\eim{x}), a)$
 \State \Call{Add EIM Pair}{$i+1, \ah{to}, \operatorname{Origin-of}(\eim{x}$}
@@ -440,18 +472,37 @@ it must be the only dotted rule in that EIMM.
 \end{algorithm}
 
 \begin{algorithm}[H]
-\caption{Marpa Completion}\label{a:complete}
+\caption{Collection phase}\label{a:collection-phase}
 \begin{algorithmic}[1] 
-\Procedure{Complete}{$i_{LOC}$}
-\For{each Earley item $\eim{work} \in ES[i]$}
-\For{each completed rule, $\Vrule{C}$}
-\For{each $\eim{predecessor} \in ES[\operatorname{Origin-of} \eim{work}]$}
-\State $\ah{to} \gets \GOTO(\operatorname{AHFA-of} \eim{predecessor}, LHS_{SYM})$
-\State \Call{Add EIM Pair}{$to_{AHFA}, \operatorname{Origin-of} \eim{predecessor}$}
+\Procedure{Collection phase}{$i_{LOC}$}
+\For{each Earley item $\Veim{work} \in \var{earley-sets}[i]$}
+\State $[\Vah{work}, \Vloc{origin}] \gets \Veim{work}$
+\For{each lhs of a completed rule, $\Vsym{lhs}$}
+\For{each postdot item $pim$, in $\var{transitions}(\Vloc{origin},\Vsym{lhs})$}
+\If{\var{pim} is a LIMX, \Vlimx{pim}}
+\State $\Vlimx{pred} \gets \var{pim}$
+\State \Call{Leo Collection Operation}{\Vloc{i}, \Vlimx{pred}}
+\Else
+\State $\Veimx{pred} \gets \var{pim}$
+\State \Call{Earley Collection Operation}{\Vloc{i}, \Veimx{pred}, \Vsym{lhs}}
+\EndIf
 \EndFor
 \EndFor
 \EndFor
-\State Construct $transitions[i]$
+\For{all postdot symbols in Earley set $i$, \Vsym{postdot}}
+\State Set $var{transitions}(i, \Vsym{postdot})$ to an LIMX or a set of EIMX's, as appropriate
+\EndFor
+\EndProcedure
+\end{algorithmic} 
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Earley Collection Operation}\label{a:earley-collection-op}
+\begin{algorithmic}[1] 
+\Procedure{Earley collection op}{\Vloc{i}, \Veim{from}, \Vsym{trans}}
+\State $[\Vah{from}, \Vloc{origin}] \gets \Veim{from}$
+\State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
+\State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
@@ -475,7 +526,7 @@ it must be the only dotted rule in that EIMM.
 \State Add $\eim{predicted}$ to $ES[i]$
 \EndIf
 \EndIf
-\State \textbf{Return} $\eim{discovered}$
+\State \textbf{return} $\eim{discovered}$
 \EndFunction
 \end{algorithmic} 
 \end{algorithm} 
