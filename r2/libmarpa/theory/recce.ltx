@@ -8,7 +8,7 @@
 \newcommand{\comment}[1]{}
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
-\newcommand{\size}[1]{\left | {#1} \right |} 
+\newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
 \newcommand{\order}[1]{{\mathcal O}(#1)}
 
 \newcommand{\var}[1]{\ensuremath{\textbf{#1}}}
@@ -60,6 +60,8 @@
 \newcommand{\Leo}{\ensuremath{\alg{Leo}}}
 \newcommand{\Marpa}{\ensuremath{\alg{Marpa}}}
 \newcommand{\Emulator}{\ensuremath{\alg{Emulator}}}
+\newcommand{\Vg}{\var{g}}
+\newcommand{\Vfa}{\var{fa}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -1281,14 +1283,14 @@ follows.
 Let \Vg be a grammar as defined in this
 document,
 and let \Vfa be the AHFA for this grammar.
-Let $\Vesi{L}{i}$ be
+Let \Vesi{L}{i} be
 an Earley set of \Leo.
-Let $\Vesi{El}{i}$ be an
+Let \Vesi{El}{i} be an
 an Earley set of \Emulator
 in Leo mode.
 Then 
-$\size{\Vesi{L}{i}} < \size{\Vfa} \times \size{\Vesi{El}{i}}
-where $size{\Vfa} is the number of states in Vfa,
+$$\size{\Vesi{L}{i}} < \size{\Vfa} \times \size{\Vesi{El}{i}}$$
+where \size{\Vfa} is the number of states in \Vfa,
 and \size{\var{earley-set}} is the size of a Earley
 set.
 \end{lemma}
@@ -1296,16 +1298,16 @@ set.
 \begin{proof}
 By Theorem \ref{t:leo-congruence},
 we know that that for every EIML
-$[\Vdr{l}, \Vloc{origin}]$ in \Vesi{L},
+$[\Vdr{l}, \Vloc{origin}]$
+in \Vesi{L}
 there is at least one EIMX,
-$$[\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}]$ in \Vesi{L}{i}$$
-We also know that for every EIMX,
+$$[\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}
 $$
-[\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}
+We also know that for every EIMX,
+$$ [\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}
 $$
 that
-$$[\Vdr{l}, \Vloc{origin}]$ \in \Vesi{L}
-$$
+$$[\Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}$$
 
 From this we see that there is a total function
 from
