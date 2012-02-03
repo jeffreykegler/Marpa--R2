@@ -599,9 +599,8 @@ if and only if
 for all
 Vdr{x}, \var{xorig}
 \begin{gather*}
-(\exists \Vah{x} \sep \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X})
-\iff
-[\Vdr{x}, \var{xorig}] \in \Veimtset{T}
+(\exists \Vah{x} \sep \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X}) \\
+\iff [\Vdr{x}, \var{xorig}] \in \Veimtset{T}
 \end{gather*}
 
 \subsubsection{The emulation engine}
@@ -619,7 +618,7 @@ so that we know the loop will terminate.
 
 \Veimx{a} and \Veimx{b} are considered duplicates if
 \begin{gather*}
-\Veimx{a} = [\Vbool{a}, \Vah{a}, \Vdr{a}, \Vloc{a}]
+\Veimx{a} = [\Vbool{a}, \Vah{a}, \Vdr{a}, \Vloc{a}] \\
 \land \Veimx{b} = [\Vbool{b}, \Vah{a}, \Vdr{a}, \Vloc{a}]
 \end{gather*}
 Two EIMX's which differs only in their active boolean
@@ -808,11 +807,12 @@ be Earley set $i$ in \Emulator.
 \begin{proof}
 We assume that \Emulator{} is in Leo mode.
 It is straightforward to confirm that
-$$ \operatorname{L}[0] \cong \operatorname{E}[0]$$,
+$$ \operatorname{L}[0] \cong \operatorname{E}[0]$$
 We next consider
 Earley operations in the sets after Earley set 0.
-By design, \Emulator{} in \Leo mode is
-a redefinition of \Leo.
+By construction,
+the definition of \Emulator{} in \Leo{} mode is
+an extension of the definition of \Leo.
 The Earley operations of \Emulator
 will produce Earley sets where the every EIMX
 corresponds to an EIMT created by \Leo.
@@ -841,7 +841,8 @@ lazy activation of Leo items.
 
 \begin{proof}
 Inspection of the logic will show that the active boolean
-is useless bookkeeping, with no effect on Earley sets.
+of the LIMX
+is useless bookkeeping, without effect on the Earley sets.
 \end{proof}
 
 An EIMX is correct in Earley set $i$
@@ -854,31 +855,27 @@ are correct.
 \end{lemma}
 
 \begin{proof}
-The base EIMX is correct because it results from
-the \Leo logic, which is known to be correct.
-The dotted rules produced by $\epsilon$-closure are
-correct, because 
-$\epsilon$-closure is correct,
-and therefore the EIMX's produced from them are correct.
+The proof is by cases:
+the base EIMX;
+EIMX's occurring in the AHFA state as the base EIMX;
+EIMX's occurring in a predicted state;
+and EIMX's from epsilon-closures in either of the two AHFA states.
 
-By construction of the AHFA,
-it includes in an AHFA state pair
-are correct for the the AHFA state's Earley set,
-if the AHFA transition rules are followed.
-\Emulator's calculation of the AHFA state follows
-the AHFA transition rules.
-Therefore
-all the EIMX's added because they are in the base
-EIMX AFHA state pair are correct.
+\begin{itemize}
+\item The base EIMX is correct because it results from
+the \Leo{} logic, which is known to be correct\cite{Leo1991}.
+\item The EIMX's occurring in the same AHFA state
+as the base EIMX are correct, as shown in \cite{AH2002}.
+\item The EIMX's occurring in a predicted AHFA state
+as the base EIMX are correct, as shown in \cite{AH2002}.
+\item The dotted rules produced by $\epsilon$-closure are
+correct, because $\epsilon$-closure is as defined for
+the traditional Earley's algorithm.
+\end{itemize}
 
-EIMX's are only created as base EIMX's,
-through $\epsilon$-transitions,
-or because they co-occur in an AHFA state pair
-that results according to the AHFA state transitions.
-Therefore all EIMX's are correct.
 \end{proof}
 
-\begin{lemma}{l:lazy-complete}
+\begin{lemma}\label{l:lazy-complete}
 Even with lazy activation of EIMX's,
 all EIMX's in Earley set $i$
 will be active once processing for Earley set $i$
@@ -892,10 +889,11 @@ correct.
 Lazy activation simulates Leo and Leo has been
 shown to include all the correct EIMT's
 in every Earley set.
-Lazy activation activate all the corresponding
-EIMX's for any EIMT.
+For every EIMT created by \Leo,
+lazy activation activate all the corresponding
+EIMX's.
 Therefore lazy activation activates all the
-EIMX's in any Earley set.
+EIMX's in any \Emulator{} Earley set.
 \end{proof}
 
 \begin{lemma}
@@ -905,7 +903,7 @@ lazy activation of Earley items.
 \end{lemma}
 
 \begin{proof}
-The proof is by induction the Earleys sets.
+The proof is by induction on the Earleys sets.
 The two modes do not differ for Earley set 0.
 We proceed to show that if eager and lazy activation
 have produced identical Earleys sets 0 through $i - 1$,
@@ -913,13 +911,13 @@ then the two activation methods will also produce
 identical Earleys sets at $i$.
 
 By Lemma \cite{l:lazy-complete},
-Once processing for an Earley set is complete,
+once processing for an Earley set is complete,
 all of its EIMX's are activated,
 whether activation is lazy or eager,
 and activated EIMX's never change their activation status.
 This means that to show that the Earley sets
-are identical we need to examine show that each
-operation create the same EIMX's
+are identical we need to show that each
+operation creates the same EIMX's
 under both modes.
 It also means that
 an operation will behaves
@@ -1002,11 +1000,11 @@ are congruent
 $$\Veimtset{X} \cong \Veimtset{M}$$
 if and only if
 for all
-\Vbool{x}, \Vah{x}, \Vdr{x}, \var{xorig}
-\begin{equation*}
-\Vbool{x}, \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X} \iff
-[\Vah{x}, \var{xorig}] \in \Veimmset{M}
-\end{equation*}
+\Vah{x}, \var{xorig}
+\begin{gather*}
+\Vbool{x}, \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X} \\
+\iff [\Vah{x}, \var{xorig}] \in \Veimmset{M}
+\end{gather*}
 
 \subsection{Refining the order of operations}
 
@@ -1125,7 +1123,6 @@ the scan whose predecessor comes next in the previous
 Earley set or,
 if there is no such predecessor,
 discovery for the first Earley item in both Earley sets.
-
 \end{proof}
 
 \section{Marpa recognizer time complexity}
