@@ -6,8 +6,6 @@
 \usepackage{algpseudocode}
 
 \newcommand{\comment}[1]{}
-\newcommand{\myspace}{\mbox{ }\ \ \ \ }
-\newcommand{\myspacem}{\;\;\;\;\;}
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
 \newcommand{\size}[1]{\left | {#1} \right |} 
@@ -42,6 +40,9 @@
 \newcommand{\Veimxset}[1]{\ensuremath{\var{#1}_{\set{EIMX}}}}
 \newcommand{\Veimmset}[1]{\ensuremath{\var{#1}_{\set{EIMM}}}}
 \newcommand{\es}[1]{#1_{ES}}
+\newcommand{\Ves}[1]{\ensuremath{\var{#1}_{ES}}}
+\newcommand{\Vesi}[2]{\ensuremath{\var{#1}[#2]_{ES}}}
+\newcommand{\VVes}[2]{\ensuremath{\var{#1}[\var{#2}]_{ES}}}
 \newcommand{\Vlim}[1]{\ensuremath{\var{#1}_{LIM}}}
 \newcommand{\Vlimx}[1]{\ensuremath{\var{#1}_{LIMX}}}
 \newcommand{\loc}[1]{\var{#1}_{LOC}}
@@ -376,7 +377,7 @@ $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 
 \section{The Leo algorithm}
 
-\begin{theorem}
+\begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
 a Marpa Earley item (EIMM) is the result of a
 Leo completion,
@@ -1094,35 +1095,157 @@ be Earley set $i$ in \Marpa,
 \begin{proof}
 The proof is by double induction.
 The outer induction is on the Earley sets,
-and the inner induction on the Earley operations
-(scanning, discovery and prediction).
+and the inner induction on "basic operations".
+
+We define the "basic operations" by breaking
+down the operations of \Emulator and \Marpa
+into convenient pieces, excluding
+operations which can be shown
+to have no effect on the Earley sets.
+A basic operation is
+\begin{itemize}
+\item
+A scan for one pairing of predecessor and token.
+\item
+An Earley collection for one pairing of predecessor and LHS.
+\item
+An Leo collection for one pairing of predecessor and LHS.
+\end{itemize}
+Predictions are not among the basic operations
+because, as shown previously,
+they have no effect on the Earley sets in \Emulator's Marpa mode.
+Predictions do not exist in \Marpa.
+
+The hypothesis for the outer induction is that
+$$\forall \var{i} \sep 0<\var{i}<\var{n}
+\implies
+\VVes{EM}{i} \cong \VVes{M}{i}$$
+and that
+$\VVes{EM}{i}$ is in Emulation Order.
 
 It is straightforward to confirm,
 as the basis of the outer induction,
 that
-$$ \operatorname{E}[0] \cong \operatorname{M}[0]$$
+$$ \Vesi{Em}{0} \cong \Vesi{M}{0}$$
+and that $\Vesi{Em}{0}$ is in Emulation order.
+
+The inner induction is done on the operations to build
+the Earley sets for $\var{i}>0$.
+The hypothesis for the inner induction is that,
+up to this point,
+the following three invariants hold:
+\begin{center}
+\begin{tabular}{l p{1in} p{3.5in}}
+1. \hspace{1em} & Congruence &
+$\Vesi{EM}{i} \cong \Vesi{M}{i}$ \\
+2. & Item Order & \Vesi{EM}{i} is in Emulation Order \\
+3. & Operation \mbox{Sequence} &
+\Emulator{} in Marpa mode and \Marpa{} carry out the
+same basic Earley operations.
+\end{tabular}
+\end{center}
+
 As the basis of inner induction, we observe
-that, trivaily, the Earley sets are congruent when empty
-and that the first operation in both recognizers will be
+that, trivially, the two empty Earley sets are congruent,
+that an empty Earley set is in Emulation order.
+To show that the next operations will be the same,
+we observe that
+that the first basic operation for both recognizers will be
 the scan whose predecessor comes first in the 
-the previous Earley set.
+the previous Earley set,
+and that by the outer induction hypothesis,
+both previous Earley sets will be in Emulation order.
 
-The step of the inner induction is made by cases,
-where scanning, Earley discovery,
-Leo discovery and prediction are the cases.
+For the step of the inner induction,
+it is convenient to first show that
+the Operation Sequence invariant holds.
+If we assuming the induction hypothesis
+for the inner induction,
+we can see,
+based on the Emulation Order,
+the pseudocode for \Leo
+and the pseudocode for \Marpa
+that this sequence of basic operations will be
+scan operations, then collection operations.
+Scan operation will be in order by predecessor,
+and collection operations in order by predecessor
+within LHS.
 
-For the case of scanning,
-we recall that both \Marpa{} and \Emulator{}
-track the transition logic of AHFA's,
-and that \Emulator{} causes all of the EIMX's of an AHFA to be
-added to the Emulator Earley set in Emulator Order.
-The two Earley sets remain congruent,
-Emulator order is preserved,
-and the next operation in both will be
-the scan whose predecessor comes next in the previous
-Earley set or,
-if there is no such predecessor,
-discovery for the first Earley item in both Earley sets.
+By the outer induction hypothesis, 
+Earley items of \Emulator{} and \Marpa{}
+will be in the same order by AHFA state
+for the predecessors.
+Based on Emulation Symbol Order and the
+inner induction hypothesis,
+we know that the two recognizers
+will process the collection operations
+in the same order by LHS symbol.
+
+The Item Order invariant is straightforward to show.
+As long as the inner and outer induction hypotheses
+are true,
+by their definitions,
+\Emulator and \Marpa add all Earley items in
+Emulator Order.
+
+To complete the step of the inner induction,
+we now proceed to show that Congruence stays invariant
+as new Earley items are added.
+We do this by cases, where the bases are the basic operations.
+
+For the cases of scanning and Earley collection,
+we recall that \Marpa{} and \Emulator{}
+both implement the transition logic of AHFA's,
+as described in \cite{AH2002}.
+We know from the inner and outer induction hypotheses
+that they will find congruent predecessors
+from congruence that the LHS's of completed rules will be the same,
+and from the definition of the recognizer that the tokens will be
+the same.
+From this we can see that,
+for every EIMM added by \Marpa,
+as least one EIMX (the base EIMX) will be added
+by \Emulator in Marpa mode,
+and that the EIMX will have the same AHFA state
+as the EIMM.
+Therefore, the Earley items added by each scanning
+or Earley item operation
+will be congruent.
+The union of congruent sets of Earley items is also congruent,
+so that the Earley sets under construction remain congruent
+as items from these operations are added.
+This show the case of the Congruence invariant
+for scanning and Earley collection operations,
+as part of the inner induction step.
+
+To complete the inner induction step,
+it remains to show the case of the Congruence invariant
+for the Leo collection operation.
+By the definition of Leo collection, it
+produces a single AHFA state,
+call this \Vah{leo-complete}.
+By Theorem \ref{t:leo-singleton},
+\Vah{collected} will contain one and only one dotted rule,
+\Vdr{collected}.
+\Vdr{collected} will be a completion.
+Since the only rule in the \Vah{collected} is a completion,
+\Vah{collected} will have no null-transition.
+Therefore
+a Leo collection operation
+in \Marpa{}
+will add only one EIMM, $[\Vah{leo-complete}, \Vloc{origin}]$,
+where \Vloc{origin} is from the LIMX.
+\Emulator in Marpa mode will add only
+those EIMX in the set
+$${
+[ \Vbool{active}, \Vah{collected}, \Vdr{d}, \Vloc{origin} ]
+\sep \Vdr{d} \in \var{null}(\Vdr{collected}) }
+$$
+Clearly, congruence will hold with the addition to these
+Earley items to their respective Earley sets.
+
+The completes the inner induction step, the inner induction,
+the outer induction step, the outer induction and the proof.
 \end{proof}
 
 \section{Marpa recognizer time complexity}
