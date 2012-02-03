@@ -794,21 +794,21 @@ for a given grammar \var{g} and input \var{w},
 the Earley sets of \Emulator{} are always congruent
 to those of \Leo.
 
-\begin{theorem}
-Let $\operatorname{L}[i]$
+\begin{theorem}\label{t:leo-congruence}
+Let $\VVes{L}{i}$
 be Earley set $i$ in \Leo,
-and $\operatorname{E}[i]$
+and $\VVes{El}{i}$
 be Earley set $i$ in \Emulator.
+running in Leo mode.
 \begin{equation*}
 \forall i \sep 0<i<\size{w} \implies
-\operatorname{L}[i] \cong \operatorname{E}[i]
+\VVes{L}{i} \cong \VVes{El}{i}
 \end{equation*}
 \end{theorem}
 
 \begin{proof}
-We assume that \Emulator{} is in Leo mode.
 It is straightforward to confirm that
-$$ \operatorname{L}[0] \cong \operatorname{E}[0]$$
+$$ \Vesi{L}{0} \cong \Vesi{E}{0}$$
 We next consider
 Earley operations in the sets after Earley set 0.
 By construction,
@@ -1076,7 +1076,7 @@ for a given grammar \var{g} and input \var{w},
 the Earley sets of \Emulator{} are always congruent
 to those of \Marpa.
 
-\begin{theorem}
+\begin{theorem}\label{t:marpa-congruence}
 Assume that \Emulator{} is in Marpa mode,
 and that the \Marpa{} and
 \Emulator{} operate using
@@ -1246,6 +1246,87 @@ Earley items to their respective Earley sets.
 
 The completes the inner induction step, the inner induction,
 the outer induction step, the outer induction and the proof.
+\end{proof}
+
+We now show that \Marpa,
+the language accepted by Marpa,
+is $\myL{\var{g}}$ --
+in other words, that \Marpa{} is correct.
+
+\begin{theorem}\label{t:correctness}
+$$\myL{\Marpa, g} = \myL{\var{g}}$$
+\end{theorem}\label{t:correctness}
+
+\begin{proof}
+Assume that \var{w} is a string of size $\size{w}$,
+We will assume that
+$$ \var{w} \in \myL{\var{g}}$$
+
+From Leo's correctness\cite{Leo1991},
+where \Vdr{accept} is the completed start rule,
+$$ [\Vdr{accept}, 0] \in \Vesi{L}{\size{w}}$$
+By Theorem \ref{t:leo-congruence},
+$$
+\exists \Vbool{b}, \Vah{x}
+\sep [\Vbool{b}, \Vah{x}, \Vdr{accept}, 0] \in \Vesi{El}{\size{w}}
+$$
+Where \Vah{accept} be an AHFA state,
+$\Vdr{accept} \in \Vah{accept}$,
+so that by the definition of \Emulator, in at least one case
+we have $\Vah{x} = \Vah{accept}$,
+$$
+\exists \Vbool{b} 
+\sep [\Vbool{b}, \Vah{accept}, \Vdr{accept}, 0] \in \Vesi{El}{\size{w}}
+$$
+By Theorem \ref{t:emulator-equivalence},
+$$
+\exists \Vbool{b}
+[\Vbool{b}, \Vah{accept}, \Vdr{accept}, 0] \in \Vesi{Em}{\size{w}}
+$$
+By Marpa-Emulator Congruence, Theorem \ref{t:marpa-congruence},
+$$
+[\Vah{accept}, 0] \in \Vesi{M}{\size{w}}
+$$
+By the definition of \Marpa,
+$$
+\var{w} \in \myL{\Marpa, \var{g}}
+$$
+Collapsing the forgoing chain of implication,
+back to its original assumption,
+$$ \var{w} \in \myL{\var{g}} \implies \var{w} \in \myL{\Marpa, \var{g}} $$
+
+Reviewing the chain of implications,
+will show that each was in fact a mutual implication,
+so that
+$$ \var{w} \in \myL{\var{g}} \iff \var{w} \in \myL{\Marpa, \var{g}} $$
+and
+since \var{w} was chosen without loss of generality, the theorem
+follows.
+
+\end{proof}
+
+\section{Marpa recognizer time complexity}
+\label{s:marpa:complexity}
+
+\begin{theorem}\label{t:constant-per-EIM}
+All time in \Marpa{} can be allocated
+to the Earley items,
+and in such a way that processing each Earley item
+requires $\order{1}$ time.
+\end{theorem}
+
+\begin{proof}
+It is known that the time taken by
+the traditional Earley recognizer
+for its operations
+operations can be done in amortized $\order(1)$
+time per Earley item~\cite[Vol. 1, pages 326-327]{AU1972}.
+Inspection of the algorithm for \Marpa{} will show
+that any operations considered to be new to it
+can be assigned to the Earley items in
+an obivous way,
+and 
+trivially shown to be $\order{1}$.
 \end{proof}
 
 \section{Marpa recognizer time complexity}
