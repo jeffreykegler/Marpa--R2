@@ -44,7 +44,7 @@
 \newcommand{\es}[1]{#1_{ES}}
 \newcommand{\Vlim}[1]{\ensuremath{\var{#1}_{LIM}}}
 \newcommand{\Vlimx}[1]{\ensuremath{\var{#1}_{LIMX}}}
-\newcommand{\loc}[1]{#1_{LOC}}
+\newcommand{\loc}[1]{\var{#1}_{LOC}}
 \newcommand{\Vloc}[1]{\ensuremath{\loc{#1}}}
 \newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
 \newcommand{\sym}[1]{#1_{SYM}}
@@ -597,11 +597,12 @@ are congruent
 $$\Veimtset{X} \cong \Veimtset{T}$$
 if and only if
 for all
-\Vah{x}, \Vdr{x}, \var{xorig}
-\begin{equation*}
-\Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X} \iff
+Vdr{x}, \var{xorig}
+\begin{gather*}
+(\exists \Vah{x} \sep \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X})
+\iff
 [\Vdr{x}, \var{xorig}] \in \Veimtset{T}
-\end{equation*}
+\end{gather*}
 
 \subsubsection{The emulation engine}
 
@@ -628,8 +629,10 @@ their corresponding EIMT's are duplicates --
 EIMX's are not duplicates
 if they differ in their AHFA states.
 
-While \Leo{} expects EIMT's,
-during its operations \Emulator{} will encounter EIMX's.
+\Leo{}, when traversing its Earley sets,
+expects EIMT's.
+\Emulator, during its processing of its Earley sets,
+will encounter EIMX's.
 Let the EIMX that \Emulator{} encounters be
 $$\Veimx{cause} =
 [\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
@@ -645,7 +648,7 @@ as if it did not exist.
 If \Vbool{active} is true, treats \Veimx{cause} as
 if it were the following EIMT:
 $$[\Vdr{dr}, \var{origin}]$$
-Informally, for use in its Earley operations,
+Informally, it can be said that
 \Emulator{} strips its extended information from an active EIMX,
 and ignores inactive EIMX's.
 
@@ -698,7 +701,7 @@ If \Vah{cause} is itself a prediction, $\Vah{predict} = \Vah{cause}$.
 If \Vah{cause} is not a prediction, $\Vah{predict} = \GOTO(\Vah{cause}, \epsilon)$.
 \end{itemize}
 
-if $\Vah{new} \neq \Lambda$,
+If $\Vah{new} \neq \Lambda$,
 \Emulator{} produces the \Veimtset{discovered}, where
 \begin{equation*}
 \Veimtset{discovered}  =
@@ -759,10 +762,10 @@ in Emulator Dotted Rule Order.
 
 The emulator runs in modes.
 The intent of Leo mode is to emulate \Leo.
-\Emulator{} is "eager" in its creation of Earley items
-and the idea behind the following rules is
-for the active boolean to indicates whether
-\Leo{} would have created the EIMX as this point.
+\Emulator{} is "eager" in its creation of Earley items.
+The idea behind the following rules is
+that the active boolean tracks
+whether \Leo{} would have created the EIMX.
 \begin{itemize}
 \item EIMX's in Earley set 0 are always
 created with their active booleans
@@ -773,7 +776,6 @@ or already exists.
 \item If an EIMX already exists,
 and it is not the base EIMX,
 it active boolean is left as it was.
-\item
 \item If an EIMX does not exist,
 and is being created,
 it is created with its active boolean set to false.
