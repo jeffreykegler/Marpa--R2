@@ -344,37 +344,6 @@ be proved to be break-even for
 time and space complexity purposes.
 The next observation is useful for that purpose.
 
-\begin{lemma}
-Let $g$ be a grammar as defined in this
-document,
-and let $fa$ be the AHFA for this grammar.
-Let $\var{S-t}$ be
-Earley set $i$ of a traditional earley parse.
-Let $\var{S-m}$ be an set
-of Earley items of the Aycock-Horspool form (EIMA),
-such that
-\begin{gather*}
-\forall r, origin
-\exists \ah{state} \sep \\
-[\Vdr{r}, origin] \in \var{S-t} \\
-\implies
-\ah{state} \in fa
-\land \Vdr{r} \in \ah{state}
-\land [\ah{state}, origin] \in \var{S-m}
-\end{gather*}
-Then 
-$\size{\var{S-m}} < c \times \size{\var{S-t}}$,
-where $c$ is the number of states in $fa$.
-\end{lemma}
-
-\begin{proof}
-The worst case is that every rule of 
-$\var{S-t}$ has a different $origin$,
-Worst case for grouping dotted rules into $c$ unique states
-is that every dotted rule appears in $c - 1$ states.
-$\size{\var{S-t}} < c \times \size{\var{S-m}}$.
-\end{proof}
-
 \section{The Leo algorithm}
 
 \begin{theorem}\label{t:leo-singleton}
@@ -1305,8 +1274,52 @@ follows.
 
 \end{proof}
 
-\section{Marpa recognizer time complexity}
+\section{Marpa recognizer complexity}
 \label{s:marpa:complexity}
+
+\begin{lemma}
+Let \Vg be a grammar as defined in this
+document,
+and let \Vfa be the AHFA for this grammar.
+Let $\Vesi{L}{i}$ be
+an Earley set of \Leo.
+Let $\Vesi{El}{i}$ be an
+an Earley set of \Emulator
+in Leo mode.
+Then 
+$\size{\Vesi{L}{i}} < \size{\Vfa} \times \size{\Vesi{El}{i}}
+where $size{\Vfa} is the number of states in Vfa,
+and \size{\var{earley-set}} is the size of a Earley
+set.
+\end{lemma}
+
+\begin{proof}
+By Theorem \ref{t:leo-congruence},
+we know that that for every EIML
+$[\Vdr{l}, \Vloc{origin}]$ in \Vesi{L},
+there is at least one EIMX,
+$$[\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}]$ in \Vesi{L}{i}$$
+We also know that for every EIMX,
+$$
+[\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}
+$$
+that
+$$[\Vdr{l}, \Vloc{origin}]$ \in \Vesi{L}
+$$
+
+From this we see that there is a total function
+from
+$\size{\Vesi{L}{i}}$ to a partition
+of $\size{\Vesi{El}{i}}$,
+
+Since EIMX's that differ only in \Vbool{b} are considered
+identical,
+The worst case is that every rule of 
+$\var{S-t}$ has a different $origin$,
+Worst case for grouping dotted rules into $c$ unique states
+is that every dotted rule appears in $c - 1$ states.
+$\size{\var{S-t}} < c \times \size{\var{S-m}}$.
+\end{proof}
 
 \begin{theorem}\label{t:constant-per-EIM}
 All time in \Marpa{} can be allocated
