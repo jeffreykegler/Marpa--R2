@@ -90,9 +90,13 @@
 \author{Jeffrey Kegler}
 \thanks{
 Copyright \copyright\ 2012 Jeffrey Kegler.
+}
+\thanks{
 This document is licensed under
 a Creative Commons Attribution-NoDerivs 3.0 United States License.
 }
+
+\date{\today}
 
 \begin{abstract}
 This document reports describes the recognizer portion
@@ -102,16 +106,19 @@ algorithm for the recognition,
 parsing and evaluation of context-free grammars.
 Marpa's recognizer is based
 on Earley's algorithm,
-and merges the improvements to Earley's
-from Leo~\cite{Leo1991}
-and Aycock and Horspool~\cite{AH2002}.
-Their combination in the Marpa parse engine
-has an added feature:
-as tokens are being scanned,
-full knowledge of the state of the parse is available.
+and merges the improvements made
+to Earley's
+by Joop Leo
+with those of Aycock and Horspool.
+The Marpa parse engine has its own added feature:
+full knowledge of the state of the parse is available
+as tokens are being scanned.
 Advantageous for error detection,
-this also allows input to be altered as the parse progresses,
-which is an extremely powerful technique.
+this knowledge also
+allows
+"Ruby Slippers" parsing --
+alteration of the input in reaction
+to the parser's expectations.
 \end{abstract}
 
 \maketitle
