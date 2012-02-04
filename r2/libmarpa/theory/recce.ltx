@@ -1308,15 +1308,15 @@ follows.
 Let \Vg{} be a grammar as defined in this
 document,
 and let \Vfa{} be the AHFA for this grammar.
-Let \Vesi{L}{i} be
+Let \VVes{L}{i} be
 an Earley set of \Leo.
-Let \Vesi{El}{i} be an
+Let \VVes{El}{i} be an
 an Earley set of \Emulator{}
 in Leo mode.
 Then 
-$$\size{\Vesi{L}{i}} < \size{\Vfa} \times \size{\Vesi{El}{i}}$$
+$$ \size{fa} \times \size{\VVes{L}{i}} < \size{\VVes{El}{i}} $$
 where \size{\Vfa} is the number of states in \Vfa,
-and \size{\var{earley-set}} is the size of a Earley
+and \Vsize{earley-set} is the size of a Earley
 set.
 \end{lemma}
 
@@ -1337,14 +1337,21 @@ From this we see that there is a total function
 from
 $\size{\Vesi{L}{i}}$ to a partition
 of $\size{\Vesi{El}{i}}$,
+such that $\Veimt{x} \mapsto \Veimxset{y}$,
+where
+\begin{gather*}
+\Veimt{x} = \set{ \Vdr{x}, \Vloc{x} } \\
+\land \Veimx{y} = \\
+{ [ \Vbool{z}, \Vah{z}, \Vdr{x}, Vloc{x} \sep Vdr{z} \in \Vah{z} ] }
+\end{gather*}
 
-Since EIMX's that differ only in \Vbool{b} are considered
-identical,
-The worst case is that every rule of 
-$\var{S-t}$ has a different $origin$,
-Worst case for grouping dotted rules into $c$ unique states
-is that every dotted rule appears in $c - 1$ states.
-$\size{\var{S-t}} < c \times \size{\var{S-m}}$.
+By the defintion of \Emulator,
+EIMX's that differ only in \Vbool{z} will not appear
+in the same Earley set,
+and the number of AHFA states, \Vsize{fa}, is finite.
+The theorem follows.
+Therefore
+$$ \size{fa} \times \size{\VVes{L}{i}} < \size{\VVes{El}{i}} $$
 \end{proof}
 
 \begin{theorem}\label{t:constant-per-EIM}
