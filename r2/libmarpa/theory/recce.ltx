@@ -48,6 +48,7 @@
 \newcommand{\loc}[1]{\var{#1}_{LOC}}
 \newcommand{\Vloc}[1]{\ensuremath{\loc{#1}}}
 \newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
+\newcommand{\Vsize}[1]{\ensuremath{\size{\var{#1}}}}
 \newcommand{\sym}[1]{#1_{SYM}}
 \newcommand{\Vsym}[1]{\ensuremath{\var{#1}_{SYM}}}
 \newcommand{\symset}[1]{#1_{\lbrace SYM \rbrace} }
@@ -582,6 +583,70 @@ Vdr{x}, \var{xorig}
 \iff [\Vdr{x}, \var{xorig}] \in \Veimtset{T}
 \end{gather*}
 
+\subsubsection{Emulation order}
+
+For normal operation of 
+\Leo and \Marpa, the precise order of items in the Earley sets is not
+important,
+and the pseudocode for each leaves that order open.
+To simplify the induction on operations in the correctness
+proof, however, it is convenient to synchronize the operations
+of \Emulator{} in Marpa mode,
+with those of Marpa.
+For this purpose, we treat the Earley sets as ordered sets,
+which containing the Earley item in the order in which
+they were added.
+
+Call Emulation Symbol Order,
+some total ordering of the symbols.
+Emulation Symbol Order may be arbitrary but must stay fixed for the life
+of the induction.
+
+Call some total ordering of the dotted rules,
+Emulation Dotted Rule Order.
+This ordering must place completed rules in Emulation Symbol Order by
+LHS.
+Otherwise, Emulation Dotted Rule Order
+may be arbitrary except that it
+must stay fixed for the life
+of the induction.
+
+We refine the order of operations as follows:
+Both \Emulator{} and \Marpa{},
+when scanning, scan the tokens in
+Emulation Symbol Order.
+Both \Marpa{},
+in considering the left hand sides of completed rules
+during discovery,
+does so in Emulation Symbol Order.
+Both \Emulator{} and \Marpa{},
+when creating Earley set 0,
+create it in order by Emulation Dotted Rule
+Order within AHFA state.
+Finally, \Emulator{},
+when adding the EIMX's for an AHFA state,
+does so in Emulator Dotted Rule Order.
+Together,
+Emulator Symbol Order
+and Emulator Dotted Rule Order are
+referred to as Emulator Order.
+
+For Earley sets after Earley set 0,
+we require that the order of Earley items follow the
+order in which they were added.
+This definition ensures that,
+that all EIMX's belonging
+to the same AHFA state occur together
+in an Earley set.
+It is possible for the \Emulator{} to attempt
+to add EIMX's belonging to a 
+single AHFA state at several points while building
+an Earley set, but when the first EIMX of an AHFA
+state is added, all its co-occurring EIMX's are added
+as well,
+so that later attempts to add EIMX's in that AHFA state
+will be rejected as attempts to add duplicates.
+
 \subsubsection{The emulation engine}
 
 For scanning, discovery and prediction,
@@ -680,33 +745,48 @@ If \Vah{cause} is not a prediction, $\Vah{predict} = \GOTO(\Vah{cause}, \epsilon
 \end{itemize}
 
 If $\Vah{new} \neq \Lambda$,
-\Emulator{} produces the \Veimtset{discovered}, where
-\begin{equation*}
-\Veimtset{discovered}  =
-\set{ [ \Vah{new}, \Vdr{dr}, \var{origin} ] \sep \Vdr{dr} \in \epsilon(\Vah{new}) }
-\end{equation*}
-where \var{origin} is the origin of \Veimt{new},
-and 
-$\epsilon(\Vah{new})$ is the $\epsilon$-closure of the dotted rules in \Vah{new}.
-The EIMX's from 
-\Veimtset{discovered} are added to the current Earley set
+\Emulator{} produces
+\Veimxset{discovered}, which is the set of EIMX's
+\begin{gather*}
+\set{ [ \Vbool{new}, \Vah{new}, \Vdr{dr}, \var{origin} ] \sep \Vdr{dr} \in \Vah{new} }
+\end{gather*}
+where \var{origin} is the origin of \Veimx{cause}.
+\Vbool{new} is \var{T} if and only if
+\begin{center}
+\begin{tabular}{rl}
+(i) & $ \Vloc{i} = 0 $ \\
+(ii) & $\forall \Vah{x}
+    \sep [ \Vbool{T}, \Vah{x}, \Vdr{dr}, \var{origin} ] \notin \Vesi{E}{i}$ \\
+\end{tabular}
+\end{center}
+Duplicate EIMX's in \Veimxset{discovered} are ignored,
+and the others are added to the current Earley set
 in Emulator Dotted Rule Order.
-Emulator Dotted Rule Order is some fixed, total
-ordering,
-which must order completed rules
-in Emulator Dotted Symbol Order by LHS.
-(The order must be fixed
-so that that it can be
-shared with \Marpa{}.)
 
 Next, if $\Vah{predict} \neq \Lambda$,
-\Emulator{} produces,
-for every EIMX in the $\epsilon$-closure of \Vah{new},
-$${ [ \Vah{predict}, \Vdr{dr}, \var{current} ] \sep \Vdr{dr} \in \epsilon(\Vah{predict}) }$$
-where \var{current} is the current Earley set.
-The EIMX's from 
-\Veimtset{predicted} are added to the current Earley set
-in Emulator Dotted Rule Order.
+\Emulator{} produces \Veimxset{predict}
+$$\Veimxset{predict} =
+{ [ \Vbool{new}, \Vah{predict}, \Vdr{dr}, \Vloc{i} ] \sep \Vdr{dr} \in \Vah{predict} }$$
+where \Vloc{i} is the current Earley set and
+\Vbool{new} is \var{T} if and only if
+\begin{center}
+\begin{tabular}{rl}
+(i) & $ \Vloc{i} = 0 $, or \\
+(ii) & the current operation is prediction
+\end{tabular}
+\end{center}
+
+If any of the EIMX's in \Veimxset{discovered} or 
+\Veimxset{predict} duplicates an unactivated EIMX,
+the EIMX currently in \Vesi{E}{i} is activated,
+without disturbing its position in the ordered EIMX set.
+An EIMX which duplicates one already in \Vesi{E}{i}
+is ignored for all other purposes.
+Non-duplicate EIMX's are added to \Vesi{E}{i},
+first those in 
+\Veimxset{discovered} in Emulator Order,
+then those in
+\Veimxset{predict}, also in Emulator Order.
 
 \subsubsection{Creating Leo items}
 
@@ -774,13 +854,13 @@ to those of \Leo.
 
 \begin{theorem}\label{t:leo-congruence}
 Let $\VVes{L}{i}$
-be Earley set $i$ in \Leo,
+be Earley set \Vloc{i} in \Leo,
 and $\VVes{El}{i}$
-be Earley set $i$ in \Emulator.
+be Earley set \Vloc{i} in \Emulator.
 running in Leo mode.
 \begin{equation*}
-\forall i \sep 0<i<\size{w} \implies
-\VVes{L}{i} \cong \VVes{El}{i}
+\forall \Vloc{i} \sep 0<\Vloc{i}<\Vsize{w} \implies
+\Vesi{L}{i} \cong \Vesi{El}{i}
 \end{equation*}
 \end{theorem}
 
@@ -798,13 +878,13 @@ corresponds to an EIMT created by \Leo.
 Congruence follows directly.
 \end{proof}
 
-\section{Marpa mode}
+\section{Emulator in Marpa mode}
 
-Marpa mode uses "eager" activation.
+Marpa mode is simply \Emulator{} with "eager" activation.
 In Marpa mode,
-all EIMX's and LIMX's are created with their active
-boolean set to true.
-Once set to true, an active boolean remains true.
+all EIMX's and LIMX's are activated as soon as they are
+created and remain activated throughout the life
+of \Emulator.
 
 \section{The emulator in Marpa mode is correct}
 
@@ -942,7 +1022,8 @@ was done first and we have just shown it complete and correct.
 Prediction will come afterwards, but we have just shown it
 will not add new EIMX's or activate any old ones.
 
-The \Leo pseudocode (and therefore \Emulator) creates
+The \Leo{} pseudocode
+(and therefore \Emulator) creates
 discovered EIMX's by repeatedly looping
 through potential component EIMX's,
 looking for predecessor's as it goes.
@@ -985,69 +1066,6 @@ for all
 \iff [\Vah{x}, \var{xorig}] \in \Veimmset{M}
 \end{gather*}
 
-\subsection{Refining the order of operations}
-
-For normal operation of 
-\Leo and \Marpa, the precise order of items in the Earley sets is not
-important,
-and the pseudocode for each leaves that order open.
-To simplify the induction on operations in the correctness
-proof, however, it is convenient to synchronize the operations
-of \Emulator{} in Marpa mode,
-with those of Marpa.
-For this purpose, we treat the Earley sets as ordered sets,
-which containing the Earley item in the order in which
-they were added.
-
-Call Emulation Symbol Order,
-some total ordering of the symbols.
-Emulation Symbol Order may be arbitrary but must stay fixed for the life
-of the induction.
-
-Call some total ordering of the dotted rules,
-Emulation Dotted Rule Order.
-This ordering must place completed rules in Emulation Symbol Order by
-LHS.
-Otherwise, Emulation Dotted Rule Order
-may be arbitrary except that it
-must stay fixed for the life
-of the induction.
-
-We refine the order of operations as follows:
-Both \Emulator{} and \Marpa{},
-when scanning, scan the tokens in
-Emulation Symbol Order.
-Both \Marpa{},
-in considering the left hand sides of completed rules
-during discovery,
-does so in Emulation Symbol Order.
-Both \Emulator{} and \Marpa{},
-when creating Earley set 0,
-create it in order by Emulation Dotted Rule
-Order within AHFA state.
-Finally, \Emulator{},
-when adding the EIMX's for an AHFA state,
-does so in Emulator Dotted Rule Order.
-Together,
-Emulator Symbol Order
-and Emulator Dotted Rule Order are
-referred to as Emulator Order.
-
-For Earley sets after Earley set 0,
-we require that the order of Earley items follow the
-order in which they were added.
-This definition ensures that,
-that all EIMX's belonging
-to the same AHFA state occur together
-in an Earley set.
-It is possible for the \Emulator{} to attempt
-to add EIMX's belonging to a 
-single AHFA state at several points while building
-an Earley set, but when the first EIMX of an AHFA
-state is added, all its co-occurring EIMX's are added
-as well,
-so that later attempts to add EIMX's in that AHFA state
-will be rejected as attempts to add duplicates.
 
 We now show that,
 for a given grammar \var{g} and input \var{w},
@@ -1076,7 +1094,7 @@ The outer induction is on the Earley sets,
 and the inner induction on "basic operations".
 
 We define the "basic operations" by breaking
-down the operations of \Emulator and \Marpa
+down the operations of \Emulator{} and \Marpa
 into convenient pieces, excluding
 operations which can be shown
 to have no effect on the Earley sets.
@@ -1163,7 +1181,7 @@ The Item Order invariant is straightforward to show.
 As long as the inner and outer induction hypotheses
 are true,
 by their definitions,
-\Emulator and \Marpa add all Earley items in
+\Emulator{} and \Marpa{} add all Earley items in
 Emulator Order.
 
 To complete the step of the inner induction,
@@ -1183,7 +1201,7 @@ the same.
 From this we can see that,
 for every EIMM added by \Marpa,
 as least one EIMX (the base EIMX) will be added
-by \Emulator in Marpa mode,
+by \Emulator{} in Marpa mode,
 and that the EIMX will have the same AHFA state
 as the EIMM.
 Therefore, the Earley items added by each scanning
@@ -1213,7 +1231,7 @@ a Leo collection operation
 in \Marpa{}
 will add only one EIMM, $[\Vah{leo-complete}, \Vloc{origin}]$,
 where \Vloc{origin} is from the LIMX.
-\Emulator in Marpa mode will add only
+\Emulator{} in Marpa mode will add only
 those EIMX in the set
 $${
 [ \Vbool{active}, \Vah{collected}, \Vdr{d}, \Vloc{origin} ]
@@ -1287,13 +1305,13 @@ follows.
 \label{s:marpa:complexity}
 
 \begin{lemma}
-Let \Vg be a grammar as defined in this
+Let \Vg{} be a grammar as defined in this
 document,
-and let \Vfa be the AHFA for this grammar.
+and let \Vfa{} be the AHFA for this grammar.
 Let \Vesi{L}{i} be
 an Earley set of \Leo.
 Let \Vesi{El}{i} be an
-an Earley set of \Emulator
+an Earley set of \Emulator{}
 in Leo mode.
 Then 
 $$\size{\Vesi{L}{i}} < \size{\Vfa} \times \size{\Vesi{El}{i}}$$
@@ -1305,10 +1323,9 @@ set.
 \begin{proof}
 By Theorem \ref{t:leo-congruence},
 we know that that for every EIML
-$[\Vdr{l}, \Vloc{origin}]$
-in \Vesi{L}
+$$[\Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}$$
 there is at least one EIMX,
-$$[\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}
+$$[\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{El}{i}
 $$
 We also know that for every EIMX,
 $$ [\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}
@@ -1329,30 +1346,6 @@ Worst case for grouping dotted rules into $c$ unique states
 is that every dotted rule appears in $c - 1$ states.
 $\size{\var{S-t}} < c \times \size{\var{S-m}}$.
 \end{proof}
-
-\begin{theorem}\label{t:constant-per-EIM}
-All time in \Marpa{} can be allocated
-to the Earley items,
-and in such a way that processing each Earley item
-requires $\order{1}$ time.
-\end{theorem}
-
-\begin{proof}
-It is known that the time taken by
-the traditional Earley recognizer
-for its operations
-operations can be done in amortized $\order(1)$
-time per Earley item~\cite[Vol. 1, pages 326-327]{AU1972}.
-Inspection of the algorithm for \Marpa{} will show
-that any operations considered to be new to it
-can be assigned to the Earley items in
-an obivous way,
-and 
-trivially shown to be $\order{1}$.
-\end{proof}
-
-\section{Marpa recognizer time complexity}
-\label{s:marpa:complexity}
 
 \begin{theorem}\label{t:constant-per-EIM}
 All time in \Marpa{} can be allocated
@@ -1403,13 +1396,6 @@ the time requirements for
 Therefore the time and space complexity results for $\Earley$
 hold for \Marpa.
 \end{proof}
-
-\begin{theorem}
-For all context-free grammars,
-the time and space complexity
-of \Marpa{} is as good or better
-than that of Earley's algorithm.
-\end{theorem}
 
 \begin{theorem}
 For every LR-regular grammar,
