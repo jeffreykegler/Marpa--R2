@@ -151,8 +151,24 @@ A stable version of this tool, Marpa::XS~\cite{Marpa-XS},
 was uploaded to the CPAN Perl archive
 on Solstice Day in 2011.
 
+Sections
+\ref{s:start-prelim} through \ref{s:end-prelim}
+will outline notation and some of the
+underlying concepts.
+Section \ref{s:pseudocode} presents the pseudocode
+for the algorithm Marpa.
+Section
+\ref{s:correctness}
+contain a proof of correctness.
+Section \ref{s:complexity} contains
+the complexity results.
+Finally, 
+section \ref{s:generalization} generalizes
+the definitions of grammar and input.
+
 \section{Preliminaries}
 \label{s:prel}
+\label{s:start-prelim}
 
 I assume familiarity with standard grammar notation
 (pages 14-15 in Aho and Ullman~\cite{AU1972}).
@@ -355,6 +371,7 @@ time and space complexity purposes.
 The next observation is useful for that purpose.
 
 \section{The Leo algorithm}
+\label{s:end-prelim}
 
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
@@ -429,6 +446,7 @@ it must be the only dotted rule in that EIMM.
 
 \section{The Marpa Recognizer}
 \label{s:recce}
+\label{s:pseudocode}
 
 \begin{algorithm}[H]
 \caption{Marpa Initialization}\label{a:initial}
@@ -512,9 +530,7 @@ it must be the only dotted rule in that EIMM.
 \end{algorithm} 
 
 \section{Marpa recognizer correctness}
-\label{s:marpa:correctness}
-
-\subsection{Proof strategy}
+\label{s:correctness}
 
 Marpa's correctness will shown based the correctness
 proved for \Leo{} in~\cite{Leo1991}.
@@ -533,7 +549,7 @@ of operations.
 \Emulator{} will be \Leo,
 with the following modifications.
 
-\subsubsection{Calculating the AHFA}
+\subsection{Calculating the AHFA}
 
 \Emulator, as part of its precomputations
 on its grammar, \var{g},
@@ -541,7 +557,7 @@ will calculate \var{ah}, the AHFA
 It will also calculate $\GOTO: \var{ah},\var{alphabet} \mapsto \var{ah}$,
 the transition function for \var{ah}.
 
-\subsubsection{Extending the Earley items}
+\subsection{Extending the Earley items}
 
 The Earley sets of \Emulator{} will contain extended
 Earley items, EIMX's.  Each EIMX will have the form
@@ -556,7 +572,7 @@ EIMX's can be viewed as
 crosses (``X") between traditional Earley items (EIMT's)
 and Marpa's Earley items (EIMM's).
 
-\subsubsection{Extending the Leo items}
+\subsection{Extending the Leo items}
 
 Leo items (LIM's) will also be extended.
 The extended Leo items will take the form
@@ -569,7 +585,7 @@ that will be added when the Leo item is used,
 and \Vbool{active} is a boolean whose use will be
 explained.
 
-\subsubsection{Leo-Emulator Congruence}
+\subsection{Leo-Emulator Congruence}
 
 A set of EIMX's (\Veimxset{X}) and a set of EIMT's
 (\Veimset{T})
@@ -583,7 +599,7 @@ Vdr{x}, \var{xorig}
 \iff [\Vdr{x}, \var{xorig}] \in \Veimtset{T}
 \end{gather*}
 
-\subsubsection{Emulation order}
+\subsection{Emulation order}
 
 For normal operation of 
 \Leo and \Marpa, the precise order of items in the Earley sets is not
@@ -647,7 +663,7 @@ as well,
 so that later attempts to add EIMX's in that AHFA state
 will be rejected as attempts to add duplicates.
 
-\subsubsection{The emulation engine}
+\subsection{The emulation engine}
 
 For scanning, discovery and prediction,
 \Emulator{} follows
@@ -788,7 +804,7 @@ first those in
 then those in
 \Veimxset{predict}, also in Emulator Order.
 
-\subsubsection{Creating Leo items}
+\subsection{Creating Leo items}
 
 Unlike \Leo,
 \Emulator{} compute the LIMX's on an eager basis,
@@ -797,7 +813,7 @@ after each Earley set is finished.
 This is possible because there is enough information
 in the Earley set to identify potential LIM's.
 
-\subsubsection{Initialization in the Emulator}
+\subsection{Initialization in the Emulator}
 
 It is convenient to treat \Emulator{}
 initialization is handled as a special case.
@@ -816,7 +832,7 @@ Emulator adds the set
 \end{equation}
 in Emulator Dotted Rule Order.
 
-\section{Leo mode}
+\subsection{Leo mode}
 
 The emulator runs in modes.
 The intent of Leo mode is to emulate \Leo.
@@ -845,7 +861,7 @@ Once the active boolean of an EIMX or LIMX is true, its value
 will never change.
 \end{itemize}
 
-\section{The emulator in Leo mode is correct}
+\subsection{The emulator in Leo mode is correct}
 
 We now show that,
 for a given grammar \var{g} and input \var{w},
@@ -878,7 +894,7 @@ corresponds to an EIMT created by \Leo.
 Congruence follows directly.
 \end{proof}
 
-\section{Emulator in Marpa mode}
+\subsection{Emulator in Marpa mode}
 
 Marpa mode is simply \Emulator{} with "eager" activation.
 In Marpa mode,
@@ -886,7 +902,7 @@ all EIMX's and LIMX's are activated as soon as they are
 created and remain activated throughout the life
 of \Emulator.
 
-\section{The emulator in Marpa mode is correct}
+\subsection{The emulator in Marpa mode is correct}
 
 To prove correctness,
 we show that the emulator in Marpa mode produces
@@ -1053,6 +1069,7 @@ and the proof.
 \end{proof}
 
 \subsection{Marpa is correct}
+\label{s:marpa:end-correctness}
 
 A set of EIMX's (\Veimxset{X}) and a set of EIMM's
 (\Veimset{M})
@@ -1302,7 +1319,7 @@ follows.
 \end{proof}
 
 \section{Marpa recognizer complexity}
-\label{s:marpa:complexity}
+\label{s:complexity}
 
 \begin{lemma}
 Let \Vg{} be a grammar as defined in this
@@ -1410,7 +1427,7 @@ For every LR-regular grammar,
 \end{theorem}
 
 \section{Generalizing the grammar}
-\label{s:generalizing}
+\label{s:generalization}
 
 This section deals with certain modifications
 to the
