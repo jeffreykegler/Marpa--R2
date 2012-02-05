@@ -11,6 +11,11 @@
 \newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
 \newcommand{\order}[1]{{\mathcal O}(#1)}
 
+% hyphens are often used in variable names,
+% so that I need to ensure that subtraction is
+% clearly designated in the typography
+\newcommand{\subtract}{\,-\,}
+
 \newcommand{\var}[1]{\ensuremath{\textbf{#1}}}
 
 \newcommand{\cfg}{CFG}
@@ -19,8 +24,6 @@
 \newcommand{\derivg}[1]{\mathrel{\mbox{$\:\Rightarrow\:$}}}
 \newcommand{\derivrg}[2]{\mathrel{\mbox{$\:\stackrel{\!{#1}}%
         {\Rightarrow\!}\:$}}}
-
-\newcommand{\ep}{\varepsilon}
 
 \newcommand{\set}[1]{{\lbrace #1 \rbrace} }
 \newcommand{\ah}[1]{#1_{AH}}
@@ -55,14 +58,17 @@
 \newcommand{\Vsymset}[1]{\ensuremath{\var{#1}_{\set{SYM}}}}
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
+
 \newcommand{\alg}[1]{\ensuremath{\textsc{#1}}}
 \newcommand{\AH}{\ensuremath{\alg{AH}}}
 \newcommand{\Earley}{\ensuremath{\alg{Earley}}}
 \newcommand{\Leo}{\ensuremath{\alg{Leo}}}
 \newcommand{\Marpa}{\ensuremath{\alg{Marpa}}}
 \newcommand{\Emulator}{\ensuremath{\alg{Emulator}}}
-\newcommand{\Vg}{\var{g}}
+
 \newcommand{\Vfa}{\var{fa}}
+\newcommand{\Vg}{\var{g}}
+\newcommand{\Vw}{\var{w}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -77,7 +83,7 @@
 \DeclareMathOperator{\Hyp}{Hyp}
 \DeclareMathOperator{\GOTO}{GOTO}
 \newcommand\myL[1]{\operatorname{L}(#1)}
-\newcommand\tables[1]{\es{\operatorname{table}(#1)}}
+\newcommand\tables[1]{\es{\operatorname{table}[#1]}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -182,10 +188,10 @@ This document will
 often use subscripts to indicate the commonly occurring types.
 For example, $\sym{a}$ and $\sym{X}$ will be symbols.
 
-Where $Abc$ is a set of symbols,
-let $Abc^\ast$ be the set of all strings formed
+Where $abced$ is a set of symbols,
+let $abced^\ast$ be the set of all strings formed
 from those symbols.
-Let $Abc^+$ be the subset of $Abc^\ast$ that
+Let $abced^+$ be the subset of $abced^\ast$ that
 contains all of its elements that are not of zero length.
 
 For the purposes of this document consider,
@@ -250,16 +256,16 @@ at evaluation time.
 
 Aycock and Horspool did allow a single empty start rule
 to deal with null parses.
-Marpa completely eliminates the need for empty rules in its grammars
+Marpa eliminates the need for empty rules in its grammars
 by treating null parses and trivial grammars as special cases.
 (Trivial grammars are those which recognize only the null string.)
 
 In this document, \Earley{} will refer to the Earley's original
 recognizer~\cite{Earley1970}.
-\Leo will refer to Leo's revision of \Earley
+\Leo{} will refer to Leo's revision of \Earley{}
 as described in~\cite{Leo1991}.
-\AH will refer to the Aycock and Horsool's revision
-of \Earley
+\AH{} will refer to the Aycock and Horsool's revision
+of \Earley{}
 as described in~\cite{AH2002}.
 Where $\alg{Recce}$ is a recognizer,
 $\myL{\alg{Recce},g}$ will be the language accepted by $\alg{Recce}$
@@ -449,7 +455,25 @@ it must be the only dotted rule in that EIMM.
 \label{s:pseudocode}
 
 \begin{algorithm}[H]
-\caption{Marpa Initialization}\label{a:initial}
+\caption{Marpa Top-level}\label{a:initial}
+\begin{algorithmic}[1] 
+\Procedure{Main}{}
+\State \Call{Initial}{}
+\For{ $\var{i}, 0 <= \var{i} <= \Vsize{w}$ }
+\State \Call{Scan Pass}{$\var{i}, $var{w}[\var{i} \subtract 1]}
+\State \Call{Collect Pass}{\var{i}}
+\EndFor
+\If{$[\Vah{accept}, 0] \in \tables{\Vsize{w}}$}
+\State accept \var{w}
+\Else
+\State reject \var{w}
+\EndIf
+\EndProcedure
+\end{algorithmic} 
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Initialization}\label{a:initial}
 \begin{algorithmic}[1] 
 \Procedure{Initial}{}
 \State \Call{AddItems}{$0, \ah{start}, 0$}
@@ -458,12 +482,12 @@ it must be the only dotted rule in that EIMM.
 \end{algorithm}
 
 \begin{algorithm}[H]
-\caption{Marpa Scanning}\label{a:scan}
+\caption{Marpa Scan Pass}\label{a:scan}
 \begin{algorithmic}[1] 
-\Procedure{Scan}{$i,a$}
-\For{each Earley item $\eim{x}$ in $ES[i]$}
+\Procedure{Scan Pass}{$i,a$}
+\For{each Earley item $\eim{x}$ in $ES[i \subtract 1]$}
 \State $\ah{to} \gets \GOTO(\operatorname{AHFA-of}(\eim{x}), a)$
-\State \Call{Add EIM Pair}{$i+1, \ah{to}, \operatorname{Origin-of}(\eim{x}$}
+\State \Call{Add EIM Pair}{$i, \ah{to}, \operatorname{Origin-of}(\eim{x}$}
 \EndFor
 \EndProcedure
 \end{algorithmic} 
@@ -543,6 +567,28 @@ This will be accomplished by constructing a third
 recognizers, \alg{Emulator}, which will,
 in effect, emulate \Marpa{} using \Leo{}.
 of operations.
+
+\subsection{Nullable symbols}
+
+As already noted, Marpa grammars
+do not contain empty rules or
+properly nullable symbols,
+and shown that this is without loss
+of generality.
+For the correctness proof in this section,
+it is assumed that the grammar is further rewritten,
+this time to eliminate nulling symbols.
+
+This this additional rewrite is also
+without loss of generality, can be seen
+by assuming that a history
+of the rewrite is kept,
+and that the rewrite is reversed
+after the parse.
+Clearly, whether an input \Vw{} is acceptable
+or will not depend on how often
+a grammar \Vg{} interpolates nulling symbols into
+its input stream.
 
 \subsection{The emulator}
 
