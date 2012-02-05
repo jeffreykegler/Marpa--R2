@@ -657,23 +657,57 @@ or will not depend on how often
 a grammar \Vg{} interpolates nulling symbols into
 its input stream.
 
-\subsection{The emulator}
+\subsection{The emulator in Leo mode}
 
-\Emulator{} will be \Leo,
-with the following modifications.
+\Emulator{} is \Leo,
+with modifications.
+These modifications will be explained in
+detail below,
+but in summary they include tracking the
+AHFA states,
+and adding a concept of
+"activation" to Leo items and Earley items.
+Tracking activation status allows
+\Emulator{} to separate the creation
+of Leo and Earley items
+from their availability to the parse logic.
+\Marpa{} and \Leo{} differ in their sequence
+of creation,
+and tracking activation makes
+it convenient to compare the Earley and Leo
+items of one with the other,
+which is essential for an induction on the sequence
+of operations.
+
+\Emulator{} runs in two "modes",
+Leo and Marpa,
+which differ in their activation logic.
+The sections which follow next
+will describe activation
+as it happens in
+\Emulator's Leo mode.
+When it comes time to describe activation
+in Marpa mode, the change will
+be easy to describe,
+but significant in its implication.
 
 \subsection{Calculating the AHFA}
 
 \Emulator, as part of its precomputations
-on its grammar, \var{g},
-will calculate \var{ah}, the AHFA
+on its grammar, \Vg,
+will calculate \Vah, the AHFA.
 It will also calculate $\GOTO: \var{ah},\var{alphabet} \mapsto \var{ah}$,
 the transition function for \var{ah}.
 
 \subsection{Extending the Earley items}
 
 The Earley sets of \Emulator{} will contain extended
-Earley items, EIMX's.  Each EIMX will have the form
+Earley items, EIMX's.
+EIMX's can be viewed as
+crosses (``X") between traditional Earley items (EIMT's)
+and Marpa's Earley items (EIMM's).
+
+Each EIMX will have the form
 $$[\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
 where
 \Vah{state} is an AHFA state,
@@ -681,9 +715,6 @@ where
 \var{origin} is the origin,
 and \Vbool{active} is a boolean whose use will be
 explained.
-EIMX's can be viewed as
-crosses (``X") between traditional Earley items (EIMT's)
-and Marpa's Earley items (EIMM's).
 
 \subsection{Extending the Leo items}
 
@@ -1469,11 +1500,11 @@ $\size{\Vesi{L}{i}}$ to a partition
 of $\size{\Vesi{El}{i}}$,
 such that $\Veimt{x} \mapsto \Veimxset{y}$,
 where
-\begin{gather*}
-\Veimt{x} = \set{ \Vdr{x}, \Vloc{x} } \\
-\land \Veimx{y} = \\
-{ [ \Vbool{z}, \Vah{z}, \Vdr{x}, Vloc{x} \sep Vdr{z} \in \Vah{z} ] }
-\end{gather*}
+\begin{align*}
+&& \Veimt{x} = & [ \Vdr{x}, \Vloc{x} ] \\
+& \land & \Veimx{y} = &
+\set{ [ \Vbool{z}, \Vah{z}, \Vdr{x}, Vloc{x} \sep \Vdr{x} \in \Vah{z} ] }
+\end{align*}
 
 By the defintion of \Emulator,
 EIMX's that differ only in \Vbool{z} will not appear
