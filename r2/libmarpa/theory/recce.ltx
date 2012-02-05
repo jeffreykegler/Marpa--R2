@@ -1573,22 +1573,34 @@ For every LR-regular grammar,
 \section{Generalizing the grammar}
 \label{s:generalization}
 
-This section deals with certain modifications
-to the
-definition of a grammar made by Marpa.
-They
-are minor from a theoretical point of view,
-and their discussion has been deferred so that the
-proofs up to this point might more closely follow
-tradition.
+As implemented,
+Marpa generalizes the idea of grammars
+and input streams beyond that so far described
+for \Vg{} and \Vw.
+Because the differences were
+minor from a theoretical point of view,
+and their discussion has been deferred to avoid
+cluttering the proofs.
+This section redefines \Vg{} and \Vw,
+to incorporate the
+deferred generalizations.
 
-First, Marpa does not require that $\symset{lh}$
-and $\symset{lh}$ be disjoint.
-In other words a Marpa symbol may be both a terminal
+First, Marpa's grammars are in effect 3-tuples:
+$$(\Vsymset{alphabet}, rules, \Vsym{start})$$
+\Vsymset{term} is omitted, because
+Marpa allows a symbol to be both a terminal
 and a LHS.
 This expansion of the grammar definition 
 is made without loss of generalization,
-or effect on the results so far.
+or effect on the results.
+\footnote{
+Marpa has options which 
+cause the traditional restrictions to
+be enforced,
+in part or in whole.
+For error detection and efficiency,
+users may well prefer this.
+}
 
 Second, Marpa's input model is a generalization of
 the traditional input stream model
@@ -1597,28 +1609,33 @@ Marpa's input is a set of tokens,
 $toks$,
 whose elements are triples of symbol,
 start location and end location:
-$(\sym{t}, \loc{start}, length)$
-such that $\sym{t} \in \symset{lh} \wedge length \ge 1 \wedge \loc{start} \ge 0$.
-The size of the input, $\size{toks}$ is the maximum over
-$toks$ of $\loc{start}+length$.
+$$(\Vsym{t}, \Vloc{start}, \var{length})$$
+such that
+$$\var{length} \ge 1 \wedge \Vloc{start} \ge 0$$
+The size of the input, \Vsize{toks} is the maximum over
+\var{toks} of $\Vloc{start}+\var{length}$.
 Tokens may overlap,
 but gaps are not allowed:
-$\forall \loc{i} (\exists \token{t} \sep \token{t} \in toks
-\wedge t = (\sym{t}, \loc{start}, length)
-\wedge \loc{start} \le \loc{i} \le \loc{start}+length$.
+\begin{align*}
+    & \forall \Vloc{i} (\exists \token{t} \sep \token{t} \in \var{toks} \\
+\wedge & t = (\Vsym{t}, \Vloc{start}, \var{length}) \\
+\wedge & \Vloc{start} \le \Vloc{i} \le \Vloc{start}+\var{length}
+\end{align*}
 
 The traditional input stream is the special case of
 a Marpa input stream where 
-$\forall \token{tok} \sep \token{tok} \in toks \implies 
-\token{tok} = (\sym{s}, \loc{start}, 1)
-$
-and
-$\forall \token{tok1}, \token{tok2} \in toks \sep
-\token{tok1} = (\sym{s1}, \loc{start1}, 1)
-\wedge
-\token{tok2} = (\sym{s2}, \loc{start2}, 1)
-\wedge (\loc{start1} = \loc{start2} \implies \token{tok1} = \token{tok2})
-$.
+\begin{gather*}
+\forall \token{tok} \sep \token{tok} \in \var{toks} \\
+\implies \token{tok} = [\Vsym{s}, \Vloc{start}, 1]
+\end{gather*}
+and for all $\token{tok1}, \token{tok2}$ in \var{toks}
+\begin{center}
+\begin{tabular}{rl}
+(i) & $\token{tok1} = [\sym{s1}, \loc{start1}, 1]$ \\
+(ii) & $\token{tok2} = [\sym{s2}, \loc{start2}, 1]$ \\
+(iii) & $\loc{start1} = \loc{start2} \implies \token{tok1} = \token{tok2}$ \\
+\end{tabular}
+\end{center}
 
 The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
