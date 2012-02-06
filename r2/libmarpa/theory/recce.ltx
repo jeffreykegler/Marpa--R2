@@ -467,17 +467,17 @@ from those two algorithms.
 Alongside the pseudocode are remarks are observation
 about its space
 and time complexity.
-If not otherwise stated,
-these remarks refer to exclusive space and time --
-they do not attempt to account for space
-and time consumed in the pseudocode called from that
-level.
-
 In what follows,
 we will show that all time and space resources
-can be charged to the Earley items,
-in a way that each Earley item takes
-amortized \Oc{} resource.
+can be charged to attempts to add Earley items,
+in a way that each attempt to add an Earley item
+takes amortized \Oc{} resource.
+Below, when we present the complexity proofs,
+we will characterize
+the orders of magnitude for actual Earley items
+and attempts to add Earley items,
+and their relationship to each other.
+
 To achieve the 
 amortized \Oc{} time and space
 per Earley item, we will charge for those
@@ -485,16 +485,28 @@ resources in
 three ways.
 
 \begin{itemize}
-\item We will charge resources to the Earley item directly.
+\item We can also charge \Oc{} time and space to the parse itself.
+We handle the failure cases in this way.
 \item We will charge resources to the Earley set.
-There will always be at least one Earley item
-per Earley set, so that
-as long as the time or space is \Oc,
+Ss long as the time or space is \Oc,
 the time for the Earley set can be
 recharged to an arbitrary member of the Earley set.
-\item We can also charge $order{1}$ time and space to the parse itself.
-We handle the failure cases in this way.
+If the Earley set is empty, the parse will fail at this Earley set,
+and the time can be charged to the parse itself.
+\item We will charge resources to attempts to add Earley items.
 \end{itemize}
+
+When discussing each procedure, we will state whether
+our analysis of time and space usage is inclusive, exclusive
+or caller-included.
+The exclusive time or space of a procedure is that
+which it uses directly,
+ignored called procedures.
+Inclusive time or space of a procedure includes
+resource usage by called procedures.
+Caller-included time and space is that which was already
+been allocated as an inclusive resource by the procedure's
+caller.
 
 \begin{algorithm}[h]
 \caption{Marpa Top-level}\label{a:initial}
@@ -518,6 +530,12 @@ We handle the failure cases in this way.
 
 \subsection{Top-level code}
 
+Exclusive time and space for the loop over the Earley sets
+is charged to the Earley sets,
+and overhead is charged to the parse.
+All these resource charges are obviously \Oc.
+
+\subsection{Ruby Slippers parsing}
 This top-level code contains a significant difference
 from \AH{}.
 \call{Scan Pass} and \call{Collect Pass} are separated.
@@ -557,11 +575,6 @@ analyzer to supply start tags as requested by the parser,
 the application can parse very liberal HTML
 and will produce a parse even for highly defective HTML.
 
-Exclusive time and space for the loop over the Earley sets
-is charged to the Earley sets,
-and overhead is charged to the parse.
-Clearly all these charges are $\order(1)$.
-
 \begin{algorithm}[h]
 \caption{Initialization}\label{a:initial}
 \begin{algorithmic}[1] 
@@ -572,8 +585,8 @@ Clearly all these charges are $\order(1)$.
 \end{algorithm}
 
 \subsection{Initialization}
-The exclusive time and space
-is $\order(1)$ and can be charged to the parse.
+Inclusive time and space is \Oc{} and
+and can be charged to the parse.
 
 \begin{algorithm}[h]
 \caption{Marpa Scan Pass}\label{a:scan}
@@ -594,29 +607,18 @@ is $\order(1)$ and can be charged to the parse.
 which is indexed by symbol.
 Symbol indexing is \Oc, since the number of symbols
 is a constant, but
-the operation $\var{transitions}(\Vloc{l}, \Vsym{s})$
+for the operation $\var{transitions}(\Vloc{l}, \Vsym{s})$
 to be constant, there must be a link directly to the Earley
 set.
 In the case of scanning,
 the lookup is always in the previous Earley set,
 and it is safe to expect this can be found
 in \Oc{} time.
-With a reasonable implementation,
-therefore, the time for \var{transitions} operation
-is \Oc{} per 
-\Veimm{predecessor}.
 
-Each \Veimm{predecessor} causes one pass of the for-loop.
-Because of the way
-\var{transitions} is constructed,
-we know $\Vah{to} \neq \Lambda$,
-so at least one Earley item will be added in each pass
-of the for-loop,
-and the time and for that pass
-and its \Veimm{predecessor} pass of the for-loop can be
-charged to that newly added Earley item.
 There is one scan pass per Earley set,
 so that overhead can be charged to the Earley set $i$.
+Inclusive time and space can be charged to the 
+Earley item attempt.
 
 \begin{algorithm}[h]
 \caption{Collection pass}\label{a:collection-phase}
@@ -703,6 +705,19 @@ Earley items have such links.)
 \end{algorithm}
 
 \subsection{Earley Collection operation}
+
+\begin{algorithm}[h]
+\caption{Leo collection operation}\label{a:leo-collection-op}
+\begin{algorithmic}[1] 
+\Procedure{Leo collection operation}{\Vloc{i}, \Vlim{from}}
+\State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlim{from}$
+\State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
+\State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
+\EndProcedure
+\end{algorithmic} 
+\end{algorithm}
+
+\subsection{Leo Collection operation}
 
 \begin{algorithm}[h]
 \caption{Add EIM Pair}\label{a:pair}
