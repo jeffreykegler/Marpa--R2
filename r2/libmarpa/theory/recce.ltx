@@ -477,9 +477,9 @@ In what follows,
 we will show that all time and space resources
 can be charged to the Earley items,
 in a way that each Earley item takes
-amortized $\order{1}$ resource.
+amortized \Oc{} resource.
 To achieve the 
-amortized $\order{1}$ time and space
+amortized \Oc{} time and space
 per Earley item, we will charge for those
 resources in
 three ways.
@@ -489,14 +489,12 @@ three ways.
 \item We will charge resources to the Earley set.
 There will always be at least one Earley item
 per Earley set, so that
-as long as the time or space is $\order{1}$,
+as long as the time or space is \Oc,
 the time for the Earley set can be
 recharged to an arbitrary member of the Earley set.
 \item We can also charge $order{1}$ time and space to the parse itself.
 We handle the failure cases in this way.
 \end{itemize}
-
-\subsection{Top-level code}
 
 \begin{algorithm}[h]
 \caption{Marpa Top-level}\label{a:initial}
@@ -517,6 +515,8 @@ We handle the failure cases in this way.
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
+
+\subsection{Top-level code}
 
 This top-level code contains a significant difference
 from \AH{}.
@@ -562,10 +562,6 @@ is charged to the Earley sets,
 and overhead is charged to the parse.
 Clearly all these charges are $\order(1)$.
 
-\subsection{Initialization}
-The exclusive time and space
-is $\order(1)$ and can be charged to the parse.
-
 \begin{algorithm}[h]
 \caption{Initialization}\label{a:initial}
 \begin{algorithmic}[1] 
@@ -575,7 +571,9 @@ is $\order(1)$ and can be charged to the parse.
 \end{algorithmic} 
 \end{algorithm}
 
-\subsection{Scan Pass}
+\subsection{Initialization}
+The exclusive time and space
+is $\order(1)$ and can be charged to the parse.
 
 \begin{algorithm}[h]
 \caption{Marpa Scan Pass}\label{a:scan}
@@ -590,9 +588,11 @@ is $\order(1)$ and can be charged to the parse.
 \end{algorithmic} 
 \end{algorithm}
 
+\subsection{Scan Pass}
+
 \var{transitions} is a set of tables, one per Earley set,
 which is indexed by symbol.
-Symbol indexing is $\order{1}$, since the number of symbols
+Symbol indexing is \Oc, since the number of symbols
 is a constant, but
 the operation $\var{transitions}(\Vloc{l}, \Vsym{s})$
 to be constant, there must be a link directly to the Earley
@@ -600,10 +600,10 @@ set.
 In the case of scanning,
 the lookup is always in the previous Earley set,
 and it is safe to expect this can be found
-in $\order{1}$ time.
+in \Oc{} time.
 With a reasonable implementation,
 therefore, the time for \var{transitions} operation
-is $\order{1}$ per 
+is \Oc{} per 
 \Veimm{predecessor}.
 
 Each \Veimm{predecessor} causes one pass of the for-loop.
@@ -618,13 +618,11 @@ charged to that newly added Earley item.
 There is one scan pass per Earley set,
 so that overhead can be charged to the Earley set $i$.
 
-\subsection{Collection Pass}
-
 \begin{algorithm}[h]
 \caption{Collection pass}\label{a:collection-phase}
 \begin{algorithmic}[1] 
 \Procedure{Collection pass}{\Vloc{i}}
-\For{each Earley item $\Veimm{work} \in \var{earley-sets}[i]$}
+\For{each Earley item $\Veimm{work} \in \tables{i}$}
 \State $[\Vah{work}, \Vloc{origin}] \gets \Veimm{work}$
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
 \State \Call{Collect one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
@@ -644,6 +642,8 @@ so that overhead can be charged to the Earley set $i$.
 \end{algorithmic} 
 \end{algorithm}
 
+\subsection{Collection Pass}
+
 The \var{transitions} table for an Earley set
 is built at the end
 of the collection pass.
@@ -658,8 +658,6 @@ the Leo items must be created.
 For each Earley item, the space
 and time to create its resulting Leo items is \Oc{} --
 worst case the number of Leo items created will be \Vsize{alphabet}.
-
-\subsection{Collect one LHS}
 
 \begin{algorithm}[h]
 \caption{Collect one LHS symbol}
@@ -679,6 +677,8 @@ worst case the number of Leo items created will be \Vsize{alphabet}.
 \end{algorithmic} 
 \end{algorithm}
 
+\subsection{Collect one LHS}
+
 In examining the logic for collecting a single LHS symbol,
 we will first look at its call to \var{transitions}.
 We need to show we can find
@@ -691,8 +691,6 @@ to its origin Earley set.
 (In fact, as implemented, Marpa's
 Earley items have such links.)
 
-\subsection{Earley Collection operation}
-
 \begin{algorithm}[h]
 \caption{Earley collection operation}\label{a:earley-collection-op}
 \begin{algorithmic}[1] 
@@ -704,31 +702,91 @@ Earley items have such links.)
 \end{algorithmic} 
 \end{algorithm}
 
-\subsection{Adding a pair of Earley items}
+\subsection{Earley Collection operation}
 
 \begin{algorithm}[h]
-\caption{Adding EIM Pairs}\label{a:pair}
+\caption{Add EIM Pair}\label{a:pair}
 \begin{algorithmic}[1] 
 \Function{Add EIM Pair}{$i_{LOC},\ah{discovered},origin_{LOC}$}
-\State $\ah{predicted} \gets \Lambda$
-\State $\eim{discovered} \gets \Lambda$
-\If{$\ah{to} \neq \Lambda$}
+\State $\ah{predicted} \gets \GOTO(\ah{to}, \epsilon)$
 \State $\eim{discovered} \gets [\ah{to}, origin_{LOC}]$
 \If{$\eim{discovered}$ is new}
-\State Add $\eim{discovered}$ to $ES[i]$
-\State $\ah{predicted} \gets \GOTO(\ah{to}, \epsilon)$
-\EndIf
+\State Add $\eim{discovered}$ to $\tables{i}$
 \EndIf
 \If{$predicted_{AHFA} \neq \Lambda$}
 \State $\eim{predicted} \gets [\ah{predicted}, i]$
 \If{$eim{predicted}$ is new}
-\State Add $\eim{predicted}$ to $ES[i]$
+\State Add $\eim{predicted}$ to $\tables{i}$
 \EndIf
 \EndIf
 \State \textbf{return} $\eim{discovered}$
 \EndFunction
 \end{algorithmic} 
 \end{algorithm} 
+
+\subsection{Adding a pair of Earley items}
+
+This operation adds a discovered Marpa Earley
+item and, if it exists, the EIMM for
+its null-transition.
+Time and space are allocated to the newly created
+Earley items.
+Trivially, the space is \Oc.
+Time is also obviously \Oc{},
+with the exception of two operations:
+checking that an Earley item is new,
+and adding it to the Earley set.
+That an Earley item can be added to the current
+set is clear if the 
+Earley set is seen as a linked
+list, to the head of which the new Earley item is added.
+
+Earley items are only added if they are new,
+A data structure that allows this
+to be checked in \Oc{} time is very
+briefly outlined, but not named, in
+\cite[Vol. 1, pages 326-327]{AU1972}.
+In this document that data structure will be call "per-Earley set lists",
+or PSL's.
+PSL's will be explained in the next section.
+
+\subsection{Per-set lists}
+
+A PSL is kept in each Earley set.
+When building a new Earley set, \Ves{j},
+the PSL for every previous Earley set, \Ves{i},
+keep a list of those Earley items in \Ves{j} which have \Ves{i}
+as their origin.
+Each PSL per-set list needs to only keep track of a maximum
+number of possible Earley items.
+For traditional Earley items that maximum is the number
+of dotted rules.
+For Marpa, that maximum is the number of AHFA states.
+Either way, the maximum is a constant which depends on the grammar.
+
+Clearing and rebuilding the PSL's every time
+a new Earley set would take more than \Oc{},
+but can be avoided.
+The per-AHFA state entries can be "stamped",
+with a link back to the Earley set
+which was the current one when that PSL
+entry was last added or updated.
+
+Consider the case where Marpa is building \Ves{j}
+and looking at the PSL for \Ves{i} to check whether
+an Earley item \Veimm{x} is new,
+where $\Veimm{x} = [ \Vah{x}, \Vloc{j} ]$.
+Marpa checks the PSL's for \Ves{i}.
+Call the Earley set "stamp" for that PSL,
+\Ves{p}.
+If $\Ves{p} = \Ves{j}$, then \Veimm{x} is not new,
+and will not be added to the Earley set.
+
+If the PSL entry is new, or $\Ves{p} \ne \Ves{j}$, then \Veimm{x} is new.
+\Veimm{x} is added to the Earley set,
+and the PSL's "stamp" is changed to \Ves{j}.
+Marpa's implementation uses PSL's
+for this purpose and for several others.
 
 \section{Marpa recognizer correctness}
 \label{s:correctness}
@@ -1586,7 +1644,7 @@ is without loss of generality
 \ref{s:correctness:nulling}.
 For complexity we must also show that
 the rewrite and its reversal can be done
-in amortized $\order{1}$ time and space
+in amortized \Oc{} time and space
 per Earley item.
 
 One way to show the required bound is
@@ -1678,7 +1736,7 @@ $$ \order{\tablesizen{\Marpa}} = \order{\tablesizen{\Leo}} $$
 All time in \Marpa{} can be allocated
 to the Earley items,
 and in such a way that processing each Earley item
-requires $\order{1}$ time and space.
+requires \Oc{} time and space.
 \end{theorem}
 
 \begin{proof}
@@ -1692,7 +1750,7 @@ and time
 for any operations new to \Marpa
 can be assigned to the Earley items in
 an obvious way,
-and trivially shown to be $\order{1}$.
+and trivially shown to be \Oc.
 \end{proof}
 
 \subsection{Marpa complexity}
