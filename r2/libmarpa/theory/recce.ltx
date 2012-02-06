@@ -623,39 +623,26 @@ so that overhead can be charged to the Earley set $i$.
 \begin{algorithm}[h]
 \caption{Collection pass}\label{a:collection-phase}
 \begin{algorithmic}[1] 
-\Procedure{Collection pass}{$i_{LOC}$}
+\Procedure{Collection pass}{\Vloc{i}}
 \For{each Earley item $\Veimm{work} \in \var{earley-sets}[i]$}
 \State $[\Vah{work}, \Vloc{origin}] \gets \Veimm{work}$
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
-\For{each postdot item $pim$, in $\var{transitions}(\Vloc{origin},\Vsym{lhs})$}
-\If{\var{pim} is a LIMX, \Vlimx{pim}}
-\State $\Vlimx{pred} \gets \var{pim}$
-\State \Call{Leo collection operation}{\Vloc{i}, \Vlimx{pred}}
-\Else
-\State $\Veimx{pred} \gets \var{pim}$
-\State \Call{Earley collection operation}{\Vloc{i}, \Veimx{pred}, \Vsym{lhs}}
-\EndIf
-\EndFor
-\EndFor
+\State \Call{Collect one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \EndFor
 \For{all postdot symbols in Earley set $i$, \Vsym{postdot}}
-\State Set $var{transitions}(i, \Vsym{postdot})$ to an LIMX or a set of EIMX's, as appropriate
+\If{postdot transition is unique by rule}
+\State Set $var{transitions}(\Ves{i},\Vsym{postdot})$ to
+\State \hspace\algorithmicindent to an LIMX
+\Else
+\State Set $var{transitions}(\Ves{i},\Vsym{postdot})$ to
+\State \hspace\algorithmicindent to the set of EIMX's which have
+\State \hspace\algorithmicindent with \Vsym{postdot} as their postdot symbol
+\EndIf
+\EndFor
 \EndFor
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
-
-In examining the collection pass,
-we will first look at its call to \var{transitions}.
-We need to show we can find
-$\var{transitions}(\Ves{origin},\Vsym{lhs})$
-in \Oc{} time.
-We do this by noting
-that the number of symbols is a constant
-and assuming that \Veimm{x} has a link back
-to its origin Earley set.
-(In fact, as implemented, Marpa's
-Earley items have such links.)
 
 The \var{transitions} table for an Earley set
 is built at the end
@@ -670,18 +657,54 @@ setting up the \var{transitions} table for the current Earley set,
 the Leo items must be created.
 For each Earley item, the space
 and time to create its resulting Leo items is \Oc{} --
-worst case the number of Leo items created will be $\Vsize{alphabet}.
+worst case the number of Leo items created will be \Vsize{alphabet}.
+
+\subsection{Collect one LHS}
 
 \begin{algorithm}[h]
-\caption{Earley Collection Operation}\label{a:earley-collection-op}
+\caption{Collect one LHS symbol}
 \begin{algorithmic}[1] 
-\Procedure{Earley collection op}{\Vloc{i}, \Veimm{from}, \Vsym{trans}}
+\Procedure{Collection one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
+\Statex \Comment $pim$ is a "postdot item", either a LIMX or an EIMM
+\For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
+\If{\var{pim} is a LIMX, \Vlimx{pim}}
+\State $\Vlimx{pred} \gets \var{pim}$
+\State Perform \Call{Leo collection operation}{\Vloc{i}, \Vlimx{pred}}
+\Else
+\State $\Veimx{pred} \gets \var{pim}$
+\State Perform \Call{Earley collection operation}{\Vloc{i}, \Veimx{pred}, \Vsym{lhs}}
+\EndIf
+\EndFor
+\EndProcedure
+\end{algorithmic} 
+\end{algorithm}
+
+In examining the logic for collecting a single LHS symbol,
+we will first look at its call to \var{transitions}.
+We need to show we can find
+$\var{transitions}(\Ves{origin},\Vsym{lhs})$
+in \Oc{} time.
+We do this by noting
+that the number of symbols is a constant
+and assuming that \Veimm{x} has a link back
+to its origin Earley set.
+(In fact, as implemented, Marpa's
+Earley items have such links.)
+
+\subsection{Earley Collection operation}
+
+\begin{algorithm}[h]
+\caption{Earley collection operation}\label{a:earley-collection-op}
+\begin{algorithmic}[1] 
+\Procedure{Earley collection operation}{\Vloc{i}, \Veimm{from}, \Vsym{trans}}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
+
+\subsection{Adding a pair of Earley items}
 
 \begin{algorithm}[h]
 \caption{Adding EIM Pairs}\label{a:pair}
