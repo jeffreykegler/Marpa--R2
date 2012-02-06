@@ -59,6 +59,7 @@
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
 
+
 \newcommand{\alg}[1]{\ensuremath{\textsc{#1}}}
 \newcommand{\AH}{\ensuremath{\alg{AH}}}
 \newcommand{\Earley}{\ensuremath{\alg{Earley}}}
@@ -84,6 +85,7 @@
 \DeclareMathOperator{\GOTO}{GOTO}
 \newcommand\myL[1]{\operatorname{L}(#1)}
 \newcommand\tables[1]{\es{\operatorname{table}[#1]}}
+\newcommand{\tablesizen}[1]{\size{\operatorname{table}(#1,\var{n})}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -635,7 +637,8 @@ recognizers, \alg{Emulator}, which will,
 in effect, emulate \Marpa{} using \Leo{}.
 of operations.
 
-\subsection{Nullable symbols}
+\subsection{Nulling symbols}
+\label{s:correctness:nulling}
 
 As already noted, Marpa grammars
 do not contain empty rules or
@@ -1465,23 +1468,50 @@ follows.
 \section{Marpa recognizer complexity}
 \label{s:complexity}
 
-\begin{lemma}
+\subsection{Nulling symbols}
+For the complexity proofs,
+we consider only Marpa grammars without nulling
+symbols.
+When we examined correctness,
+we showed that this rewrite
+is without loss of generality
+\ref{s:correctness:nulling}.
+For complexity we must also show that
+the rewrite and its reversal can be done
+in amortized $\order{1}$ time and space
+per Earley item.
+
+One way to show the required bound is
+to allocate
+the time and space involved in rewriting Earley
+items with nulling symbols directly to 
+the Earley item to which they are rewritten
+and from which they can be restored.
+Since
+the number of occurrences of nulling symbols in any rule
+or in any AHFA state is a constant depending on the grammar,
+the time and space involved are also constant,
+and our bound follows.
+
+\subsection{The order of Marpa's Earley items}
+
+\begin{theorem}
 Let \Vg{} be a grammar as defined in this
 document,
 and let \Vfa{} be the AHFA for this grammar.
+Let \tablesizen{\Marpa} be the number of Earley items in
+a \Marpa parse,
+and \tablesizen{\Leo} the number of Earley items in a \Leo
+parse.
+$$ \order{\tablesizen{\Marpa}} = \order{\tablesizen{\Leo}} $$
+\end{theorem}
+
+\begin{proof}
 Let \VVes{L}{i} be
 an Earley set of \Leo.
 Let \VVes{El}{i} be an
 an Earley set of \Emulator{}
 in Leo mode.
-Then 
-$$ \size{fa} \times \size{\VVes{L}{i}} < \size{\VVes{El}{i}} $$
-where \size{\Vfa} is the number of states in \Vfa,
-and \Vsize{earley-set} is the size of a Earley
-set.
-\end{lemma}
-
-\begin{proof}
 By Theorem \ref{t:leo-congruence},
 we know that that for every EIML
 $$[\Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}$$
@@ -1512,7 +1542,26 @@ in the same Earley set,
 and the number of AHFA states, \Vsize{fa}, is finite.
 The theorem follows.
 Therefore
-$$ \size{fa} \times \size{\VVes{L}{i}} < \size{\VVes{El}{i}} $$
+$$ \size{\VVes{El}{i}} \le \size{fa} \times \size{\VVes{L}{i}} $$
+
+From Theorem {t:emulator-equivalence},
+we have
+$$ \size{\VVes{Em}{i}} = \size{\VVes{El}{i}} $$
+
+And by the congruence of \Emulator in Marpa mode
+with Marpa,
+we know there is a bijection from a partition of the
+Earley items in \VVes{Em}[i] to \VVes{M}[i],
+so that
+$$ \size{\VVes{M}{i}} \le \size{\VVes{Em}{i}} $$
+
+Collecting the last three relations, we have
+$$ \size{\VVes{M}{i}} \le \size{fa} \times \size{\VVes{L}{i}} $$
+
+And summing over $\var{i}, 0 \le \var{i} \le \var{n}$
+where $\var{n} = \Vsize{w}$,
+we see that
+$$ \order{\tablesizen{\Marpa}} = \order{\tablesizen{\Leo}} $$
 \end{proof}
 
 \begin{theorem}\label{t:constant-per-EIM}
