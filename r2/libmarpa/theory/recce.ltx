@@ -1495,12 +1495,12 @@ and our bound follows.
 
 \subsection{The order of Marpa's Earley items}
 
-\begin{theorem}
+\begin{theorem}\label{t:eim-order}
 Let \Vg{} be a grammar as defined in this
 document,
 and let \Vfa{} be the AHFA for this grammar.
 Let \tablesizen{\Marpa} be the number of Earley items in
-a \Marpa parse,
+a \Marpa{} parse,
 and \tablesizen{\Leo} the number of Earley items in a \Leo
 parse.
 $$ \order{\tablesizen{\Marpa}} = \order{\tablesizen{\Leo}} $$
@@ -1564,60 +1564,97 @@ we see that
 $$ \order{\tablesizen{\Marpa}} = \order{\tablesizen{\Leo}} $$
 \end{proof}
 
-\begin{theorem}\label{t:constant-per-EIM}
+\subsection{Amortized complexity of Marpa's Earley items}
+
+\begin{theorem}\label{t:O1-per-eim}
 All time in \Marpa{} can be allocated
 to the Earley items,
 and in such a way that processing each Earley item
-requires $\order{1}$ time.
+requires $\order{1}$ time and space.
 \end{theorem}
 
 \begin{proof}
-It is known that the time taken by
-the traditional Earley recognizer
-for its operations
-operations can be done in amortized $\order(1)$
-time per Earley item~\cite[Vol. 1, pages 326-327]{AU1972}.
+For some the operations of \Earley,
+it is known that the amortized time 
+per Earley item
+is amortized $\order(1)$\cite[Vol. 1, pages 326-327]{AU1972}.
 Inspection of the algorithm for \Marpa{} will show
-that any operations considered to be new to it
+that all space
+and time
+for any operations new to \Marpa
 can be assigned to the Earley items in
-an obivous way,
-and 
-trivially shown to be $\order{1}$.
+an obvious way,
+and trivially shown to be $\order{1}$.
 \end{proof}
 
-\begin{theorem}
-For all context-free grammars,
-the time and space complexity
-of \Marpa{} is as good or better
-than that of Earley's algorithm.
-\end{theorem}
+\subsection{Marpa complexity}
 
-\begin{proof}
-The time and space complexity
-results for $\Earley$ are based
-on establishing the order of the number of Earley items,
-and showing that $\Earley$ takes
-$\order{1}$ time and 
-$\order{1}$ space
-for each Earley
-item.~\cite[Vol. 1, pages 325-327]{AU1972}.
-By Theorem \ref{a:eim-order},
-for any grammar, the order of the number of Earley
-items is the same in \Marpa{} as it is
-in $\Earley$.
-It is trivial to show that the space requirements for
-\Marpa{} are $\order{1}$ time for each Earley item.
-By Theorem ref{t:constant-per-EIM},
-the time requirements for
-\Marpa{} are also $\order{1}$ for each Earley item.
-Therefore the time and space complexity results for $\Earley$
-hold for \Marpa.
-\end{proof}
+All of the complexity results for \Leo are
+based on the order of magnitude of the
+sum of the cardinalities of its Earley sets.
+From
+Theorems \ref{t:eim-order} and \ref{t:O1-per-eim},
+we see that the
+order of magnitude of
+the time
+and space complexity of \Marpa{} is never worse than
+that of \Leo.
+Because
+Theorem 4.3 of \cite[p. 172]{Leo1991}
+shows that the
+order of magnitude of
+the time
+and space complexity of \Leo is never worse than
+that of \Earley,
+we also see that the
+order of magnitude of
+the time
+and space complexity of \Marpa{} is also
+never worse than that of \Earley.
+
+We now state some of the more important
+specific results.
+In the following theorems,
+\var{n} is the length of the input, \Vsize{w}.
 
 \begin{theorem}
 For every LR-regular grammar,
-\Marpa{} runs in linear time and linear space.
+\Marpa{} runs in $\order{n}$ time and space.
 \end{theorem}
+
+\begin{proof}
+By Theorem 4.6 in \cite[p. 173]{Leo1991},
+and Theorems \ref{t:eim-order} and \ref{t:O1-per-eim}.
+\end{proof}
+
+\begin{theorem}
+For every unambiguous grammar,
+\Marpa{} runs in $\order{n^2}$ time.
+\end{theorem}
+
+\begin{proof}
+The time complexity of \Earley for unambiguous grammars
+is $\order(n^2)$
+(Theorem 4.10 in \cite[Vol 1, p. 327]{AU1972};
+\cite{Earley 1971}).
+The results follows by using
+Theorem 4.3 of \cite[p. 172]{Leo1991},
+and Theorems \ref{t:eim-order} and \ref{t:O1-per-eim}
+\end{proof}
+
+\begin{theorem}
+For any context-free grammar,
+\Marpa{} runs in $\order{n^3}$ time
+and $\order{n^2}$ space.
+\end{theorem}
+
+\begin{proof}
+The time complexity of \Earley is $\order(n^3)$
+and its space complexity is $\order(n^2)$\cite{Earley 1971}.
+The results follows by using
+Theorem 4.3 of \cite[p. 172]{Leo1991},
+and Theorems \ref{t:eim-order} and \ref{t:O1-per-eim}.
+\end{proof}
 
 \section{Generalizing the grammar}
 \label{s:generalization}
