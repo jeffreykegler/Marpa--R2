@@ -10,6 +10,7 @@
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
 \newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
 \newcommand{\order}[1]{{\mathcal O}(#1)}
+\newcommand{\Oc}[1]{\ensuremath{\order{1}}}
 
 % hyphens are often used in variable names,
 % so that I need to ensure that subtraction is
@@ -58,7 +59,6 @@
 \newcommand{\Vsymset}[1]{\ensuremath{\var{#1}_{\set{SYM}}}}
 \newcommand{\term}[1]{#1_{TERM}}
 \newcommand{\token}[1]{#1_{TOK}}
-
 
 \newcommand{\alg}[1]{\ensuremath{\textsc{#1}}}
 \newcommand{\AH}{\ensuremath{\alg{AH}}}
@@ -473,6 +473,29 @@ they do not attempt to account for space
 and time consumed in the pseudocode called from that
 level.
 
+In what follows,
+we will show that all time and space resources
+can be charged to the Earley items,
+in a way that each Earley item takes
+amortized $\order{1}$ resource.
+To achieve the 
+amortized $\order{1}$ time and space
+per Earley item, we will charge for those
+resources in
+three ways.
+
+\begin{itemize}
+\item We will charge resources to the Earley item directly.
+\item We will charge resources to the Earley set.
+There will always be at least one Earley item
+per Earley set, so that
+as long as the time or space is $\order{1}$,
+the time for the Earley set can be
+recharged to an arbitrary member of the Earley set.
+\item We can also charge $order{1}$ time and space to the parse itself.
+We handle the failure cases in this way.
+\end{itemize}
+
 \subsection{Top-level code}
 
 \begin{algorithm}[h]
@@ -483,6 +506,7 @@ level.
 \For{ $\var{i}, 0 \le \var{i} \le \Vsize{w}$ }
 \State \Comment At this point, $\tables{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
 \State \Call{Scan Pass}{$\var{i}, $var{w}[\var{i} \subtract 1]}
+\State reject if $\size{tables{\var{i}}} = 0$
 \State \Call{Collect Pass}{\var{i}}
 \EndFor
 \If{$[\Vah{accept}, 0] \in \tables{\Vsize{w}}$}
@@ -533,49 +557,83 @@ analyzer to supply start tags as requested by the parser,
 the application can parse very liberal HTML
 and will produce a parse even for highly defective HTML.
 
-At this level, time and space is $\order{\Vsize{w}}$,
-and, since no Earley set is empty in a successful
-parse,
-it is trivial to show that time and space
-is amortized $\order(1)$ per Earley item.
+Exclusive time and space for the loop over the Earley sets
+is charged to the Earley sets,
+and overhead is charged to the parse.
+Clearly all these charges are $\order(1)$.
 
 \subsection{Initialization}
+The exclusive time and space
+is $\order(1)$ and can be charged to the parse.
 
 \begin{algorithm}[h]
 \caption{Initialization}\label{a:initial}
 \begin{algorithmic}[1] 
 \Procedure{Initial}{}
-\State \Call{AddItems}{$0, \ah{start}, 0$}
+\State \Call{Add EIM Pair}{$0, \ah{start}, 0$}
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
 
+\subsection{Scan Pass}
+
 \begin{algorithm}[h]
 \caption{Marpa Scan Pass}\label{a:scan}
 \begin{algorithmic}[1] 
-\Procedure{Scan Pass}{$i,a$}
-\For{each Earley item $\eim{x}$ in $ES[i \subtract 1]$}
-\State $\ah{to} \gets \GOTO(\operatorname{AHFA-of}(\eim{x}), a)$
-\State \Call{Add EIM Pair}{$i, \ah{to}, \operatorname{Origin-of}(\eim{x}$}
+\Procedure{Scan Pass}{$\Vloc{i},\Vsym{a}$}
+\For{each $\Veimm{predecessor} \in \var{transitions}(\es{(\var{i} \subtract 1}),\Vsym{a})$}
+\State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{predecessor}$
+\State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
+\State \Call{Add EIM Pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
 \EndFor
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
 
+\var{transitions} is a set of tables, one per Earley set,
+which is indexed by symbol.
+Symbol indexing is $\order{1}$, since the number of symbols
+is a constant, but
+the operation $\var{transitions}(\Vloc{l}, \Vsym{s})$
+to be constant, there must be a link directly to the Earley
+set.
+In the case of scanning,
+the lookup is always in the previous Earley set,
+and it is safe to expect this can be found
+in $\order{1}$ time.
+With a reasonable implementation,
+therefore, the time for \var{transitions} operation
+is $\order{1}$ per 
+\Veimm{predecessor}.
+
+Each \Veimm{predecessor} causes one pass of the for-loop.
+Because of the way
+\var{transitions} is constructed,
+we know $\Vah{to} \neq \Lambda$,
+so at least one Earley item will be added in each pass
+of the for-loop,
+and the time and for that pass
+and its \Veimm{predecessor} pass of the for-loop can be
+charged to that newly added Earley item.
+There is one scan pass per Earley set,
+so that overhead can be charged to the Earley set $i$.
+
+\subsection{Collection Pass}
+
 \begin{algorithm}[h]
-\caption{Collection phase}\label{a:collection-phase}
+\caption{Collection pass}\label{a:collection-phase}
 \begin{algorithmic}[1] 
-\Procedure{Collection phase}{$i_{LOC}$}
-\For{each Earley item $\Veim{work} \in \var{earley-sets}[i]$}
-\State $[\Vah{work}, \Vloc{origin}] \gets \Veim{work}$
+\Procedure{Collection pass}{$i_{LOC}$}
+\For{each Earley item $\Veimm{work} \in \var{earley-sets}[i]$}
+\State $[\Vah{work}, \Vloc{origin}] \gets \Veimm{work}$
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
 \For{each postdot item $pim$, in $\var{transitions}(\Vloc{origin},\Vsym{lhs})$}
 \If{\var{pim} is a LIMX, \Vlimx{pim}}
 \State $\Vlimx{pred} \gets \var{pim}$
-\State \Call{Leo Collection Operation}{\Vloc{i}, \Vlimx{pred}}
+\State \Call{Leo collection operation}{\Vloc{i}, \Vlimx{pred}}
 \Else
 \State $\Veimx{pred} \gets \var{pim}$
-\State \Call{Earley Collection Operation}{\Vloc{i}, \Veimx{pred}, \Vsym{lhs}}
+\State \Call{Earley collection operation}{\Vloc{i}, \Veimx{pred}, \Vsym{lhs}}
 \EndIf
 \EndFor
 \EndFor
@@ -587,11 +645,38 @@ is amortized $\order(1)$ per Earley item.
 \end{algorithmic} 
 \end{algorithm}
 
+In examining the collection pass,
+we will first look at its call to \var{transitions}.
+We need to show we can find
+$\var{transitions}(\Ves{origin},\Vsym{lhs})$
+in \Oc{} time.
+We do this by noting
+that the number of symbols is a constant
+and assuming that \Veimm{x} has a link back
+to its origin Earley set.
+(In fact, as implemented, Marpa's
+Earley items have such links.)
+
+The \var{transitions} table for an Earley set
+is built at the end
+of the collection pass.
+This can be done in
+a single pass over Earley set \var{i},
+and the time and space required charged to the
+Earley items being examined.
+
+Of special note is that in
+setting up the \var{transitions} table for the current Earley set,
+the Leo items must be created.
+For each Earley item, the space
+and time to create its resulting Leo items is \Oc{} --
+worst case the number of Leo items created will be $\Vsize{alphabet}.
+
 \begin{algorithm}[h]
 \caption{Earley Collection Operation}\label{a:earley-collection-op}
 \begin{algorithmic}[1] 
-\Procedure{Earley collection op}{\Vloc{i}, \Veim{from}, \Vsym{trans}}
-\State $[\Vah{from}, \Vloc{origin}] \gets \Veim{from}$
+\Procedure{Earley collection op}{\Vloc{i}, \Veimm{from}, \Vsym{trans}}
+\State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
@@ -1415,7 +1500,7 @@ in other words, that \Marpa{} is correct.
 
 \begin{theorem}\label{t:correctness}
 $$\myL{\Marpa, g} = \myL{\var{g}}$$
-\end{theorem}\label{t:correctness}
+\end{theorem}
 
 \begin{proof}
 Assume that \var{w} is a string of size $\size{w}$,
