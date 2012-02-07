@@ -365,27 +365,27 @@ The next observation is useful for that purpose.
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
 a Marpa Earley item (EIMM) is the result of a
-Leo completion,
+Leo collection,
 then its AHFA state contains only one dotted rule.
 \end{theorem}
 
 \begin{proof}
-Since the Earley item is the result of a Leo completion,
-we know that its AHFA state contains a completed rule.
-Call that completed rule, \Vdr{complete}.
-Let \Vrule{c} be the rule of \Vdr{complete},
+Since the Earley item is the result of a Leo collection,
+we know that its AHFA state contains a collected rule.
+Call that collected rule, \Vdr{collected}.
+Let \Vrule{c} be the rule of \Vdr{collected},
 and \var{cp} its dot position.
-$\var{cp} > 0$ because completions are never
+$\var{cp} > 0$ because collections are never
 predictions.
 
 Suppose, for a reduction to absurdity,
 and that the AHFA state contains another dotted rules,
 \Vdr{other},
-$\Vdr{complete} \neq \Vdr{other}$.
+$\Vdr{collected} \neq \Vdr{other}$.
 Let \Vrule{o} be the rule of \Vdr{other},
 and \var{op} its dot position.
-An AHFA construction never places predictions in the same
-AHFA state as a completion, so
+An AHFA construction never places a prediction in the same
+AHFA state as a collection, so
 \Vdr{other} is not a prediction.
 Therefore, $\var{op} > 0$.
 
@@ -400,7 +400,7 @@ But the same series of transitions over the
 same rule would result in the same dot position,
 $\var{cp} = \var{op}$
 so that if $\Vrule{c} = \Vrule{o}$,
-$\Vdr{complete} = \Vdr{other}$,
+$\Vdr{collected} = \Vdr{other}$,
 which is contrary to the assumption for the reduction.
 Therefore, under the assumption for the reduction,
 $\Vrule{c} \neq \Vrule{o}$.
@@ -418,8 +418,8 @@ that transition must have been
 over the same transition symbol.
 Leo requires that, for each predecessor Earley set and transition symbol,
 that the transition be from a single rule.
-The assumption for the reduction is that \Vdr{complete}
-and \Vdr{other} are in the same Leo completion state,
+The assumption for the reduction is that \Vdr{collected}
+and \Vdr{other} are in the same Leo collection state,
 and in order for them to have obeyed the Leo uniqueness
 requirement,
 we have $\Vrule{c} = \Vrule{o}$.
@@ -429,7 +429,7 @@ $\Vrule{c} = \Vrule{o}$
 and 
 $\Vrule{c} \neq \Vrule{o}$,
 completing the reduction to absurdity.
-When \Vdr{complete} is in a Leo completion EIMM,
+When \Vdr{collected} is in a Leo collection EIMM,
 it must be the only dotted rule in that EIMM.
 \end{proof}
 
@@ -1540,17 +1540,17 @@ it remains to show the case of the Congruence invariant
 for the Leo collection operation.
 By the definition of Leo collection, it
 produces a single AHFA state,
-call this \Vah{leo-complete}.
+call this \Vah{collected}.
 By Theorem \ref{t:leo-singleton},
 \Vah{collected} will contain one and only one dotted rule,
 \Vdr{collected}.
-\Vdr{collected} will be a completion.
-Since the only rule in the \Vah{collected} is a completion,
+\Vdr{collected} will be a collection.
+Since the only rule in the \Vah{collected} is a collection,
 \Vah{collected} will have no null-transition.
 Therefore
 a Leo collection operation
 in \Marpa{}
-will add only one EIMM, $[\Vah{leo-complete}, \Vloc{origin}]$,
+will add only one EIMM, $[\Vah{collected}, \Vloc{origin}]$,
 where \Vloc{origin} is from the LIMX.
 \Emulator{} in Marpa mode will add only
 those EIMX in the set
