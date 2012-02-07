@@ -660,7 +660,7 @@ their space may be charged to the Earley set.
 \caption{Collect one LHS symbol}
 \begin{algorithmic}[1] 
 \Procedure{Collection one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
-\Statex \Comment $pim$ is a ``postdot item'', either a LIMX or an EIMM
+\State \Comment $pim$ is a ``postdot item'', either a LIMX or an EIMM
 \For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
 \If{\var{pim} is a LIMX, \Vlimx{pim}}
 \State $\Vlimx{pred} \gets \var{pim}$
