@@ -324,38 +324,19 @@ Aycock and Horspool modified their Earley items to be $(\ah{L}, origin)$
 duples, where $\ah{L}$ is an AHFA state.
 
 \begin{definition}
-The {\bf $\epsilon$-transition } partial function forms dotted rule from another
-by moving the dot forward.
-The {\bf $\epsilon$-closure } of a dotted rule
-is the set of dotted rules
-that can be formed by 
-$\epsilon$-transition and its inverse.
-$\epsilon(\Vdr{d})$ is the $\epsilon$-closure of \Vdr{d}.
-The {\bf $\epsilon$-closure } of a set of dotted rules is the union
-of their $\epsilon$-closures.
-$\epsilon(\Vdrset{ds})$ is the $\epsilon$-closure of \Vdrset{ds}.
-\end{definition}
-
-\begin{definition}
 A dotted rule is {\bf Marpa-valid} if and only if
 it does not have a nulling postdot symbol.
-One and only one dotted rule of every
-{\bf $\epsilon$-closure } will be Marpa-valid.
 \end{definition}
 
-\begin{definition}
-In \cite{AH2002}, {\bf $\epsilon$-transition } is also defined for AHFA states.
-The {\bf AHFA $\epsilon$-sets} are the sets formed by the closure
-of $\epsilon$-transition for AHFA states.
-\end{definition}
-
-No AHFA $\epsilon$-set contains more than two AHFA states.
-If an AHFA $\epsilon$-set contains one AHFA state, it is either
-the initial AHFA state or a discovered state
-(what in \cite{AH2002} are called the "kernel states").
-If an AHFA $\epsilon$-set contains two AHFA states, the from-state
-is either the initial AHFA state or a discovered state,
-and the to-state is always a predicted state.
+AHFA states are of two kinds:
+{\bf Discovered AHFA states}
+contain the predicted start rule and
+discovered rules.
+{\bf Predicted AHFA states}
+contain predicted rules
+other than the start rule.
+(In \cite{AH2002} discovered states are called the "kernel states",
+and predicted states are called "non-kernel states".)
 
 It is important to note that
 an AHFA is not a partition of the dotted
@@ -1148,7 +1129,7 @@ initialization is handled as a special case.
 To build Earley set 0, \Emulator{}
 first adds the set
 \begin{equation*}
-\set{ [ \Vah{start}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \epsilon(\Vah{start}) }
+\set{ [ \Vah{start}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \Vah{start} }
 \end{equation*}
 in Dotted Rule Order.
 It then examines \Vah{prediciton},
@@ -1156,7 +1137,7 @@ where $\Vah{prediction} = \GOTO(\Vah{cause}, \epsilon)$.
 If $\Vah{prediction} \neq \Lambda$,
 Emulator adds the set
 \begin{equation}
-\set{ [ \Vah{predicted}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \epsilon(\Vah{predicted}) }
+\set{ [ \Vah{predicted}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \Vah{predicted} }
 \end{equation}
 in Emulator Dotted Rule Order.
 
@@ -1261,8 +1242,7 @@ are correct.
 The proof is by cases:
 the base EIMX;
 EIMX's occurring in the AHFA state as the base EIMX;
-EIMX's occurring in a predicted state;
-and EIMX's from epsilon-closures in either of the two AHFA states.
+and EIMX's occurring in a predicted state.
 
 \begin{itemize}
 \item The base EIMX is correct because it results from
@@ -1271,9 +1251,6 @@ the \Leo{} logic, which is known to be correct\cite{Leo1991}.
 as the base EIMX are correct, as shown in \cite{AH2002}.
 \item The EIMX's occurring in a predicted AHFA state
 as the base EIMX are correct, as shown in \cite{AH2002}.
-\item The dotted rules produced by $\epsilon$-closure are
-correct, because $\epsilon$-closure is as defined for
-the traditional Earley's algorithm.
 \end{itemize}
 
 \end{proof}
