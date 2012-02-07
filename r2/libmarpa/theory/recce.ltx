@@ -679,16 +679,15 @@ their space may be charged to the Earley set.
 
 \subsection{Collect one LHS}
 
-In examining the logic for collecting a single LHS symbol,
-we will first look at its call to \var{transitions}.
-We need to show we can find
+Inclusive time is charged to the EIMM attempt.
+We show that
 $\var{transitions}(\Ves{origin},\Vsym{lhs})$
-in \Oc{} time.
-We do this by noting
+can be done \Oc{} time
+by noting
 that the number of symbols is a constant
 and assuming that \Veimm{x} has a link back
 to its origin Earley set.
-(In fact, as implemented, Marpa's
+(As implemented, Marpa's
 Earley items have such links.)
 
 \begin{algorithm}[h]
@@ -704,6 +703,10 @@ Earley items have such links.)
 
 \subsection{Earley Collection operation}
 
+Exclusive time and space is clearly \Oc.
+Inclusive time and space is charged to the
+calling procedure.
+
 \begin{algorithm}[h]
 \caption{Leo collection operation}\label{a:leo-collection-op}
 \begin{algorithmic}[1] 
@@ -717,19 +720,23 @@ Earley items have such links.)
 
 \subsection{Leo Collection operation}
 
+Exclusive time and space is clearly \Oc.
+Inclusive time and space is charged to the
+calling procedure.
+
 \begin{algorithm}[h]
 \caption{Add EIM Pair}\label{a:pair}
 \begin{algorithmic}[1] 
-\Procedure{Add EIM Pair}{$i_{LOC},\ah{collected},origin_{LOC}$}
-\State $\ah{predicted} \gets \GOTO(\ah{collected}, \epsilon)$
-\State $\eim{collected} \gets [\ah{to}, origin_{LOC}]$
-\If{$\eim{collected}$ is new}
-\State Add $\eim{collected}$ to $\tables{i}$
+\Procedure{Add EIM Pair}{$\Vloc{i},\Vah{collected}, \Vloc{origin}$}
+\State $\Veim{collected} \gets [\Vah{collected}, \Vloc{origin}]$
+\State $\Vah{predicted} \gets \GOTO(\Vah{collected}, \epsilon)$
+\If{$\Veim{collected}$ is new}
+\State Add $\Veim{collected}$ to $\tables{i}$
 \EndIf
-\If{$predicted_{AHFA} \neq \Lambda$}
-\State $\eim{predicted} \gets [\ah{predicted}, i]$
-\If{$eim{predicted}$ is new}
-\State Add $\eim{predicted}$ to $\tables{i}$
+\If{$\Vah{predicted} \neq \Lambda$}
+\State $\Veim{predicted} \gets [\Vah{predicted}, \Vloc{i}]$
+\If{$Veim{predicted}$ is new}
+\State Add $\Veim{predicted}$ to $\tables{i}$
 \EndIf
 \EndIf
 \EndProcedure
@@ -741,64 +748,115 @@ Earley items have such links.)
 This operation adds a collected EIMM
 item and, if it exists, the EIMM for
 its null-transition.
-Time and space are allocated to the newly created
-Earley items.
-Trivially, the space is \Oc.
-Time is also obviously \Oc{},
-with the exception of two operations:
+Inclusive time and space is charged to the
+calling procedure.
+Trivially, the space is \Oc per call.
+
+We show that time is also \Oc{}
+by singling out two non-trivial cases:
 checking that an Earley item is new,
 and adding it to the Earley set.
-That an Earley item can be added to the current
-set is clear if the 
-Earley set is seen as a linked
+It becomes clear
+that an Earley item can be added to the current
+set in \Oc{} time
+if Earley set is seen as a linked
 list, to the head of which the new Earley item is added.
 
 Earley items are only added if they are new,
+and showing that this check can be performed in \Oc time
+per EIMM (and therefore per call)
+is more complicated.
 A data structure that allows this
 to be checked in \Oc{} time is very
-briefly outlined, but not named, in
+briefly outlined in both
+\cite[p. 97]{Earley1970} and
 \cite[Vol. 1, pages 326-327]{AU1972}.
-In this document that data structure will be call ``per-Earley set lists'',
+The data structures used are not named in either source,
+and in this document they will be called ``per-Earley set lists'',
 or PSL's.
-PSL's will be explained in the next section.
+PSL's are the subject of the next section.
 
 \subsection{Per-set lists}
 
-A PSL is kept in each Earley set.
+A per-set list (PSL) is kept in each Earley set.
 When building a new Earley set, \Ves{j},
 the PSL for every previous Earley set, \Ves{i},
-keep a list of those Earley items in \Ves{j} which have \Ves{i}
+keeps a list of those Earley items in \Ves{j} which have \Ves{i}
 as their origin.
-Each PSL per-set list needs to only keep track of a maximum
+Each PSL needs to only keep track of a maximum
 number of possible Earley items.
 For traditional Earley items that maximum is the number
 of dotted rules.
 For Marpa, that maximum is the number of AHFA states.
-Either way, the maximum is a constant which depends on the grammar.
+In both cases,
+the maximum is a constant which depends on the grammar.
 
 Clearing and rebuilding the PSL's every time
 a new Earley set would take more than \Oc{},
 but can be avoided.
 The per-AHFA state entries can be ``stamped'',
 with a link back to the Earley set
-which was the current one when that PSL
+which was current when that PSL
 entry was last added or updated.
 
 Consider the case where Marpa is building \Ves{j}
-and looking at the PSL for \Ves{i} to check whether
 an Earley item \Veimm{x} is new,
-where $\Veimm{x} = [ \Vah{x}, \Vloc{j} ]$.
-Marpa checks the PSL's for \Ves{i}.
-Call the Earley set ``stamp'' for that PSL,
-\Ves{p}.
-If $\Ves{p} = \Ves{j}$, then \Veimm{x} is not new,
+where $\Veimm{x} = [ \Vah{x}, \Vloc{origin} ]$.
+To do this,
+Marpa checks the PSL's for $\tables{origin}$.
+Let the Earley set ``stamp'' for that PSL entry be \Ves{p}.
+If the entry has never been used, $\Ves{p} = \Lambda$
+If $\Ves{p} \ne \Lambda \land \Ves{p} = \Ves{j}$,
+then \Veimm{x} is not new,
 and will not be added to the Earley set.
 
-If the PSL entry is new, or $\Ves{p} \ne \Ves{j}$, then \Veimm{x} is new.
+If $\Ves{p} = \Lambda \lor \Ves{p} \ne \Ves{j}$, then \Veimm{x} is new.
 \Veimm{x} is added to the Earley set,
-and the PSL's ``stamp'' is changed to \Ves{j}.
-Marpa's implementation uses PSL's
-for this purpose and for several others.
+and the PSL's ``stamp'' is updated to \Ves{j}.
+As implemented,
+Marpa uses PSL's for this purpose and several others.
+
+\section{Nulling symbols}
+\label{s:nulling}
+
+We have already noted that Marpa grammars
+do not contain empty rules or
+properly nullable symbols,
+and shown that this is without loss
+of generality.
+This corresponds to the Marpa implementation.
+For the correctness and comlexity proof in this section,
+we assume a further rewrite not in the implementation,
+this time to eliminate nulling symbols.
+
+This additional rewrite is also
+without loss of generality, as can be seen
+if we assume that a history
+of the rewrite is kept,
+and that the rewrite is reversed
+after the parse.
+Clearly, whether an input \Vw{} is acceptable
+or will not depend on how often
+a grammar \Vg{} interpolates nulling symbols into
+its input stream.
+
+A question for future research is whether rewriting
+the grammar to eliminate nulling symbols during parsing
+would in fact be a better implementation.
+Efficiency gains, if they existed,
+would probably not be impressive,
+but the rewrite of the Earley items after
+the parse would allow the nulling symbols
+to be added based on full knowledge of the
+result of the parse.
+
+This might allow some new parsing
+techniques.
+Optionally introducing nulling symbols could "tag"
+other symbols, and might be a natural way to add
+a degree of context-sensitivity to \Marpa.
+
+\section{Duplicated rules}
 
 \section{Marpa recognizer correctness}
 \label{s:correctness}
@@ -814,29 +872,6 @@ This will be accomplished by constructing a third
 recognizers, \alg{Emulator}, which will,
 in effect, emulate \Marpa{} using \Leo{}.
 of operations.
-
-\subsection{Nulling symbols}
-\label{s:correctness:nulling}
-
-As already noted, Marpa grammars
-do not contain empty rules or
-properly nullable symbols,
-and shown that this is without loss
-of generality.
-For the correctness proof in this section,
-it is assumed that the grammar is further rewritten,
-this time to eliminate nulling symbols.
-
-This this additional rewrite is also
-without loss of generality, can be seen
-by assuming that a history
-of the rewrite is kept,
-and that the rewrite is reversed
-after the parse.
-Clearly, whether an input \Vw{} is acceptable
-or will not depend on how often
-a grammar \Vg{} interpolates nulling symbols into
-its input stream.
 
 \subsection{The emulator in Leo mode}
 
@@ -1649,7 +1684,7 @@ symbols.
 When we examined correctness,
 we showed that this rewrite
 is without loss of generality
-\ref{s:correctness:nulling}.
+\ref{s:nulling}.
 For complexity we must also show that
 the rewrite and its reversal can be done
 in amortized \Oc{} time and space
