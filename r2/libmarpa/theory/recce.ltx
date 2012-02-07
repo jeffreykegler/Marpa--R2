@@ -548,12 +548,12 @@ parse with a very clean,
 but oversimplified grammar,
 programming the lexical analyzer to make up for the grammar's
 short-comings on the fly.
-As an example that the author has implemented an HTML parser\cite{Marpa-HTML},
-based on an grammar that assumes that all end
-and start tags are present.
+The author has implemented an HTML parser\cite{Marpa-HTML},
+based on an grammar that assumes that all start
+and end tags are present.
 Such an HTML grammar is too simple even to describe fully
 standard-conformant HTML, but by programming the lexical
-analyzer to supply start tags as requested by the parser,
+analyzer to supply start and end tags as requested by the parser,
 the application can parse very liberal HTML
 and will produce a parse even for highly defective HTML.
 
@@ -596,11 +596,8 @@ In the case of scanning,
 the lookup is always in the previous Earley set,
 and it is safe to expect this can be found
 in \Oc{} time.
-
-There is one scan pass per Earley set,
-so that overhead can be charged to the Earley set $i$.
 Inclusive time and space can be charged to the 
-Earley item attempt.
+Earley item attempts.
 
 \begin{algorithm}[h]
 \caption{Collection pass}\label{a:collection-phase}
