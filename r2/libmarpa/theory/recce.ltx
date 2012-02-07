@@ -5,16 +5,15 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
-\newcommand{\comment}[1]{}
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
 \newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
 \newcommand{\order}[1]{{\mathcal O}(#1)}
 \newcommand{\Oc}{\ensuremath{\order{1}}}
 
-% hyphens are often used in variable names,
-% so that I need to ensure that subtraction is
-% clearly designated in the typography
+% I use hyphens in variable names,
+% so I need to ensure that subtraction is
+% clearly distinguished by the typography
 \newcommand{\subtract}{\,-\,}
 
 \newcommand{\var}[1]{\ensuremath{\textbf{#1}}}
@@ -26,7 +25,8 @@
 \newcommand{\derivrg}[2]{\mathrel{\mbox{$\:\stackrel{\!{#1}}%
         {\Rightarrow\!}\:$}}}
 
-\newcommand{\set}[1]{{\lbrace #1 \rbrace} }
+\newcommand{\set}[1]{{\left\lbrace #1 \right\rbrace} }
+\newcommand{\mset}[2]{{\,\left\lbrace {#1} \,\middle\vert\, {#2} \right\rbrace} \,}
 \newcommand{\ah}[1]{#1_{AH}}
 \newcommand{\Vah}[1]{\ensuremath{\var{#1}_{AH}}}
 \newcommand{\bool}[1]{\var{#1}_{BOOL}}
@@ -280,7 +280,7 @@ or AHFA.
 A full description of how to derive an AHFA in theory
 can be found in \cite{AH2002},
 and examples of how to derive it in practice
-can be found in the code for Marpa\cite{Marpa-RS,Marpa-XS}.
+can be found in the code for Marpa\cite{Marpa-R2,Marpa-XS}.
 Here I will summarize those ideas behind AHFA's
 that are central to Marpa.
 
@@ -486,7 +486,7 @@ been allocated as an inclusive resource by the procedure's
 caller.
 
 \begin{algorithm}[h]
-\caption{Marpa Top-level}\label{a:initial}
+\caption{Marpa Top-level}
 \begin{algorithmic}[1] 
 \Procedure{Main}{}
 \State \Call{Initial}{}
@@ -554,7 +554,7 @@ the application can parse very liberal HTML
 and will produce a parse even for highly defective HTML.
 
 \begin{algorithm}[h]
-\caption{Initialization}\label{a:initial}
+\caption{Initialization}
 \begin{algorithmic}[1] 
 \Procedure{Initial}{}
 \State \Call{Add EIM Pair}{$0, \ah{start}, 0$}
@@ -875,10 +875,12 @@ of operations.
 with modifications.
 These modifications will be explained in
 detail below,
-but in summary they include tracking the
-AHFA states,
-and adding a concept of
+but in summary they include
+\begin{itemize}
+\item tracking the AHFA states, and
+\item adding the concept of
 ``activation'' to Leo items and Earley items.
+\end{itemize}
 Tracking activation status allows
 \Emulator{} to separate the creation
 of Leo and Earley items
@@ -894,8 +896,8 @@ of operations.
 \Emulator{} runs in two ``modes'',
 Leo and Marpa,
 which differ in their activation logic.
-The sections which follow next
-will describe activation
+This sections first
+describes activation
 as it happens in
 \Emulator's Leo mode.
 When it comes time to describe activation
@@ -907,9 +909,9 @@ but significant in its implication.
 
 \Emulator, as part of its precomputations
 on its grammar, \Vg,
-will calculate \Vah, the AHFA.
-It will also calculate $\GOTO: \var{ah},\var{alphabet} \mapsto \var{ah}$,
-the transition function for \var{ah}.
+will calculate \Vfa, the AHFA.
+It will also calculate $\GOTO: \Vfa,\var{alphabet} \mapsto \Vfa$,
+the transition function for \Vfa.
 
 \subsection{Extending the Earley items}
 
@@ -949,30 +951,30 @@ are congruent
 $$\Veimtset{X} \cong \Veimtset{T}$$
 if and only if
 for all
-Vdr{x}, \var{xorig}
+\Vdr{x}, \Vloc{x}
 \begin{gather*}
-(\exists \Vah{x} \sep \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X}) \\
-\iff [\Vdr{x}, \var{xorig}] \in \Veimtset{T}
+(\exists \Vah{x} \sep \Vah{x}, \Vdr{x}, \Vloc{x} \in \Veimxset{X}) \\
+\iff [\Vdr{x}, \Vloc{x}] \in \Veimtset{T}
 \end{gather*}
 
 \subsection{Emulation order}
 
 For normal operation of 
-\Leo and \Marpa, the precise order of items in the Earley sets is not
+\Leo{} and \Marpa, the precise order of items in the Earley sets is not
 important,
-and the pseudocode for each leaves that order open.
+and the pseudocode leaves that order open.
 To simplify the induction on operations in the correctness
-proof, however, it is convenient to synchronize the operations
+proof, it is convenient to synchronize the operations
 of \Emulator{} in Marpa mode,
 with those of Marpa.
 For this purpose, we treat the Earley sets as ordered sets,
-which containing the Earley item in the order in which
+containing the Earley items in the order in which
 they were added.
 
 Call Emulation Symbol Order,
 some total ordering of the symbols.
 Emulation Symbol Order may be arbitrary but must stay fixed for the life
-of the induction.
+of any induction.
 
 Call some total ordering of the dotted rules,
 Emulation Dotted Rule Order.
@@ -981,23 +983,29 @@ LHS.
 Otherwise, Emulation Dotted Rule Order
 may be arbitrary except that it
 must stay fixed for the life
-of the induction.
+of any induction.
 
 We refine the order of operations as follows:
+\begin{itemize}
+\item
 Both \Emulator{} and \Marpa{},
 when scanning, scan the tokens in
 Emulation Symbol Order.
-Both \Marpa{},
+\item
+\Marpa{},
 in considering the left hand sides of completed rules
 during collection,
 does so in Emulation Symbol Order.
+\item
 Both \Emulator{} and \Marpa{},
 when creating Earley set 0,
 create it in order by Emulation Dotted Rule
 Order within AHFA state.
-Finally, \Emulator{},
+\item
+\Emulator{},
 when adding the EIMX's for an AHFA state,
 does so in Emulator Dotted Rule Order.
+\end{itemize}
 Together,
 Emulator Symbol Order
 and Emulator Dotted Rule Order are
@@ -1006,10 +1014,11 @@ referred to as Emulator Order.
 For Earley sets after Earley set 0,
 we require that the order of Earley items follow the
 order in which they were added.
-This definition ensures that,
-that all EIMX's belonging
-to the same AHFA state occur together
-in an Earley set.
+This definition ensures that
+all EIMX's belonging
+to the same AHFA state
+are grouped together
+in an ordered Earley set.
 It is possible for the \Emulator{} to attempt
 to add EIMX's belonging to a 
 single AHFA state at several points while building
@@ -1058,9 +1067,10 @@ or as the predecessor in a prediction operation.
 In each of these cases,
 \Emulator{} first checks the
 \var{active} boolean of the EIMX.
-If it is false, the Emulator ignores the EIMX
+If it is false, \Emulator{} ignores the EIMX
 as if it did not exist.
-If \Vbool{active} is true, treats \Veimx{cause} as
+If \Vbool{active} is true,
+\Emulator{} treats \Veimx{cause} as
 if it were the following EIMT:
 $$[\Vdr{dr}, \var{origin}]$$
 Informally, it can be said that
@@ -1089,8 +1099,11 @@ and ignores inactive LIMX's.
 
 Once it has found the causes for an Earley operation,
 \Emulator{} proceeds to determine
-\Vah{new} and \Vah{predict},
-two AHFA states.
+the two AHFA states it will need,
+\Vah{new} and \Vah{predict}.
+It does this based on the logic of \Marpa
+which in turn follows that of \AH.
+Specifically,
 
 If it is scanning \Vsym{token},
 and \Vah{predecessor} is the AHFA state of the predecessor EIMX,
@@ -1139,7 +1152,8 @@ If $\Vah{new} \neq \Lambda$,
 \Emulator{} produces
 \Veimxset{collected}, which is the set of EIMX's
 \begin{gather*}
-\set{ [ \Vbool{new}, \Vah{new}, \Vdr{dr}, \var{origin} ] \sep \Vdr{dr} \in \Vah{new} }
+\mset{ [ \Vbool{new}, \Vah{new}, \Vdr{dr}, \var{origin} ] }
+    { \Vdr{dr} \in \Vah{new} }
 \end{gather*}
 where \var{origin} is the origin of \Veimx{cause}.
 \Vbool{new} is \var{T} if and only if
@@ -1155,9 +1169,12 @@ and the others are added to the current Earley set
 in Emulator Dotted Rule Order.
 
 Next, if $\Vah{predict} \neq \Lambda$,
-\Emulator{} produces \Veimxset{predict}
-$$\Veimxset{predict} =
-{ [ \Vbool{new}, \Vah{predict}, \Vdr{dr}, \Vloc{i} ] \sep \Vdr{dr} \in \Vah{predict} }$$
+\Emulator{} produces \Veimxset{predict},
+which is the set of EIMX's
+$$
+\mset{ [ \Vbool{new}, \Vah{predict}, \Vdr{dr}, \Vloc{i} ] }
+    { \Vdr{dr} \in \Vah{predict} }
+$$
 where \Vloc{i} is the current Earley set and
 \Vbool{new} is \var{T} if and only if
 \begin{center}
@@ -1206,35 +1223,6 @@ Emulator adds the set
 \set{ [ \Vah{predicted}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \Vah{predicted} }
 \end{equation}
 in Emulator Dotted Rule Order.
-
-\subsection{Leo mode}
-
-The emulator runs in modes.
-The intent of Leo mode is to emulate \Leo.
-\Emulator{} is ``eager'' in its creation of Earley items.
-The idea behind the following rules is
-that the active boolean tracks
-whether \Leo{} would have created the EIMX.
-\begin{itemize}
-\item EIMX's in Earley set 0 are always
-created with their active booleans
-set to true, regardless of any other rules.
-\item The EIMX of the base EIMX is set to true.
-This is the case whether the base EIMX is being created,
-or already exists.
-\item If an EIMX already exists,
-and it is not the base EIMX,
-it active boolean is left as it was.
-\item If an EIMX does not exist,
-and is being created,
-it is created with its active boolean set to false.
-\item When an LIMX is created, its active boolean is set to false.
-\item When an LIMX is used in Leo collection, its active boolean
-is set to true.
-\item
-Once the active boolean of an EIMX or LIMX is true, its value
-will never change.
-\end{itemize}
 
 \subsection{The emulator in Leo mode is correct}
 
@@ -1329,7 +1317,7 @@ is complete.
 \end{lemma}
 
 \begin{proof}
-By Lemma \cite{l:eimx-correct},
+By Lemma \ref{l:eimx-correct},
 all EIMX's created by the emulator engine are
 correct.
 Lazy activation simulates Leo and Leo has been
@@ -1356,7 +1344,7 @@ have produced identical Earleys sets 0 through $i - 1$,
 then the two activation methods will also produce
 identical Earleys sets at $i$.
 
-By Lemma \cite{l:lazy-complete},
+By Lemma \ref{l:lazy-complete},
 once processing for an Earley set is complete,
 all of its EIMX's are activated,
 whether activation is lazy or eager,
@@ -1760,7 +1748,7 @@ where
 \set{ [ \Vbool{z}, \Vah{z}, \Vdr{x}, Vloc{x} \sep \Vdr{x} \in \Vah{z} ] }
 \end{align*}
 
-By the defintion of \Emulator,
+By the definition of \Emulator,
 EIMX's that differ only in \Vbool{z} will not appear
 in the same Earley set,
 and the number of AHFA states, \Vsize{fa}, is finite.
@@ -1860,7 +1848,7 @@ For every unambiguous grammar,
 The time complexity of \Earley for unambiguous grammars
 is $\order(n^2)$
 (Theorem 4.10 in \cite[Vol 1, p. 327]{AU1972};
-\cite{Earley 1971}).
+\cite{Earley1970}).
 The results follows by using
 Theorem 4.3 of \cite[p. 172]{Leo1991},
 and Theorems \ref{t:eim-order} and \ref{t:O1-per-eim}
@@ -1874,7 +1862,7 @@ and $\order{n^2}$ space.
 
 \begin{proof}
 The time complexity of \Earley is $\order(n^3)$
-and its space complexity is $\order(n^2)$\cite{Earley 1971}.
+and its space complexity is $\order(n^2)$\cite{Earley1970}.
 The results follows by using
 Theorem 4.3 of \cite[p. 172]{Leo1991},
 and Theorems \ref{t:eim-order} and \ref{t:O1-per-eim}.
