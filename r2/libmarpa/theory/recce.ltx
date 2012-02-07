@@ -10,7 +10,7 @@
 \newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
 \newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
 \newcommand{\order}[1]{{\mathcal O}(#1)}
-\newcommand{\Oc}[1]{\ensuremath{\order{1}}}
+\newcommand{\Oc}{\ensuremath{\order{1}}}
 
 % hyphens are often used in variable names,
 % so that I need to ensure that subtraction is
@@ -125,7 +125,7 @@ as tokens are being scanned.
 Advantageous for error detection,
 this knowledge also
 allows
-"Ruby Slippers" parsing --
+``Ruby Slippers'' parsing --
 alteration of the input in reaction
 to the parser's expectations.
 \end{abstract}
@@ -517,12 +517,13 @@ and overhead is charged to the parse.
 All these resource charges are obviously \Oc.
 
 \subsection{Ruby Slippers parsing}
-This top-level code contains a significant difference
+This top-level code represents a significant change
 from \AH{}.
-\call{Scan Pass} and \call{Collect Pass} are separated.
-so that when scanning of tokens which start at location
-$i$ begins,
-the Earley sets for all prior locations are complete.
+\call{Scan Pass}{} and \call{Collect Pass}{}
+are separated.
+As a result,
+when scanning of tokens which start at location \Vloc{i} begins,
+the Earley sets for all locations prior to \Vloc{i} are complete.
 This means that the scanning operation has available, in
 the Earley sets,
 full information about the current state of the parse,
@@ -535,11 +536,11 @@ It can be known immediately if a token
 will be rejected, and the input can changed in
 the light of the parser's expectations.
 This means that error detection,
-in many parsers an often quite desperate last resort,
+in many parsers an desperate last resort,
 is recoverable and inexpensive,
 allowing its use as a parsing technique.
 Because this can be described as making the parser's
-"wishes" come true, I have called this "Ruby Sippers
+``wishes" come true, I have called this "Ruby Sippers
 Parsing".
 
 One use of the Ruby Slippers technique is to
@@ -868,7 +869,7 @@ the transition function for \var{ah}.
 The Earley sets of \Emulator{} will contain extended
 Earley items, EIMX's.
 EIMX's can be viewed as
-crosses (``X") between traditional Earley items (EIMT's)
+crosses (``X'') between traditional Earley items (EIMT's)
 and Marpa's Earley items (EIMM's).
 
 Each EIMX will have the form
