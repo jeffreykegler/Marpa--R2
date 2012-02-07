@@ -221,7 +221,7 @@ which departs from tradition by disallowing an empty RHS.
 The grammar $g$ can be defined as the 4-tuple
 $$(\Vsymset{alphabet}, \Vsymset{term}, rules, \Vsym{start})$$.
 Without loss of generality,
-it is assumed that $g$ is "augmented",
+it is assumed that $g$ is ``augmented'',
 so that \Vsym{start} is a dedicated start symbol
 and
 $\Vrule{start} = [ \Vsym{start} \de \Vsym{goal} ] $
@@ -277,7 +277,7 @@ when parsing grammar $g$.
 \label{s:AHFA}
 
 In this document a
-"split LR(0) $\epsilon$-DFA"
+``split LR(0) $\epsilon$-DFA''
 a described by Aycock and Horspool~\cite{AH2002},
 will be called an Aycock-Horspool Finite Automaton,
 or AHFA.
@@ -335,8 +335,8 @@ discovered rules.
 {\bf Predicted AHFA states}
 contain predicted rules
 other than the start rule.
-(In \cite{AH2002} discovered states are called the "kernel states",
-and predicted states are called "non-kernel states".)
+(In \cite{AH2002} discovered states are called the ``kernel states'',
+and predicted states are called ``non-kernel states''.)
 
 It is important to note that
 an AHFA is not a partition of the dotted
@@ -540,8 +540,8 @@ in many parsers an desperate last resort,
 is recoverable and inexpensive,
 allowing its use as a parsing technique.
 Because this can be described as making the parser's
-``wishes" come true, I have called this "Ruby Sippers
-Parsing".
+``wishes'' come true, I have called this ``Ruby Sippers
+Parsing''.
 
 One use of the Ruby Slippers technique is to
 parse with a very clean,
@@ -647,7 +647,7 @@ worst case the number of Leo items created will be \Vsize{alphabet}.
 \caption{Collect one LHS symbol}
 \begin{algorithmic}[1] 
 \Procedure{Collection one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
-\Statex \Comment $pim$ is a "postdot item", either a LIMX or an EIMM
+\Statex \Comment $pim$ is a ``postdot item'', either a LIMX or an EIMM
 \For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
 \If{\var{pim} is a LIMX, \Vlimx{pim}}
 \State $\Vlimx{pred} \gets \var{pim}$
@@ -742,7 +742,7 @@ A data structure that allows this
 to be checked in \Oc{} time is very
 briefly outlined, but not named, in
 \cite[Vol. 1, pages 326-327]{AU1972}.
-In this document that data structure will be call "per-Earley set lists",
+In this document that data structure will be call ``per-Earley set lists'',
 or PSL's.
 PSL's will be explained in the next section.
 
@@ -763,7 +763,7 @@ Either way, the maximum is a constant which depends on the grammar.
 Clearing and rebuilding the PSL's every time
 a new Earley set would take more than \Oc{},
 but can be avoided.
-The per-AHFA state entries can be "stamped",
+The per-AHFA state entries can be ``stamped'',
 with a link back to the Earley set
 which was the current one when that PSL
 entry was last added or updated.
@@ -773,14 +773,14 @@ and looking at the PSL for \Ves{i} to check whether
 an Earley item \Veimm{x} is new,
 where $\Veimm{x} = [ \Vah{x}, \Vloc{j} ]$.
 Marpa checks the PSL's for \Ves{i}.
-Call the Earley set "stamp" for that PSL,
+Call the Earley set ``stamp'' for that PSL,
 \Ves{p}.
 If $\Ves{p} = \Ves{j}$, then \Veimm{x} is not new,
 and will not be added to the Earley set.
 
 If the PSL entry is new, or $\Ves{p} \ne \Ves{j}$, then \Veimm{x} is new.
 \Veimm{x} is added to the Earley set,
-and the PSL's "stamp" is changed to \Ves{j}.
+and the PSL's ``stamp'' is changed to \Ves{j}.
 Marpa's implementation uses PSL's
 for this purpose and for several others.
 
@@ -831,7 +831,7 @@ detail below,
 but in summary they include tracking the
 AHFA states,
 and adding a concept of
-"activation" to Leo items and Earley items.
+``activation'' to Leo items and Earley items.
 Tracking activation status allows
 \Emulator{} to separate the creation
 of Leo and Earley items
@@ -844,7 +844,7 @@ items of one with the other,
 which is essential for an induction on the sequence
 of operations.
 
-\Emulator{} runs in two "modes",
+\Emulator{} runs in two ``modes'',
 Leo and Marpa,
 which differ in their activation logic.
 The sections which follow next
@@ -1145,7 +1145,7 @@ in Emulator Dotted Rule Order.
 
 The emulator runs in modes.
 The intent of Leo mode is to emulate \Leo.
-\Emulator{} is "eager" in its creation of Earley items.
+\Emulator{} is ``eager'' in its creation of Earley items.
 The idea behind the following rules is
 that the active boolean tracks
 whether \Leo{} would have created the EIMX.
@@ -1205,7 +1205,7 @@ Congruence follows directly.
 
 \subsection{Emulator in Marpa mode}
 
-Marpa mode is simply \Emulator{} with "eager" activation.
+Marpa mode is simply \Emulator{} with ``eager'' activation.
 In Marpa mode,
 all EIMX's and LIMX's are activated as soon as they are
 created and remain activated throughout the life
@@ -1413,9 +1413,9 @@ be Earley set $i$ in \Marpa,
 \begin{proof}
 The proof is by double induction.
 The outer induction is on the Earley sets,
-and the inner induction on "basic operations".
+and the inner induction on ``basic operations''.
 
-We define the "basic operations" by breaking
+We define the ``basic operations'' by breaking
 down the operations of \Emulator{} and \Marpa
 into convenient pieces, excluding
 operations which can be shown
@@ -1885,7 +1885,7 @@ The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
 certain restriction must be imposed on them.
 Call an Earley set, $\es{table[j]}$
-a "lookahead set" at $\loc{i}$
+a ``lookahead set'' at $\loc{i}$
 if $j>i \wedge$
 and there exists some token $\token{tok} = (\sym{s}, \loc{start}, length)$
 such that $\loc{start} \le i \wedge \loc{start}+length = \loc{j}$.
