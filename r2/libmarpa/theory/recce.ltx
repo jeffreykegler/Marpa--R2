@@ -1271,7 +1271,7 @@ To prove correctness,
 we show that the emulator in Marpa mode produces
 the same Earley sets as the emulator in Leo mode.
 
-\begin{lemma}
+\begin{lemma}\label{l:emulator-equivalence}
 An emulator with eager activation of Leo items,
 produces the same Earley sets as the emulator with
 lazy activation of Leo items.
@@ -1650,7 +1650,7 @@ $$
 \exists \Vbool{b} 
 \sep [\Vbool{b}, \Vah{accept}, \Vdr{accept}, 0] \in \Vesi{El}{\size{w}}
 $$
-By Theorem \ref{t:emulator-equivalence},
+By Theorem \ref{l:emulator-equivalence},
 $$
 \exists \Vbool{b}
 [\Vbool{b}, \Vah{accept}, \Vdr{accept}, 0] \in \Vesi{Em}{\size{w}}
