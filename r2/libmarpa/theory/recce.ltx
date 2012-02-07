@@ -84,8 +84,8 @@
 \DeclareMathOperator{\Hyp}{Hyp}
 \DeclareMathOperator{\GOTO}{GOTO}
 \newcommand\myL[1]{\operatorname{L}(#1)}
-\newcommand\tables[1]{\es{\operatorname{table}[#1]}}
-\newcommand{\tablesizen}[1]{\size{\operatorname{table}(#1,\var{n})}}
+\newcommand\tables[1]{\es{\var{table}[#1]}}
+\newcommand{\tablesizen}[1]{\size{\var{table}(#1,\var{n})}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -496,8 +496,8 @@ caller.
 \State \Call{Initial}{}
 \For{ $\var{i}, 0 \le \var{i} \le \Vsize{w}$ }
 \State \Comment At this point, $\tables{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
-\State \Call{Scan Pass}{$\var{i}, $var{w}[\var{i} \subtract 1]}
-\State reject if $\size{tables{\var{i}}} = 0$
+\State \Call{Scan Pass}{$\var{i}, \var{w}[\var{i} \subtract 1]$}
+\State reject if $\size{\tables{\var{i}}} = 0$
 \State \Call{Collect Pass}{\var{i}}
 \EndFor
 \If{$[\Vah{accept}, 0] \in \tables{\Vsize{w}}$}
