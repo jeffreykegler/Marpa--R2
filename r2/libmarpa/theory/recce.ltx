@@ -496,9 +496,9 @@ caller.
 \State \Call{Initial}{}
 \For{ $\var{i}, 0 \le \var{i} \le \Vsize{w}$ }
 \State \Comment At this point, $\tables{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
-\State \Call{Scan Pass}{$\var{i}, \var{w}[\var{i} \subtract 1]$}
+\State \Call{Scan pass}{$\var{i}, \var{w}[\var{i} \subtract 1]$}
 \State reject if $\size{\tables{\var{i}}} = 0$
-\State \Call{Collect Pass}{\var{i}}
+\State \Call{Collection pass}{\var{i}}
 \EndFor
 \If{$[\Vah{accept}, 0] \in \tables{\Vsize{w}}$}
 \State accept \var{w}
@@ -519,7 +519,7 @@ All these resource charges are obviously \Oc.
 \subsection{Ruby Slippers parsing}
 This top-level code represents a significant change
 from \AH{}.
-\call{Scan Pass}{} and \call{Collect Pass}{}
+\call{Scan pass}{} and \call{Collection pass}{}
 are separated.
 As a result,
 when scanning of tokens which start at location \Vloc{i} begins,
@@ -571,19 +571,19 @@ Inclusive time and space is \Oc{} and
 and can be charged to the parse.
 
 \begin{algorithm}[h]
-\caption{Marpa Scan Pass}\label{a:scan}
+\caption{Marpa Scan pass}\label{a:scan}
 \begin{algorithmic}[1] 
-\Procedure{Scan Pass}{$\Vloc{i},\Vsym{a}$}
-\For{each $\Veimm{predecessor} \in \var{transitions}(\es{(\var{i} \subtract 1}),\Vsym{a})$}
+\Procedure{Scan pass}{$\Vloc{i},\Vsym{a}$}
+\For{each $\Veimm{predecessor} \in \var{transitions}(\tables{\var{i} \subtract 1},\Vsym{a})$}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{predecessor}$
-\State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
+\State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
 \State \Call{Add EIM Pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
 \EndFor
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
 
-\subsection{Scan Pass}
+\subsection{Scan pass}
 
 \var{transitions} is a set of tables, one per Earley set,
 which is indexed by symbol.
@@ -608,37 +608,56 @@ Earley item attempts.
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
 \State \Call{Collect one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \EndFor
-\For{all postdot symbols in Earley set $i$, \Vsym{postdot}}
-\If{postdot transition is unique by rule}
-\State Set $var{transitions}(\Ves{i},\Vsym{postdot})$ to
-\State \hspace\algorithmicindent to an LIMX
-\Else
-\State Set $var{transitions}(\Ves{i},\Vsym{postdot})$ to
-\State \hspace\algorithmicindent to the set of EIMX's which have
-\State \hspace\algorithmicindent with \Vsym{postdot} as their postdot symbol
-\EndIf
-\EndFor
+\State \Call{Memoize transitions}{\Vloc{i}}
 \EndFor
 \EndProcedure
 \end{algorithmic} 
 \end{algorithm}
 
-\subsection{Collection Pass}
+\subsection{Collection pass}
 
-The \var{transitions} table for an Earley set
-is built at the end
-of the collection pass.
+Exclusive time is clearly \Oc{}
+and may be charged to each \Veimm{work}.
+Overhead may be charged to the Earley set.
+
+\begin{algorithm}[h]
+\caption{Memoize transitiions}
+\begin{algorithmic}[1] 
+\Procedure{Memoize transitions}{\Vloc{i}}
+\For{every \Vsym{postdot}, a postdot symbol of $\tables{i}$}
+\If{postdot transition is unique by rule}
+\State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
+\State \hspace\algorithmicindent to an LIMX
+\Else
+\State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
+\State \hspace\algorithmicindent to the set of EIMX's which have
+\State \hspace\algorithmicindent with \Vsym{postdot} as their postdot symbol
+\EndIf
+\EndFor
+\EndProcedure
+\end{algorithmic} 
+\end{algorithm}
+
+\subsection{Memoize transitions}
+
+The \var{transitions} table for Earley set \Vloc{i}
+is built once all EIMMs have been
+added to Earley set \Vloc{i}.
 This can be done in
-a single pass over Earley set \var{i},
-and the time and space required charged to the
+a single pass over Earley set \Vloc{i},
+in \Oc{} time per EIMM.
+The time and space required are charged to the
 Earley items being examined.
+Any loop overhead may be charged to the Earley set.
 
 Of special note is that in
 setting up the \var{transitions} table for the current Earley set,
 the Leo items must be created.
-For each Earley item, the space
-and time to create its resulting Leo items is \Oc{} --
-worst case the number of Leo items created will be \Vsize{alphabet}.
+For each Earley set,
+the number of Leo items is at most
+\Vsize{alphabet}.
+Since the maximum number of Leo items is a constant
+their space may be charged to the Earley set.
 
 \begin{algorithm}[h]
 \caption{Collect one LHS symbol}
