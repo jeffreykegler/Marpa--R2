@@ -703,11 +703,11 @@ Earley items have such links.)
 \begin{algorithm}[h]
 \caption{Add EIM Pair}\label{a:pair}
 \begin{algorithmic}[1] 
-\Function{Add EIM Pair}{$i_{LOC},\ah{discovered},origin_{LOC}$}
-\State $\ah{predicted} \gets \GOTO(\ah{to}, \epsilon)$
-\State $\eim{discovered} \gets [\ah{to}, origin_{LOC}]$
-\If{$\eim{discovered}$ is new}
-\State Add $\eim{discovered}$ to $\tables{i}$
+\Procedure{Add EIM Pair}{$i_{LOC},\ah{collected},origin_{LOC}$}
+\State $\ah{predicted} \gets \GOTO(\ah{collected}, \epsilon)$
+\State $\eim{collected} \gets [\ah{to}, origin_{LOC}]$
+\If{$\eim{collected}$ is new}
+\State Add $\eim{collected}$ to $\tables{i}$
 \EndIf
 \If{$predicted_{AHFA} \neq \Lambda$}
 \State $\eim{predicted} \gets [\ah{predicted}, i]$
@@ -715,14 +715,13 @@ Earley items have such links.)
 \State Add $\eim{predicted}$ to $\tables{i}$
 \EndIf
 \EndIf
-\State \textbf{return} $\eim{discovered}$
-\EndFunction
+\EndProcedure
 \end{algorithmic} 
 \end{algorithm} 
 
 \subsection{Adding a pair of Earley items}
 
-This operation adds a discovered Marpa Earley
+This operation adds a collected EIMM
 item and, if it exists, the EIMM for
 its null-transition.
 Time and space are allocated to the newly created
@@ -889,7 +888,7 @@ $$[\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
 where 
 $$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$ is the original
 Leo item,
-\Vah{state} is the state of the Leo discovery item
+\Vah{state} is the state of the Leo collection item
 that will be added when the Leo item is used,
 and \Vbool{active} is a boolean whose use will be
 explained.
@@ -942,7 +941,7 @@ when scanning, scan the tokens in
 Emulation Symbol Order.
 Both \Marpa{},
 in considering the left hand sides of completed rules
-during discovery,
+during collection,
 does so in Emulation Symbol Order.
 Both \Emulator{} and \Marpa{},
 when creating Earley set 0,
@@ -974,7 +973,7 @@ will be rejected as attempts to add duplicates.
 
 \subsection{The emulation engine}
 
-For scanning, discovery and prediction,
+For scanning, collection and prediction,
 \Emulator{} follows
 the \Leo{} logic,
 except that it uses EIMX's instead of EIMT's.
@@ -1006,7 +1005,7 @@ $$\Veimx{cause} =
 [\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
 \Veimx{cause} may be enountered
 as the predecessor in a scan operation;
-as the predecessor or component in a discovery operation;
+as the predecessor or component in a collection operation;
 or as the predecessor in a prediction operation.
 In each of these cases,
 \Emulator{} first checks the
@@ -1024,7 +1023,7 @@ Similarly,
 while \Leo{} uses LIM's,
 during \Emulator{} will encounter LIMX's.
 LIMX's are encountered as predecessors
-during Leo discovery.
+during Leo collection.
 Let an encountered LIMX be
 $$\Vlimx{predecessor} = [\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
 \Emulator{} first checks the
@@ -1034,7 +1033,7 @@ as if it did not exist.
 If \Vbool{active} is true, treats \Vlimx{predecessor} as
 if it were the following LIM:
 $$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$
-Informally, for use in Leo discovery,
+Informally, for use in Leo collection,
 \Emulator{} strips its extended information from an active LIMX,
 and ignores inactive LIMX's.
 
@@ -1050,16 +1049,16 @@ $Vah{new} = \GOTO(\Vah{predecessor}, \Vsym{token})$,
 where 
 where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
 \item
-If it is discovering, and Leo discovery does not
+If it is collecting, and Leo collection does not
 apply, then
 $Vah{new} = \GOTO(\Vah{predecessor}, \Vsym{lhs})$,
 where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
 and \Vsym{lhs} is the LHS of the completed rule.
 \item
-If it is discovering, and Leo discovery does apply,
+If it is collecting, and Leo collection does apply,
 $\Vah{new} = \Vah{leo}$, where \Vah{leo} is
 the state in the extended Leo item.
-Leo discovery in the \Emulator{}
+Leo collection in the \Emulator{}
 will be described below.
 \Vah{predict} is set to $\GOTO(\Vah{predecessor}, \epsilon)$
 \item For predictions, $\Vah{new} = \Lambda$.
@@ -1071,7 +1070,7 @@ If \Vah{cause} is not a prediction, $\Vah{predict} = \GOTO(\Vah{cause}, \epsilon
 
 If $\Vah{new} \neq \Lambda$,
 \Emulator{} produces
-\Veimxset{discovered}, which is the set of EIMX's
+\Veimxset{collected}, which is the set of EIMX's
 \begin{gather*}
 \set{ [ \Vbool{new}, \Vah{new}, \Vdr{dr}, \var{origin} ] \sep \Vdr{dr} \in \Vah{new} }
 \end{gather*}
@@ -1084,7 +1083,7 @@ where \var{origin} is the origin of \Veimx{cause}.
     \sep [ \Vbool{T}, \Vah{x}, \Vdr{dr}, \var{origin} ] \notin \Vesi{E}{i}$ \\
 \end{tabular}
 \end{center}
-Duplicate EIMX's in \Veimxset{discovered} are ignored,
+Duplicate EIMX's in \Veimxset{collected} are ignored,
 and the others are added to the current Earley set
 in Emulator Dotted Rule Order.
 
@@ -1101,7 +1100,7 @@ where \Vloc{i} is the current Earley set and
 \end{tabular}
 \end{center}
 
-If any of the EIMX's in \Veimxset{discovered} or 
+If any of the EIMX's in \Veimxset{collected} or 
 \Veimxset{predict} duplicates an unactivated EIMX,
 the EIMX currently in \Vesi{E}{i} is activated,
 without disturbing its position in the ordered EIMX set.
@@ -1109,7 +1108,7 @@ An EIMX which duplicates one already in \Vesi{E}{i}
 is ignored for all other purposes.
 Non-duplicate EIMX's are added to \Vesi{E}{i},
 first those in 
-\Veimxset{discovered} in Emulator Order,
+\Veimxset{collected} in Emulator Order,
 then those in
 \Veimxset{predict}, also in Emulator Order.
 
@@ -1163,7 +1162,7 @@ it active boolean is left as it was.
 and is being created,
 it is created with its active boolean set to false.
 \item When an LIMX is created, its active boolean is set to false.
-\item When an LIMX is used in Leo discovery, its active boolean
+\item When an LIMX is used in Leo collection, its active boolean
 is set to true.
 \item
 Once the active boolean of an EIMX or LIMX is true, its value
@@ -1329,15 +1328,15 @@ always create duplicate EIMX's,
 and since duplicates are not added,
 will not change the Earley set.
 
-For discovery,
+For collection,
 we now show,
 for eager activiation,
 the basis of an induction on
-the discovery loop's visits to
+the collection loop's visits to
 the potential component Earley items in an Earley set.
 We note from the forgoing that, under eager activation,
-all non-discovered Earley items exist and are active,
-before the emulator's discovery loop begins.
+all non-collected Earley items exist and are active,
+before the emulator's collection loop begins.
 Scanned items already exist and are active because scanning
 was done first and we have just shown it complete and correct.
 Prediction will come afterwards, but we have just shown it
@@ -1345,7 +1344,7 @@ will not add new EIMX's or activate any old ones.
 
 The \Leo{} pseudocode
 (and therefore \Emulator) creates
-discovered EIMX's by repeatedly looping
+collected EIMX's by repeatedly looping
 through potential component EIMX's,
 looking for predecessor's as it goes.
 Because we are running in eager mode,
@@ -1356,15 +1355,15 @@ will be zero length,
 and the EIMX's predecessors must be in previous Earley sets.
 For for every potential component, its matching
 predecessors will exist and be active when the component is visited.
-The logic will always add the discovered EIMX's.
+The logic will always add the collected EIMX's.
 That these are identical to those that would be added
 under lazy activation can be seen by noting that once
 the causes are identified and the active status checked,
 both use the same logic.
-This shows the induction step on the eager discovery
-loop, and the induction on eager discovery.
+This shows the induction step on the eager collection
+loop, and the induction on eager collection.
 
-Since prediction, scanning and discovery create
+Since prediction, scanning and collection create
 the same EIMX's in the two modes,
 and, and since in either mode, all are activated when
 the Earley set is finished,
