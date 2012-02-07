@@ -1089,36 +1089,37 @@ Informally, for use in Leo collection,
 \Emulator{} strips its extended information from an active LIMX,
 and ignores inactive LIMX's.
 
+\subsubsection{Determining the AHFA States}
+
 Once it has found the causes for an Earley operation,
 \Emulator{} proceeds to determine
 \Vah{new} and \Vah{predict},
 two AHFA states.
-It does this as follows:
-\begin{itemize}
-\item
 If it is scanning \Vsym{token},
-$Vah{new} = \GOTO(\Vah{predecessor}, \Vsym{token})$,
-where 
-where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
-\item
+and \Vah{predecessor} is the AHFA state of the predecessor EIMX,
+\begin{align*}
+Vah{new} = & \GOTO(\Vah{predecessor}, \Vsym{token}) \\
+Vah{predict} = & \GOTO(\Vah{predecessor}, \Vsym{lhs})
+\end{align*}
+
 If it is collecting, and Leo collection does not
 apply, then
 $Vah{new} = \GOTO(\Vah{predecessor}, \Vsym{lhs})$,
 where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
 and \Vsym{lhs} is the LHS of the completed rule.
-\item
+
 If it is collecting, and Leo collection does apply,
 $\Vah{new} = \Vah{leo}$, where \Vah{leo} is
 the state in the extended Leo item.
 Leo collection in the \Emulator{}
 will be described below.
 \Vah{predict} is set to $\GOTO(\Vah{predecessor}, \epsilon)$
-\item For predictions, $\Vah{new} = \Lambda$.
+
+For predictions, $\Vah{new} = \Lambda$.
 Call \Vah{cause}, the AHFA state of the EIMX that caused
 the prediction.
 If \Vah{cause} is itself a prediction, $\Vah{predict} = \Vah{cause}$.
 If \Vah{cause} is not a prediction, $\Vah{predict} = \GOTO(\Vah{cause}, \epsilon)$.
-\end{itemize}
 
 If $\Vah{new} \neq \Lambda$,
 \Emulator{} produces
@@ -1138,6 +1139,8 @@ where \var{origin} is the origin of \Veimx{cause}.
 Duplicate EIMX's in \Veimxset{collected} are ignored,
 and the others are added to the current Earley set
 in Emulator Dotted Rule Order.
+
+\subsubsection{Creating new EIMX's}
 
 Next, if $\Vah{predict} \neq \Lambda$,
 \Emulator{} produces \Veimxset{predict}
