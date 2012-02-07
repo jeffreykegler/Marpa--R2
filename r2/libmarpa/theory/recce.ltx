@@ -371,21 +371,21 @@ then its AHFA state contains only one dotted rule.
 
 \begin{proof}
 Since the Earley item is the result of a Leo collection,
-we know that its AHFA state contains a collected rule.
-Call that collected rule, \Vdr{collected}.
-Let \Vrule{c} be the rule of \Vdr{collected},
+we know that its AHFA state contains a completed rule.
+Call that completed rule, \Vdr{complete}.
+Let \Vrule{c} be the rule of \Vdr{complete},
 and \var{cp} its dot position.
-$\var{cp} > 0$ because collections are never
+$\var{cp} > 0$ because completions are never
 predictions.
 
 Suppose, for a reduction to absurdity,
-and that the AHFA state contains another dotted rules,
+that the AHFA state contains another dotted rule,
 \Vdr{other},
-$\Vdr{collected} \neq \Vdr{other}$.
+$\Vdr{complete} \neq \Vdr{other}$.
 Let \Vrule{o} be the rule of \Vdr{other},
 and \var{op} its dot position.
-An AHFA construction never places a prediction in the same
-AHFA state as a collection, so
+AHFA construction never places a prediction in the same
+AHFA state as a completion, so
 \Vdr{other} is not a prediction.
 Therefore, $\var{op} > 0$.
 
@@ -400,25 +400,25 @@ But the same series of transitions over the
 same rule would result in the same dot position,
 $\var{cp} = \var{op}$
 so that if $\Vrule{c} = \Vrule{o}$,
-$\Vdr{collected} = \Vdr{other}$,
+$\Vdr{complete} = \Vdr{other}$,
 which is contrary to the assumption for the reduction.
 Therefore, under the assumption for the reduction,
 $\Vrule{c} \neq \Vrule{o}$.
 
 Next we show that, under the assumption for the reduction,
 that $\Vrule{c} = \Vrule{o}$
-follows from Leo's uniqueness requirement.
+follows from \Leo's uniqueness requirement.
 Since both dotted rules are in the same EIMM
-and neither is a predictions,
+and neither is a prediction,
 both must result from transitions,
 and their transitions must have been from the same Earley set.
 Since they are in the same AHFA state,
 by the AHFA construction,
 that transition must have been
 over the same transition symbol.
-Leo requires that, for each predecessor Earley set and transition symbol,
-that the transition be from a single rule.
-The assumption for the reduction is that \Vdr{collected}
+\Leo requires that, for each predecessor Earley set and transition symbol,
+that a Leo transition be from a single rule.
+The assumption for the reduction is that \Vdr{complete}
 and \Vdr{other} are in the same Leo collection state,
 and in order for them to have obeyed the Leo uniqueness
 requirement,
@@ -429,7 +429,7 @@ $\Vrule{c} = \Vrule{o}$
 and 
 $\Vrule{c} \neq \Vrule{o}$,
 completing the reduction to absurdity.
-When \Vdr{collected} is in a Leo collection EIMM,
+When \Vdr{complete} is in a Leo collection EIMM,
 it must be the only dotted rule in that EIMM.
 \end{proof}
 
@@ -439,13 +439,13 @@ it must be the only dotted rule in that EIMM.
 
 As mentioned, it is assumed that the reader
 is familar with \Earley{}
-and well as with the description of \AH{}
-in \cite{AH2002},
-and the comments to the pseudocode
-will focus on its significant differences
+and with the description of \AH{}
+in \cite{AH2002}.
+The comments to the \Marpa{} pseudocode
+will focus on its differences
 from those two algorithms.
 
-Alongside the pseudocode are remarks are observation
+With the pseudocode are observations
 about its space
 and time complexity.
 In what follows,
@@ -455,9 +455,9 @@ in a way that each attempt to add an Earley item
 takes amortized \Oc{} resource.
 Below, when we present the complexity proofs,
 we will characterize
-the orders of magnitude for actual Earley items
-and attempts to add Earley items,
-and their relationship to each other.
+the orders of magnitude of actual Earley items
+and of attempts to add Earley items,
+as well as their relationship to each other.
 
 To achieve the 
 amortized \Oc{} time and space
@@ -469,9 +469,9 @@ three ways.
 \item We can also charge \Oc{} time and space to the parse itself.
 We handle the failure cases in this way.
 \item We will charge resources to the Earley set.
-Ss long as the time or space is \Oc,
+As long as the time or space is \Oc,
 the time for the Earley set can be
-recharged to an arbitrary member of the Earley set.
+re-charged to an arbitrary member of the Earley set.
 If the Earley set is empty, the parse will fail at this Earley set,
 and the time can be charged to the parse itself.
 \item We will charge resources to attempts to add Earley items.
@@ -482,7 +482,7 @@ our analysis of time and space usage is inclusive, exclusive
 or caller-included.
 The exclusive time or space of a procedure is that
 which it uses directly,
-ignored called procedures.
+ignoring resource usage by called procedures.
 Inclusive time or space of a procedure includes
 resource usage by called procedures.
 Caller-included time and space is that which was already
