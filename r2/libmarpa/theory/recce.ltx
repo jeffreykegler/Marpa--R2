@@ -80,17 +80,13 @@
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 
-\DeclareMathOperator{\scanned}{scanned}
-\DeclareMathOperator{\Hyp}{Hyp}
-\DeclareMathOperator{\GOTO}{GOTO}
+\DeclareMathOperator{\GOTO}{\var{GOTO}}
 \newcommand\myL[1]{\operatorname{L}(#1)}
 \newcommand\tables[1]{\es{\var{table}[#1]}}
 \newcommand{\tablesizen}[1]{\size{\var{table}(#1,\var{n})}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
-
-\hyphenation{ALGOL}
 
 \begin{document}
 
@@ -1095,31 +1091,49 @@ Once it has found the causes for an Earley operation,
 \Emulator{} proceeds to determine
 \Vah{new} and \Vah{predict},
 two AHFA states.
+
 If it is scanning \Vsym{token},
 and \Vah{predecessor} is the AHFA state of the predecessor EIMX,
 \begin{align*}
-Vah{new} = & \GOTO(\Vah{predecessor}, \Vsym{token}) \\
-Vah{predict} = & \GOTO(\Vah{predecessor}, \Vsym{lhs})
+\Vah{new} = & \GOTO(\Vah{predecessor}, \Vsym{token}) \\
+\Vah{predict} = & \GOTO(\Vah{new}, \epsilon)
 \end{align*}
 
-If it is collecting, and Leo collection does not
-apply, then
-$Vah{new} = \GOTO(\Vah{predecessor}, \Vsym{lhs})$,
-where \Vah{predecessor} is the AHFA state of the predecessor EIMX.
-and \Vsym{lhs} is the LHS of the completed rule.
+If it is collecting, Leo collection does not
+apply,
+and \Vah{predecessor} is the AHFA state of the predecessor EIMX,
+and \Vsym{lhs} is the LHS of a completed rule in the component EIMX,
+\begin{align*}
+\Vah{new} = & \GOTO(\Vah{predecessor}, \Vsym{lhs}) \\
+\Vah{predict} = & \GOTO(\Vah{new}, \epsilon)
+\end{align*}
 
-If it is collecting, and Leo collection does apply,
-$\Vah{new} = \Vah{leo}$, where \Vah{leo} is
-the state in the extended Leo item.
-Leo collection in the \Emulator{}
-will be described below.
-\Vah{predict} is set to $\GOTO(\Vah{predecessor}, \epsilon)$
+If it is collecting,
+Leo collection does apply,
+and the \Vah{leo} is the AHFA state in the Leo item,
+then
+\begin{align*}
+\Vah{new} = & \Vah{leo} \\
+\Vah{predict} = & \Lambda
+\end{align*}
 
-For predictions, $\Vah{new} = \Lambda$.
-Call \Vah{cause}, the AHFA state of the EIMX that caused
-the prediction.
-If \Vah{cause} is itself a prediction, $\Vah{predict} = \Vah{cause}$.
-If \Vah{cause} is not a prediction, $\Vah{predict} = \GOTO(\Vah{cause}, \epsilon)$.
+For predictions, where the dotted rule of
+EIMX causing the prediction is a predicted rule,
+and \Vah{cause} is its AHFA state,
+\begin{align*}
+\Vah{new} = & \Lambda \\
+\Vah{predict} = & \Vah{cause}
+\end{align*}
+
+For predictions, where the dotted rule of
+EIMX causing the prediction is not a predicted rule,
+and \Vah{cause} is its AHFA state,
+\begin{align*}
+\Vah{new} = & \Lambda \\
+\Vah{predict} = & \GOTO(\Vah{cause}, \epsilon)
+\end{align*}
+
+\subsubsection{Adding EIMX's to the Earley set}
 
 If $\Vah{new} \neq \Lambda$,
 \Emulator{} produces
@@ -1139,8 +1153,6 @@ where \var{origin} is the origin of \Veimx{cause}.
 Duplicate EIMX's in \Veimxset{collected} are ignored,
 and the others are added to the current Earley set
 in Emulator Dotted Rule Order.
-
-\subsubsection{Creating new EIMX's}
 
 Next, if $\Vah{predict} \neq \Lambda$,
 \Emulator{} produces \Veimxset{predict}
