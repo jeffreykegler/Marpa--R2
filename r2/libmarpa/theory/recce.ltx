@@ -76,8 +76,8 @@
 \newcommand{\Vrules}{\var{rules}}
 \DeclareMathOperator{\GOTO}{\var{GOTO}}
 \newcommand\myL[1]{\operatorname{L}(#1)}
-\newcommand\table[1]{\es{\var{table}[#1]}}
-\newcommand\Vtable[1]{\table{\var{#1}}}
+\newcommand\tablei[1]{\es{\var{table}[#1]}}
+\newcommand\Vtable[1]{\tablei{\var{#1}}}
 \newcommand{\tablesizen}[1]{\size{\var{table}(#1,\var{n})}}
 
 % I want to use 'call' outside of pseudocode
@@ -421,12 +421,12 @@ The next observation is useful for that purpose.
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
 a Marpa Earley item (EIMM) is the result of a
-Leo collection,
+Leo reduction,
 then its AHFA state contains only one dotted rule.
 \end{theorem}
 
 \begin{proof}
-Since the Earley item is the result of a Leo collection,
+Since the Earley item is the result of a Leo reduction,
 we know that its AHFA state contains a completed rule.
 Call that completed rule, \Vdr{complete}.
 Let \Vrule{c} be the rule of \Vdr{complete},
@@ -475,7 +475,7 @@ over the same transition symbol.
 \Leo requires that, for each predecessor Earley set and transition symbol,
 that a Leo transition be from a single rule.
 The assumption for the reduction is that \Vdr{complete}
-and \Vdr{other} are in the same Leo collection state,
+and \Vdr{other} are in the same Leo reduction state,
 and in order for them to have obeyed the Leo uniqueness
 requirement,
 we have $\Vrule{c} = \Vrule{o}$.
@@ -485,7 +485,7 @@ $\Vrule{c} = \Vrule{o}$
 and
 $\Vrule{c} \neq \Vrule{o}$,
 completing the reduction to absurdity.
-When \Vdr{complete} is in a Leo collection EIMM,
+When \Vdr{complete} is in a Leo reduction EIMM,
 it must be the only dotted rule in that EIMM.
 \end{proof}
 
@@ -551,12 +551,12 @@ caller.
 \Procedure{Main}{}
 \State \Call{Initial}{}
 \For{ $\var{i}, 0 \le \var{i} \le \Vsize{w}$ }
-\State \Comment At this point, $\table{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
+\State \Comment At this point, $\tablei{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
 \State \Call{Scan pass}{$\var{i}, \var{w}[\var{i} \subtract 1]$}
-\State reject if $\size{\table{\var{i}}} = 0$
-\State \Call{Collection pass}{\var{i}}
+\State reject if $\size{\tablei{\var{i}}} = 0$
+\State \Call{Reduction pass}{\var{i}}
 \EndFor
-\If{$[\Vah{accept}, 0] \in \table{\Vsize{w}}$}
+\If{$[\Vah{accept}, 0] \in \tablei{\Vsize{w}}$}
 \State accept \var{w}
 \Else
 \State reject \var{w}
@@ -575,7 +575,7 @@ All these resource charges are obviously \Oc.
 \subsection{Ruby Slippers parsing}
 This top-level code represents a significant change
 from \AH{}.
-\call{Scan pass}{} and \call{Collection pass}{}
+\call{Scan pass}{} and \call{Reduction pass}{}
 are separated.
 As a result,
 when scanning of tokens which start at location \Vloc{i} begins,
@@ -630,7 +630,7 @@ and can be charged to the parse.
 \caption{Marpa Scan pass}\label{a:scan}
 \begin{algorithmic}[1]
 \Procedure{Scan pass}{$\Vloc{i},\Vsym{a}$}
-\For{each $\Veimm{predecessor} \in \var{transitions}(\table{\var{i} \subtract 1},\Vsym{a})$}
+\For{each $\Veimm{predecessor} \in \var{transitions}(\tablei{\var{i} \subtract 1},\Vsym{a})$}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{predecessor}$
 \State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
 \State \Call{Add EIM Pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
@@ -656,13 +656,13 @@ Inclusive time and space can be charged to the
 Earley item attempts.
 
 \begin{algorithm}[h]
-\caption{Collection pass}\label{a:collection-phase}
+\caption{Reduction pass}
 \begin{algorithmic}[1]
-\Procedure{Collection pass}{\Vloc{i}}
-\For{each Earley item $\Veimm{work} \in \table{i}$}
+\Procedure{Reduction pass}{\Vloc{i}}
+\For{each Earley item $\Veimm{work} \in \tablei{i}$}
 \State $[\Vah{work}, \Vloc{origin}] \gets \Veimm{work}$
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
-\State \Call{Collect one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
+\State \Call{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \EndFor
 \State \Call{Memoize transitions}{\Vloc{i}}
 \EndFor
@@ -670,7 +670,7 @@ Earley item attempts.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Collection pass}
+\subsection{Reduction pass}
 
 Exclusive time is clearly \Oc{}
 and may be charged to each \Veimm{work}.
@@ -680,7 +680,7 @@ Overhead may be charged to the Earley set.
 \caption{Memoize transitiions}
 \begin{algorithmic}[1]
 \Procedure{Memoize transitions}{\Vloc{i}}
-\For{every \Vsym{postdot}, a postdot symbol of $\table{i}$}
+\For{every \Vsym{postdot}, a postdot symbol of $\tablei{i}$}
 \If{postdot transition is unique by rule}
 \State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
 \State \hspace\algorithmicindent to an LIMX
@@ -716,24 +716,24 @@ Since the maximum number of Leo items is a constant
 their space may be charged to the Earley set.
 
 \begin{algorithm}[h]
-\caption{Collect one LHS symbol}
+\caption{Reduce one LHS symbol}
 \begin{algorithmic}[1]
-\Procedure{Collection one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
+\Procedure{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \State \Comment $pim$ is a ``postdot item'', either a LIMX or an EIMM
 \For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
 \If{\var{pim} is a LIMX, \Vlimx{pim}}
 \State $\Vlimx{pred} \gets \var{pim}$
-\State Perform \Call{Leo collection operation}{\Vloc{i}, \Vlimx{pred}}
+\State Perform \Call{Leo reduction operation}{\Vloc{i}, \Vlimx{pred}}
 \Else
 \State $\Veimx{pred} \gets \var{pim}$
-\State Perform \Call{Earley collection operation}{\Vloc{i}, \Veimx{pred}, \Vsym{lhs}}
+\State Perform \Call{Earley reduction operation}{\Vloc{i}, \Veimx{pred}, \Vsym{lhs}}
 \EndIf
 \EndFor
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Collect one LHS}
+\subsection{Reduce one LHS}
 
 Inclusive time is charged to the EIMM attempt.
 We show that
@@ -747,9 +747,9 @@ to its origin Earley set.
 Earley items have such links.)
 
 \begin{algorithm}[h]
-\caption{Earley collection operation}\label{a:earley-collection-op}
+\caption{Earley reduction operation}
 \begin{algorithmic}[1]
-\Procedure{Earley collection operation}{\Vloc{i}, \Veimm{from}, \Vsym{trans}}
+\Procedure{Earley reduction operation}{\Vloc{i}, \Veimm{from}, \Vsym{trans}}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
@@ -757,16 +757,16 @@ Earley items have such links.)
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Earley Collection operation}
+\subsection{Earley Reduction operation}
 
 Exclusive time and space is clearly \Oc.
 Inclusive time and space is charged to the
 calling procedure.
 
 \begin{algorithm}[h]
-\caption{Leo collection operation}\label{a:leo-collection-op}
+\caption{Leo reduction operation}
 \begin{algorithmic}[1]
-\Procedure{Leo collection operation}{\Vloc{i}, \Vlim{from}}
+\Procedure{Leo reduction operation}{\Vloc{i}, \Vlim{from}}
 \State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlim{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
@@ -774,7 +774,7 @@ calling procedure.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Leo Collection operation}
+\subsection{Leo Reduction operation}
 
 Exclusive time and space is clearly \Oc.
 Inclusive time and space is charged to the
@@ -783,16 +783,16 @@ calling procedure.
 \begin{algorithm}[h]
 \caption{Add EIM Pair}\label{a:pair}
 \begin{algorithmic}[1]
-\Procedure{Add EIM Pair}{$\Vloc{i},\Vah{collected}, \Vloc{origin}$}
-\State $\Veim{collected} \gets [\Vah{collected}, \Vloc{origin}]$
-\State $\Vah{predicted} \gets \GOTO(\Vah{collected}, \epsilon)$
-\If{$\Veim{collected}$ is new}
-\State Add $\Veim{collected}$ to $\table{i}$
+\Procedure{Add EIM Pair}{$\Vloc{i},\Vah{reduced}, \Vloc{origin}$}
+\State $\Veim{reduced} \gets [\Vah{reduced}, \Vloc{origin}]$
+\State $\Vah{predicted} \gets \GOTO(\Vah{reduced}, \epsilon)$
+\If{$\Veim{reduced}$ is new}
+\State Add $\Veim{reduced}$ to $\tablei{i}$
 \EndIf
 \If{$\Vah{predicted} \neq \Lambda$}
 \State $\Veim{predicted} \gets [\Vah{predicted}, \Vloc{i}]$
 \If{$Veim{predicted}$ is new}
-\State Add $\Veim{predicted}$ to $\table{i}$
+\State Add $\Veim{predicted}$ to $\tablei{i}$
 \EndIf
 \EndIf
 \EndProcedure
@@ -801,7 +801,7 @@ calling procedure.
 
 \subsection{Adding a pair of Earley items}
 
-This operation adds a collected EIMM
+This operation adds a reduced EIMM
 item and, if it exists, the EIMM for
 its null-transition.
 Inclusive time and space is charged to the
@@ -859,7 +859,7 @@ Consider the case where Marpa is building \Ves{j}
 an Earley item \Veimm{x} is new,
 where $\Veimm{x} = [ \Vah{x}, \Vloc{origin} ]$.
 To do this,
-Marpa checks the PSL's for $\table{origin}$.
+Marpa checks the PSL's for $\tablei{origin}$.
 Let the Earley set ``stamp'' for that PSL entry be \Ves{p}.
 If the entry has never been used, $\Ves{p} = \Lambda$
 If $\Ves{p} \ne \Lambda \land \Ves{p} = \Ves{j}$,
@@ -998,7 +998,7 @@ $$[\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
 where
 $$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$ is the original
 Leo item,
-\Vah{state} is the state of the Leo collection item
+\Vah{state} is the state of the Leo reduction item
 that will be added when the Leo item is used,
 and \Vbool{active} is a boolean whose use will be
 explained.
@@ -1054,7 +1054,7 @@ Emulation Symbol Order.
 \item
 \Marpa{},
 in considering the left hand sides of completed rules
-during collection,
+during reduction,
 does so in Emulation Symbol Order.
 \item
 Both \Emulator{} and \Marpa{},
@@ -1090,7 +1090,7 @@ will be rejected as attempts to add duplicates.
 
 \subsection{The emulation engine}
 
-For scanning, collection and prediction,
+For scanning, reduction and prediction,
 \Emulator{} follows
 the \Leo{} logic,
 except that it uses EIMX's instead of EIMT's.
@@ -1122,7 +1122,7 @@ $$\Veimx{cause} =
 [\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
 \Veimx{cause} may be enountered
 as the predecessor in a scan operation;
-as the predecessor or component in a collection operation;
+as the predecessor or component in a reduction operation;
 or as the predecessor in a prediction operation.
 In each of these cases,
 \Emulator{} first checks the
@@ -1141,7 +1141,7 @@ Similarly,
 while \Leo{} uses LIM's,
 during \Emulator{} will encounter LIMX's.
 LIMX's are encountered as predecessors
-during Leo collection.
+during Leo reduction.
 Let an encountered LIMX be
 $$\Vlimx{predecessor} = [\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
 \Emulator{} first checks the
@@ -1151,7 +1151,7 @@ as if it did not exist.
 If \Vbool{active} is true, treats \Vlimx{predecessor} as
 if it were the following LIM:
 $$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$
-Informally, for use in Leo collection,
+Informally, for use in Leo reduction,
 \Emulator{} strips its extended information from an active LIMX,
 and ignores inactive LIMX's.
 
@@ -1172,7 +1172,7 @@ and \Vah{predecessor} is the AHFA state of the predecessor EIMX,
 \Vah{predict} = & \GOTO(\Vah{new}, \epsilon)
 \end{align*}
 
-If it is collecting, Leo collection does not
+If it is reducing, Leo reduction does not
 apply,
 and \Vah{predecessor} is the AHFA state of the predecessor EIMX,
 and \Vsym{lhs} is the LHS of a completed rule in the component EIMX,
@@ -1181,8 +1181,8 @@ and \Vsym{lhs} is the LHS of a completed rule in the component EIMX,
 \Vah{predict} = & \GOTO(\Vah{new}, \epsilon)
 \end{align*}
 
-If it is collecting,
-Leo collection does apply,
+If it is reducing,
+Leo reduction does apply,
 and the \Vah{leo} is the AHFA state in the Leo item,
 then
 \begin{align*}
@@ -1210,7 +1210,7 @@ and \Vah{cause} is its AHFA state,
 
 If $\Vah{new} \neq \Lambda$,
 \Emulator{} produces
-\Veimxset{collected}, which is the set of EIMX's
+\Veimxset{reduced}, which is the set of EIMX's
 \begin{gather*}
 \mset{ [ \Vbool{new}, \Vah{new}, \Vdr{dr}, \var{origin} ] }
     { \Vdr{dr} \in \Vah{new} }
@@ -1224,7 +1224,7 @@ where \var{origin} is the origin of \Veimx{cause}.
     \sep [ \Vbool{T}, \Vah{x}, \Vdr{dr}, \var{origin} ] \notin \Vesi{E}{i}$ \\
 \end{tabular}
 \end{center}
-Duplicate EIMX's in \Veimxset{collected} are ignored,
+Duplicate EIMX's in \Veimxset{reduced} are ignored,
 and the others are added to the current Earley set
 in Emulator Dotted Rule Order.
 
@@ -1244,7 +1244,7 @@ where \Vloc{i} is the current Earley set and
 \end{tabular}
 \end{center}
 
-If any of the EIMX's in \Veimxset{collected} or
+If any of the EIMX's in \Veimxset{reduced} or
 \Veimxset{predict} duplicates an unactivated EIMX,
 the EIMX currently in \Vesi{E}{i} is activated,
 without disturbing its position in the ordered EIMX set.
@@ -1252,7 +1252,7 @@ An EIMX which duplicates one already in \Vesi{E}{i}
 is ignored for all other purposes.
 Non-duplicate EIMX's are added to \Vesi{E}{i},
 first those in
-\Veimxset{collected} in Emulator Order,
+\Veimxset{reduced} in Emulator Order,
 then those in
 \Veimxset{predict}, also in Emulator Order.
 
@@ -1443,15 +1443,15 @@ always create duplicate EIMX's,
 and since duplicates are not added,
 will not change the Earley set.
 
-For collection,
+For reduction,
 we now show,
 for eager activiation,
 the basis of an induction on
-the collection loop's visits to
+the reduction loop's visits to
 the potential component Earley items in an Earley set.
 We note from the forgoing that, under eager activation,
-all non-collected Earley items exist and are active,
-before the emulator's collection loop begins.
+all un-reduced Earley items exist and are active,
+before the \Emulator's reduction loop begins.
 Scanned items already exist and are active because scanning
 was done first and we have just shown it complete and correct.
 Prediction will come afterwards, but we have just shown it
@@ -1459,7 +1459,7 @@ will not add new EIMX's or activate any old ones.
 
 The \Leo{} pseudocode
 (and therefore \Emulator) creates
-collected EIMX's by repeatedly looping
+reduced EIMX's by repeatedly looping
 through potential component EIMX's,
 looking for predecessor's as it goes.
 Because we are running in eager mode,
@@ -1470,15 +1470,15 @@ will be zero length,
 and the EIMX's predecessors must be in previous Earley sets.
 For for every potential component, its matching
 predecessors will exist and be active when the component is visited.
-The logic will always add the collected EIMX's.
+The logic will always add the reduced EIMX's.
 That these are identical to those that would be added
 under lazy activation can be seen by noting that once
 the causes are identified and the active status checked,
 both use the same logic.
-This shows the induction step on the eager collection
-loop, and the induction on eager collection.
+This shows the induction step on the eager reduction
+loop, and the induction on eager reduction.
 
-Since prediction, scanning and collection create
+Since prediction, scanning and reduction create
 the same EIMX's in the two modes,
 and, and since in either mode, all are activated when
 the Earley set is finished,
@@ -1539,9 +1539,9 @@ A basic operation is
 \item
 A scan for one pairing of predecessor and token.
 \item
-An Earley collection for one pairing of predecessor and LHS.
+An Earley reduction for one pairing of predecessor and LHS.
 \item
-An Leo collection for one pairing of predecessor and LHS.
+An Leo reduction for one pairing of predecessor and LHS.
 \end{itemize}
 Predictions are not among the basic operations
 because, as shown previously,
@@ -1598,9 +1598,9 @@ based on the Emulation Order,
 the pseudocode for \Leo
 and the pseudocode for \Marpa
 that this sequence of basic operations will be
-scan operations, then collection operations.
+scan operations, then reduction operations.
 Scan operation will be in order by predecessor,
-and collection operations in order by predecessor
+and reduction operations in order by predecessor
 within LHS.
 
 By the outer induction hypothesis,
@@ -1610,7 +1610,7 @@ for the predecessors.
 Based on Emulation Symbol Order and the
 inner induction hypothesis,
 we know that the two recognizers
-will process the collection operations
+will process the reduction operations
 in the same order by LHS symbol.
 
 The Item Order invariant is straightforward to show.
@@ -1625,7 +1625,7 @@ we now proceed to show that Congruence stays invariant
 as new Earley items are added.
 We do this by cases, where the bases are the basic operations.
 
-For the cases of scanning and Earley collection,
+For the cases of scanning and Earley reduction,
 we recall that \Marpa{} and \Emulator{}
 both implement the transition logic of AHFA's,
 as described in \cite{AH2002}.
@@ -1647,31 +1647,31 @@ The union of congruent sets of Earley items is also congruent,
 so that the Earley sets under construction remain congruent
 as items from these operations are added.
 This show the case of the Congruence invariant
-for scanning and Earley collection operations,
+for scanning and Earley reduction operations,
 as part of the inner induction step.
 
 To complete the inner induction step,
 it remains to show the case of the Congruence invariant
-for the Leo collection operation.
-By the definition of Leo collection, it
+for the Leo reduction operation.
+By the definition of Leo reduction, it
 produces a single AHFA state,
-call this \Vah{collected}.
+call this \Vah{reduced}.
 By Theorem \ref{t:leo-singleton},
-\Vah{collected} will contain one and only one dotted rule,
-\Vdr{collected}.
-\Vdr{collected} will be a collection.
-Since the only rule in the \Vah{collected} is a collection,
-\Vah{collected} will have no null-transition.
+\Vah{reduced} will contain one and only one dotted rule,
+\Vdr{reduced}.
+\Vdr{reduced} will be a reduction.
+Since the only rule in the \Vah{reduced} is a reduction,
+\Vah{reduced} will have no null-transition.
 Therefore
-a Leo collection operation
+a Leo reduction operation
 in \Marpa{}
-will add only one EIMM, $[\Vah{collected}, \Vloc{origin}]$,
+will add only one EIMM, $[\Vah{reduced}, \Vloc{origin}]$,
 where \Vloc{origin} is from the LIMX.
 \Emulator{} in Marpa mode will add only
 those EIMX in the set
 $${
-[ \Vbool{active}, \Vah{collected}, \Vdr{d}, \Vloc{origin} ]
-\sep \Vdr{d} \in \var{null}(\Vdr{collected}) }
+[ \Vbool{active}, \Vah{reduced}, \Vdr{d}, \Vloc{origin} ]
+\sep \Vdr{d} \in \var{null}(\Vdr{reduced}) }
 $$
 Clearly, congruence will hold with the addition to these
 Earley items to their respective Earley sets.
