@@ -6,8 +6,10 @@
 \usepackage{algpseudocode}
 \usepackage{url}
 
+\newcommand{\dfn}[1]{{\bf #1}}
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.05em}{$\,\bullet\,$}}
+\newcommand{\cat}{\,.\,}
 \newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
 \newcommand{\order}[1]{{\mathcal O}(#1)}
 \newcommand{\Oc}{\ensuremath{\order{1}}}
@@ -55,8 +57,10 @@
 \newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
 \newcommand{\Vruleset}[1]{\ensuremath{\var{#1}_{\set{RULE}}}}
 \newcommand{\Vsize}[1]{\ensuremath{\size{\var{#1}}}}
+\newcommand{\Vstr}[1]{\ensuremath{\var{#1}_{STR}}}
 \newcommand{\sym}[1]{#1_{SYM}}
 \newcommand{\Vsym}[1]{\ensuremath{\var{#1}_{SYM}}}
+\newcommand{\Vorig}[1]{\ensuremath{\var{#1}_{ORIG}}}
 \newcommand{\symset}[1]{#1_{\lbrace SYM \rbrace} }
 \newcommand{\Vsymset}[1]{\ensuremath{\var{#1}_{\set{SYM}}}}
 \newcommand{\term}[1]{#1_{TERM}}
@@ -73,6 +77,7 @@
 \newcommand{\Vg}{\var{g}}
 \newcommand{\Vw}{\var{w}}
 \newcommand{\VVw}[1]{\ensuremath{sym{\Vw[\var{#1}]}}}
+\newcommand{\Vwi}[1]{\ensuremath{sym{\Vw[#1]}}}
 \newcommand{\Vrules}{\var{rules}}
 \DeclareMathOperator{\GOTO}{\var{GOTO}}
 \newcommand\myL[1]{\operatorname{L}(#1)}
@@ -194,7 +199,8 @@ The notation for
 constants will be the same as for variables.
 
 Where \Vsymset{abced} is a set of symbols,
-let $abced^\ast$ be the set of all strings formed
+let $abced^\ast$ be the set of all strings
+(type STR) formed
 from those symbols.
 Let $abced^+$ be the subset of $abced^\ast$ that
 contains all of its elements that are not of zero length.
@@ -313,21 +319,113 @@ It is sometimes called the "parent".)
 For convenience, the type ORIG will be a synonym
 for LOC, indicating that the variable designates
 the origin element of an Earley item.
+The traditional Earley sets are sets in the strict
+sense -- duplicate Earley items are not added.
 
 An traditional Earley parser builds a table of Earley sets,
 $\Vtable{i}, 0 \le \Vloc{i} < \size{\Vw}$.
+The set are set, in order, to the closure of the 
+initializatin, scanning, reduction and prediction
+operations.
+These four operations
+are called in this document the {\bf basic
+Earley operations}.
+
+In the following definitions,
+\Vloc{j} is the current Earley set.
+
+The {\bf initialization} basic Earley operation only takes
+place in Earley set 0.
 Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
 Earley set 0 is initialized to $\set{ [ \Vdr{initial}, 0 ] }$,
-where $\Vdr{accept} = [\Vsym{accept} \de \mydot \Vsym{start} ]$.
+where
+$$\Vdr{accept} = [\Vsym{accept} \de \mydot \Vsym{start} ]$$
 
-After initialization, the Earley sets are built in order
-from 0 on up,
-by repeating the basic Earley operations on each set
-until no more EIMT's can be added.
-The basic Earley operations are scanning,
-reduction, and prediction.
-(Elsewhere,
-reduction is often called ``completion''.)
+A {\bf scanning} basic Earley operation takes place
+in all Earley sets other than Earley set 0
+for each pair $[\Veimt{pred}, \Vsym{token}]$,
+\begin{center}
+\begin{tabular}{rl}
+i) & $\var{token} = \Vwi{j \subtract 1}$ \\
+ii) & $\Veimt{pred} = [ \Vdr{before}, \Vloc{origin} ]$ \\
+iii) & $[\Vsym{A} \de \Vstr{alpha} \cat \Vsym{token} \cat \Vstr{beta} ] \in \Vrules $ \\
+iv) & $\Vdr{before} = [ \var{A} \de \var{alpha} \mydot \var{token} \cat \var{beta} ]$ \\
+\end{tabular}
+\end{center}
+A scanning operation
+adds \Veimt{result} to Earley set \Vloc{j},
+where
+\begin{center}
+\begin{tabular}{rl}
+i) & $\Veimt{result} = [ \Vdr{after}, \Vloc{origin} ] $\\
+ii) & $\Vdr{after} = [ \var{A} \de \var{alpha} \cat \var{token} \mydot \var{beta} ]$
+\end{tabular}
+\end{center}
+\Veimt{pred} is called the predecessor of the scanning operation
+and \Veimt{result} is called its result.
+
+A {\bf reduction} basic Earley operations are attempted
+in every Earley set
+for every pair $[\Veimt{pred}, \Vsym{lhs}]$,
+where
+\begin{center}
+\begin{tabular}{rl}
+ii) & $\Veimt{component} = [ \Vdr{complete}, \Vorig{component} ]$ \\
+ii) & $\Veimt{component} \in \Vtable{j}$ \\
+ii) & $\Vdr{complete} = [ \Vsym{lhs} \de \Vstr{rhs} \mydot ]$ \\
+ii) & $\Veimt{pred} = [ \Vdr{before}, \Vorig{pred} ]$ \\
+ii) & $\Veimt{pred} \in \tablei{\Vorig{component}}$ \\
+ii) & $\Veimt{pred} = [ \Vdr{before}, \Vorig{x} ]$ \\
+iii) & $[\Vsym{A} \de \Vstr{alpha} \cat \Vsym{lsh} \cat \Vstr{beta} ] \in \Vrules $ \\
+iv) & $\Vdr{before} = [ \var{A} \de \var{alpha} \mydot \Vsym{lhs} \cat \var{beta} ]$ \\
+\end{tabular}
+\end{center}
+A reduction operation
+adds \Veimt{result} to Earley set \Vloc{j},
+where
+\begin{center}
+\begin{tabular}{rl}
+i) & $\Veimt{result} = [ \Vdr{after}, \Vloc{pred} ] $\\
+ii) & $\Vdr{after} = [ \var{A} \de \var{alpha} \cat \var{lhs} \mydot \var{beta} ]$
+\end{tabular}
+\end{center}
+\Veimt{component} is called the component of the reduction operation\footnote{
+The term ``component'' comes from Irons \cite{Irons}.
+}
+\Veimt{pred} is called the predecessor of the reduction operation
+and \Veimt{result} is called its result.
+
+A {\bf prediction} basic Earley operation is attempted
+in every Earley sets
+for every \Veimt{pred}
+\begin{center}
+\begin{tabular}{rl}
+ii) & $\Veimt{pred} = [ \Vdr{pred}, \Vorig{pred} ]$ \\
+ii) & $\Veimt{pred} \in \Vtable{j}$ \\
+ii) & $\Vdr{pred} = [ \Vsym{lhs} \de \Vstr{alpha} \mydot \Vsym{A} \cat \Vstr{beta} ]$ \\
+\end{tabular}
+\end{center}
+The prediction operation
+adds the members of \Veimtset{results}
+to Earley set \Vloc{j},
+where
+\Veimtset{results} is of all EIMT's
+$$[ \Vdr{prediction}, Vloc{j} ]$$
+such that 
+$$ \Vdr{prediction} = [ \Vsym{A} \de \mydot \Vstr{rhs} ] $$
+for some 
+$$[ \Vsym{A} \de \Vstr{rhs} ] \in \Vrules$$
+\Veimt{pred} is called the predcessor of the prediction operation.
+and the members of \Veimtset{results} are its results.
+
+An EIMT is called the \dfn{cause} of an operation if it is
+\begin{itemize}
+\item The predecessor of a scanning, reduction or prediction operation.
+\item The component of a reduction operation.
+\end{itemize}
+The cause of an operation is also the cause of all its result EIMT's.
+An EIMT which is result of an scanning or reduction operation with a 
+is called the \dfn{successor} of that predecessor.
 
 \section{The Aycock-Horspool finite automaton}
 \label{s:AHFA}
@@ -2036,6 +2134,12 @@ J.~Earley.
 Dirk~Grune and Ceriel~J.H Jacobs
 \newblock {\em Parsing Techniques: A Practical Guide}.
 \newblock Springer, Amsterdam, 2008.
+
+\bibitem{Irons}
+Edgar~T.~Irons.
+\newblock A syntax-directed compiler for ALGOL 60.
+\newblock {\em Communications of the Association for Computing Machinery},
+ 4(1):51-55, Jan. 1961
 
 \bibitem{Marpa-HTML}
 Jeffrey~Kegler, 2011: Marpa-HTML.
