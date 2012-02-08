@@ -324,22 +324,28 @@ sense -- duplicate Earley items are not added.
 
 An traditional Earley parser builds a table of Earley sets,
 $\Vtable{i}, 0 \le \Vloc{i} < \size{\Vw}$.
-The set are set, in order, to the closure of the 
-initializatin, scanning, reduction and prediction
+Each set is the closure of the 
+initialization, scanning, reduction and prediction
 operations.
 These four operations
 are called in this document the {\bf basic
 Earley operations}.
+The sets are built in order from 0 to $\size{\Vw}$.
 
+Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
+Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
+\Vw is accepted if and only if
+$$[\Vdr{accept}, 0] \in \tablei{\Vsize{\Vw}}$$
+
+We now describe the basic Earley operations.
 In the following definitions,
 \Vloc{j} is the current Earley set.
 
 The {\bf initialization} basic Earley operation only takes
 place in Earley set 0.
-Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
 Earley set 0 is initialized to $\set{ [ \Vdr{initial}, 0 ] }$,
 where
-$$\Vdr{accept} = [\Vsym{accept} \de \mydot \Vsym{start} ]$$
+$$\Vdr{initial} = [\Vsym{accept} \de \mydot \Vsym{start} ]$$
 
 A {\bf scanning} basic Earley operation takes place
 in all Earley sets other than Earley set 0
