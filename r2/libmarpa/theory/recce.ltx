@@ -7,7 +7,7 @@
 \usepackage{url}
 
 \newcommand{\sep}{\,\mid\,}
-\newcommand{\mydot}{\raisebox{.15em}{\tiny $\,\bullet\,$}}
+\newcommand{\mydot}{\raisebox{.05em}{$\,\bullet\,$}}
 \newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
 \newcommand{\order}[1]{{\mathcal O}(#1)}
 \newcommand{\Oc}{\ensuremath{\order{1}}}
@@ -53,6 +53,7 @@
 \newcommand{\loc}[1]{\var{#1}_{LOC}}
 \newcommand{\Vloc}[1]{\ensuremath{\loc{#1}}}
 \newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
+\newcommand{\Vruleset}[1]{\ensuremath{\var{#1}_{\set{RULE}}}}
 \newcommand{\Vsize}[1]{\ensuremath{\size{\var{#1}}}}
 \newcommand{\sym}[1]{#1_{SYM}}
 \newcommand{\Vsym}[1]{\ensuremath{\var{#1}_{SYM}}}
@@ -71,6 +72,16 @@
 \newcommand{\Vfa}{\var{fa}}
 \newcommand{\Vg}{\var{g}}
 \newcommand{\Vw}{\var{w}}
+\newcommand{\VVw}[1]{\ensuremath{sym{\Vw[\var{#1}]}}}
+\newcommand{\Vrules}{\var{rules}}
+\DeclareMathOperator{\GOTO}{\var{GOTO}}
+\newcommand\myL[1]{\operatorname{L}(#1)}
+\newcommand\table[1]{\es{\var{table}[#1]}}
+\newcommand\Vtable[1]{\table{\var{#1}}}
+\newcommand{\tablesizen}[1]{\size{\var{table}(#1,\var{n})}}
+
+% I want to use 'call' outside of pseudocode
+\newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -81,13 +92,6 @@
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 
-\DeclareMathOperator{\GOTO}{\var{GOTO}}
-\newcommand\myL[1]{\operatorname{L}(#1)}
-\newcommand\tables[1]{\es{\var{table}[#1]}}
-\newcommand{\tablesizen}[1]{\size{\var{table}(#1,\var{n})}}
-
-% I want to use 'call' outside of pseudocode
-\newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
 
 \begin{document}
 
@@ -167,7 +171,7 @@ Section
 contain a proof of correctness.
 Section \ref{s:complexity} contains
 the complexity results.
-Finally, 
+Finally,
 section \ref{s:generalization} generalizes
 the definitions of grammar and input.
 
@@ -175,19 +179,21 @@ the definitions of grammar and input.
 \label{s:prel}
 \label{s:start-prelim}
 
-I assume familiarity with standard grammar notation
-(pages 14-15 in Aho and Ullman~\cite{AU1972}).
-In the past,
-the type system required to support
-a theory of parsing has been seen
-as a challenge to the typographic
-imagination,
-often to become one to the eyesight.
-This document will 
-often use subscripts to indicate the commonly occurring types.
-For example, $\sym{a}$ and $\sym{X}$ will be symbols.
+We assume familiarity with the basic theory of parsing,
+as well as Earley's algorithm.
+This document will
+use subscripts to indicate its commonly occurring types.
+$X_T$ will be the variable $X$ of type $T$.
+$/var{X-set}_{T}$ will be the variable $X$ of type set of $T$.
+and $\sym{a}$ will be the variable \var{a} of type $SYM$,
+where $SYM$ indicates a symbol.
+$\symset{X-set}$ will be the set of symbols \var{X-set}.
+Subscripts may be omitted when the type
+is obvious from the context.
+The notation for
+constants will be the same as for variables.
 
-Where $abced$ is a set of symbols,
+Where \Vsymset{abced} is a set of symbols,
 let $abced^\ast$ be the set of all strings formed
 from those symbols.
 Let $abced^+$ be the subset of $abced^\ast$ that
@@ -199,15 +205,14 @@ a grammar $g$,
 and a set of symbols, $alphabet$.
 Call the language of \var{g}, $\myL{g}$,
 where $\myL{g} \in alphabet^\ast$
-Let its input be \var{w}, $\var{w} \in \var{alphabet}^\ast$.
 Divide $alphabet$ into two disjoint sets,
-$lh$ and $term$.
+\Vsymset{lh} and \Vsymset{term}.
 
-For the rewriting, designate a set of duples, $rules$,
-where $\forall \Vrule{r} \sep \Vrule{r} \in rules$,
-\Vrule{r} takes the form $\Vsym{lhs} \de \Vsymset{rhs}$,
-where $\sym{lhs} \in term$ and 
-$rhs \in alphabet^+$. 
+For the rewriting, designate a set of duples, \Vruleset{rules},
+where $\forall \Vrule{r}, \Vrule{r} \in \Vruleset{rules}$,
+\Vrule{r} takes the form $[\Vsym{lhs} \de \Vsymset{rhs}]$,
+where $\Vsym{lhs} \in \var{term}$ and
+$rhs \in alphabet^+$.
 \Vsym{lhs} is referred to as the left hand side (LHS)
 of \Vrule{r}.
 \Vsymset{rhs} is referred to as the right hand side (RHS)
@@ -216,25 +221,37 @@ This definition follows \cite{AH2002},
 which departs from tradition by disallowing an empty RHS.
 
 The grammar $g$ can be defined as the 4-tuple
-$$(\Vsymset{alphabet}, \Vsymset{term}, rules, \Vsym{start})$$.
+$$(\Vsymset{alphabet}, \Vsymset{term}, rules, \Vsym{start})$$
+where \Vsymset{term} is the
+set of terminal symbols, $\Vsymset{term} \subset \Vsymset{alphabet}$.
+The set of potential LHS symbols, \Vsymset{lh} is
+$\var{alphabet} \setminus \var{term}$.
 Without loss of generality,
-it is assumed that $g$ is ``augmented'',
-so that \Vsym{start} is a dedicated start symbol
-and
-$\Vrule{start} = [ \Vsym{start} \de \Vsym{goal} ] $
-is a dedicated start rule
+it is assumed that \Vg
+has a dedicated acceptance symbol
+$\Vsym{accept}, \var{accept} \in \Vsymset{lh}$
+and rule,
+$\Vrule{accept} = [ \Vsym{accept} \de \Vsym{start} ] $
 such that for every rule, $\Vrule{x} = [ \Vsym{lhs} \de \Vsymset{rhs} ]$
 \begin{center}
 \begin{tabular}{ll}
-1.\hspace{.5em} & 
-$  \Vsym{start} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{start} $ \\
+1.\hspace{.5em} &
+$  \Vsym{accept} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{accept} $ \\
 2. &
-$  \Vsym{start} \notin \Vsymset{rhs} $ \\
+$  \Vsym{accept} \notin \Vsymset{rhs} $ \\
 \end{tabular}
 \end{center}
 
+Let the input to parse be \Vw, $\Vw \in \var{alphabet}^\ast$.
+Locations in the input will be of type LOC.
+Let \Vsize{w} be the length of the input, counted in symbols.
+Let \VVw{i},
+$\VVw{i} \in \Vsymset{term}$ be character \var{i}
+of the input,
+$0 \le \Vloc{i} < \Vsize{w}$.
+
 We have already noted
-that no rules of \var{g}
+that no rules of \Vg
 have a zero-length RHS.
 Further, no rule can be nullable
 and all symbols must be either nulling or non-nullable --
@@ -270,7 +287,49 @@ Where $\alg{Recce}$ is a recognizer,
 $\myL{\alg{Recce},g}$ will be the language accepted by $\alg{Recce}$
 when parsing grammar $g$.
 
-\section{The AHFA Finite Automaton}
+\section{Earley's algoirthm}
+
+Let $\Vrule{r} \in \Vrules$
+be a rule,
+and $\Vsize{r}$ the length of its RHS.
+A dotted rule is a duple, $[\Vrule{r}, \var{pos}]$,
+where $0 < \var{pos} < \size{\Vrule{r}}$.
+The position indicates the extent to which
+the rule has been recognized,
+and is represented with a raised dot,
+so that if
+$$[\Vsym{A} \de \Vsym{X} . \Vsym{Y} . \Vsym{Z}]$$
+is a rule,
+$$[\Vsym{A} \de \var{X} . \var{Y} \mydot \var{Z}]$$
+is the rule where the dot is between \Vsym{Y}
+and \Vsym{Z} ($\var{pos} = 2$).
+
+A traditional Earley item (EIMT) is the duple
+$[\Vdr{dotted-rule}, \Vloc{origin}]$
+of dotted rule and origin.
+(The origin is the location where recognition of the rule
+started.
+It is sometimes called the "parent".)
+For convenience, the type ORIG will be a synonym
+for LOC, indicating that the variable designates
+the origin element of an Earley item.
+
+An traditional Earley parser builds a table of Earley sets,
+$\Vtable{i}, 0 \le \Vloc{i} < \size{\Vw}$.
+Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
+Earley set 0 is initialized to $\set{ [ \Vdr{initial}, 0 ] }$,
+where $\Vdr{accept} = [\Vsym{accept} \de \mydot \Vsym{start} ]$.
+
+After initialization, the Earley sets are built in order
+from 0 on up,
+by repeating the basic Earley operations on each set
+until no more EIMT's can be added.
+The basic Earley operations are scanning,
+reduction, and prediction.
+(Elsewhere,
+reduction is often called ``completion''.)
+
+\section{The Aycock-Horspool finite automaton}
 \label{s:AHFA}
 
 In this document a
@@ -388,7 +447,7 @@ Therefore, $\var{op} > 0$.
 
 To create a contradiction, we first prove that
 $\Vrule{c} \neq \Vrule{o}$,
-then that 
+then that
 $\Vrule{c} = \Vrule{o}$.
 By the construction of an AHFA
 state, both dotted rules resulted from the same series
@@ -423,7 +482,7 @@ we have $\Vrule{c} = \Vrule{o}$.
 
 We now have both
 $\Vrule{c} = \Vrule{o}$
-and 
+and
 $\Vrule{c} \neq \Vrule{o}$,
 completing the reduction to absurdity.
 When \Vdr{complete} is in a Leo collection EIMM,
@@ -456,7 +515,7 @@ the orders of magnitude of actual Earley items
 and of attempts to add Earley items,
 as well as their relationship to each other.
 
-To achieve the 
+To achieve the
 amortized \Oc{} time and space
 per Earley item, we will charge for those
 resources in
@@ -488,22 +547,22 @@ caller.
 
 \begin{algorithm}[h]
 \caption{Marpa Top-level}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Main}{}
 \State \Call{Initial}{}
 \For{ $\var{i}, 0 \le \var{i} \le \Vsize{w}$ }
-\State \Comment At this point, $\tables{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
+\State \Comment At this point, $\table{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
 \State \Call{Scan pass}{$\var{i}, \var{w}[\var{i} \subtract 1]$}
-\State reject if $\size{\tables{\var{i}}} = 0$
+\State reject if $\size{\table{\var{i}}} = 0$
 \State \Call{Collection pass}{\var{i}}
 \EndFor
-\If{$[\Vah{accept}, 0] \in \tables{\Vsize{w}}$}
+\If{$[\Vah{accept}, 0] \in \table{\Vsize{w}}$}
 \State accept \var{w}
 \Else
 \State reject \var{w}
 \EndIf
 \EndProcedure
-\end{algorithmic} 
+\end{algorithmic}
 \end{algorithm}
 
 \subsection{Top-level code}
@@ -556,11 +615,11 @@ and will produce a parse even for highly defective HTML.
 
 \begin{algorithm}[h]
 \caption{Initialization}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Initial}{}
 \State \Call{Add EIM Pair}{$0, \ah{start}, 0$}
 \EndProcedure
-\end{algorithmic} 
+\end{algorithmic}
 \end{algorithm}
 
 \subsection{Initialization}
@@ -569,15 +628,15 @@ and can be charged to the parse.
 
 \begin{algorithm}[h]
 \caption{Marpa Scan pass}\label{a:scan}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Scan pass}{$\Vloc{i},\Vsym{a}$}
-\For{each $\Veimm{predecessor} \in \var{transitions}(\tables{\var{i} \subtract 1},\Vsym{a})$}
+\For{each $\Veimm{predecessor} \in \var{transitions}(\table{\var{i} \subtract 1},\Vsym{a})$}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{predecessor}$
 \State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
 \State \Call{Add EIM Pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
 \EndFor
 \EndProcedure
-\end{algorithmic} 
+\end{algorithmic}
 \end{algorithm}
 
 \subsection{Scan pass}
@@ -593,14 +652,14 @@ In the case of scanning,
 the lookup is always in the previous Earley set,
 and it is safe to expect this can be found
 in \Oc{} time.
-Inclusive time and space can be charged to the 
+Inclusive time and space can be charged to the
 Earley item attempts.
 
 \begin{algorithm}[h]
 \caption{Collection pass}\label{a:collection-phase}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Collection pass}{\Vloc{i}}
-\For{each Earley item $\Veimm{work} \in \tables{i}$}
+\For{each Earley item $\Veimm{work} \in \table{i}$}
 \State $[\Vah{work}, \Vloc{origin}] \gets \Veimm{work}$
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
 \State \Call{Collect one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
@@ -608,7 +667,7 @@ Earley item attempts.
 \State \Call{Memoize transitions}{\Vloc{i}}
 \EndFor
 \EndProcedure
-\end{algorithmic} 
+\end{algorithmic}
 \end{algorithm}
 
 \subsection{Collection pass}
@@ -619,9 +678,9 @@ Overhead may be charged to the Earley set.
 
 \begin{algorithm}[h]
 \caption{Memoize transitiions}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Memoize transitions}{\Vloc{i}}
-\For{every \Vsym{postdot}, a postdot symbol of $\tables{i}$}
+\For{every \Vsym{postdot}, a postdot symbol of $\table{i}$}
 \If{postdot transition is unique by rule}
 \State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
 \State \hspace\algorithmicindent to an LIMX
@@ -632,7 +691,7 @@ Overhead may be charged to the Earley set.
 \EndIf
 \EndFor
 \EndProcedure
-\end{algorithmic} 
+\end{algorithmic}
 \end{algorithm}
 
 \subsection{Memoize transitions}
@@ -658,7 +717,7 @@ their space may be charged to the Earley set.
 
 \begin{algorithm}[h]
 \caption{Collect one LHS symbol}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Collection one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \State \Comment $pim$ is a ``postdot item'', either a LIMX or an EIMM
 \For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
@@ -671,7 +730,7 @@ their space may be charged to the Earley set.
 \EndIf
 \EndFor
 \EndProcedure
-\end{algorithmic} 
+\end{algorithmic}
 \end{algorithm}
 
 \subsection{Collect one LHS}
@@ -689,13 +748,13 @@ Earley items have such links.)
 
 \begin{algorithm}[h]
 \caption{Earley collection operation}\label{a:earley-collection-op}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Earley collection operation}{\Vloc{i}, \Veimm{from}, \Vsym{trans}}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
-\end{algorithmic} 
+\end{algorithmic}
 \end{algorithm}
 
 \subsection{Earley Collection operation}
@@ -706,13 +765,13 @@ calling procedure.
 
 \begin{algorithm}[h]
 \caption{Leo collection operation}\label{a:leo-collection-op}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Leo collection operation}{\Vloc{i}, \Vlim{from}}
 \State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlim{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
-\end{algorithmic} 
+\end{algorithmic}
 \end{algorithm}
 
 \subsection{Leo Collection operation}
@@ -723,22 +782,22 @@ calling procedure.
 
 \begin{algorithm}[h]
 \caption{Add EIM Pair}\label{a:pair}
-\begin{algorithmic}[1] 
+\begin{algorithmic}[1]
 \Procedure{Add EIM Pair}{$\Vloc{i},\Vah{collected}, \Vloc{origin}$}
 \State $\Veim{collected} \gets [\Vah{collected}, \Vloc{origin}]$
 \State $\Vah{predicted} \gets \GOTO(\Vah{collected}, \epsilon)$
 \If{$\Veim{collected}$ is new}
-\State Add $\Veim{collected}$ to $\tables{i}$
+\State Add $\Veim{collected}$ to $\table{i}$
 \EndIf
 \If{$\Vah{predicted} \neq \Lambda$}
 \State $\Veim{predicted} \gets [\Vah{predicted}, \Vloc{i}]$
 \If{$Veim{predicted}$ is new}
-\State Add $\Veim{predicted}$ to $\tables{i}$
+\State Add $\Veim{predicted}$ to $\table{i}$
 \EndIf
 \EndIf
 \EndProcedure
-\end{algorithmic} 
-\end{algorithm} 
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Adding a pair of Earley items}
 
@@ -800,7 +859,7 @@ Consider the case where Marpa is building \Ves{j}
 an Earley item \Veimm{x} is new,
 where $\Veimm{x} = [ \Vah{x}, \Vloc{origin} ]$.
 To do this,
-Marpa checks the PSL's for $\tables{origin}$.
+Marpa checks the PSL's for $\table{origin}$.
 Let the Earley set ``stamp'' for that PSL entry be \Ves{p}.
 If the entry has never been used, $\Ves{p} = \Lambda$
 If $\Ves{p} \ne \Lambda \land \Ves{p} = \Ves{j}$,
@@ -936,7 +995,7 @@ explained.
 Leo items (LIM's) will also be extended.
 The extended Leo items will take the form
 $$[\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
-where 
+where
 $$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$ is the original
 Leo item,
 \Vah{state} is the state of the Leo collection item
@@ -948,7 +1007,7 @@ explained.
 
 A set of EIMX's (\Veimxset{X}) and a set of EIMT's
 (\Veimset{T})
-are congruent 
+are congruent
 $$\Veimtset{X} \cong \Veimtset{T}$$
 if and only if
 for all
@@ -960,7 +1019,7 @@ for all
 
 \subsection{Emulation order}
 
-For normal operation of 
+For normal operation of
 \Leo{} and \Marpa, the precise order of items in the Earley sets is not
 important,
 and the pseudocode leaves that order open.
@@ -1021,7 +1080,7 @@ to the same AHFA state
 are grouped together
 in an ordered Earley set.
 It is possible for the \Emulator{} to attempt
-to add EIMX's belonging to a 
+to add EIMX's belonging to a
 single AHFA state at several points while building
 an Earley set, but when the first EIMX of an AHFA
 state is added, all its co-occurring EIMX's are added
@@ -1078,7 +1137,7 @@ Informally, it can be said that
 \Emulator{} strips its extended information from an active EIMX,
 and ignores inactive EIMX's.
 
-Similarly, 
+Similarly,
 while \Leo{} uses LIM's,
 during \Emulator{} will encounter LIMX's.
 LIMX's are encountered as predecessors
@@ -1185,14 +1244,14 @@ where \Vloc{i} is the current Earley set and
 \end{tabular}
 \end{center}
 
-If any of the EIMX's in \Veimxset{collected} or 
+If any of the EIMX's in \Veimxset{collected} or
 \Veimxset{predict} duplicates an unactivated EIMX,
 the EIMX currently in \Vesi{E}{i} is activated,
 without disturbing its position in the ordered EIMX set.
 An EIMX which duplicates one already in \Vesi{E}{i}
 is ignored for all other purposes.
 Non-duplicate EIMX's are added to \Vesi{E}{i},
-first those in 
+first those in
 \Veimxset{collected} in Emulator Order,
 then those in
 \Veimxset{predict}, also in Emulator Order.
@@ -1433,7 +1492,7 @@ and the proof.
 
 A set of EIMX's (\Veimxset{X}) and a set of EIMM's
 (\Veimset{M})
-are congruent 
+are congruent
 $$\Veimtset{X} \cong \Veimtset{M}$$
 if and only if
 for all
@@ -1524,7 +1583,7 @@ that an empty Earley set is in Emulation order.
 To show that the next operations will be the same,
 we observe that
 that the first basic operation for both recognizers will be
-the scan whose predecessor comes first in the 
+the scan whose predecessor comes first in the
 the previous Earley set,
 and that by the outer induction hypothesis,
 both previous Earley sets will be in Emulation order.
@@ -1544,7 +1603,7 @@ Scan operation will be in order by predecessor,
 and collection operations in order by predecessor
 within LHS.
 
-By the outer induction hypothesis, 
+By the outer induction hypothesis,
 Earley items of \Emulator{} and \Marpa{}
 will be in the same order by AHFA state
 for the predecessors.
@@ -1648,7 +1707,7 @@ $\Vdr{accept} \in \Vah{accept}$,
 so that by the definition of \Emulator, in at least one case
 we have $\Vah{x} = \Vah{accept}$,
 $$
-\exists \Vbool{b} 
+\exists \Vbool{b}
 \sep [\Vbool{b}, \Vah{accept}, \Vdr{accept}, 0] \in \Vesi{El}{\size{w}}
 $$
 By Theorem \ref{l:emulator-equivalence},
@@ -1697,7 +1756,7 @@ per Earley item.
 One way to show the required bound is
 to allocate
 the time and space involved in rewriting Earley
-items with nulling symbols directly to 
+items with nulling symbols directly to
 the Earley item to which they are rewritten
 and from which they can be restored.
 Since
@@ -1788,7 +1847,7 @@ requires \Oc{} time and space.
 
 \begin{proof}
 For some the operations of \Earley,
-it is known that the amortized time 
+it is known that the amortized time
 per Earley item
 is amortized $\order(1)$\cite[Vol. 1, pages 326-327]{AU1972}.
 Inspection of the algorithm for \Marpa{} will show
@@ -1889,11 +1948,11 @@ $$(\Vsymset{alphabet}, rules, \Vsym{start})$$
 \Vsymset{term} is omitted, because
 Marpa allows a symbol to be both a terminal
 and a LHS.
-This expansion of the grammar definition 
+This expansion of the grammar definition
 is made without loss of generalization,
 or effect on the results.
 \footnote{
-Marpa has options which 
+Marpa has options which
 cause the traditional restrictions to
 be enforced,
 in part or in whole.
@@ -1922,7 +1981,7 @@ but gaps are not allowed:
 \end{align*}
 
 The traditional input stream is the special case of
-a Marpa input stream where 
+a Marpa input stream where
 \begin{gather*}
 \forall \token{tok} \sep \token{tok} \in \var{toks} \\
 \implies \token{tok} = [\Vsym{s}, \Vloc{start}, 1]
@@ -1999,5 +2058,5 @@ J.~M. I.~M. Leo.
 \end{thebibliography}
 
 \tableofcontents
- 
+
 \end{document}
