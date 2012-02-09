@@ -540,12 +540,15 @@ reduction on \Vsym{lhs} from Earley set \var{i}
 is not attempted.
 
 A Leo transition from \Vloc{i} over \Vsym{lhs} is possible
-if and only if
-\begin{align*}
-\exists & \Vlimt{pred}, \Vdr{top}, \Vorig{top} \ \in \Vtablei{\Earley}{i} \\
-    & \sep &\Vlimt{pred} \in \Vtablei{\Earley}{i} \\
-    & & \Vlimt{pred} = [ \Vdr{top}, \Vsym{lhs}, \Vorig{top} ]
-\end{align*}
+if and only if there exists
+\Vlimt{pred}, \Vdr{top}, \Vorig{top}
+such that
+\begin{center}
+\begin{tabular}{rl}
+                 & $\Vlimt{pred} \in \Vtablei{\Earley}{i}$ \\
+\text{and} & $\Vlimt{pred} = [ \Vdr{top}, \Vsym{lhs}, \Vorig{top} ]$
+\end{tabular}
+\end{center}
 If there is a Leo transition,
 $[ \Vdr{top}, \Vorig{top} ]$ is added to
 \Vtablei{\Leo}{j}.
@@ -1147,7 +1150,6 @@ in the same order.
 This will be accomplished by constructing a third
 recognizers, \alg{Emulator}, which will,
 in effect, emulate \Marpa{} using \Leo{}.
-of operations.
 
 \subsection{The emulator in Leo mode}
 
