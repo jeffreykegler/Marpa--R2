@@ -6,6 +6,8 @@
 \usepackage{algpseudocode}
 \usepackage{url}
 
+\newcommand{\todo}[1]{\par{\large\bf Todo: #1}\par}
+
 \newcommand{\dfn}[1]{{\bf #1}}
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.05em}{$\,\bullet\,$}}
@@ -1408,17 +1410,37 @@ running in Leo mode.
 \end{theorem}
 
 \begin{proof}
-It is straightforward to confirm that
-$$ \Vesi{L}{0} \cong \Vesi{E}{0}$$
-We next consider
-Earley operations in the sets after Earley set 0.
-By construction,
-the definition of \Emulator{} in \Leo{} mode is
-an extension of the definition of \Leo.
-The Earley operations of \Emulator
-will produce Earley sets where the every EIMX
-corresponds to an EIMT created by \Leo.
-Congruence follows directly.
+The proof is by induction on the basic operations
+It is straightforward to confirm, as the basis,
+that
+$$ \Vesi{L}{0} \cong \Vesi{El}{0}$$
+
+We outline the induction step as follows:
+The definition of Leo-active in the Emulator{}
+corresponds to presence in the Leo{} Earley sets,
+so the next basic operation of \Emulator{}
+will correspond to that of \Leo{},
+and its EIMX cause(s) will convert to the
+same EIMT cause(s).
+Based on Emulator order,
+the token and/or LHS symbol, if any,
+will also correspond.
+Therefore the result will be the same
+EIMT's, and in \Emulator{} will convert
+to congruent EIMX's.
+The rules for Leo-activation were
+designed to (and on review can be shown to)
+activate the EIMX if and only if
+the corresponding EIMT were in the
+Leo Earley sets.
+
+By the induction hypothesis, the Earley sets
+are congruent before new EIMX's are added.
+Congruence can be shown to invariant under union,
+and at each step we add congruent Earley items,
+and the induction step follows.
+From the induction step follows the
+induction and the theorem.
 \end{proof}
 
 \subsection{Emulator in Marpa mode}
@@ -1447,9 +1469,9 @@ of the LIMX
 is useless bookkeeping, without effect on the Earley sets.
 \end{proof}
 
-An EIMX is correct in Earley set $i$
+An EIMX is correct in Earley set \Vloc{i}
 if and only if its corresponding EIMT would
-also be in Earley set $i$.
+also be in Earley set \Vloc{i}.
 
 \begin{lemma}\label{l:eimx-correct}
 All EIMX's, whether active or not,
@@ -1458,17 +1480,19 @@ are correct.
 
 \begin{proof}
 The proof is by cases:
-the base EIMX;
-EIMX's occurring in the AHFA state as the base EIMX;
-and EIMX's occurring in a predicted state.
+core EIMX's;
+other EIMX's occurring in the AHFA state as the core EIMX;
+and EIMX's occurring in a null-transition state.
 
 \begin{itemize}
-\item The base EIMX is correct because it results from
-the \Leo{} logic, which is known to be correct\cite{Leo1991}.
+\item The core EIMX is correct because it results from
+the \Leo{} logic, which is shown to be correct
+in \cite{Leo1991}.
 \item The EIMX's occurring in the same AHFA state
-as the base EIMX are correct, as shown in \cite{AH2002}.
-\item The EIMX's occurring in a predicted AHFA state
-as the base EIMX are correct, as shown in \cite{AH2002}.
+as a correct EIMX are correct, as shown in \cite{AH2002}.
+\item The EIMX's occurring in an AHFA state
+produced bya null transition from a state with a
+correct EIMX are correct, as shown in \cite{AH2002}.
 \end{itemize}
 
 \end{proof}
