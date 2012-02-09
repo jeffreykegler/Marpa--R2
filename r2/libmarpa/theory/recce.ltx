@@ -13,8 +13,8 @@
 \newcommand{\mydot}{\raisebox{.05em}{$\,\bullet\,$}}
 \newcommand{\cat}{\,.\,}
 \newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
-\newcommand{\order}[1]{{\mathcal O}(#1)}
-\newcommand{\Oc}{\ensuremath{\order{1}}}
+\newcommand{\order}[1]{\ensuremath{{\mathcal O}(#1)}}
+\newcommand{\Oc}{\order{1}}
 
 % I use hyphens in variable names,
 % so I need to ensure that subtraction is
@@ -52,7 +52,8 @@
 \newcommand{\Ves}[1]{\ensuremath{\var{#1}_{ES}}}
 \newcommand{\Vesi}[2]{\ensuremath{\var{#1}[#2]_{ES}}}
 \newcommand{\VVes}[2]{\ensuremath{\var{#1}[\var{#2}]_{ES}}}
-\newcommand{\Vlim}[1]{\ensuremath{\var{#1}_{LIM}}}
+\newcommand{\Vlimt}[1]{\ensuremath{\var{#1}_{LIMT}}}
+\newcommand{\Vlimm}[1]{\ensuremath{\var{#1}_{LIMM}}}
 \newcommand{\Vlimx}[1]{\ensuremath{\var{#1}_{LIMX}}}
 \newcommand{\loc}[1]{\var{#1}_{LOC}}
 \newcommand{\Vloc}[1]{\ensuremath{\loc{#1}}}
@@ -83,9 +84,11 @@
 \newcommand{\Vrules}{\var{rules}}
 \DeclareMathOperator{\GOTO}{\var{GOTO}}
 \newcommand\myL[1]{\operatorname{L}(#1)}
+\newcommand\postdot[1]{\operatorname{postdot}(#1)}
 \newcommand\tablei[1]{\es{\var{table}[#1]}}
 \newcommand\Vtable[1]{\tablei{\var{#1}}}
-\newcommand{\tablesizen}[1]{\size{\var{table}(#1,\var{n})}}
+\newcommand\Vtablei[2]{\var{table}(#1,\var{#2})}
+\newcommand{\tablesizen}[1]{\size{\Vtablei{#1}{n}}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -295,12 +298,12 @@ Where $\alg{Recce}$ is a recognizer,
 $\myL{\alg{Recce},g}$ will be the language accepted by $\alg{Recce}$
 when parsing grammar $g$.
 
-\section{Earley's algoirthm}
+\section{Earley's algorithm}
 
 Let $\Vrule{r} \in \Vrules$
 be a rule,
 and $\Vsize{r}$ the length of its RHS.
-A dotted rule is a duple, $[\Vrule{r}, \var{pos}]$,
+A dotted rule (type DR) is a duple, $[\Vrule{r}, \var{pos}]$,
 where $0 < \var{pos} < \size{\Vrule{r}}$.
 The position indicates the extent to which
 the rule has been recognized,
@@ -312,8 +315,20 @@ $$[\Vsym{A} \de \var{X} . \var{Y} \mydot \var{Z}]$$
 is the rule where the dot is between \Vsym{Y}
 and \Vsym{Z} ($\var{pos} = 2$).
 
+The postdot symbol of a dotted rule is
+often important.
+$\postdot{\Vdr{x}} = \Vsym{last}$ if and only if
+\begin{align*}
+\Vdr{x} = & \Vsym{A} \de \Vstr{alpha} \mydot \Vsym{last} \Vstr{beta} \\
+ & \qquad \text{where $\Vstr{beta} \derivrg{\ast}{\Vg} \epsilon$}
+\end{align*}
+Otherwise,
+$\postdot{\Vdr{x}} = \Lambda$.
+
 A traditional Earley item (EIMT) is the duple
-$[\Vdr{dotted-rule}, \Vloc{origin}]$
+\[
+    [\Vdr{dotted-rule}, \Vloc{origin}]
+\]
 of dotted rule and origin.
 (The origin is the location where recognition of the rule
 started.
@@ -332,8 +347,8 @@ operations.
 These four operations
 are called in this document the {\bf basic
 Earley operations}.
-The sets are built in order from 0 to $\size{\Vw}$.
 
+The sets are built in order from 0 to $\size{\Vw}$.
 Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
 Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
 \Vw is accepted if and only if
@@ -372,7 +387,7 @@ ii) & $\Vdr{after} = [ \var{A} \de \var{alpha} \cat \var{token} \mydot \var{beta
 \Veimt{pred} is called the predecessor of the scanning operation
 and \Veimt{result} is called its result.
 
-A {\bf reduction} basic Earley operations are attempted
+An {\bf Earley reduction} basic operation is attempted
 in every Earley set
 for every pair $[\Veimt{pred}, \Vsym{lhs}]$,
 where
@@ -435,8 +450,110 @@ The cause of an operation is also the cause of all its result EIMT's.
 An EIMT which is result of an scanning or reduction operation with a 
 is called the \dfn{successor} of that predecessor.
 
+\section{The Leo algorithm}
+
+In \cite{Leo1991}, Joop Leo presented a method for
+dealing with right recursion in \order{n} time.
+Leo shows that,
+With his modification, Earley's algorithm
+is \order{n} for all LR-regular grammars.
+(LR-regular is LR where lookahead
+is infinite length, but restricted to
+distinguishing between regular expressions.)
+
+Summarizing Leo's method,
+it consists of spotting potential right recursions
+and memoizing them.
+Leo restricts the memoization to situations where
+the right recursion is unambiguous.
+Potential right recursions are memoized by
+Earley set, using what Leo called
+``transitive items''.
+In this document Leo's ``transitive items'' will be called Leo items.
+
+In each Earley set, there is at most one Leo item per symbol.
+The form of Leo items
+from in Leo's original paper, is the triplet
+$$[ \Vdr{top}, \Vsym{transition}, \Vorig{top} ]$$
+where \Vsym{transition} is the transition symbol,
+and $\Veimt{top} = [\Vdr{top}, \Vorig{top}]$
+is the Earley to be added on reductions over
+the \Vsym{transition}.
+Leo items of this form will be called
+``traditional'' Leo items (type LIMT).
+
+Leo items memoize what would otherwise be sequences
+of Earley items.
+Leo items only memoize unambiguous (or
+deterministic) sequences,
+and so that top of the sequence can stand
+in for the entire sequence --
+the only role the other EIMT's in the sequence would
+play in a parse is to derive the top EIMT.
+We will call these memoized sequences, Leo sequences.
+
+Each Leo sequence, if fully expanded would contain \order{n} items,
+where \var{n} is the length of the sequence.
+In \Earley, each such sequence would be expanded in every
+Earley set which is the origin of an EIMT included in the
+sequence, and the total number of EIMT's would be
+\order{n^2}.
+
+With Leo memoization, a single EIMT stands in for the sequence.
+There are \Oc Leo items per Earley set,
+so the cost of the sequence is \Oc per Earley set,
+or \order{n} for the entire sequence.
+If, at evaluation time,
+it is desirable to expand the Leo sequence,
+only those items actually involved in the parse
+need to be expanded.
+All the EIMT's of a potential right-recursion 
+will be in one Earley set and the number of EIMT's
+will be \order{n},
+so that even including expansion of the Leo sequence
+for evaluation, the time and space complexity of
+the sequence remain \order{n}.
+
+Implementing Leo memoization requires
+adding another basic operation.
+In addition to the basic operations of \Earley,
+\Leo{} include Leo transition.
+For any symbol in a reduction \Vsym{lhs},
+a Leo transition, if one exists, replaces
+the reduction operation.
+
+In every Earley set after the first,
+for every symbol \Vsym{lhs}
+where \Earley would look for pairs
+$[\Veimt{pred}, \Vsym{lhs}]$
+such that
+\[
+    \Veimt{pred} \in \Vtablei{\Earley}{i} \\
+    \text{and} \postdot{\var{pred}} = \Vsym{lhs}
+\]
+in order
+to perform reduction operations,
+Leo first attempts a Leo transition.
+If there is a Leo transition for \Vsym{lhs} from
+Earley set \var{i},
+reduction on \Vsym{lhs} from Earley set \var{i}
+is not attempted.
+
+A Leo transition from \Vloc{i} over \Vsym{lhs} is possible
+if and only if
+\begin{align*}
+\exists & \Vlimt{pred}, \Vdr{top}, \Vorig{top} \ \in \Vtablei{\Earley}{i} \\
+    & \sep &\Vlimt{pred} \in \Vtablei{\Earley}{i} \\
+    & & \Vlimt{pred} = [ \Vdr{top}, \Vsym{lhs}, \Vorig{top} ]
+\end{align*}
+If there is a Leo transition,
+$[ \Vdr{top}, \Vorig{top} ]$ is added to
+\Vtablei{\Leo}{j}.
+Otherwise, reduction is tried.
+
 \section{The Aycock-Horspool finite automaton}
 \label{s:AHFA}
+\label{s:end-prelim}
 
 In this document a
 ``split LR(0) $\epsilon$-DFA''
@@ -520,9 +637,6 @@ Use of the AHFA states in EIM's can
 be proved to be break-even for
 time and space complexity purposes.
 The next observation is useful for that purpose.
-
-\section{The Leo algorithm}
-\label{s:end-prelim}
 
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
@@ -872,8 +986,8 @@ calling procedure.
 \begin{algorithm}[h]
 \caption{Leo reduction operation}
 \begin{algorithmic}[1]
-\Procedure{Leo reduction operation}{\Vloc{i}, \Vlim{from}}
-\State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlim{from}$
+\Procedure{Leo reduction operation}{\Vloc{i}, \Vlimm{from}}
+\State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlimm{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
