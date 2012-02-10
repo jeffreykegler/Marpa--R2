@@ -50,7 +50,6 @@
 \newcommand{\Veimmset}[1]{\ensuremath{\var{#1}_{\set{EIMM}}}}
 \newcommand{\es}[1]{#1_{ES}}
 \newcommand{\Ves}[1]{\ensuremath{\var{#1}_{ES}}}
-\newcommand{\Vest}[1]{\ensuremath{\var{#1}_{EST}}}
 \newcommand{\Vesi}[2]{\ensuremath{\var{#1}[#2]_{ES}}}
 \newcommand{\VVes}[2]{\ensuremath{\var{#1}[\var{#2}]_{ES}}}
 \newcommand{\Vlimt}[1]{\ensuremath{\var{#1}_{LIMT}}}
@@ -1136,46 +1135,850 @@ Optionally introducing nulling symbols could "tag"
 other symbols, and might be a natural way to add
 a degree of context-sensitivity to \Marpa.
 
+\section{Duplicated rules}
+
 \section{Marpa recognizer correctness}
 \label{s:correctness}
 
-We now prove that Marpa's fixpoints are those of Earley,
-less the Leo sequence interiors.
+Marpa's correctness will shown based the correctness
+proved for \Leo{} in~\cite{Leo1991}.
+The proof will be by induction
+on the operations of the two recognizers.
+For this induction,
+the operations will need to happen
+in the same order.
+This will be accomplished by constructing a third
+recognizers, \alg{Emulator}, which will,
+in effect, emulate \Marpa{} using \Leo{}.
 
-\begin{definition}
-We say that traditional Earley set \var{i}
-is congruent to a Marpa Earley set \var{i}
-\[
-     \Vest{i} \cong \Ves{i}
-\]
-if and only if two conditions hold.
-First, for all
-\[
-    \Veimt{x} \in \Vest{i}, \Veimt{x} = [\Vdr{x}, \Vorig{x}]
-\]
-either \Veimt{x} is a Leo sequence interior, or
-there exists \Vah{y} such that
-\[
-    [ \Vah{y}, \Vorig{x} ] \in \Ves{i}\text{, and}
-    \Vdr{x} \in \Vah{y}
-\]
-Second, if $[\Vah{y}, \Vorig{y}] \in \Ves{i}$
-\[
-\forall \Vdr{d}, \var{d} \in \Vah{y} \implies [ \Vdr{d}, \Vorig{y} ] \in \Vest{i}
-\]
-\end{definition}
+\subsection{The emulator in Leo mode}
 
-\begin{theorem}\label{fixpoint-correct}
+\Emulator{} is \Leo,
+with modifications.
+These modifications will be explained in
+detail below,
+but in summary they include
+\begin{itemize}
+\item tracking the AHFA states, and
+\item adding the concept of
+``activation'' to Leo items and Earley items.
+\end{itemize}
+Tracking activation status allows
+\Emulator{} to separate the creation
+of Leo and Earley items
+from their availability to the parse logic.
+\Marpa{} and \Leo{} differ in their sequence
+of creation,
+and tracking activation makes
+it convenient to compare the Earley and Leo
+items of one with the other,
+which is essential for an induction on the sequence
+of operations.
+
+\Emulator{} runs in two ``modes'',
+Leo and Marpa,
+which differ in their activation logic.
+This sections first
+describes activation
+as it happens in
+\Emulator's Leo mode.
+When it comes time to describe activation
+in Marpa mode, the change will
+be easy to describe,
+but significant in its implication.
+
+\subsection{Calculating the AHFA}
+
+\Emulator, as part of its precomputations
+on its grammar, \Vg,
+will calculate \Vfa, the AHFA.
+It will also calculate $\GOTO: \Vfa,\var{alphabet} \mapsto \Vfa$,
+the transition function for \Vfa.
+
+\subsection{Extending the Earley items}
+
+The Earley sets of \Emulator{} will contain extended
+Earley items, EIMX's.
+EIMX's can be viewed as
+crosses (``X'') between traditional Earley items (EIMT's)
+and Marpa's Earley items (EIMM's).
+
+Each EIMX will have the form
+$$[\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
+where
+\Vah{state} is an AHFA state,
+\Vdr{dr} is a dotted rule,
+\var{origin} is the origin,
+and \Vbool{active} is a boolean whose use will be
+explained.
+
+\subsection{Extending the Leo items}
+
+Leo items (LIM's) will also be extended.
+The extended Leo items will take the form
+$$[\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
+where
+$$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$ is the original
+Leo item,
+\Vah{state} is the state of the Leo reduction item
+that will be added when the Leo item is used,
+and \Vbool{active} is a boolean whose use will be
+explained.
+
+\subsection{Leo-Emulator Congruence}
+
+A set of EIMX's (\Veimxset{X}) and a set of EIMT's
+(\Veimset{T})
+are congruent
+$$\Veimtset{X} \cong \Veimtset{T}$$
+if and only if
+for all
+\Vdr{x}, \Vloc{x}
+\begin{gather*}
+(\exists \Vah{x} \sep \Vah{x}, \Vdr{x}, \Vloc{x} \in \Veimxset{X}) \\
+\iff [\Vdr{x}, \Vloc{x}] \in \Veimtset{T}
+\end{gather*}
+
+\subsection{Emulation order}
+
+For normal operation of
+\Leo{} and \Marpa, the precise order of items in the Earley sets is not
+important,
+and the pseudocode leaves that order open.
+To simplify the induction on operations in the correctness
+proof, it is convenient to synchronize the operations
+of \Emulator{} in Marpa mode,
+with those of Marpa.
+For this purpose, we treat the Earley sets as ordered sets,
+containing the Earley items in the order in which
+they were added.
+
+Call Emulation Symbol Order,
+some total ordering of the symbols.
+Emulation Symbol Order may be arbitrary but must stay fixed for the life
+of any induction.
+
+Call some total ordering of the dotted rules,
+Emulation Dotted Rule Order.
+This ordering must place completed rules in Emulation Symbol Order by
+LHS.
+Otherwise, Emulation Dotted Rule Order
+may be arbitrary except that it
+must stay fixed for the life
+of any induction.
+
+We refine the order of operations as follows:
+\begin{itemize}
+\item
+Both \Emulator{} and \Marpa{},
+when scanning, scan the tokens in
+Emulation Symbol Order.
+\item
+\Marpa{},
+in considering the left hand sides of completed rules
+during reduction,
+does so in Emulation Symbol Order.
+\item
+Both \Emulator{} and \Marpa{},
+when creating Earley set 0,
+create it in order by Emulation Dotted Rule
+Order within AHFA state.
+\item
+\Emulator{},
+when adding the EIMX's for an AHFA state,
+does so in Emulator Dotted Rule Order.
+\end{itemize}
+Together,
+Emulator Symbol Order
+and Emulator Dotted Rule Order are
+referred to as Emulator Order.
+
+For Earley sets after Earley set 0,
+we require that the order of Earley items follow the
+order in which they were added.
+This definition ensures that
+all EIMX's belonging
+to the same AHFA state
+are grouped together
+in an ordered Earley set.
+It is possible for the \Emulator{} to attempt
+to add EIMX's belonging to a
+single AHFA state at several points while building
+an Earley set, but when the first EIMX of an AHFA
+state is added, all its co-occurring EIMX's are added
+as well,
+so that later attempts to add EIMX's in that AHFA state
+will be rejected as attempts to add duplicates.
+
+\subsection{The emulation engine}
+
+For scanning, reduction and prediction,
+\Emulator{} follows
+the \Leo{} logic,
+except that it uses EIMX's instead of EIMT's.
+\Emulator{} runs through each Earley set repeatedly,
+until no new EIMX's can be added.
+EIMX's are never added if they are duplicates,
+and the number of possible EIMX's for a given Earley set
+is finite,
+so that we know the loop will terminate.
+
+\Veimx{a} and \Veimx{b} are considered duplicates if
+\begin{gather*}
+\Veimx{a} = [\Vbool{a}, \Vah{a}, \Vdr{a}, \Vloc{a}] \\
+\land \Veimx{b} = [\Vbool{b}, \Vah{a}, \Vdr{a}, \Vloc{a}]
+\end{gather*}
+Two EIMX's which differs only in their active boolean
+are considered identical.
+It is quite possible that two EIMX's may differ when
+their corresponding EIMT's are duplicates --
+EIMX's are not duplicates
+if they differ in their AHFA states.
+
+\Leo{}, when traversing its Earley sets,
+expects EIMT's.
+\Emulator, during its processing of its Earley sets,
+will encounter EIMX's.
+Let the EIMX that \Emulator{} encounters be
+$$\Veimx{cause} =
+[\Vbool{active}, \Vah{state}, \Vdr{dr}, \var{origin}]$$
+\Veimx{cause} may be enountered
+as the predecessor in a scan operation;
+as the predecessor or component in a reduction operation;
+or as the predecessor in a prediction operation.
+In each of these cases,
+\Emulator{} first checks the
+\var{active} boolean of the EIMX.
+If it is false, \Emulator{} ignores the EIMX
+as if it did not exist.
+If \Vbool{active} is true,
+\Emulator{} treats \Veimx{cause} as
+if it were the following EIMT:
+$$[\Vdr{dr}, \var{origin}]$$
+Informally, it can be said that
+\Emulator{} strips its extended information from an active EIMX,
+and ignores inactive EIMX's.
+
+Similarly,
+while \Leo{} uses LIM's,
+during \Emulator{} will encounter LIMX's.
+LIMX's are encountered as predecessors
+during Leo reduction.
+Let an encountered LIMX be
+$$\Vlimx{predecessor} = [\Vbool{active}, \Vah{state}, \Vdr{dr}, \Vsym{trans}, \var{origin}]$$
+\Emulator{} first checks the
+\var{active} boolean of the LIMX.
+If it is false, the Emulator ignores the LIMX
+as if it did not exist.
+If \Vbool{active} is true, treats \Vlimx{predecessor} as
+if it were the following LIM:
+$$[\Vdr{dr}, \Vsym{trans}, \var{origin}]$$
+Informally, for use in Leo reduction,
+\Emulator{} strips its extended information from an active LIMX,
+and ignores inactive LIMX's.
+
+\subsubsection{Determining the AHFA States}
+
+Once it has found the causes for an Earley operation,
+\Emulator{} proceeds to determine
+the two AHFA states it will need,
+\Vah{new} and \Vah{predict}.
+It does this based on the logic of \Marpa
+which in turn follows that of \AH.
+Specifically,
+
+If it is scanning \Vsym{token},
+and \Vah{predecessor} is the AHFA state of the predecessor EIMX,
+\begin{align*}
+\Vah{new} = & \GOTO(\Vah{predecessor}, \Vsym{token}) \\
+\Vah{predict} = & \GOTO(\Vah{new}, \epsilon)
+\end{align*}
+
+If it is reducing, Leo reduction does not
+apply,
+and \Vah{predecessor} is the AHFA state of the predecessor EIMX,
+and \Vsym{lhs} is the LHS of a completed rule in the component EIMX,
+\begin{align*}
+\Vah{new} = & \GOTO(\Vah{predecessor}, \Vsym{lhs}) \\
+\Vah{predict} = & \GOTO(\Vah{new}, \epsilon)
+\end{align*}
+
+If it is reducing,
+Leo reduction does apply,
+and the \Vah{leo} is the AHFA state in the Leo item,
+then
+\begin{align*}
+\Vah{new} = & \Vah{leo} \\
+\Vah{predict} = & \Lambda
+\end{align*}
+
+For predictions, where the dotted rule of
+EIMX causing the prediction is a predicted rule,
+and \Vah{cause} is its AHFA state,
+\begin{align*}
+\Vah{new} = & \Lambda \\
+\Vah{predict} = & \Vah{cause}
+\end{align*}
+
+For predictions, where the dotted rule of
+EIMX causing the prediction is not a predicted rule,
+and \Vah{cause} is its AHFA state,
+\begin{align*}
+\Vah{new} = & \Lambda \\
+\Vah{predict} = & \GOTO(\Vah{cause}, \epsilon)
+\end{align*}
+
+\subsubsection{Adding EIMX's to the Earley set}
+
+If $\Vah{new} \neq \Lambda$,
+\Emulator{} produces
+\Veimxset{reduced}, which is the set of EIMX's
+\begin{gather*}
+\mset{ [ \Vbool{new}, \Vah{new}, \Vdr{dr}, \var{origin} ] }
+    { \Vdr{dr} \in \Vah{new} }
+\end{gather*}
+where \var{origin} is the origin of \Veimx{cause}.
+\Vbool{new} is \var{T} if and only if
+\begin{center}
+\begin{tabular}{rl}
+(i) & $ \Vloc{i} = 0 $ \\
+(ii) & $\forall \Vah{x}
+    \sep [ \Vbool{T}, \Vah{x}, \Vdr{dr}, \var{origin} ] \notin \Vesi{E}{i}$ \\
+\end{tabular}
+\end{center}
+Duplicate EIMX's in \Veimxset{reduced} are ignored,
+and the others are added to the current Earley set
+in Emulator Dotted Rule Order.
+
+Next, if $\Vah{predict} \neq \Lambda$,
+\Emulator{} produces \Veimxset{predict},
+which is the set of EIMX's
+$$
+\mset{ [ \Vbool{new}, \Vah{predict}, \Vdr{dr}, \Vloc{i} ] }
+    { \Vdr{dr} \in \Vah{predict} }
+$$
+where \Vloc{i} is the current Earley set and
+\Vbool{new} is \var{T} if and only if
+\begin{center}
+\begin{tabular}{rl}
+(i) & $ \Vloc{i} = 0 $, or \\
+(ii) & the current operation is prediction
+\end{tabular}
+\end{center}
+
+If any of the EIMX's in \Veimxset{reduced} or
+\Veimxset{predict} duplicates an unactivated EIMX,
+the EIMX currently in \Vesi{E}{i} is activated,
+without disturbing its position in the ordered EIMX set.
+An EIMX which duplicates one already in \Vesi{E}{i}
+is ignored for all other purposes.
+Non-duplicate EIMX's are added to \Vesi{E}{i},
+first those in
+\Veimxset{reduced} in Emulator Order,
+then those in
+\Veimxset{predict}, also in Emulator Order.
+
+\subsection{Creating Leo items}
+
+Unlike \Leo,
+\Emulator{} compute the LIMX's on an eager basis,
+immediately
+after each Earley set is finished.
+This is possible because there is enough information
+in the Earley set to identify potential LIM's.
+
+\subsection{Initialization in the Emulator}
+
+It is convenient to treat \Emulator{}
+initialization is handled as a special case.
+To build Earley set 0, \Emulator{}
+first adds the set
 \begin{equation*}
-\forall \Vloc{i}, 0 \le \var{i} < \Vsize{w} \implies \Vest{i} \cong \Ves{i}
+\set{ [ \Vah{start}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \Vah{start} }
+\end{equation*}
+in Dotted Rule Order.
+It then examines \Vah{prediciton},
+where $\Vah{prediction} = \GOTO(\Vah{cause}, \epsilon)$.
+If $\Vah{prediction} \neq \Lambda$,
+Emulator adds the set
+\begin{equation}
+\set{ [ \Vah{predicted}, \Vdr{dr}, 0 ] \sep \Vdr{dr} \in \Vah{predicted} }
+\end{equation}
+in Emulator Dotted Rule Order.
+
+\subsection{The emulator in Leo mode is correct}
+
+We now show that,
+for a given grammar \var{g} and input \var{w},
+the Earley sets of \Emulator{} are always congruent
+to those of \Leo.
+
+\begin{theorem}\label{t:leo-congruence}
+Let $\VVes{L}{i}$
+be Earley set \Vloc{i} in \Leo,
+and $\VVes{El}{i}$
+be Earley set \Vloc{i} in \Emulator.
+running in Leo mode.
+\begin{equation*}
+\forall \Vloc{i} \sep 0<\Vloc{i}<\Vsize{w} \implies
+\Vesi{L}{i} \cong \Vesi{El}{i}
 \end{equation*}
 \end{theorem}
 
 \begin{proof}
-The proof is by induction on Marpa operations.
-We leave it as an exercise to show, as the
-basis of the induction, that
-$\Vest{0} \cong \Ves{0}$
+The proof is by induction on the basic operations
+It is straightforward to confirm, as the basis,
+that
+$$ \Vesi{L}{0} \cong \Vesi{El}{0}$$
+
+We outline the induction step as follows:
+The definition of Leo-active in the Emulator{}
+corresponds to presence in the Leo{} Earley sets,
+so the next basic operation of \Emulator{}
+will correspond to that of \Leo{},
+and its EIMX cause(s) will convert to the
+same EIMT cause(s).
+Based on Emulator order,
+the token and/or LHS symbol, if any,
+will also correspond.
+Therefore the result will be the same
+EIMT's, and in \Emulator{} will convert
+to congruent EIMX's.
+The rules for Leo-activation were
+designed to (and on review can be shown to)
+activate the EIMX if and only if
+the corresponding EIMT were in the
+Leo Earley sets.
+
+By the induction hypothesis, the Earley sets
+are congruent before new EIMX's are added.
+Congruence can be shown to invariant under union,
+and at each step we add congruent Earley items,
+and the induction step follows.
+From the induction step follows the
+induction and the theorem.
+\end{proof}
+
+\subsection{Emulator in Marpa mode}
+
+Marpa mode is simply \Emulator{} with ``eager'' activation.
+In Marpa mode,
+all EIMX's and LIMX's are activated as soon as they are
+created and remain activated throughout the life
+of \Emulator.
+
+\subsection{The emulator in Marpa mode is correct}
+
+To prove correctness,
+we show that the emulator in Marpa mode produces
+the same Earley sets as the emulator in Leo mode.
+
+\begin{lemma}\label{l:emulator-equivalence}
+An emulator with eager activation of Leo items,
+produces the same Earley sets as the emulator with
+lazy activation of Leo items.
+\end{lemma}
+
+\begin{proof}
+Inspection of the logic will show that the active boolean
+of the LIMX
+is useless bookkeeping, without effect on the Earley sets.
+\end{proof}
+
+An EIMX is correct in Earley set \Vloc{i}
+if and only if its corresponding EIMT would
+also be in Earley set \Vloc{i}.
+
+\begin{lemma}\label{l:eimx-correct}
+All EIMX's, whether active or not,
+are correct.
+\end{lemma}
+
+\begin{proof}
+The proof is by cases:
+core EIMX's;
+other EIMX's occurring in the AHFA state as the core EIMX;
+and EIMX's occurring in a null-transition state.
+
+\begin{itemize}
+\item The core EIMX is correct because it results from
+the \Leo{} logic, which is shown to be correct
+in \cite{Leo1991}.
+\item The EIMX's occurring in the same AHFA state
+as a correct EIMX are correct, as shown in \cite{AH2002}.
+\item The EIMX's occurring in an AHFA state
+produced bya null transition from a state with a
+correct EIMX are correct, as shown in \cite{AH2002}.
+\end{itemize}
+
+\end{proof}
+
+\begin{lemma}\label{l:lazy-complete}
+Even with lazy activation of EIMX's,
+all EIMX's in Earley set $i$
+will be active once processing for Earley set $i$
+is complete.
+\end{lemma}
+
+\begin{proof}
+By Lemma \ref{l:eimx-correct},
+all EIMX's created by the emulator engine are
+correct.
+Lazy activation simulates Leo and Leo has been
+shown to include all the correct EIMT's
+in every Earley set.
+For every EIMT created by \Leo,
+lazy activation activate all the corresponding
+EIMX's.
+Therefore lazy activation activates all the
+EIMX's in any \Emulator{} Earley set.
+\end{proof}
+
+\begin{lemma}
+An emulator with eager activation of Earley items,
+produces the same Earley sets as the emulator with
+lazy activation of Earley items.
+\end{lemma}
+
+\begin{proof}
+The proof is by induction on the Earleys sets.
+The two modes do not differ for Earley set 0.
+We proceed to show that if eager and lazy activation
+have produced identical Earleys sets 0 through $i - 1$,
+then the two activation methods will also produce
+identical Earleys sets at $i$.
+
+By Lemma \ref{l:lazy-complete},
+once processing for an Earley set is complete,
+all of its EIMX's are activated,
+whether activation is lazy or eager,
+and activated EIMX's never change their activation status.
+This means that to show that the Earley sets
+are identical we need to show that each
+operation creates the same EIMX's
+under both modes.
+It also means that
+an operation will behaves
+differently under lazy activation and
+eager activation only if it
+depends on an EIMX in the current Earley set.
+
+We examine those cases where
+creation of an Earley item in Earley set $i$,
+depends on another Earley item in Earley set $i$.
+For scanning, the predecessor EIMX must be
+in the previous Earley set, so that
+this will never be the case.
+Scanning therefore produces the new
+EIMX's
+whether activation is lazy or eager.
+
+For prediction, the predecessor EIMX will always
+be in the current Earley set.
+But the predecessor EIMX, when it created
+and activated EIMX's for all the dotted rules in its
+AHFA state pair, created and activated of its
+predictions.
+This means that all predictions will already
+exist and be activated before any \Emulator
+prediction operation.
+There an Emulator prediction operation will
+always create duplicate EIMX's,
+and since duplicates are not added,
+will not change the Earley set.
+
+For reduction,
+we now show,
+for eager activiation,
+the basis of an induction on
+the reduction loop's visits to
+the potential component Earley items in an Earley set.
+We note from the forgoing that, under eager activation,
+all un-reduced Earley items exist and are active,
+before the \Emulator's reduction loop begins.
+Scanned items already exist and are active because scanning
+was done first and we have just shown it complete and correct.
+Prediction will come afterwards, but we have just shown it
+will not add new EIMX's or activate any old ones.
+
+The \Leo{} pseudocode
+(and therefore \Emulator) creates
+reduced EIMX's by repeatedly looping
+through potential component EIMX's,
+looking for predecessor's as it goes.
+Because we are running in eager mode,
+we can rely on all of these component EIMX's being already
+active.
+Marpa allows no nullable rules, so component
+will be zero length,
+and the EIMX's predecessors must be in previous Earley sets.
+For for every potential component, its matching
+predecessors will exist and be active when the component is visited.
+The logic will always add the reduced EIMX's.
+That these are identical to those that would be added
+under lazy activation can be seen by noting that once
+the causes are identified and the active status checked,
+both use the same logic.
+This shows the induction step on the eager reduction
+loop, and the induction on eager reduction.
+
+Since prediction, scanning and reduction create
+the same EIMX's in the two modes,
+and, and since in either mode, all are activated when
+the Earley set is finished,
+we have shown the induction step for the Earley sets.
+This completes the induction on the Earley sets,
+and the proof.
+\end{proof}
+
+\subsection{Marpa is correct}
+\label{s:marpa:end-correctness}
+
+A set of EIMX's (\Veimxset{X}) and a set of EIMM's
+(\Veimset{M})
+are congruent
+$$\Veimtset{X} \cong \Veimtset{M}$$
+if and only if
+for all
+\Vah{x}, \var{xorig}
+\begin{gather*}
+\Vbool{x}, \Vah{x}, \Vdr{x}, \var{xorig} \in \Veimxset{X} \\
+\iff [\Vah{x}, \var{xorig}] \in \Veimmset{M}
+\end{gather*}
+
+
+We now show that,
+for a given grammar \var{g} and input \var{w},
+the Earley sets of \Emulator{} are always congruent
+to those of \Marpa.
+
+\begin{theorem}\label{t:marpa-congruence}
+Assume that \Emulator{} is in Marpa mode,
+and that the \Marpa{} and
+\Emulator{} operate using
+Emulator Order.
+Let
+$\operatorname{E}[i]$
+be Earley set $i$ in \Emulator.
+and $\operatorname{M}[i]$
+be Earley set $i$ in \Marpa,
+\begin{equation*}
+\forall i \sep 0<i<\size{w} \implies
+\operatorname{E}[i] \cong \operatorname{M}[i]
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+The proof is by double induction.
+The outer induction is on the Earley sets,
+and the inner induction on ``basic operations''.
+
+We define the ``basic operations'' by breaking
+down the operations of \Emulator{} and \Marpa
+into convenient pieces, excluding
+operations which can be shown
+to have no effect on the Earley sets.
+A basic operation is
+\begin{itemize}
+\item
+A scan for one pairing of predecessor and token.
+\item
+An Earley reduction for one pairing of predecessor and LHS.
+\item
+An Leo reduction for one pairing of predecessor and LHS.
+\end{itemize}
+Predictions are not among the basic operations
+because, as shown previously,
+they have no effect on the Earley sets in \Emulator's Marpa mode.
+Predictions do not exist in \Marpa.
+
+The hypothesis for the outer induction is that
+$$\forall \var{i} \sep 0<\var{i}<\var{n}
+\implies
+\VVes{EM}{i} \cong \VVes{M}{i}$$
+and that
+$\VVes{EM}{i}$ is in Emulation Order.
+
+It is straightforward to confirm,
+as the basis of the outer induction,
+that
+$$ \Vesi{Em}{0} \cong \Vesi{M}{0}$$
+and that $\Vesi{Em}{0}$ is in Emulation order.
+
+The inner induction is done on the operations to build
+the Earley sets for $\var{i}>0$.
+The hypothesis for the inner induction is that,
+up to this point,
+the following three invariants hold:
+\begin{center}
+\begin{tabular}{l p{1in} p{3.5in}}
+1. \hspace{1em} & Congruence &
+$\Vesi{EM}{i} \cong \Vesi{M}{i}$ \\
+2. & Item Order & \Vesi{EM}{i} is in Emulation Order \\
+3. & Operation \mbox{Sequence} &
+\Emulator{} in Marpa mode and \Marpa{} carry out the
+same basic Earley operations.
+\end{tabular}
+\end{center}
+
+As the basis of inner induction, we observe
+that, trivially, the two empty Earley sets are congruent,
+that an empty Earley set is in Emulation order.
+To show that the next operations will be the same,
+we observe that
+that the first basic operation for both recognizers will be
+the scan whose predecessor comes first in the
+the previous Earley set,
+and that by the outer induction hypothesis,
+both previous Earley sets will be in Emulation order.
+
+For the step of the inner induction,
+it is convenient to first show that
+the Operation Sequence invariant holds.
+If we assuming the induction hypothesis
+for the inner induction,
+we can see,
+based on the Emulation Order,
+the pseudocode for \Leo
+and the pseudocode for \Marpa
+that this sequence of basic operations will be
+scan operations, then reduction operations.
+Scan operation will be in order by predecessor,
+and reduction operations in order by predecessor
+within LHS.
+
+By the outer induction hypothesis,
+Earley items of \Emulator{} and \Marpa{}
+will be in the same order by AHFA state
+for the predecessors.
+Based on Emulation Symbol Order and the
+inner induction hypothesis,
+we know that the two recognizers
+will process the reduction operations
+in the same order by LHS symbol.
+
+The Item Order invariant is straightforward to show.
+As long as the inner and outer induction hypotheses
+are true,
+by their definitions,
+\Emulator{} and \Marpa{} add all Earley items in
+Emulator Order.
+
+To complete the step of the inner induction,
+we now proceed to show that Congruence stays invariant
+as new Earley items are added.
+We do this by cases, where the bases are the basic operations.
+
+For the cases of scanning and Earley reduction,
+we recall that \Marpa{} and \Emulator{}
+both implement the transition logic of AHFA's,
+as described in \cite{AH2002}.
+We know from the inner and outer induction hypotheses
+that they will find congruent predecessors
+from congruence that the LHS's of completed rules will be the same,
+and from the definition of the recognizer that the tokens will be
+the same.
+From this we can see that,
+for every EIMM added by \Marpa,
+as least one EIMX (the base EIMX) will be added
+by \Emulator{} in Marpa mode,
+and that the EIMX will have the same AHFA state
+as the EIMM.
+Therefore, the Earley items added by each scanning
+or Earley item operation
+will be congruent.
+The union of congruent sets of Earley items is also congruent,
+so that the Earley sets under construction remain congruent
+as items from these operations are added.
+This show the case of the Congruence invariant
+for scanning and Earley reduction operations,
+as part of the inner induction step.
+
+To complete the inner induction step,
+it remains to show the case of the Congruence invariant
+for the Leo reduction operation.
+By the definition of Leo reduction, it
+produces a single AHFA state,
+call this \Vah{reduced}.
+By Theorem \ref{t:leo-singleton},
+\Vah{reduced} will contain one and only one dotted rule,
+\Vdr{reduced}.
+\Vdr{reduced} will be a reduction.
+Since the only rule in the \Vah{reduced} is a reduction,
+\Vah{reduced} will have no null-transition.
+Therefore
+a Leo reduction operation
+in \Marpa{}
+will add only one EIMM, $[\Vah{reduced}, \Vloc{origin}]$,
+where \Vloc{origin} is from the LIMX.
+\Emulator{} in Marpa mode will add only
+those EIMX in the set
+$${
+[ \Vbool{active}, \Vah{reduced}, \Vdr{d}, \Vloc{origin} ]
+\sep \Vdr{d} \in \var{null}(\Vdr{reduced}) }
+$$
+Clearly, congruence will hold with the addition to these
+Earley items to their respective Earley sets.
+
+The completes the inner induction step, the inner induction,
+the outer induction step, the outer induction and the proof.
+\end{proof}
+
+We now show that \Marpa,
+the language accepted by Marpa,
+is $\myL{\var{g}}$ --
+in other words, that \Marpa{} is correct.
+
+\begin{theorem}\label{t:correctness}
+$$\myL{\Marpa, g} = \myL{\var{g}}$$
+\end{theorem}
+
+\begin{proof}
+Assume that \var{w} is a string of size $\size{w}$,
+We will assume that
+$$ \var{w} \in \myL{\var{g}}$$
+
+From Leo's correctness\cite{Leo1991},
+where \Vdr{accept} is the completed start rule,
+$$ [\Vdr{accept}, 0] \in \Vesi{L}{\size{w}}$$
+By Theorem \ref{t:leo-congruence},
+$$
+\exists \Vbool{b}, \Vah{x}
+\sep [\Vbool{b}, \Vah{x}, \Vdr{accept}, 0] \in \Vesi{El}{\size{w}}
+$$
+Where \Vah{accept} be an AHFA state,
+$\Vdr{accept} \in \Vah{accept}$,
+so that by the definition of \Emulator, in at least one case
+we have $\Vah{x} = \Vah{accept}$,
+$$
+\exists \Vbool{b}
+\sep [\Vbool{b}, \Vah{accept}, \Vdr{accept}, 0] \in \Vesi{El}{\size{w}}
+$$
+By Theorem \ref{l:emulator-equivalence},
+$$
+\exists \Vbool{b}
+[\Vbool{b}, \Vah{accept}, \Vdr{accept}, 0] \in \Vesi{Em}{\size{w}}
+$$
+By Marpa-Emulator Congruence, Theorem \ref{t:marpa-congruence},
+$$
+[\Vah{accept}, 0] \in \Vesi{M}{\size{w}}
+$$
+By the definition of \Marpa,
+$$
+\var{w} \in \myL{\Marpa, \var{g}}
+$$
+Collapsing the forgoing chain of implication,
+back to its original assumption,
+$$ \var{w} \in \myL{\var{g}} \implies \var{w} \in \myL{\Marpa, \var{g}} $$
+
+Reviewing the chain of implications,
+will show that each was in fact a mutual implication,
+so that
+$$ \var{w} \in \myL{\var{g}} \iff \var{w} \in \myL{\Marpa, \var{g}} $$
+and
+since \var{w} was chosen without loss of generality, the theorem
+follows.
+
 \end{proof}
 
 \section{Marpa recognizer complexity}
