@@ -7,6 +7,7 @@
 \usepackage{url}
 
 \newcommand{\todo}[1]{\par{\large\bf Todo: #1}\par}
+\newcommand{\mymathop}[1]{\mathop{\texttt{#1}}}
 
 \newcommand{\dfn}[1]{{\bf #1}}
 \newcommand{\sep}{\,\mid\,}
@@ -83,7 +84,7 @@
 \newcommand{\VVw}[1]{\ensuremath{sym{\Vw[\var{#1}]}}}
 \newcommand{\Vwi}[1]{\ensuremath{sym{\Vw[#1]}}}
 \newcommand{\Vrules}{\var{rules}}
-\DeclareMathOperator{\GOTO}{\var{GOTO}}
+\newcommand{\GOTO}{\mymathop{GOTO}}
 \newcommand\myL[1]{\operatorname{L}(#1)}
 \newcommand\postdot[1]{\operatorname{postdot}(#1)}
 \newcommand\tablei[1]{\es{\var{table}[#1]}}
@@ -102,6 +103,7 @@
 
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
+\newtheorem{observation}[theorem]{Observation}
 
 
 \begin{document}
@@ -637,10 +639,33 @@ than that of one of Earley's original sets.
 That is, it seems the AHFA is always a win,
 at least for practical grammars.
 
-Use of the AHFA states in EIM's can
-be proved to be break-even for
-time and space complexity purposes.
-The next observation is useful for that purpose.
+The following observations
+will be useful.
+They are shown in \cite{AH2002}.
+
+\begin{observation}
+AHFA's are monotone.
+The result of an AHFA transition
+contains the 
+Any dotted
+That is, if
+\[
+    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
+\]
+then
+\[
+    \GOTO(\Vdr{from}, \Vsym{t}) = \Vdr{to} \land \Vdr{to} \in \Vah{to}
+\]
+\end{observation}
+
+\begin{observation}
+AHFA's predict correctly and completely.
+\end{observation}
+
+For time and space complexity purposes,
+use of the AHFA states in EIM's can
+be proved to be break-even.
+The next theorem is useful for that purpose.
 
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
@@ -1176,6 +1201,18 @@ The proof is by induction on Marpa operations.
 We leave it as an exercise to show, as the
 basis of the induction, that
 $\Vest{0} \cong \Ves{0}$
+We show the step of the induction by cases,
+with the Marpa operations as cases.
+
+For Marpa's scanning operation, we know
+we have a correct predecessor EIM by the induction hypothesis,
+and by definitions in the preliminaries,
+we know that the tokens will be the same for both Earley and Marpa.
+A scanned item, if it occurs in a Leo path,
+is the base,
+so that scanned items will never be in the interior of a Leo path.
+The result of Marpa's scanning is correct if
+\todo{Talk about AHFA correctness}
 \end{proof}
 
 \section{Marpa recognizer complexity}
