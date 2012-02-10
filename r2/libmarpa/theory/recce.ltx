@@ -1164,54 +1164,68 @@ a degree of context-sensitivity to \Marpa.
 \section{Marpa recognizer correctness}
 \label{s:correctness}
 
-We now prove that Marpa's fixpoints are those of Earley,
-less the Leo sequence interiors.
-
 \begin{definition}
-We say that traditional Earley set \var{i}
-is congruent to a Marpa Earley set \var{i}
+A Marpa Earley set \EVtable{\Marpa,i}
+is \definition{correct} if and only if for all
 \[
-     \Vest{i} \cong \Ves{i}
+[\Vah{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
 \]
-if and only if two conditions hold.
-First, for all
+there exists
 \[
-    \Veimt{x} \in \Vest{i}, \Veimt{x} = [\Vdr{x}, \Vorig{x}]
+[\Vdr{y}, \Vorig{x}] in \EVtable{\Leo}{i}
 \]
-either \Veimt{x} is a Leo sequence interior, or
-there exists \Vah{y} such that
-\[
-    [ \Vah{y}, \Vorig{x} ] \in \Ves{i}\text{, and}
-    \Vdr{x} \in \Vah{y}
-\]
-Second, if $[\Vah{y}, \Vorig{y}] \in \Ves{i}$
-\[
-\forall \Vdr{d}, \var{d} \in \Vah{y} \implies [ \Vdr{d}, \Vorig{y} ] \in \Vest{i}
-\]
+such that
+\Vdr{y} \in \Vah{x}
 \end{definition}
 
-\begin{theorem}\label{fixpoint-correct}
+\begin{definition}
+A Marpa Earley set \EVtable{\Marpa,i}
+is \definition{complete} if and only if for all
+\[
+[\Vdr{x}, \Vorig{x}] in \EVtable{\Leo}{i}
+\]
+there exists
+\[
+[\Vah{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
+\]
+such that
+\Vdr{y} \in \Vah{x}
+\end{definition}
+
+\begin{definition}
+We say that
+a Marpa Earley set \EVtable{\Marpa}{i}
+and a Leo Earley set \EVtable{\Leo}{i}
+are \definition{congruent}
+($EVtable{\Leo}{i} \cong EVtable{\Marpa}{i}$)
+if and only the Marpa Earley set is complete
+and correct.
+\end{definition}
+
+\begin{theorem}\label{congruence}
 \begin{equation*}
 \forall \Vloc{i}, 0 \le \var{i} < \Vsize{w} \implies \Vest{i} \cong \Ves{i}
 \end{equation*}
 \end{theorem}
 
 \begin{proof}
-The proof is by induction on Marpa operations.
+The proof is by a induction on the Earley sets.
 We leave it as an exercise to show, as the
 basis of the induction, that
-$\Vest{0} \cong \Ves{0}$
-We show the step of the induction by cases,
-with the Marpa operations as cases.
+\[
+\EEtable{\Earley}{0} \conq \EEtable{\Marpa}{i}
+\]
+We show correctness by 
+an inner induction on the Marpa operations.
+We have the basis
+trivially, since an empty Marpa Earley set is
+correct.
 
+We show the step of the inner induction by cases.
 For Marpa's scanning operation, we know
 we have a correct predecessor EIM by the induction hypothesis,
 and by definitions in the preliminaries,
 we know that the tokens will be the same for both Earley and Marpa.
-A scanned item, if it occurs in a Leo path,
-is the base,
-so that scanned items will never be in the interior of a Leo path.
-The result of Marpa's scanning is correct if
 \todo{Talk about AHFA correctness}
 \end{proof}
 
