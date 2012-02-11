@@ -1128,20 +1128,21 @@ and the PSL's ``stamp'' is updated to \Ves{j}.
 As implemented,
 Marpa uses PSL's for this purpose and several others.
 
-\section{Nulling symbols}
+\section{Preliminaries to the theoretical results}
 \label{s:nulling}
 
-We have already noted that Marpa grammars
-do not contain empty rules or
-properly nullable symbols,
-and shown that this is without loss
-of generality.
-This corresponds to the Marpa implementation.
-For the correctness and comlexity proof in this section,
-we assume a further rewrite not in the implementation,
+As noted, Marpa grammars,
+without loss of generality,
+contain neither empty rules or
+properly nullable symbols.
+This corresponds directly
+to a grammar rewrite in the \Marpa{} implementation,
+and its reversal during \Marpa's evaluation phase.
+For the correctness and complexity proof in this section,
+we assume an additional rewrite,
 this time to eliminate nulling symbols.
 
-This additional rewrite is also
+Elimination of nulling symbols is also
 without loss of generality, as can be seen
 if we assume that a history
 of the rewrite is kept,
@@ -1152,27 +1153,30 @@ or will not depend on how often
 a grammar \Vg{} interpolates nulling symbols into
 its input stream.
 
-A question for future research is whether rewriting
-the grammar to eliminate nulling symbols during parsing
+In its implementation,
+\Marpa's does not directly rewrite the grammar
+to eliminate nulling symbols.
+But nulling symbols are ignored in
+creating the AHFA states,
+and must be restored during \Marpa's evaluation phase,
+so that the implementation and
+the simplification for theory purposes in fact
+track each other fairly closely.
+
+A question for future research is whether directly
+rewriting the grammar to eliminate nulling
 would in fact be a better implementation.
-Efficiency gains, if they existed,
-would probably not be impressive,
+Most or all potential
+efficiency gains are already realized through
+the use of the AHFA,
 but the rewrite of the Earley items after
 the parse would allow the nulling symbols
 to be added based on full knowledge of the
 result of the parse.
 
-This might allow some new parsing
-techniques.
-Optionally introducing nulling symbols could "tag"
-other symbols, and might be a natural way to add
-a degree of context-sensitivity to \Marpa.
-
-\section{Marpa recognizer correctness}
-\label{s:correctness}
 
 \begin{definition}
-A Marpa Earley set \EVtable{\Marpa,i}
+A Marpa Earley set \EVtable{\Marpa}{i}
 is \dfn{correct} if and only if for all
 \[
 [\Vah{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
@@ -1186,7 +1190,7 @@ $\Vdr{y} \in \Vah{x}A$
 \end{definition}
 
 \begin{definition}
-A Marpa Earley set \EVtable{\Marpa,i}
+A Marpa Earley set \EVtable{\Marpa}{i}
 is \dfn{complete} if and only if for all
 \[
 [\Vdr{x}, \Vorig{x}] in \EVtable{\Leo}{i}
@@ -1209,6 +1213,8 @@ if and only the Marpa Earley set is complete
 and correct.
 \end{definition}
 
+\section{Marpa is correct}
+
 \begin{theorem}[Marpa-Leo Congruence]\label{congruence}
 \begin{equation*}
 \forall \Vloc{i}, 0 \le \var{i} < \Vsize{w} \implies \Vest{i} \cong \Ves{i}
@@ -1225,7 +1231,7 @@ basis of the induction, that
 \[
 \EEtable{\Earley}{0} \cong \EEtable{\Marpa}{i}
 \]
-We show correctness by 
+We show correctness by
 an inner induction on the Marpa operations.
 We have the basis
 trivially, since an empty Marpa Earley set is
