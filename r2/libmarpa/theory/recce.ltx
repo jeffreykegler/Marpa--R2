@@ -1178,15 +1178,15 @@ result of the parse.
 \begin{definition}
 A Marpa Earley set \EVtable{\Marpa}{i}
 is \dfn{consistent} if and only if for all
-\[
-[\Vah{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
-\]
-there exists
-\[
-[\Vdr{y}, \Vorig{x}] in \EVtable{\Leo}{i}
-\]
-such that
-$\Vdr{y} \in \Vah{x}A$
+\Vah{x}, \Vorig{x}
+if
+\begin{equation*}
+    [\var{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
+\end{equation*}
+then
+\begin{equation*}
+\forall \Vdr{d}, \quad \var{d} \in \Vah{x} \implies [\Vdr{d}, \Vorig{x}] \in \EVtable{\Leo}{i}.
+\end{equation*}
 \end{definition}
 
 \begin{definition}
