@@ -54,9 +54,8 @@
 \newcommand{\Vest}[1]{\ensuremath{\var{#1}_{EST}}}
 \newcommand{\Vesi}[2]{\ensuremath{\var{#1}[#2]_{ES}}}
 \newcommand{\VVes}[2]{\ensuremath{\var{#1}[\var{#2}]_{ES}}}
+\newcommand{\Vlim}[1]{\ensuremath{\var{#1}_{LIM}}}
 \newcommand{\Vlimt}[1]{\ensuremath{\var{#1}_{LIMT}}}
-\newcommand{\Vlimm}[1]{\ensuremath{\var{#1}_{LIMM}}}
-\newcommand{\Vlimx}[1]{\ensuremath{\var{#1}_{LIMX}}}
 \newcommand{\loc}[1]{\var{#1}_{LOC}}
 \newcommand{\Vloc}[1]{\ensuremath{\loc{#1}}}
 \newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
@@ -87,10 +86,11 @@
 \newcommand{\GOTO}{\mymathop{GOTO}}
 \newcommand\myL[1]{\operatorname{L}(#1)}
 \newcommand\postdot[1]{\operatorname{postdot}(#1)}
-\newcommand\tablei[1]{\es{\var{table}[#1]}}
-\newcommand\Vtable[1]{\tablei{\var{#1}}}
-\newcommand\Vtablei[2]{\var{table}(#1,\var{#2})}
-\newcommand{\tablesizen}[1]{\size{\Vtablei{#1}{n}}}
+\newcommand\Etable[1]{\es{\mymathop{table}[#1]}}
+\newcommand\Vtable[1]{\Etable{\var{#1}}}
+\newcommand\EEtable[2]{\ensuremath{\mymathop{table}(#1,#2)}}
+\newcommand\EVtable[2]{\EEtable{#1}{\var{#2}}}
+\newcommand{\tablesize}[1]{\size{\EVtable{#1}{n}}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -355,7 +355,7 @@ The sets are built in order from 0 to $\size{\Vw}$.
 Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
 Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
 \Vw is accepted if and only if
-$$[\Vdr{accept}, 0] \in \tablei{\Vsize{\Vw}}$$
+$$[\Vdr{accept}, 0] \in \Etable{\Vsize{\Vw}}$$
 
 We now describe the basic Earley operations.
 In the following definitions,
@@ -400,7 +400,7 @@ ii) & $\Veimt{component} = [ \Vdr{complete}, \Vorig{component} ]$ \\
 ii) & $\Veimt{component} \in \Vtable{j}$ \\
 ii) & $\Vdr{complete} = [ \Vsym{lhs} \de \Vstr{rhs} \mydot ]$ \\
 ii) & $\Veimt{pred} = [ \Vdr{before}, \Vorig{pred} ]$ \\
-ii) & $\Veimt{pred} \in \tablei{\Vorig{component}}$ \\
+ii) & $\Veimt{pred} \in \Etable{\Vorig{component}}$ \\
 ii) & $\Veimt{pred} = [ \Vdr{before}, \Vorig{x} ]$ \\
 iii) & $[\Vsym{A} \de \Vstr{alpha} \cat \Vsym{lsh} \cat \Vstr{beta} ] \in \Vrules $ \\
 iv) & $\Vdr{before} = [ \var{A} \de \var{alpha} \mydot \Vsym{lhs} \cat \var{beta} ]$ \\
@@ -531,7 +531,7 @@ where \Earley would look for pairs
 $[\Veimt{pred}, \Vsym{lhs}]$
 such that
 \[
-    \Veimt{pred} \in \Vtablei{\Earley}{i} \\
+    \Veimt{pred} \in \EVtable{\Earley}{i} \\
     \text{and} \postdot{\var{pred}} = \Vsym{lhs}
 \]
 in order
@@ -548,13 +548,13 @@ if and only if there exists
 such that
 \begin{center}
 \begin{tabular}{rl}
-                 & $\Vlimt{pred} \in \Vtablei{\Earley}{i}$ \\
+                 & $\Vlimt{pred} \in \EVtable{\Earley}{i}$ \\
 \text{and} & $\Vlimt{pred} = [ \Vdr{top}, \Vsym{lhs}, \Vorig{top} ]$
 \end{tabular}
 \end{center}
 If there is a Leo transition,
 $[ \Vdr{top}, \Vorig{top} ]$ is added to
-\Vtablei{\Leo}{j}.
+\EVtable{\Leo}{j}.
 Otherwise, reduction is tried.
 
 \section{The Aycock-Horspool finite automaton}
@@ -800,12 +800,12 @@ caller.
 \Procedure{Main}{}
 \State \Call{Initial}{}
 \For{ $\var{i}, 0 \le \var{i} \le \Vsize{w}$ }
-\State \Comment At this point, $\tablei{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
+\State \Comment At this point, $\Etable{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
 \State \Call{Scan pass}{$\var{i}, \var{w}[\var{i} \subtract 1]$}
-\State reject if $\size{\tablei{\var{i}}} = 0$
+\State reject if $\size{\Etable{\var{i}}} = 0$
 \State \Call{Reduction pass}{\var{i}}
 \EndFor
-\If{$[\Vah{accept}, 0] \in \tablei{\Vsize{w}}$}
+\If{$[\Vah{accept}, 0] \in \Etable{\Vsize{w}}$}
 \State accept \var{w}
 \Else
 \State reject \var{w}
@@ -879,7 +879,7 @@ and can be charged to the parse.
 \caption{Marpa Scan pass}\label{a:scan}
 \begin{algorithmic}[1]
 \Procedure{Scan pass}{$\Vloc{i},\Vsym{a}$}
-\For{each $\Veimm{predecessor} \in \var{transitions}(\tablei{\var{i} \subtract 1},\Vsym{a})$}
+\For{each $\Veimm{predecessor} \in \var{transitions}(\Etable{\var{i} \subtract 1},\Vsym{a})$}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{predecessor}$
 \State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
 \State \Call{Add EIM Pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
@@ -908,7 +908,7 @@ Earley item attempts.
 \caption{Reduction pass}
 \begin{algorithmic}[1]
 \Procedure{Reduction pass}{\Vloc{i}}
-\For{each Earley item $\Veimm{work} \in \tablei{i}$}
+\For{each Earley item $\Veimm{work} \in \Vtable{i}$}
 \State $[\Vah{work}, \Vloc{origin}] \gets \Veimm{work}$
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
 \State \Call{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
@@ -929,7 +929,7 @@ Overhead may be charged to the Earley set.
 \caption{Memoize transitiions}
 \begin{algorithmic}[1]
 \Procedure{Memoize transitions}{\Vloc{i}}
-\For{every \Vsym{postdot}, a postdot symbol of $\tablei{i}$}
+\For{every \Vsym{postdot}, a postdot symbol of $\Vtable{i}$}
 \If{postdot transition is unique by rule}
 \State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
 \State \hspace\algorithmicindent to an LIMX
@@ -970,12 +970,12 @@ their space may be charged to the Earley set.
 \Procedure{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \State \Comment $pim$ is a ``postdot item'', either a LIMX or an EIMM
 \For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
-\If{\var{pim} is a LIMX, \Vlimx{pim}}
-\State $\Vlimx{pred} \gets \var{pim}$
-\State Perform \Call{Leo reduction operation}{\Vloc{i}, \Vlimx{pred}}
+\If{\var{pim} is a LIMX, \Vlim{pim}}
+\State $\Vlim{pred} \gets \var{pim}$
+\State Perform \Call{Leo reduction operation}{\Vloc{i}, \Vlim{pred}}
 \Else
-\State $\Veimx{pred} \gets \var{pim}$
-\State Perform \Call{Earley reduction operation}{\Vloc{i}, \Veimx{pred}, \Vsym{lhs}}
+\State $\Veim{pred} \gets \var{pim}$
+\State Perform \Call{Earley reduction operation}{\Vloc{i}, \Veim{pred}, \Vsym{lhs}}
 \EndIf
 \EndFor
 \EndProcedure
@@ -1015,8 +1015,8 @@ calling procedure.
 \begin{algorithm}[h]
 \caption{Leo reduction operation}
 \begin{algorithmic}[1]
-\Procedure{Leo reduction operation}{\Vloc{i}, \Vlimm{from}}
-\State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlimm{from}$
+\Procedure{Leo reduction operation}{\Vloc{i}, \Vlim{from}}
+\State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlim{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
@@ -1036,12 +1036,12 @@ calling procedure.
 \State $\Veim{reduced} \gets [\Vah{reduced}, \Vloc{origin}]$
 \State $\Vah{predicted} \gets \GOTO(\Vah{reduced}, \epsilon)$
 \If{$\Veim{reduced}$ is new}
-\State Add $\Veim{reduced}$ to $\tablei{i}$
+\State Add $\Veim{reduced}$ to $\Vtable{i}$
 \EndIf
 \If{$\Vah{predicted} \neq \Lambda$}
 \State $\Veim{predicted} \gets [\Vah{predicted}, \Vloc{i}]$
 \If{$Veim{predicted}$ is new}
-\State Add $\Veim{predicted}$ to $\tablei{i}$
+\State Add $\Veim{predicted}$ to $\Vtable{i}$
 \EndIf
 \EndIf
 \EndProcedure
@@ -1108,7 +1108,7 @@ Consider the case where Marpa is building \Ves{j}
 an Earley item \Veimm{x} is new,
 where $\Veimm{x} = [ \Vah{x}, \Vloc{origin} ]$.
 To do this,
-Marpa checks the PSL's for $\tablei{origin}$.
+Marpa checks the PSL's for $\Vtable{origin}$.
 Let the Earley set ``stamp'' for that PSL entry be \Ves{p}.
 If the entry has never been used, $\Ves{p} = \Lambda$
 If $\Ves{p} \ne \Lambda \land \Ves{p} = \Ves{j}$,
@@ -1175,7 +1175,7 @@ there exists
 [\Vdr{y}, \Vorig{x}] in \EVtable{\Leo}{i}
 \]
 such that
-\Vdr{y} \in \Vah{x}
+$\Vdr{y} \in \Vah{x}A$
 \end{definition}
 
 \begin{definition}
@@ -1189,7 +1189,7 @@ there exists
 [\Vah{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
 \]
 such that
-\Vdr{y} \in \Vah{x}
+$\Vdr{y} \in \Vah{x}$
 \end{definition}
 
 \begin{definition}
@@ -1202,18 +1202,21 @@ if and only the Marpa Earley set is complete
 and correct.
 \end{definition}
 
-\begin{theorem}\label{congruence}
+\begin{theorem}[Marpa-Leo Congruence]\label{congruence}
 \begin{equation*}
 \forall \Vloc{i}, 0 \le \var{i} < \Vsize{w} \implies \Vest{i} \cong \Ves{i}
 \end{equation*}
 \end{theorem}
 
-\begin{proof}
-The proof is by a induction on the Earley sets.
+\subsection{Proof of Theorem \ref{congruence}}
+
+The proof of
+Theorem \ref{congruence}
+is by a induction on the Earley sets.
 We leave it as an exercise to show, as the
 basis of the induction, that
 \[
-\EEtable{\Earley}{0} \conq \EEtable{\Marpa}{i}
+\EEtable{\Earley}{0} \cong \EEtable{\Marpa}{i}
 \]
 We show correctness by 
 an inner induction on the Marpa operations.
@@ -1223,11 +1226,120 @@ correct.
 
 We show the step of the inner induction by cases.
 For Marpa's scanning operation, we know
-we have a correct predecessor EIM by the induction hypothesis,
-and by definitions in the preliminaries,
-we know that the tokens will be the same for both Earley and Marpa.
-\todo{Talk about AHFA correctness}
-\end{proof}
+that the predecessor EIM is correct
+by the outer induction hypothesis,
+and that the token is correct
+and by definitions in the preliminaries.
+We know from the pseudocode for the scanning operation
+that add to most two EIM's will be added.
+The first will be
+\begin{equation*}
+[\Vah{confirmed}, \Vloc{i}]
+\end{equation*}
+where
+\begin{equation*}
+\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{token}),
+\end{equation*}
+which will be correct by
+Observation~\cite{o:confirmed-AHFA-correctness}.
+The second will be added only if
+\begin{equation*}
+\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)
+\end{equation*}
+is defined,
+in which case it will be
+\begin{equation*}
+[\Vah{predicted}, 0],
+\end{equation*}
+which will be correct by
+Observation~\cite{o:predicted-AHFA-correctness}.
+
+We next show correctness for Marpa's reduction operation,
+in the case where there is no Leo reduction.
+There will be two cause EIMT's, \Veim{predecessor}
+and \Veim{component}.
+\Veim{predecessor} will be correct by the outer induction
+hypothesis
+and \Veim{component}.
+will be correct by the inner induction hypothesis.
+From \Veim{component}, we will find one or more transition
+symbols, \Vsym{lhs}.
+From this point,  the argument is very similar to
+that for the case of the scanning operation.
+For each \Vsym{lhs}, at most two EIM's will be
+added.
+The first will be
+\begin{equation*}
+[\Vah{confirmed}, \Vloc{i}]
+\end{equation*}
+where
+\begin{equation*}
+\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{lhs}),
+\end{equation*}
+which will be correct by
+Observation~\cite{o:confirmed-AHFA-correctness}.
+The second will be added only if
+\begin{equation*}
+\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)
+\end{equation*}
+is defined,
+in which case it will be
+\begin{equation*}
+[\Vah{predicted}, 0],
+\end{equation*}
+which will be correct by
+Observation~\cite{o:predicted-AHFA-correctness}.
+
+We now show correctness for Marpa's reduction operation,
+in the case where there is a Leo reduction.
+If there is a Leo reduction, it is signaled by the
+presence of \Vlim{predecessor}.
+in the Earley set where we would look
+for the \Veim{predecessor} --
+By the outer induction, we have the correctness
+of \Ves{predecessor}.
+We treat 
+the logic to create \Vlim{predecessor} as a matter of memoization
+of the previous Earley sets.
+We treat the correctness of this memoization as
+a matter of definition therefore conclude
+for the outer induction that 
+\Vlim{predecessor} is correct.
+By the Leo definitions,
+if \Vlim{predecessor} exists,
+if is because we have in some previous Earley set
+\Vest{predecessor},
+such that
+\begin{equation*}
+\exists \Vloc{top}, \Veimt{predecessor} = [ \Vdr{predecessor}, \Vorig{top} ].
+\end{equation*}
+By the Leo definitions and Theorem \ref{t:leo-singleton},
+for a Leo reduction, Marpa adds the EIM
+\begin{align*}
+[ \Vah{top}, \Vorig{top} ] \text{, where}
+\Vah{top} = \set{ [ \GOTO(\Vdr{predecessor}, \Vsym{lhs}) ] }
+\end{align*}
+Marpa's reduction operation is therefore
+correct in the cases when it does a Leo reduction.
+
+We have just showed
+the last case of the step for the inner induction,
+which shows the step and the induction.
+It was the purpose of the inner induction to show
+that correctness of \Ves{i} is invariant
+under Marpa's operations.
+It remains to show that,
+when Marpa's operations are run as prescribed
+in the pseudocode of Section \ref{s:pseudocode},
+that 
+\Ves{i} is complete.
+
+To show completeness, we follow the order of operations
+in the pseudocode.
+The first operations will be the scanning operations
+on \Veim{predecessor}, \Vsym{token} pairs.
+\todo{Complete the proof}
+\qedsymbol
 
 \section{Marpa recognizer complexity}
 \label{s:complexity}
@@ -1263,11 +1375,11 @@ and our bound follows.
 Let \Vg{} be a grammar as defined in this
 document,
 and let \Vfa{} be the AHFA for this grammar.
-Let \tablesizen{\Marpa} be the number of Earley items in
+Let \tablesize{\Marpa} be the number of Earley items in
 a \Marpa{} parse,
-and \tablesizen{\Leo} the number of Earley items in a \Leo
+and \tablesize{\Leo} the number of Earley items in a \Leo
 parse.
-$$ \order{\tablesizen{\Marpa}} = \order{\tablesizen{\Leo}} $$
+$$ \order{\tablesize{\Marpa}} = \order{\tablesize{\Leo}} $$
 \end{theorem}
 
 \begin{proof}
@@ -1325,7 +1437,7 @@ $$ \size{\VVes{M}{i}} \le \size{fa} \times \size{\VVes{L}{i}} $$
 And summing over $\var{i}, 0 \le \var{i} \le \var{n}$
 where $\var{n} = \Vsize{w}$,
 we see that
-$$ \order{\tablesizen{\Marpa}} = \order{\tablesizen{\Leo}} $$
+$$ \order{\tablesize{\Marpa}} = \order{\tablesize{\Leo}} $$
 \end{proof}
 
 \subsection{Amortized complexity of Marpa's Earley items}
