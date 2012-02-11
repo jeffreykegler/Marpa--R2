@@ -86,7 +86,7 @@
 \newcommand{\GOTO}{\mymathop{GOTO}}
 \newcommand\myL[1]{\operatorname{L}(#1)}
 \newcommand\postdot[1]{\operatorname{postdot}(#1)}
-\newcommand\Etable[1]{\es{\mymathop{table}[#1]}}
+\newcommand\Etable[1]{\ensuremath{\es{\mymathop{table}[#1]}}}
 \newcommand\Vtable[1]{\Etable{\var{#1}}}
 \newcommand\EEtable[2]{\ensuremath{\mymathop{table}(#1,#2)}}
 \newcommand\EVtable[2]{\EEtable{#1}{\var{#2}}}
@@ -908,6 +908,8 @@ Earley item attempts.
 \caption{Reduction pass}
 \begin{algorithmic}[1]
 \Procedure{Reduction pass}{\Vloc{i}}
+\State Note: This loop must include items added
+\State \hspace{2.5em} by \Call{Reduce one LHS}{}
 \For{each Earley item $\Veimm{work} \in \Vtable{i}$}
 \State $[\Vah{work}, \Vloc{origin}] \gets \Veimm{work}$
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
@@ -920,6 +922,11 @@ Earley item attempts.
 \end{algorithm}
 
 \subsection{Reduction pass}
+
+The loop over \Vtable{i} must also include
+any items added by \call{Reduce one LHS}.
+This can be done by implementing \Vtable{i} as an ordered
+set and adding new items at the end.
 
 Exclusive time is clearly \Oc{}
 and may be charged to each \Veimm{work}.
@@ -1224,6 +1231,9 @@ We have the basis
 trivially, since an empty Marpa Earley set is
 correct.
 
+\subsubsection{Scanning correctness}
+\label{s:scan-correct}
+
 We show the step of the inner induction by cases.
 For Marpa's scanning operation, we know
 that the predecessor EIM is correct
@@ -1253,6 +1263,9 @@ in which case it will be
 \end{equation*}
 which will be correct by
 Observation~\cite{o:predicted-AHFA-correctness}.
+
+\subsubsection{Reduction correctness without Leo}
+\label{s:Earley-reduction-correct}
 
 We next show correctness for Marpa's reduction operation,
 in the case where there is no Leo reduction.
@@ -1290,6 +1303,9 @@ in which case it will be
 which will be correct by
 Observation~\cite{o:predicted-AHFA-correctness}.
 
+\subsubsection{Leo Reduction correctness}
+\label{s:Leo-reduction-correct}
+
 We now show correctness for Marpa's reduction operation,
 in the case where there is a Leo reduction.
 If there is a Leo reduction, it is signaled by the
@@ -1322,23 +1338,184 @@ for a Leo reduction, Marpa adds the EIM
 Marpa's reduction operation is therefore
 correct in the cases when it does a Leo reduction.
 
-We have just showed
-the last case of the step for the inner induction,
+\subsubsection{Marpa's Earley set are correct}
+\label{s:correct}
+
+Sections
+\ref{s:scan-correct}
+\ref{s:Earley-reduction-correct}
+and
+\ref{s:Leo-reduction-correct}
+show the step for the inner induction,
 which shows the step and the induction.
 It was the purpose of the inner induction to show
 that correctness of \Ves{i} is invariant
 under Marpa's operations.
 It remains to show that,
-when Marpa's operations are run as prescribed
+when Marpa's operations are run as described
 in the pseudocode of Section \ref{s:pseudocode},
 that 
 \Ves{i} is complete.
 
-To show completeness, we follow the order of operations
-in the pseudocode.
-The first operations will be the scanning operations
-on \Veim{predecessor}, \Vsym{token} pairs.
-\todo{Complete the proof}
+\subsubsection{Marpa Earley set completeness}
+
+To show that the Marpa Earley sets are complete,
+we need to show they contain Earley items
+corresponding to all the Earley items that
+\Leo{} would produce for the same Earley set
+for the same grammar and input.
+A Marpa Earley item \Veim{x} corresponds to 
+a tradtional Earley item \Veim{y},
+if the traditional Earley item is
+if $\Veimt{x} = [\Vdr{x}, \Vorig{x}]$
+and the Marpa Earley item is
+if $\Veim{y} = [\Vah{y}, \Vorig{x}]$
+where $\Vdr{x} \in \Vah{y}$.
+We will proceed by showing that,
+for every operation which \Leo would perform,
+a \Marpa operation is performed which
+will produce the corresponding Earley item.
+
+\subsubsection{Scanning completeness}
+\label{s:scan-complete}
+
+For scanning, the Marpa pseudocode shows
+that, a scan is attempted for every
+pair \Veim{predecessor}, \Vsym{token},
+where \Veim{predecessor} is an EIM in the previous
+Earley set,
+and \Vsym{token} is the token scanned at \Vloc{i}.
+(The pseudocode actually finds
+\Veim{predecessor} in a set
+returned by $\mymathop{transitions}()$.
+This is a memoization for efficiency
+and we will ignore it.)
+By the preliminary definitions, we know that \Vsym{token}
+is the same in both \Earley{} and \Leo.
+By the outer induction hypothesis we know that,
+for every traditional Earley item in the previous
+Earley set,
+there is at least one corresponding Marpa Earley item.
+We see from the pseudocode, therefore,
+that \Marpa performs its scan operation on a complete set
+of correct operands.
+Comparing the Marpa pseudocode,
+with the Earley scanning operation
+and using
+Observation~\ref{o:confirmed-AHFA-completeness}
+and 
+Observation~\ref{o:predicted-AHFA-completeness},
+we see that a Earley item
+in \Ves{i} corresponding to every scanned Earley item
+of \Vest{i},
+as well as to every prediction that results from
+a scanned Earley item in \Vest{i}.
+
+\subsubsection{Earley reduction completeness}
+
+For reduction,
+we first examine Earley reduction --
+reduction under the assumption that there is
+no Leo transition.
+The Marpa pseudocode shows that the Earley items
+\Ves{i}
+are traversed in a single pass for reduction.
+Let $\Veim{working} = [\Vah{working}, \Vorig{working}]$
+be the Earley item in \Ves{i}
+currently being examined by the reduction operation.
+
+Also from the pseudocode, we see
+that, reductions are attempted for every
+pair \Veim{predecessor}, \Veim{working}.
+(Again, $\mymathop{transitions}()$ is ignored
+as a memoization.)
+By the outer induction hypothesis we know that,
+for every traditional Earley item in the previous
+Earley set,
+there is at least one corresponding Marpa Earley item.
+We see from the pseudocode, therefore,
+that for each \Veim{working}
+that \Marpa performs its reduction operation on a complete set
+of correct predecessors.
+
+To show that these predecessors are paired
+with a complete and correct sets of component Earley items.
+We stipulate the Earley set is an ordered set,
+and that new Earley items are added at the end.
+The number of Earley items is finite (at most $\Vsize{ah} \times \var{i}$,
+where \Vsize{ah} is the number of AHFA states),
+so a traversal of them must terminate.
+
+Consider, for the purposes of an inner induction,
+the reductions of \Leo{} to occur in generations.
+Let the scanned Earley items be generation 0.
+An EIMT produced by a reduction is generation $\var{n} + 1$
+if its component Earley item was generation was \var{n}.
+Predicted Earley items do not need be assigned generations.
+In Marpa grammars they can never contain completions,
+and therefore can never act as the component of a reduction.
+
+The induction hypothesis for the inner induction
+is that for some \var{n},
+the Earley items of \Ves{i} for generations 0 through \var{n}
+are complete and correct.
+
+From Section \label{s:correct},
+we know that all Earley items in Marpa's sets are correct.
+In Section \label{s:scan-complete},
+we showed that generation 0 is complete --
+its contains Earley items
+corresponding to all of the generation 0 EIMT's of \Leo.
+This is the basis of the inner induction.
+
+Since we stipulated that \Marpa adds Earley items
+at the end of each set,
+we know that they occur in generation order.
+Therefore, \Marpa in traversing \Ves{i},
+can relying, when
+visiting Earley items of generation $\var{n}+1$,
+can rely on the inner induction hypothesis for 
+before encountering any in generation \var{n}.
+By the outer induction hypothesis we know that,
+for every traditional Earley item in the previous
+Earley set,
+there is at least one corresponding Marpa Earley item.
+We see the pseudocode, therefore,
+that, for generation $\var{n} + 1$
+\Marpa will performs its reduction operation for a complete set
+of correct operands.
+Comparing the Marpa pseudocode,
+with the Earley reduction operation
+and using
+Observation~\ref{o:confirmed-AHFA-completeness}
+and 
+Observation~\ref{o:predicted-AHFA-completeness},
+we see that a reduced Earley item of
+generation $\var{n}+1$
+will be added to
+\Ves{i} corresponding to every reduced Earley item
+of \Vest{i},
+as well as one corresponding
+to every prediction that results from
+a reduced Earley item
+of generation $\var{n}+1$ in \Vest{i}.
+This completes the induction step,
+the inner induction,
+and shows that \Ves{i} is complete.
+
+\todo{Winding up the proof}
+Given the outer induction hypothesis,
+we have from Section \ref{s:es-correct} that,
+\Ves{i} is correct,
+and from Section \ref{es-complete} that it is
+complete.
+From this we can conclude that
+\begin{equation*}
+    \EVtable{\Leo}{i} \cong \EVtable{\Marpa}{i}
+\end{equation*}
+which is the step of the outer induction.
+With this we have the outer induction,
+and the theorem.
 \qedsymbol
 
 \section{Marpa recognizer complexity}
