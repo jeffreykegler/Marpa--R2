@@ -614,13 +614,13 @@ it does not have a nulling postdot symbol.
 \end{definition}
 
 AHFA states are of two kinds:
-{\bf Discovered AHFA states}
+{\bf Confirmed AHFA states}
 contain the predicted start rule and
-discovered rules.
+confirmed rules.
 {\bf Predicted AHFA states}
 contain predicted rules
 other than the start rule.
-(In \cite{AH2002} discovered states are called the ``kernel states'',
+(In \cite{AH2002} confirmed states are called the ``kernel states'',
 and predicted states are called ``non-kernel states''.)
 
 It is important to note that
@@ -1177,7 +1177,7 @@ result of the parse.
 
 \begin{definition}
 A Marpa Earley set \EVtable{\Marpa}{i}
-is \dfn{correct} if and only if for all
+is \dfn{consistent} if and only if for all
 \[
 [\Vah{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
 \]
@@ -1205,42 +1205,47 @@ $\Vdr{y} \in \Vah{x}$
 
 \begin{definition}
 We say that
-a Marpa Earley set \EVtable{\Marpa}{i}
-and a Leo Earley set \EVtable{\Leo}{i}
-are \dfn{congruent}
-($EVtable{\Leo}{i} \cong EVtable{\Marpa}{i}$)
-if and only the Marpa Earley set is complete
-and correct.
+a Marpa Earley set is \dfn{correct}
+if and only that Marpa Earley set is complete
+and consistent.
 \end{definition}
 
 \section{Marpa is correct}
 
-\begin{theorem}[Marpa-Leo Congruence]\label{congruence}
-\begin{equation*}
-\forall \Vloc{i}, 0 \le \var{i} < \Vsize{w} \implies \Vest{i} \cong \Ves{i}
-\end{equation*}
+\begin{theorem}\label{t:es-correctness}
+Marpa's Earley sets are correct.
 \end{theorem}
 
 \subsection{Proof of Theorem \ref{congruence}}
 
 The proof of
-Theorem \ref{congruence}
+Theorem \ref{t:es-correctness}
 is by a induction on the Earley sets.
+The induction hypothesis is that all Earley sets
+\EVtable{\Marpa}{i} are complete and consistent
+(and therefore correct)
+for $0 \le \Vloc{i} \le \Vloc{n}$.
 We leave it as an exercise to show, as the
 basis of the induction, that
-\[
-\EEtable{\Earley}{0} \cong \EEtable{\Marpa}{i}
-\]
-We show correctness by
+\EEtable{\Marpa}{0} is complete and consistent.
+
+To show the outer induction step, we show first
+consistency, then completeness.
+We show consistency by
 an inner induction on the Marpa operations.
-We have the basis
-trivially, since an empty Marpa Earley set is
-correct.
+As the basis of the inner induction,
+an empty Marpa Earley set is
+consistent, trivially.
+We show the step of the inner induction by cases:
+\begin{itemize}
+\item \Marpa scanning operations;
+\item \Marpa reductions when there are no Leo reductions; and
+\item Leo reductions
+\end{itemize}
 
-\subsubsection{Scanning correctness}
-\label{s:scan-correct}
+\subsubsection{Marpa scanning is consistent}
+\label{s:scan-consistent}
 
-We show the step of the inner induction by cases.
 For Marpa's scanning operation, we know
 that the predecessor EIM is correct
 by the outer induction hypothesis,
