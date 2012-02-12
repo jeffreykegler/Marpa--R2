@@ -1013,7 +1013,7 @@ calling procedure.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Leo Reduction operation}
+\subsection{Leo reduction operation}
 
 Exclusive time and space is clearly \Oc.
 Inclusive time and space is charged to the
@@ -1074,9 +1074,9 @@ PSL's are the subject of the next section.
 \subsection{Per-set lists}
 
 A per-set list (PSL) is kept in each Earley set.
-When building a new Earley set, \Ves{j},
-the PSL for every previous Earley set, \Ves{i},
-keeps a list of those Earley items in \Ves{j} which have \Ves{i}
+When building a new Earley set, \EVtable{\Marpa}{j},
+the PSL for every previous Earley set, \EVtable{\Marpa}{i},
+keeps a list of those Earley items in \EVtable{\Marpa}{j} which have \EVtable{\Marpa}{i}
 as their origin.
 Each PSL needs to only keep track of a maximum
 number of possible Earley items.
@@ -1094,20 +1094,21 @@ with a link back to the Earley set
 which was current when that PSL
 entry was last added or updated.
 
-Consider the case where Marpa is building \Ves{j}
+Consider the case where Marpa is building \EVtable{\Marpa}{j}
 an Earley item \Veimm{x} is new,
 where $\Veimm{x} = [ \Vah{x}, \Vloc{origin} ]$.
 To do this,
 Marpa checks the PSL's for $\Vtable{origin}$.
-Let the Earley set ``stamp'' for that PSL entry be \Ves{p}.
-If the entry has never been used, $\Ves{p} = \Lambda$
-If $\Ves{p} \ne \Lambda \land \Ves{p} = \Ves{j}$,
+Let the Earley set ``stamp'' for that PSL entry be \EVtable{\Marpa}{p}.
+If the entry has never been used, $\EVtable{\Marpa}{p} = \Lambda$
+If $\EVtable{\Marpa}{p} \ne \Lambda \land \EVtable{\Marpa}{p} = \EVtable{\Marpa}{j}$,
 then \Veimm{x} is not new,
 and will not be added to the Earley set.
 
-If $\Ves{p} = \Lambda \lor \Ves{p} \ne \Ves{j}$, then \Veimm{x} is new.
+If $\EVtable{\Marpa}{p} = \Lambda \lor \EVtable{\Marpa}{p} \ne \EVtable{\Marpa}{j}$,
+then \Veimm{x} is new.
 \Veimm{x} is added to the Earley set,
-and the PSL's ``stamp'' is updated to \Ves{j}.
+and the PSL's ``stamp'' is updated to \EVtable{\Marpa}{j}.
 As implemented,
 Marpa uses PSL's for this purpose and several others.
 
@@ -1381,31 +1382,30 @@ These will be consistent by
 Observations~\ref{o:confirmed-AHFA-consistent}
 and~\ref{o:predicted-AHFA-consistent}.
 
-\subsubsection{Leo Reduction correctness}
+\subsubsection{Leo reduction correctness}
 \label{s:Leo-reduction-correct}
 
 We now show correctness for Marpa's reduction operation,
 in the case where there is a Leo reduction.
 If there is a Leo reduction, it is signaled by the
-presence of \Vlim{predecessor}.
+presence of \Vlim{predecessor},
+\begin{equation*}
+\Vlim{predecessor} = [ \Vah{top}, \Vsym{lhs}, \Vorig{top} ]
+\end{equation*}
 in the Earley set where we would look
-for the \Veim{predecessor} --
-By the outer induction, we have the correctness
-of \Ves{predecessor}.
+for the \Veim{predecessor}.
 We treat 
 the logic to create \Vlim{predecessor} as a matter of memoization
-of the previous Earley sets.
-We treat the correctness of this memoization as
-a matter of definition therefore conclude
-for the outer induction that 
-\Vlim{predecessor} is correct.
+of the previous Earley sets,
+and its correctness follows from
+the outer induction hypothesis.
 By the Leo definitions,
-if \Vlim{predecessor} exists,
+if \Vlim{predecessor} exists and is correct,
 if is because we have in some previous Earley set
-\Vest{predecessor},
-such that
+the Earley item
+\Veimt{predecessor},
 \begin{equation*}
-\exists \Vloc{top}, \Veimt{predecessor} = [ \Vdr{predecessor}, \Vorig{top} ].
+\Veimt{predecessor} = [ \Vdr{predecessor}, \Vorig{top} ].
 \end{equation*}
 By the Leo definitions and Theorem \ref{t:leo-singleton},
 for a Leo reduction, Marpa adds the EIM
@@ -1427,13 +1427,13 @@ and
 show the step for the inner induction,
 which shows the step and the induction.
 It was the purpose of the inner induction to show
-that correctness of \Ves{i} is invariant
+that correctness of \EVtable{\Marpa}{i} is invariant
 under Marpa's operations.
 It remains to show that,
 when Marpa's operations are run as described
 in the pseudocode of Section \ref{s:pseudocode},
 that 
-\Ves{i} is complete.
+\EVtable{\Marpa}{i} is complete.
 
 \subsubsection{Marpa Earley set completeness}
 
@@ -1484,7 +1484,7 @@ Observation~\ref{o:confirmed-AHFA-complete}
 and 
 Observation~\ref{o:predicted-AHFA-complete},
 we see that a Earley item
-in \Ves{i} corresponding to every scanned Earley item
+in \EVtable{\Marpa}{i} corresponding to every scanned Earley item
 of \Vest{i},
 as well as to every prediction that results from
 a scanned Earley item in \Vest{i}.
@@ -1496,10 +1496,10 @@ we first examine Earley reduction --
 reduction under the assumption that there is
 no Leo transition.
 The Marpa pseudocode shows that the Earley items
-\Ves{i}
+\EVtable{\Marpa}{i}
 are traversed in a single pass for reduction.
 Let $\Veim{working} = [\Vah{working}, \Vorig{working}]$
-be the Earley item in \Ves{i}
+be the Earley item in \EVtable{\Marpa}{i}
 currently being examined by the reduction operation.
 
 Also from the pseudocode, we see
@@ -1535,7 +1535,7 @@ and therefore can never act as the component of a reduction.
 
 The induction hypothesis for the inner induction
 is that for some \var{n},
-the Earley items of \Ves{i} for generations 0 through \var{n}
+the Earley items of \EVtable{\Marpa}{i} for generations 0 through \var{n}
 are complete and correct.
 
 From Section \label{s:correct},
@@ -1549,7 +1549,7 @@ This is the basis of the inner induction.
 Since we stipulated that \Marpa{} adds Earley items
 at the end of each set,
 we know that they occur in generation order.
-Therefore, \Marpa{} in traversing \Ves{i},
+Therefore, \Marpa{} in traversing \EVtable{\Marpa}{i},
 can relying, when
 visiting Earley items of generation $\var{n}+1$,
 can rely on the inner induction hypothesis for 
@@ -1571,7 +1571,7 @@ Observation~\ref{o:predicted-AHFA-complete},
 we see that a reduced Earley item of
 generation $\var{n}+1$
 will be added to
-\Ves{i} corresponding to every reduced Earley item
+\EVtable{\Marpa}{i} corresponding to every reduced Earley item
 of \Vest{i},
 as well as one corresponding
 to every prediction that results from
@@ -1579,12 +1579,12 @@ a reduced Earley item
 of generation $\var{n}+1$ in \Vest{i}.
 This completes the induction step,
 the inner induction,
-and shows that \Ves{i} is complete.
+and shows that \EVtable{\Marpa}{i} is complete.
 
 \todo{Winding up the proof}
 Given the outer induction hypothesis,
 we have from Section \ref{s:es-correct} that,
-\Ves{i} is correct,
+\EVtable{\Marpa}{i} is correct,
 and from Section \ref{es-complete} that it is
 complete.
 From this we can conclude that
