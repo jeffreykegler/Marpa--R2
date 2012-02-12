@@ -1292,11 +1292,12 @@ Marpa's Earley sets are correct.
 
 The proof of
 Theorem \ref{t:es-correctness}
-is by a induction on the Earley sets.
+is by induction on the Earley sets.
 The induction hypothesis is that all Earley sets
-\EVtable{\Marpa}{i} are complete and consistent
-(and therefore correct)
-for $0 \le \Vloc{i} \le \Vloc{n}$.
+\EVtable{\Marpa}{i},
+$0 \le \Vloc{i} \le \Vloc{n}$,
+are complete and consistent,
+and therefore correct.
 We leave it as an exercise to show, as the
 basis of the induction, that
 \EEtable{\Marpa}{0} is complete and consistent.
