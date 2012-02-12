@@ -89,7 +89,7 @@
 \newcommand{\Next}[1]{\mymathop{Next}(#1)}
 \newcommand{\Predict}[1]{\mymathop{Predict}(#1)}
 \newcommand{\Postdot}[1]{\mymathop{Postdot}(#1)}
-\newcommand\myL[1]{\operatorname{L}(#1)}
+\newcommand{\myL}[1]{\mymathop{L}(#1)}
 \newcommand\Etable[1]{\ensuremath{\es{\mymathop{table}[#1]}}}
 \newcommand\Vtable[1]{\Etable{\var{#1}}}
 \newcommand\EEtable[2]{\ensuremath{\mymathop{table}(#1,#2)}}
@@ -221,8 +221,8 @@ For the purposes of this document consider,
 without loss of generality,
 a grammar $g$,
 and a set of symbols, $alphabet$.
-Call the language of \var{g}, $\myL{g}$,
-where $\myL{g} \in alphabet^\ast$
+Call the language of \var{g}, $\myL{\Vg}$,
+where $\myL{\Vg} \in alphabet^\ast$
 Divide $alphabet$ into two disjoint sets,
 \Vsymset{lh} and \Vsymset{term}.
 
@@ -302,8 +302,8 @@ as described in~\cite{Leo1991}.
 of \Earley{}
 as described in~\cite{AH2002}.
 Where $\alg{Recce}$ is a recognizer,
-$\myL{\alg{Recce},g}$ will be the language accepted by $\alg{Recce}$
-when parsing grammar $g$.
+$\myL{\alg{Recce},\Vg}$ will be the language accepted by $\alg{Recce}$
+when parsing \Vg.
 
 \section{Earley's algorithm}
 
@@ -788,11 +788,12 @@ caller.
 \State reject if $\size{\Etable{\var{i}}} = 0$
 \State \Call{Reduction pass}{\var{i}}
 \EndFor
-\If{$[\Vah{accept}, 0] \in \Etable{\Vsize{w}}$}
-\State accept \var{w}
-\Else
-\State reject \var{w}
+\For{every $[Vah{x}, 0] \in \Etable{\Vsize{w}}$}
+\If{$\Vdr{accept} \in \Vah{x}$}
+\State accept \Vw and return
 \EndIf
+\EndFor
+\State reject \Vw
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -1158,33 +1159,33 @@ the parse would allow the nulling symbols
 to be added based on full knowledge of the
 result of the parse.
 
-
 \begin{definition}
-A Marpa Earley set \EVtable{\Marpa}{i}
-is \dfn{consistent} if and only if for all
-\Vah{x}, \Vorig{x}
-if
-\begin{equation*}
-    [\var{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
-\end{equation*}
-then
-\begin{equation*}
-\forall \Vdr{d}, \quad \var{d} \in \Vah{x} \implies [\Vdr{d}, \Vorig{x}] \in \EVtable{\Leo}{i}.
-\end{equation*}
+A Marpa Earley item \dfn{corresponds}
+to a traditional Earley item
+$\Veimt{x} = [\Vdr{x}, \Vorig{x}]$
+if and only if the Marpa Earley item is
+if $\Veim{y} = [\Vah{y}, \Vorig{x}]$
+and $\Vdr{x} \in \Vah{y}$.
+The relation is reflexive:
+A traditional Earley item, \Veimt{x}, corresponds to a
+Marpa Earley item, \Veim{y}, if and only if
+\Veim{y} corresponds to \Veimt{x}.
 \end{definition}
 
 \begin{definition}
 A Marpa Earley set \EVtable{\Marpa}{i}
-is \dfn{complete} if and only if for all
-\[
-[\Vdr{x}, \Vorig{x}] in \EVtable{\Leo}{i}
-\]
-there exists
-\[
-[\Vah{x}, \Vorig{x}] \in \EVtable{\Marpa}{i}
-\]
-such that
-$\Vdr{y} \in \Vah{x}$
+is \dfn{consistent} if and only if
+all of its Earley items correspond to
+traditional Earley items in 
+\EVtable{\Leo}{i}.
+\end{definition}
+
+\begin{definition}
+A Marpa Earley set \EVtable{\Marpa}{i}
+is \dfn{complete} if and only if for every
+traditional Earley item in \EVtable{\Leo}{i}
+there is a corresponding Earley item in
+\EVtable{\Marpa}{i}.
 \end{definition}
 
 \begin{definition}
@@ -1399,60 +1400,62 @@ the logic to create \Vlim{predecessor} as a matter of memoization
 of the previous Earley sets,
 and its correctness follows from
 the outer induction hypothesis.
-By the Leo definitions,
-if \Vlim{predecessor} exists and is correct,
-if is because we have in some previous Earley set
-the Earley item
-\Veimt{predecessor},
-\begin{equation*}
-\Veimt{predecessor} = [ \Vdr{predecessor}, \Vorig{top} ].
-\end{equation*}
-By the Leo definitions and Theorem \ref{t:leo-singleton},
-for a Leo reduction, Marpa adds the EIM
-\begin{align*}
-[ \Vah{top}, \Vorig{top} ] \text{, where}
-\Vah{top} = \set{ [ \GOTO(\Vdr{predecessor}, \Vsym{lhs}) ] }
-\end{align*}
-Marpa's reduction operation is therefore
-correct in the cases when it does a Leo reduction.
+As the result of a Leo reduction
+the \Leo algorithm will add
+$[\Vdr{top}, \Vorig{top}]$
+to \EVtable{\Leo}{j}.
+Because the \Marpa LIM is correct,
+Observations \ref{o:confirmed-AHFA-consistent}
+and \ref{o:confirmed-AHFA-complete}
+and Theorem \ref{t:leo-singleton},
+we know that \Vah{top} is the singleton set
+$\set{ \Vdr{top} }$
+From the \Marpa pseudocode, we see
+that, as the result of the Leo reduction,
+the \Marpa algorithm will add
+$[\ah{top}, \Vorig{top}]$
+to \EVtable{\Marpa}{j}.
+Consistency follows immediately.
 
-\subsubsection{Marpa's Earley set are correct}
-\label{s:correct}
+\subsubsection{Marpa's Earley sets are consistent}
+\label{s:es-consistent}
 
 Sections
-\ref{s:scan-correct}
-\ref{s:Earley-reduction-correct}
+\ref{s:scan-consistent}
+\ref{s:Earley-reduction-consistent}
 and
-\ref{s:Leo-reduction-correct}
-show the step for the inner induction,
-which shows the step and the induction.
+\ref{s:Leo-reduction-consistent}
+show the cases for the step of the inner induction,
+which shows the induction.
 It was the purpose of the inner induction to show
-that correctness of \EVtable{\Marpa}{i} is invariant
+that consistency of \EVtable{\Marpa}{i} is invariant
 under Marpa's operations.
+
+\subsubsection{Marpa Earley set completeness}
+
 It remains to show that,
 when Marpa's operations are run as described
 in the pseudocode of Section \ref{s:pseudocode},
 that 
 \EVtable{\Marpa}{i} is complete.
-
-\subsubsection{Marpa Earley set completeness}
-
 To show that the Marpa Earley sets are complete,
-we need to show they contain Earley items
-corresponding to all the Earley items that
-\Leo{} would produce for the same Earley set
-for the same grammar and input.
-A Marpa Earley item \Veim{x} corresponds to 
-a tradtional Earley item \Veim{y},
-if the traditional Earley item is
-if $\Veimt{x} = [\Vdr{x}, \Vorig{x}]$
-and the Marpa Earley item is
-if $\Veim{y} = [\Vah{y}, \Vorig{x}]$
-where $\Vdr{x} \in \Vah{y}$.
+we need to show that,
+for every traditional Earley item in 
+\EVtable{\Leo}{i},
+\EVtable{\Marpa}{i} contains a least
+one Earley item that corresponds.
 We will proceed by showing that,
 for every operation which \Leo would perform,
-a \Marpa{} operation is performed which
-will produce the corresponding Earley item.
+a \Marpa{} operation will performed which
+will produce a corresponding Earley item.
+We will proceed by cases,
+where the cases are the operations of \Leo:
+\begin{itemize}
+\item traditional \Earley scanning operations;
+\item traditional \Earley reductions;
+\item Leo reductions;
+\item traditional \Earley predictions;
+\end{itemize}
 
 \subsubsection{Scanning completeness}
 \label{s:scan-complete}
@@ -1483,17 +1486,20 @@ and using
 Observation~\ref{o:confirmed-AHFA-complete}
 and 
 Observation~\ref{o:predicted-AHFA-complete},
-we see that a Earley item
-in \EVtable{\Marpa}{i} corresponding to every scanned Earley item
-of \Vest{i},
-as well as to every prediction that results from
-a scanned Earley item in \Vest{i}.
+we see that a Earley item will be added to
+\EVtable{\Marpa}{i} corresponding to every scanned Earley item
+of \EVtable{\Leo}{i}.
+We also see that the \Marpa scanning operaton will
+add to \EVtable{\Marpa}{i}
+an Earley item for
+every prediction that results from
+a scanned Earley item in \EVtable{\Leo}{i}.
 
 \subsubsection{Earley reduction completeness}
 
 For reduction,
-we first examine Earley reduction --
-reduction under the assumption that there is
+we first examine Earley reduction,
+under the assumption that there is
 no Leo transition.
 The Marpa pseudocode shows that the Earley items
 \EVtable{\Marpa}{i}
@@ -1501,20 +1507,6 @@ are traversed in a single pass for reduction.
 Let $\Veim{working} = [\Vah{working}, \Vorig{working}]$
 be the Earley item in \EVtable{\Marpa}{i}
 currently being examined by the reduction operation.
-
-Also from the pseudocode, we see
-that, reductions are attempted for every
-pair \Veim{predecessor}, \Veim{working}.
-(Again, $\mymathop{transitions}()$ is ignored
-as a memoization.)
-By the outer induction hypothesis we know that,
-for every traditional Earley item in the previous
-Earley set,
-there is at least one corresponding Marpa Earley item.
-We see from the pseudocode, therefore,
-that for each \Veim{working}
-that \Marpa{} performs its reduction operation on a complete set
-of correct predecessors.
 
 To show that these predecessors are paired
 with a complete and correct sets of component Earley items.
@@ -1550,18 +1542,31 @@ Since we stipulated that \Marpa{} adds Earley items
 at the end of each set,
 we know that they occur in generation order.
 Therefore, \Marpa{} in traversing \EVtable{\Marpa}{i},
-can relying, when
+can rely, when
 visiting Earley items of generation $\var{n}+1$,
-can rely on the inner induction hypothesis for 
-before encountering any in generation \var{n}.
+on the inner induction hypothesis for 
+the completeness of Earley items in
+in generation \var{n}.
+
+This means that \Marpa, when performing the reductions
+that will produce the Earley items of generation
+$\var{n} + 1$,
+will find a complete set of the component Earley items
+from generation \var{n}.
+From the pseudocode, we see
+that reductions are attempted for every
+pair \Veim{predecessor}, \Veim{working}.
+(Again, $\mymathop{transitions}()$ is ignored
+as a memoization.)
 By the outer induction hypothesis we know that,
 for every traditional Earley item in the previous
 Earley set,
 there is at least one corresponding Marpa Earley item.
-We see the pseudocode, therefore,
-that, for generation $\var{n} + 1$
-\Marpa{} will performs its reduction operation for a complete set
-of correct operands.
+We see from the pseudocode, therefore,
+that for each \Veim{working}
+that \Marpa{} performs its reduction operation on a complete set
+of correct predecessors.
+
 Comparing the Marpa pseudocode,
 with the Earley reduction operation
 and using
@@ -1572,29 +1577,69 @@ we see that a reduced Earley item of
 generation $\var{n}+1$
 will be added to
 \EVtable{\Marpa}{i} corresponding to every reduced Earley item
-of \Vest{i},
+of \EVtable{\Leo}{i},
 as well as one corresponding
 to every prediction that results from
 a reduced Earley item
-of generation $\var{n}+1$ in \Vest{i}.
+of generation $\var{n}+1$ in \EVtable{\Leo}{i}.
 This completes the induction step,
-the inner induction,
-and shows that \EVtable{\Marpa}{i} is complete.
+and the inner induction,
+and shows the case of reduction completeness.
 
-\todo{Winding up the proof}
-Given the outer induction hypothesis,
-we have from Section \ref{s:es-correct} that,
-\EVtable{\Marpa}{i} is correct,
-and from Section \ref{es-complete} that it is
-complete.
-From this we can conclude that
-\begin{equation*}
-    \EVtable{\Leo}{i} \cong \EVtable{\Marpa}{i}
-\end{equation*}
+\subsubsection{Prediction completeness}
+Predictions result only from items in the same Earley set.
+In the sections for the other cases of Leo operations,
+we showed that,
+for every prediction that would result
+from an item added to \EVtable{\Leo}{i},
+a corresponding prediction
+was added to \EVtable{\Marpa}{i}.
+
+\subsubsection{Finishing the proof}
+Having shown all the cases,
+we have shown that \EVtable{\Marpa}{i} is complete.
+In section \ref{s:es-consistent}
+we showed that \EVtable{\Marpa}{i} is consistent.
+From we conclude that \EVtable{\Marpa}{i} is correct,
 which is the step of the outer induction.
-With this we have the outer induction,
+Having shown its step, we have the outer induction,
 and the theorem.
 \qedsymbol
+
+\subsection{Marpa is correct}
+
+We are now is a position to show that Marpa is correct.
+\begin{theorem}
+\begin{equation*}
+\myL{\Marpa,\Vg} = \myL{\Vg}
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+From Theorem \ref{t:es-correct},
+we know that
+\begin{equation*}
+[\Vdr{accept},0] \in \EVtable{\Leo}{\Vsize{w}}
+\end{equation*}
+if and only there is a
+\begin{equation*}
+[\Vah{accept},0] \in \EVtable{\Marpa}{\Vsize{w}}
+\end{equation*}
+such that $\Vdr{accept} \in \Vah{accept}$.
+From the acceptance criteria in the \Leo definitions
+and the \Marpa psuedocode,
+it follows that
+\begin{equation*}
+\myL{\Marpa,\Vg} = \myL{\Leo,\Vg}.
+\end{equation*}
+By Theorem in \cite{Leo1991}, we know that \Leo
+is correct, so that
+\begin{equation*}
+\myL{\Leo,\Vg} = \myL{\Vg}.
+\end{equation*}
+The theorem follows from
+the previous two equalities.
+\end{proof}
 
 \section{Marpa recognizer complexity}
 \label{s:complexity}
