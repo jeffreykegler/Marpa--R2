@@ -1225,6 +1225,7 @@ is a transition from one
 state to another over a non-null symbol.
 
 \begin{observation}
+\label{o:confirmed-AHFA-consistent}
 AHFA confirmation is consistent.
 That is, if
 \begin{equation*}
@@ -1239,6 +1240,7 @@ then there exists \Vdr{from} such that all of the following are true
 \end{observation}
 
 \begin{observation}
+\label{o:confirmed-AHFA-complete}
 AHFA confirmation is complete.
 That is, if
 \begin{equation*}
@@ -1255,6 +1257,7 @@ then there exists \Vdr{to} such that all of the following are true
 An \dfn{AHFA prediction} is a transition from one
 state to another over a non-null symbol.
 \begin{observation}
+\label{o:predicted-AHFA-consistent}
 AHFA prediction is consistent.
 That is, if
 \begin{equation*}
@@ -1268,6 +1271,7 @@ then there exists \Vdr{from} such that both of the following are true
 \end{observation}
 
 \begin{observation}
+\label{o:predicted-AHFA-complete}
 AHFA prediction is complete.
 That is, if
 \begin{equation*}
@@ -1339,9 +1343,9 @@ $[\Vah{predicted}, 0]$ & if
 $\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
 \end{tabular}
 \end{center}
-These will be correct by
-Observations~\cite{o:confirmed-AHFA-correctness}
-and~\cite{o:predicted-AHFA-correctness}.
+These will be consistent by
+Observations~\ref{o:confirmed-AHFA-consistent}
+and~\ref{o:predicted-AHFA-consistent}.
 
 \subsubsection{Reduction correctness without Leo}
 \label{s:Earley-reduction-correct}
@@ -1358,29 +1362,24 @@ From \Veim{component}, we will find one or more transition
 symbols, \Vsym{lhs}.
 From this point,  the argument is very similar to
 that for the case of the scanning operation.
-For each \Vsym{lhs}, at most two EIM's will be
-added.
-The first will be
-\begin{equation*}
-[\Vah{confirmed}, \Vloc{i}]
-\end{equation*}
-where
-\begin{equation*}
-\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{lhs}),
-\end{equation*}
-which will be correct by
-Observation~\cite{o:confirmed-AHFA-correctness}.
-The second will be added only if
-\begin{equation*}
-\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)
-\end{equation*}
-is defined,
-in which case it will be
-\begin{equation*}
-[\Vah{predicted}, 0],
-\end{equation*}
-which will be correct by
-Observation~\cite{o:predicted-AHFA-correctness}.
+We know from the pseudocode for the scanning operation
+that at most two EIM's will be added.
+Where
+\begin{gather*}
+\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{lhs}) \\
+\text{and $\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)$,}
+\end{gather*}
+we will add
+\begin{center}
+\begin{tabular}{ll}
+$[\Vah{confirmed}, \Vloc{i}]$ & if $\Vah{confirmed} \ne \Lambda$, and \\
+$[\Vah{predicted}, 0]$ & if
+$\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
+\end{tabular}
+\end{center}
+These will be consistent by
+Observations~\ref{o:confirmed-AHFA-consistent}
+and~\ref{o:predicted-AHFA-consistent}.
 
 \subsubsection{Leo Reduction correctness}
 \label{s:Leo-reduction-correct}
@@ -1481,9 +1480,9 @@ of correct operands.
 Comparing the Marpa pseudocode,
 with the Earley scanning operation
 and using
-Observation~\ref{o:confirmed-AHFA-completeness}
+Observation~\ref{o:confirmed-AHFA-complete}
 and 
-Observation~\ref{o:predicted-AHFA-completeness},
+Observation~\ref{o:predicted-AHFA-complete},
 we see that a Earley item
 in \Ves{i} corresponding to every scanned Earley item
 of \Vest{i},
@@ -1566,9 +1565,9 @@ of correct operands.
 Comparing the Marpa pseudocode,
 with the Earley reduction operation
 and using
-Observation~\ref{o:confirmed-AHFA-completeness}
+Observation~\ref{o:confirmed-AHFA-complete}
 and 
-Observation~\ref{o:predicted-AHFA-completeness},
+Observation~\ref{o:predicted-AHFA-complete},
 we see that a reduced Earley item of
 generation $\var{n}+1$
 will be added to
