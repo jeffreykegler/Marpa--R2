@@ -639,12 +639,12 @@ that the Marpa implementation has to provide for it.
 
 What does not seem to happen in practical grammars
 is that
-the size of a \Marpa Earley set grows larger
+the size of a \Marpa{} Earley set grows larger
 than that of one of Earley's original sets.
 It seems the AHFA is always a win,
 at least for practical grammars.
 
-An important feature \Marpa is that it combines
+An important feature \Marpa{} is that it combines
 the improvements of Leo~\cite{Leo1991} and
 Aycock and Horspool\cite{AH2002}.
 In that respect,
@@ -1311,8 +1311,8 @@ an empty Marpa Earley set is
 consistent, trivially.
 We show the step of the inner induction by cases:
 \begin{itemize}
-\item \Marpa scanning operations;
-\item \Marpa reductions when there are no Leo reductions; and
+\item \Marpa{} scanning operations;
+\item \Marpa{} reductions when there are no Leo reductions; and
 \item Leo reductions
 \end{itemize}
 
@@ -1457,7 +1457,7 @@ if $\Veim{y} = [\Vah{y}, \Vorig{x}]$
 where $\Vdr{x} \in \Vah{y}$.
 We will proceed by showing that,
 for every operation which \Leo would perform,
-a \Marpa operation is performed which
+a \Marpa{} operation is performed which
 will produce the corresponding Earley item.
 
 \subsubsection{Scanning completeness}
@@ -1481,7 +1481,7 @@ for every traditional Earley item in the previous
 Earley set,
 there is at least one corresponding Marpa Earley item.
 We see from the pseudocode, therefore,
-that \Marpa performs its scan operation on a complete set
+that \Marpa{} performs its scan operation on a complete set
 of correct operands.
 Comparing the Marpa pseudocode,
 with the Earley scanning operation
@@ -1519,7 +1519,7 @@ Earley set,
 there is at least one corresponding Marpa Earley item.
 We see from the pseudocode, therefore,
 that for each \Veim{working}
-that \Marpa performs its reduction operation on a complete set
+that \Marpa{} performs its reduction operation on a complete set
 of correct predecessors.
 
 To show that these predecessors are paired
@@ -1552,10 +1552,10 @@ its contains Earley items
 corresponding to all of the generation 0 EIMT's of \Leo.
 This is the basis of the inner induction.
 
-Since we stipulated that \Marpa adds Earley items
+Since we stipulated that \Marpa{} adds Earley items
 at the end of each set,
 we know that they occur in generation order.
-Therefore, \Marpa in traversing \Ves{i},
+Therefore, \Marpa{} in traversing \Ves{i},
 can relying, when
 visiting Earley items of generation $\var{n}+1$,
 can rely on the inner induction hypothesis for 
@@ -1566,7 +1566,7 @@ Earley set,
 there is at least one corresponding Marpa Earley item.
 We see the pseudocode, therefore,
 that, for generation $\var{n} + 1$
-\Marpa will performs its reduction operation for a complete set
+\Marpa{} will performs its reduction operation for a complete set
 of correct operands.
 Comparing the Marpa pseudocode,
 with the Earley reduction operation
@@ -1718,7 +1718,7 @@ is amortized $\order(1)$\cite[Vol. 1, pages 326-327]{AU1972}.
 Inspection of the algorithm for \Marpa{} will show
 that all space
 and time
-for any operations new to \Marpa
+for any operations new to \Marpa{}
 can be assigned to the Earley items in
 an obvious way,
 and trivially shown to be \Oc.
