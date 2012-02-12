@@ -638,38 +638,17 @@ even in practical grammars,
 that the Marpa implementation has to provide for it.
 
 What does not seem to happen in practical grammars
-the size of \AH Earley set to grow larger
+is that
+the size of a \Marpa Earley set grows larger
 than that of one of Earley's original sets.
-That is, it seems the AHFA is always a win,
+It seems the AHFA is always a win,
 at least for practical grammars.
 
-The following observations
-will be useful.
-They are shown in \cite{AH2002}.
-
-\begin{observation}
-AHFA's are monotone.
-The result of an AHFA transition
-contains the 
-Any dotted
-That is, if
-\[
-    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
-\]
-then
-\[
-    \GOTO(\Vdr{from}, \Vsym{t}) = \Vdr{to} \land \Vdr{to} \in \Vah{to}
-\]
-\end{observation}
-
-\begin{observation}
-AHFA's predict correctly and completely.
-\end{observation}
-
-For time and space complexity purposes,
-use of the AHFA states in EIM's can
-be proved to be break-even.
-The next theorem is useful for that purpose.
+An important feature \Marpa is that it combines
+the improvements of Leo~\cite{Leo1991} and
+Aycock and Horspool\cite{AH2002}.
+In that respect,
+the following theorem is crucial .
 
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
