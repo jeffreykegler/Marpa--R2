@@ -1682,9 +1682,40 @@ The theorem follows from collecting the observations
 in Section \ref{s:pseudocode}.
 \end{proof}
 
-because 
+\begin{theorem}\label{t:Marpa-O-Leo}
+For a parse of \Vg and \Vw,
+let \size{\Etable{\Leo}} be the
+number of traditional Earley items,
+and \size{\Etable{\Marpa}} be the
+number of Marpa Earley items.
+Then,
+\begin{equation*}
+    \size{\Etable{\Marpa}} \le \var{c} \times \size{\Etable{\Leo}},
+\end{equation*}
+where \var{c} is a constant which depends on the grammar.
+\end{theorem}
 
-\begin{theorem}\label{t:O1-per-eim}
+\begin{proof}
+We know from Theorem \ref{t:es-correct}
+that every Marpa Earley item corresponds to one of
+\Leo's traditional Earley item.
+If a Marpa items corresponds to a traditional
+Earley item, its AHFA state contains the
+traditional Earley item's dotted rule,
+while their origins are identical.
+The worst case is that a dotted rule appears
+in every AHFA state,
+so that
+the number of Marpa items corresponding to a single
+traditional Earley item cannot be greater
+than $\size{\Vfa}$.
+Therefore,
+\begin{equation*}
+    \size{\Etable{\Marpa}} \le \size{\Vfa} \times \size{\Etable{\Leo}},
+\end{equation*}
+\end{proof}
+
+\begin{theorem}\label{t:attempts-O-actual}
 Let \size{\Etable{\Marpa}} be the
 number of Earley items actually
 added to the tables,
