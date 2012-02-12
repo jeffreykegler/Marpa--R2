@@ -99,7 +99,7 @@
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
 
-\newtheorem{theorem}{Theorem}
+\newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 
 \theoremstyle{definition}
@@ -1288,7 +1288,7 @@ then
 Marpa's Earley sets are correct.
 \end{theorem}
 
-\subsection{Proof of Theorem \ref{congruence}}
+\subsection{Proof of Theorem \ref{es-correctness}}
 
 The proof of
 Theorem \ref{t:es-correctness}
