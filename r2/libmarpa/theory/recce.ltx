@@ -86,8 +86,10 @@
 \newcommand{\Vwi}[1]{\ensuremath{sym{\Vw[#1]}}}
 \newcommand{\Vrules}{\var{rules}}
 \newcommand{\GOTO}{\mymathop{GOTO}}
+\newcommand{\Next}[1]{\mymathop{Next}(#1)}
+\newcommand{\Predict}[1]{\mymathop{Predict}(#1)}
+\newcommand{\Postdot}[1]{\mymathop{Postdot}(#1)}
 \newcommand\myL[1]{\operatorname{L}(#1)}
-\newcommand\postdot[1]{\operatorname{postdot}(#1)}
 \newcommand\Etable[1]{\ensuremath{\es{\mymathop{table}[#1]}}}
 \newcommand\Vtable[1]{\Etable{\var{#1}}}
 \newcommand\EEtable[2]{\ensuremath{\mymathop{table}(#1,#2)}}
@@ -322,13 +324,13 @@ and \Vsym{Z} ($\var{pos} = 2$).
 
 The postdot symbol of a dotted rule is
 often important.
-$\postdot{\Vdr{x}} = \Vsym{last}$ if and only if
+$\Postdot{\Vdr{x}} = \Vsym{last}$ if and only if
 \begin{align*}
 \Vdr{x} = & \Vsym{A} \de \Vstr{alpha} \mydot \Vsym{last} \Vstr{beta} \\
  & \qquad \text{where $\Vstr{beta} \destar \epsilon$}
 \end{align*}
 Otherwise,
-$\postdot{\Vdr{x}} = \Lambda$.
+$\Postdot{\Vdr{x}} = \Lambda$.
 
 A traditional Earley item (EIMT) is the duple
 \[
@@ -534,7 +536,7 @@ $[\Veimt{pred}, \Vsym{lhs}]$
 such that
 \[
     \Veimt{pred} \in \EVtable{\Earley}{i} \\
-    \text{and} \postdot{\var{pred}} = \Vsym{lhs}
+    \text{and} \Postdot{\var{pred}} = \Vsym{lhs}
 \]
 in order
 to perform reduction operations,
@@ -1213,7 +1215,17 @@ and consistent.
 \end{definition}
 
 In the following observations,
-let $\mymathop{Predict}(\Vrule{r})$
+if
+\begin{equation*}
+    \Vdr{d} = [ \Vsym{L} \de \Vstr{alpha} \mydot \Vsym{t} \cat \Vstr{beta} ]
+\end{equation*}
+then
+\begin{equation*}
+\Next{\Vdr{d}} =
+    [ \Vsym{L} \de \Vstr{alpha} \cat \Vsym{t} \mydot \Vstr{beta} ]
+\end{equation*}
+be 
+Also, let $\mymathop{Predict}(\Vdr{d})$
 be the set of dotted rules
 \begin{equation*}
 \set{ [ \Vsym{L} \de \mydot \Vstr{rh} ]}
@@ -1222,8 +1234,67 @@ of which all of the following are true
 \begin{gather*}
     [ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \\
     \Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha} \\
-    \Vsym{P} = \postdot{\Vrule{r}}
+    \Vsym{P} = \Postdot{\Vdr{d}}
 \end{gather*}
+
+The following facts about AHFA's from \cite{AH2002}
+will be heavily used in the following proofs.
+For convenience, they are pulled out here and
+restated using the conventions of this document.
+
+\begin{observation}
+AHFA confirmation is consistent.
+That is, if
+\begin{equation*}
+    \GOTO(\Vah{from}, Vsym{t}) = \Vah{to} \land \Vdr{to} \in \Vah{to}
+\end{equation*}
+then there exists \Vdr{from} such that all of the following are true
+\begin{gather*}
+    \Next{\Vdr{from}} = \Vdr{to} \\
+    \Postdot{\Vdr{from}} = \Vsym{t} \\
+    \Vdr{from} \in \Vah{from}
+\end{gather*}
+\end{observation}
+
+\begin{observation}
+AHFA confirmation is complete.
+That is, if
+\begin{equation*}
+    \GOTO(\Vah{from}, Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
+\end{equation*}
+then there exists \Vdr{to} such that all of the following are true
+\begin{equation*}
+    \Next{\Vdr{from}} = \Vdr{to} \\
+    \Postdot{\Vdr{from}} = \Vsym{t} \\
+    \Vdr{to} \in \Vah{to}
+\end{equation*}
+\end{observation}
+
+\begin{observation}
+AHFA prediction is consistent.
+That is, if
+\begin{equation*}
+    \GOTO(\Vah{from}, \epsilon) = \Vah{to} \land \Vdr{to} \in \Vah{to}
+\end{equation*}
+then there exists \Vdr{from} such that both of the following are true
+\begin{gather*}
+    \Vdr{to} \in \Predict{\Vdr{from}} \\
+    \Vdr{from} \in \Vah{from}
+\end{gather*}
+\end{observation}
+
+\begin{observation}
+AHFA prediction is complete.
+That is, if
+\begin{equation*}
+    \GOTO(\Vah{from}, Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
+\end{equation*}
+then
+\begin{equation*}
+\forall \Vdr{to} \quad (\Vdr{to} \in \Predict{\Vdr{from}})
+\implies \Vdr{to} \in \Vah{to}
+\end{equation*}
+\end{observation}
 
 \section{Marpa is correct}
 
