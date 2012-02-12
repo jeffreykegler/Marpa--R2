@@ -1232,7 +1232,7 @@ state to another over a non-null symbol.
 AHFA confirmation is consistent.
 That is, if
 \begin{equation*}
-    \GOTO(\Vah{from}, Vsym{t}) = \Vah{to} \land \Vdr{to} \in \Vah{to}
+    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \land \Vdr{to} \in \Vah{to}
 \end{equation*}
 then there exists \Vdr{from} such that all of the following are true
 \begin{gather*}
@@ -1247,14 +1247,14 @@ then there exists \Vdr{from} such that all of the following are true
 AHFA confirmation is complete.
 That is, if
 \begin{equation*}
-    \GOTO(\Vah{from}, Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
+    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
 \end{equation*}
 then there exists \Vdr{to} such that all of the following are true
-\begin{equation*}
+\begin{align*}
     \Next{\Vdr{from}} = \Vdr{to} \\
     \Postdot{\Vdr{from}} = \Vsym{t} \\
     \Vdr{to} \in \Vah{to}
-\end{equation*}
+\end{align*}
 \end{observation}
 
 An \dfn{AHFA prediction} is a transition from one
@@ -1278,7 +1278,7 @@ then there exists \Vdr{from} such that both of the following are true
 AHFA prediction is complete.
 That is, if
 \begin{equation*}
-    \GOTO(\Vah{from}, Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
+    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
 \end{equation*}
 then
 \begin{equation*}
@@ -1355,13 +1355,13 @@ and~\ref{o:predicted-AHFA-consistent}.
 
 We next show correctness for Marpa's reduction operation,
 in the case where there is no Leo reduction.
-There will be two cause EIMT's, \Veim{predecessor}
+There will be two cause EIM's, \Veim{predecessor}
 and \Veim{component}.
 \Veim{predecessor} will be correct by the outer induction
 hypothesis
-and \Veim{component}.
+and \Veim{component}
 will be correct by the inner induction hypothesis.
-From \Veim{component}, we will find one or more transition
+From \Veim{component}, we will find zero or more transition
 symbols, \Vsym{lhs}.
 From this point,  the argument is very similar to
 that for the case of the scanning operation.
