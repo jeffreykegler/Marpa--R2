@@ -91,6 +91,8 @@
 \newcommand{\Postdot}[1]{\mymathop{Postdot}(#1)}
 \newcommand{\myL}[1]{\mymathop{L}(#1)}
 \newcommand\Etable[1]{\ensuremath{\es{\mymathop{table}[#1]}}}
+\newcommand\Rtable[1]{\ensuremath{\mymathop{table}(#1)}}
+\newcommand\Rtablesize[1]{\ensuremath{\big| \mymathop{table}(#1) \big|}}
 \newcommand\Vtable[1]{\Etable{\var{#1}}}
 \newcommand\EEtable[2]{\ensuremath{\mymathop{table}(#1,#2)}}
 \newcommand\EVtable[2]{\EEtable{#1}{\var{#2}}}
@@ -1684,13 +1686,13 @@ in Section \ref{s:pseudocode}.
 
 \begin{theorem}\label{t:Marpa-O-Leo}
 For a parse of \Vg and \Vw,
-let \size{\Etable{\Leo}} be the
+let \Rtablesize{\Leo} be the
 number of traditional Earley items,
-and \size{\Etable{\Marpa}} be the
+and \Rtablesize{\Marpa} be the
 number of Marpa Earley items.
 Then,
 \begin{equation*}
-    \size{\Etable{\Marpa}} \le \var{c} \times \size{\Etable{\Leo}},
+    \Rtablesize{\Marpa} \le \var{c} \times \Rtablesize{\Leo},
 \end{equation*}
 where \var{c} is a constant which depends on the grammar.
 \end{theorem}
@@ -1711,19 +1713,19 @@ traditional Earley item cannot be greater
 than $\size{\Vfa}$.
 Therefore,
 \begin{equation*}
-    \size{\Etable{\Marpa}} \le \size{\Vfa} \times \size{\Etable{\Leo}},
+    \Rtablesize{\Marpa} \le \size{\Vfa} \times \Rtablesize{\Leo},
 \end{equation*}
 \end{proof}
 
 \begin{theorem}\label{t:attempts-O-actual}
-Let \size{\Etable{\Marpa}} be the
+Let \Rtablesize{\Marpa} be the
 number of Earley items actually
 added to the tables,
 and \var{c} be a constant.
 For an unambiguous grammar,
 the number of attempts to add
 Earley items will be less than or equal to
-$ \var{c} \times \size{\Etable{\Marpa}} $
+$ \var{c} \times \Rtablesize{\Marpa} $
 \end{theorem}
 
 \begin{proof}
@@ -1841,7 +1843,7 @@ Collecting these results and summing over the \Vloc{j},
 $0 \le \var{j} \le \size{\Vw}$,
 we can see that
 \begin{equation*}
-\var{attempts} \le \var{c} \times \size{\Etable{\Marpa}}
+\var{attempts} \le \var{c} \times \Rtablesize{\Marpa}
 \end{equation*}
 where \var{c} is a constant which depends on \Vg.
 \end{proof}
