@@ -1323,30 +1323,25 @@ For Marpa's scanning operation, we know
 that the predecessor EIM is correct
 by the outer induction hypothesis,
 and that the token is correct
-and by definitions in the preliminaries.
+by the definitions in the preliminaries.
 We know from the pseudocode for the scanning operation
-that add to most two EIM's will be added.
-The first will be
-\begin{equation*}
-[\Vah{confirmed}, \Vloc{i}]
-\end{equation*}
-where
-\begin{equation*}
-\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{token}),
-\end{equation*}
-which will be correct by
-Observation~\cite{o:confirmed-AHFA-correctness}.
-The second will be added only if
-\begin{equation*}
-\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)
-\end{equation*}
-is defined,
-in which case it will be
-\begin{equation*}
-[\Vah{predicted}, 0],
-\end{equation*}
-which will be correct by
-Observation~\cite{o:predicted-AHFA-correctness}.
+that at most two EIM's will be added.
+Where
+\begin{gather*}
+\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{token}) \\
+\text{and $\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)$,}
+\end{gather*}
+we will add
+\begin{center}
+\begin{tabular}{ll}
+$[\Vah{confirmed}, \Vloc{i}]$ & if $\Vah{confirmed} \ne \Lambda$, and \\
+$[\Vah{predicted}, 0]$ & if
+$\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
+\end{tabular}
+\end{center}
+These will be correct by
+Observations~\cite{o:confirmed-AHFA-correctness}
+and~\cite{o:predicted-AHFA-correctness}.
 
 \subsubsection{Reduction correctness without Leo}
 \label{s:Earley-reduction-correct}
