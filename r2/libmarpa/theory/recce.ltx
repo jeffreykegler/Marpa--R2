@@ -1685,20 +1685,17 @@ in Section \ref{s:pseudocode}.
 because 
 
 \begin{theorem}\label{t:O1-per-eim}
-Let \var{attempts} be the number of
-attempts to add an Earley item to
-the \Marpa tables,
-and \size{\Etable{\Marpa}} be the
+Let \size{\Etable{\Marpa}} be the
 number of Earley items actually
 added to the tables,
-and \size{\Vfa} be the number
-of AHFA states.
+and \var{c} be a constant.
 For an unambiguous grammar,
-\begin{equation*}
-    \var{attempts} \le \size{\Vfa} \times \size{\Etable{\Marpa}} 
-\end{equation*}
+the number of attempts to add
+Earley items will be less than or equal to
+$ \var{c} \times \size{\Etable{\Marpa}} $
 \end{theorem}
 
+\begin{proof}
 Earley (\cite{Earley1970}) show that,
 for unambiguous grammars,
 every attempt to add
@@ -1727,23 +1724,28 @@ state,
 so that two attempts to add a Marpa Earley item,
 even though different in their Marpa causation.
 
-We now proceed more formally.
-We note that by the definition of Leo reduction,
-multiple attempts to add the result of Leo reduction
-cannot occur.
+We now restate the preceeding argument more formally.
+For Earley set 0, it is clear from the pseudocode
+that there will be no attempts to add duplicate EIM's.
+For Leo reduction,
+We note that by its definition,
+multiple attempts at Leo reduction cannot occur.
 \Marpa includes prediction
 in its scan and reduction operations,
-and the number of predicted EIM's added
-must be less than or equal to the number
-of confirmed EIM's in the same operation.
+and the number of attempts to add duplicate predicted EIM's
+must be less than or equal
+to the number of attempts
+to add duplicate confirmed EIM's
+in the scan and reduction operations.
 
 Marpa attempts a scan operation,
 in the worst case,
 once for every EIM in the Earley set
 just previous to the token.
-Therefore, the number of attempted
+Therefore, the number of attempts
+to add scans
 scans must be less than equal to the number
-of Earley items.
+of actual Earley items.
 
 The remaining case is Earley reduction.
 \Marpa{} attempts to add a reduced EIM
@@ -1751,18 +1753,25 @@ once for every each pair of LHS of every component
 in its current Earley,
 with a predecessor EIM in the Earley set
 which is the origin of the component.
+Here the memoization of $\mymathop{transitions}$
+plays a role.
+By $\mymathop{transitions}$,
+Marpa makes a reduction attempt for
+only those predecessors whose AHFA state
+contains a dotted rule with a postdot symbol
+that matches the transition symbol.
+Call this number \Vsize{matching}.
+
 The number of such attempts will be less than
-$\var{c} \times \size{\Vtable{i}} \times \size{Vtable{j}}$
-where \var{c} is the maximum number of completed rules in
+$\var{max-lhs} \times \Vsize{matching} \times \size{Vtable{j}}$
+where \var{max-lhs} is the maximum number of completed rules in
 an AHFA state,
 \Vloc{i} is the origin of the component EIM,
-$\size{\Vtable{i}}$ is the number of Earley items
-in Earley set \Vloc{i},
 and $\size{\Vtable{j}}$ is the number of Earley items
 in the Earley set being built.
 
-However, since we know by assumption that
-\Vg is unambiguous,
+Since by assumption
+\Vg{} is unambiguous,
 we know that all attempts to add duplicate
 EIM's will be for predecessors
 which have the same dotted rule.
@@ -1770,17 +1779,48 @@ which have the same dotted rule.
 the two dotted rules would produce different
 derivations, contrary to the assumption that
 the grammar is ambiguous.)
-\begin{proof}
+As a worst case, assume that a dotted rule
+appears in every AFHA state.
+Then $\var{matching} \le \size{\Vfa}$.
+
+Let
+\var{reduction-attempts} be the number of attempted Earley reductions in each Earley set;
+\var{leo-attempts} be the number of attempted Leo reductions in each Earley set;
+\var{scan-attempts} be the number of attempted reductions in each Earley set;
+\var{predict-attempts} be the number of attempted reductions in each Earley set;
+and 
+\var{initial-attempts} be the number of attempts to add the initial item to
+Earley set 0.
+From the forgoing, we know that 
+\begin{equation*}
+\var{reduction-attempts} \le \var{max-lhs} \times \size{\Vfa} \times \size{Vtable{j}}
+\end{equation*}
+Earlier we showed that
+\begin{align*}
+\var{scan-attempts} & \le \size{Vtable{j-1}} \\
+\var{leo-attempts} & \le \size{Vtable{j}} \\
+\var{predict-attempts} & \le \var{reduction-attempts} + \var{scan-attempts}
+\end{align*}
+Clearly, there is no attempt to add a duplicate initial item,
+so that
+\begin{equation*}
+\var{initial-attempts} \le \size{\Vtable{0}}.
+\end{equation*}
+Collecting these results and summing over the \Vloc{j},
+$0 \le \var{j} \le \size{\Vw}$,
+we can see that
+\begin{equation*}
+\var{attempts} \le \var{c} \times \size{\Etable{\Marpa}}
+\end{equation*}
+where \var{c} is a constant which depends on \Vg.
 \end{proof}
 
 We now state some of the more important
 specific results.
-In the following theorems,
-\var{n} is the length of the input, \Vsize{w}.
 
 \begin{theorem}
 For every LR-regular grammar,
-\Marpa{} runs in $\order{n}$ time and space.
+\Marpa{} runs in $\order{\Vsize{\Vw}}$ time and space.
 \end{theorem}
 
 \begin{proof}
