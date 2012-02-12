@@ -27,6 +27,8 @@
 \newcommand{\cfg}{CFG}
 
 \newcommand{\de}{\rightarrow}
+\newcommand{\destar}
+    {\mathrel{\mbox{$\:\stackrel{\!{\ast}}{\Rightarrow\!}\:$}}}
 \newcommand{\derivg}[1]{\mathrel{\mbox{$\:\Rightarrow\:$}}}
 \newcommand{\derivrg}[2]{\mathrel{\mbox{$\:\stackrel{\!{#1}}%
         {\Rightarrow\!}\:$}}}
@@ -323,7 +325,7 @@ often important.
 $\postdot{\Vdr{x}} = \Vsym{last}$ if and only if
 \begin{align*}
 \Vdr{x} = & \Vsym{A} \de \Vstr{alpha} \mydot \Vsym{last} \Vstr{beta} \\
- & \qquad \text{where $\Vstr{beta} \derivrg{\ast}{\Vg} \epsilon$}
+ & \qquad \text{where $\Vstr{beta} \destar \epsilon$}
 \end{align*}
 Otherwise,
 $\postdot{\Vdr{x}} = \Lambda$.
@@ -1209,6 +1211,19 @@ a Marpa Earley set is \dfn{correct}
 if and only that Marpa Earley set is complete
 and consistent.
 \end{definition}
+
+In the following observations,
+let $\mymathop{Predict}(\Vrule{r})$
+be the set of dotted rules
+\begin{equation*}
+\set{ [ \Vsym{L} \de \mydot \Vstr{rh} ]}
+\end{equation*}
+of which all of the following are true
+\begin{gather*}
+    [ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \\
+    \Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha} \\
+    \Vsym{P} = \postdot{\Vrule{r}}
+\end{gather*}
 
 \section{Marpa is correct}
 
