@@ -1796,7 +1796,7 @@ that matches the transition symbol.
 Call this number \Vsize{matching}.
 
 The number of such attempts will be less than
-$\var{max-lhs} \times \Vsize{matching} \times \size{Vtable{j}}$
+$\var{max-lhs} \times \Vsize{matching} \times \size{\Vtable{j}}$
 where \var{max-lhs} is the maximum number of completed rules in
 an AHFA state,
 \Vloc{i} is the origin of the component EIM,
@@ -1826,12 +1826,12 @@ and
 Earley set 0.
 From the forgoing, we know that 
 \begin{equation*}
-\var{reduction-attempts} \le \var{max-lhs} \times \size{\Vfa} \times \size{Vtable{j}}
+\var{reduction-attempts} \le \var{max-lhs} \times \size{\Vfa} \times \size{\Vtable{j}}
 \end{equation*}
 Earlier we showed that
 \begin{align*}
-\var{scan-attempts} & \le \size{Vtable{j-1}} \\
-\var{leo-attempts} & \le \size{Vtable{j}} \\
+\var{scan-attempts} & \le \size{\Vtable{j-1}} \\
+\var{leo-attempts} & \le \size{\Vtable{j}} \\
 \var{predict-attempts} & \le \var{reduction-attempts} + \var{scan-attempts}
 \end{align*}
 Clearly, there is no attempt to add a duplicate initial item,
