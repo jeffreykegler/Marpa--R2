@@ -94,7 +94,6 @@
 \newcommand\Vtable[1]{\Etable{\var{#1}}}
 \newcommand\EEtable[2]{\ensuremath{\mymathop{table}(#1,#2)}}
 \newcommand\EVtable[2]{\EEtable{#1}{\var{#2}}}
-\newcommand{\tablesize}[1]{\size{\EVtable{#1}{n}}}
 
 % I want to use 'call' outside of pseudocode
 \newcommand\call[2]{\textproc{#1}\ifthenelse{\equal{#2}{}}{}{(#2)}}%
@@ -1632,8 +1631,7 @@ it follows that
 \begin{equation*}
 \myL{\Marpa,\Vg} = \myL{\Leo,\Vg}.
 \end{equation*}
-By Theorem in \cite{Leo1991}, we know that \Leo
-is correct, so that
+By Theorem 4.1 in \cite{Leo1991}, we know that
 \begin{equation*}
 \myL{\Leo,\Vg} = \myL{\Vg}.
 \end{equation*}
@@ -1669,124 +1667,111 @@ or in any AHFA state is a constant depending on the grammar,
 the time and space involved are also constant,
 and our bound follows.
 
-\subsection{The order of Marpa's Earley items}
-
-\begin{theorem}\label{t:eim-order}
-Let \Vg{} be a grammar as defined in this
-document,
-and let \Vfa{} be the AHFA for this grammar.
-Let \tablesize{\Marpa} be the number of Earley items in
-a \Marpa{} parse,
-and \tablesize{\Leo} the number of Earley items in a \Leo
-parse.
-$$ \order{\tablesize{\Marpa}} = \order{\tablesize{\Leo}} $$
-\end{theorem}
-
-\begin{proof}
-Let \VVes{L}{i} be
-an Earley set of \Leo.
-Let \VVes{El}{i} be an
-an Earley set of \Emulator{}
-in Leo mode.
-By Theorem \ref{t:leo-congruence},
-we know that that for every EIML
-$$[\Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}$$
-there is at least one EIMX,
-$$[\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{El}{i}
-$$
-We also know that for every EIMX,
-$$ [\Vbool{b}, \Vah{el}, \Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}
-$$
-that
-$$[\Vdr{l}, \Vloc{origin}] \in \Vesi{L}{i}$$
-
-From this we see that there is a total function
-from
-$\size{\Vesi{L}{i}}$ to a partition
-of $\size{\Vesi{El}{i}}$,
-such that $\Veimt{x} \mapsto \Veimxset{y}$,
-where
-\begin{align*}
-&& \Veimt{x} = & [ \Vdr{x}, \Vloc{x} ] \\
-& \land & \Veimx{y} = &
-\set{ [ \Vbool{z}, \Vah{z}, \Vdr{x}, Vloc{x} \sep \Vdr{x} \in \Vah{z} ] }
-\end{align*}
-
-By the definition of \Emulator,
-EIMX's that differ only in \Vbool{z} will not appear
-in the same Earley set,
-and the number of AHFA states, \Vsize{fa}, is finite.
-The theorem follows.
-Therefore
-$$ \size{\VVes{El}{i}} \le \size{fa} \times \size{\VVes{L}{i}} $$
-
-From Theorem {t:emulator-equivalence},
-we have
-$$ \size{\VVes{Em}{i}} = \size{\VVes{El}{i}} $$
-
-And by the congruence of \Emulator in Marpa mode
-with Marpa,
-we know there is a bijection from a partition of the
-Earley items in \VVes{Em}[i] to \VVes{M}[i],
-so that
-$$ \size{\VVes{M}{i}} \le \size{\VVes{Em}{i}} $$
-
-Collecting the last three relations, we have
-$$ \size{\VVes{M}{i}} \le \size{fa} \times \size{\VVes{L}{i}} $$
-
-And summing over $\var{i}, 0 \le \var{i} \le \var{n}$
-where $\var{n} = \Vsize{w}$,
-we see that
-$$ \order{\tablesize{\Marpa}} = \order{\tablesize{\Leo}} $$
-\end{proof}
-
-\subsection{Amortized complexity of Marpa's Earley items}
+\subsection{Showing Marpa complexity}
 
 \begin{theorem}\label{t:O1-per-eim}
 All time in \Marpa{} can be allocated
 to the Earley items,
-and in such a way that processing each Earley item
+and in such a way that each attempt to
+add an Earley item
 requires \Oc{} time and space.
 \end{theorem}
 
 \begin{proof}
-For some the operations of \Earley,
-it is known that the amortized time
-per Earley item
-is amortized $\order(1)$\cite[Vol. 1, pages 326-327]{AU1972}.
-Inspection of the algorithm for \Marpa{} will show
-that all space
-and time
-for any operations new to \Marpa{}
-can be assigned to the Earley items in
-an obvious way,
-and trivially shown to be \Oc.
+The theorem follows from collecting the observations
+in Section \ref{s:pseudocode}.
 \end{proof}
 
-\subsection{Marpa complexity}
+because 
 
-All of the complexity results for \Leo are
-based on the order of magnitude of the
-sum of the cardinalities of its Earley sets.
-From
-Theorems \ref{t:eim-order} and \ref{t:O1-per-eim},
-we see that the
-order of magnitude of
-the time
-and space complexity of \Marpa{} is never worse than
-that of \Leo.
-Because
-Theorem 4.3 of \cite[p. 172]{Leo1991}
-shows that the
-order of magnitude of
-the time
-and space complexity of \Leo is never worse than
-that of \Earley,
-we also see that the
-order of magnitude of
-the time
-and space complexity of \Marpa{} is also
-never worse than that of \Earley.
+\begin{theorem}\label{t:O1-per-eim}
+Let \var{attempts} be the number of
+attempts to add an Earley item to
+the \Marpa tables,
+and \size{\Etable{\Marpa}} be the
+number of Earley items actually
+added to the tables,
+and \size{\Vfa} be the number
+of AHFA states.
+For an unambiguous grammar,
+\begin{equation*}
+    \var{attempts} \le \size{\Vfa} \times \size{\Etable{\Marpa}} 
+\begin{end*}
+\end{theorem}
+
+Earley (\cite{Earley1970}) show that,
+for unambiguous grammars,
+every attempt to add
+an Earley item will actually add one.
+In other words, there will be no attempts to
+add duplicate Earley items.
+Earley's proof shows that for each attempt
+to add a duplcate,
+the causes must be different --
+the EIMT's causing the attempt
+differ in either their dotted
+rules or their origin.
+If there are multiple causations
+for an Earley item,
+then there are multiple derivations
+for the sentiential form it
+represents,
+and the grammar is ambiguous,
+contrary to assumption.
+
+In \Marpa, there is an slight complication,
+which we must prove a result which is weaker,
+but still sufficient to produce the same complexity results.
+In \Marpa, a dotted rule can occur in more than one AHFA
+state,
+so that two attempts to add a Marpa Earley item,
+even though different in their Marpa causation.
+
+We now proceed more formally.
+We note that by the definition of Leo reduction,
+multiple attempts to add the result of Leo reduction
+cannot occur.
+\Marpa includes prediction
+in its scan and reduction operations,
+and the number of predicted EIM's added
+must be less than or equal to the number
+of confirmed EIM's in the same operation.
+
+Marpa attempts a scan operation,
+in the worst case,
+once for every EIM in the Earley set
+just previous to the token.
+Therefore, the number of attempted
+scans must be less than equal to the number
+of Earley items.
+
+The remaining case is Earley reduction.
+\Marpa{} attempts to add a reduced EIM
+once for every each pair of LHS of every component
+in its current Earley,
+with a predecessor EIM in the Earley set
+which is the origin of the component.
+The number of such attempts will be less than
+$\var{c} \times \size{\Vtable{i}} \times \size{Vtable{j}}$
+where \var{c} is the maximum number of completed rules in
+an AHFA state,
+\Vloc{i} is the origin of the component EIM,
+$\size{\Vtable{i}}$ is the number of Earley items
+in Earley set \Vloc{i},
+and $\size{\Vtable{j}}$ is the number of Earley items
+in the Earley set being built.
+
+However, since we know by assumption that
+\Vg is unambiguous,
+we know that all attempts to add duplicate
+EIM's will be for predecessors
+which have the same dotted rule.
+(If this were not the case,
+the two dotted rules would produce different
+derivations, contrary to the assumption that
+the grammar is ambiguous.)
+\begin{proof}
+\end{proof}
 
 We now state some of the more important
 specific results.
