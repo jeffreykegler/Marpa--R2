@@ -220,10 +220,10 @@ by context and typography:
 \end{equation*}
 
 Where \Vsymset{abced} is a set of symbols,
-let $abced^\ast$ be the set of all strings
+let $\var{abced}^\ast$ be the set of all strings
 (type STR) formed
 from those symbols.
-Let $abced^+$ be the subset of $abced^\ast$ that
+Let $\var{abced}^+$ be the subset of $\var{abced}^\ast$ that
 contains all of its elements that are not of zero length.
 
 For the purposes of this \doc{} consider,
@@ -231,7 +231,7 @@ without loss of generality,
 a grammar \Vg,
 and a set of symbols, \Vsymset{alphabet}.
 Call the language of \var{g}, $\myL{\Vg}$,
-where $\myL{\Vg} \in alphabet^\ast$
+where $\myL{\Vg} \in \var{alphabet}^\ast$
 Divide \Vsymset{alphabet} into two disjoint sets,
 \Vsymset{lh} and \Vsymset{term}.
 
@@ -240,7 +240,7 @@ where for all \Vrule{r},
 $\Vrule{r} \in \Vruleset{rules}$,
 \Vrule{r} takes the form $[\Vsym{lhs} \de \Vsymset{rhs}]$,
 where $\Vsym{lhs} \in \var{term}$ and
-$\Vstr{rhs} \in alphabet^+$.
+$\Vstr{rhs} \in \var{alphabet}^+$.
 \Vsym{lhs} is referred to as the left hand side (LHS)
 of \Vrule{r}.
 \Vsymset{rhs} is referred to as the right hand side (RHS)
@@ -950,7 +950,7 @@ and can be charged to the parse.
 \caption{Marpa Scan pass}\label{p:scan-pass}
 \begin{algorithmic}[1]
 \Procedure{Scan pass}{$\Vloc{i},\Vsym{a}$}
-\For{each $\Veim{predecessor} \in \var{transitions}(\Etable{\var{i} \subtract 1},\Vsym{a})$}
+\For{each $\Veim{predecessor} \in \var{transitions}((\var{i} \subtract 1),\var{a})$}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veim{predecessor}$
 \State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
 \State \Call{Add EIM Pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
@@ -1049,14 +1049,16 @@ their space may be charged to the Earley set.
 \caption{Reduce one LHS symbol}
 \begin{algorithmic}[1]
 \Procedure{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
-\State \Comment $pim$ is a ``postdot item'', either a LIM or an EIM
-\For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
+\State \Comment \var{pim} is a ``postdot item'', either a LIM or an EIM
+\For{each $\var{pim} \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
 \If{\var{pim} is a LIM, \Vlim{pim}}
 \State $\Vlim{pred} \gets \var{pim}$
-\State Perform \Call{Leo reduction operation}{\Vloc{i}, \Vlim{pred}}
+\State Perform a \Call{Leo reduction operation}{}
+\State \hspace\algorithmicindent for operands \Vloc{i}, \Vlim{pred}
 \Else
 \State $\Veim{pred} \gets \var{pim}$
-\State Perform \Call{Earley reduction operation}{\Vloc{i}, \Veim{pred}, \Vsym{lhs}}
+\State Perform a \Call{Earley reduction operation}{}
+\State \hspace\algorithmicindent for operands \Vloc{i}, \Veim{pred}, \Vsym{lhs}
 \EndIf
 \EndFor
 \EndProcedure
