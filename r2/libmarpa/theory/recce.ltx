@@ -1,7 +1,7 @@
 % Copyright 2012 Jeffrey Kegler
 % This document is licensed under
 % a Creative Commons Attribution-NoDerivs 3.0 United States License.
-\documentclass[12pt]{amsart}
+\documentclass[12pt,draft]{amsart}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{url}
@@ -1686,6 +1686,7 @@ a corresponding prediction
 was added to \EVtable{\Marpa}{i}.
 
 \subsubsection{Finishing the proof}
+\begin{sloppypar}
 Having shown the cases in Sections
 \ref{s:scan-complete},
 \ref{s:reduction-complete},
@@ -1700,6 +1701,7 @@ which is the step of the outer induction.
 Having shown its step, we have the outer induction,
 and the theorem.
 \qedsymbol
+\end{sloppypar}
 
 \subsection{Marpa is correct}
 
@@ -1763,7 +1765,7 @@ or in any AHFA state is a constant depending on the grammar,
 the time and space involved are also constant,
 and our bound follows.
 
-\subsection{Showing Marpa complexity}
+\subsection{Complexity of each Earley item}
 
 \begin{theorem}\label{t:O1-per-eim}
 All time in \Marpa{} can be allocated
@@ -1777,6 +1779,39 @@ requires \Oc{} time and space.
 The theorem follows from the observations
 in Section \ref{s:pseudocode}.
 \end{proof}
+
+\subsection{Duplicate dotted rules}
+
+The same complexity resuls apply to \Marpa as to \Leo,
+and the proofs are very similar.
+\Leo's complexity results\cite{Leo1991}
+are based on charging
+resource to Earley items,
+as were the results
+in Earley's paper\cite{Earley1970}.
+But both assume that there is one dotted rule
+per Earley item,
+which is not the case with \Marpa.
+
+\Marpa's Earley items group dotted rules into AHFA
+states, but this is not a partitioning in the strict
+sense -- dotted rules can fall into more than one AHFA
+state.
+This is an optimization,
+in that it allows dotted rules which often occur
+together to be grouped together aggressively.
+But it opens up the theoretical possibility
+that, in cases where \Earley and \Leo disposed
+of a dotted rule once and for all,
+\Marpa might have to deal with it multiple times.
+
+From an efficiency perspective,
+\Marpa's duplicate rules
+are by all the evidence, a plus.
+From a worst-case complexity point of view,
+they can be shown to be harmless,
+but the price of doing so is building the
+theoretical apparatus of this section.
 
 \begin{theorem}\label{t:marpa-O-leo}
 For a parse of \Vg{} and \Vw,
@@ -1850,7 +1885,7 @@ state,
 so that it is possible that two attempts to add a EIM
 will have identical causation.
 This means that attempts to add duplicate EIM's in
-\Marpa are consistent with an unambiguous grammar.
+\Marpa{} are consistent with an unambiguous grammar.
 
 We now proceed with our proof, stating
 our argument more formally.
@@ -1893,7 +1928,7 @@ of actual Earley items at \Eloc{\var{j} \subtract 1}.
 
 Let \var{predict-tries} be the number of attempted predictions in
 Earley set \Vloc{j}.
-\Marpa includes prediction
+\Marpa{} includes prediction
 in its scan and reduction operations,
 and the number of attempts to add duplicate predicted EIM's
 must be less than or equal
@@ -1923,7 +1958,9 @@ that matches the transition symbol.
 Call this number \Vsize{matching}.
 
 The number of such attempts will be less than
-$\var{max-AHFA} \times \Vsize{matching} \times \size{\Vtable{j}}$
+\begin{equation*}
+\var{max-AHFA} \times \Vsize{matching} \times \size{\Vtable{j}}
+\end{equation*}
 where \var{max-AHFA} is the maximum number of completed rules in
 an AHFA state,
 \Vloc{i} is the origin of the component EIM,
@@ -1947,6 +1984,7 @@ From the forgoing, we know that
 \var{reduction-tries} \le \var{max-AHFA} \times \size{\Vfa} \times \size{\Vtable{j}}
 \end{equation*}
 
+\begin{sloppypar}
 The arithmetic for
 summing \var{scan-tries},
 \var{leo-tries},
@@ -1956,8 +1994,8 @@ and
 over the Earley sets,
 then adding
 \var{initial-tries}
-is tedious,
-but since \var{max-AHFA} and \size{Vfa} are both constants
+is tedious.
+But since \var{max-AHFA} and \size{Vfa} are both constants
 which depend only on \Vg,
 it is clear that there is a constant \var{c}
 such that
@@ -1965,8 +2003,10 @@ such that
 \var{tries} \le \var{c} \times \Rtablesize{\Marpa}
 \end{equation*}
 where \var{c} is a constant which depends on \Vg.
+\end{sloppypar}
 \end{proof}
 
+\subsection{The complexity results}
 We are now in a position to show
 specific time and space complexity results.
 For these we follow the tradition by referring
@@ -1987,12 +2027,12 @@ the number of traditional Earley items produced by
 \order{\Vsize{\Vw}} = \order{\var{n}}.
 \end{equation*}
 By Theorem \ref{t:marpa-O-leo},
-the number of EIM's \Marpa will require for the same parse
+the number of EIM's \Marpa{} will require for the same parse
 is, worst case, $\var{c} \times \order{\var{n}}$,
 where \var{c} is a constant which depends on \Vg.
 LR-regular grammar are unambiguous, so that
 by Theorem \ref{t:tries-O-eims},
-the number of attempts that \Marpa will make to add
+the number of attempts that \Marpa{} will make to add
 EIM's is
 \begin{equation*}
 \var{d} \times \var{c} \times \order{\var{n}} = \order{\var{n}},
@@ -2000,7 +2040,7 @@ EIM's is
 where \var{d} is a constant which depends on \Vg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
-the time and space complexity of \Marpa for LR-regular
+the time and space complexity of \Marpa{} for LR-regular
 gramars is $\order{\var{n}}$.
 \end{proof}
 
@@ -2033,7 +2073,7 @@ the number of EIM's in all of \Marpa's Earley sets
 is \order{\var{n}^2}.
 By assumption, \Vg is unambiguous, so that
 by Theorem \ref{t:tries-O-eims},
-the number of attempts that \Marpa will make to add
+the number of attempts that \Marpa{} will make to add
 EIM's is
 \begin{equation*}
 \var{c} \times \order{\var{n}^2} = \order{\var{n}^2},
@@ -2041,7 +2081,7 @@ EIM's is
 where \var{c} is a constant which depends on \Vg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
-the time and space complexity of \Marpa for LR-regular
+the time and space complexity of \Marpa{} for LR-regular
 gramars is \order{\var{n}^2}.
 \end{proof}
 
@@ -2065,6 +2105,7 @@ By Theorem \ref{t:tries-O-eims},
 \var{other-tries} \le \var{c} \times \Vloc{i}.
 \end{equation*}
 
+\begin{sloppypar}
 Reconsidering \var{reduction-tries}
 for the case of ambiguous grammars,
 we see that in the worst case the memoization of 
@@ -2086,8 +2127,9 @@ becomes
 \end{equation*}
 Therefore,
 by Theorem \ref{t:O1-per-eim},
-the time and space complexity of \Marpa for context-free
+the time and space complexity of \Marpa{} for context-free
 gramars is \order{\var{n}^3}.
+\end{sloppypar}
 \end{proof}
 
 \section{Generalizing the grammar}
@@ -2135,14 +2177,17 @@ $$\var{length} \ge 1 \wedge \Vloc{start} \ge 0$$
 The size of the input, \size{\Vw} is the maximum over
 \var{tokens} of $\Vloc{start}+\var{length}$.
 
+\begin{sloppypar}
 Multiple tokens can start at a single location.
-(This is how \Marpa support ambiguous tokens.)
+(This is how \Marpa{} supports ambiguous tokens.)
 Tokens may have multiple lengths.
-\Marpa's flexibility with token lengths stretches
-the current idea of parse location perhaps beyond its breaking point,
-so that a new term for parse location is introduced, the \dfn{earleme}.
+\Marpa's expanded concept of token lengths stretches
+the current idea of parse location beyond its breaking point,
+so that a new term for parse location is introduced,
+the \dfn{earleme}.
 Token length is measured in earlemes,
 and the start and end location of a token is indicated in earlemes.
+\end{sloppypar}
 
 Just like standard parse locations, earlemes start at 0,
 and run up to \size{\Vw}.
