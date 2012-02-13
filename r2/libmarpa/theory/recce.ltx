@@ -444,23 +444,18 @@ Earley set 0 is initialized to
 A {\bf scanning} basic Earley operation takes place
 in all Earley sets other than Earley set 0
 for each pair $[\Veimt{pred}, \Vsym{token}]$,
-\begin{center}
-\begin{tabular}{rl}
-i) & $\var{token} = \Vwi{j \subtract 1}$ \\
-ii) & $\Veimt{pred} = [ \Vdr{before}, \Vloc{origin} ]$ \\
-iii) & $[\Vsym{A} \de \Vstr{alpha} \cat \Vsym{token} \cat \Vstr{beta} ] \in \Vrules $ \\
-iv) & $\Vdr{before} = [ \var{A} \de \var{alpha} \mydot \var{token} \cat \var{beta} ]$ \\
-\end{tabular}
-\end{center}
+\begin{itemize}
+\item[(i)] $\var{token} = \Vwi{j \subtract 1}$
+\item[(ii)] $\Veimt{pred} \in \Etable{(\Vloc{j} \subtract 1)}$
+\item[(iii)] $\Veimt{pred} = [ \Vdr{before}, \Vorig{pred} ]$
+\item[(iv)] $\Postdot{\Vdr{before}} = \Vsym{token}$
+\end{itemize}
 A scanning operation
 adds \Veimt{result} to Earley set \Vloc{j},
 where
-\begin{center}
-\begin{tabular}{rl}
-i) & $\Veimt{result} = [ \Vdr{after}, \Vloc{origin} ] $\\
-ii) & $\Vdr{after} = [ \var{A} \de \var{alpha} \cat \var{token} \mydot \var{beta} ]$
-\end{tabular}
-\end{center}
+\begin{equation*}
+\Veimt{result} = [ \Next{\Vdr{before}}, \Vorig{pred} ]
+\end{equation*}
 \Veimt{pred} is called the predecessor of the scanning operation
 and \Veimt{result} is called its result.
 \end{sloppypar}
@@ -470,28 +465,21 @@ and \Veimt{result} is called its result.
 An {\bf Earley reduction} basic operation is attempted
 in every Earley set
 for every pair $[\Veimt{pred}, \Vsym{lhs}]$,
-where
-\begin{center}
-\begin{tabular}{rl}
-ii) & $\Veimt{component} = [ \Vdr{complete}, \Vorig{component} ]$ \\
-ii) & $\Veimt{component} \in \Vtable{j}$ \\
-ii) & $\Vdr{complete} = [ \Vsym{lhs} \de \Vstr{rhs} \mydot ]$ \\
-ii) & $\Veimt{pred} = [ \Vdr{before}, \Vorig{pred} ]$ \\
-ii) & $\Veimt{pred} \in \Etable{\Vorig{component}}$ \\
-ii) & $\Veimt{pred} = [ \Vdr{before}, \Vorig{x} ]$ \\
-iii) & $[\Vsym{A} \de \Vstr{alpha} \cat \Vsym{lsh} \cat \Vstr{beta} ] \in \Vrules $ \\
-iv) & $\Vdr{before} = [ \var{A} \de \var{alpha} \mydot \Vsym{lhs} \cat \var{beta} ]$ \\
-\end{tabular}
-\end{center}
+where there exists a \Veimt{component} such that
+\begin{itemize}
+\item[(i)] $\Veimt{component} \in \Vtable{j}$
+\item[(ii)] $\Veimt{component} = [ \Vdr{complete}, \Vorig{component} ]$
+\item[(iii)] $\Vdr{complete} = [ \Vsym{lhs} \de \Vstr{rhs} \mydot ]$
+\item[(iv)] $\Veimt{pred} \in \Etable{\Vorig{component}}$
+\item[(v)] $\Veimt{pred} = [ \Vdr{before}, \Vorig{pred} ]$
+\item[(vi)] $\Postdot{\Vdr{before}} = \Vsym{lhs}$
+\end{itemize}
 A reduction operation
 adds \Veimt{result} to Earley set \Vloc{j},
 where
-\begin{center}
-\begin{tabular}{rl}
-i) & $\Veimt{result} = [ \Vdr{after}, \Vloc{pred} ] $\\
-ii) & $\Vdr{after} = [ \var{A} \de \var{alpha} \cat \var{lhs} \mydot \var{beta} ]$
-\end{tabular}
-\end{center}
+\begin{equation*}
+\Veimt{result} = [ \Next{\Vdr{before}}, \Vorig{pred} ]
+\end{equation*}
 \Veimt{component} is called the component of the reduction operation\footnote{
 The term ``component'' comes from Irons \cite{Irons}.
 }
@@ -500,26 +488,32 @@ and \Veimt{result} is called its result.
 
 \subsection{Prediction}
 \label{d:prediction}
+Let $\mymathop{Predict}(\Vdr{d})$
+be the set of dotted rules
+\begin{equation*}
+\set{ [ \Vsym{L} \de \mydot \Vstr{rh} ]}
+\end{equation*}
+of which all of the following are true
+\begin{gather*}
+    [ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \\
+    \Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha} \\
+    \Vsym{P} = \Postdot{\Vdr{d}}
+\end{gather*}
 A {\bf prediction} basic Earley operation is attempted
 in every Earley sets
 for every \Veimt{pred}
-\begin{center}
-\begin{tabular}{rl}
-ii) & $\Veimt{pred} = [ \Vdr{pred}, \Vorig{pred} ]$ \\
-ii) & $\Veimt{pred} \in \Vtable{j}$ \\
-ii) & $\Vdr{pred} = [ \Vsym{lhs} \de \Vstr{alpha} \mydot \Vsym{A} \cat \Vstr{beta} ]$ \\
-\end{tabular}
-\end{center}
+\begin{itemize}
+\item[(i)] $\Veimt{pred} \in \Vtable{j}$
+\item[(ii)] $\Veimt{pred} = [ \Vdr{pred}, \Vorig{pred} ]$
+\end{itemize}
 The prediction operation
 adds the members of \Veimtset{results}
 to Earley set \Vloc{j},
 where
-\Veimtset{results} is of all EIMT's
-$$[ \Vdr{prediction}, Vloc{j} ]$$
-such that 
-$$ \Vdr{prediction} = [ \Vsym{A} \de \mydot \Vstr{rhs} ] $$
-for some 
-$$[ \Vsym{A} \de \Vstr{rhs} ] \in \Vrules$$
+\begin{equation*}
+\Veimtset{results} = \left\lbrace [ \Vdr{prediction}, Vloc{j} ] \mid\vert 
+    \Vdr{prediction} \in \Predict{\Vdr{pred}} \right\rbrace
+\end{equation*}
 \Veimt{pred} is called the predcessor of the prediction operation.
 and the members of \Veimtset{results} are its results.
 
@@ -1312,17 +1306,6 @@ then
     [ \Vsym{L} \de \Vstr{alpha} \cat \Vsym{t} \mydot \Vstr{beta} ]
 \end{equation*}
 be 
-Also, let $\mymathop{Predict}(\Vdr{d})$
-be the set of dotted rules
-\begin{equation*}
-\set{ [ \Vsym{L} \de \mydot \Vstr{rh} ]}
-\end{equation*}
-of which all of the following are true
-\begin{gather*}
-    [ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \\
-    \Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha} \\
-    \Vsym{P} = \Postdot{\Vdr{d}}
-\end{gather*}
 
 The following facts about AHFA's from \cite{AH2002}
 will be heavily used in the following proofs.
