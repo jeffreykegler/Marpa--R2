@@ -722,7 +722,7 @@ the standard reduction of \Earley{} is attempted.
 
 In this \doc{} a
 ``split LR(0) $\epsilon$-DFA''
-a described by Aycock and Horspool~\cite{AH2002},
+a described by Aycock and Horspool\cite{AH2002},
 will be called an Aycock-Horspool Finite Automaton,
 or AHFA.
 A full description of how to derive an AHFA in theory
@@ -736,11 +736,11 @@ Aycock and Horspool based their AHFA's
 on a few observations.
 \begin{itemize}
 \item
-In practice, Earley items with the same dotted rule
-often appear in groups in the Earley sets,
-where the entire shares the same origin.
+In practice, groups of Earley items sharing the same origin,
+but having different dotted rules,
+often appear in the same Earley set.
 \item
-There was already in the literature a method
+There was in the literature a method
 for associating groups of dotted rules that often appear together
 when parsing.
 This method was the LR(0) DFA used in the much-studied
@@ -751,8 +751,10 @@ states are, exactly, dotted rules.
 \item
 By taking into account symbols which derive the
 null string, the LR(0) DFA could be turned into an
-LR(0) $\epsilon$-DFA, which would be even more effective
-at grouping dotted rules which occur together.
+LR(0) $\epsilon$-DFA,
+which would be even more effective
+at grouping dotted rules which often occur together
+into a single DFA state.
 \end{itemize}
 
 AHFA states are sets of dotted rules.
@@ -762,10 +764,10 @@ the size of Earley sets could be reduced,
 and Earley's algorithm made faster in practice.
 In short, then, AHFA states are a shorthand that Earley items
 can use for groups of dotted rules that occur together frequently.
-The original Earley items could be represented as $(\Vdr{r}, origin)$
-duples, where \Vdr{r} is a dotted rule.
-Aycock and Horspool modified their Earley items to be $(\ah{L}, origin)$
-duples, where $\ah{L}$ is an AHFA state.
+The original Earley items could be represented as $[\Vdr{x}, \Vorig{x}]$
+duples, where \Vdr{x} is a dotted rule.
+Aycock and Horspool modified their Earley items to be $[\Vah{y}, \Vorig{y}]$
+duples, where $\Vah{y}$ is an AHFA state.
 
 \begin{definition}
 A dotted rule is {\bf Marpa-valid} if and only if
