@@ -2118,7 +2118,31 @@ such that
 $$\var{length} \ge 1 \wedge \Vloc{start} \ge 0$$
 The size of the input, \size{\Vw} is the maximum over
 \var{tokens} of $\Vloc{start}+\var{length}$.
-Tokens may overlap,
+
+Multiple tokens can start at a single location.
+(This is how \Marpa support ambiguous tokens.)
+Tokens may have multiple lengths.
+\Marpa's flexibility with token lengths stretches
+the current idea of parse location perhaps beyond its breaking point,
+so that a new term for parse location is introduced, the \dfn{earleme}.
+Token length is measured in earlemes,
+and the start and end location of a token is indicated in earlemes.
+
+Just like standard parse locations, earlemes start at 0,
+and run up to \size{\Vw}.
+Unlike standard parse locations,
+there is not necessarily a token {\emph at} any particular earleme.
+(A token is considered to be ``at an earleme'' if it ends there,
+so that there is never a token ``at'' earleme 0.)
+In fact,
+there may be earlemes at which no token either starts or ends,
+although for the parse to succeed, such an earleme would have to be
+``inside'' at least one token.
+Here ``inside a token'' means after the token's start earleme
+and before the token's end earleme.
+
+In the Marpa input stream, tokens
+may interweave and overlap freely,
 but gaps are not allowed.
 That is,
 \begin{align*}
@@ -2127,21 +2151,21 @@ That is,
    & \quad\quad \var{start} \le \var{i} < \var{start}+\var{length}
 \end{align*}
 
-The traditional input stream is the special case of
-a Marpa input stream
+The traditional input stream can be seen as the special case of
+a Marpa input stream where
 for all \Vsym{x}, \Vsym{y}, \Vloc{x}, \Vloc{y},
-\var{length-x}, \var{length-y}
+\var{xlength}, \var{ylength}
 if
 \begin{center}
 \begin{tabular}{rl}
-(i)  & $[\Vsym{x}, \Vloc{x}, \var{length-x}] \in \var{tokens} $ \\
-(ii) & $[\Vsym{y}, \Vloc{y}, \var{length-y}] \in \var{tokens}$ \\
+(i)  & $[\Vsym{x}, \Vloc{x}, \var{xlength}] \in \var{tokens} $ \\
+(ii) & $[\Vsym{y}, \Vloc{y}, \var{ylength}] \in \var{tokens}$ \\
 \end{tabular}
 \end{center}
 then we have
 \begin{center}
 \begin{tabular}{rl}
-(i) & $\var{length-x} = \var{length-y} = 1$ \\
+(i) & $\var{xlength} = \var{ylength} = 1$ \\
 (ii) & $\Vloc{x} = \Vloc{y} \implies \Vsym{x} = \Vsym{y}$ \\
 \end{tabular}
 \end{center}
@@ -2149,29 +2173,26 @@ then we have
 The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
 two restrictions must be imposed.
-Call an Earley set, $\es{table[j]}$
-a ``lookahead set'' at $\Vloc{i}$
-if $j>i$
-and there exists some token $\token{t} = (\Vsym{t}, \Vloc{t}, length)$
-such that
-\begin{equation*}
-\Vloc{t} \le \Vloc{i} \wedge \Vloc{t}+length = \Vloc{j}.
-\end{equation*}
-Let the current Earley set be at \Vloc{i}
-Assume that Marpa's input streams are restricted so that
-\begin{itemize}
-\item The number of tokens which start at any one location is
-less than a constant, \var{c}.
-\item The number of Earley sets \Vloc{j},
-such that if there is a token
+Let the current Earley set be at \Vloc{i}.
+Let the set of parse locations, $\mymathop{future}(\var{i})$
+be such that $\Vloc{j} \in \var{future}$
+if and only if
+if there is a token
 $[\Vsym{t}, \Vloc{start}, \var{length}]$
-where $\var{j} = \var{start} + \var{length}$
-and $\var{start} \le \Vloc{i}$
-is less than another constant, \var{d}.
+such that $\var{j} = \var{start} + \var{length}$
+and $\var{start} \le \Vloc{i}$.
+Assume that there is a constant \var{c} such
+that these two restrictions are met:
+\begin{itemize}
+\item For all \Vloc{i},
+the cardinality of $\mymathop{future}(\Vloc{i})$
+is less than \var{c}.
+\item The number of tokens which start at any one location
+is less than \var{c}.
 \end{itemize}
 These two restrictions on Marpa input streams most
-probably reflect the way in which they would find practical use.
-If they are adhered to,
+probably do not restrict their practical use.
+And with them,
 the complexity results for \Marpa{} stand.
 
 \bibliographystyle{plain}
