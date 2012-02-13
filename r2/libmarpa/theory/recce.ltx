@@ -727,7 +727,7 @@ Since they are in the same AHFA state,
 by the AHFA construction,
 that transition must have been
 over the same transition symbol.
-\Leo requires that, for each predecessor Earley set and transition symbol,
+\Leo{} requires that, for each predecessor Earley set and transition symbol,
 that a Leo transition be from a single rule.
 The assumption for the reduction is that \Vdr{complete}
 and \Vdr{other} are in the same Leo reduction state,
@@ -1471,12 +1471,12 @@ at least one EIM in \EVtable{\Marpa}{i}
 corresponds to every EIMT in 
 \EVtable{\Leo}{i}.
 We will proceed by cases,
-where the cases are \Leo operations.
-For every operation which \Leo would perform,
+where the cases are \Leo{} operations.
+For every operation which \Leo{} would perform,
 we need to show that
 \Marpa{} performs an operation which
 produces a corresponding Earley item.
-Here is how we divide the operations of \Leo into cases:
+Here is how we divide the operations of \Leo{} into cases:
 \begin{itemize}
 \item traditional \Earley{} scanning operations;
 \item traditional \Earley{} reductions;
@@ -1533,16 +1533,14 @@ no Leo transition.
 The Marpa pseudocode shows that the Earley items
 \EVtable{\Marpa}{i}
 are traversed in a single pass for reduction.
-Let $\Veim{working} = [\Vah{working}, \Vorig{working}]$
-be the Earley item in \EVtable{\Marpa}{i}
 currently being examined by the reduction operation.
 
 To show that these predecessors are paired
-with a complete and correct sets of component Earley items.
-We stipulate the Earley set is an ordered set,
+with a complete and correct sets of component Earley items,
+we stipulate the Earley set is an ordered set,
 and that new Earley items are added at the end.
-The number of Earley items is finite (at most $\Vsize{ah} \times \var{i}$,
-where \Vsize{ah} is the number of AHFA states),
+The number of Earley items is at most $\Vsize{ah} \times \var{i}$,
+where \Vsize{ah} is the number of AHFA states,
 so a traversal of them must terminate.
 
 Consider, for the purposes of an inner induction,
@@ -1550,17 +1548,17 @@ the reductions of \Leo{} to occur in generations.
 Let the scanned Earley items be generation 0.
 An EIMT produced by a reduction is generation $\var{n} + 1$
 if its component Earley item was generation was \var{n}.
-Predicted Earley items do not need be assigned generations.
+Predicted Earley items do not need to be assigned generations.
 In Marpa grammars they can never contain completions,
 and therefore can never act as the component of a reduction.
 
 The induction hypothesis for the inner induction
 is that for some \var{n},
 the Earley items of \EVtable{\Marpa}{i} for generations 0 through \var{n}
-are complete and correct.
+are complete and consistent.
 
-From Section \label{s:correct},
-we know that all Earley items in Marpa's sets are correct.
+From Section \label{s:sets-consistent},
+we know that all Earley items in Marpa's sets are consistent.
 In Section \label{s:scan-complete},
 we showed that generation 0 is complete --
 its contains Earley items
@@ -1570,18 +1568,19 @@ This is the basis of the inner induction.
 Since we stipulated that \Marpa{} adds Earley items
 at the end of each set,
 we know that they occur in generation order.
-Therefore, \Marpa{} in traversing \EVtable{\Marpa}{i},
-can rely, when
-visiting Earley items of generation $\var{n}+1$,
+Therefore, \Marpa{} while traversing \EVtable{\Marpa}{i}
+can rely
 on the inner induction hypothesis for 
 the completeness of Earley items in
 in generation \var{n}.
+when creating Earley items of generation $\var{n}+1$.
 
-This means that \Marpa, when performing the reductions
-that will produce the Earley items of generation
-$\var{n} + 1$,
-will find a complete set of the component Earley items
-from generation \var{n}.
+Let
+\begin{equation*}
+\Veim{working} = [\Vah{working}, \Vorig{working}]
+\end{equation*}
+be the Earley item in \EVtable{\Marpa}{i}
+currently being examined by the reduction operation.
 From the pseudocode, we see
 that reductions are attempted for every
 pair \Veim{predecessor}, \Veim{working}.
@@ -1596,12 +1595,11 @@ that for each \Veim{working}
 that \Marpa{} performs its reduction operation on a complete set
 of correct predecessors.
 
-Comparing the Marpa pseudocode,
-with the Earley reduction operation
+Comparing the Marpa pseudocode (Section \ref{p:reduction})
+with the Earley reduction operation (Section \ref{d:reduction})
 and using
-Observation~\ref{o:confirmed-AHFA-complete}
-and 
-Observation~\ref{o:predicted-AHFA-complete},
+Observations~\ref{o:confirmed-AHFA-complete}
+and \ref{o:predicted-AHFA-complete},
 we see that a reduced Earley item of
 generation $\var{n}+1$
 will be added to
@@ -1655,7 +1653,7 @@ if and only there is a
 [\Vah{accept},0] \in \EVtable{\Marpa}{\Vsize{w}}
 \end{equation*}
 such that $\Vdr{accept} \in \Vah{accept}$.
-From the acceptance criteria in the \Leo definitions
+From the acceptance criteria in the \Leo{} definitions
 and the \Marpa psuedocode,
 it follows that
 \begin{equation*}
