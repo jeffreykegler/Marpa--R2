@@ -1350,8 +1350,8 @@ These will be consistent by
 Observations~\ref{o:confirmed-AHFA-consistent}
 and~\ref{o:predicted-AHFA-consistent}.
 
-\subsubsection{Reduction correctness without Leo}
-\label{s:Earley-reduction-correct}
+\subsubsection{Reduction consistency without Leo}
+\label{s:reduction-consistent}
 
 We next show correctness for Marpa's reduction operation,
 in the case where there is no Leo reduction.
@@ -1384,8 +1384,8 @@ These will be consistent by
 Observations~\ref{o:confirmed-AHFA-consistent}
 and~\ref{o:predicted-AHFA-consistent}.
 
-\subsubsection{Leo reduction correctness}
-\label{s:Leo-reduction-correct}
+\subsubsection{Leo reduction consistency}
+\label{s:leo-consistent}
 
 We now show correctness for Marpa's reduction operation,
 in the case where there is a Leo reduction.
@@ -1401,31 +1401,31 @@ the logic to create \Vlim{predecessor} as a matter of memoization
 of the previous Earley sets,
 and its correctness follows from
 the outer induction hypothesis.
-As the result of a Leo reduction
-the \Leo algorithm will add
+As the result of a Leo reduction,
+\Leo{} will add
 $[\Vdr{top}, \Vorig{top}]$
 to \EVtable{\Leo}{j}.
-Because the \Marpa LIM is correct,
+Because the \Marpa{} LIM is correct,
 Observations \ref{o:confirmed-AHFA-consistent}
 and \ref{o:confirmed-AHFA-complete}
 and Theorem \ref{t:leo-singleton},
 we know that \Vah{top} is the singleton set
 $\set{ \Vdr{top} }$
-From the \Marpa pseudocode, we see
+From the \Marpa{} pseudocode, we see
 that, as the result of the Leo reduction,
-the \Marpa algorithm will add
+\Marpa{} will add
 $[\ah{top}, \Vorig{top}]$
 to \EVtable{\Marpa}{j}.
 Consistency follows immediately.
 
 \subsubsection{Marpa's Earley sets are consistent}
-\label{s:es-consistent}
+\label{s:sets-consistent}
 
 Sections
-\ref{s:scan-consistent}
-\ref{s:Earley-reduction-consistent}
+\ref{s:scan-consistent},
+\ref{s:reduction-consistent}
 and
-\ref{s:Leo-reduction-consistent}
+\ref{s:leo-consistent}
 show the cases for the step of the inner induction,
 which shows the induction.
 It was the purpose of the inner induction to show
@@ -1439,28 +1439,29 @@ when Marpa's operations are run as described
 in the pseudocode of Section \ref{s:pseudocode},
 that 
 \EVtable{\Marpa}{i} is complete.
-To show that the Marpa Earley sets are complete,
-we need to show that,
-for every traditional Earley item in 
-\EVtable{\Leo}{i},
-\EVtable{\Marpa}{i} contains a least
-one Earley item that corresponds.
-We will proceed by showing that,
-for every operation which \Leo would perform,
-a \Marpa{} operation will performed which
-will produce a corresponding Earley item.
+To do this,
+we need to show that
+at least one EIM in \EVtable{\Marpa}{i}
+corresponds to every EIMT in 
+\EVtable{\Leo}{i}.
 We will proceed by cases,
-where the cases are the operations of \Leo:
+where the cases are \Leo operations.
+For every operation which \Leo would perform,
+we need to show that
+\Marpa{} performs an operation which
+produces a corresponding Earley item.
+Here is how we divide the operations of \Leo into cases:
 \begin{itemize}
-\item traditional \Earley scanning operations;
-\item traditional \Earley reductions;
+\item traditional \Earley{} scanning operations;
+\item traditional \Earley{} reductions;
 \item Leo reductions;
-\item traditional \Earley predictions;
+\item traditional \Earley{} predictions;
 \end{itemize}
 
 \subsubsection{Scanning completeness}
 \label{s:scan-complete}
 
+\begin{sloppypar}
 For scanning, the Marpa pseudocode shows
 that, a scan is attempted for every
 pair \Veim{predecessor}, \Vsym{token},
@@ -1495,6 +1496,7 @@ add to \EVtable{\Marpa}{i}
 an Earley item for
 every prediction that results from
 a scanned Earley item in \EVtable{\Leo}{i}.
+\end{sloppypar}
 
 \subsubsection{Earley reduction completeness}
 
