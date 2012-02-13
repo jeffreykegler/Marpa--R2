@@ -128,12 +128,12 @@ a Creative Commons Attribution-NoDerivs 3.0 United States License.
 
 \begin{abstract}
 This \doc{} reports describes the recognizer portion
-of the Marpa algorithm.
-The Marpa algorithm is a practical, and fully implemented,
+of Marpa,
+a practical and fully implemented
 algorithm for the recognition,
 parsing and evaluation of context-free grammars.
 Based
-on Earley's algorithm,
+on Earley's 1970 algorithm,
 Marpa merges into it the improvements
 of Leo's 1991
 and Aycock and Horspool's 2002 papers.
@@ -171,9 +171,10 @@ A stable version of this tool, Marpa::XS\cite{Marpa-XS},
 was uploaded to the CPAN Perl archive
 on Solstice Day in 2011.
 
-As implemented
-Marpa parses all context-free grammars,
-without exception.
+As implemented,
+Marpa parses,
+without exception,
+all context-free grammars.
 Time bounds are the best of Leo\cite{Leo1991}
 and Earley\cite{Earley1970}.
 The Leo bound
@@ -193,23 +194,19 @@ it is fully aware of the state of the parse,
 and can report this to the user while tokens are
 being scanned.
 
-Rejection of tokens in Marpa is easily and 
-efficiently recoverable,
-so that with Marpa error detection is no longer just
-an, often desperate, last resort.
-It can used as a parsing technique in itself.
+Rejection of tokens is easily and 
+efficiently recoverable so that,
+with Marpa, error detection becomes more than
+an act of desperation --
+error detection can used as a parsing technique.
 Since it can be known immediately if a token
 will be rejected,
 the the input stream can be changed in
 the light of the parser's expectations.
-This means that error detection,
-in previous practice,
-often a desperate last resort,
-becomes useful as a parsing technique.
-Since approach can be described
+This approach can be described
 as making the parser's
 ``wishes'' come true,
-we have has called this
+and we have has called this
 ``Ruby Sippers Parsing''.
 
 One use of the Ruby Slippers technique is to
