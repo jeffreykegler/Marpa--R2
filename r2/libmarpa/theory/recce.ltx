@@ -352,7 +352,7 @@ In this \doc{}, \Earley{} will refer to the Earley's original
 recognizer~\cite{Earley1970}.
 \Leo{} will refer to Leo's revision of \Earley{}
 as described in~\cite{Leo1991}.
-\AH{} will refer to the Aycock and Horsool's revision
+\AH{} will refer to the Aycock and Horspool's revision
 of \Earley{}
 as described in~\cite{AH2002}.
 Where $\alg{Recce}$ is a recognizer,
@@ -577,7 +577,7 @@ where
 \Veimtset{results} = \{ [ \Vdr{prediction}, \Vloc{j} ] : \\
 	\Vdr{prediction} \in \Predict{\Vdr{pred}} \}
 \end{multline*}
-\Veimt{pred} is called the predcessor of the prediction operation.
+\Veimt{pred} is called the predecessor of the prediction operation.
 and the members of \Veimtset{results} are its results.
 
 \subsection{Causation}
@@ -874,7 +874,7 @@ it must be the only dotted rule in that EIM.
 \label{s:pseudocode}
 
 As mentioned, it is assumed that the reader
-is familar with \Earley{}
+is familiar with \Earley{}
 and with the description of \AH{}
 in \cite{AH2002}.
 The comments to the \Marpa{} pseudocode
@@ -1042,7 +1042,7 @@ and may be charged to each \Veim{work}.
 Overhead may be charged to the Earley set.
 
 \begin{algorithm}[h]
-\caption{Memoize transitiions}
+\caption{Memoize transitions}
 \begin{algorithmic}[1]
 \Procedure{Memoize transitions}{\Vloc{i}}
 \For{every \Vsym{postdot}, a postdot symbol of $\Vtable{i}$}
@@ -1624,7 +1624,7 @@ and \ref{o:predicted-AHFA-complete},
 we see that a Earley item will be added to
 \EVtable{\Marpa}{i} corresponding to every scanned Earley item
 of \EVtable{\Leo}{i}.
-We also see that the \Marpa{} scanning operaton will
+We also see that the \Marpa{} scanning operation will
 add to \EVtable{\Marpa}{i}
 an Earley item for
 every prediction that results from
@@ -1844,7 +1844,7 @@ in Section \ref{s:pseudocode}.
 
 \subsection{Duplicate dotted rules}
 
-The same complexity resuls apply to \Marpa as to \Leo,
+The same complexity results apply to \Marpa as to \Leo,
 and the proofs are very similar.
 \Leo's complexity results\cite{Leo1991}
 are based on charging
@@ -2039,7 +2039,7 @@ the two dotted rules would produce different
 derivations, contrary to the assumption that
 the grammar is ambiguous.)
 As a worst case, assume that a dotted rule
-appears in every AFHA state.
+appears in every AHFA state.
 Then $\var{matching} \le \size{\Vfa}$.
 From the forgoing, we know that 
 \begin{equation*}
@@ -2103,7 +2103,7 @@ where \var{d} is a constant which depends on \Vg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time and space complexity of \Marpa{} for LR-regular
-gramars is $\order{\var{n}}$.
+grammars is $\order{\var{n}}$.
 \end{proof}
 
 \begin{theorem}
@@ -2120,8 +2120,8 @@ so that
 \begin{equation*}
 0 \le \Vorig{x} \le \Vloc{i}.
 \end{equation*}
-Additional, the possibilites for \Vah{x} are finite,
-since the number AFHA states is a constant,
+Additional, the possibilities for \Vah{x} are finite,
+since the number AHFA states is a constant,
 $\size{\Vfa}$,
 which depends on \Vg.
 Since duplicate EIM's are never added to an Earley set,
@@ -2144,7 +2144,7 @@ where \var{c} is a constant which depends on \Vg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time and space complexity of \Marpa{} for LR-regular
-gramars is \order{\var{n}^2}.
+grammars is \order{\var{n}^2}.
 \end{proof}
 
 \begin{theorem}
@@ -2155,7 +2155,7 @@ For any context-free grammar,
 \begin{proof}
 Reexamining the proof of Theorem \ref{t:tries-O-eims},
 we see that the only the bound which required
-the assumption that \Vg{} was unambigious
+the assumption that \Vg{} was unambiguous
 was \var{reduction-tries},
 the count of the number of attempts to
 add Earley reductions.
@@ -2190,7 +2190,7 @@ becomes
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time and space complexity of \Marpa{} for context-free
-gramars is \order{\var{n}^3}.
+grammars is \order{\var{n}^3}.
 \end{sloppypar}
 \end{proof}
 
