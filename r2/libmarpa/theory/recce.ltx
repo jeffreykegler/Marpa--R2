@@ -695,7 +695,7 @@ the reduction operation.
 
 In every Earley set after the first,
 for every symbol \Vsym{lhs}
-where \Earley would look for pairs
+where \Earley{} would look for pairs
 $[\Veimt{pred}, \Vsym{lhs}]$
 such that
 \[
@@ -704,13 +704,13 @@ such that
 \]
 in order
 to perform reduction operations,
-Leo first attempts a Leo transition.
-If there is a Leo transition for \Vsym{lhs} from
+Leo first attempts a Leo reduction.
+If there is a Leo reduction for \Vsym{lhs} from
 Earley set \var{i},
 reduction on \Vsym{lhs} from Earley set \var{i}
 is not attempted.
 
-A Leo transition from \Vloc{i} over \Vsym{lhs} is possible
+A Leo reduction from \Vloc{i} over \Vsym{lhs} is possible
 if and only if there exists
 \Vlimt{pred}, \Vdr{top}, \Vorig{top}
 such that
@@ -720,10 +720,10 @@ such that
 \text{and} & $\Vlimt{pred} = [ \Vdr{top}, \Vsym{lhs}, \Vorig{top} ]$
 \end{tabular}
 \end{center}
-If there is a Leo transition,
+If there is a Leo reduction,
 $[ \Vdr{top}, \Vorig{top} ]$ is added to
 \EVtable{\Leo}{j}.
-Otherwise, reduction is tried.
+Otherwise, the standard reduction of \Earley{} is tried.
 
 \section{The Aycock-Horspool finite automaton}
 \label{s:AHFA}
@@ -1879,7 +1879,7 @@ This is an optimization,
 in that it allows dotted rules which often occur
 together to be grouped together aggressively.
 But it opens up the theoretical possibility
-that, in cases where \Earley and \Leo disposed
+that, in cases where \Earley{} and \Leo{} disposed
 of a dotted rule once and for all,
 \Marpa might have to deal with it multiple times.
 
@@ -2100,7 +2100,7 @@ For every LR-regular grammar,
 \begin{proof}
 By Theorem 4.6 in \cite[p. 173]{Leo1991},
 the number of traditional Earley items produced by
-\Leo when parsing input \Vw{} with an LR-regular grammar \Vg{} is
+\Leo{} when parsing input \Vw{} with an LR-regular grammar \Vg{} is
 \begin{equation*}
 \order{\Vsize{\Vw}} = \order{\var{n}}.
 \end{equation*}
