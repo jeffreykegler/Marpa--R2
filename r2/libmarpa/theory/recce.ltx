@@ -595,22 +595,23 @@ and the members of \Veimtset{results} are its results.
 The \dfn{causation} of an operation
 is the set of its operands.
 Operands may be tokens (as in the case of scans and reductions)
-or EIMT's (as in every case except initialization).
+or Earley items (as in every case except initialization).
 An operand of an operation are also called a \dfn{cause}
 of that operation.
 Specifically,
 the \dfn{cause} of an Earley operation is
 \begin{itemize}
-\item the predecessor EIMT of a scanning, reduction
+\item the predecessor Earley item of a scanning, reduction
 or prediction operation; or
-\item the component EIMT of a reduction operation; or
+\item the component Earley item of a reduction operation; or
 \item the transition symbol of a scanning or
 reduction operation.
 \end{itemize}
 
 The cause of an operation is also called
-the \dfn{cause} of all its result EIMT's.
-An EIMT which is result of an scanning or reduction operation with a 
+the \dfn{cause} of all the Earley items which are the
+results of that operation.
+An Earley item which is result of an scanning or reduction operation with a 
 is called the \dfn{successor} of that operation's predecessor.
 
 \section{The Leo algorithm}
