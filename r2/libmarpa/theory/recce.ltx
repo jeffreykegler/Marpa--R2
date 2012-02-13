@@ -924,8 +924,8 @@ and can be charged to the parse.
 \caption{Marpa Scan pass}\label{p:scan-pass}
 \begin{algorithmic}[1]
 \Procedure{Scan pass}{$\Vloc{i},\Vsym{a}$}
-\For{each $\Veimm{predecessor} \in \var{transitions}(\Etable{\var{i} \subtract 1},\Vsym{a})$}
-\State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{predecessor}$
+\For{each $\Veim{predecessor} \in \var{transitions}(\Etable{\var{i} \subtract 1},\Vsym{a})$}
+\State $[\Vah{from}, \Vloc{origin}] \gets \Veim{predecessor}$
 \State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
 \State \Call{Add EIM Pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
 \EndFor
@@ -956,8 +956,8 @@ Earley item attempts.
 \Procedure{Reduction pass}{\Vloc{i}}
 \State Note: This loop must include items added
 \State \hspace{2.5em} by \Call{Reduce one LHS}{}
-\For{each Earley item $\Veimm{work} \in \Vtable{i}$}
-\State $[\Vah{work}, \Vloc{origin}] \gets \Veimm{work}$
+\For{each Earley item $\Veim{work} \in \Vtable{i}$}
+\State $[\Vah{work}, \Vloc{origin}] \gets \Veim{work}$
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
 \State \Call{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \EndFor
@@ -975,7 +975,7 @@ This can be done by implementing \Vtable{i} as an ordered
 set and adding new items at the end.
 
 Exclusive time is clearly \Oc{}
-and may be charged to each \Veimm{work}.
+and may be charged to each \Veim{work}.
 Overhead may be charged to the Earley set.
 
 \begin{algorithm}[h]
@@ -1043,7 +1043,7 @@ $\var{transitions}(\Ves{origin},\Vsym{lhs})$
 can be done \Oc{} time
 by noting
 that the number of symbols is a constant
-and assuming that \Veimm{x} has a link back
+and assuming that \Veim{x} has a link back
 to its origin Earley set.
 (As implemented, Marpa's
 Earley items have such links.)
@@ -1051,8 +1051,8 @@ Earley items have such links.)
 \begin{algorithm}[h]
 \caption{Earley reduction operation}
 \begin{algorithmic}[1]
-\Procedure{Earley reduction operation}{\Vloc{i}, \Veimm{from}, \Vsym{trans}}
-\State $[\Vah{from}, \Vloc{origin}] \gets \Veimm{from}$
+\Procedure{Earley reduction operation}{\Vloc{i}, \Veim{from}, \Vsym{trans}}
+\State $[\Vah{from}, \Vloc{origin}] \gets \Veim{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
@@ -1160,19 +1160,19 @@ which was current when that PSL
 entry was last added or updated.
 
 Consider the case where Marpa is building \EVtable{\Marpa}{j}
-an Earley item \Veimm{x} is new,
-where $\Veimm{x} = [ \Vah{x}, \Vloc{origin} ]$.
+an Earley item \Veim{x} is new,
+where $\Veim{x} = [ \Vah{x}, \Vloc{origin} ]$.
 To do this,
 Marpa checks the PSL's for $\Vtable{origin}$.
 Let the Earley set ``stamp'' for that PSL entry be \EVtable{\Marpa}{p}.
 If the entry has never been used, $\EVtable{\Marpa}{p} = \Lambda$
 If $\EVtable{\Marpa}{p} \ne \Lambda \land \EVtable{\Marpa}{p} = \EVtable{\Marpa}{j}$,
-then \Veimm{x} is not new,
+then \Veim{x} is not new,
 and will not be added to the Earley set.
 
 If $\EVtable{\Marpa}{p} = \Lambda \lor \EVtable{\Marpa}{p} \ne \EVtable{\Marpa}{j}$,
-then \Veimm{x} is new.
-\Veimm{x} is added to the Earley set,
+then \Veim{x} is new.
+\Veim{x} is added to the Earley set,
 and the PSL's ``stamp'' is updated to \EVtable{\Marpa}{j}.
 As implemented,
 Marpa uses PSL's for this purpose and several others.
