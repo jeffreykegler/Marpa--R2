@@ -358,7 +358,7 @@ of the input,
 $0 \le \Vloc{i} < \Vsize{w}$.
 
 In this \doc{}, \Earley{} will refer to the Earley's original
-recognizer~\cite{Earley1970}.
+recognizer\cite{Earley1970}.
 \Leo{} will refer to Leo's revision of \Earley{}
 as described in~\cite{Leo1991}.
 \AH{} will refer to the Aycock and Horspool's revision
@@ -376,13 +376,13 @@ have a zero-length RHS.
 Further, no rule can be nullable
 and all symbols must be either nulling or non-nullable --
 no symbol can be a proper nullable.
-These restrictions follow Aycock and Horspool~\cite{AH2002}.
+These restrictions follow Aycock and Horspool\cite{AH2002}.
 The elimination of empty rules and proper nullables
 is done by rewriting the grammar and,
-as shown in \cite{AH2002}
+as shown in \cite{AH2002},
 is without loss of generality.
-Aycock and Horspool also discuss the evaluation issues
-associated with their rewrites.
+\cite{AH2002} also discusses the evaluation issues
+associated with its rewrites.
 
 Aycock and Horspool allowed
 a single empty start rule
@@ -398,12 +398,12 @@ are done in such a way that the semantics
 of the original grammar can be reconstructed
 simply and efficiently at evaluation time.
 As one example,
-when a rewrites involves the introduction of new rule,
-a semantics for the new rule can be defined to pass its operands
+when a rewrite involves the introduction of new rule,
+semantics for the new rule can be defined to pass its operands
 up to a parent rule as a list,
 and the semantics of the pre-existing parent rule can
-be "wrapped" so that they reassemble these lists
-into operands that are well-formed
+be ``wrapped'' so that they reassemble these lists
+into operands that are properly formed
 for the original semantics.
 
 As implemented,
@@ -416,13 +416,13 @@ may specify any context-free grammar,
 including one with properly nullable symbols,
 empty rules, etc.
 The user may also specify their semantics in terms
-of this original, "free-form", grammar.
+of this original, ``free-form'', grammar.
 Marpa implements the rewrites,
 and performs its evaluation,
 in such a way as to keep them invisible to
 the user.
 From the user's point of view,
-the "free-form" of his grammar is the
+the ``free-form'' of his grammar is the
 one being used for the parse,
 and the semantics being applied are
 those he specified for it.
