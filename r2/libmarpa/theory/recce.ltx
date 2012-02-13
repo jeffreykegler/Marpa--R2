@@ -764,15 +764,35 @@ the size of Earley sets could be reduced,
 and Earley's algorithm made faster in practice.
 In short, then, AHFA states are a shorthand that Earley items
 can use for groups of dotted rules that occur together frequently.
-The original Earley items could be represented as $[\Vdr{x}, \Vorig{x}]$
+The original Earley items (EIMT's)
+could be represented as $[\Vdr{x}, \Vorig{x}]$
 duples, where \Vdr{x} is a dotted rule.
-Aycock and Horspool modified their Earley items to be $[\Vah{y}, \Vorig{y}]$
-duples, where $\Vah{y}$ is an AHFA state.
 
-\begin{definition}
-A dotted rule is {\bf Marpa-valid} if and only if
-it does not have a nulling postdot symbol.
-\end{definition}
+Aycock and Horspool modified their Earley items.
+An Aycock-Horspool Earley item is a duple
+\begin{equation*}
+[\Vah{y}, \Vorig{y}],
+\end{equation*}
+where $\Vah{y}$ is an AHFA state.
+Marpa's Earley items are Aycock-Horspool Earley items.
+A Marpa Earley item has type $EIM$,
+and a Marpa Earley item is often referred to as an EIM.
+
+\begin{sloppypar}
+Aycock and Horspool did not consider
+Leo's modifications,
+but Marpa incorporates them,
+and changes its Leo items to use AHFA states.
+Marpa's Leo items (LIM's) are triples
+of the form
+\begin{equation*}
+[\Vah{top}, \Vsym{transition}, \Vorig{top}],
+\end{equation*}
+where \Vsym{transition} and \Vorig{top}
+are as in the traditional Leo items,
+and \Vah{top} is an AHFA state.
+A Marpa Leo item has type $LIM$.
+\end{sloppypar}
 
 AHFA states are of two kinds:
 {\bf Confirmed AHFA states}
@@ -801,18 +821,18 @@ than that of one of Earley's original sets.
 It seems the AHFA is always a win,
 at least for practical grammars.
 
-An important feature \Marpa{} is that it combines
+\begin{sloppypar}
+In combining
 the improvements of Leo~\cite{Leo1991} and
-Aycock and Horspool\cite{AH2002}.
-In that respect,
-the following theorem is crucial .
-
+Aycock and Horspool\cite{AH2002},
+the following theorem is crucial.
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
 a Marpa Earley item (EIM) is the result of a
 Leo reduction,
 then its AHFA state contains only one dotted rule.
 \end{theorem}
+\end{sloppypar}
 
 \begin{proof}
 Since the Earley item is the result of a Leo reduction,
