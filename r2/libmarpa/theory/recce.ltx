@@ -505,30 +505,31 @@ In the following,
 The {\bf initialization} basic Earley operation only takes
 place in Earley set 0.
 Earley set 0 is initialized to
-\begin{equation*}
-\set{ [ \Vdr{initial}, 0 ] },
+\begin{gather*}
+\set{ [ \Vdr{initial}, 0 ] }, \\
 \Vdr{initial} = [\Vsym{accept} \de \mydot \Vsym{start} ]
-\end{equation*}
+\end{gather*}
 
 \subsection{Scanning}
 \label{d:scan}
 \begin{sloppypar}
 A {\bf scanning} basic Earley operation takes place
 in all Earley sets other than Earley set 0
-for each pair $[\Veimt{pred}, \Vsym{token}]$,
+for each pair $[\Veimt{predecessor}, \Vsym{token}]$,
+where we have all of
 \begin{itemize}
 \item[(i)] $\var{token} = \CEw{j \subtract 1}$
-\item[(ii)] $\Veimt{pred} \in \Etable{(\Vloc{j} \subtract 1)}$
-\item[(iii)] $\Veimt{pred} = [ \Vdr{before}, \Vorig{pred} ]$
+\item[(ii)] $\Veimt{predecessor} \in \Etable{(\Vloc{j} \subtract 1)}$
+\item[(iii)] $\Veimt{predecessor} = [ \Vdr{before}, \Vorig{predecessor} ]$
 \item[(iv)] $\Postdot{\Vdr{before}} = \Vsym{token}$
 \end{itemize}
 A scanning operation
 adds \Veimt{result} to Earley set \Vloc{j},
 where
 \begin{equation*}
-\Veimt{result} = [ \Next{\Vdr{before}}, \Vorig{pred} ]
+\Veimt{result} = [ \Next{\Vdr{before}}, \Vorig{predecessor} ]
 \end{equation*}
-\Veimt{pred} is called the predecessor of the scanning operation
+\Veimt{predecessor} is called the predecessor of the scanning operation
 and \Veimt{result} is called its result.
 \end{sloppypar}
 
@@ -536,26 +537,27 @@ and \Veimt{result} is called its result.
 \label{d:reduction}
 An {\bf Earley reduction} basic operation is attempted
 in every Earley set
-for every pair $[\Veimt{pred}, \Vsym{lhs}]$,
+for every pair $[\Veimt{predecessor}, \Vsym{lhs}]$,
 where there exists a \Veimt{component} such that
+we have all of
 \begin{itemize}
 \item[(i)] $\Veimt{component} \in \Vtable{j}$
 \item[(ii)] $\Veimt{component} = [ \Vdr{complete}, \Vorig{component} ]$
 \item[(iii)] $\Vdr{complete} = [ \Vsym{lhs} \de \Vstr{rhs} \mydot ]$
-\item[(iv)] $\Veimt{pred} \in \Etable{\Vorig{component}}$
-\item[(v)] $\Veimt{pred} = [ \Vdr{before}, \Vorig{pred} ]$
+\item[(iv)] $\Veimt{predecessor} \in \Etable{\Vorig{component}}$
+\item[(v)] $\Veimt{predecessor} = [ \Vdr{before}, \Vorig{predecessor} ]$
 \item[(vi)] $\Postdot{\Vdr{before}} = \Vsym{lhs}$
 \end{itemize}
 A reduction operation
 adds \Veimt{result} to Earley set \Vloc{j},
 where
 \begin{equation*}
-\Veimt{result} = [ \Next{\Vdr{before}}, \Vorig{pred} ]
+\Veimt{result} = [ \Next{\Vdr{before}}, \Vorig{predecessor} ]
 \end{equation*}
 \Veimt{component} is called the component of the reduction operation\footnote{
 The term ``component'' comes from Irons \cite{Irons}.
 }
-\Veimt{pred} is called the predecessor of the reduction operation
+\Veimt{predecessor} is called the predecessor of the reduction operation
 and \Veimt{result} is called its result.
 
 \subsection{Prediction}
@@ -573,10 +575,10 @@ of which all of the following are true
 \end{gather*}
 A {\bf prediction} basic Earley operation is attempted
 in every Earley sets
-for every \Veimt{pred}
+for every \Veimt{predecessor}
 \begin{itemize}
-\item[(i)] $\Veimt{pred} \in \Vtable{j}$
-\item[(ii)] $\Veimt{pred} = [ \Vdr{pred}, \Vorig{pred} ]$
+\item[(i)] $\Veimt{predecessor} \in \Vtable{j}$
+\item[(ii)] $\Veimt{predecessor} = [ \Vdr{predecessor}, \Vorig{predecessor} ]$
 \end{itemize}
 The prediction operation
 adds the members of \Veimtset{results}
@@ -584,9 +586,9 @@ to Earley set \Vloc{j},
 where
 \begin{multline*}
 \Veimtset{results} = \{ [ \Vdr{prediction}, \Vloc{j} ] : \\
-	\Vdr{prediction} \in \Predict{\Vdr{pred}} \}
+	\Vdr{prediction} \in \Predict{\Vdr{predecessor}} \}
 \end{multline*}
-\Veimt{pred} is called the predecessor of the prediction operation.
+\Veimt{predecessor} is called the predecessor of the prediction operation.
 and the members of \Veimtset{results} are its results.
 
 \subsection{Causation}
