@@ -1838,15 +1838,15 @@ This means that attempts to add duplicate EIM's in
 
 We now proceed with our proof, stating
 our argument more formally.
-Let \var{initial-attempts} be the number of attempts to add the initial item to
+Let \var{initial-tries} be the number of attempts to add the initial item to
 the Earley sets.
 For Earley set 0, it is clear from the pseudocode
 that there will be no attempts to add duplicate EIM's:
 \begin{equation*}
-\var{initial-attempts} = \size{\Vtable{0}}.
+\var{initial-tries} = \size{\Vtable{0}}.
 \end{equation*}
 
-Let \var{leo-attempts} be the number of attempted Leo reductions in
+Let \var{leo-tries} be the number of attempted Leo reductions in
 Earley set \Vloc{j}.
 For Leo reduction,
 we note that by its definition,
@@ -1858,10 +1858,10 @@ each each dotted rule in the current Earley set,
 \Vloc{j}.
 every actual Earley
 \begin{equation*}
-\var{leo-attempts} \le \var{max-AHFA} \times \size{\Vtable{j}}
+\var{leo-tries} \le \var{max-AHFA} \times \size{\Vtable{j}}
 \end{equation*}
 
-Let \var{scan-attempts} be the number of attempted Leo reductions in
+Let \var{scan-tries} be the number of attempted Leo reductions in
 Earley set \Vloc{j}.
 Marpa attempts a scan operation,
 in the worst case,
@@ -1872,10 +1872,10 @@ scans must be less than equal to \size{\Vtable{j-1}},
 the number
 of actual Earley items at \Eloc{\var{j} \subtract 1}.
 \begin{equation*}
-\var{scan-attempts} \le \size{\Vtable{j-1}}
+\var{scan-tries} \le \size{\Vtable{j-1}}
 \end{equation*}
 
-Let \var{predict-attempts} be the number of attempted predictions in
+Let \var{predict-tries} be the number of attempted predictions in
 Earley set \Vloc{j}.
 \Marpa includes prediction
 in its scan and reduction operations,
@@ -1885,10 +1885,10 @@ to the number of attempts
 to add duplicate confirmed EIM's
 in the scan and reduction operations.
 So where
-If \var{reduction-attempts} is the number of the number of attempted Earley reductions
+If \var{reduction-tries} is the number of the number of attempted Earley reductions
 in Earley set \Vloc{j}, then
 \begin{equation*}
-\var{predict-attempts} \le \var{reduction-attempts} + \var{scan-attempts}
+\var{predict-tries} \le \var{reduction-tries} + \var{scan-tries}
 \end{equation*}
 
 The final and most complicated case is Earley reduction.
@@ -1907,8 +1907,8 @@ that matches the transition symbol.
 Call this number \Vsize{matching}.
 
 The number of such attempts will be less than
-$\var{max-lhs} \times \Vsize{matching} \times \size{\Vtable{j}}$
-where \var{max-lhs} is the maximum number of completed rules in
+$\var{max-AHFA} \times \Vsize{matching} \times \size{\Vtable{j}}$
+where \var{max-AHFA} is the maximum number of completed rules in
 an AHFA state,
 \Vloc{i} is the origin of the component EIM,
 and $\size{\Vtable{j}}$ is the number of Earley items
@@ -1928,25 +1928,25 @@ appears in every AFHA state.
 Then $\var{matching} \le \size{\Vfa}$.
 From the forgoing, we know that 
 \begin{equation*}
-\var{reduction-attempts} \le \var{max-lhs} \times \size{\Vfa} \times \size{\Vtable{j}}
+\var{reduction-tries} \le \var{max-AHFA} \times \size{\Vfa} \times \size{\Vtable{j}}
 \end{equation*}
 
 The arithmetic for
-summing \var{scan-attempts},
-\var{leo-attempts},
-\var{predict-attempts}
+summing \var{scan-tries},
+\var{leo-tries},
+\var{predict-tries}
 and
-\var{reduction-attempts}
+\var{reduction-tries}
 over the Earley sets,
 then adding
-\var{initial-attempts}
+\var{initial-tries}
 is tedious,
 but since \var{max-AHFA} and \size{Vfa} are both constants
 which depend only on \Vg,
 it is clear that there is a constant \var{c}
 such that
 \begin{equation*}
-\var{attempts} \le \var{c} \times \Rtablesize{\Marpa}
+\var{tries} \le \var{c} \times \Rtablesize{\Marpa}
 \end{equation*}
 where \var{c} is a constant which depends on \Vg.
 \end{proof}
@@ -2029,28 +2029,45 @@ the time and space complexity of \Marpa for LR-regular
 gramars is \order{\var{n}^2}.
 \end{proof}
 
-\begin{proof}
-The time complexity of \Earley for unambiguous grammars
-is $\order(n^2)$
-(Theorem 4.10 in \cite[Vol 1, p. 327]{AU1972};
-\cite{Earley1970}).
-The results follows by using
-Theorem 4.3 of \cite[p. 172]{Leo1991},
-and Theorems \ref{t:eim-order} and \ref{t:O1-per-eim}
-\end{proof}
-
 \begin{theorem}
 For any context-free grammar,
-\Marpa{} runs in $\order{n^3}$ time
-and $\order{n^2}$ space.
+\Marpa{} runs in $\order{n^3}$ time.
 \end{theorem}
 
 \begin{proof}
-The time complexity of \Earley is $\order(n^3)$
-and its space complexity is $\order(n^2)$\cite{Earley1970}.
-The results follows by using
-Theorem 4.3 of \cite[p. 172]{Leo1991},
-and Theorems \ref{t:eim-order} and \ref{t:O1-per-eim}.
+Reexamining the proof of Theorem \ref{t:tries-O-eims},
+we see that the only the bound which required
+the assumption that \Vg{} was unambigious
+was \var{reduction-tries},
+the count of the number of attempts to
+add Earley reductions.
+Let \var{other-tries}
+be attempts to add EIM's other than
+as the result of Earley reductions.
+By Theorem \ref{t:tries-O-eims},
+\begin{equation*}
+\var{other-tries} \le \var{c} \times \Vloc{i}.
+\end{equation*}
+
+Reconsidering \var{reduction-tries}
+for the case of ambiguous grammars,
+we see that in the worst case the memoization of 
+$\mymathop{transitions}(Vloc{i}, Vsym{lhs})$
+accomplishes nothing,
+because every item in \Vloc{i} is returned.
+Worst case, the count of EIM's in Earley set \Vloc{i}
+is \order{\var{i}},
+so that the number of attempts to add EIM reductions
+in each Earley set \Vloc{i} is \order{\var{i}^2}.
+Summing over \var{n} Earley sets,
+the number of attempt to add EIM's as a result
+of Earley reductions is \order{\var{n}^3}.
+When \Vg{} can be ambiguous
+the order of magnitude of all attempt to add EIM's
+becomes
+\begin{equation*}
+ \sum\limits_{\var{i}=0}^{n}{\order{\var{i}^2}+ \var{c} \times \var{i}} = \order{\var{n}^3}
+\end{equation*}
 \end{proof}
 
 \section{Generalizing the grammar}
