@@ -253,7 +253,7 @@ the definitions of grammar and input.
 \label{s:prel}
 \label{s:start-prelim}
 
-We assume familiarity with the basic theory of parsing,
+We assume familiarity with the theory of parsing,
 as well as Earley's algorithm.
 This \doc{} will
 use subscripts to indicate its commonly occurring types.
@@ -432,7 +432,7 @@ those he specified for it.
 Let $\Vrule{r} \in \Vrules$
 be a rule,
 and $\Vsize{r}$ the length of its RHS.
-A dotted rule (type DR) is a duple, $[\Vrule{r}, \var{pos}]$,
+A dotted rule (type $DR$) is a duple, $[\Vrule{r}, \var{pos}]$,
 where $0 < \var{pos} < \size{\Vrule{r}}$.
 The position indicates the extent to which
 the rule has been recognized,
@@ -463,16 +463,16 @@ $\Penult{\Vdr{x}} = \Vsym{last}$.
 Otherwise,
 $\Penult{\Vdr{x}} = \Lambda$.
 
-A traditional Earley item (EIMT) is the duple
+A traditional Earley item (type $EIMT$) is a duple
 \[
-    [\Vdr{dotted-rule}, \Vloc{origin}]
+    [\Vdr{dotted-rule}, \Vorig{x}]
 \]
 of dotted rule and origin.
 (The origin is the location where recognition of the rule
 started.
 It is sometimes called the "parent".)
-For convenience, the type ORIG will be a synonym
-for LOC, indicating that the variable designates
+For convenience, the type $ORIG$ will be a synonym
+for $LOC$, indicating that the variable designates
 the origin element of an Earley item.
 The traditional Earley sets are sets in the strict
 sense -- duplicate Earley items are not added.
@@ -492,7 +492,7 @@ Earley operations}.
 The sets are built in order from 0 to $\size{\Vw}$.
 Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
 Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
-\Vw{} is accepted if and only if
+The input \Vw{} is accepted if and only if
 $$[\Vdr{accept}, 0] \in \Etable{\Vsize{\Vw}}$$
 
 \section{Operations of the Earley algorithm}
