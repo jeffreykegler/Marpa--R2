@@ -232,8 +232,7 @@ treating them as highly defective HTML.
 
 Sections
 \ref{s:start-prelim} through \ref{s:end-prelim}
-will outline notation and some of the
-underlying concepts.
+will deal with notation and underlying concepts.
 Section \ref{s:pseudocode} presents the pseudocode
 for the algorithm Marpa.
 Section
@@ -258,27 +257,29 @@ We assume familiarity with the basic theory of parsing,
 as well as Earley's algorithm.
 This \doc{} will
 use subscripts to indicate its commonly occurring types.
-$\var{X}_T$ will be the variable \var{X} of type $T$.
-$\var{set-one}_\set{T}$ will be the variable \var{X} of type set of $T$.
-and \Vsym{a} will be the variable \var{a} of type $SYM$,
-where $SYM$ indicates a symbol.
-\Vsymset{set-two} will be the set of symbols \var{set-two}.
+\begin{center}
+\begin{tabular}{ll}
+$\var{X}_T$ & The variable \var{X} of type $T$ \\
+$\var{set-one}_\set{T}$ & The variable \var{X} of type set of $T$ \\
+$SYM$ & The type for a symbol \\
+\Vsym{a} & The variable \var{a} of type $SYM$ \\
+\Vsymset{set-two} & The set of symbols \var{set-two} \\
+\end{tabular}
+\end{center}
 Subscripts may be omitted when the type
 is obvious from the context.
 The notation for
-constants will not differ from that for variables.
+constants is the same as that for variables.
 
 Multi-character variable names will be common,
 and operations will never be implicit.
-Multiplication will be explicitly indicated:
-$\var{a} \times \var{b}$.
-Concatenation will be shown as $\var{a} \cat \var{b}$.
-Where used,
-subtraction will be clearly indicated
-by context and typography:
-\begin{equation*}
-\var{symbol-count} \subtract \var{terminal-count}
-\end{equation*}
+\begin{center}
+\begin{tabular}{ll}
+Multiplication &  $\var{a} \times \var{b}$ \\
+Concatenation & $\var{a} \cat \var{b}$ \\
+Subtraction & $\var{symbol-count} \subtract \var{terminal-count}$ \\
+\end{tabular}
+\end{center}
 
 Where \Vsymset{abced} is a set of symbols,
 let $\var{abced}^\ast$ be the set of all strings
