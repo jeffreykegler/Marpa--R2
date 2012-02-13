@@ -2128,23 +2128,27 @@ That is,
 \end{align*}
 
 The traditional input stream is the special case of
-a Marpa input stream where
-\begin{equation*}
-\forall \Vsym{s}, \Vloc{start}, \var{length}, [\var{s}, \var{start}, \var{length}] \in \var{tokens}
-    \implies \var{length} = 1
-\end{equation*}
-and for all $\token{x}, \token{y}$ in \var{tokens}
+a Marpa input stream
+for all \Vsym{x}, \Vsym{y}, \Vloc{x}, \Vloc{y},
+\var{length-x}, \var{length-y}
+if
 \begin{center}
 \begin{tabular}{rl}
-(i) & $\token{x} = [\Vsym{x}, \Vloc{x}, 1]$ \\
-(ii) & $\token{y} = [\Vsym{y}, \Vloc{y}, 1]$ \\
-(iii) & $\Vloc{x} = \Vloc{y} \implies \Vsym{x} = \Vsym{y}$ \\
+(i)  & $[\Vsym{x}, \Vloc{x}, \var{length-x}] \in \var{tokens} $ \\
+(ii) & $[\Vsym{y}, \Vloc{y}, \var{length-y}] \in \var{tokens}$ \\
+\end{tabular}
+\end{center}
+then we have
+\begin{center}
+\begin{tabular}{rl}
+(i) & $\var{length-x} = \var{length-y} = 1$ \\
+(ii) & $\Vloc{x} = \Vloc{y} \implies \Vsym{x} = \Vsym{y}$ \\
 \end{tabular}
 \end{center}
 
 The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
-certain restrictions must be imposed on the generalizations.
+two restrictions must be imposed.
 Call an Earley set, $\es{table[j]}$
 a ``lookahead set'' at $\Vloc{i}$
 if $j>i$
@@ -2153,13 +2157,22 @@ such that
 \begin{equation*}
 \Vloc{t} \le \Vloc{i} \wedge \Vloc{t}+length = \Vloc{j}.
 \end{equation*}
-If, at every location,
-the number of tokens which start there,
-and the number of lookahead sets in play at that location
-is less than a finite constant,
-then Earley items can be added in amortized constant time
-and the complexity results for
-\Marpa{} stand.
+Let the current Earley set be at \Vloc{i}
+Assume that Marpa's input streams are restricted so that
+\begin{itemize}
+\item The number of tokens which start at any one location is
+less than a constant, \var{c}.
+\item The number of Earley sets \Vloc{j},
+such that if there is a token
+$[\Vsym{t}, \Vloc{start}, \var{length}]$
+where $\var{j} = \var{start} + \var{length}$
+and $\var{start} \le \Vloc{i}$
+is less than another constant, \var{d}.
+\end{itemize}
+These two restrictions on Marpa input streams most
+probably reflect the way in which they would find practical use.
+If they are adhered to,
+the complexity results for \Marpa{} stand.
 
 \bibliographystyle{plain}
 
