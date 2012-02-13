@@ -1980,12 +1980,12 @@ the number of attempts that \Marpa will make to add
 EIM's is
 \begin{equation*}
 \var{d} \times \var{c} \times \order{\var{n}} = \order{\var{n}},
-\begin{equation*}
+\end{equation*}
 where \var{d} is a constant which depends on \Vg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time and space complexity of \Marpa for LR-regular
-gramars is \order{\var{\n}}.
+gramars is $\order{\var{n}}$.
 \end{proof}
 
 \begin{theorem}
@@ -2000,7 +2000,7 @@ which in Marpa cannot be after the current
 Earley set \Vloc{i},
 so that
 \begin{equation*}
-$0 \le \Vorig{x} \le \Vloc{i}.
+0 \le \Vorig{x} \le \Vloc{i}.
 \end{equation*}
 Additional, the possibilites for \Vah{x} are finite,
 since the number AFHA states is a constant,
@@ -2021,12 +2021,12 @@ the number of attempts that \Marpa will make to add
 EIM's is
 \begin{equation*}
 \var{c} \times \order{\var{n}^2} = \order{\var{n}^2},
-\begin{equation*}
+\end{equation*}
 where \var{c} is a constant which depends on \Vg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time and space complexity of \Marpa for LR-regular
-gramars is \order{\var{\n}^2}.
+gramars is \order{\var{n}^2}.
 \end{proof}
 
 \begin{proof}
