@@ -2068,6 +2068,10 @@ becomes
 \begin{equation*}
  \sum\limits_{\var{i}=0}^{n}{\order{\var{i}^2}+ \var{c} \times \var{i}} = \order{\var{n}^3}
 \end{equation*}
+Therefore,
+by Theorem \ref{t:O1-per-eim},
+the time and space complexity of \Marpa for context-free
+gramars is \order{\var{n}^3}.
 \end{proof}
 
 \section{Generalizing the grammar}
@@ -2106,45 +2110,49 @@ Second, Marpa's input model is a generalization of
 the traditional input stream model
 used so far.
 Marpa's input is a set of tokens,
-$toks$,
+$tokens$,
 whose elements are triples of symbol,
 start location and end location:
 $$(\Vsym{t}, \Vloc{start}, \var{length})$$
 such that
 $$\var{length} \ge 1 \wedge \Vloc{start} \ge 0$$
-The size of the input, \Vsize{toks} is the maximum over
-\var{toks} of $\Vloc{start}+\var{length}$.
+The size of the input, \size{\Vw} is the maximum over
+\var{tokens} of $\Vloc{start}+\var{length}$.
 Tokens may overlap,
-but gaps are not allowed:
+but gaps are not allowed.
+That is,
 \begin{align*}
-    & \forall \Vloc{i} (\exists \token{t} \sep \token{t} \in \var{toks} \\
-\wedge & t = (\Vsym{t}, \Vloc{start}, \var{length}) \\
-\wedge & \Vloc{start} \le \Vloc{i} \le \Vloc{start}+\var{length}
+    & \forall \Vloc{i}, 0 \le \var{i} < \size{\Vw}, \\
+   &  \quad \exists (\Vsym{t}, \Vloc{start}, \var{length}) \in \var{tokens}, \\
+   & \quad\quad \var{start} \le \var{i} < \var{start}+\var{length}
 \end{align*}
 
 The traditional input stream is the special case of
 a Marpa input stream where
-\begin{gather*}
-\forall \token{tok} \sep \token{tok} \in \var{toks} \\
-\implies \token{tok} = [\Vsym{s}, \Vloc{start}, 1]
-\end{gather*}
-and for all $\token{tok1}, \token{tok2}$ in \var{toks}
+\begin{equation*}
+\forall \Vsym{s}, \Vloc{start}, \var{length}, [\var{s}, \var{start}, \var{length}] \in \var{tokens}
+    \implies \var{length} = 1
+\end{equation*}
+and for all $\token{x}, \token{y}$ in \var{tokens}
 \begin{center}
 \begin{tabular}{rl}
-(i) & $\token{tok1} = [\sym{s1}, \Vloc{start1}, 1]$ \\
-(ii) & $\token{tok2} = [\sym{s2}, \Vloc{start2}, 1]$ \\
-(iii) & $\Vloc{start1} = \Vloc{start2} \implies \token{tok1} = \token{tok2}$ \\
+(i) & $\token{x} = [\Vsym{x}, \Vloc{x}, 1]$ \\
+(ii) & $\token{y} = [\Vsym{y}, \Vloc{y}, 1]$ \\
+(iii) & $\Vloc{x} = \Vloc{y} \implies \Vsym{x} = \Vsym{y}$ \\
 \end{tabular}
 \end{center}
 
 The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
-certain restriction must be imposed on them.
+certain restrictions must be imposed on the generalizations.
 Call an Earley set, $\es{table[j]}$
 a ``lookahead set'' at $\Vloc{i}$
-if $j>i \wedge$
-and there exists some token $\token{tok} = (\sym{s}, \Vloc{start}, length)$
-such that $\Vloc{start} \le i \wedge \Vloc{start}+length = \Vloc{j}$.
+if $j>i$
+and there exists some token $\token{t} = (\Vsym{t}, \Vloc{t}, length)$
+such that
+\begin{equation*}
+\Vloc{t} \le \Vloc{i} \wedge \Vloc{t}+length = \Vloc{j}.
+\end{equation*}
 If, at every location,
 the number of tokens which start there,
 and the number of lookahead sets in play at that location
