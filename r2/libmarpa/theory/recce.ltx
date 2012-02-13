@@ -737,7 +737,7 @@ the following theorem is crucial .
 
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
-a Marpa Earley item (EIMM) is the result of a
+a Marpa Earley item (EIM) is the result of a
 Leo reduction,
 then its AHFA state contains only one dotted rule.
 \end{theorem}
@@ -781,7 +781,7 @@ $\Vrule{c} \neq \Vrule{o}$.
 Next we show that, under the assumption for the reduction,
 that $\Vrule{c} = \Vrule{o}$
 follows from \Leo's uniqueness requirement.
-Since both dotted rules are in the same EIMM
+Since both dotted rules are in the same EIM
 and neither is a prediction,
 both must result from transitions,
 and their transitions must have been from the same Earley set.
@@ -802,8 +802,8 @@ $\Vrule{c} = \Vrule{o}$
 and
 $\Vrule{c} \neq \Vrule{o}$,
 completing the reduction to absurdity.
-When \Vdr{complete} is in a Leo reduction EIMM,
-it must be the only dotted rule in that EIMM.
+When \Vdr{complete} is in a Leo reduction EIM,
+it must be the only dotted rule in that EIM.
 \end{proof}
 
 \section{The Marpa Recognizer}
@@ -1026,11 +1026,11 @@ Overhead may be charged to the Earley set.
 \subsection{Memoize transitions}
 
 The \var{transitions} table for Earley set \Vloc{i}
-is built once all EIMMs have been
+is built once all EIMs have been
 added to Earley set \Vloc{i}.
 This can be done in
 a single pass over Earley set \Vloc{i},
-in \Oc{} time per EIMM.
+in \Oc{} time per EIM.
 The time and space required are charged to the
 Earley items being examined.
 Any loop overhead may be charged to the Earley set.
@@ -1048,7 +1048,7 @@ their space may be charged to the Earley set.
 \caption{Reduce one LHS symbol}
 \begin{algorithmic}[1]
 \Procedure{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
-\State \Comment $pim$ is a ``postdot item'', either a LIMX or an EIMM
+\State \Comment $pim$ is a ``postdot item'', either a LIMX or an EIM
 \For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
 \If{\var{pim} is a LIMX, \Vlim{pim}}
 \State $\Vlim{pred} \gets \var{pim}$
@@ -1064,7 +1064,7 @@ their space may be charged to the Earley set.
 
 \subsection{Reduce one LHS}
 
-Inclusive time is charged to the EIMM attempt.
+Inclusive time is charged to the EIM attempt.
 We show that
 $\var{transitions}(\Ves{origin},\Vsym{lhs})$
 can be done \Oc{} time
@@ -1134,8 +1134,8 @@ calling procedure.
 
 \subsection{Adding a pair of Earley items}
 
-This operation adds a reduced EIMM
-item and, if it exists, the EIMM for
+This operation adds a reduced EIM
+item and, if it exists, the EIM for
 its null-transition.
 Inclusive time and space is charged to the
 calling procedure.
@@ -1153,7 +1153,7 @@ list, to the head of which the new Earley item is added.
 
 Earley items are only added if they are new,
 and showing that this check can be performed in \Oc time
-per EIMM (and therefore per call)
+per EIM (and therefore per call)
 is more complicated.
 A data structure that allows this
 to be checked in \Oc{} time is very
