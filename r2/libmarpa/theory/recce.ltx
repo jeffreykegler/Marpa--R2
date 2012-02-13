@@ -197,15 +197,27 @@ We assume familiarity with the basic theory of parsing,
 as well as Earley's algorithm.
 This \doc{} will
 use subscripts to indicate its commonly occurring types.
-$X_T$ will be the variable $X$ of type $T$.
-$/var{X-set}_{T}$ will be the variable $X$ of type set of $T$.
-and $\sym{a}$ will be the variable \var{a} of type $SYM$,
+$\var{X}_T$ will be the variable \var{X} of type $T$.
+$\var{set-one}_\set{T}$ will be the variable \var{X} of type set of $T$.
+and \Vsym{a} will be the variable \var{a} of type $SYM$,
 where $SYM$ indicates a symbol.
-$\symset{X-set}$ will be the set of symbols \var{X-set}.
+\Vsymset{set-two} will be the set of symbols \var{set-two}.
 Subscripts may be omitted when the type
 is obvious from the context.
 The notation for
-constants will be the same as for variables.
+constants will not differ from that for variables.
+
+Multi-character variable names will be common,
+and operations will never be implicit.
+Multiplication will be explicitly indicated:
+$\var{a} \times \var{b}$.
+Concatenation will be shown as $\var{a} \cat \var{b}$.
+Where used,
+subtraction will be clearly indicated
+by context and typography:
+\begin{equation*}
+\var{symbol-count} \subtract \var{terminal-count}
+\end{equation*}
 
 Where \Vsymset{abced} is a set of symbols,
 let $abced^\ast$ be the set of all strings
@@ -216,11 +228,11 @@ contains all of its elements that are not of zero length.
 
 For the purposes of this \doc{} consider,
 without loss of generality,
-a grammar $g$,
-and a set of symbols, $alphabet$.
+a grammar \Vg,
+and a set of symbols, \Vsymset{alphabet}.
 Call the language of \var{g}, $\myL{\Vg}$,
 where $\myL{\Vg} \in alphabet^\ast$
-Divide $alphabet$ into two disjoint sets,
+Divide \Vsymset{alphabet} into two disjoint sets,
 \Vsymset{lh} and \Vsymset{term}.
 
 For the rewriting, designate a set of duples, \Vruleset{rules},
@@ -228,7 +240,7 @@ where for all \Vrule{r},
 $\Vrule{r} \in \Vruleset{rules}$,
 \Vrule{r} takes the form $[\Vsym{lhs} \de \Vsymset{rhs}]$,
 where $\Vsym{lhs} \in \var{term}$ and
-$rhs \in alphabet^+$.
+$\Vstr{rhs} \in alphabet^+$.
 \Vsym{lhs} is referred to as the left hand side (LHS)
 of \Vrule{r}.
 \Vsymset{rhs} is referred to as the right hand side (RHS)
@@ -236,9 +248,9 @@ of \Vrule{r}.
 This definition follows \cite{AH2002},
 which departs from tradition by disallowing an empty RHS.
 
-The grammar $g$ can be defined as the 4-tuple
+The grammar \Vg{} can be defined as the 4-tuple
 \begin{equation*}
-    (\Vsymset{alphabet}, \Vsymset{term}, rules, \Vsym{start})
+    (\Vsymset{alphabet}, \Vsymset{term}, \var{rules}, \Vsym{start})
 \end{equation*}
 where \Vsymset{term} is the
 set of terminal symbols,
