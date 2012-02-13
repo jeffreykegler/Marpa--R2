@@ -6,6 +6,7 @@
 \usepackage{algpseudocode}
 \usepackage{url}
 
+\newcommand{\doc}{paper}
 \newcommand{\todo}[1]{\par{\large\bf Todo: #1}\par}
 \newcommand{\mymathop}[1]{\mathop{\texttt{#1}}}
 
@@ -58,8 +59,8 @@
 \newcommand{\VVes}[2]{\ensuremath{\var{#1}[\var{#2}]_{ES}}}
 \newcommand{\Vlim}[1]{\ensuremath{\var{#1}_{LIM}}}
 \newcommand{\Vlimt}[1]{\ensuremath{\var{#1}_{LIMT}}}
-\newcommand{\loc}[1]{\var{#1}_{LOC}}
-\newcommand{\Vloc}[1]{\ensuremath{\loc{#1}}}
+\newcommand{\Eloc}[1]{\ensuremath{{#1}_{LOC}}}
+\newcommand{\Vloc}[1]{\Eloc{\var{#1}}}
 \newcommand{\Vrule}[1]{\ensuremath{\var{#1}_{RULE}}}
 \newcommand{\Vruleset}[1]{\ensuremath{\var{#1}_{\set{RULE}}}}
 \newcommand{\Vsize}[1]{\ensuremath{\size{\var{#1}}}}
@@ -127,7 +128,7 @@ a Creative Commons Attribution-NoDerivs 3.0 United States License.
 \date{\today}
 
 \begin{abstract}
-This document reports describes the recognizer portion
+This \doc{} reports describes the recognizer portion
 of the Marpa algorithm.
 The Marpa algorithm is a practical, and fully implemented,
 algorithm for the recognition,
@@ -153,13 +154,13 @@ to the parser's expectations.
 
 \section{THIS IS AN EARLY DRAFT}
 
-This a very early draft of this document,
+This a very early draft of this \doc{},
 and is largely unchecked.
 The spirit and culture of the open source community
 dictate that works of this kind and
 at even this very early stage be made
 available on-line in public repositories.
-The reader should see the availability of this document
+The reader should see the availability of this \doc{}
 as compliance with that spirit and culture,
 and not as in any way suggesting or
 encouraging reliance on its contents.
@@ -199,7 +200,7 @@ the definitions of grammar and input.
 
 We assume familiarity with the basic theory of parsing,
 as well as Earley's algorithm.
-This document will
+This \doc{} will
 use subscripts to indicate its commonly occurring types.
 $X_T$ will be the variable $X$ of type $T$.
 $/var{X-set}_{T}$ will be the variable $X$ of type set of $T$.
@@ -218,7 +219,7 @@ from those symbols.
 Let $abced^+$ be the subset of $abced^\ast$ that
 contains all of its elements that are not of zero length.
 
-For the purposes of this document consider,
+For the purposes of this \doc{} consider,
 without loss of generality,
 a grammar $g$,
 and a set of symbols, $alphabet$.
@@ -277,25 +278,18 @@ and all symbols must be either nulling or non-nullable --
 no symbol can be a proper nullable.
 These restrictions follow Aycock and Horspool~\cite{AH2002}.
 The elimination of empty rules and proper nullables
-is done by rewriting the grammar.
-This can be done without loss of generality
-and, in their paper~\cite{AH2002},
-Aycock and Horspool
-show how to do this
-without effect on the time complexity
-as a function of the input size.
-Very importantly,
-this rewrite is done in such a way that the semantics
-of the original grammar can be efficiently reconstructed
-at evaluation time.
+is done by rewriting the grammar and,
+as shown is \cite{AH2002}
+is without loss of generality.
 
-Aycock and Horspool did allow a single empty start rule
+Aycock and Horspool allowed
+a single empty start rule
 to deal with null parses.
 Marpa eliminates the need for empty rules in its grammars
 by treating null parses and trivial grammars as special cases.
 (Trivial grammars are those which recognize only the null string.)
 
-In this document, \Earley{} will refer to the Earley's original
+In this \doc{}, \Earley{} will refer to the Earley's original
 recognizer~\cite{Earley1970}.
 \Leo{} will refer to Leo's revision of \Earley{}
 as described in~\cite{Leo1991}.
@@ -305,6 +299,44 @@ as described in~\cite{AH2002}.
 Where $\alg{Recce}$ is a recognizer,
 $\myL{\alg{Recce},\Vg}$ will be the language accepted by $\alg{Recce}$
 when parsing \Vg.
+
+\section{Rewriting the grammar}
+
+Because Marpa claims to be a practical parser,
+it is important to emphasize
+that all grammar rewrites in this \doc{}
+are done in such a way that the semantics
+of the original grammar can be reconstructed
+simply and efficiently at evaluation time.
+As one example,
+when a rewrites involves the introduction of new rule,
+a semantics for the new rule can be defined to pass its operands
+up to a parent rule as a list,
+and the semantics of the pre-existing parent rule can
+be "wrapped" so that they reassemble these lists
+into operands that are well-formed
+for the original semantics.
+
+As implemented,
+the Marpa parser allows users to associate
+semantics with an original grammar,
+which has none of the restrictions imposed
+on grammars in this \doc{}.
+The user of a Marpa parser 
+may specify any context-free grammar,
+including one with properly nullable symbols,
+empty rules, etc.
+The user may also specify their semantics in terms
+of this original, "free-form", grammar.
+Marpa implements the rewrites,
+and performs its evaluation,
+in such a way as to keep them invisible to
+the user.
+From the user's point of view,
+the "free-form" of his grammar is the
+one being used for the parse,
+and the semantics being applied are
+those he specified for it.
 
 \section{Earley's algorithm}
 
@@ -353,7 +385,7 @@ Each set is the closure of the
 initialization, scanning, reduction and prediction
 operations.
 These four operations
-are called in this document the {\bf basic
+are called in this \doc{} the {\bf basic
 Earley operations}.
 
 The sets are built in order from 0 to $\size{\Vw}$.
@@ -499,7 +531,7 @@ the right recursion is unambiguous.
 Potential right recursions are memoized by
 Earley set, using what Leo called
 ``transitive items''.
-In this document Leo's ``transitive items'' will be called Leo items.
+In this \doc{} Leo's ``transitive items'' will be called Leo items.
 
 In each Earley set, there is at most one Leo item per symbol.
 The form of Leo items
@@ -588,7 +620,7 @@ Otherwise, reduction is tried.
 \label{s:AHFA}
 \label{s:end-prelim}
 
-In this document a
+In this \doc{} a
 ``split LR(0) $\epsilon$-DFA''
 a described by Aycock and Horspool~\cite{AH2002},
 will be called an Aycock-Horspool Finite Automaton,
@@ -1095,7 +1127,7 @@ briefly outlined in both
 \cite[p. 97]{Earley1970} and
 \cite[Vol. 1, pages 326-327]{AU1972}.
 The data structures used are not named in either source,
-and in this document they will be called ``per-Earley set lists'',
+and in this \doc{} they will be called ``per-Earley set lists'',
 or PSL's.
 PSL's are the subject of the next section.
 
@@ -1248,7 +1280,7 @@ of which all of the following are true
 The following facts about AHFA's from \cite{AH2002}
 will be heavily used in the following proofs.
 For convenience, they are pulled out here and
-restated using the conventions of this document.
+restated using the conventions of this \doc{}.
 An \dfn{AHFA confirmation}
 is a transition from one
 state to another over a non-null symbol.
@@ -1317,11 +1349,11 @@ then
 
 \section{Marpa is correct}
 
-\begin{theorem}\label{t:es-correctness}
+\begin{theorem}\label{t:table-correct}
 Marpa's Earley sets are correct.
 \end{theorem}
 
-\subsection{Proof of Theorem \ref{es-correctness}}
+\subsection{Proof of Theorem \ref{t:table-correct}}
 
 The proof of
 Theorem \ref{t:es-correctness}
@@ -1613,6 +1645,21 @@ This completes the induction step,
 and the inner induction,
 and shows the case of reduction completeness.
 
+\subsubsection{Leo reduction complete}
+\label{s:leo-complete}
+
+We now show completeness for Marpa's reduction operation,
+in the case where there is a Leo reduction.
+In Section \ref{s:leo-consistent},
+we found that where \Leo{} would create
+the EIMT $[\Vdr{top}, \Vorig{top}]$,
+Marpa adds 
+$[\Vah{top}, \Vorig{top}]$
+such that $\Vdr{top} \in \Vah{top}$.
+Since \Vdr{top} is a completed rule,
+there are no predictions.
+This shows the case immediately,
+by the definition of completeness.
 \subsubsection{Prediction completeness}
 Predictions result only from items in the same Earley set.
 In the sections for the other cases of Leo operations,
@@ -1623,11 +1670,16 @@ a corresponding prediction
 was added to \EVtable{\Marpa}{i}.
 
 \subsubsection{Finishing the proof}
-Having shown all the cases,
-we have shown that \EVtable{\Marpa}{i} is complete.
-In section \ref{s:es-consistent}
+Having shown the cases in Sections
+\ref{s:scan-complete},
+\ref{s:reduction-complete},
+\ref{s:leo-complete}, and
+\ref{s:prediction-complete},
+we have shown that Earley set
+\EVtable{\Marpa}{i} is complete.
+In section \ref{s:sets-consistent}
 we showed that \EVtable{\Marpa}{i} is consistent.
-From we conclude that \EVtable{\Marpa}{i} is correct,
+It follows that \EVtable{\Marpa}{i} is correct,
 which is the step of the outer induction.
 Having shown its step, we have the outer induction,
 and the theorem.
@@ -1643,7 +1695,7 @@ We are now is a position to show that Marpa is correct.
 \end{theorem}
 
 \begin{proof}
-From Theorem \ref{t:es-correct},
+From Theorem \ref{t:table-correct},
 we know that
 \begin{equation*}
 [\Vdr{accept},0] \in \EVtable{\Leo}{\Vsize{w}}
@@ -1654,7 +1706,7 @@ if and only there is a
 \end{equation*}
 such that $\Vdr{accept} \in \Vah{accept}$.
 From the acceptance criteria in the \Leo{} definitions
-and the \Marpa psuedocode,
+and the \Marpa{} pseudocode,
 it follows that
 \begin{equation*}
 \myL{\Marpa,\Vg} = \myL{\Leo,\Vg}.
@@ -1684,7 +1736,7 @@ in amortized \Oc{} time and space
 per Earley item.
 
 One way to show the required bound is
-to allocate
+to charge
 the time and space involved in rewriting Earley
 items with nulling symbols directly to
 the Earley item to which they are rewritten
@@ -1706,12 +1758,12 @@ requires \Oc{} time and space.
 \end{theorem}
 
 \begin{proof}
-The theorem follows from collecting the observations
+The theorem follows from the observations
 in Section \ref{s:pseudocode}.
 \end{proof}
 
 \begin{theorem}\label{t:Marpa-O-Leo}
-For a parse of \Vg and \Vw,
+For a parse of \Vg{} and \Vw,
 let \Rtablesize{\Leo} be the
 number of traditional Earley items,
 and \Rtablesize{\Marpa} be the
@@ -1724,12 +1776,12 @@ where \var{c} is a constant which depends on the grammar.
 \end{theorem}
 
 \begin{proof}
-We know from Theorem \ref{t:es-correct}
+We know from Theorem \ref{t:table-correct}
 that every Marpa Earley item corresponds to one of
-\Leo's traditional Earley item.
-If a Marpa items corresponds to a traditional
-Earley item, its AHFA state contains the
-traditional Earley item's dotted rule,
+\Leo's traditional Earley items.
+If an EIM corresponds to an EIMT,
+the AHFA state of the EIM contains the
+EIMT's dotted rule,
 while their origins are identical.
 The worst case is that a dotted rule appears
 in every AHFA state,
@@ -1755,40 +1807,72 @@ $ \var{c} \times \Rtablesize{\Marpa} $
 \end{theorem}
 
 \begin{proof}
-Earley (\cite{Earley1970}) show that,
+Earley\cite{Earley1970} shows that,
 for unambiguous grammars,
 every attempt to add
 an Earley item will actually add one.
 In other words, there will be no attempts to
 add duplicate Earley items.
 Earley's proof shows that for each attempt
-to add a duplcate,
-the causes must be different --
-the EIMT's causing the attempt
+to add a duplicate,
+the causation must be different --
+that the EIMT's causing the attempt
 differ in either their dotted
 rules or their origin.
-If there are multiple causations
-for an Earley item,
-then there are multiple derivations
-for the sentiential form it
-represents,
-and the grammar is ambiguous,
+Multiple causations for an Earley item,
+would mean multiple derivations
+for the sentential form that it represents,
+which in turn would mean that
+the grammar is ambiguous,
 contrary to assumption.
 
 In \Marpa, there is an slight complication,
-which we must prove a result which is weaker,
+because of which we must prove a result which is weaker,
 but still sufficient to produce the same complexity results.
 In \Marpa, a dotted rule can occur in more than one AHFA
 state,
-so that two attempts to add a Marpa Earley item,
-even though different in their Marpa causation.
+so that it is possible that two attempts to add a EIM
+will have identical causation.
+This means that attempts to add duplicate EIM's in
+\Marpa are consistent with an unambiguous grammar.
 
-We now restate the preceeding argument more formally.
+We now proceed with our proof, stating
+our argument more formally.
+Let \var{initial-attempts} be the number of attempts to add the initial item to
+the Earley sets.
 For Earley set 0, it is clear from the pseudocode
-that there will be no attempts to add duplicate EIM's.
+that there will be no attempts to add duplicate EIM's:
+\begin{equation*}
+\var{initial-attempts} = \size{\Vtable{0}}.
+\end{equation*}
+
+Let \var{leo-attempts} be the number of attempted Leo reductions in each Earley set.
 For Leo reduction,
-We note that by its definition,
-multiple attempts at Leo reduction cannot occur.
+we note that by its definition,
+duplicate attempts at Leo reduction cannot occur.
+Let \var{max-AHFA} be the maximum number of 
+dotted rules in any AHFA state.
+Clearly there will be at most one Leo reduction for
+each each dotted rule in the current Earley set,
+\Vloc{j}.
+every actual Earley
+\begin{equation*}
+\var{leo-attempts} \le \var{max-AHFA} \times \size{\Vtable{j}}
+\end{equation*}
+
+Let \var{scan-attempts} be the number of attempted Leo reductions in each Earley set.
+Marpa attempts a scan operation,
+in the worst case,
+once for every EIM in the Earley set \Eloc{\var{j} \subtract 1}.
+Therefore, the number of attempts
+to add scans
+scans must be less than equal to \size{\Vtable{j-1}},
+the number
+of actual Earley items at \Eloc{\var{j} \subtract 1}.
+\begin{equation*}
+\var{scan-attempts} \le \size{\Vtable{j-1}}
+\end{equation*}
+
 \Marpa includes prediction
 in its scan and reduction operations,
 and the number of attempts to add duplicate predicted EIM's
@@ -1796,15 +1880,6 @@ must be less than or equal
 to the number of attempts
 to add duplicate confirmed EIM's
 in the scan and reduction operations.
-
-Marpa attempts a scan operation,
-in the worst case,
-once for every EIM in the Earley set
-just previous to the token.
-Therefore, the number of attempts
-to add scans
-scans must be less than equal to the number
-of actual Earley items.
 
 The remaining case is Earley reduction.
 \Marpa{} attempts to add a reduced EIM
@@ -1844,7 +1919,6 @@ Then $\var{matching} \le \size{\Vfa}$.
 
 Let
 \var{reduction-attempts} be the number of attempted Earley reductions in each Earley set;
-\var{leo-attempts} be the number of attempted Leo reductions in each Earley set;
 \var{scan-attempts} be the number of attempted reductions in each Earley set;
 \var{predict-attempts} be the number of attempted reductions in each Earley set;
 and 
@@ -1857,7 +1931,6 @@ From the forgoing, we know that
 Earlier we showed that
 \begin{align*}
 \var{scan-attempts} & \le \size{\Vtable{j-1}} \\
-\var{leo-attempts} & \le \size{\Vtable{j}} \\
 \var{predict-attempts} & \le \var{reduction-attempts} + \var{scan-attempts}
 \end{align*}
 Clearly, there is no attempt to add a duplicate initial item,
@@ -1977,9 +2050,9 @@ a Marpa input stream where
 and for all $\token{tok1}, \token{tok2}$ in \var{toks}
 \begin{center}
 \begin{tabular}{rl}
-(i) & $\token{tok1} = [\sym{s1}, \loc{start1}, 1]$ \\
-(ii) & $\token{tok2} = [\sym{s2}, \loc{start2}, 1]$ \\
-(iii) & $\loc{start1} = \loc{start2} \implies \token{tok1} = \token{tok2}$ \\
+(i) & $\token{tok1} = [\sym{s1}, \Vloc{start1}, 1]$ \\
+(ii) & $\token{tok2} = [\sym{s2}, \Vloc{start2}, 1]$ \\
+(iii) & $\Vloc{start1} = \Vloc{start2} \implies \token{tok1} = \token{tok2}$ \\
 \end{tabular}
 \end{center}
 
@@ -1987,10 +2060,10 @@ The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
 certain restriction must be imposed on them.
 Call an Earley set, $\es{table[j]}$
-a ``lookahead set'' at $\loc{i}$
+a ``lookahead set'' at $\Vloc{i}$
 if $j>i \wedge$
-and there exists some token $\token{tok} = (\sym{s}, \loc{start}, length)$
-such that $\loc{start} \le i \wedge \loc{start}+length = \loc{j}$.
+and there exists some token $\token{tok} = (\sym{s}, \Vloc{start}, length)$
+such that $\Vloc{start} \le i \wedge \Vloc{start}+length = \Vloc{j}$.
 If, at every location,
 the number of tokens which start there,
 and the number of lookahead sets in play at that location
