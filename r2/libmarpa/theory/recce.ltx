@@ -6,7 +6,11 @@
 \usepackage{algpseudocode}
 \usepackage{url}
 
+% This is now a "paper", but may be a chapter
+% or something else someday
+% This command will make any such change easier.
 \newcommand{\doc}{paper}
+
 \newcommand{\todo}[1]{\par{\large\bf Todo: #1}\par}
 \newcommand{\mymathop}[1]{\mathop{\texttt{#1}}}
 
@@ -186,7 +190,12 @@ underlying concepts.
 Section \ref{s:pseudocode} presents the pseudocode
 for the algorithm Marpa.
 Section
-\ref{s:correctness}
+\ref{s:proof-prelimaries}
+contains the prelimaries
+peculiar to the theoretical results
+of this \doc{}.
+Section
+\ref{s:correct}
 contain a proof of correctness.
 Section \ref{s:complexity} contains
 the complexity results.
@@ -916,7 +925,7 @@ Inclusive time and space is \Oc{} and
 and can be charged to the parse.
 
 \begin{algorithm}[h]
-\caption{Marpa Scan pass}\label{a:scan}
+\caption{Marpa Scan pass}\label{p:scan-pass}
 \begin{algorithmic}[1]
 \Procedure{Scan pass}{$\Vloc{i},\Vsym{a}$}
 \For{each $\Veimm{predecessor} \in \var{transitions}(\Etable{\var{i} \subtract 1},\Vsym{a})$}
@@ -1173,6 +1182,8 @@ As implemented,
 Marpa uses PSL's for this purpose and several others.
 
 \section{Preliminaries to the theoretical results}
+
+\subsection{Nulling symbols}
 \label{s:nulling}
 
 As noted, Marpa grammars,
@@ -1218,6 +1229,8 @@ the parse would allow the nulling symbols
 to be added based on full knowledge of the
 result of the parse.
 
+\subsection{Comparing Earley items}
+
 \begin{definition}
 A Marpa Earley item \dfn{corresponds}
 to a traditional Earley item
@@ -1253,6 +1266,8 @@ a Marpa Earley set is \dfn{correct}
 if and only that Marpa Earley set is complete
 and consistent.
 \end{definition}
+
+\subsection{About AHFA states}
 
 In the following observations,
 if
@@ -1348,6 +1363,7 @@ then
 \end{observation}
 
 \section{Marpa is correct}
+\label{s:correct}
 
 \begin{theorem}\label{t:table-correct}
 Marpa's Earley sets are correct.
@@ -1355,8 +1371,7 @@ Marpa's Earley sets are correct.
 
 \subsection{Proof of Theorem \ref{t:table-correct}}
 
-The proof of
-Theorem \ref{t:es-correctness}
+The proof 
 is by induction on the Earley sets.
 The induction hypothesis is that all Earley sets
 \EVtable{\Marpa}{i},
@@ -1542,7 +1557,7 @@ there is at least one corresponding Marpa Earley item.
 We see from the pseudocode, therefore,
 that \Marpa{} performs its scan operation on a complete set
 of correct operands.
-Comparing the Marpa pseudocode (section \ref{p:scan}), 
+Comparing the Marpa pseudocode (section \ref{p:scan-op}), 
 with the Earley scanning operation (section \ref{d:scan})
 and using
 Observations~\ref{o:confirmed-AHFA-complete}
@@ -1557,6 +1572,7 @@ every prediction that results from
 a scanned Earley item in \EVtable{\Leo}{i}.
 
 \subsubsection{Earley reduction completeness}
+\label{s:reduction-complete}
 
 For reduction,
 we first examine Earley reduction,
@@ -1589,9 +1605,9 @@ is that for some \var{n},
 the Earley items of \EVtable{\Marpa}{i} for generations 0 through \var{n}
 are complete and consistent.
 
-From Section \label{s:sets-consistent},
+From Section \ref{s:sets-consistent},
 we know that all Earley items in Marpa's sets are consistent.
-In Section \label{s:scan-complete},
+In Section \ref{s:scan-complete},
 we showed that generation 0 is complete --
 its contains Earley items
 corresponding to all of the generation 0 EIMT's of \Leo.
@@ -1627,7 +1643,7 @@ that for each \Veim{working}
 that \Marpa{} performs its reduction operation on a complete set
 of correct predecessors.
 
-Comparing the Marpa pseudocode (Section \ref{p:reduction})
+Comparing the Marpa pseudocode (Section \ref{p:reduction-op})
 with the Earley reduction operation (Section \ref{d:reduction})
 and using
 Observations~\ref{o:confirmed-AHFA-complete}
@@ -1660,7 +1676,10 @@ Since \Vdr{top} is a completed rule,
 there are no predictions.
 This shows the case immediately,
 by the definition of completeness.
+
 \subsubsection{Prediction completeness}
+\label{s:prediction-complete}
+
 Predictions result only from items in the same Earley set.
 In the sections for the other cases of Leo operations,
 we showed that,
@@ -2247,6 +2266,7 @@ J.~M. I.~M. Leo.
 
 \end{thebibliography}
 
+\clearpage
 \tableofcontents
 
 \end{document}
