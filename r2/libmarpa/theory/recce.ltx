@@ -936,7 +936,7 @@ caller.
 \State reject if $\size{\Etable{\var{i}}} = 0$
 \State \Call{Reduction pass}{\var{i}}
 \EndFor
-\For{every $[Vah{x}, 0] \in \Etable{\Vsize{w}}$}
+\For{every $[\Vah{x}, 0] \in \Etable{\Vsize{w}}$}
 \If{$\Vdr{accept} \in \Vah{x}$}
 \State accept \Vw{} and return
 \EndIf
@@ -2057,7 +2057,7 @@ over the Earley sets,
 then adding
 \var{initial-tries}
 is tedious.
-But since \var{max-AHFA} and \size{Vfa} are both constants
+But since \var{max-AHFA} and \size{\Vfa} are both constants
 which depend only on \Vg,
 it is clear that there is a constant \var{c}
 such that
@@ -2120,7 +2120,7 @@ so that
 \begin{equation*}
 0 \le \Vorig{x} \le \Vloc{i}.
 \end{equation*}
-Additional, the possibilities for \Vah{x} are finite,
+Also, the possibilities for \Vah{x} are finite,
 since the number AHFA states is a constant,
 $\size{\Vfa}$,
 which depends on \Vg.
@@ -2171,7 +2171,7 @@ By Theorem \ref{t:tries-O-eims},
 Reconsidering \var{reduction-tries}
 for the case of ambiguous grammars,
 we see that in the worst case the memoization of 
-$\mymathop{transitions}(Vloc{i}, Vsym{lhs})$
+$\mymathop{transitions}(\Vloc{i}, \Vsym{lhs})$
 accomplishes nothing,
 because every item in \Vloc{i} is returned.
 Worst case, the count of EIM's in Earley set \Vloc{i}
