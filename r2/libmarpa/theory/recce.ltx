@@ -1012,10 +1012,10 @@ Overhead may be charged to the Earley set.
 \For{every \Vsym{postdot}, a postdot symbol of $\Vtable{i}$}
 \If{postdot transition is unique by rule}
 \State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
-\State \hspace\algorithmicindent to an LIMX
+\State \hspace\algorithmicindent to an LIM
 \Else
 \State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
-\State \hspace\algorithmicindent to the set of EIMX's which have
+\State \hspace\algorithmicindent to the set of EIM's which have
 \State \hspace\algorithmicindent with \Vsym{postdot} as their postdot symbol
 \EndIf
 \EndFor
@@ -1048,9 +1048,9 @@ their space may be charged to the Earley set.
 \caption{Reduce one LHS symbol}
 \begin{algorithmic}[1]
 \Procedure{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
-\State \Comment $pim$ is a ``postdot item'', either a LIMX or an EIM
+\State \Comment $pim$ is a ``postdot item'', either a LIM or an EIM
 \For{each $pim \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
-\If{\var{pim} is a LIMX, \Vlim{pim}}
+\If{\var{pim} is a LIM, \Vlim{pim}}
 \State $\Vlim{pred} \gets \var{pim}$
 \State Perform \Call{Leo reduction operation}{\Vloc{i}, \Vlim{pred}}
 \Else
