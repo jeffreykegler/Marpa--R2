@@ -162,10 +162,13 @@ and the strong academic literature behind it,
 it has never been incorporated into a tool
 as widely available as yacc or
 regular expressions.
-The Marpa project was begun to end this neglect by
-turning the best results from that literature
-into a widely-available tool.
-A stable version of this tool, Marpa::XS~\cite{Marpa-XS},
+The Marpa project was begun to end this neglect.
+Its intention was to
+take the best results from the literature
+on Earley parsing off the pages
+of the journals and make them
+to a larger audience.
+A stable version of this tool, Marpa::XS\cite{Marpa-XS},
 was uploaded to the CPAN Perl archive
 on Solstice Day in 2011.
 
@@ -260,12 +263,12 @@ set of terminal symbols,
 The set of potential LHS symbols, \Vsymset{lh} is
 $\var{alphabet} \setminus \var{term}$.
 Without loss of generality,
-it is assumed that \Vg
+it is assumed that \Vg{}
 has a dedicated acceptance symbol
 \begin{equation*}
-\Vsym{accept}, \var{accept} \in \Vsymset{lh}
+\Vsym{accept}, \Vsym{accept} \in \Vsymset{lh}
 \end{equation*}
-and rule,
+and a dedicated rule,
 \begin{equation*}
 \Vrule{accept} = [ \Vsym{accept} \de \Vsym{start} ]
 \end{equation*}
@@ -288,25 +291,6 @@ $\VVw{i} \in \Vsymset{term}$ be character \var{i}
 of the input,
 $0 \le \Vloc{i} < \Vsize{w}$.
 
-We have already noted
-that no rules of \Vg
-have a zero-length RHS.
-Further, no rule can be nullable
-and all symbols must be either nulling or non-nullable --
-no symbol can be a proper nullable.
-These restrictions follow Aycock and Horspool~\cite{AH2002}.
-The elimination of empty rules and proper nullables
-is done by rewriting the grammar and,
-as shown is \cite{AH2002}
-is without loss of generality.
-
-Aycock and Horspool allowed
-a single empty start rule
-to deal with null parses.
-Marpa eliminates the need for empty rules in its grammars
-by treating null parses and trivial grammars as special cases.
-(Trivial grammars are those which recognize only the null string.)
-
 In this \doc{}, \Earley{} will refer to the Earley's original
 recognizer~\cite{Earley1970}.
 \Leo{} will refer to Leo's revision of \Earley{}
@@ -319,6 +303,27 @@ $\myL{\alg{Recce},\Vg}$ will be the language accepted by $\alg{Recce}$
 when parsing \Vg.
 
 \section{Rewriting the grammar}
+
+We have already noted
+that no rules of \Vg{}
+have a zero-length RHS.
+Further, no rule can be nullable
+and all symbols must be either nulling or non-nullable --
+no symbol can be a proper nullable.
+These restrictions follow Aycock and Horspool~\cite{AH2002}.
+The elimination of empty rules and proper nullables
+is done by rewriting the grammar and,
+as shown in \cite{AH2002}
+is without loss of generality.
+Aycock and Horspool also discuss the evaluation issues
+associated with their rewrites.
+
+Aycock and Horspool allowed
+a single empty start rule
+to deal with null parses.
+Marpa eliminates the need for empty rules in its grammars
+by treating null parses and trivial grammars as special cases.
+(Trivial grammars are those which recognize only the null string.)
 
 Because Marpa claims to be a practical parser,
 it is important to emphasize
@@ -1119,16 +1124,16 @@ calling procedure.
 \begin{algorithm}[h]
 \caption{Add EIM Pair}\label{a:pair}
 \begin{algorithmic}[1]
-\Procedure{Add EIM Pair}{$\Vloc{i},\Vah{reduced}, \Vloc{origin}$}
-\State $\Veim{reduced} \gets [\Vah{reduced}, \Vloc{origin}]$
-\State $\Vah{predicted} \gets \GOTO(\Vah{reduced}, \epsilon)$
-\If{$\Veim{reduced}$ is new}
-\State Add $\Veim{reduced}$ to $\Vtable{i}$
+\Procedure{Add EIM Pair}{$\Vloc{i},\Vah{confirmed}, \Vloc{origin}$}
+\State $\Veim{confirmed} \gets [\Vah{confirmed}, \Vloc{origin}]$
+\State $\Vah{predicted} \gets \GOTO(\Vah{confirmed}, \epsilon)$
+\If{\Veim{confirmed} is new}
+\State Add \Veim{confirmed} to \Vtable{i}
 \EndIf
 \If{$\Vah{predicted} \neq \Lambda$}
 \State $\Veim{predicted} \gets [\Vah{predicted}, \Vloc{i}]$
-\If{$Veim{predicted}$ is new}
-\State Add $\Veim{predicted}$ to $\Vtable{i}$
+\If{\Veim{predicted} is new}
+\State Add \Veim{predicted} to \Vtable{i}
 \EndIf
 \EndIf
 \EndProcedure
@@ -1137,7 +1142,7 @@ calling procedure.
 
 \subsection{Adding a pair of Earley items}
 
-This operation adds a reduced EIM
+This operation adds a confirmed EIM
 item and, if it exists, the EIM for
 its null-transition.
 Inclusive time and space is charged to the
