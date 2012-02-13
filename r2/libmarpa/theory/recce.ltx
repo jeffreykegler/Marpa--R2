@@ -82,8 +82,8 @@
 \newcommand{\Vfa}{\var{fa}}
 \newcommand{\Vg}{\var{g}}
 \newcommand{\Vw}{\var{w}}
-\newcommand{\VVw}[1]{\ensuremath{sym{\Vw[\var{#1}]}}}
-\newcommand{\Vwi}[1]{\ensuremath{sym{\Vw[#1]}}}
+\newcommand{\CVw}[1]{\ensuremath{\sym{\Vw[\var{#1}]}}}
+\newcommand{\CEw}[1]{\ensuremath{\sym{\Vw[#1]}}}
 \newcommand{\Vrules}{\var{rules}}
 \newcommand{\GOTO}{\mymathop{GOTO}}
 \newcommand{\Next}[1]{\mymathop{Next}(#1)}
@@ -283,8 +283,9 @@ Subtraction & $\var{symbol-count} \subtract \var{terminal-count}$ \\
 
 Where \Vsymset{abced} is a set of symbols,
 let $\var{abced}^\ast$ be the set of all strings
-(type STR) formed
+(type $STR$) formed
 from those symbols.
+(Note that sentential forms are of type $STR$.)
 Let $\var{abced}^+$ be the subset of $\var{abced}^\ast$ that
 contains all of its elements that are not of zero length.
 
@@ -297,15 +298,20 @@ where $\myL{\Vg} \in \var{alphabet}^\ast$
 Divide \Vsymset{alphabet} into two disjoint sets,
 \Vsymset{lh} and \Vsymset{term}.
 
-For the rewriting, designate a set of duples, \Vruleset{rules},
-where for all \Vrule{r},
-$\Vrule{r} \in \Vruleset{rules}$,
-\Vrule{r} takes the form $[\Vsym{lhs} \de \Vsymset{rhs}]$,
-where $\Vsym{lhs} \in \var{term}$ and
-$\Vstr{rhs} \in \var{alphabet}^+$.
+For the rewriting consider,
+without loss of generality,
+the set of duples, \Vruleset{rules}.
+The type $RULE$ will be
+a duple
+of the form $[\Vsym{lhs} \de \Vstr{rhs}]$,
+where we have
+\begin{gather*}
+\Vsym{lhs} \in \var{term} \\
+\Vstr{rhs} \in \var{alphabet}^+
+\end{gather*}
 \Vsym{lhs} is referred to as the left hand side (LHS)
 of \Vrule{r}.
-\Vsymset{rhs} is referred to as the right hand side (RHS)
+\Vstr{rhs} is referred to as the right hand side (RHS)
 of \Vrule{r}.
 This definition follows \cite{AH2002},
 which departs from tradition by disallowing an empty RHS.
@@ -323,13 +329,14 @@ The set of potential LHS symbols, \Vsymset{lh} is
 $\var{alphabet} \setminus \var{term}$.
 Without loss of generality,
 it is assumed that \Vg{}
-has a dedicated acceptance symbol
+has a dedicated acceptance symbol,
+\Vsym{accept},
 \begin{equation*}
-\Vsym{accept}, \Vsym{accept} \in \Vsymset{lh}
+\Vsym{accept} \in \Vsymset{lh},
 \end{equation*}
 and a dedicated rule,
 \begin{equation*}
-\Vrule{accept} = [ \Vsym{accept} \de \Vsym{start} ]
+\Vrule{accept} = [ \Vsym{accept} \de \Vsym{start} ],
 \end{equation*}
 such that for every rule,
 $\Vrule{x} = [ \Vsym{lhs} \de \Vsymset{rhs} ]$
@@ -345,8 +352,8 @@ $  \Vsym{accept} \notin \Vsymset{rhs} $ \\
 Let the input to parse be \Vw, $\Vw \in \var{alphabet}^\ast$.
 Locations in the input will be of type LOC.
 Let \Vsize{w} be the length of the input, counted in symbols.
-Let \VVw{i},
-$\VVw{i} \in \Vsymset{term}$ be character \var{i}
+Let \CVw{i},
+$\CVw{i} \in \Vsymset{term}$ be character \var{i}
 of the input,
 $0 \le \Vloc{i} < \Vsize{w}$.
 
@@ -510,7 +517,7 @@ A {\bf scanning} basic Earley operation takes place
 in all Earley sets other than Earley set 0
 for each pair $[\Veimt{pred}, \Vsym{token}]$,
 \begin{itemize}
-\item[(i)] $\var{token} = \Vwi{j \subtract 1}$
+\item[(i)] $\var{token} = \CEw{j \subtract 1}$
 \item[(ii)] $\Veimt{pred} \in \Etable{(\Vloc{j} \subtract 1)}$
 \item[(iii)] $\Veimt{pred} = [ \Vdr{before}, \Vorig{pred} ]$
 \item[(iv)] $\Postdot{\Vdr{before}} = \Vsym{token}$
