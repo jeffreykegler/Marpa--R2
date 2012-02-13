@@ -194,15 +194,19 @@ it is fully aware of the state of the parse,
 and can report this to the user while tokens are
 being scanned.
 
-Rejection of tokens is easily and 
-efficiently recoverable so that,
-with Marpa, error detection becomes more than
+Marpa allows the lexer to check its list
+of acceptable tokens before a token is scanned.
+But because rejection of tokens is easily and 
+efficiently recoverable,
+the lexer is also free to take an event-driven
+approach.
+With Marpa, error detection is no longer
 an act of desperation --
-error detection can used as a parsing technique.
-Since it can be known immediately if a token
-will be rejected,
-the the input stream can be changed in
-the light of the parser's expectations.
+error detection can used as a parsing technique
+in its own right.
+If a token is rejected,
+the lexer is free to create a new token
+in the light of the parser's expectations.
 This approach can be described
 as making the parser's
 ``wishes'' come true,
