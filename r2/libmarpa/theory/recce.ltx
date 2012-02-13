@@ -420,7 +420,7 @@ Earley operations}.
 The sets are built in order from 0 to $\size{\Vw}$.
 Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
 Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
-\Vw is accepted if and only if
+\Vw{} is accepted if and only if
 $$[\Vdr{accept}, 0] \in \Etable{\Vsize{\Vw}}$$
 
 \section{Operations of the Earley algorithm}
@@ -495,9 +495,9 @@ be the set of dotted rules
 \end{equation*}
 of which all of the following are true
 \begin{gather*}
-    [ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \\
-    \Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha} \\
-    \Vsym{P} = \Postdot{\Vdr{d}}
+[ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \\
+\Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha} \\
+\Vsym{P} = \Postdot{\Vdr{d}}
 \end{gather*}
 A {\bf prediction} basic Earley operation is attempted
 in every Earley sets
@@ -510,10 +510,10 @@ The prediction operation
 adds the members of \Veimtset{results}
 to Earley set \Vloc{j},
 where
-\begin{equation*}
-\Veimtset{results} = \left\lbrace [ \Vdr{prediction}, Vloc{j} ] \mid\vert 
-    \Vdr{prediction} \in \Predict{\Vdr{pred}} \right\rbrace
-\end{equation*}
+\begin{multline*}
+\Veimtset{results} = \{ [ \Vdr{prediction}, \Vloc{j} ] : \\
+	\Vdr{prediction} \in \Predict{\Vdr{pred}} \}
+\end{multline*}
 \Veimt{pred} is called the predcessor of the prediction operation.
 and the members of \Veimtset{results} are its results.
 
@@ -875,10 +875,10 @@ caller.
 \EndFor
 \For{every $[Vah{x}, 0] \in \Etable{\Vsize{w}}$}
 \If{$\Vdr{accept} \in \Vah{x}$}
-\State accept \Vw and return
+\State accept \Vw{} and return
 \EndIf
 \EndFor
-\State reject \Vw
+\State reject \Vw{}
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -2046,7 +2046,7 @@ For every LR-regular grammar,
 \begin{proof}
 By Theorem 4.6 in \cite[p. 173]{Leo1991},
 the number of traditional Earley items produced by
-\Leo when parsing input \Vw with an LR-regular grammar \Vg is
+\Leo when parsing input \Vw{} with an LR-regular grammar \Vg{} is
 \begin{equation*}
 \order{\Vsize{\Vw}} = \order{\var{n}}.
 \end{equation*}
@@ -2095,7 +2095,7 @@ Summing over the length of the input,
 $\order{\Vsize{\Vw}} = \order{\var{n}}$,
 the number of EIM's in all of \Marpa's Earley sets
 is \order{\var{n}^2}.
-By assumption, \Vg is unambiguous, so that
+By assumption, \Vg{} is unambiguous, so that
 by Theorem \ref{t:tries-O-eims},
 the number of attempts that \Marpa{} will make to add
 EIM's is
