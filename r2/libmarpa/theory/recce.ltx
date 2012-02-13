@@ -362,16 +362,21 @@ Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
 \Vw is accepted if and only if
 $$[\Vdr{accept}, 0] \in \Etable{\Vsize{\Vw}}$$
 
-We now describe the basic Earley operations.
-In the following definitions,
+\section{Operations of the Earley algorithm}
+
+In the following,
 \Vloc{j} is the current Earley set.
 
+\subsection{Initialization}
+\label{d:initial}
 The {\bf initialization} basic Earley operation only takes
 place in Earley set 0.
 Earley set 0 is initialized to $\set{ [ \Vdr{initial}, 0 ] }$,
 where
 $$\Vdr{initial} = [\Vsym{accept} \de \mydot \Vsym{start} ]$$
 
+\subsection{Scanning}
+\label{d:scan}
 A {\bf scanning} basic Earley operation takes place
 in all Earley sets other than Earley set 0
 for each pair $[\Veimt{pred}, \Vsym{token}]$,
@@ -395,6 +400,8 @@ ii) & $\Vdr{after} = [ \var{A} \de \var{alpha} \cat \var{token} \mydot \var{beta
 \Veimt{pred} is called the predecessor of the scanning operation
 and \Veimt{result} is called its result.
 
+\subsection{Reduction}
+\label{d:reduction}
 An {\bf Earley reduction} basic operation is attempted
 in every Earley set
 for every pair $[\Veimt{pred}, \Vsym{lhs}]$,
@@ -426,6 +433,8 @@ The term ``component'' comes from Irons \cite{Irons}.
 \Veimt{pred} is called the predecessor of the reduction operation
 and \Veimt{result} is called its result.
 
+\subsection{Prediction}
+\label{d:prediction}
 A {\bf prediction} basic Earley operation is attempted
 in every Earley sets
 for every \Veimt{pred}
@@ -449,14 +458,27 @@ $$[ \Vsym{A} \de \Vstr{rhs} ] \in \Vrules$$
 \Veimt{pred} is called the predcessor of the prediction operation.
 and the members of \Veimtset{results} are its results.
 
-An EIMT is called the \dfn{cause} of an operation if it is
+\subsection{Causation}
+The \dfn{causation} of an operation
+is the set of its operands.
+Operands may be tokens (as in the case of scans and reductions)
+or EIMT's (as in every case except initialization).
+An operand of an operation are also called a \dfn{cause}
+of that operation.
+Specifically,
+the \dfn{cause} of an Earley operation is
 \begin{itemize}
-\item The predecessor of a scanning, reduction or prediction operation.
-\item The component of a reduction operation.
+\item the predecessor EIMT of a scanning, reduction
+or prediction operation; or
+\item the component EIMT of a reduction operation; or
+\item the transition symbol of a scanning or
+reduction operation.
 \end{itemize}
-The cause of an operation is also the cause of all its result EIMT's.
+
+The cause of an operation is also called
+the \dfn{cause} of all its result EIMT's.
 An EIMT which is result of an scanning or reduction operation with a 
-is called the \dfn{successor} of that predecessor.
+is called the \dfn{successor} of that operation's predecessor.
 
 \section{The Leo algorithm}
 
@@ -857,6 +879,7 @@ and will produce a parse even for highly defective HTML.
 \end{algorithm}
 
 \subsection{Initialization}
+\label{p:initial-op}
 Inclusive time and space is \Oc{} and
 and can be charged to the parse.
 
@@ -874,6 +897,7 @@ and can be charged to the parse.
 \end{algorithm}
 
 \subsection{Scan pass}
+\label{p:scan-op}
 
 \var{transitions} is a set of tables, one per Earley set,
 which is indexed by symbol.
@@ -999,6 +1023,7 @@ Earley items have such links.)
 \end{algorithm}
 
 \subsection{Earley Reduction operation}
+\label{p:reduction-op}
 
 Exclusive time and space is clearly \Oc.
 Inclusive time and space is charged to the
@@ -1016,6 +1041,7 @@ calling procedure.
 \end{algorithm}
 
 \subsection{Leo reduction operation}
+\label{p:leo-op}
 
 Exclusive time and space is clearly \Oc.
 Inclusive time and space is charged to the
@@ -1473,6 +1499,8 @@ and \Vsym{token} is the token scanned at \Vloc{i}.
 returned by $\mymathop{transitions}()$.
 This is a memoization for efficiency
 and we will ignore it.)
+\end{sloppypar}
+
 By the preliminary definitions, we know that \Vsym{token}
 is the same in both \Earley{} and \Leo.
 By the outer induction hypothesis we know that,
@@ -1482,21 +1510,19 @@ there is at least one corresponding Marpa Earley item.
 We see from the pseudocode, therefore,
 that \Marpa{} performs its scan operation on a complete set
 of correct operands.
-Comparing the Marpa pseudocode,
-with the Earley scanning operation
+Comparing the Marpa pseudocode (section \ref{p:scan}), 
+with the Earley scanning operation (section \ref{d:scan})
 and using
-Observation~\ref{o:confirmed-AHFA-complete}
-and 
-Observation~\ref{o:predicted-AHFA-complete},
+Observations~\ref{o:confirmed-AHFA-complete}
+and \ref{o:predicted-AHFA-complete},
 we see that a Earley item will be added to
 \EVtable{\Marpa}{i} corresponding to every scanned Earley item
 of \EVtable{\Leo}{i}.
-We also see that the \Marpa scanning operaton will
+We also see that the \Marpa{} scanning operaton will
 add to \EVtable{\Marpa}{i}
 an Earley item for
 every prediction that results from
 a scanned Earley item in \EVtable{\Leo}{i}.
-\end{sloppypar}
 
 \subsubsection{Earley reduction completeness}
 
