@@ -619,7 +619,7 @@ is called the \dfn{successor} of that operation's predecessor.
 In \cite{Leo1991}, Joop Leo presented a method for
 dealing with right recursion in \order{n} time.
 Leo shows that,
-With his modification, Earley's algorithm
+with his modification, Earley's algorithm
 is \order{n} for all LR-regular grammars.
 (LR-regular is LR where lookahead
 is infinite length, but restricted to
@@ -633,11 +633,16 @@ the right recursion is unambiguous.
 Potential right recursions are memoized by
 Earley set, using what Leo called
 ``transitive items''.
-In this \doc{} Leo's ``transitive items'' will be called Leo items.
+In this \doc{} Leo's ``transitive items''
+will be called Leo items.
+Leo items in the form that Marpa uses
+will be type $LIM$.
+``Traditional'' Leo items,
+that is, those in the form used in Leo's paper\cite{Leo1991},
+will be type $LIMT$.
 
 In each Earley set, there is at most one Leo item per symbol.
-The form of Leo items
-from in Leo's original paper, is the triplet
+An traditional Leo item (LIMT) is the triplet
 $$[ \Vdr{top}, \Vsym{transition}, \Vorig{top} ]$$
 where \Vsym{transition} is the transition symbol,
 and
@@ -646,20 +651,19 @@ and
 \end{equation*}
 is the Earley to be added on reductions over
 the \Vsym{transition}.
-Leo items of this form will be called
-``traditional'' Leo items (type LIMT).
 
 Leo items memoize what would otherwise be sequences
 of Earley items.
 Leo items only memoize unambiguous (or
 deterministic) sequences,
-and so that top of the sequence can stand
-in for the entire sequence --
+so that the top of the sequence can represent
+the entire sequence --
 the only role the other EIMT's in the sequence would
 play in a parse is to derive the top EIMT.
 We will call these memoized sequences, Leo sequences.
 
-Each Leo sequence, if fully expanded would contain \order{n} items,
+Each Leo sequence, if fully expanded,
+would contain \order{n} items,
 where \var{n} is the length of the sequence.
 In \Earley, each such sequence would be expanded in every
 Earley set which is the origin of an EIMT included in the
@@ -667,8 +671,8 @@ sequence, and the total number of EIMT's would be
 \order{n^2}.
 
 With Leo memoization, a single EIMT stands in for the sequence.
-There are \Oc Leo items per Earley set,
-so the cost of the sequence is \Oc per Earley set,
+There are \Oc{} Leo items per Earley set,
+so the cost of the sequence is \Oc{} per Earley set,
 or \order{n} for the entire sequence.
 If, at evaluation time,
 it is desirable to expand the Leo sequence,
@@ -684,9 +688,9 @@ the sequence remain \order{n}.
 Implementing Leo memoization requires
 adding another basic operation.
 In addition to the basic operations of \Earley,
-\Leo{} include Leo transition.
+\Leo{} include Leo reduction.
 For any symbol in a reduction \Vsym{lhs},
-a Leo transition, if one exists, replaces
+a Leo reduction, if one exists, replaces
 the reduction operation.
 
 In every Earley set after the first,
