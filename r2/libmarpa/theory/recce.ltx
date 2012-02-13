@@ -1762,7 +1762,7 @@ The theorem follows from the observations
 in Section \ref{s:pseudocode}.
 \end{proof}
 
-\begin{theorem}\label{t:Marpa-O-Leo}
+\begin{theorem}\label{t:marpa-O-leo}
 For a parse of \Vg{} and \Vw,
 let \Rtablesize{\Leo} be the
 number of traditional Earley items,
@@ -1795,7 +1795,7 @@ Therefore,
 \end{equation*}
 \end{proof}
 
-\begin{theorem}\label{t:attempts-O-actual}
+\begin{theorem}\label{t:tries-O-eims}
 Let \Rtablesize{\Marpa} be the
 number of Earley items actually
 added to the tables,
@@ -1951,23 +1951,83 @@ such that
 where \var{c} is a constant which depends on \Vg.
 \end{proof}
 
-We now state some of the more important
-specific results.
+We are now in a position to show
+specific time and space complexity results.
+For these we follow the tradition by referring
+letting \var{n} be
+Vsize{\Vw},
+the length of the input.
 
 \begin{theorem}
 For every LR-regular grammar,
-\Marpa{} runs in $\order{\Vsize{\Vw}}$ time and space.
+\Marpa{} runs in $\order{n}$ time and space.
 \end{theorem}
 
 \begin{proof}
 By Theorem 4.6 in \cite[p. 173]{Leo1991},
-and Theorems \ref{t:eim-order} and \ref{t:O1-per-eim}.
+the number of traditional Earley items produced by
+\Leo when parsing input \Vw with an LR-regular grammar \Vg is
+\begin{equation*}
+\order{\Vsize{\Vw}} = \order{\var{n}}.
+\end{equation*}
+By Theorem \ref{t:marpa-O-leo},
+the number of EIM's \Marpa will require for the same parse
+is, worst case, $\var{c} \times \order{\var{n}}$,
+where \var{c} is a constant which depends on \Vg.
+LR-regular grammar are unambiguous, so that
+by Theorem \ref{t:tries-O-eims},
+the number of attempts that \Marpa will make to add
+EIM's is
+\begin{equation*}
+\var{d} \times \var{c} \times \order{\var{n}} = \order{\var{n}},
+\begin{equation*}
+where \var{d} is a constant which depends on \Vg.
+Therefore,
+by Theorem \ref{t:O1-per-eim},
+the time and space complexity of \Marpa for LR-regular
+gramars is \order{\var{\n}}.
 \end{proof}
 
 \begin{theorem}
 For every unambiguous grammar,
-\Marpa{} runs in $\order{n^2}$ time.
+\Marpa{} runs in $\order{n^2}$ time and space.
 \end{theorem}
+
+\begin{proof}
+EIM's have the form $[\Vah{x}, \Vorig{x}]$.
+\Vorig{x} is the origin of the EIM,
+which in Marpa cannot be after the current
+Earley set \Vloc{i},
+so that
+\begin{equation*}
+$0 \le \Vorig{x} \le \Vloc{i}.
+\end{equation*}
+Additional, the possibilites for \Vah{x} are finite,
+since the number AFHA states is a constant,
+$\size{\Vfa}$,
+which depends on \Vg.
+Since duplicate EIM's are never added to an Earley set,
+the maximum size of an Earley set is therefore
+\begin{equation*}
+\Vloc{i} \times \size{\Vfa}
+\end{equation*}
+Summing over the length of the input,
+$\order{\Vsize{\Vw}} = \order{\var{n}}$,
+the number of EIM's in all of \Marpa's Earley sets
+is \order{\var{n}^2}.
+By assumption, \Vg is unambiguous, so that
+by Theorem \ref{t:tries-O-eims},
+the number of attempts that \Marpa will make to add
+EIM's is
+\begin{equation*}
+\var{c} \times \order{\var{n}^2} = \order{\var{n}^2},
+\begin{equation*}
+where \var{c} is a constant which depends on \Vg.
+Therefore,
+by Theorem \ref{t:O1-per-eim},
+the time and space complexity of \Marpa for LR-regular
+gramars is \order{\var{\n}^2}.
+\end{proof}
 
 \begin{proof}
 The time complexity of \Earley for unambiguous grammars
