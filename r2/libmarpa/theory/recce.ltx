@@ -1846,7 +1846,8 @@ that there will be no attempts to add duplicate EIM's:
 \var{initial-attempts} = \size{\Vtable{0}}.
 \end{equation*}
 
-Let \var{leo-attempts} be the number of attempted Leo reductions in each Earley set.
+Let \var{leo-attempts} be the number of attempted Leo reductions in
+Earley set \Vloc{j}.
 For Leo reduction,
 we note that by its definition,
 duplicate attempts at Leo reduction cannot occur.
@@ -1860,7 +1861,8 @@ every actual Earley
 \var{leo-attempts} \le \var{max-AHFA} \times \size{\Vtable{j}}
 \end{equation*}
 
-Let \var{scan-attempts} be the number of attempted Leo reductions in each Earley set.
+Let \var{scan-attempts} be the number of attempted Leo reductions in
+Earley set \Vloc{j}.
 Marpa attempts a scan operation,
 in the worst case,
 once for every EIM in the Earley set \Eloc{\var{j} \subtract 1}.
@@ -1873,6 +1875,8 @@ of actual Earley items at \Eloc{\var{j} \subtract 1}.
 \var{scan-attempts} \le \size{\Vtable{j-1}}
 \end{equation*}
 
+Let \var{predict-attempts} be the number of attempted predictions in
+Earley set \Vloc{j}.
 \Marpa includes prediction
 in its scan and reduction operations,
 and the number of attempts to add duplicate predicted EIM's
@@ -1880,8 +1884,14 @@ must be less than or equal
 to the number of attempts
 to add duplicate confirmed EIM's
 in the scan and reduction operations.
+So where
+If \var{reduction-attempts} is the number of the number of attempted Earley reductions
+in Earley set \Vloc{j}, then
+\begin{equation*}
+\var{predict-attempts} \le \var{reduction-attempts} + \var{scan-attempts}
+\end{equation*}
 
-The remaining case is Earley reduction.
+The final and most complicated case is Earley reduction.
 \Marpa{} attempts to add a reduced EIM
 once for every each pair of LHS of every component
 in its current Earley,
@@ -1916,31 +1926,25 @@ the grammar is ambiguous.)
 As a worst case, assume that a dotted rule
 appears in every AFHA state.
 Then $\var{matching} \le \size{\Vfa}$.
-
-Let
-\var{reduction-attempts} be the number of attempted Earley reductions in each Earley set;
-\var{scan-attempts} be the number of attempted reductions in each Earley set;
-\var{predict-attempts} be the number of attempted reductions in each Earley set;
-and 
-\var{initial-attempts} be the number of attempts to add the initial item to
-Earley set 0.
 From the forgoing, we know that 
 \begin{equation*}
 \var{reduction-attempts} \le \var{max-lhs} \times \size{\Vfa} \times \size{\Vtable{j}}
 \end{equation*}
-Earlier we showed that
-\begin{align*}
-\var{scan-attempts} & \le \size{\Vtable{j-1}} \\
-\var{predict-attempts} & \le \var{reduction-attempts} + \var{scan-attempts}
-\end{align*}
-Clearly, there is no attempt to add a duplicate initial item,
-so that
-\begin{equation*}
-\var{initial-attempts} \le \size{\Vtable{0}}.
-\end{equation*}
-Collecting these results and summing over the \Vloc{j},
-$0 \le \var{j} \le \size{\Vw}$,
-we can see that
+
+The arithmetic for
+summing \var{scan-attempts},
+\var{leo-attempts},
+\var{predict-attempts}
+and
+\var{reduction-attempts}
+over the Earley sets,
+then adding
+\var{initial-attempts}
+is tedious,
+but since \var{max-AHFA} and \size{Vfa} are both constants
+which depend only on \Vg,
+it is clear that there is a constant \var{c}
+such that
 \begin{equation*}
 \var{attempts} \le \var{c} \times \Rtablesize{\Marpa}
 \end{equation*}
