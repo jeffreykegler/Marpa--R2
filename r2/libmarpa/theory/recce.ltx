@@ -1359,10 +1359,8 @@ if we assume that a history
 of the rewrite is kept,
 and that the rewrite is reversed
 after the parse.
-Clearly, whether an input \Vw{} is acceptable
-or will not depend on how often
-a grammar \Vg{} interpolates nulling symbols into
-its input stream.
+Clearly, whether an \Vg{} accepts \Vw{}
+cannot depend on the nulling symbols in its rules.
 
 In its implementation,
 \Marpa's does not directly rewrite the grammar
@@ -1371,8 +1369,8 @@ But nulling symbols are ignored in
 creating the AHFA states,
 and must be restored during \Marpa's evaluation phase,
 so that the implementation and
-the simplification for theory purposes in fact
-track each other fairly closely.
+this simplification for theory purposes
+track each other closely.
 
 A question for future research is whether directly
 rewriting the grammar to eliminate nulling
@@ -1392,9 +1390,9 @@ A Marpa Earley item \dfn{corresponds}
 to a traditional Earley item
 $\Veimt{x} = [\Vdr{x}, \Vorig{x}]$
 if and only if the Marpa Earley item is
-if $\Veim{y} = [\Vah{y}, \Vorig{x}]$
+$\Veim{y} = [\Vah{y}, \Vorig{x}]$
 and $\Vdr{x} \in \Vah{y}$.
-The relation is reflexive:
+This relation is reflexive:
 A traditional Earley item, \Veimt{x}, corresponds to a
 Marpa Earley item, \Veim{y}, if and only if
 \Veim{y} corresponds to \Veimt{x}.
@@ -1437,10 +1435,9 @@ then
 \end{equation*}
 be 
 
-The following facts about AHFA's from \cite{AH2002}
+Several facts about AHFA's from \cite{AH2002}
 will be heavily used in the following proofs.
-For convenience, they are pulled out here and
-restated using the conventions of this \doc{}.
+For convenience, they are restated here.
 An \dfn{AHFA confirmation}
 is a transition from one
 state to another over a non-null symbol.
@@ -1567,21 +1564,23 @@ $\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
 \end{tabular}
 \end{center}
 These will be consistent by
-Observations~\ref{o:confirmed-AHFA-consistent}
-and~\ref{o:predicted-AHFA-consistent}.
+the definition of Earley scanning (Section~\ref{d:scan}),
+Observation~\ref{o:confirmed-AHFA-consistent},
+the definition of Earley prediction (Section~\ref{d:predict}) and
+Observation ~\ref{o:predicted-AHFA-consistent}.
 
 \subsubsection{Reduction consistency without Leo}
 \label{s:reduction-consistent}
 
 \begin{sloppypar}
-We next show correctness for Marpa's reduction operation,
+We next show consistency for Marpa's reduction operation,
 in the case where there is no Leo reduction.
 There will be two cause EIM's, \Veim{predecessor}
 and \Veim{component}.
 \Veim{predecessor} will be correct by the outer induction
 hypothesis
 and \Veim{component}
-will be correct by the inner induction hypothesis.
+will be consistent by the inner induction hypothesis.
 From \Veim{component}, we will find zero or more transition
 symbols, \Vsym{lhs}.
 From this point,  the argument is very similar to
@@ -1602,15 +1601,17 @@ $\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
 \end{tabular}
 \end{center}
 These will be consistent by
-Observations~\ref{o:confirmed-AHFA-consistent}
-and~\ref{o:predicted-AHFA-consistent}.
+the definition of Earley reduction (Section~\ref{d:reduction}),
+Observation~\ref{o:confirmed-AHFA-consistent},
+the definition of Earley prediction (Section~\ref{d:predict}) and
+Observation ~\ref{o:predicted-AHFA-consistent}.
 \end{sloppypar}
 
 \subsubsection{Leo reduction consistency}
 \label{s:leo-consistent}
 
 \begin{sloppypar}
-We now show correctness for Marpa's reduction operation,
+We now show consistency for Marpa's reduction operation,
 in the case where there is a Leo reduction.
 If there is a Leo reduction, it is signaled by the
 presence of \Vlim{predecessor},
