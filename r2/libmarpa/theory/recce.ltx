@@ -2304,7 +2304,7 @@ For any context-free grammar,
 
 \begin{proof}
 Reexamining the proof of Theorem \ref{t:tries-O-eims},
-we see that the only the bound which required
+we see that the only bound which required
 the assumption that \Vg{} was unambiguous
 was \var{reduction-tries},
 the count of the number of attempts to
@@ -2323,23 +2323,21 @@ for the case of ambiguous grammars,
 we see that in the worst case the memoization of 
 $\mymathop{transitions}(\Vloc{i}, \Vsym{lhs})$
 accomplishes nothing,
-because every item in \Vloc{i} is returned.
+because every item in
+Earley set \Vloc{i} is returned.
 Worst case, the count of EIM's in Earley set \Vloc{i}
 is \order{\var{i}},
 so that the number of attempts to add EIM reductions
 in each Earley set \Vloc{i} is \order{\var{i}^2}.
-Summing over \var{n} Earley sets,
-the number of attempt to add EIM's as a result
-of Earley reductions is \order{\var{n}^3}.
 When \Vg{} can be ambiguous
 the order of magnitude of all attempt to add EIM's
 becomes
 \begin{equation*}
- \sum\limits_{\var{i}=0}^{n}{\order{\var{i}^2}+ \var{c} \times \var{i}} = \order{\var{n}^3}
+ \sum\limits_{\Vloc{i}=0}^{n}{\order{\Vloc{i}^2}+ \var{c} \times \Vloc{i}} = \order{\var{n}^3}
 \end{equation*}
 Therefore,
 by Theorem \ref{t:O1-per-eim},
-the time and space complexity of \Marpa{} for context-free
+the time complexity of \Marpa{} for context-free
 grammars is \order{\var{n}^3}.
 \end{sloppypar}
 \end{proof}
