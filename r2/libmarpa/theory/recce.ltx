@@ -2349,51 +2349,65 @@ As implemented,
 Marpa generalizes the idea of grammars
 and input streams beyond that so far described
 for \Vg{} and \Vw.
-Because the differences were
+The differences are
 minor from a theoretical point of view,
-and their discussion has been deferred to avoid
-cluttering the proofs.
-This section redefines \Vg{} and \Vw,
-to incorporate the
-deferred generalizations.
+and to avoid cluttering the proofs,
+their discussion was deferred.
+In this section we extend the
+definition of \Vg{} and \Vw,
+incorporating Marpa's generalizations.
 
-First, Marpa's grammars are in effect 3-tuples:
-$$(\Vsymset{alphabet}, rules, \Vsym{start})$$
+\subsection{All symbols are terminals}
+
+Marpa's grammars are in effect 3-tuples:
+$$(\Vsymset{alphabet}, \Vrules, \Vsym{start})$$
 \Vsymset{term} is omitted, because
 Marpa allows a symbol to be both a terminal
 and a LHS.
 This expansion of the grammar definition
 is made without loss of generalization,
 or effect on the results.
-\footnote{
-Marpa has options which
-cause the traditional restrictions to
-be enforced,
-in part or in whole.
-For error detection and efficiency,
-users may well prefer this.
-}
 
-Second, Marpa's input model is a generalization of
+The Marpa implementation has options,
+using which the user can 
+have the traditional restrictions
+enforced, in part or in whole.
+For error detection and efficiency,
+many users may prefer this.
+
+\subsection{Alternative input models}
+
+In this \doc{},
+up to this point,
 the traditional input stream model
-used so far.
+has been assumed.
+Marpa's input model is a generalization of
+the traditional input stream model.
 Marpa's input is a set of tokens,
-$tokens$,
+\var{tokens},
 whose elements are triples of symbol,
 start location and end location:
-$$(\Vsym{t}, \Vloc{start}, \var{length})$$
+\begin{equation*}
+    (\Vsym{t}, \Vloc{start}, \var{length})
+\end{equation*}
 such that
-$$\var{length} \ge 1 \wedge \Vloc{start} \ge 0$$
-The size of the input, \size{\Vw} is the maximum over
+\begin{equation*}
+    \var{length} \ge 1 \wedge \Vloc{start} \ge 0
+\end{equation*}
+The size of the input, \size{\Vw},
+is the maximum over
 \var{tokens} of $\Vloc{start}+\var{length}$.
 
 \begin{sloppypar}
 Multiple tokens can start at a single location.
 (This is how \Marpa{} supports ambiguous tokens.)
 Tokens may have multiple lengths.
-\Marpa's expanded concept of token lengths stretches
-the current idea of parse location beyond its breaking point,
-so that a new term for parse location is introduced,
+The variable-length,
+ambiguous and overlapping tokens
+of \Marpa{}
+bend the conceptual framework of ``parse location''
+beyond its breaking point,
+and a new term for parse location is introduced,
 the \dfn{earleme}.
 Token length is measured in earlemes,
 and the start and end location of a token is indicated in earlemes.
@@ -2402,7 +2416,7 @@ and the start and end location of a token is indicated in earlemes.
 Just like standard parse locations, earlemes start at 0,
 and run up to \size{\Vw}.
 Unlike standard parse locations,
-there is not necessarily a token {\emph at} any particular earleme.
+there is not necessarily a token ``at'' any particular earleme.
 (A token is considered to be ``at an earleme'' if it ends there,
 so that there is never a token ``at'' earleme 0.)
 In fact,
@@ -2416,44 +2430,59 @@ In the Marpa input stream, tokens
 may interweave and overlap freely,
 but gaps are not allowed.
 That is,
-\begin{align*}
-    & \forall \Vloc{i}, 0 \le \var{i} < \size{\Vw}, \\
-   &  \quad \exists (\Vsym{t}, \Vloc{start}, \var{length}) \in \var{tokens}, \\
-   & \quad\quad \var{start} \le \var{i} < \var{start}+\var{length}
-\end{align*}
+\begin{multline*}
+     \forall \Vloc{i}, 0 \le \var{i} < \size{\Vw}, \\
+     \exists (\Vsym{t}, \Vloc{start}, \var{length}) \in \var{tokens}, \\
+    \var{start} \le \var{i} < \var{start}+\var{length}
+\end{multline*}
 
+The intent of Marpa's generalized input model is to allow
+users to define alternative input models for special
+applications.
+An example that already arises in practice is natural
+language, features of which are most
+naturally expressed with ambiguous tokens.
 The traditional input stream can be seen as the special case of
-a Marpa input stream where
+the Marpa input model where
 for all \Vsym{x}, \Vsym{y}, \Vloc{x}, \Vloc{y},
 \var{xlength}, \var{ylength}
-if
-\begin{center}
-\begin{tabular}{rl}
-(i)  & $[\Vsym{x}, \Vloc{x}, \var{xlength}] \in \var{tokens} $ \\
-(ii) & $[\Vsym{y}, \Vloc{y}, \var{ylength}] \in \var{tokens}$ \\
-\end{tabular}
-\end{center}
-then we have
-\begin{center}
-\begin{tabular}{rl}
-(i) & $\var{xlength} = \var{ylength} = 1$ \\
-(ii) & $\Vloc{x} = \Vloc{y} \implies \Vsym{x} = \Vsym{y}$ \\
-\end{tabular}
-\end{center}
+if we have both of
+\begin{align*}
+    [\Vsym{x}, \Vloc{x}, \var{xlength}] & \in \var{tokens} \\
+    [\Vsym{y}, \Vloc{y}, \var{ylength}] & \in \var{tokens}
+\end{align*}
+then we have both of
+\begin{gather*}
+\var{xlength} = \var{ylength} = 1 \\
+     \Vloc{x} = \Vloc{y} \implies \Vsym{x} = \Vsym{y}
+\end{gather*}
 
 The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
 two restrictions must be imposed.
-Let the current Earley set be at \Vloc{i}.
-Let the set of parse locations, $\mymathop{future}(\var{i})$
-be such that $\Vloc{j} \in \var{future}$
+To state them,
+we first define
+$\mymathop{future}(\var{i})$.
+Let \Vloc{i} be the current Earley set.
+$\mymathop{future}(\var{i})$ is
+a set of parse locations,
+such that
+\begin{equation*}
+\Vloc{j} \in \mymathop{future}(\var{i})
+\end{equation*}
 if and only if
-if there is a token
-$[\Vsym{t}, \Vloc{start}, \var{length}]$
-such that $\var{j} = \var{start} + \var{length}$
-and $\var{start} \le \Vloc{i}$.
-Assume that there is a constant \var{c} such
-that these two restrictions are met:
+there is a token
+\begin{equation*}
+[\Vsym{t}, \Vloc{start}, \var{length}],
+\end{equation*}
+such that we have both of
+\begin{gather*}
+    \var{j} = \var{start} + \var{length} \\
+    \var{start} \le \Vloc{i}
+\end{gather*}
+
+The two restrictions are then as follows,
+where \var{c} is a constant:
 \begin{itemize}
 \item For all \Vloc{i},
 the cardinality of $\mymathop{future}(\Vloc{i})$
@@ -2461,7 +2490,7 @@ is less than \var{c}.
 \item The number of tokens which start at any one location
 is less than \var{c}.
 \end{itemize}
-These two restrictions on Marpa input streams most
+These restrictions on Marpa input streams most
 probably do not restrict their practical use.
 And with them,
 the complexity results for \Marpa{} stand.
