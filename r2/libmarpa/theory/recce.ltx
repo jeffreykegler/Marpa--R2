@@ -1560,26 +1560,52 @@ that the predecessor EIM is correct
 by the outer induction hypothesis,
 and that the token is correct
 by the definitions in the preliminaries.
-We know from the pseudocode for the scanning operation
+We know from Section \ref{p:scan-op},
 that at most two EIM's will be added.
-Where
-\begin{gather*}
-\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{token}) \\
-\text{and $\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)$,}
-\end{gather*}
-we will add
-\begin{center}
-\begin{tabular}{ll}
-$[\Vah{confirmed}, \Vloc{i}]$ & if $\Vah{confirmed} \ne \Lambda$, and \\
-$[\Vah{predicted}, 0]$ & if
-$\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
-\end{tabular}
-\end{center}
-These will be consistent by
-the definition of Earley scanning (Section~\ref{d:scan}),
-Observation~\ref{o:confirmed-AHFA-consistent},
-the definition of Earley prediction (Section~\ref{d:prediction}) and
+We now examine them in detail.
+
+Let
+\begin{equation*}
+    \Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{token})
+\end{equation*}
+If $\Vah{confirmed} = \Lambda$, we do nothing,
+and since \EVtable{\Marpa}{i} is consistent by the inner
+induction hypothesis,
+it remains consistent, trivially.
+Otherwise, let
+$\Veim{confirmed} = [\Vah{confirmed}, \Vloc{i}]$.
+We see that \Veim{confirmed} is consistent with respect
+to \EVtable{\Leo}{i}
+by the definition of Earley scanning (Section~\ref{d:scan}),
+and Observation~\ref{o:confirmed-AHFA-consistent}.
+Consistency is invariant under union,
+and since \EVtable{\Marpa}{i} is consistent by the inner induction
+\EVtable{\Marpa}{i} remains consistent after
+\Veim{confirmed} is added.
+
+\begin{sloppypar}
+For predictions,
+if $\Vah{confirmed} \ne \Lambda$, let
+\begin{equation*}
+\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)
+\end{equation*}
+If $\Vah{predicted} = \Lambda$, we do nothing,
+and since \EVtable{\Marpa}{i} is consistent by the inner
+induction hypothesis,
+it remains consistent, trivially.
+Otherwise, let
+\begin{equation*}
+\Veim{predicted} = [\Vah{predicted}, \Vloc{i}].
+\end{equation*}
+We see that \Veim{predicted} is consistent with respect to
+to \EVtable{\Leo}{i},
+by the definition of Earley prediction (Section~\ref{d:prediction}) and
 Observation ~\ref{o:predicted-AHFA-consistent}.
+Consistency is invariant under union and,
+since \EVtable{\Marpa}{i} is consistent by the inner induction,
+\EVtable{\Marpa}{i} remains consistent after
+\Veim{predicted} is added.
+\end{sloppypar}
 
 \subsubsection{Reduction consistency without Leo}
 \label{s:reduction-consistent}
@@ -1597,27 +1623,28 @@ From \Veim{component}, we will find zero or more transition
 symbols, \Vsym{lhs}.
 From this point,  the argument is very similar to
 that for the case of the scanning operation.
-We know from the pseudocode for the scanning operation
-that at most two EIM's will be added.
-Where
-\begin{gather*}
-\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{lhs}) \\
-\text{and $\Vah{predicted} = \GOTO(\Vah{confirmed}, \epsilon)$,}
-\end{gather*}
-we will add
-\begin{center}
-\begin{tabular}{ll}
-$[\Vah{confirmed}, \Vloc{i}]$ & if $\Vah{confirmed} \ne \Lambda$, and \\
-$[\Vah{predicted}, 0]$ & if
-$\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
-\end{tabular}
-\end{center}
-These will be consistent by
-the definition of Earley reduction (Section~\ref{d:reduction}),
-Observation~\ref{o:confirmed-AHFA-consistent},
-the definition of Earley prediction (Section~\ref{d:prediction}) and
-Observation ~\ref{o:predicted-AHFA-consistent}.
 \end{sloppypar}
+
+Let
+\begin{equation*}
+\Vah{confirmed} = \GOTO(\Vah{predecessor}, \Vsym{lhs})
+\end{equation*}
+If $\Vah{confirmed} = \Lambda$, we do nothing,
+and \EVtable{\Marpa}{i} remains consistent, trivially.
+Otherwise, let
+$\Veim{confirmed} = [\Vah{confirmed}, \Vloc{i}]$.
+We see that \Veim{confirmed} is consistent with respect
+to \EVtable{\Leo}{i}
+by the definition of Earley reduction (Section~\ref{d:reduction}),
+and Observation~\ref{o:confirmed-AHFA-consistent}.
+By the invariance of consistency under union,
+\EVtable{\Marpa}{i} remains consistent after
+\Veim{confirmed} is added.
+
+For predictions, the argument exactly repeats that of
+Section \ref{s:scan-consistent}.
+\EVtable{\Marpa}{i} remains consistent,
+whether or not a \Veim{predicted} is added.
 
 \subsubsection{Leo reduction consistency}
 \label{s:leo-consistent}
