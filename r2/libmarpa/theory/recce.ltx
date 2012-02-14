@@ -1282,24 +1282,29 @@ PSL's are the subject of the next section.
 
 \subsection{Per-set lists}
 
+\begin{sloppypar}
 A per-set list (PSL) is kept in each Earley set.
-When building a new Earley set, \EVtable{\Marpa}{j},
+While \Marpa{} is building a new Earley set,
+\EVtable{\Marpa}{j},
 the PSL for every previous Earley set, \Vloc{i},
-keeps a list of those Earley items in \EVtable{\Marpa}{j} which have \Vloc{i}
+tracks the Earley items in \EVtable{\Marpa}{j} which have \Vloc{i}
 as their origin.
 The maximum number of Earley items that must be tracked
-in each PSL is the \Vsize{\Vfa},
+in each PSL is
 the number of AHFA states,
+\Vsize{\Vfa},
 which is a constant depending on \Vg.
+\end{sloppypar}
 
 It would take more than \Oc{} time
-to clearing and rebuilding the PSL's every time
-for each new Earley set that needs to be built.
-But this can be avoided by "dating" each PSL
+to clear and rebuild the PSL's each time
+that a new Earley set is started.
+This can be avoided by "dating" each PSL
 entry with the Earley set
 which was current when that PSL
 entry was last updated.
 
+\begin{sloppypar}
 Consider the case where Marpa is building \EVtable{\Marpa}{j}
 and wants to check whether Earley item \Veim{x} is new,
 where $\Veim{x} = [ \Vah{x}, \Vorig{x} ]$.
@@ -1307,7 +1312,7 @@ Let $\mymathop{PSL}(\Vloc{l}, \Vah{a})$
 be the entry for \Vah{a} in the PSL for Earley set \Vloc{l}.
 To check if \Veim{x} is new,
 Marpa checks $\mymathop{PSL}(\Vloc{x}, \Vah{x})$.
-Let the Earley set ``date'' for that PSL entry be \Vloc{p},
+Let the ``date'' for that PSL entry be \Vloc{p},
 that is,
 \begin{equation*}
     \mymathop{PSL}(\Vloc{x}, \Vah{x}) = \Vloc{p}
@@ -1317,13 +1322,15 @@ we assume that $Vloc{p} = \Lambda$.
 If $\Vloc{p} \ne \Lambda \land \Vloc{p} = \Vloc{j}$,
 then \Veim{x} is not new,
 and will not be added to the Earley set.
+\end{sloppypar}
 
 If $\Vloc{p} = \Lambda \lor \Vloc{p} \ne \Vloc{j}$,
 then \Veim{x} is new.
 \Veim{x} is added to the Earley set,
-and the PSL's ``stamp'' is updated to \Vloc{j},
+and the PSL's ``date'' is updated to \Vloc{j},
+that is,
 \begin{equation*}
-    \mymathop{PSL}(\Vloc{x}, \Vah{x}) \gets \Vloc{j}
+    \mymathop{PSL}(\Vloc{x}, \Vah{x}) \gets \Vloc{j}.
 \end{equation*}
 As implemented,
 Marpa uses PSL's to check if EIM's are new,
