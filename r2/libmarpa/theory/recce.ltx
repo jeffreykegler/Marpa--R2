@@ -2239,15 +2239,19 @@ where \var{c} is a constant which depends on \Vg.
 LR-regular grammar are unambiguous, so that
 by Theorem \ref{t:tries-O-eims},
 the number of attempts that \Marpa{} will make to add
-EIM's is
+EIM's is on the order of
 \begin{equation*}
-\var{d} \times \var{c} \times \order{\var{n}} = \order{\var{n}},
+    \var{d} \times \var{c} \times \order{\var{n}}
 \end{equation*}
 where \var{d} is a constant which depends on \Vg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time and space complexity of \Marpa{} for LR-regular
-grammars is $\order{\var{n}}$.
+grammars is
+\begin{equation*}
+    \var{d} \times \var{c} \times \order{\var{n}}
+    = \order{\var{n}}.\qedhere
+\end{equation*}
 \end{proof}
 
 \begin{theorem}
@@ -2264,17 +2268,19 @@ so that
 \begin{equation*}
 0 \le \Vorig{x} \le \Vloc{i}.
 \end{equation*}
-Also, the possibilities for \Vah{x} are finite,
-since the number AHFA states is a constant,
+The possibilities for \Vah{x} are finite,
+since the number of AHFA states is a constant,
 $\size{\Vfa}$,
 which depends on \Vg.
 Since duplicate EIM's are never added to an Earley set,
-the maximum size of an Earley set is therefore
+the maximum size of Earley set \Vloc{i} is therefore
 \begin{equation*}
-\Vloc{i} \times \size{\Vfa}
+\Vloc{i} \times \size{\Vfa},
 \end{equation*}
+where in this context \Vloc{i} is to be treated
+as an integer, the ordinal of Earley set \Vloc{i}.
 Summing over the length of the input,
-$\order{\Vsize{\Vw}} = \order{\var{n}}$,
+$\Vsize{\Vw} = \var{n}$,
 the number of EIM's in all of \Marpa's Earley sets
 is \order{\var{n}^2}.
 By assumption, \Vg{} is unambiguous, so that
@@ -2282,7 +2288,7 @@ by Theorem \ref{t:tries-O-eims},
 the number of attempts that \Marpa{} will make to add
 EIM's is
 \begin{equation*}
-\var{c} \times \order{\var{n}^2} = \order{\var{n}^2},
+\var{c} \times \order{\var{n}^2},
 \end{equation*}
 where \var{c} is a constant which depends on \Vg.
 Therefore,
