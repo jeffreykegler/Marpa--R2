@@ -88,7 +88,7 @@
 \newcommand{\myL}[1]{\mymathop{L}(#1)}
 \newcommand\Etable[1]{\ensuremath{\mymathop{table}[#1]}}
 \newcommand\Rtable[1]{\ensuremath{\mymathop{table}[#1]}}
-\newcommand\Rtablesize[1]{\ensuremath{\big| \mymathop{table}[#1] \big|}}
+\newcommand\Rtablesize[1]{\ensuremath{\left |\mymathop{table}[#1]\right |}}
 \newcommand\Vtable[1]{\Etable{\var{#1}}}
 \newcommand\EEtable[2]{\ensuremath{\mymathop{table}[#1,#2]}}
 \newcommand\EVtable[2]{\EEtable{#1}{\var{#2}}}
@@ -2045,7 +2045,7 @@ traditional Earley item cannot be greater
 than $\size{\Vfa}$.
 Therefore,
 \begin{equation*}
-    \Rtablesize{\Marpa} \le \size{\Vfa} \times \Rtablesize{\Leo},
+    \Rtablesize{\Marpa} \le \size{\Vfa} \times \Rtablesize{\Leo}\qedhere
 \end{equation*}
 \end{proof}
 
@@ -2073,10 +2073,10 @@ the causation must be different --
 that the EIMT's causing the attempt
 differ in either their dotted
 rules or their origin.
-Multiple causations for an Earley item,
+Multiple causations for an Earley item
 would mean multiple derivations
-for the sentential form that it represents,
-which in turn would mean that
+for the sentential form that it represents.
+That in turn would mean that
 the grammar is ambiguous,
 contrary to assumption.
 
@@ -2084,20 +2084,20 @@ In \Marpa, there is an slight complication,
 because of which we must prove a result which is weaker,
 but still sufficient to produce the same complexity results.
 In \Marpa, a dotted rule can occur in more than one AHFA
-state,
-so that it is possible that two attempts to add a EIM
-will have identical causation.
-This means that attempts to add duplicate EIM's in
-\Marpa{} are consistent with an unambiguous grammar.
+state.
+Because of that,
+it is possible that two attempts to add a EIM
+will have identical causation,
+and therefore will be
+consistent with an unambiguous grammar.
 
-We now proceed with our proof, stating
-our argument more formally.
+We now restate our argument more formally.
 Let \var{initial-tries} be the number of attempts to add the initial item to
 the Earley sets.
 For Earley set 0, it is clear from the pseudocode
 that there will be no attempts to add duplicate EIM's:
 \begin{equation*}
-\var{initial-tries} = \size{\Vtable{0}}.
+\var{initial-tries} = \size{\Vtable{0}}
 \end{equation*}
 
 Let \var{leo-tries} be the number of attempted Leo reductions in
@@ -2110,7 +2110,6 @@ dotted rules in any AHFA state.
 Clearly there will be at most one Leo reduction for
 each each dotted rule in the current Earley set,
 \Vloc{j}.
-every actual Earley
 \begin{equation*}
 \var{leo-tries} \le \var{max-AHFA} \times \size{\Vtable{j}}
 \end{equation*}
@@ -2119,12 +2118,12 @@ Let \var{scan-tries} be the number of attempted Leo reductions in
 Earley set \Vloc{j}.
 Marpa attempts a scan operation,
 in the worst case,
-once for every EIM in the Earley set \Eloc{\var{j} \subtract 1}.
+once for every EIM in the Earley set \Eloc{(\var{j} \subtract 1)}.
 Therefore, the number of attempts
 to add scans
-scans must be less than equal to \size{\Vtable{j-1}},
+must be less than equal to \size{\Vtable{j-1}},
 the number
-of actual Earley items at \Eloc{\var{j} \subtract 1}.
+of actual Earley items at \Eloc{(\var{j} \subtract 1)}.
 \begin{equation*}
 \var{scan-tries} \le \size{\Vtable{j-1}}
 \end{equation*}
@@ -2138,9 +2137,6 @@ must be less than or equal
 to the number of attempts
 to add duplicate confirmed EIM's
 in the scan and reduction operations.
-So where
-If \var{reduction-tries} is the number of the number of attempted Earley reductions
-in Earley set \Vloc{j}, then
 \begin{equation*}
 \var{predict-tries} \le \var{reduction-tries} + \var{scan-tries}
 \end{equation*}
