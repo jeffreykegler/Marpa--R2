@@ -952,7 +952,7 @@ and their relationship to each other.
 At points, it will not be convenient to speak of
 charging a resource immediately
 to an Earley item
-or an attempt to add a duplicate a duplicate
+or to an attempt to add a duplicate
 Earley item.
 In those circumstances,
 we speak of charging time and space
@@ -965,7 +965,7 @@ We can charge time and space to the parse itself,
 as long as the time and space charged is \Oc.
 Afterwards, this resource can be re-charged to
 the initial Earley item, which is present in all parses.
-Soft and hard failures always uses worst-case \Oc resource,
+Soft and hard failures always uses worst-case \Oc{} resource,
 and are always charged to the parse.
 
 We will charge resources to the Earley set,
@@ -976,7 +976,7 @@ re-charged to an arbitrary member of the Earley set,
 for example, the first.
 If an Earley set is empty,
 the parse must fail,
-and the time are charged to the parse.
+and the time is charged to the parse.
 
 When discussing each procedure, we will state whether
 the time and space we are charging is inclusive, exclusive
