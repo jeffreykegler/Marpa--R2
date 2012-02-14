@@ -1081,7 +1081,9 @@ a procedure's direct or indirect caller.
 \For{ $\var{i}, 0 \le \var{i} \le \Vsize{w}$ }
 \State \Comment At this point, $\Etable{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
 \State \Call{Scan pass}{$\var{i}, \var{w}[\var{i} \subtract 1]$}
-\State reject if $\size{\Etable{\var{i}}} = 0$
+\If{$\size{\Etable{\var{i}}} = 0$}
+\State reject \Vw{} and return
+\EndIf
 \State \Call{Reduction pass}{\var{i}}
 \EndFor
 \For{every $[\Vah{x}, 0] \in \Etable{\Vsize{w}}$}
