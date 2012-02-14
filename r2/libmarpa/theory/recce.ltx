@@ -729,7 +729,7 @@ that is, those in the form used in Leo's paper\cite{Leo1991},
 will be type $LIMT$.
 
 In each Earley set, there is at most one Leo item per symbol.
-An traditional Leo item (LIMT) is the triplet
+A traditional Leo item (LIMT) is the triple
 \begin{equation*}
 [ \Vdr{top}, \Vsym{transition}, \Vorig{top} ]
 \end{equation*}
@@ -738,7 +738,7 @@ and
 \begin{equation*}
 \Veimt{top} = [\Vdr{top}, \Vorig{top}]
 \end{equation*}
-is the Earley to be added on reductions over
+is the Earley item to be added on reductions over
 \Vsym{transition}.
 
 Leo items memoize what would otherwise be sequences
@@ -774,7 +774,6 @@ so that even including expansion of the Leo sequence
 for evaluation, the time and space complexity of
 the sequence remains \order{n}.
 
-\begin{sloppypar}
 Implementing Leo memoization requires
 adding another basic operation.
 In addition to the basic operations of \Earley,
@@ -783,29 +782,32 @@ In every Earley set after the first,
 for every symbol \Vsym{lhs},
 traditional \Earley{} reduction looks for pairs
 $[\Veimt{pred}, \Vsym{lhs}]$
-such that we have both of
+such that,
+where \Vorig{component} is the origin
+of the reduction's component operand,
+we have both of
 \begin{gather*}
-    \Veimt{pred} \in \EVtable{\Earley}{i} \\
+    \Veimt{pred} \in \EVtable{\Earley}{\Vorig{component}} \\
     \Penult{\var{pred}} = \Vsym{lhs}
 \end{gather*}
+
 Instead, \Leo{} first looks for a LIMT such that,
 for some \Vdr{top}, \Vorig{top},
 we have both of
 \begin{gather*}
-    \Vlimt{pred} \in \EVtable{\Earley}{i} \\
+    \Vlimt{pred} \in \EVtable{\Earley}{\Vorig{component}} \\
     \Vlimt{pred} = [ \Vdr{top}, \Vsym{lhs}, \Vorig{top} ]
 \end{gather*}
 If such an LIMT exists,
 there is a Leo reduction for \Vsym{lhs} from
-Earley set \Vloc{i}.
+Earley set \Vorig{component}.
 If there is a Leo reduction,
 $[ \Vdr{top}, \Vorig{top} ]$ is added to
-\EVtable{\Leo}{j},
-and reduction on \Vsym{lhs} from Earley set \var{i}
+the current Earley set,
+and reduction on \Vsym{lhs} from Earley set \Vorig{component}
 is not attempted.
 If there is no Leo reduction,
 the standard reduction of \Earley{} is attempted.
-\end{sloppypar}
 
 \section{The Aycock-Horspool finite automaton}
 \label{s:AHFA}
