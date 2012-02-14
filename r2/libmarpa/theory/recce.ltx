@@ -1400,20 +1400,31 @@ Marpa Earley item, \Veim{y}, if and only if
 \end{definition}
 
 \begin{definition}
+A set of EIM's is \dfn{consistent} with respect to
+a set of EIMT's,
+if and only if each of the EIM's in the first set
+corresponds to at least one of the
+EIMT's in the second set.
 A Marpa Earley set \EVtable{\Marpa}{i}
 is \dfn{consistent} if and only if
-all of its Earley items correspond to
-traditional Earley items in 
+all of its EIM's correspond to
+EIMT's in 
 \EVtable{\Leo}{i}.
 \end{definition}
 
+\begin{sloppypar}
 \begin{definition}
+A set of EIM's is \dfn{complete} with respect to
+a set of EIMT's,
+if and only if for every EIMT in the second set,
+there is a corresponding EIM in the first set.
 A Marpa Earley set \EVtable{\Marpa}{i}
 is \dfn{complete} if and only if for every
 traditional Earley item in \EVtable{\Leo}{i}
 there is a corresponding Earley item in
 \EVtable{\Marpa}{i}.
 \end{definition}
+\end{sloppypar}
 
 \begin{definition}
 We say that
