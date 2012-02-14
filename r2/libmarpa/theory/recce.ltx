@@ -2143,28 +2143,35 @@ in the scan and reduction operations.
 
 The final and most complicated case is Earley reduction.
 \Marpa{} attempts to add a reduced EIM
-once for every each pair of LHS of every component
-in its current Earley,
-with a predecessor EIM in the Earley set
-which is the origin of the component.
+once for every each pair
+\begin{equation*}
+[\Veim{predecessor}, \Vsym{lhs}],
+\end{equation*}
+where \Vsym{lhs} is the LHS
+of a completed rule in the AHFA state
+of a component EIM in the current Earley set,
+and \Veim{predecessor} is an EIM
+in the Earley set which is origin of the component EIM.
+The number of possibilities for \Vsym{lhs}
+is less than or equal to
+$\var{max-AHFA} \times \size{\Vtable{j}}$,
+where \var{max-AHFA} is the maximum number of completed rules in
+an AHFA state,
+and $\size{\Vtable{j}}$ is the number of Earley items
+in the Earley set being built.
+
 Here the memoization of $\mymathop{transitions}$
 plays a role.
-By $\mymathop{transitions}$,
+Because it uses $\mymathop{transitions}$,
 Marpa makes a reduction attempt for
-only those predecessors whose AHFA state
+only those \Veim{predecessor}'s whose AHFA state
 contains a dotted rule with a postdot symbol
 that matches the transition symbol.
 Call this number \Vsize{matching}.
-
-The number of such attempts will be less than
+The number of reduction attempts will be less than
 \begin{equation*}
 \var{max-AHFA} \times \Vsize{matching} \times \size{\Vtable{j}}
 \end{equation*}
-where \var{max-AHFA} is the maximum number of completed rules in
-an AHFA state,
-\Vloc{i} is the origin of the component EIM,
-and $\size{\Vtable{j}}$ is the number of Earley items
-in the Earley set being built.
 
 Since by assumption
 \Vg{} is unambiguous,
@@ -2191,8 +2198,8 @@ summing \var{scan-tries},
 and
 \var{reduction-tries}
 over the Earley sets,
-then adding
-\var{initial-tries}
+and then adding
+\var{initial-tries},
 is tedious.
 But since \var{max-AHFA} and \size{\Vfa} are both constants
 which depend only on \Vg,
