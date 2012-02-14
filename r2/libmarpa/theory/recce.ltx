@@ -1632,7 +1632,9 @@ Let
 If $\Vah{confirmed} = \Lambda$, we do nothing,
 and \EVtable{\Marpa}{i} remains consistent, trivially.
 Otherwise, let
-$\Veim{confirmed} = [\Vah{confirmed}, \Vloc{i}]$.
+\begin{equation*}
+\Veim{confirmed} = [\Vah{confirmed}, \Vloc{i}].
+\end{equation*}
 We see that \Veim{confirmed} is consistent with respect
 to \EVtable{\Leo}{i}
 by the definition of Earley reduction (Section~\ref{d:reduction}),
@@ -1669,17 +1671,24 @@ As the result of a Leo reduction,
 $[\Vdr{top}, \Vorig{top}]$
 to \EVtable{\Leo}{j}.
 Because the \Marpa{} LIM is correct,
-Observations \ref{o:confirmed-AHFA-consistent}
+using Observations \ref{o:confirmed-AHFA-consistent}
 and \ref{o:confirmed-AHFA-complete}
 and Theorem \ref{t:leo-singleton},
-we know that \Vah{top} is the singleton set
-$\set{ \Vdr{top} }$
-From the \Marpa{} pseudocode, we see
+we see that \Vah{top} is the singleton set
+$\set{ \Vdr{top} }$.
+From Section \ref{p:leo-op}, we see
 that, as the result of the Leo reduction,
 \Marpa{} will add
-$[\ah{top}, \Vorig{top}]$
+\begin{equation*}
+\Veim{leo} = [\ah{top}, \Vorig{top}]
+\end{equation*}
 to \EVtable{\Marpa}{j}.
-Consistency follows immediately.
+The consistency of \Veim{leo} follows from the definition
+of EIM consistency,
+and the consistency of
+\EVtable{\Marpa}{i} once \Veim{leo}
+is added follows by the invariance
+of consistency under union.
 \end{sloppypar}
 
 \subsubsection{Marpa's Earley sets are consistent}
