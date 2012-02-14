@@ -442,9 +442,13 @@ The position indicates the extent to which
 the rule has been recognized,
 and is represented with a raised dot,
 so that if
-$$[\Vsym{A} \de \Vsym{X} . \Vsym{Y} . \Vsym{Z}]$$
+\begin{equation*}
+[\Vsym{A} \de \Vsym{X} . \Vsym{Y} . \Vsym{Z}]
+\end{equation*}
 is a rule,
-$$[\Vsym{A} \de \var{X} . \var{Y} \mydot \var{Z}]$$
+\begin{equation*}
+[\Vsym{A} \de \var{X} . \var{Y} \mydot \var{Z}]
+\end{equation*}
 is the dotted rule with the dot at
 $\var{pos} = 2$,
 between \Vsym{Y} and \Vsym{Z}.
@@ -674,7 +678,9 @@ will be type $LIMT$.
 
 In each Earley set, there is at most one Leo item per symbol.
 An traditional Leo item (LIMT) is the triplet
-$$[ \Vdr{top}, \Vsym{transition}, \Vorig{top} ]$$
+\begin{equation*}
+[ \Vdr{top}, \Vsym{transition}, \Vorig{top} ]
+\end{equation*}
 where \Vsym{transition} is the transition symbol,
 and
 \begin{equation*}
@@ -2360,7 +2366,9 @@ incorporating Marpa's generalizations.
 \subsection{All symbols are terminals}
 
 Marpa's grammars are in effect 3-tuples:
-$$(\Vsymset{alphabet}, \Vrules, \Vsym{start})$$
+\begin{equation*}
+(\Vsymset{alphabet}, \Vrules, \Vsym{start})
+\end{equation*}
 \Vsymset{term} is omitted, because
 Marpa allows a symbol to be both a terminal
 and a LHS.
