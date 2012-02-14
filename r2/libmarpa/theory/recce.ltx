@@ -142,12 +142,12 @@ to Earley's 1970 algorithm found in
 Leo's 1991
 and in Aycock and Horspool's 2002 papers.
 New with Marpa is that
-full knowledge of the state of the parse is available
-as tokens are being scanned.
+full knowledge of the state of the parse,
+including the list of acceptable tokens,
+is available when tokens are scanned.
 Advantageous for error detection,
-this knowledge also
-allows
-``Ruby Slippers'' parsing --
+this foreknowledge also
+allows ``Ruby Slippers'' parsing --
 alteration of the input in reaction
 to the parser's expectations.
 \end{abstract}
@@ -337,7 +337,7 @@ and \Vsym{accept} a dedicated acceptance symbol.
 The set of potential LHS symbols, \Vsymset{lh} is
 $\var{alphabet} \setminus \var{term}$.
 Without loss of generality,
-it is assumed that \Vg{}
+it is assumed that
 \begin{equation*}
 \Vsym{accept} \in \Vsymset{lh},
 \end{equation*}
@@ -350,10 +350,10 @@ such that for every rule,
 \Vrule{x} = [ \Vsym{lhs} \de \Vsymset{rhs} ]
 \end{equation*}
 we have both of
-\begin{align*}
-& \Vsym{accept} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{accept} \\
-& \Vsym{accept} \notin \Vsymset{rhs}
-\end{align*}
+\begin{gather*}
+\Vsym{accept} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{accept} \\
+\Vsym{accept} \notin \Vsymset{rhs}
+\end{gather*}
 
 Let the input to parse be \Vw, $\Vw \in \var{alphabet}^\ast$.
 Locations in the input will be of type LOC.
