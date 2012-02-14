@@ -1066,16 +1066,20 @@ and can be charged to the parse.
 \label{p:scan-op}
 
 \begin{sloppypar}
-\var{transitions} is a set of tables, one per Earley set,
-which is indexed by symbol.
+\var{transitions} is a set of tables, one per Earley set.
+The tables in the set are indexed by symbol.
 Symbol indexing is \Oc, since the number of symbols
 is a constant, but
-for the operation $\var{transitions}(\Vloc{l}, \Vsym{s})$
-to be constant, there must be a link directly to the Earley
-set.
+since the number of Earley sets grows with
+the length of the parse,
+it cannot be assumed that Earley sets can be indexed by location
+in \Oc{} time.
+For the operation $\var{transitions}(\Vloc{l}, \Vsym{s})$
+to be in \Oc{} time,
+there must be a link directly to the Earley set.
 In the case of scanning,
 the lookup is always in the previous Earley set,
-and it is safe to expect this can be found
+which it is safe to expect can be found
 in \Oc{} time.
 Inclusive time and space can be charged to the
 Earley item attempts.
