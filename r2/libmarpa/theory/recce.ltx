@@ -1299,7 +1299,7 @@ which is a constant depending on \Vg.
 It would take more than \Oc{} time
 to clear and rebuild the PSL's each time
 that a new Earley set is started.
-This can be avoided by "dating" each PSL
+This can be avoided by ``dating'' each PSL
 entry with the Earley set
 which was current when that PSL
 entry was last updated.
@@ -1318,7 +1318,7 @@ that is,
     \mymathop{PSL}(\Vloc{x}, \Vah{x}) = \Vloc{p}
 \end{equation*}
 (If the entry has never been used,
-we assume that $Vloc{p} = \Lambda$.
+we assume that $\Vloc{p} = \Lambda$.)
 If $\Vloc{p} \ne \Lambda \land \Vloc{p} = \Vloc{j}$,
 then \Veim{x} is not new,
 and will not be added to the Earley set.
@@ -1334,7 +1334,7 @@ that is,
 \end{equation*}
 As implemented,
 Marpa uses PSL's to check if EIM's are new,
-and several other purposes.
+and for several other purposes.
 
 \section{Preliminaries to the theoretical results}
 \label{s:proof-preliminaries}
