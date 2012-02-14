@@ -553,6 +553,8 @@ where
 \end{equation*}
 \Veimt{predecessor} is called the predecessor of the scanning operation
 and \Veimt{result} is called its result.
+The token, \Vsym{token}, is also called the transition symbol
+of the scanning operation.
 \end{sloppypar}
 
 \subsection{Reduction}
@@ -581,6 +583,8 @@ The term ``component'' comes from Irons \cite{Irons}.
 }
 \Veimt{predecessor} is called the predecessor of the reduction operation
 and \Veimt{result} is called its result.
+\Vsym{lhs} is the transition symbol
+of the reduction operation.
 
 \subsection{Prediction}
 \label{d:prediction}
@@ -596,7 +600,7 @@ of which all of the following are true
 \Vsym{P} = \Postdot{\Vdr{d}}
 \end{gather*}
 A {\bf prediction} basic Earley operation is attempted
-in every Earley sets
+in every Earley set
 for every \Veimt{predecessor}
 \begin{itemize}
 \item[(i)] $\Veimt{predecessor} \in \Vtable{j}$
@@ -621,7 +625,7 @@ or Earley items (as in every case except initialization).
 An operand of an operation are also called a \dfn{cause}
 of that operation.
 Specifically,
-the \dfn{cause} of an Earley operation is
+a \dfn{cause} of an Earley operation is
 \begin{itemize}
 \item the predecessor Earley item of a scanning, reduction
 or prediction operation; or
@@ -633,7 +637,7 @@ reduction operation.
 The cause of an operation is also called
 the \dfn{cause} of all the Earley items which are the
 results of that operation.
-An Earley item which is result of an scanning or reduction operation with a 
+An Earley item which is result of an scanning or reduction operation
 is called the \dfn{successor} of that operation's predecessor.
 
 \section{The Leo algorithm}
