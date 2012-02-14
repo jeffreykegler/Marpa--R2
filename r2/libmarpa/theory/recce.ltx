@@ -51,7 +51,7 @@
 \newcommand{\Veimt}[1]{\ensuremath{\var{#1}_{EIMT}}}
 \newcommand{\Veimset}[1]{\ensuremath{\var{#1}_{\set{EIM}}}}
 \newcommand{\Veimtset}[1]{\ensuremath{\var{#1}_{\set{EIMT}}}}
-\newcommand{\Ees}[1]{#1_{ES}}
+\newcommand{\Ees}[1]{\ensuremath{#1_{ES}}}
 \newcommand{\Vlim}[1]{\ensuremath{\var{#1}_{LIM}}}
 \newcommand{\Vlimt}[1]{\ensuremath{\var{#1}_{LIMT}}}
 \newcommand{\Eloc}[1]{\ensuremath{{#1}_{LOC}}}
@@ -505,16 +505,20 @@ The input \Vw{} is accepted if and only if
 At points,
 we will need to compare the Earley sets
 produced by the different recognizers.
+Earley sets are of type $ES$, although
+the type is often omitted to avoid clutter.
 \EVtable{\alg{Recce}}{i} will be Earley set \Vloc{i}
 in the table of Earley sets of
 the \alg{Recce} recognizer.
-For example,
 \EVtable{\Marpa}{j} will be Earley set \Vloc{j}
 in \Marpa's table of Earley sets.
 In contexts where it is clear which recognizer is
 intended,
 \Vtable{k} will be Earley set \Vloc{k}
 in that recognizer's table of Earley sets.
+If \Ees{\var{working}} is an Earley set,
+$\size{\Ees{\var{working}}}$ is the number of Earley items
+in \Ees{\var{working}}.
 
 \section{Operations of the Earley algorithm}
 \label{s:earley-ops}
