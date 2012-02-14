@@ -930,57 +930,64 @@ it must be the only dotted rule in that EIM.
 \label{s:recce}
 \label{s:pseudocode}
 
-As mentioned, it is assumed that the reader
-is familiar with \Earley{}
-and with the description of \AH{}
-in \cite{AH2002}.
-The comments to the \Marpa{} pseudocode
-will focus on its differences
-from those two algorithms.
+\subsection{Complexity}
 
-With the pseudocode are observations
-about its space
-and time complexity.
+Alongside the pseudocode of this section
+are observations about its space and time complexity.
 In what follows,
-we will show that all time and space resources
-can be charged to attempts to add Earley items,
-in a way that each attempt to add an Earley item
-takes amortized \Oc{} resource.
-Below, when we present the complexity proofs,
+we will charge all time and space resources
+to attempts to add Earley items.
+We will show that
+each addition of an Earley item to the
+Earley table takes amortized \Oc{} time and space.
+We will also show
+that each attempt to add a duplicate Earley item
+takes amortized \Oc{} time.
+In Section \ref{s:complexity},
 we will characterize
-the orders of magnitude of actual Earley items
-and of attempts to add Earley items,
-as well as their relationship to each other.
+the order of magnitude of the actual Earley items
+and of the attempts to add Earley items,
+and their relationship to each other.
 
-To achieve the
-amortized \Oc{} time and space
-per Earley item, we will charge for those
-resources in
-three ways.
-
+At points, it will not be convenient to speak of
+charging a resource immediately
+to an Earley item
+or an attempt to add a duplicate a duplicate
+Earley item.
+In those circumstances,
+we speak of charging time and space
 \begin{itemize}
-\item We can also charge \Oc{} time and space to the parse itself.
-We handle the failure cases in this way.
-\item We will charge resources to the Earley set.
-As long as the time or space is \Oc,
-the time for the Earley set can be
-re-charged to an arbitrary member of the Earley set.
-If the Earley set is empty, the parse will fail at this Earley set,
-and the time can be charged to the parse itself.
-\item We will charge resources to attempts to add Earley items.
+\item to the parse; or
+\item to the Earley set.
 \end{itemize}
 
+We can charge time and space to the parse itself,
+as long as the time and space charged is \Oc.
+Afterwards, this resource can be re-charged to
+the initial Earley item, which is present in all parses.
+Soft and hard failures always uses worst-case \Oc resource,
+and are always charged to the parse.
+
+We will charge resources to the Earley set,
+as long as the time or space is \Oc.
+Afterwards,
+the resource charged to the Earley set can be
+re-charged to an arbitrary member of the Earley set,
+for example, the first.
+If an Earley set is empty,
+the parse must fail,
+and the time are charged to the parse.
+
 When discussing each procedure, we will state whether
-our analysis of time and space usage is inclusive, exclusive
+the time and space we are charging is inclusive, exclusive
 or caller-included.
 The exclusive time or space of a procedure is that
 which it uses directly,
 ignoring resource usage by called procedures.
-Inclusive time or space of a procedure includes
+Inclusive time or space includes
 resource usage by called procedures.
-Caller-included time and space is that which was already
-been allocated as an inclusive resource by the procedure's
-caller.
+Caller-included time and space is charged to
+a procedure's direct or indirect caller.
 
 \begin{algorithm}[h]
 \caption{Marpa Top-level}
