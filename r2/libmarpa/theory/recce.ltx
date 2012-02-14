@@ -1723,7 +1723,7 @@ For every operation which \Leo{} would perform,
 we need to show that
 \Marpa{} performs an operation which
 produces a corresponding Earley item.
-Here is how we divide the operations of \Leo{} into cases:
+Here are our cases for the operations of \Leo{}:
 \begin{itemize}
 \item traditional \Earley{} scanning operations;
 \item traditional \Earley{} reductions;
@@ -1774,14 +1774,12 @@ a scanned Earley item in \EVtable{\Leo}{i}.
 \subsubsection{Earley reduction completeness}
 \label{s:reduction-complete}
 
-For reduction,
-we first examine Earley reduction,
+We now examine Earley reduction,
 under the assumption that there is
 no Leo transition.
 The Marpa pseudocode shows that the Earley items
 \EVtable{\Marpa}{i}
 are traversed in a single pass for reduction.
-currently being examined by the reduction operation.
 
 To show that these predecessors are paired
 with a complete and correct sets of component Earley items,
@@ -1809,26 +1807,28 @@ From Section \ref{s:sets-consistent},
 we know that all Earley items in Marpa's sets are consistent.
 In Section \ref{s:scan-complete},
 we showed that generation 0 is complete --
-its contains Earley items
+it contains Earley items
 corresponding to all of the generation 0 EIMT's of \Leo.
 This is the basis of the inner induction.
 
 Since we stipulated that \Marpa{} adds Earley items
 at the end of each set,
 we know that they occur in generation order.
-Therefore, \Marpa{} while traversing \EVtable{\Marpa}{i}
+Therefore \Marpa{},
+when creating Earley items of generation $\var{n}+1$
+while traversing \EVtable{\Marpa}{i},
 can rely
 on the inner induction hypothesis for 
 the completeness of Earley items in
 in generation \var{n}.
-when creating Earley items of generation $\var{n}+1$.
 
 Let
 \begin{equation*}
 \Veim{working} = [\Vah{working}, \Vorig{working}]
 \end{equation*}
 be the Earley item in \EVtable{\Marpa}{i}
-currently being examined by the reduction operation.
+currently being considered as a potential component for
+an Earley reduction operation.
 From the pseudocode, we see
 that reductions are attempted for every
 pair \Veim{predecessor}, \Veim{working}.
@@ -1842,6 +1842,8 @@ We see from the pseudocode, therefore,
 that for each \Veim{working}
 that \Marpa{} performs its reduction operation on a complete set
 of correct predecessors.
+Therefore \Marpa{} performs its reduction operations on a
+complete set of operand pairs.
 
 Comparing the Marpa pseudocode (Section \ref{p:reduction-op})
 with the Earley reduction operation (Section \ref{d:reduction})
@@ -1857,11 +1859,9 @@ as well as one corresponding
 to every prediction that results from
 a reduced Earley item
 of generation $\var{n}+1$ in \EVtable{\Leo}{i}.
-This completes the induction step,
-and the inner induction,
-and shows the case of reduction completeness.
+This shows the case of reduction completeness.
 
-\subsubsection{Leo reduction complete}
+\subsubsection{Leo reduction completeness}
 \label{s:leo-complete}
 
 We now show completeness for Marpa's reduction operation,
@@ -1881,7 +1881,7 @@ by the definition of completeness.
 \label{s:prediction-complete}
 
 Predictions result only from items in the same Earley set.
-In the sections for the other cases of Leo operations,
+In Sections \ref{s:scan-complete} and \ref{s:reduction-complete}
 we showed that,
 for every prediction that would result
 from an item added to \EVtable{\Leo}{i},
@@ -1893,9 +1893,9 @@ was added to \EVtable{\Marpa}{i}.
 Having shown the cases in Sections
 \ref{s:scan-complete},
 \ref{s:reduction-complete},
-\ref{s:leo-complete}, and
+\ref{s:leo-complete} and
 \ref{s:prediction-complete},
-we have shown that Earley set
+we know that Earley set
 \EVtable{\Marpa}{i} is complete.
 In section \ref{s:sets-consistent}
 we showed that \EVtable{\Marpa}{i} is consistent.
