@@ -1176,15 +1176,18 @@ their space and time may be charged to the Earley set.
 \subsection{Reduce one LHS}
 
 Inclusive time is charged to the EIM attempt.
-We show that
+We see that
 $\var{transitions}(\Vloc{origin},\Vsym{lhs})$
-can be done \Oc{} time
-by noting
+can be done in \Oc{} time
+if we noting
 that the number of symbols is a constant
-and assuming that \Veim{x} has a link back
-to its origin Earley set.
-(As implemented, Marpa's
-Earley items have such links.)
+and assume that \Vloc{origin} is implemented
+as a link back to the Earley set,
+rather than as an integer index.
+This requires that \Veim{work} carry a link
+back to its origin.
+As implemented, Marpa's
+Earley items have such links.
 
 \begin{algorithm}[h]
 \caption{Earley reduction operation}
