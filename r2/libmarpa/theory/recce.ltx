@@ -453,17 +453,23 @@ is the dotted rule with the dot at
 $\var{pos} = 2$,
 between \Vsym{Y} and \Vsym{Z}.
 
-The postdot symbol of a dotted rule is
-often important.
-If
+For a \Vdr{x} such that
 \begin{equation*}
 \Vdr{x} = [\Vsym{A} \de \Vstr{alpha} \mydot \Vsym{next} \Vstr{beta}],
 \end{equation*}
+we have
+\begin{align*}
+\Postdot{\Vdr{x}} & = \Vsym{next} \quad \text{and} \\
+\Next{\Vdr{d}} & =
+    [ \Vsym{A} \de \Vstr{alpha} \cat \Vsym{next} \mydot \Vstr{beta} ].
+\end{align*}
+If \Vdr{x} is such that
+\begin{equation*}
+\Vdr{x} = [\Vsym{A} \de \Vstr{alpha} \mydot],
+\end{equation*}
 then
-$\Postdot{\Vdr{x}} = \Vsym{next}$.
-Otherwise,
-$\Postdot{\Vdr{x}} = \Lambda$.
-If in the above,
+$\Postdot{\Vdr{x}} = \Next{\Vdr{x}} = \Lambda$.
+If for \Vdr{x} in the above,
 \begin{equation*}
 \Postdot{\Vdr{x}} \ne \Lambda \wedge \Vstr{beta} \destar \epsilon
 \end{equation*}
@@ -471,6 +477,16 @@ then
 $\Penult{\Vdr{x}} = \Vsym{next}$.
 Otherwise,
 $\Penult{\Vdr{x}} = \Lambda$.
+
+In the following observations,
+if
+\begin{equation*}
+    \Vdr{d} = [ \Vsym{L} \de \Vstr{alpha} \mydot \Vsym{t} \cat \Vstr{beta} ]
+\end{equation*}
+then
+\begin{equation*}
+\end{equation*}
+be 
 
 The \dfn{initial dotted rule} is
 \begin{equation*}
@@ -564,7 +580,7 @@ a \Marpa{} parse.
 \label{s:earley-ops}
 
 In the following,
-\Vloc{j} is the current Earley set.
+\Vloc{c} is the current Earley set.
 
 \subsection{Initialization}
 \label{d:initial}
@@ -584,13 +600,13 @@ in all Earley sets other than Earley set 0
 for each pair $[\Veimt{predecessor}, \Vsym{token}]$,
 where we have all of
 \begin{itemize}
-\item[(i)] $\var{token} = \CEw{j \subtract 1}$
-\item[(ii)] $\Veimt{predecessor} \in \Etable{(\Vloc{j} \subtract 1)}$
+\item[(i)] $\var{token} = \CEw{\Eloc{(\var{c} \subtract 1)}}$
+\item[(ii)] $\Veimt{predecessor} \in \Etable{\Eloc{(\var{c} \subtract 1)}}$
 \item[(iii)] $\Veimt{predecessor} = [ \Vdr{before}, \Vorig{predecessor} ]$
 \item[(iv)] $\Postdot{\Vdr{before}} = \Vsym{token}$
 \end{itemize}
 A scanning operation
-adds \Veimt{result} to Earley set \Vloc{j},
+adds \Veimt{result} to Earley set \Vloc{c},
 where
 \begin{equation*}
 \Veimt{result} = [ \Next{\Vdr{before}}, \Vorig{predecessor} ]
@@ -609,7 +625,7 @@ for every pair $[\Veimt{predecessor}, \Vsym{lhs}]$,
 where there exists a \Veimt{component} such that
 we have all of
 \begin{itemize}
-\item[(i)] $\Veimt{component} \in \Vtable{j}$
+\item[(i)] $\Veimt{component} \in \Vtable{c}$
 \item[(ii)] $\Veimt{component} = [ \Vdr{complete}, \Vorig{component} ]$
 \item[(iii)] $\Vdr{complete} = [ \Vsym{lhs} \de \Vstr{rhs} \mydot ]$
 \item[(iv)] $\Veimt{predecessor} \in \Etable{\Vorig{component}}$
@@ -617,7 +633,7 @@ we have all of
 \item[(vi)] $\Postdot{\Vdr{before}} = \Vsym{lhs}$
 \end{itemize}
 A reduction operation
-adds \Veimt{result} to Earley set \Vloc{j},
+adds \Veimt{result} to Earley set \Vloc{c},
 where
 \begin{equation*}
 \Veimt{result} = [ \Next{\Vdr{before}}, \Vorig{predecessor} ]
@@ -640,22 +656,22 @@ be the set of dotted rules
 of which all of the following are true
 \begin{gather*}
 [ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \\
-\Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha} \\
-\Vsym{P} = \Postdot{\Vdr{d}}
+\Vsym{P} = \Postdot{\Vdr{d}} \\
+\Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha}
 \end{gather*}
 A {\bf prediction} basic Earley operation is attempted
 in every Earley set
 for every \Veimt{predecessor}
 \begin{itemize}
-\item[(i)] $\Veimt{predecessor} \in \Vtable{j}$
+\item[(i)] $\Veimt{predecessor} \in \Vtable{c}$
 \item[(ii)] $\Veimt{predecessor} = [ \Vdr{predecessor}, \Vorig{predecessor} ]$
 \end{itemize}
 The prediction operation
 adds the members of \Veimtset{results}
-to Earley set \Vloc{j},
+to Earley set \Vloc{c},
 where
 \begin{multline*}
-\Veimtset{results} = \{ [ \Vdr{prediction}, \Vloc{j} ] : \\
+\Veimtset{results} = \{ [ \Vdr{prediction}, \Vloc{c} ] : \\
 	\Vdr{prediction} \in \Predict{\Vdr{predecessor}} \}
 \end{multline*}
 \Veimt{predecessor} is called the predecessor of the prediction operation.
@@ -1476,18 +1492,6 @@ and consistent.
 \end{definition}
 
 \subsection{About AHFA states}
-
-In the following observations,
-if
-\begin{equation*}
-    \Vdr{d} = [ \Vsym{L} \de \Vstr{alpha} \mydot \Vsym{t} \cat \Vstr{beta} ]
-\end{equation*}
-then
-\begin{equation*}
-\Next{\Vdr{d}} =
-    [ \Vsym{L} \de \Vstr{alpha} \cat \Vsym{t} \mydot \Vstr{beta} ]
-\end{equation*}
-be 
 
 Several facts about AHFA's from \cite{AH2002}
 will be heavily used in the following proofs.
