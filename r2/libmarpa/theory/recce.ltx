@@ -51,11 +51,7 @@
 \newcommand{\Veimt}[1]{\ensuremath{\var{#1}_{EIMT}}}
 \newcommand{\Veimset}[1]{\ensuremath{\var{#1}_{\set{EIM}}}}
 \newcommand{\Veimtset}[1]{\ensuremath{\var{#1}_{\set{EIMT}}}}
-\newcommand{\es}[1]{#1_{ES}}
-\newcommand{\Ves}[1]{\ensuremath{\var{#1}_{ES}}}
-\newcommand{\Vest}[1]{\ensuremath{\var{#1}_{EST}}}
-\newcommand{\Vesi}[2]{\ensuremath{\var{#1}[#2]_{ES}}}
-\newcommand{\VVes}[2]{\ensuremath{\var{#1}[\var{#2}]_{ES}}}
+\newcommand{\Ees}[1]{#1_{ES}}
 \newcommand{\Vlim}[1]{\ensuremath{\var{#1}_{LIM}}}
 \newcommand{\Vlimt}[1]{\ensuremath{\var{#1}_{LIMT}}}
 \newcommand{\Eloc}[1]{\ensuremath{{#1}_{LOC}}}
@@ -77,7 +73,6 @@
 \newcommand{\Earley}{\ensuremath{\alg{Earley}}}
 \newcommand{\Leo}{\ensuremath{\alg{Leo}}}
 \newcommand{\Marpa}{\ensuremath{\alg{Marpa}}}
-\newcommand{\Emulator}{\ensuremath{\alg{Emulator}}}
 
 \newcommand{\Vfa}{\var{fa}}
 \newcommand{\Vg}{\var{g}}
@@ -91,11 +86,11 @@
 \newcommand{\Postdot}[1]{\mymathop{Postdot}(#1)}
 \newcommand{\Penult}[1]{\mymathop{Penult}(#1)}
 \newcommand{\myL}[1]{\mymathop{L}(#1)}
-\newcommand\Etable[1]{\ensuremath{\es{\mymathop{table}[#1]}}}
-\newcommand\Rtable[1]{\ensuremath{\mymathop{table}(#1)}}
-\newcommand\Rtablesize[1]{\ensuremath{\big| \mymathop{table}(#1) \big|}}
+\newcommand\Etable[1]{\ensuremath{\mymathop{table}[#1]}}
+\newcommand\Rtable[1]{\ensuremath{\mymathop{table}[#1]}}
+\newcommand\Rtablesize[1]{\ensuremath{\big| \mymathop{table}[#1] \big|}}
 \newcommand\Vtable[1]{\Etable{\var{#1}}}
-\newcommand\EEtable[2]{\ensuremath{\mymathop{table}(#1,#2)}}
+\newcommand\EEtable[2]{\ensuremath{\mymathop{table}[#1,#2]}}
 \newcommand\EVtable[2]{\EEtable{#1}{\var{#2}}}
 
 % I want to use 'call' outside of pseudocode
@@ -242,7 +237,7 @@ to Earley's algorithm;
 and Section \ref{s:AHFA} describes the modifications
 suggested by Aycock and Horspool.
 Section \ref{s:pseudocode} presents the pseudocode
-for the algorithm Marpa.
+for Marpa's recognizer.
 Section
 \ref{s:proof-preliminaries}
 describes notation and deals with other 
@@ -363,7 +358,8 @@ $\CVw{i} \in \Vsymset{term}$ be character \var{i}
 of the input,
 $0 \le \Vloc{i} < \Vsize{w}$.
 
-In this \doc{}, \Earley{} will refer to the Earley's original
+In this \doc{},
+\Earley{} will refer to the Earley's original
 recognizer\cite{Earley1970}.
 \Leo{} will refer to Leo's revision of \Earley{}
 as described in~\cite{Leo1991}.
@@ -502,7 +498,23 @@ The sets are built in order from 0 to $\size{\Vw}$.
 Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
 Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
 The input \Vw{} is accepted if and only if
-$$[\Vdr{accept}, 0] \in \Etable{\Vsize{\Vw}}$$
+\begin{equation*}
+[\Vdr{accept}, 0] \in \Etable{\Vsize{\Vw}}
+\end{equation*}
+
+At points,
+we will need to compare the Earley sets
+produced by the different recognizers.
+\EVtable{\alg{Recce}}{i} will be Earley set \Vloc{i}
+in the table of Earley sets of
+the \alg{Recce} recognizer.
+For example,
+\EVtable{\Marpa}{j} will be Earley set \Vloc{j}
+in \Marpa's table of Earley sets.
+In contexts where it is clear which recognizer is
+intended,
+\Vtable{k} will be Earley set \Vloc{k}
+in that recognizer's table of Earley sets.
 
 \section{Operations of the Earley algorithm}
 \label{s:earley-ops}
@@ -1087,10 +1099,10 @@ Overhead may be charged to the Earley set.
 \Procedure{Memoize transitions}{\Vloc{i}}
 \For{every \Vsym{postdot}, a postdot symbol of $\Vtable{i}$}
 \If{postdot transition is unique by rule}
-\State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
+\State Set $\var{transitions}(\Vloc{i},\Vsym{postdot})$ to
 \State \hspace\algorithmicindent to an LIM
 \Else
-\State Set $\var{transitions}(\Ves{i},\Vsym{postdot})$ to
+\State Set $\var{transitions}(\Vloc{i},\Vsym{postdot})$ to
 \State \hspace\algorithmicindent to the set of EIM's which have
 \State \hspace\algorithmicindent with \Vsym{postdot} as their postdot symbol
 \EndIf
@@ -1144,7 +1156,7 @@ their space may be charged to the Earley set.
 
 Inclusive time is charged to the EIM attempt.
 We show that
-$\var{transitions}(\Ves{origin},\Vsym{lhs})$
+$\var{transitions}(\Vloc{origin},\Vsym{lhs})$
 can be done \Oc{} time
 by noting
 that the number of symbols is a constant
