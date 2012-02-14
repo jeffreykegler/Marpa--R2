@@ -1039,7 +1039,7 @@ including which tokens are acceptable during the scanning phase.
 \caption{Initialization}
 \begin{algorithmic}[1]
 \Procedure{Initial}{}
-\State \Call{Add EIM Pair}{$0, \ah{start}, 0$}
+\State \Call{Add EIM pair}{$0, \ah{start}, 0$}
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -1056,7 +1056,7 @@ and can be charged to the parse.
 \For{each $\Veim{predecessor} \in \var{transitions}((\var{i} \subtract 1),\var{a})$}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veim{predecessor}$
 \State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
-\State \Call{Add EIM Pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
+\State \Call{Add EIM pair}{$\Vloc{i}, \Vah{to}, \Vloc{origin}$}
 \EndFor
 \EndProcedure
 \end{algorithmic}
@@ -1195,7 +1195,7 @@ Earley items have such links.
 \Procedure{Earley reduction operation}{\Vloc{i}, \Veim{from}, \Vsym{trans}}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veim{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
-\State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
+\State \Call{Add EIM pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -1215,7 +1215,7 @@ calling procedure.
 \Procedure{Leo reduction operation}{\Vloc{i}, \Vlim{from}}
 \State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlim{from}$
 \State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
-\State \Call{Add EIM Pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
+\State \Call{Add EIM pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -1228,9 +1228,9 @@ Inclusive time and space is charged to the
 calling procedure.
 
 \begin{algorithm}[h]
-\caption{Add EIM Pair}\label{a:pair}
+\caption{Add EIM pair}\label{a:pair}
 \begin{algorithmic}[1]
-\Procedure{Add EIM Pair}{$\Vloc{i},\Vah{confirmed}, \Vloc{origin}$}
+\Procedure{Add EIM pair}{$\Vloc{i},\Vah{confirmed}, \Vloc{origin}$}
 \State $\Veim{confirmed} \gets [\Vah{confirmed}, \Vloc{origin}]$
 \State $\Vah{predicted} \gets \GOTO(\Vah{confirmed}, \epsilon)$
 \If{\Veim{confirmed} is new}
@@ -1253,7 +1253,7 @@ item and, if it exists, the EIM for
 its null-transition.
 Inclusive time and space is charged to the
 calling procedure.
-Trivially, the space is \Oc per call.
+Trivially, the space is \Oc{} per call.
 
 We show that time is also \Oc{}
 by singling out two non-trivial cases:
@@ -1266,8 +1266,9 @@ if Earley set is seen as a linked
 list, to the head of which the new Earley item is added.
 
 Earley items are only added if they are new,
-and showing that this check can be performed in \Oc time
-per EIM (and therefore per call)
+and showing that this check can be performed in \Oc{} time
+per EIM,
+and therefore per call to \call{Add EIM pair}{},
 is more complicated.
 A data structure that allows this
 to be checked in \Oc{} time is very
