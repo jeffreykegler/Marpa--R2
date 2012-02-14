@@ -953,26 +953,28 @@ AHFA construction never places a prediction in the same
 AHFA state as a completion, so
 \Vdr{other} is not a prediction.
 Therefore, $\var{op} > 0$.
-
-To create a contradiction, we first prove that
+To show this outer reduction to absurdity, we first prove that
+by an inner reductio that
 $\Vrule{c} \neq \Vrule{o}$,
-then that
+then by another inner reductio that
+$\Vrule{c} = \Vrule{o}$.
+
+Assume, for an inner reductio,
+that 
 $\Vrule{c} = \Vrule{o}$.
 By the construction of an AHFA
 state, both dotted rules resulted from the same series
 of transitions.
 But the same series of transitions over the
 same rule would result in the same dot position,
-$\var{cp} = \var{op}$
+$\var{cp} = \var{op}$,
 so that if $\Vrule{c} = \Vrule{o}$,
 $\Vdr{complete} = \Vdr{other}$,
-which is contrary to the assumption for the reduction.
-Therefore, under the assumption for the reduction,
-$\Vrule{c} \neq \Vrule{o}$.
+which is contrary to the assumption for the outer reductio.
+This shows the first inner reductio.
 
-Next we show that, under the assumption for the reduction,
-that $\Vrule{c} = \Vrule{o}$
-follows from \Leo's uniqueness requirement.
+Next, we assume for an inner reductio that
+$\Vrule{c} \ne \Vrule{o}$.
 Since both dotted rules are in the same EIM
 and neither is a prediction,
 both must result from transitions,
@@ -981,21 +983,31 @@ Since they are in the same AHFA state,
 by the AHFA construction,
 that transition must have been
 over the same transition symbol.
-\Leo{} requires that, for each predecessor Earley set and transition symbol,
+\Leo{} requires,
+for each predecessor Earley set and transition symbol,
 that a Leo transition be from a single rule.
-The assumption for the reduction is that \Vdr{complete}
+The assumption for the reductio is that \Vdr{complete}
 and \Vdr{other} are in the same Leo reduction state,
-and in order for them to have obeyed the Leo uniqueness
-requirement,
-we have $\Vrule{c} = \Vrule{o}$.
+which requires their last transition to have been
+over the same symbol and from the same Earley set.
+To obey the Leo uniqueness requirement,
+we must have $\Vrule{c} = \Vrule{o}$.
+The assumption for the outer reductio
+is that both \Vdr{complete} and \Vdr{other}
+share an AHFA state in a Leo reduction EIM,
+so they must obey the Leo uniqueness requirement.
+Therefore
+$\Vrule{c} = \Vrule{o}$, which contradicts
+the assumption for the second inner reductio.
 
-We now have both
+By the two inner reductio's,
+we have both
 $\Vrule{c} = \Vrule{o}$
-and
-$\Vrule{c} \neq \Vrule{o}$,
-completing the reduction to absurdity.
-When \Vdr{complete} is in a Leo reduction EIM,
-it must be the only dotted rule in that EIM.
+and $\Vrule{c} \neq \Vrule{o}$,
+which completes the outer reduction to absurdity.
+If \Vdr{complete} is a dotted rule
+in the AHFA state of a Leo reduction EIM,
+it must be the only dotted rule in that AHFA state.
 \end{proof}
 
 \section{The Marpa Recognizer}
