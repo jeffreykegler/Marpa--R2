@@ -677,7 +677,7 @@ and
 \Veimt{top} = [\Vdr{top}, \Vorig{top}]
 \end{equation*}
 is the Earley to be added on reductions over
-the \Vsym{transition}.
+\Vsym{transition}.
 
 Leo items memoize what would otherwise be sequences
 of Earley items.
@@ -710,8 +710,9 @@ will be in one Earley set and the number of EIMT's
 will be \order{n},
 so that even including expansion of the Leo sequence
 for evaluation, the time and space complexity of
-the sequence remain \order{n}.
+the sequence remains \order{n}.
 
+\begin{sloppypar}
 Implementing Leo memoization requires
 adding another basic operation.
 In addition to the basic operations of \Earley,
@@ -734,7 +735,7 @@ we have both of
 \end{gather*}
 If such an LIMT exists,
 there is a Leo reduction for \Vsym{lhs} from
-Earley set \var{i}.
+Earley set \Vloc{i}.
 If there is a Leo reduction,
 $[ \Vdr{top}, \Vorig{top} ]$ is added to
 \EVtable{\Leo}{j},
@@ -742,6 +743,7 @@ and reduction on \Vsym{lhs} from Earley set \var{i}
 is not attempted.
 If there is no Leo reduction,
 the standard reduction of \Earley{} is attempted.
+\end{sloppypar}
 
 \section{The Aycock-Horspool finite automaton}
 \label{s:AHFA}
@@ -749,7 +751,7 @@ the standard reduction of \Earley{} is attempted.
 
 In this \doc{} a
 ``split LR(0) $\epsilon$-DFA''
-a described by Aycock and Horspool\cite{AH2002},
+as described by Aycock and Horspool\cite{AH2002},
 will be called an Aycock-Horspool Finite Automaton,
 or AHFA.
 A full description of how to derive an AHFA in theory
@@ -789,13 +791,13 @@ Aycock and Horspool realized that by changing Earley items
 to track AHFA states, instead of individual dotted rules,
 the size of Earley sets could be reduced,
 and Earley's algorithm made faster in practice.
-In short, then, AHFA states are a shorthand that Earley items
+AHFA states are a shorthand that Earley items
 can use for groups of dotted rules that occur together frequently.
-The original Earley items (EIMT's)
-could be represented as $[\Vdr{x}, \Vorig{x}]$
-duples, where \Vdr{x} is a dotted rule.
 
-Aycock and Horspool modified their Earley items.
+As a reminder,
+the original Earley items (EIMT's)
+were duples, $[\Vdr{x}, \Vorig{x}]$,
+where \Vdr{x} is a dotted rule.
 An Aycock-Horspool Earley item is a duple
 \begin{equation*}
 [\Vah{y}, \Vorig{y}],
@@ -831,8 +833,7 @@ other than the start rule.
 (In \cite{AH2002} confirmed states are called the ``kernel states'',
 and predicted states are called ``non-kernel states''.)
 
-It is important to note that
-an AHFA is not a partition of the dotted
+An AHFA is not a partition of the dotted
 rules --
 a single dotted rule can occur
 in more than one AHFA state.
@@ -841,7 +842,7 @@ but it does happens often enough,
 even in practical grammars,
 that the Marpa implementation has to provide for it.
 
-What does not seem to happen in practical grammars
+What does not seem to occur in practice
 is that
 the size of a \Marpa{} Earley set grows larger
 than that of one of Earley's original sets.
