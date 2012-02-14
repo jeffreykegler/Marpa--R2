@@ -1359,8 +1359,9 @@ if we assume that a history
 of the rewrite is kept,
 and that the rewrite is reversed
 after the parse.
-Clearly, whether an \Vg{} accepts \Vw{}
-cannot depend on the nulling symbols in its rules.
+Clearly, whether a grammar \Vg{} accepts
+an input \Vw{}
+will not depend on the nulling symbols in its rules.
 
 In its implementation,
 \Marpa's does not directly rewrite the grammar
@@ -1566,7 +1567,7 @@ $\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
 These will be consistent by
 the definition of Earley scanning (Section~\ref{d:scan}),
 Observation~\ref{o:confirmed-AHFA-consistent},
-the definition of Earley prediction (Section~\ref{d:predict}) and
+the definition of Earley prediction (Section~\ref{d:prediction}) and
 Observation ~\ref{o:predicted-AHFA-consistent}.
 
 \subsubsection{Reduction consistency without Leo}
@@ -1603,7 +1604,7 @@ $\Vah{confirmed} \ne \Lambda \land \Vah{predicted} \ne \Lambda$.
 These will be consistent by
 the definition of Earley reduction (Section~\ref{d:reduction}),
 Observation~\ref{o:confirmed-AHFA-consistent},
-the definition of Earley prediction (Section~\ref{d:predict}) and
+the definition of Earley prediction (Section~\ref{d:prediction}) and
 Observation ~\ref{o:predicted-AHFA-consistent}.
 \end{sloppypar}
 
