@@ -1284,42 +1284,50 @@ PSL's are the subject of the next section.
 
 A per-set list (PSL) is kept in each Earley set.
 When building a new Earley set, \EVtable{\Marpa}{j},
-the PSL for every previous Earley set, \EVtable{\Marpa}{i},
-keeps a list of those Earley items in \EVtable{\Marpa}{j} which have \EVtable{\Marpa}{i}
+the PSL for every previous Earley set, \Vloc{i},
+keeps a list of those Earley items in \EVtable{\Marpa}{j} which have \Vloc{i}
 as their origin.
-Each PSL needs to only keep track of a maximum
-number of possible Earley items.
-For traditional Earley items that maximum is the number
-of dotted rules.
-For Marpa, that maximum is the number of AHFA states.
-In both cases,
-the maximum is a constant which depends on the grammar.
+The maximum number of Earley items that must be tracked
+in each PSL is the \Vsize{\Vfa},
+the number of AHFA states,
+which is a constant depending on \Vg.
 
-Clearing and rebuilding the PSL's every time
-a new Earley set would take more than \Oc{},
-but can be avoided.
-The per-AHFA state entries can be ``stamped'',
-with a link back to the Earley set
+It would take more than \Oc{} time
+to clearing and rebuilding the PSL's every time
+for each new Earley set that needs to be built.
+But this can be avoided by "dating" each PSL
+entry with the Earley set
 which was current when that PSL
-entry was last added or updated.
+entry was last updated.
 
 Consider the case where Marpa is building \EVtable{\Marpa}{j}
-an Earley item \Veim{x} is new,
-where $\Veim{x} = [ \Vah{x}, \Vloc{origin} ]$.
-To do this,
-Marpa checks the PSL's for $\Vtable{origin}$.
-Let the Earley set ``stamp'' for that PSL entry be \EVtable{\Marpa}{p}.
-If the entry has never been used, $\EVtable{\Marpa}{p} = \Lambda$
-If $\EVtable{\Marpa}{p} \ne \Lambda \land \EVtable{\Marpa}{p} = \EVtable{\Marpa}{j}$,
+and wants to check whether Earley item \Veim{x} is new,
+where $\Veim{x} = [ \Vah{x}, \Vorig{x} ]$.
+Let $\mymathop{PSL}(\Vloc{l}, \Vah{a})$
+be the entry for \Vah{a} in the PSL for Earley set \Vloc{l}.
+To check if \Veim{x} is new,
+Marpa checks $\mymathop{PSL}(\Vloc{x}, \Vah{x})$.
+Let the Earley set ``date'' for that PSL entry be \Vloc{p},
+that is,
+\begin{equation*}
+    \mymathop{PSL}(\Vloc{x}, \Vah{x}) = \Vloc{p}
+\end{equation*}
+(If the entry has never been used,
+we assume that $Vloc{p} = \Lambda$.
+If $\Vloc{p} \ne \Lambda \land \Vloc{p} = \Vloc{j}$,
 then \Veim{x} is not new,
 and will not be added to the Earley set.
 
-If $\EVtable{\Marpa}{p} = \Lambda \lor \EVtable{\Marpa}{p} \ne \EVtable{\Marpa}{j}$,
+If $\Vloc{p} = \Lambda \lor \Vloc{p} \ne \Vloc{j}$,
 then \Veim{x} is new.
 \Veim{x} is added to the Earley set,
-and the PSL's ``stamp'' is updated to \EVtable{\Marpa}{j}.
+and the PSL's ``stamp'' is updated to \Vloc{j},
+\begin{equation*}
+    \mymathop{PSL}(\Vloc{x}, \Vah{x}) \gets \Vloc{j}
+\end{equation*}
 As implemented,
-Marpa uses PSL's for this purpose and several others.
+Marpa uses PSL's to check if EIM's are new,
+and several other purposes.
 
 \section{Preliminaries to the theoretical results}
 \label{s:proof-preliminaries}
