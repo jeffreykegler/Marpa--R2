@@ -173,7 +173,7 @@ all context-free grammars.
 Time bounds are the best of Leo\cite{Leo1991}
 and Earley\cite{Earley1970}.
 The Leo bound,
-\Oc for LR-regular,
+\Oc{} for LR-regular,
 is especially relevant to
 Marpa's goal of being a practical parser:
 If a grammar is in a class of grammar currently in practical use,
@@ -319,7 +319,7 @@ of \Vrule{r}.
 This definition follows \cite{AH2002},
 which departs from tradition by disallowing an empty RHS.
 
-The grammar \Vg{} can be defined as the 4-tuple
+The grammar \Vg{} is the 4-tuple
 \begin{equation*}
     (\Vsymset{alphabet}, \Vsymset{term}, \var{rules}, \Vsym{accept})
 \end{equation*}
@@ -418,7 +418,7 @@ The user of a Marpa parser
 may specify any context-free grammar,
 including one with properly nullable symbols,
 empty rules, etc.
-The user may also specify their semantics in terms
+The user specifies his semantics in terms
 of this original, ``free-form'', grammar.
 Marpa implements the rewrites,
 and performs evaluation,
@@ -427,8 +427,8 @@ the user.
 From the user's point of view,
 the ``free-form'' of his grammar is the
 one being used for the parse,
-and the semantics being applied are
-those he specified for it.
+and the one to which 
+the semantics are applied.
 
 \section{Earley's algorithm}
 \label{s:earley}
@@ -457,10 +457,10 @@ The postdot symbol of a dotted rule is
 often important.
 If
 \begin{equation*}
-\Vdr{x} = \Vsym{A} \de \Vstr{alpha} \mydot \Vsym{last} \Vstr{beta},
+\Vdr{x} = [\Vsym{A} \de \Vstr{alpha} \mydot \Vsym{next} \Vstr{beta}],
 \end{equation*}
 then
-$\Postdot{\Vdr{x}} = \Vsym{last}$.
+$\Postdot{\Vdr{x}} = \Vsym{next}$.
 Otherwise,
 $\Postdot{\Vdr{x}} = \Lambda$.
 If in the above,
@@ -468,9 +468,32 @@ If in the above,
 \Postdot{\Vdr{x}} \ne \Lambda \wedge \Vstr{beta} \destar \epsilon
 \end{equation*}
 then
-$\Penult{\Vdr{x}} = \Vsym{last}$.
+$\Penult{\Vdr{x}} = \Vsym{next}$.
 Otherwise,
 $\Penult{\Vdr{x}} = \Lambda$.
+
+The \dfn{initial dotted rule} is
+\begin{equation*}
+\Vdr{initial} = [\Vsym{accept} \de \mydot \Vsym{start} ].
+\end{equation*}
+A \dfn{predicted dotted rule} is a dotted rule,
+other than the initial dotted rule,
+with a dot position of zero.
+\begin{equation*}
+\Vdr{predicted} = [\Vsym{A} \de \mydot \Vstr{alpha} ].
+\end{equation*}
+A \dfn{confirmed dotted rule}
+is the initial dotted rule,
+or a dotted rule
+with a dot position greater than zero.
+A \dfn{completed dotted rule} is a dotted rule with its dot
+position after the end of its RHS.
+\begin{equation*}
+\Vdr{completed} = [\Vsym{A} \de \Vstr{alpha} \mydot ].
+\end{equation*}
+Predicted, confirmed and completed dotted rules
+and also called, respectively,
+\dfn{predictions}, \dfn{confirmations} and \dfn{completions}.
 
 A traditional Earley item (type $EIMT$) is a duple
 \[
@@ -489,7 +512,7 @@ sense -- duplicate Earley items are not added.
 \begin{sloppypar}
 An traditional Earley parser builds a table of Earley sets,
 \EVtable{\Earley}{i},
-$0 \le \Vloc{i} < \size{\Vw}$.
+$0 \le \Vloc{i} \le \size{\Vw}$.
 Each set is the closure of the 
 initialization, scanning, reduction and prediction
 operations.
@@ -514,6 +537,7 @@ the type is often omitted to avoid clutter.
 \EVtable{\alg{Recce}}{i} will be Earley set \Vloc{i}
 in the table of Earley sets of
 the \alg{Recce} recognizer.
+For example,
 \EVtable{\Marpa}{j} will be Earley set \Vloc{j}
 in \Marpa's table of Earley sets.
 In contexts where it is clear which recognizer is
@@ -523,6 +547,18 @@ in that recognizer's table of Earley sets.
 If \Ees{\var{working}} is an Earley set,
 $\size{\Ees{\var{working}}}$ is the number of Earley items
 in \Ees{\var{working}}.
+
+\Rtablesize{\alg{Recce}} is the total number
+of Earley items in all Earley sets for \alg{Recce}.
+\begin{equation*}
+\Rtablesize{\alg{Recce}} =
+     \sum\limits_{\Vloc{i}=0}^{\size{\Vw}}
+	{\size{\EVtable{\alg{Recce}}{i}}}
+\end{equation*}
+For example,
+\Rtablesize{\Marpa} is the total number
+of Earley items in all the Earley sets of
+a \Marpa{} parse.
 
 \section{Operations of the Earley algorithm}
 \label{s:earley-ops}
