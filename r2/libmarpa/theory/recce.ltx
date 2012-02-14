@@ -1096,8 +1096,8 @@ Earley item attempts.
 \For{each lhs of a completed rule, $\Vsym{lhs}$}
 \State \Call{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \EndFor
-\State \Call{Memoize transitions}{\Vloc{i}}
 \EndFor
+\State \Call{Memoize transitions}{\Vloc{i}}
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -1124,7 +1124,7 @@ Overhead may be charged to the Earley set.
 \Else
 \State Set $\var{transitions}(\Vloc{i},\Vsym{postdot})$ to
 \State \hspace\algorithmicindent to the set of EIM's which have
-\State \hspace\algorithmicindent with \Vsym{postdot} as their postdot symbol
+\State \hspace\algorithmicindent \Vsym{postdot} as their postdot symbol
 \EndIf
 \EndFor
 \EndProcedure
@@ -1143,14 +1143,15 @@ The time and space required are charged to the
 Earley items being examined.
 Any loop overhead may be charged to the Earley set.
 
-Of special note is that in
-setting up the \var{transitions} table for the current Earley set,
+In setting up the \var{transitions} table for the current Earley set,
 the Leo items must be created.
 For each Earley set,
 the number of Leo items is at most
-\Vsize{alphabet}.
+the number of symbols in
+\Vsymset{alphabet}.
 Since the maximum number of Leo items is a constant
-their space may be charged to the Earley set.
+depending on \Vg{},
+their space and time may be charged to the Earley set.
 
 \begin{algorithm}[h]
 \caption{Reduce one LHS symbol}
