@@ -833,10 +833,10 @@ In practice, groups of Earley items sharing the same origin,
 but having different dotted rules,
 often appear in the same Earley set.
 \item
-There was in the literature a method
+There is in the literature a method
 for associating groups of dotted rules that often appear together
 when parsing.
-This method was the LR(0) DFA used in the much-studied
+This method is the LR(0) DFA used in the much-studied
 LALR and LR parsers.
 \item
 The LR(0) items that are the components of LR(0)
@@ -887,14 +887,22 @@ and \Vah{top} is an AHFA state.
 A Marpa Leo item has type $LIM$.
 \end{sloppypar}
 
-AHFA states are of two kinds:
-{\bf Confirmed AHFA states}
-contain the predicted start rule and
-confirmed rules.
-{\bf Predicted AHFA states}
-contain predicted rules
-other than the start rule.
-(In \cite{AH2002} confirmed states are called the ``kernel states'',
+\cite{AH2002} defines AHFA states (type $AH$) as sets
+of dotted rules.
+They also define a partial transition function for
+pairs of AHFA state and symbol,
+\begin{equation*}
+\GOTO: \Vfa, (\epsilon \cup \var{alphabet}) \mapsto \Vfa.
+\end{equation*}
+$\GOTO(\Vah{from}, \epsilon)$ is a
+\dfn{null transition}.
+(AHFA's are not fully deterministic.)
+If \Vah{predicted} is the result of a null transition,
+it is called a \dfn{predicted} AHFA state.
+If an AHFA state is not a \dfn{predicted} AFHA state,
+it is called a \dfn{confirmed} AHFA state.
+The initial AHFA state is a confirmed AHFA state.
+(In \cite{AH2002} confirmed states are called ``kernel states'',
 and predicted states are called ``non-kernel states''.)
 
 An AHFA is not a partition of the dotted
@@ -902,7 +910,7 @@ rules --
 a single dotted rule can occur
 in more than one AHFA state.
 This does not happen frequently,
-but it does happens often enough,
+but it happens often enough,
 even in practical grammars,
 that the Marpa implementation has to provide for it.
 
