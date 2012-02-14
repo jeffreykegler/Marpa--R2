@@ -115,29 +115,33 @@
 
 \begin{document}
 
+\date{\today}
+
 \title{Marpa, a practical general parser: the recognizer}
 
 \author{Jeffrey Kegler}
-\thanks{
+\thanks{%
+This is a draft.
+}
+\thanks{%
 Copyright \copyright\ 2012 Jeffrey Kegler.
 }
-\thanks{
+\thanks{%
 This document is licensed under
 a Creative Commons Attribution-NoDerivs 3.0 United States License.
 }
 
 \begin{abstract}
-This \doc{} reports describes the recognizer portion
-of Marpa,
+The Marpa recognizer is described.
+Marpa is
 a practical and fully implemented
 algorithm for the recognition,
 parsing and evaluation of context-free grammars.
-Based
-on Earley's 1970 algorithm,
-Marpa merges into it the improvements
-of Leo's 1991
-and Aycock and Horspool's 2002 papers.
-A major feature new with Marpa is that
+Marpa's recognizer merges the improvements
+to Earley's 1970 algorithm found in
+Leo's 1991
+and in Aycock and Horspool's 2002 papers.
+New with Marpa is that
 full knowledge of the state of the parse is available
 as tokens are being scanned.
 Advantageous for error detection,
@@ -150,10 +154,6 @@ to the parser's expectations.
 
 \maketitle
 
-\section*{This is a draft}
-
-This a draft.  Date: \today.
-
 \section{Introduction}
 
 Despite the promise of general context-free parsing,
@@ -161,13 +161,13 @@ and the strong academic literature behind it,
 it has never been incorporated into a tool
 as highly available as yacc\cite{Johnson} or
 regular expressions.
-The Marpa project was begun to end this neglect.
-Its intention was to
-take the best results from the literature
+The Marpa project was intended
+to take the best results from the literature
 on Earley parsing off the pages
 of the journals and bring them
 to a wider audience.
-A stable version of this tool, Marpa::XS\cite{Marpa-XS},
+Marpa::XS\cite{Marpa-XS},
+a stable version of this tool,
 was uploaded to the CPAN Perl archive
 on Solstice Day in 2011.
 
@@ -177,9 +177,9 @@ without exception,
 all context-free grammars.
 Time bounds are the best of Leo\cite{Leo1991}
 and Earley\cite{Earley1970}.
-The Leo bound
-(\Oc for LR-regular)
-is especially noteworthy with respect to
+The Leo bound,
+\Oc for LR-regular,
+is especially relevant to
 Marpa's goal of being a practical parser:
 If a grammar is in a class of grammar currently in practical use,
 Marpa parses it in linear time.
@@ -200,26 +200,25 @@ But because rejection of tokens is easily and
 efficiently recoverable,
 the lexer is also free to take an event-driven
 approach.
-With Marpa, error detection is no longer
-an act of desperation --
-error detection can used as a parsing technique
-in its own right.
+Error detection is no longer
+an act of desperation,
+but a parsing technique in its own right.
 If a token is rejected,
 the lexer is free to create a new token
 in the light of the parser's expectations.
 This approach can be described
 as making the parser's
 ``wishes'' come true,
-and we have has called this
+and we have called this
 ``Ruby Sippers Parsing''.
 
 One use of the Ruby Slippers technique is to
-parse with a very clean,
+parse with a clean
 but oversimplified grammar,
 programming the lexical analyzer to make up for the grammar's
 short-comings on the fly.
 The author has implemented an HTML parser\cite{Marpa-HTML},
-based on an grammar that assumes that all start
+based on a grammar that assumes that all start
 and end tags are present.
 Such an HTML grammar is too simple even to describe perfectly
 standard-conformant HTML,
@@ -228,39 +227,48 @@ programmed to supply start and end tags as requested by the parser.
 The result is a very simply and cleanly designed parser
 that parses very liberal HTML
 and accepts all input files,
+in the worst case
 treating them as highly defective HTML.
 
-Sections
-\ref{s:start-prelim} through \ref{s:end-prelim}
-will deal with notation and underlying concepts.
+Section
+\ref{s:preliminaries} describes the notation and conventions
+of this \doc.
+Section \ref{s:rewrite} deals with Marpa's
+grammar rewrites.
+Sections \ref{s:earley} and \ref{s:earley-ops}
+introduce Earley's algorithm.
+Section \ref{s:leo} describes Leo's modification
+to Earley's algorithm;
+and Section \ref{s:AHFA} describes the modification
+suggested by Aycock and Horspool.
 Section \ref{s:pseudocode} presents the pseudocode
 for the algorithm Marpa.
 Section
 \ref{s:proof-preliminaries}
-contains the preliminaries
-to the theoretical results
-of this \doc{}.
+describes notation and deals with other 
+preliminaries
+to the theoretical results.
 Section
 \ref{s:correct}
-contain a proof of correctness.
-Section \ref{s:complexity} contains
-the complexity results.
+contain a proof of Marpa's correctness,
+while Section \ref{s:complexity} contains
+its complexity results.
 Finally,
 section \ref{s:generalization} generalizes
 the definitions of grammar and input.
 
 \section{Preliminaries}
-\label{s:prel}
+\label{s:preliminaries}
 \label{s:start-prelim}
 
 We assume familiarity with the theory of parsing,
 as well as Earley's algorithm.
 This \doc{} will
-use subscripts to indicate its commonly occurring types.
+use subscripts to indicate commonly occurring types.
 \begin{center}
 \begin{tabular}{ll}
 $\var{X}_T$ & The variable \var{X} of type $T$ \\
-$\var{set-one}_\set{T}$ & The variable \var{X} of type set of $T$ \\
+$\var{set-one}_\set{T}$ & The variable \var{set-one} of type set of $T$ \\
 $SYM$ & The type for a symbol \\
 \Vsym{a} & The variable \var{a} of type $SYM$ \\
 \Vsymset{set-two} & The set of symbols \var{set-two} \\
@@ -298,13 +306,13 @@ where $\myL{\Vg} \in \var{alphabet}^\ast$
 Divide \Vsymset{alphabet} into two disjoint sets,
 \Vsymset{lh} and \Vsymset{term}.
 
-For the rewriting consider,
+for rewriting this \doc{} uses,
 without loss of generality,
 the set of duples, \Vruleset{rules}.
 The type $RULE$ will be
 a duple
 of the form $[\Vsym{lhs} \de \Vstr{rhs}]$,
-where we have
+where
 \begin{gather*}
 \Vsym{lhs} \in \var{term} \\
 \Vstr{rhs} \in \var{alphabet}^+
@@ -318,36 +326,34 @@ which departs from tradition by disallowing an empty RHS.
 
 The grammar \Vg{} can be defined as the 4-tuple
 \begin{equation*}
-    (\Vsymset{alphabet}, \Vsymset{term}, \var{rules}, \Vsym{start})
+    (\Vsymset{alphabet}, \Vsymset{term}, \var{rules}, \Vsym{accept})
 \end{equation*}
 where \Vsymset{term} is the
 set of terminal symbols,
 \begin{equation*}
-    \Vsymset{term} \subset \Vsymset{alphabet}.
+    \Vsymset{term} \subset \Vsymset{alphabet},
 \end{equation*}
+and \Vsym{accept} a dedicated acceptance symbol.
 The set of potential LHS symbols, \Vsymset{lh} is
 $\var{alphabet} \setminus \var{term}$.
 Without loss of generality,
 it is assumed that \Vg{}
-has a dedicated acceptance symbol,
-\Vsym{accept},
 \begin{equation*}
 \Vsym{accept} \in \Vsymset{lh},
 \end{equation*}
-and a dedicated rule,
+and that there is a dedicated acceptance rule,
 \begin{equation*}
 \Vrule{accept} = [ \Vsym{accept} \de \Vsym{start} ],
 \end{equation*}
 such that for every rule,
-$\Vrule{x} = [ \Vsym{lhs} \de \Vsymset{rhs} ]$
-\begin{center}
-\begin{tabular}{ll}
-1.\hspace{.5em} &
-$  \Vsym{accept} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{accept} $ \\
-2. &
-$  \Vsym{accept} \notin \Vsymset{rhs} $ \\
-\end{tabular}
-\end{center}
+\begin{equation*}
+\Vrule{x} = [ \Vsym{lhs} \de \Vsymset{rhs} ]
+\end{equation*}
+we have both of
+\begin{align*}
+& \Vsym{accept} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{accept} \\
+& \Vsym{accept} \notin \Vsymset{rhs}
+\end{align*}
 
 Let the input to parse be \Vw, $\Vw \in \var{alphabet}^\ast$.
 Locations in the input will be of type LOC.
@@ -369,6 +375,7 @@ $\myL{\alg{Recce},\Vg}$ will be the language accepted by $\alg{Recce}$
 when parsing \Vg.
 
 \section{Rewriting the grammar}
+\label{s:rewrite}
 
 We have already noted
 that no rules of \Vg{}
@@ -418,7 +425,7 @@ empty rules, etc.
 The user may also specify their semantics in terms
 of this original, ``free-form'', grammar.
 Marpa implements the rewrites,
-and performs its evaluation,
+and performs evaluation,
 in such a way as to keep them invisible to
 the user.
 From the user's point of view,
@@ -428,6 +435,7 @@ and the semantics being applied are
 those he specified for it.
 
 \section{Earley's algorithm}
+\label{s:earley}
 
 Let $\Vrule{r} \in \Vrules$
 be a rule,
@@ -441,8 +449,9 @@ so that if
 $$[\Vsym{A} \de \Vsym{X} . \Vsym{Y} . \Vsym{Z}]$$
 is a rule,
 $$[\Vsym{A} \de \var{X} . \var{Y} \mydot \var{Z}]$$
-is the rule where the dot is between \Vsym{Y}
-and \Vsym{Z} ($\var{pos} = 2$).
+is the dotted rule with the dot at
+$\var{pos} = 2$,
+between \Vsym{Y} and \Vsym{Z}.
 
 The postdot symbol of a dotted rule is
 often important.
@@ -474,7 +483,7 @@ It is sometimes called the "parent".)
 For convenience, the type $ORIG$ will be a synonym
 for $LOC$, indicating that the variable designates
 the origin element of an Earley item.
-The traditional Earley sets are sets in the strict
+Earley sets are sets in the strict
 sense -- duplicate Earley items are not added.
 
 \begin{sloppypar}
@@ -496,6 +505,7 @@ The input \Vw{} is accepted if and only if
 $$[\Vdr{accept}, 0] \in \Etable{\Vsize{\Vw}}$$
 
 \section{Operations of the Earley algorithm}
+\label{s:earley-ops}
 
 In the following,
 \Vloc{j} is the current Earley set.
@@ -615,6 +625,7 @@ An Earley item which is result of an scanning or reduction operation with a
 is called the \dfn{successor} of that operation's predecessor.
 
 \section{The Leo algorithm}
+\label{s:leo}
 
 In \cite{Leo1991}, Joop Leo presented a method for
 dealing with right recursion in \order{n} time.
