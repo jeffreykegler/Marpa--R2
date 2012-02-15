@@ -1969,13 +1969,17 @@ by the definition of completeness.
 \subsubsection{Prediction completeness}
 \label{s:prediction-complete}
 
+\begin{sloppypar}
 Predictions result only from items in the same Earley set.
-In Sections \ref{s:scan-complete} and \ref{s:reduction-complete}
+In Sections \ref{s:scan-complete},
+\ref{s:reduction-complete}
+and \ref{s:leo-complete},
 we showed that,
 for every prediction that would result
 from an item added to \EVtable{\Leo}{i},
 a corresponding prediction
 was added to \EVtable{\Marpa}{i}.
+\end{sloppypar}
 
 \subsubsection{Finishing the proof}
 \begin{sloppypar}
@@ -1999,9 +2003,7 @@ and the theorem.
 
 We are now is a position to show that Marpa is correct.
 \begin{theorem}
-\begin{equation*}
-\myL{\Marpa,\Vg} = \myL{\Vg}
-\end{equation*}
+$\myL{\Marpa,\Vg} = \myL{\Vg}$
 \end{theorem}
 
 \begin{proof}
