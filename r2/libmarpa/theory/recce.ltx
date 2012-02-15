@@ -2103,18 +2103,11 @@ of a dotted rule once and for all,
 From an efficiency perspective,
 \Marpa's duplicate rules
 are by all the evidence, a plus.
-From a worst-case complexity point of view,
-they can be shown to be harmless,
-but the price of doing so is the
+And they do not change the complexity results,
+although the price of showing this is the
 theoretical apparatus of this section.
 
 \begin{theorem}\label{t:marpa-O-leo}
-For a parse of \Vg{} and \Vw,
-let \Rtablesize{\Leo} be the
-number of traditional Earley items,
-and \Rtablesize{\Marpa} be the
-number of Marpa Earley items.
-Then,
 \begin{equation*}
     \Rtablesize{\Marpa} \le \var{c} \times \Rtablesize{\Leo},
 \end{equation*}
@@ -2142,14 +2135,13 @@ Therefore,
 \end{proof}
 
 \begin{theorem}\label{t:tries-O-eims}
-Let \Rtablesize{\Marpa} be the
-number of Earley items actually
-added to the tables,
-and \var{c} be a constant.
 For an unambiguous grammar,
 the number of attempts to add
 Earley items will be less than or equal to
-$ \var{c} \times \Rtablesize{\Marpa} $
+\begin{equation*}
+\var{c} \times \Rtablesize{\Marpa},
+\end{equation*}
+where \var{c} is a constant.
 \end{theorem}
 
 \begin{proof}
