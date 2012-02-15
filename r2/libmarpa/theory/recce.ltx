@@ -1766,14 +1766,15 @@ From Section \ref{p:leo-op}, we see
 that, as the result of the Leo reduction,
 \Marpa{} will add
 \begin{equation*}
-\Veim{leo} = [\ah{top}, \Vorig{top}]
+\Veim{leo} = [\Vah{top}, \Vorig{top}]
 \end{equation*}
 to \EVtable{\Marpa}{j}.
 The consistency of \Veim{leo} follows from the definition
 of EIM consistency,
 and the consistency of
-\EVtable{\Marpa}{i} once \Veim{leo}
-is added follows by the invariance
+\EVtable{\Marpa}{i},
+once \Veim{leo} is added,
+follows by the invariance
 of consistency under union.
 \end{sloppypar}
 
@@ -1799,14 +1800,14 @@ in the pseudocode of Section \ref{s:pseudocode},
 that 
 \EVtable{\Marpa}{i} is complete.
 To do this,
-we need to show that
+we show that
 at least one EIM in \EVtable{\Marpa}{i}
 corresponds to every EIMT in 
 \EVtable{\Leo}{i}.
 We will proceed by cases,
 where the cases are \Leo{} operations.
 For every operation which \Leo{} would perform,
-we need to show that
+we show that
 \Marpa{} performs an operation which
 produces a corresponding Earley item.
 Here are our cases for the operations of \Leo{}:
@@ -1840,9 +1841,9 @@ By the outer induction hypothesis we know that,
 for every traditional Earley item in the previous
 Earley set,
 there is at least one corresponding Marpa Earley item.
-We see from the pseudocode, therefore,
-that \Marpa{} performs its scan operation on a complete set
+Therefore, \Marpa{} performs its scan operation on a complete set
 of correct operands.
+
 Comparing the Marpa pseudocode (section \ref{p:scan-op}), 
 with the Earley scanning operation (section \ref{d:scan})
 and using
@@ -1851,7 +1852,9 @@ and \ref{o:predicted-AHFA-complete},
 we see that a Earley item will be added to
 \EVtable{\Marpa}{i} corresponding to every scanned Earley item
 of \EVtable{\Leo}{i}.
-We also see that the \Marpa{} scanning operation will
+We also see,
+from the pseudocode of Section \ref{p:add-eim-pair},
+that the \Marpa{} scanning operation will
 add to \EVtable{\Marpa}{i}
 an Earley item for
 every prediction that results from
