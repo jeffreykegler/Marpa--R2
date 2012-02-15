@@ -2444,9 +2444,6 @@ The differences are
 minor from a theoretical point of view,
 and to avoid cluttering the proofs,
 their discussion was deferred.
-In this section we extend the
-definition of \Vg{} and \Vw,
-incorporating Marpa's generalizations.
 
 \subsection{All symbols are terminals}
 
@@ -2506,7 +2503,7 @@ Token length is measured in earlemes,
 and the start and end location of a token is indicated in earlemes.
 \end{sloppypar}
 
-Just like standard parse locations, earlemes start at 0,
+Like standard parse locations, earlemes start at 0,
 and run up to \size{\Vw}.
 Unlike standard parse locations,
 there is not necessarily a token ``at'' any particular earleme.
@@ -2532,7 +2529,7 @@ That is,
 The intent of Marpa's generalized input model is to allow
 users to define alternative input models for special
 applications.
-An example that already arises in practice is natural
+An example that arises in current practice is natural
 language, features of which are most
 naturally expressed with ambiguous tokens.
 The traditional input stream can be seen as the special case of
