@@ -1128,8 +1128,11 @@ including which tokens are acceptable during the scanning phase.
 
 \subsection{Initialization}
 \label{p:initial-op}
+
+\begin{sloppypar}
 Inclusive time and space is \Oc{}
 and can be charged to the parse.
+\end{sloppypar}
 
 \begin{algorithm}[h]
 \caption{Marpa Scan pass}\label{p:scan-pass}
@@ -1244,13 +1247,11 @@ their space and time may be charged to the Earley set.
 \State \Comment \var{pim} is a ``postdot item'', either a LIM or an EIM
 \For{each $\var{pim} \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
 \If{\var{pim} is a LIM, \Vlim{pim}}
-\State $\Vlim{pred} \gets \var{pim}$
 \State Perform a \Call{Leo reduction operation}{}
-\State \hspace\algorithmicindent for operands \Vloc{i}, \Vlim{pred}
+\State \hspace\algorithmicindent for operands \Vloc{i}, \Vlim{pim}
 \Else
-\State $\Veim{pred} \gets \var{pim}$
 \State Perform a \Call{Earley reduction operation}{}
-\State \hspace\algorithmicindent for operands \Vloc{i}, \Veim{pred}, \Vsym{lhs}
+\State \hspace\algorithmicindent for operands \Vloc{i}, \Veim{pim}, \Vsym{lhs}
 \EndIf
 \EndFor
 \EndProcedure
@@ -1268,7 +1269,9 @@ that the number of symbols is a constant
 and assume that \Vloc{origin} is implemented
 as a link back to the Earley set,
 rather than as an integer index.
-This requires that \Veim{work} carry a link
+This requires that \Veim{work}
+in \call{Reduction pass}{}
+carry a link
 back to its origin.
 As implemented, Marpa's
 Earley items have such links.
@@ -1278,7 +1281,7 @@ Earley items have such links.
 \begin{algorithmic}[1]
 \Procedure{Earley reduction operation}{\Vloc{i}, \Veim{from}, \Vsym{trans}}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veim{from}$
-\State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
+\State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
 \end{algorithmic}
@@ -1298,7 +1301,7 @@ calling procedure.
 \begin{algorithmic}[1]
 \Procedure{Leo reduction operation}{\Vloc{i}, \Vlim{from}}
 \State $[\Vah{from}, \Vsym{trans}, \Vloc{origin}] \gets \Vlim{from}$
-\State $\ah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
+\State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{trans})$
 \State \Call{Add EIM pair}{\Vloc{i}, \Vah{to}, \Vloc{origin}}
 \EndProcedure
 \end{algorithmic}
@@ -1474,9 +1477,9 @@ result of the parse.
 A Marpa Earley item \dfn{corresponds}
 to a traditional Earley item
 $\Veimt{x} = [\Vdr{x}, \Vorig{x}]$
-if and only if the Marpa Earley item is
+if and only if the Marpa Earley item is a
 $\Veim{y} = [\Vah{y}, \Vorig{x}]$
-and $\Vdr{x} \in \Vah{y}$.
+such that $\Vdr{x} \in \Vah{y}$.
 This relation is reflexive:
 A traditional Earley item, \Veimt{x}, corresponds to a
 Marpa Earley item, \Veim{y}, if and only if
