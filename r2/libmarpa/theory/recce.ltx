@@ -1128,7 +1128,7 @@ including which tokens are acceptable during the scanning phase.
 
 \subsection{Initialization}
 \label{p:initial-op}
-Inclusive time and space is \Oc{} and
+Inclusive time and space is \Oc{}
 and can be charged to the parse.
 
 \begin{algorithm}[h]
@@ -1158,11 +1158,11 @@ it cannot be assumed that Earley sets can be indexed by location
 in \Oc{} time.
 For the operation $\var{transitions}(\Vloc{l}, \Vsym{s})$
 to be in \Oc{} time,
-there must be a link directly to the Earley set.
+\Vloc{l} must represent a link directly to the Earley set.
 In the case of scanning,
 the lookup is always in the previous Earley set,
-which it is safe to expect can be found
-in \Oc{} time.
+which can easily be tracked in \Oc{} space
+and retrieved in \Oc{} time.
 Inclusive time and space can be charged to the
 Earley item attempts.
 \end{sloppypar}
@@ -1175,7 +1175,9 @@ Earley item attempts.
 \State \hspace{2.5em} by \Call{Reduce one LHS}{}
 \For{each Earley item $\Veim{work} \in \Vtable{i}$}
 \State $[\Vah{work}, \Vloc{origin}] \gets \Veim{work}$
-\For{each lhs of a completed rule, $\Vsym{lhs}$}
+\State $\Vsymset{lh-sides} \gets$ a set containing the LHS
+\State \hspace\algorithmicindent of every completed rule in \Veim{work}
+\For{each $\Vsym{lhs} \in \Vsymset{lh-sides}$}
 \State \Call{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
 \EndFor
 \EndFor
@@ -1201,10 +1203,10 @@ Overhead may be charged to the Earley set.
 \Procedure{Memoize transitions}{\Vloc{i}}
 \For{every \Vsym{postdot}, a postdot symbol of $\Vtable{i}$}
 \If{postdot transition is unique by rule}
-\State Set $\var{transitions}(\Vloc{i},\Vsym{postdot})$ to
+\State Set $\var{transitions}(\Vloc{i},\Vsym{postdot})$
 \State \hspace\algorithmicindent to an LIM
 \Else
-\State Set $\var{transitions}(\Vloc{i},\Vsym{postdot})$ to
+\State Set $\var{transitions}(\Vloc{i},\Vsym{postdot})$
 \State \hspace\algorithmicindent to the set of EIM's which have
 \State \hspace\algorithmicindent \Vsym{postdot} as their postdot symbol
 \EndIf
