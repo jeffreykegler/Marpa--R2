@@ -1525,54 +1525,53 @@ and consistent.
 Several facts about AHFA's from \cite{AH2002}
 will be heavily used in the following proofs.
 For convenience, they are restated here.
-An \dfn{AHFA confirmation}
-is a transition from one
-state to another over a non-null symbol.
 
 \begin{observation}
 \label{o:confirmed-AHFA-consistent}
 AHFA confirmation is consistent.
-That is, if
-\begin{equation*}
-    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \land \Vdr{to} \in \Vah{to}
-\end{equation*}
-then there exists \Vdr{from} such that all of the following are true
+That is, if all of the following are true
 \begin{gather*}
-    \Next{\Vdr{from}} = \Vdr{to} \\
+    \Postdot{\Vdr{from}} \ne \Lambda \\
     \Postdot{\Vdr{from}} = \Vsym{t} \\
-    \Vdr{from} \in \Vah{from}
+    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \\
+    \Vdr{to} \in \Vah{to}
 \end{gather*}
+then there exists \Vdr{from} such that
+\begin{equation*}
+    \Next{\Vdr{from}} = \Vdr{to}
+    \land \Vdr{from} \in \Vah{from}
+\end{equation*}
 \end{observation}
 
 \begin{observation}
 \label{o:confirmed-AHFA-complete}
 AHFA confirmation is complete.
-That is, if
-\begin{equation*}
-    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
-\end{equation*}
-then there exists \Vdr{to} such that all of the following are true
-\begin{align*}
-    \Next{\Vdr{from}} = \Vdr{to} \\
+That is, if all of the following are true
+\begin{gather*}
+    \Postdot{\Vdr{from}} \ne \Lambda \\
     \Postdot{\Vdr{from}} = \Vsym{t} \\
-    \Vdr{to} \in \Vah{to}
-\end{align*}
+    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \\
+    \Vdr{from} \in \Vah{from}
+\end{gather*}
+then for all \Vdr{to}
+\begin{equation*}
+    \Next{\Vdr{from}} = \Vdr{to} \implies \Vdr{to} \in \Vah{to}
+\end{equation*}
 \end{observation}
 
-An \dfn{AHFA prediction} is a transition from one
-state to another over a non-null symbol.
 \begin{observation}
 \label{o:predicted-AHFA-consistent}
 AHFA prediction is consistent.
 That is, if
 \begin{equation*}
-    \GOTO(\Vah{from}, \epsilon) = \Vah{to} \land \Vdr{to} \in \Vah{to}
+    \GOTO(\Vah{from}, \epsilon) = \Vah{to}
+    \land \Vdr{to} \in \Vah{to}
 \end{equation*}
-then there exists \Vdr{from} such that both of the following are true
-\begin{gather*}
-    \Vdr{to} \in \Predict{\Vdr{from}} \\
-    \Vdr{from} \in \Vah{from}
-\end{gather*}
+then there exists \Vdr{from} such that
+\begin{equation*}
+    \Vdr{to} \in \Predict{\Vdr{from}}
+    \land \Vdr{from} \in \Vah{from}
+\end{equation*}
 \end{observation}
 
 \begin{observation}
@@ -1580,14 +1579,13 @@ then there exists \Vdr{from} such that both of the following are true
 AHFA prediction is complete.
 That is, if
 \begin{equation*}
-    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \land \Vdr{from} \in \Vah{from}
+    \GOTO(\Vah{from}, \epsilon) = \Vah{to}
+    \land \Vdr{from} \in \Vah{from}
 \end{equation*}
-then
+then for all \Vdr{to}
 \begin{equation*}
-\forall \Vdr{to} \quad
-    (\Vdr{to} \in \Predict{\Vdr{from}}
+    \Vdr{to} \in \Predict{\Vdr{from}}
     \implies \Vdr{to} \in \Vah{to}
-    )
 \end{equation*}
 \end{observation}
 
