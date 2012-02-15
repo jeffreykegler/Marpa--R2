@@ -2041,7 +2041,7 @@ symbols.
 When we examined correctness,
 we showed that this rewrite
 is without loss of generality
-\ref{s:nulling}.
+in Section \ref{s:nulling}.
 For complexity we must also show that
 the rewrite and its reversal can be done
 in amortized \Oc{} time and space
@@ -2092,9 +2092,10 @@ states, but this is not a partitioning in the strict
 sense -- dotted rules can fall into more than one AHFA
 state.
 This is an optimization,
-in that it allows dotted rules which often occur
-together to be grouped together aggressively.
-But it opens up the theoretical possibility
+in that it allows dotted rules,
+if they often occur together,
+to be grouped together aggressively.
+But it opens up the possibility
 that, in cases where \Earley{} and \Leo{} disposed
 of a dotted rule once and for all,
 \Marpa{} might have to deal with it multiple times.
@@ -2104,7 +2105,7 @@ From an efficiency perspective,
 are by all the evidence, a plus.
 From a worst-case complexity point of view,
 they can be shown to be harmless,
-but the price of doing so is building the
+but the price of doing so is the
 theoretical apparatus of this section.
 
 \begin{theorem}\label{t:marpa-O-leo}
