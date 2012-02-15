@@ -2170,7 +2170,7 @@ but still sufficient to produce the same complexity results.
 In \Marpa, a dotted rule can occur in more than one AHFA
 state.
 Because of that,
-it is possible that two attempts to add a EIM
+it is possible that two attempts to add an EIM
 will have identical causation,
 and therefore will be
 consistent with an unambiguous grammar.
@@ -2268,8 +2268,10 @@ derivations, contrary to the assumption that
 the grammar is ambiguous.)
 As a worst case, assume that a dotted rule
 appears in every AHFA state.
-Then $\var{matching} \le \size{\Vfa}$.
-From the forgoing, we know that 
+Then $\var{matching} \le \size{\Vfa}$,
+where \Vsize{\Vfa} is the number of AHFA states,
+a constant that depends on \Vg.
+From the foregoing, we know that 
 \begin{equation*}
 \var{reduction-tries} \le \var{max-AHFA} \times \size{\Vfa} \times \size{\Vtable{j}}
 \end{equation*}
@@ -2412,17 +2414,22 @@ Earley set \Vloc{i} is returned.
 Worst case, the count of EIM's in Earley set \Vloc{i}
 is \order{\var{i}},
 so that the number of attempts to add EIM reductions
-in each Earley set \Vloc{i} is \order{\var{i}^2}.
+to each Earley set \Vloc{j} is
+on the order of
+\begin{equation*}
+\order{\var{i}} \times \size{\EVtable{\Marpa}{j}}
+= \order{\var{i}} \times \order{\var{j}} = \order{\var{j}^2}
+\end{equation*}
 When \Vg{} can be ambiguous
-the order of magnitude of all attempt to add EIM's
+the order of magnitude of all attempts to add EIM's
 becomes
 \begin{equation*}
- \sum\limits_{\Vloc{i}=0}^{n}{\order{\Vloc{i}^2}+ \var{c} \times \Vloc{i}} = \order{\var{n}^3}
+ \sum\limits_{\Vloc{j}=0}^{n}{\order{\var{j}^2}+ \var{c} \times \Vloc{j}} = \order{\var{n}^3}
 \end{equation*}
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time complexity of \Marpa{} for context-free
-grammars is \order{\var{n}^3}.
+grammars is \order{\var{n}^3}.\qedhere
 \end{sloppypar}
 \end{proof}
 
