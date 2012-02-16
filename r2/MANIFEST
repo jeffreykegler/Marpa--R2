@@ -143,13 +143,7 @@ libmarpa/test/dev/configure.ac
 libmarpa/test/dev/testleak.c
 libmarpa/theory/.gitignore
 libmarpa/theory/Makefile
-libmarpa/theory/README
 libmarpa/theory/ah2002_notes.ltx
-libmarpa/theory/ah_to_leo.ltx
-libmarpa/theory/lyx.d/ah2002_notes.lyx
-libmarpa/theory/lyx.d/ah_to_leo.lyx
-libmarpa/theory/lyx.d/proof.lyx
-libmarpa/theory/proof.ltx
 libmarpa/theory/recce.ltx
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod

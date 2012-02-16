@@ -82,7 +82,7 @@ a Creative Commons Attribution-NoDerivs 3.0 United States License.
 END_OF_CC_A_ND_LANGUAGE
 
 my $cc_a_nd_license = "$copyright_line\n$cc_a_nd_body";
-my $cc_a_nd_thanks = $copyright_line_in_tex . q{.} . "\n$cc_a_nd_body";
+my $cc_a_nd_thanks = $cc_a_nd_body;
 
 sub hash_comment {
     my ( $text, $char ) = @_;
@@ -613,6 +613,10 @@ sub tex_cc_a_nd {
     } ## end if ( ( index ${$text}, $tex_cc_a_nd_license ) != 0 )
     if ( ( index ${$text}, $cc_a_nd_thanks ) < 0 ) {
         my $problem = "No CC-A-ND LaTeX thanks in $filename\n";
+        push @problems, $problem;
+    } ## end if ( ( index ${$text}, $tex_cc_a_nd_license ) != 0 )
+    if ( ( index ${$text}, $copyright_line_in_tex ) < 0 ) {
+        my $problem = "No copyright line in $filename\n";
         push @problems, $problem;
     } ## end if ( ( index ${$text}, $tex_cc_a_nd_license ) != 0 )
     if ( scalar @problems and $verbose >= 2 ) {
