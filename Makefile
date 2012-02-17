@@ -26,12 +26,12 @@ full_test: etc_make
 install:
 	(cd r2/libmarpa/dev && make)
 	(cd r2/libmarpa/dev && make install)
-	-mkdir r2/libmarpa/dist/m4
-	(cd r2/libmarpa/dist && autoreconf -ivf)
+	(cd r2 && perl Build.PL)
+	(cd r2 && ./Build code --from-stage)
+
+fullinstall: install
 	-mkdir r2/libmarpa/test/dev/m4
 	(cd r2/libmarpa/test/dev && autoreconf -ivf)
-	(cd r2 && perl Build.PL)
-	(cd r2 && ./Build code)
 	-mkdir r2/libmarpa/test/work
 	(cd r2/libmarpa/test/work && sh ../dev/configure)
 	(cd r2/libmarpa/test/work && make)
