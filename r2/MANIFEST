@@ -46,6 +46,7 @@ etc/.gitignore
 etc/Makefile
 etc/check_license.pl
 etc/check_links.pl
+etc/copy_from_stage
 html/.gitignore
 html/etc/.gitignore
 html/etc/drafts/Implementation.pod
