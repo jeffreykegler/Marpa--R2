@@ -258,23 +258,8 @@ sub do_libmarpa {
     my $cwd          = $self->cwd();
     my $base_dir     = $self->base_dir();
 
-    # read MANIFEST before chdir
-    my $manifest_hash = ExtUtils::Manifest::maniread();
     my $build_dir = File::Spec->catdir( $base_dir, qw(libmarpa build) );
-    my $stage_dir = File::Spec->catdir( $base_dir, qw(libmarpa stage) );
     -d $build_dir or mkdir $build_dir;
-    if ( defined $self->args('from-stage') ) {
-        chdir $stage_dir;
-        BUILD_FILE: for my $build_file ( keys %{$manifest_hash} ) {
-
-            # names in MANIFEST are always UNIX-style
-            $build_file =~ s{ \A libmarpa / build / }{}xms or next BUILD_FILE;
-            my $localized_file =
-                File::Spec->catfile( split m{/}xms, $build_file );
-            $self->copy_if_modified( $localized_file, $build_dir );
-        } ## end for my $build_file ( keys %{$manifest_hash} )
-    } ## end if ( defined $self->args('from-stage') )
-    chdir $cwd;
     chdir $build_dir;
 
     my $configure_script = 'configure';

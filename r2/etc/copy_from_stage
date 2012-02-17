@@ -1,0 +1,47 @@
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+use 5.010;
+use strict;
+use warnings;
+
+use ExtUtils::Manifest;
+use File::Copy;
+use Cwd;
+use Fatal qw(open close chdir chmod utime);
+use English qw( -no_match_vars );
+
+# Assumes CPAN directory is cwd
+my $manifest_hash = ExtUtils::Manifest::maniread();
+my @build_dir     = qw(libmarpa build);
+my $build_dir     = File::Spec->catdir(@build_dir);
+my $build_m4_dir     = File::Spec->catdir(@build_dir, 'm4');
+my @stage_dir     = qw(libmarpa stage);
+my $stage_dir     = File::Spec->catdir(@stage_dir);
+-d $build_dir or mkdir $build_dir;
+-d $build_m4_dir or mkdir $build_m4_dir;
+
+BUILD_FILE: for my $build_file ( keys %{$manifest_hash} ) {
+
+    # names in MANIFEST are always UNIX-style
+    my $stage_relative = $build_file;
+    next BUILD_FILE if not $stage_relative =~ s{ \A libmarpa / build / }{}xms;
+    my @stage_relative = split m{/}xms, $stage_relative;
+    my $from_file = File::Spec->catfile( @stage_dir, @stage_relative );
+    my $to_file = File::Spec->catfile( @build_dir, @stage_relative );
+    File::Copy::copy( $from_file, $to_file )
+        or die "Cannot copy '$from_file' to '$to_file': $!";
+
+} ## end for my $build_file ( keys %{$manifest_hash} )
