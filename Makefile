@@ -24,8 +24,6 @@ full_test: etc_make
 	(cd r2/etc && make) 2>&1 | tee full_test.out
 
 install:
-	(cd r2/libmarpa/dev && make)
-	(cd r2/libmarpa/dev && make install)
 	(cd r2 && perl Build.PL)
 	(cd r2 && ./Build code --from-stage)
 
