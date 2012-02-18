@@ -11691,26 +11691,27 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 		} else {
 		    *DSTACK_PUSH(*virtual_stack, gint) = real_symbol_count;
 		}
-		goto RETURN_VALUE_IF_APPROPRIATE;
-	    }
-	    if (virtual_rhs) {
-	        real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
-		real_symbol_count += *DSTACK_POP(*virtual_stack, gint);
 	    } else {
-	        real_symbol_count = Length_of_RULE(nook_rule);
+
+		if (virtual_rhs) {
+		    real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
+		    real_symbol_count += *DSTACK_POP(*virtual_stack, gint);
+		} else {
+		    real_symbol_count = Length_of_RULE(nook_rule);
+		}
+		{
+		  RULEID original_rule_id =
+		    nook_rule->t_is_semantic_equivalent ?
+		    nook_rule->t_original : ID_of_RULE (nook_rule);
+		  if (RULE_is_Ask_Me (RULE_by_ID (g, original_rule_id)))
+		    {
+		      semantic_rule_id = original_rule_id;
+		      arg_0 = arg_n - real_symbol_count + 1;
+		    }
+		}
+
 	    }
-{
-  RULEID original_rule_id =
-    nook_rule->t_is_semantic_equivalent ?
-    nook_rule->t_original : ID_of_RULE (nook_rule);
-  if (RULE_is_Ask_Me (RULE_by_ID (g, original_rule_id)))
-    {
-      semantic_rule_id = original_rule_id;
-      arg_0 = arg_n - real_symbol_count + 1;
-    }
-}
 	}
-	RETURN_VALUE_IF_APPROPRIATE: ;
 	if ( semantic_rule_id >= 0 || token_id >= 0 || V_is_Trace(v)) {
 	    @<Write results to |v| and |step|@>@;
 	    return NOOK_of_V(v);
