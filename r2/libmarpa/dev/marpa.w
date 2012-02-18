@@ -11658,13 +11658,14 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 	nook_ix = Size_of_TREE(t);
     }
 
-    while (nook_ix >= 1) {
+    while (1) {
 	OR or;
 	RULE nook_rule;
 	gint semantic_rule_id = -1;
 	gint token_id = -1;
 	gpointer token_value = NULL;
 	nook_ix--;
+	if (nook_ix < 0) break;
 	{
 	    ANDID and_node_id;
 	    AND and_node;
