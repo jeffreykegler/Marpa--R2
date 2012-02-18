@@ -131,22 +131,12 @@ LINE: while ( my $line = <DATA> ) {
 
 sub canonical {
     my $template   = shift;
-    my $where      = shift;
-    my $long_where = shift;
-    $long_where //= $where;
+    # allow for this test file to change name
+    # as long as it remains lower-case, with
+    # _ or - 
     $template =~ s{
-            \b package \s
-            Marpa [:][:] Internal [:][:] Recognizer [:][:]
-            [EP] _ [0-9a-fA-F]+ [;] $
-        }{package Marpa::<PACKAGE>;}xms;
-    $template =~ s{ \s* at \s (\S*)code_diag[.]t \s line \s \d+}{}gxms;
-    $template =~ s/[<]WHERE[>]/$where/xmsg;
-    $template =~ s/[<]LONG_WHERE[>]/$long_where/xmsg;
-    $template =~ s{ \s [<]DATA[>] \s line \s \d+
-            }{ <DATA> line <LINE_NO>}xmsg;
-    $template =~ s{
-            \s at \s [(] eval \s \d+ [)] \s line \s
-            }{ at (eval <LINE_NO>) line }xmsg;
+	\s at \s t[/][a-z0-9_-]*[.]t \s line \s \d+ [^\n]*
+    }{ at <LOCATION>}gxms;
     return $template;
 } ## end sub canonical
 
@@ -220,16 +210,6 @@ sub run_test {
 
 run_test( {} );
 
-my %where = (
-    e_op_action    => 'running action',
-    default_action => 'running action',
-);
-
-my %long_where = (
-    e_op_action    => 'running action for 1: E -> E Op E',
-    default_action => 'running action for 3: optional_trailer1 -> trailer',
-);
-
 for my $test (@tests) {
     FEATURE: for my $feature (@features) {
         next FEATURE if not defined $expected{$test}{$feature};
@@ -242,13 +222,9 @@ for my $test (@tests) {
         } ## end if ( eval { run_test( { $feature => $test_arg{$test}...})})
         else {
             my $eval_error = $EVAL_ERROR;
-            my $where      = $where{$feature};
-            my $long_where = $long_where{$feature};
             Marpa::R2::Test::is(
-                canonical( $eval_error,                $where, $long_where ),
-                canonical( $expected{$test}{$feature}, $where, $long_where ),
-                $test_name
-            );
+                canonical( $eval_error ),
+                $expected{$test}{$feature}, $test_name );
         } ## end else [ if ( eval { run_test( { $feature => $test_arg{$test}...})})]
     } ## end for my $feature (@features)
 } ## end for my $test (@tests)
@@ -324,10 +300,10 @@ Marpa treats warnings as fatal errors
 * THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:
 Computing value for rule: 3: F -> F MultOp F
 * WARNING MESSAGE NUMBER 0:
-Test Warning 1, <DATA> line <LINE_NO>.
+Test Warning 1 at <LOCATION>
 * WARNING MESSAGE NUMBER 1:
-Test Warning 2, <DATA> line <LINE_NO>.
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE
+Test Warning 2 at <LOCATION>
+* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
 __END__
 
 | expected default_action run phase warning
@@ -337,10 +313,10 @@ Marpa treats warnings as fatal errors
 * THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:
 Computing value for rule: 8: trailer -> Text
 * WARNING MESSAGE NUMBER 0:
-Test Warning 1, <DATA> line <LINE_NO>.
+Test Warning 1 at <LOCATION>
 * WARNING MESSAGE NUMBER 1:
-Test Warning 2, <DATA> line <LINE_NO>.
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE
+Test Warning 2 at <LOCATION>
+* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
 __END__
 
 | bad code run phase error
@@ -357,8 +333,8 @@ __END__
 * THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:
 Computing value for rule: 3: F -> F MultOp F
 * THIS WAS THE FATAL ERROR MESSAGE:
-Illegal division by zero, <DATA> line <LINE_NO>.
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE
+Illegal division by zero at <LOCATION>
+* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
 __END__
 
 | expected default_action run phase error
@@ -367,8 +343,8 @@ __END__
 * THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:
 Computing value for rule: 8: trailer -> Text
 * THIS WAS THE FATAL ERROR MESSAGE:
-Illegal division by zero, <DATA> line <LINE_NO>.
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE
+Illegal division by zero at <LOCATION>
+* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
 __END__
 
 | bad code run phase die
@@ -385,8 +361,8 @@ __END__
 * THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:
 Computing value for rule: 3: F -> F MultOp F
 * THIS WAS THE FATAL ERROR MESSAGE:
-test call to die, <DATA> line <LINE_NO>.
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE
+test call to die at <LOCATION>
+* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
 __END__
 
 | expected default_action run phase die
@@ -395,7 +371,7 @@ __END__
 * THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:
 Computing value for rule: 8: trailer -> Text
 * THIS WAS THE FATAL ERROR MESSAGE:
-test call to die, <DATA> line <LINE_NO>.
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE
+test call to die at <LOCATION>
+* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
 __END__
 
