@@ -437,17 +437,17 @@ Let $\Vrule{r} \in \Vrules$
 be a rule,
 and $\Vsize{r}$ the length of its RHS.
 A dotted rule (type $DR$) is a duple, $[\Vrule{r}, \var{pos}]$,
-where $0 < \var{pos} < \size{\Vrule{r}}$.
+where $0 \le \var{pos} \le \size{\Vrule{r}}$.
 The position indicates the extent to which
 the rule has been recognized,
 and is represented with a raised dot,
 so that if
 \begin{equation*}
-[\Vsym{A} \de \Vsym{X} . \Vsym{Y} . \Vsym{Z}]
+[\Vsym{A} \de \Vsym{X} \cat \Vsym{Y} \cat \Vsym{Z}]
 \end{equation*}
 is a rule,
 \begin{equation*}
-[\Vsym{A} \de \var{X} . \var{Y} \mydot \var{Z}]
+[\Vsym{A} \de \var{X} \cat \var{Y} \mydot \var{Z}]
 \end{equation*}
 is the dotted rule with the dot at
 $\var{pos} = 2$,
@@ -455,14 +455,14 @@ between \Vsym{Y} and \Vsym{Z}.
 
 For a \Vdr{x} such that
 \begin{equation*}
-\Vdr{x} = [\Vsym{A} \de \Vstr{alpha} \mydot \Vsym{next} \Vstr{beta}],
+\Vdr{x} = [\Vsym{A} \de \Vstr{alpha} \mydot \Vsym{next} \cat \Vstr{beta}],
 \end{equation*}
-we have
-\begin{align*}
-\Postdot{\Vdr{x}} & = \Vsym{next} \quad \text{and} \\
-\Next{\Vdr{d}} & =
-    [ \Vsym{A} \de \Vstr{alpha} \cat \Vsym{next} \mydot \Vstr{beta} ].
-\end{align*}
+we have both of
+\begin{gather*}
+\Postdot{\Vdr{x}} = \Vsym{next} \\
+\Next{\Vdr{d}}  =
+    [ \Vsym{A} \de \Vstr{alpha} \cat \Vsym{next} \mydot \Vstr{beta} ]
+\end{gather*}
 If \Vdr{x} is such that
 \begin{equation*}
 \Vdr{x} = [\Vsym{A} \de \Vstr{alpha} \mydot],
@@ -478,23 +478,13 @@ $\Penult{\Vdr{x}} = \Vsym{next}$.
 Otherwise,
 $\Penult{\Vdr{x}} = \Lambda$.
 
-In the following observations,
-if
-\begin{equation*}
-    \Vdr{d} = [ \Vsym{L} \de \Vstr{alpha} \mydot \Vsym{t} \cat \Vstr{beta} ]
-\end{equation*}
-then
-\begin{equation*}
-\end{equation*}
-be 
-
 The \dfn{initial dotted rule} is
 \begin{equation*}
 \Vdr{initial} = [\Vsym{accept} \de \mydot \Vsym{start} ].
 \end{equation*}
 A \dfn{predicted dotted rule} is a dotted rule,
 other than the initial dotted rule,
-with a dot position of zero.
+with a dot position of zero,
 \begin{equation*}
 \Vdr{predicted} = [\Vsym{A} \de \mydot \Vstr{alpha} ].
 \end{equation*}
@@ -503,12 +493,12 @@ is the initial dotted rule,
 or a dotted rule
 with a dot position greater than zero.
 A \dfn{completed dotted rule} is a dotted rule with its dot
-position after the end of its RHS.
+position after the end of its RHS,
 \begin{equation*}
 \Vdr{completed} = [\Vsym{A} \de \Vstr{alpha} \mydot ].
 \end{equation*}
 Predicted, confirmed and completed dotted rules
-and also called, respectively,
+are also called, respectively,
 \dfn{predictions}, \dfn{confirmations} and \dfn{completions}.
 
 A traditional Earley item (type $EIMT$) is a duple
@@ -538,7 +528,7 @@ Earley operations}.
 \end{sloppypar}
 
 The sets are built in order from 0 to $\size{\Vw}$.
-Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$
+Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$.
 Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
 The input \Vw{} is accepted if and only if
 \begin{equation*}
