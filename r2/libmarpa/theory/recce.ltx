@@ -17,14 +17,16 @@
 % For a type name, when it occurs in text
 \newcommand{\type}[1]{\ensuremath{#1}}
 
+\newcommand{\defined}{\underset{\text{def}}{\equiv}}
 \newcommand{\dfn}[1]{{\bf #1}}
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.05em}{$\,\bullet\,$}}
 \newcommand{\cat}{\,.\,}
 \newcommand{\size}[1]{\ensuremath{\left | {#1} \right |}}
+\newcommand{\bigsize}[1]{\ensuremath{\bigl| {#1} \bigr|}}
 \newcommand{\order}[1]{\ensuremath{{\mathcal O}(#1)}}
 \newcommand{\Oc}{\order{1}}
-\newcommand{\inference}[2]{\genfrac{}{}{1.5pt}{}{#1}{#2}}
+\newcommand{\inference}[2]{\genfrac{}{}{1.2pt}{}{#1}{#2}}
 
 % I use hyphens in variable names,
 % so I need to ensure that subtraction is
@@ -43,6 +45,8 @@
         {\Rightarrow\!}\:$}}}
 
 \newcommand{\set}[1]{{\left\lbrace #1 \right\rbrace} }
+\newcommand{\bigset}[1]{{\bigl\lbrace #1 \bigr\rbrace} }
+\newcommand{\Bigset}[1]{{\Bigl\lbrace #1 \Bigr\rbrace} }
 \newcommand{\ah}[1]{#1_{AH}}
 \newcommand{\Vah}[1]{\ensuremath{\var{#1}_{AH}}}
 \newcommand{\bool}[1]{\var{#1}_{BOOL}}
@@ -91,8 +95,9 @@
 \newcommand{\Penult}[1]{\mymathop{Penult}(#1)}
 \newcommand{\myL}[1]{\mymathop{L}(#1)}
 \newcommand\Etable[1]{\ensuremath{\mymathop{table}[#1]}}
+\newcommand\bigEtable[1]{\ensuremath{\mymathop{table}\bigl[#1\bigr]}}
 \newcommand\Rtable[1]{\ensuremath{\mymathop{table}[#1]}}
-\newcommand\Rtablesize[1]{\ensuremath{\left |\mymathop{table}[#1]\right |}}
+\newcommand\Rtablesize[1]{\ensuremath{\bigl| \mymathop{table}[#1] \bigr|}}
 \newcommand\Vtable[1]{\Etable{\var{#1}}}
 \newcommand\EEtable[2]{\ensuremath{\mymathop{table}[#1,#2]}}
 \newcommand\EVtable[2]{\EEtable{#1}{\var{#2}}}
@@ -520,35 +525,14 @@ It is sometimes called the ``parent''.)
 For convenience, the type \type{ORIG} will be a synonym
 for \type{LOC}, indicating that the variable designates
 the origin element of an Earley item.
-Earley sets are sets in the strict
-sense -- duplicate Earley items are not added.
-
-\begin{sloppypar}
-An traditional Earley parser builds a table of Earley sets,
-\EVtable{\Earley}{i},
-$0 \le \Vloc{i} \le \size{\Vw}$.
-Each set is the closure of the 
-initialization, scanning, reduction and prediction
-operations.
-These four operations
-are called in this \doc{} the {\bf basic
-Earley operations}.
-\end{sloppypar}
-
-The sets are built in order from 0 to $\size{\Vw}$.
-Recall that \Vrule{accept} was $[ \Vsym{accept} \de \Vsym{start} ]$.
-Define \Vdr{accept} to be $[ \Vsym{accept} \de \Vsym{start} \mydot ]$.
-The input \Vw{} is accepted if and only if
-\begin{equation*}
-[\Vdr{accept}, 0] \in \Etable{\Vsize{\Vw}}
-\end{equation*}
 
 At points,
 we will need to compare the Earley sets
 produced by the different recognizers.
 Earley sets are of type \type{ES}, although
 the type is often omitted to avoid clutter.
-\EVtable{\alg{Recce}}{i} will be Earley set \Vloc{i}
+\EVtable{\alg{Recce}}{i} will be
+the Earley set at \Vloc{i}
 in the table of Earley sets of
 the \alg{Recce} recognizer.
 For example,
@@ -567,27 +551,62 @@ of Earley items in all Earley sets for \alg{Recce}.
 \begin{equation*}
 \Rtablesize{\alg{Recce}} =
      \sum\limits_{\Vloc{i}=0}^{\size{\Vw}}
-	{\size{\EVtable{\alg{Recce}}{i}}}
+	{\bigsize{\EVtable{\alg{Recce}}{i}}}
 \end{equation*}
 For example,
 \Rtablesize{\Marpa} is the total number
 of Earley items in all the Earley sets of
 a \Marpa{} parse.
 
+An Earley parser builds a table of Earley sets,
+\begin{equation*}
+\EVtable{\Earley}{i},
+\quad \text{where} \quad
+0 \le \Vloc{i} \le \size{\Vw}.
+\end{equation*}
+Recall that
+\begin{equation*}
+\Vrule{accept} \defined [ \Vsym{accept} \de \Vsym{start} ].
+\end{equation*}
+Let
+\begin{equation*}
+\Vdr{accept} \defined [ \Vsym{accept} \de \Vsym{start} \mydot ].
+\end{equation*}
+The input \Vw{} is accepted if and only if
+\begin{equation*}
+[\Vdr{accept}, 0] \in \bigEtable{\Vsize{\Vw}}
+\end{equation*}
+
 \section{Operations of the Earley algorithm}
 \label{s:earley-ops}
 
 In this section,
-\Vloc{current} is the current parse location.
-The Earley operations are shown in the form of
-inference rules,
-the conclusions of which
-are zero or more Earley items.
-The conclusions are called the
-\dfn{results} of the
-Earley operation,
-and are added
-to the Earley set at \Vloc{current}.
+Each Earley operation is shown in the form of
+an inference rule,
+the conclusion of which
+is the set of the Earley items
+which is that operation's \dfn{result}.
+The Earley sets correspond to parse locations,
+and for any Earley operation there is a
+current parse location and
+therefore a current Earley set.
+In this section,
+the current Earley set will be \Vloc{current}.
+
+Each location starts with an empty Earley set.
+For the purposes of this description of
+\Earley{}, the order of the 
+Earley operations
+when building an
+Earley set is non-deterministic.
+After each Earley operation is performed,
+its result is unioned with the
+current Earley set.
+When no more Earley items
+can be added, the Earley set is
+complete.
+The Earley sets are built in
+order from 0 to \Vsize{w}.
 
 \subsection{Initialization}
 \label{d:initial}
@@ -595,67 +614,72 @@ to the Earley set at \Vloc{current}.
 \inference{
    \Vloc{current} = 0
 }{
-    [ [ \Vsym{accept} \de \mydot \Vsym{start} ], 0 ]
+    \Bigset{\bigl[ [ \Vsym{accept} \de \mydot \Vsym{start} ], 0 \bigr]}
 }
 \end{equation*}
-{\bf Initialization} has no operands
+Earley {\bf initialization} has no operands
 and only takes
 place in Earley set 0.
 
 \subsection{Scanning}
 \label{d:scan}
-A {\bf scanning} basic Earley operation takes place
-in all Earley sets other than Earley set 0.
 \begin{equation*}
 \inference{
     \begin{matrix}
-	\var{token} = \CEw{\Eloc{\var{current} \subtract 1}} \\[3pt]
+	\Vloc{current} > 0 \\
+	\var{token} = \CEw{\var{current} \subtract 1}
+	\\[3pt]
 	\Veimt{predecessor} \in \Etable{\var{current} \subtract 1} \\
 	\Veimt{predecessor} = [ \Vdr{before}, \Vorig{predecessor} ] \\
 	\Postdot{\Vdr{before}} = \Vsym{token}
     \end{matrix}
 }{
-    [ \Next{\Vdr{before}}, \Vorig{predecessor} ]
+    \bigset{ [ \Next{\Vdr{before}}, \Vorig{predecessor} ] }
 }
 \end{equation*}
 \Veimt{predecessor}
 and \Vsym{token} are the operands of an Earley scan.
 \Veimt{predecessor} is called the predecessor of the scanning operation.
-The token, \Vsym{token}, is also called the transition symbol
+The token, \Vsym{token}, is the transition symbol
 of the scanning operation.
 
 \subsection{Reduction}
 \label{d:reduction}
-An {\bf Earley reduction} is attempted
-in every Earley set
-for every pair $[\Veimt{predecessor}, \Vsym{lhs}]$,
-where there exists a \Veimt{component} such that
-we have all of
 \begin{equation*}
 \inference{
     \begin{matrix}
-    \Veimt{component} = [
+    \Veimt{component} = \bigl[
      [ \Vsym{lhs} \de \Vstr{rhs} \mydot ] 
-    , \Vorig{component} ] \\
+    , \Vorig{component} \bigr] \\
     \Veimt{component} \in \Vtable{current} \\[3pt]
     \Veimt{predecessor} = [ \Vdr{before}, \Vorig{predecessor} ] \\
     \Veimt{predecessor} \in \Etable{\Vorig{component}} \\
     \Postdot{\Vdr{before}} = \Vsym{lhs} \\
     \end{matrix}
 }{
-    [ \Next{\Vdr{before}}, \Vorig{predecessor} ]
+    \bigset{ [ \Next{\Vdr{before}}, \Vorig{predecessor} ] }
 }
 \end{equation*}
+
+\begin{sloppypar}
 \Veimt{component} is called
 the component of the reduction operation.\footnote{
 The term ``component'' comes from Irons \cite{Irons}.
 }
-\Veimt{predecessor} and \Vsym{lhs} are the operands
-of an Earley reduction.
-\Veimt{predecessor} is also called the predecessor
+\Veimt{predecessor} is the predecessor
 of the reduction operation.
-\Vsym{lhs} is also called the transition symbol
+\Vsym{lhs} is the transition symbol
 of the reduction operation.
+\end{sloppypar}
+
+\Veimt{predecessor} and
+\Veimt{component} are the operands of the reduction
+operation.
+In some contexts, it is convenient to treat the transition
+symbol
+as an operand,
+so that the operands
+are \Veimt{predecessor} and \Vsym{lhs}.
 
 \subsection{Prediction}
 \label{d:prediction}
