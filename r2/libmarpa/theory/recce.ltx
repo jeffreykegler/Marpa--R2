@@ -446,7 +446,7 @@ A dotted rule (type \type{DR}) is a duple, $[\Vrule{r}, \var{pos}]$,
 where $0 \le \var{pos} \le \size{\Vrule{r}}$.
 The position indicates the extent to which
 the rule has been recognized,
-and is represented with a raised dot,
+and is represented with a large raised dot,
 so that if
 \begin{equation*}
 [\Vsym{A} \de \Vsym{X} \cat \Vsym{Y} \cat \Vsym{Z}]
@@ -465,9 +465,9 @@ For a \Vdr{x} such that
 \end{equation*}
 we have both of
 \begin{gather*}
-\Postdot{\Vdr{x}} = \Vsym{next} \\
+\Postdot{\Vdr{x}} = \Vsym{next} \quad \text{and} \\
 \Next{\Vdr{d}}  =
-    [ \Vsym{A} \de \Vstr{alpha} \cat \Vsym{next} \mydot \Vstr{beta} ]
+    [ \Vsym{A} \de \Vstr{alpha} \cat \Vsym{next} \mydot \Vstr{beta} ].
 \end{gather*}
 If \Vdr{x} is such that
 \begin{equation*}
@@ -491,6 +491,7 @@ The \dfn{initial dotted rule} is
 A \dfn{predicted dotted rule} is a dotted rule,
 other than the initial dotted rule,
 with a dot position of zero,
+for example,
 \begin{equation*}
 \Vdr{predicted} = [\Vsym{A} \de \mydot \Vstr{alpha} ].
 \end{equation*}
@@ -500,6 +501,7 @@ or a dotted rule
 with a dot position greater than zero.
 A \dfn{completed dotted rule} is a dotted rule with its dot
 position after the end of its RHS,
+for example,
 \begin{equation*}
 \Vdr{completed} = [\Vsym{A} \de \Vstr{alpha} \mydot ].
 \end{equation*}
