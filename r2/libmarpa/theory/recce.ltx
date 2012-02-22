@@ -14,6 +14,9 @@
 \newcommand{\todo}[1]{\par{\large\bf Todo: #1}\par}
 \newcommand{\mymathop}[1]{\mathop{\texttt{#1}}}
 
+% For a type name, when it occurs in text
+\newcommand{\type}[1]{\ensuremath{#1}}
+
 \newcommand{\dfn}[1]{{\bf #1}}
 \newcommand{\sep}{\,\mid\,}
 \newcommand{\mydot}{\raisebox{.05em}{$\,\bullet\,$}}
@@ -192,7 +195,7 @@ being scanned.
 
 Marpa allows the lexer to check its list
 of acceptable tokens before a token is scanned.
-But because rejection of tokens is easily and 
+Because rejection of tokens is easily and 
 efficiently recoverable,
 the lexer is also free to take an event-driven
 approach.
@@ -234,8 +237,8 @@ grammar rewrites.
 Sections \ref{s:earley} and \ref{s:earley-ops}
 introduce Earley's algorithm.
 Section \ref{s:leo} describes Leo's modification
-to Earley's algorithm;
-and Section \ref{s:AHFA} describes the modifications
+to Earley's algorithm.
+Section \ref{s:AHFA} describes the modifications
 suggested by Aycock and Horspool.
 Section \ref{s:pseudocode} presents the pseudocode
 for Marpa's recognizer.
@@ -274,7 +277,6 @@ Subscripts may be omitted when the type
 is obvious from the context.
 The notation for
 constants is the same as that for variables.
-
 Multi-character variable names will be common,
 and operations will never be implicit.
 \begin{center}
@@ -287,31 +289,31 @@ Subtraction & $\var{symbol-count} \subtract \var{terminal-count}$ \\
 
 Where \Vsymset{abced} is a set of symbols,
 let $\var{abced}^\ast$ be the set of all strings
-(type $STR$) formed
+(type \type{STR}) formed
 from those symbols.
-(Note that sentential forms are of type $STR$.)
+Note that sentential forms are of type \type{STR}.
 Let $\var{abced}^+$ be the subset of $\var{abced}^\ast$ that
 contains all of its elements that are not of zero length.
 
 For the purposes of this \doc{} consider,
 without loss of generality,
 a grammar \Vg,
-and a set of symbols, \Vsymset{alphabet}.
+and a set of symbols, \Vsymset{vocab}.
 Call the language of \var{g}, $\myL{\Vg}$,
-where $\myL{\Vg} \in \var{alphabet}^\ast$.
-Divide \Vsymset{alphabet} into two disjoint sets,
+where $\myL{\Vg} \in \var{vocab}^\ast$.
+Divide \Vsymset{vocab} into two disjoint sets,
 \Vsymset{lh} and \Vsymset{term}.
 
 For rewriting this \doc{} uses,
 without loss of generality,
 the set of duples, \Vruleset{rules}.
-The type $RULE$ will be
+The type \type{RULE} will be
 a duple
 of the form $[\Vsym{lhs} \de \Vstr{rhs}]$,
 where
 \begin{gather*}
-\Vsym{lhs} \in \var{term} \\
-\Vstr{rhs} \in \var{alphabet}^+
+\Vsym{lhs} \in \var{term} \quad \text{and} \\
+\Vstr{rhs} \in \var{vocab}^+.
 \end{gather*}
 \Vsym{lhs} is referred to as the left hand side (LHS)
 of \Vrule{r}.
@@ -322,16 +324,16 @@ which departs from tradition by disallowing an empty RHS.
 
 The grammar \Vg{} is the 4-tuple
 \begin{equation*}
-    (\Vsymset{alphabet}, \Vsymset{term}, \var{rules}, \Vsym{accept})
+    (\Vsymset{vocab}, \Vsymset{term}, \var{rules}, \Vsym{accept})
 \end{equation*}
 where \Vsymset{term} is the
 set of terminal symbols,
 \begin{equation*}
-    \Vsymset{term} \subset \Vsymset{alphabet},
+    \Vsymset{term} \subset \Vsymset{vocab},
 \end{equation*}
 and \Vsym{accept} a dedicated acceptance symbol.
 The set of potential LHS symbols, \Vsymset{lh} is
-$\var{alphabet} \setminus \var{term}$.
+$\var{vocab} \setminus \var{term}$.
 Without loss of generality,
 it is assumed that
 \begin{equation*}
@@ -343,16 +345,16 @@ and that there is a dedicated acceptance rule,
 \end{equation*}
 such that for every rule,
 \begin{equation*}
-\Vrule{x} = [ \Vsym{lhs} \de \Vsymset{rhs} ]
+\Vrule{x} = [ \Vsym{lhs} \de \Vsymset{rhs} ],
 \end{equation*}
 we have both of
 \begin{gather*}
-\Vsym{accept} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{accept} \\
-\Vsym{accept} \notin \Vsymset{rhs}
+\Vsym{accept} = \Vsym{lhs} \implies \Vrule{x} = \Vrule{accept} \quad \text{and} \\
+\Vsym{accept} \notin \Vsymset{rhs}.
 \end{gather*}
 
-Let the input to parse be \Vw, $\Vw \in \var{alphabet}^\ast$.
-Locations in the input will be of type LOC.
+Let the input to parse be \Vw, $\Vw \in \var{vocab}^\ast$.
+Locations in the input will be of type \type{LOC}.
 Let \Vsize{w} be the length of the input, counted in symbols.
 Let \CVw{i},
 $\CVw{i} \in \Vsymset{term}$ be character \var{i}
@@ -437,7 +439,7 @@ the semantics are applied.
 Let $\Vrule{r} \in \Vrules$
 be a rule,
 and $\Vsize{r}$ the length of its RHS.
-A dotted rule (type $DR$) is a duple, $[\Vrule{r}, \var{pos}]$,
+A dotted rule (type \type{DR}) is a duple, $[\Vrule{r}, \var{pos}]$,
 where $0 \le \var{pos} \le \size{\Vrule{r}}$.
 The position indicates the extent to which
 the rule has been recognized,
@@ -502,7 +504,7 @@ Predicted, confirmed and completed dotted rules
 are also called, respectively,
 \dfn{predictions}, \dfn{confirmations} and \dfn{completions}.
 
-A traditional Earley item (type $EIMT$) is a duple
+A traditional Earley item (type \type{EIMT}) is a duple
 \[
     [\Vdr{dotted-rule}, \Vorig{x}]
 \]
@@ -510,8 +512,8 @@ of dotted rule and origin.
 (The origin is the location where recognition of the rule
 started.
 It is sometimes called the ``parent''.)
-For convenience, the type $ORIG$ will be a synonym
-for $LOC$, indicating that the variable designates
+For convenience, the type \type{ORIG} will be a synonym
+for \type{LOC}, indicating that the variable designates
 the origin element of an Earley item.
 Earley sets are sets in the strict
 sense -- duplicate Earley items are not added.
@@ -539,7 +541,7 @@ The input \Vw{} is accepted if and only if
 At points,
 we will need to compare the Earley sets
 produced by the different recognizers.
-Earley sets are of type $ES$, although
+Earley sets are of type \type{ES}, although
 the type is often omitted to avoid clutter.
 \EVtable{\alg{Recce}}{i} will be Earley set \Vloc{i}
 in the table of Earley sets of
@@ -710,10 +712,10 @@ Earley set, using what Leo called
 In this \doc{} Leo's ``transitive items''
 will be called Leo items.
 Leo items in the form that Marpa uses
-will be type $LIM$.
+will be type \type{LIM}.
 ``Traditional'' Leo items,
 that is, those in the form used in Leo's paper\cite{Leo1991},
-will be type $LIMT$.
+will be type \type{LIMT}.
 
 In each Earley set, there is at most one Leo item per symbol.
 A traditional Leo item (LIMT) is the triple
@@ -855,7 +857,7 @@ An Aycock-Horspool Earley item is a duple
 \end{equation*}
 where $\Vah{y}$ is an AHFA state.
 Marpa's Earley items are Aycock-Horspool Earley items.
-A Marpa Earley item has type $EIM$,
+A Marpa Earley item has type \type{EIM},
 and a Marpa Earley item is often referred to as an EIM.
 
 \begin{sloppypar}
@@ -871,15 +873,15 @@ of the form
 where \Vsym{transition} and \Vorig{top}
 are as in the traditional Leo items,
 and \Vah{top} is an AHFA state.
-A Marpa Leo item has type $LIM$.
+A Marpa Leo item has type \type{LIM}.
 \end{sloppypar}
 
-\cite{AH2002} defines AHFA states (type $AH$) as sets
+\cite{AH2002} defines AHFA states (type \type{AH}) as sets
 of dotted rules.
 They also define a partial transition function for
 pairs of AHFA state and symbol,
 \begin{equation*}
-\GOTO: \Vfa, (\epsilon \cup \var{alphabet}) \mapsto \Vfa.
+\GOTO: \Vfa, (\epsilon \cup \var{vocab}) \mapsto \Vfa.
 \end{equation*}
 $\GOTO(\Vah{from}, \epsilon)$ is a
 \dfn{null transition}.
@@ -1222,7 +1224,7 @@ the Leo items must be created.
 For each Earley set,
 the number of Leo items is at most
 the number of symbols in
-\Vsymset{alphabet}.
+\Vsymset{vocab}.
 Since the maximum number of Leo items is a constant
 depending on \Vg{},
 their space and time may be charged to the Earley set.
@@ -2437,7 +2439,7 @@ their discussion was deferred.
 
 Marpa's grammars are in effect 3-tuples:
 \begin{equation*}
-(\Vsymset{alphabet}, \Vrules, \Vsym{start})
+(\Vsymset{vocab}, \Vrules, \Vsym{start})
 \end{equation*}
 \Vsymset{term} is omitted, because
 Marpa allows a symbol to be both a terminal
