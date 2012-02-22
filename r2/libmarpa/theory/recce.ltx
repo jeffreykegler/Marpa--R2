@@ -356,8 +356,8 @@ we have both of
 Let the input to parse be \Vw, $\Vw \in \var{vocab}^\ast$.
 Locations in the input will be of type \type{LOC}.
 Let \Vsize{w} be the length of the input, counted in symbols.
-Let \CVw{i},
-$\CVw{i} \in \Vsymset{term}$ be character \var{i}
+Let \CVw{i}, where
+$\CVw{i} \in \Vsymset{term}$, be character \var{i}
 of the input,
 $0 \le \Vloc{i} < \Vsize{w}$.
 
@@ -369,6 +369,8 @@ as described in~\cite{Leo1991}.
 \AH{} will refer to the Aycock and Horspool's revision
 of \Earley{}
 as described in~\cite{AH2002}.
+\Marpa{} will refer to the parser described in
+this \doc{}.
 Where $\alg{Recce}$ is a recognizer,
 $\myL{\alg{Recce},\Vg}$ will be the language accepted by $\alg{Recce}$
 when parsing \Vg.
@@ -384,13 +386,13 @@ and all symbols must be either nulling or non-nullable --
 no symbol can be a proper nullable.
 These restrictions follow Aycock and Horspool\cite{AH2002}.
 The elimination of empty rules and proper nullables
-is done by rewriting the grammar and,
+is done by rewriting the grammar which,
 as shown in \cite{AH2002},
 is without loss of generality.
 \cite{AH2002} also discusses the evaluation issues
 associated with its rewrites.
 
-Aycock and Horspool allowed
+\cite{AH2002} allowed
 a single empty start rule
 to deal with null parses.
 Marpa eliminates the need for empty rules in its grammars
@@ -406,11 +408,12 @@ simply and efficiently at evaluation time.
 As one example,
 when a rewrite involves the introduction of new rule,
 semantics for the new rule can be defined to pass its operands
-up to a parent rule as a list,
-and the semantics of the pre-existing parent rule can
-be ``wrapped'' so that they reassemble these lists
+up to a parent rule as a list.
+Where needed, the original semantics
+of a pre-existing parent rule can
+be ``wrapped'' so that to reassemble these lists
 into operands that are properly formed
-for the original semantics.
+for that original semantics.
 
 As implemented,
 the Marpa parser allows users to associate
@@ -431,7 +434,7 @@ From the user's point of view,
 the ``free-form'' of his grammar is the
 one being used for the parse,
 and the one to which 
-the semantics are applied.
+his semantics are applied.
 
 \section{Earley's algorithm}
 \label{s:earley}
