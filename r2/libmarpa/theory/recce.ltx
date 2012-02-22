@@ -626,14 +626,14 @@ place in Earley set 0.
 \label{d:scan}
 \begin{equation*}
 \inference{
-    \begin{matrix}
+    \begin{array}{c}
 	\Vloc{current} > 0 \\
 	\var{token} = \CEw{\var{current} \subtract 1}
 	\\[3pt]
 	\Veimt{predecessor} \in \Etable{\var{current} \subtract 1} \\
 	\Veimt{predecessor} = [ \Vdr{before}, \Vorig{predecessor} ] \\
 	\Postdot{\Vdr{before}} = \Vsym{token}
-    \end{matrix}
+    \end{array}
 }{
     \bigset{ [ \Next{\Vdr{before}}, \Vorig{predecessor} ] }
 }
@@ -648,7 +648,7 @@ of the scanning operation.
 \label{d:reduction}
 \begin{equation*}
 \inference{
-    \begin{matrix}
+    \begin{array}{c}
     \Veimt{component} = \bigl[
      [ \Vsym{lhs} \de \Vstr{rhs} \mydot ] 
     , \Vorig{component} \bigr] \\
@@ -656,7 +656,7 @@ of the scanning operation.
     \Veimt{predecessor} = [ \Vdr{before}, \Vorig{predecessor} ] \\
     \Veimt{predecessor} \in \Etable{\Vorig{component}} \\
     \Postdot{\Vdr{before}} = \Vsym{lhs} \\
-    \end{matrix}
+    \end{array}
 }{
     \bigset{ [ \Next{\Vdr{before}}, \Vorig{predecessor} ] }
 }
@@ -686,10 +686,10 @@ are \Veimt{predecessor} and \Vsym{lhs}.
 \label{d:prediction}
 \begin{equation*}
 \inference{
-    \begin{matrix}
+    \begin{array}{c}
 	\Veimt{predecessor} = [ \Vdr{predecessor}, \Vorig{predecessor} ] \\
 	\Veimt{predecessor} \in \Vtable{current}
-    \end{matrix}
+    \end{array}
 }{
     \bigset{
 	    [ \Vdr{d}, \var{current} ] :
@@ -699,12 +699,16 @@ are \Veimt{predecessor} and \Vsym{lhs}.
 \end{equation*}
 where $\mymathop{Predict}(\Vdr{d})$
 is the set of dotted rules
-\begin{align*}
-& [ \Vsym{L} \de \mydot \Vstr{rh} ] \quad \text{such that} \\
-& \qquad \qquad [ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \quad \text{and} \\
-& \qquad \qquad \Vsym{P} = \Postdot{\Vdr{d}} \quad \text{and} \\
-& \qquad \qquad \Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha}.
-\end{align*}
+\begin{equation*}
+\left\{
+\Bigl[ \Vsym{L} \de \mydot \Vstr{rh} \Bigr] \middle|
+    \begin{array}{l}
+    [ \Vsym{L} \de \Vstr{rh} ] \in \Vrules \, \land \\
+     \Vsym{P} = \Postdot{\Vdr{d}} \, \land \\
+     \Vsym{P} \destar \Vsym{L} \cat \Vstr{alpha}
+    \end{array}
+\right\}
+\end{equation*}
 A prediction operation can add several Earley items
 to Earley set \Vloc{current}.
 \Veimt{predecessor} is called the predecessor of the prediction operation,
@@ -806,14 +810,14 @@ context and variable type.
 
 \begin{equation*}
 \inference{
-    \begin{matrix}
+    \begin{array}{c}
     \Veimt{component} = \bigl[
      [ \Vsym{lhs} \de \Vstr{rhs} \mydot ] 
     , \Vorig{component} \bigr] \\
     \Veimt{component} \in \Vtable{current} \\[3pt]
 	\Vlimt{predecessor} \in \EVtable{\Earley}{\Vorig{component}} \\
 	\Vlimt{predecessor} = [ \Vdr{top}, \Vsym{lhs}, \Vorig{top} ]
-    \end{matrix}
+    \end{array}
 }{
     \bigset{ [ \Vdr{top}, \Vorig{top} ] }
 }
