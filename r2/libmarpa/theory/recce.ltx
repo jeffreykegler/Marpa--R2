@@ -544,11 +544,11 @@ $\size{\Ees{\var{working}}}$ is the number of Earley items
 in \Ees{\var{working}}.
 
 \Rtablesize{\alg{Recce}} is the total number
-of Earley items in all Earley sets for \alg{Recce}.
+of Earley items in all Earley sets for \alg{Recce},
 \begin{equation*}
 \Rtablesize{\alg{Recce}} =
      \sum\limits_{\Vloc{i}=0}^{\size{\Vw}}
-	{\bigsize{\EVtable{\alg{Recce}}{i}}}
+	{\bigsize{\EVtable{\alg{Recce}}{i}}}.
 \end{equation*}
 For example,
 \Rtablesize{\Marpa} is the total number
@@ -578,7 +578,7 @@ The input \Vw{} is accepted if and only if
 \label{s:earley-ops}
 
 In this section,
-Each Earley operation is shown in the form of
+each Earley operations is shown in the form of
 an inference rule,
 the conclusion of which
 is the set of the Earley items
@@ -713,17 +713,17 @@ and is its only operand.
 \subsection{Causation}
 An operand of an operation is also called a \dfn{cause}
 of that operation,
-and is the set of its operands for an Earley operation
+and the set of operands for an Earley operation
 is its \dfn{causation}.
 
 \section{The Leo algorithm}
 \label{s:leo}
 
 In \cite{Leo1991}, Joop Leo presented a method for
-dealing with right recursion in \order{n} time.
+dealing with right recursion in \On{} time.
 Leo shows that,
 with his modification, Earley's algorithm
-is \order{n} for all LR-regular grammars.
+is \On{} for all LR-regular grammars.
 (LR-regular is LR where lookahead
 is infinite length, but restricted to
 distinguishing between regular expressions.)
@@ -763,44 +763,44 @@ Leo items only memoize unambiguous (or
 deterministic) sequences,
 so that the top of the sequence can represent
 the entire sequence --
-the only role the other EIMT's in the sequence would
-play in a parse is to derive the top EIMT.
+the only role the other EIMT's in the sequence
+play in the parse is to derive the top EIMT.
 We will call these memoized sequences, Leo sequences.
 
 Each Leo sequence, if fully expanded,
-would contain \order{n} items,
+would contain \On{} items,
 where \var{n} is the length of the sequence.
 In \Earley, each such sequence would be expanded in every
 Earley set which is the origin of an EIMT included in the
 sequence, and the total number of EIMT's would be
-\order{n^2}.
+\order{\var{n}^2}.
 
 With Leo memoization, a single EIMT stands in for the sequence.
 There are \Oc{} Leo items per Earley set,
 so the cost of the sequence is \Oc{} per Earley set,
-or \order{n} for the entire sequence.
+or \On{} for the entire sequence.
 If, at evaluation time,
 it is desirable to expand the Leo sequence,
 only those items actually involved in the parse
 need to be expanded.
 All the EIMT's of a potential right-recursion 
 will be in one Earley set and the number of EIMT's
-will be \order{n},
+will be \On{},
 so that even including expansion of the Leo sequence
 for evaluation, the time and space complexity of
-the sequence remains \order{n}.
+the sequence remains \On{}.
 
 Implementing Leo memoization requires
 adding Leo reduction as a new basic operation,
 adding a new premise to the Earley reduction
 operation,
 and extending the Earley sets to include LIMT's.
-In what follows,
+In what this \doc(),
 where an Earley set is one of the domains of a relation,
 the other domains will be restricted to either
 Leo items or Earley items,
 and which is intended will be clear from
-context and variable type.
+the context.
 
 \subsection{Leo Reduction}
 
@@ -840,7 +840,7 @@ The additional premise
 prevents Earley reduction from being applied
 where there is an LIMT with \Vsym{lhs} as its transition symbol.
 This reflects the fact that, in \Leo{},
-Leo reduction replaces Earley reduction if and only if
+Leo reduction replaces Earley reduction if and only when
 it is applicable.
 
 \section{The Aycock-Horspool finite automaton}
@@ -2341,7 +2341,7 @@ as \var{n}.
 
 \begin{theorem}
 For every LR-regular grammar,
-\Marpa{} runs in $\order{n}$ time and space.
+\Marpa{} runs in $\On{}$ time and space.
 \end{theorem}
 
 \begin{proof}
