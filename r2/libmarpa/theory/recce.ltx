@@ -884,13 +884,13 @@ at grouping dotted rules which often occur together
 into a single DFA state.
 \end{itemize}
 
-AHFA states are sets of dotted rules.
+AHFA states are, in effect,
+a shorthand
+for groups of dotted rules that occur together frequently.
 Aycock and Horspool realized that by changing Earley items
 to track AHFA states, instead of individual dotted rules,
 the size of Earley sets could be reduced,
 and Earley's algorithm made faster in practice.
-AHFA states are a shorthand that Earley items
-can use for groups of dotted rules that occur together frequently.
 
 As a reminder,
 the original Earley items (EIMT's)
@@ -901,15 +901,18 @@ An Aycock-Horspool Earley item is a duple
 [\Vah{y}, \Vorig{y}],
 \end{equation*}
 where $\Vah{y}$ is an AHFA state.
-Marpa's Earley items are Aycock-Horspool Earley items.
+
+\Marpa{} uses
+Earley items of the form
+created by Aycock and Horspool.
 A Marpa Earley item has type \type{EIM},
 and a Marpa Earley item is often referred to as an EIM.
 
 \begin{sloppypar}
 Aycock and Horspool did not consider
 Leo's modifications,
-but Marpa incorporates them,
-and changes its Leo items to use AHFA states.
+but \Marpa{} incorporates them,
+and \Marpa{} also changes its Leo items to use AHFA states.
 Marpa's Leo items (LIM's) are triples
 of the form
 \begin{equation*}
@@ -921,9 +924,8 @@ and \Vah{top} is an AHFA state.
 A Marpa Leo item has type \type{LIM}.
 \end{sloppypar}
 
-\cite{AH2002} defines AHFA states (type \type{AH}) as sets
-of dotted rules.
-They also define a partial transition function for
+\cite{AH2002} also defines
+a partial transition function for
 pairs of AHFA state and symbol,
 \begin{equation*}
 \GOTO: \Vfa, (\epsilon \cup \var{vocab}) \mapsto \Vfa.
@@ -947,7 +949,6 @@ This does not happen frequently,
 but it happens often enough,
 even in practical grammars,
 that the Marpa implementation has to provide for it.
-
 What does not seem to occur in practice
 is that
 the size of a \Marpa{} Earley set grows larger
@@ -969,12 +970,14 @@ then its AHFA state contains only one dotted rule.
 \end{sloppypar}
 
 \begin{proof}
-Since the Earley item is the result of a Leo reduction,
-we know that its AHFA state contains a completed rule.
+Since the Earley item is the result of a Leo reduction
+we know, from the definition of a Leo reduction,
+that its AHFA state contains a completed rule.
 Call that completed rule, \Vdr{complete}.
 Let \Vrule{c} be the rule of \Vdr{complete},
 and \var{cp} its dot position.
-$\var{cp} > 0$ because completions are never
+$\var{cp} > 0$ because in \Marpa{}
+grammars completions are never
 predictions.
 
 Suppose, for a reduction to absurdity,
@@ -1017,19 +1020,17 @@ Since they are in the same AHFA state,
 by the AHFA construction,
 that transition must have been
 over the same transition symbol.
-\Leo{} requires,
-for each predecessor Earley set and transition symbol,
-that a Leo transition be from a single rule.
-The assumption for the reductio is that \Vdr{complete}
-and \Vdr{other} are in the same Leo reduction state,
-which requires their last transition to have been
-over the same symbol and from the same Earley set.
-To obey the Leo uniqueness requirement,
-we must have $\Vrule{c} = \Vrule{o}$.
+\Leo{} reduction is required to be unique,
+and a Leo item is not created
+for a transition symbol,
+unless that symbol is the transition symbol of
+exactly one dotted rule in that Earley set.
 The assumption for the outer reductio
 is that both \Vdr{complete} and \Vdr{other}
 share an AHFA state in a Leo reduction EIM,
 so they must obey the Leo uniqueness requirement.
+To obey the Leo uniqueness requirement,
+we must have $\Vrule{c} = \Vrule{o}$.
 Therefore
 $\Vrule{c} = \Vrule{o}$, which contradicts
 the assumption for the second inner reductio.
@@ -1058,17 +1059,19 @@ to attempts to add Earley items.
 We will show that
 each addition of an Earley item to the
 Earley table takes amortized \Oc{} time and space.
-We will also show
-that each attempt to add a duplicate Earley item
-takes amortized \Oc{} time.
+We will see show
+that to Earley item actually added,
+or to each attempt to add a duplicate Earley item,
+we can charge amortized \Oc{} time.
 In Section \ref{s:complexity},
 we will characterize
 the order of magnitude of the actual Earley items
 and of the attempts to add Earley items,
 and their relationship to each other.
 
-At points, it will not be convenient to speak of
-charging a resource immediately
+At points, it will not be immediately
+convenient to speak of
+charging a resource
 to an Earley item
 or to an attempt to add a duplicate
 Earley item.
@@ -1083,7 +1086,8 @@ We can charge time and space to the parse itself,
 as long as the time and space charged is \Oc.
 Afterwards, this resource can be re-charged to
 the initial Earley item, which is present in all parses.
-Soft and hard failures always uses worst-case \Oc{} resource,
+Soft and hard failures always use
+worst-case \Oc{} resource,
 and are always charged to the parse.
 
 We will charge resources to the Earley set,
@@ -1094,7 +1098,7 @@ re-charged to an arbitrary member of the Earley set,
 for example, the first.
 If an Earley set is empty,
 the parse must fail,
-and the time is charged to the parse.
+and the time can be charged to the parse.
 
 When discussing each procedure, we will state whether
 the time and space we are charging is inclusive, exclusive
@@ -1172,6 +1176,7 @@ and can be charged to the parse.
 \caption{Marpa Scan pass}
 \begin{algorithmic}[1]
 \Procedure{Scan pass}{$\Vloc{i},\Vsym{a}$}
+\State Note: Each pass through this loop is an EIM attempt
 \For{each $\Veim{predecessor} \in \var{transitions}((\var{i} \subtract 1),\var{a})$}
 \State $[\Vah{from}, \Vloc{origin}] \gets \Veim{predecessor}$
 \State $\Vah{to} \gets \GOTO(\Vah{from}, \Vsym{a})$
@@ -1201,7 +1206,7 @@ the lookup is always in the previous Earley set,
 which can easily be tracked in \Oc{} space
 and retrieved in \Oc{} time.
 Inclusive time and space can be charged to the
-Earley item attempts.
+\Veim{predecessor}.
 \end{sloppypar}
 
 \begin{algorithm}[h]
@@ -1278,8 +1283,9 @@ their space and time may be charged to the Earley set.
 \caption{Reduce one LHS symbol}
 \begin{algorithmic}[1]
 \Procedure{Reduce one LHS}{\Vloc{i}, \Vloc{origin}, \Vsym{lhs}}
-\State \Comment \var{pim} is a ``postdot item'', either a LIM or an EIM
+\State Note: Each pass through this loop is an EIM attempt
 \For{each $\var{pim} \in \var{transitions}(\Vloc{origin},\Vsym{lhs})$}
+\State \Comment \var{pim} is a ``postdot item'', either a LIM or an EIM
 \If{\var{pim} is a LIM, \Vlim{pim}}
 \State Perform a \Call{Leo reduction operation}{}
 \State \hspace\algorithmicindent for operands \Vloc{i}, \Vlim{pim}
