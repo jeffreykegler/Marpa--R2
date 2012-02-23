@@ -475,14 +475,14 @@ then
 \Next{\Vdr{x}} \defined
 \begin{cases}
 [\var{A} \de \var{pre} \cat \var{next} \mydot \var{post}],  \\
-\qquad \text{if $\var{x} = [\var{A} \de \var{pre} \mydot \var{next} \cat \var{post}]$} \\
-\Lambda, \quad \text{if $\var{x} = [\var{A} \de \var{pre} \cat \var{next} \cat \var{post} \mydot]$}
+\qquad \text{if $\Postdot{\Vdr{x}} = \var{next}$} \\
+\text{$\Lambda$, otherwise}
 \end{cases} \\
 %
 \Penult{\Vdr{x}} \defined
 \begin{cases}
-\Vsym{next}, \quad \text{if
-$\Postdot{\Vdr{x}} = \var{next}$} \\
+\Vsym{next}, \quad
+\text{if $\Postdot{\Vdr{x}} = \var{next}$} \\
 \qquad \text{and $\Vstr{post} \destar \epsilon$} \\
 \text{$\Lambda$, otherwise}
 \end{cases}
@@ -580,7 +580,7 @@ The input \Vw{} is accepted if and only if
 \label{s:earley-ops}
 
 In this section,
-each Earley operations is shown in the form of
+each Earley operation is shown in the form of
 an inference rule,
 the conclusion of which
 is the set of the Earley items
