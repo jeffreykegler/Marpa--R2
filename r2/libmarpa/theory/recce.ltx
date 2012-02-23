@@ -26,6 +26,7 @@
 \newcommand{\bigsize}[1]{\ensuremath{\bigl| {#1} \bigr|}}
 \newcommand{\order}[1]{\ensuremath{{\mathcal O}(#1)}}
 \newcommand{\Oc}{\order{1}}
+\newcommand{\On}{\order{\var{n}}}
 \newcommand{\inference}[2]{\genfrac{}{}{1.2pt}{}{#1}{#2}}
 
 % I use hyphens in variable names,
@@ -83,7 +84,7 @@
 \newcommand{\Marpa}{\ensuremath{\alg{Marpa}}}
 
 \newcommand{\Vfa}{\var{fa}}
-\newcommand{\Vg}{\var{g}}
+\newcommand{\Cg}{\var{g}}
 \newcommand{\Vw}{\var{w}}
 \newcommand{\CVw}[1]{\ensuremath{\sym{\Vw[\var{#1}]}}}
 \newcommand{\CEw}[1]{\ensuremath{\sym{\Vw[#1]}}}
@@ -142,11 +143,12 @@ Marpa is
 a practical and fully implemented
 algorithm for the recognition,
 parsing and evaluation of context-free grammars.
-Marpa's recognizer merges the improvements
-to Earley's 1970 algorithm found in
-Leo's 1991
-and in Aycock and Horspool's 2002 papers.
-New with Marpa is that
+The Marpa recognizer is the first
+to unite the improvements
+to Earley's algorithm found in
+Joop Leo's 1991 paper
+to those in Aycock and Horspool's 2002 paper.
+Also new with Marpa is that
 full knowledge of the state of the parse,
 including the list of acceptable tokens,
 is available when tokens are scanned.
@@ -183,7 +185,7 @@ all context-free grammars.
 Time bounds are the best of Leo\cite{Leo1991}
 and Earley\cite{Earley1970}.
 The Leo bound,
-\Oc{} for LR-regular,
+\On{} for LR-regular grammars,
 is especially relevant to
 Marpa's goal of being a practical parser:
 If a grammar is in a class of grammar currently in practical use,
@@ -259,8 +261,8 @@ contain a proof of Marpa's correctness,
 while Section \ref{s:complexity} contains
 its complexity results.
 Finally,
-section \ref{s:generalization} generalizes
-the definitions of grammar and input.
+section \ref{s:input} discusses
+Marpa's generalization of its input model.
 
 \section{Preliminaries}
 \label{s:preliminaries}
@@ -293,34 +295,34 @@ Subtraction & $\var{symbol-count} \subtract \var{terminal-count}$ \\
 \end{tabular}
 \end{center}
 
-Where \Vsymset{abced} is a set of symbols,
-let $\var{abced}^\ast$ be the set of all strings
+Let \Vsymset{vocab} be a non-empty set of symbols,
+and let $\var{vocab}^\ast$ be the set of all strings
 (type \type{STR}) formed
 from those symbols.
 Note that sentential forms are of type \type{STR}.
-Let $\var{abced}^+$ be the subset of $\var{abced}^\ast$ that
-contains all of its elements that are not of zero length.
+Where \Vstr{s} is a string,
+let \size{\Vstr{s}} be its length, counted in symbols.
+Let $\var{abced}^+$ be
+$\set{ \Vstr{x} : \var{x} \in \var{vocab} \land \Vsize{x} > 0 }$
 
-For the purposes of this \doc{} consider,
+In this \doc{} we use,
 without loss of generality,
-a grammar \Vg,
-and a set of symbols, \Vsymset{vocab}.
-Call the language of \var{g}, $\myL{\Vg}$,
-where $\myL{\Vg} \in \var{vocab}^\ast$.
-Divide \Vsymset{vocab} into two disjoint sets,
-\Vsymset{lh} and \Vsymset{term}.
+an arbitrary grammar \Cg.
+\Cg{} is the 3-tuple
+\begin{equation*}
+    (\Vsymset{vocab}, \var{rules}, \Vsym{accept})
+\end{equation*}
+Call the language of \var{g}, $\myL{\Cg}$,
+where $\myL{\Cg} \in \var{vocab}^\ast$.
 
-For rewriting this \doc{} uses,
-without loss of generality,
-the set of duples, \Vruleset{rules}.
-The type \type{RULE} will be
-a duple
+\Vruleset{rules} is a set of rules (type \type{RULE}),
+where a rule is a duple
 of the form $[\Vsym{lhs} \de \Vstr{rhs}]$,
-where
-\begin{gather*}
-\Vsym{lhs} \in \var{term} \quad \text{and} \\
-\Vstr{rhs} \in \var{vocab}^+.
-\end{gather*}
+such that
+\begin{equation*}
+\Vsym{lhs} \in \var{vocab} \quad \text{and}
+\quad \Vstr{rhs} \in \var{vocab}^+.
+\end{equation*}
 \Vsym{lhs} is referred to as the left hand side (LHS)
 of \Vrule{r}.
 \Vstr{rhs} is referred to as the right hand side (RHS)
@@ -328,24 +330,10 @@ of \Vrule{r}.
 This definition follows \cite{AH2002},
 which departs from tradition by disallowing an empty RHS.
 
-The grammar \Vg{} is the 4-tuple
-\begin{equation*}
-    (\Vsymset{vocab}, \Vsymset{term}, \var{rules}, \Vsym{accept})
-\end{equation*}
-where \Vsymset{term} is the
-set of terminal symbols,
-\begin{equation*}
-    \Vsymset{term} \subset \Vsymset{vocab},
-\end{equation*}
-and \Vsym{accept} a dedicated acceptance symbol.
-The set of potential LHS symbols, \Vsymset{lh} is
-$\var{vocab} \setminus \var{term}$.
+\Vsym{accept} is a dedicated acceptance symbol.
 Without loss of generality,
 it is assumed that
-\begin{equation*}
-\Vsym{accept} \in \Vsymset{lh},
-\end{equation*}
-and that there is a dedicated acceptance rule,
+that there is a dedicated acceptance rule,
 \begin{equation*}
 \Vrule{accept} = [ \Vsym{accept} \de \Vsym{start} ],
 \end{equation*}
@@ -359,11 +347,16 @@ we have both of
 \Vsym{accept} \notin \Vsymset{rhs}.
 \end{gather*}
 
+The definition of \Cg{} does not sharply distinguish terminals
+from non-terminals.
+\Marpa{}'s implementations allow terminals to be the LHS
+of rules,
+and every symbol except \Vsym{accept} can be a terminal.
+
 Let the input to parse be \Vw, $\Vw \in \var{vocab}^\ast$.
 Locations in the input will be of type \type{LOC}.
 Let \Vsize{w} be the length of the input, counted in symbols.
-Let \CVw{i}, where
-$\CVw{i} \in \Vsymset{term}$, be character \var{i}
+Let \CVw{i} be character \var{i}
 of the input,
 $0 \le \Vloc{i} < \Vsize{w}$.
 
@@ -378,25 +371,23 @@ as described in~\cite{AH2002}.
 \Marpa{} will refer to the parser described in
 this \doc{}.
 Where $\alg{Recce}$ is a recognizer,
-$\myL{\alg{Recce},\Vg}$ will be the language accepted by $\alg{Recce}$
-when parsing \Vg.
+$\myL{\alg{Recce},\Cg}$ will be the language accepted by $\alg{Recce}$
+when parsing \Cg.
 
 \section{Rewriting the grammar}
 \label{s:rewrite}
 
 We have already noted
-that no rules of \Vg{}
+that no rules of \Cg{}
 have a zero-length RHS.
 Further, no rule can be nullable
 and all symbols must be either nulling or non-nullable --
 no symbol can be a proper nullable.
 These restrictions follow Aycock and Horspool\cite{AH2002}.
 The elimination of empty rules and proper nullables
-is done by rewriting the grammar which,
-as shown in \cite{AH2002},
-is without loss of generality.
-\cite{AH2002} also discusses the evaluation issues
-associated with its rewrites.
+is done by rewriting the grammar.
+\cite{AH2002} shows how to do this
+without loss of generality.
 
 \cite{AH2002} allowed
 a single empty start rule
@@ -450,7 +441,7 @@ be a rule,
 and $\Vsize{r}$ the length of its RHS.
 A dotted rule (type \type{DR}) is a duple, $[\Vrule{r}, \var{pos}]$,
 where $0 \le \var{pos} \le \size{\Vrule{r}}$.
-The position indicates the extent to which
+The position, \var{pos}, indicates the extent to which
 the rule has been recognized,
 and is represented with a large raised dot,
 so that if
@@ -465,30 +456,35 @@ is the dotted rule with the dot at
 $\var{pos} = 2$,
 between \Vsym{Y} and \Vsym{Z}.
 
-For a \Vdr{x} such that
+If we let \Vdr{x} be a dotted rule, such that
 \begin{equation*}
-\Vdr{x} = [\Vsym{A} \de \Vstr{alpha} \mydot \Vsym{next} \cat \Vstr{beta}],
+\Vdr{x} = [\Vsym{A} \de \Vstr{pre} \cat \Vsym{next} \cat \Vstr{post}],
 \end{equation*}
-we have both of
+then
+%
 \begin{gather*}
-\Postdot{\Vdr{x}} = \Vsym{next} \quad \text{and} \\
-\Next{\Vdr{d}}  =
-    [ \Vsym{A} \de \Vstr{alpha} \cat \Vsym{next} \mydot \Vstr{beta} ].
+%
+\Postdot{\Vdr{x}} \defined
+\begin{cases}
+\Vsym{next}, \quad \text{if $\var{x} = [\var{A} \de \var{pre} \mydot \var{next} \cat \var{post}]$} \\
+\Lambda, \quad \text{if $\var{x} = [\var{A} \de \var{pre} \cat \var{next} \cat \var{post} \mydot]$}
+\end{cases} \\
+%
+\Next{\Vdr{x}} \defined
+\begin{cases}
+[\var{A} \de \var{pre} \cat \var{next} \mydot \var{post}],  \\
+\qquad \text{if $\var{x} = [\var{A} \de \var{pre} \mydot \var{next} \cat \var{post}]$} \\
+\Lambda, \quad \text{if $\var{x} = [\var{A} \de \var{pre} \cat \var{next} \cat \var{post} \mydot]$}
+\end{cases} \\
+%
+\Penult{\Vdr{x}} \defined
+\begin{cases}
+\Vsym{next}, \quad \text{if
+$\Postdot{\Vdr{x}} = \var{next}$} \\
+\qquad \text{and $\Vstr{post} \destar \epsilon$} \\
+\text{$\Lambda$, otherwise}
+\end{cases}
 \end{gather*}
-If \Vdr{x} is such that
-\begin{equation*}
-\Vdr{x} = [\Vsym{A} \de \Vstr{alpha} \mydot],
-\end{equation*}
-then
-$\Postdot{\Vdr{x}} = \Next{\Vdr{x}} = \Lambda$.
-If for \Vdr{x} in the above,
-\begin{equation*}
-\Postdot{\Vdr{x}} \ne \Lambda \wedge \Vstr{beta} \destar \epsilon
-\end{equation*}
-then
-$\Penult{\Vdr{x}} = \Vsym{next}$.
-Otherwise,
-$\Penult{\Vdr{x}} = \Lambda$.
 
 The \dfn{initial dotted rule} is
 \begin{equation*}
@@ -1273,7 +1269,7 @@ the number of Leo items is at most
 the number of symbols in
 \Vsymset{vocab}.
 Since the maximum number of Leo items is a constant
-depending on \Vg{},
+depending on \Cg{},
 their space and time may be charged to the Earley set.
 
 \begin{algorithm}[h]
@@ -1417,7 +1413,7 @@ The maximum number of Earley items that must be tracked
 in each PSL is
 the number of AHFA states,
 \Vsize{\Vfa},
-which is a constant depending on \Vg.
+which is a constant depending on \Cg.
 \end{sloppypar}
 
 It would take more than \Oc{} time
@@ -1483,7 +1479,7 @@ if we assume that a history
 of the rewrite is kept,
 and that the rewrite is reversed
 after the parse.
-Clearly, whether a grammar \Vg{} accepts
+Clearly, whether a grammar \Cg{} accepts
 an input \Vw{}
 will not depend on the nulling symbols in its rules.
 
@@ -2039,7 +2035,7 @@ and the theorem.
 
 We are now is a position to show that Marpa is correct.
 \begin{theorem}
-$\myL{\Marpa,\Vg} = \myL{\Vg}$
+$\myL{\Marpa,\Cg} = \myL{\Cg}$
 \end{theorem}
 
 \begin{proof}
@@ -2057,11 +2053,11 @@ From the acceptance criteria in the \Leo{} definitions
 and the \Marpa{} pseudocode,
 it follows that
 \begin{equation*}
-\myL{\Marpa,\Vg} = \myL{\Leo,\Vg}.
+\myL{\Marpa,\Cg} = \myL{\Leo,\Cg}.
 \end{equation*}
 By Theorem 4.1 in \cite{Leo1991}, we know that
 \begin{equation*}
-\myL{\Leo,\Vg} = \myL{\Vg}.
+\myL{\Leo,\Cg} = \myL{\Cg}.
 \end{equation*}
 The theorem follows from
 the previous two equalities.
@@ -2295,7 +2291,7 @@ The number of reduction attempts will be less than
 \end{equation*}
 
 Since by assumption
-\Vg{} is unambiguous,
+\Cg{} is unambiguous,
 we know that all attempts to add duplicate
 EIM's will be for predecessors
 which have the same dotted rule.
@@ -2307,7 +2303,7 @@ As a worst case, assume that a dotted rule
 appears in every AHFA state.
 Then $\var{matching} \le \size{\Vfa}$,
 where \Vsize{\Vfa} is the number of AHFA states,
-a constant that depends on \Vg.
+a constant that depends on \Cg.
 From the foregoing, we know that 
 \begin{equation*}
 \var{reduction-tries} \le \var{max-AHFA} \times \size{\Vfa} \times \size{\Vtable{j}}
@@ -2325,13 +2321,13 @@ and then adding
 \var{initial-tries},
 is tedious.
 But since \var{max-AHFA} and \size{\Vfa} are both constants
-which depend only on \Vg,
+which depend only on \Cg,
 it is clear that there is a constant \var{c}
 such that
 \begin{equation*}
 \var{tries} \le \var{c} \times \Rtablesize{\Marpa}
 \end{equation*}
-where \var{c} is a constant which depends on \Vg.\qedhere
+where \var{c} is a constant which depends on \Cg.\qedhere
 \end{sloppypar}
 \end{proof}
 
@@ -2351,14 +2347,14 @@ For every LR-regular grammar,
 \begin{proof}
 By Theorem 4.6 in \cite[p. 173]{Leo1991},
 the number of traditional Earley items produced by
-\Leo{} when parsing input \Vw{} with an LR-regular grammar \Vg{} is
+\Leo{} when parsing input \Vw{} with an LR-regular grammar \Cg{} is
 \begin{equation*}
 \order{\Vsize{\Vw}} = \order{\var{n}}.
 \end{equation*}
 By Theorem \ref{t:marpa-O-leo},
 the number of EIM's \Marpa{} will require for the same parse
 is, worst case, $\var{c} \times \order{\var{n}}$,
-where \var{c} is a constant which depends on \Vg.
+where \var{c} is a constant which depends on \Cg.
 LR-regular grammar are unambiguous, so that
 by Theorem \ref{t:tries-O-eims},
 the number of attempts that \Marpa{} will make to add
@@ -2366,7 +2362,7 @@ EIM's is on the order of
 \begin{equation*}
     \var{d} \times \var{c} \times \order{\var{n}}
 \end{equation*}
-where \var{d} is a constant which depends on \Vg.
+where \var{d} is a constant which depends on \Cg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time and space complexity of \Marpa{} for LR-regular
@@ -2394,7 +2390,7 @@ so that
 The possibilities for \Vah{x} are finite,
 since the number of AHFA states is a constant,
 $\size{\Vfa}$,
-which depends on \Vg.
+which depends on \Cg.
 Since duplicate EIM's are never added to an Earley set,
 the maximum size of Earley set \Vloc{i} is therefore
 \begin{equation*}
@@ -2406,14 +2402,14 @@ Summing over the length of the input,
 $\Vsize{\Vw} = \var{n}$,
 the number of EIM's in all of \Marpa's Earley sets
 is \order{\var{n}^2}.
-By assumption, \Vg{} is unambiguous, so that
+By assumption, \Cg{} is unambiguous, so that
 by Theorem \ref{t:tries-O-eims},
 the number of attempts that \Marpa{} will make to add
 EIM's is
 \begin{equation*}
 \var{c} \times \order{\var{n}^2},
 \end{equation*}
-where \var{c} is a constant which depends on \Vg.
+where \var{c} is a constant which depends on \Cg.
 Therefore,
 by Theorem \ref{t:O1-per-eim},
 the time and space complexity of \Marpa{} for LR-regular
@@ -2428,7 +2424,7 @@ For any context-free grammar,
 \begin{proof}
 Reexamining the proof of Theorem \ref{t:tries-O-eims},
 we see that the only bound which required
-the assumption that \Vg{} was unambiguous
+the assumption that \Cg{} was unambiguous
 was \var{reduction-tries},
 the count of the number of attempts to
 add Earley reductions.
@@ -2457,7 +2453,7 @@ on the order of
 \order{\var{i}} \times \size{\EVtable{\Marpa}{j}}
 = \order{\var{i}} \times \order{\var{j}} = \order{\var{j}^2}
 \end{equation*}
-When \Vg{} can be ambiguous
+When \Cg{} can be ambiguous
 the order of magnitude of all attempts to add EIM's
 becomes
 \begin{equation*}
@@ -2470,39 +2466,29 @@ grammars is \order{\var{n}^3}.\qedhere
 \end{sloppypar}
 \end{proof}
 
-\section{Generalizing the grammar}
-\label{s:generalization}
+\section{The Marpa Input Model}
+\label{s:input}
 
 As implemented,
-Marpa generalizes the idea of grammars
-and input streams beyond that so far described
-for \Vg{} and \Vw.
-The differences are
-minor from a theoretical point of view,
-and to avoid cluttering the proofs,
+Marpa generalizes the idea of 
+input streams beyond the traditional
+model, as well as that so far described
+for \Cg{} and \Vw.
+To avoid cluttering the theoretical results,
 their discussion was deferred.
 
-\subsection{All symbols are terminals}
-
-Marpa's grammars are in effect 3-tuples:
-\begin{equation*}
-(\Vsymset{vocab}, \Vrules, \Vsym{start})
-\end{equation*}
-\Vsymset{term} is omitted, because
+As noted, the distinction between
+terminal and non-terminal symbols is
+not central in \Marpa{}.
+In particular,
 Marpa allows a symbol to be both a terminal
 and a LHS.
-This expansion of the grammar definition
-is made without loss of generalization,
-or effect on the results.
-
-The Marpa implementation has options,
-using which the user can 
-have the traditional restrictions
-enforced, in part or in whole.
-For error detection and efficiency,
-many users may prefer this.
-
-\subsection{Alternative input models}
+Where a user finds
+the traditional distinctions useful,
+Marpa has options that allow
+the user to reinstate
+the traditional restrictions,
+in part or in whole.
 
 In this \doc{},
 up to this point,
