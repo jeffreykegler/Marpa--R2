@@ -247,7 +247,7 @@ introduce Earley's algorithm.
 Section \ref{s:leo} describes Leo's modification
 to Earley's algorithm.
 Section \ref{s:AHFA} describes the modifications
-suggested by Aycock and Horspool.
+proposed by Aycock and Horspool.
 Section \ref{s:pseudocode} presents the pseudocode
 for Marpa's recognizer.
 Section
@@ -262,7 +262,7 @@ while Section \ref{s:complexity} contains
 its complexity results.
 Finally,
 section \ref{s:input} discusses
-Marpa's generalization of its input model.
+generalizes Marpa's input model.
 
 \section{Preliminaries}
 \label{s:preliminaries}
@@ -278,7 +278,7 @@ $\var{X}_T$ & The variable \var{X} of type $T$ \\
 $\var{set-one}_\set{T}$ & The variable \var{set-one} of type set of $T$ \\
 $SYM$ & The type for a symbol \\
 \Vsym{a} & The variable \var{a} of type $SYM$ \\
-\Vsymset{set-two} & The set of symbols \var{set-two} \\
+\Vsymset{set-two} & The variable \var{set-two}, a set of symbols \\
 \end{tabular}
 \end{center}
 Subscripts may be omitted when the type
@@ -309,10 +309,10 @@ Let $\var{abced}^+$ be
 
 In this \doc{} we use,
 without loss of generality,
-an arbitrary grammar \Cg.
-\Cg{} is the 3-tuple
+the grammar \Cg,
+where \Cg{} is the 3-tuple
 \begin{equation*}
-    (\Vsymset{vocab}, \var{rules}, \Vsym{accept})
+    (\Vsymset{vocab}, \var{rules}, \Vsym{accept}).
 \end{equation*}
 Call the language of \var{g}, $\myL{\Cg}$,
 where $\myL{\Cg} \in \var{vocab}^\ast$.
@@ -355,7 +355,8 @@ from non-terminals.
 of rules,
 and every symbol except \Vsym{accept} can be a terminal.
 
-Let the input to parse be \Vw, $\Vw \in \var{vocab}^\ast$.
+Let the input to
+the parse be \Vw such that $\Vw \in \var{vocab}^\ast$.
 Locations in the input will be of type \type{LOC}.
 Let \Vsize{w} be the length of the input, counted in symbols.
 Let \CVw{i} be character \var{i}
@@ -797,7 +798,7 @@ adding Leo reduction as a new basic operation,
 adding a new premise to the Earley reduction
 operation,
 and extending the Earley sets to include LIMT's.
-In what this \doc(),
+In this \doc,
 where an Earley set is one of the domains of a relation,
 the other domains will be restricted to either
 Leo items or Earley items,
@@ -826,14 +827,15 @@ instead of a predecessor EIMT.
 \Vlimt{predecessor} and
 \Veimt{component} are the operands of the Leo reduction
 operation.
+\Vsym{lhs} is the transition symbol
+of the Leo reduction.
 As with Earley reduction,
 it may be convenient to treat the transition
 symbol as an operand,
 so that the operands
 are \Vlimt{predecessor} and \Vsym{lhs}.
 
-Earley reduction still applies, but an additional premise
-must be added:
+Earley reduction still applies, with an additional premise:
 \begin{multline*}
 \forall \Vlimt{x} \in \EVtable{\Earley}{\Vorig{component}} \\
 	(\Vlimt{x} = [ \Vdr{x}, \Vsym{x}, \Vorig{x} ] \implies \Vsym{x} \ne \Vsym{lhs})
@@ -863,9 +865,9 @@ Aycock and Horspool based their AHFA's
 on a few observations.
 \begin{itemize}
 \item
-In practice, groups of Earley items sharing the same origin,
+In practice, Earley items sharing the same origin,
 but having different dotted rules,
-often appear in the same Earley set.
+often appear together in the same Earley set.
 \item
 There is in the literature a method
 for associating groups of dotted rules that often appear together
@@ -945,29 +947,17 @@ An AHFA is not a partition of the dotted
 rules --
 a single dotted rule can occur
 in more than one AHFA state.
-This does not happen frequently,
-but it happens often enough,
-even in practical grammars,
-that the Marpa implementation has to provide for it.
-What does not seem to occur in practice
-is that
-the size of a \Marpa{} Earley set grows larger
-than that of one of Earley's original sets.
-It seems the AHFA is always a win,
-at least for practical grammars.
-
-\begin{sloppypar}
 In combining
 the improvements of Leo~\cite{Leo1991} and
 Aycock and Horspool\cite{AH2002},
 the following theorem is crucial.
+
 \begin{theorem}\label{t:leo-singleton}
 If the AHFA state of
 a Marpa Earley item (EIM) is the result of a
 Leo reduction,
 then its AHFA state contains only one dotted rule.
 \end{theorem}
-\end{sloppypar}
 
 \begin{proof}
 Since the Earley item is the result of a Leo reduction
@@ -976,8 +966,8 @@ that its AHFA state contains a completed rule.
 Call that completed rule, \Vdr{complete}.
 Let \Vrule{c} be the rule of \Vdr{complete},
 and \var{cp} its dot position.
-$\var{cp} > 0$ because in \Marpa{}
-grammars completions are never
+$\var{cp} > 0$ because, in \Marpa{}
+grammars, completions are never
 predictions.
 
 Suppose, for a reduction to absurdity,
@@ -1030,9 +1020,8 @@ is that both \Vdr{complete} and \Vdr{other}
 share an AHFA state in a Leo reduction EIM,
 so they must obey the Leo uniqueness requirement.
 To obey the Leo uniqueness requirement,
-we must have $\Vrule{c} = \Vrule{o}$.
-Therefore
-$\Vrule{c} = \Vrule{o}$, which contradicts
+we must have $\Vrule{c} = \Vrule{o}$,
+which contradicts
 the assumption for the second inner reductio.
 
 By the two inner reductio's,
@@ -2581,38 +2570,35 @@ then we have both of
 The correctness results hold for Marpa input streams,
 but to preserve the time complexity bounds,
 two restrictions must be imposed.
-To state them,
-we first define
-$\mymathop{future}(\var{i})$.
-Let \Vloc{i} be the current Earley set.
-$\mymathop{future}(\var{i})$ is
-a set of parse locations,
-such that
+Let \size{\var{s}} be the cardinality
+of the set \var{s}.
+Define $\mymathop{future}(\Vloc{i})$ as
 \begin{equation*}
-\Vloc{j} \in \mymathop{future}(\var{i})
+\left\lbrace \, \Vloc{j} \, \middle|
+    \begin{array}{l}
+    \exists [\Vsym{t}, \Vloc{start}, \var{length}]
+    \quad \text{such that} \\
+    \qquad (\var{j} = \var{start} + \var{length} \, \land 
+	\var{start} \le \Vloc{i})
+    \end{array}
+\right\rbrace.
 \end{equation*}
-if and only if
-there is a token
-\begin{equation*}
-[\Vsym{t}, \Vloc{start}, \var{length}],
-\end{equation*}
-such that we have both of
+The two restrictions are that,
+for all \Vloc{i}, 
+$0 \le i < \size{\Vw}$,
+we require that
+there be a constant \var{c} such that
 \begin{gather*}
-    \var{j} = \var{start} + \var{length} \\
-    \var{start} \le \Vloc{i}
+    \bigl| \mymathop{future}(\Vloc{i}) \bigr| < \var{c} \quad \text{and} \\
+    \Bigl| \bigl\{
+	[ \Vsym{x}, \Vloc{x}, \var{length} ]
+	\bigm| \Vloc{x} = \Vloc{i}
+    \bigr\} \Bigr| < \var{c}
 \end{gather*}
-
-The two restrictions are then as follows,
-where \var{c} is a constant:
-\begin{itemize}
-\item For all \Vloc{i},
-the cardinality of $\mymathop{future}(\Vloc{i})$
-is less than \var{c}.
-\item The number of tokens which start at any one location
-is less than \var{c}.
-\end{itemize}
-These restrictions on Marpa input streams most
-probably do not restrict their practical use.
+These restrictions
+impose little or no limit on
+the practical use
+of Marpa's generalized input model.
 And with them,
 the complexity results for \Marpa{} stand.
 
