@@ -2454,6 +2454,120 @@ where \var{c} is a constant which depends on \Cg.\qedhere
 \end{sloppypar}
 \end{proof}
 
+\begin{theorem}\label{t:es-count}
+For a context-free grammar,
+and a parse location \Vloc{i},
+\begin{equation*}
+\bigsize{\EVtable{\Marpa}{i}} = \order{\var{i}}
+\end{equation*}
+
+\begin{proof}
+In this context \Vloc{i} is to be treated
+as an integer, the ordinal of Earley set \Vloc{i}.
+EIM's have the form $[\Vah{x}, \Vorig{x}]$.
+\Vorig{x} is the origin of the EIM,
+which in Marpa cannot be after the current
+Earley set \Vloc{i},
+so that
+\begin{equation*}
+0 \le \Vorig{x} \le \Vloc{i}.
+\end{equation*}
+The possibilities for \Vah{x} are finite,
+since the number of AHFA states is a constant,
+$\size{\Vfa}$,
+which depends on \Cg.
+Since duplicate EIM's are never added to an Earley set,
+the maximum size of Earley set \Vloc{i} is therefore
+\begin{equation*}
+\Vloc{i} \times \size{\Vfa} = \order{\var{i}}.\qedhere
+\end{equation*}
+\end{proof}
+
+\end{theorem}
+\begin{theorem}\label{t:eim-count}
+For a context-free grammar,
+\begin{equation*}
+\Rtablesize{\Marpa} = \order{\var{n}^2}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+By Theorem \ref{t:es-count},
+the size of the Earley set at \Vloc{i} 
+is $\order{\var{i}}$.
+Summing over the length of the input,
+$\Vsize{\Cw} = \var{n}$,
+the number of EIM's in all of \Marpa's Earley sets
+is
+\begin{equation*}
+\sum\limits_{\Vloc{i}=0}^{\var{n}}{\order{\var{i}}}
+= \order{\var{n}^2}.\qedhere
+\end{equation*}
+\end{proof}
+
+\begin{theorem}\label{t:ambiguous-tries}
+For an context-free grammar,
+the number of attempts to add
+Earley items will be less than or equal to
+\begin{equation*}
+\var{c} \times \size{\Cw}^3
+\end{equation*}
+where \var{c} is a constant.
+\end{theorem}
+
+\begin{proof}
+Reexamining the proof of Theorem \ref{t:tries-O-eims},
+we see that the only bound which required
+the assumption that \Cg{} was unambiguous
+was \var{reduction-tries},
+the count of the number of attempts to
+add Earley reductions.
+Let \var{other-tries}
+be attempts to add EIM's other than
+as the result of Earley reductions.
+By Theorem \ref{t:eim-count},
+\begin{equation*}
+\Rtablesize{\Marpa} = \order{\size{\Cw}^2},
+\end{equation*}
+and by Theorem \ref{t:tries-O-eims},
+\begin{equation*}
+\var{other-tries} \le \var{c} \times \Rtablesize{\Marpa},
+\end{equation*}
+so that
+$\var{other-tries} = \order{\size{\Cw}^2} = \order{\var{n}^2}$.
+
+\begin{sloppypar}
+Reconsidering \var{reduction-tries}
+for the case of ambiguous grammars,
+we see that in the worst case the memoization of 
+$\mymathop{transitions}(\Vloc{i}, \Vsym{lhs})$
+accomplishes nothing,
+because every item in
+Earley set \Vloc{i} is returned,
+and
+the number of attempts to add EIM reductions
+at location \Vloc{j} becomes
+\begin{equation*}
+\bigsize{\EVtable{\Marpa}{i}}
+\times \bigsize{\EVtable{\Marpa}{j}}
+\end{equation*}
+Worst case $\var{i} \simeq \var{j}$,
+so that by Theorem \ref{t:es-count},
+\begin{equation*}
+\bigsize{\EVtable{\Marpa}{i}}
+\times \bigsize{\EVtable{\Marpa}{j}} = \order{\var{j}^2}
+\end{equation*}
+Adding \var{other-tries}
+and summing over the Earley sets,
+we have
+\begin{equation*}
+\order{\var{n}^2} +
+\! \sum\limits_{\Vloc{j}=0}^{n}{\order{\var{j}^2}} = \order{\var{n}^3}.
+\qedhere
+\end{equation*}
+\end{sloppypar}
+\end{proof}
+
 \subsection{The complexity results}
 We are now in a position to show
 specific time and space complexity results.
@@ -2503,31 +2617,9 @@ For every unambiguous grammar,
 \end{theorem}
 
 \begin{proof}
-EIM's have the form $[\Vah{x}, \Vorig{x}]$.
-\Vorig{x} is the origin of the EIM,
-which in Marpa cannot be after the current
-Earley set \Vloc{i},
-so that
-\begin{equation*}
-0 \le \Vorig{x} \le \Vloc{i}.
-\end{equation*}
-The possibilities for \Vah{x} are finite,
-since the number of AHFA states is a constant,
-$\size{\Vfa}$,
-which depends on \Cg.
-Since duplicate EIM's are never added to an Earley set,
-the maximum size of Earley set \Vloc{i} is therefore
-\begin{equation*}
-\Vloc{i} \times \size{\Vfa},
-\end{equation*}
-where in this context \Vloc{i} is to be treated
-as an integer, the ordinal of Earley set \Vloc{i}.
-Summing over the length of the input,
-$\Vsize{\Cw} = \var{n}$,
-the number of EIM's in all of \Marpa's Earley sets
-is \order{\var{n}^2}.
 By assumption, \Cg{} is unambiguous, so that
 by Theorem \ref{t:tries-O-eims},
+and Theorem \ref{t:eim-count},
 the number of attempts that \Marpa{} will make to add
 EIM's is
 \begin{equation*}
@@ -2537,70 +2629,53 @@ where \var{c} is a constant which depends on \Cg.
 Therefore,
 by Theorems \ref{t:O1-time-per-eim}
 and \ref{t:O1-space-per-eim},
-the time and space complexity of \Marpa{} for LR-regular
-grammars is \order{\var{n}^2}.
+the time and space complexity of \Marpa{}
+for unambiguous grammars is \order{\var{n}^2}.
+\end{proof}
+
+\begin{sloppypar}
+\begin{theorem}
+For any context-free grammar,
+\Marpa{} runs in $\order{\var{n}^3}$ time.
+\end{theorem}
+\end{sloppypar}
+
+\begin{proof}
+By Theorem \ref{t:O1-time-per-eim},
+and Theorem \ref{t:ambiguous-tries}.
 \end{proof}
 
 \begin{theorem}
 For any context-free grammar,
-\Marpa{} runs in $\order{n^3}$ time.
+if \Marpa{} tracks links for
+evaluation purposes,
+it runs in $\order{\var{n}^3}$ space.
+Without links, 
+\Marpa{} runs in
+$\order{\var{n}^2}$ space.
 \end{theorem}
 
 \begin{proof}
-Reexamining the proof of Theorem \ref{t:tries-O-eims},
-we see that the only bound which required
-the assumption that \Cg{} was unambiguous
-was \var{reduction-tries},
-the count of the number of attempts to
-add Earley reductions.
-Let \var{other-tries}
-be attempts to add EIM's other than
-as the result of Earley reductions.
-By Theorem \ref{t:tries-O-eims},
-\begin{equation*}
-\var{other-tries} \le \var{c} \times \Vloc{i}.
-\end{equation*}
-
-\begin{sloppypar}
-Reconsidering \var{reduction-tries}
-for the case of ambiguous grammars,
-we see that in the worst case the memoization of 
-$\mymathop{transitions}(\Vloc{i}, \Vsym{lhs})$
-accomplishes nothing,
-because every item in
-Earley set \Vloc{i} is returned.
-Worst case, the count of EIM's in Earley set \Vloc{i}
-is \order{\var{i}},
-so that the number of attempts to add EIM reductions
-to each Earley set \Vloc{j} is
-on the order of
-\begin{equation*}
-\order{\var{i}} \times \size{\EVtable{\Marpa}{j}}
-= \order{\var{i}} \times \order{\var{j}} = \order{\var{j}^2}
-\end{equation*}
-When \Cg{} can be ambiguous
-the order of magnitude of all attempts to add EIM's
-becomes
-\begin{equation*}
- \sum\limits_{\Vloc{j}=0}^{n}{\order{\var{j}^2}+ \var{c} \times \Vloc{j}} = \order{\var{n}^3}
-\end{equation*}
-Therefore,
-by Theorem \ref{t:O1-time-per-eim},
-the time complexity of \Marpa{} for context-free
-grammars is \order{\var{n}^3}.\qedhere
-\end{sloppypar}
+The bound including links is
+by Theorem \ref{t:O1-links-per-eim},
+and Theorem \ref{t:ambiguous-tries}.
+The bound without links is
+by Theorem \ref{t:O1-space-per-eim}
+and Theorem \ref{t:eim-count}.
 \end{proof}
 
 \section{The Marpa Input Model}
 \label{s:input}
 
+In this \doc{},
+up to this point,
+the traditional input stream model
+has been assumed.
 As implemented,
 Marpa generalizes the idea of 
 input streams beyond the traditional
 model, as well as that so far described
 for \Cg{} and \Cw.
-To avoid cluttering the theoretical results,
-their discussion was deferred.
 
 As noted, the distinction between
 terminal and non-terminal symbols is
@@ -2615,13 +2690,9 @@ the user to reinstate
 the traditional restrictions,
 in part or in whole.
 
-In this \doc{},
-up to this point,
-the traditional input stream model
-has been assumed.
-Marpa's input model is a generalization of
-the traditional input stream model.
-Marpa's input is a set of tokens,
+Marpa's generalized input model
+replaces the input \Cw{}
+with a set of tokens,
 \var{tokens},
 whose elements are triples of symbol,
 start location and end location:
@@ -2629,9 +2700,9 @@ start location and end location:
     (\Vsym{t}, \Vloc{start}, \var{length})
 \end{equation*}
 such that
-\begin{equation*}
-    \var{length} \ge 1 \wedge \Vloc{start} \ge 0
-\end{equation*}
+$\var{length} \ge 1$
+and
+$\Vloc{start} \ge 0$.
 The size of the input, \size{\Cw},
 is the maximum over
 \var{tokens} of $\Vloc{start}+\var{length}$.
@@ -2669,9 +2740,11 @@ may interweave and overlap freely,
 but gaps are not allowed.
 That is,
 \begin{multline*}
-     \forall \Vloc{i}, 0 \le \var{i} < \size{\Cw}, \\
-     \exists (\Vsym{t}, \Vloc{start}, \var{length}) \in \var{tokens}, \\
-    \var{start} \le \var{i} < \var{start}+\var{length}
+     \forall \Vloc{i}, 0 \le \var{i} < \size{\Cw} \implies \\
+     \bigl(
+	 \exists [\Vsym{t}, \Vloc{start}, \var{length}] \in \var{tokens} \\
+	 \land \, \var{start} \le \var{i} < \var{start}+\var{length}
+     \bigr)
 \end{multline*}
 
 The intent of Marpa's generalized input model is to allow
@@ -2691,7 +2764,7 @@ if we have both of
 \end{align*}
 then we have both of
 \begin{gather*}
-\var{xlength} = \var{ylength} = 1 \\
+\var{xlength} = \var{ylength} = 1 \quad \text{and} \\
      \Vloc{x} = \Vloc{y} \implies \Vsym{x} = \Vsym{y}
 \end{gather*}
 
