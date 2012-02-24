@@ -27,7 +27,7 @@
 \newcommand{\order}[1]{\ensuremath{{\mathcal O}(#1)}}
 \newcommand{\Oc}{\order{1}}
 \newcommand{\On}{\order{\var{n}}}
-\newcommand{\inference}[2]{\genfrac{}{}{1.2pt}{}{#1}{#2}}
+\newcommand{\inference}[2]{\genfrac{}{}{1pt}{}{#1}{#2}}
 
 % I use hyphens in variable names,
 % so I need to ensure that subtraction is
@@ -1573,7 +1573,6 @@ $\Veimt{x} = [\Vdr{x}, \Vorig{x}]$
 if and only if the Marpa Earley item is a
 $\Veim{y} = [\Vah{y}, \Vorig{x}]$
 such that $\Vdr{x} \in \Vah{y}$.
-This relation is reflexive:
 A traditional Earley item, \Veimt{x}, corresponds to a
 Marpa Earley item, \Veim{y}, if and only if
 \Veim{y} corresponds to \Veimt{x}.
@@ -1607,78 +1606,89 @@ there is a corresponding Earley item in
 \end{sloppypar}
 
 \begin{definition}
-We say that
-a Marpa Earley set is \dfn{correct}
+A Marpa Earley set is \dfn{correct}
 if and only that Marpa Earley set is complete
 and consistent.
 \end{definition}
 
 \subsection{About AHFA states}
 
-Several facts about AHFA's from \cite{AH2002}
+Several facts from \cite{AH2002}
 will be heavily used in the following proofs.
-For convenience, they are restated here.
+For convenience, they are restated here
+in the form of inference rules.
 
 \begin{observation}
 \label{o:confirmed-AHFA-consistent}
 AHFA confirmation is consistent.
-That is, if all of the following are true
-\begin{gather*}
-    \Postdot{\Vdr{from}} \ne \Lambda \\
-    \Postdot{\Vdr{from}} = \Vsym{t} \\
-    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \\
-    \Vdr{to} \in \Vah{to}
-\end{gather*}
-then there exists \Vdr{from} such that
 \begin{equation*}
-    \Next{\Vdr{from}} = \Vdr{to}
-    \land \Vdr{from} \in \Vah{from}
+\inference{
+    \begin{array}{c}
+	\Vdr{to} \in \Vah{to} \\
+	\GOTO(\Vah{from}, \Vsym{t}) = \Vah{to}
+    \end{array}
+}{
+    \begin{array}{c}
+	\Vdr{from} \in \Vah{from} \\
+	\Vsym{t} = \Postdot{\Vdr{from}} \\
+	\Next{\Vdr{from}} = \Vdr{to} \\
+    \end{array}
+}
 \end{equation*}
 \end{observation}
 
 \begin{observation}
 \label{o:confirmed-AHFA-complete}
 AHFA confirmation is complete.
-That is, if all of the following are true
-\begin{gather*}
-    \Postdot{\Vdr{from}} \ne \Lambda \\
-    \Postdot{\Vdr{from}} = \Vsym{t} \\
-    \GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \\
-    \Vdr{from} \in \Vah{from}
-\end{gather*}
-then for all \Vdr{to}
 \begin{equation*}
-    \Next{\Vdr{from}} = \Vdr{to} \implies \Vdr{to} \in \Vah{to}
+\inference{
+    \begin{array}{c}
+	\Postdot{\Vdr{from}} = \Vsym{t} \\
+	\GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \\
+	\Vdr{from} \in \Vah{from}
+    \end{array}
+}{
+    \forall \Vdr{to} \,
+    \bigl(
+	\Next{\Vdr{from}} = \Vdr{to} \implies \Vdr{to} \in \Vah{to}
+    \bigr)
+}
 \end{equation*}
 \end{observation}
 
 \begin{observation}
 \label{o:predicted-AHFA-consistent}
 AHFA prediction is consistent.
-That is, if
 \begin{equation*}
-    \GOTO(\Vah{from}, \epsilon) = \Vah{to}
-    \land \Vdr{to} \in \Vah{to}
-\end{equation*}
-then there exists \Vdr{from} such that
-\begin{equation*}
-    \Vdr{to} \in \Predict{\Vdr{from}}
-    \land \Vdr{from} \in \Vah{from}
+\inference{
+    \begin{array}{c}
+	\Vdr{to} \in \Vah{to} \\
+	\GOTO(\Vah{from}, \epsilon) = \Vah{to}
+    \end{array}
+}{
+    \begin{array}{c}
+	\Vdr{from} \in \Vah{from} \\
+	\Vdr{to} \in \Predict{\Vdr{from}}
+    \end{array}
+}
 \end{equation*}
 \end{observation}
 
 \begin{observation}
 \label{o:predicted-AHFA-complete}
 AHFA prediction is complete.
-That is, if
 \begin{equation*}
-    \GOTO(\Vah{from}, \epsilon) = \Vah{to}
-    \land \Vdr{from} \in \Vah{from}
-\end{equation*}
-then for all \Vdr{to}
-\begin{equation*}
-    \Vdr{to} \in \Predict{\Vdr{from}}
-    \implies \Vdr{to} \in \Vah{to}
+\inference{
+    \begin{array}{c}
+	\GOTO(\Vah{from}, \epsilon) = \Vah{to} \\
+	\Vdr{from} \in \Vah{from}
+    \end{array}
+}{
+    \forall \Vdr{to} \,
+    \bigl( \Vdr{to} \in \Predict{\Vdr{from}}
+	\implies \Vdr{to} \in \Vah{to}
+    \bigr)
+}
 \end{equation*}
 \end{observation}
 
