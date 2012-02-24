@@ -1703,8 +1703,9 @@ Marpa's Earley sets are correct.
 
 \begin{sloppypar}
 The proof 
-is by induction on the Earley sets.
-The induction hypothesis is that all Earley sets
+is by double induction.
+The outer induction is on the Earley sets.
+The outer induction hypothesis is that all Earley sets
 \EVtable{\Marpa}{i},
 $0 \le \Vloc{i} \le \Vloc{n}$,
 are complete and consistent,
@@ -1742,7 +1743,7 @@ that the predecessor EIM is correct
 by the outer induction hypothesis,
 and that the token is correct
 by the definitions in the preliminaries.
-We know from Section \ref{p:scan-op},
+We know, from Section \ref{p:scan-op},
 that at most two EIM's will be added.
 We now examine them in detail.
 
@@ -1757,6 +1758,7 @@ If we do nothing,
 since \EVtable{\Marpa}{i} is consistent by the inner
 induction hypothesis,
 it remains consistent, trivially.
+
 Otherwise, let
 $\Veim{confirmed} = [\Vah{confirmed}, \Vloc{i}]$.
 We see that \Veim{confirmed} is consistent with respect
@@ -1785,7 +1787,7 @@ Otherwise, let
 \begin{equation*}
 \Veim{predicted} = [\Vah{predicted}, \Vloc{i}].
 \end{equation*}
-We see that \Veim{predicted} is consistent with respect to
+We see that \Veim{predicted} is consistent with respect
 to \EVtable{\Leo}{i},
 by the definition of Earley prediction (Section~\ref{d:prediction}) and
 Observation ~\ref{o:predicted-AHFA-consistent}.
@@ -1795,7 +1797,7 @@ since \EVtable{\Marpa}{i} is consistent by the inner induction,
 \Veim{predicted} is added.
 \end{sloppypar}
 
-\subsubsection{Reduction consistency without Leo}
+\subsubsection{Earley reduction is consistent}
 \label{s:reduction-consistent}
 
 \begin{sloppypar}
@@ -1836,7 +1838,7 @@ Section \ref{s:scan-consistent}.
 \EVtable{\Marpa}{i} remains consistent,
 whether or not a \Veim{predicted} is added.
 
-\subsubsection{Leo reduction consistency}
+\subsubsection{Leo reduction is consistent}
 \label{s:leo-consistent}
 
 \begin{sloppypar}
@@ -1872,8 +1874,8 @@ that, as the result of the Leo reduction,
 \end{equation*}
 to \EVtable{\Marpa}{j}.
 The consistency of \Veim{leo} follows from the definition
-of EIM consistency,
-and the consistency of
+of EIM consistency.
+The consistency of
 \EVtable{\Marpa}{i},
 once \Veim{leo} is added,
 follows by the invariance
@@ -1894,7 +1896,7 @@ It was the purpose of the inner induction to show
 that consistency of \EVtable{\Marpa}{i} is invariant
 under Marpa's operations.
 
-\subsubsection{Marpa Earley set completeness}
+\subsubsection{The inner induction for completeness}
 
 It remains to show that,
 when Marpa's operations are run as described
@@ -1912,15 +1914,13 @@ For every operation which \Leo{} would perform,
 we show that
 \Marpa{} performs an operation which
 produces a corresponding Earley item.
-Here are our cases for the operations of \Leo{}:
-\begin{itemize}
-\item traditional \Earley{} scanning operations;
-\item traditional \Earley{} reductions;
-\item Leo reductions;
-\item traditional \Earley{} predictions;
-\end{itemize}
+Our cases for the operations of \Leo{} are
+Earley scanning operations;
+Earley reductions;
+Leo reductions;
+and Earley predictions.
 
-\subsubsection{Scanning completeness}
+\subsubsection{Scanning is complete}
 \label{s:scan-complete}
 
 \begin{sloppypar}
@@ -1962,7 +1962,7 @@ an Earley item for
 every prediction that results from
 a scanned Earley item in \EVtable{\Leo}{i}.
 
-\subsubsection{Earley reduction completeness}
+\subsubsection{Earley reduction is complete}
 \label{s:reduction-complete}
 
 We now examine Earley reduction,
@@ -2041,18 +2041,18 @@ with the Earley reduction operation (Section \ref{d:reduction})
 and using
 Observations~\ref{o:confirmed-AHFA-complete}
 and \ref{o:predicted-AHFA-complete},
-we see that a reduced Earley item of
+we see that a Earley reduction result of
 generation $\var{n}+1$
 will be added to
-\EVtable{\Marpa}{i} corresponding to every reduced Earley item
+\EVtable{\Marpa}{i} corresponding to every Earley reduction result
 of \EVtable{\Leo}{i},
 as well as one corresponding
 to every prediction that results from
-a reduced Earley item
+an Earley reduction result
 of generation $\var{n}+1$ in \EVtable{\Leo}{i}.
 This shows the case of reduction completeness.
 
-\subsubsection{Leo reduction completeness}
+\subsubsection{Leo reduction is complete}
 \label{s:leo-complete}
 
 We now show completeness for Marpa's reduction operation,
@@ -2068,7 +2068,7 @@ there are no predictions.
 This shows the case immediately,
 by the definition of completeness.
 
-\subsubsection{Prediction completeness}
+\subsubsection{Prediction is complete}
 \label{s:prediction-complete}
 
 \begin{sloppypar}
@@ -2136,7 +2136,8 @@ the previous two equalities.
 \section{Marpa recognizer complexity}
 \label{s:complexity}
 
-\subsection{Nulling symbols}
+\subsection{Complexity of each Earley item}
+
 For the complexity proofs,
 we consider only Marpa grammars without nulling
 symbols.
@@ -2149,31 +2150,78 @@ the rewrite and its reversal can be done
 in amortized \Oc{} time and space
 per Earley item.
 
-One way to show the required bound is
-to charge
-the time and space involved in rewriting Earley
-items with nulling symbols directly to
-the Earley item to which they are rewritten
-and from which they can be restored.
-Since
-the number of occurrences of nulling symbols in any rule
-or in any AHFA state is a constant depending on the grammar,
-the time and space involved are also constant,
-and our bound follows.
+\begin{lemma}\label{l:nulling-rewrite}
+All time and space required
+to rewrite the grammar to eliminate nulling
+symbols, and to restore those rules afterwards
+in the Earley sets
+can be allocated
+to the Earley items,
+in such a way that each Earley item
+requires \Oc{} time.
+\end{lemma}
 
-\subsection{Complexity of each Earley item}
+\begin{proof}
+The time and space used in the rewrite is a constant
+which depends on the grammar,
+and can be accounted for
+by charging the time to the parse.
+The time for its reversal,
+can be accounted for by charging it
+to the Earley item from which
+being rewritten.
+This time and space is \Oc{} for each Earley item,
+because the number of
+rules into which another rule can be rewritten
+by adding nulling symbols is a constant which depends
+on the grammar.
+\end{proof}
 
-\begin{theorem}\label{t:O1-per-eim}
+\begin{theorem}\label{t:O1-time-per-eim}
 All time in \Marpa{} can be allocated
 to the Earley items,
-and in such a way that each attempt to
-add an Earley item
-requires \Oc{} time and space.
+in such a way that each Earley item,
+and each attempt to
+add a duplicate Earley item,
+requires \Oc{} time.
 \end{theorem}
 
 \begin{proof}
 The theorem follows from the observations
-in Section \ref{s:pseudocode}.
+in Section \ref{s:pseudocode}
+and from Lemma \ref{l:nulling-rewrite}
+\end{proof}
+
+\begin{theorem}\label{t:O1-space-per-eim}
+All space in \Marpa{} can be allocated
+to the Earley items,
+in such a way that each Earley item
+requires \Oc{} space and,
+if links are not considered,
+each attempt to add a duplicate
+Earley item adds no additional space.
+\end{theorem}
+
+\begin{proof}
+The theorem follows from the observations
+in Section \ref{s:pseudocode}
+and from Lemma \ref{l:nulling-rewrite}
+\end{proof}
+
+\begin{theorem}\label{t:O1-links-per-eim}
+If links are considered,
+all space in \Marpa{} can be allocated
+to the Earley items
+in such a way that each Earley item
+and each attempt to
+add a duplicate Earley item
+requires \Oc{} space.
+\end{theorem}
+
+\begin{proof}
+The theorem follows from the observations
+in Section \ref{s:pseudocode}
+and from Lemma \ref{l:nulling-rewrite}
 \end{proof}
 
 \subsection{Duplicate dotted rules}
@@ -2329,7 +2377,7 @@ in the scan and reduction operations.
 \end{equation*}
 
 The final and most complicated case is Earley reduction.
-\Marpa{} attempts to add a reduced EIM
+\Marpa{} attempts to add an Earley reduction result
 once for every each pair
 \begin{equation*}
 [\Veim{predecessor}, \Vsym{lhs}],
@@ -2434,7 +2482,8 @@ EIM's is on the order of
 \end{equation*}
 where \var{d} is a constant which depends on \Cg.
 Therefore,
-by Theorem \ref{t:O1-per-eim},
+by Theorems \ref{t:O1-time-per-eim}
+and \ref{t:O1-space-per-eim},
 the time and space complexity of \Marpa{} for LR-regular
 grammars is
 \begin{equation*}
@@ -2481,7 +2530,8 @@ EIM's is
 \end{equation*}
 where \var{c} is a constant which depends on \Cg.
 Therefore,
-by Theorem \ref{t:O1-per-eim},
+by Theorems \ref{t:O1-time-per-eim}
+and \ref{t:O1-space-per-eim},
 the time and space complexity of \Marpa{} for LR-regular
 grammars is \order{\var{n}^2}.
 \end{proof}
@@ -2530,7 +2580,7 @@ becomes
  \sum\limits_{\Vloc{j}=0}^{n}{\order{\var{j}^2}+ \var{c} \times \Vloc{j}} = \order{\var{n}^3}
 \end{equation*}
 Therefore,
-by Theorem \ref{t:O1-per-eim},
+by Theorem \ref{t:O1-time-per-eim},
 the time complexity of \Marpa{} for context-free
 grammars is \order{\var{n}^3}.\qedhere
 \end{sloppypar}
