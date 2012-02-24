@@ -1287,6 +1287,7 @@ the number of symbols in
 \end{algorithm}
 
 \subsection{Reduce one LHS}
+\label{p:reduce-one-lhs}
 
 To show that
 \begin{equation*}
@@ -2156,26 +2157,31 @@ per Earley item.
 All time and space required
 to rewrite the grammar to eliminate nulling
 symbols, and to restore those rules afterwards
-in the Earley sets
+in the Earley sets,
 can be allocated
-to the Earley items,
+to the Earley items
 in such a way that each Earley item
-requires \Oc{} time.
+requires \Oc{} time and space.
 \end{lemma}
 
 \begin{proof}
 The time and space used in the rewrite is a constant
 which depends on the grammar,
-and can be accounted for
-by charging the time to the parse.
-The time for its reversal,
-can be accounted for by charging it
-to the Earley item from which
-being rewritten.
-This time and space is \Oc{} for each Earley item,
+and is charged to the parse.
+The reversal of the rewrite can be
+done in a loop over the Earley items,
+which will have time and space costs
+per Earley item,
+plus a fixed overhead.
+The fixed overhead is \Oc{}
+and is charged to the parse.
+The time and space per Earley item
+is \Oc{}
 because the number of
-rules into which another rule can be rewritten
-by adding nulling symbols is a constant which depends
+rules into which another rule must be rewritten,
+and therefore the number of Earley items
+into which another Earley item must be rewritten,
+is a constant which depends
 on the grammar.
 \end{proof}
 
@@ -2188,12 +2194,6 @@ add a duplicate Earley item,
 requires \Oc{} time.
 \end{theorem}
 
-\begin{proof}
-The theorem follows from the observations
-in Section \ref{s:pseudocode}
-and from Lemma \ref{l:nulling-rewrite}
-\end{proof}
-
 \begin{theorem}\label{t:O1-space-per-eim}
 All space in \Marpa{} can be allocated
 to the Earley items,
@@ -2203,12 +2203,6 @@ if links are not considered,
 each attempt to add a duplicate
 Earley item adds no additional space.
 \end{theorem}
-
-\begin{proof}
-The theorem follows from the observations
-in Section \ref{s:pseudocode}
-and from Lemma \ref{l:nulling-rewrite}
-\end{proof}
 
 \begin{theorem}\label{t:O1-links-per-eim}
 If links are considered,
@@ -2220,10 +2214,13 @@ add a duplicate Earley item
 requires \Oc{} space.
 \end{theorem}
 
-\begin{proof}
-The theorem follows from the observations
+\begin{proof}[Proof of Theorems
+\ref{t:O1-time-per-eim},
+\ref{t:O1-space-per-eim},
+and \ref{t:O1-links-per-eim}]
+These theorems follows from the observations
 in Section \ref{s:pseudocode}
-and from Lemma \ref{l:nulling-rewrite}
+and from Lemma \ref{l:nulling-rewrite}.
 \end{proof}
 
 \subsection{Duplicate dotted rules}
@@ -2317,9 +2314,7 @@ the grammar is ambiguous,
 contrary to assumption.
 
 In \Marpa, there is an slight complication,
-because of which we must prove a result which is weaker,
-but still sufficient to produce the same complexity results.
-In \Marpa, a dotted rule can occur in more than one AHFA
+A dotted rule can occur in more than one AHFA
 state.
 Because of that,
 it is possible that two of \Marpa's
@@ -2327,6 +2322,10 @@ operations to add an EIM
 will represent identical Earley causations,
 and therefore will be
 consistent with an unambiguous grammar.
+Dealing with this complication requires us
+to prove a result which is weaker than that of \cite{Earley1970},
+but that is
+still sufficient to produce the same complexity results.
 
 We now restate our argument more formally.
 Let \var{initial-tries} be the number of attempts to add the initial item to
@@ -2344,7 +2343,9 @@ we note that by its definition,
 duplicate attempts at Leo reduction cannot occur.
 Let \var{max-AHFA} be the maximum number of 
 dotted rules in any AHFA state.
-Clearly there will be at most one Leo reduction for
+From the pseudo-code of Sections \label{p:reduce-one-lhs}
+and \label{p:leo-op},
+we know there will be at most one Leo reduction for
 each each dotted rule in the current Earley set,
 \Vloc{j}.
 \begin{equation*}
@@ -2355,14 +2356,16 @@ Let \var{scan-tries} be the number of attempted Leo reductions in
 Earley set \Vloc{j}.
 Marpa attempts a scan operation,
 in the worst case,
-once for every EIM in the Earley set \Eloc{(\var{j} \subtract 1)}.
+once for every EIM in the Earley set
+at $\Vloc{j} \subtract 1$.
 Therefore, the number of attempts
 to add scans
-must be less than equal to \size{\Vtable{j-1}},
+must be less than equal to \size{\Etable{\var{j} \subtract 1}},
 the number
-of actual Earley items at \Eloc{(\var{j} \subtract 1)}.
+of actual Earley items at 
+$\Vloc{j} \subtract 1$.
 \begin{equation*}
-\var{scan-tries} \le \size{\Vtable{j-1}}
+\var{scan-tries} \le \size{\Etable{\var{j} \subtract 1}}
 \end{equation*}
 
 Let \var{predict-tries} be the number of attempted predictions in
@@ -2391,10 +2394,10 @@ and \Veim{predecessor} is an EIM
 in the Earley set which is origin of the component EIM.
 The number of possibilities for \Vsym{lhs}
 is less than or equal to
-$\var{max-AHFA} \times \size{\Vtable{j}}$,
+$\var{max-AHFA} \times \bigsize{\Vtable{j}}$,
 where \var{max-AHFA} is the maximum number of completed rules in
 an AHFA state,
-and $\size{\Vtable{j}}$ is the number of Earley items
+and $\bigsize{\Vtable{j}}$ is the number of Earley items
 in the Earley set being built.
 
 Here the memoization of $\mymathop{transitions}$
@@ -2407,7 +2410,7 @@ that matches the transition symbol.
 Call this number \Vsize{matching}.
 The number of reduction attempts will be less than
 \begin{equation*}
-\var{max-AHFA} \times \Vsize{matching} \times \size{\Vtable{j}}
+\var{max-AHFA} \times \Vsize{matching} \times \bigsize{\Vtable{j}}
 \end{equation*}
 
 Since by assumption
@@ -2426,7 +2429,7 @@ where \Vsize{\Vfa} is the number of AHFA states,
 a constant that depends on \Cg.
 From the foregoing, we know that 
 \begin{equation*}
-\var{reduction-tries} \le \var{max-AHFA} \times \size{\Vfa} \times \size{\Vtable{j}}
+\var{reduction-tries} \le \var{max-AHFA} \times \size{\Vfa} \times \bigsize{\Vtable{j}}
 \end{equation*}
 
 \begin{sloppypar}
