@@ -1044,18 +1044,16 @@ Alongside the pseudocode of this section
 are observations about its space and time complexity.
 In what follows,
 we will charge all time and space resources
-to attempts to add Earley items.
-We will show that
-each addition of an Earley item to the
-Earley table takes amortized \Oc{} time and space.
-We will see show
-that to Earley item actually added,
+to Earley items,
+or to attempts to add Earley items.
+We will show that,
+to each Earley item actually added,
 or to each attempt to add a duplicate Earley item,
-we can charge amortized \Oc{} time.
+we can charge amortized \Oc{} time and space.
 In Section \ref{s:complexity},
 we will characterize
 the order of magnitude of the actual Earley items
-and of the attempts to add Earley items,
+and of attempts to add Earley items,
 and their relationship to each other.
 
 At points, it will not be immediately
@@ -1072,14 +1070,14 @@ we speak of charging time and space
 \end{itemize}
 
 We can charge time and space to the parse itself,
-as long as the time and space charged is \Oc.
+as long as the total time and space charged is \Oc.
 Afterwards, this resource can be re-charged to
 the initial Earley item, which is present in all parses.
-Soft and hard failures always use
+Soft and hard failures use
 worst-case \Oc{} resource,
-and are always charged to the parse.
+and are charged to the parse.
 
-We will charge resources to the Earley set,
+We can charge resources to the Earley set,
 as long as the time or space is \Oc.
 Afterwards,
 the resource charged to the Earley set can be
@@ -1126,8 +1124,11 @@ a procedure's direct or indirect caller.
 \subsection{Top-level code}
 
 Exclusive time and space for the loop over the Earley sets
-is charged to the Earley sets,
-and overhead is charged to the parse.
+is charged to the Earley sets.
+Inclusive time and space for the final loop to
+check for \Vdr{accept} is charged to
+the Earley items at location \size{\Cw}.
+Overhead is charged to the parse.
 All these resource charges are obviously \Oc.
 
 \subsection{Ruby Slippers parsing}
@@ -1196,6 +1197,7 @@ which can easily be tracked in \Oc{} space
 and retrieved in \Oc{} time.
 Inclusive time and space can be charged to the
 \Veim{predecessor}.
+Overhead is charged to the Earley set at \Vloc{i}.
 \end{sloppypar}
 
 \begin{algorithm}[h]
@@ -1254,9 +1256,9 @@ added to Earley set \Vloc{i}.
 This can be done in
 a single pass over Earley set \Vloc{i},
 in \Oc{} time per EIM.
-The time and space required are charged to the
+The inclusive time and space are charged to the
 Earley items being examined.
-Any loop overhead may be charged to the Earley set.
+Loop overhead is charged to the Earley set at \Vloc{i}.
 
 In setting up the \var{transitions} table for the current Earley set,
 the Leo items must be created.
@@ -1264,9 +1266,6 @@ For each Earley set,
 the number of Leo items is at most
 the number of symbols in
 \Vsymset{vocab}.
-Since the maximum number of Leo items is a constant
-depending on \Cg{},
-their space and time may be charged to the Earley set.
 
 \begin{algorithm}[h]
 \caption{Reduce one LHS symbol}
@@ -1289,11 +1288,12 @@ their space and time may be charged to the Earley set.
 
 \subsection{Reduce one LHS}
 
-Inclusive time is charged to the EIM attempt.
-We see that
-$\var{transitions}(\Vloc{origin},\Vsym{lhs})$
-can be done in \Oc{} time
-if we note
+To show that
+\begin{equation*}
+\var{transitions}(\Vloc{origin},\Vsym{lhs})
+\end{equation*}
+can be done in \Oc{} time,
+we note
 that the number of symbols is a constant
 and assume that \Vloc{origin} is implemented
 as a link back to the Earley set,
@@ -1304,6 +1304,11 @@ carry a link
 back to its origin.
 As implemented, Marpa's
 Earley items have such links.
+
+Inclusive time
+for the loop over the EIM attempts
+is charged to each EIM attempt.
+Overhead is caller-included.
 
 \begin{algorithm}[h]
 \caption{Earley reduction operation}
@@ -1321,8 +1326,10 @@ Earley items have such links.
 
 \begin{sloppypar}
 Exclusive time and space is clearly \Oc.
-Inclusive time and space is charged to the
-calling procedure.
+\call{Earley reduction operation}{} is always
+called as part of an EIM attempt,
+and inclusive time and space is charged to the EIM
+attempt.
 \end{sloppypar}
 
 \begin{algorithm}[h]
@@ -1340,8 +1347,10 @@ calling procedure.
 \label{p:leo-op}
 
 Exclusive time and space is clearly \Oc.
-Inclusive time and space is charged to the
-calling procedure.
+\call{Leo reduction operation}{} is always
+called as part of an EIM attempt,
+and inclusive time and space is charged to the EIM
+attempt.
 
 \begin{algorithm}[h]
 \caption{Add EIM pair}\label{a:pair}
@@ -1396,6 +1405,18 @@ The data structures used are not named in either source,
 and in this \doc{} they will be called ``per-Earley set lists'',
 or PSL's.
 PSL's are the subject of the next section.
+
+The resource used by \call{Add EIM Pair}{}
+is always caller-included.
+The time and space for an EIM attempt
+is always charged against \Veim{confirmed},
+including the time and space used
+to add or to attempt to add \Veim{predicted}.
+This means the no time or space is ever charged
+to a predicted Earley item.
+At most one attempt to add a \Veim{predicted} will 
+be made per attempt to add a \Veim{confirmed},
+so that the total resource charge remains \Oc.
 
 \subsection{Per-set lists}
 
@@ -1452,6 +1473,48 @@ that is,
 As implemented,
 Marpa uses PSL's to check if EIM's are new,
 and for several other purposes.
+
+\subsection{Complexity summary}
+
+For convenience, we collect and summarize here
+some of the observations of this section.
+
+\begin{observation}
+The time and space charged to an Earley item
+which is actually added to the Earley sets
+is \Oc.
+\end{observation}
+
+\begin{observation}
+The time charged to an attempt
+to add a duplicate Earley item to the Earley sets
+is \Oc.
+\end{observation}
+
+For evaluation purposes, \Marpa{} adds a link to
+each EIM that records each attempt to
+add that EIM,
+whether originally or as a duplicate.
+Traditionally, complexity results treat parsers
+as recognizers, and such costs are ignored.
+This will be an issue when the space complexity
+for unambiguous grammars is considered.
+
+\begin{observation}
+The space charged to an attempt
+to add a duplicate Earley item to the Earley sets
+is \Oc if links are included,
+zero otherwise.
+\end{observation}
+
+As noted in Section \ref{p:add-eim-pair},
+the time and space used by predicted Earley items
+and attempts to add them is charged elsewhere.
+
+\begin{observation}
+No space or time is charged to predicted Earley items,
+or to attempts to add predicted Earley items.
+\end{observation}
 
 \section{Preliminaries to the theoretical results}
 \label{s:proof-preliminaries}
