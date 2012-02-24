@@ -304,7 +304,9 @@ Where \Vstr{s} is a string,
 let \size{\Vstr{s}} be its length, counted in symbols.
 Let $\var{abced}^+$ be
 \begin{equation*}
-\bigset{ \Vstr{x} : \var{x} \in \Vsymset{vocab} \land \Vsize{\Vstr{x}} > 0 }
+\bigl\{ \Vstr{x}
+\bigm| \var{x} \in \Vsymset{vocab} \land \Vsize{\Vstr{x}} > 0
+\bigr\}
 \end{equation*}
 
 In this \doc{} we use,
@@ -526,6 +528,12 @@ For convenience, the type \type{ORIG} will be a synonym
 for \type{LOC}, indicating that the variable designates
 the origin element of an Earley item.
 
+An Earley parser builds a table of Earley sets,
+\begin{equation*}
+\EVtable{\Earley}{i},
+\quad \text{where} \quad
+0 \le \Vloc{i} \le \size{\Cw}.
+\end{equation*}
 At points,
 we will need to compare the Earley sets
 produced by the different recognizers.
@@ -558,12 +566,6 @@ For example,
 of Earley items in all the Earley sets of
 a \Marpa{} parse.
 
-An Earley parser builds a table of Earley sets,
-\begin{equation*}
-\EVtable{\Earley}{i},
-\quad \text{where} \quad
-0 \le \Vloc{i} \le \size{\Cw}.
-\end{equation*}
 Recall that
 \begin{equation*}
 \Vrule{accept} \defined [ \Vsym{accept} \de \Vsym{start} ].
@@ -690,10 +692,11 @@ are \Veimt{predecessor} and \Vsym{lhs}.
 	\Veimt{predecessor} \in \Vtable{current}
     \end{array}
 }{
-    \bigset{
-	    [ \Vdr{d}, \var{current} ] :
+    \bigl\{
+	    [ \Vdr{d}, \var{current} ]
+    \bigm|
 	    \Vdr{d} \in \Predict{\Vdr{predecessor}}
-    }
+    \bigr\}
 }
 \end{equation*}
 where $\mymathop{Predict}(\Vdr{d})$
@@ -805,7 +808,7 @@ Leo items or Earley items,
 and which is intended will be clear from
 the context.
 
-\subsection{Leo Reduction}
+\subsection{Leo reduction}
 
 \begin{equation*}
 \inference{
@@ -814,7 +817,7 @@ the context.
      [ \Vsym{lhs} \de \Vstr{rhs} \mydot ] 
     , \Vorig{component} \bigr] \\
     \Veimt{component} \in \Vtable{current} \\[3pt]
-	\Vlimt{predecessor} \in \EVtable{\Earley}{\Vorig{component}} \\
+	\Vlimt{predecessor} \in \Etable{\Vorig{component}} \\
 	\Vlimt{predecessor} = [ \Vdr{top}, \Vsym{lhs}, \Vorig{top} ]
     \end{array}
 }{
@@ -837,7 +840,7 @@ are \Vlimt{predecessor} and \Vsym{lhs}.
 
 Earley reduction still applies, with an additional premise:
 \begin{multline*}
-\forall \Vlimt{x} \in \EVtable{\Earley}{\Vorig{component}} \\
+\forall \Vlimt{x} \in \Etable{\Vorig{component}} \\
 	(\Vlimt{x} = [ \Vdr{x}, \Vsym{x}, \Vorig{x} ] \implies \Vsym{x} \ne \Vsym{lhs})
 \end{multline*}
 The additional premise
@@ -889,8 +892,9 @@ into a single DFA state.
 AHFA states are, in effect,
 a shorthand
 for groups of dotted rules that occur together frequently.
-Aycock and Horspool realized that by changing Earley items
-to track AHFA states, instead of individual dotted rules,
+Aycock and Horspool realized that,
+by changing Earley items to track AHFA states
+instead of individual dotted rules,
 the size of Earley sets could be reduced,
 and Earley's algorithm made faster in practice.
 
@@ -1228,7 +1232,7 @@ set and adding new items at the end.
 
 Exclusive time is clearly \Oc{}
 and may be charged to each \Veim{work}.
-Overhead may be charged to the Earley set.
+Overhead may be charged to the Earley set at \Vloc{i}.
 
 \begin{algorithm}[h]
 \caption{Memoize transitions}
@@ -1258,14 +1262,15 @@ a single pass over Earley set \Vloc{i},
 in \Oc{} time per EIM.
 The inclusive time and space are charged to the
 Earley items being examined.
-Loop overhead is charged to the Earley set at \Vloc{i}.
+Overhead is charged to the Earley set at \Vloc{i}.
 
 In setting up the \var{transitions} table for the current Earley set,
 the Leo items must be created.
-For each Earley set,
-the number of Leo items is at most
+This can be done in \Oc{} time per Earley set,
+since the number of Leo items is at most
 the number of symbols in
-\Vsymset{vocab}.
+\Vsymset{vocab},
+which is a constant depending on \Cg{}.
 
 \begin{algorithm}[h]
 \caption{Reduce one LHS symbol}
@@ -1417,7 +1422,9 @@ This means that no time or space is ever charged
 to a predicted Earley item.
 At most one attempt to add a \Veim{predicted} will 
 be made per attempt to add a \Veim{confirmed},
-so that the total resource charge remains \Oc.
+so that the total resource charged
+to each \Veim{confirmed}
+remains \Oc.
 
 \subsection{Per-set lists}
 
@@ -1545,7 +1552,7 @@ an input \Cw{}
 will not depend on the nulling symbols in its rules.
 
 In its implementation,
-\Marpa's does not directly rewrite the grammar
+\Marpa{} does not directly rewrite the grammar
 to eliminate nulling symbols.
 But nulling symbols are ignored in
 creating the AHFA states,
@@ -1927,7 +1934,10 @@ and Earley predictions.
 \begin{sloppypar}
 For scanning, the Marpa pseudocode shows
 that, a scan is attempted for every
-pair \Veim{predecessor}, \Vsym{token},
+pair
+\begin{equation*}
+[\Veim{predecessor}, \Vsym{token}],
+\end{equation*}
 where \Veim{predecessor} is an EIM in the previous
 Earley set,
 and \Vsym{token} is the token scanned at \Vloc{i}.
@@ -2313,7 +2323,7 @@ That in turn would mean that
 the grammar is ambiguous,
 contrary to assumption.
 
-In \Marpa, there is an slight complication,
+In \Marpa, there is an slight complication.
 A dotted rule can occur in more than one AHFA
 state.
 Because of that,
@@ -2458,7 +2468,7 @@ where \var{c} is a constant which depends on \Cg.\qedhere
 For a context-free grammar,
 and a parse location \Vloc{i},
 \begin{equation*}
-\bigsize{\EVtable{\Marpa}{i}} = \order{\var{i}}
+\bigsize{\EVtable{\Marpa}{i}} = \order{\var{i}}.
 \end{equation*}
 
 \begin{proof}
@@ -2602,7 +2612,7 @@ EIM's is on the order of
 where \var{d} is a constant which depends on \Cg.
 Therefore,
 by Theorems \ref{t:O1-time-per-eim}
-and \ref{t:O1-space-per-eim},
+and \ref{t:O1-links-per-eim},
 the time and space complexity of \Marpa{} for LR-regular
 grammars is
 \begin{equation*}
@@ -2628,7 +2638,7 @@ EIM's is
 where \var{c} is a constant which depends on \Cg.
 Therefore,
 by Theorems \ref{t:O1-time-per-eim}
-and \ref{t:O1-space-per-eim},
+and \ref{t:O1-links-per-eim},
 the time and space complexity of \Marpa{}
 for unambiguous grammars is \order{\var{n}^2}.
 \end{proof}
@@ -2674,8 +2684,7 @@ has been assumed.
 As implemented,
 Marpa generalizes the idea of 
 input streams beyond the traditional
-model, as well as that so far described
-for \Cg{} and \Cw.
+model.
 
 As noted, the distinction between
 terminal and non-terminal symbols is
@@ -2683,8 +2692,6 @@ not central in \Marpa{}.
 In particular,
 Marpa allows a symbol to be both a terminal
 and a LHS.
-Where a user finds
-the traditional distinctions useful,
 Marpa has options that allow
 the user to reinstate
 the traditional restrictions,
@@ -2797,8 +2804,8 @@ there be a constant \var{c} such that
     \bigr\} \Bigr| < \var{c}
 \end{gather*}
 These restrictions
-impose little or no limit on
-the practical use
+impose little or no obstacle
+to the practical use
 of Marpa's generalized input model.
 And with them,
 the complexity results for \Marpa{} stand.
