@@ -2333,7 +2333,7 @@ the Earley sets.
 For Earley set 0, it is clear from the pseudocode
 that there will be no attempts to add duplicate EIM's:
 \begin{equation*}
-\var{initial-tries} = \size{\Vtable{0}}
+\var{initial-tries} = \bigsize{\Vtable{0}}
 \end{equation*}
 
 Let \var{leo-tries} be the number of attempted Leo reductions in
@@ -2343,13 +2343,13 @@ we note that by its definition,
 duplicate attempts at Leo reduction cannot occur.
 Let \var{max-AHFA} be the maximum number of 
 dotted rules in any AHFA state.
-From the pseudo-code of Sections \label{p:reduce-one-lhs}
-and \label{p:leo-op},
+From the pseudo-code of Sections \ref{p:reduce-one-lhs}
+and \ref{p:leo-op},
 we know there will be at most one Leo reduction for
 each each dotted rule in the current Earley set,
 \Vloc{j}.
 \begin{equation*}
-\var{leo-tries} \le \var{max-AHFA} \times \size{\Vtable{j}}
+\var{leo-tries} \le \var{max-AHFA} \times \bigsize{\Vtable{j}}
 \end{equation*}
 
 Let \var{scan-tries} be the number of attempted Leo reductions in
@@ -2360,12 +2360,12 @@ once for every EIM in the Earley set
 at $\Vloc{j} \subtract 1$.
 Therefore, the number of attempts
 to add scans
-must be less than equal to \size{\Etable{\var{j} \subtract 1}},
+must be less than equal to \bigsize{\Etable{\var{j} \subtract 1}},
 the number
 of actual Earley items at 
 $\Vloc{j} \subtract 1$.
 \begin{equation*}
-\var{scan-tries} \le \size{\Etable{\var{j} \subtract 1}}
+\var{scan-tries} \le \bigsize{\Etable{\var{j} \subtract 1}}
 \end{equation*}
 
 Let \var{predict-tries} be the number of attempted predictions in
