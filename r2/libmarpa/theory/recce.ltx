@@ -85,9 +85,9 @@
 
 \newcommand{\Vfa}{\var{fa}}
 \newcommand{\Cg}{\var{g}}
-\newcommand{\Vw}{\var{w}}
-\newcommand{\CVw}[1]{\ensuremath{\sym{\Vw[\var{#1}]}}}
-\newcommand{\CEw}[1]{\ensuremath{\sym{\Vw[#1]}}}
+\newcommand{\Cw}{\var{w}}
+\newcommand{\CVw}[1]{\ensuremath{\sym{\Cw[\var{#1}]}}}
+\newcommand{\CEw}[1]{\ensuremath{\sym{\Cw[#1]}}}
 \newcommand{\Vrules}{\var{rules}}
 \newcommand{\GOTO}{\mymathop{GOTO}}
 \newcommand{\Next}[1]{\mymathop{Next}(#1)}
@@ -261,7 +261,7 @@ contain a proof of Marpa's correctness,
 while Section \ref{s:complexity} contains
 its complexity results.
 Finally,
-section \ref{s:input} discusses
+section \ref{s:input}
 generalizes Marpa's input model.
 
 \section{Preliminaries}
@@ -356,7 +356,7 @@ of rules,
 and every symbol except \Vsym{accept} can be a terminal.
 
 Let the input to
-the parse be \Vw such that $\Vw \in \var{vocab}^\ast$.
+the parse be \Cw{} such that $\Cw \in \var{vocab}^\ast$.
 Locations in the input will be of type \type{LOC}.
 Let \Vsize{w} be the length of the input, counted in symbols.
 Let \CVw{i} be character \var{i}
@@ -550,7 +550,7 @@ in \Ees{\var{working}}.
 of Earley items in all Earley sets for \alg{Recce},
 \begin{equation*}
 \Rtablesize{\alg{Recce}} =
-     \sum\limits_{\Vloc{i}=0}^{\size{\Vw}}
+     \sum\limits_{\Vloc{i}=0}^{\size{\Cw}}
 	{\bigsize{\EVtable{\alg{Recce}}{i}}}.
 \end{equation*}
 For example,
@@ -562,7 +562,7 @@ An Earley parser builds a table of Earley sets,
 \begin{equation*}
 \EVtable{\Earley}{i},
 \quad \text{where} \quad
-0 \le \Vloc{i} \le \size{\Vw}.
+0 \le \Vloc{i} \le \size{\Cw}.
 \end{equation*}
 Recall that
 \begin{equation*}
@@ -572,9 +572,9 @@ Let
 \begin{equation*}
 \Vdr{accept} \defined [ \Vsym{accept} \de \Vsym{start} \mydot ].
 \end{equation*}
-The input \Vw{} is accepted if and only if
+The input \Cw{} is accepted if and only if
 \begin{equation*}
-[\Vdr{accept}, 0] \in \bigEtable{\Vsize{\Vw}}
+[\Vdr{accept}, 0] \in \bigEtable{\Vsize{\Cw}}
 \end{equation*}
 
 \section{Operations of the Earley algorithm}
@@ -1109,16 +1109,16 @@ a procedure's direct or indirect caller.
 \State \Comment At this point, $\Etable{\var{x}}$ is complete, for $0 \le \var{x} < \var{i}$
 \State \Call{Scan pass}{$\var{i}, \var{w}[\var{i} \subtract 1]$}
 \If{$\size{\Etable{\var{i}}} = 0$}
-\State reject \Vw{} and return
+\State reject \Cw{} and return
 \EndIf
 \State \Call{Reduction pass}{\var{i}}
 \EndFor
 \For{every $[\Vah{x}, 0] \in \Etable{\Vsize{w}}$}
 \If{$\Vdr{accept} \in \Vah{x}$}
-\State accept \Vw{} and return
+\State accept \Cw{} and return
 \EndIf
 \EndFor
-\State reject \Vw{}
+\State reject \Cw{}
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -1477,7 +1477,7 @@ of the rewrite is kept,
 and that the rewrite is reversed
 after the parse.
 Clearly, whether a grammar \Cg{} accepts
-an input \Vw{}
+an input \Cw{}
 will not depend on the nulling symbols in its rules.
 
 In its implementation,
@@ -2332,7 +2332,7 @@ where \var{c} is a constant which depends on \Cg.\qedhere
 We are now in a position to show
 specific time and space complexity results.
 For these we follow the tradition by
-expressing \Vsize{\Vw},
+expressing \Vsize{\Cw},
 the length of the input,
 as \var{n}.
 
@@ -2344,9 +2344,9 @@ For every LR-regular grammar,
 \begin{proof}
 By Theorem 4.6 in \cite[p. 173]{Leo1991},
 the number of traditional Earley items produced by
-\Leo{} when parsing input \Vw{} with an LR-regular grammar \Cg{} is
+\Leo{} when parsing input \Cw{} with an LR-regular grammar \Cg{} is
 \begin{equation*}
-\order{\Vsize{\Vw}} = \order{\var{n}}.
+\order{\Vsize{\Cw}} = \order{\var{n}}.
 \end{equation*}
 By Theorem \ref{t:marpa-O-leo},
 the number of EIM's \Marpa{} will require for the same parse
@@ -2396,7 +2396,7 @@ the maximum size of Earley set \Vloc{i} is therefore
 where in this context \Vloc{i} is to be treated
 as an integer, the ordinal of Earley set \Vloc{i}.
 Summing over the length of the input,
-$\Vsize{\Vw} = \var{n}$,
+$\Vsize{\Cw} = \var{n}$,
 the number of EIM's in all of \Marpa's Earley sets
 is \order{\var{n}^2}.
 By assumption, \Cg{} is unambiguous, so that
@@ -2470,7 +2470,7 @@ As implemented,
 Marpa generalizes the idea of 
 input streams beyond the traditional
 model, as well as that so far described
-for \Cg{} and \Vw.
+for \Cg{} and \Cw.
 To avoid cluttering the theoretical results,
 their discussion was deferred.
 
@@ -2504,7 +2504,7 @@ such that
 \begin{equation*}
     \var{length} \ge 1 \wedge \Vloc{start} \ge 0
 \end{equation*}
-The size of the input, \size{\Vw},
+The size of the input, \size{\Cw},
 is the maximum over
 \var{tokens} of $\Vloc{start}+\var{length}$.
 
@@ -2524,7 +2524,7 @@ and the start and end location of a token is indicated in earlemes.
 \end{sloppypar}
 
 Like standard parse locations, earlemes start at 0,
-and run up to \size{\Vw}.
+and run up to \size{\Cw}.
 Unlike standard parse locations,
 there is not necessarily a token ``at'' any particular earleme.
 (A token is considered to be ``at an earleme'' if it ends there,
@@ -2541,7 +2541,7 @@ may interweave and overlap freely,
 but gaps are not allowed.
 That is,
 \begin{multline*}
-     \forall \Vloc{i}, 0 \le \var{i} < \size{\Vw}, \\
+     \forall \Vloc{i}, 0 \le \var{i} < \size{\Cw}, \\
      \exists (\Vsym{t}, \Vloc{start}, \var{length}) \in \var{tokens}, \\
     \var{start} \le \var{i} < \var{start}+\var{length}
 \end{multline*}
@@ -2585,7 +2585,7 @@ Define $\mymathop{future}(\Vloc{i})$ as
 \end{equation*}
 The two restrictions are that,
 for all \Vloc{i}, 
-$0 \le i < \size{\Vw}$,
+$0 \le i < \size{\Cw}$,
 we require that
 there be a constant \var{c} such that
 \begin{gather*}
