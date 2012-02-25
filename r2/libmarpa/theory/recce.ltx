@@ -1623,80 +1623,69 @@ and consistent.
 
 Several facts from \cite{AH2002}
 will be heavily used in the following proofs.
-For convenience, they are restated here
-in the form of inference rules.
+For convenience, they are restated here.
 
 \begin{observation}
 \label{o:confirmed-AHFA-consistent}
-AHFA confirmation is consistent.
-\begin{equation*}
-\inference{
-    \begin{array}{c}
-	\Vdr{to} \in \Vah{to} \\
-	\GOTO(\Vah{from}, \Vsym{t}) = \Vah{to}
-    \end{array}
-}{
-    \begin{array}{c}
-	\Vdr{from} \in \Vah{from} \\
-	\Vsym{t} = \Postdot{\Vdr{from}} \\
-	\Next{\Vdr{from}} = \Vdr{to} \\
-    \end{array}
-}
-\end{equation*}
+AHFA confirmation is consistent.  That is,
+for all \Vah{from}, \Vsym{t}, \Vah{to}, \Vdr{to} where
+\begin{gather*}
+\GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \quad \text{and} \\
+\Vdr{to} \in \Vah{to},
+\end{gather*}
+there exists \Vdr{from} such that
+\begin{gather*}
+    \Vdr{from} \in \Vah{from} \quad \text{and} \\
+    \Vsym{t} = \Postdot{\Vdr{from}} \quad \text{and} \\
+    \Next{\Vdr{from}} = \Vdr{to}.
+\end{gather*}
 \end{observation}
 
 \begin{observation}
 \label{o:confirmed-AHFA-complete}
-AHFA confirmation is complete.
-\begin{equation*}
-\inference{
-    \begin{array}{c}
-	\Postdot{\Vdr{from}} = \Vsym{t} \\
-	\GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \\
-	\Vdr{from} \in \Vah{from}
-    \end{array}
-}{
-    \forall \Vdr{to} \,
-    \bigl(
-	\Next{\Vdr{from}} = \Vdr{to} \implies \Vdr{to} \in \Vah{to}
-    \bigr)
-}
-\end{equation*}
+AHFA confirmation is complete.  That is,
+for all \Vah{from}, \Vsym{t}, \Vah{to}, \Vdr{from} where
+\begin{gather*}
+\GOTO(\Vah{from}, \Vsym{t}) = \Vah{to} \quad \text{and} \\
+\Vdr{from} \in \Vah{from} \quad \text{and} \\
+\Postdot{\Vdr{from}} = \Vsym{t},
+\end{gather*}
+there exists \Vdr{to} such that
+\begin{gather*}
+\Next{\Vdr{from}} = \Vdr{to} \quad \text{and} \\
+\Vdr{to} \in \Vah{to}.
+\end{gather*}
 \end{observation}
 
+\begin{sloppypar}
 \begin{observation}
 \label{o:predicted-AHFA-consistent}
-AHFA prediction is consistent.
-\begin{equation*}
-\inference{
-    \begin{array}{c}
-	\Vdr{to} \in \Vah{to} \\
-	\GOTO(\Vah{from}, \epsilon) = \Vah{to}
-    \end{array}
-}{
-    \begin{array}{c}
-	\Vdr{from} \in \Vah{from} \\
-	\Vdr{to} \in \Predict{\Vdr{from}}
-    \end{array}
-}
-\end{equation*}
+AHFA prediction is consistent.  That is,
+for all \Vah{from}, \Vah{to}, \Vdr{to} where
+\begin{gather*}
+\GOTO(\Vah{from}, \epsilon) = \Vah{to} \quad \text{and} \\
+\Vdr{to} \in \Vah{to},
+\end{gather*}
+there exists \Vdr{from} such that
+\begin{gather*}
+    \Vdr{from} \in \Vah{from} \quad \text{and} \\
+    \Vdr{to} \in \Predict{\Vdr{from}}.
+\end{gather*}
 \end{observation}
+\end{sloppypar}
 
 \begin{observation}
 \label{o:predicted-AHFA-complete}
-AHFA prediction is complete.
+AHFA prediction is complete.  That is,
+for all \Vah{from}, \Vah{to}, \Vdr{from}, \Vdr{to}, if
+\begin{gather*}
+\GOTO(\Vah{from}, \epsilon) = \Vah{to} \quad \text{and} \\
+\Vdr{from} \in \Vah{from} \quad \text{and} \\
+\Vdr{to} \in \Predict{\Vdr{from}},
+\end{gather*}
+then
 \begin{equation*}
-\inference{
-    \begin{array}{c}
-	\GOTO(\Vah{from}, \epsilon) = \Vah{to} \\
-	\Vdr{from} \in \Vah{from}
-    \end{array}
-}{
-    \forall \Vdr{to} \,
-    \bigl( \Vdr{to} \in \Predict{\Vdr{from}}
-	\implies \Vdr{to} \in \Vah{to}
-    \bigr)
-}
+\Vdr{to} \in \Vah{to}.
 \end{equation*}
 \end{observation}
 
