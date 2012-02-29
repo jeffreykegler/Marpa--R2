@@ -135,7 +135,7 @@ sub canonical {
     # as long as it remains lower-case, with
     # _ or - 
     $template =~ s{
-	\s at \s t[/][a-z0-9_-]*[.]t \s line \s \d+ [^\n]*
+	\s at \s t[^.]+[.]t \s line \s \d+ [^\n]*
     }{ at <LOCATION>}gxms;
     return $template;
 } ## end sub canonical
