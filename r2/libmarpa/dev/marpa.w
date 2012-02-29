@@ -11462,7 +11462,8 @@ of symbols in the
 original (or "virtual") rules.
 This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
-@d V_is_Active(val) ((val)->t_active)
+@d Next_Action_of_V(val) ((val)->t_next_action)
+@d V_is_Active(val) (Next_Action_of_V(val) != V_NOT_ACTIVE)
 @d V_is_Trace(val) ((val)->t_trace)
 @d NOOK_of_V(val) ((val)->t_nook)
 @d SYMID_of_V(val) ((val)->t_semantic_token_id)
@@ -11481,10 +11482,10 @@ struct s_value {
     SYMID t_semantic_token_id;
     gpointer t_token_value;
     RULEID t_semantic_rule_id;
+    gint t_next_action;
     gint t_tos;
     gint t_arg_n;
     guint t_trace:1;
-    guint t_active:1;
 };
 
 @ A dynamic stack is used here instead of a fixed
@@ -11540,7 +11541,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	const gint initial_stack_size =
 	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
 	DSTACK_INIT (VStack_of_V (v), gint, initial_stack_size);
-	V_is_Active (v) = 1;
+	Next_Action_of_V(v) = V_GET_DATA;
 	V_is_Trace (v) = 1;
 	TOS_of_V(v) = -1;
 	NOOK_of_V(v) = -1;
@@ -11642,28 +11643,38 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
     return NOOK_of_V(v);
 }
 
-@ @<Function definitions@> =
+@ @<Public defines@> =
+#define MARPA_RULE_REPORT 1
+
+@ @d V_GET_DATA 2
+@ @d V_NOT_ACTIVE 3
+
+@<Function definitions@> =
 Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 {
     @<Return |-2| on failure@>@;
 
-    /* step is not changed in case of hard failure */
-    if (!V_is_Active(v)) {
-	return failure_indicator;
+    switch (Next_Action_of_V(v)) {
+    case V_GET_DATA:
+	@<Perform evaluation steps@>@;
+	/* fall through */
+    case V_NOT_ACTIVE:
+	if (!V_is_Active(v)) break;
+	/* fall through */
+    case MARPA_RULE_REPORT:
+	if ( RULEID_of_V(v) >= 0 ||
+	 SYMID_of_V(v) >= 0 ||
+	 V_is_Trace(v)) {
+	    SYMID_of_STEP(step) = SYMID_of_V(v);
+	    Value_of_STEP(step) = Token_Value_of_V(v);
+	    RULEID_of_STEP(step) = RULEID_of_V(v);
+	    Arg0_of_STEP(step) = TOS_of_V(v);
+	    ArgN_of_STEP(step) = Arg_N_of_V(v);
+	    return NOOK_of_V(v);
+	}
     }
 
-    @<Perform evaluation steps@>@;
-
-    if (!V_is_Active(v)) {
-	return -1;
-    }
-    SYMID_of_STEP(step) = SYMID_of_V(v);
-    Value_of_STEP(step) = Token_Value_of_V(v);
-    RULEID_of_STEP(step) = RULEID_of_V(v);
-    Arg0_of_STEP(step) = TOS_of_V(v);
-    ArgN_of_STEP(step) = Arg_N_of_V(v);
-    return NOOK_of_V(v);
-
+    return -1;
 }
 
 @ @<Perform evaluation steps@> =
@@ -11686,7 +11697,7 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 	RULEID_of_V(v) = -1;
 	NOOK_of_V(v)--;
 	if (NOOK_of_V(v) < 0) {
-	    V_is_Active(v) = 0;
+	    Next_Action_of_V(v) = V_NOT_ACTIVE;
 	    break;
 	}
 	{
