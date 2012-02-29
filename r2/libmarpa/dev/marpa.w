@@ -11646,15 +11646,31 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
 Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 {
     @<Return |-2| on failure@>@;
-    AND and_nodes;
-    @<Unpack value objects@>@;
 
     /* step is not changed in case of hard failure */
-    @<Fail if fatal error@>@;
     if (!V_is_Active(v)) {
 	return failure_indicator;
     }
 
+    @<Perform evaluation steps@>@;
+
+    if (!V_is_Active(v)) {
+	return -1;
+    }
+    SYMID_of_STEP(step) = SYMID_of_V(v);
+    Value_of_STEP(step) = Token_Value_of_V(v);
+    RULEID_of_STEP(step) = RULEID_of_V(v);
+    Arg0_of_STEP(step) = TOS_of_V(v);
+    ArgN_of_STEP(step) = Arg_N_of_V(v);
+    return NOOK_of_V(v);
+
+}
+
+@ @<Perform evaluation steps@> =
+{
+    AND and_nodes;
+    @<Unpack value objects@>@;
+    @<Fail if fatal error@>@;
     and_nodes = ANDs_of_B(B_of_O(o));
 
     Arg_N_of_V(v) = TOS_of_V(v);
@@ -11724,17 +11740,6 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 	if ( SYMID_of_V(v) >= 0 ) break;
 	if ( V_is_Trace(v)) break;
     }
-
-    if (!V_is_Active(v)) {
-	return -1;
-    }
-    SYMID_of_STEP(step) = SYMID_of_V(v);
-    Value_of_STEP(step) = Token_Value_of_V(v);
-    RULEID_of_STEP(step) = RULEID_of_V(v);
-    Arg0_of_STEP(step) = TOS_of_V(v);
-    ArgN_of_STEP(step) = Arg_N_of_V(v);
-    return NOOK_of_V(v);
-
 }
 
 @** Boolean Vectors.
