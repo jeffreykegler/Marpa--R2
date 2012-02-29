@@ -11465,7 +11465,11 @@ the grammar invisible to the semantics.
 @d V_is_Active(val) ((val)->t_active)
 @d V_is_Trace(val) ((val)->t_trace)
 @d NOOK_of_V(val) ((val)->t_nook)
+@d SYMID_of_V(val) ((val)->t_semantic_token_id)
+@d RULEID_of_V(val) ((val)->t_semantic_rule_id)
+@d Token_Value_of_V(val) ((val)->t_token_value)
 @d TOS_of_V(val) ((val)->t_tos)
+@d Arg_N_of_V(val) ((val)->t_arg_n)
 @d VStack_of_V(val) ((val)->t_virtual_stack)
 @d T_of_V(v) ((v)->t_tree)
 @<VALUE structure@> =
@@ -11474,7 +11478,11 @@ struct s_value {
     NOOKID t_nook;
     Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
+    SYMID t_semantic_token_id;
+    gpointer t_token_value;
+    RULEID t_semantic_rule_id;
     gint t_tos;
+    gint t_arg_n;
     guint t_trace:1;
     guint t_active:1;
 };
@@ -11639,9 +11647,6 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 {
     @<Return |-2| on failure@>@;
     AND and_nodes;
-    NOOKID nook_ix;
-    gint arg_0 = -1;
-    gint arg_n = -1;
     @<Unpack value objects@>@;
 
     /* step is not changed in case of hard failure */
@@ -11652,32 +11657,34 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 
     and_nodes = ANDs_of_B(B_of_O(o));
 
-    arg_0 = arg_n = TOS_of_V(v);
-    nook_ix = NOOK_of_V(v);
-    if (nook_ix < 0) {
-	nook_ix = Size_of_TREE(t);
+    Arg_N_of_V(v) = TOS_of_V(v);
+    if (NOOK_of_V(v) < 0) {
+	NOOK_of_V(v) = Size_of_TREE(t);
     }
 
     while (1) {
 	OR or;
 	RULE nook_rule;
-	gint semantic_rule_id = -1;
-	gint token_id = -1;
-	gpointer token_value = NULL;
-	nook_ix--;
-	if (nook_ix < 0) break;
+	Token_Value_of_V(v) = NULL;
+	SYMID_of_V(v) = -1;
+	RULEID_of_V(v) = -1;
+	NOOK_of_V(v)--;
+	if (NOOK_of_V(v) < 0) {
+	    V_is_Active(v) = 0;
+	    break;
+	}
 	{
 	    ANDID and_node_id;
 	    AND and_node;
-	    const NOOK nook = NOOK_of_TREE_by_IX(t, nook_ix);
+	    const NOOK nook = NOOK_of_TREE_by_IX(t, NOOK_of_V(v));
 	    const gint choice = Choice_of_NOOK(nook);
 	    or = OR_of_NOOK(nook);
 	    and_node_id = and_order_get(o, or, choice);
 	    and_node = and_nodes + and_node_id;
-	    token_id = and_node_token(and_node, &token_value);
+	    SYMID_of_V(v) = and_node_token(and_node, &Token_Value_of_V(v));
 	}
-	if (token_id >= 0) {
-	    arg_0 = ++arg_n;
+	if (SYMID_of_V(v) >= 0) {
+	    TOS_of_V(v) = ++Arg_N_of_V(v);
 	}
 	nook_rule = RULE_of_OR(or);
 	if (Position_of_OR(or) == Length_of_RULE(nook_rule)) {
@@ -11706,32 +11713,28 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 		    nook_rule->t_original : ID_of_RULE (nook_rule);
 		  if (RULE_is_Ask_Me (RULE_by_ID (g, original_rule_id)))
 		    {
-		      semantic_rule_id = original_rule_id;
-		      arg_0 = arg_n - real_symbol_count + 1;
+		      RULEID_of_V(v) = original_rule_id;
+		      TOS_of_V(v) = Arg_N_of_V(v) - real_symbol_count + 1;
 		    }
 		}
 
 	    }
 	}
-	if ( semantic_rule_id >= 0 || token_id >= 0 || V_is_Trace(v)) {
-	    @<Write results to |v| and |step|@>@;
-	    return NOOK_of_V(v);
-	}
+	if ( RULEID_of_V(v) >= 0 ) break;
+	if ( SYMID_of_V(v) >= 0 ) break;
+	if ( V_is_Trace(v)) break;
     }
 
-    V_is_Active(v) = 0;
-    return -1;
+    if (!V_is_Active(v)) {
+	return -1;
+    }
+    SYMID_of_STEP(step) = SYMID_of_V(v);
+    Value_of_STEP(step) = Token_Value_of_V(v);
+    RULEID_of_STEP(step) = RULEID_of_V(v);
+    Arg0_of_STEP(step) = TOS_of_V(v);
+    ArgN_of_STEP(step) = Arg_N_of_V(v);
+    return NOOK_of_V(v);
 
-}
-
-@ @<Write results to |v| and |step|@> =
-{
-    SYMID_of_STEP(step) = token_id;
-    Value_of_STEP(step) = token_value;
-    RULEID_of_STEP(step) = semantic_rule_id;
-    TOS_of_V(v) = Arg0_of_STEP(step) = arg_0;
-    NOOK_of_V(v) = nook_ix;
-    ArgN_of_STEP(step) = arg_n;
 }
 
 @** Boolean Vectors.

@@ -41,7 +41,11 @@ BUILD_FILE: for my $build_file ( keys %{$manifest_hash} ) {
     my @stage_relative = split m{/}xms, $stage_relative;
     my $from_file = File::Spec->catfile( @stage_dir, @stage_relative );
     my $to_file = File::Spec->catfile( @build_dir, @stage_relative );
-    File::Copy::copy( $from_file, $to_file )
-        or die "Cannot copy '$from_file' to '$to_file': $!";
+    if (File::Copy::copy( $from_file, $to_file ))
+    {
+        say "'$from_file' -> '$to_file'";
+    } else {
+        die "Cannot copy '$from_file' to '$to_file': $!";
+    }
 
 } ## end for my $build_file ( keys %{$manifest_hash} )
