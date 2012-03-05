@@ -2568,15 +2568,15 @@ PPCODE:
     }
   else
     {
-      XPUSHs (sv_2mortal (newSViv (step.marpa_token_id)));
-      XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (step.marpa_value))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_semantic_token(v))));
+      XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (marpa_v_token_value(v)))));
     }
   sv =
     step.marpa_rule_id <
-    0 ? &PL_sv_undef : sv_2mortal (newSViv (step.marpa_rule_id));
+    0 ? &PL_sv_undef : sv_2mortal (newSViv (marpa_v_semantic_rule(v)));
   XPUSHs (sv);
-  XPUSHs (sv_2mortal (newSViv (step.marpa_arg_0)));
-  XPUSHs (sv_2mortal (newSViv (step.marpa_arg_n)));
+  XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0(v))));
+  XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n(v))));
 }
 
 void

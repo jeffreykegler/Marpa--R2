@@ -11466,27 +11466,47 @@ the grammar invisible to the semantics.
 @d V_is_Active(val) (Next_Action_of_V(val) != V_NOT_ACTIVE)
 @d V_is_Trace(val) ((val)->t_trace)
 @d NOOK_of_V(val) ((val)->t_nook)
-@d SYMID_of_V(val) ((val)->t_semantic_token_id)
-@d RULEID_of_V(val) ((val)->t_semantic_rule_id)
-@d Token_Value_of_V(val) ((val)->t_token_value)
-@d TOS_of_V(val) ((val)->t_tos)
-@d Arg_N_of_V(val) ((val)->t_arg_n)
+@d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
+@d RULEID_of_V(val) ((val)->public.t_semantic_rule_id)
+@d Token_Value_of_V(val) ((val)->public.t_token_value)
+@d TOS_of_V(val) ((val)->public.t_tos)
+@d Arg_N_of_V(val) ((val)->public.t_arg_n)
 @d VStack_of_V(val) ((val)->t_virtual_stack)
 @d T_of_V(v) ((v)->t_tree)
-@<VALUE structure@> =
+@<Public structures@> =
+struct marpa_value {
+    Marpa_Symbol_ID t_semantic_token_id;
+    gpointer t_token_value;
+    Marpa_Rule_ID t_semantic_rule_id;
+    gint t_tos;
+    gint t_arg_n;
+};
+@ @<VALUE structure@> =
 struct s_value {
+    struct marpa_value public;
     DSTACK_DECLARE(t_virtual_stack);
     NOOKID t_nook;
     Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
-    SYMID t_semantic_token_id;
-    gpointer t_token_value;
-    RULEID t_semantic_rule_id;
     gint t_next_action;
-    gint t_tos;
-    gint t_arg_n;
     guint t_trace:1;
 };
+
+@
+The casts are attempts
+to defeat any use of
+these macros as lvalues.
+@<Public defines@> =
+#define marpa_v_semantic_token(v) \
+    (((const struct marpa_value*)v)->t_semantic_token_id)
+#define marpa_v_token_value(v) \
+    (((const struct marpa_value*)v)->t_token_value)
+#define marpa_v_semantic_rule(v) \
+    (((const struct marpa_value*)v)->t_semantic_rule_id)
+#define marpa_v_arg_0(v) \
+    (((const struct marpa_value*)v)->t_tos)
+#define marpa_v_arg_n(v) \
+    (((const struct marpa_value*)v)->t_arg_n)
 
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
