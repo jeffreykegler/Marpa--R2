@@ -11411,25 +11411,6 @@ gint marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
     return NOOK_is_Predecessor(nook);
 }
 
-@** Step (STEP) Code.
-@
-@d SYMID_of_STEP(step) ((step)->marpa_token_id)
-@d Value_of_STEP(step) ((step)->marpa_value)
-@d RULEID_of_STEP(step) ((step)->marpa_rule_id)
-@d Arg0_of_STEP(step) ((step)->marpa_arg_0)
-@d ArgN_of_STEP(step) ((step)->marpa_arg_n)
-@<Public structures@> =
-struct marpa_step {
-    Marpa_Symbol_ID marpa_token_id;
-    gpointer marpa_value;
-    Marpa_Rule_ID marpa_rule_id;
-    gint marpa_arg_0;
-    gint marpa_arg_n;
-};
-typedef struct marpa_step Marpa_Step;
-@ @<Private typedefs@> =
-typedef Marpa_Step *STEP;
-
 @** Evaluation (V, VALUE) Code.
 @ This code helps
 compute a value for
@@ -11670,7 +11651,7 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
 @ @d V_NOT_ACTIVE 3
 
 @<Function definitions@> =
-Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
+Marpa_Nook_ID marpa_v_step(Marpa_Value v)
 {
     @<Return |-2| on failure@>@;
 
@@ -11685,11 +11666,6 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v, Marpa_Step* step)
 	if ( RULEID_of_V(v) >= 0 ||
 	 SYMID_of_V(v) >= 0 ||
 	 V_is_Trace(v)) {
-	    SYMID_of_STEP(step) = SYMID_of_V(v);
-	    Value_of_STEP(step) = Token_Value_of_V(v);
-	    RULEID_of_STEP(step) = RULEID_of_V(v);
-	    Arg0_of_STEP(step) = TOS_of_V(v);
-	    ArgN_of_STEP(step) = Arg_N_of_V(v);
 	    return NOOK_of_V(v);
 	}
     }

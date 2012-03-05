@@ -1813,8 +1813,7 @@ errors can be properly reported.
 @section Stepping throught the valuator
 
 @deftypefun Marpa_Nook_ID marpa_v_step ( @
-    Marpa_Value @var{v}, @
-    Marpa_Step* @var{step})
+    Marpa_Value @var{v})
 @end deftypefun
 
 @node Valuator tracing,  , Valuator stepping, Value

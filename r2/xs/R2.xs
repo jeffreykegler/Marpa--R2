@@ -2549,10 +2549,11 @@ step( v_wrapper )
 PPCODE:
 {
   const Marpa_Value v = v_wrapper->v;
+  Marpa_Symbol_ID token_id;
+  Marpa_Rule_ID rule_id;
   int status;
   SV *sv;
-  Marpa_Step step;
-  status = marpa_v_step (v, &step);
+  status = marpa_v_step (v);
   if (status == -1)
     {
       XSRETURN_UNDEF;
@@ -2561,19 +2562,19 @@ PPCODE:
     {
       croak ("Problem in v->step(): %s", xs_v_error (v_wrapper));
     }
-  if (step.marpa_token_id < 0)
+  token_id = marpa_v_semantic_token(v);
+  if (token_id < 0)
     {
       XPUSHs (&PL_sv_undef);
       XPUSHs (&PL_sv_undef);
     }
   else
     {
-      XPUSHs (sv_2mortal (newSViv (marpa_v_semantic_token(v))));
+      XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (marpa_v_token_value(v)))));
     }
-  sv =
-    step.marpa_rule_id <
-    0 ? &PL_sv_undef : sv_2mortal (newSViv (marpa_v_semantic_rule(v)));
+  rule_id = marpa_v_semantic_rule(v);
+  sv = rule_id < 0 ? &PL_sv_undef : sv_2mortal (newSViv (rule_id));
   XPUSHs (sv);
   XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0(v))));
   XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n(v))));
