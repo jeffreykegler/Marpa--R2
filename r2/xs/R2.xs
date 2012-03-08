@@ -120,7 +120,7 @@ libmarpa_exception (int error_code, const char *error_string)
       return g_strdup_printf ("(development) %s",
 			      (error_string ? error_string : "(null)"));
     case MARPA_ERR_INTERNAL:
-      return g_strdup_printf ("Internal error at %s",
+      return g_strdup_printf ("Internal error (%s)",
 			      (error_string ? error_string : "(null)"));
     }
   if (error_code >= 0 && error_code < MARPA_ERROR_COUNT) {
