@@ -89,6 +89,16 @@ event_type_to_string (Marpa_Event_Type event_code)
   return event_name;
 }
 
+static const char *
+value_type_to_string (Marpa_Value_Type value_type)
+{
+  const char *value_type_name = NULL;
+  if (value_type >= 0 && value_type < MARPA_ERROR_COUNT) {
+      value_type_name = marpa_value_type_description[value_type].name;
+  }
+  return value_type_name;
+}
+
 /* This routine is for the handling exceptions
    from libmarpa.  It is used when in the general
    cases, for those exception which are not singled
@@ -2552,9 +2562,10 @@ PPCODE:
   Marpa_Symbol_ID token_id;
   Marpa_Rule_ID rule_id;
   int status;
+  const char* result_string;
   SV *sv;
   status = marpa_v_step (v);
-  if (status == -1)
+  if (status == MARPA_VALUE_INACTIVE)
     {
       XSRETURN_UNDEF;
     }
@@ -2562,6 +2573,13 @@ PPCODE:
     {
       croak ("Problem in v->step(): %s", xs_v_error (v_wrapper));
     }
+  result_string = value_type_to_string (status);
+  if (!result_string)
+    {
+      croak ("Problem in r->v_step(): unknown action type %d", status);
+    }
+  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+  if (status == MARPA_VALUE_TRACE) return;
   token_id = marpa_v_semantic_token(v);
   if (token_id < 0)
     {

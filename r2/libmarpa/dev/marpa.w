@@ -11444,7 +11444,7 @@ original (or "virtual") rules.
 This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
 @d Next_Action_of_V(val) ((val)->t_next_action)
-@d V_is_Active(val) (Next_Action_of_V(val) != MARPA_V_INACTIVE)
+@d V_is_Active(val) (Next_Action_of_V(val) != MARPA_VALUE_INACTIVE)
 @d V_is_Trace(val) ((val)->t_trace)
 @d NOOK_of_V(val) ((val)->t_nook)
 @d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
@@ -11648,7 +11648,7 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
 is for a semantic rule, a semantic token, etc.
 @<Public typedefs@> =
 typedef gint Marpa_Value_Type;
-@ @d V_GET_DATA MARPA_V_INTERNAL1
+@ @d V_GET_DATA MARPA_VALUE_INTERNAL1
 
 @<Function definitions@> =
 Marpa_Value_Type marpa_v_step(Marpa_Value v)
@@ -11656,22 +11656,38 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
     @<Return |-2| on failure@>@;
     Marpa_Value_Type current_action = Next_Action_of_V(v);
 
-    switch (current_action) {
-    case V_GET_DATA:
-	@<Perform evaluation steps@>@;
+    switch (current_action)
+      {
+      case V_GET_DATA:
+	@<Perform evaluation steps @>@;
 	/* fall through */
-    case MARPA_V_INACTIVE:
-	if (!V_is_Active(v)) break;
-	/* fall through */
-    case MARPA_V_RULE:
-	if ( RULEID_of_V(v) >= 0 ||
-	 SYMID_of_V(v) >= 0 ||
-	 V_is_Trace(v)) {
-	    return current_action;
+      case MARPA_VALUE_INACTIVE:
+	if (!V_is_Active (v))
+	{
+	    Next_Action_of_V(v) = MARPA_VALUE_INACTIVE;
+	    return MARPA_VALUE_INACTIVE;
 	}
-    }
+	/* fall through */
+      case MARPA_VALUE_TRACE:
+	if (V_is_Trace (v))
+	  {
+	    Next_Action_of_V(v) = MARPA_VALUE_RULE;
+	    return MARPA_VALUE_TRACE;
+	  }
+	/* fall through */
+      case MARPA_VALUE_RULE:
+	if (RULEID_of_V (v) >= 0 || SYMID_of_V (v) >= 0)
+	  {
+	    Next_Action_of_V(v) = V_GET_DATA;
+	    return MARPA_VALUE_RULE;
+	  }
+      }
 
-    return -1;
+    {
+	@<Unpack value objects@>@;
+	MARPA_INTERNAL_ERROR("unexpected value type");
+    }
+    return failure_indicator;
 }
 
 @ @<Perform evaluation steps@> =
@@ -11694,7 +11710,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	RULEID_of_V(v) = -1;
 	NOOK_of_V(v)--;
 	if (NOOK_of_V(v) < 0) {
-	    Next_Action_of_V(v) = MARPA_V_INACTIVE;
+	    Next_Action_of_V(v) = MARPA_VALUE_INACTIVE;
 	    break;
 	}
 	{
@@ -12957,6 +12973,7 @@ Not being error-prone
 is important since there are many calls to |r_error|
 in the code.
 @d MARPA_DEV_ERROR(message) (set_error(g, MARPA_ERR_DEVELOPMENT, (message), 0u))
+@d MARPA_INTERNAL_ERROR(message) (set_error(g, MARPA_ERR_INTERNAL, (message), 0u))
 @d MARPA_ERROR(code) (set_error(g, (code), NULL, 0u))
 @d R_DEV_ERROR(message) (r_error(r, MARPA_ERR_DEVELOPMENT, (message), 0u))
 @d R_ERROR(code, message) (r_error(r, (code), (message), 0u))

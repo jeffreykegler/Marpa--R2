@@ -72,12 +72,12 @@ MARPA_EVENT_COUNTED_NULLABLE
 );
 
 my @value_type_codes = qw(
-MARPA_V_INTERNAL1
-MARPA_V_RULE
-MARPA_V_TOKEN
-MARPA_V_TRACE
-MARPA_V_INACTIVE
-MARPA_V_INTERNAL2
+MARPA_VALUE_INTERNAL1
+MARPA_VALUE_RULE
+MARPA_VALUE_TOKEN
+MARPA_VALUE_TRACE
+MARPA_VALUE_INACTIVE
+MARPA_VALUE_INTERNAL2
 );
 
 my @defs = ();
@@ -136,8 +136,8 @@ while ( my $line = <STDIN> ) {
 	    $events[$current_event_number] = $event;
 	}
     }
-    if ( $line =~ /[@]deftypevr.*MARPA_V_/xms ) {
-        my ($value_type) = ($line =~ m/(MARPA_V_.*)\b/xms);
+    if ( $line =~ /[@]deftypevr.*MARPA_VALUE_/xms ) {
+        my ($value_type) = ($line =~ m/(MARPA_VALUE_.*)\b/xms);
 	if ($value_type) {
 	    my $value_type_number = $value_type_number{$value_type};
 	    die("$value_type not in list in $PROGRAM_NAME") if not defined $value_type_number;
@@ -214,6 +214,10 @@ struct s_marpa_event_description {
     const char* name;
     const char* suggested;
 };
+struct s_marpa_value_type_description {
+    Marpa_Value_Type value_type;
+    const char* name;
+};
 
 STRUCT_DECLARATION
 
@@ -254,19 +258,38 @@ say {$codes_c} <<'COMMENT';
  */;
 COMMENT
 
-say {$codes_c} 'const struct s_marpa_error_description marpa_error_description[] = {';
-for (my $error_number = 0; $error_number < $error_count; $error_number++) {
-   my $suggested_description = $error_suggested_messages[$error_number] // "Unknown error";
-   my $error_name = $errors[$error_number];
-   say {$codes_c} qq[  { $error_number, "$error_name", "$suggested_description" },];
-}
+say {$codes_c}
+    'const struct s_marpa_error_description marpa_error_description[] = {';
+for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
+    my $suggested_description = $error_suggested_messages[$error_number]
+        // "Unknown error";
+    my $error_name = $errors[$error_number];
+    say {$codes_c}
+        qq[  { $error_number, "$error_name", "$suggested_description" },];
+} ## end for ( my $error_number = 0; $error_number < $error_count...)
 say {$codes_c} '};';
 
-say {$codes_c} 'const struct s_marpa_event_description marpa_event_description[] = {';
-for (my $event_number = 0; $event_number < $event_count; $event_number++) {
-   my $suggested_description = $event_suggested_messages[$event_number] // "Unknown event";
-   my $event_name = $events[$event_number];
-   say {$codes_c} qq[  { $event_number, "$event_name", "$suggested_description" },];
-}
+say {$codes_c}
+    'const struct s_marpa_event_description marpa_event_description[] = {';
+for ( my $event_number = 0; $event_number < $event_count; $event_number++ ) {
+    my $suggested_description = $event_suggested_messages[$event_number]
+        // "Unknown event";
+    my $event_name = $events[$event_number];
+    say {$codes_c}
+        qq[  { $event_number, "$event_name", "$suggested_description" },];
+} ## end for ( my $event_number = 0; $event_number < $event_count...)
+say {$codes_c} '};';
+
+say {$codes_c}
+    'const struct s_marpa_value_type_description marpa_value_type_description[] = {';
+for (
+    my $value_type_number = 0;
+    $value_type_number < $value_type_count;
+    $value_type_number++
+    )
+{
+    my $value_type_name = $value_types[$value_type_number];
+    say {$codes_c} qq[  { $value_type_number, "$value_type_name" },];
+} ## end for ( my $value_type_number = 0; $value_type_number...)
 say {$codes_c} '};';
 
