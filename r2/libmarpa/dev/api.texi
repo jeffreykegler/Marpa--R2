@@ -1834,28 +1834,28 @@ errors can be properly reported.
 @node Valuator stepping, Valuator tracing, Valuator reference counting, Value
 @section Stepping through the valuator
 
-@deftypevr Macro int MARPA_V_TRACE
+@deftypevr Macro Marpa_Value_Type MARPA_V_TRACE
 The data for tracing is ready.
 @end deftypevr
 
-@deftypevr Macro int MARPA_V_TOKEN
+@deftypevr Macro Marpa_Value_Type MARPA_V_TOKEN
 The data for a semantic token is ready.
 @end deftypevr
 
-@deftypevr Macro int MARPA_V_RULE
+@deftypevr Macro Marpa_Value_Type MARPA_V_RULE
 The data for a semantic rule is ready.
 @end deftypevr
 
-@deftypevr Macro int MARPA_V_INACTIVE
+@deftypevr Macro Marpa_Value_Type MARPA_V_INACTIVE
 The valuator is inactive.
 @end deftypevr
 
-@deftypevr Macro int MARPA_V_INTERNAL1
-@deftypevrx Macro int MARPA_V_INTERNAL2
+@deftypevr Macro Marpa_Value_Type MARPA_V_INTERNAL1
+@deftypevrx Macro Marpa_Value_Type MARPA_V_INTERNAL2
 These value types are reserved for internal purposes
 @end deftypevr
 
-@deftypefun Marpa_Nook_ID marpa_v_step ( @
+@deftypefun Marpa_Value_Type marpa_v_step ( @
     Marpa_Value @var{v})
 @end deftypefun
 

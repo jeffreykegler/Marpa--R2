@@ -11644,14 +11644,19 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
     return NOOK_of_V(v);
 }
 
+@ The value type indicates whether the value
+is for a semantic rule, a semantic token, etc.
+@<Public typedefs@> =
+typedef gint Marpa_Value_Type;
 @ @d V_GET_DATA MARPA_V_INTERNAL1
 
 @<Function definitions@> =
-Marpa_Nook_ID marpa_v_step(Marpa_Value v)
+Marpa_Value_Type marpa_v_step(Marpa_Value v)
 {
     @<Return |-2| on failure@>@;
+    Marpa_Value_Type current_action = Next_Action_of_V(v);
 
-    switch (Next_Action_of_V(v)) {
+    switch (current_action) {
     case V_GET_DATA:
 	@<Perform evaluation steps@>@;
 	/* fall through */
@@ -11662,7 +11667,7 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v)
 	if ( RULEID_of_V(v) >= 0 ||
 	 SYMID_of_V(v) >= 0 ||
 	 V_is_Trace(v)) {
-	    return NOOK_of_V(v);
+	    return current_action;
 	}
     }
 
