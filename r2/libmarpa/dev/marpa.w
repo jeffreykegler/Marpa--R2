@@ -646,7 +646,6 @@ PRIVATE
 void
 grammar_unref (GRAMMAR g)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->t_ref_count);
   MARPA_ASSERT (g->t_ref_count > 0)
   g->t_ref_count--;
   if (g->t_ref_count <= 0)
@@ -663,7 +662,6 @@ marpa_g_unref (Marpa_Grammar g)
 PRIVATE GRAMMAR
 grammar_ref (GRAMMAR g)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, g->t_ref_count);
   MARPA_ASSERT(g->t_ref_count > 0)
   g->t_ref_count++;
   return g;
@@ -676,7 +674,6 @@ marpa_g_ref (Marpa_Grammar g)
 PRIVATE
 void grammar_free(GRAMMAR g)
 {
-MARPA_DEBUG3("%s: Destroying grammar %p", G_STRLOC, g);
     @<Destroy grammar elements@>@;
     g_slice_free(struct marpa_g, g);
 }
@@ -5177,7 +5174,6 @@ input_new (GRAMMAR g)
 PRIVATE void
 input_unref (INPUT input)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, input->t_ref_count);
   MARPA_ASSERT (input->t_ref_count > 0)
   input->t_ref_count--;
   if (input->t_ref_count <= 0)
@@ -5191,7 +5187,6 @@ input_unref (INPUT input)
 PRIVATE INPUT
 input_ref (INPUT input)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, input->t_ref_count);
   MARPA_ASSERT(input->t_ref_count > 0)
   input->t_ref_count++;
   return input;
@@ -5307,7 +5302,6 @@ r->t_ref_count = 1;
 PRIVATE void
 recce_unref (RECCE r)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->t_ref_count);
   MARPA_ASSERT (r->t_ref_count > 0)
   r->t_ref_count--;
   if (r->t_ref_count <= 0)
@@ -5326,7 +5320,6 @@ marpa_r_unref (Marpa_Recognizer r)
 PRIVATE
 RECCE recce_ref (RECCE r)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, r->t_ref_count);
   MARPA_ASSERT(r->t_ref_count > 0)
   r->t_ref_count++;
   return r;
@@ -5341,7 +5334,6 @@ marpa_r_ref (Marpa_Recognizer r)
 PRIVATE
 void recce_free(struct marpa_r *r)
 {
-    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, r)
     @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
     grammar_unref(g);
@@ -10374,7 +10366,6 @@ b->t_ref_count = 1;
 PRIVATE void
 bocage_unref (BOCAGE b)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->t_ref_count);
   MARPA_ASSERT (b->t_ref_count > 0)
   b->t_ref_count--;
   if (b->t_ref_count <= 0)
@@ -10393,7 +10384,6 @@ marpa_b_unref (Marpa_Bocage b)
 PRIVATE BOCAGE
 bocage_ref (BOCAGE b)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, b->t_ref_count);
   MARPA_ASSERT(b->t_ref_count > 0)
   b->t_ref_count++;
   return b;
@@ -10416,7 +10406,6 @@ or was never initialized.
 PRIVATE void
 bocage_free (BOCAGE b)
 {
-    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, b)
   @<Unpack bocage objects@>@;
   input_unref (input);
   if (b)
@@ -10585,7 +10574,6 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
 PRIVATE void
 order_unref (ORDER o)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
   MARPA_ASSERT (o->t_ref_count > 0)
   o->t_ref_count--;
   if (o->t_ref_count <= 0)
@@ -10604,7 +10592,6 @@ marpa_o_unref (Marpa_Order o)
 PRIVATE ORDER
 order_ref (ORDER o)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, o->t_ref_count);
   MARPA_ASSERT(o->t_ref_count > 0)
   o->t_ref_count++;
   return o;
@@ -10633,7 +10620,6 @@ PRIVATE void order_freeze(ORDER o)
 @ @<Function definitions@> =
 PRIVATE void order_free(ORDER o)
 {
-    MARPA_DEBUG4("%s %s: Destroying %p", G_STRFUNC, G_STRLOC, o)
   @<Unpack order objects@>@;
   bocage_unref(b);
   order_strip(o);
@@ -10936,7 +10922,6 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
 PRIVATE void
 tree_unref (TREE t)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, t->t_ref_count);
   MARPA_ASSERT (t->t_ref_count > 0)
   t->t_ref_count--;
   if (t->t_ref_count <= 0)
@@ -10955,7 +10940,6 @@ marpa_t_unref (Marpa_Tree t)
 PRIVATE TREE
 tree_ref (TREE t)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, t->t_ref_count);
   MARPA_ASSERT(t->t_ref_count > 0)
   t->t_ref_count++;
   return t;
@@ -11121,10 +11105,8 @@ PRIVATE gint tree_and_node_try(TREE tree, ANDID and_node_id)
   choice = or_node_next_choice (o, t, top_or_node, 0);
   /* Due to skipping, even the top or-node can have no
      valid choices, in which case there is no parse */
-MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
   if (choice < 0)
     goto TREE_IS_EXHAUSTED;
-MARPA_DEBUG3("%s %s", G_STRFUNC, G_STRLOC);
   nook = FSTACK_PUSH (t->t_nook_stack);
   OR_of_NOOK (nook) = top_or_node;
   Choice_of_NOOK (nook) = choice;
@@ -11443,8 +11425,8 @@ of symbols in the
 original (or "virtual") rules.
 This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
-@d Next_Action_of_V(val) ((val)->t_next_action)
-@d V_is_Active(val) (Next_Action_of_V(val) != MARPA_VALUE_INACTIVE)
+@d Next_Value_Type_of_V(val) ((val)->t_next_value_type)
+@d V_is_Active(val) (Next_Value_Type_of_V(val) != MARPA_VALUE_INACTIVE)
 @d V_is_Trace(val) ((val)->t_trace)
 @d NOOK_of_V(val) ((val)->t_nook)
 @d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
@@ -11469,7 +11451,7 @@ struct s_value {
     NOOKID t_nook;
     Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
-    gint t_next_action;
+    gint t_next_value_type;
     guint t_trace:1;
 };
 
@@ -11542,7 +11524,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	const gint initial_stack_size =
 	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
 	DSTACK_INIT (VStack_of_V (v), gint, initial_stack_size);
-	Next_Action_of_V(v) = V_GET_DATA;
+	Next_Value_Type_of_V(v) = V_GET_DATA;
 	V_is_Trace (v) = 1;
 	TOS_of_V(v) = -1;
 	NOOK_of_V(v) = -1;
@@ -11566,7 +11548,6 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 PRIVATE void
 value_unref (VALUE v)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->t_ref_count);
   MARPA_ASSERT (v->t_ref_count > 0)@;
   v->t_ref_count--;
   if (v->t_ref_count <= 0)
@@ -11585,7 +11566,6 @@ marpa_v_unref (Marpa_Value v)
 PRIVATE VALUE
 value_ref (VALUE v)
 {
-  MARPA_DEBUG4("%s %s: ref_count=%d", G_STRFUNC, G_STRLOC, v->t_ref_count);
   MARPA_ASSERT(v->t_ref_count > 0)
   v->t_ref_count++;
   return v;
@@ -11654,36 +11634,40 @@ typedef gint Marpa_Value_Type;
 Marpa_Value_Type marpa_v_step(Marpa_Value v)
 {
     @<Return |-2| on failure@>@;
-    Marpa_Value_Type current_action = Next_Action_of_V(v);
 
-    switch (current_action)
-      {
-      case V_GET_DATA:
-	@<Perform evaluation steps @>@;
-	/* fall through */
-      case MARPA_VALUE_INACTIVE:
-	if (!V_is_Active (v))
-	{
-	    Next_Action_of_V(v) = MARPA_VALUE_INACTIVE;
-	    return MARPA_VALUE_INACTIVE;
-	}
-	/* fall through */
-      case MARPA_VALUE_TRACE:
-	if (V_is_Trace (v))
+    while (V_is_Active(v)) {
+	Marpa_Value_Type current_value_type = Next_Value_Type_of_V(v);
+	MARPA_DEBUG3("%s: value type = %d", G_STRLOC, current_value_type);
+	switch (current_value_type)
 	  {
-	    Next_Action_of_V(v) = MARPA_VALUE_RULE;
-	    return MARPA_VALUE_TRACE;
+	  case V_GET_DATA:
+	    @<Perform evaluation steps @>@;
+	    /* fall through */
+	  case MARPA_VALUE_INACTIVE:
+	    if (!V_is_Active (v)) {
+		Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
+		return MARPA_VALUE_INACTIVE;
+	    }
+	    /* fall through */
+	  case MARPA_VALUE_TRACE:
+	    if (V_is_Trace (v))
+	      {
+		Next_Value_Type_of_V(v) = MARPA_VALUE_RULE;
+		return MARPA_VALUE_TRACE;
+	      }
+	    /* fall through */
+	  case MARPA_VALUE_RULE:
+	    if (RULEID_of_V (v) >= 0 || SYMID_of_V (v) >= 0)
+	      {
+		Next_Value_Type_of_V(v) = V_GET_DATA;
+		return MARPA_VALUE_RULE;
+	      }
 	  }
-	/* fall through */
-      case MARPA_VALUE_RULE:
-	if (RULEID_of_V (v) >= 0 || SYMID_of_V (v) >= 0)
-	  {
-	    Next_Action_of_V(v) = V_GET_DATA;
-	    return MARPA_VALUE_RULE;
-	  }
+	Next_Value_Type_of_V(v) = V_GET_DATA;
       }
 
     {
+	/* should never get here */
 	@<Unpack value objects@>@;
 	MARPA_INTERNAL_ERROR("unexpected value type");
     }
@@ -11710,7 +11694,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	RULEID_of_V(v) = -1;
 	NOOK_of_V(v)--;
 	if (NOOK_of_V(v) < 0) {
-	    Next_Action_of_V(v) = MARPA_VALUE_INACTIVE;
+	    Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
 	    break;
 	}
 	{
@@ -12599,17 +12583,14 @@ psar_init (const PSAR psar, gint length)
 PRIVATE void psar_destroy(const PSAR psar)
 {
     PSL psl = psar->t_first_psl;
-MARPA_OFF_DEBUG3("%s psl=%p", G_STRLOC, psl);
     while (psl)
       {
 	PSL next_psl = psl->t_next;
 	PSL *owner = psl->t_owner;
-MARPA_OFF_DEBUG3("%s owner=%p", G_STRLOC, owner);
 	if (owner)
 	  *owner = NULL;
 	g_slice_free1 (Sizeof_PSL (psar), psl);
 	psl = next_psl;
-MARPA_OFF_DEBUG3("%s psl=%p", G_STRLOC, psl);
       }
 }
 @ @<Function definitions@> =
