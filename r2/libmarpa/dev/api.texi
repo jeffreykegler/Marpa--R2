@@ -133,6 +133,7 @@ Tree iterators
 Value objects
 
 * Valuator constructor::        
+* Valuator access macros::      
 * Valuator reference counting::  
 * Valuator stepping::           
 * Valuator tracing::            
@@ -1772,12 +1773,13 @@ Return the is-predecessor bit for @var{nook_id}.
 
 @menu
 * Valuator constructor::        
+* Valuator access macros::      
 * Valuator reference counting::  
 * Valuator stepping::           
 * Valuator tracing::            
 @end menu
 
-@node Valuator constructor, Valuator reference counting, Value, Value
+@node Valuator constructor, Valuator access macros, Value, Value
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
@@ -1790,7 +1792,20 @@ Return the is-predecessor bit for @var{nook_id}.
 @deftypefun void marpa_v_unref (Marpa_Value @var{v})
 @end deftypefun
 
-@node Valuator reference counting, Valuator stepping, Valuator constructor, Value
+@node Valuator access macros, Valuator reference counting, Valuator constructor, Value
+@section Valuator access macros
+
+@defmac Marpa_Symbol_ID marpa_v_semantic_token(Marpa_Value @var{v})
+
+@defmac gpointer marpa_v_token_value(Marpa_Value @var{v})
+
+@defmac Marpa_Rule_ID marpa_v_semantic_rule(Marpa_Value @var{v})
+
+@defmac gint marpa_v_arg_0(Marpa_Value @var{v})
+
+@defmac gint marpa_v_arg_n(Marpa_Value @var{v})
+
+@node Valuator reference counting, Valuator stepping, Valuator access macros, Value
 @section Reference counting
 
 @deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
@@ -1810,7 +1825,7 @@ errors can be properly reported.
 @end deftypefun
 
 @node Valuator stepping, Valuator tracing, Valuator reference counting, Value
-@section Stepping throught the valuator
+@section Stepping through the valuator
 
 @deftypefun Marpa_Nook_ID marpa_v_step ( @
     Marpa_Value @var{v})
