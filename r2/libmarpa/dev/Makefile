@@ -135,3 +135,9 @@ stage_configuration: stage_dir ../stage/configure
 install: stage_dir $(STAGE_FILES) stage_configuration
 
 docs: marpa.pdf ../stage/api.pdf ../stage/api.html/index.html
+
+update_api_texi:
+	emacs -batch api.texi \
+	    -f texinfo-every-node-update \
+	    -f texinfo-all-menus-update \
+	    -f save-buffer -kill
