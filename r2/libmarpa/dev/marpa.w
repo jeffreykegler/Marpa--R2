@@ -11444,7 +11444,7 @@ original (or "virtual") rules.
 This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
 @d Next_Action_of_V(val) ((val)->t_next_action)
-@d V_is_Active(val) (Next_Action_of_V(val) != V_NOT_ACTIVE)
+@d V_is_Active(val) (Next_Action_of_V(val) != MARPA_V_INACTIVE)
 @d V_is_Trace(val) ((val)->t_trace)
 @d NOOK_of_V(val) ((val)->t_nook)
 @d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
@@ -11644,11 +11644,7 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
     return NOOK_of_V(v);
 }
 
-@ @<Public defines@> =
-#define MARPA_RULE_REPORT 1
-
-@ @d V_GET_DATA 2
-@ @d V_NOT_ACTIVE 3
+@ @d V_GET_DATA MARPA_V_INTERNAL1
 
 @<Function definitions@> =
 Marpa_Nook_ID marpa_v_step(Marpa_Value v)
@@ -11659,10 +11655,10 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v)
     case V_GET_DATA:
 	@<Perform evaluation steps@>@;
 	/* fall through */
-    case V_NOT_ACTIVE:
+    case MARPA_V_INACTIVE:
 	if (!V_is_Active(v)) break;
 	/* fall through */
-    case MARPA_RULE_REPORT:
+    case MARPA_V_RULE:
 	if ( RULEID_of_V(v) >= 0 ||
 	 SYMID_of_V(v) >= 0 ||
 	 V_is_Trace(v)) {
@@ -11693,7 +11689,7 @@ Marpa_Nook_ID marpa_v_step(Marpa_Value v)
 	RULEID_of_V(v) = -1;
 	NOOK_of_V(v)--;
 	if (NOOK_of_V(v) < 0) {
-	    Next_Action_of_V(v) = V_NOT_ACTIVE;
+	    Next_Action_of_V(v) = MARPA_V_INACTIVE;
 	    break;
 	}
 	{

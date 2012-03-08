@@ -71,6 +71,15 @@ MARPA_EVENT_NEW_RULE
 MARPA_EVENT_COUNTED_NULLABLE
 );
 
+my @value_type_codes = qw(
+MARPA_V_INTERNAL1
+MARPA_V_RULE
+MARPA_V_TOKEN
+MARPA_V_TRACE
+MARPA_V_INACTIVE
+MARPA_V_INTERNAL2
+);
+
 my @defs = ();
 
 my %error_number = map { $error_codes[$_], $_ } (0 .. $#error_codes);
@@ -84,6 +93,11 @@ my @events_seen = ();
 my @events = ();
 my $current_event_number = undef;
 my @event_suggested_messages = ();
+
+my %value_type_number = map { $value_type_codes[$_], $_ } (0 .. $#value_type_codes);
+my @value_types_seen = ();
+my @value_types = ();
+my $current_value_type_number = undef;
 
 while ( my $line = <STDIN> ) {
 
@@ -112,7 +126,7 @@ while ( my $line = <STDIN> ) {
             $current_event_number = undef;
         }
      }
-    if ( $line =~ /[@]deftypevr/xms ) {
+    if ( $line =~ /[@]deftypevr.*MARPA_EVENT_/xms ) {
         my ($event) = ($line =~ m/(MARPA_EVENT_.*)\b/xms);
 	if ($event) {
 	    my $event_number = $event_number{$event};
@@ -120,6 +134,16 @@ while ( my $line = <STDIN> ) {
 	    $current_event_number = $event_number;
 	    $events_seen[$event_number] = 1;
 	    $events[$current_event_number] = $event;
+	}
+    }
+    if ( $line =~ /[@]deftypevr.*MARPA_V_/xms ) {
+        my ($value_type) = ($line =~ m/(MARPA_V_.*)\b/xms);
+	if ($value_type) {
+	    my $value_type_number = $value_type_number{$value_type};
+	    die("$value_type not in list in $PROGRAM_NAME") if not defined $value_type_number;
+	    $current_value_type_number = $value_type_number;
+	    $value_types_seen[$value_type_number] = 1;
+	    $value_types[$current_value_type_number] = $value_type;
 	}
     }
 
@@ -210,6 +234,14 @@ for ( my $event_number = 0; $event_number < $event_count; $event_number++ ) {
     say {$api_h} '#define '
         . $events[$event_number] . q{ }
         . $event_number;
+}
+
+my $value_type_count = scalar @value_types;
+say {$api_h} "#define MARPA_VALUE_TYPE_COUNT $value_type_count";
+for ( my $value_type_number = 0; $value_type_number < $value_type_count; $value_type_number++ ) {
+    say {$api_h} '#define '
+        . $value_types[$value_type_number] . q{ }
+        . $value_type_number;
 }
 
 print {$codes_c} $common_preamble, $notlib_preamble;

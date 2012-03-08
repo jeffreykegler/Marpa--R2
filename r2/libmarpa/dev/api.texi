@@ -1795,15 +1795,22 @@ Return the is-predecessor bit for @var{nook_id}.
 @node Valuator access macros, Valuator reference counting, Valuator constructor, Value
 @section Valuator access macros
 
+Accessors which are implemented as macros.
+
 @defmac Marpa_Symbol_ID marpa_v_semantic_token(Marpa_Value @var{v})
+@end defmac
 
 @defmac gpointer marpa_v_token_value(Marpa_Value @var{v})
+@end defmac
 
 @defmac Marpa_Rule_ID marpa_v_semantic_rule(Marpa_Value @var{v})
+@end defmac
 
 @defmac gint marpa_v_arg_0(Marpa_Value @var{v})
+@end defmac
 
 @defmac gint marpa_v_arg_n(Marpa_Value @var{v})
+@end defmac
 
 @node Valuator reference counting, Valuator stepping, Valuator access macros, Value
 @section Reference counting
@@ -1826,6 +1833,27 @@ errors can be properly reported.
 
 @node Valuator stepping, Valuator tracing, Valuator reference counting, Value
 @section Stepping through the valuator
+
+@deftypevr Macro int MARPA_V_TRACE
+The data for tracing is ready.
+@end deftypevr
+
+@deftypevr Macro int MARPA_V_TOKEN
+The data for a semantic token is ready.
+@end deftypevr
+
+@deftypevr Macro int MARPA_V_RULE
+The data for a semantic rule is ready.
+@end deftypevr
+
+@deftypevr Macro int MARPA_V_INACTIVE
+The valuator is inactive.
+@end deftypevr
+
+@deftypevr Macro int MARPA_V_INTERNAL1
+@deftypevrx Macro int MARPA_V_INTERNAL2
+These value types are reserved for internal purposes
+@end deftypevr
 
 @deftypefun Marpa_Nook_ID marpa_v_step ( @
     Marpa_Value @var{v})
