@@ -11697,15 +11697,17 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	{
 	    ANDID and_node_id;
 	    AND and_node;
+	    SYMID token_id;
 	    const NOOK nook = NOOK_of_TREE_by_IX(t, NOOK_of_V(v));
 	    const gint choice = Choice_of_NOOK(nook);
 	    or = OR_of_NOOK(nook);
 	    and_node_id = and_order_get(o, or, choice);
 	    and_node = and_nodes + and_node_id;
-	    SYMID_of_V(v) = and_node_token(and_node, &Token_Value_of_V(v));
-	}
-	if (SYMID_of_V(v) >= 0) {
-	    TOS_of_V(v) = ++Arg_N_of_V(v);
+	    token_id = and_node_token(and_node, &Token_Value_of_V(v));
+	    if (token_id >= 0) {
+		SYMID_of_V(v) = token_id;
+		TOS_of_V(v) = ++Arg_N_of_V(v);
+	    }
 	}
 	nook_rule = RULE_of_OR(or);
 	if (Position_of_OR(or) == Length_of_RULE(nook_rule)) {
