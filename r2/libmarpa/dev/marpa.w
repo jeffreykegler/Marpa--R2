@@ -11644,8 +11644,15 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	    @<Perform evaluation steps @>@;
 	    if (!V_is_Active (v)) break;
 	    /* fall through */
+	  case MARPA_VALUE_TOKEN:
+	    if (SYMID_of_V (v) >= 0)
+	    {
+		Next_Value_Type_of_V(v) = MARPA_VALUE_RULE;
+		return MARPA_VALUE_TOKEN;
+	    }
+	    /* fall through */
 	  case MARPA_VALUE_RULE:
-	    if (RULEID_of_V (v) >= 0 || SYMID_of_V (v) >= 0)
+	    if (RULEID_of_V (v) >= 0)
 	      {
 		Next_Value_Type_of_V(v) = MARPA_VALUE_TRACE;
 		return MARPA_VALUE_RULE;

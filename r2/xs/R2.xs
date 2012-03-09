@@ -2562,7 +2562,7 @@ PPCODE:
   Marpa_Symbol_ID token_id;
   Marpa_Rule_ID rule_id;
   int status;
-  const char* result_string;
+  const char *result_string;
   SV *sv;
   status = marpa_v_step (v);
   if (status == MARPA_VALUE_INACTIVE)
@@ -2579,23 +2579,21 @@ PPCODE:
       croak ("Problem in r->v_step(): unknown action type %d", status);
     }
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-  if (status == MARPA_VALUE_TRACE) return;
-  token_id = marpa_v_semantic_token(v);
-  if (token_id < 0)
+  if (status == MARPA_VALUE_TOKEN)
     {
-      XPUSHs (&PL_sv_undef);
-      XPUSHs (&PL_sv_undef);
-    }
-  else
-    {
+      token_id = marpa_v_semantic_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
-      XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (marpa_v_token_value(v)))));
+      XPUSHs (sv_2mortal
+	      (newSViv (GPOINTER_TO_INT (marpa_v_token_value (v)))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
-  rule_id = marpa_v_semantic_rule(v);
-  sv = rule_id < 0 ? &PL_sv_undef : sv_2mortal (newSViv (rule_id));
-  XPUSHs (sv);
-  XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0(v))));
-  XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n(v))));
+  if (status == MARPA_VALUE_RULE)
+    {
+      rule_id = marpa_v_semantic_rule (v);
+      XPUSHs (sv_2mortal (newSViv (rule_id)));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0 (v))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
+    }
 }
 
 void

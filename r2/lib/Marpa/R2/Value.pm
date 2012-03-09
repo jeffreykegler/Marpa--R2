@@ -717,13 +717,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my @evaluation_stack = ();
     $value->trace( $trace_values ? 1 : 0 );
 
-    EVENT:
-    while (1) {
-        my ( $value_type, $token_id, $value_ix, $rule_id, $arg_0, $arg_n ) =
-            $value->step();
+    EVENT: while (1) {
+        my ( $value_type, @value_data ) = $value->step();
         last EVENT if not defined $value_type;
+
         if ( $trace_values >= 3 ) {
-            for my $i ( reverse 0 .. $arg_n - 1 ) {
+            for my $i ( reverse 0 .. $#evaluation_stack ) {
                 printf {$Marpa::R2::Internal::TRACE_FH} 'Stack position %3d:',
                     $i
                     or Marpa::R2::exception('print to trace handle failed');
@@ -731,12 +730,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
                     ->Dump
                     or Marpa::R2::exception('print to trace handle failed');
-            } ## end for my $i ( reverse 0 .. $arg_n - 1 )
+            } ## end for my $i ( reverse 0 .. $#evaluation_stack )
         } ## end if ( $trace_values >= 3 )
 
-        if ( $value_type eq 'MARPA_VALUE_RULE' ) {
-            ADD_TOKEN: {
-                last ADD_TOKEN if not defined $token_id;
+        if ( $value_type eq 'MARPA_VALUE_TOKEN' ) {
+		my ( $token_id, $value_ix, $arg_n ) = @value_data;
                 my $value_ref =
                     $value_ix >= 0
                     ? \( $token_values->[$value_ix] )
@@ -744,7 +742,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                 $evaluation_stack[$arg_n] = $value_ref;
 
-                last ADD_TOKEN if not $trace_values;
+		next EVENT if not $trace_values;
 
                 my $nook_ix    = $value->nook();
                 my $or_node_id = $tree->nook_or_node($nook_ix);
@@ -766,9 +764,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
                     or Marpa::R2::exception('print to trace handle failed');
 
-            } ## end ADD_TOKEN:
-            next EVENT if not defined $rule_id;
+		next EVENT;
+	}
 
+        if ( $value_type eq 'MARPA_VALUE_RULE' ) {
+	    my ( $rule_id, $arg_0, $arg_n ) = @value_data;
             my $closure = $rule_closures->[$rule_id];
             if ( defined $closure ) {
                 my $result;
