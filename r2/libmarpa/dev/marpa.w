@@ -11642,36 +11642,26 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	  {
 	  case V_GET_DATA:
 	    @<Perform evaluation steps @>@;
-	    /* fall through */
-	  case MARPA_VALUE_INACTIVE:
-	    if (!V_is_Active (v)) {
-		Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
-		return MARPA_VALUE_INACTIVE;
-	    }
-	    /* fall through */
-	  case MARPA_VALUE_TRACE:
-	    if (V_is_Trace (v))
-	      {
-		Next_Value_Type_of_V(v) = MARPA_VALUE_RULE;
-		return MARPA_VALUE_TRACE;
-	      }
+	    if (!V_is_Active (v)) break;
 	    /* fall through */
 	  case MARPA_VALUE_RULE:
 	    if (RULEID_of_V (v) >= 0 || SYMID_of_V (v) >= 0)
 	      {
-		Next_Value_Type_of_V(v) = V_GET_DATA;
+		Next_Value_Type_of_V(v) = MARPA_VALUE_TRACE;
 		return MARPA_VALUE_RULE;
 	      }
+	    /* fall through */
+	  case MARPA_VALUE_TRACE:
+	    Next_Value_Type_of_V(v) = V_GET_DATA;
+	    if (V_is_Trace (v))
+	      {
+		return MARPA_VALUE_TRACE;
+	      }
 	  }
-	Next_Value_Type_of_V(v) = V_GET_DATA;
       }
 
-    {
-	/* should never get here */
-	@<Unpack value objects@>@;
-	MARPA_INTERNAL_ERROR("unexpected value type");
-    }
-    return failure_indicator;
+    Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
+    return MARPA_VALUE_INACTIVE;
 }
 
 @ @<Perform evaluation steps@> =

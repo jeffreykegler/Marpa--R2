@@ -812,6 +812,23 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $evaluation_stack[$arg_0] = \$result;
 
                 if ($trace_values) {
+
+                    my $argc = scalar @args;
+		    my $nook_ix    = $value->nook();
+		    my $or_node_id = $tree->nook_or_node($nook_ix);
+		    my $choice     = $tree->nook_choice($nook_ix);
+		    my $and_node_id =
+			$order->and_node_order_get( $or_node_id, $choice );
+
+                    say {$Marpa::R2::Internal::TRACE_FH} 'Popping ', $argc,
+                        ' values to evaluate ',
+                        Marpa::R2::Recognizer::and_node_tag(
+                        $recce, $and_node_id
+                        ),
+                        ', rule: ', $grammar->brief_rule($rule_id)
+                        or
+                        Marpa::R2::exception('Could not print to trace file');
+
                     print {$Marpa::R2::Internal::TRACE_FH}
                         'Calculated and pushed value: ',
                         Data::Dumper->new( [$result] )->Terse(1)->Dump
@@ -848,22 +865,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     if $bocage->or_node_position($or_node_id)
                         != $grammar_c->rule_length($trace_rule_id);
 
-                if ( not $virtual_rhs and not $virtual_lhs ) {
-
-                    my $argc = $grammar_c->rule_length($trace_rule_id);
-
-                    say {$Marpa::R2::Internal::TRACE_FH} 'Popping ', $argc,
-                        ' values to evaluate ',
-                        Marpa::R2::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_rule($trace_rule_id)
-                        or
-                        Marpa::R2::exception('Could not print to trace file');
-
-                    last TRACE_OP;
-
-                } ## end if ( not $virtual_rhs and not $virtual_lhs )
+		last TRACE_OP if not $virtual_rhs and not $virtual_lhs;
 
                 if ( $virtual_rhs and not $virtual_lhs ) {
 
