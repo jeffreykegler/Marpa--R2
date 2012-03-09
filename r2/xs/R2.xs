@@ -318,41 +318,6 @@ PPCODE:
 }
 
 void
-default_value_set( g_wrapper, value )
-    G_Wrapper *g_wrapper;
-    int value;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  gint result = marpa_g_default_token_value_set (g, GINT_TO_POINTER (value));
-  if (result < 0)
-    {
-      croak ("Problem in g->default_token_value_set(): %s", xs_g_error (g_wrapper));
-    }
-  XSRETURN_YES;
-}
-
-void
-default_value( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  gpointer value;
-  gint result = marpa_g_default_token_value (g, &value);
-  if (result < 0)
-    {
-      croak ("Problem in g->default_token_value(): %s",
-	     xs_g_error (g_wrapper));
-    }
-  if (!value)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (value))));
-}
-
-void
 is_precomputed( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
@@ -361,7 +326,7 @@ PPCODE:
   gint result = marpa_g_is_precomputed (g);
   if (result < 0)
     {
-      croak ("Problem in g->default_token_value(): %s",
+      croak ("Problem in g->is_precomputed(): %s",
 	     xs_g_error (g_wrapper));
     }
   if (result)
@@ -2585,6 +2550,12 @@ PPCODE:
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal
 	      (newSViv (GPOINTER_TO_INT (marpa_v_token_value (v)))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
+    }
+  if (status == MARPA_VALUE_NULLING_TOKEN)
+    {
+      token_id = marpa_v_semantic_token (v);
+      XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
   if (status == MARPA_VALUE_RULE)

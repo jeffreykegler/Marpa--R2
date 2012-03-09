@@ -935,39 +935,6 @@ otherwise the ID of the new start symbol.
 @node Terminals, Rules, Symbols, Grammars
 @section Methods that deal with terminal symbols
 
-@deftypefun gint marpa_g_default_token_value ( @
-    Marpa_Grammar @var{g}, @
-    gpointer* @var{value_pointer})
-
-For each grammar, there is a default token value, which is passed
-on to its recognizers.
-@code{marpa_g_default_token_value}
-assumes that the caller has made sure that @var{value_pointer} is
-a valid location,
-and writes the current default token there.
-
-Return value: -2 if there was an error;
-    Otherwise a non-negative integer.
-
-@end deftypefun
-
-@deftypefun gint marpa_g_default_token_value_set ( @
-    Marpa_Grammar @var{g}, @
-    gpointer @var{value})
-
-For each grammar, there is a default token value, which is passed
-on to its recognizers.
-@code{marpa_g_default_token_value_set} sets this value
-to @var{value}.
-Marpa will never dereference @var{value},
-so that @var{value} does not need to be a valid pointer,
-and may be @code{NULL}.
-
-Return value: -2 if there was an error;
-    Otherwise a non-negative integer.
-
-@end deftypefun
-
 @deftypefun gint marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
 @deftypefunx gint marpa_g_is_lhs_terminal_ok_set ( @
     Marpa_Grammar @var{g}, @
@@ -1840,6 +1807,13 @@ The data for tracing is ready.
 
 @deftypevr Macro Marpa_Value_Type MARPA_VALUE_TOKEN
 The data for a semantic token is ready.
+The token is non-nulling and will have a value.
+@end deftypevr
+
+@deftypevr Macro Marpa_Value_Type MARPA_VALUE_NULLING_TOKEN
+The data for a semantic token is ready.
+The token is nulling and it is up to the application
+to provide any value, if one is needed.
 @end deftypevr
 
 @deftypevr Macro Marpa_Value_Type MARPA_VALUE_RULE

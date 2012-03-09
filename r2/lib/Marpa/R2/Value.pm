@@ -646,6 +646,33 @@ sub do_rank_by_rule {
     return 1;
 } ## end sub do_rank_by_rule
 
+sub trace_token_evaluation {
+    my ( $recce, $value, $token_id, $value_ref ) = @_;
+    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+
+    my $nook_ix     = $value->nook();
+    my $or_node_id  = $tree->nook_or_node($nook_ix);
+    my $choice      = $tree->nook_choice($nook_ix);
+    my $and_node_id = $order->and_node_order_get( $or_node_id, $choice );
+    my $token_name;
+    if ( defined $token_id ) {
+        $token_name = $grammar->symbol_name($token_id);
+    }
+
+    print {$Marpa::R2::Internal::TRACE_FH}
+        'Pushed value from ',
+        Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id ),
+        ': ',
+        ( $token_name ? qq{$token_name = } : q{} ),
+        Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
+        or Marpa::R2::exception('print to trace handle failed');
+
+   return;
+
+} ## end sub trace_token_evaluation
+
 # Does not modify stack
 sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
@@ -735,35 +762,17 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_VALUE_TOKEN' ) {
 		my ( $token_id, $value_ix, $arg_n ) = @value_data;
-                my $value_ref =
-                    $value_ix >= 0
-                    ? \( $token_values->[$value_ix] )
-                    : \$null_values->[$token_id];
-
+                my $value_ref = \( $token_values->[$value_ix] );
                 $evaluation_stack[$arg_n] = $value_ref;
+		trace_token_evaluation($recce, $value, $token_id, $value_ref) if $trace_values;
+		next EVENT;
+	}
 
-		next EVENT if not $trace_values;
-
-                my $nook_ix    = $value->nook();
-                my $or_node_id = $tree->nook_or_node($nook_ix);
-                my $choice     = $tree->nook_choice($nook_ix);
-                my $and_node_id =
-                    $order->and_node_order_get( $or_node_id, $choice );
-                my $token_name;
-                if ( defined $token_id ) {
-                    $token_name = $grammar->symbol_name($token_id);
-                }
-
-                print {$Marpa::R2::Internal::TRACE_FH}
-                    'Pushed value from ',
-                    Marpa::R2::Recognizer::and_node_tag(
-                    $recce, $and_node_id
-                    ),
-                    ': ',
-                    ( $token_name ? qq{$token_name = } : q{} ),
-                    Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
-                    or Marpa::R2::exception('print to trace handle failed');
-
+        if ( $value_type eq 'MARPA_VALUE_NULLING_TOKEN' ) {
+		my ( $token_id, $arg_n ) = @value_data;
+                my $value_ref = \$null_values->[$token_id];
+                $evaluation_stack[$arg_n] = $value_ref;
+		trace_token_evaluation($recce, $value, $token_id, $value_ref) if $trace_values;
 		next EVENT;
 	}
 

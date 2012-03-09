@@ -754,31 +754,6 @@ void rule_add(
 @d RULEID_of_G_is_Valid(g, rule_id)
     ((rule_id) >= 0 && (guint)(rule_id) < (g)->t_rules->len)
 
-@*0 Default token value.
-@d Default_Token_Value_of_G(g) ((g)->t_default_token_value)
-@<Widely aligned grammar elements@> = gpointer t_default_token_value;
-@ @<Initialize grammar elements@> =
-Default_Token_Value_of_G(g) = NULL;
-@ This function never fails, but that may change,
-so its interface allows for an error return.
-@<Function definitions@> =
-gint marpa_g_default_token_value(GRAMMAR g, gpointer* value)
-{
-   @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    *value = Default_Token_Value_of_G(g);
-    return 1;
-}
-@ @<Function definitions@> =
-gint marpa_g_default_token_value_set(GRAMMAR g, gpointer default_value)
-{
-   @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if grammar is precomputed@>@;
-    Default_Token_Value_of_G(g) = default_value;
-    return 1;
-}
-
 @*0 Start Symbol.
 @<Int aligned grammar elements@> = Marpa_Symbol_ID t_original_start_symid;
 @ @<Initialize grammar elements@> =
@@ -5230,7 +5205,10 @@ TOK *t_tokens_by_symid;
     obstack_alloc (TOK_Obs_of_I (input), sizeof (TOK) * symbol_count_of_g);
   for (ix = 0; ix < symbol_count_of_g; ix++)
     {
-      tokens_by_symid[ix] = token_new (input, ix, Default_Token_Value_of_G (g));
+      TOK token = obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
+      Type_of_TOK(token) = NULLING_TOKEN_OR_NODE;
+      SYMID_of_TOK(token) = ix;
+      tokens_by_symid[ix] = token;
     }
   TOKs_by_SYMID_of_I (input) = tokens_by_symid;
 }
@@ -7383,7 +7361,7 @@ TOK token_new(INPUT input, SYMID symbol_id, gpointer value)
 {
   TOK token;
     token = obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
-    Type_of_TOK(token) = TOKEN_OR_NODE;
+    Type_of_TOK(token) = VALUED_TOKEN_OR_NODE;
     SYMID_of_TOK(token) = symbol_id;
     Value_of_TOK(token) = value;
   return token;
@@ -9006,11 +8984,20 @@ typedef union u_or_node* OR;
 for final or-nodes.
 @s OR int
 Position is |DUMMY_OR_NODE| for dummy or-nodes,
-|TOKEN_OR_NODE| if the or-node is actually a symbol.
+and less than or equal to |MAX_TOKEN_OR_NODE|
+if the or-node is actually a symbol.
+It is |VALUED_TOKEN_OR_NODE} if the token has
+a value assigned,
+|NULLING_TOKEN_OR_NODE} if the token is nulling,
+and |UNVALUED_TOKEN_OR_NODE} if the token is non-nulling,
+but has no value assigned.
 Position is the dot position.
 @d DUMMY_OR_NODE -1
-@d TOKEN_OR_NODE -2
-@d OR_is_Token(or) (Type_of_OR(or) == TOKEN_OR_NODE)
+@d MAX_TOKEN_OR_NODE -2
+@d VALUED_TOKEN_OR_NODE -2
+@d NULLING_TOKEN_OR_NODE -3
+@d UNVALUED_TOKEN_OR_NODE -4
+@d OR_is_Token(or) (Type_of_OR(or) <= MAX_TOKEN_OR_NODE)
 @d Position_of_OR(or) ((or)->t_final.t_position)
 @d Type_of_OR(or) ((or)->t_final.t_position)
 @d RULE_of_OR(or) ((or)->t_final.t_rule)
@@ -10013,24 +10000,28 @@ gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
 Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
     Marpa_And_Node_ID and_node_id, gpointer* value_p)
 {
+  TOK token;
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
     @<Check |and_node_id|; set |and_node|@>@;
-    return and_node_token(and_node, value_p);
-}
-@ @<Function definitions@> =
-PRIVATE SYMID and_node_token(AND and_node, gpointer* value_p)
-{
-  const OR cause_or = Cause_OR_of_AND (and_node);
-  if (OR_is_Token (cause_or))
-    {
-      const TOK token = TOK_of_OR (cause_or);
+    token = and_node_token(and_node);
+    if (token) {
       if (value_p)
 	*value_p = Value_of_TOK (token);
       return SYMID_of_TOK (token);
     }
     return -1;
+}
+@ @<Function definitions@> =
+PRIVATE TOK and_node_token(AND and_node)
+{
+  const OR cause_or = Cause_OR_of_AND (and_node);
+  if (OR_is_Token (cause_or))
+    {
+      return TOK_of_OR (cause_or);
+    }
+    return NULL;
 }
 
 @** Parse Bocage Code (B, BOCAGE).
@@ -11432,6 +11423,7 @@ the grammar invisible to the semantics.
 @d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
 @d RULEID_of_V(val) ((val)->public.t_semantic_rule_id)
 @d Token_Value_of_V(val) ((val)->public.t_token_value)
+@d Token_Type_of_V(val) ((val)->t_token_type)
 @d TOS_of_V(val) ((val)->public.t_tos)
 @d Arg_N_of_V(val) ((val)->public.t_arg_n)
 @d VStack_of_V(val) ((val)->t_virtual_stack)
@@ -11451,6 +11443,7 @@ struct s_value {
     NOOKID t_nook;
     Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
+    gint t_token_type;
     gint t_next_value_type;
     guint t_trace:1;
 };
@@ -11645,10 +11638,15 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	    if (!V_is_Active (v)) break;
 	    /* fall through */
 	  case MARPA_VALUE_TOKEN:
-	    if (SYMID_of_V (v) >= 0)
 	    {
-		Next_Value_Type_of_V(v) = MARPA_VALUE_RULE;
-		return MARPA_VALUE_TOKEN;
+	      gint token_type = Token_Type_of_V (v);
+	      if (token_type != DUMMY_OR_NODE)
+		{
+		  Next_Value_Type_of_V (v) = MARPA_VALUE_RULE;
+		  if (token_type == NULLING_TOKEN_OR_NODE)
+		      return MARPA_VALUE_NULLING_TOKEN;
+		   return MARPA_VALUE_TOKEN;
+		 }
 	    }
 	    /* fall through */
 	  case MARPA_VALUE_RULE:
@@ -11695,18 +11693,27 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	    break;
 	}
 	{
-	    ANDID and_node_id;
-	    AND and_node;
-	    SYMID token_id;
-	    const NOOK nook = NOOK_of_TREE_by_IX(t, NOOK_of_V(v));
-	    const gint choice = Choice_of_NOOK(nook);
-	    or = OR_of_NOOK(nook);
-	    and_node_id = and_order_get(o, or, choice);
-	    and_node = and_nodes + and_node_id;
-	    token_id = and_node_token(and_node, &Token_Value_of_V(v));
-	    if (token_id >= 0) {
-		SYMID_of_V(v) = token_id;
-		TOS_of_V(v) = ++Arg_N_of_V(v);
+	  ANDID and_node_id;
+	  AND and_node;
+	  TOK token;
+	  gint token_type;
+	  const NOOK nook = NOOK_of_TREE_by_IX (t, NOOK_of_V (v));
+	  const gint choice = Choice_of_NOOK (nook);
+	  or = OR_of_NOOK (nook);
+	  and_node_id = and_order_get (o, or, choice);
+	  and_node = and_nodes + and_node_id;
+	  token = and_node_token (and_node);
+	  token_type = token ? Type_of_TOK(token) : DUMMY_OR_NODE;
+	    Token_Type_of_V(v) = token_type;
+	  if (token_type != DUMMY_OR_NODE)
+	    {
+	      SYMID_of_V (v) = SYMID_of_TOK (token);
+	      TOS_of_V (v) = ++Arg_N_of_V (v);
+	      Token_Type_of_V (v) = token_type;
+	      if (token_type == VALUED_TOKEN_OR_NODE)
+		{
+		  Token_Value_of_V (v) = Value_of_TOK (token);
+		}
 	    }
 	}
 	nook_rule = RULE_of_OR(or);
@@ -11744,7 +11751,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	    }
 	}
 	if ( RULEID_of_V(v) >= 0 ) break;
-	if ( SYMID_of_V(v) >= 0 ) break;
+	if ( Token_Type_of_V(v) != DUMMY_OR_NODE ) break;
 	if ( V_is_Trace(v)) break;
     }
 }
