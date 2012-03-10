@@ -56,7 +56,16 @@ or the grammar's
 L<C<default_null_value>|Marpa::R2::Grammar/default_null_value>
 named argument
 is defined,
-a symbol's null value is a Perl C<undef>.
+a symbol's null value is arbitrary.
+"Arbitrary" here means
+that the value can not be relied
+on,
+even to stay the same for
+the same symbol in the same parse.
+
+Marpa optimizes for arbitrary null values,
+and in casess where null values are not used for anything,
+applications should prefer arbitrary null values.
 
 =head2 Null subtrees
 

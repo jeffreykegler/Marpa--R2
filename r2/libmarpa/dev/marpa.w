@@ -1080,16 +1080,26 @@ typedef gint SYMID;
 struct s_symbol;
 typedef struct s_symbol* SYM;
 typedef const struct s_symbol* SYM_Const;
-@ The initial element is a type gint so that
-symbol structure may be used where or-nodes are
+@ The initial element is a type gint,
+and the next element is the symbol ID,
+(the unique identifier for the symbol),
+so that the
+symbol structure may be used
+where token or-nodes are
 expected.
+@d ID_of_SYM(sym) ((sym)->t_symbol_id)
+
 @<Private structures@> =
 struct s_symbol {
+    gint t_or_node_type;
+    SYMID t_symbol_id;
     @<Widely aligned symbol elements@>@;
-    @<Int aligned symbol elements@>@;
     @<Bit aligned symbol elements@>@;
 };
 typedef struct s_symbol SYM_Object;
+@ @<Initialize symbol elements@> =
+    symbol->t_or_node_type = NULLING_TOKEN_OR_NODE;
+    ID_of_SYM(symbol) = g->t_symbols->len;
 
 @ @<Function definitions@> =
 PRIVATE SYM
@@ -1117,11 +1127,6 @@ PRIVATE void symbol_free(SYM symbol)
 {
     @<Free symbol elements@>@; g_free(symbol);
 }
-
-@ Symbol ID: This is the unique identifier for the symbol.
-@d ID_of_SYM(sym) ((sym)->t_symbol_id)
-@<Int aligned symbol elements@> = SYMID t_symbol_id;
-@ @<Initialize symbol elements@> = ID_of_SYM(symbol) = g->t_symbols->len;
 
 @*0 Symbol LHS rules element.
 This tracks the rules for which this symbol is the LHS.
