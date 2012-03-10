@@ -5194,37 +5194,13 @@ it needs, and someday I may want to take advantage of
 this fact by freeing up the rest of recognizer memory.
 @d TOK_Obs_of_I(i)
     (&(i)->t_token_obs)
-@d TOKs_by_SYMID_of_I(i)
-    ((i)->t_tokens_by_symid)
-@d TOK_by_ID_of_I(i, symbol_id)
-    (TOKs_by_SYMID_of_I(i)[symbol_id])
 @<Widely aligned input elements@> =
 struct obstack t_token_obs;
-TOK *t_tokens_by_symid;
 
 @ @<Initialize input elements@> =
-{
-  gint ix;
   obstack_init (TOK_Obs_of_I (input));
-  tokens_by_symid =
-    obstack_alloc (TOK_Obs_of_I (input), sizeof (TOK) * symbol_count_of_g);
-  for (ix = 0; ix < symbol_count_of_g; ix++)
-    {
-      TOK token = obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
-      Type_of_TOK(token) = NULLING_TOKEN_OR_NODE;
-      SYMID_of_TOK(token) = ix;
-      tokens_by_symid[ix] = token;
-    }
-  TOKs_by_SYMID_of_I (input) = tokens_by_symid;
-}
 @ @<Destroy input elements@> =
-{
-    TOK* tokens_by_symid = TOKs_by_SYMID_of_I(input);
-    if (tokens_by_symid) {
-	obstack_free(TOK_Obs_of_I(input), NULL);
-	TOKs_by_SYMID_of_I(input) = NULL;
-    }
-}
+    obstack_free(TOK_Obs_of_I(input), NULL);
 
 @*0 Base objects.
 @ @d G_of_I(i) ((i)->t_grammar)
@@ -7354,7 +7330,7 @@ struct s_token {
 };
 
 @ @d TOK_Obs_of_R(r) TOK_Obs_of_I(I_of_R(r))
-@d TOK_by_ID_of_R(r, symbol_id) TOK_by_ID_of_I(I_of_R(r), (symbol_id))
+@d TOK_by_SYMID(symbol_id) (SYM_by_ID(symbol_id))
 @ @<Initialize recognizer elements@> =
 {
   I_of_R(r) = input_new(g);
@@ -9243,7 +9219,7 @@ MARPA_OFF_DEBUG3("adding nulling token or-node rule=%d i=%d",
 		DAND draft_and_node;
 		const gint rhs_ix = symbol_instance - SYMI_of_RULE(rule);
 		const OR predecessor = rhs_ix ? last_or_node : NULL;
-		const OR cause = (OR)TOK_by_ID_of_R( r, RHS_ID_of_RULE (rule, rhs_ix ) );
+		const OR cause = (OR)TOK_by_SYMID( RHS_ID_of_RULE (rule, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
@@ -9388,7 +9364,7 @@ or-nodes follow a completion.
 	  DAND draft_and_node;
 	  const gint rhs_ix = symbol_instance - SYMI_of_RULE(path_rule);
 	    const OR predecessor = rhs_ix ? last_or_node : NULL;
-	  const OR cause = (OR)TOK_by_ID_of_R( r, RHS_ID_of_RULE (path_rule, rhs_ix)) ;
+	  const OR cause = (OR)TOK_by_SYMID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
 	  MARPA_ASSERT (symbol_instance < Length_of_RULE (path_rule)) @;
 	  MARPA_ASSERT (symbol_instance >= 0) @;
 	  @<Set |last_or_node| to a new or-node@>@;
@@ -10225,8 +10201,7 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
   OR_of_AND (and_nodes) = or_node;
   Predecessor_OR_of_AND (and_nodes) = NULL;
   Cause_OR_of_AND (and_nodes) =
-    (OR) TOK_by_ID_of_R (r,
-			 RHS_ID_of_RULE (null_start_rule, rule_length - 1));
+    (OR) TOK_by_SYMID ( RHS_ID_of_RULE (null_start_rule, rule_length - 1));
 
   return b;
 }
