@@ -5139,6 +5139,7 @@ input_new (GRAMMAR g)
   const gint symbol_count_of_g = SYM_Count_of_G (g);
   TOK *tokens_by_symid;
   INPUT input = g_slice_new (struct s_input);
+  obstack_init (TOK_Obs_of_I (input));
   @<Initialize input elements@>@;
   return input;
 }
@@ -5172,10 +5173,14 @@ input_ref (INPUT input)
   return input;
 }
 
-@ @<Function definitions@> =
+@ The token obstack has exactly the same lifetime as its
+container |input| object,
+so there is no need for a flag to
+guarantee that it is safe to destroy it.
+@<Function definitions@> =
 PRIVATE void input_free(INPUT input)
 {
-    @<Destroy input elements@>@;
+    obstack_free(TOK_Obs_of_I(input), NULL);
     g_slice_free(struct s_input, input);
 }
 
@@ -5196,11 +5201,6 @@ this fact by freeing up the rest of recognizer memory.
     (&(i)->t_token_obs)
 @<Widely aligned input elements@> =
 struct obstack t_token_obs;
-
-@ @<Initialize input elements@> =
-  obstack_init (TOK_Obs_of_I (input));
-@ @<Destroy input elements@> =
-    obstack_free(TOK_Obs_of_I(input), NULL);
 
 @*0 Base objects.
 @ @d G_of_I(i) ((i)->t_grammar)
