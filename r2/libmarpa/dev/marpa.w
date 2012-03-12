@@ -1218,6 +1218,36 @@ PRIVATE
 void symbol_rhs_add(SYM symbol, Marpa_Rule_ID rule_id)
 { g_array_append_val(symbol->t_rhs, rule_id); }
 
+@*0 Nulling symbol has semantics?.
+This value describes the semantics
+for a symbol when it is nulling.
+Marpa optimizes for the case
+where the application
+does not care about the value of 
+a symbol -- that is, the semantics
+is arbitrary.
+@d SYM_is_Ask_Me_When_Null(symbol) ((symbol)->t_is_ask_me_when_null)
+@<Bit aligned symbol elements@> = guint t_is_ask_me_when_null:1;
+@ @<Initialize symbol elements@> =
+    SYM_is_Ask_Me_When_Null(symbol) = 0;
+@ @<Function definitions@> =
+gint marpa_g_symbol_is_ask_me_when_null(
+    Marpa_Grammar g,
+    Marpa_Symbol_ID symid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return SYM_is_Ask_Me_When_Null(SYM_by_ID(symid));
+}
+gint marpa_g_symbol_ask_me_when_null_set(
+    Marpa_Grammar g, Marpa_Symbol_ID symid)
+{
+    SYM symbol;
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    symbol = SYM_by_ID(symid);
+    return SYM_is_Ask_Me_When_Null(symbol) = 1;
+}
 @ Symbol Is Accessible Boolean
 @<Bit aligned symbol elements@> = guint t_is_accessible:1;
 @ @<Initialize symbol elements@> =
@@ -1411,6 +1441,8 @@ SYM symbol_alias_create(GRAMMAR g, SYM symbol)
     symbol->t_alias = alias;
     alias->t_is_nulling_alias = TRUE;
     SYM_is_Nulling(alias) = TRUE;
+    SYM_is_Ask_Me_When_Null(alias)
+	= SYM_is_Ask_Me_When_Null(symbol);
     alias->t_is_nullable = TRUE;
     alias->t_is_productive = TRUE;
     alias->t_is_accessible = symbol->t_is_accessible;

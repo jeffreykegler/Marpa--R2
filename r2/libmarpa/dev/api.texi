@@ -1119,6 +1119,39 @@ Return value: -2 if the grammar is not precomputed or
 
 @end deftypefun
 
+@deftypefun gint marpa_g_symbol_ask_me_when_null_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symbol_id})
+@deftypefunx gint marpa_g_symbol_is_ask_me_when_null ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symbol_id})
+
+In Marpa,
+most of the semantics is usually be implemented by the
+higher layers.
+This is called @dfn{"ask me" semantics}.
+The "ask me when null"
+calls deal with the handling of semantics
+in case when the symbol is nulling.
+For proper nullables,
+the "Ask me when null" setting is relevant
+only in cases where the symbol is nulled.
+
+Marpa's default is to assume that the
+value of nulled symbols will be ignored,
+and to let that value be arbitrary.
+"Arbitrary" here means it may not be relied
+and may change from instance to instance.
+Marpa optimizes for cases where symbols
+have arbitrary values.
+
+Return value: -2 if there was an error.
+  On success, 1 if the resulting semantics after
+  the function call is the "ask me" semantics.
+  Otherise, 0 otherwise.
+
+@end deftypefun
+
 @deftypefun gint marpa_g_symbol_lhs_count (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
