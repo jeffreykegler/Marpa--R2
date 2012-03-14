@@ -21,7 +21,13 @@ basic_test:
 	(cd r2 && ./Build test)
 
 full_test: etc_make
-	(cd r2/etc && make) 2>&1 | tee full_test.out
+	(cd r2; \
+	    ./Build realclean; \
+	    perl Build.PL; \
+	    ./Build; \
+	    ./Build distmeta; \
+	    ./Build test) 2>&1 | \
+		tee full_test.out
 
 install:
 	(cd r2/libmarpa/dev; make install)
