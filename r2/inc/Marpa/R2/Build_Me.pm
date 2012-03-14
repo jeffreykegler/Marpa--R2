@@ -30,7 +30,7 @@ use Module::Build;
 use Fatal qw(open close chdir chmod utime);
 use English qw( -no_match_vars );
 use Time::Piece;
-use Glib::Install::Files;
+use ExtUtils::Depends;
 
 use Marpa::R2::Config;
 
@@ -60,7 +60,7 @@ sub installed_contents {
 sub xs_version_contents {
     my ( $self, $package ) = @_;
     my @use_packages =
-        qw( Scalar::Util List::Util Carp Data::Dumper ExtUtils::PkgConfig Glib );
+        qw( Scalar::Util List::Util Carp Data::Dumper ExtUtils::Depends Glib );
     my $text = $preamble;
     $text .= "package $package;\n";
 
@@ -181,7 +181,8 @@ sub process_xs {
     $self->verbose() and say "compiling $spec->{c_file}";
     my @new_ccflags = ( '-I', $libmarpa_build_dir );
     if ( $self->config('cc') eq 'gcc' ) {
-        my $gperl_h_location = $Glib::Install::Files::CORE;
+        my $glib_info = ExtUtils::Depends::load('Glib');
+        my $gperl_h_location = $glib_info->{instpath};
         push @new_ccflags,
             qw( -Wall -Wno-unused-variable -Wextra -Wpointer-arith
             -Wstrict-prototypes -Wwrite-strings

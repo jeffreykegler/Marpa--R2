@@ -27,11 +27,11 @@ use warnings;
     'Carp'                => 1.08,
     'Data::Dumper'        => '2.125',
     'ExtUtils::CBuilder'  => 0.27,
-    'ExtUtils::PkgConfig' => 1.12,
+    'ExtUtils::Depends'   => 0.304,
     'Glib'                => 1.223,
     'HTML::Parser'        => '3.64',
     'HTML::PullParser'    => '3.57',
-    'HTML::Entities'    => '3.68',
+    'HTML::Entities'      => '3.68',
     'List::Util'          => 1.21,
     'Module::Build'       => 0.3601,
     'PPI'                 => '1.206',
@@ -39,7 +39,6 @@ use warnings;
     'Storable'            => 2.21,
     'Task::Weaken'        => '0',
     'Test::More'          => 0.94,
-    'Test::Weaken'        => '3.004000',
 );
 
 1;

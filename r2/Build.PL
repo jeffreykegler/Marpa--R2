@@ -24,31 +24,31 @@ use English qw( -no_match_vars );
 
 use Config;
 use Module::Build;
-use ExtUtils::PkgConfig;
-use Glib::Install::Files;
+use Glib;
+use ExtUtils::Depends;
 
 use lib File::Spec->catdir('inc');
 use Marpa::R2::Build_Me;
 use Marpa::R2::Config;
 
-my $gperl_h_location = $Glib::Install::Files::CORE;
-
-if ( !ExtUtils::PkgConfig->atleast_version( 'glib-2.0', '2.22.0' ) ) {
+# Check version of *GNU* glib
+# (which is not the same as the version of the CPAN Glib)
+if ( !Glib->CHECK_VERSION( 2, 22, 0 ) ) {
     die 'no support for Glib < 2.22.0';
 }
-my %glib2_info              = ExtUtils::PkgConfig->find('glib-2.0');
-my $glib_2_0_compiler_flags = $glib2_info{cflags};
-my $glib_2_0_linker_flags   = $glib2_info{libs};
+my $glib_info              = ExtUtils::Depends::load('Glib');
+my $glib_compiler_flags = $glib_info->{inc};
+my $glib_linker_flags   = $glib_info->{libs};
 
 my %build_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::CBuilder Test::More );
+    qw( ExtUtils::CBuilder ExtUtils::Depends Test::More );
 my %configure_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::PkgConfig Module::Build Glib );
+    qw( ExtUtils::Depends Module::Build Glib );
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper ExtUtils::PkgConfig Glib );
+    qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper ExtUtils::Depends Glib );
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( PPI HTML::Entities HTML::Parser HTML::PullParser Test::Weaken );
@@ -120,9 +120,8 @@ my $build = Marpa::R2::Build_Me->new(
     configure_requires => \%configure_requires,
     build_requires     => \%build_requires,
     dynamic_config     => 1,
-    extra_compiler_flags =>
-        ( "$glib_2_0_compiler_flags -I$gperl_h_location " ),
-    extra_linker_flags => "$glib_2_0_linker_flags",
+    extra_compiler_flags => $glib_compiler_flags,
+    extra_linker_flags => $glib_linker_flags,
     PL_files           => {},
     pm_files           => \%pm_files,
     script_files       => [
