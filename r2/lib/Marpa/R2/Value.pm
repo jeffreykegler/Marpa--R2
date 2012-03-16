@@ -741,6 +741,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     $action_object //= {};
 
     my $value            = Marpa::R2::Internal::V_C->new($tree);
+    for my $token_id ( grep { defined $null_values->[$_] }
+        0 .. $#$null_values )
+    {
+        $value->symbol_ask_me_when_null_set($token_id, 1);
+    }
     my @evaluation_stack = ();
     $value->trace( $trace_values ? 1 : 0 );
 

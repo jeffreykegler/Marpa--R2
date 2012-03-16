@@ -11693,6 +11693,7 @@ gint marpa_v_symbol_ask_me_when_null_set(
     } else {
 	bv_bit_clear(Nulling_Ask_BV_of_V(v), symid);
     }
+    return value ? 1 : 0;
 }
 
 @ The value type indicates whether the value
