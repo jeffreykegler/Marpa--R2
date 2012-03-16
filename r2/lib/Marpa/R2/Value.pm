@@ -771,7 +771,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         if ( $value_type eq 'MARPA_VALUE_NULLING_TOKEN' ) {
 		my ( $token_id, $arg_n ) = @value_data;
                 my $value_ref = $null_values->[$token_id];
-                $evaluation_stack[$arg_n] = $value_ref // \$value_ref;
+                $evaluation_stack[$arg_n] = $value_ref;
 		trace_token_evaluation($recce, $value, $token_id, $value_ref) if $trace_values;
 		next EVENT;
 	}
@@ -783,7 +783,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $result;
 
                 my @args =
-                    map { ${$_} } @evaluation_stack[ $arg_0 .. $arg_n ];
+                    map { defined $_ ? ${$_} : $_ } @evaluation_stack[ $arg_0 .. $arg_n ];
                 if ( $grammar_c->rule_is_discard_separation($rule_id) ) {
                     @args =
                         @args[ map { 2 * $_ }
@@ -941,7 +941,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $top_value = $evaluation_stack[0];
 
-    return $top_value;
+    return $top_value // (\undef);
 
 } ## end sub Marpa::R2::Internal::Recognizer::evaluate
 
