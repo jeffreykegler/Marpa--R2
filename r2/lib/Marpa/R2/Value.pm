@@ -331,10 +331,8 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
 
     my $rules   = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $default_null_value_ref =
-        $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE];
     my $default_null_value =
-        ref $default_null_value_ref ? ${$default_null_value_ref} : undef;
+        $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE];
 
     my $null_values;
     $#{$null_values} = $#{$symbols};
@@ -348,7 +346,7 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
         my $null_value = undef;
         if ( $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] ) {
             $null_value =
-                ${ $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] };
+                $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE];
         }
         else {
             $null_value = $default_null_value;
@@ -772,8 +770,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_VALUE_NULLING_TOKEN' ) {
 		my ( $token_id, $arg_n ) = @value_data;
-                my $value_ref = \$null_values->[$token_id];
-                $evaluation_stack[$arg_n] = $value_ref;
+                my $value_ref = $null_values->[$token_id];
+                $evaluation_stack[$arg_n] = $value_ref // \$value_ref;
 		trace_token_evaluation($recce, $value, $token_id, $value_ref) if $trace_values;
 		next EVENT;
 	}
