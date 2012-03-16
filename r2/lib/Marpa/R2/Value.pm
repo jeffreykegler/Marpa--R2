@@ -331,8 +331,10 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
 
     my $rules   = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $default_null_value =
+    my $default_null_value_ref =
         $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE];
+    my $default_null_value =
+        ref $default_null_value_ref ? ${$default_null_value_ref} : undef;
 
     my $null_values;
     $#{$null_values} = $#{$symbols};

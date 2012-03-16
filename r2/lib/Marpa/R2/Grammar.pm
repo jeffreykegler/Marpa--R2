@@ -395,7 +395,7 @@ sub Marpa::R2::Grammar::set {
 
         if ( defined( my $value = $args->{'default_null_value'} ) ) {
             $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE] =
-                $value;
+                \$value;
         }
 
         if ( defined( my $value = $args->{'actions'} ) ) {
