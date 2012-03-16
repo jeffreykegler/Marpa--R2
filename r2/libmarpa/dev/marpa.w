@@ -1240,13 +1240,13 @@ gint marpa_g_symbol_is_ask_me_when_null(
     return SYM_is_Ask_Me_When_Null(SYM_by_ID(symid));
 }
 gint marpa_g_symbol_ask_me_when_null_set(
-    Marpa_Grammar g, Marpa_Symbol_ID symid)
+    Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 {
     SYM symbol;
     @<Return |-2| on failure@>@;
     @<Fail if grammar |symid| is invalid@>@;
     symbol = SYM_by_ID(symid);
-    return SYM_is_Ask_Me_When_Null(symbol) = 1;
+    return SYM_is_Ask_Me_When_Null(symbol) = value ? 1 : 0;
 }
 @ Symbol Is Accessible Boolean
 @<Bit aligned symbol elements@> = guint t_is_accessible:1;
@@ -11438,6 +11438,7 @@ the grammar invisible to the semantics.
 @d TOS_of_V(val) ((val)->public.t_tos)
 @d Arg_N_of_V(val) ((val)->public.t_arg_n)
 @d VStack_of_V(val) ((val)->t_virtual_stack)
+@d Nulling_Ask_BV_of_V(val) ((val)->t_nulling_ask_bv)
 @d T_of_V(v) ((v)->t_tree)
 @<Public structures@> =
 struct marpa_value {
@@ -11455,6 +11456,7 @@ struct s_value {
     NOOKID t_nook;
     Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
+    Bit_Vector t_nulling_ask_bv;
     gint t_token_type;
     gint t_next_value_type;
     guint t_trace:1;
@@ -11529,6 +11531,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	const gint initial_stack_size =
 	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
 	DSTACK_INIT (VStack_of_V (v), gint, initial_stack_size);
+	@<Initialize nulling "ask me" bit vector@>@;
 	Next_Value_Type_of_V(v) = V_GET_DATA;
 	V_is_Trace (v) = 1;
 	TOS_of_V(v) = -1;
@@ -11540,6 +11543,21 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
       }
     MARPA_DEV_ERROR("tree is exhausted");
     return NULL;
+}
+
+@
+@<Initialize nulling "ask me" bit vector@> =
+{
+    const SYMID symbol_count_of_g = SYM_Count_of_G(g);
+    SYMID ix;
+    Nulling_Ask_BV_of_V(v) = bv_create (symbol_count_of_g);
+    for (ix = 0; ix < symbol_count_of_g; ix++) {
+	const SYM symbol = SYM_by_ID(ix);
+	if (SYM_is_Nulling(symbol) && SYM_is_Ask_Me_When_Null(symbol))
+	{
+	    bv_bit_set(Nulling_Ask_BV_of_V(v), ix);
+	}
+    }
 }
 
 @*0 Reference Counting and Destructors.
@@ -11585,6 +11603,7 @@ marpa_v_ref (Marpa_Value v)
 PRIVATE void value_free(VALUE v)
 {
     tree_unpause(T_of_V(v));
+    bv_free(Nulling_Ask_BV_of_V(v));
     if (DSTACK_IS_INITIALIZED(v->t_virtual_stack))
     {
         DSTACK_DESTROY(v->t_virtual_stack);
@@ -11627,6 +11646,53 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
 	return failure_indicator;
     }
     return NOOK_of_V(v);
+}
+
+@*0 Nulling symbol semantics.
+The settings here overrides the value
+set with the grammar.
+@ @<Function definitions@> =
+gint marpa_v_symbol_is_ask_me_when_null(
+    Marpa_Value v,
+    Marpa_Symbol_ID symid)
+{
+    @<Return |-2| on failure@>@;
+    @<Unpack value objects@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    return bv_bit_test(Nulling_Ask_BV_of_V(v), symid);
+}
+@ If the symbol has a null alias, the call is interpreted
+as being for that null alias.
+Non-nullables can never have "ask me" set,
+and it is an error to attempt to attempt to do so.
+Note that it is currently
+{\bf not} an error to change setting while the valuation
+is in progress.
+The idea scares me,
+but I cannot think of a reason to ban it,
+so I do not.
+@<Function definitions@> =
+gint marpa_v_symbol_ask_me_when_null_set(
+    Marpa_Value v, Marpa_Symbol_ID symid, int value)
+{
+    SYM symbol;
+    @<Return |-2| on failure@>@;
+    @<Unpack value objects@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |symid| is invalid@>@;
+    symbol = SYM_by_ID(symid);
+    if (!SYM_is_Nulling(symbol)) {
+         symbol = symbol_null_alias(symbol);
+	 if (!symbol && value) {
+	     MARPA_ERROR(MARPA_ERR_SYMBOL_NOT_NULLABLE);
+	 }
+    }
+    if (value) {
+	bv_bit_set(Nulling_Ask_BV_of_V(v), symid);
+    } else {
+	bv_bit_clear(Nulling_Ask_BV_of_V(v), symid);
+    }
 }
 
 @ The value type indicates whether the value

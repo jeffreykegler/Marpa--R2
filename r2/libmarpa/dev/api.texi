@@ -1121,7 +1121,8 @@ Return value: -2 if the grammar is not precomputed or
 
 @deftypefun gint marpa_g_symbol_ask_me_when_null_set ( @
     Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symbol_id})
+    Marpa_Symbol_ID @var{symbol_id}, @
+    int value)
 @deftypefunx gint marpa_g_symbol_is_ask_me_when_null ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symbol_id})
@@ -1792,6 +1793,17 @@ Return the is-predecessor bit for @var{nook_id}.
 @deftypefun void marpa_v_unref (Marpa_Value @var{v})
 @end deftypefun
 
+@deftypefun gint marpa_v_symbol_ask_me_when_null_set( @
+    Marpa_Value @var{v}, @
+    Marpa_Symbol_ID @var{symid}, @
+    int @var{value})
+@end deftypefun
+
+@deftypefun gint marpa_v_symbol_is_ask_me_when_null( @
+    Marpa_Value @var{v}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+
 @node Valuator access macros, Valuator reference counting, Valuator constructor, Value
 @section Valuator access macros
 
@@ -2112,6 +2124,17 @@ That means it could never match any possible input,
 not even the null string.
 Presumably, an error in writing the grammar.
 Suggested message: "Start symbol not on LHS of any rule."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SYMBOL_NOT_NULLABLE
+In circumstances where a symbol is required to be a nullable
+symbol,
+it is not.
+One such circumstance when the symbol is the
+argument of a
+@code{marpa_v_symbol_ask_me_when_null_set}
+call.
+Suggested message: "Symbol not nullable."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_UNKNOWN
