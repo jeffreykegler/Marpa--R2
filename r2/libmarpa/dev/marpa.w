@@ -11430,7 +11430,6 @@ the grammar invisible to the semantics.
 @d V_is_Active(val) (Next_Value_Type_of_V(val) != MARPA_VALUE_INACTIVE)
 @d V_is_Trace(val) ((val)->t_trace)
 @d NOOK_of_V(val) ((val)->t_nook)
-@d SYM_of_V(val) ((val)->t_semantic_token)
 @d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
 @d RULEID_of_V(val) ((val)->public.t_semantic_rule_id)
 @d Token_Value_of_V(val) ((val)->public.t_token_value)
@@ -11452,7 +11451,6 @@ struct marpa_value {
 struct s_value {
     struct marpa_value public;
     DSTACK_DECLARE(t_virtual_stack);
-    SYM t_semantic_token;
     NOOKID t_nook;
     Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
@@ -11721,11 +11719,11 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	      gint token_type = Token_Type_of_V (v);
 	      if (token_type != DUMMY_OR_NODE)
 		{
-		  SYM token = SYM_of_V(v);
-		  SYMID_of_V(v) = ID_of_SYM(token);
 		  Next_Value_Type_of_V (v) = MARPA_VALUE_RULE;
-		  if (SYM_is_Nulling(token))
+		  if (bv_bit_test(Nulling_Ask_BV_of_V(v), SYMID_of_V(v)))
 		      return MARPA_VALUE_NULLING_TOKEN;
+		  /* Any nulling token at this point
+		     will be an "ask me" token */
 		   return MARPA_VALUE_TOKEN;
 		 }
 	    }
@@ -11766,7 +11764,6 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	OR or;
 	RULE nook_rule;
 	Token_Value_of_V(v) = NULL;
-	SYM_of_V(v) = NULL;
 	RULEID_of_V(v) = -1;
 	NOOK_of_V(v)--;
 	if (NOOK_of_V(v) < 0) {
@@ -11789,12 +11786,16 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	  if (token_type != DUMMY_OR_NODE)
 	    {
 	      const SYMID token_id = SYMID_of_TOK (token);
-	      SYM_of_V (v) = SYM_by_ID(token_id);
 	      TOS_of_V (v) = ++Arg_N_of_V (v);
-	      Token_Type_of_V (v) = token_type;
 	      if (token_type == VALUED_TOKEN_OR_NODE)
 		{
+		  SYMID_of_V(v) = token_id;
+		  Token_Type_of_V (v) = token_type;
 		  Token_Value_of_V (v) = Value_of_TOK (token);
+		}
+		else if (bv_bit_test(Nulling_Ask_BV_of_V(v), token_id)) {
+		  SYMID_of_V(v) = token_id;
+		  Token_Type_of_V (v) = token_type;
 		}
 	    }
 	}
