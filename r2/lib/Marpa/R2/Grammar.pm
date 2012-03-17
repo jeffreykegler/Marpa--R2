@@ -393,7 +393,8 @@ sub Marpa::R2::Grammar::set {
             add_user_rules( $grammar, $value );
         } ## end if ( defined( my $value = $args->{'rules'} ) )
 
-        if ( defined( my $value = $args->{'default_null_value'} ) ) {
+        if ( exists $args->{'default_null_value'} ) {
+            my $value = $args->{'default_null_value'};
             $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE] =
                 \$value;
         }

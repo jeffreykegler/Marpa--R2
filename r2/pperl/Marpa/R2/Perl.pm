@@ -929,6 +929,7 @@ sub Marpa::R2::Perl::new {
         {   start         => 'prog',
             rules         => \@rules,
             lhs_terminals => 0,
+	    symbols => { listexpr => { null_value => undef } },
         }
     );
 

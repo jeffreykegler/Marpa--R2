@@ -11782,7 +11782,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	  and_node = and_nodes + and_node_id;
 	  token = and_node_token (and_node);
 	  token_type = token ? Type_of_TOK(token) : DUMMY_OR_NODE;
-	  Token_Type_of_V(v) = token_type;
+	  Token_Type_of_V (v) = token_type;
 	  if (token_type != DUMMY_OR_NODE)
 	    {
 	      const SYMID token_id = SYMID_of_TOK (token);
@@ -11790,12 +11790,14 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	      if (token_type == VALUED_TOKEN_OR_NODE)
 		{
 		  SYMID_of_V(v) = token_id;
-		  Token_Type_of_V (v) = token_type;
 		  Token_Value_of_V (v) = Value_of_TOK (token);
 		}
 		else if (bv_bit_test(Nulling_Ask_BV_of_V(v), token_id)) {
 		  SYMID_of_V(v) = token_id;
-		  Token_Type_of_V (v) = token_type;
+		} else {
+		  Token_Type_of_V (v) = DUMMY_OR_NODE;
+		  /* |DUMMY_OR_NODE| indicates arbitrary semantics for
+		  this token */
 		}
 	    }
 	}

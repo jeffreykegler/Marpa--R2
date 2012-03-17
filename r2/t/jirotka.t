@@ -53,6 +53,7 @@ my $grammar = Marpa::R2::Grammar->new(
     {   start          => 'Input',
         action_object  => 'Maql_Actions',
         default_action => 'tisk',
+	default_null_value => undef,
         terminals      => \@terminals,
         rules          => [
             {   lhs       => 'Input',
