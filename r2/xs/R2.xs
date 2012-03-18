@@ -1441,8 +1441,9 @@ alternative( r_wrapper, symbol_id, value, length )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
+      gpointer value_as_ptr = GINT_TO_POINTER(value);
       gint result =
-	marpa_r_alternative (r, symbol_id, GINT_TO_POINTER(value), length);
+	marpa_r_alternative (r, symbol_id, &value_as_ptr, length);
       if (result == -1)
 	{
 	  XSRETURN_UNDEF;

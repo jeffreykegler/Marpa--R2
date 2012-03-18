@@ -1333,7 +1333,10 @@ Suggested message: "Grammar has a counted nullable."
 @deftypefun gint marpa_r_start_input (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_alternative (Marpa_Recognizer r, Marpa_Symbol_ID @var{token_id}, gpointer @var{value}, gint @var{length})
+@deftypefun gint marpa_r_alternative (Marpa_Recognizer r, @
+    Marpa_Symbol_ID @var{token_id}, @
+    gpointer* @var{value}, @
+    gint @var{length})
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})

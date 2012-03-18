@@ -7349,13 +7349,16 @@ struct s_token;
 typedef struct s_token* TOK;
 @ The |t_type| field is to allow |TOK|
 objects to act as or-nodes.
-@d Type_of_TOK(tok) ((tok)->t_type)
-@d SYMID_of_TOK(tok) ((tok)->t_symbol_id)
+@d Type_of_TOK(tok) ((tok)->t_unvalued.t_type)
+@d SYMID_of_TOK(tok) ((tok)->t_unvalued.t_symbol_id)
 @d Value_of_TOK(tok) ((tok)->t_value)
 @<Private structures@> =
-struct s_token {
+struct s_token_unvalued {
     gint t_type;
     SYMID t_symbol_id;
+};
+struct s_token {
+    struct s_token_unvalued t_unvalued;
     gpointer t_value;
 };
 
@@ -7368,13 +7371,19 @@ struct s_token {
 
 @ @<Function definitions@> =
 PRIVATE
-TOK token_new(INPUT input, SYMID symbol_id, gpointer value)
+TOK token_new(INPUT input, SYMID symbol_id, gpointer* value)
 {
   TOK token;
+  if (value) {
     token = obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
-    Type_of_TOK(token) = VALUED_TOKEN_OR_NODE;
     SYMID_of_TOK(token) = symbol_id;
-    Value_of_TOK(token) = value;
+    Type_of_TOK(token) = VALUED_TOKEN_OR_NODE;
+    Value_of_TOK(token) = *value;
+  } else {
+    token = obstack_alloc (TOK_Obs_of_I(input), sizeof(token->t_unvalued));
+    SYMID_of_TOK(token) = symbol_id;
+    Type_of_TOK(token) = VALUED_TOKEN_OR_NODE;
+  }
   return token;
 }
 
@@ -7606,7 +7615,7 @@ treated by the application as fatal errors.
 Marpa_Earleme marpa_r_alternative(
     Marpa_Recognizer r,
     Marpa_Symbol_ID token_id,
-    gpointer value,
+    gpointer* value,
     gint length)
 {
     @<Return |-2| on failure@>@;
