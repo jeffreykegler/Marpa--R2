@@ -5788,7 +5788,7 @@ Marpa_Earley_Set_ID marpa_r_trace_earley_set(struct marpa_r *r)
   ES trace_earley_set = r->t_trace_earley_set;
   @<Fail if not trace-safe@>@;
   if (!trace_earley_set) {
-      R_DEV_ERROR("no trace es");
+      MARPA_DEV_ERROR("no trace es");
       return failure_indicator;
   }
   return Ord_of_ES(trace_earley_set);
@@ -5813,7 +5813,7 @@ Marpa_Earleme marpa_r_earleme(struct marpa_r* r, Marpa_Earley_Set_ID set_id)
     @<Fail if recognizer not started@>@;
     @<Fail if fatal error@>@;
     if (set_id < 0) {
-        R_DEV_ERROR("invalid es ordinal");
+        MARPA_DEV_ERROR("invalid es ordinal");
 	return failure_indicator;
     }
     r_update_earley_sets (r);
@@ -5838,7 +5838,7 @@ gint marpa_r_earley_set_size(struct marpa_r *r, Marpa_Earley_Set_ID set_id)
     r_update_earley_sets (r);
     if (!ES_Ord_is_Valid (r, set_id))
       {
-	R_DEV_ERROR ("invalid es ordinal");
+	MARPA_DEV_ERROR ("invalid es ordinal");
 	return failure_indicator;
       }
     earley_set = ES_of_R_by_Ord (r, set_id);
@@ -6097,7 +6097,7 @@ marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
   @<Clear trace Earley set dependent data@>@;
     if (set_id < 0)
     {
-	R_DEV_ERROR ("invalid es ordinal");
+	MARPA_DEV_ERROR ("invalid es ordinal");
 	return failure_indicator;
     }
   r_update_earley_sets (r);
@@ -6131,13 +6131,13 @@ marpa_r_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID item_id)
   if (!trace_earley_set)
     {
       @<Clear trace Earley set dependent data@>@;
-      R_DEV_ERROR ("no trace es");
+      MARPA_DEV_ERROR ("no trace es");
       return failure_indicator;
     }
   trace_earley_item_clear (r);
   if (item_id < 0)
     {
-      R_DEV_ERROR ("invalid eim ordinal");
+      MARPA_DEV_ERROR ("invalid eim ordinal");
       return failure_indicator;
     }
   if (item_id >= EIM_Count_of_ES (trace_earley_set))
@@ -6171,10 +6171,11 @@ Marpa_Earley_Set_ID marpa_r_earley_item_origin(struct marpa_r *r)
 {
     @<Return |-2| on failure@>@;
     EIM item = r->t_trace_earley_item;
-    @<Fail if recognizer not started@>@;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
     if (!item) {
         @<Clear trace Earley item data@>@;
-        R_DEV_ERROR("no trace eim");
+        MARPA_DEV_ERROR("no trace eim");
         return failure_indicator;
     }
     return Origin_Ord_of_EIM(item);
@@ -6256,11 +6257,11 @@ Marpa_Symbol_ID marpa_r_leo_predecessor_symbol(struct marpa_r *r)
   @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   if (!postdot_item) {
-      R_DEV_ERROR("no trace pim");
+      MARPA_DEV_ERROR("no trace pim");
       return failure_indicator;
   }
   if (EIM_of_PIM(postdot_item)) {
-      R_DEV_ERROR("pim is not lim");
+      MARPA_DEV_ERROR("pim is not lim");
       return failure_indicator;
   }
   predecessor_leo_item = Predecessor_LIM_of_LIM(LIM_of_PIM(postdot_item));
@@ -6278,7 +6279,7 @@ Marpa_Earley_Set_ID marpa_r_leo_base_origin(struct marpa_r *r)
   EIM base_earley_item;
   @<Fail if not trace-safe@>@;
   if (!postdot_item) {
-      R_DEV_ERROR("no trace pim");
+      MARPA_DEV_ERROR("no trace pim");
       return failure_indicator;
   }
   if (EIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
@@ -6296,7 +6297,7 @@ Marpa_AHFA_State_ID marpa_r_leo_base_state(struct marpa_r *r)
   @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   if (!postdot_item) {
-      R_DEV_ERROR("no trace pim");
+      MARPA_DEV_ERROR("no trace pim");
       return failure_indicator;
   }
   if (EIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
@@ -6338,7 +6339,7 @@ Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa(struct marpa_r *r)
     @<Fail if not trace-safe@>@;
     if (!postdot_item)
       {
-	R_DEV_ERROR ("no trace pim");
+	MARPA_DEV_ERROR ("no trace pim");
 	return failure_indicator;
       }
     if (!EIM_of_PIM (postdot_item))
@@ -6448,7 +6449,7 @@ marpa_r_postdot_symbol_trace (struct marpa_r *r,
   @<Fail if not trace-safe@>@;
   @<Fail if recognizer |symid| is invalid@>@;
   if (!current_es) {
-      R_DEV_ERROR("no pim");
+      MARPA_DEV_ERROR("no pim");
       return failure_indicator;
   }
   pim_sym_p = PIM_SYM_P_of_ES_by_SYMID(current_es, symid);
@@ -6482,7 +6483,7 @@ marpa_r_first_postdot_item_trace (struct marpa_r *r)
   @<Fail if not trace-safe@>@;
   if (!current_earley_set) {
       @<Clear trace Earley item data@>@;
-      R_DEV_ERROR("no trace es");
+      MARPA_DEV_ERROR("no trace es");
       return failure_indicator;
   }
   if (current_earley_set->t_postdot_sym_count <= 0) return -1;
@@ -6515,12 +6516,12 @@ marpa_r_next_postdot_item_trace (struct marpa_r *r)
   pim = r->t_trace_postdot_item;
   @<Clear trace postdot item data@>@;
   if (!pim_sym_p || !pim) {
-      R_DEV_ERROR("no trace pim");
+      MARPA_DEV_ERROR("no trace pim");
       return failure_indicator;
   }
   @<Fail if not trace-safe@>@;
   if (!current_set) {
-      R_DEV_ERROR("no trace es");
+      MARPA_DEV_ERROR("no trace es");
       return failure_indicator;
   }
   pim = Next_PIM_of_PIM(pim);
@@ -6546,7 +6547,7 @@ Marpa_AHFA_State_ID marpa_r_postdot_item_symbol(struct marpa_r *r)
   @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   if (!postdot_item) {
-      R_DEV_ERROR("no trace pim");
+      MARPA_DEV_ERROR("no trace pim");
       return failure_indicator;
   }
   return Postdot_SYMID_of_PIM(postdot_item);
@@ -6945,7 +6946,7 @@ Marpa_Symbol_ID marpa_r_next_token_link_trace(struct marpa_r *r)
     @<Set |item|, failing if necessary@>@;
     if (r->t_trace_source_type != SOURCE_IS_TOKEN) {
 	trace_source_link_clear(r);
-	R_DEV_ERROR("not tracing token links");
+	MARPA_DEV_ERROR("not tracing token links");
         return failure_indicator;
     }
     if (!r->t_trace_next_source_link) {
@@ -7020,7 +7021,7 @@ Marpa_Symbol_ID marpa_r_next_completion_link_trace(struct marpa_r *r)
     @<Set |item|, failing if necessary@>@;
     if (r->t_trace_source_type != SOURCE_IS_COMPLETION) {
 	trace_source_link_clear(r);
-	R_DEV_ERROR("not tracing completion links");
+	MARPA_DEV_ERROR("not tracing completion links");
         return failure_indicator;
     }
     if (!r->t_trace_next_source_link) {
@@ -7101,7 +7102,7 @@ marpa_r_next_leo_link_trace (struct marpa_r *r)
   if (r->t_trace_source_type != SOURCE_IS_LEO)
     {
       trace_source_link_clear (r);
-      R_DEV_ERROR("not tracing leo links");
+      MARPA_DEV_ERROR("not tracing leo links");
       return failure_indicator;
     }
   if (!r->t_trace_next_source_link)
@@ -7121,7 +7122,7 @@ marpa_r_next_leo_link_trace (struct marpa_r *r)
     item = r->t_trace_earley_item;
     if (!item) {
 	trace_source_link_clear(r);
-	R_DEV_ERROR("no eim");
+	MARPA_DEV_ERROR("no eim");
         return failure_indicator;
     }
 
@@ -7161,7 +7162,7 @@ AHFAID marpa_r_source_predecessor_state(struct marpa_r *r)
 	return AHFAID_of_EIM(predecessor);
     }
     }
-    R_DEV_ERROR(invalid_source_type_message(source_type));
+    MARPA_DEV_ERROR(invalid_source_type_message(source_type));
     return failure_indicator;
 }
 
@@ -7198,7 +7199,7 @@ Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, gpointer *value_p)
         if (value_p) *value_p = Value_of_TOK(token);
 	return SYMID_of_TOK(token);
     }
-    R_DEV_ERROR(invalid_source_type_message(source_type));
+    MARPA_DEV_ERROR(invalid_source_type_message(source_type));
     return failure_indicator;
 }
 
@@ -7230,7 +7231,7 @@ Marpa_Symbol_ID marpa_r_source_leo_transition_symbol(struct marpa_r *r)
     case SOURCE_IS_LEO:
 	return Leo_Transition_SYMID_of_SRC(source);
     }
-    R_DEV_ERROR(invalid_source_type_message(source_type));
+    MARPA_DEV_ERROR(invalid_source_type_message(source_type));
     return failure_indicator;
 }
 
@@ -7289,14 +7290,14 @@ Marpa_Earley_Set_ID marpa_r_source_middle(struct marpa_r* r)
 	  return ES_Ord_of_EIM (predecessor);
 	}
     }
-    R_DEV_ERROR(invalid_source_type_message (source_type));
+    MARPA_DEV_ERROR(invalid_source_type_message (source_type));
     return failure_indicator;
 }
 
 @ @<Set source, failing if necessary@> =
     source = r->t_trace_source;
     if (!source) {
-	R_DEV_ERROR("no trace source link");
+	MARPA_DEV_ERROR("no trace source link");
         return failure_indicator;
     }
 
@@ -7636,15 +7637,15 @@ Marpa_Earleme marpa_r_alternative(
 @ @<|marpa_alternative| initial check for failure conditions@> = {
     const SYM_Const token = SYM_by_ID(token_id);
     if (!SYM_is_Terminal(token)) {
-	R_DEV_ERROR("token is not a terminal");
+	MARPA_DEV_ERROR("token is not a terminal");
 	return failure_indicator;
     }
     if (length <= 0) {
-	R_DEV_ERROR("token length negative or zero");
+	MARPA_DEV_ERROR("token length negative or zero");
 	return failure_indicator;
     }
     if (length >= EARLEME_THRESHOLD) {
-	R_DEV_ERROR("token too long");
+	MARPA_DEV_ERROR("token too long");
 	return failure_indicator;
     }
 }
@@ -7652,7 +7653,7 @@ Marpa_Earleme marpa_r_alternative(
 @ @<Set |target_earleme| or fail@> = {
     target_earleme = current_earleme + length;
     if (target_earleme >= EARLEME_THRESHOLD) {
-	R_DEV_ERROR("parse too long");
+	MARPA_DEV_ERROR("parse too long");
 	return failure_indicator;
     }
 }
@@ -7799,7 +7800,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
   if (current_earleme > Furthest_Earleme_of_R (r))
     {
 	@<Set |r| exhausted@>@;
-	R_DEV_ERROR("parse exhausted");
+	MARPA_DEV_ERROR("parse exhausted");
 	return failure_indicator;
      }
 }
@@ -10178,7 +10179,7 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
     {				/* |ordinal_arg| != -1 */
       if (!ES_Ord_is_Valid (r, ordinal_arg))
 	{
-	  R_DEV_ERROR ("invalid es ordinal");
+	  MARPA_DEV_ERROR ("invalid es ordinal");
 	  return failure_indicator;
 	}
       end_of_parse_earley_set = ES_of_R_by_Ord (r, ordinal_arg);
@@ -10200,7 +10201,7 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
     {
       if (!RULEID_of_G_is_Valid (g, rule_id))
 	{
-	  R_DEV_ERROR ("invalid rule id");
+	  MARPA_DEV_ERROR ("invalid rule id");
 	  return failure_indicator;
 	}
       completed_start_rule = RULE_by_ID (g, rule_id);
@@ -12989,17 +12990,17 @@ if (sizeof(gint) != g_array_get_element_size(result)) {
 when one is required.
 @<Fail if recognizer started@> =
 if (Input_Phase_of_R(r) != R_BEFORE_INPUT) {
-    R_DEV_ERROR("recce started");
+    MARPA_DEV_ERROR("recce started");
     return failure_indicator;
 }
 @ @<Fail if recognizer not started@> =
 if (Input_Phase_of_R(r) == R_BEFORE_INPUT) {
-    R_DEV_ERROR("recce not started");
+    MARPA_DEV_ERROR("recce not started");
     return failure_indicator;
 }
 @ @<Fail if recognizer not accepting input@> =
 if (Input_Phase_of_R(r) != R_DURING_INPUT) {
-    R_DEV_ERROR("recce not accepting input");
+    MARPA_DEV_ERROR("recce not accepting input");
     return failure_indicator;
 }
 
@@ -13015,12 +13016,12 @@ if (!IS_G_OK(g)) {
 
 @ @<Fail if recognizer |symid| is invalid@> =
 if (!symbol_is_valid(G_of_R(r), symid)) {
-    R_DEV_ERROR("invalid symid");
+    MARPA_DEV_ERROR("invalid symid");
     return failure_indicator;
 }
 @ @<Fail if |GArray| elements are not |sizeof(gint)|@> =
 if (sizeof(gint) != g_array_get_element_size(result)) {
-     R_DEV_ERROR("garray size mismatch");
+     MARPA_DEV_ERROR("garray size mismatch");
      return failure_indicator;
 }
 
