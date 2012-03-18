@@ -7382,7 +7382,7 @@ TOK token_new(INPUT input, SYMID symbol_id, gpointer* value)
   } else {
     token = obstack_alloc (TOK_Obs_of_I(input), sizeof(token->t_unvalued));
     SYMID_of_TOK(token) = symbol_id;
-    Type_of_TOK(token) = VALUED_TOKEN_OR_NODE;
+    Type_of_TOK(token) = UNVALUED_TOKEN_OR_NODE;
   }
   return token;
 }
