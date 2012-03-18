@@ -1275,7 +1275,7 @@ These methods will not be of interest to most users.
 @section Event codes
 
 @deftypevr Macro int MARPA_EVENT_NONE
-Suggested message: "No error."
+Suggested message: "No event."
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EXHAUSTED
@@ -2167,4 +2167,38 @@ Applications can order an bocage in many ways,
 but they must do so by creating multiple order objects.
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_NONE_IS_INVALID_SOURCE_TYPE
+The link source type is 'none'
+in a context where that is not allowed.
+Suggested message: "A source type of 'none' is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_TOKEN_IS_INVALID_SOURCE_TYPE
+The link source type is 'token'
+in a context where that is not allowed.
+Suggested message: "Token source type is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_COMPLETION_IS_INVALID_SOURCE_TYPE
+The link source type is 'completion'
+in a context where that is not allowed.
+Suggested message: "Completion source type is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_LEO_IS_INVALID_SOURCE_TYPE
+The link source type is 'Leo'
+in a context where that is not allowed.
+Suggested message: "Leo source type is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_AMBIGUOUS_IS_INVALID_SOURCE_TYPE
+The link source type is ambiguous
+in a context where that is not allowed.
+Suggested message: "Ambiguous source type is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_UNKNOWN_SOURCE_TYPE
+The link source type is not known.
+Suggested message: "The source type is unknown."
+@end deftypevr
 @bye

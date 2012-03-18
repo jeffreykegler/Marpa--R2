@@ -6015,21 +6015,21 @@ guint t_source_type:3;
 @ Not inline, because not used in critical paths.
 This is for creating error messages.
 @<Function definitions@> =
-PRIVATE_NOT_INLINE const char* invalid_source_type_message(guint type)
+PRIVATE_NOT_INLINE Marpa_Error_Code invalid_source_type_code(guint type)
 {
      switch (type) {
     case NO_SOURCE:
-    return "invalid source type: none";
+	return MARPA_ERR_NONE_IS_INVALID_SOURCE_TYPE;
     case SOURCE_IS_TOKEN: 
-     return "invalid source type: token";
+	return MARPA_ERR_TOKEN_IS_INVALID_SOURCE_TYPE;
     case SOURCE_IS_COMPLETION:
-     return "invalid source type: completion";
+	return MARPA_ERR_COMPLETION_IS_INVALID_SOURCE_TYPE;
     case SOURCE_IS_LEO:
-     return "invalid source type: leo";
+	return MARPA_ERR_LEO_IS_INVALID_SOURCE_TYPE;
     case SOURCE_IS_AMBIGUOUS:
-     return "invalid source type: ambiguous";
+	return MARPA_ERR_AMBIGUOUS_IS_INVALID_SOURCE_TYPE;
      }
-     return "unknown source type";
+     return MARPA_ERR_UNKNOWN_SOURCE_TYPE;
 }
 
 @*0 Trace Functions.
@@ -7162,7 +7162,7 @@ AHFAID marpa_r_source_predecessor_state(struct marpa_r *r)
 	return AHFAID_of_EIM(predecessor);
     }
     }
-    MARPA_DEV_ERROR(invalid_source_type_message(source_type));
+    MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
 }
 
@@ -7199,7 +7199,7 @@ Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, gpointer *value_p)
         if (value_p) *value_p = Value_of_TOK(token);
 	return SYMID_of_TOK(token);
     }
-    MARPA_DEV_ERROR(invalid_source_type_message(source_type));
+    MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
 }
 
@@ -7231,7 +7231,7 @@ Marpa_Symbol_ID marpa_r_source_leo_transition_symbol(struct marpa_r *r)
     case SOURCE_IS_LEO:
 	return Leo_Transition_SYMID_of_SRC(source);
     }
-    MARPA_DEV_ERROR(invalid_source_type_message(source_type));
+    MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
 }
 
@@ -7290,7 +7290,7 @@ Marpa_Earley_Set_ID marpa_r_source_middle(struct marpa_r* r)
 	  return ES_Ord_of_EIM (predecessor);
 	}
     }
-    MARPA_DEV_ERROR(invalid_source_type_message (source_type));
+    MARPA_ERROR(invalid_source_type_code (source_type));
     return failure_indicator;
 }
 
