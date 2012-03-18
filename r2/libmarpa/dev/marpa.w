@@ -5987,7 +5987,7 @@ if (count >= r->t_earley_item_warning_threshold)
   {
     if (G_UNLIKELY (count >= EIM_FATAL_THRESHOLD))
       {				/* Set the recognizer to a fatal error */
-	MARPA_FATAL (MARPA_ERR_EIM_COUNT, "eim count exceeds fatal threshold");
+	MARPA_FATAL (MARPA_ERR_EIM_COUNT);
 	return failure_indicator;
       }
       int_event_new (g, MARPA_EVENT_EARLEY_ITEM_THRESHOLD, count);
@@ -13010,7 +13010,7 @@ if (Input_Phase_of_R(r) != R_DURING_INPUT) {
 
 @ @<Fail if fatal error@> =
 if (!IS_G_OK(g)) {
-    MARPA_DEV_ERROR(g->t_error_string);
+    MARPA_ERROR(g->t_error);
     return failure_indicator;
 }
 
@@ -13057,7 +13057,7 @@ in the code.
 @d MARPA_DEV_ERROR(message) (set_error(g, MARPA_ERR_DEVELOPMENT, (message), 0u))
 @d MARPA_INTERNAL_ERROR(message) (set_error(g, MARPA_ERR_INTERNAL, (message), 0u))
 @d MARPA_ERROR(code) (set_error(g, (code), NULL, 0u))
-@d MARPA_FATAL(code, message) (set_error(g, (code), (message), FATAL_FLAG))
+@d MARPA_FATAL(code) (set_error(g, (code), NULL, FATAL_FLAG))
 @ Not inlined.  |r_error|
 occurs in the code quite often,
 but |r_error|
