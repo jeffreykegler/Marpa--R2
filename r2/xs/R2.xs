@@ -1443,13 +1443,14 @@ PPCODE:
       struct marpa_r *r = r_wrapper->r;
       gpointer value_as_ptr;
       gpointer *p_value;
+      int result;
       if (value >= 0) {
 	  value_as_ptr = GINT_TO_POINTER(value);
 	  p_value = &value_as_ptr;
       } else {
           p_value = NULL;
       }
-      gint result =
+      result =
 	marpa_r_alternative (r, symbol_id, p_value, length);
       if (result == -1)
 	{

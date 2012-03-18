@@ -13073,12 +13073,6 @@ set_error (struct marpa_g *g, Marpa_Error_Code code, const char* message, guint 
     g->t_is_ok = 0;
 }
 
-PRIVATE_NOT_INLINE void
-r_error (struct marpa_r *r, Marpa_Error_Code code, const char* message, guint flags)
-{
-  set_error (G_of_R (r), code, message, flags);
-}
-
 @** Messages and Logging.
 There are some cases in which it is not appropriate
 to rely on the upper layers for error messages.
