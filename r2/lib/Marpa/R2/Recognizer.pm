@@ -926,7 +926,7 @@ sub Marpa::R2::Recognizer::alternative {
         Marpa::R2::exception(qq{alternative(): symbol "$symbol_name" does not exist});
     }
 
-    my $value_ix = 0;
+    my $value_ix = -1;
     if ( defined $value ) {
         $value_ix = scalar @{$token_values};
         push @{$token_values}, $value;
