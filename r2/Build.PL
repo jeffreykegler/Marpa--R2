@@ -42,7 +42,7 @@ my $glib_linker_flags   = $glib_info->{libs};
 
 my %build_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::CBuilder ExtUtils::Depends Test::More );
+    qw( ExtUtils::CBuilder ExtUtils::Depends Test::More Glib );
 my %configure_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( ExtUtils::Depends Module::Build Glib );
