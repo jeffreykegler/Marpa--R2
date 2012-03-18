@@ -343,7 +343,7 @@ it is a Perl C<undef>.
 In the calculator example, the values of the
 "C<Add>" 
 and "C<Multiply>" tokens are never used,
-so they are allowed to default to C<undef>.
+so they are allowed to default to an arbitrary value.
 
 =head2 Marpa::R2::Recognizer::value
 

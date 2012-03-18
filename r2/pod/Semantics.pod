@@ -139,7 +139,11 @@ Tokens always have a B<token symbol>.
 At lexing time,
 they can be assigned a B<token value>.
 If no token value is assigned at lex time,
-the token value defaults to a Perl C<undef>.
+the token value has an arbitrary value.
+In the Marpa documents,
+an "arbitrary value" is one that
+may vary from instance to instance,
+and cannot be relied on in any way.
 
 =head2 Rule nodes
 
@@ -215,7 +219,7 @@ C<@_> array.
 
 A B<null node> is a node which derives the zero-length,
 or empty string.
-By default, the value of a null node is a Perl C<undef>.
+By default, the value of a null node is arbitrary.
 This is adequate for many applications, but Marpa
 allows other values to be specified for null nodes.
 In fact, Marpa allows

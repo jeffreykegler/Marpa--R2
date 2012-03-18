@@ -141,7 +141,10 @@ C<read> takes two arguments: a B<token name> and a B<token value>.
 The token name is required.
 It must be the name of a valid terminal symbol.
 The token value is optional.
-It defaults to a Perl C<undef>.
+It defaults to an arbitrary value.
+Here "arbitrary" means the value may vary from instance
+to instance,
+and cannot be relied on in any way.
 For details about terminal symbols,
 see L<Marpa::R2::Grammar/"Terminals">.
 

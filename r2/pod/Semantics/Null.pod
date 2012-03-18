@@ -58,14 +58,14 @@ named argument
 is defined,
 a symbol's null value is arbitrary.
 "Arbitrary" here means
-that the value can not be relied
-on,
-even to stay the same for
-the same symbol in the same parse.
+that the value may vary from instance to
+instance and cannot be relied on
+in any way.
 
-Marpa optimizes for arbitrary null values,
-and in casess where null values are not used for anything,
-applications should prefer arbitrary null values.
+Marpa optimizes for arbitrary null values.
+Null values often are not used for anything,
+and in those case applications allowing arbitrary null values
+can have better performance.
 
 =head2 Null subtrees
 

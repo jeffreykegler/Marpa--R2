@@ -149,7 +149,7 @@ It takes three arguments, only the first of which is required.
 The first two arguments are similar to those of the recognizer's
 C<read> method: the token type and the token value.
 As with the C<read> method, the token value is optional and,
-if omitted, defaults to a Perl C<undef>.
+if omitted, defaults to an arbitrary value.
 
 The third argument to the C<alternative> method is a token
 length.
