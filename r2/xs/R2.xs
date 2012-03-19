@@ -241,6 +241,17 @@ xs_v_error (V_Wrapper * v_wrapper)
   return buffer;
 }
 
+/* Wrapper to use vwarn with libmarpa */
+static int marpa_r2_warn(const char* format, ...)
+{
+  dTHX;
+   va_list args;
+   va_start (args, format);
+   vwarn (format, &args);
+   va_end (args);
+   return 1;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal
 
 PROTOTYPES: DISABLE
@@ -2658,4 +2669,4 @@ PPCODE:
 }
 
 BOOT:
-    gperl_handle_logs_for(G_LOG_DOMAIN);
+    marpa_debug_handler_set(marpa_r2_warn);

@@ -13160,6 +13160,7 @@ int marpa_default_debug_handler (const char *format, ...)
    va_start (args, format);
    vfprintf (stderr, format, args);
    va_end (args);
+   putc('\n', stderr);
    return 1;
 }
 
