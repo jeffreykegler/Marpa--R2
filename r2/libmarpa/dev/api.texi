@@ -53,6 +53,7 @@ This manual is for libmarpa, version @value{VERSION}.
 * Tree::                        Parse Trees.
 * Value::                       Value objects.
 * Error handling::              
+* Debugging::                   
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -1893,7 +1894,7 @@ These value types are reserved for internal purposes
     Marpa_Value @var{v})
 @end deftypefun
 
-@node Error handling,  , Value, Top
+@node Error handling, Debugging, Value, Top
 @chapter Error handling
 
 @section Soft and hard errors
@@ -2201,4 +2202,13 @@ Suggested message: "Ambiguous source type is not allowed here."
 The link source type is not known.
 Suggested message: "The source type is unknown."
 @end deftypevr
+
+@node Debugging,  , Error handling, Top
+@chapter Debug hander
+
+@deftypefun void marpa_debug_handler_set( @
+    void (*@var{debug_handler})(const char*, ...) @
+    )
+@end deftypefun
+
 @bye

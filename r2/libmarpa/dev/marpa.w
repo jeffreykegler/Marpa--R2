@@ -13145,19 +13145,38 @@ vice versa.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @d MARPA_OFF_ASSERT(expr)
-@<Debug macros@> =
+@<Private global variables@> =
+PRIVATE_NOT_INLINE
+void marpa_default_debug_handler (const char *format, ...)
+{
+   va_list args;
+   va_start (args, format);
+   vfprintf (stderr, format, args);
+   va_end (args);
+}
+
+void (*marpa_debug_handler)(const char*, ...)
+    = marpa_default_debug_handler;
+
+@ @<Function definitions@> =
+void marpa_debug_handler_set( void (*debug_handler)(const char*, ...) )
+{
+    marpa_debug_handler = debug_handler;
+}
+
+@ @<Debug macros@> =
 #if MARPA_DEBUG
 
 #undef MARPA_ENABLE_ASSERT
 #define MARPA_ENABLE_ASSERT 1
 
-#define MARPA_DEBUG1(a) @[ g_debug((a)); @]
-#define MARPA_DEBUG2(a, b) @[ g_debug((a),(b)); @]
-#define MARPA_DEBUG3(a, b, c) @[ g_debug((a),(b),(c)); @]
-#define MARPA_DEBUG4(a, b, c, d) @[ g_debug((a),(b),(c),(d)); @]
-#define MARPA_DEBUG5(a, b, c, d, e) @[ g_debug((a),(b),(c),(d),(e)); @]
+#define MARPA_DEBUG1(a) @[ (*marpa_debug_handler)((a)); @]
+#define MARPA_DEBUG2(a, b) @[ (*marpa_debug_handler)((a),(b)); @]
+#define MARPA_DEBUG3(a, b, c) @[ (*marpa_debug_handler)((a),(b),(c)); @]
+#define MARPA_DEBUG4(a, b, c, d) @[ (*marpa_debug_handler)((a),(b),(c),(d)); @]
+#define MARPA_DEBUG5(a, b, c, d, e) @[ (*marpa_debug_handler)((a),(b),(c),(d),(e)); @]
 #define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
-       g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
+       (*marpa_debug_handler) ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
 #define MARPA_DEBUG1(a) @[@]
 #define MARPA_DEBUG2(a, b) @[@]
@@ -13170,7 +13189,7 @@ vice versa.
 #if MARPA_ENABLE_ASSERT
 #undef MARPA_ASSERT
 #define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
-       g_error ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
+       (*marpa_debug_handler) ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #endif
 
 @*0 Earley Item Tag.

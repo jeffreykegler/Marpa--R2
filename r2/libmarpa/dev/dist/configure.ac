@@ -174,7 +174,12 @@ marpa_defines="
 
 ])
 
+if test x"$MARPA_DEBUG_FLAG" = x; then
+    MARPA_DEBUG_FLAG=
+fi
+
 AC_SUBST(WARNING_CFLAGS)
+AC_ARG_VAR(MARPA_DEBUG_FLAG,[Marpa debugging])
 AC_C_INLINE
 
 PKG_PROG_PKG_CONFIG([0.22])
