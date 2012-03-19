@@ -246,6 +246,15 @@ MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal
 PROTOTYPES: DISABLE
 
 void
+debug_level_set(level)
+    int level;
+PPCODE:
+{
+   marpa_debug_level_set(level);
+  XSRETURN_YES;
+}
+
+void
 error_names()
 PPCODE:
 {

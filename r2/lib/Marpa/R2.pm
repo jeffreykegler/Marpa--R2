@@ -65,10 +65,10 @@ PACKAGE: for my $package (@Marpa::R2::CARP_NOT) {
 }
 
 if ( not $ENV{'MARPA_AUTHOR_TEST'} ) {
-    Glib::Log->set_handler( 'Marpa', 'debug', ( sub {;} ), undef );
     $Marpa::R2::DEBUG = 0;
 }
 else {
+    Marpa::R2::Internal::debug_level_set(1);
     $Marpa::R2::DEBUG = 1;
 }
 
