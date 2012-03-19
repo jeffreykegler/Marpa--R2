@@ -529,7 +529,7 @@ prototypes, look at
 
 @** The Public Header File.
 @*0 Version Constants.
-@<Private global variables@> =
+@<Global variables@> =
 const guint marpa_major_version = MARPA_MAJOR_VERSION;
 const guint marpa_minor_version = MARPA_MINOR_VERSION;
 const guint marpa_micro_version = MARPA_MICRO_VERSION;
@@ -593,10 +593,12 @@ GLIB_VAR const guint marpa_binary_age;@#
         @|  && MARPA_MICRO_VERSION >= (micro)))
         @]@#
 #define MARPA_CAT(a, b) @[ a ## b @]
-@<Public defines@>@/
-@<Public incomplete structures@>@/
-@<Public typedefs@>@/@\
-@<Public structures@>@/
+@<Public defines@>@;
+@<Public incomplete structures@>@;
+@<Public typedefs@>@;
+@<Public structures@>@;
+@<Public function prototypes@>@;
+@<Public variables@>@;
 
 @** Grammar (GRAMMAR) Code.
 @<Public incomplete structures@> =
@@ -9061,7 +9063,7 @@ union u_or_node {
 };
 typedef union u_or_node OR_Object;
 
-@ @<Private global variables@> =
+@ @<Global variables@> =
 static const gint dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
 
@@ -11867,7 +11869,7 @@ typedef Bit_Vector_Word* Bit_Vector;
 @d BV_BITS(bv) *(bv-3)
 @d BV_SIZE(bv) *(bv-2)
 @d BV_MASK(bv) *(bv-1)
-@<Private global variables@> =
+@<Global variables@> =
 static const guint bv_wordbits = sizeof(Bit_Vector_Word)*8u;
 static const guint bv_modmask = sizeof(Bit_Vector_Word)*8u-1u;
 static const guint bv_hiddenwords = 3;
@@ -13145,23 +13147,43 @@ vice versa.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @d MARPA_OFF_ASSERT(expr)
-@<Private global variables@> =
+@<Public variables@> =
+extern int marpa_debug_level;
+extern int (*marpa_debug_handler)(const char*, ...);
+@ Returns int so that it can be portably used
+in a logically-anded expression.
+@<Function definitions@> =
 PRIVATE_NOT_INLINE
-void marpa_default_debug_handler (const char *format, ...)
+int marpa_default_debug_handler (const char *format, ...)
 {
    va_list args;
    va_start (args, format);
    vfprintf (stderr, format, args);
    va_end (args);
+   return 1;
 }
 
-void (*marpa_debug_handler)(const char*, ...)
+int (*marpa_debug_handler)(const char*, ...)
     = marpa_default_debug_handler;
 
+@
+@<Global variables@> =
+int marpa_debug_level = 0;
+
+@ @<Public function prototypes@> =
+void marpa_debug_handler_set( int (*debug_handler)(const char*, ...) );
 @ @<Function definitions@> =
-void marpa_debug_handler_set( void (*debug_handler)(const char*, ...) )
+void marpa_debug_handler_set( int (*debug_handler)(const char*, ...) )
 {
     marpa_debug_handler = debug_handler;
+}
+
+@ @<Public function prototypes@> =
+void marpa_debug_level_set( int level );
+@ @<Function definitions@> =
+void marpa_debug_level_set( int level )
+{
+    marpa_debug_level = level;
 }
 
 @ @<Debug macros@> =
@@ -13170,11 +13192,17 @@ void marpa_debug_handler_set( void (*debug_handler)(const char*, ...) )
 #undef MARPA_ENABLE_ASSERT
 #define MARPA_ENABLE_ASSERT 1
 
-#define MARPA_DEBUG1(a) @[ (*marpa_debug_handler)((a)); @]
-#define MARPA_DEBUG2(a, b) @[ (*marpa_debug_handler)((a),(b)); @]
-#define MARPA_DEBUG3(a, b, c) @[ (*marpa_debug_handler)((a),(b),(c)); @]
-#define MARPA_DEBUG4(a, b, c, d) @[ (*marpa_debug_handler)((a),(b),(c),(d)); @]
-#define MARPA_DEBUG5(a, b, c, d, e) @[ (*marpa_debug_handler)((a),(b),(c),(d),(e)); @]
+#define MARPA_DEBUG1(a) @[ (marpa_debug_level && \
+    (*marpa_debug_handler)(a)) @]
+#define MARPA_DEBUG2(a,b) @[ (marpa_debug_level && \
+    (*marpa_debug_handler)((a),(b))) @]
+#define MARPA_DEBUG3(a,b,c) @[ (marpa_debug_level && \
+    (*marpa_debug_handler)((a),(b),(c))) @]
+#define MARPA_DEBUG4(a,b,c,d) @[ (marpa_debug_level && \
+    (*marpa_debug_handler)((a),(b),(c),(d))) @]
+#define MARPA_DEBUG5(a,b,c,d,e) @[ (marpa_debug_level && \
+    (*marpa_debug_handler)((a),(b),(c),(d),(e))) @]
+
 #define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
        (*marpa_debug_handler) ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
@@ -13351,7 +13379,7 @@ So I add such a comment.
 @<Logging domain@>@;
 @<Private incomplete structures@>@;
 @<Private typedefs@>@;
-@<Private global variables@>@;
+@<Global variables@>@;
 @<Private utility structures@>@;
 @<Private structures@>@;
 @<Recognizer structure@>@;
