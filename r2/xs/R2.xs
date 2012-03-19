@@ -15,6 +15,7 @@
  * http://www.gnu.org/licenses/.
  */
 
+#define PERL_NO_GET_CONTEXT
 #include <gperl.h>
 
 #include "config.h"
@@ -103,25 +104,29 @@ value_type_to_string (Marpa_Value_Type value_type)
    from libmarpa.  It is used when in the general
    cases, for those exception which are not singled
    out for special handling by the XS logic.
-   It returns a buffer which must be g_free()'d.
+   It returns a buffer which must be Safefree()'d.
 */
 static char *
 libmarpa_exception (int error_code, const char *error_string)
 {
+  dTHX;
   const char *suggested_description = NULL;
   /*
    * error_name should always be set when suggested_description is,
    * so this initialization should never be used.
    */
   const char *error_name = "not libmarpa error";
+  const char *output_string;
   switch (error_code)
     {
     case MARPA_ERR_DEVELOPMENT:
-      return g_strdup_printf ("(development) %s",
+      output_string = form ("(development) %s",
 			      (error_string ? error_string : "(null)"));
+			    goto COPY_STRING;
     case MARPA_ERR_INTERNAL:
-      return g_strdup_printf ("Internal error (%s)",
+      output_string = form ("Internal error (%s)",
 			      (error_string ? error_string : "(null)"));
+			    goto COPY_STRING;
     }
   if (error_code >= 0 && error_code < MARPA_ERROR_COUNT) {
       suggested_description = marpa_error_description[error_code].suggested;
@@ -131,19 +136,24 @@ libmarpa_exception (int error_code, const char *error_string)
     {
       if (error_string)
 	{
-	  return g_strdup_printf ("libmarpa error %d %s: %s",
+	  output_string = form ("libmarpa error %d %s: %s",
 	  error_code, error_name, error_string);
+	  goto COPY_STRING;
 	}
-      return g_strdup_printf ("libmarpa error %d %s", error_code, error_name);
+      output_string = form ("libmarpa error %d %s", error_code, error_name);
+	  goto COPY_STRING;
     }
   if (error_string)
     {
-      return g_strconcat (suggested_description, "; ", error_string, NULL);
+      output_string = form ("%s%s%s", suggested_description, "; ", error_string);
+	  goto COPY_STRING;
     }
-  return g_strdup (suggested_description);
+  output_string = suggested_description;
+  COPY_STRING:
+      return savepv(output_string);
 }
 
-/* Return value must be g_free()'d */
+/* Return value must be Safefree()'d */
 static const char *
 xs_g_error (G_Wrapper * g_wrapper)
 {
@@ -151,13 +161,13 @@ xs_g_error (G_Wrapper * g_wrapper)
   struct marpa_g *g = g_wrapper->g;
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = g_wrapper->message_buffer;
-  g_free (buffer);
+  if (buffer) Safefree(buffer);
   g_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
 
-/* Return value must be g_free()'d */
+/* Return value must be Safefree()'d */
 static const char *
 xs_r_error (R_Wrapper * r_wrapper)
 {
@@ -165,13 +175,13 @@ xs_r_error (R_Wrapper * r_wrapper)
   struct marpa_r *r = r_wrapper->r;
   const int error_code = marpa_r_error (r, &error_string);
   char *buffer = r_wrapper->message_buffer;
-  g_free (buffer);
+  if (buffer) Safefree(buffer);
   r_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
 
-/* Return value must be g_free()'d */
+/* Return value must be Safefree()'d */
 static const char *
 xs_b_error (B_Wrapper * b_wrapper)
 {
@@ -180,13 +190,13 @@ xs_b_error (B_Wrapper * b_wrapper)
   Marpa_Grammar g = marpa_b_g(b);
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = b_wrapper->message_buffer;
-  g_free (buffer);
+  if (buffer) Safefree(buffer);
   b_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
 
-/* Return value must be g_free()'d */
+/* Return value must be Safefree()'d */
 static const char *
 xs_o_error (O_Wrapper * o_wrapper)
 {
@@ -195,13 +205,13 @@ xs_o_error (O_Wrapper * o_wrapper)
   Marpa_Grammar g = marpa_o_g(o);
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = o_wrapper->message_buffer;
-  g_free (buffer);
+  if (buffer) Safefree(buffer);
   o_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
 
-/* Return value must be g_free()'d */
+/* Return value must be Safefree()'d */
 static const char *
 xs_t_error (T_Wrapper * t_wrapper)
 {
@@ -210,13 +220,13 @@ xs_t_error (T_Wrapper * t_wrapper)
   Marpa_Grammar g = marpa_t_g(t);
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = t_wrapper->message_buffer;
-  g_free (buffer);
+  if (buffer) Safefree(buffer);
   t_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
 
-/* Return value must be g_free()'d */
+/* Return value must be Safefree()'d */
 static const char *
 xs_v_error (V_Wrapper * v_wrapper)
 {
@@ -225,7 +235,7 @@ xs_v_error (V_Wrapper * v_wrapper)
   Marpa_Grammar g = marpa_v_g(v);
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = v_wrapper->message_buffer;
-  g_free (buffer);
+  if (buffer) Safefree(buffer);
   v_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
@@ -278,7 +288,8 @@ DESTROY( g_wrapper )
 PREINIT:
     struct marpa_g * grammar;
 CODE:
-    g_free(g_wrapper->message_buffer);
+    if (g_wrapper->message_buffer)
+	Safefree(g_wrapper->message_buffer);
     grammar = g_wrapper->g;
     g_array_free(g_wrapper->gint_array, TRUE);
     marpa_g_unref( grammar );
@@ -1324,8 +1335,9 @@ DESTROY( r_wrapper )
 PREINIT:
     struct marpa_r *r;
 CODE:
-    g_free(r_wrapper->message_buffer);
     r = r_wrapper->r;
+    if (r_wrapper->message_buffer)
+	Safefree(r_wrapper->message_buffer);
     g_array_free(r_wrapper->gint_array, TRUE);
     marpa_r_unref( r );
     Safefree( r_wrapper );
@@ -1904,8 +1916,9 @@ DESTROY( b_wrapper )
 PPCODE:
 {
     const Marpa_Bocage b = b_wrapper->b;
+    if (b_wrapper->message_buffer)
+	Safefree(b_wrapper->message_buffer);
     marpa_b_unref(b);
-    g_free(b_wrapper->message_buffer);
     Safefree( b_wrapper );
 }
 
@@ -2201,8 +2214,9 @@ DESTROY( o_wrapper )
 PPCODE:
 {
     const Marpa_Order o = o_wrapper->o;
+    if (o_wrapper->message_buffer)
+	Safefree(o_wrapper->message_buffer);
     marpa_o_unref(o);
-    g_free(o_wrapper->message_buffer);
     Safefree( o_wrapper );
 }
 
@@ -2288,8 +2302,9 @@ DESTROY( t_wrapper )
 PPCODE:
 {
     const Marpa_Tree t = t_wrapper->t;
+    if (t_wrapper->message_buffer)
+	Safefree(t_wrapper->message_buffer);
     marpa_t_unref(t);
-    g_free(t_wrapper->message_buffer);
     Safefree( t_wrapper );
 }
 
@@ -2522,8 +2537,9 @@ DESTROY( v_wrapper )
 PPCODE:
 {
     const Marpa_Value v = v_wrapper->v;
+    if (v_wrapper->message_buffer)
+	Safefree(v_wrapper->message_buffer);
     marpa_v_unref(v);
-    g_free(v_wrapper->message_buffer);
     Safefree( v_wrapper );
 }
 
