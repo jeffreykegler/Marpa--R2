@@ -30,7 +30,6 @@ use Module::Build;
 use Fatal qw(open close chdir chmod utime);
 use English qw( -no_match_vars );
 use Time::Piece;
-use ExtUtils::Depends;
 
 use Marpa::R2::Config;
 
