@@ -1340,11 +1340,11 @@ Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 }
 
 @ Symbol Is Productive Boolean
-@<Bit aligned symbol elements@> = guint t_is_productive:1;
+@<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_productive = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_productive(
+int marpa_g_symbol_is_productive(
     Marpa_Grammar g,
     Marpa_Symbol_ID symid)
 {
@@ -1355,10 +1355,10 @@ gint marpa_g_symbol_is_productive(
 }
 
 @ Symbol Is Start Boolean
-@<Bit aligned symbol elements@> = guint t_is_start:1;
+@<Bit aligned symbol elements@> = unsigned int t_is_start:1;
 @ @<Initialize symbol elements@> = symbol->t_is_start = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
+int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar not precomputed@>@;
@@ -1374,8 +1374,8 @@ symbols.  Therefore, all proper nullable symbols in
 the original grammar are converted into two, aliased,
 symbols: a non-nullable (or ``proper") alias and a nulling alias.
 @<Bit aligned symbol elements@> =
-guint t_is_proper_alias:1;
-guint t_is_nulling_alias:1;
+unsigned int t_is_proper_alias:1;
+unsigned int t_is_nulling_alias:1;
 @ @<Widely aligned symbol elements@> =
 struct s_symbol* t_alias;
 @ @<Initialize symbol elements@> =
@@ -1489,7 +1489,7 @@ Marpa_Rule_ID marpa_g_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID
 @** Rule (RULE) Code.
 @s Marpa_Rule_ID int
 @<Public typedefs@> =
-typedef gint Marpa_Rule_ID;
+typedef int Marpa_Rule_ID;
 @ @<Private structures@> =
 struct s_rule {
     @<Int aligned rule elements@>@/
@@ -1514,11 +1514,11 @@ not a tiny function, and it is repeated often.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE
 RULE rule_start(GRAMMAR g,
-SYMID lhs, SYMID *rhs, gint length)
+SYMID lhs, SYMID *rhs, int length)
 {
     @<Return |NULL| on failure@>@;
     RULE rule;
-    const gint rule_sizeof = G_STRUCT_OFFSET (struct s_rule, t_symbols) +
+    const int rule_sizeof = G_STRUCT_OFFSET (struct s_rule, t_symbols) +
         (length + 1) * sizeof (rule->t_symbols[0]);
     @<Return failure on invalid rule symbols@>@/
     rule = obstack_alloc (&g->t_obs, rule_sizeof);
@@ -1531,7 +1531,7 @@ SYMID lhs, SYMID *rhs, gint length)
 
 @ @<Function definitions@> =
 Marpa_Rule_ID marpa_g_rule_new(struct marpa_g *g,
-Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, gint length)
+Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
 {
     Marpa_Rule_ID rule_id;
     RULE rule;
@@ -1550,9 +1550,9 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, gint length)
 }
 
 @ @<Function definitions@> =
-gint marpa_g_sequence_new(struct marpa_g *g,
+int marpa_g_sequence_new(struct marpa_g *g,
 Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
-gint min, gint flags )
+int min, int flags )
 {
     RULE original_rule;
     RULEID original_rule_id;
@@ -1670,7 +1670,7 @@ rule to represent the minimum, and another to deal with iteration.
 That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 { RULE rule;
-gint rhs_ix, i;
+int rhs_ix, i;
     temp_rhs[0] = rhs_id;
     rhs_ix = 1;
     for (i = 0; i < min - 1; i++) {
@@ -1685,7 +1685,7 @@ gint rhs_ix, i;
 }
 @ @<Add the iterating rule for the sequence@> =
 { RULE rule;
-gint rhs_ix = 0;
+int rhs_ix = 0;
     temp_rhs[rhs_ix++] = internal_lhs_id;
     if (separator_id >= 0) temp_rhs[rhs_ix++] = separator_id;
     temp_rhs[rhs_ix++] = rhs_id;
@@ -1741,18 +1741,18 @@ then I conclude there is no duplicate of the new
 rule, and return |FALSE|.
 @ @<Function definitions@> =
 PRIVATE
-gint is_rule_duplicate(GRAMMAR g,
-SYMID lhs_id, SYMID* rhs_ids, gint length)
+int is_rule_duplicate(GRAMMAR g,
+SYMID lhs_id, SYMID* rhs_ids, int length)
 {
-    gint ix;
+    int ix;
     SYM lhs = SYM_by_ID(lhs_id);
     GArray* same_lhs_array = lhs->t_lhs;
-    gint same_lhs_count = same_lhs_array->len;
+    int same_lhs_count = same_lhs_array->len;
     for (ix = 0; ix < same_lhs_count; ix++) {
 	RULEID same_lhs_rule_id = ((RULEID *)(same_lhs_array->data))[ix];
 	gint rhs_position;
 	RULE rule = RULE_by_ID(g, same_lhs_rule_id);
-	const gint rule_length = Length_of_RULE(rule);
+	const int rule_length = Length_of_RULE(rule);
 	if (rule_length != length) { goto RULE_IS_NOT_DUPLICATE; }
 	for (rhs_position = 0; rhs_position < rule_length; rhs_position++) {
 	    if (RHS_ID_of_RULE(rule, rhs_position) != rhs_ids[rhs_position]) {
@@ -1777,7 +1777,7 @@ a core dump is not the right response.
     symbol_lhs_add(SYM_by_ID(rule->t_symbols[0]), rule->t_id);@;
     if (Length_of_RULE(rule) > 0) {
 	gint rh_list_ix;
-	const guint alloc_size = Length_of_RULE(rule)*sizeof( SYMID);
+	const unsigned int alloc_size = Length_of_RULE(rule)*sizeof( SYMID);
 	Marpa_Symbol_ID *rh_symbol_list = g_slice_alloc(alloc_size);
 	gint rh_symbol_list_length = 1;
 	@<Create |rh_symbol_list|,
@@ -1843,14 +1843,14 @@ be tiny.
 @<Create |rh_symbol_list|, a duplicate-free list of the right hand side symbols@> =
 {
 /* Handle the first symbol as a special case */
-gint rhs_ix = Length_of_RULE (rule) - 1;
+int rhs_ix = Length_of_RULE (rule) - 1;
 rh_symbol_list[0] = RHS_ID_of_RULE(rule, (unsigned)rhs_ix);
 rh_symbol_list_length = 1;
 rhs_ix--;
 for (; rhs_ix >= 0; rhs_ix--) {
-    gint higher_ix;
+    int higher_ix;
     Marpa_Symbol_ID new_symid = RHS_ID_of_RULE(rule, (unsigned)rhs_ix);
-    gint next_highest_ix = rh_symbol_list_length - 1;
+    int next_highest_ix = rh_symbol_list_length - 1;
     while (next_highest_ix >= 0) {
 	Marpa_Symbol_ID current_symid = rh_symbol_list[next_highest_ix];
 	if (current_symid == new_symid) goto ignore_this_symbol;
@@ -1890,7 +1890,7 @@ by the time 64-bit machines become universal,
 nobody will have noticed this restriction.
 @d MAX_RHS_LENGTH (G_MAXINT >> (2))
 @d Length_of_RULE(rule) ((rule)->t_rhs_length)
-@<Int aligned rule elements@> = gint t_rhs_length;
+@<Int aligned rule elements@> = int t_rhs_length;
 @ The symbols come at the end of the |marpa_rule| structure,
 so that they can be variable length.
 @<Final rule elements@> = Marpa_Symbol_ID t_symbols[1];
@@ -1900,7 +1900,7 @@ so that they can be variable length.
     SYMID symid = lhs;
     @<Fail if grammar |symid| is invalid@>@;
 }
-{ gint rh_index;
+{ int rh_index;
     for (rh_index = 0; rh_index<length; rh_index++) {
 	SYMID symid = rhs[rh_index];
 	@<Fail if grammar |symid| is invalid@>@;
@@ -1910,7 +1910,7 @@ so that they can be variable length.
 @ @<Initialize rule symbols@> =
 Length_of_RULE(rule) = length;
 rule->t_symbols[0] = lhs;
-{ gint i; for (i = 0; i<length; i++) {
+{ int i; for (i = 0; i<length; i++) {
     rule->t_symbols[i+1] = rhs[i]; } }
 @ @<Function definitions@> =
 PRIVATE Marpa_Symbol_ID rule_lhs_get(RULE rule)
@@ -1926,7 +1926,7 @@ PRIVATE Marpa_Symbol_ID* rule_rhs_get(RULE rule)
 {
     return rule->t_symbols+1; }
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, gint ix) {
+Marpa_Symbol_ID marpa_g_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, int ix) {
     RULE rule;
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
@@ -1939,7 +1939,7 @@ PRIVATE gsize rule_length_get(RULE rule)
 {
     return Length_of_RULE(rule); }
 @ @<Function definitions@> =
-gint marpa_g_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
+int marpa_g_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     return rule_length_get(RULE_by_ID(g, rule_id)); }
@@ -1965,11 +1965,11 @@ and that is what is wanted.
 For non-sequence rules, this flag should be false.
 @<Public defines@> =
 #define MARPA_KEEP_SEPARATION @| @[0x1@]@/
-@ @<Bit aligned rule elements@> = guint t_is_discard:1;
+@ @<Bit aligned rule elements@> = unsigned int t_is_discard:1;
 @ @<Initialize rule elements@> =
 rule->t_is_discard = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_rule_is_discard_separation(
+int marpa_g_rule_is_discard_separation(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2007,11 +2007,11 @@ taken care of in the rewrite itself.
 @*0 Accessible Rules.
 @ A rule is accessible if its LHS is accessible.
 @<Function definitions@> =
-PRIVATE gint rule_is_accessible(struct marpa_g* g, RULE  rule)
+PRIVATE int rule_is_accessible(struct marpa_g* g, RULE  rule)
 {
 Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
  return SYM_by_ID(lhs_id)->t_is_accessible; }
-gint marpa_g_rule_is_accessible(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int marpa_g_rule_is_accessible(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
 RULE  rule;
@@ -2023,15 +2023,15 @@ return rule_is_accessible(g, rule);
 @*0 Productive Rules.
 @ A rule is productive if every symbol on its RHS is productive.
 @<Function definitions@> =
-PRIVATE gint rule_is_productive(struct marpa_g* g, RULE  rule)
+PRIVATE int rule_is_productive(struct marpa_g* g, RULE  rule)
 {
-gint rh_ix;
+int rh_ix;
 for (rh_ix = 0; rh_ix < Length_of_RULE(rule); rh_ix++) {
    Marpa_Symbol_ID rhs_id = RHS_ID_of_RULE(rule, rh_ix);
    if ( !SYM_by_ID(rhs_id)->t_is_productive ) return FALSE;
 }
 return TRUE; }
-gint marpa_g_rule_is_productive(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int marpa_g_rule_is_productive(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
 RULE  rule;
@@ -2046,13 +2046,13 @@ produces the string of length one
 which consists only of its LHS symbol.
 ``Non-trivially" means the zero-step derivation does not count -- the
 derivation must have at least one step.
-@<Bit aligned rule elements@> = guint t_is_loop:1;
+@<Bit aligned rule elements@> = unsigned int t_is_loop:1;
 @ @<Initialize rule elements@> =
 rule->t_is_loop = FALSE;
 @ This is the external accessor.
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gint marpa_g_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int marpa_g_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
@@ -2065,13 +2065,13 @@ to only one of the pieces.
 The ``virtual loop rule" property exists for this purpose.
 All virtual loop rules are loop rules,
 but not vice versa.
-@<Bit aligned rule elements@> = guint t_is_virtual_loop:1;
+@<Bit aligned rule elements@> = unsigned int t_is_virtual_loop:1;
 @ @<Initialize rule elements@> =
 rule->t_is_virtual_loop = FALSE;
 @ This is the external accessor.
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gint marpa_g_rule_is_virtual_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int marpa_g_rule_is_virtual_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
@@ -2084,7 +2084,7 @@ Note that this can be vacuously true --- an empty rule is nulling.
 PRIVATE gint
 rule_is_nulling (GRAMMAR g, RULE rule)
 {
-  gint rh_ix;
+  int rh_ix;
   for (rh_ix = 0; rh_ix < Length_of_RULE (rule); rh_ix++)
     {
       SYMID rhs_id = RHS_ID_of_RULE (rule, rh_ix);
@@ -2097,13 +2097,13 @@ rule_is_nulling (GRAMMAR g, RULE rule)
 @*0 Is Rule Used?.
 Is the rule used in computing the AHFA sets?
 @d RULE_is_Used(rule) ((rule)->t_is_used)
-@<Bit aligned rule elements@> = guint t_is_used:1;
+@<Bit aligned rule elements@> = unsigned int t_is_used:1;
 @ @<Initialize rule elements@> =
 RULE_is_Used(rule) = 1;
 @ This is the external accessor.
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gint marpa_g_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int marpa_g_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
@@ -2126,12 +2126,12 @@ It was an especially non-negotiable criteria, because
 almost the only reason for parsing a grammar is to apply the
 semantics specified for the original grammar.
 @d RULE_has_Virtual_LHS(rule) ((rule)->t_is_virtual_lhs)
-@<Bit aligned rule elements@> = guint t_is_virtual_lhs:1;
+@<Bit aligned rule elements@> = unsigned int t_is_virtual_lhs:1;
 @ @<Initialize rule elements@> =
 RULE_has_Virtual_LHS(rule) = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gint marpa_g_rule_is_virtual_lhs(
+int marpa_g_rule_is_virtual_lhs(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2143,12 +2143,12 @@ gint marpa_g_rule_is_virtual_lhs(
 
 @*0 Rule has Virtual RHS?.
 @d RULE_has_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
-@<Bit aligned rule elements@> = guint t_is_virtual_rhs:1;
+@<Bit aligned rule elements@> = unsigned int t_is_virtual_rhs:1;
 @ @<Initialize rule elements@> =
 RULE_has_Virtual_RHS(rule) = FALSE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gint marpa_g_rule_is_virtual_rhs(
+int marpa_g_rule_is_virtual_rhs(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2162,10 +2162,10 @@ gint marpa_g_rule_is_virtual_rhs(
 For a virtual rule,
 this is the RHS position in the original rule
 where this one starts.
-@<Int aligned rule elements@> = gint t_virtual_start;
+@<Int aligned rule elements@> = int t_virtual_start;
 @ @<Initialize rule elements@> = rule->t_virtual_start = -1;
 @ @<Function definitions@> =
-guint marpa_g_virtual_start(
+unsigned int marpa_g_virtual_start(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2179,10 +2179,10 @@ guint marpa_g_virtual_start(
 For a virtual rule,
 this is the RHS position in the original rule
 at which this one ends.
-@<Int aligned rule elements@> = gint t_virtual_end;
+@<Int aligned rule elements@> = int t_virtual_end;
 @ @<Initialize rule elements@> = rule->t_virtual_end = -1;
 @ @<Function definitions@> =
-guint marpa_g_virtual_end(
+unsigned int marpa_g_virtual_end(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2215,10 +2215,10 @@ look as if they came from the original, un-rewritten rules.
 The value of this field is meaningful if and only if
 the rule has a virtual rhs or a virtual lhs.
 @d Real_SYM_Count_of_RULE(rule) ((rule)->t_real_symbol_count)
-@ @<Int aligned rule elements@> = gint t_real_symbol_count;
+@ @<Int aligned rule elements@> = int t_real_symbol_count;
 @ @<Initialize rule elements@> = Real_SYM_Count_of_RULE(rule) = 0;
 @ @<Function definitions@> =
-gint marpa_g_real_symbol_count(
+int marpa_g_real_symbol_count(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2241,11 +2241,11 @@ the value of a rule to be the value of its
 first child, which under the current implementation
 is a stack no-op.
 @d RULE_is_Ask_Me(rule) ((rule)->t_is_ask_me)
-@<Int aligned rule elements@> = guint t_is_ask_me:1;
+@<Int aligned rule elements@> = unsigned int t_is_ask_me:1;
 @ @<Initialize rule elements@> =
     RULE_is_Ask_Me(rule) = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_rule_is_ask_me(
+int marpa_g_rule_is_ask_me(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2270,7 +2270,7 @@ and will do so,
 but may not in some future implementation.
 The result of any other value is a failure.
 @<Function definitions@> =
-gint marpa_g_rule_whatever_set(
+int marpa_g_rule_whatever_set(
     Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     RULE rule;
@@ -2279,7 +2279,7 @@ gint marpa_g_rule_whatever_set(
     rule = RULE_by_ID(g, rule_id);
     return RULE_is_Ask_Me(rule) = 0;
 }
-gint marpa_g_rule_ask_me_set(
+int marpa_g_rule_ask_me_set(
     Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     RULE rule;
@@ -2288,7 +2288,7 @@ gint marpa_g_rule_ask_me_set(
     rule = RULE_by_ID(g, rule_id);
     return RULE_is_Ask_Me(rule) = 1;
 }
-gint marpa_g_rule_first_child_set(
+int marpa_g_rule_first_child_set(
     Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     RULE rule;
@@ -2299,7 +2299,7 @@ gint marpa_g_rule_first_child_set(
 }
 
 @*0 Semantic Equivalents.
-@<Bit aligned rule elements@> = guint t_is_semantic_equivalent:1;
+@<Bit aligned rule elements@> = unsigned int t_is_semantic_equivalent:1;
 @ @<Initialize rule elements@> =
 rule->t_is_semantic_equivalent = FALSE;
 @ Semantic equivalence arises out of Marpa's rewritings.
@@ -2325,10 +2325,10 @@ marpa_g_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID rule_id)
 }
 
 @** Symbol Instance (SYMI) Code.
-@<Private typedefs@> = typedef gint SYMI;
+@<Private typedefs@> = typedef int SYMI;
 @ @d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
 @<Int aligned grammar elements@> =
-gint t_symbol_instance_count;
+int t_symbol_instance_count;
 @ |SYMI_of_Completed_RULE| assumes that the rule is
 not zero length.
 |SYMI_of_Last_AIM_of_RULE| will return -1 if the
@@ -2339,8 +2339,8 @@ rule has no proper symbols.
     (SYMI_of_RULE(rule) + Length_of_RULE(rule)-1)
 @d SYMI_of_AIM(aim) (symbol_instance_of_ahfa_item_get(aim))
 @<Int aligned rule elements@> =
-gint t_symbol_instance_base;
-gint t_last_proper_symi;
+int t_symbol_instance_base;
+int t_last_proper_symi;
 @ @<Initialize rule elements@> =
 Last_Proper_SYMI_of_RULE(rule) = -1;
 @ Symbol instances are for the {\bf predot} symbol.
@@ -2359,8 +2359,8 @@ the rule, offset by the position of that preceding AHFA item.
 PRIVATE gint
 symbol_instance_of_ahfa_item_get (AIM aim)
 {
-  gint position = Position_of_AIM (aim);
-  const gint null_count = Null_Count_of_AIM(aim);
+  int position = Position_of_AIM (aim);
+  const int null_count = Null_Count_of_AIM(aim);
   if (position < 0 || position - null_count > 0) {
       /* If this AHFA item is not a predictiion */
       const RULE rule = RULE_of_AIM (aim);
@@ -2382,7 +2382,7 @@ This section describes the top-level method for precomputation,
 which is external.
 
 @<Function definitions@> =
-gint marpa_g_precompute(struct marpa_g* g)
+int marpa_g_precompute(struct marpa_g* g)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -2463,8 +2463,8 @@ PRIVATE_NOT_INLINE GRAMMAR census(GRAMMAR g)
     return g;
 }
 @ @<Declare census variables@> =
-guint pre_rewrite_rule_count = g->t_rules->len;
-guint pre_rewrite_symbol_count = g->t_symbols->len;
+unsigned int pre_rewrite_rule_count = g->t_rules->len;
+unsigned int pre_rewrite_symbol_count = g->t_symbols->len;
 
 @ @<Return |NULL| if empty grammar@> =
 if (g->t_rules->len <= 0) { MARPA_ERROR(MARPA_ERR_NO_RULES); return NULL; }
@@ -2509,9 +2509,9 @@ for (rule_id = 0;
 	rule_id++) {
     RULE  rule = RULE_by_ID(g, rule_id);
     Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
-    bv_bit_set(lhs_v, (guint)lhs_id);
+    bv_bit_set(lhs_v, (unsigned int)lhs_id);
     if (Length_of_RULE(rule) <= 0) {
-	bv_bit_set(empty_lhs_v, (guint)lhs_id);
+	bv_bit_set(empty_lhs_v, (unsigned int)lhs_id);
 	have_empty_rule = 1;
     }
 }
@@ -2527,7 +2527,7 @@ for (symid = 0;
 	symid++) {
     SYM symbol = SYM_by_ID(symid);
     if (SYM_is_Terminal(symbol)) {
-	bv_bit_set(terminal_v, (guint)symid);
+	bv_bit_set(terminal_v, (unsigned int)symid);
 	have_marked_terminals = 1;
     }
 } }
@@ -2537,7 +2537,7 @@ bv_free(terminal_v);
 @s Bit_Vector int
 @<Declare census variables@> =
 Bit_Vector terminal_v;
-gint have_marked_terminals = 0;
+int have_marked_terminals = 0;
 
 @ @<Fatal if empty rule and unmarked terminals@> =
 if (have_empty_rule && g->t_is_lhs_terminal_ok) {
@@ -2555,7 +2555,7 @@ For fatal errors,
 this code is plenty fast enough.
 @<Fatal if LHS terminal when not allowed@> = 
 if (!g->t_is_lhs_terminal_ok) {
-    gint no_lhs_terminals;
+    int no_lhs_terminals;
     Bit_Vector bad_lhs_v = bv_clone(terminal_v);
     bv_and(bad_lhs_v, bad_lhs_v, lhs_v);
     no_lhs_terminals = bv_is_empty(bad_lhs_v);
@@ -2572,8 +2572,8 @@ bv_fill(terminal_v);
 for (symid = 0; symid < (Marpa_Symbol_ID)g->t_symbols->len; symid++)
 { SYMID_is_Terminal(symid) = 1; } }
 @ @<Mark non-LHS symbols terminal@> = 
-{ guint start = 0;
-guint min, max;
+{ unsigned int start = 0;
+unsigned int min, max;
 bv_not(terminal_v, lhs_v);
 while ( bv_scan(terminal_v, start, &min, &max) ) {
     Marpa_Symbol_ID symid;
@@ -2589,13 +2589,13 @@ bv_free(empty_lhs_v);
 @ @<Declare census variables@> =
 Bit_Vector lhs_v;
 Bit_Vector empty_lhs_v;
-gint have_empty_rule = 0;
+int have_empty_rule = 0;
 
 @ @<Census nullable symbols@> = 
 {
-  guint min, max, start;
+  unsigned int min, max, start;
   SYMID symid;
-  gint counted_nullables = 0;
+  int counted_nullables = 0;
   nullable_v = bv_clone (empty_lhs_v);
   rhs_closure (g, nullable_v);
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
@@ -2627,7 +2627,7 @@ bv_free(nullable_v);
 productive_v = bv_shadow(nullable_v);
 bv_or(productive_v, nullable_v, terminal_v);
 rhs_closure(g, productive_v);
-{ guint min, max, start;
+{ unsigned int min, max, start;
 Marpa_Symbol_ID symid;
     for ( start = 0; bv_scan(productive_v, start, &min, &max); start = max+2 ) {
 	for (symid = (Marpa_Symbol_ID)min;
@@ -2638,7 +2638,7 @@ Marpa_Symbol_ID symid;
 } }
 }
 @ @<Check that start symbol is productive@> =
-if (!bv_bit_test(productive_v, (guint)original_start_symid))
+if (!bv_bit_test(productive_v, (unsigned int)original_start_symid))
 {
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     return NULL;
@@ -2669,19 +2669,19 @@ where many of the right hand sides repeat symbols.
 @<Calculate reach matrix@> =
 reach_matrix
     = matrix_create(pre_rewrite_symbol_count, pre_rewrite_symbol_count);
-{ guint symid, no_of_symbols = SYM_Count_of_G(g);
+{ unsigned int symid, no_of_symbols = SYM_Count_of_G(g);
 for (symid = 0; symid < no_of_symbols; symid++) {
      matrix_bit_set(reach_matrix, symid, symid);
 } }
 { Marpa_Rule_ID rule_id;
-guint no_of_rules = RULE_Count_of_G(g);
+unsigned int no_of_rules = RULE_Count_of_G(g);
 for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
      RULE  rule = RULE_by_ID(g, rule_id);
      Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
-     guint rhs_ix, rule_length = Length_of_RULE(rule);
+     unsigned int rhs_ix, rule_length = Length_of_RULE(rule);
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 	 matrix_bit_set(reach_matrix,
-	     (guint)lhs_id, (guint)RHS_ID_of_RULE(rule, rhs_ix));
+	     (unsigned int)lhs_id, (unsigned int)RHS_ID_of_RULE(rule, rhs_ix));
 } } }
 transitive_closure(reach_matrix);
 @ @<Declare census variables@> = Bit_Matrix reach_matrix;
@@ -2689,8 +2689,8 @@ transitive_closure(reach_matrix);
 matrix_free(reach_matrix);
 
 @ @<Census accessible symbols@> = 
-accessible_v = matrix_row(reach_matrix, (guint)original_start_symid);
-{ guint min, max, start;
+accessible_v = matrix_row(reach_matrix, (unsigned int)original_start_symid);
+{ unsigned int min, max, start;
 Marpa_Symbol_ID symid;
     for ( start = 0; bv_scan(accessible_v, start, &min, &max); start = max+2 ) {
 	for (symid = (Marpa_Symbol_ID)min;
@@ -2710,7 +2710,7 @@ reach a terminal symbol.
 @<Census nulling symbols@> = 
 {
   Bit_Vector reaches_terminal_v = bv_shadow (terminal_v);
-  guint min, max, start;
+  unsigned int min, max, start;
   for (start = 0; bv_scan (productive_v, start, &min, &max); start = max + 2)
     {
       Marpa_Symbol_ID productive_id;
@@ -2718,7 +2718,7 @@ reach a terminal symbol.
 	   productive_id <= (Marpa_Symbol_ID) max; productive_id++)
 	{
 	  bv_and (reaches_terminal_v, terminal_v,
-		  matrix_row (reach_matrix, (guint) productive_id));
+		  matrix_row (reach_matrix, (unsigned int) productive_id));
 	  if (bv_is_empty (reaches_terminal_v))
 	    SYM_is_Nulling(SYM_by_ID (productive_id)) = 1;
 	}
