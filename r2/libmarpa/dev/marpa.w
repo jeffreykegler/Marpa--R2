@@ -13436,8 +13436,6 @@ So I add such a comment.
 @(marpa.h@> =
 #ifndef __MARPA_H__
 #define __MARPA_H__ @/
-#include <stdio.h>
-#include <glib.h>
 #include "marpa_config.h"
 
 @<Body of public header file@>
