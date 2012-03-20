@@ -720,46 +720,27 @@ safe, portable validity checking.
 @node Token values,  , Semantics, Semantics
 @section Token values
 
-Token values are @code{gpointer}'s.
-(In Glib, @code{gpointer}'s is @code{typedef}'d to @code{void *}.)
-libmarpa does nothing with token values except accept
+Token values are @code{int}'s.
+Libmarpa does nothing with token values except accept
 them from the application and return them during
 parse evaluation.
+Integers are used as token values instead of
+pointers because their validity can be safely checked.
+It is hard or impossible
+to check the validity of pointers
+without risking an abend.
 
-In fact,
-the author recommends that token values always
-be integers.
-While token values are simply passed into libmarpa and back out,
-but the user may need to check their validity.
-This could be the case, for example, during development.
-When the values are integers, validity checking is easy
-to do safely.
-When they are pointers,
-validity checking without risking an abend is hard
-or impossible.
 Integers can be used to access any kind of data
 using an array,
 so that the higher levels can translate integers back
 and forth into whatever the application requires.
-
-Integers of types @code{gint}, @code{guint}, @code{gsize}
-can be portably converted into @code{gpointer}'s using
-Glib macros.
-These are described in the "Type Conversion Macros" section
-of the Glib Reference Manual ( @code{GINT_TO_POINTER}, etc.)
-
-Since the author strongly recommends using integers,
-why are token values always @code{gpointer}'s?
-Pointers can portably be converted into integers
-and back,
-while the reverse is not true.
-In some circumstances an
-application programmer may find minor
+A future version of libmarpa may allow
+pointer values,
+for those circumstances in which some
+programmers find that the minor
 efficiencies from the direct use of pointers,
-and may believe these outweigh the safety
+outweigh the safety
 issues advanced by this author.
-It is in the UNIX and Perl traditions to
-avoid imposing choices on the user.
 
 @node Version checking, Grammars, Semantics, Top
 @chapter Checking the libmarpa version
@@ -1337,8 +1318,8 @@ Suggested message: "Grammar has a counted nullable."
 
 @deftypefun gint marpa_r_alternative (Marpa_Recognizer r, @
     Marpa_Symbol_ID @var{token_id}, @
-    gpointer* @var{value}, @
-    gint @var{length})
+    int @var{value}, @
+    int @var{length})
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
@@ -1460,7 +1441,7 @@ On other problems, it returns -2.
 @deftypefun Marpa_AHFA_State_ID marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_source_token (Marpa_Recognizer r, gpointer *@var{value_p})
+@deftypefun Marpa_Symbol_ID marpa_r_source_token (Marpa_Recognizer r, int *@var{value_p})
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID marpa_r_source_leo_transition_symbol (Marpa_Recognizer @var{r})
@@ -1523,7 +1504,7 @@ On other problems, it returns -2.
 @deftypefun Marpa_Symbol_ID marpa_b_and_node_token ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id}, @
-    gpointer* @var{value_p})
+    int* @var{value_p})
 
 Returns the data for the token of the and-node.
 The symbol id is the return value,

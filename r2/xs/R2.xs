@@ -1465,17 +1465,9 @@ alternative( r_wrapper, symbol_id, value, length )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      gpointer value_as_ptr;
-      gpointer *p_value;
       int result;
-      if (value >= 0) {
-	  value_as_ptr = GINT_TO_POINTER(value);
-	  p_value = &value_as_ptr;
-      } else {
-          p_value = NULL;
-      }
       result =
-	marpa_r_alternative (r, symbol_id, p_value, length);
+	marpa_r_alternative (r, symbol_id, value, length);
       if (result == -1)
 	{
 	  XSRETURN_UNDEF;
@@ -1680,12 +1672,12 @@ source_token( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    gpointer value;
-    gint symbol_id = marpa_r_source_token(r, &value);
+    int value;
+    int symbol_id = marpa_r_source_token(r, &value);
     if (symbol_id == -1) { XSRETURN_UNDEF; }
     if (symbol_id < 0) { croak("Problem with r->source_token(): %s", xs_r_error(r_wrapper)); }
 	XPUSHs( sv_2mortal( newSViv(symbol_id) ) );
-	XPUSHs( sv_2mortal( newSViv(GPOINTER_TO_INT(value)) ) );
+	XPUSHs( sv_2mortal( newSViv(value) ) );
     }
 
 void
@@ -2182,7 +2174,7 @@ and_node_token( b_wrapper, and_node_id )
 PPCODE:
 {
   Marpa_Bocage b = b_wrapper->b;
-  gpointer value = NULL;
+  int value = -1;
   gint result = marpa_b_and_node_token (b, and_node_id, &value);
   if (result == -1)
     {
@@ -2193,7 +2185,7 @@ PPCODE:
       croak ("Problem in b->and_node_symbol(): %s", xs_b_error (b_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
-  XPUSHs (sv_2mortal (newSViv (GPOINTER_TO_INT (value))));
+  XPUSHs (sv_2mortal (newSViv (value)));
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::O_C
@@ -2603,7 +2595,7 @@ PPCODE:
       token_id = marpa_v_semantic_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal
-	      (newSViv (GPOINTER_TO_INT (marpa_v_token_value (v)))));
+	      (newSViv (marpa_v_token_value (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
   if (status == MARPA_VALUE_NULLING_TOKEN)

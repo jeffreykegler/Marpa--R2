@@ -7196,7 +7196,7 @@ which means the symbol ID comes at virtually zero cost.
 Second, whenever the token value is
 wanted, the symbol ID is almost always wanted as well.
 @<Function definitions@> =
-Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, gpointer *value_p)
+Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, int *value_p)
 {
    @<Return |-2| on failure@>@;
    guint source_type;
@@ -7371,7 +7371,7 @@ struct s_token_unvalued {
 };
 struct s_token {
     struct s_token_unvalued t_unvalued;
-    gpointer t_value;
+    int t_value;
 };
 
 @ @d TOK_Obs_of_R(r) TOK_Obs_of_I(I_of_R(r))
@@ -7383,14 +7383,14 @@ struct s_token {
 
 @ @<Function definitions@> =
 PRIVATE
-TOK token_new(INPUT input, SYMID symbol_id, gpointer* value)
+TOK token_new(INPUT input, SYMID symbol_id, int value)
 {
   TOK token;
   if (value) {
     token = obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
     SYMID_of_TOK(token) = symbol_id;
     Type_of_TOK(token) = VALUED_TOKEN_OR_NODE;
-    Value_of_TOK(token) = *value;
+    Value_of_TOK(token) = value;
   } else {
     token = obstack_alloc (TOK_Obs_of_I(input), sizeof(token->t_unvalued));
     SYMID_of_TOK(token) = symbol_id;
@@ -7627,7 +7627,7 @@ treated by the application as fatal errors.
 Marpa_Earleme marpa_r_alternative(
     Marpa_Recognizer r,
     Marpa_Symbol_ID token_id,
-    gpointer* value,
+    int value,
     gint length)
 {
     @<Return |-2| on failure@>@;
@@ -10030,7 +10030,7 @@ gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
 
 @ @<Function definitions@> =
 Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
-    Marpa_And_Node_ID and_node_id, gpointer* value_p)
+    Marpa_And_Node_ID and_node_id, int* value_p)
 {
   TOK token;
   AND and_node;
@@ -11463,10 +11463,10 @@ the grammar invisible to the semantics.
 @<Public structures@> =
 struct marpa_value {
     Marpa_Symbol_ID t_semantic_token_id;
-    gpointer t_token_value;
+    int t_token_value;
     Marpa_Rule_ID t_semantic_rule_id;
-    gint t_tos;
-    gint t_arg_n;
+    int t_tos;
+    int t_arg_n;
 };
 @ @<VALUE structure@> =
 struct s_value {
@@ -11784,7 +11784,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
     while (1) {
 	OR or;
 	RULE nook_rule;
-	Token_Value_of_V(v) = NULL;
+	Token_Value_of_V(v) = -1;
 	RULEID_of_V(v) = -1;
 	NOOK_of_V(v)--;
 	if (NOOK_of_V(v) < 0) {
