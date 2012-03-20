@@ -31,7 +31,6 @@ use Marpa::R2::Build_Me;
 use Marpa::R2::Config;
 
 my %glib2_info              = ExtUtils::PkgConfig->find('glib-2.0');
-my $glib_compiler_flags = $glib2_info{cflags};
 my $glib_linker_flags   = $glib2_info{libs};
 
 my %build_requires =
@@ -114,7 +113,6 @@ my $build = Marpa::R2::Build_Me->new(
     configure_requires => \%configure_requires,
     build_requires     => \%build_requires,
     dynamic_config     => 1,
-    extra_compiler_flags => $glib_compiler_flags,
     extra_linker_flags => $glib_linker_flags,
     PL_files           => {},
     pm_files           => \%pm_files,
