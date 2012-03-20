@@ -40,9 +40,6 @@ eval {
     XSLoader::load( 'Marpa::R2', $Marpa::R2::STRING_VERSION );
     1;
 } or eval {
-    my $glib_info = ExtUtils::Depends::load('Glib');
-    my @libs = split q{ }, $glib_info->{libs};
-    @DynaLoader::dl_resolve_using = DynaLoader::dl_findfile(@libs);
     require DynaLoader;
 ## no critic(ClassHierarchies::ProhibitExplicitISA)
     push @ISA, 'DynaLoader';
