@@ -25,14 +25,13 @@ typedef struct marpa_g Grammar;
 typedef struct {
      Marpa_Grammar g;
      char *message_buffer;
-     GArray* gint_array;
 } G_Wrapper;
 
 typedef struct marpa_r Recce;
 typedef struct {
      Marpa_Recce r;
      char *message_buffer;
-     GArray* gint_array;
+     Marpa_Symbol_ID* terminals_buffer;
 } R_Wrapper;
 
 typedef struct marpa_b Bocage;
@@ -286,7 +285,6 @@ PPCODE:
     Newx( g_wrapper, 1, G_Wrapper );
     g_wrapper->g = g;
     g_wrapper->message_buffer = NULL;
-    g_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
     sv = sv_newmortal();
     sv_setref_pv(sv, grammar_c_class_name, (void*)g_wrapper);
     XPUSHs(sv);
@@ -300,7 +298,6 @@ CODE:
     if (g_wrapper->message_buffer)
 	Safefree(g_wrapper->message_buffer);
     grammar = g_wrapper->g;
-    g_array_free(g_wrapper->gint_array, TRUE);
     marpa_g_unref( grammar );
     Safefree( g_wrapper );
 
@@ -1326,15 +1323,17 @@ new( class, g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
+    int symbol_count;
     struct marpa_g* g = g_wrapper->g;
     SV *sv;
     R_Wrapper *r_wrapper;
     Marpa_Recce r;
     r = marpa_r_new(g);
     if (!r) { croak ("failure in marpa_r_new: %s", xs_g_error (g_wrapper)); };
+    symbol_count = marpa_g_symbol_count(g);
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;
-    r_wrapper->gint_array = g_array_new( FALSE, FALSE, sizeof(gint));
+    Newx( r_wrapper->terminals_buffer, symbol_count, Marpa_Symbol_ID );
     r_wrapper->message_buffer = NULL;
     sv = sv_newmortal();
     sv_setref_pv(sv, recce_c_class_name, (void*)r_wrapper);
@@ -1350,7 +1349,7 @@ CODE:
     r = r_wrapper->r;
     if (r_wrapper->message_buffer)
 	Safefree(r_wrapper->message_buffer);
-    g_array_free(r_wrapper->gint_array, TRUE);
+    Safefree(r_wrapper->terminals_buffer);
     marpa_r_unref( r );
     Safefree( r_wrapper );
 
@@ -1823,8 +1822,7 @@ terminals_expected( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-        GArray* terminal_ids = r_wrapper->gint_array;
-        gint count = marpa_r_terminals_expected(r, terminal_ids);
+        int count = marpa_r_terminals_expected(r, r_wrapper->terminals_buffer);
 	if (count < 0) {
 	  croak ("Problem in r->terminals_expected(): %s", xs_r_error(r_wrapper));
 	}
@@ -1832,7 +1830,7 @@ PPCODE:
 	    int i;
 	    EXTEND(SP, count);
 	    for (i = 0; i < count; i++) {
-		PUSHs (sv_2mortal (newSViv (g_array_index (terminal_ids, gint, i))));
+		PUSHs (sv_2mortal (newSViv (r_wrapper->terminals_buffer[i])));
 	    }
 	} else {
 	    XPUSHs( sv_2mortal( newSViv(count) ) );

@@ -5500,26 +5500,30 @@ Mistakes happen,
 a mismatch might arise as a portability issue,
 and if I do not ``fail fast" here the ultimate problem
 could be very hard to debug.
+@ The buffer is expected to be large enough to hold
+the result.
+This will be the case is the length of the buffer
+is greater than or equal to the number of symbols
+in the grammar.
 @<Function definitions@> =
-gint marpa_r_terminals_expected(struct marpa_r* r, GArray* result)
+gint marpa_r_terminals_expected(struct marpa_r* r, Marpa_Symbol_ID* buffer)
 {
     @<Return |-2| on failure@>@;
       @<Unpack recognizer objects@>@;
-    guint min, max, start;
+    unsigned int min, max, start;
+    int ix = 0;
     @<Fail if fatal error@>@;
     @<Fail if recognizer not started@>@;
-    @<Fail if |GArray| elements are not |sizeof(gint)|@>@;
-    g_array_set_size(result, 0);
     for (start = 0; bv_scan (r->t_bv_symid_is_expected, start, &min, &max);
 	 start = max + 2)
       {
-	gint symid;
-	for (symid = (gint) min; symid <= (gint) max; symid++)
+	SYMID symid;
+	for (symid = (SYMID) min; symid <= (SYMID) max; symid++)
 	  {
-	    g_array_append_val (result, symid);
+	    buffer[ix++] = symid;
 	  }
       }
-    return (gint)result->len;
+    return ix;
 }
 
 @*0 Leo-Related Booleans.
@@ -13029,11 +13033,6 @@ if (!IS_G_OK(g)) {
 if (!symbol_is_valid(G_of_R(r), symid)) {
     MARPA_DEV_ERROR("invalid symid");
     return failure_indicator;
-}
-@ @<Fail if |GArray| elements are not |sizeof(gint)|@> =
-if (sizeof(gint) != g_array_get_element_size(result)) {
-     MARPA_DEV_ERROR("garray size mismatch");
-     return failure_indicator;
 }
 
 @ The central error routine for the recognizer.

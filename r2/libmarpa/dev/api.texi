@@ -1357,7 +1357,9 @@ On other problems, it returns -2.
 @deftypefun guint marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_terminals_expected (Marpa_Recognizer @var{r}, GArray* @var{result})
+@deftypefun gint marpa_r_terminals_expected ( @
+    Marpa_Recognizer @var{r}, @
+    Marpa_Symbol_ID* @var{buffer})
 @end deftypefun
 
 @deftypefun gint marpa_r_is_use_leo (Marpa_Recognizer @var{r})
