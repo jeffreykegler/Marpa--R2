@@ -12409,25 +12409,25 @@ The input matrix will be destroyed.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE void transitive_closure(Bit_Matrix matrix)
 {
-      struct transition { guint from, to; } * top_of_stack = NULL;
-      guint size = matrix_columns(matrix);
-      guint row;
+      struct transition { unsigned int from, to; } * top_of_stack = NULL;
+      unsigned int size = matrix_columns(matrix);
+      unsigned int row;
       DSTACK_DECLARE(stack);
       DSTACK_INIT(stack, struct transition, 1024);
       for (row = 0; row < size; row++) {
-          guint min, max, start;
+          unsigned int min, max, start;
 	  Bit_Vector row_vector = matrix_row(matrix, row);
 	for ( start = 0; bv_scan(row_vector, start, &min, &max); start = max+2 ) {
-	    guint column;
+	    unsigned int column;
 	    for (column = min; column <= max; column++) {
 		struct transition *t = DSTACK_PUSH(stack, struct transition);
 		t->from = row;
 		t->to = column;
     } } }
     while ((top_of_stack = DSTACK_POP(stack, struct transition))) {
-	guint old_from = top_of_stack->from;
-	guint old_to = top_of_stack->to;
-	guint new_ix;
+	unsigned int old_from = top_of_stack->from;
+	unsigned int old_to = top_of_stack->to;
+	unsigned int new_ix;
 	for (new_ix = 0; new_ix < size; new_ix++) {
 	     /* Optimizations based on reuse of the same row are
 	       probably best left to the compiler's optimizer.
@@ -12470,7 +12470,7 @@ when compared to hand-written code.
 |libmarpa| uses stacks and worklists extensively.
 Often a reasonable maximum size is known when they are
 set up, in which case they can be made very fast.
-@d FSTACK_DECLARE(stack, type) struct { gint t_count; type* t_base; } stack;
+@d FSTACK_DECLARE(stack, type) struct { int t_count; type* t_base; } stack;
 @d FSTACK_CLEAR(stack) ((stack).t_count = 0)
 @d FSTACK_INIT(stack, type, n) (FSTACK_CLEAR(stack), ((stack).t_base = g_new(type, n)))
 @d FSTACK_SAFE(stack) ((stack).t_base = NULL)
@@ -12547,7 +12547,7 @@ deallocate the data it now has ``stolen".
 struct s_dstack;
 typedef struct s_dstack* DSTACK;
 @ @<Private utility structures@> =
-struct s_dstack { gint t_count; gint t_capacity; gpointer t_base; };
+struct s_dstack { int t_count; int t_capacity; gpointer t_base; };
 @ @<Function definitions@> =
 PRIVATE gpointer dstack_resize(struct s_dstack* this, gsize type_bytes)
 {
@@ -12581,7 +12581,7 @@ when it needs to free the data.
 struct s_dqueue;
 typedef struct s_dqueue* DQUEUE;
 @ @<Private structures@> =
-struct s_dqueue { gint t_current; struct s_dstack t_stack; };
+struct s_dqueue { int t_current; struct s_dstack t_stack; };
 
 @** Per-Earley-Set List (PSL) Code.
 There are several cases where Marpa needs to
@@ -12675,7 +12675,7 @@ This earleme will be somewhere after the current earleme.
 @s PSAR_Object int
 @<Private structures@> =
 struct s_per_earley_set_arena {
-      gint t_psl_length;
+      int t_psl_length;
       PSL t_first_psl;
       PSL t_first_free_psl;
 };
@@ -12689,7 +12689,7 @@ PSAR_Object t_dot_psar_object;
   psar_destroy(Dot_PSAR_of_R(r));
 @ @<Function definitions@> =
 PRIVATE void
-psar_init (const PSAR psar, gint length)
+psar_init (const PSAR psar, int length)
 {
   psar->t_psl_length = length;
   psar->t_first_psl = psar->t_first_free_psl = psl_new (psar);
@@ -12711,7 +12711,7 @@ PRIVATE void psar_destroy(const PSAR psar)
 @ @<Function definitions@> =
 PRIVATE PSL psl_new(const PSAR psar)
 {
-     gint i;
+     int i;
      PSL new_psl = g_slice_alloc(Sizeof_PSL(psar));
      new_psl->t_next = NULL;
      new_psl->t_prev = NULL;
@@ -13074,7 +13074,7 @@ should actually be invoked only in exceptional circumstances.
 In this case space clearly is much more important than speed.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE void
-set_error (struct marpa_g *g, Marpa_Error_Code code, const char* message, guint flags)
+set_error (struct marpa_g *g, Marpa_Error_Code code, const char* message, unsigned int flags)
 {
   g->t_error = code;
   g->t_error_string = message;
@@ -13138,7 +13138,7 @@ that libmarpa leaves all internationalization,
 localization and string encoding issues to
 the upper layers.
 @<Public typedefs@> =
-typedef const gchar* Marpa_Message_ID;
+typedef const char* Marpa_Message_ID;
 
 @** Debugging.
 The |MARPA_DEBUG| flag enables intrusive debugging logic.
@@ -13232,12 +13232,12 @@ void marpa_debug_level_set( int level )
 A function to print a descriptive tag for
 an Earley item.
 @<Debug function prototypes@> =
-static gchar* eim_tag_safe(gchar *buffer, EIM eim);
-static gchar* eim_tag(EIM eim);
+static char* eim_tag_safe(char *buffer, EIM eim);
+static char* eim_tag(EIM eim);
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
-static gchar *
-eim_tag_safe (gchar * buffer, EIM eim)
+static char *
+eim_tag_safe (char * buffer, EIM eim)
 {
   if (!eim) return "NULL";
   sprintf (buffer, "S%d@@%d-%d",
@@ -13247,7 +13247,7 @@ eim_tag_safe (gchar * buffer, EIM eim)
 }
 
 static char DEBUG_eim_tag_buffer[1000];
-static gchar*
+static char*
 eim_tag (EIM eim)
 {
   return eim_tag_safe (DEBUG_eim_tag_buffer, eim);
@@ -13257,13 +13257,13 @@ eim_tag (EIM eim)
 A function to print a descriptive tag for
 an Leo item.
 @<Debug function prototypes@> =
-static gchar* lim_tag_safe (gchar *buffer, LIM lim);
-static gchar* lim_tag (LIM lim);
+static char* lim_tag_safe (char *buffer, LIM lim);
+static char* lim_tag (LIM lim);
 @ This function is passed a buffer to keep it thread-safe.
 be made thread-safe.
 @<Debug function definitions@> =
-static gchar*
-lim_tag_safe (gchar *buffer, LIM lim)
+static char*
+lim_tag_safe (char *buffer, LIM lim)
 {
   sprintf (buffer, "L%d@@%d",
 	   Postdot_SYMID_of_LIM (lim), Earleme_of_LIM (lim));
@@ -13271,7 +13271,7 @@ lim_tag_safe (gchar *buffer, LIM lim)
 }
 
 static char DEBUG_lim_tag_buffer[1000];
-static gchar*
+static char*
 lim_tag (LIM lim)
 {
   return lim_tag_safe (DEBUG_lim_tag_buffer, lim);
@@ -13283,12 +13283,12 @@ an or-node item.
 One is thread-safe, the other is
 more convenient but not thread-safe.
 @<Debug function prototypes@> =
-static const gchar* or_tag_safe(gchar *buffer, OR or);
-static const gchar* or_tag(OR or);
+static const char* or_tag_safe(char *buffer, OR or);
+static const char* or_tag(OR or);
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
-static const gchar *
-or_tag_safe (gchar * buffer, OR or)
+static const char *
+or_tag_safe (char * buffer, OR or)
 {
   if (!or) return "NULL";
   if (OR_is_Token(or)) return "TOKEN";
@@ -13301,7 +13301,7 @@ or_tag_safe (gchar * buffer, OR or)
 }
 
 static char DEBUG_or_tag_buffer[1000];
-static const gchar*
+static const char*
 or_tag (OR or)
 {
   return or_tag_safe (DEBUG_or_tag_buffer, or);
@@ -13315,14 +13315,14 @@ The other uses a global buffer,
 which is not thread-safe, but
 convenient when debugging in a non-threaded environment.
 @<Debug function prototypes@> =
-static const gchar* aim_tag_safe(gchar *buffer, AIM aim);
-static const gchar* aim_tag(AIM aim);
+static const char* aim_tag_safe(char *buffer, AIM aim);
+static const char* aim_tag(AIM aim);
 @ @<Debug function definitions@> =
-static const gchar *
-aim_tag_safe (gchar * buffer, AIM aim)
+static const char *
+aim_tag_safe (char * buffer, AIM aim)
 {
   if (!aim) return "NULL";
-  const gint aim_position = Position_of_AIM (aim);
+  const int aim_position = Position_of_AIM (aim);
   if (aim_position >= 0) {
       sprintf (buffer, "R%d@@%d", RULEID_of_AIM (aim), Position_of_AIM (aim));
   } else {
@@ -13332,7 +13332,7 @@ aim_tag_safe (gchar * buffer, AIM aim)
 }
 
 static char DEBUG_aim_tag_buffer[1000];
-static const gchar*
+static const char*
 aim_tag (AIM aim)
 {
   return aim_tag_safe (DEBUG_aim_tag_buffer, aim);
@@ -13381,6 +13381,8 @@ So I add such a comment.
 @ \twelvepoint @c
 #include "config.h"
 #include "marpa.h"
+#include <glib.h>
+#include <stdio.h>
 @<Debug macros@>
 @h
 #include "marpa_obs.h"
