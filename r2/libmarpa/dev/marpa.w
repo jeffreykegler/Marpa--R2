@@ -5953,7 +5953,7 @@ PRIVATE EIM earley_item_create(const RECCE r,
   EIM new_item;
   EIM* top_of_work_stack;
   const ES set = key.t_set;
-  const gint count = ++EIM_Count_of_ES(set);
+  const int count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
   new_item = obstack_alloc (&r->t_obs, sizeof (*new_item));
   new_item->t_key = key;
@@ -6024,12 +6024,12 @@ The Earley item itself is on the obstack.
 @d Earley_Item_has_Leo_Source(item) ((item)->t_source_type == SOURCE_IS_LEO)
 @d Earley_Item_is_Ambiguous(item) ((item)->t_source_type == SOURCE_IS_AMBIGUOUS)
 @<Bit aligned Earley item elements@> =
-guint t_source_type:3;
+unsigned int t_source_type:3;
 
 @ Not inline, because not used in critical paths.
 This is for creating error messages.
 @<Function definitions@> =
-PRIVATE_NOT_INLINE Marpa_Error_Code invalid_source_type_code(guint type)
+PRIVATE_NOT_INLINE Marpa_Error_Code invalid_source_type_code(unsigned int type)
 {
      switch (type) {
     case NO_SOURCE:
@@ -6098,7 +6098,7 @@ Marpa_Earleme
 marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
 {
   ES earley_set;
-  const gint es_does_not_exist = -1;
+  const int es_does_not_exist = -1;
   @<Return |-2| on failure@>@/
   @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
@@ -6134,7 +6134,7 @@ marpa_r_earley_set_trace (struct marpa_r *r, Marpa_Earley_Set_ID set_id)
 Marpa_AHFA_State_ID
 marpa_r_earley_item_trace (struct marpa_r *r, Marpa_Earley_Item_ID item_id)
 {
-  const gint eim_does_not_exist = -1;
+  const int eim_does_not_exist = -1;
   @<Return |-2| on failure@>@;
   ES trace_earley_set;
   EIM earley_item;
@@ -6252,7 +6252,7 @@ struct s_leo_item {
      LIM t_predecessor;
      EIM t_base;
      ES t_set;
-     gint t_chain_length;
+     int t_chain_length;
 };
 typedef struct s_leo_item LIM_Object;
 
@@ -6403,11 +6403,11 @@ If it fails, it returns |NULL|.
 PRIVATE PIM*
 pim_sym_p_find (ES set, SYMID symid)
 {
-  gint lo = 0;
-  gint hi = Postdot_SYM_Count_of_ES(set) - 1;
+  int lo = 0;
+  int hi = Postdot_SYM_Count_of_ES(set) - 1;
   PIM* postdot_array = set->t_postdot_ary;
   while (hi >= lo) { // A binary search
-       gint trial = lo+(hi-lo)/2; // guards against overflow
+       int trial = lo+(hi-lo)/2; // guards against overflow
        PIM trial_pim = postdot_array[trial];
        SYMID trial_symid = Postdot_SYMID_of_PIM(trial_pim);
        if (trial_symid == symid) return postdot_array+trial;
@@ -6695,7 +6695,7 @@ token_link_add (RECCE r,
 		TOK token)
 {
   SRCL new_link;
-  guint previous_source_type = Source_Type_of_EIM (item);
+  unsigned int previous_source_type = Source_Type_of_EIM (item);
   if (previous_source_type == NO_SOURCE)
     {
       Source_Type_of_EIM (item) = SOURCE_IS_TOKEN;
@@ -6772,7 +6772,7 @@ completion_link_add (RECCE r,
 		EIM cause)
 {
   SRCL new_link;
-  guint previous_source_type = Source_Type_of_EIM (item);
+  unsigned int previous_source_type = Source_Type_of_EIM (item);
   if (previous_source_type == NO_SOURCE)
     {
       Source_Type_of_EIM (item) = SOURCE_IS_COMPLETION;
@@ -6799,7 +6799,7 @@ leo_link_add (RECCE r,
 		EIM cause)
 {
   SRCL new_link;
-  guint previous_source_type = Source_Type_of_EIM (item);
+  unsigned int previous_source_type = Source_Type_of_EIM (item);
   if (previous_source_type == NO_SOURCE)
     {
       Source_Type_of_EIM (item) = SOURCE_IS_LEO;
@@ -6842,7 +6842,7 @@ Earley item first becomes ambiguous.
 PRIVATE_NOT_INLINE
 void earley_item_ambiguate (struct marpa_r * r, EIM item)
 {
-  guint previous_source_type = Source_Type_of_EIM (item);
+  unsigned int previous_source_type = Source_Type_of_EIM (item);
   Source_Type_of_EIM (item) = SOURCE_IS_AMBIGUOUS;
   switch (previous_source_type)
     {
@@ -6893,7 +6893,7 @@ source link.
 SRC t_trace_source;
 SRCL t_trace_next_source_link;
 @ @<Bit aligned recognizer elements@> =
-guint t_trace_source_type:3;
+unsigned int t_trace_source_type:3;
 @ @<Initialize recognizer elements@> =
 r->t_trace_source = NULL;
 r->t_trace_next_source_link = NULL;
@@ -6910,7 +6910,7 @@ Marpa_Symbol_ID marpa_r_first_token_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRC source;
-   guint source_type;
+   unsigned int source_type;
     EIM item = r->t_trace_earley_item;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
@@ -6985,7 +6985,7 @@ Marpa_Symbol_ID marpa_r_first_completion_link_trace(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@;
    SRC source;
-   guint source_type;
+   unsigned int source_type;
     EIM item = r->t_trace_earley_item;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
@@ -7062,7 +7062,7 @@ marpa_r_first_leo_link_trace (struct marpa_r *r)
 {
   @<Return |-2| on failure@>@;
   SRC source;
-  guint source_type;
+  unsigned int source_type;
   EIM item = r->t_trace_earley_item;
   @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
@@ -7161,7 +7161,7 @@ or there is some other failure,
 AHFAID marpa_r_source_predecessor_state(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@/
-   guint source_type;
+   unsigned int source_type;
    SRC source;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
@@ -7202,7 +7202,7 @@ wanted, the symbol ID is almost always wanted as well.
 Marpa_Symbol_ID marpa_r_source_token(struct marpa_r *r, int *value_p)
 {
    @<Return |-2| on failure@>@;
-   guint source_type;
+   unsigned int source_type;
    SRC source;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
@@ -7234,7 +7234,7 @@ or there is some other failure,
 Marpa_Symbol_ID marpa_r_source_leo_transition_symbol(struct marpa_r *r)
 {
    @<Return |-2| on failure@>@/
-   guint source_type;
+   unsigned int source_type;
    SRC source;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
@@ -7281,7 +7281,7 @@ Marpa_Earley_Set_ID marpa_r_source_middle(struct marpa_r* r)
 {
    @<Return |-2| on failure@>@/
    const EARLEME no_predecessor = -1;
-   guint source_type;
+   unsigned int source_type;
    SRC source;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
@@ -7369,7 +7369,7 @@ objects to act as or-nodes.
 @d Value_of_TOK(tok) ((tok)->t_value)
 @<Private structures@> =
 struct s_token_unvalued {
-    gint t_type;
+    int t_type;
     SYMID t_symbol_id;
 };
 struct s_token {
@@ -7450,16 +7450,16 @@ alternative_insertion_point (RECCE r, ALT new_alternative)
 {
   DSTACK alternatives = &r->t_alternatives;
   ALT alternative;
-  gint hi = DSTACK_LENGTH(*alternatives) - 1;
-  gint lo = 0;
-  gint trial;
+  int hi = DSTACK_LENGTH(*alternatives) - 1;
+  int lo = 0;
+  int trial;
   // Special case when zero alternatives.
   if (hi < 0)
     return 0;
   alternative = DSTACK_BASE(*alternatives, ALT_Object);
   for (;;)
     {
-      gint outcome;
+      int outcome;
       trial = lo + (hi - lo) / 2;
       outcome = alternative_cmp (new_alternative, alternative+trial);
       if (outcome == 0)
@@ -7489,9 +7489,9 @@ Of the remaining two keys,
 the more minor key is the start earleme, because that way its slightly
 costlier evaluation can sometimes be avoided.
 @<Function definitions@> =
-PRIVATE gint alternative_cmp(const ALT_Const a, const ALT_Const b)
+PRIVATE int alternative_cmp(const ALT_Const a, const ALT_Const b)
 {
-     gint subkey = End_Earleme_of_ALT(b) - End_Earleme_of_ALT(a);
+     int subkey = End_Earleme_of_ALT(b) - End_Earleme_of_ALT(a);
      if (subkey) return subkey;
      subkey = SYMID_of_ALT(a) - SYMID_of_ALT(b);
      if (subkey) return subkey;
@@ -7521,12 +7521,12 @@ if the alternative is not a duplicate.
 It returns -1 if the alternative is a duplicate,
 and the insertion point (which must be zero or more) otherwise.
 @<Function definitions@> =
-PRIVATE gint alternative_insert(RECCE r, ALT new_alternative)
+PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 {
   ALT top_of_stack, base_of_stack;
   DSTACK alternatives = &r->t_alternatives;
-  gint ix;
-  gint insertion_point = alternative_insertion_point (r, new_alternative);
+  int ix;
+  int insertion_point = alternative_insertion_point (r, new_alternative);
   if (insertion_point < 0)
     return insertion_point;
   top_of_stack = DSTACK_PUSH(*alternatives, ALT_Object); // may change base
@@ -7539,14 +7539,14 @@ PRIVATE gint alternative_insert(RECCE r, ALT new_alternative)
 }
 
 @** Starting Recognizer Input.
-@<Function definitions@> = gint marpa_r_start_input(struct marpa_r *r)
+@<Function definitions@> = int marpa_r_start_input(struct marpa_r *r)
 {
     ES set0;
     EIM item;
     EIK_Object key;
     AHFA state;
   @<Unpack recognizer objects@>@;
-    const gint symbol_count_of_g = SYM_Count_of_G(g);
+    const int symbol_count_of_g = SYM_Count_of_G(g);
     @<Return |-2| on failure@>@;
     @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
@@ -7631,12 +7631,12 @@ Marpa_Earleme marpa_r_alternative(
     Marpa_Recognizer r,
     Marpa_Symbol_ID token_id,
     int value,
-    gint length)
+    int length)
 {
     @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
-    const gint duplicate_token_indicator = -3;
-    const gint unexpected_token_indicator = -1;
+    const int duplicate_token_indicator = -3;
+    const int unexpected_token_indicator = -1;
     ES current_earley_set;
     const EARLEME current_earleme = Current_Earleme_of_R(r);
     EARLEME target_earleme;
@@ -7780,7 +7780,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
   EIM* cause_p;
   ES current_earley_set;
   EARLEME current_earleme;
-  gint count_of_expected_terminals;
+  int count_of_expected_terminals;
     @<Fail if recognizer not accepting input@>@;
     G_EVENTS_CLEAR(g);
   psar_dealloc(Dot_PSAR_of_R(r));
@@ -7876,8 +7876,8 @@ this means that the parse is exhausted.
 
 @ @<Pre-populate the completion stack@> = {
     EIM* work_earley_items = DSTACK_BASE (r->t_eim_work_stack, EIM );
-    gint no_of_work_earley_items = DSTACK_LENGTH (r->t_eim_work_stack );
-    gint ix;
+    int no_of_work_earley_items = DSTACK_LENGTH (r->t_eim_work_stack );
+    int ix;
     DSTACK_CLEAR(r->t_completion_stack);
     for (ix = 0;
          ix < no_of_work_earley_items;
@@ -7896,9 +7896,9 @@ add those Earley items it ``causes".
 @<Add new Earley items for |cause|@> =
 {
   Marpa_Symbol_ID *complete_symbols = Complete_SYMIDs_of_EIM (cause);
-  gint count = Complete_SYM_Count_of_EIM (cause);
+  int count = Complete_SYM_Count_of_EIM (cause);
   ES middle = Origin_of_EIM (cause);
-  gint symbol_ix;
+  int symbol_ix;
   for (symbol_ix = 0; symbol_ix < count; symbol_ix++)
     {
       Marpa_Symbol_ID complete_symbol = complete_symbols[symbol_ix];
@@ -7981,8 +7981,8 @@ PRIVATE void earley_set_update_items(RECCE r, ES set)
 {
     EIM* working_earley_items;
     EIM* finished_earley_items;
-    gint working_earley_item_count;
-    gint i;
+    int working_earley_item_count;
+    int i;
     if (!EIMs_of_ES(set)) {
         EIMs_of_ES(set) = g_new(EIM, EIM_Count_of_ES(set));
     } else {
@@ -7993,7 +7993,7 @@ PRIVATE void earley_set_update_items(RECCE r, ES set)
     working_earley_item_count = Work_EIM_Count_of_R(r);
     for (i = 0; i < working_earley_item_count; i++) {
 	 EIM earley_item = working_earley_items[i];
-	 gint ordinal = Ord_of_EIM(earley_item);
+	 int ordinal = Ord_of_EIM(earley_item);
          finished_earley_items[ordinal] = earley_item;
     }
     WORK_EIMS_CLEAR(r);
@@ -8069,15 +8069,15 @@ postdot_items_create (RECCE r, ES current_earley_set)
 At this point there are no Leo items.
 @<Start EIXes in PIM workarea@> = {
     EIM* work_earley_items = DSTACK_BASE (r->t_eim_work_stack, EIM );
-    gint no_of_work_earley_items = DSTACK_LENGTH (r->t_eim_work_stack );
-    gint ix;
+    int no_of_work_earley_items = DSTACK_LENGTH (r->t_eim_work_stack );
+    int ix;
     for (ix = 0;
          ix < no_of_work_earley_items;
 	 ix++) {
 	EIM earley_item = work_earley_items[ix];
       AHFA state = AHFA_of_EIM (earley_item);
-      gint symbol_ix;
-      gint postdot_symbol_count = Postdot_SYM_Count_of_AHFA (state);
+      int symbol_ix;
+      int postdot_symbol_count = Postdot_SYM_Count_of_AHFA (state);
       Marpa_Symbol_ID *postdot_symbols =
 	Postdot_SYMID_Ary_of_AHFA (state);
       for (symbol_ix = 0; symbol_ix < postdot_symbol_count; symbol_ix++)
@@ -8089,12 +8089,12 @@ At this point there are no Leo items.
 	  symid = postdot_symbols[symbol_ix];
 	  Postdot_SYMID_of_PIM(new_pim) = symid;
 	  EIM_of_PIM(new_pim) = earley_item;
-	  if (bv_bit_test(bv_pim_symbols, (guint)symid))
+	  if (bv_bit_test(bv_pim_symbols, (unsigned int)symid))
 	      old_pim = pim_workarea[symid];
 	  Next_PIM_of_PIM(new_pim) = old_pim;
 	  if (!old_pim) current_earley_set->t_postdot_sym_count++;
 	  pim_workarea[symid] = new_pim;
-	  bv_bit_set(bv_pim_symbols, (guint)symid);
+	  bv_bit_set(bv_pim_symbols, (unsigned int)symid);
 	}
     }
 }
@@ -8127,7 +8127,7 @@ Leo item have not been fully populated.
 @d LIM_is_Populated(leo) (Origin_of_LIM(leo) != NULL)
 @<Start LIMs in PIM workarea@> =
 {
-  guint min, max, start;
+  unsigned int min, max, start;
   for (start = 0; bv_scan (bv_pim_symbols, start, &min, &max);
        start = max + 2)
     {
@@ -8172,7 +8172,7 @@ once it is populated.
     ES_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
     pim_workarea[symid] = new_lim;
-    bv_bit_set(bv_lim_symbols, (guint)symid);
+    bv_bit_set(bv_lim_symbols, (unsigned int)symid);
 }
 
 @ This code fully populates the data in the LIMs.
@@ -8246,7 +8246,7 @@ ID must
 Earley set.\par
 @<Add predecessors to LIMs@> = {
   const Bit_Vector bv_ok_for_chain = r->t_bv_sym3;
-  guint min, max, start;
+  unsigned int min, max, start;
 
   bv_copy(bv_ok_for_chain, bv_lim_symbols);
   for (start = 0; bv_scan (bv_lim_symbols, start, &min, &max);
@@ -8320,7 +8320,7 @@ In a populated LIM, this will not necessarily be the case.
 
 @ @<Create and populate a LIM chain@> = {
   gpointer* const lim_chain = r->t_workarea2;
-  gint lim_chain_ix;
+  int lim_chain_ix;
   @<Create a LIM chain@>@;
   @<Populate the LIMs in the LIM chain@>@;
 }
@@ -8344,7 +8344,7 @@ problems.
 	 = Postdot_SYMID_of_LIM(lim_to_process);
     lim_chain_ix = 0;
     lim_chain[lim_chain_ix++] = LIM_of_PIM(lim_to_process);
-	bv_bit_clear(bv_ok_for_chain, (guint)postdot_symid_of_lim_to_process);
+	bv_bit_clear(bv_ok_for_chain, (unsigned int)postdot_symid_of_lim_to_process);
 	/* Make sure this LIM
 	is not added to a LIM chain again for this Earley set */ @#
     while (1) {
@@ -8356,7 +8356,7 @@ problems.
 	     populated. */ @#
 
 	 postdot_symid_of_lim_to_process = Postdot_SYMID_of_LIM(lim_to_process);
-	if (!bv_bit_test(bv_ok_for_chain, (guint)postdot_symid_of_lim_to_process)) {
+	if (!bv_bit_test(bv_ok_for_chain, (unsigned int)postdot_symid_of_lim_to_process)) {
 	/* If I am about to add a previously added LIM to the LIM chain, I
 	   break the LIM chain at this point.
 	     The predecessor LIM has not yet been changed,
@@ -8370,7 +8370,7 @@ problems.
 	lim_chain[lim_chain_ix++] = LIM_of_PIM(lim_to_process); /* 
 	    |lim_to_process| is not populated, as shown above */
 
-	bv_bit_clear(bv_ok_for_chain, (guint)postdot_symid_of_lim_to_process);
+	bv_bit_clear(bv_ok_for_chain, (unsigned int)postdot_symid_of_lim_to_process);
 	/* Make sure this LIM
 	is not added to a LIM chain again for this Earley set */ @#
 
@@ -8427,8 +8427,8 @@ of the base EIM.
 	= current_earley_set->t_postdot_ary
 	= obstack_alloc (&r->t_obs,
 	       current_earley_set->t_postdot_sym_count * sizeof (PIM));
-    guint min, max, start;
-    gint postdot_array_ix = 0;
+    unsigned int min, max, start;
+    int postdot_array_ix = 0;
     for (start = 0; bv_scan (bv_pim_symbols, start, &min, &max); start = max + 2) {
 	SYMID symid;
 	for (symid = (SYMID)min; symid <= (SYMID) max; symid++) {
@@ -8703,7 +8703,7 @@ never on the stack.
 	const AIM predecessor_aim = parent_aim - 1;
 	/* Note that the postdot symbol of the predecessor is NOT necessarily the
 	   predot symbol, because there may be nulling symbols in between. */
-	guint source_type = Source_Type_of_EIM (parent_earley_item);
+	unsigned int source_type = Source_Type_of_EIM (parent_earley_item);
 	MARPA_ASSERT(!EIM_is_Predicted(parent_earley_item))@;
 	@<Push child Earley items from token sources@>@;
 	@<Push child Earley items from completion sources@>@;
@@ -8725,16 +8725,16 @@ and per AEX.  Thus, Per-Set-Item-Aex, or PSIA.
 This function ensures that the appropriate |PSIA| boolean is set.
 It returns that boolean's value {\bf prior} to the call.
 @<Function definitions@> = 
-PRIVATE gint psia_test_and_set(
+PRIVATE int psia_test_and_set(
     struct obstack* obs,
     struct s_bocage_setup_per_es* per_es_data,
     EIM earley_item,
     AEX ahfa_element_ix)
 {
-    const gint aim_count_of_item = AIM_Count_of_EIM(earley_item);
+    const int aim_count_of_item = AIM_Count_of_EIM(earley_item);
     const Marpa_Earley_Set_ID set_ordinal = ES_Ord_of_EIM(earley_item);
     OR** nodes_by_item = per_es_data[set_ordinal].t_aexes_by_item;
-    const gint item_ordinal = Ord_of_EIM(earley_item);
+    const int item_ordinal = Ord_of_EIM(earley_item);
     OR* nodes_by_aex = nodes_by_item[item_ordinal];
 MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
     if (!nodes_by_aex) {
@@ -8802,7 +8802,7 @@ MARPA_OFF_DEBUG3("%s: setting boolean for initial nulls, aim=%s",
 G_STRLOC, aim_tag(aim));
 
     if (Position_of_AIM(aim) > 0) {
-	const gint null_count = Null_Count_of_AIM(aim);
+	const int null_count = Null_Count_of_AIM(aim);
 
 MARPA_OFF_DEBUG4("%s: setting boolean for initial nulls, eim=%s, null count = %d",
 G_STRLOC, eim_tag(eim), null_count);
@@ -8863,10 +8863,10 @@ G_STRLOC, eim_tag(eim), aex);
     {
       const TRANS cause_completion_data =
 	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
-      const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
+      const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       const EIM ur_earley_item = cause_earley_item;
-      gint ix;
+      int ix;
       for (ix = 0; ix < aex_count; ix++) {
 	  const AEX ur_aex = aexes[ix];
 	  const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
@@ -8906,9 +8906,9 @@ G_STRLOC, eim_tag(eim), aex);
       const SYMID transition_symbol_id = Postdot_SYMID_of_LIM(leo_predecessor);
       const TRANS cause_completion_data =
 	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
-      const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
+      const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
-      gint ix;
+      int ix;
       EIM ur_earley_item = cause_earley_item;
       for (ix = 0; ix < aex_count; ix++) {
 	  const AEX ur_aex = aexes[ix];
@@ -8947,7 +8947,7 @@ Unlike a parse forest,
 a parse bocage can contain cycles.
 
 @<Public typedefs@> =
-typedef gint Marpa_Or_Node_ID;
+typedef int Marpa_Or_Node_ID;
 @ @<Private typedefs@> =
 typedef Marpa_Or_Node_ID ORID;
 
@@ -9045,10 +9045,10 @@ Position is the dot position.
 @ C89 guarantees that common initial sequences
 may be accessed via different members of a union.
 @<Or-node common initial sequence@> =
-gint t_position;
-gint t_end_set_ordinal;
+int t_position;
+int t_end_set_ordinal;
 RULE t_rule;
-gint t_start_set_ordinal;
+int t_start_set_ordinal;
 ORID t_id;
 @ @<Private structures@> =
 struct s_draft_or_node
@@ -9060,8 +9060,8 @@ struct s_draft_or_node
 struct s_final_or_node
 {
     @<Or-node common initial sequence@>@;
-    gint t_first_and_node_id;
-    gint t_and_node_count;
+    int t_first_and_node_id;
+    int t_and_node_count;
 };
 @
 @d TOK_of_OR(or) (&(or)->t_token)
@@ -9076,7 +9076,7 @@ union u_or_node {
 typedef union u_or_node OR_Object;
 
 @ @<Global variables@> =
-static const gint dummy_or_node_type = DUMMY_OR_NODE;
+static const int dummy_or_node_type = DUMMY_OR_NODE;
 static const OR dummy_or_node = (OR)&dummy_or_node_type;
 
 @ @d ORs_of_B(b) ((b)->t_or_nodes)
@@ -9089,8 +9089,8 @@ static const OR dummy_or_node = (OR)&dummy_or_node_type;
 OR* t_or_nodes;
 AND t_and_nodes;
 @ @<Int aligned bocage elements@> =
-gint t_or_node_count;
-gint t_and_node_count;
+int t_or_node_count;
+int t_and_node_count;
 ORID t_top_or_node_id;
 
 @ @<Initialize bocage elements@> =
@@ -9120,7 +9120,7 @@ AND_Count_of_B(b) = 0;
 {
   PSAR_Object or_per_es_arena;
   const PSAR or_psar = &or_per_es_arena;
-  gint work_earley_set_ordinal;
+  int work_earley_set_ordinal;
   OR last_or_node = NULL ;
   ORs_of_B (b) = g_new (OR, or_node_estimate);
   psar_init (or_psar, SYMI_Count_of_G (g));
@@ -9130,7 +9130,7 @@ AND_Count_of_B(b) = 0;
   {
       const ES_Const earley_set = ES_of_R_by_Ord (r, work_earley_set_ordinal);
     EIM* const eims_of_es = EIMs_of_ES(earley_set);
-    const gint item_count = EIM_Count_of_ES (earley_set);
+    const int item_count = EIM_Count_of_ES (earley_set);
       PSL this_earley_set_psl;
     OR** const nodes_by_item = per_es_data[work_earley_set_ordinal].t_aexes_by_item;
       psar_dealloc(or_psar);
@@ -9146,15 +9146,15 @@ AND_Count_of_B(b) = 0;
 
 @ @<Create the or-nodes for |work_earley_set_ordinal|@> =
 {
-    gint item_ordinal;
+    int item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
     {
 	OR* const work_nodes_by_aex = nodes_by_item[item_ordinal];
 	if (work_nodes_by_aex) {
 	    const EIM work_earley_item = eims_of_es[item_ordinal];
-	    const gint work_ahfa_item_count = AIM_Count_of_EIM(work_earley_item);
+	    const int work_ahfa_item_count = AIM_Count_of_EIM(work_earley_item);
 	    AEX work_aex;
-	      const gint work_origin_ordinal = Ord_of_ES (Origin_of_EIM (work_earley_item));
+	      const int work_origin_ordinal = Ord_of_ES (Origin_of_EIM (work_earley_item));
 	    for (work_aex = 0; work_aex < work_ahfa_item_count; work_aex++) {
 		if (!work_nodes_by_aex[work_aex]) continue;
 		@<Create the or-nodes
@@ -9227,7 +9227,7 @@ and deleting the code,
 or arranging to test it.
 @<Set |last_or_node| to a new or-node@> =
 {
-  const gint or_node_id = OR_Count_of_B (b)++;
+  const int or_node_id = OR_Count_of_B (b)++;
   OR *or_nodes_of_b = ORs_of_B (b);
   last_or_node = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
   ID_of_OR(last_or_node) = or_node_id;
@@ -9252,26 +9252,26 @@ The exception is where there is no predecessor,
 and this is the case if |Position_of_OR(or_node) == 0|.
 @<Add nulling token or-nodes@> =
 {
-  const gint null_count = Null_Count_of_AIM (ahfa_item);
+  const int null_count = Null_Count_of_AIM (ahfa_item);
   if (null_count > 0)
     {
       const RULE rule = RULE_of_AIM (ahfa_item);
-      const gint symbol_instance_of_rule = SYMI_of_RULE(rule);
-      const gint first_null_symbol_instance =
+      const int symbol_instance_of_rule = SYMI_of_RULE(rule);
+      const int first_null_symbol_instance =
 	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
-      gint i;
+      int i;
 MARPA_OFF_DEBUG3("about to add nulling token ORs rule=%d null_count=%d",
 		ID_of_RULE (rule ), null_count);
       for (i = 0; i < null_count; i++)
 	{
-	  const gint symbol_instance = first_null_symbol_instance + i;
+	  const int symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
 MARPA_OFF_DEBUG3("adding nulling token or-node rule=%d i=%d",
 		ID_of_RULE (rule ),
 		( symbol_instance - SYMI_of_RULE(rule)));
 	  if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal) {
 		DAND draft_and_node;
-		const gint rhs_ix = symbol_instance - SYMI_of_RULE(rule);
+		const int rhs_ix = symbol_instance - SYMI_of_RULE(rule);
 		const OR predecessor = rhs_ix ? last_or_node : NULL;
 		const OR cause = (OR)TOK_by_SYMID( RHS_ID_of_RULE (rule, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
@@ -9340,10 +9340,10 @@ requirements in the process.
   LIM previous_leo_item = this_leo_item;
   while ((this_leo_item = Predecessor_LIM_of_LIM (this_leo_item)))
     {
-	const gint ordinal_of_set_of_this_leo_item = Ord_of_ES(ES_of_LIM(this_leo_item));
+	const int ordinal_of_set_of_this_leo_item = Ord_of_ES(ES_of_LIM(this_leo_item));
           const AIM path_ahfa_item = Path_AIM_of_LIM(previous_leo_item);
 	  const RULE path_rule = RULE_of_AIM(path_ahfa_item);
-	  const gint symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
+	  const int symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
 	@<Add main Leo path or-node@>@;
 	@<Add Leo path nulling token or-nodes@>@;
 	previous_leo_item = this_leo_item;
@@ -9406,17 +9406,17 @@ There will always be a predecessor, since these nulling
 or-nodes follow a completion.
 @<Add Leo path nulling token or-nodes@> =
 {
-  gint i;
-  const gint null_count = Null_Count_of_AIM (path_ahfa_item);
+  int i;
+  const int null_count = Null_Count_of_AIM (path_ahfa_item);
   for (i = 1; i <= null_count; i++)
     {
-      const gint symbol_instance = symbol_instance_of_path_ahfa_item + i;
+      const int symbol_instance = symbol_instance_of_path_ahfa_item + i;
       OR or_node = PSL_Datum (this_earley_set_psl, symbol_instance);
       MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g)) @;
       if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal)
 	{
 	  DAND draft_and_node;
-	  const gint rhs_ix = symbol_instance - SYMI_of_RULE(path_rule);
+	  const int rhs_ix = symbol_instance - SYMI_of_RULE(path_rule);
 	    const OR predecessor = rhs_ix ? last_or_node : NULL;
 	  const OR cause = (OR)TOK_by_SYMID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
 	  MARPA_ASSERT (symbol_instance < Length_of_RULE (path_rule)) @;
@@ -9457,7 +9457,7 @@ int.
     )
 
 @<Private typedefs@> =
-typedef gint WHEID;
+typedef int WHEID;
 
 
 @** Draft And-Node (DAND) Code.
@@ -9518,14 +9518,14 @@ void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause
 
 @ @<Create the draft and-nodes for |work_earley_set_ordinal|@> =
 {
-    gint item_ordinal;
+    int item_ordinal;
     for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
     {
 	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
 	if (nodes_by_aex) {
 	    const EIM work_earley_item = eims_of_es[item_ordinal];
-	    const gint work_ahfa_item_count = AIM_Count_of_EIM(work_earley_item);
-	    const gint work_origin_ordinal = Ord_of_ES (Origin_of_EIM (work_earley_item));
+	    const int work_ahfa_item_count = AIM_Count_of_EIM(work_earley_item);
+	    const int work_origin_ordinal = Ord_of_ES (Origin_of_EIM (work_earley_item));
 	    AEX work_aex;
 	    for (work_aex = 0; work_aex < work_ahfa_item_count; work_aex++) {
 		OR or_node = nodes_by_aex[work_aex];
@@ -9555,11 +9555,11 @@ predecessor.  Set |or_node| to 0 if there is none.
 
 @ @<Create draft and-nodes for |or_node|@> =
 {
-    guint work_source_type = Source_Type_of_EIM (work_earley_item);
+    unsigned int work_source_type = Source_Type_of_EIM (work_earley_item);
     const AIM work_ahfa_item = AIM_of_EIM_by_AEX (work_earley_item, work_aex);
     MARPA_ASSERT (work_ahfa_item >= AIM_by_ID (1))@;
     const AIM work_predecessor_aim = work_ahfa_item - 1;
-    const gint work_symbol_instance = SYMI_of_AIM (work_ahfa_item);
+    const int work_symbol_instance = SYMI_of_AIM (work_ahfa_item);
     OR work_proper_or_node;
     Set_OR_from_Ord_and_SYMI (work_proper_or_node, work_origin_ordinal,
 			      work_symbol_instance);
@@ -9649,9 +9649,9 @@ predecessor.  Set |or_node| to 0 if there is none.
   const SYMID transition_symbol_id = Postdot_SYMID_of_LIM (leo_predecessor);
   const TRANS cause_completion_data =
     TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
-  const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
+  const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
   const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
-  gint ix;
+  int ix;
   for (ix = 0; ix < aex_count; ix++)
     {
       const AEX cause_aex = aexes[ix];
@@ -9670,18 +9670,18 @@ MARPA_OFF_DEBUG3("%s dand_cause=%s", G_STRLOC, or_tag(dand_cause));
 |psia_eim| and |psia_aex|.
 @d Set_OR_from_EIM_and_AEX(psia_or, psia_eim, psia_aex) {
   const EIM psia_earley_item = psia_eim;
-  const gint psia_earley_set_ordinal = ES_Ord_of_EIM (psia_earley_item);
+  const int psia_earley_set_ordinal = ES_Ord_of_EIM (psia_earley_item);
   OR **const psia_nodes_by_item =
     per_es_data[psia_earley_set_ordinal].t_aexes_by_item;
-  const gint psia_item_ordinal = Ord_of_EIM (psia_earley_item);
+  const int psia_item_ordinal = Ord_of_EIM (psia_earley_item);
   OR *const psia_nodes_by_aex = psia_nodes_by_item[psia_item_ordinal];
   psia_or = psia_nodes_by_aex ? psia_nodes_by_aex[psia_aex] : NULL;
 }
 
 @ @<Use Leo base data to set |path_or_node|@> =
 {
-  gint symbol_instance;
-  const gint origin_ordinal = Origin_Ord_of_EIM (base_earley_item);
+  int symbol_instance;
+  const int origin_ordinal = Origin_Ord_of_EIM (base_earley_item);
   const AIM aim = AIM_of_EIM_by_AEX (base_earley_item, base_aex);
   path_rule = RULE_of_AIM (aim);
   symbol_instance = Last_Proper_SYMI_of_RULE (path_rule);
@@ -9692,7 +9692,7 @@ MARPA_OFF_DEBUG3("%s dand_cause=%s", G_STRLOC, or_tag(dand_cause));
 {
   OR dand_cause;
   const SYMI symbol_instance = SYMI_of_Completed_RULE(previous_path_rule);
-  const gint origin_ordinal = Ord_of_ES(ES_of_LIM(path_leo_item));
+  const int origin_ordinal = Ord_of_ES(ES_of_LIM(path_leo_item));
   Set_OR_from_Ord_and_SYMI(dand_cause, origin_ordinal, symbol_instance);
 MARPA_OFF_DEBUG2("lim=%s", lim_tag(path_leo_item));
   draft_and_node_add (&bocage_setup_obs, path_or_node,
@@ -9775,9 +9775,9 @@ MARPA_OFF_DEBUG2("or=%s", or_tag(work_proper_or_node));
     {
       const TRANS cause_completion_data =
 	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
-      const gint aex_count = Completion_Count_of_TRANS (cause_completion_data);
+      const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
-      gint ix;
+      int ix;
       for (ix = 0; ix < aex_count; ix++) {
 	  const AEX cause_aex = aexes[ix];
 	    @<Add draft and-node for completion source@>@;
@@ -9793,7 +9793,7 @@ MARPA_OFF_DEBUG2("or=%s", or_tag(work_proper_or_node));
 {
   OR dand_predecessor;
   OR dand_cause;
-  const gint middle_ordinal = Origin_Ord_of_EIM(cause_earley_item);
+  const int middle_ordinal = Origin_Ord_of_EIM(cause_earley_item);
   const AIM cause_ahfa_item = AIM_of_EIM_by_AEX(cause_earley_item, cause_aex);
   const SYMI cause_symbol_instance =
       SYMI_of_Completed_RULE(RULE_of_AIM(cause_ahfa_item));
@@ -9807,10 +9807,10 @@ MARPA_OFF_DEBUG2("completion source, or=%s", or_tag(work_proper_or_node));
 @ @<Mark duplicate draft and-nodes@> =
 {
   OR * const or_nodes_of_b = ORs_of_B (b);
-  const gint or_node_count_of_b = OR_Count_of_B(b);
+  const int or_node_count_of_b = OR_Count_of_B(b);
   PSAR_Object and_per_es_arena;
   const PSAR and_psar = &and_per_es_arena;
-  gint or_node_id = 0;
+  int or_node_id = 0;
   psar_init (and_psar, rule_count_of_g+symbol_count_of_g);
   while (or_node_id < or_node_count_of_b) {
       const OR work_or_node = or_nodes_of_b[or_node_id];
@@ -9844,14 +9844,14 @@ Otherwise, it's the first such draft and-node.
   /* Only if there is more than one draft and-node */
   if (next_dand)
     {
-      gint origin_ordinal = Origin_Ord_of_OR (work_or_node);
+      int origin_ordinal = Origin_Ord_of_OR (work_or_node);
       psar_dealloc(and_psar);
       while (dand)
 	{
 	  OR psl_or_node;
 	  OR predecessor = Predecessor_OR_of_DAND (dand);
 	  WHEID wheid = WHEID_of_OR(Cause_OR_of_DAND(dand));
-	  const gint middle_ordinal =
+	  const int middle_ordinal =
 	    predecessor ? ES_Ord_of_OR (predecessor) : origin_ordinal;
 	  PSL and_psl;
 	  PSL *psl_owner = &per_es_data[middle_ordinal].t_and_psl;
@@ -9885,7 +9885,7 @@ As another difference between it and a parse forest,
 the parse bocage can contain cycles.
 
 @<Public typedefs@> =
-typedef gint Marpa_And_Node_ID;
+typedef int Marpa_And_Node_ID;
 @ @<Private typedefs@> =
 typedef Marpa_And_Node_ID ANDID;
 
@@ -9907,22 +9907,22 @@ typedef struct s_and_node AND_Object;
 
 @ @<Create the final and-nodes for all earley sets@> =
 {
-  gint unique_draft_and_node_count = 0;
+  int unique_draft_and_node_count = 0;
   @<Mark duplicate draft and-nodes@>@;
   @<Create the final and-node array@>@;
 }
 
 @ @<Create the final and-node array@> =
 {
-  const gint or_count_of_b = OR_Count_of_B (b);
-  gint or_node_id;
-  gint and_node_id = 0;
+  const int or_count_of_b = OR_Count_of_B (b);
+  int or_node_id;
+  int and_node_id = 0;
   const OR *ors_of_b = ORs_of_B (b);
   const AND ands_of_b = ANDs_of_B (b) =
     g_new (AND_Object, unique_draft_and_node_count);
   for (or_node_id = 0; or_node_id < or_count_of_b; or_node_id++)
     {
-      gint and_count_of_parent_or = 0;
+      int and_count_of_parent_or = 0;
       const OR or_node = ors_of_b[or_node_id];
       DAND dand = DANDs_of_OR (or_node);
 	First_ANDID_of_OR(or_node) = and_node_id;
@@ -9951,7 +9951,7 @@ typedef struct s_and_node AND_Object;
 @*0 Trace Functions.
 
 @ @<Function definitions@> =
-gint marpa_b_and_node_count(Marpa_Bocage b)
+int marpa_b_and_node_count(Marpa_Bocage b)
 {
   @<Unpack bocage objects@>@;
   @<Return |-2| on failure@>@;
@@ -9977,7 +9977,7 @@ gint marpa_b_and_node_count(Marpa_Bocage b)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id)
+int marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -9987,7 +9987,7 @@ gint marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
+int marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10002,7 +10002,7 @@ gint marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
+int marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10017,7 +10017,7 @@ gint marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
+int marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10158,8 +10158,8 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 
 @ @<Declare bocage locals@> =
 const GRAMMAR g = G_of_R(r);
-const gint rule_count_of_g = RULE_Count_of_G(g);
-const gint symbol_count_of_g = SYM_Count_of_G(g);
+const int rule_count_of_g = RULE_Count_of_G(g);
+const int symbol_count_of_g = SYM_Count_of_G(g);
 BOCAGE b = NULL;
 ES end_of_parse_earley_set;
 EARLEME end_of_parse_earleme;
@@ -10168,9 +10168,9 @@ EIM start_eim = NULL;
 AIM start_aim = NULL;
 AEX start_aex = -1;
 struct obstack bocage_setup_obs;
-gint total_earley_items_in_parse;
-gint or_node_estimate = 0;
-const gint earley_set_count_of_r = ES_Count_of_R (r);
+int total_earley_items_in_parse;
+int or_node_estimate = 0;
+const int earley_set_count_of_r = ES_Count_of_R (r);
 
 @ @<Private incomplete structures@> =
 struct s_bocage_setup_per_es;
@@ -10233,7 +10233,7 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
 {
   const GRAMMAR g = G_of_R(r);
   const RULE null_start_rule = g->t_null_start_rule;
-  gint rule_length = Length_of_RULE (g->t_null_start_rule);
+  int rule_length = Length_of_RULE (g->t_null_start_rule);
   OR *or_nodes = ORs_of_B (b) = g_new (OR, 1);
   AND and_nodes = ANDs_of_B (b) = g_new (AND_Object, 1);
   OR or_node = or_nodes[0] =
@@ -10263,8 +10263,8 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
 @
 @<Allocate bocage setup working data@>=
 {
-  guint ix;
-  guint earley_set_count = ES_Count_of_R (r);
+  unsigned int ix;
+  unsigned int earley_set_count = ES_Count_of_R (r);
   total_earley_items_in_parse = 0;
   per_es_data =
     obstack_alloc (&bocage_setup_obs,
@@ -10272,13 +10272,13 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
   for (ix = 0; ix < earley_set_count; ix++)
     {
       const ES_Const earley_set = ES_of_R_by_Ord (r, ix);
-      const guint item_count = EIM_Count_of_ES (earley_set);
+      const unsigned int item_count = EIM_Count_of_ES (earley_set);
       total_earley_items_in_parse += item_count;
 	{
 	  struct s_bocage_setup_per_es *per_es = per_es_data + ix;
 	  OR ** const per_eim_eixes = per_es->t_aexes_by_item =
 	    obstack_alloc (&bocage_setup_obs, sizeof (OR *) * item_count);
-	  guint item_ordinal;
+	  unsigned int item_ordinal;
 	  per_es->t_or_psl = NULL;
 	  per_es->t_and_psl = NULL;
 	  for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
