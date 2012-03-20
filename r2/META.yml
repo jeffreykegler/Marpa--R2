@@ -95,4 +95,4 @@ requires:
   Task::Weaken: 0
 resources:
   repository: git://github.com/jeffreykegler/Marpa-R2.git
-version: 0.001_025
+version: 0.001_026
