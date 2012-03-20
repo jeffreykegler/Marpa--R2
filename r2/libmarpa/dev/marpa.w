@@ -10315,18 +10315,18 @@ is what it would take for any per-Earley set overhead
 to make sense.
 @<Find |start_eim|, |start_aim| and |start_aex|@> =
 {
-    gint eim_ix;
+    int eim_ix;
     EIM* const earley_items = EIMs_of_ES(end_of_parse_earley_set);
     const RULEID sought_rule_id = ID_of_RULE(completed_start_rule);
-    const gint earley_item_count = EIM_Count_of_ES(end_of_parse_earley_set);
+    const int earley_item_count = EIM_Count_of_ES(end_of_parse_earley_set);
     for (eim_ix = 0; eim_ix < earley_item_count; eim_ix++) {
         const EIM earley_item = earley_items[eim_ix];
 	const AHFA ahfa_state = AHFA_of_EIM(earley_item);
 	if (Origin_Earleme_of_EIM(earley_item) > 0) continue; // Not a start EIM
 	if (!AHFA_is_Predicted(ahfa_state)) {
-	    gint aex;
+	    int aex;
 	    AIM* const ahfa_items = AIMs_of_AHFA(ahfa_state);
-	    const gint ahfa_item_count = AIM_Count_of_AHFA(ahfa_state);
+	    const int ahfa_item_count = AIM_Count_of_AHFA(ahfa_state);
 	    for (aex = 0; aex < ahfa_item_count; aex++) {
 		 const AIM ahfa_item = ahfa_items[aex];
 	         if (RULEID_of_AIM(ahfa_item) == sought_rule_id) {
@@ -10346,7 +10346,7 @@ to make sense.
   const ESID end_of_parse_ordinal = Ord_of_ES (end_of_parse_earley_set);
   OR **const nodes_by_item =
     per_es_data[end_of_parse_ordinal].t_aexes_by_item;
-  const gint start_earley_item_ordinal = Ord_of_EIM (start_eim);
+  const int start_earley_item_ordinal = Ord_of_EIM (start_eim);
   OR *const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
   const OR top_or_node = nodes_by_aex[start_aex];
   Top_ORID_of_B (b) = ID_of_OR (top_or_node);
@@ -10382,7 +10382,7 @@ Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b)
 }
 
 @*0 Reference Counting and Destructors.
-@ @<Int aligned bocage elements@>= gint t_ref_count;
+@ @<Int aligned bocage elements@>= int t_ref_count;
 @ @<Initialize bocage elements@> =
 b->t_ref_count = 1;
 
@@ -10461,7 +10461,7 @@ bocage_free (BOCAGE b)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_or_node_set(Marpa_Bocage b, int or_node_id)
+int marpa_b_or_node_set(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10472,7 +10472,7 @@ gint marpa_b_or_node_set(Marpa_Bocage b, int or_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id)
+int marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10483,7 +10483,7 @@ gint marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id)
+int marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10494,7 +10494,7 @@ gint marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_or_node_position(Marpa_Bocage b, int or_node_id)
+int marpa_b_or_node_position(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10505,7 +10505,7 @@ gint marpa_b_or_node_position(Marpa_Bocage b, int or_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id)
+int marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10516,7 +10516,7 @@ gint marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id)
+int marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10528,7 +10528,7 @@ gint marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id)
+int marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
@@ -10561,7 +10561,7 @@ struct s_order {
     ANDID** t_and_node_orderings;
     @<Widely aligned order elements@>@;
     @<Int aligned order elements@>@;
-    guint t_is_frozen:1;
+    unsigned int t_is_frozen:1;
 };
 @ @<Initialize order elements@> =
 {
@@ -10590,7 +10590,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
 }
 
 @*0 Reference Counting and Destructors.
-@ @<Int aligned order elements@>= gint t_ref_count;
+@ @<Int aligned order elements@>= int t_ref_count;
 @ @<Initialize order elements@> =
     o->t_ref_count = 1;
 
@@ -10728,11 +10728,11 @@ A purist might insist this needs to be reflected in a structure,
 but to my mind doing this portably makes the code more obscure,
 not less.
 @<Function definitions@> =
-gint marpa_o_and_order_set(
+int marpa_o_and_order_set(
     Marpa_Order o,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
-    gint length)
+    int length)
 {
     OR or_node;
   @<Return |-2| on failure@>@;
@@ -10755,8 +10755,8 @@ gint marpa_o_and_order_set(
 	obs = &OBS_of_O(o);
 	if (!and_node_orderings)
 	  {
-	    gint and_id;
-	    const gint and_count_of_r = AND_Count_of_B (b);
+	    int and_id;
+	    const int and_count_of_r = AND_Count_of_B (b);
 	    obstack_init(obs);
 	    o->t_and_node_orderings =
 	      and_node_orderings =
@@ -10766,12 +10766,12 @@ gint marpa_o_and_order_set(
 		and_node_orderings[and_id] = (ANDID *) NULL;
 	      }
 	     o->t_and_node_in_use =
-	     and_node_in_use = bv_create ((guint)and_count_of_r);
+	     and_node_in_use = bv_create ((unsigned int)and_count_of_r);
 	  }
 	  first_and_node_id = First_ANDID_of_OR(or_node);
 	  and_count_of_or = AND_Count_of_OR(or_node);
 	    {
-	      gint and_ix;
+	      int and_ix;
 	      for (and_ix = 0; and_ix < length; and_ix++)
 		{
 		  ANDID and_node_id = and_node_ids[and_ix];
@@ -10780,12 +10780,12 @@ gint marpa_o_and_order_set(
 		      MARPA_DEV_ERROR ("and node not in or node");
 		      return failure_indicator;
 		    }
-		  if (bv_bit_test (and_node_in_use, (guint)and_node_id))
+		  if (bv_bit_test (and_node_in_use, (unsigned int)and_node_id))
 		    {
 		      MARPA_DEV_ERROR ("dup and node");
 		      return failure_indicator;
 		    }
-		  bv_bit_set (and_node_in_use, (guint)and_node_id);
+		  bv_bit_set (and_node_in_use, (unsigned int)and_node_id);
 		}
 	    }
 	    if (and_node_orderings[or_node_id]) {
@@ -10794,7 +10794,7 @@ gint marpa_o_and_order_set(
 	    }
 	    {
 	      ANDID *orderings = obstack_alloc (obs, sizeof (ANDID) * (length + 1));
-	      gint i;
+	      int i;
 	      and_node_orderings[or_node_id] = orderings;
 	      *orderings++ = length;
 	      for (i = 0; i < length; i++)
@@ -10808,7 +10808,7 @@ gint marpa_o_and_order_set(
 
 @*0 Get an And-node by Order within its Or-Node.
 @<Function definitions@> =
-PRIVATE ANDID and_order_get(ORDER o, OR or_node, gint ix)
+PRIVATE ANDID and_order_get(ORDER o, OR or_node, int ix)
 {
   @<Unpack order objects@>@;
   ANDID **and_node_orderings;
@@ -10823,7 +10823,7 @@ PRIVATE ANDID and_order_get(ORDER o, OR or_node, gint ix)
       ANDID *ordering = and_node_orderings[or_node_id];
       if (ordering)
 	{
-	  gint length = ordering[0];
+	  int length = ordering[0];
 	  if (ix >= length)
 	    return -1;
 	  return ordering[1 + ix];
@@ -10834,7 +10834,7 @@ PRIVATE ANDID and_order_get(ORDER o, OR or_node, gint ix)
 
 @ @<Function definitions@> =
 Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
-    Marpa_Or_Node_ID or_node_id, gint ix)
+    Marpa_Or_Node_ID or_node_id, int ix)
 {
     OR or_node;
   @<Return |-2| on failure@>@;
@@ -10886,7 +10886,7 @@ struct s_tree {
     Bit_Vector t_and_node_in_use;
     Marpa_Order t_order;
     @<Int aligned tree elements@>@;
-    gint t_parse_count;
+    int t_parse_count;
 };
 
 @ @<Unpack tree objects@> =
@@ -10929,16 +10929,16 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
 
 @ @<Initialize tree elements@> =
 {
-    const gint and_count = AND_Count_of_B (b);
+    const int and_count = AND_Count_of_B (b);
     t->t_parse_count = 0;
-    t->t_and_node_in_use = bv_create ((guint) and_count);
+    t->t_and_node_in_use = bv_create ((unsigned int) and_count);
     FSTACK_INIT (t->t_nook_stack, NOOK_Object, and_count);
     FSTACK_INIT (t->t_nook_worklist, gint, and_count);
 }
 
 @*0 Reference Counting and Destructors.
 @ @<Int aligned tree elements@>=
-    gint t_ref_count;
+    int t_ref_count;
 @ @<Initialize tree elements@> =
     t->t_ref_count = 1;
 
@@ -11017,7 +11017,7 @@ copying the |TREE| iterator to a tree instance would impose
 an overhead, one which adds absolutely no value
 for most applications.
 @d T_is_Paused(t) ((t)->t_pause_counter > 0)
-@<Int aligned tree elements@> = gint t_pause_counter;
+@<Int aligned tree elements@> = int t_pause_counter;
 @ @<Initialize tree elements@> = t->t_pause_counter = 0;
 @ @<Function definitions@> =
 PRIVATE void
@@ -11058,10 +11058,10 @@ Marpa_Grammar marpa_t_g(Marpa_Tree t)
 }
 
 @ @<Function definitions@> =
-gint marpa_t_next(Marpa_Tree t)
+int marpa_t_next(Marpa_Tree t)
 {
     @<Return |-2| on failure@>@;
-    gint is_first_tree_attempt = 0;
+    int is_first_tree_attempt = 0;
     @<Unpack tree objects@>@;
     @<Fail if fatal error@>@;
     if (T_is_Paused(t)) {
@@ -11104,21 +11104,21 @@ A bit vector, accessed by these functions, enforces this.
 @<Function definitions@> =
 PRIVATE void tree_and_node_claim(TREE tree, ANDID and_node_id)
 {
-    bv_bit_set(tree->t_and_node_in_use, (guint)and_node_id);
+    bv_bit_set(tree->t_and_node_in_use, (unsigned int)and_node_id);
 }
 @ Release the and-node by unsetting its bit.
 @<Function definitions@> =
 PRIVATE void tree_and_node_release(TREE tree, ANDID and_node_id)
 {
-    bv_bit_clear(tree->t_and_node_in_use, (guint)and_node_id);
+    bv_bit_clear(tree->t_and_node_in_use, (unsigned int)and_node_id);
 }
 @ Try to claim the and-node.
 If it was already claimed, return 0, otherwise claim it (that is,
 set the bit) and return 1.
 @<Function definitions@> =
-PRIVATE gint tree_and_node_try(TREE tree, ANDID and_node_id)
+PRIVATE int tree_and_node_try(TREE tree, ANDID and_node_id)
 {
-    return !bv_bit_test_and_set(tree->t_and_node_in_use, (guint)and_node_id);
+    return !bv_bit_test_and_set(tree->t_and_node_in_use, (unsigned int)and_node_id);
 }
 
 @ @<Initialize the tree iterator@> =
@@ -11126,7 +11126,7 @@ PRIVATE gint tree_and_node_try(TREE tree, ANDID and_node_id)
   ORID top_or_id = Top_ORID_of_B (b);
   OR top_or_node = OR_of_B_by_ID (b, top_or_id);
   NOOK nook;
-  gint choice;
+  int choice;
   choice = or_node_next_choice (o, t, top_or_node, 0);
   /* Due to skipping, even the top or-node can have no
      valid choices, in which case there is no parse */
@@ -11172,7 +11172,7 @@ Otherwise, the tree is exhausted.
 	}
 	{
 	    /* Dirty the corresponding bit in the parent */
-	    const gint parent_nook_ix = Parent_of_NOOK(iteration_candidate);
+	    const int parent_nook_ix = Parent_of_NOOK(iteration_candidate);
 	    if (parent_nook_ix >= 0) {
 		NOOK parent_nook = NOOK_of_TREE_by_IX(t, parent_nook_ix);
 		if (NOOK_is_Cause(iteration_candidate)) {
@@ -11247,9 +11247,9 @@ Otherwise, the tree is exhausted.
 }
 
 @ @<Function definitions@> =
-PRIVATE gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choice)
+PRIVATE int or_node_next_choice(ORDER o, TREE tree, OR or_node, int start_choice)
 {
-    gint choice = start_choice;
+    int choice = start_choice;
     while (1) {
 	ANDID and_node_id = and_order_get(o, or_node, choice);
 	if (and_node_id < 0) return -1;
@@ -11278,7 +11278,7 @@ PRIVATE gint or_node_next_choice(ORDER o, TREE tree, OR or_node, gint start_choi
 }
 
 @ @<Function definitions@> =
-gint marpa_t_parse_count(Marpa_Tree t)
+int marpa_t_parse_count(Marpa_Tree t)
 {
     return t->t_parse_count;
 }
@@ -11286,7 +11286,7 @@ gint marpa_t_parse_count(Marpa_Tree t)
 @
 @d Size_of_T(t) FSTACK_LENGTH((t)->t_nook_stack)
 @<Function definitions@> =
-gint marpa_t_size(Marpa_Tree t)
+int marpa_t_size(Marpa_Tree t)
 {
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
@@ -11299,7 +11299,7 @@ gint marpa_t_size(Marpa_Tree t)
 
 @** Nook (NOOK) Code.
 @<Public typedefs@> =
-typedef gint Marpa_Nook_ID;
+typedef int Marpa_Nook_ID;
 @ @<Private typedefs@> =
 typedef Marpa_Nook_ID NOOKID;
 @ @s NOOK int
@@ -11317,12 +11317,12 @@ typedef struct s_nook* NOOK;
 @<NOOK structure@> =
 struct s_nook {
     OR t_or_node;
-    gint t_choice;
+    int t_choice;
     NOOKID t_parent;
-    guint t_is_cause_ready:1;
-    guint t_is_predecessor_ready:1;
-    guint t_is_cause_of_parent:1;
-    guint t_is_predecessor_of_parent:1;
+    unsigned int t_is_cause_ready:1;
+    unsigned int t_is_predecessor_ready:1;
+    unsigned int t_is_cause_of_parent:1;
+    unsigned int t_is_predecessor_of_parent:1;
 };
 typedef struct s_nook NOOK_Object;
 
@@ -11349,7 +11349,7 @@ set |nook|@> = {
 }
 
 @ @<Function definitions@> =
-gint marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
+int marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11359,7 +11359,7 @@ gint marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_t_nook_choice(Marpa_Tree t, int nook_id)
+int marpa_t_nook_choice(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11369,7 +11369,7 @@ gint marpa_t_nook_choice(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_t_nook_parent(Marpa_Tree t, int nook_id)
+int marpa_t_nook_parent(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11379,7 +11379,7 @@ gint marpa_t_nook_parent(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
+int marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11389,7 +11389,7 @@ gint marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
+int marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11399,7 +11399,7 @@ gint marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
+int marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11409,7 +11409,7 @@ gint marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-gint marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
+int marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11479,9 +11479,9 @@ struct s_value {
     Marpa_Tree t_tree;
     @<Int aligned value elements@>@;
     Bit_Vector t_nulling_ask_bv;
-    gint t_token_type;
-    gint t_next_value_type;
-    guint t_trace:1;
+    int t_token_type;
+    int t_next_value_type;
+    unsigned int t_trace:1;
 };
 
 @
@@ -11549,8 +11549,8 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     if (!T_is_Exhausted (t))
       {
 	VALUE v = g_slice_new (struct s_value);
-	const gint minimum_stack_size = (8192 / sizeof (gint));
-	const gint initial_stack_size =
+	const int minimum_stack_size = (8192 / sizeof (gint));
+	const int initial_stack_size =
 	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
 	DSTACK_INIT (VStack_of_V (v), gint, initial_stack_size);
 	@<Initialize nulling "ask me" bit vector@>@;
@@ -11646,7 +11646,7 @@ Marpa_Grammar marpa_v_g(Marpa_Value v)
 }
 
 @ @<Function definitions@> =
-gint marpa_v_trace(Marpa_Value v, gint flag)
+int marpa_v_trace(Marpa_Value v, int flag)
 {
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
@@ -11674,7 +11674,7 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
 The settings here overrides the value
 set with the grammar.
 @ @<Function definitions@> =
-gint marpa_v_symbol_is_ask_me_when_null(
+int marpa_v_symbol_is_ask_me_when_null(
     Marpa_Value v,
     Marpa_Symbol_ID symid)
 {
@@ -11695,7 +11695,7 @@ The idea scares me,
 but I cannot think of a reason to ban it,
 so I do not.
 @<Function definitions@> =
-gint marpa_v_symbol_ask_me_when_null_set(
+int marpa_v_symbol_ask_me_when_null_set(
     Marpa_Value v, Marpa_Symbol_ID symid, int value)
 {
     SYM symbol;
@@ -11721,7 +11721,7 @@ gint marpa_v_symbol_ask_me_when_null_set(
 @ The value type indicates whether the value
 is for a semantic rule, a semantic token, etc.
 @<Public typedefs@> =
-typedef gint Marpa_Value_Type;
+typedef int Marpa_Value_Type;
 @ @d V_GET_DATA MARPA_VALUE_INTERNAL1
 
 @<Function definitions@> =
@@ -11740,7 +11740,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	    /* fall through */
 	  case MARPA_VALUE_TOKEN:
 	    {
-	      gint token_type = Token_Type_of_V (v);
+	      int token_type = Token_Type_of_V (v);
 	      if (token_type != DUMMY_OR_NODE)
 		{
 		  Next_Value_Type_of_V (v) = MARPA_VALUE_RULE;
@@ -11798,9 +11798,9 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	  ANDID and_node_id;
 	  AND and_node;
 	  TOK token;
-	  gint token_type;
+	  int token_type;
 	  const NOOK nook = NOOK_of_TREE_by_IX (t, NOOK_of_V (v));
-	  const gint choice = Choice_of_NOOK (nook);
+	  const int choice = Choice_of_NOOK (nook);
 	  or = OR_of_NOOK (nook);
 	  and_node_id = and_order_get (o, or, choice);
 	  and_node = and_nodes + and_node_id;
@@ -11827,9 +11827,9 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	}
 	nook_rule = RULE_of_OR(or);
 	if (Position_of_OR(or) == Length_of_RULE(nook_rule)) {
-	    gint virtual_rhs = RULE_has_Virtual_RHS(nook_rule);
-	    gint virtual_lhs = RULE_has_Virtual_LHS(nook_rule);
-	    gint real_symbol_count;
+	    int virtual_rhs = RULE_has_Virtual_RHS(nook_rule);
+	    int virtual_lhs = RULE_has_Virtual_LHS(nook_rule);
+	    int real_symbol_count;
 	    const DSTACK virtual_stack = &VStack_of_V(v);
 	    if (virtual_lhs) {
 	        real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
@@ -11875,31 +11875,31 @@ look at Steffen's instead.
 |libmarpa|'s boolean vectors are tightly tied in
 with its own needs and environment.
 @<Private typedefs@> =
-typedef guint Bit_Vector_Word;
+typedef unsigned int Bit_Vector_Word;
 typedef Bit_Vector_Word* Bit_Vector;
 @ Some defines and constants
 @d BV_BITS(bv) *(bv-3)
 @d BV_SIZE(bv) *(bv-2)
 @d BV_MASK(bv) *(bv-1)
 @<Global variables@> =
-static const guint bv_wordbits = sizeof(Bit_Vector_Word)*8u;
-static const guint bv_modmask = sizeof(Bit_Vector_Word)*8u-1u;
-static const guint bv_hiddenwords = 3;
-static const guint bv_lsb = 1u;
-static const guint bv_msb = (1u << (sizeof(Bit_Vector_Word)*8u-1u));
+static const unsigned int bv_wordbits = sizeof(Bit_Vector_Word)*8u;
+static const unsigned int bv_modmask = sizeof(Bit_Vector_Word)*8u-1u;
+static const unsigned int bv_hiddenwords = 3;
+static const unsigned int bv_lsb = 1u;
+static const unsigned int bv_msb = (1u << (sizeof(Bit_Vector_Word)*8u-1u));
 
 @ Given a number of bits, compute the size.
 @<Function definitions@> =
-PRIVATE guint bv_bits_to_size(guint bits)
+PRIVATE unsigned int bv_bits_to_size(unsigned int bits)
 {
     return (bits+bv_modmask)/bv_wordbits;
 }
 @ Given a number of bits, compute the unused-bit mask.
 @<Function definitions@> =
-PRIVATE guint bv_bits_to_unused_mask(guint bits)
+PRIVATE unsigned int bv_bits_to_unused_mask(unsigned int bits)
 {
-    guint mask = bits & bv_modmask;
-    if (mask) mask = (guint) ~(~0uL << mask); else mask = (guint) ~0uL;
+    unsigned int mask = bits & bv_modmask;
+    if (mask) mask = (unsigned int) ~(~0uL << mask); else mask = (unsigned int) ~0uL;
     return(mask);
 }
 
