@@ -21,17 +21,6 @@
 #include "config.h"
 #include "marpa.h"
 
-#undef G_LOG_DOMAIN
-#define G_LOG_DOMAIN "Marpa"
-
-#define DEBUG 0
-#if !DEBUG
-#if defined(G_HAVE_GNUC_VARARGS)
-#undef g_debug
-#define g_debug(...)
-#endif /* defined G_HAVE_GNUC_VARARGS */
-#endif /* if !DEBUG */
-
 typedef struct marpa_g Grammar;
 typedef struct {
      Marpa_Grammar g;
@@ -1236,28 +1225,31 @@ AHFA_state_transitions( g_wrapper, AHFA_state_id )
     Marpa_AHFA_State_ID AHFA_state_id;
 PPCODE:
 {
+  int result_count;
+  int *buffer;
   Grammar *g = g_wrapper->g;
-  GArray *const gint_array = g_wrapper->gint_array;
-  const gint result =
-    marpa_g_AHFA_state_transitions (g, AHFA_state_id, gint_array);
-  if (result < 0)
+  const int symbol_count = marpa_g_symbol_count(g);
+  Newx( buffer, 2 * symbol_count, int);
+  result_count =
+    marpa_g_AHFA_state_transitions (g, AHFA_state_id, buffer, 2*symbol_count*sizeof(int));
+  if (result_count < 0)
     {
+	Safefree(buffer);
       croak ("Problem in AHFA_state_transitions(): %s", xs_g_error (g_wrapper));
     }
   if (GIMME == G_ARRAY)
     {
-      const gint count = gint_array->len;
-      gint ix;
-      for (ix = 0; ix < count; ix++)
+      int ix;
+      for (ix = 0; ix < result_count*2; ix++)
 	{
-	  XPUSHs (sv_2mortal
-		  (newSViv (g_array_index (gint_array, gint, ix))));
+	  XPUSHs (sv_2mortal (newSViv (buffer[ix] )));
 	}
     }
   else
     {
-      XPUSHs (sv_2mortal (newSViv ((gint) gint_array->len)));
+      XPUSHs (sv_2mortal (newSViv (result_count)));
     }
+    Safefree(buffer);
 }
 
  # -1 is a valid return value, and -2 indicates an error

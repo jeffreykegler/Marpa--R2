@@ -5094,28 +5094,37 @@ void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
 @ @<Function definitions@> =
 gint marpa_g_AHFA_state_transitions(struct marpa_g* g,
     Marpa_AHFA_State_ID AHFA_state_id,
-    GArray *result) {
+    int *buffer,
+    int buffer_size
+    ) {
 
     @<Return |-2| on failure@>@;
     AHFA from_ahfa_state;
     TRANS* transitions;
     SYMID symid;
     gint symbol_count;
+    int ix = 0;
+    const int max_ix = buffer_size / sizeof(*buffer);
+    const int max_results = max_ix / 2;
+    /* Rounding is important -- with 32-bits ints,
+      the number of results which fit into 15 bytes is 1.
+      The number of results which fit into 7 bytes is zero.
+      */
 
     @<Fail if grammar not precomputed@>@;
     @<Fail if grammar |AHFA_state_id| is invalid@>@;
-    @<Fail grammar if elements of |result| are not |sizeof(gint)|@>@;
+    if (max_results <= 0) return 0;
     from_ahfa_state = AHFA_of_G_by_ID(g, AHFA_state_id);
     transitions = TRANSs_of_AHFA(from_ahfa_state); 
     symbol_count = SYM_Count_of_G(g);
-    g_array_set_size(result, 0);
     for (symid = 0; symid < symbol_count; symid++) {
         AHFA to_ahfa_state = To_AHFA_of_TRANS(transitions[symid]);
 	if (!to_ahfa_state) continue;
-	g_array_append_val (result, symid);
-	g_array_append_val (result, ID_of_AHFA(to_ahfa_state));
+	buffer[ix++] = symid;
+	buffer[ix++] = ID_of_AHFA(to_ahfa_state);
+	if (ix/2 >= max_results) break;
     }
-    return result->len;
+    return ix/2;
 }
 
 @** Empty Transition Code.

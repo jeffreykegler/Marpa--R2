@@ -1249,7 +1249,9 @@ These methods will not be of interest to most users.
 @end deftypefun
 @deftypefun gint marpa_g_AHFA_state_transitions (Marpa_Grammar @var{g}, @
     Marpa_AHFA_State_ID @var{AHFA_state_id}, @
-    GArray *@var{result})
+    int *@var{buffer}, @
+    int @var{buffer_size} @
+    )
 @end deftypefun
 @deftypefun Marpa_AHFA_State_ID marpa_g_AHFA_state_empty_transition (Marpa_Grammar @var{g}, @
      Marpa_AHFA_Item_ID @var{AHFA_item_id})
