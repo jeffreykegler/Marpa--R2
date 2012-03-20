@@ -813,9 +813,9 @@ Return value: %NULL if the Marpa library is compatible with the
 @cindex grammar constructor
 
 @deftypefun Marpa_Grammar marpa_g_new ( @
-    guint @var{required_major}, @
-    guint @var{required_minor}, @
-    guint @var{required_micro})
+    unsigned int @var{required_major}, @
+    unsigned int @var{required_minor}, @
+    unsigned int @var{required_micro})
 
 Creates a new grammar time object.
 The returned grammar object not be precomputed,
@@ -910,70 +910,70 @@ otherwise the ID of the new start symbol.
 
 @end deftypefun
 
-@deftypefun gint marpa_g_symbol_count (Marpa_Grammar @var{g})
+@deftypefun int marpa_g_symbol_count (Marpa_Grammar @var{g})
 @end deftypefun
 
 @node Terminals, Rules, Symbols, Grammars
 @section Methods that deal with terminal symbols
 
-@deftypefun gint marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
-@deftypefunx gint marpa_g_is_lhs_terminal_ok_set ( @
+@deftypefun int marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
+@deftypefunx int marpa_g_is_lhs_terminal_ok_set ( @
     Marpa_Grammar @var{g}, @
-    gint @var{value})
+    int @var{value})
 @end deftypefun
 
-@deftypefun gint marpa_g_symbol_is_terminal ( @
+@deftypefun int marpa_g_symbol_is_terminal ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
-@deftypefunx gint marpa_g_symbol_is_terminal_set ( @
+@deftypefunx int marpa_g_symbol_is_terminal_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid}, @
- gint @var{value})
+ int @var{value})
 @end deftypefun
 
-@deftypefun gint marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun gint marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun gint marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun gint marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun gint marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 
 @node Rules, Grammar precomputation, Terminals, Grammars
 @section Rules
 
-@deftypefun gint marpa_g_rule_count (Marpa_Grammar @var{g})
+@deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun Marpa_Rule_ID marpa_g_rule_new (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{lhs}, @
  Marpa_Symbol_ID *@var{rhs}, @
-     gint @var{length})
+     int @var{length})
 @end deftypefun
 
-@deftypefun gint marpa_g_sequence_new (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_sequence_new (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{lhs_id}, @
  Marpa_Symbol_ID @var{rhs_id}, @
      Marpa_Symbol_ID @var{separator_id}, @
-    gint @var{min}, @
- gint @var{flags} )
+    int @var{min}, @
+ int @var{flags} )
 @end deftypefun
 
-@deftypefun gint marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 @end deftypefun
-@deftypefun gint marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 @end deftypefun
 
-@deftypefun gint marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 
@@ -982,12 +982,12 @@ otherwise the ID of the new start symbol.
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 
-@deftypefun gint marpa_g_rule_length ( @
+@deftypefun int marpa_g_rule_length ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 
-@deftypefun gint marpa_g_rule_is_discard_separation ( @
+@deftypefun int marpa_g_rule_is_discard_separation ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 @end deftypefun
@@ -995,19 +995,19 @@ otherwise the ID of the new start symbol.
 @deftypefun Marpa_Symbol_ID marpa_g_rule_rh_symbol ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id}, @
-    gint @var{ix})
+    int @var{ix})
 @end deftypefun
 
-@deftypefun gint marpa_g_rule_whatever_set ( @
+@deftypefun int marpa_g_rule_whatever_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
-@deftypefunx gint marpa_g_rule_first_child_set ( @
+@deftypefunx int marpa_g_rule_first_child_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
-@deftypefunx gint marpa_g_rule_ask_me_set ( @
+@deftypefunx int marpa_g_rule_ask_me_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
-@deftypefunx gint marpa_g_rule_is_ask_me ( @
+@deftypefunx int marpa_g_rule_is_ask_me ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 
@@ -1050,19 +1050,19 @@ Return value: -2 if there was an error.
 @node Grammar precomputation, Symbol internals, Rules, Grammars
 @section Precomputing the Grammar
 
-@deftypefun gint marpa_g_precompute (Marpa_Grammar @var{g})
+@deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
 @end deftypefun
 
-@deftypefun gint marpa_g_is_precomputed (Marpa_Grammar @var{g})
+@deftypefun int marpa_g_is_precomputed (Marpa_Grammar @var{g})
 @end deftypefun
 
-@deftypefun gint marpa_g_has_loop (Marpa_Grammar @var{g})
+@deftypefun int marpa_g_has_loop (Marpa_Grammar @var{g})
 @end deftypefun
 
 @node Symbol internals, Rule internals, Grammar precomputation, Grammars
 @section Methods that deal with symbol internals
 
-@deftypefun gint marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 
 This return value of this call indicates whether @var{symid}
@@ -1100,11 +1100,11 @@ Return value: -2 if the grammar is not precomputed or
 
 @end deftypefun
 
-@deftypefun gint marpa_g_symbol_ask_me_when_null_set ( @
+@deftypefun int marpa_g_symbol_ask_me_when_null_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symbol_id}, @
     int value)
-@deftypefunx gint marpa_g_symbol_is_ask_me_when_null ( @
+@deftypefunx int marpa_g_symbol_is_ask_me_when_null ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symbol_id})
 
@@ -1134,19 +1134,19 @@ Return value: -2 if there was an error.
 
 @end deftypefun
 
-@deftypefun gint marpa_g_symbol_lhs_count (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_lhs_count (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 @deftypefun Marpa_Rule_ID marpa_g_symbol_lhs (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid}, @
- gint @var{ix})
+ int @var{ix})
 @end deftypefun
-@deftypefun gint marpa_g_symbol_rhs_count (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_rhs_count (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 @deftypefun Marpa_Rule_ID marpa_g_symbol_rhs (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid}, @
- gint @var{ix})
+ int @var{ix})
 @end deftypefun
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_proper_alias (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
@@ -1161,28 +1161,28 @@ Return value: -2 if there was an error.
 @node Rule internals, Grammar internals, Symbol internals, Grammars
 @section Rule internals
 
-@deftypefun gint marpa_g_rule_is_virtual_loop (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_rule_is_virtual_loop (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun gint marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun gint marpa_g_rule_is_virtual_lhs (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_rule_is_virtual_lhs (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun gint marpa_g_rule_is_virtual_rhs (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_rule_is_virtual_rhs (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun guint marpa_g_virtual_start (Marpa_Grammar @var{g}, @
+@deftypefun unsigned int marpa_g_virtual_start (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun guint marpa_g_virtual_end (Marpa_Grammar @var{g}, @
+@deftypefun unsigned int marpa_g_virtual_end (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 @deftypefun Marpa_Rule_ID marpa_g_rule_original (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun gint marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 @deftypefun Marpa_Rule_ID marpa_g_rule_semantic_equivalent (Marpa_Grammar @var{g}, @
@@ -1199,36 +1199,36 @@ Marpa's internals, as described in
 @cite{Marpa: The Program}.
 These methods will not be of interest to most users.
 
-@deftypefun gint marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
+@deftypefun int marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun Marpa_Rule_ID marpa_g_AHFA_item_rule (Marpa_Grammar @var{g}, @
     Marpa_AHFA_Item_ID @var{item_id})
 @end deftypefun
-@deftypefun gint marpa_g_AHFA_item_position (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_AHFA_item_position (Marpa_Grammar @var{g}, @
     Marpa_AHFA_Item_ID @var{item_id})
 @end deftypefun
 @deftypefun Marpa_Symbol_ID marpa_g_AHFA_item_postdot (Marpa_Grammar @var{g}, @
     Marpa_AHFA_Item_ID @var{item_id})
 @end deftypefun
-@deftypefun gint marpa_g_AHFA_item_sort_key (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_AHFA_item_sort_key (Marpa_Grammar @var{g}, @
     Marpa_AHFA_Item_ID @var{item_id})
 @end deftypefun
-@deftypefun gint marpa_g_AHFA_state_count (Marpa_Grammar @var{g})
+@deftypefun int marpa_g_AHFA_state_count (Marpa_Grammar @var{g})
 @end deftypefun
-@deftypefun gint marpa_g_AHFA_state_item_count (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_AHFA_state_item_count (Marpa_Grammar @var{g}, @
     Marpa_AHFA_State_ID @var{AHFA_state_id})
 @end deftypefun
 @deftypefun Marpa_AHFA_Item_ID marpa_g_AHFA_state_item (Marpa_Grammar @var{g}, @
      Marpa_AHFA_State_ID @var{AHFA_state_id}, @
- gint @var{item_ix})
+ int @var{item_ix})
 @end deftypefun
-@deftypefun gint marpa_g_AHFA_state_is_predict (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_AHFA_state_is_predict (Marpa_Grammar @var{g}, @
  Marpa_AHFA_State_ID @var{AHFA_state_id})
 @end deftypefun
 @deftypefun Marpa_Symbol_ID marpa_g_AHFA_state_leo_lhs_symbol (Marpa_Grammar @var{g}, @
  Marpa_AHFA_State_ID @var{AHFA_state_id})
 @end deftypefun
-@deftypefun gint marpa_g_AHFA_state_transitions (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_AHFA_state_transitions (Marpa_Grammar @var{g}, @
     Marpa_AHFA_State_ID @var{AHFA_state_id}, @
     int *@var{buffer}, @
     int @var{buffer_size} @
@@ -1249,9 +1249,9 @@ These methods will not be of interest to most users.
 @node Event accessor, Event codes, Events, Events
 @section Accessing events
 
-@deftypefun gint marpa_g_event (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_event (Marpa_Grammar @var{g}, @
     Marpa_Event @var{public_event}, @
-	       gint @var{ix})
+	       int @var{ix})
 @end deftypefun
 
 @node Event codes,  , Event accessor, Events
@@ -1313,10 +1313,10 @@ Suggested message: "Grammar has a counted nullable."
 @node Recognizer life, Recognizer internals, Recognizer reference counting, Recognizers
 @section Taking a recognizer through its life cycle
 
-@deftypefun gint marpa_r_start_input (Marpa_Recognizer @var{r})
+@deftypefun int marpa_r_start_input (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_alternative (Marpa_Recognizer r, @
+@deftypefun int marpa_r_alternative (Marpa_Recognizer r, @
     Marpa_Symbol_ID @var{token_id}, @
     int @var{value}, @
     int @var{length})
@@ -1344,37 +1344,37 @@ returns -1, which can be treated as a soft failure.
 On other problems, it returns -2.
 @end deftypefun
 
-@deftypefun guint marpa_r_current_earleme (Marpa_Recognizer @var{r})
+@deftypefun unsigned int marpa_r_current_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
+@deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer @var{r}, @
-    gint @var{threshold})
+@deftypefun int marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer @var{r}, @
+    int @var{threshold})
 @end deftypefun
 
-@deftypefun guint marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
+@deftypefun unsigned int marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_terminals_expected ( @
+@deftypefun int marpa_r_terminals_expected ( @
     Marpa_Recognizer @var{r}, @
     Marpa_Symbol_ID* @var{buffer})
 @end deftypefun
 
-@deftypefun gint marpa_r_is_use_leo (Marpa_Recognizer @var{r})
+@deftypefun int marpa_r_is_use_leo (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_is_use_leo_set ( Marpa_Recognizer @var{r}, @
-    gint @var{value})
+@deftypefun int marpa_r_is_use_leo_set ( Marpa_Recognizer @var{r}, @
+    int @var{value})
 @end deftypefun
 
-@deftypefun gint marpa_r_is_exhausted (Marpa_Recognizer @var{r})
+@deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_event (Marpa_Recognizer @var{r}, @
+@deftypefun int marpa_r_event (Marpa_Recognizer @var{r}, @
     Marpa_Event @var{public_event}, @
-    gint @var{ix})
+    int @var{ix})
 @end deftypefun
 
 @node Recognizer internals,  , Recognizer life, Recognizers
@@ -1386,7 +1386,7 @@ On other problems, it returns -2.
 @deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun gint marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
+@deftypefun int marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
@@ -1479,26 +1479,26 @@ On other problems, it returns -2.
 @node Bocage internals,  , Bocage reference counting, Bocage
 @section Internals
 
-@deftypefun gint marpa_b_and_node_count ( @
+@deftypefun int marpa_b_and_node_count ( @
     Marpa_Bocage @var{b})
 @end deftypefun
 
-@deftypefun gint marpa_b_and_node_parent ( @
+@deftypefun int marpa_b_and_node_parent ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})
 @end deftypefun
 
-@deftypefun gint marpa_b_and_node_predecessor ( @
+@deftypefun int marpa_b_and_node_predecessor ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})
 @end deftypefun
 
-@deftypefun gint marpa_b_and_node_cause ( @
+@deftypefun int marpa_b_and_node_cause ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})
 @end deftypefun
 
-@deftypefun gint marpa_b_and_node_symbol ( @
+@deftypefun int marpa_b_and_node_symbol ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})
 @end deftypefun
@@ -1531,7 +1531,7 @@ easy to return the symbol ID as well.
 Return the ID of the top or-node.
 @end deftypefun
 
-@deftypefun gint marpa_b_or_node_set ( @
+@deftypefun int marpa_b_or_node_set ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 
@@ -1539,32 +1539,32 @@ Return the ordinal of the current (final) Earley set of
 the or-node.
 @end deftypefun
 
-@deftypefun gint marpa_b_or_node_origin ( @
+@deftypefun int marpa_b_or_node_origin ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun gint marpa_b_or_node_rule ( @
+@deftypefun int marpa_b_or_node_rule ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun gint marpa_b_or_node_position ( @
+@deftypefun int marpa_b_or_node_position ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun gint marpa_b_or_node_first_and ( @
+@deftypefun int marpa_b_or_node_first_and ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun gint marpa_b_or_node_last_and ( @
+@deftypefun int marpa_b_or_node_last_and ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun gint marpa_b_or_node_and_count ( @
+@deftypefun int marpa_b_or_node_and_count ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
@@ -1603,17 +1603,17 @@ the or-node.
 @node Ordering internals,  , Ordering reference counting, Order
 @section Internals
 
-@deftypefun gint marpa_o_and_order_set ( @
+@deftypefun int marpa_o_and_order_set ( @
     Marpa_Order @var{o}, @
     Marpa_Or_Node_ID @var{or_node_id}, @
     Marpa_And_Node_ID* @var{and_node_ids}, @
-    gint @var{length})
+    int @var{length})
 @end deftypefun
 
 @deftypefun Marpa_And_Node_ID marpa_o_and_order_get ( @
     Marpa_Order @var{o}, @
     Marpa_Or_Node_ID @var{or_node_id}, @
-    gint @var{ix})
+    int @var{ix})
 @end deftypefun
 
 @node Tree, Value, Order, Top
@@ -1665,11 +1665,11 @@ errors can be properly reported.
 @node Tree iteration, Tree internals, Tree reference counting, Tree
 @section Iterating through the trees
 
-@deftypefun gint marpa_t_next ( @
+@deftypefun int marpa_t_next ( @
 	Marpa_Tree @var{t})
 @end deftypefun
 
-@deftypefun gint marpa_t_parse_count ( @
+@deftypefun int marpa_t_parse_count ( @
 	Marpa_Tree @var{t})
 @end deftypefun
 
@@ -1685,7 +1685,7 @@ called "nooks".
 "Nook" can be thought of as a pun on both
 "node" and "fork".
 
-@deftypefun gint marpa_t_size ( @
+@deftypefun int marpa_t_size ( @
 	Marpa_Tree @var{t})
 
 Return the size of the parse tree.
@@ -1702,7 +1702,7 @@ If the tree is exhausted, return -1.
 Return the ID of the or-node for @var{nook_id}.
 @end deftypefun
 
-@deftypefun gint marpa_t_nook_choice ( @
+@deftypefun int marpa_t_nook_choice ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1710,7 +1710,7 @@ Return the ID of the or-node for @var{nook_id}.
 Return the current choice for @var{nook_id}.
 @end deftypefun
 
-@deftypefun gint marpa_t_nook_parent ( @
+@deftypefun int marpa_t_nook_parent ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1725,7 +1725,7 @@ to be checked with one of the trace functions
 where -1 is never a valid value ---
 for example, @code{marpa_t_nook_or_node}.
 @end deftypefun 
-@deftypefun gint marpa_t_nook_cause_is_ready ( @
+@deftypefun int marpa_t_nook_cause_is_ready ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1733,7 +1733,7 @@ for example, @code{marpa_t_nook_or_node}.
 Return the cause-is-ready bit for @var{nook_id}.
 @end deftypefun
 
-@deftypefun gint marpa_t_nook_predecessor_is_ready ( @
+@deftypefun int marpa_t_nook_predecessor_is_ready ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1741,7 +1741,7 @@ Return the cause-is-ready bit for @var{nook_id}.
 Return the predecessor-is-ready bit for @var{nook_id}.
 @end deftypefun
 
-@deftypefun gint marpa_t_nook_is_cause ( @
+@deftypefun int marpa_t_nook_is_cause ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1749,7 +1749,7 @@ Return the predecessor-is-ready bit for @var{nook_id}.
 Return the is-cause bit for @var{nook_id}.
 @end deftypefun
 
-@deftypefun gint marpa_t_nook_is_predecessor ( @
+@deftypefun int marpa_t_nook_is_predecessor ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1781,13 +1781,13 @@ Return the is-predecessor bit for @var{nook_id}.
 @deftypefun void marpa_v_unref (Marpa_Value @var{v})
 @end deftypefun
 
-@deftypefun gint marpa_v_symbol_ask_me_when_null_set( @
+@deftypefun int marpa_v_symbol_ask_me_when_null_set( @
     Marpa_Value @var{v}, @
     Marpa_Symbol_ID @var{symid}, @
     int @var{value})
 @end deftypefun
 
-@deftypefun gint marpa_v_symbol_is_ask_me_when_null( @
+@deftypefun int marpa_v_symbol_is_ask_me_when_null( @
     Marpa_Value @var{v}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
@@ -1800,16 +1800,16 @@ Accessors which are implemented as macros.
 @defmac Marpa_Symbol_ID marpa_v_semantic_token(Marpa_Value @var{v})
 @end defmac
 
-@defmac gpointer marpa_v_token_value(Marpa_Value @var{v})
+@defmac void* marpa_v_token_value(Marpa_Value @var{v})
 @end defmac
 
 @defmac Marpa_Rule_ID marpa_v_semantic_rule(Marpa_Value @var{v})
 @end defmac
 
-@defmac gint marpa_v_arg_0(Marpa_Value @var{v})
+@defmac int marpa_v_arg_0(Marpa_Value @var{v})
 @end defmac
 
-@defmac gint marpa_v_arg_n(Marpa_Value @var{v})
+@defmac int marpa_v_arg_n(Marpa_Value @var{v})
 @end defmac
 
 @node Valuator reference counting, Valuator stepping, Valuator access macros, Value
@@ -1869,9 +1869,9 @@ These value types are reserved for internal purposes
 @node Valuator tracing,  , Valuator stepping, Value
 @section Tracing the valuator
 
-@deftypefun gint marpa_v_trace ( @
+@deftypefun int marpa_v_trace ( @
     Marpa_Value @var{v}, @
-    gint @var{flag})
+    int @var{flag})
 @end deftypefun
 
 @deftypefun Marpa_Nook_ID marpa_v_nook ( @
