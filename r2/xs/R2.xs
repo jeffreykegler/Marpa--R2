@@ -16,7 +16,9 @@
  */
 
 #define PERL_NO_GET_CONTEXT
-#include <gperl.h>
+#include <EXTERN.h>
+#include <perl.h>
+#include <XSUB.h>
 
 #include "config.h"
 #include "marpa.h"

@@ -24,31 +24,25 @@ use English qw( -no_match_vars );
 
 use Config;
 use Module::Build;
-use Glib;
-use ExtUtils::Depends;
+use ExtUtils::PkgConfig;
 
 use lib File::Spec->catdir('inc');
 use Marpa::R2::Build_Me;
 use Marpa::R2::Config;
 
-# Check version of *GNU* glib
-# (which is not the same as the version of the CPAN Glib)
-if ( !Glib->CHECK_VERSION( 2, 22, 0 ) ) {
-    die 'no support for Glib < 2.22.0';
-}
-my $glib_info              = ExtUtils::Depends::load('Glib');
-my $glib_compiler_flags = $glib_info->{inc};
-my $glib_linker_flags   = $glib_info->{libs};
+my %glib2_info              = ExtUtils::PkgConfig->find('glib-2.0');
+my $glib_compiler_flags = $glib2_info{cflags};
+my $glib_linker_flags   = $glib2_info{libs};
 
 my %build_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::CBuilder ExtUtils::Depends Test::More Glib );
+    qw( ExtUtils::CBuilder ExtUtils::PkgConfig Test::More );
 my %configure_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::Depends Module::Build Glib );
+    qw( ExtUtils::PkgConfig Module::Build );
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper ExtUtils::Depends Glib );
+    qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper );
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( PPI HTML::Entities HTML::Parser HTML::PullParser Test::Weaken );

@@ -60,7 +60,7 @@ sub installed_contents {
 sub xs_version_contents {
     my ( $self, $package ) = @_;
     my @use_packages =
-        qw( Scalar::Util List::Util Carp Data::Dumper ExtUtils::Depends Glib );
+        qw( Scalar::Util List::Util Carp Data::Dumper ExtUtils::PkgConfig );
     my $text = $preamble;
     $text .= "package $package;\n";
 
@@ -183,13 +183,11 @@ sub process_xs {
     $self->verbose() and say "compiling $spec->{c_file}";
     my @new_ccflags = ( '-I', $libmarpa_build_dir );
     if ( $self->config('cc') eq 'gcc' ) {
-        my $glib_info = ExtUtils::Depends::load('Glib');
-        my $gperl_h_location = $glib_info->{instpath};
         push @new_ccflags,
             qw( -Wall -Wno-unused-variable -Wextra -Wpointer-arith
             -Wstrict-prototypes -Wwrite-strings
             -Wdeclaration-after-statement -Winline
-            -Wmissing-declarations ), '-isystem', $gperl_h_location;
+            -Wmissing-declarations );
     } ## end if ( $self->config('cc') eq 'gcc' )
     my $ccflags = $self->config('ccflags');
     $self->config( ccflags => ( $ccflags . q{ } . join q{ }, @new_ccflags ) );
