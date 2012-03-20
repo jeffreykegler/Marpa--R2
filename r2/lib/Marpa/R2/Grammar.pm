@@ -32,7 +32,7 @@ use integer;
 use utf8;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '0.001_025';
+$VERSION        = '0.001_026';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
