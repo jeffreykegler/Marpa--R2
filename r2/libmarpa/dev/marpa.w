@@ -11910,11 +11910,11 @@ the pointer returned is to the data.
 This is offset from the |g_malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
-PRIVATE Bit_Vector bv_create(guint bits)
+PRIVATE Bit_Vector bv_create(unsigned int bits)
 {
-    guint size = bv_bits_to_size(bits);
-    guint bytes = (size + bv_hiddenwords) << sizeof(guint);
-    guint* addr = (Bit_Vector) g_malloc0((size_t) bytes);
+    unsigned int size = bv_bits_to_size(bits);
+    unsigned int bytes = (size + bv_hiddenwords) << sizeof(unsigned int);
+    unsigned int* addr = (Bit_Vector) g_malloc0((size_t) bytes);
     *addr++ = bits;
     *addr++ = size;
     *addr++ = bv_bits_to_unused_mask(bits);
@@ -11929,11 +11929,11 @@ This is offset from the |g_malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-bv_obs_create (struct obstack *obs, guint bits)
+bv_obs_create (struct obstack *obs, unsigned int bits)
 {
-  guint size = bv_bits_to_size (bits);
-  guint bytes = (size + bv_hiddenwords) << sizeof (guint);
-  guint *addr = (Bit_Vector) obstack_alloc (obs, (size_t) bytes);
+  unsigned int size = bv_bits_to_size (bits);
+  unsigned int bytes = (size + bv_hiddenwords) << sizeof (unsigned int);
+  unsigned int *addr = (Bit_Vector) obstack_alloc (obs, (size_t) bytes);
   *addr++ = bits;
   *addr++ = size;
   *addr++ = bv_bits_to_unused_mask (bits);
@@ -11962,11 +11962,11 @@ This call allocates a new vector, which must be |g_free|'d.
 PRIVATE
 Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from)
 {
-    guint *p_to = bv_to;
-    const guint bits = BV_BITS(bv_to);
+    unsigned int *p_to = bv_to;
+    const unsigned int bits = BV_BITS(bv_to);
     if (bits > 0)
     {
-        gint count = BV_SIZE(bv_to);
+        int count = BV_SIZE(bv_to);
 	while (count--) *p_to++ = *bv_from++;
     }
     return(bv_to);
@@ -11993,7 +11993,7 @@ PRIVATE void bv_free(Bit_Vector vector)
 
 @*0 The Number of Bytes in a Boolean Vector.
 @<Function definitions@> =
-PRIVATE gint bv_bytes(Bit_Vector bv)
+PRIVATE int bv_bytes(Bit_Vector bv)
 {
     return (BV_SIZE(bv)+bv_hiddenwords)*sizeof(Bit_Vector_Word);
 }
@@ -12002,7 +12002,7 @@ PRIVATE gint bv_bytes(Bit_Vector bv)
 @<Function definitions@> =
 PRIVATE void bv_fill(Bit_Vector bv)
 {
-    guint size = BV_SIZE(bv);
+    unsigned int size = BV_SIZE(bv);
     if (size <= 0) return;
     while (size--) *bv++ = ~0u;
     --bv;
@@ -12013,7 +12013,7 @@ PRIVATE void bv_fill(Bit_Vector bv)
 @<Function definitions@> =
 PRIVATE void bv_clear(Bit_Vector bv)
 {
-    guint size = BV_SIZE(bv);
+    unsigned int size = BV_SIZE(bv);
     if (size <= 0) return;
     while (size--) *bv++ = 0u;
 }
@@ -12025,29 +12025,29 @@ than an interval clear, at the expense of often
 clearing more bits than were requested.
 In some situations clearing the extra bits is OK.
 @ @<Function definitions@> =
-PRIVATE void bv_over_clear(Bit_Vector bv, guint bit)
+PRIVATE void bv_over_clear(Bit_Vector bv, unsigned int bit)
 {
-    guint length = bit/bv_wordbits+1;
+    unsigned int length = bit/bv_wordbits+1;
     while (length--) *bv++ = 0u;
 }
 
 @*0 Set a Boolean Vector Bit.
 @ @<Function definitions@> =
-PRIVATE void bv_bit_set(Bit_Vector vector, guint bit)
+PRIVATE void bv_bit_set(Bit_Vector vector, unsigned int bit)
 {
     *(vector+(bit/bv_wordbits)) |= (bv_lsb << (bit%bv_wordbits));
 }
 
 @*0 Clear a Boolean Vector Bit.
 @<Function definitions@> =
-PRIVATE void bv_bit_clear(Bit_Vector vector, guint bit)
+PRIVATE void bv_bit_clear(Bit_Vector vector, unsigned int bit)
 {
     *(vector+(bit/bv_wordbits)) &= ~ (bv_lsb << (bit%bv_wordbits));
 }
 
 @*0 Test a Boolean Vector Bit.
 @<Function definitions@> =
-PRIVATE gint bv_bit_test(Bit_Vector vector, guint bit)
+PRIVATE int bv_bit_test(Bit_Vector vector, unsigned int bit)
 {
     return (*(vector+(bit/bv_wordbits)) & (bv_lsb << (bit%bv_wordbits))) != 0u;
 }
@@ -12056,10 +12056,10 @@ PRIVATE gint bv_bit_test(Bit_Vector vector, guint bit)
 Ensure that a bit is set and returning its value to the call.
 @<Function definitions@> =
 PRIVATE gint
-bv_bit_test_and_set (Bit_Vector vector, guint bit)
+bv_bit_test_and_set (Bit_Vector vector, unsigned int bit)
 {
   Bit_Vector addr = vector + (bit / bv_wordbits);
-  guint mask = bv_lsb << (bit % bv_wordbits);
+  unsigned int mask = bv_lsb << (bit % bv_wordbits);
   if ((*addr & mask) != 0u)
     return 1;
   *addr |= mask;
@@ -12069,10 +12069,10 @@ bv_bit_test_and_set (Bit_Vector vector, guint bit)
 @*0 Test a Boolean Vector for all Zeroes.
 @<Function definitions@> =
 PRIVATE
-gint bv_is_empty(Bit_Vector addr)
+int bv_is_empty(Bit_Vector addr)
 {
-    guint  size = BV_SIZE(addr);
-    gint r = TRUE;
+    unsigned int  size = BV_SIZE(addr);
+    int r = TRUE;
     if (size > 0) {
         *(addr+size-1) &= BV_MASK(addr);
         while (r && (size-- > 0)) r = ( *addr++ == 0 );
@@ -12084,8 +12084,8 @@ gint bv_is_empty(Bit_Vector addr)
 @<Function definitions@>=
 PRIVATE void bv_not(Bit_Vector X, Bit_Vector Y)
 {
-    guint size = BV_SIZE(X);
-    guint mask = BV_MASK(X);
+    unsigned int size = BV_SIZE(X);
+    unsigned int mask = BV_MASK(X);
     while (size-- > 0) *X++ = ~*Y++;
     *(--X) &= mask;
 }
@@ -12094,8 +12094,8 @@ PRIVATE void bv_not(Bit_Vector X, Bit_Vector Y)
 @<Function definitions@>=
 PRIVATE void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 {
-    guint size = BV_SIZE(X);
-    guint mask = BV_MASK(X);
+    unsigned int size = BV_SIZE(X);
+    unsigned int mask = BV_MASK(X);
     while (size-- > 0) *X++ = *Y++ & *Z++;
     *(--X) &= mask;
 }
@@ -12104,8 +12104,8 @@ PRIVATE void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 @<Function definitions@>=
 PRIVATE void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 {
-    guint size = BV_SIZE(X);
-    guint mask = BV_MASK(X);
+    unsigned int size = BV_SIZE(X);
+    unsigned int mask = BV_MASK(X);
     while (size-- > 0) *X++ = *Y++ | *Z++;
     *(--X) &= mask;
 }
@@ -12114,8 +12114,8 @@ PRIVATE void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 @<Function definitions@>=
 PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 {
-    guint size = BV_SIZE(X);
-    guint mask = BV_MASK(X);
+    unsigned int size = BV_SIZE(X);
+    unsigned int mask = BV_MASK(X);
     while (size-- > 0) *X++ |= *Y++;
     *(--X) &= mask;
 }
@@ -12123,15 +12123,15 @@ PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 @*0 Scan a Boolean Vector.
 @<Function definitions@>=
 PRIVATE
-gint bv_scan(Bit_Vector bv, guint start,
-                                    guint* min, guint* max)
+int bv_scan(Bit_Vector bv, unsigned int start,
+                                    unsigned int* min, unsigned int* max)
 {
-    guint  size = BV_SIZE(bv);
-    guint  mask = BV_MASK(bv);
-    guint  offset;
-    guint  bitmask;
-    guint  value;
-    gint empty;
+    unsigned int  size = BV_SIZE(bv);
+    unsigned int  mask = BV_MASK(bv);
+    unsigned int  offset;
+    unsigned int  bitmask;
+    unsigned int  value;
+    int empty;
 
     if (size == 0) return FALSE;
     if (start >= BV_BITS(bv)) return FALSE;
@@ -12141,8 +12141,8 @@ gint bv_scan(Bit_Vector bv, guint start,
     *(bv+size-1) &= mask;
     bv += offset;
     size -= offset;
-    bitmask = (guint)1 << (start & bv_modmask);
-    mask = ~ (bitmask | (bitmask - (guint)1));
+    bitmask = (unsigned int)1 << (start & bv_modmask);
+    mask = ~ (bitmask | (bitmask - (unsigned int)1));
     value = *bv++;
     if ((value & bitmask) == 0)
     {
@@ -12194,11 +12194,11 @@ gint bv_scan(Bit_Vector bv, guint start,
 
 @*0 Count the bits in a Boolean Vector.
 @<Function definitions@>=
-PRIVATE guint
+PRIVATE unsigned int
 bv_count (Bit_Vector v)
 {
-  guint start, min, max;
-  guint count = 0;
+  unsigned int start, min, max;
+  unsigned int count = 0;
   for (start = 0; bv_scan (v, start, &min, &max); start = max + 2)
     {
       count += max - min + 1;
@@ -12249,13 +12249,13 @@ Duplicate symbols on the RHS are visited uselessly.
 PRIVATE_NOT_INLINE void
 rhs_closure (GRAMMAR g, Bit_Vector bv)
 {
-  guint min, max, start = 0;
+  unsigned int min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
   FSTACK_DECLARE (stack, Marpa_Symbol_ID)@;
   FSTACK_INIT (stack, Marpa_Symbol_ID, SYM_Count_of_G(g));
   while (bv_scan (bv, start, &min, &max))
     {
-      guint symid;
+      unsigned int symid;
       for (symid = min; symid <= max; symid++)
 	{
 	  *(FSTACK_PUSH (stack)) = symid;
@@ -12264,28 +12264,28 @@ rhs_closure (GRAMMAR g, Bit_Vector bv)
     }
   while ((top_of_stack = FSTACK_POP (stack)))
     {
-      guint rule_ix;
+      unsigned int rule_ix;
       GArray *rules = SYM_by_ID (*top_of_stack)->t_rhs;
       for (rule_ix = 0; rule_ix < rules->len; rule_ix++)
 	{
 	  Marpa_Rule_ID rule_id =
 	    g_array_index (rules, Marpa_Rule_ID, rule_ix);
 	  RULE rule = RULE_by_ID (g, rule_id);
-	  guint rule_length;
-	  guint rh_ix;
+	  unsigned int rule_length;
+	  unsigned int rh_ix;
 	  Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
-	  if (bv_bit_test (bv, (guint) lhs_id))
+	  if (bv_bit_test (bv, (unsigned int) lhs_id))
 	    goto NEXT_RULE;
 	  rule_length = Length_of_RULE(rule);
 	  for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
 	    {
-	      if (!bv_bit_test (bv, (guint) RHS_ID_of_RULE (rule, rh_ix)))
+	      if (!bv_bit_test (bv, (unsigned int) RHS_ID_of_RULE (rule, rh_ix)))
 		goto NEXT_RULE;
 	    }
 	  /* If I am here, the bits for the RHS symbols are all
 	   * set, but the one for the LHS symbol is not.
 	   */
-	  bv_bit_set (bv, (guint) lhs_id);
+	  bv_bit_set (bv, (unsigned int) lhs_id);
 	  *(FSTACK_PUSH (stack)) = lhs_id;
 	NEXT_RULE:;
 	}
@@ -12323,15 +12323,15 @@ typedef Bit_Vector_Word* Bit_Matrix;
 This is {\bf not} the case with vectors, whose pointer is offset for
 the ``hidden words".
 @<Function definitions@> =
-PRIVATE Bit_Matrix matrix_create(guint rows, guint columns)
+PRIVATE Bit_Matrix matrix_create(unsigned int rows, unsigned int columns)
 {
-    guint bv_data_words = bv_bits_to_size(columns);
-    guint row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
-    guint bv_mask = bv_bits_to_unused_mask(columns);
+    unsigned int bv_data_words = bv_bits_to_size(columns);
+    unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
+    unsigned int bv_mask = bv_bits_to_unused_mask(columns);
     Bit_Vector_Word* matrix_addr = g_malloc0((size_t)(row_bytes * rows));
-    guint row;
+    unsigned int row;
     for (row = 0; row < rows; row++) {
-	guint row_start = row*(bv_data_words+bv_hiddenwords);
+	unsigned int row_start = row*(bv_data_words+bv_hiddenwords);
 	matrix_addr[row_start] = columns;
 	matrix_addr[row_start+1] = bv_data_words;
 	matrix_addr[row_start+2] = bv_mask;
@@ -12353,7 +12353,7 @@ all rows have the same number of columns.
 Note that, in this implementation, the matrix has no
 idea internally of how many rows it has.
 @<Function definitions@> =
-PRIVATE gint matrix_columns(Bit_Matrix matrix)
+PRIVATE int matrix_columns(Bit_Matrix matrix)
 {
     Bit_Vector row0 = matrix+bv_hiddenwords;
      return BV_BITS(row0);
@@ -12369,16 +12369,16 @@ If it is changed, the vector should be cloned.
 There is a bit of arithmetic, to deal with the
 hidden words offset.
 @<Function definitions@> =
-PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, guint row)
+PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, unsigned int row)
 {
     Bit_Vector row0 = matrix+bv_hiddenwords;
-    guint words_per_row = BV_SIZE(row0)+bv_hiddenwords;
+    unsigned int words_per_row = BV_SIZE(row0)+bv_hiddenwords;
     return row0 + row*words_per_row;
 }
 
 @*0 Set a Boolean Matrix Bit.
 @ @<Function definitions@> =
-PRIVATE void matrix_bit_set(Bit_Matrix matrix, guint row, guint column)
+PRIVATE void matrix_bit_set(Bit_Matrix matrix, unsigned int row, unsigned int column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     bv_bit_set(vector, column);
@@ -12386,7 +12386,7 @@ PRIVATE void matrix_bit_set(Bit_Matrix matrix, guint row, guint column)
 
 @*0 Clear a Boolean Matrix Bit.
 @ @<Function definitions@> =
-PRIVATE void matrix_bit_clear(Bit_Matrix matrix, guint row, guint column)
+PRIVATE void matrix_bit_clear(Bit_Matrix matrix, unsigned int row, unsigned int column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     bv_bit_clear(vector, column);
@@ -12394,7 +12394,7 @@ PRIVATE void matrix_bit_clear(Bit_Matrix matrix, guint row, guint column)
 
 @*0 Test a Boolean Matrix Bit.
 @ @<Function definitions@> =
-PRIVATE gint matrix_bit_test(Bit_Matrix matrix, guint row, guint column)
+PRIVATE int matrix_bit_test(Bit_Matrix matrix, unsigned int row, unsigned int column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     return bv_bit_test(vector, column);
