@@ -100,8 +100,6 @@
 @s error normal
 @s gconstpointer int
 @s gpointer int
-@s gint int
-@s guint int
 @s PSAR int
 @s PSL int
 
@@ -530,17 +528,17 @@ prototypes, look at
 @** The Public Header File.
 @*0 Version Constants.
 @<Global variables@> =
-const guint marpa_major_version = MARPA_MAJOR_VERSION;
-const guint marpa_minor_version = MARPA_MINOR_VERSION;
-const guint marpa_micro_version = MARPA_MICRO_VERSION;
-const guint marpa_interface_age = MARPA_INTERFACE_AGE;
-const guint marpa_binary_age = MARPA_BINARY_AGE;
+const unsigned int marpa_major_version = MARPA_MAJOR_VERSION;
+const unsigned int marpa_minor_version = MARPA_MINOR_VERSION;
+const unsigned int marpa_micro_version = MARPA_MICRO_VERSION;
+const unsigned int marpa_interface_age = MARPA_INTERFACE_AGE;
+const unsigned int marpa_binary_age = MARPA_BINARY_AGE;
 @ @<Function definitions@> =
 PRIVATE
-const gchar* check_alpha_version(
-    guint required_major,
-		guint required_minor,
-		guint required_micro)
+const char* check_alpha_version(
+    unsigned int required_major,
+		unsigned int required_minor,
+		unsigned int required_micro)
 {
   if (required_major != MARPA_MAJOR_VERSION)
     return "major mismatch in alpha version";
@@ -552,14 +550,14 @@ const gchar* check_alpha_version(
 }
 
 @ @<Function definitions@> =
-const gchar *
-marpa_check_version (guint required_major,
-                    guint required_minor,
-                    guint required_micro)
+const char *
+marpa_check_version (unsigned int required_major,
+                    unsigned int required_minor,
+                    unsigned int required_micro)
 {
-  gint marpa_effective_micro =
+  int marpa_effective_micro =
     100 * MARPA_MINOR_VERSION + MARPA_MICRO_VERSION;
-  gint required_effective_micro = 100 * required_minor + required_micro;
+  int required_effective_micro = 100 * required_minor + required_micro;
 
   if (required_major <= 2)
     return check_alpha_version (required_major, required_minor,
@@ -576,16 +574,17 @@ marpa_check_version (guint required_major,
 }
 
 @*0 Header file.
-|GLIB_VAR| is to
-prefix variable declarations so that they
+These and other globals may need
+special variable declarations so that they
 will be exported properly for Windows dlls.
-@f GLIB_VAR const
+In Glib, this is done with |GLIB_VAR|.
+similar to
 @<Body of public header file@> =
-GLIB_VAR const guint marpa_major_version;@/
-GLIB_VAR const guint marpa_minor_version;@/
-GLIB_VAR const guint marpa_micro_version;@/
-GLIB_VAR const guint marpa_interface_age;@/
-GLIB_VAR const guint marpa_binary_age;@#
+extern const unsigned int marpa_major_version;@/
+extern const unsigned int marpa_minor_version;@/
+extern const unsigned int marpa_micro_version;@/
+extern const unsigned int marpa_interface_age;@/
+extern const unsigned int marpa_binary_age;@#
 #define MARPA_CHECK_VERSION(major,minor,micro) @| \
     @[ (MARPA_MAJOR_VERSION > (major) \
         @| || (MARPA_MAJOR_VERSION == (major) && MARPA_MINOR_VERSION > (minor)) \
@@ -615,9 +614,9 @@ typedef struct marpa_g* GRAMMAR;
 
 @*0 Constructors.
 @ @<Function definitions@> =
-Marpa_Grammar marpa_g_new (guint required_major,
-                    guint required_minor,
-                    guint required_micro)
+Marpa_Grammar marpa_g_new (unsigned int required_major,
+                    unsigned int required_minor,
+                    unsigned int required_micro)
 {
     GRAMMAR g;
     /* While alpha, require an exact version match */
@@ -632,7 +631,7 @@ Marpa_Grammar marpa_g_new (guint required_major,
    return g;
 }
 @*0 Reference Counting and Destructors.
-@ @<Int aligned grammar elements@>= gint t_ref_count;
+@ @<Int aligned grammar elements@>= int t_ref_count;
 @ @<Initialize grammar elements@> =
 g->t_ref_count = 1;
 
@@ -696,7 +695,7 @@ g_array_free(g->t_symbols, TRUE);
 @ Symbol count accesors.
 @d SYM_Count_of_G(g) ((g)->t_symbols->len)
 @ @<Function definitions@> =
-gint marpa_g_symbol_count(struct marpa_g* g) {
+int marpa_g_symbol_count(struct marpa_g* g) {
     return SYM_Count_of_G(g);
 }
 
@@ -714,9 +713,9 @@ void symbol_add( GRAMMAR g, SYMID symid, SYM symbol)
 
 @ Check that symbol is in valid range.
 @<Function definitions@> =
-PRIVATE gint symbol_is_valid(GRAMMAR g, SYMID symid)
+PRIVATE int symbol_is_valid(GRAMMAR g, SYMID symid)
 {
-return symid >= 0 && (guint)symid < g->t_symbols->len;
+return symid >= 0 && (unsigned int)symid < g->t_symbols->len;
 }
 
 @*0 The Grammar's Rule List.
@@ -731,7 +730,7 @@ g_array_free(g->t_rules, TRUE);
 @*0 Rule count accessors.
 @ @d RULE_Count_of_G(g) ((g)->t_rules->len)
 @ @<Function definitions@> =
-gint marpa_g_rule_count(struct marpa_g* g) {
+int marpa_g_rule_count(struct marpa_g* g) {
     return RULE_Count_of_G(g);
 }
 
@@ -754,7 +753,7 @@ void rule_add(
 
 @ Check that rule is in valid range.
 @d RULEID_of_G_is_Valid(g, rule_id)
-    ((rule_id) >= 0 && (guint)(rule_id) < (g)->t_rules->len)
+    ((rule_id) >= 0 && (unsigned int)(rule_id) < (g)->t_rules->len)
 
 @*0 Start Symbol.
 @<Int aligned grammar elements@> = Marpa_Symbol_ID t_original_start_symid;
@@ -827,17 +826,17 @@ The value is used for allocating resources.
 Unused rules are not included in the theoretical number,
 but Marpa does not adjust this number as rules
 are marked useless.
-@ @<Int aligned grammar elements@> = gint t_max_rule_length;
+@ @<Int aligned grammar elements@> = int t_max_rule_length;
 @ @<Initialize grammar elements@> =
 g->t_max_rule_length = 0;
 
 @*0 Grammar Boolean: Precomputed.
 @ @d G_is_Precomputed(g) ((g)->t_is_precomputed)
-@<Bit aligned grammar elements@> = guint t_is_precomputed:1;
+@<Bit aligned grammar elements@> = unsigned int t_is_precomputed:1;
 @ @<Initialize grammar elements@> =
 g->t_is_precomputed = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_is_precomputed(Marpa_Grammar g)
+int marpa_g_is_precomputed(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
@@ -845,11 +844,11 @@ return G_is_Precomputed(g);
 }
 
 @*0 Grammar boolean: has loop?.
-@<Bit aligned grammar elements@> = guint t_has_loop:1;
+@<Bit aligned grammar elements@> = unsigned int t_has_loop:1;
 @ @<Initialize grammar elements@> =
 g->t_has_loop = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_has_loop(Marpa_Grammar g)
+int marpa_g_has_loop(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
@@ -861,12 +860,12 @@ Traditionally, a BNF grammar did {\bf not} allow a symbol
 which was a terminal symbol of the grammar, to also be a LHS
 symbol.
 By default, this is allowed under Marpa.
-@<Bit aligned grammar elements@> = guint t_is_lhs_terminal_ok:1;
+@<Bit aligned grammar elements@> = unsigned int t_is_lhs_terminal_ok:1;
 @ @<Initialize grammar elements@> =
 g->t_is_lhs_terminal_ok = TRUE;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gint marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
+int marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
@@ -875,8 +874,8 @@ gint marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
 @ Returns |TRUE| on success,
 |FALSE| on failure.
 @<Function definitions@> =
-gint marpa_g_is_lhs_terminal_ok_set(
-struct marpa_g*g, gint value)
+int marpa_g_is_lhs_terminal_ok_set(
+struct marpa_g*g, int value)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
@@ -911,16 +910,16 @@ typedef struct s_g_event* GEV;
 @ @<Public typedefs@> =
 struct marpa_event;
 typedef struct marpa_event* Marpa_Event;
-typedef gint Marpa_Event_Type;
+typedef int Marpa_Event_Type;
 @ @<Public structures@> =
 struct marpa_event {
      Marpa_Event_Type t_type;
-     gint t_value;
+     int t_value;
 };
 @ @<Private structures@> =
 struct s_g_event {
-     gint t_type;
-     gint t_value;
+     int t_type;
+     int t_value;
 };
 typedef struct s_g_event GEV_Object;
 @ @d G_EVENT_COUNT(g) DSTACK_LENGTH ((g)->t_events)
@@ -946,7 +945,7 @@ the locations of |DSTACK| elements to change.
 @d G_EVENT_PUSH(g) DSTACK_PUSH((g)->t_events, GEV_Object)
 @ @<Function definitions@> =
 PRIVATE
-void event_new(struct marpa_g* g, gint type)
+void event_new(struct marpa_g* g, int type)
 {
   /* may change base of dstack */
   GEV top_of_stack = G_EVENT_PUSH(g);
@@ -955,7 +954,7 @@ void event_new(struct marpa_g* g, gint type)
 }
 @ @<Function definitions@> =
 PRIVATE
-void int_event_new(struct marpa_g* g, gint type, gint value)
+void int_event_new(struct marpa_g* g, int type, int value)
 {
   /* may change base of dstack */
   GEV top_of_stack = G_EVENT_PUSH(g);
@@ -964,15 +963,15 @@ void int_event_new(struct marpa_g* g, gint type, gint value)
 }
 
 @ @<Function definitions@> =
-gint
+int
 marpa_g_event (Marpa_Grammar g, Marpa_Event public_event,
-	       gint ix)
+	       int ix)
 {
   @<Return |-2| on failure@>@;
-  const gint index_out_of_bounds = -1;
+  const int index_out_of_bounds = -1;
   DSTACK events = &g->t_events;
   GEV internal_event;
-  gint type;
+  int type;
 
   if (ix < 0)
     return failure_indicator;
@@ -1028,7 +1027,7 @@ likely to catch memory overwrite errors.
 @d I_AM_OK 0x69734f4b
 @d IS_G_OK(g) ((g)->t_is_ok == I_AM_OK)
 @<First grammar element@> =
-gint t_is_ok;
+int t_is_ok;
 
 @*0 The Grammar's Error ID.
 This is an error flag for the grammar.
@@ -1041,9 +1040,9 @@ is called on the grammar.
 Checking it at other times may reveal ``stale" error
 messages.
 @<Public typedefs@> =
-typedef gint Marpa_Error_Code;
+typedef int Marpa_Error_Code;
 @ @<Widely aligned grammar elements@> =
-const gchar* t_error_string;
+const char* t_error_string;
 @ @<Int aligned grammar elements@> =
 Marpa_Error_Code t_error;
 @ @<Initialize grammar elements@> =
@@ -1075,9 +1074,9 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
 @** Symbol (SYM) Code.
 @s Marpa_Symbol_ID int
 @<Public typedefs@> =
-typedef gint Marpa_Symbol_ID;
+typedef int Marpa_Symbol_ID;
 @ @<Private typedefs@> =
-typedef gint SYMID;
+typedef int SYMID;
 @ @<Private incomplete structures@> =
 struct s_symbol;
 typedef struct s_symbol* SYM;
@@ -1093,7 +1092,7 @@ expected.
 
 @<Private structures@> =
 struct s_symbol {
-    gint t_or_node_type;
+    int t_or_node_type;
     SYMID t_symbol_id;
     @<Widely aligned symbol elements@>@;
     @<Bit aligned symbol elements@>@;
@@ -1152,7 +1151,7 @@ Marpa_Rule_ID marpa_g_symbol_lhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
     symbol_lh_rules = SYM_by_ID(symid)->t_lhs;
     return symbol_lh_rules->len;
 }
-Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint ix)
+Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
 {
     @<Return |-2| on failure@>@;
     GArray* symbol_lh_rules;
@@ -1163,7 +1162,7 @@ Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint 
 	return failure_indicator;
     }
     symbol_lh_rules = SYM_by_ID(symid)->t_lhs;
-    if ((guint)ix >= symbol_lh_rules->len) {
+    if ((unsigned int)ix >= symbol_lh_rules->len) {
         MARPA_DEV_ERROR("symbol lhs index out of bounds");
 	return -1;
     }
@@ -1197,7 +1196,7 @@ Marpa_Rule_ID marpa_g_symbol_rhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
     symbol_rh_rules = SYM_by_ID(symid)->t_rhs;
     return symbol_rh_rules->len;
 }
-Marpa_Rule_ID marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint ix)
+Marpa_Rule_ID marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
 {
     @<Return |-2| on failure@>@;
     GArray* symbol_rh_rules;
@@ -1208,7 +1207,7 @@ Marpa_Rule_ID marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, gint 
 	return failure_indicator;
     }
     symbol_rh_rules = SYM_by_ID(symid)->t_rhs;
-    if ((guint)ix >= symbol_rh_rules->len) {
+    if ((unsigned int)ix >= symbol_rh_rules->len) {
         MARPA_DEV_ERROR("symbol rhs index out of bounds");
 	return -1;
     }
@@ -1229,11 +1228,11 @@ does not care about the value of
 a symbol -- that is, the semantics
 is arbitrary.
 @d SYM_is_Ask_Me_When_Null(symbol) ((symbol)->t_is_ask_me_when_null)
-@<Bit aligned symbol elements@> = guint t_is_ask_me_when_null:1;
+@<Bit aligned symbol elements@> = unsigned int t_is_ask_me_when_null:1;
 @ @<Initialize symbol elements@> =
     SYM_is_Ask_Me_When_Null(symbol) = 0;
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_ask_me_when_null(
+int marpa_g_symbol_is_ask_me_when_null(
     Marpa_Grammar g,
     Marpa_Symbol_ID symid)
 {
@@ -1241,7 +1240,7 @@ gint marpa_g_symbol_is_ask_me_when_null(
     @<Fail if grammar |symid| is invalid@>@;
     return SYM_is_Ask_Me_When_Null(SYM_by_ID(symid));
 }
-gint marpa_g_symbol_ask_me_when_null_set(
+int marpa_g_symbol_ask_me_when_null_set(
     Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 {
     SYM symbol;
@@ -1251,7 +1250,7 @@ gint marpa_g_symbol_ask_me_when_null_set(
     return SYM_is_Ask_Me_When_Null(symbol) = value ? 1 : 0;
 }
 @ Symbol Is Accessible Boolean
-@<Bit aligned symbol elements@> = guint t_is_accessible:1;
+@<Bit aligned symbol elements@> = unsigned int t_is_accessible:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_accessible = FALSE;
 @ The trace accessor returns the Boolean value.
@@ -1263,7 +1262,7 @@ must be changed.
 \par
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
-gint marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
+int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -1273,11 +1272,11 @@ gint marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
 }
 
 @ Symbol Is Counted Boolean
-@<Bit aligned symbol elements@> = guint t_is_counted:1;
+@<Bit aligned symbol elements@> = unsigned int t_is_counted:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_counted = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_counted(Marpa_Grammar g,
+int marpa_g_symbol_is_counted(Marpa_Grammar g,
 Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
@@ -1287,11 +1286,11 @@ Marpa_Symbol_ID symid)
 }
 
 @ Symbol Is Nullable Boolean
-@<Bit aligned symbol elements@> = guint t_is_nullable:1;
+@<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nullable = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
+int marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -1302,11 +1301,11 @@ gint marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
 
 @ Symbol Is Nulling Boolean
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
-@<Bit aligned symbol elements@> = guint t_is_nulling:1;
+@<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nulling = FALSE;
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
+int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -1316,13 +1315,13 @@ gint marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 }
 
 @ Symbol Is Terminal Boolean
-@<Bit aligned symbol elements@> = guint t_is_terminal:1;
+@<Bit aligned symbol elements@> = unsigned int t_is_terminal:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_terminal = FALSE;
 @ @d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
 @d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
-gint marpa_g_symbol_is_terminal(Marpa_Grammar g,
+int marpa_g_symbol_is_terminal(Marpa_Grammar g,
 Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
@@ -1331,8 +1330,8 @@ Marpa_Symbol_ID symid)
     return SYMID_is_Terminal(symid);
 }
 @ @<Function definitions@> =
-gint marpa_g_symbol_is_terminal_set(
-Marpa_Grammar g, Marpa_Symbol_ID symid, gint value)
+int marpa_g_symbol_is_terminal_set(
+Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar is precomputed@>@;
