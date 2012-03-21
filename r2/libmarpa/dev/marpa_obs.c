@@ -24,26 +24,9 @@
 #endif
 
 # include "marpa_obs.h"
-
-/* NOTE BEFORE MODIFYING THIS FILE: This version number must be
-   incremented whenever callers compiled using an old obstack.h can no
-   longer properly call the functions in this obstack.c.  */
-
-/* WHY A SPECIAL MARPA VERSION?  I am happy to rely on the local versions
-   of the glibc and glib libraries, and sanquine about facing the portability
-   consequences.  But obstacks fall into a twilight zone, and I was forced
-   for reasons described below, to make my own copy
-   to be compiled with libmarpa.  I was initially reluctant to do this,
-   but as development has proceeded, this has proved to be the right
-   choice.
- */
+extern void (*marpa_out_of_memory)(void);
 
 /* NOTES FOR THE MARPA MODIFICATIONS --
-
-   I read the previous note as saying the version numbers should be kept
-   in sync between the .h and the .c.  In Marpa's case, these files are
-   an integral part of the package, so it's not so much of an issue but
-   it is a good idea.
 
    Marpa has its own copy of the obstack code because
    the GNU original had a number of complications which caused Marpa
@@ -69,16 +52,6 @@
    the same reasons they are not considered translation candidates.
 
 */
-
-/* ORIGINAL COMMENT:
-    Comment out all this code if we are using the GNU C Library, and are not
-   actually compiling the library itself, and the installed library
-   supports the same library interface we do.  This code is part of the GNU
-   C Library, but also included in many other GNU distributions.  Compiling
-   and linking in this code is a waste when using the GNU C library
-   (especially if it is a shared library).  Rather than having every GNU
-   program understand `configure --with-gnu-libc' and omit the object
-   files, it is simpler to just do this in the source for each such file.  */
 
 #include <stdio.h>		/* Random thing to get __GNU_LIBRARY__.  */
 
@@ -122,39 +95,16 @@ enum
 
 # include <stdlib.h>
 
-/* Define a macro that either calls functions with the traditional malloc/free
-   calling interface, or calls functions with the mmalloc/mfree interface
-   (that adds an extra first argument), based on the state of use_extra_arg.
-   For free, do not use ?:, since some compilers, like the MIPS compilers,
-   do not allow (expr) ? void : void.  */
-
-# define CALL_CHUNKFUN(h, size) \
-  (((h) -> use_extra_arg) \
-   ? (*(h)->chunkfun) ((h)->extra_arg, (size)) \
-   : (*(struct _obstack_chunk *(*) (long)) (h)->chunkfun) ((size)))
-
-# define CALL_FREEFUN(h, old_chunk) \
-  do { \
-    if ((h) -> use_extra_arg) \
-      (*(h)->freefun) ((h)->extra_arg, (old_chunk)); \
-    else \
-      (*(void (*) (void *)) (h)->freefun) ((old_chunk)); \
-  } while (0)
-
 
 /* Initialize an obstack H for use.  Specify chunk size SIZE (0 means default).
    Objects start on multiples of ALIGNMENT (0 means use default).
-   CHUNKFUN is the function to use to allocate chunks,
-   and FREEFUN the function to free them.
 
    Return nonzero if successful, calls obstack_alloc_failed_handler if
    allocation fails.  */
 
 int
 _marpa_obs_begin (struct obstack *h,
-		int size, int alignment,
-		void *(*chunkfun) (long),
-		void (*freefun) (void *))
+		int size, int alignment)
 {
   register struct _obstack_chunk *chunk; /* points to new chunk */
 
@@ -177,60 +127,13 @@ _marpa_obs_begin (struct obstack *h,
       size = 4096 - extra;
     }
 
-  h->chunkfun = (struct _obstack_chunk * (*)(void *, long)) chunkfun;
-  h->freefun = (void (*) (void *, struct _obstack_chunk *)) freefun;
   h->chunk_size = size;
   h->alignment_mask = alignment - 1;
   h->use_extra_arg = 0;
 
-  chunk = h->chunk = CALL_CHUNKFUN (h, h -> chunk_size);
-  /* if (!chunk) (*obstack_alloc_failed_handler) (); */
-  h->next_free = h->object_base = __PTR_ALIGN ((char *) chunk, chunk->contents,
-					       alignment - 1);
-  h->chunk_limit = chunk->limit
-    = (char *) chunk + h->chunk_size;
-  chunk->prev = 0;
-  /* The initial chunk now contains no empty object.  */
-  h->maybe_empty_object = 0;
-  h->alloc_failed = 0;
-  return 1;
-}
-
-int
-_marpa_obs_begin_1 (struct obstack *h, int size, int alignment,
-		  void *(*chunkfun) (void *, long),
-		  void (*freefun) (void *, void *),
-		  void *arg)
-{
-  register struct _obstack_chunk *chunk; /* points to new chunk */
-
-  if (alignment == 0)
-    alignment = DEFAULT_ALIGNMENT;
-  if (size == 0)
-    /* Default size is what GNU malloc can fit in a 4096-byte block.  */
-    {
-      /* 12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
-	 Use the values for range checking, because if range checking is off,
-	 the extra bytes won't be missed terribly, but if range checking is on
-	 and we used a larger request, a whole extra 4096 bytes would be
-	 allocated.
-
-	 These number are irrelevant to the new GNU malloc.  I suspect it is
-	 less sensitive to the size of the request.  */
-      int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
-		    + 4 + DEFAULT_ROUNDING - 1)
-		   & ~(DEFAULT_ROUNDING - 1));
-      size = 4096 - extra;
-    }
-
-  h->chunkfun = (struct _obstack_chunk * (*)(void *,long)) chunkfun;
-  h->freefun = (void (*) (void *, struct _obstack_chunk *)) freefun;
-  h->chunk_size = size;
-  h->alignment_mask = alignment - 1;
-  h->extra_arg = arg;
-  h->use_extra_arg = 1;
-
-  chunk = h->chunk = CALL_CHUNKFUN (h, h -> chunk_size);
+  chunk = h->chunk = malloc(h -> chunk_size);
+  if (!chunk) (*marpa_out_of_memory)();
+  /* chunk = h->chunk = CALL_CHUNKFUN (h, h -> chunk_size); */
   /* if (!chunk) (*obstack_alloc_failed_handler) (); */
   h->next_free = h->object_base = __PTR_ALIGN ((char *) chunk, chunk->contents,
 					       alignment - 1);
@@ -266,7 +169,9 @@ _marpa_obs_newchunk (struct obstack *h, int length)
     new_size = h->chunk_size;
 
   /* Allocate and initialize the new chunk.  */
-  new_chunk = CALL_CHUNKFUN (h, new_size);
+  new_chunk = malloc( new_size);
+  if (!new_chunk) (*marpa_out_of_memory)();
+  /* new_chunk = CALL_CHUNKFUN (h, new_size); */
   /* if (!new_chunk) (*obstack_alloc_failed_handler) (); */
   h->chunk = new_chunk;
   new_chunk->prev = old_chunk;
@@ -305,7 +210,7 @@ _marpa_obs_newchunk (struct obstack *h, int length)
 			  h->alignment_mask)))
     {
       new_chunk->prev = old_chunk->prev;
-      CALL_FREEFUN (h, old_chunk);
+      free( old_chunk);
     }
 
   h->object_base = object_base;
@@ -360,7 +265,7 @@ marpa_obs_free (struct obstack *h, void *obj)
   while (lp != 0 && ((void *) lp >= obj || (void *) (lp)->limit < obj))
     {
       plp = lp->prev;
-      CALL_FREEFUN (h, lp);
+      free( lp);
       lp = plp;
       /* If we switch chunks, we can't tell whether the new current
 	 chunk contains an empty object, so assume that it may.  */

@@ -12854,8 +12854,6 @@ Small allocations needed for the lifetime of the grammar
 are allocated on these as the grammar object is built.
 All these allocations are are conveniently and quickly deallocated when
 the grammar's obstack is destroyed along with its parent grammar.
-@d obstack_chunk_alloc g_malloc
-@d obstack_chunk_free g_free
 
 @*0 Why the obstacks are renamed.
 Regretfully, I realized I simply could not simply include the
