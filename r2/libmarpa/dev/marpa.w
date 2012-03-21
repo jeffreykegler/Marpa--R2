@@ -3530,8 +3530,8 @@ I test that |g->t_AHFA_items| is non-zero.
 g->t_AHFA_items = NULL;
 g->t_AHFA_items_by_rule = NULL;
 @ @<Destroy grammar elements@> =
-if (g->t_AHFA_items) { g_free(g->t_AHFA_items); };
-if (g->t_AHFA_items_by_rule) { g_free(g->t_AHFA_items_by_rule); };
+     g_free(g->t_AHFA_items);
+     g_free(g->t_AHFA_items_by_rule);
 
 @ Check that AHFA item ID is in valid range.
 @<Function definitions@> =
@@ -3997,8 +3997,6 @@ STOLEN_DQUEUE_DATA_FREE(g->t_AHFA);
 
 @ Most of the data is on the obstack, and will be freed with that.
 @<Free AHFA state@> = {
-  TRANS *ahfa_transitions = TRANSs_of_AHFA (ahfa_state);
-  if (ahfa_transitions)
     g_free (TRANSs_of_AHFA (ahfa_state));
 }
 
@@ -5335,8 +5333,8 @@ void recce_free(struct marpa_r *r)
     @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
     grammar_unref(g);
-    if (r->t_sym_workarea) g_free(r->t_sym_workarea);
-    if (r->t_workarea2) g_free(r->t_workarea2);
+    g_free(r->t_sym_workarea);
+    g_free(r->t_workarea2);
     @<Free working bit vectors for symbols@>@;
     @<Destroy recognizer obstack@>@;
     marpa_slice_free(struct marpa_r, r);
@@ -5772,7 +5770,6 @@ earley_set_new( RECCE r, EARLEME id)
   ES set;
   for (set = First_ES_of_R (r); set; set = Next_ES_of_ES (set))
     {
-      if (EIMs_of_ES(set))
 	g_free (EIMs_of_ES(set));
     }
 }
@@ -7982,11 +7979,7 @@ PRIVATE void earley_set_update_items(RECCE r, ES set)
     EIM* finished_earley_items;
     int working_earley_item_count;
     int i;
-    if (!EIMs_of_ES(set)) {
-        EIMs_of_ES(set) = g_new(EIM, EIM_Count_of_ES(set));
-    } else {
-        EIMs_of_ES(set) = g_renew(EIM, EIMs_of_ES(set), EIM_Count_of_ES(set));
-    }
+    EIMs_of_ES(set) = g_renew(EIM, EIMs_of_ES(set), EIM_Count_of_ES(set));
     finished_earley_items = EIMs_of_ES(set);
     working_earley_items = Work_EIMs_of_R(r);
     working_earley_item_count = Work_EIM_Count_of_R(r);
@@ -9102,16 +9095,10 @@ AND_Count_of_B(b) = 0;
 {
   OR* or_nodes = ORs_of_B (b);
   AND and_nodes = ANDs_of_B (b);
-  if (or_nodes)
-    {
-      g_free (or_nodes);
-      ORs_of_B (b) = NULL;
-    }
-  if (and_nodes)
-    {
-      g_free (and_nodes);
-      ANDs_of_B (b) = NULL;
-    }
+  g_free (or_nodes);
+  ORs_of_B (b) = NULL;
+  g_free (and_nodes);
+  ANDs_of_B (b) = NULL;
 }
 
 @*0 Create the Or-Nodes.
@@ -11956,7 +11943,7 @@ PRIVATE Bit_Vector bv_shadow(Bit_Vector bv)
 @*0 Clone a Boolean Vector.
 Given a boolean vector, creates a new vector which is
 an exact duplicate.
-This call allocates a new vector, which must be |g_free|'d.
+This call allocates a new vector, which must be |free|'d.
 @<Function definitions@> =
 PRIVATE
 Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from)
@@ -11974,7 +11961,7 @@ Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from)
 @*0 Clone a Boolean Vector.
 Given a boolean vector, creates a new vector which is
 an exact duplicate.
-This call allocates a new vector, which must be |g_free|'d.
+This call allocates a new vector, which must be |free|'d.
 @<Function definitions@> =
 PRIVATE
 Bit_Vector bv_clone(Bit_Vector bv)
@@ -12539,7 +12526,7 @@ resizings unnecessary.
 The |STOLEN_DSTACK_DATA_FREE| macro is intended
 to help the ``thief" container
 deallocate the data it now has ``stolen".
-@d STOLEN_DSTACK_DATA_FREE(data) ((data) && (g_free(data), 1))
+@d STOLEN_DSTACK_DATA_FREE(data) (g_free(data))
 @d DSTACK_DESTROY(this) STOLEN_DSTACK_DATA_FREE(this.t_base)
 @s DSTACK int
 @<Private incomplete structures@> =
