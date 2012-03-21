@@ -622,7 +622,7 @@ Marpa_Grammar marpa_g_new (unsigned int required_major,
     /* While alpha, require an exact version match */
     if (check_alpha_version (required_major, required_minor, required_micro))
       return NULL;
-    g = g_slice_new(struct marpa_g);
+    g = marpa_slice_new(struct marpa_g);
     /* Set |t_is_ok| to a bad value, just in case */
     g->t_is_ok = 0;
     @<Initialize grammar elements@>@;
@@ -676,7 +676,7 @@ PRIVATE
 void grammar_free(GRAMMAR g)
 {
     @<Destroy grammar elements@>@;
-    g_slice_free(struct marpa_g, g);
+    marpa_slice_free(struct marpa_g, g);
 }
 
 @*0 The Grammar's Symbol List.
@@ -1778,7 +1778,7 @@ a core dump is not the right response.
     if (Length_of_RULE(rule) > 0) {
 	gint rh_list_ix;
 	const unsigned int alloc_size = Length_of_RULE(rule)*sizeof( SYMID);
-	Marpa_Symbol_ID *rh_symbol_list = g_slice_alloc(alloc_size);
+	Marpa_Symbol_ID *rh_symbol_list = marpa_slice_alloc(alloc_size);
 	gint rh_symbol_list_length = 1;
 	@<Create |rh_symbol_list|,
 	a duplicate-free list of the right hand side symbols@>@;
@@ -1789,7 +1789,7 @@ a core dump is not the right response.
 		SYM_by_ID(rh_symbol_list[rh_list_ix]),
 		rule->t_id);
        }@;
-       g_slice_free1(alloc_size, rh_symbol_list);
+       marpa_slice_free1(alloc_size, rh_symbol_list);
     }
 
 @ \marpa_sub{Create a duplicate-free list of the right hand side symbols}
@@ -5178,7 +5178,7 @@ struct s_input {
 PRIVATE INPUT
 input_new (GRAMMAR g)
 {
-  INPUT input = g_slice_new (struct s_input);
+  INPUT input = marpa_slice_new (struct s_input);
   obstack_init (TOK_Obs_of_I (input));
   @<Initialize input elements@>@;
   return input;
@@ -5221,7 +5221,7 @@ guarantee that it is safe to destroy it.
 PRIVATE void input_free(INPUT input)
 {
     obstack_free(TOK_Obs_of_I(input), NULL);
-    g_slice_free(struct s_input, input);
+    marpa_slice_free(struct s_input, input);
 }
 
 @*0 Token obstack.
@@ -5284,7 +5284,7 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
         MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
 	return failure_indicator;
     }
-    r = g_slice_new(struct marpa_r);
+    r = marpa_slice_new(struct marpa_r);
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
@@ -5340,7 +5340,7 @@ void recce_free(struct marpa_r *r)
     if (r->t_workarea2) g_free(r->t_workarea2);
     @<Free working bit vectors for symbols@>@;
     @<Destroy recognizer obstack@>@;
-    g_slice_free(struct marpa_r, r);
+    marpa_slice_free(struct marpa_r, r);
 }
 
 @*0 Base Objects.
@@ -10122,7 +10122,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     INPUT input;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
-    b = g_slice_new(struct s_bocage);
+    b = marpa_slice_new(struct s_bocage);
     @<Initialize bocage elements@>@;
     input = I_of_B(b) = I_of_R(r);
     input_ref(input);
@@ -10436,7 +10436,7 @@ bocage_free (BOCAGE b)
   if (b)
     {
       @<Destroy bocage elements, all phases@>;
-      g_slice_free (struct s_bocage, b);
+      marpa_slice_free (struct s_bocage, b);
     }
 }
 
@@ -10582,7 +10582,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     @<Unpack bocage objects@>@;
     ORDER o;
       @<Fail if fatal error@>@;
-    o = g_slice_new(struct s_order);
+    o = marpa_slice_new(struct s_order);
     B_of_O(o) = b;
     bocage_ref(b);
     @<Initialize order elements@>@;
@@ -10652,7 +10652,7 @@ PRIVATE void order_free(ORDER o)
       o->t_and_node_orderings = NULL;
       obstack_free(&OBS_of_O(o), NULL);
   }
-  g_slice_free(struct s_order, o);
+  marpa_slice_free(struct s_order, o);
 }
 
 @ @<Unpack order objects@> =
@@ -10919,7 +10919,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     TREE t;
     @<Unpack order objects@>@;
     @<Fail if fatal error@>@;
-    t = g_slice_new(struct s_tree);
+    t = marpa_slice_new(struct s_tree);
     O_of_T(t) = o;
     order_ref(o);
     order_freeze(o);
@@ -10980,7 +10980,7 @@ PRIVATE void tree_free(TREE t)
 {
     order_unref(O_of_T(t));
     tree_exhaust(t);
-    g_slice_free(struct s_tree, t);
+    marpa_slice_free(struct s_tree, t);
 }
 
 @*0 Tree pause counting.
@@ -11548,7 +11548,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     @<Fail if fatal error@>@;
     if (!T_is_Exhausted (t))
       {
-	VALUE v = g_slice_new (struct s_value);
+	VALUE v = marpa_slice_new (struct s_value);
 	const int minimum_stack_size = (8192 / sizeof (gint));
 	const int initial_stack_size =
 	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
@@ -11630,7 +11630,7 @@ PRIVATE void value_free(VALUE v)
     {
         DSTACK_DESTROY(v->t_virtual_stack);
     }
-    g_slice_free(struct s_value, v);
+    marpa_slice_free(struct s_value, v);
 }
 
 @ @<Unpack value objects@> =
@@ -12704,7 +12704,7 @@ PRIVATE void psar_destroy(const PSAR psar)
 	PSL *owner = psl->t_owner;
 	if (owner)
 	  *owner = NULL;
-	g_slice_free1 (Sizeof_PSL (psar), psl);
+	marpa_slice_free1 (Sizeof_PSL (psar), psl);
 	psl = next_psl;
       }
 }
@@ -12712,7 +12712,7 @@ PRIVATE void psar_destroy(const PSAR psar)
 PRIVATE PSL psl_new(const PSAR psar)
 {
      int i;
-     PSL new_psl = g_slice_alloc(Sizeof_PSL(psar));
+     PSL new_psl = marpa_slice_alloc(Sizeof_PSL(psar));
      new_psl->t_next = NULL;
      new_psl->t_prev = NULL;
      new_psl->t_owner = NULL;
@@ -12814,36 +12814,35 @@ PRIVATE PSL psl_alloc(const PSAR psar)
     return free_psl;
 }
 
-@** Memory Allocation.
+@** Memory allocation.
 
+@*0 Memory allocation failures.
 @ By default,
 a memory allocation failure
 inside the Marpa library is a fatal error.
-If this is a problem, the application can change
-configure |g_malloc| to use its own allocator
-which does something else on failure.
+At some point I may allow this to be reset.
 What else an application can do is not at all clear,
 which is why the usual practice 
 is to treatment memory allocation errors are
 fatal, irrecoverable problems.
+@<Function definitions@> =
+PRIVATE_NOT_INLINE void
+default_out_of_memory(void)
+{
+    (*marpa_debug_handler)("Out of memory");
+    abort();
+}
 
-@ An error
-in memory allocation will be logged
-in the domain that |g_malloc|
-is using, not in the domain being used by Marpa.
+int (*marpa_out_of_memory)(void) = default_out_of_memory;
 
-@ |libmarpa| uses |g_malloc|, either directly or indirectly.
-Indirect use of |g_malloc| comes via obstacks and |g_slice|.
-Both of these are more efficient, but both also
-limit the ability to resize memory.
-Obstacks also sharply limit the ability
-to control the lifetime of the memory.
-\par
-It should be noted that the libraries used by |libmarpa| may
-also allocate memory, using their own methods.
-This allocation is often also |g_malloc| based.
-\par
-Obstacks are particularly useful for |libmarpa|.
+@*0 Obstacks.
+|libmarpa| uses the system malloc,
+either directly or indirectly.
+Indirect use comes via obstacks.
+Obstacks are more efficient, but 
+limit the ability to resize memory,
+and to control the lifetime of the memory.
+@ Obstacks are widely used inside |libmarpa|.
 Much of the memory allocated in |libmarpa| is
 \li In individual allocations less than 4K, often considerable less.
 \li Once created, are kept for the entire life of the either the grammar or the recognizer.
@@ -12909,6 +12908,21 @@ but eliminating the unnecessary
 but problematic features.
 Namespace issues could then be dealt with by
 renaming the external functions.
+
+@*0 Slices.
+Some memory allocations are suitable for special "slice"
+allocators, such as the one in the GNU glib.
+These are faster than the system malloc, but do not
+allow resizing, and require that the size of the
+allocation be known when it is freed.
+At present, libmarpa's ``slice allocator'' exists only
+to document these opportunities for optimization --
+it does nothing
+but pass all these calls on to the system malloc.
+@d marpa_slice_alloc(size) g_malloc(size)
+@d marpa_slice_new(x) g_malloc(sizeof(x))
+@d marpa_slice_free(x, p) g_free(p)
+@d marpa_slice_free1(size, p) g_free(p)
 
 @** External Failure Reports.
 Most of
@@ -12988,11 +13002,6 @@ if (!item_is_valid(g, item_id)) {
 if (!AHFA_state_id_is_valid(g, AHFA_state_id)) {
     MARPA_DEV_ERROR("invalid AHFA state id");
     return failure_indicator;
-}
-@ @<Fail grammar if elements of |result| are not |sizeof(gint)|@> =
-if (sizeof(gint) != g_array_get_element_size(result)) {
-     MARPA_DEV_ERROR("garray size mismatch");
-     return failure_indicator;
 }
 @ @<Fail with internal grammar error@> = {
     MARPA_DEV_ERROR("internal error");
@@ -13382,6 +13391,7 @@ So I add such a comment.
 #include "config.h"
 #include "marpa.h"
 #include <glib.h>
+#include <stdlib.h>
 #include <stdio.h>
 @<Debug macros@>
 @h
