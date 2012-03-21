@@ -597,7 +597,6 @@ extern const unsigned int marpa_binary_age;@#
 @<Public typedefs@>@;
 @<Public structures@>@;
 @<Public function prototypes@>@;
-@<Public variables@>@;
 
 @** Grammar (GRAMMAR) Code.
 @<Public incomplete structures@> =
@@ -11907,7 +11906,7 @@ PRIVATE unsigned int bv_bits_to_unused_mask(unsigned int bits)
 @ Always start with an all-zero vector.
 Note this code is a bit tricky ---
 the pointer returned is to the data.
-This is offset from the |g_malloc|'d space,
+This is offset from the |malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
 PRIVATE Bit_Vector bv_create(unsigned int bits)
@@ -11925,7 +11924,7 @@ PRIVATE Bit_Vector bv_create(unsigned int bits)
 @ Always start with an all-zero vector.
 Note this code is a bit tricky ---
 the pointer returned is to the data.
-This is offset from the |g_malloc|'d space,
+This is offset from the |malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
 PRIVATE Bit_Vector
@@ -12319,7 +12318,7 @@ typedef Bit_Vector_Word* Bit_Matrix;
 
 @*0 Create a Boolean Matrix.
 @ Here the pointer returned is the actual start of the
-|g_malloc|'d space.
+|malloc|'d space.
 This is {\bf not} the case with vectors, whose pointer is offset for
 the ``hidden words".
 @<Function definitions@> =
@@ -12832,8 +12831,10 @@ default_out_of_memory(void)
     (*marpa_debug_handler)("Out of memory");
     abort();
 }
+void (*marpa_out_of_memory)(void) = default_out_of_memory;
 
-int (*marpa_out_of_memory)(void) = default_out_of_memory;
+@ @<Global variables@> =
+extern void (*marpa_out_of_memory)(void);
 
 @*0 Obstacks.
 |libmarpa| uses the system malloc,
@@ -12909,6 +12910,34 @@ but problematic features.
 Namespace issues could then be dealt with by
 renaming the external functions.
 
+@*0 Memory allocation.
+libmarpa wrappers the standard memory functions
+to provide more convenient behaviors.
+\li The allocators do not return on failed memory allocations.
+\li |marpa_realloc| is equivalent to |marpa_malloc| if called with
+a |NULL| pointer.  (This is the GNU C library behavior.)
+
+@d marpa_free(p) free(p)
+@<Function definitions@> =
+PRIVATE void*
+marpa_malloc(size_t size)
+{
+    void *newmem = malloc(size);
+    if (!newmem) (*marpa_out_of_memory)();
+    return newmem;
+}
+
+@ @<Function definitions@> =
+PRIVATE void*
+marpa_realloc(void* mem, size_t size)
+{
+    void *newmem;
+    if (!mem) return marpa_malloc(size);
+    newmem = realloc(mem, size);
+    if (!newmem) (*marpa_out_of_memory)();
+    return newmem;
+}
+
 @*0 Slices.
 Some memory allocations are suitable for special "slice"
 allocators, such as the one in the GNU glib.
@@ -12919,10 +12948,10 @@ At present, libmarpa's ``slice allocator'' exists only
 to document these opportunities for optimization --
 it does nothing
 but pass all these calls on to the system malloc.
-@d marpa_slice_alloc(size) g_malloc(size)
-@d marpa_slice_new(x) g_malloc(sizeof(x))
-@d marpa_slice_free(x, p) g_free(p)
-@d marpa_slice_free1(size, p) g_free(p)
+@d marpa_slice_alloc(size) marpa_malloc(size)
+@d marpa_slice_new(x) marpa_malloc(sizeof(x))
+@d marpa_slice_free(x, p) marpa_free(p)
+@d marpa_slice_free1(size, p) marpa_free(p)
 
 @** External Failure Reports.
 Most of
@@ -13163,9 +13192,6 @@ vice versa.
 @d MARPA_OFF_DEBUG4(a, b, c, d)
 @d MARPA_OFF_DEBUG5(a, b, c, d, e)
 @d MARPA_OFF_ASSERT(expr)
-@<Public variables@> =
-extern int marpa_debug_level;
-extern int (*marpa_debug_handler)(const char*, ...);
 @ Returns int so that it can be portably used
 in a logically-anded expression.
 @<Function definitions@> =
@@ -13185,6 +13211,7 @@ int (*marpa_debug_handler)(const char*, ...)
 
 @
 @<Global variables@> =
+int (*marpa_debug_handler)(const char*, ...);
 int marpa_debug_level = 0;
 
 @ @<Public function prototypes@> =
