@@ -1489,6 +1489,7 @@ Marpa_Rule_ID marpa_g_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID
 typedef int Marpa_Rule_ID;
 @ @<Private structures@> =
 struct s_rule {
+    @<Widely aligned rule elements@>@/
     @<Int aligned rule elements@>@/
     @<Bit aligned rule elements@>@/
     @<Final rule elements@>@/
@@ -2320,6 +2321,12 @@ marpa_g_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID rule_id)
   if (rule->t_is_semantic_equivalent) return rule->t_original;
   return rule_id;
 }
+
+@ This is the first AHFA item for a rule.
+There may not be one, in which case it is |NULL|.
+@<Widely aligned rule elements@> = AIM t_first_aim;
+@ @<Initialize rule elements@> =
+    rule->t_first_aim = NULL;
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
@@ -3709,10 +3716,12 @@ you want to follow the rules.
   for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
     {
       AIM item = items + item_id;
-      Marpa_Rule_ID rule_id_for_item = RULE_of_AIM (item)->t_id;
+      RULE rule = RULE_of_AIM(item);
+      Marpa_Rule_ID rule_id_for_item = rule->t_id;
       if (rule_id_for_item <= highest_found_rule_id)
 	continue;
       items_by_rule[rule_id_for_item] = item;
+      rule->t_first_aim = item;
       highest_found_rule_id = rule_id_for_item;
     }
   g->t_AHFA_items_by_rule = items_by_rule;
@@ -4735,8 +4744,7 @@ with |S2| on its LHS.
 by their postdot symbol.
 A ``predictable rule" is one whose initial item has a postdot symbol.
 The following facts hold:
-\li A rule is predictable iff it is both used and non-nulling.
-\li A rule is predictable iff it is a used rule which is not the nulling start rule.
+\li A rule is predictable iff it is a used rule.
 \li A rule is predictable iff it has any item with a postdot symbol.
 \par
 Here we take a first pass at this, letting the value be the postdot symbol for
