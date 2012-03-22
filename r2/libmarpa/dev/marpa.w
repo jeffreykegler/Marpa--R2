@@ -2324,6 +2324,10 @@ marpa_g_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID rule_id)
 
 @ This is the first AHFA item for a rule.
 There may not be one, in which case it is |NULL|.
+Currently, this is not used after grammar precomputation,
+and there may be an optimization here.
+Perhaps later Marpa objects {\bf should}
+be using it.
 @<Widely aligned rule elements@> = AIM t_first_aim;
 @ @<Initialize rule elements@> =
     rule->t_first_aim = NULL;
@@ -4757,10 +4761,10 @@ but in the
 final result we want the keys to be unique integers
 in a sequence start from 0,
 so that they can be used as the indices of a bit vector.
-@d SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, items_by_rule, rule_id) {
-      const AIM item = (items_by_rule)[(rule_id)];
-      if (item) {
-	  const SYMID postdot = Postdot_SYMID_of_AIM (item);
+@d SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, rule) {
+      const AIM aim = rule->t_first_aim;
+      if (aim) {
+	  const SYMID postdot = Postdot_SYMID_of_AIM (aim);
 	  (sort_key) = postdot >= 0 ? postdot : INT_MAX;
 	} else {
 	  (sort_key) = INT_MAX;
@@ -4772,8 +4776,9 @@ calculate |no_of_predictable_rules|@> =
   RULEID rule_id;
   for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
   {
+      RULE rule = RULE_by_ID(g, rule_id);
       int sort_key;
-      SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, items_by_rule, rule_id);
+      SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, rule);
       if (sort_key != INT_MAX) no_of_predictable_rules++;
   }
   for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
