@@ -2794,15 +2794,16 @@ The CHAF rewrite is not recursive -- the new rules it creates
 are not themselves subject to CHAF rewrite.
 And rule ID's increase by one each time,
 so that all the new
-rules will have ID's equal to or greater than |no_of_rules|.
+rules will have ID's equal to or greater than
+the pre-CHAF rule count.
 @ @<Function definitions@> =
 PRIVATE struct marpa_g* CHAF_rewrite(struct marpa_g* g)
 {
     @<CHAF rewrite declarations@>@;
     @<CHAF rewrite allocations@>@;
      @<Alias proper nullables@>@;
-    no_of_rules = RULE_Count_of_G(g);
-    for (rule_id = 0; rule_id < no_of_rules; rule_id++) {
+    pre_chaf_rule_count = RULE_Count_of_G(g);
+    for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
          RULE  rule = RULE_by_ID(g, rule_id);
 	 const int rule_length = Length_of_RULE(rule);
 	 int nullable_suffix_ix = 0;
@@ -2818,7 +2819,7 @@ PRIVATE struct marpa_g* CHAF_rewrite(struct marpa_g* g)
 }
 @ @<CHAF rewrite declarations@> =
 Marpa_Rule_ID rule_id;
-int no_of_rules;
+int pre_chaf_rule_count;
 
 @ @<Mark and skip unused rules@> =
 if (!RULE_is_Used(rule)) { goto NEXT_RULE; }
@@ -3639,12 +3640,12 @@ PRIVATE
 void create_AHFA_items(GRAMMAR g)
 {
     RULEID rule_id;
-    unsigned int no_of_items;
-    unsigned int no_of_rules = RULE_Count_of_G(g);
+    AIMID no_of_items;
+    RULEID rule_count_of_g = RULE_Count_of_G(g);
     AIM base_item = my_new(struct s_AHFA_item, Size_of_G(g));
     AIM current_item = base_item;
     unsigned int symbol_instance_of_next_rule = 0;
-    for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
+    for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
       if (RULE_is_Used (rule)) {
 	@<Create the AHFA items for a rule@>@;
