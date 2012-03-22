@@ -672,6 +672,7 @@ marpa_g_ref (Marpa_Grammar g)
 PRIVATE
 void grammar_free(GRAMMAR g)
 {
+    const SYMID symbol_count_of_g = SYM_Count_of_G(g);
     @<Destroy grammar elements@>@;
     my_slice_free(struct marpa_g, g);
 }
@@ -681,38 +682,41 @@ This lists the symbols for the grammar,
 with their
 |Marpa_Symbol_ID| as the index.
 
-@<Widely aligned grammar elements@> = GArray* t_symbols;
+@<Widely aligned grammar elements@> =
+    DSTACK_DECLARE(t_symbols);
 @ @<Initialize grammar elements@> =
-g->t_symbols = g_array_new(FALSE, FALSE, sizeof(SYM));
+    DSTACK_INIT(g->t_symbols, SYM, 256 );
 @ @<Destroy grammar elements@> =
-{  Marpa_Symbol_ID id; for (id = 0; id < (Marpa_Symbol_ID)g->t_symbols->len; id++)
+{  SYMID id; for (id = 0; id < symbol_count_of_g; id++)
 { symbol_free(SYM_by_ID(id)); } }
-g_array_free(g->t_symbols, TRUE);
+DSTACK_DESTROY(g->t_symbols);
 
 @ Symbol count accesors.
-@d SYM_Count_of_G(g) ((g)->t_symbols->len)
+@d SYM_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
 @ @<Function definitions@> =
 int marpa_g_symbol_count(struct marpa_g* g) {
     return SYM_Count_of_G(g);
 }
 
 @ Symbol by ID.
-@d SYM_by_ID(id) (g_array_index(g->t_symbols, SYM, (id)))
+@d SYM_by_ID(id) (*DSTACK_INDEX (g->t_symbols, SYM, (id)))
 
 @ Adds the symbol to the list of symbols kept by the Grammar
 object.
 @<Function definitions@> =
 PRIVATE
-void symbol_add( GRAMMAR g, SYMID symid, SYM symbol)
+void symbol_add( GRAMMAR g, SYM symbol)
 {
-    g_array_insert_val(g->t_symbols, (unsigned)symid, symbol);
+    const SYMID new_id = DSTACK_LENGTH((g)->t_symbols);
+    *DSTACK_PUSH((g)->t_symbols, SYM) = symbol;
+    symbol->t_symbol_id = new_id;
 }
 
 @ Check that symbol is in valid range.
 @<Function definitions@> =
 PRIVATE int symbol_is_valid(GRAMMAR g, SYMID symid)
 {
-return symid >= 0 && (unsigned int)symid < g->t_symbols->len;
+    return symid >= 0 && symid < SYM_Count_of_G(g);
 }
 
 @*0 The Grammar's Rule List.
@@ -1095,9 +1099,10 @@ struct s_symbol {
     @<Bit aligned symbol elements@>@;
 };
 typedef struct s_symbol SYM_Object;
-@ @<Initialize symbol elements@> =
+@ |t_symbol_id| is initialized when the symbol is
+added to the list of symbols
+@<Initialize symbol elements@> =
     symbol->t_or_node_type = UNVALUED_TOKEN_OR_NODE;
-    ID_of_SYM(symbol) = g->t_symbols->len;
 
 @ @<Function definitions@> =
 PRIVATE SYM
@@ -1105,10 +1110,7 @@ symbol_new (struct marpa_g *g)
 {
   SYM symbol = my_malloc (sizeof (SYM_Object));
   @<Initialize symbol elements @>@/
-  {
-    SYMID id = ID_of_SYM(symbol);
-    symbol_add (g, id, symbol);
-  }
+    symbol_add (g, symbol);
   return symbol;
 }
 
@@ -2472,7 +2474,7 @@ PRIVATE_NOT_INLINE GRAMMAR census(GRAMMAR g)
 }
 @ @<Declare census variables@> =
 unsigned int pre_rewrite_rule_count = g->t_rules->len;
-unsigned int pre_rewrite_symbol_count = g->t_symbols->len;
+unsigned int pre_rewrite_symbol_count = SYM_Count_of_G(g);
 
 @ @<Return |NULL| if empty grammar@> =
 if (g->t_rules->len <= 0) { MARPA_ERROR(MARPA_ERR_NO_RULES); return NULL; }
@@ -2577,7 +2579,7 @@ if (!g->t_is_lhs_terminal_ok) {
 @ @<Mark all symbols terminal@> =
 { Marpa_Symbol_ID symid;
 bv_fill(terminal_v);
-for (symid = 0; symid < (Marpa_Symbol_ID)g->t_symbols->len; symid++)
+for (symid = 0; symid < (Marpa_Symbol_ID)SYM_Count_of_G(g); symid++)
 { SYMID_is_Terminal(symid) = 1; } }
 @ @<Mark non-LHS symbols terminal@> = 
 { unsigned int start = 0;
