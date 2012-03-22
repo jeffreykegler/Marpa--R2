@@ -4749,17 +4749,24 @@ but in the
 final result we want the keys to be unique integers
 in a sequence start from 0,
 so that they can be used as the indices of a bit vector.
+@d SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, items_by_rule, rule_id) {
+      const AIM item = (items_by_rule)[(rule_id)];
+      if (item) {
+	  const SYMID postdot = Postdot_SYMID_of_AIM (item);
+	  (sort_key) = postdot >= 0 ? postdot : INT_MAX;
+	} else {
+	  (sort_key) = INT_MAX;
+	}
+}
 @<Populate |sort_key_by_rule_id| with first pass value;
 calculate |no_of_predictable_rules|@> =
 {
   RULEID rule_id;
   for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
   {
-      AIM item = items_by_rule[rule_id];
-      if (item) {
-	  SYMID postdot = Postdot_SYMID_of_AIM (item);
-	  if (postdot >= 0) no_of_predictable_rules++;
-	}
+      int sort_key;
+      SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, items_by_rule, rule_id);
+      if (sort_key != INT_MAX) no_of_predictable_rules++;
   }
   for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
     {
