@@ -59,7 +59,7 @@ sub installed_contents {
 sub xs_version_contents {
     my ( $self, $package ) = @_;
     my @use_packages =
-        qw( Scalar::Util List::Util Carp Data::Dumper ExtUtils::PkgConfig );
+        qw( Scalar::Util List::Util Carp Data::Dumper );
     my $text = $preamble;
     $text .= "package $package;\n";
 

@@ -31,11 +31,9 @@ use warnings;
     'HTML::PullParser'    => '3.57',
     'HTML::Entities'      => '3.68',
     'List::Util'          => 1.21,
-    'ExtUtils::PkgConfig' => 1.12,
     'Module::Build'       => 0.3601,
     'PPI'                 => '1.206',
     'Scalar::Util'        => 1.21,
-    'Task::Weaken'        => '0',
     'Test::More'          => 0.94,
 );
 

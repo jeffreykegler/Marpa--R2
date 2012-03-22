@@ -31,16 +31,16 @@ use Marpa::R2::Config;
 
 my %build_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::CBuilder ExtUtils::PkgConfig Test::More );
+    qw( ExtUtils::CBuilder Test::More );
 my %configure_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::PkgConfig Module::Build );
+    qw( Module::Build );
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( Scalar::Util List::Util Task::Weaken Carp Data::Dumper );
+    qw( Scalar::Util List::Util Carp Data::Dumper );
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( PPI HTML::Entities HTML::Parser HTML::PullParser Test::Weaken );
+    qw( PPI HTML::Entities HTML::Parser HTML::PullParser );
 
 my %pod_files = ();
 {
