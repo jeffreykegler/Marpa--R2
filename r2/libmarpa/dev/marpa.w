@@ -4754,6 +4754,14 @@ calculate |no_of_predictable_rules|@> =
 {
   RULEID rule_id;
   for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
+  {
+      AIM item = items_by_rule[rule_id];
+      if (item) {
+	  SYMID postdot = Postdot_SYMID_of_AIM (item);
+	  if (postdot >= 0) no_of_predictable_rules++;
+	}
+  }
+  for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
     {
       AIM item = items_by_rule[rule_id];
       SYMID postdot;
@@ -4763,7 +4771,6 @@ calculate |no_of_predictable_rules|@> =
       if (postdot < 0)
 	goto NOT_A_PREDICTABLE_RULE;
       sort_key_by_rule_id[rule_id] = postdot;
-      no_of_predictable_rules++;
       continue;
     NOT_A_PREDICTABLE_RULE:
       sort_key_by_rule_id[rule_id] = G_MAXINT;
