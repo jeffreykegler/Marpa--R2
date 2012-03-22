@@ -92,6 +92,8 @@ libmarpa/build/Makefile.am
 libmarpa/build/Makefile.in
 libmarpa/build/aclocal.m4
 libmarpa/build/api.texi
+libmarpa/build/avl.c
+libmarpa/build/avl.h
 libmarpa/build/codes.c
 libmarpa/build/codes.h
 libmarpa/build/config.guess
@@ -112,8 +114,6 @@ libmarpa/build/marpa.h
 libmarpa/build/marpa_api.h
 libmarpa/build/marpa_obs.c
 libmarpa/build/marpa_obs.h
-libmarpa/build/avl.c
-libmarpa/build/avl.h
 libmarpa/build/mdate-sh
 libmarpa/build/missing
 libmarpa/build/private.h
@@ -122,6 +122,8 @@ libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
 libmarpa/dev/README
 libmarpa/dev/api.texi
+libmarpa/dev/avl/avl.c
+libmarpa/dev/avl/avl.h
 libmarpa/dev/copyright_page_license.w
 libmarpa/dev/cwebmac.tex
 libmarpa/dev/dist/Makefile.am
@@ -129,14 +131,18 @@ libmarpa/dev/dist/configure.ac
 libmarpa/dev/marpa.w
 libmarpa/dev/marpa_obs.c
 libmarpa/dev/marpa_obs.h
-libmarpa/dev/avl/avl.c
-libmarpa/dev/avl/avl.h
 libmarpa/dev/old_pod/Algorithm.pod
 libmarpa/dev/old_pod/Implementation.pod
 libmarpa/dev/texi2code.pl
 libmarpa/dev/w2private_h.pl
 libmarpa/orig/gnu/obstack.c
 libmarpa/orig/gnu/obstack.h
+libmarpa/orig/libavl/Makefile
+libmarpa/orig/libavl/avl-test.c
+libmarpa/orig/libavl/avl.c
+libmarpa/orig/libavl/avl.h
+libmarpa/orig/libavl/test.c
+libmarpa/orig/libavl/test.h
 libmarpa/test/.gitignore
 libmarpa/test/Makefile
 libmarpa/test/README

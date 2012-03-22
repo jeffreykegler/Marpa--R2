@@ -140,6 +140,10 @@ my %original = (
     'libmarpa/build/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
     'libmarpa/dev/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
     'libmarpa/dev/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
+    'libmarpa/build/avl.c' => [ 'libmarpa/orig/libavl/avl.c', 1022 ],
+    'libmarpa/build/avl.h' => [ 'libmarpa/orig/libavl/avl.h', 1022 ],
+    'libmarpa/dev/avl/avl.c' => [ 'libmarpa/orig/libavl/avl.c', 1022 ],
+    'libmarpa/dev/avl/avl.h' => [ 'libmarpa/orig/libavl/avl.h', 1022 ],
 );
 
 my %GNU_file =
