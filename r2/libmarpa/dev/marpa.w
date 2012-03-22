@@ -1935,7 +1935,7 @@ Marpa_Symbol_ID marpa_g_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id,
     return RHS_ID_of_RULE(rule, ix);
 }
 @ @<Function definitions@> =
-PRIVATE gsize rule_length_get(RULE rule)
+PRIVATE size_t rule_length_get(RULE rule)
 {
     return Length_of_RULE(rule); }
 @ @<Function definitions@> =
@@ -4111,7 +4111,7 @@ indexed by the ID of their only AHFA item.
 PRIVATE_NOT_INLINE int AHFA_state_cmp(
     const void* ap,
     const void* bp,
-    void *param G_GNUC_UNUSED)
+    void *param UNUSED)
 {
     AIM* items_a;
     AIM* items_b;
@@ -10067,7 +10067,7 @@ struct s_bocage {
 
 @ @<Unpack bocage objects@> =
     const INPUT input = I_of_B(b);
-    const GRAMMAR g G_GNUC_UNUSED = G_of_I(input);
+    const GRAMMAR g UNUSED = G_of_I(input);
 
 @*0 The Bocage Obstack.
 An obstack with the lifetime of the bocage.
@@ -12535,7 +12535,7 @@ typedef struct s_dstack* DSTACK;
 @ @<Private utility structures@> =
 struct s_dstack { int t_count; int t_capacity; void * t_base; };
 @ @<Function definitions@> =
-PRIVATE void * dstack_resize(struct s_dstack* this, gsize type_bytes)
+PRIVATE void * dstack_resize(struct s_dstack* this, size_t type_bytes)
 {
     this->t_capacity *= 2;
     this->t_base = my_realloc(this->t_base, this->t_capacity*type_bytes);
@@ -12915,16 +12915,16 @@ my_malloc(size_t size)
 ``on their own'', that is, not inlined.
 @ @<Function definitions@> =
 extern void*
-marpa_avl_malloc(struct libavl_allocator* alloc G_GNUC_UNUSED, size_t size);
+marpa_avl_malloc(struct libavl_allocator* alloc UNUSED, size_t size);
 void*
-marpa_avl_malloc(struct libavl_allocator* alloc G_GNUC_UNUSED, size_t size)
+marpa_avl_malloc(struct libavl_allocator* alloc UNUSED, size_t size)
 {
     return my_malloc(size);
 }
 extern void
-marpa_avl_free(struct libavl_allocator* alloc G_GNUC_UNUSED, void *p);
+marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p);
 void
-marpa_avl_free(struct libavl_allocator* alloc G_GNUC_UNUSED, void *p)
+marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p)
 {
     my_free(p);
 }
@@ -13143,18 +13143,6 @@ These cases include
 serious internal problems,
 memory allocation failures,
 and debugging.
-
-\par As a fallback messaging and logging system,
-|libmarpa| uses |glib|'s Message Logging framework.
-When the messsage domain is
-under |libmarpa|'s control,
-Marpa sets the domain to |"Marpa"|.
-In many cases, such as memory allocation failures,
-the domain will be as set by |glib|.
-@ Set the Logging Domain
-@<Logging domain@> =
-#undef G_LOG_DOMAIN@/
-#define G_LOG_DOMAIN "Marpa"@/
 
 @*0 Message "cookie" strings.
 Constant strings are used for convenience
@@ -13433,15 +13421,15 @@ So I add such a comment.
 @ \twelvepoint @c
 #include "config.h"
 #include "marpa.h"
-#include <glib.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 @<Debug macros@>
 @h
 #include "marpa_obs.h"
 #include "avl.h"
-@<Logging domain@>@;
+@<Miscellaneous compiler defines@>@;
 @<Private incomplete structures@>@;
 @<Private typedefs@>@;
 @<Global variables@>@;
@@ -13497,6 +13485,22 @@ So I add such a comment.
 
 #include "marpa_api.h"
 #endif __MARPA_H__
+
+@** Miscellaneous compiler defines.
+These defines control the compiler behavior
+in various ways.
+@<Miscellaneous compiler defines@> =
+
+#if     __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
+#define UNUSED __attribute__((__unused__))
+#else
+#define UNUSED
+#endif
+
+#if defined (__GNUC__) && defined (__STRICT_ANSI__)
+#  undef inline
+#  define inline __inline__
+#endif
 
 @** Index.
 
