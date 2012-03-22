@@ -49,13 +49,11 @@
       "build" : {
          "requires" : {
             "ExtUtils::CBuilder" : "0.27",
-            "ExtUtils::PkgConfig" : "1.12",
             "Test::More" : "0.94"
          }
       },
       "configure" : {
          "requires" : {
-            "ExtUtils::PkgConfig" : "1.12",
             "Module::Build" : "0.3601"
          }
       },
@@ -64,34 +62,32 @@
             "HTML::Entities" : "3.68",
             "HTML::Parser" : "3.64",
             "HTML::PullParser" : "3.57",
-            "PPI" : "1.206",
-            "Test::Weaken" : 0
+            "PPI" : "1.206"
          },
          "requires" : {
             "Carp" : "1.08",
             "Data::Dumper" : "2.125",
             "List::Util" : "1.21",
-            "Scalar::Util" : "1.21",
-            "Task::Weaken" : 0
+            "Scalar::Util" : "1.21"
          }
       }
    },
    "provides" : {
       "Marpa::R2" : {
          "file" : "lib/Marpa/R2.pm",
-         "version" : "0.001_028"
+         "version" : "0.001_029"
       },
       "Marpa::R2::Grammar" : {
          "file" : "lib/Marpa/R2/Grammar.pm",
-         "version" : "0.001_028"
+         "version" : "0.001_029"
       },
       "Marpa::R2::HTML" : {
          "file" : "html/lib/Marpa/R2/HTML.pm",
-         "version" : "0.001_028"
+         "version" : "0.001_029"
       },
       "Marpa::R2::HTML::Callback" : {
          "file" : "html/lib/Marpa/R2/HTML/Callback.pm",
-         "version" : "0.001_028"
+         "version" : "0.001_029"
       },
       "Marpa::R2::HTML::Internal" : {
          "file" : "html/lib/Marpa/R2/HTML.pm",
@@ -103,7 +99,7 @@
       },
       "Marpa::R2::Internal" : {
          "file" : "lib/Marpa/R2/Internal.pm",
-         "version" : "0.001_028"
+         "version" : "0.001_029"
       },
       "Marpa::R2::Internal::Grammar" : {
          "file" : "lib/Marpa/R2/Grammar.pm",
@@ -119,11 +115,11 @@
       },
       "Marpa::R2::Recognizer" : {
          "file" : "lib/Marpa/R2/Recognizer.pm",
-         "version" : "0.001_028"
+         "version" : "0.001_029"
       },
       "Marpa::R2::Value" : {
          "file" : "lib/Marpa/R2/Value.pm",
-         "version" : "0.001_028"
+         "version" : "0.001_029"
       }
    },
    "release_status" : "testing",
@@ -132,5 +128,5 @@
          "url" : "git://github.com/jeffreykegler/Marpa-R2.git"
       }
    },
-   "version" : "0.001_028"
+   "version" : "0.001_029"
 }
