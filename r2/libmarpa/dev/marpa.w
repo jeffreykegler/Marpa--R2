@@ -1179,44 +1179,45 @@ void symbol_lhs_add(SYM symbol, RULEID rule_id)
 This tracks the rules for which this symbol is the RHS.
 It is an optimization --- the same information could be found
 by scanning the rules every time this information is needed.
-The implementation is a |GArray|.
-@<Widely aligned symbol elements@> = GArray* t_rhs;
+@<Widely aligned symbol elements@> =
+    DSTACK_DECLARE( t_rhs );
 @ @<Initialize symbol elements@> =
-symbol->t_rhs = g_array_new(FALSE, FALSE, sizeof(Marpa_Rule_ID));
-@ @<Free symbol elements@> = g_array_free(symbol->t_rhs, TRUE);
+    DSTACK_INIT(symbol->t_rhs, RULEID, 1);
+@ @<Free symbol elements@> =
+    DSTACK_DESTROY(symbol->t_rhs);
 
 @ @<Function definitions@> = 
 Marpa_Rule_ID marpa_g_symbol_rhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
-    GArray* symbol_rh_rules;
     @<Fail if fatal error@>@;
     @<Fail if grammar |symid| is invalid@>@;
-    symbol_rh_rules = SYM_by_ID(symid)->t_rhs;
-    return symbol_rh_rules->len;
+    return DSTACK_LENGTH(SYM_by_ID(symid)->t_rhs);
 }
 Marpa_Rule_ID marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
 {
     @<Return |-2| on failure@>@;
-    GArray* symbol_rh_rules;
+    SYM symbol;
     @<Fail if fatal error@>@;
     @<Fail if grammar |symid| is invalid@>@;
     if (ix < 0) {
         MARPA_DEV_ERROR("symbol rhs index negative");
 	return failure_indicator;
     }
-    symbol_rh_rules = SYM_by_ID(symid)->t_rhs;
-    if ((unsigned int)ix >= symbol_rh_rules->len) {
+    symbol = SYM_by_ID(symid);
+    if (ix >= DSTACK_LENGTH( symbol->t_rhs)) {
         MARPA_DEV_ERROR("symbol rhs index out of bounds");
 	return -1;
     }
-    return g_array_index(symbol_rh_rules, RULEID, ix);
+    return *DSTACK_INDEX(symbol->t_rhs, RULEID, ix);
 }
 
 @ @<Function definitions@> =
 PRIVATE
-void symbol_rhs_add(SYM symbol, Marpa_Rule_ID rule_id)
-{ g_array_append_val(symbol->t_rhs, rule_id); }
+void symbol_rhs_add(SYM symbol, RULEID rule_id)
+{
+    *DSTACK_PUSH(symbol->t_rhs, RULEID) = rule_id;
+}
 
 @*0 Nulling symbol has semantics?.
 This value describes the semantics
@@ -12248,12 +12249,13 @@ rhs_closure (GRAMMAR g, Bit_Vector bv)
     }
   while ((top_of_stack = FSTACK_POP (stack)))
     {
-      unsigned int rule_ix;
-      GArray *rules = SYM_by_ID (*top_of_stack)->t_rhs;
-      for (rule_ix = 0; rule_ix < rules->len; rule_ix++)
+      RULEID rule_ix;
+      const SYM symbol = SYM_by_ID (*top_of_stack);
+      const RULEID rh_rule_count = DSTACK_LENGTH(symbol->t_rhs);
+      for (rule_ix = 0; rule_ix < rh_rule_count; rule_ix++)
 	{
 	  Marpa_Rule_ID rule_id =
-	    g_array_index (rules, Marpa_Rule_ID, rule_ix);
+	    *DSTACK_INDEX(symbol->t_rhs, RULEID, rule_ix);
 	  RULE rule = RULE_by_ID (g, rule_id);
 	  unsigned int rule_length;
 	  unsigned int rh_ix;
