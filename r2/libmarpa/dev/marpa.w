@@ -843,7 +843,7 @@ int marpa_g_is_precomputed(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
-return G_is_Precomputed(g);
+    return G_is_Precomputed(g);
 }
 
 @*0 Grammar boolean: has loop?.
@@ -1134,46 +1134,45 @@ PRIVATE void symbol_free(SYM symbol)
 This tracks the rules for which this symbol is the LHS.
 It is an optimization --- the same information could be found
 by scanning the rules every time this information is needed.
-@d SYMBOL_LHS_RULE_COUNT(symbol) ((symbol)->t_lhs->len)
-@<Widely aligned symbol elements@> = GArray* t_lhs;
+@d SYMBOL_LHS_RULE_COUNT(symbol) DSTACK_LENGTH(symbol->t_lhs)
+@<Widely aligned symbol elements@> =
+    DSTACK_DECLARE( t_lhs);
 @ @<Initialize symbol elements@> =
-symbol->t_lhs = g_array_new(FALSE, FALSE, sizeof(Marpa_Rule_ID));
+    DSTACK_INIT(symbol->t_lhs, RULEID, 1);
 @ @<Free symbol elements@> =
-g_array_free(symbol->t_lhs, TRUE);
+    DSTACK_DESTROY(symbol->t_lhs);
 
 @ @<Function definitions@> = 
 Marpa_Rule_ID marpa_g_symbol_lhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
-    GArray* symbol_lh_rules;
     @<Fail if fatal error@>@;
     @<Fail if grammar |symid| is invalid@>@;
-    symbol_lh_rules = SYM_by_ID(symid)->t_lhs;
-    return symbol_lh_rules->len;
+    return DSTACK_LENGTH( SYM_by_ID(symid)->t_lhs );
 }
 Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
 {
+    SYM symbol;
     @<Return |-2| on failure@>@;
-    GArray* symbol_lh_rules;
     @<Fail if fatal error@>@;
     @<Fail if grammar |symid| is invalid@>@;
+    symbol = SYM_by_ID(symid);
     if (ix < 0) {
         MARPA_DEV_ERROR("symbol lhs index negative");
 	return failure_indicator;
     }
-    symbol_lh_rules = SYM_by_ID(symid)->t_lhs;
-    if ((unsigned int)ix >= symbol_lh_rules->len) {
+    if (ix >= DSTACK_LENGTH(symbol->t_lhs)) {
         MARPA_DEV_ERROR("symbol lhs index out of bounds");
 	return -1;
     }
-    return g_array_index(symbol_lh_rules, RULEID, ix);
+    return *DSTACK_INDEX(symbol->t_lhs, RULEID, ix);
 }
 
 @ @<Function definitions@> =
 PRIVATE
-void symbol_lhs_add(SYM symbol, Marpa_Rule_ID rule_id)
+void symbol_lhs_add(SYM symbol, RULEID rule_id)
 {
-    g_array_append_val(symbol->t_lhs, rule_id);
+   *DSTACK_PUSH(symbol->t_lhs, RULEID) = rule_id;
 }
 
 @*0 Symbol RHS rules element.
@@ -1747,10 +1746,9 @@ SYMID lhs_id, SYMID* rhs_ids, int length)
 {
     int ix;
     SYM lhs = SYM_by_ID(lhs_id);
-    GArray* same_lhs_array = lhs->t_lhs;
-    int same_lhs_count = same_lhs_array->len;
+    int same_lhs_count = DSTACK_LENGTH(lhs->t_lhs);
     for (ix = 0; ix < same_lhs_count; ix++) {
-	RULEID same_lhs_rule_id = ((RULEID *)(same_lhs_array->data))[ix];
+	RULEID same_lhs_rule_id = *DSTACK_INDEX(lhs->t_lhs, RULEID, ix);
 	int rhs_position;
 	RULE rule = RULE_by_ID(g, same_lhs_rule_id);
 	const int rule_length = Length_of_RULE(rule);
@@ -2503,7 +2501,7 @@ if (!symbol_is_valid(g, original_start_symid)) {
     return failure_indicator;
 }
 original_start_symbol = SYM_by_ID(original_start_symid);
-if (original_start_symbol->t_lhs->len <= 0) {
+if (DSTACK_LENGTH(original_start_symbol->t_lhs) <= 0) {
     MARPA_ERROR(MARPA_ERR_START_NOT_LHS);
     return failure_indicator;
 }
@@ -3366,13 +3364,13 @@ for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
     if (proper_id < 0) continue; /* A
 	nulling start rule is allowed, so there may be no proper symbol */
      { SYM rhs_symbol = SYM_by_ID(proper_id);
-     GArray* lhs_rules = rhs_symbol->t_lhs;
-     int ix, no_of_lhs_rules = lhs_rules->len;
+     RULEID ix;
+     RULEID no_of_lhs_rules = DSTACK_LENGTH(rhs_symbol->t_lhs);
      for (ix = 0; ix < no_of_lhs_rules; ix++) {
 	 /* Direct loops ($A \RA A$) only need the $(rule_id, rule_id)$ bit set,
 	    but it is not clear that it is a win to special case them. */
 	 matrix_bit_set(unit_transition_matrix, (unsigned int)rule_id,
-	     (unsigned int)g_array_index(lhs_rules, Marpa_Rule_ID, ix));
+	     *DSTACK_INDEX(rhs_symbol->t_lhs, RULEID, ix));
      } }
      NEXT_RULE: ;
 } }
@@ -4835,13 +4833,13 @@ populate the index from rule id to sort key.
 	    {
 	      // for every predicted symbol
 	      SYM to_symbol = SYM_by_ID (to_symid);
-	      GArray *lhs_rules = to_symbol->t_lhs;
-	      unsigned int ix, no_of_lhs_rules = lhs_rules->len;
+	      RULEID ix;
+	      RULEID no_of_lhs_rules = DSTACK_LENGTH(to_symbol->t_lhs);
 	      for (ix = 0; ix < no_of_lhs_rules; ix++)
 		{
 		  // For every rule with that symbol on its LHS
 		  Marpa_Rule_ID rule_with_this_lhs_symbol =
-		    g_array_index (lhs_rules, Marpa_Rule_ID, ix);
+		    *DSTACK_INDEX(to_symbol->t_lhs, RULEID, ix);
 		  unsigned int sort_key =
 		    sort_key_by_rule_id[rule_with_this_lhs_symbol];
 		  if (sort_key >= no_of_predictable_rules)
