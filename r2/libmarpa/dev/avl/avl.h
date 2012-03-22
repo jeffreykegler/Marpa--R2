@@ -1,5 +1,3 @@
-/* Produced by texiweb from libavl.w. */
-
 /* libavl - library for manipulation of binary trees.
    Copyright (C) 1998, 1999, 2000, 2001, 2002, 2004 Free Software
    Foundation, Inc.
@@ -19,6 +17,8 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301 USA.
 */
+
+/* Modified by Jeffrey Kegler -- Original copyright is above */
 
 #ifndef AVL_H
 #define AVL_H 1

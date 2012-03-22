@@ -140,34 +140,35 @@ my %original = (
     'libmarpa/build/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
     'libmarpa/dev/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
     'libmarpa/dev/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
-    'libmarpa/build/avl.c' => [ 'libmarpa/orig/libavl/avl.c', 1022 ],
-    'libmarpa/build/avl.h' => [ 'libmarpa/orig/libavl/avl.h', 1022 ],
-    'libmarpa/dev/avl/avl.c' => [ 'libmarpa/orig/libavl/avl.c', 1022 ],
-    'libmarpa/dev/avl/avl.h' => [ 'libmarpa/orig/libavl/avl.h', 1022 ],
 );
 
-my %GNU_file =
+my %GNU_file = (
+    'libmarpa/build/avl.c' => 1,
+    'libmarpa/build/avl.h' => 1,
+    'libmarpa/dev/avl/avl.c' => 1,
+    'libmarpa/dev/avl/avl.h' => 1,
     map {
     (   'libmarpa/stage/' . $_, 1, 'libmarpa/build/' . $_, 1,
         'libmarpa/test/dev/' . $_,   1
         )
     } qw(
-    aclocal.m4
-    config.guess
-    config.sub
-    configure
-    depcomp
-    mdate-sh
-    texinfo.tex
-    ltmain.sh
-    m4/libtool.m4
-    m4/ltoptions.m4
-    m4/ltsugar.m4
-    m4/ltversion.m4
-    m4/lt~obsolete.m4
-    missing
-    Makefile.in
-);
+	aclocal.m4
+	config.guess
+	config.sub
+	configure
+	depcomp
+	mdate-sh
+	texinfo.tex
+	ltmain.sh
+	m4/libtool.m4
+	m4/ltoptions.m4
+	m4/ltsugar.m4
+	m4/ltversion.m4
+	m4/lt~obsolete.m4
+	missing
+	Makefile.in
+    )
+);;
 
 sub ignored {
     my ( $filename, $verbose ) = @_;
