@@ -3527,7 +3527,6 @@ A lot of code relies on these facts.
 @d AIM_by_ID(id) (g->t_AHFA_items+(id))
 @<Widely aligned grammar elements@> =
    AIM t_AHFA_items;
-   AIM* t_AHFA_items_by_rule;
 @
 @d AIM_Count_of_G(g) ((g)->t_aim_count)
 @<Int aligned grammar elements@> =
@@ -3537,10 +3536,8 @@ Because the grammar may be destroyed before precomputation,
 I test that |g->t_AHFA_items| is non-zero.
 @ @<Initialize grammar elements@> =
 g->t_AHFA_items = NULL;
-g->t_AHFA_items_by_rule = NULL;
 @ @<Destroy grammar elements@> =
      my_free(g->t_AHFA_items);
-     my_free(g->t_AHFA_items_by_rule);
 
 @ Check that AHFA item ID is in valid range.
 @<Function definitions@> =
@@ -3653,7 +3650,7 @@ void create_AHFA_items(GRAMMAR g)
     SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
     no_of_items = AIM_Count_of_G(g) = current_item - base_item;
     g->t_AHFA_items = my_renew(struct s_AHFA_item, base_item, no_of_items);
-    @<Set up the items-by-rule list@>@;
+    @<Populate the first |AIM|'s of the |RULE|'s@>@;
     @<Set up the AHFA item ids@>@;
 }
 
@@ -3704,19 +3701,12 @@ theory the |my_renew| might have moved them.
 This is not likely since the |my_renew| shortened the array,
 but if you are hoping for portability,
 you want to follow the rules.
-@<Set up the items-by-rule list@> =
+@<Populate the first |AIM|'s of the |RULE|'s@> =
 {
-  AIM *items_by_rule = my_new (AIM, no_of_rules);
   AIM items = g->t_AHFA_items;
   /* The highest ID of a rule whose AHFA items have been found */
   Marpa_Rule_ID highest_found_rule_id = -1;
   Marpa_AHFA_Item_ID item_id;
-  /* |items_by_rule| must be NULL'd
-      because not all entries will be populated */
-  for (rule_id = 0; rule_id < (Marpa_Rule_ID) no_of_rules; rule_id++)
-  {
-      items_by_rule[rule_id] = NULL;
-  }
   for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
     {
       AIM item = items + item_id;
@@ -3724,11 +3714,9 @@ you want to follow the rules.
       Marpa_Rule_ID rule_id_for_item = rule->t_id;
       if (rule_id_for_item <= highest_found_rule_id)
 	continue;
-      items_by_rule[rule_id_for_item] = item;
       rule->t_first_aim = item;
       highest_found_rule_id = rule_id_for_item;
     }
-  g->t_AHFA_items_by_rule = items_by_rule;
 }
 
 @ This functions sorts a list of pointers to
@@ -4328,12 +4316,12 @@ marpa_avl_destroy(duplicates, NULL);
 @ @<Construct initial AHFA states@> =
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
-  Marpa_Rule_ID start_rule_id = ID_of_RULE( g->t_proper_start_rule);
+  const RULE start_rule = g->t_proper_start_rule;
   SYMID *postdot_symbol_ids;
   AIM start_item;
   AIM *item_list = obstack_alloc (&g->t_obs, sizeof (AIM));
   /* The start item is the initial item for the start rule */
-  start_item = g->t_AHFA_items_by_rule[start_rule_id];
+  start_item = start_rule->t_first_aim;
   item_list[0] = start_item;
   AHFA_initialize(p_initial_state);
   p_initial_state->t_items = item_list;
@@ -4698,7 +4686,6 @@ states.
 {
   RULEID rule_id;
   SYMID symid;
-  AIM *items_by_rule = g->t_AHFA_items_by_rule;
   for (symid = 0; symid < (SYMID) symbol_count_of_g; symid++)
     {
       /* If a symbol appears on a LHS, it predicts itself. */
@@ -4710,8 +4697,9 @@ states.
   for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
     {
       SYMID from, to;
+      const RULE rule = RULE_by_ID(g, rule_id);
       /* Get the initial item for the rule */
-      AIM item = items_by_rule[rule_id];
+      const AIM item = rule->t_first_aim;
       /* Not all rules have items */
       if (!item)
 	continue;
@@ -4732,7 +4720,6 @@ Specifically, if symbol |S1| predicts symbol |S2|, then symbol |S1|
 predicts every rule
 with |S2| on its LHS.
 @<Create the prediction matrix from the symbol-by-symbol matrix@> = {
-    AIM* items_by_rule = g->t_AHFA_items_by_rule;
     SYMID from_symid;
     unsigned int* sort_key_by_rule_id = my_new(unsigned int, rule_count_of_g);
     unsigned int no_of_predictable_rules = 0;
@@ -4790,7 +4777,7 @@ calculate |no_of_predictable_rules|@> =
     {
       rule_by_sort_key[rule_id] = RULE_by_ID (g, rule_id);
     }
-  qsort_with_data (rule_by_sort_key, (int)rule_count_of_g,
+  qsort (rule_by_sort_key, (int)rule_count_of_g,
 		     sizeof (RULE), cmp_by_rule_sort_key);
 }
 
@@ -4891,7 +4878,7 @@ item_list_for_new_state = obstack_alloc (&g->t_obs,
 	  /* Add the initial item for the predicted rule */
 	  RULE rule = rule_by_sort_key[rule_sort_key];
 	  item_list_for_new_state[item_list_ix++] =
-	    g->t_AHFA_items_by_rule[rule->t_id];
+	    rule->t_first_aim;
 	}
     }
 }
