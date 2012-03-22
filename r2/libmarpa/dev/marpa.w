@@ -1515,7 +1515,7 @@ SYMID lhs, SYMID *rhs, int length)
 {
     @<Return |NULL| on failure@>@;
     RULE rule;
-    const int rule_sizeof = G_STRUCT_OFFSET (struct s_rule, t_symbols) +
+    const int rule_sizeof = offsetof (struct s_rule, t_symbols) +
         (length + 1) * sizeof (rule->t_symbols[0]);
     @<Return failure on invalid rule symbols@>@/
     rule = obstack_alloc (&g->t_obs, rule_sizeof);
@@ -4225,7 +4225,7 @@ NEXT_AHFA_STATE: ;
 	       if (working_transition) {
 		   int completion_count = Completion_Count_of_TRANS(working_transition);
 		   int sizeof_transition =
-		       G_STRUCT_OFFSET (struct s_transition, t_aex) + completion_count *
+		       offsetof (struct s_transition, t_aex) + completion_count *
 		       sizeof (transitions[0]->t_aex[0]);
 		   TRANS new_transition = obstack_alloc(&g->t_obs, sizeof_transition);
 		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
@@ -13429,6 +13429,7 @@ So I add such a comment.
 #include "config.h"
 #include "marpa.h"
 #include <glib.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 @<Debug macros@>
