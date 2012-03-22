@@ -4781,20 +4781,6 @@ calculate |no_of_predictable_rules|@> =
       SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, rule);
       if (sort_key != INT_MAX) no_of_predictable_rules++;
   }
-  for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
-    {
-      AIM item = items_by_rule[rule_id];
-      SYMID postdot;
-      if (!item)
-	goto NOT_A_PREDICTABLE_RULE;
-      postdot = Postdot_SYMID_of_AIM (item);
-      if (postdot < 0)
-	goto NOT_A_PREDICTABLE_RULE;
-      sort_key_by_rule_id[rule_id] = postdot;
-      continue;
-    NOT_A_PREDICTABLE_RULE:
-      sort_key_by_rule_id[rule_id] = G_MAXINT;
-    }
 }
 
 @ @<Populate |rule_by_sort_key|@> =
@@ -4804,23 +4790,22 @@ calculate |no_of_predictable_rules|@> =
     {
       rule_by_sort_key[rule_id] = RULE_by_ID (g, rule_id);
     }
-  g_qsort_with_data (rule_by_sort_key, (int)rule_count_of_g,
-		     sizeof (RULE), cmp_by_rule_sort_key,
-		     (void *) sort_key_by_rule_id);
+  qsort_with_data (rule_by_sort_key, (int)rule_count_of_g,
+		     sizeof (RULE), cmp_by_rule_sort_key);
 }
 
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int
-cmp_by_rule_sort_key(const void* ap,
-	const void* bp, void * user_data)
+cmp_by_rule_sort_key(const void* ap, const void* bp)
 {
-    RULE a = *(RULE*)ap;
-    RULE b = *(RULE*)bp;
-    unsigned int* sort_key_by_rule_id = (unsigned int*)user_data;
-    Marpa_Rule_ID a_id = a->t_id;
-    Marpa_Rule_ID b_id = b->t_id;
-    unsigned int sort_key_a = sort_key_by_rule_id[a_id];
-    unsigned int sort_key_b = sort_key_by_rule_id[b_id];
+    RULE rule_a = *(RULE*)ap;
+    RULE rule_b = *(RULE*)bp;
+    unsigned int sort_key_a;
+    unsigned int sort_key_b;
+    Marpa_Rule_ID a_id = rule_a->t_id;
+    Marpa_Rule_ID b_id = rule_b->t_id;
+      SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key_a, rule_a);
+      SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key_b, rule_b);
     if (sort_key_a == sort_key_b) return a_id - b_id;
     return sort_key_a - sort_key_b;
 }
