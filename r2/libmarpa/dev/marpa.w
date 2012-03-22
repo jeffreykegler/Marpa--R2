@@ -277,8 +277,8 @@ When average list size is small, for example,
 a hand-optimized insertion sort is often clearly superior
 to all other alternatives.
 Where average list size is larger,
-a call to |g_qsort| is the appropriate response.
-|g_qsort| is the result of considerable thought and experience,
+a call to |qsort| is the appropriate response.
+|qsort| is the result of considerable thought and experience,
 the GNU project has decided to base it on quicksort,
 and I do not care to second-guess them on this.
 But quicksort and insertion sorts are both, theoretically, $O(n^2)$.
@@ -3729,8 +3729,7 @@ For portability,
 it requires the AIMs to be in an array.
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int cmp_by_aimid (gconstpointer ap,
-	gconstpointer bp,
-	gpointer user_data @, G_GNUC_UNUSED)
+	gconstpointer bp)
 {
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
@@ -3745,7 +3744,7 @@ This comparison function is used in the logic to change the AHFA item ID's
 from their temporary values to their final ones.
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int cmp_by_postdot_and_aimid (gconstpointer ap,
-	gconstpointer bp, gpointer user_data @, G_GNUC_UNUSED)
+	gconstpointer bp)
 {
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
@@ -3776,9 +3775,7 @@ AHFA item as its new, final ID.
     {
       sort_array[item_id] = items + item_id;
     }
-  g_qsort_with_data (sort_array,
-		     (gint) no_of_items, sizeof (AIM), cmp_by_postdot_and_aimid,
-		     (gpointer) NULL);
+  qsort (sort_array, (gint) no_of_items, sizeof (AIM), cmp_by_postdot_and_aimid);
   for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
     {
       Sort_Key_of_AIM (sort_array[item_id]) = item_id;
@@ -4284,7 +4281,7 @@ You can get the AIM from the AEX, but not vice versa.
       AIM *aims = AIMs_of_AHFA (from_ahfa);
       int aim_count = AIM_Count_of_AHFA (from_ahfa);
       AEX aex;
-      g_qsort_with_data (aims, aim_count, sizeof (AIM *), cmp_by_aimid, NULL);
+      qsort (aims, aim_count, sizeof (AIM *), cmp_by_aimid);
       for (aex = 0; aex < aim_count; aex++)
 	{
 	  AIM ahfa_item = aims[aex];
