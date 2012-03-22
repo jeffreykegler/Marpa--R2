@@ -1080,7 +1080,7 @@ typedef int SYMID;
 struct s_symbol;
 typedef struct s_symbol* SYM;
 typedef const struct s_symbol* SYM_Const;
-@ The initial element is a type gint,
+@ The initial element is a type |int|,
 and the next element is the symbol ID,
 (the unique identifier for the symbol),
 so that the
@@ -1749,7 +1749,7 @@ SYMID lhs_id, SYMID* rhs_ids, int length)
     int same_lhs_count = same_lhs_array->len;
     for (ix = 0; ix < same_lhs_count; ix++) {
 	RULEID same_lhs_rule_id = ((RULEID *)(same_lhs_array->data))[ix];
-	gint rhs_position;
+	int rhs_position;
 	RULE rule = RULE_by_ID(g, same_lhs_rule_id);
 	const int rule_length = Length_of_RULE(rule);
 	if (rule_length != length) { goto RULE_IS_NOT_DUPLICATE; }
@@ -1775,10 +1775,10 @@ a core dump is not the right response.
 @<Add this rule to the symbol rule lists@> =
     symbol_lhs_add(SYM_by_ID(rule->t_symbols[0]), rule->t_id);@;
     if (Length_of_RULE(rule) > 0) {
-	gint rh_list_ix;
+	int rh_list_ix;
 	const unsigned int alloc_size = Length_of_RULE(rule)*sizeof( SYMID);
 	Marpa_Symbol_ID *rh_symbol_list = my_slice_alloc(alloc_size);
-	gint rh_symbol_list_length = 1;
+	int rh_symbol_list_length = 1;
 	@<Create |rh_symbol_list|,
 	a duplicate-free list of the right hand side symbols@>@;
        for (rh_list_ix = 0;
@@ -2080,7 +2080,7 @@ return RULE_by_ID(g, rule_id)->t_is_virtual_loop; }
 @ A rule is nulling if every symbol on its RHS is nulling.
 Note that this can be vacuously true --- an empty rule is nulling.
 @<Function definitions@> =
-PRIVATE gint
+PRIVATE int
 rule_is_nulling (GRAMMAR g, RULE rule)
 {
   int rh_ix;
@@ -2355,7 +2355,7 @@ In that case the symbol instance is the
 base symbol instance for
 the rule, offset by the position of that preceding AHFA item.
 @<Function definitions@> =
-PRIVATE gint
+PRIVATE int
 symbol_instance_of_ahfa_item_get (AIM aim)
 {
   int position = Position_of_AIM (aim);
@@ -2857,7 +2857,7 @@ for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 int factor_count;
 int* factor_positions;
 @ @<CHAF rewrite allocations@> =
-factor_positions = my_new(gint, g->t_max_rule_length);
+factor_positions = my_new(int, g->t_max_rule_length);
 @ @<CHAF rewrite deallocations@> =
 my_free(factor_positions);
 
@@ -2928,7 +2928,7 @@ rule.
 	@<Add CHAF rules for nullable continuation@>@;
 	factor_position_ix++;
     } else {
-	gint second_factor_piece_position = second_factor_position - piece_start;
+	int second_factor_piece_position = second_factor_position - piece_start;
 	piece_end = second_factor_position;
 	@<Create a CHAF virtual symbol@>@;
 	@<Add CHAF rules for proper continuation@>@;
@@ -3775,7 +3775,7 @@ AHFA item as its new, final ID.
     {
       sort_array[item_id] = items + item_id;
     }
-  qsort (sort_array, (gint) no_of_items, sizeof (AIM), cmp_by_postdot_and_aimid);
+  qsort (sort_array, (int) no_of_items, sizeof (AIM), cmp_by_postdot_and_aimid);
   for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
     {
       Sort_Key_of_AIM (sort_array[item_id]) = item_id;
@@ -4037,7 +4037,7 @@ marpa_g_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
 @<Function definitions@> =
 Marpa_AHFA_Item_ID marpa_g_AHFA_state_item(struct marpa_g* g,
      AHFAID AHFA_state_id,
-	gint item_ix) {
+	int item_ix) {
     AHFA state;
     @<Return |-2| on failure@>@/
     @<Fail if grammar not precomputed@>@/
@@ -4779,13 +4779,13 @@ calculate |no_of_predictable_rules|@> =
     {
       rule_by_sort_key[rule_id] = RULE_by_ID (g, rule_id);
     }
-  g_qsort_with_data (rule_by_sort_key, (gint)rule_count_of_g,
+  g_qsort_with_data (rule_by_sort_key, (int)rule_count_of_g,
 		     sizeof (RULE), cmp_by_rule_sort_key,
 		     (gpointer) sort_key_by_rule_id);
 }
 
 @ @<Function definitions@> =
-PRIVATE_NOT_INLINE gint
+PRIVATE_NOT_INLINE int
 cmp_by_rule_sort_key(gconstpointer ap,
 	gconstpointer bp, gpointer user_data)
 {
@@ -5675,7 +5675,8 @@ The locations themselves are often called earlemes.
 I can prevent overflow without getting fancy -- overflow
 by addition is impossible as long as earlemes are below
 the threshold.
-@ I considered defining earlemes as |glong| or |gint64|.
+@ I considered defining earlemes as |long| or
+explicitly as 64-bit integers.
 But machines with 32-bit int's
 will in a not very long time
 become museum pieces.
@@ -7437,7 +7438,7 @@ alternative, or -1 if the new alternative is a duplicate.
 (Duplicate alternatives should not be inserted.)
 @ A variation of binary search.
 @<Function definitions@> = 
-PRIVATE gint
+PRIVATE int
 alternative_insertion_point (RECCE r, ALT new_alternative)
 {
   DSTACK alternatives = &r->t_alternatives;
@@ -10864,7 +10865,7 @@ it is exhausted.
 @<VALUE structure@>@;
 struct s_tree {
     FSTACK_DECLARE(t_nook_stack, NOOK_Object)@;
-    FSTACK_DECLARE(t_nook_worklist, gint)@;
+    FSTACK_DECLARE(t_nook_worklist, int)@;
     Bit_Vector t_and_node_in_use;
     Marpa_Order t_order;
     @<Int aligned tree elements@>@;
@@ -10915,7 +10916,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     t->t_parse_count = 0;
     t->t_and_node_in_use = bv_create ((unsigned int) and_count);
     FSTACK_INIT (t->t_nook_stack, NOOK_Object, and_count);
-    FSTACK_INIT (t->t_nook_worklist, gint, and_count);
+    FSTACK_INIT (t->t_nook_worklist, int, and_count);
 }
 
 @*0 Reference Counting and Destructors.
@@ -11131,7 +11132,7 @@ Otherwise, the tree is exhausted.
 @<Start a new iteration of the tree@> = {
     while (1) {
 	NOOK iteration_candidate = FSTACK_TOP(t->t_nook_stack, NOOK_Object);
-	gint choice;
+	int choice;
 	if (!iteration_candidate) break;
 	choice = Choice_of_NOOK(iteration_candidate);
 	MARPA_ASSERT(choice >= 0);
@@ -11170,8 +11171,8 @@ Otherwise, the tree is exhausted.
 	}
     }
     {
-	gint stack_length = Size_of_T(t);
-	gint i;
+	int stack_length = Size_of_T(t);
+	int i;
 	if (stack_length <= 0) goto TREE_IS_EXHAUSTED;
 	FSTACK_CLEAR(t->t_nook_worklist);
 	for (i = 0; i < stack_length; i++) {
@@ -11188,9 +11189,9 @@ Otherwise, the tree is exhausted.
 	AND work_and_node;
 	OR work_or_node;
 	OR child_or_node = NULL;
-	gint choice;
-	gint child_is_cause = 0;
-	gint child_is_predecessor = 0;
+	int choice;
+	int child_is_cause = 0;
+	int child_is_predecessor = 0;
 	p_work_nook_id = FSTACK_TOP(t->t_nook_worklist, NOOKID);
 	if (!p_work_nook_id) {
 	    goto TREE_IS_FINISHED;
@@ -11531,10 +11532,10 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     if (!T_is_Exhausted (t))
       {
 	VALUE v = my_slice_new (struct s_value);
-	const int minimum_stack_size = (8192 / sizeof (gint));
+	const int minimum_stack_size = (8192 / sizeof (int));
 	const int initial_stack_size =
 	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
-	DSTACK_INIT (VStack_of_V (v), gint, initial_stack_size);
+	DSTACK_INIT (VStack_of_V (v), int, initial_stack_size);
 	@<Initialize nulling "ask me" bit vector@>@;
 	Next_Value_Type_of_V(v) = V_GET_DATA;
 	V_is_Trace (v) = 1;
@@ -11816,15 +11817,15 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 	    if (virtual_lhs) {
 	        real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
 		if (virtual_rhs) {
-		    *(DSTACK_TOP(*virtual_stack, gint)) += real_symbol_count;
+		    *(DSTACK_TOP(*virtual_stack, int)) += real_symbol_count;
 		} else {
-		    *DSTACK_PUSH(*virtual_stack, gint) = real_symbol_count;
+		    *DSTACK_PUSH(*virtual_stack, int) = real_symbol_count;
 		}
 	    } else {
 
 		if (virtual_rhs) {
 		    real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
-		    real_symbol_count += *DSTACK_POP(*virtual_stack, gint);
+		    real_symbol_count += *DSTACK_POP(*virtual_stack, int);
 		} else {
 		    real_symbol_count = Length_of_RULE(nook_rule);
 		}
@@ -12037,7 +12038,7 @@ PRIVATE int bv_bit_test(Bit_Vector vector, unsigned int bit)
 @*0 Test and Set a Boolean Vector Bit.
 Ensure that a bit is set and returning its value to the call.
 @<Function definitions@> =
-PRIVATE gint
+PRIVATE int
 bv_bit_test_and_set (Bit_Vector vector, unsigned int bit)
 {
   Bit_Vector addr = vector + (bit / bv_wordbits);
@@ -12726,7 +12727,7 @@ PRIVATE void psar_reset(const PSAR psar)
 {
     PSL psl = psar->t_first_psl;
     while (psl && psl->t_owner) {
-	gint i;
+	int i;
 	for (i = 0; i < psar->t_psl_length; i++) {
 	    PSL_Datum(psl, i) = NULL;
 	}
