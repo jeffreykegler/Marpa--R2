@@ -120,7 +120,7 @@ AC_PROG_CPP
 AC_PROG_LN_S
 
 # Checks for header files.
-AC_CHECK_HEADERS([inttypes.h stddef.h stdint.h stdlib.h string.h])
+AC_CHECK_HEADERS([inttypes.h stddef.h stdint.h stdlib.h string.h limits.h])
 AC_CHECK_FUNCS([memset])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -182,9 +182,6 @@ fi
 AC_SUBST(WARNING_CFLAGS)
 AC_ARG_VAR(MARPA_DEBUG_FLAG,[Marpa debugging])
 AC_C_INLINE
-
-PKG_PROG_PKG_CONFIG([0.22])
-PKG_CHECK_MODULES(GLIB, [glib-2.0] )
 
 AC_CONFIG_FILES( [Makefile])
 AC_OUTPUT
