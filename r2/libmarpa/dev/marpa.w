@@ -1888,7 +1888,7 @@ of symbols.
 I believe
 by the time 64-bit machines become universal,
 nobody will have noticed this restriction.
-@d MAX_RHS_LENGTH (G_MAXINT >> (2))
+@d MAX_RHS_LENGTH (INT_MAX >> (2))
 @d Length_of_RULE(rule) ((rule)->t_rhs_length)
 @<Int aligned rule elements@> = int t_rhs_length;
 @ The symbols come at the end of the |marpa_rule| structure,
@@ -4259,8 +4259,6 @@ NEXT_AHFA_STATE: ;
 		      TRANS transition = transitions[completed_symbol_id];
 		      AEX* aexes = AEXs_of_TRANS(transition);
 		      int aex_ix = LV_Completion_Count_of_TRANS(transition)++;
-MARPA_OFF_DEBUG4("Added completion aex at %d for ahfa_id=%d sym=%d",
-    aex_ix, ahfa_id, completed_symbol_id);
 		      aexes[aex_ix] = aex;
 		  }
 	      }
@@ -4745,8 +4743,8 @@ The following facts hold:
 \par
 Here we take a first pass at this, letting the value be the postdot symbol for
 the predictable rules.
-|G_MAXINT| is used for the others, so that they will sort high.
-(|G_MAXINT| is used and not |G_MAXUINT|, because the sort routines
+|INT_MAX| is used for the others, so that they will sort high.
+(|INT_MAX| is used and not |UINT_MAX|, because the sort routines
 work with signed values.)
 This first pass fully captures the order,
 but in the 
@@ -5673,7 +5671,7 @@ etc.
 a more flexible idea of location, with a unit of length.
 The unit of token length in Marpa is called an Earleme.
 The locations themselves are often called earlemes.
-@ |EARLEME_THRESHOLD| is less than |G_MAXINT| so that
+@ |EARLEME_THRESHOLD| is less than |INT_MAX| so that
 I can prevent overflow without getting fancy -- overflow
 by addition is impossible as long as earlemes are below
 the threshold.
@@ -5686,7 +5684,7 @@ And in the meantime this
 definition of |EARLEME_THRESHOLD| probably allows as large as
 parse as the memories on those machines will be
 able to handle.
-@d EARLEME_THRESHOLD (G_MAXINT/4)
+@d EARLEME_THRESHOLD (INT_MAX/4)
 @<Public typedefs@> = typedef int Marpa_Earleme;
 @ @<Private typedefs@> = typedef Marpa_Earleme EARLEME;
 
@@ -5885,7 +5883,7 @@ sources.
 The only awkwardness takes place
 when the second source is added, and the first one must
 be recopied to make way for pointers to the linked lists.
-@d EIM_FATAL_THRESHOLD (G_MAXINT/4)
+@d EIM_FATAL_THRESHOLD (INT_MAX/4)
 @d Complete_SYMIDs_of_EIM(item) 
     Complete_SYMIDs_of_AHFA(AHFA_of_EIM(item))
 @d Complete_SYM_Count_of_EIM(item)
@@ -5994,7 +5992,7 @@ The warning threshold does not count against items added by a Leo expansion.
 @<Check count against Earley item thresholds@> = 
 if (count >= r->t_earley_item_warning_threshold)
   {
-    if (G_UNLIKELY (count >= EIM_FATAL_THRESHOLD))
+    if (UNLIKELY (count >= EIM_FATAL_THRESHOLD))
       {				/* Set the recognizer to a fatal error */
 	MARPA_FATAL (MARPA_ERR_EIM_COUNT);
 	return failure_indicator;
@@ -8787,23 +8785,12 @@ We don't need to stack the prediction, because it can have
 no other descendants.
 @d Set_boolean_in_PSIA_for_initial_nulls(eim, aim) {
 
-MARPA_OFF_DEBUG3("%s: setting boolean for initial nulls, eim=%s",
-G_STRLOC, eim_tag(eim));
-MARPA_OFF_DEBUG3("%s: setting boolean for initial nulls, aim=%s",
-G_STRLOC, aim_tag(aim));
-
     if (Position_of_AIM(aim) > 0) {
 	const int null_count = Null_Count_of_AIM(aim);
-
-MARPA_OFF_DEBUG4("%s: setting boolean for initial nulls, eim=%s, null count = %d",
-G_STRLOC, eim_tag(eim), null_count);
 
 	if (null_count) {
 	    AEX aex = AEX_of_EIM_by_AIM((eim),
 		(aim));
-
-MARPA_OFF_DEBUG4("%s: setting boolean for initial nulls, eim=%s, aex=%d",
-G_STRLOC, eim_tag(eim), aex);
 
 	    or_node_estimate += null_count;
 	    psia_test_and_set(&bocage_setup_obs, per_es_data, 
@@ -9154,9 +9141,6 @@ AND_Count_of_B(b) = 0;
   AIM ahfa_item = AIM_of_EIM_by_AEX(work_earley_item, work_aex);
   SYMI ahfa_item_symbol_instance;
   OR psia_or_node = NULL;
-MARPA_OFF_DEBUG4("%s: adding or-nodes for eim %s, aex=%d",
-    G_STRLOC, eim_tag(work_earley_item), work_aex);
-MARPA_OFF_DEBUG3("%s: adding or-nodes for aim=%s", G_STRLOC, aim_tag(ahfa_item));
   ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
   {
 	    PSL or_psl;
@@ -9182,7 +9166,6 @@ The exception are predicted AHFA items.
 Or-nodes are not added for predicted AHFA items.
 @<Add main or-node@> =
 {
-MARPA_OFF_DEBUG3("%s ahfa_item_symbol_instance = %d", G_STRLOC, ahfa_item_symbol_instance);
   if (ahfa_item_symbol_instance >= 0)
     {
       OR or_node;
@@ -9216,7 +9199,7 @@ or arranging to test it.
   OR *or_nodes_of_b = ORs_of_B (b);
   last_or_node = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
   ID_of_OR(last_or_node) = or_node_id;
-  if (G_UNLIKELY(or_node_id >= or_node_estimate))
+  if (UNLIKELY(or_node_id >= or_node_estimate))
     {
       MARPA_ASSERT(0);
       or_node_estimate *= 2;
@@ -9245,15 +9228,10 @@ and this is the case if |Position_of_OR(or_node) == 0|.
       const int first_null_symbol_instance =
 	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
       int i;
-MARPA_OFF_DEBUG3("about to add nulling token ORs rule=%d null_count=%d",
-		ID_of_RULE (rule ), null_count);
       for (i = 0; i < null_count; i++)
 	{
 	  const int symbol_instance = first_null_symbol_instance + i;
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
-MARPA_OFF_DEBUG3("adding nulling token or-node rule=%d i=%d",
-		ID_of_RULE (rule ),
-		( symbol_instance - SYMI_of_RULE(rule)));
 	  if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal) {
 		DAND draft_and_node;
 		const int rhs_ix = symbol_instance - SYMI_of_RULE(rule);
@@ -9264,13 +9242,11 @@ MARPA_OFF_DEBUG3("adding nulling token or-node rule=%d i=%d",
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
 		ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
 		RULE_of_OR (or_node) = rule;
-MARPA_OFF_DEBUG3("Added rule %p to or-node %p", RULE_of_OR(or_node), or_node);
 		Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 		draft_and_node = DANDs_of_OR (or_node) =
 		  draft_and_node_new (&bocage_setup_obs, predecessor,
 		      cause);
-MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 		Next_DAND_of_DAND (draft_and_node) = NULL;
 	      }
 	      psia_or_node = or_node;
@@ -9378,9 +9354,7 @@ corresponds to the leo predecessor.
 	  RULE_of_OR(or_node) = path_rule;
 	  Position_of_OR (or_node) =
 	      symbol_instance_of_path_ahfa_item - SYMI_of_RULE (path_rule) + 1;
-MARPA_OFF_DEBUG3("Created or-node %s at %s", or_tag(or_node), G_STRLOC);
 	  DANDs_of_OR(or_node) = NULL;
-MARPA_OFF_DEBUG3("or = %p, setting DAND = %p", or_node, DANDs_of_OR(or_node));
 	}
     }
 }
@@ -9415,8 +9389,6 @@ or-nodes follow a completion.
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 	  DANDs_of_OR (or_node) = draft_and_node =
 	      draft_and_node_new (&bocage_setup_obs, predecessor, cause);
-	  MARPA_OFF_DEBUG3 ("or = %p, setting DAND = %p", or_node,
-			    DANDs_of_OR (or_node));
 	  Next_DAND_of_DAND (draft_and_node) = NULL;
 	}
       MARPA_ASSERT (Position_of_OR (or_node) <=
@@ -9642,10 +9614,6 @@ predecessor.  Set |or_node| to 0 if there is none.
       const AEX cause_aex = aexes[ix];
       OR dand_cause;
       Set_OR_from_EIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
-MARPA_OFF_DEBUG3("%s eim=%s", G_STRLOC, eim_tag(cause_earley_item));
-MARPA_OFF_DEBUG3("%s path or=%s", G_STRLOC, or_tag(path_or_node));
-MARPA_OFF_DEBUG3("%s dand_predecessor=%s", G_STRLOC, or_tag(dand_predecessor));
-MARPA_OFF_DEBUG3("%s dand_cause=%s", G_STRLOC, or_tag(dand_cause));
       draft_and_node_add (&bocage_setup_obs, path_or_node,
 			  dand_predecessor, dand_cause);
     }
@@ -9679,7 +9647,6 @@ MARPA_OFF_DEBUG3("%s dand_cause=%s", G_STRLOC, or_tag(dand_cause));
   const SYMI symbol_instance = SYMI_of_Completed_RULE(previous_path_rule);
   const int origin_ordinal = Ord_of_ES(ES_of_LIM(path_leo_item));
   Set_OR_from_Ord_and_SYMI(dand_cause, origin_ordinal, symbol_instance);
-MARPA_OFF_DEBUG2("lim=%s", lim_tag(path_leo_item));
   draft_and_node_add (&bocage_setup_obs, path_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -9718,7 +9685,6 @@ MARPA_OFF_DEBUG2("lim=%s", lim_tag(path_leo_item));
 {
   OR dand_predecessor;
   @<Set |dand_predecessor|@>@;
-MARPA_OFF_DEBUG2("or=%s", or_tag(work_proper_or_node));
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, (OR)token);
 }
@@ -9784,7 +9750,6 @@ MARPA_OFF_DEBUG2("or=%s", or_tag(work_proper_or_node));
       SYMI_of_Completed_RULE(RULE_of_AIM(cause_ahfa_item));
   @<Set |dand_predecessor|@>@;
   Set_OR_from_Ord_and_SYMI(dand_cause, middle_ordinal, cause_symbol_instance);
-MARPA_OFF_DEBUG2("completion source, or=%s", or_tag(work_proper_or_node));
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
 	  dand_predecessor, dand_cause);
 }
@@ -10205,7 +10170,6 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
 	}
       completed_start_rule = RULE_by_ID (g, rule_id);
     }
-  MARPA_OFF_DEBUG2 ("ordinal=%d", ordinal);
 }
 
 @ The caller is assumed to have checked that the end of parse
@@ -11716,7 +11680,6 @@ Marpa_Value_Type marpa_v_step(Marpa_Value v)
 
     while (V_is_Active(v)) {
 	Marpa_Value_Type current_value_type = Next_Value_Type_of_V(v);
-	MARPA_DEBUG3("%s: value type = %d", G_STRLOC, current_value_type);
 	switch (current_value_type)
 	  {
 	  case V_GET_DATA:
@@ -13251,7 +13214,7 @@ void marpa_debug_level_set( int level )
 #define MARPA_DEBUG5(a,b,c,d,e) @[ (marpa_debug_level && \
     (*marpa_debug_handler)((a),(b),(c),(d),(e))) @]
 
-#define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
+#define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
        (*marpa_debug_handler) ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
 #define MARPA_DEBUG1(a) @[@]
@@ -13264,7 +13227,7 @@ void marpa_debug_level_set( int level )
 
 #if MARPA_ENABLE_ASSERT
 #undef MARPA_ASSERT
-#define MARPA_ASSERT(expr) do { if G_LIKELY (expr) ; else \
+#define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
        (*marpa_debug_handler) ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
 #endif
 
@@ -13421,8 +13384,9 @@ So I add such a comment.
 @ \twelvepoint @c
 #include "config.h"
 #include "marpa.h"
-#include <stddef.h>
 #include <stdarg.h>
+#include <stddef.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 @<Debug macros@>
@@ -13487,8 +13451,9 @@ So I add such a comment.
 #endif __MARPA_H__
 
 @** Miscellaneous compiler defines.
-These defines control the compiler behavior
-in various ways.
+Various defines to
+control the compiler behavior
+in various ways or which are otherwise useful.
 @<Miscellaneous compiler defines@> =
 
 #if     __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
@@ -13500,6 +13465,42 @@ in various ways.
 #if defined (__GNUC__) && defined (__STRICT_ANSI__)
 #  undef inline
 #  define inline __inline__
+#endif
+
+#undef      MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+
+/* A string identifying the current code position */
+#if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
+#  define STRLOC	__FILE__ ":" G_STRINGIFY (__LINE__) ":" __PRETTY_FUNCTION__ "()"
+#else
+#  define STRLOC	__FILE__ ":" G_STRINGIFY (__LINE__)
+#endif
+
+/* Provide a string identifying the current function, non-concatenatable */
+#if defined (__GNUC__)
+#  define STRFUNC     ((const char*) (__PRETTY_FUNCTION__))
+#elif defined (__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
+#  define STRFUNC     ((const char*) (__func__))
+#else
+#  define STRFUNC     ((const char*) ("???"))
+#endif
+
+#if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
+#define BOOLEAN_EXPR(expr)                   \
+ __extension__ ({                               \
+   int _g_boolean_var_;                         \
+   if (expr)                                    \
+      _g_boolean_var_ = 1;                      \
+   else                                         \
+      _g_boolean_var_ = 0;                      \
+   _g_boolean_var_;                             \
+})
+#define LIKELY(expr) (__builtin_expect (BOOLEAN_EXPR(expr), 1))
+#define UNLIKELY(expr) (__builtin_expect (BOOLEAN_EXPR(expr), 0))
+#else
+#define LIKELY(expr) (expr)
+#define UNLIKELY(expr) (expr)
 #endif
 
 @** Index.
