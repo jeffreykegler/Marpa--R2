@@ -38,6 +38,8 @@ STAGE_FILES = \
     ../stage/marpa_api.h \
     ../stage/marpa_obs.c \
     ../stage/marpa_obs.h \
+    ../stage/avl.h \
+    ../stage/avl.c \
     ../stage/private.h
 
 .SUFFIXES: .dvi .tex .w .pdf
@@ -109,6 +111,12 @@ marpa.pdf: marpa.tex cwebmac.tex
 	cp $? $@
 
 ../stage/marpa_obs.h: marpa_obs.h
+	cp $? $@
+
+../stage/avl.c: avl/avl.c
+	cp $? $@
+
+../stage/avl.h: avl/avl.h
 	cp $? $@
 
 ../stage/private.h: private.h

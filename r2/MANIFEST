@@ -112,6 +112,8 @@ libmarpa/build/marpa.h
 libmarpa/build/marpa_api.h
 libmarpa/build/marpa_obs.c
 libmarpa/build/marpa_obs.h
+libmarpa/build/avl.c
+libmarpa/build/avl.h
 libmarpa/build/mdate-sh
 libmarpa/build/missing
 libmarpa/build/private.h
@@ -127,6 +129,8 @@ libmarpa/dev/dist/configure.ac
 libmarpa/dev/marpa.w
 libmarpa/dev/marpa_obs.c
 libmarpa/dev/marpa_obs.h
+libmarpa/dev/avl/avl.c
+libmarpa/dev/avl/avl.h
 libmarpa/dev/old_pod/Algorithm.pod
 libmarpa/dev/old_pod/Implementation.pod
 libmarpa/dev/texi2code.pl
@@ -141,10 +145,6 @@ libmarpa/test/dev/Makefile.am
 libmarpa/test/dev/balanced.c
 libmarpa/test/dev/configure.ac
 libmarpa/test/dev/testleak.c
-libmarpa/theory/.gitignore
-libmarpa/theory/Makefile
-libmarpa/theory/ah2002_notes.ltx
-libmarpa/theory/recce.ltx
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod
 pod/Debug.pod
