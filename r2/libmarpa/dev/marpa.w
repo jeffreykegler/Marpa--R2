@@ -722,21 +722,22 @@ PRIVATE int symbol_is_valid(GRAMMAR g, SYMID symid)
 @*0 The Grammar's Rule List.
 This lists the rules for the grammar,
 with their |Marpa_Rule_ID| as the index.
-@<Widely aligned grammar elements@> = GArray* t_rules;
+@<Widely aligned grammar elements@> =
+    DSTACK_DECLARE(t_rules);
 @ @<Initialize grammar elements@> =
-g->t_rules = g_array_new(FALSE, FALSE, sizeof(RULE));
+    DSTACK_INIT(g->t_rules, RULE, 256);
 @ @<Destroy grammar elements@> =
-g_array_free(g->t_rules, TRUE);
+    DSTACK_DESTROY(g->t_rules);
 
 @*0 Rule count accessors.
-@ @d RULE_Count_of_G(g) ((g)->t_rules->len)
+@ @d RULE_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
 @ @<Function definitions@> =
 int marpa_g_rule_count(struct marpa_g* g) {
     return RULE_Count_of_G(g);
 }
 
 @ Internal accessor to find a rule by its id.
-@d RULE_by_ID(g, id) (g_array_index((g)->t_rules, RULE, (id)))
+@d RULE_by_ID(g, id) (*DSTACK_INDEX((g)->t_rules, RULE, (id)))
 
 @ Adds the rule to the list of rules kept by the Grammar
 object.
@@ -744,17 +745,18 @@ object.
 PRIVATE
 void rule_add(
     GRAMMAR g,
-    RULEID rule_id,
     RULE rule)
 {
-    g_array_insert_val(g->t_rules, (unsigned)rule_id, rule);
+    const RULEID new_id = DSTACK_LENGTH((g)->t_rules);
+    *DSTACK_PUSH((g)->t_rules, RULE) = rule;
+    rule->t_id = new_id;
     Size_of_G(g) += 1 + Length_of_RULE(rule);
     g->t_max_rule_length = MAX(Length_of_RULE(rule), g->t_max_rule_length);
 }
 
 @ Check that rule is in valid range.
 @d RULEID_of_G_is_Valid(g, rule_id)
-    ((rule_id) >= 0 && (unsigned int)(rule_id) < (g)->t_rules->len)
+    ((rule_id) >= 0 && (rule_id) < RULE_Count_of_G(g))
 
 @*0 Start Symbol.
 @<Int aligned grammar elements@> = Marpa_Symbol_ID t_original_start_symid;
@@ -1132,7 +1134,6 @@ PRIVATE void symbol_free(SYM symbol)
 This tracks the rules for which this symbol is the LHS.
 It is an optimization --- the same information could be found
 by scanning the rules every time this information is needed.
-The implementation is a |GArray|.
 @d SYMBOL_LHS_RULE_COUNT(symbol) ((symbol)->t_lhs->len)
 @<Widely aligned symbol elements@> = GArray* t_lhs;
 @ @<Initialize symbol elements@> =
@@ -1524,7 +1525,7 @@ SYMID lhs, SYMID *rhs, int length)
     rule = obstack_alloc (&g->t_obs, rule_sizeof);
     @<Initialize rule symbols@>@/
     @<Initialize rule elements@>@/
-    rule_add(g, rule->t_id, rule);
+    rule_add(g, rule);
     @<Add this rule to the symbol rule lists@>
    return rule;
 }
@@ -1952,9 +1953,10 @@ int marpa_g_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
 @*0 Rule ID.
 The {\bf rule ID} is a number which
 acts as the unique identifier for a rule.
+The rule ID is initialized when the rule is
+added to the list of rules.
 @d ID_of_RULE(rule) ((rule)->t_id)
 @<Int aligned rule elements@> = Marpa_Rule_ID t_id;
-@ @<Initialize rule elements@> = rule->t_id = g->t_rules->len;
 
 @*0 Rule Boolean: Keep Separator.
 When this rule is evaluated by the semantics,
@@ -2473,11 +2475,11 @@ PRIVATE_NOT_INLINE GRAMMAR census(GRAMMAR g)
     return g;
 }
 @ @<Declare census variables@> =
-unsigned int pre_rewrite_rule_count = g->t_rules->len;
+unsigned int pre_rewrite_rule_count = RULE_Count_of_G(g);
 unsigned int pre_rewrite_symbol_count = SYM_Count_of_G(g);
 
 @ @<Return |NULL| if empty grammar@> =
-if (g->t_rules->len <= 0) { MARPA_ERROR(MARPA_ERR_NO_RULES); return NULL; }
+if (RULE_Count_of_G(g) <= 0) { MARPA_ERROR(MARPA_ERR_NO_RULES); return NULL; }
 @ The upper layers have a lot of latitude with this one.
 There's no harm done, so the upper layers can simply ignore this one.
 On the other hand, the upper layer may see this as a sign of a major
@@ -2684,8 +2686,8 @@ for (symid = 0; symid < no_of_symbols; symid++) {
      matrix_bit_set(reach_matrix, symid, symid);
 } }
 { Marpa_Rule_ID rule_id;
-unsigned int no_of_rules = RULE_Count_of_G(g);
-for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
+RULEID rule_count_of_g = RULE_Count_of_G(g);
+for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
      RULE  rule = RULE_by_ID(g, rule_id);
      Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
      unsigned int rhs_ix, rule_length = Length_of_RULE(rule);
@@ -3321,10 +3323,11 @@ loop rule count, with the final tally.
 PRIVATE
 void loop_detect(struct marpa_g* g)
 {
-    int no_of_rules = RULE_Count_of_G(g);
+    int rule_count_of_g = RULE_Count_of_G(g);
     int loop_rule_count = 0;
     Bit_Matrix unit_transition_matrix =
-	matrix_create ((unsigned int) no_of_rules, (unsigned int) no_of_rules);
+	matrix_create ((unsigned int) rule_count_of_g,
+	    (unsigned int) rule_count_of_g);
     @<Mark direct unit transitions in |unit_transition_matrix|@>@;
     transitive_closure(unit_transition_matrix);
     @<Mark loop rules@>@;
@@ -3343,7 +3346,7 @@ In other words, for this purpose,
 unit transitions are not in general reflexive.
 @<Mark direct unit transitions in |unit_transition_matrix|@> = {
 Marpa_Rule_ID rule_id;
-for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
+for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
      RULE  rule = RULE_by_ID(g, rule_id);
      Marpa_Symbol_ID proper_id;
      int rhs_ix, rule_length;
@@ -3380,8 +3383,8 @@ Therefore only certain of CHAF pieces that are loop rules
 are regarded as virtual loop rules.
 All non-CHAF rules are virtual loop rules including,
 at this point, sequence rules.
-@<Mark loop rules@> = { Marpa_Rule_ID rule_id;
-for (rule_id = 0; rule_id < (Marpa_Rule_ID)no_of_rules; rule_id++) {
+@<Mark loop rules@> = { RULEID rule_id;
+for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
     RULE  rule;
     if (!matrix_bit_test(unit_transition_matrix, (unsigned int)rule_id, (unsigned int)rule_id))
 	continue;
