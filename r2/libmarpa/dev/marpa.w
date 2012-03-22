@@ -418,7 +418,7 @@ of the form |is_x|, where |x| is some
 property.  For example, the element of the symbol structure
 which indicates whether the symbol is a terminal or not,
 is |is_terminal|.
-Boolean names are chosen so that the |TRUE| or |FALSE|
+Boolean names are chosen so that the true or false
 value corresponds correctly to the question implied by the
 name.
 Names should be as
@@ -837,7 +837,7 @@ g->t_max_rule_length = 0;
 @ @d G_is_Precomputed(g) ((g)->t_is_precomputed)
 @<Bit aligned grammar elements@> = unsigned int t_is_precomputed:1;
 @ @<Initialize grammar elements@> =
-g->t_is_precomputed = FALSE;
+g->t_is_precomputed = 0;
 @ @<Function definitions@> =
 int marpa_g_is_precomputed(Marpa_Grammar g)
 {
@@ -849,7 +849,7 @@ int marpa_g_is_precomputed(Marpa_Grammar g)
 @*0 Grammar boolean: has loop?.
 @<Bit aligned grammar elements@> = unsigned int t_has_loop:1;
 @ @<Initialize grammar elements@> =
-g->t_has_loop = FALSE;
+g->t_has_loop = 0;
 @ @<Function definitions@> =
 int marpa_g_has_loop(Marpa_Grammar g)
 {
@@ -865,7 +865,7 @@ symbol.
 By default, this is allowed under Marpa.
 @<Bit aligned grammar elements@> = unsigned int t_is_lhs_terminal_ok:1;
 @ @<Initialize grammar elements@> =
-g->t_is_lhs_terminal_ok = TRUE;
+g->t_is_lhs_terminal_ok = 1;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
 int marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
@@ -874,8 +874,8 @@ int marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
     @<Fail if fatal error@>@;
     return g->t_is_lhs_terminal_ok;
 }
-@ Returns |TRUE| on success,
-|FALSE| on failure.
+@ Returns true on success,
+false on failure.
 @<Function definitions@> =
 int marpa_g_is_lhs_terminal_ok_set(
 struct marpa_g*g, int value)
@@ -1252,7 +1252,7 @@ int marpa_g_symbol_ask_me_when_null_set(
 @ Symbol Is Accessible Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_accessible:1;
 @ @<Initialize symbol elements@> =
-symbol->t_is_accessible = FALSE;
+symbol->t_is_accessible = 0;
 @ The trace accessor returns the Boolean value.
 Right now this function uses a pointer
 to the symbol function.
@@ -1274,7 +1274,7 @@ int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
 @ Symbol Is Counted Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_counted:1;
 @ @<Initialize symbol elements@> =
-symbol->t_is_counted = FALSE;
+symbol->t_is_counted = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_counted(Marpa_Grammar g,
 Marpa_Symbol_ID symid)
@@ -1288,7 +1288,7 @@ Marpa_Symbol_ID symid)
 @ Symbol Is Nullable Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
 @ @<Initialize symbol elements@> =
-symbol->t_is_nullable = FALSE;
+symbol->t_is_nullable = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
 {
@@ -1303,7 +1303,7 @@ int marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
 @<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
 @ @<Initialize symbol elements@> =
-symbol->t_is_nulling = FALSE;
+symbol->t_is_nulling = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 {
@@ -1317,7 +1317,7 @@ int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 @ Symbol Is Terminal Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_terminal:1;
 @ @<Initialize symbol elements@> =
-symbol->t_is_terminal = FALSE;
+symbol->t_is_terminal = 0;
 @ @d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
 @d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
@@ -1342,7 +1342,7 @@ Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 @ Symbol Is Productive Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
 @ @<Initialize symbol elements@> =
-symbol->t_is_productive = FALSE;
+symbol->t_is_productive = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_productive(
     Marpa_Grammar g,
@@ -1356,7 +1356,7 @@ int marpa_g_symbol_is_productive(
 
 @ Symbol Is Start Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_start:1;
-@ @<Initialize symbol elements@> = symbol->t_is_start = FALSE;
+@ @<Initialize symbol elements@> = symbol->t_is_start = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
 {
@@ -1379,8 +1379,8 @@ unsigned int t_is_nulling_alias:1;
 @ @<Widely aligned symbol elements@> =
 struct s_symbol* t_alias;
 @ @<Initialize symbol elements@> =
-symbol->t_is_proper_alias = FALSE;
-symbol->t_is_nulling_alias = FALSE;
+symbol->t_is_proper_alias = 0;
+symbol->t_is_nulling_alias = 0;
 symbol->t_alias = NULL;
 
 @ Proper Alias Trace Accessor:
@@ -1436,16 +1436,16 @@ PRIVATE
 SYM symbol_alias_create(GRAMMAR g, SYM symbol)
 {
     SYM alias = symbol_new(g);
-    symbol->t_is_proper_alias = TRUE;
-    SYM_is_Nulling(symbol) = FALSE;
-    symbol->t_is_nullable = FALSE;
+    symbol->t_is_proper_alias = 1;
+    SYM_is_Nulling(symbol) = 0;
+    symbol->t_is_nullable = 0;
     symbol->t_alias = alias;
-    alias->t_is_nulling_alias = TRUE;
-    SYM_is_Nulling(alias) = TRUE;
+    alias->t_is_nulling_alias = 1;
+    SYM_is_Nulling(alias) = 1;
     SYM_is_Ask_Me_When_Null(alias)
 	= SYM_is_Ask_Me_When_Null(symbol);
-    alias->t_is_nullable = TRUE;
-    alias->t_is_productive = TRUE;
+    alias->t_is_nullable = 1;
+    alias->t_is_productive = 1;
     alias->t_is_accessible = symbol->t_is_accessible;
     alias->t_alias = symbol;
     return alias;
@@ -1540,7 +1540,7 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
 	MARPA_DEV_ERROR("rhs too long");
         return -1;
     }
-    if (is_rule_duplicate(g, lhs, rhs, length) == TRUE) {
+    if (is_rule_duplicate(g, lhs, rhs, length) == 1) {
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
         return -1;
     }
@@ -1562,7 +1562,7 @@ int min, int flags )
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if grammar is precomputed@>@;
-    if (is_rule_duplicate (g, lhs_id, &rhs_id, 1) == TRUE)
+    if (is_rule_duplicate (g, lhs_id, &rhs_id, 1) == 1)
       {
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
 	return failure_indicator;
@@ -1615,7 +1615,7 @@ if (separator_id >= 0) { SYM_by_ID(separator_id)->t_is_counted = 1; }
 {
     RULE rule = rule_start(g, lhs_id, 0, 0);
     if (!rule) { @<Fail with internal grammar error@>@; }
-    rule->t_is_semantic_equivalent = TRUE;
+    rule->t_is_semantic_equivalent = 1;
     rule->t_original = original_rule_id;
     int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
 }
@@ -1647,9 +1647,9 @@ temp_rhs = my_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     rule = rule_start(g, lhs_id, temp_rhs, 1);
     if (!rule) { @<Fail with internal grammar error@>@; }
     rule->t_original = original_rule_id;
-    rule->t_is_semantic_equivalent = TRUE;
+    rule->t_is_semantic_equivalent = 1;
     /* Real symbol count remains at default of 0 */
-    RULE_has_Virtual_RHS (rule) = TRUE;
+    RULE_has_Virtual_RHS (rule) = 1;
     int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
 }
 
@@ -1661,8 +1661,8 @@ temp_rhs = my_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     rule = rule_start(g, lhs_id, temp_rhs, 2);
     if (!rule) { @<Fail with internal grammar error@>@; }
     rule->t_original = original_rule_id;
-    rule->t_is_semantic_equivalent = TRUE;
-    RULE_has_Virtual_RHS(rule) = TRUE;
+    rule->t_is_semantic_equivalent = 1;
+    RULE_has_Virtual_RHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = 1;
     int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
 }
@@ -1735,11 +1735,11 @@ the new rule, and then its right hand side
 symbols, one by one.
 If all these comparisons succeed, I conclude
 that the old rule duplicates the new one
-and return |TRUE|.
+and return true.
 If, after having done the comparison for all
 the ``same LHS" rules, I have found no duplicates,
 then I conclude there is no duplicate of the new
-rule, and return |FALSE|.
+rule, and return false.
 @ @<Function definitions@> =
 PRIVATE
 int is_rule_duplicate(GRAMMAR g,
@@ -1759,10 +1759,10 @@ SYMID lhs_id, SYMID* rhs_ids, int length)
 	        goto RULE_IS_NOT_DUPLICATE;
 	    }
 	}
-	return TRUE; /* This rule duplicates the new one */
+	return 1; /* This rule duplicates the new one */
 	RULE_IS_NOT_DUPLICATE: ;
     }
-    return FALSE; /* No duplicate rules were found */
+    return 0; /* No duplicate rules were found */
 }
 
 @ Add the rules to the symbol's rule lists:
@@ -1968,7 +1968,7 @@ For non-sequence rules, this flag should be false.
 #define MARPA_KEEP_SEPARATION @| @[0x1@]@/
 @ @<Bit aligned rule elements@> = unsigned int t_is_discard:1;
 @ @<Initialize rule elements@> =
-rule->t_is_discard = FALSE;
+rule->t_is_discard = 0;
 @ @<Function definitions@> =
 int marpa_g_rule_is_discard_separation(
     Marpa_Grammar g,
@@ -2029,9 +2029,9 @@ PRIVATE int rule_is_productive(struct marpa_g* g, RULE  rule)
 int rh_ix;
 for (rh_ix = 0; rh_ix < Length_of_RULE(rule); rh_ix++) {
    Marpa_Symbol_ID rhs_id = RHS_ID_of_RULE(rule, rh_ix);
-   if ( !SYM_by_ID(rhs_id)->t_is_productive ) return FALSE;
+   if ( !SYM_by_ID(rhs_id)->t_is_productive ) return 0;
 }
-return TRUE; }
+return 1; }
 int marpa_g_rule_is_productive(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
@@ -2049,7 +2049,7 @@ which consists only of its LHS symbol.
 derivation must have at least one step.
 @<Bit aligned rule elements@> = unsigned int t_is_loop:1;
 @ @<Initialize rule elements@> =
-rule->t_is_loop = FALSE;
+rule->t_is_loop = 0;
 @ This is the external accessor.
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
@@ -2068,7 +2068,7 @@ All virtual loop rules are loop rules,
 but not vice versa.
 @<Bit aligned rule elements@> = unsigned int t_is_virtual_loop:1;
 @ @<Initialize rule elements@> =
-rule->t_is_virtual_loop = FALSE;
+rule->t_is_virtual_loop = 0;
 @ This is the external accessor.
 The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
@@ -2090,9 +2090,9 @@ rule_is_nulling (GRAMMAR g, RULE rule)
     {
       SYMID rhs_id = RHS_ID_of_RULE (rule, rh_ix);
       if (!SYM_is_Nulling(SYM_by_ID (rhs_id)))
-	return FALSE;
+	return 0;
     }
-  return TRUE;
+  return 1;
 }
 
 @*0 Is Rule Used?.
@@ -2129,7 +2129,7 @@ semantics specified for the original grammar.
 @d RULE_has_Virtual_LHS(rule) ((rule)->t_is_virtual_lhs)
 @<Bit aligned rule elements@> = unsigned int t_is_virtual_lhs:1;
 @ @<Initialize rule elements@> =
-RULE_has_Virtual_LHS(rule) = FALSE;
+RULE_has_Virtual_LHS(rule) = 0;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
 int marpa_g_rule_is_virtual_lhs(
@@ -2146,7 +2146,7 @@ int marpa_g_rule_is_virtual_lhs(
 @d RULE_has_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
 @<Bit aligned rule elements@> = unsigned int t_is_virtual_rhs:1;
 @ @<Initialize rule elements@> =
-RULE_has_Virtual_RHS(rule) = FALSE;
+RULE_has_Virtual_RHS(rule) = 0;
 @ The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
 int marpa_g_rule_is_virtual_rhs(
@@ -2244,7 +2244,7 @@ is a stack no-op.
 @d RULE_is_Ask_Me(rule) ((rule)->t_is_ask_me)
 @<Int aligned rule elements@> = unsigned int t_is_ask_me:1;
 @ @<Initialize rule elements@> =
-    RULE_is_Ask_Me(rule) = FALSE;
+    RULE_is_Ask_Me(rule) = 0;
 @ @<Function definitions@> =
 int marpa_g_rule_is_ask_me(
     Marpa_Grammar g,
@@ -2302,7 +2302,7 @@ int marpa_g_rule_first_child_set(
 @*0 Semantic Equivalents.
 @<Bit aligned rule elements@> = unsigned int t_is_semantic_equivalent:1;
 @ @<Initialize rule elements@> =
-rule->t_is_semantic_equivalent = FALSE;
+rule->t_is_semantic_equivalent = 0;
 @ Semantic equivalence arises out of Marpa's rewritings.
 When a rule is rewritten,
 some (but not all!) of the resulting rules have the
@@ -2470,7 +2470,7 @@ PRIVATE_NOT_INLINE GRAMMAR census(GRAMMAR g)
     @<Census nulling symbols@>@;
     @<Free Boolean vectors@>@;
     @<Free Boolean matrixes@>@;
-    g->t_is_precomputed = TRUE;
+    g->t_is_precomputed = 1;
     return g;
 }
 @ @<Declare census variables@> =
@@ -3230,9 +3230,9 @@ old_start->t_is_start = 0;
   proper_old_start->t_is_start = 0;
   proper_new_start = symbol_new (g);
   proper_new_start_id = ID_of_SYM(proper_new_start);
-  proper_new_start->t_is_accessible = TRUE;
-  proper_new_start->t_is_productive = TRUE;
-  proper_new_start->t_is_start = TRUE;
+  proper_new_start->t_is_accessible = 1;
+  proper_new_start->t_is_productive = 1;
+  proper_new_start->t_is_start = 1;
   new_start_rule = rule_start (g, proper_new_start_id, &ID_of_SYM(old_start), 1);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
@@ -3257,16 +3257,16 @@ if there is one.  Otherwise it is a new, nulling, symbol.
     {				/* The only start symbol is a nulling symbol */
       nulling_new_start = symbol_new (g);
       nulling_new_start_id = ID_of_SYM(nulling_new_start);
-      SYM_is_Nulling(nulling_new_start) = TRUE;
-      nulling_new_start->t_is_nullable = TRUE;
-      nulling_new_start->t_is_productive = TRUE;
-      nulling_new_start->t_is_accessible = TRUE;
+      SYM_is_Nulling(nulling_new_start) = 1;
+      nulling_new_start->t_is_nullable = 1;
+      nulling_new_start->t_is_productive = 1;
+      nulling_new_start->t_is_accessible = 1;
     }
-  nulling_new_start->t_is_start = TRUE;
+  nulling_new_start->t_is_start = 1;
   new_start_rule = rule_start (g, nulling_new_start_id, 0, 0);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
-  RULE_is_Used(new_start_rule) = FALSE;
+  RULE_is_Used(new_start_rule) = 0;
   g->t_null_start_rule = new_start_rule;
 }
 
@@ -3333,7 +3333,7 @@ void loop_detect(struct marpa_g* g)
     @<Mark loop rules@>@;
     if (loop_rule_count)
       {
-	g->t_has_loop = TRUE;
+	g->t_has_loop = 1;
 	int_event_new (g, MARPA_EVENT_LOOP_RULES, loop_rule_count);
       }
     matrix_free(unit_transition_matrix);
@@ -3341,7 +3341,7 @@ void loop_detect(struct marpa_g* g)
 
 @ Note that direct transitions are marked in advance,
 but not trivial ones.
-That is, bit |(x,x)| is not set |TRUE| in advance.
+That is, bit |(x,x)| is not set true in advance.
 In other words, for this purpose,
 unit transitions are not in general reflexive.
 @<Mark direct unit transitions in |unit_transition_matrix|@> = {
@@ -3390,7 +3390,7 @@ for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
 	continue;
     loop_rule_count++;
     rule = RULE_by_ID(g, rule_id);
-    rule->t_is_loop = TRUE;
+    rule->t_is_loop = 1;
     rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !RULE_has_Virtual_RHS(rule);
 } }
 
@@ -5397,13 +5397,13 @@ r->t_earley_item_warning_threshold = MAX(DEFAULT_EIM_WARNING_THRESHOLD, AIM_Coun
 int marpa_r_earley_item_warning_threshold(struct marpa_r* r)
 { return r->t_earley_item_warning_threshold; }
 
-@ Returns |TRUE| on success,
-|FALSE| on failure.
+@ Returns true on success,
+false on failure.
 @<Function definitions@> =
 int marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, int threshold)
 {
     r->t_earley_item_warning_threshold = threshold <= 0 ? EIM_FATAL_THRESHOLD : threshold;
-    return TRUE;
+    return 1;
 }
 
 @*0 Furthest Earleme.
@@ -7547,7 +7547,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     Current_Earleme_of_R(r) = 0;
     if (G_is_Trivial(g)) {
 	@<Set |r| exhausted@>@;
-	return TRUE;
+	return 1;
     }
     Input_Phase_of_R(r) = R_DURING_INPUT;
     @<Allocate recognizer workareas@>@;
@@ -7570,7 +7570,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     postdot_items_create(r, set0);
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
-    return TRUE;
+    return 1;
 }
 
 @** Read a Token Alternative.
@@ -12057,7 +12057,7 @@ PRIVATE
 int bv_is_empty(Bit_Vector addr)
 {
     unsigned int  size = BV_SIZE(addr);
-    int r = TRUE;
+    int r = 1;
     if (size > 0) {
         *(addr+size-1) &= BV_MASK(addr);
         while (r && (size-- > 0)) r = ( *addr++ == 0 );
@@ -12118,8 +12118,8 @@ int bv_scan(Bit_Vector bv, unsigned int start,
     unsigned int  value;
     int empty;
 
-    if (size == 0) return FALSE;
-    if (start >= BV_BITS(bv)) return FALSE;
+    if (size == 0) return 0;
+    if (start >= BV_BITS(bv)) return 0;
     *min = start;
     *max = start;
     offset = start / bv_wordbits;
@@ -12135,12 +12135,12 @@ int bv_scan(Bit_Vector bv, unsigned int start,
         if (value == 0)
         {
             offset++;
-            empty = TRUE;
+            empty = 1;
             while (empty && (--size > 0))
             {
-                if ((value = *bv++)) empty = FALSE; else offset++;
+                if ((value = *bv++)) empty = 0; else offset++;
             }
-            if (empty) return FALSE;
+            if (empty) return 0;
         }
         start = offset * bv_wordbits;
         bitmask = bv_lsb;
@@ -12160,10 +12160,10 @@ int bv_scan(Bit_Vector bv, unsigned int start,
     if (value == 0)
     {
         offset++;
-        empty = TRUE;
+        empty = 1;
         while (empty && (--size > 0))
         {
-            if ((value = ~ *bv++)) empty = FALSE; else offset++;
+            if ((value = ~ *bv++)) empty = 0; else offset++;
         }
         if (empty) value = bv_lsb;
     }
@@ -12174,7 +12174,7 @@ int bv_scan(Bit_Vector bv, unsigned int start,
         start++;
     }
     *max = --start;
-    return TRUE;
+    return 1;
 }
 
 @*0 Count the bits in a Boolean Vector.
