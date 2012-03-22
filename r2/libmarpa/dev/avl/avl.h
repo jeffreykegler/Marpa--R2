@@ -41,9 +41,6 @@ struct libavl_allocator
   };
 #endif
 
-/* Default memory allocator. */
-extern struct libavl_allocator avl_allocator_default;
-
 /* Maximum AVL tree height. */
 #ifndef AVL_MAX_HEIGHT
 #define AVL_MAX_HEIGHT 92

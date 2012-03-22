@@ -26,6 +26,18 @@
 #include <string.h>
 #include "avl.h"
 
+extern void*
+marpa_avl_malloc(struct libavl_allocator* alloc, size_t size);
+extern void
+marpa_avl_free(struct libavl_allocator* alloc, void *p);
+
+/* Default memory allocator */
+static struct libavl_allocator avl_allocator_default =
+  {
+    marpa_avl_malloc,
+    marpa_avl_free
+  };
+
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|
    and memory allocator |allocator|.
@@ -842,18 +854,6 @@ marpa_avl_destroy (struct avl_table *tree, avl_item_func *destroy)
 
   tree->avl_alloc->libavl_free (tree->avl_alloc, tree);
 }
-
-extern void*
-marpa_avl_malloc(struct libavl_allocator* alloc, size_t size);
-extern void
-marpa_avl_free(struct libavl_allocator* alloc, void *p);
-
-/* Default memory allocator that uses |malloc()| and |free()|. */
-struct libavl_allocator avl_allocator_default =
-  {
-    marpa_avl_malloc,
-    marpa_avl_free
-  };
 
 #undef NDEBUG
 #include <assert.h>
