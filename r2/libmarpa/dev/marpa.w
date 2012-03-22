@@ -98,8 +98,6 @@
 @s xor normal
 
 @s error normal
-@s gconstpointer int
-@s gpointer int
 @s PSAR int
 @s PSL int
 
@@ -3728,8 +3726,8 @@ they are restored to this order.
 For portability,
 it requires the AIMs to be in an array.
 @ @<Function definitions@> =
-PRIVATE_NOT_INLINE int cmp_by_aimid (gconstpointer ap,
-	gconstpointer bp)
+PRIVATE_NOT_INLINE int cmp_by_aimid (const void* ap,
+	const void* bp)
 {
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
@@ -3743,8 +3741,8 @@ A postdot symbol of $-1$ should sort high.
 This comparison function is used in the logic to change the AHFA item ID's
 from their temporary values to their final ones.
 @ @<Function definitions@> =
-PRIVATE_NOT_INLINE int cmp_by_postdot_and_aimid (gconstpointer ap,
-	gconstpointer bp)
+PRIVATE_NOT_INLINE int cmp_by_postdot_and_aimid (const void* ap,
+	const void* bp)
 {
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
@@ -4105,8 +4103,8 @@ Checking those for duplicates is optimized, using an array
 indexed by the ID of their only AHFA item.
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int AHFA_state_cmp(
-    gconstpointer ap,
-    gconstpointer bp,
+    const void* ap,
+    const void* bp,
     void *param G_GNUC_UNUSED)
 {
     AIM* items_a;
@@ -4781,13 +4779,13 @@ calculate |no_of_predictable_rules|@> =
     }
   g_qsort_with_data (rule_by_sort_key, (int)rule_count_of_g,
 		     sizeof (RULE), cmp_by_rule_sort_key,
-		     (gpointer) sort_key_by_rule_id);
+		     (void *) sort_key_by_rule_id);
 }
 
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int
-cmp_by_rule_sort_key(gconstpointer ap,
-	gconstpointer bp, gpointer user_data)
+cmp_by_rule_sort_key(const void* ap,
+	const void* bp, void * user_data)
 {
     RULE a = *(RULE*)ap;
     RULE b = *(RULE*)bp;
@@ -5422,9 +5420,9 @@ This is used in the completion
 phase for each Earley set.
 It is used in building the list of postdot items,
 and when building the Leo items.
-It is sized to hold one |gpointer| for
+It is sized to hold one |void *| for
 every symbol.
-@ @<Widely aligned recognizer elements@> = gpointer* t_sym_workarea;
+@ @<Widely aligned recognizer elements@> = void ** t_sym_workarea;
 @ @<Initialize recognizer elements@> = r->t_sym_workarea = NULL;
 @ @<Allocate symbol workarea@> =
     r->t_sym_workarea = my_malloc(sym_workarea_size);
@@ -5433,13 +5431,13 @@ every symbol.
 This is used in the completion
 phase for each Earley set.
 when building the Leo items.
-It is sized to hold two |gpointer|'s for
+It is sized to hold two |void *|'s for
 every symbol.
-@ @<Widely aligned recognizer elements@> = gpointer* t_workarea2;
+@ @<Widely aligned recognizer elements@> = void ** t_workarea2;
 @ @<Initialize recognizer elements@> = r->t_workarea2 = NULL;
 @ @<Allocate recognizer workareas@> =
 {
-  const unsigned int sym_workarea_size = sizeof (gpointer) * symbol_count_of_g;
+  const unsigned int sym_workarea_size = sizeof (void *) * symbol_count_of_g;
   @<Allocate symbol workarea@>@;
   r->t_workarea2 = my_malloc(2u * sym_workarea_size);
 }
@@ -6621,9 +6619,9 @@ struct s_source;
 typedef struct s_source* SRC;
 @ @<Source object structure@>= 
 struct s_source {
-     gpointer t_predecessor;
+     void * t_predecessor;
      union {
-	 gpointer t_completion;
+	 void * t_completion;
 	 TOK t_token;
      } t_cause;
 };
@@ -7320,10 +7318,10 @@ duplicates have their cost, but so does the
 tracking necessary to avoid them.
 @ My strong preference is that token values
 {\bf always} be integers, but
-token values are |gpointer|'s to allow applications
+token values are |void *|'s to allow applications
 full generality.
 Using |glib|, integers can portably be stored in a
-|gpointer|, but the reverse is not true.
+|void *|, but the reverse is not true.
 @ In my prefered semantic scheme, the integers are
 used by the higher levels to index the actual data.
 In this way no direct pointer to any data "owned"
@@ -8038,7 +8036,7 @@ and running benchmarks.
 PRIVATE_NOT_INLINE void
 postdot_items_create (RECCE r, ES current_earley_set)
 {
-    gpointer * const pim_workarea = r->t_sym_workarea;
+    void * * const pim_workarea = r->t_sym_workarea;
   @<Unpack recognizer objects@>@;
     EARLEME current_earley_set_id = Earleme_of_ES(current_earley_set);
     Bit_Vector bv_pim_symbols = r->t_bv_sym;
@@ -8308,7 +8306,7 @@ In a populated LIM, this will not necessarily be the case.
 }
 
 @ @<Create and populate a LIM chain@> = {
-  gpointer* const lim_chain = r->t_workarea2;
+  void ** const lim_chain = r->t_workarea2;
   int lim_chain_ix;
   @<Create a LIM chain@>@;
   @<Populate the LIMs in the LIM chain@>@;
@@ -12530,9 +12528,9 @@ deallocate the data it now has ``stolen".
 struct s_dstack;
 typedef struct s_dstack* DSTACK;
 @ @<Private utility structures@> =
-struct s_dstack { int t_count; int t_capacity; gpointer t_base; };
+struct s_dstack { int t_count; int t_capacity; void * t_base; };
 @ @<Function definitions@> =
-PRIVATE gpointer dstack_resize(struct s_dstack* this, gsize type_bytes)
+PRIVATE void * dstack_resize(struct s_dstack* this, gsize type_bytes)
 {
     this->t_capacity *= 2;
     this->t_base = my_realloc(this->t_base, this->t_capacity*type_bytes);
@@ -12620,7 +12618,7 @@ In the case of and-nodes, the origin Earley set is also
 held constant, and the Earley set of the middle earleme
 is the variable.
 @ The PSL's are kept in a linked list.
-Each contains |Size_of_PSL| |gpointer|'s.
+Each contains |Size_of_PSL| |void *|'s.
 |t_owner| is the address of the location
 that ``owns" this PSL.
 That location will be NULL'ed
@@ -12629,14 +12627,14 @@ when deallocating.
 struct s_per_earley_set_list;
 typedef struct s_per_earley_set_list *PSL;
 @ @d Sizeof_PSL(psar)
-    (sizeof(PSL_Object) + (psar->t_psl_length - 1) * sizeof(gpointer))
+    (sizeof(PSL_Object) + (psar->t_psl_length - 1) * sizeof(void *))
 @d PSL_Datum(psl, i) ((psl)->t_data[(i)])
 @<Private structures@> =
 struct s_per_earley_set_list {
     PSL t_prev;
     PSL t_next;
     PSL* t_owner;
-    gpointer t_data[1];
+    void * t_data[1];
 };
 typedef struct s_per_earley_set_list PSL_Object;
 @ The per-Earley-set lists are allcated from per-Earley-set arenas.
@@ -13007,7 +13005,7 @@ so that |-1| is not used as a return value.
 
 @ Routines returning pointers typically use |NULL| as
 the general failure indicator.
-@<Return |NULL| on failure@> = const gpointer failure_indicator = NULL;
+@<Return |NULL| on failure@> = void* const failure_indicator = NULL;
 @ Routines returning integer value use |-2| as the
 general failure indicator.
 @<Return |-2| on failure@> = const int failure_indicator = -2;
