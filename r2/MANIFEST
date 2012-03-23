@@ -101,7 +101,6 @@ libmarpa/build/config.h.in
 libmarpa/build/config.sub
 libmarpa/build/configure
 libmarpa/build/configure.ac
-libmarpa/build/depcomp
 libmarpa/build/install-sh
 libmarpa/build/ltmain.sh
 libmarpa/build/m4/libtool.m4
@@ -117,7 +116,6 @@ libmarpa/build/marpa_obs.h
 libmarpa/build/mdate-sh
 libmarpa/build/missing
 libmarpa/build/private.h
-libmarpa/build/texinfo.tex
 libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
 libmarpa/dev/README

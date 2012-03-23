@@ -59,10 +59,10 @@ m4_define([marpa_lt_current_minus_age],
 #          [m4_if(m4_eval(marpa_minor_version % 2), [1], [yes], [minimum])])dnl
 
 AC_INIT([marpa],[marpa_version],[http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa])
-
+AM_MAINTAINER_MODE([enable])
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([foreign no-installinfo])
+AM_INIT_AUTOMAKE([cygnus no-installinfo])
 
 # Specify a configuration file
 AC_CONFIG_HEADERS([config.h])
