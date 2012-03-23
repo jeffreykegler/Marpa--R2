@@ -1,3 +1,12 @@
+/* This file is a modification of one of the versions of the GNU obstack.h
+ * which was LGPL 2.1.  Here is the copyright notice from that file:
+ *
+ * obstack.h - object stack macros
+ * Copyright (C) 1988-1994,1996-1999,2003,2004,2005,2009
+ *    Free Software Foundation, Inc.
+ * This file is part of the GNU C Library.
+ */
+
 /*
  * Copyright 2012 Jeffrey Kegler
  * This file is part of Marpa::R2.  Marpa::R2 is free software: you can
@@ -13,15 +22,6 @@
  * You should have received a copy of the GNU Lesser
  * General Public License along with Marpa::R2.  If not, see
  * http://www.gnu.org/licenses/.
- */
-
-/* This file is a modification of one of the versions of the GNU obstack.h
- * which was LGPL 2.1.  Here is the copyright notice from that file:
- *
- * obstack.h - object stack macros
- * Copyright (C) 1988-1994,1996-1999,2003,2004,2005,2009
- *    Free Software Foundation, Inc.
- * This file is part of the GNU C Library.
  */
 
 /* Summary:

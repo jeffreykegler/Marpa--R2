@@ -1,3 +1,12 @@
+/* This is a modification of avl.h, from Ben Pfaff's libavl,
+   which was under the LGPL 3.  Here is the copyright notice
+   from that file:
+
+   libavl - library for manipulation of binary trees.
+   Copyright (C) 1998, 1999, 2000, 2001, 2002, 2004 Free Software
+   Foundation, Inc.
+*/
+
 /*
  * Copyright 2012 Jeffrey Kegler
  * This file is part of Marpa::R2.  Marpa::R2 is free software: you can
@@ -14,17 +23,6 @@
  * General Public License along with Marpa::R2.  If not, see
  * http://www.gnu.org/licenses/.
  */
-
-/* This is a modification of avl.c, from Ben Pfaff's libavl,
-   which was under the LGPL 3.  Here is the copyright notice
-   from that file:
-
-   libavl - library for manipulation of binary trees.
-   Copyright (C) 1998, 1999, 2000, 2001, 2002, 2004 Free Software
-   Foundation, Inc.
-*/
-
-/* Modified by Jeffrey Kegler -- Original copyright is above */
 
 #ifndef AVL_H
 #define AVL_H 1

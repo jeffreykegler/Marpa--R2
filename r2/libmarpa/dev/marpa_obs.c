@@ -1,3 +1,12 @@
+/* This file is a modification of one of the versions of the GNU obstack.c
+ * which was LGPL 2.1.  Here is the copyright notice from that file:
+ *
+ * obstack.c - subroutines used implicitly by object stack macros
+ * Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1996, 1997, 1998,
+ * 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+ * This file is part of the GNU C Library.
+ */
+
 /*
  * Copyright 2012 Jeffrey Kegler
  * This file is part of Marpa::R2.  Marpa::R2 is free software: you can
@@ -13,15 +22,6 @@
  * You should have received a copy of the GNU Lesser
  * General Public License along with Marpa::R2.  If not, see
  * http://www.gnu.org/licenses/.
- */
-
-/* This file is a modification of one of the versions of the GNU obstack.c
- * which was LGPL 2.1.  Here is the copyright notice from that file:
- *
- * obstack.c - subroutines used implicitly by object stack macros
- * Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1996, 1997, 1998,
- * 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
- * This file is part of the GNU C Library.
  */
 
 #ifdef HAVE_CONFIG_H

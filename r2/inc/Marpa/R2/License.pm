@@ -484,7 +484,7 @@ sub license_problems_in_c_file {
         say {*STDERR} "Checking $filename as C file" or die "say failed: $ERRNO";
     }
     my @problems = ();
-    my $text = slurp_top( $filename, 200 + length $c_license );
+    my $text = slurp_top( $filename, 500 + length $c_license );
     ${$text}
         =~ s{ \A [/][*] \s+ DO \s+ NOT \s+ EDIT \s+ DIRECTLY [^\n]* \n }{}xms;
     if ( ( index ${$text}, $c_license ) < 0 ) {
