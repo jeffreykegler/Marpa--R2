@@ -135,18 +135,7 @@ END_OF_STRING
 
 =cut
 
-my %original = (
-    'libmarpa/build/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
-    'libmarpa/build/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
-    'libmarpa/dev/marpa_obs.c' => [ 'libmarpa/orig/gnu/obstack.c', 1022 ],
-    'libmarpa/dev/marpa_obs.h' => [ 'libmarpa/orig/gnu/obstack.h', 1022 ],
-);
-
 my %GNU_file = (
-    'libmarpa/build/avl.c' => 1,
-    'libmarpa/build/avl.h' => 1,
-    'libmarpa/dev/avl/avl.c' => 1,
-    'libmarpa/dev/avl/avl.h' => 1,
     map {
     (   'libmarpa/stage/' . $_, 1, 'libmarpa/build/' . $_, 1,
         'libmarpa/test/dev/' . $_,   1
@@ -357,35 +346,6 @@ sub Marpa::R2::License::file_license_problems {
         say {*STDERR} "Checking license of $filename" or die "say failed: $ERRNO";
     }
     my @problems = ();
-    CHECK_VS_ORIGINAL: {
-        my $original = $original{$filename};
-        last CHECK_VS_ORIGINAL if not defined $original;
-        my ( $original_file, $length );
-        if ( ref $original eq 'ARRAY' ) {
-            ( $original_file, $length ) = @{$original};
-        }
-        else {
-            $original_file = $original;
-        }
-        if ( not -r $original_file ) {
-            push @problems,
-                qq{Original of "$filename" is not readable: "$original_file"\n};
-            last CHECK_VS_ORIGINAL;
-        }
-        if (    not defined $length
-            and not files_equal( $original_file, $filename ) )
-        {
-            push @problems,
-                "Difference between original ($original_file) and $filename\n";
-            last CHECK_VS_ORIGINAL;
-        } ## end if ( not defined $length and not files_equal( $original_file...))
-        if ( not tops_equal( $original_file, $filename, $length ) ) {
-            push @problems,
-                "Difference between top of original ($original_file) and $filename\n";
-            last CHECK_VS_ORIGINAL;
-        }
-        return @problems;
-    } ## end CHECK_VS_ORIGINAL:
     return @problems if @problems;
     my $closure = file_type($filename);
     if ( defined $closure ) {

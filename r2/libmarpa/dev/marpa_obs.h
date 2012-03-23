@@ -1,22 +1,28 @@
-/* obstack.h - object stack macros
-   Copyright (C) 1988-1994,1996-1999,2003,2004,2005,2009
-	Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
+/*
+ * Copyright 2012 Jeffrey Kegler
+ * This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * Marpa::R2 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser
+ * General Public License along with Marpa::R2.  If not, see
+ * http://www.gnu.org/licenses/.
+ */
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+/* This file is a modification of one of the versions of the GNU obstack.h
+ * which was LGPL 2.1.  Here is the copyright notice from that file:
+ *
+ * obstack.h - object stack macros
+ * Copyright (C) 1988-1994,1996-1999,2003,2004,2005,2009
+ *    Free Software Foundation, Inc.
+ * This file is part of the GNU C Library.
+ */
 
 /* Summary:
 
