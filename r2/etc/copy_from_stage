@@ -16,44 +16,22 @@
 use 5.010;
 use strict;
 use warnings;
-
-use ExtUtils::Manifest;
-use File::Copy;
-use Cwd;
 use Fatal qw(open close chdir chmod utime);
-use English qw( -no_match_vars );
-use Getopt::Long;
 
-sub usage {
-    die "$PROGRAM_NAME: [-q]\n";
+# Portability is NOT emphasized here -- this script is part
+# of the development environment, not the configuration or
+# installation environment
+
+my $version_info = `libmarpa/stage/configure --version`;
+my ($version) = $version_info =~ m/\A marpa \s configure \s ([\d.]*)$/msx;
+my $tar_file = 'stage/marpa-' . $version . '.tar.gz';
+my $untarred_dir = 'marpa-' . $version;
+say $tar_file;
+
+if (-d 'libmarpa/build') {
+    system('rm -rf libmarpa/build') and die "rm -rf libmarpa/build failed: $!";
 }
-my $quiet;
-my $result = GetOptions ( "quiet|q"  => \$quiet);  # flag
-usage() if not $result;
+chdir 'libmarpa';
+system('tar', '-xvzf', $tar_file) == 0 or die("Could not tar -xvzf $tar_file: $!");
+rename $untarred_dir, 'build' or die "rename failed: $!";
 
-# Assumes CPAN directory is cwd
-my $manifest_hash = ExtUtils::Manifest::maniread();
-my @build_dir     = qw(libmarpa build);
-my $build_dir     = File::Spec->catdir(@build_dir);
-my $build_m4_dir     = File::Spec->catdir(@build_dir, 'm4');
-my @stage_dir     = qw(libmarpa stage);
-my $stage_dir     = File::Spec->catdir(@stage_dir);
--d $build_dir or mkdir $build_dir;
--d $build_m4_dir or mkdir $build_m4_dir;
-
-BUILD_FILE: for my $build_file ( keys %{$manifest_hash} ) {
-
-    # names in MANIFEST are always UNIX-style
-    my $stage_relative = $build_file;
-    next BUILD_FILE if not $stage_relative =~ s{ \A libmarpa / build / }{}xms;
-    my @stage_relative = split m{/}xms, $stage_relative;
-    my $from_file = File::Spec->catfile( @stage_dir, @stage_relative );
-    my $to_file = File::Spec->catfile( @build_dir, @stage_relative );
-    if (File::Copy::copy( $from_file, $to_file ))
-    {
-        $quiet or say "'$from_file' -> '$to_file'";
-    } else {
-        die "Cannot copy '$from_file' to '$to_file': $!";
-    }
-
-} ## end for my $build_file ( keys %{$manifest_hash} )
