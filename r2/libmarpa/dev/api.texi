@@ -2088,6 +2088,9 @@ Suggested message: "This grammar has no start symbol."
 @deftypevr Macro int MARPA_ERR_NO_TRACE_PIM
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS
 Marpa allows all symbols to be terminals, even those on the LHS,
 and this is the default.

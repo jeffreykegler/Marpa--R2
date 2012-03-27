@@ -776,7 +776,7 @@ Marpa_Symbol_ID marpa_g_start_symbol_set(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar is precomputed@>@;
+    @<Fail if precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     return g->t_original_start_symid = symid;
 }
@@ -882,7 +882,7 @@ struct marpa_g*g, int value)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
-    @<Fail if grammar is precomputed@>
+    @<Fail if precomputed@>
     return g->t_is_lhs_terminal_ok = value ? 1 : 0;
 }
 
@@ -1266,7 +1266,7 @@ int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     return SYM_by_ID(symid)->t_is_accessible;
 }
@@ -1294,7 +1294,7 @@ int marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     return SYM_by_ID(symid)->t_is_nullable;
 }
@@ -1309,7 +1309,7 @@ int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     return SYM_is_Nulling(SYM_by_ID(symid));
 }
@@ -1334,7 +1334,7 @@ int marpa_g_symbol_is_terminal_set(
 Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar is precomputed@>@;
+    @<Fail if precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     return SYMID_is_Terminal(symid) = value;
 }
@@ -1349,7 +1349,7 @@ int marpa_g_symbol_is_productive(
     Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     return SYM_by_ID(symid)->t_is_productive;
 }
@@ -1361,7 +1361,7 @@ int marpa_g_symbol_is_productive(
 int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
    return SYM_by_ID(symid)->t_is_start;
 }
@@ -1561,7 +1561,7 @@ int min, int flags )
     SYMID internal_lhs_id, *temp_rhs;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar is precomputed@>@;
+    @<Fail if precomputed@>@;
     if (is_rule_duplicate (g, lhs_id, &rhs_id, 1) == 1)
       {
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
@@ -2137,7 +2137,7 @@ int marpa_g_rule_is_virtual_lhs(
     Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     return RULE_has_Virtual_LHS(RULE_by_ID(g, rule_id));
 }
@@ -2154,7 +2154,7 @@ int marpa_g_rule_is_virtual_rhs(
     Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     return RULE_has_Virtual_RHS(RULE_by_ID(g, rule_id));
 }
@@ -2171,7 +2171,7 @@ unsigned int marpa_g_virtual_start(
     Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     return RULE_by_ID(g, rule_id)->t_virtual_start;
 }
@@ -2188,7 +2188,7 @@ unsigned int marpa_g_virtual_end(
     Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     return RULE_by_ID(g, rule_id)->t_virtual_end;
 }
@@ -2224,7 +2224,7 @@ int marpa_g_real_symbol_count(
     Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     return Real_SYM_Count_of_RULE(RULE_by_ID(g, rule_id));
 }
@@ -2391,12 +2391,21 @@ covered in the next few
 sections.
 This section describes the top-level method for precomputation,
 which is external.
+@ If |marpa_g_precompute| is called on a precomputed
+grammar, the upper layers have a lot of latitude.
+There's no harm done, so the upper layers can simply ignore this one.
+On the other hand, the upper layer may see this as a sign of a major
+logic error, and treat it as a fatal error.
+Anything in between these two extremes is also possible.
 
 @<Function definitions@> =
-int marpa_g_precompute(struct marpa_g* g)
+int marpa_g_precompute(Marpa_Grammar g)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
+    @<Fail if empty grammar@>@;
+    @<Fail if precomputed@>@;
+    @<Fail if bad start symbol@>@;
     G_EVENTS_CLEAR(g);
      if (!census(g)) return failure_indicator;
      if (!CHAF_rewrite(g)) return failure_indicator;
@@ -2443,13 +2452,9 @@ The upside is that in the more frequent cases, the user is spared
 a lot of useless diagnostics.
 
 @<Function definitions@> =
-PRIVATE_NOT_INLINE GRAMMAR census(GRAMMAR g)
+PRIVATE GRAMMAR census(GRAMMAR g)
 {
-    @<Return |NULL| on failure@>@;
     @<Declare census variables@>@;
-    @<Return |NULL| if  empty grammar@>@;
-    @<Return |NULL| if already precomputed@>@;
-    @<Return |NULL| if bad start symbol@>@;
     @<Census LHS symbols@>@;
     @<Census terminals@>@;
     if (have_marked_terminals) {
@@ -2477,39 +2482,39 @@ PRIVATE_NOT_INLINE GRAMMAR census(GRAMMAR g)
 unsigned int pre_rewrite_rule_count = RULE_Count_of_G(g);
 unsigned int pre_rewrite_symbol_count = SYM_Count_of_G(g);
 
-@ @<Return |NULL| if empty grammar@> =
-if (RULE_Count_of_G(g) <= 0) { MARPA_ERROR(MARPA_ERR_NO_RULES); return NULL; }
-@ The upper layers have a lot of latitude with this one.
-There's no harm done, so the upper layers can simply ignore this one.
-On the other hand, the upper layer may see this as a sign of a major
-logic error, and treat it as a fatal error.
-Anything in between these two extremes is also possible.
-@<Return |NULL| if already precomputed@> =
-if (G_is_Precomputed(g)) {
-    MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
-return NULL; }
+@ @<Fail if empty grammar@> =
+if (RULE_Count_of_G(g) <= 0) {
+    MARPA_ERROR(MARPA_ERR_NO_RULES);
+    return failure_indicator;
+}
 @ Loop over the rules, producing bit vector of LHS symbols, and of
 symbols which are the LHS of empty rules.
 While at it, set a flag to indicate if there are empty rules.
 
-@ @<Return |NULL| if bad start symbol@> =
-if (original_start_symid < 0) {
-    MARPA_ERROR(MARPA_ERR_NO_START_SYMBOL);
-    return failure_indicator;
-}
-if (!symbol_is_valid(g, original_start_symid)) {
-    MARPA_DEV_ERROR("invalid start symbol");
-    return failure_indicator;
-}
-original_start_symbol = SYM_by_ID(original_start_symid);
-if (DSTACK_LENGTH(original_start_symbol->t_lhs) <= 0) {
-    MARPA_ERROR(MARPA_ERR_START_NOT_LHS);
-    return failure_indicator;
+@ @<Fail if bad start symbol@> =
+{
+  const Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
+    SYM original_start_symbol;
+  if (original_start_symid < 0)
+    {
+      MARPA_ERROR (MARPA_ERR_NO_START_SYMBOL);
+      return failure_indicator;
+    }
+  if (!symbol_is_valid (g, original_start_symid))
+    {
+      MARPA_DEV_ERROR ("invalid start symbol");
+      return failure_indicator;
+    }
+  original_start_symbol = SYM_by_ID (original_start_symid);
+  if (DSTACK_LENGTH (original_start_symbol->t_lhs) <= 0)
+    {
+      MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
+      return failure_indicator;
+    }
 }
 
 @ @<Declare census variables@> =
 Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
-SYM original_start_symbol;
 
 @ @<Census LHS symbols@> =
 { Marpa_Rule_ID rule_id;
@@ -3585,7 +3590,7 @@ int t_leading_nulls;
 @<Function definitions@> =
 int marpa_g_AHFA_item_count(struct marpa_g* g) {
     @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     return AIM_Count_of_G(g);
 }
 
@@ -3593,7 +3598,7 @@ int marpa_g_AHFA_item_count(struct marpa_g* g) {
 Marpa_Rule_ID marpa_g_AHFA_item_rule(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
     return RULE_of_AIM(AIM_by_ID(item_id))->t_id;
 }
@@ -3603,7 +3608,7 @@ Marpa_Rule_ID marpa_g_AHFA_item_rule(struct marpa_g* g,
 int marpa_g_AHFA_item_position(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
     return Position_of_AIM(AIM_by_ID(item_id));
 }
@@ -3613,7 +3618,7 @@ int marpa_g_AHFA_item_position(struct marpa_g* g,
 Marpa_Symbol_ID marpa_g_AHFA_item_postdot(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
     return Postdot_SYMID_of_AIM(AIM_by_ID(item_id));
 }
@@ -3622,7 +3627,7 @@ Marpa_Symbol_ID marpa_g_AHFA_item_postdot(struct marpa_g* g,
 int marpa_g_AHFA_item_sort_key(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
     return Sort_Key_of_AIM(AIM_by_ID(item_id));
 }
@@ -4030,7 +4035,7 @@ int
 marpa_g_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
 { @<Return |-2| on failure@>@/
     AHFA state;
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
     return state->t_item_count;
@@ -4044,7 +4049,7 @@ Marpa_AHFA_Item_ID marpa_g_AHFA_state_item(struct marpa_g* g,
 	int item_ix) {
     AHFA state;
     @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
     if (item_ix < 0) {
@@ -4063,7 +4068,7 @@ int marpa_g_AHFA_state_is_predict(struct marpa_g* g,
 	AHFAID AHFA_state_id) {
     AHFA state;
     @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
     return AHFA_is_Predicted(state);
@@ -4085,7 +4090,7 @@ Marpa_Symbol_ID marpa_g_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id) {
     @<Return |-2| on failure@>@;
     AHFA state;
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if grammar |AHFA_state_id| is invalid@>@;
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
     return Leo_LHS_ID_of_AHFA(state);
@@ -5103,7 +5108,7 @@ int marpa_g_AHFA_state_transitions(struct marpa_g* g,
       The number of results which fit into 7 bytes is zero.
       */
 
-    @<Fail if grammar not precomputed@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if grammar |AHFA_state_id| is invalid@>@;
     if (max_results <= 0) return 0;
     from_ahfa_state = AHFA_of_G_by_ID(g, AHFA_state_id);
@@ -5130,7 +5135,7 @@ AHFAID marpa_g_AHFA_state_empty_transition(struct marpa_g* g,
     AHFA state;
     AHFA empty_transition_state;
     @<Return |-2| on failure@>@/
-    @<Fail if grammar not precomputed@>@/
+    @<Fail if not precomputed@>@/
     @<Fail if grammar |AHFA_state_id| is invalid@>@/
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
     empty_transition_state = Empty_Transition_of_AHFA (state);
@@ -5272,11 +5277,8 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 {
     RECCE r;
     int symbol_count_of_g;
-    @<Return |NULL| on failure@>@/
-    if (!G_is_Precomputed(g)) {
-        MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
-	return failure_indicator;
-    }
+    @<Return |NULL| on failure@>@;
+    @<Fail if not precomputed@>@;
     r = my_slice_new(struct marpa_r);
     symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
@@ -12990,14 +12992,15 @@ general failure indicator.
 @*0 Grammar Failures.
 |g| is assumed to be the value of the relevant grammar,
 when one is required.
-@<Fail if grammar is precomputed@> =
+@<Fail if precomputed@> =
 if (G_is_Precomputed(g)) {
     MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
     return failure_indicator;
 }
-@ @<Fail if grammar not precomputed@> =
+
+@ @<Fail if not precomputed@> =
 if (!G_is_Precomputed(g)) {
-    MARPA_DEV_ERROR("grammar not precomputed");
+    MARPA_ERROR(MARPA_ERR_NOT_PRECOMPUTED);
     return failure_indicator;
 }
 @ @<Fail if |symid| is invalid@> =
