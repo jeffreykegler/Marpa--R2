@@ -14,5 +14,4 @@ General Public License along with Marpa::R2.  If not, see
 http://www.gnu.org/licenses/.
 
 In the Marpa::R2 distribution, the GNU Lesser General Public License
-version 3 should be in a file named "COPYING.LESSER" and the The GNU
-General Public License version 3 should be in a file named "COPYING".
+version 3 should be in a file named "COPYING.LESSER".

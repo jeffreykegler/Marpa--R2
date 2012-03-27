@@ -62,8 +62,7 @@ $license_in_tex =~ s/^$/\\smallskip\\noindent/gxms;
 my $license_file = $license . <<'END_OF_STRING';
 
 In the Marpa::R2 distribution, the GNU Lesser General Public License
-version 3 should be in a file named "COPYING.LESSER" and the The GNU
-General Public License version 3 should be in a file named "COPYING".
+version 3 should be in a file named "COPYING.LESSER".
 END_OF_STRING
 
 my $fdl_license = <<'END_OF_FDL_LANGUAGE';
@@ -251,8 +250,8 @@ my %files_by_type = (
     'META.yml' =>
         \&ignored,    # not source, and not clear how to add license at top
     'ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
-    'COPYING'        => \&ignored,    # GNU license text, leave it alone
     'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
+    'libmarpa/dev/dist/COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
     'libmarpa/dev/cwebmac.tex' =>
         \&ignored,                    # originally from Cweb, leave it alone
 
@@ -271,9 +270,12 @@ my %files_by_type = (
     'libmarpa/dev/copyright_page_license.w'  => \&copyright_page,
     'Makefile.PL'                            => \&trivial,
     'libmarpa/dev/VERSION.in'                   => \&trivial,
-    'libmarpa/dist/VERSION.in'                   => \&trivial,
     'libmarpa/VERSION'                   => \&trivial,
     'libmarpa/dev/README'                    => \&trivial,
+    'libmarpa/dev/dist/README'                    => \&license_problems_in_text_file,
+    'libmarpa/dev/dist/AUTHORS'                    => \&trivial,
+    'libmarpa/dev/dist/NEWS'                    => \&trivial,
+    'libmarpa/dev/dist/ChangeLog'                    => \&trivial,
     'libmarpa/dev/api.texi'             => \&license_problems_in_fdl_file,
     'libmarpa/build/api.texi'             => \&license_problems_in_fdl_file,
     'libmarpa/test/README'              => \&trivial,
@@ -285,16 +287,6 @@ my %files_by_type = (
     'author.t/perltidyrc'               => \&trivial,
     'author.t/spelling_exceptions.list' => \&trivial,
     'author.t/tidy1'                    => \&trivial,
-    'libmarpa/theory/README' =>
-        \&ignored,    # discussion of licensing in that directory
-    'libmarpa/theory/lyx.d/ah_to_leo.lyx'      => \&tex_closed,
-    'libmarpa/theory/lyx.d/ah_to_leo.lyx'      => \&tex_closed,
-    'libmarpa/theory/lyx.d/ah2002_notes.lyx'   => \&tex_closed,
-    'libmarpa/theory/lyx.d/proof.lyx'          => \&tex_closed,
-    'libmarpa/theory/ah2002_notes.ltx'   => \&tex_cc_a_nd,
-    'libmarpa/theory/ah_to_leo.ltx'      => \&tex_cc_a_nd,
-    'libmarpa/theory/proof.ltx'          => \&tex_cc_a_nd,
-    'libmarpa/theory/recce.ltx'          => \&tex_cc_a_nd,
     'libmarpa/build/install-sh'     => \&check_X_copyright,
     'libmarpa/stage_dist/install-sh'     => \&check_X_copyright,
     'libmarpa/test/dev/install-sh' => \&check_X_copyright,
@@ -336,7 +328,6 @@ sub file_type {
         if $filepart =~ /[.] (w) \z /xms;
     return \&license_problems_in_hash_file
 
-        # return \&license_problems_in_text_file;
 } ## end sub file_type
 
 sub Marpa::R2::License::file_license_problems {

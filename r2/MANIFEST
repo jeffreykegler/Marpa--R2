@@ -17,7 +17,6 @@
 .gitattributes
 .gitignore
 Build.PL
-COPYING
 COPYING.LESSER
 Changes
 LICENSE
