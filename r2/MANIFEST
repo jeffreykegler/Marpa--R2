@@ -124,7 +124,12 @@ libmarpa/dev/avl/avl.c
 libmarpa/dev/avl/avl.h
 libmarpa/dev/copyright_page_license.w
 libmarpa/dev/cwebmac.tex
+libmarpa/dev/dist/AUTHORS
+libmarpa/dev/dist/COPYING.LESSER
+libmarpa/dev/dist/ChangeLog
 libmarpa/dev/dist/Makefile.am
+libmarpa/dev/dist/NEWS
+libmarpa/dev/dist/README
 libmarpa/dev/dist/configure.ac
 libmarpa/dev/marpa.w
 libmarpa/dev/marpa_obs.c
