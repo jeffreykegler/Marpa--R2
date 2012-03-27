@@ -1725,6 +1725,7 @@ to be checked with one of the trace functions
 where -1 is never a valid value ---
 for example, @code{marpa_t_nook_or_node}.
 @end deftypefun 
+
 @deftypefun int marpa_t_nook_cause_is_ready ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
@@ -1772,24 +1773,30 @@ Return the is-predecessor bit for @var{nook_id}.
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
-    Marpa_Tree @var{t})
+    Marpa_Tree @var{t} @
+)
+
 @end deftypefun
 
-@deftypefun Marpa_Grammar marpa_v_g (Marpa_Value @var{v})
+@deftypefun Marpa_Grammar marpa_v_g ( @
+    Marpa_Value @var{v} @
+    )
+
 @end deftypefun
 
-@deftypefun void marpa_v_unref (Marpa_Value @var{v})
+@deftypefun void marpa_v_unref ( @
+    Marpa_Value @var{v})
 @end deftypefun
 
-@deftypefun int marpa_v_symbol_ask_me_when_null_set( @
+@deftypefun int marpa_v_symbol_ask_me_when_null_set ( @
     Marpa_Value @var{v}, @
     Marpa_Symbol_ID @var{symid}, @
-    int @var{value})
+    int @var{value} )
 @end deftypefun
 
-@deftypefun int marpa_v_symbol_is_ask_me_when_null( @
+@deftypefun int marpa_v_symbol_is_ask_me_when_null ( @
     Marpa_Value @var{v}, @
-    Marpa_Symbol_ID @var{symid})
+    Marpa_Symbol_ID @var{symid} )
 @end deftypefun
 
 @node Valuator access macros, Valuator reference counting, Valuator constructor, Value
@@ -2028,6 +2035,12 @@ An internal error will usually be a hard error.
 Suggested message: "Internal error."
 @end deftypevr
 
+
+@deftypevr Macro int MARPA_ERR_INVALID_ES_ORDINAL
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_INVALID_RULEID
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_LHS_IS_TERMINAL
 By default,
 and unlike most parsing algorithms,
@@ -2040,41 +2053,6 @@ the LHS terminals flag for a grammar is unset,
 LHS terminals become illegal,
 and cause this error.
 Suggested message: "There is a LHS terminal in a grammar which has disallowed them."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS
-Marpa allows all symbols to be terminals, even those on the LHS,
-and this is the default.
-But when there is an null rule in the grammar,
-having lots of terminals is an efficiency hit.
-For that reason, if a grammar has a null rule,
-libmarpa requires the application to explictly
-indicate which symbols are terminals,
-and will not accept the default.
-
-An application is still able to have as many terminals
-as it wants,
-including terminals on the LHS of rules.
-The only requirement is the the user explicitly
-set those symbols which are terminals.
-Terminals may be explicitly marked on a per-symbol
-basis.
-The application can
-also prevent this error by
-unsetting the LHS terminals flag for a grammar.
-Suggested message: "A grammar with null rules must mark its terminals."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_PRECOMPUTED
-An attempt was made to use a precomputed grammar
-in a way that is not allowed.
-After a grammar is precomputed,
-any changes to it that would invalidate
-the precomputation
-is not allowed.
-Almost all changes to a grammar invalidate
-the precomputations.
-Suggested message: "This grammar is precomputed."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_PARSE
@@ -2103,6 +2081,92 @@ operation which requires one.
 For example, no grammar without a start
 symbol can be precomputed.
 Suggested message: "This grammar has no start symbol."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_TRACE_ES
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_NO_TRACE_PIM
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS
+Marpa allows all symbols to be terminals, even those on the LHS,
+and this is the default.
+But when there is an null rule in the grammar,
+having lots of terminals is an efficiency hit.
+For that reason, if a grammar has a null rule,
+libmarpa requires the application to explictly
+indicate which symbols are terminals,
+and will not accept the default.
+
+An application is still able to have as many terminals
+as it wants,
+including terminals on the LHS of rules.
+The only requirement is the the user explicitly
+set those symbols which are terminals.
+Terminals may be explicitly marked on a per-symbol
+basis.
+The application can
+also prevent this error by
+unsetting the LHS terminals flag for a grammar.
+Suggested message: "A grammar with null rules must mark its terminals."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_ORDER_FROZEN
+The Marpa order object has been frozen.
+Multiple trees can share a Marpa order object,
+but that order object is @dfn{frozen} after the first tree
+is created from it.
+If a Marpa order object is @dfn{frozen}, it cannot be
+changed.
+Applications can order an bocage in many ways,
+but they must do so by creating multiple order objects.
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_PRECOMPUTED
+An attempt was made to use a precomputed grammar
+in a way that is not allowed.
+After a grammar is precomputed,
+any changes to it that would invalidate
+the precomputation
+is not allowed.
+Almost all changes to a grammar invalidate
+the precomputations.
+Suggested message: "This grammar is precomputed."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_NONE
+The link source type is 'none'
+in a context where that is not allowed.
+Suggested message: "A source type of 'none' is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_TOKEN
+The link source type is 'token'
+in a context where that is not allowed.
+Suggested message: "Token source type is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_COMPLETION
+The link source type is 'completion'
+in a context where that is not allowed.
+Suggested message: "Completion source type is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_LEO
+The link source type is 'Leo'
+in a context where that is not allowed.
+Suggested message: "Leo source type is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_AMBIGUOUS
+The link source type is ambiguous
+in a context where that is not allowed.
+Suggested message: "Ambiguous source type is not allowed here."
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN
+The link source type is not known.
+Suggested message: "The source type is unknown."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_START_NOT_LHS
@@ -2139,52 +2203,6 @@ That means it could never match any possible input,
 not even the null string.
 Presumably, an error in writing the grammar.
 Suggested message: "Unproductive start symbol."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_ORDER_FROZEN
-The Marpa order object has been frozen.
-Multiple trees can share a Marpa order object,
-but that order object is @dfn{frozen} after the first tree
-is created from it.
-If a Marpa order object is @dfn{frozen}, it cannot be
-changed.
-Applications can order an bocage in many ways,
-but they must do so by creating multiple order objects.
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_NONE_IS_INVALID_SOURCE_TYPE
-The link source type is 'none'
-in a context where that is not allowed.
-Suggested message: "A source type of 'none' is not allowed here."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_TOKEN_IS_INVALID_SOURCE_TYPE
-The link source type is 'token'
-in a context where that is not allowed.
-Suggested message: "Token source type is not allowed here."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_COMPLETION_IS_INVALID_SOURCE_TYPE
-The link source type is 'completion'
-in a context where that is not allowed.
-Suggested message: "Completion source type is not allowed here."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_LEO_IS_INVALID_SOURCE_TYPE
-The link source type is 'Leo'
-in a context where that is not allowed.
-Suggested message: "Leo source type is not allowed here."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_AMBIGUOUS_IS_INVALID_SOURCE_TYPE
-The link source type is ambiguous
-in a context where that is not allowed.
-Suggested message: "Ambiguous source type is not allowed here."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_UNKNOWN_SOURCE_TYPE
-The link source type is not known.
-Suggested message: "The source type is unknown."
 @end deftypevr
 
 @bye
