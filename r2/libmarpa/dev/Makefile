@@ -40,7 +40,11 @@ STAGE_FILES = \
     ../stage/marpa_obs.h \
     ../stage/avl.h \
     ../stage/avl.c \
-    ../stage/private.h
+    ../stage/NEWS \
+    ../stage/README \
+    ../stage/ChangeLog \
+    ../stage/COPYING.LESSER \
+    ../stage/AUTHORS
 
 .SUFFIXES: .dvi .tex .w .pdf
 
@@ -120,6 +124,21 @@ marpa.pdf: marpa.tex cwebmac.tex
 	cp $? $@
 
 ../stage/private.h: private.h
+	cp $? $@
+
+../stage/README: dist/README
+	cp $? $@
+
+../stage/NEWS: dist/NEWS
+	cp $? $@
+
+../stage/AUTHORS: dist/AUTHORS
+	cp $? $@
+
+../stage/COPYING.LESSER: dist/COPYING.LESSER
+	cp $? $@
+
+../stage/ChangeLog: dist/ChangeLog
 	cp $? $@
 
 stage_dir:
