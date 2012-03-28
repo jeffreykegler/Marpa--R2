@@ -22,16 +22,29 @@ use Fatal qw(open close chdir chmod utime);
 # of the development environment, not the configuration or
 # installation environment
 
-my $version_info = `libmarpa/stage/configure --version`;
+for my $file (qw(Build.PL MANIFEST))
+{
+   -e $file or die "No $file: wrong directory?";
+}
+
+for my $subdir (qw(lib libmarpa t lib inc))
+{
+   -d $subdir or die "No $subdir/: wrong directory?";
+}
+chdir 'libmarpa/dev';
+system('make', 'install') == 0 or die('Cannot make install in libmarpa/dev');
+chdir '../../libmarpa/stage';
+system('make', 'dist') == 0 or die('Cannot make dist in libmarpa/stage');
+my $version_info = `./configure --version`;
 my ($version) = $version_info =~ m/\A marpa \s configure \s ([\d.]*)$/msx;
+
+chdir '..'; # PWD=libmarpa
+if (-d 'build') {
+    system('rm', '-rf', 'build') and die "rm -rf libmarpa/build failed: $!";
+}
 my $tar_file = 'stage/marpa-' . $version . '.tar.gz';
 my $untarred_dir = 'marpa-' . $version;
-say $tar_file;
-
-if (-d 'libmarpa/build') {
-    system('rm -rf libmarpa/build') and die "rm -rf libmarpa/build failed: $!";
-}
-chdir 'libmarpa';
-system('tar', '-xvzf', $tar_file) == 0 or die("Could not tar -xvzf $tar_file: $!");
+say "Tar file is $tar_file";
+system('tar', '-xzf', $tar_file) == 0 or die("Could not tar -xvzf $tar_file: $!");
 rename $untarred_dir, 'build' or die "rename failed: $!";
 
