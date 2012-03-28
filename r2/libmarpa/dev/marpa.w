@@ -734,7 +734,9 @@ with their |Marpa_Rule_ID| as the index.
 @*0 Rule count accessors.
 @ @d RULE_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
 @ @<Function definitions@> =
-int marpa_g_rule_count(struct marpa_g* g) {
+int marpa_g_rule_count(Marpa_Grammar g) {
+   @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     return RULE_Count_of_G(g);
 }
 
@@ -1337,6 +1339,7 @@ int marpa_g_symbol_is_terminal_set(
 Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 {
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     return SYMID_is_Terminal(symid) = value;
@@ -1352,6 +1355,7 @@ int marpa_g_symbol_is_productive(
     Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     return SYM_by_ID(symid)->t_is_productive;
@@ -1364,6 +1368,7 @@ int marpa_g_symbol_is_productive(
 int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
 {
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
    return SYM_by_ID(symid)->t_is_start;
@@ -1534,21 +1539,24 @@ SYMID lhs, SYMID *rhs, int length)
 }
 
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_g_rule_new(struct marpa_g *g,
+Marpa_Rule_ID marpa_g_rule_new(Marpa_Grammar g,
 Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
 {
+    @<Return |-2| on failure@>@;
     Marpa_Rule_ID rule_id;
     RULE rule;
+    @<Fail if fatal error@>@;
+    @<Fail if precomputed@>@;
     if (length > MAX_RHS_LENGTH) {
 	MARPA_ERROR(MARPA_ERR_RHS_TOO_LONG);
-        return -1;
+        return failure_indicator;
     }
     if (is_rule_duplicate(g, lhs, rhs, length) == 1) {
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
-        return -1;
+        return failure_indicator;
     }
     rule = rule_start(g, lhs, rhs, length);
-    if (!rule) { return -1; }@;
+    if (!rule) { return failure_indicator; }
     rule_id = rule->t_id;
     return rule_id;
 }
@@ -2015,10 +2023,11 @@ PRIVATE int rule_is_accessible(struct marpa_g* g, RULE  rule)
 {
 Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
  return SYM_by_ID(lhs_id)->t_is_accessible; }
-int marpa_g_rule_is_accessible(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int marpa_g_rule_is_accessible(Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
 RULE  rule;
+    @<Fail if fatal error@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
 rule = RULE_by_ID(g, rule_id);
 return rule_is_accessible(g, rule);
@@ -2035,10 +2044,11 @@ for (rh_ix = 0; rh_ix < Length_of_RULE(rule); rh_ix++) {
    if ( !SYM_by_ID(rhs_id)->t_is_productive ) return 0;
 }
 return 1; }
-int marpa_g_rule_is_productive(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int marpa_g_rule_is_productive(Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
 RULE  rule;
+    @<Fail if fatal error@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
 rule = RULE_by_ID(g, rule_id);
 return rule_is_productive(g, rule);

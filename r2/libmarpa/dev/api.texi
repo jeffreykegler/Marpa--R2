@@ -43,6 +43,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * The architecture of Marpa::   
 * Threads::                     
 * Numbered objects::            
+* Terminals concepts::          
 * Semantics::                   
 * Version checking::            Checking the Libmarpa version.
 * Grammars::                    Grammar time objects
@@ -85,6 +86,10 @@ Threads
 * Grammars not shared between threads::  
 * C89 and thread-safety::       
 
+Terminals
+
+* LHS Terminals::               
+
 Semantics
 
 * Token values::                
@@ -96,6 +101,7 @@ Grammars
 * Symbols::                     
 * Terminals::                   Terminal symbols.
 * Rules::                       
+* Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
 * Symbol internals::            Methods that deal with symbol internals.
 * Rule internals::              
@@ -420,50 +426,6 @@ a set of non-terminal symbols,
 a set of rules,
 and a distinguished start symbol.
 
-A terminal symbol is symbol which
-may appear in the input.
-The rules have a single symbol
-on their left hand side (LHS),
-and a right hand side which consists of zero or more
-symbols.
-RHS symbols can be either terminals or non-terminals.
-Traditionally,
-all LHS symbols, as well as
-the start symbol, must be non-terminals.
-
-Marpa's grammars differ from the traditional ones
-in that there is no necessary distinction between
-terminals and non-terminals.
-In Marpa,
-a terminal may be the start symbols,
-and may appear on the LHS of a rule.
-By default, all symbols are terminals.
-
-Marpa's idea
-in losing the sharp division between terminals
-and non-terminals is that the distinction,
-while helpful for proving theorems,
-is not essential in practice.
-If LHS symbols 
-appear in the input they, in effect,
-"short circuiting" the rules in which they occur.
-This may
-be helpful in debugging, or have other applications.
-
-However,
-it also can be useful, 
-for checking input validity as well as for efficiency,
-to follow tradition and distingush
-non-terminals from terminals.
-Marpa allows the user to mark each symbol
-as a terminal or a non-terminal.
-Symbols marked as non-terminals will not be allowed as input.
-The user also has the option of banning terminals from
-the LHS of rules.
-Marpa allows a
-user who prefers the tradition distinction
-to restore it, partially or completely.
-
 @menu
 * Precomputation::              
 @end menu
@@ -550,7 +512,7 @@ to turn thread safety off.
 Libmarpa's thread-safety relies on an environment
 that quarantees the thread-safe of C89 function calls.
 
-@node Numbered objects, Semantics, Threads, Top
+@node Numbered objects, Terminals concepts, Threads, Top
 @chapter Numbered objects
 
 In addition to its major, "time" objects, Libmarpa also has
@@ -560,7 +522,54 @@ Numbered objects do not have lifetimes of their own.
 Every numbered object belongs to a timed object,
 and is destroyed with it.
 
-@node Semantics, Version checking, Numbered objects, Top
+@node Terminals concepts, Semantics, Numbered objects, Top
+@chapter Terminals
+
+A terminal symbol is symbol which
+may appear in the input.
+Traditionally,
+all LHS symbols, as well as
+the start symbol, must be non-terminals.
+Marpa's grammars differ from the traditional ones
+in that there is no necessary distinction between
+terminals and non-terminals.
+In Marpa,
+a terminal may be the start symbol,
+and may appear on the LHS of a rule.
+
+In a Libmarpa grammar with no empty rules,
+all symbols are terminals by default.
+However, whenever an empty rule has a LHS
+which is also a terminal, there is an efficiency hit.
+
+@menu
+* LHS Terminals::               
+@end menu
+
+@node LHS Terminals,  , Terminals concepts, Terminals concepts
+@section Uses for LHS terminals
+
+Marpa's idea
+in losing the sharp division between terminals
+and non-terminals is that the distinction,
+while helpful for proving theorems,
+is not essential in practice.
+If LHS symbols 
+appear in the input they, in effect,
+"short circuiting" the rules in which they occur.
+This may
+be helpful in debugging, or have other applications.
+
+However,
+it also can be useful, 
+for checking input validity as well as for efficiency,
+to follow tradition and distingush
+non-terminals from terminals.
+Marpa allows a
+user who prefers the tradition distinction
+to restore it, partially or completely.
+
+@node Semantics, Version checking, Terminals concepts, Top
 @chapter Semantics
 
 @menu
@@ -652,6 +661,7 @@ Return value: %NULL if the Marpa library is compatible with the
 * Symbols::                     
 * Terminals::                   Terminal symbols.
 * Rules::                       
+* Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
 * Symbol internals::            Methods that deal with symbol internals.
 * Rule internals::              
@@ -798,44 +808,101 @@ On failure, -2.
 
 @deftypefun int marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun int marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun int marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
+A symbol is @dfn{accessible} if it can be reached from the start symbol.
+This is not known until the grammar is precomputed.
+
+Return value: On success, 1 if accessible, 0 if not.  If the grammar
+is not precomputed, or on failure, -2.
 @end deftypefun
 
-@node Rules, Grammar precomputation, Terminals, Grammars
+@deftypefun int marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+A symbol is @dfn{productive} if it can produce a string of terminals.
+All nullable symbols are considered productive.
+This is not known until the grammar is precomputed.
+
+Return value: On success, 1 if productive, 0 if not.  If the grammar
+is not precomputed, or on failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+A symbol is @dfn{counted}
+if it appears on the RHS of a sequence rule.
+The separator symbol of a sequence rule is also considered
+to be a counted symbol.
+
+Return value: On success, 1 if the symbol is counted, 0 if not.
+On failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+A symbol is @dfn{nullable} if it can produce the empty string.
+This is not determined until the grammar is precomputed.
+All nulling symbols are nullable symbols.
+
+Return value: On success, 1 if symbol is nullable, 0 if not.
+If the grammar is not precomputed, or on failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+A symbol is @dfn{nulling} if it always produces the empty string.
+This is not determined until the grammar is precomputed.
+
+Return value: On success, 1 if symbol is nulling, 0 if not.
+If the grammar is not precomputed, or on failure, -2.
+@end deftypefun
+
+@node Rules, Sequences, Terminals, Grammars
 @section Rules
 
 @deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
+Return value: On success, the current number of rules in grammar @var{g}.
+On failure, -2.
 @end deftypefun
+
 @deftypefun Marpa_Rule_ID marpa_g_rule_new (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{lhs}, @
  Marpa_Symbol_ID *@var{rhs}, @
      int @var{length})
-@end deftypefun
+Creates a new rule in grammar @var{g}.
+The LHS symbol is @var{lhs},
+and there are @var{length} symbols on the RHS,
+which is pointed to by @var{rhs}.
 
-@deftypefun int marpa_g_sequence_new (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{lhs_id}, @
- Marpa_Symbol_ID @var{rhs_id}, @
-     Marpa_Symbol_ID @var{separator_id}, @
-    int @var{min}, @
- int @var{flags} )
+An attempt to add a duplicate rule is a hard failure.
+A rule is considered a duplicate if it has the same
+LHS symbol,
+and the same RHS symbols in the same order.
+
+Return value:  On success, the new rule ID.
+On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
+A rule is @dfn{accessible} if it can be reached from the start symbol.
+This is not known until the grammar is precomputed.
+A rule is accessible if and only if its LHS symbol is accessible.
+The start rule is always an accessible rule.
+
+Return value: On success, 1 if accessible, 0 if not.  If the grammar
+is not precomputed, or on other failure, -2.
 @end deftypefun
+
 @deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
+A rule is @dfn{productive} if it can be produce a string of terminals.
+including the empty string.
+This is not known until the grammar is precomputed.
+An rule is productive if and only if all the symbols on
+its RHS are productive.
+An empty rule is considered productive, vacuously.
+
+Return value: On success, 1 if productive, 0 if not.  If the grammar
+is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
@@ -912,7 +979,18 @@ Return value: -2 if there was an error.
 
 @end deftypefun
 
-@node Grammar precomputation, Symbol internals, Rules, Grammars
+@node Sequences, Grammar precomputation, Rules, Grammars
+@section Sequences
+
+@deftypefun int marpa_g_sequence_new (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{lhs_id}, @
+ Marpa_Symbol_ID @var{rhs_id}, @
+     Marpa_Symbol_ID @var{separator_id}, @
+    int @var{min}, @
+ int @var{flags} )
+@end deftypefun
+
+@node Grammar precomputation, Symbol internals, Sequences, Grammars
 @section Precomputing the Grammar
 
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
