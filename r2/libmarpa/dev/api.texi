@@ -1,11 +1,11 @@
 \input texinfo @c -*-texinfo-*- 
 @c %**start of header
 @setfilename api.info 
-@settitle libmarpa @value{VERSION}
+@settitle Libmarpa @value{VERSION}
 @c %**end of header 
 @include version.texi
 @copying 
-This manual is for libmarpa @value{VERSION}. 
+This manual is for Libmarpa @value{VERSION}. 
 Copyright @copyright{} 2012 Jeffrey Kegler.
 @quotation 
 Permission is granted to copy, distribute and/or modify this document 
@@ -15,7 +15,7 @@ any later version published by the Free Software Foundation;
 @end copying 
 @finalout
 @titlepage 
-@title libmarpa
+@title Libmarpa
 @subtitle Version @value{VERSION}
 @subtitle @value{UPDATED}
 @author Jeffrey Kegler
@@ -31,28 +31,29 @@ Published @value{UPDATED} by Jeffrey Kegler
 @contents 
 @ifnottex 
 @node Top, How to read this document, (dir), (dir)
-@top libmarpa: The Marpa low-level library
+@top Libmarpa: The Marpa low-level library
 
-This manual is for libmarpa, version @value{VERSION}. 
+This manual is for Libmarpa, version @value{VERSION}. 
 
 @end ifnottex 
 @menu
 * How to read this document::   
-* About libmarpa::              What is libmarpa?
+* About Libmarpa::              What is Libmarpa?
 * Time objects::                
 * The architecture of Marpa::   
 * Threads::                     
 * Numbered objects::            
 * Semantics::                   
-* Version checking::            Checking the libmarpa version.
+* Version checking::            Checking the Libmarpa version.
 * Grammars::                    Grammar time objects
-* Events::                      libmarpa Events
+* Events::                      Libmarpa Events
 * Recognizers::                 Recognizers.
 * Bocage::                      Bocage objects.
 * Order::                       Order objects.
 * Tree::                        Parse Trees.
 * Value::                       Value objects.
 * Error handling::              
+* Design considerations::       
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -74,15 +75,15 @@ The architecture of Marpa
 
 * Architecture - Grammar::      
 * Recognition versus parsing::  
-* Why so many time objects::    
 
 Grammars
 
 * Precomputation::              
 
-Numbered objects
+Threads
 
-* Numbered object implementation::  
+* Grammars not shared between threads::  
+* C89 and thread-safety::       
 
 Semantics
 
@@ -132,16 +133,22 @@ Tree iterators
 
 Value objects
 
+* About the valuator::          
 * Valuator constructor::        
 * Valuator access macros::      
 * Valuator reference counting::  
 * Valuator stepping::           
 * Valuator tracing::            
 
+Design considerations
+
+* Why so many time objects::    
+* Design of numbered objects::  
+
 @end detailmenu
 @end menu
 
-@node How to read this document, About libmarpa, Top, Top
+@node How to read this document, About Libmarpa, Top, Top
 @chapter How to read this document
 
 @menu
@@ -157,10 +164,11 @@ Value objects
 This document is intended as a reference manual
 for a complex low-level tool.
 The reader might compare it to the GNU C Language
-manual, which makes no attempt to teach much of
-the technical knowledge required to appreciate its
-contents or, for that matter,
-even the C language itself.
+manual,
+which makes no attempt to teach
+the C language itself,
+much less all the technical knowledge required
+to fully understand its contents.
 
 @node Prerequisites, Which chapters to read first, What is this document, How to read this document
 @section Prerequisites
@@ -172,13 +180,7 @@ It assumes the following:
 The reader knows the C programming language.
 @item
 The reader
-has read the documents for one of libmarpa's upper layers.
-@item
-The reader
-is at least slightly familiar with Glib,
-and has the @cite{Glib Reference  Manual} available.
-In particular, the reader should know the type system
-described in its "Basic Types" section.
+has read the documents for one of Libmarpa's upper layers.
 @item
 The reader knows some parsing theory.
 @xref{Parsing theory}.
@@ -188,7 +190,7 @@ The reader knows some parsing theory.
 @section Which chapters to read first
 
 Early chapters of this document lay out concepts,
-while later chapters describe libmarpa's object in
+while later chapters describe Libmarpa's object in
 detail,
 or deal with optional topics.
 This document expects the reader will read its
@@ -222,19 +224,17 @@ Marpa's sequence rules are implemented
 as left recursions.
 What does that mean?
 @item
-If you were given a Marpa sequence rule,
-could you rewrite it in BNF?
+Take a Marpa sequence rule at random.
+What does it look like when rewritten in BNF?
+(Marpa sequences are implemented as left-recursions.)
 @item
-Would you know whether your rewrite was
-left- or right-recursive?
-@item
-Could you change it from one to the other?
+What does the sequence look like when rewritten
+in BNF as a right-recursion?
 @end itemize
 For a reader to be satisfied with the level of detail
 in the following pages,
 he probably should be able to answer all the questions
-in the above list either off the top of his head,
-or after a moment of thought.
+in the above list after a moment of thought.
 
 On the encouraging side,
 while BNF has been overshadowed
@@ -247,9 +247,9 @@ one of the packages that extend
 regular expressions,
 he should have no trouble with BNF.
 
-@node About libmarpa, Time objects, How to read this document, Top
-@chapter About libmarpa
-This is the reference manual for libmarpa.
+@node About Libmarpa, Time objects, How to read this document, Top
+@chapter About Libmarpa
+This is the reference manual for Libmarpa.
 Libmarpa implements the Marpa parsing algorithm.
 Marpa is named
 after the legendary 11th century Tibetan translator,
@@ -267,7 +267,7 @@ It also supports the ordering and evaluation of the parse
 trees.
 
 However, it is very low-level.
-libmarpa, for example, has no strings.
+Libmarpa, for example, has no strings.
 Rules, symbols, and token values are all represented
 by integers.
 This, of course, will not suffice for most applications.
@@ -276,15 +276,15 @@ at a minimum,
 names for the symbols and non-integer values for
 tokens.
 Typically, an application will use arrays to
-translate libmarpa's integer IDs to strings or other
+translate Libmarpa's integer IDs to strings or other
 values as required.
 
-libmarpa also does NOT implement most of the semantics.
-libmarpa does have an evaluator, but it does NOT
+Libmarpa also does NOT implement most of the semantics.
+Libmarpa does have an evaluator, but it does NOT
 manipulate the stack directly.
-Instead, libmarpa,
+Instead, Libmarpa,
 based on its traversal of the parse tree,
-passes step by step stack manipulation
+passes optimized step by step stack manipulation
 instructions to the upper layer.
 These instructions indicate the token or rule involved
 involved,
@@ -293,92 +293,16 @@ the result of the rule evaluation.
 For rule evaluations, the instructions include the stack location
 of the arguments.
 
-While libmarpa passes instruction for stack manipulation,
-it does not actually maintain a stack.
-This leaves the upper layer in total control of the
-stack and the values which are placed on it.
-
-As example may make this clearer.
-Suppose the evalution is at a place in the parse tree
-where an addition is being performed.
-libmarpa does not know that the operation
-is an addition.
-It will tell the application that rule number R
-is to be applied to the arguments at stack locations
-N and N+, and that the result is to placed in
-stack location N.
-
-In this system,
-The application keeps track of the semantics for all
-rules, so it looks up rule R and determines that it
-is an addition.
-The application can do this by using R as an index
-into an array of callbacks, or by any other method
-it chooses.
-Let's assume a callback implements the semantics
-for rule R.
-libmarpa has told the application that two arguments
-are available for this operation, and that they are
-at locations N and N+1 in the stack.
-They might be the numbers 42 and 711.
-So the callback is called with its two arguments,
-and produces a return value, let's say, 753.
-libmarpa has told the application that the result
-belongs at location N in the stack,
-so the application writes 752 to location N.
-
-Since libmarpa knows nothing about the semantics,
-the operation for rule R could be string concatenation
-instead of addition.
-Or, if it is addition, it could allow for its arguments
-to be floating point or complex numbers.
-Since the application maintains the stack, it is up
-to the application whether the stack contains integers,
-strings, complex numbers; or objects which may be any
-or all of these and more.
-
-This technique
-hides libmarpa's grammar rewrites from the application,
-and is actually quite efficient.
-libmarpa knows which rules are sequences
-and optimizes stack manipulations based on this knowledge.
-Many practical grammars use long sequences heavily,
-and for these libmarpa the series of steps
-suggest by libmarpa will be significantly faster than the standard 
-stack evaluation algorithm in the textbooks.
-
-To make it clear,
-I am under no illusion that libmarpa's evaluator will be found
-satisfactory even to most application programmers.
-I certainly avoid using it directly.
-It is intended to be used via an upper layer,
-one which does know about semantics.
-
-But, by isolating libmarpa from semantics, libmarpa avoids
-imposing any arbitrary restrictions on the semantics used
-with the Marpa algorithm.
-To see the advantage suppose, as I expect will often be the case,
-libmarpa is used as the basis
-for a higher-level language which needs callbacks in that higher level language.
-For generality, libmarpa would have to deal in C callback,
-which wrapper the callbacks in the higher level language.
-This is complex to code and inefficient,
-but that is not its worst aspect.
-The worst aspect happens when there is a programming error.
-This error will occur inside libmarpa,
-and inside code about which libmarpa can make no assumptions.
-
 If all semantics are implemented in the application,
 the application is in a much better position to prevent errors,
 to catch them at runtime or
 failing all else,
 to successfully debug the logic.
 
-@node Time objects, The architecture of Marpa, About libmarpa, Top
+@node Time objects, The architecture of Marpa, About Libmarpa, Top
 @chapter Time objects
 
 Libmarpa's most important objects are time objects.
-Grammars and recognizers are examples of time objects.
 Time objects are so called for two related reasons.
 First, they relate to a "time" in the progress of a parse.
 Second, each time object has a lifetime and is reference counted.
@@ -388,9 +312,8 @@ of phase objects,
 because phases are exclusive and non-simultaneous
 -- when one phase ends, another begins.
 Time objects are often in use simultaneously.
-For example, infancy, adolescent and adulthood are phases in
-our lives.
-Work and play are different times.
+In our lives, work and play are times.
+Infancy, adolescent and adulthood are phases.
 
 The time objects are, in sequence:
 @itemize 
@@ -411,7 +334,6 @@ The time objects are, in sequence:
 @node The sequence of time objects, Base grammars, Time objects, Time objects
 @section The sequence of time objects
 
-Above I said "in sequence".
 While time objects do not correspond to phases,
 they do have a well-defined sequence.
 Except for grammars,
@@ -460,15 +382,16 @@ Whenever one time object is created from another,
 the parent time object has its reference count incremented
 by 1.
 
+Time objects do not have explicit destructors.
 Every time object has a method which decrements its
 reference count by 1.
-Time objects do not have explicit destructors.
 When the reference count of a time object reaches
 0, that time object is destroyed.
 
 In ordinary circumstances, all an application has to
 do is keep in mind that it "owns" the time objects
-it has created, and that it must call to method
+it has created,
+and that it must call a method
 to "unreference" that object when it is finished.
 
 In some applications, multiple parts of it
@@ -483,7 +406,6 @@ the reference count.
 @menu
 * Architecture - Grammar::      
 * Recognition versus parsing::  
-* Why so many time objects::    
 @end menu
 
 @node Architecture - Grammar, Recognition versus parsing, The architecture of Marpa, The architecture of Marpa
@@ -493,7 +415,7 @@ As per parsing theory,
 before an input can be parsed,
 a grammar must be defined.
 Traditionally,
-A grammar consists of a set of terminal symbols,
+a grammar consists of a set of terminal symbols,
 a set of non-terminal symbols,
 a set of rules,
 and a distinguished start symbol.
@@ -553,14 +475,10 @@ Before a recognizer can be created from a grammar,
 it must be precomputed.
 Internally, precomputation is what the term
 suggests --
-the precomputation of a large number
-of facts about the grammar that allow
-the recognizer to proceed very efficiently.
-
-Whether or not to precompute is another case
-of the common choice between lazy and eager evaluation.
-It is Marpa's strategy to make very aggressive use of
-precomputation at grammar time.
+the memoization of a large number
+of facts about the grammar to allow
+the recognizer to proceed more efficiently.
+Marpa makes aggressive use of grammar precomputation.
 
 Precomputation "freezes" a grammar.
 New symbols, rules and sequences cannot be added
@@ -568,18 +486,11 @@ to a precomputed grammar
 are disallowed,
 as are most other changes.
 
-@node Recognition versus parsing, Why so many time objects, Architecture - Grammar, The architecture of Marpa
+@node Recognition versus parsing,  , Architecture - Grammar, The architecture of Marpa
 @section Recognition versus parsing
 
 Even in the academic literature,
 parsing is used in many senses,
-Some algorithms,
-distinguish between between determining whether
-a given string matches the grammar,
-and finding the structure of the recognized string
-according to the grammar.
-Earley's algorithm was one such algorithm.
-Marpa is another.
 
 Determining whether a string matches a grammar is called
 @dfn{recognition}.
@@ -596,119 +507,58 @@ Marpa's parser in the strict sense
 is implemented by its bocage class and the classes
 which follow the bocage in the time object sequence.
 
-@node Why so many time objects,  , Recognition versus parsing, The architecture of Marpa
-@section Why so many time objects?
-
-Readers accustomed to other appraoches to parsing,
-particular those in fashion at this writing,
-may wonder on the number of time objects
-in the Marpa architecture.
-Several of Marpa's time objects (bocages,
-orderings and trees) are required
-because Marpa allows,
-and offers powerful tools for dealing with,
-ambigious grammars.
-
-It may seem, then, that users of unambiguous grammars,
-are paying a considerable price in time effiency
-for the ability to parse
-ambiguous ones.
-This is not the case.
-In the trivial case, the cost of the orderings
-object is a single, very brief, subroutine call.
-
-Bocage objects come at minimal cost,
-because the same pass which creates the bocage
-also deals with other issues which are of major
-significance even for unambiguous parses.
-The same pass which creates the bocage
-enables Marpa to do both left-
-and right-recursion in linear time.
-
-Tree objects come at mininal cost to unambiguous grammars,
-because the same pass that allows iteration through multiple
-parse trees does the tree traversal, so that the valuation time object
-has very litle to do -- it just steps through the sequence.
-
-But what about the many passes over the data this requires?
-Marpa is an aggressively multi-pass algorithm.
-Marpa achieves its efficiency,
-not in spite of making multiple
-passes over the data, but because of it.
-Marpa is @math{O(n)} for LR-regular grammars,
-both in theory and in implementation,
-because Marpa regularly substitutes
-two fast @math{O(n)} passes for a single
-@math{O(n log n)} pass.
-
 @node Threads, Numbered objects, The architecture of Marpa, Top
 @chapter Threads
 
-Libmarpa is thread-safe, with a restriction.
-No attempt is make to lock a parent object
-which it is used by child time object.
-In particular,
-every time object with the same base grammar shares data
-from that grammar.
-This means that, for every base grammar,
-its time objects can be used safely in at most one thread.
+Libmarpa is C89-compliant
+and uses no global data.
+This means that it is thread-safe,
+with restrictions.
 
-Libmarpa uses no global data.
-As long as libmarpa time objects which have
-the same base grammar are not
-used in two different threads,
-libmarpa is thread-safe.
+@menu
+* Grammars not shared between threads::  
+* C89 and thread-safety::       
+@end menu
 
-Libmarpa makes heavy use of GNU's glib,
-but Glib is thread-safe internally,
-and libmarpa's use of Glib structures is thread-safe
-if the above mentioned restriction is obeyed.
-Except for Glib,
-libmarpa makes little use of outside libraries,
-and always in a thread-safe fashion.
+@node Grammars not shared between threads, C89 and thread-safety, Threads, Threads
+@section Grammars cannot be shared between threads
+While Libmarpa can be used safely across
+multiple threads,
+a Libmarpa grammar cannot be.
+Further, a Libmarpa time object can
+only be used safely in the same thread
+as its base grammar.
+This is because all
+time objects with the same base grammar share data
+from that base grammar.
+
+To work around this limitation,
+the same grammar definition can be
+used to a Libmarpa grammar
+time object in each thread.
+If there is sufficient interest, future versions of
+Libmarpa could allow cloning of grammars and other
+time objects.
+
+@node C89 and thread-safety,  , Grammars not shared between threads, Threads
+@section C89 and thread-safety
+Libmarpa calls only routines defined in the C89 standard,
+and in most modern implementations these are thread-safe.
+But the C89 standard does not require thread-safety,
+and even the most modern environments allow the user
+to turn thread safety off.
+Libmarpa's thread-safety relies on an environment
+that quarantees the thread-safe of C89 function calls.
 
 @node Numbered objects, Semantics, Threads, Top
 @chapter Numbered objects
 
-In addition to its major, "time" objects, libmarpa also has
+In addition to its major, "time" objects, Libmarpa also has
 numbered objects
 Examples of numbered objects are rules and symbols.
 Numbered objects do not have lifetimes of their own.
 Every numbered object belongs to a timed object,
 and is destroyed with it.
-
-@menu
-* Numbered object implementation::  
-@end menu
-
-@node Numbered object implementation,  , Numbered objects, Numbered objects
-@section Implementation
-
-Numbered objects are implemented as integers, and not as
-pointers.
-Pointers cannot easily be checked for validity.
-Integers on the other hand, especially if they are assigned
-in sequence, are easy to check safely and portably.
-It is easy to safely check an integer for validity.
-
-There are efficiency tradeoffs between pointers and
-integers but these go both ways.
-Pointers can be faster, but integers can be used
-as indexes into more than one data structure.
-Which is actually faster depends on the design,
-and since integers allow for a more flexible design,
-careful programming can make them a win,
-possibly a very big one.
-
-The author decided to settle on integers from the
-outset, and to design libmnarpa taking full
-advantage of that choice.
-In many or most cases, that would make integers
-more efficient.
-In the cases where pointers were faster, it would
-not be by much --
-a small price to pay for
-safe, portable validity checking.
 
 @node Semantics, Version checking, Numbered objects, Top
 @chapter Semantics
@@ -734,7 +584,7 @@ Integers can be used to access any kind of data
 using an array,
 so that the higher levels can translate integers back
 and forth into whatever the application requires.
-A future version of libmarpa may allow
+A future version of Libmarpa may allow
 pointer values,
 for those circumstances in which some
 programmers find that the minor
@@ -743,7 +593,7 @@ outweigh the safety
 issues advanced by this author.
 
 @node Version checking, Grammars, Semantics, Top
-@chapter Checking the libmarpa version
+@chapter Checking the Libmarpa version
 @cindex version checking
 
 @deftypefun const char* marpa_check_version @
@@ -759,7 +609,7 @@ given version. Generally you would pass in the constants
 @code{MARPA_MICRO_VERSION}
 as the three arguments to this function; that produces
 a check that the library in use is compatible with
-the version of libmarpa the application or module was compiled
+the version of Libmarpa the application or module was compiled
 against.
 
 Once we are beyond alpha releases,
@@ -773,14 +623,14 @@ version
 @var{required_major}.@var{required_minor}.@var{required_micro}
 (same major version.)
 
-Currently libmarpa is undergoing rapid development,
+Currently Libmarpa is undergoing rapid development,
 and backward compatibility is not maintained.
-This will be the case as long as libmarpa stays
+This will be the case as long as Libmarpa stays
 alpha.
 
-While libmarpa is still alpha, much stricter compatibility
+While Libmarpa is still alpha, much stricter compatibility
 will be enforced.
-While libmarpa is alpha 
+While Libmarpa is alpha 
 the major, minor and micro numbers must match exactly.
 Technically, the post-alpha rules can be said to apply
 because the very strict alpha rules imply them.
@@ -828,7 +678,7 @@ in preparation for grammar precomputation.
 
 The expected major, minor and micro version
 numbers must be passed as arguments,
-While libmarpa is alpha,
+While Libmarpa is alpha,
 any mismatch with the actual version will
 cause a failure.
 
@@ -907,10 +757,12 @@ Return value:
 On failure, -2;
 -1 if there is no start symbol yet;
 otherwise the ID of the new start symbol.
-
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_count (Marpa_Grammar @var{g})
+Return value:
+On success, the symbol count of the grammar.
+On failure, -2.
 @end deftypefun
 
 @node Terminals, Rules, Symbols, Grammars
@@ -920,6 +772,19 @@ otherwise the ID of the new start symbol.
 @deftypefunx int marpa_g_is_lhs_terminal_ok_set ( @
     Marpa_Grammar @var{g}, @
     int @var{value})
+Traditionally, grammars do not allow a terminal on the LHS of a rule.
+But when the @dfn{LHS terminal flag} is set, Marpa does allow
+a terminal to appear on a rule's LHS.
+@var{marpa_g_is_lhs_terminal_ok} checks the value of the LHS
+terminal flag,
+and @var{marpa_g_is_lhs_terminal_ok_set} sets it to @var{value}.
+Calling @var{marpa_g_is_lhs_terminal_ok_set} after
+@var{g} has been precomputed is a hard error.
+
+Return value:
+On success, the value of the LHS terminal after
+the call.
+On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_terminal ( @
@@ -1192,7 +1057,7 @@ Return value: -2 if there was an error.
 @node Grammar internals,  , Rule internals, Grammars
 @section Methods that deal with grammar internals
 
-The methods in this section are accessors for libmarpa's
+The methods in this section are accessors for Libmarpa's
 AHFA items and states.
 Their use requires familiarity with
 Marpa's internals, as described in
@@ -1762,6 +1627,7 @@ Return the is-predecessor bit for @var{nook_id}.
 @chapter Value objects
 
 @menu
+* About the valuator::          
 * Valuator constructor::        
 * Valuator access macros::      
 * Valuator reference counting::  
@@ -1769,7 +1635,84 @@ Return the is-predecessor bit for @var{nook_id}.
 * Valuator tracing::            
 @end menu
 
-@node Valuator constructor, Valuator access macros, Value, Value
+@node About the valuator, Valuator constructor, Value, Value
+@section About the valuator
+While Libmarpa passes instruction for stack manipulation,
+it does not actually maintain a stack.
+This leaves the upper layer in total control of the
+stack and the values which are placed on it.
+
+As example may make this clearer.
+Suppose the evalution is at a place in the parse tree
+where an addition is being performed.
+Libmarpa does not know that the operation
+is an addition.
+It will tell the application that rule number R
+is to be applied to the arguments at stack locations
+N and N+, and that the result is to placed in
+stack location N.
+
+In this system,
+The application keeps track of the semantics for all
+rules, so it looks up rule R and determines that it
+is an addition.
+The application can do this by using R as an index
+into an array of callbacks, or by any other method
+it chooses.
+Let's assume a callback implements the semantics
+for rule R.
+Libmarpa has told the application that two arguments
+are available for this operation, and that they are
+at locations N and N+1 in the stack.
+They might be the numbers 42 and 711.
+So the callback is called with its two arguments,
+and produces a return value, let's say, 753.
+Libmarpa has told the application that the result
+belongs at location N in the stack,
+so the application writes 752 to location N.
+
+Since Libmarpa knows nothing about the semantics,
+the operation for rule R could be string concatenation
+instead of addition.
+Or, if it is addition, it could allow for its arguments
+to be floating point or complex numbers.
+Since the application maintains the stack, it is up
+to the application whether the stack contains integers,
+strings, complex numbers; or objects which may be any
+or all of these and more.
+
+This technique
+hides Libmarpa's grammar rewrites from the application,
+and is actually quite efficient.
+Libmarpa knows which rules are sequences
+and optimizes stack manipulations based on this knowledge.
+Many practical grammars use long sequences heavily,
+and for these Libmarpa the series of steps
+suggest by Libmarpa will be significantly faster than the standard 
+stack evaluation algorithm in the textbooks.
+
+To make it clear,
+I am under no illusion that Libmarpa's evaluator will be found
+satisfactory even to most application programmers.
+I certainly avoid using it directly.
+It is intended to be used via an upper layer,
+one which does know about semantics.
+
+But, by isolating Libmarpa from semantics, Libmarpa avoids
+imposing any arbitrary restrictions on the semantics used
+with the Marpa algorithm.
+To see the advantage suppose, as I expect will often be the case,
+Libmarpa is used as the basis
+for a higher-level language which needs callbacks in that higher level language.
+For generality, Libmarpa would have to deal in C callback,
+which wrapper the callbacks in the higher level language.
+This is complex to code and inefficient,
+but that is not its worst aspect.
+The worst aspect happens when there is a programming error.
+This error will occur inside Libmarpa,
+and inside code about which Libmarpa can make no assumptions.
+
+@node Valuator constructor, Valuator access macros, About the valuator, Value
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
@@ -1885,7 +1828,7 @@ These value types are reserved for internal purposes
     Marpa_Value @var{v})
 @end deftypefun
 
-@node Error handling,  , Value, Top
+@node Error handling, Design considerations, Value, Top
 @chapter Error handling
 
 @section Soft and hard errors
@@ -1907,13 +1850,13 @@ as a fatal error.
 The difference between hard and soft errors can
 depend, to a certain extent,
 on the application.
-libmarpa has its own idea of what is a hard
+Libmarpa has its own idea of what is a hard
 and soft error but,
 whenever possible,
 it does not enforce this on the application.
 An application is also free to treat a soft
 error as a hard error.
-And libmarpa makes
+And Libmarpa makes
 every attempt to allow an application to
 reinterpret a hard error as a soft error.
 
@@ -1973,7 +1916,7 @@ Sequence rules are simply an optimized shorthand
 for rules that can also be written in ordinary BNF.
 If the equivalent of a sequence of nullables is
 really what your application needs,
-nothing in libmarpa prevents you from specifying
+nothing in Libmarpa prevents you from specifying
 that sequence
 with ordinary BNF rules.
 Suggested message: "Nullable symbol on RHS of a sequence rule."
@@ -1981,7 +1924,7 @@ Suggested message: "Nullable symbol on RHS of a sequence rule."
 
 @deftypevr Macro int MARPA_ERR_DEVELOPMENT
 The "development" errors is for use during
-libmarpa's development,
+Libmarpa's development,
 while it is not yet clear how precisely
 to classify every error condition.
 The error string is a
@@ -2014,7 +1957,7 @@ Suggested message: "Duplicate rule."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_EIM_COUNT
-libmarpa allows a maximum number of earley
+Libmarpa allows a maximum number of earley
 items per Earley set.
 This error code indicates that limit was
 exceeded.
@@ -2023,7 +1966,7 @@ the optional earley item
 warning threshold, which can be set
 by the application.
 Exceeding the warning threshold causes
-a libmarpa event, which the application
+a Libmarpa event, which the application
 is free to treat as a hard or soft error.
 Suggested message: "Maximum number of earley items exceeded."
 
@@ -2050,8 +1993,8 @@ fatal error.
 Internal errors are errors which
 "should not happen".
 They could result when the calling program
-overwrites libmarpa's internal data.
-They may also indicate a bug in libmarpa.
+overwrites Libmarpa's internal data.
+They may also indicate a bug in Libmarpa.
 An internal error will usually be a hard error.
 Suggested message: "Internal error."
 @end deftypevr
@@ -2059,6 +2002,11 @@ Suggested message: "Internal error."
 @deftypevr Macro int MARPA_ERR_INVALID_AHFA_ID
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_AIMID
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_INVALID_BOOLEAN
+A function was called which takes a boolean argument,
+one which must be either 0 or 1,
+and that argument has some other value.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_ES_ORDINAL
 @end deftypevr
@@ -2072,7 +2020,7 @@ Suggested message: "Internal error."
 @deftypevr Macro int MARPA_ERR_LHS_IS_TERMINAL
 By default,
 and unlike most parsing algorithms,
-libmarpa allow LHS terminals
+Libmarpa allow LHS terminals
 -- symbols on the LHS side of a rule,
 but which may also be terminals.
 This behavior is configurable,
@@ -2144,7 +2092,7 @@ and this is the default.
 But when there is an null rule in the grammar,
 having lots of terminals is an efficiency hit.
 For that reason, if a grammar has a null rule,
-libmarpa requires the application to explictly
+Libmarpa requires the application to explictly
 indicate which symbols are terminals,
 and will not accept the default.
 
@@ -2288,5 +2236,90 @@ not even the null string.
 Presumably, an error in writing the grammar.
 Suggested message: "Unproductive start symbol."
 @end deftypevr
+
+@node Design considerations,  , Error handling, Top
+@chapter Design considerations
+
+This section details some of the design choices
+in Libmarpa.
+
+@menu
+* Why so many time objects::    
+* Design of numbered objects::  
+@end menu
+
+@node Why so many time objects, Design of numbered objects, Design considerations, Design considerations
+@section Why so many time objects?
+
+Readers accustomed to other appraoches to parsing,
+particular those in fashion at this writing,
+may wonder on the number of time objects
+in the Marpa architecture.
+Several of Marpa's time objects (bocages,
+orderings and trees) are required
+because Marpa allows,
+and offers powerful tools for dealing with,
+ambigious grammars.
+
+It may seem, then, that users of unambiguous grammars,
+are paying a considerable price in time effiency
+for the ability to parse
+ambiguous ones.
+This is not the case.
+In the trivial case, the cost of the orderings
+object is a single, very brief, subroutine call.
+
+Bocage objects come at minimal cost,
+because the same pass which creates the bocage
+also deals with other issues which are of major
+significance even for unambiguous parses.
+The same pass which creates the bocage
+enables Marpa to do both left-
+and right-recursion in linear time.
+
+Tree objects come at mininal cost to unambiguous grammars,
+because the same pass that allows iteration through multiple
+parse trees does the tree traversal, so that the valuation time object
+has very litle to do -- it just steps through the sequence.
+
+But what about the many passes over the data this requires?
+Marpa is an aggressively multi-pass algorithm.
+Marpa achieves its efficiency,
+not in spite of making multiple
+passes over the data, but because of it.
+Marpa is @math{O(n)} for LR-regular grammars,
+both in theory and in implementation,
+because Marpa regularly substitutes
+two fast @math{O(n)} passes for a single
+@math{O(n log n)} pass.
+
+@node Design of numbered objects,  , Why so many time objects, Design considerations
+@section Numbered objects
+
+As the name suggests,
+the choice was made to implement
+numbered objects and not as
+pointers.
+Integers can be easily and safely checked for validity,
+while pointer cannot.
+
+There are efficiency tradeoffs between pointers and
+integers but they are complications and go both ways.
+Pointers can be faster, but integers can be used
+as indexes into more than one data structure.
+Which is actually faster depends on the design.
+Integers allow for a more flexible design,
+so that once the choice is settled on,
+careful programming can make them a win,
+possibly a very big one.
+
+The approach taken in Libmarpa was to settle
+from the outset,
+on integers as the implementation for numbered
+objects and optimize on that basis.
+In any case, the difference is speed on
+modern architectures is
+a small price to pay for
+safe, portable validity checking.
 
 @bye

@@ -694,7 +694,9 @@ DSTACK_DESTROY(g->t_symbols);
 @ Symbol count accesors.
 @d SYM_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
 @ @<Function definitions@> =
-int marpa_g_symbol_count(struct marpa_g* g) {
+int marpa_g_symbol_count(Marpa_Grammar g) {
+   @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     return SYM_Count_of_G(g);
 }
 
@@ -866,8 +868,7 @@ By default, this is allowed under Marpa.
 @<Bit aligned grammar elements@> = unsigned int t_is_lhs_terminal_ok:1;
 @ @<Initialize grammar elements@> =
 g->t_is_lhs_terminal_ok = 1;
-@ The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
+@ @<Function definitions@> =
 int marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@/
@@ -878,12 +879,16 @@ int marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
 false on failure.
 @<Function definitions@> =
 int marpa_g_is_lhs_terminal_ok_set(
-struct marpa_g*g, int value)
+Marpa_Grammar g, int value)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>
-    return g->t_is_lhs_terminal_ok = value ? 1 : 0;
+    if (value < 0 || value > 1) {
+	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
+	return failure_indicator;
+    }
+    return g->t_is_lhs_terminal_ok = value;
 }
 
 @*0 Terminal Boolean Vector.
@@ -1259,8 +1264,6 @@ to the symbol function.
 If that becomes private,
 the prototype of this function
 must be changed.
-\par
-The internal accessor would be trivial, so there is none.
 @<Function definitions@> =
 int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
@@ -2050,9 +2053,7 @@ derivation must have at least one step.
 @<Bit aligned rule elements@> = unsigned int t_is_loop:1;
 @ @<Initialize rule elements@> =
 rule->t_is_loop = 0;
-@ This is the external accessor.
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
+@ @<Function definitions@> =
 int marpa_g_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
@@ -2069,9 +2070,7 @@ but not vice versa.
 @<Bit aligned rule elements@> = unsigned int t_is_virtual_loop:1;
 @ @<Initialize rule elements@> =
 rule->t_is_virtual_loop = 0;
-@ This is the external accessor.
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
+@ @<Function definitions@> =
 int marpa_g_rule_is_virtual_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
@@ -2101,9 +2100,7 @@ Is the rule used in computing the AHFA sets?
 @<Bit aligned rule elements@> = unsigned int t_is_used:1;
 @ @<Initialize rule elements@> =
 RULE_is_Used(rule) = 1;
-@ This is the external accessor.
-The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
+@ @<Function definitions@> =
 int marpa_g_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
@@ -2130,8 +2127,7 @@ semantics specified for the original grammar.
 @<Bit aligned rule elements@> = unsigned int t_is_virtual_lhs:1;
 @ @<Initialize rule elements@> =
 RULE_has_Virtual_LHS(rule) = 0;
-@ The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
+@ @<Function definitions@> =
 int marpa_g_rule_is_virtual_lhs(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
@@ -2147,8 +2143,7 @@ int marpa_g_rule_is_virtual_lhs(
 @<Bit aligned rule elements@> = unsigned int t_is_virtual_rhs:1;
 @ @<Initialize rule elements@> =
 RULE_has_Virtual_RHS(rule) = 0;
-@ The internal accessor would be trivial, so there is none.
-@<Function definitions@> =
+@ @<Function definitions@> =
 int marpa_g_rule_is_virtual_rhs(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
@@ -13476,6 +13471,9 @@ in various ways or which are otherwise useful.
 #undef      MAX
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 
+#undef      CLAMP
+#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+
 /* A string identifying the current code position */
 #if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
 #  define STRLOC	__FILE__ ":" G_STRINGIFY (__LINE__) ":" __PRETTY_FUNCTION__ "()"
@@ -13493,17 +13491,8 @@ in various ways or which are otherwise useful.
 #endif
 
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
-#define BOOLEAN_EXPR(expr)                   \
- __extension__ ({                               \
-   int _g_boolean_var_;                         \
-   if (expr)                                    \
-      _g_boolean_var_ = 1;                      \
-   else                                         \
-      _g_boolean_var_ = 0;                      \
-   _g_boolean_var_;                             \
-})
-#define LIKELY(expr) (__builtin_expect (BOOLEAN_EXPR(expr), 1))
-#define UNLIKELY(expr) (__builtin_expect (BOOLEAN_EXPR(expr), 0))
+#define LIKELY(expr) (__builtin_expect ((expr), 1))
+#define UNLIKELY(expr) (__builtin_expect ((expr), 0))
 #else
 #define LIKELY(expr) (expr)
 #define UNLIKELY(expr) (expr)
