@@ -825,17 +825,6 @@ Return value: On success, 1 if productive, 0 if not.  If the grammar
 is not precomputed, or on failure, -2.
 @end deftypefun
 
-@deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-A symbol is @dfn{counted}
-if it appears on the RHS of a sequence rule.
-The separator symbol of a sequence rule is also considered
-to be a counted symbol.
-
-Return value: On success, 1 if the symbol is counted, 0 if not.
-On failure, -2.
-@end deftypefun
-
 @deftypefun int marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{nullable} if it can produce the empty string.
@@ -881,53 +870,37 @@ Return value:  On success, the new rule ID.
 On failure, -2.
 @end deftypefun
 
-@deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{id})
-A rule is @dfn{accessible} if it can be reached from the start symbol.
-This is not known until the grammar is precomputed.
-A rule is accessible if and only if its LHS symbol is accessible.
-The start rule is always an accessible rule.
-
-Return value: On success, 1 if accessible, 0 if not.  If the grammar
-is not precomputed, or on other failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{id})
-A rule is @dfn{productive} if it can be produce a string of terminals.
-including the empty string.
-This is not known until the grammar is precomputed.
-An rule is productive if and only if all the symbols on
-its RHS are productive.
-An empty rule is considered productive, vacuously.
-
-Return value: On success, 1 if productive, 0 if not.  If the grammar
-is not precomputed, or on other failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-
 @deftypefun Marpa_Symbol_ID marpa_g_rule_lhs ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
+Return value: On success, the LHS symbol of the rule.
+On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_length ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
-@end deftypefun
+The length of a rule is the number of symbols on its RHS.
 
-@deftypefun int marpa_g_rule_is_discard_separation ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{id})
+Return value: On success, the rule length.
+On failure, -2.
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID marpa_g_rule_rh_symbol ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id}, @
     int @var{ix})
+The position in the rule, @var{ix}, is zero-based.
+If @var{ix} is greater than or equal the length of the
+rule, it is a soft failure.
+This can be used in loops, to avoid having to determine
+the rule's length explicitly.
+
+Return value: On success, the symbol in position @var{ix}
+on the rules RHS.
+If @var{ix} is greater than or equal to the length of
+the rule, -1.
+On other failures, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_whatever_set ( @
@@ -979,6 +952,42 @@ Return value: -2 if there was an error.
 
 @end deftypefun
 
+@deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{id})
+A rule is @dfn{accessible} if it can be reached from the start symbol.
+This is not known until the grammar is precomputed.
+A rule is accessible if and only if its LHS symbol is accessible.
+The start rule is always an accessible rule.
+
+Return value: On success, 1 if accessible, 0 if not.  If the grammar
+is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{id})
+A rule is @dfn{productive} if it can be produce a string of terminals.
+including the empty string.
+This is not known until the grammar is precomputed.
+An rule is productive if and only if all the symbols on
+its RHS are productive.
+An empty rule is considered productive, vacuously.
+
+Return value: On success, 1 if productive, 0 if not.  If the grammar
+is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+A rule is a loop rule if it non-trivially
+produces the string of length one
+which consists only of its LHS symbol.
+``Non-trivially'' means the zero-step derivation does not count -- the
+derivation must have at least one step.
+
+Return value: On success, 1 if this is a loop rule, 0 if not.  If the grammar
+is not precomputed, or on other failure, -2.
+@end deftypefun
+
 @node Sequences, Grammar precomputation, Rules, Grammars
 @section Sequences
 
@@ -988,6 +997,71 @@ Return value: -2 if there was an error.
      Marpa_Symbol_ID @var{separator_id}, @
     int @var{min}, @
  int @var{flags} )
+Adds a new sequence rule to grammar @var{g}.
+Internally, Libmarpa translates sequences into BNF
+rules, but it also optimizes their evaluation.
+In practice this speedup can be considerable --
+25% or more.
+
+The sequence is @var{lhs_id},
+and the item to be repeated in the sequence is @var{rhs_id}.
+The sequence must be repeated at least @var{min} times,
+where @var{min} is 0 or 1.
+If @var{separator_id} is non-negative,
+it is a separator symbol.
+
+If @code{flags & MARPA_KEEP_SEPARATION} is true,
+Libmarpa's semantics will keep separators.
+Otherwise they will be discarded.
+If @code{flags & MARPA_PROPER_SEPARATION} is non-zero,
+separation is ``proper'', that is,
+a trailing separator is not allowed.
+The term @dfn{proper} is based on the idea that
+properly-speaking, separators should actually separate items.
+
+The sequence RHS, or item,
+is restricted to a single symbol,
+but almost arbitrary semantics can be expressed by having
+@var{rhs_id} be the LHS of another rule.
+A restrictions is that @var{rhs_id},
+cannot be a nullable symbol.
+
+If @var{separator_id} is a symbol, it also cannot
+be a nullable symbol.
+Nullables on the RHS of sequences are restricted
+because they lead to highly ambiguous grammars.
+Such grammars are allowed by Libmarpa, but
+sequence optimizations would not work
+for in the presence of nullables.
+Also it is not clearly clear what
+an application intends
+when it asks for a sequence of items, some of which
+may be null.
+In such a case,
+the user's intent is most clearly expressed
+directly in BNF.
+
+It is a hard error, to ask for a sequence which duplicates
+another rule.
+
+Return value:  On success, the number of events.
+On failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+A symbol is @dfn{counted}
+if it appears on the RHS of a sequence rule.
+The separator symbol of a sequence rule is also considered
+to be a counted symbol.
+
+Return value: On success, 1 if the symbol is counted, 0 if not.
+On failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_discard_separation ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{id})
 @end deftypefun
 
 @node Grammar precomputation, Symbol internals, Sequences, Grammars

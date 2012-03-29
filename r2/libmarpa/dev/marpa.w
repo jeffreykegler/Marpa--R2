@@ -1562,7 +1562,7 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
 }
 
 @ @<Function definitions@> =
-int marpa_g_sequence_new(struct marpa_g *g,
+int marpa_g_sequence_new(Marpa_Grammar g,
 Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
 int min, int flags )
 {
@@ -1928,10 +1928,12 @@ PRIVATE Marpa_Symbol_ID rule_lhs_get(RULE rule)
 {
     return rule->t_symbols[0]; }
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_rule_lhs(struct marpa_g *g, Marpa_Rule_ID rule_id) {
+Marpa_Symbol_ID marpa_g_rule_lhs(Marpa_Grammar g, Marpa_Rule_ID rule_id) {
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-    return rule_lhs_get(RULE_by_ID(g, rule_id)); }
+    return rule_lhs_get(RULE_by_ID(g, rule_id));
+}
 @ @<Function definitions@> =
 PRIVATE Marpa_Symbol_ID* rule_rhs_get(RULE rule)
 {
@@ -1940,6 +1942,7 @@ PRIVATE Marpa_Symbol_ID* rule_rhs_get(RULE rule)
 Marpa_Symbol_ID marpa_g_rule_rh_symbol(struct marpa_g *g, Marpa_Rule_ID rule_id, int ix) {
     RULE rule;
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     rule = RULE_by_ID(g, rule_id);
     if (Length_of_RULE(rule) <= ix) return -1;
@@ -1952,6 +1955,7 @@ PRIVATE size_t rule_length_get(RULE rule)
 @ @<Function definitions@> =
 int marpa_g_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
     return rule_length_get(RULE_by_ID(g, rule_id)); }
 
@@ -2067,7 +2071,9 @@ rule->t_is_loop = 0;
 int marpa_g_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
+    @<Fail if not precomputed@>@;
 return RULE_by_ID(g, rule_id)->t_is_loop; }
 
 @*0 Virtual Loop Rule.
