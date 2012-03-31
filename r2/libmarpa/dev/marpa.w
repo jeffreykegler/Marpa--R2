@@ -983,9 +983,10 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event public_event,
   GEV internal_event;
   int type;
 
+  MARPA_DEBUG4("%s: ix=%d, event_count=%d", STRLOC, ix, G_EVENT_COUNT(g));
   if (ix < 0)
     return failure_indicator;
-  if (ix > DSTACK_LENGTH (*events))
+  if (ix >= DSTACK_LENGTH (*events))
     return index_out_of_bounds;
   internal_event = DSTACK_INDEX (*events, GEV_Object, ix);
   type = internal_event->t_type;
@@ -1518,18 +1519,20 @@ typedef Marpa_Rule_ID RULEID;
 This logic is intended to be common to all individual rules.
 The name comes from the idea that this logic ``starts"
 the initialization of a rule.
-@ GCC complains about inlining |rule_start| -- it is
-not a tiny function, and it is repeated often.
+It is assummed that the caller has checked that all
+symbol ID's are valid.
+@ Not inline because GCC complains,
+and not unreasonably.
+It is big,
+and it is used in a lot of places.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE
 RULE rule_start(GRAMMAR g,
 SYMID lhs, SYMID *rhs, int length)
 {
-    @<Return |NULL| on failure@>@;
     RULE rule;
     const int rule_sizeof = offsetof (struct s_rule, t_symbols) +
         (length + 1) * sizeof (rule->t_symbols[0]);
-    @<Return failure on invalid rule symbols@>@/
     rule = obstack_alloc (&g->t_obs, rule_sizeof);
     @<Initialize rule symbols@>@/
     @<Initialize rule elements@>@/
@@ -1555,33 +1558,35 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
         return failure_indicator;
     }
+    if (!rule_check(g, lhs, rhs, length)) return failure_indicator;
     rule = rule_start(g, lhs, rhs, length);
-    if (!rule) { return failure_indicator; }
     rule_id = rule->t_id;
     return rule_id;
 }
 
 @ @<Function definitions@> =
-int marpa_g_sequence_new(Marpa_Grammar g,
+Marpa_Rule_ID marpa_g_sequence_new(Marpa_Grammar g,
 Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID rhs_id, Marpa_Symbol_ID separator_id,
 int min, int flags )
 {
     RULE original_rule;
-    RULEID original_rule_id;
+    RULEID original_rule_id = -2;
+    RULEID return_value = -2;
     SYM internal_lhs;
-    SYMID internal_lhs_id, *temp_rhs;
+    SYMID internal_lhs_id;
+    SYMID *temp_rhs = NULL;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
+    G_EVENTS_CLEAR(g);
     if (is_rule_duplicate (g, lhs_id, &rhs_id, 1) == 1)
       {
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
 	return failure_indicator;
       }
-    G_EVENTS_CLEAR(g);
 
+    @<Check that the sequence symbols are valid@>@;
     @<Add the original rule for a sequence@>@;
-    @<Check that the separator is valid or -1@>@;
     @<Mark the counted symbols@>@;
     if (min == 0) { @<Add the nulling rule for a sequence@>@; }
     min = 1;
@@ -1593,19 +1598,20 @@ int min, int flags )
     }
     @<Add the minimum rule for the sequence@>@;
     @<Add the iterating rule for the sequence@>@;
+
+    return_value = original_rule_id;
+    FAILURE: ;
+    if (return_value < 0) {
+	G_EVENTS_CLEAR(g);
+    }
     @<Free the temporary rhs buffer@>@;
-     return G_EVENT_COUNT(g);
+     return return_value;
 }
 
 @ As a side effect, this checks the LHS and RHS symbols for validity.
 @<Add the original rule for a sequence@> =
 {
   original_rule = rule_start (g, lhs_id, &rhs_id, 1);
-  if (!original_rule)
-    {
-      MARPA_ERROR(MARPA_ERR_INTERNAL);
-      return failure_indicator;
-    }
   RULE_is_Used (original_rule) = 0;
   original_rule_id = original_rule->t_id;
   original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
@@ -1613,10 +1619,15 @@ int min, int flags )
   int_event_new (g, MARPA_EVENT_NEW_RULE, original_rule_id);
 }
 
-@ @<Check that the separator is valid or -1@> =
+@ @<Check that the sequence symbols are valid@> =
 if (separator_id != -1 && !symbol_is_valid(g, separator_id)) {
     MARPA_ERROR(MARPA_ERR_BAD_SEPARATOR);
-    return failure_indicator;
+    goto FAILURE;
+}
+if (!symbol_is_valid(g, lhs_id) || !symbol_is_valid(g, rhs_id))
+{
+    MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
+    goto FAILURE;
 }
 
 @ @<Mark the counted symbols@> =
@@ -1624,8 +1635,8 @@ SYM_by_ID(rhs_id)->t_is_counted = 1;
 if (separator_id >= 0) { SYM_by_ID(separator_id)->t_is_counted = 1; }
 @ @<Add the nulling rule for a sequence@> =
 {
-    RULE rule = rule_start(g, lhs_id, 0, 0);
-    if (!rule) { @<Fail with internal grammar error@>@; }
+    RULE rule;
+    rule = rule_start(g, lhs_id, 0, 0);
     rule->t_is_semantic_equivalent = 1;
     rule->t_original = original_rule_id;
     int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
@@ -1656,7 +1667,6 @@ temp_rhs = my_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     RULE rule;
     temp_rhs[0] = internal_lhs_id;
     rule = rule_start(g, lhs_id, temp_rhs, 1);
-    if (!rule) { @<Fail with internal grammar error@>@; }
     rule->t_original = original_rule_id;
     rule->t_is_semantic_equivalent = 1;
     /* Real symbol count remains at default of 0 */
@@ -1670,7 +1680,6 @@ temp_rhs = my_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
     temp_rhs[0] = internal_lhs_id;
     temp_rhs[1] = separator_id;
     rule = rule_start(g, lhs_id, temp_rhs, 2);
-    if (!rule) { @<Fail with internal grammar error@>@; }
     rule->t_original = original_rule_id;
     rule->t_is_semantic_equivalent = 1;
     RULE_has_Virtual_RHS(rule) = 1;
@@ -1690,7 +1699,6 @@ int rhs_ix, i;
         temp_rhs[rhs_ix++] = rhs_id;
     }
     rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
-    if (!rule) { @<Fail with internal grammar error@>@; }
     RULE_has_Virtual_LHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix;
     int_event_new (g, MARPA_EVENT_NEW_RULE, rule->t_id);
@@ -1702,7 +1710,6 @@ int rhs_ix = 0;
     if (separator_id >= 0) temp_rhs[rhs_ix++] = separator_id;
     temp_rhs[rhs_ix++] = rhs_id;
     rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
-    if (!rule) { @<Fail with internal grammar error@>@; }
     RULE_has_Virtual_LHS(rule) = 1;
     RULE_has_Virtual_RHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix - 1;
@@ -1906,16 +1913,21 @@ nobody will have noticed this restriction.
 so that they can be variable length.
 @<Final rule elements@> = Marpa_Symbol_ID t_symbols[1];
 
-@ @<Return failure on invalid rule symbols@> =
+@ @<Function definitions@> =
+PRIVATE
+int rule_check(GRAMMAR g,
+SYMID lhs, SYMID *rhs, int length)
 {
-    SYMID symid = lhs;
-    @<Fail if |symid| is invalid@>@;
-}
-{ int rh_index;
+    int rh_index;
+    if (!symbol_is_valid(g, lhs)) goto ERROR;
     for (rh_index = 0; rh_index<length; rh_index++) {
 	SYMID symid = rhs[rh_index];
-	@<Fail if |symid| is invalid@>@;
+	if (!symbol_is_valid(g, symid)) goto ERROR;
     }
+    return 1;
+    ERROR: ;
+    MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
+    return 0;
 }
 
 @ @<Initialize rule symbols@> =
@@ -13034,10 +13046,6 @@ if (!AHFA_state_id_is_valid(g, AHFA_state_id)) {
     MARPA_ERROR(MARPA_ERR_INVALID_AHFA_ID);
     return failure_indicator;
 }
-@ @<Fail with internal grammar error@> = {
-    MARPA_ERROR(MARPA_ERR_INTERNAL);
-    return failure_indicator;
-}
 
 @*0 Recognizer Failures.
 |r| is assumed to be the value of the relevant recognizer,
@@ -13232,7 +13240,7 @@ void marpa_debug_level_set( int level )
     (*marpa_debug_handler)((a),(b),(c),(d),(e))) @]
 
 #define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
-       (*marpa_debug_handler) ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
+       (*marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
 #define MARPA_DEBUG1(a) @[@]
 #define MARPA_DEBUG2(a, b) @[@]
@@ -13245,7 +13253,7 @@ void marpa_debug_level_set( int level )
 #if MARPA_ENABLE_ASSERT
 #undef MARPA_ASSERT
 #define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
-       (*marpa_debug_handler) ("%s: assertion failed %s", G_STRLOC, #expr); } while (0);
+       (*marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
 #endif
 
 @*0 Earley Item Tag.
@@ -13490,11 +13498,16 @@ in various ways or which are otherwise useful.
 #undef      CLAMP
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
+#undef STRINGIFY_ARG
+#define STRINGIFY_ARG(contents)       #contents
+#undef STRINGIFY
+#define STRINGIFY(macro_or_string)        STRINGIFY_ARG (macro_or_string)
+
 /* A string identifying the current code position */
 #if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
-#  define STRLOC	__FILE__ ":" G_STRINGIFY (__LINE__) ":" __PRETTY_FUNCTION__ "()"
+#  define STRLOC	__FILE__ ":" STRINGIFY (__LINE__) ":" __PRETTY_FUNCTION__ "()"
 #else
-#  define STRLOC	__FILE__ ":" G_STRINGIFY (__LINE__)
+#  define STRLOC	__FILE__ ":" STRINGIFY (__LINE__)
 #endif
 
 /* Provide a string identifying the current function, non-concatenatable */

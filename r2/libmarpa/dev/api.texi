@@ -992,7 +992,7 @@ is not precomputed, or on other failure, -2.
 @node Sequences, Grammar precomputation, Rules, Grammars
 @section Sequences
 
-@deftypefun int marpa_g_sequence_new (Marpa_Grammar @var{g}, @
+@deftypefun Marpa_Rule_ID marpa_g_sequence_new (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{lhs_id}, @
  Marpa_Symbol_ID @var{rhs_id}, @
      Marpa_Symbol_ID @var{separator_id}, @
@@ -1045,8 +1045,9 @@ directly in BNF.
 It is a hard error, to ask for a sequence which duplicates
 another rule.
 
-Return value:  On success, the number of events.
-On failure, -2.
+Return value:  On success, the semantic rule.
+If the rule is a duplicate, -1.
+On other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @

@@ -716,17 +716,18 @@ PPCODE:
  # done in Perl -- in particular there seems to be no
  # easy way to  prevent that.
 Marpa_Rule_ID
-sequence_new( g, lhs, rhs, args )
-    Grammar *g;
+sequence_new( g_wrapper, lhs, rhs, args )
+    G_Wrapper *g_wrapper;
     Marpa_Symbol_ID lhs;
     Marpa_Symbol_ID rhs;
     HV *args;
-PREINIT:
+PPCODE:
+{
+    struct marpa_g* g = g_wrapper->g;
     Marpa_Rule_ID new_rule_id;
     Marpa_Symbol_ID separator = -1;
     int min = 1;
     int flags = 0;
-PPCODE:
     if (args) {
 	I32 retlen;
 	char* key;
@@ -767,6 +768,7 @@ PPCODE:
     new_rule_id = marpa_g_sequence_new(g, lhs, rhs, separator, min, flags );
     if (new_rule_id < 0) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(new_rule_id) ) );
+}
 
 Marpa_Symbol_ID
 rule_lhs( g_wrapper, rule_id )

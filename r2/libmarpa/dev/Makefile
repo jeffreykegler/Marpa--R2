@@ -39,6 +39,7 @@ STAGE_FILES = \
     ../stage/marpa_obs.c \
     ../stage/marpa_obs.h \
     ../stage/avl.h \
+    ../stage/private.h \
     ../stage/avl.c \
     ../stage/NEWS \
     ../stage/README \
@@ -74,7 +75,7 @@ STAGE_FILES = \
 
 all: marpa.pdf sources
 
-sources: marpa.c marpa.h marpa_api.h codes.h codes.c
+sources: marpa.c marpa.h marpa_api.h codes.h codes.c private.h
 
 marpa.h marpa.c: copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w
