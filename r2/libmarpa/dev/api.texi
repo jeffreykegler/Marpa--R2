@@ -55,6 +55,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Value::                       Value objects.
 * Error handling::              
 * Design considerations::       
+* Things To Do::                
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -2389,7 +2390,7 @@ Presumably, an error in writing the grammar.
 Suggested message: "Unproductive start symbol."
 @end deftypevr
 
-@node Design considerations,  , Error handling, Top
+@node Design considerations, Things To Do, Error handling, Top
 @chapter Design considerations
 
 This section details some of the design choices
@@ -2473,5 +2474,14 @@ In any case, the difference is speed on
 modern architectures is
 a small price to pay for
 safe, portable validity checking.
+
+@node Things To Do,  , Design considerations, Top
+@chapter Things to do
+
+@itemize
+@item
+There should be an interface in the valuator that allows the user to 
+determine the start and end earlemes of a token.
+@end itemize
 
 @bye
