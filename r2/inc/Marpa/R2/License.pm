@@ -251,10 +251,6 @@ my %files_by_type = (
         \&ignored,    # not source, and not clear how to add license at top
     'ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
     'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
-    'libmarpa/dev/dist/COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
-    'libmarpa/dev/cwebmac.tex' =>
-        \&ignored,                    # originally from Cweb, leave it alone
-
     'html/script/marpa_r2_html_fmt'    => \&license_problems_in_perl_file,
     'html/script/marpa_r2_html_score'  => \&license_problems_in_perl_file,
     'html/t/no_tang.html'              => \&ignored,
@@ -262,24 +258,43 @@ my %files_by_type = (
     'html/t/fmt_t_data/expected1.html' => \&ignored,
     'html/t/fmt_t_data/expected2.html' => \&ignored,
     'html/t/fmt_t_data/input1.html'    => \&trivial,
-    'libmarpa/dist/stamp-vti' => \&trivial,
-    'libmarpa/build/version.texi' => \&trivial,
     'html/t/fmt_t_data/input2.html'    => \&trivial,
     'html/t/fmt_t_data/score_expected1.html' => \&trivial,
     'html/t/fmt_t_data/score_expected2.html' => \&trivial,
-    'libmarpa/dev/copyright_page_license.w'  => \&copyright_page,
     'Makefile.PL'                            => \&trivial,
-    'libmarpa/dev/VERSION.in'                   => \&trivial,
-    'libmarpa/VERSION'                   => \&trivial,
-    'libmarpa/dev/README'                    => \&trivial,
-    'libmarpa/dev/dist/README'                    => \&license_problems_in_text_file,
-    'libmarpa/dev/dist/AUTHORS'                    => \&trivial,
-    'libmarpa/dev/dist/NEWS'                    => \&trivial,
-    'libmarpa/dev/dist/ChangeLog'                    => \&trivial,
-    'libmarpa/dev/api.texi'             => \&license_problems_in_fdl_file,
-    'libmarpa/build/api.texi'             => \&license_problems_in_fdl_file,
-    'libmarpa/test/README'              => \&trivial,
-    'libmarpa/test/Makefile'            => \&trivial,
+    'libmarpa/VERSION'           => \&trivial,
+    'libmarpa/build/AUTHORS' => \&trivial,
+    'libmarpa/build/COPYING.LESSER' =>
+	\&ignored,    # GNU license text, leave it alone
+    'libmarpa/build/ChangeLog' => \&trivial,
+    'libmarpa/build/INSTALL'   => \&ignored,    # GNU file, leave it alone
+    'libmarpa/build/NEWS'      => \&trivial,
+    'libmarpa/build/api.texi' => \&license_problems_in_fdl_file,
+    'libmarpa/build/config.h.in' =>
+	check_tag( 'Generated from configure.ac by autoheader', 250 ),
+    'libmarpa/build/install-sh'   => \&check_X_copyright,
+    'libmarpa/build/stamp-vti'    => \&trivial,
+    'libmarpa/build/version.texi' => \&trivial,
+    'libmarpa/dev/README'         => \&trivial,
+    'libmarpa/dev/VERSION.in'     => \&trivial,
+    'libmarpa/dev/api.texi'       => \&license_problems_in_fdl_file,
+    'libmarpa/build/README'   => \&license_problems_in_text_file,
+    'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
+    'libmarpa/dev/cwebmac.tex' =>
+	\&ignored,    # originally from Cweb, leave it alone
+    'libmarpa/dev/dist/AUTHORS' => \&trivial,
+    'libmarpa/dev/dist/COPYING.LESSER' =>
+	\&ignored,    # GNU license text, leave it alone
+    'libmarpa/dev/dist/ChangeLog' => \&trivial,
+    'libmarpa/dev/dist/NEWS'      => \&trivial,
+    'libmarpa/dev/dist/README'    => \&license_problems_in_text_file,
+    'libmarpa/dist/stamp-vti'     => \&trivial,
+    'libmarpa/stage/config.h.in' =>
+	check_tag( 'Generated from configure.ac by autoheader', 250 ),
+    'libmarpa/stage_dist/install-sh' => \&check_X_copyright,
+    'libmarpa/test/Makefile'         => \&trivial,
+    'libmarpa/test/README'           => \&trivial,
+    'libmarpa/test/dev/install-sh'   => \&check_X_copyright,
     'README'                            => \&trivial,
     'TODO'                              => \&trivial,
     'author.t/accept_tidy'              => \&trivial,
@@ -287,13 +302,6 @@ my %files_by_type = (
     'author.t/perltidyrc'               => \&trivial,
     'author.t/spelling_exceptions.list' => \&trivial,
     'author.t/tidy1'                    => \&trivial,
-    'libmarpa/build/install-sh'     => \&check_X_copyright,
-    'libmarpa/stage_dist/install-sh'     => \&check_X_copyright,
-    'libmarpa/test/dev/install-sh' => \&check_X_copyright,
-    'libmarpa/stage/config.h.in' =>
-        check_tag( 'Generated from configure.ac by autoheader', 250 ),
-    'libmarpa/build/config.h.in' =>
-        check_tag( 'Generated from configure.ac by autoheader', 250 ),
 );
 
 sub file_type {
