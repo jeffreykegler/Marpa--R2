@@ -26,8 +26,9 @@ full_test: etc_make
 	    perl Build.PL; \
 	    ./Build; \
 	    ./Build distmeta; \
-	    ./Build test) 2>&1 | \
-		tee full_test.out
+	    ./Build test; \
+	    ./Build disttest; \
+	) 2>&1 | tee full_test.out
 
 install:
 	(cd r2/libmarpa/dev; make install)
