@@ -145,7 +145,7 @@ marpa.pdf: marpa.tex cwebmac.tex
 stage_dir:
 	test -d ../stage || mkdir ../stage
 
-stage_configuration: stage_dir ../stage/configure
+stage_configuration: stage_dir ../stage/configure ../stage/Makefile
 
 ../stage/configure: $(CONFIGURE_FILES)
 	test -d ../stage/m4 || mkdir ../stage/m4
