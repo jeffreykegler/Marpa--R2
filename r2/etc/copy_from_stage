@@ -16,7 +16,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Fatal qw(open close chdir chmod utime);
+use Fatal qw(open close chdir chmod utime unlink);
 
 # Portability is NOT emphasized here -- this script is part
 # of the development environment, not the configuration or
@@ -47,4 +47,7 @@ my $untarred_dir = 'marpa-' . $version;
 say "Tar file is $tar_file";
 system('tar', '-xzf', $tar_file) == 0 or die("Could not tar -xvzf $tar_file: $!");
 rename $untarred_dir, 'build' or die "rename failed: $!";
+
+chdir 'build'; # PWD=libmarpa/build
+unlink 'texinfo.tex';
 

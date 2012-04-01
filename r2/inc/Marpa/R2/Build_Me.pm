@@ -264,6 +264,7 @@ sub do_libmarpa {
 
     my $configure_script = 'configure';
     make_writeable($configure_script);
+    make_writeable('stamp-vti');
     if ( not -r 'stamp-h1' ) {
 
         if ( $self->verbose() ) {

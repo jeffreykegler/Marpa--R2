@@ -123,7 +123,6 @@ libmarpa/build/mdate-sh
 libmarpa/build/missing
 libmarpa/build/private.h
 libmarpa/build/stamp-vti
-libmarpa/build/texinfo.tex
 libmarpa/build/version.texi
 libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
