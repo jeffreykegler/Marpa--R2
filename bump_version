@@ -4,6 +4,8 @@ use 5.010;
 use strict;
 use warnings FATAL => 'all';
 use autodie;
+use English qw( -no_match_vars );
+use IPC::Cmd;
 
 chomp(my $LATEST = qx(grep '^[0-9]' r2/Changes | head -1 | awk '{print \$1}'));
 
@@ -26,3 +28,9 @@ for my $versioned_file (@versioned_files) {
     open my $out, '>', $versioned_file;
     print $out $file;
 } ## end for my $versioned_file (@versioned_files)
+
+chdir 'r2';
+die qq{"perl Build.PL" failed: $!}
+        if not IPC::Cmd::run( command => [$EXECUTABLE_NAME, 'Build.PL'], verbose => 1 );
+die qq{"./Build distmeta" failed: $!}
+        if not IPC::Cmd::run( command => ['./Build', 'distmeta'], verbose => 1 );
