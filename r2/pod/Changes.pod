@@ -1,0 +1,105 @@
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Changes - Differences between Marpa::R2 and Marpa::XS
+
+=head1 ABOUT THIS DOCUMENT
+
+This document describes the differences between Marpa::XS
+and Marpa::R2.
+It is intended for readers already familiar with Marpa::XS,
+who are either writing new applications for Marpa::R2.
+It is also intended to help readers migrating Marpa::XS applications
+and tools to Marpa::R2.
+
+=head1 CHANGES
+
+=head2 The semantics now defaults to arbirary values
+
+In Marpa::XS, the default value
+for rules, null values, and token values,
+was a Perl C<undef>.
+In Marpa::R2, rules and null values now default to an arbitrary
+value.
+In this context, "arbitrary" means is that the value
+may not be relied on,
+and may vary from instance to instance.
+Arbitrary values will usually only be suitable in
+cases where the application simply does not care what is returned.
+
+The motivation for the change is efficiency.
+If Marpa::R2 knows that a value on evaluation
+stack is allowed to be arbitrary,
+it implements the logic to create it as a no-op.
+Real applications allow arbitrary values surprisingly
+often, 
+and this one change makes
+Marpa::R2 20% faster than Marpa::XS
+for typical applications.
+
+Users should make sure that Marpa::R2 code does not
+expect the default semantics will produce an 
+Perl C<undef>.
+
+=head2 A token value of undefined now means "arbitrary"
+
+Similarly,
+if the token value of a
+L<C<read>|Marpa::R2::Recognizer/"read">
+call or an
+L<C<alternative>|Marpa::R2::Recognizer/"alternative">
+call is a Perl C<undef>,
+that does 
+B<not> necessary mean that the value of the
+token will be a Perl
+C<undef> value.
+Instead, it means that
+the token can have an arbitrary value.
+
+As a consequence,
+it is no longer possible in Marpa::R2 to specify
+a Perl C<undef> directly as a token value.
+Applications which want this
+must use some sort of translation scheme.
+The most general approach to deal with this
+is to have all token values be references,
+and to write actions which dereference token values.
+
+=head1 COPYRIGHT AND LICENSE
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2012 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
