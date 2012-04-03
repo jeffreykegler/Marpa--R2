@@ -310,11 +310,6 @@ sub do_libmarpa {
     if ( $self->verbose() ) {
         print "Making libmarpa: Start\n" or die "Cannot print: $ERRNO";
     }
-
-    # If 'touch' does not exist, the automake-generated Makefile
-    # will fail anyway.
-    die qq{"touch api.info" failed: $!}
-        if not IPC::Cmd::run( command => ['touch', 'api.info'], verbose => 1 );
     die 'Making libmarpa: make Failure'
         if not IPC::Cmd::run( command => ['make'], verbose => 1 );
 
