@@ -96,7 +96,6 @@ libmarpa/build/Makefile.in
 libmarpa/build/NEWS
 libmarpa/build/README
 libmarpa/build/aclocal.m4
-libmarpa/build/api.texi
 libmarpa/build/avl.c
 libmarpa/build/avl.h
 libmarpa/build/codes.c
@@ -119,11 +118,8 @@ libmarpa/build/marpa.h
 libmarpa/build/marpa_api.h
 libmarpa/build/marpa_obs.c
 libmarpa/build/marpa_obs.h
-libmarpa/build/mdate-sh
 libmarpa/build/missing
 libmarpa/build/private.h
-libmarpa/build/stamp-vti
-libmarpa/build/version.texi
 libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
 libmarpa/dev/README
@@ -139,6 +135,13 @@ libmarpa/dev/dist/Makefile.am
 libmarpa/dev/dist/NEWS
 libmarpa/dev/dist/README
 libmarpa/dev/dist/configure.ac
+libmarpa/dev/doc_dist/AUTHORS
+libmarpa/dev/doc_dist/COPYING.LESSER
+libmarpa/dev/doc_dist/ChangeLog
+libmarpa/dev/doc_dist/Makefile.am
+libmarpa/dev/doc_dist/NEWS
+libmarpa/dev/doc_dist/README
+libmarpa/dev/doc_dist/configure.ac
 libmarpa/dev/marpa.w
 libmarpa/dev/marpa_obs.c
 libmarpa/dev/marpa_obs.h

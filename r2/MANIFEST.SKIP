@@ -97,6 +97,7 @@
 ^libmarpa/dev/marpa[.]toc
 ^libmarpa/dev/marpa_api[.]h
 ^libmarpa/dev/private[.]h$
+^libmarpa/doc/
 ^libmarpa/stage/
 ^libmarpa/test/dev/Makefile[.]in$
 ^libmarpa/test/dev/aclocal[.]m4$

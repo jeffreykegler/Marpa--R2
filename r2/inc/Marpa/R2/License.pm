@@ -288,7 +288,12 @@ my %files_by_type = (
     'libmarpa/dev/dist/ChangeLog' => \&trivial,
     'libmarpa/dev/dist/NEWS'      => \&trivial,
     'libmarpa/dev/dist/README'    => \&license_problems_in_text_file,
-    'libmarpa/dist/stamp-vti'     => \&trivial,
+    'libmarpa/dev/doc_dist/AUTHORS' => \&trivial,
+    'libmarpa/dev/doc_dist/COPYING.LESSER' =>
+	\&ignored,    # GNU license text, leave it alone
+    'libmarpa/dev/doc_dist/ChangeLog' => \&trivial,
+    'libmarpa/dev/doc_dist/NEWS'      => \&trivial,
+    'libmarpa/dev/doc_dist/README'    => \&license_problems_in_text_file,
     'libmarpa/stage/config.h.in' =>
 	check_tag( 'Generated from configure.ac by autoheader', 250 ),
     'libmarpa/stage_dist/install-sh' => \&check_X_copyright,
