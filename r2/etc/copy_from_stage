@@ -49,5 +49,4 @@ system('tar', '-xzf', $tar_file) == 0 or die("Could not tar -xvzf $tar_file: $!"
 rename $untarred_dir, 'build' or die "rename failed: $!";
 
 chdir 'build'; # PWD=libmarpa/build
-unlink 'texinfo.tex';
 
