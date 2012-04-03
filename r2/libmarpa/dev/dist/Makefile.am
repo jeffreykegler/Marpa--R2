@@ -25,6 +25,5 @@ EXTRA_DIST = codes.h codes.c
 libmarpa_la_LIBADD = $(LIBOBJS)
 include_HEADERS = marpa.h marpa_api.h
 nodist_include_HEADERS = marpa_config.h
-info_TEXINFOS = api.texi
 DISTCLEANFILES = marpa_config.h
 

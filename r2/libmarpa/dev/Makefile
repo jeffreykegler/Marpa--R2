@@ -24,13 +24,26 @@ MARPA_PDF_SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 
 .PHONY: install stage_dir
 
+DOC_CONFIGURE_FILES = \
+    ../doc/Makefile.am \
+    ../doc/configure.ac
+
+DOC_FILES = \
+    ../doc/Makefile.am \
+    ../doc/configure.ac \
+    ../doc/api.texi \
+    ../doc/NEWS \
+    ../doc/README \
+    ../doc/ChangeLog \
+    ../doc/COPYING.LESSER \
+    ../doc/AUTHORS
+
 CONFIGURE_FILES = \
     ../stage/Makefile.am \
     ../stage/configure.ac
 
 STAGE_FILES = \
     $(CONFIGURE_FILES) \
-    ../stage/api.texi \
     ../stage/codes.c \
     ../stage/codes.h \
     ../stage/marpa.c \
@@ -88,13 +101,16 @@ private.h: marpa.w w2private_h.pl
 
 marpa.pdf: marpa.tex cwebmac.tex
 
+../doc/configure.ac: doc_dist/configure.ac
+	cp $? $@
+
+../doc/Makefile.am: doc_dist/Makefile.am
+	cp $? $@
+
 ../stage/configure.ac: dist/configure.ac
 	cp $? $@
 
 ../stage/Makefile.am: dist/Makefile.am
-	cp $? $@
-
-../stage/api.texi: api.texi
 	cp $? $@
 
 ../stage/codes.c: codes.c
@@ -145,6 +161,27 @@ marpa.pdf: marpa.tex cwebmac.tex
 stage_dir:
 	test -d ../stage || mkdir ../stage
 
+../doc/README: doc_dist/README
+	cp $? $@
+
+../doc/NEWS: doc_dist/NEWS
+	cp $? $@
+
+../doc/AUTHORS: doc_dist/AUTHORS
+	cp $? $@
+
+../doc/COPYING.LESSER: doc_dist/COPYING.LESSER
+	cp $? $@
+
+../doc/ChangeLog: doc_dist/ChangeLog
+	cp $? $@
+
+../doc/api.texi: api.texi
+	cp $? $@
+
+doc_dir:
+	test -d ../doc || mkdir ../doc
+
 stage_configuration: stage_dir ../stage/configure ../stage/Makefile
 
 ../stage/configure: $(CONFIGURE_FILES)
@@ -154,15 +191,24 @@ stage_configuration: stage_dir ../stage/configure ../stage/Makefile
 ../stage/Makefile: ../stage/configure
 	cd ../stage && ../stage/configure
 
-../stage/api.pdf: ../stage/Makefile ../stage/api.texi
-	cd ../stage && make pdf
+../doc/api.pdf: ../doc/Makefile ../doc/api.texi
+	cd ../doc && make pdf
 
-../stage/api.html/index.html: ../stage/Makefile ../stage/api.texi
-	cd ../stage && make html
+../doc/api.html/index.html: ../doc/Makefile ../doc/api.texi
+	cd ../doc && make html
 
 install: stage_dir $(STAGE_FILES) stage_configuration
 
-docs: marpa.pdf ../stage/api.pdf ../stage/api.html/index.html
+../doc/configure: $(DOC_CONFIGURE_FILES)
+	test -d ../doc/m4 || mkdir ../doc/m4
+	cd ../doc && autoreconf -iv
+
+../doc/Makefile: ../doc/configure
+	cd ../doc && ../doc/configure
+
+doc_configuration: doc_dir ../doc/configure ../doc/Makefile
+
+docs: marpa.pdf doc_dir $(DOC_FILES) doc_configuration ../doc/api.pdf ../doc/api.html/index.html
 
 update_api_texi:
 	emacs -batch api.texi \
