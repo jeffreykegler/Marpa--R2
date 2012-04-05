@@ -1292,14 +1292,6 @@ Suggested message: "Too many Earley items."
 Suggested message: "A rule is part of a infinite loop."
 @end deftypevr
 
-@deftypevr Macro int MARPA_EVENT_NEW_SYMBOL
-Suggested message: "New symbol."
-@end deftypevr
-
-@deftypevr Macro int MARPA_EVENT_NEW_RULE
-Suggested message: "New rule."
-@end deftypevr
-
 @deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
 Suggested message: "Grammar has a counted nullable."
 @end deftypevr

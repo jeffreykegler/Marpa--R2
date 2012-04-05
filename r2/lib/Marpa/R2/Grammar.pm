@@ -1652,9 +1652,9 @@ sub add_user_rule {
         $sequence_symbol_name_base =
             $lhs_name . '[' . $rhs_desc . ( $min ? q{+} : q{*} ) . ']';
     }
-    my $sequence_symbol_count      = 0;
 
-    my @sequence_rule_ids = ();
+    my $symbol_count_before = $grammar_c->symbol_count();
+    my $rule_count_before = $grammar_c->rule_count();
     my $original_rule_id       = $grammar_c->sequence_new(
         $lhs_id,
         $rhs_ids[0],
@@ -1674,27 +1674,19 @@ sub add_user_rule {
         Marpa::R2::exception("$problem_description: $rule_description");
     } ## end if ( not defined $event_count )
 
-    my $event_ix = 0;
-    EVENT:
-    while ( my ( $event_type, $value ) = $grammar_c->event( $event_ix++ ) ) {
-	last EVENT if not defined $event_type;
-        if ( $event_type eq 'MARPA_EVENT_NEW_SYMBOL' ) {
+    my $symbol_count_after = $grammar_c->symbol_count();
+    my $rule_count_after = $grammar_c->rule_count();
+    my $sequence_symbol_count      = 0;
+    for my $new_symbol_id ($symbol_count_before .. $symbol_count_after - 1) {
             my $name = $sequence_symbol_name_base;
             if ($sequence_symbol_count) {
                 $name .= '[' . $sequence_symbol_count . ']';
             }
-            shadow_symbol( $grammar, $value, $name );
+            shadow_symbol( $grammar, $new_symbol_id, $name );
             $sequence_symbol_count++;
-        } ## end if ( $event_type eq 'MARPA_EVENT_NEW_SYMBOL' )
+    }
 
-        # Make sure the new symbol is added before any rule
-        # using it
-        if ( $event_type eq 'MARPA_EVENT_NEW_RULE' ) {
-            push @sequence_rule_ids, $value;
-        }
-    } ## end while ( my ( $event_type, $value ) = $grammar_c->event(...))
-
-    for my $new_rule_id (@sequence_rule_ids) {
+    for my $new_rule_id ($rule_count_before .. $rule_count_after - 1) {
         shadow_rule( $grammar, $new_rule_id );
     }
 
