@@ -2425,7 +2425,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if bad start symbol@>@;
     G_EVENTS_CLEAR(g);
     @<Perform census of grammar |g|@>@;
-     if (!CHAF_rewrite(g)) return failure_indicator;
+    @<Rewrite grammar |g| into CHAF form@>@;
      if (!g_augment(g)) return failure_indicator;
      if (!G_is_Trivial(g)) {
 	loop_detect(g);
@@ -2818,8 +2818,7 @@ And rule ID's increase by one each time,
 so that all the new
 rules will have ID's equal to or greater than
 the pre-CHAF rule count.
-@ @<Function definitions@> =
-PRIVATE struct marpa_g* CHAF_rewrite(struct marpa_g* g)
+@ @<Rewrite grammar |g| into CHAF form@> =
 {
     @<CHAF rewrite declarations@>@;
     @<CHAF rewrite allocations@>@;
@@ -2837,7 +2836,6 @@ PRIVATE struct marpa_g* CHAF_rewrite(struct marpa_g* g)
 	 NEXT_RULE: ;
     }
     @<CHAF rewrite deallocations@>@;
-    return g;
 }
 @ @<CHAF rewrite declarations@> =
 Marpa_Rule_ID rule_id;
