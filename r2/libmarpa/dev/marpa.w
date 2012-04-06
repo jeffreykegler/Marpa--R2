@@ -862,37 +862,6 @@ int marpa_g_has_loop(Marpa_Grammar g)
 return g->t_has_loop;
 }
 
-@*0 Grammar Boolean: LHS Terminal OK.
-Traditionally, a BNF grammar did {\bf not} allow a symbol
-which was a terminal symbol of the grammar, to also be a LHS
-symbol.
-By default, this is allowed under Marpa.
-@<Bit aligned grammar elements@> = unsigned int t_is_lhs_terminal_ok:1;
-@ @<Initialize grammar elements@> =
-g->t_is_lhs_terminal_ok = 1;
-@ @<Function definitions@> =
-int marpa_g_is_lhs_terminal_ok(Marpa_Grammar g)
-{
-   @<Return |-2| on failure@>@/
-    @<Fail if fatal error@>@;
-    return g->t_is_lhs_terminal_ok;
-}
-@ Returns true on success,
-false on failure.
-@<Function definitions@> =
-int marpa_g_is_lhs_terminal_ok_set(
-Marpa_Grammar g, int value)
-{
-   @<Return |-2| on failure@>@/
-    @<Fail if fatal error@>@;
-    @<Fail if precomputed@>
-    if (value < 0 || value > 1) {
-	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
-	return failure_indicator;
-    }
-    return g->t_is_lhs_terminal_ok = value;
-}
-
 @*0 Terminal Boolean Vector.
 A boolean vector, with bits sets if the symbol is a
 terminal.
@@ -1338,10 +1307,20 @@ int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 }
 
 @ Symbol Is Terminal Boolean
-@<Bit aligned symbol elements@> = unsigned int t_is_terminal:1;
+The ``marked terminal'' flag tracked whether
+the terminal flag was set by the user.
+It distinguishes those
+terminal settings that will
+be overwritten by the default
+from those should not be.
+@<Bit aligned symbol elements@> =
+unsigned int t_is_terminal:1;
+unsigned int t_is_marked_terminal:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_terminal = 0;
+symbol->t_is_marked_terminal = 0;
 @ @d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
+@ @d SYM_is_Marked_Terminal(symbol) ((symbol)->t_is_marked_terminal)
 @d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
 int marpa_g_symbol_is_terminal(Marpa_Grammar g,
@@ -1367,6 +1346,7 @@ Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
     }
+    SYM_is_Marked_Terminal(symbol) = 0;
     return SYM_is_Terminal(symbol) = value;
 }
 
@@ -2549,16 +2529,6 @@ a lot of useless diagnostics.
     @<Declare census variables@>@;
     @<Census LHS symbols@>@;
     @<Census terminals@>@;
-    if (have_marked_terminals) {
-	@<Fatal if LHS terminal when not allowed@>@;
-    } else {
-	@<Fatal if empty rule and unmarked terminals@>;
-	if (g->t_is_lhs_terminal_ok) {
-	    @<Mark all symbols terminal@>@;
-	} else {
-	    @<Mark non-LHS symbols terminal@>@;
-	}
-    }
     @<Census nullable symbols@>@;
     @<Census productive symbols@>@;
     @<Check that start symbol is productive@>@;
@@ -2630,69 +2600,34 @@ Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 already marked as terminal,
 and a flag which indicates if there are any.
 @<Census terminals@> =
-{ Marpa_Symbol_ID symid;
-terminal_v = bv_create(pre_rewrite_symbol_count);
-for (symid = 0;
-	symid < (Marpa_Symbol_ID)pre_rewrite_symbol_count;
-	symid++) {
-    SYM symbol = SYM_by_ID(symid);
-    if (SYM_is_Terminal(symbol)) {
-	bv_bit_set(terminal_v, (unsigned int)symid);
-	have_marked_terminals = 1;
+{
+  SYMID symid;
+  terminal_v = bv_create (pre_rewrite_symbol_count);
+  bv_not (terminal_v, lhs_v);
+  for (symid = 0; symid < (SYMID) pre_rewrite_symbol_count; symid++)
+    {
+      SYM symbol = SYM_by_ID (symid);
+      if (SYM_is_Marked_Terminal (symbol))
+	{
+	  if (SYM_is_Terminal (symbol))
+	    {
+	      bv_bit_set (terminal_v, (unsigned int) symid);
+	    }
+	  else
+	    {
+	      bv_bit_clear (terminal_v, (unsigned int) symid);
+	    }
+	}
     }
-} }
+}
+
 @ @<Free Boolean vectors@> =
 bv_free(terminal_v);
 @
 @s Bit_Vector int
 @<Declare census variables@> =
 Bit_Vector terminal_v;
-int have_marked_terminals = 0;
 
-@ @<Fatal if empty rule and unmarked terminals@> =
-if (UNLIKELY(have_empty_rule && g->t_is_lhs_terminal_ok)) {
-    MARPA_ERROR(MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS);
-    goto FAILURE;
-}
-@ Any optimization should be for the non-error case.
-But in that case
-there are no LHS terminals, and the entire list of symbols must
-be scanned to discover this.
-It is possible to find the first error without going
-through entire list of symbols, which this code does,
-but that would be optimizing for a fatal error.
-For fatal errors,
-this code is plenty fast enough.
-@<Fatal if LHS terminal when not allowed@> = 
-if (!g->t_is_lhs_terminal_ok) {
-    int no_lhs_terminals;
-    Bit_Vector bad_lhs_v = bv_clone(terminal_v);
-    bv_and(bad_lhs_v, bad_lhs_v, lhs_v);
-    no_lhs_terminals = bv_is_empty(bad_lhs_v);
-    bv_free(bad_lhs_v);
-    if (UNLIKELY(!no_lhs_terminals)) {
-        MARPA_ERROR(MARPA_ERR_LHS_IS_TERMINAL);
-	goto FAILURE;
-    }
-}
-
-@ @<Mark all symbols terminal@> =
-{ Marpa_Symbol_ID symid;
-bv_fill(terminal_v);
-for (symid = 0; symid < (Marpa_Symbol_ID)SYM_Count_of_G(g); symid++)
-{ SYMID_is_Terminal(symid) = 1; } }
-@ @<Mark non-LHS symbols terminal@> = 
-{ unsigned int start = 0;
-unsigned int min, max;
-bv_not(terminal_v, lhs_v);
-while ( bv_scan(terminal_v, start, &min, &max) ) {
-    Marpa_Symbol_ID symid;
-    for (symid = (Marpa_Symbol_ID)min; symid <= (Marpa_Symbol_ID)max; symid++) {
-     SYMID_is_Terminal(symid) = 1;
-    }
-    start = max+2;
-}
-}
 @ @<Free Boolean vectors@> =
 bv_free(lhs_v);
 bv_free(empty_lhs_v);
@@ -2777,23 +2712,33 @@ is not a pointless or even counter-productive optimization.
 It would only make a difference in grammars
 where many of the right hand sides repeat symbols.
 @<Calculate reach matrix@> =
-reach_matrix
-    = matrix_create(pre_rewrite_symbol_count, pre_rewrite_symbol_count);
-{ unsigned int symid, no_of_symbols = SYM_Count_of_G(g);
-for (symid = 0; symid < no_of_symbols; symid++) {
-     matrix_bit_set(reach_matrix, symid, symid);
-} }
-{ Marpa_Rule_ID rule_id;
-RULEID rule_count_of_g = RULE_Count_of_G(g);
-for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
-     RULE  rule = RULE_by_ID(g, rule_id);
-     Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
-     unsigned int rhs_ix, rule_length = Length_of_RULE(rule);
-     for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
-	 matrix_bit_set(reach_matrix,
-	     (unsigned int)lhs_id, (unsigned int)RHS_ID_of_RULE(rule, rhs_ix));
-} } }
-transitive_closure(reach_matrix);
+{
+  reach_matrix
+    = matrix_create (pre_rewrite_symbol_count, pre_rewrite_symbol_count);
+  {
+    unsigned int symid, no_of_symbols = SYM_Count_of_G (g);
+    for (symid = 0; symid < no_of_symbols; symid++)
+      {
+	matrix_bit_set (reach_matrix, symid, symid);
+      }
+  }
+  {
+    Marpa_Rule_ID rule_id;
+    RULEID rule_count_of_g = RULE_Count_of_G (g);
+    for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
+      {
+	RULE rule = RULE_by_ID (g, rule_id);
+	Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
+	unsigned int rhs_ix, rule_length = Length_of_RULE (rule);
+	for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+	  {
+	    matrix_bit_set (reach_matrix,
+			    (unsigned int) lhs_id,
+			    (unsigned int) RHS_ID_of_RULE (rule, rhs_ix));
+  }}}
+  transitive_closure (reach_matrix);
+}
+
 @ @<Declare census variables@> = Bit_Matrix reach_matrix;
 @ @<Free Boolean matrixes@> =
 matrix_free(reach_matrix);

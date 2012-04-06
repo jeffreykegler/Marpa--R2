@@ -348,19 +348,6 @@ sub Marpa::R2::Grammar::set {
             }
         } ## end if ( defined( my $value = $args->{'symbols'} ) )
 
-        if ( defined( my $value = $args->{'lhs_terminals'} ) ) {
-            my $ok = $grammar_c->is_lhs_terminal_ok_set($value);
-            if ( not $ok ) {
-                my $error_code = $grammar_c->error_code() // -1;
-                if ( $error_code == $Marpa::R2::Error::PRECOMPUTED ) {
-                    Marpa::R2::exception(
-                        'lhs_terminals option not allowed after grammar is precomputed'
-                    );
-                }
-                Marpa::R2::uncaught_error($grammar_c->error());
-            } ## end if ( not $ok )
-        } ## end if ( defined( my $value = $args->{'lhs_terminals'} ))
-
         if ( defined( my $value = $args->{'rule_name_required'} ) ) {
             $grammar->[Marpa::R2::Internal::Grammar::RULE_NAME_REQUIRED] =
                 !!$value;

@@ -120,7 +120,6 @@ my $counted_nullable_grammar = {
         { lhs => 'A' },
         { lhs => 'B' },
     ],
-    lhs_terminals => 0,
     start         => 'S',
 };
 

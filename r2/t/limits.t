@@ -154,7 +154,6 @@ my $missing_null_value_grammar = {
             action => 'main::default_action',
         },
     ],
-    lhs_terminals     => 0,
     start             => 'Seq',
     trace_file_handle => $MEMORY,
 };

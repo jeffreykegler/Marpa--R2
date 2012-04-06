@@ -395,38 +395,6 @@ PPCODE:
   XSRETURN_NO;
 }
 
-void
-is_lhs_terminal_ok_set( g_wrapper, boolean )
-    G_Wrapper *g_wrapper;
-    int boolean;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = marpa_g_is_lhs_terminal_ok_set (g, (boolean ? TRUE : FALSE));
-  if (result < 0)
-    {
-      croak ("Problem in g->is_lhs_terminal_ok_set(): %s", xs_g_error (g_wrapper));
-    }
-  XSRETURN_YES;
-}
-
-void
-is_lhs_terminal_ok( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = marpa_g_is_lhs_terminal_ok (g);
-  if (result < 0)
-    {
-      croak ("Problem in g->is_lhs_terminal_ok(): %s",
-	     xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
 Marpa_Symbol_ID
 symbol_new( g )
     Grammar *g;

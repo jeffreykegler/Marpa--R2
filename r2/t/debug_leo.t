@@ -33,7 +33,6 @@ my $progress_report = q{};
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start         => 'S',
-        lhs_terminals => 0,
         rules         => [
             { lhs => 'S',            rhs => [qw/Top_sequence/] },
             { lhs => 'Top_sequence', rhs => [qw/Top Top_sequence/] },

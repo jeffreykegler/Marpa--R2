@@ -38,7 +38,6 @@ my $progress_report = q{};
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start         => 'Document',
-        lhs_terminals => 0,
         rules => [ { lhs => 'Document', rhs => [qw/Stuff/], min => 1 }, ],
     }
 );
