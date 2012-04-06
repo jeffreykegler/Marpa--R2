@@ -12084,7 +12084,7 @@ PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 
 @*0 Scan a Boolean Vector.
 @<Function definitions@>=
-PRIVATE
+PRIVATE_NOT_INLINE
 int bv_scan(Bit_Vector bv, unsigned int start,
                                     unsigned int* min, unsigned int* max)
 {
@@ -12940,7 +12940,10 @@ PRIVATE void*
 my_realloc(void* mem, size_t size)
 {
     void *newmem;
-    if (!mem) return my_malloc(size);
+    if (!mem) {
+       MY_MALLOC(newmem, size);
+       return newmem;
+    }
     newmem = realloc(mem, size);
     if (!newmem) (*marpa_out_of_memory)();
     return newmem;
