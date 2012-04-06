@@ -537,11 +537,11 @@ terminals and non-terminals.
 In Marpa,
 a terminal may be the start symbol,
 and may appear on the LHS of a rule.
-
-In a Libmarpa grammar with no empty rules,
-all symbols are terminals by default.
-However, whenever an empty rule has a LHS
-which is also a terminal, there is an efficiency hit.
+However,
+since terminals can never be zero length,
+it is a logical contradiction for a nulling
+symbol to also be a terminal
+and Marpa does not allow it.
 
 @menu
 * LHS Terminals::               
@@ -566,9 +566,9 @@ it also can be useful,
 for checking input validity as well as for efficiency,
 to follow tradition and distingush
 non-terminals from terminals.
-Marpa allows a
-user who prefers the tradition distinction
-to restore it, partially or completely.
+For this reason,
+the traditional behavior is the default
+in Marpa.
 
 @node Semantics, Version checking, Terminals concepts, Top
 @chapter Semantics
@@ -736,7 +736,6 @@ On success, the grammar object it was called with;
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
 
 Creates a new symbol.
-Symbols are initialized to non-terminals.
 
 Return value: On success, the ID of the new symbol; 
 On failure, -2.
@@ -779,25 +778,6 @@ On failure, -2.
 @node Terminals, Rules, Symbols, Grammars
 @section Methods that deal with terminal symbols
 
-@deftypefun int marpa_g_is_lhs_terminal_ok (Marpa_Grammar @var{g})
-@deftypefunx int marpa_g_is_lhs_terminal_ok_set ( @
-    Marpa_Grammar @var{g}, @
-    int @var{value})
-Traditionally, grammars do not allow a terminal on the LHS of a rule.
-But when the @dfn{LHS terminal flag} is set, Marpa does allow
-a terminal to appear on a rule's LHS.
-@var{marpa_g_is_lhs_terminal_ok} checks the value of the LHS
-terminal flag,
-and @var{marpa_g_is_lhs_terminal_ok_set} sets it to @var{value}.
-Calling @var{marpa_g_is_lhs_terminal_ok_set} after
-@var{g} has been precomputed is a hard error.
-
-Return value:
-On success, the value of the LHS terminal after
-the call.
-On failure, -2.
-@end deftypefun
-
 @deftypefun int marpa_g_symbol_is_terminal ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
@@ -830,7 +810,8 @@ is not precomputed, or on failure, -2.
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{internal} if it is one of those created
 by libmarpa for its own internal uses.
-Internal symbols are invalid for many operations.
+Libmarpa controls the behavior of internal symbols,
+and so that many operations are invalid for them.
 For example, the user cannot set them to be terminals,
 and they may be explicitly included in the LHS or RHS
 of rules and sequences.
@@ -2246,27 +2227,10 @@ Suggested message: "This grammar has no start symbol."
 @deftypevr Macro int MARPA_ERR_NO_TRACE_SRCL
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS
-Marpa allows all symbols to be terminals, even those on the LHS,
-and this is the default.
-But when there is an null rule in the grammar,
-having lots of terminals is an efficiency hit.
-For that reason, if a grammar has a null rule,
-Libmarpa requires the application to explictly
-indicate which symbols are terminals,
-and will not accept the default.
-
-An application is still able to have as many terminals
-as it wants,
-including terminals on the LHS of rules.
-The only requirement is the the user explicitly
-set those symbols which are terminals.
-Terminals may be explicitly marked on a per-symbol
-basis.
-The application can
-also prevent this error by
-unsetting the LHS terminals flag for a grammar.
-Suggested message: "A grammar with null rules must mark its terminals."
+@deftypevr Macro int MARPA_ERR_NULLING_TERMINAL
+Marpa does not allow a symbol to be both nulling
+and a terminal.
+Suggested message: "A symbol is both terminal and nulling."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_ORID_LT_ZERO
