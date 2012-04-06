@@ -2426,7 +2426,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     G_EVENTS_CLEAR(g);
     @<Perform census of grammar |g|@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
-     if (!g_augment(g)) return failure_indicator;
+    @<Augment grammar |g|@>@;
      if (!G_is_Trivial(g)) {
 	loop_detect(g);
 	create_AHFA_items(g);
@@ -3221,9 +3221,7 @@ SYMID alias_by_id(GRAMMAR g, SYMID proper_id)
 @** Adding a New Start Symbol.
 This is such a common rewrite that it has a special name
 in the literature --- it is called ``augmenting the grammar".
-@ @<Function definitions@> =
-PRIVATE
-GRAMMAR g_augment(GRAMMAR g)
+@ @<Augment grammar |g|@> =
 {
     Marpa_Symbol_ID proper_new_start_id = -1;
     SYM proper_old_start = NULL;
@@ -3231,9 +3229,8 @@ GRAMMAR g_augment(GRAMMAR g)
     SYM proper_new_start = NULL;
     SYM old_start = SYM_by_ID(g->t_original_start_symid);
     @<Find and classify the old start symbols@>@;
-    if (proper_old_start) { @<Set up a new proper start rule@> }
+    if (proper_old_start) { @<Set up a new proper start rule@>@; }
     if (nulling_old_start) { @<Set up a new nulling start rule@>@; }
-    return g;
 }
 
 @ @<Find and classify the old start symbols@> =
