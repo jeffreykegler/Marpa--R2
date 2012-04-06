@@ -1126,10 +1126,11 @@ symbol_new (struct marpa_g *g)
 
 @ @<Function definitions@> =
 Marpa_Symbol_ID
-marpa_g_symbol_new (struct marpa_g * g)
+marpa_g_symbol_new (Marpa_Grammar g)
 {
-  SYMID id = ID_of_SYM(symbol_new (g));
-  return id;
+  const SYM symbol = symbol_new (g);
+  symbol->t_is_internal = 0;
+  return ID_of_SYM(symbol);
 }
 
 @ @<Function definitions@> =
@@ -1225,6 +1226,22 @@ PRIVATE
 void symbol_rhs_add(SYM symbol, RULEID rule_id)
 {
     *DSTACK_PUSH(symbol->t_rhs, RULEID) = rule_id;
+}
+
+@*0 Symbol is internal?.
+@d SYM_is_Internal(symbol) ((symbol)->t_is_internal)
+@<Bit aligned symbol elements@> = unsigned int t_is_internal:1;
+@ Symbols start life as internal symbols.
+@<Initialize symbol elements@> =
+    SYM_is_Internal(symbol) = 1;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_internal(
+    Marpa_Grammar g,
+    Marpa_Symbol_ID symid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if |symid| is invalid@>@;
+    return SYM_is_Internal(SYM_by_ID(symid));
 }
 
 @*0 Nulling symbol has semantics?.
@@ -1339,11 +1356,18 @@ Marpa_Symbol_ID symid)
 int marpa_g_symbol_is_terminal_set(
 Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 {
+    SYM symbol;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |symid| is invalid@>@;
-    return SYMID_is_Terminal(symid) = value;
+    symbol = SYM_by_ID(symid);
+    @<Fail if |symbol| is internal@>@;
+    if (UNLIKELY(value < 0 || value > 1)) {
+	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
+	return failure_indicator;
+    }
+    return SYM_is_Terminal(symbol) = value;
 }
 
 @ Symbol Is Productive Boolean
@@ -2535,20 +2559,22 @@ While at it, set a flag to indicate if there are empty rules.
 Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 
 @ @<Census LHS symbols@> =
-{ Marpa_Rule_ID rule_id;
-lhs_v = bv_create(pre_rewrite_symbol_count);
-empty_lhs_v = bv_shadow(lhs_v);
-for (rule_id = 0;
-	rule_id < (Marpa_Rule_ID)pre_rewrite_rule_count;
-	rule_id++) {
-    RULE  rule = RULE_by_ID(g, rule_id);
-    Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
-    bv_bit_set(lhs_v, (unsigned int)lhs_id);
-    if (Length_of_RULE(rule) <= 0) {
-	bv_bit_set(empty_lhs_v, (unsigned int)lhs_id);
-	have_empty_rule = 1;
+{
+  Marpa_Rule_ID rule_id;
+  lhs_v = bv_create (pre_rewrite_symbol_count);
+  empty_lhs_v = bv_shadow (lhs_v);
+  for (rule_id = 0;
+       rule_id < (Marpa_Rule_ID) pre_rewrite_rule_count; rule_id++)
+    {
+      RULE rule = RULE_by_ID (g, rule_id);
+      Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
+      bv_bit_set (lhs_v, (unsigned int) lhs_id);
+      if (Length_of_RULE (rule) <= 0)
+	{
+	  bv_bit_set (empty_lhs_v, (unsigned int) lhs_id);
+	  have_empty_rule = 1;
+	}
     }
-}
 }
 @ Loop over the symbols, producing the boolean vector of symbols
 already marked as terminal,
@@ -13014,33 +13040,38 @@ general failure indicator.
 |g| is assumed to be the value of the relevant grammar,
 when one is required.
 @<Fail if precomputed@> =
-if (G_is_Precomputed(g)) {
+if (UNLIKELY(G_is_Precomputed(g))) {
     MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
     return failure_indicator;
 }
 
 @ @<Fail if not precomputed@> =
-if (!G_is_Precomputed(g)) {
+if (UNLIKELY(!G_is_Precomputed(g))) {
     MARPA_ERROR(MARPA_ERR_NOT_PRECOMPUTED);
     return failure_indicator;
 }
+@ @<Fail if |symbol| is internal@> =
+if (UNLIKELY(SYM_is_Internal(symbol))) {
+    MARPA_ERROR(MARPA_ERR_INTERNAL_SYM);
+    return failure_indicator;
+}
 @ @<Fail if |symid| is invalid@> =
-if (!symbol_is_valid(g, symid)) {
+if (UNLIKELY(!symbol_is_valid(g, symid))) {
     MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
     return failure_indicator;
 }
 @ @<Fail if grammar |rule_id| is invalid@> =
-if (!RULEID_of_G_is_Valid(g, rule_id)) {
+if (UNLIKELY(!RULEID_of_G_is_Valid(g, rule_id))) {
     MARPA_ERROR (MARPA_ERR_INVALID_RULEID);
     return failure_indicator;
 }
 @ @<Fail if grammar |item_id| is invalid@> =
-if (!aim_is_valid(g, item_id)) {
+if (UNLIKELY(!aim_is_valid(g, item_id))) {
     MARPA_ERROR(MARPA_ERR_INVALID_AIMID);
     return failure_indicator;
 }
 @ @<Fail if grammar |AHFA_state_id| is invalid@> =
-if (!AHFA_state_id_is_valid(g, AHFA_state_id)) {
+if (UNLIKELY(!AHFA_state_id_is_valid(g, AHFA_state_id))) {
     MARPA_ERROR(MARPA_ERR_INVALID_AHFA_ID);
     return failure_indicator;
 }
@@ -13049,17 +13080,17 @@ if (!AHFA_state_id_is_valid(g, AHFA_state_id)) {
 |r| is assumed to be the value of the relevant recognizer,
 when one is required.
 @<Fail if recognizer started@> =
-if (Input_Phase_of_R(r) != R_BEFORE_INPUT) {
+if (UNLIKELY(Input_Phase_of_R(r) != R_BEFORE_INPUT)) {
     MARPA_ERROR(MARPA_ERR_RECCE_STARTED);
     return failure_indicator;
 }
 @ @<Fail if recognizer not started@> =
-if (Input_Phase_of_R(r) == R_BEFORE_INPUT) {
+if (UNLIKELY(Input_Phase_of_R(r) == R_BEFORE_INPUT)) {
     MARPA_ERROR(MARPA_ERR_RECCE_NOT_STARTED);
     return failure_indicator;
 }
 @ @<Fail if recognizer not accepting input@> =
-if (Input_Phase_of_R(r) != R_DURING_INPUT) {
+if (UNLIKELY(Input_Phase_of_R(r) != R_DURING_INPUT)) {
     MARPA_ERROR(MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
     return failure_indicator;
 }
@@ -13069,7 +13100,7 @@ if (Input_Phase_of_R(r) != R_DURING_INPUT) {
     @<Fail if recognizer not started@>@;
 
 @ @<Fail if fatal error@> =
-if (!IS_G_OK(g)) {
+if (UNLIKELY(!IS_G_OK(g))) {
     MARPA_ERROR(g->t_error);
     return failure_indicator;
 }

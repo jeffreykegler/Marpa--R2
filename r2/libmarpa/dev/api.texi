@@ -826,14 +826,17 @@ Return value: On success, 1 if productive, 0 if not.  If the grammar
 is not precomputed, or on failure, -2.
 @end deftypefun
 
-@deftypefun int marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_is_internal (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
-A symbol is @dfn{nullable} if it can produce the empty string.
-This is not determined until the grammar is precomputed.
-All nulling symbols are nullable symbols.
+A symbol is @dfn{internal} if it is one of those created
+by libmarpa for its own internal uses.
+Internal symbols are invalid for many operations.
+For example, the user cannot set them to be terminals,
+and they may be explicitly included in the LHS or RHS
+of rules and sequences.
 
-Return value: On success, 1 if symbol is nullable, 0 if not.
-If the grammar is not precomputed, or on failure, -2.
+Return value: On success, 1 if symbol is internal, 0 if not.
+If the symbol ID is not valid, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
@@ -1174,6 +1177,9 @@ Return value: -2 if there was an error.
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 @deftypefun Marpa_Rule_ID marpa_g_symbol_virtual_lhs_rule (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun int marpa_g_symbol_is_nullable (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 
@@ -2145,6 +2151,13 @@ An internal error will usually be a hard error.
 Suggested message: "Internal error."
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_INTERNAL_SYM
+In a context
+in which an internal symbol is disallowed,
+@var{symid} is for an internal symbol.
+Suggested message: "Symbol is internal."
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_AHFA_ID
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_AIMID
@@ -2153,6 +2166,7 @@ Suggested message: "Internal error."
 A function was called which takes a boolean argument,
 one which must be either 0 or 1,
 and that argument has some other value.
+Suggested message: "Argument is not boolean."
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_ES_ORDINAL
 @end deftypevr
