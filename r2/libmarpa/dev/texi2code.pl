@@ -82,7 +82,7 @@ MARPA_ERR_NO_TRACE_ES
 MARPA_ERR_NO_TRACE_PIM
 MARPA_ERR_NO_TRACE_EIM
 MARPA_ERR_NO_TRACE_SRCL
-MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS
+MARPA_ERR_NULLING_TERMINAL
 MARPA_ERR_ORID_LT_ZERO
 MARPA_ERR_OR_ALREADY_ORDERED
 MARPA_ERR_ORDER_FROZEN
@@ -312,9 +312,9 @@ COMMENT
 say {$codes_c}
     'const struct s_marpa_error_description marpa_error_description[] = {';
 for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
-    my $suggested_description = $error_suggested_messages[$error_number]
-        // "Unknown error";
     my $error_name = $errors[$error_number];
+    my $suggested_description = $error_suggested_messages[$error_number]
+        // $error_name;
     say {$codes_c}
         qq[  { $error_number, "$error_name", "$suggested_description" },];
 } ## end for ( my $error_number = 0; $error_number < $error_count...)

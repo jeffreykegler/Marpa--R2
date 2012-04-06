@@ -1346,7 +1346,7 @@ Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
     }
-    SYM_is_Marked_Terminal(symbol) = 0;
+    SYM_is_Marked_Terminal(symbol) = 1;
     return SYM_is_Terminal(symbol) = value;
 }
 
@@ -2609,15 +2609,21 @@ and a flag which indicates if there are any.
       SYM symbol = SYM_by_ID (symid);
       if (SYM_is_Marked_Terminal (symbol))
 	{
+	  /* If marked by the user, leave the symbol
+	     as set by the user, and update the boolean vector */
 	  if (SYM_is_Terminal (symbol))
 	    {
 	      bv_bit_set (terminal_v, (unsigned int) symid);
+	      continue;
 	    }
-	  else
-	    {
-	      bv_bit_clear (terminal_v, (unsigned int) symid);
-	    }
+	  bv_bit_clear (terminal_v, (unsigned int) symid);
+	  continue;
 	}
+      /* If not marked by the user, take the default
+         from the boolean vector and mark the symbol,
+         if necessary. */
+      if (bv_bit_test (terminal_v, (unsigned int) symid))
+	SYM_is_Terminal (symbol) = 1;
     }
 }
 
