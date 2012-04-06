@@ -264,7 +264,6 @@ use constant GRAMMAR_OPTIONS => [
         default_null_value
         default_rank
         inaccessible_ok
-        lhs_terminals
         rule_name_required
         rules
         start
@@ -516,9 +515,9 @@ sub Marpa::R2::Grammar::precompute {
             Marpa::R2::exception(
                 'Attempted to precompute grammar with no rules');
         }
-        if ( $error_code == $Marpa::R2::Error::NULL_RULE_UNMARKED_TERMINALS ) {
+        if ( $error_code == $Marpa::R2::Error::NULLING_TERMINAL ) {
             Marpa::R2::exception(
-                'A grammar with empty rules must mark its terminals or unset lhs_terminals'
+                'A terminal symbol cannot also be a nulling symbol'
             );
         }
         if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE ) {
@@ -553,21 +552,6 @@ sub Marpa::R2::Grammar::precompute {
             my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
             Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
         }
-        if ( $error_code == $Marpa::R2::Error::LHS_IS_TERMINAL ) {
-            my @problems = ();
-            RULE: for my $rule ( @{$rules} ) {
-                my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
-                my $lhs_id  = $grammar_c->rule_lhs($rule_id);
-                next RULE if not $grammar_c->symbol_is_terminal($lhs_id);
-                my $name = $grammar->symbol_name($lhs_id);
-                push @problems,
-                    "lhs_terminals option is off, but Symbol $name is both an LHS and a terminal";
-            } ## end for my $rule ( @{$rules} )
-            push @problems,
-                'Disallowed LHS terminal reported by libmarpa, but none found'
-                if not scalar @problems;
-            Marpa::R2::exception(@problems);
-        } ## end if ( $error_code eq 'lhs is terminal' )
 	Marpa::R2::uncaught_error($grammar_c->error());
     } ## end if ( not defined $event_count )
 

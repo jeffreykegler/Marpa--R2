@@ -2158,20 +2158,6 @@ Suggested message: "Argument is not boolean."
 @deftypevr Macro int MARPA_ERR_INVALID_SYMID
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_LHS_IS_TERMINAL
-By default,
-and unlike most parsing algorithms,
-Libmarpa allow LHS terminals
--- symbols on the LHS side of a rule,
-but which may also be terminals.
-This behavior is configurable,
-and if
-the LHS terminals flag for a grammar is unset,
-LHS terminals become illegal,
-and cause this error.
-Suggested message: "There is a LHS terminal in a grammar which has disallowed them."
-@end deftypevr
-
 @deftypevr Macro int MARPA_ERR_NOOKID_LT_ZERO
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED

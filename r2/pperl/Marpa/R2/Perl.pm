@@ -928,7 +928,6 @@ sub Marpa::R2::Perl::new {
     my $grammar = Marpa::R2::Grammar->new(
         {   start         => 'prog',
             rules         => \@rules,
-            lhs_terminals => 0,
 	    symbols => { listexpr => { null_value => undef } },
         }
     );
