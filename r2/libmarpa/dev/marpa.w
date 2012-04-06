@@ -2418,12 +2418,13 @@ Anything in between these two extremes is also possible.
 int marpa_g_precompute(Marpa_Grammar g)
 {
     @<Return |-2| on failure@>@;
+    int return_value = failure_indicator;
     @<Fail if fatal error@>@;
     @<Fail if empty grammar@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
     G_EVENTS_CLEAR(g);
-     if (!census(g)) return failure_indicator;
+    @<Perform census of grammar |g|@>@;
      if (!CHAF_rewrite(g)) return failure_indicator;
      if (!g_augment(g)) return failure_indicator;
      if (!G_is_Trivial(g)) {
@@ -2432,7 +2433,9 @@ int marpa_g_precompute(Marpa_Grammar g)
 	create_AHFA_states(g);
 	@<Populate the Terminal Boolean Vector@>@;
     }
-     return G_EVENT_COUNT(g);
+     return_value = G_EVENT_COUNT(g);
+     FAILURE:;
+     return return_value;
 }
 
 @** The Grammar Census.
@@ -2467,8 +2470,7 @@ more than a single pass of the diagnostics.
 The upside is that in the more frequent cases, the user is spared
 a lot of useless diagnostics.
 
-@<Function definitions@> =
-PRIVATE GRAMMAR census(GRAMMAR g)
+@<Perform census of grammar |g|@> =
 {
     @<Declare census variables@>@;
     @<Census LHS symbols@>@;
@@ -2492,8 +2494,8 @@ PRIVATE GRAMMAR census(GRAMMAR g)
     @<Free Boolean vectors@>@;
     @<Free Boolean matrixes@>@;
     g->t_is_precomputed = 1;
-    return g;
 }
+
 @ @<Declare census variables@> =
 unsigned int pre_rewrite_rule_count = RULE_Count_of_G(g);
 unsigned int pre_rewrite_symbol_count = SYM_Count_of_G(g);
@@ -2572,9 +2574,9 @@ Bit_Vector terminal_v;
 int have_marked_terminals = 0;
 
 @ @<Fatal if empty rule and unmarked terminals@> =
-if (have_empty_rule && g->t_is_lhs_terminal_ok) {
+if (UNLIKELY(have_empty_rule && g->t_is_lhs_terminal_ok)) {
     MARPA_ERROR(MARPA_ERR_NULL_RULE_UNMARKED_TERMINALS);
-    return NULL;
+    goto FAILURE;
 }
 @ Any optimization should be for the non-error case.
 But in that case
@@ -2592,9 +2594,9 @@ if (!g->t_is_lhs_terminal_ok) {
     bv_and(bad_lhs_v, bad_lhs_v, lhs_v);
     no_lhs_terminals = bv_is_empty(bad_lhs_v);
     bv_free(bad_lhs_v);
-    if (!no_lhs_terminals) {
+    if (UNLIKELY(!no_lhs_terminals)) {
         MARPA_ERROR(MARPA_ERR_LHS_IS_TERMINAL);
-	return NULL;
+	goto FAILURE;
     }
 }
 
@@ -2636,7 +2638,7 @@ int have_empty_rule = 0;
 	   symid++)
 	{
 	  SYM symbol = SYM_by_ID (symid);
-	  if (symbol->t_is_counted)
+	  if (UNLIKELY(symbol->t_is_counted))
 	    {
 	      counted_nullables++;
 	      int_event_new (g, MARPA_EVENT_COUNTED_NULLABLE, symid);
@@ -2644,10 +2646,10 @@ int have_empty_rule = 0;
 	  symbol->t_is_nullable = 1;
 	}
     }
-  if (counted_nullables)
+  if (UNLIKELY(counted_nullables))
     {
       MARPA_ERROR (MARPA_ERR_COUNTED_NULLABLE);
-      return NULL;
+      goto FAILURE;
     }
 }
 @ @<Declare census variables@> =
@@ -2670,10 +2672,10 @@ Marpa_Symbol_ID symid;
 } }
 }
 @ @<Check that start symbol is productive@> =
-if (!bv_bit_test(productive_v, (unsigned int)original_start_symid))
+if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)original_start_symid)))
 {
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
-    return NULL;
+    goto FAILURE;
 }
 @ @<Declare census variables@> =
 Bit_Vector productive_v;
@@ -12893,12 +12895,16 @@ to provide more convenient behaviors.
 a |NULL| pointer.  (This is the GNU C library behavior.)
 
 @d my_free(p) free(p)
+@d MY_MALLOC(newmem, size) {
+    (newmem) = malloc((size));
+    if (UNLIKELY(!(newmem))) (*marpa_out_of_memory)();
+}
 @<Function definitions@> =
 PRIVATE void*
 my_malloc(size_t size)
 {
-    void *newmem = malloc(size);
-    if (!newmem) (*marpa_out_of_memory)();
+    void *newmem;
+    MY_MALLOC(newmem, size);
     return newmem;
 }
 @ These are the malloc wrappers compiled
@@ -12923,7 +12929,8 @@ marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p)
 PRIVATE void*
 my_malloc0(size_t size)
 {
-    void *newmem = my_malloc(size);
+    void *newmem;
+    MY_MALLOC(newmem, size);
     memset (newmem, 0, size);
     return newmem;
 }
