@@ -1603,7 +1603,7 @@ int min, int flags )
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     G_EVENTS_CLEAR(g);
-    if (is_rule_duplicate (g, lhs_id, &rhs_id, 1) == 1)
+    if (UNLIKELY(is_rule_duplicate (g, lhs_id, &rhs_id, 1) == 1))
       {
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
 	return failure_indicator;
@@ -1643,14 +1643,45 @@ int min, int flags )
 }
 
 @ @<Check that the sequence symbols are valid@> =
-if (separator_id != -1 && !symbol_is_valid(g, separator_id)) {
-    MARPA_ERROR(MARPA_ERR_BAD_SEPARATOR);
-    goto FAILURE;
-}
-if (!symbol_is_valid(g, lhs_id) || !symbol_is_valid(g, rhs_id))
+if (separator_id != -1)
+  {
+    SYM separator;
+    if (UNLIKELY (!symbol_is_valid (g, separator_id)))
+      {
+	MARPA_ERROR (MARPA_ERR_BAD_SEPARATOR);
+	goto FAILURE;
+      }
+      separator = SYM_by_ID(separator_id);
+      if (UNLIKELY(SYM_is_Internal(separator))) {
+	MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
+	goto FAILURE;
+      }
+  }
 {
-    MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
-    goto FAILURE;
+    SYM lhs;
+    if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+	goto FAILURE;
+      }
+    lhs = SYM_by_ID(lhs_id);
+    if (UNLIKELY(SYM_is_Internal(lhs))) {
+	MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
+	goto FAILURE;
+    }
+}
+{
+    SYM rhs;
+    if (UNLIKELY (!symbol_is_valid (g, rhs_id)))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+	goto FAILURE;
+      }
+    rhs = SYM_by_ID(rhs_id);
+    if (UNLIKELY(SYM_is_Internal(rhs))) {
+	MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
+	goto FAILURE;
+    }
 }
 
 @ @<Mark the counted symbols@> =
@@ -1931,27 +1962,46 @@ so that they can be variable length.
 @<Final rule elements@> = Marpa_Symbol_ID t_symbols[1];
 
 @ @<Function definitions@> =
-PRIVATE
-int rule_check(GRAMMAR g,
-SYMID lhs, SYMID *rhs, int length)
+PRIVATE int
+rule_check (GRAMMAR g, SYMID lhs_id, SYMID * rhs_ids, int length)
 {
-    int rh_index;
-    if (!symbol_is_valid(g, lhs)) goto ERROR;
-    for (rh_index = 0; rh_index<length; rh_index++) {
-	SYMID symid = rhs[rh_index];
-	if (!symbol_is_valid(g, symid)) goto ERROR;
+  int rh_index;
+  SYM lhs;
+  if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
+    goto INVALID_SYMID;
+  lhs = SYM_by_ID (lhs_id);
+  if (UNLIKELY (SYM_is_Internal (lhs)))
+    goto INTERNAL_SYM;
+  for (rh_index = 0; rh_index < length; rh_index++)
+    {
+      SYMID symid = rhs_ids[rh_index];
+      SYM rhs;
+      if (UNLIKELY (!symbol_is_valid (g, symid)))
+	goto INVALID_SYMID;
+      rhs = SYM_by_ID (symid);
+      if (UNLIKELY (SYM_is_Internal (rhs)))
+	goto INTERNAL_SYM;
     }
-    return 1;
-    ERROR: ;
-    MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
-    return 0;
+  return 1;
+INTERNAL_SYM:;
+  MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+  return 0;
+INVALID_SYMID:;
+  MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+  return 0;
 }
 
 @ @<Initialize rule symbols@> =
-Length_of_RULE(rule) = length;
+Length_of_RULE (rule) = length;
 rule->t_symbols[0] = lhs;
-{ int i; for (i = 0; i<length; i++) {
-    rule->t_symbols[i+1] = rhs[i]; } }
+{
+  int i;
+  for (i = 0; i < length; i++)
+    {
+      rule->t_symbols[i + 1] = rhs[i];
+    }
+}
+
 @ @<Function definitions@> =
 PRIVATE Marpa_Symbol_ID rule_lhs_get(RULE rule)
 {
