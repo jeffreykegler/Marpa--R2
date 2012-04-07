@@ -2473,6 +2473,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 {
     @<Return |-2| on failure@>@;
     int return_value = failure_indicator;
+    Bit_Vector nullable_v = NULL;
     @<Fail if fatal error@>@;
     @<Fail if empty grammar@>@;
     @<Fail if precomputed@>@;
@@ -2489,6 +2490,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     }
      return_value = G_EVENT_COUNT(g);
      FAILURE:;
+    bv_free(nullable_v);
      return return_value;
 }
 
@@ -2669,10 +2671,6 @@ int have_empty_rule = 0;
       goto FAILURE;
     }
 }
-@ @<Declare census variables@> =
-Bit_Vector nullable_v;
-@ @<Free Boolean vectors@> =
-bv_free(nullable_v);
 
 @ @<Census productive symbols@> = 
 productive_v = bv_shadow(nullable_v);
@@ -2877,18 +2875,27 @@ if (!rule_is_productive(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_RULE; }
 @ For every accessible and productive proper nullable which
 is not already aliased, alias it.
 @<Alias proper nullables@> =
-{ int no_of_symbols = SYM_Count_of_G(g);
-Marpa_Symbol_ID symid;
-for (symid = 0; symid < no_of_symbols; symid++) {
-     SYM symbol = SYM_by_ID(symid);
-     SYM alias;
-     if (!symbol->t_is_nullable) continue;
-     if (SYM_is_Nulling(symbol)) continue;
-     if (!symbol->t_is_accessible) continue;
-     if (!symbol->t_is_productive) continue;
-     if (symbol_null_alias(symbol)) continue;
-    alias = symbol_alias_create(g, symbol);
-} }
+{
+  unsigned int min, max, start;
+  for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
+    {
+      Marpa_Symbol_ID symid;
+      for (symid = (Marpa_Symbol_ID) min; symid <= (Marpa_Symbol_ID) max;
+	   symid++)
+	{
+	  const SYM symbol = SYM_by_ID (symid);
+	  if (SYM_is_Nulling (symbol))
+	    continue;
+	  if (!symbol->t_is_accessible)
+	    continue;
+	  if (!symbol->t_is_productive)
+	    continue;
+	  if (symbol_null_alias (symbol))
+	    continue;
+	  symbol_alias_create (g, symbol);
+	}
+    }
+}
 
 @*0 Compute Statistics Needed to Rewrite the Rule.
 The term
@@ -3401,7 +3408,7 @@ for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 	 Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
 	 SYM symbol = SYM_by_ID(symid);
-	 if (symbol->t_is_nullable) continue; /* After the CHAF rewrite, nullable $\E$ nulling */
+	 if (symbol->t_is_nulling) continue;
 	 if (proper_id >= 0) goto NEXT_RULE; /* More
 	     than one proper symbol -- not a unit rule */
 	 proper_id = symid;
@@ -3712,7 +3719,7 @@ void create_AHFA_items(GRAMMAR g)
     {
       SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
       SYM symbol = SYM_by_ID (rh_symid);
-      if (!symbol->t_is_nullable)
+      if (!symbol->t_is_nulling)
 	{
 	  Last_Proper_SYMI_of_RULE(rule) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
