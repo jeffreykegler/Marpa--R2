@@ -2656,19 +2656,26 @@ int have_empty_rule = 0;
 }
 
 @ @<Census productive symbols@> = 
-productive_v = bv_shadow(nullable_v);
-bv_or(productive_v, nullable_v, terminal_v);
-rhs_closure(g, productive_v);
-{ unsigned int min, max, start;
-Marpa_Symbol_ID symid;
-    for ( start = 0; bv_scan(productive_v, start, &min, &max); start = max+2 ) {
-	for (symid = (Marpa_Symbol_ID)min;
-		symid <= (Marpa_Symbol_ID)max;
-		symid++) {
-	    SYM symbol = SYM_by_ID(symid);
+{
+  productive_v = bv_shadow (nullable_v);
+  bv_or (productive_v, nullable_v, terminal_v);
+  rhs_closure (g, productive_v);
+  {
+    unsigned int min, max, start;
+    Marpa_Symbol_ID symid;
+    for (start = 0; bv_scan (productive_v, start, &min, &max);
+	 start = max + 2)
+      {
+	for (symid = (Marpa_Symbol_ID) min;
+	     symid <= (Marpa_Symbol_ID) max; symid++)
+	  {
+	    SYM symbol = SYM_by_ID (symid);
 	    symbol->t_is_productive = 1;
-} }
+	  }
+      }
+  }
 }
+
 @ @<Check that start symbol is productive@> =
 if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)original_start_symid)))
 {
@@ -2762,7 +2769,7 @@ reach a terminal symbol.
 	  bv_and (reaches_terminal_v, terminal_v,
 		  matrix_row (reach_matrix, (unsigned int) productive_id));
 	  if (bv_is_empty (reaches_terminal_v))
-	    SYM_is_Nulling(SYM_by_ID (productive_id)) = 1;
+	    SYM_is_Nulling (SYM_by_ID (productive_id)) = 1;
 	}
     }
   bv_free (reaches_terminal_v);
