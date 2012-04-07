@@ -1277,20 +1277,6 @@ Marpa_Symbol_ID symid)
     return SYM_by_ID(symid)->t_is_counted;
 }
 
-@ Symbol Is Nullable Boolean
-@<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
-@ @<Initialize symbol elements@> =
-symbol->t_is_nullable = 0;
-@ @<Function definitions@> =
-int marpa_g_symbol_is_nullable(GRAMMAR g, SYMID symid)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_by_ID(symid)->t_is_nullable;
-}
-
 @ Symbol Is Nulling Boolean
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
 @<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
@@ -1451,13 +1437,11 @@ SYM symbol_alias_create(GRAMMAR g, SYM symbol)
     SYM alias = symbol_new(g);
     symbol->t_is_proper_alias = 1;
     SYM_is_Nulling(symbol) = 0;
-    symbol->t_is_nullable = 0;
     symbol->t_alias = alias;
     alias->t_is_nulling_alias = 1;
     SYM_is_Nulling(alias) = 1;
     SYM_is_Ask_Me_When_Null(alias)
 	= SYM_is_Ask_Me_When_Null(symbol);
-    alias->t_is_nullable = 1;
     alias->t_is_productive = 1;
     alias->t_is_accessible = symbol->t_is_accessible;
     alias->t_alias = symbol;
@@ -2662,7 +2646,6 @@ int have_empty_rule = 0;
 	      counted_nullables++;
 	      int_event_new (g, MARPA_EVENT_COUNTED_NULLABLE, symid);
 	    }
-	  symbol->t_is_nullable = 1;
 	}
     }
   if (UNLIKELY(counted_nullables))
@@ -2886,11 +2869,11 @@ is not already aliased, alias it.
 	  const SYM symbol = SYM_by_ID (symid);
 	  if (SYM_is_Nulling (symbol))
 	    continue;
-	  if (!symbol->t_is_accessible)
+	  if (UNLIKELY(!symbol->t_is_accessible))
 	    continue;
-	  if (!symbol->t_is_productive)
+	  if (UNLIKELY(!symbol->t_is_productive))
 	    continue;
-	  if (symbol_null_alias (symbol))
+	  if (UNLIKELY(symbol_null_alias (symbol)))
 	    continue;
 	  symbol_alias_create (g, symbol);
 	}
@@ -3310,7 +3293,6 @@ if there is one.  Otherwise it is a new, nulling, symbol.
       nulling_new_start = symbol_new (g);
       nulling_new_start_id = ID_of_SYM(nulling_new_start);
       SYM_is_Nulling(nulling_new_start) = 1;
-      nulling_new_start->t_is_nullable = 1;
       nulling_new_start->t_is_productive = 1;
       nulling_new_start->t_is_accessible = 1;
     }
