@@ -71,17 +71,17 @@ Marpa::R2::Test::is( $grammar->show_symbols(),
 7: E, lhs=[4 15] rhs=[3 14]
 8: F, lhs=[5 16] rhs=[4 15]
 9: G, lhs=[7 18] rhs=[5 16]
-10: S[], lhs=[] rhs=[] nullable nulling
-11: A[], lhs=[] rhs=[11] nullable nulling
-12: H[], lhs=[] rhs=[] nullable nulling
-13: B[], lhs=[] rhs=[] nullable nulling
-14: C[], lhs=[] rhs=[] nullable nulling
-15: D[], lhs=[] rhs=[] nullable nulling
-16: E[], lhs=[] rhs=[] nullable nulling
-17: F[], lhs=[] rhs=[] nullable nulling
-18: G[], lhs=[] rhs=[] nullable nulling
+10: S[], lhs=[] rhs=[] nulling
+11: A[], lhs=[] rhs=[11] nulling
+12: H[], lhs=[] rhs=[] nulling
+13: B[], lhs=[] rhs=[] nulling
+14: C[], lhs=[] rhs=[] nulling
+15: D[], lhs=[] rhs=[] nulling
+16: E[], lhs=[] rhs=[] nulling
+17: F[], lhs=[] rhs=[] nulling
+18: G[], lhs=[] rhs=[] nulling
 19: S['], lhs=[20] rhs=[]
-20: S['][], lhs=[21] rhs=[] nullable nulling
+20: S['][], lhs=[21] rhs=[] nulling
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,

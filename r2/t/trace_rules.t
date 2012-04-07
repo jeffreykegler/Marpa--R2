@@ -143,13 +143,13 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 12: y, lhs=[] rhs=[13 15] terminal
 13: z, lhs=[] rhs=[14] terminal
 14: p, lhs=[] rhs=[17] terminal
-15: S[], lhs=[] rhs=[] nullable nulling
-16: Seq0[], lhs=[] rhs=[19] nullable nulling
-17: Proper[], lhs=[] rhs=[21 22 24 25 27 28] nullable nulling
+15: S[], lhs=[] rhs=[] nulling
+16: Seq0[], lhs=[] rhs=[19] nulling
+17: Proper[], lhs=[] rhs=[21 22 24 25 27 28] nulling
 18: S[R1:1], lhs=[23 24 25] rhs=[20 22]
 19: S[R1:2], lhs=[26 27 28] rhs=[23 25]
 20: S['], lhs=[29] rhs=[]
-21: S['][], lhs=[30] rhs=[] nullable nulling
+21: S['][], lhs=[30] rhs=[] nulling
 EOS
 
 # Local Variables:

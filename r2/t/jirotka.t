@@ -141,10 +141,10 @@ Marpa::R2::Test::is(
 22: Filter, lhs=[13 14] rhs=[7 26 27]
 23: WithPf, lhs=[17 18] rhs=[7 26 28]
 24: FilterExpr, lhs=[15 16] rhs=[14]
-25: ByClause[], lhs=[] rhs=[21 22] nullable nulling
-26: Match[], lhs=[] rhs=[20 22 25] nullable nulling
-27: Filter[], lhs=[] rhs=[20 22 24 28] nullable nulling
-28: WithPf[], lhs=[] rhs=[20 22 24 27] nullable nulling
+25: ByClause[], lhs=[] rhs=[21 22] nulling
+26: Match[], lhs=[] rhs=[20 22 25] nulling
+27: Filter[], lhs=[] rhs=[20 22 24 28] nulling
+28: WithPf[], lhs=[] rhs=[20 22 24 27] nulling
 29: MetricSelect[R7:3], lhs=[23 24 25] rhs=[19 21]
 30: MetricSelect[R7:4], lhs=[26 27 28] rhs=[23 25]
 31: Input['], lhs=[29] rhs=[]

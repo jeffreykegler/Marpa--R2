@@ -62,12 +62,12 @@ Marpa::R2::Test::is( $grammar->show_symbols(),
 2: A, lhs=[1 7] rhs=[0 5]
 3: B, lhs=[2 8] rhs=[1 7]
 4: C, lhs=[3 9] rhs=[2 8]
-5: S[], lhs=[] rhs=[] nullable nulling
-6: A[], lhs=[] rhs=[6] nullable nulling
-7: B[], lhs=[] rhs=[] nullable nulling
-8: C[], lhs=[] rhs=[] nullable nulling
+5: S[], lhs=[] rhs=[] nulling
+6: A[], lhs=[] rhs=[6] nulling
+7: B[], lhs=[] rhs=[] nulling
+8: C[], lhs=[] rhs=[] nulling
 9: S['], lhs=[10] rhs=[]
-10: S['][], lhs=[11] rhs=[] nullable nulling
+10: S['][], lhs=[11] rhs=[] nulling
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,

@@ -71,10 +71,10 @@ Marpa::R2::Test::is( $grammar->show_symbols(),
 1: b, lhs=[] rhs=[2 7 8] terminal
 2: S, lhs=[0 1 4 5 6] rhs=[0 4 9]
 3: C, lhs=[2 3 7 8] rhs=[1 2 6 7]
-4: S[], lhs=[] rhs=[5] nullable nulling
-5: C[], lhs=[] rhs=[8] nullable nulling
+4: S[], lhs=[] rhs=[5] nulling
+5: C[], lhs=[] rhs=[8] nulling
 6: S['], lhs=[9] rhs=[]
-7: S['][], lhs=[10] rhs=[] nullable nulling
+7: S['][], lhs=[10] rhs=[] nulling
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,

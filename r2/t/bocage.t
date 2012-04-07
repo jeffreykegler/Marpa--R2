@@ -84,13 +84,13 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 0: S, lhs=[0 4 5 6] rhs=[13]
 1: A, lhs=[1 2] rhs=[0 4 5 7 8 10 11 12]
 2: a, lhs=[] rhs=[1] terminal
-3: E, lhs=[3] rhs=[2] nullable nulling
-4: S[], lhs=[] rhs=[] nullable nulling
-5: A[], lhs=[] rhs=[5 6 8 9 11 12] nullable nulling
+3: E, lhs=[3] rhs=[2] nulling
+4: S[], lhs=[] rhs=[] nulling
+5: A[], lhs=[] rhs=[5 6 8 9 11 12] nulling
 6: S[R0:1], lhs=[7 8 9] rhs=[4 6]
 7: S[R0:2], lhs=[10 11 12] rhs=[7 9]
 8: S['], lhs=[13] rhs=[]
-9: S['][], lhs=[14] rhs=[] nullable nulling
+9: S['][], lhs=[14] rhs=[] nulling
 EOS
 
 Marpa::R2::Test::is(
