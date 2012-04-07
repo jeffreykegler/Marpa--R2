@@ -2873,7 +2873,7 @@ is not already aliased, alias it.
 	    continue;
 	  if (UNLIKELY(!symbol->t_is_productive))
 	    continue;
-	  if (UNLIKELY(symbol_null_alias (symbol)))
+	  if (UNLIKELY(symbol_null_alias (symbol) != NULL))
 	    continue;
 	  symbol_alias_create (g, symbol);
 	}

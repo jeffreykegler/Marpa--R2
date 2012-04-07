@@ -816,7 +816,6 @@ sub Marpa::R2::Grammar::show_symbol {
         join q{ },
         $grammar_c->symbol_rhs_rule_ids($symbol_id);
 
-    $grammar_c->symbol_is_nullable($symbol_id) and $text .= ' nullable';
     $grammar_c->symbol_is_productive($symbol_id) or $text .= ' unproductive';
     $grammar_c->symbol_is_accessible($symbol_id) or $text .= ' inaccessible';
     $grammar_c->symbol_is_nulling($symbol_id)  and $text .= ' nulling';
@@ -844,14 +843,6 @@ sub Marpa::R2::Grammar::show_nulling_symbols {
     return join q{ }, sort map { $grammar->symbol_name($_) }
         grep { $grammar_c->symbol_is_nulling($_) } ( 0 .. $#{$symbols} );
 } ## end sub Marpa::R2::Grammar::show_nulling_symbols
-
-sub Marpa::R2::Grammar::show_nullable_symbols {
-    my ($grammar) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    return join q{ }, sort map { $grammar->symbol_name($_) }
-        grep { $grammar_c->symbol_is_nullable($_) } ( 0 .. $#{$symbols} );
-} ## end sub Marpa::R2::Grammar::show_nullable_symbols
 
 sub Marpa::R2::Grammar::show_productive_symbols {
     my ($grammar) = @_;

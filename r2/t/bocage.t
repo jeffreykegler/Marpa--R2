@@ -24,7 +24,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 20;
 use lib 'inc';
 use Marpa::R2::Test;
 
@@ -93,11 +93,6 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 9: S['][], lhs=[14] rhs=[] nullable nulling
 EOS
 
-Marpa::R2::Test::is(
-    $grammar->show_nullable_symbols,
-    q{A[] E S['][] S[]},
-    'Aycock/Horspool Nullable Symbols'
-);
 Marpa::R2::Test::is(
     $grammar->show_nulling_symbols,
     q{A[] E S['][] S[]},
