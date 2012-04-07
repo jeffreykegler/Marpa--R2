@@ -54,12 +54,20 @@ sub do_block {
 sub do_range {
     my ($size) = @_;
     my $range_symbol = "range_$size";
+    return $range_symbol if exists $rules{$range_symbol};
     if ($size <= 3) {
 	for my $i (0 .. $size) {
 	    push @{$rules{$range_symbol}}, [ do_block($i) ];
 	}
 	return $range_symbol;
     }
+    my $part1_size = pow2($size);
+    my $range1 = do_range($part1_size-1);
+    my $block1 = do_block($part1_size);
+    my $range2 = do_range($size-$part1_size);
+    push @{$rules{$range_symbol}}, [$range1];
+    push @{$rules{$range_symbol}}, [$block1, $range2];
+    return $range_symbol;
 }
 
 for my $lhs (sort keys %rules) {
