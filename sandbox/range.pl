@@ -32,10 +32,6 @@ sub pow2 {
     return $pow/2;
 }
 
-# for my $i (3 .. $end) {
-   # say "$i = ", pow2($i);
-# }
-
 sub do_block {
     my ($size) = @_;
     my $block_symbol = "block_$size";
