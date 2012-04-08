@@ -230,10 +230,10 @@ _marpa_obs_newchunk (struct obstack *h, int length)
 
 /* Suppress -Wmissing-prototypes warning.  We don't want to declare this in
    obstack.h because it is just for debugging.  */
-int marpa_obs_allocated_p (struct obstack *h, void *obj);
+int _marpa_obs_allocated_p (struct obstack *h, void *obj);
 
 int
-marpa_obs_allocated_p (struct obstack *h, void *obj)
+_marpa_obs_allocated_p (struct obstack *h, void *obj)
 {
   register struct _obstack_chunk *lp;	/* below addr of any objects in this chunk */
   register struct _obstack_chunk *plp;	/* point to previous chunk if any */
@@ -253,12 +253,12 @@ marpa_obs_allocated_p (struct obstack *h, void *obj)
 /* The function name is overriden by a define, which we must
  * in order to actually define the function.
  */
-#undef marpa_obs_free
+#undef _marpa_obs_free
 
 /* Free objects in obstack H, including OBJ and everything allocate
    more recently than OBJ.  If OBJ is zero, free everything in H.  */
 void
-marpa_obs_free (struct obstack *h, void *obj)
+_marpa_obs_free (struct obstack *h, void *obj)
 {
   register struct _obstack_chunk *lp;	/* below addr of any objects in this chunk */
   register struct _obstack_chunk *plp;	/* point to previous chunk if any */

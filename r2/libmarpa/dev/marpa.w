@@ -980,11 +980,11 @@ the need to carefully examine their context.
 struct obstack t_obs;
 struct obstack t_obs_tricky;
 @ @<Initialize grammar elements@> =
-obstack_init(&g->t_obs);
-obstack_init(&g->t_obs_tricky);
+my_obstack_init(&g->t_obs);
+my_obstack_init(&g->t_obs_tricky);
 @ @<Destroy grammar elements@> =
-obstack_free(&g->t_obs, NULL);
-obstack_free(&g->t_obs_tricky, NULL);
+my_obstack_free(&g->t_obs, NULL);
+my_obstack_free(&g->t_obs_tricky, NULL);
 
 @*0 The "is OK" Word.
 The grammar needs a flag for a fatal error.
@@ -1521,7 +1521,7 @@ SYMID lhs, SYMID *rhs, int length)
     RULE rule;
     const int rule_sizeof = offsetof (struct s_rule, t_symbols) +
         (length + 1) * sizeof (rule->t_symbols[0]);
-    rule = obstack_alloc (&g->t_obs, rule_sizeof);
+    rule = my_obstack_alloc (&g->t_obs, rule_sizeof);
     @<Initialize rule symbols@>@/
     @<Initialize rule elements@>@/
     rule_add(g, rule);
@@ -4234,7 +4234,7 @@ void create_AHFA_states(struct marpa_g* g)
 {
   unsigned int item_id;
   unsigned int no_of_items_in_grammar = AIM_Count_of_G (g);
-  obstack_init(&ahfa_work_obs);
+  my_obstack_init(&ahfa_work_obs);
   duplicates = marpa_avl_create (AHFA_state_cmp, NULL, NULL);
   singleton_duplicates = my_new (AHFA, no_of_items_in_grammar);
   for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
@@ -4289,7 +4289,7 @@ NEXT_AHFA_STATE: ;
 		   int sizeof_transition =
 		       offsetof (struct s_transition, t_aex) + completion_count *
 		       sizeof (transitions[0]->t_aex[0]);
-		   TRANS new_transition = obstack_alloc(&g->t_obs, sizeof_transition);
+		   TRANS new_transition = my_obstack_alloc(&g->t_obs, sizeof_transition);
 		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
 		   LV_Completion_Count_of_TRANS(new_transition) = 0;
 		   transitions[symbol_id] = new_transition;
@@ -4366,7 +4366,7 @@ You can get the AIM from the AEX, but not vice versa.
    my_free(rule_by_sort_key);
    matrix_free(prediction_matrix);
     @<Free duplicates data structures@>@;
-     obstack_free(&ahfa_work_obs, NULL);
+     my_obstack_free(&ahfa_work_obs, NULL);
 
 @ @<Free duplicates data structures@> =
 my_free(singleton_duplicates);
@@ -4378,7 +4378,7 @@ marpa_avl_destroy(duplicates, NULL);
   const RULE start_rule = g->t_proper_start_rule;
   SYMID *postdot_symbol_ids;
   AIM start_item;
-  AIM *item_list = obstack_alloc (&g->t_obs, sizeof (AIM));
+  AIM *item_list = my_obstack_alloc (&g->t_obs, sizeof (AIM));
   /* The start item is the initial item for the start rule */
   start_item = start_rule->t_first_aim;
   item_list[0] = start_item;
@@ -4390,7 +4390,7 @@ marpa_avl_destroy(duplicates, NULL);
   TRANSs_of_AHFA (p_initial_state) = transitions_new (g);
   Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
   postdot_symbol_ids = Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
-    obstack_alloc (&g->t_obs, sizeof (SYMID));
+    my_obstack_alloc (&g->t_obs, sizeof (SYMID));
   *postdot_symbol_ids = Postdot_SYMID_of_AIM (start_item);
   Complete_SYM_Count_of_AHFA (p_initial_state) = 0;
   p_initial_state->t_empty_transition =
@@ -4451,7 +4451,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     AHFA_initialize(p_new_state);
     singleton_duplicates[single_item_id] = p_new_state;
     new_state_item_list = p_new_state->t_items =
-	obstack_alloc (&g->t_obs, sizeof (AIM));
+	my_obstack_alloc (&g->t_obs, sizeof (AIM));
     new_state_item_list[0] = single_item_p;
     p_new_state->t_item_count = 1;
     AHFA_is_Predicted(p_new_state) = 0;
@@ -4464,7 +4464,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	Complete_SYM_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_postdot_sym_count = 1;
 	p_new_state->t_postdot_symid_ary =
-	  obstack_alloc (&g->t_obs, sizeof (SYMID));
+	  my_obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*(p_new_state->t_postdot_symid_ary) = postdot;
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
@@ -4477,7 +4477,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     else
       {
 	SYMID lhs_id = LHS_ID_of_AIM(single_item_p);
-	SYMID* complete_symids = obstack_alloc (&g->t_obs, sizeof (SYMID));
+	SYMID* complete_symids = my_obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
 	completion_count_inc(&ahfa_work_obs, p_new_state, lhs_id);
@@ -4549,7 +4549,7 @@ unsigned int no_of_new_items_so_far = 0;
 AIM* item_list_for_new_state;
 AHFA queued_AHFA_state;
 p_new_state = DQUEUE_PUSH(states, AHFA_Object);
-item_list_for_new_state = p_new_state->t_items = obstack_alloc(&g->t_obs_tricky,
+item_list_for_new_state = p_new_state->t_items = my_obstack_alloc(&g->t_obs_tricky,
     no_of_items_in_new_state * sizeof(AIM));
 p_new_state->t_item_count = no_of_items_in_new_state;
 for (predecessor_ix = first_working_item_ix;
@@ -4575,7 +4575,7 @@ if (queued_AHFA_state)
   {				// The new state would be a duplicate
 // Back it out and go on to the next in the queue
     (void) DQUEUE_POP (states, AHFA_Object);
-    obstack_free (&g->t_obs_tricky, item_list_for_new_state);
+    my_obstack_free (&g->t_obs_tricky, item_list_for_new_state);
     transition_add (&ahfa_work_obs, p_working_state, working_symbol, queued_AHFA_state);
     /* |transition_add()| allocates obstack memory, but uses the 
        ``non-tricky" obstack */
@@ -4620,7 +4620,7 @@ if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
   {
     unsigned int min, max, start;
     Marpa_Symbol_ID *p_symbol = p_new_state->t_postdot_symid_ary =
-      obstack_alloc (&g->t_obs,
+      my_obstack_alloc (&g->t_obs,
 		     no_of_postdot_symbols * sizeof (SYMID));
     for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
       {
@@ -4636,7 +4636,7 @@ if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
 	 Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (complete_v)))
       {
 	unsigned int min, max, start;
-	SYMID *complete_symids = obstack_alloc (&g->t_obs,
+	SYMID *complete_symids = my_obstack_alloc (&g->t_obs,
 						no_of_complete_symbols *
 						sizeof (SYMID));
 	SYMID *p_symbol = complete_symids;
@@ -4924,7 +4924,7 @@ AHFA p_new_state;
 unsigned int item_list_ix = 0;
 unsigned int no_of_items_in_new_state = bv_count( prediction_rule_vector);
 	if (no_of_items_in_new_state == 0) return NULL;
-item_list_for_new_state = obstack_alloc (&g->t_obs,
+item_list_for_new_state = my_obstack_alloc (&g->t_obs,
 	       no_of_items_in_new_state * sizeof (AIM));
 {
   unsigned int start, min, max;
@@ -4950,7 +4950,7 @@ item_list_for_new_state = obstack_alloc (&g->t_obs,
 		 /* The new state would be a duplicate.
 		 Back it out and return the one that already exists */
 	    (void)DQUEUE_POP((*states_p), AHFA_Object);
-	    obstack_free(&g->t_obs, item_list_for_new_state);
+	    my_obstack_free(&g->t_obs, item_list_for_new_state);
 	    return queued_AHFA_state;
 	}
     }
@@ -4982,7 +4982,7 @@ item_list_for_new_state = obstack_alloc (&g->t_obs,
   {
     unsigned int min, max, start;
     Marpa_Symbol_ID *p_symbol = p_new_state->t_postdot_symid_ary =
-      obstack_alloc (&g->t_obs,
+      my_obstack_alloc (&g->t_obs,
 		     no_of_postdot_symbols * sizeof (SYMID));
     for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
       {
@@ -5091,7 +5091,7 @@ PRIVATE
 URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, int aim_ix)
 {
      URTRANS transition;
-     transition = obstack_alloc (obstack, sizeof (transition[0]));
+     transition = my_obstack_alloc (obstack, sizeof (transition[0]));
      transition->t_to_ahfa = to_ahfa;
      transition->t_completion_count = aim_ix;
      return transition;
@@ -5228,7 +5228,7 @@ PRIVATE INPUT
 input_new (GRAMMAR g)
 {
   INPUT input = my_slice_new (struct s_input);
-  obstack_init (TOK_Obs_of_I (input));
+  my_obstack_init (TOK_Obs_of_I (input));
   @<Initialize input elements@>@;
   return input;
 }
@@ -5269,7 +5269,7 @@ guarantee that it is safe to destroy it.
 @<Function definitions@> =
 PRIVATE void input_free(INPUT input)
 {
-    obstack_free(TOK_Obs_of_I(input), NULL);
+    my_obstack_free(TOK_Obs_of_I(input), NULL);
     my_slice_free(struct s_input, input);
 }
 
@@ -5693,8 +5693,8 @@ Create an obstack with the lifetime of the recognizer.
 This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the recognizer.
 @<Widely aligned recognizer elements@> = struct obstack t_obs;
-@ @<Initialize recognizer obstack@> = obstack_init(&r->t_obs);
-@ @<Destroy recognizer obstack@> = obstack_free(&r->t_obs, NULL);
+@ @<Initialize recognizer obstack@> = my_obstack_init(&r->t_obs);
+@ @<Destroy recognizer obstack@> = my_obstack_free(&r->t_obs, NULL);
 
 @*0 Recognizer error accessor.
 @ A convenience wrapper for the grammar error strings.
@@ -5801,7 +5801,7 @@ earley_set_new( RECCE r, EARLEME id)
 {
   ESK_Object key;
   ES set;
-  set = obstack_alloc (&r->t_obs, sizeof (*set));
+  set = my_obstack_alloc (&r->t_obs, sizeof (*set));
   key.t_earleme = id;
   set->t_key = key;
   set->t_postdot_ary = NULL;
@@ -6001,7 +6001,7 @@ PRIVATE EIM earley_item_create(const RECCE r,
   const ES set = key.t_set;
   const int count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
-  new_item = obstack_alloc (&r->t_obs, sizeof (*new_item));
+  new_item = my_obstack_alloc (&r->t_obs, sizeof (*new_item));
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   Ord_of_EIM(new_item) = count - 1;
@@ -6753,7 +6753,7 @@ token_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
+  new_link = my_obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Token_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   TOK_of_Source(new_link->t_source) = token;
@@ -6830,7 +6830,7 @@ completion_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
+  new_link = my_obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Completion_Link_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
@@ -6857,7 +6857,7 @@ leo_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
+  new_link = my_obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = First_Leo_SRCL_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
@@ -6902,7 +6902,7 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
 }
 
 @ @<Ambiguate token source@> = {
-  SRCL new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
+  SRCL new_link = my_obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = NULL;
   new_link->t_source = item->t_container.t_unique;
   First_Leo_SRCL_of_EIM (item) = NULL;
@@ -6911,7 +6911,7 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
 }
 
 @ @<Ambiguate completion source@> = {
-  SRCL new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
+  SRCL new_link = my_obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = NULL;
   new_link->t_source = item->t_container.t_unique;
   First_Leo_SRCL_of_EIM (item) = NULL;
@@ -6920,7 +6920,7 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
 }
 
 @ @<Ambiguate Leo source@> = {
-  SRCL new_link = obstack_alloc (&r->t_obs, sizeof (*new_link));
+  SRCL new_link = my_obstack_alloc (&r->t_obs, sizeof (*new_link));
   new_link->t_next = NULL;
   new_link->t_source = item->t_container.t_unique;
   First_Leo_SRCL_of_EIM (item) = new_link;
@@ -7436,12 +7436,12 @@ TOK token_new(INPUT input, SYMID symbol_id, int value)
 {
   TOK token;
   if (value) {
-    token = obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
+    token = my_obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
     SYMID_of_TOK(token) = symbol_id;
     Type_of_TOK(token) = VALUED_TOKEN_OR_NODE;
     Value_of_TOK(token) = value;
   } else {
-    token = obstack_alloc (TOK_Obs_of_I(input), sizeof(token->t_unvalued));
+    token = my_obstack_alloc (TOK_Obs_of_I(input), sizeof(token->t_unvalued));
     SYMID_of_TOK(token) = symbol_id;
     Type_of_TOK(token) = UNVALUED_TOKEN_OR_NODE;
   }
@@ -7451,7 +7451,7 @@ TOK token_new(INPUT input, SYMID symbol_id, int value)
 @ Recover |token| from the token obstack.
 The intended use is to recover the one token
 most recently added in case of an error.
-@<Recover |token|@> = obstack_free (TOK_Obs_of_R(r), token);
+@<Recover |token|@> = my_obstack_free (TOK_Obs_of_R(r), token);
 
 @** Alternative Tokens (ALT) Code.
 Because Marpa allows more than one token at every
@@ -8125,7 +8125,7 @@ At this point there are no Leo items.
 	  PIM old_pim = NULL;
 	  PIM new_pim;
 	  Marpa_Symbol_ID symid;
-	  new_pim = obstack_alloc (&r->t_obs, sizeof (EIX_Object));
+	  new_pim = my_obstack_alloc (&r->t_obs, sizeof (EIX_Object));
 	  symid = postdot_symbols[symbol_ix];
 	  Postdot_SYMID_of_PIM(new_pim) = symid;
 	  EIM_of_PIM(new_pim) = earley_item;
@@ -8201,7 +8201,7 @@ That may become its actual value,
 once it is populated.
 @<Create a new, unpopulated, LIM@> = {
     LIM new_lim;
-    new_lim = obstack_alloc(&r->t_obs, sizeof(*new_lim));
+    new_lim = my_obstack_alloc(&r->t_obs, sizeof(*new_lim));
     Postdot_SYMID_of_LIM(new_lim) = symid;
     EIM_of_PIM(new_lim) = NULL;
     Predecessor_LIM_of_LIM(new_lim) = NULL;
@@ -8465,7 +8465,7 @@ of the base EIM.
 @ @<Copy PIM workarea to postdot item array@> = {
     PIM *postdot_array
 	= current_earley_set->t_postdot_ary
-	= obstack_alloc (&r->t_obs,
+	= my_obstack_alloc (&r->t_obs,
 	       current_earley_set->t_postdot_sym_count * sizeof (PIM));
     unsigned int min, max, start;
     int postdot_array_ix = 0;
@@ -8657,7 +8657,7 @@ are settled.
 @ @<Function definitions@> =
 PRIVATE void ur_node_stack_init(URS stack)
 {
-    obstack_init(&stack->t_obs);
+    my_obstack_init(&stack->t_obs);
     stack->t_base = ur_node_new(stack, 0);
     ur_node_stack_reset(stack);
 }
@@ -8671,7 +8671,7 @@ PRIVATE void ur_node_stack_reset(URS stack)
 @ @<Function definitions@> =
 PRIVATE void ur_node_stack_destroy(URS stack)
 {
-    if (stack->t_base) obstack_free(&stack->t_obs, NULL);
+    if (stack->t_base) my_obstack_free(&stack->t_obs, NULL);
     stack->t_base = NULL;
 }
 
@@ -8679,7 +8679,7 @@ PRIVATE void ur_node_stack_destroy(URS stack)
 PRIVATE UR ur_node_new(URS stack, UR prev)
 {
     UR new_ur_node;
-    new_ur_node = obstack_alloc(&stack->t_obs, sizeof(new_ur_node[0]));
+    new_ur_node = my_obstack_alloc(&stack->t_obs, sizeof(new_ur_node[0]));
     Next_UR_of_UR(new_ur_node) = 0;
     Prev_UR_of_UR(new_ur_node) = prev;
     return new_ur_node;
@@ -8780,7 +8780,7 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
     if (!nodes_by_aex) {
 	AEX aex;
         nodes_by_aex = nodes_by_item[item_ordinal] =
-	    obstack_alloc(obs, aim_count_of_item*sizeof(OR));
+	    my_obstack_alloc(obs, aim_count_of_item*sizeof(OR));
 	for (aex = 0; aex < aim_count_of_item; aex++) {
 	    nodes_by_aex[aex] = NULL;
 	}
@@ -9248,7 +9248,7 @@ or arranging to test it.
 {
   const int or_node_id = OR_Count_of_B (b)++;
   OR *or_nodes_of_b = ORs_of_B (b);
-  last_or_node = (OR)obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
+  last_or_node = (OR)my_obstack_alloc (&OBS_of_B(b), sizeof(OR_Object));
   ID_of_OR(last_or_node) = or_node_id;
   if (UNLIKELY(or_node_id >= or_node_estimate))
     {
@@ -9495,7 +9495,7 @@ typedef struct s_draft_and_node DAND_Object;
 PRIVATE
 DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
 {
-    DAND draft_and_node = obstack_alloc (obs, sizeof(DAND_Object));
+    DAND draft_and_node = my_obstack_alloc (obs, sizeof(DAND_Object));
     Predecessor_OR_of_DAND(draft_and_node) = predecessor;
     Cause_OR_of_DAND(draft_and_node) = cause;
     MARPA_ASSERT(cause);
@@ -10091,14 +10091,14 @@ An obstack with the lifetime of the bocage.
 @<Widely aligned bocage elements@> =
 struct obstack t_obs;
 @ @<Bit aligned bocage elements@> =
-unsigned int is_obstack_initialized:1;
+unsigned int t_is_obstack_initialized:1;
 @ @<Initialize bocage elements@> =
-b->is_obstack_initialized = 1;
-obstack_init(&OBS_of_B(b));
+b->t_is_obstack_initialized = 1;
+my_obstack_init(&OBS_of_B(b));
 @ @<Destroy bocage elements, final phase@> =
-if (b->is_obstack_initialized) {
-    obstack_free(&OBS_of_B(b), NULL);
-    b->is_obstack_initialized = 0;
+if (b->t_is_obstack_initialized) {
+    my_obstack_free(&OBS_of_B(b), NULL);
+    b->t_is_obstack_initialized = 0;
 }
 
 @*0 Bocage Construction.
@@ -10141,13 +10141,13 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Set |completed_start_rule|@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     if (!start_eim) goto B_NEW_RETURN_ERROR;
-    obstack_init(&bocage_setup_obs);
+    my_obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
     @<Populate the PSIA data@>@;
     @<Create the or-nodes for all earley sets@>@;
     @<Create the final and-nodes for all earley sets@>@;
     @<Set top or node id in |b|@>;
-    obstack_free(&bocage_setup_obs, NULL);
+    my_obstack_free(&bocage_setup_obs, NULL);
     return b;
     B_NEW_RETURN_ERROR: ;
     input_unref(input);
@@ -10233,7 +10233,7 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
   OR *or_nodes = ORs_of_B (b) = my_new (OR, 1);
   AND and_nodes = ANDs_of_B (b) = my_new (AND_Object, 1);
   OR or_node = or_nodes[0] =
-    (OR) obstack_alloc (&OBS_of_B (b), sizeof (OR_Object));
+    (OR) my_obstack_alloc (&OBS_of_B (b), sizeof (OR_Object));
   ORID null_or_node_id = 0;
   Top_ORID_of_B (b) = null_or_node_id;
 
@@ -10263,7 +10263,7 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
   unsigned int earley_set_count = ES_Count_of_R (r);
   total_earley_items_in_parse = 0;
   per_es_data =
-    obstack_alloc (&bocage_setup_obs,
+    my_obstack_alloc (&bocage_setup_obs,
 		   sizeof (struct s_bocage_setup_per_es) * earley_set_count);
   for (ix = 0; ix < earley_set_count; ix++)
     {
@@ -10273,7 +10273,7 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
 	{
 	  struct s_bocage_setup_per_es *per_es = per_es_data + ix;
 	  OR ** const per_eim_eixes = per_es->t_aexes_by_item =
-	    obstack_alloc (&bocage_setup_obs, sizeof (OR *) * item_count);
+	    my_obstack_alloc (&bocage_setup_obs, sizeof (OR *) * item_count);
 	  unsigned int item_ordinal;
 	  per_es->t_or_psl = NULL;
 	  per_es->t_and_psl = NULL;
@@ -10646,7 +10646,7 @@ PRIVATE void order_free(ORDER o)
   order_strip(o);
   if (o->t_and_node_orderings) {
       o->t_and_node_orderings = NULL;
-      obstack_free(&OBS_of_O(o), NULL);
+      my_obstack_free(&OBS_of_O(o), NULL);
   }
   my_slice_free(struct s_order, o);
 }
@@ -10753,10 +10753,10 @@ int marpa_o_and_order_set(
 	  {
 	    int and_id;
 	    const int and_count_of_r = AND_Count_of_B (b);
-	    obstack_init(obs);
+	    my_obstack_init(obs);
 	    o->t_and_node_orderings =
 	      and_node_orderings =
-	      obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
+	      my_obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
 	    for (and_id = 0; and_id < and_count_of_r; and_id++)
 	      {
 		and_node_orderings[and_id] = (ANDID *) NULL;
@@ -10789,7 +10789,7 @@ int marpa_o_and_order_set(
 		      return failure_indicator;
 	    }
 	    {
-	      ANDID *orderings = obstack_alloc (obs, sizeof (ANDID) * (length + 1));
+	      ANDID *orderings = my_obstack_alloc (obs, sizeof (ANDID) * (length + 1));
 	      int i;
 	      and_node_orderings[or_node_id] = orderings;
 	      *orderings++ = length;
@@ -11928,7 +11928,7 @@ bv_obs_create (struct obstack *obs, unsigned int bits)
 {
   unsigned int size = bv_bits_to_size (bits);
   unsigned int bytes = (size + bv_hiddenwords) << sizeof (unsigned int);
-  unsigned int *addr = (Bit_Vector) obstack_alloc (obs, (size_t) bytes);
+  unsigned int *addr = (Bit_Vector) my_obstack_alloc (obs, (size_t) bytes);
   *addr++ = bits;
   *addr++ = size;
   *addr++ = bv_bits_to_unused_mask (bits);

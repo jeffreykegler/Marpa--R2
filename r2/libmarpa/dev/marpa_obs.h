@@ -192,7 +192,7 @@ extern int _marpa_obs_begin (struct obstack *, int, int);
 extern int _marpa_obs_memory_used (struct obstack *);
 #define _obstack_memory_used _marpa_obs_memory_used
 
-void marpa_obs_free (struct obstack *__obstack, void *__block);
+void _marpa_obs_free (struct obstack *__obstack, void *__block);
 
 /* Pointer to beginning of object being allocated or to be allocated next.
    Note that this might not be the final address of the object
@@ -213,7 +213,7 @@ void marpa_obs_free (struct obstack *__obstack, void *__block);
 #define obstack_alignment_mask(h) ((h)->alignment_mask)
 
 /* To prevent prototype warnings provide complete argument list.  */
-#define obstack_init(h)	_obstack_begin ((h), 0, 0)
+#define my_obstack_init(h)	_obstack_begin ((h), 0, 0)
 
 #define obstack_begin(h, size)	_obstack_begin ((h), (size), 0)
 
@@ -332,7 +332,7 @@ __extension__								\
    obstack_blank_fast (__o, __len);					\
    (void) 0; })
 
-# define obstack_alloc(OBSTACK,length)					\
+# define my_obstack_alloc(OBSTACK,length)					\
 __extension__								\
 ({ struct obstack *__h = (OBSTACK);					\
    obstack_blank (__h, (length));					\
@@ -367,13 +367,13 @@ __extension__								\
    __o1->object_base = __o1->next_free;					\
    __value; })
 
-# define obstack_free(OBSTACK, OBJ)					\
+# define my_obstack_free(OBSTACK, OBJ)					\
 __extension__								\
 ({ struct obstack *__o = (OBSTACK);					\
    void *__obj = (OBJ);							\
    if (__obj > (void *)__o->chunk && __obj < (void *)__o->chunk_limit)  \
      __o->next_free = __o->object_base = (char *)__obj;			\
-   else (marpa_obs_free) (__o, __obj); })
+   else (_marpa_obs_free) (__o, __obj); })
 
 #else /* not __GNUC__ or not __STDC__ */
 
@@ -471,7 +471,7 @@ __extension__								\
     && (h)->temp.tempint < (h)->chunk_limit - (char *) (h)->chunk))	\
    ? (int) ((h)->next_free = (h)->object_base				\
 	    = (h)->temp.tempint + (char *) (h)->chunk)			\
-   : (((marpa_obs_free) ((h), (h)->temp.tempint + (char *) (h)->chunk), 0), 0)))
+   : (((_marpa_obs_free) ((h), (h)->temp.tempint + (char *) (h)->chunk), 0), 0)))
 
 #endif /* not __GNUC__ or not __STDC__ */
 
