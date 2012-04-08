@@ -1283,6 +1283,10 @@ Suggested message: "A rule is part of a infinite loop."
 Suggested message: "Grammar has a counted nullable."
 @end deftypevr
 
+@deftypevr Macro int MARPA_EVENT_NULLING_TERMINAL
+Suggested message: "Grammar has a nulling terminal."
+@end deftypevr
+
 @node Recognizers, Bocage, Events, Top
 @chapter Recognizer objects
 

@@ -2457,7 +2457,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 {
     @<Return |-2| on failure@>@;
     int return_value = failure_indicator;
-    Bit_Vector nullable_v = NULL;
+    @<Declare precompute variables@>@;
     @<Fail if fatal error@>@;
     @<Fail if empty grammar@>@;
     @<Fail if precomputed@>@;
@@ -2474,9 +2474,19 @@ int marpa_g_precompute(Marpa_Grammar g)
     }
      return_value = G_EVENT_COUNT(g);
      FAILURE:;
-    bv_free(nullable_v);
+    @<Free precompute variables@>@;
      return return_value;
 }
+@ {\bf To Do}: @^To Do@>
+Perhaps I should revamp the memory allocation for the
+vectors and matrices.
+On one hand I could put them on an obstack,
+or on the other hand I could free them more quickly
+once their useful lifetime is past.
+@<Declare precompute variables@> =
+Bit_Vector nullable_v = NULL;
+@ @<Free precompute variables@> =
+bv_free(nullable_v);
 
 @** The Grammar Census.
 
@@ -2512,7 +2522,6 @@ a lot of useless diagnostics.
 
 @<Perform census of grammar |g|@> =
 {
-    @<Declare census variables@>@;
     @<Census LHS symbols@>@;
     @<Census terminals@>@;
     @<Census nullable symbols@>@;
@@ -2521,12 +2530,10 @@ a lot of useless diagnostics.
     @<Calculate reach matrix@>@;
     @<Census accessible symbols@>@;
     @<Census nulling symbols@>@;
-    @<Free Boolean vectors@>@;
-    @<Free Boolean matrixes@>@;
     g->t_is_precomputed = 1;
 }
 
-@ @<Declare census variables@> =
+@ @<Declare precompute variables@> =
 unsigned int pre_rewrite_rule_count = RULE_Count_of_G(g);
 unsigned int pre_rewrite_symbol_count = SYM_Count_of_G(g);
 
@@ -2541,8 +2548,6 @@ While at it, set a flag to indicate if there are empty rules.
 
 @ @<Fail if bad start symbol@> =
 {
-  const Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
-    SYM original_start_symbol;
   if (original_start_symid < 0)
     {
       MARPA_ERROR (MARPA_ERR_NO_START_SYM);
@@ -2553,15 +2558,14 @@ While at it, set a flag to indicate if there are empty rules.
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYM);
       return failure_indicator;
     }
-  original_start_symbol = SYM_by_ID (original_start_symid);
-  if (DSTACK_LENGTH (original_start_symbol->t_lhs) <= 0)
+  if (DSTACK_LENGTH (SYM_by_ID (original_start_symid)->t_lhs) <= 0)
     {
       MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
       return failure_indicator;
     }
 }
 
-@ @<Declare census variables@> =
+@ @<Declare precompute variables@> =
 Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 
 @ @<Census LHS symbols@> =
@@ -2613,19 +2617,18 @@ and a flag which indicates if there are any.
     }
 }
 
-@ @<Free Boolean vectors@> =
+@ @<Free precompute variables@> =
 bv_free(terminal_v);
-@
-@s Bit_Vector int
-@<Declare census variables@> =
-Bit_Vector terminal_v;
+@ @s Bit_Vector int
+@<Declare precompute variables@> =
+Bit_Vector terminal_v = NULL;
 
-@ @<Free Boolean vectors@> =
+@ @<Free precompute variables@> =
 bv_free(lhs_v);
 bv_free(empty_lhs_v);
-@ @<Declare census variables@> =
-Bit_Vector lhs_v;
-Bit_Vector empty_lhs_v;
+@ @<Declare precompute variables@> =
+Bit_Vector lhs_v = NULL;
+Bit_Vector empty_lhs_v = NULL;
 int have_empty_rule = 0;
 
 @ @<Census nullable symbols@> = 
@@ -2682,9 +2685,9 @@ if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)original_start_symid)))
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     goto FAILURE;
 }
-@ @<Declare census variables@> =
-Bit_Vector productive_v;
-@ @<Free Boolean vectors@> =
+@ @<Declare precompute variables@> =
+Bit_Vector productive_v = NULL;
+@ @<Free precompue variables@> =
 bv_free(productive_v);
 
 @ The reach matrix is the an $n\times n$ matrix,
@@ -2733,32 +2736,39 @@ where many of the right hand sides repeat symbols.
   transitive_closure (reach_matrix);
 }
 
-@ @<Declare census variables@> = Bit_Matrix reach_matrix;
-@ @<Free Boolean matrixes@> =
+@ @<Declare precompute variables@> =
+Bit_Matrix reach_matrix = NULL;
+@ @<Free precompute variables@> =
 matrix_free(reach_matrix);
 
-@ @<Census accessible symbols@> = 
-accessible_v = matrix_row(reach_matrix, (unsigned int)original_start_symid);
-{ unsigned int min, max, start;
-Marpa_Symbol_ID symid;
-    for ( start = 0; bv_scan(accessible_v, start, &min, &max); start = max+2 ) {
-	for (symid = (Marpa_Symbol_ID)min;
-		symid <= (Marpa_Symbol_ID)max;
-		symid++) {
-	    SYM symbol = SYM_by_ID(symid);
-	    symbol->t_is_accessible = 1;
-} }
-}
 @ |accessible_v| is a pointer into the |reach_matrix|.
 Therefore there is no code to free it.
-@<Declare census variables@> =
-Bit_Vector accessible_v;
+@<Census accessible symbols@> = 
+{
+  Bit_Vector accessible_v =
+    matrix_row (reach_matrix, (unsigned int) original_start_symid);
+  {
+    unsigned int min, max, start;
+    Marpa_Symbol_ID symid;
+    for (start = 0; bv_scan (accessible_v, start, &min, &max);
+	 start = max + 2)
+      {
+	for (symid = (Marpa_Symbol_ID) min;
+	     symid <= (Marpa_Symbol_ID) max; symid++)
+	  {
+	    SYM symbol = SYM_by_ID (symid);
+	    symbol->t_is_accessible = 1;
+	  }
+      }
+  }
+}
 
 @ A symbol is nulling if and only if it is a productive symbol which does not
 reach a terminal symbol.
 @<Census nulling symbols@> = 
 {
   Bit_Vector reaches_terminal_v = bv_shadow (terminal_v);
+  int nulling_terminal_found = 0;
   unsigned int min, max, start;
   for (start = 0; bv_scan (productive_v, start, &min, &max); start = max + 2)
     {
@@ -2769,10 +2779,24 @@ reach a terminal symbol.
 	  bv_and (reaches_terminal_v, terminal_v,
 		  matrix_row (reach_matrix, (unsigned int) productive_id));
 	  if (bv_is_empty (reaches_terminal_v))
-	    SYM_is_Nulling (SYM_by_ID (productive_id)) = 1;
+	    {
+	      const SYM symbol = SYM_by_ID (productive_id);
+	      SYM_is_Nulling (symbol) = 1;
+	      if (UNLIKELY (SYM_is_Terminal (symbol)))
+		{
+		  nulling_terminal_found = 1;
+		  int_event_new (g, MARPA_EVENT_NULLING_TERMINAL,
+				 productive_id);
+		}
+	    }
 	}
     }
   bv_free (reaches_terminal_v);
+  if (UNLIKELY (nulling_terminal_found))
+    {
+      MARPA_ERROR (MARPA_ERR_NULLING_TERMINAL);
+      goto FAILURE;
+    }
 }
 
 @** The CHAF Rewrite.
@@ -2869,20 +2893,20 @@ is not already aliased, alias it.
   unsigned int min, max, start;
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
-      Marpa_Symbol_ID symid;
-      for (symid = (Marpa_Symbol_ID) min; symid <= (Marpa_Symbol_ID) max;
-	   symid++)
+      Marpa_Symbol_ID nullable_id;
+      for (nullable_id = (Marpa_Symbol_ID) min; nullable_id <= (Marpa_Symbol_ID) max;
+	   nullable_id++)
 	{
-	  const SYM symbol = SYM_by_ID (symid);
-	  if (SYM_is_Nulling (symbol))
+	  const SYM nullable = SYM_by_ID (nullable_id);
+	  if (SYM_is_Nulling (nullable))
 	    continue;
-	  if (UNLIKELY(!symbol->t_is_accessible))
+	  if (UNLIKELY(!nullable->t_is_accessible))
 	    continue;
-	  if (UNLIKELY(!symbol->t_is_productive))
+	  if (UNLIKELY(!nullable->t_is_productive))
 	    continue;
-	  if (UNLIKELY(symbol_null_alias (symbol) != NULL))
+	  if (UNLIKELY(symbol_null_alias (nullable) != NULL))
 	    continue;
-	  symbol_alias_create (g, symbol);
+	  symbol_alias_create (g, nullable);
 	}
     }
 }
