@@ -79,6 +79,29 @@ The most general approach to deal with this
 is to have all token values be references,
 and to write actions which dereference token values.
 
+=head2 Terminals by default are non-LHS symbols
+
+Traditionally, a symbol has been a terminal if
+it is not on the LHS of any rule, and vice versa.
+This is now the default in Marpa::R2,
+replacing the more complicated, and less intuitive
+scheme that was in Marpa::XS.
+Marpa::R2 still allows the user to
+use any non-nulling symbol as a terminal,
+including those symbols that appear on the LHS
+of a rule,
+but this is now an option,
+and never the default.
+For more, see
+L<Marpa::R2::Grammar/"Terminal symbols">.
+
+=head2 The lhs_terminals grammar named argument has been eliminated
+
+The lhs_terminals named argument of grammar objects implemented
+what is now the default behavior.
+Since it no longer performs a function, it is now
+a fatal error.
+
 =head2 Nulling symbols cannot be terminals
 
 In Marpa::XS, it was possible for a symbol to be both

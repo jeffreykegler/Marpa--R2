@@ -82,6 +82,8 @@ To allow (or disallow) use of a symbol as a terminal,
 the application can use
 the L<C<terminals> named argument|/"terminals">,
 and the L<C<terminal> property|/"terminal">.
+An attempt to use a nulling symbol as a terminal
+is a fatal error.
 
 =head2 Sequence rules
 
