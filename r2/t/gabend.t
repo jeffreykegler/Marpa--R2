@@ -59,7 +59,6 @@ sub test_grammar {
     my $eval_ok = eval {
         my $grammar = Marpa::R2::Grammar->new( $grammar_args, $added_args );
         $grammar->precompute();
-        say $grammar->show_symbols();
         1;
     };
     my $eval_error = $EVAL_ERROR;
