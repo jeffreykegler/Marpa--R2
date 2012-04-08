@@ -73,41 +73,47 @@ $Test_Grammar::MARPA_OPTIONS_8 = [
     {   'default_action' => 'main::default_action',
         default_null_value => undef,
         'rules'          => [
-            {   'lhs' => 's',
-                'rhs' => [ 'a' ]
+            {   'lhs' => 'S',
+                'rhs' => [ 'A' ]
             },
-            {   'lhs' => 'a',
-                'rhs' => [ 'b', 't', 'u' ]
+            {   'lhs' => 'A',
+                'rhs' => [ 'B', 'T', 'U' ]
             },
-            {   'lhs' => 'b',
-                'rhs' => [ 'v', 'c' ]
+            {   'lhs' => 'B',
+                'rhs' => [ 'V', 'C' ]
             },
-            {   'lhs' => 'c',
-                'rhs' => [ 'w', 'd', 'x' ]
+            {   'lhs' => 'C',
+                'rhs' => [ 'W', 'D', 'X' ]
             },
-            {   'lhs' => 'd',
-                'rhs' => [ 'e' ]
+            {   'lhs' => 'D',
+                'rhs' => [ 'E' ]
             },
-            {   'lhs' => 'e',
-                'rhs' => [ 's' ]
+            {   'lhs' => 'E',
+                'rhs' => [ 'S' ]
             },
-            {   'lhs' => 't',
+            {   'lhs' => 'T',
                 'rhs' => []
             },
-            {   'lhs' => 'u',
+            {   'lhs' => 'U',
                 'rhs' => []
             },
-            {   'lhs' => 'v',
+            {   'lhs' => 'V',
                 'rhs' => []
             },
-            {   'lhs' => 'w',
+            {   'lhs' => 'W',
                 'rhs' => []
             },
-            {   'lhs' => 'x',
+            {   'lhs' => 'X',
                 'rhs' => []
-            }
+            },
+            { lhs=>'E', rhs=>['e'] },
+            { lhs=>'T', rhs=>['t'] },
+            { lhs=>'U', rhs=>['u'] },
+            { lhs=>'V', rhs=>['v'] },
+            { lhs=>'W', rhs=>['w'] },
+            { lhs=>'X', rhs=>['x'] }
         ],
-        'start'     => 's',
+        'start'     => 'S',
         'terminals' => [ 'e', 't', 'u', 'v', 'w', 'x' ],
     }
 ];
@@ -157,12 +163,12 @@ my $cycle8_test = [
     \@cycle8_tokens,
     '1 2 3 4 5 6',
     <<'EOS'
-Cycle found involving rule: 0: s -> a
-Cycle found involving rule: 4: d -> e
-Cycle found involving rule: 5: e -> s
-Cycle found involving rule: 1: a -> b t u
-Cycle found involving rule: 2: b -> v c
-Cycle found involving rule: 3: c -> w d x
+Cycle found involving rule: 0: S -> A
+Cycle found involving rule: 4: D -> E
+Cycle found involving rule: 5: E -> S
+Cycle found involving rule: 1: A -> B T U
+Cycle found involving rule: 2: B -> V C
+Cycle found involving rule: 3: C -> W D X
 EOS
 ];
 

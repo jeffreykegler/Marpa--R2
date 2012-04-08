@@ -516,10 +516,23 @@ sub Marpa::R2::Grammar::precompute {
                 'Attempted to precompute grammar with no rules');
         }
         if ( $error_code == $Marpa::R2::Error::NULLING_TERMINAL ) {
-            Marpa::R2::exception(
-                'A terminal symbol cannot also be a nulling symbol'
-            );
-        }
+            my @nulling_terminals = ();
+            my $event_ix          = 0;
+            EVENT:
+            while ( my ( $event_type, $value ) =
+                $grammar_c->event( $event_ix++ ) )
+            {
+                last EVENT if not defined $event_type;
+                if ( $event_type eq 'MARPA_EVENT_NULLING_TERMINAL' ) {
+                    push @nulling_terminals, $grammar->symbol_name($value);
+                }
+            } ## end while ( my ( $event_type, $value ) = $grammar_c->event(...))
+            my @nulling_terminal_messages =
+                map { qq{Nulling symbol "$_" is also a terminal\n} }
+                @nulling_terminals;
+            Marpa::R2::exception( @nulling_terminal_messages,
+                'A terminal symbol cannot also be a nulling symbol' );
+        } ## end if ( $error_code == $Marpa::R2::Error::NULLING_TERMINAL)
         if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE ) {
             my @counted_nullables = ();
             my $event_ix          = 0;
@@ -540,6 +553,7 @@ sub Marpa::R2::Grammar::precompute {
                 'Counted nullables confuse Marpa -- please rewrite the grammar'
             );
         } ## end if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE)
+
         if ( $error_code == $Marpa::R2::Error::NO_START_SYM ) {
             Marpa::R2::exception('No start symbol');
         }

@@ -159,7 +159,7 @@ my $nulling_terminal_grammar = {
 test_grammar(
     'nulling terminal grammar',
     $nulling_terminal_grammar,
-    'Symbol Bad is a nulling terminal'
+    'Nulling symbol "Bad" is also a terminal'
 );
 
 my $no_start_grammar = {

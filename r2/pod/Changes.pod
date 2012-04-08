@@ -79,6 +79,26 @@ The most general approach to deal with this
 is to have all token values be references,
 and to write actions which dereference token values.
 
+=head2 Nulling symbols cannot be terminals
+
+In Marpa::XS, it was possible for a symbol to be both
+nulling and a terminal.
+In practice
+that meant
+that the symbol was nulling,
+but that that property could be overriden on input.
+This behavior was useless and logically
+inconsistent.
+
+In Marpa::R2
+it is an error if you try to make a nulling symbol into
+a terminal.
+To the extent that the old behavior made sense,
+it can be duplicated by creating a symbol which
+is the LHS of two rules, one empty,
+and the other rule with a RHS consisting of one
+symbol, a terminal.
+
 =head1 COPYRIGHT AND LICENSE
 
 =for Marpa::R2::Display

@@ -78,15 +78,17 @@ my $grammar = Marpa::R2::Grammar->new(
             [ 'A', [] ],
             [ 'B', [] ],
             [ 'X', [] ],
+            [ 'X', [qw/x/] ],
             [ 'Y', [] ],
+            [ 'Y', [qw/y/] ],
         ],
         symbols => {
             L => { null_value => 'null L' },
             R => { null_value => 'null R' },
             A => { null_value => 'null A' },
             B => { null_value => 'null B' },
-            X => { null_value => 'null X', terminal => 1 },
-            Y => { null_value => 'null Y', terminal => 1 },
+            X => { null_value => 'null X' },
+            Y => { null_value => 'null Y' },
         },
     }
 );
@@ -95,7 +97,7 @@ $grammar->precompute();
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-$recce->read( 'X', 'x' );
+$recce->read( 'x', 'x' );
 
 # Marpa::R2::Display::End
 

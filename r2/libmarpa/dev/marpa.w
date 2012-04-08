@@ -2524,10 +2524,10 @@ a lot of useless diagnostics.
 {
     @<Census LHS symbols@>@;
     @<Census terminals@>@;
+    @<Calculate reach matrix@>@;
     @<Census nullable symbols@>@;
     @<Census productive symbols@>@;
     @<Check that start symbol is productive@>@;
-    @<Calculate reach matrix@>@;
     @<Census accessible symbols@>@;
     @<Census nulling symbols@>@;
     g->t_is_precomputed = 1;
@@ -2710,29 +2710,22 @@ It would only make a difference in grammars
 where many of the right hand sides repeat symbols.
 @<Calculate reach matrix@> =
 {
+  Marpa_Rule_ID rule_id;
+  RULEID rule_count_of_g = RULE_Count_of_G (g);
   reach_matrix
     = matrix_create (pre_rewrite_symbol_count, pre_rewrite_symbol_count);
-  {
-    unsigned int symid, no_of_symbols = SYM_Count_of_G (g);
-    for (symid = 0; symid < no_of_symbols; symid++)
-      {
-	matrix_bit_set (reach_matrix, symid, symid);
-      }
-  }
-  {
-    Marpa_Rule_ID rule_id;
-    RULEID rule_count_of_g = RULE_Count_of_G (g);
-    for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
-      {
-	RULE rule = RULE_by_ID (g, rule_id);
-	Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
-	unsigned int rhs_ix, rule_length = Length_of_RULE (rule);
-	for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
-	  {
-	    matrix_bit_set (reach_matrix,
-			    (unsigned int) lhs_id,
-			    (unsigned int) RHS_ID_of_RULE (rule, rhs_ix));
-  }}}
+  for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
+    {
+      RULE rule = RULE_by_ID (g, rule_id);
+      Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
+      unsigned int rhs_ix, rule_length = Length_of_RULE (rule);
+      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+	{
+	  matrix_bit_set (reach_matrix,
+			  (unsigned int) lhs_id,
+			  (unsigned int) RHS_ID_of_RULE (rule, rhs_ix));
+	}
+    }
   transitive_closure (reach_matrix);
 }
 
@@ -2747,30 +2740,28 @@ Therefore there is no code to free it.
 {
   Bit_Vector accessible_v =
     matrix_row (reach_matrix, (unsigned int) original_start_symid);
-  {
-    unsigned int min, max, start;
-    Marpa_Symbol_ID symid;
-    for (start = 0; bv_scan (accessible_v, start, &min, &max);
-	 start = max + 2)
-      {
-	for (symid = (Marpa_Symbol_ID) min;
-	     symid <= (Marpa_Symbol_ID) max; symid++)
-	  {
-	    SYM symbol = SYM_by_ID (symid);
-	    symbol->t_is_accessible = 1;
-	  }
-      }
-  }
+  unsigned int min, max, start;
+  Marpa_Symbol_ID symid;
+  for (start = 0; bv_scan (accessible_v, start, &min, &max); start = max + 2)
+    {
+      for (symid = (Marpa_Symbol_ID) min;
+	   symid <= (Marpa_Symbol_ID) max; symid++)
+	{
+	  SYM symbol = SYM_by_ID (symid);
+	  symbol->t_is_accessible = 1;
+	}
+    }
+    SYM_by_ID(original_start_symid)->t_is_accessible = 1;
 }
 
-@ A symbol is nulling if and only if it is a productive symbol which does not
+@ A symbol is nulling if and only if it is an LHS symbol which does not
 reach a terminal symbol.
 @<Census nulling symbols@> = 
 {
   Bit_Vector reaches_terminal_v = bv_shadow (terminal_v);
   int nulling_terminal_found = 0;
   unsigned int min, max, start;
-  for (start = 0; bv_scan (productive_v, start, &min, &max); start = max + 2)
+  for (start = 0; bv_scan (lhs_v, start, &min, &max); start = max + 2)
     {
       Marpa_Symbol_ID productive_id;
       for (productive_id = (Marpa_Symbol_ID) min;
