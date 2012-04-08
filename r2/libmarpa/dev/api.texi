@@ -43,6 +43,8 @@ This manual is for Libmarpa, version @value{VERSION}.
 * The architecture of Marpa::   
 * Threads::                     
 * Numbered objects::            
+* Rule concepts::               
+* Symbol concepts::             
 * Terminals concepts::          
 * Semantics::                   
 * Version checking::            Checking the Libmarpa version.
@@ -513,7 +515,7 @@ to turn thread safety off.
 Libmarpa's thread-safety relies on an environment
 that quarantees the thread-safe of C89 function calls.
 
-@node Numbered objects, Terminals concepts, Threads, Top
+@node Numbered objects, Rule concepts, Threads, Top
 @chapter Numbered objects
 
 In addition to its major, "time" objects, Libmarpa also has
@@ -523,7 +525,67 @@ Numbered objects do not have lifetimes of their own.
 Every numbered object belongs to a timed object,
 and is destroyed with it.
 
-@node Terminals concepts, Semantics, Numbered objects, Top
+@node Rule concepts, Symbol concepts, Numbered objects, Top
+@chapter Rules
+
+Rules are numbered objects.
+At every point, where the rule count in @var{N},
+there are rules numbered from 0 to @var{N}@minus{}1.
+A rule is either external or internal.
+An external rule is one intended to be visible
+to the application.
+An internal rule is one that the application
+should only take note of, to the extent
+that for the purpose of tracking rule numbers.
+The application should not attempt to
+alter internal rules.
+The rules are never changed after precomputation.
+
+Several methods associated with libmarpa's grammar
+objects create rules.
+This is documented with the method.
+It is an implication of libmarpa's rule numbering
+scheme,
+that if the rule count was @var{X} before a method call,
+and was @var{Y} after that call,
+then the method call created @var{Y}@minus{}@var{X} rules,
+numbered from @var{X} to @var{Y}@minus{}1.
+At most one of these rules will be external,
+and which rule that is will be indicated to
+the application,
+as described in the description of that method call.
+
+@node Symbol concepts, Terminals concepts, Rule concepts, Top
+@chapter Symbols
+
+Symbols are numbered objects.
+At every point, where the symbol count in @var{N},
+there are symbols numbered from 0 to @var{N}@minus{}1.
+A symbol is either external or internal.
+An external symbol is one intended to be visible
+to the application.
+An internal symbol is one that the application
+should only take note of, to the extent
+that for the purpose of tracking symbol numbers.
+The application should not attempt to
+alter internal symbols.
+The symbols are never changed after precomputation.
+
+Several methods associated with libmarpa's grammar
+objects create symbols.
+This is documented with the method.
+It is an implication of libmarpa's symbol numbering
+scheme,
+that if the symbol count was @var{X} before a method call,
+and was @var{Y} after that call,
+then the method call created @var{Y}@minus{}@var{X} symbols,
+numbered from @var{X} to @var{Y}@minus{}1.
+At most one of these symbols will be external,
+and which symbol that is will be indicated to
+the application,
+as described in the description of that method call.
+
+@node Terminals concepts, Semantics, Symbol concepts, Top
 @chapter Terminals
 
 A terminal symbol is symbol which
