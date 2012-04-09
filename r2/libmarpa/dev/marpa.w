@@ -4235,7 +4235,7 @@ void create_AHFA_states(struct marpa_g* g)
   unsigned int item_id;
   unsigned int no_of_items_in_grammar = AIM_Count_of_G (g);
   my_obstack_init(&ahfa_work_obs);
-  duplicates = marpa_avl_create (AHFA_state_cmp, NULL, NULL);
+  duplicates = _marpa_avl_create (AHFA_state_cmp, NULL, NULL);
   singleton_duplicates = my_new (AHFA, no_of_items_in_grammar);
   for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
     {
@@ -4370,7 +4370,7 @@ You can get the AIM from the AEX, but not vice versa.
 
 @ @<Free duplicates data structures@> =
 my_free(singleton_duplicates);
-marpa_avl_destroy(duplicates, NULL);
+_marpa_avl_destroy(duplicates, NULL);
 
 @ @<Construct initial AHFA states@> =
 {
@@ -4665,7 +4665,7 @@ When it does exist, return a pointer to it.
 PRIVATE AHFA
 assign_AHFA_state (AHFA sought_state, struct avl_table* duplicates)
 {
-  const AHFA state_found = marpa_avl_insert(duplicates, sought_state);
+  const AHFA state_found = _marpa_avl_insert(duplicates, sought_state);
   return state_found;
 }
 
@@ -12944,16 +12944,16 @@ my_malloc(size_t size)
 ``on their own'', that is, not inlined.
 @ @<Function definitions@> =
 extern void*
-marpa_avl_malloc(struct libavl_allocator* alloc UNUSED, size_t size);
+_marpa_avl_malloc(struct libavl_allocator* alloc UNUSED, size_t size);
 void*
-marpa_avl_malloc(struct libavl_allocator* alloc UNUSED, size_t size)
+_marpa_avl_malloc(struct libavl_allocator* alloc UNUSED, size_t size)
 {
     return my_malloc(size);
 }
 extern void
-marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p);
+_marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p);
 void
-marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p)
+_marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p)
 {
     my_free(p);
 }
