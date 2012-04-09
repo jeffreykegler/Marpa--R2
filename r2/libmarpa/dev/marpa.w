@@ -851,15 +851,15 @@ int marpa_g_is_precomputed(Marpa_Grammar g)
 }
 
 @*0 Grammar boolean: has loop?.
-@<Bit aligned grammar elements@> = unsigned int t_has_loop:1;
+@<Bit aligned grammar elements@> = unsigned int t_has_cycle:1;
 @ @<Initialize grammar elements@> =
-g->t_has_loop = 0;
+g->t_has_cycle = 0;
 @ @<Function definitions@> =
-int marpa_g_has_loop(Marpa_Grammar g)
+int marpa_g_has_cycle(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@/
     @<Fail if fatal error@>@;
-return g->t_has_loop;
+return g->t_has_cycle;
 }
 
 @*0 Terminal Boolean Vector.
@@ -1121,14 +1121,14 @@ by scanning the rules every time this information is needed.
     DSTACK_DESTROY(symbol->t_lhs);
 
 @ @<Function definitions@> = 
-Marpa_Rule_ID marpa_g_symbol_lhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Rule_ID _marpa_g_symbol_lhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if |symid| is invalid@>@;
     return DSTACK_LENGTH( SYM_by_ID(symid)->t_lhs );
 }
-Marpa_Rule_ID marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
+Marpa_Rule_ID _marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
 {
     SYM symbol;
     @<Return |-2| on failure@>@;
@@ -1165,14 +1165,14 @@ by scanning the rules every time this information is needed.
     DSTACK_DESTROY(symbol->t_rhs);
 
 @ @<Function definitions@> = 
-Marpa_Rule_ID marpa_g_symbol_rhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Rule_ID _marpa_g_symbol_rhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if |symid| is invalid@>@;
     return DSTACK_LENGTH(SYM_by_ID(symid)->t_rhs);
 }
-Marpa_Rule_ID marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
+Marpa_Rule_ID _marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
 {
     @<Return |-2| on failure@>@;
     SYM symbol;
@@ -1356,7 +1356,7 @@ int marpa_g_symbol_is_productive(
 @<Bit aligned symbol elements@> = unsigned int t_is_start:1;
 @ @<Initialize symbol elements@> = symbol->t_is_start = 0;
 @ @<Function definitions@> =
-int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
+int _marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -1390,7 +1390,7 @@ Otherwise, returns |NULL|.
 PRIVATE
 SYM symbol_proper_alias(SYM symbol)
 { return symbol->t_is_nulling_alias ? symbol->t_alias : NULL; }
-Marpa_Symbol_ID marpa_g_symbol_proper_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Symbol_ID _marpa_g_symbol_proper_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
 SYM symbol;
 SYM proper_alias;
@@ -1409,7 +1409,7 @@ Otherwise, returns |NULL|.
 PRIVATE
 SYM symbol_null_alias(SYM symbol)
 { return symbol->t_is_proper_alias ? symbol->t_alias : NULL; }
-Marpa_Symbol_ID marpa_g_symbol_null_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Symbol_ID _marpa_g_symbol_null_alias(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
 SYM symbol;
 SYM alias;
@@ -1472,7 +1472,7 @@ with a virtual LHS rule, returns the rule ID.
 If there is no virtual LHS rule, returns |-1|.
 On other failures, returns |-2|.
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_g_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Rule_ID _marpa_g_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid)
 {
     SYM symbol;
     RULE virtual_lhs_rule;
@@ -2028,14 +2028,14 @@ For non-sequence rules, this flag should be false.
 @ @<Initialize rule elements@> =
 rule->t_is_discard = 0;
 @ @<Function definitions@> =
-int marpa_g_rule_is_discard_separation(
+int marpa_g_rule_is_keep_separation(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_by_ID(g, rule_id)->t_is_discard;
+    return !RULE_by_ID(g, rule_id)->t_is_discard;
 }
 
 @*0 Rule Boolean: Proper Separation.
@@ -2121,7 +2121,7 @@ return RULE_by_ID(g, rule_id)->t_is_loop; }
 
 @*0 Virtual Loop Rule.
 @ When dealing with rules which result from the CHAF rewrite,
-it is convenient to recognize the ``loop rule" property as belonging
+it is convenient to recognize the ``loop rule'' property as belonging
 to only one of the pieces.
 The ``virtual loop rule" property exists for this purpose.
 All virtual loop rules are loop rules,
@@ -2130,11 +2130,13 @@ but not vice versa.
 @ @<Initialize rule elements@> =
 rule->t_is_virtual_loop = 0;
 @ @<Function definitions@> =
-int marpa_g_rule_is_virtual_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int _marpa_g_rule_is_virtual_loop(Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-return RULE_by_ID(g, rule_id)->t_is_virtual_loop; }
+    return RULE_by_ID(g, rule_id)->t_is_virtual_loop;
+}
 
 @*0 Nulling Rules.
 @ A rule is nulling if every symbol on its RHS is nulling.
@@ -2160,7 +2162,7 @@ Is the rule used in computing the AHFA sets?
 @ @<Initialize rule elements@> =
 RULE_is_Used(rule) = 1;
 @ @<Function definitions@> =
-int marpa_g_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
+int _marpa_g_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
@@ -2187,7 +2189,7 @@ semantics specified for the original grammar.
 @ @<Initialize rule elements@> =
 RULE_has_Virtual_LHS(rule) = 0;
 @ @<Function definitions@> =
-int marpa_g_rule_is_virtual_lhs(
+int _marpa_g_rule_is_virtual_lhs(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2203,7 +2205,7 @@ int marpa_g_rule_is_virtual_lhs(
 @ @<Initialize rule elements@> =
 RULE_has_Virtual_RHS(rule) = 0;
 @ @<Function definitions@> =
-int marpa_g_rule_is_virtual_rhs(
+int _marpa_g_rule_is_virtual_rhs(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2220,7 +2222,7 @@ where this one starts.
 @<Int aligned rule elements@> = int t_virtual_start;
 @ @<Initialize rule elements@> = rule->t_virtual_start = -1;
 @ @<Function definitions@> =
-unsigned int marpa_g_virtual_start(
+unsigned int _marpa_g_virtual_start(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2237,7 +2239,7 @@ at which this one ends.
 @<Int aligned rule elements@> = int t_virtual_end;
 @ @<Initialize rule elements@> = rule->t_virtual_end = -1;
 @ @<Function definitions@> =
-unsigned int marpa_g_virtual_end(
+unsigned int _marpa_g_virtual_end(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2254,7 +2256,7 @@ the ID of the original rule.
 @ @<Int aligned rule elements@> = Marpa_Rule_ID t_original;
 @ @<Initialize rule elements@> = rule->t_original = -1;
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_g_rule_original(
+Marpa_Rule_ID _marpa_g_rule_original(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2273,7 +2275,7 @@ the rule has a virtual rhs or a virtual lhs.
 @ @<Int aligned rule elements@> = int t_real_symbol_count;
 @ @<Initialize rule elements@> = Real_SYM_Count_of_RULE(rule) = 0;
 @ @<Function definitions@> =
-int marpa_g_real_symbol_count(
+int _marpa_g_real_symbol_count(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
@@ -2368,7 +2370,7 @@ this external accessor returns the ``original rule".
 Otherwise it returns -1.
 @ @<Function definitions@> =
 Marpa_Rule_ID
-marpa_g_rule_semantic_equivalent (struct marpa_g *g, Marpa_Rule_ID rule_id)
+_marpa_g_rule_semantic_equivalent (Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
   RULE rule;
 @<Return |-2| on failure@>@;
@@ -2459,7 +2461,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     int return_value = failure_indicator;
     @<Declare precompute variables@>@;
     @<Fail if fatal error@>@;
-    @<Fail if empty grammar@>@;
+    @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
     G_EVENTS_CLEAR(g);
@@ -2537,7 +2539,7 @@ a lot of useless diagnostics.
 unsigned int pre_rewrite_rule_count = RULE_Count_of_G(g);
 unsigned int pre_rewrite_symbol_count = SYM_Count_of_G(g);
 
-@ @<Fail if empty grammar@> =
+@ @<Fail if no rules@> =
 if (RULE_Count_of_G(g) <= 0) {
     MARPA_ERROR(MARPA_ERR_NO_RULES);
     return failure_indicator;
@@ -2687,7 +2689,7 @@ if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)original_start_symid)))
 }
 @ @<Declare precompute variables@> =
 Bit_Vector productive_v = NULL;
-@ @<Free precompue variables@> =
+@ @<Free precompute variables@> =
 bv_free(productive_v);
 
 @ The reach matrix is the an $n\times n$ matrix,
@@ -3389,7 +3391,7 @@ void loop_detect(struct marpa_g* g)
     @<Mark loop rules@>@;
     if (loop_rule_count)
       {
-	g->t_has_loop = 1;
+	g->t_has_cycle = 1;
 	int_event_new (g, MARPA_EVENT_LOOP_RULES, loop_rule_count);
       }
     matrix_free(unit_transition_matrix);
@@ -3439,16 +3441,23 @@ Therefore only certain of CHAF pieces that are loop rules
 are regarded as virtual loop rules.
 All non-CHAF rules are virtual loop rules including,
 at this point, sequence rules.
-@<Mark loop rules@> = { RULEID rule_id;
-for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
-    RULE  rule;
-    if (!matrix_bit_test(unit_transition_matrix, (unsigned int)rule_id, (unsigned int)rule_id))
+@<Mark loop rules@> =
+{
+  RULEID rule_id;
+  for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
+    {
+      RULE rule;
+      if (!matrix_bit_test
+	  (unit_transition_matrix, (unsigned int) rule_id,
+	   (unsigned int) rule_id))
 	continue;
-    loop_rule_count++;
-    rule = RULE_by_ID(g, rule_id);
-    rule->t_is_loop = 1;
-    rule->t_is_virtual_loop = rule->t_virtual_start < 0 || !RULE_has_Virtual_RHS(rule);
-} }
+      loop_rule_count++;
+      rule = RULE_by_ID (g, rule_id);
+      rule->t_is_loop = 1;
+      rule->t_is_virtual_loop = rule->t_virtual_start < 0
+	|| !RULE_has_Virtual_RHS (rule);
+    }
+}
 
 @** The Aycock-Horspool Finite Automata.
 
@@ -3639,14 +3648,14 @@ int t_leading_nulls;
 
 @*0 AHFA Item External Accessors.
 @<Function definitions@> =
-int marpa_g_AHFA_item_count(struct marpa_g* g) {
+int _marpa_g_AHFA_item_count(struct marpa_g* g) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     return AIM_Count_of_G(g);
 }
 
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_g_AHFA_item_rule(struct marpa_g* g,
+Marpa_Rule_ID _marpa_g_AHFA_item_rule(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
@@ -3656,7 +3665,7 @@ Marpa_Rule_ID marpa_g_AHFA_item_rule(struct marpa_g* g,
 
 @ |-1| is the value for completions, so |-2| is the failure indicator.
 @ @<Function definitions@> =
-int marpa_g_AHFA_item_position(struct marpa_g* g,
+int _marpa_g_AHFA_item_position(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
@@ -3666,7 +3675,7 @@ int marpa_g_AHFA_item_position(struct marpa_g* g,
 
 @ |-1| is the value for completions, so |-2| is the failure indicator.
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_AHFA_item_postdot(struct marpa_g* g,
+Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
@@ -3675,7 +3684,7 @@ Marpa_Symbol_ID marpa_g_AHFA_item_postdot(struct marpa_g* g,
 }
 
 @ @<Function definitions@> =
-int marpa_g_AHFA_item_sort_key(struct marpa_g* g,
+int _marpa_g_AHFA_item_sort_key(struct marpa_g* g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
@@ -4077,13 +4086,13 @@ PRIVATE int AHFA_state_id_is_valid(GRAMMAR g, AHFAID AHFA_state_id)
 
 @*0 AHFA State External Accessors.
 @<Function definitions@> =
-int marpa_g_AHFA_state_count(Marpa_Grammar g) {
+int _marpa_g_AHFA_state_count(Marpa_Grammar g) {
     return AHFA_Count_of_G(g);
 }
 
 @ @<Function definitions@> =
 int
-marpa_g_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
+_marpa_g_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
 { @<Return |-2| on failure@>@/
     AHFA state;
     @<Fail if not precomputed@>@/
@@ -4095,7 +4104,7 @@ marpa_g_AHFA_state_item_count(struct marpa_g* g, AHFAID AHFA_state_id)
 @ @d AIMID_of_AHFA_by_AEX(g, ahfa, aex)
    ((ahfa)->t_items[aex] - (g)->t_AHFA_items)
 @<Function definitions@> =
-Marpa_AHFA_Item_ID marpa_g_AHFA_state_item(struct marpa_g* g,
+Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item(struct marpa_g* g,
      AHFAID AHFA_state_id,
 	int item_ix) {
     AHFA state;
@@ -4115,7 +4124,7 @@ Marpa_AHFA_Item_ID marpa_g_AHFA_state_item(struct marpa_g* g,
 }
 
 @ @<Function definitions@> =
-int marpa_g_AHFA_state_is_predict(struct marpa_g* g,
+int _marpa_g_AHFA_state_is_predict(struct marpa_g* g,
 	AHFAID AHFA_state_id) {
     AHFA state;
     @<Return |-2| on failure@>@/
@@ -4137,7 +4146,7 @@ with this AHFA state is eligible to be a Leo completion.
 @ @<Int aligned AHFA state elements@> = SYMID t_leo_lhs_sym;
 @ @<Initialize AHFA@> = Leo_LHS_ID_of_AHFA(ahfa) = -1;
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
+Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(struct marpa_g* g,
 	Marpa_AHFA_State_ID AHFA_state_id) {
     @<Return |-2| on failure@>@;
     AHFA state;
@@ -5140,7 +5149,7 @@ void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
 
 @*0 Trace Functions.
 @ @<Function definitions@> =
-int marpa_g_AHFA_state_transitions(struct marpa_g* g,
+int _marpa_g_AHFA_state_transitions(struct marpa_g* g,
     Marpa_AHFA_State_ID AHFA_state_id,
     int *buffer,
     int buffer_size
@@ -5181,7 +5190,7 @@ int marpa_g_AHFA_state_transitions(struct marpa_g* g,
 @ In the external accessor,
 -1 is a valid return value, indicating no empty transition.
 @<Function definitions@> =
-AHFAID marpa_g_AHFA_state_empty_transition(struct marpa_g* g,
+AHFAID _marpa_g_AHFA_state_empty_transition(struct marpa_g* g,
      AHFAID AHFA_state_id) {
     AHFA state;
     AHFA empty_transition_state;
@@ -11982,8 +11991,11 @@ Bit_Vector bv_clone(Bit_Vector bv)
 @<Function definitions@> =
 PRIVATE void bv_free(Bit_Vector vector)
 {
-    vector -= bv_hiddenwords;
-    my_free(vector);
+    if (LIKELY(vector != NULL))
+    {
+	vector -= bv_hiddenwords;
+	my_free(vector);
+    }
 }
 
 @*0 The Number of Bytes in a Boolean Vector.

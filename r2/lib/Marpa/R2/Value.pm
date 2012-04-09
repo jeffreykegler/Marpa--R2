@@ -789,7 +789,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                 my @args =
                     map { defined $_ ? ${$_} : $_ } @evaluation_stack[ $arg_0 .. $arg_n ];
-                if ( $grammar_c->rule_is_discard_separation($rule_id) ) {
+                if ( !$grammar_c->rule_is_keep_separation($rule_id) ) {
                     @args =
                         @args[ map { 2 * $_ }
                         ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
@@ -871,9 +871,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     $order->and_node_order_get( $or_node_id, $choice );
                 my $trace_rule_id = $bocage->or_node_rule($or_node_id);
                 my $virtual_rhs =
-                    $grammar_c->rule_is_virtual_rhs($trace_rule_id);
+                    $grammar_c->_rule_is_virtual_rhs($trace_rule_id);
                 my $virtual_lhs =
-                    $grammar_c->rule_is_virtual_lhs($trace_rule_id);
+                    $grammar_c->_rule_is_virtual_lhs($trace_rule_id);
 
                 next EVENT
                     if $bocage->or_node_position($or_node_id)
@@ -926,7 +926,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         ),
                         ', rule: ', $grammar->brief_rule($trace_rule_id),
                         "\nReal symbol count is ",
-                        $grammar_c->real_symbol_count($trace_rule_id)
+                        $grammar_c->_real_symbol_count($trace_rule_id)
                         or
                         Marpa::R2::exception('Could not print to trace file');
 

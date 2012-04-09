@@ -13,7 +13,6 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-Grammar * T_MARPA_G_C
 G_Wrapper * T_MARPA_G_W
 R_Wrapper * T_MARPA_R_W
 B_Wrapper * T_MARPA_B_W
@@ -33,16 +32,6 @@ Marpa_And_Node_ID T_IV
 Marpa_Nook_ID T_IV
 
 INPUT
-
-T_MARPA_G_C
-	if (sv_isa($arg, \"Marpa::R2::Internal::G_C\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    G_Wrapper * g_wrapper = INT2PTR(G_Wrapper *, tmp);
-	    $var = g_wrapper->g;
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Internal::G_C\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
 
 T_MARPA_G_W
 	if (sv_isa($arg, \"Marpa::R2::Internal::G_C\")) {

@@ -102,7 +102,7 @@ sub tag_completion {
     my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $parent           = $bocage->and_node_parent($and_node_id);
     my $rule_id          = $bocage->or_node_rule($parent);
-    my $semantic_rule_id = $grammar_c->semantic_equivalent($rule_id);
+    my $semantic_rule_id = $grammar_c->_semantic_equivalent($rule_id);
     my $rules            = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $rule             = $rules->[$semantic_rule_id];
     my $rule_name        = $rule->[Marpa::R2::Internal::Rule::NAME];

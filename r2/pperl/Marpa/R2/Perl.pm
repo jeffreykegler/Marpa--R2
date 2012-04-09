@@ -1292,7 +1292,7 @@ sub Marpa::R2::Perl::foreach_completion {
         my $parent = $bocage->and_node_parent($id);
         last AND_NODE if not defined $parent;
         my $rule_id = $bocage->or_node_rule($parent);
-        next AND_NODE if $grammar_c->rule_is_virtual_lhs($rule_id);
+        next AND_NODE if $grammar_c->_rule_is_virtual_lhs($rule_id);
         my $position   = $bocage->or_node_position($parent);
         my $rhs_length = $grammar_c->rule_length($rule_id);
         next AND_NODE if $position != $rhs_length;
