@@ -2469,7 +2469,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
      if (!G_is_Trivial(g)) {
-	loop_detect(g);
+	@<Detect cycles@>@;
 	create_AHFA_items(g);
 	create_AHFA_states(g);
 	@<Populate the Terminal Boolean Vector@>@;
@@ -3377,9 +3377,7 @@ It is also reasonable for a higher layer to always silently allow them.
 There are lots of possibilities in between these two extremes.
 To assist the upper layers, an event is reported for a non-zero
 loop rule count, with the final tally.
-@<Function definitions@> =
-PRIVATE
-void loop_detect(struct marpa_g* g)
+@<Detect cycles@> =
 {
     int rule_count_of_g = RULE_Count_of_G(g);
     int loop_rule_count = 0;
@@ -3415,7 +3413,7 @@ for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
 	 Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
 	 SYM symbol = SYM_by_ID(symid);
 	 if (symbol->t_is_nulling) continue;
-	 if (proper_id >= 0) goto NEXT_RULE; /* More
+	 if (proper_id >= 0) goto NEXT_UNIT_RULE_CANDIDATE; /* More
 	     than one proper symbol -- not a unit rule */
 	 proper_id = symid;
     }
@@ -3431,7 +3429,7 @@ for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
 	 matrix_bit_set(unit_transition_matrix, (unsigned int)rule_id,
 	     *DSTACK_INDEX(rhs_symbol->t_lhs, RULEID, ix));
      } }
-     NEXT_RULE: ;
+     NEXT_UNIT_RULE_CANDIDATE: ;
 } }
 
 @ Virtual loop rule are loop rules from the virtual point of view.
