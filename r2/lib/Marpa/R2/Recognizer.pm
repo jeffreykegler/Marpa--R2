@@ -862,15 +862,15 @@ sub report_progress {
     } ## end for my $leo_workitem (@leo_worklist)
     for my $per_AHFA_item_datum (@per_AHFA_item_data) {
         my ( $origin, $AHFA_state_id ) = @{$per_AHFA_item_datum};
-        my @AHFA_items = $grammar_c->_AHFA_state_items($AHFA_state_id);
+        my @AHFA_items = $grammar_c->_marpa_g_AHFA_state_items($AHFA_state_id);
         AHFA_ITEM: for my $AHFA_item_id (@AHFA_items) {
-            my $marpa_rule_id = $grammar_c->_AHFA_item_rule($AHFA_item_id);
+            my $marpa_rule_id = $grammar_c->_marpa_g_AHFA_item_rule($AHFA_item_id);
             my $marpa_rule    = $rules->[$marpa_rule_id];
             my $marpa_position =
-                $grammar_c->_AHFA_item_position($AHFA_item_id);
+                $grammar_c->_marpa_g_AHFA_item_position($AHFA_item_id);
             $marpa_position < 0
                 and $marpa_position = $grammar_c->rule_length($marpa_rule_id);
-            my $chaf_start = $grammar_c->_rule_virtual_start($marpa_rule_id);
+            my $chaf_start = $grammar_c->_marpa_g_rule_virtual_start($marpa_rule_id);
             $chaf_start < 0 and $chaf_start = undef;
             my $original_rule_id =
                 defined $chaf_start

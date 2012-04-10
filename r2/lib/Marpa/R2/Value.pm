@@ -871,9 +871,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     $order->and_node_order_get( $or_node_id, $choice );
                 my $trace_rule_id = $bocage->or_node_rule($or_node_id);
                 my $virtual_rhs =
-                    $grammar_c->_rule_is_virtual_rhs($trace_rule_id);
+                    $grammar_c->_marpa_g_rule_is_virtual_rhs($trace_rule_id);
                 my $virtual_lhs =
-                    $grammar_c->_rule_is_virtual_lhs($trace_rule_id);
+                    $grammar_c->_marpa_g_rule_is_virtual_lhs($trace_rule_id);
 
                 next EVENT
                     if $bocage->or_node_position($or_node_id)
@@ -926,7 +926,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         ),
                         ', rule: ', $grammar->brief_rule($trace_rule_id),
                         "\nReal symbol count is ",
-                        $grammar_c->_real_symbol_count($trace_rule_id)
+                        $grammar_c->_marpa_g_real_symbol_count($trace_rule_id)
                         or
                         Marpa::R2::exception('Could not print to trace file');
 
