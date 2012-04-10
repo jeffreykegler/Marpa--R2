@@ -1136,7 +1136,7 @@ Marpa_Rule_ID _marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, int 
     @<Fail if |symid| is invalid@>@;
     symbol = SYM_by_ID(symid);
     if (ix < 0) {
-        MARPA_ERROR(MARPA_ERR_SYMIX_LT_ZERO);
+        MARPA_ERROR(MARPA_ERR_SYMIX_NEGATIVE);
 	return failure_indicator;
     }
     if (ix >= DSTACK_LENGTH(symbol->t_lhs)) {
@@ -1179,7 +1179,7 @@ Marpa_Rule_ID _marpa_g_symbol_rhs(struct marpa_g* g, Marpa_Symbol_ID symid, int 
     @<Fail if fatal error@>@;
     @<Fail if |symid| is invalid@>@;
     if (ix < 0) {
-        MARPA_ERROR(MARPA_ERR_SYMIX_LT_ZERO);
+        MARPA_ERROR(MARPA_ERR_SYMIX_NEGATIVE);
 	return failure_indicator;
     }
     symbol = SYM_by_ID(symid);
@@ -9977,7 +9977,7 @@ int marpa_b_and_node_count(Marpa_Bocage b)
       return failure_indicator;
   }
   if (and_node_id < 0) {
-      MARPA_ERROR(MARPA_ERR_ANDID_LT_ZERO);
+      MARPA_ERROR(MARPA_ERR_ANDID_NEGATIVE);
       return failure_indicator;
   }
   if (and_node_id >= AND_Count_of_B(b)) {
@@ -10456,7 +10456,7 @@ bocage_free (BOCAGE b)
       return failure_indicator;
   }
   if (or_node_id < 0) {
-      MARPA_ERROR(MARPA_ERR_ORID_LT_ZERO);
+      MARPA_ERROR(MARPA_ERR_ORID_NEGATIVE);
       return failure_indicator;
   }
   if (or_node_id >= OR_Count_of_B(b)) {
@@ -10847,7 +10847,7 @@ Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
   @<Fail if fatal error@>@;
     @<Check |or_node_id|; set |or_node|@>@;
   if (ix < 0) {
-      MARPA_ERROR(MARPA_ERR_ANDIX_LT_ZERO);
+      MARPA_ERROR(MARPA_ERR_ANDIX_NEGATIVE);
       return failure_indicator;
   }
     return and_order_get(o, or_node, ix);
@@ -11344,7 +11344,7 @@ set |nook|@> = {
   }
   base_nook = FSTACK_BASE(t->t_nook_stack, NOOK_Object);
   if (nook_id < 0) {
-      MARPA_ERROR(MARPA_ERR_NOOKID_LT_ZERO);
+      MARPA_ERROR(MARPA_ERR_NOOKID_NEGATIVE);
       return failure_indicator;
   }
   if (nook_id >= Size_of_T(t)) {

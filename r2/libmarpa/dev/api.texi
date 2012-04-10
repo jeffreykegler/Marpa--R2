@@ -2228,11 +2228,11 @@ Suggested message: "No error."
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_AHFA_IX_OOB
 @end deftypevr
-@deftypevr Macro int MARPA_ERR_ANDID_LT_ZERO
+@deftypevr Macro int MARPA_ERR_ANDID_NEGATIVE
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_ANDID_NOT_IN_OR
 @end deftypevr
-@deftypevr Macro int MARPA_ERR_ANDIX_LT_ZERO
+@deftypevr Macro int MARPA_ERR_ANDIX_NEGATIVE
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_BAD_SEPARATOR
 @end deftypevr
@@ -2366,7 +2366,7 @@ Suggested message: "Argument is not boolean."
 @deftypevr Macro int MARPA_ERR_INVALID_SYMID
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_NOOKID_LT_ZERO
+@deftypevr Macro int MARPA_ERR_NOOKID_NEGATIVE
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED
 @end deftypevr
@@ -2427,7 +2427,7 @@ and a terminal.
 Suggested message: "A symbol is both terminal and nulling."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_ORID_LT_ZERO
+@deftypevr Macro int MARPA_ERR_ORID_NEGATIVE
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_OR_ALREADY_ORDERED
 @end deftypevr
@@ -2512,7 +2512,7 @@ Presumably, an error in writing the grammar.
 Suggested message: "Start symbol not on LHS of any rule."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_SYMIX_LT_ZERO
+@deftypevr Macro int MARPA_ERR_SYMIX_NEGATIVE
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_SYMIX_OOB
 @end deftypevr
