@@ -673,35 +673,68 @@ PRIVATE
 void grammar_free(GRAMMAR g)
 {
     const SYMID symbol_count_of_g = SYM_Count_of_G(g);
+    const XSYMID xsymbol_count_of_g = XSYM_Count_of_G(g);
     @<Destroy grammar elements@>@;
     my_slice_free(struct marpa_g, g);
 }
 
-@*0 The Grammar's Symbol List.
-This lists the symbols for the grammar,
+@*0 The Grammar's Symbol Lists.
+Listing of the external
+and internal symbols for the grammar,
 with their
 |Marpa_Symbol_ID| as the index.
 
 @<Widely aligned grammar elements@> =
     DSTACK_DECLARE(t_symbols);
+    DSTACK_DECLARE(t_xsymbols);
 @ @<Initialize grammar elements@> =
     DSTACK_INIT(g->t_symbols, SYM, 256 );
+    DSTACK_INIT(g->t_xsymbols, XSYM, 256 );
 @ @<Destroy grammar elements@> =
-{  SYMID id; for (id = 0; id < symbol_count_of_g; id++)
-{ symbol_free(SYM_by_ID(id)); } }
-DSTACK_DESTROY(g->t_symbols);
+{
+  {
+    SYMID id;
+    for (id = 0; id < symbol_count_of_g; id++)
+      {
+	symbol_free (SYM_by_ID (id));
+      }
+  }
+  DSTACK_DESTROY (g->t_symbols);
+  {
+    XSYMID id;
+    for (id = 0; id < xsymbol_count_of_g; id++)
+      {
+	xsymbol_free (XSYM_by_ID (id));
+      }
+  }
+  DSTACK_DESTROY (g->t_xsymbols);
+}
 
 @ Symbol count accesors.
+@d XSYM_Count_of_G(g) (DSTACK_LENGTH((g)->t_xsymbols))
 @d SYM_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
 @ @<Function definitions@> =
 int marpa_g_symbol_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    return SYM_Count_of_G(g);
+    return XSYM_Count_of_G(g);
 }
 
 @ Symbol by ID.
 @d SYM_by_ID(id) (*DSTACK_INDEX (g->t_symbols, SYM, (id)))
+@d XSYM_by_ID(id) (*DSTACK_INDEX (g->t_xsymbols, XSYM, (id)))
+
+@ Adds the external symbol
+to the list of external symbols kept by the Grammar
+object.
+@<Function definitions@> =
+PRIVATE
+void xsymbol_add( GRAMMAR g, XSYM xsymbol)
+{
+    const XSYMID new_id = DSTACK_LENGTH((g)->t_xsymbols);
+    *DSTACK_PUSH((g)->t_xsymbols, XSYM) = xsymbol;
+    xsymbol->t_symbol_id = new_id;
+}
 
 @ Adds the symbol to the list of symbols kept by the Grammar
 object.
@@ -714,7 +747,14 @@ void symbol_add( GRAMMAR g, SYM symbol)
     symbol->t_symbol_id = new_id;
 }
 
-@ Check that symbol is in valid range.
+@ Check that external symbol is in valid range.
+@<Function definitions@> =
+PRIVATE int xsymbol_is_valid(GRAMMAR g, XSYMID xsymid)
+{
+    return xsymid >= 0 && xsymid < XSYM_Count_of_G(g);
+}
+
+@ Check that internal symbol is in valid range.
 @<Function definitions@> =
 PRIVATE int symbol_is_valid(GRAMMAR g, SYMID symid)
 {
@@ -776,13 +816,13 @@ Marpa_Symbol_ID marpa_g_start_symbol(Marpa_Grammar g)
 @ Returns the symbol ID on success,
 |-2| on failure.
 @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_start_symbol_set(Marpa_Grammar g, Marpa_Symbol_ID symid)
+Marpa_Symbol_ID marpa_g_start_symbol_set(Marpa_Grammar g, Marpa_Symbol_ID xsymid)
 {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return g->t_original_start_symid = symid;
+    @<Fail if |xsymid| is invalid@>@;
+    return g->t_original_start_symid = xsymid;
 }
 
 @*0 Start Rules.
@@ -1051,12 +1091,345 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
     return error_code;
 }
 
-@** Symbol (SYM) Code.
+@** External symbol (XSYM) code.
 @s Marpa_Symbol_ID int
 @<Public typedefs@> =
 typedef int Marpa_Symbol_ID;
 @ @<Private typedefs@> =
-typedef int SYMID;
+typedef int XSYMID;
+@ @<Private incomplete structures@> =
+struct s_xsymbol;
+typedef struct s_xsymbol* XSYM;
+@ |t_symbol_id| is initialized when the symbol is
+added to the list of symbols
+@d ID_of_XSYM(xsym) ((xsym)->t_symbol_id)
+@<Private structures@> =
+struct s_xsymbol {
+    XSYMID t_symbol_id;
+    @<Widely aligned external symbol elements@>@;
+    @<Int aligned external symbol elements@>@;
+    @<Bit aligned external symbol elements@>@;
+};
+
+@ @<Function definitions@> =
+PRIVATE XSYM
+xsymbol_new (GRAMMAR g)
+{
+  XSYM xsymbol = my_malloc (sizeof (*xsymbol));
+  @<Initialize external symbol elements @>@;
+  xsymbol_add (g, xsymbol);
+  return xsymbol;
+}
+
+@ @<Function definitions@> =
+Marpa_Symbol_ID
+marpa_g_symbol_new (Marpa_Grammar g)
+{
+  XSYM xsymbol;
+  SYM symbol;
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  xsymbol = xsymbol_new (g);
+  symbol = symbol_new (g);
+  /* return ID_of_XSYM(xsymbol); */
+  return ID_of_SYM(symbol);
+}
+
+@ @<Function definitions@> =
+PRIVATE void xsymbol_free(XSYM xsymbol)
+{
+    @<Free external symbol elements@>@;
+    my_free(xsymbol);
+}
+
+@*0 Symbol LHS rules element.
+This tracks the rules for which this symbol is the LHS.
+It is an optimization --- the same information could be found
+by scanning the rules every time this information is needed.
+@d XSYM_LHS_RULE_COUNT(xsym) DSTACK_LENGTH((xsym)->t_lhs)
+@<Widely aligned external symbol elements@> =
+    DSTACK_DECLARE( t_lhs);
+@ @<Initialize external symbol elements@> =
+    DSTACK_INIT(xsymbol->t_lhs, RULEID, 1);
+@ @<Free external symbol elements@> =
+    DSTACK_DESTROY(xsymbol->t_lhs);
+
+@ @<Function definitions@> = 
+Marpa_Rule_ID marpa_g_symbol_lhs_count(Marpa_Grammar g, Marpa_Symbol_ID xsymid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    return DSTACK_LENGTH( XSYM_by_ID(xsymid)->t_lhs );
+}
+
+Marpa_Rule_ID marpa_g_symbol_lhs(Marpa_Grammar g, Marpa_Symbol_ID xsymid, int ix)
+{
+    XSYM xsymbol;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    xsymbol = XSYM_by_ID(xsymid);
+    if (ix < 0) {
+        MARPA_ERROR(MARPA_ERR_SYMIX_NEGATIVE);
+	return failure_indicator;
+    }
+    if (ix >= DSTACK_LENGTH(xsymbol->t_lhs)) {
+        MARPA_ERROR(MARPA_ERR_SYMIX_OOB);
+	return -1;
+    }
+    return *DSTACK_INDEX(xsymbol->t_lhs, RULEID, ix);
+}
+
+@ @<Function definitions@> =
+PRIVATE
+void xsymbol_lhs_add(XSYM xsymbol, RULEID rule_id)
+{
+   *DSTACK_PUSH(xsymbol->t_lhs, RULEID) = rule_id;
+}
+
+@*0 Symbol RHS rules element.
+This tracks the rules for which this symbol is the RHS.
+It is an optimization --- the same information could be found
+by scanning the rules every time this information is needed.
+@<Widely aligned external symbol elements@> =
+    DSTACK_DECLARE( t_rhs );
+@ @<Initialize external symbol elements@> =
+    DSTACK_INIT(xsymbol->t_rhs, RULEID, 1);
+@ @<Free external symbol elements@> =
+    DSTACK_DESTROY(xsymbol->t_rhs);
+
+@ @<Function definitions@> = 
+Marpa_Rule_ID marpa_g_symbol_rhs_count(Marpa_Grammar g, Marpa_Symbol_ID xsymid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    return DSTACK_LENGTH(XSYM_by_ID(xsymid)->t_rhs);
+}
+Marpa_Rule_ID marpa_g_symbol_rhs(Marpa_Grammar g, Marpa_Symbol_ID xsymid, int ix)
+{
+    @<Return |-2| on failure@>@;
+    XSYM xsymbol;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    if (ix < 0) {
+        MARPA_ERROR(MARPA_ERR_SYMIX_NEGATIVE);
+	return failure_indicator;
+    }
+    xsymbol = XSYM_by_ID(xsymid);
+    if (ix >= DSTACK_LENGTH( xsymbol->t_rhs)) {
+        MARPA_ERROR(MARPA_ERR_SYMIX_OOB);
+	return -1;
+    }
+    return *DSTACK_INDEX(xsymbol->t_rhs, RULEID, ix);
+}
+
+@ @<Function definitions@> =
+PRIVATE
+void xsymbol_rhs_add(XSYM xsymbol, RULEID rule_id)
+{
+    *DSTACK_PUSH(xsymbol->t_rhs, RULEID) = rule_id;
+}
+
+@*0 Nulling symbol has semantics?.
+This value describes the semantics
+for a symbol when it is nulling.
+Marpa optimizes for the case
+where the application
+does not care about the value of 
+a symbol -- that is, the semantics
+is arbitrary.
+@d XSYM_is_Ask_Me_When_Null(xsymbol) ((xsymbol)->t_is_ask_me_when_null)
+@<Bit aligned external symbol elements@> = unsigned int t_is_ask_me_when_null:1;
+@ @<Initialize external symbol elements@> =
+    XSYM_is_Ask_Me_When_Null(xsymbol) = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_ask_me_when_null(
+    Marpa_Grammar g,
+    Marpa_Symbol_ID xsymid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    return XSYM_is_Ask_Me_When_Null(XSYM_by_ID(xsymid));
+}
+int marpa_g_symbol_ask_me_when_null_set(
+    Marpa_Grammar g, Marpa_Symbol_ID xsymid, int value)
+{
+    XSYM xsymbol;
+    SYM symbol;
+    @<Return |-2| on failure@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    xsymbol = XSYM_by_ID(xsymid);
+    symbol = SYM_by_ID(xsymid);
+    SYM_is_Ask_Me_When_Null(symbol) = value ? 1 : 0;
+    return XSYM_is_Ask_Me_When_Null(xsymbol) = value ? 1 : 0;
+}
+
+@ Symbol Is Accessible Boolean
+@<Bit aligned external symbol elements@> = unsigned int t_is_accessible:1;
+@ @<Initialize external symbol elements@> =
+xsymbol->t_is_accessible = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID xsymid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    return XSYM_by_ID(xsymid)->t_is_accessible;
+}
+
+@ Symbol Is Counted Boolean
+@<Bit aligned external symbol elements@> = unsigned int t_is_counted:1;
+@ @<Initialize external symbol elements@> =
+xsymbol->t_is_counted = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_counted(Marpa_Grammar g,
+Marpa_Symbol_ID xsymid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    return XSYM_by_ID(xsymid)->t_is_counted;
+}
+
+@ Symbol Is Nulling Boolean
+@d XSYM_is_Nulling(xsym) ((xsym)->t_is_nulling)
+@<Bit aligned external symbol elements@> = unsigned int t_is_nulling:1;
+@ @<Initialize external symbol elements@> =
+xsymbol->t_is_nulling = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsymid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    return XSYM_is_Nulling(XSYM_by_ID(xsymid));
+}
+
+@ Symbol Is Terminal Boolean
+The ``marked terminal'' flag tracked whether
+the terminal flag was set by the user.
+It distinguishes those
+terminal settings that will
+be overwritten by the default
+from those should not be.
+@<Bit aligned external symbol elements@> =
+unsigned int t_is_terminal:1;
+unsigned int t_is_marked_terminal:1;
+@ @<Initialize external symbol elements@> =
+xsymbol->t_is_terminal = 0;
+xsymbol->t_is_marked_terminal = 0;
+@ @d XSYM_is_Terminal(xsymbol) ((xsymbol)->t_is_terminal)
+@ @d XSYM_is_Marked_Terminal(xsymbol) ((xsymbol)->t_is_marked_terminal)
+@d XSYMID_is_Terminal(id) (XSYM_is_Terminal(XSYM_by_ID(id)))
+@<Function definitions@> =
+int marpa_g_symbol_is_terminal(Marpa_Grammar g,
+Marpa_Symbol_ID xsymid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    return XSYMID_is_Terminal(xsymid);
+}
+@ @<Function definitions@> =
+int marpa_g_symbol_is_terminal_set(
+Marpa_Grammar g, Marpa_Symbol_ID xsymid, int value)
+{
+    XSYM xsymbol;
+    SYM symbol;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if precomputed@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    xsymbol = XSYM_by_ID(xsymid);
+    symbol = SYM_by_ID(xsymid);
+    if (UNLIKELY(value < 0 || value > 1)) {
+	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
+	return failure_indicator;
+    }
+    XSYM_is_Marked_Terminal(xsymbol) = 1;
+    SYM_is_Marked_Terminal(xsymbol) = 1;
+    return XSYM_is_Terminal(xsymbol) = value;
+}
+
+@ Symbol Is Productive Boolean
+@<Bit aligned external symbol elements@> = unsigned int t_is_productive:1;
+@ @<Initialize external symbol elements@> =
+xsymbol->t_is_productive = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_productive(
+    Marpa_Grammar g,
+    Marpa_Symbol_ID xsymid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    return XSYM_by_ID(xsymid)->t_is_productive;
+}
+
+@ Symbol Is Start Boolean
+@<Bit aligned external symbol elements@> = unsigned int t_is_start:1;
+@ @<Initialize external symbol elements@> = xsymbol->t_is_start = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID xsymid) 
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |xsymid| is invalid@>@;
+   return XSYM_by_ID(xsymid)->t_is_start;
+}
+
+@*0 Symbol aliasing.
+This is the logic for aliasing symbols.
+In the Aycock-Horspool algorithm, from which Marpa is derived,
+it is essential that there be no ``proper nullable"
+symbols.  Therefore, all proper nullable symbols in
+the original grammar are converted into two, aliased,
+symbols: a non-nullable (or ``proper") alias and a nulling alias.
+@<Int aligned external symbol elements@> =
+    SYMID t_internal_id;
+    SYMID t_nulling_id;
+@ @<Initialize external symbol elements@> =
+xsymbol->t_internal_id = -1;
+xsymbol->t_nulling_id = -1;
+
+@ Internal ID.
+Returns the internal ID of an external symbol.
+If there is a proper and a nulling version,
+it returns the nulling version.
+If none, returns |-1|.
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_g_symbol_internal_id(Marpa_Grammar g, Marpa_Symbol_ID xsymid)
+{
+    XSYM xsymbol;
+    @<Return |-2| on failure@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    xsymbol = XSYM_by_ID(xsymid);
+    return xsymbol->t_internal_id;
+}
+
+@ Nulling ID.
+Returns the internal ID of the nulling version of an external symbol.
+If none, returns |-1|.
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_g_symbol_nulling_id(Marpa_Grammar g, Marpa_Symbol_ID xsymid)
+{
+    XSYM xsymbol;
+    @<Return |-2| on failure@>@;
+    @<Fail if |xsymid| is invalid@>@;
+    xsymbol = XSYM_by_ID(xsymid);
+    return xsymbol->t_nulling_id;
+}
+
+@** Symbol (SYM) Code.
+@s Marpa_Symbol_ID int
+@ @<Private typedefs@> =
+typedef Marpa_Symbol_ID SYMID;
 @ @<Private incomplete structures@> =
 struct s_symbol;
 typedef struct s_symbol* SYM;
@@ -1091,15 +1464,6 @@ symbol_new (struct marpa_g *g)
   @<Initialize symbol elements @>@/
     symbol_add (g, symbol);
   return symbol;
-}
-
-@ @<Function definitions@> =
-Marpa_Symbol_ID
-marpa_g_symbol_new (Marpa_Grammar g)
-{
-  const SYM symbol = symbol_new (g);
-  symbol->t_is_internal = 0;
-  return ID_of_SYM(symbol);
 }
 
 @ @<Function definitions@> =
@@ -1225,24 +1589,7 @@ is arbitrary.
 @<Bit aligned symbol elements@> = unsigned int t_is_ask_me_when_null:1;
 @ @<Initialize symbol elements@> =
     SYM_is_Ask_Me_When_Null(symbol) = 0;
-@ @<Function definitions@> =
-int marpa_g_symbol_is_ask_me_when_null(
-    Marpa_Grammar g,
-    Marpa_Symbol_ID symid)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_is_Ask_Me_When_Null(SYM_by_ID(symid));
-}
-int marpa_g_symbol_ask_me_when_null_set(
-    Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
-{
-    SYM symbol;
-    @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    symbol = SYM_by_ID(symid);
-    return SYM_is_Ask_Me_When_Null(symbol) = value ? 1 : 0;
-}
+
 @ Symbol Is Accessible Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_accessible:1;
 @ @<Initialize symbol elements@> =
@@ -1253,29 +1600,11 @@ to the symbol function.
 If that becomes private,
 the prototype of this function
 must be changed.
-@<Function definitions@> =
-int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_by_ID(symid)->t_is_accessible;
-}
 
 @ Symbol Is Counted Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_counted:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_counted = 0;
-@ @<Function definitions@> =
-int marpa_g_symbol_is_counted(Marpa_Grammar g,
-Marpa_Symbol_ID symid)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_by_ID(symid)->t_is_counted;
-}
 
 @ Symbol Is Nulling Boolean
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
@@ -1283,7 +1612,7 @@ Marpa_Symbol_ID symid)
 @ @<Initialize symbol elements@> =
 symbol->t_is_nulling = 0;
 @ @<Function definitions@> =
-int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
+int _marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -1308,49 +1637,11 @@ symbol->t_is_marked_terminal = 0;
 @ @d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
 @ @d SYM_is_Marked_Terminal(symbol) ((symbol)->t_is_marked_terminal)
 @d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
-@<Function definitions@> =
-int marpa_g_symbol_is_terminal(Marpa_Grammar g,
-Marpa_Symbol_ID symid)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYMID_is_Terminal(symid);
-}
-@ @<Function definitions@> =
-int marpa_g_symbol_is_terminal_set(
-Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
-{
-    SYM symbol;
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    symbol = SYM_by_ID(symid);
-    @<Fail if |symbol| is internal@>@;
-    if (UNLIKELY(value < 0 || value > 1)) {
-	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
-	return failure_indicator;
-    }
-    SYM_is_Marked_Terminal(symbol) = 1;
-    return SYM_is_Terminal(symbol) = value;
-}
 
 @ Symbol Is Productive Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_productive = 0;
-@ @<Function definitions@> =
-int marpa_g_symbol_is_productive(
-    Marpa_Grammar g,
-    Marpa_Symbol_ID symid)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_by_ID(symid)->t_is_productive;
-}
 
 @ Symbol Is Start Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_start:1;
@@ -4052,13 +4343,18 @@ typedef int AHFAID;
 g->t_AHFA = NULL;
 AHFA_Count_of_G(g) = 0;
 @*0 Destructor.
-@<Destroy grammar elements@> = if (g->t_AHFA) {
-AHFAID id;
-for (id = 0; id < AHFA_Count_of_G(g); id++) {
-   AHFA ahfa_state = AHFA_of_G_by_ID(g, id);
-   @<Free AHFA state@>@;
-}
-STOLEN_DQUEUE_DATA_FREE(g->t_AHFA);
+@<Destroy grammar elements@> =
+{
+  if (g->t_AHFA)
+    {
+      AHFAID id;
+      for (id = 0; id < AHFA_Count_of_G (g); id++)
+	{
+	  AHFA ahfa_state = AHFA_of_G_by_ID (g, id);
+	  @<Free AHFA state @>@;
+	}
+      STOLEN_DQUEUE_DATA_FREE (g->t_AHFA);
+    }
 }
 
 @ Most of the data is on the obstack, and will be freed with that.
@@ -13081,6 +13377,11 @@ if (UNLIKELY(SYM_is_Internal(symbol))) {
 }
 @ @<Fail if |symid| is invalid@> =
 if (UNLIKELY(!symbol_is_valid(g, symid))) {
+    MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
+    return failure_indicator;
+}
+@ @<Fail if |xsymid| is invalid@> =
+if (UNLIKELY(!xsymbol_is_valid(g, xsymid))) {
     MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
     return failure_indicator;
 }

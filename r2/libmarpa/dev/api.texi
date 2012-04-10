@@ -943,6 +943,25 @@ Return value: -2 if there was an error.
 
 @end deftypefun
 
+@deftypefun int marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+
+@deftypefun int marpa_g_symbol_lhs_count (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun Marpa_Rule_ID marpa_g_symbol_lhs (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid}, @
+ int @var{ix})
+@end deftypefun
+@deftypefun int marpa_g_symbol_rhs_count (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun Marpa_Rule_ID marpa_g_symbol_rhs (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid}, @
+ int @var{ix})
+@end deftypefun
+
 @node Rules, Sequences, Terminals, Grammars
 @section Rules
 
@@ -1278,6 +1297,16 @@ of those working on libmarpa's internals.
 Applications should not use them,
 and should treat them as ``undocumented''.
 
+@deftypefun Marpa_Symbol_ID _marpa_g_symbol_internal_id ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{xsymid})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_g_symbol_nulling_id ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{xsymid})
+@end deftypefun
+
 @deftypefun int _marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 
@@ -1316,6 +1345,8 @@ Return value: -2 if the grammar is not precomputed or
 
 @end deftypefun
 
+@deftypefun int _marpa_g_symbol_is_nulling ( Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
 @deftypefun int _marpa_g_symbol_lhs_count (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun

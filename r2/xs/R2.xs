@@ -694,6 +694,9 @@ PPCODE:
     }
     new_rule_id = marpa_g_rule_new(g, lhs, rhs, length);
     Safefree(rhs);
+    if (new_rule_id <= -2 ) {
+      croak ("Problem in g->rule_new: %s", xs_g_error (g_wrapper));
+      }
     if (new_rule_id < 0) { XSRETURN_UNDEF; }
     XPUSHs( sv_2mortal( newSViv(new_rule_id) ) );
 }
