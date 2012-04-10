@@ -2461,15 +2461,15 @@ int marpa_g_precompute(Marpa_Grammar g)
     int return_value = failure_indicator;
     @<Declare precompute variables@>@;
     @<Fail if fatal error@>@;
+    G_EVENTS_CLEAR(g);
     @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
-    G_EVENTS_CLEAR(g);
     @<Perform census of grammar |g|@>@;
+    @<Detect cycles@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
      if (!G_is_Trivial(g)) {
-	@<Detect cycles@>@;
 	create_AHFA_items(g);
 	create_AHFA_states(g);
 	@<Populate the Terminal Boolean Vector@>@;
@@ -3403,34 +3403,55 @@ unit transitions are not in general reflexive.
 @<Mark direct unit transitions in |unit_transition_matrix|@> = {
 Marpa_Rule_ID rule_id;
 for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
-     RULE  rule = RULE_by_ID(g, rule_id);
-     Marpa_Symbol_ID proper_id;
+     RULE rule = RULE_by_ID(g, rule_id);
+     SYMID nonnulling_id = -1;
+     int nonnulling_count = 0;
      int rhs_ix, rule_length;
-     if (!RULE_is_Used(rule)) continue;
      rule_length = Length_of_RULE(rule);
-     proper_id = -1;
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 	 Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
-	 SYM symbol = SYM_by_ID(symid);
-	 if (symbol->t_is_nulling) continue;
-	 if (proper_id >= 0) goto NEXT_UNIT_RULE_CANDIDATE; /* More
-	     than one proper symbol -- not a unit rule */
-	 proper_id = symid;
+	 if (bv_bit_test(nullable_v, symid)) continue;
+	 nonnulling_id = symid;
+	 nonnulling_count ++;
     }
     @#
-    if (proper_id < 0) continue; /* A
-	nulling start rule is allowed, so there may be no proper symbol */
-     { SYM rhs_symbol = SYM_by_ID(proper_id);
-     RULEID ix;
-     RULEID no_of_lhs_rules = DSTACK_LENGTH(rhs_symbol->t_lhs);
-     for (ix = 0; ix < no_of_lhs_rules; ix++) {
-	 /* Direct loops ($A \RA A$) only need the $(rule_id, rule_id)$ bit set,
-	    but it is not clear that it is a win to special case them. */
-	 matrix_bit_set(unit_transition_matrix, (unsigned int)rule_id,
-	     *DSTACK_INDEX(rhs_symbol->t_lhs, RULEID, ix));
-     } }
-     NEXT_UNIT_RULE_CANDIDATE: ;
-} }
+    /* nulling start rule is allowed, so there may be no proper symbol */
+    if (nonnulling_count == 1) {
+	@<For |nonnulling_id|, set to,from rule bit in |unit_transition_matrix|@>@;
+    } else if (nonnulling_count == 0) {
+	 for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
+	    nonnulling_id = RHS_ID_of_RULE (rule, rhs_ix);
+	    if (!bv_bit_test (nullable_v, nonnulling_id))
+	      continue;
+	    if (SYM_is_Nulling (SYM_by_ID (nonnulling_id)))
+	      continue;
+	    /* |nonnulling_id| is a proper nullable */
+	    @<For |nonnulling_id|, set to,from rule bit
+	    in |unit_transition_matrix|@>@;
+	 }
+    }
+}
+}
+
+@ We have lone |nonnulling_id| it |rule_id|,
+so there is a unit transition from |rule_id| to every
+rule with |nonnulling_id| on the LHS.
+@<For |nonnulling_id|, set to,from rule bit in |unit_transition_matrix|@> =
+{
+  SYM rhs_symbol = SYM_by_ID (nonnulling_id);
+  RULEID ix;
+  RULEID no_of_lhs_rules = DSTACK_LENGTH (rhs_symbol->t_lhs);
+  for (ix = 0; ix < no_of_lhs_rules; ix++)
+    {
+      /* Direct loops ($A \RA A$) only need the $(rule_id, rule_id)$ bit set,
+         but it is not clear that it is a win to special case them. */
+      const RULEID to_rule_id = *DSTACK_INDEX (rhs_symbol->t_lhs, RULEID, ix);
+      MARPA_DEBUG4 ("%s: unit transition from=%d, to=%d", STRLOC, rule_id,
+		    to_rule_id);
+      matrix_bit_set (unit_transition_matrix, (unsigned int) rule_id,
+		      to_rule_id);
+    }
+}
 
 @ Virtual loop rule are loop rules from the virtual point of view.
 When CHAF rules, which are rewritten into multiple pieces,

@@ -164,11 +164,11 @@ my $cycle8_test = [
     '1 2 3 4 5 6',
     <<'EOS'
 Cycle found involving rule: 0: S -> A
-Cycle found involving rule: 4: D -> E
-Cycle found involving rule: 5: E -> S
 Cycle found involving rule: 1: A -> B T U
 Cycle found involving rule: 2: B -> V C
 Cycle found involving rule: 3: C -> W D X
+Cycle found involving rule: 4: D -> E
+Cycle found involving rule: 5: E -> S
 EOS
 ];
 
