@@ -49,49 +49,56 @@ if ($repeat) {
 my $string_length = 0;
 
 INPUT: for ( ;; ) {
-    my @terminals_expected = @{$recce->terminals_expected()};
+    my @terminals_expected = @{ $recce->terminals_expected() };
 
-say "Expecting: ", join q{ }, @terminals_expected;
+    say "Expecting: ", join q{ }, @terminals_expected;
 
     my $found;
     my $expected_terminal;
     FIND_TOKEN:
-    for my $i (0 .. $#terminals_expected) {
-	$expected_terminal = $terminals_expected[$i];
-        if ( 'Scount' eq $expected_terminal ) {
-            $res =~ s{\A \d+}{$string_length = $found = ${^MATCH}, ''}epxmsg and last FIND_TOKEN;
-        } ## end if ( 'Scount' eq $expected_terminal )
-        if ( 'Acount' eq $expected_terminal ) {
-            $res =~ s{\A \d+}{$found = ${^MATCH}, ''}epxmsg and last FIND_TOKEN;
+    for my $i ( 0 .. $#terminals_expected ) {
+        $expected_terminal = $terminals_expected[$i];
+        if ( 'Scount' eq $expected_terminal and $res =~ m{\G \d+}pxmsgc ) {
+            say "POS+ ", pos $res;
+            $string_length = $found = ${^MATCH};
+            last FIND_TOKEN;
         }
-        if ( 'Achar' eq $expected_terminal ) {
-            $res =~ s{\A A}{$found = ${^MATCH}, ''}epxmsg and last FIND_TOKEN;
+        if ( 'Acount' eq $expected_terminal and $res =~ m{\G \d+}pxmsgc ) {
+            $found = ${^MATCH};
+            last FIND_TOKEN;
         }
-        if ( 'Schar' eq $expected_terminal ) {
-            $res =~ s{\A S}{$found = ${^MATCH}, ''}epxmsg and last FIND_TOKEN;
+        if ( 'Achar' eq $expected_terminal and $res =~ m{\G A }pxmsgc ) {
+            $found = ${^MATCH};
+            last FIND_TOKEN;
         }
-        if ( 'lparen' eq $expected_terminal ) {
-            $res =~ s{\A [(]}{$found = ${^MATCH}, ''}epxmsg and last FIND_TOKEN;
-	}
-        if ( 'rparen' eq $expected_terminal ) {
-            $res =~ s{\A [)]}{$found = ${^MATCH}, ''}epxmsg and last FIND_TOKEN;
-	}
+        if ( 'Schar' eq $expected_terminal and $res =~ m{\G S }pxmsgc ) {
+            $found = ${^MATCH};
+            last FIND_TOKEN;
+        }
+        if ( 'lparen' eq $expected_terminal and $res =~ m{\G [(] }pxmsgc ) {
+            $found = ${^MATCH};
+            last FIND_TOKEN;
+        }
+        if ( 'rparen' eq $expected_terminal and $res =~ m{\G [)] }pxmsgc ) {
+            $found = ${^MATCH};
+            last FIND_TOKEN;
+        }
         if ( 'text' eq $expected_terminal ) {
-	     $found = substr($res, 0, $string_length);
-	     $res = substr($res, $string_length);
-	     last FIND_TOKEN;
-	}
-    } ## end while ( defined( $expected_terminal = shift @{...}))
-    if (not defined $found) {
-	die("Error reading input: ",
-	    substr( $res, 0, 100 ),
-	    "\nWas expecting ",
-	    join q{ }, @terminals_expected
-	);
-    }
-say "Found ", $found;
-    $recce->read($expected_terminal, $found);
-    last INPUT if length $res <= 0;
+            $found = substr( $res, pos($res), $string_length );
+            pos ($res) += $string_length;
+            last FIND_TOKEN;
+        }
+    } ## end for my $i ( 0 .. $#terminals_expected )
+    if ( not defined $found ) {
+        die("Error reading input: ",
+            substr( $res, 0, 100 ),
+            "\nWas expecting ",
+            join q{ }, @terminals_expected
+        );
+    } ## end if ( not defined $found )
+    say "Found ", $found;
+    $recce->read( $expected_terminal, $found );
+    last INPUT if length $res <= pos $res;
 } ## end for ( ;; )
 
 my $result = $recce->value();
