@@ -2528,7 +2528,7 @@ a lot of useless diagnostics.
 
 @<Perform census of grammar |g|@> =
 {
-    @<Census LHS symbols@>@;
+    @<Census symbols@>@;
     @<Census terminals@>@;
     @<Calculate reach matrix@>@;
     @<Census nullable symbols@>@;
@@ -2574,24 +2574,38 @@ While at it, set a flag to indicate if there are empty rules.
 @ @<Declare precompute variables@> =
 Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 
-@ @<Census LHS symbols@> =
+@ @<Census symbols@> =
 {
   Marpa_Rule_ID rule_id;
   lhs_v = bv_obs_create (obs_precompute, pre_rewrite_symbol_count);
   empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
-  for (rule_id = 0;
-       rule_id < (Marpa_Rule_ID) pre_rewrite_rule_count; rule_id++)
+  rule_x_rh_sym_matrix =
+    matrix_obs_create (obs_precompute, pre_rewrite_rule_count,
+		       pre_rewrite_symbol_count);
+  for (rule_id = 0; rule_id < (Marpa_Rule_ID) pre_rewrite_rule_count;
+       rule_id++)
     {
-      RULE rule = RULE_by_ID (g, rule_id);
-      Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
+      const RULE rule = RULE_by_ID (g, rule_id);
+      const Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
+      const int rule_length = Length_of_RULE (rule);
       bv_bit_set (lhs_v, (unsigned int) lhs_id);
-      if (Length_of_RULE (rule) <= 0)
+      if (rule_length <= 0)
 	{
 	  bv_bit_set (empty_lhs_v, (unsigned int) lhs_id);
-	  have_empty_rule = 1;
+	}
+      else
+	{
+	  int rhs_ix;
+	  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+	    {
+	      matrix_bit_set (rule_x_rh_sym_matrix,
+			      (unsigned int) RHS_ID_of_RULE (rule, rhs_ix),
+			      rule_id);
+	    }
 	}
     }
 }
+
 @ Loop over the symbols, producing the boolean vector of symbols
 already marked as terminal,
 and a flag which indicates if there are any.
@@ -2630,7 +2644,7 @@ Bit_Vector terminal_v = NULL;
 @ @<Declare external grammar variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
-int have_empty_rule = 0;
+Bit_Matrix rule_x_rh_sym_matrix = NULL;
 
 @ @<Census nullable symbols@> = 
 {
@@ -12254,7 +12268,7 @@ This means the RHS closure operation can only be used for
 properties which can meaningfully be regarded as vacuously
 true.
 In |libmarpa|, two important symbol properties are
-RHS clousure properties:
+RHS closure properties:
 the property of being productive,
 and the property of being nullable.
 
@@ -12262,10 +12276,6 @@ and the property of being nullable.
 This routine takes a symbol vector and a grammar,
 and turns the original vector into the RHS closure of that vector.
 The orignal vector is destroyed.
-\par
-If I decide rules should have a unique right hand symbol list,
-this is one place to use it.
-Duplicate symbols on the RHS are visited uselessly.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE void
 rhs_closure (GRAMMAR g, Bit_Vector bv)
