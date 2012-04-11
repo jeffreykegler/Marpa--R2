@@ -2475,7 +2475,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
      if (!G_is_Trivial(g)) {
-	create_AHFA_items(g);
+	@<Create AHFA items@>@;
 	@<Create AHFA states@>@;
 	@<Populate the Terminal Boolean Vector@>@;
     }
@@ -3712,9 +3712,7 @@ but guaranteed to be greater than
 or equal to the final numbers of items.
 That means that I can avoid the overhead of checking the array
 size when adding each new AHFA item.
-@<Function definitions@> =
-PRIVATE
-void create_AHFA_items(GRAMMAR g)
+@<Create AHFA items@> =
 {
     RULEID rule_id;
     AIMID no_of_items;
