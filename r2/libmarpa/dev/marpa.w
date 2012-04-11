@@ -2476,7 +2476,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Augment grammar |g|@>@;
      if (!G_is_Trivial(g)) {
 	create_AHFA_items(g);
-	create_AHFA_states(g);
+	@<Create AHFA states@>@;
 	@<Populate the Terminal Boolean Vector@>@;
     }
      return_value = G_EVENT_COUNT(g);
@@ -4212,10 +4212,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
     return 0;
 }
 
-@*0 AHFA State Mutators.
-@<Function definitions@> =
-PRIVATE_NOT_INLINE
-void create_AHFA_states(struct marpa_g* g)
+@*0 Creating AHFA states.
+@<Create AHFA states@> =
 {
     @<Declare locals for creating AHFA states@>@;
     @<Initialize locals for creating AHFA states@>@;
