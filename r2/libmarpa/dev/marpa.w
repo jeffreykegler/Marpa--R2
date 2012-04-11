@@ -2459,14 +2459,19 @@ int marpa_g_precompute(Marpa_Grammar g)
 {
     @<Return |-2| on failure@>@;
     int return_value = failure_indicator;
+    struct obstack *obs_precompute = my_new(struct obstack, 1);
     @<Declare precompute variables@>@;
+    my_obstack_init(obs_precompute);
     @<Fail if fatal error@>@;
     G_EVENTS_CLEAR(g);
     @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
-    @<Perform census of grammar |g|@>@;
-    @<Detect cycles@>@;
+    { /* Scope with only external grammar */
+	@<Declare external grammar variables@>@;
+	@<Perform census of grammar |g|@>@;
+	@<Detect cycles@>@;
+    }
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
      if (!G_is_Trivial(g)) {
@@ -2477,6 +2482,8 @@ int marpa_g_precompute(Marpa_Grammar g)
      return_value = G_EVENT_COUNT(g);
      FAILURE:;
     @<Free precompute variables@>@;
+    my_obstack_free(obs_precompute, NULL);
+    my_free(obs_precompute);
      return return_value;
 }
 @ {\bf To Do}: @^To Do@>
@@ -2487,8 +2494,6 @@ or on the other hand I could free them more quickly
 once their useful lifetime is past.
 @<Declare precompute variables@> =
 Bit_Vector nullable_v = NULL;
-@ @<Free precompute variables@> =
-bv_free(nullable_v);
 
 @** The Grammar Census.
 
@@ -2573,8 +2578,8 @@ Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 @ @<Census LHS symbols@> =
 {
   Marpa_Rule_ID rule_id;
-  lhs_v = bv_create (pre_rewrite_symbol_count);
-  empty_lhs_v = bv_shadow (lhs_v);
+  lhs_v = bv_obs_create (obs_precompute, pre_rewrite_symbol_count);
+  empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
   for (rule_id = 0;
        rule_id < (Marpa_Rule_ID) pre_rewrite_rule_count; rule_id++)
     {
@@ -2594,7 +2599,7 @@ and a flag which indicates if there are any.
 @<Census terminals@> =
 {
   SYMID symid;
-  terminal_v = bv_create (pre_rewrite_symbol_count);
+  terminal_v = bv_obs_create (obs_precompute, pre_rewrite_symbol_count);
   bv_not (terminal_v, lhs_v);
   for (symid = 0; symid < (SYMID) pre_rewrite_symbol_count; symid++)
     {
@@ -2619,16 +2624,11 @@ and a flag which indicates if there are any.
     }
 }
 
-@ @<Free precompute variables@> =
-bv_free(terminal_v);
 @ @s Bit_Vector int
-@<Declare precompute variables@> =
+@<Declare external grammar variables@> =
 Bit_Vector terminal_v = NULL;
 
-@ @<Free precompute variables@> =
-bv_free(lhs_v);
-bv_free(empty_lhs_v);
-@ @<Declare precompute variables@> =
+@ @<Declare external grammar variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
 int have_empty_rule = 0;
@@ -2638,7 +2638,7 @@ int have_empty_rule = 0;
   unsigned int min, max, start;
   SYMID symid;
   int counted_nullables = 0;
-  nullable_v = bv_clone (empty_lhs_v);
+  nullable_v = bv_obs_clone (obs_precompute, empty_lhs_v);
   rhs_closure (g, nullable_v);
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
@@ -2662,7 +2662,7 @@ int have_empty_rule = 0;
 
 @ @<Census productive symbols@> = 
 {
-  productive_v = bv_shadow (nullable_v);
+  productive_v = bv_obs_shadow (obs_precompute, nullable_v);
   bv_or (productive_v, nullable_v, terminal_v);
   rhs_closure (g, productive_v);
   {
@@ -2687,10 +2687,8 @@ if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)original_start_symid)))
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     goto FAILURE;
 }
-@ @<Declare precompute variables@> =
+@ @<Declare external grammar variables@> =
 Bit_Vector productive_v = NULL;
-@ @<Free precompute variables@> =
-bv_free(productive_v);
 
 @ The reach matrix is the an $n\times n$ matrix,
 where $n$ is the number of symbols.
@@ -3433,7 +3431,7 @@ for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
 }
 }
 
-@ We have lone |nonnulling_id| it |rule_id|,
+@ We have a lone |nonnulling_id| in |rule_id|,
 so there is a unit transition from |rule_id| to every
 rule with |nonnulling_id| on the LHS.
 @<For |nonnulling_id|, set to,from rule bit in |unit_transition_matrix|@> =
@@ -11976,6 +11974,10 @@ PRIVATE Bit_Vector bv_shadow(Bit_Vector bv)
 {
     return bv_create(BV_BITS(bv));
 }
+PRIVATE Bit_Vector bv_obs_shadow(struct obstack * obs, Bit_Vector bv)
+{
+    return bv_obs_create(obs, BV_BITS(bv));
+}
 
 @*0 Clone a Boolean Vector.
 Given a boolean vector, creates a new vector which is
@@ -12004,6 +12006,12 @@ PRIVATE
 Bit_Vector bv_clone(Bit_Vector bv)
 {
     return bv_copy(bv_shadow(bv), bv);
+}
+
+PRIVATE
+Bit_Vector bv_obs_clone(struct obstack *obs, Bit_Vector bv)
+{
+    return bv_copy(bv_obs_shadow(obs, bv), bv);
 }
 
 @*0 Free a Boolean Vector.
