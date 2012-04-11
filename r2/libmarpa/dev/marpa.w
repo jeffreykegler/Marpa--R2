@@ -2481,7 +2481,6 @@ int marpa_g_precompute(Marpa_Grammar g)
     }
      return_value = G_EVENT_COUNT(g);
      FAILURE:;
-    @<Free precompute variables@>@;
     my_obstack_free(obs_precompute, NULL);
     my_free(obs_precompute);
      return return_value;
@@ -2713,7 +2712,7 @@ where many of the right hand sides repeat symbols.
   Marpa_Rule_ID rule_id;
   RULEID rule_count_of_g = RULE_Count_of_G (g);
   reach_matrix
-    = matrix_create (pre_rewrite_symbol_count, pre_rewrite_symbol_count);
+    = matrix_obs_create (obs_precompute, pre_rewrite_symbol_count, pre_rewrite_symbol_count);
   for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
     {
       RULE rule = RULE_by_ID (g, rule_id);
@@ -2731,8 +2730,6 @@ where many of the right hand sides repeat symbols.
 
 @ @<Declare precompute variables@> =
 Bit_Matrix reach_matrix = NULL;
-@ @<Free precompute variables@> =
-matrix_free(reach_matrix);
 
 @ |accessible_v| is a pointer into the |reach_matrix|.
 Therefore there is no code to free it.
@@ -3380,7 +3377,7 @@ loop rule count, with the final tally.
     int rule_count_of_g = RULE_Count_of_G(g);
     int loop_rule_count = 0;
     Bit_Matrix unit_transition_matrix =
-	matrix_create ((unsigned int) rule_count_of_g,
+	matrix_obs_create (obs_precompute, (unsigned int) rule_count_of_g,
 	    (unsigned int) rule_count_of_g);
     @<Mark direct unit transitions in |unit_transition_matrix|@>@;
     transitive_closure(unit_transition_matrix);
@@ -3390,7 +3387,6 @@ loop rule count, with the final tally.
 	g->t_has_cycle = 1;
 	int_event_new (g, MARPA_EVENT_LOOP_RULES, loop_rule_count);
       }
-    matrix_free(unit_transition_matrix);
 }
 
 @ Note that direct transitions are marked in advance,
@@ -4390,7 +4386,6 @@ You can get the AIM from the AEX, but not vice versa.
 
 @ @<Free locals for creating AHFA states@> =
    my_free(rule_by_sort_key);
-   matrix_free(prediction_matrix);
     @<Free duplicates data structures@>@;
      my_obstack_free(&ahfa_work_obs, NULL);
 
@@ -4760,11 +4755,10 @@ states.
 
 @ @<Construct prediction matrix@> = {
     Bit_Matrix symbol_by_symbol_matrix =
-	matrix_create (symbol_count_of_g, symbol_count_of_g);
+	matrix_obs_create (&ahfa_work_obs, symbol_count_of_g, symbol_count_of_g);
     @<Initialize the symbol-by-symbol matrix@>@/
     transitive_closure(symbol_by_symbol_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
-    matrix_free(symbol_by_symbol_matrix);
 }
 
 @ @<Initialize the symbol-by-symbol matrix@> =
@@ -4897,37 +4891,37 @@ populate the index from rule id to sort key.
 
 @ @<Populate the prediction matrix@> =
 {
-  prediction_matrix = matrix_create (symbol_count_of_g, no_of_predictable_rules);
-  for (from_symid = 0; from_symid < (SYMID) symbol_count_of_g;
-       from_symid++)
+  prediction_matrix =
+    matrix_obs_create (&ahfa_work_obs, symbol_count_of_g,
+		       no_of_predictable_rules);
+  for (from_symid = 0; from_symid < (SYMID) symbol_count_of_g; from_symid++)
     {
       // for every row of the symbol-by-symbol matrix
       unsigned int min, max, start;
       for (start = 0;
 	   bv_scan (matrix_row
-		    (symbol_by_symbol_matrix, (unsigned int) from_symid), start,
-		    &min, &max); start = max + 2)
+		    (symbol_by_symbol_matrix, (unsigned int) from_symid),
+		    start, &min, &max); start = max + 2)
 	{
 	  Marpa_Symbol_ID to_symid;
-	  for (to_symid = min; to_symid <= (Marpa_Symbol_ID) max;
-	       to_symid++)
+	  for (to_symid = min; to_symid <= (Marpa_Symbol_ID) max; to_symid++)
 	    {
 	      // for every predicted symbol
 	      SYM to_symbol = SYM_by_ID (to_symid);
 	      RULEID ix;
-	      RULEID no_of_lhs_rules = DSTACK_LENGTH(to_symbol->t_lhs);
+	      RULEID no_of_lhs_rules = DSTACK_LENGTH (to_symbol->t_lhs);
 	      for (ix = 0; ix < no_of_lhs_rules; ix++)
 		{
 		  // For every rule with that symbol on its LHS
 		  Marpa_Rule_ID rule_with_this_lhs_symbol =
-		    *DSTACK_INDEX(to_symbol->t_lhs, RULEID, ix);
+		    *DSTACK_INDEX (to_symbol->t_lhs, RULEID, ix);
 		  unsigned int sort_key =
 		    sort_key_by_rule_id[rule_with_this_lhs_symbol];
 		  if (sort_key >= no_of_predictable_rules)
 		    continue;	/*
 				   We only need to predict rules which have items */
-		  matrix_bit_set (prediction_matrix, (unsigned int) from_symid,
-				  sort_key);
+		  matrix_bit_set (prediction_matrix,
+				  (unsigned int) from_symid, sort_key);
 		  // Set the $(symbol, rule sort key)$ bit in the matrix
 		}
 	    }
@@ -12358,27 +12352,24 @@ typedef Bit_Vector_Word* Bit_Matrix;
 This is {\bf not} the case with vectors, whose pointer is offset for
 the ``hidden words".
 @<Function definitions@> =
-PRIVATE Bit_Matrix matrix_create(unsigned int rows, unsigned int columns)
+PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, unsigned int columns)
 {
-    unsigned int bv_data_words = bv_bits_to_size(columns);
-    unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
-    unsigned int bv_mask = bv_bits_to_unused_mask(columns);
-    Bit_Vector_Word* matrix_addr = my_malloc0((size_t)(row_bytes * rows));
+    const unsigned int bv_data_words = bv_bits_to_size(columns);
+    const unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
+    const unsigned int bv_mask = bv_bits_to_unused_mask(columns);
+    const size_t allocation_size = row_bytes * rows;
+    Bit_Vector_Word* matrix_addr = my_obstack_alloc(obs, allocation_size);
     unsigned int row;
     for (row = 0; row < rows; row++) {
-	unsigned int row_start = row*(bv_data_words+bv_hiddenwords);
-	matrix_addr[row_start] = columns;
-	matrix_addr[row_start+1] = bv_data_words;
-	matrix_addr[row_start+2] = bv_mask;
+	const unsigned int row_start = row*(bv_data_words+bv_hiddenwords);
+	Bit_Vector_Word* p_current_word = matrix_addr + row_start;
+	int data_word_counter = bv_data_words;
+	*p_current_word++ = columns;
+	*p_current_word++ = bv_data_words;
+	*p_current_word++ = bv_mask;
+	while (data_word_counter--) *p_current_word++ = 0;
     }
     return matrix_addr;
-}
-
-@*0 Free a Boolean Matrix.
-@<Function definitions@> =
-PRIVATE void matrix_free(Bit_Matrix matrix)
-{
-    my_free(matrix);
 }
 
 @*0 Find the Number of Columns in a Boolean Matrix.
