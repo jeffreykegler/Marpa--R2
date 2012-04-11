@@ -4240,7 +4240,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
     struct avl_table *duplicates;
     AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
-  struct obstack ahfa_work_obs;
   int ahfa_count_of_g;
   AHFA ahfas_of_g;
 
@@ -4252,7 +4251,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 {
   unsigned int item_id;
   unsigned int no_of_items_in_grammar = AIM_Count_of_G (g);
-  my_obstack_init(&ahfa_work_obs);
   duplicates = _marpa_avl_create (AHFA_state_cmp, NULL, NULL);
   singleton_duplicates = my_new (AHFA, no_of_items_in_grammar);
   for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
@@ -4383,7 +4381,6 @@ You can get the AIM from the AEX, but not vice versa.
 @ @<Free locals for creating AHFA states@> =
    my_free(rule_by_sort_key);
     @<Free duplicates data structures@>@;
-     my_obstack_free(&ahfa_work_obs, NULL);
 
 @ @<Free duplicates data structures@> =
 my_free(singleton_duplicates);
@@ -4460,7 +4457,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     p_new_state = singleton_duplicates[single_item_id];
     if (p_new_state)
       {				/* Do not add, this is a duplicate */
-	transition_add (&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
+	transition_add (obs_precompute, p_working_state, working_symbol, p_new_state);
 	goto NEXT_WORKING_SYMBOL;
       }
     p_new_state = DQUEUE_PUSH (states, AHFA_Object);
@@ -4474,7 +4471,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
     AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
-    transition_add (&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
+    transition_add (obs_precompute, p_working_state, working_symbol, p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
       {
@@ -4497,7 +4494,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	SYMID* complete_symids = my_obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
-	completion_count_inc(&ahfa_work_obs, p_new_state, lhs_id);
+	completion_count_inc(obs_precompute, p_new_state, lhs_id);
 	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
 	p_new_state->t_empty_transition = NULL;
@@ -4593,7 +4590,7 @@ if (queued_AHFA_state)
 // Back it out and go on to the next in the queue
     (void) DQUEUE_POP (states, AHFA_Object);
     my_obstack_free (&g->t_obs_tricky, item_list_for_new_state);
-    transition_add (&ahfa_work_obs, p_working_state, working_symbol, queued_AHFA_state);
+    transition_add (obs_precompute, p_working_state, working_symbol, queued_AHFA_state);
     /* |transition_add()| allocates obstack memory, but uses the 
        ``non-tricky" obstack */
     goto NEXT_WORKING_SYMBOL;
@@ -4604,7 +4601,7 @@ if (queued_AHFA_state)
     AHFA_is_Predicted(p_new_state) = 0;
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
     @<Calculate complete and postdot symbols for discovered state@>@/
-    transition_add(&ahfa_work_obs, p_working_state, working_symbol, p_new_state);
+    transition_add(obs_precompute, p_working_state, working_symbol, p_new_state);
     @<Calculate the predicted rule vector for this state
         and add the predicted AHFA state@>@/
 }
@@ -4624,7 +4621,7 @@ if (queued_AHFA_state)
       if (postdot < 0)
 	{
 	  int complete_symbol_id = LHS_ID_of_AIM (item);
-	  completion_count_inc (&ahfa_work_obs, p_new_state, complete_symbol_id);
+	  completion_count_inc (obs_precompute, p_new_state, complete_symbol_id);
 	  bv_bit_set (complete_v, (unsigned int)complete_symbol_id );
 	}
       else
@@ -4751,7 +4748,7 @@ states.
 
 @ @<Construct prediction matrix@> = {
     Bit_Matrix symbol_by_symbol_matrix =
-	matrix_obs_create (&ahfa_work_obs, symbol_count_of_g, symbol_count_of_g);
+	matrix_obs_create (obs_precompute, symbol_count_of_g, symbol_count_of_g);
     @<Initialize the symbol-by-symbol matrix@>@/
     transitive_closure(symbol_by_symbol_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
@@ -4888,7 +4885,7 @@ populate the index from rule id to sort key.
 @ @<Populate the prediction matrix@> =
 {
   prediction_matrix =
-    matrix_obs_create (&ahfa_work_obs, symbol_count_of_g,
+    matrix_obs_create (obs_precompute, symbol_count_of_g,
 		       no_of_predictable_rules);
   for (from_symid = 0; from_symid < (SYMID) symbol_count_of_g; from_symid++)
     {
