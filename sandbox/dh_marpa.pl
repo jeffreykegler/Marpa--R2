@@ -37,7 +37,7 @@ my $grammar = Marpa::XS::Grammar->new(
 );
 
 $grammar->precompute();
-my $recce = Marpa::XS::Recognizer->new({ grammar => $grammar, trace_terminals=>1});
+my $recce = Marpa::XS::Recognizer->new({ grammar => $grammar });
 
 my $res;
 if ($repeat) {
@@ -47,58 +47,42 @@ if ($repeat) {
 }
 
 my $string_length = 0;
+pos $res = 0;
 
 INPUT: for ( ;; ) {
     my @terminals_expected = @{ $recce->terminals_expected() };
-
-    say "Expecting: ", join q{ }, @terminals_expected;
-
-    my $found;
-    my $expected_terminal;
-    FIND_TOKEN:
-    for my $i ( 0 .. $#terminals_expected ) {
-        $expected_terminal = $terminals_expected[$i];
-        if ( 'Scount' eq $expected_terminal and $res =~ m{\G \d+}pxmsgc ) {
-            say "POS+ ", pos $res;
-            $string_length = $found = ${^MATCH};
-            last FIND_TOKEN;
-        }
-        if ( 'Acount' eq $expected_terminal and $res =~ m{\G \d+}pxmsgc ) {
-            $found = ${^MATCH};
-            last FIND_TOKEN;
-        }
-        if ( 'Achar' eq $expected_terminal and $res =~ m{\G A }pxmsgc ) {
-            $found = ${^MATCH};
-            last FIND_TOKEN;
-        }
-        if ( 'Schar' eq $expected_terminal and $res =~ m{\G S }pxmsgc ) {
-            $found = ${^MATCH};
-            last FIND_TOKEN;
-        }
-        if ( 'lparen' eq $expected_terminal and $res =~ m{\G [(] }pxmsgc ) {
-            $found = ${^MATCH};
-            last FIND_TOKEN;
-        }
-        if ( 'rparen' eq $expected_terminal and $res =~ m{\G [)] }pxmsgc ) {
-            $found = ${^MATCH};
-            last FIND_TOKEN;
-        }
-        if ( 'text' eq $expected_terminal ) {
-            $found = substr( $res, pos($res), $string_length );
+    last INPUT if length $res <= pos $res;
+        if ( 'Schar' ~~ \@terminals_expected and $res =~ m{\G S (\d+) [(] }pxmsgc ) {
+	    $recce->read( 'Schar', 'S' );
+	    $recce->read( 'Scount', $1 );
+            $string_length = $1;
+	    $recce->read( 'lparen' );
+	    $recce->read( 'text', substr( $res, pos($res), $string_length ));
             pos ($res) += $string_length;
-            last FIND_TOKEN;
+            next INPUT;
         }
-    } ## end for my $i ( 0 .. $#terminals_expected )
-    if ( not defined $found ) {
+        if ( $res =~ m{\G (\d+)}pxmsgc ) {
+	    $recce->read( 'Acount', $1 );
+            next INPUT;
+        }
+        if ( $res =~ m{\G A }pxmsgc ) {
+	    $recce->read( 'Achar' );
+            next INPUT;
+        }
+        if ( $res =~ m{\G [(] }pxmsgc ) {
+	    $recce->read( 'lparen' );
+            next INPUT;
+        }
+        if ( $res =~ m{\G [)] }pxmsgc ) {
+	    $recce->read( 'rparen' );
+            next INPUT;
+        }
+    say "POS=", pos($res);
         die("Error reading input: ",
             substr( $res, 0, 100 ),
             "\nWas expecting ",
             join q{ }, @terminals_expected
         );
-    } ## end if ( not defined $found )
-    say "Found ", $found;
-    $recce->read( $expected_terminal, $found );
-    last INPUT if length $res <= pos $res;
 } ## end for ( ;; )
 
 my $result = $recce->value();
