@@ -5,6 +5,8 @@ use Parse::RecDescent;
 use Data::Dumper;
 use Scalar::Util;
 
+# Flavio Polletti's parser for the Dyck-Hollerith language
+
 my $repeat;
 if (@ARGV) {
     $repeat = $ARGV[0];
