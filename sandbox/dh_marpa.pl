@@ -1,7 +1,6 @@
 use 5.010;
 use strict;
 use warnings;
-use Parse::RecDescent;
 use Data::Dumper;
 use Scalar::Util;
 use Marpa::XS;
@@ -14,24 +13,20 @@ if (@ARGV) {
     die "Argument not a number" if not Scalar::Util::looks_like_number($repeat);
 }
 
-sub arg3 { return $_[4]; }
-sub do_what_I_mean {
-    shift;
-    my @children = grep {defined} @_;
-    return scalar @children > 1 ? \@children : shift @children;
-}
+sub arg1 { return $_[1]; }
+sub arg4 { return $_[4]; }
+sub all_args { shift; return \@_; }
 
 my $grammar = Marpa::XS::Grammar->new(
     {   start            => 'sentence',
         lhs_terminals => 0,
-        default_action   => 'main::do_what_I_mean',
         rules            => [
-            [ 'sentence', [qw(element)] ],
-            [ 'string', [qw(Schar Scount lparen text rparen)],   'main::arg3' ],
-            [ 'array',  [qw(Achar Acount lparen elements rparen)], 'main::arg3' ],
-            { lhs => 'elements', rhs => [qw(element)], min => 0 },
-            [ 'element', [qw(string)] ],
-            [ 'element', [qw(array)] ],
+            [ 'sentence', [qw(element)], 'main::arg1' ],
+            [ 'string', [qw(Schar Scount lparen text rparen)],   'main::arg4' ],
+            [ 'array',  [qw(Achar Acount lparen elements rparen)], 'main::arg4' ],
+            { lhs => 'elements', rhs => [qw(element)], min => 1, action=>'main::all_args' },
+            [ 'element', [qw(string)], 'main::arg1' ],
+            [ 'element', [qw(array)], 'main::arg1' ],
         ]
     }
 );
@@ -51,7 +46,6 @@ my $position = 0;
 my $input_length = length $res;
 
 INPUT: while ($position < $input_length) {
-	my $char = substr($res, $position, 1);
 	pos $res = $position;
 	if ($res =~ m/\G S (\d+) [(]/xms) {
             my $string_length = $1;
