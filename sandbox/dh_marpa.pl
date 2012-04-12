@@ -81,7 +81,6 @@ INPUT: while ($position < $input_length) {
 
 my $result = $recce->value();
 die "No parse" if not defined $result;
-exit 0 if $repeat > 1 and not $verbose;
 my $received = Dumper(${$result});
 
 my $expected = <<'EXPECTED_OUTPUT';
