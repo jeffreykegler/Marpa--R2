@@ -47,46 +47,41 @@ if ($repeat) {
 }
 
 my $string_length = 0;
-pos $res = 0;
+my $position = 0;
+my $input_length = length $res;
 
-INPUT: for ( ;; ) {
-    my @terminals_expected = @{ $recce->terminals_expected() };
-    last INPUT if length $res <= pos $res;
-        if ( 'Schar' ~~ \@terminals_expected and $res =~ m{\G S (\d+) [(] }pxmsgc ) {
-	    $recce->read( 'Schar', 'S' );
-	    $recce->read( 'Scount', $1 );
-            $string_length = $1;
+INPUT: while ($position < $input_length) {
+	my $char = substr($res, $position, 1);
+	pos $res = $position;
+	if ($res =~ m/\G S (\d+) [(]/xms) {
+            my $string_length = $1;
+	    $recce->read( 'Schar');
+	    $recce->read( 'Scount' );
 	    $recce->read( 'lparen' );
-	    $recce->read( 'text', substr( $res, pos($res), $string_length ));
-            pos ($res) += $string_length;
+	    $position += 2 + (length $string_length);
+	    $recce->read( 'text', substr( $res, $position, $string_length ));
+	    $position += $string_length;
             next INPUT;
         }
-        if ( $res =~ m{\G (\d+)}pxmsgc ) {
-	    $recce->read( 'Acount', $1 );
-            next INPUT;
-        }
-        if ( $res =~ m{\G A }pxmsgc ) {
-	    $recce->read( 'Achar' );
-            next INPUT;
-        }
-        if ( $res =~ m{\G [(] }pxmsgc ) {
+	if ($res =~ m/\G A (\d+) [(]/xms) {
+            my $count = $1;
+	    $recce->read( 'Achar');
+	    $recce->read( 'Acount' );
 	    $recce->read( 'lparen' );
+	    $position += 2 + length $count;
             next INPUT;
         }
-        if ( $res =~ m{\G [)] }pxmsgc ) {
+        if ( $res =~ m{\G [)] }xms ) {
 	    $recce->read( 'rparen' );
+	    $position += 1;
             next INPUT;
         }
-    say "POS=", pos($res);
-        die("Error reading input: ",
-            substr( $res, 0, 100 ),
-            "\nWas expecting ",
-            join q{ }, @terminals_expected
-        );
+        die "Error reading input: ", substr( $res, $position, 100 );
 } ## end for ( ;; )
 
 my $result = $recce->value();
 die "No parse" if not defined $result;
+exit 0 if $repeat > 1 and not $verbose;
 my $received = Dumper(${$result});
 
 my $expected = <<'EXPECTED_OUTPUT';
