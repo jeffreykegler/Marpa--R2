@@ -61,16 +61,7 @@ enum
     DEFAULT_ROUNDING = sizeof (union fooround)
   };
 
-/* When we copy a long block of data, this is the unit to do it with.
-   On some machines, copying successive ints does not work;
-   in such a case, redefine COPYING_UNIT to `long' (if that works)
-   or `char' as a last resort.  */
-# ifndef COPYING_UNIT
-#  define COPYING_UNIT int
-# endif
-
 # include <stdlib.h>
-
 
 /* Initialize an obstack H for use.  Specify chunk size SIZE (0 means default).
    Objects start on multiples of ALIGNMENT (0 means use default).
@@ -108,8 +99,6 @@ _marpa_obs_begin (struct obstack *h,
 
   chunk = h->chunk = malloc(h -> chunk_size);
   if (!chunk) (*marpa_out_of_memory)();
-  /* chunk = h->chunk = CALL_CHUNKFUN (h, h -> chunk_size); */
-  /* if (!chunk) (*obstack_alloc_failed_handler) (); */
   h->next_free = h->object_base = __PTR_ALIGN ((char *) chunk, chunk->contents,
 					       alignment - 1);
   h->chunk_limit = chunk->limit
@@ -145,8 +134,6 @@ _marpa_obs_newchunk (struct obstack *h, int length)
   /* Allocate and initialize the new chunk.  */
   new_chunk = malloc( new_size);
   if (!new_chunk) (*marpa_out_of_memory)();
-  /* new_chunk = CALL_CHUNKFUN (h, new_size); */
-  /* if (!new_chunk) (*obstack_alloc_failed_handler) (); */
   h->chunk = new_chunk;
   new_chunk->prev = old_chunk;
   new_chunk->limit = h->chunk_limit = (char *) new_chunk + new_size;
@@ -155,25 +142,7 @@ _marpa_obs_newchunk (struct obstack *h, int length)
   object_base =
     __PTR_ALIGN ((char *) new_chunk, new_chunk->contents, h->alignment_mask);
 
-  /* Move the existing object to the new chunk.
-     Word at a time is fast and is safe if the object
-     is sufficiently aligned.  */
-  if (h->alignment_mask + 1 >= DEFAULT_ALIGNMENT)
-    {
-      for (i = obj_size / sizeof (COPYING_UNIT) - 1;
-	   i >= 0; i--)
-	((COPYING_UNIT *)object_base)[i]
-	  = ((COPYING_UNIT *)h->object_base)[i];
-      /* We used to copy the odd few remaining bytes as one extra COPYING_UNIT,
-	 but that can cross a page boundary on a machine
-	 which does not do strict alignment for COPYING_UNITS.  */
-      already = obj_size / sizeof (COPYING_UNIT) * sizeof (COPYING_UNIT);
-    }
-  else
-    already = 0;
-  /* Copy remaining bytes one by one.  */
-  for (i = already; i < obj_size; i++)
-    object_base[i] = h->object_base[i];
+  for (i = obj_size - 1; i >= 0; i--) object_base[i] = (h->object_base)[i];
 
   /* If the object just copied was the only data in OLD_CHUNK,
      free that chunk and remove it from the chain.
