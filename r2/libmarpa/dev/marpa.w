@@ -4423,7 +4423,7 @@ _marpa_avl_destroy(duplicates, NULL);
 					     (unsigned int)
 					     Postdot_SYMID_of_AIM
 					     (start_item)), rule_by_sort_key,
-				 &states, duplicates);
+				 &states, duplicates, item_list_working_buffer);
 }
 
 @* Discovered AHFA States.
@@ -4496,7 +4496,7 @@ are either AHFA state 0, or 1-item discovered AHFA states.
 	  create_predicted_AHFA_state (g,
 				       matrix_row (prediction_matrix,
 						   (unsigned int) postdot),
-				       rule_by_sort_key, &states, duplicates);
+				       rule_by_sort_key, &states, duplicates, item_list_working_buffer);
       }
     else
       {
@@ -4738,7 +4738,8 @@ and add the predicted AHFA state@> =
 								     predicted_rule_vector,
 								     rule_by_sort_key,
 								     &states,
-								     duplicates);
+								     duplicates,
+								     item_list_working_buffer);
       bv_free (predicted_rule_vector);
     }
 }
@@ -4957,16 +4958,14 @@ create_predicted_AHFA_state(
      Bit_Vector prediction_rule_vector,
      RULE* rule_by_sort_key,
      DQUEUE states_p,
-     struct avl_table* duplicates
+     struct avl_table* duplicates,
+     AIM* item_list_working_buffer
      )
 {
-AIM* item_list_for_new_state;
 AHFA p_new_state;
-unsigned int item_list_ix = 0;
-unsigned int no_of_items_in_new_state = bv_count( prediction_rule_vector);
+int item_list_ix = 0;
+int no_of_items_in_new_state = bv_count( prediction_rule_vector);
 	if (no_of_items_in_new_state == 0) return NULL;
-item_list_for_new_state = my_obstack_alloc (&g->t_obs,
-	       no_of_items_in_new_state * sizeof (AIM));
 {
   unsigned int start, min, max;
   for (start = 0; bv_scan (prediction_rule_vector, start, &min, &max);
@@ -4977,26 +4976,33 @@ item_list_for_new_state = my_obstack_alloc (&g->t_obs,
 	{
 	  /* Add the initial item for the predicted rule */
 	  RULE rule = rule_by_sort_key[rule_sort_key];
-	  item_list_for_new_state[item_list_ix++] =
+	  item_list_working_buffer[item_list_ix++] =
 	    rule->t_first_aim;
 	}
     }
 }
     p_new_state = DQUEUE_PUSH((*states_p), AHFA_Object);
     AHFA_initialize(p_new_state);
-    p_new_state->t_items = item_list_for_new_state;
+    p_new_state->t_items = item_list_working_buffer;
     p_new_state->t_item_count = no_of_items_in_new_state;
     { AHFA queued_AHFA_state = assign_AHFA_state(p_new_state, duplicates);
         if (queued_AHFA_state) {
 		 /* The new state would be a duplicate.
 		 Back it out and return the one that already exists */
 	    (void)DQUEUE_POP((*states_p), AHFA_Object);
-	    my_obstack_free(&g->t_obs, item_list_for_new_state);
 	    return queued_AHFA_state;
 	}
     }
     // The new state was added -- finish up its data
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE((*states_p), AHFA_Object);
+      {
+	  int i;
+	  AIM* const final_aim_list = p_new_state->t_items =
+	      my_obstack_alloc( &g->t_obs, no_of_items_in_new_state * sizeof (AIM));
+	  for (i = 0; i < no_of_items_in_new_state; i++) {
+	      final_aim_list[i] = item_list_working_buffer[i];
+	  }
+      }
     AHFA_is_Predicted(p_new_state) = 1;
     p_new_state->t_empty_transition = NULL;
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
@@ -5007,13 +5013,13 @@ item_list_for_new_state = my_obstack_alloc (&g->t_obs,
 
 @ @<Calculate postdot symbols for predicted state@> =
 {
-  unsigned int symbol_count = SYM_Count_of_G (g);
-  unsigned int item_ix;
-  unsigned int no_of_postdot_symbols;
+  SYMID symbol_count = SYM_Count_of_G (g);
+  int item_ix;
+  SYMID no_of_postdot_symbols;
   Bit_Vector postdot_v = bv_create (symbol_count);
     for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
       {
-	AIM item = item_list_for_new_state[item_ix];
+	AIM item = item_list_working_buffer[item_ix];
 	SYMID postdot = Postdot_SYMID_of_AIM (item);
 	if (postdot >= 0)
 	  bv_bit_set (postdot_v, (unsigned int) postdot);

@@ -71,7 +71,7 @@ enum
 
 # include <stdlib.h>
 
-
+
 /* Initialize an obstack H for use.  Specify chunk size SIZE (0 means default).
    Objects start on multiples of ALIGNMENT (0 means use default).
 
