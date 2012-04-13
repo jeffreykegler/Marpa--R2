@@ -167,18 +167,10 @@ struct obstack		/* control current object in current chunk */
     void *tempptr;
   } temp;			/* Temporary for some macros.  */
   int   alignment_mask;		/* Mask of alignment for each object. */
-  /* These prototypes vary based on `use_extra_arg', and we use
-     casts to the prototypeless function type in all assignments,
-     but having prototypes here quiets -Wstrict-prototypes.  */
-  void *extra_arg;		/* first arg for chunk alloc/dealloc funcs */
-  unsigned use_extra_arg:1;	/* chunk alloc/dealloc funcs take extra arg */
   unsigned maybe_empty_object:1;/* There is a possibility that the current
 				   chunk contains a zero-length object.  This
 				   prevents freeing the chunk if we allocate
 				   a bigger chunk to replace it. */
-  unsigned alloc_failed:1;	/* No longer used, as we now call the failed
-				   handler on error, but retained for binary
-				   compatibility.  */
 };
 
 /* Declare the external functions we use; they are in obstack.c.  */
