@@ -7477,29 +7477,6 @@ struct s_token {
   I_of_R(r) = input_new(g);
 }
 
-@ @<Function definitions@> =
-PRIVATE
-TOK token_new(INPUT input, SYMID symbol_id, int value)
-{
-  TOK token;
-  if (value) {
-    token = my_obstack_alloc (TOK_Obs_of_I(input), sizeof(*token));
-    SYMID_of_TOK(token) = symbol_id;
-    Type_of_TOK(token) = VALUED_TOKEN_OR_NODE;
-    Value_of_TOK(token) = value;
-  } else {
-    token = my_obstack_alloc (TOK_Obs_of_I(input), sizeof(token->t_unvalued));
-    SYMID_of_TOK(token) = symbol_id;
-    Type_of_TOK(token) = UNVALUED_TOKEN_OR_NODE;
-  }
-  return token;
-}
-
-@ Recover |token| from the token obstack.
-The intended use is to recover the one token
-most recently added in case of an error.
-@<Recover |token|@> = my_obstack_free (TOK_Obs_of_R(r), token);
-
 @** Alternative Tokens (ALT) Code.
 Because Marpa allows more than one token at every
 earleme, Marpa's tokens are also called ``alternatives".
@@ -7797,17 +7774,31 @@ The Earley sets and items will not have been
 altered by the attempt.
 @<Insert alternative into stack, failing if token is duplicate@> =
 {
-  TOK token = token_new (input, token_id, value);
+  TOK token;
   ALT_Object alternative;
+  struct obstack *token_obstack = TOK_Obs_of_I (input);
+  if (value)
+    {
+      token = my_obstack_alloc (TOK_Obs_of_I (input), sizeof (*token));
+      SYMID_of_TOK (token) = token_id;
+      Type_of_TOK (token) = VALUED_TOKEN_OR_NODE;
+      Value_of_TOK (token) = value;
+    }
+  else
+    {
+      token =
+	my_obstack_alloc (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
+      SYMID_of_TOK (token) = token_id;
+      Type_of_TOK (token) = UNVALUED_TOKEN_OR_NODE;
+    }
   if (Furthest_Earleme_of_R (r) < target_earleme)
     Furthest_Earleme_of_R (r) = target_earleme;
   alternative.t_token = token;
   alternative.t_start_earley_set = current_earley_set;
   alternative.t_end_earleme = target_earleme;
   if (alternative_insert (r, &alternative) < 0)
-  {
-    @<Recover |token|@>@;
-    return duplicate_token_indicator;
+    { my_obstack_free (token_obstack, token);
+      return duplicate_token_indicator;
     }
 }
 
