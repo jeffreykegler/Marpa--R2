@@ -96,12 +96,12 @@ extern int _marpa_obs_memory_used (struct obstack *);
 #define _obstack_memory_used _marpa_obs_memory_used
 
 void _marpa_obs_free (struct obstack *__obstack, void *__block);
-
+
 /* Pointer to beginning of object being allocated or to be allocated next.
    Note that this might not be the final address of the object
    because a new chunk might be needed to hold the final size.  */
 
-#define obstack_base(h) ((void *) (h)->object_base)
+#define my_obstack_base(h) ((void *) (h)->object_base)
 
 /* Size for allocating ordinary chunks.  */
 
@@ -122,12 +122,15 @@ void _marpa_obs_free (struct obstack *__obstack, void *__block);
 
 #define obstack_1grow_fast(h,achar) (*((h)->next_free)++ = (achar))
 
-#define obstack_blank_fast(h,n) ((h)->next_free += (n))
+#define my_obstack_blank_fast(h,n) ((h)->next_free += (n))
 
 #define obstack_memory_used(h) _obstack_memory_used (h)
-
+
 # define obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
+
+# define my_obstack_reject(h) \
+  ((h)->next_free = (h)->object_base)
 
 # define obstack_room(h)		\
  (unsigned) ((h)->chunk_limit - (h)->next_free)
@@ -185,22 +188,22 @@ void _marpa_obs_free (struct obstack *__obstack, void *__block);
 # define obstack_int_grow_fast(h,aint)					\
   (((int *) ((h)->next_free += sizeof (int)))[-1] = (aint))
 
-# define obstack_blank(h,length)					\
+# define my_obstack_blank(h,length)					\
 ( (h)->temp.tempint = (length),						\
   (((h)->chunk_limit - (h)->next_free < (h)->temp.tempint)		\
    ? (_obstack_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
-  obstack_blank_fast (h, (h)->temp.tempint))
+  my_obstack_blank_fast (h, (h)->temp.tempint))
 
 # define my_obstack_alloc(h,length)					\
- (obstack_blank ((h), (length)), obstack_finish ((h)))
+ (my_obstack_blank ((h), (length)), my_obstack_finish ((h)))
 
 # define obstack_copy(h,where,length)					\
- (obstack_grow ((h), (where), (length)), obstack_finish ((h)))
+ (obstack_grow ((h), (where), (length)), my_obstack_finish ((h)))
 
 # define obstack_copy0(h,where,length)					\
- (obstack_grow0 ((h), (where), (length)), obstack_finish ((h)))
+ (obstack_grow0 ((h), (where), (length)), my_obstack_finish ((h)))
 
-# define obstack_finish(h)						\
+# define my_obstack_finish(h)						\
 ( ((h)->next_free == (h)->object_base					\
    ? (((h)->maybe_empty_object = 1), 0)					\
    : 0),								\
