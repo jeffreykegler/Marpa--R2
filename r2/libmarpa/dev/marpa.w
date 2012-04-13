@@ -968,23 +968,14 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event public_event,
 Two obstacks with the same lifetime as the grammar.
 This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the grammar.
-One obstack is reserved for of ``tricky" operations
-like |obs_free|,
-which require coordination with other allocations.
-The other obstack is reserved for ``safe" operations---%
+The obstack is reserved for ``safe" operations---%
 complete allocations which are never reversed.
-The dual obstacks allow me to get tricky where it is useful,
-which also allowing most obstack allocations to be done safely without
-the need to carefully examine their context.
 @<Widely aligned grammar elements@> =
 struct obstack t_obs;
-struct obstack t_obs_tricky;
 @ @<Initialize grammar elements@> =
 my_obstack_init(&g->t_obs);
-my_obstack_init(&g->t_obs_tricky);
 @ @<Destroy grammar elements@> =
 my_obstack_free(&g->t_obs, NULL);
-my_obstack_free(&g->t_obs_tricky, NULL);
 
 @*0 The "is OK" Word.
 The grammar needs a flag for a fatal error.
@@ -2467,14 +2458,19 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
+    // Phase 1: census the external the grammar
     { /* Scope with only external grammar */
 	@<Declare external grammar variables@>@;
 	@<Perform census of grammar |g|@>@;
 	@<Detect cycles@>@;
     }
+    // Phase 2: rewrite the grammar into internal form
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
+    // Phase 3: memoize the internal grammar
      if (!G_is_Trivial(g)) {
+	@<Declare variables for the internal grammar
+	memoizations@>@;
 	@<Create AHFA items@>@;
 	@<Create AHFA states@>@;
 	@<Populate the Terminal Boolean Vector@>@;
@@ -4284,8 +4280,8 @@ working_symbol = Postdot_SYMID_of_AIM(item_list[0]); /*
 if (working_symbol < 0) goto NEXT_AHFA_STATE; /*
     All items in this state are completions */
     while (1) { /* Loop over all items for this state */
-	unsigned int first_working_item_ix = current_item_ix;
-	unsigned int no_of_items_in_new_state;
+	int first_working_item_ix = current_item_ix;
+	int no_of_items_in_new_state;
 	for (current_item_ix++;
 		current_item_ix < no_of_items;
 		current_item_ix++) {
@@ -4570,117 +4566,131 @@ I am usually of the opinion that the pointer twiddling should be left
 to the optimizer, but in this case I think that a little bit of
 pointer twiddling actually makes the code clearer than it would
 be if written 100\% using indexes.
-@<Create a discovered AHFA state with 2+ items@> = {
-AHFA p_new_state;
-unsigned int predecessor_ix;
-unsigned int no_of_new_items_so_far = 0;
-AIM* item_list_for_new_state;
-AHFA queued_AHFA_state;
-p_new_state = DQUEUE_PUSH(states, AHFA_Object);
-item_list_for_new_state = p_new_state->t_items = my_obstack_alloc(&g->t_obs_tricky,
-    no_of_items_in_new_state * sizeof(AIM));
-p_new_state->t_item_count = no_of_items_in_new_state;
-for (predecessor_ix = first_working_item_ix;
-     predecessor_ix < current_item_ix; predecessor_ix++)
-  {
-    int pre_insertion_point_ix = no_of_new_items_so_far - 1;
-    AIM new_item_p = item_list[predecessor_ix] + 1;	// Transition to the next item
-    while (pre_insertion_point_ix >= 0)
-      {				// Insert the new item, ordered by |sort_key|
-	AIM *current_item_pp =
-	  item_list_for_new_state + pre_insertion_point_ix;
-	if (Sort_Key_of_AIM (new_item_p) >=
-	    Sort_Key_of_AIM (*current_item_pp))
-	  break;
-	*(current_item_pp + 1) = *current_item_pp;
-	pre_insertion_point_ix--;
-      }
-    item_list_for_new_state[pre_insertion_point_ix + 1] = new_item_p;
-    no_of_new_items_so_far++;
-  }
-queued_AHFA_state = assign_AHFA_state(p_new_state, duplicates);
-if (queued_AHFA_state)
-  {				// The new state would be a duplicate
+@<Declare variables for the internal grammar
+	memoizations@> =
+AIM* const item_list_working_buffer
+    = my_obstack_alloc(obs_precompute, RULE_Count_of_G(g)*sizeof(AIM));
+
+@ @<Create a discovered AHFA state with 2+ items@> =
+{
+  AHFA p_new_state;
+  unsigned int predecessor_ix;
+  unsigned int no_of_new_items_so_far = 0;
+  AHFA queued_AHFA_state;
+  p_new_state = DQUEUE_PUSH (states, AHFA_Object);
+  p_new_state->t_item_count = no_of_items_in_new_state;
+  for (predecessor_ix = first_working_item_ix;
+       predecessor_ix < current_item_ix; predecessor_ix++)
+    {
+      int pre_insertion_point_ix = no_of_new_items_so_far - 1;
+      AIM new_item_p = item_list[predecessor_ix] + 1;	// Transition to the next item
+      while (pre_insertion_point_ix >= 0)
+	{			// Insert the new item, ordered by |sort_key|
+	  AIM *current_item_pp =
+	    item_list_working_buffer + pre_insertion_point_ix;
+	  if (Sort_Key_of_AIM (new_item_p) >=
+	      Sort_Key_of_AIM (*current_item_pp))
+	    break;
+	  *(current_item_pp + 1) = *current_item_pp;
+	  pre_insertion_point_ix--;
+	}
+      item_list_working_buffer[pre_insertion_point_ix + 1] = new_item_p;
+      no_of_new_items_so_far++;
+    }
+  p_new_state->t_items = item_list_working_buffer;
+  queued_AHFA_state = assign_AHFA_state (p_new_state, duplicates);
+  if (queued_AHFA_state)
+    {				// The new state would be a duplicate
 // Back it out and go on to the next in the queue
-    (void) DQUEUE_POP (states, AHFA_Object);
-    my_obstack_free (&g->t_obs_tricky, item_list_for_new_state);
-    transition_add (obs_precompute, p_working_state, working_symbol, queued_AHFA_state);
-    /* |transition_add()| allocates obstack memory, but uses the 
-       ``non-tricky" obstack */
-    goto NEXT_WORKING_SYMBOL;
+      (void) DQUEUE_POP (states, AHFA_Object);
+      transition_add (obs_precompute, p_working_state, working_symbol,
+		      queued_AHFA_state);
+      goto NEXT_WORKING_SYMBOL;
+    }
+  // If we added the new state, finish up its data.
+  p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
+  {
+      int i;
+      AIM* const final_aim_list = p_new_state->t_items =
+	  my_obstack_alloc( &g->t_obs, no_of_items_in_new_state * sizeof (AIM));
+      for (i = 0; i < no_of_items_in_new_state; i++) {
+          final_aim_list[i] = item_list_working_buffer[i];
+      }
   }
-    // If we added the new state, finish up its data.
-    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE(states, AHFA_Object);
-    AHFA_initialize(p_new_state);
-    AHFA_is_Predicted(p_new_state) = 0;
-    TRANSs_of_AHFA(p_new_state) = transitions_new(g);
-    @<Calculate complete and postdot symbols for discovered state@>@/
-    transition_add(obs_precompute, p_working_state, working_symbol, p_new_state);
-    @<Calculate the predicted rule vector for this state
-        and add the predicted AHFA state@>@/
+  AHFA_initialize (p_new_state);
+  AHFA_is_Predicted (p_new_state) = 0;
+  TRANSs_of_AHFA (p_new_state) = transitions_new (g);
+  @<Calculate complete and postdot symbols for discovered
+    state@>@;
+  transition_add (obs_precompute, p_working_state, working_symbol,
+		  p_new_state);
+  @<Calculate the predicted rule vector for this
+    state and add the predicted AHFA state@>@;
 }
 
 @ @<Calculate complete and postdot symbols for discovered state@> =
 {
-  unsigned int symbol_count = SYM_Count_of_G (g);
-  unsigned int item_ix;
-  unsigned int no_of_postdot_symbols;
-  unsigned int no_of_complete_symbols;
+  int symbol_count = SYM_Count_of_G (g);
+  int item_ix;
+  int no_of_postdot_symbols;
+  int no_of_complete_symbols;
   Bit_Vector complete_v = bv_create (symbol_count);
   Bit_Vector postdot_v = bv_create (symbol_count);
   for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
     {
-      AIM item = item_list_for_new_state[item_ix];
+      AIM item = item_list_working_buffer[item_ix];
       Marpa_Symbol_ID postdot = Postdot_SYMID_of_AIM (item);
       if (postdot < 0)
 	{
 	  int complete_symbol_id = LHS_ID_of_AIM (item);
-	  completion_count_inc (obs_precompute, p_new_state, complete_symbol_id);
-	  bv_bit_set (complete_v, (unsigned int)complete_symbol_id );
+	  completion_count_inc (obs_precompute, p_new_state,
+				complete_symbol_id);
+	  bv_bit_set (complete_v, (unsigned int) complete_symbol_id);
 	}
       else
 	{
 	  bv_bit_set (postdot_v, (unsigned int) postdot);
 	}
     }
-if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
-     bv_count (postdot_v)))
-  {
-    unsigned int min, max, start;
-    Marpa_Symbol_ID *p_symbol = p_new_state->t_postdot_symid_ary =
-      my_obstack_alloc (&g->t_obs,
-		     no_of_postdot_symbols * sizeof (SYMID));
-    for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
-      {
-	Marpa_Symbol_ID postdot;
-	for (postdot = (Marpa_Symbol_ID) min;
-	     postdot <= (Marpa_Symbol_ID) max; postdot++)
-	  {
-	    *p_symbol++ = postdot;
-	  }
-      }
-  }
-    if ((no_of_complete_symbols =
-	 Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (complete_v)))
-      {
-	unsigned int min, max, start;
-	SYMID *complete_symids = my_obstack_alloc (&g->t_obs,
-						no_of_complete_symbols *
-						sizeof (SYMID));
-	SYMID *p_symbol = complete_symids;
-	Complete_SYMIDs_of_AHFA (p_new_state) = complete_symids;
-	for (start = 0; bv_scan (complete_v, start, &min, &max); start = max + 2)
-	  {
-	    SYMID complete_symbol_id;
-	    for (complete_symbol_id = (SYMID) min; complete_symbol_id <= (SYMID) max;
-		 complete_symbol_id++)
-	      {
-		*p_symbol++ = complete_symbol_id;
-	      }
-	  }
+  if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
+       bv_count (postdot_v)))
+    {
+      unsigned int min, max, start;
+      Marpa_Symbol_ID *p_symbol = p_new_state->t_postdot_symid_ary =
+	my_obstack_alloc (&g->t_obs,
+			  no_of_postdot_symbols * sizeof (SYMID));
+      for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
+	{
+	  Marpa_Symbol_ID postdot;
+	  for (postdot = (Marpa_Symbol_ID) min;
+	       postdot <= (Marpa_Symbol_ID) max; postdot++)
+	    {
+	      *p_symbol++ = postdot;
+	    }
+	}
     }
-    bv_free (postdot_v);
-    bv_free (complete_v);
+  if ((no_of_complete_symbols =
+       Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (complete_v)))
+    {
+      unsigned int min, max, start;
+      SYMID *complete_symids = my_obstack_alloc (&g->t_obs,
+						 no_of_complete_symbols *
+						 sizeof (SYMID));
+      SYMID *p_symbol = complete_symids;
+      Complete_SYMIDs_of_AHFA (p_new_state) = complete_symids;
+      for (start = 0; bv_scan (complete_v, start, &min, &max);
+	   start = max + 2)
+	{
+	  SYMID complete_symbol_id;
+	  for (complete_symbol_id = (SYMID) min;
+	       complete_symbol_id <= (SYMID) max; complete_symbol_id++)
+	    {
+	      *p_symbol++ = complete_symbol_id;
+	    }
+	}
+    }
+  bv_free (postdot_v);
+  bv_free (complete_v);
 }
 
 @ Find the AHFA state in the argument,
@@ -4698,35 +4708,39 @@ assign_AHFA_state (AHFA sought_state, struct avl_table* duplicates)
 }
 
 @ @<Calculate the predicted rule vector for this state
-and add the predicted AHFA state@> = {
-unsigned int item_ix;
-Marpa_Symbol_ID postdot = -1; // Initialized to prevent GCC warning
-for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++) {
-    postdot = Postdot_SYMID_of_AIM(item_list_for_new_state[item_ix]);
-    if (postdot >= 0) break;
-}
-p_new_state->t_empty_transition = NULL;
-if (postdot >= 0)
-{				/* If any item is not a completion ... */
-  Bit_Vector predicted_rule_vector
-    = bv_shadow (matrix_row (prediction_matrix, (unsigned int) postdot));
+and add the predicted AHFA state@> =
+{
+  int item_ix;
+  Marpa_Symbol_ID postdot = -1;	// Initialized to prevent GCC warning
   for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
     {
-      /* ``or" the other non-complete items into the prediction rule vector */
-      postdot = Postdot_SYMID_of_AIM (item_list_for_new_state[item_ix]);
-      if (postdot < 0)
-	continue;
-      bv_or_assign (predicted_rule_vector,
-		    matrix_row (prediction_matrix, (unsigned int) postdot));
+      postdot = Postdot_SYMID_of_AIM (item_list_working_buffer[item_ix]);
+      if (postdot >= 0)
+	break;
     }
-  /* Add the predicted rule */
-  p_new_state->t_empty_transition = create_predicted_AHFA_state (g,
-			 predicted_rule_vector,
-			 rule_by_sort_key,
-			 &states,
-			 duplicates);
-  bv_free (predicted_rule_vector);
-}
+  p_new_state->t_empty_transition = NULL;
+  if (postdot >= 0)
+    {				/* If any item is not a completion ... */
+      Bit_Vector predicted_rule_vector
+	= bv_shadow (matrix_row (prediction_matrix, (unsigned int) postdot));
+      for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
+	{
+	  /* ``or" the other non-complete items into the prediction rule vector */
+	  postdot = Postdot_SYMID_of_AIM (item_list_working_buffer[item_ix]);
+	  if (postdot < 0)
+	    continue;
+	  bv_or_assign (predicted_rule_vector,
+			matrix_row (prediction_matrix,
+				    (unsigned int) postdot));
+	}
+      /* Add the predicted rule */
+      p_new_state->t_empty_transition = create_predicted_AHFA_state (g,
+								     predicted_rule_vector,
+								     rule_by_sort_key,
+								     &states,
+								     duplicates);
+      bv_free (predicted_rule_vector);
+    }
 }
 
 @*0 Predicted AHFA States.
