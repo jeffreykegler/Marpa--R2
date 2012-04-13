@@ -24,98 +24,9 @@
  * http://www.gnu.org/licenses/.
  */
 
-/* Summary:
-
-All the apparent functions defined here are macros. The idea
-is that you would use these pre-tested macros to solve a
-very specific set of problems, and they would run fast.
-Caution: no side-effects in arguments please!! They may be
-evaluated MANY times!!
-
-These macros operate a stack of objects.  Each object starts life
-small, and may grow to maturity.  (Consider building a word syllable
-by syllable.)  An object can move while it is growing.  Once it has
-been "finished" it never changes address again.  So the "top of the
-stack" is typically an immature growing object, while the rest of the
-stack is of mature, fixed size and fixed address objects.
-
-These routines grab large chunks of memory, using a function you
-supply, called `obstack_chunk_alloc'.  On occasion, they free chunks,
-by calling `obstack_chunk_free'.  You must define them and declare
-them before using any obstack macros.
-
-Each independent stack is represented by a `struct obstack'.
-Each of the obstack macros expects a pointer to such a structure
-as the first argument.
-
-One motivation for this package is the problem of growing char strings
-in symbol tables.  Unless you are "fascist pig with a read-only mind"
---Gosper's immortal quote from HAKMEM item 154, out of context--you
-would not like to put any arbitrary upper limit on the length of your
-symbols.
-
-In practice this often means you will build many short symbols and a
-few long symbols.  At the time you are reading a symbol you don't know
-how long it is.  One traditional method is to read a symbol into a
-buffer, realloc()ating the buffer every time you try to read a symbol
-that is longer than the buffer.  This is beaut, but you still will
-want to copy the symbol from the buffer to a more permanent
-symbol-table entry say about half the time.
-
-With obstacks, you can work differently.  Use one obstack for all symbol
-names.  As you read a symbol, grow the name in the obstack gradually.
-When the name is complete, finalize it.  Then, if the symbol exists already,
-free the newly read name.
-
-The way we do this is to take a large chunk, allocating memory from
-low addresses.  When you want to build a symbol in the chunk you just
-add chars above the current "high water mark" in the chunk.  When you
-have finished adding chars, because you got to the end of the symbol,
-you know how long the chars are, and you can create a new object.
-Mostly the chars will not burst over the highest address of the chunk,
-because you would typically expect a chunk to be (say) 100 times as
-long as an average object.
-
-In case that isn't clear, when we have enough chars to make up
-the object, THEY ARE ALREADY CONTIGUOUS IN THE CHUNK (guaranteed)
-so we just point to it where it lies.  No moving of chars is
-needed and this is the second win: potentially long strings need
-never be explicitly shuffled. Once an object is formed, it does not
-change its address during its lifetime.
-
-When the chars burst over a chunk boundary, we allocate a larger
-chunk, and then copy the partly formed object from the end of the old
-chunk to the beginning of the new larger chunk.  We then carry on
-accreting characters to the end of the object as we normally would.
-
-A special macro is provided to add a single char at a time to a
-growing object.  This allows the use of register variables, which
-break the ordinary 'growth' macro.
-
-Summary:
-	We allocate large chunks.
-	We carve out one object at a time from the current chunk.
-	Once carved, an object never moves.
-	We are free to append data of any size to the currently
-	  growing object.
-	Exactly one object is growing in an obstack at any one time.
-	You can run one obstack per control block.
-	You may have as many control blocks as you dare.
-	Because of the way we do it, you can `unwind' an obstack
-	  back to a previous state. (You may remove objects much
-	  as you would with a stack.)
-*/
-
-
-/* Don't do the contents of this file more than once.  */
-
 #ifndef MARPA_OBS_H
 #define MARPA_OBS_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* We need the type of a pointer subtraction.  If __PTRDIFF_TYPE__ is
    defined, as with GNU C, use that; that way we don't pollute the
    namespace with <stddef.h>'s symbols.  Otherwise, include <stddef.h>
@@ -215,160 +126,6 @@ void _marpa_obs_free (struct obstack *__obstack, void *__block);
 
 #define obstack_memory_used(h) _obstack_memory_used (h)
 
-#if defined __GNUC__ && defined __STDC__ && __STDC__
-/* NextStep 2.0 cc is really gcc 1.93 but it defines __GNUC__ = 2 and
-   does not implement __extension__.  But that compiler doesn't define
-   __GNUC_MINOR__.  */
-# if __GNUC__ < 2 || (__NeXT__ && !__GNUC_MINOR__)
-#  define __extension__
-# endif
-
-/* For GNU C, if not -traditional,
-   we can define these macros to compute all args only once
-   without using a global variable.
-   Also, we can avoid using the `temp' slot, to make faster code.  */
-
-# define obstack_object_size(OBSTACK)					\
-  __extension__								\
-  ({ struct obstack const *__o = (OBSTACK);				\
-     (unsigned) (__o->next_free - __o->object_base); })
-
-# define obstack_room(OBSTACK)						\
-  __extension__								\
-  ({ struct obstack const *__o = (OBSTACK);				\
-     (unsigned) (__o->chunk_limit - __o->next_free); })
-
-# define obstack_make_room(OBSTACK,length)				\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   int __len = (length);						\
-   if (__o->chunk_limit - __o->next_free < __len)			\
-     _obstack_newchunk (__o, __len);					\
-   (void) 0; })
-
-# define obstack_empty_p(OBSTACK)					\
-  __extension__								\
-  ({ struct obstack const *__o = (OBSTACK);				\
-     (__o->chunk->prev == 0						\
-      && __o->next_free == __PTR_ALIGN ((char *) __o->chunk,		\
-					__o->chunk->contents,		\
-					__o->alignment_mask)); })
-
-# define obstack_grow(OBSTACK,where,length)				\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   int __len = (length);						\
-   if (__o->next_free + __len > __o->chunk_limit)			\
-     _obstack_newchunk (__o, __len);					\
-   memcpy (__o->next_free, where, __len);				\
-   __o->next_free += __len;						\
-   (void) 0; })
-
-# define obstack_grow0(OBSTACK,where,length)				\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   int __len = (length);						\
-   if (__o->next_free + __len + 1 > __o->chunk_limit)			\
-     _obstack_newchunk (__o, __len + 1);				\
-   memcpy (__o->next_free, where, __len);				\
-   __o->next_free += __len;						\
-   *(__o->next_free)++ = 0;						\
-   (void) 0; })
-
-# define obstack_1grow(OBSTACK,datum)					\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   if (__o->next_free + 1 > __o->chunk_limit)				\
-     _obstack_newchunk (__o, 1);					\
-   obstack_1grow_fast (__o, datum);					\
-   (void) 0; })
-
-/* These assume that the obstack alignment is good enough for pointers
-   or ints, and that the data added so far to the current object
-   shares that much alignment.  */
-
-# define obstack_ptr_grow(OBSTACK,datum)				\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   if (__o->next_free + sizeof (void *) > __o->chunk_limit)		\
-     _obstack_newchunk (__o, sizeof (void *));				\
-   obstack_ptr_grow_fast (__o, datum); })				\
-
-# define obstack_int_grow(OBSTACK,datum)				\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   if (__o->next_free + sizeof (int) > __o->chunk_limit)		\
-     _obstack_newchunk (__o, sizeof (int));				\
-   obstack_int_grow_fast (__o, datum); })
-
-# define obstack_ptr_grow_fast(OBSTACK,aptr)				\
-__extension__								\
-({ struct obstack *__o1 = (OBSTACK);					\
-   *(const void **) __o1->next_free = (aptr);				\
-   __o1->next_free += sizeof (const void *);				\
-   (void) 0; })
-
-# define obstack_int_grow_fast(OBSTACK,aint)				\
-__extension__								\
-({ struct obstack *__o1 = (OBSTACK);					\
-   *(int *) __o1->next_free = (aint);					\
-   __o1->next_free += sizeof (int);					\
-   (void) 0; })
-
-# define obstack_blank(OBSTACK,length)					\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   int __len = (length);						\
-   if (__o->chunk_limit - __o->next_free < __len)			\
-     _obstack_newchunk (__o, __len);					\
-   obstack_blank_fast (__o, __len);					\
-   (void) 0; })
-
-# define my_obstack_alloc(OBSTACK,length)					\
-__extension__								\
-({ struct obstack *__h = (OBSTACK);					\
-   obstack_blank (__h, (length));					\
-   obstack_finish (__h); })
-
-# define obstack_copy(OBSTACK,where,length)				\
-__extension__								\
-({ struct obstack *__h = (OBSTACK);					\
-   obstack_grow (__h, (where), (length));				\
-   obstack_finish (__h); })
-
-# define obstack_copy0(OBSTACK,where,length)				\
-__extension__								\
-({ struct obstack *__h = (OBSTACK);					\
-   obstack_grow0 (__h, (where), (length));				\
-   obstack_finish (__h); })
-
-/* The local variable is named __o1 to avoid a name conflict
-   when obstack_blank is called.  */
-# define obstack_finish(OBSTACK)					\
-__extension__								\
-({ struct obstack *__o1 = (OBSTACK);					\
-   void *__value = (void *) __o1->object_base;				\
-   if (__o1->next_free == __value)					\
-     __o1->maybe_empty_object = 1;					\
-   __o1->next_free							\
-     = __PTR_ALIGN (__o1->object_base, __o1->next_free,			\
-		    __o1->alignment_mask);				\
-   if (__o1->next_free - (char *)__o1->chunk				\
-       > __o1->chunk_limit - (char *)__o1->chunk)			\
-     __o1->next_free = __o1->chunk_limit;				\
-   __o1->object_base = __o1->next_free;					\
-   __value; })
-
-# define my_obstack_free(OBSTACK, OBJ)					\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   void *__obj = (OBJ);							\
-   if (__obj > (void *)__o->chunk && __obj < (void *)__o->chunk_limit)  \
-     __o->next_free = __o->object_base = (char *)__obj;			\
-   else (_marpa_obs_free) (__o, __obj); })
-
-#else /* not __GNUC__ or not __STDC__ */
-
 # define obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
 
@@ -434,7 +191,7 @@ __extension__								\
    ? (_obstack_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
   obstack_blank_fast (h, (h)->temp.tempint))
 
-# define obstack_alloc(h,length)					\
+# define my_obstack_alloc(h,length)					\
  (obstack_blank ((h), (length)), obstack_finish ((h)))
 
 # define obstack_copy(h,where,length)					\
@@ -457,18 +214,12 @@ __extension__								\
   (h)->object_base = (h)->next_free,					\
   (h)->temp.tempptr)
 
-# define obstack_free(h,obj)						\
+# define my_obstack_free(h,obj)						\
 ( (h)->temp.tempint = (char *) (obj) - (char *) (h)->chunk,		\
   ((((h)->temp.tempint > 0						\
     && (h)->temp.tempint < (h)->chunk_limit - (char *) (h)->chunk))	\
    ? (int) ((h)->next_free = (h)->object_base				\
 	    = (h)->temp.tempint + (char *) (h)->chunk)			\
    : (((_marpa_obs_free) ((h), (h)->temp.tempint + (char *) (h)->chunk), 0), 0)))
-
-#endif /* not __GNUC__ or not __STDC__ */
-
-#ifdef __cplusplus
-}	/* C++ */
-#endif
 
 #endif /* marpa_obs.h */
