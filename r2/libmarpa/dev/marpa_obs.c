@@ -221,7 +221,7 @@ _marpa_obs_allocated_p (struct obstack *h, void *obj)
 
 /* Free everything in H.  */
 void
-_marpa_obs_free (struct obstack *h, void *obj)
+_marpa_obs_free (struct obstack *h)
 {
   struct _obstack_chunk *lp;	/* below addr of any objects in this chunk */
   struct _obstack_chunk *plp;	/* point to previous chunk if any */

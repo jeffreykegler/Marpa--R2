@@ -95,7 +95,8 @@ extern int _marpa_obs_begin (struct obstack *, int, int);
 extern int _marpa_obs_memory_used (struct obstack *);
 #define _obstack_memory_used _marpa_obs_memory_used
 
-void _marpa_obs_free (struct obstack *__obstack, void *__block);
+void _marpa_obs_free (struct obstack *__obstack);
+void _marpa_obs_clear (struct obstack *__obstack);
 
 /* Pointer to beginning of object being allocated or to be allocated next.
    Note that this might not be the final address of the object
@@ -129,6 +130,7 @@ void _marpa_obs_free (struct obstack *__obstack, void *__block);
 # define obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
 
+/* Reject any object being built, as if it never existed */
 # define my_obstack_reject(h) \
   ((h)->next_free = (h)->object_base)
 
@@ -217,12 +219,6 @@ void _marpa_obs_free (struct obstack *__obstack, void *__block);
   (h)->object_base = (h)->next_free,					\
   (h)->temp.tempptr)
 
-# define my_obstack_free(h,obj)						\
-( (h)->temp.tempint = (char *) (obj) - (char *) (h)->chunk,		\
-  ((((h)->temp.tempint > 0						\
-    && (h)->temp.tempint < (h)->chunk_limit - (char *) (h)->chunk))	\
-   ? (int) ((h)->next_free = (h)->object_base				\
-	    = (h)->temp.tempint + (char *) (h)->chunk)			\
-   : (((_marpa_obs_free) ((h), (h)->temp.tempint + (char *) (h)->chunk), 0), 0)))
+# define my_obstack_free(h)	(_marpa_obs_free((h)))
 
 #endif /* marpa_obs.h */

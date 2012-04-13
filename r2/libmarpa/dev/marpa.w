@@ -964,18 +964,16 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event public_event,
   return type;
 }
 
-@*0 The grammar obstacks.
-Two obstacks with the same lifetime as the grammar.
+@*0 The grammar obstack.
+An obstack with the same lifetime as the grammar.
 This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the grammar.
-The obstack is reserved for ``safe" operations---%
-complete allocations which are never reversed.
 @<Widely aligned grammar elements@> =
 struct obstack t_obs;
 @ @<Initialize grammar elements@> =
 my_obstack_init(&g->t_obs);
 @ @<Destroy grammar elements@> =
-my_obstack_free(&g->t_obs, NULL);
+my_obstack_free(&g->t_obs);
 
 @*0 The "is OK" Word.
 The grammar needs a flag for a fatal error.
@@ -2477,7 +2475,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     }
      return_value = G_EVENT_COUNT(g);
      FAILURE:;
-    my_obstack_free(obs_precompute, NULL);
+    my_obstack_free(obs_precompute);
     my_free(obs_precompute);
      return return_value;
 }
@@ -5316,7 +5314,7 @@ guarantee that it is safe to destroy it.
 @<Function definitions@> =
 PRIVATE void input_free(INPUT input)
 {
-    my_obstack_free(TOK_Obs_of_I(input), NULL);
+    my_obstack_free(TOK_Obs_of_I(input));
     my_slice_free(struct s_input, input);
 }
 
@@ -5741,7 +5739,7 @@ This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the recognizer.
 @<Widely aligned recognizer elements@> = struct obstack t_obs;
 @ @<Initialize recognizer obstack@> = my_obstack_init(&r->t_obs);
-@ @<Destroy recognizer obstack@> = my_obstack_free(&r->t_obs, NULL);
+@ @<Destroy recognizer obstack@> = my_obstack_free(&r->t_obs);
 
 @*0 Recognizer error accessor.
 @ A convenience wrapper for the grammar error strings.
@@ -7776,18 +7774,19 @@ altered by the attempt.
 {
   TOK token;
   ALT_Object alternative;
-  struct obstack *token_obstack = TOK_Obs_of_I (input);
+  struct obstack * const token_obstack = TOK_Obs_of_I (input);
   if (value)
     {
-      token = my_obstack_alloc (TOK_Obs_of_I (input), sizeof (*token));
+      my_obstack_blank (TOK_Obs_of_I (input), sizeof (*token));
+      token = my_obstack_base (token_obstack);
       SYMID_of_TOK (token) = token_id;
       Type_of_TOK (token) = VALUED_TOKEN_OR_NODE;
       Value_of_TOK (token) = value;
     }
   else
     {
-      token =
-	my_obstack_alloc (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
+      my_obstack_blank (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
+      token = my_obstack_base (token_obstack);
       SYMID_of_TOK (token) = token_id;
       Type_of_TOK (token) = UNVALUED_TOKEN_OR_NODE;
     }
@@ -7797,9 +7796,11 @@ altered by the attempt.
   alternative.t_start_earley_set = current_earley_set;
   alternative.t_end_earleme = target_earleme;
   if (alternative_insert (r, &alternative) < 0)
-    { my_obstack_free (token_obstack, token);
+    {
+      my_obstack_reject (token_obstack);
       return duplicate_token_indicator;
     }
+  token = my_obstack_finish (token_obstack);
 }
 
 @** Complete an Earley Set.
@@ -8709,7 +8710,7 @@ PRIVATE void ur_node_stack_reset(URS stack)
 @ @<Function definitions@> =
 PRIVATE void ur_node_stack_destroy(URS stack)
 {
-    if (stack->t_base) my_obstack_free(&stack->t_obs, NULL);
+    if (stack->t_base) my_obstack_free(&stack->t_obs);
     stack->t_base = NULL;
 }
 
@@ -10135,7 +10136,7 @@ b->t_is_obstack_initialized = 1;
 my_obstack_init(&OBS_of_B(b));
 @ @<Destroy bocage elements, final phase@> =
 if (b->t_is_obstack_initialized) {
-    my_obstack_free(&OBS_of_B(b), NULL);
+    my_obstack_free(&OBS_of_B(b));
     b->t_is_obstack_initialized = 0;
 }
 
@@ -10185,7 +10186,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Create the or-nodes for all earley sets@>@;
     @<Create the final and-nodes for all earley sets@>@;
     @<Set top or node id in |b|@>;
-    my_obstack_free(&bocage_setup_obs, NULL);
+    my_obstack_free(&bocage_setup_obs);
     return b;
     B_NEW_RETURN_ERROR: ;
     input_unref(input);
@@ -10684,7 +10685,7 @@ PRIVATE void order_free(ORDER o)
   order_strip(o);
   if (o->t_and_node_orderings) {
       o->t_and_node_orderings = NULL;
-      my_obstack_free(&OBS_of_O(o), NULL);
+      my_obstack_free(&OBS_of_O(o));
   }
   my_slice_free(struct s_order, o);
 }
