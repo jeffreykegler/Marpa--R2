@@ -218,16 +218,11 @@ _marpa_obs_allocated_p (struct obstack *h, void *obj)
     }
   return lp != 0;
 }
-
-/* The function name is overriden by a define, which we must
- * in order to actually define the function.
- */
-#undef _marpa_obs_free
 
 /* Free objects in obstack H, including OBJ and everything allocate
    more recently than OBJ.  If OBJ is zero, free everything in H.  */
 void
-_marpa_obs_free (struct obstack *h, void *obj)
+_marpa_obs_free (struct obstack *h)
 {
   register struct _obstack_chunk *lp;	/* below addr of any objects in this chunk */
   register struct _obstack_chunk *plp;	/* point to previous chunk if any */
@@ -237,26 +232,39 @@ _marpa_obs_free (struct obstack *h, void *obj)
   /* We use >= because there cannot be an object at the beginning of a chunk.
      But there can be an empty object at that address
      at the end of another chunk.  */
-  while (lp != 0 && ((void *) lp >= obj || (void *) (lp)->limit < obj))
+  while (lp != 0)
     {
       plp = lp->prev;
       free( lp);
       lp = plp;
-      /* If we switch chunks, we can't tell whether the new current
-	 chunk contains an empty object, so assume that it may.  */
-      h->maybe_empty_object = 1;
+    }
+}
+
+/* Free objects in obstack H, but leave the obstack initialized */
+void
+_marpa_obs_clear (struct obstack *h)
+{
+  struct _obstack_chunk *lp;	/* below addr of any objects in this chunk */
+  struct _obstack_chunk *plp;	/* point to previous chunk if any */
+
+  lp = h->chunk;
+  /* We use >= because there cannot be an object at the beginning of a chunk.
+     But there can be an empty object at that address
+     at the end of another chunk.  */
+  while ((plp = lp->prev) != 0)
+    {
+      free( lp);
+      lp = plp;
     }
   if (lp)
     {
-      h->object_base = h->next_free = (char *) (obj);
+  h->next_free = h->object_base = __PTR_ALIGN ((char *) lp, lp->contents,
+					       h->alignment_mask);
       h->chunk_limit = lp->limit;
       h->chunk = lp;
     }
-  else if (obj != 0)
-    /* obj is not in any of the chunks! */
-    abort ();
 }
-
+
 int
 _marpa_obs_memory_used (struct obstack *h)
 {
@@ -269,4 +277,3 @@ _marpa_obs_memory_used (struct obstack *h)
     }
   return nbytes;
 }
-

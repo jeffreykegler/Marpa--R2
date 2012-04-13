@@ -112,10 +112,6 @@ Summary:
 #ifndef MARPA_OBS_H
 #define MARPA_OBS_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* We need the type of a pointer subtraction.  If __PTRDIFF_TYPE__ is
    defined, as with GNU C, use that; that way we don't pollute the
    namespace with <stddef.h>'s symbols.  Otherwise, include <stddef.h>
@@ -173,6 +169,9 @@ struct obstack		/* control current object in current chunk */
 				   a bigger chunk to replace it. */
 };
 
+/* Initializer to make obstack "safe" for _marpa_obs_free() call */
+#define SAFE_OBSTACK { -1L };
+
 /* Declare the external functions we use; they are in obstack.c.  */
 
 extern void _marpa_obs_newchunk (struct obstack *, int);
@@ -184,7 +183,7 @@ extern int _marpa_obs_begin (struct obstack *, int, int);
 extern int _marpa_obs_memory_used (struct obstack *);
 #define _obstack_memory_used _marpa_obs_memory_used
 
-void _marpa_obs_free (struct obstack *__obstack, void *__block);
+void _marpa_obs_free (struct obstack *__obstack);
 
 /* Pointer to beginning of object being allocated or to be allocated next.
    Note that this might not be the final address of the object
@@ -359,14 +358,6 @@ __extension__								\
    __o1->object_base = __o1->next_free;					\
    __value; })
 
-# define my_obstack_free(OBSTACK, OBJ)					\
-__extension__								\
-({ struct obstack *__o = (OBSTACK);					\
-   void *__obj = (OBJ);							\
-   if (__obj > (void *)__o->chunk && __obj < (void *)__o->chunk_limit)  \
-     __o->next_free = __o->object_base = (char *)__obj;			\
-   else (_marpa_obs_free) (__o, __obj); })
-
 #else /* not __GNUC__ or not __STDC__ */
 
 # define obstack_object_size(h) \
@@ -434,7 +425,7 @@ __extension__								\
    ? (_obstack_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
   obstack_blank_fast (h, (h)->temp.tempint))
 
-# define obstack_alloc(h,length)					\
+# define my_obstack_alloc(h,length)					\
  (obstack_blank ((h), (length)), obstack_finish ((h)))
 
 # define obstack_copy(h,where,length)					\
@@ -457,18 +448,8 @@ __extension__								\
   (h)->object_base = (h)->next_free,					\
   (h)->temp.tempptr)
 
-# define obstack_free(h,obj)						\
-( (h)->temp.tempint = (char *) (obj) - (char *) (h)->chunk,		\
-  ((((h)->temp.tempint > 0						\
-    && (h)->temp.tempint < (h)->chunk_limit - (char *) (h)->chunk))	\
-   ? (int) ((h)->next_free = (h)->object_base				\
-	    = (h)->temp.tempint + (char *) (h)->chunk)			\
-   : (((_marpa_obs_free) ((h), (h)->temp.tempint + (char *) (h)->chunk), 0), 0)))
-
 #endif /* not __GNUC__ or not __STDC__ */
 
-#ifdef __cplusplus
-}	/* C++ */
-#endif
+# define my_obstack_free(obstack) (_marpa_obs_free(obstack))
 
 #endif /* marpa_obs.h */

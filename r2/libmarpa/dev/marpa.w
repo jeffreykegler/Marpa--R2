@@ -975,7 +975,7 @@ struct obstack t_obs;
 @ @<Initialize grammar elements@> =
 my_obstack_init(&g->t_obs);
 @ @<Destroy grammar elements@> =
-my_obstack_free(&g->t_obs, NULL);
+my_obstack_free(&g->t_obs);
 
 @*0 The "is OK" Word.
 The grammar needs a flag for a fatal error.
@@ -2477,7 +2477,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     }
      return_value = G_EVENT_COUNT(g);
      FAILURE:;
-    my_obstack_free(obs_precompute, NULL);
+    my_obstack_free(obs_precompute);
     my_free(obs_precompute);
      return return_value;
 }
@@ -4991,7 +4991,6 @@ item_list_for_new_state = my_obstack_alloc (&g->t_obs,
 		 /* The new state would be a duplicate.
 		 Back it out and return the one that already exists */
 	    (void)DQUEUE_POP((*states_p), AHFA_Object);
-	    my_obstack_free(&g->t_obs, item_list_for_new_state);
 	    return queued_AHFA_state;
 	}
     }
@@ -5310,7 +5309,7 @@ guarantee that it is safe to destroy it.
 @<Function definitions@> =
 PRIVATE void input_free(INPUT input)
 {
-    my_obstack_free(TOK_Obs_of_I(input), NULL);
+    my_obstack_free(TOK_Obs_of_I(input));
     my_slice_free(struct s_input, input);
 }
 
@@ -5735,7 +5734,7 @@ This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the recognizer.
 @<Widely aligned recognizer elements@> = struct obstack t_obs;
 @ @<Initialize recognizer obstack@> = my_obstack_init(&r->t_obs);
-@ @<Destroy recognizer obstack@> = my_obstack_free(&r->t_obs, NULL);
+@ @<Destroy recognizer obstack@> = my_obstack_free(&r->t_obs);
 
 @*0 Recognizer error accessor.
 @ A convenience wrapper for the grammar error strings.
@@ -7492,7 +7491,7 @@ TOK token_new(INPUT input, SYMID symbol_id, int value)
 @ Recover |token| from the token obstack.
 The intended use is to recover the one token
 most recently added in case of an error.
-@<Recover |token|@> = my_obstack_free (TOK_Obs_of_R(r), token);
+@<Recover |token|@> = my_obstack_free (TOK_Obs_of_R(r));
 
 @** Alternative Tokens (ALT) Code.
 Because Marpa allows more than one token at every
@@ -8712,7 +8711,7 @@ PRIVATE void ur_node_stack_reset(URS stack)
 @ @<Function definitions@> =
 PRIVATE void ur_node_stack_destroy(URS stack)
 {
-    if (stack->t_base) my_obstack_free(&stack->t_obs, NULL);
+    if (stack->t_base) my_obstack_free(&stack->t_obs);
     stack->t_base = NULL;
 }
 
@@ -10138,7 +10137,7 @@ b->t_is_obstack_initialized = 1;
 my_obstack_init(&OBS_of_B(b));
 @ @<Destroy bocage elements, final phase@> =
 if (b->t_is_obstack_initialized) {
-    my_obstack_free(&OBS_of_B(b), NULL);
+    my_obstack_free(&OBS_of_B(b));
     b->t_is_obstack_initialized = 0;
 }
 
@@ -10188,7 +10187,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Create the or-nodes for all earley sets@>@;
     @<Create the final and-nodes for all earley sets@>@;
     @<Set top or node id in |b|@>;
-    my_obstack_free(&bocage_setup_obs, NULL);
+    my_obstack_free(&bocage_setup_obs);
     return b;
     B_NEW_RETURN_ERROR: ;
     input_unref(input);
@@ -10687,7 +10686,7 @@ PRIVATE void order_free(ORDER o)
   order_strip(o);
   if (o->t_and_node_orderings) {
       o->t_and_node_orderings = NULL;
-      my_obstack_free(&OBS_of_O(o), NULL);
+      my_obstack_free(&OBS_of_O(o));
   }
   my_slice_free(struct s_order, o);
 }
