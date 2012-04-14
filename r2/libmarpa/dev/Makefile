@@ -49,6 +49,7 @@ STAGE_FILES = \
     ../stage/marpa.c \
     ../stage/marpa.h \
     ../stage/marpa_api.h \
+    ../stage/marpa_util.h \
     ../stage/marpa_obs.c \
     ../stage/marpa_obs.h \
     ../stage/avl.h \
@@ -88,7 +89,7 @@ STAGE_FILES = \
 
 all: marpa.pdf sources
 
-sources: marpa.c marpa.h marpa_api.h codes.h codes.c private.h
+sources: marpa.c marpa.h marpa_util.h marpa_api.h codes.h codes.c private.h
 
 marpa.h marpa.c: copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w
@@ -126,6 +127,9 @@ marpa.pdf: marpa.tex cwebmac.tex
 	cp $? $@
 
 ../stage/marpa_api.h: marpa_api.h
+	cp $? $@
+
+../stage/marpa_util.h: marpa_util.h
 	cp $? $@
 
 ../stage/marpa_obs.c: marpa_obs.c

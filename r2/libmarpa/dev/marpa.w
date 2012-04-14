@@ -594,6 +594,7 @@ extern const unsigned int marpa_binary_age;@#
 @<Public incomplete structures@>@;
 @<Public typedefs@>@;
 @<Public structures@>@;
+@<Public variables@>@;
 @<Public function prototypes@>@;
 
 @** Grammar (GRAMMAR) Code.
@@ -12884,14 +12885,16 @@ is to treatment memory allocation errors are
 fatal, irrecoverable problems.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE void
-default_out_of_memory(void)
+_marpa_default_out_of_memory(void)
 {
     abort();
 }
-void (*marpa_out_of_memory)(void) = default_out_of_memory;
+void (*_marpa_out_of_memory)(void) = _marpa_default_out_of_memory;
+
+@ @<Utility declarations@> =
+extern void (*_marpa_out_of_memory)(void);
 
 @ @<Global variables@> =
-extern void (*marpa_out_of_memory)(void);
 
 @*0 Obstacks.
 |libmarpa| uses the system malloc,
@@ -12971,20 +12974,55 @@ to provide more convenient behaviors.
 \li The allocators do not return on failed memory allocations.
 \li |my_realloc| is equivalent to |my_malloc| if called with
 a |NULL| pointer.  (This is the GNU C library behavior.)
+@ {\bf To Do}: @^To Do@>
+For the moment, the memory allocators are hard-wired to
+the C89 default |malloc| and |free|.
+At some point I may allow the user to override
+these choices.
 
-@d my_free(p) free(p)
-@d MY_MALLOC(newmem, size) {
-    (newmem) = malloc((size));
-    if (UNLIKELY(!(newmem))) (*marpa_out_of_memory)();
-}
-@<Function definitions@> =
-PRIVATE void*
-my_malloc(size_t size)
+@<Utility declarations@> =
+static inline
+void my_free (void *p)
 {
-    void *newmem;
-    MY_MALLOC(newmem, size);
+  free (p);
+}
+
+static inline
+void* my_malloc(size_t size)
+{
+    void *newmem = malloc(size);
+    if (UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
     return newmem;
 }
+
+static inline
+void*
+my_malloc0(size_t size)
+{
+    void* newmem = my_malloc(size);
+    memset (newmem, 0, size);
+    return newmem;
+}
+
+static inline
+void*
+my_realloc(void *p, size_t size)
+{
+   if (LIKELY(p != NULL)) {
+	void *newmem = realloc(p, size);
+	if (UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
+	return newmem;
+   }
+   return my_malloc(size);
+}
+
+@ These do {\bf not} protect against overflow.
+Where necessary, the caller must do that.
+@<Utility declarations@> =
+#define my_new(type, count) ((type *)my_malloc((sizeof(type)*(count))))
+#define my_renew(type, p, count) \
+    ((type *)my_realloc((p), (sizeof(type)*(count))))
+
 @ These are the malloc wrappers compiled
 ``on their own'', that is, not inlined.
 @ @<Function definitions@> =
@@ -13003,35 +13041,6 @@ _marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p)
     my_free(p);
 }
 
-@ @<Function definitions@> =
-PRIVATE void*
-my_malloc0(size_t size)
-{
-    void *newmem;
-    MY_MALLOC(newmem, size);
-    memset (newmem, 0, size);
-    return newmem;
-}
-
-@ @<Function definitions@> =
-PRIVATE void*
-my_realloc(void* mem, size_t size)
-{
-    void *newmem;
-    if (!mem) {
-       MY_MALLOC(newmem, size);
-       return newmem;
-    }
-    newmem = realloc(mem, size);
-    if (!newmem) (*marpa_out_of_memory)();
-    return newmem;
-}
-
-@ These do {\bf not} protect against overflow.
-If necessary, the caller must do that.
-@d my_new(type, count) ((type *)my_malloc(sizeof(type)*(count)))
-@d my_renew(type, p, count) ((type *)my_realloc((p), sizeof(type)*(count)))
-
 @*0 Slices.
 Some memory allocations are suitable for special "slice"
 allocators, such as the one in the GNU glib.
@@ -13039,7 +13048,8 @@ These are faster than the system malloc, but do not
 allow resizing, and require that the size of the
 allocation be known when it is freed.
 At present, libmarpa's ``slice allocator'' exists only
-to document these opportunities for optimization --
+as documentation
+of potential opportunities for optimization --
 it does nothing
 but pass all these calls on to the system malloc.
 @d my_slice_alloc(size) my_malloc(size)
@@ -13272,9 +13282,9 @@ vice versa.
 @d MARPA_OFF_ASSERT(expr)
 @ Returns int so that it can be portably used
 in a logically-anded expression.
-@<Function definitions@> =
+@<Debug function definitions@> =
 PRIVATE_NOT_INLINE
-int marpa_default_debug_handler (const char *format, ...)
+int _marpa_default_debug_handler (const char *format, ...)
 {
    va_list args;
    va_start (args, format);
@@ -13284,12 +13294,23 @@ int marpa_default_debug_handler (const char *format, ...)
    return 1;
 }
 
-int (*marpa_debug_handler)(const char*, ...)
-    = marpa_default_debug_handler;
 
-@
+@ @<Public variables@> =
+extern int (*marpa_debug_handler)(const char*, ...);
+extern int marpa_debug_level;
+@ For thread-safety, these are for debugging only.
+Even in debugging, while not actually initialized constants,
+they are intended to be set very early
+and left unchanged.
 @<Global variables@> =
-int (*marpa_debug_handler)(const char*, ...);
+#ifdef MARPA_DEBUG
+#define MARPA_DEFAULT_DEBUG_HANDLER _marpa_default_debug_handler
+#else
+#define MARPA_DEFAULT_DEBUG_HANDLER NULL
+#endif
+
+int (*marpa_debug_handler)(const char*, ...) =
+    MARPA_DEFAULT_DEBUG_HANDLER;
 int marpa_debug_level = 0;
 
 @ @<Public function prototypes@> =
@@ -13495,16 +13516,20 @@ So I add such a comment.
 @ \twelvepoint @c
 #include "config.h"
 #include "marpa.h"
-#include <stdarg.h>
 #include <stddef.h>
 #include <limits.h>
+#include <string.h>
 #include <stdlib.h>
+@<Miscellaneous compiler defines@>@;
+#if MARPA_DEBUG
+#include <stdarg.h>
 #include <stdio.h>
+#endif
 @<Debug macros@>
 @h
+#include "marpa_util.h"
 #include "marpa_obs.h"
 #include "avl.h"
-@<Miscellaneous compiler defines@>@;
 @<Private incomplete structures@>@;
 @<Private typedefs@>@;
 @<Global variables@>@;
@@ -13521,13 +13546,9 @@ So I add such a comment.
 #endif
 @<Function definitions@>@;
 
-@*0 |marpa.h| Layout.
-@q This is a separate section in order to get the @>
-@q license language nearer the top of the files. @>
-@q It's hackish, but in a good cause. @>
-@ The physical structure of the |marpa.h| file
+@ This is the license language for the header files.
 \tenpoint
-@(marpa.h@> =
+@<Header license language@> =
 @=/*@>@/
 @= * Copyright 2012 Jeffrey Kegler@>@/
 @= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
@@ -13551,7 +13572,13 @@ So I add such a comment.
 @= */@>@/
 
 @ \twelvepoint
-@(marpa.h@> =
+
+@*0 |marpa.h| Layout.
+@ The physical structure of the |marpa.h| file
+\tenpoint
+@ @(marpa.h@> =
+@<Header license language@>@;
+
 #ifndef __MARPA_H__
 #define __MARPA_H__ @/
 #include "marpa_config.h"
@@ -13560,6 +13587,18 @@ So I add such a comment.
 
 #include "marpa_api.h"
 #endif __MARPA_H__
+
+@*0 |marpa_util.h| Layout.
+\tenpoint
+@(marpa_util.h@> =
+@<Header license language@>@;
+
+#ifndef __MARPA_UTIL_H__
+#define __MARPA_UTIL_H__
+
+@<Utility declarations@>
+
+#endif __MARPA__UTIL_H__
 
 @** Miscellaneous compiler defines.
 Various defines to

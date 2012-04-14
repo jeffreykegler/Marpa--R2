@@ -29,7 +29,7 @@
 #endif
 
 # include "marpa_obs.h"
-extern void (*marpa_out_of_memory)(void);
+extern void (*_marpa_out_of_memory)(void);
 
 #include <stddef.h>
 
@@ -98,7 +98,7 @@ _marpa_obs_begin (struct obstack *h,
   h->alignment_mask = alignment - 1;
 
   chunk = h->chunk = malloc(h -> chunk_size);
-  if (!chunk) (*marpa_out_of_memory)();
+  if (!chunk) (*_marpa_out_of_memory)();
   h->next_free = h->object_base = __PTR_ALIGN ((char *) chunk, chunk->contents,
 					       alignment - 1);
   h->chunk_limit = chunk->limit
@@ -133,7 +133,7 @@ _marpa_obs_newchunk (struct obstack *h, int length)
 
   /* Allocate and initialize the new chunk.  */
   new_chunk = malloc( new_size);
-  if (!new_chunk) (*marpa_out_of_memory)();
+  if (!new_chunk) (*_marpa_out_of_memory)();
   h->chunk = new_chunk;
   new_chunk->prev = old_chunk;
   new_chunk->limit = h->chunk_limit = (char *) new_chunk + new_size;
