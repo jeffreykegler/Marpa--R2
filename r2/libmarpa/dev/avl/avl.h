@@ -75,7 +75,7 @@ struct avl_table *_marpa_avl_create (avl_comparison_func *, void *,
                               int alignment);
 struct avl_table *_marpa_avl_copy (const struct avl_table *, avl_copy_func *,
                             avl_item_func *, int alignment);
-void _marpa_avl_destroy (struct avl_table *, avl_item_func *);
+void _marpa_avl_destroy (struct avl_table *);
 void **_marpa_avl_probe (struct avl_table *, void *);
 void *_marpa_avl_insert (struct avl_table *, void *);
 void *_marpa_avl_replace (struct avl_table *, void *);

@@ -4393,7 +4393,7 @@ You can get the AIM from the AEX, but not vice versa.
 
 @ @<Free duplicates data structures@> =
 my_free(singleton_duplicates);
-_marpa_avl_destroy(duplicates, NULL);
+_marpa_avl_destroy(duplicates);
 
 @ @<Construct initial AHFA states@> =
 {
