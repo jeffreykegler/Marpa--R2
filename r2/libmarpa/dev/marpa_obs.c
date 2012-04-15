@@ -24,29 +24,28 @@
  * http://www.gnu.org/licenses/.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-
-# include "marpa_obs.h"
-extern void (*_marpa_out_of_memory)(void);
-
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
-# if HAVE_INTTYPES_H
-#  include <inttypes.h>
-# endif
-# if HAVE_STDINT_H
-#  include <stdint.h>
-# endif
+# include "config.h"
+# include "marpa_util.h"
+# include "marpa_obs.h"
 
 /* Determine default alignment.  */
 union fooround
 {
-  uintmax_t i;
-  long double d;
-  void *p;
+/* intmax_t is provided for via AUTOCONF's AC_TYPE_INTMAX_T.
+    Similarly, for uintmax_t.
+*/
+  uintmax_t t_imax;
+  intmax_t t_uimax;
+/* According to the autoconf manual, long double is provided by
+   all non-obsolescent C compilers. */
+  long double t_d;
+  void *t_p;
 };
+
 struct fooalign
 {
   char c;
@@ -60,8 +59,6 @@ enum
     DEFAULT_ALIGNMENT = offsetof (struct fooalign, u),
     DEFAULT_ROUNDING = sizeof (union fooround)
   };
-
-# include <stdlib.h>
 
 /* Initialize an obstack H for use.  Specify chunk size SIZE (0 means default).
    Objects start on multiples of ALIGNMENT (0 means use default).
@@ -97,8 +94,7 @@ _marpa_obs_begin (struct obstack *h,
   h->chunk_size = size;
   h->alignment_mask = alignment - 1;
 
-  chunk = h->chunk = malloc(h -> chunk_size);
-  if (!chunk) (*_marpa_out_of_memory)();
+  chunk = h->chunk = my_malloc(h -> chunk_size);
   h->next_free = h->object_base = __PTR_ALIGN ((char *) chunk, chunk->contents,
 					       alignment - 1);
   h->chunk_limit = chunk->limit
@@ -131,8 +127,7 @@ _marpa_obs_newchunk (struct obstack *h, int length)
     new_size = h->chunk_size;
 
   /* Allocate and initialize the new chunk.  */
-  new_chunk = malloc( new_size);
-  if (!new_chunk) (*_marpa_out_of_memory)();
+  new_chunk = my_malloc( new_size);
   h->chunk = new_chunk;
   new_chunk->prev = old_chunk;
   new_chunk->limit = h->chunk_limit = (char *) new_chunk + new_size;
