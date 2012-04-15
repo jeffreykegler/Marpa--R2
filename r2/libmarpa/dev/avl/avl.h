@@ -35,16 +35,6 @@ typedef int avl_comparison_func (const void *avl_a, const void *avl_b,
 typedef void avl_item_func (void *avl_item, void *avl_param);
 typedef void *avl_copy_func (void *avl_item, void *avl_param);
 
-#ifndef LIBAVL_ALLOCATOR
-#define LIBAVL_ALLOCATOR
-/* Memory allocator. */
-struct libavl_allocator
-  {
-    void *(*libavl_malloc) (struct libavl_allocator *, size_t libavl_size);
-    void (*libavl_free) (struct libavl_allocator *, void *libavl_block);
-  };
-#endif
-
 /* Maximum AVL tree height. */
 #ifndef AVL_MAX_HEIGHT
 #define AVL_MAX_HEIGHT 92
@@ -56,7 +46,7 @@ struct avl_table
     struct avl_node *avl_root;          /* Tree's root. */
     avl_comparison_func *avl_compare;   /* Comparison function. */
     void *avl_param;                    /* Extra argument to |avl_compare|. */
-    struct libavl_allocator *avl_alloc; /* Memory allocator. */
+    struct obstack obstack;
     size_t avl_count;                   /* Number of items in tree. */
     unsigned long avl_generation;       /* Generation number. */
   };
@@ -82,9 +72,9 @@ struct avl_traverser
 
 /* Table functions. */
 struct avl_table *_marpa_avl_create (avl_comparison_func *, void *,
-                              struct libavl_allocator *);
+                              int alignment);
 struct avl_table *_marpa_avl_copy (const struct avl_table *, avl_copy_func *,
-                            avl_item_func *, struct libavl_allocator *);
+                            avl_item_func *, int alignment);
 void _marpa_avl_destroy (struct avl_table *, avl_item_func *);
 void **_marpa_avl_probe (struct avl_table *, void *);
 void *_marpa_avl_insert (struct avl_table *, void *);

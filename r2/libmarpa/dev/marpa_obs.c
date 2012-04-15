@@ -35,7 +35,7 @@
 /* Determine default alignment.  */
 union fooround
 {
-/* intmax_t is provided for via AUTOCONF's AC_TYPE_INTMAX_T.
+/* intmax_t is guaranteed by AUTOCONF's AC_TYPE_INTMAX_T.
     Similarly, for uintmax_t.
 */
   uintmax_t t_imax;
@@ -147,7 +147,7 @@ _marpa_obs_newchunk (struct obstack *h, int length)
 			  h->alignment_mask)))
     {
       new_chunk->prev = old_chunk->prev;
-      free( old_chunk);
+      my_free( old_chunk);
     }
 
   h->object_base = object_base;
@@ -195,7 +195,7 @@ _marpa_obs_free (struct obstack *h)
   while (lp != 0)
     {
       plp = lp->prev;
-      free (lp);
+      my_free (lp);
       lp = plp;
     }
 }
@@ -213,7 +213,7 @@ _marpa_obs_clear (struct obstack *h)
      at the end of another chunk.  */
   while ((plp = lp->prev) != 0)
     {
-      free (plp);
+      my_free (plp);
     }
   h->object_base = h->next_free =
     __PTR_ALIGN ((char *) lp, lp->contents, h->alignment_mask);

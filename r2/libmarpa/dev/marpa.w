@@ -4260,7 +4260,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 {
   unsigned int item_id;
   unsigned int no_of_items_in_grammar = AIM_Count_of_G (g);
-  duplicates = _marpa_avl_create (AHFA_state_cmp, NULL, NULL);
+  duplicates = _marpa_avl_create (AHFA_state_cmp, NULL, 0);
   singleton_duplicates = my_new (AHFA, no_of_items_in_grammar);
   for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
     {
@@ -13022,24 +13022,6 @@ Where necessary, the caller must do that.
 #define my_new(type, count) ((type *)my_malloc((sizeof(type)*(count))))
 #define my_renew(type, p, count) \
     ((type *)my_realloc((p), (sizeof(type)*(count))))
-
-@ These are the malloc wrappers compiled
-``on their own'', that is, not inlined.
-@ @<Function definitions@> =
-extern void*
-_marpa_avl_malloc(struct libavl_allocator* alloc UNUSED, size_t size);
-void*
-_marpa_avl_malloc(struct libavl_allocator* alloc UNUSED, size_t size)
-{
-    return my_malloc(size);
-}
-extern void
-_marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p);
-void
-_marpa_avl_free(struct libavl_allocator* alloc UNUSED, void *p)
-{
-    my_free(p);
-}
 
 @*0 Slices.
 Some memory allocations are suitable for special "slice"

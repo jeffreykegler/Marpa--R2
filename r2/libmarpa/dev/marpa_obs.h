@@ -27,6 +27,8 @@
 #ifndef MARPA_OBS_H
 #define MARPA_OBS_H 1
 
+#include <stddef.h>
+
 /* If B is the base of an object addressed by P, return the result of
    aligning P to the next multiple of A + 1.  B and P must be of type
    char *.  A + 1 must be a power of 2.  */
@@ -78,7 +80,7 @@ extern void _marpa_obs_newchunk (struct obstack *, int);
 #define _obstack_newchunk _marpa_obs_newchunk
 
 extern int _marpa_obs_begin (struct obstack *, int, int);
-#define _obstack_begin _marpa_obs_begin
+#define my_obstack_begin _marpa_obs_begin
 
 extern int _marpa_obs_memory_used (struct obstack *);
 #define _obstack_memory_used _marpa_obs_memory_used
@@ -105,9 +107,7 @@ void _marpa_obs_clear (struct obstack *__obstack);
 #define obstack_alignment_mask(h) ((h)->alignment_mask)
 
 /* To prevent prototype warnings provide complete argument list.  */
-#define my_obstack_init(h)	_obstack_begin ((h), 0, 0)
-
-#define obstack_begin(h, size)	_obstack_begin ((h), (size), 0)
+#define my_obstack_init(h)	my_obstack_begin ((h), 0, 0)
 
 #define obstack_1grow_fast(h,achar) (*((h)->next_free)++ = (achar))
 
