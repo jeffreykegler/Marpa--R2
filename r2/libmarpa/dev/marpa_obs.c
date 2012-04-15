@@ -123,7 +123,6 @@ _marpa_obs_newchunk (struct obstack *h, int length)
   long	new_size;
   long obj_size = h->next_free - h->object_base;
   long i;
-  long already;
   char *object_base;
 
   /* Compute size for new chunk.  */

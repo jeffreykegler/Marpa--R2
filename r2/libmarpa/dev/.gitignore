@@ -7,6 +7,7 @@
 /api[.]fn
 /api[.]fns
 /marpa_api[.]h
+/marpa_util[.]h
 /api[.]idx
 /api[.]info
 /api[.]ky

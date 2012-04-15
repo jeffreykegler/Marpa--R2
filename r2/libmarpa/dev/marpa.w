@@ -12891,7 +12891,7 @@ _marpa_default_out_of_memory(void)
 }
 void (*_marpa_out_of_memory)(void) = _marpa_default_out_of_memory;
 
-@ @<Utility declarations@> =
+@ @<Utility variables@> =
 extern void (*_marpa_out_of_memory)(void);
 
 @ @<Global variables@> =
@@ -12980,7 +12980,7 @@ the C89 default |malloc| and |free|.
 At some point I may allow the user to override
 these choices.
 
-@<Utility declarations@> =
+@<Utility static functions@> =
 static inline
 void my_free (void *p)
 {
@@ -13018,7 +13018,7 @@ my_realloc(void *p, size_t size)
 
 @ These do {\bf not} protect against overflow.
 Where necessary, the caller must do that.
-@<Utility declarations@> =
+@<Utility macros@> =
 #define my_new(type, count) ((type *)my_malloc((sizeof(type)*(count))))
 #define my_renew(type, p, count) \
     ((type *)my_realloc((p), (sizeof(type)*(count))))
@@ -13283,8 +13283,7 @@ vice versa.
 @ Returns int so that it can be portably used
 in a logically-anded expression.
 @<Debug function definitions@> =
-PRIVATE_NOT_INLINE
-int _marpa_default_debug_handler (const char *format, ...)
+static int _marpa_default_debug_handler (const char *format, ...)
 {
    va_list args;
    va_start (args, format);
@@ -13304,6 +13303,7 @@ they are intended to be set very early
 and left unchanged.
 @<Global variables@> =
 #ifdef MARPA_DEBUG
+static int _marpa_default_debug_handler (const char *format, ...);
 #define MARPA_DEFAULT_DEBUG_HANDLER _marpa_default_debug_handler
 #else
 #define MARPA_DEFAULT_DEBUG_HANDLER NULL
@@ -13520,11 +13520,12 @@ So I add such a comment.
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
-@<Miscellaneous compiler defines@>@;
+
 #if MARPA_DEBUG
 #include <stdarg.h>
 #include <stdio.h>
 #endif
+
 @<Debug macros@>
 @h
 #include "marpa_util.h"
@@ -13596,7 +13597,9 @@ So I add such a comment.
 #ifndef __MARPA_UTIL_H__
 #define __MARPA_UTIL_H__
 
-@<Utility declarations@>
+@<Utility macros@>
+@<Utility variables@>
+@<Utility static functions@>
 
 #endif __MARPA__UTIL_H__
 
@@ -13604,7 +13607,7 @@ So I add such a comment.
 Various defines to
 control the compiler behavior
 in various ways or which are otherwise useful.
-@<Miscellaneous compiler defines@> =
+@<Utility macros@> =
 
 #if     __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define UNUSED __attribute__((__unused__))
@@ -13650,6 +13653,12 @@ in various ways or which are otherwise useful.
 #else
 #define LIKELY(expr) (expr)
 #define UNLIKELY(expr) (expr)
+#endif
+
+#if defined __GNUC__
+# define alignof(type) (__alignof__(type))
+#else
+# define alignof(type) (offsetof (struct { char __slot1; type __slot2; }, __slot2))
 #endif
 
 @** Index.
