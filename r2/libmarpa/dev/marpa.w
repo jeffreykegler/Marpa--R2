@@ -2572,11 +2572,16 @@ Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 @ @<Census symbols@> =
 {
   Marpa_Rule_ID rule_id;
+  struct sym_rule_pair
+  {
+    SYMID t_sym;
+    RULEID t_rule;
+  };
+  struct sym_rule_pair *const p_rule_sym_pair_base =
+    my_obstack_new (obs_precompute, struct sym_rule_pair, Size_of_G (g));
+  struct sym_rule_pair *p_rule_sym_pairs = p_rule_sym_pair_base;
   lhs_v = bv_obs_create (obs_precompute, pre_rewrite_symbol_count);
   empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
-  rule_x_rh_sym_matrix =
-    matrix_obs_create (obs_precompute, pre_rewrite_rule_count,
-		       pre_rewrite_symbol_count);
   for (rule_id = 0; rule_id < (Marpa_Rule_ID) pre_rewrite_rule_count;
        rule_id++)
     {
@@ -2593,12 +2598,20 @@ Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 	  int rhs_ix;
 	  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	    {
-	      matrix_bit_set (rule_x_rh_sym_matrix,
-			      (unsigned int) RHS_ID_of_RULE (rule, rhs_ix),
-			      rule_id);
+	      p_rule_sym_pairs->t_sym = RHS_ID_of_RULE (rule, rhs_ix),
+		p_rule_sym_pairs->t_rule = rule_id;
+	      p_rule_sym_pairs++;
 	    }
 	}
     }
+  {
+    RULE *const rule_data_base =
+      my_obstack_new (obs_precompute, RULE, Size_of_G (g));
+    RULE *p_rule_data = rule_data_base;
+    /* One extra "symbol" as an end marker */
+    rules_x_rh_sym =
+      my_obstack_new (obs_precompute, RULE, SYM_Count_of_G (g) + 1);
+  }
 }
 
 @ Loop over the symbols, producing the boolean vector of symbols
@@ -2639,7 +2652,7 @@ Bit_Vector terminal_v = NULL;
 @ @<Declare external grammar variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
-Bit_Matrix rule_x_rh_sym_matrix = NULL;
+RULE* rules_x_rh_sym = NULL;
 
 @ @<Census nullable symbols@> = 
 {

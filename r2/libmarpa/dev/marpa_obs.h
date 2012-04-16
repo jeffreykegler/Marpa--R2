@@ -187,6 +187,9 @@ void _marpa_obs_clear (struct obstack *__obstack);
 # define my_obstack_alloc(h,length)					\
  (my_obstack_blank ((h), (length)), my_obstack_finish ((h)))
 
+#define my_obstack_new(h, type, count) \
+    ((type *)my_obstack_alloc((h), (sizeof(type)*(count))))
+
 # define obstack_copy(h,where,length)					\
  (obstack_grow ((h), (where), (length)), my_obstack_finish ((h)))
 

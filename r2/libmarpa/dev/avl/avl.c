@@ -707,7 +707,7 @@ _marpa_avl_t_replace (struct avl_traverser *trav, void *new)
 void
 _marpa_avl_destroy (struct avl_table *tree)
 {
-  assert (tree != NULL);
+  if (tree ==  NULL) return;
   my_obstack_free (&tree->obstack);
   my_free (tree);
 }
