@@ -2535,8 +2535,8 @@ a lot of useless diagnostics.
 }
 
 @ @<Declare precompute variables@> =
-unsigned int pre_rewrite_rule_count = RULE_Count_of_G(g);
-unsigned int pre_rewrite_symbol_count = SYM_Count_of_G(g);
+RULEID xrule_count = RULE_Count_of_G(g);
+SYMID xsym_count = SYM_Count_of_G(g);
 
 @ @<Fail if no rules@> =
 if (RULE_Count_of_G(g) <= 0) {
@@ -2573,8 +2573,8 @@ Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 @<Private structures@> =
 struct sym_rule_pair
 {
-  SYMID t_sym;
-  RULEID t_rule;
+  SYMID t_symid;
+  RULEID t_ruleid;
 };
 
 @ @<Function definitions@> =
@@ -2585,24 +2585,23 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 {
     const struct sym_rule_pair * pair_a = (struct sym_rule_pair *)ap;
     const struct sym_rule_pair * pair_b = (struct sym_rule_pair *)bp;
-    int result = pair_a->t_sym - pair_b->t_sym;
+    int result = pair_a->t_symid - pair_b->t_symid;
     if (result) return result;
-    return pair_a->t_rule - pair_b->t_rule;
+    return pair_a->t_ruleid - pair_b->t_ruleid;
 }
 
 @ @<Census symbols@> =
 {
   Marpa_Rule_ID rule_id;
-  struct avl_table *const rhs_avl_table =
+  struct avl_table *const rhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_sym_rule_pair_base =
-    my_obstack_new (AVL_OBSTACK (rhs_avl_table), struct sym_rule_pair,
+    my_obstack_new (AVL_OBSTACK (rhs_avl_tree), struct sym_rule_pair,
 		    Size_of_G (g));
   struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
-  lhs_v = bv_obs_create (obs_precompute, pre_rewrite_symbol_count);
+  lhs_v = bv_obs_create (obs_precompute, xsym_count);
   empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
-  for (rule_id = 0; rule_id < (Marpa_Rule_ID) pre_rewrite_rule_count;
-       rule_id++)
+  for (rule_id = 0; rule_id < (Marpa_Rule_ID) xrule_count; rule_id++)
     {
       const RULE rule = RULE_by_ID (g, rule_id);
       const Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
@@ -2617,20 +2616,33 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	  int rhs_ix;
 	  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	    {
-	      p_sym_rule_pairs->t_sym = RHS_ID_of_RULE (rule, rhs_ix),
-		p_sym_rule_pairs->t_rule = rule_id;
-	      _marpa_avl_insert(rhs_avl_table, p_sym_rule_pairs);
+	      p_sym_rule_pairs->t_symid = RHS_ID_of_RULE (rule, rhs_ix),
+		p_sym_rule_pairs->t_ruleid = rule_id;
+	      _marpa_avl_insert (rhs_avl_tree, p_sym_rule_pairs);
 	      p_sym_rule_pairs++;
 	    }
 	}
     }
   {
-    RULE *const rule_data_base =
-      my_obstack_new (obs_precompute, RULE, Size_of_G (g));
-    RULE *p_rule_data = rule_data_base;
+    struct avl_traverser traverser;
+    struct sym_rule_pair *pair;
+    SYMID seen_symid = -1;
+    RULEID *const rule_data_base =
+      my_obstack_new (obs_precompute, RULEID, Size_of_G (g));
+    RULEID *p_rule_data = rule_data_base;
+    _marpa_avl_t_init (&traverser, rhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    rules_x_rh_sym =
-      my_obstack_new (obs_precompute, RULE, SYM_Count_of_G (g) + 1);
+    rules_x_rh_sym = my_obstack_new (obs_precompute, RULEID, xsym_count + 1);
+    for (pair = (struct sym_rule_pair*)_marpa_avl_t_first (&traverser, rhs_avl_tree); pair;
+	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (&traverser))
+      {
+	const SYMID current_symid = pair->t_symid;
+	while (seen_symid < current_symid)
+	  rules_x_rh_sym[++seen_symid] = *p_rule_data;
+	*p_rule_data++ = pair->t_ruleid;
+      }
+    while (seen_symid <= xsym_count)
+      rules_x_rh_sym[++seen_symid] = *p_rule_data;
   }
 }
 
@@ -2640,9 +2652,9 @@ and a flag which indicates if there are any.
 @<Census terminals@> =
 {
   SYMID symid;
-  terminal_v = bv_obs_create (obs_precompute, pre_rewrite_symbol_count);
+  terminal_v = bv_obs_create (obs_precompute, xsym_count);
   bv_not (terminal_v, lhs_v);
-  for (symid = 0; symid < (SYMID) pre_rewrite_symbol_count; symid++)
+  for (symid = 0; symid < xsym_count; symid++)
     {
       SYM symbol = SYM_by_ID (symid);
       if (SYM_is_Marked_Terminal (symbol))
@@ -2672,7 +2684,7 @@ Bit_Vector terminal_v = NULL;
 @ @<Declare external grammar variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
-RULE* rules_x_rh_sym = NULL;
+RULEID* rules_x_rh_sym = NULL;
 
 @ @<Census nullable symbols@> = 
 {
@@ -2754,7 +2766,7 @@ where many of the right hand sides repeat symbols.
   Marpa_Rule_ID rule_id;
   RULEID rule_count_of_g = RULE_Count_of_G (g);
   reach_matrix
-    = matrix_obs_create (obs_precompute, pre_rewrite_symbol_count, pre_rewrite_symbol_count);
+    = matrix_obs_create (obs_precompute, xsym_count, xsym_count);
   for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
     {
       RULE rule = RULE_by_ID (g, rule_id);
