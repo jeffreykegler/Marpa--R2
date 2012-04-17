@@ -2569,17 +2569,36 @@ While at it, set a flag to indicate if there are empty rules.
 @ @<Declare precompute variables@> =
 Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 
+@ Used for sorting RHS symbols for memoization.
+@<Private structures@> =
+struct sym_rule_pair
+{
+  SYMID t_sym;
+  RULEID t_rule;
+};
+
+@ @<Function definitions@> =
+PRIVATE_NOT_INLINE int sym_rule_cmp(
+    const void* ap,
+    const void* bp,
+    void *param UNUSED)
+{
+    const struct sym_rule_pair * pair_a = (struct sym_rule_pair *)ap;
+    const struct sym_rule_pair * pair_b = (struct sym_rule_pair *)bp;
+    int result = pair_a->t_sym - pair_b->t_sym;
+    if (result) return result;
+    return pair_a->t_rule - pair_b->t_rule;
+}
+
 @ @<Census symbols@> =
 {
   Marpa_Rule_ID rule_id;
-  struct sym_rule_pair
-  {
-    SYMID t_sym;
-    RULEID t_rule;
-  };
-  struct sym_rule_pair *const p_rule_sym_pair_base =
-    my_obstack_new (obs_precompute, struct sym_rule_pair, Size_of_G (g));
-  struct sym_rule_pair *p_rule_sym_pairs = p_rule_sym_pair_base;
+  struct avl_table *const rhs_avl_table =
+    _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
+  struct sym_rule_pair *const p_sym_rule_pair_base =
+    my_obstack_new (AVL_OBSTACK (rhs_avl_table), struct sym_rule_pair,
+		    Size_of_G (g));
+  struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
   lhs_v = bv_obs_create (obs_precompute, pre_rewrite_symbol_count);
   empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
   for (rule_id = 0; rule_id < (Marpa_Rule_ID) pre_rewrite_rule_count;
@@ -2598,9 +2617,10 @@ Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
 	  int rhs_ix;
 	  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	    {
-	      p_rule_sym_pairs->t_sym = RHS_ID_of_RULE (rule, rhs_ix),
-		p_rule_sym_pairs->t_rule = rule_id;
-	      p_rule_sym_pairs++;
+	      p_sym_rule_pairs->t_sym = RHS_ID_of_RULE (rule, rhs_ix),
+		p_sym_rule_pairs->t_rule = rule_id;
+	      _marpa_avl_insert(rhs_avl_table, p_sym_rule_pairs);
+	      p_sym_rule_pairs++;
 	    }
 	}
     }

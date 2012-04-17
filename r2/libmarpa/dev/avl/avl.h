@@ -70,6 +70,8 @@ struct avl_traverser
     unsigned long avl_generation;       /* Generation number. */
   };
 
+#define AVL_OBSTACK(table) (&(table)->obstack)
+
 /* Table functions. */
 struct avl_table *_marpa_avl_create (avl_comparison_func *, void *,
                               int alignment);
