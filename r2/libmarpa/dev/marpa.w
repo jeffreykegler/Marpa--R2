@@ -2692,7 +2692,7 @@ RULEID* rules_x_rh_sym = NULL;
   SYMID symid;
   int counted_nullables = 0;
   nullable_v = bv_obs_clone (obs_precompute, empty_lhs_v);
-  rhs_closure (g, nullable_v);
+  rhs_closure (g, nullable_v, rules_x_rh_sym);
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
       for (symid = (Marpa_Symbol_ID) min; symid <= (Marpa_Symbol_ID) max;
@@ -2717,7 +2717,7 @@ RULEID* rules_x_rh_sym = NULL;
 {
   productive_v = bv_obs_shadow (obs_precompute, nullable_v);
   bv_or (productive_v, nullable_v, terminal_v);
-  rhs_closure (g, productive_v);
+  rhs_closure (g, productive_v, rules_x_rh_sym);
   {
     unsigned int min, max, start;
     Marpa_Symbol_ID symid;
@@ -12335,8 +12335,8 @@ This routine takes a symbol vector and a grammar,
 and turns the original vector into the RHS closure of that vector.
 The orignal vector is destroyed.
 @<Function definitions@> =
-PRIVATE_NOT_INLINE void
-rhs_closure (GRAMMAR g, Bit_Vector bv)
+PRIVATE void
+rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID* rules_x_rh_sym)
 {
   unsigned int min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
@@ -12352,34 +12352,33 @@ rhs_closure (GRAMMAR g, Bit_Vector bv)
       start = max + 2;
     }
   while ((top_of_stack = FSTACK_POP (stack)))
-    {
-      RULEID rule_ix;
-      const SYM symbol = SYM_by_ID (*top_of_stack);
-      const RULEID rh_rule_count = DSTACK_LENGTH(symbol->t_rhs);
-      for (rule_ix = 0; rule_ix < rh_rule_count; rule_ix++)
-	{
-	  Marpa_Rule_ID rule_id =
-	    *DSTACK_INDEX(symbol->t_rhs, RULEID, rule_ix);
-	  RULE rule = RULE_by_ID (g, rule_id);
-	  unsigned int rule_length;
-	  unsigned int rh_ix;
-	  Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
-	  if (bv_bit_test (bv, (unsigned int) lhs_id))
-	    goto NEXT_RULE;
-	  rule_length = Length_of_RULE(rule);
-	  for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
-	    {
-	      if (!bv_bit_test (bv, (unsigned int) RHS_ID_of_RULE (rule, rh_ix)))
-		goto NEXT_RULE;
-	    }
-	  /* If I am here, the bits for the RHS symbols are all
-	   * set, but the one for the LHS symbol is not.
-	   */
-	  bv_bit_set (bv, (unsigned int) lhs_id);
-	  *(FSTACK_PUSH (stack)) = lhs_id;
-	NEXT_RULE:;
-	}
-    }
+  {
+    const SYMID symid = *top_of_stack;
+    RULEID *p_rules_x_rh_sym = rules_x_rh_sym + symid;
+    const RULEID *p_one_past_rules = rules_x_rh_sym + symid + 1;
+    for (; p_rules_x_rh_sym < p_one_past_rules; p_rules_x_rh_sym++)
+      {
+	const RULEID rule_id = *p_rules_x_rh_sym;
+	const RULE rule = RULE_by_ID (g, rule_id);
+	int rule_length;
+	int rh_ix;
+	const SYMID lhs_id = LHS_ID_of_RULE (rule);
+	if (bv_bit_test (bv, (unsigned int) lhs_id))
+	  goto NEXT_RULE;
+	rule_length = Length_of_RULE (rule);
+	for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
+	  {
+	    if (!bv_bit_test (bv, (unsigned int) RHS_ID_of_RULE (rule, rh_ix)))
+	      goto NEXT_RULE;
+	  }
+	/* If I am here, the bits for the RHS symbols are all
+	 * set, but the one for the LHS symbol is not.
+	 */
+	bv_bit_set (bv, (unsigned int) lhs_id);
+	*(FSTACK_PUSH (stack)) = lhs_id;
+      NEXT_RULE:;
+      }
+  }
   FSTACK_DESTROY (stack);
 }
 
