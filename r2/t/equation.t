@@ -113,10 +113,10 @@ restore_stdout();
 
 Marpa::R2::Test::is( ${$actual_ref},
     <<'END_SYMBOLS', 'Ambiguous Equation Symbols' );
-0: E, lhs=[0 1] rhs=[0 2]
-1: Op, lhs=[] rhs=[0] terminal
-2: Number, lhs=[] rhs=[1] terminal
-3: E['], lhs=[2] rhs=[]
+0: E, lhs=[0 1]
+1: Op, lhs=[] terminal
+2: Number, lhs=[] terminal
+3: E['], lhs=[2]
 END_SYMBOLS
 
 $actual_ref = save_stdout();

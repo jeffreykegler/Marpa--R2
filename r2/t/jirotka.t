@@ -116,38 +116,38 @@ $grammar->precompute();
 
 Marpa::R2::Test::is(
     <<'END_OF_SYMBOLS', $grammar->show_symbols(), 'Symbols' );
-0: AS, lhs=[] rhs=[6] terminal
-1: BY, lhs=[] rhs=[10] terminal
-2: CREATE, lhs=[] rhs=[5] terminal
-3: FALSE, lhs=[] rhs=[16] terminal
-4: FOR, lhs=[] rhs=[12] terminal
-5: METRIC, lhs=[] rhs=[6] terminal
-6: PF, lhs=[] rhs=[18] terminal
-7: SELECT, lhs=[] rhs=[7 19 20 21 22] terminal
-8: TRUE, lhs=[] rhs=[15] terminal
-9: WHERE, lhs=[] rhs=[14] terminal
-10: WITH, lhs=[] rhs=[18] terminal
-11: ID_METRIC, lhs=[] rhs=[6] terminal
-12: SEPARATOR, lhs=[] rhs=[2 4] terminal
-13: NUMBER, lhs=[] rhs=[8] terminal
-14: Input, lhs=[0 1 2] rhs=[29]
-15: Statement, lhs=[5] rhs=[0 3 4]
-16: Input[Statement+], lhs=[3 4] rhs=[1 2 4]
-17: TypeDef, lhs=[6] rhs=[5]
-18: MetricSelect, lhs=[7 19 20 21 22] rhs=[6]
-19: MetricExpr, lhs=[8] rhs=[7 19 20 21 22]
-20: ByClause, lhs=[9 10] rhs=[7 19 20]
-21: Match, lhs=[11 12] rhs=[7 23 24]
-22: Filter, lhs=[13 14] rhs=[7 26 27]
-23: WithPf, lhs=[17 18] rhs=[7 26 28]
-24: FilterExpr, lhs=[15 16] rhs=[14]
-25: ByClause[], lhs=[] rhs=[21 22] nulling
-26: Match[], lhs=[] rhs=[20 22 25] nulling
-27: Filter[], lhs=[] rhs=[20 22 24 28] nulling
-28: WithPf[], lhs=[] rhs=[20 22 24 27] nulling
-29: MetricSelect[R7:3], lhs=[23 24 25] rhs=[19 21]
-30: MetricSelect[R7:4], lhs=[26 27 28] rhs=[23 25]
-31: Input['], lhs=[29] rhs=[]
+0: AS, lhs=[] terminal
+1: BY, lhs=[] terminal
+2: CREATE, lhs=[] terminal
+3: FALSE, lhs=[] terminal
+4: FOR, lhs=[] terminal
+5: METRIC, lhs=[] terminal
+6: PF, lhs=[] terminal
+7: SELECT, lhs=[] terminal
+8: TRUE, lhs=[] terminal
+9: WHERE, lhs=[] terminal
+10: WITH, lhs=[] terminal
+11: ID_METRIC, lhs=[] terminal
+12: SEPARATOR, lhs=[] terminal
+13: NUMBER, lhs=[] terminal
+14: Input, lhs=[0 1 2]
+15: Statement, lhs=[5]
+16: Input[Statement+], lhs=[3 4]
+17: TypeDef, lhs=[6]
+18: MetricSelect, lhs=[7 19 20 21 22]
+19: MetricExpr, lhs=[8]
+20: ByClause, lhs=[9 10]
+21: Match, lhs=[11 12]
+22: Filter, lhs=[13 14]
+23: WithPf, lhs=[17 18]
+24: FilterExpr, lhs=[15 16]
+25: ByClause[], lhs=[] nulling
+26: Match[], lhs=[] nulling
+27: Filter[], lhs=[] nulling
+28: WithPf[], lhs=[] nulling
+29: MetricSelect[R7:3], lhs=[23 24 25]
+30: MetricSelect[R7:4], lhs=[26 27 28]
+31: Input['], lhs=[29]
 END_OF_SYMBOLS
 
 Marpa::R2::Test::is( <<'END_OF_RULES', $grammar->show_rules(), 'Rules' );

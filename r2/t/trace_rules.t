@@ -128,28 +128,28 @@ EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,
     <<'EOS', 'Symbols' );
-0: S, lhs=[0 1 2 18 19 20 21 22] rhs=[29]
-1: Seq0, lhs=[3 4 5] rhs=[0 18]
-2: Seq1, lhs=[8 9] rhs=[0 18 19]
-3: Proper, lhs=[16 17] rhs=[1 20 21 23 24 26 27 28]
-4: X, lhs=[12] rhs=[2]
-5: Y, lhs=[13] rhs=[2]
-6: Z, lhs=[14] rhs=[2]
-7: a, lhs=[] rhs=[3 6 7] terminal
-8: Seq0[a*], lhs=[6 7] rhs=[5 7]
-9: A, lhs=[15] rhs=[8 10 11]
-10: Seq1[A+], lhs=[10 11] rhs=[9 11]
-11: x, lhs=[] rhs=[12] terminal
-12: y, lhs=[] rhs=[13 15] terminal
-13: z, lhs=[] rhs=[14] terminal
-14: p, lhs=[] rhs=[17] terminal
-15: S[], lhs=[] rhs=[] nulling
-16: Seq0[], lhs=[] rhs=[19] nulling
-17: Proper[], lhs=[] rhs=[21 22 24 25 27 28] nulling
-18: S[R1:1], lhs=[23 24 25] rhs=[20 22]
-19: S[R1:2], lhs=[26 27 28] rhs=[23 25]
-20: S['], lhs=[29] rhs=[]
-21: S['][], lhs=[30] rhs=[] nulling
+0: S, lhs=[0 1 2 18 19 20 21 22]
+1: Seq0, lhs=[3 4 5]
+2: Seq1, lhs=[8 9]
+3: Proper, lhs=[16 17]
+4: X, lhs=[12]
+5: Y, lhs=[13]
+6: Z, lhs=[14]
+7: a, lhs=[] terminal
+8: Seq0[a*], lhs=[6 7]
+9: A, lhs=[15]
+10: Seq1[A+], lhs=[10 11]
+11: x, lhs=[] terminal
+12: y, lhs=[] terminal
+13: z, lhs=[] terminal
+14: p, lhs=[] terminal
+15: S[], lhs=[] nulling
+16: Seq0[], lhs=[] nulling
+17: Proper[], lhs=[] nulling
+18: S[R1:1], lhs=[23 24 25]
+19: S[R1:2], lhs=[26 27 28]
+20: S['], lhs=[29]
+21: S['][], lhs=[30] nulling
 EOS
 
 # Local Variables:
