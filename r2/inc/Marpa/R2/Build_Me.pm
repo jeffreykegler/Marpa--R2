@@ -278,7 +278,8 @@ sub do_libmarpa {
 
         my @configure_command_args = ('--disable-static');
         if ( defined $self->args('marpa_debug') ) {
-            push @configure_command_args, "MARPA_DEBUG_FLAG=-DMARPA_DEBUG";
+            push @configure_command_args, "MARPA_DEBUG_FLAG=-DMARPA_DEBUG="
+	      . $self->args('marpa_debug');
         }
 
         if ( $self->verbose() ) {

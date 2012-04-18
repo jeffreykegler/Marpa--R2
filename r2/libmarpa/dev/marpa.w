@@ -953,7 +953,6 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event public_event,
   GEV internal_event;
   int type;
 
-  MARPA_DEBUG4("%s: ix=%d, event_count=%d", STRLOC, ix, G_EVENT_COUNT(g));
   if (ix < 0)
     return failure_indicator;
   if (ix >= DSTACK_LENGTH (*events))
@@ -2632,17 +2631,17 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, rhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    rules_x_rh_sym = my_obstack_new (obs_precompute, RULEID, xsym_count + 1);
+    rules_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, xsym_count + 1);
     for (pair = (struct sym_rule_pair*)_marpa_avl_t_first (&traverser, rhs_avl_tree); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (&traverser))
       {
 	const SYMID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
-	  rules_x_rh_sym[++seen_symid] = *p_rule_data;
+	  rules_x_rh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
     while (seen_symid <= xsym_count)
-      rules_x_rh_sym[++seen_symid] = *p_rule_data;
+      rules_x_rh_sym[++seen_symid] = p_rule_data;
   }
 }
 
@@ -2684,7 +2683,7 @@ Bit_Vector terminal_v = NULL;
 @ @<Declare external grammar variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
-RULEID* rules_x_rh_sym = NULL;
+RULEID** rules_x_rh_sym = NULL;
 
 @ @<Census nullable symbols@> = 
 {
@@ -3494,8 +3493,6 @@ rule with |nonnulling_id| on the LHS.
       /* Direct loops ($A \RA A$) only need the $(rule_id, rule_id)$ bit set,
          but it is not clear that it is a win to special case them. */
       const RULEID to_rule_id = *DSTACK_INDEX (rhs_symbol->t_lhs, RULEID, ix);
-      MARPA_DEBUG4 ("%s: unit transition from=%d, to=%d", STRLOC, rule_id,
-		    to_rule_id);
       matrix_bit_set (unit_transition_matrix, (unsigned int) rule_id,
 		      to_rule_id);
     }
@@ -9583,7 +9580,7 @@ DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
     DAND draft_and_node = my_obstack_alloc (obs, sizeof(DAND_Object));
     Predecessor_OR_of_DAND(draft_and_node) = predecessor;
     Cause_OR_of_DAND(draft_and_node) = cause;
-    MARPA_ASSERT(cause);
+    MARPA_ASSERT(cause != NULL);
     return draft_and_node;
 }
 
@@ -12336,7 +12333,7 @@ and turns the original vector into the RHS closure of that vector.
 The orignal vector is destroyed.
 @<Function definitions@> =
 PRIVATE void
-rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID* rules_x_rh_sym)
+rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** rules_x_rh_sym)
 {
   unsigned int min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
@@ -12354,8 +12351,8 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID* rules_x_rh_sym)
   while ((top_of_stack = FSTACK_POP (stack)))
   {
     const SYMID symid = *top_of_stack;
-    RULEID *p_rules_x_rh_sym = rules_x_rh_sym + symid;
-    const RULEID *p_one_past_rules = rules_x_rh_sym + symid + 1;
+    RULEID *p_rules_x_rh_sym = rules_x_rh_sym[symid];
+    const RULEID *p_one_past_rules = rules_x_rh_sym[symid + 1];
     for (; p_rules_x_rh_sym < p_one_past_rules; p_rules_x_rh_sym++)
       {
 	const RULEID rule_id = *p_rules_x_rh_sym;
@@ -13328,7 +13325,7 @@ Even in debugging, while not actually initialized constants,
 they are intended to be set very early
 and left unchanged.
 @<Global variables@> =
-#ifdef MARPA_DEBUG
+#if MARPA_DEBUG > 0
 static int _marpa_default_debug_handler (const char *format, ...);
 #define MARPA_DEFAULT_DEBUG_HANDLER _marpa_default_debug_handler
 #else
@@ -13393,11 +13390,11 @@ void marpa_debug_level_set( int level )
 A function to print a descriptive tag for
 an Earley item.
 @<Debug function prototypes@> =
-static char* eim_tag_safe(char *buffer, EIM eim);
-static char* eim_tag(EIM eim);
+static const char* eim_tag_safe(char *buffer, EIM eim);
+static const char* eim_tag(EIM eim);
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
-static char *
+static const char *
 eim_tag_safe (char * buffer, EIM eim)
 {
   if (!eim) return "NULL";
@@ -13408,7 +13405,7 @@ eim_tag_safe (char * buffer, EIM eim)
 }
 
 static char DEBUG_eim_tag_buffer[1000];
-static char*
+static const char*
 eim_tag (EIM eim)
 {
   return eim_tag_safe (DEBUG_eim_tag_buffer, eim);
@@ -13546,6 +13543,10 @@ So I add such a comment.
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+
+#ifndef MARPA_DEBUG
+#define MARPA_DEBUG 0
+#endif
 
 #if MARPA_DEBUG
 #include <stdarg.h>
