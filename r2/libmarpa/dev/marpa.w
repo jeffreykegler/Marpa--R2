@@ -10545,8 +10545,8 @@ int marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id)
 
 @** Bocage Ordering (O, ORDER) Code.
 @<Public incomplete structures@> =
-struct s_order;
-typedef struct s_order* Marpa_Order;
+struct marpa_order;
+typedef struct marpa_order* Marpa_Order;
 @ @<Public incomplete structures@> =
 typedef Marpa_Order ORDER;
 @
@@ -10560,7 +10560,7 @@ and only if
 @d OBS_of_O(order) ((order)->t_obs)
 @d O_is_Frozen(o) ((o)->t_is_frozen)
 @<Private structures@> =
-struct s_order {
+struct marpa_order {
     struct obstack t_obs;
     Bit_Vector t_and_node_in_use;
     ANDID** t_and_node_orderings;
@@ -10587,7 +10587,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     @<Unpack bocage objects@>@;
     ORDER o;
       @<Fail if fatal error@>@;
-    o = my_slice_new(struct s_order);
+    o = my_slice_new(*o);
     B_of_O(o) = b;
     bocage_ref(b);
     @<Initialize order elements@>@;
@@ -10657,7 +10657,7 @@ PRIVATE void order_free(ORDER o)
       o->t_and_node_orderings = NULL;
       my_obstack_free(&OBS_of_O(o));
   }
-  my_slice_free(struct s_order, o);
+  my_slice_free(*o, o);
 }
 
 @ @<Unpack order objects@> =
@@ -10866,8 +10866,8 @@ Marpa's parse trees are produced by iterating
 the Marpa bocage.
 Therefore, Marpa parse trees are also bocage iterators.
 @<Public incomplete structures@> =
-struct s_tree;
-typedef struct s_tree* Marpa_Tree;
+struct marpa_tree;
+typedef struct marpa_tree* Marpa_Tree;
 @ @<Private incomplete structures@> =
 typedef Marpa_Tree TREE;
 @ An exhausted bocage iterator (or parse tree)
@@ -10885,7 +10885,7 @@ it is exhausted.
 @<Private structures@> =
 @<NOOK structure@>@;
 @<VALUE structure@>@;
-struct s_tree {
+struct marpa_tree {
     FSTACK_DECLARE(t_nook_stack, NOOK_Object)@;
     FSTACK_DECLARE(t_nook_worklist, int)@;
     Bit_Vector t_and_node_in_use;
@@ -10924,7 +10924,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     TREE t;
     @<Unpack order objects@>@;
     @<Fail if fatal error@>@;
-    t = my_slice_new(struct s_tree);
+    t = my_slice_new(*t);
     O_of_T(t) = o;
     order_ref(o);
     order_freeze(o);
@@ -10985,7 +10985,7 @@ PRIVATE void tree_free(TREE t)
 {
     order_unref(O_of_T(t));
     tree_exhaust(t);
-    my_slice_free(struct s_tree, t);
+    my_slice_free(*t, t);
 }
 
 @*0 Tree pause counting.
@@ -11442,8 +11442,8 @@ just as easy to provide a parse tree to the
 higher level and let them decide how to
 evaluate it.
 @<Public incomplete structures@> =
-struct s_value;
-typedef struct s_value* Marpa_Value;
+struct marpa_value;
+typedef struct marpa_value* Marpa_Value;
 @ @<Private incomplete structures@> =
 typedef struct s_value* VALUE;
 @ This structure tracks the top of the evaluation
@@ -11566,7 +11566,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	@<Initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
-	return v;
+	return (Marpa_Value)v;
       }
     MARPA_ERROR(MARPA_ERR_TREE_EXHAUSTED);
     return NULL;
@@ -11606,9 +11606,9 @@ value_unref (VALUE v)
     }
 }
 void
-marpa_v_unref (Marpa_Value v)
+marpa_v_unref (Marpa_Value public_v)
 {
-   value_unref(v);
+   value_unref((VALUE)public_v);
 }
 
 @ Increment the value reference count.
@@ -11623,7 +11623,7 @@ value_ref (VALUE v)
 Marpa_Value
 marpa_v_ref (Marpa_Value v)
 {
-   return value_ref(v);
+   return (Marpa_Value)value_ref((VALUE)v);
 }
 
 @ @<Function definitions@> =
@@ -11631,11 +11631,11 @@ PRIVATE void value_free(VALUE v)
 {
     tree_unpause(T_of_V(v));
     bv_free(Nulling_Ask_BV_of_V(v));
-    if (DSTACK_IS_INITIALIZED(v->t_virtual_stack))
+    if (LIKELY(DSTACK_IS_INITIALIZED(v->t_virtual_stack) != NULL))
     {
         DSTACK_DESTROY(v->t_virtual_stack);
     }
-    my_slice_free(struct s_value, v);
+    my_slice_free(*v, v);
 }
 
 @ @<Unpack value objects@> =
@@ -11644,19 +11644,21 @@ PRIVATE void value_free(VALUE v)
 
 @*0 The grammar of the value object.
 @<Function definitions@> =
-Marpa_Grammar marpa_v_g(Marpa_Value v)
+Marpa_Grammar marpa_v_g(Marpa_Value public_v)
 {
+  const VALUE v = (VALUE)public_v;
   @<Unpack value objects@>@;
   return g;
 }
 
 @ @<Function definitions@> =
-int marpa_v_trace(Marpa_Value v, int flag)
+int marpa_v_trace(Marpa_Value public_v, int flag)
 {
     @<Return |-2| on failure@>@;
+    const VALUE v = (VALUE)public_v;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    if (!V_is_Active(v)) {
+    if (UNLIKELY(!V_is_Active(v))) {
 	return failure_indicator;
     }
     V_is_Trace(v) = flag;
@@ -11664,12 +11666,13 @@ int marpa_v_trace(Marpa_Value v, int flag)
 }
 
 @ @<Function definitions@> =
-Marpa_Nook_ID marpa_v_nook(Marpa_Value v)
+Marpa_Nook_ID marpa_v_nook(Marpa_Value public_v)
 {
     @<Return |-2| on failure@>@;
+    const VALUE v = (VALUE)public_v;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    if (!V_is_Active(v)) {
+    if (UNLIKELY(!V_is_Active(v))) {
 	return failure_indicator;
     }
     return NOOK_of_V(v);
@@ -11680,10 +11683,11 @@ The settings here overrides the value
 set with the grammar.
 @ @<Function definitions@> =
 int marpa_v_symbol_is_ask_me_when_null(
-    Marpa_Value v,
+    Marpa_Value public_v,
     Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
+    const VALUE v = (VALUE)public_v;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
     @<Fail if |symid| is invalid@>@;
@@ -11701,15 +11705,16 @@ but I cannot think of a reason to ban it,
 so I do not.
 @<Function definitions@> =
 int marpa_v_symbol_ask_me_when_null_set(
-    Marpa_Value v, Marpa_Symbol_ID symid, int value)
+    Marpa_Value public_v, Marpa_Symbol_ID symid, int value)
 {
     SYM symbol;
+    const VALUE v = (VALUE)public_v;
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
     @<Fail if |symid| is invalid@>@;
     symbol = SYM_by_ID(symid);
-    if (!SYM_is_Nulling(symbol)) {
+    if (UNLIKELY(!SYM_is_Nulling(symbol))) {
          symbol = symbol_null_alias(symbol);
 	 if (!symbol && value) {
 	     MARPA_ERROR(MARPA_ERR_SYM_NOT_NULLABLE);
@@ -11730,11 +11735,12 @@ typedef int Marpa_Value_Type;
 @ @d V_GET_DATA MARPA_VALUE_INTERNAL1
 
 @<Function definitions@> =
-Marpa_Value_Type marpa_v_step(Marpa_Value v)
+Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 {
     @<Return |-2| on failure@>@;
+    const VALUE v = (VALUE)public_v;
 
-    while (V_is_Active(v)) {
+    while (UNLIKELY(V_is_Active(v))) {
 	Marpa_Value_Type current_value_type = Next_Value_Type_of_V(v);
 	switch (current_value_type)
 	  {
