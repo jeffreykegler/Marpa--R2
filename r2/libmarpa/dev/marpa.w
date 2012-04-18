@@ -600,6 +600,7 @@ extern const unsigned int marpa_binary_age;@#
 @** Grammar (GRAMMAR) Code.
 @<Public incomplete structures@> =
 struct marpa_g;
+struct marpa_avl_table;
 typedef struct marpa_g* Marpa_Grammar;
 @ @<Private structures@> = struct marpa_g {
 @<First grammar element@>@;
@@ -694,6 +695,7 @@ DSTACK_DESTROY(g->t_symbols);
 
 @ Symbol count accesors.
 @d SYM_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
+@d INS_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
 @ @<Function definitions@> =
 int marpa_g_symbol_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -723,17 +725,25 @@ PRIVATE int symbol_is_valid(GRAMMAR g, SYMID symid)
 }
 
 @*0 The Grammar's Rule List.
-This lists the rules for the grammar,
+|t_rules| lists the rules for the grammar,
 with their |Marpa_Rule_ID| as the index.
+The |rule_tree| is a tree for detecting duplicates.
 @<Widely aligned grammar elements@> =
     DSTACK_DECLARE(t_rules);
+    struct marpa_avl_table* rule_tree;
 @ @<Initialize grammar elements@> =
     DSTACK_INIT(g->t_rules, RULE, 256);
+    g->rule_tree = _marpa_avl_create (rule_duplication_cmp, NULL, alignof (RULE));
+@ @<Destroy rule tree@> =
+    _marpa_avl_destroy (g->rule_tree);
+    g->rule_tree = NULL;
 @ @<Destroy grammar elements@> =
     DSTACK_DESTROY(g->t_rules);
+    @<Destroy rule tree@>@;
 
 @*0 Rule count accessors.
 @ @d RULE_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
+@ @d INR_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
 @ @<Function definitions@> =
 int marpa_g_rule_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -1483,15 +1493,15 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
     RULE rule;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
-    if (length > MAX_RHS_LENGTH) {
+    if (UNLIKELY(length > MAX_RHS_LENGTH)) {
 	MARPA_ERROR(MARPA_ERR_RHS_TOO_LONG);
         return failure_indicator;
     }
-    if (is_rule_duplicate(g, lhs, rhs, length) == 1) {
+    if (UNLIKELY(is_rule_duplicate(g, lhs, rhs, length) == 1)) {
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
         return failure_indicator;
     }
-    if (!rule_check(g, lhs, rhs, length)) return failure_indicator;
+    if (UNLIKELY(!rule_check(g, lhs, rhs, length))) return failure_indicator;
     rule = rule_start(g, lhs, rhs, length);
     rule_id = rule->t_id;
     return rule_id;
@@ -1716,6 +1726,12 @@ the ``same LHS" rules, I have found no duplicates,
 then I conclude there is no duplicate of the new
 rule, and return false.
 @ @<Function definitions@> =
+PRIVATE_NOT_INLINE int rule_duplication_cmp(
+    const void* ap,
+    const void* bp,
+    void *param UNUSED)
+{ return 0; }
+
 PRIVATE
 int is_rule_duplicate(GRAMMAR g,
 SYMID lhs_id, SYMID* rhs_ids, int length)
@@ -2331,6 +2347,7 @@ int marpa_g_precompute(Marpa_Grammar g)
      if (!G_is_Trivial(g)) {
 	@<Declare variables for the internal grammar
 	memoizations@>@;
+	@<Calculate Rule by LHS lists@>@;
 	@<Create AHFA items@>@;
 	@<Create AHFA states@>@;
 	@<Populate the Terminal Boolean Vector@>@;
@@ -2454,7 +2471,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 @ @<Census symbols@> =
 {
   Marpa_Rule_ID rule_id;
-  struct avl_table *const rhs_avl_tree =
+  const AVL_TREE rhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_sym_rule_pair_base =
     my_obstack_new (AVL_OBSTACK (rhs_avl_tree), struct sym_rule_pair,
@@ -2505,6 +2522,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     while (seen_symid <= xsym_count)
       rules_x_rh_sym[++seen_symid] = p_rule_data;
   }
+  _marpa_avl_destroy (rhs_avl_tree);
 }
 
 @ Loop over the symbols, producing the boolean vector of symbols
@@ -4150,7 +4168,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    const unsigned int rule_count_of_g = RULE_Count_of_G(g);
    Bit_Matrix prediction_matrix;
    RULE* rule_by_sort_key = my_new(RULE, rule_count_of_g);
-    struct avl_table *duplicates;
+    AVL_TREE duplicates;
     AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
   int ahfa_count_of_g;
@@ -4471,8 +4489,55 @@ pointer twiddling actually makes the code clearer than it would
 be if written 100\% using indexes.
 @<Declare variables for the internal grammar
 	memoizations@> =
-AIM* const item_list_working_buffer
+  AIM* const item_list_working_buffer
     = my_obstack_alloc(obs_precompute, RULE_Count_of_G(g)*sizeof(AIM));
+  const RULEID inr_count = INR_Count_of_G(g);
+  const SYMID ins_count = INS_Count_of_G(g);
+  RULEID** inr_list_x_lh_sym = NULL;
+
+@ @<Calculate Rule by LHS lists@> =
+{
+  Marpa_Rule_ID rule_id;
+  const AVL_TREE lhs_avl_tree =
+    _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
+  struct sym_rule_pair *const p_sym_rule_pair_base =
+    my_obstack_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
+		    Size_of_G (g));
+  struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
+  for (rule_id = 0; rule_id < (Marpa_Rule_ID) inr_count; rule_id++)
+    {
+      const RULE rule = RULE_by_ID (g, rule_id);
+      p_sym_rule_pairs->t_symid = LHS_ID_of_RULE (rule);
+      p_sym_rule_pairs->t_ruleid = rule_id;
+      _marpa_avl_insert (lhs_avl_tree, p_sym_rule_pairs);
+      p_sym_rule_pairs++;
+    }
+  {
+    struct avl_traverser traverser;
+    struct sym_rule_pair *pair;
+    SYMID seen_symid = -1;
+    RULEID *const rule_data_base =
+      my_obstack_new (obs_precompute, RULEID, inr_count);
+    RULEID *p_rule_data = rule_data_base;
+    _marpa_avl_t_init (&traverser, lhs_avl_tree);
+    /* One extra "symbol" as an end marker */
+    inr_list_x_lh_sym =
+      my_obstack_new (obs_precompute, RULEID *, ins_count + 1);
+    for (pair =
+	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser,
+						      lhs_avl_tree); pair;
+	 pair = (struct sym_rule_pair *) _marpa_avl_t_next (&traverser))
+      {
+	const SYMID current_symid = pair->t_symid;
+	while (seen_symid < current_symid)
+	  inr_list_x_lh_sym[++seen_symid] = p_rule_data;
+	*p_rule_data++ = pair->t_ruleid;
+      }
+    while (seen_symid <= ins_count)
+      inr_list_x_lh_sym[++seen_symid] = p_rule_data;
+  }
+  _marpa_avl_destroy (lhs_avl_tree);
+}
 
 @ @<Create a discovered AHFA state with 2+ items@> =
 {
@@ -4604,7 +4669,7 @@ and return |NULL|.
 When it does exist, return a pointer to it.
 @<Function definitions@> =
 PRIVATE AHFA
-assign_AHFA_state (AHFA sought_state, struct avl_table* duplicates)
+assign_AHFA_state (AHFA sought_state, AVL_TREE duplicates)
 {
   const AHFA state_found = _marpa_avl_insert(duplicates, sought_state);
   return state_found;
@@ -4861,7 +4926,7 @@ create_predicted_AHFA_state(
      Bit_Vector prediction_rule_vector,
      RULE* rule_by_sort_key,
      DQUEUE states_p,
-     struct avl_table* duplicates,
+     AVL_TREE duplicates,
      AIM* item_list_working_buffer
      )
 {

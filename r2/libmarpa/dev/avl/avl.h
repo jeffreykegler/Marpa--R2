@@ -41,7 +41,7 @@ typedef void *avl_copy_func (void *avl_item, void *avl_param);
 #endif
 
 /* Tree data structure. */
-struct avl_table
+struct marpa_avl_table
   {
     struct avl_node *avl_root;          /* Tree's root. */
     avl_comparison_func *avl_compare;   /* Comparison function. */
@@ -50,6 +50,7 @@ struct avl_table
     size_t avl_count;                   /* Number of items in tree. */
     unsigned long avl_generation;       /* Generation number. */
   };
+typedef struct marpa_avl_table* AVL_TREE;
 
 /* An AVL tree node. */
 struct avl_node
@@ -58,11 +59,12 @@ struct avl_node
     void *avl_data;                /* Pointer to data. */
     signed char avl_balance;       /* Balance factor. */
   };
+typedef struct avl_node* NODE;
 
 /* AVL traverser structure. */
 struct avl_traverser
   {
-    struct avl_table *avl_table;        /* Tree being traversed. */
+    AVL_TREE avl_table;        /* Tree being traversed. */
     struct avl_node *avl_node;          /* Current node in tree. */
     struct avl_node *avl_stack[AVL_MAX_HEIGHT];
                                         /* All the nodes above |avl_node|. */
@@ -73,27 +75,27 @@ struct avl_traverser
 #define AVL_OBSTACK(table) (&(table)->obstack)
 
 /* Table functions. */
-struct avl_table *_marpa_avl_create (avl_comparison_func *, void *,
+AVL_TREE _marpa_avl_create (avl_comparison_func *, void *,
                               int alignment);
-struct avl_table *_marpa_avl_copy (const struct avl_table *, avl_copy_func *,
+AVL_TREE _marpa_avl_copy (const AVL_TREE , avl_copy_func *,
                             avl_item_func *, int alignment);
-void _marpa_avl_destroy (struct avl_table *);
-void **_marpa_avl_probe (struct avl_table *, void *);
-void *_marpa_avl_insert (struct avl_table *, void *);
-void *_marpa_avl_replace (struct avl_table *, void *);
-void *_marpa_avl_delete (struct avl_table *, const void *);
-void *_marpa_avl_find (const struct avl_table *, const void *);
-void _marpa_avl_assert_insert (struct avl_table *, void *);
-void *_marpa_avl_assert_delete (struct avl_table *, void *);
+void _marpa_avl_destroy (AVL_TREE );
+void **_marpa_avl_probe (AVL_TREE , void *);
+void *_marpa_avl_insert (AVL_TREE , void *);
+void *_marpa_avl_replace (AVL_TREE , void *);
+void *_marpa_avl_delete (AVL_TREE , const void *);
+void *_marpa_avl_find (const AVL_TREE , const void *);
+void _marpa_avl_assert_insert (AVL_TREE , void *);
+void *_marpa_avl_assert_delete (AVL_TREE , void *);
 
 #define marpa_avl_count(table) ((size_t) (table)->avl_count)
 
 /* Table traverser functions. */
-void _marpa_avl_t_init (struct avl_traverser *, struct avl_table *);
-void *_marpa_avl_t_first (struct avl_traverser *, struct avl_table *);
-void *_marpa_avl_t_last (struct avl_traverser *, struct avl_table *);
-void *_marpa_avl_t_find (struct avl_traverser *, struct avl_table *, void *);
-void *_marpa_avl_t_insert (struct avl_traverser *, struct avl_table *, void *);
+void _marpa_avl_t_init (struct avl_traverser *, AVL_TREE );
+void *_marpa_avl_t_first (struct avl_traverser *, AVL_TREE );
+void *_marpa_avl_t_last (struct avl_traverser *, AVL_TREE );
+void *_marpa_avl_t_find (struct avl_traverser *, AVL_TREE , void *);
+void *_marpa_avl_t_insert (struct avl_traverser *, AVL_TREE , void *);
 void *_marpa_avl_t_copy (struct avl_traverser *, const struct avl_traverser *);
 void *_marpa_avl_t_next (struct avl_traverser *);
 void *_marpa_avl_t_prev (struct avl_traverser *);
