@@ -826,10 +826,6 @@ sub Marpa::R2::Grammar::show_symbol {
         join q{ },
         $grammar_c->_marpa_g_symbol_lhs_rule_ids($symbol_id);
 
-    $text .= sprintf ' rhs=[%s]',
-        join q{ },
-        $grammar_c->_marpa_g_symbol_rhs_rule_ids($symbol_id);
-
     $grammar_c->symbol_is_productive($symbol_id) or $text .= ' unproductive';
     $grammar_c->symbol_is_accessible($symbol_id) or $text .= ' inaccessible';
     $grammar_c->symbol_is_nulling($symbol_id)  and $text .= ' nulling';

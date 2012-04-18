@@ -439,35 +439,6 @@ PPCODE:
 }
 
 void
-_marpa_g_symbol_rhs_rule_ids( g_wrapper, symbol_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Symbol_ID symbol_id;
-PPCODE:
-{
-  struct marpa_g *g = g_wrapper->g;
-  int i;
-  int count = _marpa_g_symbol_rhs_count (g, symbol_id);
-  if (count < -1)
-    {
-      croak ("Problem in g->_marpa_g_symbol_rhs_rule_ids: %s", xs_g_error (g_wrapper));
-    }
-  if (count == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  for (i = 0; i < count; i++)
-    {
-      Marpa_Rule_ID rule_id = _marpa_g_symbol_rhs (g, symbol_id, i);
-      if (rule_id < 0)
-	{
-	  croak ("Problem in g->_marpa_g_symbol_rhs_rule_ids: %s",
-		 xs_g_error (g_wrapper));
-	}
-      XPUSHs (sv_2mortal (newSViv (rule_id)));
-    }
-}
-
-void
 symbol_is_accessible( g_wrapper, symbol_id )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
