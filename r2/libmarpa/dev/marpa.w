@@ -10074,12 +10074,12 @@ PRIVATE TOK and_node_token(AND and_node)
 to be called.  Often it is setting the value to zero, so that the deallocation
 logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
 @<Public incomplete structures@> =
-struct s_bocage;
-typedef struct s_bocage* Marpa_Bocage;
+struct marpa_bocage;
+typedef struct marpa_bocage* Marpa_Bocage;
 @ @<Private incomplete structures@> =
-typedef struct s_bocage* BOCAGE;
+typedef struct marpa_bocage* BOCAGE;
 @ @<Bocage structure@> =
-struct s_bocage {
+struct marpa_bocage {
     @<Widely aligned bocage elements@>@;
     @<Int aligned bocage elements@>@;
     @<Bit aligned bocage elements@>@;
@@ -10132,7 +10132,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     INPUT input;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
-    b = my_slice_new(struct s_bocage);
+    b = my_slice_new(*b);
     @<Initialize bocage elements@>@;
     input = I_of_B(b) = I_of_R(r);
     input_ref(input);
@@ -10441,7 +10441,7 @@ bocage_free (BOCAGE b)
   if (b)
     {
       @<Destroy bocage elements, all phases@>;
-      my_slice_free (struct s_bocage, b);
+      my_slice_free (*b, b);
     }
 }
 
