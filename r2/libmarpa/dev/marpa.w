@@ -695,7 +695,8 @@ DSTACK_DESTROY(g->t_symbols);
 
 @ Symbol count accesors.
 @d SYM_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
-@d INS_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
+@d ISY_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
+@d XSY_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
 @ @<Function definitions@> =
 int marpa_g_symbol_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -743,7 +744,8 @@ The |rule_tree| is a tree for detecting duplicates.
 
 @*0 Rule count accessors.
 @ @d RULE_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
-@ @d INR_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
+@ @d IRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
+@ @d XRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
 @ @<Function definitions@> =
 int marpa_g_rule_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -2343,7 +2345,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
-    // Phase 1: census the external the grammar
+    // Phase 1: census the external grammar
     { /* Scope with only external grammar */
 	@<Declare external grammar variables@>@;
 	@<Perform census of grammar |g|@>@;
@@ -2422,14 +2424,15 @@ a lot of useless diagnostics.
 }
 
 @ @<Declare precompute variables@> =
-RULEID xrule_count = RULE_Count_of_G(g);
-SYMID xsym_count = SYM_Count_of_G(g);
+  RULEID xrl_count = XRL_Count_of_G(g);
+  SYMID xsy_count = XSY_Count_of_G(g);
 
 @ @<Fail if no rules@> =
-if (RULE_Count_of_G(g) <= 0) {
+if (UNLIKELY(xrl_count <= 0)) {
     MARPA_ERROR(MARPA_ERR_NO_RULES);
     return failure_indicator;
 }
+
 @ Loop over the rules, producing bit vector of LHS symbols, and of
 symbols which are the LHS of empty rules.
 While at it, set a flag to indicate if there are empty rules.
@@ -2480,20 +2483,38 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 @ @<Census symbols@> =
 {
   Marpa_Rule_ID rule_id;
+
+  /* AVL tree for RHS symbols */
   const AVL_TREE rhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
-  struct sym_rule_pair *const p_sym_rule_pair_base =
+  struct sym_rule_pair *const p_rh_sym_rule_pair_base =
     my_obstack_new (AVL_OBSTACK (rhs_avl_tree), struct sym_rule_pair,
 		    Size_of_G (g));
-  struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
-  lhs_v = bv_obs_create (obs_precompute, xsym_count);
+  struct sym_rule_pair *p_rh_sym_rule_pairs = p_rh_sym_rule_pair_base;
+
+  /* AVL tree for LHS symbols */
+  const AVL_TREE lhs_avl_tree =
+    _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
+  struct sym_rule_pair *const p_lh_sym_rule_pair_base =
+    my_obstack_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
+		    xrl_count);
+  struct sym_rule_pair *p_lh_sym_rule_pairs = p_lh_sym_rule_pair_base;
+
+  lhs_v = bv_obs_create (obs_precompute, xsy_count);
   empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
-  for (rule_id = 0; rule_id < (Marpa_Rule_ID) xrule_count; rule_id++)
+  for (rule_id = 0; rule_id < (Marpa_Rule_ID) xrl_count; rule_id++)
     {
       const RULE rule = RULE_by_ID (g, rule_id);
       const Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
       const int rule_length = Length_of_RULE (rule);
       bv_bit_set (lhs_v, (unsigned int) lhs_id);
+
+      /* Insert the LH Sym / XRL pair into the LH AVL tree */
+      p_lh_sym_rule_pairs->t_symid = lhs_id;
+	p_lh_sym_rule_pairs->t_ruleid = rule_id;
+      _marpa_avl_insert (lhs_avl_tree, p_lh_sym_rule_pairs);
+      p_lh_sym_rule_pairs++;
+
       if (rule_length <= 0)
 	{
 	  bv_bit_set (empty_lhs_v, (unsigned int) lhs_id);
@@ -2503,10 +2524,10 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	  int rhs_ix;
 	  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	    {
-	      p_sym_rule_pairs->t_symid = RHS_ID_of_RULE (rule, rhs_ix),
-		p_sym_rule_pairs->t_ruleid = rule_id;
-	      _marpa_avl_insert (rhs_avl_tree, p_sym_rule_pairs);
-	      p_sym_rule_pairs++;
+	      p_rh_sym_rule_pairs->t_symid = RHS_ID_of_RULE (rule, rhs_ix),
+		p_rh_sym_rule_pairs->t_ruleid = rule_id;
+	      _marpa_avl_insert (rhs_avl_tree, p_rh_sym_rule_pairs);
+	      p_rh_sym_rule_pairs++;
 	    }
 	}
     }
@@ -2519,7 +2540,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, rhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    xrl_list_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, xsym_count + 1);
+    xrl_list_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, xsy_count + 1);
     for (pair = (struct sym_rule_pair*)_marpa_avl_t_first (&traverser, rhs_avl_tree); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (&traverser))
       {
@@ -2528,10 +2549,36 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	  xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
-    while (seen_symid <= xsym_count)
+    while (seen_symid <= xsy_count)
       xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
+    _marpa_avl_destroy (rhs_avl_tree);
   }
-  _marpa_avl_destroy (rhs_avl_tree);
+
+  {
+    struct avl_traverser traverser;
+    struct sym_rule_pair *pair;
+    SYMID seen_symid = -1;
+    RULEID *const rule_data_base =
+      my_obstack_new (obs_precompute, RULEID, xrl_count);
+    RULEID *p_rule_data = rule_data_base;
+    _marpa_avl_t_init (&traverser, lhs_avl_tree);
+    /* One extra "symbol" as an end marker */
+    xrl_list_x_lh_sym =
+      my_obstack_new (obs_precompute, RULEID *, xsy_count + 1);
+    for (pair =
+	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser, lhs_avl_tree);
+	 pair; pair = (struct sym_rule_pair *) _marpa_avl_t_next (&traverser))
+      {
+	const SYMID current_symid = pair->t_symid;
+	while (seen_symid < current_symid)
+	  xrl_list_x_lh_sym[++seen_symid] = p_rule_data;
+	*p_rule_data++ = pair->t_ruleid;
+      }
+    while (seen_symid <= xsy_count)
+      xrl_list_x_lh_sym[++seen_symid] = p_rule_data;
+    _marpa_avl_destroy (lhs_avl_tree);
+  }
+
 }
 
 @ Loop over the symbols, producing the boolean vector of symbols
@@ -2540,9 +2587,9 @@ and a flag which indicates if there are any.
 @<Census terminals@> =
 {
   SYMID symid;
-  terminal_v = bv_obs_create (obs_precompute, xsym_count);
+  terminal_v = bv_obs_create (obs_precompute, xsy_count);
   bv_not (terminal_v, lhs_v);
-  for (symid = 0; symid < xsym_count; symid++)
+  for (symid = 0; symid < xsy_count; symid++)
     {
       SYM symbol = SYM_by_ID (symid);
       if (SYM_is_Marked_Terminal (symbol))
@@ -2573,6 +2620,7 @@ Bit_Vector terminal_v = NULL;
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
 RULEID** xrl_list_x_rh_sym = NULL;
+RULEID** xrl_list_x_lh_sym = NULL;
 
 @ @<Census nullable symbols@> = 
 {
@@ -2654,7 +2702,7 @@ where many of the right hand sides repeat symbols.
   Marpa_Rule_ID rule_id;
   RULEID rule_count_of_g = RULE_Count_of_G (g);
   reach_matrix
-    = matrix_obs_create (obs_precompute, xsym_count, xsym_count);
+    = matrix_obs_create (obs_precompute, xsy_count, xsy_count);
   for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
     {
       RULE rule = RULE_by_ID (g, rule_id);
@@ -4500,8 +4548,8 @@ be if written 100\% using indexes.
 	memoizations@> =
   AIM* const item_list_working_buffer
     = my_obstack_alloc(obs_precompute, RULE_Count_of_G(g)*sizeof(AIM));
-  const RULEID irl_count = INR_Count_of_G(g);
-  const SYMID ins_count = INS_Count_of_G(g);
+  const RULEID irl_count = IRL_Count_of_G(g);
+  const SYMID ins_count = ISY_Count_of_G(g);
   RULEID** irl_list_x_lh_sym = NULL;
 
 @ @<Calculate Rule by LHS lists@> =
