@@ -3422,14 +3422,13 @@ so there is a unit transition from |rule_id| to every
 rule with |nonnulling_id| on the LHS.
 @<For |nonnulling_id|, set to,from rule bit in |unit_transition_matrix|@> =
 {
-  SYM rhs_symbol = SYM_by_ID (nonnulling_id);
-  RULEID ix;
-  RULEID no_of_lhs_rules = DSTACK_LENGTH (rhs_symbol->t_lhs);
-  for (ix = 0; ix < no_of_lhs_rules; ix++)
+  RULEID *p_xrl = xrl_list_x_lh_sym[nonnulling_id];
+  const RULEID *p_one_past_rules = xrl_list_x_lh_sym[nonnulling_id + 1];
+  for (; p_xrl < p_one_past_rules; p_xrl++)
     {
       /* Direct loops ($A \RA A$) only need the $(rule_id, rule_id)$ bit set,
          but it is not clear that it is a win to special case them. */
-      const RULEID to_rule_id = *DSTACK_INDEX (rhs_symbol->t_lhs, RULEID, ix);
+      const RULEID to_rule_id = *p_xrl;
       matrix_bit_set (unit_transition_matrix, (unsigned int) rule_id,
 		      to_rule_id);
     }
