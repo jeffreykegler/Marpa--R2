@@ -1152,6 +1152,14 @@ void symbol_lhs_add(SYM symbol, RULEID rule_id)
    *DSTACK_PUSH(symbol->t_lhs, RULEID) = rule_id;
 }
 
+@*0 Symbol is LHS?.
+Is this (external) symbol on the LHS of any rule,
+whether sequence or BNF.
+@d SYM_is_LHS(symbol) ((symbol)->t_is_lhs)
+@<Bit aligned symbol elements@> = unsigned int t_is_lhs:1;
+@ @<Initialize symbol elements@> =
+    SYM_is_LHS(symbol) = 0;
+
 @*0 Symbol is internal?.
 @d SYM_is_Internal(symbol) ((symbol)->t_is_internal)
 @<Bit aligned symbol elements@> = unsigned int t_is_internal:1;
@@ -1825,6 +1833,7 @@ INVALID_SYMID:;
 @ @<Initialize rule symbols@> =
 Length_of_RULE (rule) = length;
 rule->t_symbols[0] = lhs;
+SYM_is_LHS(SYM_by_ID(lhs)) = 1;
 {
   int i;
   for (i = 0; i < length; i++)
@@ -2427,17 +2436,17 @@ While at it, set a flag to indicate if there are empty rules.
 
 @ @<Fail if bad start symbol@> =
 {
-  if (original_start_symid < 0)
+  if (UNLIKELY(original_start_symid < 0))
     {
       MARPA_ERROR (MARPA_ERR_NO_START_SYM);
       return failure_indicator;
     }
-  if (!symbol_is_valid (g, original_start_symid))
+  if (UNLIKELY(!symbol_is_valid (g, original_start_symid)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYM);
       return failure_indicator;
     }
-  if (DSTACK_LENGTH (SYM_by_ID (original_start_symid)->t_lhs) <= 0)
+  if (UNLIKELY(!SYM_is_LHS (SYM_by_ID (original_start_symid))))
     {
       MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
       return failure_indicator;
