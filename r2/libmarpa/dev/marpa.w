@@ -2510,17 +2510,17 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, rhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    rules_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, xsym_count + 1);
+    xrl_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, xsym_count + 1);
     for (pair = (struct sym_rule_pair*)_marpa_avl_t_first (&traverser, rhs_avl_tree); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (&traverser))
       {
 	const SYMID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
-	  rules_x_rh_sym[++seen_symid] = p_rule_data;
+	  xrl_x_rh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
     while (seen_symid <= xsym_count)
-      rules_x_rh_sym[++seen_symid] = p_rule_data;
+      xrl_x_rh_sym[++seen_symid] = p_rule_data;
   }
   _marpa_avl_destroy (rhs_avl_tree);
 }
@@ -2563,7 +2563,7 @@ Bit_Vector terminal_v = NULL;
 @ @<Declare external grammar variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
-RULEID** rules_x_rh_sym = NULL;
+RULEID** xrl_x_rh_sym = NULL;
 
 @ @<Census nullable symbols@> = 
 {
@@ -2571,7 +2571,7 @@ RULEID** rules_x_rh_sym = NULL;
   SYMID symid;
   int counted_nullables = 0;
   nullable_v = bv_obs_clone (obs_precompute, empty_lhs_v);
-  rhs_closure (g, nullable_v, rules_x_rh_sym);
+  rhs_closure (g, nullable_v, xrl_x_rh_sym);
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
       for (symid = (Marpa_Symbol_ID) min; symid <= (Marpa_Symbol_ID) max;
@@ -2596,7 +2596,7 @@ RULEID** rules_x_rh_sym = NULL;
 {
   productive_v = bv_obs_shadow (obs_precompute, nullable_v);
   bv_or (productive_v, nullable_v, terminal_v);
-  rhs_closure (g, productive_v, rules_x_rh_sym);
+  rhs_closure (g, productive_v, xrl_x_rh_sym);
   {
     unsigned int min, max, start;
     Marpa_Symbol_ID symid;
@@ -4491,9 +4491,9 @@ be if written 100\% using indexes.
 	memoizations@> =
   AIM* const item_list_working_buffer
     = my_obstack_alloc(obs_precompute, RULE_Count_of_G(g)*sizeof(AIM));
-  const RULEID inr_count = INR_Count_of_G(g);
+  const RULEID irl_count = INR_Count_of_G(g);
   const SYMID ins_count = INS_Count_of_G(g);
-  RULEID** inr_list_x_lh_sym = NULL;
+  RULEID** irl_list_x_lh_sym = NULL;
 
 @ @<Calculate Rule by LHS lists@> =
 {
@@ -4504,7 +4504,7 @@ be if written 100\% using indexes.
     my_obstack_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
 		    Size_of_G (g));
   struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
-  for (rule_id = 0; rule_id < (Marpa_Rule_ID) inr_count; rule_id++)
+  for (rule_id = 0; rule_id < (Marpa_Rule_ID) irl_count; rule_id++)
     {
       const RULE rule = RULE_by_ID (g, rule_id);
       p_sym_rule_pairs->t_symid = LHS_ID_of_RULE (rule);
@@ -4517,11 +4517,11 @@ be if written 100\% using indexes.
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     RULEID *const rule_data_base =
-      my_obstack_new (obs_precompute, RULEID, inr_count);
+      my_obstack_new (obs_precompute, RULEID, irl_count);
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, lhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    inr_list_x_lh_sym =
+    irl_list_x_lh_sym =
       my_obstack_new (obs_precompute, RULEID *, ins_count + 1);
     for (pair =
 	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser,
@@ -4530,11 +4530,11 @@ be if written 100\% using indexes.
       {
 	const SYMID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
-	  inr_list_x_lh_sym[++seen_symid] = p_rule_data;
+	  irl_list_x_lh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
     while (seen_symid <= ins_count)
-      inr_list_x_lh_sym[++seen_symid] = p_rule_data;
+      irl_list_x_lh_sym[++seen_symid] = p_rule_data;
   }
   _marpa_avl_destroy (lhs_avl_tree);
 }
@@ -4897,14 +4897,12 @@ populate the index from rule id to sort key.
 	  for (to_symid = min; to_symid <= (Marpa_Symbol_ID) max; to_symid++)
 	    {
 	      // for every predicted symbol
-	      SYM to_symbol = SYM_by_ID (to_symid);
-	      RULEID ix;
-	      RULEID no_of_lhs_rules = DSTACK_LENGTH (to_symbol->t_lhs);
-	      for (ix = 0; ix < no_of_lhs_rules; ix++)
+	      RULEID *p_irl_x_lh_sym = irl_list_x_lh_sym[to_symid];
+	      const RULEID *p_one_past_rules = irl_list_x_lh_sym[to_symid + 1];
+	      for (; p_irl_x_lh_sym < p_one_past_rules; p_irl_x_lh_sym++)
 		{
 		  // For every rule with that symbol on its LHS
-		  Marpa_Rule_ID rule_with_this_lhs_symbol =
-		    *DSTACK_INDEX (to_symbol->t_lhs, RULEID, ix);
+		  const RULEID rule_with_this_lhs_symbol = *p_irl_x_lh_sym;
 		  unsigned int sort_key =
 		    sort_key_by_rule_id[rule_with_this_lhs_symbol];
 		  if (sort_key >= no_of_predictable_rules)
@@ -12266,7 +12264,7 @@ and turns the original vector into the RHS closure of that vector.
 The orignal vector is destroyed.
 @<Function definitions@> =
 PRIVATE void
-rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** rules_x_rh_sym)
+rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** xrl_x_rh_sym)
 {
   unsigned int min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
@@ -12284,11 +12282,11 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** rules_x_rh_sym)
   while ((top_of_stack = FSTACK_POP (stack)))
   {
     const SYMID symid = *top_of_stack;
-    RULEID *p_rules_x_rh_sym = rules_x_rh_sym[symid];
-    const RULEID *p_one_past_rules = rules_x_rh_sym[symid + 1];
-    for (; p_rules_x_rh_sym < p_one_past_rules; p_rules_x_rh_sym++)
+    RULEID *p_xrl_x_rh_sym = xrl_x_rh_sym[symid];
+    const RULEID *p_one_past_rules = xrl_x_rh_sym[symid + 1];
+    for (; p_xrl_x_rh_sym < p_one_past_rules; p_xrl_x_rh_sym++)
       {
-	const RULEID rule_id = *p_rules_x_rh_sym;
+	const RULEID rule_id = *p_xrl_x_rh_sym;
 	const RULE rule = RULE_by_ID (g, rule_id);
 	int rule_length;
 	int rh_ix;
