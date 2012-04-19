@@ -1513,6 +1513,7 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
     }
     if (UNLIKELY(!rule_check(g, lhs, rhs, length))) return failure_indicator;
     rule = rule_start(g, lhs, rhs, length);
+    XRL_is_BNF(rule) = 1;
     rule_id = rule->t_id;
     return rule_id;
 }
@@ -1567,6 +1568,7 @@ int min, int flags )
   original_rule = rule_start (g, lhs_id, &rhs_id, 1);
   RULE_is_Used (original_rule) = 0;
   original_rule_id = original_rule->t_id;
+  XRL_is_Sequence(original_rule) = 1;
   original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
     && separator_id >= 0;
 }
@@ -1893,7 +1895,21 @@ added to the list of rules.
 @d ID_of_RULE(rule) ((rule)->t_id)
 @<Int aligned rule elements@> = Marpa_Rule_ID t_id;
 
-@*0 Rule Boolean: Keep Separator.
+@*0 Rule is BNF?.
+True for BNF rules, false otherwise.
+@d XRL_is_BNF(rule) ((rule)->t_is_BNF)
+@<Bit aligned rule elements@> = unsigned int t_is_BNF:1;
+@ @<Initialize rule elements@> =
+rule->t_is_BNF = 0;
+
+@*0 Rule is sequence?.
+True for external sequence rules, false otherwise.
+@d XRL_is_Sequence(rule) ((rule)->t_is_sequence)
+@<Bit aligned rule elements@> = unsigned int t_is_sequence:1;
+@ @<Initialize rule elements@> =
+rule->t_is_sequence = 0;
+
+@*0 Rule keeps separator?.
 When this rule is evaluated by the semantics,
 do they want to see the separators?
 Default is that they are thrown away.
@@ -1916,7 +1932,7 @@ int marpa_g_rule_is_keep_separation(
     return !RULE_by_ID(g, rule_id)->t_is_discard;
 }
 
-@*0 Rule Boolean: Proper Separation.
+@*0 Rule has proper separation?.
 In Marpa's terminology,
 proper separation means that a sequence
 cannot legally end with a separator.
@@ -3386,12 +3402,13 @@ In other words, for this purpose,
 unit transitions are not in general reflexive.
 @<Mark direct unit transitions in |unit_transition_matrix|@> = {
 Marpa_Rule_ID rule_id;
-for (rule_id = 0; rule_id < rule_count_of_g; rule_id++) {
+for (rule_id = 0; rule_id < xrl_count; rule_id++) {
      RULE rule = RULE_by_ID(g, rule_id);
      SYMID nonnulling_id = -1;
      int nonnulling_count = 0;
      int rhs_ix, rule_length;
      rule_length = Length_of_RULE(rule);
+     if (UNLIKELY(!XRL_is_BNF(rule))) continue;
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 	 Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
 	 if (bv_bit_test(nullable_v, symid)) continue;
