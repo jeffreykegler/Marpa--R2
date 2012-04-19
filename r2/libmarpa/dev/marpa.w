@@ -2519,17 +2519,17 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, rhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    xrl_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, xsym_count + 1);
+    xrl_list_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, xsym_count + 1);
     for (pair = (struct sym_rule_pair*)_marpa_avl_t_first (&traverser, rhs_avl_tree); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (&traverser))
       {
 	const SYMID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
-	  xrl_x_rh_sym[++seen_symid] = p_rule_data;
+	  xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
     while (seen_symid <= xsym_count)
-      xrl_x_rh_sym[++seen_symid] = p_rule_data;
+      xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
   }
   _marpa_avl_destroy (rhs_avl_tree);
 }
@@ -2572,7 +2572,7 @@ Bit_Vector terminal_v = NULL;
 @ @<Declare external grammar variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
-RULEID** xrl_x_rh_sym = NULL;
+RULEID** xrl_list_x_rh_sym = NULL;
 
 @ @<Census nullable symbols@> = 
 {
@@ -2580,7 +2580,7 @@ RULEID** xrl_x_rh_sym = NULL;
   SYMID symid;
   int counted_nullables = 0;
   nullable_v = bv_obs_clone (obs_precompute, empty_lhs_v);
-  rhs_closure (g, nullable_v, xrl_x_rh_sym);
+  rhs_closure (g, nullable_v, xrl_list_x_rh_sym);
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
       for (symid = (Marpa_Symbol_ID) min; symid <= (Marpa_Symbol_ID) max;
@@ -2605,7 +2605,7 @@ RULEID** xrl_x_rh_sym = NULL;
 {
   productive_v = bv_obs_shadow (obs_precompute, nullable_v);
   bv_or (productive_v, nullable_v, terminal_v);
-  rhs_closure (g, productive_v, xrl_x_rh_sym);
+  rhs_closure (g, productive_v, xrl_list_x_rh_sym);
   {
     unsigned int min, max, start;
     Marpa_Symbol_ID symid;
@@ -12273,7 +12273,7 @@ and turns the original vector into the RHS closure of that vector.
 The orignal vector is destroyed.
 @<Function definitions@> =
 PRIVATE void
-rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** xrl_x_rh_sym)
+rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** xrl_list_x_rh_sym)
 {
   unsigned int min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
@@ -12291,11 +12291,11 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** xrl_x_rh_sym)
   while ((top_of_stack = FSTACK_POP (stack)))
   {
     const SYMID symid = *top_of_stack;
-    RULEID *p_xrl_x_rh_sym = xrl_x_rh_sym[symid];
-    const RULEID *p_one_past_rules = xrl_x_rh_sym[symid + 1];
-    for (; p_xrl_x_rh_sym < p_one_past_rules; p_xrl_x_rh_sym++)
+    RULEID *p_xrl = xrl_list_x_rh_sym[symid];
+    const RULEID *p_one_past_rules = xrl_list_x_rh_sym[symid + 1];
+    for (; p_xrl < p_one_past_rules; p_xrl++)
       {
-	const RULEID rule_id = *p_xrl_x_rh_sym;
+	const RULEID rule_id = *p_xrl;
 	const RULE rule = RULE_by_ID (g, rule_id);
 	int rule_length;
 	int rh_ix;
