@@ -2544,12 +2544,42 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       const Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
       const int rule_length = Length_of_RULE (rule);
       bv_bit_set (lhs_v, (unsigned int) lhs_id);
+      const int is_BNF = XRL_is_BNF(rule);
+      const int is_sequence = XRL_is_Sequence(rule);
+
+      if (UNLIKELY(!is_BNF && !is_sequence)) goto NEXT_RULE;
 
       /* Insert the LH Sym / XRL pair into the LH AVL tree */
       p_lh_sym_rule_pairs->t_symid = lhs_id;
 	p_lh_sym_rule_pairs->t_ruleid = rule_id;
       _marpa_avl_insert (lhs_avl_tree, p_lh_sym_rule_pairs);
       p_lh_sym_rule_pairs++;
+
+      if (UNLIKELY(is_sequence)) {
+
+	  p_rh_sym_rule_pairs->t_symid = RHS_ID_of_RULE (rule, 0);
+	    p_rh_sym_rule_pairs->t_ruleid = rule_id;
+	  _marpa_avl_insert (rhs_avl_tree, p_rh_sym_rule_pairs);
+	  p_rh_sym_rule_pairs++;
+
+	  if (Minimum_of_XRL(rule) == 0) {
+	    bv_bit_set (empty_lhs_v, (unsigned int) lhs_id);
+	  }
+
+	  {
+	    const SYMID separator_id = Separator_of_XRL (rule);
+	    if (separator_id >= 0)
+	      {
+		p_rh_sym_rule_pairs->t_symid = separator_id;
+		p_rh_sym_rule_pairs->t_ruleid = rule_id;
+		_marpa_avl_insert (rhs_avl_tree, p_rh_sym_rule_pairs);
+		p_rh_sym_rule_pairs++;
+	      }
+	  }
+
+	  goto NEXT_RULE;
+
+      }
 
       if (rule_length <= 0)
 	{
@@ -2566,6 +2596,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	      p_rh_sym_rule_pairs++;
 	    }
 	}
+	NEXT_RULE: ;
     }
   {
     struct avl_traverser traverser;
@@ -2737,18 +2768,36 @@ where many of the right hand sides repeat symbols.
 {
   Marpa_Rule_ID rule_id;
   RULEID rule_count_of_g = RULE_Count_of_G (g);
-  reach_matrix
-    = matrix_obs_create (obs_precompute, xsy_count, xsy_count);
-  for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
+  reach_matrix = matrix_obs_create (obs_precompute, xsy_count, xsy_count);
+  for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       RULE rule = RULE_by_ID (g, rule_id);
-      Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
-      unsigned int rhs_ix, rule_length = Length_of_RULE (rule);
-      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+      SYMID lhs_id = LHS_ID_of_RULE (rule);
+      const int is_BNF = XRL_is_BNF (rule);
+      const int is_sequence = XRL_is_Sequence (rule);
+
+      if (UNLIKELY (!is_BNF && !is_sequence))
+	continue;
+
+      {
+	const int rule_length = Length_of_RULE (rule);
+	int rhs_ix;
+	for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+	  {
+	    matrix_bit_set (reach_matrix,
+			    (unsigned int) lhs_id,
+			    (unsigned int) RHS_ID_of_RULE (rule, rhs_ix));
+	  }
+      }
+      if (is_sequence)
 	{
-	  matrix_bit_set (reach_matrix,
-			  (unsigned int) lhs_id,
-			  (unsigned int) RHS_ID_of_RULE (rule, rhs_ix));
+	  const SYMID separator_id = Separator_of_XRL (rule);
+	  if (separator_id >= 0)
+	    {
+	      matrix_bit_set (reach_matrix,
+			      (unsigned int) lhs_id,
+			      (unsigned int) separator_id);
+	    }
 	}
     }
   transitive_closure (reach_matrix);
@@ -2884,7 +2933,7 @@ the pre-CHAF rule count.
 	 @<Mark and skip unused rules@>@;
 	 @<Calculate CHAF rule statistics@>@;
 	 /* If there is no proper nullable in this rule, I am done */
-	 if (factor_count > 0) goto NEXT_CHAF_CANDIDATE;
+	 if (factor_count <= 0) goto NEXT_CHAF_CANDIDATE;
 	 @<Factor the rule into CHAF rules@>@;
 	 NEXT_CHAF_CANDIDATE: ;
     }
