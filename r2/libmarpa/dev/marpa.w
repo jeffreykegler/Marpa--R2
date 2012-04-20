@@ -1568,7 +1568,10 @@ int min, int flags )
   original_rule = rule_start (g, lhs_id, &rhs_id, 1);
   RULE_is_Used (original_rule) = 0;
   original_rule_id = original_rule->t_id;
-  XRL_is_Sequence(original_rule) = 1;
+  if (separator_id >= 0)
+    Separator_of_XRL (original_rule) = separator_id;
+  Minimum_of_XRL(original_rule) = min;
+  XRL_is_Sequence (original_rule) = 1;
   original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
     && separator_id >= 0;
 }
@@ -1908,6 +1911,21 @@ True for external sequence rules, false otherwise.
 @<Bit aligned rule elements@> = unsigned int t_is_sequence:1;
 @ @<Initialize rule elements@> =
 rule->t_is_sequence = 0;
+
+@*0 Sequence minimum length.
+The minimum length for a sequence rule, |-1| otherwise.
+@d Minimum_of_XRL(rule) ((rule)->t_minimum)
+@<Bit aligned rule elements@> = int t_minimum;
+@ @<Initialize rule elements@> =
+rule->t_minimum = -1;
+
+@*0 Rule has separator?.
+ID of the separator, for sequence rules which have one.
+Otherwise, |-1|.
+@d Separator_of_XRL(rule) ((rule)->t_separator_id)
+@<Bit aligned rule elements@> = SYMID t_separator_id;
+@ @<Initialize rule elements@> =
+Separator_of_XRL(rule) = -1;
 
 @*0 Rule keeps separator?.
 When this rule is evaluated by the semantics,
@@ -2503,6 +2521,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   /* AVL tree for RHS symbols */
   const AVL_TREE rhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
+    /* Size of G is sum of RHS lengths, plus 1 for each rule, which here is necessary
+    for separator of sequences */
   struct sym_rule_pair *const p_rh_sym_rule_pair_base =
     my_obstack_new (AVL_OBSTACK (rhs_avl_tree), struct sym_rule_pair,
 		    Size_of_G (g));
@@ -2864,9 +2884,9 @@ the pre-CHAF rule count.
 	 @<Mark and skip unused rules@>@;
 	 @<Calculate CHAF rule statistics@>@;
 	 /* If there is no proper nullable in this rule, I am done */
-	 if (factor_count <= 0) goto NEXT_RULE;
+	 if (factor_count > 0) goto NEXT_CHAF_CANDIDATE;
 	 @<Factor the rule into CHAF rules@>@;
-	 NEXT_RULE: ;
+	 NEXT_CHAF_CANDIDATE: ;
     }
     @<CHAF rewrite deallocations@>@;
 }
@@ -2875,10 +2895,11 @@ Marpa_Rule_ID rule_id;
 int pre_chaf_rule_count;
 
 @ @<Mark and skip unused rules@> =
-if (!RULE_is_Used(rule)) { goto NEXT_RULE; }
-if (rule_is_nulling(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_RULE; }
-if (!rule_is_accessible(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_RULE; }
-if (!rule_is_productive(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_RULE; }
+if (!XRL_is_BNF(rule)) { goto NEXT_CHAF_CANDIDATE; }
+if (!RULE_is_Used(rule)) { goto NEXT_CHAF_CANDIDATE; }
+if (rule_is_nulling(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_CHAF_CANDIDATE; }
+if (!rule_is_accessible(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_CHAF_CANDIDATE; }
+if (!rule_is_productive(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_CHAF_CANDIDATE; }
 
 @ For every accessible and productive proper nullable which
 is not already aliased, alias it.
