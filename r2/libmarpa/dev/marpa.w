@@ -2884,7 +2884,7 @@ the pre-CHAF rule count.
 	 @<Mark and skip unused rules@>@;
 	 @<Calculate CHAF rule statistics@>@;
 	 /* If there is no proper nullable in this rule, I am done */
-	 if (factor_count > 0) goto NEXT_CHAF_CANDIDATE;
+	 if (factor_count <= 0) goto NEXT_CHAF_CANDIDATE;
 	 @<Factor the rule into CHAF rules@>@;
 	 NEXT_CHAF_CANDIDATE: ;
     }
@@ -2895,11 +2895,25 @@ Marpa_Rule_ID rule_id;
 int pre_chaf_rule_count;
 
 @ @<Mark and skip unused rules@> =
-if (!XRL_is_BNF(rule)) { goto NEXT_CHAF_CANDIDATE; }
-if (!RULE_is_Used(rule)) { goto NEXT_CHAF_CANDIDATE; }
-if (rule_is_nulling(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_CHAF_CANDIDATE; }
-if (!rule_is_accessible(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_CHAF_CANDIDATE; }
-if (!rule_is_productive(g, rule)) { RULE_is_Used(rule) = 0; goto NEXT_CHAF_CANDIDATE; }
+if (!RULE_is_Used (rule))
+  {
+    goto NEXT_CHAF_CANDIDATE;
+  }
+if (rule_is_nulling (g, rule))
+  {
+    RULE_is_Used (rule) = 0;
+    goto NEXT_CHAF_CANDIDATE;
+  }
+if (!rule_is_accessible (g, rule))
+  {
+    RULE_is_Used (rule) = 0;
+    goto NEXT_CHAF_CANDIDATE;
+  }
+if (!rule_is_productive (g, rule))
+  {
+    RULE_is_Used (rule) = 0;
+    goto NEXT_CHAF_CANDIDATE;
+  }
 
 @ For every accessible and productive proper nullable which
 is not already aliased, alias it.
