@@ -1513,7 +1513,7 @@ Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
     }
     if (UNLIKELY(!rule_check(g, lhs, rhs, length))) return failure_indicator;
     rule = rule_start(g, lhs, rhs, length);
-    XRL_is_BNF(rule) = 1;
+    XRL_is_Internal(rule) = 0;
     rule_id = rule->t_id;
     return rule_id;
 }
@@ -1572,6 +1572,7 @@ int min, int flags )
     Separator_of_XRL (original_rule) = separator_id;
   Minimum_of_XRL(original_rule) = min;
   XRL_is_Sequence (original_rule) = 1;
+  XRL_is_Internal(original_rule) = 0;
   original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
     && separator_id >= 0;
 }
@@ -1683,6 +1684,7 @@ int rhs_ix, i;
         temp_rhs[rhs_ix++] = rhs_id;
     }
     rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
+    rule->t_original = original_rule_id;
     RULE_has_Virtual_LHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix;
 }
@@ -1693,6 +1695,7 @@ int rhs_ix = 0;
     if (separator_id >= 0) temp_rhs[rhs_ix++] = separator_id;
     temp_rhs[rhs_ix++] = rhs_id;
     rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
+    rule->t_original = original_rule_id;
     RULE_has_Virtual_LHS(rule) = 1;
     RULE_has_Virtual_RHS(rule) = 1;
     Real_SYM_Count_of_RULE(rule) = rhs_ix - 1;
@@ -1898,12 +1901,15 @@ added to the list of rules.
 @d ID_of_RULE(rule) ((rule)->t_id)
 @<Int aligned rule elements@> = Marpa_Rule_ID t_id;
 
-@*0 Rule is BNF?.
-True for BNF rules, false otherwise.
-@d XRL_is_BNF(rule) ((rule)->t_is_BNF)
-@<Bit aligned rule elements@> = unsigned int t_is_BNF:1;
+@*0 Rule is internal?.
+True for internal rules, false otherwise.
+@ {\bf To Do}: @^To Do@>
+Eliminate this once the external / internal division is
+finished.
+@d XRL_is_Internal(rule) ((rule)->t_is_Internal)
+@<Bit aligned rule elements@> = unsigned int t_is_Internal:1;
 @ @<Initialize rule elements@> =
-rule->t_is_BNF = 0;
+rule->t_is_Internal = 1;
 
 @*0 Rule is sequence?.
 True for external sequence rules, false otherwise.
@@ -2543,6 +2549,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       const RULE rule = RULE_by_ID (g, rule_id);
       const Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
       const int rule_length = Length_of_RULE (rule);
+      const int is_sequence = XRL_is_Sequence (rule);
+
       bv_bit_set (lhs_v, (unsigned int) lhs_id);
 
       /* Insert the LH Sym / XRL pair into the LH AVL tree */
@@ -2550,6 +2558,21 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	p_lh_sym_rule_pairs->t_ruleid = rule_id;
       _marpa_avl_insert (lhs_avl_tree, p_lh_sym_rule_pairs);
       p_lh_sym_rule_pairs++;
+
+      if (is_sequence)
+	{
+	  const SYMID separator_id = Separator_of_XRL(rule);
+	  if (Minimum_of_XRL (rule) <= 0)
+	    {
+	      bv_bit_set (empty_lhs_v, (unsigned int) lhs_id);
+	    }
+	    if (separator_id >= 0) {
+	      p_rh_sym_rule_pairs->t_symid = separator_id;
+	      p_rh_sym_rule_pairs->t_ruleid = rule_id;
+	      _marpa_avl_insert (rhs_avl_tree, p_rh_sym_rule_pairs);
+	      p_rh_sym_rule_pairs++;
+	    }
+	}
 
       if (rule_length <= 0)
 	{
@@ -2560,7 +2583,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	  int rhs_ix;
 	  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	    {
-	      p_rh_sym_rule_pairs->t_symid = RHS_ID_of_RULE (rule, rhs_ix),
+	      p_rh_sym_rule_pairs->t_symid = RHS_ID_of_RULE (rule, rhs_ix);
 		p_rh_sym_rule_pairs->t_ruleid = rule_id;
 	      _marpa_avl_insert (rhs_avl_tree, p_rh_sym_rule_pairs);
 	      p_rh_sym_rule_pairs++;
@@ -2692,12 +2715,12 @@ RULEID** xrl_list_x_lh_sym = NULL;
   rhs_closure (g, productive_v, xrl_list_x_rh_sym);
   {
     unsigned int min, max, start;
-    Marpa_Symbol_ID symid;
+    SYMID symid;
     for (start = 0; bv_scan (productive_v, start, &min, &max);
 	 start = max + 2)
       {
-	for (symid = (Marpa_Symbol_ID) min;
-	     symid <= (Marpa_Symbol_ID) max; symid++)
+	for (symid = (SYMID) min;
+	     symid <= (SYMID) max; symid++)
 	  {
 	    SYM symbol = SYM_by_ID (symid);
 	    symbol->t_is_productive = 1;
@@ -2904,16 +2927,20 @@ if (rule_is_nulling (g, rule))
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
   }
-if (!rule_is_accessible (g, rule))
-  {
-    RULE_is_Used (rule) = 0;
-    goto NEXT_CHAF_CANDIDATE;
-  }
-if (!rule_is_productive (g, rule))
-  {
-    RULE_is_Used (rule) = 0;
-    goto NEXT_CHAF_CANDIDATE;
-  }
+{
+  RULE original_rule =
+    XRL_is_Internal (rule) ? RULE_by_ID (g, rule->t_original) : rule;
+  if (!rule_is_accessible (g, original_rule))
+    {
+      RULE_is_Used (rule) = 0;
+      goto NEXT_CHAF_CANDIDATE;
+    }
+  if (!rule_is_productive (g, original_rule))
+    {
+      RULE_is_Used (rule) = 0;
+      goto NEXT_CHAF_CANDIDATE;
+    }
+}
 
 @ For every accessible and productive proper nullable which
 is not already aliased, alias it.
@@ -3415,11 +3442,10 @@ To assist the upper layers, an event is reported for a non-zero
 loop rule count, with the final tally.
 @<Detect cycles@> =
 {
-    int rule_count_of_g = RULE_Count_of_G(g);
     int loop_rule_count = 0;
     Bit_Matrix unit_transition_matrix =
-	matrix_obs_create (obs_precompute, (unsigned int) rule_count_of_g,
-	    (unsigned int) rule_count_of_g);
+	matrix_obs_create (obs_precompute, (unsigned int) xrl_count,
+	    (unsigned int) xrl_count);
     @<Mark direct unit transitions in |unit_transition_matrix|@>@;
     transitive_closure(unit_transition_matrix);
     @<Mark loop rules@>@;
@@ -3443,7 +3469,7 @@ for (rule_id = 0; rule_id < xrl_count; rule_id++) {
      int nonnulling_count = 0;
      int rhs_ix, rule_length;
      rule_length = Length_of_RULE(rule);
-     if (UNLIKELY(!XRL_is_BNF(rule))) continue;
+     if (UNLIKELY(XRL_is_Internal(rule))) continue;
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 	 Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
 	 if (bv_bit_test(nullable_v, symid)) continue;
@@ -3496,7 +3522,7 @@ at this point, sequence rules.
 @<Mark loop rules@> =
 {
   RULEID rule_id;
-  for (rule_id = 0; rule_id < rule_count_of_g; rule_id++)
+  for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       RULE rule;
       if (!matrix_bit_test
@@ -12372,12 +12398,12 @@ and turns the original vector into the RHS closure of that vector.
 The orignal vector is destroyed.
 @<Function definitions@> =
 PRIVATE void
-rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** xrl_list_x_rh_sym)
+rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID ** xrl_list_x_rh_sym)
 {
   unsigned int min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
-  FSTACK_DECLARE (stack, Marpa_Symbol_ID)@;
-  FSTACK_INIT (stack, Marpa_Symbol_ID, SYM_Count_of_G(g));
+  FSTACK_DECLARE (stack, Marpa_Symbol_ID) @;
+  FSTACK_INIT (stack, Marpa_Symbol_ID, SYM_Count_of_G (g));
   while (bv_scan (bv, start, &min, &max))
     {
       unsigned int symid;
@@ -12388,33 +12414,59 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID** xrl_list_x_rh_sym)
       start = max + 2;
     }
   while ((top_of_stack = FSTACK_POP (stack)))
-  {
-    const SYMID symid = *top_of_stack;
-    RULEID *p_xrl = xrl_list_x_rh_sym[symid];
-    const RULEID *p_one_past_rules = xrl_list_x_rh_sym[symid + 1];
-    for (; p_xrl < p_one_past_rules; p_xrl++)
-      {
-	const RULEID rule_id = *p_xrl;
-	const RULE rule = RULE_by_ID (g, rule_id);
-	int rule_length;
-	int rh_ix;
-	const SYMID lhs_id = LHS_ID_of_RULE (rule);
-	if (bv_bit_test (bv, (unsigned int) lhs_id))
-	  goto NEXT_RULE;
-	rule_length = Length_of_RULE (rule);
-	for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
-	  {
-	    if (!bv_bit_test (bv, (unsigned int) RHS_ID_of_RULE (rule, rh_ix)))
-	      goto NEXT_RULE;
-	  }
-	/* If I am here, the bits for the RHS symbols are all
-	 * set, but the one for the LHS symbol is not.
-	 */
-	bv_bit_set (bv, (unsigned int) lhs_id);
-	*(FSTACK_PUSH (stack)) = lhs_id;
-      NEXT_RULE:;
-      }
-  }
+    {
+      const SYMID symid = *top_of_stack;
+      RULEID *p_xrl = xrl_list_x_rh_sym[symid];
+      const RULEID *p_one_past_rules = xrl_list_x_rh_sym[symid + 1];
+      for (; p_xrl < p_one_past_rules; p_xrl++)
+	{
+	  const RULEID rule_id = *p_xrl;
+	  const RULE rule = RULE_by_ID (g, rule_id);
+	  int rule_length;
+	  int rh_ix;
+	  const SYMID lhs_id = LHS_ID_of_RULE (rule);
+
+	  const int is_sequence = XRL_is_Sequence (rule);
+
+	  if (XRL_is_Internal(rule)) goto NEXT_RULE;
+	  if (bv_bit_test (bv, (unsigned int) lhs_id))
+	    goto NEXT_RULE;
+	  rule_length = Length_of_RULE (rule);
+
+	  /* This works for the present allowed sequence rules --
+	     These currently always allow rules of length 1,
+	     which do not necessarily have a separator, so
+	     that they may be treated like BNF rules of length 1.
+	   */
+	  for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
+	    {
+	      if (!bv_bit_test
+		  (bv, (unsigned int) RHS_ID_of_RULE (rule, rh_ix)))
+		goto NEXT_RULE;
+	    }
+
+	  /* This code is untested, as of this writing.
+	     When rules of minimum size greater than 1 are allowed,
+	     the separator will need to be considered.
+	   */
+	  if (is_sequence && Minimum_of_XRL (rule) >= 2)
+	    {
+	      SYMID separator_id = Separator_of_XRL (rule);
+	      if (separator_id >= 0)
+		{
+		  if (!bv_bit_test (bv, (unsigned int) separator_id))
+		    goto NEXT_RULE;
+		}
+	    }
+
+	  /* If I am here, the bits for the RHS symbols are all
+	   * set, but the one for the LHS symbol is not.
+	   */
+	  bv_bit_set (bv, (unsigned int) lhs_id);
+	  *(FSTACK_PUSH (stack)) = lhs_id;
+	NEXT_RULE:;
+	}
+    }
   FSTACK_DESTROY (stack);
 }
 
