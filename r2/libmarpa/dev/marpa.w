@@ -1167,7 +1167,7 @@ whether sequence or BNF.
 @<Bit aligned symbol elements@> = unsigned int t_is_internal:1;
 @ Symbols start life as internal symbols.
 @<Initialize symbol elements@> =
-    SYM_is_Internal(symbol) = 1;
+    SYM_is_Internal(symbol) = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_internal(
     Marpa_Grammar g,
@@ -1244,6 +1244,7 @@ Marpa_Symbol_ID symid)
 
 @ Symbol Is Nulling Boolean
 @d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
+@d ISY_is_Nulling(sym) ((sym)->t_is_nulling)
 @<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nulling = 0;
@@ -1566,6 +1567,7 @@ int min, int flags )
 @<Add the original rule for a sequence@> =
 {
   original_rule = rule_start (g, lhs_id, &rhs_id, 1);
+MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(original_rule));
   RULE_is_Used (original_rule) = 0;
   original_rule_id = original_rule->t_id;
   if (separator_id >= 0)
@@ -1632,6 +1634,7 @@ if (separator_id >= 0) { SYM_by_ID(separator_id)->t_is_counted = 1; }
 @ @<Create the sequence internal LHS symbol@> =
 {
   internal_lhs = symbol_new (g);
+  SYM_is_Internal(internal_lhs) = 1;
   internal_lhs_id = ID_of_SYM (internal_lhs);
 }
 
@@ -2765,6 +2768,7 @@ where many of the right hand sides repeat symbols.
       RULE rule = RULE_by_ID (g, rule_id);
       SYMID lhs_id = LHS_ID_of_RULE (rule);
       unsigned int rhs_ix, rule_length = Length_of_RULE (rule);
+      if (XRL_is_Internal(rule)) continue;
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	{
 	  matrix_bit_set (reach_matrix,
@@ -2906,12 +2910,33 @@ the pre-CHAF rule count.
 {
     @<CHAF rewrite declarations@>@;
     @<CHAF rewrite allocations@>@;
-     @<Alias proper nullables@>@;
+    @<Alias proper nullables@>@;
     pre_chaf_rule_count = RULE_Count_of_G(g);
     for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
          RULE  rule = RULE_by_ID(g, rule_id);
 	 const int rule_length = Length_of_RULE(rule);
 	 int nullable_suffix_ix = 0;
+	 if (XRL_is_Internal(rule)) {
+	   RULE original_rule = RULE_by_ID (g, rule->t_original);
+	   if (!rule_is_accessible(g, original_rule))
+	   {
+MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
+	      RULE_is_Used (rule) = 0;
+	      goto NEXT_CHAF_CANDIDATE;
+	   }
+	   if (!rule_is_productive(g, original_rule))
+	   {
+MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
+	      RULE_is_Used (rule) = 0;
+	      goto NEXT_CHAF_CANDIDATE;
+	   }
+	   if (rule_length <= 0) {
+MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
+	      RULE_is_Used (rule) = 0;
+	      goto NEXT_CHAF_CANDIDATE;
+	   }
+	   goto NEXT_CHAF_CANDIDATE;
+	 }
 	 @<Mark and skip unused rules@>@;
 	 @<Calculate CHAF rule statistics@>@;
 	 /* If there is no proper nullable in this rule, I am done */
@@ -2932,24 +2957,22 @@ if (!RULE_is_Used (rule))
   }
 if (rule_is_nulling (g, rule))
   {
+    MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE (rule));
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
   }
-{
-  const int is_internal = XRL_is_Internal (rule);
-  RULE original_rule = is_internal ? RULE_by_ID (g, rule->t_original) : rule;
-  if (!rule_is_accessible (g, original_rule))
-    {
-      RULE_is_Used (rule) = 0;
-      goto NEXT_CHAF_CANDIDATE;
-    }
-  if (!rule_is_productive (g, original_rule))
-    {
-      RULE_is_Used (rule) = 0;
-      goto NEXT_CHAF_CANDIDATE;
-    }
-  if (is_internal) goto NEXT_CHAF_CANDIDATE;
-}
+if (!rule_is_accessible (g, rule))
+  {
+    MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE (rule));
+    RULE_is_Used (rule) = 0;
+    goto NEXT_CHAF_CANDIDATE;
+  }
+if (!rule_is_productive (g, rule))
+  {
+    MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE (rule));
+    RULE_is_Used (rule) = 0;
+    goto NEXT_CHAF_CANDIDATE;
+  }
 
 @ For every accessible and productive proper nullable which
 is not already aliased, alias it.
@@ -3010,6 +3033,7 @@ my_free(factor_positions);
 
 @*0 Divide the Rule into Pieces.
 @<Factor the rule into CHAF rules@> =
+MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
 RULE_is_Used(rule) = 0; /* Mark the original rule unused */
 {
     /* The number of proper nullables for which CHAF rules have
@@ -3396,6 +3420,7 @@ if there is one.  Otherwise it is a new, nulling, symbol.
   new_start_rule = rule_start (g, nulling_new_start_id, 0, 0);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
+MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(new_start_rule));
   RULE_is_Used(new_start_rule) = 0;
   g->t_null_start_rule = new_start_rule;
 }
@@ -3797,6 +3822,7 @@ size when adding each new AHFA item.
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
       if (RULE_is_Used (rule)) {
+MARPA_DEBUG3 ("%s: rule %d AFHA items being created", STRLOC, ID_of_RULE(rule));
 	@<Create the AHFA items for a rule@>@;
 	SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
 	symbol_instance_of_next_rule += Length_of_RULE(rule);
@@ -3817,7 +3843,7 @@ size when adding each new AHFA item.
     {
       SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
       SYM symbol = SYM_by_ID (rh_symid);
-      if (!symbol->t_is_nulling)
+      if (!ISY_is_Nulling(symbol) || SYM_is_Internal(symbol))
 	{
 	  Last_Proper_SYMI_of_RULE(rule) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
@@ -10279,18 +10305,18 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     input_ref(input);
 
     if (G_is_Trivial(g)) {
-        if (ordinal_arg > 0) goto B_NEW_RETURN_ERROR;
+        if (ordinal_arg > 0) goto NO_PARSE;
 	return r_create_null_bocage(r, b);
     }
     r_update_earley_sets(r);
     @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
     if (end_of_parse_earleme == 0) {
-	if (! g->t_null_start_rule) goto B_NEW_RETURN_ERROR;
+	if (! g->t_null_start_rule) goto NO_PARSE;
 	return r_create_null_bocage(r, b);
     }
     @<Set |completed_start_rule|@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
-    if (!start_eim) goto B_NEW_RETURN_ERROR;
+    if (!start_eim) goto NO_PARSE;
     my_obstack_init(&bocage_setup_obs);
     @<Allocate bocage setup working data@>@;
     @<Populate the PSIA data@>@;
@@ -10299,7 +10325,8 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Set top or node id in |b|@>;
     my_obstack_free(&bocage_setup_obs);
     return b;
-    B_NEW_RETURN_ERROR: ;
+    NO_PARSE: ;
+	  MARPA_ERROR(MARPA_ERR_NO_PARSE);
     input_unref(input);
     if (b) {
 	@<Destroy bocage elements, all phases@>;
@@ -10351,7 +10378,7 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
     }
 
   if (!end_of_parse_earley_set)
-    goto B_NEW_RETURN_ERROR;
+    goto NO_PARSE;
   end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
 }
 
@@ -10360,7 +10387,7 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
   if (rule_id == -1)
     {
       completed_start_rule = g->t_proper_start_rule;
-      if (!completed_start_rule) goto B_NEW_RETURN_ERROR;
+      if (!completed_start_rule) goto NO_PARSE;
     }
   else
     {
