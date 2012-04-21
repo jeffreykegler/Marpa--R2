@@ -2936,8 +2936,8 @@ if (rule_is_nulling (g, rule))
     goto NEXT_CHAF_CANDIDATE;
   }
 {
-  RULE original_rule =
-    XRL_is_Internal (rule) ? RULE_by_ID (g, rule->t_original) : rule;
+  const int is_internal = XRL_is_Internal (rule);
+  RULE original_rule = is_internal ? RULE_by_ID (g, rule->t_original) : rule;
   if (!rule_is_accessible (g, original_rule))
     {
       RULE_is_Used (rule) = 0;
@@ -2948,6 +2948,7 @@ if (rule_is_nulling (g, rule))
       RULE_is_Used (rule) = 0;
       goto NEXT_CHAF_CANDIDATE;
     }
+  if (is_internal) goto NEXT_CHAF_CANDIDATE;
 }
 
 @ For every accessible and productive proper nullable which
