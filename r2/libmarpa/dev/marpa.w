@@ -2554,6 +2554,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       const int rule_length = Length_of_RULE (rule);
       const int is_sequence = XRL_is_Sequence (rule);
 
+      if (XRL_is_Internal(rule)) continue;
+
       bv_bit_set (lhs_v, (unsigned int) lhs_id);
 
       /* Insert the LH Sym / XRL pair into the LH AVL tree */
