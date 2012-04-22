@@ -79,16 +79,16 @@ EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,
     <<'EOS', 'Aycock/Horspool Symbols' );
-0: S, lhs=[0 4 5 6]
-1: A, lhs=[1 2]
-2: a, lhs=[] terminal
-3: E, lhs=[3] nulling
-4: S[], lhs=[] nulling
-5: A[], lhs=[] nulling
-6: S[R0:1], lhs=[7 8 9]
-7: S[R0:2], lhs=[10 11 12]
-8: S['], lhs=[13]
-9: S['][], lhs=[14] nulling
+0: S
+1: A
+2: a, terminal
+3: E, nulling
+4: S[], nulling
+5: A[], nulling
+6: S[R0:1]
+7: S[R0:2]
+8: S[']
+9: S['][], nulling
 EOS
 
 Marpa::R2::Test::is(

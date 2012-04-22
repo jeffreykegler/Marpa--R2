@@ -84,13 +84,13 @@ my $show_symbols_output = $grammar->show_symbols();
 
 Marpa::R2::Test::is( $show_symbols_output,
     <<'END_SYMBOLS', 'Implementation Example Symbols' );
-0: Expression, lhs=[0]
-1: Term, lhs=[1 3]
-2: Factor, lhs=[2 4]
-3: Number, lhs=[] terminal
-4: Add, lhs=[] terminal
-5: Multiply, lhs=[] terminal
-6: Expression['], lhs=[5]
+0: Expression
+1: Term
+2: Factor
+3: Number, terminal
+4: Add, terminal
+5: Multiply, terminal
+6: Expression[']
 END_SYMBOLS
 
 my $show_rules_output = $grammar->show_rules();
