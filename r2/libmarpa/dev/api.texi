@@ -1162,7 +1162,7 @@ If the rule duplicates another rule,
 or on other failure, -2.
 @end deftypefun
 
-@deftypefun int marpa_g_rule_is_sequence( @
+@deftypefun int marpa_g_rule_is_sequence ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 Return value:  1 if |rule_id| is a sequence rule,
@@ -1193,7 +1193,7 @@ Returns 0 if
 On hard failure, returns -2.
 @end deftypefun
 
-@deftypefun int marpa_g_rule_is_proper_separation( @
+@deftypefun int marpa_g_rule_is_proper_separation ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 Return value:
