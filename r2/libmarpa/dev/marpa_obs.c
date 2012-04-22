@@ -29,6 +29,14 @@
 #include <string.h>
 
 # include "config.h"
+
+#ifdef HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+
 # include "marpa_util.h"
 # include "marpa_obs.h"
 
