@@ -1526,14 +1526,12 @@ int min, int flags )
 {
     RULE original_rule;
     RULEID original_rule_id = -2;
-    RULEID return_value = -2;
     SYM internal_lhs;
     SYMID internal_lhs_id;
     SYMID *temp_rhs = NULL;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
-    G_EVENTS_CLEAR(g);
     if (UNLIKELY(is_rule_duplicate (g, lhs_id, &rhs_id, 1) == 1))
       {
 	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
@@ -1543,6 +1541,14 @@ int min, int flags )
     @<Check that the sequence symbols are valid@>@;
     @<Add the original rule for a sequence@>@;
     @<Mark the counted symbols@>@;
+    @<Expand sequence's |original_rule|@>@;
+    return original_rule_id;
+    FAILURE:
+    return failure_indicator;
+}
+
+@ @<Expand sequence's |original_rule|@>=
+{
     if (min == 0) { @<Add the nulling rule for a sequence@>@; }
     min = 1;
     @<Create the sequence internal LHS symbol@>@;
@@ -1553,14 +1559,7 @@ int min, int flags )
     }
     @<Add the minimum rule for the sequence@>@;
     @<Add the iterating rule for the sequence@>@;
-
-    return_value = original_rule_id;
-    FAILURE: ;
-    if (return_value < 0) {
-	G_EVENTS_CLEAR(g);
-    }
     @<Free the temporary rhs buffer@>@;
-     return return_value;
 }
 
 @ As a side effect, this checks the LHS and RHS symbols for validity.
