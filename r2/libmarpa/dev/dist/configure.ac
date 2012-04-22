@@ -33,7 +33,7 @@ m4_define(marpa_configure_in)
 #
 m4_define([marpa_major_version], [2])
 m4_define([marpa_minor_version], [0])
-m4_define([marpa_micro_version], [35])
+m4_define([marpa_micro_version], [36])
 m4_define([marpa_interface_age], [100])
 m4_define([marpa_binary_age],
           [m4_eval(100 * marpa_minor_version + marpa_micro_version)])
