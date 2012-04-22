@@ -118,6 +118,7 @@ libmarpa/build/marpa.h
 libmarpa/build/marpa_api.h
 libmarpa/build/marpa_obs.c
 libmarpa/build/marpa_obs.h
+libmarpa/build/marpa_util.h
 libmarpa/build/missing
 libmarpa/build/private.h
 libmarpa/dev/.gitignore

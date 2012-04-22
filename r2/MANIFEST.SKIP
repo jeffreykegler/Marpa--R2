@@ -96,6 +96,7 @@
 ^libmarpa/dev/marpa[.]tex
 ^libmarpa/dev/marpa[.]toc
 ^libmarpa/dev/marpa_api[.]h
+^libmarpa/dev/marpa_util[.]h
 ^libmarpa/dev/private[.]h$
 ^libmarpa/doc/
 ^libmarpa/stage/
