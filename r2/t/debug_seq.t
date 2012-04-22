@@ -75,9 +75,9 @@ Test::More::ok( $value_ref, 'Parse ok?' );
 
 Marpa::R2::Test::is( $progress_report,
     << 'END_PROGRESS_REPORT', 'progress report' );
-P1 @0-0 Document -> . Document[Stuff+]
-P2 @0-0 Document[Stuff+] -> . Stuff
-P3 @0-0 Document[Stuff+] -> . Document[Stuff+] Stuff
+P1 @0-0 Document -> . Document[Seq]
+P2 @0-0 Document[Seq] -> . Stuff
+P3 @0-0 Document[Seq] -> . Document[Seq] Stuff
 P4 @0-0 Document['] -> . Document
 END_PROGRESS_REPORT
 

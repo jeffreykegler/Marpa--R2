@@ -63,20 +63,20 @@ Added rule #0: S -> Seq0 Seq1
 Added rule #1: S -> Proper Proper Proper Proper
 Added rule #2: S -> X Y Z
 Added rule #3: Seq0 -> a
-Added rule #4: Seq0 ->
-Added rule #5: Seq0 -> Seq0[a*]
-Added rule #6: Seq0[a*] -> a
-Added rule #7: Seq0[a*] -> Seq0[a*] a
-Added rule #8: Seq1 -> A
-Added rule #9: Seq1 -> Seq1[A+]
-Added rule #10: Seq1[A+] -> A
-Added rule #11: Seq1[A+] -> Seq1[A+] A
-Added rule #12: X -> x
-Added rule #13: Y -> y
-Added rule #14: Z -> z
-Added rule #15: A -> y
-Added rule #16: Proper ->
-Added rule #17: Proper -> p
+Added rule #4: Seq1 -> A
+Added rule #5: X -> x
+Added rule #6: Y -> y
+Added rule #7: Z -> z
+Added rule #8: A -> y
+Added rule #9: Proper ->
+Added rule #10: Proper -> p
+Added rule #11: Seq0 ->
+Added rule #12: Seq0 -> Seq0[Seq]
+Added rule #13: Seq0[Seq] -> a
+Added rule #14: Seq0[Seq] -> Seq0[Seq] a
+Added rule #15: Seq1 -> Seq1[Seq]
+Added rule #16: Seq1[Seq] -> A
+Added rule #17: Seq1[Seq] -> Seq1[Seq] A
 Added rule #18: S -> Seq0 Seq1
 Added rule #19: S -> Seq0[] Seq1
 Added rule #20: S -> Proper S[R1:1]
@@ -92,25 +92,51 @@ Added rule #29: S['] -> S
 Added rule #30: S['][] ->
 EOS
 
+Marpa::R2::Test::is( $grammar->show_symbols,
+    <<'EOS', 'Symbols' );
+0: S
+1: Seq0
+2: Seq1
+3: Proper
+4: X
+5: Y
+6: Z
+7: a, terminal
+8: A
+9: x, terminal
+10: y, terminal
+11: z, terminal
+12: p, terminal
+13: Seq0[Seq], unproductive inaccessible
+14: Seq1[Seq], unproductive inaccessible
+15: S[], nulling
+16: Seq0[], nulling
+17: Proper[], nulling
+18: S[R1:1]
+19: S[R1:2]
+20: S[']
+21: S['][], nulling
+EOS
+
 Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Rules' );
 0: S -> Seq0 Seq1 /* !used */
 1: S -> Proper Proper Proper Proper /* !used */
 2: S -> X Y Z
 3: Seq0 -> a /* !used */
-4: Seq0 -> /* empty !used */
-5: Seq0 -> Seq0[a*] /* vrhs real=0 */
-6: Seq0[a*] -> a /* vlhs real=1 */
-7: Seq0[a*] -> Seq0[a*] a /* vlhs vrhs real=1 */
-8: Seq1 -> A /* !used */
-9: Seq1 -> Seq1[A+] /* vrhs real=0 */
-10: Seq1[A+] -> A /* vlhs real=1 */
-11: Seq1[A+] -> Seq1[A+] A /* vlhs vrhs real=1 */
-12: X -> x
-13: Y -> y
-14: Z -> z
-15: A -> y
-16: Proper -> /* empty !used */
-17: Proper -> p
+4: Seq1 -> A /* !used */
+5: X -> x
+6: Y -> y
+7: Z -> z
+8: A -> y
+9: Proper -> /* empty !used */
+10: Proper -> p
+11: Seq0 -> /* empty !used */
+12: Seq0 -> Seq0[Seq] /* unproductive vrhs real=0 */
+13: Seq0[Seq] -> a /* inaccessible vlhs real=1 */
+14: Seq0[Seq] -> Seq0[Seq] a /* unproductive inaccessible vlhs vrhs real=1 */
+15: Seq1 -> Seq1[Seq] /* unproductive vrhs real=0 */
+16: Seq1[Seq] -> A /* inaccessible vlhs real=1 */
+17: Seq1[Seq] -> Seq1[Seq] A /* unproductive inaccessible vlhs vrhs real=1 */
 18: S -> Seq0 Seq1
 19: S -> Seq0[] Seq1
 20: S -> Proper S[R1:1] /* vrhs real=1 */
@@ -124,32 +150,6 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Rules' );
 28: S[R1:2] -> Proper[] Proper /* vlhs real=2 */
 29: S['] -> S /* vlhs real=1 */
 30: S['][] -> /* empty !used vlhs real=1 */
-EOS
-
-Marpa::R2::Test::is( $grammar->show_symbols,
-    <<'EOS', 'Symbols' );
-0: S, lhs=[0 1 2 18 19 20 21 22]
-1: Seq0, lhs=[3 4 5]
-2: Seq1, lhs=[8 9]
-3: Proper, lhs=[16 17]
-4: X, lhs=[12]
-5: Y, lhs=[13]
-6: Z, lhs=[14]
-7: a, lhs=[] terminal
-8: Seq0[a*], lhs=[6 7]
-9: A, lhs=[15]
-10: Seq1[A+], lhs=[10 11]
-11: x, lhs=[] terminal
-12: y, lhs=[] terminal
-13: z, lhs=[] terminal
-14: p, lhs=[] terminal
-15: S[], lhs=[] nulling
-16: Seq0[], lhs=[] nulling
-17: Proper[], lhs=[] nulling
-18: S[R1:1], lhs=[23 24 25]
-19: S[R1:2], lhs=[26 27 28]
-20: S['], lhs=[29]
-21: S['][], lhs=[30] nulling
 EOS
 
 # Local Variables:

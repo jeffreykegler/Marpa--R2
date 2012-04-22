@@ -1121,32 +1121,6 @@ by scanning the rules every time this information is needed.
 @ @<Free symbol elements@> =
     DSTACK_DESTROY(symbol->t_lhs);
 
-@ @<Function definitions@> = 
-Marpa_Rule_ID _marpa_g_symbol_lhs_count(struct marpa_g* g, Marpa_Symbol_ID symid)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-    return DSTACK_LENGTH( SYM_by_ID(symid)->t_lhs );
-}
-Marpa_Rule_ID _marpa_g_symbol_lhs(struct marpa_g* g, Marpa_Symbol_ID symid, int ix)
-{
-    SYM symbol;
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-    symbol = SYM_by_ID(symid);
-    if (ix < 0) {
-        MARPA_ERROR(MARPA_ERR_SYMIX_NEGATIVE);
-	return failure_indicator;
-    }
-    if (ix >= DSTACK_LENGTH(symbol->t_lhs)) {
-        MARPA_ERROR(MARPA_ERR_SYMIX_OOB);
-	return -1;
-    }
-    return *DSTACK_INDEX(symbol->t_lhs, RULEID, ix);
-}
-
 @ @<Function definitions@> =
 PRIVATE
 void symbol_lhs_add(SYM symbol, RULEID rule_id)
@@ -1427,26 +1401,50 @@ Only virtual symbols have a virtual lhs rule, but
 not all virtual symbol has a virtual lhs rule.
 Null aliases are virtual symbols, but are not on
 the LHS of any rule.
-@ @<Widely aligned symbol elements@> =
-RULE t_virtual_lhs_rule;
+@ @d LHS_XRL_of_ISY(isy) ((isy)->t_lhs_xrl)
+@d XRL_Offset_of_ISY(isy) ((isy)->t_xrl_offset)
+@<Widely aligned symbol elements@> =
+RULE t_lhs_xrl;
+int t_xrl_offset;
 @ @<Initialize symbol elements@> =
-symbol->t_virtual_lhs_rule = NULL;
+LHS_XRL_of_ISY(symbol) = NULL;
+XRL_Offset_of_ISY(symbol) = 0;
 
 @ Virtual LHS trace accessor:
-If this symbol is a symbol
-with a virtual LHS rule, returns the rule ID.
-If there is no virtual LHS rule, returns |-1|.
+If this symbol is an internal LHS
+of an external rule, returns the rule ID.
+If there is no external LHS rule, returns |-1|.
 On other failures, returns |-2|.
 @ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_symbol_virtual_lhs_rule(struct marpa_g* g, Marpa_Symbol_ID symid)
+Marpa_Rule_ID _marpa_g_symbol_lhs_xrl(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
-    SYM symbol;
-    RULE virtual_lhs_rule;
-    @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    symbol = SYM_by_ID(symid);
-    virtual_lhs_rule = symbol->t_virtual_lhs_rule;
-    return virtual_lhs_rule == NULL ? -1 : ID_of_RULE(virtual_lhs_rule);
+  @<Return |-2| on failure@>@;
+  @<Fail if |symid| is invalid@>@;
+  {
+    const SYM symbol = SYM_by_ID (symid);
+    const XRL lhs_xrl = LHS_XRL_of_ISY (symbol);
+    if (lhs_xrl)
+      return ID_of_RULE (lhs_xrl);
+  }
+  return -1;
+}
+
+@ If the internal symbol was created as
+the LHS of an external rule,
+returns the offset,
+otherwise 0.
+Note that 0 is also a valid offset,
+and the caller must use other trace
+methods to tell the difference.
+On other failures, returns |-2|.
+@<Function definitions@> =
+int _marpa_g_symbol_xrl_offset(Marpa_Grammar g, Marpa_Symbol_ID symid)
+{
+  @<Return |-2| on failure@>@;
+  SYM symbol;
+  @<Fail if |symid| is invalid@>@;
+  symbol = SYM_by_ID (symid);
+  return XRL_Offset_of_ISY(symbol);
 }
 
 @** Rule (RULE) Code.
@@ -1465,7 +1463,9 @@ struct s_rule {
 @s RULEID int
 @<Private typedefs@> =
 struct s_rule;
-typedef struct s_rule* RULE;
+typedef struct s_rule* XRL;
+typedef XRL IRL;
+typedef XRL RULE;
 typedef Marpa_Rule_ID RULEID;
 
 @*0 Rule Construction.
@@ -1482,7 +1482,7 @@ and it is used in a lot of places.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE
 RULE rule_start(GRAMMAR g,
-SYMID lhs, SYMID *rhs, int length)
+const SYMID lhs, const SYMID *rhs, int length)
 {
     RULE rule;
     const int rule_sizeof = offsetof (struct s_rule, t_symbols) +
@@ -1526,8 +1526,6 @@ int min, int flags )
 {
     RULE original_rule;
     RULEID original_rule_id = -2;
-    SYM internal_lhs;
-    SYMID internal_lhs_id;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
@@ -1540,24 +1538,9 @@ int min, int flags )
     @<Check that the sequence symbols are valid@>@;
     @<Add the original rule for a sequence@>@;
     @<Mark the counted symbols@>@;
-    @<Expand sequence's |original_rule|@>@;
     return original_rule_id;
     FAILURE:
     return failure_indicator;
-}
-
-@ @<Expand sequence's |original_rule|@>=
-{
-    if (Minimum_of_XRL(original_rule) <= 0) {
-      @<Add the nulling rule for a sequence@>@;
-    }
-    @<Create the sequence internal LHS symbol@>@;
-    @<Add the top rule for the sequence@>@;
-    if (separator_id >= 0 && !XRL_is_Proper_Separation(original_rule)) {
-	@<Add the alternate top rule for the sequence@>@;
-    }
-    @<Add the minimum rule for the sequence@>@;
-    @<Add the iterating rule for the sequence@>@;
 }
 
 @ As a side effect, this checks the LHS and RHS symbols for validity.
@@ -1624,79 +1607,6 @@ if (separator_id != -1)
 @ @<Mark the counted symbols@> =
 SYM_by_ID(rhs_id)->t_is_counted = 1;
 if (separator_id >= 0) { SYM_by_ID(separator_id)->t_is_counted = 1; }
-@ @<Add the nulling rule for a sequence@> =
-{
-    RULE rule;
-    rule = rule_start(g, lhs_id, 0, 0);
-    rule->t_is_semantic_equivalent = 1;
-    rule->t_original = original_rule_id;
-}
-@ @<Create the sequence internal LHS symbol@> =
-{
-  internal_lhs = symbol_new (g);
-  SYM_is_Internal(internal_lhs) = 1;
-  internal_lhs_id = ID_of_SYM (internal_lhs);
-}
-
-@ The actual size needed for the RHS buffer is determined by
-the longer of minimum rule and the iterating rule.
-The iterating rule may require 3 RHS symbols, if there is
-a separator.
-(We have $min>=1$ at this point.)
-The minimum rule will require $1 + 2 * (min - 1)$ symbols
-with a separator, and $min$ symbols without.
-The allocation below uses a simplified expression, which
-overallocates.
-Worst case is the minimum rule with a separator, in
-which case it allocates 4 bytes too many.
-@ @<Add the top rule for the sequence@> =
-{
-    RULE rule;
-    rule = rule_start(g, lhs_id, &internal_lhs_id, 1);
-    rule->t_original = original_rule_id;
-    rule->t_is_semantic_equivalent = 1;
-    /* Real symbol count remains at default of 0 */
-    RULE_has_Virtual_RHS (rule) = 1;
-}
-
-@ This ``alternate" top rule is needed if a final separator is allowed.
-@<Add the alternate top rule for the sequence@> =
-{ RULE rule;
-    SYMID temp_rhs[2];
-    temp_rhs[0] = internal_lhs_id;
-    temp_rhs[1] = separator_id;
-    rule = rule_start(g, lhs_id, temp_rhs, 2);
-    rule->t_original = original_rule_id;
-    rule->t_is_semantic_equivalent = 1;
-    RULE_has_Virtual_RHS(rule) = 1;
-    Real_SYM_Count_of_RULE(rule) = 1;
-}
-@ The traditional way to write a sequence in BNF is with one
-rule to represent the minimum, and another to deal with iteration.
-That's the core of Marpa's rewrite.
-@<Add the minimum rule for the sequence@> =
-{
-  const RULE rule = rule_start (g, internal_lhs_id, &rhs_id, 1);
-  rule->t_original = original_rule_id;
-  RULE_has_Virtual_LHS (rule) = 1;
-  Real_SYM_Count_of_RULE (rule) = 1;
-}
-@ @<Add the iterating rule for the sequence@> =
-{
-  RULE rule;
-  SYMID temp_rhs[3];
-  int rhs_ix = 0;
-  temp_rhs[rhs_ix++] = internal_lhs_id;
-  if (separator_id >= 0)
-    temp_rhs[rhs_ix++] = separator_id;
-  temp_rhs[rhs_ix++] = rhs_id;
-  rule = rule_start (g, internal_lhs_id, temp_rhs, rhs_ix);
-  rule->t_original = original_rule_id;
-  RULE_has_Virtual_LHS (rule) = 1;
-  RULE_has_Virtual_RHS (rule) = 1;
-  Real_SYM_Count_of_RULE (rule) = rhs_ix - 1;
-}
-
 @ Does this rule duplicate an already existing rule?
 A duplicate is a rule with the same lhs symbol,
 the same rhs length,
@@ -1913,6 +1823,17 @@ True for external sequence rules, false otherwise.
 @<Bit aligned rule elements@> = unsigned int t_is_sequence:1;
 @ @<Initialize rule elements@> =
 rule->t_is_sequence = 0;
+@ @<Function definitions@> =
+int marpa_g_rule_is_sequence(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return XRL_is_Sequence(RULE_by_ID(g, rule_id));
+}
+
 
 @*0 Sequence minimum length.
 The minimum length for a sequence rule, |-1| otherwise.
@@ -2404,6 +2325,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Detect cycles@>@;
     }
     // Phase 2: rewrite the grammar into internal form
+    @<Rewrite sequence rules into BNF@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
     // Phase 3: memoize the internal grammar
@@ -2859,6 +2781,95 @@ reach a terminal symbol.
     }
 }
 
+@** The Sequence Rewrite.
+@<Rewrite sequence rules into BNF@> =
+{
+  RULEID rule_id;
+  for (rule_id = 0; rule_id < xrl_count; rule_id++)
+  {
+    const RULE original_rule = RULE_by_ID(g, rule_id);
+    if (!XRL_is_Sequence (original_rule)) continue;
+    @<Expand sequence's |original_rule|@>@;
+  }
+}
+
+@ @<Expand sequence's |original_rule|@>=
+{
+  const SYM internal_lhs = symbol_new (g);
+  const SYMID internal_lhs_id = ID_of_SYM (internal_lhs);
+  const SYMID lhs_id = LHS_ID_of_RULE (original_rule);
+  const SYMID rhs_id = RHS_ID_of_RULE (original_rule, 0);
+  const SYMID separator_id = Separator_of_XRL (original_rule);
+  const RULEID original_rule_id = ID_of_RULE (original_rule);
+  SYM_is_Internal(internal_lhs) = 1;
+  LHS_XRL_of_ISY(internal_lhs) = original_rule;
+  if (Minimum_of_XRL(original_rule) <= 0) {
+    @<Add the nulling rule for a sequence@>@;
+  }
+  @<Add the top rule for the sequence@>@;
+  if (separator_id >= 0 && !XRL_is_Proper_Separation(original_rule)) {
+      @<Add the alternate top rule for the sequence@>@;
+  }
+  @<Add the minimum rule for the sequence@>@;
+  @<Add the iterating rule for the sequence@>@;
+}
+
+@ @<Add the nulling rule for a sequence@> =
+{
+  RULE rule;
+  rule = rule_start(g, lhs_id, 0, 0);
+  rule->t_is_semantic_equivalent = 1;
+  rule->t_original = original_rule_id;
+}
+
+@ @<Add the top rule for the sequence@> =
+{
+    RULE rule;
+    rule = rule_start(g, lhs_id, &internal_lhs_id, 1);
+    rule->t_original = original_rule_id;
+    rule->t_is_semantic_equivalent = 1;
+    /* Real symbol count remains at default of 0 */
+    RULE_has_Virtual_RHS (rule) = 1;
+}
+
+@ This ``alternate" top rule is needed if a final separator is allowed.
+@<Add the alternate top rule for the sequence@> =
+{ RULE rule;
+    SYMID temp_rhs[2];
+    temp_rhs[0] = internal_lhs_id;
+    temp_rhs[1] = separator_id;
+    rule = rule_start(g, lhs_id, temp_rhs, 2);
+    rule->t_original = original_rule_id;
+    rule->t_is_semantic_equivalent = 1;
+    RULE_has_Virtual_RHS(rule) = 1;
+    Real_SYM_Count_of_RULE(rule) = 1;
+}
+@ The traditional way to write a sequence in BNF is with one
+rule to represent the minimum, and another to deal with iteration.
+That's the core of Marpa's rewrite.
+@<Add the minimum rule for the sequence@> =
+{
+  const RULE rule = rule_start (g, internal_lhs_id, &rhs_id, 1);
+  rule->t_original = original_rule_id;
+  RULE_has_Virtual_LHS (rule) = 1;
+  Real_SYM_Count_of_RULE (rule) = 1;
+}
+@ @<Add the iterating rule for the sequence@> =
+{
+  RULE rule;
+  SYMID temp_rhs[3];
+  int rhs_ix = 0;
+  temp_rhs[rhs_ix++] = internal_lhs_id;
+  if (separator_id >= 0)
+    temp_rhs[rhs_ix++] = separator_id;
+  temp_rhs[rhs_ix++] = rhs_id;
+  rule = rule_start (g, internal_lhs_id, temp_rhs, rhs_ix);
+  rule->t_original = original_rule_id;
+  RULE_has_Virtual_LHS (rule) = 1;
+  RULE_has_Virtual_RHS (rule) = 1;
+  Real_SYM_Count_of_RULE (rule) = rhs_ix - 1;
+}
+
 @** The CHAF Rewrite.
 
 Nullable symbols have been a difficulty for Earley implementations
@@ -3047,6 +3058,7 @@ my_free(factor_positions);
 MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
 RULE_is_Used(rule) = 0; /* Mark the original rule unused */
 {
+    const XRL chaf_xrl = rule;
     /* The number of proper nullables for which CHAF rules have
 	yet to be written */
     int unprocessed_factor_count;
@@ -3352,7 +3364,8 @@ rule structure, and performing the call back.
   chaf_rule->t_virtual_start = piece_start;
   chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
-  current_lhs->t_virtual_lhs_rule = chaf_rule;
+  LHS_XRL_of_ISY(current_lhs) = chaf_xrl;
+  XRL_Offset_of_ISY(current_lhs) = piece_start;
 }
 
 @ This utility routine translates a proper symbol id to a nulling symbol ID.

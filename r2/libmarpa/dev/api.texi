@@ -1162,6 +1162,14 @@ If the rule duplicates another rule,
 or on other failure, -2.
 @end deftypefun
 
+@deftypefun int marpa_g_rule_is_sequence( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+Return value:  1 if |rule_id| is a sequence rule,
+0 otherwise.
+On failure, -2.
+@end deftypefun
+
 @deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{counted}
@@ -1329,28 +1337,20 @@ Return value: -2 if the grammar is not precomputed or
 
 @end deftypefun
 
-@deftypefun int _marpa_g_symbol_lhs_count (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_symbol_lhs (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid}, @
- int @var{ix})
-@end deftypefun
-@deftypefun int _marpa_g_symbol_rhs_count (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_symbol_rhs (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid}, @
- int @var{ix})
-@end deftypefun
 @deftypefun Marpa_Symbol_ID _marpa_g_symbol_proper_alias (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun Marpa_Symbol_ID _marpa_g_symbol_null_alias (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
+@deftypefun Marpa_Symbol_ID _marpa_g_symbol_null_alias ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_symbol_virtual_lhs_rule (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
+@deftypefun Marpa_Rule_ID _marpa_g_symbol_lhs_xrl ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun int _marpa_g_symbol_xrl_offset ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_Symbol_ID @var{symid} )
 @end deftypefun
 
 @node Rule internals, Grammar internals, Symbol internals, Grammars

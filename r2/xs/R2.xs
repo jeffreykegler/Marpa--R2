@@ -152,7 +152,7 @@ static const char *
 xs_g_error (G_Wrapper * g_wrapper)
 {
   const char *error_string;
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   const int error_code = marpa_g_error (g, &error_string);
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
@@ -277,7 +277,7 @@ G_Wrapper *
 new( class, non_c_sv )
     char * class;
 PREINIT:
-    struct marpa_g *g;
+    Marpa_Grammar g;
     SV *sv;
     G_Wrapper *g_wrapper;
     const char *version_error;
@@ -299,7 +299,7 @@ void
 DESTROY( g_wrapper )
     G_Wrapper *g_wrapper;
 PREINIT:
-    struct marpa_g * grammar;
+    Marpa_Grammar  grammar;
 CODE:
     if (g_wrapper->message_buffer)
 	Safefree(g_wrapper->message_buffer);
@@ -407,35 +407,6 @@ PPCODE:
   Marpa_Grammar g = g_wrapper->g;
   int result = marpa_g_symbol_new (g);
   XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-void
-_marpa_g_symbol_lhs_rule_ids( g_wrapper, symbol_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Symbol_ID symbol_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int i;
-  int count = _marpa_g_symbol_lhs_count (g, symbol_id);
-  if (count < -1)
-    {
-      croak ("Problem in g->_marpa_g_symbol_lhs_rule_ids: %s", xs_g_error (g_wrapper));
-    }
-  if (count == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  for (i = 0; i < count; i++)
-    {
-      Marpa_Rule_ID rule_id = _marpa_g_symbol_lhs (g, symbol_id, i);
-      if (rule_id < 0)
-	{
-	  croak ("Problem in g->symbol_lhs_rule_ids: %s",
-		 xs_g_error (g_wrapper));
-	}
-      XPUSHs (sv_2mortal (newSViv (rule_id)));
-    }
 }
 
 void
@@ -582,7 +553,7 @@ _marpa_g_symbol_null_alias( g_wrapper, symbol_id )
     Marpa_Symbol_ID symbol_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   Marpa_Symbol_ID alias_id = _marpa_g_symbol_null_alias (g, symbol_id);
   if (alias_id < -1)
     {
@@ -601,7 +572,7 @@ _marpa_g_symbol_proper_alias( g_wrapper, symbol_id )
     Marpa_Symbol_ID symbol_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   Marpa_Symbol_ID alias_id = _marpa_g_symbol_proper_alias (g, symbol_id);
   if (alias_id < -1)
     {
@@ -615,16 +586,16 @@ PPCODE:
 }
 
 Marpa_Rule_ID
-_marpa_g_symbol_virtual_lhs_rule( g_wrapper, symbol_id )
+_marpa_g_symbol_lhs_xrl( g_wrapper, symbol_id )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
-  Marpa_Rule_ID rule_id = _marpa_g_symbol_virtual_lhs_rule (g, symbol_id);
+  Marpa_Grammar g = g_wrapper->g;
+  Marpa_Rule_ID rule_id = _marpa_g_symbol_lhs_xrl (g, symbol_id);
   if (rule_id < -1)
     {
-      croak ("problem with g->_marpa_g_symbol_virtual_lhs_rule: %s",
+      croak ("problem with g->_marpa_g_symbol_lhs_xrl: %s",
 	     xs_g_error (g_wrapper));
     }
   if (rule_id < 0)
@@ -632,6 +603,22 @@ PPCODE:
       XSRETURN_UNDEF;
     }
   XPUSHs (sv_2mortal (newSViv (rule_id)));
+}
+
+Marpa_Rule_ID
+_marpa_g_symbol_xrl_offset( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int offset = _marpa_g_symbol_xrl_offset (g, symbol_id);
+  if (offset < 0)
+    {
+      croak ("problem with g->_marpa_g_symbol_xrl_offset: %s",
+	     xs_g_error (g_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (offset)));
 }
 
  # Rules
@@ -681,7 +668,7 @@ sequence_new( g_wrapper, lhs, rhs, args )
     HV *args;
 PPCODE:
 {
-    struct marpa_g* g = g_wrapper->g;
+    Marpa_Grammar  g = g_wrapper->g;
     Marpa_Rule_ID new_rule_id;
     Marpa_Symbol_ID separator = -1;
     int min = 1;
@@ -734,7 +721,7 @@ rule_lhs( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-    struct marpa_g* g = g_wrapper->g;
+    Marpa_Grammar  g = g_wrapper->g;
     int result = marpa_g_rule_lhs(g, rule_id);
     if (result < -1) { 
       croak ("Problem in g->rule_lhs(%d): %s", rule_id, xs_g_error (g_wrapper));
@@ -750,7 +737,7 @@ rule_rhs( g_wrapper, rule_id, ix )
     int ix;
 PPCODE:
 {
-    struct marpa_g* g = g_wrapper->g;
+    Marpa_Grammar  g = g_wrapper->g;
     int result = marpa_g_rule_rh_symbol(g, rule_id, ix);
     if (result < -1) { 
       croak ("Problem in g->rule_rhs(%d, %d): %s", rule_id, ix, xs_g_error (g_wrapper));
@@ -765,7 +752,7 @@ rule_length( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = marpa_g_rule_length (g, rule_id);
   if (result < -1)
     {
@@ -785,7 +772,7 @@ rule_is_accessible( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = marpa_g_rule_is_accessible (g, rule_id);
   if (result < -1)
     {
@@ -807,7 +794,7 @@ rule_is_productive( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = marpa_g_rule_is_productive (g, rule_id);
   if (result < -1)
     {
@@ -829,11 +816,33 @@ rule_is_loop( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = marpa_g_rule_is_loop (g, rule_id);
   if (result < -1)
     {
       croak ("Problem in g->rule_is_loop(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      croak ("Invalid rule %d", rule_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+rule_is_sequence( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = marpa_g_rule_is_sequence (g, rule_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->rule_is_sequence(%d): %s", rule_id,
 	     xs_g_error (g_wrapper));
     }
   if (result < 0)
@@ -851,7 +860,7 @@ _marpa_g_rule_is_virtual_loop( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_rule_is_virtual_loop (g, rule_id);
   if (result < -1)
     {
@@ -873,7 +882,7 @@ _marpa_g_rule_virtual_start( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_virtual_start (g, rule_id);
   if (result <= -2)
     {
@@ -889,7 +898,7 @@ _marpa_g_rule_virtual_end( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_virtual_end (g, rule_id);
   if (result <= -2)
     {
@@ -923,7 +932,7 @@ rule_is_keep_separation( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = marpa_g_rule_is_keep_separation (g, rule_id);
   if (result < 0)
     {
@@ -941,7 +950,7 @@ _marpa_g_rule_is_virtual_lhs( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_rule_is_virtual_lhs (g, rule_id);
   if (result < 0)
     {
@@ -959,7 +968,7 @@ _marpa_g_rule_is_virtual_rhs( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_rule_is_virtual_rhs (g, rule_id);
   if (result < 0)
     {
@@ -1037,7 +1046,7 @@ _marpa_g_rule_semantic_equivalent( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_rule_semantic_equivalent (g, rule_id);
   if (result <= -2)
     {
@@ -1056,7 +1065,7 @@ _marpa_g_AHFA_item_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_AHFA_item_count (g);
   if (result <= -2)
     {
@@ -1074,7 +1083,7 @@ rule_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int result = marpa_g_rule_count (g);
   if (result < -1)
     {
@@ -1092,7 +1101,7 @@ symbol_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   int count = marpa_g_symbol_count (g);
   if (count < -1)
     {
@@ -1275,7 +1284,7 @@ error( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
-  struct marpa_g *g = g_wrapper->g;
+  Marpa_Grammar g = g_wrapper->g;
   XPUSHs (sv_2mortal (newSVpv (xs_g_error (g_wrapper), 0)));
 }
 
@@ -1314,7 +1323,7 @@ new( class, g_wrapper )
 PPCODE:
 {
     int symbol_count;
-    struct marpa_g* g = g_wrapper->g;
+    Marpa_Grammar  g = g_wrapper->g;
     SV *sv;
     R_Wrapper *r_wrapper;
     Marpa_Recce r;

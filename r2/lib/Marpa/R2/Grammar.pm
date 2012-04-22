@@ -820,17 +820,15 @@ sub Marpa::R2::Grammar::show_symbol {
     my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
     my $name = $grammar->symbol_name($symbol_id);
-    $text .= "$symbol_id: $name,";
+    $text .= "$symbol_id: $name";
 
-    $text .= sprintf ' lhs=[%s]',
-        join q{ },
-        $grammar_c->_marpa_g_symbol_lhs_rule_ids($symbol_id);
+    my @tag_list = ();
+    $grammar_c->symbol_is_productive($symbol_id) or push @tag_list, 'unproductive';
+    $grammar_c->symbol_is_accessible($symbol_id) or push @tag_list, 'inaccessible';
+    $grammar_c->symbol_is_nulling($symbol_id)  and push @tag_list, 'nulling';
+    $grammar_c->symbol_is_terminal($symbol_id) and push @tag_list, 'terminal';
 
-    $grammar_c->symbol_is_productive($symbol_id) or $text .= ' unproductive';
-    $grammar_c->symbol_is_accessible($symbol_id) or $text .= ' inaccessible';
-    $grammar_c->symbol_is_nulling($symbol_id)  and $text .= ' nulling';
-    $grammar_c->symbol_is_terminal($symbol_id) and $text .= ' terminal';
-
+    $text .= join q{ }, q{,}, @tag_list if scalar @tag_list;
     $text .= "\n";
     return $text;
 
@@ -1217,14 +1215,16 @@ sub gen_symbol_name {
         $symbol_hash->{$name} = $id;
         return $name;
     } ## end if ( defined $proper_alias_id )
-    my $virtual_lhs_rule = $grammar_c->_marpa_g_symbol_virtual_lhs_rule($id);
-    my $virtual_start   = $grammar_c->_marpa_g_rule_virtual_start($virtual_lhs_rule);
-    my $original_rule   = $grammar_c->_marpa_g_rule_original($virtual_lhs_rule);
-    my $original_lhs_id = $grammar_c->rule_lhs($original_rule);
+    my $lhs_xrl = $grammar_c->_marpa_g_symbol_lhs_xrl($id);
+    my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
+    if ($grammar_c->rule_is_sequence($lhs_xrl)) {
+      return $grammar->symbol_name($original_lhs_id) . '[Seq]';
+    }
+    my $xrl_offset = $grammar_c->_marpa_g_symbol_xrl_offset($id);
     my $name =
           $grammar->symbol_name($original_lhs_id) . '[R'
-        . $original_rule . q{:}
-        . $virtual_start . ']';
+        . $lhs_xrl . q{:}
+        . $xrl_offset . ']';
     return $name;
 } ## end sub gen_symbol_name
 
@@ -1625,8 +1625,6 @@ sub add_user_rule {
             $lhs_name . '[' . $rhs_desc . ( $min ? q{+} : q{*} ) . ']';
     }
 
-    my $symbol_count_before = $grammar_c->symbol_count();
-    my $rule_count_before = $grammar_c->rule_count();
     my $original_rule_id       = $grammar_c->sequence_new(
         $lhs_id,
         $rhs_ids[0],
@@ -1646,21 +1644,7 @@ sub add_user_rule {
         Marpa::R2::exception("$problem_description: $rule_description");
     } ## end if ( not defined $event_count )
 
-    my $symbol_count_after = $grammar_c->symbol_count();
-    my $rule_count_after = $grammar_c->rule_count();
-    my $sequence_symbol_count      = 0;
-    for my $new_symbol_id ($symbol_count_before .. $symbol_count_after - 1) {
-            my $name = $sequence_symbol_name_base;
-            if ($sequence_symbol_count) {
-                $name .= '[' . $sequence_symbol_count . ']';
-            }
-            shadow_symbol( $grammar, $new_symbol_id, $name );
-            $sequence_symbol_count++;
-    }
-
-    for my $new_rule_id ($rule_count_before .. $rule_count_after - 1) {
-        shadow_rule( $grammar, $new_rule_id );
-    }
+    shadow_rule( $grammar, $original_rule_id );
 
     # The original rule for a sequence rule is
     # not actually used in parsing,

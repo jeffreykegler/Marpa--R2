@@ -119,19 +119,19 @@ my $show_rules_output = $grammar->show_rules();
 Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace /* !used */
 1: statements -> statement /* !used discard_sep */
-2: statements -> statements[statement+] /* vrhs real=0 */
-3: statements -> statements[statement+] comma /* vrhs real=1 */
-4: statements[statement+] -> statement /* vlhs real=1 */
-5: statements[statement+] -> statements[statement+] comma statement /* vlhs vrhs real=2 */
-6: block -> statements /* !used */
-7: block -> /* empty !used */
-8: block -> block[statements*] /* vrhs real=0 */
-9: block[statements*] -> statements /* vlhs real=1 */
-10: block[statements*] -> block[statements*] statements /* vlhs vrhs real=1 */
-11: optional_whitespace -> whitespace
-12: optional_whitespace -> /* empty !used */
-13: optional_modifier -> modifier
-14: optional_modifier -> /* empty !used */
+2: block -> statements /* !used */
+3: optional_whitespace -> whitespace
+4: optional_whitespace -> /* empty !used */
+5: optional_modifier -> modifier
+6: optional_modifier -> /* empty !used */
+7: statements -> statements[Seq] /* unproductive vrhs real=0 */
+8: statements -> statements[Seq] comma /* unproductive vrhs real=1 */
+9: statements[Seq] -> statement /* inaccessible vlhs real=1 */
+10: statements[Seq] -> statements[Seq] comma statement /* unproductive inaccessible vlhs vrhs real=2 */
+11: block -> /* empty !used */
+12: block -> block[Seq] /* unproductive vrhs real=0 */
+13: block[Seq] -> statements /* inaccessible vlhs real=1 */
+14: block[Seq] -> block[Seq] statements /* unproductive inaccessible vlhs vrhs real=1 */
 15: statement -> optional_whitespace expression statement[R0:2] /* vrhs real=2 */
 16: statement -> optional_whitespace expression optional_whitespace[] optional_modifier[] optional_whitespace[]
 17: statement -> optional_whitespace[] expression statement[R0:2] /* vrhs real=2 */

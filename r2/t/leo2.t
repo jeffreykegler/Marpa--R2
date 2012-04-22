@@ -49,11 +49,11 @@ $grammar->precompute();
 
 Marpa::R2::Test::is( $grammar->show_symbols(),
     <<'END_OF_STRING', 'Leo166 Symbols' );
-0: a, lhs=[] terminal
-1: S, lhs=[0 1 2 3]
-2: S[], lhs=[] nulling
-3: S['], lhs=[4]
-4: S['][], lhs=[5] nulling
+0: a, terminal
+1: S
+2: S[], nulling
+3: S[']
+4: S['][], nulling
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,
