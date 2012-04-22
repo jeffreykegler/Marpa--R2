@@ -1528,7 +1528,6 @@ int min, int flags )
     RULEID original_rule_id = -2;
     SYM internal_lhs;
     SYMID internal_lhs_id;
-    SYMID *temp_rhs = NULL;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
@@ -1549,17 +1548,16 @@ int min, int flags )
 
 @ @<Expand sequence's |original_rule|@>=
 {
-    if (min == 0) { @<Add the nulling rule for a sequence@>@; }
-    min = 1;
+    if (Minimum_of_XRL(original_rule) <= 0) {
+      @<Add the nulling rule for a sequence@>@;
+    }
     @<Create the sequence internal LHS symbol@>@;
-    @<Allocate the temporary rhs buffer@>@;
     @<Add the top rule for the sequence@>@;
-    if (separator_id >= 0 && !(flags & MARPA_PROPER_SEPARATION)) {
+    if (separator_id >= 0 && !XRL_is_Proper_Separation(original_rule)) {
 	@<Add the alternate top rule for the sequence@>@;
     }
     @<Add the minimum rule for the sequence@>@;
     @<Add the iterating rule for the sequence@>@;
-    @<Free the temporary rhs buffer@>@;
 }
 
 @ As a side effect, this checks the LHS and RHS symbols for validity.
@@ -1576,6 +1574,9 @@ MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(original_rule));
   XRL_is_Internal(original_rule) = 0;
   original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
     && separator_id >= 0;
+  if ( flags & MARPA_PROPER_SEPARATION ) {
+    XRL_is_Proper_Separation(original_rule) = 1;
+  }
 }
 
 @ @<Check that the sequence symbols are valid@> =
@@ -1648,14 +1649,10 @@ The allocation below uses a simplified expression, which
 overallocates.
 Worst case is the minimum rule with a separator, in
 which case it allocates 4 bytes too many.
-@<Allocate the temporary rhs buffer@> =
-temp_rhs = my_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
-@ @<Free the temporary rhs buffer@> = my_free(temp_rhs);
 @ @<Add the top rule for the sequence@> =
 {
     RULE rule;
-    temp_rhs[0] = internal_lhs_id;
-    rule = rule_start(g, lhs_id, temp_rhs, 1);
+    rule = rule_start(g, lhs_id, &internal_lhs_id, 1);
     rule->t_original = original_rule_id;
     rule->t_is_semantic_equivalent = 1;
     /* Real symbol count remains at default of 0 */
@@ -1665,6 +1662,7 @@ temp_rhs = my_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
 @ This ``alternate" top rule is needed if a final separator is allowed.
 @<Add the alternate top rule for the sequence@> =
 { RULE rule;
+    SYMID temp_rhs[2];
     temp_rhs[0] = internal_lhs_id;
     temp_rhs[1] = separator_id;
     rule = rule_start(g, lhs_id, temp_rhs, 2);
@@ -1677,30 +1675,26 @@ temp_rhs = my_new(Marpa_Symbol_ID, (3 + (separator_id < 0 ? 1 : 2) * min));
 rule to represent the minimum, and another to deal with iteration.
 That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
-{ RULE rule;
-int rhs_ix, i;
-    temp_rhs[0] = rhs_id;
-    rhs_ix = 1;
-    for (i = 0; i < min - 1; i++) {
-        if (separator_id >= 0) temp_rhs[rhs_ix++] = separator_id;
-        temp_rhs[rhs_ix++] = rhs_id;
-    }
-    rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
-    rule->t_original = original_rule_id;
-    RULE_has_Virtual_LHS(rule) = 1;
-    Real_SYM_Count_of_RULE(rule) = rhs_ix;
+{
+  const RULE rule = rule_start (g, internal_lhs_id, &rhs_id, 1);
+  rule->t_original = original_rule_id;
+  RULE_has_Virtual_LHS (rule) = 1;
+  Real_SYM_Count_of_RULE (rule) = 1;
 }
 @ @<Add the iterating rule for the sequence@> =
-{ RULE rule;
-int rhs_ix = 0;
-    temp_rhs[rhs_ix++] = internal_lhs_id;
-    if (separator_id >= 0) temp_rhs[rhs_ix++] = separator_id;
-    temp_rhs[rhs_ix++] = rhs_id;
-    rule = rule_start(g, internal_lhs_id, temp_rhs, rhs_ix);
-    rule->t_original = original_rule_id;
-    RULE_has_Virtual_LHS(rule) = 1;
-    RULE_has_Virtual_RHS(rule) = 1;
-    Real_SYM_Count_of_RULE(rule) = rhs_ix - 1;
+{
+  RULE rule;
+  SYMID temp_rhs[3];
+  int rhs_ix = 0;
+  temp_rhs[rhs_ix++] = internal_lhs_id;
+  if (separator_id >= 0)
+    temp_rhs[rhs_ix++] = separator_id;
+  temp_rhs[rhs_ix++] = rhs_id;
+  rule = rule_start (g, internal_lhs_id, temp_rhs, rhs_ix);
+  rule->t_original = original_rule_id;
+  RULE_has_Virtual_LHS (rule) = 1;
+  RULE_has_Virtual_RHS (rule) = 1;
+  Real_SYM_Count_of_RULE (rule) = rhs_ix - 1;
 }
 
 @ Does this rule duplicate an already existing rule?
@@ -1980,8 +1974,24 @@ Liberal separation is the default in Marpa.
 There is not bitfield for this, because proper separation is
 a completely syntactic matter,
 taken care of in the rewrite itself.
+@d XRL_is_Proper_Separation(rule) ((rule)->t_is_proper_separation)
 @<Public defines@> =
 #define MARPA_PROPER_SEPARATION @| @[0x2@]@/
+@ @<Bit aligned rule elements@> = unsigned int t_is_proper_separation:1;
+@ @<Initialize rule elements@> =
+rule->t_is_proper_separation = 0;
+@ @<Function definitions@> =
+int marpa_g_rule_is_proper_separation(
+    Marpa_Grammar g,
+    Marpa_Rule_ID rule_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |rule_id| is invalid@>@;
+    return !XRL_is_Proper_Separation(RULE_by_ID(g, rule_id));
+}
+
+
 
 @*0 Accessible Rules.
 @ A rule is accessible if its LHS is accessible.

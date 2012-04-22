@@ -1177,11 +1177,24 @@ On failure, -2.
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 Return value:
-If @var{rule_id} is not an external sequence rule, returns 0.
-If @var{rule_id} is not an internal sequence rule, returns
-1 if the symbol is the keep separation flag is set,
-0 otherwise.
-On failure, returns -2.
+Returns 1 if
+the keep separation flag is set,
+0 if not.
+Returns 0 if
+@var{rule_id} is not a sequence rule.
+On hard failure, returns -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_proper_separation( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+Return value:
+Returns 1 if
+the proper separation flag is set,
+0 if not.
+Returns 0 if
+@var{rule_id} is not a sequence rule.
+On hard failure, returns -2.
 @end deftypefun
 
 @node Grammar precomputation, Symbol internals, Sequences, Grammars
