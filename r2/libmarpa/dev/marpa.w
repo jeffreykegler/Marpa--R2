@@ -734,7 +734,7 @@ The |rule_tree| is a tree for detecting duplicates.
     struct marpa_avl_table* rule_tree;
 @ @<Initialize grammar elements@> =
     DSTACK_INIT(g->t_rules, RULE, 256);
-    g->rule_tree = _marpa_avl_create (rule_duplication_cmp, NULL, alignof (RULE));
+    g->rule_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, alignof (RULE));
 @ @<Destroy rule tree@> =
     _marpa_avl_destroy (g->rule_tree);
     g->rule_tree = NULL;
@@ -975,6 +975,21 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event public_event,
   public_event->t_value = internal_event->t_value;
   return type;
 }
+
+@*0 The rule duplication tree.
+This AVL tree is kept, before precomputation,
+to help detect BNF rules.
+@<Widely aligned grammar elements@> =
+AVL_TREE t_xrl_tree;
+@ @<Initialize grammar elements@> =
+  (g)->t_xrl_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, 0);
+@ @<Clear rule duplication tree@> =
+{
+    _marpa_avl_destroy ((g)->t_xrl_tree);
+    (g)->t_xrl_tree = NULL;
+}
+@ @<Destroy grammar elements@> =
+  @<Clear rule duplication tree@>@;
 
 @*0 The grammar obstack.
 An obstack with the same lifetime as the grammar.
@@ -1618,15 +1633,15 @@ int min, int flags )
 A duplicate is a rule with the same lhs symbol,
 the same rhs length,
 and the same symbol in each position on the rhs.
+BNF rules are prevented from duplicaing sequence
+rules because sequence LHS's are required to be
+unique.
 
-Note that this definition of duplicate applies to
-sequences as well.  That means that a sequence rule
-can be a duplicate of a non-sequence rule of length 1,
-if they have the same lhs symbols and the same rhs
-symbol.
-Also, that means you cannot define sequences
-that differ only in the separator, or only in the
-minimum count.
+The order of the sort function is for convenience
+in computation.
+All that matters is that identical rules sort the
+same and otherwise the order does not need to
+make sense.
 
 I do not think the
 restrictions on sequence rules represent real limitations.
@@ -1637,31 +1652,33 @@ to write the sequences out as BNF rules.
 After all, sequence rules are only a shorthand.
 And shorthand is counter-productive when it makes
 you lose track of what you are trying to say.
-
-The algorithm is the first get a list of all the rules
-with the same LHS, which is very fast because
-I have pre-computed it.
-If there are no such rules, the new rule is
-unique (not a duplicate).
-If there are such rules, I look at them,
-trying to find one that duplicates the new
-rule.
-For each old rule, I first compare its length to
-the new rule, and then its right hand side
-symbols, one by one.
-If all these comparisons succeed, I conclude
-that the old rule duplicates the new one
-and return true.
-If, after having done the comparison for all
-the ``same LHS" rules, I have found no duplicates,
-then I conclude there is no duplicate of the new
-rule, and return false.
 @ @<Function definitions@> =
-PRIVATE_NOT_INLINE int rule_duplication_cmp(
-    const void* ap,
-    const void* bp,
-    void *param UNUSED)
-{ return 0; }
+PRIVATE_NOT_INLINE int
+duplicate_rule_cmp (const void *ap, const void *bp, void *param UNUSED)
+{
+  XRL xrl1 = (XRL) ap;
+  XRL xrl2 = (XRL) bp;
+  int diff = LHSID_of_XRL (xrl2) - LHSID_of_XRL (xrl1);
+  if (diff)
+    return diff;
+  {
+    /* Length is a key in-between LHS.  That way
+     * we only need to compare the RHS of
+     * rules of the same length */
+    int ix;
+    const int length = Length_of_XRL (xrl1);
+    diff = Length_of_XRL (xrl2) - length;
+    if (diff)
+      return diff;
+    for (ix = 0; ix < length; ix++)
+      {
+	diff = RHSID_of_XRL (xrl2, ix) - RHSID_of_XRL (xrl1, ix);
+	if (diff)
+	  return diff;
+      }
+  }
+  return 0;
+}
 
 PRIVATE
 int is_rule_duplicate(GRAMMAR g,
@@ -1718,6 +1735,7 @@ by the time 64-bit machines become universal,
 nobody will have noticed this restriction.
 @d MAX_RHS_LENGTH (INT_MAX >> (2))
 @d Length_of_RULE(rule) ((rule)->t_rhs_length)
+@d Length_of_XRL(xrl) ((xrl)->t_rhs_length)
 @<Int aligned rule elements@> = int t_rhs_length;
 @ The symbols come at the end of the |marpa_rule| structure,
 so that they can be variable length.
@@ -1801,8 +1819,11 @@ int marpa_g_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
 
 @*1 Symbols of the Rule.
 @d LHS_ID_of_RULE(rule) ((rule)->t_symbols[0])
+@d LHSID_of_XRL(xrl) ((xrl)->t_symbols[0])
 @d RHS_ID_of_RULE(rule, position)
     ((rule)->t_symbols[(position)+1])
+@d RHSID_of_XRL(xrl, position)
+    ((xrl)->t_symbols[(position)+1])
 
 @*0 Rule ID.
 The {\bf rule ID} is a number which
@@ -2323,6 +2344,9 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
+    // After this point, errors are not recoverable
+    g->t_is_precomputed = 1;
+    @<Clear rule duplication tree@>@;
     // Phase 1: census the external grammar
     { /* Scope with only external grammar */
 	@<Declare external grammar variables@>@;
@@ -2399,7 +2423,6 @@ a lot of useless diagnostics.
     @<Check that start symbol is productive@>@;
     @<Census accessible symbols@>@;
     @<Census nulling symbols@>@;
-    g->t_is_precomputed = 1;
 }
 
 @ @<Declare precompute variables@> =
