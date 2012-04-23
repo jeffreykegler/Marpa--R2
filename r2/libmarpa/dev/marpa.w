@@ -1117,32 +1117,14 @@ marpa_g_symbol_new (Marpa_Grammar g)
 @ @<Function definitions@> =
 PRIVATE void symbol_free(SYM symbol)
 {
-    @<Free symbol elements@>@; my_free(symbol);
-}
-
-@*0 Symbol LHS rules element.
-This tracks the rules for which this symbol is the LHS.
-It is an optimization --- the same information could be found
-by scanning the rules every time this information is needed.
-@d SYMBOL_LHS_RULE_COUNT(symbol) DSTACK_LENGTH(symbol->t_lhs)
-@<Widely aligned symbol elements@> =
-    DSTACK_DECLARE( t_lhs);
-@ @<Initialize symbol elements@> =
-    DSTACK_INIT(symbol->t_lhs, RULEID, 1);
-@ @<Free symbol elements@> =
-    DSTACK_DESTROY(symbol->t_lhs);
-
-@ @<Function definitions@> =
-PRIVATE
-void symbol_lhs_add(SYM symbol, RULEID rule_id)
-{
-   *DSTACK_PUSH(symbol->t_lhs, RULEID) = rule_id;
+    my_free(symbol);
 }
 
 @*0 Symbol is LHS?.
 Is this (external) symbol on the LHS of any rule,
 whether sequence or BNF.
 @d SYM_is_LHS(symbol) ((symbol)->t_is_lhs)
+@d ISY_is_LHS(symbol) ((symbol)->t_is_lhs)
 @<Bit aligned symbol elements@> = unsigned int t_is_lhs:1;
 @ @<Initialize symbol elements@> =
     SYM_is_LHS(symbol) = 0;
@@ -1525,7 +1507,6 @@ RULE rule_finish(GRAMMAR g, RULE rule)
 {
     @<Initialize rule elements@>@/
     rule_add(g, rule);
-    @<Add this rule to the symbol rule lists@>
    return rule;
 }
 
@@ -1704,17 +1685,6 @@ duplicate_rule_cmp (const void *ap, const void *bp, void *param UNUSED)
   }
   return 0;
 }
-
-@ Add the rules to the symbol's rule lists:
-An obstack scratchpad might be useful for
-the copy of the RHS symbols.
-|alloca|, while tempting, should not used
-because an unusually long RHS could cause
-a stack overflow.
-Even if such case is pathological,
-a core dump is not the right response.
-@<Add this rule to the symbol rule lists@> =
-    symbol_lhs_add(SYM_by_ID(rule->t_symbols[0]), rule->t_id);@;
 
 @*0 Rule Symbols.
 A rule takes the traditiona form of
@@ -4676,13 +4646,13 @@ which can be found by simply decrementing the pointer.
 If the predot symbol of an item is on the LHS of any rule,
 then that state is a Leo completion.
 @<If this state can be a Leo completion,
-set the Leo completion symbol to |lhs_id|@> = {
+set the Leo completion symbol to |lhs_id|@> =
+{
   AIM previous_ahfa_item = single_item_p - 1;
-  SYMID predot_symid = Postdot_SYMID_of_AIM(previous_ahfa_item);
-  if (SYMBOL_LHS_RULE_COUNT (SYM_by_ID (predot_symid))
-      > 0)
+  SYMID predot_symid = Postdot_SYMID_of_AIM (previous_ahfa_item);
+  if (ISY_is_LHS(SYM_by_ID (predot_symid)))
     {
-	Leo_LHS_ID_of_AHFA(p_new_state) = lhs_id;
+      Leo_LHS_ID_of_AHFA (p_new_state) = lhs_id;
     }
 }
 
@@ -4973,8 +4943,7 @@ states.
     {
       /* If a symbol appears on a LHS, it predicts itself. */
       SYM symbol = SYM_by_ID (symid);
-      if (!SYMBOL_LHS_RULE_COUNT (symbol))
-	continue;
+      if (!ISY_is_LHS(symbol)) continue;
       matrix_bit_set (symbol_by_symbol_matrix, (unsigned int) symid, (unsigned int) symid);
     }
   for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
