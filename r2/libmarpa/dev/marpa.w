@@ -1136,6 +1136,13 @@ whether sequence or BNF.
 @ @<Initialize symbol elements@> =
     SYM_is_LHS(symbol) = 0;
 
+@*0 Symbol is Sequence LHS?.
+Is this (external) symbol on the LHS of a sequence rule?
+@d SYM_is_Sequence_LHS(symbol) ((symbol)->t_is_sequence_lhs)
+@<Bit aligned symbol elements@> = unsigned int t_is_sequence_lhs:1;
+@ @<Initialize symbol elements@> =
+    SYM_is_Sequence_LHS(symbol) = 0;
+
 @*0 Symbol is internal?.
 @d SYM_is_Internal(symbol) ((symbol)->t_is_internal)
 @<Bit aligned symbol elements@> = unsigned int t_is_internal:1;
@@ -1529,15 +1536,8 @@ int min, int flags )
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
-    if (UNLIKELY(is_rule_duplicate (g, lhs_id, &rhs_id, 1) == 1))
-      {
-	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
-	return failure_indicator;
-      }
-
     @<Check that the sequence symbols are valid@>@;
     @<Add the original rule for a sequence@>@;
-    @<Mark the counted symbols@>@;
     return original_rule_id;
     FAILURE:
     return failure_indicator;
@@ -1547,66 +1547,73 @@ int min, int flags )
 @<Add the original rule for a sequence@> =
 {
   original_rule = rule_start (g, lhs_id, &rhs_id, 1);
-MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(original_rule));
   RULE_is_Used (original_rule) = 0;
   original_rule_id = original_rule->t_id;
   if (separator_id >= 0)
     Separator_of_XRL (original_rule) = separator_id;
-  Minimum_of_XRL(original_rule) = min;
+  Minimum_of_XRL (original_rule) = min;
   XRL_is_Sequence (original_rule) = 1;
-  XRL_is_Internal(original_rule) = 0;
+  XRL_is_Internal (original_rule) = 0;
   original_rule->t_is_discard = !(flags & MARPA_KEEP_SEPARATION)
     && separator_id >= 0;
-  if ( flags & MARPA_PROPER_SEPARATION ) {
-    XRL_is_Proper_Separation(original_rule) = 1;
-  }
+  if (flags & MARPA_PROPER_SEPARATION)
+    {
+      XRL_is_Proper_Separation (original_rule) = 1;
+    }
+  SYM_is_Sequence_LHS (SYM_by_ID (lhs_id)) = 1;
+  SYM_by_ID (rhs_id)->t_is_counted = 1;
+  if (separator_id >= 0)
+    {
+      SYM_by_ID (separator_id)->t_is_counted = 1;
+    }
 }
 
 @ @<Check that the sequence symbols are valid@> =
-if (separator_id != -1)
-  {
-    SYM separator;
-    if (UNLIKELY (!symbol_is_valid (g, separator_id)))
+{
+  if (separator_id != -1)
+    {
+      if (UNLIKELY (!symbol_is_valid (g, separator_id)))
+	{
+	  MARPA_ERROR (MARPA_ERR_BAD_SEPARATOR);
+	  goto FAILURE;
+	}
       {
-	MARPA_ERROR (MARPA_ERR_BAD_SEPARATOR);
+	const SYM separator = SYM_by_ID (separator_id);
+	if (UNLIKELY (SYM_is_Internal (separator)))
+	  {
+	    MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
+	    goto FAILURE;
+	  }
+      }
+    }
+  if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
+    {
+      MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+      goto FAILURE;
+    }
+  {
+    const SYM lhs = SYM_by_ID (lhs_id);
+    if (UNLIKELY (SYM_is_LHS (lhs)))
+      {
+	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
 	goto FAILURE;
       }
-      separator = SYM_by_ID(separator_id);
-      if (UNLIKELY(SYM_is_Internal(separator))) {
+  }
+  if (UNLIKELY (!symbol_is_valid (g, rhs_id)))
+    {
+      MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+      goto FAILURE;
+    }
+  {
+    const SYM rhs = SYM_by_ID (rhs_id);
+    if (UNLIKELY (SYM_is_Internal (rhs)))
+      {
 	MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
 	goto FAILURE;
       }
   }
-{
-    SYM lhs;
-    if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
-      {
-	MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
-	goto FAILURE;
-      }
-    lhs = SYM_by_ID(lhs_id);
-    if (UNLIKELY(SYM_is_Internal(lhs))) {
-	MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
-	goto FAILURE;
-    }
-}
-{
-    SYM rhs;
-    if (UNLIKELY (!symbol_is_valid (g, rhs_id)))
-      {
-	MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
-	goto FAILURE;
-      }
-    rhs = SYM_by_ID(rhs_id);
-    if (UNLIKELY(SYM_is_Internal(rhs))) {
-	MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
-	goto FAILURE;
-    }
 }
 
-@ @<Mark the counted symbols@> =
-SYM_by_ID(rhs_id)->t_is_counted = 1;
-if (separator_id >= 0) { SYM_by_ID(separator_id)->t_is_counted = 1; }
 @ Does this rule duplicate an already existing rule?
 A duplicate is a rule with the same lhs symbol,
 the same rhs length,
@@ -1725,8 +1732,11 @@ rule_check (GRAMMAR g, SYMID lhs_id, SYMID * rhs_ids, int length)
   if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
     goto INVALID_SYMID;
   lhs = SYM_by_ID (lhs_id);
-  if (UNLIKELY (SYM_is_Internal (lhs)))
-    goto INTERNAL_SYM;
+  if (UNLIKELY (SYM_is_Sequence_LHS (lhs)))
+    {
+      MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
+      return 0;
+    }
   for (rh_index = 0; rh_index < length; rh_index++)
     {
       SYMID symid = rhs_ids[rh_index];
@@ -1734,13 +1744,8 @@ rule_check (GRAMMAR g, SYMID lhs_id, SYMID * rhs_ids, int length)
       if (UNLIKELY (!symbol_is_valid (g, symid)))
 	goto INVALID_SYMID;
       rhs = SYM_by_ID (symid);
-      if (UNLIKELY (SYM_is_Internal (rhs)))
-	goto INTERNAL_SYM;
     }
   return 1;
-INTERNAL_SYM:;
-  MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
-  return 0;
 INVALID_SYMID:;
   MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
   return 0;

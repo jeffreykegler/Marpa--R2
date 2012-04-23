@@ -122,6 +122,28 @@ is the LHS of two rules, one empty,
 and the other rule with a RHS consisting of one
 symbol, a terminal.
 
+=head2 A sequence must have a unique LHS
+
+The LHS of a sequence rule 
+may not be on the LHS of any other 
+rule, whether another sequence rule, or a BNF rule.
+This
+is not as severe a restriction as it might sound --
+while sequences cannot share the same LHS with other
+rules directly, they can do so indirectly.
+
+In Marpa::XS, the definition of when a sequence
+was the duplicate was more liberal.
+But this meant that issues of whether sequences
+were duplicates if they differed only in their
+separators or their minimum counts.
+And it meant that some BNF rules which were the
+equivalent of instances of sequence rules were
+considered duplicates, while others were not.
+The new definition is much simpler and more
+intuitive, and its greater restrictiveness
+is easy to work around.
+
 =head1 COPYRIGHT AND LICENSE
 
 =for Marpa::R2::Display

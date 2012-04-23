@@ -2481,6 +2481,14 @@ Suggested message: "This grammar is precomputed."
 @deftypevr Macro int MARPA_ERR_RHS_TOO_LONG
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE
+The LHS of a
+sequence rule cannot be the LHS of any other rule,
+whether a sequence rule or a BNF rule.
+An attempt was made to violate this restriction.
+Suggested message: "LHS of sequence rule would not be unique."
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_NONE
 The link source type is 'none'
 in a context where that is not allowed.

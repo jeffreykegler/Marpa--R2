@@ -811,7 +811,7 @@ in the long form.
 =head2 Duplicate rules
 
 Marpa throws an exception if a duplicate rule is added.
-Two rules are considered duplicates if
+Two BNF rules are considered duplicates if
 
 =over
 
@@ -821,13 +821,14 @@ Two rules are considered duplicates if
 
 =back
 
-This definition applies to sequence rules, as well as to
-ordinary rules.
-As a consequence,
-sequence rules can be considered
-duplicates even when they
-have different separators
-and/or different minimum counts.
+Sequence rules are even more restricted.
+The LHS of a sequence rule 
+may not be on the LHS of any other 
+rule, whether another sequence rule, or a BNF rule.
+This
+is not as severe a restriction as it might sound --
+while sequences cannot share the same LHS with other
+rules directly, they can do so indirectly.
 
 =head1 SYMBOL DESCRIPTORS
 
