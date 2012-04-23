@@ -22,7 +22,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Fatal qw(open close);
 
 use lib 'inc';
@@ -135,7 +135,6 @@ my $duplicate_rule_grammar = {
         { lhs => 'Top', rhs => ['Dup'] },
         {   lhs => 'Dup',
             rhs => ['Item'],
-            min => 0,
         },
         {   lhs => 'Dup',
             rhs => ['Item'],
@@ -146,6 +145,23 @@ my $duplicate_rule_grammar = {
 };
 test_grammar( 'duplicate rule',
     $duplicate_rule_grammar, 'Duplicate rule: Dup -> Item ' );
+
+my $unique_lhs_grammar = {
+    rules => [
+        { lhs => 'Top', rhs => ['Dup'] },
+        {   lhs => 'Dup',
+            rhs => ['Item'],
+            min => 0,
+        },
+        {   lhs => 'Dup',
+            rhs => ['Item'],
+        },
+        { lhs => 'Item', rhs => ['a'] },
+    ],
+    start => 'Top',
+};
+test_grammar( 'unique_lhs',
+    $unique_lhs_grammar, 'LHS of sequence rule would not be unique.: Dup -> Item ' );
 
 my $nulling_terminal_grammar = {
     rules => [

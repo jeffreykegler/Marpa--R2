@@ -1057,10 +1057,6 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
 {
     const Marpa_Error_Code error_code = g->t_error;
     const char* error_string = g->t_error_string;
-    if (IS_G_OK(g)) {
-        g->t_error = MARPA_ERR_NONE;
-        g->t_error_string = NULL;
-    }
     if (p_error_string) {
        *p_error_string = error_string;
     }
@@ -1542,28 +1538,32 @@ const SYMID lhs, const SYMID *rhs, int length)
 }
 
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_g_rule_new(Marpa_Grammar g,
-Marpa_Symbol_ID lhs, Marpa_Symbol_ID *rhs, int length)
+Marpa_Rule_ID
+marpa_g_rule_new (Marpa_Grammar g,
+		  Marpa_Symbol_ID lhs, Marpa_Symbol_ID * rhs, int length)
 {
-    @<Return |-2| on failure@>@;
-    Marpa_Rule_ID rule_id;
-    RULE rule;
-    @<Fail if fatal error@>@;
-    @<Fail if precomputed@>@;
-    if (UNLIKELY(length > MAX_RHS_LENGTH)) {
-	MARPA_ERROR(MARPA_ERR_RHS_TOO_LONG);
-        return failure_indicator;
+  @<Return |-2| on failure@>@;
+  Marpa_Rule_ID rule_id;
+  RULE rule;
+  @<Fail if fatal error@>@;
+  @<Fail if precomputed@>@;
+  if (UNLIKELY (length > MAX_RHS_LENGTH))
+    {
+      MARPA_ERROR (MARPA_ERR_RHS_TOO_LONG);
+      return failure_indicator;
     }
-    rule = rule_start(g, lhs, rhs, length);
-    if (UNLIKELY(is_rule_duplicate(g, rule) == 1)) {
-	MARPA_ERROR(MARPA_ERR_DUPLICATE_RULE);
-        return failure_indicator;
+  rule = rule_start (g, lhs, rhs, length);
+  if (UNLIKELY (_marpa_avl_insert (g->t_xrl_tree, rule) != NULL))
+    {
+      MARPA_ERROR (MARPA_ERR_DUPLICATE_RULE);
+      return failure_indicator;
     }
-    if (UNLIKELY(!rule_check(g, rule))) return failure_indicator;
-    rule = rule_finish(g, rule);
-    XRL_is_Internal(rule) = 0;
-    rule_id = rule->t_id;
-    return rule_id;
+  if (UNLIKELY (!rule_check (g, rule)))
+    return failure_indicator;
+  rule = rule_finish (g, rule);
+  XRL_is_Internal (rule) = 0;
+  rule_id = rule->t_id;
+  return rule_id;
 }
 
 @ @<Function definitions@> =
@@ -1703,37 +1703,6 @@ duplicate_rule_cmp (const void *ap, const void *bp, void *param UNUSED)
       }
   }
   return 0;
-}
-
-PRIVATE
-int is_rule_duplicate(GRAMMAR g, XRL new_rule)
-{
-  int ix;
-  const SYM lhs = SYM_by_ID(LHSID_of_XRL (new_rule));
-  int same_lhs_count = DSTACK_LENGTH (lhs->t_lhs);
-  for (ix = 0; ix < same_lhs_count; ix++)
-    {
-      RULEID same_lhs_rule_id = *DSTACK_INDEX (lhs->t_lhs, RULEID, ix);
-      int rhs_position;
-      RULE other_rule = RULE_by_ID (g, same_lhs_rule_id);
-      const int new_length = Length_of_XRL (new_rule);
-      const int other_rule_length = Length_of_XRL (other_rule);
-      if (other_rule_length != new_length)
-	{
-	  goto RULE_IS_NOT_DUPLICATE;
-	}
-      for (rhs_position = 0; rhs_position < new_length; rhs_position++)
-	{
-	  if (RHSID_of_XRL (new_rule, rhs_position) !=
-	      RHSID_of_XRL (other_rule, rhs_position))
-	    {
-	      goto RULE_IS_NOT_DUPLICATE;
-	    }
-	}
-      return 1;			/* This rule duplicates the new one */
-    RULE_IS_NOT_DUPLICATE:;
-    }
-  return 0;			/* No duplicate rules were found */
 }
 
 @ Add the rules to the symbol's rule lists:
