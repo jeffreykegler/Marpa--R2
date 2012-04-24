@@ -991,16 +991,26 @@ AVL_TREE t_xrl_tree;
 @ @<Destroy grammar elements@> =
   @<Clear rule duplication tree@>@;
 
-@*0 The grammar obstack.
-An obstack with the same lifetime as the grammar.
+@*0 The grammar obstacks.
+Obstacks with the same lifetime as the grammar.
 This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the grammar.
+The XRL obstack is dedicated to XRL's, which it is convenient
+to build on the obstack.
+A dedicated obstack ensures that an in-process XRL will not
+be overwritten by code using the obstack for other objects.
+A side benefit is that the dedicated
+XRL obstack can be specially
+aligned.
 @<Widely aligned grammar elements@> =
 struct obstack t_obs;
+struct obstack t_xrl_obs;
 @ @<Initialize grammar elements@> =
 my_obstack_init(&g->t_obs);
+my_obstack_begin(&g->t_xrl_obs, 0, alignof(struct s_xrl));
 @ @<Destroy grammar elements@> =
 my_obstack_free(&g->t_obs);
+my_obstack_free(&g->t_xrl_obs);
 
 @*0 The "is OK" Word.
 The grammar needs a flag for a fatal error.
@@ -1452,7 +1462,7 @@ int _marpa_g_symbol_xrl_offset(Marpa_Grammar g, Marpa_Symbol_ID symid)
 @<Public typedefs@> =
 typedef int Marpa_Rule_ID;
 @ @<Private structures@> =
-struct s_rule {
+struct s_xrl {
     @<Widely aligned rule elements@>@/
     @<Int aligned rule elements@>@/
     @<Bit aligned rule elements@>@/
@@ -1462,8 +1472,8 @@ struct s_rule {
 @s RULE int
 @s RULEID int
 @<Private typedefs@> =
-struct s_rule;
-typedef struct s_rule* XRL;
+struct s_xrl;
+typedef struct s_xrl* XRL;
 typedef XRL IRL;
 typedef XRL RULE;
 typedef Marpa_Rule_ID RULEID;
@@ -1486,9 +1496,10 @@ PRIVATE
   RULE rule_start (GRAMMAR g, const SYMID lhs, const SYMID * rhs, int length)
 {
   RULE rule;
-  const int rule_sizeof = offsetof (struct s_rule, t_symbols) +
+  const int rule_sizeof = offsetof (struct s_xrl, t_symbols) +
     (length + 1) * sizeof (rule->t_symbols[0]);
-  rule = my_obstack_alloc (&g->t_obs, rule_sizeof);
+  my_obstack_blank (&g->t_xrl_obs, rule_sizeof);
+  rule = my_obstack_base (&g->t_xrl_obs);
   Length_of_RULE (rule) = length;
   rule->t_symbols[0] = lhs;
   SYM_is_LHS (SYM_by_ID (lhs)) = 1;
@@ -1514,8 +1525,10 @@ PRIVATE_NOT_INLINE
 RULE rule_new(GRAMMAR g,
 const SYMID lhs, const SYMID *rhs, int length)
 {
-    const RULE rule = rule_start(g, lhs, rhs, length);
-    return rule_finish(g, rule);
+    RULE rule = rule_start(g, lhs, rhs, length);
+    rule_finish(g, rule);
+    rule = my_obstack_finish(&g->t_xrl_obs);
+    return rule;
 }
 
 @ @<Function definitions@> =
@@ -1531,20 +1544,24 @@ marpa_g_rule_new (Marpa_Grammar g,
   if (UNLIKELY (length > MAX_RHS_LENGTH))
     {
       MARPA_ERROR (MARPA_ERR_RHS_TOO_LONG);
-      return failure_indicator;
+      goto FAILURE;
     }
   rule = rule_start (g, lhs, rhs, length);
   if (UNLIKELY (_marpa_avl_insert (g->t_xrl_tree, rule) != NULL))
     {
       MARPA_ERROR (MARPA_ERR_DUPLICATE_RULE);
-      return failure_indicator;
+      goto FAILURE;
     }
   if (UNLIKELY (!rule_check (g, rule)))
-    return failure_indicator;
+    goto FAILURE;
   rule = rule_finish (g, rule);
+  rule = my_obstack_finish(&g->t_xrl_obs);
   XRL_is_Internal (rule) = 0;
   rule_id = rule->t_id;
   return rule_id;
+  FAILURE:
+  my_obstack_reject(&g->t_xrl_obs);
+  return failure_indicator;
 }
 
 @ @<Function definitions@> =
