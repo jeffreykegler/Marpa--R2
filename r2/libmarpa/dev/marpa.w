@@ -776,15 +776,15 @@ void rule_add(
     ((rule_id) >= 0 && (rule_id) < RULE_Count_of_G(g))
 
 @*0 Start Symbol.
-@<Int aligned grammar elements@> = Marpa_Symbol_ID t_original_start_symid;
+@<Int aligned grammar elements@> = XSYID t_start_xsyid;
 @ @<Initialize grammar elements@> =
-g->t_original_start_symid = -1;
+g->t_start_xsyid = -1;
 @ @<Function definitions@> =
 Marpa_Symbol_ID marpa_g_start_symbol(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    return g->t_original_start_symid;
+    return g->t_start_xsyid;
 }
 @ Returns the symbol ID on success,
 |-2| on failure.
@@ -795,7 +795,7 @@ Marpa_Symbol_ID marpa_g_start_symbol_set(Marpa_Grammar g, Marpa_Symbol_ID symid)
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |symid| is invalid@>@;
-    return g->t_original_start_symid = symid;
+    return g->t_start_xsyid = symid;
 }
 
 @*0 Start Rules.
@@ -1078,11 +1078,15 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
 @<Public typedefs@> =
 typedef int Marpa_Symbol_ID;
 @ @<Private typedefs@> =
-typedef int SYMID;
+typedef Marpa_Symbol_ID XSYID;
+typedef XSYID ISYID;
+typedef XSYID SYMID;
 @ @<Private incomplete structures@> =
-struct s_symbol;
-typedef struct s_symbol* SYM;
-typedef const struct s_symbol* SYM_Const;
+struct s_xsy;
+typedef struct s_xsy* XSY;
+typedef XSY ISY;
+typedef XSY SYM;
+typedef const struct s_xsy* XSY_Const;
 @ The initial element is a type |int|,
 and the next element is the symbol ID,
 (the unique identifier for the symbol),
@@ -1093,9 +1097,9 @@ expected.
 @d ID_of_SYM(sym) ((sym)->t_symbol_id)
 
 @<Private structures@> =
-struct s_symbol {
+struct s_xsy {
     int t_or_node_type;
-    SYMID t_symbol_id;
+    XSYID t_symbol_id;
     @<Widely aligned symbol elements@>@;
     @<Bit aligned symbol elements@>@;
 };
@@ -1107,11 +1111,11 @@ added to the list of symbols
 
 @ @<Function definitions@> =
 PRIVATE SYM
-symbol_new (struct marpa_g *g)
+symbol_new (GRAMMAR g)
 {
-  SYM symbol = my_malloc (sizeof (SYM_Object));
-  @<Initialize symbol elements @>@/
-    symbol_add (g, symbol);
+  SYM symbol = my_new (struct s_xsy, 1);
+  @<Initialize symbol elements @>@;
+  symbol_add (g, symbol);
   return symbol;
 }
 
@@ -1326,7 +1330,7 @@ symbols: a non-nullable (or ``proper") alias and a nulling alias.
 unsigned int t_is_proper_alias:1;
 unsigned int t_is_nulling_alias:1;
 @ @<Widely aligned symbol elements@> =
-struct s_symbol* t_alias;
+SYM t_alias;
 @ @<Initialize symbol elements@> =
 symbol->t_is_proper_alias = 0;
 symbol->t_is_nulling_alias = 0;
@@ -2421,17 +2425,17 @@ While at it, set a flag to indicate if there are empty rules.
 
 @ @<Fail if bad start symbol@> =
 {
-  if (UNLIKELY(original_start_symid < 0))
+  if (UNLIKELY(start_xsyid < 0))
     {
       MARPA_ERROR (MARPA_ERR_NO_START_SYM);
       return failure_indicator;
     }
-  if (UNLIKELY(!symbol_is_valid (g, original_start_symid)))
+  if (UNLIKELY(!symbol_is_valid (g, start_xsyid)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYM);
       return failure_indicator;
     }
-  if (UNLIKELY(!SYM_is_LHS (SYM_by_ID (original_start_symid))))
+  if (UNLIKELY(!SYM_is_LHS (SYM_by_ID (start_xsyid))))
     {
       MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
       return failure_indicator;
@@ -2439,7 +2443,7 @@ While at it, set a flag to indicate if there are empty rules.
 }
 
 @ @<Declare precompute variables@> =
-Marpa_Symbol_ID original_start_symid = g->t_original_start_symid;
+XSYID start_xsyid = g->t_start_xsyid;
 
 @ Used for sorting RHS symbols for memoization.
 @<Private structures@> =
@@ -2674,7 +2678,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
 }
 
 @ @<Check that start symbol is productive@> =
-if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)original_start_symid)))
+if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)start_xsyid)))
 {
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     goto FAILURE;
@@ -2738,7 +2742,7 @@ Therefore there is no code to free it.
 @<Census accessible symbols@> = 
 {
   Bit_Vector accessible_v =
-    matrix_row (reach_matrix, (unsigned int) original_start_symid);
+    matrix_row (reach_matrix, (unsigned int) start_xsyid);
   unsigned int min, max, start;
   SYMID symid;
   for (start = 0; bv_scan (accessible_v, start, &min, &max); start = max + 2)
@@ -2750,7 +2754,7 @@ Therefore there is no code to free it.
 	  symbol->t_is_accessible = 1;
 	}
     }
-    SYM_by_ID(original_start_symid)->t_is_accessible = 1;
+    SYM_by_ID(start_xsyid)->t_is_accessible = 1;
 }
 
 @ A symbol is nulling if and only if it is an LHS symbol which does not
@@ -3392,35 +3396,35 @@ This is such a common rewrite that it has a special name
 in the literature --- it is called ``augmenting the grammar".
 @ @<Augment grammar |g|@> =
 {
-    Marpa_Symbol_ID proper_new_start_id = -1;
-    SYM proper_old_start = NULL;
-    SYM nulling_old_start = NULL;
-    SYM proper_new_start = NULL;
-    SYM old_start = SYM_by_ID(g->t_original_start_symid);
+    ISYID proper_start_isyid = -1;
+    XSY proper_start_xsy = NULL;
+    XSY nulling_start_xsy = NULL;
+    ISY proper_start_isy = NULL;
+    const XSY start_xsy = SYM_by_ID(g->t_start_xsyid);
     @<Find and classify the old start symbols@>@;
-    if (proper_old_start) { @<Set up a new proper start rule@>@; }
-    if (nulling_old_start) { @<Set up a new nulling start rule@>@; }
+    if (proper_start_xsy) { @<Set up a new proper start rule@>@; }
+    if (nulling_start_xsy) { @<Set up a new nulling start rule@>@; }
 }
 
 @ @<Find and classify the old start symbols@> =
-if (SYM_is_Nulling(old_start)) {
-   old_start->t_is_accessible = 0;
-    nulling_old_start = old_start;
+if (SYM_is_Nulling(start_xsy)) {
+   start_xsy->t_is_accessible = 0;
+    nulling_start_xsy = start_xsy;
 } else {
-    proper_old_start = old_start;
-    nulling_old_start = symbol_null_alias(old_start);
+    proper_start_xsy = start_xsy;
+    nulling_start_xsy = symbol_null_alias(start_xsy);
 }
-old_start->t_is_start = 0;
+start_xsy->t_is_start = 0;
 
 @ @<Set up a new proper start rule@> = {
   RULE new_start_rule;
-  proper_old_start->t_is_start = 0;
-  proper_new_start = symbol_new (g);
-  proper_new_start_id = ID_of_SYM(proper_new_start);
-  proper_new_start->t_is_accessible = 1;
-  proper_new_start->t_is_productive = 1;
-  proper_new_start->t_is_start = 1;
-  new_start_rule = rule_new (g, proper_new_start_id, &ID_of_SYM(old_start), 1);
+  proper_start_xsy->t_is_start = 0;
+  proper_start_isy = symbol_new (g);
+  proper_start_isyid = ID_of_SYM(proper_start_isy);
+  proper_start_isy->t_is_accessible = 1;
+  proper_start_isy->t_is_productive = 1;
+  proper_start_isy->t_is_start = 1;
+  new_start_rule = rule_new (g, proper_start_isyid, &ID_of_SYM(start_xsy), 1);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = 1;
@@ -3435,9 +3439,9 @@ if there is one.  Otherwise it is a new, nulling, symbol.
   Marpa_Symbol_ID nulling_new_start_id;
   RULE new_start_rule;
   SYM nulling_new_start;
-  if (proper_new_start)
+  if (proper_start_isy)
     {				/* There are two start symbols */
-      nulling_new_start = symbol_alias_create (g, proper_new_start);
+      nulling_new_start = symbol_alias_create (g, proper_start_isy);
       nulling_new_start_id = ID_of_SYM(nulling_new_start);
     }
   else
@@ -7885,7 +7889,7 @@ Marpa_Earleme marpa_r_alternative(
 }
 
 @ @<|marpa_alternative| initial check for failure conditions@> = {
-    const SYM_Const token = SYM_by_ID(token_id);
+    const XSY_Const token = SYM_by_ID(token_id);
     if (!SYM_is_Terminal(token)) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
 	return failure_indicator;
