@@ -695,7 +695,6 @@ DSTACK_DESTROY(g->t_symbols);
 
 @ Symbol count accesors.
 @d SYM_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
-@d ISY_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
 @d XSY_Count_of_G(g) (DSTACK_LENGTH((g)->t_symbols))
 @ @<Function definitions@> =
 int marpa_g_symbol_count(Marpa_Grammar g) {
@@ -726,26 +725,25 @@ PRIVATE int symbol_is_valid(GRAMMAR g, SYMID symid)
 }
 
 @*0 The Grammar's Rule List.
-|t_rules| lists the rules for the grammar,
+|t_xrl_stack| lists the rules for the grammar,
 with their |Marpa_Rule_ID| as the index.
 The |rule_tree| is a tree for detecting duplicates.
 @<Widely aligned grammar elements@> =
-    DSTACK_DECLARE(t_rules);
+    DSTACK_DECLARE(t_xrl_stack);
     struct marpa_avl_table* rule_tree;
 @ @<Initialize grammar elements@> =
-    DSTACK_INIT(g->t_rules, RULE, 256);
+    DSTACK_INIT(g->t_xrl_stack, RULE, 256);
     g->rule_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, alignof (RULE));
 @ @<Destroy rule tree@> =
     _marpa_avl_destroy (g->rule_tree);
     g->rule_tree = NULL;
 @ @<Destroy grammar elements@> =
-    DSTACK_DESTROY(g->t_rules);
+    DSTACK_DESTROY(g->t_xrl_stack);
     @<Destroy rule tree@>@;
 
 @*0 Rule count accessors.
-@ @d RULE_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
-@ @d IRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
-@ @d XRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_rules))
+@ @d XRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_xrl_stack))
+@ @d RULE_Count_of_G(g) (XRL_Count_of_G(g))
 @ @<Function definitions@> =
 int marpa_g_rule_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -754,7 +752,8 @@ int marpa_g_rule_count(Marpa_Grammar g) {
 }
 
 @ Internal accessor to find a rule by its id.
-@d RULE_by_ID(g, id) (*DSTACK_INDEX((g)->t_rules, RULE, (id)))
+@d XRL_by_ID(id) (*DSTACK_INDEX((g)->t_xrl_stack, XRL, (id)))
+@d RULE_by_ID(g, id) (XRL_by_ID(id))
 
 @ Adds the rule to the list of rules kept by the Grammar
 object.
@@ -764,10 +763,11 @@ void rule_add(
     GRAMMAR g,
     RULE rule)
 {
-    const RULEID new_id = DSTACK_LENGTH((g)->t_rules);
-    *DSTACK_PUSH((g)->t_rules, RULE) = rule;
+    const RULEID new_id = DSTACK_LENGTH((g)->t_xrl_stack);
+    *DSTACK_PUSH((g)->t_xrl_stack, RULE) = rule;
     rule->t_id = new_id;
-    Size_of_G(g) += 1 + Length_of_RULE(rule);
+    External_Size_of_G(g) += 1 + Length_of_RULE(rule);
+    Internal_Size_of_G(g) += 1 + Length_of_RULE(rule);
     g->t_max_rule_length = MAX(Length_of_RULE(rule), g->t_max_rule_length);
 }
 
@@ -822,20 +822,14 @@ This includes both the LHS symbol and the RHS symbol.
 Since every rule has exactly one LHS symbol,
 the grammar's size is always equal to the total of
 all the rules lengths, plus the total number of rules.
-
-Unused rules are not included in the theoretical number,
-but Marpa does not necessarily deduct rules from the
-count as they are marked useless.
-This means that the
-grammar will always be of this size or smaller.
-As rules are marked useless, they are not necessarily deducted
-from the count.
-The purpose of tracking grammar size is to allocate resources,
-and for that purpose a high-ball estimate is adequate.
-@d Size_of_G(g) ((g)->t_size)
-@ @<Int aligned grammar elements@> = int t_size;
+@d External_Size_of_G(g) ((g)->t_external_size)
+@d Internal_Size_of_G(g) ((g)->t_internal_size)
+@ @<Int aligned grammar elements@> =
+int t_external_size;
+int t_internal_size;
 @ @<Initialize grammar elements@> =
-Size_of_G(g) = 0;
+External_Size_of_G(g) = 0;
+Internal_Size_of_G(g) = 0;
 
 @*0 The Maximum Rule Length.
 This is a high-ball estimate of the length of the
@@ -2477,7 +2471,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     for separator of sequences */
   struct sym_rule_pair *const p_rh_sym_rule_pair_base =
     my_obstack_new (AVL_OBSTACK (rhs_avl_tree), struct sym_rule_pair,
-		    Size_of_G (g));
+		    External_Size_of_G (g));
   struct sym_rule_pair *p_rh_sym_rule_pairs = p_rh_sym_rule_pair_base;
 
   /* AVL tree for LHS symbols */
@@ -2543,7 +2537,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     RULEID *const rule_data_base =
-      my_obstack_new (obs_precompute, RULEID, Size_of_G (g));
+      my_obstack_new (obs_precompute, RULEID, External_Size_of_G (g));
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, rhs_avl_tree);
     /* One extra "symbol" as an end marker */
@@ -3842,17 +3836,15 @@ int _marpa_g_AHFA_item_sort_key(struct marpa_g* g,
 
 @** Creating the AHFA Items.
 @ I do not use a |DSTACK| because I can initially size the
-item stack to |Size_of_G(g)|, which is a reasonable allocation,
+item stack to |Internal_Size_of_G(g)|, which is a reasonable allocation,
 but guaranteed to be greater than
 or equal to the final numbers of items.
-That means that I can avoid the overhead of checking the array
-size when adding each new AHFA item.
 @<Create AHFA items@> =
 {
     RULEID rule_id;
     AIMID no_of_items;
     RULEID rule_count_of_g = RULE_Count_of_G(g);
-    AIM base_item = my_new(struct s_AHFA_item, Size_of_G(g));
+    AIM base_item = my_new(struct s_AHFA_item, Internal_Size_of_G(g));
     AIM current_item = base_item;
     unsigned int symbol_instance_of_next_rule = 0;
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
@@ -4367,7 +4359,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 
 @ @<Declare locals for creating AHFA states@> =
    AHFA p_working_state;
-   const unsigned int initial_no_of_states = 2*Size_of_G(g);
+   const unsigned int initial_no_of_states = 2*Internal_Size_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
    const unsigned int symbol_count_of_g = SYM_Count_of_G(g);
    const unsigned int rule_count_of_g = RULE_Count_of_G(g);
@@ -4696,8 +4688,8 @@ be if written 100\% using indexes.
 	memoizations@> =
   AIM* const item_list_working_buffer
     = my_obstack_alloc(obs_precompute, RULE_Count_of_G(g)*sizeof(AIM));
-  const RULEID irl_count = IRL_Count_of_G(g);
-  const SYMID ins_count = ISY_Count_of_G(g);
+  const RULEID irl_count = RULE_Count_of_G(g);
+  const SYMID ins_count = SYM_Count_of_G(g);
   RULEID** irl_list_x_lh_sym = NULL;
 
 @ @<Calculate Rule by LHS lists@> =
@@ -4707,7 +4699,7 @@ be if written 100\% using indexes.
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_sym_rule_pair_base =
     my_obstack_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
-		    Size_of_G (g));
+		    irl_count);
   struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
   for (rule_id = 0; rule_id < (Marpa_Rule_ID) irl_count; rule_id++)
     {
