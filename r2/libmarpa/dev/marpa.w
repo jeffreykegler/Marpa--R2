@@ -3225,48 +3225,62 @@ if (piece_start < nullable_suffix_ix) {
 
 @*0 Add CHAF Rules for Proper Continuations.
 @ Open block and declarations.
-@<Add CHAF rules for proper continuation@> = {
-    int piece_rhs_length;
-RULE  chaf_rule;
-int real_symbol_count;
-Marpa_Symbol_ID first_factor_proper_id, second_factor_proper_id,
-	first_factor_alias_id, second_factor_alias_id;
-real_symbol_count = piece_end - piece_start + 1;
+@<Add CHAF rules for proper continuation@> =
+{
+  int piece_rhs_length;
+  int real_symbol_count;
+  Marpa_Symbol_ID first_factor_proper_id, second_factor_proper_id,
+    first_factor_alias_id, second_factor_alias_id;
+  real_symbol_count = piece_end - piece_start + 1;
+  @<Add PP CHAF rule for proper continuation@>@;
+  @<Add PN CHAF rule for proper continuation@>@;
+  @<Add NP CHAF rule for proper continuation@>@;
+  @<Add NN CHAF rule for proper continuation@>@;
+}
 
 @ The PP Rule.
-@<Add CHAF rules for proper continuation@> = 
-    for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
-	piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
-    }
-    piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+@<Add PP CHAF rule for proper continuation@> = 
+{
+  RULE chaf_rule;
+  for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
+    piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
+  }
+  piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
+  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  @<Set CHAF rule flags and call back@>@;
+}
 
 @ The PN Rule.
-@<Add CHAF rules for proper continuation@> = 
-    second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
-    piece_rhs[second_factor_piece_position]
-	= second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+@<Add PN CHAF rule for proper continuation@> = 
+{
+  RULE chaf_rule;
+  second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
+  piece_rhs[second_factor_piece_position]
+    = second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
+  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  @<Set CHAF rule flags and call back@>@;
+}
 
 @ The NP Rule.
-@<Add CHAF rules for proper continuation@> = 
-    first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
-    piece_rhs[first_factor_piece_position]
-	= first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
-    piece_rhs[second_factor_piece_position] = second_factor_proper_id;
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+@<Add NP CHAF rule for proper continuation@> = 
+{
+  RULE chaf_rule;
+  first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
+  piece_rhs[first_factor_piece_position]
+    = first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
+  piece_rhs[second_factor_piece_position] = second_factor_proper_id;
+  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  @<Set CHAF rule flags and call back@>@;
+}
 
 @ The NN Rule.
-@<Add CHAF rules for proper continuation@> = 
-    piece_rhs[second_factor_piece_position] = second_factor_alias_id;
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
-
-@ Close the block
-@<Add CHAF rules for proper continuation@> = }
+@<Add NN CHAF rule for proper continuation@> = 
+{
+  RULE chaf_rule;
+  piece_rhs[second_factor_piece_position] = second_factor_alias_id;
+  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  @<Set CHAF rule flags and call back@>@;
+}
 
 @*0 Add Final CHAF Rules for Two Factors.
 Open block, declarations and setup.
@@ -3317,8 +3331,7 @@ if (piece_start < nullable_suffix_ix) {
     @<Set CHAF rule flags and call back@>@;
 }
 
-@ Close the block
-@<Add final CHAF rules for two factors@> = }
+@ @<Add final CHAF rules for two factors@> = }
 
 @*0 Add Final CHAF Rules for One Factor.
 @<Add final CHAF rules for one factor@> = {
@@ -3359,7 +3372,7 @@ This include the setting of many of the elements of the
 rule structure, and performing the call back.
 @<Set CHAF rule flags and call back@> =
 {
-  const SYM current_lhs = SYM_by_ID(current_lhs_id);
+  const SYM current_lhs = SYM_by_ID (current_lhs_id);
   const int is_virtual_lhs = (piece_start > 0);
   RULE_is_Used (chaf_rule) = 1;
   chaf_rule->t_original = rule_id;
@@ -3370,8 +3383,8 @@ rule structure, and performing the call back.
   chaf_rule->t_virtual_start = piece_start;
   chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
-  LHS_XRL_of_ISY(current_lhs) = chaf_xrl;
-  XRL_Offset_of_ISY(current_lhs) = piece_start;
+  LHS_XRL_of_ISY (current_lhs) = chaf_xrl;
+  XRL_Offset_of_ISY (current_lhs) = piece_start;
 }
 
 @ This utility routine translates a proper symbol id to a nulling symbol ID.
