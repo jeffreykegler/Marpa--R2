@@ -3284,87 +3284,110 @@ if (piece_start < nullable_suffix_ix) {
 
 @*0 Add Final CHAF Rules for Two Factors.
 Open block, declarations and setup.
-@<Add final CHAF rules for two factors@> = {
-int first_factor_position = factor_positions[factor_position_ix];
-int first_factor_piece_position = first_factor_position - piece_start;
-int second_factor_position = factor_positions[factor_position_ix+1];
-int second_factor_piece_position = second_factor_position - piece_start;
-int real_symbol_count;
-int piece_rhs_length;
-RULE  chaf_rule;
-Marpa_Symbol_ID first_factor_proper_id, second_factor_proper_id,
-	first_factor_alias_id, second_factor_alias_id;
-piece_end = Length_of_RULE(rule)-1;
-real_symbol_count = piece_end - piece_start + 1;
+@<Add final CHAF rules for two factors@> =
+{
+  int first_factor_position = factor_positions[factor_position_ix];
+  int first_factor_piece_position = first_factor_position - piece_start;
+  int second_factor_position = factor_positions[factor_position_ix + 1];
+  int second_factor_piece_position = second_factor_position - piece_start;
+  int real_symbol_count;
+  int piece_rhs_length;
+  Marpa_Symbol_ID first_factor_proper_id, second_factor_proper_id,
+    first_factor_alias_id, second_factor_alias_id;
+  piece_end = Length_of_RULE (rule) - 1;
+  real_symbol_count = piece_end - piece_start + 1;
+  @<Add final CHAF PP rule for two factors@>@;
+  @<Add final CHAF PN rule for two factors@>@;
+  @<Add final CHAF NP rule for two factors@>@;
+  @<Add final CHAF NN rule for two factors@>@;
+}
 
 @ The PP Rule.
-@<Add final CHAF rules for two factors@> = 
-    for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
-	piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
-    }
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+@<Add final CHAF PP rule for two factors@> = 
+{
+  RULE chaf_rule;
+  for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
+    piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
+  }
+  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  @<Set CHAF rule flags and call back@>@;
+}
 
 @ The PN Rule.
-@<Add final CHAF rules for two factors@> =
-    second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
-    piece_rhs[second_factor_piece_position]
-	= second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+@<Add final CHAF PN rule for two factors@> =
+{
+  RULE chaf_rule;
+  second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
+  piece_rhs[second_factor_piece_position]
+    = second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
+  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  @<Set CHAF rule flags and call back@>@;
+}
 
 @ The NP Rule.
-@<Add final CHAF rules for two factors@> =
-    first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
-    piece_rhs[first_factor_piece_position]
-	= first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
-    piece_rhs[second_factor_piece_position] = second_factor_proper_id;
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+@<Add final CHAF NP rule for two factors@> =
+{
+  RULE chaf_rule;
+  first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
+  piece_rhs[first_factor_piece_position]
+    = first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
+  piece_rhs[second_factor_piece_position] = second_factor_proper_id;
+  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  @<Set CHAF rule flags and call back@>@;
+}
 
 @ The NN Rule.  This is added only if it would not turn this into
 a nulling rule.
-@<Add final CHAF rules for two factors@> =
-if (piece_start < nullable_suffix_ix) {
+@<Add final CHAF NN rule for two factors@> =
+{
+  RULE chaf_rule;
+  if (piece_start < nullable_suffix_ix) {
     piece_rhs[second_factor_piece_position] = second_factor_alias_id;
     chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
     @<Set CHAF rule flags and call back@>@;
+  }
 }
 
-@ @<Add final CHAF rules for two factors@> = }
-
 @*0 Add Final CHAF Rules for One Factor.
-@<Add final CHAF rules for one factor@> = {
-int piece_rhs_length;
-RULE  chaf_rule;
-Marpa_Symbol_ID first_factor_proper_id, first_factor_alias_id;
-int real_symbol_count;
-int first_factor_position = factor_positions[factor_position_ix];
-int first_factor_piece_position = factor_positions[factor_position_ix] - piece_start;
-piece_end = Length_of_RULE(rule)-1;
-real_symbol_count = piece_end - piece_start + 1;
+@<Add final CHAF rules for one factor@> =
+{
+  int piece_rhs_length;
+  Marpa_Symbol_ID first_factor_proper_id, first_factor_alias_id;
+  int real_symbol_count;
+  int first_factor_position = factor_positions[factor_position_ix];
+  int first_factor_piece_position =
+    factor_positions[factor_position_ix] - piece_start;
+  piece_end = Length_of_RULE (rule) - 1;
+  real_symbol_count = piece_end - piece_start + 1;
+  @<Add final CHAF P rule for one factor@>@;
+  @<Add final CHAF N rule for one factor@>@;
+}
 
 @ The P Rule.
-@<Add final CHAF rules for one factor@> = 
-    for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
-	piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
-    }
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+@<Add final CHAF P rule for one factor@> = 
+{
+  RULE chaf_rule;
+  for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
+    piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
+  }
+  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  @<Set CHAF rule flags and call back@>@;
+}
 
 @ The N Rule.  This is added only if it would not turn this into
 a nulling rule.
-@<Add final CHAF rules for one factor@> =
-if (piece_start < nullable_suffix_ix) {
-    first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
-    first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
-    piece_rhs[first_factor_piece_position] = first_factor_alias_id;
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+@<Add final CHAF N rule for one factor@> =
+{
+  RULE chaf_rule;
+  if (piece_start < nullable_suffix_ix)
+    {
+      first_factor_proper_id = RHS_ID_of_RULE (rule, first_factor_position);
+      first_factor_alias_id = alias_by_id (g, first_factor_proper_id);
+      piece_rhs[first_factor_piece_position] = first_factor_alias_id;
+      chaf_rule = rule_new (g, current_lhs_id, piece_rhs, piece_rhs_length);
+      @<Set CHAF rule flags and call back@>@;
+    }
 }
-
-@ Close the block
-@<Add final CHAF rules for one factor@> = }
 
 @ Some of the code for adding CHAF rules is common to
 them all.
