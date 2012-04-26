@@ -367,7 +367,8 @@ is a feature.
 
 \li |g| is always the grammar of most interest in the context.
 \li |r| is always the recognizer of most interest in the context.
-\li |rule_count_of_g| is the number of rules in |g|.
+\li |irl_count_of_g| is the number of internal rules in |g|.
+\li |xrl_count_of_g| is the number of external rules in |g|.
 
 @*0 Mixed Case Macros.
 In programming in general, accessors are very common.
@@ -2245,6 +2246,21 @@ be using it.
 @<Widely aligned rule elements@> = AIM t_first_aim;
 @ @<Initialize rule elements@> =
     rule->t_first_aim = NULL;
+
+@** Internal Rule (IRL) Code.
+
+@*0 Development stubs.
+@ {\bf To Do}: @^To Do@>
+Delete this when division of grammar into
+external and internal is complete.
+@d RULE_of_IRL(irl) (irl)
+
+@*0 ID.
+The {\bf rule ID} is a number which
+acts as the unique identifier for a rule.
+The rule ID is initialized when the rule is
+added to the list of rules.
+@d ID_of_IRL(rule) (ID_of_RULE(rule))
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
