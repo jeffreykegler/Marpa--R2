@@ -997,7 +997,7 @@ sub Marpa::R2::Recognizer::value {
         Marpa::R2::Internal::Recognizer::set_actions($recce);
 
         my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-            Marpa::R2::Internal::B_C->new( $recce_c, -1,
+            Marpa::R2::Internal::B_C->new( $recce_c,
             ( $parse_set_arg // -1 ) );
 
         return if not defined $bocage;

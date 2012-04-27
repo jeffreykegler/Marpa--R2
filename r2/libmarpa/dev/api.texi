@@ -1682,7 +1682,6 @@ On other problems, it returns -2.
 @end menu
 
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
-    Marpa_Rule_ID @var{rule_id}, @
     Marpa_Earley_Set_ID @var{ordinal_arg})
 @end deftypefun
 

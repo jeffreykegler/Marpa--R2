@@ -1866,17 +1866,16 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::B_C
 
 void
-new( class, r_wrapper, rule_id, ordinal )
+new( class, r_wrapper, ordinal )
     char * class;
     R_Wrapper *r_wrapper;
-    Marpa_Rule_ID rule_id;
     Marpa_Earley_Set_ID ordinal;
 PPCODE:
 {
   SV *sv;
   Marpa_Recognizer r = r_wrapper->r;
   B_Wrapper *b_wrapper;
-  Marpa_Bocage b = marpa_b_new (r, rule_id, ordinal);
+  Marpa_Bocage b = marpa_b_new (r, ordinal);
   if (!b)
     {
       croak ("Problem in b->new(): %s", xs_r_error (r_wrapper));

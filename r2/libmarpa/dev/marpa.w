@@ -3489,7 +3489,6 @@ if there is one.  Otherwise it is a new, nulling, symbol.
   new_start_rule = rule_new (g, nulling_new_start_id, 0, 0);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
-MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(new_start_rule));
   RULE_is_Used(new_start_rule) = 0;
   g->t_null_start_rule = new_start_rule;
 }
@@ -10348,7 +10347,6 @@ Earley set must be a null parse.
 so that an or-node of 0 
 @ @<Function definitions@> =
 Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
-    Marpa_Rule_ID rule_id,
     Marpa_Earley_Set_ID ordinal_arg)
 {
     @<Return |NULL| on failure@>@;
@@ -10371,7 +10369,6 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 	if (! g->t_null_start_rule) goto NO_PARSE;
 	return r_create_null_bocage(r, b);
     }
-    @<Set |completed_start_rule|@>@;
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     if (!start_eim) goto NO_PARSE;
     my_obstack_init(&bocage_setup_obs);
@@ -10398,7 +10395,6 @@ const int symbol_count_of_g = SYM_Count_of_G(g);
 BOCAGE b = NULL;
 ES end_of_parse_earley_set;
 EARLEME end_of_parse_earleme;
-RULE completed_start_rule;
 EIM start_eim = NULL;
 AIM start_aim = NULL;
 AEX start_aex = -1;
@@ -10437,20 +10433,6 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
   if (!end_of_parse_earley_set)
     goto NO_PARSE;
   end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
-}
-
-@ @<Set |completed_start_rule|@> = 
-{
-  if (rule_id == -1)
-    {
-      completed_start_rule = g->t_proper_start_rule;
-      if (!completed_start_rule) goto NO_PARSE;
-    }
-  else
-    {
-	@<Fail if grammar |rule_id| is invalid@>@;
-      completed_start_rule = RULE_by_ID (g, rule_id);
-    }
 }
 
 @ The caller is assumed to have checked that the end of parse
@@ -10547,7 +10529,7 @@ to make sense.
 {
     int eim_ix;
     EIM* const earley_items = EIMs_of_ES(end_of_parse_earley_set);
-    const RULEID sought_rule_id = ID_of_RULE(completed_start_rule);
+    const RULEID sought_rule_id = ID_of_RULE(g->t_proper_start_rule);
     const int earley_item_count = EIM_Count_of_ES(end_of_parse_earley_set);
     for (eim_ix = 0; eim_ix < earley_item_count; eim_ix++) {
         const EIM earley_item = earley_items[eim_ix];
