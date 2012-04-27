@@ -10451,6 +10451,8 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
   OR or_node = or_nodes[0] =
     (OR) my_obstack_alloc (&OBS_of_B (b), sizeof (OR_Object));
   ORID null_or_node_id = 0;
+
+  B_is_Nulling(b) = 1;
   Top_ORID_of_B (b) = null_or_node_id;
 
   OR_Count_of_B (b) = 1;
@@ -10652,6 +10654,14 @@ bocage_free (BOCAGE b)
     }
 }
 
+@*0 Bocage is Nulling?.
+Is this bocage for a nulling parse?
+@d B_is_Nulling(b) ((b)->t_is_nulling)
+@ @<Bit aligned bocage elements@> =
+unsigned int t_is_nulling:1;
+@ @<Initialize bocage elements@> =
+B_is_Nulling(b) = 0;
+
 @*0 Trace Functions.
 
 @ This is common logic in the or-node trace functions.
@@ -10773,6 +10783,7 @@ struct marpa_order {
     ANDID** t_and_node_orderings;
     @<Widely aligned order elements@>@;
     @<Int aligned order elements@>@;
+    @<Bit aligned order elements@>@;
     unsigned int t_is_frozen:1;
 };
 @ @<Initialize order elements@> =
@@ -10793,11 +10804,12 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     @<Return |NULL| on failure@>@;
     @<Unpack bocage objects@>@;
     ORDER o;
-      @<Fail if fatal error@>@;
+    @<Fail if fatal error@>@;
     o = my_slice_new(*o);
     B_of_O(o) = b;
     bocage_ref(b);
     @<Initialize order elements@>@;
+    if (B_is_Nulling(b)) O_is_Nulling(o) = 1;
     return o;
 }
 
@@ -10889,6 +10901,14 @@ Marpa_Grammar marpa_o_g(Marpa_Order o)
   @<Unpack order objects@>@;
   return g;
 }
+
+@*0 Order is Nulling?.
+Is this order for a nulling parse?
+@d O_is_Nulling(o) ((o)->t_is_nulling)
+@ @<Bit aligned order elements@> =
+unsigned int t_is_nulling:1;
+@ @<Initialize order elements@> =
+O_is_Nulling(o) = 0;
 
 @*0 Set the Order of And-nodes.
 This function
@@ -11098,6 +11118,7 @@ struct marpa_tree {
     Bit_Vector t_and_node_in_use;
     Marpa_Order t_order;
     @<Int aligned tree elements@>@;
+    @<Bit aligned tree elements@>@;
     int t_parse_count;
 };
 
@@ -11136,6 +11157,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     order_ref(o);
     order_freeze(o);
     @<Initialize tree elements@>@;
+    if (O_is_Nulling(o)) T_is_Nulling(t) = 1;
     return t;
 }
 
@@ -11307,6 +11329,14 @@ int marpa_t_next(Marpa_Tree t)
     return -1;
 
 }
+
+@*0 Tree is Nulling?.
+Is this tree for a nulling parse?
+@d T_is_Nulling(t) ((t)->t_is_nulling)
+@ @<Bit aligned tree elements@> =
+unsigned int t_is_nulling:1;
+@ @<Initialize tree elements@> =
+T_is_Nulling(t) = 0;
 
 @*0 Claiming and Releasing And-nodes.
 To avoid cycles, the same and node is not allowed to occur twice
@@ -11654,7 +11684,7 @@ typedef struct marpa_value* Marpa_Value;
 @ @<Private incomplete structures@> =
 typedef struct s_value* VALUE;
 @ This structure tracks the top of the evaluation
-stack, but does {\bf not} actually maintain the
+stack, but does {\bf not} maintain the
 actual evaluation stack ---
 that is left for the upper layers to do.
 It does, however, mantain a stack of the counts
@@ -11693,6 +11723,7 @@ struct s_value {
     Bit_Vector t_nulling_ask_bv;
     int t_token_type;
     int t_next_value_type;
+    @<Bit aligned value elements@>@;
     unsigned int t_trace:1;
 };
 
@@ -11773,6 +11804,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	@<Initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
+	if (T_is_Nulling(o)) V_is_Nulling(v) = 1;
 	return (Marpa_Value)v;
       }
     MARPA_ERROR(MARPA_ERR_TREE_EXHAUSTED);
@@ -11858,6 +11890,14 @@ Marpa_Grammar marpa_v_g(Marpa_Value public_v)
   return g;
 }
 
+@*0 Valuator is Nulling?.
+Is this valuator for a nulling parse?
+@d V_is_Nulling(v) ((v)->t_is_nulling)
+@ @<Bit aligned value elements@> =
+unsigned int t_is_nulling:1;
+@ @<Initialize value elements@> =
+V_is_Nulling(v) = 0;
+
 @ @<Function definitions@> =
 int marpa_v_trace(Marpa_Value public_v, int flag)
 {
@@ -11935,7 +11975,8 @@ int marpa_v_symbol_ask_me_when_null_set(
     return value ? 1 : 0;
 }
 
-@ The value type indicates whether the value
+@*0 Stepping the valuator.
+The value type indicates whether the value
 is for a semantic rule, a semantic token, etc.
 @<Public typedefs@> =
 typedef int Marpa_Value_Type;
@@ -11947,7 +11988,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
     @<Return |-2| on failure@>@;
     const VALUE v = (VALUE)public_v;
 
-    while (UNLIKELY(V_is_Active(v))) {
+    while (V_is_Active(v)) {
 	Marpa_Value_Type current_value_type = Next_Value_Type_of_V(v);
 	switch (current_value_type)
 	  {
