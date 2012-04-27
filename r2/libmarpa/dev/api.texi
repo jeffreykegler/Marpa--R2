@@ -1120,9 +1120,6 @@ where @var{min} is 0 or 1.
 If @var{separator_id} is non-negative,
 it is a separator symbol.
 
-If @code{flags & MARPA_KEEP_SEPARATION} is true,
-Libmarpa's semantics will keep separators.
-Otherwise they will be discarded.
 If @code{flags & MARPA_PROPER_SEPARATION} is non-zero,
 separation is ``proper'', that is,
 a trailing separator is not allowed.
@@ -1179,18 +1176,6 @@ to be a counted symbol.
 
 Return value: On success, 1 if the symbol is counted, 0 if not.
 On failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_keep_separation ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-Return value:
-Returns 1 if
-the keep separation flag is set,
-0 if not.
-Returns 0 if
-@var{rule_id} is not a sequence rule.
-On hard failure, returns -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_proper_separation ( @
@@ -1355,6 +1340,23 @@ Return value: -2 if the grammar is not precomputed or
 
 @node Rule internals, Grammar internals, Symbol internals, Grammars
 @section Rule internals
+
+@deftypefun int marpa_g_rule_is_keep_separation ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+This function does nothing but return an undocumented flag.
+At some point,
+I may optimize cases where separators are discarded,
+in which case this flag will be used.
+I may also remove this call entirely.
+Return value:
+Returns 1 if
+the keep separation flag is set,
+0 if not.
+Returns 0 if
+@var{rule_id} is not a sequence rule.
+On hard failure, returns -2.
+@end deftypefun
 
 Internal methods are only for testing and development of libmarpa.
 They are listed here (and sometimes describes) for the convenient

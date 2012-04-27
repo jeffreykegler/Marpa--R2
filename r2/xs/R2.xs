@@ -854,28 +854,6 @@ PPCODE:
   XSRETURN_NO;
 }
 
-void
-_marpa_g_rule_is_virtual_loop( g_wrapper, rule_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Rule_ID rule_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_rule_is_virtual_loop (g, rule_id);
-  if (result < -1)
-    {
-      croak ("Problem in g->_marpa_g_rule_is_virtual_loop(%d): %s", rule_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result < 0)
-    {
-      croak ("Invalid rule %d", rule_id);
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
 int
 _marpa_g_rule_virtual_start( g_wrapper, rule_id )
     G_Wrapper *g_wrapper;

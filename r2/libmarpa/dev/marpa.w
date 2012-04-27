@@ -1862,6 +1862,12 @@ Default is that they are thrown away.
 Usually the role of the separators is only syntactic,
 and that is what is wanted.
 For non-sequence rules, this flag should be false.
+@ {\bf To Do}: @^To Do@>
+At present this call does nothing except return the value
+of an undocumented and unused flag.
+In the future, this flag may be used to optimize the
+evaluation in cases where separators are discarded.
+Alternatively, it may be deleted.
 @<Public defines@> =
 #define MARPA_KEEP_SEPARATION @| @[0x1@]@/
 @ @<Bit aligned rule elements@> = unsigned int t_is_discard:1;
@@ -1974,25 +1980,6 @@ int marpa_g_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
     @<Fail if grammar |rule_id| is invalid@>@;
     @<Fail if not precomputed@>@;
 return RULE_by_ID(g, rule_id)->t_is_loop; }
-
-@*0 Virtual Loop Rule.
-@ When dealing with rules which result from the CHAF rewrite,
-it is convenient to recognize the ``loop rule'' property as belonging
-to only one of the pieces.
-The ``virtual loop rule" property exists for this purpose.
-All virtual loop rules are loop rules,
-but not vice versa.
-@<Bit aligned rule elements@> = unsigned int t_is_virtual_loop:1;
-@ @<Initialize rule elements@> =
-rule->t_is_virtual_loop = 0;
-@ @<Function definitions@> =
-int _marpa_g_rule_is_virtual_loop(Marpa_Grammar g, Marpa_Rule_ID rule_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_by_ID(g, rule_id)->t_is_virtual_loop;
-}
 
 @*0 Nulling Rules.
 @ A rule is nulling if every symbol on its RHS is nulling.
@@ -3628,14 +3615,7 @@ rule with |nonnulling_id| on the LHS.
     }
 }
 
-@ Virtual loop rule are loop rules from the virtual point of view.
-When CHAF rules, which are rewritten into multiple pieces,
-it is inconvenient to see each piece as a loop rule.
-Therefore only certain of CHAF pieces that are loop rules
-are regarded as virtual loop rules.
-All non-CHAF rules are virtual loop rules including,
-at this point, sequence rules.
-@<Mark loop rules@> =
+@ @<Mark loop rules@> =
 {
   RULEID rule_id;
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
@@ -3648,8 +3628,6 @@ at this point, sequence rules.
       loop_rule_count++;
       rule = RULE_by_ID (g, rule_id);
       rule->t_is_loop = 1;
-      rule->t_is_virtual_loop = rule->t_virtual_start < 0
-	|| !RULE_has_Virtual_RHS (rule);
     }
 }
 
