@@ -56,6 +56,7 @@ sub gen_grammar {
             ],
             default_null_value => q{},
             default_action     => 'main::default_action',
+            symbols => { S => { null_value => '' }},
         }
     );
     $grammar->set( { terminals => ['a'], } );

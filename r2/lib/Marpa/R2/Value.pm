@@ -341,7 +341,10 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
 
         my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
-        next SYMBOL if not $grammar_c->symbol_is_nulling($symbol_id);
+	# Don't ask whether nulling, because I am converting to external
+	# symbols
+	# When converted to external symbols, perhaps ask if nullable
+        # next SYMBOL if not $grammar_c->symbol_is_nulling($symbol_id);
 
         my $null_value = undef;
         if ( $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] ) {
@@ -653,6 +656,10 @@ sub trace_token_evaluation {
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
 
     my $nook_ix     = $value->_marpa_v_nook();
+    if ( not defined $nook_ix ) {
+        print {$Marpa::R2::Internal::TRACE_FH} "Nulling valuator\n";
+	return;
+    }
     my $or_node_id  = $tree->nook_or_node($nook_ix);
     my $choice      = $tree->nook_choice($nook_ix);
     my $and_node_id = $order->and_node_order_get( $or_node_id, $choice );
@@ -891,7 +898,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         ', rule: ', $grammar->brief_rule($trace_rule_id),
                         "\n",
                         'Incrementing virtual rule by ',
-                        $grammar_c->real_symbol_count($trace_rule_id),
+                        $grammar_c->_marpa_g_real_symbol_count($trace_rule_id),
                         ' symbols'
                         or
                         Marpa::R2::exception('Could not print to trace file');
@@ -909,7 +916,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         ),
                         ', rule: ', $grammar->brief_rule($trace_rule_id),
                         "\nAdding ",
-                        $grammar_c->real_symbol_count($trace_rule_id)
+                        $grammar_c->_marpa_g_real_symbol_count($trace_rule_id)
                         or
                         Marpa::R2::exception('Could not print to trace file');
 

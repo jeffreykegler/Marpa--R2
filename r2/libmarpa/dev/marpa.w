@@ -1100,9 +1100,11 @@ struct s_xsy {
 };
 typedef struct s_symbol SYM_Object;
 @ |t_symbol_id| is initialized when the symbol is
-added to the list of symbols
+added to the list of symbols.
+Symbols are used a nulling tokens, and
+|t_or_node_type| is set accordingly.
 @<Initialize symbol elements@> =
-    symbol->t_or_node_type = UNVALUED_TOKEN_OR_NODE;
+    symbol->t_or_node_type = NULLING_TOKEN_OR_NODE;
 
 @ @<Function definitions@> =
 PRIVATE SYM
@@ -3879,7 +3881,6 @@ or equal to the final numbers of items.
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
       if (RULE_is_Used (rule)) {
-MARPA_DEBUG3 ("%s: rule %d AFHA items being created", STRLOC, ID_of_RULE(rule));
 	@<Create the AHFA items for a rule@>@;
 	SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
 	symbol_instance_of_next_rule += Length_of_RULE(rule);
@@ -11901,7 +11902,8 @@ int _marpa_v_trace(Marpa_Value public_v, int flag)
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
     if (UNLIKELY(!V_is_Active(v))) {
-	return failure_indicator;
+      MARPA_ERROR(MARPA_ERR_VALUATOR_INACTIVE);
+      return failure_indicator;
     }
     V_is_Trace(v) = flag;
     return 1;
@@ -11921,8 +11923,10 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
     const VALUE v = (VALUE)public_v;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
+    if (UNLIKELY(V_is_Nulling(v))) return -1;
     if (UNLIKELY(!V_is_Active(v))) {
-	return failure_indicator;
+      MARPA_ERROR(MARPA_ERR_VALUATOR_INACTIVE);
+      return failure_indicator;
     }
     return NOOK_of_V(v);
 }
@@ -11938,7 +11942,7 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
     Nulling_Ask_BV_of_V(v) = bv_create (symbol_count_of_g);
     for (ix = 0; ix < symbol_count_of_g; ix++) {
 	const SYM symbol = SYM_by_ID(ix);
-	if (SYM_is_Nulling(symbol) && SYM_is_Ask_Me_When_Null(symbol))
+	if (SYM_is_Ask_Me_When_Null(symbol))
 	{
 	    bv_bit_set(Nulling_Ask_BV_of_V(v), ix);
 	}
@@ -12010,6 +12014,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
     if (V_is_Nulling(v)) {
       @<Unpack value objects@>@;
       @<Step through a nulling valuator@>@;
+      return MARPA_VALUE_INACTIVE;
     }
 
     while (V_is_Active(v)) {
@@ -12023,13 +12028,14 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	  case MARPA_VALUE_TOKEN:
 	    {
 	      int token_type = Token_Type_of_V (v);
-	      if (token_type != DUMMY_OR_NODE)
-		{
-		  Next_Value_Type_of_V (v) = MARPA_VALUE_RULE;
+	      Next_Value_Type_of_V (v) = MARPA_VALUE_RULE;
+	      if (token_type == NULLING_TOKEN_OR_NODE)
+	      {
 		  if (bv_bit_test(Nulling_Ask_BV_of_V(v), SYMID_of_V(v)))
 		      return MARPA_VALUE_NULLING_SYMBOL;
-		  /* Any nulling token at this point
-		     will be an "ask me" token */
+	      }
+	      else if (token_type != DUMMY_OR_NODE)
+		{
 		   return MARPA_VALUE_TOKEN;
 		 }
 	    }
@@ -12064,6 +12070,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	    {
 	      Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
 	      SYMID_of_V(v) = g->t_start_xsyid;
+	      TOS_of_V(v) = Arg_N_of_V(v) = 0;
 	      if (bv_bit_test(Nulling_Ask_BV_of_V(v), SYMID_of_V(v)))
 		      return MARPA_VALUE_NULLING_SYMBOL;
 	    }
@@ -12072,7 +12079,6 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	    /* fall through */
 	  }
       }
-    return MARPA_VALUE_INACTIVE;
 }
 
 @ @<Perform evaluation steps@> =
@@ -12119,7 +12125,8 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 		  SYMID_of_V(v) = token_id;
 		  Token_Value_of_V (v) = Value_of_TOK (token);
 		}
-		else if (bv_bit_test(Nulling_Ask_BV_of_V(v), token_id)) {
+		else if (token_type == NULLING_TOKEN_OR_NODE
+		  && bv_bit_test(Nulling_Ask_BV_of_V(v), token_id)) {
 		  SYMID_of_V(v) = token_id;
 		} else {
 		  Token_Type_of_V (v) = DUMMY_OR_NODE;

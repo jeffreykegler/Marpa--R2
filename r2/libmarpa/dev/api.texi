@@ -2577,6 +2577,12 @@ Presumably, an error in writing the grammar.
 Suggested message: "Unproductive start symbol."
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_VALUATOR_INACTIVE
+The valuator is inactive in a context where that
+should not be the case.
+Suggested message: "Valuator inactive."
+@end deftypevr
+
 @node Design considerations, Things To Do, Error handling, Top
 @chapter Design considerations
 
