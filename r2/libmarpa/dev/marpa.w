@@ -1148,6 +1148,10 @@ Is this (external) symbol on the LHS of a sequence rule?
     SYM_is_Sequence_LHS(symbol) = 0;
 
 @*0 Symbol is internal?.
+@ {\bf To Do}: @^To Do@>
+|SYM_is_Internal| is not used.
+Delete it once the division into external/internal grammars
+is complete.
 @d SYM_is_Internal(symbol) ((symbol)->t_is_internal)
 @<Bit aligned symbol elements@> = unsigned int t_is_internal:1;
 @ Symbols start life as internal symbols.
@@ -1278,7 +1282,6 @@ Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
     @<Fail if precomputed@>@;
     @<Fail if |symid| is invalid@>@;
     symbol = SYM_by_ID(symid);
-    @<Fail if |symbol| is internal@>@;
     if (UNLIKELY(value < 0 || value > 1)) {
 	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
@@ -1616,14 +1619,6 @@ int min, int flags )
 	  MARPA_ERROR (MARPA_ERR_BAD_SEPARATOR);
 	  goto FAILURE;
 	}
-      {
-	const SYM separator = SYM_by_ID (separator_id);
-	if (UNLIKELY (SYM_is_Internal (separator)))
-	  {
-	    MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
-	    goto FAILURE;
-	  }
-      }
     }
   if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
     {
@@ -1643,14 +1638,6 @@ int min, int flags )
       MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
       goto FAILURE;
     }
-  {
-    const SYM rhs = SYM_by_ID (rhs_id);
-    if (UNLIKELY (SYM_is_Internal (rhs)))
-      {
-	MARPA_ERROR (MARPA_ERR_INTERNAL_SYM);
-	goto FAILURE;
-      }
-  }
 }
 
 @ Does this rule duplicate an already existing rule?
@@ -2812,7 +2799,6 @@ reach a terminal symbol.
   const SYMID rhs_id = RHS_ID_of_RULE (original_rule, 0);
   const SYMID separator_id = Separator_of_XRL (original_rule);
   const RULEID original_rule_id = ID_of_RULE (original_rule);
-  SYM_is_Internal(internal_lhs) = 1;
   LHS_XRL_of_ISY(internal_lhs) = original_rule;
   @<Add the top rule for the sequence@>@;
   if (separator_id >= 0 && !XRL_is_Proper_Separation(original_rule)) {
@@ -3890,7 +3876,7 @@ or equal to the final numbers of items.
     {
       SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
       SYM symbol = SYM_by_ID (rh_symid);
-      if (!ISY_is_Nulling(symbol) || SYM_is_Internal(symbol))
+      if (!ISY_is_Nulling(symbol))
 	{
 	  Last_Proper_SYMI_of_RULE(rule) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
@@ -13386,11 +13372,6 @@ if (UNLIKELY(G_is_Precomputed(g))) {
 @ @<Fail if not precomputed@> =
 if (UNLIKELY(!G_is_Precomputed(g))) {
     MARPA_ERROR(MARPA_ERR_NOT_PRECOMPUTED);
-    return failure_indicator;
-}
-@ @<Fail if |symbol| is internal@> =
-if (UNLIKELY(SYM_is_Internal(symbol))) {
-    MARPA_ERROR(MARPA_ERR_INTERNAL_SYM);
     return failure_indicator;
 }
 @ @<Fail if |symid| is invalid@> =
