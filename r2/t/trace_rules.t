@@ -70,26 +70,25 @@ Added rule #7: Z -> z
 Added rule #8: A -> y
 Added rule #9: Proper ->
 Added rule #10: Proper -> p
-Added rule #11: Seq0 ->
-Added rule #12: Seq0 -> Seq0[Seq]
-Added rule #13: Seq0[Seq] -> a
-Added rule #14: Seq0[Seq] -> Seq0[Seq] a
-Added rule #15: Seq1 -> Seq1[Seq]
-Added rule #16: Seq1[Seq] -> A
-Added rule #17: Seq1[Seq] -> Seq1[Seq] A
-Added rule #18: S -> Seq0 Seq1
-Added rule #19: S -> Seq0[] Seq1
-Added rule #20: S -> Proper S[R1:1]
-Added rule #21: S -> Proper Proper[] Proper[] Proper[]
-Added rule #22: S -> Proper[] S[R1:1]
-Added rule #23: S[R1:1] -> Proper S[R1:2]
-Added rule #24: S[R1:1] -> Proper Proper[] Proper[]
-Added rule #25: S[R1:1] -> Proper[] S[R1:2]
-Added rule #26: S[R1:2] -> Proper Proper
-Added rule #27: S[R1:2] -> Proper Proper[]
-Added rule #28: S[R1:2] -> Proper[] Proper
-Added rule #29: S['] -> S
-Added rule #30: S['][] ->
+Added rule #11: Seq0 -> Seq0[Seq]
+Added rule #12: Seq0[Seq] -> a
+Added rule #13: Seq0[Seq] -> Seq0[Seq] a
+Added rule #14: Seq1 -> Seq1[Seq]
+Added rule #15: Seq1[Seq] -> A
+Added rule #16: Seq1[Seq] -> Seq1[Seq] A
+Added rule #17: S -> Seq0 Seq1
+Added rule #18: S -> Seq0[] Seq1
+Added rule #19: S -> Proper S[R1:1]
+Added rule #20: S -> Proper Proper[] Proper[] Proper[]
+Added rule #21: S -> Proper[] S[R1:1]
+Added rule #22: S[R1:1] -> Proper S[R1:2]
+Added rule #23: S[R1:1] -> Proper Proper[] Proper[]
+Added rule #24: S[R1:1] -> Proper[] S[R1:2]
+Added rule #25: S[R1:2] -> Proper Proper
+Added rule #26: S[R1:2] -> Proper Proper[]
+Added rule #27: S[R1:2] -> Proper[] Proper
+Added rule #28: S['] -> S
+Added rule #29: S['][] ->
 EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,
@@ -130,26 +129,25 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Rules' );
 8: A -> y
 9: Proper -> /* empty !used */
 10: Proper -> p
-11: Seq0 -> /* empty !used */
-12: Seq0 -> Seq0[Seq] /* unproductive vrhs real=0 */
-13: Seq0[Seq] -> a /* inaccessible vlhs real=1 */
-14: Seq0[Seq] -> Seq0[Seq] a /* unproductive inaccessible vlhs vrhs real=1 */
-15: Seq1 -> Seq1[Seq] /* unproductive vrhs real=0 */
-16: Seq1[Seq] -> A /* inaccessible vlhs real=1 */
-17: Seq1[Seq] -> Seq1[Seq] A /* unproductive inaccessible vlhs vrhs real=1 */
-18: S -> Seq0 Seq1
-19: S -> Seq0[] Seq1
-20: S -> Proper S[R1:1] /* vrhs real=1 */
-21: S -> Proper Proper[] Proper[] Proper[]
-22: S -> Proper[] S[R1:1] /* vrhs real=1 */
-23: S[R1:1] -> Proper S[R1:2] /* vlhs vrhs real=1 */
-24: S[R1:1] -> Proper Proper[] Proper[] /* vlhs real=3 */
-25: S[R1:1] -> Proper[] S[R1:2] /* vlhs vrhs real=1 */
-26: S[R1:2] -> Proper Proper /* vlhs real=2 */
-27: S[R1:2] -> Proper Proper[] /* vlhs real=2 */
-28: S[R1:2] -> Proper[] Proper /* vlhs real=2 */
-29: S['] -> S /* vlhs real=1 */
-30: S['][] -> /* empty !used vlhs real=1 */
+11: Seq0 -> Seq0[Seq] /* unproductive vrhs real=0 */
+12: Seq0[Seq] -> a /* inaccessible vlhs real=1 */
+13: Seq0[Seq] -> Seq0[Seq] a /* unproductive inaccessible vlhs vrhs real=1 */
+14: Seq1 -> Seq1[Seq] /* unproductive vrhs real=0 */
+15: Seq1[Seq] -> A /* inaccessible vlhs real=1 */
+16: Seq1[Seq] -> Seq1[Seq] A /* unproductive inaccessible vlhs vrhs real=1 */
+17: S -> Seq0 Seq1
+18: S -> Seq0[] Seq1
+19: S -> Proper S[R1:1] /* vrhs real=1 */
+20: S -> Proper Proper[] Proper[] Proper[]
+21: S -> Proper[] S[R1:1] /* vrhs real=1 */
+22: S[R1:1] -> Proper S[R1:2] /* vlhs vrhs real=1 */
+23: S[R1:1] -> Proper Proper[] Proper[] /* vlhs real=3 */
+24: S[R1:1] -> Proper[] S[R1:2] /* vlhs vrhs real=1 */
+25: S[R1:2] -> Proper Proper /* vlhs real=2 */
+26: S[R1:2] -> Proper Proper[] /* vlhs real=2 */
+27: S[R1:2] -> Proper[] Proper /* vlhs real=2 */
+28: S['] -> S /* vlhs real=1 */
+29: S['][] -> /* empty !used vlhs real=1 */
 EOS
 
 # Local Variables:

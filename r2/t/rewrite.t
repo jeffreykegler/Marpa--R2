@@ -128,22 +128,21 @@ Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 8: statements -> statements[Seq] comma /* unproductive vrhs real=1 */
 9: statements[Seq] -> statement /* inaccessible vlhs real=1 */
 10: statements[Seq] -> statements[Seq] comma statement /* unproductive inaccessible vlhs vrhs real=2 */
-11: block -> /* empty !used */
-12: block -> block[Seq] /* unproductive vrhs real=0 */
-13: block[Seq] -> statements /* inaccessible vlhs real=1 */
-14: block[Seq] -> block[Seq] statements /* unproductive inaccessible vlhs vrhs real=1 */
-15: statement -> optional_whitespace expression statement[R0:2] /* vrhs real=2 */
-16: statement -> optional_whitespace expression optional_whitespace[] optional_modifier[] optional_whitespace[]
-17: statement -> optional_whitespace[] expression statement[R0:2] /* vrhs real=2 */
-18: statement -> optional_whitespace[] expression optional_whitespace[] optional_modifier[] optional_whitespace[]
-19: statement[R0:2] -> optional_whitespace statement[R0:3] /* vlhs vrhs real=1 */
-20: statement[R0:2] -> optional_whitespace optional_modifier[] optional_whitespace[] /* vlhs real=3 */
-21: statement[R0:2] -> optional_whitespace[] statement[R0:3] /* vlhs vrhs real=1 */
-22: statement[R0:3] -> optional_modifier optional_whitespace /* vlhs real=2 */
-23: statement[R0:3] -> optional_modifier optional_whitespace[] /* vlhs real=2 */
-24: statement[R0:3] -> optional_modifier[] optional_whitespace /* vlhs real=2 */
-25: block['] -> block /* vlhs real=1 */
-26: block['][] -> /* empty !used vlhs real=1 */
+11: block -> block[Seq] /* unproductive vrhs real=0 */
+12: block[Seq] -> statements /* inaccessible vlhs real=1 */
+13: block[Seq] -> block[Seq] statements /* unproductive inaccessible vlhs vrhs real=1 */
+14: statement -> optional_whitespace expression statement[R0:2] /* vrhs real=2 */
+15: statement -> optional_whitespace expression optional_whitespace[] optional_modifier[] optional_whitespace[]
+16: statement -> optional_whitespace[] expression statement[R0:2] /* vrhs real=2 */
+17: statement -> optional_whitespace[] expression optional_whitespace[] optional_modifier[] optional_whitespace[]
+18: statement[R0:2] -> optional_whitespace statement[R0:3] /* vlhs vrhs real=1 */
+19: statement[R0:2] -> optional_whitespace optional_modifier[] optional_whitespace[] /* vlhs real=3 */
+20: statement[R0:2] -> optional_whitespace[] statement[R0:3] /* vlhs vrhs real=1 */
+21: statement[R0:3] -> optional_modifier optional_whitespace /* vlhs real=2 */
+22: statement[R0:3] -> optional_modifier optional_whitespace[] /* vlhs real=2 */
+23: statement[R0:3] -> optional_modifier[] optional_whitespace /* vlhs real=2 */
+24: block['] -> block /* vlhs real=1 */
+25: block['][] -> /* empty !used vlhs real=1 */
 END_RULES
 
 # Marpa::R2::Display::End

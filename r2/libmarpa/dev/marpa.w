@@ -2800,11 +2800,11 @@ reach a terminal symbol.
   {
     const RULE original_rule = RULE_by_ID(g, rule_id);
     if (!XRL_is_Sequence (original_rule)) continue;
-    @<Expand sequence's |original_rule|@>@;
+    @<Rewrite |original_rule| into BNF@>@;
   }
 }
 
-@ @<Expand sequence's |original_rule|@>=
+@ @<Rewrite |original_rule| into BNF@> =
 {
   const SYM internal_lhs = symbol_new (g);
   const SYMID internal_lhs_id = ID_of_SYM (internal_lhs);
@@ -2814,23 +2814,12 @@ reach a terminal symbol.
   const RULEID original_rule_id = ID_of_RULE (original_rule);
   SYM_is_Internal(internal_lhs) = 1;
   LHS_XRL_of_ISY(internal_lhs) = original_rule;
-  if (Minimum_of_XRL(original_rule) <= 0) {
-    @<Add the nulling rule for a sequence@>@;
-  }
   @<Add the top rule for the sequence@>@;
   if (separator_id >= 0 && !XRL_is_Proper_Separation(original_rule)) {
       @<Add the alternate top rule for the sequence@>@;
   }
   @<Add the minimum rule for the sequence@>@;
   @<Add the iterating rule for the sequence@>@;
-}
-
-@ @<Add the nulling rule for a sequence@> =
-{
-  RULE rule;
-  rule = rule_new(g, lhs_id, 0, 0);
-  rule->t_is_semantic_equivalent = 1;
-  rule->t_original = original_rule_id;
 }
 
 @ @<Add the top rule for the sequence@> =
