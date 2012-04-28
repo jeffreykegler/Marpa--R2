@@ -2572,7 +2572,7 @@ PPCODE:
 	      (newSViv (marpa_v_token_value (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
-  if (status == MARPA_VALUE_NULLING_TOKEN)
+  if (status == MARPA_VALUE_NULLING_SYMBOL)
     {
       token_id = marpa_v_semantic_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
@@ -2588,14 +2588,14 @@ PPCODE:
 }
 
 void
-trace( v_wrapper, flag )
+_marpa_v_trace( v_wrapper, flag )
     V_Wrapper *v_wrapper;
     int flag;
 PPCODE:
 {
   const Marpa_Value v = v_wrapper->v;
   int status;
-  status = marpa_v_trace (v, flag);
+  status = _marpa_v_trace (v, flag);
   if (status == -1)
     {
       XSRETURN_UNDEF;
@@ -2608,13 +2608,13 @@ PPCODE:
 }
 
 void
-nook( v_wrapper )
+_marpa_v_nook( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:
 {
   const Marpa_Value v = v_wrapper->v;
   int status;
-  status = marpa_v_nook (v);
+  status = _marpa_v_nook (v);
   if (status == -1)
     {
       XSRETURN_UNDEF;

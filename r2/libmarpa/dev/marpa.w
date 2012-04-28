@@ -11694,17 +11694,19 @@ This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
 @d Next_Value_Type_of_V(val) ((val)->t_next_value_type)
 @d V_is_Active(val) (Next_Value_Type_of_V(val) != MARPA_VALUE_INACTIVE)
-@d V_is_Trace(val) ((val)->t_trace)
-@d NOOK_of_V(val) ((val)->t_nook)
-@d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
-@d RULEID_of_V(val) ((val)->public.t_semantic_rule_id)
-@d Token_Value_of_V(val) ((val)->public.t_token_value)
-@d Token_Type_of_V(val) ((val)->t_token_type)
-@d TOS_of_V(val) ((val)->public.t_tos)
-@d Arg_N_of_V(val) ((val)->public.t_arg_n)
-@d VStack_of_V(val) ((val)->t_virtual_stack)
-@d Nulling_Ask_BV_of_V(val) ((val)->t_nulling_ask_bv)
 @d T_of_V(v) ((v)->t_tree)
+@ @<VALUE structure@> =
+struct s_value {
+    struct marpa_value public;
+    Marpa_Tree t_tree;
+    @<Widely aligned value elements@>@;
+    @<Int aligned value elements@>@;
+    int t_token_type;
+    int t_next_value_type;
+    @<Bit aligned value elements@>@;
+};
+
+@*0 Public data.
 @<Public structures@> =
 struct marpa_value {
     Marpa_Symbol_ID t_semantic_token_id;
@@ -11713,36 +11715,32 @@ struct marpa_value {
     int t_tos;
     int t_arg_n;
 };
-@ @<VALUE structure@> =
-struct s_value {
-    struct marpa_value public;
-    DSTACK_DECLARE(t_virtual_stack);
-    NOOKID t_nook;
-    Marpa_Tree t_tree;
-    @<Int aligned value elements@>@;
-    Bit_Vector t_nulling_ask_bv;
-    int t_token_type;
-    int t_next_value_type;
-    @<Bit aligned value elements@>@;
-    unsigned int t_trace:1;
-};
-
-@
-The casts are attempts
-to defeat any use of
-these macros as lvalues.
-@<Public defines@> =
+@ @<Public defines@> =
 #define marpa_v_semantic_token(v) \
-    (((const struct marpa_value*)v)->t_semantic_token_id)
+    ((v)->t_semantic_token_id)
 #define marpa_v_token_value(v) \
-    (((const struct marpa_value*)v)->t_token_value)
+    ((v)->t_token_value)
 #define marpa_v_semantic_rule(v) \
-    (((const struct marpa_value*)v)->t_semantic_rule_id)
+    ((v)->t_semantic_rule_id)
 #define marpa_v_arg_0(v) \
-    (((const struct marpa_value*)v)->t_tos)
+    ((v)->t_tos)
 #define marpa_v_arg_n(v) \
-    (((const struct marpa_value*)v)->t_arg_n)
+    ((v)->t_arg_n)
+@ @d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
+@d RULEID_of_V(val) ((val)->public.t_semantic_rule_id)
+@d Token_Value_of_V(val) ((val)->public.t_token_value)
+@d Token_Type_of_V(val) ((val)->t_token_type)
+@d TOS_of_V(val) ((val)->public.t_tos)
+@d Arg_N_of_V(val) ((val)->public.t_arg_n)
+@<Pre-initialize value elements@> =
+SYMID_of_V(v) = -1;
+RULEID_of_V(v) = -1;
+Token_Value_of_V(v) = -1;
+Token_Type_of_V(v) = DUMMY_OR_NODE;
+TOS_of_V(v) = -1;
+Arg_N_of_V(v) = -1;
 
+@*0 Virtual Stack.
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
 First, there are only a few stack moves per call
@@ -11783,6 +11781,13 @@ to guarantee that this code is $O(n)$.
 $\size{|tree|}/1024$ is a fixed fraction
 of the worst case size, so the number of
 stack reallocations is $O(1)$.
+@d VStack_of_V(val) ((val)->t_virtual_stack)
+@<Widely aligned value elements@> =
+    DSTACK_DECLARE(t_virtual_stack);
+@ @<Pre-initialize value elements@> =
+    DSTACK_SAFE(VStack_of_V(v));
+
+@*0 Valuator constructor.
 @<Function definitions@> =
 Marpa_Value marpa_v_new(Marpa_Tree t)
 {
@@ -11792,44 +11797,28 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     if (!T_is_Exhausted (t))
       {
 	VALUE v = my_slice_new (struct s_value);
-	const int minimum_stack_size = (8192 / sizeof (int));
-	const int initial_stack_size =
-	  MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
-	DSTACK_INIT (VStack_of_V (v), int, initial_stack_size);
-	@<Initialize nulling "ask me" bit vector@>@;
 	Next_Value_Type_of_V(v) = V_GET_DATA;
-	V_is_Trace (v) = 1;
-	TOS_of_V(v) = -1;
-	NOOK_of_V(v) = -1;
-	@<Initialize value elements@>@;
+	@<Pre-initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
-	if (T_is_Nulling(o)) V_is_Nulling(v) = 1;
+	if (T_is_Nulling(o)) {
+	  V_is_Nulling(v) = 1;
+	} else {
+	  const int minimum_stack_size = (8192 / sizeof (int));
+	  const int initial_stack_size =
+	    MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
+	  DSTACK_INIT (VStack_of_V (v), int, initial_stack_size);
+	}
 	return (Marpa_Value)v;
       }
     MARPA_ERROR(MARPA_ERR_TREE_EXHAUSTED);
     return NULL;
 }
 
-@
-@<Initialize nulling "ask me" bit vector@> =
-{
-    const SYMID symbol_count_of_g = SYM_Count_of_G(g);
-    SYMID ix;
-    Nulling_Ask_BV_of_V(v) = bv_create (symbol_count_of_g);
-    for (ix = 0; ix < symbol_count_of_g; ix++) {
-	const SYM symbol = SYM_by_ID(ix);
-	if (SYM_is_Nulling(symbol) && SYM_is_Ask_Me_When_Null(symbol))
-	{
-	    bv_bit_set(Nulling_Ask_BV_of_V(v), ix);
-	}
-    }
-}
-
 @*0 Reference Counting and Destructors.
 @ @<Int aligned value elements@>=
     int t_ref_count;
-@ @<Initialize value elements@> =
+@ @<Pre-initialize value elements@> =
     v->t_ref_count = 1;
 
 @ Decrement the value reference count.
@@ -11870,9 +11859,9 @@ PRIVATE void value_free(VALUE v)
 {
     tree_unpause(T_of_V(v));
     bv_free(Nulling_Ask_BV_of_V(v));
-    if (LIKELY(DSTACK_IS_INITIALIZED(v->t_virtual_stack) != NULL))
+    if (LIKELY(DSTACK_IS_INITIALIZED(VStack_of_V(v)) != NULL))
     {
-        DSTACK_DESTROY(v->t_virtual_stack);
+        DSTACK_DESTROY(VStack_of_V(v));
     }
     my_slice_free(*v, v);
 }
@@ -11895,11 +11884,17 @@ Is this valuator for a nulling parse?
 @d V_is_Nulling(v) ((v)->t_is_nulling)
 @ @<Bit aligned value elements@> =
 unsigned int t_is_nulling:1;
-@ @<Initialize value elements@> =
-V_is_Nulling(v) = 0;
+@ @<Pre-initialize value elements@> =
+  V_is_Nulling(v) = 0;
 
+@*0 Trace valuator?.
+@d V_is_Trace(val) ((val)->t_trace)
+@<Bit aligned value elements@> =
+    unsigned int t_trace:1;
+@ @<Pre-initialize value elements@> =
+   V_is_Trace(v) = 0;
 @ @<Function definitions@> =
-int marpa_v_trace(Marpa_Value public_v, int flag)
+int _marpa_v_trace(Marpa_Value public_v, int flag)
 {
     @<Return |-2| on failure@>@;
     const VALUE v = (VALUE)public_v;
@@ -11912,8 +11907,15 @@ int marpa_v_trace(Marpa_Value public_v, int flag)
     return 1;
 }
 
-@ @<Function definitions@> =
-Marpa_Nook_ID marpa_v_nook(Marpa_Value public_v)
+@*0 Nook of valuator.
+@d NOOK_of_V(val) ((val)->t_nook)
+@<Int aligned value elements@> =
+    NOOKID t_nook;
+@ @<Pre-initialize value elements@> =
+	NOOK_of_V(v) = -1;
+@ Returns -1 if valuator is nulling.
+@<Function definitions@> =
+Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
 {
     @<Return |-2| on failure@>@;
     const VALUE v = (VALUE)public_v;
@@ -11926,9 +11928,26 @@ Marpa_Nook_ID marpa_v_nook(Marpa_Value public_v)
 }
 
 @*0 Nulling symbol semantics.
-The settings here overrides the value
+@ @d Nulling_Ask_BV_of_V(val) ((val)->t_nulling_ask_bv)
+@<Widely aligned value elements@> =
+    Bit_Vector t_nulling_ask_bv;
+@ @<Pre-initialize value elements@> =
+{
+    const SYMID symbol_count_of_g = SYM_Count_of_G(g);
+    SYMID ix;
+    Nulling_Ask_BV_of_V(v) = bv_create (symbol_count_of_g);
+    for (ix = 0; ix < symbol_count_of_g; ix++) {
+	const SYM symbol = SYM_by_ID(ix);
+	if (SYM_is_Nulling(symbol) && SYM_is_Ask_Me_When_Null(symbol))
+	{
+	    bv_bit_set(Nulling_Ask_BV_of_V(v), ix);
+	}
+    }
+}
+
+@ The settings here overrides the value
 set with the grammar.
-@ @<Function definitions@> =
+@<Function definitions@> =
 int marpa_v_symbol_is_ask_me_when_null(
     Marpa_Value public_v,
     Marpa_Symbol_ID symid)
@@ -11988,6 +12007,11 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
     @<Return |-2| on failure@>@;
     const VALUE v = (VALUE)public_v;
 
+    if (V_is_Nulling(v)) {
+      @<Unpack value objects@>@;
+      @<Step through a nulling valuator@>@;
+    }
+
     while (V_is_Active(v)) {
 	Marpa_Value_Type current_value_type = Next_Value_Type_of_V(v);
 	switch (current_value_type)
@@ -12003,7 +12027,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 		{
 		  Next_Value_Type_of_V (v) = MARPA_VALUE_RULE;
 		  if (bv_bit_test(Nulling_Ask_BV_of_V(v), SYMID_of_V(v)))
-		      return MARPA_VALUE_NULLING_TOKEN;
+		      return MARPA_VALUE_NULLING_SYMBOL;
 		  /* Any nulling token at this point
 		     will be an "ask me" token */
 		   return MARPA_VALUE_TOKEN;
@@ -12027,6 +12051,27 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
       }
 
     Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
+    return MARPA_VALUE_INACTIVE;
+}
+
+@ @<Step through a nulling valuator@> =
+{
+    while (V_is_Active(v)) {
+	Marpa_Value_Type current_value_type = Next_Value_Type_of_V(v);
+	switch (current_value_type)
+	  {
+	  case V_GET_DATA:
+	    {
+	      Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
+	      SYMID_of_V(v) = g->t_start_xsyid;
+	      if (bv_bit_test(Nulling_Ask_BV_of_V(v), SYMID_of_V(v)))
+		      return MARPA_VALUE_NULLING_SYMBOL;
+	    }
+	    /* fall through */
+	    /* No tracing of nulling valuators, at least at this point */
+	    /* fall through */
+	  }
+      }
     return MARPA_VALUE_INACTIVE;
 }
 

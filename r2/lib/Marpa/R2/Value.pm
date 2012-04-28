@@ -652,7 +652,7 @@ sub trace_token_evaluation {
     my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
 
-    my $nook_ix     = $value->nook();
+    my $nook_ix     = $value->_marpa_v_nook();
     my $or_node_id  = $tree->nook_or_node($nook_ix);
     my $choice      = $tree->nook_choice($nook_ix);
     my $and_node_id = $order->and_node_order_get( $or_node_id, $choice );
@@ -747,7 +747,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         $value->symbol_ask_me_when_null_set($token_id, 1);
     }
     my @evaluation_stack = ();
-    $value->trace( $trace_values ? 1 : 0 );
+    $value->_marpa_v_trace( $trace_values ? 1 : 0 );
 
     EVENT: while (1) {
         my ( $value_type, @value_data ) = $value->step();
@@ -773,7 +773,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 		next EVENT;
 	}
 
-        if ( $value_type eq 'MARPA_VALUE_NULLING_TOKEN' ) {
+        if ( $value_type eq 'MARPA_VALUE_NULLING_SYMBOL' ) {
 		my ( $token_id, $arg_n ) = @value_data;
                 my $value_ref = $null_values->[$token_id];
                 $evaluation_stack[$arg_n] = $value_ref;
@@ -828,7 +828,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 if ($trace_values) {
 
                     my $argc = scalar @args;
-		    my $nook_ix    = $value->nook();
+		    my $nook_ix    = $value->_marpa_v_nook();
 		    my $or_node_id = $tree->nook_or_node($nook_ix);
 		    my $choice     = $tree->nook_choice($nook_ix);
 		    my $and_node_id =
@@ -864,7 +864,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                 last TRACE_OP if not $trace_values;
 
-                my $nook_ix    = $value->nook();
+                my $nook_ix    = $value->_marpa_v_nook();
                 my $or_node_id = $tree->nook_or_node($nook_ix);
                 my $choice     = $tree->nook_choice($nook_ix);
                 my $and_node_id =

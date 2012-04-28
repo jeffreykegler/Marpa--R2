@@ -2148,10 +2148,10 @@ The data for a semantic token is ready.
 The token is non-nulling and will have a value.
 @end deftypevr
 
-@deftypevr Macro Marpa_Value_Type MARPA_VALUE_NULLING_TOKEN
-The data for a semantic token is ready.
-The token is nulling and it is up to the application
-to provide any value, if one is needed.
+@deftypevr Macro Marpa_Value_Type MARPA_VALUE_NULLING_SYMBOL
+The data for a nulling symbol with semantics is ready.
+It is up to the application
+to provide the value, if one is needed.
 @end deftypevr
 
 @deftypevr Macro Marpa_Value_Type MARPA_VALUE_RULE
@@ -2174,12 +2174,12 @@ These value types are reserved for internal purposes
 @node Valuator tracing,  , Valuator stepping, Value
 @section Tracing the valuator
 
-@deftypefun int marpa_v_trace ( @
+@deftypefun int _marpa_v_trace ( @
     Marpa_Value @var{v}, @
     int @var{flag})
 @end deftypefun
 
-@deftypefun Marpa_Nook_ID marpa_v_nook ( @
+@deftypefun Marpa_Nook_ID _marpa_v_nook ( @
     Marpa_Value @var{v})
 @end deftypefun
 
