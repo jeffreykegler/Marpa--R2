@@ -909,6 +909,17 @@ Return value: On success, 1 if symbol is nulling, 0 if not.
 If the grammar is not precomputed, or on failure, -2.
 @end deftypefun
 
+@deftypefun int marpa_g_symbol_is_nullable ( @
+  Marpa_Grammar g, Marpa_Symbol_ID symid)
+A symbol is @dfn{nullable} if it sometimes produces the empty string.
+A nulling symbol is always a nullable symbol,
+but not all nullable symbols are nulling symbols.
+This is not determined until the grammar is precomputed.
+
+Return value: On success, 1 if symbol is nullable, 0 if not.
+If the grammar is not precomputed, or on failure, -2.
+@end deftypefun
+
 @deftypefun int marpa_g_symbol_ask_me_when_null_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symbol_id}, @

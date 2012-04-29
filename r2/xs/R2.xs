@@ -479,6 +479,24 @@ PPCODE:
 }
 
 void
+symbol_is_nullable( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = marpa_g_symbol_is_nullable (g, symbol_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->symbol_is_nullable(%d): %s", symbol_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
 symbol_is_terminal_set( g_wrapper, symbol_id, boolean )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;

@@ -1247,6 +1247,21 @@ int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
     return SYM_is_Nulling(SYM_by_ID(symid));
 }
 
+@ Symbol Is Nullable Boolean
+@d XSY_is_Nullable(sym) ((sym)->t_is_nullable)
+@<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
+@ @<Initialize symbol elements@> =
+symbol->t_is_nullable = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_nullable(Marpa_Grammar g, Marpa_Symbol_ID symid)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |symid| is invalid@>@;
+    return XSY_is_Nullable(SYM_by_ID(symid));
+}
+
 @ Symbol Is Terminal Boolean
 The ``marked terminal'' flag tracked whether
 the terminal flag was set by the user.
@@ -2988,6 +3003,7 @@ is not already aliased, alias it.
 	   nullable_id++)
 	{
 	  const SYM nullable = SYM_by_ID (nullable_id);
+	  XSY_is_Nullable (nullable) = 1;
 	  if (SYM_is_Nulling (nullable))
 	    continue;
 	  if (UNLIKELY(!nullable->t_is_accessible))
@@ -3549,7 +3565,6 @@ for (rule_id = 0; rule_id < xrl_count; rule_id++) {
 	 nonnulling_count ++;
     }
     @#
-    /* nulling start rule is allowed, so there may be no proper symbol */
     if (nonnulling_count == 1) {
 	@<For |nonnulling_id|, set to,from rule bit in |unit_transition_matrix|@>@;
     } else if (nonnulling_count == 0) {
@@ -4012,10 +4027,6 @@ what might be found in the input.
 Discovered AHFA states are so called because either they ``report"
 the start of the input
 or they ``report" symbols actually found in the input.
-There is only one case in which
-a discovered AHFA state will contain a prediction ---
-that is when the AHFA state contains an
-AHFA item for the nulling start rule.
 @ {\bf The Initial AHFA State}:
 This is the only state which can
 contain an AHFA item for a null rule.
@@ -4544,18 +4555,15 @@ _marpa_avl_destroy(duplicates);
 
 @* Discovered AHFA States.
 @ {\bf Theorem}:
-An AHFA state that contains a start rule completion is either
-AHFA state 0 or a 1-item discovered state.
+An AHFA state that contains a start rule completion is always
+a 1-item discovered state.
 {\bf Proof}:
-AHFA state 0 contains a start rule completion in any grammar
-for which the null parse is valid.
-AHFA state 0 also contains the non-null parse predicted rule.
-\par
 The grammar is augmented,
-so that no other rule predicts the start rules.
+so that no other rule predicts a start rule.
 This means that AHFA state 0 will contain the only predicted
-start rules.
-The form of the non-null predicted start rule
+start rule.
+AHFA state 0 contains the predicted start rule.
+@ The form of the non-null predicted start rule
 is $S' \leftarrow \cdot S$,
 where $S'$ is the augmented start symbol and $S$ was
 the start symbol in the original grammar.
@@ -4569,8 +4577,9 @@ Since only state 0 contains
 $S' \leftarrow \cdot S$,
 only AHFA state $n$ will contain 
 $S' \leftarrow S \cdot$.
-Therefore all AHFA states containing start rule completions
-are either AHFA state 0, or 1-item discovered AHFA states.
+Therefore there is only one AHFA state containing
+a start rule completion, and it is a
+1-item discovered AHFA states.
 {\bf QED}.
 @<Create a 1-item discovered AHFA state@> = {
     AHFA p_new_state;
