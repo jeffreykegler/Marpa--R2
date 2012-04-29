@@ -10356,11 +10356,13 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     }
     r_update_earley_sets(r);
     @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
-    if (end_of_parse_earleme == 0) {
-	if (! g->t_null_start_rule) goto NO_PARSE;
-	B_is_Nulling(b) = 1;
+    if (end_of_parse_earleme == 0)
+      {
+	if (!XSY_is_Nullable (SYM_by_ID (g->t_start_xsyid)))
+	  goto NO_PARSE;
+	B_is_Nulling (b) = 1;
 	return b;
-    }
+      }
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     if (!start_eim) goto NO_PARSE;
     my_obstack_init(&bocage_setup_obs);
