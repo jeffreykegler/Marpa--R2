@@ -3415,26 +3415,25 @@ This is such a common rewrite that it has a special name
 in the literature --- it is called ``augmenting the grammar".
 @ @<Augment grammar |g|@> =
 {
-    ISYID proper_start_isyid = -1;
-    XSY proper_start_xsy = NULL;
-    ISY proper_start_isy = NULL;
-    const XSY start_xsy = SYM_by_ID(g->t_start_xsyid);
+    const XSY start_xsy = SYM_by_ID(start_xsyid);
     if (LIKELY(!SYM_is_Nulling(start_xsy))) {
-	proper_start_xsy = start_xsy;
+	@<Set up a new proper start rule@>@;
     }
-    if (proper_start_xsy) { @<Set up a new proper start rule@>@; }
 }
 
 @ @<Set up a new proper start rule@> = {
   RULE new_start_rule;
-  proper_start_xsy->t_is_start = 0;
-  proper_start_isy = symbol_new (g);
-  proper_start_isyid = ID_of_SYM(proper_start_isy);
-  proper_start_isy->t_is_accessible = 1;
-  proper_start_isy->t_is_productive = 1;
-  proper_start_isy->t_is_start = 1;
+
+  ISYID start_isyid = -1;
+  const ISY start_isy = symbol_new (g);
+  start_isyid = ID_of_SYM(start_isy);
+  start_isy->t_is_accessible = 1;
+  start_isy->t_is_productive = 1;
+  start_isy->t_is_start = 1;
+
   start_xsy->t_is_start = 0;
-  new_start_rule = rule_new (g, proper_start_isyid, &ID_of_SYM(start_xsy), 1);
+
+  new_start_rule = rule_new (g, start_isyid, &start_xsyid, 1);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = 1;
