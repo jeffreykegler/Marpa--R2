@@ -1905,7 +1905,7 @@ called "nooks".
 "Nook" can be thought of as a pun on both
 "node" and "fork".
 
-@deftypefun int marpa_t_size ( @
+@deftypefun int _marpa_t_size ( @
 	Marpa_Tree @var{t})
 
 Return the size of the parse tree.
@@ -1915,14 +1915,14 @@ or if the tree is uninitialized, return -2.
 If the tree is exhausted, return -1.
 @end deftypefun
 
-@deftypefun Marpa_Or_Node_ID marpa_t_nook_or_node ( @
+@deftypefun Marpa_Or_Node_ID _marpa_t_nook_or_node ( @
     Marpa_Tree @var{t}, @
     Marpa_Nook_ID @var{nook_id})
 
 Return the ID of the or-node for @var{nook_id}.
 @end deftypefun
 
-@deftypefun int marpa_t_nook_choice ( @
+@deftypefun int _marpa_t_nook_choice ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1930,7 +1930,7 @@ Return the ID of the or-node for @var{nook_id}.
 Return the current choice for @var{nook_id}.
 @end deftypefun
 
-@deftypefun int marpa_t_nook_parent ( @
+@deftypefun int _marpa_t_nook_parent ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1943,10 +1943,10 @@ but -1 can also be a valid value.
 If that's an issue, the @var{nook_id} needs
 to be checked with one of the trace functions
 where -1 is never a valid value ---
-for example, @code{marpa_t_nook_or_node}.
+for example, @code{_marpa_t_nook_or_node}.
 @end deftypefun 
 
-@deftypefun int marpa_t_nook_cause_is_ready ( @
+@deftypefun int _marpa_t_nook_cause_is_ready ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1954,7 +1954,7 @@ for example, @code{marpa_t_nook_or_node}.
 Return the cause-is-ready bit for @var{nook_id}.
 @end deftypefun
 
-@deftypefun int marpa_t_nook_predecessor_is_ready ( @
+@deftypefun int _marpa_t_nook_predecessor_is_ready ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1962,7 +1962,7 @@ Return the cause-is-ready bit for @var{nook_id}.
 Return the predecessor-is-ready bit for @var{nook_id}.
 @end deftypefun
 
-@deftypefun int marpa_t_nook_is_cause ( @
+@deftypefun int _marpa_t_nook_is_cause ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)
@@ -1970,7 +1970,7 @@ Return the predecessor-is-ready bit for @var{nook_id}.
 Return the is-cause bit for @var{nook_id}.
 @end deftypefun
 
-@deftypefun int marpa_t_nook_is_predecessor ( @
+@deftypefun int _marpa_t_nook_is_predecessor ( @
 	Marpa_Tree @var{t}, @
 	Marpa_Nook_ID @var{nook_id} @
 	)

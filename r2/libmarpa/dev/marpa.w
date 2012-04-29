@@ -11105,20 +11105,18 @@ struct marpa_tree {
 @ @<Function definitions@> =
 PRIVATE void tree_exhaust(TREE t)
 {
-  if (FSTACK_IS_INITIALIZED(t->t_nook_stack))
+  if (FSTACK_IS_INITIALIZED (t->t_nook_stack))
     {
-      FSTACK_DESTROY(t->t_nook_stack);
-      FSTACK_SAFE(t->t_nook_stack);
+      FSTACK_DESTROY (t->t_nook_stack);
+      FSTACK_SAFE (t->t_nook_stack);
     }
-  if (FSTACK_IS_INITIALIZED(t->t_nook_worklist))
+  if (FSTACK_IS_INITIALIZED (t->t_nook_worklist))
     {
-      FSTACK_DESTROY(t->t_nook_worklist);
-      FSTACK_SAFE(t->t_nook_worklist);
+      FSTACK_DESTROY (t->t_nook_worklist);
+      FSTACK_SAFE (t->t_nook_worklist);
     }
-    if (t->t_and_node_in_use) {
-	  bv_free (t->t_and_node_in_use);
-	t->t_and_node_in_use = NULL;
-    }
+  bv_free (t->t_and_node_in_use);
+  t->t_and_node_in_use = NULL;
 }
 
 @ @<Function definitions@> =
@@ -11133,17 +11131,27 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     order_ref(o);
     order_freeze(o);
     @<Initialize tree elements@>@;
-    if (O_is_Nulling(o)) T_is_Nulling(t) = 1;
     return t;
 }
 
 @ @<Initialize tree elements@> =
 {
-    const int and_count = AND_Count_of_B (b);
-    t->t_parse_count = 0;
-    t->t_and_node_in_use = bv_create ((unsigned int) and_count);
-    FSTACK_INIT (t->t_nook_stack, NOOK_Object, and_count);
-    FSTACK_INIT (t->t_nook_worklist, int, and_count);
+  t->t_parse_count = 0;
+  if (O_is_Nulling (o))
+    {
+      T_is_Nulling (t) = 1;
+      t->t_and_node_in_use = NULL;
+      FSTACK_SAFE (t->t_nook_stack);
+      FSTACK_SAFE (t->t_nook_worklist);
+    }
+  else
+    {
+      const int and_count = AND_Count_of_B (b);
+      T_is_Nulling (t) = 0;
+      t->t_and_node_in_use = bv_create ((unsigned int) and_count);
+      FSTACK_INIT (t->t_nook_stack, NOOK_Object, and_count);
+      FSTACK_INIT (t->t_nook_worklist, int, and_count);
+    }
 }
 
 @*0 Reference Counting and Destructors.
@@ -11283,20 +11291,29 @@ int marpa_t_next(Marpa_Tree t)
 	return -1;
       }
 
+    if (T_is_Nulling(t)) {
+      if (t->t_parse_count < 1) {
+	t->t_parse_count++;
+	return 0;
+      } else {
+        goto TREE_IS_EXHAUSTED;
+      }
+    }
+
     if (t->t_parse_count < 1)
       {
        is_first_tree_attempt = 1;
        @<Initialize the tree iterator@>@;
       }
-      while (1) {
-        const AND ands_of_b = ANDs_of_B(b);
-	 if (is_first_tree_attempt) {
-	    is_first_tree_attempt = 0;
-	 } else {
-            @<Start a new iteration of the tree@>@;
-	 }
-        @<Finish tree if possible@>@;
-        }
+    while (1) {
+      const AND ands_of_b = ANDs_of_B(b);
+      if (is_first_tree_attempt) {
+	is_first_tree_attempt = 0;
+       } else {
+	 @<Start a new iteration of the tree@>@;
+       }
+      @<Finish tree if possible@>@;
+    }
     TREE_IS_FINISHED: ;
     t->t_parse_count++;
     return FSTACK_LENGTH(t->t_nook_stack);
@@ -11504,7 +11521,7 @@ int marpa_t_parse_count(Marpa_Tree t)
 @
 @d Size_of_T(t) FSTACK_LENGTH((t)->t_nook_stack)
 @<Function definitions@> =
-int marpa_t_size(Marpa_Tree t)
+int _marpa_t_size(Marpa_Tree t)
 {
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
@@ -11512,6 +11529,7 @@ int marpa_t_size(Marpa_Tree t)
   if (T_is_Exhausted(t)) {
       return -1;
   }
+  if (T_is_Nulling(t)) return 0;
   return Size_of_T(t);
 }
 
@@ -11555,7 +11573,6 @@ set |nook|@> = {
       MARPA_ERROR(MARPA_ERR_BOCAGE_ITERATION_EXHAUSTED);
       return failure_indicator;
   }
-  base_nook = FSTACK_BASE(t->t_nook_stack, NOOK_Object);
   if (nook_id < 0) {
       MARPA_ERROR(MARPA_ERR_NOOKID_NEGATIVE);
       return failure_indicator;
@@ -11563,11 +11580,12 @@ set |nook|@> = {
   if (nook_id >= Size_of_T(t)) {
       return -1;
   }
+  base_nook = FSTACK_BASE(t->t_nook_stack, NOOK_Object);
   nook = base_nook + nook_id;
 }
 
 @ @<Function definitions@> =
-int marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
+int _marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11577,7 +11595,7 @@ int marpa_t_nook_or_node(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-int marpa_t_nook_choice(Marpa_Tree t, int nook_id)
+int _marpa_t_nook_choice(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11587,7 +11605,7 @@ int marpa_t_nook_choice(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-int marpa_t_nook_parent(Marpa_Tree t, int nook_id)
+int _marpa_t_nook_parent(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11597,7 +11615,7 @@ int marpa_t_nook_parent(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-int marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
+int _marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11607,7 +11625,7 @@ int marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-int marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
+int _marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11617,7 +11635,7 @@ int marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-int marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
+int _marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;
@@ -11627,7 +11645,7 @@ int marpa_t_nook_is_cause(Marpa_Tree t, int nook_id)
 }
 
 @ @<Function definitions@> =
-int marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
+int _marpa_t_nook_is_predecessor(Marpa_Tree t, int nook_id)
 {
   NOOK nook;
   @<Return |-2| on failure@>@;

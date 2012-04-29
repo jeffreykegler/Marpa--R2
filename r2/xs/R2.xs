@@ -2325,161 +2325,161 @@ PPCODE:
 }
 
 int
-size( t_wrapper )
+_marpa_t_size( t_wrapper )
     T_Wrapper *t_wrapper;
 PPCODE:
 {
   Marpa_Tree t = t_wrapper->t;
   int result;
-  result = marpa_t_size (t);
+  result = _marpa_t_size (t);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in t->size(): %s", xs_t_error (t_wrapper));
+      croak ("Problem in t->_marpa_t_size(): %s", xs_t_error (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 int
-nook_or_node( t_wrapper, nook_id )
+_marpa_t_nook_or_node( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
 PPCODE:
 {
   Marpa_Tree t = t_wrapper->t;
   int result;
-  result = marpa_t_nook_or_node (t, nook_id);
+  result = _marpa_t_nook_or_node (t, nook_id);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in t->nook_or_node(): %s", xs_t_error (t_wrapper));
+      croak ("Problem in t->_marpa_t_nook_or_node(): %s", xs_t_error (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 int
-nook_choice( t_wrapper, nook_id )
+_marpa_t_nook_choice( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
 PPCODE:
 {
   Marpa_Tree t = t_wrapper->t;
   int result;
-  result = marpa_t_nook_choice (t, nook_id);
+  result = _marpa_t_nook_choice (t, nook_id);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in t->nook_choice(): %s", xs_t_error (t_wrapper));
+      croak ("Problem in t->_marpa_t_nook_choice(): %s", xs_t_error (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 int
-nook_parent( t_wrapper, nook_id )
+_marpa_t_nook_parent( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
 PPCODE:
 {
   Marpa_Tree t = t_wrapper->t;
   int result;
-  result = marpa_t_nook_parent (t, nook_id);
+  result = _marpa_t_nook_parent (t, nook_id);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in t->nook_parent(): %s", xs_t_error (t_wrapper));
+      croak ("Problem in t->_marpa_t_nook_parent(): %s", xs_t_error (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 int
-nook_is_cause( t_wrapper, nook_id )
+_marpa_t_nook_is_cause( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
 PPCODE:
 {
   Marpa_Tree t = t_wrapper->t;
   int result;
-  result = marpa_t_nook_is_cause (t, nook_id);
+  result = _marpa_t_nook_is_cause (t, nook_id);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in t->nook_is_cause(): %s", xs_t_error (t_wrapper));
+      croak ("Problem in t->_marpa_t_nook_is_cause(): %s", xs_t_error (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 int
-nook_cause_is_ready( t_wrapper, nook_id )
+_marpa_t_nook_cause_is_ready( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
 PPCODE:
 {
   Marpa_Tree t = t_wrapper->t;
   int result;
-  result = marpa_t_nook_cause_is_ready (t, nook_id);
+  result = _marpa_t_nook_cause_is_ready (t, nook_id);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in t->nook_cause_is_ready(): %s", xs_t_error (t_wrapper));
+      croak ("Problem in t->_marpa_t_nook_cause_is_ready(): %s", xs_t_error (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 
 int
-nook_is_predecessor( t_wrapper, nook_id )
+_marpa_t_nook_is_predecessor( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
 PPCODE:
 {
   Marpa_Tree t = t_wrapper->t;
   int result;
-  result = marpa_t_nook_is_predecessor (t, nook_id);
+  result = _marpa_t_nook_is_predecessor (t, nook_id);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in t->nook_is_predecessor(): %s", xs_t_error (t_wrapper));
+      croak ("Problem in t->_marpa_t_nook_is_predecessor(): %s", xs_t_error (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 int
-nook_predecessor_is_ready( t_wrapper, nook_id )
+_marpa_t_nook_predecessor_is_ready( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
 PPCODE:
 {
   Marpa_Tree t = t_wrapper->t;
   int result;
-  result = marpa_t_nook_predecessor_is_ready (t, nook_id);
+  result = _marpa_t_nook_predecessor_is_ready (t, nook_id);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in t->nook_predecessor_is_ready(): %s",
+      croak ("Problem in t->_marpa_t_nook_predecessor_is_ready(): %s",
 	     xs_t_error (t_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
@@ -2621,7 +2621,7 @@ PPCODE:
     }
   if (status < 0)
     {
-      croak ("Problem in v->nook(): %s", xs_v_error (v_wrapper));
+      croak ("Problem in v->_marpa_v_nook(): %s", xs_v_error (v_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (status)));
 }

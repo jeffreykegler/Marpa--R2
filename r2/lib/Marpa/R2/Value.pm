@@ -264,17 +264,17 @@ sub Marpa::R2::Recognizer::show_nook {
     my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
-    my $or_node_id = $tree->nook_or_node($nook_id);
+    my $or_node_id = $tree->_marpa_t_nook_or_node($nook_id);
     return if not defined $or_node_id;
 
     my $text = "o$or_node_id";
-    my $parent = $tree->nook_parent($nook_id) // q{-};
+    my $parent = $tree->_marpa_t_nook_parent($nook_id) // q{-};
     CHILD_TYPE: {
-        if ( $tree->nook_is_cause($nook_id) ) {
+        if ( $tree->_marpa_t_nook_is_cause($nook_id) ) {
             $text .= "[c$parent]";
             last CHILD_TYPE;
         }
-        if ( $tree->nook_is_predecessor($nook_id) ) {
+        if ( $tree->_marpa_t_nook_is_predecessor($nook_id) ) {
             $text .= "[p$parent]";
             last CHILD_TYPE;
         }
@@ -285,13 +285,13 @@ sub Marpa::R2::Recognizer::show_nook {
     $text .= " $or_node_tag";
 
     $text .= ' p';
-    $text .= $tree->nook_predecessor_is_ready($nook_id) ? q{=ok} : q{-};
+    $text .= $tree->_marpa_t_nook_predecessor_is_ready($nook_id) ? q{=ok} : q{-};
     $text .= ' c';
-    $text .= $tree->nook_cause_is_ready($nook_id) ? q{=ok} : q{-};
+    $text .= $tree->_marpa_t_nook_cause_is_ready($nook_id) ? q{=ok} : q{-};
     $text .= "\n";
 
     DESCRIBE_CHOICES: {
-        my $this_choice = $tree->nook_choice($nook_id);
+        my $this_choice = $tree->_marpa_t_nook_choice($nook_id);
         CHOICE: for ( my $choice_ix = 0;; $choice_ix++ ) {
             my $and_node_id =
                 $order->and_node_order_get( $or_node_id, $choice_ix );
@@ -660,8 +660,8 @@ sub trace_token_evaluation {
         print {$Marpa::R2::Internal::TRACE_FH} "Nulling valuator\n";
 	return;
     }
-    my $or_node_id  = $tree->nook_or_node($nook_ix);
-    my $choice      = $tree->nook_choice($nook_ix);
+    my $or_node_id  = $tree->_marpa_t_nook_or_node($nook_ix);
+    my $choice      = $tree->_marpa_t_nook_choice($nook_ix);
     my $and_node_id = $order->and_node_order_get( $or_node_id, $choice );
     my $token_name;
     if ( defined $token_id ) {
@@ -836,8 +836,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                     my $argc = scalar @args;
 		    my $nook_ix    = $value->_marpa_v_nook();
-		    my $or_node_id = $tree->nook_or_node($nook_ix);
-		    my $choice     = $tree->nook_choice($nook_ix);
+		    my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
+		    my $choice     = $tree->_marpa_t_nook_choice($nook_ix);
 		    my $and_node_id =
 			$order->and_node_order_get( $or_node_id, $choice );
 
@@ -872,8 +872,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 last TRACE_OP if not $trace_values;
 
                 my $nook_ix    = $value->_marpa_v_nook();
-                my $or_node_id = $tree->nook_or_node($nook_ix);
-                my $choice     = $tree->nook_choice($nook_ix);
+                my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
+                my $choice     = $tree->_marpa_t_nook_choice($nook_ix);
                 my $and_node_id =
                     $order->and_node_order_get( $or_node_id, $choice );
                 my $trace_rule_id = $bocage->or_node_rule($or_node_id);
