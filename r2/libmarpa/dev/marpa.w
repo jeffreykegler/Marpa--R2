@@ -1406,9 +1406,11 @@ SYM symbol_alias_create(GRAMMAR g, SYM symbol)
     SYM alias = symbol_new(g);
     symbol->t_is_proper_alias = 1;
     SYM_is_Nulling(symbol) = 0;
+    XSY_is_Nullable(symbol) = 1;
     symbol->t_alias = alias;
     alias->t_is_nulling_alias = 1;
     SYM_is_Nulling(alias) = 1;
+    XSY_is_Nullable(alias) = 1;
     SYM_is_Ask_Me_When_Null(alias)
 	= SYM_is_Ask_Me_When_Null(symbol);
     alias->t_is_productive = 1;

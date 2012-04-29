@@ -341,10 +341,7 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
 
         my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
-	# Don't ask whether nulling, because I am converting to external
-	# symbols
-	# When converted to external symbols, perhaps ask if nullable
-        # next SYMBOL if not $grammar_c->symbol_is_nulling($symbol_id);
+        next SYMBOL if not $grammar_c->symbol_is_nullable($symbol_id);
 
         my $null_value = undef;
         if ( $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] ) {
