@@ -2928,18 +2928,15 @@ the pre-CHAF rule count.
 	   RULE original_rule = RULE_by_ID (g, rule->t_original);
 	   if (!rule_is_accessible(g, original_rule))
 	   {
-MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
 	      RULE_is_Used (rule) = 0;
 	      goto NEXT_CHAF_CANDIDATE;
 	   }
 	   if (!rule_is_productive(g, original_rule))
 	   {
-MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
 	      RULE_is_Used (rule) = 0;
 	      goto NEXT_CHAF_CANDIDATE;
 	   }
 	   if (rule_length <= 0) {
-MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
 	      RULE_is_Used (rule) = 0;
 	      goto NEXT_CHAF_CANDIDATE;
 	   }
@@ -2965,19 +2962,16 @@ if (!RULE_is_Used (rule))
   }
 if (rule_is_nulling (g, rule))
   {
-    MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE (rule));
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
   }
 if (!rule_is_accessible (g, rule))
   {
-    MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE (rule));
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
   }
 if (!rule_is_productive (g, rule))
   {
-    MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE (rule));
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
   }
@@ -3041,7 +3035,6 @@ my_free(factor_positions);
 
 @*0 Divide the Rule into Pieces.
 @<Factor the rule into CHAF rules@> =
-MARPA_DEBUG3 ("%s: rule %d marked NOT used", STRLOC, ID_of_RULE(rule));
 RULE_is_Used(rule) = 0; /* Mark the original rule unused */
 {
     const XRL chaf_xrl = rule;
@@ -11079,8 +11072,6 @@ or a stack, so they are destroyed.
 if the bocage iterator has a parse count,
 but no stack,
 it is exhausted.
-@d T_is_Exhausted(tree)
-    (!FSTACK_IS_INITIALIZED((tree)->t_nook_stack))
 @d Size_of_TREE(tree) FSTACK_LENGTH((tree)->t_nook_stack)
 @d NOOK_of_TREE_by_IX(tree, nook_id)
     FSTACK_INDEX((tree)->t_nook_stack, NOOK_Object, nook_id)
@@ -11117,6 +11108,7 @@ PRIVATE void tree_exhaust(TREE t)
     }
   bv_free (t->t_and_node_in_use);
   t->t_and_node_in_use = NULL;
+  T_is_Exhausted(t) = 1;
 }
 
 @ @<Function definitions@> =
@@ -11130,6 +11122,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     O_of_T(t) = o;
     order_ref(o);
     order_freeze(o);
+    @<Pre-initialize tree elements@>@;
     @<Initialize tree elements@>@;
     return t;
 }
@@ -11286,6 +11279,7 @@ int marpa_t_next(Marpa_Tree t)
 	  MARPA_ERROR (MARPA_ERR_TREE_PAUSED);
 	  return failure_indicator;
     }
+
     if (T_is_Exhausted (t))
       {
 	return -1;
@@ -11323,13 +11317,19 @@ int marpa_t_next(Marpa_Tree t)
 
 }
 
+@*0 Tree is Exhausted?.
+Is this tree for a nulling parse?
+@d T_is_Exhausted(t) ((t)->t_is_exhausted)
+@ @<Bit aligned tree elements@> =
+unsigned int t_is_exhausted:1;
+@ @<Pre-initialize tree elements@> =
+  T_is_Exhausted(t) = 0;
+
 @*0 Tree is Nulling?.
 Is this tree for a nulling parse?
 @d T_is_Nulling(t) ((t)->t_is_nulling)
 @ @<Bit aligned tree elements@> =
 unsigned int t_is_nulling:1;
-@ @<Initialize tree elements@> =
-T_is_Nulling(t) = 0;
 
 @*0 Claiming and Releasing And-nodes.
 To avoid cycles, the same and node is not allowed to occur twice
@@ -13637,8 +13637,8 @@ void marpa_debug_level_set( int level )
 A function to print a descriptive tag for
 an Earley item.
 @<Debug function prototypes@> =
-static const char* eim_tag_safe(char *buffer, EIM eim);
-static const char* eim_tag(EIM eim);
+static const char* eim_tag_safe(char *buffer, EIM eim) UNUSED;
+static const char* eim_tag(EIM eim) UNUSED;
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
 static const char *
@@ -13662,8 +13662,8 @@ eim_tag (EIM eim)
 A function to print a descriptive tag for
 an Leo item.
 @<Debug function prototypes@> =
-static char* lim_tag_safe (char *buffer, LIM lim);
-static char* lim_tag (LIM lim);
+static char* lim_tag_safe (char *buffer, LIM lim) UNUSED;
+static char* lim_tag (LIM lim) UNUSED;
 @ This function is passed a buffer to keep it thread-safe.
 be made thread-safe.
 @<Debug function definitions@> =
@@ -13688,8 +13688,8 @@ an or-node item.
 One is thread-safe, the other is
 more convenient but not thread-safe.
 @<Debug function prototypes@> =
-static const char* or_tag_safe(char *buffer, OR or);
-static const char* or_tag(OR or);
+static const char* or_tag_safe(char *buffer, OR or) UNUSED;
+static const char* or_tag(OR or) UNUSED;
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
 static const char *
@@ -13720,8 +13720,8 @@ The other uses a global buffer,
 which is not thread-safe, but
 convenient when debugging in a non-threaded environment.
 @<Debug function prototypes@> =
-static const char* aim_tag_safe(char *buffer, AIM aim);
-static const char* aim_tag(AIM aim);
+static const char* aim_tag_safe(char *buffer, AIM aim) UNUSED;
+static const char* aim_tag(AIM aim) UNUSED;
 @ @<Debug function definitions@> =
 static const char *
 aim_tag_safe (char * buffer, AIM aim)
