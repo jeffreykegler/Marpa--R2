@@ -1907,6 +1907,10 @@ PPCODE:
 {
   Marpa_Bocage b = b_wrapper->b;
   int result = _marpa_b_top_or_node (b);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_top_or_node(): %s",

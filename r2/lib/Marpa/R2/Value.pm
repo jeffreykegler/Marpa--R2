@@ -517,7 +517,11 @@ sub do_high_rule_only {
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
 
-    my @or_nodes = ( $bocage->_marpa_b_top_or_node() );
+    my $top_or_node = $bocage->_marpa_b_top_or_node();
+
+    # If parse is nulling, just return
+    return if not defined $top_or_node;
+    my @or_nodes = ($top_or_node);
 
     # Set up ranks by symbol
     my @rank_by_symbol = ();
