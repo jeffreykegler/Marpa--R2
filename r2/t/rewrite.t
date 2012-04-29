@@ -142,7 +142,6 @@ Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 22: statement[R0:3] -> optional_modifier optional_whitespace[] /* vlhs real=2 */
 23: statement[R0:3] -> optional_modifier[] optional_whitespace /* vlhs real=2 */
 24: block['] -> block /* vlhs real=1 */
-25: block['][] -> /* empty !used vlhs real=1 */
 END_RULES
 
 # Marpa::R2::Display::End

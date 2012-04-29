@@ -806,10 +806,8 @@ A productive grammar
 with no proper start rule is considered trivial.
 @d G_is_Trivial(g) (!(g)->t_proper_start_rule)
 @<Int aligned grammar elements@> =
-RULE t_null_start_rule;
 RULE t_proper_start_rule;
 @ @<Initialize grammar elements@> =
-g->t_null_start_rule = NULL;
 g->t_proper_start_rule = NULL;
 @
 {\bf To Do}: @^To Do@>
@@ -3419,23 +3417,18 @@ in the literature --- it is called ``augmenting the grammar".
 {
     ISYID proper_start_isyid = -1;
     XSY proper_start_xsy = NULL;
-    XSY nulling_start_xsy = NULL;
     ISY proper_start_isy = NULL;
     const XSY start_xsy = SYM_by_ID(g->t_start_xsyid);
     @<Find and classify the old start symbols@>@;
     if (proper_start_xsy) { @<Set up a new proper start rule@>@; }
-    if (nulling_start_xsy) { @<Set up a new nulling start rule@>@; }
 }
 
 @ @<Find and classify the old start symbols@> =
 if (SYM_is_Nulling(start_xsy)) {
    start_xsy->t_is_accessible = 0;
-    nulling_start_xsy = start_xsy;
 } else {
     proper_start_xsy = start_xsy;
-    nulling_start_xsy = symbol_null_alias(start_xsy);
 }
-start_xsy->t_is_start = 0;
 
 @ @<Set up a new proper start rule@> = {
   RULE new_start_rule;
@@ -3445,40 +3438,12 @@ start_xsy->t_is_start = 0;
   proper_start_isy->t_is_accessible = 1;
   proper_start_isy->t_is_productive = 1;
   proper_start_isy->t_is_start = 1;
+  start_xsy->t_is_start = 0;
   new_start_rule = rule_new (g, proper_start_isyid, &ID_of_SYM(start_xsy), 1);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = 1;
   g->t_proper_start_rule = new_start_rule;
-}
-
-@ Set up the new nulling start rule, if the old start symbol was
-nulling or had a null alias.  A new nulling start symbol
-must be created.  It is an alias of the new proper start symbol,
-if there is one.  Otherwise it is a new, nulling, symbol.
-@<Set up a new nulling start rule@> = {
-  Marpa_Symbol_ID nulling_new_start_id;
-  RULE new_start_rule;
-  SYM nulling_new_start;
-  if (proper_start_isy)
-    {				/* There are two start symbols */
-      nulling_new_start = symbol_alias_create (g, proper_start_isy);
-      nulling_new_start_id = ID_of_SYM(nulling_new_start);
-    }
-  else
-    {				/* The only start symbol is a nulling symbol */
-      nulling_new_start = symbol_new (g);
-      nulling_new_start_id = ID_of_SYM(nulling_new_start);
-      SYM_is_Nulling(nulling_new_start) = 1;
-      nulling_new_start->t_is_productive = 1;
-      nulling_new_start->t_is_accessible = 1;
-    }
-  nulling_new_start->t_is_start = 1;
-  new_start_rule = rule_new (g, nulling_new_start_id, 0, 0);
-  RULE_has_Virtual_LHS(new_start_rule) = 1;
-  Real_SYM_Count_of_RULE(new_start_rule) = 1;
-  RULE_is_Used(new_start_rule) = 0;
-  g->t_null_start_rule = new_start_rule;
 }
 
 @** Loops.

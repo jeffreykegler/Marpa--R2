@@ -74,7 +74,6 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 11: S[R0:2] -> A A[] /* vlhs real=2 */
 12: S[R0:2] -> A[] A /* vlhs real=2 */
 13: S['] -> S /* vlhs real=1 */
-14: S['][] -> /* empty !used vlhs real=1 */
 EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,
@@ -88,22 +87,21 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 6: S[R0:1]
 7: S[R0:2]
 8: S[']
-9: S['][], nulling
 EOS
 
 Marpa::R2::Test::is(
     $grammar->show_nulling_symbols,
-    q{A[] E S['][] S[]},
+    q{A[] E S[]},
     'Aycock/Horspool Nulling Symbols'
 );
 Marpa::R2::Test::is(
     $grammar->show_productive_symbols,
-    q{A A[] E S S['] S['][] S[R0:1] S[R0:2] S[] a},
+    q{A A[] E S S['] S[R0:1] S[R0:2] S[] a},
     'Aycock/Horspool Productive Symbols'
 );
 Marpa::R2::Test::is(
     $grammar->show_accessible_symbols,
-    q{A A[] E S S['] S['][] S[R0:1] S[R0:2] S[] a},
+    q{A A[] E S S['] S[R0:1] S[R0:2] S[] a},
     'Aycock/Horspool Accessible Symbols'
 );
 

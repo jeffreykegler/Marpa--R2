@@ -81,7 +81,6 @@ Marpa::R2::Test::is( $grammar->show_symbols(),
 17: F[], nulling
 18: G[], nulling
 19: S[']
-20: S['][], nulling
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,
@@ -107,7 +106,6 @@ Marpa::R2::Test::is( $grammar->show_rules,
 18: G -> H
 19: A -> B
 20: S['] -> S /* vlhs real=1 */
-21: S['][] -> /* empty !used vlhs real=1 */
 END_OF_STRING
 
 my $expected_ahfa_output = <<'END_OF_STRING';

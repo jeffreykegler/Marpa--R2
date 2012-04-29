@@ -74,7 +74,6 @@ Marpa::R2::Test::is( $grammar->show_symbols(),
 4: S[], nulling
 5: C[], nulling
 6: S[']
-7: S['][], nulling
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,
@@ -89,7 +88,6 @@ Marpa::R2::Test::is( $grammar->show_rules,
 7: C -> a C b
 8: C -> a C[] b
 9: S['] -> S /* vlhs real=1 */
-10: S['][] -> /* empty !used vlhs real=1 */
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo168 AHFA' );

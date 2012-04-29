@@ -88,7 +88,6 @@ Added rule #25: S[R1:2] -> Proper Proper
 Added rule #26: S[R1:2] -> Proper Proper[]
 Added rule #27: S[R1:2] -> Proper[] Proper
 Added rule #28: S['] -> S
-Added rule #29: S['][] ->
 EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,
@@ -114,7 +113,6 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 18: S[R1:1]
 19: S[R1:2]
 20: S[']
-21: S['][], nulling
 EOS
 
 Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Rules' );
@@ -147,7 +145,6 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Rules' );
 26: S[R1:2] -> Proper Proper[] /* vlhs real=2 */
 27: S[R1:2] -> Proper[] Proper /* vlhs real=2 */
 28: S['] -> S /* vlhs real=1 */
-29: S['][] -> /* empty !used vlhs real=1 */
 EOS
 
 # Local Variables:
