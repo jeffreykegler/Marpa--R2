@@ -10424,9 +10424,6 @@ PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
   B_is_Nulling(b) = 1;
   Top_ORID_of_B (b) = null_or_node_id;
 
-  OR_Count_of_B (b) = 1;
-  AND_Count_of_B (b) = 1;
-
   RULE_of_OR (or_node) = null_start_rule;
   Position_of_OR (or_node) = rule_length;
   Origin_Ord_of_OR (or_node) = 0;
@@ -10634,21 +10631,32 @@ B_is_Nulling(b) = 0;
 @*0 Trace Functions.
 
 @ This is common logic in the or-node trace functions.
-@<Check |or_node_id|; set |or_node|@> = {
-  OR* or_nodes;
-  or_nodes = ORs_of_B(b);
-  if (!or_nodes) {
-      MARPA_ERROR(MARPA_ERR_NO_OR_NODES);
-      return failure_indicator;
-  }
-  if (or_node_id < 0) {
-      MARPA_ERROR(MARPA_ERR_ORID_NEGATIVE);
-      return failure_indicator;
-  }
-  if (or_node_id >= OR_Count_of_B(b)) {
+In the case of a nulling bocage, the or count of
+the bocage is zero,
+so that any |or_node_id| is either a soft
+or a hard error,
+depending on whether it is non-negative
+or negative.
+@<Check |or_node_id|; set |or_node|@> =
+{
+  if (UNLIKELY (or_node_id >= OR_Count_of_B (b)))
+    {
       return -1;
+    }
+  if (UNLIKELY (or_node_id < 0))
+    {
+      MARPA_ERROR (MARPA_ERR_ORID_NEGATIVE);
+      return failure_indicator;
+    }
+  {
+    OR *const or_nodes = ORs_of_B (b);
+    if (UNLIKELY (!or_nodes))
+      {
+	MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
+	return failure_indicator;
+      }
+    or_node = or_nodes[or_node_id];
   }
-  or_node = or_nodes[or_node_id];
 }
 
 @ @<Function definitions@> =
@@ -10755,7 +10763,7 @@ struct marpa_order {
     @<Bit aligned order elements@>@;
     unsigned int t_is_frozen:1;
 };
-@ @<Initialize order elements@> =
+@ @<Pre-initialize order elements@> =
 {
     o->t_and_node_in_use = NULL;
     o->t_and_node_orderings = NULL;
@@ -10777,14 +10785,14 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     o = my_slice_new(*o);
     B_of_O(o) = b;
     bocage_ref(b);
-    @<Initialize order elements@>@;
-    if (B_is_Nulling(b)) O_is_Nulling(o) = 1;
+    @<Pre-initialize order elements@>@;
+    O_is_Nulling(o) = B_is_Nulling(b);
     return o;
 }
 
 @*0 Reference Counting and Destructors.
 @ @<Int aligned order elements@>= int t_ref_count;
-@ @<Initialize order elements@> =
+@ @<Pre-initialize order elements@> =
     o->t_ref_count = 1;
 
 @ Decrement the order reference count.
@@ -10876,8 +10884,6 @@ Is this order for a nulling parse?
 @d O_is_Nulling(o) ((o)->t_is_nulling)
 @ @<Bit aligned order elements@> =
 unsigned int t_is_nulling:1;
-@ @<Initialize order elements@> =
-O_is_Nulling(o) = 0;
 
 @*0 Set the Order of And-nodes.
 This function
@@ -10929,7 +10935,7 @@ A purist might insist this needs to be reflected in a structure,
 but to my mind doing this portably makes the code more obscure,
 not less.
 @<Function definitions@> =
-int marpa_o_and_order_set(
+int _marpa_o_and_order_set(
     Marpa_Order o,
     Marpa_Or_Node_ID or_node_id,
     Marpa_And_Node_ID* and_node_ids,
@@ -11034,7 +11040,7 @@ PRIVATE ANDID and_order_get(ORDER o, OR or_node, int ix)
 }
 
 @ @<Function definitions@> =
-Marpa_And_Node_ID marpa_o_and_order_get(Marpa_Order o,
+Marpa_And_Node_ID _marpa_o_and_order_get(Marpa_Order o,
     Marpa_Or_Node_ID or_node_id, int ix)
 {
     OR or_node;

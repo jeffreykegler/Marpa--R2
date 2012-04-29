@@ -2199,7 +2199,7 @@ PPCODE:
 }
 
 int
-and_node_order_set( o_wrapper, or_node_id, and_node_id_av )
+_marpa_o_and_node_order_set( o_wrapper, or_node_id, and_node_id_av )
     O_Wrapper *o_wrapper;
     Marpa_Or_Node_ID or_node_id;
     AV *and_node_id_av;
@@ -2224,8 +2224,11 @@ PPCODE:
 	  and_node_ids[i] = SvIV (*elem);
 	}
     }
-  result = marpa_o_and_order_set (o, or_node_id, and_node_ids, length);
+  result = _marpa_o_and_order_set (o, or_node_id, and_node_ids, length);
   Safefree (and_node_ids);
+  if (result < -1) {
+    croak ("Problem in o->_marpa_o_and_node_order_set(): %s", xs_o_error(o_wrapper));
+  }
   if (result < 0)
     {
       XSRETURN_NO;
@@ -2234,7 +2237,7 @@ PPCODE:
 }
 
 int
-and_node_order_get( o_wrapper, or_node_id, and_ix )
+_marpa_o_and_node_order_get( o_wrapper, or_node_id, and_ix )
     O_Wrapper *o_wrapper;
     Marpa_Or_Node_ID or_node_id;
     int and_ix;
@@ -2242,10 +2245,10 @@ PPCODE:
 {
     Marpa_Order o = o_wrapper->o;
     int result;
-    result = marpa_o_and_order_get(o, or_node_id, and_ix);
+    result = _marpa_o_and_order_get(o, or_node_id, and_ix);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
-      croak ("Problem in o->and_node_order_get(): %s", xs_o_error(o_wrapper));
+      croak ("Problem in o->_marpa_o_and_node_order_get(): %s", xs_o_error(o_wrapper));
     }
     XPUSHs( sv_2mortal( newSViv(result) ) );
 }

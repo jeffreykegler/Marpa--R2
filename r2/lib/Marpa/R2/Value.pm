@@ -294,7 +294,7 @@ sub Marpa::R2::Recognizer::show_nook {
         my $this_choice = $tree->_marpa_t_nook_choice($nook_id);
         CHOICE: for ( my $choice_ix = 0;; $choice_ix++ ) {
             my $and_node_id =
-                $order->and_node_order_get( $or_node_id, $choice_ix );
+                $order->_marpa_o_and_node_order_get( $or_node_id, $choice_ix );
             last CHOICE if not defined $and_node_id;
             $text .= " o$or_node_id" . '[' . $choice_ix . ']';
             if ( defined $this_choice and $this_choice == $choice_ix ) {
@@ -573,7 +573,7 @@ sub do_high_rule_only {
             last AND_DATUM if $chaf_rank < $high_chaf_rank;
             push @selected_and_nodes, $and_node;
         } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
-        $order->and_node_order_set( $or_node, \@selected_and_nodes );
+        $order->_marpa_o_and_node_order_set( $or_node, \@selected_and_nodes );
         push @or_nodes, grep {defined} map {
             ( $bocage->and_node_predecessor($_), $bocage->and_node_cause($_) )
         } @selected_and_nodes;
@@ -641,7 +641,7 @@ sub do_rank_by_rule {
             sort { $b->[1] <=> $a->[1] or $b->[2] <=> $a->[2] } @ranking_data;
 ## use critic
 
-        $order->and_node_order_set( $or_node, \@ranked_and_nodes );
+        $order->_marpa_o_and_node_order_set( $or_node, \@ranked_and_nodes );
         push @or_nodes, grep {defined} map {
             ( $bocage->and_node_predecessor($_), $bocage->and_node_cause($_) )
         } @ranked_and_nodes;
@@ -662,7 +662,7 @@ sub trace_token_evaluation {
     }
     my $or_node_id  = $tree->_marpa_t_nook_or_node($nook_ix);
     my $choice      = $tree->_marpa_t_nook_choice($nook_ix);
-    my $and_node_id = $order->and_node_order_get( $or_node_id, $choice );
+    my $and_node_id = $order->_marpa_o_and_node_order_get( $or_node_id, $choice );
     my $token_name;
     if ( defined $token_id ) {
         $token_name = $grammar->symbol_name($token_id);
@@ -839,7 +839,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 		    my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
 		    my $choice     = $tree->_marpa_t_nook_choice($nook_ix);
 		    my $and_node_id =
-			$order->and_node_order_get( $or_node_id, $choice );
+			$order->_marpa_o_and_node_order_get( $or_node_id, $choice );
 
                     say {$Marpa::R2::Internal::TRACE_FH} 'Popping ', $argc,
                         ' values to evaluate ',
@@ -875,7 +875,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
                 my $choice     = $tree->_marpa_t_nook_choice($nook_ix);
                 my $and_node_id =
-                    $order->and_node_order_get( $or_node_id, $choice );
+                    $order->_marpa_o_and_node_order_get( $or_node_id, $choice );
                 my $trace_rule_id = $bocage->or_node_rule($or_node_id);
                 my $virtual_rhs =
                     $grammar_c->_marpa_g_rule_is_virtual_rhs($trace_rule_id);
