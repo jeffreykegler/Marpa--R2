@@ -9328,6 +9328,7 @@ ORs_of_B(b) = NULL;
 OR_Count_of_B(b) = 0;
 ANDs_of_B(b) = NULL;
 AND_Count_of_B(b) = 0;
+Top_ORID_of_B(b) = -1;
 
 @ @<Destroy bocage elements, main phase@> =
 {
@@ -10153,7 +10154,7 @@ typedef struct s_and_node AND_Object;
 @*0 Trace Functions.
 
 @ @<Function definitions@> =
-int marpa_b_and_node_count(Marpa_Bocage b)
+int _marpa_b_and_node_count(Marpa_Bocage b)
 {
   @<Unpack bocage objects@>@;
   @<Return |-2| on failure@>@;
@@ -10161,40 +10162,47 @@ int marpa_b_and_node_count(Marpa_Bocage b)
   return AND_Count_of_B(b);
 }
 
-@ @<Check |and_node_id|; set |and_node|@> = {
-  AND and_nodes;
-  and_nodes = ANDs_of_B(b);
-  if (!and_nodes) {
-      MARPA_ERROR(MARPA_ERR_NO_AND_NODES);
-      return failure_indicator;
-  }
-  if (and_node_id < 0) {
-      MARPA_ERROR(MARPA_ERR_ANDID_NEGATIVE);
-      return failure_indicator;
-  }
-  if (and_node_id >= AND_Count_of_B(b)) {
+@ @<Check |and_node_id|; set |and_node|@> =
+{
+  if (and_node_id >= AND_Count_of_B (b))
+    {
       return -1;
+    }
+  if (and_node_id < 0)
+    {
+      MARPA_ERROR (MARPA_ERR_ANDID_NEGATIVE);
+      return failure_indicator;
+    }
+  {
+    AND and_nodes = ANDs_of_B (b);
+    if (!and_nodes)
+      {
+	MARPA_ERROR (MARPA_ERR_NO_AND_NODES);
+	return failure_indicator;
+      }
+    and_node = and_nodes + and_node_id;
   }
-  and_node = and_nodes + and_node_id;
 }
 
 @ @<Function definitions@> =
-int marpa_b_and_node_parent(Marpa_Bocage b, int and_node_id)
+int _marpa_b_and_node_parent(Marpa_Bocage b,
+  Marpa_And_Node_ID and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |and_node_id|; set |and_node|@>@;
+  @<Check |and_node_id|; set |and_node|@>@;
   return ID_of_OR (OR_of_AND (and_node));
 }
 
 @ @<Function definitions@> =
-int marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
+int _marpa_b_and_node_predecessor(Marpa_Bocage b,
+  Marpa_And_Node_ID and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |and_node_id|; set |and_node|@>@;
+  @<Check |and_node_id|; set |and_node|@>@;
     {
       const OR predecessor_or = Predecessor_OR_of_AND (and_node);
       const ORID predecessor_or_id =
@@ -10204,7 +10212,8 @@ int marpa_b_and_node_predecessor(Marpa_Bocage b, int and_node_id)
 }
 
 @ @<Function definitions@> =
-int marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
+int _marpa_b_and_node_cause(Marpa_Bocage b,
+  Marpa_And_Node_ID and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10219,7 +10228,8 @@ int marpa_b_and_node_cause(Marpa_Bocage b, int and_node_id)
 }
 
 @ @<Function definitions@> =
-int marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
+int _marpa_b_and_node_symbol(Marpa_Bocage b,
+  Marpa_And_Node_ID and_node_id)
 {
   AND and_node;
   @<Return |-2| on failure@>@;
@@ -10234,7 +10244,7 @@ int marpa_b_and_node_symbol(Marpa_Bocage b, int and_node_id)
 }
 
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_b_and_node_token(Marpa_Bocage b,
+Marpa_Symbol_ID _marpa_b_and_node_token(Marpa_Bocage b,
     Marpa_And_Node_ID and_node_id, int* value_p)
 {
   TOK token;
@@ -10330,13 +10340,15 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 
     if (G_is_Trivial(g)) {
         if (ordinal_arg > 0) goto NO_PARSE;
-	return r_create_null_bocage(r, b);
+	B_is_Nulling(b) = 1;
+	return b;
     }
     r_update_earley_sets(r);
     @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
     if (end_of_parse_earleme == 0) {
 	if (! g->t_null_start_rule) goto NO_PARSE;
-	return r_create_null_bocage(r, b);
+	B_is_Nulling(b) = 1;
+	return b;
     }
     @<Find |start_eim|, |start_aim| and |start_aex|@>@;
     if (!start_eim) goto NO_PARSE;
@@ -10402,42 +10414,6 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
   if (!end_of_parse_earley_set)
     goto NO_PARSE;
   end_of_parse_earleme = Earleme_of_ES (end_of_parse_earley_set);
-}
-
-@ The caller is assumed to have checked that the end of parse
-is earleme 0, and that null parses are allowed.
-If null parses are allowed, there is guaranteed to be a
-null start rule.
-@ Not inline --- should not be called a lot.
-@<Function definitions@> =
-PRIVATE_NOT_INLINE BOCAGE r_create_null_bocage(RECCE r, BOCAGE b)
-{
-  const GRAMMAR g = G_of_R(r);
-  const RULE null_start_rule = g->t_null_start_rule;
-  int rule_length = Length_of_RULE (g->t_null_start_rule);
-  OR *or_nodes = ORs_of_B (b) = my_new (OR, 1);
-  AND and_nodes = ANDs_of_B (b) = my_new (AND_Object, 1);
-  OR or_node = or_nodes[0] =
-    (OR) my_obstack_alloc (&OBS_of_B (b), sizeof (OR_Object));
-  ORID null_or_node_id = 0;
-
-  B_is_Nulling(b) = 1;
-  Top_ORID_of_B (b) = null_or_node_id;
-
-  RULE_of_OR (or_node) = null_start_rule;
-  Position_of_OR (or_node) = rule_length;
-  Origin_Ord_of_OR (or_node) = 0;
-  ID_of_OR (or_node) = null_or_node_id;
-  ES_Ord_of_OR (or_node) = 0;
-  First_ANDID_of_OR (or_node) = 0;
-  AND_Count_of_OR (or_node) = 1;
-
-  OR_of_AND (and_nodes) = or_node;
-  Predecessor_OR_of_AND (and_nodes) = NULL;
-  Cause_OR_of_AND (and_nodes) =
-    (OR) TOK_by_SYMID ( RHS_ID_of_RULE (null_start_rule, rule_length - 1));
-
-  return b;
 }
 
 @
@@ -10552,8 +10528,9 @@ Marpa_Grammar marpa_b_g(Marpa_Bocage b)
 }
 
 @*0 Top or-node.
-@ @<Function definitions@> =
-Marpa_Or_Node_ID marpa_b_top_or_node(Marpa_Bocage b)
+@ If |b| is nulling, the top Or node ID will be -1.
+@<Function definitions@> =
+Marpa_Or_Node_ID _marpa_b_top_or_node(Marpa_Bocage b)
 {
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
@@ -10660,80 +10637,87 @@ or negative.
 }
 
 @ @<Function definitions@> =
-int marpa_b_or_node_set(Marpa_Bocage b, int or_node_id)
+int _marpa_b_or_node_set(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
   return ES_Ord_of_OR(or_node);
 }
 
 @ @<Function definitions@> =
-int marpa_b_or_node_origin(Marpa_Bocage b, int or_node_id)
+int _marpa_b_or_node_origin(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
   return Origin_Ord_of_OR(or_node);
 }
 
 @ @<Function definitions@> =
-int marpa_b_or_node_rule(Marpa_Bocage b, int or_node_id)
+int _marpa_b_or_node_rule(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
   return ID_of_RULE(RULE_of_OR(or_node));
 }
 
 @ @<Function definitions@> =
-int marpa_b_or_node_position(Marpa_Bocage b, int or_node_id)
+int _marpa_b_or_node_position(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
   return Position_of_OR(or_node);
 }
 
 @ @<Function definitions@> =
-int marpa_b_or_node_first_and(Marpa_Bocage b, int or_node_id)
+int _marpa_b_or_node_first_and(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node);
 }
 
 @ @<Function definitions@> =
-int marpa_b_or_node_last_and(Marpa_Bocage b, int or_node_id)
+int _marpa_b_or_node_last_and(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
   return First_ANDID_of_OR(or_node)
       + AND_Count_of_OR(or_node) - 1;
 }
 
 @ @<Function definitions@> =
-int marpa_b_or_node_and_count(Marpa_Bocage b, int or_node_id)
+int _marpa_b_or_node_and_count(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
 {
   OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
   return AND_Count_of_OR(or_node);
 }
 
@@ -11047,7 +11031,7 @@ Marpa_And_Node_ID _marpa_o_and_order_get(Marpa_Order o,
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
-    @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
   if (ix < 0) {
       MARPA_ERROR(MARPA_ERR_ANDIX_NEGATIVE);
       return failure_indicator;

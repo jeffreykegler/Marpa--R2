@@ -100,8 +100,8 @@ sub tag_completion {
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     die if not defined $grammar;
     my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $parent           = $bocage->and_node_parent($and_node_id);
-    my $rule_id          = $bocage->or_node_rule($parent);
+    my $parent           = $bocage->_marpa_b_and_node_parent($and_node_id);
+    my $rule_id          = $bocage->_marpa_b_or_node_rule($parent);
     my $semantic_rule_id = $grammar_c->_marpa_g_rule_semantic_equivalent($rule_id);
     my $rules            = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $rule             = $rules->[$semantic_rule_id];
@@ -115,7 +115,7 @@ sub tag_completion {
     return if not defined $blocktype;
     my $PPI_tokens       = $parser->{PPI_tokens};
     my $earleme_to_token = $parser->{earleme_to_PPI_token};
-    my $origin           = $bocage->or_node_origin($parent);
+    my $origin           = $bocage->_marpa_b_or_node_origin($parent);
     my $origin_earleme   = $recce_c->earleme($origin);
     my $token    = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
     my $location = 'line '

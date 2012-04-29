@@ -1699,31 +1699,31 @@ On other problems, it returns -2.
 @node Bocage internals,  , Bocage reference counting, Bocage
 @section Internals
 
-@deftypefun int marpa_b_and_node_count ( @
+@deftypefun int _marpa_b_and_node_count ( @
     Marpa_Bocage @var{b})
 @end deftypefun
 
-@deftypefun int marpa_b_and_node_parent ( @
+@deftypefun int _marpa_b_and_node_parent ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})
 @end deftypefun
 
-@deftypefun int marpa_b_and_node_predecessor ( @
+@deftypefun int _marpa_b_and_node_predecessor ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})
 @end deftypefun
 
-@deftypefun int marpa_b_and_node_cause ( @
+@deftypefun int _marpa_b_and_node_cause ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})
 @end deftypefun
 
-@deftypefun int marpa_b_and_node_symbol ( @
+@deftypefun int _marpa_b_and_node_symbol ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_b_and_node_token ( @
+@deftypefun Marpa_Symbol_ID _marpa_b_and_node_token ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id}, @
     int* @var{value_p})
@@ -1745,13 +1745,13 @@ because of the need to indicate errors, it is just as
 easy to return the symbol ID as well.
 @end deftypefun
 
-@deftypefun Marpa_Or_Node_ID marpa_b_top_or_node ( @
+@deftypefun Marpa_Or_Node_ID _marpa_b_top_or_node ( @
     Marpa_Bocage @var{b})
 
 Return the ID of the top or-node.
 @end deftypefun
 
-@deftypefun int marpa_b_or_node_set ( @
+@deftypefun int _marpa_b_or_node_set ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 
@@ -1759,32 +1759,32 @@ Return the ordinal of the current (final) Earley set of
 the or-node.
 @end deftypefun
 
-@deftypefun int marpa_b_or_node_origin ( @
+@deftypefun int _marpa_b_or_node_origin ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun int marpa_b_or_node_rule ( @
+@deftypefun int _marpa_b_or_node_rule ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun int marpa_b_or_node_position ( @
+@deftypefun int _marpa_b_or_node_position ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun int marpa_b_or_node_first_and ( @
+@deftypefun int _marpa_b_or_node_first_and ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun int marpa_b_or_node_last_and ( @
+@deftypefun int _marpa_b_or_node_last_and ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun int marpa_b_or_node_and_count ( @
+@deftypefun int _marpa_b_or_node_and_count ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun

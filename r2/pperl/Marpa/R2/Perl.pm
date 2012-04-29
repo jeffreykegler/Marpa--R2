@@ -1289,11 +1289,11 @@ sub Marpa::R2::Perl::foreach_completion {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     AND_NODE: for ( my $id = 0;; $id++ ) {
-        my $parent = $bocage->and_node_parent($id);
+        my $parent = $bocage->_marpa_b_and_node_parent($id);
         last AND_NODE if not defined $parent;
-        my $rule_id = $bocage->or_node_rule($parent);
+        my $rule_id = $bocage->_marpa_b_or_node_rule($parent);
         next AND_NODE if $grammar_c->_marpa_g_rule_is_virtual_lhs($rule_id);
-        my $position   = $bocage->or_node_position($parent);
+        my $position   = $bocage->_marpa_b_or_node_position($parent);
         my $rhs_length = $grammar_c->rule_length($rule_id);
         next AND_NODE if $position != $rhs_length;
         $closure->( $parser, $id );
