@@ -3419,15 +3419,10 @@ in the literature --- it is called ``augmenting the grammar".
     XSY proper_start_xsy = NULL;
     ISY proper_start_isy = NULL;
     const XSY start_xsy = SYM_by_ID(g->t_start_xsyid);
-    @<Find and classify the old start symbols@>@;
+    if (LIKELY(!SYM_is_Nulling(start_xsy))) {
+	proper_start_xsy = start_xsy;
+    }
     if (proper_start_xsy) { @<Set up a new proper start rule@>@; }
-}
-
-@ @<Find and classify the old start symbols@> =
-if (SYM_is_Nulling(start_xsy)) {
-   start_xsy->t_is_accessible = 0;
-} else {
-    proper_start_xsy = start_xsy;
 }
 
 @ @<Set up a new proper start rule@> = {
