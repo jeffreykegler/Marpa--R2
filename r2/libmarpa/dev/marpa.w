@@ -762,17 +762,15 @@ int marpa_g_rule_count(Marpa_Grammar g) {
 @ Adds the rule to the list of rules kept by the Grammar
 object.
 @<Function definitions@> =
-PRIVATE
-void rule_add(
-    GRAMMAR g,
-    RULE rule)
+PRIVATE void
+rule_add (GRAMMAR g, RULE rule)
 {
-    const RULEID new_id = DSTACK_LENGTH((g)->t_xrl_stack);
-    *DSTACK_PUSH((g)->t_xrl_stack, RULE) = rule;
-    rule->t_id = new_id;
-    External_Size_of_G(g) += 1 + Length_of_RULE(rule);
-    Internal_Size_of_G(g) += 1 + Length_of_RULE(rule);
-    g->t_max_rule_length = MAX(Length_of_RULE(rule), g->t_max_rule_length);
+  const RULEID new_id = DSTACK_LENGTH ((g)->t_xrl_stack);
+  *DSTACK_PUSH ((g)->t_xrl_stack, RULE) = rule;
+  rule->t_id = new_id;
+  External_Size_of_G (g) += 1 + Length_of_RULE (rule);
+  Internal_Size_of_G (g) = External_Size_of_G (g);
+  g->t_max_rule_length = MAX (Length_of_RULE (rule), g->t_max_rule_length);
 }
 
 @ Check that rule is in valid range.
@@ -807,11 +805,11 @@ These are the start rules, after the grammar is augmented.
 Only one of these needs to be non-NULL.
 A productive grammar
 with no proper start rule is considered trivial.
-@d G_is_Trivial(g) (!(g)->t_proper_start_rule)
+@d G_is_Trivial(g) (!(g)->t_start_irl)
 @<Int aligned grammar elements@> =
-RULE t_proper_start_rule;
+IRL t_start_irl;
 @ @<Initialize grammar elements@> =
-g->t_proper_start_rule = NULL;
+g->t_start_irl = NULL;
 @
 {\bf To Do}: @^To Do@>
 Check that all trace functions are safe if G is trivial.
@@ -1551,6 +1549,18 @@ const SYMID lhs, const SYMID *rhs, int length)
     return rule;
 }
 
+PRIVATE IRL
+irl_new(GRAMMAR g,
+const SYMID lhs, const SYMID *rhs, int length)
+{
+    const XRL xrl = rule_new(g, lhs, rhs, length);
+    const IRL new_irl = my_obstack_new (&g->t_obs, struct s_irl, 1);
+    *DSTACK_PUSH((g)->t_irl_stack, IRL) = new_irl;
+    Co_RULE_of_IRL(new_irl) = xrl;
+    g->t_max_rule_length = MAX(Length_of_RULE(xrl), g->t_max_rule_length);
+    return new_irl;
+}
+
 @ @<Function definitions@> =
 Marpa_Rule_ID
 marpa_g_rule_new (Marpa_Grammar g,
@@ -2243,7 +2253,7 @@ be using it.
 
 @ @<Private structures@> =
 struct s_irl {
-    struct s_xrl *co_rule;
+    XRL t_co_rule;
 };
 @
 @<Private typedefs@> =
@@ -2255,14 +2265,7 @@ typedef Marpa_Rule_ID IRLID;
 @ {\bf To Do}: @^To Do@>
 Delete this when division of grammar into
 external and internal is complete.
-@d Co_RULE_of_IRL(irl) ((irl)->co_rule)
-
-@*0 ID.
-The {\bf rule ID} is a number which
-acts as the unique identifier for a rule.
-The rule ID is initialized when the rule is
-added to the list of rules.
-@d ID_of_IRL(irl) (ID_of_RULE(RULE_of_IRL(irl)))
+@d Co_RULE_of_IRL(irl) ((irl)->t_co_rule)
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
@@ -3434,6 +3437,7 @@ in the literature --- it is called ``augmenting the grammar".
 }
 
 @ @<Set up a new proper start rule@> = {
+  IRL new_start_irl;
   RULE new_start_rule;
 
   ISYID start_isyid = -1;
@@ -3445,11 +3449,12 @@ in the literature --- it is called ``augmenting the grammar".
 
   start_xsy->t_is_start = 0;
 
-  new_start_rule = rule_new (g, start_isyid, &start_xsyid, 1);
+  new_start_irl = irl_new (g, start_isyid, &start_xsyid, 1);
+  new_start_rule = Co_RULE_of_IRL(new_start_irl);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   RULE_is_Used(new_start_rule) = 1;
-  g->t_proper_start_rule = new_start_rule;
+  g->t_start_irl = new_start_irl;
 }
 
 @** Loops.
@@ -4499,7 +4504,8 @@ _marpa_avl_destroy(duplicates);
 @ @<Construct initial AHFA states@> =
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
-  const RULE start_rule = g->t_proper_start_rule;
+  const IRL start_irl = g->t_start_irl;
+  const RULE start_rule = Co_RULE_of_IRL(start_irl);
   SYMID *postdot_symbol_ids;
   AIM start_item;
   AIM *item_list = my_obstack_alloc (&g->t_obs, sizeof (AIM));
@@ -10463,7 +10469,9 @@ to make sense.
 {
     int eim_ix;
     EIM* const earley_items = EIMs_of_ES(end_of_parse_earley_set);
-    const RULEID sought_rule_id = ID_of_RULE(g->t_proper_start_rule);
+    const IRL start_irl = g->t_start_irl;
+    const RULE start_rule = Co_RULE_of_IRL(start_irl);
+    const RULEID sought_rule_id = ID_of_RULE(start_rule);
     const int earley_item_count = EIM_Count_of_ES(end_of_parse_earley_set);
     for (eim_ix = 0; eim_ix < earley_item_count; eim_ix++) {
         const EIM earley_item = earley_items[eim_ix];
