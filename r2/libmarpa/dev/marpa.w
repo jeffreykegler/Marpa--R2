@@ -2513,8 +2513,6 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       const int rule_length = Length_of_RULE (rule);
       const int is_sequence = XRL_is_Sequence (rule);
 
-      if (XRL_is_Internal(rule)) continue;
-
       bv_bit_set (lhs_v, (unsigned int) lhs_id);
 
       /* Insert the LH Sym / XRL pair into the LH AVL tree */
@@ -2729,7 +2727,6 @@ where many of the right hand sides repeat symbols.
       RULE rule = RULE_by_ID (g, rule_id);
       SYMID lhs_id = LHS_ID_of_RULE (rule);
       unsigned int rhs_ix, rule_length = Length_of_RULE (rule);
-      if (XRL_is_Internal(rule)) continue;
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	{
 	  matrix_bit_set (reach_matrix,
@@ -3535,7 +3532,6 @@ for (rule_id = 0; rule_id < xrl_count; rule_id++) {
      int nonnulling_count = 0;
      int rhs_ix, rule_length;
      rule_length = Length_of_RULE(rule);
-     if (UNLIKELY(XRL_is_Internal(rule))) continue;
      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 	 Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
 	 if (bv_bit_test(nullable_v, symid)) continue;
@@ -12577,7 +12573,6 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID ** xrl_list_x_rh_sym)
 
 	  const int is_sequence = XRL_is_Sequence (rule);
 
-	  if (XRL_is_Internal(rule)) goto NEXT_RULE;
 	  if (bv_bit_test (bv, (unsigned int) lhs_id))
 	    goto NEXT_RULE;
 	  rule_length = Length_of_RULE (rule);
