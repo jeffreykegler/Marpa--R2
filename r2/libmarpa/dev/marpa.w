@@ -688,7 +688,7 @@ with their
 @<Widely aligned grammar elements@> =
     DSTACK_DECLARE(t_symbols);
 @ @<Initialize grammar elements@> =
-    DSTACK_INIT(g->t_symbols, SYM, 256 );
+    DSTACK_INIT2(g->t_symbols, SYM );
 @ @<Destroy grammar elements@> =
 {  SYMID id; for (id = 0; id < symbol_count_of_g; id++)
 { symbol_free(SYM_by_ID(id)); } }
@@ -731,14 +731,17 @@ with their |Marpa_Rule_ID| as the index.
 The |rule_tree| is a tree for detecting duplicates.
 @<Widely aligned grammar elements@> =
     DSTACK_DECLARE(t_xrl_stack);
+    DSTACK_DECLARE(t_irl_stack);
     struct marpa_avl_table* rule_tree;
 @ @<Initialize grammar elements@> =
-    DSTACK_INIT(g->t_xrl_stack, RULE, 256);
+    DSTACK_INIT2(g->t_xrl_stack, RULE);
+    DSTACK_SAFE(g->t_irl_stack);
     g->rule_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, alignof (RULE));
 @ @<Destroy rule tree@> =
     _marpa_avl_destroy (g->rule_tree);
     g->rule_tree = NULL;
 @ @<Destroy grammar elements@> =
+    DSTACK_DESTROY(g->t_irl_stack);
     DSTACK_DESTROY(g->t_xrl_stack);
     @<Destroy rule tree@>@;
 
@@ -1476,7 +1479,7 @@ int _marpa_g_symbol_xrl_offset(Marpa_Grammar g, Marpa_Symbol_ID symid)
   return XRL_Offset_of_ISY(symbol);
 }
 
-@** Rule (RULE) Code.
+@** External Rule (XRL) Code.
 @s Marpa_Rule_ID int
 @<Public typedefs@> =
 typedef int Marpa_Rule_ID;
@@ -1493,11 +1496,9 @@ struct s_xrl {
 @<Private typedefs@> =
 struct s_xrl;
 typedef struct s_xrl* XRL;
-typedef XRL IRL;
 typedef XRL RULE;
 typedef Marpa_Rule_ID RULEID;
 typedef Marpa_Rule_ID XRLID;
-typedef Marpa_Rule_ID IRLID;
 
 @*0 Rule Construction.
 @ Set up the basic data.
@@ -2240,18 +2241,28 @@ be using it.
 
 @** Internal Rule (IRL) Code.
 
+@ @<Private structures@> =
+struct s_irl {
+    struct s_xrl *co_rule;
+};
+@
+@<Private typedefs@> =
+struct s_irl;
+typedef struct s_irl* IRL;
+typedef Marpa_Rule_ID IRLID;
+
 @*0 Development stubs.
 @ {\bf To Do}: @^To Do@>
 Delete this when division of grammar into
 external and internal is complete.
-@d RULE_of_IRL(irl) (irl)
+@d Co_RULE_of_IRL(irl) ((irl)->co_rule)
 
 @*0 ID.
 The {\bf rule ID} is a number which
 acts as the unique identifier for a rule.
 The rule ID is initialized when the rule is
 added to the list of rules.
-@d ID_of_IRL(rule) (ID_of_RULE(rule))
+@d ID_of_IRL(irl) (ID_of_RULE(RULE_of_IRL(irl)))
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
@@ -2346,6 +2357,7 @@ int marpa_g_precompute(Marpa_Grammar g)
      if (!G_is_Trivial(g)) {
 	@<Declare variables for the internal grammar
 	memoizations@>@;
+	@<Initialize IRL stack@>@;
 	@<Calculate Rule by LHS lists@>@;
 	@<Create AHFA items@>@;
 	@<Create AHFA states@>@;
@@ -4659,6 +4671,12 @@ be if written 100\% using indexes.
   const RULEID irl_count = RULE_Count_of_G(g);
   const SYMID ins_count = SYM_Count_of_G(g);
   RULEID** irl_list_x_lh_sym = NULL;
+
+@ Initialized based on the capacity of the XRL stack, rather
+than its length, as a convenient way to deal with issues
+of minimum sizes.
+@<Initialize IRL stack@> =
+    DSTACK_INIT(g->t_irl_stack, IRL, 2*DSTACK_CAPACITY(g->t_xrl_stack));
 
 @ @<Calculate Rule by LHS lists@> =
 {
@@ -12847,6 +12865,7 @@ resizings unnecessary.
    : DSTACK_INDEX((this), type, DSTACK_LENGTH(this)-1))
 @d DSTACK_BASE(this, type) ((type *)(this).t_base)
 @d DSTACK_LENGTH(this) ((this).t_count)
+@d DSTACK_CAPACITY(this) ((this).t_capacity)
 
 @
 |DSTACK|'s can have their data ``stolen", by other containers.
