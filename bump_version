@@ -10,6 +10,11 @@ use IPC::Cmd;
 chomp(my $LATEST = qx(grep '^[0-9]' r2/Changes | head -1 | awk '{print \$1}'));
 
 warn "Bumping -> $LATEST\n";
+(my $micro = $LATEST) =~ s/\A 0 [.] 001 [_] //xms;
+if (not defined $micro) {
+    die "bump_version Cannot handle new version number: $LATEST";
+}
+$micro += 0;
 
 my @versioned_files = split /\n/xms, <<'END_OF_LIST';
 r2/html/lib/Marpa/R2/HTML/Callback.pm
@@ -28,6 +33,22 @@ for my $versioned_file (@versioned_files) {
     open my $out, '>', $versioned_file;
     print $out $file;
 } ## end for my $versioned_file (@versioned_files)
+
+for my $configure_ac_file (
+    qw(
+    r2/libmarpa/dev/dist/configure.ac
+    r2/libmarpa/dev/doc_dist/configure.ac
+    )
+    )
+{
+    say STDERR $configure_ac_file;
+    my $file = do { local ( @ARGV, $/ ) = ($configure_ac_file); <> };
+    $file =~ s{
+    ( m4_define [(] [\[] marpa_micro_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
+  }{$1${micro}$2}xms;
+    open my $out, '>', $configure_ac_file;
+    print $out $file;
+} ## end for my $configure_ac_file ( qw( r2/libmarpa/dev/dist/configure.ac...))
 
 chdir 'r2';
 die qq{"perl Build.PL" failed: $!}
