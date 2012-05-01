@@ -39,12 +39,12 @@ BEGIN {
         Test::More::plan skip_all => $PPI_problem;
     }
     else {
-        Test::More::plan tests => 2;
+        Test::More::plan tests => 1;
     }
-    use Marpa::R2;
-    use Marpa::R2::Perl;
 } ## end BEGIN
 
+use Marpa::R2;
+use Marpa::R2::Perl;
 use lib 'inc';
 use Marpa::R2::Test;
 

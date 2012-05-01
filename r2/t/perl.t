@@ -40,7 +40,7 @@ BEGIN {
         Test::More::plan skip_all => $PPI_problem;
     }
     else {
-        Test::More::plan tests => 14;
+        Test::More::plan tests => 12;
     }
     use Marpa::R2;
     use Marpa::R2::Perl;
