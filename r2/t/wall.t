@@ -32,7 +32,7 @@ use lib 'inc';
 use Marpa::R2::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::R2');
+    use Marpa::R2;
 }
 
 # The inefficiency (at least some of it) is deliberate.

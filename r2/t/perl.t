@@ -42,8 +42,8 @@ BEGIN {
     else {
         Test::More::plan tests => 14;
     }
-    Test::More::use_ok('Marpa::R2');
-    Test::More::use_ok('Marpa::R2::Perl');
+    use Marpa::R2;
+    use Marpa::R2::Perl;
 } ## end BEGIN
 
 our @OUTPUT = ();

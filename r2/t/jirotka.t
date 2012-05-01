@@ -29,7 +29,7 @@ use English qw( -no_match_vars );
 use Fatal qw( close open );
 
 BEGIN {
-    Test::More::use_ok('Marpa::R2');
+    use Marpa::R2;
 }
 
 # Regression test for bug originally found and documented

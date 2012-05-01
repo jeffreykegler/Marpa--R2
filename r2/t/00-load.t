@@ -21,7 +21,7 @@ use strict;
 use Test::More tests => 3;
 
 BEGIN {
-    Test::More::use_ok('Marpa::R2');
+    use Marpa::R2;
 }
 
 defined $INC{'Marpa/R2.pm'}

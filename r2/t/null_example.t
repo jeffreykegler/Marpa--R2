@@ -27,7 +27,7 @@ use English qw( -no_match_vars );
 use Fatal qw(open close);
 
 BEGIN {
-    Test::More::use_ok('Marpa::R2');
+    use Marpa::R2;
 }
 
 ## no critic (InputOutput::RequireBriefOpen)
