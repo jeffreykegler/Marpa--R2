@@ -1595,6 +1595,7 @@ marpa_g_rule_new (Marpa_Grammar g,
   rule = rule_finish (g, rule);
   rule = my_obstack_finish(&g->t_xrl_obs);
   XRL_is_Internal (rule) = 0;
+  XRL_is_BNF (rule) = 1;
   rule_id = rule->t_id;
   return rule_id;
   FAILURE:
@@ -1623,7 +1624,6 @@ int min, int flags )
 @<Add the original rule for a sequence@> =
 {
   original_rule = rule_new (g, lhs_id, &rhs_id, 1);
-  RULE_is_Used (original_rule) = 0;
   original_rule_id = original_rule->t_id;
   if (separator_id >= 0)
     Separator_of_XRL (original_rule) = separator_id;
@@ -1840,10 +1840,18 @@ True for internal rules, false otherwise.
 @ {\bf To Do}: @^To Do@>
 Eliminate this once the external / internal division is
 finished.
-@d XRL_is_Internal(rule) ((rule)->t_is_Internal)
-@<Bit aligned rule elements@> = unsigned int t_is_Internal:1;
+@d XRL_is_Internal(rule) ((rule)->t_is_internal)
+@<Bit aligned rule elements@> = unsigned int t_is_internal:1;
 @ @<Initialize rule elements@> =
-rule->t_is_Internal = 1;
+rule->t_is_internal = 1;
+
+@*0 Rule is user-created BNF?.
+True for if the rule is a user-created
+BNF rule, false otherwise.
+@d XRL_is_BNF(rule) ((rule)->t_is_bnf)
+@<Bit aligned rule elements@> = unsigned int t_is_bnf:1;
+@ @<Initialize rule elements@> =
+rule->t_is_bnf = 0;
 
 @*0 Rule is sequence?.
 True for external sequence rules, false otherwise.
@@ -2007,16 +2015,17 @@ int marpa_g_rule_is_productive(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 
 @*0 Is Rule Used?.
 Is the rule used in computing the AHFA sets?
-@d RULE_is_Used(rule) ((rule)->t_is_used)
-@<Bit aligned rule elements@> = unsigned int t_is_used:1;
-@ @<Initialize rule elements@> =
-RULE_is_Used(rule) = 1;
-@ @<Function definitions@> =
-int _marpa_g_rule_is_used(struct marpa_g* g, Marpa_Rule_ID rule_id)
+@d RULE_is_Used(xrl) (
+  XRL_is_Accessible(xrl) && XRL_is_Productive(xrl) && !XRL_is_Nulling(xrl)
+)
+@<Function definitions@> =
+int
+_marpa_g_rule_is_used(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
-    @<Return |-2| on failure@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-return RULE_is_Used(RULE_by_ID(g, rule_id)); }
+  @<Return |-2| on failure@>@;
+  @<Fail if grammar |xrl_id| is invalid@>@;
+  return XRL_is_Internal(XRL_by_ID(xrl_id));
+}
 
 @*0 Rule has virtual LHS?.
 This is for Marpa's ``internal semantics".
@@ -2835,6 +2844,7 @@ and productive.
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
   {
     const RULE original_rule = RULE_by_ID(g, rule_id);
+    if (!RULE_is_Used(original_rule)) continue;
     if (!XRL_is_Sequence (original_rule)) continue;
     @<Rewrite |original_rule| into BNF@>@;
   }
@@ -2970,60 +2980,33 @@ the pre-CHAF rule count.
     @<Alias proper nullables@>@;
     pre_chaf_rule_count = RULE_Count_of_G(g);
     for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
+
+MARPA_DEBUG3("%s: rule_id=%d", STRLOC, rule_id);
+
          RULE  rule = RULE_by_ID(g, rule_id);
 	 const int rule_length = Length_of_RULE(rule);
 	 int nullable_suffix_ix = 0;
-	 if (XRL_is_Internal(rule)) {
-	   RULE original_rule = RULE_by_ID (g, rule->t_original);
-	   if (!XRL_is_Accessible(original_rule))
-	   {
-	      RULE_is_Used (rule) = 0;
-	      goto NEXT_CHAF_CANDIDATE;
+	 if (XRL_is_BNF(rule) && RULE_is_Used(rule)) {
+	   @<Calculate CHAF rule statistics@>@;
+	   /* Do not factor if there is no proper nullable in the rule */
+
+MARPA_DEBUG4("%s: rule_id=%d factor_count=%d", STRLOC, rule_id, factor_count);
+
+	   if (factor_count > 0) {
+
+MARPA_DEBUG4("%s: rule_id=%d factor_count=%d", STRLOC, rule_id, factor_count);
+
+	     @<Factor the rule into CHAF rules@>@;
+	   } else {
+	       XRL_is_Internal(rule) = 1;
 	   }
-	   if (!XRL_is_Productive(original_rule))
-	   {
-	      RULE_is_Used (rule) = 0;
-	      goto NEXT_CHAF_CANDIDATE;
-	   }
-	   if (rule_length <= 0) {
-	      RULE_is_Used (rule) = 0;
-	      goto NEXT_CHAF_CANDIDATE;
-	   }
-	   goto NEXT_CHAF_CANDIDATE;
 	 }
-	 @<Mark and skip unused rules@>@;
-	 @<Calculate CHAF rule statistics@>@;
-	 /* If there is no proper nullable in this rule, I am done */
-	 if (factor_count <= 0) goto NEXT_CHAF_CANDIDATE;
-	 @<Factor the rule into CHAF rules@>@;
-	 NEXT_CHAF_CANDIDATE: ;
     }
     @<CHAF rewrite deallocations@>@;
 }
 @ @<CHAF rewrite declarations@> =
 Marpa_Rule_ID rule_id;
 int pre_chaf_rule_count;
-
-@ @<Mark and skip unused rules@> =
-if (!RULE_is_Used (rule))
-  {
-    goto NEXT_CHAF_CANDIDATE;
-  }
-if (XRL_is_Nulling (rule))
-  {
-    RULE_is_Used (rule) = 0;
-    goto NEXT_CHAF_CANDIDATE;
-  }
-if (!XRL_is_Accessible (rule))
-  {
-    RULE_is_Used (rule) = 0;
-    goto NEXT_CHAF_CANDIDATE;
-  }
-if (!XRL_is_Productive (rule))
-  {
-    RULE_is_Used (rule) = 0;
-    goto NEXT_CHAF_CANDIDATE;
-  }
 
 @ For every accessible and productive proper nullable which
 is not already aliased, alias it.
@@ -3085,7 +3068,6 @@ my_free(factor_positions);
 
 @*0 Divide the Rule into Pieces.
 @<Factor the rule into CHAF rules@> =
-RULE_is_Used(rule) = 0; /* Mark the original rule unused */
 {
     const XRL chaf_xrl = rule;
     /* The number of proper nullables for which CHAF rules have
@@ -3097,6 +3079,8 @@ RULE_is_Used(rule) = 0; /* Mark the original rule unused */
     /* The positions, in the original rule, where
 	the new (virtual) rule starts and ends */
     int piece_end, piece_start = 0;
+
+    XRL_is_Internal(chaf_xrl) = 0;
     for (unprocessed_factor_count = factor_count - factor_position_ix;
 	unprocessed_factor_count >= 3;
 	unprocessed_factor_count = factor_count - factor_position_ix) {
@@ -3420,7 +3404,6 @@ rule structure, and performing the call back.
 {
   const SYM current_lhs = SYM_by_ID (current_lhs_id);
   const int is_virtual_lhs = (piece_start > 0);
-  RULE_is_Used (chaf_rule) = 1;
   chaf_rule->t_original = rule_id;
   RULE_has_Virtual_LHS (chaf_rule) = is_virtual_lhs;
   chaf_rule->t_is_semantic_equivalent = !is_virtual_lhs;
@@ -3472,7 +3455,6 @@ in the literature --- it is called ``augmenting the grammar".
   new_start_rule = Co_RULE_of_IRL(new_start_irl);
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
-  RULE_is_Used(new_start_rule) = 1;
   g->t_start_irl = new_start_irl;
 }
 
@@ -3859,7 +3841,7 @@ or equal to the final numbers of items.
     unsigned int symbol_instance_of_next_rule = 0;
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
-      if (RULE_is_Used (rule) || XRL_is_Internal(rule)) {
+      if (XRL_is_Internal(rule)) {
 	@<Create the AHFA items for a rule@>@;
 	SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
 	symbol_instance_of_next_rule += Length_of_RULE(rule);
