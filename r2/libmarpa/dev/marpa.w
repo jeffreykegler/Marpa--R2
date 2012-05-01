@@ -3859,7 +3859,7 @@ or equal to the final numbers of items.
     unsigned int symbol_instance_of_next_rule = 0;
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
-      if (RULE_is_Used (rule)) {
+      if (RULE_is_Used (rule) || XRL_is_Internal(rule)) {
 	@<Create the AHFA items for a rule@>@;
 	SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
 	symbol_instance_of_next_rule += Length_of_RULE(rule);
