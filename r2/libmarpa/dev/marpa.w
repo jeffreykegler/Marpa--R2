@@ -705,7 +705,8 @@ int marpa_g_symbol_count(Marpa_Grammar g) {
 }
 
 @ Symbol by ID.
-@d SYM_by_ID(id) (*DSTACK_INDEX (g->t_symbols, SYM, (id)))
+@d XSY_by_ID(id) (*DSTACK_INDEX (g->t_symbols, XSY, (id)))
+@d SYM_by_ID(id) XSY_by_ID(id)
 
 @ Adds the symbol to the list of symbols kept by the Grammar
 object.
@@ -774,8 +775,9 @@ rule_add (GRAMMAR g, RULE rule)
 }
 
 @ Check that rule is in valid range.
-@d RULEID_of_G_is_Valid(g, rule_id)
-    ((rule_id) >= 0 && (rule_id) < RULE_Count_of_G(g))
+@d XRLID_of_G_is_Valid(rule_id)
+    ((rule_id) >= 0 && (rule_id) < XRL_Count_of_G(g))
+@d RULEID_of_G_is_Valid(g, rule_id) XRLID_of_G_is_Valid(rule_id)
 
 @*0 Start Symbol.
 @<Int aligned grammar elements@> = XSYID t_start_xsyid;
@@ -1196,7 +1198,10 @@ int marpa_g_symbol_ask_me_when_null_set(
     symbol = SYM_by_ID(symid);
     return SYM_is_Ask_Me_When_Null(symbol) = value ? 1 : 0;
 }
+
 @ Symbol Is Accessible Boolean
+@d XSY_is_Accessible(xsy) ((xsy)->t_is_accessible)
+@d SYM_is_Accessible(sym) XSY_is_Accessible(sym)
 @<Bit aligned symbol elements@> = unsigned int t_is_accessible:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_accessible = 0;
@@ -1209,11 +1214,11 @@ must be changed.
 @<Function definitions@> =
 int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
 {
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_by_ID(symid)->t_is_accessible;
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if not precomputed@>@;
+  @<Fail if |symid| is invalid@>@;
+  return XSY_is_Accessible( XSY_by_ID(symid));
 }
 
 @ Symbol Is Counted Boolean
@@ -1695,7 +1700,7 @@ duplicate_rule_cmp (const void *ap, const void *bp, void *param UNUSED)
 {
   XRL xrl1 = (XRL) ap;
   XRL xrl2 = (XRL) bp;
-  int diff = LHSID_of_XRL (xrl2) - LHSID_of_XRL (xrl1);
+  int diff = LHS_ID_of_XRL (xrl2) - LHS_ID_of_XRL (xrl1);
   if (diff)
     return diff;
   {
@@ -1748,7 +1753,7 @@ PRIVATE int
 rule_check (GRAMMAR g, XRL rule)
 {
   SYM lhs;
-  const XRLID lhs_id = LHSID_of_XRL (rule);
+  const XRLID lhs_id = LHS_ID_of_XRL (rule);
   if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
     goto INVALID_SYMID;
   lhs = SYM_by_ID (lhs_id);
@@ -1813,7 +1818,7 @@ int marpa_g_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
 
 @*1 Symbols of the Rule.
 @d LHS_ID_of_RULE(rule) ((rule)->t_symbols[0])
-@d LHSID_of_XRL(xrl) ((xrl)->t_symbols[0])
+@d LHS_ID_of_XRL(xrl) ((xrl)->t_symbols[0])
 @d RHS_ID_of_RULE(rule, position)
     ((rule)->t_symbols[(position)+1])
 @d RHSID_of_XRL(xrl, position)
@@ -1943,18 +1948,14 @@ int marpa_g_rule_is_proper_separation(
 @*0 Accessible Rules.
 @ A rule is accessible if its LHS is accessible.
 @<Function definitions@> =
-PRIVATE int rule_is_accessible(struct marpa_g* g, RULE  rule)
+int marpa_g_rule_is_accessible(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
-Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE(rule);
- return SYM_by_ID(lhs_id)->t_is_accessible; }
-int marpa_g_rule_is_accessible(Marpa_Grammar g, Marpa_Rule_ID rule_id)
-{
-    @<Return |-2| on failure@>@;
-RULE  rule;
-    @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-rule = RULE_by_ID(g, rule_id);
-return rule_is_accessible(g, rule);
+  @<Return |-2| on failure@>@;
+  XRL xrl;
+  @<Fail if fatal error@>@;
+  @<Fail if grammar |xrl_id| is invalid@>@;
+  xrl = RULE_by_ID(g, xrl_id);
+  return XRL_is_Accessible(xrl);
 }
 
 @*0 Productive Rules.
@@ -2002,6 +2003,13 @@ Is the rule nulling?
 @<Bit aligned rule elements@> = unsigned int t_is_nulling:1;
 @ @<Initialize rule elements@> =
 XRL_is_Nulling(rule) = 0;
+
+@*0 Is Rule Accessible?.
+Is the rule accessible?
+@d XRL_is_Accessible(rule) ((rule)->t_is_accessible)
+@<Bit aligned rule elements@> = unsigned int t_is_accessible:1;
+@ @<Initialize rule elements@> =
+XRL_is_Accessible(rule) = 1;
 
 @*0 Is Rule Used?.
 Is the rule used in computing the AHFA sets?
@@ -2804,8 +2812,11 @@ Note that this can be vacuously true --- an empty rule is nulling.
   XRLID xrl_id;
   for (xrl_id = 0; xrl_id < xrl_count; xrl_id++)
   {
-     XRL xrl = XRL_by_ID(xrl_id);
+    XRL xrl = XRL_by_ID(xrl_id);
     int rh_ix;
+    XSYID lhs_id = LHS_ID_of_XRL(xrl);
+    XSY lhs = XSY_by_ID(lhs_id);
+    XRL_is_Accessible(xrl) = XSY_is_Accessible(lhs);
     for (rh_ix = 0; rh_ix < Length_of_RULE (xrl); rh_ix++)
     {
       SYMID rhs_id = RHS_ID_of_RULE (xrl, rh_ix);
@@ -2964,7 +2975,7 @@ the pre-CHAF rule count.
 	 int nullable_suffix_ix = 0;
 	 if (XRL_is_Internal(rule)) {
 	   RULE original_rule = RULE_by_ID (g, rule->t_original);
-	   if (!rule_is_accessible(g, original_rule))
+	   if (!XRL_is_Accessible(original_rule))
 	   {
 	      RULE_is_Used (rule) = 0;
 	      goto NEXT_CHAF_CANDIDATE;
@@ -3003,7 +3014,7 @@ if (XRL_is_Nulling (rule))
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
   }
-if (!rule_is_accessible (g, rule))
+if (!XRL_is_Accessible (rule))
   {
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
@@ -13390,6 +13401,11 @@ if (UNLIKELY(!G_is_Precomputed(g))) {
 @ @<Fail if |symid| is invalid@> =
 if (UNLIKELY(!symbol_is_valid(g, symid))) {
     MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
+    return failure_indicator;
+}
+@ @<Fail if grammar |xrl_id| is invalid@> =
+if (UNLIKELY(!XRLID_of_G_is_Valid(xrl_id))) {
+    MARPA_ERROR (MARPA_ERR_INVALID_RULEID);
     return failure_indicator;
 }
 @ @<Fail if grammar |rule_id| is invalid@> =
