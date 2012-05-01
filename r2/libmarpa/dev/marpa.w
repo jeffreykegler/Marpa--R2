@@ -1996,22 +1996,12 @@ int marpa_g_rule_is_loop(struct marpa_g* g, Marpa_Rule_ID rule_id)
     @<Fail if not precomputed@>@;
 return RULE_by_ID(g, rule_id)->t_is_loop; }
 
-@*0 Nulling Rules.
-@ A rule is nulling if every symbol on its RHS is nulling.
-Note that this can be vacuously true --- an empty rule is nulling.
-@<Function definitions@> =
-PRIVATE int
-rule_is_nulling (GRAMMAR g, RULE rule)
-{
-  int rh_ix;
-  for (rh_ix = 0; rh_ix < Length_of_RULE (rule); rh_ix++)
-    {
-      SYMID rhs_id = RHS_ID_of_RULE (rule, rh_ix);
-      if (!SYM_is_Nulling(SYM_by_ID (rhs_id)))
-	return 0;
-    }
-  return 1;
-}
+@*0 Is Rule Nulling?.
+Is the rule nulling?
+@d XRL_is_Nulling(rule) ((rule)->t_is_nulling)
+@<Bit aligned rule elements@> = unsigned int t_is_nulling:1;
+@ @<Initialize rule elements@> =
+XRL_is_Nulling(rule) = 0;
 
 @*0 Is Rule Used?.
 Is the rule used in computing the AHFA sets?
@@ -2423,6 +2413,7 @@ a lot of useless diagnostics.
     @<Check that start symbol is productive@>@;
     @<Census accessible symbols@>@;
     @<Census nulling symbols@>@;
+    @<Classify rules@>@;
 }
 
 @ @<Declare precompute variables@> =
@@ -2806,6 +2797,26 @@ reach a terminal symbol.
     }
 }
 
+@ A rule is nulling if every symbol on its RHS is nulling.
+Note that this can be vacuously true --- an empty rule is nulling.
+@<Classify rules@> =
+{
+  XRLID xrl_id;
+  for (xrl_id = 0; xrl_id < xrl_count; xrl_id++)
+  {
+     XRL xrl = XRL_by_ID(xrl_id);
+    int rh_ix;
+    for (rh_ix = 0; rh_ix < Length_of_RULE (xrl); rh_ix++)
+    {
+      SYMID rhs_id = RHS_ID_of_RULE (xrl, rh_ix);
+      if (!SYM_is_Nulling(SYM_by_ID (rhs_id)))
+	goto NEXT_XRL;
+      }
+    XRL_is_Nulling(xrl) = 1;
+    NEXT_XRL: ;
+  }
+}
+
 @** The Sequence Rewrite.
 @<Rewrite sequence rules into BNF@> =
 {
@@ -2987,7 +2998,7 @@ if (!RULE_is_Used (rule))
   {
     goto NEXT_CHAF_CANDIDATE;
   }
-if (rule_is_nulling (g, rule))
+if (XRL_is_Nulling (rule))
   {
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
