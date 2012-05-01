@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <glib.h>
 #include "marpa.h"
 
 int
@@ -32,15 +31,11 @@ main (int argc, char **argv)
   /* Longest rule is 4 symbols */
   Marpa_Symbol_ID rhs[4];
   int initial_sleep = 0;
-  /* Try to move gslice area out of the
-     tree of Marpa calls */
-  void *dummy = g_slice_alloc (42);
   if (argc >= 2)
     {
       initial_sleep = atoi (argv[1]);
     }
-  g_slice_free1 (42, dummy);
-  g = marpa_g_new ();
+  g = marpa_g_new (2, 0, 38);
   S = marpa_g_symbol_new (g);
   A = marpa_g_symbol_new (g);
   a = marpa_g_symbol_new (g);
@@ -84,7 +79,7 @@ main (int argc, char **argv)
     }
   for (i = 0; i < 4; i++)
     {
-      int status = marpa_r_alternative (r, a, GINT_TO_POINTER (42), 1);
+      int status = marpa_r_alternative (r, a, 42, 1);
       if (status < 0)
 	{
 	  marpa_r_error (r, &error_string);
@@ -106,17 +101,17 @@ main (int argc, char **argv)
       Marpa_Order order;
       Marpa_Tree tree;
       int tree_ordinal = 0;
-      bocage = marpa_b_new (r, -1, i);
+      bocage = marpa_b_new (r, i);
       if (!bocage)
 	{
-	  gint errcode = marpa_r_error (r, &error_string);
+	  int errcode = marpa_r_error (r, &error_string);
 	  printf ("marpa_bocage_new returned %d: %s", errcode, error_string);
 	  exit (1);
 	}
       order = marpa_o_new (bocage);
       if (!order)
 	{
-	  gint errcode = marpa_g_error (g, &error_string);
+	  int errcode = marpa_g_error (g, &error_string);
 	  printf ("marpa_order_new returned %d: %s", errcode, error_string);
 	  exit (1);
 	}
@@ -130,7 +125,7 @@ main (int argc, char **argv)
       while (++tree_ordinal)
 	{
 	  Marpa_Value value;
-	  gint tree_status;
+	  int tree_status;
 	  tree_status = marpa_t_next(tree);
 	      if (tree_status < -1)
 		{
@@ -149,26 +144,25 @@ main (int argc, char **argv)
 	      exit (1);
 	    }
 	  while (1)
-	    {
-	      Marpa_Event event;
-	      int event_status = marpa_v_event (value, &event);
-	      if (event_status < -1)
-		{
-		  Marpa_Error_Code errcode = marpa_g_error (g, &error_string);
-		  printf ("marpa_v_event returned %d: %s", errcode,
-			  error_string);
-		  exit (1);
-		}
-	      if (event_status == -1) {
-		printf("No more events\n");
+	  {
+	    Marpa_Value_Type value_type = marpa_v_step (value);
+	    if (value_type < 0)
+	      {
+		Marpa_Error_Code errcode = marpa_g_error (g, &error_string);
+		printf ("marpa_v_event returned %d: %s", errcode, error_string);
+		exit (1);
+	      }
+	    if (value_type == MARPA_VALUE_INACTIVE)
+	      {
+		printf ("No more events\n");
 		break;
-		}
-	      fprintf (stdout, "Event: %d %d %d %d %d\n",
-		       event.marpa_token_id,
-		       GPOINTER_TO_INT (event.marpa_value),
-		       event.marpa_rule_id,
-		       event.marpa_arg_0, event.marpa_arg_n);
-	    }
+	      }
+	    fprintf (stdout, "Event: %d %d %d %d %d\n",
+		     marpa_v_semantic_token (value),
+		     marpa_v_token_value (value),
+		     marpa_v_semantic_rule (value),
+		     marpa_v_arg_0 (value), marpa_v_arg_n (value));
+	  }
 	  marpa_v_unref (value);
 	}
       marpa_t_unref (tree);
