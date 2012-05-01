@@ -42,8 +42,8 @@ use Test::More tests => 6;
 
 use lib 'tool/lib';
 use lib 'html/tool/lib';
-Test::More::use_ok('Marpa::R2::Test');
-Test::More::use_ok('Marpa::R2::HTML::Test::Util');
+use Marpa::R2::Test;
+use Marpa::R2::HTML::Test::Util;
 
 my @script_dir = qw( blib script );
 my @data_dir   = qw( html t fmt_t_data );

@@ -18,7 +18,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Test::More tests => 6;
+use Test::More tests => 5;
 use Fatal qw(open close);
 
 use lib 'inc';

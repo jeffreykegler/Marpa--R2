@@ -22,7 +22,7 @@ use strict;
 use warnings;
 
 use Fatal qw(open close);
-use Test::More tests => 3;
+use Test::More tests => 2;
 
 use lib 'inc';
 use Marpa::R2::Test;

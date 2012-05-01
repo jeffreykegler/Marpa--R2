@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 
-use Test::More tests => 5;
+use Test::More tests => 4;
 use lib 'inc';
 use Marpa::R2::Test;
 

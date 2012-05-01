@@ -40,7 +40,7 @@ BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Entities'); }
 Test::More::plan tests => 41;
 my $DEBUG = 2;
 
-Test::More::use_ok('Marpa::R2::HTML');
+use Marpa::R2::HTML;
 
 my $html_args = {
     ':CRUFT' => sub {

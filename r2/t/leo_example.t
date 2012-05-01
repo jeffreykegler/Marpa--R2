@@ -25,7 +25,7 @@ use warnings;
 # so now these are simply Leo-oriented regression tests.
 
 use Fatal qw(open close);
-use Test::More tests => 7;
+use Test::More tests => 6;
 
 use lib 'inc';
 use Marpa::R2::Test;

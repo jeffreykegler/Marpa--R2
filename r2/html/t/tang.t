@@ -39,8 +39,8 @@ BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::PullParser'); }
 
 BEGIN { Test::More::plan tests => 3; }
 
-Test::More::use_ok('Marpa::R2::Test');
-Test::More::use_ok('Marpa::R2::HTML');
+use Marpa::R2::Test;
+use Marpa::R2::HTML;
 
 use Carp;
 use Data::Dumper;

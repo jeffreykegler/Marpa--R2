@@ -22,7 +22,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 3;
 use lib 'inc';
 use Marpa::R2::Test;
 

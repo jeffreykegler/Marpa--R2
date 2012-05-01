@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 3;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );

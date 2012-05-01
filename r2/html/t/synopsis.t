@@ -37,7 +37,7 @@ BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::PullParser'); }
 
 BEGIN { use Test::More tests => 10; }
 
-Test::More::use_ok('Marpa::R2::Test');
+use Marpa::R2::Test;
 
 # This is just a dummy value for the synopsis
 my %empty_elements = ();
