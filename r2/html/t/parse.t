@@ -37,7 +37,7 @@ BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Entities'); }
 # These tests are based closely on those in the HTML-Tree module,
 # the authors of which I gratefully acknowledge.
 
-Test::More::plan tests => 41;
+Test::More::plan tests => 40;
 my $DEBUG = 2;
 
 use Marpa::R2::HTML;
