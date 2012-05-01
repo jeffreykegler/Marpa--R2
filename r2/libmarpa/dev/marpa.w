@@ -2843,24 +2843,24 @@ and productive.
   RULEID rule_id;
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
   {
-    const RULE original_rule = RULE_by_ID(g, rule_id);
-    if (!RULE_is_Used(original_rule)) continue;
-    if (!XRL_is_Sequence (original_rule)) continue;
-    @<Rewrite |original_rule| into BNF@>@;
+    const RULE sequence_rule = RULE_by_ID(g, rule_id);
+    if (!RULE_is_Used(sequence_rule)) continue;
+    if (!XRL_is_Sequence (sequence_rule)) continue;
+    @<Rewrite |sequence_rule| into BNF@>@;
   }
 }
 
-@ @<Rewrite |original_rule| into BNF@> =
+@ @<Rewrite |sequence_rule| into BNF@> =
 {
   const SYM internal_lhs = symbol_new (g);
   const SYMID internal_lhs_id = ID_of_SYM (internal_lhs);
-  const SYMID lhs_id = LHS_ID_of_RULE (original_rule);
-  const SYMID rhs_id = RHS_ID_of_RULE (original_rule, 0);
-  const SYMID separator_id = Separator_of_XRL (original_rule);
-  const RULEID original_rule_id = ID_of_RULE (original_rule);
-  LHS_XRL_of_ISY(internal_lhs) = original_rule;
+  const SYMID lhs_id = LHS_ID_of_RULE (sequence_rule);
+  const SYMID rhs_id = RHS_ID_of_RULE (sequence_rule, 0);
+  const SYMID separator_id = Separator_of_XRL (sequence_rule);
+  const RULEID sequence_rule_id = ID_of_RULE (sequence_rule);
+  LHS_XRL_of_ISY(internal_lhs) = sequence_rule;
   @<Add the top rule for the sequence@>@;
-  if (separator_id >= 0 && !XRL_is_Proper_Separation(original_rule)) {
+  if (separator_id >= 0 && !XRL_is_Proper_Separation(sequence_rule)) {
       @<Add the alternate top rule for the sequence@>@;
   }
   @<Add the minimum rule for the sequence@>@;
@@ -2869,50 +2869,50 @@ and productive.
 
 @ @<Add the top rule for the sequence@> =
 {
-    RULE rule;
-    rule = rule_new(g, lhs_id, &internal_lhs_id, 1);
-    rule->t_original = original_rule_id;
-    rule->t_is_semantic_equivalent = 1;
+    RULE rewrite_rule;
+    rewrite_rule = rule_new(g, lhs_id, &internal_lhs_id, 1);
+    rewrite_rule->t_original = sequence_rule_id;
+    rewrite_rule->t_is_semantic_equivalent = 1;
     /* Real symbol count remains at default of 0 */
-    RULE_has_Virtual_RHS (rule) = 1;
+    RULE_has_Virtual_RHS (rewrite_rule) = 1;
 }
 
 @ This ``alternate" top rule is needed if a final separator is allowed.
 @<Add the alternate top rule for the sequence@> =
-{ RULE rule;
+{ RULE rewrite_rule;
     SYMID temp_rhs[2];
     temp_rhs[0] = internal_lhs_id;
     temp_rhs[1] = separator_id;
-    rule = rule_new(g, lhs_id, temp_rhs, 2);
-    rule->t_original = original_rule_id;
-    rule->t_is_semantic_equivalent = 1;
-    RULE_has_Virtual_RHS(rule) = 1;
-    Real_SYM_Count_of_RULE(rule) = 1;
+    rewrite_rule = rule_new(g, lhs_id, temp_rhs, 2);
+    rewrite_rule->t_original = sequence_rule_id;
+    rewrite_rule->t_is_semantic_equivalent = 1;
+    RULE_has_Virtual_RHS(rewrite_rule) = 1;
+    Real_SYM_Count_of_RULE(rewrite_rule) = 1;
 }
 @ The traditional way to write a sequence in BNF is with one
 rule to represent the minimum, and another to deal with iteration.
 That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 {
-  const RULE rule = rule_new (g, internal_lhs_id, &rhs_id, 1);
-  rule->t_original = original_rule_id;
-  RULE_has_Virtual_LHS (rule) = 1;
-  Real_SYM_Count_of_RULE (rule) = 1;
+  const RULE rewrite_rule = rule_new (g, internal_lhs_id, &rhs_id, 1);
+  rewrite_rule->t_original = sequence_rule_id;
+  RULE_has_Virtual_LHS (rewrite_rule) = 1;
+  Real_SYM_Count_of_RULE (rewrite_rule) = 1;
 }
 @ @<Add the iterating rule for the sequence@> =
 {
-  RULE rule;
+  RULE rewrite_rule;
   SYMID temp_rhs[3];
   int rhs_ix = 0;
   temp_rhs[rhs_ix++] = internal_lhs_id;
   if (separator_id >= 0)
     temp_rhs[rhs_ix++] = separator_id;
   temp_rhs[rhs_ix++] = rhs_id;
-  rule = rule_new (g, internal_lhs_id, temp_rhs, rhs_ix);
-  rule->t_original = original_rule_id;
-  RULE_has_Virtual_LHS (rule) = 1;
-  RULE_has_Virtual_RHS (rule) = 1;
-  Real_SYM_Count_of_RULE (rule) = rhs_ix - 1;
+  rewrite_rule = rule_new (g, internal_lhs_id, temp_rhs, rhs_ix);
+  rewrite_rule->t_original = sequence_rule_id;
+  RULE_has_Virtual_LHS (rewrite_rule) = 1;
+  RULE_has_Virtual_RHS (rewrite_rule) = 1;
+  Real_SYM_Count_of_RULE (rewrite_rule) = rhs_ix - 1;
 }
 
 @** The CHAF Rewrite.
