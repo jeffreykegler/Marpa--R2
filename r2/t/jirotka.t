@@ -138,11 +138,11 @@ Marpa::R2::Test::is(
 21: Filter
 22: WithPf
 23: FilterExpr
-24: Input[Seq], unproductive inaccessible
-25: ByClause[], nulling
-26: Match[], nulling
-27: Filter[], nulling
-28: WithPf[], nulling
+24: ByClause[], nulling
+25: Match[], nulling
+26: Filter[], nulling
+27: WithPf[], nulling
+28: Input[Seq], unproductive inaccessible
 29: MetricSelect[R3:3]
 30: MetricSelect[R3:4]
 31: Input[']
@@ -558,15 +558,15 @@ R2:3@1-4S0@3
 R2:4@1-8C21@4
 R21:1@4-5S7@4
 R21:2@4-6C4@5
-R21:3@4-6S25@6
+R21:3@4-6S24@6
 R21:4@4-8C25@6
 R4:1@5-6S13@5
-R25:1@6-6S26@6
+R25:1@6-6S25@6
 R10:1@6-7S9@6
 R10:2@6-8C11@7
 R25:2@6-8C27@6
 R27:1@6-8C10@6
-R27:2@6-8S28@8
+R27:2@6-8S27@8
 R11:1@7-8S8@7
 END_OF_AND_NODES
 
