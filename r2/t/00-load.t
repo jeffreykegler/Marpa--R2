@@ -20,9 +20,7 @@ use strict;
 
 use Test::More tests => 2;
 
-BEGIN {
-    use Marpa::R2;
-}
+use Marpa::R2;
 
 defined $INC{'Marpa/R2.pm'}
     or Test::More::BAIL_OUT('Could not load Marpa::R2');

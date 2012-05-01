@@ -26,10 +26,7 @@ use Test::More tests => 32;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
-
-BEGIN {
-    use Marpa::R2;
-}
+use Marpa::R2;
 
 sub zero { return '0' }
 sub one  { return '1' }

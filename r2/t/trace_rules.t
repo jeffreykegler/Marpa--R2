@@ -25,10 +25,7 @@ use warnings;
 use Test::More tests => 3;
 use lib 'inc';
 use Marpa::R2::Test;
-
-BEGIN {
-    use Marpa::R2;
-}
+use Marpa::R2;
 
 my $trace_output;
 open my $trace_fh, q{>}, \$trace_output;

@@ -23,10 +23,7 @@ use warnings;
 use Test::More tests => 2;
 use lib 'inc';
 use Marpa::R2::Test;
-
-BEGIN {
-    use Marpa::R2;
-}
+use Marpa::R2;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
