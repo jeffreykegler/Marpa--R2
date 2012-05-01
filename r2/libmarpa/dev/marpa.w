@@ -2354,7 +2354,6 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Detect cycles@>@;
     }
     // Phase 2: rewrite the grammar into internal form
-    @<Rewrite sequence rules into BNF@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
     // Phase 3: memoize the internal grammar
@@ -2837,30 +2836,17 @@ and productive.
     }
 }
 
-@** The Sequence Rewrite.
-@<Rewrite sequence rules into BNF@> =
-{
-  RULEID rule_id;
-  for (rule_id = 0; rule_id < xrl_count; rule_id++)
-  {
-    const RULE sequence_rule = RULE_by_ID(g, rule_id);
-    if (!RULE_is_Used(sequence_rule)) continue;
-    if (!XRL_is_Sequence (sequence_rule)) continue;
-    @<Rewrite |sequence_rule| into BNF@>@;
-  }
-}
-
-@ @<Rewrite |sequence_rule| into BNF@> =
+@** The Sequence rewrite.
+@<Rewrite sequence |rule| into BNF@> =
 {
   const SYM internal_lhs = symbol_new (g);
   const SYMID internal_lhs_id = ID_of_SYM (internal_lhs);
-  const SYMID lhs_id = LHS_ID_of_RULE (sequence_rule);
-  const SYMID rhs_id = RHS_ID_of_RULE (sequence_rule, 0);
-  const SYMID separator_id = Separator_of_XRL (sequence_rule);
-  const RULEID sequence_rule_id = ID_of_RULE (sequence_rule);
-  LHS_XRL_of_ISY(internal_lhs) = sequence_rule;
+  const SYMID lhs_id = LHS_ID_of_RULE (rule);
+  const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
+  const SYMID separator_id = Separator_of_XRL (rule);
+  LHS_XRL_of_ISY(internal_lhs) = rule;
   @<Add the top rule for the sequence@>@;
-  if (separator_id >= 0 && !XRL_is_Proper_Separation(sequence_rule)) {
+  if (separator_id >= 0 && !XRL_is_Proper_Separation(rule)) {
       @<Add the alternate top rule for the sequence@>@;
   }
   @<Add the minimum rule for the sequence@>@;
@@ -2871,7 +2857,7 @@ and productive.
 {
     RULE rewrite_rule;
     rewrite_rule = rule_new(g, lhs_id, &internal_lhs_id, 1);
-    rewrite_rule->t_original = sequence_rule_id;
+    rewrite_rule->t_original = rule_id;
     rewrite_rule->t_is_semantic_equivalent = 1;
     /* Real symbol count remains at default of 0 */
     RULE_has_Virtual_RHS (rewrite_rule) = 1;
@@ -2884,7 +2870,7 @@ and productive.
     temp_rhs[0] = internal_lhs_id;
     temp_rhs[1] = separator_id;
     rewrite_rule = rule_new(g, lhs_id, temp_rhs, 2);
-    rewrite_rule->t_original = sequence_rule_id;
+    rewrite_rule->t_original = rule_id;
     rewrite_rule->t_is_semantic_equivalent = 1;
     RULE_has_Virtual_RHS(rewrite_rule) = 1;
     Real_SYM_Count_of_RULE(rewrite_rule) = 1;
@@ -2895,7 +2881,7 @@ That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 {
   const RULE rewrite_rule = rule_new (g, internal_lhs_id, &rhs_id, 1);
-  rewrite_rule->t_original = sequence_rule_id;
+  rewrite_rule->t_original = rule_id;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
   Real_SYM_Count_of_RULE (rewrite_rule) = 1;
 }
@@ -2909,13 +2895,13 @@ That's the core of Marpa's rewrite.
     temp_rhs[rhs_ix++] = separator_id;
   temp_rhs[rhs_ix++] = rhs_id;
   rewrite_rule = rule_new (g, internal_lhs_id, temp_rhs, rhs_ix);
-  rewrite_rule->t_original = sequence_rule_id;
+  rewrite_rule->t_original = rule_id;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
   RULE_has_Virtual_RHS (rewrite_rule) = 1;
   Real_SYM_Count_of_RULE (rewrite_rule) = rhs_ix - 1;
 }
 
-@** The CHAF Rewrite.
+@** The CHAF rewrite.
 
 Nullable symbols have been a difficulty for Earley implementations
 since day zero.
@@ -2986,6 +2972,11 @@ MARPA_DEBUG3("%s: rule_id=%d", STRLOC, rule_id);
          RULE  rule = RULE_by_ID(g, rule_id);
 	 const int rule_length = Length_of_RULE(rule);
 	 int nullable_suffix_ix = 0;
+	  if (XRL_is_Sequence (rule) && RULE_is_Used (rule))
+	    {
+	      @<Rewrite sequence |rule| into BNF@>@;
+	      goto NEXT_XRL;
+	    }
 	 if (XRL_is_BNF(rule) && RULE_is_Used(rule)) {
 	   @<Calculate CHAF rule statistics@>@;
 	   /* Do not factor if there is no proper nullable in the rule */
@@ -3001,6 +2992,7 @@ MARPA_DEBUG4("%s: rule_id=%d factor_count=%d", STRLOC, rule_id, factor_count);
 	       XRL_is_Internal(rule) = 1;
 	   }
 	 }
+	 NEXT_XRL: ;
     }
     @<CHAF rewrite deallocations@>@;
 }
