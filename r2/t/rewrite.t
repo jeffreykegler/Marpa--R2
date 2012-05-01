@@ -121,13 +121,13 @@ Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 4: optional_whitespace -> /* empty !used */
 5: optional_modifier -> modifier
 6: optional_modifier -> /* empty !used */
-7: statements -> statements[Seq] /* unproductive vrhs real=0 */
-8: statements -> statements[Seq] comma /* unproductive vrhs real=1 */
+7: statements -> statements[Seq] /* vrhs real=0 */
+8: statements -> statements[Seq] comma /* vrhs real=1 */
 9: statements[Seq] -> statement /* vlhs real=1 */
-10: statements[Seq] -> statements[Seq] comma statement /* unproductive vlhs vrhs real=2 */
-11: block -> block[Seq] /* unproductive vrhs real=0 */
+10: statements[Seq] -> statements[Seq] comma statement /* vlhs vrhs real=2 */
+11: block -> block[Seq] /* vrhs real=0 */
 12: block[Seq] -> statements /* vlhs real=1 */
-13: block[Seq] -> block[Seq] statements /* unproductive vlhs vrhs real=1 */
+13: block[Seq] -> block[Seq] statements /* vlhs vrhs real=1 */
 14: statement -> optional_whitespace expression statement[R0:2] /* vrhs real=2 */
 15: statement -> optional_whitespace expression optional_whitespace[] optional_modifier[] optional_whitespace[]
 16: statement -> optional_whitespace[] expression statement[R0:2] /* vrhs real=2 */

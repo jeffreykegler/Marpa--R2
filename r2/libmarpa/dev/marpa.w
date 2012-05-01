@@ -1236,7 +1236,8 @@ Marpa_Symbol_ID symid)
 }
 
 @ Symbol Is Nulling Boolean
-@d SYM_is_Nulling(sym) ((sym)->t_is_nulling)
+@d XSY_is_Nulling(sym) ((sym)->t_is_nulling)
+@d SYM_is_Nulling(sym) XSY_is_Nulling(sym)
 @d ISY_is_Nulling(sym) ((sym)->t_is_nulling)
 @<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
 @ @<Initialize symbol elements@> =
@@ -1310,6 +1311,8 @@ Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
 }
 
 @ Symbol Is Productive Boolean
+@d XSY_is_Productive(xsy) ((xsy)->t_is_productive)
+@d SYM_is_Productive(xsy) XSY_is_Productive(xsy)
 @<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_productive = 0;
@@ -1322,7 +1325,7 @@ int marpa_g_symbol_is_productive(
     @<Fail if fatal error@>@;
     @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
-    return SYM_by_ID(symid)->t_is_productive;
+    return XSY_is_Productive(XSY_by_ID(symid));
 }
 
 @ Symbol Is Start Boolean
@@ -1714,7 +1717,7 @@ duplicate_rule_cmp (const void *ap, const void *bp, void *param UNUSED)
       return diff;
     for (ix = 0; ix < length; ix++)
       {
-	diff = RHSID_of_XRL (xrl2, ix) - RHSID_of_XRL (xrl1, ix);
+	diff = RHS_ID_of_XRL (xrl2, ix) - RHS_ID_of_XRL (xrl1, ix);
 	if (diff)
 	  return diff;
       }
@@ -1767,7 +1770,7 @@ rule_check (GRAMMAR g, XRL rule)
     const int length = Length_of_XRL (rule);
     for (rh_index = 0; rh_index < length; rh_index++)
       {
-	const SYMID symid = RHSID_of_XRL (rule, rh_index);
+	const SYMID symid = RHS_ID_of_XRL (rule, rh_index);
 	SYM rhs;
 	if (UNLIKELY (!symbol_is_valid (g, symid)))
 	  goto INVALID_SYMID;
@@ -1821,7 +1824,7 @@ int marpa_g_rule_length(struct marpa_g *g, Marpa_Rule_ID rule_id) {
 @d LHS_ID_of_XRL(xrl) ((xrl)->t_symbols[0])
 @d RHS_ID_of_RULE(rule, position)
     ((rule)->t_symbols[(position)+1])
-@d RHSID_of_XRL(xrl, position)
+@d RHS_ID_of_XRL(xrl, position)
     ((xrl)->t_symbols[(position)+1])
 
 @*0 Rule ID.
@@ -1943,42 +1946,6 @@ int marpa_g_rule_is_proper_separation(
     return !XRL_is_Proper_Separation(RULE_by_ID(g, rule_id));
 }
 
-
-
-@*0 Accessible Rules.
-@ A rule is accessible if its LHS is accessible.
-@<Function definitions@> =
-int marpa_g_rule_is_accessible(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
-{
-  @<Return |-2| on failure@>@;
-  XRL xrl;
-  @<Fail if fatal error@>@;
-  @<Fail if grammar |xrl_id| is invalid@>@;
-  xrl = RULE_by_ID(g, xrl_id);
-  return XRL_is_Accessible(xrl);
-}
-
-@*0 Productive Rules.
-@ A rule is productive if every symbol on its RHS is productive.
-@<Function definitions@> =
-PRIVATE int rule_is_productive(struct marpa_g* g, RULE  rule)
-{
-int rh_ix;
-for (rh_ix = 0; rh_ix < Length_of_RULE(rule); rh_ix++) {
-   Marpa_Symbol_ID rhs_id = RHS_ID_of_RULE(rule, rh_ix);
-   if ( !SYM_by_ID(rhs_id)->t_is_productive ) return 0;
-}
-return 1; }
-int marpa_g_rule_is_productive(Marpa_Grammar g, Marpa_Rule_ID rule_id)
-{
-    @<Return |-2| on failure@>@;
-RULE  rule;
-    @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-rule = RULE_by_ID(g, rule_id);
-return rule_is_productive(g, rule);
-}
-
 @*0 Loop Rule.
 @ A rule is a loop rule if it non-trivially
 produces the string of length one
@@ -2005,11 +1972,38 @@ Is the rule nulling?
 XRL_is_Nulling(rule) = 0;
 
 @*0 Is Rule Accessible?.
-Is the rule accessible?
+@ A rule is accessible if its LHS is accessible.
 @d XRL_is_Accessible(rule) ((rule)->t_is_accessible)
 @<Bit aligned rule elements@> = unsigned int t_is_accessible:1;
 @ @<Initialize rule elements@> =
 XRL_is_Accessible(rule) = 1;
+@ @<Function definitions@> =
+int marpa_g_rule_is_accessible(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
+{
+  @<Return |-2| on failure@>@;
+  XRL xrl;
+  @<Fail if fatal error@>@;
+  @<Fail if grammar |xrl_id| is invalid@>@;
+  xrl = XRL_by_ID(xrl_id);
+  return XRL_is_Accessible(xrl);
+}
+
+@*0 Is Rule Productive?.
+Is the rule productive?
+@d XRL_is_Productive(rule) ((rule)->t_is_productive)
+@<Bit aligned rule elements@> = unsigned int t_is_productive:1;
+@ @<Initialize rule elements@> =
+XRL_is_Productive(rule) = 1;
+@ @<Function definitions@> =
+int marpa_g_rule_is_productive(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
+{
+  @<Return |-2| on failure@>@;
+  XRL xrl;
+  @<Fail if fatal error@>@;
+  @<Fail if grammar |xrl_id| is invalid@>@;
+  xrl = XRL_by_ID(xrl_id);
+  return XRL_is_Productive(xrl);
+}
 
 @*0 Is Rule Used?.
 Is the rule used in computing the AHFA sets?
@@ -2805,27 +2799,33 @@ reach a terminal symbol.
     }
 }
 
-@ A rule is nulling if every symbol on its RHS is nulling.
-Note that this can be vacuously true --- an empty rule is nulling.
+@ A rule is accessible if its LHS is accessible.
+A rule is nulling if every symbol on its RHS is nulling.
+A rule is productive if every symbol on its RHS is productive.
+Note that these can be vacuously true --- an empty rule is nulling
+and productive.
 @<Classify rules@> =
 {
   XRLID xrl_id;
   for (xrl_id = 0; xrl_id < xrl_count; xrl_id++)
-  {
-    XRL xrl = XRL_by_ID(xrl_id);
-    int rh_ix;
-    XSYID lhs_id = LHS_ID_of_XRL(xrl);
-    XSY lhs = XSY_by_ID(lhs_id);
-    XRL_is_Accessible(xrl) = XSY_is_Accessible(lhs);
-    for (rh_ix = 0; rh_ix < Length_of_RULE (xrl); rh_ix++)
     {
-      SYMID rhs_id = RHS_ID_of_RULE (xrl, rh_ix);
-      if (!SYM_is_Nulling(SYM_by_ID (rhs_id)))
-	goto NEXT_XRL;
-      }
-    XRL_is_Nulling(xrl) = 1;
-    NEXT_XRL: ;
-  }
+      const XRL xrl = XRL_by_ID (xrl_id);
+      int rh_ix;
+      int is_nulling = 1;
+      int is_productive = 1;
+      const XSYID lhs_id = LHS_ID_of_XRL (xrl);
+      const XSY lhs = XSY_by_ID (lhs_id);
+      XRL_is_Accessible (xrl) = XSY_is_Accessible (lhs);
+      for (rh_ix = 0; rh_ix < Length_of_XRL (xrl); rh_ix++)
+	{
+	  const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
+	  const XSY rh_xsy = XSY_by_ID(rhs_id);
+	  if (LIKELY(!XSY_is_Nulling (rh_xsy))) is_nulling = 0;
+	  if (UNLIKELY(!XSY_is_Productive (rh_xsy))) is_productive = 0;
+	}
+      XRL_is_Nulling (xrl) = is_nulling;
+      XRL_is_Productive (xrl) = is_productive;
+    }
 }
 
 @** The Sequence Rewrite.
@@ -2980,7 +2980,7 @@ the pre-CHAF rule count.
 	      RULE_is_Used (rule) = 0;
 	      goto NEXT_CHAF_CANDIDATE;
 	   }
-	   if (!rule_is_productive(g, original_rule))
+	   if (!XRL_is_Productive(original_rule))
 	   {
 	      RULE_is_Used (rule) = 0;
 	      goto NEXT_CHAF_CANDIDATE;
@@ -3019,7 +3019,7 @@ if (!XRL_is_Accessible (rule))
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;
   }
-if (!rule_is_productive (g, rule))
+if (!XRL_is_Productive (rule))
   {
     RULE_is_Used (rule) = 0;
     goto NEXT_CHAF_CANDIDATE;

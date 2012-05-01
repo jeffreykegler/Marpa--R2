@@ -165,10 +165,10 @@ Marpa::R2::Test::is( $grammar->show_rules(),
 12: FilterExpr -> FALSE
 13: WithPf -> /* empty !used */
 14: WithPf -> WITH PF
-15: Input -> Input[Seq] /* unproductive vrhs real=0 */
-16: Input -> Input[Seq] SEPARATOR /* unproductive vrhs real=1 */
+15: Input -> Input[Seq] /* vrhs real=0 */
+16: Input -> Input[Seq] SEPARATOR /* vrhs real=1 */
 17: Input[Seq] -> Statement /* vlhs real=1 */
-18: Input[Seq] -> Input[Seq] SEPARATOR Statement /* unproductive vlhs vrhs real=2 */
+18: Input[Seq] -> Input[Seq] SEPARATOR Statement /* vlhs vrhs real=2 */
 19: MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] /* vrhs real=3 */
 20: MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[]
 21: MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] /* vrhs real=3 */

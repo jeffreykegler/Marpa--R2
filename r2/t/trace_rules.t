@@ -124,12 +124,12 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Rules' );
 8: A -> y
 9: Proper -> /* empty !used */
 10: Proper -> p
-11: Seq0 -> Seq0[Seq] /* unproductive vrhs real=0 */
+11: Seq0 -> Seq0[Seq] /* vrhs real=0 */
 12: Seq0[Seq] -> a /* vlhs real=1 */
-13: Seq0[Seq] -> Seq0[Seq] a /* unproductive vlhs vrhs real=1 */
-14: Seq1 -> Seq1[Seq] /* unproductive vrhs real=0 */
+13: Seq0[Seq] -> Seq0[Seq] a /* vlhs vrhs real=1 */
+14: Seq1 -> Seq1[Seq] /* vrhs real=0 */
 15: Seq1[Seq] -> A /* vlhs real=1 */
-16: Seq1[Seq] -> Seq1[Seq] A /* unproductive vlhs vrhs real=1 */
+16: Seq1[Seq] -> Seq1[Seq] A /* vlhs vrhs real=1 */
 17: S -> Seq0 Seq1
 18: S -> Seq0[] Seq1
 19: S -> Proper S[R1:1] /* vrhs real=1 */
