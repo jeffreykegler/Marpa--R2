@@ -1558,15 +1558,34 @@ const SYMID lhs, const SYMID *rhs, int length)
 }
 
 PRIVATE IRL
+irl_start(GRAMMAR g)
+{
+  const IRL new_irl = my_obstack_new (&g->t_obs, struct s_irl, 1);
+  *DSTACK_PUSH((g)->t_irl_stack, IRL) = new_irl;
+  return new_irl;
+}
+
+@ Create an IRL from scratch.
+@<Function definitions@> =
+PRIVATE IRL
 irl_new(GRAMMAR g,
 const SYMID lhs, const SYMID *rhs, int length)
 {
-    const XRL xrl = rule_new(g, lhs, rhs, length);
-    const IRL new_irl = my_obstack_new (&g->t_obs, struct s_irl, 1);
-    *DSTACK_PUSH((g)->t_irl_stack, IRL) = new_irl;
-    Co_RULE_of_IRL(new_irl) = xrl;
-    g->t_max_rule_length = MAX(Length_of_RULE(xrl), g->t_max_rule_length);
-    return new_irl;
+  const XRL xrl = rule_new(g, lhs, rhs, length);
+  IRL new_irl = irl_start(g);
+  Co_RULE_of_IRL(new_irl) = xrl;
+  g->t_max_rule_length = MAX(Length_of_RULE(xrl), g->t_max_rule_length);
+  return new_irl;
+}
+
+@ Clone an IRL from an XRL.
+@<Function definitions@> =
+PRIVATE IRL
+irl_clone(GRAMMAR g, XRL xrl)
+{
+  const IRL new_irl = irl_start(g);
+  Co_RULE_of_IRL(new_irl) = xrl;
+  return new_irl;
 }
 
 @ @<Function definitions@> =
