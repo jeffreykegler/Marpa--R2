@@ -2871,8 +2871,8 @@ and productive.
 
 @ @<Add the top rule for the sequence@> =
 {
-    RULE rewrite_rule;
-    rewrite_rule = rule_new(g, lhs_id, &internal_lhs_id, 1);
+    IRL rewrite_irl = irl_new(g, lhs_id, &internal_lhs_id, 1);
+    RULE rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
     rewrite_rule->t_original = rule_id;
     rewrite_rule->t_is_semantic_equivalent = 1;
     /* Real symbol count remains at default of 0 */
@@ -2881,11 +2881,14 @@ and productive.
 
 @ This ``alternate" top rule is needed if a final separator is allowed.
 @<Add the alternate top rule for the sequence@> =
-{ RULE rewrite_rule;
+{
+  RULE rewrite_rule;
+  IRL rewrite_irl;
     SYMID temp_rhs[2];
     temp_rhs[0] = internal_lhs_id;
     temp_rhs[1] = separator_id;
-    rewrite_rule = rule_new(g, lhs_id, temp_rhs, 2);
+    rewrite_irl = irl_new(g, lhs_id, temp_rhs, 2);
+    rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
     rewrite_rule->t_original = rule_id;
     rewrite_rule->t_is_semantic_equivalent = 1;
     RULE_has_Virtual_RHS(rewrite_rule) = 1;
@@ -2896,7 +2899,8 @@ rule to represent the minimum, and another to deal with iteration.
 That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 {
-  const RULE rewrite_rule = rule_new (g, internal_lhs_id, &rhs_id, 1);
+  const IRL rewrite_irl = irl_new (g, internal_lhs_id, &rhs_id, 1);
+  const RULE rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
   rewrite_rule->t_original = rule_id;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
   Real_SYM_Count_of_RULE (rewrite_rule) = 1;
@@ -2904,13 +2908,15 @@ That's the core of Marpa's rewrite.
 @ @<Add the iterating rule for the sequence@> =
 {
   RULE rewrite_rule;
+  IRL rewrite_irl;
   SYMID temp_rhs[3];
   int rhs_ix = 0;
   temp_rhs[rhs_ix++] = internal_lhs_id;
   if (separator_id >= 0)
     temp_rhs[rhs_ix++] = separator_id;
   temp_rhs[rhs_ix++] = rhs_id;
-  rewrite_rule = rule_new (g, internal_lhs_id, temp_rhs, rhs_ix);
+  rewrite_irl = irl_new (g, internal_lhs_id, temp_rhs, rhs_ix);
+  rewrite_rule = Co_RULE_of_IRL (rewrite_irl);
   rewrite_rule->t_original = rule_id;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
   RULE_has_Virtual_RHS (rewrite_rule) = 1;
