@@ -771,7 +771,6 @@ rule_add (GRAMMAR g, RULE rule)
   *DSTACK_PUSH ((g)->t_xrl_stack, RULE) = rule;
   rule->t_id = new_id;
   External_Size_of_G (g) += 1 + Length_of_RULE (rule);
-  Internal_Size_of_G (g) = External_Size_of_G (g);
   g->t_max_rule_length = MAX (Length_of_RULE (rule), g->t_max_rule_length);
 }
 
@@ -826,13 +825,10 @@ Since every rule has exactly one LHS symbol,
 the grammar's size is always equal to the total of
 all the rules lengths, plus the total number of rules.
 @d External_Size_of_G(g) ((g)->t_external_size)
-@d Internal_Size_of_G(g) ((g)->t_internal_size)
 @ @<Int aligned grammar elements@> =
 int t_external_size;
-int t_internal_size;
 @ @<Initialize grammar elements@> =
 External_Size_of_G(g) = 0;
-Internal_Size_of_G(g) = 0;
 
 @*0 The Maximum Rule Length.
 This is a high-ball estimate of the length of the
@@ -3840,17 +3836,13 @@ int _marpa_g_AHFA_item_sort_key(struct marpa_g* g,
 }
 
 @** Creating the AHFA Items.
-@ I do not use a |DSTACK| because I can initially size the
-item stack to |Internal_Size_of_G(g)|, which is a reasonable allocation,
-but guaranteed to be greater than
-or equal to the final numbers of items.
-@<Create AHFA items@> =
+@ @<Create AHFA items@> =
 {
     RULEID rule_id;
     AIMID ahfa_item_count = 0;
     RULEID rule_count_of_g = RULE_Count_of_G(g);
-    AIM base_item = my_new(struct s_AHFA_item, Internal_Size_of_G(g));
-    AIM current_item = base_item;
+    AIM base_item;
+    AIM current_item;
     unsigned int symbol_instance_of_next_rule = 0;
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
@@ -3858,6 +3850,7 @@ or equal to the final numbers of items.
 	@<Count the AHFA items in a rule@>@;
       }
     }
+    current_item = base_item = my_new(struct s_AHFA_item, ahfa_item_count);
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
       if (XRL_is_Internal(rule)) {
@@ -4378,7 +4371,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 
 @ @<Declare locals for creating AHFA states@> =
    AHFA p_working_state;
-   const unsigned int initial_no_of_states = 2*Internal_Size_of_G(g);
+   const unsigned int initial_no_of_states = 2*AIM_Count_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
    const unsigned int symbol_count_of_g = SYM_Count_of_G(g);
    const unsigned int rule_count_of_g = RULE_Count_of_G(g);
