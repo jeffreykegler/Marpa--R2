@@ -3263,12 +3263,14 @@ if (piece_start < nullable_suffix_ix) {
 @ The PP Rule.
 @<Add PP CHAF rule for proper continuation@> = 
 {
+  RULE chaf_rule;
+  IRL chaf_irl;
   for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
     piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
   }
   piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
-  IRL chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-  RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
+  chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
@@ -3276,10 +3278,12 @@ if (piece_start < nullable_suffix_ix) {
 @<Add PN CHAF rule for proper continuation@> = 
 {
   RULE chaf_rule;
+  IRL chaf_irl;
   second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
   piece_rhs[second_factor_piece_position]
     = second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
-  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
@@ -3287,11 +3291,13 @@ if (piece_start < nullable_suffix_ix) {
 @<Add NP CHAF rule for proper continuation@> = 
 {
   RULE chaf_rule;
+  IRL chaf_irl;
   first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
   piece_rhs[first_factor_piece_position]
     = first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
   piece_rhs[second_factor_piece_position] = second_factor_proper_id;
-  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
@@ -3299,8 +3305,10 @@ if (piece_start < nullable_suffix_ix) {
 @<Add NN CHAF rule for proper continuation@> = 
 {
   RULE chaf_rule;
+  IRL chaf_irl;
   piece_rhs[second_factor_piece_position] = second_factor_alias_id;
-  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
@@ -3328,10 +3336,12 @@ Open block, declarations and setup.
 @<Add final CHAF PP rule for two factors@> = 
 {
   RULE chaf_rule;
+  IRL chaf_irl;
   for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
     piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
   }
-  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
@@ -3339,10 +3349,12 @@ Open block, declarations and setup.
 @<Add final CHAF PN rule for two factors@> =
 {
   RULE chaf_rule;
+  IRL chaf_irl;
   second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
   piece_rhs[second_factor_piece_position]
     = second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
-  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
@@ -3350,11 +3362,13 @@ Open block, declarations and setup.
 @<Add final CHAF NP rule for two factors@> =
 {
   RULE chaf_rule;
+  IRL chaf_irl;
   first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
   piece_rhs[first_factor_piece_position]
     = first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
   piece_rhs[second_factor_piece_position] = second_factor_proper_id;
-  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
@@ -3363,9 +3377,11 @@ a nulling rule.
 @<Add final CHAF NN rule for two factors@> =
 {
   RULE chaf_rule;
+  IRL chaf_irl;
   if (piece_start < nullable_suffix_ix) {
     piece_rhs[second_factor_piece_position] = second_factor_alias_id;
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+    chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
     @<Set CHAF rule flags and call back@>@;
   }
 }
@@ -3389,10 +3405,12 @@ a nulling rule.
 @<Add final CHAF P rule for one factor@> = 
 {
   RULE chaf_rule;
+  IRL chaf_irl;
   for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
     piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
   }
-  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
@@ -3400,13 +3418,15 @@ a nulling rule.
 a nulling rule.
 @<Add final CHAF N rule for one factor@> =
 {
-  RULE chaf_rule;
   if (piece_start < nullable_suffix_ix)
     {
+      RULE chaf_rule;
+      IRL chaf_irl;
       first_factor_proper_id = RHS_ID_of_RULE (rule, first_factor_position);
       first_factor_alias_id = alias_by_id (g, first_factor_proper_id);
       piece_rhs[first_factor_piece_position] = first_factor_alias_id;
-      chaf_rule = rule_new (g, current_lhs_id, piece_rhs, piece_rhs_length);
+      chaf_irl = irl_new (g, current_lhs_id, piece_rhs, piece_rhs_length);
+      chaf_rule = Co_RULE_of_IRL(chaf_irl);
       @<Set CHAF rule flags and call back@>@;
     }
 }
