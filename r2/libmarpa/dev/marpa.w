@@ -2983,8 +2983,6 @@ the pre-CHAF rule count.
     pre_chaf_rule_count = RULE_Count_of_G(g);
     for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
 
-MARPA_DEBUG3("%s: rule_id=%d", STRLOC, rule_id);
-
          RULE  rule = RULE_by_ID(g, rule_id);
 	 const int rule_length = Length_of_RULE(rule);
 	 int nullable_suffix_ix = 0;
@@ -3204,10 +3202,10 @@ for the PN rule.
     }
 }
 {
-  RULE chaf_rule;
   int real_symbol_count = remaining_rhs_length;
-  chaf_rule =
-    rule_new (g, current_lhs_id, remaining_rhs, remaining_rhs_length);
+  IRL chaf_irl =
+    irl_new (g, current_lhs_id, remaining_rhs, remaining_rhs_length);
+  RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
