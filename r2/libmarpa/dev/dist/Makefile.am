@@ -15,7 +15,7 @@
 
 ## Makefile.am -- Process this file with automake to produce Makefile.in
 
-AM_CFLAGS = $(MARPA_DEBUG_FLAG) $(WARNING_CFLAGS)
+AM_CFLAGS = $(WARNING_CFLAGS) $(MARPA_DEBUG_FLAG)
 ACLOCAL_AMFLAGS = -I m4
 noinst_LTLIBRARIES = libmarpa.la
 libmarpa_la_SOURCES = marpa_obs.c marpa.c marpa_obs.h private.h \

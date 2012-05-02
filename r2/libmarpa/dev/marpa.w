@@ -595,7 +595,6 @@ extern const unsigned int marpa_binary_age;@#
 @<Public incomplete structures@>@;
 @<Public typedefs@>@;
 @<Public structures@>@;
-@<Public variables@>@;
 @<Public function prototypes@>@;
 
 @** Grammar (GRAMMAR) Code.
@@ -13548,16 +13547,17 @@ internal matters on |STDERR|.
 |MARPA_DEBUG| is expected to be defined in the |CFLAGS|.
 |MARPA_DEBUG| implies |MARPA_ENABLE_ASSERT|, but not
 vice versa.
-@d MARPA_OFF_DEBUG1(a)
-@d MARPA_OFF_DEBUG2(a, b)
-@d MARPA_OFF_DEBUG3(a, b, c)
-@d MARPA_OFF_DEBUG4(a, b, c, d)
-@d MARPA_OFF_DEBUG5(a, b, c, d, e)
-@d MARPA_OFF_ASSERT(expr)
+@<Utility macros@> =
+#define MARPA_OFF_DEBUG1(a)
+#define MARPA_OFF_DEBUG2(a, b)
+#define MARPA_OFF_DEBUG3(a, b, c)
+#define MARPA_OFF_DEBUG4(a, b, c, d)
+#define MARPA_OFF_DEBUG5(a, b, c, d, e)
+#define MARPA_OFF_ASSERT(expr)
 @ Returns int so that it can be portably used
 in a logically-anded expression.
 @<Debug function definitions@> =
-static int _marpa_default_debug_handler (const char *format, ...)
+int _marpa_default_debug_handler (const char *format, ...)
 {
    va_list args;
    va_start (args, format);
@@ -13568,31 +13568,32 @@ static int _marpa_default_debug_handler (const char *format, ...)
 }
 
 
-@ @<Public variables@> =
-extern int (*marpa_debug_handler)(const char*, ...);
-extern int marpa_debug_level;
+@ @<Utility variables@> =
+extern int (*_marpa_debug_handler)(const char*, ...);
+extern int _marpa_debug_level;
 @ For thread-safety, these are for debugging only.
 Even in debugging, while not actually initialized constants,
 they are intended to be set very early
 and left unchanged.
-@<Global variables@> =
+@<Utility variables@> =
 #if MARPA_DEBUG > 0
-static int _marpa_default_debug_handler (const char *format, ...);
+extern int _marpa_default_debug_handler (const char *format, ...);
 #define MARPA_DEFAULT_DEBUG_HANDLER _marpa_default_debug_handler
 #else
 #define MARPA_DEFAULT_DEBUG_HANDLER NULL
 #endif
 
-int (*marpa_debug_handler)(const char*, ...) =
+@ @<Global variables@> =
+int (*_marpa_debug_handler)(const char*, ...) =
     MARPA_DEFAULT_DEBUG_HANDLER;
-int marpa_debug_level = 0;
+int _marpa_debug_level = 0;
 
 @ @<Public function prototypes@> =
 void marpa_debug_handler_set( int (*debug_handler)(const char*, ...) );
 @ @<Function definitions@> =
 void marpa_debug_handler_set( int (*debug_handler)(const char*, ...) )
 {
-    marpa_debug_handler = debug_handler;
+    _marpa_debug_handler = debug_handler;
 }
 
 @ @<Public function prototypes@> =
@@ -13600,7 +13601,7 @@ void marpa_debug_level_set( int level );
 @ @<Function definitions@> =
 void marpa_debug_level_set( int level )
 {
-    marpa_debug_level = level;
+    _marpa_debug_level = level;
 }
 
 @ @<Debug macros@> =
@@ -13609,19 +13610,19 @@ void marpa_debug_level_set( int level )
 #undef MARPA_ENABLE_ASSERT
 #define MARPA_ENABLE_ASSERT 1
 
-#define MARPA_DEBUG1(a) @[ (marpa_debug_level && \
-    (*marpa_debug_handler)(a)) @]
-#define MARPA_DEBUG2(a,b) @[ (marpa_debug_level && \
-    (*marpa_debug_handler)((a),(b))) @]
-#define MARPA_DEBUG3(a,b,c) @[ (marpa_debug_level && \
-    (*marpa_debug_handler)((a),(b),(c))) @]
-#define MARPA_DEBUG4(a,b,c,d) @[ (marpa_debug_level && \
-    (*marpa_debug_handler)((a),(b),(c),(d))) @]
-#define MARPA_DEBUG5(a,b,c,d,e) @[ (marpa_debug_level && \
-    (*marpa_debug_handler)((a),(b),(c),(d),(e))) @]
+#define MARPA_DEBUG1(a) @[ (_marpa_debug_level && \
+    (*_marpa_debug_handler)(a)) @]
+#define MARPA_DEBUG2(a,b) @[ (_marpa_debug_level && \
+    (*_marpa_debug_handler)((a),(b))) @]
+#define MARPA_DEBUG3(a,b,c) @[ (_marpa_debug_level && \
+    (*_marpa_debug_handler)((a),(b),(c))) @]
+#define MARPA_DEBUG4(a,b,c,d) @[ (_marpa_debug_level && \
+    (*_marpa_debug_handler)((a),(b),(c),(d))) @]
+#define MARPA_DEBUG5(a,b,c,d,e) @[ (_marpa_debug_level && \
+    (*_marpa_debug_handler)((a),(b),(c),(d),(e))) @]
 
 #define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
-       (*marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
+       (*_marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
 #define MARPA_DEBUG1(a) @[@]
 #define MARPA_DEBUG2(a, b) @[@]
@@ -13634,7 +13635,7 @@ void marpa_debug_level_set( int level )
 #if MARPA_ENABLE_ASSERT
 #undef MARPA_ASSERT
 #define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
-       (*marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
+       (*_marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
 #endif
 
 @*0 Earley Item Tag.
@@ -13804,9 +13805,8 @@ So I add such a comment.
 #include <stdio.h>
 #endif
 
-@<Debug macros@>
-@h
 #include "marpa_util.h"
+@h
 #include "marpa_obs.h"
 #include "avl.h"
 @<Private incomplete structures@>@;
@@ -13876,6 +13876,7 @@ So I add such a comment.
 #define __MARPA_UTIL_H__
 
 @<Utility macros@>
+@<Debug macros@>
 @<Utility variables@>
 @<Utility static functions@>
 
