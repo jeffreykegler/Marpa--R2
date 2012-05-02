@@ -732,14 +732,16 @@ The |rule_tree| is a tree for detecting duplicates.
 @<Widely aligned grammar elements@> =
     DSTACK_DECLARE(t_xrl_stack);
     DSTACK_DECLARE(t_irl_stack);
-    struct marpa_avl_table* rule_tree;
+    struct marpa_avl_table* t_rule_tree;
 @ @<Initialize grammar elements@> =
     DSTACK_INIT2(g->t_xrl_stack, RULE);
-    DSTACK_SAFE(g->t_irl_stack);
-    g->rule_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, alignof (RULE));
+    DSTACK_INIT2(g->t_irl_stack, IRL);
+    g->t_rule_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, alignof (RULE));
+
 @ @<Destroy rule tree@> =
-    _marpa_avl_destroy (g->rule_tree);
-    g->rule_tree = NULL;
+    _marpa_avl_destroy (g->t_rule_tree);
+    g->t_rule_tree = NULL;
+
 @ @<Destroy grammar elements@> =
     DSTACK_DESTROY(g->t_irl_stack);
     DSTACK_DESTROY(g->t_xrl_stack);
@@ -3184,9 +3186,10 @@ for the PN rule.
     }
   piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
 }
-{ RULE  chaf_rule;
+{
     int real_symbol_count = piece_rhs_length - 1;
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+    IRL chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+    RULE  chaf_rule = Co_RULE_of_IRL(chaf_irl);
     @<Set CHAF rule flags and call back@>@;
 }
 
