@@ -49,7 +49,9 @@ _marpa_avl_create (avl_comparison_func *compare, void *param,
   if (tree == NULL)
     return NULL;
 
-  my_obstack_begin(&tree->obstack, 0, alignment);
+  my_obstack_begin(&tree->avl_obstack, 0, alignment);
+
+
   tree->avl_root = NULL;
   tree->avl_compare = compare;
   tree->avl_param = param;
@@ -114,7 +116,7 @@ _marpa_avl_probe (AVL_TREE tree, void *item)
       da[k++] = dir = cmp > 0;
     }
 
-  n = q->avl_link[dir] = my_obstack_alloc (&tree->obstack, sizeof *n);
+  n = q->avl_link[dir] = my_obstack_alloc (&tree->avl_obstack, sizeof *n);
   if (n == NULL)
     return NULL;
 
@@ -293,7 +295,7 @@ _marpa_avl_delete (AVL_TREE tree, const void *item)
         }
     }
 
-  my_obstack_free (&tree->obstack);
+  my_obstack_free (&tree->avl_obstack);
 
   assert (k > 0);
   while (--k > 0)
@@ -708,7 +710,7 @@ void
 _marpa_avl_destroy (AVL_TREE tree)
 {
   if (tree ==  NULL) return;
-  my_obstack_free (&tree->obstack);
+  my_obstack_free (&tree->avl_obstack);
   my_free (tree);
 }
 
