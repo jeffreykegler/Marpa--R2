@@ -367,8 +367,8 @@ is a feature.
 
 \li |g| is always the grammar of most interest in the context.
 \li |r| is always the recognizer of most interest in the context.
-\li |irl_count_of_g| is the number of internal rules in |g|.
-\li |xrl_count_of_g| is the number of external rules in |g|.
+\li |irl_count| is the number of internal rules in |g|.
+\li |xrl_count| is the number of external rules in |g|.
 
 @*0 Mixed Case Macros.
 In programming in general, accessors are very common.
@@ -3005,6 +3005,7 @@ MARPA_DEBUG4("%s: rule_id=%d factor_count=%d", STRLOC, rule_id, factor_count);
 
 	     @<Factor the rule into CHAF rules@>@;
 	   } else {
+	       irl_clone(g, rule);
 	       XRL_is_Internal(rule) = 1;
 	   }
 	 }
@@ -4699,7 +4700,7 @@ be if written 100\% using indexes.
 	memoizations@> =
   AIM* const item_list_working_buffer
     = my_obstack_alloc(obs_precompute, RULE_Count_of_G(g)*sizeof(AIM));
-  const RULEID irl_count = RULE_Count_of_G(g);
+  const RULEID rule_count = RULE_Count_of_G(g);
   const SYMID ins_count = SYM_Count_of_G(g);
   RULEID** irl_list_x_lh_sym = NULL;
 
@@ -4716,9 +4717,9 @@ of minimum sizes.
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_sym_rule_pair_base =
     my_obstack_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
-		    irl_count);
+		    rule_count);
   struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
-  for (rule_id = 0; rule_id < (Marpa_Rule_ID) irl_count; rule_id++)
+  for (rule_id = 0; rule_id < (Marpa_Rule_ID) rule_count; rule_id++)
     {
       const RULE rule = RULE_by_ID (g, rule_id);
       p_sym_rule_pairs->t_symid = LHS_ID_of_RULE (rule);
@@ -4731,7 +4732,7 @@ of minimum sizes.
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     RULEID *const rule_data_base =
-      my_obstack_new (obs_precompute, RULEID, irl_count);
+      my_obstack_new (obs_precompute, RULEID, rule_count);
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, lhs_avl_tree);
     /* One extra "symbol" as an end marker */

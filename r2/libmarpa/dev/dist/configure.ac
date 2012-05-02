@@ -127,16 +127,19 @@ AC_CHECK_FUNCS([memset])
 AC_TYPE_SIZE_T
 
 if test x"$GCC" = xyes; then
-  WARNING_CFLAGS="-Wall \
-    -Wextra \
-    -Wpointer-arith \
-    -Wstrict-prototypes \
-    -Wwrite-strings \
-    -Wdeclaration-after-statement \
-    -Wshadow \
-    -Winline \
-    -Wmissing-declarations \
-    -ansi -pedantic"
+
+dnl One to a line to make these easy to edit
+WARNING_CFLAGS="-Wall \
+-Wextra \
+-Wpointer-arith \
+-Wstrict-prototypes \
+-Wwrite-strings \
+-Wdeclaration-after-statement \
+-Wshadow \
+-Winline \
+-Wmissing-declarations \
+-ansi -pedantic"
+
 fi
 
 dnl this section will only be run if config.status is invoked with no
