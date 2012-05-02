@@ -3847,11 +3847,17 @@ or equal to the final numbers of items.
 @<Create AHFA items@> =
 {
     RULEID rule_id;
-    AIMID no_of_items;
+    AIMID ahfa_item_count = 0;
     RULEID rule_count_of_g = RULE_Count_of_G(g);
     AIM base_item = my_new(struct s_AHFA_item, Internal_Size_of_G(g));
     AIM current_item = base_item;
     unsigned int symbol_instance_of_next_rule = 0;
+    for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
+      RULE rule = RULE_by_ID (g, rule_id);
+      if (XRL_is_Internal(rule)) {
+	@<Count the AHFA items in a rule@>@;
+      }
+    }
     for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
       RULE rule = RULE_by_ID (g, rule_id);
       if (XRL_is_Internal(rule)) {
@@ -3861,8 +3867,9 @@ or equal to the final numbers of items.
 	}
     }
     SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
-    no_of_items = AIM_Count_of_G(g) = current_item - base_item;
-    g->t_AHFA_items = my_renew(struct s_AHFA_item, base_item, no_of_items);
+    MARPA_ASSERT(ahfa_item_count == current_item - base_item);
+    AIM_Count_of_G(g) = ahfa_item_count;
+    g->t_AHFA_items = my_renew(struct s_AHFA_item, base_item, ahfa_item_count);
     @<Populate the first |AIM|'s of the |RULE|'s@>@;
     @<Set up the AHFA item ids@>@;
 }
@@ -3889,6 +3896,18 @@ or equal to the final numbers of items.
     }
   @<Create an AHFA item for a completion@>@;
   current_item++;
+}
+
+@ @<Count the AHFA items in a rule@> =
+{
+  int rhs_ix;
+  for (rhs_ix = 0; rhs_ix < Length_of_RULE(rule); rhs_ix++)
+    {
+      SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
+      SYM symbol = SYM_by_ID (rh_symid);
+      if (!ISY_is_Nulling(symbol)) ahfa_item_count++;
+    }
+  ahfa_item_count++;
 }
 
 @ @<Create an AHFA item for a precompletion@> =
@@ -3920,7 +3939,7 @@ you want to follow the rules.
   /* The highest ID of a rule whose AHFA items have been found */
   Marpa_Rule_ID highest_found_rule_id = -1;
   Marpa_AHFA_Item_ID item_id;
-  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
+  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) ahfa_item_count; item_id++)
     {
       AIM item = items + item_id;
       RULE rule = RULE_of_AIM(item);
@@ -3981,14 +4000,14 @@ AHFA item as its new, final ID.
 @<Set up the AHFA item ids@> =
 {
   Marpa_AHFA_Item_ID item_id;
-  AIM *sort_array = my_new (struct s_AHFA_item *, no_of_items);
+  AIM *sort_array = my_new (struct s_AHFA_item *, ahfa_item_count);
   AIM items = g->t_AHFA_items;
-  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
+  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) ahfa_item_count; item_id++)
     {
       sort_array[item_id] = items + item_id;
     }
-  qsort (sort_array, (int) no_of_items, sizeof (AIM), cmp_by_postdot_and_aimid);
-  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) no_of_items; item_id++)
+  qsort (sort_array, (int) ahfa_item_count, sizeof (AIM), cmp_by_postdot_and_aimid);
+  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) ahfa_item_count; item_id++)
     {
       Sort_Key_of_AIM (sort_array[item_id]) = item_id;
     }
