@@ -3218,10 +3218,11 @@ for the PN rule.
 	piece_rhs[first_factor_piece_position] =
 	ID_of_SYM(alias);
 }
-{ RULE  chaf_rule;
- int real_symbol_count = piece_rhs_length-1;
-    chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+{
+  int real_symbol_count = piece_rhs_length-1;
+  IRL chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
+  @<Set CHAF rule flags and call back@>@;
 }
 
 @ If this piece is nullable (|piece_start| at or
@@ -3232,10 +3233,10 @@ the Marpa parse engine.
 Note that |remaining_rhs| was altered above.
 @<Add NN CHAF rule for nullable continuation@> =
 if (piece_start < nullable_suffix_ix) {
- RULE  chaf_rule;
- int real_symbol_count = remaining_rhs_length;
-    chaf_rule = rule_new(g, current_lhs_id, remaining_rhs, remaining_rhs_length);
-    @<Set CHAF rule flags and call back@>@;
+  int real_symbol_count = remaining_rhs_length;
+  IRL chaf_irl = irl_new(g, current_lhs_id, remaining_rhs, remaining_rhs_length);
+  RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
+  @<Set CHAF rule flags and call back@>@;
 }
 
 @*0 Add CHAF Rules for Proper Continuations.
@@ -3256,12 +3257,12 @@ if (piece_start < nullable_suffix_ix) {
 @ The PP Rule.
 @<Add PP CHAF rule for proper continuation@> = 
 {
-  RULE chaf_rule;
   for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
     piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
   }
   piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
-  chaf_rule = rule_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  IRL chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
+  RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
 }
 
