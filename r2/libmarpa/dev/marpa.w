@@ -3866,7 +3866,6 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 {
     IRLID irl_id;
     AIMID ahfa_item_count = 0;
-    const IRLID irl_count = IRL_Count_of_G(g);
     AIM base_item;
     AIM current_item;
     unsigned int symbol_instance_of_next_rule = 0;
@@ -4394,7 +4393,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    const unsigned int symbol_count_of_g = SYM_Count_of_G(g);
    const unsigned int rule_count_of_g = RULE_Count_of_G(g);
    Bit_Matrix prediction_matrix;
-   RULE* rule_by_sort_key = my_new(RULE, rule_count_of_g);
+   IRL* irl_by_sort_key = my_new(IRL, irl_count);
     AVL_TREE duplicates;
     AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
@@ -4537,7 +4536,7 @@ You can get the AIM from the AEX, but not vice versa.
 }
 
 @ @<Free locals for creating AHFA states@> =
-   my_free(rule_by_sort_key);
+   my_free(irl_by_sort_key);
     @<Free duplicates data structures@>@;
 
 @ @<Free duplicates data structures@> =
@@ -4571,7 +4570,7 @@ _marpa_avl_destroy(duplicates);
 				 matrix_row (prediction_matrix,
 					     (unsigned int)
 					     Postdot_SYMID_of_AIM
-					     (start_item)), rule_by_sort_key,
+					     (start_item)), irl_by_sort_key,
 				 &states, duplicates, item_list_working_buffer);
 }
 
@@ -4643,7 +4642,7 @@ a start rule completion, and it is a
 	  create_predicted_AHFA_state (g,
 				       matrix_row (prediction_matrix,
 						   (unsigned int) postdot),
-				       rule_by_sort_key, &states, duplicates, item_list_working_buffer);
+				       irl_by_sort_key, &states, duplicates, item_list_working_buffer);
       }
     else
       {
@@ -4718,6 +4717,7 @@ be if written 100\% using indexes.
   AIM* const item_list_working_buffer
     = my_obstack_alloc(obs_precompute, RULE_Count_of_G(g)*sizeof(AIM));
   const RULEID rule_count = RULE_Count_of_G(g);
+  const RULEID irl_count = IRL_Count_of_G(g);
   const SYMID ins_count = SYM_Count_of_G(g);
   RULEID** irl_list_x_lh_sym = NULL;
 
@@ -4729,18 +4729,19 @@ of minimum sizes.
 
 @ @<Calculate Rule by LHS lists@> =
 {
-  Marpa_Rule_ID rule_id;
+  IRLID irl_id;
   const AVL_TREE lhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_sym_rule_pair_base =
     my_obstack_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
 		    rule_count);
   struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
-  for (rule_id = 0; rule_id < (Marpa_Rule_ID) rule_count; rule_id++)
+  for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
-      const RULE rule = RULE_by_ID (g, rule_id);
-      p_sym_rule_pairs->t_symid = LHS_ID_of_RULE (rule);
-      p_sym_rule_pairs->t_ruleid = rule_id;
+      const IRL irl = IRL_by_ID (irl_id);
+      const XRL xrl = Co_RULE_of_IRL(irl);
+      p_sym_rule_pairs->t_symid = LHS_ID_of_RULE (xrl);
+      p_sym_rule_pairs->t_ruleid = irl_id;
       _marpa_avl_insert (lhs_avl_tree, p_sym_rule_pairs);
       p_sym_rule_pairs++;
     }
@@ -4748,13 +4749,13 @@ of minimum sizes.
     struct avl_traverser traverser;
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
-    RULEID *const rule_data_base =
-      my_obstack_new (obs_precompute, RULEID, rule_count);
-    RULEID *p_rule_data = rule_data_base;
+    IRLID *const rule_data_base =
+      my_obstack_new (obs_precompute, IRLID, rule_count);
+    IRLID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, lhs_avl_tree);
     /* One extra "symbol" as an end marker */
     irl_list_x_lh_sym =
-      my_obstack_new (obs_precompute, RULEID *, ins_count + 1);
+      my_obstack_new (obs_precompute, IRLID *, ins_count + 1);
     for (pair =
 	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser,
 						      lhs_avl_tree); pair;
@@ -4936,7 +4937,7 @@ and add the predicted AHFA state@> =
       /* Add the predicted rule */
       p_new_state->t_empty_transition = create_predicted_AHFA_state (g,
 								     predicted_rule_vector,
-								     rule_by_sort_key,
+								     irl_by_sort_key,
 								     &states,
 								     duplicates,
 								     item_list_working_buffer);
@@ -5021,92 +5022,68 @@ predicts every rule
 with |S2| on its LHS.
 @<Create the prediction matrix from the symbol-by-symbol matrix@> = {
     SYMID from_symid;
-    unsigned int* sort_key_by_rule_id = my_new(unsigned int, rule_count_of_g);
-    unsigned int no_of_predictable_rules = 0;
-    @<Populate |sort_key_by_rule_id| with first pass value;
-	calculate |no_of_predictable_rules|@>@/
-    @<Populate |rule_by_sort_key|@>@/
-    @<Populate |sort_key_by_rule_id| with second pass value@>@/
+    unsigned int* sort_key_by_irl_id = my_new(unsigned int, irl_count);
+    @<Populate |irl_by_sort_key|@>@/
+    @<Populate |sort_key_by_irl_id| with second pass value@>@/
     @<Populate the prediction matrix@>@/
-    my_free(sort_key_by_rule_id);
+    my_free(sort_key_by_irl_id);
 }
 
 @ For creating prediction AHFA states, we need to have an ordering of rules
 by their postdot symbol.
-A ``predictable rule" is one whose initial item has a postdot symbol.
-The following facts hold:
-\li A rule is predictable iff it is a used rule.
-\li A rule is predictable iff it has any item with a postdot symbol.
-\par
 Here we take a first pass at this, letting the value be the postdot symbol for
 the predictable rules.
-|INT_MAX| is used for the others, so that they will sort high.
-(|INT_MAX| is used and not |UINT_MAX|, because the sort routines
-work with signed values.)
 This first pass fully captures the order,
 but in the 
 final result we want the keys to be unique integers
 in a sequence start from 0,
 so that they can be used as the indices of a bit vector.
-@d SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, rule) {
-      const AIM aim = rule->t_first_aim;
-      if (aim) {
-	  const SYMID postdot = Postdot_SYMID_of_AIM (aim);
-	  (sort_key) = postdot >= 0 ? postdot : INT_MAX;
-	} else {
-	  (sort_key) = INT_MAX;
-	}
-}
-@<Populate |sort_key_by_rule_id| with first pass value;
-calculate |no_of_predictable_rules|@> =
-{
-  RULEID rule_id;
-  for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
-  {
-      RULE rule = RULE_by_ID(g, rule_id);
-      int sort_key;
-      SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key, rule);
-      if (sort_key != INT_MAX) no_of_predictable_rules++;
-  }
+@d SET_1ST_PASS_SORT_KEY_FOR_IRL(sort_key, irl) {
+  const XRL xrl = Co_RULE_of_IRL(irl);
+  const AIM aim = xrl->t_first_aim;
+  (sort_key) = Postdot_SYMID_of_AIM (aim);
 }
 
-@ @<Populate |rule_by_sort_key|@> =
+@ @<Populate |irl_by_sort_key|@> =
 {
-  RULEID rule_id;
-  for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
+  IRLID irl_id;
+  for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
-      rule_by_sort_key[rule_id] = RULE_by_ID (g, rule_id);
+      irl_by_sort_key[irl_id] = IRL_by_ID (irl_id);
     }
-  qsort (rule_by_sort_key, (int)rule_count_of_g,
-		     sizeof (RULE), cmp_by_rule_sort_key);
+  qsort (irl_by_sort_key, (int) irl_count,
+	 sizeof (RULE), cmp_by_irl_sort_key);
 }
 
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int
-cmp_by_rule_sort_key(const void* ap, const void* bp)
+cmp_by_irl_sort_key(const void* ap, const void* bp)
 {
-    RULE rule_a = *(RULE*)ap;
-    RULE rule_b = *(RULE*)bp;
-    unsigned int sort_key_a;
-    unsigned int sort_key_b;
-    Marpa_Rule_ID a_id = rule_a->t_id;
-    Marpa_Rule_ID b_id = rule_b->t_id;
-      SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key_a, rule_a);
-      SET_1ST_PASS_SORT_KEY_FOR_RULE_ID(sort_key_b, rule_b);
-    if (sort_key_a == sort_key_b) return a_id - b_id;
+  const IRL irl_a = *(IRL *) ap;
+  const IRL irl_b = *(IRL *) bp;
+  unsigned int sort_key_a;
+  unsigned int sort_key_b;
+  SET_1ST_PASS_SORT_KEY_FOR_IRL (sort_key_a, irl_a);
+  SET_1ST_PASS_SORT_KEY_FOR_IRL (sort_key_b, irl_b);
+  if (sort_key_a != sort_key_b)
     return sort_key_a - sort_key_b;
+  {
+    IRLID a_id = ID_of_IRL (irl_a);
+    IRLID b_id = ID_of_IRL (irl_b);
+    return a_id - b_id;
+  }
 }
 
 @ We have now sorted the rules into the final sort key order.
-With this final version of the sort keys,
-populate the index from rule id to sort key.
-@<Populate |sort_key_by_rule_id| with second pass value@> =
+The final version of the sort keys are ordinals,
+which can be used to index the rules in a bit vector.
+@<Populate |sort_key_by_irl_id| with second pass value@> =
 {
-  unsigned int sort_key;
-  for (sort_key = 0; sort_key < rule_count_of_g; sort_key++)
+  IRLID sort_ordinal;
+  for (sort_ordinal = 0; sort_ordinal < irl_count; sort_ordinal++)
     {
-      RULE rule = rule_by_sort_key[sort_key];
-      sort_key_by_rule_id[rule->t_id] = sort_key;
+      IRL irl = irl_by_sort_key[sort_ordinal];
+      sort_key_by_irl_id[ID_of_IRL(irl)] = sort_ordinal;
     }
 }
 
@@ -5114,7 +5091,7 @@ populate the index from rule id to sort key.
 {
   prediction_matrix =
     matrix_obs_create (obs_precompute, symbol_count_of_g,
-		       no_of_predictable_rules);
+		       irl_count);
   for (from_symid = 0; from_symid < (SYMID) symbol_count_of_g; from_symid++)
     {
       // for every row of the symbol-by-symbol matrix
@@ -5134,13 +5111,10 @@ populate the index from rule id to sort key.
 		{
 		  // For every rule with that symbol on its LHS
 		  const RULEID rule_with_this_lhs_symbol = *p_irl_x_lh_sym;
-		  unsigned int sort_key =
-		    sort_key_by_rule_id[rule_with_this_lhs_symbol];
-		  if (sort_key >= no_of_predictable_rules)
-		    continue;	/*
-				   We only need to predict rules which have items */
+		  unsigned int sort_ordinal =
+		    sort_key_by_irl_id[rule_with_this_lhs_symbol];
 		  matrix_bit_set (prediction_matrix,
-				  (unsigned int) from_symid, sort_key);
+				  (unsigned int) from_symid, sort_ordinal);
 		  // Set the $(symbol, rule sort key)$ bit in the matrix
 		}
 	    }
@@ -5153,7 +5127,7 @@ PRIVATE_NOT_INLINE AHFA
 create_predicted_AHFA_state(
      GRAMMAR g,
      Bit_Vector prediction_rule_vector,
-     RULE* rule_by_sort_key,
+     IRL* irl_by_sort_key,
      DQUEUE states_p,
      AVL_TREE duplicates,
      AIM* item_list_working_buffer
@@ -5169,12 +5143,13 @@ create_predicted_AHFA_state(
     for (start = 0; bv_scan (prediction_rule_vector, start, &min, &max);
 	 start = max + 2)
       {				// Scan the prediction rule vector again, this time to populate the list
-	unsigned int rule_sort_key;
-	for (rule_sort_key = min; rule_sort_key <= max; rule_sort_key++)
+	unsigned int sort_ordinal;
+	for (sort_ordinal = min; sort_ordinal <= max; sort_ordinal++)
 	  {
 	    /* Add the initial item for the predicted rule */
-	    RULE rule = rule_by_sort_key[rule_sort_key];
-	    item_list_working_buffer[item_list_ix++] = rule->t_first_aim;
+	    const IRL irl = irl_by_sort_key[sort_ordinal];
+	    XRL xrl = Co_RULE_of_IRL(irl);
+	    item_list_working_buffer[item_list_ix++] = xrl->t_first_aim;
 	  }
       }
   }
