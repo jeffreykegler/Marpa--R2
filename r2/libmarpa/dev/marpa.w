@@ -1560,6 +1560,7 @@ PRIVATE IRL
 irl_start(GRAMMAR g)
 {
   const IRL new_irl = my_obstack_new (&g->t_obs, struct s_irl, 1);
+  ID_of_IRL(new_irl) = DSTACK_LENGTH((g)->t_irl_stack);
   *DSTACK_PUSH((g)->t_irl_stack, IRL) = new_irl;
   return new_irl;
 }
@@ -2273,7 +2274,8 @@ be using it.
 
 @ @<Private structures@> =
 struct s_irl {
-    XRL t_co_rule;
+  @<Widely aligned irl elements@>@;
+  @<Int aligned irl elements@>@;
 };
 @
 @<Private typedefs@> =
@@ -2286,6 +2288,16 @@ typedef Marpa_Rule_ID IRLID;
 Delete this when division of grammar into
 external and internal is complete.
 @d Co_RULE_of_IRL(irl) ((irl)->t_co_rule)
+@<Widely aligned irl elements@> =
+  XRL t_co_rule;
+
+@*0 Rule ID.
+The {\bf rule ID} is a number which
+acts as the unique identifier for a rule.
+The rule ID is initialized when the rule is
+added to the list of rules.
+@d ID_of_IRL(xrl) ((xrl)->t_irl_id)
+@<Int aligned irl elements@> = IRLID t_irl_id;
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
