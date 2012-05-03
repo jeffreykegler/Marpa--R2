@@ -347,7 +347,9 @@ The classes of object used by libmarpa have one letter codes.
 
 @*0 Reserved locals.
 Certain symbol names are reserved for certain purposes.
-They are not necessarily defined, but if defined they
+They are not necessarily defined, but if defined,
+and once initialized,
+they
 must be used for the designated purpose.
 An example is |g|, which is the grammar of most interest in
 the context.
@@ -356,14 +358,6 @@ It is expected that the routines which refer to a grammar
 will set |g| to that value.
 This convention saves a lot of clutter in the form of
 macro and subroutine arguments.
-
-In some cases, these constants may not be well-defined.
-An example is |rule_count_of_g| while rules are being added
-to the grammar.
-In such cases, to minimize confusion, these names should be
-left undefined.
-This makes the macros which use them unuseable, which
-is a feature.
 
 \li |g| is always the grammar of most interest in the context.
 \li |r| is always the recognizer of most interest in the context.
@@ -2988,7 +2982,7 @@ the pre-CHAF rule count.
     @<CHAF rewrite declarations@>@;
     @<CHAF rewrite allocations@>@;
     @<Alias proper nullables@>@;
-    pre_chaf_rule_count = RULE_Count_of_G(g);
+    pre_chaf_rule_count = XRL_Count_of_G(g);
     for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
 
          RULE  rule = RULE_by_ID(g, rule_id);
@@ -4714,10 +4708,9 @@ pointer twiddling actually makes the code clearer than it would
 be if written 100\% using indexes.
 @<Declare variables for the internal grammar
 	memoizations@> =
-  AIM* const item_list_working_buffer
-    = my_obstack_alloc(obs_precompute, RULE_Count_of_G(g)*sizeof(AIM));
-  const RULEID rule_count = RULE_Count_of_G(g);
   const RULEID irl_count = IRL_Count_of_G(g);
+  AIM* const item_list_working_buffer
+    = my_obstack_alloc(obs_precompute, irl_count*sizeof(AIM));
   const SYMID ins_count = SYM_Count_of_G(g);
   RULEID** irl_list_x_lh_sym = NULL;
 
@@ -4986,7 +4979,7 @@ states.
 
 @ @<Initialize the symbol-by-symbol matrix@> =
 {
-  RULEID rule_id;
+  IRLID irl_id;
   SYMID symid;
   for (symid = 0; symid < (SYMID) symbol_count_of_g; symid++)
     {
@@ -4995,15 +4988,13 @@ states.
       if (!ISY_is_LHS(symbol)) continue;
       matrix_bit_set (symbol_by_symbol_matrix, (unsigned int) symid, (unsigned int) symid);
     }
-  for (rule_id = 0; rule_id < (RULEID) rule_count_of_g; rule_id++)
+  for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
       SYMID from, to;
-      const RULE rule = RULE_by_ID(g, rule_id);
+      const IRL irl = IRL_by_ID(irl_id);
+      const XRL xrl = Co_RULE_of_IRL(irl);
       /* Get the initial item for the rule */
-      const AIM item = rule->t_first_aim;
-      /* Not all rules have items */
-      if (!item)
-	continue;
+      const AIM item = xrl->t_first_aim;
       from = LHS_ID_of_AIM (item);
       to = Postdot_SYMID_of_AIM (item);
       /* There is no symbol-to-symbol transition for a completion item */
