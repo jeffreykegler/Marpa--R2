@@ -4734,7 +4734,7 @@ of minimum sizes.
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_sym_rule_pair_base =
     my_obstack_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
-		    rule_count);
+		    irl_count);
   struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
@@ -4750,7 +4750,7 @@ of minimum sizes.
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     IRLID *const rule_data_base =
-      my_obstack_new (obs_precompute, IRLID, rule_count);
+      my_obstack_new (obs_precompute, IRLID, irl_count);
     IRLID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, lhs_avl_tree);
     /* One extra "symbol" as an end marker */
