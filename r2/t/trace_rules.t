@@ -113,11 +113,11 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 EOS
 
 Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Rules' );
-0: S -> Seq0 Seq1 /* !used */
-1: S -> Proper Proper Proper Proper /* !used */
+0: S -> Seq0 Seq1
+1: S -> Proper Proper Proper Proper
 2: S -> X Y Z
-3: Seq0 -> a /* !used */
-4: Seq1 -> A /* !used */
+3: Seq0 -> a
+4: Seq1 -> A
 5: X -> x
 6: Y -> y
 7: Z -> z

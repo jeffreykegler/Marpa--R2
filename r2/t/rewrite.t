@@ -114,9 +114,9 @@ my $show_rules_output = $grammar->show_rules();
 # end-before-line: '^END_RULES$'
 
 Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
-0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace /* !used */
-1: statements -> statement /* !used discard_sep */
-2: block -> statements /* !used */
+0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace
+1: statements -> statement /* discard_sep */
+2: block -> statements
 3: optional_whitespace -> whitespace
 4: optional_whitespace -> /* empty !used */
 5: optional_modifier -> modifier

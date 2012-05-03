@@ -75,9 +75,9 @@ END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,
     <<'END_OF_STRING', 'Leo168 Rules' );
-0: S -> a S /* !used */
-1: S -> C /* !used */
-2: C -> a C b /* !used */
+0: S -> a S
+1: S -> C
+2: C -> a C b
 3: C -> /* empty !used */
 4: S -> a S
 5: S -> a S[]

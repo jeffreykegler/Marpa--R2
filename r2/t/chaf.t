@@ -56,7 +56,7 @@ $grammar->set( { terminals => ['a'], } );
 $grammar->precompute();
 
 Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
-0: S -> A B B B C C /* !used */
+0: S -> A B B B C C
 1: A -> a
 2: B -> a
 3: B -> /* empty !used */

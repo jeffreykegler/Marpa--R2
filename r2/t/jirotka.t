@@ -150,10 +150,10 @@ END_OF_SYMBOLS
 
 Marpa::R2::Test::is( $grammar->show_rules(),
 <<'END_OF_RULES', 'Rules' );
-0: Input -> Statement /* !used discard_sep */
+0: Input -> Statement /* discard_sep */
 1: Statement -> CREATE TypeDef
 2: TypeDef -> METRIC ID_METRIC AS MetricSelect
-3: MetricSelect -> SELECT MetricExpr ByClause Match Filter WithPf /* !used */
+3: MetricSelect -> SELECT MetricExpr ByClause Match Filter WithPf
 4: MetricExpr -> NUMBER
 5: ByClause -> /* empty !used */
 6: ByClause -> BY
