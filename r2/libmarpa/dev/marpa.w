@@ -735,7 +735,7 @@ The |rule_tree| is a tree for detecting duplicates.
     struct marpa_avl_table* t_rule_tree;
 @ @<Initialize grammar elements@> =
     DSTACK_INIT2(g->t_xrl_stack, RULE);
-    DSTACK_INIT2(g->t_irl_stack, IRL);
+    DSTACK_SAFE(g->t_irl_stack);
     g->t_rule_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, alignof (RULE));
 
 @ @<Destroy rule tree@> =
@@ -749,16 +749,18 @@ The |rule_tree| is a tree for detecting duplicates.
 
 @*0 Rule count accessors.
 @ @d XRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_xrl_stack))
+@ @d IRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_irl_stack))
 @ @d RULE_Count_of_G(g) (XRL_Count_of_G(g))
 @ @<Function definitions@> =
 int marpa_g_rule_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    return RULE_Count_of_G(g);
+    return XRL_Count_of_G(g);
 }
 
 @ Internal accessor to find a rule by its id.
 @d XRL_by_ID(id) (*DSTACK_INDEX((g)->t_xrl_stack, XRL, (id)))
+@d IRL_by_ID(id) (*DSTACK_INDEX((g)->t_irl_stack, IRL, (id)))
 @d RULE_by_ID(g, id) (XRL_by_ID(id))
 
 @ Adds the rule to the list of rules kept by the Grammar
@@ -1848,7 +1850,8 @@ The {\bf rule ID} is a number which
 acts as the unique identifier for a rule.
 The rule ID is initialized when the rule is
 added to the list of rules.
-@d ID_of_RULE(rule) ((rule)->t_id)
+@d ID_of_XRL(xrl) ((xrl)->t_id)
+@d ID_of_RULE(rule) ID_of_XRL(rule)
 @<Int aligned rule elements@> = Marpa_Rule_ID t_id;
 
 @*0 Rule is internal?.
@@ -2370,13 +2373,13 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Detect cycles@>@;
     }
     // Phase 2: rewrite the grammar into internal form
+    @<Initialize IRL stack@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
     // Phase 3: memoize the internal grammar
      if (!G_is_Trivial(g)) {
 	@<Declare variables for the internal grammar
 	memoizations@>@;
-	@<Initialize IRL stack@>@;
 	@<Calculate Rule by LHS lists@>@;
 	@<Create AHFA items@>@;
 	@<Create AHFA states@>@;
@@ -3864,26 +3867,24 @@ int _marpa_g_AHFA_item_sort_key(struct marpa_g* g,
 @** Creating the AHFA Items.
 @ @<Create AHFA items@> =
 {
-    RULEID rule_id;
+    IRLID irl_id;
     AIMID ahfa_item_count = 0;
-    RULEID rule_count_of_g = RULE_Count_of_G(g);
+    const IRLID irl_count = IRL_Count_of_G(g);
     AIM base_item;
     AIM current_item;
     unsigned int symbol_instance_of_next_rule = 0;
-    for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
-      RULE rule = RULE_by_ID (g, rule_id);
-      if (XRL_is_Internal(rule)) {
-	@<Count the AHFA items in a rule@>@;
-      }
+    for (irl_id = 0; irl_id < irl_count; irl_id++) {
+      const IRL irl = IRL_by_ID(irl_id);
+      const RULE rule = Co_RULE_of_IRL(irl);
+      @<Count the AHFA items in a rule@>@;
     }
     current_item = base_item = my_new(struct s_AHFA_item, ahfa_item_count);
-    for (rule_id = 0; rule_id < (Marpa_Rule_ID)rule_count_of_g; rule_id++) {
-      RULE rule = RULE_by_ID (g, rule_id);
-      if (XRL_is_Internal(rule)) {
-	@<Create the AHFA items for a rule@>@;
-	SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
-	symbol_instance_of_next_rule += Length_of_RULE(rule);
-	}
+    for (irl_id = 0; irl_id < irl_count; irl_id++) {
+      const IRL irl = IRL_by_ID(irl_id);
+      const RULE rule = Co_RULE_of_IRL(irl);
+      @<Create the AHFA items for a rule@>@;
+      SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
+      symbol_instance_of_next_rule += Length_of_RULE(rule);
     }
     SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
     MARPA_ASSERT(ahfa_item_count == current_item - base_item);
@@ -3955,18 +3956,13 @@ you want to follow the rules.
 @<Populate the first |AIM|'s of the |RULE|'s@> =
 {
   AIM items = g->t_AHFA_items;
-  /* The highest ID of a rule whose AHFA items have been found */
-  Marpa_Rule_ID highest_found_rule_id = -1;
-  Marpa_AHFA_Item_ID item_id;
-  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) ahfa_item_count; item_id++)
+  AIMID item_id = (AIMID) ahfa_item_count;
+  for (item_id--; item_id >= 0; item_id--)
     {
       AIM item = items + item_id;
-      RULE rule = RULE_of_AIM(item);
+      RULE rule = RULE_of_AIM (item);
       Marpa_Rule_ID rule_id_for_item = rule->t_id;
-      if (rule_id_for_item <= highest_found_rule_id)
-	continue;
       rule->t_first_aim = item;
-      highest_found_rule_id = rule_id_for_item;
     }
 }
 

@@ -357,136 +357,136 @@ END_OF_AHFA
 
 Marpa::R2::Test::is( $grammar->show_AHFA_items(),
     <<'END_OF_AHFA_ITEMS', 'AHFA Items' );
-AHFA item 0: sort = 2; postdot = "CREATE"
-    Statement -> . CREATE TypeDef
-AHFA item 1: sort = 21; postdot = "TypeDef"
-    Statement -> CREATE . TypeDef
-AHFA item 2: sort = 43; completion
-    Statement -> CREATE TypeDef .
-AHFA item 3: sort = 5; postdot = "METRIC"
-    TypeDef -> . METRIC ID_METRIC AS MetricSelect
-AHFA item 4: sort = 14; postdot = "ID_METRIC"
-    TypeDef -> METRIC . ID_METRIC AS MetricSelect
-AHFA item 5: sort = 0; postdot = "AS"
-    TypeDef -> METRIC ID_METRIC . AS MetricSelect
-AHFA item 6: sort = 22; postdot = "MetricSelect"
-    TypeDef -> METRIC ID_METRIC AS . MetricSelect
-AHFA item 7: sort = 44; completion
-    TypeDef -> METRIC ID_METRIC AS MetricSelect .
-AHFA item 8: sort = 17; postdot = "NUMBER"
-    MetricExpr -> . NUMBER
-AHFA item 9: sort = 45; completion
-    MetricExpr -> NUMBER .
-AHFA item 10: sort = 1; postdot = "BY"
-    ByClause -> . BY
-AHFA item 11: sort = 46; completion
-    ByClause -> BY .
-AHFA item 12: sort = 4; postdot = "FOR"
-    Match -> . FOR
-AHFA item 13: sort = 47; completion
-    Match -> FOR .
-AHFA item 14: sort = 12; postdot = "WHERE"
-    Filter -> . WHERE FilterExpr
-AHFA item 15: sort = 35; postdot = "FilterExpr"
-    Filter -> WHERE . FilterExpr
-AHFA item 16: sort = 48; completion
-    Filter -> WHERE FilterExpr .
-AHFA item 17: sort = 11; postdot = "TRUE"
-    FilterExpr -> . TRUE
-AHFA item 18: sort = 49; completion
-    FilterExpr -> TRUE .
-AHFA item 19: sort = 3; postdot = "FALSE"
-    FilterExpr -> . FALSE
-AHFA item 20: sort = 50; completion
-    FilterExpr -> FALSE .
-AHFA item 21: sort = 13; postdot = "WITH"
-    WithPf -> . WITH PF
-AHFA item 22: sort = 6; postdot = "PF"
-    WithPf -> WITH . PF
-AHFA item 23: sort = 51; completion
-    WithPf -> WITH PF .
-AHFA item 24: sort = 36; postdot = "Input[Seq]"
+AHFA item 0: sort = 36; postdot = "Input[Seq]"
     Input -> . Input[Seq]
-AHFA item 25: sort = 52; completion
+AHFA item 1: sort = 43; completion
     Input -> Input[Seq] .
-AHFA item 26: sort = 37; postdot = "Input[Seq]"
+AHFA item 2: sort = 37; postdot = "Input[Seq]"
     Input -> . Input[Seq] SEPARATOR
-AHFA item 27: sort = 15; postdot = "SEPARATOR"
+AHFA item 3: sort = 15; postdot = "SEPARATOR"
     Input -> Input[Seq] . SEPARATOR
-AHFA item 28: sort = 53; completion
+AHFA item 4: sort = 44; completion
     Input -> Input[Seq] SEPARATOR .
-AHFA item 29: sort = 19; postdot = "Statement"
+AHFA item 5: sort = 19; postdot = "Statement"
     Input[Seq] -> . Statement
-AHFA item 30: sort = 54; completion
+AHFA item 6: sort = 45; completion
     Input[Seq] -> Statement .
-AHFA item 31: sort = 38; postdot = "Input[Seq]"
+AHFA item 7: sort = 38; postdot = "Input[Seq]"
     Input[Seq] -> . Input[Seq] SEPARATOR Statement
-AHFA item 32: sort = 16; postdot = "SEPARATOR"
+AHFA item 8: sort = 16; postdot = "SEPARATOR"
     Input[Seq] -> Input[Seq] . SEPARATOR Statement
-AHFA item 33: sort = 20; postdot = "Statement"
+AHFA item 9: sort = 20; postdot = "Statement"
     Input[Seq] -> Input[Seq] SEPARATOR . Statement
-AHFA item 34: sort = 55; completion
+AHFA item 10: sort = 46; completion
     Input[Seq] -> Input[Seq] SEPARATOR Statement .
-AHFA item 35: sort = 7; postdot = "SELECT"
+AHFA item 11: sort = 2; postdot = "CREATE"
+    Statement -> . CREATE TypeDef
+AHFA item 12: sort = 21; postdot = "TypeDef"
+    Statement -> CREATE . TypeDef
+AHFA item 13: sort = 47; completion
+    Statement -> CREATE TypeDef .
+AHFA item 14: sort = 5; postdot = "METRIC"
+    TypeDef -> . METRIC ID_METRIC AS MetricSelect
+AHFA item 15: sort = 14; postdot = "ID_METRIC"
+    TypeDef -> METRIC . ID_METRIC AS MetricSelect
+AHFA item 16: sort = 0; postdot = "AS"
+    TypeDef -> METRIC ID_METRIC . AS MetricSelect
+AHFA item 17: sort = 22; postdot = "MetricSelect"
+    TypeDef -> METRIC ID_METRIC AS . MetricSelect
+AHFA item 18: sort = 48; completion
+    TypeDef -> METRIC ID_METRIC AS MetricSelect .
+AHFA item 19: sort = 7; postdot = "SELECT"
     MetricSelect -> . SELECT MetricExpr ByClause MetricSelect[R3:3]
-AHFA item 36: sort = 23; postdot = "MetricExpr"
+AHFA item 20: sort = 23; postdot = "MetricExpr"
     MetricSelect -> SELECT . MetricExpr ByClause MetricSelect[R3:3]
-AHFA item 37: sort = 27; postdot = "ByClause"
+AHFA item 21: sort = 27; postdot = "ByClause"
     MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]
-AHFA item 38: sort = 39; postdot = "MetricSelect[R3:3]"
+AHFA item 22: sort = 39; postdot = "MetricSelect[R3:3]"
     MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]
-AHFA item 39: sort = 56; completion
+AHFA item 23: sort = 49; completion
     MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .
-AHFA item 40: sort = 8; postdot = "SELECT"
+AHFA item 24: sort = 8; postdot = "SELECT"
     MetricSelect -> . SELECT MetricExpr ByClause Match[] Filter[] WithPf[]
-AHFA item 41: sort = 24; postdot = "MetricExpr"
+AHFA item 25: sort = 24; postdot = "MetricExpr"
     MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]
-AHFA item 42: sort = 28; postdot = "ByClause"
+AHFA item 26: sort = 28; postdot = "ByClause"
     MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]
-AHFA item 43: sort = 57; completion
+AHFA item 27: sort = 50; completion
     MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .
-AHFA item 44: sort = 9; postdot = "SELECT"
+AHFA item 28: sort = 9; postdot = "SELECT"
     MetricSelect -> . SELECT MetricExpr ByClause[] MetricSelect[R3:3]
-AHFA item 45: sort = 25; postdot = "MetricExpr"
+AHFA item 29: sort = 25; postdot = "MetricExpr"
     MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]
-AHFA item 46: sort = 40; postdot = "MetricSelect[R3:3]"
+AHFA item 30: sort = 40; postdot = "MetricSelect[R3:3]"
     MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]
-AHFA item 47: sort = 58; completion
+AHFA item 31: sort = 51; completion
     MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .
-AHFA item 48: sort = 10; postdot = "SELECT"
+AHFA item 32: sort = 10; postdot = "SELECT"
     MetricSelect -> . SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]
-AHFA item 49: sort = 26; postdot = "MetricExpr"
+AHFA item 33: sort = 26; postdot = "MetricExpr"
     MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]
-AHFA item 50: sort = 59; completion
+AHFA item 34: sort = 52; completion
     MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .
-AHFA item 51: sort = 29; postdot = "Match"
+AHFA item 35: sort = 29; postdot = "Match"
     MetricSelect[R3:3] -> . Match MetricSelect[R3:4]
-AHFA item 52: sort = 41; postdot = "MetricSelect[R3:4]"
+AHFA item 36: sort = 41; postdot = "MetricSelect[R3:4]"
     MetricSelect[R3:3] -> Match . MetricSelect[R3:4]
-AHFA item 53: sort = 60; completion
+AHFA item 37: sort = 53; completion
     MetricSelect[R3:3] -> Match MetricSelect[R3:4] .
-AHFA item 54: sort = 30; postdot = "Match"
+AHFA item 38: sort = 30; postdot = "Match"
     MetricSelect[R3:3] -> . Match Filter[] WithPf[]
-AHFA item 55: sort = 61; completion
+AHFA item 39: sort = 54; completion
     MetricSelect[R3:3] -> Match Filter[] WithPf[] .
-AHFA item 56: sort = 42; postdot = "MetricSelect[R3:4]"
+AHFA item 40: sort = 42; postdot = "MetricSelect[R3:4]"
     MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]
-AHFA item 57: sort = 62; completion
+AHFA item 41: sort = 55; completion
     MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .
-AHFA item 58: sort = 31; postdot = "Filter"
+AHFA item 42: sort = 31; postdot = "Filter"
     MetricSelect[R3:4] -> . Filter WithPf
-AHFA item 59: sort = 33; postdot = "WithPf"
+AHFA item 43: sort = 33; postdot = "WithPf"
     MetricSelect[R3:4] -> Filter . WithPf
-AHFA item 60: sort = 63; completion
+AHFA item 44: sort = 56; completion
     MetricSelect[R3:4] -> Filter WithPf .
-AHFA item 61: sort = 32; postdot = "Filter"
+AHFA item 45: sort = 32; postdot = "Filter"
     MetricSelect[R3:4] -> . Filter WithPf[]
-AHFA item 62: sort = 64; completion
+AHFA item 46: sort = 57; completion
     MetricSelect[R3:4] -> Filter WithPf[] .
-AHFA item 63: sort = 34; postdot = "WithPf"
+AHFA item 47: sort = 34; postdot = "WithPf"
     MetricSelect[R3:4] -> Filter[] . WithPf
-AHFA item 64: sort = 65; completion
+AHFA item 48: sort = 58; completion
     MetricSelect[R3:4] -> Filter[] WithPf .
+AHFA item 49: sort = 17; postdot = "NUMBER"
+    MetricExpr -> . NUMBER
+AHFA item 50: sort = 59; completion
+    MetricExpr -> NUMBER .
+AHFA item 51: sort = 1; postdot = "BY"
+    ByClause -> . BY
+AHFA item 52: sort = 60; completion
+    ByClause -> BY .
+AHFA item 53: sort = 4; postdot = "FOR"
+    Match -> . FOR
+AHFA item 54: sort = 61; completion
+    Match -> FOR .
+AHFA item 55: sort = 12; postdot = "WHERE"
+    Filter -> . WHERE FilterExpr
+AHFA item 56: sort = 35; postdot = "FilterExpr"
+    Filter -> WHERE . FilterExpr
+AHFA item 57: sort = 62; completion
+    Filter -> WHERE FilterExpr .
+AHFA item 58: sort = 11; postdot = "TRUE"
+    FilterExpr -> . TRUE
+AHFA item 59: sort = 63; completion
+    FilterExpr -> TRUE .
+AHFA item 60: sort = 3; postdot = "FALSE"
+    FilterExpr -> . FALSE
+AHFA item 61: sort = 64; completion
+    FilterExpr -> FALSE .
+AHFA item 62: sort = 13; postdot = "WITH"
+    WithPf -> . WITH PF
+AHFA item 63: sort = 6; postdot = "PF"
+    WithPf -> WITH . PF
+AHFA item 64: sort = 65; completion
+    WithPf -> WITH PF .
 AHFA item 65: sort = 18; postdot = "Input"
     Input['] -> . Input
 AHFA item 66: sort = 66; completion

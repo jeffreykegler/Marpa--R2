@@ -104,52 +104,52 @@ Marpa::R2::Test::is(
 
 Marpa::R2::Test::is( $grammar->show_AHFA_items(),
     <<'EOS', 'Aycock/Horspool AHFA Items' );
-AHFA item 0: sort = 9; postdot = "a"
-    A -> . a
-AHFA item 1: sort = 14; completion
-    A -> a .
-AHFA item 2: sort = 1; postdot = "A"
+AHFA item 0: sort = 1; postdot = "A"
     S -> . A S[R0:1]
-AHFA item 3: sort = 10; postdot = "S[R0:1]"
+AHFA item 1: sort = 10; postdot = "S[R0:1]"
     S -> A . S[R0:1]
-AHFA item 4: sort = 15; completion
+AHFA item 2: sort = 14; completion
     S -> A S[R0:1] .
-AHFA item 5: sort = 2; postdot = "A"
+AHFA item 3: sort = 2; postdot = "A"
     S -> . A A[] A[] A[]
-AHFA item 6: sort = 16; completion
+AHFA item 4: sort = 15; completion
     S -> A A[] A[] A[] .
-AHFA item 7: sort = 11; postdot = "S[R0:1]"
+AHFA item 5: sort = 11; postdot = "S[R0:1]"
     S -> A[] . S[R0:1]
-AHFA item 8: sort = 17; completion
+AHFA item 6: sort = 16; completion
     S -> A[] S[R0:1] .
-AHFA item 9: sort = 3; postdot = "A"
+AHFA item 7: sort = 3; postdot = "A"
     S[R0:1] -> . A S[R0:2]
-AHFA item 10: sort = 12; postdot = "S[R0:2]"
+AHFA item 8: sort = 12; postdot = "S[R0:2]"
     S[R0:1] -> A . S[R0:2]
-AHFA item 11: sort = 18; completion
+AHFA item 9: sort = 17; completion
     S[R0:1] -> A S[R0:2] .
-AHFA item 12: sort = 4; postdot = "A"
+AHFA item 10: sort = 4; postdot = "A"
     S[R0:1] -> . A A[] A[]
-AHFA item 13: sort = 19; completion
+AHFA item 11: sort = 18; completion
     S[R0:1] -> A A[] A[] .
-AHFA item 14: sort = 13; postdot = "S[R0:2]"
+AHFA item 12: sort = 13; postdot = "S[R0:2]"
     S[R0:1] -> A[] . S[R0:2]
-AHFA item 15: sort = 20; completion
+AHFA item 13: sort = 19; completion
     S[R0:1] -> A[] S[R0:2] .
-AHFA item 16: sort = 5; postdot = "A"
+AHFA item 14: sort = 5; postdot = "A"
     S[R0:2] -> . A A
-AHFA item 17: sort = 6; postdot = "A"
+AHFA item 15: sort = 6; postdot = "A"
     S[R0:2] -> A . A
-AHFA item 18: sort = 21; completion
+AHFA item 16: sort = 20; completion
     S[R0:2] -> A A .
-AHFA item 19: sort = 7; postdot = "A"
+AHFA item 17: sort = 7; postdot = "A"
     S[R0:2] -> . A A[]
-AHFA item 20: sort = 22; completion
+AHFA item 18: sort = 21; completion
     S[R0:2] -> A A[] .
-AHFA item 21: sort = 8; postdot = "A"
+AHFA item 19: sort = 8; postdot = "A"
     S[R0:2] -> A[] . A
-AHFA item 22: sort = 23; completion
+AHFA item 20: sort = 22; completion
     S[R0:2] -> A[] A .
+AHFA item 21: sort = 9; postdot = "a"
+    A -> . a
+AHFA item 22: sort = 23; completion
+    A -> a .
 AHFA item 23: sort = 0; postdot = "S"
     S['] -> . S
 AHFA item 24: sort = 24; completion
