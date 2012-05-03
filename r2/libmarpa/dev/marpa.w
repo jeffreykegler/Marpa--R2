@@ -359,8 +359,8 @@ will set |g| to that value.
 This convention saves a lot of clutter in the form of
 macro and subroutine arguments.
 
-\li |g| is always the grammar of most interest in the context.
-\li |r| is always the recognizer of most interest in the context.
+\li |g| is the grammar of most interest in the context.
+\li |r| is the recognizer of most interest in the context.
 \li |irl_count| is the number of internal rules in |g|.
 \li |xrl_count| is the number of external rules in |g|.
 
@@ -374,8 +374,8 @@ but some are not.
 In an effort to make the code readable and maintainable,
 I use macros for all accessors.
 @ The standard C convention is that macros are all caps.
-This is a good convention.  I believe in it and almost
-always follow it.
+This is a good convention.  I believe in it and usually
+follow it.
 But in this code I have departed from it.
 @ As has been noted in the email world,
 when most of a page is in caps, that page becomes
@@ -3781,11 +3781,12 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 }
 
 @*0 Rule.
-@d RULE_of_AIM(item) ((item)->t_rule)
+@d IRL_of_AIM(aim) ((aim)->t_irl)
+@d RULE_of_AIM(aim) Co_RULE_of_IRL(IRL_of_AIM(aim))
 @d RULEID_of_AIM(item) ID_of_RULE(RULE_of_AIM(item))
-@d LHS_ID_of_AIM(item) (LHS_ID_of_RULE(RULE_of_AIM(item)))
+@d LHS_ID_of_AIM(item) LHS_ID_of_RULE(RULE_of_AIM(item))
 @<Widely aligned AHFA item elements@> =
-    RULE t_rule;
+    IRL t_irl;
 
 @*0 Position.
 Position in the RHS, -1 for a completion.
@@ -3823,7 +3824,7 @@ Marpa_Rule_ID _marpa_g_AHFA_item_rule(Marpa_Grammar g,
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
-    return RULE_of_AIM(AIM_by_ID(item_id))->t_id;
+    return RULEID_of_AIM(AIM_by_ID(item_id));
 }
 
 @ |-1| is the value for completions, so |-2| is the failure indicator.
@@ -3871,10 +3872,12 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
     current_item = base_item = my_new(struct s_AHFA_item, ahfa_item_count);
     for (irl_id = 0; irl_id < irl_count; irl_id++) {
       const IRL irl = IRL_by_ID(irl_id);
-      const RULE rule = Co_RULE_of_IRL(irl);
-      @<Create the AHFA items for a rule@>@;
-      SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
-      symbol_instance_of_next_rule += Length_of_RULE(rule);
+      @<Create the AHFA items for |irl|@>@;
+      {
+        const RULE rule = Co_RULE_of_IRL(irl);
+	SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
+	symbol_instance_of_next_rule += Length_of_RULE(rule);
+      }
     }
     SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
     MARPA_ASSERT(ahfa_item_count == current_item - base_item);
@@ -3884,17 +3887,18 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
     @<Set up the AHFA item ids@>@;
 }
 
-@ @<Create the AHFA items for a rule@> =
+@ @<Create the AHFA items for |irl|@> =
 {
   int leading_nulls = 0;
   int rhs_ix;
-  for (rhs_ix = 0; rhs_ix < Length_of_RULE(rule); rhs_ix++)
+  const XRL xrl = Co_RULE_of_IRL(irl);
+  for (rhs_ix = 0; rhs_ix < Length_of_RULE(xrl); rhs_ix++)
     {
-      SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
+      SYMID rh_symid = RHS_ID_of_RULE (xrl, rhs_ix);
       SYM symbol = SYM_by_ID (rh_symid);
       if (!ISY_is_Nulling(symbol))
 	{
-	  Last_Proper_SYMI_of_RULE(rule) = symbol_instance_of_next_rule + rhs_ix;
+	  Last_Proper_SYMI_of_RULE(xrl) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
 	  leading_nulls = 0;
 	  current_item++;
@@ -3922,7 +3926,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 
 @ @<Create an AHFA item for a precompletion@> =
 {
-  RULE_of_AIM (current_item) = rule;
+  IRL_of_AIM (current_item) = irl;
   Sort_Key_of_AIM (current_item) = current_item - base_item;
   Null_Count_of_AIM(current_item) = leading_nulls;
   Postdot_SYMID_of_AIM (current_item) = rh_symid;
@@ -3931,7 +3935,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 
 @ @<Create an AHFA item for a completion@> =
 {
-  RULE_of_AIM (current_item) = rule;
+  IRL_of_AIM (current_item) = irl;
   Sort_Key_of_AIM (current_item) = current_item - base_item;
   Null_Count_of_AIM(current_item) = leading_nulls;
   Postdot_SYMID_of_AIM (current_item) = -1;
@@ -4385,7 +4389,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    const unsigned int initial_no_of_states = 2*AIM_Count_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
    const unsigned int symbol_count_of_g = SYM_Count_of_G(g);
-   const unsigned int rule_count_of_g = RULE_Count_of_G(g);
    Bit_Matrix prediction_matrix;
    IRL* irl_by_sort_key = my_new(IRL, irl_count);
     AVL_TREE duplicates;
