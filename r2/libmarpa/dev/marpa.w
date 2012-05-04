@@ -2290,6 +2290,7 @@ not zero length.
 |SYMI_of_Last_AIM_of_RULE| will return -1 if the
 rule has no proper symbols.
 @d SYMI_of_RULE(rule) ((rule)->t_symbol_instance_base)
+@d SYMI_of_IRL(irl) SYMI_of_RULE(Co_RULE_of_IRL(irl))
 @d Last_Proper_SYMI_of_RULE(rule) ((rule)->t_last_proper_symi)
 @d SYMI_of_Completed_RULE(rule)
     (SYMI_of_RULE(rule) + Length_of_RULE(rule)-1)
@@ -9275,7 +9276,8 @@ Position is the dot position.
 @d OR_is_Token(or) (Type_of_OR(or) <= MAX_TOKEN_OR_NODE)
 @d Position_of_OR(or) ((or)->t_final.t_position)
 @d Type_of_OR(or) ((or)->t_final.t_position)
-@d RULE_of_OR(or) ((or)->t_final.t_rule)
+@d RULE_of_OR(or) Co_RULE_of_IRL(IRL_of_OR(or))
+@d IRL_of_OR(or) ((or)->t_final.t_irl)
 @d Origin_Ord_of_OR(or) ((or)->t_final.t_start_set_ordinal)
 @d ID_of_OR(or) ((or)->t_final.t_id)
 @d ES_Ord_of_OR(or) ((or)->t_draft.t_end_set_ordinal)
@@ -9287,7 +9289,7 @@ may be accessed via different members of a union.
 @<Or-node common initial sequence@> =
 int t_position;
 int t_end_set_ordinal;
-RULE t_rule;
+IRL t_irl;
 int t_start_set_ordinal;
 ORID t_id;
 @ @<Private structures@> =
@@ -9436,15 +9438,15 @@ MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
       or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
       if (!or_node || ES_Ord_of_OR(or_node) != work_earley_set_ordinal)
 	{
-	  const RULE rule = RULE_of_AIM(ahfa_item);
+	  const IRL irl = IRL_of_AIM(ahfa_item);
 	  @<Set |last_or_node| to a new or-node@>@;
 	  or_node = last_or_node;
 	  PSL_Datum (or_psl, ahfa_item_symbol_instance) = last_or_node;
 	  Origin_Ord_of_OR(or_node) = Origin_Ord_of_EIM(work_earley_item);
 	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
-	  RULE_of_OR(or_node) = rule;
+	  IRL_of_OR(or_node) = irl;
 	  Position_of_OR (or_node) =
-	      ahfa_item_symbol_instance - SYMI_of_RULE (rule) + 1;
+	      ahfa_item_symbol_instance - SYMI_of_IRL (irl) + 1;
 	  DANDs_of_OR(or_node) = NULL;
 	}
 	psia_or_node = or_node;
@@ -9486,8 +9488,9 @@ and this is the case if |Position_of_OR(or_node) == 0|.
   const int null_count = Null_Count_of_AIM (ahfa_item);
   if (null_count > 0)
     {
-      const RULE rule = RULE_of_AIM (ahfa_item);
-      const int symbol_instance_of_rule = SYMI_of_RULE(rule);
+      const IRL irl = IRL_of_AIM (ahfa_item);
+      const RULE rule = Co_RULE_of_IRL(irl);
+      const int symbol_instance_of_rule = SYMI_of_IRL(irl);
       const int first_null_symbol_instance =
 	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
       int i;
@@ -9497,14 +9500,14 @@ and this is the case if |Position_of_OR(or_node) == 0|.
 	  OR or_node = PSL_Datum (or_psl, symbol_instance);
 	  if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal) {
 		DAND draft_and_node;
-		const int rhs_ix = symbol_instance - SYMI_of_RULE(rule);
+		const int rhs_ix = symbol_instance - symbol_instance_of_rule;
 		const OR predecessor = rhs_ix ? last_or_node : NULL;
 		const OR cause = (OR)TOK_by_SYMID( RHS_ID_of_RULE (rule, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
 		ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
-		RULE_of_OR (or_node) = rule;
+		IRL_of_OR (or_node) = irl;
 		Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 		draft_and_node = DANDs_of_OR (or_node) =
@@ -9566,7 +9569,8 @@ requirements in the process.
     {
 	const int ordinal_of_set_of_this_leo_item = Ord_of_ES(ES_of_LIM(this_leo_item));
           const AIM path_ahfa_item = Path_AIM_of_LIM(previous_leo_item);
-	  const RULE path_rule = RULE_of_AIM(path_ahfa_item);
+	  const IRL path_irl = IRL_of_AIM(path_ahfa_item);
+	  const RULE path_rule = Co_RULE_of_IRL(path_irl);
 	  const int symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
 	@<Add main Leo path or-node@>@;
 	@<Add Leo path nulling token or-nodes@>@;
@@ -9614,9 +9618,9 @@ corresponds to the leo predecessor.
 	  PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item) = or_node = last_or_node;
 	  Origin_Ord_of_OR(or_node) = ordinal_of_set_of_this_leo_item;
 	  ES_Ord_of_OR(or_node) = work_earley_set_ordinal;
-	  RULE_of_OR(or_node) = path_rule;
+	  IRL_of_OR(or_node) = path_irl;
 	  Position_of_OR (or_node) =
-	      symbol_instance_of_path_ahfa_item - SYMI_of_RULE (path_rule) + 1;
+	      symbol_instance_of_path_ahfa_item - SYMI_of_IRL (path_irl) + 1;
 	  DANDs_of_OR(or_node) = NULL;
 	}
     }
@@ -9638,7 +9642,7 @@ or-nodes follow a completion.
       if (!or_node || ES_Ord_of_OR (or_node) != work_earley_set_ordinal)
 	{
 	  DAND draft_and_node;
-	  const int rhs_ix = symbol_instance - SYMI_of_RULE(path_rule);
+	  const int rhs_ix = symbol_instance - SYMI_of_IRL(path_irl);
 	    const OR predecessor = rhs_ix ? last_or_node : NULL;
 	  const OR cause = (OR)TOK_by_SYMID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
 	  MARPA_ASSERT (symbol_instance < Length_of_RULE (path_rule)) @;
@@ -9647,7 +9651,7 @@ or-nodes follow a completion.
 	  PSL_Datum (this_earley_set_psl, symbol_instance) = or_node = last_or_node;
 	  Origin_Ord_of_OR (or_node) = ordinal_of_set_of_this_leo_item;
 	  ES_Ord_of_OR (or_node) = work_earley_set_ordinal;
-	  RULE_of_OR (or_node) = path_rule;
+	  IRL_of_OR (or_node) = path_irl;
 	  Position_of_OR (or_node) = rhs_ix + 1;
 MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 	  DANDs_of_OR (or_node) = draft_and_node =
@@ -9655,7 +9659,7 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 	  Next_DAND_of_DAND (draft_and_node) = NULL;
 	}
       MARPA_ASSERT (Position_of_OR (or_node) <=
-		    SYMI_of_RULE (path_rule) + Length_of_RULE (path_rule)) @;
+		    SYMI_of_IRL (path_irl) + Length_of_RULE (path_rule)) @;
       MARPA_ASSERT (Position_of_OR (or_node) >= SYMI_of_RULE (path_rule)) @;
     }
 }
@@ -9664,21 +9668,21 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 The "whole elements" of the grammar are the symbols
 and the completed rules.
 {\bf To Do}: @^To Do@>
+{\bf Restriction}: @^Restriction@>
 Note that this puts a limit on the number of symbols
-and rules in a grammar --- their total must fit in an
+and internal rules in a grammar --- their total must fit in an
 int.
-@d WHEID_of_SYMID(symid) (rule_count_of_g+(symid))
-@d WHEID_of_RULEID(ruleid) (ruleid)
-@d WHEID_of_RULE(rule) WHEID_of_RULEID(ID_of_RULE(rule))
+@d WHEID_of_SYMID(symid) (irl_count+(symid))
+@d WHEID_of_IRLID(irlid) (irlid)
+@d WHEID_of_IRL(irl) WHEID_of_IRLID(ID_of_IRL(irl))
 @d WHEID_of_OR(or) (
     wheid = OR_is_Token(or) ?
         WHEID_of_SYMID(SYMID_of_OR(or)) :
-        WHEID_of_RULE(RULE_of_OR(or))
+        WHEID_of_IRL(IRL_of_OR(or))
     )
 
 @<Private typedefs@> =
 typedef int WHEID;
-
 
 @** Draft And-Node (DAND) Code.
 The draft and-nodes are used while the bocage is
@@ -10024,7 +10028,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   PSAR_Object and_per_es_arena;
   const PSAR and_psar = &and_per_es_arena;
   int or_node_id = 0;
-  psar_init (and_psar, rule_count_of_g+symbol_count_of_g);
+  psar_init (and_psar, irl_count+symbol_count_of_g);
   while (or_node_id < or_node_count_of_b) {
       const OR work_or_node = or_nodes_of_b[or_node_id];
     @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
@@ -10383,8 +10387,8 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 
 @ @<Declare bocage locals@> =
 const GRAMMAR g = G_of_R(r);
-const int rule_count_of_g = RULE_Count_of_G(g);
 const int symbol_count_of_g = SYM_Count_of_G(g);
+const IRLID irl_count = IRL_Count_of_G(g);
 BOCAGE b = NULL;
 ES end_of_parse_earley_set;
 EARLEME end_of_parse_earleme;
