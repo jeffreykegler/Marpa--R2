@@ -743,7 +743,6 @@ The |rule_tree| is a tree for detecting duplicates.
 @*0 Rule count accessors.
 @ @d XRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_xrl_stack))
 @ @d IRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_irl_stack))
-@ @d RULE_Count_of_G(g) (XRL_Count_of_G(g))
 @ @<Function definitions@> =
 int marpa_g_rule_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -1798,23 +1797,23 @@ PRIVATE Marpa_Symbol_ID rule_lhs_get(RULE rule)
 {
     return rule->t_symbols[0]; }
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_rule_lhs(Marpa_Grammar g, Marpa_Rule_ID rule_id) {
+Marpa_Symbol_ID marpa_g_rule_lhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id) {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return rule_lhs_get(RULE_by_ID(g, rule_id));
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    return rule_lhs_get(XRL_by_ID(xrl_id));
 }
 @ @<Function definitions@> =
 PRIVATE Marpa_Symbol_ID* rule_rhs_get(RULE rule)
 {
     return rule->t_symbols+1; }
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_rule_rh_symbol(Marpa_Grammar g, Marpa_Rule_ID rule_id, int ix) {
+Marpa_Symbol_ID marpa_g_rule_rh_symbol(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) {
     RULE rule;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    rule = RULE_by_ID(g, rule_id);
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    rule = XRL_by_ID(xrl_id);
     if (Length_of_RULE(rule) <= ix) return -1;
     return RHS_ID_of_RULE(rule, ix);
 }
@@ -1823,11 +1822,11 @@ PRIVATE size_t rule_length_get(RULE rule)
 {
     return Length_of_RULE(rule); }
 @ @<Function definitions@> =
-int marpa_g_rule_length(Marpa_Grammar g, Marpa_Rule_ID rule_id) {
+int marpa_g_rule_length(Marpa_Grammar g, Marpa_Rule_ID xrl_id) {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return rule_length_get(RULE_by_ID(g, rule_id)); }
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    return rule_length_get(XRL_by_ID(xrl_id)); }
 
 @*1 Symbols of the Rule.
 @d LHS_ID_of_RULE(rule) ((rule)->t_symbols[0])
@@ -1863,12 +1862,12 @@ rule->t_is_sequence = 0;
 @ @<Function definitions@> =
 int marpa_g_rule_is_sequence(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_Rule_ID xrl_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return XRL_is_Sequence(RULE_by_ID(g, rule_id));
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    return XRL_is_Sequence(XRL_by_ID(xrl_id));
 }
 
 
@@ -1908,12 +1907,12 @@ rule->t_is_discard = 0;
 @ @<Function definitions@> =
 int marpa_g_rule_is_keep_separation(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_Rule_ID xrl_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return !RULE_by_ID(g, rule_id)->t_is_discard;
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    return !XRL_by_ID(xrl_id)->t_is_discard;
 }
 
 @*0 Rule has proper separation?.
@@ -1947,12 +1946,12 @@ rule->t_is_proper_separation = 0;
 @ @<Function definitions@> =
 int marpa_g_rule_is_proper_separation(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_Rule_ID xrl_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return !XRL_is_Proper_Separation(RULE_by_ID(g, rule_id));
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    return !XRL_is_Proper_Separation(XRL_by_ID(xrl_id));
 }
 
 @*0 Loop Rule.
@@ -1965,13 +1964,14 @@ derivation must have at least one step.
 @ @<Initialize rule elements@> =
 rule->t_is_loop = 0;
 @ @<Function definitions@> =
-int marpa_g_rule_is_loop(Marpa_Grammar g, Marpa_Rule_ID rule_id)
+int marpa_g_rule_is_loop(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    @<Fail if not precomputed@>@;
-return RULE_by_ID(g, rule_id)->t_is_loop; }
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if grammar |xrl_id| is invalid@>@;
+  @<Fail if not precomputed@>@;
+  return XRL_by_ID(xrl_id)->t_is_loop;
+}
 
 @*0 Is Rule Nulling?.
 Is the rule nulling?
@@ -2157,18 +2157,18 @@ The second case is where the application wants
 the value of a rule to be the value of its
 first child, which under the current implementation
 is a stack no-op.
-@d RULE_is_Ask_Me(rule) ((rule)->t_is_ask_me)
+@d XRL_is_Ask_Me(rule) ((rule)->t_is_ask_me)
 @<Int aligned rule elements@> = unsigned int t_is_ask_me:1;
 @ @<Initialize rule elements@> =
-    RULE_is_Ask_Me(rule) = 0;
+    XRL_is_Ask_Me(rule) = 0;
 @ @<Function definitions@> =
 int marpa_g_rule_is_ask_me(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_Rule_ID xrl_id)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_is_Ask_Me(RULE_by_ID(g, rule_id));
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    return XRL_is_Ask_Me(XRL_by_ID(xrl_id));
 }
 @ The application can specify the zero-based
 number of a child as the semantics of a rule.
@@ -2188,31 +2188,31 @@ but may not in some future implementation.
 The result of any other value is a failure.
 @<Function definitions@> =
 int marpa_g_rule_whatever_set(
-    Marpa_Grammar g, Marpa_Rule_ID rule_id)
+    Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
-    RULE rule;
+    XRL xrl;
     @<Return |-2| on failure@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    rule = RULE_by_ID(g, rule_id);
-    return RULE_is_Ask_Me(rule) = 0;
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    xrl = XRL_by_ID(xrl_id);
+    return XRL_is_Ask_Me(xrl) = 0;
 }
 int marpa_g_rule_ask_me_set(
-    Marpa_Grammar g, Marpa_Rule_ID rule_id)
+    Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
-    RULE rule;
+    XRL xrl;
     @<Return |-2| on failure@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    rule = RULE_by_ID(g, rule_id);
-    return RULE_is_Ask_Me(rule) = 1;
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    xrl = XRL_by_ID(xrl_id);
+    return XRL_is_Ask_Me(xrl) = 1;
 }
 int marpa_g_rule_first_child_set(
-    Marpa_Grammar g, Marpa_Rule_ID rule_id)
+    Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
-    RULE rule;
+    XRL xrl;
     @<Return |-2| on failure@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    rule = RULE_by_ID(g, rule_id);
-    return RULE_is_Ask_Me(rule) = 0;
+    @<Fail if grammar |xrl_id| is invalid@>@;
+    xrl = XRL_by_ID(xrl_id);
+    return XRL_is_Ask_Me(xrl) = 0;
 }
 
 @*0 Semantic Equivalents.
@@ -2520,9 +2520,9 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 
   lhs_v = bv_obs_create (obs_precompute, xsy_count);
   empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
-  for (rule_id = 0; rule_id < (Marpa_Rule_ID) xrl_count; rule_id++)
+  for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
-      const RULE rule = RULE_by_ID (g, rule_id);
+      const XRL rule = XRL_by_ID (rule_id);
       const Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
       const int rule_length = Length_of_RULE (rule);
       const int is_sequence = XRL_is_Sequence (rule);
@@ -2734,11 +2734,11 @@ It would only make a difference in grammars
 where many of the right hand sides repeat symbols.
 @<Calculate reach matrix@> =
 {
-  RULEID rule_id;
+  XRLID rule_id;
   reach_matrix = matrix_obs_create (obs_precompute, xsy_count, xsy_count);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
-      RULE rule = RULE_by_ID (g, rule_id);
+      XRL rule = XRL_by_ID (rule_id);
       SYMID lhs_id = LHS_ID_of_RULE (rule);
       unsigned int rhs_ix, rule_length = Length_of_RULE (rule);
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
@@ -2986,7 +2986,7 @@ the pre-CHAF rule count.
     pre_chaf_rule_count = XRL_Count_of_G(g);
     for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
 
-         RULE  rule = RULE_by_ID(g, rule_id);
+         XRL rule = XRL_by_ID(rule_id);
 	 const int rule_length = Length_of_RULE(rule);
 	 int nullable_suffix_ix = 0;
 	  if (XRL_is_Sequence (rule) && XRL_is_Used (rule))
@@ -3561,7 +3561,7 @@ unit transitions are not in general reflexive.
 @<Mark direct unit transitions in |unit_transition_matrix|@> = {
 Marpa_Rule_ID rule_id;
 for (rule_id = 0; rule_id < xrl_count; rule_id++) {
-     RULE rule = RULE_by_ID(g, rule_id);
+     XRL rule = XRL_by_ID(rule_id);
      SYMID nonnulling_id = -1;
      int nonnulling_count = 0;
      int rhs_ix, rule_length;
@@ -3609,16 +3609,16 @@ rule with |nonnulling_id| on the LHS.
 
 @ @<Mark loop rules@> =
 {
-  RULEID rule_id;
+  XRLID rule_id;
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
-      RULE rule;
+      XRL rule;
       if (!matrix_bit_test
 	  (unit_transition_matrix, (unsigned int) rule_id,
 	   (unsigned int) rule_id))
 	continue;
       loop_rule_count++;
-      rule = RULE_by_ID (g, rule_id);
+      rule = XRL_by_ID (rule_id);
       rule->t_is_loop = 1;
     }
 }
@@ -12158,10 +12158,10 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 		    real_symbol_count = Length_of_RULE(nook_rule);
 		}
 		{
-		  RULEID original_rule_id =
+		  XRLID original_rule_id =
 		    nook_rule->t_is_semantic_equivalent ?
-		    nook_rule->t_original : ID_of_RULE (nook_rule);
-		  if (RULE_is_Ask_Me (RULE_by_ID (g, original_rule_id)))
+		    nook_rule->t_original : ID_of_XRL (nook_rule);
+		  if (XRL_is_Ask_Me (XRL_by_ID (original_rule_id)))
 		    {
 		      RULEID_of_V(v) = original_rule_id;
 		      TOS_of_V(v) = Arg_N_of_V(v) - real_symbol_count + 1;
@@ -12567,7 +12567,7 @@ and turns the original vector into the RHS closure of that vector.
 The orignal vector is destroyed.
 @<Function definitions@> =
 PRIVATE void
-rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID ** xrl_list_x_rh_sym)
+rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 {
   unsigned int min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
@@ -12585,21 +12585,21 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID ** xrl_list_x_rh_sym)
   while ((top_of_stack = FSTACK_POP (stack)))
     {
       const SYMID symid = *top_of_stack;
-      RULEID *p_xrl = xrl_list_x_rh_sym[symid];
-      const RULEID *p_one_past_rules = xrl_list_x_rh_sym[symid + 1];
+      XRLID *p_xrl = xrl_list_x_rh_sym[symid];
+      const XRLID *p_one_past_rules = xrl_list_x_rh_sym[symid + 1];
       for (; p_xrl < p_one_past_rules; p_xrl++)
 	{
-	  const RULEID rule_id = *p_xrl;
-	  const RULE rule = RULE_by_ID (g, rule_id);
+	  const XRLID rule_id = *p_xrl;
+	  const XRL rule = XRL_by_ID (rule_id);
 	  int rule_length;
 	  int rh_ix;
-	  const SYMID lhs_id = LHS_ID_of_RULE (rule);
+	  const SYMID lhs_id = LHS_ID_of_XRL (rule);
 
 	  const int is_sequence = XRL_is_Sequence (rule);
 
 	  if (bv_bit_test (bv, (unsigned int) lhs_id))
 	    goto NEXT_RULE;
-	  rule_length = Length_of_RULE (rule);
+	  rule_length = Length_of_XRL (rule);
 
 	  /* This works for the present allowed sequence rules --
 	     These currently always allow rules of length 1,
@@ -12609,7 +12609,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, RULEID ** xrl_list_x_rh_sym)
 	  for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
 	    {
 	      if (!bv_bit_test
-		  (bv, (unsigned int) RHS_ID_of_RULE (rule, rh_ix)))
+		  (bv, (unsigned int) RHS_ID_of_XRL (rule, rh_ix)))
 		goto NEXT_RULE;
 	    }
 
