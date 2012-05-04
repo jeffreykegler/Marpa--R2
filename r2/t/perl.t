@@ -42,9 +42,10 @@ BEGIN {
     else {
         Test::More::plan tests => 12;
     }
-    use Marpa::R2;
-    use Marpa::R2::Perl;
 } ## end BEGIN
+
+use Marpa::R2;
+use Marpa::R2::Perl;
 
 our @OUTPUT = ();
 our %SYMTAB = ( SCALAR => {} );

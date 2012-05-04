@@ -41,10 +41,10 @@ BEGIN {
     else {
         Test::More::plan tests => 8;
     }
-    use Marpa::R2;
-    use Marpa::R2::Perl;
 } ## end BEGIN
 
+use Marpa::R2;
+use Marpa::R2::Perl;
 use lib 'inc';
 use Marpa::R2::Test;
 
