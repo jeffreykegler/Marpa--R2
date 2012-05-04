@@ -668,7 +668,7 @@ issues advanced by this author.
 @chapter Checking the Libmarpa version
 @cindex version checking
 
-@deftypefun const char* marpa_check_version @
+@deftypefun Marpa_Error_Code marpa_check_version @
     (unsigned int @var{required_major}, @
     unsigned int @var{required_minor}, @
     unsigned int @var{required_micro} @
@@ -707,10 +707,12 @@ the major, minor and micro numbers must match exactly.
 Technically, the post-alpha rules can be said to apply
 because the very strict alpha rules imply them.
 
-Return value: @code{NULL} if the Marpa library is compatible with the
-  given version, or a string describing the version mismatch.
-  The returned string is owned by Marpa and must not be modified
-  or freed.
+Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
+  requested version.  If the library is not compatible,
+  one of @code{MARPA_ERR_MAJOR_VERSION_MISMATCH},
+  @code{MARPA_ERR_MINOR_VERSION_MISMATCH} or
+  @code{MARPA_ERR_MICRO_VERSION_MISMATCH}
+  is returned, depending on the nature of the mismatch.
 
 @end deftypefun
 
@@ -2389,6 +2391,22 @@ Suggested message: "Argument is not boolean."
 @deftypevr Macro int MARPA_ERR_INVALID_START_SYM
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_SYMID
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_MAJOR_VERSION_MISMATCH
+There was a mismatch in the major version number
+between the requested version
+of libmarpa, and the actual one.
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_MICRO_VERSION_MISMATCH
+There was a mismatch in the micro version number
+between the requested version
+of libmarpa, and the actual one.
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_MINOR_VERSION_MISMATCH
+There was a mismatch in the minor version number
+between the requested version
+of libmarpa, and the actual one.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NOOKID_NEGATIVE

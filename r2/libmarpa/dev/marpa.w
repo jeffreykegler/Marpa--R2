@@ -528,22 +528,22 @@ const unsigned int marpa_interface_age = MARPA_INTERFACE_AGE;
 const unsigned int marpa_binary_age = MARPA_BINARY_AGE;
 @ @<Function definitions@> =
 PRIVATE
-const char* check_alpha_version(
+Marpa_Error_Code check_alpha_version(
     unsigned int required_major,
 		unsigned int required_minor,
 		unsigned int required_micro)
 {
   if (required_major != MARPA_MAJOR_VERSION)
-    return "major mismatch in alpha version";
+    return MARPA_ERR_MAJOR_VERSION_MISMATCH;
   if (required_minor != MARPA_MINOR_VERSION)
-    return "minor mismatch in alpha version";
+    return MARPA_ERR_MINOR_VERSION_MISMATCH;
   if (required_micro != MARPA_MICRO_VERSION)
-    return "micro mismatch in alpha version";
-  return NULL;
+    return MARPA_ERR_MICRO_VERSION_MISMATCH;
+  return MARPA_ERR_NONE;
 }
 
 @ @<Function definitions@> =
-const char *
+Marpa_Error_Code
 marpa_check_version (unsigned int required_major,
                     unsigned int required_minor,
                     unsigned int required_micro)
@@ -556,14 +556,14 @@ marpa_check_version (unsigned int required_major,
     return check_alpha_version (required_major, required_minor,
 				required_micro);
   if (required_major > MARPA_MAJOR_VERSION)
-    return "libmarpa version too old (major mismatch)";
+    return MARPA_ERR_MAJOR_VERSION_MISMATCH;
   if (required_major < MARPA_MAJOR_VERSION)
-    return "libmarpa version too new (major mismatch)";
+    return MARPA_ERR_MINOR_VERSION_MISMATCH;
   if (required_effective_micro < marpa_effective_micro - MARPA_BINARY_AGE)
-    return "libmarpa version too new (micro mismatch)";
+    return MARPA_ERR_MICRO_VERSION_MISMATCH;
   if (required_effective_micro > marpa_effective_micro)
-    return "libmarpa version too old (micro mismatch)";
-  return NULL;
+    return MARPA_ERR_MICRO_VERSION_MISMATCH;
+  return MARPA_ERR_NONE;
 }
 
 @*0 Header file.

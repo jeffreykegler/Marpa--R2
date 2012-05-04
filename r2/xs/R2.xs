@@ -276,17 +276,22 @@ MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::G_C
 G_Wrapper *
 new( class, non_c_sv )
     char * class;
-PREINIT:
+PPCODE:
+{
     Marpa_Grammar g;
     SV *sv;
     G_Wrapper *g_wrapper;
-    const char *version_error;
-PPCODE:
-    version_error =
+    Marpa_Error_Code version_error =
 	marpa_check_version(MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
-    if (version_error) {
-	  croak ("Problem in Marpa::R2->new(): %s", version_error);
-    }
+    if (version_error != MARPA_ERR_NONE)
+      {
+	const char *error_description = "Error code out of bounds";
+	if (version_error >= 0 && version_error < MARPA_ERROR_COUNT)
+	  {
+	    error_description = marpa_error_description[version_error].name;
+	  }
+	croak ("Problem in Marpa::R2->new(): %s", error_description);
+      }
     g = marpa_g_new( MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
     Newx( g_wrapper, 1, G_Wrapper );
     g_wrapper->g = g;
@@ -294,6 +299,7 @@ PPCODE:
     sv = sv_newmortal();
     sv_setref_pv(sv, grammar_c_class_name, (void*)g_wrapper);
     XPUSHs(sv);
+}
 
 void
 DESTROY( g_wrapper )
