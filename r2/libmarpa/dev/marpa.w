@@ -771,6 +771,8 @@ rule_add (GRAMMAR g, RULE rule)
 @ Check that rule is in valid range.
 @d XRLID_of_G_is_Valid(rule_id)
     ((rule_id) >= 0 && (rule_id) < XRL_Count_of_G(g))
+@d IRLID_of_G_is_Valid(irl_id)
+    ((irl_id) >= 0 && (irl_id) < IRL_Count_of_G(g))
 @d RULEID_of_G_is_Valid(g, rule_id) XRLID_of_G_is_Valid(rule_id)
 
 @*0 Start Symbol.
@@ -2265,6 +2267,15 @@ external and internal is complete.
 @d Co_RULE_of_IRL(irl) ((irl)->t_co_rule)
 @<Widely aligned irl elements@> =
   XRL t_co_rule;
+@ @<Function definitions@> =
+Marpa_Rule_ID _marpa_g_irl_co_xrl(
+    Marpa_Grammar g,
+    Marpa_Rule_ID irl_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if grammar |irl_id| is invalid@>@;
+    return ID_of_XRL(Co_RULE_of_IRL(IRL_by_ID(irl_id)));
+}
 
 @*0 Rule ID.
 The {\bf rule ID} is a number which
@@ -13391,9 +13402,14 @@ if (UNLIKELY(!symbol_is_valid(g, symid))) {
     MARPA_ERROR(MARPA_ERR_INVALID_SYMID);
     return failure_indicator;
 }
+@ @<Fail if grammar |irl_id| is invalid@> =
+if (UNLIKELY(!IRLID_of_G_is_Valid(irl_id))) {
+    MARPA_ERROR (MARPA_ERR_INVALID_IRLID);
+    return failure_indicator;
+}
 @ @<Fail if grammar |xrl_id| is invalid@> =
 if (UNLIKELY(!XRLID_of_G_is_Valid(xrl_id))) {
-    MARPA_ERROR (MARPA_ERR_INVALID_RULEID);
+    MARPA_ERROR (MARPA_ERR_INVALID_XRLID);
     return failure_indicator;
 }
 @ @<Fail if grammar |rule_id| is invalid@> =

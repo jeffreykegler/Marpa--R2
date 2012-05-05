@@ -2386,11 +2386,21 @@ Suggested message: "Argument is not boolean."
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_ES_ORDINAL
 @end deftypevr
+@deftypevr Macro int MARPA_ERR_INVALID_IRLID
+A method was called with an invalid internal rule ID.
+Suggested message: "No IRL with that ID exists."
+@end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_RULEID
+A method was called with an invalid external rule ID.
+Suggested message: "No rule with that ID exists."
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_START_SYM
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_SYMID
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_INVALID_XRLID
+A method was called with an invalid external rule ID.
+Suggested message: "No rule with that ID exists."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_MAJOR_VERSION_MISMATCH

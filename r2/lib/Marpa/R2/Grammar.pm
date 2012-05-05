@@ -600,7 +600,6 @@ sub Marpa::R2::Grammar::precompute {
 
     if ( $loop_rule_count and $infinite_action ne 'quiet' ) {
         my @loop_rules =
-            map { $grammar_c->_marpa_g_rule_source_xrl($_) // $_ }
             grep { $grammar_c->rule_is_loop($_) } ( 0 .. $#{$rules} );
         for my $rule_id (@loop_rules) {
             print {$trace_fh}
@@ -905,80 +904,6 @@ sub Marpa::R2::Grammar::brief_rule {
     } ## end if ( my $rh_length = $grammar_c->rule_length($rule_id...))
     return $text;
 } ## end sub Marpa::R2::Grammar::brief_rule
-
-sub Marpa::R2::Grammar::brief_original_rule {
-    my ( $grammar, $rule_id ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $original_rule_id = $grammar_c->_marpa_g_rule_source_xrl($rule_id) //= $rule_id;
-    return Marpa::R2::brief_rule( $grammar, $original_rule_id );
-} ## end sub Marpa::R2::Grammar::brief_original_rule
-
-sub Marpa::R2::Grammar::brief_virtual_rule {
-    my ( $grammar, $rule_id, $dot_position ) = @_;
-    my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols          = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $original_rule_id = $grammar_c->_marpa_g_rule_source_xrl($rule_id);
-    if ( not defined $original_rule_id ) {
-        return $grammar->show_dotted_rule( $rule_id, $dot_position )
-            if defined $dot_position;
-        return $grammar->brief_rule($rule_id);
-    }
-
-    my $original_lhs_id = $grammar_c->rule_lhs($original_rule_id);
-    my $original_lhs    = $symbols->[$original_lhs_id];
-    my $chaf_start      = $grammar_c->rule_virtual_start($rule_id);
-    my $chaf_end        = $grammar_c->rule_virtual_end($rule_id);
-
-    if ( not defined $chaf_start ) {
-        return "dot at $dot_position, virtual "
-            . $grammar->brief_rule($original_rule_id)
-            if defined $dot_position;
-        return 'virtual ' . $grammar->brief_rule($original_rule_id);
-    } ## end if ( not defined $chaf_start )
-
-    my $text .= "(part of $original_rule_id) ";
-    $text .= $grammar->symbol_name($original_lhs_id) . ' ->';
-    my @rhs_names = ();
-    for my $ix ( 0 .. $grammar_c->rule_length($original_rule_id) ) {
-        my $rhs_symbol_id = $grammar_c->rule_rhs( $original_rule_id, $ix );
-        my $rhs_symbol_name = $grammar->symbol_name($rhs_symbol_id);
-        push @rhs_names, $rhs_symbol_name;
-    }
-
-    my @chaf_symbol_start;
-    my @chaf_symbol_end;
-
-    # Mark the beginning and end of the non-CHAF symbols
-    # in the CHAF rule.
-    for my $chaf_ix ( $chaf_start .. $chaf_end ) {
-        $chaf_symbol_start[$chaf_ix] = 1;
-        $chaf_symbol_end[ $chaf_ix + 1 ] = 1;
-    }
-
-    # Mark the beginning and special CHAF symbol
-    # for the "rest" of the rule.
-    if ( $chaf_end < $#rhs_names ) {
-        $chaf_symbol_start[ $chaf_end + 1 ] = 1;
-        $chaf_symbol_end[ scalar @rhs_names ] = 1;
-    }
-
-    $dot_position =
-        $dot_position >= $grammar_c->rule_length($rule_id)
-        ? scalar @rhs_names
-        : ( $chaf_start + $dot_position );
-
-    for ( 0 .. scalar @rhs_names ) {
-        when ( defined $chaf_symbol_end[$_] )   { $text .= ' >';  continue }
-        when ($dot_position)                    { $text .= q{ .}; continue; }
-        when ( defined $chaf_symbol_start[$_] ) { $text .= ' <';  continue }
-        when ( $_ < scalar @rhs_names ) {
-            $text .= q{ } . $rhs_names[$_]
-        }
-    } ## end for ( 0 .. scalar @rhs_names )
-
-    return $text;
-
-} ## end sub Marpa::R2::Grammar::brief_virtual_rule
 
 sub Marpa::R2::Grammar::show_rule {
     my ( $grammar, $rule ) = @_;
