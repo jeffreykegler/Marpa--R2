@@ -1395,7 +1395,7 @@ and should treat them as ``undocumented''.
 @deftypefun unsigned int _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_rule_original (Marpa_Grammar @var{g}, @
+@deftypefun Marpa_Rule_ID _marpa_g_rule_source_xrl (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 @deftypefun int _marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @

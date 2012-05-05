@@ -600,7 +600,7 @@ sub Marpa::R2::Grammar::precompute {
 
     if ( $loop_rule_count and $infinite_action ne 'quiet' ) {
         my @loop_rules =
-            map { $grammar_c->_marpa_g_rule_original($_) // $_ }
+            map { $grammar_c->_marpa_g_rule_source_xrl($_) // $_ }
             grep { $grammar_c->rule_is_loop($_) } ( 0 .. $#{$rules} );
         for my $rule_id (@loop_rules) {
             print {$trace_fh}
@@ -705,7 +705,7 @@ sub Marpa::R2::Grammar::precompute {
         my $lhs_rank  = $lhs->[Marpa::R2::Internal::Symbol::LHS_RANK];
         SET_RULE_RANK: {
             last SET_RULE_RANK if defined $rule_rank;
-            my $original_rule_id = $grammar_c->_marpa_g_rule_original($rule_id);
+            my $original_rule_id = $grammar_c->_marpa_g_rule_source_xrl($rule_id);
             if ( not defined $original_rule_id ) {
                 $rule_rank = $rule->[Marpa::R2::Internal::Rule::RANK] =
                     $default_rank;
@@ -734,7 +734,7 @@ sub Marpa::R2::Grammar::precompute {
     RULE: for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 ) {
 
         my $rule             = $rules->[$rule_id];
-        my $original_rule_id = $grammar_c->_marpa_g_rule_original($rule_id);
+        my $original_rule_id = $grammar_c->_marpa_g_rule_source_xrl($rule_id);
         my $original_rule =
             defined $original_rule_id ? $rules->[$original_rule_id] : $rule;
 
@@ -909,7 +909,7 @@ sub Marpa::R2::Grammar::brief_rule {
 sub Marpa::R2::Grammar::brief_original_rule {
     my ( $grammar, $rule_id ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $original_rule_id = $grammar_c->_marpa_g_rule_original($rule_id) //= $rule_id;
+    my $original_rule_id = $grammar_c->_marpa_g_rule_source_xrl($rule_id) //= $rule_id;
     return Marpa::R2::brief_rule( $grammar, $original_rule_id );
 } ## end sub Marpa::R2::Grammar::brief_original_rule
 
@@ -917,7 +917,7 @@ sub Marpa::R2::Grammar::brief_virtual_rule {
     my ( $grammar, $rule_id, $dot_position ) = @_;
     my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols          = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $original_rule_id = $grammar_c->_marpa_g_rule_original($rule_id);
+    my $original_rule_id = $grammar_c->_marpa_g_rule_source_xrl($rule_id);
     if ( not defined $original_rule_id ) {
         return $grammar->show_dotted_rule( $rule_id, $dot_position )
             if defined $dot_position;

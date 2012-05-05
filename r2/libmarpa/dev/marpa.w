@@ -2113,16 +2113,19 @@ unsigned int _marpa_g_virtual_end(
 In many cases, Marpa will rewrite a rule.
 If this rule is the result of a rewriting, this element contains
 the ID of the original rule.
-@ @<Int aligned rule elements@> = Marpa_Rule_ID t_original;
-@ @<Initialize rule elements@> = rule->t_original = -1;
+@d Source_XRL_of_RULE(rule) ((rule)->t_source_xrl)
+@<Int aligned rule elements@> = XRL t_source_xrl;
+@ @<Initialize rule elements@> = Source_XRL_of_RULE(rule) = NULL;
 @ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_rule_original(
+Marpa_Rule_ID _marpa_g_rule_source_xrl(
     Marpa_Grammar g,
     Marpa_Rule_ID rule_id)
 {
+    XRL source_xrl;
     @<Return |-2| on failure@>@;
     @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_by_ID(g, rule_id)->t_original;
+    source_xrl = Source_XRL_of_RULE(RULE_by_ID(g, rule_id));
+    return source_xrl ? ID_of_RULE(source_xrl) : -1;
 }
 
 @*0 Rule Real Symbol Count.
@@ -2233,12 +2236,14 @@ Marpa_Rule_ID
 _marpa_g_rule_semantic_equivalent (Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
   RULE rule;
-@<Return |-2| on failure@>@;
-@<Fail if grammar |rule_id| is invalid@>@;
+  XRL source_xrl;
+  @<Return |-2| on failure@>@;
+  @<Fail if grammar |rule_id| is invalid@>@;
   rule = RULE_by_ID (g, rule_id);
   if (RULE_has_Virtual_LHS(rule)) return -1;
-  if (rule->t_is_semantic_equivalent) return rule->t_original;
-  return rule_id;
+  if (!rule->t_is_semantic_equivalent) return rule_id;
+  source_xrl = Source_XRL_of_RULE(rule);
+  return source_xrl ? ID_of_XRL(source_xrl) : -1;
 }
 
 @ This is the first AHFA item for a rule.
@@ -2870,7 +2875,7 @@ and productive.
 {
     IRL rewrite_irl = irl_new(g, lhs_id, &internal_lhs_id, 1);
     RULE rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
-    rewrite_rule->t_original = rule_id;
+    Source_XRL_of_RULE(rewrite_rule) = rule;
     rewrite_rule->t_is_semantic_equivalent = 1;
     /* Real symbol count remains at default of 0 */
     RULE_has_Virtual_RHS (rewrite_rule) = 1;
@@ -2886,7 +2891,7 @@ and productive.
     temp_rhs[1] = separator_id;
     rewrite_irl = irl_new(g, lhs_id, temp_rhs, 2);
     rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
-    rewrite_rule->t_original = rule_id;
+    Source_XRL_of_RULE(rewrite_rule) = rule;
     rewrite_rule->t_is_semantic_equivalent = 1;
     RULE_has_Virtual_RHS(rewrite_rule) = 1;
     Real_SYM_Count_of_RULE(rewrite_rule) = 1;
@@ -2898,7 +2903,7 @@ That's the core of Marpa's rewrite.
 {
   const IRL rewrite_irl = irl_new (g, internal_lhs_id, &rhs_id, 1);
   const RULE rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
-  rewrite_rule->t_original = rule_id;
+  Source_XRL_of_RULE(rewrite_rule) = rule;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
   Real_SYM_Count_of_RULE (rewrite_rule) = 1;
 }
@@ -2914,7 +2919,7 @@ That's the core of Marpa's rewrite.
   temp_rhs[rhs_ix++] = rhs_id;
   rewrite_irl = irl_new (g, internal_lhs_id, temp_rhs, rhs_ix);
   rewrite_rule = Co_RULE_of_IRL (rewrite_irl);
-  rewrite_rule->t_original = rule_id;
+  Source_XRL_of_RULE(rewrite_rule) = rule;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
   RULE_has_Virtual_RHS (rewrite_rule) = 1;
   Real_SYM_Count_of_RULE (rewrite_rule) = rhs_ix - 1;
@@ -3007,6 +3012,7 @@ MARPA_DEBUG4("%s: rule_id=%d factor_count=%d", STRLOC, rule_id, factor_count);
 	     @<Factor the rule into CHAF rules@>@;
 	   } else {
 	       irl_clone(g, rule);
+	       Source_XRL_of_RULE(rule) = rule;
 	   }
 	 }
 	 NEXT_XRL: ;
@@ -3434,7 +3440,7 @@ rule structure, and performing the call back.
 {
   const SYM current_lhs = SYM_by_ID (current_lhs_id);
   const int is_virtual_lhs = (piece_start > 0);
-  chaf_rule->t_original = rule_id;
+  Source_XRL_of_RULE(chaf_rule) = rule;
   RULE_has_Virtual_LHS (chaf_rule) = is_virtual_lhs;
   chaf_rule->t_is_semantic_equivalent = !is_virtual_lhs;
   RULE_has_Virtual_RHS (chaf_rule) =
@@ -3483,6 +3489,7 @@ in the literature --- it is called ``augmenting the grammar".
 
   new_start_irl = irl_new (g, start_isyid, &start_xsyid, 1);
   new_start_rule = Co_RULE_of_IRL(new_start_irl);
+  new_start_rule->t_is_semantic_equivalent = 0;
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   g->t_start_irl = new_start_irl;
@@ -12160,7 +12167,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 		{
 		  XRLID original_rule_id =
 		    nook_rule->t_is_semantic_equivalent ?
-		    nook_rule->t_original : ID_of_XRL (nook_rule);
+		    ID_of_RULE(Source_XRL_of_RULE(nook_rule)) : ID_of_XRL (nook_rule);
 		  if (XRL_is_Ask_Me (XRL_by_ID (original_rule_id)))
 		    {
 		      RULEID_of_V(v) = original_rule_id;
