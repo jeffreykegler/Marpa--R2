@@ -3004,7 +3004,6 @@ MARPA_DEBUG4("%s: rule_id=%d factor_count=%d", STRLOC, rule_id, factor_count);
 	 }
 	 NEXT_XRL: ;
     }
-    @<CHAF rewrite deallocations@>@;
 }
 @ @<CHAF rewrite declarations@> =
 Marpa_Rule_ID rule_id;
@@ -3064,9 +3063,7 @@ for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 int factor_count;
 int* factor_positions;
 @ @<CHAF rewrite allocations@> =
-factor_positions = my_new(int, g->t_max_rule_length);
-@ @<CHAF rewrite deallocations@> =
-my_free(factor_positions);
+factor_positions = my_obstack_new(obs_precompute, int, g->t_max_rule_length);
 
 @*0 Divide the Rule into Pieces.
 @<Factor the rule into CHAF rules@> =
@@ -3115,11 +3112,8 @@ In such cases, the RHS is built in the
 Marpa_Symbol_ID* piece_rhs;
 Marpa_Symbol_ID* remaining_rhs;
 @ @<CHAF rewrite allocations@> =
-piece_rhs = my_new(Marpa_Symbol_ID, g->t_max_rule_length);
-remaining_rhs = my_new(Marpa_Symbol_ID, g->t_max_rule_length);
-@ @<CHAF rewrite deallocations@> =
-my_free(piece_rhs);
-my_free(remaining_rhs);
+piece_rhs = my_obstack_new(obs_precompute, Marpa_Symbol_ID, g->t_max_rule_length);
+remaining_rhs = my_obstack_new(obs_precompute, Marpa_Symbol_ID, g->t_max_rule_length);
 
 @*0 Factor A Non-Final Piece.
 @ As long as I have more than 3 unprocessed factors, I am working on a non-final
