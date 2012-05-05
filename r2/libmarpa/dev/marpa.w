@@ -2109,10 +2109,12 @@ unsigned int _marpa_g_virtual_end(
     return RULE_by_ID(g, rule_id)->t_virtual_end;
 }
 
-@*0 Rule Original.
-In many cases, Marpa will rewrite a rule.
-If this rule is the result of a rewriting, this element contains
-the ID of the original rule.
+@*0 Source XRL.
+This is the ``source'' of the internal rule --
+the external rule that it is derived from.
+Currently, there is no dedicated flag for determining
+whether this rule also provides the semantics,
+because the ``virtual LHS'' flag serves that purpose.
 @d Source_XRL_of_RULE(rule) ((rule)->t_source_xrl)
 @<Int aligned rule elements@> = XRL t_source_xrl;
 @ @<Initialize rule elements@> = Source_XRL_of_RULE(rule) = NULL;
@@ -2218,16 +2220,6 @@ int marpa_g_rule_first_child_set(
     return XRL_is_Ask_Me(xrl) = 0;
 }
 
-@*0 Semantic Equivalents.
-@<Bit aligned rule elements@> = unsigned int t_is_semantic_equivalent:1;
-@ @<Initialize rule elements@> =
-rule->t_is_semantic_equivalent = 0;
-@ Semantic equivalence arises out of Marpa's rewritings.
-When a rule is rewritten,
-some (but not all!) of the resulting rules have the
-same semantics as the original rule.
-It is this ``original rule" that |semantic_equivalent()| returns.
-
 @ If this rule is the semantic equivalent of another rule,
 this external accessor returns the ``original rule".
 Otherwise it returns -1.
@@ -2236,14 +2228,11 @@ Marpa_Rule_ID
 _marpa_g_rule_semantic_equivalent (Marpa_Grammar g, Marpa_Rule_ID rule_id)
 {
   RULE rule;
-  XRL source_xrl;
   @<Return |-2| on failure@>@;
   @<Fail if grammar |rule_id| is invalid@>@;
   rule = RULE_by_ID (g, rule_id);
-  if (RULE_has_Virtual_LHS(rule)) return -1;
-  if (!rule->t_is_semantic_equivalent) return rule_id;
-  source_xrl = Source_XRL_of_RULE(rule);
-  return source_xrl ? ID_of_XRL(source_xrl) : -1;
+  if ( RULE_has_Virtual_LHS (rule) ) return -1;
+  return ID_of_XRL( Source_XRL_of_RULE(rule) );
 }
 
 @ This is the first AHFA item for a rule.
@@ -2876,7 +2865,6 @@ and productive.
     IRL rewrite_irl = irl_new(g, lhs_id, &internal_lhs_id, 1);
     RULE rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
     Source_XRL_of_RULE(rewrite_rule) = rule;
-    rewrite_rule->t_is_semantic_equivalent = 1;
     /* Real symbol count remains at default of 0 */
     RULE_has_Virtual_RHS (rewrite_rule) = 1;
 }
@@ -2892,7 +2880,6 @@ and productive.
     rewrite_irl = irl_new(g, lhs_id, temp_rhs, 2);
     rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
     Source_XRL_of_RULE(rewrite_rule) = rule;
-    rewrite_rule->t_is_semantic_equivalent = 1;
     RULE_has_Virtual_RHS(rewrite_rule) = 1;
     Real_SYM_Count_of_RULE(rewrite_rule) = 1;
 }
@@ -3442,7 +3429,6 @@ rule structure, and performing the call back.
   const int is_virtual_lhs = (piece_start > 0);
   Source_XRL_of_RULE(chaf_rule) = rule;
   RULE_has_Virtual_LHS (chaf_rule) = is_virtual_lhs;
-  chaf_rule->t_is_semantic_equivalent = !is_virtual_lhs;
   RULE_has_Virtual_RHS (chaf_rule) =
     Length_of_RULE (chaf_rule) > real_symbol_count;
   chaf_rule->t_virtual_start = piece_start;
@@ -3489,7 +3475,6 @@ in the literature --- it is called ``augmenting the grammar".
 
   new_start_irl = irl_new (g, start_isyid, &start_xsyid, 1);
   new_start_rule = Co_RULE_of_IRL(new_start_irl);
-  new_start_rule->t_is_semantic_equivalent = 0;
   RULE_has_Virtual_LHS(new_start_rule) = 1;
   Real_SYM_Count_of_RULE(new_start_rule) = 1;
   g->t_start_irl = new_start_irl;
@@ -12165,9 +12150,9 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 		    real_symbol_count = Length_of_RULE(nook_rule);
 		}
 		{
-		  XRLID original_rule_id =
-		    nook_rule->t_is_semantic_equivalent ?
-		    ID_of_RULE(Source_XRL_of_RULE(nook_rule)) : ID_of_XRL (nook_rule);
+		  // Currently all rules with a non-virtual LHS are
+		  // "semantic" rules.
+		  XRLID original_rule_id = ID_of_RULE(Source_XRL_of_RULE(nook_rule));
 		  if (XRL_is_Ask_Me (XRL_by_ID (original_rule_id)))
 		    {
 		      RULEID_of_V(v) = original_rule_id;
