@@ -1460,7 +1460,7 @@ Marpa_Rule_ID _marpa_g_symbol_lhs_xrl(Marpa_Grammar g, Marpa_Symbol_ID symid)
     const SYM symbol = SYM_by_ID (symid);
     const XRL lhs_xrl = LHS_XRL_of_ISY (symbol);
     if (lhs_xrl)
-      return ID_of_RULE (lhs_xrl);
+      return ID_of_XRL (lhs_xrl);
   }
   return -1;
 }
@@ -3789,6 +3789,7 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @d IRL_of_AIM(aim) ((aim)->t_irl)
 @d RULE_of_AIM(aim) Co_RULE_of_IRL(IRL_of_AIM(aim))
 @d RULEID_of_AIM(item) ID_of_RULE(RULE_of_AIM(item))
+@d IRLID_of_AIM(item) ID_of_IRL(IRL_of_AIM(item))
 @d LHS_ID_of_AIM(item) LHS_ID_of_RULE(RULE_of_AIM(item))
 @<Widely aligned AHFA item elements@> =
     IRL t_irl;
@@ -10494,8 +10495,7 @@ to make sense.
     int eim_ix;
     EIM* const earley_items = EIMs_of_ES(end_of_parse_earley_set);
     const IRL start_irl = g->t_start_irl;
-    const RULE start_rule = Co_RULE_of_IRL(start_irl);
-    const RULEID sought_rule_id = ID_of_RULE(start_rule);
+    const IRLID sought_irl_id = ID_of_IRL(start_irl);
     const int earley_item_count = EIM_Count_of_ES(end_of_parse_earley_set);
     for (eim_ix = 0; eim_ix < earley_item_count; eim_ix++) {
         const EIM earley_item = earley_items[eim_ix];
@@ -10507,7 +10507,7 @@ to make sense.
 	    const int ahfa_item_count = AIM_Count_of_AHFA(ahfa_state);
 	    for (aex = 0; aex < ahfa_item_count; aex++) {
 		 const AIM ahfa_item = ahfa_items[aex];
-	         if (RULEID_of_AIM(ahfa_item) == sought_rule_id) {
+	         if (IRLID_of_AIM(ahfa_item) == sought_irl_id) {
 		      start_aim = ahfa_item;
 		      start_eim = earley_item;
 		      start_aex = aex;
@@ -12164,7 +12164,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 		{
 		  // Currently all rules with a non-virtual LHS are
 		  // "semantic" rules.
-		  XRLID original_rule_id = ID_of_RULE(Source_XRL_of_RULE(nook_rule));
+		  XRLID original_rule_id = ID_of_XRL(Source_XRL_of_RULE(nook_rule));
 		  if (XRL_is_Ask_Me (XRL_by_ID (original_rule_id)))
 		    {
 		      RULEID_of_V(v) = original_rule_id;
@@ -13723,7 +13723,7 @@ or_tag_safe (char * buffer, OR or)
   if (OR_is_Token(or)) return "TOKEN";
   if (Type_of_OR(or) == DUMMY_OR_NODE) return "DUMMY";
   sprintf (buffer, "R%d:%d@@%d-%d",
-	   ID_of_RULE(RULE_of_OR (or)), Position_of_OR (or),
+	   ID_of_IRL(IRL_of_OR (or)), Position_of_OR (or),
 	   Origin_Ord_of_OR (or),
 	   ES_Ord_of_OR (or));
   return buffer;
@@ -13753,9 +13753,9 @@ aim_tag_safe (char * buffer, AIM aim)
   if (!aim) return "NULL";
   const int aim_position = Position_of_AIM (aim);
   if (aim_position >= 0) {
-      sprintf (buffer, "R%d@@%d", RULEID_of_AIM (aim), Position_of_AIM (aim));
+      sprintf (buffer, "R%d@@%d", IRLID_of_AIM (aim), Position_of_AIM (aim));
   } else {
-      sprintf (buffer, "R%d@@end", RULEID_of_AIM (aim));
+      sprintf (buffer, "R%d@@end", IRLID_of_AIM (aim));
   }
   return buffer;
 }
