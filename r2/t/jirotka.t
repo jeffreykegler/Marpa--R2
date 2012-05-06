@@ -188,11 +188,11 @@ Marpa::R2::Test::is( $grammar->show_AHFA(),
 Input['] -> . Input
  <Input> => S2; leo(Input['])
 * S1: predict
-Statement -> . CREATE TypeDef
 Input -> . Input[Seq]
 Input -> . Input[Seq] SEPARATOR
 Input[Seq] -> . Statement
 Input[Seq] -> . Input[Seq] SEPARATOR Statement
+Statement -> . CREATE TypeDef
  <CREATE> => S3; S4
  <Input[Seq]> => S6
  <Statement> => S5; leo(Input[Seq])
@@ -256,16 +256,16 @@ MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .
  <ByClause> => S21; S22
  <MetricSelect[R3:3]> => S23; leo(MetricSelect)
 * S19: predict
-ByClause -> . BY
-Match -> . FOR
-Filter -> . WHERE FilterExpr
-WithPf -> . WITH PF
 MetricSelect[R3:3] -> . Match MetricSelect[R3:4]
 MetricSelect[R3:3] -> . Match Filter[] WithPf[]
 MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]
 MetricSelect[R3:4] -> . Filter WithPf
 MetricSelect[R3:4] -> . Filter WithPf[]
 MetricSelect[R3:4] -> Filter[] . WithPf
+ByClause -> . BY
+Match -> . FOR
+Filter -> . WHERE FilterExpr
+WithPf -> . WITH PF
  <BY> => S24
  <FOR> => S25
  <Filter> => S31; S32
@@ -281,15 +281,15 @@ MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]
 MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .
  <MetricSelect[R3:3]> => S35; leo(MetricSelect)
 * S22: predict
-Match -> . FOR
-Filter -> . WHERE FilterExpr
-WithPf -> . WITH PF
 MetricSelect[R3:3] -> . Match MetricSelect[R3:4]
 MetricSelect[R3:3] -> . Match Filter[] WithPf[]
 MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]
 MetricSelect[R3:4] -> . Filter WithPf
 MetricSelect[R3:4] -> . Filter WithPf[]
 MetricSelect[R3:4] -> Filter[] . WithPf
+Match -> . FOR
+Filter -> . WHERE FilterExpr
+WithPf -> . WITH PF
  <FOR> => S25
  <Filter> => S31; S32
  <Match> => S29; S30
@@ -319,11 +319,11 @@ MetricSelect[R3:3] -> Match . MetricSelect[R3:4]
 MetricSelect[R3:3] -> Match Filter[] WithPf[] .
  <MetricSelect[R3:4]> => S40; leo(MetricSelect[R3:3])
 * S30: predict
-Filter -> . WHERE FilterExpr
-WithPf -> . WITH PF
 MetricSelect[R3:4] -> . Filter WithPf
 MetricSelect[R3:4] -> . Filter WithPf[]
 MetricSelect[R3:4] -> Filter[] . WithPf
+Filter -> . WHERE FilterExpr
+WithPf -> . WITH PF
  <Filter> => S31; S32
  <WHERE> => S26; S27
  <WITH> => S28
