@@ -1438,7 +1438,7 @@ On other failures, -2.
 @deftypefun int _marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_rule_semantic_equivalent (Marpa_Grammar @var{g}, @
+@deftypefun Marpa_Rule_ID _marpa_g_irl_semantic_equivalent (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
 
