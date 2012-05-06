@@ -746,8 +746,13 @@ The |rule_tree| is a tree for detecting duplicates.
 @ @<Function definitions@> =
 int marpa_g_rule_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    return XRL_Count_of_G(g);
+   @<Fail if fatal error@>@;
+   return XRL_Count_of_G(g);
+}
+int _marpa_g_irl_count(Marpa_Grammar g) {
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  return IRL_Count_of_G(g);
 }
 
 @ Internal accessor to find a rule by its id.
@@ -2117,19 +2122,20 @@ the external rule that it is derived from.
 Currently, there is no dedicated flag for determining
 whether this rule also provides the semantics,
 because the ``virtual LHS'' flag serves that purpose.
+@d Source_XRL_of_IRL(irl) (Co_RULE_of_IRL(irl)->t_source_xrl)
 @d Source_XRL_of_RULE(rule) ((rule)->t_source_xrl)
 @<Int aligned rule elements@> = XRL t_source_xrl;
 @ @<Initialize rule elements@> = Source_XRL_of_RULE(rule) = NULL;
 @ @<Function definitions@> =
 Marpa_Rule_ID _marpa_g_rule_source_xrl(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_IRL_ID irl_id)
 {
     XRL source_xrl;
     @<Return |-2| on failure@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    source_xrl = Source_XRL_of_RULE(RULE_by_ID(g, rule_id));
-    return source_xrl ? ID_of_RULE(source_xrl) : -1;
+    @<Fail if grammar |irl_id| is invalid@>@;
+    source_xrl = Source_XRL_of_IRL(IRL_by_ID(irl_id));
+    return source_xrl ? ID_of_XRL(source_xrl) : -1;
 }
 
 @*0 Rule Real Symbol Count.
@@ -2254,11 +2260,12 @@ struct s_irl {
   @<Widely aligned irl elements@>@;
   @<Int aligned irl elements@>@;
 };
-@
-@<Private typedefs@> =
+@ @<Public typedefs@> =
+typedef int Marpa_IRL_ID;
+@ @<Private typedefs@> =
 struct s_irl;
 typedef struct s_irl* IRL;
-typedef Marpa_Rule_ID IRLID;
+typedef Marpa_IRL_ID IRLID;
 
 @*0 Development stubs.
 @ {\bf To Do}: @^To Do@>
@@ -2268,9 +2275,9 @@ external and internal is complete.
 @<Widely aligned irl elements@> =
   XRL t_co_rule;
 @ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_irl_co_xrl(
+Marpa_Rule_ID _marpa_g_irl_co_rule(
     Marpa_Grammar g,
-    Marpa_Rule_ID irl_id)
+    Marpa_IRL_ID irl_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if grammar |irl_id| is invalid@>@;
@@ -10676,7 +10683,7 @@ int _marpa_b_or_node_origin(Marpa_Bocage b,
 }
 
 @ @<Function definitions@> =
-int _marpa_b_or_node_rule(Marpa_Bocage b,
+Marpa_IRL_ID _marpa_b_or_node_irl(Marpa_Bocage b,
   Marpa_Or_Node_ID or_node_id)
 {
   OR or_node;
@@ -10684,7 +10691,7 @@ int _marpa_b_or_node_rule(Marpa_Bocage b,
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
   @<Check |or_node_id|; set |or_node|@>@;
-  return ID_of_RULE(RULE_of_OR(or_node));
+  return ID_of_IRL(IRL_of_OR(or_node));
 }
 
 @ @<Function definitions@> =

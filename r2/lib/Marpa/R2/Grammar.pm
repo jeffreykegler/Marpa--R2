@@ -72,7 +72,6 @@ BEGIN {
     NAME
     ACTION { action for this rule as specified by user }
     RANK
-    CHAF_RANK
     NULL_RANKING
 
 END_OF_STRUCTURE
@@ -697,97 +696,23 @@ sub Marpa::R2::Grammar::precompute {
     } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::WARNINGS...])
 
     RULE: for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 ) {
-        my $rule      = $rules->[$rule_id];
+        my $rule = $rules->[$rule_id];
+        $rule->[Marpa::R2::Internal::Rule::RANK] //= $default_rank;
         my $rule_rank = $rule->[Marpa::R2::Internal::Rule::RANK];
         my $lhs_id    = $grammar_c->rule_lhs($rule_id);
         my $lhs       = $symbols->[$lhs_id];
         my $lhs_rank  = $lhs->[Marpa::R2::Internal::Symbol::LHS_RANK];
-        SET_RULE_RANK: {
-            last SET_RULE_RANK if defined $rule_rank;
-            my $original_rule_id = $grammar_c->_marpa_g_rule_source_xrl($rule_id);
-            if ( not defined $original_rule_id ) {
-                $rule_rank = $rule->[Marpa::R2::Internal::Rule::RANK] =
-                    $default_rank;
-                last SET_RULE_RANK;
-            }
-            my $original_rule = $rules->[$original_rule_id];
-            $rule_rank = $rule->[Marpa::R2::Internal::Rule::RANK] =
-                $original_rule->[Marpa::R2::Internal::Rule::RANK];
-        } ## end SET_RULE_RANK:
-        next RULE
-            if not defined $lhs_rank
-                or $lhs_rank == $rule->[Marpa::R2::Internal::Rule::RANK];
-        Marpa::R2::exception(
-            'Rank mismatch in rule: ',
-            brief_rule($rule),
-            "\n",
-            "LHS rank is $lhs_rank; rule rank is ",
-            $rule->[Marpa::R2::Internal::Rule::RANK]
-        );
-    } ## end for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 )
-
-    #
-    # Set ranks for chaf rules
-    #
-
-    RULE: for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 ) {
-
-        my $rule             = $rules->[$rule_id];
-        my $original_rule_id = $grammar_c->_marpa_g_rule_source_xrl($rule_id);
-        my $original_rule =
-            defined $original_rule_id ? $rules->[$original_rule_id] : $rule;
-
-        # If not null ranked, default to highest CHAF rank
-        my $null_ranking =
-            $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKING];
-        if ( not $null_ranking ) {
-            $rule->[Marpa::R2::Internal::Rule::CHAF_RANK] = 99;
-            next RULE;
-        }
-
-        # If this rule is marked as null ranked,
-        # but it is not actually a CHAF rule, rank it below
-        # all non-null-ranked rules, but above all rules with CHAF
-        # ranks actually computed from the proper nullables
-        my $virtual_start = $grammar_c->_marpa_g_rule_virtual_start($rule_id);
-        if ( $virtual_start < 0 ) {
-            $rule->[Marpa::R2::Internal::Rule::CHAF_RANK] = 98;
-            next RULE;
-        }
-
-        my $original_rule_length = $grammar_c->rule_length($original_rule_id);
-
-        my $rank                  = 0;
-        my $proper_nullable_count = 0;
-        RHS_IX:
-        for (
-            my $rhs_ix = $virtual_start;
-            $rhs_ix < $original_rule_length;
-            $rhs_ix++
-            )
+        if ( defined $lhs_rank
+            and $lhs_rank == $rule->[Marpa::R2::Internal::Rule::RANK] )
         {
-            my $original_rhs_id =
-                $grammar_c->rule_rhs( $original_rule_id, $rhs_ix );
-
-            # Do nothing unless this is a proper nullable
-            next RHS_IX if $grammar_c->symbol_is_nulling($original_rhs_id);
-            next RHS_IX
-                if not $grammar_c->_marpa_g_symbol_null_alias($original_rhs_id);
-
-            my $rhs_id =
-                $grammar_c->rule_rhs( $rule_id, $rhs_ix - $virtual_start );
-            last RHS_IX if not defined $rhs_id;
-            $rank *= 2;
-            $rank += ( $grammar_c->symbol_is_nulling($rhs_id) ? 0 : 1 );
-
-            last RHS_IX if ++$proper_nullable_count >= 2;
-        } ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < ...)
-
-        if ( $null_ranking eq 'high' ) {
-            $rank = ( 2**$proper_nullable_count - 1 ) - $rank;
-        }
-        $rule->[Marpa::R2::Internal::Rule::CHAF_RANK] = $rank;
-
+            Marpa::R2::exception(
+                'Rank mismatch in rule: ',
+                brief_rule($rule),
+                "\n",
+                "LHS rank is $lhs_rank; rule rank is ",
+                $rule->[Marpa::R2::Internal::Rule::RANK]
+            );
+        } ## end if ( defined $lhs_rank and $lhs_rank == $rule->[...])
     } ## end for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 )
 
     return $grammar;

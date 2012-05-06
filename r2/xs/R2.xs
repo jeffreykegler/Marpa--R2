@@ -1062,6 +1062,26 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
+Marpa_Rule_ID
+_marpa_g_irl_co_rule( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_irl_co_rule (g, rule_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->_marpa_g_irl_co_rule(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
 int
 _marpa_g_AHFA_item_count( g_wrapper )
     G_Wrapper *g_wrapper;
@@ -1090,6 +1110,24 @@ PPCODE:
   if (result < -1)
     {
       croak ("Problem in g->rule_count(): %s", xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+_marpa_g_irl_count( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_irl_count (g);
+  if (result < -1)
+    {
+      croak ("Problem in g->_marpa_g_irl_count(): %s", xs_g_error (g_wrapper));
     }
   if (result < 0)
     {
@@ -2004,20 +2042,20 @@ PPCODE:
 }
 
 void
-_marpa_b_or_node_rule( b_wrapper, ordinal )
+_marpa_b_or_node_irl( b_wrapper, ordinal )
      B_Wrapper *b_wrapper;
      Marpa_Or_Node_ID ordinal;
 PPCODE:
 {
   Marpa_Bocage b = b_wrapper->b;
-  int result = _marpa_b_or_node_rule (b, ordinal);
+  int result = _marpa_b_or_node_irl (b, ordinal);
   if (result == -1)
     {
       XSRETURN_UNDEF;
     }
   if (result < 0)
     {
-      croak ("Problem in b->_marpa_b_or_node_rule(): %s",
+      croak ("Problem in b->_marpa_b_or_node_irl(): %s",
 	     xs_b_error (b_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));

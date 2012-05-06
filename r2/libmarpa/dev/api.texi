@@ -1377,8 +1377,12 @@ of those working on libmarpa's internals.
 Applications should not use them,
 and should treat them as ``undocumented''.
 
-@deftypefun int _marpa_g_rule_is_virtual_loop (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
+@deftypefun Marpa_Rule_ID _marpa_g_irl_co_rule ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{irl_id})
+@end deftypefun
+@deftypefun int _marpa_g_irl_count ( @
+  Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun int _marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
@@ -1777,7 +1781,7 @@ the or-node.
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun int _marpa_b_or_node_rule ( @
+@deftypefun Marpa_IRL_ID _marpa_b_or_node_irl ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
