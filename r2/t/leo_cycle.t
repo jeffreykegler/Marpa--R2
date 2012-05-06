@@ -102,7 +102,7 @@ Marpa::R2::Test::is( $grammar->show_rules,
 17: C -> D
 18: G -> H
 19: A -> B
-20: S['] -> S /* vlhs real=1 */
+20: S['] -> S
 END_OF_STRING
 
 my $expected_ahfa_output = <<'END_OF_STRING';

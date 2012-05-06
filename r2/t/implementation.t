@@ -99,7 +99,7 @@ Marpa::R2::Test::is( $show_rules_output,
 2: Factor -> Number
 3: Term -> Term Add Term
 4: Factor -> Factor Multiply Factor
-5: Expression['] -> Expression /* vlhs real=1 */
+5: Expression['] -> Expression
 END_RULES
 
 my $show_AHFA_output = $grammar->show_AHFA();

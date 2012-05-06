@@ -66,9 +66,9 @@ Marpa::R2::Test::is( $grammar->show_rules,
 5: S -> p p[] S[R0:2] /* vrhs real=2 */
 6: S -> p[] p S[R0:2] /* vrhs real=2 */
 7: S -> p[] p[] S[R0:2] /* vrhs real=2 */
-8: S[R0:2] -> p n /* vlhs real=2 */
-9: S[R0:2] -> p[] n /* vlhs real=2 */
-10: S['] -> S /* vlhs real=1 */
+8: S[R0:2] -> p n
+9: S[R0:2] -> p[] n
+10: S['] -> S
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_AHFA,

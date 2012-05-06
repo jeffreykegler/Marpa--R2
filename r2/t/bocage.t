@@ -66,13 +66,13 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 4: S -> A S[R0:1] /* vrhs real=1 */
 5: S -> A A[] A[] A[]
 6: S -> A[] S[R0:1] /* vrhs real=1 */
-7: S[R0:1] -> A S[R0:2] /* vlhs vrhs real=1 */
-8: S[R0:1] -> A A[] A[] /* vlhs real=3 */
-9: S[R0:1] -> A[] S[R0:2] /* vlhs vrhs real=1 */
-10: S[R0:2] -> A A /* vlhs real=2 */
-11: S[R0:2] -> A A[] /* vlhs real=2 */
-12: S[R0:2] -> A[] A /* vlhs real=2 */
-13: S['] -> S /* vlhs real=1 */
+7: S[R0:1] -> A S[R0:2] /* vrhs real=1 */
+8: S[R0:1] -> A A[] A[]
+9: S[R0:1] -> A[] S[R0:2] /* vrhs real=1 */
+10: S[R0:2] -> A A
+11: S[R0:2] -> A A[]
+12: S[R0:2] -> A[] A
+13: S['] -> S
 EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,

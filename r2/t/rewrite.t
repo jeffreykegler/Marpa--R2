@@ -125,20 +125,20 @@ Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 8: statement -> optional_whitespace expression optional_whitespace[] optional_modifier[] optional_whitespace[]
 9: statement -> optional_whitespace[] expression statement[R0:2] /* vrhs real=2 */
 10: statement -> optional_whitespace[] expression optional_whitespace[] optional_modifier[] optional_whitespace[]
-11: statement[R0:2] -> optional_whitespace statement[R0:3] /* vlhs vrhs real=1 */
-12: statement[R0:2] -> optional_whitespace optional_modifier[] optional_whitespace[] /* vlhs real=3 */
-13: statement[R0:2] -> optional_whitespace[] statement[R0:3] /* vlhs vrhs real=1 */
-14: statement[R0:3] -> optional_modifier optional_whitespace /* vlhs real=2 */
-15: statement[R0:3] -> optional_modifier optional_whitespace[] /* vlhs real=2 */
-16: statement[R0:3] -> optional_modifier[] optional_whitespace /* vlhs real=2 */
+11: statement[R0:2] -> optional_whitespace statement[R0:3] /* vrhs real=1 */
+12: statement[R0:2] -> optional_whitespace optional_modifier[] optional_whitespace[]
+13: statement[R0:2] -> optional_whitespace[] statement[R0:3] /* vrhs real=1 */
+14: statement[R0:3] -> optional_modifier optional_whitespace
+15: statement[R0:3] -> optional_modifier optional_whitespace[]
+16: statement[R0:3] -> optional_modifier[] optional_whitespace
 17: statements -> statements[Seq] /* vrhs real=0 */
 18: statements -> statements[Seq] comma /* vrhs real=1 */
-19: statements[Seq] -> statement /* vlhs real=1 */
-20: statements[Seq] -> statements[Seq] comma statement /* vlhs vrhs real=2 */
+19: statements[Seq] -> statement
+20: statements[Seq] -> statements[Seq] comma statement /* vrhs real=2 */
 21: block -> block[Seq] /* vrhs real=0 */
-22: block[Seq] -> statements /* vlhs real=1 */
-23: block[Seq] -> block[Seq] statements /* vlhs vrhs real=1 */
-24: block['] -> block /* vlhs real=1 */
+22: block[Seq] -> statements
+23: block[Seq] -> block[Seq] statements /* vrhs real=1 */
+24: block['] -> block
 END_RULES
 
 # Marpa::R2::Display::End

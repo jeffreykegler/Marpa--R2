@@ -129,19 +129,19 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Rules' );
 13: S -> Proper S[R1:1] /* vrhs real=1 */
 14: S -> Proper Proper[] Proper[] Proper[]
 15: S -> Proper[] S[R1:1] /* vrhs real=1 */
-16: S[R1:1] -> Proper S[R1:2] /* vlhs vrhs real=1 */
-17: S[R1:1] -> Proper Proper[] Proper[] /* vlhs real=3 */
-18: S[R1:1] -> Proper[] S[R1:2] /* vlhs vrhs real=1 */
-19: S[R1:2] -> Proper Proper /* vlhs real=2 */
-20: S[R1:2] -> Proper Proper[] /* vlhs real=2 */
-21: S[R1:2] -> Proper[] Proper /* vlhs real=2 */
+16: S[R1:1] -> Proper S[R1:2] /* vrhs real=1 */
+17: S[R1:1] -> Proper Proper[] Proper[]
+18: S[R1:1] -> Proper[] S[R1:2] /* vrhs real=1 */
+19: S[R1:2] -> Proper Proper
+20: S[R1:2] -> Proper Proper[]
+21: S[R1:2] -> Proper[] Proper
 22: Seq0 -> Seq0[Seq] /* vrhs real=0 */
-23: Seq0[Seq] -> a /* vlhs real=1 */
-24: Seq0[Seq] -> Seq0[Seq] a /* vlhs vrhs real=1 */
+23: Seq0[Seq] -> a
+24: Seq0[Seq] -> Seq0[Seq] a /* vrhs real=1 */
 25: Seq1 -> Seq1[Seq] /* vrhs real=0 */
-26: Seq1[Seq] -> A /* vlhs real=1 */
-27: Seq1[Seq] -> Seq1[Seq] A /* vlhs vrhs real=1 */
-28: S['] -> S /* vlhs real=1 */
+26: Seq1[Seq] -> A
+27: Seq1[Seq] -> Seq1[Seq] A /* vrhs real=1 */
+28: S['] -> S
 EOS
 
 # Local Variables:

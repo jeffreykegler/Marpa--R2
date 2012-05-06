@@ -167,19 +167,19 @@ Marpa::R2::Test::is( $grammar->show_rules(),
 14: WithPf -> WITH PF
 15: Input -> Input[Seq] /* vrhs real=0 */
 16: Input -> Input[Seq] SEPARATOR /* vrhs real=1 */
-17: Input[Seq] -> Statement /* vlhs real=1 */
-18: Input[Seq] -> Input[Seq] SEPARATOR Statement /* vlhs vrhs real=2 */
+17: Input[Seq] -> Statement
+18: Input[Seq] -> Input[Seq] SEPARATOR Statement /* vrhs real=2 */
 19: MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] /* vrhs real=3 */
 20: MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[]
 21: MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] /* vrhs real=3 */
 22: MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]
-23: MetricSelect[R3:3] -> Match MetricSelect[R3:4] /* vlhs vrhs real=1 */
-24: MetricSelect[R3:3] -> Match Filter[] WithPf[] /* vlhs real=3 */
-25: MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] /* vlhs vrhs real=1 */
-26: MetricSelect[R3:4] -> Filter WithPf /* vlhs real=2 */
-27: MetricSelect[R3:4] -> Filter WithPf[] /* vlhs real=2 */
-28: MetricSelect[R3:4] -> Filter[] WithPf /* vlhs real=2 */
-29: Input['] -> Input /* vlhs real=1 */
+23: MetricSelect[R3:3] -> Match MetricSelect[R3:4] /* vrhs real=1 */
+24: MetricSelect[R3:3] -> Match Filter[] WithPf[]
+25: MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] /* vrhs real=1 */
+26: MetricSelect[R3:4] -> Filter WithPf
+27: MetricSelect[R3:4] -> Filter WithPf[]
+28: MetricSelect[R3:4] -> Filter[] WithPf
+29: Input['] -> Input
 END_OF_RULES
 
 Marpa::R2::Test::is( $grammar->show_AHFA(),

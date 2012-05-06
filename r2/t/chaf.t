@@ -65,10 +65,10 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 6: S -> A B B[] B[] C C
 7: S -> A B[] S[R0:2] /* vrhs real=2 */
 8: S -> A B[] B[] B[] C C
-9: S[R0:2] -> B B C C /* vlhs real=4 */
-10: S[R0:2] -> B B[] C C /* vlhs real=4 */
-11: S[R0:2] -> B[] B C C /* vlhs real=4 */
-12: S['] -> S /* vlhs real=1 */
+9: S[R0:2] -> B B C C
+10: S[R0:2] -> B B[] C C
+11: S[R0:2] -> B[] B C C
+12: S['] -> S
 EOS
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );

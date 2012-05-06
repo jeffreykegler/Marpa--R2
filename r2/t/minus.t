@@ -117,7 +117,7 @@ Marpa::R2::Test::is( $grammar->show_rules,
 2: E -> MinusMinus E
 3: E -> Minus E
 4: E -> Number
-5: E['] -> E /* vlhs real=1 */
+5: E['] -> E
 END_RULES
 
 Marpa::R2::Test::is( $grammar->show_AHFA,

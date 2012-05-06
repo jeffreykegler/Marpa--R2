@@ -130,7 +130,7 @@ Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Leo Example Rules' );
 4: Expression -> Lvalue MultiplyAssignOp Expression
 5: Expression -> Variable
 6: Lvalue -> Variable
-7: Statement['] -> Statement /* vlhs real=1 */
+7: Statement['] -> Statement
 END_RULES
 
 my $show_AHFA_output = $grammar->show_AHFA();
