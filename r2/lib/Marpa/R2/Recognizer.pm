@@ -864,32 +864,24 @@ sub report_progress {
         my ( $origin, $AHFA_state_id ) = @{$per_AHFA_item_datum};
         my @AHFA_items = $grammar_c->_marpa_g_AHFA_state_items($AHFA_state_id);
         AHFA_ITEM: for my $AHFA_item_id (@AHFA_items) {
-            my $marpa_rule_id = $grammar_c->_marpa_g_AHFA_item_rule($AHFA_item_id);
-            my $marpa_rule    = $rules->[$marpa_rule_id];
+            my $marpa_rule_id = $grammar_c->_marpa_g_AHFA_item_irl($AHFA_item_id);
             my $marpa_position =
                 $grammar_c->_marpa_g_AHFA_item_position($AHFA_item_id);
-            $marpa_position < 0
-                and $marpa_position = $grammar_c->rule_length($marpa_rule_id);
+	    if ($marpa_position < 0) {
+	       $marpa_position = $grammar_c->_marpa_g_irl_length($marpa_rule_id);
+	    }
             my $chaf_start = $grammar_c->_marpa_g_rule_virtual_start($marpa_rule_id);
-            $chaf_start < 0 and $chaf_start = undef;
             my $original_rule_id =
                 defined $chaf_start
-                ? ( $grammar_c->rule_original($marpa_rule_id)
-                    // $marpa_rule_id )
-                : $marpa_rule_id;
-
+                ? $grammar_c->_marpa_g_source_xrl($marpa_rule_id)
+                : $grammar_c->_marpa_g_irl_co_rule($marpa_rule_id);
             # position in original rule, to be calculated
-            my $original_position;
+            my $original_position = $marpa_position;
             if ( defined $chaf_start ) {
-                $original_position =
-                    $marpa_position >= $grammar_c->rule_length($marpa_rule_id)
-                    ? $grammar_c->rule_length($original_rule_id)
-                    : ( $chaf_start + $marpa_position );
+                $original_position += $chaf_start;
             } ## end if ( defined $chaf_start )
-            $original_position //= $marpa_position;
-            my $rule_id = $original_rule_id;
             push @progress_reports,
-                [ $rule_id, $original_position, $origin, $earleme ];
+                [ $original_rule_id, $original_position, $origin, $earleme ];
         } ## end for my $AHFA_item_id (@AHFA_items)
     } ## end for my $per_AHFA_item_datum (@per_AHFA_item_data)
     return \@progress_reports;

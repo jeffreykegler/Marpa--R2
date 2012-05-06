@@ -1384,6 +1384,39 @@ and should treat them as ``undocumented''.
 @deftypefun int _marpa_g_irl_count ( @
   Marpa_Grammar @var{g})
 @end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_g_irl_lhs ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+Return value: On success, the LHS symbol of the IRL.
+On failure, -2.
+@end deftypefun
+
+@deftypefun int _marpa_g_irl_length ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+The length of a IRL is the number of symbols on its RHS.
+
+Return value: On success, the IRL length.
+On failure, -2.
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_g_irl_rh_symbol ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id}, @
+    int @var{ix})
+The position in the IRL, @var{ix}, is zero-based.
+If @var{ix} is greater than or equal the length of the
+IRL, it is a soft failure.
+This can be used in loops, to avoid having to determine
+the IRL's length explicitly.
+
+Return value: On success, the symbol in position @var{ix}
+on the IRL's RHS.
+If @var{ix} is greater than or equal to the length of
+the IRL, -1.
+On other failures, -2.
+@end deftypefun
 @deftypefun int _marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
@@ -1399,8 +1432,8 @@ and should treat them as ``undocumented''.
 @deftypefun unsigned int _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 @end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_rule_source_xrl (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
+@deftypefun Marpa_Rule_ID _marpa_g_source_xrl (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{rule_id})
 @end deftypefun
 @deftypefun int _marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
@@ -1426,7 +1459,7 @@ Marpa's internals, as described in
 
 @deftypefun int _marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
 @end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_AHFA_item_rule (Marpa_Grammar @var{g}, @
+@deftypefun Marpa_Rule_ID _marpa_g_AHFA_item_irl (Marpa_Grammar @var{g}, @
     Marpa_AHFA_Item_ID @var{item_id})
 @end deftypefun
 @deftypefun int _marpa_g_AHFA_item_position (Marpa_Grammar @var{g}, @

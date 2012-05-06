@@ -305,7 +305,7 @@ void
 DESTROY( g_wrapper )
     G_Wrapper *g_wrapper;
 PREINIT:
-    Marpa_Grammar  grammar;
+    Marpa_Grammar grammar;
 CODE:
     if (g_wrapper->message_buffer)
 	Safefree(g_wrapper->message_buffer);
@@ -692,7 +692,7 @@ sequence_new( g_wrapper, lhs, rhs, args )
     HV *args;
 PPCODE:
 {
-    Marpa_Grammar  g = g_wrapper->g;
+    Marpa_Grammar g = g_wrapper->g;
     Marpa_Rule_ID new_rule_id;
     Marpa_Symbol_ID separator = -1;
     int min = 1;
@@ -745,7 +745,7 @@ rule_lhs( g_wrapper, rule_id )
     Marpa_Rule_ID rule_id;
 PPCODE:
 {
-    Marpa_Grammar  g = g_wrapper->g;
+    Marpa_Grammar g = g_wrapper->g;
     int result = marpa_g_rule_lhs(g, rule_id);
     if (result < -1) { 
       croak ("Problem in g->rule_lhs(%d): %s", rule_id, xs_g_error (g_wrapper));
@@ -761,7 +761,7 @@ rule_rhs( g_wrapper, rule_id, ix )
     int ix;
 PPCODE:
 {
-    Marpa_Grammar  g = g_wrapper->g;
+    Marpa_Grammar g = g_wrapper->g;
     int result = marpa_g_rule_rh_symbol(g, rule_id, ix);
     if (result < -1) { 
       croak ("Problem in g->rule_rhs(%d, %d): %s", rule_id, ix, xs_g_error (g_wrapper));
@@ -878,6 +878,57 @@ PPCODE:
   XSRETURN_NO;
 }
 
+Marpa_Symbol_ID
+_marpa_g_irl_lhs( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_irl_lhs(g, irl_id);
+    if (result < -1) { 
+      croak ("Problem in g->_marpa_g_irl_lhs(%d): %s", irl_id, xs_g_error (g_wrapper));
+      }
+    if (result < 0) { XSRETURN_UNDEF; }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+}
+
+Marpa_Symbol_ID
+_marpa_g_irl_rhs( g_wrapper, irl_id, ix )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+    int ix;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_irl_rh_symbol(g, irl_id, ix);
+    if (result < -1) { 
+      croak ("Problem in g->_marpa_g_irl_rhs(%d, %d): %s", irl_id, ix, xs_g_error (g_wrapper));
+      }
+    if (result < 0) { XSRETURN_UNDEF; }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+}
+
+int
+_marpa_g_irl_length( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_irl_length (g, irl_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->_marpa_g_irl_length(%d): %s", irl_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
 int
 _marpa_g_rule_virtual_start( g_wrapper, rule_id )
     G_Wrapper *g_wrapper;
@@ -886,7 +937,11 @@ PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_virtual_start (g, rule_id);
-  if (result <= -2)
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
     {
       croak ("Problem in g->_marpa_g_rule_is_virtual_start(%d): %s", rule_id,
 	     xs_g_error (g_wrapper));
@@ -1003,16 +1058,16 @@ PPCODE:
 }
 
 Marpa_Rule_ID
-_marpa_g_rule_source_xrl ( g_wrapper, rule_id )
+_marpa_g_source_xrl ( g_wrapper, irl_id )
     G_Wrapper *g_wrapper;
-    Marpa_Rule_ID rule_id;
+    Marpa_IRL_ID irl_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_rule_source_xrl (g, rule_id);
+  int result = _marpa_g_source_xrl (g, irl_id);
   if (result <= -2)
     {
-      croak ("Problem in g->_marpa_g_rule_source_xrl (%d): %s", rule_id,
+      croak ("Problem in g->_marpa_g_source_xrl (%d): %s", irl_id,
 	     xs_g_error (g_wrapper));
     }
   if (result == -1)
@@ -1154,14 +1209,14 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (count)));
 }
 
-Marpa_Rule_ID
-_marpa_g_AHFA_item_rule( g_wrapper, item_id )
+Marpa_IRL_ID
+_marpa_g_AHFA_item_irl( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
     Marpa_AHFA_Item_ID item_id;
 PPCODE:
 {
     Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_rule(g, item_id);
+    int result = _marpa_g_AHFA_item_irl(g, item_id);
     if (result < 0) { XSRETURN_UNDEF; }
       XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1363,7 +1418,7 @@ new( class, g_wrapper )
 PPCODE:
 {
     int symbol_count;
-    Marpa_Grammar  g = g_wrapper->g;
+    Marpa_Grammar g = g_wrapper->g;
     SV *sv;
     R_Wrapper *r_wrapper;
     Marpa_Recce r;

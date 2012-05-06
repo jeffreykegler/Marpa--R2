@@ -880,26 +880,15 @@ sub Marpa::R2::Grammar::show_dotted_rule {
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $lhs_id    = $grammar_c->rule_lhs($rule_id);
     my $lhs       = $symbols->[$lhs_id];
+    my $rule_length = $grammar_c->rule_length($rule_id);
 
     my $text = $grammar->symbol_name($lhs_id) . q{ ->};
-
-    # In the bocage, when we are starting a rule and
-    # there is no current symbol, the position may
-    # be -1.
-    # Position has different semantics in the bocage, than in an LR-item.
-    # In the bocage, the position is *AT* a symbol.
-    # In the bocage the position is the number OF the current symbol.
-    # An LR-item the position how far into the rule parsing has
-    # proceded and is therefore between symbols (or at the end
-    # or beginning or a rule).
-    # Usually bocage position is one less than the analagous
-    # LR-item position.
     if ( $dot_position < 0 ) {
-        $text .= q{ !};
+        $dot_position = $rule_length;
     }
 
     my @rhs_names = ();
-    for my $ix ( 0 .. $grammar_c->rule_length($rule_id) - 1 ) {
+    for my $ix ( 0 .. $rule_length - 1 ) {
         my $rhs_symbol_id = $grammar_c->rule_rhs( $rule_id, $ix );
         my $rhs_symbol_name = $grammar->symbol_name($rhs_symbol_id);
         push @rhs_names, $rhs_symbol_name;
@@ -917,6 +906,40 @@ sub Marpa::R2::Grammar::show_dotted_rule {
     return $text;
 
 } ## end sub Marpa::R2::Grammar::show_dotted_rule
+
+sub Marpa::R2::Grammar::show_dotted_irl {
+    my ( $grammar, $irl_id, $dot_position ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $lhs_id    = $grammar_c->_marpa_g_irl_lhs($irl_id);
+    my $lhs       = $symbols->[$lhs_id];
+    my $irl_length = $grammar_c->_marpa_g_irl_length($irl_id);
+
+    my $text = $grammar->symbol_name($lhs_id) . q{ ->};
+
+    if ( $dot_position < 0 ) {
+        $dot_position = $irl_length;
+    }
+
+    my @rhs_names = ();
+    for my $ix ( 0 .. $irl_length - 1 ) {
+        my $rhs_symbol_id = $grammar_c->_marpa_g_irl_rhs( $irl_id, $ix );
+        my $rhs_symbol_name = $grammar->symbol_name($rhs_symbol_id);
+        push @rhs_names, $rhs_symbol_name;
+    }
+
+    POSITION: for my $position ( 0 .. scalar @rhs_names ) {
+        if ( $position == $dot_position ) {
+            $text .= q{ .};
+        }
+        my $name = $rhs_names[$position];
+        next POSITION if not defined $name;
+        $text .= " $name";
+    } ## end for my $position ( 0 .. scalar @rhs_names )
+
+    return $text;
+
+} ## end sub Marpa::R2::Grammar::show_dotted_irl
 
 sub Marpa::R2::show_AHFA_item {
     my ( $grammar, $item_id ) = @_;
@@ -945,11 +968,9 @@ sub Marpa::R2::show_brief_AHFA_item {
     my ( $grammar, $item_id ) = @_;
     my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
-    my $rule_id    = $grammar_c->_marpa_g_AHFA_item_rule($item_id);
+    my $irl_id    = $grammar_c->_marpa_g_AHFA_item_irl($item_id);
     my $position   = $grammar_c->_marpa_g_AHFA_item_position($item_id);
-    my $dot_position =
-        $position < 0 ? $grammar_c->rule_length($rule_id) : $position;
-    return $grammar->show_dotted_rule( $rule_id, $dot_position );
+    return $grammar->show_dotted_irl( $irl_id, $position );
 } ## end sub Marpa::R2::show_brief_AHFA_item
 
 sub Marpa::R2::Grammar::show_AHFA {
@@ -970,7 +991,7 @@ sub Marpa::R2::Grammar::show_AHFA {
         for my $item_id ( $grammar_c->_marpa_g_AHFA_state_items($state_id) ) {
             push @items,
                 [
-                $grammar_c->_marpa_g_AHFA_item_rule($item_id),
+                $grammar_c->_marpa_g_AHFA_item_irl($item_id),
                 $grammar_c->_marpa_g_AHFA_item_postdot($item_id),
                 Marpa::R2::show_brief_AHFA_item( $grammar, $item_id )
                 ];

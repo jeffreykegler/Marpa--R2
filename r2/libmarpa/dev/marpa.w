@@ -2127,7 +2127,7 @@ because the ``virtual LHS'' flag serves that purpose.
 @<Int aligned rule elements@> = XRL t_source_xrl;
 @ @<Initialize rule elements@> = Source_XRL_of_RULE(rule) = NULL;
 @ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_rule_source_xrl(
+Marpa_Rule_ID _marpa_g_source_xrl(
     Marpa_Grammar g,
     Marpa_IRL_ID irl_id)
 {
@@ -2289,8 +2289,39 @@ The {\bf rule ID} is a number which
 acts as the unique identifier for a rule.
 The rule ID is initialized when the rule is
 added to the list of rules.
-@d ID_of_IRL(xrl) ((xrl)->t_irl_id)
+@d ID_of_IRL(irl) ((irl)->t_irl_id)
 @<Int aligned irl elements@> = IRLID t_irl_id;
+
+@ @d LHS_ID_of_IRL(irl) LHS_ID_of_RULE(Co_RULE_of_IRL(irl))
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |irl_id| is invalid@>@;
+    return LHS_ID_of_IRL(IRL_by_ID(irl_id));
+}
+
+@ @d RHS_ID_of_IRL(irl, position) RHS_ID_of_RULE(Co_RULE_of_IRL(irl), (position))
+@<Function definitions@> =
+Marpa_Symbol_ID _marpa_g_irl_rh_symbol(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
+    IRL irl;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |irl_id| is invalid@>@;
+    irl = IRL_by_ID(irl_id);
+    if (Length_of_IRL(irl) <= ix) return -1;
+    return RHS_ID_of_IRL(irl, ix);
+}
+
+@ @d Length_of_IRL(irl) Length_of_RULE(Co_RULE_of_IRL(irl))
+@<Function definitions@> =
+int _marpa_g_irl_length(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if grammar |irl_id| is invalid@>@;
+    return Length_of_IRL(IRL_by_ID(irl_id));
+}
+
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
@@ -3788,7 +3819,6 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @*0 Rule.
 @d IRL_of_AIM(aim) ((aim)->t_irl)
 @d RULE_of_AIM(aim) Co_RULE_of_IRL(IRL_of_AIM(aim))
-@d RULEID_of_AIM(item) ID_of_RULE(RULE_of_AIM(item))
 @d IRLID_of_AIM(item) ID_of_IRL(IRL_of_AIM(item))
 @d LHS_ID_of_AIM(item) LHS_ID_of_RULE(RULE_of_AIM(item))
 @<Widely aligned AHFA item elements@> =
@@ -3825,12 +3855,12 @@ int _marpa_g_AHFA_item_count(Marpa_Grammar g) {
 }
 
 @ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_AHFA_item_rule(Marpa_Grammar g,
+Marpa_IRL_ID _marpa_g_AHFA_item_irl(Marpa_Grammar g,
 	Marpa_AHFA_Item_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if grammar |item_id| is invalid@>@/
-    return RULEID_of_AIM(AIM_by_ID(item_id));
+    return IRLID_of_AIM(AIM_by_ID(item_id));
 }
 
 @ |-1| is the value for completions, so |-2| is the failure indicator.
