@@ -45,6 +45,7 @@ sub Marpa::R2::Recognizer::show_bocage {
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
         my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
+        last OR_NODE if not defined $irl_id;
 	my $rule_id = $grammar_c->_marpa_g_irl_co_rule( $irl_id );
         last OR_NODE if not defined $rule_id;
         my $position        = $bocage->_marpa_b_or_node_position($or_node_id);
