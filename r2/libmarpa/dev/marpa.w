@@ -2057,14 +2057,14 @@ semantics specified for the original grammar.
 @ @<Initialize rule elements@> =
 RULE_has_Virtual_LHS(rule) = 0;
 @ @<Function definitions@> =
-int _marpa_g_rule_is_virtual_lhs(
+int _marpa_g_irl_is_virtual_lhs(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_IRL_ID irl_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if not precomputed@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_has_Virtual_LHS(RULE_by_ID(g, rule_id));
+    @<Fail if grammar |irl_id| is invalid@>@;
+    return IRL_has_Virtual_LHS(IRL_by_ID(irl_id));
 }
 
 @*0 Rule has Virtual RHS?.
