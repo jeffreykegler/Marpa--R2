@@ -586,6 +586,24 @@ sub rank_chaf_rules {
 
 }
 
+sub calculate_rank_by_irl {
+    my ($grammar)   = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $default_rank = $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my @rank_by_irl = ();
+    RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count()-1 ) {
+	my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
+	if (defined $xrl_id) {
+	  my $rule = $rules->[ $xrl_id ];
+	  $rank_by_irl[ $irl_id ] = $rule->[Marpa::R2::Internal::Rule::RANK];
+	  next RULE;
+	}
+	$rank_by_irl[ $irl_id ] = $default_rank;
+    }    # end for my $rule ( @{$rules} )
+    return \@rank_by_irl;
+}
+
 sub do_high_rule_only {
     my ($recce)   = @_;
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -610,12 +628,7 @@ sub do_high_rule_only {
         $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
     }    # end for my $symbol ( @{$symbols} )
 
-    # Set up ranks by rule
-    my @rank_by_rule = ();
-    SYMBOL: for my $rule ( @{$rules} ) {
-        my $rank = $rule->[Marpa::R2::Internal::Rule::RANK];
-        $rank_by_rule[ $rule->[Marpa::R2::Internal::Rule::ID] ] = $rank;
-    }    # end for my $rule ( @{$rules} )
+    my $rank_by_irl = calculate_rank_by_irl($grammar);
 
     OR_NODE: for ( my $or_node = 0;; $or_node++ ) {
         my $first_and_node = $bocage->_marpa_b_or_node_first_and($or_node);
@@ -634,11 +647,9 @@ sub do_high_rule_only {
             }
             my $cause   = $bocage->_marpa_b_and_node_cause($and_node);
             my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
-	    my $xrl_id = $grammar_c->_marpa_g_irl_co_rule( $irl_id );
-            my $rule    = $rules->[$xrl_id];
             push @ranking_data,
                 [
-                $and_node, $rank_by_rule[$xrl_id],
+                $and_node, $rank_by_irl->[$irl_id],
 		$chaf_ranks->[$irl_id]
                 ];
         } ## end for my $and_node (@and_nodes)
@@ -687,11 +698,7 @@ sub do_rank_by_rule {
     }    # end for my $symbol ( @{$symbols} )
 
     # Set up ranks by rule
-    my @rank_by_rule = ();
-    SYMBOL: for my $rule ( @{$rules} ) {
-        my $rank = $rule->[Marpa::R2::Internal::Rule::RANK];
-        $rank_by_rule[ $rule->[Marpa::R2::Internal::Rule::ID] ] = $rank;
-    }    # end for my $rule ( @{$rules} )
+    my $rank_by_irl = calculate_rank_by_irl($grammar);
 
     my $seen = q{};
     OR_NODE: while ( my $or_node = pop @or_nodes ) {
@@ -713,10 +720,9 @@ sub do_rank_by_rule {
             }
             my $cause   = $bocage->_marpa_b_and_node_cause($and_node);
             my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
-            my $xrl_id = $grammar_c->_marpa_g_irl_co_rule( $irl_id );
             push @ranking_data,
                 [
-                $and_node, $rank_by_rule[$xrl_id],
+                $and_node, $rank_by_irl->[$irl_id],
 		$chaf_ranks->[$irl_id]
                 ];
         } ## end for my $and_node (@and_nodes)
