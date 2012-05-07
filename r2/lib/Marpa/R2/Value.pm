@@ -969,7 +969,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $and_node_id =
                     $order->_marpa_o_and_node_order_get( $or_node_id, $choice );
                 my $trace_irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
-		my $trace_rule_id = $grammar_c->_marpa_g_irl_co_rule( $trace_irl_id );
                 my $virtual_rhs =
                     $grammar_c->_marpa_g_irl_is_virtual_rhs($trace_irl_id);
                 my $virtual_lhs =
@@ -977,7 +976,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                 next EVENT
                     if $bocage->_marpa_b_or_node_position($or_node_id)
-                        != $grammar_c->rule_length($trace_rule_id);
+                        != $grammar_c->_marpa_g_irl_length($trace_irl_id);
 
 		last TRACE_OP if not $virtual_rhs and not $virtual_lhs;
 
@@ -991,7 +990,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         ', rule: ', $grammar->brief_irl($trace_irl_id),
                         "\n",
                         'Incrementing virtual rule by ',
-                        $grammar_c->_marpa_g_real_symbol_count($trace_rule_id),
+                        $grammar_c->_marpa_g_real_symbol_count($trace_irl_id),
                         ' symbols'
                         or
                         Marpa::R2::exception('Could not print to trace file');
@@ -1009,7 +1008,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         ),
                         ', rule: ', $grammar->brief_irl($trace_irl_id),
                         "\nAdding ",
-                        $grammar_c->_marpa_g_real_symbol_count($trace_rule_id)
+                        $grammar_c->_marpa_g_real_symbol_count($trace_irl_id)
                         or
                         Marpa::R2::exception('Could not print to trace file');
 
@@ -1026,7 +1025,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         ),
                         ', rule: ', $grammar->brief_irl($trace_irl_id),
                         "\nReal symbol count is ",
-                        $grammar_c->_marpa_g_real_symbol_count($trace_rule_id)
+                        $grammar_c->_marpa_g_real_symbol_count($trace_irl_id)
                         or
                         Marpa::R2::exception('Could not print to trace file');
 

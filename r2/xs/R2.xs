@@ -950,16 +950,16 @@ PPCODE:
 }
 
 int
-_marpa_g_rule_virtual_end( g_wrapper, rule_id )
+_marpa_g_virtual_end( g_wrapper, irl_id )
     G_Wrapper *g_wrapper;
-    Marpa_Rule_ID rule_id;
+    Marpa_IRL_ID irl_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_virtual_end (g, rule_id);
+  int result = _marpa_g_virtual_end (g, irl_id);
   if (result <= -2)
     {
-      croak ("Problem in g->_marpa_g_rule_is_virtual_end(%d): %s", rule_id,
+      croak ("Problem in g->_marpa_g_virtual_end(%d): %s", irl_id,
 	     xs_g_error (g_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));

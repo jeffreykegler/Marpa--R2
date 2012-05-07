@@ -2108,17 +2108,20 @@ unsigned int _marpa_g_virtual_start(
 For a virtual rule,
 this is the RHS position in the original rule
 at which this one ends.
+@d Virtual_End_of_IRL(irl) (Co_RULE_of_IRL(irl)->t_virtual_end)
 @<Int aligned rule elements@> = int t_virtual_end;
 @ @<Initialize rule elements@> = rule->t_virtual_end = -1;
 @ @<Function definitions@> =
 unsigned int _marpa_g_virtual_end(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_IRL_ID irl_id)
 {
+    IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if not precomputed@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_by_ID(g, rule_id)->t_virtual_end;
+    @<Fail if grammar |irl_id| is invalid@>@;
+    irl = IRL_by_ID(irl_id);
+    return Virtual_End_of_IRL(irl);
 }
 
 @*0 Source XRL.
@@ -2150,17 +2153,18 @@ look as if they came from the original, un-rewritten rules.
 The value of this field is meaningful if and only if
 the rule has a virtual rhs or a virtual lhs.
 @d Real_SYM_Count_of_RULE(rule) ((rule)->t_real_symbol_count)
+@d Real_SYM_Count_of_IRL(irl) Real_SYM_Count_of_RULE(Co_RULE_of_IRL(irl))
 @ @<Int aligned rule elements@> = int t_real_symbol_count;
 @ @<Initialize rule elements@> = Real_SYM_Count_of_RULE(rule) = 0;
 @ @<Function definitions@> =
 int _marpa_g_real_symbol_count(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_IRL_ID irl_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if not precomputed@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return Real_SYM_Count_of_RULE(RULE_by_ID(g, rule_id));
+    @<Fail if grammar |irl_id| is invalid@>@;
+    return Real_SYM_Count_of_IRL(IRL_by_ID(irl_id));
 }
 
 @*0 Rule has semantics?.
@@ -3480,7 +3484,7 @@ rule structure, and performing the call back.
   RULE_has_Virtual_RHS (chaf_rule) =
     Length_of_RULE (chaf_rule) > real_symbol_count;
   Virtual_Start_of_IRL(chaf_irl) = piece_start;
-  chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
+  Virtual_End_of_IRL(chaf_irl) = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
   LHS_XRL_of_ISY (current_lhs) = chaf_xrl;
   XRL_Offset_of_ISY (current_lhs) = piece_start;
@@ -13454,11 +13458,6 @@ if (UNLIKELY(!IRLID_of_G_is_Valid(irl_id))) {
 @ @<Fail if grammar |xrl_id| is invalid@> =
 if (UNLIKELY(!XRLID_of_G_is_Valid(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_INVALID_XRLID);
-    return failure_indicator;
-}
-@ @<Fail if grammar |rule_id| is invalid@> =
-if (UNLIKELY(!RULEID_of_G_is_Valid(g, rule_id))) {
-    MARPA_ERROR (MARPA_ERR_INVALID_RULEID);
     return failure_indicator;
 }
 @ @<Fail if grammar |item_id| is invalid@> =
