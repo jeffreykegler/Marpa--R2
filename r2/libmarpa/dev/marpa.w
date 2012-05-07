@@ -2069,18 +2069,19 @@ int _marpa_g_irl_is_virtual_lhs(
 
 @*0 Rule has Virtual RHS?.
 @d RULE_has_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
+@d IRL_has_Virtual_RHS(irl) RULE_has_Virtual_RHS(Co_RULE_of_IRL(irl))
 @<Bit aligned rule elements@> = unsigned int t_is_virtual_rhs:1;
 @ @<Initialize rule elements@> =
 RULE_has_Virtual_RHS(rule) = 0;
 @ @<Function definitions@> =
-int _marpa_g_rule_is_virtual_rhs(
+int _marpa_g_irl_is_virtual_rhs(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_IRL_ID irl_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if not precomputed@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_has_Virtual_RHS(RULE_by_ID(g, rule_id));
+    @<Fail if grammar |irl_id| is invalid@>@;
+    return IRL_has_Virtual_RHS(IRL_by_ID(irl_id));
 }
 
 @*0 Virtual Start Position.

@@ -971,7 +971,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $trace_irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
 		my $trace_rule_id = $grammar_c->_marpa_g_irl_co_rule( $trace_irl_id );
                 my $virtual_rhs =
-                    $grammar_c->_marpa_g_rule_is_virtual_rhs($trace_rule_id);
+                    $grammar_c->_marpa_g_irl_is_virtual_rhs($trace_irl_id);
                 my $virtual_lhs =
                     $grammar_c->_marpa_g_irl_is_virtual_lhs($trace_irl_id);
 

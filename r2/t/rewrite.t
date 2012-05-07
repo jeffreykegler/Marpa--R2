@@ -121,23 +121,23 @@ Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 4: optional_whitespace -> /* empty !used */
 5: optional_modifier -> modifier
 6: optional_modifier -> /* empty !used */
-7: statement -> optional_whitespace expression statement[R0:2] /* vrhs real=2 */
+7: statement -> optional_whitespace expression statement[R0:2]
 8: statement -> optional_whitespace expression optional_whitespace[] optional_modifier[] optional_whitespace[]
-9: statement -> optional_whitespace[] expression statement[R0:2] /* vrhs real=2 */
+9: statement -> optional_whitespace[] expression statement[R0:2]
 10: statement -> optional_whitespace[] expression optional_whitespace[] optional_modifier[] optional_whitespace[]
-11: statement[R0:2] -> optional_whitespace statement[R0:3] /* vrhs real=1 */
+11: statement[R0:2] -> optional_whitespace statement[R0:3]
 12: statement[R0:2] -> optional_whitespace optional_modifier[] optional_whitespace[]
-13: statement[R0:2] -> optional_whitespace[] statement[R0:3] /* vrhs real=1 */
+13: statement[R0:2] -> optional_whitespace[] statement[R0:3]
 14: statement[R0:3] -> optional_modifier optional_whitespace
 15: statement[R0:3] -> optional_modifier optional_whitespace[]
 16: statement[R0:3] -> optional_modifier[] optional_whitespace
-17: statements -> statements[Seq] /* vrhs real=0 */
-18: statements -> statements[Seq] comma /* vrhs real=1 */
+17: statements -> statements[Seq]
+18: statements -> statements[Seq] comma
 19: statements[Seq] -> statement
-20: statements[Seq] -> statements[Seq] comma statement /* vrhs real=2 */
-21: block -> block[Seq] /* vrhs real=0 */
+20: statements[Seq] -> statements[Seq] comma statement
+21: block -> block[Seq]
 22: block[Seq] -> statements
-23: block[Seq] -> block[Seq] statements /* vrhs real=1 */
+23: block[Seq] -> block[Seq] statements
 24: block['] -> block
 END_RULES
 

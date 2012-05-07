@@ -1423,23 +1423,23 @@ On other failures, -2.
 @deftypefun int _marpa_g_irl_is_virtual_lhs (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
-@deftypefun int _marpa_g_rule_is_virtual_rhs (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
+@deftypefun int _marpa_g_irl_is_virtual_rhs (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 @deftypefun unsigned int _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
+    Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 @deftypefun unsigned int _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
+    Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_source_xrl (Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{rule_id})
+    Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 @deftypefun int _marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
+    Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_irl_semantic_equivalent (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
+    Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 
 @node Grammar internals,  , Rule internals, Grammars

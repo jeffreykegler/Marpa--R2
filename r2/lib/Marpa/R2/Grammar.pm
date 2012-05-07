@@ -841,15 +841,8 @@ sub Marpa::R2::Grammar::show_rule {
     $grammar_c->_marpa_g_rule_is_used($rule_id)       or push @comment, '!used';
     $grammar_c->rule_is_productive($rule_id) or push @comment, 'unproductive';
     $grammar_c->rule_is_accessible($rule_id) or push @comment, 'inaccessible';
-    my $rule_is_virtual_rhs = $grammar_c->_marpa_g_rule_is_virtual_rhs($rule_id);
-    $rule_is_virtual_rhs and push @comment, 'vrhs';
     $grammar_c->rule_is_keep_separation($rule_id)
         or push @comment, 'discard_sep';
-
-    if ( $rule_is_virtual_rhs ) {
-        push @comment, sprintf 'real=%d',
-            $grammar_c->_marpa_g_real_symbol_count($rule_id);
-    }
 
     my $text = $grammar->brief_rule($rule_id);
 
