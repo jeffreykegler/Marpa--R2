@@ -521,17 +521,17 @@ sub rank_chaf_rules {
 
     RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count() - 1 ) {
 
-	my $rule_id = $grammar_c->_marpa_g_irl_co_rule( $irl_id );
-        my $rule             = $rules->[$rule_id];
         my $original_rule_id = $grammar_c->_marpa_g_source_xrl($irl_id);
         my $original_rule =
-            defined $original_rule_id ? $rules->[$original_rule_id] : $rule;
+            defined $original_rule_id ? $rules->[$original_rule_id] : undef;
+        my $null_ranking =
+            defined $original_rule
+            ? $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKING]
+            : undef;
 
         # If not null ranked, default to highest CHAF rank
-        my $null_ranking =
-            $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKING];
         if ( not $null_ranking ) {
-	    $chaf_ranks[$irl_id] = 99;
+            $chaf_ranks[$irl_id] = 99;
             next RULE;
         }
 
@@ -539,9 +539,10 @@ sub rank_chaf_rules {
         # but it is not actually a CHAF rule, rank it below
         # all non-null-ranked rules, but above all rules with CHAF
         # ranks actually computed from the proper nullables
+        my $rule_id          = $grammar_c->_marpa_g_irl_co_rule($irl_id);
         my $virtual_start = $grammar_c->_marpa_g_rule_virtual_start($rule_id);
         if ( not defined $virtual_start ) {
-	    $chaf_ranks[$irl_id] = 98;
+            $chaf_ranks[$irl_id] = 98;
             next RULE;
         }
 
@@ -562,7 +563,8 @@ sub rank_chaf_rules {
             # Do nothing unless this is a proper nullable
             next RHS_IX if $grammar_c->symbol_is_nulling($original_rhs_id);
             next RHS_IX
-                if not $grammar_c->_marpa_g_symbol_null_alias($original_rhs_id);
+                if
+                not $grammar_c->_marpa_g_symbol_null_alias($original_rhs_id);
 
             my $rhs_id =
                 $grammar_c->rule_rhs( $rule_id, $rhs_ix - $virtual_start );
@@ -577,9 +579,9 @@ sub rank_chaf_rules {
             $rank = ( 2**$proper_nullable_count - 1 ) - $rank;
         }
 
-	$chaf_ranks[$irl_id] = $rank;
+        $chaf_ranks[$irl_id] = $rank;
 
-    } ## end for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 )
+    } ## end for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count(...))
 
     return \@chaf_ranks;
 
