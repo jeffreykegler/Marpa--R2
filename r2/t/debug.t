@@ -122,11 +122,9 @@ Marpa::R2::Test::is( $progress_report,
 P0 @0-0 Expression -> . Factor
 P2 @0-0 Factor -> . Number
 P4 @0-0 Factor -> . Factor Multiply Factor
-P5 @0-0 Expression['] -> . Expression
 F0 @0-1 Expression -> Factor .
 F2 @0-1 Factor -> Number .
 R4:1 @0-1 Factor -> Factor . Multiply Factor
-F5 @0-1 Expression['] -> Expression .
 P2 @2-2 Factor -> . Number
 P4 @2-2 Factor -> . Factor Multiply Factor
 R4:2 @0-2 Factor -> Factor Multiply . Factor
@@ -134,7 +132,6 @@ F0 @0-3 Expression -> Factor .
 F2 @2-3 Factor -> Number .
 R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
 F4 @0-3 Factor -> Factor Multiply Factor .
-F5 @0-3 Expression['] -> Expression .
 END_PROGRESS_REPORT
 
 # Marpa::R2::Display::End

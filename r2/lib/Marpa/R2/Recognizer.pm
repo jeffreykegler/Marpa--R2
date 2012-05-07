@@ -870,16 +870,23 @@ sub report_progress {
 	    if ($marpa_position < 0) {
 	       $marpa_position = $grammar_c->_marpa_g_irl_length($marpa_rule_id);
 	    }
-            my $chaf_start = $grammar_c->_marpa_g_rule_virtual_start($marpa_rule_id);
-            my $original_rule_id =
-                defined $chaf_start
-                ? $grammar_c->_marpa_g_source_xrl($marpa_rule_id)
-                : $grammar_c->_marpa_g_irl_co_rule($marpa_rule_id);
+            my $original_rule_id = $grammar_c->_marpa_g_source_xrl($marpa_rule_id);
+	    next AHFA_ITEM if not defined $original_rule_id;
             # position in original rule, to be calculated
             my $original_position = $marpa_position;
+            my $chaf_start = $grammar_c->_marpa_g_rule_virtual_start($marpa_rule_id);
             if ( defined $chaf_start ) {
                 $original_position += $chaf_start;
             } ## end if ( defined $chaf_start )
+	    if ($grammar_c->rule_is_sequence($original_rule_id))
+	    {
+	       if ($grammar_c->_marpa_g_irl_is_virtual_lhs($marpa_rule_id)) {
+	           next AHFA_ITEM if $marpa_position <= 0;
+		   $original_position = 1;
+	       } else {
+	          $original_position = $marpa_position > 0 ? 1 : 0;
+	       }
+	    }
             push @progress_reports,
                 [ $original_rule_id, $original_position, $origin, $earleme ];
         } ## end for my $AHFA_item_id (@AHFA_items)

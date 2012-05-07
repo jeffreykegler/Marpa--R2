@@ -299,7 +299,6 @@ Marpa::R2::Test::is( ${$actual_ref},
 R0:1 x4 @0...6-7 E -> E . Op E
 F0 x3 @0,2,4-7 E -> E Op E .
 F1 @6-7 E -> Number .
-F2 @0-7 E['] -> E .
 END_OF_PROGRESS_REPORT
 
 restore_stdout();

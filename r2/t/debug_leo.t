@@ -89,7 +89,6 @@ P5 @20-20 Lower_Middle -> . Bottom
 F5 @19-20 Lower_Middle -> Bottom .
 P6 @20-20 Bottom -> . T
 F6 @19-20 Bottom -> T .
-F7 @0-20 S['] -> S .
 END_PROGRESS_REPORT
 
 # Marpa::R2::Display::End
