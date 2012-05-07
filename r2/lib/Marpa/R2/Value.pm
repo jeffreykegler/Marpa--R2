@@ -46,8 +46,6 @@ sub Marpa::R2::Recognizer::show_bocage {
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
         my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
         last OR_NODE if not defined $irl_id;
-	my $rule_id = $grammar_c->_marpa_g_irl_co_rule( $irl_id );
-        last OR_NODE if not defined $rule_id;
         my $position        = $bocage->_marpa_b_or_node_position($or_node_id);
         my $or_origin       = $bocage->_marpa_b_or_node_origin($or_node_id);
         my $origin_earleme  = $recce_c->earleme($or_origin);
@@ -65,17 +63,17 @@ sub Marpa::R2::Recognizer::show_bocage {
             if ( defined $symbol ) {
                 $cause_tag = "S$symbol";
             }
-            my $cause_rule_id = -1;
-            my $cause_id   = $bocage->_marpa_b_and_node_cause($and_node_id);
-	    if (defined $cause_id)
-	      {
-		my $cause_irl_id = $bocage->_marpa_b_or_node_irl ($cause_id);
-		$cause_rule_id = $grammar_c->_marpa_g_irl_co_rule ($cause_irl_id);
-		$cause_tag = Marpa::R2::Recognizer::or_node_tag ($recce, $cause_id);
-	      }
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            my $cause_irl_id;
+            if ( defined $cause_id ) {
+                $cause_irl_id = $bocage->_marpa_b_or_node_irl($cause_id);
+                $cause_tag =
+                    Marpa::R2::Recognizer::or_node_tag( $recce, $cause_id );
+            }
             my $parent_tag =
                 Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
-            my $predecessor_id  = $bocage->_marpa_b_and_node_predecessor($and_node_id);
+            my $predecessor_id =
+                $bocage->_marpa_b_and_node_predecessor($and_node_id);
             my $predecessor_tag = q{-};
             if ( defined $predecessor_id ) {
                 $predecessor_tag = Marpa::R2::Recognizer::or_node_tag( $recce,
@@ -84,15 +82,18 @@ sub Marpa::R2::Recognizer::show_bocage {
             my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
             my $middle_earleme = $origin_earleme;
             if ( defined $predecessor_id ) {
-                my $predecessor_set = $bocage->_marpa_b_or_node_set($predecessor_id);
+                my $predecessor_set =
+                    $bocage->_marpa_b_or_node_set($predecessor_id);
                 $middle_earleme = $recce_c->earleme($predecessor_set);
             }
 
             push @data,
                 [
-                $origin_earleme, $current_earleme, $rule_id,
-                $position,       $middle_earleme,  $cause_rule_id,
-                ( $symbol // -1 ), $tag
+                $origin_earleme, $current_earleme,
+                $irl_id,         $position,
+                $middle_earleme,
+		( defined $symbol ? 0 : 1),
+                ( $symbol // $cause_irl_id ), $tag
                 ];
         } ## end for my $and_node_id (@and_node_ids)
     } ## end for ( my $or_node_id = 0;; $or_node_id++ )
