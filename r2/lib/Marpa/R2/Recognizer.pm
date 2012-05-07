@@ -874,7 +874,7 @@ sub report_progress {
 	    next AHFA_ITEM if not defined $original_rule_id;
             # position in original rule, to be calculated
             my $original_position = $marpa_position;
-            my $chaf_start = $grammar_c->_marpa_g_rule_virtual_start($marpa_rule_id);
+            my $chaf_start = $grammar_c->_marpa_g_virtual_start($marpa_rule_id);
             if ( defined $chaf_start ) {
                 $original_position += $chaf_start;
             } ## end if ( defined $chaf_start )

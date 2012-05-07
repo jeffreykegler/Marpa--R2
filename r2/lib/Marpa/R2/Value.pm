@@ -539,8 +539,7 @@ sub rank_chaf_rules {
         # but it is not actually a CHAF rule, rank it below
         # all non-null-ranked rules, but above all rules with CHAF
         # ranks actually computed from the proper nullables
-        my $rule_id          = $grammar_c->_marpa_g_irl_co_rule($irl_id);
-        my $virtual_start = $grammar_c->_marpa_g_rule_virtual_start($rule_id);
+        my $virtual_start = $grammar_c->_marpa_g_virtual_start($irl_id);
         if ( not defined $virtual_start ) {
             $chaf_ranks[$irl_id] = 98;
             next RULE;
@@ -567,7 +566,7 @@ sub rank_chaf_rules {
                 not $grammar_c->_marpa_g_symbol_null_alias($original_rhs_id);
 
             my $rhs_id =
-                $grammar_c->rule_rhs( $rule_id, $rhs_ix - $virtual_start );
+                $grammar_c->_marpa_g_irl_rhs( $irl_id, $rhs_ix - $virtual_start );
             last RHS_IX if not defined $rhs_id;
             $rank *= 2;
             $rank += ( $grammar_c->symbol_is_nulling($rhs_id) ? 0 : 1 );

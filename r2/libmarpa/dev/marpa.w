@@ -2087,17 +2087,20 @@ int _marpa_g_rule_is_virtual_rhs(
 For a virtual rule,
 this is the RHS position in the original rule
 where this one starts.
+@d Virtual_Start_of_IRL(irl) (Co_RULE_of_IRL(irl)->t_virtual_start)
 @<Int aligned rule elements@> = int t_virtual_start;
 @ @<Initialize rule elements@> = rule->t_virtual_start = -1;
 @ @<Function definitions@> =
 unsigned int _marpa_g_virtual_start(
     Marpa_Grammar g,
-    Marpa_Rule_ID rule_id)
+    Marpa_IRL_ID irl_id)
 {
+    IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if not precomputed@>@;
-    @<Fail if grammar |rule_id| is invalid@>@;
-    return RULE_by_ID(g, rule_id)->t_virtual_start;
+    @<Fail if grammar |irl_id| is invalid@>@;
+    irl = IRL_by_ID(irl_id);
+    return Virtual_Start_of_IRL(irl);
 }
 
 @*0 Virtual End Position.
@@ -3475,7 +3478,7 @@ rule structure, and performing the call back.
   RULE_has_Virtual_LHS (chaf_rule) = is_virtual_lhs;
   RULE_has_Virtual_RHS (chaf_rule) =
     Length_of_RULE (chaf_rule) > real_symbol_count;
-  chaf_rule->t_virtual_start = piece_start;
+  Virtual_Start_of_IRL(chaf_irl) = piece_start;
   chaf_rule->t_virtual_end = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
   LHS_XRL_of_ISY (current_lhs) = chaf_xrl;
