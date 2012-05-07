@@ -1133,8 +1133,8 @@ PRIVATE void symbol_free(SYM symbol)
 @*0 Symbol is LHS?.
 Is this (external) symbol on the LHS of any rule,
 whether sequence or BNF.
-@d SYM_is_LHS(symbol) ((symbol)->t_is_lhs)
-@d ISY_is_LHS(symbol) ((symbol)->t_is_lhs)
+@d XSY_is_LHS(xsy) ((xsy)->t_is_lhs)
+@d SYM_is_LHS(symbol) XSY_is_LHS(symbol)
 @<Bit aligned symbol elements@> = unsigned int t_is_lhs:1;
 @ @<Initialize symbol elements@> =
     SYM_is_LHS(symbol) = 0;
@@ -1424,9 +1424,13 @@ SYM symbol_alias_create(GRAMMAR g, SYM symbol)
     return alias;
 }
 
-@*0 Virtual symbols.
-This is the logic for keeping track of virtual symbols ---
+@** Internal Symbols (ISY).
+This is the logic for keeping track of
 symbols created internally by libmarpa.
+@d Buddy_of_ISY(isy) (isy)
+@d ISY_is_LHS(isy) LHS_of_SYM(Buddy_of_ISY(isy))
+
+@*0 Virtual LHS Rule.
 In writing sequence rules,
 and breaking up rule for the CHAF logic,
 libmarpa sometimes needs to create a new, virtual, LHS.
@@ -1437,14 +1441,14 @@ Only virtual symbols have a virtual lhs rule, but
 not all virtual symbol has a virtual lhs rule.
 Null aliases are virtual symbols, but are not on
 the LHS of any rule.
-@ @d LHS_XRL_of_ISY(isy) ((isy)->t_lhs_xrl)
-@d XRL_Offset_of_ISY(isy) ((isy)->t_xrl_offset)
+@ @d LHS_XRL_of_SYM(sym) ((sym)->t_lhs_xrl)
+@d XRL_Offset_of_SYM(sym) ((sym)->t_xrl_offset)
 @<Widely aligned symbol elements@> =
-RULE t_lhs_xrl;
+XRL t_lhs_xrl;
 int t_xrl_offset;
 @ @<Initialize symbol elements@> =
-LHS_XRL_of_ISY(symbol) = NULL;
-XRL_Offset_of_ISY(symbol) = 0;
+LHS_XRL_of_SYM(symbol) = NULL;
+XRL_Offset_of_SYM(symbol) = 0;
 
 @ Virtual LHS trace accessor:
 If this symbol is an internal LHS
@@ -1458,7 +1462,7 @@ Marpa_Rule_ID _marpa_g_symbol_lhs_xrl(Marpa_Grammar g, Marpa_Symbol_ID symid)
   @<Fail if |symid| is invalid@>@;
   {
     const SYM symbol = SYM_by_ID (symid);
-    const XRL lhs_xrl = LHS_XRL_of_ISY (symbol);
+    const XRL lhs_xrl = LHS_XRL_of_SYM (symbol);
     if (lhs_xrl)
       return ID_of_XRL (lhs_xrl);
   }
@@ -1480,7 +1484,7 @@ int _marpa_g_symbol_xrl_offset(Marpa_Grammar g, Marpa_Symbol_ID symid)
   SYM symbol;
   @<Fail if |symid| is invalid@>@;
   symbol = SYM_by_ID (symid);
-  return XRL_Offset_of_ISY(symbol);
+  return XRL_Offset_of_SYM(symbol);
 }
 
 @** External Rule (XRL) Code.
@@ -1517,28 +1521,28 @@ It is big,
 and it is used in a lot of places.
 @<Function definitions@> =
 PRIVATE
-  RULE rule_start (GRAMMAR g, const SYMID lhs, const SYMID * rhs, int length)
+  XRL xrl_start (GRAMMAR g, const SYMID lhs, const SYMID * rhs, int length)
 {
-  RULE rule;
-  const int rule_sizeof = offsetof (struct s_xrl, t_symbols) +
-    (length + 1) * sizeof (rule->t_symbols[0]);
-  my_obstack_blank (&g->t_xrl_obs, rule_sizeof);
-  rule = my_obstack_base (&g->t_xrl_obs);
-  Length_of_RULE (rule) = length;
-  rule->t_symbols[0] = lhs;
-  SYM_is_LHS (SYM_by_ID (lhs)) = 1;
+  XRL xrl;
+  const int sizeof_xrl = offsetof (struct s_xrl, t_symbols) +
+    (length + 1) * sizeof (xrl->t_symbols[0]);
+  my_obstack_blank (&g->t_xrl_obs, sizeof_xrl);
+  xrl = my_obstack_base (&g->t_xrl_obs);
+  Length_of_XRL (xrl) = length;
+  xrl->t_symbols[0] = lhs;
+  XSY_is_LHS (XSY_by_ID (lhs)) = 1;
   {
     int i;
     for (i = 0; i < length; i++)
       {
-	rule->t_symbols[i + 1] = rhs[i];
+	xrl->t_symbols[i + 1] = rhs[i];
       }
   }
-  return rule;
+  return xrl;
 }
 
 PRIVATE
-RULE rule_finish(GRAMMAR g, RULE rule)
+XRL xrl_finish(GRAMMAR g, XRL rule)
 {
     @<Initialize rule elements@>@/
     rule_add(g, rule);
@@ -1549,8 +1553,8 @@ PRIVATE_NOT_INLINE
 RULE rule_new(GRAMMAR g,
 const SYMID lhs, const SYMID *rhs, int length)
 {
-    RULE rule = rule_start(g, lhs, rhs, length);
-    rule_finish(g, rule);
+    RULE rule = xrl_start(g, lhs, rhs, length);
+    xrl_finish(g, rule);
     rule = my_obstack_finish(&g->t_xrl_obs);
     return rule;
 }
@@ -1602,7 +1606,7 @@ marpa_g_rule_new (Marpa_Grammar g,
       MARPA_ERROR (MARPA_ERR_RHS_TOO_LONG);
       goto FAILURE;
     }
-  rule = rule_start (g, lhs, rhs, length);
+  rule = xrl_start (g, lhs, rhs, length);
   if (UNLIKELY (_marpa_avl_insert (g->t_xrl_tree, rule) != NULL))
     {
       MARPA_ERROR (MARPA_ERR_DUPLICATE_RULE);
@@ -1610,7 +1614,7 @@ marpa_g_rule_new (Marpa_Grammar g,
     }
   if (UNLIKELY (!rule_check (g, rule)))
     goto FAILURE;
-  rule = rule_finish (g, rule);
+  rule = xrl_finish (g, rule);
   rule = my_obstack_finish(&g->t_xrl_obs);
   XRL_is_BNF (rule) = 1;
   rule_id = rule->t_id;
@@ -2909,7 +2913,7 @@ and productive.
   const SYMID lhs_id = LHS_ID_of_RULE (rule);
   const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
   const SYMID separator_id = Separator_of_XRL (rule);
-  LHS_XRL_of_ISY(internal_lhs) = rule;
+  LHS_XRL_of_SYM(internal_lhs) = rule;
   @<Add the top rule for the sequence@>@;
   if (separator_id >= 0 && !XRL_is_Proper_Separation(rule)) {
       @<Add the alternate top rule for the sequence@>@;
@@ -3486,8 +3490,8 @@ rule structure, and performing the call back.
   Virtual_Start_of_IRL(chaf_irl) = piece_start;
   Virtual_End_of_IRL(chaf_irl) = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
-  LHS_XRL_of_ISY (current_lhs) = chaf_xrl;
-  XRL_Offset_of_ISY (current_lhs) = piece_start;
+  LHS_XRL_of_SYM (current_lhs) = chaf_xrl;
+  XRL_Offset_of_SYM (current_lhs) = piece_start;
 }
 
 @ This utility routine translates a proper symbol id to a nulling symbol ID.
@@ -3941,7 +3945,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
     {
       SYMID rh_symid = RHS_ID_of_RULE (xrl, rhs_ix);
       SYM symbol = SYM_by_ID (rh_symid);
-      if (!ISY_is_Nulling(symbol))
+      if (!SYM_is_Nulling(symbol))
 	{
 	  Last_Proper_SYMI_of_RULE(xrl) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
@@ -3964,7 +3968,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
     {
       SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
       SYM symbol = SYM_by_ID (rh_symid);
-      if (!ISY_is_Nulling(symbol)) ahfa_item_count++;
+      if (!SYM_is_Nulling(symbol)) ahfa_item_count++;
     }
   ahfa_item_count++;
 }
@@ -4733,7 +4737,7 @@ set the Leo completion symbol to |lhs_id|@> =
 {
   AIM previous_ahfa_item = single_item_p - 1;
   SYMID predot_symid = Postdot_SYMID_of_AIM (previous_ahfa_item);
-  if (ISY_is_LHS(SYM_by_ID (predot_symid)))
+  if (SYM_is_LHS(SYM_by_ID (predot_symid)))
     {
       Leo_LHS_ID_of_AHFA (p_new_state) = lhs_id;
     }
@@ -5033,7 +5037,7 @@ states.
     {
       /* If a symbol appears on a LHS, it predicts itself. */
       SYM symbol = SYM_by_ID (symid);
-      if (!ISY_is_LHS(symbol)) continue;
+      if (!SYM_is_LHS(symbol)) continue;
       matrix_bit_set (symbol_by_symbol_matrix, (unsigned int) symid, (unsigned int) symid);
     }
   for (irl_id = 0; irl_id < irl_count; irl_id++)
