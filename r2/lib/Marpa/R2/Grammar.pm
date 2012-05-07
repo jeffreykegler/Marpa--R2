@@ -830,6 +830,22 @@ sub Marpa::R2::Grammar::brief_rule {
     return $text;
 } ## end sub Marpa::R2::Grammar::brief_rule
 
+sub Marpa::R2::Grammar::brief_irl {
+    my ( $grammar, $irl_id ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $lhs_id    = $grammar_c->_marpa_g_irl_lhs($irl_id);
+    my $text .= $irl_id . ': ' . $grammar->isy_name($lhs_id) . ' ->';
+    if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id) ) {
+        my @rhs_ids = ();
+        for my $ix ( 0 .. $rh_length - 1 ) {
+            push @rhs_ids, $grammar_c->_marpa_g_irl_rhs( $irl_id, $ix );
+        }
+        $text
+            .= q{ } . ( join q{ }, map { $grammar->isy_name($_) } @rhs_ids );
+    } ## end if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id))
+    return $text;
+} ## end sub Marpa::R2::Grammar::brief_irl
+
 sub Marpa::R2::Grammar::show_rule {
     my ( $grammar, $rule ) = @_;
 
@@ -1055,6 +1071,17 @@ sub Marpa::R2::Grammar::symbol_name {
     }
     return '[SYMBOL' . $id . 'L' . __LINE__ . ']';
 } ## end sub Marpa::R2::Grammar::symbol_name
+
+sub Marpa::R2::Grammar::isy_name {
+    my ( $grammar, $id ) = @_;
+    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+
+    # The next is a little roundabout to prevent auto-instantiation
+    if ( defined $symbols->[$id] ) {
+        return $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME];
+    }
+    return '[ISY' . $id . 'L' . __LINE__ . ']';
+} ## end sub Marpa::R2::Grammar::isy_name
 
 sub gen_symbol_name {
     my ( $grammar, $id ) = @_;

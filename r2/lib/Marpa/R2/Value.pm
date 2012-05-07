@@ -988,7 +988,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         Marpa::R2::Recognizer::and_node_tag(
                         $recce, $and_node_id
                         ),
-                        ', rule: ', $grammar->brief_rule($trace_rule_id),
+                        ', rule: ', $grammar->brief_irl($trace_irl_id),
                         "\n",
                         'Incrementing virtual rule by ',
                         $grammar_c->_marpa_g_real_symbol_count($trace_rule_id),
@@ -1007,7 +1007,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         Marpa::R2::Recognizer::and_node_tag(
                         $recce, $and_node_id
                         ),
-                        ', rule: ', $grammar->brief_rule($trace_rule_id),
+                        ', rule: ', $grammar->brief_irl($trace_irl_id),
                         "\nAdding ",
                         $grammar_c->_marpa_g_real_symbol_count($trace_rule_id)
                         or
@@ -1024,7 +1024,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         Marpa::R2::Recognizer::and_node_tag(
                         $recce, $and_node_id
                         ),
-                        ', rule: ', $grammar->brief_rule($trace_rule_id),
+                        ', rule: ', $grammar->brief_irl($trace_irl_id),
                         "\nReal symbol count is ",
                         $grammar_c->_marpa_g_real_symbol_count($trace_rule_id)
                         or
