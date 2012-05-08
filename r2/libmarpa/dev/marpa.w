@@ -4357,18 +4357,17 @@ typedef int AHFAID;
 g->t_AHFA = NULL;
 AHFA_Count_of_G(g) = 0;
 @*0 Destructor.
-@<Destroy grammar elements@> = if (g->t_AHFA) {
-AHFAID id;
-for (id = 0; id < AHFA_Count_of_G(g); id++) {
-   AHFA ahfa_state = AHFA_of_G_by_ID(g, id);
-   @<Free AHFA state@>@;
-}
-STOLEN_DQUEUE_DATA_FREE(g->t_AHFA);
-}
-
-@ Most of the data is on the obstack, and will be freed with that.
-@<Free AHFA state@> = {
-    my_free (TRANSs_of_AHFA (ahfa_state));
+@<Destroy grammar elements@> =
+{
+  if (g->t_AHFA)
+    {
+      AHFAID id;
+      for (id = 0; id < AHFA_Count_of_G (g); id++)
+	{
+	  AHFA ahfa_state = AHFA_of_G_by_ID (g, id);
+	}
+      STOLEN_DQUEUE_DATA_FREE (g->t_AHFA);
+    }
 }
 
 @*0 ID of AHFA State.
@@ -4707,7 +4706,8 @@ _marpa_avl_destroy(duplicates);
 					     (unsigned int)
 					     Postdot_SYMID_of_AIM
 					     (start_item)), irl_by_sort_key,
-				 &states, duplicates, item_list_working_buffer);
+				 &states, duplicates, item_list_working_buffer
+				 );
 }
 
 @* Discovered AHFA States.
@@ -4774,11 +4774,12 @@ a start rule completion, and it is a
 	*(p_new_state->t_postdot_symid_ary) = postdot;
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
-	p_new_state->t_empty_transition =
-	  create_predicted_AHFA_state (g,
-				       matrix_row (prediction_matrix,
-						   (unsigned int) postdot),
-				       irl_by_sort_key, &states, duplicates, item_list_working_buffer);
+    p_new_state->t_empty_transition =
+    create_predicted_AHFA_state (g,
+				 matrix_row (prediction_matrix,
+					     (unsigned int) postdot),
+				 irl_by_sort_key, &states, duplicates,
+				 item_list_working_buffer);
       }
     else
       {
@@ -5102,7 +5103,8 @@ and add the predicted AHFA state@> =
 								     irl_by_sort_key,
 								     &states,
 								     duplicates,
-								     item_list_working_buffer);
+								     item_list_working_buffer
+								     );
       bv_free (predicted_rule_vector);
     }
 }
@@ -5485,8 +5487,7 @@ PRIVATE TRANS* transitions_new(GRAMMAR g)
 {
     int symbol_count = SYM_Count_of_G(g);
     int symid = 0;
-    TRANS* transitions;
-    transitions = my_malloc(symbol_count * sizeof(transitions[0]));
+    TRANS* transitions = my_obstack_new(&g->t_obs, TRANS, symbol_count);
     while (symid < symbol_count) transitions[symid++] = NULL; /*
         |malloc0| will not work because NULL is not guaranteed
 	to be a bitwise zero. */
