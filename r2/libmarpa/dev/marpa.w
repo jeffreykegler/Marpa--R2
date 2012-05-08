@@ -686,13 +686,6 @@ with their
 
 @ @<Destroy grammar elements@> =
 {
-  XSYID xsy_id;
-  ISYID isy_id;
-  const XSYID xsy_count = XSY_Count_of_G (g);
-  for (xsy_id = 0; xsy_id < xsy_count; xsy_id++)
-    {
-      my_free (XSY_by_ID (xsy_id));
-    }
   DSTACK_DESTROY (g->t_xsy_stack);
   DSTACK_DESTROY (g->t_isy_stack);
 }
@@ -1128,7 +1121,7 @@ Symbols are used a nulling tokens, and
 PRIVATE SYM
 symbol_new (GRAMMAR g)
 {
-  SYM symbol = my_new (struct s_xsy, 1);
+  SYM symbol = my_obstack_new (&g->t_obs, struct s_xsy, 1);
   @<Initialize symbol elements @>@;
   symbol_add (g, symbol);
   return symbol;
