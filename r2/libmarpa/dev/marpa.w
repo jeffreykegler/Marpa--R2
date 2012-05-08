@@ -2495,9 +2495,9 @@ int marpa_g_precompute(Marpa_Grammar g)
 {
     @<Return |-2| on failure@>@;
     int return_value = failure_indicator;
-    struct obstack *obs_precompute = my_new(struct obstack, 1);
+    struct obstack obs_precompute;
     @<Declare precompute variables@>@;
-    my_obstack_init(obs_precompute);
+    my_obstack_init(&obs_precompute);
     @<Fail if fatal error@>@;
     G_EVENTS_CLEAR(g);
     @<Fail if no rules@>@;
@@ -2527,8 +2527,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     }
      return_value = G_EVENT_COUNT(g);
      FAILURE:;
-    my_obstack_free(obs_precompute);
-    my_free(obs_precompute);
+    my_obstack_free(&obs_precompute);
      return return_value;
 }
 @ {\bf To Do}: @^To Do@>
@@ -2664,8 +2663,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 		    xrl_count);
   struct sym_rule_pair *p_lh_sym_rule_pairs = p_lh_sym_rule_pair_base;
 
-  lhs_v = bv_obs_create (obs_precompute, xsy_count);
-  empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
+  lhs_v = bv_obs_create (&obs_precompute, xsy_count);
+  empty_lhs_v = bv_obs_shadow (&obs_precompute, lhs_v);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       const XRL rule = XRL_by_ID (rule_id);
@@ -2717,11 +2716,11 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     RULEID *const rule_data_base =
-      my_obstack_new (obs_precompute, RULEID, External_Size_of_G (g));
+      my_obstack_new (&obs_precompute, RULEID, External_Size_of_G (g));
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, rhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    xrl_list_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, xsy_count + 1);
+    xrl_list_x_rh_sym = my_obstack_new (&obs_precompute, RULEID*, xsy_count + 1);
     for (pair = (struct sym_rule_pair*)_marpa_avl_t_first (&traverser, rhs_avl_tree); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (&traverser))
       {
@@ -2740,12 +2739,12 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     RULEID *const rule_data_base =
-      my_obstack_new (obs_precompute, RULEID, xrl_count);
+      my_obstack_new (&obs_precompute, RULEID, xrl_count);
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, lhs_avl_tree);
     /* One extra "symbol" as an end marker */
     xrl_list_x_lh_sym =
-      my_obstack_new (obs_precompute, RULEID *, xsy_count + 1);
+      my_obstack_new (&obs_precompute, RULEID *, xsy_count + 1);
     for (pair =
 	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser, lhs_avl_tree);
 	 pair; pair = (struct sym_rule_pair *) _marpa_avl_t_next (&traverser))
@@ -2768,7 +2767,7 @@ and a flag which indicates if there are any.
 @<Census terminals@> =
 {
   SYMID symid;
-  terminal_v = bv_obs_create (obs_precompute, xsy_count);
+  terminal_v = bv_obs_create (&obs_precompute, xsy_count);
   bv_not (terminal_v, lhs_v);
   for (symid = 0; symid < xsy_count; symid++)
     {
@@ -2808,7 +2807,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
   unsigned int min, max, start;
   SYMID symid;
   int counted_nullables = 0;
-  nullable_v = bv_obs_clone (obs_precompute, empty_lhs_v);
+  nullable_v = bv_obs_clone (&obs_precompute, empty_lhs_v);
   rhs_closure (g, nullable_v, xrl_list_x_rh_sym);
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
@@ -2832,7 +2831,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
 
 @ @<Census productive symbols@> = 
 {
-  productive_v = bv_obs_shadow (obs_precompute, nullable_v);
+  productive_v = bv_obs_shadow (&obs_precompute, nullable_v);
   bv_or (productive_v, nullable_v, terminal_v);
   rhs_closure (g, productive_v, xrl_list_x_rh_sym);
   {
@@ -2881,7 +2880,7 @@ where many of the right hand sides repeat symbols.
 @<Calculate reach matrix@> =
 {
   XRLID rule_id;
-  reach_matrix = matrix_obs_create (obs_precompute, xsy_count, xsy_count);
+  reach_matrix = matrix_obs_create (&obs_precompute, xsy_count, xsy_count);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       XRL rule = XRL_by_ID (rule_id);
@@ -3215,7 +3214,7 @@ for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
 int factor_count;
 int* factor_positions;
 @ @<CHAF rewrite allocations@> =
-factor_positions = my_obstack_new(obs_precompute, int, g->t_max_rule_length);
+factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
 
 @*0 Divide the Rule into Pieces.
 @<Factor the rule into CHAF rules@> =
@@ -3264,8 +3263,8 @@ In such cases, the RHS is built in the
 Marpa_Symbol_ID* piece_rhs;
 Marpa_Symbol_ID* remaining_rhs;
 @ @<CHAF rewrite allocations@> =
-piece_rhs = my_obstack_new(obs_precompute, Marpa_Symbol_ID, g->t_max_rule_length);
-remaining_rhs = my_obstack_new(obs_precompute, Marpa_Symbol_ID, g->t_max_rule_length);
+piece_rhs = my_obstack_new(&obs_precompute, Marpa_Symbol_ID, g->t_max_rule_length);
+remaining_rhs = my_obstack_new(&obs_precompute, Marpa_Symbol_ID, g->t_max_rule_length);
 
 @*0 Factor A Non-Final Piece.
 @ As long as I have more than 3 unprocessed factors, I am working on a non-final
@@ -3680,7 +3679,7 @@ loop rule count, with the final tally.
 {
     int loop_rule_count = 0;
     Bit_Matrix unit_transition_matrix =
-	matrix_obs_create (obs_precompute, (unsigned int) xrl_count,
+	matrix_obs_create (&obs_precompute, (unsigned int) xrl_count,
 	    (unsigned int) xrl_count);
     @<Mark direct unit transitions in |unit_transition_matrix|@>@;
     transitive_closure(unit_transition_matrix);
@@ -4750,7 +4749,7 @@ a start rule completion, and it is a
     p_new_state = singleton_duplicates[single_item_id];
     if (p_new_state)
       {				/* Do not add, this is a duplicate */
-	transition_add (obs_precompute, p_working_state, working_symbol, p_new_state);
+	transition_add (&obs_precompute, p_working_state, working_symbol, p_new_state);
 	goto NEXT_WORKING_SYMBOL;
       }
     p_new_state = DQUEUE_PUSH (states, AHFA_Object);
@@ -4764,7 +4763,7 @@ a start rule completion, and it is a
     AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g);
-    transition_add (obs_precompute, p_working_state, working_symbol, p_new_state);
+    transition_add (&obs_precompute, p_working_state, working_symbol, p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
       {
@@ -4787,7 +4786,7 @@ a start rule completion, and it is a
 	SYMID* complete_symids = my_obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
-	completion_count_inc(obs_precompute, p_new_state, lhs_id);
+	completion_count_inc(&obs_precompute, p_new_state, lhs_id);
 	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
 	p_new_state->t_empty_transition = NULL;
@@ -4853,7 +4852,7 @@ be if written 100\% using indexes.
 	memoizations@> =
   const RULEID irl_count = IRL_Count_of_G(g);
   AIM* const item_list_working_buffer
-    = my_obstack_alloc(obs_precompute, irl_count*sizeof(AIM));
+    = my_obstack_alloc(&obs_precompute, irl_count*sizeof(AIM));
   const SYMID ins_count = SYM_Count_of_G(g);
   RULEID** irl_list_x_lh_sym = NULL;
 
@@ -4913,12 +4912,12 @@ of minimum sizes.
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     IRLID *const rule_data_base =
-      my_obstack_new (obs_precompute, IRLID, irl_count);
+      my_obstack_new (&obs_precompute, IRLID, irl_count);
     IRLID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, lhs_avl_tree);
     /* One extra "symbol" as an end marker */
     irl_list_x_lh_sym =
-      my_obstack_new (obs_precompute, IRLID *, ins_count + 1);
+      my_obstack_new (&obs_precompute, IRLID *, ins_count + 1);
     for (pair =
 	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser,
 						      lhs_avl_tree); pair;
@@ -4967,7 +4966,7 @@ of minimum sizes.
     {				// The new state would be a duplicate
 // Back it out and go on to the next in the queue
       (void) DQUEUE_POP (states, AHFA_Object);
-      transition_add (obs_precompute, p_working_state, working_symbol,
+      transition_add (&obs_precompute, p_working_state, working_symbol,
 		      queued_AHFA_state);
       goto NEXT_WORKING_SYMBOL;
     }
@@ -4986,7 +4985,7 @@ of minimum sizes.
   TRANSs_of_AHFA (p_new_state) = transitions_new (g);
   @<Calculate complete and postdot symbols for discovered
     state@>@;
-  transition_add (obs_precompute, p_working_state, working_symbol,
+  transition_add (&obs_precompute, p_working_state, working_symbol,
 		  p_new_state);
   @<Calculate the predicted rule vector for this
     state and add the predicted AHFA state@>@;
@@ -5007,7 +5006,7 @@ of minimum sizes.
       if (postdot < 0)
 	{
 	  int complete_symbol_id = LHS_ID_of_AIM (item);
-	  completion_count_inc (obs_precompute, p_new_state,
+	  completion_count_inc (&obs_precompute, p_new_state,
 				complete_symbol_id);
 	  bv_bit_set (complete_v, (unsigned int) complete_symbol_id);
 	}
@@ -5141,7 +5140,7 @@ states.
 
 @ @<Construct prediction matrix@> = {
     Bit_Matrix symbol_by_symbol_matrix =
-	matrix_obs_create (obs_precompute, symbol_count_of_g, symbol_count_of_g);
+	matrix_obs_create (&obs_precompute, symbol_count_of_g, symbol_count_of_g);
     @<Initialize the symbol-by-symbol matrix@>@/
     transitive_closure(symbol_by_symbol_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
@@ -5251,7 +5250,7 @@ which can be used to index the rules in a bit vector.
 @ @<Populate the prediction matrix@> =
 {
   prediction_matrix =
-    matrix_obs_create (obs_precompute, symbol_count_of_g,
+    matrix_obs_create (&obs_precompute, symbol_count_of_g,
 		       irl_count);
   for (from_symid = 0; from_symid < (SYMID) symbol_count_of_g; from_symid++)
     {
