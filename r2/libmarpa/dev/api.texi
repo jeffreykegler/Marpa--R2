@@ -1335,7 +1335,12 @@ Return value: -2 if the grammar is not precomputed or
 
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID _marpa_g_symbol_proper_alias (Marpa_Grammar @var{g}, @
+@deftypefun Marpa_Symbol_ID _marpa_g_isy_buddy ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_ISY_ID @var{isy_id})
+@end deftypefun
+@deftypefun Marpa_Symbol_ID _marpa_g_symbol_proper_alias ( @
+  Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
 @deftypefun Marpa_Symbol_ID _marpa_g_symbol_null_alias ( @
@@ -2427,17 +2432,23 @@ Suggested message: "Argument is not boolean."
 A method was called with an invalid internal rule ID.
 Suggested message: "No IRL with that ID exists."
 @end deftypevr
-@deftypevr Macro int MARPA_ERR_INVALID_RULEID
-A method was called with an invalid external rule ID.
-Suggested message: "No rule with that ID exists."
+@deftypevr Macro int MARPA_ERR_INVALID_ISYID
+A method was called with an invalid internal symbol ID.
+Suggested message: "No ISY with that ID exists."
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_START_SYM
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_SYMID
+After development, this error code should no longer
+be used and should be deleted.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_XRLID
 A method was called with an invalid external rule ID.
 Suggested message: "No rule with that ID exists."
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_INVALID_XSYID
+A method was called with an invalid external symbol ID.
+Suggested message: "No symbol with that ID exists."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_MAJOR_VERSION_MISMATCH
