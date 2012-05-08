@@ -667,8 +667,6 @@ marpa_g_ref (Marpa_Grammar g)
 PRIVATE
 void grammar_free(GRAMMAR g)
 {
-    const SYMID symbol_count_of_g = SYM_Count_of_G(g);
-    const SYMID isy_count = ISY_Count_of_G(g);
     @<Destroy grammar elements@>@;
     my_slice_free(struct marpa_g, g);
 }
@@ -681,26 +679,28 @@ with their
 @<Widely aligned grammar elements@> =
     DSTACK_DECLARE(t_xsy_stack);
     DSTACK_DECLARE(t_isy_stack);
+
 @ @<Initialize grammar elements@> =
     DSTACK_INIT2(g->t_xsy_stack, XSY );
-    DSTACK_INIT2(g->t_isy_stack, ISY );
+    DSTACK_SAFE(g->t_isy_stack);
+
 @ @<Destroy grammar elements@> =
 {
   XSYID xsy_id;
-  for (xsy_id = 0; xsy_id < symbol_count_of_g; xsy_id++)
+  ISYID isy_id;
+  const ISYID isy_count = ISY_Count_of_G (g);
+  const XSYID xsy_count = XSY_Count_of_G (g);
+  for (xsy_id = 0; xsy_id < xsy_count; xsy_id++)
     {
       my_free (XSY_by_ID (xsy_id));
     }
-}
-DSTACK_DESTROY(g->t_xsy_stack);
-{
-  ISYID isy_id;
+  DSTACK_DESTROY (g->t_xsy_stack);
   for (isy_id = 0; isy_id < isy_count; isy_id++)
     {
       my_free (ISY_by_ID (isy_id));
     }
+  DSTACK_DESTROY (g->t_isy_stack);
 }
-DSTACK_DESTROY(g->t_isy_stack);
 
 @ Symbol count accesors.
 @d XSY_Count_of_G(g) (DSTACK_LENGTH((g)->t_xsy_stack))
@@ -1446,11 +1446,6 @@ This is the logic for keeping track of
 symbols created internally by libmarpa.
 @d Buddy_of_ISY(isy) ((isy)->t_buddy)
 
-@ @<Private structures@> =
-struct s_isy {
-  @<Widely aligned isy elements@>@;
-  @<Int aligned isy elements@>@;
-};
 @ @<Public typedefs@> =
 typedef int Marpa_ISY_ID;
 @ @<Private typedefs@> =
@@ -1458,12 +1453,52 @@ struct s_isy;
 typedef struct s_isy* ISY;
 typedef Marpa_ISY_ID ISYID;
 
+@ @<Private structures@> =
+struct s_isy {
+  @<Widely aligned ISY elements@>@;
+  @<Int aligned ISY elements@>@;
+  @<Bit aligned ISY elements@>@;
+};
+
+@*0 Constructors.
+@ Common logic for creating an ISY.
+@<Function definitions@> =
+PRIVATE ISY
+isy_start(GRAMMAR g)
+{
+  const ISY new_isy = my_obstack_new (&g->t_obs, struct s_isy, 1);
+  ID_of_ISY(new_isy) = DSTACK_LENGTH((g)->t_isy_stack);
+  *DSTACK_PUSH((g)->t_isy_stack, ISY) = new_isy;
+  return new_isy;
+}
+
+@ Create an ISY from scratch.
+@<Function definitions@> =
+PRIVATE ISY
+isy_new(GRAMMAR g)
+{
+  const XSY xsy = symbol_new(g);
+  const ISY new_isy = isy_start(g);
+  Buddy_of_ISY(new_isy) = xsy;
+  return new_isy;
+}
+
+@ Clone an ISY from an XSY.
+@<Function definitions@> =
+PRIVATE ISY
+isy_clone(GRAMMAR g, XSY xsy)
+{
+  const ISY new_isy = isy_start(g);
+  Buddy_of_ISY(new_isy) = xsy;
+  return new_isy;
+}
+
 @*0 Development stubs.
 @ {\bf To Do}: @^To Do@>
 Delete this when division of grammar into
 external and internal is complete.
 @d Buddy_of_ISY(isy) ((isy)->t_buddy)
-@<Widely aligned isy elements@> =
+@<Widely aligned ISY elements@> =
   XSY t_buddy;
 @ @<Function definitions@> =
 Marpa_Symbol_ID _marpa_g_isy_buddy(
@@ -1481,7 +1516,21 @@ acts as the unique identifier for an ISY.
 The ISY ID is initialized when the ISY is
 added to the list of rules.
 @d ID_of_ISY(isy) ((isy)->t_isy_id)
-@<Int aligned isy elements@> = ISYID t_isy_id;
+@<Int aligned ISY elements@> = ISYID t_isy_id;
+
+@*0 ISY Is Nulling?.
+Not initialized, because there is no convenient initial value.
+@d ISY_is_Nulling(isy) ((isy)->t_is_nulling)
+@<Bit aligned ISY elements@> = unsigned int t_is_nulling:1;
+@ @<Function definitions@> =
+int _marpa_g_isy_is_nulling(Marpa_Grammar g, Marpa_ISY_ID isy_id)
+{
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if not precomputed@>@;
+  @<Fail if |isy_id| is invalid@>@;
+  return ISY_is_Nulling(ISY_by_ID(isy_id));
+}
 
 @*0 Virtual LHS Rule.
 In writing sequence rules,
@@ -2549,8 +2598,8 @@ a lot of useless diagnostics.
 }
 
 @ @<Declare precompute variables@> =
-  RULEID xrl_count = XRL_Count_of_G(g);
-  SYMID xsy_count = XSY_Count_of_G(g);
+  XRLID xrl_count = XRL_Count_of_G(g);
+  XSYID xsy_count = XSY_Count_of_G(g);
 
 @ @<Fail if no rules@> =
 if (UNLIKELY(xrl_count <= 0)) {
@@ -4824,6 +4873,33 @@ than its length, as a convenient way to deal with issues
 of minimum sizes.
 @<Initialize IRL stack@> =
     DSTACK_INIT(g->t_irl_stack, IRL, 2*DSTACK_CAPACITY(g->t_xrl_stack));
+
+@ Clones all the used symbols,
+creating nulling versions as required.
+Initialized based on the capacity of the XSY stack, rather
+than its length, as a convenient way to deal with issues
+of minimum sizes.
+@<Initialize ISY stack@> =
+{
+  XSYID xsyid;
+  DSTACK_INIT (g->t_isy_stack, ISY, 2 * DSTACK_CAPACITY (g->t_xsy_stack));
+  for (xsyid = 0; xsyid < xsy_count; xsyid++)
+    {
+      ISY isy;
+      const XSY xsy = XSY_by_ID (xsyid);
+      if (UNLIKELY (!XSY_is_Accessible (xsy)))
+	continue;
+      if (UNLIKELY (!XSY_is_Productive (xsy)))
+	continue;
+      isy = isy_clone (xsy);
+      ISY_is_Nulling (isy) = XSY_is_Nulling (xsy);
+      if (XSY_is_Nullable (xsy))
+	{
+	  nulling_isy = isy_clone (xsy);
+	  ISY_is_Nulling (isy) = 1;
+	}
+    }
+}
 
 @ @<Calculate Rule by LHS lists@> =
 {

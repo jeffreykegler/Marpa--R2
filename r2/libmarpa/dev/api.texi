@@ -1339,6 +1339,10 @@ Return value: -2 if the grammar is not precomputed or
     Marpa_Grammar @var{g}, @
     Marpa_ISY_ID @var{isy_id})
 @end deftypefun
+@deftypefun int _marpa_g_isy_is_nulling ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_ISY_ID @var{isy_id})
+@end deftypefun
 @deftypefun Marpa_Symbol_ID _marpa_g_symbol_proper_alias ( @
   Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
