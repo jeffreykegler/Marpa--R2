@@ -688,17 +688,12 @@ with their
 {
   XSYID xsy_id;
   ISYID isy_id;
-  const ISYID isy_count = ISY_Count_of_G (g);
   const XSYID xsy_count = XSY_Count_of_G (g);
   for (xsy_id = 0; xsy_id < xsy_count; xsy_id++)
     {
       my_free (XSY_by_ID (xsy_id));
     }
   DSTACK_DESTROY (g->t_xsy_stack);
-  for (isy_id = 0; isy_id < isy_count; isy_id++)
-    {
-      my_free (ISY_by_ID (isy_id));
-    }
   DSTACK_DESTROY (g->t_isy_stack);
 }
 
@@ -3623,7 +3618,8 @@ in the literature --- it is called ``augmenting the grammar".
   RULE new_start_rule;
 
   XSYID new_start_xsyid = -1;
-  const XSY new_start_xsy = symbol_new (g);
+  const ISY new_start_isy = isy_new(g);
+  const XSY new_start_xsy = Buddy_of_ISY(new_start_isy);
   new_start_xsyid = ID_of_SYM(new_start_xsy);
   new_start_xsy->t_is_accessible = 1;
   new_start_xsy->t_is_productive = 1;
