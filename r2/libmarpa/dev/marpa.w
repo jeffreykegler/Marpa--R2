@@ -13048,9 +13048,12 @@ and leaves its capacity at what is hopefully
 a stable, high-water mark, which will make future
 resizings unnecessary.
 @d DSTACK_CLEAR(this) ((this).t_count = 0)
-@d DSTACK_PUSH(this, type)
-    (((this).t_count >= (this).t_capacity ? dstack_resize(&(this), sizeof(type)) : 0),
-     ((type *)(this).t_base+(this).t_count++))
+@d DSTACK_PUSH(this, type) (
+      (UNLIKELY((this).t_count >= (this).t_capacity)
+      ? dstack_resize(&(this), sizeof(type))
+      : 0),
+     ((type *)(this).t_base+(this).t_count++)
+   )
 @d DSTACK_POP(this, type) ((this).t_count <= 0 ? NULL :
     ( (type*)(this).t_base+(--(this).t_count)))
 @d DSTACK_INDEX(this, type, ix) (DSTACK_BASE((this), type)+(ix))
@@ -13074,8 +13077,10 @@ struct s_dstack;
 typedef struct s_dstack* DSTACK;
 @ @<Private utility structures@> =
 struct s_dstack { int t_count; int t_capacity; void * t_base; };
-@ @<Function definitions@> =
-PRIVATE void * dstack_resize(struct s_dstack* this, size_t type_bytes)
+@ Not inline because |DSTACK|'s should be initialized so that
+resizings are uncommon or even exceptional events.
+@<Function definitions@> =
+PRIVATE_NOT_INLINE void * dstack_resize(struct s_dstack* this, size_t type_bytes)
 {
     this->t_capacity *= 2;
     this->t_base = my_realloc(this->t_base, this->t_capacity*type_bytes);
