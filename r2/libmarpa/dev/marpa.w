@@ -1385,22 +1385,26 @@ If this symbol is a proper (non-nullable) symbol
 with a nulling alias, returns the nulling alias.
 Otherwise, returns |NULL|.
 @<Function definitions@> =
-PRIVATE
-SYM symbol_null_alias(SYM symbol)
-{ return symbol->t_is_proper_alias ? symbol->t_alias : NULL; }
-Marpa_Symbol_ID _marpa_g_symbol_null_alias(Marpa_Grammar g, Marpa_Symbol_ID symid)
+PRIVATE SYM symbol_null_alias (SYM symbol)
 {
-SYM symbol;
-SYM alias;
-@<Return |-2| on failure@>@;
-@<Fail if |symid| is invalid@>@;
-symbol = SYM_by_ID(symid);
-alias = symbol_null_alias(symbol);
-if (alias == NULL) {
-    MARPA_ERROR(MARPA_ERR_NO_ALIAS);
-    return -1;
+  return symbol->t_is_proper_alias ? symbol->t_alias : NULL;
 }
-return ID_of_SYM(alias);
+
+Marpa_Symbol_ID
+_marpa_g_symbol_null_alias (Marpa_Grammar g, Marpa_Symbol_ID symid)
+{
+  SYM symbol;
+  SYM alias;
+  @<Return |-2| on failure@>@;
+  @<Fail if |symid| is invalid@>@;
+  symbol = SYM_by_ID (symid);
+  alias = symbol_null_alias (symbol);
+  if (alias == NULL)
+    {
+      MARPA_ERROR (MARPA_ERR_NO_ALIAS);
+      return -1;
+    }
+  return ID_of_SYM (alias);
 }
 
 @ Given a proper nullable symbol as its argument,
@@ -2508,7 +2512,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Clear rule duplication tree@>@;
     // Phase 1: census the external grammar
     { /* Scope with only external grammar */
-	@<Declare external grammar variables@>@;
+	@<Declare census variables@>@;
 	@<Perform census of grammar |g|@>@;
 	@<Detect cycles@>@;
     }
@@ -2531,13 +2535,6 @@ int marpa_g_precompute(Marpa_Grammar g)
      return return_value;
 }
 @ {\bf To Do}: @^To Do@>
-Perhaps I should revamp the memory allocation for the
-vectors and matrices.
-On one hand I could put them on an obstack,
-or on the other hand I could free them more quickly
-once their useful lifetime is past.
-@<Declare precompute variables@> =
-Bit_Vector nullable_v = NULL;
 
 @** The Grammar Census.
 
@@ -2586,7 +2583,7 @@ a lot of useless diagnostics.
 
 @ @<Declare precompute variables@> =
   XRLID xrl_count = XRL_Count_of_G(g);
-  XSYID xsy_count = XSY_Count_of_G(g);
+  XSYID pre_census_xsy_count = XSY_Count_of_G(g);
 
 @ @<Fail if no rules@> =
 if (UNLIKELY(xrl_count <= 0)) {
@@ -2663,7 +2660,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 		    xrl_count);
   struct sym_rule_pair *p_lh_sym_rule_pairs = p_lh_sym_rule_pair_base;
 
-  lhs_v = bv_obs_create (&obs_precompute, xsy_count);
+  lhs_v = bv_obs_create (&obs_precompute, pre_census_xsy_count);
   empty_lhs_v = bv_obs_shadow (&obs_precompute, lhs_v);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
@@ -2720,7 +2717,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     RULEID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, rhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    xrl_list_x_rh_sym = my_obstack_new (&obs_precompute, RULEID*, xsy_count + 1);
+    xrl_list_x_rh_sym = my_obstack_new (&obs_precompute, RULEID*, pre_census_xsy_count + 1);
     for (pair = (struct sym_rule_pair*)_marpa_avl_t_first (&traverser, rhs_avl_tree); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (&traverser))
       {
@@ -2729,7 +2726,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	  xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
-    while (seen_symid <= xsy_count)
+    while (seen_symid <= pre_census_xsy_count)
       xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
     _marpa_avl_destroy (rhs_avl_tree);
   }
@@ -2744,7 +2741,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     _marpa_avl_t_init (&traverser, lhs_avl_tree);
     /* One extra "symbol" as an end marker */
     xrl_list_x_lh_sym =
-      my_obstack_new (&obs_precompute, RULEID *, xsy_count + 1);
+      my_obstack_new (&obs_precompute, RULEID *, pre_census_xsy_count + 1);
     for (pair =
 	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser, lhs_avl_tree);
 	 pair; pair = (struct sym_rule_pair *) _marpa_avl_t_next (&traverser))
@@ -2754,7 +2751,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	  xrl_list_x_lh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
-    while (seen_symid <= xsy_count)
+    while (seen_symid <= pre_census_xsy_count)
       xrl_list_x_lh_sym[++seen_symid] = p_rule_data;
     _marpa_avl_destroy (lhs_avl_tree);
   }
@@ -2767,9 +2764,9 @@ and a flag which indicates if there are any.
 @<Census terminals@> =
 {
   SYMID symid;
-  terminal_v = bv_obs_create (&obs_precompute, xsy_count);
+  terminal_v = bv_obs_create (&obs_precompute, pre_census_xsy_count);
   bv_not (terminal_v, lhs_v);
-  for (symid = 0; symid < xsy_count; symid++)
+  for (symid = 0; symid < pre_census_xsy_count; symid++)
     {
       SYM symbol = SYM_by_ID (symid);
       if (SYM_is_Marked_Terminal (symbol))
@@ -2793,10 +2790,10 @@ and a flag which indicates if there are any.
 }
 
 @ @s Bit_Vector int
-@<Declare external grammar variables@> =
+@<Declare census variables@> =
 Bit_Vector terminal_v = NULL;
 
-@ @<Declare external grammar variables@> =
+@ @<Declare census variables@> =
 Bit_Vector lhs_v = NULL;
 Bit_Vector empty_lhs_v = NULL;
 RULEID** xrl_list_x_rh_sym = NULL;
@@ -2805,20 +2802,21 @@ RULEID** xrl_list_x_lh_sym = NULL;
 @ @<Census nullable symbols@> = 
 {
   unsigned int min, max, start;
-  SYMID symid;
+  XSYID xsyid;
   int counted_nullables = 0;
   nullable_v = bv_obs_clone (&obs_precompute, empty_lhs_v);
   rhs_closure (g, nullable_v, xrl_list_x_rh_sym);
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
-      for (symid = (SYMID) min; symid <= (SYMID) max;
-	   symid++)
+      for (xsyid = (XSYID) min; xsyid <= (XSYID) max;
+	   xsyid++)
 	{
-	  SYM symbol = SYM_by_ID (symid);
-	  if (UNLIKELY(symbol->t_is_counted))
+	  XSY xsy = XSY_by_ID (xsyid);
+	  XSY_is_Nullable(xsy) = 1;
+	  if (UNLIKELY(xsy->t_is_counted))
 	    {
 	      counted_nullables++;
-	      int_event_new (g, MARPA_EVENT_COUNTED_NULLABLE, symid);
+	      int_event_new (g, MARPA_EVENT_COUNTED_NULLABLE, xsyid);
 	    }
 	}
     }
@@ -2856,8 +2854,9 @@ if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)start_xsyid)))
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     goto FAILURE;
 }
-@ @<Declare external grammar variables@> =
+@ @<Declare census variables@> =
 Bit_Vector productive_v = NULL;
+Bit_Vector nullable_v = NULL;
 
 @ The reach matrix is the an $n\times n$ matrix,
 where $n$ is the number of symbols.
@@ -2880,7 +2879,7 @@ where many of the right hand sides repeat symbols.
 @<Calculate reach matrix@> =
 {
   XRLID rule_id;
-  reach_matrix = matrix_obs_create (&obs_precompute, xsy_count, xsy_count);
+  reach_matrix = matrix_obs_create (&obs_precompute, pre_census_xsy_count, pre_census_xsy_count);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       XRL rule = XRL_by_ID (rule_id);
@@ -3125,7 +3124,7 @@ the pre-CHAF rule count.
 {
     @<CHAF rewrite declarations@>@;
     @<CHAF rewrite allocations@>@;
-    @<Alias proper nullables@>@;
+    @<Clone external symbols@>@;
     pre_chaf_rule_count = XRL_Count_of_G(g);
     for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
 
@@ -3162,28 +3161,22 @@ int pre_chaf_rule_count;
 
 @ For every accessible and productive proper nullable which
 is not already aliased, alias it.
-@<Alias proper nullables@> =
+@<Clone external symbols@> =
 {
-  unsigned int min, max, start;
-  for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
-    {
-      Marpa_Symbol_ID nullable_id;
-      for (nullable_id = (Marpa_Symbol_ID) min; nullable_id <= (Marpa_Symbol_ID) max;
-	   nullable_id++)
-	{
-	  const SYM nullable = SYM_by_ID (nullable_id);
-	  XSY_is_Nullable (nullable) = 1;
-	  if (SYM_is_Nulling (nullable))
-	    continue;
-	  if (UNLIKELY(!nullable->t_is_accessible))
-	    continue;
-	  if (UNLIKELY(!nullable->t_is_productive))
-	    continue;
-	  if (UNLIKELY(symbol_null_alias (nullable) != NULL))
-	    continue;
-	  symbol_alias_create (g, nullable);
-	}
-    }
+  XSYID xsyid;
+  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
+  {
+    const XSY xsy = XSY_by_ID (xsyid);
+    if (UNLIKELY (!xsy->t_is_accessible))
+      continue;
+    if (UNLIKELY (!xsy->t_is_productive))
+      continue;
+    MARPA_ASSERT (!symbol_null_alias (xsy));
+    if (XSY_is_Nullable (xsy) && !XSY_is_Nulling(xsy))
+      {
+	symbol_alias_create (g, xsy);
+      }
+  }
 }
 
 @*0 Compute Statistics Needed to Rewrite the Rule.
@@ -3195,21 +3188,26 @@ with proper symbols and nulling symbols ``factors" pieces
 of the rule being rewritten (the original rule)
 into multiple CHAF rules.
 @<Calculate CHAF rule statistics@> =
-{ int rhs_ix;
-factor_count = 0;
-for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
-     Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
-     SYM symbol = SYM_by_ID(symid);
-     if (SYM_is_Nulling(symbol)) continue; /* Do nothing for nulling symbols */
-     if (symbol_null_alias(symbol)) {
-     /* If a proper nullable, record its position */
-	 factor_positions[factor_count++] = rhs_ix;
-	 continue;
-    }@#
-     nullable_suffix_ix = rhs_ix+1;
+{
+  int rhs_ix;
+  factor_count = 0;
+  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+    {
+      Marpa_Symbol_ID symid = RHS_ID_of_RULE (rule, rhs_ix);
+      SYM symbol = SYM_by_ID (symid);
+      if (SYM_is_Nulling (symbol))
+	continue;		/* Do nothing for nulling symbols */
+      if (symbol_null_alias (symbol))
+	{
+	  /* If a proper nullable, record its position */
+	  factor_positions[factor_count++] = rhs_ix;
+	  continue;
+	}
+      nullable_suffix_ix = rhs_ix + 1;
 /* If not a nullable symbol, move forward the index
  of the nullable suffix location */
-} }
+    }
+}
 @ @<CHAF rewrite declarations@> =
 int factor_count;
 int* factor_positions;
@@ -3695,36 +3693,44 @@ but not trivial ones.
 That is, bit |(x,x)| is not set true in advance.
 In other words, for this purpose,
 unit transitions are not in general reflexive.
-@<Mark direct unit transitions in |unit_transition_matrix|@> = {
-Marpa_Rule_ID rule_id;
-for (rule_id = 0; rule_id < xrl_count; rule_id++) {
-     XRL rule = XRL_by_ID(rule_id);
-     SYMID nonnulling_id = -1;
-     int nonnulling_count = 0;
-     int rhs_ix, rule_length;
-     rule_length = Length_of_RULE(rule);
-     for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
-	 Marpa_Symbol_ID symid = RHS_ID_of_RULE(rule, rhs_ix);
-	 if (bv_bit_test(nullable_v, symid)) continue;
-	 nonnulling_id = symid;
-	 nonnulling_count ++;
+@<Mark direct unit transitions in |unit_transition_matrix|@> =
+{
+  Marpa_Rule_ID rule_id;
+  for (rule_id = 0; rule_id < xrl_count; rule_id++)
+    {
+      XRL rule = XRL_by_ID (rule_id);
+      SYMID nonnulling_id = -1;
+      int nonnulling_count = 0;
+      int rhs_ix, rule_length;
+      rule_length = Length_of_RULE (rule);
+      for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+	{
+	  Marpa_Symbol_ID symid = RHS_ID_of_RULE (rule, rhs_ix);
+	  if (bv_bit_test (nullable_v, symid))
+	    continue;
+	  nonnulling_id = symid;
+	  nonnulling_count++;
+	}
+	if (nonnulling_count == 1)
+	{
+	  @<For |nonnulling_id|, set to,from
+	    rule bit in |unit_transition_matrix|@>@;
+	}
+      else if (nonnulling_count == 0)
+	{
+	  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+	    {
+	      nonnulling_id = RHS_ID_of_RULE (rule, rhs_ix);
+	      if (!bv_bit_test (nullable_v, nonnulling_id))
+		continue;
+	      if (SYM_is_Nulling (SYM_by_ID (nonnulling_id)))
+		continue;
+	      /* |nonnulling_id| is a proper nullable */
+	      @<For |nonnulling_id|, set to,from rule bit
+		in |unit_transition_matrix|@>@;
+	    }
+	}
     }
-    @#
-    if (nonnulling_count == 1) {
-	@<For |nonnulling_id|, set to,from rule bit in |unit_transition_matrix|@>@;
-    } else if (nonnulling_count == 0) {
-	 for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++) {
-	    nonnulling_id = RHS_ID_of_RULE (rule, rhs_ix);
-	    if (!bv_bit_test (nullable_v, nonnulling_id))
-	      continue;
-	    if (SYM_is_Nulling (SYM_by_ID (nonnulling_id)))
-	      continue;
-	    /* |nonnulling_id| is a proper nullable */
-	    @<For |nonnulling_id|, set to,from rule bit
-	    in |unit_transition_matrix|@>@;
-	 }
-    }
-}
 }
 
 @ We have a lone |nonnulling_id| in |rule_id|,
@@ -4871,22 +4877,6 @@ of minimum sizes.
 {
   XSYID xsyid;
   DSTACK_INIT (g->t_isy_stack, ISY, 2 * DSTACK_CAPACITY (g->t_xsy_stack));
-  for (xsyid = 0; xsyid < xsy_count; xsyid++)
-    {
-      ISY isy;
-      const XSY xsy = XSY_by_ID (xsyid);
-      if (UNLIKELY (!XSY_is_Accessible (xsy)))
-	continue;
-      if (UNLIKELY (!XSY_is_Productive (xsy)))
-	continue;
-      isy = isy_clone (xsy);
-      ISY_is_Nulling (isy) = XSY_is_Nulling (xsy);
-      if (XSY_is_Nullable (xsy))
-	{
-	  nulling_isy = isy_clone (xsy);
-	  ISY_is_Nulling (isy) = 1;
-	}
-    }
 }
 
 @ @<Calculate Rule by LHS lists@> =
