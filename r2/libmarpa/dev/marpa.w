@@ -13351,16 +13351,18 @@ What else an application can do is not at all clear,
 which is why the usual practice 
 is to treatment memory allocation errors are
 fatal, irrecoverable problems.
+These functions all return |void*| in order
+to avoid compiler warnings about void returns.
 @<Function definitions@> =
-PRIVATE_NOT_INLINE void
+PRIVATE_NOT_INLINE void*
 _marpa_default_out_of_memory(void)
 {
     abort();
 }
-void (*_marpa_out_of_memory)(void) = _marpa_default_out_of_memory;
+void* (*_marpa_out_of_memory)(void) = _marpa_default_out_of_memory;
 
 @ @<Utility variables@> =
-extern void (*_marpa_out_of_memory)(void);
+extern void* (*_marpa_out_of_memory)(void);
 
 @ @<Global variables@> =
 
@@ -13455,12 +13457,16 @@ void my_free (void *p)
   free (p);
 }
 
+@ The macro is defined because it is sometimes needed
+to force inlining.
+@<Utility static functions@> =
+#define MALLOC_VIA_TEMP(size, temp) \
+  (UNLIKELY(!((temp) = malloc(size))) ? (*_marpa_out_of_memory)() : (temp))
 static inline
 void* my_malloc(size_t size)
 {
-    void *newmem = malloc(size);
-    if (UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
-    return newmem;
+    void *newmem;
+    return MALLOC_VIA_TEMP(size, newmem);
 }
 
 static inline
