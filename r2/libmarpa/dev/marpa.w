@@ -1254,6 +1254,7 @@ int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 
 @ Symbol Is Nullable Boolean
 @d XSY_is_Nullable(sym) ((sym)->t_is_nullable)
+@d SYM_is_Nullable(sym) XSY_is_Nullable(sym)
 @<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nullable = 0;
@@ -3183,7 +3184,7 @@ into multiple CHAF rules.
       SYM symbol = SYM_by_ID (symid);
       if (SYM_is_Nulling (symbol))
 	continue;		/* Do nothing for nulling symbols */
-      if (symbol_null_alias (symbol))
+      if (SYM_is_Nullable(symbol))
 	{
 	  /* If a proper nullable, record its position */
 	  factor_positions[factor_count++] = rhs_ix;
