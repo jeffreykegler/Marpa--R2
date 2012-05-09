@@ -618,8 +618,6 @@ sub Marpa::R2::Grammar::precompute {
             $default_rank;
     }
 
-    populate_null_values($grammar);
-
     # A bit hackish here: INACCESSIBLE_OK is not a HASH ref iff
     # it is a Boolean TRUE indicating that all inaccessibles are OK.
     # A Boolean FALSE will have been replaced with an empty hash.
@@ -1176,38 +1174,6 @@ sub shadow_rule {
     return $new_rule;
 } ## end sub shadow_rule
 
-sub populate_null_values {
-    my ($grammar)   = @_;
-    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    RULE: for my $nulling_symbol ( @{$symbols} ) {
-
-        # Copy the null values for a nulling alias from its proper alias
-        my $nulling_symbol_id =
-            $nulling_symbol->[Marpa::R2::Internal::Symbol::ID];
-        next RULE if not $grammar_c->symbol_is_nulling($nulling_symbol_id);
-        if ( $grammar_c->_marpa_g_symbol_is_start($nulling_symbol_id) ) {
-            my $old_start_symbol_id = $symbol_hash
-                ->{ $grammar->[Marpa::R2::Internal::Grammar::START_NAME] };
-            my $null_value =
-                $symbols->[$old_start_symbol_id]
-                ->[Marpa::R2::Internal::Symbol::NULL_VALUE];
-            $nulling_symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] =
-                $null_value;
-            next RULE;
-        } ## end if ( $grammar_c->_marpa_g_symbol_is_start($nulling_symbol_id...))
-        my $proper_alias_id =
-            $grammar_c->_marpa_g_symbol_proper_alias($nulling_symbol_id);
-        next RULE if not defined $proper_alias_id;
-        my $proper_alias = $symbols->[$proper_alias_id];
-        $nulling_symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] =
-            $proper_alias->[Marpa::R2::Internal::Symbol::NULL_VALUE];
-        $nulling_symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK] =
-            $proper_alias->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
-    } ## end for my $nulling_symbol ( @{$symbols} )
-    return 1;
-} ## end sub populate_null_values
 
 sub assign_symbol {
     my ( $grammar, $name ) = @_;

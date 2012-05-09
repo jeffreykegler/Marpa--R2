@@ -12267,25 +12267,38 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	  token_type = token ? Type_of_TOK(token) : DUMMY_OR_NODE;
 	  Token_Type_of_V (v) = token_type;
 	  if (token_type != DUMMY_OR_NODE)
-	    {
-	      const SYMID token_id = SYMID_of_TOK (token);
-	      TOS_of_V (v) = ++Arg_N_of_V (v);
-	      if (token_type == VALUED_TOKEN_OR_NODE)
-		{
-		  const SYM token_symbol = SYM_by_ID(token_id);
-		  SYMID_of_V(v) = ID_of_XSY(Source_XSY_of_SYM(token_symbol));
-		  Token_Value_of_V (v) = Value_of_TOK (token);
-		}
-		else if (token_type == NULLING_TOKEN_OR_NODE
-		  && bv_bit_test(Nulling_Ask_BV_of_V(v), token_id)) {
-		  const SYM token_symbol = SYM_by_ID(token_id);
-		  SYMID_of_V(v) = ID_of_XSY(Source_XSY_of_SYM(token_symbol));
-		} else {
-		  Token_Type_of_V (v) = DUMMY_OR_NODE;
-		  /* |DUMMY_OR_NODE| indicates arbitrary semantics for
-		  this token */
-		}
-	    }
+	  {
+	    const SYMID token_id = SYMID_of_TOK (token);
+	    TOS_of_V (v) = ++Arg_N_of_V (v);
+	    if (token_type == VALUED_TOKEN_OR_NODE)
+	      {
+		const SYM token_symbol = SYM_by_ID (token_id);
+		SYMID_of_V (v) = ID_of_XSY (Source_XSY_of_SYM (token_symbol));
+		Token_Value_of_V (v) = Value_of_TOK (token);
+	      }
+	    else if (token_type == NULLING_TOKEN_OR_NODE)
+	      {
+		const SYM token_symbol = SYM_by_ID (token_id);
+		const XSY source_symbol = Source_XSY_of_SYM(token_symbol);
+		const SYMID source_symid = ID_of_SYM(source_symbol);
+		if (bv_bit_test (Nulling_Ask_BV_of_V (v), source_symid))
+		  {
+		    SYMID_of_V (v) = source_symid;
+		  }
+		else
+		  {
+		    Token_Type_of_V (v) = DUMMY_OR_NODE;
+		    /* |DUMMY_OR_NODE| indicates arbitrary semantics for
+		       this token */
+		  }
+	      }
+	    else
+	      {
+		Token_Type_of_V (v) = DUMMY_OR_NODE;
+		/* |DUMMY_OR_NODE| indicates arbitrary semantics for
+		   this token */
+	      }
+	  }
 	}
 	nook_irl = IRL_of_OR(or);
 	nook_rule = Co_RULE_of_IRL(nook_irl);
