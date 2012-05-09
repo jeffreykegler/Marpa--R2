@@ -433,16 +433,16 @@ PPCODE:
 }
 
 void
-symbol_is_internal( g_wrapper, symbol_id )
+_marpa_g_symbol_is_semantic( g_wrapper, symbol_id )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int result = marpa_g_symbol_is_internal (g, symbol_id);
+  int result = _marpa_g_symbol_is_semantic (g, symbol_id);
   if (result < 0)
     {
-      croak ("Problem in g->symbol_is_internal(): %s", xs_g_error (g_wrapper));
+      croak ("Problem in g->_marpa_g_symbol_is_semantic(): %s", xs_g_error (g_wrapper));
     }
   if (result)
     XSRETURN_YES;

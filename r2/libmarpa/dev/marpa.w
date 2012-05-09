@@ -1080,7 +1080,7 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
     return error_code;
 }
 
-@** Symbol (SYM) Code.
+@** Symbol (XSY) Code.
 @s Marpa_Symbol_ID int
 @<Public typedefs@> =
 typedef int Marpa_Symbol_ID;
@@ -1119,10 +1119,11 @@ Symbols are used a nulling tokens, and
 
 @ @<Function definitions@> =
 PRIVATE SYM
-symbol_new (GRAMMAR g)
+symbol_new (GRAMMAR g, XSY source)
 {
   SYM symbol = my_obstack_new (&g->t_obs, struct s_xsy, 1);
   @<Initialize symbol elements @>@;
+  Source_XSY_of_SYM(symbol) = source ? source: symbol;
   symbol_add (g, symbol);
   return symbol;
 }
@@ -1131,8 +1132,7 @@ symbol_new (GRAMMAR g)
 Marpa_Symbol_ID
 marpa_g_symbol_new (Marpa_Grammar g)
 {
-  const SYM symbol = symbol_new (g);
-  symbol->t_is_internal = 0;
+  const SYM symbol = symbol_new (g, 0);
   return ID_of_SYM(symbol);
 }
 
@@ -1152,24 +1152,21 @@ Is this (external) symbol on the LHS of a sequence rule?
 @ @<Initialize symbol elements@> =
     SYM_is_Sequence_LHS(symbol) = 0;
 
-@*0 Symbol is internal?.
-@ {\bf To Do}: @^To Do@>
-|SYM_is_Internal| is not used.
-Delete it once the division into external/internal grammars
-is complete.
-@d SYM_is_Internal(symbol) ((symbol)->t_is_internal)
-@<Bit aligned symbol elements@> = unsigned int t_is_internal:1;
-@ Symbols start life as internal symbols.
-@<Initialize symbol elements@> =
-    SYM_is_Internal(symbol) = 0;
+@*0 Symbol has semantics?.
+Can the symbol have a user-specified semantics?
+Symbols are semantic by default.
+@d SYM_is_Semantic(symbol) ((symbol)->t_is_semantic)
+@<Bit aligned symbol elements@> = unsigned int t_is_semantic:1;
+@ @<Initialize symbol elements@> =
+    SYM_is_Semantic(symbol) = 1;
 @ @<Function definitions@> =
-int marpa_g_symbol_is_internal(
+int _marpa_g_symbol_is_semantic(
     Marpa_Grammar g,
     Marpa_Symbol_ID symid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if |symid| is invalid@>@;
-    return SYM_is_Internal(SYM_by_ID(symid));
+    return SYM_is_Semantic(SYM_by_ID(symid));
 }
 
 @*0 Nulling symbol has semantics?.
@@ -1390,6 +1387,28 @@ PRIVATE SYM symbol_null_alias (SYM symbol)
   return symbol->t_is_proper_alias ? symbol->t_alias : NULL;
 }
 
+@*0 Source XSY.
+This is the ``source'' of the internal symbol --
+the external symbol that it is derived from.
+Currently, there is no dedicated flag for determining
+whether this symbol also provides the semantics,
+because the ``virtual LHS'' flag serves that purpose.
+@d Source_XSY_of_ISY(isy) (Buddy_of_ISY(isy)->t_source_xsy)
+@d Source_XSY_of_SYM(symbol) ((symbol)->t_source_xsy)
+@<Widely aligned symbol elements@> = XSY t_source_xsy;
+@ @<Initialize symbol elements@> = Source_XSY_of_SYM(symbol) = NULL;
+@ @<Function definitions@> =
+Marpa_Rule_ID _marpa_g_source_xsy(
+    Marpa_Grammar g,
+    Marpa_ISY_ID isy_id)
+{
+    XSY source_xsy;
+    @<Return |-2| on failure@>@;
+    @<Fail if |isy_id| is invalid@>@;
+    source_xsy = Source_XSY_of_ISY(ISY_by_ID(isy_id));
+    return source_xsy ? ID_of_XSY(source_xsy) : -1;
+}
+
 @ Given a proper nullable symbol as its argument,
 converts the argument into two ``aliases".
 The proper (non-nullable) alias will have the same symbol ID
@@ -1400,7 +1419,7 @@ The return value is a pointer to the nulling alias.
 PRIVATE
 SYM symbol_alias_create(GRAMMAR g, SYM symbol)
 {
-    SYM alias = symbol_new(g);
+    SYM alias = symbol_new(g, symbol);
     symbol->t_is_proper_alias = 1;
     SYM_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
@@ -1419,7 +1438,6 @@ SYM symbol_alias_create(GRAMMAR g, SYM symbol)
 @** Internal Symbols (ISY).
 This is the logic for keeping track of
 symbols created internally by libmarpa.
-@d Buddy_of_ISY(isy) ((isy)->t_buddy)
 
 @ @<Public typedefs@> =
 typedef int Marpa_ISY_ID;
@@ -1450,9 +1468,9 @@ isy_start(GRAMMAR g)
 @ Create an ISY from scratch.
 @<Function definitions@> =
 PRIVATE ISY
-isy_new(GRAMMAR g)
+isy_new(GRAMMAR g, XSY source)
 {
-  const XSY xsy = symbol_new(g);
+  const XSY xsy = symbol_new(g, source);
   const ISY new_isy = isy_start(g);
   Buddy_of_ISY(new_isy) = xsy;
   return new_isy;
@@ -2979,11 +2997,12 @@ and productive.
 @** The Sequence rewrite.
 @<Rewrite sequence |rule| into BNF@> =
 {
-  const SYM internal_lhs = symbol_new (g);
-  const SYMID internal_lhs_id = ID_of_SYM (internal_lhs);
   const SYMID lhs_id = LHS_ID_of_RULE (rule);
+  const SYM internal_lhs = symbol_new (g, SYM_by_ID(lhs_id));
+  const SYMID internal_lhs_id = ID_of_SYM (internal_lhs);
   const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
   const SYMID separator_id = Separator_of_XRL (rule);
+  SYM_is_Semantic(internal_lhs) = 0;
   LHS_XRL_of_SYM(internal_lhs) = rule;
   @<Add the top rule for the sequence@>@;
   if (separator_id >= 0 && !XRL_is_Proper_Separation(rule)) {
@@ -3122,13 +3141,7 @@ the pre-CHAF rule count.
 	 if (XRL_is_BNF(rule) && XRL_is_Used(rule)) {
 	   @<Calculate CHAF rule statistics@>@;
 	   /* Do not factor if there is no proper nullable in the rule */
-
-MARPA_DEBUG4("%s: rule_id=%d factor_count=%d", STRLOC, rule_id, factor_count);
-
 	   if (factor_count > 0) {
-
-MARPA_DEBUG4("%s: rule_id=%d factor_count=%d", STRLOC, rule_id, factor_count);
-
 	     @<Factor the rule into CHAF rules@>@;
 	   } else {
 	       IRL new_irl = irl_clone(g, rule);
@@ -3225,7 +3238,9 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
 
 @ @<Create a CHAF virtual symbol@> =
 {
-  SYM chaf_virtual_symbol = symbol_new (g);
+  const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
+  SYM chaf_virtual_symbol = symbol_new (g, SYM_by_ID(chaf_xrl_lhs_id));
+  SYM_is_Semantic(chaf_virtual_symbol) = 0;
   chaf_virtual_symbol->t_is_accessible = 1;
   chaf_virtual_symbol->t_is_productive = 1;
   chaf_virtual_symid = ID_of_SYM (chaf_virtual_symbol);
@@ -3591,8 +3606,9 @@ in the literature --- it is called ``augmenting the grammar".
   RULE new_start_rule;
 
   XSYID new_start_xsyid = -1;
-  const XSY new_start_xsy = symbol_new(g);
+  const XSY new_start_xsy = symbol_new(g, start_xsy);
   new_start_xsyid = ID_of_SYM(new_start_xsy);
+  SYM_is_Semantic(new_start_xsy) = 0;
   new_start_xsy->t_is_accessible = 1;
   new_start_xsy->t_is_productive = 1;
   new_start_xsy->t_is_start = 1;
@@ -4349,11 +4365,6 @@ AHFA_Count_of_G(g) = 0;
 {
   if (g->t_AHFA)
     {
-      AHFAID id;
-      for (id = 0; id < AHFA_Count_of_G (g); id++)
-	{
-	  AHFA ahfa_state = AHFA_of_G_by_ID (g, id);
-	}
       STOLEN_DQUEUE_DATA_FREE (g->t_AHFA);
     }
 }
