@@ -1390,23 +1390,6 @@ PRIVATE SYM symbol_null_alias (SYM symbol)
   return symbol->t_is_proper_alias ? symbol->t_alias : NULL;
 }
 
-Marpa_Symbol_ID
-_marpa_g_symbol_null_alias (Marpa_Grammar g, Marpa_Symbol_ID symid)
-{
-  SYM symbol;
-  SYM alias;
-  @<Return |-2| on failure@>@;
-  @<Fail if |symid| is invalid@>@;
-  symbol = SYM_by_ID (symid);
-  alias = symbol_null_alias (symbol);
-  if (alias == NULL)
-    {
-      MARPA_ERROR (MARPA_ERR_NO_ALIAS);
-      return -1;
-    }
-  return ID_of_SYM (alias);
-}
-
 @ Given a proper nullable symbol as its argument,
 converts the argument into two ``aliases".
 The proper (non-nullable) alias will have the same symbol ID

@@ -562,8 +562,7 @@ sub rank_chaf_rules {
             # Do nothing unless this is a proper nullable
             next RHS_IX if $grammar_c->symbol_is_nulling($original_rhs_id);
             next RHS_IX
-                if
-                not $grammar_c->_marpa_g_symbol_null_alias($original_rhs_id);
+                if not $grammar_c->symbol_is_nullable($original_rhs_id);
 
             my $rhs_id =
                 $grammar_c->_marpa_g_irl_rhs( $irl_id, $rhs_ix - $virtual_start );
