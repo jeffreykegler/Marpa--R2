@@ -1408,7 +1408,7 @@ The nulling alias will have a new symbol ID.
 The return value is a pointer to the nulling alias.
 @ @<Function definitions@> =
 PRIVATE
-SYM symbol_alias_create(GRAMMAR g, SYM symbol)
+ISY symbol_alias_create(GRAMMAR g, SYM symbol)
 {
     ISY alias_isy = isy_new(g, symbol);
     SYM alias = Buddy_of_ISY(alias_isy);
@@ -1424,7 +1424,7 @@ SYM symbol_alias_create(GRAMMAR g, SYM symbol)
     alias->t_is_productive = 1;
     alias->t_is_accessible = symbol->t_is_accessible;
     alias->t_alias = symbol;
-    return alias;
+    return alias_isy;
 }
 
 @** Internal Symbols (ISY).
@@ -2578,6 +2578,8 @@ a lot of useless diagnostics.
 @ @<Declare precompute variables@> =
   XRLID xrl_count = XRL_Count_of_G(g);
   XSYID pre_census_xsy_count = XSY_Count_of_G(g);
+  ISY* nulling_isy_by_xsyid = NULL;
+  ISY* primary_isy_by_xsyid = NULL;
 
 @ @<Fail if no rules@> =
 if (UNLIKELY(xrl_count <= 0)) {
@@ -3161,9 +3163,10 @@ is not already aliased, alias it.
     if (UNLIKELY (!xsy->t_is_productive))
       continue;
     MARPA_ASSERT (!symbol_null_alias (xsy));
+    primary_isy_by_xsyid[xsyid] = isy_clone(g, xsy);
     if (XSY_is_Nullable (xsy) && !XSY_is_Nulling(xsy))
       {
-	symbol_alias_create (g, xsy);
+	nulling_isy_by_xsyid[xsyid] = symbol_alias_create (g, xsy);
       }
   }
 }
@@ -4864,6 +4867,12 @@ of minimum sizes.
 {
   XSYID xsyid;
   DSTACK_INIT (g->t_isy_stack, ISY, 2 * DSTACK_CAPACITY (g->t_xsy_stack));
+  nulling_isy_by_xsyid = my_obstack_new(&obs_precompute, ISY, pre_census_xsy_count);
+  primary_isy_by_xsyid = my_obstack_new(&obs_precompute, ISY, pre_census_xsy_count);
+  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++) {
+    nulling_isy_by_xsyid[xsyid] = NULL;
+    primary_isy_by_xsyid[xsyid] = NULL;
+  }
 }
 
 @ @<Calculate Rule by LHS lists@> =
