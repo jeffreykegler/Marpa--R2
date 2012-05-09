@@ -1366,16 +1366,6 @@ Otherwise, returns |NULL|.
 PRIVATE
 SYM symbol_proper_alias(SYM symbol)
 { return symbol->t_is_nulling_alias ? symbol->t_alias : NULL; }
-Marpa_Symbol_ID _marpa_g_symbol_proper_alias(Marpa_Grammar g, Marpa_Symbol_ID symid)
-{
-SYM symbol;
-SYM proper_alias;
-@<Return |-2| on failure@>@;
-@<Fail if |symid| is invalid@>@;
-symbol = SYM_by_ID(symid);
-proper_alias = symbol_proper_alias(symbol);
-return proper_alias == NULL ? -1 : ID_of_SYM(proper_alias);
-}
 
 @ Nulling Alias Trace Accessor:
 If this symbol is a proper (non-nullable) symbol
