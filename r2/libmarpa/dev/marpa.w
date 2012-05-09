@@ -12272,12 +12272,14 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	      TOS_of_V (v) = ++Arg_N_of_V (v);
 	      if (token_type == VALUED_TOKEN_OR_NODE)
 		{
-		  SYMID_of_V(v) = token_id;
+		  const SYM token_symbol = SYM_by_ID(token_id);
+		  SYMID_of_V(v) = ID_of_XSY(Source_XSY_of_SYM(token_symbol));
 		  Token_Value_of_V (v) = Value_of_TOK (token);
 		}
 		else if (token_type == NULLING_TOKEN_OR_NODE
 		  && bv_bit_test(Nulling_Ask_BV_of_V(v), token_id)) {
-		  SYMID_of_V(v) = token_id;
+		  const SYM token_symbol = SYM_by_ID(token_id);
+		  SYMID_of_V(v) = ID_of_XSY(Source_XSY_of_SYM(token_symbol));
 		} else {
 		  Token_Type_of_V (v) = DUMMY_OR_NODE;
 		  /* |DUMMY_OR_NODE| indicates arbitrary semantics for
