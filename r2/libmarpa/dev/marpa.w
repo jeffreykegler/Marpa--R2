@@ -1410,7 +1410,8 @@ The return value is a pointer to the nulling alias.
 PRIVATE
 SYM symbol_alias_create(GRAMMAR g, SYM symbol)
 {
-    SYM alias = symbol_new(g, symbol);
+    ISY alias_isy = isy_new(g, symbol);
+    SYM alias = Buddy_of_ISY(alias_isy);
     symbol->t_is_proper_alias = 1;
     SYM_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
@@ -2510,6 +2511,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     }
     // Phase 2: rewrite the grammar into internal form
     @<Initialize IRL stack@>@;
+    @<Initialize ISY stack@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
     // Phase 3: memoize the internal grammar
