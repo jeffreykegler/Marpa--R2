@@ -1089,31 +1089,40 @@ sub gen_symbol_name {
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
 
-    if ( $grammar_c->_marpa_g_symbol_is_start($id) ) {
-        my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
-        $name .= q<[']>;
-        $name .= q<[]> if $grammar_c->symbol_is_nulling($id);
-        return $name;
-    } ## end if ( $grammar_c->_marpa_g_symbol_is_start($id) )
+    my $name = '!!!!!';
+    GEN_NAME: {
+        if ( $grammar_c->_marpa_g_symbol_is_start($id) ) {
+            $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
+            $name .= q<[']>;
+            $name .= q<[]> if $grammar_c->symbol_is_nulling($id);
+            last GEN_NAME;
+        } ## end if ( $grammar_c->_marpa_g_symbol_is_start($id) )
 
-    my $proper_alias_id = $grammar_c->_marpa_g_symbol_proper_alias($id);
-    if ( defined $proper_alias_id ) {
-        my $proper_alias = $symbols->[$proper_alias_id];
-        my $name = $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME] =
-            $grammar->symbol_name($proper_alias_id) . '[]';
-        $symbol_hash->{$name} = $id;
-        return $name;
-    } ## end if ( defined $proper_alias_id )
-    my $lhs_xrl = $grammar_c->_marpa_g_symbol_lhs_xrl($id);
-    my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
-    if ($grammar_c->rule_is_sequence($lhs_xrl)) {
-      return $grammar->symbol_name($original_lhs_id) . '[Seq]';
-    }
-    my $xrl_offset = $grammar_c->_marpa_g_symbol_xrl_offset($id);
-    my $name =
-          $grammar->symbol_name($original_lhs_id) . '[R'
-        . $lhs_xrl . q{:}
-        . $xrl_offset . ']';
+        my $lhs_xrl = $grammar_c->_marpa_g_symbol_lhs_xrl($id);
+        if ( defined $lhs_xrl and $grammar_c->rule_is_sequence($lhs_xrl) ) {
+            my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
+            $name = $grammar->symbol_name($original_lhs_id) . '[Seq]';
+            last GEN_NAME;
+        }
+
+        my $xrl_offset = $grammar_c->_marpa_g_symbol_xrl_offset($id);
+        if ( defined $xrl_offset ) {
+            my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
+            $name =
+                  $grammar->symbol_name($original_lhs_id) . '[R' 
+                . $lhs_xrl . q{:}
+                . $xrl_offset . ']';
+            last GEN_NAME;
+        } ## end if ( defined $xrl_offset )
+
+        my $source_id = $grammar_c->_marpa_g_source_xsy($id);
+        my $source    = $symbols->[$source_id];
+        $name      = $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME] =
+            $grammar->symbol_name($source_id) . '[]';
+
+    } ## end GEN_NAME:
+
+    $symbol_hash->{$name} = $id;
     return $name;
 } ## end sub gen_symbol_name
 

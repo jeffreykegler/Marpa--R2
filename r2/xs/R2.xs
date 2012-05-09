@@ -590,6 +590,25 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (alias_id)));
 }
 
+Marpa_Symbol_ID
+_marpa_g_source_xsy( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  Marpa_Symbol_ID source_xsy = _marpa_g_source_xsy (g, symbol_id);
+  if (source_xsy < -1)
+    {
+      croak ("problem with g->_marpa_g_source_xsy: %s", xs_g_error (g_wrapper));
+    }
+  if (source_xsy < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (source_xsy)));
+}
+
 Marpa_Rule_ID
 _marpa_g_symbol_lhs_xrl( g_wrapper, symbol_id )
     G_Wrapper *g_wrapper;
@@ -618,6 +637,10 @@ PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
   int offset = _marpa_g_symbol_xrl_offset (g, symbol_id);
+  if (offset == -1)
+    {
+      XSRETURN_UNDEF;
+    }
   if (offset < 0)
     {
       croak ("problem with g->_marpa_g_symbol_xrl_offset: %s",

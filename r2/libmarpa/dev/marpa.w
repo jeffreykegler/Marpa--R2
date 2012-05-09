@@ -1400,12 +1400,12 @@ because the ``virtual LHS'' flag serves that purpose.
 @ @<Function definitions@> =
 Marpa_Rule_ID _marpa_g_source_xsy(
     Marpa_Grammar g,
-    Marpa_ISY_ID isy_id)
+    Marpa_Symbol_ID symid)
 {
     XSY source_xsy;
     @<Return |-2| on failure@>@;
-    @<Fail if |isy_id| is invalid@>@;
-    source_xsy = Source_XSY_of_ISY(ISY_by_ID(isy_id));
+    @<Fail if |symid| is invalid@>@;
+    source_xsy = Source_XSY_of_SYM(SYM_by_ID(symid));
     return source_xsy ? ID_of_XSY(source_xsy) : -1;
 }
 
@@ -1543,7 +1543,7 @@ XRL t_lhs_xrl;
 int t_xrl_offset;
 @ @<Initialize symbol elements@> =
 LHS_XRL_of_SYM(symbol) = NULL;
-XRL_Offset_of_SYM(symbol) = 0;
+XRL_Offset_of_SYM(symbol) = -1;
 
 @ Virtual LHS trace accessor:
 If this symbol is an internal LHS
@@ -1567,7 +1567,7 @@ Marpa_Rule_ID _marpa_g_symbol_lhs_xrl(Marpa_Grammar g, Marpa_Symbol_ID symid)
 @ If the internal symbol was created as
 the LHS of an external rule,
 returns the offset,
-otherwise 0.
+otherwise -1.
 Note that 0 is also a valid offset,
 and the caller must use other trace
 methods to tell the difference.
