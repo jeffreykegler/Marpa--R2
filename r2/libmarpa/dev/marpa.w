@@ -1477,17 +1477,12 @@ int _marpa_g_isy_is_nulling(Marpa_Grammar g, Marpa_ISY_ID isy_id)
   return ISY_is_Nulling(ISY_by_ID(isy_id));
 }
 
-@*0 Virtual LHS Rule.
-In writing sequence rules,
-and breaking up rule for the CHAF logic,
-libmarpa sometimes needs to create a new, virtual, LHS.
-When this is done,
-the rule is said to be the symbol's
-{bf virtual lhs rule}.
-Only virtual symbols have a virtual lhs rule, but
-not all virtual symbol has a virtual lhs rule.
-Null aliases are virtual symbols, but are not on
-the LHS of any rule.
+@*0 Source rule and offset.
+In the case of sequences and CHAF rules, internal symbol
+are created to act as the LHS of internal rules.
+The semantics need this information so that they can
+simulate the external ``source'' rule.
+These fields record that information.
 @ @d LHS_XRL_of_SYM(sym) ((sym)->t_lhs_xrl)
 @d XRL_Offset_of_SYM(sym) ((sym)->t_xrl_offset)
 @<Widely aligned symbol elements@> =
@@ -1606,11 +1601,17 @@ const SYMID lhs, const SYMID *rhs, int length)
     return rule;
 }
 
+@ This is the logic common to every IRL construction.
+@<Function definitions@> =
 PRIVATE IRL
-irl_start(GRAMMAR g)
+irl_start(GRAMMAR g, int length)
 {
-  const IRL new_irl = my_obstack_new (&g->t_obs, struct s_irl, 1);
+  IRL new_irl;
+  const int sizeof_irl = offsetof (struct s_irl, t_isy_array) +
+    (length + 1) * sizeof (new_irl->t_isy_array[0]);
+  new_irl = my_obstack_alloc (&g->t_obs, sizeof_irl);
   ID_of_IRL(new_irl) = DSTACK_LENGTH((g)->t_irl_stack);
+  Length_of_IRL(new_irl) = length;
   *DSTACK_PUSH((g)->t_irl_stack, IRL) = new_irl;
   return new_irl;
 }
@@ -1622,7 +1623,7 @@ irl_new(GRAMMAR g,
 const SYMID lhs, const SYMID *rhs, int length)
 {
   const XRL xrl = rule_new(g, lhs, rhs, length);
-  IRL new_irl = irl_start(g);
+  IRL new_irl = irl_start(g, length);
   Co_RULE_of_IRL(new_irl) = xrl;
   g->t_max_rule_length = MAX(Length_of_RULE(xrl), g->t_max_rule_length);
   return new_irl;
@@ -1633,7 +1634,7 @@ const SYMID lhs, const SYMID *rhs, int length)
 PRIVATE IRL
 irl_clone(GRAMMAR g, XRL xrl)
 {
-  const IRL new_irl = irl_start(g);
+  const IRL new_irl = irl_start(g, Length_of_XRL(xrl));
   Co_RULE_of_IRL(new_irl) = xrl;
   return new_irl;
 }
@@ -1802,11 +1803,12 @@ I take off two more bits than necessary, as a fudge
 factor.
 This is only checked for new rules.
 The rules generated internally by libmarpa
-are shorter than
-a small constant in length, and 
-rewrites of existing rules shorten them.
+are either shorter than
+a small constant in length, or
+else shorter than the XRL which is their
+source.
 On a 32-bit machine, this still allows a RHS of over a billion
-of symbols.
+symbols.
 I believe
 by the time 64-bit machines become universal,
 nobody will have noticed this restriction.
@@ -2317,8 +2319,9 @@ be using it.
 
 @ @<Private structures@> =
 struct s_irl {
-  @<Widely aligned irl elements@>@;
-  @<Int aligned irl elements@>@;
+  @<Widely aligned IRL elements@>@;
+  @<Int aligned IRL elements@>@;
+  @<Final IRL elements@>@/
 };
 @ @<Public typedefs@> =
 typedef int Marpa_IRL_ID;
@@ -2332,7 +2335,7 @@ typedef Marpa_IRL_ID IRLID;
 Delete this when division of grammar into
 external and internal is complete.
 @d Co_RULE_of_IRL(irl) ((irl)->t_co_rule)
-@<Widely aligned irl elements@> =
+@<Widely aligned IRL elements@> =
   XRL t_co_rule;
 @ @<Function definitions@> =
 Marpa_Rule_ID _marpa_g_irl_co_rule(
@@ -2344,37 +2347,38 @@ Marpa_Rule_ID _marpa_g_irl_co_rule(
     return ID_of_XRL(Co_RULE_of_IRL(IRL_by_ID(irl_id)));
 }
 
-@*0 ID.
-The {\bf IRL ID} is a number which
-acts as the unique identifier for an IRL.
-The rule ID is initialized when the IRL is
-added to the list of rules.
-@d ID_of_IRL(irl) ((irl)->t_irl_id)
-@<Int aligned irl elements@> = IRLID t_irl_id;
+@*0 Symbols.
+@ The symbols come at the end of the structure,
+so that they can be variable length.
+@<Final IRL elements@> =
+  ISY t_isy_array[1];
 
-@ @d LHS_ID_of_IRL(irl) LHS_ID_of_RULE(Co_RULE_of_IRL(irl))
+@ @d LHS_of_IRL(irl) ((irl)->t_isy_array[0])
 @<Function definitions@> =
-Marpa_Symbol_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
+Marpa_ISY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
+    IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if |irl_id| is invalid@>@;
-    return LHS_ID_of_IRL(IRL_by_ID(irl_id));
+    irl = IRL_by_ID(irl_id);
+    return LHS_ID_of_XRL(Co_RULE_of_IRL(irl));
 }
 
-@ @d RHS_ID_of_IRL(irl, position) RHS_ID_of_RULE(Co_RULE_of_IRL(irl), (position))
+@ @d RHS_of_IRL(irl, position) ((irl)->t_isy_array[(position)+1])
 @<Function definitions@> =
-Marpa_Symbol_ID _marpa_g_irl_rh_symbol(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
+Marpa_ISY_ID _marpa_g_irl_rh_symbol(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
     IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if |irl_id| is invalid@>@;
     irl = IRL_by_ID(irl_id);
     if (Length_of_IRL(irl) <= ix) return -1;
-    return RHS_ID_of_IRL(irl, ix);
+    return RHS_ID_of_XRL(Co_RULE_of_IRL(irl), ix);
 }
 
-@ @d Length_of_IRL(irl) Length_of_RULE(Co_RULE_of_IRL(irl))
-@<Function definitions@> =
+@ @d Length_of_IRL(irl) ((irl)->t_length)
+@<Int aligned IRL elements@> = int t_length;
+@ @<Function definitions@> =
 int _marpa_g_irl_length(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -2382,6 +2386,13 @@ int _marpa_g_irl_length(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     return Length_of_IRL(IRL_by_ID(irl_id));
 }
 
+@*0 ID.
+The {\bf IRL ID} is a number which
+acts as the unique identifier for an IRL.
+The rule ID is initialized when the IRL is
+added to the list of rules.
+@d ID_of_IRL(irl) ((irl)->t_irl_id)
+@<Int aligned IRL elements@> = IRLID t_irl_id;
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
