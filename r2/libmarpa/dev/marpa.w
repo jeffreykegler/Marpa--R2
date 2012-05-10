@@ -1342,31 +1342,6 @@ int _marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid)
    return SYM_by_ID(symid)->t_is_start;
 }
 
-@*0 Symbol aliasing.
-This is the logic for aliasing symbols.
-In the Aycock-Horspool algorithm, from which Marpa is derived,
-it is essential that there be no ``proper nullable"
-symbols.  Therefore, all proper nullable symbols in
-the original grammar are converted into two, aliased,
-symbols: a non-nullable (or ``proper") alias and a nulling alias.
-@<Bit aligned symbol elements@> =
-unsigned int t_is_proper_alias:1;
-@ @<Widely aligned symbol elements@> =
-SYM t_alias;
-@ @<Initialize symbol elements@> =
-symbol->t_is_proper_alias = 0;
-symbol->t_alias = NULL;
-
-@ Nulling Alias Trace Accessor:
-If this symbol is a proper (non-nullable) symbol
-with a nulling alias, returns the nulling alias.
-Otherwise, returns |NULL|.
-@<Function definitions@> =
-PRIVATE SYM symbol_null_alias (SYM symbol)
-{
-  return symbol->t_is_proper_alias ? symbol->t_alias : NULL;
-}
-
 @*0 Source XSY.
 This is the ``source'' of the internal symbol --
 the external symbol that it is derived from.
@@ -1401,17 +1376,14 @@ ISY symbol_alias_create(GRAMMAR g, SYM symbol)
 {
     ISY alias_isy = isy_new(g, symbol);
     SYM alias = Buddy_of_ISY(alias_isy);
-    symbol->t_is_proper_alias = 1;
     SYM_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
-    symbol->t_alias = alias;
     SYM_is_Nulling(alias) = 1;
     XSY_is_Nullable(alias) = 1;
     SYM_is_Ask_Me_When_Null(alias)
 	= SYM_is_Ask_Me_When_Null(symbol);
     alias->t_is_productive = 1;
     alias->t_is_accessible = symbol->t_is_accessible;
-    alias->t_alias = symbol;
     return alias_isy;
 }
 
@@ -3314,9 +3286,13 @@ for the PN rule.
     {
       Marpa_Symbol_ID original_id =
 	RHS_ID_of_RULE (rule, piece_start + remaining_rhs_length);
-      SYM alias = symbol_null_alias (SYM_by_ID (original_id));
-      remaining_rhs[remaining_rhs_length] =
-	alias ? ID_of_SYM (alias) : original_id;
+      ISY nulling_isy = nulling_isy_by_xsyid[original_id];
+      if (nulling_isy) {
+	SYM alias = Buddy_of_ISY(nulling_isy);
+	remaining_rhs[remaining_rhs_length] = ID_of_SYM(alias);
+      } else {
+	remaining_rhs[remaining_rhs_length] = original_id;
+      }
     }
 }
 {
@@ -3331,7 +3307,7 @@ for the PN rule.
 |remaining_rhs| is altered to be ready for the NN rule.
 @<Add NP CHAF rule for nullable continuation@> = {
     Marpa_Symbol_ID proper_id = RHS_ID_of_RULE(rule, first_factor_position);
-    SYM alias = symbol_null_alias(SYM_by_ID(proper_id));
+    SYM alias = Buddy_of_ISY(nulling_isy_by_xsyid[proper_id]);
     remaining_rhs[first_factor_piece_position] =
 	piece_rhs[first_factor_piece_position] =
 	ID_of_SYM(alias);
