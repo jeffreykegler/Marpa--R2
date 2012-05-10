@@ -1351,22 +1351,11 @@ the original grammar are converted into two, aliased,
 symbols: a non-nullable (or ``proper") alias and a nulling alias.
 @<Bit aligned symbol elements@> =
 unsigned int t_is_proper_alias:1;
-unsigned int t_is_nulling_alias:1;
 @ @<Widely aligned symbol elements@> =
 SYM t_alias;
 @ @<Initialize symbol elements@> =
 symbol->t_is_proper_alias = 0;
-symbol->t_is_nulling_alias = 0;
 symbol->t_alias = NULL;
-
-@ Proper Alias Trace Accessor:
-If this symbol is a nulling symbol
-with a proper alias, returns the proper alias.
-Otherwise, returns |NULL|.
-@<Function definitions@> =
-PRIVATE
-SYM symbol_proper_alias(SYM symbol)
-{ return symbol->t_is_nulling_alias ? symbol->t_alias : NULL; }
 
 @ Nulling Alias Trace Accessor:
 If this symbol is a proper (non-nullable) symbol
@@ -1416,7 +1405,6 @@ ISY symbol_alias_create(GRAMMAR g, SYM symbol)
     SYM_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
     symbol->t_alias = alias;
-    alias->t_is_nulling_alias = 1;
     SYM_is_Nulling(alias) = 1;
     XSY_is_Nullable(alias) = 1;
     SYM_is_Ask_Me_When_Null(alias)
@@ -3162,7 +3150,6 @@ is not already aliased, alias it.
       continue;
     if (UNLIKELY (!xsy->t_is_productive))
       continue;
-    MARPA_ASSERT (!symbol_null_alias (xsy));
     primary_isy_by_xsyid[xsyid] = isy_clone(g, xsy);
     if (XSY_is_Nullable (xsy) && !XSY_is_Nulling(xsy))
       {
@@ -3404,9 +3391,11 @@ if (piece_start < nullable_suffix_ix) {
 {
   RULE chaf_rule;
   IRL chaf_irl;
+  ISY second_factor_isy;
   second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
-  piece_rhs[second_factor_piece_position]
-    = second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
+  second_factor_isy = nulling_isy_by_xsyid[second_factor_proper_id];
+  piece_rhs[second_factor_piece_position] =
+      second_factor_alias_id = ID_of_XSY(Buddy_of_ISY(second_factor_isy));
   chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
@@ -3417,9 +3406,11 @@ if (piece_start < nullable_suffix_ix) {
 {
   RULE chaf_rule;
   IRL chaf_irl;
+  ISY first_factor_isy;
   first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
-  piece_rhs[first_factor_piece_position]
-    = first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
+  first_factor_isy = nulling_isy_by_xsyid[first_factor_proper_id];
+  piece_rhs[first_factor_piece_position] =
+      first_factor_alias_id = ID_of_XSY(Buddy_of_ISY(first_factor_isy));
   piece_rhs[second_factor_piece_position] = second_factor_proper_id;
   chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
@@ -3475,9 +3466,11 @@ Open block, declarations and setup.
 {
   RULE chaf_rule;
   IRL chaf_irl;
+  ISY second_factor_isy;
   second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
-  piece_rhs[second_factor_piece_position]
-    = second_factor_alias_id = alias_by_id(g, second_factor_proper_id);
+  second_factor_isy = nulling_isy_by_xsyid[second_factor_proper_id];
+  piece_rhs[second_factor_piece_position] =
+      second_factor_alias_id = ID_of_XSY(Buddy_of_ISY(second_factor_isy));
   chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
   @<Set CHAF rule flags and call back@>@;
@@ -3488,9 +3481,11 @@ Open block, declarations and setup.
 {
   RULE chaf_rule;
   IRL chaf_irl;
+  ISY first_factor_isy;
   first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
-  piece_rhs[first_factor_piece_position]
-    = first_factor_alias_id = alias_by_id(g, first_factor_proper_id);
+  first_factor_isy = nulling_isy_by_xsyid[first_factor_proper_id];
+  piece_rhs[first_factor_piece_position] =
+      first_factor_alias_id = ID_of_XSY(Buddy_of_ISY(first_factor_isy));
   piece_rhs[second_factor_piece_position] = second_factor_proper_id;
   chaf_irl = irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
@@ -3547,8 +3542,10 @@ a nulling rule.
     {
       RULE chaf_rule;
       IRL chaf_irl;
+      ISY first_factor_isy;
       first_factor_proper_id = RHS_ID_of_RULE (rule, first_factor_position);
-      first_factor_alias_id = alias_by_id (g, first_factor_proper_id);
+      first_factor_isy = nulling_isy_by_xsyid[first_factor_proper_id];
+      first_factor_alias_id = ID_of_XSY(Buddy_of_ISY(first_factor_isy));
       piece_rhs[first_factor_piece_position] = first_factor_alias_id;
       chaf_irl = irl_new (g, current_lhs_id, piece_rhs, piece_rhs_length);
       chaf_rule = Co_RULE_of_IRL(chaf_irl);
@@ -3573,17 +3570,6 @@ rule structure, and performing the call back.
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
   LHS_XRL_of_SYM (current_lhs) = chaf_xrl;
   XRL_Offset_of_SYM (current_lhs) = piece_start;
-}
-
-@ This utility routine translates a proper symbol id to a nulling symbol ID.
-It is assumed that the caller has ensured that
-|proper_id| is valid and that an alias actually exists.
-@<Function definitions@> =
-PRIVATE
-SYMID alias_by_id(GRAMMAR g, SYMID proper_id)
-{
-     SYM alias = symbol_null_alias(SYM_by_ID(proper_id));
-     return ID_of_SYM(alias);
 }
 
 @** Adding a New Start Symbol.
@@ -12135,11 +12121,8 @@ int marpa_v_symbol_ask_me_when_null_set(
     @<Fail if fatal error@>@;
     @<Fail if |symid| is invalid@>@;
     symbol = SYM_by_ID(symid);
-    if (UNLIKELY(!SYM_is_Nulling(symbol))) {
-         symbol = symbol_null_alias(symbol);
-	 if (!symbol && value) {
-	     MARPA_ERROR(MARPA_ERR_SYM_NOT_NULLABLE);
-	 }
+    if (UNLIKELY(!SYM_is_Nullable(symbol) && value)) {
+       MARPA_ERROR(MARPA_ERR_SYM_NOT_NULLABLE);
     }
     if (value) {
 	bv_bit_set(Nulling_Ask_BV_of_V(v), symid);
