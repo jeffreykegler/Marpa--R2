@@ -2953,7 +2953,8 @@ and productive.
 @<Rewrite sequence |rule| into BNF@> =
 {
   const SYMID lhs_id = LHS_ID_of_RULE (rule);
-  const SYM internal_lhs = symbol_new (g, SYM_by_ID(lhs_id));
+  const ISY internal_lhs_isy = isy_new (g, SYM_by_ID(lhs_id));
+  const SYM internal_lhs = Buddy_of_ISY(internal_lhs_isy);
   const SYMID internal_lhs_id = ID_of_SYM (internal_lhs);
   const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
   const SYMID separator_id = Separator_of_XRL (rule);
