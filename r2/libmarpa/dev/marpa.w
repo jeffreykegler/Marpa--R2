@@ -3195,7 +3195,8 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
 @ @<Create a CHAF virtual symbol@> =
 {
   const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
-  SYM chaf_virtual_symbol = symbol_new (g, SYM_by_ID(chaf_xrl_lhs_id));
+  const ISY chaf_virtual_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
+  SYM chaf_virtual_symbol = Buddy_of_ISY(chaf_virtual_isy);
   SYM_is_Semantic(chaf_virtual_symbol) = 0;
   chaf_virtual_symbol->t_is_accessible = 1;
   chaf_virtual_symbol->t_is_productive = 1;
@@ -3565,7 +3566,8 @@ in the literature --- it is called ``augmenting the grammar".
   RULE new_start_rule;
 
   XSYID new_start_xsyid = -1;
-  const XSY new_start_xsy = symbol_new(g, start_xsy);
+  const ISY new_start_isy = isy_new(g, start_xsy);
+  const XSY new_start_xsy = Buddy_of_ISY(new_start_isy);
   new_start_xsyid = ID_of_SYM(new_start_xsy);
   SYM_is_Semantic(new_start_xsy) = 0;
   new_start_xsy->t_is_accessible = 1;
