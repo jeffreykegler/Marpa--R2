@@ -1636,7 +1636,7 @@ const ISY lhs, const ISY *rhs, int length)
     IRL new_irl;
     int symbol_ix;
     const SYMID new_lhs = ID_of_XSY(Buddy_of_ISY(lhs));
-    // I expect this use of my_new to be temporary
+    // I expect this use of |my_new| to be temporary
     SYMID* new_rhs = my_new(SYMID, length);
     for (symbol_ix = 0; symbol_ix < length; symbol_ix++) {
       new_rhs[symbol_ix] = ID_of_XSY(Buddy_of_ISY(rhs[symbol_ix]));
@@ -1649,6 +1649,24 @@ const ISY lhs, const ISY *rhs, int length)
       }
     my_free(new_rhs);
     return new_irl;
+}
+
+PRIVATE void
+irl_finish( GRAMMAR g, IRL irl)
+{
+  int rhs_ix;
+  XRL xrl;
+  const int length = Length_of_IRL(irl);
+  // I expect this use of |my_new| to be temporary
+  SYMID* new_rhs = my_new(SYMID, length);
+  SYMID new_lhs = ID_of_XSY(Buddy_of_ISY(LHS_of_IRL(irl)));
+  for (rhs_ix = 0; rhs_ix < length; rhs_ix++) {
+    new_rhs[rhs_ix] = ID_of_XSY(Buddy_of_ISY(RHS_of_IRL(irl, rhs_ix)));
+  }
+  xrl = rule_new(g, new_lhs, new_rhs, length);
+  Co_RULE_of_IRL(irl) = xrl;
+  g->t_max_rule_length = MAX(Length_of_RULE(xrl), g->t_max_rule_length);
+  my_free(new_rhs);
 }
 
 @ @<Clone a new IRL from |rule|@> =
@@ -3618,8 +3636,10 @@ in the literature --- it is called ``augmenting the grammar".
 
   start_xsy->t_is_start = 0;
 
-  new_start_irl = irl_new (g,
-    new_start_isy, primary_isy_by_xsyid + start_xsyid, 1);
+  new_start_irl = irl_start(g, 1);
+  LHS_of_IRL(new_start_irl) = new_start_isy;
+  RHS_of_IRL(new_start_irl, 1) = primary_isy_by_xsyid[start_xsyid];
+  irl_finish(g, new_start_irl);
   new_start_rule = Co_RULE_of_IRL (new_start_irl);
   RULE_has_Virtual_LHS (new_start_rule) = 1;
   Real_SYM_Count_of_RULE (new_start_rule) = 1;
