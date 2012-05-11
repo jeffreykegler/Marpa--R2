@@ -2990,15 +2990,21 @@ and productive.
 {
   const SYMID lhs_id = LHS_ID_of_RULE (rule);
   const ISY lhs_isy = primary_isy_by_xsyid[lhs_id];
+
   const ISY internal_lhs_isy = isy_new (g, SYM_by_ID(lhs_id));
   const SYM internal_lhs = Buddy_of_ISY(internal_lhs_isy);
-  const SYMID internal_lhs_id = ID_of_SYM (internal_lhs);
+
   const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
+  const ISY rhs_isy = primary_isy_by_xsyid[rhs_id];
+
   const SYMID separator_id = Separator_of_XRL (rule);
+  const ISY separator_isy = separator_id >= 0 ?
+     primary_isy_by_xsyid[separator_id] : NULL;
+
   SYM_is_Semantic(internal_lhs) = 0;
   LHS_XRL_of_SYM(internal_lhs) = rule;
   @<Add the top rule for the sequence@>@;
-  if (separator_id >= 0 && !XRL_is_Proper_Separation(rule)) {
+  if (separator_isy && !XRL_is_Proper_Separation(rule)) {
       @<Add the alternate top rule for the sequence@>@;
   }
   @<Add the minimum rule for the sequence@>@;
@@ -3019,10 +3025,10 @@ and productive.
 {
   RULE rewrite_rule;
   IRL rewrite_irl;
-    SYMID temp_rhs[2];
-    temp_rhs[0] = internal_lhs_id;
-    temp_rhs[1] = separator_id;
-    rewrite_irl = old_irl_new(g, lhs_id, temp_rhs, 2);
+    ISY temp_rhs[2];
+    temp_rhs[0] = internal_lhs_isy;
+    temp_rhs[1] = separator_isy;
+    rewrite_irl = irl_new(g, lhs_isy, temp_rhs, 2);
     rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
     Source_XRL_of_IRL(rewrite_irl) = rule;
     RULE_has_Virtual_RHS(rewrite_rule) = 1;
@@ -3033,7 +3039,7 @@ rule to represent the minimum, and another to deal with iteration.
 That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 {
-  const IRL rewrite_irl = old_irl_new (g, internal_lhs_id, &rhs_id, 1);
+  const IRL rewrite_irl = irl_new (g, internal_lhs_isy, &rhs_isy, 1);
   const RULE rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
   Source_XRL_of_IRL(rewrite_irl) = rule;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
@@ -3043,13 +3049,13 @@ That's the core of Marpa's rewrite.
 {
   RULE rewrite_rule;
   IRL rewrite_irl;
-  SYMID temp_rhs[3];
+  ISY temp_rhs[3];
   int rhs_ix = 0;
-  temp_rhs[rhs_ix++] = internal_lhs_id;
-  if (separator_id >= 0)
-    temp_rhs[rhs_ix++] = separator_id;
-  temp_rhs[rhs_ix++] = rhs_id;
-  rewrite_irl = old_irl_new (g, internal_lhs_id, temp_rhs, rhs_ix);
+  temp_rhs[rhs_ix++] = internal_lhs_isy;
+  if (separator_isy)
+    temp_rhs[rhs_ix++] = separator_isy;
+  temp_rhs[rhs_ix++] = rhs_isy;
+  rewrite_irl = irl_new (g, internal_lhs_isy, temp_rhs, rhs_ix);
   rewrite_rule = Co_RULE_of_IRL (rewrite_irl);
   Source_XRL_of_IRL(rewrite_irl) = rule;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
