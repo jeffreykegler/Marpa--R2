@@ -1629,14 +1629,11 @@ const SYMID lhs, const SYMID *rhs, int length)
   return new_irl;
 }
 
-@ Clone an IRL from an XRL.
-@<Function definitions@> =
-PRIVATE IRL
-irl_clone(GRAMMAR g, XRL xrl)
+@ @<Clone a new IRL from |rule|@> =
 {
-  const IRL new_irl = irl_start(g, Length_of_XRL(xrl));
-  Co_RULE_of_IRL(new_irl) = xrl;
-  return new_irl;
+  const IRL new_irl = irl_start(g, Length_of_XRL(rule));
+  Co_RULE_of_IRL(new_irl) = rule;
+  Source_XRL_of_IRL(new_irl) = rule;
 }
 
 @ @<Function definitions@> =
@@ -3111,8 +3108,7 @@ the pre-CHAF rule count.
 	   if (factor_count > 0) {
 	     @<Factor the rule into CHAF rules@>@;
 	   } else {
-	       IRL new_irl = irl_clone(g, rule);
-	       Source_XRL_of_IRL(new_irl) = rule;
+	     @<Clone a new IRL from |rule|@>@;
 	   }
 	 }
 	 NEXT_XRL: ;
