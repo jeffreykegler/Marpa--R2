@@ -1651,7 +1651,7 @@ const ISY lhs, const ISY *rhs, int length)
     return new_irl;
 }
 
-PRIVATE void
+PRIVATE XRL
 irl_finish( GRAMMAR g, IRL irl)
 {
   int rhs_ix;
@@ -1665,8 +1665,8 @@ irl_finish( GRAMMAR g, IRL irl)
   }
   xrl = rule_new(g, new_lhs, new_rhs, length);
   Co_RULE_of_IRL(irl) = xrl;
-  g->t_max_rule_length = MAX(Length_of_RULE(xrl), g->t_max_rule_length);
   my_free(new_rhs);
+  return xrl;
 }
 
 @ @<Clone a new IRL from |rule|@> =
@@ -3031,8 +3031,11 @@ and productive.
 
 @ @<Add the top rule for the sequence@> =
 {
-    IRL rewrite_irl = irl_new(g, lhs_isy, &internal_lhs_isy, 1);
-    RULE rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
+    RULE rewrite_rule;
+    IRL rewrite_irl = irl_start(g, 1);
+    LHS_of_IRL(rewrite_irl) = lhs_isy;
+    RHS_of_IRL(rewrite_irl, 0) = internal_lhs_isy;
+    rewrite_rule = irl_finish(g, rewrite_irl);
     Source_XRL_of_IRL(rewrite_irl) = rule;
     /* Real symbol count remains at default of 0 */
     RULE_has_Virtual_RHS (rewrite_rule) = 1;
@@ -3639,8 +3642,7 @@ in the literature --- it is called ``augmenting the grammar".
   new_start_irl = irl_start(g, 1);
   LHS_of_IRL(new_start_irl) = new_start_isy;
   RHS_of_IRL(new_start_irl, 0) = primary_isy_by_xsyid[start_xsyid];
-  irl_finish(g, new_start_irl);
-  new_start_rule = Co_RULE_of_IRL (new_start_irl);
+  new_start_rule = irl_finish(g, new_start_irl);
   RULE_has_Virtual_LHS (new_start_rule) = 1;
   Real_SYM_Count_of_RULE (new_start_rule) = 1;
   g->t_start_irl = new_start_irl;
