@@ -277,8 +277,8 @@ sub do_libmarpa {
 ##use critic
 
         my @configure_command_args = ('--disable-static');
-        if ( defined $self->args('marpa_debug') ) {
-	    my @debug_flags = ('-DMARPA_DEBUG=' . $self->args('marpa_debug'));
+        if ( defined $self->args('marpa-debug') ) {
+	    my @debug_flags = ('-DMARPA_DEBUG=' . $self->args('marpa-debug'));
 	    push @debug_flags, '-fno-inline', '-Wno-inline';
             push @configure_command_args, 'MARPA_DEBUG_FLAG='
 	      . (join q{ }, @debug_flags);

@@ -3638,7 +3638,7 @@ in the literature --- it is called ``augmenting the grammar".
 
   new_start_irl = irl_start(g, 1);
   LHS_of_IRL(new_start_irl) = new_start_isy;
-  RHS_of_IRL(new_start_irl, 1) = primary_isy_by_xsyid[start_xsyid];
+  RHS_of_IRL(new_start_irl, 0) = primary_isy_by_xsyid[start_xsyid];
   irl_finish(g, new_start_irl);
   new_start_rule = Co_RULE_of_IRL (new_start_irl);
   RULE_has_Virtual_LHS (new_start_rule) = 1;
