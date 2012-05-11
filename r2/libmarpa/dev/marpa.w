@@ -1631,9 +1631,15 @@ const SYMID lhs, const SYMID *rhs, int length)
 
 @ @<Clone a new IRL from |rule|@> =
 {
-  const IRL new_irl = irl_start(g, Length_of_XRL(rule));
-  Co_RULE_of_IRL(new_irl) = rule;
-  Source_XRL_of_IRL(new_irl) = rule;
+  int symbol_ix;
+  const IRL new_irl = irl_start (g, rule_length);
+  Co_RULE_of_IRL (new_irl) = rule;
+  Source_XRL_of_IRL (new_irl) = rule;
+  for (symbol_ix = 0; symbol_ix <= rule_length; symbol_ix++)
+    {
+      new_irl->t_isy_array[symbol_ix] =
+	primary_isy_by_xsyid[rule->t_symbols[symbol_ix]];
+    }
 }
 
 @ @<Function definitions@> =
