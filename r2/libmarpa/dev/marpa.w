@@ -3309,7 +3309,10 @@ end before the second proper nullable (or factor).
     int remaining_rhs_length, piece_rhs_length;
     @<Add PP CHAF rule for nullable continuation@>;
     @<Add PN CHAF rule for nullable continuation@>;
-    @<Add NP CHAF rule for nullable continuation@>;
+    { 
+      const int real_symbol_count = piece_end - piece_start + 1;
+      @<Add NP CHAF rule for proper continuation@>;
+    }
     @<Add NN CHAF rule for nullable continuation@>;
 }
 
@@ -3337,42 +3340,26 @@ for the PN rule.
 
 @ @<Add PN CHAF rule for nullable continuation@> =
 {
-  int chaf_rule_length = Length_of_RULE(rule) - piece_start;
-  for (remaining_rhs_length = piece_rhs_length - 1;
-       remaining_rhs_length < chaf_rule_length; remaining_rhs_length++)
-    {
-      Marpa_Symbol_ID original_id =
-	RHS_ID_of_RULE (rule, piece_start + remaining_rhs_length);
-      ISY nulling_isy = nulling_isy_by_xsyid[original_id];
-      if (nulling_isy) {
-	SYM alias = Buddy_of_ISY(nulling_isy);
-	remaining_rhs[remaining_rhs_length] = ID_of_SYM(alias);
-      } else {
-	remaining_rhs[remaining_rhs_length] = original_id;
-      }
-    }
-}
-{
-  int real_symbol_count = remaining_rhs_length;
-  IRL chaf_irl =
-    old_irl_new (g, current_lhs_id, remaining_rhs, remaining_rhs_length);
-  RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Add CHAF IRL@>@;
-}
+  int piece_ix;
+  RULE chaf_rule;
+  const int second_nulling_piece_ix = second_factor_position - piece_start;
+  const int chaf_irl_length = rewrite_xrl_length - piece_start;
+  const int real_symbol_count = chaf_irl_length;
 
-@ Note, while I have the nulling alias for the first factor,
-|remaining_rhs| is altered to be ready for the NN rule.
-@<Add NP CHAF rule for nullable continuation@> = {
-    Marpa_Symbol_ID proper_id = RHS_ID_of_RULE(rule, first_factor_position);
-    SYM alias = Buddy_of_ISY(nulling_isy_by_xsyid[proper_id]);
-    remaining_rhs[first_factor_piece_position] =
-	piece_rhs[first_factor_piece_position] =
-	ID_of_SYM(alias);
-}
-{
-  int real_symbol_count = piece_rhs_length-1;
-  IRL chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-  RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
+  IRL chaf_irl = irl_start (g, chaf_irl_length);
+  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  for (piece_ix = second_nulling_piece_ix; piece_ix < chaf_irl_length;
+       piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	nulling_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3381,7 +3368,6 @@ after |nullable_suffix_ix|), I don't add an NN choice,
 because nulling both factors makes the entire piece nulling,
 and nulling rules cannot be fed directly to
 the Marpa parse engine.
-Note that |remaining_rhs| was altered above.
 @<Add NN CHAF rule for nullable continuation@> =
 {
   if (piece_start < nullable_suffix_ix)
