@@ -3512,31 +3512,54 @@ Open block, declarations and setup.
 @ The PN Rule.
 @<Add final CHAF PN rule for two factors@> =
 {
+  int piece_ix;
   RULE chaf_rule;
-  IRL chaf_irl;
-  ISY second_factor_isy;
-  second_factor_proper_id = RHS_ID_of_RULE(rule, second_factor_position);
-  second_factor_isy = nulling_isy_by_xsyid[second_factor_proper_id];
-  piece_rhs[second_factor_piece_position] =
-      second_factor_alias_id = ID_of_XSY(Buddy_of_ISY(second_factor_isy));
-  chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-  chaf_rule = Co_RULE_of_IRL(chaf_irl);
+  const int second_nulling_piece_ix = second_factor_position - piece_start;
+  const int chaf_irl_length = (piece_end - piece_start) + 1;
+  IRL chaf_irl = irl_start (g, chaf_irl_length);
+  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
+    nulling_isy_by_xsyid[RHS_ID_of_RULE
+			 (rule, piece_start + second_nulling_piece_ix)];
+  for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
+       piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
 @ The NP Rule.
 @<Add final CHAF NP rule for two factors@> =
 {
+  int piece_ix;
   RULE chaf_rule;
-  IRL chaf_irl;
-  ISY first_factor_isy;
-  first_factor_proper_id = RHS_ID_of_RULE(rule, first_factor_position);
-  first_factor_isy = nulling_isy_by_xsyid[first_factor_proper_id];
-  piece_rhs[first_factor_piece_position] =
-      first_factor_alias_id = ID_of_XSY(Buddy_of_ISY(first_factor_isy));
-  piece_rhs[second_factor_piece_position] = second_factor_proper_id;
-  chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-  chaf_rule = Co_RULE_of_IRL(chaf_irl);
+  const int first_nulling_piece_ix = first_factor_position - piece_start;
+  const int chaf_irl_length = (piece_end - piece_start) + 1;
+  IRL chaf_irl = irl_start (g, chaf_irl_length);
+  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
+    nulling_isy_by_xsyid[RHS_ID_of_RULE
+			 (rule, piece_start + first_nulling_piece_ix)];
+  for (piece_ix = first_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
+       piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3544,8 +3567,6 @@ Open block, declarations and setup.
 a nulling rule.
 @<Add final CHAF NN rule for two factors@> =
 {
-  RULE chaf_rule;
-  IRL chaf_irl;
   if (piece_start < nullable_suffix_ix) {
       int piece_ix;
       RULE chaf_rule;
