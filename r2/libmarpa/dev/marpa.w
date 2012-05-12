@@ -1629,28 +1629,6 @@ const SYMID lhs, const SYMID *rhs, int length)
   return new_irl;
 }
 
-PRIVATE IRL
-irl_new( GRAMMAR g,
-const ISY lhs, const ISY *rhs, int length)
-{
-    IRL new_irl;
-    int symbol_ix;
-    const SYMID new_lhs = ID_of_XSY(Buddy_of_ISY(lhs));
-    // I expect this use of |my_new| to be temporary
-    SYMID* new_rhs = my_new(SYMID, length);
-    for (symbol_ix = 0; symbol_ix < length; symbol_ix++) {
-      new_rhs[symbol_ix] = ID_of_XSY(Buddy_of_ISY(rhs[symbol_ix]));
-    }
-    new_irl = old_irl_new(g, new_lhs, new_rhs, length);
-    LHS_of_IRL(new_irl) = lhs;
-    for (symbol_ix = 0; symbol_ix < length; symbol_ix++)
-      {
-	RHS_of_IRL(new_irl, symbol_ix) = rhs[symbol_ix];
-      }
-    my_free(new_rhs);
-    return new_irl;
-}
-
 PRIVATE XRL
 irl_finish( GRAMMAR g, IRL irl)
 {
@@ -3305,7 +3283,6 @@ rule.
 	@<Add CHAF rules for nullable continuation@>@;
 	factor_position_ix++;
     } else {
-	int second_factor_piece_position = second_factor_position - piece_start;
 	piece_end = second_factor_position;
 	@<Create a CHAF virtual symbol@>@;
 	@<Add CHAF rules for proper continuation@>@;
@@ -3411,11 +3388,7 @@ if (piece_start < nullable_suffix_ix) {
 @ Open block and declarations.
 @<Add CHAF rules for proper continuation@> =
 {
-  int piece_rhs_length;
-  int real_symbol_count;
-  Marpa_Symbol_ID first_factor_proper_id, second_factor_proper_id,
-    first_factor_alias_id, second_factor_alias_id;
-  real_symbol_count = piece_end - piece_start + 1;
+  const int real_symbol_count = piece_end - piece_start + 1;
   @<Add PP CHAF rule for proper continuation@>@;
   @<Add PN CHAF rule for proper continuation@>@;
   @<Add NP CHAF rule for proper continuation@>@;
