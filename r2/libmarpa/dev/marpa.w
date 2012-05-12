@@ -3265,8 +3265,8 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
 {
   SYM chaf_virtual_symbol;
   const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
-  current_lhs_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
-  chaf_virtual_symbol = Buddy_of_ISY(current_lhs_isy);
+  chaf_virtual_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
+  chaf_virtual_symbol = Buddy_of_ISY(chaf_virtual_isy);
   SYM_is_Semantic(chaf_virtual_symbol) = 0;
   chaf_virtual_symbol->t_is_accessible = 1;
   chaf_virtual_symbol->t_is_productive = 1;
@@ -3294,6 +3294,7 @@ remaining_rhs = my_obstack_new(&obs_precompute, Marpa_Symbol_ID, g->t_max_rule_l
 rule.
 @<Add non-final CHAF rules@> =
     SYMID chaf_virtual_symid;
+    ISY chaf_virtual_isy;
     int first_factor_position = factor_positions[factor_position_ix];
     int first_factor_piece_position = first_factor_position - piece_start;
     int second_factor_position = factor_positions[factor_position_ix+1];
@@ -3311,6 +3312,7 @@ rule.
 	factor_position_ix += 2;
     }
     current_lhs_id = chaf_virtual_symid;
+    current_lhs_isy = chaf_virtual_isy;
     piece_start = piece_end+1;
 
 @*0 Add CHAF Rules for Nullable Continuations.
