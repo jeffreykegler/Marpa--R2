@@ -3164,18 +3164,25 @@ is not already aliased, alias it.
 {
   XSYID xsyid;
   for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
-  {
-    const XSY xsy = XSY_by_ID (xsyid);
-    if (UNLIKELY (!xsy->t_is_accessible))
-      continue;
-    if (UNLIKELY (!xsy->t_is_productive))
-      continue;
-    primary_isy_by_xsyid[xsyid] = isy_clone(g, xsy);
-    if (XSY_is_Nullable (xsy) && !XSY_is_Nulling(xsy))
-      {
-	nulling_isy_by_xsyid[xsyid] = symbol_alias_create (g, xsy);
-      }
-  }
+    {
+      const XSY xsy = XSY_by_ID (xsyid);
+      if (UNLIKELY (!xsy->t_is_accessible))
+	continue;
+      if (UNLIKELY (!xsy->t_is_productive))
+	continue;
+      primary_isy_by_xsyid[xsyid] = isy_clone (g, xsy);
+      if (XSY_is_Nullable (xsy))
+	{
+	  if (XSY_is_Nulling (xsy))
+	    {
+	      nulling_isy_by_xsyid[xsyid] = primary_isy_by_xsyid[xsyid];
+	    }
+	  else
+	    {
+	      nulling_isy_by_xsyid[xsyid] = symbol_alias_create (g, xsy);
+	    }
+	}
+    }
 }
 
 @*0 Compute Statistics Needed to Rewrite the Rule.
@@ -3378,11 +3385,45 @@ and nulling rules cannot be fed directly to
 the Marpa parse engine.
 Note that |remaining_rhs| was altered above.
 @<Add NN CHAF rule for nullable continuation@> =
-if (piece_start < nullable_suffix_ix) {
-  int real_symbol_count = remaining_rhs_length;
-  IRL chaf_irl = old_irl_new(g, current_lhs_id, remaining_rhs, remaining_rhs_length);
-  RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Add CHAF IRL@>@;
+{
+  if (piece_start < nullable_suffix_ix)
+    {
+      int piece_ix;
+      RULE chaf_rule;
+      const int first_nulling_piece_ix = first_factor_position - piece_start;
+      const int second_nulling_piece_ix =
+	second_factor_position - piece_start;
+      const int chaf_irl_length = rewrite_xrl_length - piece_start;
+      const int real_symbol_count = chaf_irl_length;
+ 
+      IRL chaf_irl = irl_start (g, chaf_irl_length);
+      LHS_of_IRL (chaf_irl) = current_lhs_isy;
+      for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
+	{
+	  RHS_of_IRL (chaf_irl, piece_ix) =
+	    primary_isy_by_xsyid[RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix)];
+	}
+      RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
+	nulling_isy_by_xsyid[RHS_ID_of_RULE
+			     (rule, piece_start + first_nulling_piece_ix)];
+      for (piece_ix = first_nulling_piece_ix + 1;
+	   piece_ix < second_nulling_piece_ix; piece_ix++)
+	{
+	  RHS_of_IRL (chaf_irl, piece_ix) =
+	    primary_isy_by_xsyid[RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix)];
+	}
+      for (piece_ix = second_nulling_piece_ix; piece_ix < chaf_irl_length;
+	   piece_ix++)
+	{
+	  RHS_of_IRL (chaf_irl, piece_ix) =
+	    nulling_isy_by_xsyid[RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix)];
+	}
+      chaf_rule = irl_finish (g, chaf_irl);
+      @<Add CHAF IRL@>@;
+    }
 }
 
 @*0 Add CHAF Rules for Proper Continuations.
