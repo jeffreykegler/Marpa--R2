@@ -3171,16 +3171,14 @@ is not already aliased, alias it.
       if (UNLIKELY (!xsy->t_is_productive))
 	continue;
       primary_isy_by_xsyid[xsyid] = isy_clone (g, xsy);
+      if (XSY_is_Nulling (xsy))
+	{
+	  nulling_isy_by_xsyid[xsyid] = primary_isy_by_xsyid[xsyid];
+	  continue;
+	}
       if (XSY_is_Nullable (xsy))
 	{
-	  if (XSY_is_Nulling (xsy))
-	    {
-	      nulling_isy_by_xsyid[xsyid] = primary_isy_by_xsyid[xsyid];
-	    }
-	  else
-	    {
-	      nulling_isy_by_xsyid[xsyid] = symbol_alias_create (g, xsy);
-	    }
+	  nulling_isy_by_xsyid[xsyid] = symbol_alias_create (g, xsy);
 	}
     }
 }
