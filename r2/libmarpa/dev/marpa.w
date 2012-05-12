@@ -1616,19 +1616,6 @@ irl_start(GRAMMAR g, int length)
   return new_irl;
 }
 
-@ Create an IRL from scratch.
-@<Function definitions@> =
-PRIVATE IRL
-old_irl_new(GRAMMAR g,
-const SYMID lhs, const SYMID *rhs, int length)
-{
-  const XRL xrl = rule_new(g, lhs, rhs, length);
-  IRL new_irl = irl_start(g, length);
-  Co_RULE_of_IRL(new_irl) = xrl;
-  g->t_max_rule_length = MAX(Length_of_RULE(xrl), g->t_max_rule_length);
-  return new_irl;
-}
-
 PRIVATE XRL
 irl_finish( GRAMMAR g, IRL irl)
 {
@@ -2382,7 +2369,7 @@ Marpa_ISY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     @<Fail if fatal error@>@;
     @<Fail if |irl_id| is invalid@>@;
     irl = IRL_by_ID(irl_id);
-    return LHS_ID_of_XRL(Co_RULE_of_IRL(irl));
+    return ID_of_ISY(LHS_of_IRL(irl));
 }
 
 @ @d RHS_of_IRL(irl, position) ((irl)->t_isy_array[(position)+1])
@@ -2394,7 +2381,7 @@ Marpa_ISY_ID _marpa_g_irl_rh_symbol(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix
     @<Fail if |irl_id| is invalid@>@;
     irl = IRL_by_ID(irl_id);
     if (Length_of_IRL(irl) <= ix) return -1;
-    return RHS_ID_of_XRL(Co_RULE_of_IRL(irl), ix);
+    return ID_of_ISY(RHS_of_IRL(irl, ix));
 }
 
 @ @d Length_of_IRL(irl) ((irl)->t_length)
@@ -3256,22 +3243,6 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
   chaf_virtual_symbol->t_is_productive = 1;
   chaf_virtual_symid = ID_of_SYM (chaf_virtual_symbol);
 }
-
-@*0 Temporary buffers for the CHAF right hand sides.
-Two temporary buffers are used in factoring out CHAF rules.
-|piece_rhs| is for the normal case, where only the symbols
-of the current piece are on the RHS.
-In certain cases, where the remainder of the rule is nulling,
-further factoring is unnecessary and the CHAF rewrite simply
-finishes out the rule with nulling symbols.
-In such cases, the RHS is built in the
-|remaining_rhs| buffer.
-@<CHAF rewrite declarations@> =
-Marpa_Symbol_ID* piece_rhs;
-Marpa_Symbol_ID* remaining_rhs;
-@ @<CHAF rewrite allocations@> =
-piece_rhs = my_obstack_new(&obs_precompute, Marpa_Symbol_ID, g->t_max_rule_length);
-remaining_rhs = my_obstack_new(&obs_precompute, Marpa_Symbol_ID, g->t_max_rule_length);
 
 @*0 Factor A Non-Final Piece.
 @ As long as I have more than 3 unprocessed factors, I am working on a non-final
