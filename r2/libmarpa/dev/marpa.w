@@ -1650,10 +1650,10 @@ irl_finish( GRAMMAR g, IRL irl)
 @ @<Clone a new IRL from |rule|@> =
 {
   int symbol_ix;
-  const IRL new_irl = irl_start (g, rule_length);
+  const IRL new_irl = irl_start (g, rewrite_xrl_length);
   Co_RULE_of_IRL (new_irl) = rule;
   Source_XRL_of_IRL (new_irl) = rule;
-  for (symbol_ix = 0; symbol_ix <= rule_length; symbol_ix++)
+  for (symbol_ix = 0; symbol_ix <= rewrite_xrl_length; symbol_ix++)
     {
       new_irl->t_isy_array[symbol_ix] =
 	primary_isy_by_xsyid[rule->t_symbols[symbol_ix]];
@@ -3134,7 +3134,8 @@ the pre-CHAF rule count.
     for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
 
          XRL rule = XRL_by_ID(rule_id);
-	 const int rule_length = Length_of_RULE(rule);
+	 XRL rewrite_xrl = rule;
+	 const int rewrite_xrl_length = Length_of_XRL(rewrite_xrl);
 	 int nullable_suffix_ix = 0;
 	  if (XRL_is_Sequence (rule) && XRL_is_Used (rule))
 	    {
@@ -3189,7 +3190,7 @@ into multiple CHAF rules.
 {
   int rhs_ix;
   factor_count = 0;
-  for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
+  for (rhs_ix = 0; rhs_ix < rewrite_xrl_length; rhs_ix++)
     {
       Marpa_Symbol_ID symid = RHS_ID_of_RULE (rule, rhs_ix);
       SYM symbol = SYM_by_ID (symid);
