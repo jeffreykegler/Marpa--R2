@@ -3046,23 +3046,28 @@ and productive.
 {
   RULE rewrite_rule;
   IRL rewrite_irl;
-    ISY temp_rhs[2];
-    temp_rhs[0] = internal_lhs_isy;
-    temp_rhs[1] = separator_isy;
-    rewrite_irl = irl_new(g, lhs_isy, temp_rhs, 2);
-    rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
-    Source_XRL_of_IRL(rewrite_irl) = rule;
-    RULE_has_Virtual_RHS(rewrite_rule) = 1;
-    Real_SYM_Count_of_RULE(rewrite_rule) = 1;
+  ISY temp_rhs[2];
+  rewrite_irl = irl_start (g, 2);
+  LHS_of_IRL (rewrite_irl) = lhs_isy;
+  RHS_of_IRL (rewrite_irl, 0) = internal_lhs_isy;
+  RHS_of_IRL (rewrite_irl, 1) = separator_isy;
+  rewrite_rule = irl_finish (g, rewrite_irl);
+  Source_XRL_of_IRL (rewrite_irl) = rule;
+  RULE_has_Virtual_RHS (rewrite_rule) = 1;
+  Real_SYM_Count_of_RULE (rewrite_rule) = 1;
 }
+
 @ The traditional way to write a sequence in BNF is with one
 rule to represent the minimum, and another to deal with iteration.
 That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 {
-  const IRL rewrite_irl = irl_new (g, internal_lhs_isy, &rhs_isy, 1);
-  const RULE rewrite_rule = Co_RULE_of_IRL(rewrite_irl);
-  Source_XRL_of_IRL(rewrite_irl) = rule;
+  RULE rewrite_rule;
+  const IRL rewrite_irl = irl_start (g, 1);
+  LHS_of_IRL (rewrite_irl) = internal_lhs_isy;
+  RHS_of_IRL (rewrite_irl, 0) = rhs_isy;
+  rewrite_rule = irl_finish (g, rewrite_irl);
+  Source_XRL_of_IRL (rewrite_irl) = rule;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
   Real_SYM_Count_of_RULE (rewrite_rule) = 1;
 }
@@ -3072,16 +3077,18 @@ That's the core of Marpa's rewrite.
   IRL rewrite_irl;
   ISY temp_rhs[3];
   int rhs_ix = 0;
-  temp_rhs[rhs_ix++] = internal_lhs_isy;
+  const int length = separator_isy ? 3 : 2;
+  rewrite_irl = irl_start (g, length);
+  LHS_of_IRL (rewrite_irl) = internal_lhs_isy;
+  RHS_of_IRL (rewrite_irl, rhs_ix++) = internal_lhs_isy;
   if (separator_isy)
-    temp_rhs[rhs_ix++] = separator_isy;
-  temp_rhs[rhs_ix++] = rhs_isy;
-  rewrite_irl = irl_new (g, internal_lhs_isy, temp_rhs, rhs_ix);
-  rewrite_rule = Co_RULE_of_IRL (rewrite_irl);
-  Source_XRL_of_IRL(rewrite_irl) = rule;
+    RHS_of_IRL (rewrite_irl, rhs_ix++) = separator_isy;
+  RHS_of_IRL (rewrite_irl, rhs_ix) = rhs_isy;
+  rewrite_rule = irl_finish (g, rewrite_irl);
+  Source_XRL_of_IRL (rewrite_irl) = rule;
   RULE_has_Virtual_LHS (rewrite_rule) = 1;
   RULE_has_Virtual_RHS (rewrite_rule) = 1;
-  Real_SYM_Count_of_RULE (rewrite_rule) = rhs_ix - 1;
+  Real_SYM_Count_of_RULE (rewrite_rule) = length - 1;
 }
 
 @** The CHAF rewrite.
