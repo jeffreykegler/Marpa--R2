@@ -3306,36 +3306,16 @@ That means the piece must
 end before the second proper nullable (or factor).
 @<Add CHAF rules for nullable continuation@> =
 {
-    int remaining_rhs_length, piece_rhs_length;
-    @<Add PP CHAF rule for nullable continuation@>;
+    {
+      const int real_symbol_count = piece_end - piece_start + 1;
+      @<Add PP CHAF rule for proper continuation@>;
+    }
     @<Add PN CHAF rule for nullable continuation@>;
     { 
       const int real_symbol_count = piece_end - piece_start + 1;
       @<Add NP CHAF rule for proper continuation@>;
     }
     @<Add NN CHAF rule for nullable continuation@>;
-}
-
-@ Note that since the first part of |remaining_rhs| is exactly the same
-as the first part of |piece_rhs| so I copy it here in preparation
-for the PN rule.
-@<Add PP CHAF rule for nullable continuation@> =
-{
-  int real_symbol_count = piece_end - piece_start + 1;
-  for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count;
-       piece_rhs_length++)
-    {
-      remaining_rhs[piece_rhs_length] =
-	piece_rhs[piece_rhs_length] =
-	RHS_ID_of_RULE (rule, piece_start + piece_rhs_length);
-    }
-  piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
-}
-{
-    int real_symbol_count = piece_rhs_length - 1;
-    IRL chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-    RULE  chaf_rule = Co_RULE_of_IRL(chaf_irl);
-    @<Add CHAF IRL@>@;
 }
 
 @ @<Add PN CHAF rule for nullable continuation@> =
