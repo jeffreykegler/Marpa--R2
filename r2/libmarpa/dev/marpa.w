@@ -3046,7 +3046,6 @@ and productive.
 {
   RULE rewrite_rule;
   IRL rewrite_irl;
-  ISY temp_rhs[2];
   rewrite_irl = irl_start (g, 2);
   LHS_of_IRL (rewrite_irl) = lhs_isy;
   RHS_of_IRL (rewrite_irl, 0) = internal_lhs_isy;
@@ -3075,7 +3074,6 @@ That's the core of Marpa's rewrite.
 {
   RULE rewrite_rule;
   IRL rewrite_irl;
-  ISY temp_rhs[3];
   int rhs_ix = 0;
   const int length = separator_isy ? 3 : 2;
   rewrite_irl = irl_start (g, length);
@@ -3245,7 +3243,8 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
     int unprocessed_factor_count;
     /* Current index into the list of factors */
     int factor_position_ix = 0;
-    Marpa_Symbol_ID current_lhs_id = LHS_ID_of_RULE(rule);
+    SYMID current_lhs_id = LHS_ID_of_RULE(rule);
+    ISY current_lhs_isy = primary_isy_by_xsyid[current_lhs_id];
     /* The positions, in the original rule, where
 	the new (virtual) rule starts and ends */
     int piece_end, piece_start = 0;
@@ -3264,9 +3263,10 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
 
 @ @<Create a CHAF virtual symbol@> =
 {
+  SYM chaf_virtual_symbol;
   const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
-  const ISY chaf_virtual_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
-  SYM chaf_virtual_symbol = Buddy_of_ISY(chaf_virtual_isy);
+  current_lhs_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
+  chaf_virtual_symbol = Buddy_of_ISY(current_lhs_isy);
   SYM_is_Semantic(chaf_virtual_symbol) = 0;
   chaf_virtual_symbol->t_is_accessible = 1;
   chaf_virtual_symbol->t_is_productive = 1;
@@ -3347,7 +3347,7 @@ for the PN rule.
     int real_symbol_count = piece_rhs_length - 1;
     IRL chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
     RULE  chaf_rule = Co_RULE_of_IRL(chaf_irl);
-    @<Set CHAF rule flags and call back@>@;
+    @<Add CHAF IRL@>@;
 }
 
 @ @<Add PN CHAF rule for nullable continuation@> =
@@ -3372,7 +3372,7 @@ for the PN rule.
   IRL chaf_irl =
     old_irl_new (g, current_lhs_id, remaining_rhs, remaining_rhs_length);
   RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ Note, while I have the nulling alias for the first factor,
@@ -3388,7 +3388,7 @@ for the PN rule.
   int real_symbol_count = piece_rhs_length-1;
   IRL chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ If this piece is nullable (|piece_start| at or
@@ -3402,7 +3402,7 @@ if (piece_start < nullable_suffix_ix) {
   int real_symbol_count = remaining_rhs_length;
   IRL chaf_irl = old_irl_new(g, current_lhs_id, remaining_rhs, remaining_rhs_length);
   RULE chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @*0 Add CHAF Rules for Proper Continuations.
@@ -3431,7 +3431,7 @@ if (piece_start < nullable_suffix_ix) {
   piece_rhs[piece_rhs_length++] = chaf_virtual_symid;
   chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ The PN Rule.
@@ -3446,7 +3446,7 @@ if (piece_start < nullable_suffix_ix) {
       second_factor_alias_id = ID_of_XSY(Buddy_of_ISY(second_factor_isy));
   chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ The NP Rule.
@@ -3462,7 +3462,7 @@ if (piece_start < nullable_suffix_ix) {
   piece_rhs[second_factor_piece_position] = second_factor_proper_id;
   chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ The NN Rule.
@@ -3473,7 +3473,7 @@ if (piece_start < nullable_suffix_ix) {
   piece_rhs[second_factor_piece_position] = second_factor_alias_id;
   chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @*0 Add Final CHAF Rules for Two Factors.
@@ -3506,7 +3506,7 @@ Open block, declarations and setup.
   }
   chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ The PN Rule.
@@ -3521,7 +3521,7 @@ Open block, declarations and setup.
       second_factor_alias_id = ID_of_XSY(Buddy_of_ISY(second_factor_isy));
   chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ The NP Rule.
@@ -3537,7 +3537,7 @@ Open block, declarations and setup.
   piece_rhs[second_factor_piece_position] = second_factor_proper_id;
   chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ The NN Rule.  This is added only if it would not turn this into
@@ -3550,7 +3550,7 @@ a nulling rule.
     piece_rhs[second_factor_piece_position] = second_factor_alias_id;
     chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-    @<Set CHAF rule flags and call back@>@;
+    @<Add CHAF IRL@>@;
   }
 }
 
@@ -3558,11 +3558,8 @@ a nulling rule.
 @<Add final CHAF rules for one factor@> =
 {
   int piece_rhs_length;
-  Marpa_Symbol_ID first_factor_proper_id, first_factor_alias_id;
   int real_symbol_count;
   int first_factor_position = factor_positions[factor_position_ix];
-  int first_factor_piece_position =
-    factor_positions[factor_position_ix] - piece_start;
   piece_end = Length_of_RULE (rule) - 1;
   real_symbol_count = piece_end - piece_start + 1;
   @<Add final CHAF P rule for one factor@>@;
@@ -3579,7 +3576,7 @@ a nulling rule.
   }
   chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
   chaf_rule = Co_RULE_of_IRL(chaf_irl);
-  @<Set CHAF rule flags and call back@>@;
+  @<Add CHAF IRL@>@;
 }
 
 @ The N Rule.  This is added only if it would not turn this into
@@ -3588,16 +3585,29 @@ a nulling rule.
 {
   if (piece_start < nullable_suffix_ix)
     {
+      int piece_ix;
       RULE chaf_rule;
-      IRL chaf_irl;
-      ISY first_factor_isy;
-      first_factor_proper_id = RHS_ID_of_RULE (rule, first_factor_position);
-      first_factor_isy = nulling_isy_by_xsyid[first_factor_proper_id];
-      first_factor_alias_id = ID_of_XSY(Buddy_of_ISY(first_factor_isy));
-      piece_rhs[first_factor_piece_position] = first_factor_alias_id;
-      chaf_irl = old_irl_new (g, current_lhs_id, piece_rhs, piece_rhs_length);
-      chaf_rule = Co_RULE_of_IRL(chaf_irl);
-      @<Set CHAF rule flags and call back@>@;
+      const int nulling_piece_ix = first_factor_position - piece_start;
+      const int chaf_irl_length = (piece_end - piece_start) + 1;
+      IRL chaf_irl = irl_start (g, chaf_irl_length);
+      LHS_of_IRL (chaf_irl) = current_lhs_isy;
+      for (piece_ix = 0; piece_ix < nulling_piece_ix; piece_ix++)
+	{
+	  RHS_of_IRL (chaf_irl, piece_ix) =
+	    primary_isy_by_xsyid[RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix)];
+	}
+      RHS_of_IRL (chaf_irl, nulling_piece_ix) =
+	nulling_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + nulling_piece_ix)];
+      for (piece_ix = nulling_piece_ix + 1; piece_ix < chaf_irl_length;
+	   piece_ix++)
+	{
+	  RHS_of_IRL (chaf_irl, piece_ix) =
+	    primary_isy_by_xsyid[RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix)];
+	}
+      chaf_rule = irl_finish (g, chaf_irl);
+      @<Add CHAF IRL@>@;
     }
 }
 
@@ -3605,7 +3615,7 @@ a nulling rule.
 them all.
 This include the setting of many of the elements of the 
 rule structure, and performing the call back.
-@<Set CHAF rule flags and call back@> =
+@<Add CHAF IRL@> =
 {
   const SYM current_lhs = SYM_by_ID (current_lhs_id);
   const int is_virtual_lhs = (piece_start > 0);
