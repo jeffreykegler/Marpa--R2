@@ -3482,16 +3482,11 @@ if (piece_start < nullable_suffix_ix) {
 Open block, declarations and setup.
 @<Add final CHAF rules for two factors@> =
 {
-  int first_factor_position = factor_positions[factor_position_ix];
-  int first_factor_piece_position = first_factor_position - piece_start;
-  int second_factor_position = factor_positions[factor_position_ix + 1];
-  int second_factor_piece_position = second_factor_position - piece_start;
-  int real_symbol_count;
+  const int first_factor_position = factor_positions[factor_position_ix];
+  const int second_factor_position = factor_positions[factor_position_ix + 1];
+  const int real_symbol_count = Length_of_RULE (rule) - piece_start;
   int piece_rhs_length;
-  Marpa_Symbol_ID first_factor_proper_id, second_factor_proper_id,
-    first_factor_alias_id, second_factor_alias_id;
   piece_end = Length_of_RULE (rule) - 1;
-  real_symbol_count = piece_end - piece_start + 1;
   @<Add final CHAF PP rule for two factors@>@;
   @<Add final CHAF PN rule for two factors@>@;
   @<Add final CHAF NP rule for two factors@>@;
@@ -3501,13 +3496,17 @@ Open block, declarations and setup.
 @ The PP Rule.
 @<Add final CHAF PP rule for two factors@> = 
 {
+  int piece_ix;
   RULE chaf_rule;
-  IRL chaf_irl;
-  for (piece_rhs_length = 0; piece_rhs_length < real_symbol_count; piece_rhs_length++) {
-    piece_rhs[piece_rhs_length] = RHS_ID_of_RULE(rule, piece_start+piece_rhs_length);
-  }
-  chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-  chaf_rule = Co_RULE_of_IRL(chaf_irl);
+  const int chaf_irl_length = (piece_end - piece_start) + 1;
+  IRL chaf_irl = irl_start (g, chaf_irl_length);
+  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  for (piece_ix = 0; piece_ix < chaf_irl_length; piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
