@@ -3470,11 +3470,38 @@ if (piece_start < nullable_suffix_ix) {
 @ The NN Rule.
 @<Add NN CHAF rule for proper continuation@> = 
 {
+  int piece_ix;
   RULE chaf_rule;
-  IRL chaf_irl;
-  piece_rhs[second_factor_piece_position] = second_factor_alias_id;
-  chaf_irl = old_irl_new(g, current_lhs_id, piece_rhs, piece_rhs_length);
-  chaf_rule = Co_RULE_of_IRL(chaf_irl);
+  const int first_nulling_piece_ix = first_factor_position - piece_start;
+  const int second_nulling_piece_ix = second_factor_position - piece_start;
+  const int chaf_irl_length = (piece_end - piece_start) + 2;
+  IRL chaf_irl = irl_start (g, chaf_irl_length);
+  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
+    nulling_isy_by_xsyid[RHS_ID_of_RULE
+			 (rule, piece_start + first_nulling_piece_ix)];
+  for (piece_ix = first_nulling_piece_ix + 1;
+       piece_ix < second_nulling_piece_ix; piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
+    nulling_isy_by_xsyid[RHS_ID_of_RULE
+			 (rule, piece_start + second_nulling_piece_ix)];
+  for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length-1;
+       piece_ix++)
+    {
+      RHS_of_IRL (chaf_irl, piece_ix) =
+	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+    }
+  RHS_of_IRL (chaf_irl, chaf_irl_length-1) = chaf_virtual_isy;
+  chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3485,7 +3512,6 @@ Open block, declarations and setup.
   const int first_factor_position = factor_positions[factor_position_ix];
   const int second_factor_position = factor_positions[factor_position_ix + 1];
   const int real_symbol_count = Length_of_RULE (rule) - piece_start;
-  int piece_rhs_length;
   piece_end = Length_of_RULE (rule) - 1;
   @<Add final CHAF PP rule for two factors@>@;
   @<Add final CHAF PN rule for two factors@>@;
