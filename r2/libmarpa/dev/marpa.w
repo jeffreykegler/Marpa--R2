@@ -1345,7 +1345,9 @@ equivalent of the external symbol.
 If the external symbol is nullable
 it is the non-nullable ISY.
 @d ISY_of_XSY(xsy) ((xsy)->t_isy_equivalent)
+@d ISYID_of_XSY(xsy) ID_of_ISY(ISY_of_XSY(xsy))
 @d ISY_by_XSYID(xsyid) (XSY_by_ID(xsyid)->t_isy_equivalent)
+@d ISYID_by_XSYID(xsyid) ID_of_ISY(ISY_of_XSY(XSY_by_ID(xsyid)))
 @<Widely aligned symbol elements@> = ISY t_isy_equivalent;
 @ @<Initialize symbol elements@> = ISY_of_XSY(symbol) = NULL;
 @ @<Function definitions@> =
@@ -1373,6 +1375,7 @@ If the external symbol is non-nulling,
 there is no nulling internal equivalent.
 @d Nulling_ISY_of_XSY(xsy) ((xsy)->t_nulling_isy)
 @d Nulling_ISY_by_XSYID(xsy) (XSY_by_ID(xsy)->t_nulling_isy)
+@d Nulling_ISYID_by_XSYID(xsy) ID_of_ISY(XSY_by_ID(xsy)->t_nulling_isy)
 @<Widely aligned symbol elements@> = ISY t_nulling_isy;
 @ @<Initialize symbol elements@> = Nulling_ISY_of_XSY(symbol) = NULL;
 @ @<Function definitions@> =
@@ -1685,8 +1688,8 @@ PRIVATE IRL
 irl_start(GRAMMAR g, int length)
 {
   IRL irl;
-  const int sizeof_irl = offsetof (struct s_irl, t_isy_array) +
-    (length + 1) * sizeof (irl->t_isy_array[0]);
+  const int sizeof_irl = offsetof (struct s_irl, t_isyid_array) +
+    (length + 1) * sizeof (irl->t_isyid_array[0]);
   irl = my_obstack_alloc (&g->t_obs, sizeof_irl);
   ID_of_IRL(irl) = DSTACK_LENGTH((g)->t_irl_stack);
   Length_of_IRL(irl) = length;
@@ -1721,8 +1724,8 @@ irl_finish( GRAMMAR g, IRL irl)
   Source_XRL_of_IRL (new_irl) = rule;
   for (symbol_ix = 0; symbol_ix <= rewrite_xrl_length; symbol_ix++)
     {
-      new_irl->t_isy_array[symbol_ix] =
-	ISY_by_XSYID(rule->t_symbols[symbol_ix]);
+      new_irl->t_isyid_array[symbol_ix] =
+	ISYID_by_XSYID(rule->t_symbols[symbol_ix]);
     }
 }
 
@@ -2377,9 +2380,11 @@ added to the list of rules.
 @ The symbols come at the end of the structure,
 so that they can be variable length.
 @<Final IRL elements@> =
-  ISY t_isy_array[1];
+  ISYID t_isyid_array[1];
 
-@ @d LHS_of_IRL(irl) ((irl)->t_isy_array[0])
+@ @d LHSID_of_IRL(irlid) ((irlid)->t_isyid_array[0])
+@ @d LHS_of_IRL(irl) (ISY_by_ID(LHSID_of_IRL(irl)))
+
 @<Function definitions@> =
 Marpa_ISY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     IRL irl;
@@ -2387,10 +2392,11 @@ Marpa_ISY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     @<Fail if fatal error@>@;
     @<Fail if |irl_id| is invalid@>@;
     irl = IRL_by_ID(irl_id);
-    return ID_of_ISY(LHS_of_IRL(irl));
+    return LHSID_of_IRL(irl);
 }
 
-@ @d RHS_of_IRL(irl, position) ((irl)->t_isy_array[(position)+1])
+@ @d RHSID_of_IRL(irl, position) ((irl)->t_isyid_array[(position)+1])
+@ @d RHS_of_IRL(irl, position) ISY_by_ID(RHSID_of_IRL((irl), (position)))
 @<Function definitions@> =
 Marpa_ISY_ID _marpa_g_irl_rh_symbol(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
     IRL irl;
@@ -2399,7 +2405,7 @@ Marpa_ISY_ID _marpa_g_irl_rh_symbol(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix
     @<Fail if |irl_id| is invalid@>@;
     irl = IRL_by_ID(irl_id);
     if (Length_of_IRL(irl) <= ix) return -1;
-    return ID_of_ISY(RHS_of_IRL(irl, ix));
+    return RHSID_of_IRL(irl, ix);
 }
 
 @ @d Length_of_IRL(irl) ((irl)->t_length)
@@ -3048,21 +3054,27 @@ and productive.
 {
   const SYMID lhs_id = LHS_ID_of_RULE (rule);
   const ISY lhs_isy = ISY_by_XSYID(lhs_id);
+  const ISYID lhs_isyid = ID_of_ISY(lhs_isy);
 
   const ISY internal_lhs_isy = isy_new (g, SYM_by_ID(lhs_id));
+  const ISYID internal_lhs_isyid = ID_of_ISY(internal_lhs_isy);
   const SYM internal_lhs = Buddy_of_ISY(internal_lhs_isy);
 
   const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
   const ISY rhs_isy = ISY_by_XSYID(rhs_id);
+  const ISYID rhs_isyid = ID_of_ISY(rhs_isy);
 
   const SYMID separator_id = Separator_of_XRL (rule);
-  const ISY separator_isy = separator_id >= 0 ?
-     ISY_by_XSYID(separator_id) : NULL;
+  ISYID separator_isyid = -1;
+  if (separator_id >= 0) {
+    const ISY separator_isy = ISY_by_XSYID(separator_id) ;
+    separator_isyid = ID_of_ISY(separator_isy);
+  }
 
   SYM_is_Semantic(internal_lhs) = 0;
   LHS_XRL_of_ISY(internal_lhs_isy) = rule;
   @<Add the top rule for the sequence@>@;
-  if (separator_isy && !XRL_is_Proper_Separation(rule)) {
+  if (separator_isyid >= 0 && !XRL_is_Proper_Separation(rule)) {
       @<Add the alternate top rule for the sequence@>@;
   }
   @<Add the minimum rule for the sequence@>@;
@@ -3073,8 +3085,8 @@ and productive.
 {
     RULE rewrite_rule;
     IRL rewrite_irl = irl_start(g, 1);
-    LHS_of_IRL(rewrite_irl) = lhs_isy;
-    RHS_of_IRL(rewrite_irl, 0) = internal_lhs_isy;
+    LHSID_of_IRL(rewrite_irl) = lhs_isyid;
+    RHSID_of_IRL(rewrite_irl, 0) = internal_lhs_isyid;
     rewrite_rule = irl_finish(g, rewrite_irl);
     Source_XRL_of_IRL(rewrite_irl) = rule;
     /* Real symbol count remains at default of 0 */
@@ -3087,9 +3099,9 @@ and productive.
   RULE rewrite_rule;
   IRL rewrite_irl;
   rewrite_irl = irl_start (g, 2);
-  LHS_of_IRL (rewrite_irl) = lhs_isy;
-  RHS_of_IRL (rewrite_irl, 0) = internal_lhs_isy;
-  RHS_of_IRL (rewrite_irl, 1) = separator_isy;
+  LHSID_of_IRL (rewrite_irl) = lhs_isyid;
+  RHSID_of_IRL (rewrite_irl, 0) = internal_lhs_isyid;
+  RHSID_of_IRL (rewrite_irl, 1) = separator_isyid;
   rewrite_rule = irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
   IRL_has_Virtual_RHS (rewrite_irl) = 1;
@@ -3102,8 +3114,8 @@ That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 {
   const IRL rewrite_irl = irl_start (g, 1);
-  LHS_of_IRL (rewrite_irl) = internal_lhs_isy;
-  RHS_of_IRL (rewrite_irl, 0) = rhs_isy;
+  LHSID_of_IRL (rewrite_irl) = internal_lhs_isyid;
+  RHSID_of_IRL (rewrite_irl, 0) = rhs_isyid;
   irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
   IRL_has_Virtual_LHS (rewrite_irl) = 1;
@@ -3113,13 +3125,13 @@ That's the core of Marpa's rewrite.
 {
   IRL rewrite_irl;
   int rhs_ix = 0;
-  const int length = separator_isy ? 3 : 2;
+  const int length = separator_isyid >= 0 ? 3 : 2;
   rewrite_irl = irl_start (g, length);
-  LHS_of_IRL (rewrite_irl) = internal_lhs_isy;
-  RHS_of_IRL (rewrite_irl, rhs_ix++) = internal_lhs_isy;
-  if (separator_isy)
-    RHS_of_IRL (rewrite_irl, rhs_ix++) = separator_isy;
-  RHS_of_IRL (rewrite_irl, rhs_ix) = rhs_isy;
+  LHSID_of_IRL (rewrite_irl) = internal_lhs_isyid;
+  RHSID_of_IRL (rewrite_irl, rhs_ix++) = internal_lhs_isyid;
+  if (separator_isyid >= 0)
+    RHSID_of_IRL (rewrite_irl, rhs_ix++) = separator_isyid;
+  RHSID_of_IRL (rewrite_irl, rhs_ix) = rhs_isyid;
   irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
   IRL_has_Virtual_LHS (rewrite_irl) = 1;
@@ -3287,8 +3299,8 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
     int unprocessed_factor_count;
     /* Current index into the list of factors */
     int factor_position_ix = 0;
-    SYMID current_lhs_id = LHS_ID_of_RULE(rule);
-    ISY current_lhs_isy = ISY_by_XSYID(current_lhs_id);
+    ISY current_lhs_isy = ISY_by_XSYID(LHS_ID_of_RULE(rule));
+    ISYID current_lhs_isyid = ID_of_ISY(current_lhs_isy);
     /* The positions, in the original rule, where
 	the new (virtual) rule starts and ends */
     int piece_end, piece_start = 0;
@@ -3310,19 +3322,19 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
   SYM chaf_virtual_symbol;
   const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
   chaf_virtual_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
+  chaf_virtual_isyid = ID_of_ISY(chaf_virtual_isy);
   chaf_virtual_symbol = Buddy_of_ISY(chaf_virtual_isy);
   SYM_is_Semantic(chaf_virtual_symbol) = 0;
   chaf_virtual_symbol->t_is_accessible = 1;
   chaf_virtual_symbol->t_is_productive = 1;
-  chaf_virtual_symid = ID_of_SYM (chaf_virtual_symbol);
 }
 
 @*0 Factor A Non-Final Piece.
 @ As long as I have more than 3 unprocessed factors, I am working on a non-final
 rule.
 @<Add non-final CHAF rules@> =
-    SYMID chaf_virtual_symid;
     ISY chaf_virtual_isy;
+    ISYID chaf_virtual_isyid;
     int first_factor_position = factor_positions[factor_position_ix];
     int second_factor_position = factor_positions[factor_position_ix+1];
     if (second_factor_position >= nullable_suffix_ix) {
@@ -3337,8 +3349,8 @@ rule.
 	@<Add CHAF rules for proper continuation@>@;
 	factor_position_ix += 2;
     }
-    current_lhs_id = chaf_virtual_symid;
     current_lhs_isy = chaf_virtual_isy;
+    current_lhs_isyid = chaf_virtual_isyid;
     piece_start = piece_end+1;
 
 @*0 Add CHAF Rules for Nullable Continuations.
@@ -3370,17 +3382,17 @@ end before the second proper nullable (or factor).
   const int real_symbol_count = chaf_irl_length;
 
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   for (piece_ix = second_nulling_piece_ix; piece_ix < chaf_irl_length;
        piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	Nulling_ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3404,28 +3416,28 @@ the Marpa parse engine.
       const int real_symbol_count = chaf_irl_length;
  
       IRL chaf_irl = irl_start (g, chaf_irl_length);
-      LHS_of_IRL (chaf_irl) = current_lhs_isy;
+      LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
       for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
 	{
-	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    ISY_by_XSYID(RHS_ID_of_RULE
+	  RHSID_of_IRL (chaf_irl, piece_ix) =
+	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
-      RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-	Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+      RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
+	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 			     (rule, piece_start + first_nulling_piece_ix));
       for (piece_ix = first_nulling_piece_ix + 1;
 	   piece_ix < second_nulling_piece_ix; piece_ix++)
 	{
-	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    ISY_by_XSYID(RHS_ID_of_RULE
+	  RHSID_of_IRL (chaf_irl, piece_ix) =
+	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       for (piece_ix = second_nulling_piece_ix; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
-	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+	  RHSID_of_IRL (chaf_irl, piece_ix) =
+	    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       chaf_rule = irl_finish (g, chaf_irl);
@@ -3451,13 +3463,13 @@ the Marpa parse engine.
   RULE chaf_rule;
   const int chaf_irl_length = (piece_end - piece_start) + 2;
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < chaf_irl_length - 1; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isy;
+  RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
@@ -3470,22 +3482,22 @@ the Marpa parse engine.
   const int second_nulling_piece_ix = second_factor_position - piece_start;
   const int chaf_irl_length = (piece_end - piece_start) + 2;
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+  RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
+    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1;
        piece_ix < chaf_irl_length - 1; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isy;
+  RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
@@ -3498,22 +3510,22 @@ the Marpa parse engine.
   const int first_nulling_piece_ix = first_factor_position - piece_start;
   const int chaf_irl_length = (piece_end - piece_start) + 2;
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+  RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
+    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1;
        piece_ix < chaf_irl_length - 1; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isy;
+  RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
@@ -3527,31 +3539,31 @@ the Marpa parse engine.
   const int second_nulling_piece_ix = second_factor_position - piece_start;
   const int chaf_irl_length = (piece_end - piece_start) + 2;
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+  RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
+    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1;
        piece_ix < second_nulling_piece_ix; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+  RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
+    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length-1;
        piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, chaf_irl_length-1) = chaf_virtual_isy;
+  RHSID_of_IRL (chaf_irl, chaf_irl_length-1) = chaf_virtual_isyid;
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
@@ -3577,11 +3589,11 @@ Open block, declarations and setup.
   RULE chaf_rule;
   const int chaf_irl_length = (piece_end - piece_start) + 1;
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < chaf_irl_length; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3595,20 +3607,20 @@ Open block, declarations and setup.
   const int second_nulling_piece_ix = second_factor_position - piece_start;
   const int chaf_irl_length = (piece_end - piece_start) + 1;
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+  RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
+    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
        piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3622,20 +3634,20 @@ Open block, declarations and setup.
   const int first_nulling_piece_ix = first_factor_position - piece_start;
   const int chaf_irl_length = (piece_end - piece_start) + 1;
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+  RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
+    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
        piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3652,29 +3664,29 @@ a nulling rule.
       const int second_nulling_piece_ix = second_factor_position - piece_start;
       const int chaf_irl_length = (piece_end - piece_start) + 1;
       IRL chaf_irl = irl_start (g, chaf_irl_length);
-      LHS_of_IRL (chaf_irl) = current_lhs_isy;
+      LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
       for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
 	{
-	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    ISY_by_XSYID(RHS_ID_of_RULE
+	  RHSID_of_IRL (chaf_irl, piece_ix) =
+	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
-      RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-	Nulling_ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + first_nulling_piece_ix));
+      RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
+	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + first_nulling_piece_ix));
       for (piece_ix = first_nulling_piece_ix + 1; piece_ix < second_nulling_piece_ix;
 	   piece_ix++)
 	{
-	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    ISY_by_XSYID(RHS_ID_of_RULE
+	  RHSID_of_IRL (chaf_irl, piece_ix) =
+	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
-      RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
-	Nulling_ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + second_nulling_piece_ix));
+      RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
+	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + second_nulling_piece_ix));
       for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
-	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    ISY_by_XSYID(RHS_ID_of_RULE
+	  RHSID_of_IRL (chaf_irl, piece_ix) =
+	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       chaf_rule = irl_finish (g, chaf_irl);
@@ -3700,11 +3712,11 @@ a nulling rule.
   RULE chaf_rule;
   const int chaf_irl_length = (piece_end - piece_start) + 1;
   IRL chaf_irl = irl_start (g, chaf_irl_length);
-  LHS_of_IRL (chaf_irl) = current_lhs_isy;
+  LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
   for (piece_ix = 0; piece_ix < chaf_irl_length; piece_ix++)
     {
-      RHS_of_IRL (chaf_irl, piece_ix) =
-	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      RHSID_of_IRL (chaf_irl, piece_ix) =
+	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3721,20 +3733,20 @@ a nulling rule.
       const int nulling_piece_ix = first_factor_position - piece_start;
       const int chaf_irl_length = (piece_end - piece_start) + 1;
       IRL chaf_irl = irl_start (g, chaf_irl_length);
-      LHS_of_IRL (chaf_irl) = current_lhs_isy;
+      LHSID_of_IRL (chaf_irl) = current_lhs_isyid;
       for (piece_ix = 0; piece_ix < nulling_piece_ix; piece_ix++)
 	{
-	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    ISY_by_XSYID(RHS_ID_of_RULE
+	  RHSID_of_IRL (chaf_irl, piece_ix) =
+	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
-      RHS_of_IRL (chaf_irl, nulling_piece_ix) =
-	Nulling_ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + nulling_piece_ix));
+      RHSID_of_IRL (chaf_irl, nulling_piece_ix) =
+	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + nulling_piece_ix));
       for (piece_ix = nulling_piece_ix + 1; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
-	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    ISY_by_XSYID(RHS_ID_of_RULE
+	  RHSID_of_IRL (chaf_irl, piece_ix) =
+	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       chaf_rule = irl_finish (g, chaf_irl);
@@ -3788,8 +3800,8 @@ in the literature --- it is called ``augmenting the grammar".
   start_xsy->t_is_start = 0;
 
   new_start_irl = irl_start(g, 1);
-  LHS_of_IRL(new_start_irl) = new_start_isy;
-  RHS_of_IRL(new_start_irl, 0) = ISY_of_XSY(start_xsy);
+  LHSID_of_IRL(new_start_irl) = ID_of_ISY(new_start_isy);
+  RHSID_of_IRL(new_start_irl, 0) = ISYID_of_XSY(start_xsy);
   new_start_rule = irl_finish(g, new_start_irl);
   IRL_has_Virtual_LHS (new_start_irl) = 1;
   Real_SYM_Count_of_IRL (new_start_irl) = 1;
