@@ -445,15 +445,16 @@ sub Marpa::R2::show_leo_item {
     my ($recce)        = @_;
     my $recce_c        = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $xsy_to_isy     = $grammar->[Marpa::R2::Internal::Grammar::XSY_TO_ISY];
     my $leo_base_state = $recce_c->leo_base_state();
     return if not defined $leo_base_state;
     my $trace_earley_set      = $recce_c->trace_earley_set();
     my $trace_earleme         = $recce_c->earleme($trace_earley_set);
     my $postdot_symbol_id     = $recce_c->postdot_item_symbol();
+    my $postdot_symbol_name = $grammar->xsy_name($postdot_symbol_id);
     my $predecessor_symbol_id = $recce_c->leo_predecessor_symbol();
     my $base_origin_set_id    = $recce_c->leo_base_origin();
     my $base_origin_earleme   = $recce_c->earleme($base_origin_set_id);
-    my $postdot_symbol_name = $grammar->symbol_name($postdot_symbol_id);
 
     my $text = sprintf 'L%d@%d', $postdot_symbol_id, $trace_earleme;
     my @link_texts = qq{"$postdot_symbol_name"};

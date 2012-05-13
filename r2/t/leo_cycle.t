@@ -68,16 +68,6 @@ Marpa::R2::Test::is( $grammar->show_symbols(),
 7: E
 8: F
 9: G
-10: S[], nulling
-11: A[], nulling
-12: H[], nulling
-13: B[], nulling
-14: C[], nulling
-15: D[], nulling
-16: E[], nulling
-17: F[], nulling
-18: G[], nulling
-19: S[']
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,

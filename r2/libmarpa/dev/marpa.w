@@ -693,7 +693,6 @@ with their
 @ Symbol count accesors.
 @d XSY_Count_of_G(g) (DSTACK_LENGTH((g)->t_xsy_stack))
 @d SYM_Count_of_G(g) XSY_Count_of_G(g)
-@d ISY_Count_of_G(g) (DSTACK_LENGTH((g)->t_isy_stack))
 @ @<Function definitions@> =
 int marpa_g_symbol_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -703,7 +702,6 @@ int marpa_g_symbol_count(Marpa_Grammar g) {
 
 @ Symbol by ID.
 @d XSY_by_ID(id) (*DSTACK_INDEX (g->t_xsy_stack, XSY, (id)))
-@d ISY_by_ID(id) (*DSTACK_INDEX (g->t_isy_stack, ISY, (id)))
 @d SYM_by_ID(id) XSY_by_ID(id)
 
 @ Adds the symbol to the list of symbols kept by the Grammar
@@ -1333,11 +1331,10 @@ int marpa_g_symbol_is_productive(
 @<Bit aligned symbol elements@> = unsigned int t_is_start:1;
 @ @<Initialize symbol elements@> = symbol->t_is_start = 0;
 @ @<Function definitions@> =
-int _marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
+int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if not precomputed@>@;
     @<Fail if |symid| is invalid@>@;
    return SYM_by_ID(symid)->t_is_start;
 }
@@ -1355,12 +1352,12 @@ because the ``virtual LHS'' flag serves that purpose.
 @ @<Function definitions@> =
 Marpa_Rule_ID _marpa_g_source_xsy(
     Marpa_Grammar g,
-    Marpa_Symbol_ID symid)
+    Marpa_IRL_ID isy_id)
 {
     XSY source_xsy;
     @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    source_xsy = Source_XSY_of_SYM(SYM_by_ID(symid));
+    @<Fail if |isy_id| is invalid@>@;
+    source_xsy = Source_XSY_of_ISY(ISY_by_ID(isy_id));
     return source_xsy ? ID_of_XSY(source_xsy) : -1;
 }
 
@@ -1379,6 +1376,7 @@ ISY symbol_alias_create(GRAMMAR g, SYM symbol)
     SYM_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
     SYM_is_Nulling(alias) = 1;
+    ISY_is_Nulling(alias_isy) = 1;
     XSY_is_Nullable(alias) = 1;
     SYM_is_Ask_Me_When_Null(alias)
 	= SYM_is_Ask_Me_When_Null(symbol);
@@ -1411,10 +1409,11 @@ struct s_isy {
 PRIVATE ISY
 isy_start(GRAMMAR g)
 {
-  const ISY new_isy = my_obstack_new (&g->t_obs, struct s_isy, 1);
-  ID_of_ISY(new_isy) = DSTACK_LENGTH((g)->t_isy_stack);
-  *DSTACK_PUSH((g)->t_isy_stack, ISY) = new_isy;
-  return new_isy;
+  const ISY isy = my_obstack_new (&g->t_obs, struct s_isy, 1);
+  ID_of_ISY(isy) = DSTACK_LENGTH((g)->t_isy_stack);
+  *DSTACK_PUSH((g)->t_isy_stack, ISY) = isy;
+  @<Initialize ISY elements@>@;
+  return isy;
 }
 
 @ Create an ISY from scratch.
@@ -1435,6 +1434,7 @@ isy_clone(GRAMMAR g, XSY xsy)
 {
   const ISY new_isy = isy_start(g);
   Buddy_of_ISY(new_isy) = xsy;
+  ISY_is_Nulling(new_isy) = XSY_is_Nulling(xsy);
   return new_isy;
 }
 
@@ -1460,13 +1460,37 @@ The {\bf ISY ID} is a number which
 acts as the unique identifier for an ISY.
 The ISY ID is initialized when the ISY is
 added to the list of rules.
+@d ISY_by_ID(id) (*DSTACK_INDEX (g->t_isy_stack, ISY, (id)))
 @d ID_of_ISY(isy) ((isy)->t_isy_id)
 @<Int aligned ISY elements@> = ISYID t_isy_id;
 
+@ Symbol count accesors.
+@d ISY_Count_of_G(g) (DSTACK_LENGTH((g)->t_isy_stack))
+@ @<Function definitions@> =
+int _marpa_g_isy_count(Marpa_Grammar g) {
+   @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    return ISY_Count_of_G(g);
+}
+
+@ Is Start?.
+@d ISY_is_Start(isy) ((isy)->t_is_start)
+@<Bit aligned ISY elements@> = unsigned int t_is_start:1;
+@ @<Initialize ISY elements@> = ISY_is_Start(isy) = 0;
+@ @<Function definitions@> =
+int _marpa_g_isy_is_start( Marpa_Grammar g, Marpa_ISY_ID isy_id) 
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |isy_id| is invalid@>@;
+   return ISY_is_Start(ISY_by_ID(isy_id));
+}
+
 @*0 ISY Is Nulling?.
-Not initialized, because there is no convenient initial value.
-@d ISY_is_Nulling(isy) ((isy)->t_is_nulling)
-@<Bit aligned ISY elements@> = unsigned int t_is_nulling:1;
+@d ISY_is_Nulling(isy) ((isy)->t_isy_is_nulling)
+@<Bit aligned ISY elements@> = unsigned int t_isy_is_nulling:1;
+@ @<Initialize ISY elements@> = ISY_is_Nulling(isy) = 0;
 @ @<Function definitions@> =
 int _marpa_g_isy_is_nulling(Marpa_Grammar g, Marpa_ISY_ID isy_id)
 {
@@ -1483,50 +1507,54 @@ are created to act as the LHS of internal rules.
 The semantics need this information so that they can
 simulate the external ``source'' rule.
 These fields record that information.
-@ @d LHS_XRL_of_SYM(sym) ((sym)->t_lhs_xrl)
-@d XRL_Offset_of_SYM(sym) ((sym)->t_xrl_offset)
-@<Widely aligned symbol elements@> =
+@ @d LHS_XRL_of_ISY(isy) ((isy)->t_lhs_xrl)
+@d XRL_Offset_of_ISY(isy) ((isy)->t_xrl_offset)
+@<Widely aligned ISY elements@> =
 XRL t_lhs_xrl;
 int t_xrl_offset;
-@ @<Initialize symbol elements@> =
-LHS_XRL_of_SYM(symbol) = NULL;
-XRL_Offset_of_SYM(symbol) = -1;
+@ @<Initialize ISY elements@> =
+LHS_XRL_of_ISY(isy) = NULL;
+XRL_Offset_of_ISY(isy) = -1;
 
 @ Virtual LHS trace accessor:
 If this symbol is an internal LHS
-of an external rule, returns the rule ID.
-If there is no external LHS rule, returns |-1|.
+used in the rewrite
+of an external rule,
+returns the XRLID.
+If there is no such external rule, returns |-1|.
 On other failures, returns |-2|.
 @ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_symbol_lhs_xrl(Marpa_Grammar g, Marpa_Symbol_ID symid)
+Marpa_Rule_ID _marpa_g_isy_lhs_xrl(Marpa_Grammar g, Marpa_ISY_ID isy_id)
 {
   @<Return |-2| on failure@>@;
-  @<Fail if |symid| is invalid@>@;
+  @<Fail if |isy_id| is invalid@>@;
   {
-    const SYM symbol = SYM_by_ID (symid);
-    const XRL lhs_xrl = LHS_XRL_of_SYM (symbol);
+    const ISY isy = ISY_by_ID (isy_id);
+    const XRL lhs_xrl = LHS_XRL_of_ISY (isy);
     if (lhs_xrl)
       return ID_of_XRL (lhs_xrl);
   }
   return -1;
 }
 
-@ If the internal symbol was created as
-the LHS of an external rule,
-returns the offset,
-otherwise -1.
-Note that 0 is also a valid offset,
-and the caller must use other trace
-methods to tell the difference.
+@ If the ISY was created as
+a LHS during the rewrite of an external rule,
+and there is an associated offset within that
+rule,
+this call returns the offset.
+This value is especially relevant for
+the symbols
+used in the CHAF rewrite.
+Otherwise, -1 is returned.
 On other failures, returns |-2|.
 @<Function definitions@> =
-int _marpa_g_symbol_xrl_offset(Marpa_Grammar g, Marpa_Symbol_ID symid)
+int _marpa_g_isy_xrl_offset(Marpa_Grammar g, Marpa_ISY_ID isy_id)
 {
   @<Return |-2| on failure@>@;
-  SYM symbol;
-  @<Fail if |symid| is invalid@>@;
-  symbol = SYM_by_ID (symid);
-  return XRL_Offset_of_SYM(symbol);
+  ISY isy;
+  @<Fail if |isy_id| is invalid@>@;
+  isy = ISY_by_ID (isy_id);
+  return XRL_Offset_of_ISY(isy);
 }
 
 @** External Rule (XRL) Code.
@@ -2985,7 +3013,7 @@ and productive.
      primary_isy_by_xsyid[separator_id] : NULL;
 
   SYM_is_Semantic(internal_lhs) = 0;
-  LHS_XRL_of_SYM(internal_lhs) = rule;
+  LHS_XRL_of_ISY(internal_lhs_isy) = rule;
   @<Add the top rule for the sequence@>@;
   if (separator_isy && !XRL_is_Proper_Separation(rule)) {
       @<Add the alternate top rule for the sequence@>@;
@@ -3251,7 +3279,6 @@ rule.
     SYMID chaf_virtual_symid;
     ISY chaf_virtual_isy;
     int first_factor_position = factor_positions[factor_position_ix];
-    int first_factor_piece_position = first_factor_position - piece_start;
     int second_factor_position = factor_positions[factor_position_ix+1];
     if (second_factor_position >= nullable_suffix_ix) {
 	piece_end = second_factor_position-1;
@@ -3676,7 +3703,6 @@ This include the setting of many of the elements of the
 rule structure, and performing the call back.
 @<Add CHAF IRL@> =
 {
-  const SYM current_lhs = SYM_by_ID (current_lhs_id);
   const int is_virtual_lhs = (piece_start > 0);
   Source_XRL_of_IRL(chaf_irl) = rule;
   RULE_has_Virtual_LHS (chaf_rule) = is_virtual_lhs;
@@ -3685,8 +3711,8 @@ rule structure, and performing the call back.
   Virtual_Start_of_IRL(chaf_irl) = piece_start;
   Virtual_End_of_IRL(chaf_irl) = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
-  LHS_XRL_of_SYM (current_lhs) = chaf_xrl;
-  XRL_Offset_of_SYM (current_lhs) = piece_start;
+  LHS_XRL_of_ISY (current_lhs_isy) = chaf_xrl;
+  XRL_Offset_of_ISY (current_lhs_isy) = piece_start;
 }
 
 @** Adding a New Start Symbol.
@@ -3707,6 +3733,7 @@ in the literature --- it is called ``augmenting the grammar".
   XSYID new_start_xsyid = -1;
   const ISY new_start_isy = isy_new(g, start_xsy);
   const XSY new_start_xsy = Buddy_of_ISY(new_start_isy);
+  ISY_is_Start(new_start_isy) = 1;
   new_start_xsyid = ID_of_SYM(new_start_xsy);
   SYM_is_Semantic(new_start_xsy) = 0;
   new_start_xsy->t_is_accessible = 1;

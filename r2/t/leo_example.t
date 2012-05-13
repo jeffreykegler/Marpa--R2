@@ -117,7 +117,6 @@ Marpa::R2::Test::is( $show_symbols_output,
 5: MinusAssignOp, terminal
 6: MultiplyAssignOp, terminal
 7: Variable, terminal
-8: Statement[']
 END_SYMBOLS
 
 my $show_rules_output = $grammar->show_rules();

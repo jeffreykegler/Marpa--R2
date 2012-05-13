@@ -68,9 +68,6 @@ Marpa::R2::Test::is( $grammar->show_symbols(),
 1: b, terminal
 2: S
 3: C
-4: S[], nulling
-5: C[], nulling
-6: S[']
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_rules,

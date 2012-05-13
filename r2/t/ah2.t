@@ -22,7 +22,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 29;
+use Test::More tests => 30;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -79,26 +79,34 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 1: A
 2: a, terminal
 3: E, nulling
-4: S[], nulling
-5: A[], nulling
-6: S[R0:1]
-7: S[R0:2]
-8: S[']
+EOS
+
+Marpa::R2::Test::is( $grammar->show_ISYs,
+    <<'EOS', 'Aycock/Horspool ISYs' );
+0: S, buddy=0
+1: S[], nulling buddy=4
+2: A, buddy=1
+3: A[], nulling buddy=5
+4: a, buddy=2
+5: E[], nulling buddy=3
+6: S[R0:1], buddy=6
+7: S[R0:2], buddy=7
+8: S['], buddy=8
 EOS
 
 Marpa::R2::Test::is(
     $grammar->show_nulling_symbols,
-    q{A[] E S[]},
+    q{E},
     'Aycock/Horspool Nulling Symbols'
 );
 Marpa::R2::Test::is(
     $grammar->show_productive_symbols,
-    q{A A[] E S S['] S[R0:1] S[R0:2] S[] a},
+    q{A E S a},
     'Aycock/Horspool Productive Symbols'
 );
 Marpa::R2::Test::is(
     $grammar->show_accessible_symbols,
-    q{A A[] E S S['] S[R0:1] S[R0:2] S[] a},
+    q{A E S a},
     'Aycock/Horspool Accessible Symbols'
 );
 

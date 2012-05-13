@@ -138,14 +138,6 @@ Marpa::R2::Test::is(
 21: Filter
 22: WithPf
 23: FilterExpr
-24: ByClause[], nulling
-25: Match[], nulling
-26: Filter[], nulling
-27: WithPf[], nulling
-28: Input[Seq], unproductive inaccessible
-29: MetricSelect[R3:3]
-30: MetricSelect[R3:4]
-31: Input[']
 END_OF_SYMBOLS
 
 Marpa::R2::Test::is( $grammar->show_rules(),

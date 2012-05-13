@@ -113,7 +113,6 @@ Marpa::R2::Test::is( ${$actual_ref},
 0: E
 1: Op, terminal
 2: Number, terminal
-3: E[']
 END_SYMBOLS
 
 $actual_ref = save_stdout();

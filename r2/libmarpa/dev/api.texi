@@ -888,6 +888,18 @@ Return value: On success, 1 if productive, 0 if not.  If the grammar
 is not precomputed, or on failure, -2.
 @end deftypefun
 
+@deftypefun int marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+
+This return value of this call indicates whether @var{symid}
+is the start symbol.
+
+Return value: -2 if @var{symid} is not valid;
+    1 if @var{symid} is the start symbol;
+    0 otherwise.
+
+@end deftypefun
+
 @deftypefun int marpa_g_symbol_is_internal (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{internal} if it is one of those created
@@ -1297,44 +1309,9 @@ of those working on libmarpa's internals.
 Applications should not use them,
 and should treat them as ``undocumented''.
 
-@deftypefun int _marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-
-This return value of this call indicates whether @var{symid}
-is the ID of one of Marpa's internal start symbols.
-Marpa rewrites its grammars to add
-a new start rule
-and one or two new, internal, start symbols.
-The first start symbol is always non-nullable.
-It is the LHS of the new start rule,
-and that is its only occurrence in any rule.
-
-The second start symbol is 
-a nulling start symbol.
-It is only present
-if the grammar allows the null parse.
-For Marpa, null parses are handled as
-a very special case.
-The nulling start symbol is used,
-but no nulling rule is created,
-so that the nulling start symbol is
-never on the LHS or RHS of any rule.
-
-Rewriting a grammar to add a new start
-is a very standard procedure,
-so much so that it has a special
-name:
-@dfn{augmenting the grammar}.
-The rewritten grammar is called
-an @dfn{augmented grammar}.
-
-Return value: -2 if the grammar is not precomputed or
-    @var{symid} is not valid;
-    1 if @var{symid} is a start symbol in the rewritten grammar;
-    0 otherwise.
-
+@deftypefun int _marpa_g_isy_is_start ( Marpa_Grammar @var{g}, @
+    Marpa_ISY_ID @var{isy_id})
 @end deftypefun
-
 @deftypefun Marpa_Symbol_ID _marpa_g_isy_buddy ( @
     Marpa_Grammar @var{g}, @
     Marpa_ISY_ID @var{isy_id})
@@ -1357,15 +1334,15 @@ Return value: -2 if the grammar is not precomputed or
 @end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_source_xsy ( @
   Marpa_Grammar @var{g}, @
-  Marpa_Symbol_ID @var{symid})
+  Marpa_ISY_ID @var{isy_id})
 @end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_symbol_lhs_xrl ( @
+@deftypefun Marpa_Rule_ID _marpa_g_isy_lhs_xrl ( @
   Marpa_Grammar @var{g}, @
-  Marpa_Symbol_ID @var{symid})
+  Marpa_ISY_ID @var{isy_id})
 @end deftypefun
-@deftypefun int _marpa_g_symbol_xrl_offset ( @
+@deftypefun int _marpa_g_isy_xrl_offset ( @
   Marpa_Grammar @var{g}, @
-  Marpa_Symbol_ID @var{symid} )
+  Marpa_ISY_ID @var{isy_id} )
 @end deftypefun
 
 @node Rule internals, Grammar internals, Symbol internals, Grammars
@@ -1397,6 +1374,9 @@ and should treat them as ``undocumented''.
 @deftypefun Marpa_Rule_ID _marpa_g_irl_co_rule ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{irl_id})
+@end deftypefun
+@deftypefun int _marpa_g_isy_count ( @
+  Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun int _marpa_g_irl_count ( @
   Marpa_Grammar @var{g})

@@ -569,17 +569,6 @@ Trace output and warning messages
 go to the trace file handle.
 By default the trace file handle is C<STDERR>.
 
-=head2 trace_rules
-
-Traces rules as they are added to the grammar.
-Useful, but you will usually
-prefer the C<show_rules> method.
-A C<trace_rules> setting becomes effective
-within the named argument hash which sets it.
-A trace message warns the user if he turns
-on rule tracing when
-rules have already been added.
-
 =head2 unproductive_ok
 
 The value must be a reference to an array of symbol names.

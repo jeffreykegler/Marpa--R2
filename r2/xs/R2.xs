@@ -485,6 +485,24 @@ PPCODE:
 }
 
 void
+_marpa_g_isy_is_nulling( g_wrapper, isy_id )
+    G_Wrapper *g_wrapper;
+    Marpa_ISY_ID isy_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_isy_is_nulling (g, isy_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->_marpa_g_isy_is_nulling(%d): %s", isy_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
 symbol_is_nullable( g_wrapper, symbol_id )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
@@ -555,16 +573,33 @@ PPCODE:
 }
 
 void
-_marpa_g_symbol_is_start( g_wrapper, symbol_id )
+marpa_g_symbol_is_start( g_wrapper, symbol_id )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_symbol_is_start (g, symbol_id);
+  int result = marpa_g_symbol_is_start (g, symbol_id);
   if (result < 0)
     {
       croak ("Invalid symbol %d", symbol_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+_marpa_g_isy_is_start( g_wrapper, isy_id )
+    G_Wrapper *g_wrapper;
+    Marpa_ISY_ID isy_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_isy_is_start (g, isy_id);
+  if (result < 0)
+    {
+      croak ("Invalid isy %d", isy_id);
     }
   if (result)
     XSRETURN_YES;
@@ -591,16 +626,16 @@ PPCODE:
 }
 
 Marpa_Rule_ID
-_marpa_g_symbol_lhs_xrl( g_wrapper, symbol_id )
+_marpa_g_isy_lhs_xrl( g_wrapper, isy_id )
     G_Wrapper *g_wrapper;
-    Marpa_Symbol_ID symbol_id;
+    Marpa_ISY_ID isy_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  Marpa_Rule_ID rule_id = _marpa_g_symbol_lhs_xrl (g, symbol_id);
+  Marpa_Rule_ID rule_id = _marpa_g_isy_lhs_xrl (g, isy_id);
   if (rule_id < -1)
     {
-      croak ("problem with g->_marpa_g_symbol_lhs_xrl: %s",
+      croak ("problem with g->_marpa_g_isy_lhs_xrl: %s",
 	     xs_g_error (g_wrapper));
     }
   if (rule_id < 0)
@@ -611,20 +646,20 @@ PPCODE:
 }
 
 Marpa_Rule_ID
-_marpa_g_symbol_xrl_offset( g_wrapper, symbol_id )
+_marpa_g_isy_xrl_offset( g_wrapper, isy_id )
     G_Wrapper *g_wrapper;
-    Marpa_Symbol_ID symbol_id;
+    Marpa_ISY_ID isy_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int offset = _marpa_g_symbol_xrl_offset (g, symbol_id);
+  int offset = _marpa_g_isy_xrl_offset (g, isy_id);
   if (offset == -1)
     {
       XSRETURN_UNDEF;
     }
   if (offset < 0)
     {
-      croak ("problem with g->_marpa_g_symbol_xrl_offset: %s",
+      croak ("problem with g->_marpa_g_isy_xrl_offset: %s",
 	     xs_g_error (g_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (offset)));
@@ -1122,6 +1157,26 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
+Marpa_Symbol_ID
+_marpa_g_isy_buddy( g_wrapper, isy_id )
+    G_Wrapper *g_wrapper;
+    Marpa_ISY_ID isy_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_isy_buddy (g, isy_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->_marpa_g_isy_buddy(%d): %s", isy_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
 int
 _marpa_g_AHFA_item_count( g_wrapper )
     G_Wrapper *g_wrapper;
@@ -1168,6 +1223,24 @@ PPCODE:
   if (result < -1)
     {
       croak ("Problem in g->_marpa_g_irl_count(): %s", xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+_marpa_g_isy_count( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_isy_count (g);
+  if (result < -1)
+    {
+      croak ("Problem in g->_marpa_g_isy_count(): %s", xs_g_error (g_wrapper));
     }
   if (result < 0)
     {

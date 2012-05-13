@@ -81,26 +81,21 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 1: A
 2: a, terminal
 3: E, nulling
-4: S[], nulling
-5: A[], nulling
-6: S[R0:1]
-7: S[R0:2]
-8: S[']
 EOS
 
 Marpa::R2::Test::is(
     $grammar->show_nulling_symbols,
-    q{A[] E S[]},
+    q{E},
     'Aycock/Horspool Nulling Symbols'
 );
 Marpa::R2::Test::is(
     $grammar->show_productive_symbols,
-    q{A A[] E S S['] S[R0:1] S[R0:2] S[] a},
+    q{A E S a},
     'Aycock/Horspool Productive Symbols'
 );
 Marpa::R2::Test::is(
     $grammar->show_accessible_symbols,
-    q{A A[] E S S['] S[R0:1] S[R0:2] S[] a},
+    q{A E S a},
     'Aycock/Horspool Accessible Symbols'
 );
 
