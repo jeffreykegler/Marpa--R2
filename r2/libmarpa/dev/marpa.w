@@ -1345,6 +1345,7 @@ equivalent of the external symbol.
 If the external symbol is nullable
 it is the non-nullable ISY.
 @d ISY_of_XSY(xsy) ((xsy)->t_isy_equivalent)
+@d ISY_by_XSYID(xsyid) (XSY_by_ID(xsyid)->t_isy_equivalent)
 @<Widely aligned symbol elements@> = ISY t_isy_equivalent;
 @ @<Initialize symbol elements@> = ISY_of_XSY(symbol) = NULL;
 @ @<Function definitions@> =
@@ -1371,6 +1372,7 @@ it is the same as the primary internal equivalent.
 If the external symbol is non-nulling,
 there is no nulling internal equivalent.
 @d Nulling_ISY_of_XSY(xsy) ((xsy)->t_nulling_isy)
+@d Nulling_ISY_by_XSYID(xsy) (XSY_by_ID(xsy)->t_nulling_isy)
 @<Widely aligned symbol elements@> = ISY t_nulling_isy;
 @ @<Initialize symbol elements@> = Nulling_ISY_of_XSY(symbol) = NULL;
 @ @<Function definitions@> =
@@ -1720,7 +1722,7 @@ irl_finish( GRAMMAR g, IRL irl)
   for (symbol_ix = 0; symbol_ix <= rewrite_xrl_length; symbol_ix++)
     {
       new_irl->t_isy_array[symbol_ix] =
-	primary_isy_by_xsyid[rule->t_symbols[symbol_ix]];
+	ISY_by_XSYID(rule->t_symbols[symbol_ix]);
     }
 }
 
@@ -2632,8 +2634,6 @@ a lot of useless diagnostics.
 @ @<Declare precompute variables@> =
   XRLID xrl_count = XRL_Count_of_G(g);
   XSYID pre_census_xsy_count = XSY_Count_of_G(g);
-  ISY* nulling_isy_by_xsyid = NULL;
-  ISY* primary_isy_by_xsyid = NULL;
 
 @ @<Fail if no rules@> =
 if (UNLIKELY(xrl_count <= 0)) {
@@ -3047,17 +3047,17 @@ and productive.
 @<Rewrite sequence |rule| into BNF@> =
 {
   const SYMID lhs_id = LHS_ID_of_RULE (rule);
-  const ISY lhs_isy = primary_isy_by_xsyid[lhs_id];
+  const ISY lhs_isy = ISY_by_XSYID(lhs_id);
 
   const ISY internal_lhs_isy = isy_new (g, SYM_by_ID(lhs_id));
   const SYM internal_lhs = Buddy_of_ISY(internal_lhs_isy);
 
   const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
-  const ISY rhs_isy = primary_isy_by_xsyid[rhs_id];
+  const ISY rhs_isy = ISY_by_XSYID(rhs_id);
 
   const SYMID separator_id = Separator_of_XRL (rule);
   const ISY separator_isy = separator_id >= 0 ?
-     primary_isy_by_xsyid[separator_id] : NULL;
+     ISY_by_XSYID(separator_id) : NULL;
 
   SYM_is_Semantic(internal_lhs) = 0;
   LHS_XRL_of_ISY(internal_lhs_isy) = rule;
@@ -3230,15 +3230,15 @@ is not already aliased, alias it.
 	continue;
       if (UNLIKELY (!xsy->t_is_productive))
 	continue;
-      primary_isy_by_xsyid[xsyid] = isy_clone (g, xsy);
+      ISY_of_XSY(xsy) = isy_clone (g, xsy);
       if (XSY_is_Nulling (xsy))
 	{
-	  nulling_isy_by_xsyid[xsyid] = primary_isy_by_xsyid[xsyid];
+	  Nulling_ISY_of_XSY(xsy) = ISY_of_XSY(xsy);
 	  continue;
 	}
       if (XSY_is_Nullable (xsy))
 	{
-	  nulling_isy_by_xsyid[xsyid] = symbol_alias_create (g, xsy);
+	  Nulling_ISY_of_XSY(xsy) = symbol_alias_create (g, xsy);
 	}
     }
 }
@@ -3288,7 +3288,7 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
     /* Current index into the list of factors */
     int factor_position_ix = 0;
     SYMID current_lhs_id = LHS_ID_of_RULE(rule);
-    ISY current_lhs_isy = primary_isy_by_xsyid[current_lhs_id];
+    ISY current_lhs_isy = ISY_by_XSYID(current_lhs_id);
     /* The positions, in the original rule, where
 	the new (virtual) rule starts and ends */
     int piece_end, piece_start = 0;
@@ -3374,13 +3374,13 @@ end before the second proper nullable (or factor).
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   for (piece_ix = second_nulling_piece_ix; piece_ix < chaf_irl_length;
        piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	nulling_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	Nulling_ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3408,25 +3408,25 @@ the Marpa parse engine.
       for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
 	{
 	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    primary_isy_by_xsyid[RHS_ID_of_RULE
-				 (rule, piece_start + piece_ix)];
+	    ISY_by_XSYID(RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix));
 	}
       RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-	nulling_isy_by_xsyid[RHS_ID_of_RULE
-			     (rule, piece_start + first_nulling_piece_ix)];
+	Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+			     (rule, piece_start + first_nulling_piece_ix));
       for (piece_ix = first_nulling_piece_ix + 1;
 	   piece_ix < second_nulling_piece_ix; piece_ix++)
 	{
 	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    primary_isy_by_xsyid[RHS_ID_of_RULE
-				 (rule, piece_start + piece_ix)];
+	    ISY_by_XSYID(RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix));
 	}
       for (piece_ix = second_nulling_piece_ix; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
 	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    nulling_isy_by_xsyid[RHS_ID_of_RULE
-				 (rule, piece_start + piece_ix)];
+	    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix));
 	}
       chaf_rule = irl_finish (g, chaf_irl);
       @<Add CHAF IRL@>@;
@@ -3455,7 +3455,7 @@ the Marpa parse engine.
   for (piece_ix = 0; piece_ix < chaf_irl_length - 1; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isy;
   chaf_rule = irl_finish (g, chaf_irl);
@@ -3474,16 +3474,16 @@ the Marpa parse engine.
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    nulling_isy_by_xsyid[RHS_ID_of_RULE
-			 (rule, piece_start + second_nulling_piece_ix)];
+    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1;
        piece_ix < chaf_irl_length - 1; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isy;
   chaf_rule = irl_finish (g, chaf_irl);
@@ -3502,16 +3502,16 @@ the Marpa parse engine.
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    nulling_isy_by_xsyid[RHS_ID_of_RULE
-			 (rule, piece_start + first_nulling_piece_ix)];
+    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1;
        piece_ix < chaf_irl_length - 1; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isy;
   chaf_rule = irl_finish (g, chaf_irl);
@@ -3531,25 +3531,25 @@ the Marpa parse engine.
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    nulling_isy_by_xsyid[RHS_ID_of_RULE
-			 (rule, piece_start + first_nulling_piece_ix)];
+    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1;
        piece_ix < second_nulling_piece_ix; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    nulling_isy_by_xsyid[RHS_ID_of_RULE
-			 (rule, piece_start + second_nulling_piece_ix)];
+    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length-1;
        piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, chaf_irl_length-1) = chaf_virtual_isy;
   chaf_rule = irl_finish (g, chaf_irl);
@@ -3581,7 +3581,7 @@ Open block, declarations and setup.
   for (piece_ix = 0; piece_ix < chaf_irl_length; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3599,16 +3599,16 @@ Open block, declarations and setup.
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    nulling_isy_by_xsyid[RHS_ID_of_RULE
-			 (rule, piece_start + second_nulling_piece_ix)];
+    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
        piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3626,16 +3626,16 @@ Open block, declarations and setup.
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    nulling_isy_by_xsyid[RHS_ID_of_RULE
-			 (rule, piece_start + first_nulling_piece_ix)];
+    Nulling_ISY_by_XSYID(RHS_ID_of_RULE
+			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
        piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3656,26 +3656,26 @@ a nulling rule.
       for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
 	{
 	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    primary_isy_by_xsyid[RHS_ID_of_RULE
-				 (rule, piece_start + piece_ix)];
+	    ISY_by_XSYID(RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix));
 	}
       RHS_of_IRL (chaf_irl, first_nulling_piece_ix) =
-	nulling_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + first_nulling_piece_ix)];
+	Nulling_ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + first_nulling_piece_ix));
       for (piece_ix = first_nulling_piece_ix + 1; piece_ix < second_nulling_piece_ix;
 	   piece_ix++)
 	{
 	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    primary_isy_by_xsyid[RHS_ID_of_RULE
-				 (rule, piece_start + piece_ix)];
+	    ISY_by_XSYID(RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix));
 	}
       RHS_of_IRL (chaf_irl, second_nulling_piece_ix) =
-	nulling_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + second_nulling_piece_ix)];
+	Nulling_ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + second_nulling_piece_ix));
       for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
 	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    primary_isy_by_xsyid[RHS_ID_of_RULE
-				 (rule, piece_start + piece_ix)];
+	    ISY_by_XSYID(RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix));
 	}
       chaf_rule = irl_finish (g, chaf_irl);
       @<Add CHAF IRL@>@;
@@ -3704,7 +3704,7 @@ a nulling rule.
   for (piece_ix = 0; piece_ix < chaf_irl_length; piece_ix++)
     {
       RHS_of_IRL (chaf_irl, piece_ix) =
-	primary_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + piece_ix)];
+	ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   chaf_rule = irl_finish (g, chaf_irl);
   @<Add CHAF IRL@>@;
@@ -3725,17 +3725,17 @@ a nulling rule.
       for (piece_ix = 0; piece_ix < nulling_piece_ix; piece_ix++)
 	{
 	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    primary_isy_by_xsyid[RHS_ID_of_RULE
-				 (rule, piece_start + piece_ix)];
+	    ISY_by_XSYID(RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix));
 	}
       RHS_of_IRL (chaf_irl, nulling_piece_ix) =
-	nulling_isy_by_xsyid[RHS_ID_of_RULE (rule, piece_start + nulling_piece_ix)];
+	Nulling_ISY_by_XSYID(RHS_ID_of_RULE (rule, piece_start + nulling_piece_ix));
       for (piece_ix = nulling_piece_ix + 1; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
 	  RHS_of_IRL (chaf_irl, piece_ix) =
-	    primary_isy_by_xsyid[RHS_ID_of_RULE
-				 (rule, piece_start + piece_ix)];
+	    ISY_by_XSYID(RHS_ID_of_RULE
+				 (rule, piece_start + piece_ix));
 	}
       chaf_rule = irl_finish (g, chaf_irl);
       @<Add CHAF IRL@>@;
@@ -3789,7 +3789,7 @@ in the literature --- it is called ``augmenting the grammar".
 
   new_start_irl = irl_start(g, 1);
   LHS_of_IRL(new_start_irl) = new_start_isy;
-  RHS_of_IRL(new_start_irl, 0) = primary_isy_by_xsyid[start_xsyid];
+  RHS_of_IRL(new_start_irl, 0) = ISY_of_XSY(start_xsy);
   new_start_rule = irl_finish(g, new_start_irl);
   IRL_has_Virtual_LHS (new_start_irl) = 1;
   Real_SYM_Count_of_IRL (new_start_irl) = 1;
@@ -5044,14 +5044,7 @@ than its length, as a convenient way to deal with issues
 of minimum sizes.
 @<Initialize ISY stack@> =
 {
-  XSYID xsyid;
   DSTACK_INIT (g->t_isy_stack, ISY, 2 * DSTACK_CAPACITY (g->t_xsy_stack));
-  nulling_isy_by_xsyid = my_obstack_new(&obs_precompute, ISY, pre_census_xsy_count);
-  primary_isy_by_xsyid = my_obstack_new(&obs_precompute, ISY, pre_census_xsy_count);
-  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++) {
-    nulling_isy_by_xsyid[xsyid] = NULL;
-    primary_isy_by_xsyid[xsyid] = NULL;
-  }
 }
 
 @ @<Calculate Rule by LHS lists@> =
