@@ -1634,14 +1634,15 @@ const SYMID lhs, const SYMID *rhs, int length)
 PRIVATE IRL
 irl_start(GRAMMAR g, int length)
 {
-  IRL new_irl;
+  IRL irl;
   const int sizeof_irl = offsetof (struct s_irl, t_isy_array) +
-    (length + 1) * sizeof (new_irl->t_isy_array[0]);
-  new_irl = my_obstack_alloc (&g->t_obs, sizeof_irl);
-  ID_of_IRL(new_irl) = DSTACK_LENGTH((g)->t_irl_stack);
-  Length_of_IRL(new_irl) = length;
-  *DSTACK_PUSH((g)->t_irl_stack, IRL) = new_irl;
-  return new_irl;
+    (length + 1) * sizeof (irl->t_isy_array[0]);
+  irl = my_obstack_alloc (&g->t_obs, sizeof_irl);
+  ID_of_IRL(irl) = DSTACK_LENGTH((g)->t_irl_stack);
+  Length_of_IRL(irl) = length;
+  @<Initialize IRL elements@>@;
+  *DSTACK_PUSH((g)->t_irl_stack, IRL) = irl;
+  return irl;
 }
 
 PRIVATE XRL
@@ -2124,55 +2125,6 @@ _marpa_g_rule_is_used(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
   return XRL_is_Used(XRL_by_ID(xrl_id));
 }
 
-@*0 Rule has virtual LHS?.
-This is for Marpa's ``internal semantics".
-When Marpa rewrites rules, it does so in a way invisible to
-the user's semantics.
-It does this by marking rules so that it can reassemble
-the results of rewritten rules to appear ``as if"
-they were the result of evaluating the original,
-un-rewritten rule.
-\par
-All Marpa's rewrites allow the rewritten rules to be
-``dummied up" to look like the originals.
-That this must be possible for any rewrite was one of
-Marpa's design criteria.
-It was an especially non-negotiable criteria, because
-almost the only reason for parsing a grammar is to apply the
-semantics specified for the original grammar.
-@d RULE_has_Virtual_LHS(rule) ((rule)->t_is_virtual_lhs)
-@d IRL_has_Virtual_LHS(irl) RULE_has_Virtual_LHS(Co_RULE_of_IRL(irl))
-@<Bit aligned rule elements@> = unsigned int t_is_virtual_lhs:1;
-@ @<Initialize rule elements@> =
-RULE_has_Virtual_LHS(rule) = 0;
-@ @<Function definitions@> =
-int _marpa_g_irl_is_virtual_lhs(
-    Marpa_Grammar g,
-    Marpa_IRL_ID irl_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |irl_id| is invalid@>@;
-    return IRL_has_Virtual_LHS(IRL_by_ID(irl_id));
-}
-
-@*0 Rule has Virtual RHS?.
-@d RULE_has_Virtual_RHS(rule) ((rule)->t_is_virtual_rhs)
-@d IRL_has_Virtual_RHS(irl) RULE_has_Virtual_RHS(Co_RULE_of_IRL(irl))
-@<Bit aligned rule elements@> = unsigned int t_is_virtual_rhs:1;
-@ @<Initialize rule elements@> =
-RULE_has_Virtual_RHS(rule) = 0;
-@ @<Function definitions@> =
-int _marpa_g_irl_is_virtual_rhs(
-    Marpa_Grammar g,
-    Marpa_IRL_ID irl_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |irl_id| is invalid@>@;
-    return IRL_has_Virtual_RHS(IRL_by_ID(irl_id));
-}
-
 @*0 Virtual Start Position.
 For a virtual rule,
 this is the RHS position in the original rule
@@ -2233,27 +2185,6 @@ Marpa_Rule_ID _marpa_g_source_xrl(
     @<Fail if |irl_id| is invalid@>@;
     source_xrl = Source_XRL_of_IRL(IRL_by_ID(irl_id));
     return source_xrl ? ID_of_XRL(source_xrl) : -1;
-}
-
-@*0 Rule Real Symbol Count.
-This is another data element used for the ``internal semantics" --
-the logic to reassemble results of rewritten rules so that they
-look as if they came from the original, un-rewritten rules.
-The value of this field is meaningful if and only if
-the rule has a virtual rhs or a virtual lhs.
-@d Real_SYM_Count_of_RULE(rule) ((rule)->t_real_symbol_count)
-@d Real_SYM_Count_of_IRL(irl) Real_SYM_Count_of_RULE(Co_RULE_of_IRL(irl))
-@ @<Int aligned rule elements@> = int t_real_symbol_count;
-@ @<Initialize rule elements@> = Real_SYM_Count_of_RULE(rule) = 0;
-@ @<Function definitions@> =
-int _marpa_g_real_symbol_count(
-    Marpa_Grammar g,
-    Marpa_IRL_ID irl_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |irl_id| is invalid@>@;
-    return Real_SYM_Count_of_IRL(IRL_by_ID(irl_id));
 }
 
 @*0 Rule has semantics?.
@@ -2357,6 +2288,7 @@ be using it.
 struct s_irl {
   @<Widely aligned IRL elements@>@;
   @<Int aligned IRL elements@>@;
+  @<Bit aligned IRL elements@>@;
   @<Final IRL elements@>@/
 };
 @ @<Public typedefs@> =
@@ -2382,6 +2314,14 @@ Marpa_Rule_ID _marpa_g_irl_co_rule(
     @<Fail if |irl_id| is invalid@>@;
     return ID_of_XRL(Co_RULE_of_IRL(IRL_by_ID(irl_id)));
 }
+
+@*0 ID.
+The {\bf IRL ID} is a number which
+acts as the unique identifier for an IRL.
+The rule ID is initialized when the IRL is
+added to the list of rules.
+@d ID_of_IRL(irl) ((irl)->t_irl_id)
+@<Int aligned IRL elements@> = IRLID t_irl_id;
 
 @*0 Symbols.
 @ The symbols come at the end of the structure,
@@ -2422,13 +2362,72 @@ int _marpa_g_irl_length(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     return Length_of_IRL(IRL_by_ID(irl_id));
 }
 
-@*0 ID.
-The {\bf IRL ID} is a number which
-acts as the unique identifier for an IRL.
-The rule ID is initialized when the IRL is
-added to the list of rules.
-@d ID_of_IRL(irl) ((irl)->t_irl_id)
-@<Int aligned IRL elements@> = IRLID t_irl_id;
+@*0 IRL has virtual LHS?.
+This is for Marpa's ``internal semantics".
+When Marpa rewrites rules, it does so in a way invisible to
+the user's semantics.
+It does this by marking rules so that it can reassemble
+the results of rewritten rules to appear ``as if"
+they were the result of evaluating the original,
+un-rewritten rule.
+\par
+All Marpa's rewrites allow the rewritten rules to be
+``dummied up" to look like the originals.
+That this must be possible for any rewrite was one of
+Marpa's design criteria.
+It was an especially non-negotiable criteria, because
+almost the only reason for parsing a grammar is to apply the
+semantics specified for the original grammar.
+@d IRL_has_Virtual_LHS(irl) ((irl)->t_is_virtual_lhs)
+@<Bit aligned IRL elements@> = unsigned int t_is_virtual_lhs:1;
+@ @<Initialize IRL elements@> =
+IRL_has_Virtual_LHS(irl) = 0;
+@ @<Function definitions@> =
+int _marpa_g_irl_is_virtual_lhs(
+    Marpa_Grammar g,
+    Marpa_IRL_ID irl_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |irl_id| is invalid@>@;
+    return IRL_has_Virtual_LHS(IRL_by_ID(irl_id));
+}
+
+@*0 IRL has Virtual RHS?.
+@d IRL_has_Virtual_RHS(irl) ((irl)->t_is_virtual_rhs)
+@<Bit aligned IRL elements@> = unsigned int t_is_virtual_rhs:1;
+@ @<Initialize IRL elements@> =
+IRL_has_Virtual_RHS(irl) = 0;
+@ @<Function definitions@> =
+int _marpa_g_irl_is_virtual_rhs(
+    Marpa_Grammar g,
+    Marpa_IRL_ID irl_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |irl_id| is invalid@>@;
+    return IRL_has_Virtual_RHS(IRL_by_ID(irl_id));
+}
+
+@*0 Rule Real Symbol Count.
+This is another data element used for the ``internal semantics" --
+the logic to reassemble results of rewritten rules so that they
+look as if they came from the original, un-rewritten rules.
+The value of this field is meaningful if and only if
+the rule has a virtual rhs or a virtual lhs.
+@d Real_SYM_Count_of_IRL(irl) ((irl)->t_real_symbol_count)
+@ @<Int aligned IRL elements@> = int t_real_symbol_count;
+@ @<Initialize IRL elements@> = Real_SYM_Count_of_IRL(irl) = 0;
+@ @<Function definitions@> =
+int _marpa_g_real_symbol_count(
+    Marpa_Grammar g,
+    Marpa_IRL_ID irl_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |irl_id| is invalid@>@;
+    return Real_SYM_Count_of_IRL(IRL_by_ID(irl_id));
+}
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
@@ -3031,7 +3030,7 @@ and productive.
     rewrite_rule = irl_finish(g, rewrite_irl);
     Source_XRL_of_IRL(rewrite_irl) = rule;
     /* Real symbol count remains at default of 0 */
-    RULE_has_Virtual_RHS (rewrite_rule) = 1;
+    IRL_has_Virtual_RHS (rewrite_irl) = 1;
 }
 
 @ This ``alternate" top rule is needed if a final separator is allowed.
@@ -3045,8 +3044,8 @@ and productive.
   RHS_of_IRL (rewrite_irl, 1) = separator_isy;
   rewrite_rule = irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
-  RULE_has_Virtual_RHS (rewrite_rule) = 1;
-  Real_SYM_Count_of_RULE (rewrite_rule) = 1;
+  IRL_has_Virtual_RHS (rewrite_irl) = 1;
+  Real_SYM_Count_of_IRL (rewrite_irl) = 1;
 }
 
 @ The traditional way to write a sequence in BNF is with one
@@ -3054,18 +3053,16 @@ rule to represent the minimum, and another to deal with iteration.
 That's the core of Marpa's rewrite.
 @<Add the minimum rule for the sequence@> =
 {
-  RULE rewrite_rule;
   const IRL rewrite_irl = irl_start (g, 1);
   LHS_of_IRL (rewrite_irl) = internal_lhs_isy;
   RHS_of_IRL (rewrite_irl, 0) = rhs_isy;
-  rewrite_rule = irl_finish (g, rewrite_irl);
+  irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
-  RULE_has_Virtual_LHS (rewrite_rule) = 1;
-  Real_SYM_Count_of_RULE (rewrite_rule) = 1;
+  IRL_has_Virtual_LHS (rewrite_irl) = 1;
+  Real_SYM_Count_of_IRL (rewrite_irl) = 1;
 }
 @ @<Add the iterating rule for the sequence@> =
 {
-  RULE rewrite_rule;
   IRL rewrite_irl;
   int rhs_ix = 0;
   const int length = separator_isy ? 3 : 2;
@@ -3075,11 +3072,11 @@ That's the core of Marpa's rewrite.
   if (separator_isy)
     RHS_of_IRL (rewrite_irl, rhs_ix++) = separator_isy;
   RHS_of_IRL (rewrite_irl, rhs_ix) = rhs_isy;
-  rewrite_rule = irl_finish (g, rewrite_irl);
+  irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
-  RULE_has_Virtual_LHS (rewrite_rule) = 1;
-  RULE_has_Virtual_RHS (rewrite_rule) = 1;
-  Real_SYM_Count_of_RULE (rewrite_rule) = length - 1;
+  IRL_has_Virtual_LHS (rewrite_irl) = 1;
+  IRL_has_Virtual_RHS (rewrite_irl) = 1;
+  Real_SYM_Count_of_IRL (rewrite_irl) = length - 1;
 }
 
 @** The CHAF rewrite.
@@ -3705,12 +3702,12 @@ rule structure, and performing the call back.
 {
   const int is_virtual_lhs = (piece_start > 0);
   Source_XRL_of_IRL(chaf_irl) = rule;
-  RULE_has_Virtual_LHS (chaf_rule) = is_virtual_lhs;
-  RULE_has_Virtual_RHS (chaf_rule) =
-    Length_of_RULE (chaf_rule) > real_symbol_count;
+  IRL_has_Virtual_LHS (chaf_irl) = is_virtual_lhs;
+  IRL_has_Virtual_RHS (chaf_irl) =
+    Length_of_IRL (chaf_irl) > real_symbol_count;
   Virtual_Start_of_IRL(chaf_irl) = piece_start;
   Virtual_End_of_IRL(chaf_irl) = piece_start + real_symbol_count - 1;
-  Real_SYM_Count_of_RULE (chaf_rule) = real_symbol_count;
+  Real_SYM_Count_of_IRL (chaf_irl) = real_symbol_count;
   LHS_XRL_of_ISY (current_lhs_isy) = chaf_xrl;
   XRL_Offset_of_ISY (current_lhs_isy) = piece_start;
 }
@@ -3746,8 +3743,8 @@ in the literature --- it is called ``augmenting the grammar".
   LHS_of_IRL(new_start_irl) = new_start_isy;
   RHS_of_IRL(new_start_irl, 0) = primary_isy_by_xsyid[start_xsyid];
   new_start_rule = irl_finish(g, new_start_irl);
-  RULE_has_Virtual_LHS (new_start_rule) = 1;
-  Real_SYM_Count_of_RULE (new_start_rule) = 1;
+  IRL_has_Virtual_LHS (new_start_irl) = 1;
+  Real_SYM_Count_of_IRL (new_start_irl) = 1;
   g->t_start_irl = new_start_irl;
 
 }
@@ -12377,7 +12374,6 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 
     while (1) {
 	OR or;
-	RULE nook_rule;
 	IRL nook_irl;
 	Token_Value_of_V(v) = -1;
 	RULEID_of_V(v) = -1;
@@ -12434,14 +12430,13 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	  }
 	}
 	nook_irl = IRL_of_OR(or);
-	nook_rule = Co_RULE_of_IRL(nook_irl);
-	if (Position_of_OR(or) == Length_of_RULE(nook_rule)) {
-	    int virtual_rhs = RULE_has_Virtual_RHS(nook_rule);
+	if (Position_of_OR(or) == Length_of_IRL(nook_irl)) {
+	    int virtual_rhs = IRL_has_Virtual_RHS(nook_irl);
 	    int virtual_lhs = IRL_has_Virtual_LHS(nook_irl);
 	    int real_symbol_count;
 	    const DSTACK virtual_stack = &VStack_of_V(v);
 	    if (virtual_lhs) {
-	        real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
+	        real_symbol_count = Real_SYM_Count_of_IRL(nook_irl);
 		if (virtual_rhs) {
 		    *(DSTACK_TOP(*virtual_stack, int)) += real_symbol_count;
 		} else {
@@ -12450,10 +12445,10 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	    } else {
 
 		if (virtual_rhs) {
-		    real_symbol_count = Real_SYM_Count_of_RULE(nook_rule);
+		    real_symbol_count = Real_SYM_Count_of_IRL(nook_irl);
 		    real_symbol_count += *DSTACK_POP(*virtual_stack, int);
 		} else {
-		    real_symbol_count = Length_of_RULE(nook_rule);
+		    real_symbol_count = Length_of_IRL(nook_irl);
 		}
 		{
 		  // Currently all rules with a non-virtual LHS are
