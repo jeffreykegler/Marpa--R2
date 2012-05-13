@@ -1320,6 +1320,14 @@ and should treat them as ``undocumented''.
   Marpa_Grammar @var{g}, @
   Marpa_ISY_ID @var{isy_id})
 @end deftypefun
+@deftypefun Marpa_ISY_ID _marpa_g_xsy_nulling_isy ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun Marpa_ISY_ID _marpa_g_xsy_isy ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
 @deftypefun Marpa_Symbol_ID _marpa_g_symbol_proper_alias ( @
   Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})

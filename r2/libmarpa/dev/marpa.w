@@ -130,10 +130,10 @@ some typing, at a very high cost in readability.
 In |libmarpa|, however, spelling things out usually does
 {\bf not} make them more readable.
 To be sure, when I say
-$$|To_AHFA_of_EIM_by_SYMID|$$
+$$|To_AHFA_of_EIM_by_ISYID|$$
 that is pretty incomprehensible.
 But is
-$$Aycock\_Horspool\_Finite\_Automaton\_To\_State\_of\_Earley\_Item\_by\_Symbol\_ID$$
+$$Aycock\_Horspool\_Finite\_Automaton\_To\_State\_of\_Earley\_Item\_by\_Internal\_Symbol\_ID$$
 really any better?
 \par
 My experience say no.
@@ -1337,6 +1337,54 @@ int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid)
     @<Fail if fatal error@>@;
     @<Fail if |symid| is invalid@>@;
    return SYM_by_ID(symid)->t_is_start;
+}
+
+@*0 Primary Internal Equivalent.
+This is the internal
+equivalent of the external symbol.
+If the external symbol is nullable
+it is the non-nullable ISY.
+@d ISY_of_XSY(xsy) ((xsy)->t_isy_equivalent)
+@<Widely aligned symbol elements@> = ISY t_isy_equivalent;
+@ @<Initialize symbol elements@> = ISY_of_XSY(symbol) = NULL;
+@ @<Function definitions@> =
+Marpa_ISY_ID _marpa_g_xsy_isy(
+    Marpa_Grammar g,
+    Marpa_Symbol_ID symid)
+{
+    XSY xsy;
+    ISY isy;
+    @<Return |-2| on failure@>@;
+    @<Fail if |symid| is invalid@>@;
+    xsy = XSY_by_ID(symid);
+    isy = ISY_of_XSY(xsy);
+    return isy ? ID_of_ISY(isy) : -1;
+}
+
+@*0 Nulling Internal Equivalent.
+This is the nulling internal
+equivalent of the external symbol.
+If the external symbol is nullable
+it is the nulling ISY.
+If the external symbol is nulling
+it is the same as the primary internal equivalent.
+If the external symbol is non-nulling,
+there is no nulling internal equivalent.
+@d Nulling_ISY_of_XSY(xsy) ((xsy)->t_nulling_isy)
+@<Widely aligned symbol elements@> = ISY t_nulling_isy;
+@ @<Initialize symbol elements@> = Nulling_ISY_of_XSY(symbol) = NULL;
+@ @<Function definitions@> =
+Marpa_ISY_ID _marpa_g_xsy_nulling_isy(
+    Marpa_Grammar g,
+    Marpa_Symbol_ID symid)
+{
+    XSY xsy;
+    ISY isy;
+    @<Return |-2| on failure@>@;
+    @<Fail if |symid| is invalid@>@;
+    xsy = XSY_by_ID(symid);
+    isy = Nulling_ISY_of_XSY(xsy);
+    return isy ? ID_of_ISY(isy) : -1;
 }
 
 @*0 Source XSY.
