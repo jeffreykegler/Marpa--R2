@@ -8206,7 +8206,7 @@ treated by the application as fatal errors.
 @<Function definitions@> =
 Marpa_Earleme marpa_r_alternative(
     Marpa_Recognizer r,
-    Marpa_Symbol_ID token_id,
+    Marpa_Symbol_ID token_xsyid,
     int value,
     int length)
 {
@@ -8217,6 +8217,7 @@ Marpa_Earleme marpa_r_alternative(
     ES current_earley_set;
     const EARLEME current_earleme = Current_Earleme_of_R(r);
     EARLEME target_earleme;
+    ISYID token_isyid;
     @<Fail if recognizer not accepting input@>@;
     @<|marpa_alternative| initial check for failure conditions@>@;
     @<Set |current_earley_set|, failing if token is unexpected@>@;
@@ -8226,7 +8227,7 @@ Marpa_Earleme marpa_r_alternative(
 }
 
 @ @<|marpa_alternative| initial check for failure conditions@> = {
-    const XSY_Const token = SYM_by_ID(token_id);
+    const XSY_Const token = SYM_by_ID(token_xsyid);
     if (!SYM_is_Terminal(token)) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
 	return failure_indicator;
@@ -8256,10 +8257,20 @@ The application can also use this as a mechanism to test alternatives,
 in which case, returning |unexpected_token_indicator| is a perfectly normal data path.
 This last is part of an important technique:
 ``Ruby Slippers" parsing.
+@ Another case of an ``unexpected'' token is an inaccessible one.
+(A terminal must be productive but can be inaccessible.)
+Inaccessible tokens will not have an ISY and,
+since they don't derive from the start symbol,
+are always unexpected.
 @<Set |current_earley_set|, failing if token is unexpected@> = {
+    ISY token_isy = ISY_by_XSYID(token_xsyid);
+    if (UNLIKELY(!token_isy)) {
+	return unexpected_token_indicator;
+    }
+    token_isyid = ID_of_ISY(token_isy);
     current_earley_set = Current_ES_of_R (r);
     if (!current_earley_set) return unexpected_token_indicator;
-    if (!First_PIM_of_ES_by_SYMID (current_earley_set, token_id))
+    if (!First_PIM_of_ES_by_SYMID (current_earley_set, token_xsyid))
 	return unexpected_token_indicator;
 }
 
@@ -8288,7 +8299,7 @@ altered by the attempt.
     {
       my_obstack_blank (TOK_Obs_of_I (input), sizeof (*token));
       token = my_obstack_base (token_obstack);
-      SYMID_of_TOK (token) = token_id;
+      SYMID_of_TOK (token) = token_xsyid;
       Type_of_TOK (token) = VALUED_TOKEN_OR_NODE;
       Value_of_TOK (token) = value;
     }
@@ -8296,7 +8307,7 @@ altered by the attempt.
     {
       my_obstack_blank (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
       token = my_obstack_base (token_obstack);
-      SYMID_of_TOK (token) = token_id;
+      SYMID_of_TOK (token) = token_xsyid;
       Type_of_TOK (token) = UNVALUED_TOKEN_OR_NODE;
     }
   if (Furthest_Earleme_of_R (r) < target_earleme)
