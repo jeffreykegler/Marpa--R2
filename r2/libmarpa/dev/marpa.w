@@ -1501,6 +1501,7 @@ isy_clone(GRAMMAR g, XSY xsy)
 Delete this when division of grammar into
 external and internal is complete.
 @d Buddy_of_ISY(isy) ((isy)->t_buddy)
+@d XSYID_by_ISYID(isyid) ID_of_XSY(Buddy_of_ISY(ISY_by_ID(isyid)))
 @<Widely aligned ISY elements@> =
   XSY t_buddy;
 @ @<Function definitions@> =
@@ -4202,7 +4203,6 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
     unsigned int symbol_instance_of_next_rule = 0;
     for (irl_id = 0; irl_id < irl_count; irl_id++) {
       const IRL irl = IRL_by_ID(irl_id);
-      const RULE rule = Co_RULE_of_IRL(irl);
       @<Count the AHFA items in a rule@>@;
     }
     current_item = base_item = my_new(struct s_AHFA_item, ahfa_item_count);
@@ -4210,9 +4210,8 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
       const IRL irl = IRL_by_ID(irl_id);
       @<Create the AHFA items for |irl|@>@;
       {
-        const RULE rule = Co_RULE_of_IRL(irl);
-	SYMI_of_RULE(rule) = symbol_instance_of_next_rule;
-	symbol_instance_of_next_rule += Length_of_RULE(rule);
+	SYMI_of_IRL(irl) = symbol_instance_of_next_rule;
+	symbol_instance_of_next_rule += Length_of_IRL(irl);
       }
     }
     SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
@@ -4227,14 +4226,14 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 {
   int leading_nulls = 0;
   int rhs_ix;
-  const XRL xrl = Co_RULE_of_IRL(irl);
-  for (rhs_ix = 0; rhs_ix < Length_of_RULE(xrl); rhs_ix++)
+  for (rhs_ix = 0; rhs_ix < Length_of_IRL(irl); rhs_ix++)
     {
-      SYMID rh_symid = RHS_ID_of_RULE (xrl, rhs_ix);
-      SYM symbol = SYM_by_ID (rh_symid);
-      if (!SYM_is_Nulling(symbol))
+      ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+      XSY rh_xsy = Buddy_of_ISY(ISY_by_ID(rh_isyid));
+      XSYID rh_xsyid = ID_of_XSY(rh_xsy);
+      if (!SYM_is_Nulling(rh_xsy))
 	{
-	  Last_Proper_SYMI_of_RULE(xrl) = symbol_instance_of_next_rule + rhs_ix;
+	  Last_Proper_SYMI_of_IRL(irl) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
 	  leading_nulls = 0;
 	  current_item++;
@@ -4251,11 +4250,11 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 @ @<Count the AHFA items in a rule@> =
 {
   int rhs_ix;
-  for (rhs_ix = 0; rhs_ix < Length_of_RULE(rule); rhs_ix++)
+  for (rhs_ix = 0; rhs_ix < Length_of_IRL(irl); rhs_ix++)
     {
-      SYMID rh_symid = RHS_ID_of_RULE (rule, rhs_ix);
-      SYM symbol = SYM_by_ID (rh_symid);
-      if (!SYM_is_Nulling(symbol)) ahfa_item_count++;
+      const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+      const ISY isy = ISY_by_ID (rh_isyid);
+      if (!ISY_is_Nulling(isy)) ahfa_item_count++;
     }
   ahfa_item_count++;
 }
@@ -4265,7 +4264,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   IRL_of_AIM (current_item) = irl;
   Sort_Key_of_AIM (current_item) = current_item - base_item;
   Null_Count_of_AIM(current_item) = leading_nulls;
-  Postdot_SYMID_of_AIM (current_item) = rh_symid;
+  Postdot_SYMID_of_AIM (current_item) = rh_xsyid;
   Position_of_AIM (current_item) = rhs_ix;
 }
 
@@ -4875,7 +4874,6 @@ _marpa_avl_destroy(duplicates);
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
   const IRL start_irl = g->t_start_irl;
-  const RULE start_rule = Co_RULE_of_IRL(start_irl);
   SYMID *postdot_symbol_ids;
   AIM start_item;
   AIM *item_list = my_obstack_alloc (&g->t_obs, sizeof (AIM));
