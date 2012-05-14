@@ -1090,30 +1090,18 @@ struct s_xsy;
 typedef struct s_xsy* XSY;
 typedef XSY SYM;
 typedef const struct s_xsy* XSY_Const;
-@ The initial element is a type |int|,
-and the next element is the symbol ID,
-(the unique identifier for the symbol),
-so that the
-symbol structure may be used
-where token or-nodes are
-expected.
-@d ID_of_XSY(xsy) ((xsy)->t_symbol_id)
-@d ID_of_SYM(sym) ID_of_XSY(sym)
 
-@<Private structures@> =
+@ @<Private structures@> =
 struct s_xsy {
-    int t_or_node_type;
-    XSYID t_symbol_id;
     @<Widely aligned symbol elements@>@;
+    @<Int aligned symbol elements@>@;
     @<Bit aligned symbol elements@>@;
 };
-typedef struct s_symbol SYM_Object;
-@ |t_symbol_id| is initialized when the symbol is
-added to the list of symbols.
-Symbols are used a nulling tokens, and
-|t_or_node_type| is set accordingly.
-@<Initialize symbol elements@> =
-    symbol->t_or_node_type = NULLING_TOKEN_OR_NODE;
+
+@*0 ID.
+@d ID_of_XSY(xsy) ((xsy)->t_symbol_id)
+@d ID_of_SYM(sym) ID_of_XSY(sym)
+@<Int aligned symbol elements@> = XSYID t_symbol_id;
 
 @ @<Function definitions@> =
 PRIVATE SYM
@@ -1450,12 +1438,27 @@ struct s_isy;
 typedef struct s_isy* ISY;
 typedef Marpa_ISY_ID ISYID;
 
-@ @<Private structures@> =
+@ The initial element is a type |int|,
+and the next element is the symbol ID,
+(the unique identifier for the symbol),
+so that the
+symbol structure may be used
+where token or-nodes are
+expected.
+@d Nulling_OR_by_ISYID(isyid) ((OR)ISY_by_ID(isyid))
+@<Private structures@> =
 struct s_isy {
+  int t_or_node_type;
+  ISYID t_isyid;
   @<Widely aligned ISY elements@>@;
-  @<Int aligned ISY elements@>@;
   @<Bit aligned ISY elements@>@;
 };
+@ |t_isyid| is initialized when the symbol is
+added to the list of symbols.
+Symbols are used a nulling tokens, and
+|t_or_node_type| is set accordingly.
+@<Initialize ISY elements@> =
+    isy->t_or_node_type = NULLING_TOKEN_OR_NODE;
 
 @*0 Constructors.
 @ Common logic for creating an ISY.
@@ -1516,8 +1519,7 @@ acts as the unique identifier for an ISY.
 The ISY ID is initialized when the ISY is
 added to the list of rules.
 @d ISY_by_ID(id) (*DSTACK_INDEX (g->t_isy_stack, ISY, (id)))
-@d ID_of_ISY(isy) ((isy)->t_isy_id)
-@<Int aligned ISY elements@> = ISYID t_isy_id;
+@d ID_of_ISY(isy) ((isy)->t_isyid)
 
 @ Symbol count accesors.
 @d ISY_Count_of_G(g) (DSTACK_LENGTH((g)->t_isy_stack))
@@ -7965,12 +7967,13 @@ typedef struct s_token* TOK;
 @ The |t_type| field is to allow |TOK|
 objects to act as or-nodes.
 @d Type_of_TOK(tok) ((tok)->t_unvalued.t_type)
-@d SYMID_of_TOK(tok) ((tok)->t_unvalued.t_symbol_id)
+@d ISYID_of_TOK(tok) ((tok)->t_unvalued.t_isyid)
+@d SYMID_of_TOK(tok) ID_of_XSY(Source_XSY_of_ISY(ISY_by_ID(ISYID_of_TOK(tok))))
 @d Value_of_TOK(tok) ((tok)->t_value)
 @<Private structures@> =
 struct s_token_unvalued {
     int t_type;
-    SYMID t_symbol_id;
+    ISYID t_isyid;
 };
 struct s_token {
     struct s_token_unvalued t_unvalued;
@@ -7978,7 +7981,6 @@ struct s_token {
 };
 
 @ @d TOK_Obs_of_R(r) TOK_Obs_of_I(I_of_R(r))
-@d TOK_by_SYMID(symbol_id) (SYM_by_ID(symbol_id))
 @ @<Initialize recognizer elements@> =
 {
   I_of_R(r) = input_new(g);
@@ -8038,7 +8040,7 @@ alternative_insertion_point (RECCE r, ALT new_alternative)
     {
       int outcome;
       trial = lo + (hi - lo) / 2;
-      outcome = alternative_cmp (new_alternative, alternative+trial);
+      outcome = alternative_cmp (r, new_alternative, alternative+trial);
       if (outcome == 0)
 	return -1;
       if (outcome > 0)
@@ -8066,8 +8068,9 @@ Of the remaining two keys,
 the more minor key is the start earleme, because that way its slightly
 costlier evaluation can sometimes be avoided.
 @<Function definitions@> =
-PRIVATE int alternative_cmp(const ALT_Const a, const ALT_Const b)
+PRIVATE int alternative_cmp(RECCE r, const ALT_Const a, const ALT_Const b)
 {
+     GRAMMAR g = G_of_R(r);
      int subkey = End_Earleme_of_ALT(b) - End_Earleme_of_ALT(a);
      if (subkey) return subkey;
      subkey = SYMID_of_ALT(a) - SYMID_of_ALT(b);
@@ -8299,7 +8302,7 @@ altered by the attempt.
     {
       my_obstack_blank (TOK_Obs_of_I (input), sizeof (*token));
       token = my_obstack_base (token_obstack);
-      SYMID_of_TOK (token) = token_xsyid;
+      ISYID_of_TOK (token) = token_isyid;
       Type_of_TOK (token) = VALUED_TOKEN_OR_NODE;
       Value_of_TOK (token) = value;
     }
@@ -8307,7 +8310,7 @@ altered by the attempt.
     {
       my_obstack_blank (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
       token = my_obstack_base (token_obstack);
-      SYMID_of_TOK (token) = token_xsyid;
+      ISYID_of_TOK (token) = token_isyid;
       Type_of_TOK (token) = UNVALUED_TOKEN_OR_NODE;
     }
   if (Furthest_Earleme_of_R (r) < target_earleme)
@@ -9655,6 +9658,7 @@ struct s_final_or_node
 @
 @d TOK_of_OR(or) (&(or)->t_token)
 @d SYMID_of_OR(or) SYMID_of_TOK(TOK_of_OR(or))
+@d ISYID_of_OR(or) ISYID_of_TOK(TOK_of_OR(or))
 @d Value_of_OR(or) Value_of_TOK(TOK_of_OR(or))
 @<Private structures@> =
 union u_or_node {
@@ -9849,7 +9853,7 @@ and this is the case if |Position_of_OR(or_node) == 0|.
 		DAND draft_and_node;
 		const int rhs_ix = symbol_instance - symbol_instance_of_rule;
 		const OR predecessor = rhs_ix ? last_or_node : NULL;
-		const OR cause = (OR)TOK_by_SYMID( RHS_ID_of_RULE (rule, rhs_ix ) );
+		const OR cause = Nulling_OR_by_ISYID( RHSID_of_IRL (irl, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
@@ -9990,9 +9994,9 @@ or-nodes follow a completion.
 	{
 	  DAND draft_and_node;
 	  const int rhs_ix = symbol_instance - SYMI_of_IRL(path_irl);
-	    const OR predecessor = rhs_ix ? last_or_node : NULL;
-	  const OR cause = (OR)TOK_by_SYMID( RHS_ID_of_RULE (path_rule, rhs_ix)) ;
-	  MARPA_ASSERT (symbol_instance < Length_of_RULE (path_rule)) @;
+	  const OR predecessor = rhs_ix ? last_or_node : NULL;
+	  const OR cause = Nulling_OR_by_ISYID( RHSID_of_IRL (path_irl, rhs_ix ) );
+	  MARPA_ASSERT (symbol_instance < Length_of_IRL (path_irl)) @;
 	  MARPA_ASSERT (symbol_instance >= 0) @;
 	  @<Set |last_or_node| to a new or-node@>@;
 	  PSL_Datum (this_earley_set_psl, symbol_instance) = or_node = last_or_node;
@@ -10006,8 +10010,8 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 	  Next_DAND_of_DAND (draft_and_node) = NULL;
 	}
       MARPA_ASSERT (Position_of_OR (or_node) <=
-		    SYMI_of_IRL (path_irl) + Length_of_RULE (path_rule)) @;
-      MARPA_ASSERT (Position_of_OR (or_node) >= SYMI_of_RULE (path_rule)) @;
+		    SYMI_of_IRL (path_irl) + Length_of_IRL (path_irl)) @;
+      MARPA_ASSERT (Position_of_OR (or_node) >= SYMI_of_IRL (path_irl)) @;
     }
 }
 
@@ -10595,13 +10599,13 @@ int _marpa_b_and_node_symbol(Marpa_Bocage b,
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |and_node_id|; set |and_node|@>@;
-    {
-      const OR cause_or = Cause_OR_of_AND (and_node);
-      const SYMID symbol_id =
-	OR_is_Token(cause_or) ? SYMID_of_OR(cause_or) : -1;
-      return symbol_id;
-    }
+  @<Check |and_node_id|; set |and_node|@>@;
+  {
+    const OR cause_or = Cause_OR_of_AND (and_node);
+    const SYMID symbol_id =
+      OR_is_Token (cause_or) ? ISYID_of_OR (cause_or) : -1;
+    return symbol_id;
+  }
 }
 
 @ @<Function definitions@> =
