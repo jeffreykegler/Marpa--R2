@@ -2494,15 +2494,14 @@ int _marpa_g_real_symbol_count(
 @ @d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
 @<Int aligned grammar elements@> =
 int t_symbol_instance_count;
-@ |SYMI_of_Completed_RULE| assumes that the rule is
-not zero length.
-|SYMI_of_Last_AIM_of_RULE| will return -1 if the
+@ |SYMI_of_Last_AIM_of_RULE| will return -1 if the
 rule has no proper symbols.
 @d SYMI_of_RULE(rule) ((rule)->t_symbol_instance_base)
 @d SYMI_of_IRL(irl) SYMI_of_RULE(Co_RULE_of_IRL(irl))
 @d Last_Proper_SYMI_of_RULE(rule) ((rule)->t_last_proper_symi)
-@d SYMI_of_Completed_RULE(rule)
-    (SYMI_of_RULE(rule) + Length_of_RULE(rule)-1)
+@d Last_Proper_SYMI_of_IRL(irl) Last_Proper_SYMI_of_RULE(Co_RULE_of_IRL(irl))
+@d SYMI_of_Completed_IRL(irl)
+    (SYMI_of_IRL(irl) + Length_of_IRL(irl)-1)
 @d SYMI_of_AIM(aim) (symbol_instance_of_ahfa_item_get(aim))
 @<Int aligned rule elements@> =
 int t_symbol_instance_base;
@@ -9840,7 +9839,6 @@ and this is the case if |Position_of_OR(or_node) == 0|.
   if (null_count > 0)
     {
       const IRL irl = IRL_of_AIM (ahfa_item);
-      const RULE rule = Co_RULE_of_IRL(irl);
       const int symbol_instance_of_rule = SYMI_of_IRL(irl);
       const int first_null_symbol_instance =
 	  ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
@@ -10180,8 +10178,9 @@ predecessor.  Set |or_node| to 0 if there is none.
 {
     /* The rule for the Leo path Earley item */
     RULE path_rule = NULL;
+    IRL path_irl = NULL;
     /* The rule for the previous Leo path Earley item */
-    RULE previous_path_rule;
+    IRL previous_path_irl;
     LIM path_leo_item = leo_predecessor;
     LIM higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
     /* A boolean to indicate whether is true is there is some
@@ -10193,7 +10192,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
     @<Set |path_or_node|@>@;
     @<Add draft and-nodes to the bottom or-node@>@;
-    previous_path_rule = path_rule;
+    previous_path_irl = path_irl;
     while (higher_path_leo_item) {
 	path_leo_item = higher_path_leo_item;
 	higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
@@ -10201,7 +10200,7 @@ predecessor.  Set |or_node| to 0 if there is none.
 	Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
 	@<Set |path_or_node|@>@;
 	@<Add the draft and-nodes to an upper Leo path or-node@>@;
-	previous_path_rule = path_rule;
+	previous_path_irl = path_irl;
     }
 }
 
@@ -10254,15 +10253,16 @@ predecessor.  Set |or_node| to 0 if there is none.
   int symbol_instance;
   const int origin_ordinal = Origin_Ord_of_EIM (base_earley_item);
   const AIM aim = AIM_of_EIM_by_AEX (base_earley_item, base_aex);
-  path_rule = RULE_of_AIM (aim);
-  symbol_instance = Last_Proper_SYMI_of_RULE (path_rule);
+  path_irl = IRL_of_AIM (aim);
+  path_rule = Co_RULE_of_IRL(path_irl);
+  symbol_instance = Last_Proper_SYMI_of_IRL (path_irl);
   Set_OR_from_Ord_and_SYMI (path_or_node, origin_ordinal, symbol_instance);
 }
 
 @ @<Add the draft and-nodes to an upper Leo path or-node@> =
 {
   OR dand_cause;
-  const SYMI symbol_instance = SYMI_of_Completed_RULE(previous_path_rule);
+  const SYMI symbol_instance = SYMI_of_Completed_IRL(previous_path_irl);
   const int origin_ordinal = Ord_of_ES(ES_of_LIM(path_leo_item));
   Set_OR_from_Ord_and_SYMI(dand_cause, origin_ordinal, symbol_instance);
   draft_and_node_add (&bocage_setup_obs, path_or_node,
@@ -10365,7 +10365,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   const int middle_ordinal = Origin_Ord_of_EIM(cause_earley_item);
   const AIM cause_ahfa_item = AIM_of_EIM_by_AEX(cause_earley_item, cause_aex);
   const SYMI cause_symbol_instance =
-      SYMI_of_Completed_RULE(RULE_of_AIM(cause_ahfa_item));
+      SYMI_of_Completed_IRL(IRL_of_AIM(cause_ahfa_item));
   @<Set |dand_predecessor|@>@;
   Set_OR_from_Ord_and_SYMI(dand_cause, middle_ordinal, cause_symbol_instance);
   draft_and_node_add (&bocage_setup_obs, work_proper_or_node,
