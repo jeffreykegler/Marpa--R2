@@ -5079,8 +5079,9 @@ of minimum sizes.
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
       const IRL irl = IRL_by_ID (irl_id);
-      const XRL xrl = Co_RULE_of_IRL(irl);
-      p_sym_rule_pairs->t_symid = LHS_ID_of_RULE (xrl);
+      const ISYID lhs_isyid = LHSID_of_IRL(irl);
+      const XSY lhs_xsy = Buddy_of_ISY(ISY_by_ID(lhs_isyid));
+      p_sym_rule_pairs->t_symid = ID_of_XSY(lhs_xsy);
       p_sym_rule_pairs->t_ruleid = irl_id;
       _marpa_avl_insert (lhs_avl_tree, p_sym_rule_pairs);
       p_sym_rule_pairs++;
