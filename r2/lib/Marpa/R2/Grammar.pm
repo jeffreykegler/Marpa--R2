@@ -1022,12 +1022,12 @@ sub Marpa::R2::Grammar::show_AHFA {
 
         my @raw_transitions = $grammar_c->_marpa_g_AHFA_state_transitions($state_id);
         my %transitions     = ();
-        while ( my ( $symbol_id, $to_state_id ) = splice @raw_transitions, 0,
+        while ( my ( $isy_id, $to_state_id ) = splice @raw_transitions, 0,
             2 )
         {
-            my $symbol_name = $grammar->xsy_name($symbol_id);
+            my $symbol_name = $grammar->isy_name($isy_id);
             $transitions{$symbol_name} = $to_state_id;
-        } ## end while ( my ( $symbol_id, $to_state_id ) = splice ...)
+        } ## end while ( my ( $isy_id, $to_state_id ) = splice ...)
         for my $transition_symbol ( sort keys %transitions ) {
             $text .= ' <' . $transition_symbol . '> => ';
             my $to_state_id = $transitions{$transition_symbol};

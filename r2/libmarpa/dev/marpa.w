@@ -1348,6 +1348,7 @@ it is the non-nullable ISY.
 @d ISYID_of_XSY(xsy) ID_of_ISY(ISY_of_XSY(xsy))
 @d ISY_by_XSYID(xsyid) (XSY_by_ID(xsyid)->t_isy_equivalent)
 @d ISYID_by_XSYID(xsyid) ID_of_ISY(ISY_of_XSY(XSY_by_ID(xsyid)))
+@d ISYID_by_SYMID(xsyid) ISYID_by_XSYID(xsyid)
 @<Widely aligned symbol elements@> = ISY t_isy_equivalent;
 @ @<Initialize symbol elements@> = ISY_of_XSY(symbol) = NULL;
 @ @<Function definitions@> =
@@ -1477,6 +1478,7 @@ isy_new(GRAMMAR g, XSY source)
   const XSY xsy = symbol_new(g, source);
   const ISY new_isy = isy_start(g);
   Buddy_of_ISY(new_isy) = xsy;
+  ISY_of_XSY(xsy) = new_isy;
   return new_isy;
 }
 
@@ -4115,6 +4117,7 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @d RULE_of_AIM(aim) Co_RULE_of_IRL(IRL_of_AIM(aim))
 @d IRLID_of_AIM(item) ID_of_IRL(IRL_of_AIM(item))
 @d LHS_ID_of_AIM(item) LHS_ID_of_RULE(RULE_of_AIM(item))
+@d LHS_ISYID_of_AIM(item) LHSID_of_IRL(IRL_of_AIM(item))
 @<Widely aligned AHFA item elements@> =
     IRL t_irl;
 
@@ -4773,11 +4776,11 @@ NEXT_AHFA_STATE: ;
 {
      int ahfa_id;
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
-	  unsigned int symbol_id;
+	  ISYID isyid;
 	  AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
           TRANS* const transitions = TRANSs_of_AHFA(ahfa);
-	  for (symbol_id = 0; symbol_id < symbol_count_of_g; symbol_id++) {
-	       TRANS working_transition = transitions[symbol_id];
+	  for (isyid = 0; isyid < isy_count; isyid++) {
+	       TRANS working_transition = transitions[isyid];
 	       if (working_transition) {
 		   int completion_count = Completion_Count_of_TRANS(working_transition);
 		   int sizeof_transition =
@@ -4786,7 +4789,7 @@ NEXT_AHFA_STATE: ;
 		   TRANS new_transition = my_obstack_alloc(&g->t_obs, sizeof_transition);
 		   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
 		   LV_Completion_Count_of_TRANS(new_transition) = 0;
-		   transitions[symbol_id] = new_transition;
+		   transitions[isyid] = new_transition;
 	       }
 	  }
 	}
@@ -4805,8 +4808,8 @@ NEXT_AHFA_STATE: ;
 	      for (aex = 0; aex < aim_count; aex++) {
 		  AIM ahfa_item = aims[aex];
 		  if (AIM_is_Completion(ahfa_item)) {
-		      SYMID completed_symbol_id = LHS_ID_of_AIM(ahfa_item);
-		      TRANS transition = transitions[completed_symbol_id];
+		      ISYID completed_isyid = LHS_ISYID_of_AIM(ahfa_item);
+		      TRANS transition = transitions[completed_isyid];
 		      AEX* aexes = AEXs_of_TRANS(transition);
 		      int aex_ix = LV_Completion_Count_of_TRANS(transition)++;
 		      aexes[aex_ix] = aex;
@@ -4840,7 +4843,8 @@ You can get the AIM from the AEX, but not vice versa.
 	  SYMID postdot = Postdot_SYMID_of_AIM (ahfa_item);
 	  if (postdot >= 0)
 	    {
-	      TRANS transition = transitions[postdot];
+	      ISYID postdot_isyid = ISYID_by_SYMID(postdot);
+	      TRANS transition = transitions[postdot_isyid];
 	      AHFA to_ahfa = To_AHFA_of_TRANS (transition);
 	      if (AHFA_is_Leo_Completion (to_ahfa))
 		{
@@ -4880,7 +4884,7 @@ _marpa_avl_destroy(duplicates);
   p_initial_state->t_item_count = 1;
   p_initial_state->t_key.t_id = 0;
   AHFA_is_Predicted (p_initial_state) = 0;
-  TRANSs_of_AHFA (p_initial_state) = transitions_new (g);
+  TRANSs_of_AHFA (p_initial_state) = transitions_new (g, isy_count);
   Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
   postdot_symbol_ids = Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
     my_obstack_alloc (&g->t_obs, sizeof (SYMID));
@@ -4935,7 +4939,7 @@ a start rule completion, and it is a
     p_new_state = singleton_duplicates[single_item_id];
     if (p_new_state)
       {				/* Do not add, this is a duplicate */
-	transition_add (&obs_precompute, p_working_state, working_symbol, p_new_state);
+	transition_add (&obs_precompute, p_working_state, ISYID_by_SYMID(working_symbol), p_new_state);
 	goto NEXT_WORKING_SYMBOL;
       }
     p_new_state = DQUEUE_PUSH (states, AHFA_Object);
@@ -4948,8 +4952,8 @@ a start rule completion, and it is a
     p_new_state->t_item_count = 1;
     AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
-    TRANSs_of_AHFA(p_new_state) = transitions_new(g);
-    transition_add (&obs_precompute, p_working_state, working_symbol, p_new_state);
+    TRANSs_of_AHFA(p_new_state) = transitions_new(g, isy_count);
+    transition_add (&obs_precompute, p_working_state, ISYID_by_SYMID(working_symbol), p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
       {
@@ -4973,7 +4977,7 @@ a start rule completion, and it is a
 	SYMID* complete_symids = my_obstack_alloc (&g->t_obs, sizeof (SYMID));
 	*complete_symids = lhs_id;
 	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
-	completion_count_inc(&obs_precompute, p_new_state, lhs_id);
+	completion_count_inc(&obs_precompute, p_new_state, ISYID_by_SYMID(lhs_id));
 	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
 	p_new_state->t_empty_transition = NULL;
@@ -5040,6 +5044,7 @@ be if written 100\% using indexes.
   const RULEID irl_count = IRL_Count_of_G(g);
   AIM* const item_list_working_buffer
     = my_obstack_alloc(&obs_precompute, irl_count*sizeof(AIM));
+  const ISYID isy_count = ISY_Count_of_G(g);
   const SYMID ins_count = SYM_Count_of_G(g);
   RULEID** irl_list_x_lh_sym = NULL;
 
@@ -5136,7 +5141,7 @@ of minimum sizes.
     {				// The new state would be a duplicate
 // Back it out and go on to the next in the queue
       (void) DQUEUE_POP (states, AHFA_Object);
-      transition_add (&obs_precompute, p_working_state, working_symbol,
+      transition_add (&obs_precompute, p_working_state, ISYID_by_SYMID(working_symbol),
 		      queued_AHFA_state);
       goto NEXT_WORKING_SYMBOL;
     }
@@ -5152,10 +5157,10 @@ of minimum sizes.
   }
   AHFA_initialize (p_new_state);
   AHFA_is_Predicted (p_new_state) = 0;
-  TRANSs_of_AHFA (p_new_state) = transitions_new (g);
+  TRANSs_of_AHFA (p_new_state) = transitions_new (g, isy_count);
   @<Calculate complete and postdot symbols for discovered
     state@>@;
-  transition_add (&obs_precompute, p_working_state, working_symbol,
+  transition_add (&obs_precompute, p_working_state, ISYID_by_SYMID(working_symbol),
 		  p_new_state);
   @<Calculate the predicted rule vector for this
     state and add the predicted AHFA state@>@;
@@ -5177,7 +5182,7 @@ of minimum sizes.
 	{
 	  int complete_symbol_id = LHS_ID_of_AIM (item);
 	  completion_count_inc (&obs_precompute, p_new_state,
-				complete_symbol_id);
+				ISYID_by_SYMID(complete_symbol_id));
 	  bv_bit_set (complete_v, (unsigned int) complete_symbol_id);
 	}
       else
@@ -5512,7 +5517,7 @@ create_predicted_AHFA_state(
   }
   AHFA_is_Predicted (p_new_state) = 1;
   p_new_state->t_empty_transition = NULL;
-  TRANSs_of_AHFA (p_new_state) = transitions_new (g);
+  TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
   Complete_SYM_Count_of_AHFA (p_new_state) = 0;
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
@@ -5566,8 +5571,6 @@ Speed is probably optimal.
 Time complexity is fine --- $O(1)$ in the length of the input.
 @ But this solution is is very space-intensive---%
 perhaps $O(\v g\v^2)$.
-Ordinarily, for code which is executed this heavily,
-I would worry about a speed versus space tradeoff of this kind.
 But these arrays are extremely sparse,
 Many rows of the array have only one or two entries.
 There are alternatives
@@ -5593,7 +5596,7 @@ This would be a good issue to run some benchmarks on,
 once I stabilize the C code implemention.
 
 @d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
-    (*(TRANSs_of_AHFA(from_ahfa)+(id)))
+    (*(TRANSs_of_AHFA(from_ahfa)+ISYID_by_SYMID(id)))
 @d TRANS_of_EIM_by_SYMID(eim, id) TRANS_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
 @d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
@@ -5602,8 +5605,6 @@ once I stabilize the C code implemention.
 @d LV_Completion_Count_of_TRANS(trans) ((trans)->t_ur.t_completion_count)
 @d To_AHFA_of_AHFA_by_SYMID(from_ahfa, id)
      (To_AHFA_of_TRANS(TRANS_of_AHFA_by_SYMID((from_ahfa), (id))))
-@d Completion_Count_of_AHFA_by_SYMID(from_ahfa, id)
-     (Completion_Count_of_TRANS(TRANS_of_AHFA_by_SYMID((from ahfa), (id))))
 @d To_AHFA_of_EIM_by_SYMID(eim, id) To_AHFA_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
 @d AEXs_of_TRANS(trans) ((trans)->t_aex)
 @d Leo_Base_AEX_of_TRANS(trans) ((trans)->t_leo_base_aex)
@@ -5613,7 +5614,8 @@ struct s_transition;
 typedef struct s_transition* TRANS;
 struct s_ur_transition;
 typedef struct s_ur_transition* URTRANS;
-@ @<Private typedefs@> = typedef int AEX;
+@ @s AEX int
+@<Private typedefs@> = typedef int AEX;
 @ @<Private structures@> =
 struct s_ur_transition {
     AHFA t_to_ahfa;
@@ -5652,12 +5654,11 @@ URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, int aim_ix)
 }
 
 @ @<Function definitions@> =
-PRIVATE TRANS* transitions_new(GRAMMAR g)
+PRIVATE TRANS* transitions_new(GRAMMAR g, int isy_count)
 {
-    int symbol_count = SYM_Count_of_G(g);
-    int symid = 0;
-    TRANS* transitions = my_obstack_new(&g->t_obs, TRANS, symbol_count);
-    while (symid < symbol_count) transitions[symid++] = NULL; /*
+    int isyid = 0;
+    TRANS* transitions = my_obstack_new(&g->t_obs, TRANS, isy_count);
+    while (isyid < isy_count) transitions[isyid++] = NULL; /*
         |malloc0| will not work because NULL is not guaranteed
 	to be a bitwise zero. */
     return transitions;
@@ -5665,12 +5666,12 @@ PRIVATE TRANS* transitions_new(GRAMMAR g)
 
 @ @<Function definitions@> =
 PRIVATE
-void transition_add(struct obstack *obstack, AHFA from_ahfa, SYMID symid, AHFA to_ahfa)
+void transition_add(struct obstack *obstack, AHFA from_ahfa, ISYID isyid, AHFA to_ahfa)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
-    TRANS transition = transitions[symid];
+    TRANS transition = transitions[isyid];
     if (!transition) {
-        transitions[symid] = (TRANS)transition_new(obstack, to_ahfa, 0);
+        transitions[isyid] = (TRANS)transition_new(obstack, to_ahfa, 0);
 	return;
     }
     LV_To_AHFA_of_TRANS(transition) = to_ahfa;
@@ -5679,12 +5680,12 @@ void transition_add(struct obstack *obstack, AHFA from_ahfa, SYMID symid, AHFA t
 
 @ @<Function definitions@> =
 PRIVATE
-void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, SYMID symid)
+void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, ISYID isyid)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
-    TRANS transition = transitions[symid];
+    TRANS transition = transitions[isyid];
     if (!transition) {
-        transitions[symid] = (TRANS)transition_new(obstack, NULL, 1);
+        transitions[isyid] = (TRANS)transition_new(obstack, NULL, 1);
 	return;
     }
     LV_Completion_Count_of_TRANS(transition)++;
@@ -5702,8 +5703,8 @@ int _marpa_g_AHFA_state_transitions(Marpa_Grammar g,
     @<Return |-2| on failure@>@;
     AHFA from_ahfa_state;
     TRANS* transitions;
-    SYMID symid;
-    int symbol_count;
+    SYMID isyid;
+    int isy_count;
     int ix = 0;
     const int max_ix = buffer_size / sizeof(*buffer);
     const int max_results = max_ix / 2;
@@ -5717,11 +5718,11 @@ int _marpa_g_AHFA_state_transitions(Marpa_Grammar g,
     if (max_results <= 0) return 0;
     from_ahfa_state = AHFA_of_G_by_ID(g, AHFA_state_id);
     transitions = TRANSs_of_AHFA(from_ahfa_state); 
-    symbol_count = SYM_Count_of_G(g);
-    for (symid = 0; symid < symbol_count; symid++) {
-        AHFA to_ahfa_state = To_AHFA_of_TRANS(transitions[symid]);
+    isy_count = ISY_Count_of_G(g);
+    for (isyid = 0; isyid < isy_count; isyid++) {
+        AHFA to_ahfa_state = To_AHFA_of_TRANS(transitions[isyid]);
 	if (!to_ahfa_state) continue;
-	buffer[ix++] = symid;
+	buffer[ix++] = isyid;
 	buffer[ix++] = ID_of_AHFA(to_ahfa_state);
 	if (ix/2 >= max_results) break;
     }
@@ -9916,7 +9917,7 @@ requirements in the process.
 @ Get the base data for a Leo item -- its base Earley item
 and the index of the relevant AHFA item.
 @<Function definitions@> =
-PRIVATE AEX lim_base_data_get(LIM leo_item, EIM* p_base)
+PRIVATE AEX lim_base_data_get(GRAMMAR g, LIM leo_item, EIM* p_base)
 {
       const SYMID postdot = Postdot_SYMID_of_LIM (leo_item);
       const EIM base = Base_EIM_of_LIM(leo_item);
@@ -9925,13 +9926,13 @@ PRIVATE AEX lim_base_data_get(LIM leo_item, EIM* p_base)
       return Leo_Base_AEX_of_TRANS (transition);
 }
 
-@ @d Path_AIM_of_LIM(lim) (base_aim_of_lim(lim)+1)
-@d Base_AIM_of_LIM(lim) (base_aim_of_lim(lim))
+@ @d Path_AIM_of_LIM(lim) (base_aim_of_lim(g, lim)+1)
+@d Base_AIM_of_LIM(lim) (base_aim_of_lim(g, lim))
 @<Function definitions@> =
-PRIVATE AIM base_aim_of_lim(LIM leo_item)
+PRIVATE AIM base_aim_of_lim(GRAMMAR g, LIM leo_item)
 {
       EIM base;
-      const AEX base_aex = lim_base_data_get(leo_item, &base);
+      const AEX base_aex = lim_base_data_get(g, leo_item, &base);
       return AIM_of_EIM_by_AEX(base, base_aex);
 }
 
@@ -10173,7 +10174,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     OR dand_predecessor;
     OR path_or_node;
     EIM base_earley_item;
-    AEX base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
+    AEX base_aex = lim_base_data_get(g, path_leo_item, &base_earley_item);
     Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
     @<Set |path_or_node|@>@;
     @<Add draft and-nodes to the bottom or-node@>@;
@@ -10181,7 +10182,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     while (higher_path_leo_item) {
 	path_leo_item = higher_path_leo_item;
 	higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
-	base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
+	base_aex = lim_base_data_get(g, path_leo_item, &base_earley_item);
 	Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
 	@<Set |path_or_node|@>@;
 	@<Add the draft and-nodes to an upper Leo path or-node@>@;
