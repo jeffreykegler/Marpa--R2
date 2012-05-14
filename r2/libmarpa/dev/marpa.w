@@ -2230,7 +2230,7 @@ whether this rule also provides the semantics,
 because the ``virtual LHS'' flag serves that purpose.
 @d Source_XRL_of_IRL(irl) (Co_RULE_of_IRL(irl)->t_source_xrl)
 @d Source_XRL_of_RULE(rule) ((rule)->t_source_xrl)
-@<Int aligned rule elements@> = XRL t_source_xrl;
+@<Widely aligned rule elements@> = XRL t_source_xrl;
 @ @<Initialize rule elements@> = Source_XRL_of_RULE(rule) = NULL;
 @ @<Function definitions@> =
 Marpa_Rule_ID _marpa_g_source_xrl(
@@ -2257,7 +2257,7 @@ the value of a rule to be the value of its
 first child, which under the current implementation
 is a stack no-op.
 @d XRL_is_Ask_Me(rule) ((rule)->t_is_ask_me)
-@<Int aligned rule elements@> = unsigned int t_is_ask_me:1;
+@<Bit aligned rule elements@> = unsigned int t_is_ask_me:1;
 @ @<Initialize rule elements@> =
     XRL_is_Ask_Me(rule) = 0;
 @ @<Function definitions@> =
@@ -2328,16 +2328,6 @@ _marpa_g_irl_semantic_equivalent (Marpa_Grammar g, Marpa_IRL_ID irl_id)
   if ( IRL_has_Virtual_LHS (irl) ) return -1;
   return ID_of_XRL( Source_XRL_of_IRL(irl) );
 }
-
-@ This is the first AHFA item for a rule.
-There may not be one, in which case it is |NULL|.
-Currently, this is not used after grammar precomputation,
-and there may be an optimization here.
-Perhaps later Marpa objects {\bf should}
-be using it.
-@<Widely aligned rule elements@> = AIM t_first_aim;
-@ @<Initialize rule elements@> =
-    rule->t_first_aim = NULL;
 
 @** Internal Rule (IRL) Code.
 
@@ -2488,6 +2478,18 @@ int _marpa_g_real_symbol_count(
     @<Fail if |irl_id| is invalid@>@;
     return Real_SYM_Count_of_IRL(IRL_by_ID(irl_id));
 }
+
+@*0 First AIM.
+This is the first AHFA item for a rule.
+There may not be one, in which case it is |NULL|.
+Currently, this is not used after grammar precomputation,
+and there may be an optimization here.
+Perhaps later Marpa objects {\bf should}
+be using it.
+@d First_AIM_of_IRL(irl) ((irl)->t_first_aim)
+@<Widely aligned IRL elements@> = AIM t_first_aim;
+@ @<Initialize IRL elements@> =
+    First_AIM_of_IRL(irl) = NULL;
 
 @** Symbol Instance (SYMI) Code.
 @<Private typedefs@> = typedef int SYMI;
@@ -4288,8 +4290,8 @@ you want to follow the rules.
   for (item_id--; item_id >= 0; item_id--)
     {
       AIM item = items + item_id;
-      RULE rule = RULE_of_AIM (item);
-      rule->t_first_aim = item;
+      IRL irl = IRL_of_AIM (item);
+      First_AIM_of_IRL(irl) = item;
     }
 }
 
@@ -4878,7 +4880,7 @@ _marpa_avl_destroy(duplicates);
   AIM start_item;
   AIM *item_list = my_obstack_alloc (&g->t_obs, sizeof (AIM));
   /* The start item is the initial item for the start rule */
-  start_item = start_rule->t_first_aim;
+  start_item = First_AIM_of_IRL(start_irl);
   item_list[0] = start_item;
   AHFA_initialize(p_initial_state);
   p_initial_state->t_items = item_list;
@@ -5338,9 +5340,8 @@ states.
     {
       SYMID from, to;
       const IRL irl = IRL_by_ID(irl_id);
-      const XRL xrl = Co_RULE_of_IRL(irl);
       /* Get the initial item for the rule */
-      const AIM item = xrl->t_first_aim;
+      const AIM item = First_AIM_of_IRL(irl);
       from = LHS_ID_of_AIM (item);
       to = Postdot_SYMID_of_AIM (item);
       /* There is no symbol-to-symbol transition for a completion item */
@@ -5376,8 +5377,7 @@ final result we want the keys to be unique integers
 in a sequence start from 0,
 so that they can be used as the indices of a bit vector.
 @d SET_1ST_PASS_SORT_KEY_FOR_IRL(sort_key, irl) {
-  const XRL xrl = Co_RULE_of_IRL(irl);
-  const AIM aim = xrl->t_first_aim;
+  const AIM aim = First_AIM_of_IRL(irl);
   (sort_key) = Postdot_SYMID_of_AIM (aim);
 }
 
@@ -5485,8 +5485,7 @@ create_predicted_AHFA_state(
 	  {
 	    /* Add the initial item for the predicted rule */
 	    const IRL irl = irl_by_sort_key[sort_ordinal];
-	    XRL xrl = Co_RULE_of_IRL(irl);
-	    item_list_working_buffer[item_list_ix++] = xrl->t_first_aim;
+	    item_list_working_buffer[item_list_ix++] = First_AIM_of_IRL(irl);
 	  }
       }
   }
@@ -9625,7 +9624,6 @@ Position is the dot position.
 @d OR_is_Token(or) (Type_of_OR(or) <= MAX_TOKEN_OR_NODE)
 @d Position_of_OR(or) ((or)->t_final.t_position)
 @d Type_of_OR(or) ((or)->t_final.t_position)
-@d RULE_of_OR(or) Co_RULE_of_IRL(IRL_of_OR(or))
 @d IRL_of_OR(or) ((or)->t_final.t_irl)
 @d Origin_Ord_of_OR(or) ((or)->t_final.t_start_set_ordinal)
 @d ID_of_OR(or) ((or)->t_final.t_id)
@@ -9919,7 +9917,6 @@ requirements in the process.
 	const int ordinal_of_set_of_this_leo_item = Ord_of_ES(ES_of_LIM(this_leo_item));
           const AIM path_ahfa_item = Path_AIM_of_LIM(previous_leo_item);
 	  const IRL path_irl = IRL_of_AIM(path_ahfa_item);
-	  const RULE path_rule = Co_RULE_of_IRL(path_irl);
 	  const int symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
 	@<Add main Leo path or-node@>@;
 	@<Add Leo path nulling token or-nodes@>@;
@@ -10177,7 +10174,6 @@ predecessor.  Set |or_node| to 0 if there is none.
 @<Add draft and-nodes for chain starting with |leo_predecessor|@> =
 {
     /* The rule for the Leo path Earley item */
-    RULE path_rule = NULL;
     IRL path_irl = NULL;
     /* The rule for the previous Leo path Earley item */
     IRL previous_path_irl;
@@ -10254,7 +10250,6 @@ predecessor.  Set |or_node| to 0 if there is none.
   const int origin_ordinal = Origin_Ord_of_EIM (base_earley_item);
   const AIM aim = AIM_of_EIM_by_AEX (base_earley_item, base_aex);
   path_irl = IRL_of_AIM (aim);
-  path_rule = Co_RULE_of_IRL(path_irl);
   symbol_instance = Last_Proper_SYMI_of_IRL (path_irl);
   Set_OR_from_Ord_and_SYMI (path_or_node, origin_ordinal, symbol_instance);
 }
