@@ -1501,7 +1501,7 @@ isy_clone(GRAMMAR g, XSY xsy)
 Delete this when division of grammar into
 external and internal is complete.
 @d Buddy_of_ISY(isy) ((isy)->t_buddy)
-@d XSYID_by_ISYID(isyid) ID_of_XSY(Buddy_of_ISY(ISY_by_ID(isyid)))
+@d BuddyID_by_ISYID(isyid) ID_of_XSY(Buddy_of_ISY(ISY_by_ID(isyid)))
 @<Widely aligned ISY elements@> =
   XSY t_buddy;
 @ @<Function definitions@> =
@@ -4941,7 +4941,7 @@ a start rule completion, and it is a
       {
 	SYMID lhs_isyid = LHS_ISYID_of_AIM(single_item_p);
 	SYMID* complete_symids = my_obstack_alloc (&g->t_obs, sizeof (SYMID));
-	*complete_symids = XSYID_by_ISYID(lhs_isyid);
+	*complete_symids = BuddyID_by_ISYID(lhs_isyid);
 	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
 	completion_count_inc(&obs_precompute, p_new_state, lhs_isyid);
 	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
@@ -4986,7 +4986,7 @@ set the Leo completion symbol to |lhs_id|@> =
   SYMID predot_symid = Postdot_SYMID_of_AIM (previous_ahfa_item);
   if (SYM_is_LHS(SYM_by_ID (predot_symid)))
     {
-      Leo_LHS_ID_of_AHFA (p_new_state) = XSYID_by_ISYID(lhs_isyid);
+      Leo_LHS_ID_of_AHFA (p_new_state) = BuddyID_by_ISYID(lhs_isyid);
     }
 }
 
@@ -5012,7 +5012,7 @@ be if written 100\% using indexes.
     = my_obstack_alloc(&obs_precompute, irl_count*sizeof(AIM));
   const ISYID isy_count = ISY_Count_of_G(g);
   const SYMID ins_count = SYM_Count_of_G(g);
-  RULEID** irl_list_x_lh_sym = NULL;
+  IRLID** irl_list_x_lh_isy = NULL;
 
 @ Initialized based on the capacity of the XRL stack, rather
 than its length, as a convenient way to deal with issues
@@ -5043,8 +5043,7 @@ of minimum sizes.
     {
       const IRL irl = IRL_by_ID (irl_id);
       const ISYID lhs_isyid = LHSID_of_IRL(irl);
-      const XSY lhs_xsy = Buddy_of_ISY(ISY_by_ID(lhs_isyid));
-      p_sym_rule_pairs->t_symid = ID_of_XSY(lhs_xsy);
+      p_sym_rule_pairs->t_symid = lhs_isyid;
       p_sym_rule_pairs->t_ruleid = irl_id;
       _marpa_avl_insert (lhs_avl_tree, p_sym_rule_pairs);
       p_sym_rule_pairs++;
@@ -5052,26 +5051,26 @@ of minimum sizes.
   {
     struct avl_traverser traverser;
     struct sym_rule_pair *pair;
-    SYMID seen_symid = -1;
+    ISYID seen_isyid = -1;
     IRLID *const rule_data_base =
       my_obstack_new (&obs_precompute, IRLID, irl_count);
     IRLID *p_rule_data = rule_data_base;
     _marpa_avl_t_init (&traverser, lhs_avl_tree);
     /* One extra "symbol" as an end marker */
-    irl_list_x_lh_sym =
-      my_obstack_new (&obs_precompute, IRLID *, ins_count + 1);
+    irl_list_x_lh_isy =
+      my_obstack_new (&obs_precompute, IRLID *, isy_count + 1);
     for (pair =
 	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser,
 						      lhs_avl_tree); pair;
 	 pair = (struct sym_rule_pair *) _marpa_avl_t_next (&traverser))
       {
-	const SYMID current_symid = pair->t_symid;
-	while (seen_symid < current_symid)
-	  irl_list_x_lh_sym[++seen_symid] = p_rule_data;
+	const ISYID current_isyid = pair->t_symid;
+	while (seen_isyid < current_isyid)
+	  irl_list_x_lh_isy[++seen_isyid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
-    while (seen_symid <= ins_count)
-      irl_list_x_lh_sym[++seen_symid] = p_rule_data;
+    while (seen_isyid <= ins_count)
+      irl_list_x_lh_isy[++seen_isyid] = p_rule_data;
   }
   _marpa_avl_destroy (lhs_avl_tree);
 }
@@ -5148,7 +5147,7 @@ of minimum sizes.
       if (postdot < 0)
 	{
 	  ISYID complete_symbol_isyid = LHS_ISYID_of_AIM (item);
-	  XSYID complete_symbol_xsyid = XSYID_by_ISYID(complete_symbol_isyid);
+	  XSYID complete_symbol_xsyid = BuddyID_by_ISYID(complete_symbol_isyid);
 	  completion_count_inc (&obs_precompute, p_new_state, complete_symbol_isyid);
 	  bv_bit_set (complete_v, (unsigned int) complete_symbol_xsyid);
 	}
@@ -5397,7 +5396,7 @@ which can be used to index the rules in a bit vector.
 		       irl_count);
   for (from_isyid = 0; from_isyid < isy_count; from_isyid++)
     {
-      XSYID from_xsyid = XSYID_by_ISYID(from_isyid);
+      XSYID from_xsyid = BuddyID_by_ISYID(from_isyid);
       // for every row of the symbol-by-symbol matrix
       unsigned int min, max, start;
       for (start = 0;
@@ -5408,16 +5407,15 @@ which can be used to index the rules in a bit vector.
 	  ISYID to_isyid;
 	  for (to_isyid = min; to_isyid <= (ISYID)max; to_isyid++)
 	    {
-	      XSYID to_xsyid = XSYID_by_ISYID(to_isyid);
 	      // for every predicted symbol
-	      RULEID *p_irl_x_lh_sym = irl_list_x_lh_sym[to_xsyid];
-	      const RULEID *p_one_past_rules = irl_list_x_lh_sym[to_xsyid + 1];
-	      for (; p_irl_x_lh_sym < p_one_past_rules; p_irl_x_lh_sym++)
+	      RULEID *p_irl_x_lh_isy = irl_list_x_lh_isy[to_isyid];
+	      const RULEID *p_one_past_rules = irl_list_x_lh_isy[to_isyid + 1];
+	      for (; p_irl_x_lh_isy < p_one_past_rules; p_irl_x_lh_isy++)
 		{
 		  // For every rule with that symbol on its LHS
-		  const RULEID rule_with_this_lhs_symbol = *p_irl_x_lh_sym;
+		  const IRLID irl_with_this_lhs = *p_irl_x_lh_isy;
 		  unsigned int sort_ordinal =
-		    sort_key_by_irl_id[rule_with_this_lhs_symbol];
+		    sort_key_by_irl_id[irl_with_this_lhs];
 		  matrix_bit_set (prediction_matrix,
 				  (unsigned int) from_xsyid, sort_ordinal);
 		  // Set the $(symbol, rule sort key)$ bit in the matrix
