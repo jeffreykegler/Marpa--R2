@@ -5025,7 +5025,6 @@ be if written 100\% using indexes.
   AIM* const item_list_working_buffer
     = my_obstack_alloc(&obs_precompute, irl_count*sizeof(AIM));
   const ISYID isy_count = ISY_Count_of_G(g);
-  const SYMID ins_count = SYM_Count_of_G(g);
   IRLID** irl_list_x_lh_isy = NULL;
 
 @ Initialized based on the capacity of the XRL stack, rather
@@ -5083,7 +5082,7 @@ of minimum sizes.
 	  irl_list_x_lh_isy[++seen_isyid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
-    while (seen_isyid <= ins_count)
+    while (seen_isyid <= isy_count)
       irl_list_x_lh_isy[++seen_isyid] = p_rule_data;
   }
   _marpa_avl_destroy (lhs_avl_tree);
@@ -5148,26 +5147,24 @@ of minimum sizes.
 
 @ @<Calculate complete and postdot symbols for discovered state@> =
 {
-  int symbol_count = SYM_Count_of_G (g);
   int item_ix;
   int no_of_postdot_symbols;
   int no_of_complete_symbols;
-  Bit_Vector complete_v = bv_create (symbol_count);
-  Bit_Vector postdot_v = bv_create (symbol_count);
+  Bit_Vector complete_v = bv_create (isy_count);
+  Bit_Vector postdot_v = bv_create (isy_count);
   for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
     {
       AIM item = item_list_working_buffer[item_ix];
-      Marpa_Symbol_ID postdot = Postdot_SYMID_of_AIM (item);
-      if (postdot < 0)
+      ISYID postdot_isyid = Postdot_ISYID_of_AIM (item);
+      if (postdot_isyid < 0)
 	{
 	  ISYID complete_symbol_isyid = LHS_ISYID_of_AIM (item);
-	  XSYID complete_symbol_xsyid = BuddyID_by_ISYID(complete_symbol_isyid);
 	  completion_count_inc (&obs_precompute, p_new_state, complete_symbol_isyid);
-	  bv_bit_set (complete_v, (unsigned int) complete_symbol_xsyid);
+	  bv_bit_set (complete_v, (unsigned int) complete_symbol_isyid);
 	}
       else
 	{
-	  bv_bit_set (postdot_v, (unsigned int) postdot);
+	  bv_bit_set (postdot_v, (unsigned int) postdot_isyid);
 	}
     }
   if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
@@ -5179,11 +5176,11 @@ of minimum sizes.
 			  no_of_postdot_symbols * sizeof (SYMID));
       for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
 	{
-	  Marpa_Symbol_ID postdot;
-	  for (postdot = (Marpa_Symbol_ID) min;
-	       postdot <= (Marpa_Symbol_ID) max; postdot++)
+	  ISYID postdot_isyid;
+	  for (postdot_isyid = (ISYID) min;
+	       postdot_isyid <= (ISYID) max; postdot_isyid++)
 	    {
-	      *p_symbol++ = postdot;
+	      *p_symbol++ = BuddyID_by_ISYID(postdot_isyid);
 	    }
 	}
     }
@@ -5199,11 +5196,11 @@ of minimum sizes.
       for (start = 0; bv_scan (complete_v, start, &min, &max);
 	   start = max + 2)
 	{
-	  SYMID complete_symbol_id;
-	  for (complete_symbol_id = (SYMID) min;
-	       complete_symbol_id <= (SYMID) max; complete_symbol_id++)
+	  ISYID complete_isyid;
+	  for (complete_isyid = (SYMID) min;
+	       complete_isyid <= (SYMID) max; complete_isyid++)
 	    {
-	      *p_symbol++ = complete_symbol_id;
+	      *p_symbol++ = BuddyID_by_ISYID(complete_isyid);
 	    }
 	}
     }
