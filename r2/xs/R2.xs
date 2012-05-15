@@ -1388,7 +1388,8 @@ PPCODE:
   int result = _marpa_g_AHFA_state_is_predict (g, AHFA_state_id);
   if (result < 0)
     {
-      croak ("Invalid AHFA state %d", AHFA_state_id);
+      croak ("Problem in AHFA_state_is_predict(%d): %s", AHFA_state_id,
+	xs_g_error (g_wrapper));
     }
   if (result)
     XSRETURN_YES;
@@ -1403,12 +1404,13 @@ PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
   int result = _marpa_g_AHFA_state_leo_lhs_symbol (g, AHFA_state_id);
-  if (result < -1)
-    {
-      croak ("Invalid AHFA state %d", AHFA_state_id);
-    }
   if (result == -1)
     XSRETURN_UNDEF;
+  if (result < 0)
+    {
+      croak ("Problem in AHFA_state_leo_lhs_symbol(%d): %s", AHFA_state_id,
+	xs_g_error (g_wrapper));
+    }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
