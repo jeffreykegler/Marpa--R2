@@ -157,21 +157,6 @@ Marpa::R2::Test::is( $grammar->show_rules(),
 12: FilterExpr -> FALSE
 13: WithPf -> /* empty !used */
 14: WithPf -> WITH PF
-15: Input -> Input[Seq]
-16: Input -> Input[Seq] SEPARATOR
-17: Input[Seq] -> Statement
-18: Input[Seq] -> Input[Seq] SEPARATOR Statement
-19: MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3]
-20: MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[]
-21: MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3]
-22: MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]
-23: MetricSelect[R3:3] -> Match MetricSelect[R3:4]
-24: MetricSelect[R3:3] -> Match Filter[] WithPf[]
-25: MetricSelect[R3:3] -> Match[] MetricSelect[R3:4]
-26: MetricSelect[R3:4] -> Filter WithPf
-27: MetricSelect[R3:4] -> Filter WithPf[]
-28: MetricSelect[R3:4] -> Filter[] WithPf
-29: Input['] -> Input
 END_OF_RULES
 
 Marpa::R2::Test::is( $grammar->show_AHFA(),

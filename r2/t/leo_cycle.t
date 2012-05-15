@@ -82,17 +82,6 @@ Marpa::R2::Test::is( $grammar->show_rules,
 7: G -> H
 8: A -> B
 9: S -> /* empty !used */
-10: S -> a A
-11: S -> a A[]
-12: H -> S
-13: B -> C
-14: D -> E
-15: E -> F
-16: F -> G
-17: C -> D
-18: G -> H
-19: A -> B
-20: S['] -> S
 END_OF_STRING
 
 my $expected_ahfa_output = <<'END_OF_STRING';

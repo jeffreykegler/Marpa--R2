@@ -61,14 +61,6 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 2: B -> a
 3: B -> /* empty !used */
 4: C -> /* empty !used */
-5: S -> A B S[R0:2]
-6: S -> A B B[] B[] C C
-7: S -> A B[] S[R0:2]
-8: S -> A B[] B[] B[] C C
-9: S[R0:2] -> B B C C
-10: S[R0:2] -> B B[] C C
-11: S[R0:2] -> B[] B C C
-12: S['] -> S
 EOS
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );

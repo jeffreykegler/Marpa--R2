@@ -61,16 +61,6 @@ Marpa::R2::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 1: A -> a
 2: A -> E /* !used */
 3: E -> /* empty !used */
-4: S -> A S[R0:1]
-5: S -> A A[] A[] A[]
-6: S -> A[] S[R0:1]
-7: S[R0:1] -> A S[R0:2]
-8: S[R0:1] -> A A[] A[]
-9: S[R0:1] -> A[] S[R0:2]
-10: S[R0:2] -> A A
-11: S[R0:2] -> A A[]
-12: S[R0:2] -> A[] A
-13: S['] -> S
 EOS
 
 Marpa::R2::Test::is( $grammar->show_symbols,

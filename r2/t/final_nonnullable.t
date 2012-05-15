@@ -62,13 +62,6 @@ Marpa::R2::Test::is( $grammar->show_rules,
 1: p -> a
 2: p -> /* empty !used */
 3: n -> a
-4: S -> p p S[R0:2]
-5: S -> p p[] S[R0:2]
-6: S -> p[] p S[R0:2]
-7: S -> p[] p[] S[R0:2]
-8: S[R0:2] -> p n
-9: S[R0:2] -> p[] n
-10: S['] -> S
 END_OF_STRING
 
 Marpa::R2::Test::is( $grammar->show_AHFA,
