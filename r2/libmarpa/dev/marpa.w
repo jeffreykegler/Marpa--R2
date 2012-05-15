@@ -1545,6 +1545,20 @@ int _marpa_g_isy_is_start( Marpa_Grammar g, Marpa_ISY_ID isy_id)
    return ISY_is_Start(ISY_by_ID(isy_id));
 }
 
+@ Is LHS?.
+@d ISY_is_LHS(isy) ((isy)->t_is_lhs)
+@<Bit aligned ISY elements@> = unsigned int t_is_lhs:1;
+@ @<Initialize ISY elements@> = ISY_is_LHS(isy) = 0;
+@ @<Function definitions@> =
+int _marpa_g_isy_is_lhs( Marpa_Grammar g, Marpa_ISY_ID isy_id) 
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |isy_id| is invalid@>@;
+   return ISY_is_LHS(ISY_by_ID(isy_id));
+}
+
 @*0 ISY Is Nulling?.
 @d ISY_is_Nulling(isy) ((isy)->t_isy_is_nulling)
 @<Bit aligned ISY elements@> = unsigned int t_isy_is_nulling:1;
@@ -1703,21 +1717,30 @@ irl_start(GRAMMAR g, int length)
   return irl;
 }
 
-PRIVATE XRL
+PRIVATE void
 irl_finish( GRAMMAR g, IRL irl)
+{
+  const ISY lhs_isy = LHS_of_IRL(irl);
+  ISY_is_LHS(lhs_isy) = 1;
+}
+
+PRIVATE XRL
+irl_make_buddy( GRAMMAR g, IRL irl)
 {
   int rhs_ix;
   XRL xrl;
   const int length = Length_of_IRL(irl);
   // I expect this use of |my_new| to be temporary
   SYMID* new_rhs = my_new(SYMID, length);
-  SYMID new_lhs = ID_of_XSY(Buddy_of_ISY(LHS_of_IRL(irl)));
+  const ISY lhs_isy = LHS_of_IRL(irl);
+  SYMID new_lhs = ID_of_XSY(Buddy_of_ISY(lhs_isy));
   for (rhs_ix = 0; rhs_ix < length; rhs_ix++) {
     new_rhs[rhs_ix] = ID_of_XSY(Buddy_of_ISY(RHS_of_IRL(irl, rhs_ix)));
   }
   xrl = rule_new(g, new_lhs, new_rhs, length);
   Co_RULE_of_IRL(irl) = xrl;
   my_free(new_rhs);
+  irl_finish(g, irl);
   return xrl;
 }
 
@@ -1732,6 +1755,7 @@ irl_finish( GRAMMAR g, IRL irl)
       new_irl->t_isyid_array[symbol_ix] =
 	ISYID_by_XSYID(rule->t_symbols[symbol_ix]);
     }
+  irl_finish(g, new_irl);
 }
 
 @ @<Function definitions@> =
@@ -3093,7 +3117,7 @@ and productive.
     IRL rewrite_irl = irl_start(g, 1);
     LHSID_of_IRL(rewrite_irl) = lhs_isyid;
     RHSID_of_IRL(rewrite_irl, 0) = internal_lhs_isyid;
-    rewrite_rule = irl_finish(g, rewrite_irl);
+    rewrite_rule = irl_make_buddy(g, rewrite_irl);
     Source_XRL_of_IRL(rewrite_irl) = rule;
     /* Real symbol count remains at default of 0 */
     IRL_has_Virtual_RHS (rewrite_irl) = 1;
@@ -3108,7 +3132,7 @@ and productive.
   LHSID_of_IRL (rewrite_irl) = lhs_isyid;
   RHSID_of_IRL (rewrite_irl, 0) = internal_lhs_isyid;
   RHSID_of_IRL (rewrite_irl, 1) = separator_isyid;
-  rewrite_rule = irl_finish (g, rewrite_irl);
+  rewrite_rule = irl_make_buddy (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
   IRL_has_Virtual_RHS (rewrite_irl) = 1;
   Real_SYM_Count_of_IRL (rewrite_irl) = 1;
@@ -3122,7 +3146,7 @@ That's the core of Marpa's rewrite.
   const IRL rewrite_irl = irl_start (g, 1);
   LHSID_of_IRL (rewrite_irl) = internal_lhs_isyid;
   RHSID_of_IRL (rewrite_irl, 0) = rhs_isyid;
-  irl_finish (g, rewrite_irl);
+  irl_make_buddy (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
   IRL_has_Virtual_LHS (rewrite_irl) = 1;
   Real_SYM_Count_of_IRL (rewrite_irl) = 1;
@@ -3138,7 +3162,7 @@ That's the core of Marpa's rewrite.
   if (separator_isyid >= 0)
     RHSID_of_IRL (rewrite_irl, rhs_ix++) = separator_isyid;
   RHSID_of_IRL (rewrite_irl, rhs_ix) = rhs_isyid;
-  irl_finish (g, rewrite_irl);
+  irl_make_buddy (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
   IRL_has_Virtual_LHS (rewrite_irl) = 1;
   IRL_has_Virtual_RHS (rewrite_irl) = 1;
@@ -3400,7 +3424,7 @@ end before the second proper nullable (or factor).
       RHSID_of_IRL (chaf_irl, piece_ix) =
 	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3446,7 +3470,7 @@ the Marpa parse engine.
 	    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
-      chaf_rule = irl_finish (g, chaf_irl);
+      chaf_rule = irl_make_buddy (g, chaf_irl);
       @<Add CHAF IRL@>@;
     }
 }
@@ -3476,7 +3500,7 @@ the Marpa parse engine.
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3504,7 +3528,7 @@ the Marpa parse engine.
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3532,7 +3556,7 @@ the Marpa parse engine.
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3570,7 +3594,7 @@ the Marpa parse engine.
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length-1) = chaf_virtual_isyid;
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3601,7 +3625,7 @@ Open block, declarations and setup.
       RHSID_of_IRL (chaf_irl, piece_ix) =
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3628,7 +3652,7 @@ Open block, declarations and setup.
       RHSID_of_IRL (chaf_irl, piece_ix) =
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3655,7 +3679,7 @@ Open block, declarations and setup.
       RHSID_of_IRL (chaf_irl, piece_ix) =
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3695,7 +3719,7 @@ a nulling rule.
 	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
-      chaf_rule = irl_finish (g, chaf_irl);
+      chaf_rule = irl_make_buddy (g, chaf_irl);
       @<Add CHAF IRL@>@;
   }
 }
@@ -3724,7 +3748,7 @@ a nulling rule.
       RHSID_of_IRL (chaf_irl, piece_ix) =
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
-  chaf_rule = irl_finish (g, chaf_irl);
+  chaf_rule = irl_make_buddy (g, chaf_irl);
   @<Add CHAF IRL@>@;
 }
 
@@ -3755,7 +3779,7 @@ a nulling rule.
 	    ISYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
-      chaf_rule = irl_finish (g, chaf_irl);
+      chaf_rule = irl_make_buddy (g, chaf_irl);
       @<Add CHAF IRL@>@;
     }
 }
@@ -3808,7 +3832,7 @@ in the literature --- it is called ``augmenting the grammar".
   new_start_irl = irl_start(g, 1);
   LHSID_of_IRL(new_start_irl) = ID_of_ISY(new_start_isy);
   RHSID_of_IRL(new_start_irl, 0) = ISYID_of_XSY(start_xsy);
-  new_start_rule = irl_finish(g, new_start_irl);
+  new_start_rule = irl_make_buddy(g, new_start_irl);
   IRL_has_Virtual_LHS (new_start_irl) = 1;
   Real_SYM_Count_of_IRL (new_start_irl) = 1;
   g->t_start_irl = new_start_irl;
@@ -5317,37 +5341,39 @@ The symbol-by-rule matrix will be used in constructing the prediction
 states.
 
 @ @<Construct prediction matrix@> = {
-    Bit_Matrix symbol_by_symbol_matrix =
-	matrix_obs_create (&obs_precompute, symbol_count_of_g, symbol_count_of_g);
+    Bit_Matrix isy_by_isy_matrix =
+	matrix_obs_create (&obs_precompute, isy_count, isy_count);
     @<Initialize the symbol-by-symbol matrix@>@/
-    transitive_closure(symbol_by_symbol_matrix);
+    transitive_closure(isy_by_isy_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
 }
 
 @ @<Initialize the symbol-by-symbol matrix@> =
 {
   IRLID irl_id;
-  SYMID symid;
-  for (symid = 0; symid < (SYMID) symbol_count_of_g; symid++)
+  ISYID isyid;
+  for (isyid = 0; isyid < isy_count; isyid++)
     {
       /* If a symbol appears on a LHS, it predicts itself. */
-      SYM symbol = SYM_by_ID (symid);
-      if (!SYM_is_LHS(symbol)) continue;
-      matrix_bit_set (symbol_by_symbol_matrix, (unsigned int) symid, (unsigned int) symid);
+      ISY isy = ISY_by_ID (isyid);
+      if (!ISY_is_LHS(isy)) continue;
+      matrix_bit_set (isy_by_isy_matrix, (unsigned int) isyid, (unsigned int) isyid);
     }
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
-      SYMID from, to;
+      XSYID to_xsyid;
+      ISYID from, to;
       const IRL irl = IRL_by_ID(irl_id);
       /* Get the initial item for the rule */
       const AIM item = First_AIM_of_IRL(irl);
-      from = LHS_ID_of_AIM (item);
-      to = Postdot_SYMID_of_AIM (item);
+      to_xsyid = Postdot_SYMID_of_AIM (item);
       /* There is no symbol-to-symbol transition for a completion item */
-      if (to < 0)
+      if (to_xsyid < 0)
 	continue;
       /* Set a bit in the matrix */
-      matrix_bit_set (symbol_by_symbol_matrix, (unsigned int) from, (unsigned int) to);
+      from = LHS_ISYID_of_AIM (item);
+      to = ISYID_by_XSYID(to_xsyid);
+      matrix_bit_set (isy_by_isy_matrix, (unsigned int) from, (unsigned int) to);
     }
 }
 
@@ -5358,7 +5384,6 @@ Specifically, if symbol |S1| predicts symbol |S2|, then symbol |S1|
 predicts every rule
 with |S2| on its LHS.
 @<Create the prediction matrix from the symbol-by-symbol matrix@> = {
-    SYMID from_symid;
     unsigned int* sort_key_by_irl_id = my_new(unsigned int, irl_count);
     @<Populate |irl_by_sort_key|@>@/
     @<Populate |sort_key_by_irl_id| with second pass value@>@/
@@ -5425,24 +5450,27 @@ which can be used to index the rules in a bit vector.
 
 @ @<Populate the prediction matrix@> =
 {
+  ISYID from_isyid;
   prediction_matrix =
     matrix_obs_create (&obs_precompute, symbol_count_of_g,
 		       irl_count);
-  for (from_symid = 0; from_symid < (SYMID) symbol_count_of_g; from_symid++)
+  for (from_isyid = 0; from_isyid < isy_count; from_isyid++)
     {
+      XSYID from_xsyid = XSYID_by_ISYID(from_isyid);
       // for every row of the symbol-by-symbol matrix
       unsigned int min, max, start;
       for (start = 0;
 	   bv_scan (matrix_row
-		    (symbol_by_symbol_matrix, (unsigned int) from_symid),
+		    (isy_by_isy_matrix, (unsigned int) from_isyid),
 		    start, &min, &max); start = max + 2)
 	{
-	  Marpa_Symbol_ID to_symid;
-	  for (to_symid = min; to_symid <= (Marpa_Symbol_ID) max; to_symid++)
+	  ISYID to_isyid;
+	  for (to_isyid = min; to_isyid <= max; to_isyid++)
 	    {
+	      XSYID to_xsyid = XSYID_by_ISYID(to_isyid);
 	      // for every predicted symbol
-	      RULEID *p_irl_x_lh_sym = irl_list_x_lh_sym[to_symid];
-	      const RULEID *p_one_past_rules = irl_list_x_lh_sym[to_symid + 1];
+	      RULEID *p_irl_x_lh_sym = irl_list_x_lh_sym[to_xsyid];
+	      const RULEID *p_one_past_rules = irl_list_x_lh_sym[to_xsyid + 1];
 	      for (; p_irl_x_lh_sym < p_one_past_rules; p_irl_x_lh_sym++)
 		{
 		  // For every rule with that symbol on its LHS
@@ -5450,7 +5478,7 @@ which can be used to index the rules in a bit vector.
 		  unsigned int sort_ordinal =
 		    sort_key_by_irl_id[rule_with_this_lhs_symbol];
 		  matrix_bit_set (prediction_matrix,
-				  (unsigned int) from_symid, sort_ordinal);
+				  (unsigned int) from_xsyid, sort_ordinal);
 		  // Set the $(symbol, rule sort key)$ bit in the matrix
 		}
 	    }
