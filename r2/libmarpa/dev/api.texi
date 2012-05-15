@@ -1383,10 +1383,6 @@ of those working on libmarpa's internals.
 Applications should not use them,
 and should treat them as ``undocumented''.
 
-@deftypefun Marpa_Rule_ID _marpa_g_irl_co_rule ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{irl_id})
-@end deftypefun
 @deftypefun int _marpa_g_isy_count ( @
   Marpa_Grammar @var{g})
 @end deftypefun
