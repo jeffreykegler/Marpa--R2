@@ -4098,9 +4098,14 @@ int t_position;
 
 @*0 Postdot Symbol.
 |-1| if the item is a completion.
-@d Postdot_SYMID_of_AIM(item) ((item)->t_postdot)
+@d Postdot_ISYID_of_AIM(item) ((item)->t_postdot_isyid)
+@d Postdot_SYMID_of_AIM(item) (
+  (Postdot_ISYID_of_AIM(item) < 0) ?
+  Postdot_ISYID_of_AIM(item) :
+  BuddyID_by_ISYID(Postdot_ISYID_of_AIM(item))
+)
 @d AIM_is_Completion(aim) (Postdot_SYMID_of_AIM(aim) < 0)
-@<Int aligned AHFA item elements@> = Marpa_Symbol_ID t_postdot;
+@<Int aligned AHFA item elements@> = ISYID t_postdot_isyid;
 
 @*0 Leading Nulls.
 In libmarpa's AHFA items, the dot position is never in front
@@ -4229,7 +4234,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   IRL_of_AIM (current_item) = irl;
   Sort_Key_of_AIM (current_item) = current_item - base_item;
   Null_Count_of_AIM(current_item) = leading_nulls;
-  Postdot_SYMID_of_AIM (current_item) = rh_xsyid;
+  Postdot_ISYID_of_AIM (current_item) = rh_isyid;
   Position_of_AIM (current_item) = rhs_ix;
 }
 
@@ -4238,7 +4243,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   IRL_of_AIM (current_item) = irl;
   Sort_Key_of_AIM (current_item) = current_item - base_item;
   Null_Count_of_AIM(current_item) = leading_nulls;
-  Postdot_SYMID_of_AIM (current_item) = -1;
+  Postdot_ISYID_of_AIM (current_item) = -1;
   Position_of_AIM (current_item) = -1;
 }
 
@@ -4287,8 +4292,8 @@ PRIVATE_NOT_INLINE int cmp_by_postdot_and_aimid (const void* ap,
 {
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
-    int a_postdot = Postdot_SYMID_of_AIM(a);
-    int b_postdot = Postdot_SYMID_of_AIM(b);
+    int a_postdot = Postdot_ISYID_of_AIM(a);
+    int b_postdot = Postdot_ISYID_of_AIM(b);
     if (a_postdot == b_postdot)
       return Sort_Key_of_AIM (a) - Sort_Key_of_AIM (b);
     if (a_postdot < 0) return 1;
@@ -5350,10 +5355,6 @@ but in the
 final result we want the keys to be unique integers
 in a sequence start from 0,
 so that they can be used as the indices of a bit vector.
-@d SET_1ST_PASS_SORT_KEY_FOR_IRL(sort_key, irl) {
-  const AIM aim = First_AIM_of_IRL(irl);
-  (sort_key) = Postdot_SYMID_of_AIM (aim);
-}
 
 @ @<Populate |irl_by_sort_key|@> =
 {
@@ -5366,7 +5367,12 @@ so that they can be used as the indices of a bit vector.
 	 sizeof (RULE), cmp_by_irl_sort_key);
 }
 
-@ @<Function definitions@> =
+@
+@d SET_1ST_PASS_SORT_KEY_FOR_IRL(sort_key, irl) {
+  const AIM aim = First_AIM_of_IRL(irl);
+  (sort_key) = Postdot_ISYID_of_AIM (aim);
+}
+@<Function definitions@> =
 PRIVATE_NOT_INLINE int
 cmp_by_irl_sort_key(const void* ap, const void* bp)
 {
@@ -9037,7 +9043,7 @@ If an Earley item in a Leo path already exists, a new Earley
 item is not created ---
 instead a source link is added to the present Earley item.
 
-@** Some notes on evaluation
+@** Some notes on evaluation.
 
 @*0 Alternate Start Rules.
 Note that a start symbol only works if it is
