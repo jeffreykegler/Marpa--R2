@@ -4717,11 +4717,11 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
   unsigned int no_of_items = p_working_state->t_item_count;
   unsigned int current_item_ix = 0;
   AIM *item_list;
-  Marpa_Symbol_ID working_symbol;
+  ISYID working_isyid;
   item_list = p_working_state->t_items;
-  working_symbol = Postdot_SYMID_of_AIM (item_list[0]);	/*
+  working_isyid = Postdot_ISYID_of_AIM (item_list[0]);	/*
 							   Every AHFA has at least one item */
-  if (working_symbol < 0)
+  if (working_isyid < 0)
     goto NEXT_AHFA_STATE;	/*
 				   All items in this state are completions */
   while (1)
@@ -4731,8 +4731,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       for (current_item_ix++;
 	   current_item_ix < no_of_items; current_item_ix++)
 	{
-	  if (Postdot_SYMID_of_AIM (item_list[current_item_ix]) !=
-	      working_symbol)
+	  if (Postdot_ISYID_of_AIM (item_list[current_item_ix]) !=
+	      working_isyid)
 	    break;
 	}
       no_of_items_in_new_state = current_item_ix - first_working_item_ix;
@@ -4747,8 +4747,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
     NEXT_WORKING_SYMBOL:;
       if (current_item_ix >= no_of_items)
 	break;
-      working_symbol = Postdot_SYMID_of_AIM (item_list[current_item_ix]);
-      if (working_symbol < 0)
+      working_isyid = Postdot_ISYID_of_AIM (item_list[current_item_ix]);
+      if (working_isyid < 0)
 	break;
     }
 NEXT_AHFA_STATE:;
@@ -4919,7 +4919,7 @@ a start rule completion, and it is a
     p_new_state = singleton_duplicates[single_item_id];
     if (p_new_state)
       {				/* Do not add, this is a duplicate */
-	transition_add (&obs_precompute, p_working_state, ISYID_by_SYMID(working_symbol), p_new_state);
+	transition_add (&obs_precompute, p_working_state, working_isyid, p_new_state);
 	goto NEXT_WORKING_SYMBOL;
       }
     p_new_state = DQUEUE_PUSH (states, AHFA_Object);
@@ -4933,7 +4933,7 @@ a start rule completion, and it is a
     AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g, isy_count);
-    transition_add (&obs_precompute, p_working_state, ISYID_by_SYMID(working_symbol), p_new_state);
+    transition_add (&obs_precompute, p_working_state, working_isyid, p_new_state);
     postdot = Postdot_SYMID_of_AIM(single_item_p);
     if (postdot >= 0)
       {
@@ -5121,7 +5121,7 @@ of minimum sizes.
     {				// The new state would be a duplicate
 // Back it out and go on to the next in the queue
       (void) DQUEUE_POP (states, AHFA_Object);
-      transition_add (&obs_precompute, p_working_state, ISYID_by_SYMID(working_symbol),
+      transition_add (&obs_precompute, p_working_state, working_isyid,
 		      queued_AHFA_state);
       goto NEXT_WORKING_SYMBOL;
     }
@@ -5140,7 +5140,7 @@ of minimum sizes.
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, isy_count);
   @<Calculate complete and postdot symbols for discovered
     state@>@;
-  transition_add (&obs_precompute, p_working_state, ISYID_by_SYMID(working_symbol),
+  transition_add (&obs_precompute, p_working_state, working_isyid,
 		  p_new_state);
   @<Calculate the predicted rule vector for this
     state and add the predicted AHFA state@>@;
