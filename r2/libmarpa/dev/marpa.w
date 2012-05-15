@@ -4822,10 +4822,9 @@ You can get the AIM from the AEX, but not vice versa.
       for (aex = 0; aex < aim_count; aex++)
 	{
 	  AIM ahfa_item = aims[aex];
-	  SYMID postdot = Postdot_SYMID_of_AIM (ahfa_item);
-	  if (postdot >= 0)
+	  ISYID postdot_isyid = Postdot_ISYID_of_AIM (ahfa_item);
+	  if (postdot_isyid >= 0)
 	    {
-	      ISYID postdot_isyid = ISYID_by_SYMID(postdot);
 	      TRANS transition = transitions[postdot_isyid];
 	      AHFA to_ahfa = To_AHFA_of_TRANS (transition);
 	      if (AHFA_is_Leo_Completion (to_ahfa))
@@ -4998,8 +4997,8 @@ then that state is a Leo completion.
 set the Leo completion symbol to |lhs_id|@> =
 {
   AIM previous_ahfa_item = single_item_p - 1;
-  SYMID predot_symid = Postdot_SYMID_of_AIM (previous_ahfa_item);
-  if (SYM_is_LHS(SYM_by_ID (predot_symid)))
+  ISYID predot_isyid = Postdot_ISYID_of_AIM (previous_ahfa_item);
+  if (ISY_is_LHS(ISY_by_ID (predot_isyid)))
     {
       Leo_LHS_ID_of_AHFA (p_new_state) = BuddyID_by_ISYID(lhs_isyid);
     }
@@ -5316,19 +5315,17 @@ states.
     }
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
-      XSYID to_xsyid;
-      ISYID from, to;
+      ISYID from_isyid, to_isyid;
       const IRL irl = IRL_by_ID(irl_id);
       /* Get the initial item for the rule */
       const AIM item = First_AIM_of_IRL(irl);
-      to_xsyid = Postdot_SYMID_of_AIM (item);
+      to_isyid = Postdot_ISYID_of_AIM (item);
       /* There is no symbol-to-symbol transition for a completion item */
-      if (to_xsyid < 0)
+      if (to_isyid < 0)
 	continue;
       /* Set a bit in the matrix */
-      from = LHS_ISYID_of_AIM (item);
-      to = ISYID_by_XSYID(to_xsyid);
-      matrix_bit_set (isy_by_isy_matrix, (unsigned int) from, (unsigned int) to);
+      from_isyid = LHS_ISYID_of_AIM (item);
+      matrix_bit_set (isy_by_isy_matrix, (unsigned int) from_isyid, (unsigned int) to_isyid);
     }
 }
 
@@ -9400,7 +9397,7 @@ no other descendants.
   SRCL source_link = NULL;
   EIM predecessor_earley_item = NULL;
   EIM cause_earley_item = NULL;
-  const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(predecessor_aim);
+  const ISYID transition_symbol_isyid = Postdot_ISYID_of_AIM(predecessor_aim);
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
@@ -9436,7 +9433,7 @@ no other descendants.
 	  }
     {
       const TRANS cause_completion_data =
-	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
+	TRANS_of_EIM_by_ISYID (cause_earley_item, transition_symbol_isyid);
       const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       const EIM ur_earley_item = cause_earley_item;
