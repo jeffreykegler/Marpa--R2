@@ -1635,7 +1635,6 @@ int _marpa_g_isy_xrl_offset(Marpa_Grammar g, Marpa_ISY_ID isy_id)
 typedef int Marpa_Rule_ID;
 @ @<Private structures@> =
 struct s_xrl {
-    @<Widely aligned rule elements@>@/
     @<Int aligned rule elements@>@/
     @<Bit aligned rule elements@>@/
     @<Final rule elements@>@/
@@ -2207,68 +2206,6 @@ _marpa_g_rule_is_used(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
   return XRL_is_Used(XRL_by_ID(xrl_id));
 }
 
-@*0 Virtual Start Position.
-For a virtual rule,
-this is the RHS position in the original rule
-where this one starts.
-@d Virtual_Start_of_IRL(irl) (Co_RULE_of_IRL(irl)->t_virtual_start)
-@<Int aligned rule elements@> = int t_virtual_start;
-@ @<Initialize rule elements@> = rule->t_virtual_start = -1;
-@ @<Function definitions@> =
-unsigned int _marpa_g_virtual_start(
-    Marpa_Grammar g,
-    Marpa_IRL_ID irl_id)
-{
-    IRL irl;
-    @<Return |-2| on failure@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |irl_id| is invalid@>@;
-    irl = IRL_by_ID(irl_id);
-    return Virtual_Start_of_IRL(irl);
-}
-
-@*0 Virtual End Position.
-For a virtual rule,
-this is the RHS position in the original rule
-at which this one ends.
-@d Virtual_End_of_IRL(irl) (Co_RULE_of_IRL(irl)->t_virtual_end)
-@<Int aligned rule elements@> = int t_virtual_end;
-@ @<Initialize rule elements@> = rule->t_virtual_end = -1;
-@ @<Function definitions@> =
-unsigned int _marpa_g_virtual_end(
-    Marpa_Grammar g,
-    Marpa_IRL_ID irl_id)
-{
-    IRL irl;
-    @<Return |-2| on failure@>@;
-    @<Fail if not precomputed@>@;
-    @<Fail if |irl_id| is invalid@>@;
-    irl = IRL_by_ID(irl_id);
-    return Virtual_End_of_IRL(irl);
-}
-
-@*0 Source XRL.
-This is the ``source'' of the internal rule --
-the external rule that it is derived from.
-Currently, there is no dedicated flag for determining
-whether this rule also provides the semantics,
-because the ``virtual LHS'' flag serves that purpose.
-@d Source_XRL_of_IRL(irl) (Co_RULE_of_IRL(irl)->t_source_xrl)
-@d Source_XRL_of_RULE(rule) ((rule)->t_source_xrl)
-@<Widely aligned rule elements@> = XRL t_source_xrl;
-@ @<Initialize rule elements@> = Source_XRL_of_RULE(rule) = NULL;
-@ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_source_xrl(
-    Marpa_Grammar g,
-    Marpa_IRL_ID irl_id)
-{
-    XRL source_xrl;
-    @<Return |-2| on failure@>@;
-    @<Fail if |irl_id| is invalid@>@;
-    source_xrl = Source_XRL_of_IRL(IRL_by_ID(irl_id));
-    return source_xrl ? ID_of_XRL(source_xrl) : -1;
-}
-
 @*0 Rule has semantics?.
 This value describes the rule's semantics.
 Most of the semantics are left up to the higher
@@ -2502,6 +2439,67 @@ int _marpa_g_real_symbol_count(
     @<Fail if not precomputed@>@;
     @<Fail if |irl_id| is invalid@>@;
     return Real_SYM_Count_of_IRL(IRL_by_ID(irl_id));
+}
+
+@*0 Virtual Start Position.
+For an IRL,
+this is the RHS position in the XRL
+where the IRL starts.
+@d Virtual_Start_of_IRL(irl) ((irl)->t_virtual_start)
+@<Int aligned IRL elements@> = int t_virtual_start;
+@ @<Initialize IRL elements@> = irl->t_virtual_start = -1;
+@ @<Function definitions@> =
+unsigned int _marpa_g_virtual_start(
+    Marpa_Grammar g,
+    Marpa_IRL_ID irl_id)
+{
+    IRL irl;
+    @<Return |-2| on failure@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |irl_id| is invalid@>@;
+    irl = IRL_by_ID(irl_id);
+    return Virtual_Start_of_IRL(irl);
+}
+
+@*0 Virtual End Position.
+For an IRL,
+this is the RHS position in the XRL
+where the IRL ends.
+@d Virtual_End_of_IRL(irl) ((irl)->t_virtual_end)
+@<Int aligned IRL elements@> = int t_virtual_end;
+@ @<Initialize IRL elements@> = irl->t_virtual_end = -1;
+@ @<Function definitions@> =
+unsigned int _marpa_g_virtual_end(
+    Marpa_Grammar g,
+    Marpa_IRL_ID irl_id)
+{
+    IRL irl;
+    @<Return |-2| on failure@>@;
+    @<Fail if not precomputed@>@;
+    @<Fail if |irl_id| is invalid@>@;
+    irl = IRL_by_ID(irl_id);
+    return Virtual_End_of_IRL(irl);
+}
+
+@*0 Source XRL.
+This is the ``source'' of the IRL --
+the XRL that it is derived from.
+Currently, there is no dedicated flag for determining
+whether this rule also provides the semantics,
+because the ``virtual LHS'' flag serves that purpose.
+@d Source_XRL_of_IRL(irl) ((irl)->t_source_xrl)
+@<Widely aligned IRL elements@> = XRL t_source_xrl;
+@ @<Initialize IRL elements@> = Source_XRL_of_IRL(irl) = NULL;
+@ @<Function definitions@> =
+Marpa_Rule_ID _marpa_g_source_xrl(
+    Marpa_Grammar g,
+    Marpa_IRL_ID irl_id)
+{
+    XRL source_xrl;
+    @<Return |-2| on failure@>@;
+    @<Fail if |irl_id| is invalid@>@;
+    source_xrl = Source_XRL_of_IRL(IRL_by_ID(irl_id));
+    return source_xrl ? ID_of_XRL(source_xrl) : -1;
 }
 
 @*0 First AIM.
