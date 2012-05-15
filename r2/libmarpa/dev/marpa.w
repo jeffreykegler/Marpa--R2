@@ -4144,7 +4144,6 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @d IRL_of_AIM(aim) ((aim)->t_irl)
 @d RULE_of_AIM(aim) Co_RULE_of_IRL(IRL_of_AIM(aim))
 @d IRLID_of_AIM(item) ID_of_IRL(IRL_of_AIM(item))
-@d LHS_ID_of_AIM(item) LHS_ID_of_RULE(RULE_of_AIM(item))
 @d LHS_ISYID_of_AIM(item) LHSID_of_IRL(IRL_of_AIM(item))
 @<Widely aligned AHFA item elements@> =
     IRL t_irl;
@@ -4998,11 +4997,11 @@ a start rule completion, and it is a
       }
     else
       {
-	SYMID lhs_id = LHS_ID_of_AIM(single_item_p);
+	SYMID lhs_isyid = LHS_ISYID_of_AIM(single_item_p);
 	SYMID* complete_symids = my_obstack_alloc (&g->t_obs, sizeof (SYMID));
-	*complete_symids = lhs_id;
+	*complete_symids = XSYID_by_ISYID(lhs_isyid);
 	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
-	completion_count_inc(&obs_precompute, p_new_state, ISYID_by_SYMID(lhs_id));
+	completion_count_inc(&obs_precompute, p_new_state, lhs_isyid);
 	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
 	p_new_state->t_postdot_sym_count = 0;
 	p_new_state->t_empty_transition = NULL;
@@ -5045,7 +5044,7 @@ set the Leo completion symbol to |lhs_id|@> =
   SYMID predot_symid = Postdot_SYMID_of_AIM (previous_ahfa_item);
   if (SYM_is_LHS(SYM_by_ID (predot_symid)))
     {
-      Leo_LHS_ID_of_AHFA (p_new_state) = lhs_id;
+      Leo_LHS_ID_of_AHFA (p_new_state) = XSYID_by_ISYID(lhs_isyid);
     }
 }
 
@@ -5206,10 +5205,10 @@ of minimum sizes.
       Marpa_Symbol_ID postdot = Postdot_SYMID_of_AIM (item);
       if (postdot < 0)
 	{
-	  int complete_symbol_id = LHS_ID_of_AIM (item);
-	  completion_count_inc (&obs_precompute, p_new_state,
-				ISYID_by_SYMID(complete_symbol_id));
-	  bv_bit_set (complete_v, (unsigned int) complete_symbol_id);
+	  ISYID complete_symbol_isyid = LHS_ISYID_of_AIM (item);
+	  XSYID complete_symbol_xsyid = XSYID_by_ISYID(complete_symbol_isyid);
+	  completion_count_inc (&obs_precompute, p_new_state, complete_symbol_isyid);
+	  bv_bit_set (complete_v, (unsigned int) complete_symbol_xsyid);
 	}
       else
 	{
