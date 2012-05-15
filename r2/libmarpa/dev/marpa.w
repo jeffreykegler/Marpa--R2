@@ -2555,9 +2555,9 @@ symbol_instance_of_ahfa_item_get (AIM aim)
   const int null_count = Null_Count_of_AIM(aim);
   if (position < 0 || position - null_count > 0) {
       /* If this AHFA item is not a predictiion */
-      const RULE rule = RULE_of_AIM (aim);
+      const IRL irl = IRL_of_AIM (aim);
       position = Position_of_AIM(aim-1);
-      return SYMI_of_RULE(rule) + position;
+      return SYMI_of_IRL(irl) + position;
   }
   return -1;
 }
@@ -4142,7 +4142,6 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 
 @*0 Rule.
 @d IRL_of_AIM(aim) ((aim)->t_irl)
-@d RULE_of_AIM(aim) Co_RULE_of_IRL(IRL_of_AIM(aim))
 @d IRLID_of_AIM(item) ID_of_IRL(IRL_of_AIM(item))
 @d LHS_ISYID_of_AIM(item) LHSID_of_IRL(IRL_of_AIM(item))
 @<Widely aligned AHFA item elements@> =
@@ -5464,7 +5463,7 @@ which can be used to index the rules in a bit vector.
 		    start, &min, &max); start = max + 2)
 	{
 	  ISYID to_isyid;
-	  for (to_isyid = min; to_isyid <= max; to_isyid++)
+	  for (to_isyid = min; to_isyid <= (ISYID)max; to_isyid++)
 	    {
 	      XSYID to_xsyid = XSYID_by_ISYID(to_isyid);
 	      // for every predicted symbol
