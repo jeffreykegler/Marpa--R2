@@ -4707,36 +4707,46 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
     }
 }
 
-@ @<Process an AHFA state from the working stack@> = {
-unsigned int no_of_items = p_working_state->t_item_count;
-unsigned int current_item_ix=0;
-AIM*item_list;
-Marpa_Symbol_ID working_symbol;
-item_list = p_working_state->t_items;
-working_symbol = Postdot_SYMID_of_AIM(item_list[0]); /*
-    Every AHFA has at least one item */
-if (working_symbol < 0) goto NEXT_AHFA_STATE; /*
-    All items in this state are completions */
-    while (1) { /* Loop over all items for this state */
-	int first_working_item_ix = current_item_ix;
-	int no_of_items_in_new_state;
-	for (current_item_ix++;
-		current_item_ix < no_of_items;
-		current_item_ix++) {
-	    if (Postdot_SYMID_of_AIM(item_list[current_item_ix]) != working_symbol) break;
+@ @<Process an AHFA state from the working stack@> =
+{
+  unsigned int no_of_items = p_working_state->t_item_count;
+  unsigned int current_item_ix = 0;
+  AIM *item_list;
+  Marpa_Symbol_ID working_symbol;
+  item_list = p_working_state->t_items;
+  working_symbol = Postdot_SYMID_of_AIM (item_list[0]);	/*
+							   Every AHFA has at least one item */
+  if (working_symbol < 0)
+    goto NEXT_AHFA_STATE;	/*
+				   All items in this state are completions */
+  while (1)
+    {				/* Loop over all items for this state */
+      int first_working_item_ix = current_item_ix;
+      int no_of_items_in_new_state;
+      for (current_item_ix++;
+	   current_item_ix < no_of_items; current_item_ix++)
+	{
+	  if (Postdot_SYMID_of_AIM (item_list[current_item_ix]) !=
+	      working_symbol)
+	    break;
 	}
-	no_of_items_in_new_state = current_item_ix - first_working_item_ix;
-	if (no_of_items_in_new_state == 1) {
-	    @<Create a 1-item discovered AHFA state@>@/
-	} else {
-	    @<Create a discovered AHFA state with 2+ items@>@/
+      no_of_items_in_new_state = current_item_ix - first_working_item_ix;
+      if (no_of_items_in_new_state == 1)
+	{
+	@<Create a 1-item discovered AHFA state@>@;
 	}
-	NEXT_WORKING_SYMBOL: ;
-	if (current_item_ix >= no_of_items) break;
-	working_symbol = Postdot_SYMID_of_AIM(item_list[current_item_ix]);
-	if (working_symbol < 0) break;
-    }@#
-NEXT_AHFA_STATE: ;
+      else
+	{
+	@<Create a discovered AHFA state with 2+ items@>@;
+	}
+    NEXT_WORKING_SYMBOL:;
+      if (current_item_ix >= no_of_items)
+	break;
+      working_symbol = Postdot_SYMID_of_AIM (item_list[current_item_ix]);
+      if (working_symbol < 0)
+	break;
+    }
+NEXT_AHFA_STATE:;
 }
 
 @ @<Resize the transitions@> =
@@ -9027,7 +9037,7 @@ If an Earley item in a Leo path already exists, a new Earley
 item is not created ---
 instead a source link is added to the present Earley item.
 
-@** Evaluation --- Preliminary Notes.
+@** Some notes on evaluation
 
 @*0 Alternate Start Rules.
 Note that a start symbol only works if it is
