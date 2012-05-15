@@ -5577,9 +5577,12 @@ But I expect the trend will also be for grammars to get larger.
 This would be a good issue to run some benchmarks on,
 once I stabilize the C code implemention.
 
+@d TRANS_of_AHFA_by_ISYID(from_ahfa, isyid)
+    (*(TRANSs_of_AHFA(from_ahfa)+(isyid)))
 @d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
-    (*(TRANSs_of_AHFA(from_ahfa)+ISYID_by_SYMID(id)))
+  TRANS_of_AHFA_by_ISYID(from_ahfa, ISYID_by_SYMID(id))
 @d TRANS_of_EIM_by_SYMID(eim, id) TRANS_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
+@d TRANS_of_EIM_by_ISYID(eim, isyid) TRANS_of_AHFA_by_ISYID(AHFA_of_EIM(eim), (isyid))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
 @d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
 @d Completion_Count_of_TRANS(trans)
@@ -10300,7 +10303,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   SRCL source_link = NULL;
   EIM predecessor_earley_item = NULL;
   EIM cause_earley_item = NULL;
-  const SYMID transition_symbol_id = Postdot_SYMID_of_AIM(work_predecessor_aim);
+  const ISYID transition_symbol_isyid = Postdot_ISYID_of_AIM(work_predecessor_aim);
   switch (work_source_type)
     {
     case SOURCE_IS_COMPLETION:
@@ -10320,7 +10323,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   while (cause_earley_item)
     {
       const TRANS cause_completion_data =
-	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
+	TRANS_of_EIM_by_ISYID (cause_earley_item, transition_symbol_isyid);
       const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       int ix;
