@@ -2521,20 +2521,16 @@ be using it.
 @ @d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
 @<Int aligned grammar elements@> =
 int t_symbol_instance_count;
-@ |SYMI_of_Last_AIM_of_RULE| will return -1 if the
-rule has no proper symbols.
-@d SYMI_of_RULE(rule) ((rule)->t_symbol_instance_base)
-@d SYMI_of_IRL(irl) SYMI_of_RULE(Co_RULE_of_IRL(irl))
-@d Last_Proper_SYMI_of_RULE(rule) ((rule)->t_last_proper_symi)
-@d Last_Proper_SYMI_of_IRL(irl) Last_Proper_SYMI_of_RULE(Co_RULE_of_IRL(irl))
+@ @d SYMI_of_IRL(irl) ((irl)->t_symbol_instance_base)
+@d Last_Proper_SYMI_of_IRL(irl) ((irl)->t_last_proper_symi)
 @d SYMI_of_Completed_IRL(irl)
     (SYMI_of_IRL(irl) + Length_of_IRL(irl)-1)
 @d SYMI_of_AIM(aim) (symbol_instance_of_ahfa_item_get(aim))
-@<Int aligned rule elements@> =
+@<Int aligned IRL elements@> =
 int t_symbol_instance_base;
 int t_last_proper_symi;
-@ @<Initialize rule elements@> =
-Last_Proper_SYMI_of_RULE(rule) = -1;
+@ @<Initialize IRL elements@> =
+Last_Proper_SYMI_of_IRL(irl) = -1;
 @ Symbol instances are for the {\bf predot} symbol.
 In parsing the emphasis is on what is to come ---
 on what follows the dot.
