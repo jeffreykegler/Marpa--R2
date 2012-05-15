@@ -4874,7 +4874,7 @@ _marpa_avl_destroy(duplicates);
     create_predicted_AHFA_state (g,
 				 matrix_row (prediction_matrix,
 					     (unsigned int)
-					     Postdot_SYMID_of_AIM
+					     Postdot_ISYID_of_AIM
 					     (start_item)), irl_by_sort_key,
 				 &states, duplicates, item_list_working_buffer
 				 );
@@ -4913,7 +4913,7 @@ a start rule completion, and it is a
     AIM* new_state_item_list;
     AIM single_item_p = item_list[first_working_item_ix];
     Marpa_AHFA_Item_ID single_item_id;
-    Marpa_Symbol_ID postdot;
+    ISYID postdot_isyid;
     single_item_p++;		// Transition to next item for this rule
     single_item_id = single_item_p - AHFA_item_0_p;
     p_new_state = singleton_duplicates[single_item_id];
@@ -4934,20 +4934,20 @@ a start rule completion, and it is a
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g, isy_count);
     transition_add (&obs_precompute, p_working_state, working_isyid, p_new_state);
-    postdot = Postdot_SYMID_of_AIM(single_item_p);
-    if (postdot >= 0)
+    postdot_isyid = Postdot_ISYID_of_AIM(single_item_p);
+    if (postdot_isyid >= 0)
       {
 	Complete_SYM_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_postdot_sym_count = 1;
 	p_new_state->t_postdot_symid_ary =
 	  my_obstack_alloc (&g->t_obs, sizeof (SYMID));
-	*(p_new_state->t_postdot_symid_ary) = postdot;
+	*(p_new_state->t_postdot_symid_ary) = BuddyID_by_ISYID(postdot_isyid);
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
     p_new_state->t_empty_transition =
     create_predicted_AHFA_state (g,
 				 matrix_row (prediction_matrix,
-					     (unsigned int) postdot),
+					     (unsigned int) postdot_isyid),
 				 irl_by_sort_key, &states, duplicates,
 				 item_list_working_buffer);
       }
@@ -5229,27 +5229,26 @@ assign_AHFA_state (AHFA sought_state, AVL_TREE duplicates)
 and add the predicted AHFA state@> =
 {
   int item_ix;
-  Marpa_Symbol_ID postdot = -1;	// Initialized to prevent GCC warning
+  ISYID postdot_isyid = -1;	// Initialized to prevent GCC warning
   for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
     {
-      postdot = Postdot_SYMID_of_AIM (item_list_working_buffer[item_ix]);
-      if (postdot >= 0)
+      postdot_isyid = Postdot_ISYID_of_AIM (item_list_working_buffer[item_ix]);
+      if (postdot_isyid >= 0)
 	break;
     }
   p_new_state->t_empty_transition = NULL;
-  if (postdot >= 0)
+  if (postdot_isyid >= 0)
     {				/* If any item is not a completion ... */
       Bit_Vector predicted_rule_vector
-	= bv_shadow (matrix_row (prediction_matrix, (unsigned int) postdot));
+	= bv_shadow (matrix_row (prediction_matrix, postdot_isyid));
       for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
 	{
 	  /* ``or" the other non-complete items into the prediction rule vector */
-	  postdot = Postdot_SYMID_of_AIM (item_list_working_buffer[item_ix]);
-	  if (postdot < 0)
+	  postdot_isyid = Postdot_ISYID_of_AIM (item_list_working_buffer[item_ix]);
+	  if (postdot_isyid < 0)
 	    continue;
 	  bv_or_assign (predicted_rule_vector,
-			matrix_row (prediction_matrix,
-				    (unsigned int) postdot));
+			matrix_row (prediction_matrix, postdot_isyid));
 	}
       /* Add the predicted rule */
       p_new_state->t_empty_transition = create_predicted_AHFA_state (g,
@@ -5405,11 +5404,10 @@ which can be used to index the rules in a bit vector.
 {
   ISYID from_isyid;
   prediction_matrix =
-    matrix_obs_create (&obs_precompute, symbol_count_of_g,
+    matrix_obs_create (&obs_precompute, isy_count,
 		       irl_count);
   for (from_isyid = 0; from_isyid < isy_count; from_isyid++)
     {
-      XSYID from_xsyid = BuddyID_by_ISYID(from_isyid);
       // for every row of the symbol-by-symbol matrix
       unsigned int min, max, start;
       for (start = 0;
@@ -5430,7 +5428,7 @@ which can be used to index the rules in a bit vector.
 		  unsigned int sort_ordinal =
 		    sort_key_by_irl_id[irl_with_this_lhs];
 		  matrix_bit_set (prediction_matrix,
-				  (unsigned int) from_xsyid, sort_ordinal);
+				  (unsigned int) from_isyid, sort_ordinal);
 		  // Set the $(symbol, rule sort key)$ bit in the matrix
 		}
 	    }
