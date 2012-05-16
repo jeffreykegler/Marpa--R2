@@ -4931,11 +4931,11 @@ a start rule completion, and it is a
     postdot_isyid = Postdot_ISYID_of_AIM(single_item_p);
     if (postdot_isyid >= 0)
       {
-	Complete_SYM_Count_of_AHFA(p_new_state) = 0;
-	p_new_state->t_postdot_sym_count = 1;
-	p_new_state->t_postdot_symid_ary =
+	XSYID* p_postdot_ary = Postdot_SYMID_Ary_of_AHFA(p_new_state) =
 	  my_obstack_alloc (&g->t_obs, sizeof (SYMID));
-	*(p_new_state->t_postdot_symid_ary) = BuddyID_by_ISYID(postdot_isyid);
+	Complete_SYM_Count_of_AHFA(p_new_state) = 0;
+	Postdot_SYM_Count_of_AHFA(p_new_state) = 1;
+	*p_postdot_ary = BuddyID_by_ISYID(postdot_isyid);
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
     p_new_state->t_empty_transition =
@@ -4953,7 +4953,7 @@ a start rule completion, and it is a
 	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
 	completion_count_inc(&obs_precompute, p_new_state, lhs_isyid);
 	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
-	p_new_state->t_postdot_sym_count = 0;
+	Postdot_SYM_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_empty_transition = NULL;
 	@<If this state can be a Leo completion,
 	set the Leo completion symbol to |lhs_id|@>@;
@@ -5161,11 +5161,11 @@ of minimum sizes.
 	  bv_bit_set (per_ahfa_postdot_v, (unsigned int) postdot_isyid);
 	}
     }
-  if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
+  if ((no_of_postdot_symbols = Postdot_SYM_Count_of_AHFA(p_new_state) =
        bv_count (per_ahfa_postdot_v)))
     {
       unsigned int min, max, start;
-      Marpa_Symbol_ID *p_symbol = p_new_state->t_postdot_symid_ary =
+      Marpa_Symbol_ID *p_symbol = Postdot_SYMID_Ary_of_AHFA(p_new_state) =
 	my_obstack_alloc (&g->t_obs,
 			  no_of_postdot_symbols * sizeof (SYMID));
       for (start = 0; bv_scan (per_ahfa_postdot_v, start, &min, &max); start = max + 2)
@@ -5502,11 +5502,11 @@ create_predicted_AHFA_state(
 	if (postdot_isyid >= 0)
 	  bv_bit_set (postdot_v, (unsigned int) postdot_isyid);
       }
-    if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
+    if ((no_of_postdot_symbols = Postdot_SYM_Count_of_AHFA(p_new_state) =
      bv_count (postdot_v)))
   {
     unsigned int min, max, start;
-    Marpa_Symbol_ID *p_symbol = p_new_state->t_postdot_symid_ary =
+    Marpa_Symbol_ID *p_symbol = Postdot_SYMID_Ary_of_AHFA(p_new_state) =
       my_obstack_alloc (&g->t_obs,
 		     no_of_postdot_symbols * sizeof (SYMID));
     for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
