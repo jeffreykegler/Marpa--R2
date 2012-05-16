@@ -5905,8 +5905,6 @@ void recce_free(struct marpa_r *r)
     @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
     grammar_unref(g);
-    my_free(r->t_sym_workarea);
-    my_free(r->t_workarea2);
     @<Free working bit vectors for symbols@>@;
     @<Destroy recognizer obstack@>@;
     my_slice_free(struct marpa_r, r);
@@ -5992,33 +5990,6 @@ No complete or predicted Earley item will be found after the current earleme.
 @ @<Function definitions@> =
 unsigned int marpa_r_furthest_earleme(struct marpa_r* r)
 { return Furthest_Earleme_of_R(r); }
-
-@*0 Symbol Workarea.
-This is used in the completion
-phase for each Earley set.
-It is used in building the list of postdot items,
-and when building the Leo items.
-It is sized to hold one |void *| for
-every symbol.
-@ @<Widely aligned recognizer elements@> = void ** t_sym_workarea;
-@ @<Initialize recognizer elements@> = r->t_sym_workarea = NULL;
-@ @<Allocate symbol workarea@> =
-    r->t_sym_workarea = my_malloc(sym_workarea_size);
-
-@*0 Workarea 2.
-This is used in the completion
-phase for each Earley set.
-when building the Leo items.
-It is sized to hold two |void *|'s for
-every symbol.
-@ @<Widely aligned recognizer elements@> = void ** t_workarea2;
-@ @<Initialize recognizer elements@> = r->t_workarea2 = NULL;
-@ @<Allocate recognizer workareas@> =
-{
-  const unsigned int sym_workarea_size = sizeof (void *) * symbol_count_of_g;
-  @<Allocate symbol workarea@>@;
-  r->t_workarea2 = my_malloc(2u * sym_workarea_size);
-}
 
 @*0 Working Bit Vectors for Symbols.
 These are two bit vectors, sized to the number of symbols
@@ -6335,16 +6306,6 @@ earley_set_new( RECCE r, EARLEME id)
   Next_ES_of_ES(set) = NULL;
   @<Initialize Earley set PSL data@>@/
   return set;
-}
-
-@*0 Destructor.
-@<Destroy recognizer elements@> =
-{
-  ES set;
-  for (set = First_ES_of_R (r); set; set = Next_ES_of_ES (set))
-    {
-	my_free (EIMs_of_ES(set));
-    }
 }
 
 @*0 ID of Earley Set.
@@ -8102,7 +8063,6 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 	return 1;
     }
     Input_Phase_of_R(r) = R_DURING_INPUT;
-    @<Allocate recognizer workareas@>@;
     psar_reset(Dot_PSAR_of_R(r));
     @<Allocate recognizer's bit vectors for symbols@>@;
     @<Initialize Earley item work stacks@>@;
@@ -8556,7 +8516,7 @@ PRIVATE void earley_set_update_items(RECCE r, ES set)
     EIM* finished_earley_items;
     int working_earley_item_count;
     int i;
-    EIMs_of_ES(set) = my_renew(EIM, EIMs_of_ES(set), EIM_Count_of_ES(set));
+    EIMs_of_ES(set) = my_obstack_new(&r->t_obs, EIM, EIM_Count_of_ES(set));
     finished_earley_items = EIMs_of_ES(set);
     working_earley_items = Work_EIMs_of_R(r);
     working_earley_item_count = Work_EIM_Count_of_R(r);
@@ -8618,11 +8578,14 @@ and running benchmarks.
 PRIVATE_NOT_INLINE void
 postdot_items_create (RECCE r, ES current_earley_set)
 {
-    void * * const pim_workarea = r->t_sym_workarea;
+    struct obstack obs_local;
+    void** pim_workarea;
   @<Unpack recognizer objects@>@;
     EARLEME current_earley_set_id = Earleme_of_ES(current_earley_set);
     Bit_Vector bv_pim_symbols = r->t_bv_sym;
     Bit_Vector bv_lim_symbols = r->t_bv_sym2;
+    my_obstack_init(&obs_local);
+    pim_workarea = my_obstack_new(&obs_local, void*, SYM_Count_of_G(g));
     bv_clear (bv_pim_symbols);
     bv_clear (bv_lim_symbols);
     @<Start EIXes in PIM workarea@>@;
@@ -8632,6 +8595,7 @@ postdot_items_create (RECCE r, ES current_earley_set)
     }
     @<Copy PIM workarea to postdot item array@>@;
     bv_and(r->t_bv_symid_is_expected, bv_pim_symbols, g->t_bv_symid_is_terminal);
+    my_obstack_free(&obs_local);
 }
 
 @ This code creates the Earley indexes in the PIM workarea.
@@ -8888,7 +8852,7 @@ In a populated LIM, this will not necessarily be the case.
 }
 
 @ @<Create and populate a LIM chain@> = {
-  void ** const lim_chain = r->t_workarea2;
+  void ** const lim_chain = my_obstack_new(&obs_local, void*, 2*SYM_Count_of_G(g));
   int lim_chain_ix;
   @<Create a LIM chain@>@;
   @<Populate the LIMs in the LIM chain@>@;
