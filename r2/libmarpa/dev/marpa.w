@@ -6217,8 +6217,8 @@ able to handle.
 @ @<Private typedefs@> = typedef Marpa_Earley_Set_ID ESID;
 @ @d Next_ES_of_ES(set) ((set)->t_next_earley_set)
 @d Postdot_SYM_Count_of_ES(set) ((set)->t_postdot_sym_count)
-@d First_PIM_of_ES_by_ISYID(set, isyid) (first_pim_of_es_by_isyid((set), (isyid)))
-@d PIM_ISY_P_of_ES_by_ISYID(set, isyid) (pim_isy_p_find((set), (isyid)))
+@d First_PIM_of_ES_by_ISYID(set, isyid) (first_pim_of_es_by_isyid(g, (set), (isyid)))
+@d PIM_ISY_P_of_ES_by_ISYID(set, isyid) (pim_isy_p_find(g, (set), (isyid)))
 @<Private incomplete structures@> =
 struct s_earley_set;
 typedef struct s_earley_set *ES;
@@ -6911,17 +6911,18 @@ returns that postdot item.
 If it fails, it returns |NULL|.
 @<Function definitions@> =
 PRIVATE PIM*
-pim_isy_p_find (ES set, ISYID isyid)
+pim_isy_p_find (GRAMMAR g, ES set, ISYID isyid)
 {
   int lo = 0;
   int hi = Postdot_SYM_Count_of_ES(set) - 1;
+  XSYID xsyid = BuddyID_by_ISYID(isyid);
   PIM* postdot_array = set->t_postdot_ary;
   while (hi >= lo) { // A binary search
        int trial = lo+(hi-lo)/2; // guards against overflow
        PIM trial_pim = postdot_array[trial];
-       ISYID trial_isyid = Postdot_ISYID_of_PIM(trial_pim);
-       if (trial_isyid == isyid) return postdot_array+trial;
-       if (trial_isyid < isyid) {
+       ISYID trial_xsyid = Postdot_SYMID_of_PIM(trial_pim);
+       if (trial_xsyid == xsyid) return postdot_array+trial;
+       if (trial_xsyid < xsyid) {
            lo = trial+1;
        } else {
            hi = trial-1;
@@ -6930,9 +6931,9 @@ pim_isy_p_find (ES set, ISYID isyid)
   return NULL;
 }
 @ @<Function definitions@> =
-PRIVATE PIM first_pim_of_es_by_isyid(ES set, ISYID isyid)
+PRIVATE PIM first_pim_of_es_by_isyid(GRAMMAR g, ES set, ISYID isyid)
 {
-   PIM* pim_isy_p = pim_isy_p_find(set, isyid);
+   PIM* pim_isy_p = pim_isy_p_find(g, set, isyid);
    return pim_isy_p ? *pim_isy_p : NULL;
 }
 
