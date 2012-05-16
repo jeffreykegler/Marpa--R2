@@ -973,7 +973,7 @@ sub Marpa::R2::show_AHFA_item {
         push @properties, 'completion';
     }
     else {
-        my $postdot_symbol_name = $grammar->xsy_name($postdot_id);
+        my $postdot_symbol_name = $grammar->isy_name($postdot_id);
         push @properties, qq{postdot = "$postdot_symbol_name"};
     }
     $text .= join q{; }, @properties;

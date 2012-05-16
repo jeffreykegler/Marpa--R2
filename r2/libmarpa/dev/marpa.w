@@ -4099,11 +4099,6 @@ int t_position;
 @*0 Postdot Symbol.
 |-1| if the item is a completion.
 @d Postdot_ISYID_of_AIM(item) ((item)->t_postdot_isyid)
-@d Postdot_SYMID_of_AIM(item) (
-  (Postdot_ISYID_of_AIM(item) < 0) ?
-  Postdot_ISYID_of_AIM(item) :
-  BuddyID_by_ISYID(Postdot_ISYID_of_AIM(item))
-)
 @d AIM_is_Completion(aim) (Postdot_ISYID_of_AIM(aim) < 0)
 @<Int aligned AHFA item elements@> = ISYID t_postdot_isyid;
 
@@ -4151,7 +4146,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if |item_id| is invalid@>@/
-    return Postdot_SYMID_of_AIM(AIM_by_ID(item_id));
+    return Postdot_ISYID_of_AIM(AIM_by_ID(item_id));
 }
 
 @ @<Function definitions@> =
