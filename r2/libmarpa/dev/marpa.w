@@ -4538,10 +4538,10 @@ PRIVATE int AHFA_state_id_is_valid(GRAMMAR g, AHFAID AHFA_state_id)
 
     
 @*0 Postdot Symbols.
-@d Postdot_SYM_Count_of_AHFA(state) ((state)->t_postdot_sym_count)
-@d Postdot_SYMID_Ary_of_AHFA(state) ((state)->t_postdot_symid_ary)
-@<Widely aligned AHFA state elements@> = Marpa_Symbol_ID* t_postdot_symid_ary;
-@ @<Int aligned AHFA state elements@> = unsigned int t_postdot_sym_count;
+@d Postdot_ISY_Count_of_AHFA(state) ((state)->t_postdot_isy_count)
+@d Postdot_ISYIDAry_of_AHFA(state) ((state)->t_postdot_isyidary)
+@<Widely aligned AHFA state elements@> = Marpa_Symbol_ID* t_postdot_isyidary;
+@ @<Int aligned AHFA state elements@> = unsigned int t_postdot_isy_count;
 
 @*0 AHFA State External Accessors.
 @<Function definitions@> =
@@ -4848,7 +4848,7 @@ _marpa_avl_destroy(duplicates);
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
   const IRL start_irl = g->t_start_irl;
-  SYMID *postdot_symbol_ids;
+  ISYID *postdot_isyidary;
   AIM start_item;
   ISYID postdot_isyid;
   AIM *item_list = my_obstack_alloc (&g->t_obs, sizeof (AIM));
@@ -4861,11 +4861,11 @@ _marpa_avl_destroy(duplicates);
   p_initial_state->t_key.t_id = 0;
   AHFA_is_Predicted (p_initial_state) = 0;
   TRANSs_of_AHFA (p_initial_state) = transitions_new (g, isy_count);
-  Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
-  postdot_symbol_ids = Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
-    my_obstack_alloc (&g->t_obs, sizeof (SYMID));
+  Postdot_ISY_Count_of_AHFA (p_initial_state) = 1;
+  postdot_isyidary = Postdot_ISYIDAry_of_AHFA (p_initial_state) =
+    my_obstack_alloc (&g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
-  *postdot_symbol_ids = BuddyID_by_ISYID(postdot_isyid);
+  *postdot_isyidary = postdot_isyid;
   Complete_SYM_Count_of_AHFA (p_initial_state) = 0;
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
 			       matrix_row (prediction_matrix,
@@ -4931,11 +4931,11 @@ a start rule completion, and it is a
     postdot_isyid = Postdot_ISYID_of_AIM(single_item_p);
     if (postdot_isyid >= 0)
       {
-	XSYID* p_postdot_ary = Postdot_SYMID_Ary_of_AHFA(p_new_state) =
-	  my_obstack_alloc (&g->t_obs, sizeof (SYMID));
+	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
+	  my_obstack_alloc (&g->t_obs, sizeof (ISYID));
 	Complete_SYM_Count_of_AHFA(p_new_state) = 0;
-	Postdot_SYM_Count_of_AHFA(p_new_state) = 1;
-	*p_postdot_ary = BuddyID_by_ISYID(postdot_isyid);
+	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
+	*p_postdot_isyidary = postdot_isyid;
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
     p_new_state->t_empty_transition =
@@ -4953,7 +4953,7 @@ a start rule completion, and it is a
 	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
 	completion_count_inc(&obs_precompute, p_new_state, lhs_isyid);
 	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
-	Postdot_SYM_Count_of_AHFA(p_new_state) = 0;
+	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_empty_transition = NULL;
 	@<If this state can be a Leo completion,
 	set the Leo completion symbol to |lhs_id|@>@;
@@ -5142,7 +5142,7 @@ of minimum sizes.
 @ @<Calculate complete and postdot symbols for discovered state@> =
 {
   int item_ix;
-  int no_of_postdot_symbols;
+  int no_of_postdot_isys;
   int no_of_complete_symbols;
   bv_clear(per_ahfa_complete_v);
   bv_clear(per_ahfa_postdot_v);
@@ -5161,20 +5161,20 @@ of minimum sizes.
 	  bv_bit_set (per_ahfa_postdot_v, (unsigned int) postdot_isyid);
 	}
     }
-  if ((no_of_postdot_symbols = Postdot_SYM_Count_of_AHFA(p_new_state) =
+  if ((no_of_postdot_isys = Postdot_ISY_Count_of_AHFA(p_new_state) =
        bv_count (per_ahfa_postdot_v)))
     {
       unsigned int min, max, start;
-      Marpa_Symbol_ID *p_symbol = Postdot_SYMID_Ary_of_AHFA(p_new_state) =
+      ISYID *p_isyid = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	my_obstack_alloc (&g->t_obs,
-			  no_of_postdot_symbols * sizeof (SYMID));
+			  no_of_postdot_isys * sizeof (ISYID));
       for (start = 0; bv_scan (per_ahfa_postdot_v, start, &min, &max); start = max + 2)
 	{
 	  ISYID postdot_isyid;
 	  for (postdot_isyid = (ISYID) min;
 	       postdot_isyid <= (ISYID) max; postdot_isyid++)
 	    {
-	      *p_symbol++ = BuddyID_by_ISYID(postdot_isyid);
+	      *p_isyid++ = postdot_isyid;
 	    }
 	}
     }
@@ -5493,7 +5493,7 @@ create_predicted_AHFA_state(
 {
   ISYID isy_count = ISY_Count_of_G (g);
   int item_ix;
-  SYMID no_of_postdot_symbols;
+  ISYID no_of_postdot_isys;
   Bit_Vector postdot_v = bv_create ( isy_count );
     for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
       {
@@ -5502,20 +5502,20 @@ create_predicted_AHFA_state(
 	if (postdot_isyid >= 0)
 	  bv_bit_set (postdot_v, (unsigned int) postdot_isyid);
       }
-    if ((no_of_postdot_symbols = Postdot_SYM_Count_of_AHFA(p_new_state) =
+    if ((no_of_postdot_isys = Postdot_ISY_Count_of_AHFA(p_new_state) =
      bv_count (postdot_v)))
   {
     unsigned int min, max, start;
-    Marpa_Symbol_ID *p_symbol = Postdot_SYMID_Ary_of_AHFA(p_new_state) =
+    ISYID *p_isyid = Postdot_ISYIDAry_of_AHFA(p_new_state) =
       my_obstack_alloc (&g->t_obs,
-		     no_of_postdot_symbols * sizeof (SYMID));
+		     no_of_postdot_isys * sizeof (ISYID));
     for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
       {
 	ISYID postdot_isyid;
 	for (postdot_isyid = (ISYID) min;
 	     postdot_isyid <= (ISYID) max; postdot_isyid++)
 	  {
-	    *p_symbol++ = BuddyID_by_ISYID(postdot_isyid);
+	    *p_isyid++ = postdot_isyid;
 	  }
       }
   }
@@ -8645,25 +8645,25 @@ At this point there are no Leo items.
 	 ix++) {
 	EIM earley_item = work_earley_items[ix];
       AHFA state = AHFA_of_EIM (earley_item);
-      int symbol_ix;
-      int postdot_symbol_count = Postdot_SYM_Count_of_AHFA (state);
-      Marpa_Symbol_ID *postdot_symbols =
-	Postdot_SYMID_Ary_of_AHFA (state);
-      for (symbol_ix = 0; symbol_ix < postdot_symbol_count; symbol_ix++)
+      int isy_ix;
+      ISYID postdot_isy_count = Postdot_ISY_Count_of_AHFA (state);
+      ISYID *postdot_isyidary =
+	Postdot_ISYIDAry_of_AHFA (state);
+      for (isy_ix = 0; isy_ix < postdot_isy_count; isy_ix++)
 	{
 	  PIM old_pim = NULL;
 	  PIM new_pim;
-	  Marpa_Symbol_ID symid;
+	  XSYID xsyid;
 	  new_pim = my_obstack_alloc (&r->t_obs, sizeof (EIX_Object));
-	  symid = postdot_symbols[symbol_ix];
-	  Postdot_SYMID_of_PIM(new_pim) = symid;
+	  xsyid = BuddyID_by_ISYID(postdot_isyidary[isy_ix]);
+	  Postdot_SYMID_of_PIM(new_pim) = xsyid;
 	  EIM_of_PIM(new_pim) = earley_item;
-	  if (bv_bit_test(bv_pim_symbols, (unsigned int)symid))
-	      old_pim = pim_workarea[symid];
+	  if (bv_bit_test(bv_pim_symbols, (unsigned int)xsyid))
+	      old_pim = pim_workarea[xsyid];
 	  Next_PIM_of_PIM(new_pim) = old_pim;
 	  if (!old_pim) current_earley_set->t_postdot_sym_count++;
-	  pim_workarea[symid] = new_pim;
-	  bv_bit_set(bv_pim_symbols, (unsigned int)symid);
+	  pim_workarea[xsyid] = new_pim;
+	  bv_bit_set(bv_pim_symbols, (unsigned int)xsyid);
 	}
     }
 }
