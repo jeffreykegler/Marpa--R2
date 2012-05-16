@@ -4200,7 +4200,6 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
     {
       ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
       XSY rh_xsy = Buddy_of_ISY(ISY_by_ID(rh_isyid));
-      XSYID rh_xsyid = ID_of_XSY(rh_xsy);
       if (!SYM_is_Nulling(rh_xsy))
 	{
 	  Last_Proper_SYMI_of_IRL(irl) = symbol_instance_of_next_rule + rhs_ix;
@@ -4687,9 +4686,10 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    AHFA p_working_state;
    const unsigned int initial_no_of_states = 2*AIM_Count_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
-   const unsigned int symbol_count_of_g = SYM_Count_of_G(g);
    Bit_Matrix prediction_matrix;
    IRL* irl_by_sort_key = my_new(IRL, irl_count);
+  Bit_Vector per_ahfa_complete_v = bv_obs_create (&obs_precompute, isy_count);
+  Bit_Vector per_ahfa_postdot_v = bv_obs_create (&obs_precompute, isy_count);
     AVL_TREE duplicates;
     AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
@@ -5150,8 +5150,8 @@ of minimum sizes.
   int item_ix;
   int no_of_postdot_symbols;
   int no_of_complete_symbols;
-  Bit_Vector complete_v = bv_create (isy_count);
-  Bit_Vector postdot_v = bv_create (isy_count);
+  bv_clear(per_ahfa_complete_v);
+  bv_clear(per_ahfa_postdot_v);
   for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
     {
       AIM item = item_list_working_buffer[item_ix];
@@ -5160,21 +5160,21 @@ of minimum sizes.
 	{
 	  ISYID complete_symbol_isyid = LHS_ISYID_of_AIM (item);
 	  completion_count_inc (&obs_precompute, p_new_state, complete_symbol_isyid);
-	  bv_bit_set (complete_v, (unsigned int) complete_symbol_isyid);
+	  bv_bit_set (per_ahfa_complete_v, (unsigned int) complete_symbol_isyid);
 	}
       else
 	{
-	  bv_bit_set (postdot_v, (unsigned int) postdot_isyid);
+	  bv_bit_set (per_ahfa_postdot_v, (unsigned int) postdot_isyid);
 	}
     }
   if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
-       bv_count (postdot_v)))
+       bv_count (per_ahfa_postdot_v)))
     {
       unsigned int min, max, start;
       Marpa_Symbol_ID *p_symbol = p_new_state->t_postdot_symid_ary =
 	my_obstack_alloc (&g->t_obs,
 			  no_of_postdot_symbols * sizeof (SYMID));
-      for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
+      for (start = 0; bv_scan (per_ahfa_postdot_v, start, &min, &max); start = max + 2)
 	{
 	  ISYID postdot_isyid;
 	  for (postdot_isyid = (ISYID) min;
@@ -5185,7 +5185,7 @@ of minimum sizes.
 	}
     }
   if ((no_of_complete_symbols =
-       Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (complete_v)))
+       Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (per_ahfa_complete_v)))
     {
       unsigned int min, max, start;
       SYMID *complete_symids = my_obstack_alloc (&g->t_obs,
@@ -5193,7 +5193,7 @@ of minimum sizes.
 						 sizeof (SYMID));
       SYMID *p_symbol = complete_symids;
       Complete_SYMIDs_of_AHFA (p_new_state) = complete_symids;
-      for (start = 0; bv_scan (complete_v, start, &min, &max);
+      for (start = 0; bv_scan (per_ahfa_complete_v, start, &min, &max);
 	   start = max + 2)
 	{
 	  ISYID complete_isyid;
@@ -5204,8 +5204,6 @@ of minimum sizes.
 	    }
 	}
     }
-  bv_free (postdot_v);
-  bv_free (complete_v);
 }
 
 @ Find the AHFA state in the argument,
@@ -5499,10 +5497,10 @@ create_predicted_AHFA_state(
 
 @ @<Calculate postdot symbols for predicted state@> =
 {
-  SYMID symbol_count = SYM_Count_of_G (g);
+  SYMID xsy_count = XSY_Count_of_G (g);
   int item_ix;
   SYMID no_of_postdot_symbols;
-  Bit_Vector postdot_v = bv_create (symbol_count);
+  Bit_Vector postdot_v = bv_create ( xsy_count );
     for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
       {
 	AIM item = item_list_working_buffer[item_ix];
@@ -5527,7 +5525,7 @@ create_predicted_AHFA_state(
 	  }
       }
   }
-    bv_free (postdot_v);
+  bv_free(postdot_v);
 }
 
 @** Transition (TRANS) Code.
