@@ -4104,7 +4104,7 @@ int t_position;
   Postdot_ISYID_of_AIM(item) :
   BuddyID_by_ISYID(Postdot_ISYID_of_AIM(item))
 )
-@d AIM_is_Completion(aim) (Postdot_SYMID_of_AIM(aim) < 0)
+@d AIM_is_Completion(aim) (Postdot_ISYID_of_AIM(aim) < 0)
 @<Int aligned AHFA item elements@> = ISYID t_postdot_isyid;
 
 @*0 Leading Nulls.
@@ -4855,6 +4855,7 @@ _marpa_avl_destroy(duplicates);
   const IRL start_irl = g->t_start_irl;
   SYMID *postdot_symbol_ids;
   AIM start_item;
+  ISYID postdot_isyid;
   AIM *item_list = my_obstack_alloc (&g->t_obs, sizeof (AIM));
   /* The start item is the initial item for the start rule */
   start_item = First_AIM_of_IRL(start_irl);
@@ -4868,16 +4869,14 @@ _marpa_avl_destroy(duplicates);
   Postdot_SYM_Count_of_AHFA (p_initial_state) = 1;
   postdot_symbol_ids = Postdot_SYMID_Ary_of_AHFA (p_initial_state) =
     my_obstack_alloc (&g->t_obs, sizeof (SYMID));
-  *postdot_symbol_ids = Postdot_SYMID_of_AIM (start_item);
+  postdot_isyid = Postdot_ISYID_of_AIM (start_item);
+  *postdot_symbol_ids = BuddyID_by_ISYID(postdot_isyid);
   Complete_SYM_Count_of_AHFA (p_initial_state) = 0;
-  p_initial_state->t_empty_transition =
-    create_predicted_AHFA_state (g,
-				 matrix_row (prediction_matrix,
-					     (unsigned int)
-					     Postdot_ISYID_of_AIM
-					     (start_item)), irl_by_sort_key,
-				 &states, duplicates, item_list_working_buffer
-				 );
+  p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
+			       matrix_row (prediction_matrix,
+					   (unsigned int) postdot_isyid),
+			       irl_by_sort_key, &states, duplicates,
+			       item_list_working_buffer);
 }
 
 @* Discovered AHFA States.
@@ -5497,16 +5496,16 @@ create_predicted_AHFA_state(
 
 @ @<Calculate postdot symbols for predicted state@> =
 {
-  SYMID xsy_count = XSY_Count_of_G (g);
+  ISYID isy_count = ISY_Count_of_G (g);
   int item_ix;
   SYMID no_of_postdot_symbols;
-  Bit_Vector postdot_v = bv_create ( xsy_count );
+  Bit_Vector postdot_v = bv_create ( isy_count );
     for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
       {
 	AIM item = item_list_working_buffer[item_ix];
-	SYMID postdot = Postdot_SYMID_of_AIM (item);
-	if (postdot >= 0)
-	  bv_bit_set (postdot_v, (unsigned int) postdot);
+	ISYID postdot_isyid = Postdot_ISYID_of_AIM (item);
+	if (postdot_isyid >= 0)
+	  bv_bit_set (postdot_v, (unsigned int) postdot_isyid);
       }
     if ((no_of_postdot_symbols = p_new_state->t_postdot_sym_count =
      bv_count (postdot_v)))
@@ -5517,11 +5516,11 @@ create_predicted_AHFA_state(
 		     no_of_postdot_symbols * sizeof (SYMID));
     for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
       {
-	Marpa_Symbol_ID postdot;
-	for (postdot = (Marpa_Symbol_ID) min;
-	     postdot <= (Marpa_Symbol_ID) max; postdot++)
+	ISYID postdot_isyid;
+	for (postdot_isyid = (ISYID) min;
+	     postdot_isyid <= (ISYID) max; postdot_isyid++)
 	  {
-	    *p_symbol++ = postdot;
+	    *p_symbol++ = BuddyID_by_ISYID(postdot_isyid);
 	  }
       }
   }
