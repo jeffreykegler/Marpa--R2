@@ -5574,7 +5574,10 @@ once I stabilize the C code implemention.
 @d LV_Completion_Count_of_TRANS(trans) ((trans)->t_ur.t_completion_count)
 @d To_AHFA_of_AHFA_by_SYMID(from_ahfa, id)
      (To_AHFA_of_TRANS(TRANS_of_AHFA_by_SYMID((from_ahfa), (id))))
+@d To_AHFA_of_AHFA_by_ISYID(from_ahfa, id)
+     (To_AHFA_of_TRANS(TRANS_of_AHFA_by_ISYID((from_ahfa), (id))))
 @d To_AHFA_of_EIM_by_SYMID(eim, id) To_AHFA_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
+@d To_AHFA_of_EIM_by_ISYID(eim, id) To_AHFA_of_AHFA_by_ISYID(AHFA_of_EIM(eim), (id))
 @d AEXs_of_TRANS(trans) ((trans)->t_aex)
 @d Leo_Base_AEX_of_TRANS(trans) ((trans)->t_leo_base_aex)
 @ @s TRANS int
@@ -6214,8 +6217,8 @@ able to handle.
 @ @<Private typedefs@> = typedef Marpa_Earley_Set_ID ESID;
 @ @d Next_ES_of_ES(set) ((set)->t_next_earley_set)
 @d Postdot_SYM_Count_of_ES(set) ((set)->t_postdot_sym_count)
-@d First_PIM_of_ES_by_SYMID(set, symid) (first_pim_of_es_by_symid((set), (symid)))
-@d PIM_SYM_P_of_ES_by_SYMID(set, symid) (pim_sym_p_find((set), (symid)))
+@d First_PIM_of_ES_by_ISYID(set, isyid) (first_pim_of_es_by_isyid((set), (isyid)))
+@d PIM_ISY_P_of_ES_by_ISYID(set, isyid) (pim_isy_p_find((set), (isyid)))
 @<Private incomplete structures@> =
 struct s_earley_set;
 typedef struct s_earley_set *ES;
@@ -6709,7 +6712,8 @@ support the chain of postdot items for
 a postdot symbol.
 @d Next_PIM_of_EIX(eix) ((eix)->t_next)
 @d EIM_of_EIX(eix) ((eix)->t_earley_item)
-@d Postdot_SYMID_of_EIX(eix) ((eix)->t_postdot_symid)
+@d Postdot_ISYID_of_EIX(eix) ((eix)->t_postdot_isyid)
+@d Postdot_SYMID_of_EIX(eix) BuddyID_by_ISYID(Postdot_ISYID_of_EIX(eix))
 @<Private incomplete structures@> =
 struct s_earley_ix;
 typedef struct s_earley_ix* EIX;
@@ -6717,7 +6721,7 @@ union u_postdot_item;
 @ @<Private structures@> =
 struct s_earley_ix {
      union u_postdot_item* t_next;
-     SYMID t_postdot_symid;
+     ISYID t_postdot_isyid;
      EIM t_earley_item; // Never NULL if this is an index item
 };
 typedef struct s_earley_ix EIX_Object;
@@ -6736,6 +6740,7 @@ the fields to maintain the chain of postdot items.
 For this reason, Leo items contain an Earley index,
 but one
 with a |NULL| Earley item pointer.
+@d Postdot_ISYID_of_LIM(leo) (Postdot_ISYID_of_EIX(EIX_of_LIM(leo)))
 @d Postdot_SYMID_of_LIM(leo) (Postdot_SYMID_of_EIX(EIX_of_LIM(leo)))
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_EIX(EIX_of_LIM(leo)))
 @d Origin_of_LIM(leo) ((leo)->t_origin)
@@ -6878,6 +6883,7 @@ by postdot symbol, of both the Earley items and the Leo items
 for each Earley set.
 @d LIM_of_PIM(pim) ((LIM)(pim))
 @d EIX_of_PIM(pim) ((EIX)(pim))
+@d Postdot_ISYID_of_PIM(pim) (Postdot_ISYID_of_EIX(EIX_of_PIM(pim)))
 @d Postdot_SYMID_of_PIM(pim) (Postdot_SYMID_of_EIX(EIX_of_PIM(pim)))
 @d EIM_of_PIM(pim) (EIM_of_EIX(EIX_of_PIM(pim)))
 @d Next_PIM_of_PIM(pim) (Next_PIM_of_EIX(EIX_of_PIM(pim)))
@@ -6905,7 +6911,7 @@ returns that postdot item.
 If it fails, it returns |NULL|.
 @<Function definitions@> =
 PRIVATE PIM*
-pim_sym_p_find (ES set, SYMID symid)
+pim_isy_p_find (ES set, ISYID isyid)
 {
   int lo = 0;
   int hi = Postdot_SYM_Count_of_ES(set) - 1;
@@ -6913,9 +6919,9 @@ pim_sym_p_find (ES set, SYMID symid)
   while (hi >= lo) { // A binary search
        int trial = lo+(hi-lo)/2; // guards against overflow
        PIM trial_pim = postdot_array[trial];
-       SYMID trial_symid = Postdot_SYMID_of_PIM(trial_pim);
-       if (trial_symid == symid) return postdot_array+trial;
-       if (trial_symid < symid) {
+       ISYID trial_isyid = Postdot_ISYID_of_PIM(trial_pim);
+       if (trial_isyid == isyid) return postdot_array+trial;
+       if (trial_isyid < isyid) {
            lo = trial+1;
        } else {
            hi = trial-1;
@@ -6924,10 +6930,10 @@ pim_sym_p_find (ES set, SYMID symid)
   return NULL;
 }
 @ @<Function definitions@> =
-PRIVATE PIM first_pim_of_es_by_symid(ES set, SYMID symid)
+PRIVATE PIM first_pim_of_es_by_isyid(ES set, ISYID isyid)
 {
-   PIM* pim_sym_p = pim_sym_p_find(set, symid);
-   return pim_sym_p ? *pim_sym_p : NULL;
+   PIM* pim_isy_p = pim_isy_p_find(set, isyid);
+   return pim_isy_p ? *pim_isy_p : NULL;
 }
 
 @*0 Trace Functions.
@@ -6937,10 +6943,10 @@ a ``trace postdot item".
 This is
 tracked on a per-recognizer basis.
 @<Widely aligned recognizer elements@> =
-union u_postdot_item** t_trace_pim_sym_p;
+union u_postdot_item** t_trace_pim_isy_p;
 union u_postdot_item* t_trace_postdot_item;
 @ @<Initialize recognizer elements@> =
-r->t_trace_pim_sym_p = NULL;
+r->t_trace_pim_isy_p = NULL;
 r->t_trace_postdot_item = NULL;
 @ |marpa_r_postdot_symbol_trace|
 takes a recognizer and a symbol ID
@@ -6960,7 +6966,7 @@ marpa_r_postdot_symbol_trace (struct marpa_r *r,
 {
   @<Return |-2| on failure@>@;
   ES current_es = r->t_trace_earley_set;
-  PIM* pim_sym_p;
+  PIM* pim_isy_p;
   PIM pim;
   @<Unpack recognizer objects@>@;
   @<Clear trace postdot item data@>@;
@@ -6970,16 +6976,16 @@ marpa_r_postdot_symbol_trace (struct marpa_r *r,
       MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
       return failure_indicator;
   }
-  pim_sym_p = PIM_SYM_P_of_ES_by_SYMID(current_es, symid);
-  pim = *pim_sym_p;
+  pim_isy_p = PIM_ISY_P_of_ES_by_ISYID(current_es, ISYID_by_XSYID(symid));
+  pim = *pim_isy_p;
   if (!pim) return -1;
-  r->t_trace_pim_sym_p = pim_sym_p;
+  r->t_trace_pim_isy_p = pim_isy_p;
   r->t_trace_postdot_item = pim;
   return symid;
 }
 
 @ @<Clear trace postdot item data@> =
-r->t_trace_pim_sym_p = NULL;
+r->t_trace_pim_isy_p = NULL;
 r->t_trace_postdot_item = NULL;
 
 @ Set trace postdot item to the first in the trace Earley set,
@@ -6996,7 +7002,7 @@ marpa_r_first_postdot_item_trace (struct marpa_r *r)
   ES current_earley_set = r->t_trace_earley_set;
   PIM pim;
   @<Unpack recognizer objects@>@;
-  PIM* pim_sym_p;
+  PIM* pim_isy_p;
   @<Clear trace postdot item data@>@;
   @<Fail if not trace-safe@>@;
   if (!current_earley_set) {
@@ -7005,9 +7011,9 @@ marpa_r_first_postdot_item_trace (struct marpa_r *r)
       return failure_indicator;
   }
   if (current_earley_set->t_postdot_sym_count <= 0) return -1;
-  pim_sym_p = current_earley_set->t_postdot_ary+0;
-  pim = pim_sym_p[0];
-  r->t_trace_pim_sym_p = pim_sym_p;
+  pim_isy_p = current_earley_set->t_postdot_ary+0;
+  pim = pim_isy_p[0];
+  r->t_trace_pim_isy_p = pim_isy_p;
   r->t_trace_postdot_item = pim;
   return Postdot_SYMID_of_PIM(pim);
 }
@@ -7027,13 +7033,13 @@ marpa_r_next_postdot_item_trace (struct marpa_r *r)
   @<Return |-2| on failure@>@;
   ES current_set = r->t_trace_earley_set;
   PIM pim;
-  PIM* pim_sym_p;
+  PIM* pim_isy_p;
   @<Unpack recognizer objects@>@;
 
-  pim_sym_p = r->t_trace_pim_sym_p;
+  pim_isy_p = r->t_trace_pim_isy_p;
   pim = r->t_trace_postdot_item;
   @<Clear trace postdot item data@>@;
-  if (!pim_sym_p || !pim) {
+  if (!pim_isy_p || !pim) {
       MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
       return failure_indicator;
   }
@@ -7045,14 +7051,14 @@ marpa_r_next_postdot_item_trace (struct marpa_r *r)
   pim = Next_PIM_of_PIM(pim);
   if (!pim) { /* If no next postdot item for this symbol,
        then look at next symbol */
-       pim_sym_p++;
-       if (pim_sym_p - current_set->t_postdot_ary
+       pim_isy_p++;
+       if (pim_isy_p - current_set->t_postdot_ary
 	   >= current_set->t_postdot_sym_count) {
 	   return no_more_postdot_symbols;
        }
-      pim = *pim_sym_p;
+      pim = *pim_isy_p;
   }
-  r->t_trace_pim_sym_p = pim_sym_p;
+  r->t_trace_pim_isy_p = pim_isy_p;
   r->t_trace_postdot_item = pim;
   return Postdot_SYMID_of_PIM(pim);
 }
@@ -8174,7 +8180,7 @@ are always unexpected.
     token_isyid = ID_of_ISY(token_isy);
     current_earley_set = Current_ES_of_R (r);
     if (!current_earley_set) return unexpected_token_indicator;
-    if (!First_PIM_of_ES_by_SYMID (current_earley_set, token_xsyid))
+    if (!First_PIM_of_ES_by_ISYID (current_earley_set, token_isyid))
 	return unexpected_token_indicator;
 }
 
@@ -8358,15 +8364,15 @@ this means that the parse is exhausted.
 {
   ES start_earley_set = Start_ES_of_ALT (alternative);
   TOK token = TOK_of_ALT (alternative);
-  SYMID token_id = SYMID_of_TOK(token);
-  PIM pim = First_PIM_of_ES_by_SYMID (start_earley_set, token_id);
+  ISYID token_isyid = ISYID_of_TOK(token);
+  PIM pim = First_PIM_of_ES_by_ISYID (start_earley_set, token_isyid);
   for ( ; pim ; pim = Next_PIM_of_PIM (pim)) {
       AHFA scanned_AHFA, prediction_AHFA;
       EIM scanned_earley_item;
       EIM predecessor = EIM_of_PIM (pim);
       if (!predecessor)
 	continue;		// Ignore Leo items when scanning
-      scanned_AHFA = To_AHFA_of_EIM_by_SYMID (predecessor, token_id);
+      scanned_AHFA = To_AHFA_of_EIM_by_ISYID (predecessor, token_isyid);
       scanned_earley_item = earley_item_assign (r,
 						current_earley_set,
 						Origin_of_EIM (predecessor),
@@ -8416,7 +8422,7 @@ add those Earley items it ``causes".
 @ @<Add new Earley items for |complete_symbol| and |cause|@> =
 {
   PIM postdot_item;
-  for (postdot_item = First_PIM_of_ES_by_SYMID (middle, complete_symbol);
+  for (postdot_item = First_PIM_of_ES_by_ISYID (middle, ISYID_by_XSYID(complete_symbol));
        postdot_item; postdot_item = Next_PIM_of_PIM (postdot_item))
     {
       EIM predecessor = EIM_of_PIM (postdot_item);
@@ -8592,10 +8598,12 @@ At this point there are no Leo items.
 	{
 	  PIM old_pim = NULL;
 	  PIM new_pim;
+	  ISYID isyid;
 	  XSYID xsyid;
 	  new_pim = my_obstack_alloc (&r->t_obs, sizeof (EIX_Object));
-	  xsyid = BuddyID_by_ISYID(postdot_isyidary[isy_ix]);
-	  Postdot_SYMID_of_PIM(new_pim) = xsyid;
+	  isyid = postdot_isyidary[isy_ix];
+	  Postdot_ISYID_of_PIM(new_pim) = isyid;
+	  xsyid = BuddyID_by_ISYID(isyid);
 	  EIM_of_PIM(new_pim) = earley_item;
 	  if (bv_bit_test(bv_pim_symbols, (unsigned int)xsyid))
 	      old_pim = pim_workarea[xsyid];
@@ -8670,7 +8678,7 @@ once it is populated.
 @<Create a new, unpopulated, LIM@> = {
     LIM new_lim;
     new_lim = my_obstack_alloc(&r->t_obs, sizeof(*new_lim));
-    Postdot_SYMID_of_LIM(new_lim) = symid;
+    Postdot_ISYID_of_LIM(new_lim) = ISYID_by_XSYID(symid);
     EIM_of_PIM(new_lim) = NULL;
     Predecessor_LIM_of_LIM(new_lim) = NULL;
     Origin_of_LIM(new_lim) = NULL;
@@ -8819,7 +8827,7 @@ In a populated LIM, this will not necessarily be the case.
     PIM predecessor_pim;
     if (Earleme_of_ES(predecessor_set) < current_earley_set_id) {
 	predecessor_pim
-	= First_PIM_of_ES_by_SYMID (predecessor_set, predecessor_transition_symbol);
+	= First_PIM_of_ES_by_ISYID (predecessor_set, ISYID_by_XSYID(predecessor_transition_symbol));
     } else {
         predecessor_pim = pim_workarea[predecessor_transition_symbol];
     }
