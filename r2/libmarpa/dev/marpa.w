@@ -6015,7 +6015,7 @@ and if I do not ``fail fast" here the ultimate problem
 could be very hard to debug.
 @ The buffer is expected to be large enough to hold
 the result.
-This will be the case is the length of the buffer
+This will be the case if the length of the buffer
 is greater than or equal to the number of symbols
 in the grammar.
 @<Function definitions@> =
@@ -8526,7 +8526,7 @@ PRIVATE void r_update_earley_sets(RECCE r)
 @** Create the Postdot Items.
 @ This function inserts regular (non-Leo) postdot items into
 the postdot list.
-@ Not inlined, because of its size, and because it is used
+Not inlined, because of its size, and because it is used
 twice -- once in initializing the Earley set 0,
 and once for completing later Earley sets.
 Earley set 0 is very much a special case, and it
@@ -8540,7 +8540,7 @@ These have been eliminated with the special-casing of the
 null parse.
 But Leo items are always optional,
 and may not be worth it for Earley set 0.
-@ @ {\bf Further Research}: @^Further Research@>
+@ {\bf Further Research}: @^Further Research@>
 Another look at the degree and kind
 of memoization here will be in order
 once the question of when to use Leo items
@@ -9926,12 +9926,12 @@ and the completed rules.
 Note that this puts a limit on the number of symbols
 and internal rules in a grammar --- their total must fit in an
 int.
-@d WHEID_of_SYMID(symid) (irl_count+(symid))
+@d WHEID_of_ISYID(isyid) (irl_count+(isyid))
 @d WHEID_of_IRLID(irlid) (irlid)
 @d WHEID_of_IRL(irl) WHEID_of_IRLID(ID_of_IRL(irl))
 @d WHEID_of_OR(or) (
     wheid = OR_is_Token(or) ?
-        WHEID_of_SYMID(SYMID_of_OR(or)) :
+        WHEID_of_ISYID(ISYID_of_OR(or)) :
         WHEID_of_IRL(IRL_of_OR(or))
     )
 
@@ -10282,7 +10282,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   PSAR_Object and_per_es_arena;
   const PSAR and_psar = &and_per_es_arena;
   int or_node_id = 0;
-  psar_init (and_psar, irl_count+symbol_count_of_g);
+  psar_init (and_psar, irl_count+isy_count);
   while (or_node_id < or_node_count_of_b) {
       const OR work_or_node = or_nodes_of_b[or_node_id];
     @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
@@ -10642,6 +10642,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 @ @<Declare bocage locals@> =
 const GRAMMAR g = G_of_R(r);
 const int symbol_count_of_g = SYM_Count_of_G(g);
+const int isy_count = ISY_Count_of_G(g);
 const IRLID irl_count = IRL_Count_of_G(g);
 BOCAGE b = NULL;
 ES end_of_parse_earley_set;
