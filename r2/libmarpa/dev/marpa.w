@@ -5991,32 +5991,6 @@ No complete or predicted Earley item will be found after the current earleme.
 unsigned int marpa_r_furthest_earleme(struct marpa_r* r)
 { return Furthest_Earleme_of_R(r); }
 
-@*0 Working Bit Vectors for Symbols.
-These are two bit vectors, sized to the number of symbols
-in the grammar,
-for utility purposes.
-They are used in the completion
-phase for each Earley set,
-to keep track of the new postdot items and
-Leo items.
-@ @<Widely aligned recognizer elements@> =
-Bit_Vector t_bv_sym;
-Bit_Vector t_bv_sym2;
-Bit_Vector t_bv_sym3;
-@ @<Initialize recognizer elements@> =
-r->t_bv_sym = NULL;
-r->t_bv_sym2 = NULL;
-r->t_bv_sym3 = NULL;
-@ @<Allocate recognizer's bit vectors for symbols@> = {
-  r->t_bv_sym = bv_create( (unsigned int)symbol_count_of_g );
-  r->t_bv_sym2 = bv_create( (unsigned int)symbol_count_of_g );
-  r->t_bv_sym3 = bv_create( (unsigned int)symbol_count_of_g );
-}
-@ @<Free working bit vectors for symbols@> =
-if (r->t_bv_sym) bv_free(r->t_bv_sym);
-if (r->t_bv_sym2) bv_free(r->t_bv_sym2);
-if (r->t_bv_sym3) bv_free(r->t_bv_sym3);
-
 @*0 Expected Symbol Boolean Vector.
 A boolean vector by symbol ID,
 with the bits set if the symbol is expected
@@ -8580,14 +8554,15 @@ postdot_items_create (RECCE r, ES current_earley_set)
 {
     struct obstack obs_local;
     void** pim_workarea;
+    const SYMID symbol_count_of_g = SYM_Count_of_G(G_of_R(r));
   @<Unpack recognizer objects@>@;
     EARLEME current_earley_set_id = Earleme_of_ES(current_earley_set);
-    Bit_Vector bv_pim_symbols = r->t_bv_sym;
-    Bit_Vector bv_lim_symbols = r->t_bv_sym2;
+    Bit_Vector bv_pim_symbols;
+    Bit_Vector bv_lim_symbols;
     my_obstack_init(&obs_local);
-    pim_workarea = my_obstack_new(&obs_local, void*, SYM_Count_of_G(g));
-    bv_clear (bv_pim_symbols);
-    bv_clear (bv_lim_symbols);
+    pim_workarea = my_obstack_new(&obs_local, void*, symbol_count_of_g);
+    bv_pim_symbols = bv_obs_create(&obs_local, symbol_count_of_g);
+    bv_lim_symbols = bv_obs_create(&obs_local, symbol_count_of_g);
     @<Start EIXes in PIM workarea@>@;
     if (r->t_is_using_leo) {
 	@<Start LIMs in PIM workarea@>@;
@@ -8778,7 +8753,7 @@ ID must
 \li Must not have already been added to a LIM chain for this
 Earley set.\par
 @<Add predecessors to LIMs@> = {
-  const Bit_Vector bv_ok_for_chain = r->t_bv_sym3;
+  const Bit_Vector bv_ok_for_chain = bv_obs_create(&obs_local, symbol_count_of_g);
   unsigned int min, max, start;
 
   bv_copy(bv_ok_for_chain, bv_lim_symbols);
