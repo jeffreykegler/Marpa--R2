@@ -125,12 +125,10 @@ Recognizer objects
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
-* Recognizer internals::        Meddling with the recognizer internals.
 
 Bocage objects
 
 * Bocage reference counting::   
-* Bocage internals::            Bocage internals.
 
 Orderings
 
@@ -164,6 +162,8 @@ Internal Interface
 * Symbol internal methods::     
 * Rule internals::              
 * Grammar internals::           
+* Recognizer internals::        
+* Bocage internals::            
 
 @end detailmenu
 @end menu
@@ -1318,7 +1318,7 @@ If there is no such event (a soft failure),
 On hard failure, -2 is returned.
 @end deftypefun
 
-@defmac void* marpa_g_event_value(Marpa_Event* @var{event})
+@defmac {void*} marpa_g_event_value(Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
@@ -1374,34 +1374,77 @@ Suggested message: "Grammar has a nulling terminal."
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
-* Recognizer internals::        Meddling with the recognizer internals.
 @end menu 
 
 @node Recognizer constructor, Recognizer reference counting, Recognizers, Recognizers
 @section Creating a new recognizer
 
 @deftypefun Marpa_Recognizer marpa_r_new ( Marpa_Grammar @var{g} )
+Creates a new recognizer.
+In order to allow setting to be changed before input starts,
+the new recognizer is @strong{not} ready for input.
+The @code{marpa_r_start_input} method will make the
+recognizer ready for input.
+
+Return value:  On success, the newly created recognizer.
+If @var{g} is not precomputed, or on other failure, @code{NULL}.
 @end deftypefun
 
 @node Recognizer reference counting, Recognizer life, Recognizer constructor, Recognizers
 @section Keeping the reference count of a recognizer
 
 @deftypefun Marpa_Recognizer marpa_r_ref (Marpa_Recognizer @var{r})
+Increases the reference count.
+
+Return value:
+On success, the recognizer object it was called with;
+@code{NULL} on failure.
 @end deftypefun
 
 @deftypefun void marpa_r_unref (Marpa_Recognizer @var{r})
+Decreases the reference count by 1,
+destroying @var{g} once the reference count reaches
+zero.
+Libmarpa time objects have no explicit destructor.
+They are destroyed by reducing their reference count to zero.
+
+Return value: None
 @end deftypefun
 
-@node Recognizer life, Recognizer internals, Recognizer reference counting, Recognizers
+@node Recognizer life,  , Recognizer reference counting, Recognizers
 @section Taking a recognizer through its life cycle
 
 @deftypefun int marpa_r_start_input (Marpa_Recognizer @var{r})
+Makes @var{r} ready to accept input.
+
+Return value:  On success, a non-negative value.
+On failure, -2.
 @end deftypefun
 
-@deftypefun int marpa_r_alternative (Marpa_Recognizer r, @
+@deftypefun int marpa_r_alternative (Marpa_Recognizer @var{r}, @
     Marpa_Symbol_ID @var{token_id}, @
     int @var{value}, @
     int @var{length})
+Reads a token into @var{r}.
+The token will start at the current earleme.
+Libmarpa allows tokens to be ambiguous, to be of
+variable length and to overlap.
+@var{token_id} is the symbol of the token,
+which must be a terminal.
+@var{length} is the length of the token.
+
+@var{value} is a integer which represents the value of the
+token.
+In application were the token's value is not an integer, it is
+expected that the application will use this value to 
+find the application's value, perhaps by using @var{value}
+to index an array.
+@var{value} is not used inside Libmarpa -- it is simply
+stored to be returned by the valuator
+as a convenience for the application.
+
+A @var{value} of 0 has special significance -- it indicates
+that the token is unvalued.
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
@@ -1423,10 +1466,10 @@ are the same, but this is not the case in other input
 models.
 If the ordinal is out of bounds, this function
 returns -1, which can be treated as a soft failure.
-On other problems, it returns -2.
+On other failures, it returns -2.
 @end deftypefun
 
-@deftypefun unsigned int marpa_r_current_earleme (Marpa_Recognizer @var{r})
+@deftypefun {unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
@@ -1436,7 +1479,7 @@ On other problems, it returns -2.
     int @var{threshold})
 @end deftypefun
 
-@deftypefun unsigned int marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
+@deftypefun {unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun int marpa_r_terminals_expected ( @
@@ -1459,7 +1502,7 @@ On other problems, it returns -2.
     int @var{ix})
 @end deftypefun
 
-@defmac void* marpa_r_event_value(Marpa_Event* @var{event})
+@defmac {void*} marpa_r_event_value(Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
@@ -1471,7 +1514,6 @@ codes.
 
 @menu
 * Bocage reference counting::   
-* Bocage internals::            Bocage internals.
 @end menu
 
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
@@ -1481,7 +1523,7 @@ codes.
 @deftypefun Marpa_Grammar marpa_b_g (Marpa_Bocage @var{b})
 @end deftypefun
 
-@node Bocage reference counting, Bocage internals, Bocage, Bocage
+@node Bocage reference counting,  , Bocage, Bocage
 @section  Reference counting
 @deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
 @end deftypefun
@@ -1805,7 +1847,7 @@ Accessors which are implemented as macros.
 @defmac Marpa_Symbol_ID marpa_v_semantic_token(Marpa_Value @var{v})
 @end defmac
 
-@defmac void* marpa_v_token_value(Marpa_Value @var{v})
+@defmac {void*} marpa_v_token_value(Marpa_Value @var{v})
 @end defmac
 
 @defmac Marpa_Rule_ID marpa_v_semantic_rule(Marpa_Value @var{v})
@@ -2416,6 +2458,8 @@ determine the start and end earlemes of a token.
 * Symbol internal methods::     
 * Rule internals::              
 * Grammar internals::           
+* Recognizer internals::        
+* Bocage internals::            
 @end menu
 
 @node Symbol internal methods, Rule internals, Internal Interface, Internal Interface
@@ -2544,10 +2588,10 @@ On other failures, -2.
 @deftypefun int _marpa_g_irl_is_virtual_rhs (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
-@deftypefun unsigned int _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
+@deftypefun {unsigned int} _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
-@deftypefun unsigned int _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
+@deftypefun {unsigned int} _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_source_xrl (Marpa_Grammar @var{g}, @
@@ -2560,7 +2604,7 @@ On other failures, -2.
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 
-@node Grammar internals,  , Rule internals, Internal Interface
+@node Grammar internals, Recognizer internals, Rule internals, Internal Interface
 @section Grammar internal methods
 
 The methods in this section are accessors for Libmarpa's
@@ -2611,7 +2655,7 @@ Marpa's internals, as described in
      Marpa_AHFA_Item_ID @var{AHFA_item_id})
 @end deftypefun
 
-@node Recognizer internals,  , Recognizer life, Recognizers
+@node Recognizer internals, Bocage internals, Grammar internals, Internal Interface
 @section Recognizer internals
 
 @deftypefun Marpa_Earley_Set_ID _marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
@@ -2686,7 +2730,7 @@ Marpa's internals, as described in
 @deftypefun Marpa_Earley_Set_ID _marpa_r_source_middle (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@node Bocage internals
+@node Bocage internals,  , Recognizer internals, Internal Interface
 @section Bocage internals
 
 @deftypefun int _marpa_b_and_node_count ( @

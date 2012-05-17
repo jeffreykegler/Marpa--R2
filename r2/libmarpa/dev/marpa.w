@@ -5808,9 +5808,7 @@ struct marpa_r {
 @ The grammar must not be deallocated for the life of the
 recognizer.
 In the event of an error creating the recognizer,
-|NULL| is returned and the error status
-of the {\bf grammar} is set.
-For this reason, the grammar is not |const|.
+|NULL| is returned.
 @<Function definitions@> =
 Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 {
