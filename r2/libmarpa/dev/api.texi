@@ -1312,7 +1312,7 @@ If there is no such event (a soft failure),
 On hard failure, -2 is returned.
 @end deftypefun
 
-@defmac {void*} marpa_g_event_value(Marpa_Event* @var{event})
+@defmac void* marpa_g_event_value(Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
@@ -1429,11 +1429,43 @@ to be given a value.
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
-@end deftypefun
+This method completes the reading of the tokens starting at one
+earleme and advances the current earleme by one.
+In some input models @code{marpa_r_earleme_complete} may be called
+even when no tokens have been read at the current earleme --
+in the character-per-earleme input model, for example, tokens
+can span many characters and, if the input is unambiguous over that
+span, there will be no other tokens that start inside it.
 
-@deftypefun Marpa_Error_Code marpa_r_error @
-    (Marpa_Recognizer @var{r}, @
-    const char** @var{p_error_string})
+During this method, one or more events may occur.
+On success, this function returns the number of events
+generated,
+but it is important to note that events may be
+created whether earleme completion fails or succeeds.
+When this method fails,
+the application must call @code{marpa_r_event}
+if it wants to determine if any events occurred.
+Since the reason for failure to complete an earleme is often
+detailed in the events, failed applications will often
+be at least as interested in the events as those
+which succeeded.
+
+@code{MARPA_EVENT_EXHAUSTED} indicates that the parse is
+exhausted -- that no input will be accepted at later earlemes.
+Note that an exhausted parse can be a successful one -- it
+just cannot succeed at a later earleme than the current one.
+
+The @code{MARPA_EVENT_EARLEY_ITEM_THRESHOLD} event
+indicates that an application-settable threshold
+on the number of Earley items has been reached or exceeded.
+What this means depends on the application,
+but when the default threshold is exceeded,
+it means that it is very likely
+that the time and space resources consumed by
+the parse are going to be excessive.
+
+Return value:  On success, the number of events generated.
+On failure, -2.
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme ( @
@@ -1450,7 +1482,7 @@ returns -1, which can be treated as a soft failure.
 On other failures, it returns -2.
 @end deftypefun
 
-@deftypefun {unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
+@deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
@@ -1460,7 +1492,7 @@ On other failures, it returns -2.
     int @var{threshold})
 @end deftypefun
 
-@deftypefun {unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
+@deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun int marpa_r_terminals_expected ( @
@@ -1500,7 +1532,7 @@ If there is no such event (a soft failure),
 On hard failure, -2 is returned.
 @end deftypefun
 
-@defmac {void*} marpa_r_event_value(Marpa_Event* @var{event})
+@defmac void* marpa_r_event_value(Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
@@ -1742,7 +1774,7 @@ Accessors which are implemented as macros.
 @defmac Marpa_Symbol_ID marpa_v_semantic_token(Marpa_Value @var{v})
 @end defmac
 
-@defmac {void*} marpa_v_token_value(Marpa_Value @var{v})
+@defmac void* marpa_v_token_value(Marpa_Value @var{v})
 @end defmac
 
 @defmac Marpa_Rule_ID marpa_v_semantic_rule(Marpa_Value @var{v})
@@ -1893,6 +1925,28 @@ reinterpret a hard error as a soft error.
 @deftypefun Marpa_Error_Code marpa_g_error @
     ( Marpa_Grammar @var{g}, @
     const char** @var{p_error_string})
+When a method fails,
+this method allows the application to read
+the error code.
+@var{p_error_string} is reserved for use by
+the internals.
+Applications should set it to @code{NULL}.
+
+Return value: The last error code from a Libmarpa method.
+Always succeeds.
+@end deftypefun
+
+@deftypefun Marpa_Error_Code marpa_r_error @
+    (Marpa_Recognizer @var{r}, @
+    const char** @var{p_error_string})
+All errors are tracked in the grammar object.
+This method is a convenience wrapper for @code{marpa_g_error}.
+@var{p_error_string} is reserved for use by
+the internals.
+Applications should set it to @code{NULL}.
+
+Return value: The last error code from a Libmarpa method.
+Always succeeds.
 @end deftypefun
 
 @section Error Macros
@@ -2522,10 +2576,10 @@ On other failures, -2.
 @deftypefun int _marpa_g_irl_is_virtual_rhs (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
-@deftypefun {unsigned int} _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
+@deftypefun @code{unsigned int} _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
-@deftypefun {unsigned int} _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
+@deftypefun @code{unsigned int} _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_source_xrl (Marpa_Grammar @var{g}, @

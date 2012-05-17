@@ -216,6 +216,7 @@ while ( my $line = <STDIN> ) {
         $def .= $line;
         $def =~ s/\A \s* [@] deftypefun x? \s* //xms;
         $def =~ s/ [@]var[{] ([^}]*) [}]/$1/xmsg;
+        $def =~ s/ [@]code[{] ([^}]*) [}]/$1/xmsg;
         $def =~ s/\s+/ /xmsg;
         $def =~ s/\s \z/;/xmsg;
         push @defs, $def;
