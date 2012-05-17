@@ -1042,7 +1042,7 @@ Marpa can implement the semantics internally,
 eliminating an evaluation step.
 This can be an considerable efficiency.
 
-The two optimizable cases are "whatever semantics
+The two optimizable cases are ``whatever'' semantics
 and "first child" semantics.
 If a rule has
 @dfn{whatever semantics}, that means
@@ -1060,12 +1060,12 @@ It is possible that a future implementation will
 be unable to implement first child semantics as a stack
 no-op.
 At that point first child semantics will made equivalent
-to "ask me" semantics.
+to ``ask me'' semantics.
 
-Return value: -2 if there was an error.
-  On success, 1 if the resulting semantics after
-  the function call is the "ask me" semantics.
-  Otherise, 0 otherwise.
+Return value: On success, 1 if the resulting semantics after
+  the function call is the ``ask me'' semantics;
+  0 otherwise.
+  On failure, -2.
 
 @end deftypefun
 
@@ -1143,7 +1143,7 @@ The sequence RHS, or item,
 is restricted to a single symbol,
 but almost arbitrary semantics can be expressed by having
 @var{rhs_id} be the LHS of another rule.
-A restrictions is that @var{rhs_id},
+A restriction is that @var{rhs_id},
 cannot be a nullable symbol.
 
 If @var{separator_id} is a symbol, it also cannot
@@ -1208,8 +1208,6 @@ On hard failure, returns -2.
 
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
 This function precomputes the grammar.
-In the process it may create one or more internal symbols,
-and one or more internal rules.
 
 In the process, precomputation creates events which
 the user can access.
@@ -1217,8 +1215,9 @@ On success, this function returns the number of events
 generated,
 but it is important to note that events may be
 created whether precomputation fails or succeeds.
-Applications which fail must call @code{marpa_g_event}
-if they want to determine if any events occurred.
+When the method fails,
+the application must call @code{marpa_g_event}
+if it want to determine if any events occurred.
 Since the reason for failure to precompute is often
 detailed in the events, failed applications will often
 be at least as interested in the events as those
@@ -1286,206 +1285,6 @@ To determine which rules are in the cycle,
 Return value: On success, 1 if the grammar has a cycle,
 0 otherwise.
 On failure, -2.
-@end deftypefun
-
-@node Symbol internals, Rule internals, Grammar precomputation, Grammars
-@section Symbol internals
-
-Internal methods are only for testing and development of libmarpa.
-They are listed here (and sometimes describes) for the convenient
-of those working on libmarpa's internals.
-Applications should not use them,
-and should treat them as ``undocumented''.
-
-@deftypefun int _marpa_g_isy_is_start ( Marpa_Grammar @var{g}, @
-    Marpa_ISY_ID @var{isy_id})
-@end deftypefun
-@deftypefun int _marpa_g_isy_is_nulling ( @
-  Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
-@end deftypefun
-@deftypefun int _marpa_g_isy_is_lhs ( @
-  Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
-@end deftypefun
-@deftypefun Marpa_ISY_ID _marpa_g_xsy_nulling_isy ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun Marpa_ISY_ID _marpa_g_xsy_isy ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun Marpa_Symbol_ID _marpa_g_symbol_proper_alias ( @
-  Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun Marpa_Symbol_ID _marpa_g_symbol_null_alias ( @
-  Marpa_Grammar @var{g}, @
-  Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun int _marpa_g_symbol_is_semantic ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_source_xsy ( @
-  Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
-@end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_isy_lhs_xrl ( @
-  Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
-@end deftypefun
-@deftypefun int _marpa_g_isy_xrl_offset ( @
-  Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id} )
-@end deftypefun
-
-@node Rule internals, Grammar internals, Symbol internals, Grammars
-@section Rule internals
-
-@deftypefun int marpa_g_rule_is_keep_separation ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-This function does nothing but return an undocumented flag.
-At some point,
-I may optimize cases where separators are discarded,
-in which case this flag will be used.
-I may also remove this call entirely.
-Return value:
-Returns 1 if
-the keep separation flag is set,
-0 if not.
-Returns 0 if
-@var{rule_id} is not a sequence rule.
-On hard failure, returns -2.
-@end deftypefun
-
-Internal methods are only for testing and development of libmarpa.
-They are listed here (and sometimes describes) for the convenient
-of those working on libmarpa's internals.
-Applications should not use them,
-and should treat them as ``undocumented''.
-
-@deftypefun int _marpa_g_isy_count ( @
-  Marpa_Grammar @var{g})
-@end deftypefun
-@deftypefun int _marpa_g_irl_count ( @
-  Marpa_Grammar @var{g})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_g_irl_lhs ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-Return value: On success, the LHS symbol of the IRL.
-On failure, -2.
-@end deftypefun
-
-@deftypefun int _marpa_g_irl_length ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-The length of a IRL is the number of symbols on its RHS.
-
-Return value: On success, the IRL length.
-On failure, -2.
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_g_irl_rh_symbol ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id}, @
-    int @var{ix})
-The position in the IRL, @var{ix}, is zero-based.
-If @var{ix} is greater than or equal the length of the
-IRL, it is a soft failure.
-This can be used in loops, to avoid having to determine
-the IRL's length explicitly.
-
-Return value: On success, the symbol in position @var{ix}
-on the IRL's RHS.
-If @var{ix} is greater than or equal to the length of
-the IRL, -1.
-On other failures, -2.
-@end deftypefun
-@deftypefun int _marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@end deftypefun
-@deftypefun int _marpa_g_irl_is_virtual_lhs (Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-@end deftypefun
-@deftypefun int _marpa_g_irl_is_virtual_rhs (Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-@end deftypefun
-@deftypefun unsigned int _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-@end deftypefun
-@deftypefun unsigned int _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-@end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_source_xrl (Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-@end deftypefun
-@deftypefun int _marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-@end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_irl_semantic_equivalent (Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{irl_id})
-@end deftypefun
-
-@node Grammar internals,  , Rule internals, Grammars
-@section Methods that deal with grammar internals
-
-Internal methods are only for testing and development of libmarpa.
-They are listed here (and sometimes describes) for the convenient
-of those working on libmarpa's internals.
-Applications should not use them,
-and should treat them as ``undocumented''.
-
-The methods in this section are accessors for Libmarpa's
-AHFA items and states.
-Their use requires familiarity with
-Marpa's internals, as described in
-@cite{Marpa: The Program}.
-
-@deftypefun int _marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
-@end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_AHFA_item_irl (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_Item_ID @var{item_id})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_item_position (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_Item_ID @var{item_id})
-@end deftypefun
-@deftypefun Marpa_Symbol_ID _marpa_g_AHFA_item_postdot (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_Item_ID @var{item_id})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_item_sort_key (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_Item_ID @var{item_id})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_state_count (Marpa_Grammar @var{g})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_state_item_count (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_State_ID @var{AHFA_state_id})
-@end deftypefun
-@deftypefun Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item (Marpa_Grammar @var{g}, @
-     Marpa_AHFA_State_ID @var{AHFA_state_id}, @
- int @var{item_ix})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_state_is_predict (Marpa_Grammar @var{g}, @
- Marpa_AHFA_State_ID @var{AHFA_state_id})
-@end deftypefun
-@deftypefun Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_AHFA_State_ID @var{AHFA_state_id})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_state_transitions ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_AHFA_State_ID @var{AHFA_state_id}, @
-    int *@var{buffer}, @
-    int @var{buffer_size} @
-    )
-@end deftypefun
-@deftypefun Marpa_AHFA_State_ID _marpa_g_AHFA_state_empty_transition ( @
-    Marpa_Grammar @var{g}, @
-     Marpa_AHFA_Item_ID @var{AHFA_item_id})
 @end deftypefun
 
 @node Events, Recognizers, Grammars, Top
@@ -2747,5 +2546,201 @@ safe, portable validity checking.
 There should be an interface in the valuator that allows the user to 
 determine the start and end earlemes of a token.
 @end itemize
+
+@node Internal Interface
+@chapter Internal Interface
+
+@node Symbol internal methods
+@section Symbol internal methods
+
+Internal methods are only for testing and development of libmarpa.
+They are listed here (and sometimes described) for the convenience
+of those working on libmarpa's internals.
+
+Internal methods are subject to change.
+Applications should not use internal methods.
+Where a description exists and may be helpful,
+it may be included below,
+but all applications
+should treat these methods as ``undocumented''.
+
+@deftypefun int _marpa_g_isy_is_start ( Marpa_Grammar @var{g}, @
+    Marpa_ISY_ID @var{isy_id})
+@end deftypefun
+@deftypefun int _marpa_g_isy_is_nulling ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_ISY_ID @var{isy_id})
+@end deftypefun
+@deftypefun int _marpa_g_isy_is_lhs ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_ISY_ID @var{isy_id})
+@end deftypefun
+@deftypefun Marpa_ISY_ID _marpa_g_xsy_nulling_isy ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun Marpa_ISY_ID _marpa_g_xsy_isy ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun Marpa_Symbol_ID _marpa_g_symbol_proper_alias ( @
+  Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun Marpa_Symbol_ID _marpa_g_symbol_null_alias ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun int _marpa_g_symbol_is_semantic ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+@end deftypefun
+@deftypefun Marpa_Rule_ID _marpa_g_source_xsy ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_ISY_ID @var{isy_id})
+@end deftypefun
+@deftypefun Marpa_Rule_ID _marpa_g_isy_lhs_xrl ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_ISY_ID @var{isy_id})
+@end deftypefun
+@deftypefun int _marpa_g_isy_xrl_offset ( @
+  Marpa_Grammar @var{g}, @
+  Marpa_ISY_ID @var{isy_id} )
+@end deftypefun
+
+@node Rule internals, Grammar internals, Symbol internals, Grammars
+@section Rule internals
+
+@deftypefun int marpa_g_rule_is_keep_separation ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+This function does nothing but return an undocumented flag.
+At some point,
+I may optimize cases where separators are discarded,
+in which case this flag will be used.
+I may also remove this call entirely.
+Return value:
+Returns 1 if
+the keep separation flag is set,
+0 if not.
+Returns 0 if
+@var{rule_id} is not a sequence rule.
+On hard failure, returns -2.
+@end deftypefun
+
+@deftypefun int _marpa_g_isy_count ( @
+  Marpa_Grammar @var{g})
+@end deftypefun
+@deftypefun int _marpa_g_irl_count ( @
+  Marpa_Grammar @var{g})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_g_irl_lhs ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+Return value: On success, the LHS symbol of the IRL.
+On failure, -2.
+@end deftypefun
+
+@deftypefun int _marpa_g_irl_length ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+The length of a IRL is the number of symbols on its RHS.
+
+Return value: On success, the IRL length.
+On failure, -2.
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_g_irl_rh_symbol ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id}, @
+    int @var{ix})
+The position in the IRL, @var{ix}, is zero-based.
+If @var{ix} is greater than or equal the length of the
+IRL, it is a soft failure.
+This can be used in loops, to avoid having to determine
+the IRL's length explicitly.
+
+Return value: On success, the symbol in position @var{ix}
+on the IRL's RHS.
+If @var{ix} is greater than or equal to the length of
+the IRL, -1.
+On other failures, -2.
+@end deftypefun
+@deftypefun int _marpa_g_rule_is_used (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+@end deftypefun
+@deftypefun int _marpa_g_irl_is_virtual_lhs (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+@end deftypefun
+@deftypefun int _marpa_g_irl_is_virtual_rhs (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+@end deftypefun
+@deftypefun unsigned int _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+@end deftypefun
+@deftypefun unsigned int _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+@end deftypefun
+@deftypefun Marpa_Rule_ID _marpa_g_source_xrl (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+@end deftypefun
+@deftypefun int _marpa_g_real_symbol_count (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+@end deftypefun
+@deftypefun Marpa_Rule_ID _marpa_g_irl_semantic_equivalent (Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+@end deftypefun
+
+@node Grammar internals
+@section Grammar internal methods
+
+The methods in this section are accessors for Libmarpa's
+AHFA items and states.
+Their use requires familiarity with
+Marpa's internals, as described in
+@cite{Marpa: The Program}.
+
+@deftypefun int _marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
+@end deftypefun
+@deftypefun Marpa_Rule_ID _marpa_g_AHFA_item_irl (Marpa_Grammar @var{g}, @
+    Marpa_AHFA_Item_ID @var{item_id})
+@end deftypefun
+@deftypefun int _marpa_g_AHFA_item_position (Marpa_Grammar @var{g}, @
+    Marpa_AHFA_Item_ID @var{item_id})
+@end deftypefun
+@deftypefun Marpa_Symbol_ID _marpa_g_AHFA_item_postdot (Marpa_Grammar @var{g}, @
+    Marpa_AHFA_Item_ID @var{item_id})
+@end deftypefun
+@deftypefun int _marpa_g_AHFA_item_sort_key (Marpa_Grammar @var{g}, @
+    Marpa_AHFA_Item_ID @var{item_id})
+@end deftypefun
+@deftypefun int _marpa_g_AHFA_state_count (Marpa_Grammar @var{g})
+@end deftypefun
+@deftypefun int _marpa_g_AHFA_state_item_count (Marpa_Grammar @var{g}, @
+    Marpa_AHFA_State_ID @var{AHFA_state_id})
+@end deftypefun
+@deftypefun Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item (Marpa_Grammar @var{g}, @
+     Marpa_AHFA_State_ID @var{AHFA_state_id}, @
+ int @var{item_ix})
+@end deftypefun
+@deftypefun int _marpa_g_AHFA_state_is_predict (Marpa_Grammar @var{g}, @
+ Marpa_AHFA_State_ID @var{AHFA_state_id})
+@end deftypefun
+@deftypefun Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_AHFA_State_ID @var{AHFA_state_id})
+@end deftypefun
+@deftypefun int _marpa_g_AHFA_state_transitions ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_AHFA_State_ID @var{AHFA_state_id}, @
+    int *@var{buffer}, @
+    int @var{buffer_size} @
+    )
+@end deftypefun
+@deftypefun Marpa_AHFA_State_ID _marpa_g_AHFA_state_empty_transition ( @
+    Marpa_Grammar @var{g}, @
+     Marpa_AHFA_Item_ID @var{AHFA_item_id})
+@end deftypefun
 
 @bye
