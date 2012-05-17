@@ -134,14 +134,12 @@ Orderings
 
 * Ordering constructor::        
 * Ordering reference counting::  
-* Ordering internals::          
 
 Tree iterators
 
 * Tree constructor::            
 * Tree reference counting::     
 * Tree iteration::              
-* Tree internals::              Internals.
 
 Value objects
 
@@ -164,6 +162,8 @@ Internal Interface
 * Grammar internals::           
 * Recognizer internals::        
 * Bocage internals::            
+* Ordering internals::          
+* Tree internals::              
 
 @end detailmenu
 @end menu
@@ -1442,9 +1442,36 @@ to index an array.
 @var{value} is not used inside Libmarpa -- it is simply
 stored to be returned by the valuator
 as a convenience for the application.
+Some applications will not want to use Libmarpa's token
+values, instead tracking their own, perhaps based on
+the earleme location, and @var{token_id}.
 
 A @var{value} of 0 has special significance -- it indicates
-that the token is unvalued.
+that the token's value is ``whatever'' -- that it may take an
+arbitrary value.
+This usually means the the application simply does not
+care what the value of the token is.
+The value of tokens with a ``whatever'' value 
+does not need to be stored, tracked or computed either
+by Libmarpa or by the application.
+
+Note that if a ``whatever'' value is specified,
+it must be the case that @strong{the application}
+also does not care about the value of the token.
+When a token has a ``whatever'' value, Libmarpa not
+only does not store a value itself,
+it also optimizes away the valuator steps which
+signal to the application that it needs to provide
+a value for that token.
+Applications which do not use Libmarpa's token values,
+but which do care about a token value,
+should make @var{value} an arbitrary, non-zero, constant
+in order to
+tell Libmarpa that the token does need a value
+and prevent the valuator from optimizing away those
+steps which tell the application that a token needs
+to be given a value.
+
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
@@ -1537,7 +1564,6 @@ codes.
 @menu
 * Ordering constructor::        
 * Ordering reference counting::  
-* Ordering internals::          
 @end menu
 
 @node Ordering constructor, Ordering reference counting, Order, Order
@@ -1551,7 +1577,7 @@ codes.
     Marpa_Order @var{o})
 @end deftypefun
 
-@node Ordering reference counting, Ordering internals, Ordering constructor, Order
+@node Ordering reference counting,  , Ordering constructor, Order
 @section Reference counting
 
 @deftypefun void marpa_o_unref ( @
@@ -1560,22 +1586,6 @@ codes.
 
 @deftypefun Marpa_Order marpa_o_ref ( @
     Marpa_Order @var{o})
-@end deftypefun
-
-@node Ordering internals,  , Ordering reference counting, Order
-@section Internals
-
-@deftypefun int _marpa_o_and_order_set ( @
-    Marpa_Order @var{o}, @
-    Marpa_Or_Node_ID @var{or_node_id}, @
-    Marpa_And_Node_ID* @var{and_node_ids}, @
-    int @var{length})
-@end deftypefun
-
-@deftypefun Marpa_And_Node_ID _marpa_o_and_order_get ( @
-    Marpa_Order @var{o}, @
-    Marpa_Or_Node_ID @var{or_node_id}, @
-    int @var{ix})
 @end deftypefun
 
 @node Tree, Value, Order, Top
@@ -1590,7 +1600,6 @@ Marpa's parse trees are also bocage iterators.
 * Tree constructor::            
 * Tree reference counting::     
 * Tree iteration::              
-* Tree internals::              Internals.
 @end menu
 
 @node Tree constructor, Tree reference counting, Tree, Tree
@@ -1624,7 +1633,7 @@ errors can be properly reported.
 @deftypefun void marpa_t_unref (Marpa_Tree @var{t})
 @end deftypefun
 
-@node Tree iteration, Tree internals, Tree reference counting, Tree
+@node Tree iteration,  , Tree reference counting, Tree
 @section Iterating through the trees
 
 @deftypefun int marpa_t_next ( @
@@ -1633,91 +1642,6 @@ errors can be properly reported.
 
 @deftypefun int marpa_t_parse_count ( @
 	Marpa_Tree @var{t})
-@end deftypefun
-
-@node Tree internals,  , Tree iteration, Tree
-@section Internals
-
-In Marpa, a nook is any node of a parse tree.
-The usual term is "node",
-but within Marpa,
-the word "node" is already heavily overloaded.
-So what most texts call "tree nodes" are here
-called "nooks".
-"Nook" can be thought of as a pun on both
-"node" and "fork".
-
-@deftypefun int _marpa_t_size ( @
-	Marpa_Tree @var{t})
-
-Return the size of the parse tree.
-This is the number of nooks in its stack.
-If there is a serioius error,
-or if the tree is uninitialized, return -2.
-If the tree is exhausted, return -1.
-@end deftypefun
-
-@deftypefun Marpa_Or_Node_ID _marpa_t_nook_or_node ( @
-    Marpa_Tree @var{t}, @
-    Marpa_Nook_ID @var{nook_id})
-
-Return the ID of the or-node for @var{nook_id}.
-@end deftypefun
-
-@deftypefun int _marpa_t_nook_choice ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
-
-Return the current choice for @var{nook_id}.
-@end deftypefun
-
-@deftypefun int _marpa_t_nook_parent ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
-
-Return the parent nook's ID for @var{nook_id}.
-As with the other nook trace functions,
--1 is returned if @var{nook_id} is not the ID of
-a nook on the stack,
-but -1 can also be a valid value.
-If that's an issue, the @var{nook_id} needs
-to be checked with one of the trace functions
-where -1 is never a valid value ---
-for example, @code{_marpa_t_nook_or_node}.
-@end deftypefun 
-
-@deftypefun int _marpa_t_nook_cause_is_ready ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
-
-Return the cause-is-ready bit for @var{nook_id}.
-@end deftypefun
-
-@deftypefun int _marpa_t_nook_predecessor_is_ready ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
-
-Return the predecessor-is-ready bit for @var{nook_id}.
-@end deftypefun
-
-@deftypefun int _marpa_t_nook_is_cause ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
-
-Return the is-cause bit for @var{nook_id}.
-@end deftypefun
-
-@deftypefun int _marpa_t_nook_is_predecessor ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
-
-Return the is-predecessor bit for @var{nook_id}.
 @end deftypefun
 
 @node Value, Error handling, Tree, Top
@@ -2460,6 +2384,8 @@ determine the start and end earlemes of a token.
 * Grammar internals::           
 * Recognizer internals::        
 * Bocage internals::            
+* Ordering internals::          
+* Tree internals::              
 @end menu
 
 @node Symbol internal methods, Rule internals, Internal Interface, Internal Interface
@@ -2730,7 +2656,7 @@ Marpa's internals, as described in
 @deftypefun Marpa_Earley_Set_ID _marpa_r_source_middle (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@node Bocage internals,  , Recognizer internals, Internal Interface
+@node Bocage internals, Ordering internals, Recognizer internals, Internal Interface
 @section Bocage internals
 
 @deftypefun int _marpa_b_and_node_count ( @
@@ -2808,6 +2734,106 @@ the or-node.
 @deftypefun int _marpa_b_or_node_and_count ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
+
+@node Ordering internals, Tree internals, Bocage internals, Internal Interface
+@section Ordering internals
+
+@deftypefun int _marpa_o_and_order_set ( @
+    Marpa_Order @var{o}, @
+    Marpa_Or_Node_ID @var{or_node_id}, @
+    Marpa_And_Node_ID* @var{and_node_ids}, @
+    int @var{length})
+@end deftypefun
+
+@deftypefun Marpa_And_Node_ID _marpa_o_and_order_get ( @
+    Marpa_Order @var{o}, @
+    Marpa_Or_Node_ID @var{or_node_id}, @
+    int @var{ix})
+@end deftypefun
+
+@node Tree internals,  , Ordering internals, Internal Interface
+@section Tree internals
+
+In Marpa, a nook is any node of a parse tree.
+The usual term is "node",
+but within Marpa,
+the word "node" is already heavily overloaded.
+So what most texts call "tree nodes" are here
+called "nooks".
+"Nook" can be thought of as a pun on both
+"node" and "fork".
+
+@deftypefun int _marpa_t_size ( @
+	Marpa_Tree @var{t})
+Return the size of the parse tree.
+This is the number of nooks in its stack.
+If there is a serioius error,
+or if the tree is uninitialized, return -2.
+If the tree is exhausted, return -1.
+@end deftypefun
+
+@deftypefun Marpa_Or_Node_ID _marpa_t_nook_or_node ( @
+    Marpa_Tree @var{t}, @
+    Marpa_Nook_ID @var{nook_id})
+
+Return the ID of the or-node for @var{nook_id}.
+@end deftypefun
+
+@deftypefun int _marpa_t_nook_choice ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the current choice for @var{nook_id}.
+@end deftypefun
+
+@deftypefun int _marpa_t_nook_parent ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the parent nook's ID for @var{nook_id}.
+As with the other nook trace functions,
+-1 is returned if @var{nook_id} is not the ID of
+a nook on the stack,
+but -1 can also be a valid value.
+If that's an issue, the @var{nook_id} needs
+to be checked with one of the trace functions
+where -1 is never a valid value ---
+for example, @code{_marpa_t_nook_or_node}.
+@end deftypefun 
+
+@deftypefun int _marpa_t_nook_cause_is_ready ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the cause-is-ready bit for @var{nook_id}.
+@end deftypefun
+
+@deftypefun int _marpa_t_nook_predecessor_is_ready ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the predecessor-is-ready bit for @var{nook_id}.
+@end deftypefun
+
+@deftypefun int _marpa_t_nook_is_cause ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the is-cause bit for @var{nook_id}.
+@end deftypefun
+
+@deftypefun int _marpa_t_nook_is_predecessor ( @
+	Marpa_Tree @var{t}, @
+	Marpa_Nook_ID @var{nook_id} @
+	)
+
+Return the is-predecessor bit for @var{nook_id}.
 @end deftypefun
 
 @bye
