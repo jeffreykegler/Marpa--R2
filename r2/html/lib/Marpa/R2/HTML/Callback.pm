@@ -21,7 +21,7 @@ use integer;
 package Marpa::R2::HTML::Callback;
 
 use vars qw( $VERSION $STRING_VERSION );
-$VERSION = '0.001_044';
+$VERSION = '0.001_045';
 $STRING_VERSION = $VERSION;
 ## use critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;

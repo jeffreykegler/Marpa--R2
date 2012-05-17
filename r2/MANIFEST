@@ -173,7 +173,6 @@ pod/Debug.pod
 pod/Grammar.pod
 pod/Marpa_R2.pod
 pod/Recognizer.pod
-pod/Rewrite.pod
 pod/Semantics.pod
 pod/Semantics/Infinite.pod
 pod/Semantics/Null.pod
