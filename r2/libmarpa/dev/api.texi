@@ -1312,10 +1312,6 @@ and should treat them as ``undocumented''.
 @deftypefun int _marpa_g_isy_is_start ( Marpa_Grammar @var{g}, @
     Marpa_ISY_ID @var{isy_id})
 @end deftypefun
-@deftypefun Marpa_Symbol_ID _marpa_g_isy_buddy ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_ISY_ID @var{isy_id})
-@end deftypefun
 @deftypefun int _marpa_g_isy_is_nulling ( @
   Marpa_Grammar @var{g}, @
   Marpa_ISY_ID @var{isy_id})

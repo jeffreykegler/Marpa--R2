@@ -1388,16 +1388,9 @@ PRIVATE
 ISY symbol_alias_create(GRAMMAR g, SYM symbol)
 {
     ISY alias_isy = isy_new(g, symbol);
-    SYM alias = Buddy_of_ISY(alias_isy);
     SYM_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
-    SYM_is_Nulling(alias) = 1;
     ISY_is_Nulling(alias_isy) = 1;
-    XSY_is_Nullable(alias) = 1;
-    XSY_is_Ask_Me_When_Null(alias)
-	= XSY_is_Ask_Me_When_Null(symbol);
-    alias->t_is_productive = 1;
-    alias->t_is_accessible = symbol->t_is_accessible;
     return alias_isy;
 }
 
@@ -1452,11 +1445,8 @@ isy_start(GRAMMAR g)
 PRIVATE ISY
 isy_new(GRAMMAR g, XSY source)
 {
-  const XSY xsy = symbol_new(g);
   const ISY new_isy = isy_start(g);
-  Buddy_of_ISY(new_isy) = xsy;
   Source_XSY_of_ISY(new_isy) = source;
-  ISY_of_XSY(xsy) = new_isy;
   return new_isy;
 }
 
@@ -1466,28 +1456,9 @@ PRIVATE ISY
 isy_clone(GRAMMAR g, XSY xsy)
 {
   const ISY new_isy = isy_start(g);
-  Buddy_of_ISY(new_isy) = xsy;
   Source_XSY_of_ISY(new_isy) = xsy;
   ISY_is_Nulling(new_isy) = XSY_is_Nulling(xsy);
   return new_isy;
-}
-
-@*0 Development stubs.
-@ {\bf To Do}: @^To Do@>
-Delete this when division of grammar into
-external and internal is complete.
-@d Buddy_of_ISY(isy) ((isy)->t_buddy)
-@d BuddyID_by_ISYID(isyid) ID_of_XSY(Buddy_of_ISY(ISY_by_ID(isyid)))
-@<Widely aligned ISY elements@> =
-  XSY t_buddy;
-@ @<Function definitions@> =
-Marpa_Symbol_ID _marpa_g_isy_buddy(
-    Marpa_Grammar g,
-    Marpa_ISY_ID isy_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if |isy_id| is invalid@>@;
-    return ID_of_XSY(Buddy_of_ISY(ISY_by_ID(isy_id)));
 }
 
 @*0 ID.
@@ -1715,9 +1686,7 @@ PRIVATE void
 irl_finish( GRAMMAR g, IRL irl)
 {
   const ISY lhs_isy = LHS_of_IRL(irl);
-  const XSY lhs_xsy = Buddy_of_ISY(lhs_isy);
   ISY_is_LHS(lhs_isy) = 1;
-  XSY_is_LHS(lhs_xsy) = 1;
 }
 
 @ @<Clone a new IRL from |rule|@> =
@@ -3041,7 +3010,6 @@ and productive.
 
   const ISY internal_lhs_isy = isy_new (g, SYM_by_ID(lhs_id));
   const ISYID internal_lhs_isyid = ID_of_ISY(internal_lhs_isy);
-  const SYM internal_lhs = Buddy_of_ISY(internal_lhs_isy);
 
   const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
   const ISY rhs_isy = ISY_by_XSYID(rhs_id);
@@ -3054,7 +3022,6 @@ and productive.
     separator_isyid = ID_of_ISY(separator_isy);
   }
 
-  SYM_is_Semantic(internal_lhs) = 0;
   LHS_XRL_of_ISY(internal_lhs_isy) = rule;
   @<Add the top rule for the sequence@>@;
   if (separator_isyid >= 0 && !XRL_is_Proper_Separation(rule)) {
@@ -3304,10 +3271,6 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
   const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
   chaf_virtual_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
   chaf_virtual_isyid = ID_of_ISY(chaf_virtual_isy);
-  chaf_virtual_symbol = Buddy_of_ISY(chaf_virtual_isy);
-  SYM_is_Semantic(chaf_virtual_symbol) = 0;
-  chaf_virtual_symbol->t_is_accessible = 1;
-  chaf_virtual_symbol->t_is_productive = 1;
 }
 
 @*0 Factor A Non-Final Piece.
@@ -3755,15 +3718,8 @@ in the literature --- it is called ``augmenting the grammar".
 @ @<Set up a new proper start rule@> = {
   IRL new_start_irl;
 
-  XSYID new_start_xsyid = -1;
   const ISY new_start_isy = isy_new(g, start_xsy);
-  const XSY new_start_xsy = Buddy_of_ISY(new_start_isy);
   ISY_is_Start(new_start_isy) = 1;
-  new_start_xsyid = ID_of_SYM(new_start_xsy);
-  SYM_is_Semantic(new_start_xsy) = 0;
-  new_start_xsy->t_is_accessible = 1;
-  new_start_xsy->t_is_productive = 1;
-  new_start_xsy->t_is_start = 1;
 
   start_xsy->t_is_start = 0;
 

@@ -445,7 +445,6 @@ sub Marpa::R2::show_leo_item {
     my ($recce)        = @_;
     my $recce_c        = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $xsy_to_isy     = $grammar->[Marpa::R2::Internal::Grammar::XSY_TO_ISY];
     my $leo_base_state = $recce_c->_marpa_r_leo_base_state();
     return if not defined $leo_base_state;
     my $trace_earley_set      = $recce_c->_marpa_r_trace_earley_set();

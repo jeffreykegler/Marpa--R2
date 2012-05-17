@@ -116,8 +116,6 @@ BEGIN {
 
     =LAST_FIELD
 
-    XSY_TO_ISY { XSY to ISY map -- TO BE DELETED }
-
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -694,11 +692,6 @@ sub Marpa::R2::Grammar::precompute {
         } ## end if ( defined $lhs_rank and $lhs_rank == $rule->[...])
     } ## end for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 )
 
-    my $xsy_to_isy = $grammar->[Marpa::R2::Internal::Grammar::XSY_TO_ISY] = [];
-    for my $isy_id ( 0 .. $grammar_c->_marpa_g_isy_count() - 1 ) {
-        $xsy_to_isy->[ $grammar_c->_marpa_g_isy_buddy($isy_id) ] = $isy_id;
-    }
-
     return $grammar;
 
 } ## end sub Marpa::R2::Grammar::precompute
@@ -752,7 +745,6 @@ sub Marpa::R2::Grammar::show_ISY {
 
     my @tag_list = ();
     $grammar_c->_marpa_g_isy_is_nulling($isy_id)  and push @tag_list, 'nulling';
-    push @tag_list, 'buddy=' . $grammar_c->_marpa_g_isy_buddy($isy_id);
 
     $text .= join q{ }, q{,}, @tag_list if scalar @tag_list;
     $text .= "\n";
@@ -1087,12 +1079,10 @@ sub Marpa::R2::Grammar::symbol_name {
 # This function is for use during development
 sub Marpa::R2::Grammar::xsy_name {
     my ( $grammar, $id ) = @_;
-    my $xsy_to_isy = $grammar->[Marpa::R2::Internal::Grammar::XSY_TO_ISY];
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     if ( defined $symbols->[$id] ) {
         return $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME];
     }
-    return $grammar->isy_name($xsy_to_isy->[$id]);
 }
 
 sub Marpa::R2::Grammar::isy_name {
