@@ -56,6 +56,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Error handling::              
 * Design considerations::       
 * Things To Do::                
+* Internal Interface::          
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -113,9 +114,6 @@ Grammars
 * Rules::                       
 * Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
-* Symbol internals::            Methods that deal with symbol internals.
-* Rule internals::              
-* Grammar internals::           Methods that deal with grammar internals.
 
 Events
 
@@ -160,6 +158,12 @@ Design considerations
 
 * Why so many time objects::    
 * Design of numbered objects::  
+
+Internal Interface
+
+* Symbol internal methods::     
+* Rule internals::              
+* Grammar internals::           
 
 @end detailmenu
 @end menu
@@ -725,9 +729,6 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 * Rules::                       
 * Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
-* Symbol internals::            Methods that deal with symbol internals.
-* Rule internals::              
-* Grammar internals::           Methods that deal with grammar internals.
 @end menu 
 
 @node Grammar constructor, Grammar reference counting, Grammars, Grammars
@@ -1203,7 +1204,7 @@ Returns 0 if
 On hard failure, returns -2.
 @end deftypefun
 
-@node Grammar precomputation, Symbol internals, Sequences, Grammars
+@node Grammar precomputation,  , Sequences, Grammars
 @section Precomputing the Grammar
 
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
@@ -2538,7 +2539,7 @@ modern architectures is
 a small price to pay for
 safe, portable validity checking.
 
-@node Things To Do,  , Design considerations, Top
+@node Things To Do, Internal Interface, Design considerations, Top
 @chapter Things to do
 
 @itemize
@@ -2547,10 +2548,16 @@ There should be an interface in the valuator that allows the user to
 determine the start and end earlemes of a token.
 @end itemize
 
-@node Internal Interface
+@node Internal Interface,  , Things To Do, Top
 @chapter Internal Interface
 
-@node Symbol internal methods
+@menu
+* Symbol internal methods::     
+* Rule internals::              
+* Grammar internals::           
+@end menu
+
+@node Symbol internal methods, Rule internals, Internal Interface, Internal Interface
 @section Symbol internal methods
 
 Internal methods are only for testing and development of libmarpa.
@@ -2608,7 +2615,7 @@ should treat these methods as ``undocumented''.
   Marpa_ISY_ID @var{isy_id} )
 @end deftypefun
 
-@node Rule internals, Grammar internals, Symbol internals, Grammars
+@node Rule internals, Grammar internals, Symbol internal methods, Internal Interface
 @section Rule internals
 
 @deftypefun int marpa_g_rule_is_keep_separation ( @
@@ -2692,7 +2699,7 @@ On other failures, -2.
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 
-@node Grammar internals
+@node Grammar internals,  , Rule internals, Internal Interface
 @section Grammar internal methods
 
 The methods in this section are accessors for Libmarpa's
