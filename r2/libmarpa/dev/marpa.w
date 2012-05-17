@@ -6854,9 +6854,6 @@ union u_postdot_item {
 };
 typedef union u_postdot_item* PIM;
 
-@*0 Symbol of a Postdot Item.
-@d SYMID_of_Postdot_Item(postdot) ((postdot)->t_earley.transition_symid)
-
 @ This function searches for the
 first postdot item for an Earley set
 and a symbol ID.
@@ -7136,10 +7133,10 @@ union u_source_container {
 @d TOK_of_SRC(source) TOK_of_Source(*(source))
 @d TOK_of_EIM(eim) TOK_of_Source(Source_of_EIM(eim))
 @d TOK_of_SRCL(link) TOK_of_Source(Source_of_SRCL(link))
-@d SYMID_of_Source(srcd) SYMID_of_TOK(TOK_of_Source(srcd))
-@d SYMID_of_SRC(source) SYMID_of_Source(*(source))
-@d SYMID_of_EIM(eim) SYMID_of_Source(Source_of_EIM(eim))
-@d SYMID_of_SRCL(link) SYMID_of_Source(Source_of_SRCL(link))
+@d ISYID_of_Source(srcd) ISYID_of_TOK(TOK_of_Source(srcd))
+@d ISYID_of_SRC(source) ISYID_of_Source(*(source))
+@d ISYID_of_EIM(eim) ISYID_of_Source(Source_of_EIM(eim))
+@d ISYID_of_SRCL(link) ISYID_of_Source(Source_of_SRCL(link))
 
 @ @d Cause_AHFA_State_ID_of_SRC(source)
     AHFAID_of_EIM((EIM)Cause_of_SRC(source))
@@ -7387,7 +7384,7 @@ Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
 	source = &(item->t_container.t_unique);
 	r->t_trace_source = source;
 	r->t_trace_next_source_link = NULL;
-	return SYMID_of_SRC (source);
+	return ISYID_of_SRC (source);
       case SOURCE_IS_AMBIGUOUS:
 	{
 	  SRCL full_link =
@@ -7397,7 +7394,7 @@ Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
 	      r->t_trace_source_type = SOURCE_IS_TOKEN;
 	      r->t_trace_next_source_link = Next_SRCL_of_SRCL (full_link);
 	      r->t_trace_source = &(full_link->t_source);
-	      return SYMID_of_SRCL (full_link);
+	      return ISYID_of_SRCL (full_link);
 	    }
 	}
       }
@@ -7434,7 +7431,7 @@ Marpa_Symbol_ID _marpa_r_next_token_link_trace(Marpa_Recognizer r)
     full_link = r->t_trace_next_source_link;
     r->t_trace_next_source_link = Next_SRCL_of_SRCL (full_link);
     r->t_trace_source = &(full_link->t_source);
-    return SYMID_of_SRCL (full_link);
+    return ISYID_of_SRCL (full_link);
 }
 
 @*1 Trace First Completion Link.
@@ -7675,7 +7672,7 @@ Marpa_Symbol_ID _marpa_r_source_token(Marpa_Recognizer r, int *value_p)
     if (source_type == SOURCE_IS_TOKEN) {
 	const TOK token = TOK_of_SRC(source);
         if (value_p) *value_p = Value_of_TOK(token);
-	return SYMID_of_TOK(token);
+	return ISYID_of_TOK(token);
     }
     MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
@@ -7830,7 +7827,6 @@ typedef struct s_token* TOK;
 objects to act as or-nodes.
 @d Type_of_TOK(tok) ((tok)->t_unvalued.t_type)
 @d ISYID_of_TOK(tok) ((tok)->t_unvalued.t_isyid)
-@d SYMID_of_TOK(tok) ID_of_XSY(Source_XSY_of_ISY(ISY_by_ID(ISYID_of_TOK(tok))))
 @d Value_of_TOK(tok) ((tok)->t_value)
 @<Private structures@> =
 struct s_token_unvalued {
@@ -9537,7 +9533,6 @@ struct s_final_or_node
 };
 @
 @d TOK_of_OR(or) (&(or)->t_token)
-@d SYMID_of_OR(or) SYMID_of_TOK(TOK_of_OR(or))
 @d ISYID_of_OR(or) ISYID_of_TOK(TOK_of_OR(or))
 @d Value_of_OR(or) Value_of_TOK(TOK_of_OR(or))
 @<Private structures@> =
@@ -10499,7 +10494,7 @@ Marpa_Symbol_ID _marpa_b_and_node_token(Marpa_Bocage b,
     if (token) {
       if (value_p)
 	*value_p = Value_of_TOK (token);
-      return SYMID_of_TOK (token);
+      return ISYID_of_TOK (token);
     }
     return -1;
 }
@@ -11956,14 +11951,14 @@ struct marpa_value {
     ((v)->t_tos)
 #define marpa_v_arg_n(v) \
     ((v)->t_arg_n)
-@ @d SYMID_of_V(val) ((val)->public.t_semantic_token_id)
+@ @d XSYID_of_V(val) ((val)->public.t_semantic_token_id)
 @d RULEID_of_V(val) ((val)->public.t_semantic_rule_id)
 @d Token_Value_of_V(val) ((val)->public.t_token_value)
 @d Token_Type_of_V(val) ((val)->t_token_type)
 @d TOS_of_V(val) ((val)->public.t_tos)
 @d Arg_N_of_V(val) ((val)->public.t_arg_n)
 @<Pre-initialize value elements@> =
-SYMID_of_V(v) = -1;
+XSYID_of_V(v) = -1;
 RULEID_of_V(v) = -1;
 Token_Value_of_V(v) = -1;
 Token_Type_of_V(v) = DUMMY_OR_NODE;
@@ -12257,7 +12252,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	      Next_Value_Type_of_V (v) = MARPA_VALUE_RULE;
 	      if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
-		  if (bv_bit_test(Nulling_Ask_BV_of_V(v), SYMID_of_V(v)))
+		  if (bv_bit_test(Nulling_Ask_BV_of_V(v), XSYID_of_V(v)))
 		      return MARPA_VALUE_NULLING_SYMBOL;
 	      }
 	      else if (token_type != DUMMY_OR_NODE)
@@ -12295,9 +12290,9 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	  case V_GET_DATA:
 	    {
 	      Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
-	      SYMID_of_V(v) = g->t_start_xsyid;
+	      XSYID_of_V(v) = g->t_start_xsyid;
 	      TOS_of_V(v) = Arg_N_of_V(v) = 0;
-	      if (bv_bit_test(Nulling_Ask_BV_of_V(v), SYMID_of_V(v)))
+	      if (bv_bit_test(Nulling_Ask_BV_of_V(v), XSYID_of_V(v)))
 		      return MARPA_VALUE_NULLING_SYMBOL;
 	    }
 	    /* fall through */
@@ -12349,17 +12344,17 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	    if (token_type == VALUED_TOKEN_OR_NODE)
 	      {
 		const ISY token_isy = ISY_by_ID (token_isyid);
-		SYMID_of_V (v) = ID_of_XSY (Source_XSY_of_ISY (token_isy));
+		XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_ISY (token_isy));
 		Token_Value_of_V (v) = Value_of_TOK (token);
 	      }
 	    else if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
 		const ISY token_isy = ISY_by_ID (token_isyid);
 		const XSY source_xsy = Source_XSY_of_ISY(token_isy);
-		const SYMID source_symid = ID_of_SYM(source_xsy);
-		if (bv_bit_test (Nulling_Ask_BV_of_V (v), source_symid))
+		const XSYID source_xsyid = ID_of_XSY(source_xsy);
+		if (bv_bit_test (Nulling_Ask_BV_of_V (v), source_xsyid))
 		  {
-		    SYMID_of_V (v) = source_symid;
+		    XSYID_of_V (v) = source_xsyid;
 		  }
 		else
 		  {

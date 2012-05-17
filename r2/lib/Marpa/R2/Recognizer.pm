@@ -491,7 +491,7 @@ sub Marpa::R2::show_token_link_choice {
             . $origin_earleme . q{-}
             . $middle_earleme;
     } ## end if ( defined $predecessor_state )
-    my $symbol_name = $grammar->symbol_name($token_id);
+    my $symbol_name = $grammar->isy_name($token_id);
     push @pieces, 's=' . $symbol_name;
     my $token_length = $current_earleme - $middle_earleme;
     my $value =
