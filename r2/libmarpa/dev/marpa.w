@@ -3267,7 +3267,6 @@ factor_positions = my_obstack_new(&obs_precompute, int, g->t_max_rule_length);
 
 @ @<Create a CHAF virtual symbol@> =
 {
-  SYM chaf_virtual_symbol;
   const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
   chaf_virtual_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
   chaf_virtual_isyid = ID_of_ISY(chaf_virtual_isy);
@@ -7898,7 +7897,7 @@ alternative_insertion_point (RECCE r, ALT new_alternative)
     {
       int outcome;
       trial = lo + (hi - lo) / 2;
-      outcome = alternative_cmp (r, new_alternative, alternative+trial);
+      outcome = alternative_cmp (new_alternative, alternative+trial);
       if (outcome == 0)
 	return -1;
       if (outcome > 0)
@@ -7926,9 +7925,8 @@ Of the remaining two keys,
 the more minor key is the start earleme, because that way its slightly
 costlier evaluation can sometimes be avoided.
 @<Function definitions@> =
-PRIVATE int alternative_cmp(RECCE r, const ALT_Const a, const ALT_Const b)
+PRIVATE int alternative_cmp(const ALT_Const a, const ALT_Const b)
 {
-     GRAMMAR g = G_of_R(r);
      int subkey = End_Earleme_of_ALT(b) - End_Earleme_of_ALT(a);
      if (subkey) return subkey;
      subkey = ISYID_of_ALT(a) - ISYID_of_ALT(b);

@@ -42,9 +42,6 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Time objects::                
 * The architecture of Marpa::   
 * Threads::                     
-* Numbered objects::            
-* Rule concepts::               
-* Symbol concepts::             
 * Terminals concepts::          
 * Semantics::                   
 * Version checking::            Checking the Libmarpa version.
@@ -74,6 +71,7 @@ Time objects
 * The sequence of time objects::  
 * Base grammars::               
 * The lifetime of time objects::  
+* Numbered objects::            
 
 The architecture of Marpa
 
@@ -81,6 +79,10 @@ The architecture of Marpa
 * Recognition versus parsing::  
 
 Grammars
+
+* Precomputation::              
+
+Recognition versus parsing
 
 * Precomputation::              
 
@@ -235,7 +237,6 @@ What does that mean?
 @item
 Take a Marpa sequence rule at random.
 What does it look like when rewritten in BNF?
-(Marpa sequences are implemented as left-recursions.)
 @item
 What does the sequence look like when rewritten
 in BNF as a right-recursion?
@@ -302,9 +303,12 @@ the result of the rule evaluation.
 For rule evaluations, the instructions include the stack location
 of the arguments.
 
-If all semantics are implemented in the application,
+Marpa requires most semantics to be
+implemented in the application.
+This allows the application total flexibility.
+It also puts
 the application is in a much better position to prevent errors,
-to catch them at runtime or
+to catch errors at runtime or
 failing all else,
 to successfully debug the logic.
 
@@ -338,6 +342,7 @@ The time objects are, in sequence:
 * The sequence of time objects::  
 * Base grammars::               
 * The lifetime of time objects::  
+* Numbered objects::            
 @end menu
 
 @node The sequence of time objects, Base grammars, Time objects, Time objects
@@ -375,14 +380,15 @@ Every time object has a @dfn{base grammar}.
 A grammar object is its own base grammar.
 The base grammar of a recognizer is the grammar
 that it was created with.
-The base grammar of any other time object is the base
+Similarly,
+the base grammar of any other time object is the base
 grammar of its parent object.
 For example,
 the base grammar of a bocage is the base
 grammar of the recognizer that it was created
 with.
 
-@node The lifetime of time objects,  , Base grammars, Time objects
+@node The lifetime of time objects, Numbered objects, Base grammars, Time objects
 @section The lifetime of time objects
 
 Time objects are reference-counted.
@@ -409,6 +415,19 @@ For such situations,
 every time object has a method to increment
 the reference count.
 
+@node Numbered objects,  , The lifetime of time objects, Time objects
+@section Numbered objects
+
+In addition to its major, "time" objects, Libmarpa also has
+numbered objects.
+Numbered objects do not have lifetimes of their own.
+Every numbered object belongs to a timed object,
+and is destroyed with it.
+
+Rules and symbols are numbered objects.
+Tokens values are
+another examples of numbered objects.
+
 @node The architecture of Marpa, Threads, Time objects, Top
 @chapter The architecture of Marpa
 
@@ -433,7 +452,31 @@ and a distinguished start symbol.
 * Precomputation::              
 @end menu
 
-@node Precomputation,  , Architecture - Grammar, Architecture - Grammar
+@node Recognition versus parsing,  , Architecture - Grammar, The architecture of Marpa
+@section Recognition versus parsing
+
+Even in the academic literature,
+parsing is used in many senses,
+Determining whether a string matches a grammar is called
+@dfn{recognition}.
+Finding the structure of the recognized string according
+to the grammar is
+@dfn{parsing} in a very strict sense of the term.
+Strictly speaking,
+Earley's algorithm was a recognizer,
+and not a parser.
+Marpa contains both a recognizer
+and a parser in the strict sense.
+Marpa's recognizer is implemented by its recognizer time objects.
+Marpa's parser in the strict sense
+is implemented by its bocage class and the classes
+which follow the bocage in the time object sequence.
+
+@menu
+* Precomputation::              
+@end menu
+
+@node Precomputation,  , Recognition versus parsing, Recognition versus parsing
 @subsection Precomputation
 
 Before a recognizer can be created from a grammar,
@@ -451,28 +494,7 @@ to a precomputed grammar
 are disallowed,
 as are most other changes.
 
-@node Recognition versus parsing,  , Architecture - Grammar, The architecture of Marpa
-@section Recognition versus parsing
-
-Even in the academic literature,
-parsing is used in many senses,
-
-Determining whether a string matches a grammar is called
-@dfn{recognition}.
-Finding the structure of the recognized string according
-to the grammar is
-@dfn{parsing} in a very strict sense of the term.
-Strictly speaking,
-Earley's algorithm was a recognizer,
-and not a parser.
-Marpa contains both a recognizer
-and a parser in the strict sense.
-Marpa's recognizer is implemented by its recognizer time objects.
-Marpa's parser in the strict sense
-is implemented by its bocage class and the classes
-which follow the bocage in the time object sequence.
-
-@node Threads, Numbered objects, The architecture of Marpa, Top
+@node Threads, Terminals concepts, The architecture of Marpa, Top
 @chapter Threads
 
 Libmarpa is C89-compliant
@@ -513,79 +535,9 @@ But the C89 standard does not require thread-safety,
 and even the most modern environments allow the user
 to turn thread safety off.
 Libmarpa's thread-safety relies on an environment
-that quarantees the thread-safe of C89 function calls.
+that guarantees the thread-safety of C89 function calls.
 
-@node Numbered objects, Rule concepts, Threads, Top
-@chapter Numbered objects
-
-In addition to its major, "time" objects, Libmarpa also has
-numbered objects
-Examples of numbered objects are rules and symbols.
-Numbered objects do not have lifetimes of their own.
-Every numbered object belongs to a timed object,
-and is destroyed with it.
-
-@node Rule concepts, Symbol concepts, Numbered objects, Top
-@chapter Rules
-
-Rules are numbered objects.
-At every point, where the rule count in @var{N},
-there are rules numbered from 0 to @var{N}@minus{}1.
-A rule is either external or internal.
-An external rule is one intended to be visible
-to the application.
-An internal rule is one that the application
-should only take note of, to the extent
-that for the purpose of tracking rule numbers.
-The application should not attempt to
-alter internal rules.
-The rules are never changed after precomputation.
-
-Several methods associated with libmarpa's grammar
-objects create rules.
-This is documented with the method.
-It is an implication of libmarpa's rule numbering
-scheme,
-that if the rule count was @var{X} before a method call,
-and was @var{Y} after that call,
-then the method call created @var{Y}@minus{}@var{X} rules,
-numbered from @var{X} to @var{Y}@minus{}1.
-At most one of these rules will be external,
-and which rule that is will be indicated to
-the application,
-as described in the description of that method call.
-
-@node Symbol concepts, Terminals concepts, Rule concepts, Top
-@chapter Symbols
-
-Symbols are numbered objects.
-At every point, where the symbol count in @var{N},
-there are symbols numbered from 0 to @var{N}@minus{}1.
-A symbol is either external or internal.
-An external symbol is one intended to be visible
-to the application.
-An internal symbol is one that the application
-should only take note of, to the extent
-that for the purpose of tracking symbol numbers.
-The application should not attempt to
-alter internal symbols.
-The symbols are never changed after precomputation.
-
-Several methods associated with libmarpa's grammar
-objects create symbols.
-This is documented with the method.
-It is an implication of libmarpa's symbol numbering
-scheme,
-that if the symbol count was @var{X} before a method call,
-and was @var{Y} after that call,
-then the method call created @var{Y}@minus{}@var{X} symbols,
-numbered from @var{X} to @var{Y}@minus{}1.
-At most one of these symbols will be external,
-and which symbol that is will be indicated to
-the application,
-as described in the description of that method call.
-
-@node Terminals concepts, Semantics, Symbol concepts, Top
+@node Terminals concepts, Semantics, Threads, Top
 @chapter Terminals
 
 A terminal symbol is symbol which
@@ -775,7 +727,6 @@ reference count by 1.
 @code{marpa_g_unref} decrements the reference count by 1.
 
 @deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
-@end deftypefun
 
 Decreases the reference count by 1,
 destroying @var{g} once the reference count reaches
@@ -785,14 +736,17 @@ They are destroyed by reducing their reference count to zero.
 
 Return value: None
 
-@deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
 @end deftypefun
+
+@deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
 
 Increases the reference count.
 
 Return value:
 On success, the grammar object it was called with;
 @code{NULL} on failure.
+
+@end deftypefun
 
 @node Symbols, Terminals, Grammar reference counting, Grammars
 @section Symbols
@@ -824,8 +778,6 @@ Returns current value of the start symbol of grammar @var{g}.
 The value is that of the user's start
 symbol, as specified in the @var{marpa_g_start_symbol_set} call,
 if there has been one.
-Marpa "augments" its grammars,
-creating one or two new, internal start symbols.
 
 Return value:
 On failure, -2;
@@ -898,20 +850,6 @@ Return value: -2 if @var{symid} is not valid;
     1 if @var{symid} is the start symbol;
     0 otherwise.
 
-@end deftypefun
-
-@deftypefun int marpa_g_symbol_is_internal (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-A symbol is @dfn{internal} if it is one of those created
-by libmarpa for its own internal uses.
-Libmarpa controls the behavior of internal symbols,
-and so that many operations are invalid for them.
-For example, the user cannot set them to be terminals,
-and they may be explicitly included in the LHS or RHS
-of rules and sequences.
-
-Return value: On success, 1 if symbol is internal, 0 if not.
-If the symbol ID is not valid, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
@@ -989,11 +927,14 @@ An attempt to add a duplicate rule is a hard failure.
 A rule is considered a duplicate if it has the same
 LHS symbol,
 and the same RHS symbols in the same order.
+A rule is also considered a duplicate if it has
+the same LHS symbol as a sequence rule,
+regardless of the right hand sides of the
+two rules.
 
 On success,
 this call creates a new external rule,
 whose ID is the return value.
-No symbols or internal rules will be created.
 
 Return value:  On success, the ID of new external rule.
 On failure, -2.

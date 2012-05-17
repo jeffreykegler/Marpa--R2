@@ -28,6 +28,14 @@ and tools to Marpa::R2.
 
 =head1 CHANGES
 
+=head1 Marpa's grammar rewriting is now invisible
+
+Internally, Marpa rewrites its grammars.
+In Marpa::XS, most details of these rewrites were
+invisible, but not all.
+In Marpa::R2, Marpa's rewrite are completely
+invisible to the user.
+
 =head2 The semantics now defaults to arbirary values
 
 In Marpa::XS, the default value

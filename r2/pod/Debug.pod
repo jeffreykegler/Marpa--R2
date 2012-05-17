@@ -546,46 +546,7 @@ and see that our C<Expression -E<gt> Factor> rule is wrong.
 It should be C<Expression -E<gt> Term>.
 Change that and the problem is fixed.
 
-=head1 GRAMMAR REWRITING
-
-Internally, Marpa rewrites Earley items and grammars.
-L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
-hides most of this from the user, but not all of it.
-Some aspects of Marpa's rewrites
-are useful to know.
-For those interested,
-Marpa's grammar rewrites are described in complete
-detail in L<Marpa::R2::Rewrite>.
-
-=head2 Special symbols
-
-Marpa uses 
-a few special symbols internally which
-it is useful
-for the user of
-L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
-to be aware of.
-To distinguish them,
-Marpa's internal symbols end in a right square bracket ("C<]>").
-No user-defined symbol is allowed to
-end in a right square bracket.
-
-One of these special symbols is Marpa's special start symbol,
-which always ends in "C<[']>".
-Marpa augments all of its grammars with
-a special start rule, which will have the special start symbol
-on its left hand side.
-We saw this above with the C<Expression['] -E<gt> Expression> rule.
-
-If the empty, or null, string is a sentence in the language of
-the grammar,
-Marpa will add a special empty start rule.
-The special empty start rule
-will have its own special null start symbol
-on its left hand side.
-The special null start symbol ends in "C<['][]>".
-
-=head2 Empty rules
+=head1 EMPTY RULES
 
 Marpa removes all of the
 empty and nulling rules in the original grammar.
@@ -595,14 +556,6 @@ Outwardly, the effect is the same, so much so that you
 might not even notice the absence of the original
 grammar's nulling and empty rules from the progress reports.
 
-
-The only nulling rule that
-Marpa allows
-is a rule that it creates internally,
-not one specified by the user.
-If the grammar accepts the null string as valid input,
-Marpa creates a nulling start rule.
-
 Marpa's removal of nulling rules is recursive,
 as it needs to be.
 Removing rules that are nulling
@@ -610,54 +563,6 @@ reveals that the left hand side
 symbol of those rules is also nulling.
 This in turn can reveal
 other nulling rules.
-
-=head2 Sequences
-
-Marpa allows the user to explicitly specify sequences,
-rather than write them out in BNF.
-Marpa is able to optimize explicitly specified sequences.
-For the actual parsing,
-Marpa rewrites sequences into BNF.
-
-In the Earley items,
-the rules will have been translated into BNF,
-so that is how they appear in
-L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">.
-Marpa's rewritten sequence rules
-take much the same form
-that a programmer's rewritten rules would,
-if she had to do the rewrite by hand.
-
-Here's are the rules of a Marpa grammar,
-with a sequence:
-
-=for Marpa::R2::Display:
-name: Debug Sequence Example
-perltidy: '-dcsc -sil=0'
-
-    my $grammar = Marpa::R2::Grammar->new(
-        {   start         => 'Document',
-            rules         => [
-                { lhs => 'Document', rhs => [qw/Stuff/], min => 1 },
-            ],
-        }
-    );
-
-=for Marpa::R2::Display::End
-
-And here is how Marpa translates this sequence:
-
-=for Marpa::R2::Display
-name: Debug Sequence Example Progress Report
-partial: 1
-normalize-whitespace: 1
-
-      P1 @0-0 Document -> . Document[Subseq:0:1]
-      P2 @0-0 Document[Subseq:0:1] -> . Stuff
-      P3 @0-0 Document[Subseq:0:1] -> . Document[Subseq:0:1] Stuff
-      P4 @0-0 Document['] -> . Document
-
-=for Marpa::R2::Display::End
 
 =head1 APPENDIX: FULL CODE AND OUTPUT FOR THE EXAMPLE
 
