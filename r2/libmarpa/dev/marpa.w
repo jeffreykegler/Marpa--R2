@@ -692,12 +692,11 @@ with their
 
 @ Symbol count accesors.
 @d XSY_Count_of_G(g) (DSTACK_LENGTH((g)->t_xsy_stack))
-@d SYM_Count_of_G(g) XSY_Count_of_G(g)
 @ @<Function definitions@> =
 int marpa_g_symbol_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    return SYM_Count_of_G(g);
+    return XSY_Count_of_G(g);
 }
 
 @ Symbol by ID.
@@ -717,9 +716,9 @@ void symbol_add( GRAMMAR g, SYM symbol)
 
 @ Check that external symbol is in valid range.
 @<Function definitions@> =
-PRIVATE int symbol_is_valid(GRAMMAR g, SYMID symid)
+PRIVATE int symbol_is_valid(GRAMMAR g, XSYID xsyid)
 {
-    return symid >= 0 && symid < SYM_Count_of_G(g);
+    return xsyid >= 0 && xsyid < XSY_Count_of_G(g);
 }
 
 @ Check that internal symbol is in valid range.
@@ -1161,10 +1160,10 @@ where the application
 does not care about the value of 
 a symbol -- that is, the semantics
 is arbitrary.
-@d SYM_is_Ask_Me_When_Null(symbol) ((symbol)->t_is_ask_me_when_null)
+@d XSY_is_Ask_Me_When_Null(symbol) ((symbol)->t_is_ask_me_when_null)
 @<Bit aligned symbol elements@> = unsigned int t_is_ask_me_when_null:1;
 @ @<Initialize symbol elements@> =
-    SYM_is_Ask_Me_When_Null(symbol) = 0;
+    XSY_is_Ask_Me_When_Null(symbol) = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_ask_me_when_null(
     Marpa_Grammar g,
@@ -1172,7 +1171,7 @@ int marpa_g_symbol_is_ask_me_when_null(
 {
     @<Return |-2| on failure@>@;
     @<Fail if |symid| is invalid@>@;
-    return SYM_is_Ask_Me_When_Null(SYM_by_ID(symid));
+    return XSY_is_Ask_Me_When_Null(SYM_by_ID(symid));
 }
 int marpa_g_symbol_ask_me_when_null_set(
     Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
@@ -1181,7 +1180,7 @@ int marpa_g_symbol_ask_me_when_null_set(
     @<Return |-2| on failure@>@;
     @<Fail if |symid| is invalid@>@;
     symbol = SYM_by_ID(symid);
-    return SYM_is_Ask_Me_When_Null(symbol) = value ? 1 : 0;
+    return XSY_is_Ask_Me_When_Null(symbol) = value ? 1 : 0;
 }
 
 @ Symbol Is Accessible Boolean
@@ -1418,8 +1417,8 @@ ISY symbol_alias_create(GRAMMAR g, SYM symbol)
     SYM_is_Nulling(alias) = 1;
     ISY_is_Nulling(alias_isy) = 1;
     XSY_is_Nullable(alias) = 1;
-    SYM_is_Ask_Me_When_Null(alias)
-	= SYM_is_Ask_Me_When_Null(symbol);
+    XSY_is_Ask_Me_When_Null(alias)
+	= XSY_is_Ask_Me_When_Null(symbol);
     alias->t_is_productive = 1;
     alias->t_is_accessible = symbol->t_is_accessible;
     return alias_isy;
@@ -5860,11 +5859,9 @@ For this reason, the grammar is not |const|.
 Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 {
     RECCE r;
-    int symbol_count_of_g;
     @<Return |NULL| on failure@>@;
     @<Fail if not precomputed@>@;
     r = my_slice_new(struct marpa_r);
-    symbol_count_of_g = SYM_Count_of_G(g);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
    return r;
@@ -6223,8 +6220,8 @@ able to handle.
 @ @<Private typedefs@> = typedef Marpa_Earley_Set_ID ESID;
 @ @d Next_ES_of_ES(set) ((set)->t_next_earley_set)
 @d Postdot_SYM_Count_of_ES(set) ((set)->t_postdot_sym_count)
-@d First_PIM_of_ES_by_ISYID(set, isyid) (first_pim_of_es_by_isyid(g, (set), (isyid)))
-@d PIM_ISY_P_of_ES_by_ISYID(set, isyid) (pim_isy_p_find(g, (set), (isyid)))
+@d First_PIM_of_ES_by_ISYID(set, isyid) (first_pim_of_es_by_isyid((set), (isyid)))
+@d PIM_ISY_P_of_ES_by_ISYID(set, isyid) (pim_isy_p_find((set), (isyid)))
 @<Private incomplete structures@> =
 struct s_earley_set;
 typedef struct s_earley_set *ES;
@@ -6914,7 +6911,7 @@ returns that postdot item.
 If it fails, it returns |NULL|.
 @<Function definitions@> =
 PRIVATE PIM*
-pim_isy_p_find (GRAMMAR g, ES set, ISYID isyid)
+pim_isy_p_find (ES set, ISYID isyid)
 {
   int lo = 0;
   int hi = Postdot_SYM_Count_of_ES(set) - 1;
@@ -6933,9 +6930,9 @@ pim_isy_p_find (GRAMMAR g, ES set, ISYID isyid)
   return NULL;
 }
 @ @<Function definitions@> =
-PRIVATE PIM first_pim_of_es_by_isyid(GRAMMAR g, ES set, ISYID isyid)
+PRIVATE PIM first_pim_of_es_by_isyid(ES set, ISYID isyid)
 {
-   PIM* pim_isy_p = pim_isy_p_find(g, set, isyid);
+   PIM* pim_isy_p = pim_isy_p_find(set, isyid);
    return pim_isy_p ? *pim_isy_p : NULL;
 }
 
@@ -8037,7 +8034,6 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     EIK_Object key;
     AHFA state;
   @<Unpack recognizer objects@>@;
-    const int symbol_count_of_g = SYM_Count_of_G(g);
     const ISYID isy_count = ISY_Count_of_G(g);
     @<Return |-2| on failure@>@;
     @<Fail if recognizer started@>@;
@@ -8846,7 +8842,7 @@ In a populated LIM, this will not necessarily be the case.
 @ @<Widely aligned recognizer elements@> =
   void** t_lim_chain;
 @ @<Allocate recognizer containers used in setup@> = 
-  r->t_lim_chain = my_obstack_new(&r->t_obs, void*, 2*symbol_count_of_g);
+  r->t_lim_chain = my_obstack_new(&r->t_obs, void*, 2*isy_count);
 @ @<Create and populate a LIM chain@> = {
   int lim_chain_ix;
   @<Create a LIM chain@>@;
@@ -12216,12 +12212,12 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
     Bit_Vector t_nulling_ask_bv;
 @ @<Pre-initialize value elements@> =
 {
-    const SYMID symbol_count_of_g = SYM_Count_of_G(g);
-    SYMID ix;
-    Nulling_Ask_BV_of_V(v) = bv_create (symbol_count_of_g);
-    for (ix = 0; ix < symbol_count_of_g; ix++) {
-	const SYM symbol = SYM_by_ID(ix);
-	if (SYM_is_Ask_Me_When_Null(symbol))
+    const XSYID xsy_count = XSY_Count_of_G(g);
+    XSYID ix;
+    Nulling_Ask_BV_of_V(v) = bv_create (xsy_count);
+    for (ix = 0; ix < xsy_count; ix++) {
+	const XSY xsy = XSY_by_ID(ix);
+	if (XSY_is_Ask_Me_When_Null(xsy))
 	{
 	    bv_bit_set(Nulling_Ask_BV_of_V(v), ix);
 	}
@@ -12861,8 +12857,8 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 {
   unsigned int min, max, start = 0;
   Marpa_Symbol_ID *top_of_stack = NULL;
-  FSTACK_DECLARE (stack, Marpa_Symbol_ID) @;
-  FSTACK_INIT (stack, Marpa_Symbol_ID, SYM_Count_of_G (g));
+  FSTACK_DECLARE (stack, XSYID) @;
+  FSTACK_INIT (stack, XSYID, XSY_Count_of_G (g));
   while (bv_scan (bv, start, &min, &max))
     {
       unsigned int symid;
