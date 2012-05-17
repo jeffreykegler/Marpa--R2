@@ -8725,7 +8725,7 @@ resolved by arranging those LIMs in chain link order,
 and processing them in that order.
 This is the business of the inner loop.
 @ When a LIM is encountered which cannot be populated immediately,
-its chain is followed and copied into |lim_chain|, which is in
+its chain is followed and copied into |t_lim_chain|, which is in
 effect a stack.  The chain ends when it reaches
 a LIM which can be populated immediately.
 @ A special case is when the LIM chain cycles back to the LIM
@@ -8838,8 +8838,11 @@ In a populated LIM, this will not necessarily be the case.
     predecessor_lim = PIM_is_LIM(predecessor_pim) ? LIM_of_PIM(predecessor_pim) : NULL;
 }
 
+@ @<Widely aligned recognizer elements@> =
+  void** t_lim_chain;
+@ @<Allocate recognizer containers used in setup@> = 
+  r->t_lim_chain = my_obstack_new(&r->t_obs, void*, 2*symbol_count_of_g);
 @ @<Create and populate a LIM chain@> = {
-  void ** const lim_chain = my_obstack_new(&obs_local, void*, 2*SYM_Count_of_G(g));
   int lim_chain_ix;
   @<Create a LIM chain@>@;
   @<Populate the LIMs in the LIM chain@>@;
@@ -8863,7 +8866,7 @@ problems.
      SYMID postdot_symid_of_lim_to_process
 	 = Postdot_SYMID_of_LIM(lim_to_process);
     lim_chain_ix = 0;
-    lim_chain[lim_chain_ix++] = LIM_of_PIM(lim_to_process);
+    r->t_lim_chain[lim_chain_ix++] = LIM_of_PIM(lim_to_process);
 	bv_bit_clear(bv_ok_for_chain, (unsigned int)postdot_symid_of_lim_to_process);
 	/* Make sure this LIM
 	is not added to a LIM chain again for this Earley set */ @#
@@ -8887,7 +8890,7 @@ problems.
 
         @<Find predecessor LIM of unpopulated LIM@>@;
 
-	lim_chain[lim_chain_ix++] = LIM_of_PIM(lim_to_process); /* 
+	r->t_lim_chain[lim_chain_ix++] = LIM_of_PIM(lim_to_process); /* 
 	    |lim_to_process| is not populated, as shown above */
 
 	bv_bit_clear(bv_ok_for_chain, (unsigned int)postdot_symid_of_lim_to_process);
@@ -8906,7 +8909,7 @@ problems.
 
 @ @<Populate the LIMs in the LIM chain@> =
 for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
-    lim_to_process = lim_chain[lim_chain_ix];
+    lim_to_process = r->t_lim_chain[lim_chain_ix];
     if (predecessor_lim && LIM_is_Populated(predecessor_lim)) {
 	@<Populate |lim_to_process| from |predecessor_lim|@>@;
     } else {
