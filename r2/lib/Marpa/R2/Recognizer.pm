@@ -393,7 +393,7 @@ sub Marpa::R2::Recognizer::set {
 sub Marpa::R2::Recognizer::earley_set_size {
     my ( $recce, $set_id ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    return $recce_c->earley_set_size($set_id);
+    return $recce_c->_marpa_r_earley_set_size($set_id);
 }
 
 sub Marpa::R2::Recognizer::latest_earley_set {
@@ -446,14 +446,14 @@ sub Marpa::R2::show_leo_item {
     my $recce_c        = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $xsy_to_isy     = $grammar->[Marpa::R2::Internal::Grammar::XSY_TO_ISY];
-    my $leo_base_state = $recce_c->leo_base_state();
+    my $leo_base_state = $recce_c->_marpa_r_leo_base_state();
     return if not defined $leo_base_state;
-    my $trace_earley_set      = $recce_c->trace_earley_set();
+    my $trace_earley_set      = $recce_c->_marpa_r_trace_earley_set();
     my $trace_earleme         = $recce_c->earleme($trace_earley_set);
-    my $postdot_symbol_id     = $recce_c->postdot_item_symbol();
-    my $postdot_symbol_name = $grammar->xsy_name($postdot_symbol_id);
-    my $predecessor_symbol_id = $recce_c->leo_predecessor_symbol();
-    my $base_origin_set_id    = $recce_c->leo_base_origin();
+    my $postdot_symbol_id     = $recce_c->_marpa_r_postdot_item_symbol();
+    my $postdot_symbol_name = $grammar->isy_name($postdot_symbol_id);
+    my $predecessor_symbol_id = $recce_c->_marpa_r_leo_predecessor_symbol();
+    my $base_origin_set_id    = $recce_c->_marpa_r_leo_base_origin();
     my $base_origin_earleme   = $recce_c->earleme($base_origin_set_id);
 
     my $text = sprintf 'L%d@%d', $postdot_symbol_id, $trace_earleme;
@@ -477,14 +477,14 @@ sub Marpa::R2::show_token_link_choice {
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $text    = q{};
     my @pieces  = ();
-    my ( $token_id, $value_ix ) = $recce_c->source_token();
-    my $predecessor_state = $recce_c->source_predecessor_state();
-    my $origin_set_id     = $recce_c->earley_item_origin();
+    my ( $token_id, $value_ix ) = $recce_c->_marpa_r_source_token();
+    my $predecessor_state = $recce_c->_marpa_r_source_predecessor_state();
+    my $origin_set_id     = $recce_c->_marpa_r_earley_item_origin();
     my $origin_earleme    = $recce_c->earleme($origin_set_id);
     my $middle_earleme    = $origin_earleme;
 
     if ( defined $predecessor_state ) {
-        my $middle_set_id = $recce_c->source_middle();
+        my $middle_set_id = $recce_c->_marpa_r_source_middle();
         $middle_earleme = $recce_c->earleme($middle_set_id);
         push @pieces,
               'p=S'
@@ -511,10 +511,10 @@ sub Marpa::R2::show_completion_link_choice {
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $text    = q{};
     my @pieces  = ();
-    my $predecessor_state = $recce_c->source_predecessor_state();
-    my $origin_set_id     = $recce_c->earley_item_origin();
+    my $predecessor_state = $recce_c->_marpa_r_source_predecessor_state();
+    my $origin_set_id     = $recce_c->_marpa_r_earley_item_origin();
     my $origin_earleme    = $recce_c->earleme($origin_set_id);
-    my $middle_set_id     = $recce_c->source_middle();
+    my $middle_set_id     = $recce_c->_marpa_r_source_middle();
     my $middle_earleme    = $recce_c->earleme($middle_set_id);
 
     if ( defined $predecessor_state ) {
@@ -540,9 +540,9 @@ sub Marpa::R2::show_leo_link_choice {
     my $symbols        = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $text           = q{};
     my @pieces         = ();
-    my $middle_set_id  = $recce_c->source_middle();
+    my $middle_set_id  = $recce_c->_marpa_r_source_middle();
     my $middle_earleme = $recce_c->earleme($middle_set_id);
-    my $leo_transition_symbol = $recce_c->source_leo_transition_symbol();
+    my $leo_transition_symbol = $recce_c->_marpa_r_source_leo_transition_symbol();
     push @pieces, 'l=L' . $leo_transition_symbol . q{@} . $middle_earleme;
     push @pieces,
           'c=S'
@@ -557,7 +557,7 @@ sub Marpa::R2::show_earley_item {
     my ( $recce, $current_es, $state_id ) = @_;
     my $recce_c        = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $text           = q{};
-    my $origin_set_id  = $recce_c->earley_item_origin();
+    my $origin_set_id  = $recce_c->_marpa_r_earley_item_origin();
     my $earleme        = $recce_c->earleme($current_es);
     my $origin_earleme = $recce_c->earleme($origin_set_id);
     $text .= sprintf "S%d@%d-%d", $state_id, $origin_earleme, $earleme;
@@ -565,19 +565,19 @@ sub Marpa::R2::show_earley_item {
     my @sort_data = ();
 
     for (
-        my $symbol_id = $recce_c->first_token_link_trace();
+        my $symbol_id = $recce_c->_marpa_r_first_token_link_trace();
         defined $symbol_id;
-        $symbol_id = $recce_c->next_token_link_trace()
+        $symbol_id = $recce_c->_marpa_r_next_token_link_trace()
         )
     {
         push @sort_data,
             [
-            $recce_c->source_middle(),
+            $recce_c->_marpa_r_source_middle(),
             $symbol_id,
-            ( $recce_c->source_predecessor_state() // -1 ),
+            ( $recce_c->_marpa_r_source_predecessor_state() // -1 ),
             Marpa::R2::show_token_link_choice( $recce, $earleme )
             ];
-    } ## end for ( my $symbol_id = $recce_c->first_token_link_trace...)
+    } ## end for ( my $symbol_id = $recce_c->_marpa_r_first_token_link_trace...)
     push @pieces, map { $_->[-1] } sort {
                $a->[0] <=> $b->[0]
             || $a->[1] <=> $b->[1]
@@ -585,21 +585,21 @@ sub Marpa::R2::show_earley_item {
     } @sort_data;
     @sort_data = ();
     for (
-        my $cause_AHFA_id = $recce_c->first_completion_link_trace();
+        my $cause_AHFA_id = $recce_c->_marpa_r_first_completion_link_trace();
         defined $cause_AHFA_id;
-        $cause_AHFA_id = $recce_c->next_completion_link_trace()
+        $cause_AHFA_id = $recce_c->_marpa_r_next_completion_link_trace()
         )
     {
         push @sort_data,
             [
-            $recce_c->source_middle(),
+            $recce_c->_marpa_r_source_middle(),
             $cause_AHFA_id,
-            ( $recce_c->source_predecessor_state() // -1 ),
+            ( $recce_c->_marpa_r_source_predecessor_state() // -1 ),
             Marpa::R2::show_completion_link_choice(
                 $recce, $cause_AHFA_id, $earleme
             )
             ];
-    } ## end for ( my $cause_AHFA_id = $recce_c->first_completion_link_trace...)
+    } ## end for ( my $cause_AHFA_id = $recce_c->_marpa_r_first_completion_link_trace...)
     push @pieces, map { $_->[-1] } sort {
                $a->[0] <=> $b->[0]
             || $a->[1] <=> $b->[1]
@@ -607,21 +607,21 @@ sub Marpa::R2::show_earley_item {
     } @sort_data;
     @sort_data = ();
     for (
-        my $AHFA_state_id = $recce_c->first_leo_link_trace();
+        my $AHFA_state_id = $recce_c->_marpa_r_first_leo_link_trace();
         defined $AHFA_state_id;
-        $AHFA_state_id = $recce_c->next_leo_link_trace()
+        $AHFA_state_id = $recce_c->_marpa_r_next_leo_link_trace()
         )
     {
         push @sort_data,
             [
-            $recce_c->source_middle(),
+            $recce_c->_marpa_r_source_middle(),
             $AHFA_state_id,
-            $recce_c->source_leo_transition_symbol(),
+            $recce_c->_marpa_r_source_leo_transition_symbol(),
             Marpa::R2::show_leo_link_choice(
                 $recce, $AHFA_state_id, $earleme
             )
             ];
-    } ## end for ( my $AHFA_state_id = $recce_c->first_leo_link_trace...)
+    } ## end for ( my $AHFA_state_id = $recce_c->_marpa_r_first_leo_link_trace...)
     push @pieces, map { $_->[-1] } sort {
                $a->[0] <=> $b->[0]
             || $a->[1] <=> $b->[1]
@@ -635,15 +635,15 @@ sub Marpa::R2::show_earley_set {
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $text      = q{};
     my @sort_data = ();
-    if ( not defined $recce_c->earley_set_trace($traced_set_id) ) {
+    if ( not defined $recce_c->_marpa_r_earley_set_trace($traced_set_id) ) {
         return $text;
     }
     EARLEY_ITEM: for ( my $item_id = 0;; $item_id++ ) {
-        my $state_id = $recce_c->earley_item_trace($item_id);
+        my $state_id = $recce_c->_marpa_r_earley_item_trace($item_id);
         last EARLEY_ITEM if not defined $state_id;
         push @sort_data,
             [
-            $recce_c->earley_item_origin(), $state_id,
+            $recce_c->_marpa_r_earley_item_origin(), $state_id,
             Marpa::R2::show_earley_item( $recce, $traced_set_id, $state_id )
             ];
     } ## end for ( my $item_id = 0;; $item_id++ )
@@ -653,9 +653,9 @@ sub Marpa::R2::show_earley_set {
     @sort_data = ();
     POSTDOT_ITEM:
     for (
-        my $postdot_symbol_id = $recce_c->first_postdot_item_trace();
+        my $postdot_symbol_id = $recce_c->_marpa_r_first_postdot_item_trace();
         defined $postdot_symbol_id;
-        $postdot_symbol_id = $recce_c->next_postdot_item_trace()
+        $postdot_symbol_id = $recce_c->_marpa_r_next_postdot_item_trace()
         )
     {
 
@@ -664,7 +664,7 @@ sub Marpa::R2::show_earley_set {
         my $leo_item_desc = Marpa::R2::show_leo_item($recce);
         next POSTDOT_ITEM if not defined $leo_item_desc;
         push @sort_data, [ $postdot_symbol_id, $leo_item_desc ];
-    } ## end for ( my $postdot_symbol_id = $recce_c->first_postdot_item_trace...)
+    } ## end for ( my $postdot_symbol_id = $recce_c->_marpa_r_first_postdot_item_trace...)
     push @sorted_data, join q{},
         map { $_->[-1] . "\n" } sort { $a->[0] <=> $b->[0] } @sort_data;
     return join q{}, @sorted_data;
@@ -817,21 +817,21 @@ sub report_progress {
     # worklist of them for later.
     my @leo_worklist = ();
 
-    $recce_c->earley_set_trace($current_set);
+    $recce_c->_marpa_r_earley_set_trace($current_set);
     EARLEY_ITEM:
     for (
         my $item_id = 0;
-        defined( my $AHFA_state_id = $recce_c->earley_item_trace($item_id) );
+        defined( my $AHFA_state_id = $recce_c->_marpa_r_earley_item_trace($item_id) );
         $item_id++
         )
     {
-        my $origin_set_id  = $recce_c->earley_item_origin();
+        my $origin_set_id  = $recce_c->_marpa_r_earley_item_origin();
         my $origin_earleme = $recce_c->earleme($origin_set_id);
         LEO_SOURCE:
         for (
-            my $AHFA_state_id = $recce_c->first_leo_link_trace();
+            my $AHFA_state_id = $recce_c->_marpa_r_first_leo_link_trace();
             defined $AHFA_state_id;
-            $AHFA_state_id = $recce_c->next_leo_link_trace()
+            $AHFA_state_id = $recce_c->_marpa_r_next_leo_link_trace()
             )
         {
 
@@ -839,26 +839,26 @@ sub report_progress {
             # is a Leo completion and therefore the Leo expansion
             # of its own first Leo link
             my $leo_transition_symbol =
-                $recce_c->source_leo_transition_symbol();
+                $recce_c->_marpa_r_source_leo_transition_symbol();
             next LEO_SOURCE if not defined $leo_transition_symbol;
-            my $previous_lim_set_id = $recce_c->source_middle();
+            my $previous_lim_set_id = $recce_c->_marpa_r_source_middle();
             push @leo_worklist,
                 [ $previous_lim_set_id, $leo_transition_symbol ];
-        } ## end for ( my $AHFA_state_id = $recce_c->first_leo_link_trace...)
+        } ## end for ( my $AHFA_state_id = $recce_c->_marpa_r_first_leo_link_trace...)
         push @per_AHFA_item_data, [ $origin_earleme, $AHFA_state_id ];
     } ## end for ( my $item_id = 0; defined( my $AHFA_state_id = $recce_c...))
     for my $leo_workitem (@leo_worklist) {
 
         my ( $leo_item_set_id, $leo_item_postdot_symbol ) = @{$leo_workitem};
         LEO_ITEM: for ( ;; ) {
-            $recce_c->earley_set_trace($leo_item_set_id);
-            $recce_c->postdot_symbol_trace($leo_item_postdot_symbol);
-            my $expansion_ahfa = $recce_c->leo_expansion_ahfa();
+            $recce_c->_marpa_r_earley_set_trace($leo_item_set_id);
+            $recce_c->_marpa_r_postdot_symbol_trace($leo_item_postdot_symbol);
+            my $expansion_ahfa = $recce_c->_marpa_r_leo_expansion_ahfa();
             push @per_AHFA_item_data,
                 [ $recce_c->earleme($leo_item_set_id), $expansion_ahfa ];
-            $leo_item_postdot_symbol = $recce_c->leo_predecessor_symbol();
+            $leo_item_postdot_symbol = $recce_c->_marpa_r_leo_predecessor_symbol();
             last LEO_ITEM if not defined $leo_item_postdot_symbol;
-            $leo_item_set_id = $recce_c->leo_base_origin();
+            $leo_item_set_id = $recce_c->_marpa_r_leo_base_origin();
         } ## end for ( ;; )
     } ## end for my $leo_workitem (@leo_worklist)
     for my $per_AHFA_item_datum (@per_AHFA_item_data) {

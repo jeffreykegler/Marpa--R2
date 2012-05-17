@@ -1656,76 +1656,76 @@ On other problems, it returns -2.
 @node Recognizer internals,  , Recognizer life, Recognizers
 @section Meddling with the recognizer internals
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Earley_Set_ID _marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Earley_Set_ID _marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun int marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
+@deftypefun int _marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
 
-@deftypefun Marpa_Earleme marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
+@deftypefun Marpa_Earleme _marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
+@deftypefun Marpa_AHFA_State_ID _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_earley_item_origin (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Earley_Set_ID _marpa_r_earley_item_origin (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_leo_predecessor_symbol (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_leo_predecessor_symbol (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_leo_base_origin (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Earley_Set_ID _marpa_r_leo_base_origin (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_leo_base_state (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AHFA_State_ID _marpa_r_leo_base_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_leo_expansion_ahfa (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AHFA_State_ID _marpa_r_leo_expansion_ahfa (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_postdot_symbol_trace (Marpa_Recognizer r, Marpa_Symbol_ID @var{symid})
+@deftypefun Marpa_Symbol_ID _marpa_r_postdot_symbol_trace (Marpa_Recognizer r, Marpa_Symbol_ID @var{symid})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_first_postdot_item_trace (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_first_postdot_item_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_next_postdot_item_trace (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_next_postdot_item_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_postdot_item_symbol (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AHFA_State_ID _marpa_r_postdot_item_symbol (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_first_token_link_trace (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_first_token_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_next_token_link_trace (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_next_token_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_first_completion_link_trace (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_first_completion_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_next_completion_link_trace (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_next_completion_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_first_leo_link_trace (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_first_leo_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_next_leo_link_trace (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_next_leo_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AHFA_State_ID _marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_source_token (Marpa_Recognizer r, int *@var{value_p})
+@deftypefun Marpa_Symbol_ID _marpa_r_source_token (Marpa_Recognizer r, int *@var{value_p})
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_r_source_leo_transition_symbol (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_source_middle (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Earley_Set_ID _marpa_r_source_middle (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @node Bocage, Order, Recognizers, Top

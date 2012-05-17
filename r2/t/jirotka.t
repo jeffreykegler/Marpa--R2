@@ -503,13 +503,13 @@ S7@0-6 [l=L17@4; c=S18@4-6]
 S18@4-6 [p=S16@4-5; c=S20@5-6]
 S20@5-6 [p=S17@5-5; s=NUMBER; t=\1]
 S19@6-6
-L22@6 ["WithPf"; L30@6; S19@6-6]
+L25@6 ["WithPf"; L30@6; S19@6-6]
 L29@6 ["MetricSelect[R3:3]"; L17@4; S18@4-6]
 L30@6 ["MetricSelect[R3:4]"; L29@6; S19@6-6]
 Earley Set 7
 S26@6-7 [p=S19@6-6; s=WHERE; t=\'Where']
 S27@7-7
-L23@7 ["FilterExpr"; S26@6-7]
+L27@7 ["FilterExpr"; S26@6-7]
 Earley Set 8
 S2@0-8 [p=S0@0-0; c=S6@0-8]
 S5@0-8 [p=S1@0-0; c=S7@0-8]
@@ -519,7 +519,7 @@ S31@6-8 [p=S19@6-6; c=S36@6-8]
 S36@6-8 [l=L23@7; c=S38@7-8]
 S38@7-8 [p=S27@7-7; s=TRUE; t=\'True']
 S32@8-8
-L22@8 ["WithPf"; L30@6; S31@6-8]
+L25@8 ["WithPf"; L30@6; S31@6-8]
 END_OF_EARLEY_SETS
 
 Marpa::R2::Test::is( $recog->show_and_nodes(),
