@@ -903,13 +903,16 @@ struct s_g_event;
 typedef struct s_g_event* GEV;
 @ @<Public typedefs@> =
 struct marpa_event;
-typedef struct marpa_event* Marpa_Event;
 typedef int Marpa_Event_Type;
+@ @<Public defines@> =
+#define marpa_g_event_value(event) \
+    ((event)->t_value)
 @ @<Public structures@> =
 struct marpa_event {
      Marpa_Event_Type t_type;
      int t_value;
 };
+typedef struct marpa_event Marpa_Event;
 @ @<Private structures@> =
 struct s_g_event {
      int t_type;
@@ -958,7 +961,7 @@ void int_event_new(GRAMMAR g, int type, int value)
 
 @ @<Function definitions@> =
 int
-marpa_g_event (Marpa_Grammar g, Marpa_Event public_event,
+marpa_g_event (Marpa_Grammar g, Marpa_Event* public_event,
 	       int ix)
 {
   @<Return |-2| on failure@>@;
@@ -6134,8 +6137,11 @@ Marpa_Error_Code marpa_r_error(Marpa_Recognizer r, const char** p_error_string)
 
 @*0 Recognizer event accessor.
 @ A convenience wrapper for the grammar error strings.
-@<Function definitions@> =
-int marpa_r_event(Marpa_Recognizer r, Marpa_Event public_event, int ix)
+@<Public defines@> =
+#define marpa_r_event_value(event) \
+    ((event)->t_value)
+@ @<Function definitions@> =
+int marpa_r_event(Marpa_Recognizer r, Marpa_Event* public_event, int ix)
 {
     @<Unpack recognizer objects@>@;
   return marpa_g_event (g, public_event, ix);

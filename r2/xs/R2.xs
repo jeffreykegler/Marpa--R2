@@ -370,7 +370,7 @@ event( g_wrapper, ix )
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  struct marpa_event event;
+  Marpa_Event event;
   const char *result_string = NULL;
   Marpa_Event_Type result = marpa_g_event (g, &event, ix);
   if (result == -1)
@@ -387,7 +387,7 @@ PPCODE:
       croak ("Problem in g->event(): unknown event %d", result);
     }
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-  XPUSHs (sv_2mortal (newSViv (event.t_value)));
+  XPUSHs (sv_2mortal (newSViv (marpa_g_event_value(&event))));
 }
 
 void
@@ -1970,7 +1970,7 @@ event( r_wrapper, ix )
 PPCODE:
     {
       struct marpa_r * const r = r_wrapper->r;
-      struct marpa_event event;
+      Marpa_Event event;
       const char *result_string = NULL;
       Marpa_Event_Type result = marpa_r_event (r, &event, ix);
       if (result < 0)
@@ -1983,7 +1983,7 @@ PPCODE:
 	  croak ("Problem in r->earleme_event(): unknown event %d", result);
 	}
       XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-      XPUSHs (sv_2mortal (newSViv (event.t_value)));
+      XPUSHs (sv_2mortal (newSViv (marpa_r_event_value(&event))));
     }
 
 void

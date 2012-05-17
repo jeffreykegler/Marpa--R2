@@ -1300,9 +1300,31 @@ On failure, -2.
 @section Accessing events
 
 @deftypefun int marpa_g_event (Marpa_Grammar @var{g}, @
-    Marpa_Event @var{public_event}, @
+    Marpa_Event* @var{event}, @
 	       int @var{ix})
+This method provides access to the events generated
+by the @code{marpa_g_precompute} method.
+The @var{ix}'th event (numbered from 0) is placed
+in the @var{public_event} value.
+
+It is a soft failure if there is no such event.
+This can be used as the termination condition
+in a loop over the events.
+
+Return value:  On success, returns the type of event @var{ix},
+and places the data for the event in @var{public_event}.
+If there is no such event (a soft failure),
+-1 is returned.
+On hard failure, -2 is returned.
 @end deftypefun
+
+@defmac void* marpa_g_event_value(Marpa_Event* @var{event})
+This macro provides access to the ``value'' of the event.
+The semantics of the value varies according to the type
+of the event, and is described in the section on event
+codes.
+@xref{Event codes}.
+@end defmac
 
 @node Event codes,  , Event accessor, Events
 @section Event codes
@@ -1433,84 +1455,16 @@ On other problems, it returns -2.
 @end deftypefun
 
 @deftypefun int marpa_r_event (Marpa_Recognizer @var{r}, @
-    Marpa_Event @var{public_event}, @
+    Marpa_Event* @var{public_event}, @
     int @var{ix})
 @end deftypefun
 
-@node Recognizer internals,  , Recognizer life, Recognizers
-@section Meddling with the recognizer internals
-
-@deftypefun Marpa_Earley_Set_ID _marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Earley_Set_ID _marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun int _marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
-@end deftypefun
-
-@deftypefun Marpa_Earleme _marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
-@end deftypefun
-
-@deftypefun Marpa_AHFA_State_ID _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
-@end deftypefun
-
-@deftypefun Marpa_Earley_Set_ID _marpa_r_earley_item_origin (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_leo_predecessor_symbol (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Earley_Set_ID _marpa_r_leo_base_origin (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_AHFA_State_ID _marpa_r_leo_base_state (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_AHFA_State_ID _marpa_r_leo_expansion_ahfa (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_postdot_symbol_trace (Marpa_Recognizer r, Marpa_Symbol_ID @var{symid})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_first_postdot_item_trace (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_next_postdot_item_trace (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_AHFA_State_ID _marpa_r_postdot_item_symbol (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_first_token_link_trace (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_next_token_link_trace (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_first_completion_link_trace (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_next_completion_link_trace (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_first_leo_link_trace (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_next_leo_link_trace (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_AHFA_State_ID _marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_source_token (Marpa_Recognizer r, int *@var{value_p})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Earley_Set_ID _marpa_r_source_middle (Marpa_Recognizer @var{r})
-@end deftypefun
+@defmac void* marpa_r_event_value(Marpa_Event* @var{event})
+This macro provides access to the ``value'' of the event.
+The semantics of the value varies according to the type
+of the event, and is described in the section on event
+codes.
+@end defmac
 
 @node Bocage, Order, Recognizers, Top
 @chapter Bocage objects
@@ -1533,99 +1487,6 @@ On other problems, it returns -2.
 @end deftypefun
 
 @deftypefun void marpa_b_unref (Marpa_Bocage @var{b})
-@end deftypefun
-
-@node Bocage internals,  , Bocage reference counting, Bocage
-@section Internals
-
-@deftypefun int _marpa_b_and_node_count ( @
-    Marpa_Bocage @var{b})
-@end deftypefun
-
-@deftypefun int _marpa_b_and_node_parent ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_And_Node_ID @var{and_node_id})
-@end deftypefun
-
-@deftypefun int _marpa_b_and_node_predecessor ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_And_Node_ID @var{and_node_id})
-@end deftypefun
-
-@deftypefun int _marpa_b_and_node_cause ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_And_Node_ID @var{and_node_id})
-@end deftypefun
-
-@deftypefun int _marpa_b_and_node_symbol ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_And_Node_ID @var{and_node_id})
-@end deftypefun
-
-@deftypefun Marpa_Symbol_ID _marpa_b_and_node_token ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_And_Node_ID @var{and_node_id}, @
-    int* @var{value_p})
-
-Returns the data for the token of the and-node.
-The symbol id is the return value,
-and the token value is placed
-in the location pointed
-to by @var{value_p}, if that is non-null.
-If @var{and_node_id} is not the ID of an and-node
-whose cause is a token,
-returns -1,
-without changing @var{value_p}.
-On hard failure, returns -2 without changing
-@var{value_p}.
-
-There is no function to simply return the token value --
-because of the need to indicate errors, it is just as
-easy to return the symbol ID as well.
-@end deftypefun
-
-@deftypefun Marpa_Or_Node_ID _marpa_b_top_or_node ( @
-    Marpa_Bocage @var{b})
-
-Return the ID of the top or-node.
-@end deftypefun
-
-@deftypefun int _marpa_b_or_node_set ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_Or_Node_ID @var{or_node_id})
-
-Return the ordinal of the current (final) Earley set of
-the or-node.
-@end deftypefun
-
-@deftypefun int _marpa_b_or_node_origin ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_Or_Node_ID @var{or_node_id})
-@end deftypefun
-
-@deftypefun Marpa_IRL_ID _marpa_b_or_node_irl ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_Or_Node_ID @var{or_node_id})
-@end deftypefun
-
-@deftypefun int _marpa_b_or_node_position ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_Or_Node_ID @var{or_node_id})
-@end deftypefun
-
-@deftypefun int _marpa_b_or_node_first_and ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_Or_Node_ID @var{or_node_id})
-@end deftypefun
-
-@deftypefun int _marpa_b_or_node_last_and ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_Or_Node_ID @var{or_node_id})
-@end deftypefun
-
-@deftypefun int _marpa_b_or_node_and_count ( @
-    Marpa_Bocage @var{b}, @
-    Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
 @node Order, Tree, Bocage, Top
@@ -2748,6 +2609,161 @@ Marpa's internals, as described in
 @deftypefun Marpa_AHFA_State_ID _marpa_g_AHFA_state_empty_transition ( @
     Marpa_Grammar @var{g}, @
      Marpa_AHFA_Item_ID @var{AHFA_item_id})
+@end deftypefun
+
+@node Recognizer internals,  , Recognizer life, Recognizers
+@section Recognizer internals
+
+@deftypefun Marpa_Earley_Set_ID _marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID _marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun int _marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
+@end deftypefun
+
+@deftypefun Marpa_Earleme _marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID _marpa_r_earley_item_origin (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_leo_predecessor_symbol (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID _marpa_r_leo_base_origin (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID _marpa_r_leo_base_state (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID _marpa_r_leo_expansion_ahfa (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_postdot_symbol_trace (Marpa_Recognizer r, Marpa_Symbol_ID @var{symid})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_first_postdot_item_trace (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_next_postdot_item_trace (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID _marpa_r_postdot_item_symbol (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_first_token_link_trace (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_next_token_link_trace (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_first_completion_link_trace (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_next_completion_link_trace (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_first_leo_link_trace (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_next_leo_link_trace (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_AHFA_State_ID _marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_source_token (Marpa_Recognizer r, int *@var{value_p})
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@deftypefun Marpa_Earley_Set_ID _marpa_r_source_middle (Marpa_Recognizer @var{r})
+@end deftypefun
+
+@node Bocage internals
+@section Bocage internals
+
+@deftypefun int _marpa_b_and_node_count ( @
+    Marpa_Bocage @var{b})
+@end deftypefun
+@deftypefun int _marpa_b_and_node_parent ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_And_Node_ID @var{and_node_id})
+@end deftypefun
+@deftypefun int _marpa_b_and_node_predecessor ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_And_Node_ID @var{and_node_id})
+@end deftypefun
+@deftypefun int _marpa_b_and_node_cause ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_And_Node_ID @var{and_node_id})
+@end deftypefun
+@deftypefun int _marpa_b_and_node_symbol ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_And_Node_ID @var{and_node_id})
+@end deftypefun
+@deftypefun Marpa_Symbol_ID _marpa_b_and_node_token ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_And_Node_ID @var{and_node_id}, @
+    int* @var{value_p})
+
+Returns the data for the token of the and-node.
+The symbol id is the return value,
+and the token value is placed
+in the location pointed
+to by @var{value_p}, if that is non-null.
+If @var{and_node_id} is not the ID of an and-node
+whose cause is a token,
+returns -1,
+without changing @var{value_p}.
+On hard failure, returns -2 without changing
+@var{value_p}.
+
+There is no function to simply return the token value --
+because of the need to indicate errors, it is just as
+easy to return the symbol ID as well.
+@end deftypefun
+@deftypefun Marpa_Or_Node_ID _marpa_b_top_or_node ( @
+    Marpa_Bocage @var{b})
+
+Return the ID of the top or-node.
+@end deftypefun
+@deftypefun int _marpa_b_or_node_set ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
+
+Return the ordinal of the current (final) Earley set of
+the or-node.
+@end deftypefun
+@deftypefun int _marpa_b_or_node_origin ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
+@deftypefun Marpa_IRL_ID _marpa_b_or_node_irl ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
+@deftypefun int _marpa_b_or_node_position ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
+@deftypefun int _marpa_b_or_node_first_and ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
+@deftypefun int _marpa_b_or_node_last_and ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
+@deftypefun int _marpa_b_or_node_and_count ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
 @bye
