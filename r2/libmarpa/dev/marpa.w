@@ -8033,6 +8033,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     AHFA state;
   @<Unpack recognizer objects@>@;
     const int symbol_count_of_g = SYM_Count_of_G(g);
+    const ISYID isy_count = ISY_Count_of_G(g);
     @<Return |-2| on failure@>@;
     @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
@@ -8557,7 +8558,7 @@ and running benchmarks.
   Bit_Vector t_bv_pim_symbols;
   void** t_pim_workarea;
 @ @<Allocate recognizer containers used in setup@> = 
-  r->t_bv_lim_symbols = bv_obs_create(&r->t_obs, symbol_count_of_g);
+  r->t_bv_lim_symbols = bv_obs_create(&r->t_obs, isy_count);
   r->t_bv_pim_symbols = bv_obs_create(&r->t_obs, symbol_count_of_g);
   r->t_pim_workarea = my_obstack_new(&r->t_obs, void*, symbol_count_of_g);
 @ @<Reinitialize containers used in PIM setup@> =
@@ -8568,7 +8569,7 @@ PRIVATE_NOT_INLINE void
 postdot_items_create (RECCE r, ES current_earley_set)
 {
     struct obstack obs_local;
-    const SYMID symbol_count_of_g = SYM_Count_of_G(G_of_R(r));
+    const ISYID isy_count = ISY_Count_of_G(G_of_R(r));
   @<Unpack recognizer objects@>@;
     EARLEME current_earley_set_id = Earleme_of_ES(current_earley_set);
     my_obstack_init(&obs_local);
@@ -8681,8 +8682,9 @@ That may become its actual value,
 once it is populated.
 @<Create a new, unpopulated, LIM@> = {
     LIM new_lim;
+    ISYID isyid = ISYID_by_XSYID(symid);
     new_lim = my_obstack_alloc(&r->t_obs, sizeof(*new_lim));
-    Postdot_ISYID_of_LIM(new_lim) = ISYID_by_XSYID(symid);
+    Postdot_ISYID_of_LIM(new_lim) = isyid;
     EIM_of_PIM(new_lim) = NULL;
     Predecessor_LIM_of_LIM(new_lim) = NULL;
     Origin_of_LIM(new_lim) = NULL;
@@ -8692,7 +8694,7 @@ once it is populated.
     ES_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
     r->t_pim_workarea[symid] = new_lim;
-    bv_bit_set(r->t_bv_lim_symbols, (unsigned int)symid);
+    bv_bit_set(r->t_bv_lim_symbols, (unsigned int)isyid);
 }
 
 @ This code fully populates the data in the LIMs.
@@ -8765,7 +8767,7 @@ ID must
 \li Must not have already been added to a LIM chain for this
 Earley set.\par
 @<Add predecessors to LIMs@> = {
-  const Bit_Vector bv_ok_for_chain = bv_obs_create(&obs_local, symbol_count_of_g);
+  const Bit_Vector bv_ok_for_chain = bv_obs_create(&obs_local, isy_count);
   unsigned int min, max, start;
 
   bv_copy(bv_ok_for_chain, r->t_bv_lim_symbols);
@@ -8773,13 +8775,13 @@ Earley set.\par
        start = max + 2)
     { /* This is the outer loop.  It loops over the symbols IDs,
 	  visiting only the symbols with LIMs. */
-      SYMID main_loop_symbol_id;
-      for (main_loop_symbol_id = (SYMID) min;
-	  main_loop_symbol_id <= (SYMID) max;
-	  main_loop_symbol_id++)
+      ISYID main_loop_isyid;
+      for (main_loop_isyid = (ISYID) min;
+	  main_loop_isyid <= (ISYID) max;
+	  main_loop_isyid++)
 	{
 	  LIM predecessor_lim;
-	  LIM lim_to_process = r->t_pim_workarea[main_loop_symbol_id];
+	  LIM lim_to_process = r->t_pim_workarea[BuddyID_by_ISYID(main_loop_isyid)];
           if (LIM_is_Populated(lim_to_process)) continue; /* LIM may
 	      have already been populated in the LIM chain loop */
 	    @<Find predecessor LIM of unpopulated LIM@>@;
@@ -8862,48 +8864,53 @@ chain at that point.  The top of chain will then have no LIM predecesor,
 instead of being part of a cycle.  Since the LIM information is always optional,
 and in that case would be useless, breaking the chain in this way causes no
 problems.
-@<Create a LIM chain@> = {
-     SYMID postdot_symid_of_lim_to_process
-	 = Postdot_SYMID_of_LIM(lim_to_process);
-    lim_chain_ix = 0;
-    r->t_lim_chain[lim_chain_ix++] = LIM_of_PIM(lim_to_process);
-	bv_bit_clear(bv_ok_for_chain, (unsigned int)postdot_symid_of_lim_to_process);
-	/* Make sure this LIM
-	is not added to a LIM chain again for this Earley set */ @#
-    while (1) {
-	 lim_to_process = predecessor_lim; /* I know at this point that
-	     |predecessor_lim| is unpopulated, so I also know that
-	     |lim_to_process| is unpopulated.  This means I also know that
-	     |lim_to_process| is in the current Earley set, because all LIMs
-	     in previous Earley sets are already
-	     populated. */ @#
-
-	 postdot_symid_of_lim_to_process = Postdot_SYMID_of_LIM(lim_to_process);
-	if (!bv_bit_test(bv_ok_for_chain, (unsigned int)postdot_symid_of_lim_to_process)) {
-	/* If I am about to add a previously added LIM to the LIM chain, I
-	   break the LIM chain at this point.
+@<Create a LIM chain@> =
+{
+  ISYID postdot_isyid_of_lim_to_process
+    = Postdot_ISYID_of_LIM (lim_to_process);
+  lim_chain_ix = 0;
+  r->t_lim_chain[lim_chain_ix++] = LIM_of_PIM (lim_to_process);
+  bv_bit_clear (bv_ok_for_chain,
+		(unsigned int) postdot_isyid_of_lim_to_process);
+  /* Make sure this LIM
+     is not added to a LIM chain again for this Earley set */
+  while (1)
+    {
+      lim_to_process = predecessor_lim;	/* I know at this point that
+					   |predecessor_lim| is unpopulated, so I also know that
+					   |lim_to_process| is unpopulated.  This means I also know that
+					   |lim_to_process| is in the current Earley set, because all LIMs
+					   in previous Earley sets are already
+					   populated. */
+      postdot_isyid_of_lim_to_process = Postdot_ISYID_of_LIM (lim_to_process);
+      if (!bv_bit_test
+	  (bv_ok_for_chain, (unsigned int) postdot_isyid_of_lim_to_process))
+	{
+	  /* If I am about to add a previously added LIM to the LIM chain, I
+	     break the LIM chain at this point.
 	     The predecessor LIM has not yet been changed,
 	     so that it is still appropriate for
 	     the LIM at the top of the chain.  */
-	    break;
+	  break;
 	}
 
-        @<Find predecessor LIM of unpopulated LIM@>@;
+      @<Find predecessor LIM of unpopulated LIM@>@;
 
-	r->t_lim_chain[lim_chain_ix++] = LIM_of_PIM(lim_to_process); /* 
-	    |lim_to_process| is not populated, as shown above */
+      r->t_lim_chain[lim_chain_ix++] = LIM_of_PIM (lim_to_process);
+      /* |lim_to_process| is not populated, as shown above */
 
-	bv_bit_clear(bv_ok_for_chain, (unsigned int)postdot_symid_of_lim_to_process);
-	/* Make sure this LIM
-	is not added to a LIM chain again for this Earley set */ @#
-
-	if (!predecessor_lim) break; /* |predecesssor_lim = NULL|,
-	so that we are forced to break the LIM chain before it */ @#
-
-	if (LIM_is_Populated(predecessor_lim)) break;
-	/* |predecesssor_lim| is populated, so that if we
-	break before |predecessor_lim|, we are ready to populate the entire LIM
-	   chain. */
+      bv_bit_clear (bv_ok_for_chain,
+		    (unsigned int) postdot_isyid_of_lim_to_process);
+      /* Make sure this LIM
+         is not added to a LIM chain again for this Earley set */
+      if (!predecessor_lim)
+	break;			/* |predecesssor_lim = NULL|,
+				   so that we are forced to break the LIM chain before it */
+      if (LIM_is_Populated (predecessor_lim))
+	break;
+      /* |predecesssor_lim| is populated, so that if we
+         break before |predecessor_lim|, we are ready to populate the entire LIM
+         chain. */
     }
 }
 
