@@ -6922,14 +6922,13 @@ pim_isy_p_find (GRAMMAR g, ES set, ISYID isyid)
 {
   int lo = 0;
   int hi = Postdot_SYM_Count_of_ES(set) - 1;
-  XSYID xsyid = BuddyID_by_ISYID(isyid);
   PIM* postdot_array = set->t_postdot_ary;
   while (hi >= lo) { // A binary search
        int trial = lo+(hi-lo)/2; // guards against overflow
        PIM trial_pim = postdot_array[trial];
-       ISYID trial_xsyid = Postdot_SYMID_of_PIM(trial_pim);
-       if (trial_xsyid == xsyid) return postdot_array+trial;
-       if (trial_xsyid < xsyid) {
+       ISYID trial_isyid = Postdot_ISYID_of_PIM(trial_pim);
+       if (trial_isyid == isyid) return postdot_array+trial;
+       if (trial_isyid < isyid) {
            lo = trial+1;
        } else {
            hi = trial-1;
