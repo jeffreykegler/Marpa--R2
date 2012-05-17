@@ -4436,12 +4436,12 @@ PRIVATE void AHFA_initialize(AHFA ahfa)
 }
 
 @*0 Complete Symbols Container.
-@ @d Complete_SYMIDs_of_AHFA(state) ((state)->t_complete_symbols)
-@d Complete_SYM_Count_of_AHFA(state) ((state)->t_complete_symbol_count)
+@ @d Complete_ISYIDs_of_AHFA(state) ((state)->t_complete_isyids)
+@d Complete_ISY_Count_of_AHFA(state) ((state)->t_complete_isy_count)
 @<Int aligned AHFA state elements@> =
-unsigned int t_complete_symbol_count;
+unsigned int t_complete_isy_count;
 @ @<Widely aligned AHFA state elements@> =
-SYMID* t_complete_symbols;
+ISYID* t_complete_isyids;
 
 @*0 AHFA Item Container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
@@ -4776,7 +4776,7 @@ NEXT_AHFA_STATE:;
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
 	  const AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
           TRANS* const transitions = TRANSs_of_AHFA(ahfa);
-	  if (Complete_SYM_Count_of_AHFA(ahfa) > 0) {
+	  if (Complete_ISY_Count_of_AHFA(ahfa) > 0) {
 	      AIM* aims = AIMs_of_AHFA(ahfa);
 	      int aim_count = AIM_Count_of_AHFA(ahfa);
 	      AEX aex;
@@ -4864,7 +4864,7 @@ _marpa_avl_destroy(duplicates);
     my_obstack_alloc (&g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
-  Complete_SYM_Count_of_AHFA (p_initial_state) = 0;
+  Complete_ISY_Count_of_AHFA (p_initial_state) = 0;
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
 			       matrix_row (prediction_matrix,
 					   (unsigned int) postdot_isyid),
@@ -4931,7 +4931,7 @@ a start rule completion, and it is a
       {
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (&g->t_obs, sizeof (ISYID));
-	Complete_SYM_Count_of_AHFA(p_new_state) = 0;
+	Complete_ISY_Count_of_AHFA(p_new_state) = 0;
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
 	*p_postdot_isyidary = postdot_isyid;
     /* If the sole item is not a completion
@@ -4945,12 +4945,12 @@ a start rule completion, and it is a
       }
     else
       {
-	SYMID lhs_isyid = LHS_ISYID_of_AIM(single_item_p);
-	SYMID* complete_symids = my_obstack_alloc (&g->t_obs, sizeof (SYMID));
-	*complete_symids = BuddyID_by_ISYID(lhs_isyid);
-	Complete_SYMIDs_of_AHFA(p_new_state) = complete_symids;
+	ISYID lhs_isyid = LHS_ISYID_of_AIM(single_item_p);
+	ISYID* complete_isyids = my_obstack_alloc (&g->t_obs, sizeof (ISYID));
+	*complete_isyids = lhs_isyid;
+	Complete_ISYIDs_of_AHFA(p_new_state) = complete_isyids;
 	completion_count_inc(&obs_precompute, p_new_state, lhs_isyid);
-	Complete_SYM_Count_of_AHFA(p_new_state) = 1;
+	Complete_ISY_Count_of_AHFA(p_new_state) = 1;
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_empty_transition = NULL;
 	@<If this state can be a Leo completion,
@@ -5178,22 +5178,22 @@ of minimum sizes.
 	}
     }
   if ((no_of_complete_symbols =
-       Complete_SYM_Count_of_AHFA (p_new_state) = bv_count (per_ahfa_complete_v)))
+       Complete_ISY_Count_of_AHFA (p_new_state) = bv_count (per_ahfa_complete_v)))
     {
       unsigned int min, max, start;
-      SYMID *complete_symids = my_obstack_alloc (&g->t_obs,
+      ISYID *complete_isyids = my_obstack_alloc (&g->t_obs,
 						 no_of_complete_symbols *
-						 sizeof (SYMID));
-      SYMID *p_symbol = complete_symids;
-      Complete_SYMIDs_of_AHFA (p_new_state) = complete_symids;
+						 sizeof (ISYID));
+      ISYID *p_isyid = complete_isyids;
+      Complete_ISYIDs_of_AHFA (p_new_state) = complete_isyids;
       for (start = 0; bv_scan (per_ahfa_complete_v, start, &min, &max);
 	   start = max + 2)
 	{
 	  ISYID complete_isyid;
-	  for (complete_isyid = (SYMID) min;
-	       complete_isyid <= (SYMID) max; complete_isyid++)
+	  for (complete_isyid = (ISYID) min;
+	       complete_isyid <= (ISYID) max; complete_isyid++)
 	    {
-	      *p_symbol++ = BuddyID_by_ISYID(complete_isyid);
+	      *p_isyid++ = complete_isyid;
 	    }
 	}
     }
@@ -5483,7 +5483,7 @@ create_predicted_AHFA_state(
   AHFA_is_Predicted (p_new_state) = 1;
   p_new_state->t_empty_transition = NULL;
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
-  Complete_SYM_Count_of_AHFA (p_new_state) = 0;
+  Complete_ISY_Count_of_AHFA (p_new_state) = 0;
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
 }
@@ -6405,15 +6405,15 @@ The only awkwardness takes place
 when the second source is added, and the first one must
 be recopied to make way for pointers to the linked lists.
 @d EIM_FATAL_THRESHOLD (INT_MAX/4)
-@d Complete_SYMIDs_of_EIM(item) 
-    Complete_SYMIDs_of_AHFA(AHFA_of_EIM(item))
-@d Complete_SYM_Count_of_EIM(item)
-    Complete_SYM_Count_of_AHFA(AHFA_of_EIM(item))
+@d Complete_ISYIDs_of_EIM(item) 
+    Complete_ISYIDs_of_AHFA(AHFA_of_EIM(item))
+@d Complete_ISY_Count_of_EIM(item)
+    Complete_ISY_Count_of_AHFA(AHFA_of_EIM(item))
 @d Leo_LHS_ID_of_EIM(eim) Leo_LHS_ID_of_AHFA(AHFA_of_EIM(eim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
 @d Earley_Item_is_Completion(item)
-    (Complete_SYM_Count_of_EIM(item) > 0)
+    (Complete_ISY_Count_of_EIM(item) > 0)
 @<Public typedefs@> = typedef int Marpa_Earley_Item_ID;
 @ The ID of the Earley item is per-Earley-set, so that
 to uniquely specify the Earley item you must also specify
@@ -8413,21 +8413,21 @@ this means that the parse is exhausted.
 add those Earley items it ``causes".
 @<Add new Earley items for |cause|@> =
 {
-  Marpa_Symbol_ID *complete_symbols = Complete_SYMIDs_of_EIM (cause);
-  int count = Complete_SYM_Count_of_EIM (cause);
+  ISYID *complete_isyids = Complete_ISYIDs_of_EIM (cause);
+  int count = Complete_ISY_Count_of_EIM (cause);
   ES middle = Origin_of_EIM (cause);
-  int symbol_ix;
-  for (symbol_ix = 0; symbol_ix < count; symbol_ix++)
+  int isy_ix;
+  for (isy_ix = 0; isy_ix < count; isy_ix++)
     {
-      Marpa_Symbol_ID complete_symbol = complete_symbols[symbol_ix];
-      @<Add new Earley items for |complete_symbol| and |cause|@>@;
+      ISYID complete_isyid = complete_isyids[isy_ix];
+      @<Add new Earley items for |complete_isyid| and |cause|@>@;
     }
 }
 
-@ @<Add new Earley items for |complete_symbol| and |cause|@> =
+@ @<Add new Earley items for |complete_isyid| and |cause|@> =
 {
   PIM postdot_item;
-  for (postdot_item = First_PIM_of_ES_by_ISYID (middle, ISYID_by_XSYID(complete_symbol));
+  for (postdot_item = First_PIM_of_ES_by_ISYID (middle, complete_isyid);
        postdot_item; postdot_item = Next_PIM_of_PIM (postdot_item))
     {
       EIM predecessor = EIM_of_PIM (postdot_item);
@@ -8450,7 +8450,7 @@ add those Earley items it ``causes".
 @ @<Add effect, plus any prediction, for non-Leo predecessor@> =
 {
     ES origin = Origin_of_EIM(predecessor);
-     effect_AHFA_state = To_AHFA_of_EIM_by_SYMID(predecessor, complete_symbol);
+     effect_AHFA_state = To_AHFA_of_EIM_by_ISYID(predecessor, complete_isyid);
      effect = earley_item_assign(r, current_earley_set,
           origin, effect_AHFA_state);
      if (Earley_Item_has_No_Source(effect)) {
