@@ -7901,7 +7901,7 @@ typedef struct s_alternative* ALT;
 typedef const struct s_alternative* ALT_Const;
 @
 @d TOK_of_ALT(alt) ((alt)->t_token)
-@d SYMID_of_ALT(alt) SYMID_of_TOK(TOK_of_ALT(alt))
+@d ISYID_of_ALT(alt) ISYID_of_TOK(TOK_of_ALT(alt))
 @d Start_ES_of_ALT(alt) ((alt)->t_start_earley_set)
 @d Start_Earleme_of_ALT(alt) Earleme_of_ES(Start_ES_of_ALT(alt))
 @d End_Earleme_of_ALT(alt) ((alt)->t_end_earleme)
@@ -7979,7 +7979,7 @@ PRIVATE int alternative_cmp(RECCE r, const ALT_Const a, const ALT_Const b)
      GRAMMAR g = G_of_R(r);
      int subkey = End_Earleme_of_ALT(b) - End_Earleme_of_ALT(a);
      if (subkey) return subkey;
-     subkey = SYMID_of_ALT(a) - SYMID_of_ALT(b);
+     subkey = ISYID_of_ALT(a) - ISYID_of_ALT(b);
      if (subkey) return subkey;
      return Start_Earleme_of_ALT(a) - Start_Earleme_of_ALT(b);
 }
