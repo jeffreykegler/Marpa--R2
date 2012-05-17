@@ -6688,7 +6688,7 @@ also clears the source link.
       r->t_trace_earley_item = NULL;
 
 @ @<Function definitions@> =
-PRIVATE void trace_earley_item_clear(Marpa_Recognizer r)
+PRIVATE void trace_earley_item_clear(RECCE r)
 {
     @<Clear trace Earley item data@>@/
     trace_source_link_clear(r);
@@ -6720,7 +6720,6 @@ a postdot symbol.
 @d Next_PIM_of_EIX(eix) ((eix)->t_next)
 @d EIM_of_EIX(eix) ((eix)->t_earley_item)
 @d Postdot_ISYID_of_EIX(eix) ((eix)->t_postdot_isyid)
-@d Postdot_SYMID_of_EIX(eix) BuddyID_by_ISYID(Postdot_ISYID_of_EIX(eix))
 @<Private incomplete structures@> =
 struct s_earley_ix;
 typedef struct s_earley_ix* EIX;
@@ -6748,7 +6747,6 @@ For this reason, Leo items contain an Earley index,
 but one
 with a |NULL| Earley item pointer.
 @d Postdot_ISYID_of_LIM(leo) (Postdot_ISYID_of_EIX(EIX_of_LIM(leo)))
-@d Postdot_SYMID_of_LIM(leo) (Postdot_SYMID_of_EIX(EIX_of_LIM(leo)))
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_EIX(EIX_of_LIM(leo)))
 @d Origin_of_LIM(leo) ((leo)->t_origin)
 @d Top_AHFA_of_LIM(leo) ((leo)->t_top_ahfa)
@@ -6796,7 +6794,7 @@ Marpa_Symbol_ID _marpa_r_leo_predecessor_symbol(Marpa_Recognizer r)
   }
   predecessor_leo_item = Predecessor_LIM_of_LIM(LIM_of_PIM(postdot_item));
   if (!predecessor_leo_item) return no_predecessor;
-  return Postdot_SYMID_of_LIM(predecessor_leo_item);
+  return Postdot_ISYID_of_LIM(predecessor_leo_item);
 }
 
 @ @<Function definitions@> =
@@ -6876,8 +6874,8 @@ Marpa_AHFA_State_ID _marpa_r_leo_expansion_ahfa(Marpa_Recognizer r)
       {
 	const LIM leo_item = LIM_of_PIM (postdot_item);
 	const EIM base_earley_item = Base_EIM_of_LIM (leo_item);
-	const SYMID postdot_symbol = Postdot_SYMID_of_LIM (leo_item);
-	const AHFA to_ahfa = To_AHFA_of_EIM_by_SYMID (base_earley_item, postdot_symbol);
+	const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
+	const AHFA to_ahfa = To_AHFA_of_EIM_by_ISYID (base_earley_item, postdot_isyid);
 	return ID_of_AHFA(to_ahfa);
       }
     return pim_is_not_a_leo_item;
@@ -7195,8 +7193,8 @@ union u_source_container {
 
 @ @d Cause_AHFA_State_ID_of_SRC(source)
     AHFAID_of_EIM((EIM)Cause_of_SRC(source))
-@d Leo_Transition_SYMID_of_SRC(leo_source)
-    Postdot_SYMID_of_LIM((LIM)Predecessor_of_SRC(leo_source))
+@d Leo_Transition_ISYID_of_SRC(leo_source)
+    Postdot_ISYID_of_LIM((LIM)Predecessor_of_SRC(leo_source))
 
 @
 @d First_Completion_Link_of_EIM(item) ((item)->t_container.t_ambiguous.t_completion)
@@ -7759,7 +7757,7 @@ Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol(Marpa_Recognizer r)
     switch (source_type)
     {
     case SOURCE_IS_LEO:
-	return Leo_Transition_SYMID_of_SRC(source);
+	return Leo_Transition_ISYID_of_SRC(source);
     }
     MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
@@ -9428,9 +9426,9 @@ no other descendants.
     }
   while (cause_earley_item)
     {
-      const SYMID transition_symbol_id = Postdot_SYMID_of_LIM(leo_predecessor);
+      const ISYID transition_isyid = Postdot_ISYID_of_LIM(leo_predecessor);
       const TRANS cause_completion_data =
-	TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
+	TRANS_of_EIM_by_ISYID (cause_earley_item, transition_isyid);
       const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       int ix;
@@ -9441,9 +9439,9 @@ no other descendants.
 	  @<Push ur-node if new@>@;
       }
     while (leo_predecessor) {
-      SYMID postdot = Postdot_SYMID_of_LIM (leo_predecessor);
+      ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
       EIM leo_base = Base_EIM_of_LIM (leo_predecessor);
-      TRANS transition = TRANS_of_EIM_by_SYMID (leo_base, postdot);
+      TRANS transition = TRANS_of_EIM_by_ISYID (leo_base, postdot_isyid);
       const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
       const AIM ur_aim = AIM_of_EIM_by_AEX(leo_base, ur_aex);
       ur_earley_item = leo_base;
@@ -9865,9 +9863,9 @@ and the index of the relevant AHFA item.
 @<Function definitions@> =
 PRIVATE AEX lim_base_data_get(GRAMMAR g, LIM leo_item, EIM* p_base)
 {
-      const SYMID postdot = Postdot_SYMID_of_LIM (leo_item);
+      const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
       const EIM base = Base_EIM_of_LIM(leo_item);
-      const TRANS transition = TRANS_of_EIM_by_SYMID (base, postdot);
+      const TRANS transition = TRANS_of_EIM_by_ISYID (base, postdot_isyid);
       *p_base = base;
       return Leo_Base_AEX_of_TRANS (transition);
 }
@@ -10152,9 +10150,9 @@ predecessor.  Set |or_node| to 0 if there is none.
 
 @ @<Add draft and-nodes to the bottom or-node@> =
 {
-  const SYMID transition_symbol_id = Postdot_SYMID_of_LIM (leo_predecessor);
+  const ISYID transition_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
   const TRANS cause_completion_data =
-    TRANS_of_EIM_by_SYMID (cause_earley_item, transition_symbol_id);
+    TRANS_of_EIM_by_ISYID (cause_earley_item, transition_isyid);
   const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
   const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
   int ix;
@@ -13995,7 +13993,7 @@ static char*
 lim_tag_safe (char *buffer, LIM lim)
 {
   sprintf (buffer, "L%d@@%d",
-	   Postdot_SYMID_of_LIM (lim), Earleme_of_LIM (lim));
+	   Postdot_ISYID_of_LIM (lim), Earleme_of_LIM (lim));
 	return buffer;
 }
 
