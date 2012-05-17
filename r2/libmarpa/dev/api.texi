@@ -47,12 +47,12 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Introduction to the External Interface::  
 * Static Methods::              
 * Grammars::                    Grammar time objects
-* Events::                      Libmarpa Events
 * Recognizers::                 Recognizers.
 * Bocage::                      Bocage objects.
 * Order::                       Order objects.
 * Tree::                        Parse Trees.
 * Value::                       Value objects.
+* Events::                      Libmarpa Events
 * Error handling::              
 * Design considerations::       
 * Things To Do::                
@@ -114,17 +114,14 @@ Grammars
 * Rules::                       
 * Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
-
-Events
-
-* Event accessor::              Event accessor.
-* Event codes::                 Event codes.
+* Grammar events::              
 
 Recognizer objects
 
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
+* Recognizer events::           
 
 Bocage objects
 
@@ -148,6 +145,10 @@ Value objects
 * Valuator access macros::      
 * Valuator reference counting::  
 * Valuator stepping::           
+
+Events
+
+* Event codes::                 Event codes.
 
 Design considerations
 
@@ -717,7 +718,7 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 
 @end deftypefun
 
-@node Grammars, Events, Static Methods, Top
+@node Grammars, Recognizers, Static Methods, Top
 @chapter Grammars
 @cindex grammars
 
@@ -729,6 +730,7 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 * Rules::                       
 * Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
+* Grammar events::              
 @end menu 
 
 @node Grammar constructor, Grammar reference counting, Grammars, Grammars
@@ -1204,7 +1206,7 @@ Returns 0 if
 On hard failure, returns -2.
 @end deftypefun
 
-@node Grammar precomputation,  , Sequences, Grammars
+@node Grammar precomputation, Grammar events, Sequences, Grammars
 @section Precomputing the Grammar
 
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
@@ -1288,16 +1290,8 @@ Return value: On success, 1 if the grammar has a cycle,
 On failure, -2.
 @end deftypefun
 
-@node Events, Recognizers, Grammars, Top
-@chapter Events
-
-@menu
-* Event accessor::              Event accessor.
-* Event codes::                 Event codes.
-@end menu
-
-@node Event accessor, Event codes, Events, Events
-@section Accessing events
+@node Grammar events,  , Grammar precomputation, Grammars
+@section Events
 
 @deftypefun int marpa_g_event (Marpa_Grammar @var{g}, @
     Marpa_Event* @var{event}, @
@@ -1323,57 +1317,17 @@ This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
 codes.
-@xref{Event codes}.
+@xref{Events}.
 @end defmac
 
-@node Event codes,  , Event accessor, Events
-@section Event codes
-
-@deftypevr Macro int MARPA_EVENT_NONE
-Suggested message: "No event."
-@end deftypevr
-
-@deftypevr Macro int MARPA_EVENT_EXHAUSTED
-Suggested message: "Recognizer is exhausted."
-@end deftypevr
-
-@deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
-Suggested message: "Too many Earley items."
-@end deftypevr
-
-@deftypevr Macro int MARPA_EVENT_LOOP_RULES
-A rule is part of a cycle.
-Cycles are pathological cases of recursions,
-in which the same symbol string derives itself
-a potentially infinite number of times.
-Nonetheless, Marpa parses in the presence of these,
-and it is up to the application to treat these
-as fatal errors,
-something most of them will wish to do.
-The value of the event is the count of loop rules.
-Suggested message: "A rule is part of a infinite loop."
-@end deftypevr
-
-@deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
-A nullable is either the separator
-for, or the right hand side of a sequence.
-The value of the event is the ID of the symbol.
-Suggested message: "Grammar has a counted nullable."
-@end deftypevr
-
-@deftypevr Macro int MARPA_EVENT_NULLING_TERMINAL
-A nulling symbol is also a terminal.
-The value of the event is the ID of the symbol.
-Suggested message: "Grammar has a nulling terminal."
-@end deftypevr
-
-@node Recognizers, Bocage, Events, Top
+@node Recognizers, Bocage, Grammars, Top
 @chapter Recognizer objects
 
 @menu
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
+* Recognizer events::           
 @end menu 
 
 @node Recognizer constructor, Recognizer reference counting, Recognizers, Recognizers
@@ -1411,7 +1365,7 @@ They are destroyed by reducing their reference count to zero.
 Return value: None
 @end deftypefun
 
-@node Recognizer life,  , Recognizer reference counting, Recognizers
+@node Recognizer life, Recognizer events, Recognizer reference counting, Recognizers
 @section Taking a recognizer through its life cycle
 
 @deftypefun int marpa_r_start_input (Marpa_Recognizer @var{r})
@@ -1524,9 +1478,26 @@ On other failures, it returns -2.
 @deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
 @end deftypefun
 
+@node Recognizer events,  , Recognizer life, Recognizers
+@section Events
+
 @deftypefun int marpa_r_event (Marpa_Recognizer @var{r}, @
-    Marpa_Event* @var{public_event}, @
-    int @var{ix})
+    Marpa_Event* @var{event}, @
+	       int @var{ix})
+This method provides access to the events generated
+by the @code{marpa_r_earleme_complete} method.
+The @var{ix}'th event (numbered from 0) is placed
+in the @var{public_event} value.
+
+It is a soft failure if there is no such event.
+This can be used as the termination condition
+in a loop over the events.
+
+Return value:  On success, returns the type of event @var{ix},
+and places the data for the event in @var{public_event}.
+If there is no such event (a soft failure),
+-1 is returned.
+On hard failure, -2 is returned.
 @end deftypefun
 
 @defmac {void*} marpa_r_event_value(Marpa_Event* @var{event})
@@ -1534,6 +1505,7 @@ This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
 codes.
+@xref{Events}.
 @end defmac
 
 @node Bocage, Order, Recognizers, Top
@@ -1644,7 +1616,7 @@ errors can be properly reported.
 	Marpa_Tree @var{t})
 @end deftypefun
 
-@node Value, Error handling, Tree, Top
+@node Value, Events, Tree, Top
 @chapter Value objects
 
 @menu
@@ -1836,7 +1808,55 @@ These value types are reserved for internal purposes
     Marpa_Value @var{v})
 @end deftypefun
 
-@node Error handling, Design considerations, Value, Top
+@node Events, Error handling, Value, Top
+@chapter Events
+
+@menu
+* Event codes::                 Event codes.
+@end menu
+
+@node Event codes,  , Events, Events
+@section Event codes
+
+@deftypevr Macro int MARPA_EVENT_NONE
+Suggested message: "No event."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_EXHAUSTED
+Suggested message: "Recognizer is exhausted."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+Suggested message: "Too many Earley items."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_LOOP_RULES
+A rule is part of a cycle.
+Cycles are pathological cases of recursions,
+in which the same symbol string derives itself
+a potentially infinite number of times.
+Nonetheless, Marpa parses in the presence of these,
+and it is up to the application to treat these
+as fatal errors,
+something most of them will wish to do.
+The value of the event is the count of loop rules.
+Suggested message: "A rule is part of a infinite loop."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
+A nullable is either the separator
+for, or the right hand side of a sequence.
+The value of the event is the ID of the symbol.
+Suggested message: "Grammar has a counted nullable."
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_NULLING_TERMINAL
+A nulling symbol is also a terminal.
+The value of the event is the ID of the symbol.
+Suggested message: "Grammar has a nulling terminal."
+@end deftypevr
+
+@node Error handling, Design considerations, Events, Top
 @chapter Error handling
 
 @section Soft and hard errors
