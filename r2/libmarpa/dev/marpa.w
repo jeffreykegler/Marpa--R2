@@ -889,10 +889,8 @@ that point.
 At grammar initialization, this vector cannot be sized.
 It is initialized to |NULL| so that the destructor
 can tell if there is a bit vector to be freed.
-@<Widely aligned grammar elements@> = Bit_Vector t_bv_symid_is_terminal;
-@ @<Initialize grammar elements@> = g->t_bv_symid_is_terminal = NULL;
-@ @<Destroy grammar elements@> =
-if (g->t_bv_symid_is_terminal) { bv_free(g->t_bv_symid_is_terminal); }
+@<Widely aligned grammar elements@> = Bit_Vector t_bv_isyid_is_terminal;
+@ @<Initialize grammar elements@> = g->t_bv_isyid_is_terminal = NULL;
 
 @*0 The event stack.
 Events are designed to be fast,
@@ -5019,6 +5017,7 @@ be if written 100\% using indexes.
   AIM* const item_list_working_buffer
     = my_obstack_alloc(&obs_precompute, irl_count*sizeof(AIM));
   const ISYID isy_count = ISY_Count_of_G(g);
+  const XSYID xsy_count = XSY_Count_of_G(g);
   IRLID** irl_list_x_lh_isy = NULL;
 
 @ Initialized based on the capacity of the XRL stack, rather
@@ -5723,14 +5722,23 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 
 
 @** Populating the Terminal Boolean Vector.
-@<Populate the Terminal Boolean Vector@> = {
-    int symbol_count = SYM_Count_of_G(g);
-    int symid;
-    Bit_Vector bv_is_terminal = bv_create( (unsigned int)symbol_count );
-    g->t_bv_symid_is_terminal = bv_is_terminal;
-    for (symid = 0; symid < symbol_count; symid++) {
-      if (!SYMID_is_Terminal(symid)) continue;
-      bv_bit_set(bv_is_terminal, (unsigned int)symid);
+@<Populate the Terminal Boolean Vector@> =
+{
+  int xsyid;
+  g->t_bv_isyid_is_terminal = bv_obs_create (&g->t_obs, isy_count);
+  for (xsyid = 0; xsyid < xsy_count; xsyid++)
+    {
+      if (SYMID_is_Terminal (xsyid))
+	{
+	  /* A terminal might have no corresponding ISY.
+	    Currently that can happen if it is not accessible */
+	  const ISY isy = ISY_of_XSY (XSY_by_ID (xsyid));
+	  if (isy)
+	    {
+	      bv_bit_set (g->t_bv_isyid_is_terminal,
+			  (unsigned int) ID_of_ISY (isy));
+	    }
+	}
     }
 }
 
@@ -6001,10 +6009,10 @@ This vector is not size until input starts.
 When the recognizer is created,
 this bit vector is initialized to |NULL| so that the destructor
 can tell if there is a bit vector to be freed.
-@<Widely aligned recognizer elements@> = Bit_Vector t_bv_symid_is_expected;
-@ @<Initialize recognizer elements@> = r->t_bv_symid_is_expected = NULL;
+@<Widely aligned recognizer elements@> = Bit_Vector t_bv_isyid_is_expected;
+@ @<Initialize recognizer elements@> = r->t_bv_isyid_is_expected = NULL;
 @ @<Allocate recognizer containers used in setup@> = 
-    r->t_bv_symid_is_expected = bv_obs_create( &r->t_obs, (unsigned int)symbol_count_of_g );
+    r->t_bv_isyid_is_expected = bv_obs_create( &r->t_obs, (unsigned int)isy_count );
 @ Returns |-2| if there was a failure.
 There is a check that the expectations of this
 function and its caller about size of the |GArray| elements match.
@@ -6027,13 +6035,15 @@ int marpa_r_terminals_expected(struct marpa_r* r, Marpa_Symbol_ID* buffer)
     int ix = 0;
     @<Fail if fatal error@>@;
     @<Fail if recognizer not started@>@;
-    for (start = 0; bv_scan (r->t_bv_symid_is_expected, start, &min, &max);
+    for (start = 0; bv_scan (r->t_bv_isyid_is_expected, start, &min, &max);
 	 start = max + 2)
       {
-	SYMID symid;
-	for (symid = (SYMID) min; symid <= (SYMID) max; symid++)
+	ISYID isyid;
+	for (isyid = (ISYID) min; isyid <= (ISYID) max; isyid++)
 	  {
-	    buffer[ix++] = symid;
+	    const ISY isy = ISY_by_ID(isyid);
+	    const XSY xsy = Source_XSY_of_ISY(isy);
+	    buffer[ix++] = ID_of_XSY(xsy);
 	  }
       }
     return ix;
@@ -8296,7 +8306,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
     @<Fail if recognizer not accepting input@>@;
     G_EVENTS_CLEAR(g);
   psar_dealloc(Dot_PSAR_of_R(r));
-    bv_clear (r->t_bv_symid_is_expected);
+    bv_clear (r->t_bv_isyid_is_expected);
     @<Initialize |current_earleme|@>@;
     @<Return 0 if no alternatives@>@;
     @<Initialize |current_earley_set|@>@;
@@ -8308,7 +8318,7 @@ marpa_r_earleme_complete(struct marpa_r* r)
     }
     postdot_items_create(r, current_earley_set);
 
-    count_of_expected_terminals = bv_count (r->t_bv_symid_is_expected);
+    count_of_expected_terminals = bv_count (r->t_bv_isyid_is_expected);
     if (count_of_expected_terminals <= 0
 	&& Earleme_of_ES (current_earley_set) >= Furthest_Earleme_of_R (r))
       { /* If no terminals are expected, and there are no Earley items in
@@ -8559,8 +8569,8 @@ and running benchmarks.
   void** t_pim_workarea;
 @ @<Allocate recognizer containers used in setup@> = 
   r->t_bv_lim_symbols = bv_obs_create(&r->t_obs, isy_count);
-  r->t_bv_pim_symbols = bv_obs_create(&r->t_obs, symbol_count_of_g);
-  r->t_pim_workarea = my_obstack_new(&r->t_obs, void*, symbol_count_of_g);
+  r->t_bv_pim_symbols = bv_obs_create(&r->t_obs, isy_count);
+  r->t_pim_workarea = my_obstack_new(&r->t_obs, void*, isy_count);
 @ @<Reinitialize containers used in PIM setup@> =
   bv_clear(r->t_bv_lim_symbols);
   bv_clear(r->t_bv_pim_symbols);
@@ -8580,7 +8590,7 @@ postdot_items_create (RECCE r, ES current_earley_set)
 	@<Add predecessors to LIMs@>@;
     }
     @<Copy PIM workarea to postdot item array@>@;
-    bv_and(r->t_bv_symid_is_expected, r->t_bv_pim_symbols, g->t_bv_symid_is_terminal);
+    bv_and(r->t_bv_isyid_is_expected, r->t_bv_pim_symbols, g->t_bv_isyid_is_terminal);
     my_obstack_free(&obs_local);
 }
 
@@ -8604,18 +8614,16 @@ At this point there are no Leo items.
 	  PIM old_pim = NULL;
 	  PIM new_pim;
 	  ISYID isyid;
-	  XSYID xsyid;
 	  new_pim = my_obstack_alloc (&r->t_obs, sizeof (EIX_Object));
 	  isyid = postdot_isyidary[isy_ix];
 	  Postdot_ISYID_of_PIM(new_pim) = isyid;
-	  xsyid = BuddyID_by_ISYID(isyid);
 	  EIM_of_PIM(new_pim) = earley_item;
-	  if (bv_bit_test(r->t_bv_pim_symbols, (unsigned int)xsyid))
-	      old_pim = r->t_pim_workarea[xsyid];
+	  if (bv_bit_test(r->t_bv_pim_symbols, (unsigned int)isyid))
+	      old_pim = r->t_pim_workarea[isyid];
 	  Next_PIM_of_PIM(new_pim) = old_pim;
 	  if (!old_pim) current_earley_set->t_postdot_sym_count++;
-	  r->t_pim_workarea[xsyid] = new_pim;
-	  bv_bit_set(r->t_bv_pim_symbols, (unsigned int)xsyid);
+	  r->t_pim_workarea[isyid] = new_pim;
+	  bv_bit_set(r->t_bv_pim_symbols, (unsigned int)isyid);
 	}
     }
 }
@@ -8652,10 +8660,10 @@ Leo item have not been fully populated.
   for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max);
        start = max + 2)
     {
-      SYMID symid;
-      for (symid = (SYMID) min; symid <= (SYMID) max; symid++)
+      ISYID isyid;
+      for (isyid = (ISYID) min; isyid <= (ISYID) max; isyid++)
 	{
-	  PIM this_pim = r->t_pim_workarea[symid];
+	  PIM this_pim = r->t_pim_workarea[isyid];
 	  if (!Next_PIM_of_PIM (this_pim))
 	    {			/* Do not create a Leo item if there is more
 				   than one EIX */
@@ -8663,7 +8671,7 @@ Leo item have not been fully populated.
 	      if (EIM_is_Potential_Leo_Base (leo_base))
 		{
 		  AHFA base_to_ahfa =
-		    To_AHFA_of_EIM_by_SYMID (leo_base, symid);
+		    To_AHFA_of_EIM_by_ISYID (leo_base, isyid);
 		  if (AHFA_is_Leo_Completion (base_to_ahfa))
 		    {
 		      @<Create a new, unpopulated, LIM@>@;
@@ -8682,7 +8690,6 @@ That may become its actual value,
 once it is populated.
 @<Create a new, unpopulated, LIM@> = {
     LIM new_lim;
-    ISYID isyid = ISYID_by_XSYID(symid);
     new_lim = my_obstack_alloc(&r->t_obs, sizeof(*new_lim));
     Postdot_ISYID_of_LIM(new_lim) = isyid;
     EIM_of_PIM(new_lim) = NULL;
@@ -8693,7 +8700,7 @@ once it is populated.
     Base_EIM_of_LIM(new_lim) = leo_base;
     ES_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
-    r->t_pim_workarea[symid] = new_lim;
+    r->t_pim_workarea[isyid] = new_lim;
     bv_bit_set(r->t_bv_lim_symbols, (unsigned int)isyid);
 }
 
@@ -8781,7 +8788,7 @@ Earley set.\par
 	  main_loop_isyid++)
 	{
 	  LIM predecessor_lim;
-	  LIM lim_to_process = r->t_pim_workarea[BuddyID_by_ISYID(main_loop_isyid)];
+	  LIM lim_to_process = r->t_pim_workarea[main_loop_isyid];
           if (LIM_is_Populated(lim_to_process)) continue; /* LIM may
 	      have already been populated in the LIM chain loop */
 	    @<Find predecessor LIM of unpopulated LIM@>@;
@@ -8829,13 +8836,14 @@ In a populated LIM, this will not necessarily be the case.
     const EIM base_eim = Base_EIM_of_LIM(lim_to_process);
     const ES predecessor_set = Origin_of_EIM(base_eim);
     const AHFA base_to_ahfa = Top_AHFA_of_LIM(lim_to_process);
-    const SYMID predecessor_transition_symbol = Leo_LHS_ID_of_AHFA(base_to_ahfa);
+    const ISYID predecessor_transition_isyid =
+      ISYID_by_XSYID(Leo_LHS_ID_of_AHFA(base_to_ahfa));
     PIM predecessor_pim;
     if (Earleme_of_ES(predecessor_set) < current_earley_set_id) {
 	predecessor_pim
-	= First_PIM_of_ES_by_ISYID (predecessor_set, ISYID_by_XSYID(predecessor_transition_symbol));
+	= First_PIM_of_ES_by_ISYID (predecessor_set, predecessor_transition_isyid);
     } else {
-        predecessor_pim = r->t_pim_workarea[predecessor_transition_symbol];
+        predecessor_pim = r->t_pim_workarea[predecessor_transition_isyid];
     }
     predecessor_lim = PIM_is_LIM(predecessor_pim) ? LIM_of_PIM(predecessor_pim) : NULL;
 }
@@ -8960,9 +8968,9 @@ of the base EIM.
     unsigned int min, max, start;
     int postdot_array_ix = 0;
     for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max); start = max + 2) {
-	SYMID symid;
-	for (symid = (SYMID)min; symid <= (SYMID) max; symid++) {
-            PIM this_pim = r->t_pim_workarea[symid];
+	ISYID isyid;
+	for (isyid = (ISYID)min; isyid <= (ISYID) max; isyid++) {
+            PIM this_pim = r->t_pim_workarea[isyid];
 	    if (this_pim) postdot_array[postdot_array_ix++] = this_pim;
 	}
     }
