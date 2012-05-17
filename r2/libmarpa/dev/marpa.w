@@ -1102,11 +1102,10 @@ struct s_xsy {
 
 @ @<Function definitions@> =
 PRIVATE SYM
-symbol_new (GRAMMAR g, XSY source)
+symbol_new (GRAMMAR g)
 {
   SYM symbol = my_obstack_new (&g->t_obs, struct s_xsy, 1);
   @<Initialize symbol elements @>@;
-  Source_XSY_of_SYM(symbol) = source ? source: symbol;
   symbol_add (g, symbol);
   return symbol;
 }
@@ -1115,7 +1114,7 @@ symbol_new (GRAMMAR g, XSY source)
 Marpa_Symbol_ID
 marpa_g_symbol_new (Marpa_Grammar g)
 {
-  const SYM symbol = symbol_new (g, 0);
+  const SYM symbol = symbol_new (g);
   return ID_of_SYM(symbol);
 }
 
@@ -1378,28 +1377,6 @@ Marpa_ISY_ID _marpa_g_xsy_nulling_isy(
     return isy ? ID_of_ISY(isy) : -1;
 }
 
-@*0 Source XSY.
-This is the ``source'' of the internal symbol --
-the external symbol that it is derived from.
-Currently, there is no dedicated flag for determining
-whether this symbol also provides the semantics,
-because the ``virtual LHS'' flag serves that purpose.
-@d Source_XSY_of_ISY(isy) (Buddy_of_ISY(isy)->t_source_xsy)
-@d Source_XSY_of_SYM(symbol) ((symbol)->t_source_xsy)
-@<Widely aligned symbol elements@> = XSY t_source_xsy;
-@ @<Initialize symbol elements@> = Source_XSY_of_SYM(symbol) = NULL;
-@ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_source_xsy(
-    Marpa_Grammar g,
-    Marpa_IRL_ID isy_id)
-{
-    XSY source_xsy;
-    @<Return |-2| on failure@>@;
-    @<Fail if |isy_id| is invalid@>@;
-    source_xsy = Source_XSY_of_ISY(ISY_by_ID(isy_id));
-    return source_xsy ? ID_of_XSY(source_xsy) : -1;
-}
-
 @ Given a proper nullable symbol as its argument,
 converts the argument into two ``aliases".
 The proper (non-nullable) alias will have the same symbol ID
@@ -1475,9 +1452,10 @@ isy_start(GRAMMAR g)
 PRIVATE ISY
 isy_new(GRAMMAR g, XSY source)
 {
-  const XSY xsy = symbol_new(g, source);
+  const XSY xsy = symbol_new(g);
   const ISY new_isy = isy_start(g);
   Buddy_of_ISY(new_isy) = xsy;
+  Source_XSY_of_ISY(new_isy) = source;
   ISY_of_XSY(xsy) = new_isy;
   return new_isy;
 }
@@ -1489,6 +1467,7 @@ isy_clone(GRAMMAR g, XSY xsy)
 {
   const ISY new_isy = isy_start(g);
   Buddy_of_ISY(new_isy) = xsy;
+  Source_XSY_of_ISY(new_isy) = xsy;
   ISY_is_Nulling(new_isy) = XSY_is_Nulling(xsy);
   return new_isy;
 }
@@ -1568,6 +1547,25 @@ int _marpa_g_isy_is_nulling(Marpa_Grammar g, Marpa_ISY_ID isy_id)
   @<Fail if not precomputed@>@;
   @<Fail if |isy_id| is invalid@>@;
   return ISY_is_Nulling(ISY_by_ID(isy_id));
+}
+
+@*0 Source XSY.
+This is the external
+``source'' of the internal symbol --
+the external symbol that it is derived from.
+@d Source_XSY_of_ISY(isy) ((isy)->t_source_xsy)
+@<Widely aligned ISY elements@> = XSY t_source_xsy;
+@ @<Initialize ISY elements@> = Source_XSY_of_ISY(isy) = NULL;
+@ @<Function definitions@> =
+Marpa_Rule_ID _marpa_g_source_xsy(
+    Marpa_Grammar g,
+    Marpa_IRL_ID isy_id)
+{
+    XSY source_xsy;
+    @<Return |-2| on failure@>@;
+    @<Fail if |isy_id| is invalid@>@;
+    source_xsy = Source_XSY_of_ISY(ISY_by_ID(isy_id));
+    return source_xsy ? ID_of_XSY(source_xsy) : -1;
 }
 
 @*0 Source rule and offset.
@@ -9856,7 +9854,7 @@ requirements in the process.
 @ Get the base data for a Leo item -- its base Earley item
 and the index of the relevant AHFA item.
 @<Function definitions@> =
-PRIVATE AEX lim_base_data_get(GRAMMAR g, LIM leo_item, EIM* p_base)
+PRIVATE AEX lim_base_data_get(LIM leo_item, EIM* p_base)
 {
       const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
       const EIM base = Base_EIM_of_LIM(leo_item);
@@ -9865,13 +9863,13 @@ PRIVATE AEX lim_base_data_get(GRAMMAR g, LIM leo_item, EIM* p_base)
       return Leo_Base_AEX_of_TRANS (transition);
 }
 
-@ @d Path_AIM_of_LIM(lim) (base_aim_of_lim(g, lim)+1)
-@d Base_AIM_of_LIM(lim) (base_aim_of_lim(g, lim))
+@ @d Path_AIM_of_LIM(lim) (base_aim_of_lim(lim)+1)
+@d Base_AIM_of_LIM(lim) (base_aim_of_lim(lim))
 @<Function definitions@> =
-PRIVATE AIM base_aim_of_lim(GRAMMAR g, LIM leo_item)
+PRIVATE AIM base_aim_of_lim(LIM leo_item)
 {
       EIM base;
-      const AEX base_aex = lim_base_data_get(g, leo_item, &base);
+      const AEX base_aex = lim_base_data_get(leo_item, &base);
       return AIM_of_EIM_by_AEX(base, base_aex);
 }
 
@@ -10113,7 +10111,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     OR dand_predecessor;
     OR path_or_node;
     EIM base_earley_item;
-    AEX base_aex = lim_base_data_get(g, path_leo_item, &base_earley_item);
+    AEX base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
     Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
     @<Set |path_or_node|@>@;
     @<Add draft and-nodes to the bottom or-node@>@;
@@ -10121,7 +10119,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     while (higher_path_leo_item) {
 	path_leo_item = higher_path_leo_item;
 	higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
-	base_aex = lim_base_data_get(g, path_leo_item, &base_earley_item);
+	base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
 	Set_OR_from_EIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
 	@<Set |path_or_node|@>@;
 	@<Add the draft and-nodes to an upper Leo path or-node@>@;
@@ -12390,19 +12388,19 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	  Token_Type_of_V (v) = token_type;
 	  if (token_type != DUMMY_OR_NODE)
 	  {
-	    const SYMID token_id = SYMID_of_TOK (token);
+	    const ISYID token_isyid = ISYID_of_TOK (token);
 	    TOS_of_V (v) = ++Arg_N_of_V (v);
 	    if (token_type == VALUED_TOKEN_OR_NODE)
 	      {
-		const SYM token_symbol = SYM_by_ID (token_id);
-		SYMID_of_V (v) = ID_of_XSY (Source_XSY_of_SYM (token_symbol));
+		const ISY token_isy = ISY_by_ID (token_isyid);
+		SYMID_of_V (v) = ID_of_XSY (Source_XSY_of_ISY (token_isy));
 		Token_Value_of_V (v) = Value_of_TOK (token);
 	      }
 	    else if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
-		const SYM token_symbol = SYM_by_ID (token_id);
-		const XSY source_symbol = Source_XSY_of_SYM(token_symbol);
-		const SYMID source_symid = ID_of_SYM(source_symbol);
+		const ISY token_isy = ISY_by_ID (token_isyid);
+		const XSY source_xsy = Source_XSY_of_ISY(token_isy);
+		const SYMID source_symid = ID_of_SYM(source_xsy);
 		if (bv_bit_test (Nulling_Ask_BV_of_V (v), source_symid))
 		  {
 		    SYMID_of_V (v) = source_symid;
