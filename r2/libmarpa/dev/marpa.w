@@ -4598,10 +4598,10 @@ Otherwise it is |-1|.
 The value of the Leo completion symbol is used to
 determine if an Earley item
 with this AHFA state is eligible to be a Leo completion.
-@d Leo_LHS_ID_of_AHFA(state) ((state)->t_leo_lhs_sym)
-@d AHFA_is_Leo_Completion(state) (Leo_LHS_ID_of_AHFA(state) >= 0)
-@ @<Int aligned AHFA state elements@> = SYMID t_leo_lhs_sym;
-@ @<Initialize AHFA@> = Leo_LHS_ID_of_AHFA(ahfa) = -1;
+@d Leo_LHS_ISYID_of_AHFA(state) ((state)->t_leo_lhs_isyid)
+@d AHFA_is_Leo_Completion(state) (Leo_LHS_ISYID_of_AHFA(state) >= 0)
+@ @<Int aligned AHFA state elements@> = ISYID t_leo_lhs_isyid;
+@ @<Initialize AHFA@> = Leo_LHS_ISYID_of_AHFA(ahfa) = -1;
 @ @<Function definitions@> =
 Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(Marpa_Grammar g,
 	Marpa_AHFA_State_ID AHFA_state_id) {
@@ -4610,7 +4610,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(Marpa_Grammar g,
     @<Fail if not precomputed@>@;
     @<Fail if |AHFA_state_id| is invalid@>@;
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
-    return Leo_LHS_ID_of_AHFA(state);
+    return Leo_LHS_ISYID_of_AHFA(state);
 }
 
 @*0 Internal Accessors.
@@ -4992,7 +4992,7 @@ set the Leo completion symbol to |lhs_id|@> =
   ISYID predot_isyid = Postdot_ISYID_of_AIM (previous_ahfa_item);
   if (ISY_is_LHS(ISY_by_ID (predot_isyid)))
     {
-      Leo_LHS_ID_of_AHFA (p_new_state) = BuddyID_by_ISYID(lhs_isyid);
+      Leo_LHS_ISYID_of_AHFA (p_new_state) = lhs_isyid;
     }
 }
 
@@ -6409,7 +6409,7 @@ be recopied to make way for pointers to the linked lists.
     Complete_ISYIDs_of_AHFA(AHFA_of_EIM(item))
 @d Complete_ISY_Count_of_EIM(item)
     Complete_ISY_Count_of_AHFA(AHFA_of_EIM(item))
-@d Leo_LHS_ID_of_EIM(eim) Leo_LHS_ID_of_AHFA(AHFA_of_EIM(eim))
+@d Leo_LHS_ISYID_of_EIM(eim) Leo_LHS_ISYID_of_AHFA(AHFA_of_EIM(eim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
 @d Earley_Item_is_Completion(item)
@@ -8833,7 +8833,7 @@ In a populated LIM, this will not necessarily be the case.
     const ES predecessor_set = Origin_of_EIM(base_eim);
     const AHFA base_to_ahfa = Top_AHFA_of_LIM(lim_to_process);
     const ISYID predecessor_transition_isyid =
-      ISYID_by_XSYID(Leo_LHS_ID_of_AHFA(base_to_ahfa));
+      Leo_LHS_ISYID_of_AHFA(base_to_ahfa);
     PIM predecessor_pim;
     if (Earleme_of_ES(predecessor_set) < current_earley_set_id) {
 	predecessor_pim

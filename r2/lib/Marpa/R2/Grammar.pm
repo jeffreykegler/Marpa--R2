@@ -1034,7 +1034,7 @@ sub Marpa::R2::Grammar::show_AHFA {
             my @to_descs    = ("S$to_state_id");
             my $lhs_id = $grammar_c->_marpa_g_AHFA_state_leo_lhs_symbol($to_state_id);
             if ( defined $lhs_id ) {
-                my $lhs_name = $grammar->xsy_name($lhs_id);
+                my $lhs_name = $grammar->isy_name($lhs_id);
                 push @to_descs, "leo($lhs_name)";
             }
             my $empty_transition_state =
