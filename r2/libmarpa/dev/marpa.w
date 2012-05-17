@@ -4192,8 +4192,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   for (rhs_ix = 0; rhs_ix < Length_of_IRL(irl); rhs_ix++)
     {
       ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
-      XSY rh_xsy = Buddy_of_ISY(ISY_by_ID(rh_isyid));
-      if (!SYM_is_Nulling(rh_xsy))
+      if (!ISY_is_Nulling(ISY_by_ID(rh_isyid)))
 	{
 	  Last_Proper_SYMI_of_IRL(irl) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
