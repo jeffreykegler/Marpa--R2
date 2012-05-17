@@ -148,7 +148,6 @@ Value objects
 * Valuator access macros::      
 * Valuator reference counting::  
 * Valuator stepping::           
-* Valuator tracing::            
 
 Design considerations
 
@@ -164,6 +163,7 @@ Internal Interface
 * Bocage internals::            
 * Ordering internals::          
 * Tree internals::              
+* Valuator internals::          
 
 @end detailmenu
 @end menu
@@ -1653,7 +1653,6 @@ errors can be properly reported.
 * Valuator access macros::      
 * Valuator reference counting::  
 * Valuator stepping::           
-* Valuator tracing::            
 @end menu
 
 @node About the valuator, Valuator constructor, Value, Value
@@ -1802,7 +1801,7 @@ errors can be properly reported.
 
 @end deftypefun
 
-@node Valuator stepping, Valuator tracing, Valuator reference counting, Value
+@node Valuator stepping,  , Valuator reference counting, Value
 @section Stepping through the valuator
 
 @deftypevr Macro Marpa_Value_Type MARPA_VALUE_TRACE
@@ -1834,18 +1833,6 @@ These value types are reserved for internal purposes
 @end deftypevr
 
 @deftypefun Marpa_Value_Type marpa_v_step ( @
-    Marpa_Value @var{v})
-@end deftypefun
-
-@node Valuator tracing,  , Valuator stepping, Value
-@section Tracing the valuator
-
-@deftypefun int _marpa_v_trace ( @
-    Marpa_Value @var{v}, @
-    int @var{flag})
-@end deftypefun
-
-@deftypefun Marpa_Nook_ID _marpa_v_nook ( @
     Marpa_Value @var{v})
 @end deftypefun
 
@@ -2386,6 +2373,7 @@ determine the start and end earlemes of a token.
 * Bocage internals::            
 * Ordering internals::          
 * Tree internals::              
+* Valuator internals::          
 @end menu
 
 @node Symbol internal methods, Rule internals, Internal Interface, Internal Interface
@@ -2752,7 +2740,7 @@ the or-node.
     int @var{ix})
 @end deftypefun
 
-@node Tree internals,  , Ordering internals, Internal Interface
+@node Tree internals, Valuator internals, Ordering internals, Internal Interface
 @section Tree internals
 
 In Marpa, a nook is any node of a parse tree.
@@ -2834,6 +2822,18 @@ Return the is-cause bit for @var{nook_id}.
 	)
 
 Return the is-predecessor bit for @var{nook_id}.
+@end deftypefun
+
+@node Valuator internals,  , Tree internals, Internal Interface
+@section Valuator internals
+
+@deftypefun int _marpa_v_trace ( @
+    Marpa_Value @var{v}, @
+    int @var{flag})
+@end deftypefun
+
+@deftypefun Marpa_Nook_ID _marpa_v_nook ( @
+    Marpa_Value @var{v})
 @end deftypefun
 
 @bye
