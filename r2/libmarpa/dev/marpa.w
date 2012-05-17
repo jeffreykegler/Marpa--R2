@@ -5908,7 +5908,6 @@ void recce_free(struct marpa_r *r)
     @<Unpack recognizer objects@>@;
     @<Destroy recognizer elements@>@;
     grammar_unref(g);
-    @<Free working bit vectors for symbols@>@;
     @<Destroy recognizer obstack@>@;
     my_slice_free(struct marpa_r, r);
 }
@@ -6004,10 +6003,8 @@ this bit vector is initialized to |NULL| so that the destructor
 can tell if there is a bit vector to be freed.
 @<Widely aligned recognizer elements@> = Bit_Vector t_bv_symid_is_expected;
 @ @<Initialize recognizer elements@> = r->t_bv_symid_is_expected = NULL;
-@ @<Allocate recognizer's bit vectors for symbols@> = 
-    r->t_bv_symid_is_expected = bv_create( (unsigned int)symbol_count_of_g );
-@ @<Free working bit vectors for symbols@> =
-if (r->t_bv_symid_is_expected) { bv_free(r->t_bv_symid_is_expected); }
+@ @<Allocate recognizer containers used in setup@> = 
+    r->t_bv_symid_is_expected = bv_obs_create( &r->t_obs, (unsigned int)symbol_count_of_g );
 @ Returns |-2| if there was a failure.
 There is a check that the expectations of this
 function and its caller about size of the |GArray| elements match.
@@ -8045,7 +8042,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     }
     Input_Phase_of_R(r) = R_DURING_INPUT;
     psar_reset(Dot_PSAR_of_R(r));
-    @<Allocate recognizer's bit vectors for symbols@>@;
+    @<Allocate recognizer containers used in setup@>@;
     @<Initialize Earley item work stacks@>@;
     set0 = earley_set_new(r, 0);
     Latest_ES_of_R(r) = set0;
@@ -8555,28 +8552,34 @@ once the question of when to use Leo items
 is completely settled.
 This will require making the Leo behavior configurable
 and running benchmarks.
-@<Function definitions@> =
+@<Widely aligned recognizer elements@> =
+  Bit_Vector t_bv_lim_symbols;
+  Bit_Vector t_bv_pim_symbols;
+  void** t_pim_workarea;
+@ @<Allocate recognizer containers used in setup@> = 
+  r->t_bv_lim_symbols = bv_obs_create(&r->t_obs, symbol_count_of_g);
+  r->t_bv_pim_symbols = bv_obs_create(&r->t_obs, symbol_count_of_g);
+  r->t_pim_workarea = my_obstack_new(&r->t_obs, void*, symbol_count_of_g);
+@ @<Reinitialize containers used in PIM setup@> =
+  bv_clear(r->t_bv_lim_symbols);
+  bv_clear(r->t_bv_pim_symbols);
+@ @<Function definitions@> =
 PRIVATE_NOT_INLINE void
 postdot_items_create (RECCE r, ES current_earley_set)
 {
     struct obstack obs_local;
-    void** pim_workarea;
     const SYMID symbol_count_of_g = SYM_Count_of_G(G_of_R(r));
   @<Unpack recognizer objects@>@;
     EARLEME current_earley_set_id = Earleme_of_ES(current_earley_set);
-    Bit_Vector bv_pim_symbols;
-    Bit_Vector bv_lim_symbols;
     my_obstack_init(&obs_local);
-    pim_workarea = my_obstack_new(&obs_local, void*, symbol_count_of_g);
-    bv_pim_symbols = bv_obs_create(&obs_local, symbol_count_of_g);
-    bv_lim_symbols = bv_obs_create(&obs_local, symbol_count_of_g);
+    @<Reinitialize containers used in PIM setup@>@;
     @<Start EIXes in PIM workarea@>@;
     if (r->t_is_using_leo) {
 	@<Start LIMs in PIM workarea@>@;
 	@<Add predecessors to LIMs@>@;
     }
     @<Copy PIM workarea to postdot item array@>@;
-    bv_and(r->t_bv_symid_is_expected, bv_pim_symbols, g->t_bv_symid_is_terminal);
+    bv_and(r->t_bv_symid_is_expected, r->t_bv_pim_symbols, g->t_bv_symid_is_terminal);
     my_obstack_free(&obs_local);
 }
 
@@ -8606,12 +8609,12 @@ At this point there are no Leo items.
 	  Postdot_ISYID_of_PIM(new_pim) = isyid;
 	  xsyid = BuddyID_by_ISYID(isyid);
 	  EIM_of_PIM(new_pim) = earley_item;
-	  if (bv_bit_test(bv_pim_symbols, (unsigned int)xsyid))
-	      old_pim = pim_workarea[xsyid];
+	  if (bv_bit_test(r->t_bv_pim_symbols, (unsigned int)xsyid))
+	      old_pim = r->t_pim_workarea[xsyid];
 	  Next_PIM_of_PIM(new_pim) = old_pim;
 	  if (!old_pim) current_earley_set->t_postdot_sym_count++;
-	  pim_workarea[xsyid] = new_pim;
-	  bv_bit_set(bv_pim_symbols, (unsigned int)xsyid);
+	  r->t_pim_workarea[xsyid] = new_pim;
+	  bv_bit_set(r->t_bv_pim_symbols, (unsigned int)xsyid);
 	}
     }
 }
@@ -8645,13 +8648,13 @@ Leo item have not been fully populated.
 @<Start LIMs in PIM workarea@> =
 {
   unsigned int min, max, start;
-  for (start = 0; bv_scan (bv_pim_symbols, start, &min, &max);
+  for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max);
        start = max + 2)
     {
       SYMID symid;
       for (symid = (SYMID) min; symid <= (SYMID) max; symid++)
 	{
-	  PIM this_pim = pim_workarea[symid];
+	  PIM this_pim = r->t_pim_workarea[symid];
 	  if (!Next_PIM_of_PIM (this_pim))
 	    {			/* Do not create a Leo item if there is more
 				   than one EIX */
@@ -8688,8 +8691,8 @@ once it is populated.
     Base_EIM_of_LIM(new_lim) = leo_base;
     ES_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
-    pim_workarea[symid] = new_lim;
-    bv_bit_set(bv_lim_symbols, (unsigned int)symid);
+    r->t_pim_workarea[symid] = new_lim;
+    bv_bit_set(r->t_bv_lim_symbols, (unsigned int)symid);
 }
 
 @ This code fully populates the data in the LIMs.
@@ -8765,8 +8768,8 @@ Earley set.\par
   const Bit_Vector bv_ok_for_chain = bv_obs_create(&obs_local, symbol_count_of_g);
   unsigned int min, max, start;
 
-  bv_copy(bv_ok_for_chain, bv_lim_symbols);
-  for (start = 0; bv_scan (bv_lim_symbols, start, &min, &max);
+  bv_copy(bv_ok_for_chain, r->t_bv_lim_symbols);
+  for (start = 0; bv_scan (r->t_bv_lim_symbols, start, &min, &max);
        start = max + 2)
     { /* This is the outer loop.  It loops over the symbols IDs,
 	  visiting only the symbols with LIMs. */
@@ -8776,7 +8779,7 @@ Earley set.\par
 	  main_loop_symbol_id++)
 	{
 	  LIM predecessor_lim;
-	  LIM lim_to_process = pim_workarea[main_loop_symbol_id];
+	  LIM lim_to_process = r->t_pim_workarea[main_loop_symbol_id];
           if (LIM_is_Populated(lim_to_process)) continue; /* LIM may
 	      have already been populated in the LIM chain loop */
 	    @<Find predecessor LIM of unpopulated LIM@>@;
@@ -8830,7 +8833,7 @@ In a populated LIM, this will not necessarily be the case.
 	predecessor_pim
 	= First_PIM_of_ES_by_ISYID (predecessor_set, ISYID_by_XSYID(predecessor_transition_symbol));
     } else {
-        predecessor_pim = pim_workarea[predecessor_transition_symbol];
+        predecessor_pim = r->t_pim_workarea[predecessor_transition_symbol];
     }
     predecessor_lim = PIM_is_LIM(predecessor_pim) ? LIM_of_PIM(predecessor_pim) : NULL;
 }
@@ -8946,10 +8949,10 @@ of the base EIM.
 	       current_earley_set->t_postdot_sym_count * sizeof (PIM));
     unsigned int min, max, start;
     int postdot_array_ix = 0;
-    for (start = 0; bv_scan (bv_pim_symbols, start, &min, &max); start = max + 2) {
+    for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max); start = max + 2) {
 	SYMID symid;
 	for (symid = (SYMID)min; symid <= (SYMID) max; symid++) {
-            PIM this_pim = pim_workarea[symid];
+            PIM this_pim = r->t_pim_workarea[symid];
 	    if (this_pim) postdot_array[postdot_array_ix++] = this_pim;
 	}
     }
@@ -10650,7 +10653,6 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 
 @ @<Declare bocage locals@> =
 const GRAMMAR g = G_of_R(r);
-const int symbol_count_of_g = SYM_Count_of_G(g);
 const int isy_count = ISY_Count_of_G(g);
 const IRLID irl_count = IRL_Count_of_G(g);
 BOCAGE b = NULL;
