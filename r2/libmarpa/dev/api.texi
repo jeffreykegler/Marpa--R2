@@ -44,7 +44,8 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Threads::                     
 * Terminals concepts::          
 * Semantics::                   
-* Version checking::            Checking the Libmarpa version.
+* Introduction to the External Interface::  
+* Static Methods::              
 * Grammars::                    Grammar time objects
 * Events::                      Libmarpa Events
 * Recognizers::                 Recognizers.
@@ -98,6 +99,10 @@ Terminals
 Semantics
 
 * Token values::                
+
+Introduction to the External Interface
+
+* Return value descriptions::   
 
 Grammars
 
@@ -584,7 +589,7 @@ For this reason,
 the traditional behavior is the default
 in Marpa.
 
-@node Semantics, Version checking, Terminals concepts, Top
+@node Semantics, Introduction to the External Interface, Terminals concepts, Top
 @chapter Semantics
 
 @menu
@@ -616,9 +621,49 @@ efficiencies from the direct use of pointers,
 outweigh the safety
 issues advanced by this author.
 
-@node Version checking, Grammars, Semantics, Top
-@chapter Checking the Libmarpa version
-@cindex version checking
+@node Introduction to the External Interface, Static Methods, Semantics, Top
+@chapter Introduction to the External Interface
+
+The following chapters describe Libmarpa's external
+interface in detail.
+
+@menu
+* Return value descriptions::   
+@end menu
+
+@node Return value descriptions,  , Introduction to the External Interface, Introduction to the External Interface
+@section Return value descriptions
+
+Most function descriptions have a section describing their
+return values.
+In these sections, @dfn{success} means that the method
+successfully accomplished its primary purpose.
+
+A @dfn{soft failure} means that
+the method accomplished a secondary purpose,
+one which can be considered either a failure
+or a success depending on the circumstances.
+Soft failures are always recoverable.
+An example of a soft failure
+is @code{marpa_r_alternative}'s return of
+-1 for an unexpected token.
+In some cases,
+this error will also be unexpected by the
+application
+and will be an unrecoverable failure.
+But the ``Ruby slippers'' parsing method can
+incorporate this return value into its normal processing,
+as a means of testing alternative inputs and/or
+checking the state of the parse.
+
+A @dfn{hard failure} may or may not be recoverable,
+and will usually not be considered part of normal
+processing by an application.
+The return value descriptions will sometimes describe
+hard failures simply as ``failures''.
+
+@node Static Methods, Grammars, Introduction to the External Interface, Top
+@chapter Static Methods
 
 @deftypefun Marpa_Error_Code marpa_check_version @
     (unsigned int @var{required_major}, @
@@ -668,7 +713,7 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 
 @end deftypefun
 
-@node Grammars, Events, Version checking, Top
+@node Grammars, Events, Static Methods, Top
 @chapter Grammars
 @cindex grammars
 
