@@ -28,52 +28,25 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-my $chaf_rule =
-#<<< no perltidy
-# Marpa::R2::Display
-# name: CHAF Rule
-
-{   lhs => 'statement',
+my $chaf_rule = {
+    lhs => 'statement',
     rhs => [
         qw/optional_whitespace expression
             optional_whitespace optional_modifier
             optional_whitespace/
     ]
-}
+};
 
-# Marpa::R2::Display::End
-; # semicolon to terminate rule
-
-#>>> no perltidy
-
-my $separated_sequence_rule =
-#<<< no perltidy
-# Marpa::R2::Display
-# name: Separated Sequence Rule
-
-{
+my $separated_sequence_rule = {
     lhs       => 'statements',
     rhs       => [qw/statement/],
     separator => 'comma',
     min       => 1
-}
-
-# Marpa::R2::Display::End
-; # semicolon to terminate rule
-
-#>>> no perltidy
+};
 
 my $sequence_rule =
-#<<< no perltidy
-# Marpa::R2::Display
-# name: Sequence Rule
-
     { lhs => 'block', rhs => [qw/statements/], min => 0 },
-
-# Marpa::R2::Display::End
-; # semicolon to terminate rule
-
-#>>> no perltidy
+    ;    # semicolon to terminate rule
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start   => 'block',
@@ -108,11 +81,6 @@ $recce->end_input();
 
 my $show_rules_output = $grammar->show_rules();
 
-# Marpa::R2::Display
-# name: Rewrite show_rules Output
-# start-after-line: END_RULES
-# end-before-line: '^END_RULES$'
-
 Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 0: statement -> optional_whitespace expression optional_whitespace optional_modifier optional_whitespace
 1: statements -> statement /* discard_sep */
@@ -122,8 +90,6 @@ Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Rewritten Rules' );
 5: optional_modifier -> modifier
 6: optional_modifier -> /* empty !used */
 END_RULES
-
-# Marpa::R2::Display::End
 
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No Parse';

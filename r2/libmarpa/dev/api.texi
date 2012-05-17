@@ -808,6 +808,8 @@ On failure, -2.
 This function flags symbol @var{symid} as a terminal if
 @var{value} is 1,
 or flags it as a non-terminal if @var{value} is 0.
+By default, a symbol is a terminal if and only if it
+does not appear on the LHS of any rule.
 This setting overrides the default.
 An attempt to flag a nulling symbol
 as a terminal is a fatal error,

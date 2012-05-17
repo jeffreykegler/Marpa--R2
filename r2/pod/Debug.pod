@@ -279,7 +279,6 @@ normalize-whitespace: 1
       F2 @2-3 Factor -> Number .
       R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
       F4 @0-3 Factor -> Factor Multiply Factor .
-      F5 @0-3 Expression['] -> Expression .
 
 =for Marpa::R2::Display::End
 
@@ -308,13 +307,13 @@ name: Debug Example Progress Report
 partial: 1
 normalize-whitespace: 1
 
-      F5 @0-3 Expression['] -> Expression .
+      F0 @0-3 Expression -> Factor .
 
 =for Marpa::R2::Display::End
 
-Prefixed to the dotted rule are two fields: "C<F5 @0-3>".
-The "C<F5>" says that this is a completed or B<final> rule,
-and that it is rule number 5.
+Prefixed to the dotted rule are two fields: "C<F0 @0-3>".
+The "C<F0>" says that this is a completed or B<final> rule,
+and that it is rule number 0.
 The rule number is used in
 other tracing and debugging output,
 when displaying the whole rule would take too much space.
@@ -336,8 +335,8 @@ all the progress report lines will have their dot location at
 that location.
 
 As an aside, notice that
-the left hand side symbol is C<Expression[']>.
-That is is Marpa's special start symbol.
+the left hand side symbol is C<Expression>.
+That is the start symbol.
 The presence of a completed start rule in our
 progress report indicates that if our input ended at location 3, it would be a valid sentence
 in the language of our grammar.
@@ -455,7 +454,6 @@ normalize-whitespace: 1
       F2 @2-3 Factor -> Number .
       R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
       F4 @0-3 Factor -> Factor Multiply Factor .
-      F5 @0-3 Expression['] -> Expression .
 
 =for Marpa::R2::Display::End
 
@@ -490,7 +488,6 @@ normalize-whitespace: 1
       P0 @0-0 Expression -> . Factor
       P2 @0-0 Factor -> . Number
       P4 @0-0 Factor -> . Factor Multiply Factor
-      P5 @0-0 Expression['] -> . Expression
 
 =for Marpa::R2::Display::End
 
@@ -519,13 +516,10 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Our special start symbol is C<Expression[']> and
+The start symbol is C<Expression> and
 we do see a rule with
-C<Expression[']>
+C<Expression>
 on the left hand side.
-This rule in turn produces an C<Expression> symbol,
-and there is a rule with C<Expression> on the left
-hand side.
 C<Expression> in turn produces a C<Factor> symbol,
 and there are two rules
 with C<Factor> on the left

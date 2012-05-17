@@ -65,17 +65,10 @@ $progress_report = $recce->show_progress(0);
 my $value_ref = $recce->value;
 Test::More::ok( $value_ref, 'Parse ok?' );
 
-# Marpa::R2::Display
-# name: Debug Sequence Example Progress Report
-# start-after-line: END_PROGRESS_REPORT
-# end-before-line: '^END_PROGRESS_REPORT$'
-
 Marpa::R2::Test::is( $progress_report,
     << 'END_PROGRESS_REPORT', 'progress report' );
 P0 @0-0 Document -> . Stuff
 END_PROGRESS_REPORT
-
-# Marpa::R2::Display::End
 
 1;    # In case used as "do" file
 
