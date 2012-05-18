@@ -788,7 +788,6 @@ reference count by 1.
 @code{marpa_g_unref} decrements the reference count by 1.
 
 @deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
-
 Decreases the reference count by 1,
 destroying @var{g} once the reference count reaches
 zero.
@@ -796,7 +795,6 @@ Libmarpa time objects have no explicit destructor.
 They are destroyed by reducing their reference count to zero.
 
 Return value: None
-
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
@@ -1371,7 +1369,7 @@ On success, the recognizer object it was called with;
 
 @deftypefun void marpa_r_unref (Marpa_Recognizer @var{r})
 Decreases the reference count by 1,
-destroying @var{g} once the reference count reaches
+destroying @var{r} once the reference count reaches
 zero.
 Libmarpa time objects have no explicit destructor.
 They are destroyed by reducing their reference count to zero.
@@ -1561,6 +1559,18 @@ On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
+A parser is ``exhausted'' if it cannot accept any more input.
+Both successful and failed parses can be ``exhausted''
+In many grammars,
+the parse is always exhausted as soon as it succeeds.
+And even if the parse is exhausted at a point
+where there is no good parse, 
+there may be good parses at earlemes prior to the
+earleme at which the parse became exhausted.
+
+Return value:
+1 if the parser is exhausted, 0 otherwise.
+Always succeeds.
 @end deftypefun
 
 @node Recognizer events,  , Recognizer life, Recognizers
@@ -1606,14 +1616,28 @@ Type of Value: @code{void*}
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_b_g (Marpa_Bocage @var{b})
+Return value: The base grammar of @var{b}.
+Always succeeds.
 @end deftypefun
 
 @node Bocage reference counting,  , Bocage, Bocage
 @section  Reference counting
 @deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
+Increases the reference count.
+
+Return value:
+On success, @var{b}.
+On failure, @code{NULL}.
 @end deftypefun
 
 @deftypefun void marpa_b_unref (Marpa_Bocage @var{b})
+Decreases the reference count by 1,
+destroying @var{b} once the reference count reaches
+zero.
+Libmarpa time objects have no explicit destructor.
+They are destroyed by reducing their reference count to zero.
+
+Return value: None
 @end deftypefun
 
 @node Order, Tree, Bocage, Top
@@ -1633,17 +1657,31 @@ Type of Value: @code{void*}
 
 @deftypefun Marpa_Grammar marpa_o_g ( @
     Marpa_Order @var{o})
+Return value: The base grammar of @var{o}.
+Always succeeds.
 @end deftypefun
 
 @node Ordering reference counting,  , Ordering constructor, Order
 @section Reference counting
 
-@deftypefun void marpa_o_unref ( @
-    Marpa_Order @var{o})
-@end deftypefun
-
 @deftypefun Marpa_Order marpa_o_ref ( @
     Marpa_Order @var{o})
+Increases the reference count.
+
+Return value:
+On success, @var{o}.
+On failure, @code{NULL}.
+@end deftypefun
+
+@deftypefun void marpa_o_unref ( @
+    Marpa_Order @var{o})
+Decreases the reference count by 1,
+destroying @var{o} once the reference count reaches
+zero.
+Libmarpa time objects have no explicit destructor.
+They are destroyed by reducing their reference count to zero.
+
+Return value: None
 @end deftypefun
 
 @node Tree, Value, Order, Top
@@ -1666,29 +1704,30 @@ Marpa's parse trees are also bocage iterators.
 @deftypefun Marpa_Tree marpa_t_new (Marpa_Order @var{o})
 @end deftypefun
 
-@deftypefun Marpa_Grammar marpa_t_g (Marpa_Tree @var{o})
-
-This function returns the grammar of the tree.
-It never returns an error.
-The grammar is always set when the tree is initialized,
-and is never changed while the tree exists.
-Fatal state is not reported,
-because it is kept in the grammar,
-so that
-either we can return the grammar in spite of
-its fatal state,
-or the problem is so severe than no
-errors can be properly reported.
-
+@deftypefun Marpa_Grammar marpa_t_g (Marpa_Tree @var{t})
+Return value: The base grammar of @var{t}.
+Always succeeds.
 @end deftypefun
 
 @node Tree reference counting, Tree iteration, Tree constructor, Tree
 @section Reference counting
 
 @deftypefun Marpa_Tree marpa_t_ref (Marpa_Tree @var{t})
+Increases the reference count.
+
+Return value:
+On success, @var{t}.
+On failure, @code{NULL}.
 @end deftypefun
 
 @deftypefun void marpa_t_unref (Marpa_Tree @var{t})
+Decreases the reference count by 1,
+destroying @var{t} once the reference count reaches
+zero.
+Libmarpa time objects have no explicit destructor.
+They are destroyed by reducing their reference count to zero.
+
+Return value: None
 @end deftypefun
 
 @node Tree iteration,  , Tree reference counting, Tree
@@ -1802,11 +1841,27 @@ and inside code about which Libmarpa can make no assumptions.
 @deftypefun Marpa_Grammar marpa_v_g ( @
     Marpa_Value @var{v} @
     )
+Return value: The base grammar of @var{v}.
+Always succeeds.
+@end deftypefun
 
+@deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
+Increases the reference count.
+
+Return value:
+On success, @var{v}.
+On failure, @code{NULL}.
 @end deftypefun
 
 @deftypefun void marpa_v_unref ( @
     Marpa_Value @var{v})
+Decreases the reference count by 1,
+destroying @var{v} once the reference count reaches
+zero.
+Libmarpa time objects have no explicit destructor.
+They are destroyed by reducing their reference count to zero.
+
+Return value: None
 @end deftypefun
 
 @deftypefun int marpa_v_symbol_ask_me_when_null_set ( @
@@ -1847,22 +1902,6 @@ Type of value: @code{int}.
 
 @node Valuator reference counting, Valuator stepping, Valuator access macros, Value
 @section Reference counting
-
-@deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
-
-Returns the grammar of the value.
-It never returns an error.
-The grammar is always set when the value is initialized,
-and is never changed while the value exists.
-Fatal state is not reported,
-because it is kept in the grammar,
-so that
-either we can return the grammar in spite of
-its fatal state,
-or the problem is so severe than no
-errors can be properly reported.
-
-@end deftypefun
 
 @node Valuator stepping,  , Valuator reference counting, Value
 @section Stepping through the valuator
