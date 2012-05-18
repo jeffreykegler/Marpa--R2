@@ -5944,7 +5944,7 @@ marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer r, int threshold)
 }
 
 @*0 Furthest Earleme.
-The ``furthest" or highest-numbered earleme.
+The ``furthest'' or highest-numbered earleme.
 This is the earleme of the last Earley set that contains anything.
 Marpa allows variable length tokens,
 so it needs to track how far out tokens might be found.
@@ -6073,7 +6073,7 @@ r->t_is_using_leo = 0;
 0 if not,
 and |-2| if there was an error.
 @<Function definitions@> =
-int marpa_r_is_use_leo(Marpa_Recognizer  r)
+int _marpa_r_is_use_leo(Marpa_Recognizer  r)
 {
    @<Unpack recognizer objects@>@;
    @<Return |-2| on failure@>@;
@@ -6081,7 +6081,7 @@ int marpa_r_is_use_leo(Marpa_Recognizer  r)
     return r->t_use_leo_flag;
 }
 @ @<Function definitions@> =
-int marpa_r_is_use_leo_set(
+int _marpa_r_is_use_leo_set(
 Marpa_Recognizer r, int value)
 {
    @<Unpack recognizer objects@>@;

@@ -1506,30 +1506,31 @@ OUTPUT:
     RETVAL
 
 void
-is_use_leo_set( r_wrapper, boolean )
+_marpa_r_is_use_leo_set( r_wrapper, boolean )
     R_Wrapper *r_wrapper;
     int boolean;
 PPCODE:
 {
   struct marpa_r *r = r_wrapper->r;
-  int result = marpa_r_is_use_leo_set (r, (boolean ? TRUE : FALSE));
+  int result = _marpa_r_is_use_leo_set (r, (boolean ? TRUE : FALSE));
   if (result < 0)
     {
-      croak ("Problem in is_use_leo_set(): %s", xs_r_error (r_wrapper));
+      croak ("Problem in _marpa_r_is_use_leo_set(): %s",
+	     xs_r_error (r_wrapper));
     }
   XSRETURN_YES;
 }
 
 void
-is_use_leo( r_wrapper )
+_marpa_r_is_use_leo( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
 {
   struct marpa_r *r = r_wrapper->r;
-  int boolean = marpa_r_is_use_leo (r);
+  int boolean = _marpa_r_is_use_leo (r);
   if (boolean < 0)
     {
-      croak ("Problem in is_use_leo(): %s", xs_r_error (r_wrapper));
+      croak ("Problem in _marpa_r_is_use_leo(): %s", xs_r_error (r_wrapper));
     }
   if (boolean)
     XSRETURN_YES;

@@ -1531,18 +1531,33 @@ Always succeeds.
 @end deftypefun
 
 @deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
+The ``furthest'' or highest-numbered earleme.
+This is the earleme of the last Earley set that contains anything.
+Marpa allows variable length tokens,
+and in input models which use them,
+it may be necessary to track how far out tokens might be found.
+
+Return value: On success, the furthest earleme.
+Always succeeds.
 @end deftypefun
 
 @deftypefun int marpa_r_terminals_expected ( @
     Marpa_Recognizer @var{r}, @
     Marpa_Symbol_ID* @var{buffer})
-@end deftypefun
+Returns a list of the ID's of the symbols
+which are acceptable as tokens
+at the current earleme.
+@var{buffer} is expected to be large enough to hold
+the result.
+This is guaranteed to be the case if the the buffer
+is sized large enough to hold a number of
+@code{Marpa_Symbol_ID}'s that
+is greater than or equal to the number of symbols
+in the grammar.
 
-@deftypefun int marpa_r_is_use_leo (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun int marpa_r_is_use_leo_set ( Marpa_Recognizer @var{r}, @
-    int @var{value})
+Return value:  On success, the number of @code{Marpa_Symbol_ID}'s
+in @var{buffer}.
+On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
@@ -2689,6 +2704,18 @@ Marpa's internals, as described in
 
 @node Recognizer internals, Bocage internals, Grammar internals, Internal Interface
 @section Recognizer internals
+
+
+@deftypefun int _marpa_r_is_use_leo (Marpa_Recognizer @var{r})
+@deftypefunx int _marpa_r_is_use_leo_set ( Marpa_Recognizer @var{r}, @
+    int @var{value})
+Reports and sets, respectively, the ``use Leo'' flag.
+This flag controls whether Joop Leo's method for fast parsing
+of right recursion is used.
+By default, this value is 1 and Leo parsing is in use.
+This default should be used except for testing, debugging
+and development.
+@end deftypefun
 
 @deftypefun Marpa_Earley_Set_ID _marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
