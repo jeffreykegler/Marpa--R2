@@ -95,7 +95,6 @@ Threads
 
 C89 and thread-safety
 
-* Grammars not shared between threads::  
 * C89 and thread-safety::       
 
 Terminals
@@ -541,7 +540,6 @@ and does not use those C library functions which
 are inherently thread-unsafe.
 
 @menu
-* Grammars not shared between threads::  
 * C89 and thread-safety::       
 @end menu
 
