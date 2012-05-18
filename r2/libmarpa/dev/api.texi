@@ -1611,8 +1611,19 @@ Type of Value: @code{void*}
 * Bocage reference counting::   
 @end menu
 
+In Libmarpa, recognition and parsing are separate phases.
+Once recognition is complete, a parse ``bocage'' must be created
+from it.
+(For those familiar with parse forests, a bocage is a
+specialized and extended parse forest.)
+
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{ordinal_arg})
+Return value: On success, the new bocage object.
+On soft failure, returns @code{NULL} and sets the error
+code to @code{MARPA_ERR_NO_PARSE}.
+On other failure, returns @code{NULL} and sets the error
+appropriately.
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_b_g (Marpa_Bocage @var{b})
@@ -1651,8 +1662,30 @@ Return value: None
 @node Ordering constructor, Ordering reference counting, Order, Order
 @section Creating an ordering
 
+Libmarpa allows ambiguous parses.
+In many applications it is necessary or desirable to
+control the order in which these are traversed.
+For this reason,
+Libmarpa requires all parse series to be turned
+into an ``ordering'' object before traversing
+and evaluating them.
+
+In many cases, the ordering is trivial.
+Either the parse is unambiguous, or the
+application does not care about the order in
+which parses are returned.
+In such cases,
+the creation of the ordering object is a useless
+overhead.
+Future versions of libmarpa might allow this phase
+to be bypassed, but there is little to be gained.
+The overhead amounts to little more besides two or three
+extra subroutine calls.
+
 @deftypefun Marpa_Order marpa_o_new ( @
     Marpa_Bocage @var{b})
+Return value: On success, the new ordering object.
+On failure, @code{NULL}.
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_o_g ( @

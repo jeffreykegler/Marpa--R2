@@ -10557,19 +10557,8 @@ if (b->t_is_obstack_initialized) {
     b->t_is_obstack_initialized = 0;
 }
 
-@*0 Bocage Construction.
-@ This function returns 0 for a null parse,
-and the ID of the start or-node for a non-null parse.
-If there is no parse, -1 is returned.
-On other failures, -2 is returned.
-Note that, even though 0 is a valid or-node ID,
-this does not conflict with returning 0 for a null parse.
-Or-node 0 must be in the first Earley set,
-and any parse whose top or-node is in the first
-Earley set must be a null parse.
-
-so that an or-node of 0 
-@ @<Function definitions@> =
+@*0 Bocage construction.
+@<Function definitions@> =
 Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     Marpa_Earley_Set_ID ordinal_arg)
 {
