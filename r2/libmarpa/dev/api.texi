@@ -42,18 +42,18 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Libmarpa objects::            
 * The architecture of Marpa::   
 * Threads::                     
-* Terminals concepts::          
-* Semantics::                   
+* Terminal and tokens::         
+* Error handling concepts::     
 * Introduction to the External Interface::  
 * Static Methods::              
-* Grammars::                    Grammar time objects
+* Grammar objects::             
 * Recognizers::                 Recognizers.
 * Bocage::                      Bocage objects.
-* Order::                       Order objects.
+* Ordering objects::            
 * Tree::                        Parse Trees.
 * Value::                       Value objects.
 * Events::                      Libmarpa Events
-* Error handling::              
+* Error macros and code::       
 * Design considerations::       
 * Things To Do::                
 * Internal Interface::          
@@ -63,9 +63,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 
 How to read this document
 
-* What is this document::       What is this document?
 * Prerequisites::               Prerequisites.
-* Which chapters to read first::  Which chapters to read first.
 * Parsing theory::              Parsing theory.
 
 Libmarpa objects
@@ -97,19 +95,21 @@ C89 and thread-safety
 
 * C89 and thread-safety::       
 
-Terminals
+Terminal and tokens
 
 * LHS Terminals::               
-
-Semantics
-
 * Token values::                
+
+Error handling
+
+* Hard and soft errors::        
+* Soft and hard errors::        
 
 Introduction to the External Interface
 
 * Return value descriptions::   
 
-Grammars
+Grammar objects
 
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
@@ -131,7 +131,7 @@ Bocage objects
 
 * Bocage reference counting::   
 
-Orderings
+Ordering objects
 
 * Ordering constructor::        
 * Ordering reference counting::  
@@ -153,6 +153,12 @@ Value objects
 Events
 
 * Event codes::                 Event codes.
+
+Error macros and code
+
+* Methods::                     
+* Error Macros::                
+* Error Codes::                 
 
 Design considerations
 
@@ -177,25 +183,11 @@ Internal Interface
 @chapter How to read this document
 
 @menu
-* What is this document::       What is this document?
 * Prerequisites::               Prerequisites.
-* Which chapters to read first::  Which chapters to read first.
 * Parsing theory::              Parsing theory.
 @end menu 
 
-@node What is this document, Prerequisites, How to read this document, How to read this document
-@section What is this document?
-
-This document is intended as a reference manual
-for a complex low-level tool.
-The reader might compare it to the GNU C Language
-manual,
-which makes no attempt to teach
-the C language itself,
-much less all the technical knowledge required
-to fully understand its contents.
-
-@node Prerequisites, Which chapters to read first, What is this document, How to read this document
+@node Prerequisites, Parsing theory, How to read this document, How to read this document
 @section Prerequisites
 
 This document is very far from self-contained.
@@ -211,26 +203,10 @@ The reader knows some parsing theory.
 @xref{Parsing theory}.
 @end itemize
 
-@node Which chapters to read first, Parsing theory, Prerequisites, How to read this document
-@section Which chapters to read first
-
-Early chapters of this document lay out concepts,
-while later chapters describe Libmarpa's object in
-detail,
-or deal with optional topics.
-This document expects the reader will read its
-"concept" chapters first, and in the order of
-presentation.
-With those as background, the reader should
-then be able to read the rest of the material
-in the order,
-and to the extent,
-of his interest.
-
-@node Parsing theory,  , Which chapters to read first, How to read this document
+@node Parsing theory,  , Prerequisites, How to read this document
 @section Parsing theory
 
-This document also assumes an acquaintance
+This document assumes an acquaintance
 with parsing theory.
 As a test of whether he needs to refresh
 his knowledge before tackling
@@ -266,14 +242,13 @@ by regular expressions, and is now considered
 an advanced skill,
 BNF is in fact as easy (or easier) to learn
 and manipulation than regular expressions.
-If a reader who has learned how to use
+If a reader has learned how to use
 one of the packages that extend
 regular expressions,
 he should have no trouble with BNF.
 
 @node About Libmarpa, Libmarpa objects, How to read this document, Top
 @chapter About Libmarpa
-This is the reference manual for Libmarpa.
 Libmarpa implements the Marpa parsing algorithm.
 Marpa is named
 after the legendary 11th century Tibetan translator,
@@ -290,8 +265,8 @@ and produces parse trees.
 It also supports the ordering and evaluation of the parse
 trees.
 
-However, it is very low-level.
-Libmarpa, for example, has no strings.
+Libmarpa is very low-level.
+For example, it has no strings.
 Rules, symbols, and token values are all represented
 by integers.
 This, of course, will not suffice for most applications.
@@ -300,11 +275,11 @@ at a minimum,
 names for the symbols and non-integer values for
 tokens.
 Typically, an application will use arrays to
-translate Libmarpa's integer IDs to strings or other
+translate Libmarpa's integer ID's to strings or other
 values as required.
 
-Libmarpa also does NOT implement most of the semantics.
-Libmarpa does have an evaluator, but it does NOT
+Libmarpa also does @strong{not} implement most of the semantics.
+Libmarpa does have an evaluator, but it does @strong{not}
 manipulate the stack directly.
 Instead, Libmarpa,
 based on its traversal of the parse tree,
@@ -322,7 +297,7 @@ implemented in the application.
 This allows the application total flexibility.
 It also puts
 the application is in a much better position to prevent errors,
-to catch errors at runtime or
+to catch errors at runtime or,
 failing all else,
 to successfully debug the logic.
 
@@ -508,7 +483,7 @@ to a precomputed grammar
 are disallowed,
 as are most other changes.
 
-@node Threads, Terminals concepts, The architecture of Marpa, Top
+@node Threads, Terminal and tokens, The architecture of Marpa, Top
 @chapter Threads
 
 Libmarpa is thread-safe,
@@ -523,21 +498,21 @@ The Libmarpa methods are not reentrant.
 @node C89 and thread-safety, Base grammars cannot be shared between threads, Threads, Threads
 @section C89 and thread-safety
 
-Libmarpa calls only routines defined in the C89 standard,
-and in most modern implementations these are thread-safe.
+Libmarpa is C89-compliant.
+It uses no global data,
+and it does not use those C library functions which
+are inherently thread-unsafe.
+
+Libmarpa calls only the routines
+that are defined in the C89 standard
+and that can be made thread-safe.
+In most modern implementations these are thread-safe.
 But the C89 standard does not require thread-safety,
-and even the most modern environments allow the user
+and even most modern environments allow the user
 to turn thread safety off.
 To be thread-safe, Libmarpa must be compiled
 and linked in an environment that provides
 thread-safety.
-
-Libmarpa's thread-safety relies on an environment
-that guarantees the thread-safety of C89 function calls.
-Libmarpa is C89-compliant.
-It uses no global data,
-and does not use those C library functions which
-are inherently thread-unsafe.
 
 @menu
 * C89 and thread-safety::       
@@ -557,16 +532,18 @@ from that base grammar.
 
 To work around this limitation,
 the same grammar definition can be
-used to a Libmarpa grammar
+used to a create a new
+Libmarpa grammar
 time object in each thread.
 If there is sufficient interest, future versions of
-Libmarpa could allow cloning of grammars and other
+Libmarpa could allow thread-safe
+cloning of grammars and other
 time objects.
 
-@node Terminals concepts, Semantics, Threads, Top
-@chapter Terminals
+@node Terminal and tokens, Error handling concepts, Threads, Top
+@chapter Terminal and tokens
 
-A terminal symbol is symbol which
+A terminal symbol is a symbol which
 may appear in the input.
 Traditionally,
 all LHS symbols, as well as
@@ -585,9 +562,10 @@ and Marpa does not allow it.
 
 @menu
 * LHS Terminals::               
+* Token values::                
 @end menu
 
-@node LHS Terminals,  , Terminals concepts, Terminals concepts
+@node LHS Terminals, Token values, Terminal and tokens, Terminal and tokens
 @section Uses for LHS terminals
 
 Marpa's idea
@@ -610,14 +588,7 @@ For this reason,
 the traditional behavior is the default
 in Marpa.
 
-@node Semantics, Introduction to the External Interface, Terminals concepts, Top
-@chapter Semantics
-
-@menu
-* Token values::                
-@end menu
-
-@node Token values,  , Semantics, Semantics
+@node Token values,  , LHS Terminals, Terminal and tokens
 @section Token values
 
 Token values are @code{int}'s.
@@ -629,20 +600,65 @@ pointers because their validity can be safely checked.
 It is hard or impossible
 to check the validity of pointers
 without risking an abend.
-
 Integers can be used to access any kind of data
 using an array,
 so that the higher levels can translate integers back
 and forth into whatever the application requires.
-A future version of Libmarpa may allow
-pointer values,
-for those circumstances in which some
-programmers find that the minor
-efficiencies from the direct use of pointers,
-outweigh the safety
-issues advanced by this author.
 
-@node Introduction to the External Interface, Static Methods, Semantics, Top
+@node Error handling concepts, Introduction to the External Interface, Terminal and tokens, Top
+@chapter Error handling
+
+@menu
+* Hard and soft errors::        
+* Soft and hard errors::        
+@end menu
+
+@node Hard and soft errors, Soft and hard errors, Error handling concepts, Error handling concepts
+@section Hard and soft errors
+
+Libmarpa leaves the decision of what is a fatal
+error up to the application,
+with one exception.
+Currently, if @code{malloc} fails to allocate memory,
+Libmarpa terminates the program with a fatal error.
+
+While this is in keeping with current practice,
+future versions of Libmarpa are likely to both allow
+an alternative memory allocator to be specificied,
+and to allow the user to specifier a handler to
+be called when an out-of-memory condition occurs.
+
+@node Soft and hard errors,  , Hard and soft errors, Error handling concepts
+@section Soft and hard errors
+
+Soft errors are errors which may be a result of normal processing.
+Soft errors often do not disrupt the flow of processing,
+and applications typically do not treat soft errors
+as fatal errors.
+When a soft error is an interruption of normal processing,
+the disruption is usually recoverable.
+
+Hard errors are errors which are never the result of
+normal processing.
+They almost always disrupt the flow of processing.
+Recovery from a hard error is usually not possible,
+and an application will usually treat a hard error
+as a fatal error.
+
+The difference between hard and soft errors can
+depend, to a certain extent,
+on the application.
+Libmarpa has its own idea of what is a hard
+and soft error but,
+whenever possible,
+it does not enforce this on the application.
+An application is also free to treat a soft
+error as a hard error.
+And Libmarpa makes
+every attempt to allow an application to
+reinterpret a hard error as a soft error.
+
+@node Introduction to the External Interface, Static Methods, Error handling concepts, Top
 @chapter Introduction to the External Interface
 
 The following chapters describe Libmarpa's external
@@ -696,7 +712,7 @@ or soft failures, that an application
 will want to escalate to hard
 failures.
 
-@node Static Methods, Grammars, Introduction to the External Interface, Top
+@node Static Methods, Grammar objects, Introduction to the External Interface, Top
 @chapter Static Methods
 
 @deftypefun Marpa_Error_Code marpa_check_version @
@@ -747,8 +763,8 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 
 @end deftypefun
 
-@node Grammars, Recognizers, Static Methods, Top
-@chapter Grammars
+@node Grammar objects, Recognizers, Static Methods, Top
+@chapter Grammar objects
 @cindex grammars
 
 @menu
@@ -762,7 +778,7 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 * Grammar events::              
 @end menu 
 
-@node Grammar constructor, Grammar reference counting, Grammars, Grammars
+@node Grammar constructor, Grammar reference counting, Grammar objects, Grammar objects
 @section Creating a new grammar
 @cindex grammar constructor
 
@@ -791,7 +807,7 @@ On failure, @code{NULL}.
 
 @end deftypefun
 
-@node Grammar reference counting, Symbols, Grammar constructor, Grammars
+@node Grammar reference counting, Symbols, Grammar constructor, Grammar objects
 @section Tracking the reference count of the grammar
 @cindex grammar destructor
 @cindex grammar reference
@@ -823,7 +839,7 @@ On success, the grammar object it was called with;
 
 @end deftypefun
 
-@node Symbols, Terminals, Grammar reference counting, Grammars
+@node Symbols, Terminals, Grammar reference counting, Grammar objects
 @section Symbols
 
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
@@ -866,7 +882,7 @@ On success, the symbol count of the grammar.
 On failure, -2.
 @end deftypefun
 
-@node Terminals, Rules, Symbols, Grammars
+@node Terminals, Rules, Symbols, Grammar objects
 @section Methods for terminal symbols
 
 @deftypefun int marpa_g_symbol_is_terminal ( @
@@ -983,7 +999,7 @@ Return value: -2 if there was an error.
 
 @end deftypefun
 
-@node Rules, Sequences, Terminals, Grammars
+@node Rules, Sequences, Terminals, Grammar objects
 @section Rules
 
 @deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
@@ -1141,7 +1157,7 @@ Return value: On success, 1 if this is a loop rule, 0 if not.  If the grammar
 is not precomputed, or on other failure, -2.
 @end deftypefun
 
-@node Sequences, Grammar precomputation, Rules, Grammars
+@node Sequences, Grammar precomputation, Rules, Grammar objects
 @section Sequences
 
 @deftypefun Marpa_Rule_ID marpa_g_sequence_new (Marpa_Grammar @var{g}, @
@@ -1233,7 +1249,7 @@ Returns 0 if
 On hard failure, returns -2.
 @end deftypefun
 
-@node Grammar precomputation, Grammar events, Sequences, Grammars
+@node Grammar precomputation, Grammar events, Sequences, Grammar objects
 @section Precomputing the Grammar
 
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
@@ -1317,7 +1333,7 @@ Return value: On success, 1 if the grammar has a cycle,
 On failure, -2.
 @end deftypefun
 
-@node Grammar events,  , Grammar precomputation, Grammars
+@node Grammar events,  , Grammar precomputation, Grammar objects
 @section Events
 
 @deftypefun int marpa_g_event (Marpa_Grammar @var{g}, @
@@ -1348,7 +1364,7 @@ codes.
 Type of Value: @code{void*}
 @end defmac
 
-@node Recognizers, Bocage, Grammars, Top
+@node Recognizers, Bocage, Grammar objects, Top
 @chapter Recognizer objects
 
 @menu
@@ -1620,7 +1636,7 @@ codes.
 Type of Value: @code{void*}
 @end defmac
 
-@node Bocage, Order, Recognizers, Top
+@node Bocage, Ordering objects, Recognizers, Top
 @chapter Bocage objects
 
 @menu
@@ -1667,15 +1683,15 @@ They are destroyed by reducing their reference count to zero.
 Return value: None
 @end deftypefun
 
-@node Order, Tree, Bocage, Top
-@chapter Orderings
+@node Ordering objects, Tree, Bocage, Top
+@chapter Ordering objects
 
 @menu
 * Ordering constructor::        
 * Ordering reference counting::  
 @end menu
 
-@node Ordering constructor, Ordering reference counting, Order, Order
+@node Ordering constructor, Ordering reference counting, Ordering objects, Ordering objects
 @section Creating an ordering
 
 Libmarpa allows ambiguous parses.
@@ -1710,7 +1726,7 @@ Return value: The base grammar of @var{o}.
 Always succeeds.
 @end deftypefun
 
-@node Ordering reference counting,  , Ordering constructor, Order
+@node Ordering reference counting,  , Ordering constructor, Ordering objects
 @section Reference counting
 
 @deftypefun Marpa_Order marpa_o_ref ( @
@@ -1733,7 +1749,7 @@ They are destroyed by reducing their reference count to zero.
 Return value: None
 @end deftypefun
 
-@node Tree, Value, Order, Top
+@node Tree, Value, Ordering objects, Top
 @chapter Tree iterators
 
 Within Marpa,
@@ -2031,7 +2047,7 @@ The token is non-nulling.
 Its value
 will not be the ``whatever''
 value and will be in
-@code{marpa_v_value(v)}.
+@code{marpa_v_token_value(v)}.
 @end deftypevr
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_NULLING_SYMBOL
@@ -2100,7 +2116,7 @@ returns the stack locaton where the value of the last child
 can be found.
 @end deftypefn
 
-@node Events, Error handling, Value, Top
+@node Events, Error macros and code, Value, Top
 @chapter Events
 
 @menu
@@ -2148,38 +2164,16 @@ The value of the event is the ID of the symbol.
 Suggested message: "Grammar has a nulling terminal."
 @end deftypevr
 
-@node Error handling, Design considerations, Events, Top
-@chapter Error handling
+@node Error macros and code, Design considerations, Events, Top
+@chapter Error macros and code
 
-@section Soft and hard errors
+@menu
+* Methods::                     
+* Error Macros::                
+* Error Codes::                 
+@end menu
 
-Soft errors are errors which may be a result of normal processing.
-Soft errors often do not disrupt the flow of processing,
-and applications typically do not treat soft errors
-as fatal errors.
-When a soft error is an interruption of normal processing,
-the disruption is usually recoverable.
-
-Hard errors are errors which are never the result of
-normal processing.
-They almost always disrupt the flow of processing.
-Recovery from a hard error is usually not possible,
-and an application will usually treat a hard error
-as a fatal error.
-
-The difference between hard and soft errors can
-depend, to a certain extent,
-on the application.
-Libmarpa has its own idea of what is a hard
-and soft error but,
-whenever possible,
-it does not enforce this on the application.
-An application is also free to treat a soft
-error as a hard error.
-And Libmarpa makes
-every attempt to allow an application to
-reinterpret a hard error as a soft error.
-
+@node Methods, Error Macros, Error macros and code, Error macros and code
 @section Methods
 
 @deftypefun Marpa_Error_Code marpa_g_error @
@@ -2209,12 +2203,14 @@ Return value: The last error code from a Libmarpa method.
 Always succeeds.
 @end deftypefun
 
+@node Error Macros, Error Codes, Methods, Error macros and code
 @section Error Macros
 
 @deftypevr Macro int MARPA_ERRCODE_COUNT
 The number of error codes.
 @end deftypevr
 
+@node Error Codes,  , Error Macros, Error macros and code
 @section Error Codes
 
 @deftypevr Macro int MARPA_ERR_NONE
@@ -2602,7 +2598,7 @@ should not be the case.
 Suggested message: "Valuator inactive."
 @end deftypevr
 
-@node Design considerations, Things To Do, Error handling, Top
+@node Design considerations, Things To Do, Error macros and code, Top
 @chapter Design considerations
 
 This section details some of the design choices
