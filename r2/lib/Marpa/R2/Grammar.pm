@@ -734,25 +734,6 @@ sub Marpa::R2::Grammar::show_symbol {
     return $text;
 
 } ## end sub Marpa::R2::Grammar::show_symbol
-
-sub Marpa::R2::Grammar::show_ISY {
-    my ( $grammar, $isy_id ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $text      = q{};
-
-    my $name = $grammar->isy_name($isy_id);
-    $text .= "$isy_id: $name";
-
-    my @tag_list = ();
-    $grammar_c->_marpa_g_isy_is_nulling($isy_id)  and push @tag_list, 'nulling';
-
-    $text .= join q{ }, q{,}, @tag_list if scalar @tag_list;
-    $text .= "\n";
-
-    return $text;
-
-} ## end sub Marpa::R2::Grammar::show_ISY
-
 sub Marpa::R2::Grammar::show_symbols {
     my ($grammar) = @_;
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
@@ -762,16 +743,6 @@ sub Marpa::R2::Grammar::show_symbols {
     }
     return $text;
 } ## end sub Marpa::R2::Grammar::show_symbols
-
-sub Marpa::R2::Grammar::show_ISYs {
-    my ($grammar) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $text      = q{};
-    for my $isy_id (0 .. $grammar_c->_marpa_g_isy_count()-1) {
-        $text .= $grammar->show_ISY($isy_id);
-    }
-    return $text;
-} ## end sub Marpa::R2::Grammar::show_ISYs
 
 sub Marpa::R2::Grammar::show_nulling_symbols {
     my ($grammar) = @_;
@@ -835,22 +806,6 @@ sub Marpa::R2::Grammar::brief_rule {
     return $text;
 } ## end sub Marpa::R2::Grammar::brief_rule
 
-sub Marpa::R2::Grammar::brief_irl {
-    my ( $grammar, $irl_id ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $lhs_id    = $grammar_c->_marpa_g_irl_lhs($irl_id);
-    my $text .= $irl_id . ': ' . $grammar->isy_name($lhs_id) . ' ->';
-    if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id) ) {
-        my @rhs_ids = ();
-        for my $ix ( 0 .. $rh_length - 1 ) {
-            push @rhs_ids, $grammar_c->_marpa_g_irl_rhs( $irl_id, $ix );
-        }
-        $text
-            .= q{ } . ( join q{ }, map { $grammar->isy_name($_) } @rhs_ids );
-    } ## end if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id))
-    return $text;
-} ## end sub Marpa::R2::Grammar::brief_irl
-
 sub Marpa::R2::Grammar::show_rule {
     my ( $grammar, $rule ) = @_;
 
@@ -859,7 +814,7 @@ sub Marpa::R2::Grammar::show_rule {
     my @comment   = ();
 
     $grammar_c->rule_length($rule_id) == 0 and push @comment, 'empty';
-    $grammar_c->_marpa_g_rule_is_used($rule_id)       or push @comment, '!used';
+    $grammar->rule_is_used($rule_id)         or push @comment, '!used';
     $grammar_c->rule_is_productive($rule_id) or push @comment, 'unproductive';
     $grammar_c->rule_is_accessible($rule_id) or push @comment, 'inaccessible';
     $grammar_c->rule_is_keep_separation($rule_id)
@@ -1520,5 +1475,57 @@ sub set_start_symbol {
     }
     return 1;
 } ## end sub set_start_symbol
+
+# INTERNAL OK AFTER HERE _marpa_
+
+sub Marpa::R2::Grammar::show_ISY {
+    my ( $grammar, $isy_id ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $text      = q{};
+
+    my $name = $grammar->isy_name($isy_id);
+    $text .= "$isy_id: $name";
+
+    my @tag_list = ();
+    $grammar_c->_marpa_g_isy_is_nulling($isy_id)  and push @tag_list, 'nulling';
+
+    $text .= join q{ }, q{,}, @tag_list if scalar @tag_list;
+    $text .= "\n";
+
+    return $text;
+
+} ## end sub Marpa::R2::Grammar::show_ISY
+
+sub Marpa::R2::Grammar::show_ISYs {
+    my ($grammar) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $text      = q{};
+    for my $isy_id (0 .. $grammar_c->_marpa_g_isy_count()-1) {
+        $text .= $grammar->show_ISY($isy_id);
+    }
+    return $text;
+} ## end sub Marpa::R2::Grammar::show_ISYs
+
+sub Marpa::R2::Grammar::brief_irl {
+    my ( $grammar, $irl_id ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $lhs_id    = $grammar_c->_marpa_g_irl_lhs($irl_id);
+    my $text .= $irl_id . ': ' . $grammar->isy_name($lhs_id) . ' ->';
+    if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id) ) {
+        my @rhs_ids = ();
+        for my $ix ( 0 .. $rh_length - 1 ) {
+            push @rhs_ids, $grammar_c->_marpa_g_irl_rhs( $irl_id, $ix );
+        }
+        $text
+            .= q{ } . ( join q{ }, map { $grammar->isy_name($_) } @rhs_ids );
+    } ## end if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id))
+    return $text;
+} ## end sub Marpa::R2::Grammar::brief_irl
+
+sub Marpa::R2::Grammar::rule_is_used {
+    my ( $grammar, $rule_id ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    return $grammar_c->_marpa_g_rule_is_used($rule_id);
+}
 
 1;
