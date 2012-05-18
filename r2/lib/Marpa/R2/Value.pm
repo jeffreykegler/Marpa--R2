@@ -224,268 +224,6 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     return 1;
 }    # set_actions
 
-#
-# Set ranks for chaf rules
-#
-sub rank_chaf_rules {
-
-    my ($grammar) = @_;
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my @chaf_ranks;
-
-    RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count() - 1 ) {
-
-        my $original_rule_id = $grammar_c->_marpa_g_source_xrl($irl_id);
-        my $original_rule =
-            defined $original_rule_id ? $rules->[$original_rule_id] : undef;
-        my $null_ranking =
-            defined $original_rule
-            ? $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKING]
-            : undef;
-
-        # If not null ranked, default to highest CHAF rank
-        if ( not $null_ranking ) {
-            $chaf_ranks[$irl_id] = 99;
-            next RULE;
-        }
-
-        # If this rule is marked as null ranked,
-        # but it is not actually a CHAF rule, rank it below
-        # all non-null-ranked rules, but above all rules with CHAF
-        # ranks actually computed from the proper nullables
-        my $virtual_start = $grammar_c->_marpa_g_virtual_start($irl_id);
-        if ( not defined $virtual_start ) {
-            $chaf_ranks[$irl_id] = 98;
-            next RULE;
-        }
-
-        my $original_rule_length = $grammar_c->rule_length($original_rule_id);
-
-        my $rank                  = 0;
-        my $proper_nullable_count = 0;
-        RHS_IX:
-        for (
-            my $rhs_ix = $virtual_start;
-            $rhs_ix < $original_rule_length;
-            $rhs_ix++
-            )
-        {
-            my $original_rhs_id =
-                $grammar_c->rule_rhs( $original_rule_id, $rhs_ix );
-
-            # Do nothing unless this is a proper nullable
-            next RHS_IX if $grammar_c->symbol_is_nulling($original_rhs_id);
-            next RHS_IX
-                if not $grammar_c->symbol_is_nullable($original_rhs_id);
-
-            my $rhs_id =
-                $grammar_c->_marpa_g_irl_rhs( $irl_id, $rhs_ix - $virtual_start );
-            last RHS_IX if not defined $rhs_id;
-            $rank *= 2;
-            $rank += ( $grammar_c->_marpa_g_isy_is_nulling($rhs_id) ? 0 : 1 );
-
-            last RHS_IX if ++$proper_nullable_count >= 2;
-        } ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < ...)
-
-        if ( $null_ranking eq 'high' ) {
-            $rank = ( 2**$proper_nullable_count - 1 ) - $rank;
-        }
-
-        $chaf_ranks[$irl_id] = $rank;
-
-    } ## end for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count(...))
-
-    return \@chaf_ranks;
-
-}
-
-sub calculate_rank_by_irl {
-    my ($grammar)   = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $default_rank = $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK];
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my @rank_by_irl = ();
-    RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count()-1 ) {
-	my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
-	if (defined $xrl_id) {
-	  my $rule = $rules->[ $xrl_id ];
-	  $rank_by_irl[ $irl_id ] = $rule->[Marpa::R2::Internal::Rule::RANK];
-	  next RULE;
-	}
-	$rank_by_irl[ $irl_id ] = $default_rank;
-    }    # end for my $rule ( @{$rules} )
-    return \@rank_by_irl;
-}
-
-sub do_high_rule_only {
-    my ($recce)   = @_;
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order    = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $chaf_ranks = rank_chaf_rules($grammar);
-
-    my $top_or_node = $bocage->_marpa_b_top_or_node();
-
-    # If parse is nulling, just return
-    return if not defined $top_or_node;
-    my @or_nodes = ($top_or_node);
-
-    # Set up ranks by symbol
-    my @rank_by_symbol = ();
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
-        $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
-    }    # end for my $symbol ( @{$symbols} )
-
-    my $rank_by_irl = calculate_rank_by_irl($grammar);
-
-    OR_NODE: for ( my $or_node = 0;; $or_node++ ) {
-        my $first_and_node = $bocage->_marpa_b_or_node_first_and($or_node);
-        last OR_NODE if not defined $first_and_node;
-        my $last_and_node = $bocage->_marpa_b_or_node_last_and($or_node);
-        my @ranking_data  = ();
-        my @and_nodes     = $first_and_node .. $last_and_node;
-        AND_NODE:
-
-        for my $and_node (@and_nodes) {
-            my $token = $bocage->_marpa_b_and_node_symbol($and_node);
-            if ( defined $token ) {
-                push @ranking_data,
-                    [ $and_node, $rank_by_symbol[$token], 99 ];
-                next AND_NODE;
-            }
-            my $cause   = $bocage->_marpa_b_and_node_cause($and_node);
-            my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
-            push @ranking_data,
-                [
-                $and_node, $rank_by_irl->[$irl_id],
-		$chaf_ranks->[$irl_id]
-                ];
-        } ## end for my $and_node (@and_nodes)
-
-## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
-        my @sorted_and_data =
-            sort { $b->[1] <=> $a->[1] or $b->[2] <=> $a->[2] } @ranking_data;
-## use critic
-
-        my ( $first_selected_and_node, $high_rule_rank, $high_chaf_rank ) =
-            @{ $sorted_and_data[0] };
-        my @selected_and_nodes = ($first_selected_and_node);
-        AND_DATUM:
-        for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data ] ) {
-            my ( $and_node, $rule_rank, $chaf_rank ) = @{$and_datum};
-            last AND_DATUM if $rule_rank < $high_rule_rank;
-            last AND_DATUM if $chaf_rank < $high_chaf_rank;
-            push @selected_and_nodes, $and_node;
-        } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
-        $order->_marpa_o_and_node_order_set( $or_node, \@selected_and_nodes );
-        push @or_nodes, grep {defined} map {
-            ( $bocage->_marpa_b_and_node_predecessor($_), $bocage->_marpa_b_and_node_cause($_) )
-        } @selected_and_nodes;
-    } ## end for ( my $or_node = 0;; $or_node++ )
-    return 1;
-} ## end sub do_high_rule_only
-
-sub do_rank_by_rule {
-    my ($recce)   = @_;
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order    = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $chaf_ranks = rank_chaf_rules($grammar);
-
-    my @or_nodes = ( $bocage->_marpa_b_top_or_node() );
-
-    # Set up ranks by symbol
-    my @rank_by_symbol = ();
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
-        $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
-    }    # end for my $symbol ( @{$symbols} )
-
-    # Set up ranks by rule
-    my $rank_by_irl = calculate_rank_by_irl($grammar);
-
-    my $seen = q{};
-    OR_NODE: while ( my $or_node = pop @or_nodes ) {
-        last OR_NODE if not defined $or_node;
-        next OR_NODE if vec $seen, $or_node, 1;
-        vec( $seen, $or_node, 1 ) = 1;
-        my $first_and_node = $bocage->_marpa_b_or_node_first_and($or_node);
-        my $last_and_node  = $bocage->_marpa_b_or_node_last_and($or_node);
-        my @ranking_data   = ();
-        my @and_nodes      = $first_and_node .. $last_and_node;
-        AND_NODE:
-
-        for my $and_node (@and_nodes) {
-            my $token = $bocage->_marpa_b_and_node_symbol($and_node);
-            if ( defined $token ) {
-                push @ranking_data,
-                    [ $and_node, $rank_by_symbol[$token], 99 ];
-                next AND_NODE;
-            }
-            my $cause   = $bocage->_marpa_b_and_node_cause($and_node);
-            my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
-            push @ranking_data,
-                [
-                $and_node, $rank_by_irl->[$irl_id],
-		$chaf_ranks->[$irl_id]
-                ];
-        } ## end for my $and_node (@and_nodes)
-
-## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
-        my @ranked_and_nodes =
-            map { $_->[0] }
-            sort { $b->[1] <=> $a->[1] or $b->[2] <=> $a->[2] } @ranking_data;
-## use critic
-
-        $order->_marpa_o_and_node_order_set( $or_node, \@ranked_and_nodes );
-        push @or_nodes, grep {defined} map {
-            ( $bocage->_marpa_b_and_node_predecessor($_), $bocage->_marpa_b_and_node_cause($_) )
-        } @ranked_and_nodes;
-    } ## end while ( my $or_node = pop @or_nodes )
-    return 1;
-} ## end sub do_rank_by_rule
-
-sub trace_token_evaluation {
-    my ( $recce, $value, $token_id, $value_ref ) = @_;
-    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
-    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-
-    my $nook_ix     = $value->_marpa_v_nook();
-    if ( not defined $nook_ix ) {
-        print {$Marpa::R2::Internal::TRACE_FH} "Nulling valuator\n";
-	return;
-    }
-    my $or_node_id  = $tree->_marpa_t_nook_or_node($nook_ix);
-    my $choice      = $tree->_marpa_t_nook_choice($nook_ix);
-    my $and_node_id = $order->_marpa_o_and_node_order_get( $or_node_id, $choice );
-    my $token_name;
-    if ( defined $token_id ) {
-        $token_name = $grammar->symbol_name($token_id);
-    }
-
-    print {$Marpa::R2::Internal::TRACE_FH}
-        'Pushed value from ',
-        Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id ),
-        ': ',
-        ( $token_name ? qq{$token_name = } : q{} ),
-        Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
-        or Marpa::R2::exception('print to trace handle failed');
-
-   return;
-
-} ## end sub trace_token_evaluation
-
 # Does not modify stack
 sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce)     = @_;
@@ -1137,5 +875,267 @@ sub Marpa::R2::Recognizer::show_tree {
     }
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_tree
+
+sub rank_chaf_rules {
+
+    my ($grammar) = @_;
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my @chaf_ranks;
+
+    RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count() - 1 ) {
+
+        my $original_rule_id = $grammar_c->_marpa_g_source_xrl($irl_id);
+        my $original_rule =
+            defined $original_rule_id ? $rules->[$original_rule_id] : undef;
+        my $null_ranking =
+            defined $original_rule
+            ? $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKING]
+            : undef;
+
+        # If not null ranked, default to highest CHAF rank
+        if ( not $null_ranking ) {
+            $chaf_ranks[$irl_id] = 99;
+            next RULE;
+        }
+
+        # If this rule is marked as null ranked,
+        # but it is not actually a CHAF rule, rank it below
+        # all non-null-ranked rules, but above all rules with CHAF
+        # ranks actually computed from the proper nullables
+        my $virtual_start = $grammar_c->_marpa_g_virtual_start($irl_id);
+        if ( not defined $virtual_start ) {
+            $chaf_ranks[$irl_id] = 98;
+            next RULE;
+        }
+
+        my $original_rule_length = $grammar_c->rule_length($original_rule_id);
+
+        my $rank                  = 0;
+        my $proper_nullable_count = 0;
+        RHS_IX:
+        for (
+            my $rhs_ix = $virtual_start;
+            $rhs_ix < $original_rule_length;
+            $rhs_ix++
+            )
+        {
+            my $original_rhs_id =
+                $grammar_c->rule_rhs( $original_rule_id, $rhs_ix );
+
+            # Do nothing unless this is a proper nullable
+            next RHS_IX if $grammar_c->symbol_is_nulling($original_rhs_id);
+            next RHS_IX
+                if not $grammar_c->symbol_is_nullable($original_rhs_id);
+
+            my $rhs_id =
+                $grammar_c->_marpa_g_irl_rhs( $irl_id, $rhs_ix - $virtual_start );
+            last RHS_IX if not defined $rhs_id;
+            $rank *= 2;
+            $rank += ( $grammar_c->_marpa_g_isy_is_nulling($rhs_id) ? 0 : 1 );
+
+            last RHS_IX if ++$proper_nullable_count >= 2;
+        } ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < ...)
+
+        if ( $null_ranking eq 'high' ) {
+            $rank = ( 2**$proper_nullable_count - 1 ) - $rank;
+        }
+
+        $chaf_ranks[$irl_id] = $rank;
+
+    } ## end for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count(...))
+
+    return \@chaf_ranks;
+
+}
+
+sub calculate_rank_by_irl {
+    my ($grammar)   = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $default_rank = $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my @rank_by_irl = ();
+    RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count()-1 ) {
+	my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
+	if (defined $xrl_id) {
+	  my $rule = $rules->[ $xrl_id ];
+	  $rank_by_irl[ $irl_id ] = $rule->[Marpa::R2::Internal::Rule::RANK];
+	  next RULE;
+	}
+	$rank_by_irl[ $irl_id ] = $default_rank;
+    }    # end for my $rule ( @{$rules} )
+    return \@rank_by_irl;
+}
+
+sub do_high_rule_only {
+    my ($recce)   = @_;
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order    = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $chaf_ranks = rank_chaf_rules($grammar);
+
+    my $top_or_node = $bocage->_marpa_b_top_or_node();
+
+    # If parse is nulling, just return
+    return if not defined $top_or_node;
+    my @or_nodes = ($top_or_node);
+
+    # Set up ranks by symbol
+    my @rank_by_symbol = ();
+    SYMBOL: for my $symbol ( @{$symbols} ) {
+        my $rank = $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
+        $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
+    }    # end for my $symbol ( @{$symbols} )
+
+    my $rank_by_irl = calculate_rank_by_irl($grammar);
+
+    OR_NODE: for ( my $or_node = 0;; $or_node++ ) {
+        my $first_and_node = $bocage->_marpa_b_or_node_first_and($or_node);
+        last OR_NODE if not defined $first_and_node;
+        my $last_and_node = $bocage->_marpa_b_or_node_last_and($or_node);
+        my @ranking_data  = ();
+        my @and_nodes     = $first_and_node .. $last_and_node;
+        AND_NODE:
+
+        for my $and_node (@and_nodes) {
+            my $token = $bocage->_marpa_b_and_node_symbol($and_node);
+            if ( defined $token ) {
+                push @ranking_data,
+                    [ $and_node, $rank_by_symbol[$token], 99 ];
+                next AND_NODE;
+            }
+            my $cause   = $bocage->_marpa_b_and_node_cause($and_node);
+            my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
+            push @ranking_data,
+                [
+                $and_node, $rank_by_irl->[$irl_id],
+		$chaf_ranks->[$irl_id]
+                ];
+        } ## end for my $and_node (@and_nodes)
+
+## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
+        my @sorted_and_data =
+            sort { $b->[1] <=> $a->[1] or $b->[2] <=> $a->[2] } @ranking_data;
+## use critic
+
+        my ( $first_selected_and_node, $high_rule_rank, $high_chaf_rank ) =
+            @{ $sorted_and_data[0] };
+        my @selected_and_nodes = ($first_selected_and_node);
+        AND_DATUM:
+        for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data ] ) {
+            my ( $and_node, $rule_rank, $chaf_rank ) = @{$and_datum};
+            last AND_DATUM if $rule_rank < $high_rule_rank;
+            last AND_DATUM if $chaf_rank < $high_chaf_rank;
+            push @selected_and_nodes, $and_node;
+        } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
+        $order->_marpa_o_and_node_order_set( $or_node, \@selected_and_nodes );
+        push @or_nodes, grep {defined} map {
+            ( $bocage->_marpa_b_and_node_predecessor($_), $bocage->_marpa_b_and_node_cause($_) )
+        } @selected_and_nodes;
+    } ## end for ( my $or_node = 0;; $or_node++ )
+    return 1;
+} ## end sub do_high_rule_only
+
+sub do_rank_by_rule {
+    my ($recce)   = @_;
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order    = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $chaf_ranks = rank_chaf_rules($grammar);
+
+    my @or_nodes = ( $bocage->_marpa_b_top_or_node() );
+
+    # Set up ranks by symbol
+    my @rank_by_symbol = ();
+    SYMBOL: for my $symbol ( @{$symbols} ) {
+        my $rank = $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
+        $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
+    }    # end for my $symbol ( @{$symbols} )
+
+    # Set up ranks by rule
+    my $rank_by_irl = calculate_rank_by_irl($grammar);
+
+    my $seen = q{};
+    OR_NODE: while ( my $or_node = pop @or_nodes ) {
+        last OR_NODE if not defined $or_node;
+        next OR_NODE if vec $seen, $or_node, 1;
+        vec( $seen, $or_node, 1 ) = 1;
+        my $first_and_node = $bocage->_marpa_b_or_node_first_and($or_node);
+        my $last_and_node  = $bocage->_marpa_b_or_node_last_and($or_node);
+        my @ranking_data   = ();
+        my @and_nodes      = $first_and_node .. $last_and_node;
+        AND_NODE:
+
+        for my $and_node (@and_nodes) {
+            my $token = $bocage->_marpa_b_and_node_symbol($and_node);
+            if ( defined $token ) {
+                push @ranking_data,
+                    [ $and_node, $rank_by_symbol[$token], 99 ];
+                next AND_NODE;
+            }
+            my $cause   = $bocage->_marpa_b_and_node_cause($and_node);
+            my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
+            push @ranking_data,
+                [
+                $and_node, $rank_by_irl->[$irl_id],
+		$chaf_ranks->[$irl_id]
+                ];
+        } ## end for my $and_node (@and_nodes)
+
+## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
+        my @ranked_and_nodes =
+            map { $_->[0] }
+            sort { $b->[1] <=> $a->[1] or $b->[2] <=> $a->[2] } @ranking_data;
+## use critic
+
+        $order->_marpa_o_and_node_order_set( $or_node, \@ranked_and_nodes );
+        push @or_nodes, grep {defined} map {
+            ( $bocage->_marpa_b_and_node_predecessor($_), $bocage->_marpa_b_and_node_cause($_) )
+        } @ranked_and_nodes;
+    } ## end while ( my $or_node = pop @or_nodes )
+    return 1;
+} ## end sub do_rank_by_rule
+
+#
+# Set ranks for chaf rules
+#
+sub trace_token_evaluation {
+    my ( $recce, $value, $token_id, $value_ref ) = @_;
+    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+
+    my $nook_ix     = $value->_marpa_v_nook();
+    if ( not defined $nook_ix ) {
+        print {$Marpa::R2::Internal::TRACE_FH} "Nulling valuator\n";
+	return;
+    }
+    my $or_node_id  = $tree->_marpa_t_nook_or_node($nook_ix);
+    my $choice      = $tree->_marpa_t_nook_choice($nook_ix);
+    my $and_node_id = $order->_marpa_o_and_node_order_get( $or_node_id, $choice );
+    my $token_name;
+    if ( defined $token_id ) {
+        $token_name = $grammar->symbol_name($token_id);
+    }
+
+    print {$Marpa::R2::Internal::TRACE_FH}
+        'Pushed value from ',
+        Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id ),
+        ': ',
+        ( $token_name ? qq{$token_name = } : q{} ),
+        Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
+        or Marpa::R2::exception('print to trace handle failed');
+
+   return;
+
+} ## end sub trace_token_evaluation
 
 1;
