@@ -386,16 +386,6 @@ sub Marpa::R2::Recognizer::set {
     return 1;
 } ## end sub Marpa::R2::Recognizer::set
 
-# Not intended to be documented.
-# Returns the size of the last completed earley set.
-# For testing, especially that the Leo items
-# are doing their job.
-sub Marpa::R2::Recognizer::earley_set_size {
-    my ( $recce, $set_id ) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    return $recce_c->_marpa_r_earley_set_size($set_id);
-}
-
 sub Marpa::R2::Recognizer::latest_earley_set {
     my ($recce) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -440,6 +430,257 @@ sub Marpa::R2::Recognizer::status {
 sub Marpa::R2::Recognizer::strip { return 1; }
 
 # Viewing methods, for debugging
+
+BEGIN {
+    my $structure = <<'END_OF_STRUCTURE';
+
+    :package=Marpa::R2::Internal::Progress_Report
+
+    RULE_ID
+    POSITION
+    ORIGIN
+    CURRENT
+
+END_OF_STRUCTURE
+    Marpa::R2::offset($structure);
+} ## end BEGIN
+
+sub Marpa::R2::Recognizer::show_progress {
+    my ( $recce, $start_ordinal, $end_ordinal ) = @_;
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+
+    my $last_ordinal = $recce_c->latest_earley_set();
+
+    if ( not defined $start_ordinal ) {
+        $start_ordinal = $last_ordinal;
+    }
+    if ( $start_ordinal < 0 ) {
+        $start_ordinal += $last_ordinal + 1;
+    }
+    else {
+        if ( $start_ordinal < 0 or $start_ordinal > $last_ordinal ) {
+            return
+                "Marpa::PP::Recognizer::show_progress start index is $start_ordinal, "
+                . "must be in range 0-$last_ordinal";
+        }
+    } ## end else [ if ( $start_ordinal < 0 ) ]
+
+    if ( not defined $end_ordinal ) {
+        $end_ordinal = $start_ordinal;
+    }
+    else {
+        my $end_ordinal_argument = $end_ordinal;
+        if ( $end_ordinal < 0 ) {
+            $end_ordinal += $last_ordinal + 1;
+        }
+        if ( $end_ordinal < 0 ) {
+            return
+                "Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
+                . sprintf ' must be in range %d-%d', -( $last_ordinal + 1 ),
+                $last_ordinal;
+        } ## end if ( $end_ordinal < 0 )
+    } ## end else [ if ( not defined $end_ordinal ) ]
+
+    my $text = q{};
+    for my $current_ordinal ( $start_ordinal .. $end_ordinal ) {
+        my $current_earleme     = $recce_c->earleme($current_ordinal);
+        my %by_rule_by_position = ();
+        my $reports             = report_progress( $recce, $current_ordinal );
+
+        for my $report ( @{$reports} ) {
+            my $rule_id =
+                $report->[Marpa::R2::Internal::Progress_Report::RULE_ID];
+            my $position =
+                $report->[Marpa::R2::Internal::Progress_Report::POSITION];
+            my $origin =
+                $report->[Marpa::R2::Internal::Progress_Report::ORIGIN];
+
+            $by_rule_by_position{$rule_id}->{$position}->{$origin}++;
+        } ## end for my $report ( @{$reports} )
+        for my $rule_id ( sort { $a <=> $b } keys %by_rule_by_position ) {
+            my $by_position = $by_rule_by_position{$rule_id};
+            for my $position ( sort { $a <=> $b } keys %{$by_position} ) {
+                my $raw_origins   = $by_position->{$position};
+                my @origins       = sort { $a <=> $b } keys %{$raw_origins};
+                my $origins_count = scalar @origins;
+                my $origin_desc;
+                if ( $origins_count <= 3 ) {
+                    $origin_desc = join q{,}, @origins;
+                }
+                else {
+                    $origin_desc = $origins[0] . q{...} . $origins[-1];
+                }
+
+                my $rhs_length = $grammar_c->rule_length($rule_id);
+                my $item_text;
+
+                # flag indicating whether we need to show the dot in the rule
+                if ( $position >= $rhs_length ) {
+                    $item_text .= "F$rule_id";
+                }
+                elsif ($position) {
+                    $item_text .= "R$rule_id:$position";
+                }
+                else {
+                    $item_text .= "P$rule_id";
+                }
+                $item_text .= " x$origins_count" if $origins_count > 1;
+                $item_text
+                    .= q{ @} . $origin_desc . q{-} . $current_earleme . q{ };
+                $item_text
+                    .= $grammar->show_dotted_rule( $rule_id, $position );
+                $text .= $item_text . "\n";
+            } ## end for my $position ( sort { $a <=> $b } keys %{...})
+        } ## end for my $rule_id ( sort { $a <=> $b } keys ...)
+    } ## end for my $current_ordinal ( $start_ordinal .. $end_ordinal)
+    return $text;
+} ## end sub Marpa::R2::Recognizer::show_progress
+
+sub Marpa::R2::Recognizer::read {
+    my $recce = shift;
+    return if not $recce->alternative(@_);
+    return $recce->earleme_complete();
+}
+
+sub Marpa::R2::Recognizer::alternative {
+
+    my ( $recce, $symbol_name, $value, $length ) = @_;
+
+    Marpa::R2::exception(
+        'No recognizer object for Marpa::R2::Recognizer::tokens')
+        if not defined $recce
+            or ref $recce ne 'Marpa::R2::Recognizer';
+
+    Marpa::R2::exception('Attempt to read token after parsing is finished')
+        if $recce->[Marpa::R2::Internal::Recognizer::FINISHED];
+
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $trace_fh =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $token_values =
+        $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
+    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
+    my $symbol_id   = $symbol_hash->{$symbol_name};
+
+    if (not defined $symbol_id) {
+        Marpa::R2::exception(qq{alternative(): symbol "$symbol_name" does not exist});
+    }
+
+    my $value_ix = -1;
+    if ( defined $value ) {
+        $value_ix = scalar @{$token_values};
+        push @{$token_values}, $value;
+    }
+    $length //= 1;
+
+    my $result = $recce_c->alternative( $symbol_id, $value_ix, $length );
+
+    my $trace_terminals =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS];
+    if ($trace_terminals) {
+        my $verb = defined $result ? 'Accepted' : 'Rejected';
+        my $current_earleme = $result // $recce_c->current_earleme();
+        say {$trace_fh} qq{$verb "$symbol_name" at $current_earleme-}
+            . ( $length + $current_earleme )
+            or Marpa::R2::exception("Cannot print: $ERRNO");
+    } ## end if ($trace_terminals)
+
+    return if not defined $result;
+    return 1;
+
+} ## end sub Marpa::R2::Recognizer::alternative
+
+# Perform the completion step on an earley set
+
+sub Marpa::R2::Recognizer::end_input {
+    my ($recce)          = @_;
+    my $recce_c          = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $furthest_earleme = $recce_c->furthest_earleme();
+    while ( $recce_c->current_earleme() < $furthest_earleme ) {
+        $recce->earleme_complete();
+    }
+    $recce->[Marpa::R2::Internal::Recognizer::FINISHED] = 1;
+    return 1;
+} ## end sub Marpa::R2::Recognizer::end_input
+
+sub Marpa::R2::Recognizer::terminals_expected {
+    my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    return [ map { $grammar->symbol_name($_) }
+            $recce_c->terminals_expected() ];
+} ## end sub Marpa::R2::Recognizer::terminals_expected
+
+sub Marpa::R2::Recognizer::earleme_complete {
+    my ($recce) = @_;
+
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    local $Marpa::R2::Internal::TRACE_FH =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
+    my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+
+    my $event_count = $recce_c->earleme_complete();
+    EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
+        my ($event_type, $value) = $recce_c->event($event_ix);
+        next EVENT if $event_type eq 'MARPA_EVENT_EXHAUSTED';
+        if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
+            say {
+                $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] }
+                "Earley item count ($value) exceeds warning threshold"
+                or die "say: $ERRNO";
+            next EVENT;
+        } ## end if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD')
+        Marpa::R2::exception(
+            qq{Unknown earleme completion event; type="$event_type"});
+    } ## end for my $event_ix ( 0 .. $event_count - 1 )
+
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS] ) {
+        my $latest_set = $recce_c->latest_earley_set();
+        print {$Marpa::R2::Internal::TRACE_FH} "=== Earley set $latest_set\n"
+            or Marpa::R2::exception("Cannot print: $ERRNO");
+        print {$Marpa::R2::Internal::TRACE_FH}
+            Marpa::R2::show_earley_set($latest_set)
+            or Marpa::R2::exception("Cannot print: $ERRNO");
+    } ## end if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS...])
+
+    my $trace_terminals =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS] // 0;
+    if ( $trace_terminals > 1 ) {
+        my $current_earleme    = $recce_c->current_earleme();
+        my $terminals_expected = $recce->terminals_expected();
+        for my $terminal ( @{$terminals_expected} ) {
+            say {$Marpa::R2::Internal::TRACE_FH}
+                qq{Expecting "$terminal" at $current_earleme}
+                or Marpa::R2::exception("Cannot print: $ERRNO");
+        }
+    } ## end if ( $trace_terminals > 1 )
+
+    return $event_count;
+
+} ## end sub Marpa::R2::Recognizer::earleme_complete
+
+# INTERNAL OK AFTER HERE _marpa_
+
+sub Marpa::R2::Recognizer::use_leo_set {
+    my ( $recce, $boolean ) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    return $recce_c->_marpa_r_is_use_leo_set($boolean);
+}
+
+# Not intended to be documented.
+# Returns the size of the last completed earley set.
+# For testing, especially that the Leo items
+# are doing their job.
+sub Marpa::R2::Recognizer::earley_set_size {
+    my ( $recce, $set_id ) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    return $recce_c->_marpa_r_earley_set_size($set_id);
+}
 
 sub Marpa::R2::show_leo_item {
     my ($recce)        = @_;
@@ -684,113 +925,6 @@ sub Marpa::R2::Recognizer::show_earley_sets {
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_earley_sets
 
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::R2::Internal::Progress_Report
-
-    RULE_ID
-    POSITION
-    ORIGIN
-    CURRENT
-
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
-
-sub Marpa::R2::Recognizer::show_progress {
-    my ( $recce, $start_ordinal, $end_ordinal ) = @_;
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-
-    my $last_ordinal = $recce_c->latest_earley_set();
-
-    if ( not defined $start_ordinal ) {
-        $start_ordinal = $last_ordinal;
-    }
-    if ( $start_ordinal < 0 ) {
-        $start_ordinal += $last_ordinal + 1;
-    }
-    else {
-        if ( $start_ordinal < 0 or $start_ordinal > $last_ordinal ) {
-            return
-                "Marpa::PP::Recognizer::show_progress start index is $start_ordinal, "
-                . "must be in range 0-$last_ordinal";
-        }
-    } ## end else [ if ( $start_ordinal < 0 ) ]
-
-    if ( not defined $end_ordinal ) {
-        $end_ordinal = $start_ordinal;
-    }
-    else {
-        my $end_ordinal_argument = $end_ordinal;
-        if ( $end_ordinal < 0 ) {
-            $end_ordinal += $last_ordinal + 1;
-        }
-        if ( $end_ordinal < 0 ) {
-            return
-                "Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
-                . sprintf ' must be in range %d-%d', -( $last_ordinal + 1 ),
-                $last_ordinal;
-        } ## end if ( $end_ordinal < 0 )
-    } ## end else [ if ( not defined $end_ordinal ) ]
-
-    my $text = q{};
-    for my $current_ordinal ( $start_ordinal .. $end_ordinal ) {
-        my $current_earleme     = $recce_c->earleme($current_ordinal);
-        my %by_rule_by_position = ();
-        my $reports             = report_progress( $recce, $current_ordinal );
-
-        for my $report ( @{$reports} ) {
-            my $rule_id =
-                $report->[Marpa::R2::Internal::Progress_Report::RULE_ID];
-            my $position =
-                $report->[Marpa::R2::Internal::Progress_Report::POSITION];
-            my $origin =
-                $report->[Marpa::R2::Internal::Progress_Report::ORIGIN];
-
-            $by_rule_by_position{$rule_id}->{$position}->{$origin}++;
-        } ## end for my $report ( @{$reports} )
-        for my $rule_id ( sort { $a <=> $b } keys %by_rule_by_position ) {
-            my $by_position = $by_rule_by_position{$rule_id};
-            for my $position ( sort { $a <=> $b } keys %{$by_position} ) {
-                my $raw_origins   = $by_position->{$position};
-                my @origins       = sort { $a <=> $b } keys %{$raw_origins};
-                my $origins_count = scalar @origins;
-                my $origin_desc;
-                if ( $origins_count <= 3 ) {
-                    $origin_desc = join q{,}, @origins;
-                }
-                else {
-                    $origin_desc = $origins[0] . q{...} . $origins[-1];
-                }
-
-                my $rhs_length = $grammar_c->rule_length($rule_id);
-                my $item_text;
-
-                # flag indicating whether we need to show the dot in the rule
-                if ( $position >= $rhs_length ) {
-                    $item_text .= "F$rule_id";
-                }
-                elsif ($position) {
-                    $item_text .= "R$rule_id:$position";
-                }
-                else {
-                    $item_text .= "P$rule_id";
-                }
-                $item_text .= " x$origins_count" if $origins_count > 1;
-                $item_text
-                    .= q{ @} . $origin_desc . q{-} . $current_earleme . q{ };
-                $item_text
-                    .= $grammar->show_dotted_rule( $rule_id, $position );
-                $text .= $item_text . "\n";
-            } ## end for my $position ( sort { $a <=> $b } keys %{...})
-        } ## end for my $rule_id ( sort { $a <=> $b } keys ...)
-    } ## end for my $current_ordinal ( $start_ordinal .. $end_ordinal)
-    return $text;
-} ## end sub Marpa::R2::Recognizer::show_progress
-
 # This function may return duplicates.  In displaying the results,
 # it is usually # desirable to sort the results,
 # and that is the most convenient
@@ -893,139 +1027,5 @@ sub report_progress {
     } ## end for my $per_AHFA_item_datum (@per_AHFA_item_data)
     return \@progress_reports;
 } ## end sub report_progress
-
-sub Marpa::R2::Recognizer::read {
-    my $recce = shift;
-    return if not $recce->alternative(@_);
-    return $recce->earleme_complete();
-}
-
-sub Marpa::R2::Recognizer::alternative {
-
-    my ( $recce, $symbol_name, $value, $length ) = @_;
-
-    Marpa::R2::exception(
-        'No recognizer object for Marpa::R2::Recognizer::tokens')
-        if not defined $recce
-            or ref $recce ne 'Marpa::R2::Recognizer';
-
-    Marpa::R2::exception('Attempt to read token after parsing is finished')
-        if $recce->[Marpa::R2::Internal::Recognizer::FINISHED];
-
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $trace_fh =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $token_values =
-        $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    my $symbol_id   = $symbol_hash->{$symbol_name};
-
-    if (not defined $symbol_id) {
-        Marpa::R2::exception(qq{alternative(): symbol "$symbol_name" does not exist});
-    }
-
-    my $value_ix = -1;
-    if ( defined $value ) {
-        $value_ix = scalar @{$token_values};
-        push @{$token_values}, $value;
-    }
-    $length //= 1;
-
-    my $result = $recce_c->alternative( $symbol_id, $value_ix, $length );
-
-    my $trace_terminals =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS];
-    if ($trace_terminals) {
-        my $verb = defined $result ? 'Accepted' : 'Rejected';
-        my $current_earleme = $result // $recce_c->current_earleme();
-        say {$trace_fh} qq{$verb "$symbol_name" at $current_earleme-}
-            . ( $length + $current_earleme )
-            or Marpa::R2::exception("Cannot print: $ERRNO");
-    } ## end if ($trace_terminals)
-
-    return if not defined $result;
-    return 1;
-
-} ## end sub Marpa::R2::Recognizer::alternative
-
-# Perform the completion step on an earley set
-
-sub Marpa::R2::Recognizer::end_input {
-    my ($recce)          = @_;
-    my $recce_c          = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $furthest_earleme = $recce_c->furthest_earleme();
-    while ( $recce_c->current_earleme() < $furthest_earleme ) {
-        $recce->earleme_complete();
-    }
-    $recce->[Marpa::R2::Internal::Recognizer::FINISHED] = 1;
-    return 1;
-} ## end sub Marpa::R2::Recognizer::end_input
-
-sub Marpa::R2::Recognizer::terminals_expected {
-    my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    return [ map { $grammar->symbol_name($_) }
-            $recce_c->terminals_expected() ];
-} ## end sub Marpa::R2::Recognizer::terminals_expected
-
-sub Marpa::R2::Recognizer::earleme_complete {
-    my ($recce) = @_;
-
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    local $Marpa::R2::Internal::TRACE_FH =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
-    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-
-    my $event_count = $recce_c->earleme_complete();
-    EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
-        my ($event_type, $value) = $recce_c->event($event_ix);
-        next EVENT if $event_type eq 'MARPA_EVENT_EXHAUSTED';
-        if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
-            say {
-                $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] }
-                "Earley item count ($value) exceeds warning threshold"
-                or die "say: $ERRNO";
-            next EVENT;
-        } ## end if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD')
-        Marpa::R2::exception(
-            qq{Unknown earleme completion event; type="$event_type"});
-    } ## end for my $event_ix ( 0 .. $event_count - 1 )
-
-    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS] ) {
-        my $latest_set = $recce_c->latest_earley_set();
-        print {$Marpa::R2::Internal::TRACE_FH} "=== Earley set $latest_set\n"
-            or Marpa::R2::exception("Cannot print: $ERRNO");
-        print {$Marpa::R2::Internal::TRACE_FH}
-            Marpa::R2::show_earley_set($latest_set)
-            or Marpa::R2::exception("Cannot print: $ERRNO");
-    } ## end if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS...])
-
-    my $trace_terminals =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS] // 0;
-    if ( $trace_terminals > 1 ) {
-        my $current_earleme    = $recce_c->current_earleme();
-        my $terminals_expected = $recce->terminals_expected();
-        for my $terminal ( @{$terminals_expected} ) {
-            say {$Marpa::R2::Internal::TRACE_FH}
-                qq{Expecting "$terminal" at $current_earleme}
-                or Marpa::R2::exception("Cannot print: $ERRNO");
-        }
-    } ## end if ( $trace_terminals > 1 )
-
-    return $event_count;
-
-} ## end sub Marpa::R2::Recognizer::earleme_complete
-
-# INTERNAL OK AFTER HERE
-
-sub Marpa::R2::Recognizer::use_leo_set {
-    my ( $recce, $boolean ) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    return $recce_c->_marpa_r_is_use_leo_set($boolean);
-}
 
 1;
