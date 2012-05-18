@@ -817,7 +817,6 @@ zero.
 Libmarpa time objects have no explicit destructor.
 They are destroyed by reducing their reference count to zero.
 
-Return value: None
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
@@ -1356,7 +1355,7 @@ codes.
 
 @deftypefun Marpa_Recognizer marpa_r_new ( Marpa_Grammar @var{g} )
 Creates a new recognizer.
-In order to allow setting to be changed before input starts,
+In order to allow settings to be changed before input starts,
 the new recognizer is @strong{not} ready for input.
 The @code{marpa_r_start_input} method will make the
 recognizer ready for input.
@@ -1372,7 +1371,7 @@ If @var{g} is not precomputed, or on other failure, @code{NULL}.
 Increases the reference count.
 
 Return value:
-On success, the recognizer object it was called with;
+On success, the @var{r};
 @code{NULL} on failure.
 @end deftypefun
 
@@ -1383,7 +1382,6 @@ zero.
 Libmarpa time objects have no explicit destructor.
 They are destroyed by reducing their reference count to zero.
 
-Return value: None
 @end deftypefun
 
 @node Recognizer life, Recognizer events, Recognizer reference counting, Recognizers
@@ -1410,7 +1408,7 @@ which must be a terminal.
 
 @var{value} is a integer which represents the value of the
 token.
-In application were the token's value is not an integer, it is
+In applications where the token's value is not an integer, it is
 expected that the application will use this value to 
 find the application's value, perhaps by using @var{value}
 to index an array.
@@ -1424,7 +1422,7 @@ the earleme location, and @var{token_id}.
 A @var{value} of 0 has special significance -- it indicates
 that the token's value is ``whatever'' -- that it may take an
 arbitrary value.
-This usually means the the application simply does not
+This usually means that the application simply does not
 care what the value of the token is.
 The value of tokens with a ``whatever'' value 
 does not need to be stored, tracked or computed either
@@ -1450,9 +1448,9 @@ to be given a value.
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
-This method completes the reading of the tokens starting at one
-earleme and advances the current earleme by one.
-In some input models @code{marpa_r_earleme_complete} may be called
+This method does the final processing for the current earleme.
+It then advances the current earleme by one.
+Note that @code{marpa_r_earleme_complete} may be called
 even when no tokens have been read at the current earleme --
 in the character-per-earleme input model, for example, tokens
 can span many characters and, if the input is unambiguous over that
@@ -1493,15 +1491,15 @@ On failure, -2.
     Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{set_id})
 
-In the default, token-stream model, ID and earleme
-are the same, but this is not the case in other input
+In the default, token-stream model, Earley set ID and earleme
+are always equal, but this is not the case in other input
 models.
 
 Return value:
 On success,
 returns the earleme corresponding to Earley
 set @var{set_id}.
-If the ordinal is out of bounds,
+If @var{set_id} is out of bounds,
 returns -1.
 On other failures, returns -2.
 @end deftypefun
@@ -1556,8 +1554,8 @@ which are acceptable as tokens
 at the current earleme.
 @var{buffer} is expected to be large enough to hold
 the result.
-This is guaranteed to be the case if the the buffer
-is sized large enough to hold a number of
+This is guaranteed to be the case if the buffer
+is large enough to hold a number of
 @code{Marpa_Symbol_ID}'s that
 is greater than or equal to the number of symbols
 in the grammar.
@@ -1569,7 +1567,7 @@ On failure, -2.
 
 @deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
 A parser is ``exhausted'' if it cannot accept any more input.
-Both successful and failed parses can be ``exhausted''
+Both successful and failed parses can be ``exhausted''.
 In many grammars,
 the parse is always exhausted as soon as it succeeds.
 And even if the parse is exhausted at a point
@@ -1593,7 +1591,8 @@ by the @code{marpa_r_earleme_complete} method.
 The @var{ix}'th event (numbered from 0) is placed
 in the @var{public_event} value.
 
-It is a soft failure if there is no such event.
+It is a soft failure if there is no
+@var{ix}'th event.
 This can be used as the termination condition
 in a loop over the events.
 
@@ -1604,14 +1603,13 @@ If there is no such event (a soft failure),
 On hard failure, -2 is returned.
 @end deftypefun
 
-@defmac marpa_r_event_value (Marpa_Event* @var{event})
+@deftypefn {Macro} void* marpa_r_event_value (Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
 codes.
 @xref{Events}.
-Type of Value: @code{void*}
-@end defmac
+@end deftypefn
 
 @node Bocage, Ordering objects, Recognizers, Top
 @chapter Bocage objects
@@ -1622,9 +1620,9 @@ Type of Value: @code{void*}
 
 In Libmarpa, recognition and parsing are separate phases.
 Once recognition is complete, a parse ``bocage'' must be created
-from it.
+from the recognizer.
 (For those familiar with parse forests, a bocage is a
-specialized and extended parse forest.)
+a specialized and extended form of a parse forest.)
 
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{ordinal_arg})
@@ -1657,7 +1655,6 @@ zero.
 Libmarpa time objects have no explicit destructor.
 They are destroyed by reducing their reference count to zero.
 
-Return value: None
 @end deftypefun
 
 @node Ordering objects, Tree, Bocage, Top
@@ -1688,7 +1685,7 @@ the creation of the ordering object is a useless
 overhead.
 Future versions of libmarpa might allow this phase
 to be bypassed, but there is little to be gained.
-The overhead amounts to little more besides two or three
+The overhead amounts to little more than two or three
 extra subroutine calls.
 
 @deftypefun Marpa_Order marpa_o_new ( @
@@ -1723,18 +1720,16 @@ zero.
 Libmarpa time objects have no explicit destructor.
 They are destroyed by reducing their reference count to zero.
 
-Return value: None
 @end deftypefun
 
 @node Tree, Value, Ordering objects, Top
 @chapter Tree iterators
 
+Once the bocage has an ordering, the parses can be iterated.
+Marpa's tree objects are also bocage iterators.
 Within Marpa,
 when it makes sense in context,
 ``tree'' means a parse tree.
-
-Once the bocage has an ordering, the parses can be iterated.
-Marpa's tree objects are also bocage iterators.
 
 @menu
 * Tree constructor::            
@@ -1750,14 +1745,12 @@ When created, a tree object is not initialized to
 an iteration.
 To position the tree to the first parse,
 the application must call @code{marpa_t_next}.
-(Tree objects are created unitialized to allow for
-future extensions which sets flags and values prior
-to initialization.)
-
+(Tree objects are created uninitialized to allow for
+future extensions that require the setting of
+flags and parameters to control
+the iteration.)
 When a tree is created from an ordering, that ordering
 is ``frozen'', so that it cannot be changed.
-This is to prevent the ordering that guides tree iteration
-from being changed after iteration begins.
 
 Return value:  On success, a newly created tree.
 On failure, returns @code{NULL} and sets the error code.
@@ -1786,7 +1779,6 @@ zero.
 Libmarpa time objects have no explicit destructor.
 They are destroyed by reducing their reference count to zero.
 
-Return value: None
 @end deftypefun
 
 @node Tree iteration,  , Tree reference counting, Tree
@@ -1795,7 +1787,7 @@ Return value: None
 @deftypefun int marpa_t_next ( @
 	Marpa_Tree @var{t})
 Iterates the tree to a parse.
-Trees are created unitialized, so
+Trees are created uninitialized, so
 this method must be called before creating a valuator
 from a tree.
 A tree which has finished its iterations is said to
@@ -1832,7 +1824,9 @@ Always succeeds.
 
 @node About the valuator, Valuator constructor, Value, Value
 @section About the valuator
-While Libmarpa passes instruction for stack manipulation,
+While Libmarpa passes instructions
+(called ``steps'')
+for stack manipulation,
 it does not actually maintain a stack.
 This leaves the upper layer in total control of the
 stack and the values which are placed on it.
@@ -1842,29 +1836,29 @@ Suppose the evalution is at a place in the parse tree
 where an addition is being performed.
 Libmarpa does not know that the operation
 is an addition.
-It will tell the application that rule number R
+It will tell the application that rule number @math{R}
 is to be applied to the arguments at stack locations
-N and N+, and that the result is to placed in
-stack location N.
+@math{N} and @math{N+1}, and that the result is to placed in
+stack location @math{N}.
 
-In this system,
-The application keeps track of the semantics for all
-rules, so it looks up rule R and determines that it
+In this system
+the application keeps track of the semantics for all
+rules, so it looks up rule @math{R} and determines that it
 is an addition.
-The application can do this by using R as an index
+The application can do this by using @math{R} as an index
 into an array of callbacks, or by any other method
 it chooses.
 Let's assume a callback implements the semantics
-for rule R.
+for rule @math{R}.
 Libmarpa has told the application that two arguments
 are available for this operation, and that they are
-at locations N and N+1 in the stack.
+at locations @math{N} and @math{N+1} in the stack.
 They might be the numbers 42 and 711.
 So the callback is called with its two arguments,
 and produces a return value, let's say, 753.
 Libmarpa has told the application that the result
-belongs at location N in the stack,
-so the application writes 752 to location N.
+belongs at location @math{N} in the stack,
+so the application writes 753 to location @math{N}.
 
 Since Libmarpa knows nothing about the semantics,
 the operation for rule R could be string concatenation
@@ -1873,31 +1867,31 @@ Or, if it is addition, it could allow for its arguments
 to be floating point or complex numbers.
 Since the application maintains the stack, it is up
 to the application whether the stack contains integers,
-strings, complex numbers; or objects which may be any
-or all of these and more.
+strings, complex numbers, or polymorphic objects which are
+capable of being any of these things and more.
 
 This technique
 hides Libmarpa's grammar rewrites from the application,
 and is actually quite efficient.
 Libmarpa knows which rules are sequences
 and optimizes stack manipulations based on this knowledge.
-Many practical grammars use long sequences heavily,
-and for these Libmarpa the series of steps
+Many practical grammars use long sequences heavily
+and, for these,
+the series of steps
 suggest by Libmarpa will be significantly faster than the standard 
 stack evaluation algorithm in the textbooks.
 
 To make it clear,
-I am under no illusion that Libmarpa's evaluator will be found
+we are under no illusion that direct use of Libmarpa's evaluator will be found
 satisfactory even to most application programmers.
 I certainly avoid using it directly.
 It is intended to be used via an upper layer,
 one which does know about semantics.
 
-But, by isolating Libmarpa from semantics, Libmarpa avoids
-imposing any arbitrary restrictions on the semantics used
-with the Marpa algorithm.
-To see the advantage suppose, as I expect will often be the case,
-Libmarpa is used as the basis
+To see the advantage
+of isolating Libmarpa from semantics,
+suppose
+that Libmarpa is used as the basis
 for a higher-level language which needs callbacks in that higher level language.
 For generality, Libmarpa would have to deal in C callback,
 which wrapper the callbacks in the higher level language.
@@ -1913,14 +1907,14 @@ and inside code about which Libmarpa can make no assumptions.
 @deftypefun Marpa_Value marpa_v_new ( @
     Marpa_Tree @var{t} @
 )
-Creates a new valuator from the tree @var{t}.
-Creating a valuator from a tree, ``pauses'' the tree,
+Creates a new valuator from the tree @var{t},
+and ``Pauses'' the tree,
 so that the tree cannot move on to a new iteration
 until the valuator is destroyed.
-Many valuators of the same tree,
+Many valuators of the same tree
 can exist at once.
-The tree will remain paused until
-all of the valuators are destroyed.
+A tree is ``unpaused'' when
+all of its valuators are destroyed.
 
 Return value:  On success, the newly created valuator.
 On failure, returns @code{NULL} and sets the error code.
@@ -1949,7 +1943,6 @@ zero.
 Libmarpa time objects have no explicit destructor.
 They are destroyed by reducing their reference count to zero.
 
-Return value: None
 @end deftypefun
 
 @deftypefun int marpa_v_symbol_is_ask_me_when_null ( @
@@ -1963,7 +1956,7 @@ These methods, respectively, report and set to @var{value}
 the ``ask me
 when null'' flag for symbol @var{symid}.
 When this flag is 1,
-the valuator asks the applicaton
+the valuator asks the application
 to supply a value for a null symbol.
 When this flag is 0 (its default value),
 the behavior is for a null symbol to have a
@@ -2036,19 +2029,32 @@ stack location @code{marpa_v_result(v)}.
 @end deftypevr
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_INACTIVE
-The valuator is inactive.
+The valuator has gone through all of its steps
+and is now inactive.
+The value of the parse will be in stack location 0.
+
+Because of ``whatever'' semantics and nulling
+parses, it is quite possible for valuator to immediately
+became inactive -- @code{MARPA_STEP_INACTIVE} could
+be the first and last step.
+For similar reasons, the application
+may need, on its own initiative,
+to initialize the stack
+to ensure there is a stack with a location 0 --
+there will not necessarily be a valuator step that
+prompts to do so.
 @end deftypevr
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_INTERNAL1
 @deftypevrx Macro Marpa_Step_Type MARPA_STEP_INTERNAL2
 @deftypevrx Macro Marpa_Step_Type MARPA_STEP_TRACE
-These value types are reserved for internal purposes.
+These step types are reserved for internal purposes.
 @end deftypevr
 
 @node Step accessors,  , Valuator stepping, Value
 @section Step accessors
 
-Accessors which are implemented as macros.  They always succeed.
+Step accessors are implemented as macros.  They always succeed.
 
 @deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
 Return value: Returns the ID of the token
@@ -2058,7 +2064,7 @@ for the @code{MARPA_STEP_TOKEN} step.
 @deftypefn {Macro} Marpa_Symbol_ID marpa_v_symbol (Marpa_Value @var{v})
 Return value: Returns the ID of the symbol
 for the @code{MARPA_STEP_NULLING_SYMBOL} step.
-The value is always the same as that for the @code{marpa_v_symbol}
+The value is always the same as that for the @code{marpa_v_token}
 macro.
 @end deftypefn
 
@@ -2081,7 +2087,7 @@ should be placed.
 
 @deftypefn {Macro} int marpa_v_arg_0 (Marpa_Value @var{v})
 For a @code{MARPA_STEP_RULE} step,
-returns the stack locaton where the value of first child
+returns the stack location where the value of first child
 can be found.
 The value is always the same as that for the @code{marpa_v_result}
 macro.
@@ -2089,7 +2095,7 @@ macro.
 
 @deftypefn {Macro} int marpa_v_arg_n (Marpa_Value @var{v})
 For a @code{MARPA_STEP_RULE} step,
-returns the stack locaton where the value of the last child
+returns the stack location where the value of the last child
 can be found.
 @end deftypefn
 
@@ -2104,20 +2110,23 @@ can be found.
 @section Event codes
 
 @deftypevr Macro int MARPA_EVENT_NONE
+Applications should never see this event.
 Suggested message: "No event."
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EXHAUSTED
+The event value is undefined.
 Suggested message: "Recognizer is exhausted."
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+The event value is undefined.
 Suggested message: "Too many Earley items."
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_LOOP_RULES
 A rule is part of a cycle.
-Cycles are pathological cases of recursions,
+Cycles are pathological cases of recursion,
 in which the same symbol string derives itself
 a potentially infinite number of times.
 Nonetheless, Marpa parses in the presence of these,
