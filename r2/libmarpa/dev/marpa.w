@@ -5926,16 +5926,21 @@ PRIVATE ES current_es_of_r(RECCE r)
 @ @<Initialize recognizer elements@> =
 r->t_earley_item_warning_threshold = MAX(DEFAULT_EIM_WARNING_THRESHOLD, AIM_Count_of_G(g)*2);
 @ @<Function definitions@> =
-int marpa_r_earley_item_warning_threshold(Marpa_Recognizer r)
-{ return r->t_earley_item_warning_threshold; }
+int
+marpa_r_earley_item_warning_threshold (Marpa_Recognizer r)
+{
+  return r->t_earley_item_warning_threshold;
+}
 
 @ Returns true on success,
 false on failure.
 @<Function definitions@> =
-int marpa_r_earley_item_warning_threshold_set(struct marpa_r*r, int threshold)
+int
+marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer r, int threshold)
 {
-    r->t_earley_item_warning_threshold = threshold <= 0 ? EIM_FATAL_THRESHOLD : threshold;
-    return 1;
+  const int new_threshold = threshold <= 0 ? EIM_FATAL_THRESHOLD : threshold;
+  r->t_earley_item_warning_threshold = new_threshold;
+  return new_threshold;
 }
 
 @*0 Furthest Earleme.

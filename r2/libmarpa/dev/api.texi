@@ -643,15 +643,22 @@ Most function descriptions have a section describing their
 return values.
 In these sections, @dfn{success} means that the method
 successfully accomplished its primary purpose.
-
+A @dfn{hard failure}, or sometimes simply a @dfn{failure}
+means that the method failed in a way that
+is usually not part of the normal processing.
 A @dfn{soft failure} means that
 the method accomplished a secondary purpose,
 one which can be considered either a failure
 or a success depending on the circumstances.
+Where function return an integer value,
+unless otherwise stated,
+-1 will indicate a soft failure
+and -2 will indicate a hard failure.
+
 Soft failures are always recoverable.
 An example of a soft failure
-is @code{marpa_r_alternative}'s return of
--1 for an unexpected token.
+is when @code{marpa_r_alternative}'s
+finds that token is unexpected.
 In some cases,
 this error will also be unexpected by the
 application
@@ -661,11 +668,17 @@ incorporate this return value into its normal processing,
 as a means of testing alternative inputs and/or
 checking the state of the parse.
 
-A @dfn{hard failure} may or may not be recoverable,
-and will usually not be considered part of normal
-processing by an application.
-The return value descriptions will sometimes describe
-hard failures simply as ``failures''.
+A @dfn{hard failure} is usually not recoverable.
+Libmarpa attempts to allow applications to,
+on one hand, reclass failures from hard to
+soft and proceed whenever possible.
+On the other hand, Libmarpa is liberal in
+classing problems as soft failures,
+and there are many cases that
+Libmarpa treats as successes
+or soft failures, that an application
+will want to escalate to hard
+failures.
 
 @node Static Methods, Grammars, Introduction to the External Interface, Top
 @chapter Static Methods
@@ -1473,24 +1486,47 @@ On failure, -2.
     Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{set_id})
 
-Given the ID (ordinal) of an Earley set,
-return the earleme.
 In the default, token-stream model, ID and earleme
 are the same, but this is not the case in other input
 models.
-If the ordinal is out of bounds, this function
-returns -1, which can be treated as a soft failure.
-On other failures, it returns -2.
+
+Return value:
+On success,
+returns the earleme corresponding to Earley
+set @var{set_id}.
+If the ordinal is out of bounds,
+returns -1.
+On other failures, returns -2.
 @end deftypefun
 
-@deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
+@deftypefunx @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
+Return value: On success, the current earleme.
+If input has not started, -1.
+Always succeeds or fails softly.
 @end deftypefun
 
-@deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun int marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer @var{r}, @
+@deftypefunx int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
+@deftypefunx int marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer @var{r}, @
     int @var{threshold})
+These methods, respectively, report and set the earley item warning threshold.
+The @dfn{Earley item warning threshold is a number that is compared with
+the count of Earley items in each Earley set.
+When it is matched or exceeded,
+a @code{MARPA_EVENT_EARLEY_ITEM_THRESHOLD} event is created.
+
+If @var{threshold} is zero or less,
+an unlimited number of Earley items
+will be allowed without warning.
+This will rarely be what the user wants.
+By default, Libmarpa calculates a value based on the grammar.
+This default value is the result of a considerable amount of experience,
+and most applications will
+be happy with it.
+
+Return value:
+The value that the Earley item warning threshold has
+after the method call is finished.
+Always succeeds.
 @end deftypefun
 
 @deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
