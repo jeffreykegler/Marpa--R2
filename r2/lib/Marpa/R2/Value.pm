@@ -33,297 +33,12 @@ use English qw( -no_match_vars );
 
 use constant SKIP => -1;
 
-sub Marpa::R2::Recognizer::show_bocage {
-    my ($recce) = @_;
-    my $text;
-    my @data        = ();
-    my $id          = 0;
-    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
-        my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
-        last OR_NODE if not defined $irl_id;
-        my $position        = $bocage->_marpa_b_or_node_position($or_node_id);
-        my $or_origin       = $bocage->_marpa_b_or_node_origin($or_node_id);
-        my $origin_earleme  = $recce_c->earleme($or_origin);
-        my $or_set          = $bocage->_marpa_b_or_node_set($or_node_id);
-        my $current_earleme = $recce_c->earleme($or_set);
-        my @and_node_ids =
-            ( $bocage->_marpa_b_or_node_first_and($or_node_id)
-                .. $bocage->_marpa_b_or_node_last_and($or_node_id) );
-        AND_NODE:
-
-        for my $and_node_id (@and_node_ids) {
-            my $symbol = $bocage->_marpa_b_and_node_symbol($and_node_id);
-            my $cause_tag;
-
-            if ( defined $symbol ) {
-                $cause_tag = "S$symbol";
-            }
-            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            my $cause_irl_id;
-            if ( defined $cause_id ) {
-                $cause_irl_id = $bocage->_marpa_b_or_node_irl($cause_id);
-                $cause_tag =
-                    Marpa::R2::Recognizer::or_node_tag( $recce, $cause_id );
-            }
-            my $parent_tag =
-                Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
-            my $predecessor_id =
-                $bocage->_marpa_b_and_node_predecessor($and_node_id);
-            my $predecessor_tag = q{-};
-            if ( defined $predecessor_id ) {
-                $predecessor_tag = Marpa::R2::Recognizer::or_node_tag( $recce,
-                    $predecessor_id );
-            }
-            my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
-            my $middle_earleme = $origin_earleme;
-            if ( defined $predecessor_id ) {
-                my $predecessor_set =
-                    $bocage->_marpa_b_or_node_set($predecessor_id);
-                $middle_earleme = $recce_c->earleme($predecessor_set);
-            }
-
-            push @data,
-                [
-                $origin_earleme, $current_earleme,
-                $irl_id,         $position,
-                $middle_earleme,
-		( defined $symbol ? 0 : 1),
-                ( $symbol // $cause_irl_id ), $tag
-                ];
-        } ## end for my $and_node_id (@and_node_ids)
-    } ## end for ( my $or_node_id = 0;; $or_node_id++ )
-    my @sorted_data = map { $_->[-1] } sort {
-               $a->[0] <=> $b->[0]
-            or $a->[1] <=> $b->[1]
-            or $a->[2] <=> $b->[2]
-            or $a->[3] <=> $b->[3]
-            or $a->[4] <=> $b->[4]
-            or $a->[5] <=> $b->[5]
-            or $a->[6] <=> $b->[6]
-    } @data;
-    return ( join "\n", @sorted_data ) . "\n";
-} ## end sub Marpa::R2::Recognizer::show_bocage
-
-sub Marpa::R2::Recognizer::and_node_tag {
-    my ( $recce, $and_node_id ) = @_;
-    my $bocage             = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $recce_c            = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $parent_or_node_id  = $bocage->_marpa_b_and_node_parent($and_node_id);
-    my $origin             = $bocage->_marpa_b_or_node_origin($parent_or_node_id);
-    my $origin_earleme     = $recce_c->earleme($origin);
-    my $current_earley_set = $bocage->_marpa_b_or_node_set($parent_or_node_id);
-    my $current_earleme    = $recce_c->earleme($current_earley_set);
-    my $cause_id           = $bocage->_marpa_b_and_node_cause($and_node_id);
-    my $predecessor_id     = $bocage->_marpa_b_and_node_predecessor($and_node_id);
-    my $middle_earleme     = $origin_earleme;
-    if ( defined $predecessor_id ) {
-        my $middle_set = $bocage->_marpa_b_or_node_set($predecessor_id);
-        $middle_earleme = $recce_c->earleme($middle_set);
-    }
-    my $position = $bocage->_marpa_b_or_node_position($parent_or_node_id);
-    my $irl_id     = $bocage->_marpa_b_or_node_irl($parent_or_node_id);
-
-#<<<  perltidy introduces trailing space on this
-    my $tag =
-          'R'
-        . $irl_id . q{:}
-        . $position . q{@}
-        . $origin_earleme . q{-}
-        . $current_earleme;
-#>>>
-    if ( defined $cause_id ) {
-        my $cause_irl_id = $bocage->_marpa_b_or_node_irl($cause_id);
-        $tag .= 'C' . $cause_irl_id;
-    }
-    else {
-        my $symbol = $bocage->_marpa_b_and_node_symbol($and_node_id);
-        $tag .= 'S' . $symbol;
-    }
-    $tag .= q{@} . $middle_earleme;
-    return $tag;
-} ## end sub Marpa::R2::Recognizer::and_node_tag
-
-sub Marpa::R2::Recognizer::show_and_nodes {
-    my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $text;
-    my @data = ();
-    AND_NODE: for ( my $id = 0;; $id++ ) {
-        my $parent      = $bocage->_marpa_b_and_node_parent($id);
-        my $predecessor = $bocage->_marpa_b_and_node_predecessor($id);
-        my $cause       = $bocage->_marpa_b_and_node_cause($id);
-        my $symbol      = $bocage->_marpa_b_and_node_symbol($id);
-        last AND_NODE if not defined $parent;
-        my $origin          = $bocage->_marpa_b_or_node_origin($parent);
-        my $set             = $bocage->_marpa_b_or_node_set($parent);
-        my $irl_id            = $bocage->_marpa_b_or_node_irl($parent);
-        my $position        = $bocage->_marpa_b_or_node_position($parent);
-        my $origin_earleme  = $recce_c->earleme($origin);
-        my $current_earleme = $recce_c->earleme($set);
-        my $middle_earleme  = $origin_earleme;
-
-        if ( defined $predecessor ) {
-            my $predecessor_set = $bocage->_marpa_b_or_node_set($predecessor);
-            $middle_earleme = $recce_c->earleme($predecessor_set);
-        }
-
-#<<<  perltidy introduces trailing space on this
-        my $desc =
-              'R'
-            . $irl_id . q{:}
-            . $position . q{@}
-            . $origin_earleme . q{-}
-            . $current_earleme;
-#>>>
-        my $cause_rule = -1;
-        if ( defined $cause ) {
-            my $cause_irl_id = $bocage->_marpa_b_or_node_irl($cause);
-            $desc .= 'C' . $cause_irl_id;
-        }
-        else {
-            $desc .= 'S' . $symbol;
-        }
-        $desc .= q{@} . $middle_earleme;
-        push @data,
-            [
-            $origin_earleme, $current_earleme, $irl_id,
-            $position,       $middle_earleme,  $cause_rule,
-            ( $symbol // -1 ), $desc
-            ];
-    } ## end for ( my $id = 0;; $id++ )
-    my @sorted_data = map { $_->[-1] } sort {
-               $a->[0] <=> $b->[0]
-            or $a->[1] <=> $b->[1]
-            or $a->[2] <=> $b->[2]
-            or $a->[3] <=> $b->[3]
-            or $a->[4] <=> $b->[4]
-            or $a->[5] <=> $b->[5]
-            or $a->[6] <=> $b->[6]
-    } @data;
-    return ( join "\n", @sorted_data ) . "\n";
-} ## end sub Marpa::R2::Recognizer::show_and_nodes
-
-sub Marpa::R2::Recognizer::or_node_tag {
-    my ( $recce, $or_node_id ) = @_;
-    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $set      = $bocage->_marpa_b_or_node_set($or_node_id);
-    my $irl_id     = $bocage->_marpa_b_or_node_irl($or_node_id);
-    my $origin   = $bocage->_marpa_b_or_node_origin($or_node_id);
-    my $position = $bocage->_marpa_b_or_node_position($or_node_id);
-    return 'R' . $irl_id . q{:} . $position . q{@} . $origin . q{-} . $set;
-} ## end sub Marpa::R2::Recognizer::or_node_tag
-
-sub Marpa::R2::Recognizer::show_or_nodes {
-    my ( $recce, $verbose ) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $text;
-    my @data = ();
-    my $id   = 0;
-    OR_NODE: for ( ;; ) {
-        my $origin   = $bocage->_marpa_b_or_node_origin($id);
-        my $set      = $bocage->_marpa_b_or_node_set($id);
-        my $irl_id   = $bocage->_marpa_b_or_node_irl($id);
-        my $position = $bocage->_marpa_b_or_node_position($id);
-        $id++;
-        last OR_NODE if not defined $origin;
-        my $origin_earleme  = $recce_c->earleme($origin);
-        my $current_earleme = $recce_c->earleme($set);
-
-#<<<  perltidy introduces trailing space on this
-        my $desc =
-              'R'
-            . $irl_id . q{:}
-            . $position . q{@}
-            . $origin_earleme . q{-}
-            . $current_earleme;
-#>>>
-        push @data,
-            [ $origin_earleme, $current_earleme, $irl_id, $position, $desc ];
-    } ## end for ( ;; )
-    my @sorted_data = map { $_->[-1] } sort {
-               $a->[0] <=> $b->[0]
-            or $a->[1] <=> $b->[1]
-            or $a->[2] <=> $b->[2]
-            or $a->[3] <=> $b->[3]
-    } @data;
-    return ( join "\n", @sorted_data ) . "\n";
-} ## end sub Marpa::R2::Recognizer::show_or_nodes
-
 sub Marpa::R2::show_rank_ref {
     my ($rank_ref) = @_;
     return 'undef' if not defined $rank_ref;
     return 'SKIP'  if $rank_ref == Marpa::R2::Internal::Value::SKIP;
     return ${$rank_ref};
 } ## end sub Marpa::R2::show_rank_ref
-
-sub Marpa::R2::Recognizer::show_nook {
-    my ( $recce, $nook_id, $verbose ) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
-
-    my $or_node_id = $tree->_marpa_t_nook_or_node($nook_id);
-    return if not defined $or_node_id;
-
-    my $text = "o$or_node_id";
-    my $parent = $tree->_marpa_t_nook_parent($nook_id) // q{-};
-    CHILD_TYPE: {
-        if ( $tree->_marpa_t_nook_is_cause($nook_id) ) {
-            $text .= "[c$parent]";
-            last CHILD_TYPE;
-        }
-        if ( $tree->_marpa_t_nook_is_predecessor($nook_id) ) {
-            $text .= "[p$parent]";
-            last CHILD_TYPE;
-        }
-        $text .= '[-]';
-    } ## end CHILD_TYPE:
-    my $or_node_tag =
-        Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
-    $text .= " $or_node_tag";
-
-    $text .= ' p';
-    $text .= $tree->_marpa_t_nook_predecessor_is_ready($nook_id) ? q{=ok} : q{-};
-    $text .= ' c';
-    $text .= $tree->_marpa_t_nook_cause_is_ready($nook_id) ? q{=ok} : q{-};
-    $text .= "\n";
-
-    DESCRIBE_CHOICES: {
-        my $this_choice = $tree->_marpa_t_nook_choice($nook_id);
-        CHOICE: for ( my $choice_ix = 0;; $choice_ix++ ) {
-            my $and_node_id =
-                $order->_marpa_o_and_node_order_get( $or_node_id, $choice_ix );
-            last CHOICE if not defined $and_node_id;
-            $text .= " o$or_node_id" . '[' . $choice_ix . ']';
-            if ( defined $this_choice and $this_choice == $choice_ix ) {
-                $text .= q{*};
-            }
-            my $and_node_tag =
-                Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id );
-            $text .= " ::= a$and_node_id $and_node_tag";
-            $text .= "\n";
-        } ## end for ( my $choice_ix = 0;; $choice_ix++ )
-    } ## end DESCRIBE_CHOICES:
-    return $text;
-} ## end sub Marpa::R2::Recognizer::show_nook
-
-sub Marpa::R2::Recognizer::show_tree {
-    my ( $recce, $verbose ) = @_;
-    my $text = q{};
-    NOOK: for ( my $nook_id = 0; 1; $nook_id++ ) {
-        my $nook_text = $recce->show_nook( $nook_id, $verbose );
-        last NOOK if not defined $nook_text;
-        $text .= "$nook_id: $nook_text";
-    }
-    return $text;
-} ## end sub Marpa::R2::Recognizer::show_tree
 
 package Marpa::R2::Internal::Value;
 
@@ -1135,5 +850,292 @@ sub Marpa::R2::Recognizer::value {
     return Marpa::R2::Internal::Recognizer::evaluate($recce);
 
 } ## end sub Marpa::R2::Recognizer::value
+
+# INTERNAL OK AFTER HERE _marpa_
+
+sub Marpa::R2::Recognizer::show_bocage {
+    my ($recce) = @_;
+    my $text;
+    my @data        = ();
+    my $id          = 0;
+    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
+    OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
+        my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
+        last OR_NODE if not defined $irl_id;
+        my $position        = $bocage->_marpa_b_or_node_position($or_node_id);
+        my $or_origin       = $bocage->_marpa_b_or_node_origin($or_node_id);
+        my $origin_earleme  = $recce_c->earleme($or_origin);
+        my $or_set          = $bocage->_marpa_b_or_node_set($or_node_id);
+        my $current_earleme = $recce_c->earleme($or_set);
+        my @and_node_ids =
+            ( $bocage->_marpa_b_or_node_first_and($or_node_id)
+                .. $bocage->_marpa_b_or_node_last_and($or_node_id) );
+        AND_NODE:
+
+        for my $and_node_id (@and_node_ids) {
+            my $symbol = $bocage->_marpa_b_and_node_symbol($and_node_id);
+            my $cause_tag;
+
+            if ( defined $symbol ) {
+                $cause_tag = "S$symbol";
+            }
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            my $cause_irl_id;
+            if ( defined $cause_id ) {
+                $cause_irl_id = $bocage->_marpa_b_or_node_irl($cause_id);
+                $cause_tag =
+                    Marpa::R2::Recognizer::or_node_tag( $recce, $cause_id );
+            }
+            my $parent_tag =
+                Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
+            my $predecessor_id =
+                $bocage->_marpa_b_and_node_predecessor($and_node_id);
+            my $predecessor_tag = q{-};
+            if ( defined $predecessor_id ) {
+                $predecessor_tag = Marpa::R2::Recognizer::or_node_tag( $recce,
+                    $predecessor_id );
+            }
+            my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
+            my $middle_earleme = $origin_earleme;
+            if ( defined $predecessor_id ) {
+                my $predecessor_set =
+                    $bocage->_marpa_b_or_node_set($predecessor_id);
+                $middle_earleme = $recce_c->earleme($predecessor_set);
+            }
+
+            push @data,
+                [
+                $origin_earleme, $current_earleme,
+                $irl_id,         $position,
+                $middle_earleme,
+		( defined $symbol ? 0 : 1),
+                ( $symbol // $cause_irl_id ), $tag
+                ];
+        } ## end for my $and_node_id (@and_node_ids)
+    } ## end for ( my $or_node_id = 0;; $or_node_id++ )
+    my @sorted_data = map { $_->[-1] } sort {
+               $a->[0] <=> $b->[0]
+            or $a->[1] <=> $b->[1]
+            or $a->[2] <=> $b->[2]
+            or $a->[3] <=> $b->[3]
+            or $a->[4] <=> $b->[4]
+            or $a->[5] <=> $b->[5]
+            or $a->[6] <=> $b->[6]
+    } @data;
+    return ( join "\n", @sorted_data ) . "\n";
+} ## end sub Marpa::R2::Recognizer::show_bocage
+
+sub Marpa::R2::Recognizer::and_node_tag {
+    my ( $recce, $and_node_id ) = @_;
+    my $bocage             = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $recce_c            = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $parent_or_node_id  = $bocage->_marpa_b_and_node_parent($and_node_id);
+    my $origin             = $bocage->_marpa_b_or_node_origin($parent_or_node_id);
+    my $origin_earleme     = $recce_c->earleme($origin);
+    my $current_earley_set = $bocage->_marpa_b_or_node_set($parent_or_node_id);
+    my $current_earleme    = $recce_c->earleme($current_earley_set);
+    my $cause_id           = $bocage->_marpa_b_and_node_cause($and_node_id);
+    my $predecessor_id     = $bocage->_marpa_b_and_node_predecessor($and_node_id);
+    my $middle_earleme     = $origin_earleme;
+    if ( defined $predecessor_id ) {
+        my $middle_set = $bocage->_marpa_b_or_node_set($predecessor_id);
+        $middle_earleme = $recce_c->earleme($middle_set);
+    }
+    my $position = $bocage->_marpa_b_or_node_position($parent_or_node_id);
+    my $irl_id     = $bocage->_marpa_b_or_node_irl($parent_or_node_id);
+
+#<<<  perltidy introduces trailing space on this
+    my $tag =
+          'R'
+        . $irl_id . q{:}
+        . $position . q{@}
+        . $origin_earleme . q{-}
+        . $current_earleme;
+#>>>
+    if ( defined $cause_id ) {
+        my $cause_irl_id = $bocage->_marpa_b_or_node_irl($cause_id);
+        $tag .= 'C' . $cause_irl_id;
+    }
+    else {
+        my $symbol = $bocage->_marpa_b_and_node_symbol($and_node_id);
+        $tag .= 'S' . $symbol;
+    }
+    $tag .= q{@} . $middle_earleme;
+    return $tag;
+} ## end sub Marpa::R2::Recognizer::and_node_tag
+
+sub Marpa::R2::Recognizer::show_and_nodes {
+    my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $text;
+    my @data = ();
+    AND_NODE: for ( my $id = 0;; $id++ ) {
+        my $parent      = $bocage->_marpa_b_and_node_parent($id);
+        my $predecessor = $bocage->_marpa_b_and_node_predecessor($id);
+        my $cause       = $bocage->_marpa_b_and_node_cause($id);
+        my $symbol      = $bocage->_marpa_b_and_node_symbol($id);
+        last AND_NODE if not defined $parent;
+        my $origin          = $bocage->_marpa_b_or_node_origin($parent);
+        my $set             = $bocage->_marpa_b_or_node_set($parent);
+        my $irl_id            = $bocage->_marpa_b_or_node_irl($parent);
+        my $position        = $bocage->_marpa_b_or_node_position($parent);
+        my $origin_earleme  = $recce_c->earleme($origin);
+        my $current_earleme = $recce_c->earleme($set);
+        my $middle_earleme  = $origin_earleme;
+
+        if ( defined $predecessor ) {
+            my $predecessor_set = $bocage->_marpa_b_or_node_set($predecessor);
+            $middle_earleme = $recce_c->earleme($predecessor_set);
+        }
+
+#<<<  perltidy introduces trailing space on this
+        my $desc =
+              'R'
+            . $irl_id . q{:}
+            . $position . q{@}
+            . $origin_earleme . q{-}
+            . $current_earleme;
+#>>>
+        my $cause_rule = -1;
+        if ( defined $cause ) {
+            my $cause_irl_id = $bocage->_marpa_b_or_node_irl($cause);
+            $desc .= 'C' . $cause_irl_id;
+        }
+        else {
+            $desc .= 'S' . $symbol;
+        }
+        $desc .= q{@} . $middle_earleme;
+        push @data,
+            [
+            $origin_earleme, $current_earleme, $irl_id,
+            $position,       $middle_earleme,  $cause_rule,
+            ( $symbol // -1 ), $desc
+            ];
+    } ## end for ( my $id = 0;; $id++ )
+    my @sorted_data = map { $_->[-1] } sort {
+               $a->[0] <=> $b->[0]
+            or $a->[1] <=> $b->[1]
+            or $a->[2] <=> $b->[2]
+            or $a->[3] <=> $b->[3]
+            or $a->[4] <=> $b->[4]
+            or $a->[5] <=> $b->[5]
+            or $a->[6] <=> $b->[6]
+    } @data;
+    return ( join "\n", @sorted_data ) . "\n";
+} ## end sub Marpa::R2::Recognizer::show_and_nodes
+
+sub Marpa::R2::Recognizer::or_node_tag {
+    my ( $recce, $or_node_id ) = @_;
+    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $set      = $bocage->_marpa_b_or_node_set($or_node_id);
+    my $irl_id     = $bocage->_marpa_b_or_node_irl($or_node_id);
+    my $origin   = $bocage->_marpa_b_or_node_origin($or_node_id);
+    my $position = $bocage->_marpa_b_or_node_position($or_node_id);
+    return 'R' . $irl_id . q{:} . $position . q{@} . $origin . q{-} . $set;
+} ## end sub Marpa::R2::Recognizer::or_node_tag
+
+sub Marpa::R2::Recognizer::show_or_nodes {
+    my ( $recce, $verbose ) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $text;
+    my @data = ();
+    my $id   = 0;
+    OR_NODE: for ( ;; ) {
+        my $origin   = $bocage->_marpa_b_or_node_origin($id);
+        my $set      = $bocage->_marpa_b_or_node_set($id);
+        my $irl_id   = $bocage->_marpa_b_or_node_irl($id);
+        my $position = $bocage->_marpa_b_or_node_position($id);
+        $id++;
+        last OR_NODE if not defined $origin;
+        my $origin_earleme  = $recce_c->earleme($origin);
+        my $current_earleme = $recce_c->earleme($set);
+
+#<<<  perltidy introduces trailing space on this
+        my $desc =
+              'R'
+            . $irl_id . q{:}
+            . $position . q{@}
+            . $origin_earleme . q{-}
+            . $current_earleme;
+#>>>
+        push @data,
+            [ $origin_earleme, $current_earleme, $irl_id, $position, $desc ];
+    } ## end for ( ;; )
+    my @sorted_data = map { $_->[-1] } sort {
+               $a->[0] <=> $b->[0]
+            or $a->[1] <=> $b->[1]
+            or $a->[2] <=> $b->[2]
+            or $a->[3] <=> $b->[3]
+    } @data;
+    return ( join "\n", @sorted_data ) . "\n";
+} ## end sub Marpa::R2::Recognizer::show_or_nodes
+
+sub Marpa::R2::Recognizer::show_nook {
+    my ( $recce, $nook_id, $verbose ) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+
+    my $or_node_id = $tree->_marpa_t_nook_or_node($nook_id);
+    return if not defined $or_node_id;
+
+    my $text = "o$or_node_id";
+    my $parent = $tree->_marpa_t_nook_parent($nook_id) // q{-};
+    CHILD_TYPE: {
+        if ( $tree->_marpa_t_nook_is_cause($nook_id) ) {
+            $text .= "[c$parent]";
+            last CHILD_TYPE;
+        }
+        if ( $tree->_marpa_t_nook_is_predecessor($nook_id) ) {
+            $text .= "[p$parent]";
+            last CHILD_TYPE;
+        }
+        $text .= '[-]';
+    } ## end CHILD_TYPE:
+    my $or_node_tag =
+        Marpa::R2::Recognizer::or_node_tag( $recce, $or_node_id );
+    $text .= " $or_node_tag";
+
+    $text .= ' p';
+    $text .= $tree->_marpa_t_nook_predecessor_is_ready($nook_id) ? q{=ok} : q{-};
+    $text .= ' c';
+    $text .= $tree->_marpa_t_nook_cause_is_ready($nook_id) ? q{=ok} : q{-};
+    $text .= "\n";
+
+    DESCRIBE_CHOICES: {
+        my $this_choice = $tree->_marpa_t_nook_choice($nook_id);
+        CHOICE: for ( my $choice_ix = 0;; $choice_ix++ ) {
+            my $and_node_id =
+                $order->_marpa_o_and_node_order_get( $or_node_id, $choice_ix );
+            last CHOICE if not defined $and_node_id;
+            $text .= " o$or_node_id" . '[' . $choice_ix . ']';
+            if ( defined $this_choice and $this_choice == $choice_ix ) {
+                $text .= q{*};
+            }
+            my $and_node_tag =
+                Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id );
+            $text .= " ::= a$and_node_id $and_node_tag";
+            $text .= "\n";
+        } ## end for ( my $choice_ix = 0;; $choice_ix++ )
+    } ## end DESCRIBE_CHOICES:
+    return $text;
+} ## end sub Marpa::R2::Recognizer::show_nook
+
+sub Marpa::R2::Recognizer::show_tree {
+    my ( $recce, $verbose ) = @_;
+    my $text = q{};
+    NOOK: for ( my $nook_id = 0; 1; $nook_id++ ) {
+        my $nook_text = $recce->show_nook( $nook_id, $verbose );
+        last NOOK if not defined $nook_text;
+        $text .= "$nook_id: $nook_text";
+    }
+    return $text;
+} ## end sub Marpa::R2::Recognizer::show_tree
 
 1;
