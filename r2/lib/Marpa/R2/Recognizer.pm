@@ -232,7 +232,7 @@ sub Marpa::R2::Recognizer::set {
                     q{Cannot reset 'leo' once input has started});
             }
             my $boolean = $value ? 1 : 0;
-            $recce_c->_marpa_r_is_use_leo_set($boolean);
+            $recce->use_leo_set($boolean);
         } ## end if ( defined( my $value = $args->{'leo'} ) )
 
         if ( defined( my $value = $args->{'max_parses'} ) ) {
@@ -1019,5 +1019,13 @@ sub Marpa::R2::Recognizer::earleme_complete {
     return $event_count;
 
 } ## end sub Marpa::R2::Recognizer::earleme_complete
+
+# INTERNAL OK AFTER HERE
+
+sub Marpa::R2::Recognizer::use_leo_set {
+    my ( $recce, $boolean ) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    return $recce_c->_marpa_r_is_use_leo_set($boolean);
+}
 
 1;
