@@ -306,10 +306,10 @@ to successfully debug the logic.
 
 Libmarpa's most important objects are time objects.
 Time objects are so called for two related reasons.
-First, they relate to a "time" in the progress of a parse.
+First, they relate to a ``time'' in the progress of a parse.
 Second, each time object has a lifetime and is reference counted.
 
-Libmarpa's major objects are called "time" objects instead
+Libmarpa's major objects are called ``time'' objects instead
 of phase objects,
 because phases are exclusive and non-simultaneous
 -- when one phase ends, another begins.
@@ -393,10 +393,10 @@ When the reference count of a time object reaches
 0, that time object is destroyed.
 
 In ordinary circumstances, all an application has to
-do is keep in mind that it "owns" the time objects
+do is keep in mind that it ``owns'' the time objects
 it has created,
 and that it must call a method
-to "unreference" that object when it is finished.
+to ``unreference'' that object when it is finished.
 
 In some applications, multiple parts of it
 may need to share ownership of an object.
@@ -407,7 +407,7 @@ the reference count.
 @node Numbered objects,  , The lifetime of time objects, Libmarpa objects
 @section Numbered objects
 
-In addition to its major, "time" objects, Libmarpa also has
+In addition to its major, ``time'' objects, Libmarpa also has
 numbered objects.
 Numbered objects do not have lifetimes of their own.
 Every numbered object belongs to a timed object,
@@ -477,7 +477,7 @@ of facts about the grammar to allow
 the recognizer to proceed more efficiently.
 Marpa makes aggressive use of grammar precomputation.
 
-Precomputation "freezes" a grammar.
+Precomputation ``freezes'' a grammar.
 New symbols, rules and sequences cannot be added
 to a precomputed grammar
 are disallowed,
@@ -575,7 +575,7 @@ while helpful for proving theorems,
 is not essential in practice.
 If LHS symbols 
 appear in the input they, in effect,
-"short circuiting" the rules in which they occur.
+``short circuiting'' the rules in which they occur.
 This may
 be helpful in debugging, or have other applications.
 
@@ -700,7 +700,7 @@ incorporate this return value into its normal processing,
 as a means of testing alternative inputs and/or
 checking the state of the parse.
 
-A @dfn{hard failure} is usually not recoverable.
+@dfn{Hard failures} are not always recoverable.
 Libmarpa attempts to allow applications to,
 on one hand, reclass failures from hard to
 soft and proceed whenever possible.
@@ -731,8 +731,17 @@ a check that the library in use is compatible with
 the version of Libmarpa the application or module was compiled
 against.
 
-Once we are beyond alpha releases,
-compatibility will be defined by three things:
+Currently Libmarpa is undergoing rapid development,
+and backward compatibility is not maintained.
+This will be the case as long as Libmarpa stays
+alpha.
+While Libmarpa is still alpha, much stricter compatibility
+will be enforced.
+While Libmarpa is alpha 
+the major, minor and micro numbers must match exactly.
+
+Once Libmarpa is beyond alpha releases,
+compatibility will be defined by two things:
 first the version
 of the running library is newer than the version
 @var{required_major}.@var{required_minor}.@var{required_micro}.
@@ -741,18 +750,6 @@ the running library must be binary compatible with the
 version
 @var{required_major}.@var{required_minor}.@var{required_micro}
 (same major version.)
-
-Currently Libmarpa is undergoing rapid development,
-and backward compatibility is not maintained.
-This will be the case as long as Libmarpa stays
-alpha.
-
-While Libmarpa is still alpha, much stricter compatibility
-will be enforced.
-While Libmarpa is alpha 
-the major, minor and micro numbers must match exactly.
-Technically, the post-alpha rules can be said to apply
-because the very strict alpha rules imply them.
 
 Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
   requested version.  If the library is not compatible,
@@ -788,11 +785,11 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
     unsigned int @var{required_micro})
 
 Creates a new grammar time object.
-The returned grammar object not be precomputed,
+The returned grammar object is not yet precomputed,
 and will have no symbols and rules.
 Its reference count will be 1.
 
-After a marpa_g_new call, the next step is
+After a @code{marpa_g_new} call, the next step is
 usually the addition of rules and symbols
 in preparation for grammar precomputation.
 
@@ -812,12 +809,6 @@ On failure, @code{NULL}.
 @cindex grammar destructor
 @cindex grammar reference
 @cindex grammar reference count
-
-Grammar time objects are created by
-@code{marpa_g_new} with a reference count of 1.
-@code{marpa_r_new} and @code{marpa_g_ref} increment the
-reference count by 1.
-@code{marpa_g_unref} decrements the reference count by 1.
 
 @deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
 Decreases the reference count by 1,
@@ -846,7 +837,7 @@ On success, the grammar object it was called with;
 
 Creates a new symbol.
 
-Return value: On success, the ID of the new symbol; 
+Return value: On success, the ID of a new symbol; 
 On failure, -2.
 
 @end deftypefun
@@ -867,7 +858,7 @@ On failure, -2.
 
 Returns current value of the start symbol of grammar @var{g}.
 The value is that of the user's start
-symbol, as specified in the @var{marpa_g_start_symbol_set} call,
+symbol, as specified in the @code{marpa_g_start_symbol_set} call,
 if there has been one.
 
 Return value:
@@ -908,10 +899,9 @@ but this is not necesssarily detected before precomputation.
 
 Return value: On success, 1 if @var{symid} is a terminal symbol after the
 call, 0 otherwise.
--2 if symbol @var{symid} is internal;
-if @var{value} is not 0 or 1;
+If @var{value} is not 0 or 1;
 if the grammar @var{g} is precomputed;
-or on some other failure.
+or on some other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
@@ -920,7 +910,7 @@ A symbol is @dfn{accessible} if it can be reached from the start symbol.
 This is not known until the grammar is precomputed.
 
 Return value: On success, 1 if accessible, 0 if not.  If the grammar
-is not precomputed, or on failure, -2.
+is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
@@ -930,7 +920,7 @@ All nullable symbols are considered productive.
 This is not known until the grammar is precomputed.
 
 Return value: On success, 1 if productive, 0 if not.  If the grammar
-is not precomputed, or on failure, -2.
+is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
@@ -951,18 +941,18 @@ A symbol is @dfn{nulling} if it always produces the empty string.
 This is not determined until the grammar is precomputed.
 
 Return value: On success, 1 if symbol is nulling, 0 if not.
-If the grammar is not precomputed, or on failure, -2.
+If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_nullable ( @
   Marpa_Grammar g, Marpa_Symbol_ID symid)
 A symbol is @dfn{nullable} if it sometimes produces the empty string.
-A nulling symbol is always a nullable symbol,
-but not all nullable symbols are nulling symbols.
+A @strong{nulling} symbol is always a @strong{nullable} symbol,
+but not all @strong{nullable} symbols are @strong{nulling} symbols.
 This is not determined until the grammar is precomputed.
 
 Return value: On success, 1 if symbol is nullable, 0 if not.
-If the grammar is not precomputed, or on failure, -2.
+If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_ask_me_when_null_set ( @
@@ -976,26 +966,26 @@ If the grammar is not precomputed, or on failure, -2.
 In Marpa,
 most of the semantics is usually be implemented by the
 higher layers.
-This is called @dfn{"ask me" semantics}.
-The "ask me when null"
+This is called @dfn{``ask me'' semantics}.
+The ``ask me when null''
 calls deal with the handling of semantics
 in case when the symbol is nulling.
 For proper nullables,
-the "Ask me when null" setting is relevant
+the ``Ask me when null'' setting is relevant
 only in cases where the symbol is nulled.
 
 Marpa's default is to assume that the
 value of nulled symbols will be ignored,
-and to let that value be arbitrary.
-"Arbitrary" here means it may not be relied
+and to let that value be ``whatever''.
+``Whatever'' here means it may not be relied
 and may change from instance to instance.
 Marpa optimizes for cases where symbols
-have arbitrary values.
+have ``whatever'' values.
 
-Return value: -2 if there was an error.
-  On success, 1 if the resulting semantics after
-  the function call is the "ask me" semantics.
-  Otherise, 0 otherwise.
+Return value: On success, 1 if the resulting semantics after
+  the function call is the ``ask me'' semantics,
+  0 if not.
+On failure, -2.
 
 @end deftypefun
 
@@ -1024,10 +1014,6 @@ A rule is also considered a duplicate if it has
 the same LHS symbol as a sequence rule,
 regardless of the right hand sides of the
 two rules.
-
-On success,
-this call creates a new external rule,
-whose ID is the return value.
 
 Return value:  On success, the ID of new external rule.
 On failure, -2.
@@ -1082,14 +1068,14 @@ On other failures, -2.
 Usually,
 most of the semantics must be implemented by Marpa's
 higher layers.
-This is called @dfn{"ask me" semantics}.
+This is called @dfn{``ask me'' semantics}.
 In two special but common cases, however,
 Marpa can implement the semantics internally,
 eliminating an evaluation step.
 This can be an considerable efficiency.
 
 The two optimizable cases are ``whatever'' semantics
-and "first child" semantics.
+and ``first child'' semantics.
 If a rule has
 @dfn{whatever semantics}, that means
 that the higher layers
@@ -1169,8 +1155,7 @@ is not precomputed, or on other failure, -2.
 Adds a new sequence rule to grammar @var{g}.
 Internally, Libmarpa translates sequences into BNF
 rules, but it also optimizes their evaluation.
-In practice this speedup can be considerable --
-25% or more.
+In practice this speedup can be considerable.
 
 The sequence is @var{lhs_id},
 and the item to be repeated in the sequence is @var{rhs_id}.
@@ -1189,29 +1174,23 @@ The sequence RHS, or item,
 is restricted to a single symbol,
 but almost arbitrary semantics can be expressed by having
 @var{rhs_id} be the LHS of another rule.
-A restriction is that @var{rhs_id},
-cannot be a nullable symbol.
-
+@var{rhs_id, cannot be a nullable symbol.
 If @var{separator_id} is a symbol, it also cannot
 be a nullable symbol.
+
 Nullables on the RHS of sequences are restricted
 because they lead to highly ambiguous grammars.
 Such grammars are allowed by Libmarpa, but
-sequence optimizations would not work
-for in the presence of nullables.
-Also it is not clearly clear what
+they must be expressed using BNF rules, not sequence rules.
+This is for two reasons:
+First, sequence optimizations would not work
+in the presence of nullables.
+Second, it is not completely clear what
 an application intends
-when it asks for a sequence of items, some of which
-may be null.
-In such a case,
-the user's intent is most clearly expressed
+when it asks for a sequence of identical items,
+some of which are nullable,
+the user's intent can be more clearly expressed
 directly in BNF.
-
-On success,
-this call creates a new external rule,
-whose ID is its return value.
-It also creates zero or more internal rules,
-and zero or more internal symbols.
 
 Return value:  On success, the ID of the external rule.
 If the rule duplicates another rule,
@@ -1221,7 +1200,7 @@ or on other failure, -2.
 @deftypefun int marpa_g_rule_is_sequence ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
-Return value:  1 if |rule_id| is a sequence rule,
+Return value:  1 if @var{rule_id} is a sequence rule,
 0 otherwise.
 On failure, -2.
 @end deftypefun
@@ -1272,19 +1251,19 @@ which succeeded.
 Each @code{MARPA_EVENT_LOOP_RULES} event is a rule
 which is part of an cycle (infinite loop) in the grammar.
 Cycles 
-are useless in current (and currently foreseen)
+are useless in current
 practice.
 Cycles make a grammar infinitely ambiguous
 and their presence makes processing the grammar less
 efficient, sometimes considerably so.
-Nonetheless, they are not errors,
+Nonetheless, they are not errors in Libmarpa,
 although most applications will wish to treat them
 as such.
 
 Each @code{MARPA_EVENT_COUNTED_NULLABLE} event is a symbol
 which is a nullable on the right hand side of a sequence
 rule -- a ``counted'' symbol.
-The presence of one or more of these is a fatal error.
+The presence of one or more of these is a hard failure.
 So that the programmer can fix several at once,
 the failure is delayed until events are created
 for all of the counted nullables.
@@ -1293,20 +1272,20 @@ Each @code{MARPA_EVENT_NULLING_TERMINAL} event is a nulling
 symbol which is also flagged as a terminal.
 Since terminals cannot be of zero length, this is a logical
 impossibility, and
-the presence of one or more of these is a fatal error.
+the presence of one or more of these is a hard failure.
 So that the programmer can fix several at once,
 the failure is delayed until events are created
 for all of the counted nullables.
 
 Precomputation involves freezing 
 and then thoroughly checking the grammar,
-and it is at this point that many hard errors
+and it is at this point that many failures
 are caught and reported.
 Counted nullables and nulling terminals have
 already been mentioned.
 Grammars without rules and those
 with invalid start symbols also produce
-hard errors.
+hard failures.
 
 Return value: On success, the number of events generated.
 If the grammar is already precomputed,
@@ -1350,19 +1329,17 @@ in a loop over the events.
 
 Return value:  On success, returns the type of event @var{ix},
 and places the data for the event in @var{public_event}.
-If there is no such event (a soft failure),
--1 is returned.
-On hard failure, -2 is returned.
+If there is no such event, returns -1.
+On hard failure, returns -2.
 @end deftypefun
 
-@defmac marpa_g_event_value (Marpa_Event* @var{event})
+@deftypefn {Macro} void* marpa_g_event_value (Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
 codes.
 @xref{Events}.
-Type of Value: @code{void*}
-@end defmac
+@end deftypefn
 
 @node Recognizers, Bocage, Grammar objects, Top
 @chapter Recognizer objects
@@ -1754,7 +1731,7 @@ Return value: None
 
 Within Marpa,
 when it makes sense in context,
-"tree" means a parse tree.
+``tree'' means a parse tree.
 
 Once the bocage has an ordering, the parses can be iterated.
 Marpa's tree objects are also bocage iterators.
