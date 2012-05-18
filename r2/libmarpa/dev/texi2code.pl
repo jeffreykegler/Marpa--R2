@@ -158,7 +158,7 @@ my @value_types_seen = ();
 my @value_types = ();
 my $current_value_type_number = undef;
 
-while ( my $line = <STDIN> ) {
+LINE: while ( my $line = <STDIN> ) {
 
      if ( defined $current_error_number ) {
         my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
@@ -205,6 +205,8 @@ while ( my $line = <STDIN> ) {
 	    $value_types[$current_value_type_number] = $value_type;
 	}
     }
+
+    next LINE if $line =~ m/ [{] Macro [}] /xms;
 
     if ( $line =~ /[@]deftypefun/xms ) {
         my $def = q{};

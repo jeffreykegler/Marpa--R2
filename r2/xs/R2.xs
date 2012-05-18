@@ -2725,7 +2725,7 @@ PPCODE:
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
   if (status == MARPA_VALUE_TOKEN)
     {
-      token_id = marpa_v_semantic_token (v);
+      token_id = marpa_v_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal
 	      (newSViv (marpa_v_token_value (v))));
@@ -2733,13 +2733,13 @@ PPCODE:
     }
   if (status == MARPA_VALUE_NULLING_SYMBOL)
     {
-      token_id = marpa_v_semantic_token (v);
+      token_id = marpa_v_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
   if (status == MARPA_VALUE_RULE)
     {
-      rule_id = marpa_v_semantic_rule (v);
+      rule_id = marpa_v_rule (v);
       XPUSHs (sv_2mortal (newSViv (rule_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0 (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));

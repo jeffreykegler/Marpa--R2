@@ -1723,7 +1723,9 @@ Return value: None
 Within Marpa,
 when it makes sense in context,
 "tree" means a parse tree.
-Marpa's parse trees are also bocage iterators.
+
+Once the bocage has an ordering, the parses can be iterated.
+Marpa's tree objects are also bocage iterators.
 
 @menu
 * Tree constructor::            
@@ -1735,6 +1737,21 @@ Marpa's parse trees are also bocage iterators.
 @section Creating a new tree iterator
 
 @deftypefun Marpa_Tree marpa_t_new (Marpa_Order @var{o})
+When created, a tree object is not initialized to
+an iteration.
+To position the tree to the first parse,
+the application must call @code{marpa_t_next}.
+(Tree objects are created unitialized to allow for
+future extensions which sets flags and values prior
+to initialization.)
+
+When a tree is created from an ordering, that ordering
+is ``frozen'', so that it cannot be changed.
+This is to prevent the ordering that guides tree iteration
+from being changed after iteration begins.
+
+Return value:  On success, a newly created tree.
+On failure, returns @code{NULL} and sets the error code.
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_t_g (Marpa_Tree @var{t})
@@ -1768,10 +1785,29 @@ Return value: None
 
 @deftypefun int marpa_t_next ( @
 	Marpa_Tree @var{t})
+Iterates the tree to a parse.
+Trees are created unitialized, so
+this method must be called before creating a valuator
+from a tree.
+A tree which has finished its iterations is said to
+be ``exhausted''.
+It is a soft failure if the tree is exhausted.
+
+Return value: On success, returns a non-negatve value.
+If the tree is exhausted, returns -1.
+On other failure, returns -2 and sets the error code.
 @end deftypefun
 
 @deftypefun int marpa_t_parse_count ( @
 	Marpa_Tree @var{t})
+The parse counter counts the number of parses
+traversed so far.
+The count includes the current iteration of the
+tree, so that a value of 0 indicates a tree
+which is not yet initialized.
+
+Return value: The number of parses traversed so far.
+Always succeeds.
 @end deftypefun
 
 @node Value, Events, Tree, Top
@@ -1868,7 +1904,17 @@ and inside code about which Libmarpa can make no assumptions.
 @deftypefun Marpa_Value marpa_v_new ( @
     Marpa_Tree @var{t} @
 )
+Creates a new valuator from the tree @var{t}.
+Creating a valuator from a tree, ``pauses'' the tree,
+so that the tree cannot move on to a new iteration
+until the valuator is destroyed.
+Many valuators of the same tree,
+can exist at once.
+The tree will remain paused until
+all of the valuators are destroyed.
 
+Return value:  On success, the newly created valuator.
+On failure, returns @code{NULL} and sets the error code.
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_v_g ( @
@@ -1913,12 +1959,12 @@ Return value: None
 
 Accessors which are implemented as macros.
 
-@defmac Marpa_Symbol_ID marpa_v_semantic_token (Marpa_Value @var{v})
-Type of value: @code{Marpa_Symbol_ID}.
+@deftypefun {Macro} Marpa_Symbol_ID marpa_v__token (Marpa_Value @var{v})
+Return value: Returns the symbol ID of the token for the current step.
+This is a macro and always succeeds.
 @end defmac
 
-@defmac marpa_v_token_value (Marpa_Value @var{v})
-Type of value: @code{void*}.
+@deftypefun {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
 @end defmac
 
 @defmac marpa_v_semantic_rule (Marpa_Value @var{v})

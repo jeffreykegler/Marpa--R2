@@ -11930,25 +11930,25 @@ struct s_value {
 @*0 Public data.
 @<Public structures@> =
 struct marpa_value {
-    Marpa_Symbol_ID t_semantic_token_id;
+    Marpa_Symbol_ID t_token_id;
     int t_token_value;
-    Marpa_Rule_ID t_semantic_rule_id;
+    Marpa_Rule_ID t_rule_id;
     int t_tos;
     int t_arg_n;
 };
 @ @<Public defines@> =
-#define marpa_v_semantic_token(v) \
-    ((v)->t_semantic_token_id)
+#define marpa_v_token(v) \
+    ((v)->t_token_id)
 #define marpa_v_token_value(v) \
     ((v)->t_token_value)
-#define marpa_v_semantic_rule(v) \
-    ((v)->t_semantic_rule_id)
+#define marpa_v_rule(v) \
+    ((v)->t_rule_id)
 #define marpa_v_arg_0(v) \
     ((v)->t_tos)
 #define marpa_v_arg_n(v) \
     ((v)->t_arg_n)
-@ @d XSYID_of_V(val) ((val)->public.t_semantic_token_id)
-@d RULEID_of_V(val) ((val)->public.t_semantic_rule_id)
+@ @d XSYID_of_V(val) ((val)->public.t_token_id)
+@d RULEID_of_V(val) ((val)->public.t_rule_id)
 @d Token_Value_of_V(val) ((val)->public.t_token_value)
 @d Token_Type_of_V(val) ((val)->t_token_type)
 @d TOS_of_V(val) ((val)->public.t_tos)
