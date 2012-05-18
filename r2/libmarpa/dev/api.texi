@@ -102,7 +102,7 @@ Terminal and tokens
 
 Error handling
 
-* Hard and soft errors::        
+* Memory allocation failures::  
 * Soft and hard errors::        
 
 Introduction to the External Interface
@@ -609,12 +609,12 @@ and forth into whatever the application requires.
 @chapter Error handling
 
 @menu
-* Hard and soft errors::        
+* Memory allocation failures::  
 * Soft and hard errors::        
 @end menu
 
-@node Hard and soft errors, Soft and hard errors, Error handling concepts, Error handling concepts
-@section Hard and soft errors
+@node Memory allocation failures, Soft and hard errors, Error handling concepts, Error handling concepts
+@section Memory allocation failures
 
 Libmarpa leaves the decision of what is a fatal
 error up to the application,
@@ -628,7 +628,7 @@ an alternative memory allocator to be specificied,
 and to allow the user to specifier a handler to
 be called when an out-of-memory condition occurs.
 
-@node Soft and hard errors,  , Hard and soft errors, Error handling concepts
+@node Soft and hard errors,  , Memory allocation failures, Error handling concepts
 @section Soft and hard errors
 
 Soft errors are errors which may be a result of normal processing.
