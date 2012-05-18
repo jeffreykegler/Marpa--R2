@@ -377,29 +377,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $evaluation_stack[$arg_0] = \$result;
 
                 if ($trace_values) {
-
-                    my $argc = scalar @args;
-		    my $nook_ix    = $value->_marpa_v_nook();
-		    my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
-		    my $choice     = $tree->_marpa_t_nook_choice($nook_ix);
-		    my $and_node_id =
-			$order->_marpa_o_and_node_order_get( $or_node_id, $choice );
-
-                    say {$Marpa::R2::Internal::TRACE_FH} 'Popping ', $argc,
-                        ' values to evaluate ',
-                        Marpa::R2::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_rule($rule_id)
-                        or
-                        Marpa::R2::exception('Could not print to trace file');
-
+                    say {$Marpa::R2::Internal::TRACE_FH}
+                        trace_stack_1( $grammar, $recce, $order, $tree,
+                        $value, \@args, $rule_id );
                     print {$Marpa::R2::Internal::TRACE_FH}
                         'Calculated and pushed value: ',
                         Data::Dumper->new( [$result] )->Terse(1)->Dump
                         or
                         Marpa::R2::exception('print to trace handle failed');
-                } ## end if ($trace_values)
+                }
 
                 next EVENT;
 
@@ -1137,5 +1123,24 @@ sub trace_token_evaluation {
    return;
 
 } ## end sub trace_token_evaluation
+
+sub trace_stack_1 {
+   my ($grammar, $recce, $order, $tree, $value, $args, $rule_id) = @_;
+
+                    my $argc = scalar @{$args};
+		    my $nook_ix    = $value->_marpa_v_nook();
+		    my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
+		    my $choice     = $tree->_marpa_t_nook_choice($nook_ix);
+		    my $and_node_id =
+			$order->_marpa_o_and_node_order_get( $or_node_id, $choice );
+
+                    return 'Popping ', $argc,
+                        ' values to evaluate ',
+                        Marpa::R2::Recognizer::and_node_tag(
+                        $recce, $and_node_id
+                        ),
+                        ', rule: ', $grammar->brief_rule($rule_id);
+
+} ## end if ($trace_values)
 
 1;
