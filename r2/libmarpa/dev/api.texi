@@ -142,9 +142,9 @@ Value objects
 
 * About the valuator::          
 * Valuator constructor::        
-* Valuator access macros::      
 * Valuator reference counting::  
 * Valuator stepping::           
+* Step accessors::              
 
 Events
 
@@ -1816,9 +1816,9 @@ Always succeeds.
 @menu
 * About the valuator::          
 * Valuator constructor::        
-* Valuator access macros::      
 * Valuator reference counting::  
 * Valuator stepping::           
+* Step accessors::              
 @end menu
 
 @node About the valuator, Valuator constructor, Value, Value
@@ -1898,7 +1898,7 @@ The worst aspect happens when there is a programming error.
 This error will occur inside Libmarpa,
 and inside code about which Libmarpa can make no assumptions.
 
-@node Valuator constructor, Valuator access macros, About the valuator, Value
+@node Valuator constructor, Valuator reference counting, About the valuator, Value
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
@@ -1972,10 +1972,10 @@ call.
 On failure, -2.
 @end deftypefun
 
-@node Valuator reference counting, Valuator stepping, Valuator access macros, Value
+@node Valuator reference counting, Valuator stepping, Valuator constructor, Value
 @section Reference counting
 
-@node Valuator stepping,  , Valuator reference counting, Value
+@node Valuator stepping, Step accessors, Valuator reference counting, Value
 @section Stepping through the valuator
 
 @deftypefun Marpa_Step_Type marpa_v_step ( @
@@ -2036,7 +2036,7 @@ The valuator is inactive.
 These value types are reserved for internal purposes.
 @end deftypevr
 
-@node Step accessors, Valuator reference counting, Valuator constructor, Value
+@node Step accessors,  , Valuator stepping, Value
 @section Step accessors
 
 Accessors which are implemented as macros.  They always succeed.
@@ -2046,7 +2046,7 @@ Return value: Returns the ID of the token
 for the @code{MARPA_STEP_TOKEN} step.
 @end deftypefn
 
-@deftypefnx {Macro} Marpa_Symbol_ID marpa_v_symbol (Marpa_Value @var{v})
+@deftypefn {Macro} Marpa_Symbol_ID marpa_v_symbol (Marpa_Value @var{v})
 Return value: Returns the ID of the symbol
 for the @code{MARPA_STEP_NULLING_SYMBOL} step.
 The value is always the same as that for the @code{marpa_v_symbol}
