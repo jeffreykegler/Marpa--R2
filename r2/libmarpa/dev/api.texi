@@ -39,7 +39,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 @menu
 * How to read this document::   
 * About Libmarpa::              What is Libmarpa?
-* Time objects::                
+* Libmarpa objects::            
 * The architecture of Marpa::   
 * Threads::                     
 * Terminals concepts::          
@@ -68,7 +68,7 @@ How to read this document
 * Which chapters to read first::  Which chapters to read first.
 * Parsing theory::              Parsing theory.
 
-Time objects
+Libmarpa objects
 
 * The sequence of time objects::  
 * Base grammars::               
@@ -89,6 +89,11 @@ Recognition versus parsing
 * Precomputation::              
 
 Threads
+
+* C89 and thread-safety::       
+* Base grammars cannot be shared between threads::  
+
+C89 and thread-safety
 
 * Grammars not shared between threads::  
 * C89 and thread-safety::       
@@ -267,7 +272,7 @@ one of the packages that extend
 regular expressions,
 he should have no trouble with BNF.
 
-@node About Libmarpa, Time objects, How to read this document, Top
+@node About Libmarpa, Libmarpa objects, How to read this document, Top
 @chapter About Libmarpa
 This is the reference manual for Libmarpa.
 Libmarpa implements the Marpa parsing algorithm.
@@ -322,8 +327,8 @@ to catch errors at runtime or
 failing all else,
 to successfully debug the logic.
 
-@node Time objects, The architecture of Marpa, About Libmarpa, Top
-@chapter Time objects
+@node Libmarpa objects, The architecture of Marpa, About Libmarpa, Top
+@chapter Libmarpa objects
 
 Libmarpa's most important objects are time objects.
 Time objects are so called for two related reasons.
@@ -355,7 +360,7 @@ The time objects are, in sequence:
 * Numbered objects::            
 @end menu
 
-@node The sequence of time objects, Base grammars, Time objects, Time objects
+@node The sequence of time objects, Base grammars, Libmarpa objects, Libmarpa objects
 @section The sequence of time objects
 
 While time objects do not correspond to phases,
@@ -367,7 +372,7 @@ A recognizer cannot be created without a precomputed grammar;
 a bocage cannot be created without a recognizer;
 and so on.
 
-@node Base grammars, The lifetime of time objects, The sequence of time objects, Time objects
+@node Base grammars, The lifetime of time objects, The sequence of time objects, Libmarpa objects
 @section Every time object has a base grammar
 
 When one time object is used to create a second
@@ -398,7 +403,7 @@ the base grammar of a bocage is the base
 grammar of the recognizer that it was created
 with.
 
-@node The lifetime of time objects, Numbered objects, Base grammars, Time objects
+@node The lifetime of time objects, Numbered objects, Base grammars, Libmarpa objects
 @section The lifetime of time objects
 
 Time objects are reference-counted.
@@ -425,7 +430,7 @@ For such situations,
 every time object has a method to increment
 the reference count.
 
-@node Numbered objects,  , The lifetime of time objects, Time objects
+@node Numbered objects,  , The lifetime of time objects, Libmarpa objects
 @section Numbered objects
 
 In addition to its major, "time" objects, Libmarpa also has
@@ -438,7 +443,7 @@ Rules and symbols are numbered objects.
 Tokens values are
 another examples of numbered objects.
 
-@node The architecture of Marpa, Threads, Time objects, Top
+@node The architecture of Marpa, Threads, Libmarpa objects, Top
 @chapter The architecture of Marpa
 
 @menu
@@ -507,18 +512,41 @@ as are most other changes.
 @node Threads, Terminals concepts, The architecture of Marpa, Top
 @chapter Threads
 
-Libmarpa is C89-compliant
-and uses no global data.
-This means that it is thread-safe,
-with restrictions.
+Libmarpa is thread-safe,
+if used as described below.
+The Libmarpa methods are not reentrant.
+
+@menu
+* C89 and thread-safety::       
+* Base grammars cannot be shared between threads::  
+@end menu
+
+@node C89 and thread-safety, Base grammars cannot be shared between threads, Threads, Threads
+@section C89 and thread-safety
+
+Libmarpa calls only routines defined in the C89 standard,
+and in most modern implementations these are thread-safe.
+But the C89 standard does not require thread-safety,
+and even the most modern environments allow the user
+to turn thread safety off.
+To be thread-safe, Libmarpa must be compiled
+and linked in an environment that provides
+thread-safety.
+
+Libmarpa's thread-safety relies on an environment
+that guarantees the thread-safety of C89 function calls.
+Libmarpa is C89-compliant.
+It uses no global data,
+and does not use those C library functions which
+are inherently thread-unsafe.
 
 @menu
 * Grammars not shared between threads::  
 * C89 and thread-safety::       
 @end menu
 
-@node Grammars not shared between threads, C89 and thread-safety, Threads, Threads
-@section Grammars cannot be shared between threads
+@node Base grammars cannot be shared between threads,  , C89 and thread-safety, Threads
+@section Base grammars cannot be shared between threads
 While Libmarpa can be used safely across
 multiple threads,
 a Libmarpa grammar cannot be.
@@ -536,16 +564,6 @@ time object in each thread.
 If there is sufficient interest, future versions of
 Libmarpa could allow cloning of grammars and other
 time objects.
-
-@node C89 and thread-safety,  , Grammars not shared between threads, Threads
-@section C89 and thread-safety
-Libmarpa calls only routines defined in the C89 standard,
-and in most modern implementations these are thread-safe.
-But the C89 standard does not require thread-safety,
-and even the most modern environments allow the user
-to turn thread safety off.
-Libmarpa's thread-safety relies on an environment
-that guarantees the thread-safety of C89 function calls.
 
 @node Terminals concepts, Semantics, Threads, Top
 @chapter Terminals
