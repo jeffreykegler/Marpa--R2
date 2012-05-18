@@ -1312,12 +1312,13 @@ If there is no such event (a soft failure),
 On hard failure, -2 is returned.
 @end deftypefun
 
-@defmac void* marpa_g_event_value(Marpa_Event* @var{event})
+@defmac marpa_g_event_value (Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
 codes.
 @xref{Events}.
+Type of Value: @code{void*}
 @end defmac
 
 @node Recognizers, Bocage, Grammars, Top
@@ -1532,12 +1533,13 @@ If there is no such event (a soft failure),
 On hard failure, -2 is returned.
 @end deftypefun
 
-@defmac void* marpa_r_event_value(Marpa_Event* @var{event})
+@defmac marpa_r_event_value (Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
 codes.
 @xref{Events}.
+Type of Value: @code{void*}
 @end defmac
 
 @node Bocage, Order, Recognizers, Top
@@ -1771,19 +1773,24 @@ and inside code about which Libmarpa can make no assumptions.
 
 Accessors which are implemented as macros.
 
-@defmac Marpa_Symbol_ID marpa_v_semantic_token(Marpa_Value @var{v})
+@defmac Marpa_Symbol_ID marpa_v_semantic_token (Marpa_Value @var{v})
+Type of value: @code{Marpa_Symbol_ID}.
 @end defmac
 
-@defmac void* marpa_v_token_value(Marpa_Value @var{v})
+@defmac marpa_v_token_value (Marpa_Value @var{v})
+Type of value: @code{void*}.
 @end defmac
 
-@defmac Marpa_Rule_ID marpa_v_semantic_rule(Marpa_Value @var{v})
+@defmac marpa_v_semantic_rule (Marpa_Value @var{v})
+Type of value: @code{Marpa_Rule_ID}.
 @end defmac
 
-@defmac int marpa_v_arg_0(Marpa_Value @var{v})
+@defmac int marpa_v_arg_0 (Marpa_Value @var{v})
+Type of value: @code{int}.
 @end defmac
 
-@defmac int marpa_v_arg_n(Marpa_Value @var{v})
+@defmac int marpa_v_arg_n (Marpa_Value @var{v})
+Type of value: @code{int}.
 @end defmac
 
 @node Valuator reference counting, Valuator stepping, Valuator access macros, Value
