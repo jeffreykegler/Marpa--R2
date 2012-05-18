@@ -11914,7 +11914,7 @@ original (or "virtual") rules.
 This enables libmarpa to make the rewriting of
 the grammar invisible to the semantics.
 @d Next_Value_Type_of_V(val) ((val)->t_next_value_type)
-@d V_is_Active(val) (Next_Value_Type_of_V(val) != MARPA_VALUE_INACTIVE)
+@d V_is_Active(val) (Next_Value_Type_of_V(val) != MARPA_STEP_INACTIVE)
 @d T_of_V(v) ((v)->t_tree)
 @ @<VALUE structure@> =
 struct s_value {
@@ -11939,6 +11939,7 @@ struct marpa_value {
 @ @<Public defines@> =
 #define marpa_v_token(v) \
     ((v)->t_token_id)
+#define marpa_v_symbol(v) marpa_v_token(v)
 #define marpa_v_token_value(v) \
     ((v)->t_token_value)
 #define marpa_v_rule(v) \
@@ -11947,6 +11948,7 @@ struct marpa_value {
     ((v)->t_tos)
 #define marpa_v_arg_n(v) \
     ((v)->t_arg_n)
+#define marpa_v_result(v) marpa_v_arg_0(v)
 @ @d XSYID_of_V(val) ((val)->public.t_token_id)
 @d RULEID_of_V(val) ((val)->public.t_rule_id)
 @d Token_Value_of_V(val) ((val)->public.t_token_value)
@@ -12219,11 +12221,11 @@ int marpa_v_symbol_ask_me_when_null_set(
 The value type indicates whether the value
 is for a semantic rule, a semantic token, etc.
 @<Public typedefs@> =
-typedef int Marpa_Value_Type;
-@ @d V_GET_DATA MARPA_VALUE_INTERNAL1
+typedef int Marpa_Step_Type;
+@ @d V_GET_DATA MARPA_STEP_INTERNAL1
 
 @<Function definitions@> =
-Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
+Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 {
     @<Return |-2| on failure@>@;
     const VALUE v = (VALUE)public_v;
@@ -12231,65 +12233,65 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
     if (V_is_Nulling(v)) {
       @<Unpack value objects@>@;
       @<Step through a nulling valuator@>@;
-      return MARPA_VALUE_INACTIVE;
+      return MARPA_STEP_INACTIVE;
     }
 
     while (V_is_Active(v)) {
-	Marpa_Value_Type current_value_type = Next_Value_Type_of_V(v);
+	Marpa_Step_Type current_value_type = Next_Value_Type_of_V(v);
 	switch (current_value_type)
 	  {
 	  case V_GET_DATA:
 	    @<Perform evaluation steps @>@;
 	    if (!V_is_Active (v)) break;
 	    /* fall through */
-	  case MARPA_VALUE_TOKEN:
+	  case MARPA_STEP_TOKEN:
 	    {
 	      int token_type = Token_Type_of_V (v);
-	      Next_Value_Type_of_V (v) = MARPA_VALUE_RULE;
+	      Next_Value_Type_of_V (v) = MARPA_STEP_RULE;
 	      if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
 		  if (bv_bit_test(Nulling_Ask_BV_of_V(v), XSYID_of_V(v)))
-		      return MARPA_VALUE_NULLING_SYMBOL;
+		      return MARPA_STEP_NULLING_SYMBOL;
 	      }
 	      else if (token_type != DUMMY_OR_NODE)
 		{
-		   return MARPA_VALUE_TOKEN;
+		   return MARPA_STEP_TOKEN;
 		 }
 	    }
 	    /* fall through */
-	  case MARPA_VALUE_RULE:
+	  case MARPA_STEP_RULE:
 	    if (RULEID_of_V (v) >= 0)
 	      {
-		Next_Value_Type_of_V(v) = MARPA_VALUE_TRACE;
-		return MARPA_VALUE_RULE;
+		Next_Value_Type_of_V(v) = MARPA_STEP_TRACE;
+		return MARPA_STEP_RULE;
 	      }
 	    /* fall through */
-	  case MARPA_VALUE_TRACE:
+	  case MARPA_STEP_TRACE:
 	    Next_Value_Type_of_V(v) = V_GET_DATA;
 	    if (V_is_Trace (v))
 	      {
-		return MARPA_VALUE_TRACE;
+		return MARPA_STEP_TRACE;
 	      }
 	  }
       }
 
-    Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
-    return MARPA_VALUE_INACTIVE;
+    Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
+    return MARPA_STEP_INACTIVE;
 }
 
 @ @<Step through a nulling valuator@> =
 {
     while (V_is_Active(v)) {
-	Marpa_Value_Type current_value_type = Next_Value_Type_of_V(v);
+	Marpa_Step_Type current_value_type = Next_Value_Type_of_V(v);
 	switch (current_value_type)
 	  {
 	  case V_GET_DATA:
 	    {
-	      Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
+	      Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
 	      XSYID_of_V(v) = g->t_start_xsyid;
 	      TOS_of_V(v) = Arg_N_of_V(v) = 0;
 	      if (bv_bit_test(Nulling_Ask_BV_of_V(v), XSYID_of_V(v)))
-		      return MARPA_VALUE_NULLING_SYMBOL;
+		      return MARPA_STEP_NULLING_SYMBOL;
 	    }
 	    /* fall through */
 	    /* No tracing of nulling valuators, at least at this point */
@@ -12317,7 +12319,7 @@ Marpa_Value_Type marpa_v_step(Marpa_Value public_v)
 	RULEID_of_V(v) = -1;
 	NOOK_of_V(v)--;
 	if (NOOK_of_V(v) < 0) {
-	    Next_Value_Type_of_V(v) = MARPA_VALUE_INACTIVE;
+	    Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
 	    break;
 	}
 	{

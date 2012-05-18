@@ -81,13 +81,13 @@ event_type_to_string (Marpa_Event_Type event_code)
 }
 
 static const char *
-value_type_to_string (Marpa_Value_Type value_type)
+step_type_to_string (Marpa_Step_Type step_type)
 {
-  const char *value_type_name = NULL;
-  if (value_type >= 0 && value_type < MARPA_ERROR_COUNT) {
-      value_type_name = marpa_value_type_description[value_type].name;
+  const char *step_type_name = NULL;
+  if (step_type >= 0 && step_type < MARPA_STEP_COUNT) {
+      step_type_name = marpa_step_type_description[step_type].name;
   }
-  return value_type_name;
+  return step_type_name;
 }
 
 /* This routine is for the handling exceptions
@@ -2709,7 +2709,7 @@ PPCODE:
   const char *result_string;
   SV *sv;
   status = marpa_v_step (v);
-  if (status == MARPA_VALUE_INACTIVE)
+  if (status == MARPA_STEP_INACTIVE)
     {
       XSRETURN_UNDEF;
     }
@@ -2717,13 +2717,13 @@ PPCODE:
     {
       croak ("Problem in v->step(): %s", xs_v_error (v_wrapper));
     }
-  result_string = value_type_to_string (status);
+  result_string = step_type_to_string (status);
   if (!result_string)
     {
       croak ("Problem in r->v_step(): unknown action type %d", status);
     }
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-  if (status == MARPA_VALUE_TOKEN)
+  if (status == MARPA_STEP_TOKEN)
     {
       token_id = marpa_v_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
@@ -2731,13 +2731,13 @@ PPCODE:
 	      (newSViv (marpa_v_token_value (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
-  if (status == MARPA_VALUE_NULLING_SYMBOL)
+  if (status == MARPA_STEP_NULLING_SYMBOL)
     {
       token_id = marpa_v_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
-  if (status == MARPA_VALUE_RULE)
+  if (status == MARPA_STEP_RULE)
     {
       rule_id = marpa_v_rule (v);
       XPUSHs (sv_2mortal (newSViv (rule_id)));

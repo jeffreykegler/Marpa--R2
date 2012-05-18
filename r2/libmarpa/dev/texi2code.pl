@@ -129,14 +129,14 @@ MARPA_EVENT_COUNTED_NULLABLE
 MARPA_EVENT_NULLING_TERMINAL
 );
 
-my @value_type_codes = qw(
-MARPA_VALUE_INTERNAL1
-MARPA_VALUE_RULE
-MARPA_VALUE_TOKEN
-MARPA_VALUE_NULLING_SYMBOL
-MARPA_VALUE_TRACE
-MARPA_VALUE_INACTIVE
-MARPA_VALUE_INTERNAL2
+my @step_type_codes = qw(
+MARPA_STEP_INTERNAL1
+MARPA_STEP_RULE
+MARPA_STEP_TOKEN
+MARPA_STEP_NULLING_SYMBOL
+MARPA_STEP_TRACE
+MARPA_STEP_INACTIVE
+MARPA_STEP_INTERNAL2
 );
 
 my @defs = ();
@@ -153,10 +153,10 @@ my @events = ();
 my $current_event_number = undef;
 my @event_suggested_messages = ();
 
-my %value_type_number = map { $value_type_codes[$_], $_ } (0 .. $#value_type_codes);
-my @value_types_seen = ();
-my @value_types = ();
-my $current_value_type_number = undef;
+my %step_type_number = map { $step_type_codes[$_], $_ } (0 .. $#step_type_codes);
+my @step_types_seen = ();
+my @step_types = ();
+my $current_step_type_number = undef;
 
 LINE: while ( my $line = <STDIN> ) {
 
@@ -195,14 +195,14 @@ LINE: while ( my $line = <STDIN> ) {
 	    $events[$current_event_number] = $event;
 	}
     }
-    if ( $line =~ /[@]deftypevr.*MARPA_VALUE_/xms ) {
-        my ($value_type) = ($line =~ m/(MARPA_VALUE_.*)\b/xms);
-	if ($value_type) {
-	    my $value_type_number = $value_type_number{$value_type};
-	    die("$value_type not in list in $PROGRAM_NAME") if not defined $value_type_number;
-	    $current_value_type_number = $value_type_number;
-	    $value_types_seen[$value_type_number] = 1;
-	    $value_types[$current_value_type_number] = $value_type;
+    if ( $line =~ /[@]deftypevr.*MARPA_STEP_/xms ) {
+        my ($step_type) = ($line =~ m/(MARPA_STEP_.*)\b/xms);
+	if ($step_type) {
+	    my $step_type_number = $step_type_number{$step_type};
+	    die("$step_type not in list in $PROGRAM_NAME") if not defined $step_type_number;
+	    $current_step_type_number = $step_type_number;
+	    $step_types_seen[$step_type_number] = 1;
+	    $step_types[$current_step_type_number] = $step_type;
 	}
     }
 
@@ -276,8 +276,8 @@ struct s_marpa_event_description {
     const char* name;
     const char* suggested;
 };
-struct s_marpa_value_type_description {
-    Marpa_Value_Type value_type;
+struct s_marpa_step_type_description {
+    Marpa_Step_Type step_type;
     const char* name;
 };
 
@@ -302,12 +302,12 @@ for ( my $event_number = 0; $event_number < $event_count; $event_number++ ) {
         . $event_number;
 }
 
-my $value_type_count = scalar @value_types;
-say {$api_h} "#define MARPA_VALUE_TYPE_COUNT $value_type_count";
-for ( my $value_type_number = 0; $value_type_number < $value_type_count; $value_type_number++ ) {
+my $step_type_count = scalar @step_types;
+say {$api_h} "#define MARPA_STEP_COUNT $step_type_count";
+for ( my $step_type_number = 0; $step_type_number < $step_type_count; $step_type_number++ ) {
     say {$api_h} '#define '
-        . $value_types[$value_type_number] . q{ }
-        . $value_type_number;
+        . $step_types[$step_type_number] . q{ }
+        . $step_type_number;
 }
 
 print {$codes_c} $common_preamble, $notlib_preamble;
@@ -343,15 +343,15 @@ for ( my $event_number = 0; $event_number < $event_count; $event_number++ ) {
 say {$codes_c} '};';
 
 say {$codes_c}
-    'const struct s_marpa_value_type_description marpa_value_type_description[] = {';
+    'const struct s_marpa_step_type_description marpa_step_type_description[] = {';
 for (
-    my $value_type_number = 0;
-    $value_type_number < $value_type_count;
-    $value_type_number++
+    my $step_type_number = 0;
+    $step_type_number < $step_type_count;
+    $step_type_number++
     )
 {
-    my $value_type_name = $value_types[$value_type_number];
-    say {$codes_c} qq[  { $value_type_number, "$value_type_name" },];
-} ## end for ( my $value_type_number = 0; $value_type_number...)
+    my $step_type_name = $step_types[$step_type_number];
+    say {$codes_c} qq[  { $step_type_number, "$step_type_name" },];
+} ## end for ( my $step_type_number = 0; $step_type_number...)
 say {$codes_c} '};';
 

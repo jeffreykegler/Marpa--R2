@@ -1943,41 +1943,34 @@ They are destroyed by reducing their reference count to zero.
 Return value: None
 @end deftypefun
 
-@deftypefun int marpa_v_symbol_ask_me_when_null_set ( @
-    Marpa_Value @var{v}, @
-    Marpa_Symbol_ID @var{symid}, @
-    int @var{value} )
-@end deftypefun
-
 @deftypefun int marpa_v_symbol_is_ask_me_when_null ( @
     Marpa_Value @var{v}, @
     Marpa_Symbol_ID @var{symid} )
+@deftypefunx int marpa_v_symbol_ask_me_when_null_set ( @
+    Marpa_Value @var{v}, @
+    Marpa_Symbol_ID @var{symid}, @
+    int @var{value} )
+These methods, respectively, report and set to @var{value}
+the ``ask me
+when null'' flag for symbol @var{symid}.
+When this flag is 1,
+the valuator asks the applicaton
+to supply a value for a null symbol.
+When this flag is 0 (its default value),
+the behavior is for a null symbol to have a
+``whatever'' value.
+Any setting in the valuator overrides the one chosen
+in the grammar.
+
+@var{value} should be 1 or 0.
+If @var{symid} is non-nullable,
+an attempt to set its @var{value} to 1 is
+a hard error.
+
+Return value:  On success, the value of the flag after the
+call.
+On failure, -2.
 @end deftypefun
-
-@node Valuator access macros, Valuator reference counting, Valuator constructor, Value
-@section Valuator access macros
-
-Accessors which are implemented as macros.
-
-@deftypefn {Macro} Marpa_Symbol_ID marpa_v__token (Marpa_Value @var{v})
-Return value: Returns the symbol ID of the token for the current step.
-This is a macro and always succeeds.
-@end deftypefn
-
-@deftypefn {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
-@end deftypefn
-
-@defmac marpa_v_semantic_rule (Marpa_Value @var{v})
-Type of value: @code{Marpa_Rule_ID}.
-@end defmac
-
-@defmac int marpa_v_arg_0 (Marpa_Value @var{v})
-Type of value: @code{int}.
-@end defmac
-
-@defmac int marpa_v_arg_n (Marpa_Value @var{v})
-Type of value: @code{int}.
-@end defmac
 
 @node Valuator reference counting, Valuator stepping, Valuator access macros, Value
 @section Reference counting
@@ -1985,37 +1978,111 @@ Type of value: @code{int}.
 @node Valuator stepping,  , Valuator reference counting, Value
 @section Stepping through the valuator
 
-@deftypevr Macro Marpa_Value_Type MARPA_VALUE_TRACE
-The data for tracing is ready.
+@deftypefun Marpa_Step_Type marpa_v_step ( @
+    Marpa_Value @var{v})
+This method ``steps through'' the valuator.
+The return value is a @code{Marpa_Step_Type},
+a integer which indicates the type of step.
+How the application is expected to act on
+each step is described below.
+
+Return value:  On success, the type of the step
+to be performed.
+On soft failure, @code{MARPA_STEP_INACTIVE}.
+On other failure, -2.
+@end deftypefun
+
+@deftypevr Macro Marpa_Step_Type MARPA_STEP_RULE
+The semantics of a rule should be performed.
+The application can find the value of the rule's
+children in the stack locations from
+@code{marpa_v_arg_0(v)}
+to @code{marpa_v_arg_n(v)}.
+The semantics for the rule whose ID is
+@code{marpa_v_rule(v)} should be executed
+on these child values,
+and the result placed in
+@code{marpa_v_result(v)}.
 @end deftypevr
 
-@deftypevr Macro Marpa_Value_Type MARPA_VALUE_TOKEN
-The data for a semantic token is ready.
-The token is non-nulling and will have a value.
+@deftypevr Macro Marpa_Step_Type MARPA_STEP_TOKEN
+The semantics of a non-null token should be performed.
+The value of the token whose ID is
+@code{marpa_v_token(v)} should be 
+placed in
+stack location @code{marpa_v_result(v)}.
+The token is non-nulling.
+Its value
+will not be the ``whatever''
+value and will be in
+@code{marpa_v_value(v)}.
 @end deftypevr
 
-@deftypevr Macro Marpa_Value_Type MARPA_VALUE_NULLING_SYMBOL
-The data for a nulling symbol with semantics is ready.
-It is up to the application
-to provide the value, if one is needed.
+@deftypevr Macro Marpa_Step_Type MARPA_STEP_NULLING_SYMBOL
+The semantics for a nulling symbol should be performed.
+The ID of the symbol is
+@code{marpa_v_symbol(v)} and its value should
+be placed in
+stack location @code{marpa_v_result(v)}.
 @end deftypevr
 
-@deftypevr Macro Marpa_Value_Type MARPA_VALUE_RULE
-The data for a semantic rule is ready.
-@end deftypevr
-
-@deftypevr Macro Marpa_Value_Type MARPA_VALUE_INACTIVE
+@deftypevr Macro Marpa_Step_Type MARPA_STEP_INACTIVE
 The valuator is inactive.
 @end deftypevr
 
-@deftypevr Macro Marpa_Value_Type MARPA_VALUE_INTERNAL1
-@deftypevrx Macro Marpa_Value_Type MARPA_VALUE_INTERNAL2
-These value types are reserved for internal purposes
+@deftypevr Macro Marpa_Step_Type MARPA_STEP_INTERNAL1
+@deftypevrx Macro Marpa_Step_Type MARPA_STEP_INTERNAL2
+@deftypevrx Macro Marpa_Step_Type MARPA_STEP_TRACE
+These value types are reserved for internal purposes.
 @end deftypevr
 
-@deftypefun Marpa_Value_Type marpa_v_step ( @
-    Marpa_Value @var{v})
-@end deftypefun
+@node Step accessors, Valuator reference counting, Valuator constructor, Value
+@section Step accessors
+
+Accessors which are implemented as macros.  They always succeed.
+
+@deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
+Return value: Returns the ID of the token
+for the @code{MARPA_STEP_TOKEN} step.
+@end deftypefn
+
+@deftypefnx {Macro} Marpa_Symbol_ID marpa_v_symbol (Marpa_Value @var{v})
+Return value: Returns the ID of the symbol
+for the @code{MARPA_STEP_NULLING_SYMBOL} step.
+The value is always the same as that for the @code{marpa_v_symbol}
+macro.
+@end deftypefn
+
+@deftypefn {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
+Return value: Returns the integer which is (or represents)
+the value of the token for the
+@code{MARPA_STEP_TOKEN} step.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Rule_ID marpa_v_rule (Marpa_Value @var{v})
+Return value: Returns the ID of the rule
+token for the
+@code{MARPA_STEP_RULE} step.
+@end deftypefn
+
+@deftypefn {Macro} int marpa_v_result (Marpa_Value @var{v})
+Return the stack location where the result of the semantics
+should be placed.
+@end deftypefn
+
+@deftypefn {Macro} int marpa_v_arg_0 (Marpa_Value @var{v})
+For a @code{MARPA_STEP_RULE} step,
+returns the stack locaton where the value of first child
+can be found.
+The value is always the same as that for the @code{marpa_v_result}
+macro.
+@end deftypefn
+
+@deftypefn {Macro} int marpa_v_arg_n (Marpa_Value @var{v})
+For a @code{MARPA_STEP_RULE} step,
+returns the stack locaton where the value of the last child
+can be found.
+@end deftypefn
 
 @node Events, Error handling, Value, Top
 @chapter Events

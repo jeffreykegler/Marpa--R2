@@ -863,7 +863,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             } ## end for my $i ( reverse 0 .. $#evaluation_stack )
         } ## end if ( $trace_values >= 3 )
 
-        if ( $value_type eq 'MARPA_VALUE_TOKEN' ) {
+        if ( $value_type eq 'MARPA_STEP_TOKEN' ) {
 		my ( $token_id, $value_ix, $arg_n ) = @value_data;
                 my $value_ref = \( $token_values->[$value_ix] );
                 $evaluation_stack[$arg_n] = $value_ref;
@@ -871,7 +871,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 		next EVENT;
 	}
 
-        if ( $value_type eq 'MARPA_VALUE_NULLING_SYMBOL' ) {
+        if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
 		my ( $token_id, $arg_n ) = @value_data;
                 my $value_ref = $null_values->[$token_id];
                 $evaluation_stack[$arg_n] = $value_ref;
@@ -879,7 +879,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 		next EVENT;
 	}
 
-        if ( $value_type eq 'MARPA_VALUE_RULE' ) {
+        if ( $value_type eq 'MARPA_STEP_RULE' ) {
 	    my ( $rule_id, $arg_0, $arg_n ) = @value_data;
             my $closure = $rule_closures->[$rule_id];
             if ( defined $closure ) {
@@ -954,9 +954,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             next EVENT;
 
-        } ## end if ( $value_type eq 'MARPA_VALUE_RULE' )
+        } ## end if ( $value_type eq 'MARPA_STEP_RULE' )
 
-        if ( $value_type eq 'MARPA_VALUE_TRACE' ) {
+        if ( $value_type eq 'MARPA_STEP_TRACE' ) {
 
             TRACE_OP: {
 
@@ -1036,7 +1036,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             next EVENT;
 
-        } ## end if ( $value_type eq 'MARPA_VALUE_TRACE' )
+        } ## end if ( $value_type eq 'MARPA_STEP_TRACE' )
 
         die "Internal error: Unknown value type $value_type";
 
