@@ -395,9 +395,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         } ## end if ( $value_type eq 'MARPA_STEP_RULE' )
 
-        if ( $value_type eq 'MARPA_STEP_TRACE' and $trace_values ) {
+        if ( $value_type eq 'MARPA_STEP_TRACE' ) {
 
-	    print trace_op( $grammar, $recce, $bocage, $order, $tree, $value, );
+	    if ($trace_values) {
+	      print trace_op( $grammar, $recce, $bocage, $order, $tree, $value, );
+	    }
 
             next EVENT;
 
