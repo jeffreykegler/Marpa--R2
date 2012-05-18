@@ -1174,7 +1174,7 @@ The sequence RHS, or item,
 is restricted to a single symbol,
 but almost arbitrary semantics can be expressed by having
 @var{rhs_id} be the LHS of another rule.
-@var{rhs_id, cannot be a nullable symbol.
+@var{rhs_id} cannot be a nullable symbol.
 If @var{separator_id} is a symbol, it also cannot
 be a nullable symbol.
 
