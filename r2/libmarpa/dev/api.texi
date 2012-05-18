@@ -1959,13 +1959,13 @@ Return value: None
 
 Accessors which are implemented as macros.
 
-@deftypefun {Macro} Marpa_Symbol_ID marpa_v__token (Marpa_Value @var{v})
+@deftypefn {Macro} Marpa_Symbol_ID marpa_v__token (Marpa_Value @var{v})
 Return value: Returns the symbol ID of the token for the current step.
 This is a macro and always succeeds.
-@end defmac
+@end deftypefn
 
-@deftypefun {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
-@end defmac
+@deftypefn {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
+@end deftypefn
 
 @defmac marpa_v_semantic_rule (Marpa_Value @var{v})
 Type of value: @code{Marpa_Rule_ID}.
