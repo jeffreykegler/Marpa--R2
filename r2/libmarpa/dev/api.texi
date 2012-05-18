@@ -1499,17 +1499,18 @@ returns -1.
 On other failures, returns -2.
 @end deftypefun
 
-@deftypefunx @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
+@deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
 Return value: On success, the current earleme.
 If input has not started, -1.
 Always succeeds or fails softly.
 @end deftypefun
 
-@deftypefunx int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
+@deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
 @deftypefunx int marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer @var{r}, @
     int @var{threshold})
 These methods, respectively, report and set the earley item warning threshold.
-The @dfn{Earley item warning threshold is a number that is compared with
+The @dfn{Earley item warning threshold}
+is a number that is compared with
 the count of Earley items in each Earley set.
 When it is matched or exceeded,
 a @code{MARPA_EVENT_EARLEY_ITEM_THRESHOLD} event is created.
