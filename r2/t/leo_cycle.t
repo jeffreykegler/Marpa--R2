@@ -171,7 +171,7 @@ my $show_earley_sets_output = do {
 Marpa::R2::Test::is( $recce->show_earley_sets(1),
     $show_earley_sets_output, 'Leo cycle Earley sets' );
 
-my $value_ref = $recce->value( {} );
+my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No parse';
 Marpa::R2::Test::is( $value, 'a' x $length, 'Leo cycle parse' );
 

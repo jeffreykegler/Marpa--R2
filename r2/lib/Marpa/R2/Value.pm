@@ -419,15 +419,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value {
-    my ( $recce, @arg_hashes ) = @_;
+    my ( $recce ) = @_;
+
+    Marpa::R2::exception("Too many arguments to Marpa::R2::Recognizer::value")
+        if scalar @_ != 1;
 
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my $parse_set_arg = $recce->[Marpa::R2::Internal::Recognizer::END];
-
-
-    $recce->set(@arg_hashes);
 
     local $Marpa::R2::Internal::TRACE_FH =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];

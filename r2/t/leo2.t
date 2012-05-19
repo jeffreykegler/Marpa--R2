@@ -94,7 +94,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     Marpa::R2::Test::is( $max_size, $expected_size,
         "Leo flag $leo_flag, size" );
 
-    my $value_ref = $recce->value( {} );
+    my $value_ref = $recce->value();
     my $value = $value_ref ? ${$value_ref} : 'No parse';
     Marpa::R2::Test::is( $value, 'a' x $length, 'Leo p166 parse' );
 } ## end for my $leo_flag ( 0, 1 )
@@ -109,7 +109,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
         }
     );
     for ( 1 .. $length ) { $recce->read( 'a', 'a' ); }
-    my $value_ref = $recce->value( {} );
+    my $value_ref = $recce->value();
     close $trace_fh;
     my $warning_found =
         ( $trace_output
