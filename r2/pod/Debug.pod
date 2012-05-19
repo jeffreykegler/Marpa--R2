@@ -647,13 +647,10 @@ remove-blank-last-line: 1
     Inaccessible symbol: Add
     Inaccessible symbol: Term
     Setting trace_terminals option
-    Expecting "Expression" at earleme 0
-    Expecting "Factor" at earleme 0
     Expecting "Number" at earleme 0
     Accepted "Number" at 0-1
     Expecting "Multiply" at 1
     Accepted "Multiply" at 1-2
-    Expecting "Factor" at 2
     Expecting "Number" at 2
     Accepted "Number" at 2-3
     Expecting "Multiply" at 3
@@ -681,11 +678,9 @@ remove-blank-last-line: 1
     P0 @0-0 Expression -> . Factor
     P2 @0-0 Factor -> . Number
     P4 @0-0 Factor -> . Factor Multiply Factor
-    P5 @0-0 Expression['] -> . Expression
     F0 @0-1 Expression -> Factor .
     F2 @0-1 Factor -> Number .
     R4:1 @0-1 Factor -> Factor . Multiply Factor
-    F5 @0-1 Expression['] -> Expression .
     P2 @2-2 Factor -> . Number
     P4 @2-2 Factor -> . Factor Multiply Factor
     R4:2 @0-2 Factor -> Factor Multiply . Factor
@@ -693,7 +688,6 @@ remove-blank-last-line: 1
     F2 @2-3 Factor -> Number .
     R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
     F4 @0-3 Factor -> Factor Multiply Factor .
-    F5 @0-3 Expression['] -> Expression .
 
 =for Marpa::R2::Display::End
 

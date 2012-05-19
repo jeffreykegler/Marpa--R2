@@ -831,8 +831,8 @@ normalize-whitespace: 1
         R => { null_value => 'null R' },
         A => { null_value => 'null A' },
         B => { null_value => 'null B' },
-        X => { null_value => 'null X', terminal => 1 },
-        Y => { null_value => 'null Y', terminal => 1 },
+        X => { null_value => 'null X' },
+        Y => { null_value => 'null Y' },
     },
 
 =for Marpa::R2::Display::End

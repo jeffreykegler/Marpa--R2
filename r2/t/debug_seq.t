@@ -30,16 +30,11 @@ use Marpa::R2;
 
 my $progress_report = q{};
 
-# Marpa::R2::Display
-# name: Debug Sequence Example
-
 my $grammar = Marpa::R2::Grammar->new(
     {   start         => 'Document',
         rules => [ { lhs => 'Document', rhs => [qw/Stuff/], min => 1 }, ],
     }
 );
-
-# Marpa::R2::Display::End
 
 $grammar->precompute();
 
