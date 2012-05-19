@@ -1443,12 +1443,13 @@ sub parse {
     my $value = do {
         local $Marpa::R2::HTML::Internal::PARSE_INSTANCE = $self;
         local $Marpa::R2::HTML::INSTANCE                 = {};
-        $recce->value(
+        $recce->set(
             {   trace_values  => $self->{trace_values},
                 trace_actions => $self->{trace_actions},
                 closures      => \%closure,
             }
         );
+        $recce->value();
     };
     Marpa::R2::exception('No parse: evaler returned undef') if not defined $value;
     return ${$value};
