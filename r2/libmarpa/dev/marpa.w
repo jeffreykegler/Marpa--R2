@@ -1335,7 +1335,6 @@ it is the non-nullable ISY.
 @d ISYID_of_XSY(xsy) ID_of_ISY(ISY_of_XSY(xsy))
 @d ISY_by_XSYID(xsyid) (XSY_by_ID(xsyid)->t_isy_equivalent)
 @d ISYID_by_XSYID(xsyid) ID_of_ISY(ISY_of_XSY(XSY_by_ID(xsyid)))
-@d ISYID_by_SYMID(xsyid) ISYID_by_XSYID(xsyid)
 @<Widely aligned symbol elements@> = ISY t_isy_equivalent;
 @ @<Initialize symbol elements@> = ISY_of_XSY(symbol) = NULL;
 @ @<Function definitions@> =
@@ -3150,33 +3149,35 @@ rules will have ID's equal to or greater than
 the pre-CHAF rule count.
 @ @<Rewrite grammar |g| into CHAF form@> =
 {
-    @<CHAF rewrite declarations@>@;
-    @<CHAF rewrite allocations@>@;
-    @<Clone external symbols@>@;
-    pre_chaf_rule_count = XRL_Count_of_G(g);
-    for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++) {
+  @<CHAF rewrite declarations@>@;
+  @<CHAF rewrite allocations@>@;
+  @<Clone external symbols@>@;
+  pre_chaf_rule_count = XRL_Count_of_G (g);
+  for (rule_id = 0; rule_id < pre_chaf_rule_count; rule_id++)
+    {
 
-         XRL rule = XRL_by_ID(rule_id);
-	 XRL rewrite_xrl = rule;
-	 const int rewrite_xrl_length = Length_of_XRL(rewrite_xrl);
-	 int nullable_suffix_ix = 0;
-	  if (XRL_is_Sequence (rule) && XRL_is_Used (rule))
-	    {
-	      @<Rewrite sequence |rule| into BNF@>@;
-	      goto NEXT_XRL;
-	    }
-	 if (XRL_is_BNF(rule) && XRL_is_Used(rule)) {
-	   @<Calculate CHAF rule statistics@>@;
-	   /* Do not factor if there is no proper nullable in the rule */
-	   if (factor_count > 0) {
-	     @<Factor the rule into CHAF rules@>@;
-	   } else {
-	     @<Clone a new IRL from |rule|@>@;
-	   }
-	 }
-	 NEXT_XRL: ;
+      XRL rule = XRL_by_ID (rule_id);
+      XRL rewrite_xrl = rule;
+      const int rewrite_xrl_length = Length_of_XRL (rewrite_xrl);
+      int nullable_suffix_ix = 0;
+      if (!XRL_is_Used(rule))
+	continue;
+      if (XRL_is_Sequence (rule))
+	{
+	  @<Rewrite sequence |rule| into BNF@>@;
+	  continue;
+	}
+      @<Calculate CHAF rule statistics@>@;
+      /* Do not factor if there is no proper nullable in the rule */
+      if (factor_count > 0)
+	{
+	  @<Factor the rule into CHAF rules@>@;
+	  continue;
+	}
+      @<Clone a new IRL from |rule|@>@;
     }
 }
+
 @ @<CHAF rewrite declarations@> =
 Marpa_Rule_ID rule_id;
 int pre_chaf_rule_count;
@@ -5516,20 +5517,14 @@ once I stabilize the C code implemention.
 
 @d TRANS_of_AHFA_by_ISYID(from_ahfa, isyid)
     (*(TRANSs_of_AHFA(from_ahfa)+(isyid)))
-@d TRANS_of_AHFA_by_SYMID(from_ahfa, id)
-  TRANS_of_AHFA_by_ISYID(from_ahfa, ISYID_by_SYMID(id))
-@d TRANS_of_EIM_by_SYMID(eim, id) TRANS_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
 @d TRANS_of_EIM_by_ISYID(eim, isyid) TRANS_of_AHFA_by_ISYID(AHFA_of_EIM(eim), (isyid))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
 @d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
 @d Completion_Count_of_TRANS(trans)
     (completion_count_of_transition_get(trans))
 @d LV_Completion_Count_of_TRANS(trans) ((trans)->t_ur.t_completion_count)
-@d To_AHFA_of_AHFA_by_SYMID(from_ahfa, id)
-     (To_AHFA_of_TRANS(TRANS_of_AHFA_by_SYMID((from_ahfa), (id))))
 @d To_AHFA_of_AHFA_by_ISYID(from_ahfa, id)
      (To_AHFA_of_TRANS(TRANS_of_AHFA_by_ISYID((from_ahfa), (id))))
-@d To_AHFA_of_EIM_by_SYMID(eim, id) To_AHFA_of_AHFA_by_SYMID(AHFA_of_EIM(eim), (id))
 @d To_AHFA_of_EIM_by_ISYID(eim, id) To_AHFA_of_AHFA_by_ISYID(AHFA_of_EIM(eim), (id))
 @d AEXs_of_TRANS(trans) ((trans)->t_aex)
 @d Leo_Base_AEX_of_TRANS(trans) ((trans)->t_leo_base_aex)
