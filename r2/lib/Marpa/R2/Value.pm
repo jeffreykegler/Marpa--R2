@@ -397,9 +397,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_STEP_TRACE' ) {
 
-	    if ($trace_values) {
-	      print trace_op( $grammar, $recce, $bocage, $order, $tree, $value, );
-	    }
+            if ($trace_values) {
+                print {$Marpa::R2::Internal::TRACE_FH}
+                    trace_op( $grammar, $recce, $bocage, $order, $tree,
+                    $value, );
+            }
 
             next EVENT;
 
@@ -1072,81 +1074,70 @@ sub trace_stack_1 {
 } ## end if ($trace_values)
 
 sub trace_op {
-    my ($grammar, $recce, $bocage, $order, $tree, $value) = @_;
+
+    my ( $grammar, $recce, $bocage, $order, $tree, $value ) = @_;
     my $trace_output = q{};
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-            TRACE_OP: {
+    my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
 
-                my $nook_ix    = $value->_marpa_v_nook();
-                my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
-                my $choice     = $tree->_marpa_t_nook_choice($nook_ix);
-                my $and_node_id =
-                    $order->_marpa_o_and_node_order_get( $or_node_id, $choice );
-                my $trace_irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
-                my $virtual_rhs =
-                    $grammar_c->_marpa_g_irl_is_virtual_rhs($trace_irl_id);
-                my $virtual_lhs =
-                    $grammar_c->_marpa_g_irl_is_virtual_lhs($trace_irl_id);
+    my $nook_ix    = $value->_marpa_v_nook();
+    my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
+    my $choice     = $tree->_marpa_t_nook_choice($nook_ix);
+    my $and_node_id =
+        $order->_marpa_o_and_node_order_get( $or_node_id, $choice );
+    my $trace_irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
+    my $virtual_rhs  = $grammar_c->_marpa_g_irl_is_virtual_rhs($trace_irl_id);
+    my $virtual_lhs  = $grammar_c->_marpa_g_irl_is_virtual_lhs($trace_irl_id);
 
-                return $trace_output
-                    if $bocage->_marpa_b_or_node_position($or_node_id)
-                        != $grammar_c->_marpa_g_irl_length($trace_irl_id);
+    return $trace_output
+        if $bocage->_marpa_b_or_node_position($or_node_id)
+            != $grammar_c->_marpa_g_irl_length($trace_irl_id);
 
-		return $trace_output if not $virtual_rhs and not $virtual_lhs;
+    return $trace_output if not $virtual_rhs and not $virtual_lhs;
 
-                if ( $virtual_rhs and not $virtual_lhs ) {
+    if ( $virtual_rhs and not $virtual_lhs ) {
 
-                    $trace_output .= join q{},
-                        'Head of Virtual Rule: ',
-                        Marpa::R2::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_irl($trace_irl_id),
-                        "\n",
-                        'Incrementing virtual rule by ',
-                        $grammar_c->_marpa_g_real_symbol_count($trace_irl_id),
-                        ' symbols'
-                        or
-                        Marpa::R2::exception('Could not print to trace file');
+        $trace_output .= join q{},
+            'Head of Virtual Rule: ',
+            Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id ),
+            ', rule: ', $grammar->brief_irl($trace_irl_id),
+            "\n",
+            'Incrementing virtual rule by ',
+            $grammar_c->_marpa_g_real_symbol_count($trace_irl_id), ' symbols'
+            or Marpa::R2::exception('Could not print to trace file');
 
-                    return $trace_output;
+        return $trace_output;
 
-                } ## end if ( $virtual_rhs and not $virtual_lhs )
+    } ## end if ( $virtual_rhs and not $virtual_lhs )
 
-                if ( $virtual_lhs and $virtual_rhs ) {
+    if ( $virtual_lhs and $virtual_rhs ) {
 
-                    $trace_output .= join q{},
-                        'Virtual Rule: ',
-                        Marpa::R2::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_irl($trace_irl_id),
-                        "\nAdding ",
-                        $grammar_c->_marpa_g_real_symbol_count($trace_irl_id),
-			"\n";
+        $trace_output .= join q{},
+            'Virtual Rule: ',
+            Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id ),
+            ', rule: ', $grammar->brief_irl($trace_irl_id),
+            "\nAdding ",
+            $grammar_c->_marpa_g_real_symbol_count($trace_irl_id),
+            "\n";
 
-                    return $trace_output;
+        return $trace_output;
 
-                } ## end if ( $virtual_lhs and $virtual_rhs )
+    } ## end if ( $virtual_lhs and $virtual_rhs )
 
-                if ( not $virtual_rhs and $virtual_lhs ) {
+    if ( not $virtual_rhs and $virtual_lhs ) {
 
-                    $trace_output .= join q{},
-                        'New Virtual Rule: ',
-                        Marpa::R2::Recognizer::and_node_tag(
-                        $recce, $and_node_id
-                        ),
-                        ', rule: ', $grammar->brief_irl($trace_irl_id),
-                        "\nReal symbol count is ",
-                        $grammar_c->_marpa_g_real_symbol_count($trace_irl_id),
-			"\n";
+        $trace_output .= join q{},
+            'New Virtual Rule: ',
+            Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id ),
+            ', rule: ', $grammar->brief_irl($trace_irl_id),
+            "\nReal symbol count is ",
+            $grammar_c->_marpa_g_real_symbol_count($trace_irl_id),
+            "\n";
 
-                    return $trace_output;
+        return $trace_output;
 
-                } ## end if ( not $virtual_rhs and $virtual_lhs )
+    } ## end if ( not $virtual_rhs and $virtual_lhs )
 
-            } ## end TRACE_OP:
+    return $trace_output;
+} ## end sub trace_op
 
-	    return $trace_output;
-}
 1;
