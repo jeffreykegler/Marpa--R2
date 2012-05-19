@@ -298,7 +298,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         $value->symbol_ask_me_when_null_set($token_id, 1);
     }
     my @evaluation_stack = ();
-    $value->_marpa_v_trace( $trace_values ? 1 : 0 );
+    value_trace( $value, $trace_values ? 1 : 0 );
 
     EVENT: while (1) {
         my ( $value_type, @value_data ) = $value->step();
@@ -1139,5 +1139,10 @@ sub trace_op {
 
     return $trace_output;
 } ## end sub trace_op
+
+sub value_trace {
+    my ($value, $trace_flag) = @_;
+    $value->_marpa_v_trace( $trace_flag );
+}
 
 1;
