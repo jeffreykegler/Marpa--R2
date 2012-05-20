@@ -46,7 +46,7 @@ L<Wikipedia|Marpa::R2::Advanced::Bibliography/"Wikipedia"> is also an excellent 
 
 A B<grammar> is a set of rules,
 associated with a set of symbols,
-one of which is distinguished as the default start symbol.
+one of which is distinguished as the start symbol.
 A B<symbol string>, or simply B<string> where the meaning is clear,
 is an ordered series of symbols.
 The B<length> of a string is the number of symbols in it.
@@ -71,8 +71,6 @@ that and nothing more.
 The Marpa definition of a grammar differs slightly from the various
 standard ones.  Standard definitions usually sharply distinguish terminal symbols
 from non-terminals.  Marpa does not.
-In standard definitions, the start symbol is fixed.
-In Marpa, it is merely a default.
 
 =head2 Stages of parsing
 
@@ -128,10 +126,10 @@ In the production above, C<Expression>, C<Term> and C<Factor> are symbols.
 A production consists of a B<left hand side> and a B<right hand side>.
 In a B<context-free grammar>,
 like those Marpa parses,
-the left hand side of a production 
+the left hand side of a production
 is always a symbol string of length 1.
 The right hand side of a production is a symbol string of zero or more symbols.
-In the example, C<Expression> is the left hand side, and 
+In the example, C<Expression> is the left hand side, and
 C<Term> and C<Factor> are right hand side symbols.
 
 Left hand side and right hand side are often abbreviated as B<RHS> and B<LHS>.
@@ -182,7 +180,7 @@ The B<length> of a derivation is its length in steps.
 =over
 
 =item *
-We say that 
+We say that
 a first symbol string B<directly
 derives> a second symbol string if and only if there is a derivation of length 1 from the first symbol
 string to the second symbol string.
@@ -190,6 +188,11 @@ string to the second symbol string.
 =item *
 Every symbol string is said to derive itself in a derivation
 of length 0.  A zero length derivation is a B<trivial derivation>.
+
+=item * A derivation which is not trivial
+(that is,
+a derivation which has one or more steps)
+is a B<non-trivial> derivation.
 
 =item *
 A non-trivial derivation of a symbol string from itself
@@ -199,11 +202,6 @@ but Marpa will parse with such grammars.
 
 =item * If a derivation is not trivial or direct, that is, if it has more than one step,
 then it is an B<indirect> derivation.
-
-=item * A derivation which is not trivial
-(that is,
-a derivation which has one or more steps)
-is a B<non-trivial> derivation.
 
 =back
 
@@ -227,19 +225,15 @@ or that C<X> B<matches> C<Y>.
 It is particularly common to say that
 C<X> matches C<Y> when C<X> or C<Y> is a sentence.
 
-In any parse, one symbol is distinguished as the B<start symbol>.
-The parse of an input is B<successful>
-if and only if the start symbol produces the input sentence
-according to the grammar.
-The set of all input sentences that 
-a grammar and a start symbol
-will successfully parse is their B<language>.
-Traditionally,
-the start symbol is part of a grammar's definition.
-The B<language> of 
+The parse of an input by a grammar is B<successful>
+if and only if,
+according to the grammar,
+the start symbol produces the input sentence.
+The set of all input sentences that
 a grammar
-is the language of the grammar
-and its default start symbol.
+will successfully parse is
+the B<language> of
+the grammar.
 
 =head2 Nulling
 
@@ -363,8 +357,8 @@ In particular, a Marpa terminal can be the LHS
 of a rule.
 
 Traditionally, and in Marpa as well,
-every node is either a 
-B<inner node> or a 
+every node is either a
+B<inner node> or a
 B<leaf node>.
 In Marpa,
 B<leaf nodes> are of
@@ -399,8 +393,6 @@ the traditional definition,
 all grammars would be
 ambiguous except those grammars which allowed only
 the null parse.
-Another complication is that in Marpa
-the start symbol of a grammar is not fixed.
 
 It is easiest if the Marpa definition and the
 traditional definition were extensionally
@@ -410,13 +402,11 @@ was exactly the same as the set of traditionally
 ambiguous grammars.
 This can be accomplished by using a slightly
 altered definition.
-In the Marpa context, a grammar with an associated start symbol
+In the Marpa context, a grammar
 is B<ambiguous> if and only if,
 for some UNAMBIGUOUS stream of input tokens,
-that grammar with that start symbol produces
+that grammar produces
 more than one parse tree.
-A Marpa grammar is B<ambiguous> if that Marpa grammar with its
-default start symbol is ambiguous.
 
 =head2 Semantics
 
@@ -429,7 +419,7 @@ The tree representation is especially useful when evaluating a parse.
 In the traditional method of evaluating a parse tree,
 every node which represents a terminal symbol
 has a value associated with it on input.
-Non-null inner nodes 
+Non-null inner nodes
 take their semantics from the production whose LHS they represent.
 Nulled nodes are dealt with as special cases.
 
@@ -451,12 +441,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
