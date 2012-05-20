@@ -31,6 +31,26 @@ and tools to Marpa::R2.
 
 =head1 CHANGES
 
+=head2 Marpa::R2::Recognizer::value() does not accept named arguments
+
+n the Marpa::XS recognizer, the new(), set() and value() methods
+all accepted named arguments.  As of Marpa::R2, the value() method
+will no longer do so.
+
+Allowing named arguments for the value() was a holdover from a
+previous interface, which also seemed like it might be a convenience.
+But, since it was even more important that the value() method be
+convenient as the termination test controlling a loop over the parse
+results, a lot of special logic was added to deal with arguments
+which only made sense before the first pass of the loop, etc., etc.
+
+Eliminating named arguments from the value() method eliminates a
+variety of special cases and, as a result, the documentation of the
+value() method is now simpler, shorter and clearer.  Anything that
+could be done by providing named arguments to the value() method
+can be done more using the recognizer's set() method, and the code
+will be clearer for it.
+
 =head2 Marpa's grammar rewriting is now invisible
 
 Internally, Marpa rewrites its grammars.
