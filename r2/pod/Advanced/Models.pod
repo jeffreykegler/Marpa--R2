@@ -250,7 +250,7 @@ and there is no need to specifically test for parse exhaustion.
 In the default input model, a recognizer was exhausted if
 the C<read> method returned 0, indicating that no tokens
 would be accepted at the new current earleme.
-In alternative input models, 
+In alternative input models,
 C<earleme_complete> will always return 0 when the parser is exhausted,
 but the converse is not always true:
 C<earleme_complete> may return 0 even in some cases when the parser is not exhausted.
@@ -363,7 +363,7 @@ read at each earleme.
 In alternative models, more than one token may be read at
 an earleme, and duplicates B<are> possible.
 Marpa detects duplicate tokens and treats them as
-"hard errors" -- 
+"hard errors" --
 Marpa throws an exception
 when it sees a duplicate token.
 Marpa's assumption is that
@@ -479,12 +479,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
