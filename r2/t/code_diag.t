@@ -176,7 +176,7 @@ sub run_test {
                 [ 'trailer',           [qw/Text/], ],
             ],
             default_action     => $default_action,
-            default_null_value => '[default null]',
+            default_null_value => \'[default null]',
             symbols   => { optional_trailer2 => { null_value => '[null]' } },
             terminals => [qw(Number AddOp MultOp Text)],
         }

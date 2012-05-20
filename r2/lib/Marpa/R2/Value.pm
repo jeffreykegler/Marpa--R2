@@ -325,12 +325,47 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 	}
 
         if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
-		my ( $token_id, $arg_n ) = @value_data;
-                my $value_ref = $null_values->[$token_id];
-                $evaluation_stack[$arg_n] = $value_ref;
-		trace_token_evaluation($recce, $value, $token_id, $value_ref) if $trace_values;
-		next EVENT;
-	}
+            my ( $token_id, $arg_n ) = @value_data;
+            my $value_ref = $null_values->[$token_id];
+
+            if ( ref $value_ref eq 'CODE' ) {
+                my @warnings;
+                my $eval_ok;
+		my $result;
+
+                DO_EVAL: {
+                    local $SIG{__WARN__} = sub {
+                        push @warnings, [ $_[0], ( caller 0 ) ];
+                    };
+
+                    $eval_ok = eval {
+                        $result = $value_ref->( $action_object );
+                        1;
+                    };
+
+                } ## end DO_EVAL:
+
+                if ( not $eval_ok or @warnings ) {
+                    my $fatal_error = $EVAL_ERROR;
+                    Marpa::R2::Internal::code_problems(
+                        {   fatal_error => $fatal_error,
+                            grammar     => $grammar,
+                            eval_ok     => $eval_ok,
+                            warnings    => \@warnings,
+                            where       => 'computing value',
+                            long_where  => 'Computing value for null symbol: '
+                                . $grammar->xsy_name($token_id),
+                        }
+                    );
+                } ## end if ( not $eval_ok or @warnings )
+                $value_ref = \$result;
+            } ## end if ( ref $value_ref eq 'CLOSURE' )
+
+            $evaluation_stack[$arg_n] = $value_ref;
+            trace_token_evaluation( $recce, $value, $token_id, $value_ref )
+                if $trace_values;
+            next EVENT;
+        } ## end if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' )
 
         if ( $value_type eq 'MARPA_STEP_RULE' ) {
 	    my ( $rule_id, $arg_0, $arg_n ) = @value_data;

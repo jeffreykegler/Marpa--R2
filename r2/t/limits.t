@@ -93,7 +93,7 @@ my $placebo = {
         [ 'A', [qw/a/] ]
         #>>>
     ],
-    default_null_value => q{},
+    default_null_value => \q{},
     default_action     => 'main::default_action',
 };
 

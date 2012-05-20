@@ -364,8 +364,10 @@ sub Marpa::R2::Grammar::set {
 
         if ( exists $args->{'default_null_value'} ) {
             my $value = $args->{'default_null_value'};
+            Marpa::R2::exception('default_null_value must be undefined or a reference')
+                if defined $value and not ref $value;
             $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE] =
-                \$value;
+                $value;
         }
 
         if ( defined( my $value = $args->{'actions'} ) ) {

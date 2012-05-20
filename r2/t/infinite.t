@@ -68,7 +68,7 @@ $Test_Grammar::MARPA_OPTIONS_2 = [
 
 $Test_Grammar::MARPA_OPTIONS_8 = [
     {   'default_action' => 'main::default_action',
-        default_null_value => undef,
+        default_null_value => \undef,
         'rules'          => [
             {   'lhs' => 'S',
                 'rhs' => [ 'A' ]

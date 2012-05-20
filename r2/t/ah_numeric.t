@@ -51,7 +51,7 @@ sub gen_grammar {
                 [ 'A', [qw/a/] ],
                 ['A'],
             ],
-            default_null_value => q{},
+            default_null_value => \q{},
             default_action     => 'main::default_action',
             symbols => { S => { null_value => '' }},
         }
