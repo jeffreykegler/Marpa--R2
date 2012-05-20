@@ -1,62 +1,62 @@
-\input texinfo @c -*-texinfo-*- 
+\input texinfo @c -*-texinfo-*-
 @c %**start of header
-@setfilename api.info 
+@setfilename api.info
 @settitle Libmarpa @value{VERSION}
-@c %**end of header 
+@c %**end of header
 @include version.texi
-@copying 
-This manual is for Libmarpa @value{VERSION}. 
+@copying
+This manual is for Libmarpa @value{VERSION}.
 Copyright @copyright{} 2012 Jeffrey Kegler.
-@quotation 
-Permission is granted to copy, distribute and/or modify this document 
-under the terms of the GNU Free Documentation License, Version 1.2 or 
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation;
-@end quotation 
-@end copying 
+@end quotation
+@end copying
 @finalout
-@titlepage 
+@titlepage
 @title Libmarpa
 @subtitle Version @value{VERSION}
 @subtitle @value{UPDATED}
 @author Jeffrey Kegler
-@c The following two commands 
-@c start the copyright page. 
-@page 
-@vskip 0pt plus 1filll 
+@c The following two commands
+@c start the copyright page.
+@page
+@vskip 0pt plus 1filll
 @insertcopying
 
 Published @value{UPDATED} by Jeffrey Kegler
-@end titlepage 
-@c So the toc is printed at the start. 
-@contents 
-@ifnottex 
+@end titlepage
+@c So the toc is printed at the start.
+@contents
+@ifnottex
 @node Top, How to read this document, (dir), (dir)
 @top Libmarpa: The Marpa low-level library
 
-This manual is for Libmarpa, version @value{VERSION}. 
+This manual is for Libmarpa, version @value{VERSION}.
 
-@end ifnottex 
+@end ifnottex
 @menu
-* How to read this document::   
+* How to read this document::
 * About Libmarpa::              What is Libmarpa?
-* Libmarpa objects::            
-* The architecture of Marpa::   
-* Threads::                     
-* Terminal and tokens::         
-* Error handling concepts::     
-* Introduction to the External Interface::  
-* Static Methods::              
-* Grammar objects::             
+* Libmarpa objects::
+* The architecture of Marpa::
+* Threads::
+* Terminal and tokens::
+* Error handling concepts::
+* Introduction to the External Interface::
+* Static Methods::
+* Grammar objects::
 * Recognizers::                 Recognizers.
 * Bocage::                      Bocage objects.
-* Ordering objects::            
+* Ordering objects::
 * Tree::                        Parse Trees.
 * Value::                       Value objects.
 * Events::                      Libmarpa Events
-* Error macros and code::       
-* Design considerations::       
-* Things To Do::                
-* Internal Interface::          
+* Error macros and code::
+* Design considerations::
+* Things To Do::
+* Internal Interface::
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -68,87 +68,87 @@ How to read this document
 
 Libmarpa objects
 
-* The sequence of time objects::  
-* Base grammars::               
-* The lifetime of time objects::  
-* Numbered objects::            
+* The sequence of time objects::
+* Base grammars::
+* The lifetime of time objects::
+* Numbered objects::
 
 The architecture of Marpa
 
-* Architecture - Grammar::      
-* Recognition versus parsing::  
+* Architecture - Grammar::
+* Recognition versus parsing::
 
 Grammars
 
-* Precomputation::              
+* Precomputation::
 
 Recognition versus parsing
 
-* Precomputation::              
+* Precomputation::
 
 Threads
 
-* C89 and thread-safety::       
-* Base grammars cannot be shared between threads::  
+* C89 and thread-safety::
+* Base grammars cannot be shared between threads::
 
 C89 and thread-safety
 
-* C89 and thread-safety::       
+* C89 and thread-safety::
 
 Terminal and tokens
 
-* LHS Terminals::               
-* Token values::                
+* LHS Terminals::
+* Token values::
 
 Error handling
 
-* Memory allocation failures::  
-* Soft and hard errors::        
+* Memory allocation failures::
+* Soft and hard errors::
 
 Introduction to the External Interface
 
-* Return value descriptions::   
+* Return value descriptions::
 
 Grammar objects
 
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
-* Symbols::                     
+* Symbols::
 * Terminals::                   Terminal symbols.
-* Rules::                       
-* Sequences::                   
+* Rules::
+* Sequences::
 * Grammar precomputation::      Precomputing the Grammar.
-* Grammar events::              
+* Grammar events::
 
 Recognizer objects
 
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
-* Recognizer events::           
+* Recognizer events::
 
 Bocage objects
 
-* Bocage reference counting::   
+* Bocage reference counting::
 
 Ordering objects
 
-* Ordering constructor::        
-* Ordering reference counting::  
+* Ordering constructor::
+* Ordering reference counting::
 
 Tree iterators
 
-* Tree constructor::            
-* Tree reference counting::     
-* Tree iteration::              
+* Tree constructor::
+* Tree reference counting::
+* Tree iteration::
 
 Value objects
 
-* About the valuator::          
-* Valuator constructor::        
-* Valuator reference counting::  
-* Valuator stepping::           
-* Step accessors::              
+* About the valuator::
+* Valuator constructor::
+* Valuator reference counting::
+* Valuator stepping::
+* Step accessors::
 
 Events
 
@@ -156,25 +156,25 @@ Events
 
 Error macros and code
 
-* Methods::                     
-* Error Macros::                
-* Error Codes::                 
+* Methods::
+* Error Macros::
+* Error Codes::
 
 Design considerations
 
-* Why so many time objects::    
-* Design of numbered objects::  
+* Why so many time objects::
+* Design of numbered objects::
 
 Internal Interface
 
-* Symbol internal methods::     
-* Rule internals::              
-* Grammar internals::           
-* Recognizer internals::        
-* Bocage internals::            
-* Ordering internals::          
-* Tree internals::              
-* Valuator internals::          
+* Symbol internal methods::
+* Rule internals::
+* Grammar internals::
+* Recognizer internals::
+* Bocage internals::
+* Ordering internals::
+* Tree internals::
+* Valuator internals::
 
 @end detailmenu
 @end menu
@@ -185,7 +185,7 @@ Internal Interface
 @menu
 * Prerequisites::               Prerequisites.
 * Parsing theory::              Parsing theory.
-@end menu 
+@end menu
 
 @node Prerequisites, Parsing theory, How to read this document, How to read this document
 @section Prerequisites
@@ -318,20 +318,20 @@ In our lives, work and play are times.
 Infancy, adolescent and adulthood are phases.
 
 The time objects are, in sequence:
-@itemize 
+@itemize
 @item Grammars.
 @item Recognizers.
 @item Bocages.
 @item Orderings.
 @item Trees.
 @item Valuators.
-@end itemize 
+@end itemize
 
 @menu
-* The sequence of time objects::  
-* Base grammars::               
-* The lifetime of time objects::  
-* Numbered objects::            
+* The sequence of time objects::
+* Base grammars::
+* The lifetime of time objects::
+* Numbered objects::
 @end menu
 
 @node The sequence of time objects, Base grammars, Libmarpa objects, Libmarpa objects
@@ -421,8 +421,8 @@ another examples of numbered objects.
 @chapter The architecture of Marpa
 
 @menu
-* Architecture - Grammar::      
-* Recognition versus parsing::  
+* Architecture - Grammar::
+* Recognition versus parsing::
 @end menu
 
 @node Architecture - Grammar, Recognition versus parsing, The architecture of Marpa, The architecture of Marpa
@@ -438,7 +438,7 @@ a set of rules,
 and a distinguished start symbol.
 
 @menu
-* Precomputation::              
+* Precomputation::
 @end menu
 
 @node Recognition versus parsing,  , Architecture - Grammar, The architecture of Marpa
@@ -462,7 +462,7 @@ is implemented by its bocage class and the classes
 which follow the bocage in the time object sequence.
 
 @menu
-* Precomputation::              
+* Precomputation::
 @end menu
 
 @node Precomputation,  , Recognition versus parsing, Recognition versus parsing
@@ -491,8 +491,8 @@ if used as described below.
 The Libmarpa methods are not reentrant.
 
 @menu
-* C89 and thread-safety::       
-* Base grammars cannot be shared between threads::  
+* C89 and thread-safety::
+* Base grammars cannot be shared between threads::
 @end menu
 
 @node C89 and thread-safety, Base grammars cannot be shared between threads, Threads, Threads
@@ -515,7 +515,7 @@ and linked in an environment that provides
 thread-safety.
 
 @menu
-* C89 and thread-safety::       
+* C89 and thread-safety::
 @end menu
 
 @node Base grammars cannot be shared between threads,  , C89 and thread-safety, Threads
@@ -561,8 +561,8 @@ symbol to also be a terminal
 and Marpa does not allow it.
 
 @menu
-* LHS Terminals::               
-* Token values::                
+* LHS Terminals::
+* Token values::
 @end menu
 
 @node LHS Terminals, Token values, Terminal and tokens, Terminal and tokens
@@ -573,14 +573,14 @@ in losing the sharp division between terminals
 and non-terminals is that the distinction,
 while helpful for proving theorems,
 is not essential in practice.
-If LHS symbols 
+If LHS symbols
 appear in the input they, in effect,
 ``short circuiting'' the rules in which they occur.
 This may
 be helpful in debugging, or have other applications.
 
 However,
-it also can be useful, 
+it also can be useful,
 for checking input validity as well as for efficiency,
 to follow tradition and distingush
 non-terminals from terminals.
@@ -609,8 +609,8 @@ and forth into whatever the application requires.
 @chapter Error handling
 
 @menu
-* Memory allocation failures::  
-* Soft and hard errors::        
+* Memory allocation failures::
+* Soft and hard errors::
 @end menu
 
 @node Memory allocation failures, Soft and hard errors, Error handling concepts, Error handling concepts
@@ -665,7 +665,7 @@ The following chapters describe Libmarpa's external
 interface in detail.
 
 @menu
-* Return value descriptions::   
+* Return value descriptions::
 @end menu
 
 @node Return value descriptions,  , Introduction to the External Interface, Introduction to the External Interface
@@ -737,7 +737,7 @@ This will be the case as long as Libmarpa stays
 alpha.
 While Libmarpa is still alpha, much stricter compatibility
 will be enforced.
-While Libmarpa is alpha 
+While Libmarpa is alpha
 the major, minor and micro numbers must match exactly.
 
 Once Libmarpa is beyond alpha releases,
@@ -767,13 +767,13 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 @menu
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
-* Symbols::                     
+* Symbols::
 * Terminals::                   Terminal symbols.
-* Rules::                       
-* Sequences::                   
+* Rules::
+* Sequences::
 * Grammar precomputation::      Precomputing the Grammar.
-* Grammar events::              
-@end menu 
+* Grammar events::
+@end menu
 
 @node Grammar constructor, Grammar reference counting, Grammar objects, Grammar objects
 @section Creating a new grammar
@@ -836,7 +836,7 @@ On success, the grammar object it was called with;
 
 Creates a new symbol.
 
-Return value: On success, the ID of a new symbol; 
+Return value: On success, the ID of a new symbol;
 On failure, -2.
 
 @end deftypefun
@@ -1249,7 +1249,7 @@ which succeeded.
 
 Each @code{MARPA_EVENT_LOOP_RULES} event is a rule
 which is part of an cycle (infinite loop) in the grammar.
-Cycles 
+Cycles
 are useless in current
 practice.
 Cycles make a grammar infinitely ambiguous
@@ -1276,7 +1276,7 @@ So that the programmer can fix several at once,
 the failure is delayed until events are created
 for all of the counted nullables.
 
-Precomputation involves freezing 
+Precomputation involves freezing
 and then thoroughly checking the grammar,
 and it is at this point that many failures
 are caught and reported.
@@ -1347,8 +1347,8 @@ codes.
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
-* Recognizer events::           
-@end menu 
+* Recognizer events::
+@end menu
 
 @node Recognizer constructor, Recognizer reference counting, Recognizers, Recognizers
 @section Creating a new recognizer
@@ -1409,7 +1409,7 @@ which must be a terminal.
 @var{value} is a integer which represents the value of the
 token.
 In applications where the token's value is not an integer, it is
-expected that the application will use this value to 
+expected that the application will use this value to
 find the application's value, perhaps by using @var{value}
 to index an array.
 @var{value} is not used inside Libmarpa -- it is simply
@@ -1424,7 +1424,7 @@ that the token's value is ``whatever'' -- that it may take an
 arbitrary value.
 This usually means that the application simply does not
 care what the value of the token is.
-The value of tokens with a ``whatever'' value 
+The value of tokens with a ``whatever'' value
 does not need to be stored, tracked or computed either
 by Libmarpa or by the application.
 
@@ -1571,7 +1571,7 @@ Both successful and failed parses can be ``exhausted''.
 In many grammars,
 the parse is always exhausted as soon as it succeeds.
 And even if the parse is exhausted at a point
-where there is no good parse, 
+where there is no good parse,
 there may be good parses at earlemes prior to the
 earleme at which the parse became exhausted.
 
@@ -1615,7 +1615,7 @@ codes.
 @chapter Bocage objects
 
 @menu
-* Bocage reference counting::   
+* Bocage reference counting::
 @end menu
 
 In Libmarpa, recognition and parsing are separate phases.
@@ -1661,8 +1661,8 @@ They are destroyed by reducing their reference count to zero.
 @chapter Ordering objects
 
 @menu
-* Ordering constructor::        
-* Ordering reference counting::  
+* Ordering constructor::
+* Ordering reference counting::
 @end menu
 
 @node Ordering constructor, Ordering reference counting, Ordering objects, Ordering objects
@@ -1732,9 +1732,9 @@ when it makes sense in context,
 ``tree'' means a parse tree.
 
 @menu
-* Tree constructor::            
-* Tree reference counting::     
-* Tree iteration::              
+* Tree constructor::
+* Tree reference counting::
+* Tree iteration::
 @end menu
 
 @node Tree constructor, Tree reference counting, Tree, Tree
@@ -1815,11 +1815,11 @@ Always succeeds.
 @chapter Value objects
 
 @menu
-* About the valuator::          
-* Valuator constructor::        
-* Valuator reference counting::  
-* Valuator stepping::           
-* Step accessors::              
+* About the valuator::
+* Valuator constructor::
+* Valuator reference counting::
+* Valuator stepping::
+* Step accessors::
 @end menu
 
 @node About the valuator, Valuator constructor, Value, Value
@@ -1878,7 +1878,7 @@ and optimizes stack manipulations based on this knowledge.
 Many practical grammars use long sequences heavily
 and, for these,
 the series of steps
-suggest by Libmarpa will be significantly faster than the standard 
+suggest by Libmarpa will be significantly faster than the standard
 stack evaluation algorithm in the textbooks.
 
 To make it clear,
@@ -2010,7 +2010,7 @@ and the result placed in
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_TOKEN
 The semantics of a non-null token should be performed.
 The value of the token whose ID is
-@code{marpa_v_token(v)} should be 
+@code{marpa_v_token(v)} should be
 placed in
 stack location @code{marpa_v_result(v)}.
 The token is non-nulling.
@@ -2154,9 +2154,9 @@ Suggested message: "Grammar has a nulling terminal."
 @chapter Error macros and code
 
 @menu
-* Methods::                     
-* Error Macros::                
-* Error Codes::                 
+* Methods::
+* Error Macros::
+* Error Codes::
 @end menu
 
 @node Methods, Error Macros, Error macros and code, Error macros and code
@@ -2306,7 +2306,7 @@ even when exceeding the threshold is
 treated as a fatal error,
 will usually be well under 1000.
 If this error code ever does occur,
-it is almost certainly both a hard and a 
+it is almost certainly both a hard and a
 fatal error.
 @end deftypevr
 
@@ -2591,8 +2591,8 @@ This section details some of the design choices
 in Libmarpa.
 
 @menu
-* Why so many time objects::    
-* Design of numbered objects::  
+* Why so many time objects::
+* Design of numbered objects::
 @end menu
 
 @node Why so many time objects, Design of numbered objects, Design considerations, Design considerations
@@ -2674,7 +2674,7 @@ safe, portable validity checking.
 
 @itemize
 @item
-There should be an interface in the valuator that allows the user to 
+There should be an interface in the valuator that allows the user to
 determine the start and end earlemes of a token.
 @end itemize
 
@@ -2682,14 +2682,14 @@ determine the start and end earlemes of a token.
 @chapter Internal Interface
 
 @menu
-* Symbol internal methods::     
-* Rule internals::              
-* Grammar internals::           
-* Recognizer internals::        
-* Bocage internals::            
-* Ordering internals::          
-* Tree internals::              
-* Valuator internals::          
+* Symbol internal methods::
+* Rule internals::
+* Grammar internals::
+* Recognizer internals::
+* Bocage internals::
+* Ordering internals::
+* Tree internals::
+* Valuator internals::
 @end menu
 
 @node Symbol internal methods, Rule internals, Internal Interface, Internal Interface
@@ -3118,7 +3118,7 @@ If that's an issue, the @var{nook_id} needs
 to be checked with one of the trace functions
 where -1 is never a valid value ---
 for example, @code{_marpa_t_nook_or_node}.
-@end deftypefun 
+@end deftypefun
 
 @deftypefun int _marpa_t_nook_cause_is_ready ( @
 	Marpa_Tree @var{t}, @

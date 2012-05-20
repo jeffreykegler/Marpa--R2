@@ -67,12 +67,12 @@ END_OF_STRING
 
 my $fdl_license = <<'END_OF_FDL_LANGUAGE';
 Copyright @copyright{} 2012 Jeffrey Kegler.
-@quotation 
-Permission is granted to copy, distribute and/or modify this document 
-under the terms of the GNU Free Documentation License, Version 1.2 or 
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation;
-@end quotation 
-@end copying 
+@end quotation
+@end copying
 END_OF_FDL_LANGUAGE
 
 my $cc_a_nd_body = <<'END_OF_CC_A_ND_LANGUAGE';
@@ -87,7 +87,7 @@ sub hash_comment {
     my ( $text, $char ) = @_;
     $char //= q{#};
     $text =~ s/^/$char /gxms;
-    $text =~ s/ [ ] $//gxms;
+    $text =~ s/ [ ]+ $//gxms;
     return $text;
 } ## end sub hash_comment
 
@@ -106,6 +106,7 @@ my $tex_license        = hash_comment( $license, q{%} );
 my $tex_cc_a_nd_license = hash_comment( $cc_a_nd_license, q{%} );
 my $indented_license   = $license;
 $indented_license =~ s/^/  /gxms;
+$indented_license =~ s/[ ]+$//gxms;
 
 my $pod_section = <<'END_OF_STRING';
 =head1 COPYRIGHT AND LICENSE
