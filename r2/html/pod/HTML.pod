@@ -157,7 +157,7 @@ no mater how poorly they fit the HTML standards.
 
 =head1 THE Marpa::R2::HTML::html STATIC METHOD
 
-The interface to 
+The interface to
 L<Marpa::R2::HTML> is through the
 C<Marpa::R2::HTML::html>
 static method.
@@ -210,7 +210,7 @@ flatten: 1
 If a specifier contains no special characters
 it is taken
 as the name of an element.
-(A "special" character is 
+(A "special" character is
 anything except an alphanumeric, a hyphen or an underscore.)
 Consistent with L<HTML::Parser>'s default behavior,
 element names must be specified in lowercase.
@@ -639,7 +639,7 @@ But there are important differences.
 
 In its purest form,
 the syntax tree model
-required the semantic actions to 
+required the semantic actions to
 define exactly how many and what kind of immediate children
 each node had.
 Each node in a syntax tree worked with its immediate children.
@@ -667,7 +667,7 @@ For L<Marpa::R2::HTML> this is close to the worst case.
 L<Marpa::R2::HTML> optimizes for unvalued components.
 Unvalued components are represented as terminal spans.
 Adjacent descendant spans are automatically merged.
-This means the size and time required do not increase as 
+This means the size and time required do not increase as
 processing rises up the component hierarchy.
 
 Terminals views are calculated on a just-in-time basis
@@ -886,7 +886,7 @@ but after that does not touch it.
 When programming via side effects
 is more natural than
 passing data up the parse
-tree (and it often is), 
+tree (and it often is),
 C<$Marpa::R2::HTML::INSTANCE> can be used to
 store the data.
 
@@ -950,7 +950,7 @@ method returns.
 The root element is the HTML element whose tagname is "C<html>", though
 its start and end tags are optional
 and can be omitted even in strictly valid HTML.
-Tags or no tags, every HTML document has a 
+Tags or no tags, every HTML document has a
 root element.
 (The C<:TOP> component is not an element, so it does not have a tagname and
 never has tags.)
@@ -1061,12 +1061,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
