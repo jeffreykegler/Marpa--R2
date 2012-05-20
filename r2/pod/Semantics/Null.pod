@@ -19,30 +19,26 @@ Marpa::R2::Semantics::Null - How Marpa evaluates null rules and symbols
 
 =head1 DESCRIPTION
 
-=head2 Null values
+=head2 Nulled symbols
 
-A B<null node> is a node which derives the zero-length,
-or empty string.
-This means that a null node
-cannot be the ancestor of any token nodes.
-In Marpa, null nodes are always leaf nodes.
+In Marpa parses, some symbols can be nulled --
+in other words they can derive the zero-length, or null, string.
+Which symbols can be, or are, nulled, depends on the grammar
+and the input.
+When a symbol or rule is not nulled,
+the symbol is said to be B<visible>.
 
-Null nodes are of two kinds.
-A B<nulling symbol node> corresponds to a nulling symbol.
-A B<nulled rule node> represents a nulled rule.
+Even the start symbol can be nulled,
+in which case the entire parse derives the null string.
+A parse in which the start symbol is nulled is
+called a B<null parse>.
 
-For every null node there is a B<null node symbol>,
-which is used to the determine
-the value of the null node.
-For a nulled rule node,
-the B<null node symbol> is
-the nulled rule's left hand side symbol.
-For a nulling symbol node,
-the B<null node symbol>
-is the nulling symbol.
+When evaluating a parse, the symbols are
+assigned values as described
+L<in the semantics document|Marpa::R2::Semantics>.
+This document provides additional detail on the assignment
+of values to nulled symbols.
 
-The value of a null node is the null value
-of the null node symbol.
 The B<null value of a symbol> comes from
 that symbol's C<null_value> property,
 if one is defined.
@@ -70,84 +66,75 @@ can have better performance.
 
 =head2 Null subtrees
 
-A null subtree is a subtree all of whose nodes are null.
+A null subtree is a subtree all of whose symbols and rules are nulled.
 Marpa prunes
-all null subtrees back to their topmost null node.
-This means that all null nodes that remain in
-Marpa's virtual parse tree will be leaf nodes.
+all null subtrees back to their topmost nulled symbol.
 
-The "lost" semantics of the non-root nodes
-of null subtrees are usually not missed.
-Null subtrees cannot contain token nodes,
-so no token nodes are lost when
-null subtrees are pruned.
+The "lost" semantics of the non-topmost symbols and rules
+of null subtrees is usually not missed.
+Nulled subtrees cannot contain input,
+and therefore do no contain token symbols.
+So no token values are lost when
+nulled subtrees are pruned.
 As bushy as a null subtree might be,
-all of its nodes are null nodes.
+all of its symbols and rules are nulled.
 
-All null nodes correspond to zero-length strings,
+Since nulled symbols and rules correspond to zero-length strings,
 so we are literally dealing here with
 the "semantics of nothing".
 In theory the semantics of nothing can be arbitrarily complex.
 In practice it should be possible to keep them simple.
+But if an application actually needs it,
+Marpa could implement an arbitrarily complex,
+and even a dynamic,
+"semantics of nothing",
+as described below.
 
-If any application ever actually needs it,
-Marpa could implement a complex, and even dynamic,
-"semantics of nothing".
+=head2 Nullable Rules
 
-=head2 Null sequence nodes
+Some BNF rules and sequences may sometimes be nulled,
+and sometimes not.
+This offer some potential for suprising the programmer,
+because their value comes from two different sources,
+depending on whether they are nulled or not.
 
-Rule nodes for sequences were mentioned above.
-Sequence nodes can also be null nodes.
-This happens with
-sequence rules which have a
-C<min> rule property of 0.
-Such a sequence rule can contain any number of sequence items, including zero items.
-When a sequence contains zero items, it must derive the zero-length string,
-and its node is a null node.
-
-Sequence null nodes obey the rules for null nodes.
-Their value is that of a symbol -- the left hand side
-symbol of the nulled sequence rule.
-
-When the node for a nullable sequence rule
-is a null node,
-its semantics comes from the null value for its left hand side symbol.
-When the node for a nullable sequence rule
-is not a null node,
-then it is a rule node and
-its semantics come from the rule.
+When a rule is nulled, its value is the null value
+of its B<LHS symbol>.
+When a rule is not nulled,
+it value comes from the action for the rule.
 It's up to the
 application to ensure that
-the null value of the LHS symbol,
-when seen in the same contexts
-as the values returned by the semantic Perl closure for the sequence rule,
-"makes sense".
+the nulled value of the LHS symbol,
+and the semantics of the visible rule,
+"work together" in a way that makes sense
+in the context of
+the grammar.
 
-If necessary, an application can
-make sure that the LHS symbol
-of the sequence rule
-is not used
-for a conflicting purpose elsewhere.
-This dedicated symbol can then be given
-whatever semantics are necessary.
+=head2 Nullable Sequences
 
-The rules for nodes in null subtrees apply with equal force
-to nodes for sequence rules.
-In a nulled subtree, the only node whose semantics matters
-is the root node of that subtree.
-If a zero-length sequence is in a nulled subtree,
-and that zero-length sequence
-is not the root node of that subtree,
+What was just said about nullable rules applies to nullable seqeunces.
+Sequence rules are nullable rules
+if they have a C<min> rule property of 0.
+When a sequence contains zero items, it must derive the zero-length string,
+and the sequence is a nulled rule.
+
+Nullable sequence rules behave in the same way 
+as nullable BNF rules.
+When the a nullable sequence rule is nulled,
+its semantics comes from the null value for its left hand side symbol.
+When the a nullable sequence rule is not nulled,
+its semantics come from the rule.
+If a nulled sequence is in a nulled subtree,
+but that nulled sequence
+is not the topmost rule of that subtree,
 then its semantics will be completely ignored.
 
 =head1 EXAMPLE
 
-In Marpa, a null node must be leaf node.
-Because Marpa prunes every null subtree back to its topmost
-null node,
-none of the non-root nodes in a null subtree are
-represented in Marpa's virtual parse tree.
-Here's an example:
+As already stated,
+Marpa prunes every null subtree back to its topmost
+null symbol.
+Here is an example:
 
 =for Marpa::R2::Display
 name: Null Value Example
@@ -204,41 +191,40 @@ perltidy: '-dcsc -sil=0'
 =for Marpa::R2::Display::End
 
 If we write the unpruned parse tree
-one node per line in pre-order, depth-first, indenting children
+in pre-order, depth-first, indenting children
 below their parents, we get something like this:
 
 =for Marpa::R2::Display
 ignore: 1
 
-        0: Rule Node, Rule: S := L R
-             1: Rule Node, Rule L := A B X
-                 1.1: Null Node, Symbol A
-                 1.2: Null Node, Symbol B
-                 1.3: Token Node, Token value is 'x'
-             2: Rule Node, Rule R := A B Y
-                 2.1: Null Node, Symbol A
-                 2.2: Null Node, Symbol B
-                 2.3: Null Node, Symbol Y
+        0: Visible Rule: S := L R
+             1: Visible Rule L := A B X
+                 1.1: Nulled Symbol A
+                 1.2: Nulled Symbol B
+                 1.3: Token, Value is 'x'
+             2: Nulled Rule, Rule R := A B Y
+                 2.1: Nulled Symbol A
+                 2.2: Nulled Symbol B
+                 2.3: Nulled Symbol Y
 
 =for Marpa::R2::Display::End
 
-In this example, six nodes are nulled.
-Four of them are in a single subtree: 2, 2.1, 2.2 and 2.3.
-Marpa prunes every null subtree back to its null root node, which
-in this case
-is the node numbered 2.
+In this example, five symbols and a rule are nulled.
+The rule and three of the symbols are in a single subtree: 2, 2.1, 2.2 and 2.3.
+Marpa prunes every null subtree back to its topmost symbol,
+which in this case is the LHS of the rule numbered 2.
 
 The pruned tree looks like this
 
 =for Marpa::R2::Display
 ignore: 1
 
-        0: Rule Node, Rule: S := L R
-             1: Rule Node, Rule L := A B X
-                 1.1: Null Node, Symbol A
-                 1.2: Null Node, Symbol B
-                 1.3: Token Node, Token value is 'x'
-             2: Null Node, Symbol R
+        0: Visible Rule: S := L R
+             1: Visible Rule L := A B X
+                 1.1: Nulled Node, Symbol A
+                 1.2: Nulled Node, Symbol B
+                 1.3: Token, Value is 'x'
+             2: LHS of Nulled Rule, Symbol R
 
 =for Marpa::R2::Display::End
 
@@ -257,28 +243,28 @@ In the output we see
 
 =over
 
-=item * The null value for node 1.1: "C<null A>".
+=item * The null value for symbol 1.1: "C<null A>".
 
-=item * The null value for node 1.2: "C<null B>".
+=item * The null value for symbol 1.2: "C<null B>".
 
-=item * The token value for node 1.3: "C<x>".
+=item * The token value for symbol 1.3: "C<x>".
 
-=item * An application of the semantic Perl closure for node 1.
+=item * An application of the semantic Perl closure for rule 1.
 
-=item * The null value for node 2: "C<null R>".
+=item * The null value for rule 2: "C<null R>".
 
-=item * An application of the semantic Perl closure for rule node 0.
+=item * An application of the semantic Perl closure for rule 0.
 
 =back
 
 We do not see any output
-for nodes 2.1, 2.2, or 2.3 because they were non-root nodes
+for symbols 2.1, 2.2, or 2.3 because they were not topmost
 in the pruned subtree.
-We B<do> see the null value for node 2,
-because after pruning it is a leaf node.
-We B<do not> see an application of the semantic Perl closure for node 2,
-because after pruning,
-node 2 is not a rule node.
+We B<do> see the null value for the LHS of rule 2,
+because it is the topmost symbol.
+We B<do not> see an application of the semantic Perl closure for rule 2,
+because nulled rules take their value from the null value of their LHS,
+and not from the rule semantics.
 
 =head1 ADVANCED
 
@@ -334,12 +320,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
