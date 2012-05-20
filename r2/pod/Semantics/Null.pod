@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Null - How Marpa Evaluates Null Rules and Symbols
+Marpa::R2::Semantics::Null - How Marpa evaluates null rules and symbols
 
 =head1 DESCRIPTION
 

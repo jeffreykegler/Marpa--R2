@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Advanced::Models - Other Input Models
+Marpa::R2::Advanced::Models - Other input models
 
 =head1 ABOUT THIS DOCUMENT
 
