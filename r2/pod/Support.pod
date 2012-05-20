@@ -15,12 +15,17 @@
 
 =head1 NAME
 
-Marpa::R2::Support - Marpa::R2 Support, and how to report bugs
+Marpa::R2::Support - Support, and how to report bugs
 
 =head1 DESCRIPTION
 
 Marpa::R2 is free software.
 There is no warranty.
+
+=head1 MAILING LIST
+
+There is a Google Groups mailing list dedicated to Marpa at
+L<https://groups.google.com/forum/?fromgroups#!forum/marpa-parser>.
 
 =head1 BUGS
 
@@ -30,7 +35,7 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa::R2>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
 
-=head1 SUPPORT
+=head1 OTHER RESOURCES
 
 You can find documentation for this module with the perldoc command.
 
@@ -40,18 +45,10 @@ ignore: 1
     perldoc Marpa::R2
 
 =for Marpa::R2::Display::End
-    
+
 You can also look for information at:
 
 =over 4
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Marpa-R2>
 
 =item * RT: CPAN's request tracker
 
@@ -73,12 +70,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.

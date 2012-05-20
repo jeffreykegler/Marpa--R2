@@ -5,6 +5,5 @@
 ./Semantics/Null.pod
 ./Semantics/Order.pod
 ./Semantics.pod
-./Support.pod
 ./Tracing.pod
 ./Vocabulary.pod
