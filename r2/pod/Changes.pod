@@ -19,8 +19,11 @@ Marpa::R2::Changes - Differences between Marpa::R2 and Marpa::XS
 
 =head1 ABOUT THIS DOCUMENT
 
-This document describes the differences between Marpa::XS
+This document describes the incompatible
+differences between Marpa::XS
 and Marpa::R2.
+(Differences that do not give rise to incompatibility
+are outside of its scope.)
 It is intended for readers already familiar with Marpa::XS,
 who are either writing new applications for Marpa::R2.
 It is also intended to help readers migrating Marpa::XS applications
@@ -28,15 +31,17 @@ and tools to Marpa::R2.
 
 =head1 CHANGES
 
-=head1 Marpa's grammar rewriting is now invisible
+=head2 Marpa's grammar rewriting is now invisible
 
 Internally, Marpa rewrites its grammars.
 In Marpa::XS, most details of these rewrites were
 invisible, but not all.
-In Marpa::R2, Marpa's rewrite are completely
-invisible to the user.
+In Marpa::R2, all internal rules and symbols
+are now completely
+invisible to the user,
+even in the tools for debugging grammars.
 
-=head2 The semantics now defaults to arbirary values
+=head2 The semantics now defaults to "whatever" values
 
 In Marpa::XS, the default value
 for rules, null values, and token values,
@@ -46,26 +51,31 @@ now default to a "whatever"
 value.
 In this context, a "whatever" value is arbitrary,
 in one of the senses of that word.
-Specifically, a "whatever"
-no property of a "whatever" value can be relied on.
+Specifically,
+a "whatever" value cannot be relied on
+to exhibit any property.
 For example, a "whatever" value
-may vary from instance to instance.
-"Whatever" values will usually only be suitable in
-cases where the application simply does not care what is returned.
+may be constant,
+or it may vary from instance to instance.
+If and when it varies, it may do so randomly
+or according to an arbitrary pattern.
+"Whatever" values will usually only be appropriate
+when the application simply does not care what
+the value is.
 
 The motivation for the change is efficiency.
-When Marpa::R2 knows that a value on evaluation
+When Marpa::R2 knows that a value on its evaluation
 stack is a "whatever" value,
 it implements the logic to create it as a no-op.
 Real applications allow "whatever" values surprisingly
 often.
 According to the author's
-own sense of what is the "typical" application mix,
+sense of the "typical" application mix,
 this one change makes
 Marpa::R2 20% faster than Marpa::XS.
 
-Users should make sure that Marpa::R2 code does not
-expect the default semantics will produce an 
+Users need to make sure that Marpa::R2 code does not
+expect that the default semantics will produce an
 Perl C<undef>.
 
 =head2 A token value of undefined now means "whatever"
@@ -76,7 +86,7 @@ L<C<read>|Marpa::R2::Recognizer/"read">
 call or an
 L<C<alternative>|Marpa::R2::Recognizer/"alternative">
 call is a Perl C<undef>,
-that does 
+that does
 B<not> necessary mean that the value of the
 token will be a Perl
 C<undef> value.
@@ -92,12 +102,12 @@ The most general approach to deal with this
 is to have all token values be references,
 and to write actions which dereference token values.
 
-=head2 Terminals by default are non-LHS symbols
+=head2 By default, the non-LHS symbols are the terminals
 
 Traditionally, a symbol has been a terminal if
 it is not on the LHS of any rule, and vice versa.
 This is now the default in Marpa::R2,
-replacing the more complicated, and less intuitive
+replacing the more complicated, and less intuitive,
 scheme that was in Marpa::XS.
 Marpa::R2 still allows the user to
 use any non-nulling symbol as a terminal,
@@ -112,8 +122,8 @@ L<Marpa::R2::Grammar/"Terminal symbols">.
 
 The lhs_terminals named argument of grammar objects implemented
 what is now the default behavior.
-Since it no longer performs a function, it is now
-a fatal error.
+Since it no longer performs a function,
+its use is now a fatal error.
 
 =head2 Nulling symbols cannot be terminals
 
@@ -122,23 +132,26 @@ nulling and a terminal.
 In practice
 that meant
 that the symbol was nulling,
-but that that property could be overriden on input.
-This behavior was useless and logically
-inconsistent.
+but that, on input,
+that property could be overriden,
+and a specific instance of the nulling symbol
+could be made non-nulling.
+This behavior was worse than useless and non-intuitive --
+it was dangerous and logically inconsistent.
 
-In Marpa::R2
-it is an error if you try to make a nulling symbol into
-a terminal.
-To the extent that the old behavior made sense,
+Marpa::R2,
+will not allow
+a nulling symbol to be used as a terminal.
+To the extent that the Marpa::XS behavior made sense,
 it can be duplicated by creating a symbol which
 is the LHS of two rules, one empty,
-and the other rule with a RHS consisting of one
-symbol, a terminal.
+and the other rule with a RHS consisting of exactly one
+terminal symbol.
 
 =head2 A sequence must have a unique LHS
 
-The LHS of a sequence rule 
-may not be on the LHS of any other 
+The LHS of a sequence rule
+may not be on the LHS of any other
 rule, whether another sequence rule, or a BNF rule.
 This
 is not as severe a restriction as it might sound --
@@ -146,14 +159,9 @@ while sequences cannot share the same LHS with other
 rules directly, they can do so indirectly.
 
 In Marpa::XS, the definition of when a sequence
-was the duplicate was more liberal.
-But this meant that issues of whether sequences
-were duplicates if they differed only in their
-separators or their minimum counts.
-And it meant that some BNF rules which were the
-equivalent of instances of sequence rules were
-considered duplicates, while others were not.
-The new definition is much simpler and more
+was a duplicate was more liberal,
+but it was also complicated and non-intuitive.
+The new definition is simpler and more
 intuitive, and its greater restrictiveness
 is easy to work around.
 
@@ -167,12 +175,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
