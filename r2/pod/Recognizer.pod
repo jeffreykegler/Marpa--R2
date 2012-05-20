@@ -224,52 +224,7 @@ and returns a reference to the parse result for that parse tree.
 If there are no more parse trees,
 the C<value> method returns C<undef>.
 
-The C<value> method's arguments are references to hashes of named
-arguments.
-Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
-
-Several of the recognizer's named arguments are not allowed once
-evaluation has begun.
-Evaluation of a parse series begins with
-its first C<value> method call.
-As a convenience,
-the named arguments
-of the first C<value> method call
-are treated as having been specified BEFORE
-evaluation begins.
-
-For example, the C<end> named argument,
-which specifies the end of parsing location in the input
-stream, may not be changed after evaluation begins.
-The first C<value> call of an ambiguous parse series
-may have an C<end> named argument,
-and its value will apply to the entire parse series.
-If any subsequent call to C<value> for that parse series
-has an C<end> named argument specified,
-an exception will be
-thrown.
-
 =head1 TRACE ACCESSORS
-
-=head2 show_earley_sets
-
-=for Marpa::R2::Display
-name: show_earley_sets Synopsis
-partial: 1
-normalize-whitespace: 1
-
-    print $recce->show_earley_sets()
-        or die "print failed: $ERRNO";
-
-=for Marpa::R2::Display::End
-
-An advanced, internals-oriented tracing method,
-which will not be of interest to most users.
-Most users will want to use L<the C<show_progress>
-method|/show_progress>
-instead.
-C<show_earley_sets> returns a multi-line string
-listing every Earley item in every Earley set.
 
 =head2 show_progress
 
@@ -322,25 +277,7 @@ grammars|Marpa::R2::Debug>.
 
 The recognizer's named arguments are
 accepted by its
-C<new>, C<set> and C<value> methods.
-Most of these named arguments are valid everywhere,
-although depending on their meaning,
-they may have no effect.
-For example, the C<too_many_earley_items> named
-argument will have no effect after input is complete.
-
-Some of the recognizer's named arguments
-are not valid for all calls of the C<new>, C<set>
-and C<value> methods,
-and cause an exception if used
-in the wrong one.
-For example,
-a C<grammar> named argument is only valid
-when a recognizer is being constructed by
-the C<new> method.
-If a named argument can cause an exception
-due to use in the wrong method call,
-this is mentioned in its description below.
+C<new> and C<set> methods.
 
 =head2 closures
 
@@ -452,7 +389,7 @@ warnings about large Earley sets are turned off.
 
 =head2 trace_actions
 
-The C<value> method's
+The
 C<trace_actions> named argument
 is a boolean.
 If the boolean value is true, Marpa prints tracing information
@@ -491,8 +428,7 @@ trace level 2 can be voluminous.
 
 =head2 trace_values
 
-The C<value> method's
-C<trace_values> named argument
+The C<trace_values> named argument
 is a numeric trace level.
 If the numeric trace level is 1, Marpa
 prints tracing information
