@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Advanced::Bibliography - A Marpa Bibliography
+Marpa::R2::Advanced::Bibliography - A Marpa bibliography
 
 =head1 HISTORY OF THE MARPA ALGORITHM
 
@@ -52,8 +52,8 @@ and Aycock and Horspool seem unaware of Leo.
 
 =item 2010
 
-Marpa combines the Leo and Aycock-Horspool
-algorithms,
+L<Marpa combines the Leo and Aycock-Horspool
+algorithms|"Kegler 2012">,
 in the process making significant
 changes to both of them.
 The result preserves the
@@ -70,7 +70,7 @@ implementation issues.
 I<The Theory of Parsing, Translation and Compiling, Volume I: Parsing>
 by Alfred Aho and Jeffrey Ullman
 (Prentice-Hall: Englewood Cliffs, New Jersey, 1972).
-I think this was the 
+I think this was the
 standard source for Earley's algorithm for decades.
 It certainly was B<my> standard source.
 The account of Earley's algorithm is on pages 320-330.
@@ -87,7 +87,7 @@ L<Earley's general parsing algorithm|"Earley 1970">,
 and Marpa's approach to handling nullable symbols and rules,
 both came from this article.
 
-The Aycock and Horspool paper 
+The Aycock and Horspool paper
 summarizes Earley's very nicely and is
 available on the web: L<http://www.cs.uvic.ca/~nigelh/Publications/PracticalEarleyParsing.pdf>.
 Unlike L<"Earley 1970">,
@@ -122,7 +122,7 @@ A PDF of the parsing chapter is at L<http://hop.perl.plover.com/book/pdf/08Parsi
 
 =head2 Earley 1970
 
-Of 
+Of
 Jay Earley's papers on his general parsing algorithm,
 the most readily available
 is "An efficient context-free parsing algorithm",
@@ -183,6 +183,13 @@ This is L<Grune and Jacobs 1990> updated.
 The bibliography for this book is available in enlarged form
 on the web: L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>.
 
+=head2 Kegler 2012
+
+My writeup of the theory behind Marpa,
+with proofs of correctness and of my complexity claims
+is available online:
+L<http://cloud.github.com/downloads/jeffreykegler/Marpa-theory/recce.pdf>.
+
 =head2 Leo 1991
 
 Marpa's handling of right-recursion uses the ideas in
@@ -200,7 +207,7 @@ Wikipedia's article on Backus-Naur form is
 L<http://en.wikipedia.org/wiki/Backus-Naur_form>.
 It's a great place to start if you don't know the
 basics of grammars and parsing.
-As Wikipedia points out, 
+As Wikipedia points out,
 BNF might better be called Panini-Backus Form.
 The grammarian Panini
 gave a precise description of Sanskirt
@@ -217,12 +224,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
