@@ -1,5 +1,4 @@
 ./Recognizer.pod
-./Semantics/Infinite.pod
 ./Semantics/Null.pod
 ./Semantics/Order.pod
 ./Semantics.pod

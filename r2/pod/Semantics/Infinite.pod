@@ -36,8 +36,8 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 Given the input 'x', this grammar will produce
-these parses 
- 
+these parses
+
 =for Marpa::R2::Display
 ignore: 1
 
@@ -102,40 +102,26 @@ the one whose cycle length is 1.
 
 =head1 LIMITATIONS
 
-The precise behavior of
-Marpa's cycle detection is,
-at this point,
-not strictly defined and
-applications should avoid
-relying on the details of its semantics.
-The exact point at which
-a cycle is broken varies among
-implementations.
+The "breakpoint" of a cycle occurs when it loops
+back to the same
+rule, but the exact placement
+of this "same rule" breakpoint is not 
+precisely defined at this point.
+In particular, internal rewritings of the grammar's rules,
+which are otherwise invisible,
+can influence the breakpoint.
+Applications should avoid
+relying on the exact location of cycle breakpoints.
 
 In future releases,
-Marpa's cycle detection may be
-more carefully defined.
+Marpa's behavior may be more carefully defined.
 But cycles at this point are universally considered
 useless,
 and there seems to be literally nobody who
-cares about the details of their semantics.
+cares about the details of their implementation.
 The quality of the present implementation
-seems to be completely adequate in terms
+seems to be fully adequate in terms
 of the present interest.
-
-At this point it seems that a cycle should be
-broken when it is about to loop back to the "same
-rule".
-But in current Marpa implementations,
-the "same rule"
-means the same rule
-B<after Marpa's rewriting of the grammar>,
-not the same rule as in the original grammar.
-If a more careful semantics is created, it probably
-should be defined in terms of the rules as
-the user sees them,
-rather than in terms of the rules as rewritten
-by Marpa's internals.
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -147,12 +133,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
