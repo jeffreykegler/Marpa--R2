@@ -160,13 +160,8 @@ EOS
 
 $actual_ref = save_stdout();
 
-# Marpa::R2::Display
-# name: show_AHFA Synopsis
-
 print $grammar->show_AHFA()
     or die "print failed: $ERRNO";
-
-# Marpa::R2::Display::End
 
 Marpa::R2::Test::is( ${$actual_ref},
     <<'END_AHFA', 'Ambiguous Equation AHFA' );
@@ -222,13 +217,8 @@ $recce->read( 'Number', 1 );
 
 $actual_ref = save_stdout();
 
-# Marpa::R2::Display
-# name: show_earley_sets Synopsis
-
 print $recce->show_earley_sets()
     or die "print failed: $ERRNO";
-
-# Marpa::R2::Display::End
 
 my $expected_earley_sets = <<'END_OF_EARLEY_SETS';
 Last Completed: 7; Furthest: 7
