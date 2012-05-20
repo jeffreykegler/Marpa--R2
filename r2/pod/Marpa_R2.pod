@@ -73,7 +73,7 @@ normalize-whitespace: 1
 
 This release is alpha and experimental.
 At this point features may change incompatibly.
-Users who see stability should, for the time being,
+Users who seek stability should, for the time being,
 prefer L<Marpa::XS>.
 
 Its intended audience is those who want to get a head
@@ -162,7 +162,7 @@ They are created
 with the
 L<Marpa::R2::Grammar::new|Marpa::R2::Grammar/"new">
 constructor.
-The arguments to 
+The arguments to
 L<Marpa::R2::Grammar::new|Marpa::R2::Grammar/"new">
 are references to
 hashes of named arguments.
@@ -276,7 +276,7 @@ will be interpreted
 as an action name.
 This action name will be resolved
 to a Perl closure that
-implements 
+implements
 the rule's semantics.
 
 =head2 Marpa::R2::Grammar::precompute
@@ -309,8 +309,8 @@ C<Marpa::R2::Recognizer::new> creates a new recognizer.
 Its arguments are references to hashes of named arguments.
 In this example the only named argument is
 the required argument: "C<grammar>".
-The value of the 
-C<grammar> 
+The value of the
+C<grammar>
 named argument must be a precomputed Marpa
 grammar.
 
@@ -333,17 +333,9 @@ The C<Marpa::R2::Recognizer::read> method takes two arguments,
 a B<token name> and a B<token value>.
 The token name must be the name
 of a valid terminal symbol in the grammar.
-By default all symbols are valid as terminal symbols,
-unless a grammar contains empty rules.
-
-The grammars in the examples in this document
-do not contain empty
-rules,
-and therefore are free to use any symbol in the
-grammar as a token name.
-For more on terminals,
-including how to explicitly mark terminal symbols,
-see L<Marpa::R2::Grammar/"Terminals">.
+By default symbols are valid as terminal symbols,
+if and only if they do NOT occur on the LHS of
+any rule.
 
 The B<token value>
 must be a Perl scalar, but otherwise its form
@@ -352,7 +344,7 @@ are entirely up to the application.
 If the token value is omitted,
 it is a Perl C<undef>.
 In the calculator example, the values of the
-"C<Add>" 
+"C<Add>"
 and "C<Multiply>" tokens are never used,
 so they are allowed to default to a "whatever" value.
 
@@ -447,7 +439,7 @@ C<lhs> property
 as an action name.
 When Marpa cannot resolve the C<lhs> property
 as an action name, it will fall back to
-using the 
+using the
 default action for the grammar.
 
 For example, in the first rule in the above display,
@@ -744,7 +736,7 @@ If the butt is moved after the round,
 it shouldn't count against the archer.
 
 In writing the Pure Perl version of Marpa, I benefited from studying
-the work of Francois Desarmenien (C<Parse::Yapp>), 
+the work of Francois Desarmenien (C<Parse::Yapp>),
 Damian Conway (C<Parse::RecDescent>) and
 Graham Barr (C<Scalar::Util>).
 Adam Kennedy patiently instructed me
@@ -756,7 +748,7 @@ on issues about which I really should have know better.
 
 L<Marpa::R2> comes without warranty.
 Support is provided
-on a volunteer basis 
+on a volunteer basis
 through the standard mechanisms for CPAN modules.
 L<The Support document|Marpa::R2::Support> has details.
 
@@ -770,12 +762,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
