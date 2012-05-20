@@ -1,7 +1,5 @@
 ./Advanced/Bibliography.pod
 ./Advanced/Models.pod
-./Debug.pod
-./Marpa_R2.pod
 ./Recognizer.pod
 ./Semantics/Infinite.pod
 ./Semantics/Null.pod

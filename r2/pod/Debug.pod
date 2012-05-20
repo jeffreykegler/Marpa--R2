@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Debug - Debugging your Marpa grammar
+Marpa::R2::Debug - Debugging your grammar
 
 =head1 OVERVIEW
 
@@ -37,14 +37,14 @@ reading this document.
 To read the
 L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
 output, it is important to have a
-basic idea of what 
+basic idea of what
 Earley items are,
 and of what the information in them means.
 Everything that the user needs to know
 is explained in this section.
 
 =head2 Dotted rules
- 
+
 The idea behind Earley's algorithm is that you can
 parse by building a table of rules
 and where you are in those rules.
@@ -74,7 +74,7 @@ a pair, a rule and a dot location are called a B<dotted rule>.
 Here's our rule with a dot location indicated:
 
 S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> E<middot> term ASSIGNOP term>>
-     
+
 The dot location in this dotted rule is at the beginning.
 A dot location at the beginning of a dotted rule means
 that we have not recognized any symbols in the rule yet.
@@ -210,7 +210,7 @@ looking for when it didn't find what it wanted.
 Sometimes that information alone is enough to make it clear
 where the problem is.
 
-The full 
+The full
 L<C<trace_terminals>|Marpa::R2::Recognizer/trace_terminals>
 output for this example is in the Appendix.
 We see that the recognizer seems to accept "C<42*1>" but it fails
@@ -397,7 +397,7 @@ normalize-whitespace: 1
 
 Here the "C<P>" in the summary field means "predicted".
 As with much of the information in the summary field,
-this only repeats what is obvious from the full expansion 
+this only repeats what is obvious from the full expansion
 of the dotted rule later in the line.
 But final (or completed) and predicted rules can be important
 and the initial C<"F"> and C<"P"> make these lines easy to spot.
@@ -463,7 +463,7 @@ We also see two Earley items that show
 that we are in the process of building another C<Factor>,
 and that it is expecting a C<Multiply> symbol.
 This is not the rule we want, but it explains why the C<trace_terminals>
-output showed that the recognizer was expecting a 
+output showed that the recognizer was expecting a
 C<Multiply> symbol.
 
 What we want to know is,
@@ -474,9 +474,9 @@ The next step is to look at the Earley items for this rule.
 But there is a problem.
 We don't find any.
 
-Next, we ask ourselves, what is the earliest place the 
+Next, we ask ourselves, what is the earliest place the
 "C<Term -E<gt> Term Add Term>" rule should be appearing?
-The answer is that 
+The answer is that
 there should be a prediction of "C<Term -E<gt> Term Add Term>" at location 0.
 So we look at the predictions at location 0.
 
@@ -542,21 +542,11 @@ Change that and the problem is fixed.
 
 =head1 EMPTY RULES
 
-Marpa removes all of the
-empty and nulling rules in the original grammar.
-Internally, Marpa marks symbols as nulling and this produces
-the same result much more efficiently.
-Outwardly, the effect is the same, so much so that you
-might not even notice the absence of the original
-grammar's nulling and empty rules from the progress reports.
-
-Marpa's removal of nulling rules is recursive,
-as it needs to be.
-Removing rules that are nulling
-reveals that the left hand side
-symbol of those rules is also nulling.
-This in turn can reveal
-other nulling rules.
+When a symbol is nulled in your parse,
+L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
+does not show its expansion into rules.
+This reduces clutter,
+and seems to be the intuitive way to treat nulled rules.
 
 =head1 APPENDIX: FULL CODE AND OUTPUT FOR THE EXAMPLE
 
@@ -701,12 +691,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
