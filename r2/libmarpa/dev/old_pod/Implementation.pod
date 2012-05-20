@@ -34,7 +34,7 @@ libmarpa documentation, or eliminated.
 
 This information in this document is not necessary
 for ordinary users of Marpa.
-This document describes 
+This document describes
 the Marpa data structures.
 It assumes that the reader
 knows
@@ -553,7 +553,7 @@ the Earley item S3@0-3.
 S3@0-3 is the Earley item we
 already looked at.
 
-The current earleme for 
+The current earleme for
 S3@0-3 is earleme 3.
 Here, again, is the information for
 AHFA state S3,
@@ -661,7 +661,7 @@ In the current example, the token values are
 "C<7>",
 "C<+> and
 "C<1>".
-The current earleme for 
+The current earleme for
 Earley item S6@0-4 is earleme 4,
 indicating that the 4th token has just been
 seen.
@@ -1011,7 +1011,7 @@ predecessor:
 an Earley item in
 Earley set 2 which has C<Factor> as one of the post-dot symbols.
 
-In this example we find two matching predecessors: 
+In this example we find two matching predecessors:
 S8@0-2 and S9@2-2.
 Completion effects are added for both of these.
 We'll look only at the completion effect
@@ -1038,7 +1038,7 @@ A completion effect always has the same current earleme
 as its completion cause (in this case S5@2-3).
 The origin of a completion effect is always the
 same as the origin of its matching predecessor (in this case S8@0-2).
-The means our new 
+The means our new
 new completion effect
 will have AHFA state S12, origin 0 and current earleme 3.
 Here it is:
@@ -1170,7 +1170,7 @@ normalize-whitespace: 1
 
 =for Marpa::PP::Display::End
 
-We call a completion effect Earley item the 
+We call a completion effect Earley item the
 B<successor> of its matching predecessor.
 For example,
 S3@0-3 is the successor
@@ -1298,7 +1298,7 @@ Marpa instead adds another source choice to the
 already existing Earley item.
 This means that
 some Earley items might have multiple source choices.
-It is possible for an 
+It is possible for an
 Earley item to end up with
 
 =over
@@ -1460,7 +1460,7 @@ normalize-whitespace: 1
     S2@0-5 [p=S0@0-0; c=S3@0-5]
 
 =for Marpa::PP::Display::End
-      
+
 A parse is B<successful> if that parse is
 successful at its end of parsing location.
 Marpa's default end of parsing location is the end location
@@ -1720,12 +1720,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.

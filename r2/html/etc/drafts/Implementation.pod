@@ -96,7 +96,7 @@ A Ruby Slippers Tokenizer is not at all hard to write.
 L<Marpa::HTML> uses L<HTML::PullParser> to handle most
 of the low-level details.
 A thin layer of logic is wrapped around
-L<HTML::PullParser> 
+L<HTML::PullParser>
 to implement the wish-granting abilities of the Ruby Slippers.
 
 =head1 HOW THE RUBY SLIPPERS WORK
@@ -201,7 +201,7 @@ optional.
 L<Marpa::HTML> is completely liberal
 in what it accepts.
 Since in broken HTML any end tag could be
-missing, 
+missing,
 L<Marpa::HTML> is be prepared as a last resort
 to supply a virtual replacement for any end tag.
 This means that for
@@ -239,7 +239,7 @@ These three principles govern:
 
 =over 4
 
-=item * Start an element in preference to ending one 
+=item * Start an element in preference to ending one
 
 =item * Start outer, higher level elements before inner, lower level ones.
 
@@ -254,14 +254,14 @@ which start tables without the markup explicitly indicating
 they should start, threaten anarchy.
 
 L<Marpa::HTML> deals with virtual C<< <table> >> tags by only applying them
-when there is no other choice.  Part of the guarantee these is to put 
+when there is no other choice.  Part of the guarantee these is to put
 virtual C<< <table> >> tags as low as possible in the priority scheme.
 C<< <table> >> tags are also one of the special cases.
 
 =head2 CONFLICTS: SPECIAL CASES
 
 In addition to giving virtual
-C<< <table> >> tags a very low priority, they also 
+C<< <table> >> tags a very low priority, they also
 are not allowed except directly before markup which can only
 appear inside tables.
 That is, if in a block flow outside a table, L<Marpa::HTML>
@@ -513,12 +513,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.

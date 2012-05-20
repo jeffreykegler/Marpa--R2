@@ -141,7 +141,7 @@ L<Aycock-Horspool 2002
 had other very practical insights.
 For example, I can't imagine how I could have written Marpa had
 I not learned how to deal with
-nullable symbols and rules from 
+nullable symbols and rules from
 L<Aycock-Horspool 2002
 |Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">.
 But Aycock and Horspool could not
@@ -353,7 +353,7 @@ some additional input that would
 make that Earley item a part
 of a successful parse.
 Note that this additional input may be zero length,
-in which case 
+in which case
 the presence of that Earley item
 indicates that the parse
 would be complete and successful
@@ -467,7 +467,7 @@ and realized that prediction-driven lexing is capable of
 far more than optimizing the lexer.
 I call the technique of this section,
 Ruby Slippers Parsing,
-after Dorothy's magical shoes 
+after Dorothy's magical shoes
 in the movie I<Wizard of Oz>.
 This is because, frankly,
 it does seem too good to be true.
@@ -493,7 +493,7 @@ full of special cases.
 
 Instead,
 L<Marpa::HTML> uses the Ruby Slippers.
-When the parser in 
+When the parser in
 L<Marpa::HTML> hits an obstacle, it checks to
 see if the parser is looking for an HTML end tag.
 If the parser wants an HTML end tag,
@@ -514,7 +514,7 @@ same lexical position,
 and the recognition of overlapping lexemes.
 To facilitate this,
 Marpa introduces the B<earleme> (named after Jay Earley).
-Previous Earley 
+Previous Earley
 implementations required the input to be broken
 up into tokens,
 typically by lexical analysis of the input using
@@ -543,7 +543,7 @@ then the token is added to Earley set 42.
 
 Lexing in earlemes is flexible.
 If an implementation defines an earleme so that the
-distances in earlemes are the same as 
+distances in earlemes are the same as
 distance in a token stream,
 then lexing in earlemes is exactly equivalent
 to traditional lexing.
@@ -614,13 +614,13 @@ I call AHFA (Aycock-Horspool Finite Automaton) states.
 
 The description of the
 "split E<epsilon>-DFA"
-is on pages 624-627 of 
+is on pages 624-627 of
 L<Aycock-Horspool
 2002|Marpa::PP::Advanced::Bibliography/"Aycock and Horspool 2002">.
 This description contained the insights
 without which Marpa could not have been written.
 But, in my reading at least, the Aycock-Horspool
-description was conceptual -- a tool  
+description was conceptual -- a tool
 for explaining the theory behind the AHFA.
 An actual algorithm
 to create an AHFA from an arbitrary grammar
@@ -636,7 +636,7 @@ Having the work of others to build on
 was essential to the Marpa project,
 and I want to illustrate this with two examples.
 
-The Marpa project did B<not> have to figure out how to 
+The Marpa project did B<not> have to figure out how to
 handle nullable symbols.
 This is fortunate,
 because I am not sure I would have had the insight to
@@ -757,7 +757,7 @@ only one factoring is possible,
 but this is not always the case.
 A B<factored parse tree> is a parse tree,
 all of whose nodes are factored.
-A B<factoring> is a total map, from the nodes 
+A B<factoring> is a total map, from the nodes
 of the parse tree, to duples
 composed of a start location and
 an end location.
@@ -782,7 +782,7 @@ and a unique dotted rule,
 each factored parse tree corresponded to a unique
 set of traditional Earley items.
 In traditional Earley parsing, if two sets of Earley items
-were different, 
+were different,
 their factored parse trees had to be different.
 
 The intuitive idea of "two parses being the same"
@@ -989,7 +989,7 @@ The term "bocage" comes from
 the bocage forests of Normandy and Brittany.
 These man-made forests are
 networks of hedgerows,
-vegetative tangles 
+vegetative tangles
 grown more and more impenetrable
 over the centuries.
 
@@ -1025,12 +1025,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
