@@ -2,7 +2,6 @@
 ./Advanced/Models.pod
 ./Changes.pod
 ./Debug.pod
-./Grammar.pod
 ./Marpa_R2.pod
 ./Recognizer.pod
 ./Semantics/Infinite.pod

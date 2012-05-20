@@ -56,15 +56,16 @@ or the grammar's
 L<C<default_null_value>|Marpa::R2::Grammar/default_null_value>
 named argument
 is defined,
-a symbol's null value is arbitrary.
-"Arbitrary" here means
+a symbol's null value is "whatever".
+"Whatever" here means
 that the value may vary from instance to
 instance and cannot be relied on
 in any way.
 
-Marpa optimizes for arbitrary null values.
+Marpa optimizes for "whatever" null values.
 Null values often are not used for anything,
-and in those case applications allowing arbitrary null values
+and in those case applications that
+allow "whatever" null values
 can have better performance.
 
 =head2 Null subtrees

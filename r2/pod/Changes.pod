@@ -41,29 +41,34 @@ invisible to the user.
 In Marpa::XS, the default value
 for rules, null values, and token values,
 was a Perl C<undef>.
-In Marpa::R2, rules and null values now default to an arbitrary
+In Marpa::R2, rules, null values and token values
+now default to a "whatever"
 value.
-In this context, "arbitrary" means is that the value
-may not be relied on,
-and may vary from instance to instance.
-Arbitrary values will usually only be suitable in
+In this context, a "whatever" value is arbitrary,
+in one of the senses of that word.
+Specifically, a "whatever"
+no property of a "whatever" value can be relied on.
+For example, a "whatever" value
+may vary from instance to instance.
+"Whatever" values will usually only be suitable in
 cases where the application simply does not care what is returned.
 
 The motivation for the change is efficiency.
-If Marpa::R2 knows that a value on evaluation
-stack is allowed to be arbitrary,
+When Marpa::R2 knows that a value on evaluation
+stack is a "whatever" value,
 it implements the logic to create it as a no-op.
-Real applications allow arbitrary values surprisingly
-often, 
-and this one change makes
-Marpa::R2 20% faster than Marpa::XS
-for typical applications.
+Real applications allow "whatever" values surprisingly
+often.
+According to the author's
+own sense of what is the "typical" application mix,
+this one change makes
+Marpa::R2 20% faster than Marpa::XS.
 
 Users should make sure that Marpa::R2 code does not
 expect the default semantics will produce an 
 Perl C<undef>.
 
-=head2 A token value of undefined now means "arbitrary"
+=head2 A token value of undefined now means "whatever"
 
 Similarly,
 if the token value of a
@@ -76,7 +81,7 @@ B<not> necessary mean that the value of the
 token will be a Perl
 C<undef> value.
 Instead, it means that
-the token can have an arbitrary value.
+the token can have an "whatever" value.
 
 As a consequence,
 it is no longer possible in Marpa::R2 to specify
