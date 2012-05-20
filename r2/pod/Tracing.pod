@@ -38,7 +38,7 @@ in a rush to use more advanced techniques.
 
 =head2 Turn on warnings
 
-Make sure that 
+Make sure that
 Marpa's C<warnings> named arguments
 for both the grammar and the recognizer
 are turned on.
@@ -59,8 +59,9 @@ for those tokens that it thinks
 could result in a successful parse.
 Examining the list of
 tokens that the recognizer is looking for
-can also tell you where
-the recognizer thinks it is.
+can tell you a lot about
+what the recognizer thinks it has seen
+so far.
 
 =head2 Trace progress
 
@@ -90,7 +91,7 @@ not what you expected.
 
 C<trace_actions> will show you how action names resolve to actions.
 Setting the C<trace_values> evaluator named argument to a trace level of 1
-traces the values of the parse tree nodes as they are pushed on, and 
+traces the values of the parse tree nodes as they are pushed on, and
 popped off, the evaluation stack.
 
 =head2 Basic checklist
@@ -135,12 +136,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
