@@ -172,10 +172,11 @@ The ban on nullables in sequences only applies to sequences
 when they are written using sequence rules.
 Nothing prevents you from specifying a sequence of nullables using non-sequence rules.
 But usually there is no good reason to do this,
-and sequences of nullable can be highly ambiguous,
-which makes them
-a good thing to avoid
-for efficiency reasons.
+and sequences of nullables can be highly ambiguous
+which,
+for efficiency reasons,
+makes them
+a good thing to avoid.
 
 To keep things simple,
 the right hand side of a sequence rule must be a single symbol.
@@ -220,7 +221,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-C<Marpa::R2::Grammar::new> 
+C<Marpa::R2::Grammar::new>
 returns a new Marpa grammar object or throws an exception.
 The arguments to
 C<Marpa::R2::Grammar::new> are
@@ -279,23 +280,6 @@ the most convenient way to determine if a symbol is a terminal.
 
 =head1 TRACE ACCESSORS
 
-=head2 show_AHFA
-
-=for Marpa::R2::Display
-name: show_AHFA Synopsis
-perltidy: '-dcsc -sil=0'
-
-    print $grammar->show_AHFA()
-        or die "print failed: $ERRNO";
-
-=for Marpa::R2::Display::End
-
-Not of interest to most users.
-Returns a multi-line string listing the states of
-an internal data structure called the
-Aycock-Horspool Finite Automaton.
-Not useful before the grammar is precomputed.
-
 =head2 show_problems
 
 =for Marpa::R2::Display
@@ -349,8 +333,7 @@ perltidy: '-dcsc -sil=0'
 
 Returns a string listing the rules.
 Each rule is shown with B<comments> which
-indicate either rule properties
-or internal settings.
+indicate rule properties.
 C<show_rules> is useful in debugging grammars.
 
 Marpa does extensive rewriting of its grammars,
@@ -374,12 +357,6 @@ Other comments indicate
 whether rules
 were nullable, unproductive, inaccessible, or empty.
 
-The C<vlhs>, C<vrhs> and C<real> comments
-show rule settings relevant in tracking "virtual"
-internal symbols.
-These are used internally,
-to optimize evaluation.
-
 =head2 show_symbols
 
 =for Marpa::R2::Display
@@ -394,12 +371,9 @@ perltidy: '-dcsc -sil=0'
 Returns a string listing the symbols, along with comments
 indicating whether they were
 terminal, nulling, nullable, unproductive or inaccessible.
-Also shown is a list of rules with that symbol on the left hand side,
-and a list of rules which have that symbol anywhere on the right hand side.
 Useful for debugging grammars.
 
 =head1 NAMED ARGUMENTS
-
 =head2 action_object
 
 The C<action_object> named argument
@@ -425,10 +399,10 @@ normalize-whitespace: 1
 The C<actions> named argument specifies
 the Perl package that Marpa will use when resolving
 action names to Perl closures.
-If both an 
+If both an
 C<actions> named argument and an
 C<action_object> named argument are specified,
-the 
+the
 package from the C<actions> named argument
 is the only one used to resolve action names.
 The C<actions> package is treated only as a package,
@@ -557,7 +531,7 @@ For rules, there is no equally natural choice for a hash key.
 
 The value of the C<terminals> named argument
 must be a reference to an array of symbol names.
-All the symbols in the array 
+All the symbols in the array
 will be allowed as terminals.
 See
 L<the discussion of terminals above|/"Terminal Symbols">.
@@ -687,9 +661,9 @@ L<the document on semantics|Marpa::R2::Semantics>.
 =head2 min
 
 C<min> must be 0, 1, or undefined.
-If C<min> is 0 or 1, 
+If C<min> is 0 or 1,
 the rule is a B<sequence rule>.
-If C<min> is undefined, the rule is an ordinary, B<non-sequence rule>.
+If C<min> is undefined, the rule is an ordinary B<BNF rule>.
 
 Only one symbol,
 called the B<sequence item>,
@@ -793,7 +767,7 @@ and the C<action> property.
 The last two are optional.
 Omission of an optional
 property in a short form descriptor
-has the same effect 
+has the same effect
 that omitting the same optional property would have
 in the long form.
 
@@ -811,13 +785,21 @@ Two BNF rules are considered duplicates if
 =back
 
 Sequence rules are even more restricted.
-The LHS of a sequence rule 
-may not be on the LHS of any other 
-rule, whether another sequence rule, or a BNF rule.
-This
-is not as severe a restriction as it might sound --
-while sequences cannot share the same LHS with other
-rules directly, they can do so indirectly.
+The LHS of a sequence rule
+may not be the LHS of another sequence rule.
+The LHS of a sequence rule
+also may not be the LHS of any BNF rule.
+
+This restriction on the LHS of sequence rules is
+intended to make the definition of duplicate rules
+intuitive and their detection easy.
+It does not limit the expressiveness of Marpa grammars,
+because it is very easy to work around.
+One workaround to create an
+intermediate rule of length one,
+whose RHS is the sequence LHS symbol.
+The LHS of the intermediate rule can then be used,
+without restriction, as the LHS of other rules.
 
 =head1 SYMBOL DESCRIPTORS
 
@@ -870,12 +852,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
