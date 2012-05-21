@@ -99,7 +99,7 @@ BEGIN {
     { === Evaluator Fields === }
 
     SYMBOL_HASH { hash to symbol ID by name of symbol }
-    DEFAULT_NULL_VALUE { default value for nulled symbols }
+    DEFAULT_NULL_ACTION { default value for nulled symbols }
     ACTION_OBJECT
     INFINITE_ACTION
 
@@ -260,7 +260,7 @@ use constant GRAMMAR_OPTIONS => [
         actions
         infinite_action
         default_action
-        default_null_value
+        default_null_action
         default_rank
         inaccessible_ok
         rule_name_required
@@ -362,11 +362,9 @@ sub Marpa::R2::Grammar::set {
             add_user_rules( $grammar, $value );
         } ## end if ( defined( my $value = $args->{'rules'} ) )
 
-        if ( exists $args->{'default_null_value'} ) {
-            my $value = $args->{'default_null_value'};
-            Marpa::R2::exception('default_null_value must be undefined or a reference')
-                if defined $value and not ref $value;
-            $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE] =
+        if ( exists $args->{'default_null_action'} ) {
+            my $value = $args->{'default_null_action'};
+            $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_ACTION] =
                 $value;
         }
 

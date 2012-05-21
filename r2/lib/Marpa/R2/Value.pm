@@ -51,8 +51,14 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
 
     my $rules   = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $default_null_value =
-        $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_VALUE];
+    my $default_null_action =
+        $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_ACTION];
+    my $default_null_value_ref;
+    if ( defined $default_null_action ) {
+        $default_null_value_ref =
+            Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
+            $default_null_action );
+    }
 
     my $null_values;
     $#{$null_values} = $#{$symbols};
@@ -69,7 +75,7 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
                 $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE];
         }
         else {
-            $null_value = $default_null_value;
+            $null_value = $default_null_value_ref;
         }
         next SYMBOL if not defined $null_value;
 
@@ -140,16 +146,27 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 
     return if not defined $fully_qualified_name;
 
-    no strict 'refs';
-    my $closure = *{$fully_qualified_name}{'CODE'};
-    use strict 'refs';
+    my $closure;
+    my $resolved_type;
+    TYPE: for my $type (qw(CODE REF SCALAR)) {
+      no strict 'refs';
+      $resolved_type = $type;
+      $closure = *{$fully_qualified_name}{$resolved_type};
+      last TYPE if defined $closure;
+    }
 
     if ($trace_actions) {
+	if (defined $resolved_type) {
         print {$Marpa::R2::Internal::TRACE_FH}
-            ( $closure ? 'Successful' : 'Failed' )
-            . qq{ resolution of "$closure_name" },
+            qq{Successful resolution of "$closure_name" as $resolved_type },
             'to ', $fully_qualified_name, "\n"
             or Marpa::R2::exception('Could not print to trace file');
+	} else {
+        print {$Marpa::R2::Internal::TRACE_FH}
+            qq{'Failed resolution of "$closure_name" },
+            'to ', $fully_qualified_name, "\n"
+            or Marpa::R2::exception('Could not print to trace file');
+	}
     } ## end if ($trace_actions)
 
     return $closure;
@@ -491,9 +508,6 @@ sub Marpa::R2::Recognizer::value {
     } ## end if ($tree)
     else {
 
-        # Perhaps this call should be moved.
-        # The null values are currently a function of the grammar,
-        # and should be constant for the life of a recognizer.
         $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] //=
             Marpa::R2::Internal::Recognizer::set_null_values($recce);
         Marpa::R2::Internal::Recognizer::set_actions($recce);
