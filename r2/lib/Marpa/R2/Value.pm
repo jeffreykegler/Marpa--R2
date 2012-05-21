@@ -533,9 +533,9 @@ sub Marpa::R2::Recognizer::value {
     } ## end if ($tree)
     else {
 
-        $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] //=
-            Marpa::R2::Internal::Recognizer::set_null_values($recce);
         Marpa::R2::Internal::Recognizer::set_actions($recce);
+        $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
+            Marpa::R2::Internal::Recognizer::set_null_values($recce);
 
         my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Internal::B_C->new( $recce_c,
