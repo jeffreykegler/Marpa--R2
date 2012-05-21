@@ -24,6 +24,8 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
+our $undef_ref = undef;
+
 package Test_Grammar;
 
 # This grammar is from Data::Dumper,
@@ -36,7 +38,7 @@ package Test_Grammar;
 
 $Test_Grammar::MARPA_OPTIONS = [
     {
-      default_null_value => \undef,
+      default_null_action => 'main::undef_ref',
       'rules' => [
         {
           'action' => 'comment',

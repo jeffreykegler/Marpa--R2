@@ -30,6 +30,8 @@ use Marpa::R2;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
+our $null_string = q{};
+
 sub default_action {
     shift;
     my $v_count = scalar @_;
@@ -64,7 +66,7 @@ sub run_sequence_test {
                 },
             ],
             default_action     => 'main::default_action',
-            default_null_value => \q{},
+            default_null_action => 'main::null_string',
         }
     );
 

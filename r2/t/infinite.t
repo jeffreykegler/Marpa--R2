@@ -26,6 +26,9 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
+
+our $undef = undef;
+
 ## no critic (Subroutines::RequireArgUnpacking)
 sub default_action {
     shift;
@@ -67,9 +70,9 @@ $Test_Grammar::MARPA_OPTIONS_2 = [
 ];
 
 $Test_Grammar::MARPA_OPTIONS_8 = [
-    {   'default_action' => 'main::default_action',
-        default_null_value => \undef,
-        'rules'          => [
+    {   default_action => 'main::default_action',
+        default_null_action => 'main::undef',
+        rules          => [
             {   'lhs' => 'S',
                 'rhs' => [ 'A' ]
             },

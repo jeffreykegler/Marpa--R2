@@ -27,6 +27,8 @@ use Marpa::R2;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
+our $null_string = q{};
+
 sub default_action {
     shift;
     my $v_count = scalar @_;
@@ -93,7 +95,7 @@ my $placebo = {
         [ 'A', [qw/a/] ]
         #>>>
     ],
-    default_null_value => \q{},
+    default_null_action => 'main::null_string',
     default_action     => 'main::default_action',
 };
 
