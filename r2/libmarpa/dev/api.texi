@@ -1100,6 +1100,26 @@ Return value: On success, 1 if the resulting semantics after
 
 @end deftypefun
 
+@deftypefun int marpa_g_rule_is_nulling (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{ruleid})
+A rule is @dfn{nulling} if it always produces the empty string.
+This is not determined until the grammar is precomputed.
+
+Return value: On success, 1 if @var{ruleid} is nulling, 0 if not.
+If the grammar is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_nullable ( @
+  Marpa_Grammar g, Marpa_Rule_ID ruleid)
+A rule is @dfn{nullable} if it sometimes produces the empty string.
+This is not determined until the grammar is precomputed.
+A @strong{nulling} rule is always a @strong{nullable} rule,
+but not all @strong{nullable} rules are @strong{nulling} rules.
+
+Return value: On success, 1 if @var{ruleid} is nullable, 0 if not.
+If the grammar is not precomputed, or on other failure, -2.
+@end deftypefun
+
 @deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 A rule is @dfn{accessible} if it can be reached from the start symbol.

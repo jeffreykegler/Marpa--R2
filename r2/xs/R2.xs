@@ -811,6 +811,50 @@ PPCODE:
 }
 
 void
+rule_is_nullable( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = marpa_g_rule_is_nullable (g, rule_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->rule_is_nullable(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      croak ("Invalid rule %d", rule_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+rule_is_nulling( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = marpa_g_rule_is_nulling (g, rule_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->rule_is_nulling(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      croak ("Invalid rule %d", rule_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
 rule_is_accessible( g_wrapper, rule_id )
     G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;

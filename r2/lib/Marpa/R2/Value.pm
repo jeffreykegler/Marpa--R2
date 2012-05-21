@@ -239,15 +239,41 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 
     } ## end for my $rule ( @{$rules} )
 
-    my @lhs_is_whatever;
-    my @lhs_is_valued;
+    my @lhs_resolutions;
 
-    for my $rule_id ( 0 .. $#{$rules} ) {
-        my ( $resolved_name, $closure ) = @{ $rule_resolutions->[$rule_id] };
-        if ( $resolved_name ne '::whatever' ) {
+    RULE: for my $rule_id ( 0 .. $#{$rules} ) {
+        my ( $new_resolution, $closure ) = @{ $rule_resolutions->[$rule_id] };
+        if ( $new_resolution ne '::whatever' ) {
             $grammar_c->rule_ask_me_set($rule_id);
-	    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]->[$rule_id] = $closure;
+            $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]
+                ->[$rule_id] = $closure;
         }
+        my $lhs_id                 = $grammar_c->rule_lhs($rule_id);
+        my $current_lhs_resolution = $lhs_resolutions[$lhs_id];
+        if ( not defined $current_lhs_resolution ) {
+            $lhs_resolutions[$lhs_id] = $new_resolution;
+            next RULE;
+        }
+        if (   $current_lhs_resolution eq '::whatever'
+            or $new_resolution eq '::whatever' )
+        {
+            Marpa::R2::exception(
+                'Symbol ',
+                $grammar->symbol_name($lhs_id),
+                qq{ has two resolutions "$current_lhs_resolution" and "$new_resolution"\n},
+                qq{  These would confuse the semantics\n}
+            );
+        } ## end if ( $current_lhs_resolution eq '::whatever' or ...)
+        if ( not $grammar_c->rule_is_nullable($rule_id) ) {
+            $lhs_resolutions[$lhs_id] = $new_resolution;
+            next RULE;
+        }
+        Marpa::R2::exception(
+            'When nulled, symbol ', $grammar->symbol_name($lhs_id),
+            ' can have two different semantics: ',
+            qq{"$current_lhs_resolution" and "$new_resolution"\n},
+                qq{  Marpa needs it to be one or the other\n}
+        );
     } ## end for my $rule_id ( 0 .. $#{$rules} )
 
     return 1;

@@ -2104,6 +2104,33 @@ Is the rule nulling?
 @<Bit aligned rule elements@> = unsigned int t_is_nulling:1;
 @ @<Initialize rule elements@> =
 XRL_is_Nulling(rule) = 0;
+@ @<Function definitions@> =
+int marpa_g_rule_is_nulling(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
+{
+  @<Return |-2| on failure@>@;
+  XRL xrl;
+  @<Fail if fatal error@>@;
+  @<Fail if |xrl_id| is invalid@>@;
+  xrl = XRL_by_ID(xrl_id);
+  return XRL_is_Nulling(xrl);
+}
+
+@*0 Is Rule Nullable?.
+Is the rule nullable?
+@d XRL_is_Nullable(rule) ((rule)->t_is_nullable)
+@<Bit aligned rule elements@> = unsigned int t_is_nullable:1;
+@ @<Initialize rule elements@> =
+XRL_is_Nullable(rule) = 0;
+@ @<Function definitions@> =
+int marpa_g_rule_is_nullable(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
+{
+  @<Return |-2| on failure@>@;
+  XRL xrl;
+  @<Fail if fatal error@>@;
+  @<Fail if |xrl_id| is invalid@>@;
+  xrl = XRL_by_ID(xrl_id);
+  return XRL_is_Nullable(xrl);
+}
 
 @*0 Is Rule Accessible?.
 @ A rule is accessible if its LHS is accessible.
@@ -2987,6 +3014,7 @@ and productive.
       const XRL xrl = XRL_by_ID (xrl_id);
       int rh_ix;
       int is_nulling = 1;
+      int is_nullable = 1;
       int is_productive = 1;
       const XSYID lhs_id = LHS_ID_of_XRL (xrl);
       const XSY lhs = XSY_by_ID (lhs_id);
@@ -2996,9 +3024,11 @@ and productive.
 	  const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
 	  const XSY rh_xsy = XSY_by_ID(rhs_id);
 	  if (LIKELY(!XSY_is_Nulling (rh_xsy))) is_nulling = 0;
+	  if (LIKELY(!XSY_is_Nullable (rh_xsy))) is_nullable = 0;
 	  if (UNLIKELY(!XSY_is_Productive (rh_xsy))) is_productive = 0;
 	}
       XRL_is_Nulling (xrl) = is_nulling;
+      XRL_is_Nullable (xrl) = is_nullable;
       XRL_is_Productive (xrl) = is_productive;
     }
 }
