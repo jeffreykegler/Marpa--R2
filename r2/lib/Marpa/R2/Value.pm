@@ -104,8 +104,11 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
-    Marpa::R2::exception(q{Trying to resolve 'undef' as closure name})
+    Marpa::R2::exception(q{Trying to resolve an undefined closure name})
         if not defined $closure_name;
+
+    # A reserved closure name;
+    return \undef if $closure_name eq 'undef';
 
     if ( my $closure = $closures->{$closure_name} ) {
         if ($trace_actions) {
@@ -147,26 +150,37 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     return if not defined $fully_qualified_name;
 
     my $closure;
-    my $resolved_type;
-    TYPE: for my $type (qw(CODE REF SCALAR)) {
-      no strict 'refs';
-      $resolved_type = $type;
-      $closure = *{$fully_qualified_name}{$resolved_type};
-      last TYPE if defined $closure;
-    }
+    my $type;
+    TYPE: {
+        no strict 'refs';
+        $closure = *{$fully_qualified_name}{'CODE'};
+        if ( defined $closure ) {
+            $type = 'CODE';
+            last TYPE;
+        }
+        $closure = *{$fully_qualified_name}{'SCALAR'};
+	# Currently $closure is always defined, but this
+	# behavior is said to be subject to change in perlref
+        if ( defined $closure and defined ${$closure} ) {
+            $type = 'SCALAR';
+            last TYPE;
+        }
+        $closure = undef;
+    } ## end TYPE:
 
     if ($trace_actions) {
-	if (defined $resolved_type) {
-        print {$Marpa::R2::Internal::TRACE_FH}
-            qq{Successful resolution of "$closure_name" as $resolved_type },
-            'to ', $fully_qualified_name, "\n"
-            or Marpa::R2::exception('Could not print to trace file');
-	} else {
-        print {$Marpa::R2::Internal::TRACE_FH}
-            qq{'Failed resolution of "$closure_name" },
-            'to ', $fully_qualified_name, "\n"
-            or Marpa::R2::exception('Could not print to trace file');
-	}
+        if ( defined $closure ) {
+            print {$Marpa::R2::Internal::TRACE_FH}
+                qq{Successful resolution of "$closure_name" as $type },
+                'to ', $fully_qualified_name, "\n"
+                or Marpa::R2::exception('Could not print to trace file');
+        } ## end if ( defined $type )
+        else {
+            print {$Marpa::R2::Internal::TRACE_FH}
+                qq{Failed resolution of "$closure_name" },
+                'to ', $fully_qualified_name, "\n"
+                or Marpa::R2::exception('Could not print to trace file');
+        } ## end else [ if ( defined $resolved_type ) ]
     } ## end if ($trace_actions)
 
     return $closure;

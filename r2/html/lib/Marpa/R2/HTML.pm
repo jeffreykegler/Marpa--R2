@@ -1133,7 +1133,7 @@ sub parse {
             inaccessible_ok => 1,
             unproductive_ok => 1,
             default_action  => 'Marpa::R2::HTML::Internal::default_action',
-	    default_null_action => 'Marpa::R2::HTML::undef',
+	    default_null_action => 'undef',
         }
     );
     $grammar->precompute();
