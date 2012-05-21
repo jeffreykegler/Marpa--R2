@@ -108,7 +108,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         if not defined $closure_name;
 
     # A reserved closure name;
-    return \undef if $closure_name eq 'undef';
+    return \undef if $closure_name eq '::undef';
 
     if ( my $closure = $closures->{$closure_name} ) {
         if ($trace_actions) {
