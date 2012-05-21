@@ -248,8 +248,14 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     } ## end for my $rule ( @{$rules} )
 
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
-    for my $rule_id (grep { defined } 0 .. $#{$rule_closures}) {
-         $grammar_c->rule_ask_me_set($rule_id);
+
+    my @lhs_is_whatever;
+    my @lhs_is_valued;
+
+    for my $rule_id ( 0 .. $#{$rules} ) {
+	if (defined $rule_closures->[$rule_id]) {
+	  $grammar_c->rule_ask_me_set($rule_id);
+	}
     }
 
     return 1;

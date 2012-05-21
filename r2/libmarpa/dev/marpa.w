@@ -12301,8 +12301,12 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
     and_nodes = ANDs_of_B(B_of_O(o));
+    /* flag to indicate whether the arguments of
+       a rule should be popped off the stack.  Coming
+       into this loop that is always the case -- if
+       no rule was executed, this is a no-op. */
+    int pop_arguments = 1;
 
-    Arg_N_of_V(v) = TOS_of_V(v);
     if (NOOK_of_V(v) < 0) {
 	NOOK_of_V(v) = Size_of_TREE(t);
     }
@@ -12316,6 +12320,12 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	if (NOOK_of_V(v) < 0) {
 	    Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
 	    break;
+	}
+	if (pop_arguments) {
+	  /* Pop the arguments for the last rule execution off of
+	  the stack */
+	  Arg_N_of_V(v) = TOS_of_V(v);
+	  pop_arguments = 0;
 	}
 	{
 	  ANDID and_node_id;
@@ -12388,11 +12398,12 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 		{
 		  // Currently all rules with a non-virtual LHS are
 		  // "semantic" rules.
-		  XRLID original_rule_id = ID_of_XRL(Source_XRL_of_IRL(nook_irl));
+		  XRLID original_rule_id = ID_of_XRL (Source_XRL_of_IRL (nook_irl));
+		  TOS_of_V (v) = Arg_N_of_V (v) - real_symbol_count + 1;
+		  pop_arguments = 1;
 		  if (XRL_is_Ask_Me (XRL_by_ID (original_rule_id)))
 		    {
-		      RULEID_of_V(v) = original_rule_id;
-		      TOS_of_V(v) = Arg_N_of_V(v) - real_symbol_count + 1;
+		      RULEID_of_V (v) = original_rule_id;
 		    }
 		}
 
