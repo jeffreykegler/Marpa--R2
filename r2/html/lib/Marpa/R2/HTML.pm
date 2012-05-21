@@ -32,6 +32,8 @@ BEGIN { @EXPORT_OK = qw(html); }
 
 package Marpa::R2::HTML::Internal;
 
+our $undef = undef;
+
 use Carp ();
 use HTML::PullParser;
 use HTML::Entities qw(decode_entities);
@@ -1131,7 +1133,7 @@ sub parse {
             inaccessible_ok => 1,
             unproductive_ok => 1,
             default_action  => 'Marpa::R2::HTML::Internal::default_action',
-	    default_null_value => \undef,
+	    default_null_action => 'Marpa::R2::HTML::undef',
         }
     );
     $grammar->precompute();

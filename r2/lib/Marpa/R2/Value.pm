@@ -348,7 +348,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             if ( ref $value_ref eq 'CODE' ) {
                 my @warnings;
                 my $eval_ok;
-		my $result;
+                my $result;
 
                 DO_EVAL: {
                     local $SIG{__WARN__} = sub {
@@ -356,7 +356,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     };
 
                     $eval_ok = eval {
-                        $result = $value_ref->( $action_object );
+                        $result = $value_ref->($action_object);
                         1;
                     };
 
@@ -376,7 +376,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     );
                 } ## end if ( not $eval_ok or @warnings )
                 $value_ref = \$result;
-            } ## end if ( ref $value_ref eq 'CLOSURE' )
+            } ## end if ( ref $value_ref eq 'CODE' )
 
             $evaluation_stack[$arg_n] = $value_ref;
             trace_token_evaluation( $recce, $value, $token_id, $value_ref )
@@ -398,35 +398,40 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
                 }
 
-                my @warnings;
-                my $eval_ok;
-                DO_EVAL: {
-                    local $SIG{__WARN__} = sub {
-                        push @warnings, [ $_[0], ( caller 0 ) ];
-                    };
+		if ( ref $closure eq 'CODE' ) {
+		    my @warnings;
+		    my $eval_ok;
+		    DO_EVAL: {
+			local $SIG{__WARN__} = sub {
+			    push @warnings, [ $_[0], ( caller 0 ) ];
+			};
 
-                    $eval_ok = eval {
-                        $result = $closure->( $action_object, @args );
-                        1;
-                    };
+			$eval_ok = eval {
+			    $result = $closure->( $action_object, @args );
+			    1;
+			};
 
-                } ## end DO_EVAL:
+		    } ## end DO_EVAL:
 
-                if ( not $eval_ok or @warnings ) {
-                    my $fatal_error = $EVAL_ERROR;
-                    Marpa::R2::Internal::code_problems(
-                        {   fatal_error => $fatal_error,
-                            grammar     => $grammar,
-                            eval_ok     => $eval_ok,
-                            warnings    => \@warnings,
-                            where       => 'computing value',
-                            long_where  => 'Computing value for rule: '
-                                . $grammar->brief_rule($rule_id),
-                        }
-                    );
-                } ## end if ( not $eval_ok or @warnings )
+		    if ( not $eval_ok or @warnings ) {
+			my $fatal_error = $EVAL_ERROR;
+			Marpa::R2::Internal::code_problems(
+			    {   fatal_error => $fatal_error,
+				grammar     => $grammar,
+				eval_ok     => $eval_ok,
+				warnings    => \@warnings,
+				where       => 'computing value',
+				long_where  => 'Computing value for rule: '
+				    . $grammar->brief_rule($rule_id),
+			    }
+			);
+		    } ## end if ( not $eval_ok or @warnings )
+		    $evaluation_stack[$arg_0] = \$result;
+		} ## end if ( ref $closure eq 'CODE' )
+		else {
+		    $evaluation_stack[$arg_0] = $closure;
+		}
 
-                $evaluation_stack[$arg_0] = \$result;
 
                 if ($trace_values) {
                     say {$Marpa::R2::Internal::TRACE_FH}

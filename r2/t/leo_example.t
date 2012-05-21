@@ -69,7 +69,7 @@ my $grammar = Marpa::R2::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar , trace_actions => 1 } );
 
 $recce->read( 'Variable',         'a' );
 $recce->read( 'AssignOp',         q{=} );
