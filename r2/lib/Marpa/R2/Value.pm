@@ -108,7 +108,8 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         if not defined $closure_name;
 
     # A reserved closure name;
-    return \undef if $closure_name eq '::undef';
+    return ($closure_name, \undef) if $closure_name eq '::undef';
+    return ($closure_name, undef) if $closure_name eq '::whatever';
 
     if ( my $closure = $closures->{$closure_name} ) {
         if ($trace_actions) {
@@ -168,22 +169,24 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         $closure = undef;
     } ## end TYPE:
 
-    if ($trace_actions) {
-        if ( defined $closure ) {
+    if ( defined $closure ) {
+        if ($trace_actions) {
             print {$Marpa::R2::Internal::TRACE_FH}
                 qq{Successful resolution of "$closure_name" as $type },
                 'to ', $fully_qualified_name, "\n"
                 or Marpa::R2::exception('Could not print to trace file');
-        } ## end if ( defined $type )
-        else {
-            print {$Marpa::R2::Internal::TRACE_FH}
-                qq{Failed resolution of "$closure_name" },
-                'to ', $fully_qualified_name, "\n"
-                or Marpa::R2::exception('Could not print to trace file');
-        } ## end else [ if ( defined $resolved_type ) ]
+        } ## end if ($trace_actions)
+        return ( $fully_qualified_name, $closure );
+    } ## end if ( defined $closure )
+
+    if ($trace_actions) {
+        print {$Marpa::R2::Internal::TRACE_FH}
+            qq{Failed resolution of "$closure_name" },
+            'to ', $fully_qualified_name, "\n"
+            or Marpa::R2::exception('Could not print to trace file');
     } ## end if ($trace_actions)
 
-    return $closure;
+    return;
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_semantics
 
