@@ -26,6 +26,8 @@ use Marpa::R2::Test;
 use English qw( -no_match_vars );
 use Marpa::R2;
 
+our $default_null_desc = '[default null]',
+
 my @features = qw(
     e_op_action default_action
 );
@@ -176,7 +178,7 @@ sub run_test {
                 [ 'trailer',           [qw/Text/], ],
             ],
             default_action     => $default_action,
-            default_null_value => \'[default null]',
+            default_null_action => 'main::default_null_desc',
             symbols   => { optional_trailer2 => { null_value => '[null]' } },
             terminals => [qw(Number AddOp MultOp Text)],
         }

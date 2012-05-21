@@ -39,8 +39,7 @@ sub default_action {
 
 ## use critic
 
-our $nullstring;
-$main::nullstring = q{};
+our $nullstring = q{};
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start => 'S',
