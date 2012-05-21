@@ -52,13 +52,10 @@ sub Marpa::R2::Internal::Recognizer::set_null_values {
     my $rules   = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $default_null_action =
-        $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_ACTION];
-    my $default_null_value_ref;
-    if ( defined $default_null_action ) {
-        $default_null_value_ref =
-            Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
-            $default_null_action );
-    }
+	$grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_ACTION];
+    (undef, my $default_null_value_ref ) =
+	    @{Marpa::R2::Internal::Recognizer::resolve_semantics(
+	    $recce, $default_null_action )};
 
     my $null_values;
     $#{$null_values} = $#{$symbols};
@@ -104,12 +101,10 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
-    Marpa::R2::exception(q{Trying to resolve an undefined closure name})
-        if not defined $closure_name;
-
     # A reserved closure name;
-    return ($closure_name, \undef) if $closure_name eq '::undef';
-    return ($closure_name, undef) if $closure_name eq '::whatever';
+    return ['::whatever', undef] if not defined $closure_name;
+    return [$closure_name, undef] if $closure_name eq '::whatever';
+    return [$closure_name, \undef] if $closure_name eq '::undef';
 
     if ( my $closure = $closures->{$closure_name} ) {
         if ($trace_actions) {
@@ -118,7 +113,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
                 or Marpa::R2::exception('Could not print to trace file');
         }
 
-        return $closure;
+        return [$closure_name, $closure];
     } ## end if ( my $closure = $closures->{$closure_name} )
 
     my $fully_qualified_name;
@@ -176,7 +171,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
                 'to ', $fully_qualified_name, "\n"
                 or Marpa::R2::exception('Could not print to trace file');
         } ## end if ($trace_actions)
-        return ( $fully_qualified_name, $closure );
+        return [ $fully_qualified_name, $closure ];
     } ## end if ( defined $closure )
 
     if ($trace_actions) {
@@ -199,30 +194,27 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     my $default_action =
         $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_ACTION];
 
-    my $rule_closures  = [];
+    my $rule_resolutions  = [];
 
-    my $default_action_closure;
-    if ( defined $default_action ) {
-        $default_action_closure =
+    my $default_action_resolution =
             Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
             $default_action );
-        Marpa::R2::exception(
+    Marpa::R2::exception(
             "Could not resolve default action named '$default_action'")
-            if not $default_action_closure;
-    } ## end if ( defined $default_action )
+            if not $default_action_resolution;
 
     RULE: for my $rule ( @{$rules} ) {
 
         my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
 
         if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION] ) {
-            my $closure =
+            my $resolution =
                 Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
                 $action );
 
             Marpa::R2::exception(qq{Could not resolve action name: "$action"})
-                if not defined $closure;
-            $rule_closures->[$rule_id] = $closure;
+                if not defined $resolution;
+            $rule_resolutions->[$rule_id] = $resolution;
             next RULE;
         } ## end if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION...])
 
@@ -235,31 +227,28 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             my $lhs_id = $grammar_c->rule_lhs($rule_id);
             my $action = $grammar->symbol_name($lhs_id);
             last FIND_CLOSURE_BY_LHS if substr( $action, -1 ) eq ']';
-            my $closure =
+            my $resolution =
                 Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
                 $action );
-            last FIND_CLOSURE_BY_LHS if not defined $closure;
-            $rule_closures->[$rule_id] = $closure;
+            last FIND_CLOSURE_BY_LHS if not defined $resolution;
+            $rule_resolutions->[$rule_id] = $resolution;
             next RULE;
         } ## end FIND_CLOSURE_BY_LHS:
 
-        if ( defined $default_action_closure ) {
-            $rule_closures->[$rule_id] = $default_action_closure;
-            next RULE;
-        }
+	$rule_resolutions->[$rule_id] = $default_action_resolution;
 
     } ## end for my $rule ( @{$rules} )
-
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
 
     my @lhs_is_whatever;
     my @lhs_is_valued;
 
     for my $rule_id ( 0 .. $#{$rules} ) {
-	if (defined $rule_closures->[$rule_id]) {
-	  $grammar_c->rule_ask_me_set($rule_id);
-	}
-    }
+        my ( $resolved_name, $closure ) = @{ $rule_resolutions->[$rule_id] };
+        if ( $resolved_name ne '::whatever' ) {
+            $grammar_c->rule_ask_me_set($rule_id);
+	    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]->[$rule_id] = $closure;
+        }
+    } ## end for my $rule_id ( 0 .. $#{$rules} )
 
     return 1;
 }    # set_actions
@@ -289,13 +278,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $action_object_constructor;
     if ( defined $action_object_class ) {
         my $constructor_name = $action_object_class . q{::new};
-        my $closure =
+        my $resolution =
             Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
             $constructor_name );
         Marpa::R2::exception(
             qq{Could not find constructor "$constructor_name"})
-            if not defined $closure;
-        $action_object_constructor = $closure;
+            if not defined $resolution;
+        (undef, $action_object_constructor) = @{$resolution};
     } ## end if ( defined $action_object_class )
 
     my $action_object;
