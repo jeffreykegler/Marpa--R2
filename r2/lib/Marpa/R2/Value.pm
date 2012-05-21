@@ -254,6 +254,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             $lhs_resolutions[$lhs_id] = $new_resolution;
             next RULE;
         }
+        next RULE if $current_lhs_resolution eq $new_resolution;
         if (   $current_lhs_resolution eq '::whatever'
             or $new_resolution eq '::whatever' )
         {
