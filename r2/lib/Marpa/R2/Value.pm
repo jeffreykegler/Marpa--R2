@@ -194,14 +194,14 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     my $default_action =
         $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_ACTION];
 
-    my $rule_resolutions  = [];
+    my $rule_resolutions = [];
 
     my $default_action_resolution =
-            Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
-            $default_action );
+        Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
+        $default_action );
     Marpa::R2::exception(
-            "Could not resolve default action named '$default_action'")
-            if not $default_action_resolution;
+        "Could not resolve default action named '$default_action'")
+        if not $default_action_resolution;
 
     RULE: for my $rule ( @{$rules} ) {
 
@@ -235,47 +235,48 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             next RULE;
         } ## end FIND_CLOSURE_BY_LHS:
 
-	$rule_resolutions->[$rule_id] = $default_action_resolution;
+        $rule_resolutions->[$rule_id] = $default_action_resolution;
 
     } ## end for my $rule ( @{$rules} )
 
-    my @lhs_resolutions;
+    my @resolution_by_lhs;
+    my @nullable_resolutions_by_lhs;
 
     RULE: for my $rule_id ( 0 .. $#{$rules} ) {
         my ( $new_resolution, $closure ) = @{ $rule_resolutions->[$rule_id] };
+        my $lhs_id = $grammar_c->rule_lhs($rule_id);
+        $resolution_by_lhs[$lhs_id] //= $new_resolution;
+        my $current_resolution = $resolution_by_lhs[$lhs_id];
+        if ($new_resolution ne $current_resolution
+            and (  $current_resolution eq '::whatever'
+                or $new_resolution eq '::whatever' )
+            )
+        {
+            Marpa::R2::exception(
+                'Symbol ',
+                $grammar->symbol_name($lhs_id),
+                qq{ has two resolutions "$current_resolution" and "$new_resolution"\n},
+                qq{  These would confuse the semantics\n}
+            );
+        } ## end if ( $new_resolution ne $current_resolution and ( ...))
         if ( $new_resolution ne '::whatever' ) {
             $grammar_c->rule_ask_me_set($rule_id);
             $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]
                 ->[$rule_id] = $closure;
         }
-        my $lhs_id                 = $grammar_c->rule_lhs($rule_id);
-        my $current_lhs_resolution = $lhs_resolutions[$lhs_id];
-        if ( not defined $current_lhs_resolution ) {
-            $lhs_resolutions[$lhs_id] = $new_resolution;
-            next RULE;
-        }
-        next RULE if $current_lhs_resolution eq $new_resolution;
-        if (   $current_lhs_resolution eq '::whatever'
-            or $new_resolution eq '::whatever' )
-        {
-            Marpa::R2::exception(
-                'Symbol ',
-                $grammar->symbol_name($lhs_id),
-                qq{ has two resolutions "$current_lhs_resolution" and "$new_resolution"\n},
-                qq{  These would confuse the semantics\n}
-            );
-        } ## end if ( $current_lhs_resolution eq '::whatever' or ...)
-        if ( not $grammar_c->rule_is_nullable($rule_id) ) {
-            $lhs_resolutions[$lhs_id] = $new_resolution;
-            next RULE;
-        }
-        Marpa::R2::exception(
-            'When nulled, symbol ', $grammar->symbol_name($lhs_id),
-            ' can have two different semantics: ',
-            qq{"$current_lhs_resolution" and "$new_resolution"\n},
-                qq{  Marpa needs it to be one or the other\n}
-        );
+        push @{ $nullable_resolutions_by_lhs[$lhs_id] }, $new_resolution
+            if $grammar_c->rule_is_nullable($rule_id);
     } ## end for my $rule_id ( 0 .. $#{$rules} )
+
+    if (0) {
+        Marpa::R2::exception(
+            'When nulled, symbol ',
+            # $grammar->symbol_name($lhs_id),
+            ' can have two different semantics: ',
+            # qq{"$current_lhs_resolution" and "$new_resolution"\n},
+            qq{  Marpa needs it to be one or the other\n}
+        );
+    } ## end if (0)
 
     return 1;
 }    # set_actions
