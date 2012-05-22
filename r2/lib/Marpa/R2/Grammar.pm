@@ -54,8 +54,7 @@ BEGIN {
     :package=Marpa::R2::Internal::Symbol
     ID { Unique ID }
     NAME
-    LHS_RANK
-    TERMINAL_RANK
+    RANK
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -309,7 +308,7 @@ sub Marpa::R2::Grammar::set {
 
         if ( defined( my $value = $args->{'default_rank'} ) ) {
             Marpa::R2::exception(
-                'terminals option not allowed after grammar is precomputed')
+                'default_rank option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK] = $value;
         } ## end if ( defined( my $value = $args->{'default_rank'} ) )
@@ -317,6 +316,8 @@ sub Marpa::R2::Grammar::set {
         # Second pass options
 
         if ( defined( my $value = $args->{'symbols'} ) ) {
+            Marpa::R2::exception(
+                'The symbols option is not currently implemented');
             Marpa::R2::exception(
                 'symbols option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
@@ -590,7 +591,7 @@ sub Marpa::R2::Grammar::precompute {
 
     # LHS_RANK is left undefined if not explicitly set
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK] //=
+        $symbol->[Marpa::R2::Internal::Symbol::RANK] //=
             $default_rank;
     }
 
@@ -647,26 +648,6 @@ sub Marpa::R2::Grammar::precompute {
                 or Marpa::R2::exception("Could not print: $ERRNO");
         } ## end for my $symbol ( @{ Marpa::R2::Grammar::unproductive_symbols...})
     } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::WARNINGS...])
-
-    RULE: for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 ) {
-        my $rule = $rules->[$rule_id];
-        $rule->[Marpa::R2::Internal::Rule::RANK] //= $default_rank;
-        my $rule_rank = $rule->[Marpa::R2::Internal::Rule::RANK];
-        my $lhs_id    = $grammar_c->rule_lhs($rule_id);
-        my $lhs       = $symbols->[$lhs_id];
-        my $lhs_rank  = $lhs->[Marpa::R2::Internal::Symbol::LHS_RANK];
-        if ( defined $lhs_rank
-            and $lhs_rank == $rule->[Marpa::R2::Internal::Rule::RANK] )
-        {
-            Marpa::R2::exception(
-                'Rank mismatch in rule: ',
-                brief_rule($rule),
-                "\n",
-                "LHS rank is $lhs_rank; rule rank is ",
-                $rule->[Marpa::R2::Internal::Rule::RANK]
-            );
-        } ## end if ( defined $lhs_rank and $lhs_rank == $rule->[...])
-    } ## end for my $rule_id ( 0 .. $grammar_c->rule_count() - 1 )
 
     return $grammar;
 
@@ -934,39 +915,19 @@ sub assign_user_symbol {
     my $symbol = assign_symbol( $grammar, $name );
     my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
-    # Do RANK first, so that the other options override it
-    my $rank = $options->{rank};
-    if ( defined $rank ) {
-        Marpa::R2::exception(qq{Symbol "$name": rank must be an integer})
-            if not Scalar::Util::looks_like_number($rank)
-                or not int($rank) != $rank;
-        $symbol->[Marpa::R2::Internal::Symbol::LHS_RANK] =
-            $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK] = $rank;
-    } ## end if ( defined $rank )
-
     PROPERTY: while ( my ( $property, $value ) = each %{$options} ) {
-        if (not $property ~~
-            [qw(terminal rank lhs_rank terminal_rank )] )
-        {
+        if ( not $property ~~ [qw(terminal rank )] ) {
             Marpa::R2::exception(qq{Unknown symbol property "$property"});
         }
         if ( $property eq 'terminal' ) {
             $grammar_c->symbol_is_terminal_set( $symbol_id, $value );
         }
-        if ( $property eq 'terminal_rank' ) {
-            Marpa::R2::exception(
-                qq{Symbol "$name": terminal_rank must be an integer})
+        if ( $property eq 'rank' ) {
+            Marpa::R2::exception(qq{Symbol "$name": rank must be an integer})
                 if not Scalar::Util::looks_like_number($value)
                     or int($value) != $value;
-            $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK] = $value;
-        } ## end if ( $property eq 'terminal_rank' )
-        if ( $property eq 'lhs_rank' ) {
-            Marpa::R2::exception(
-                qq{Symbol "$name": lhs_rank must be an integer})
-                if not Scalar::Util::looks_like_number($value)
-                    or int($value) != $value;
-            $symbol->[Marpa::R2::Internal::Symbol::LHS_RANK] = $value;
-        } ## end if ( $property eq 'lhs_rank' )
+            $symbol->[Marpa::R2::Internal::Symbol::RANK] = $value;
+        } ## end if ( $property eq 'rank' )
     } ## end while ( my ( $property, $value ) = each %{$options} )
 
     return $symbol;

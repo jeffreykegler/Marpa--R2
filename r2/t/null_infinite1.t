@@ -63,7 +63,7 @@ my $grammar = Marpa::R2::Grammar->new(
             { lhs => 'f', rhs => [] },
             { lhs => 'f', rhs => ['S'],     action => 'main::rule_f' },
         ],
-        symbols        => { a => { terminal => 1 }, },
+        terminals => [qw(a)],
         default_action => 'main::default_action',
     }
 );

@@ -428,12 +428,11 @@ for rules without an L<C<action> property|/"action">.
 Details are given in
 L<the document on semantics|Marpa::R2::Semantics>.
 
-=head2 default_null_value
+=head2 default_empty_action
 
-The C<default_null_value> named argument specifies
-the null value for
-symbols
-without a L<C<null_value> property|/"null_value">.
+The C<default_empty_action> named argument specifies
+the action for empty (zero length) rules
+which have no action specified explicitly.
 Details are given in
 L<the document on semantics|Marpa::R2::Semantics>.
 
@@ -800,47 +799,6 @@ intermediate rule of length one,
 whose RHS is the sequence LHS symbol.
 The LHS of the intermediate rule can then be used,
 without restriction, as the LHS of other rules.
-
-=head1 SYMBOL DESCRIPTORS
-
-=for Marpa::R2::Display
-name: Null Value Example
-partial: 1
-normalize-whitespace: 1
-
-    symbols        => {
-        L => { null_value => 'null L' },
-        R => { null_value => 'null R' },
-        A => { null_value => 'null A' },
-        B => { null_value => 'null B' },
-        X => { null_value => 'null X' },
-        Y => { null_value => 'null Y' },
-    },
-
-=for Marpa::R2::Display::End
-
-A symbol descriptor is a hash.
-In the key/value pairs of this hash,
-the hash key is the symbol property name
-and the hash value is the value of
-that property.
-The available symbol properties are as follows:
-
-=head2 null_value
-
-The C<null_value> symbol property specifies
-the null value of its symbol.
-Details are given in
-L<the document on semantics|Marpa::R2::Semantics>.
-
-=head2 terminal
-
-A boolean.
-If true, it allows the symbol to be used as a terminal.
-If false, it disallows use of
-the symbol as a terminal.
-For details, see
-L<the section on terminals|/"Terminal Symbols">.
 
 =head1 COPYRIGHT AND LICENSE
 

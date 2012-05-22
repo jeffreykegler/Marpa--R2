@@ -1029,7 +1029,7 @@ sub do_high_rule_only {
     # Set up ranks by symbol
     my @rank_by_symbol = ();
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
+        my $rank = $symbol->[Marpa::R2::Internal::Symbol::RANK];
         $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
     }    # end for my $symbol ( @{$symbols} )
 
@@ -1098,7 +1098,7 @@ sub do_rank_by_rule {
     # Set up ranks by symbol
     my @rank_by_symbol = ();
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::R2::Internal::Symbol::TERMINAL_RANK];
+        my $rank = $symbol->[Marpa::R2::Internal::Symbol::RANK];
         $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
     }    # end for my $symbol ( @{$symbols} )
 
