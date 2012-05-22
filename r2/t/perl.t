@@ -430,9 +430,12 @@ sub gen_closure {
     my $closure = $unwrapped{$action};
     die "lhs=$lhs: $closure is not a closure"
         if defined $closure and ref $closure ne 'CODE';
+    if (not defined $closure and scalar @{$rhs} <= 0) {
+        $closure = sub { undef; }
+    }
     return sub {
         if ( not defined $closure ) {
-            die 'No action defined for ',
+            die qq{No action ("$action") defined for },
                 "$lhs ::= " . ( join q{ }, map { $_ // q{-} } @{$rhs} );
         }
         my $v = $closure->(@_);

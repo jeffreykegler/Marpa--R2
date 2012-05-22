@@ -30,7 +30,7 @@ use Marpa::R2;
 sub default_action {
     shift;
     my $v_count = scalar @_;
-    return q{} if $v_count <= 0;
+    return q{-} if $v_count <= 0;
     my @vals = map { $_ // q{-} } @_;
     return '(' . join( q{;}, @vals ) . ')';
 } ## end sub default_action

@@ -27,6 +27,7 @@ use English qw( -no_match_vars );
 use Marpa::R2;
 
 our $default_null_desc = '[default null]',
+our $null_desc = '[null]',
 
 my @features = qw(
     e_op_action default_action
@@ -174,12 +175,11 @@ sub run_test {
                 [ 'F', [qw/Number/], $e_number_action, ],
                 [ 'optional_trailer1', [qw/trailer/], ],
                 [ 'optional_trailer1', [], ],
-                [ 'optional_trailer2', [], ],
+                [ 'optional_trailer2', [], 'main::null_desc' ],
                 [ 'trailer',           [qw/Text/], ],
             ],
             default_action     => $default_action,
-            default_null_action => 'main::default_null_desc',
-            symbols   => { optional_trailer2 => { null_value => '[null]' } },
+            default_empty_action => 'main::default_null_desc',
             terminals => [qw(Number AddOp MultOp Text)],
         }
     );

@@ -35,7 +35,7 @@ sub generate_action {
     return sub {
         shift;
         my $v_count = scalar @_;
-        return q{} if $v_count <= 0;
+        return q{-} if $v_count <= 0;
         my @vals = map { $_ // q{-} } @_;
         return $lhs . '(' . ( join q{;}, @vals ) . ')';
         }

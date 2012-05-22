@@ -41,8 +41,6 @@ sub default_action {
 
 ## use critic
 
-our $null_string = q{};
-
 my $grammar = Marpa::R2::Grammar->new(
     {   start => 'S',
         rules => [
@@ -51,7 +49,6 @@ my $grammar = Marpa::R2::Grammar->new(
             [ 'A', [qw/E/] ],
             ['E'],
         ],
-        default_null_action => 'main::null_string',
         default_action     => 'main::default_action',
     }
 );

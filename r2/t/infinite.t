@@ -30,6 +30,7 @@ use Marpa::R2;
 ## no critic (Subroutines::RequireArgUnpacking)
 sub default_action {
     shift;
+    return undef if not scalar @_;
     return join q{ }, grep { defined $_ } @_;
 }
 ## use critic
@@ -44,11 +45,11 @@ $Test_Grammar::MARPA_OPTIONS_1 = [
     {   'default_action' => 'main::default_action',
         'rules'          => [
             {   'lhs' => 's',
-                'rhs' => [ 's' ]
+                'rhs' => ['s']
             }
         ],
         'start'     => 's',
-        'terminals' => [ 's' ],
+        'terminals' => ['s'],
     }
 ];
 
@@ -69,7 +70,6 @@ $Test_Grammar::MARPA_OPTIONS_2 = [
 
 $Test_Grammar::MARPA_OPTIONS_8 = [
     {   default_action => 'main::default_action',
-        default_null_action => '::undef',
         rules          => [
             {   'lhs' => 'S',
                 'rhs' => [ 'A' ]

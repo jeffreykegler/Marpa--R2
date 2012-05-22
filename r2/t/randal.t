@@ -36,7 +36,6 @@ package Test_Grammar;
 
 $Test_Grammar::MARPA_OPTIONS = [
     {
-      default_null_action => '::undef',
       default_empty_action => '::undef',
       'rules' => [
         {
@@ -184,8 +183,7 @@ $g->precompute();
 TEST: for my $test_data (@test_data) {
 
     my ( $test_name, $test_input, $test_results ) = @{$test_data};
-    my $recce =
-        Marpa::R2::Recognizer->new( { grammar => $g } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $g } );
 
     my $input_length = length $test_input;
     pos $test_input = 0;
@@ -205,8 +203,8 @@ TEST: for my $test_data (@test_data) {
                 if not $test_input =~ m{ \G \s* (?<match>$regex) }xgms;
 
 ## no critic (Variables::ProhibitPunctuationVars)
-            $recce->alternative(
-                 $token, $+{match}, ( ( pos $test_input ) - $pos ) );
+            $recce->alternative( $token, $+{match},
+                ( ( pos $test_input ) - $pos ) );
 
         } ## end while ( my ( $token, $regex ) = each %regexes )
         $recce->earleme_complete();

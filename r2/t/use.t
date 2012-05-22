@@ -77,7 +77,7 @@ my %closure_by_lhs = (
     ary     => \&concat,
     lineseq => sub {
         shift @_;
-        join "\n", grep {defined} @_;
+        join "\n", grep { defined and length } @_;
     },
 );
 
@@ -86,6 +86,8 @@ sub gen_closure {
     my $closure = $closure_by_action{$action} // $closure_by_lhs{$lhs};
     return $closure if defined $closure and ref $closure eq 'CODE';
     die "lhs=$lhs: $closure is not a closure" if defined $closure;
+    return sub {undef}
+        if scalar @{$rhs} == 0;
     return sub { $_[1] }
         if scalar @{$rhs} == 1;
     return sub {

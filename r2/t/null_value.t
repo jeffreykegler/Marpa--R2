@@ -50,20 +50,21 @@ $Test_Grammar::MARPA_OPTIONS = [
                 'lhs'    => 's',
                 'rhs'    => [ 'a', 'y' ]
             },
-            {   'lhs' => 'a',
-                'rhs' => [],
-                action => '::undef',
+            {   'lhs'  => 'a',
+                'rhs'  => [],
+                action => 'rule1',
             },
             {   'action' => 'rule2',
                 'lhs'    => 'a',
                 'rhs'    => [ 'b', 'c' ]
             },
-            {   'lhs' => 'b',
-                'rhs' => []
+            {   'lhs'  => 'b',
+                'rhs'  => [],
+                action => 'rule3'
             },
-            {   'lhs' => 'c',
-                'rhs' => [],
-                action => '::undef',
+            {   'lhs'  => 'c',
+                'rhs'  => [],
+                action => 'rule4'
             },
             {   'action' => 'rule5',
                 'lhs'    => 'c',
@@ -74,12 +75,7 @@ $Test_Grammar::MARPA_OPTIONS = [
                 'rhs'    => ['Z']
             }
         ],
-        'start' => 's',
-        symbols => {
-            a => { null_value => 'A is missing' },
-            b => { null_value => 'B is missing' },
-            c => { null_value => 'C is missing' },
-        },
+        'start'         => 's',
         'terminals'     => ['Z'],
         'action_object' => 'Test'
     }

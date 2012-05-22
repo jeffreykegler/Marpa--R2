@@ -27,13 +27,7 @@ use Marpa::R2;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-sub default_action {
-    shift;
-    my $v_count = scalar @_;
-    return q{} if $v_count <= 0;
-    my @vals = map { $_ // q{-} } @_;
-    return '(' . join( q{;}, @vals ) . ')';
-} ## end sub default_action
+our $dash = q{-};
 
 sub rule_n {
     shift;
@@ -61,13 +55,12 @@ my $grammar = Marpa::R2::Grammar->new(
                 action => 'main::start_rule'
             },
             { lhs => 'n', rhs => ['a'], action => 'main::rule_n' },
-            { lhs => 'n', rhs => [] },
+            { lhs => 'n', rhs => [], action => 'main::dash' },
             { lhs => 'f', rhs => ['a'], action => 'main::rule_f' },
-            { lhs => 'f', rhs => [] },
+            { lhs => 'f', rhs => [], action => 'main::dash' },
             { lhs => 'f', rhs => ['S'], action => 'main::rule_f' },
         ],
         symbols        => { a => { terminal => 1 }, },
-        default_action => 'main::default_action',
     }
 );
 

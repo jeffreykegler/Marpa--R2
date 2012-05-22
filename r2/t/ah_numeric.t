@@ -39,8 +39,6 @@ sub default_action {
 
 ## use critic
 
-our $null_string = q{};
-
 sub gen_grammar {
     my ($null_ranking) = @_;
     my $grammar = Marpa::R2::Grammar->new(
@@ -53,9 +51,7 @@ sub gen_grammar {
                 [ 'A', [qw/a/] ],
                 ['A'],
             ],
-            default_null_action => 'main::null_string',
             default_action     => 'main::default_action',
-            symbols => { S => { null_value => '' }},
         }
     );
     $grammar->set( { terminals => ['a'], } );

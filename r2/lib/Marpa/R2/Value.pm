@@ -42,56 +42,6 @@ sub Marpa::R2::show_rank_ref {
 
 package Marpa::R2::Internal::Value;
 
-sub Marpa::R2::Internal::Recognizer::set_null_values {
-    my ($recce)   = @_;
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $trace_values =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES];
-
-    my $rules   = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $default_null_action =
-	$grammar->[Marpa::R2::Internal::Grammar::DEFAULT_NULL_ACTION];
-    (undef, my $default_null_value_ref ) =
-	    @{Marpa::R2::Internal::Recognizer::resolve_semantics(
-	    $recce, $default_null_action )};
-
-    my $null_values;
-    $#{$null_values} = $#{$symbols};
-
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-
-        my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
-
-        next SYMBOL if not $grammar_c->symbol_is_nullable($symbol_id);
-
-        my $null_value = undef;
-        if ( $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE] ) {
-            $null_value =
-                $symbol->[Marpa::R2::Internal::Symbol::NULL_VALUE];
-        }
-        else {
-            $null_value = $default_null_value_ref;
-        }
-        next SYMBOL if not defined $null_value;
-
-        $null_values->[$symbol_id] = $null_value;
-
-        if ($trace_values) {
-            print {$Marpa::R2::Internal::TRACE_FH}
-                'Setting null value for symbol ',
-                $grammar->symbol_name($symbol_id),
-                ' to ', Data::Dumper->new( [ \$null_value ] )->Terse(1)->Dump
-                or Marpa::R2::exception('Could not print to trace file');
-        } ## end if ($trace_values)
-
-    } ## end for my $symbol ( @{$symbols} )
-
-    return $null_values;
-
-}    # set_null_values
-
 # Given the grammar and an action name, resolve it to a closure,
 # or return undef
 sub Marpa::R2::Internal::Recognizer::resolve_semantics {
@@ -332,6 +282,8 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 	my ( undef, $closure ) = @{ $rule_resolutions->[ $empty_rules[0] ] };
 	$null_symbol_closures[$lhs_id] = $closure;
     } ## end for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs...)
+
+    $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] = \@null_symbol_closures;
 
     return 1;
 }    # set_actions
@@ -609,8 +561,6 @@ sub Marpa::R2::Recognizer::value {
     else {
 
         Marpa::R2::Internal::Recognizer::set_actions($recce);
-        $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
-            Marpa::R2::Internal::Recognizer::set_null_values($recce);
 
         my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Internal::B_C->new( $recce_c,
