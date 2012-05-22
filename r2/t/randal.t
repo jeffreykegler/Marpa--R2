@@ -37,6 +37,7 @@ package Test_Grammar;
 $Test_Grammar::MARPA_OPTIONS = [
     {
       default_null_action => '::undef',
+      default_empty_action => '::undef',
       'rules' => [
         {
           'action' => 'comment',
