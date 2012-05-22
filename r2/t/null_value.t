@@ -51,7 +51,8 @@ $Test_Grammar::MARPA_OPTIONS = [
                 'rhs'    => [ 'a', 'y' ]
             },
             {   'lhs' => 'a',
-                'rhs' => []
+                'rhs' => [],
+                action => '::undef',
             },
             {   'action' => 'rule2',
                 'lhs'    => 'a',
@@ -61,7 +62,8 @@ $Test_Grammar::MARPA_OPTIONS = [
                 'rhs' => []
             },
             {   'lhs' => 'c',
-                'rhs' => []
+                'rhs' => [],
+                action => '::undef',
             },
             {   'action' => 'rule5',
                 'lhs'    => 'c',
