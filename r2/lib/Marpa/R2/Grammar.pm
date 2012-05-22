@@ -56,7 +56,6 @@ BEGIN {
     NAME
     LHS_RANK
     TERMINAL_RANK
-    NULL_VALUE { null value }
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN

@@ -18,7 +18,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Test::More tests => 5;
+use Test::More tests => 3;
 use Fatal qw(open close);
 
 use lib 'inc';
@@ -93,7 +93,7 @@ my $placebo = {
         [ 'A', [qw/a/] ]
         #>>>
     ],
-    default_action     => 'main::default_action',
+    default_action => 'main::default_action',
 };
 
 sub gen_tokens {
@@ -134,43 +134,6 @@ REPORT_RESULT: {
         last REPORT_RESULT;
     } ## end if ( $EVAL_ERROR =~ ...)
     Test::More::is( $EVAL_ERROR, q{}, 'Grammar with earleme too long' );
-} ## end REPORT_RESULT:
-
-my $trace = q{};
-open my $MEMORY, q{>}, \$trace;
-my $missing_null_value_grammar = {
-    rules => [
-        {   lhs    => 'Seq',
-            rhs    => ['Item'],
-            min    => 0,
-            action => 'main::default_action',
-        },
-        {   lhs    => 'Item',
-            rhs    => ['a'],
-            action => 'main::default_action',
-        },
-    ],
-    start             => 'Seq',
-    trace_file_handle => $MEMORY,
-};
-
-$eval_ok = eval {
-    $value = test_grammar( $missing_null_value_grammar, [ [ 'a', 'a' ] ] );
-    1;
-};
-close $MEMORY;
-REPORT_RESULT: {
-    Test::More::is( ( $value // 'undef' ), 'a', 'Missing null value result' );
-    my $eval_error = $EVAL_ERROR;
-    if ( not $eval_ok ) {
-        Test::More::fail("Eval error: $eval_error");
-        last REPORT_RESULT;
-    }
-    Marpa::R2::Test::is(
-        $trace,
-        qq{Zero length sequence for symbol without null value: "Seq"\n},
-        'Missing null value warning'
-    );
 } ## end REPORT_RESULT:
 
 1;    # In case used as "do" file
