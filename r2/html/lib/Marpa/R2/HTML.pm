@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw( $VERSION $STRING_VERSION );
-$VERSION = '0.001_046';
+$VERSION        = '0.001_046';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -36,6 +36,7 @@ use Carp ();
 use HTML::PullParser;
 use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
+
 # versions below must be coordinated with
 # those required in Build.PL
 
@@ -103,7 +104,8 @@ END_OF_STRUCTURE
 use Marpa::R2::HTML::Callback;
 {
     my $submodule_version = $Marpa::R2::HTML::Callback::VERSION;
-    die 'Marpa::R2::HTML::Callback::VERSION not defined' if not defined $submodule_version;
+    die 'Marpa::R2::HTML::Callback::VERSION not defined'
+        if not defined $submodule_version;
     die
         "Marpa::R2::HTML::Callback::VERSION ($submodule_version) does not match Marpa::R2::HTML::VERSION ",
         $Marpa::R2::HTML::VERSION
@@ -133,9 +135,8 @@ sub tdesc_list_to_literal {
             when ('POINT') { break; }
             when ('VALUED_SPAN') {
                 if (defined(
-                        my $value =
-                            $tdesc
-                            ->[Marpa::R2::HTML::Internal::TDesc::Element::VALUE]
+                        my $value = $tdesc->[
+                            Marpa::R2::HTML::Internal::TDesc::Element::VALUE]
                     )
                     )
                 {
@@ -182,7 +183,8 @@ sub tdesc_list_to_literal {
                     ( $end_offset - $offset );
             } ## end when ('UNVALUED_SPAN')
             default {
-                Marpa::R2::exception(qq{Internal error: unknown tdesc type "$_"});
+                Marpa::R2::exception(
+                    qq{Internal error: unknown tdesc type "$_"});
             }
         } ## end given
     } ## end for my $tdesc ( @{$tdesc_list} )
@@ -203,6 +205,7 @@ sub wrap_user_top_handler {
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
+        return undef if not scalar @tdesc_list;
         local $Marpa::R2::HTML::Internal::TDESC_LIST = \@tdesc_list;
         local $Marpa::R2::HTML::Internal::PER_NODE_DATA =
             { pseudoclass => 'TOP' };
@@ -225,6 +228,7 @@ sub create_tdesc_handler {
         my ( $dummy, @tdesc_lists ) = @_;
 
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
+        return undef if not scalar @tdesc_list;
         local $Marpa::R2::HTML::Internal::TDESC_LIST = \@tdesc_list;
 
         my @token_ids = sort { $a <=> $b } grep {defined} map {
@@ -242,12 +246,14 @@ sub create_tdesc_handler {
             last_token_id  => $last_token_id_in_node,
         };
 
-        if ( $tdesc_list[0]->[Marpa::R2::HTML::Internal::TDesc::TYPE] ne 'POINT' )
+        if ( $tdesc_list[0]->[Marpa::R2::HTML::Internal::TDesc::TYPE] ne
+            'POINT' )
         {
             $per_node_data->{start_tag_token_id} = $first_token_id_in_node;
         }
 
-        if ($tdesc_list[-1]->[Marpa::R2::HTML::Internal::TDesc::TYPE] ne 'POINT' )
+        if ( $tdesc_list[-1]->[Marpa::R2::HTML::Internal::TDesc::TYPE] ne
+            'POINT' )
         {
             $per_node_data->{end_tag_token_id} = $last_token_id_in_node;
         }
@@ -350,11 +356,12 @@ sub create_tdesc_handler {
                     when ('UNVALUED_SPAN') {
                         $first_token_id = $tdesc
                             ->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
-                        $last_token_id =
-                            $tdesc->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN];
+                        $last_token_id = $tdesc
+                            ->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN];
                     } ## end when ('UNVALUED_SPAN')
                     default {
-                        Marpa::R2::exception("Unknown text description type: $_");
+                        Marpa::R2::exception(
+                            "Unknown text description type: $_");
                     }
                 } ## end given
             } ## end PARSE_TDESC:
@@ -395,7 +402,8 @@ sub create_tdesc_handler {
 
                 last TDESC
                     if $ref_type eq 'ARRAY'
-                        and $next_tdesc->[Marpa::R2::HTML::Internal::TDesc::TYPE]
+                        and
+                        $next_tdesc->[Marpa::R2::HTML::Internal::TDesc::TYPE]
                         eq 'FINAL';
                 push @tdesc_result, $next_tdesc;
             } ## end if ( defined $next_tdesc )
@@ -412,6 +420,7 @@ sub wrap_user_tdesc_handler {
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
+        return undef if not scalar @tdesc_list;
         local $Marpa::R2::HTML::Internal::TDESC_LIST = \@tdesc_list;
         my @token_ids = sort { $a <=> $b } grep {defined} map {
             @{$_}[
@@ -563,7 +572,8 @@ sub add_handlers {
             ]
             )
         {
-            Marpa::R2::exception( qq{pseudoclass "$pseudoclass" is not known:\n},
+            Marpa::R2::exception(
+                qq{pseudoclass "$pseudoclass" is not known:\n},
                 "Specifier was $specifier\n" );
         } ## end if ( $pseudoclass and not $pseudoclass ~~ [ ...])
         if ( $pseudoclass and $element ) {
@@ -896,8 +906,10 @@ sub parse {
 
     my @tokens = ();
 
-    my %terminals = map { $_ => 1 } @Marpa::R2::HTML::Internal::CORE_TERMINALS;
-    my %optional_terminals = %Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS;
+    my %terminals =
+        map { $_ => 1 } @Marpa::R2::HTML::Internal::CORE_TERMINALS;
+    my %optional_terminals =
+        %Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS;
     my @html_parser_tokens = ();
     my @marpa_tokens       = ();
     HTML_PARSER_TOKEN:
@@ -1096,7 +1108,8 @@ sub parse {
                 next TERMINAL;
             }
 
-            my $element_type = $Marpa::R2::HTML::Internal::ELEMENT_TYPE{$element};
+            my $element_type =
+                $Marpa::R2::HTML::Internal::ELEMENT_TYPE{$element};
             if ( defined $element_type
                 and $element_type ~~ [qw(block_element header_element)] )
             {
@@ -1131,7 +1144,7 @@ sub parse {
             inaccessible_ok => 1,
             unproductive_ok => 1,
             default_action  => 'Marpa::R2::HTML::Internal::default_action',
-	    default_null_action => '::undef',
+            default_empty_action => '::undef',
         }
     );
     $grammar->precompute();
@@ -1451,7 +1464,8 @@ sub parse {
         );
         $recce->value();
     };
-    Marpa::R2::exception('No parse: evaler returned undef') if not defined $value;
+    Marpa::R2::exception('No parse: evaler returned undef')
+        if not defined $value;
     return ${$value};
 
 } ## end sub parse
