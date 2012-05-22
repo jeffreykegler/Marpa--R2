@@ -374,6 +374,7 @@ terminal, nulling, nullable, unproductive or inaccessible.
 Useful for debugging grammars.
 
 =head1 NAMED ARGUMENTS
+
 =head2 action_object
 
 The C<action_object> named argument
