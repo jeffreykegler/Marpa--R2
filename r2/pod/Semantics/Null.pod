@@ -39,24 +39,7 @@ L<in the semantics document|Marpa::R2::Semantics>.
 This document provides additional detail on the assignment
 of values to nulled symbols.
 
-The B<null value of a symbol> comes from
-that symbol's C<null_value> property,
-if one is defined.
-Otherwise, the null value of the symbol
-comes from the grammar's
-default null value, as defined by the grammar's
-L<C<default_null_value>|Marpa::R2::Grammar/default_null_value>
-named argument.
-If neither the symbol C<null_value> property
-or the grammar's
-L<C<default_null_value>|Marpa::R2::Grammar/default_null_value>
-named argument
-is defined,
-a symbol's null value is "whatever".
-"Whatever" here means
-that the value may vary from instance to
-instance and cannot be relied on
-in any way.
+The B<null value of a symbol> comes from its rules.
 
 Marpa optimizes for "whatever" null values.
 Null values often are not used for anything,
