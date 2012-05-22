@@ -100,6 +100,7 @@ BEGIN {
 
     SYMBOL_HASH { hash to symbol ID by name of symbol }
     DEFAULT_NULL_ACTION { default value for nulled symbols }
+    DEFAULT_EMPTY_ACTION { default value for empty rules }
     ACTION_OBJECT
     INFINITE_ACTION
 
@@ -261,6 +262,7 @@ use constant GRAMMAR_OPTIONS => [
         infinite_action
         default_action
         default_null_action
+        default_empty_action
         default_rank
         inaccessible_ok
         rule_name_required
@@ -361,6 +363,12 @@ sub Marpa::R2::Grammar::set {
                 if ref $value ne 'ARRAY';
             add_user_rules( $grammar, $value );
         } ## end if ( defined( my $value = $args->{'rules'} ) )
+
+        if ( exists $args->{'default_empty_action'} ) {
+            my $value = $args->{'default_empty_action'};
+            $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_EMPTY_ACTION] =
+                $value;
+        }
 
         if ( exists $args->{'default_null_action'} ) {
             my $value = $args->{'default_null_action'};

@@ -191,17 +191,26 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+
     my $default_action =
         $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_ACTION];
-
-    my $rule_resolutions = [];
-
     my $default_action_resolution =
         Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
         $default_action );
     Marpa::R2::exception(
         "Could not resolve default action named '$default_action'")
         if not $default_action_resolution;
+
+    my $default_empty_action =
+        $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_EMPTY_ACTION];
+    my $default_empty_action_resolution =
+        Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
+        $default_empty_action );
+    Marpa::R2::exception(
+        "Could not resolve default empty rule action named '$default_empty_action'")
+        if not $default_empty_action_resolution;
+
+    my $rule_resolutions = [];
 
     RULE: for my $rule ( @{$rules} ) {
 
@@ -234,6 +243,10 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             $rule_resolutions->[$rule_id] = $resolution;
             next RULE;
         } ## end FIND_CLOSURE_BY_LHS:
+
+	if ($default_empty_action_resolution and $grammar_c->rule_length($rule_id) == 0) {
+	  $rule_resolutions->[$rule_id] = $default_empty_action_resolution;
+	}
 
         $rule_resolutions->[$rule_id] = $default_action_resolution;
 
