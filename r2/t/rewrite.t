@@ -44,19 +44,18 @@ my $separated_sequence_rule = {
     min       => 1
 };
 
-my $sequence_rule =
-    { lhs => 'block', rhs => [qw/statements/], min => 0 },
-    ;    # semicolon to terminate rule
+our $null_parse = 'Null parse';
+
+my $sequence_rule = {
+    lhs    => 'block',
+    rhs    => [qw/statements/],
+    min    => 0,
+    action => 'main::null_parse'
+};
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start   => 'block',
-        symbols => {
-            'block' => {
-                terminal   => 1,
-                null_value => 'Null parse'
-            }
-        },
-        terminals => [qw(whitespace modifier expression comma)],
+        terminals => [qw(block whitespace modifier expression comma)],
         rules     => [
             $chaf_rule,
             $separated_sequence_rule,

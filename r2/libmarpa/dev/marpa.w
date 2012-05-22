@@ -3012,24 +3012,36 @@ and productive.
   for (xrl_id = 0; xrl_id < xrl_count; xrl_id++)
     {
       const XRL xrl = XRL_by_ID (xrl_id);
-      int rh_ix;
-      int is_nulling = 1;
-      int is_nullable = 1;
-      int is_productive = 1;
       const XSYID lhs_id = LHS_ID_of_XRL (xrl);
       const XSY lhs = XSY_by_ID (lhs_id);
       XRL_is_Accessible (xrl) = XSY_is_Accessible (lhs);
-      for (rh_ix = 0; rh_ix < Length_of_XRL (xrl); rh_ix++)
+      if (XRL_is_Sequence (xrl) && Minimum_of_XRL (xrl) <= 0)
 	{
-	  const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
-	  const XSY rh_xsy = XSY_by_ID(rhs_id);
-	  if (LIKELY(!XSY_is_Nulling (rh_xsy))) is_nulling = 0;
-	  if (LIKELY(!XSY_is_Nullable (rh_xsy))) is_nullable = 0;
-	  if (UNLIKELY(!XSY_is_Productive (rh_xsy))) is_productive = 0;
+	  XRL_is_Nulling (xrl) = 0;
+	  XRL_is_Nullable (xrl) = 1;
+	  XRL_is_Productive (xrl) = 1;
+	  continue;
 	}
-      XRL_is_Nulling (xrl) = is_nulling;
-      XRL_is_Nullable (xrl) = is_nullable;
-      XRL_is_Productive (xrl) = is_productive;
+      {
+	int rh_ix;
+	int is_nulling = 1;
+	int is_nullable = 1;
+	int is_productive = 1;
+	for (rh_ix = 0; rh_ix < Length_of_XRL (xrl); rh_ix++)
+	  {
+	    const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
+	    const XSY rh_xsy = XSY_by_ID (rhs_id);
+	    if (LIKELY (!XSY_is_Nulling (rh_xsy)))
+	      is_nulling = 0;
+	    if (LIKELY (!XSY_is_Nullable (rh_xsy)))
+	      is_nullable = 0;
+	    if (UNLIKELY (!XSY_is_Productive (rh_xsy)))
+	      is_productive = 0;
+	  }
+	XRL_is_Nulling (xrl) = is_nulling;
+	XRL_is_Nullable (xrl) = is_nullable;
+	XRL_is_Productive (xrl) = is_productive;
+      }
     }
 }
 
@@ -11974,7 +11986,12 @@ struct marpa_value {
 #define marpa_v_arg_n(v) \
     ((v)->t_arg_n)
 #define marpa_v_result(v) marpa_v_arg_0(v)
-@ @d XSYID_of_V(val) ((val)->public.t_token_id)
+@
+{\bf To Do}: @^To Do@>
+|TOS_of_V| is misnamed.  |Arg_N_of_V| is actually
+the top of stack.
+I need to straighten this out sometime.
+@d XSYID_of_V(val) ((val)->public.t_token_id)
 @d RULEID_of_V(val) ((val)->public.t_rule_id)
 @d Token_Value_of_V(val) ((val)->public.t_token_value)
 @d Token_Type_of_V(val) ((val)->t_token_type)
@@ -12328,14 +12345,14 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 @ @<Perform evaluation steps@> =
 {
     AND and_nodes;
-    @<Unpack value objects@>@;
-    @<Fail if fatal error@>@;
-    and_nodes = ANDs_of_B(B_of_O(o));
     /* flag to indicate whether the arguments of
        a rule should be popped off the stack.  Coming
        into this loop that is always the case -- if
        no rule was executed, this is a no-op. */
     int pop_arguments = 1;
+    @<Unpack value objects@>@;
+    @<Fail if fatal error@>@;
+    and_nodes = ANDs_of_B(B_of_O(o));
 
     if (NOOK_of_V(v) < 0) {
 	NOOK_of_V(v) = Size_of_TREE(t);

@@ -252,22 +252,41 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs; $lhs_id++ )
     {
         my $ruleids    = $nullable_ruleids_by_lhs[$lhs_id];
+	my $resolution_rule;
 	next LHS if not defined $ruleids;
         my $rule_count = scalar @{$ruleids};
         next LHS if $rule_count <= 0;
         if ( $rule_count == 1 ) {
-            my ( undef, $closure ) = @{ $rule_resolutions->[ $ruleids->[0] ] };
+	    $resolution_rule = $ruleids->[0];
+            my ( $resolution_name, $closure ) =
+                @{ $rule_resolutions->[ $resolution_rule ] };
+            if ($trace_actions) {
+		my $lhs_name = $grammar->symbol_name($lhs_id);
+                say {$Marpa::R2::Internal::TRACE_FH}
+                    qq{Nulled symbol "$lhs_name" },
+                    qq{ resolved to "$resolution_name" from rule },
+		    $grammar->brief_rule($resolution_rule);
+            }
             $null_symbol_closures[$lhs_id] = $closure;
             next LHS;
-        }
+        } ## end if ( $rule_count == 1 )
         my @empty_rules = grep { $grammar_c->rule_length($_) <= 0 } @{$ruleids};
         if ( scalar @empty_rules ) {
-            my ( undef, $closure ) =
-                @{ $rule_resolutions->[ $empty_rules[0] ] };
+	    $resolution_rule = $empty_rules[0];
+            my ( $resolution_name, $closure ) =
+                @{ $rule_resolutions->[ $resolution_rule ] };
+            if ($trace_actions) {
+                my $lhs_name = $grammar->symbol_name($lhs_id);
+                say {$Marpa::R2::Internal::TRACE_FH}
+                    qq{Nulled symbol "$lhs_name" },
+                    qq{ resolved to "$resolution_name" from rule },
+		    $grammar->brief_rule($resolution_rule);
+            } ## end if ($trace_actions)
             $null_symbol_closures[$lhs_id] = $closure;
             next LHS;
         } ## end if ( scalar @empty_rules )
-	my ($first_resolution_name, @other_resolution_names) = map { $rule_resolutions->[$_]->[0] } @{$ruleids};
+	my ( $first_resolution_name, @other_resolution_names ) =
+	    map { $rule_resolutions->[$_]->[0] } @{$ruleids};
 	if ( grep { $_ ne $first_resolution_name } @other_resolution_names ) {
 	    my %seen = map { ( $_, 1 ); } $first_resolution_name,
 		@other_resolution_names;
@@ -279,7 +298,15 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 		qq{  Marpa needs there to be only one\n}
 	    );
 	} ## end if ( grep { $_ ne $first_resolution_name } ...)
-	my ( undef, $closure ) = @{ $rule_resolutions->[ $empty_rules[0] ] };
+	$resolution_rule = $empty_rules[0];
+	my ( $resolution_name, $closure ) = @{ $rule_resolutions->[ $resolution_rule ] };
+	if ($trace_actions) {
+	    my $lhs_name = $grammar->symbol_name($lhs_id);
+	    say {$Marpa::R2::Internal::TRACE_FH}
+		qq{Nulled symbol "$lhs_name" },
+		qq{ resolved to "$resolution_name" from rule },
+		$grammar->brief_rule($resolution_rule) ;
+	} ## end if ($trace_actions)
 	$null_symbol_closures[$lhs_id] = $closure;
     } ## end for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs...)
 
