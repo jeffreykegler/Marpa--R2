@@ -929,6 +929,7 @@ sub Marpa::R2::Perl::new {
         {   start         => 'prog',
             rules         => \@rules,
 	    symbols => { listexpr => { null_value => undef } },
+	    default_empty_action => '::undef',
         }
     );
 
