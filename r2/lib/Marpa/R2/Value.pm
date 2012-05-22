@@ -240,7 +240,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     } ## end for my $rule ( @{$rules} )
 
     my @resolution_by_lhs;
-    my @nullable_resolutions_by_lhs;
+    my @nullable_ruleids_by_lhs;
 
     RULE: for my $rule_id ( 0 .. $#{$rules} ) {
         my ( $new_resolution, $closure ) = @{ $rule_resolutions->[$rule_id] };
@@ -264,19 +264,46 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]
                 ->[$rule_id] = $closure;
         }
-        push @{ $nullable_resolutions_by_lhs[$lhs_id] }, $new_resolution
+        push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
             if $grammar_c->rule_is_nullable($rule_id);
     } ## end for my $rule_id ( 0 .. $#{$rules} )
 
-    if (0) {
-        Marpa::R2::exception(
-            'When nulled, symbol ',
-            # $grammar->symbol_name($lhs_id),
-            ' can have two different semantics: ',
-            # qq{"$current_lhs_resolution" and "$new_resolution"\n},
-            qq{  Marpa needs it to be one or the other\n}
-        );
-    } ## end if (0)
+    my @null_symbol_closures;
+    LHS:
+    for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs; $lhs_id++ )
+    {
+        my $ruleids    = $nullable_ruleids_by_lhs[$lhs_id];
+	next LHS if not defined $ruleids;
+        my $rule_count = scalar @{$ruleids};
+        next LHS if $rule_count <= 0;
+        if ( $rule_count == 1 ) {
+            my ( undef, $closure ) = @{ $rule_resolutions->[ $ruleids->[0] ] };
+            $null_symbol_closures[$lhs_id] = $closure;
+            next LHS;
+        }
+        my @empty_rules = grep { $grammar_c->rule_length($_) <= 0 } @{$ruleids};
+        if ( scalar @empty_rules ) {
+            my ( undef, $closure ) =
+                @{ $rule_resolutions->[ $empty_rules[0] ] };
+            $null_symbol_closures[$lhs_id] = $closure;
+            next LHS;
+        } ## end if ( scalar @empty_rules )
+	my ($first_resolution_name, @other_resolution_names) = map { $rule_resolutions->[$_]->[0] } @{$ruleids};
+	if ( grep { $_ ne $first_resolution_name } @other_resolution_names ) {
+	    my %seen = map { ( $_, 1 ); } $first_resolution_name,
+		@other_resolution_names;
+	    Marpa::R2::exception(
+		'When nulled, symbol ',
+		$grammar->symbol_name($lhs_id),
+		' can have more than one semantics: ',
+		( join q{, }, ( keys %seen ) ), "\n",
+		qq{  Marpa needs there to be only one\n}
+	    );
+	} ## end if ( grep { $_ ne $first_resolution_name } ...)
+	my ( undef, $closure ) = @{ $rule_resolutions->[ $empty_rules[0] ] };
+	$null_symbol_closures[$lhs_id] = $closure;
+    } ## end for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs...)
+
 
     return 1;
 }    # set_actions
