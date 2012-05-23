@@ -78,14 +78,11 @@ a parent node is ready to be evaluated.
 The value of a parse is the value of the top node
 of the parse tree.
 
-=head2 Action names and actions
-
 When a Marpa grammar is created,
 its semantics
 is
 specified indirectly, as B<action names>.
-To implement its semantics of action names and
-actions,
+To produce the values used in the semantics,
 Marpa must do three things:
 
 =over
@@ -93,7 +90,6 @@ Marpa must do three things:
 =item * Determine the action name.
 
 =item * Resolve the action name to an action.
-An action is a rule evalution closure, or a constant.
 
 =item * If the action is a rule evaluation closure,
 call it to produce the actual result.
@@ -105,9 +101,59 @@ and action is also used
 to create the per-parse-tree variable,
 as L<described
 below|/"THE PER-PARSE-TREE VARIABLE">.
-The per-parse-tree variable is a special case,
-but it is intended to be used as part of
-the semantics.
+
+=head1 ACTIONS
+
+Action names resolve to actions.
+An action can be
+
+=over 4
+
+=item * A Perl closure.
+When this is associated with a rule,
+it is called a B<rule evaluation closure>.
+The closure will be called to produce the value of
+the action.
+
+=item * A constant.
+The constant is the value of the action.
+
+=item * A "whatever" value.
+
+=back
+
+Perl is unable to distinguish reliably between a
+non-existent value and scalars with an C<undef> value.
+For safety therefore,
+the "C<::undef>" reserved action name must be used
+to specify a constant whose value is a Perl C<undef>.
+
+=head1 "WHATEVER" VALUES
+
+A "whatever" value can have any value which is assignable to a Perl
+scalar.
+Other than that,
+a "whatever" value is unspecified.
+It may be constant, or may vary from instance to instance.
+If it varies it may do so randomly or according to a pattern.
+"Whatever" values will usually only be appropriate for cases
+where the application does not care what the value is.
+
+"Whatever" values are very efficient to implement,
+and Marpa often defaults to them.
+The "C<::whatever>" reserved action name can be used
+to explicitly specify a whatever value.
+
+A "whatever" value may happen to be identical to any other value,
+and therefore "whatever" values cannot be reliably
+disinguished from other
+results.
+For this reason, whenever a rule has "whatever"
+semantics,
+all rules with the same LHS must also have "whatever"
+semantics.
+Where this is not the case,
+Marpa throws an exception.
 
 =head1 NODES
 
@@ -130,15 +176,11 @@ arbitrary pattern.
 
 =head2 Rule nodes
 
-If a nodes is not a token node,
-then it is a B<rule nodes>.
+If a node is not a token node,
+then it is a B<rule node>.
 Rule nodes are always
 associated with a rule.
-Rules have actions names associated with them
-which resolve to actions.
-An action is either a constant or a rule
-evaluation closure.
-It the action is a rule evaluation closure,
+It a rule's action is a rule evaluation closure,
 it is called at
 L<Node Evaluation Time|/"Node Evaluation Time">.
 
@@ -219,10 +261,14 @@ than one nullable rule with the same LHS,
 but a different action name.
 In that case the action name for the null nodes
 is that of the empty rule.
-If nullable rules with the same LHS have
-different action names, and none of those nullable
-rules is the empty rule,
-Marpa throws an exception.
+
+The remaining case is that of
+a set of nullable rules with the same LHS,
+where two or more of the rules have different action names,
+but none of the rules in the set is an empty rule.
+When this happens, Marpa throws an exception.
+To fix the issue,
+the user can add an empty rule.
 For more details,
 see L<the document on
 null semantics|Marpa::R2::Semantics::Null>.
@@ -300,7 +346,7 @@ B<Node Evaluation Time>
 is the Tree Traversal Phase, as seen from the point of view of
 each rule node.  It is not a separate phase.
 
-=head1 THE SEMANTIC PHASES IN DETAIL
+=head1 THE PHASES IN DETAIL
 
 =head2 Series Setup Phase
 
@@ -312,7 +358,7 @@ or rule evaluation closures.
 The rule evaluation closures are never called in the Series Setup Phase.
 They will be called later,
 in the Tree Traversal Phase.
-Also during the Series Setup Phase,
+Also, during the Series Setup Phase,
 the logic which
 ranks parse trees is executed.
 
@@ -400,19 +446,6 @@ reserved action names are "C<::whatever>" and "C<::undef>".
 If the reserved action name is not one of those,
 Marpa throws an exception.
 
-"Whatever" semantics usually results from taking the default,
-but it can be convenient to specify it explicitly.
-The "C<::whatever>" action name specifies "whatever" semantics.
-
-It can be convenient to have an action be a constant
-whose value is a Perl C<undef>.
-Unfortunately, there is no reliable way in Perl
-to distinguish a symbol name which is defined as a scalar
-with the value C<undef>
-from a non-existent symbol name.
-The "C<::undef>" action name specifies an action
-which is a constant whose value is a Perl C<undef>.
-
 =head2 Explicit resolution
 
 The recognizer's C<closures> named argument
@@ -468,7 +501,7 @@ Marpa will not attempt to resolve an action name
 that it cannot fully qualify.
 This implies that,
 for an action name to resolve successfully,
-one of these four things must be the case:
+one of these five things must be the case:
 
 =over
 
@@ -483,16 +516,6 @@ one of these four things must be the case:
 =item * The C<action_object> named argument is defined.
 
 =back
-
-In all but one circumstance,
-failure to resolve an action name
-is thrown as an exception.
-Marpa is more lenient
-when a rule attempts to use
-the C<lhs> rule property as an action name.
-That is the
-one case in which Marpa
-will look at other alternatives.
 
 Marpa's philosophy
 is to require that the programmer be specific about action names.
