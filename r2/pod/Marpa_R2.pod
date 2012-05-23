@@ -341,12 +341,12 @@ The B<token value>
 must be a Perl scalar, but otherwise its form
 and semantics
 are entirely up to the application.
-If the token value is omitted,
-it is a Perl C<undef>.
+If the token value is never used,
+it can be omitted.
 In the calculator example, the values of the
 "C<Add>"
 and "C<Multiply>" tokens are never used,
-so they are allowed to default to a "whatever" value.
+and are allowed to default to a "whatever" value.
 
 =head2 Marpa::R2::Recognizer::value
 
@@ -525,7 +525,8 @@ Rules with no action specified for them take their
 semantics from the C<default_action> named argument.
 If there is no default action for a grammar,
 rules with no action specified for them
-return a Perl C<undef>.
+return a "whatever" value --
+an arbitrary value which should not be used.
 
 =head1 EXAMPLE 2: AN AMBIGUOUS PARSE
 

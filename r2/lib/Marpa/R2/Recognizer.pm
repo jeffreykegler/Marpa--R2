@@ -539,8 +539,13 @@ sub Marpa::R2::Recognizer::show_progress {
 } ## end sub Marpa::R2::Recognizer::show_progress
 
 sub Marpa::R2::Recognizer::read {
+    my $arg_count = scalar @_;
     my ($recce, $symbol_name, $value) = @_;
-    return if not $recce->alternative($symbol_name, \$value);
+    if ($arg_count > 2) {
+      return if not $recce->alternative($symbol_name, \$value);
+    } else {
+      return if not $recce->alternative($symbol_name);
+    }
     return $recce->earleme_complete();
 }
 
