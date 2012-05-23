@@ -75,28 +75,14 @@ This corresponds to the "C<none>" value of
 L<the recognizer's C<ranking_method>|Marpa::R2::Recognizer/"ranking_method">
 named argument.
 
-=head2 Arbitrary parse order
-
-When this document calls a behavior "arbitrary"
-it means that an application
-must
-not rely on that behavior being repeated.
-An arbitrary behavior is allowed to
-change from version to version
-of the software,
-from run to run of the application,
-and even from call to call of the methods.
-
-"Arbitrary parse order", in particular,
-means that the particular order in which
-parse trees are evaluated may not be repeated.
-But an application can expect,
-even when the order of evaluation
-of the parse trees is arbitrary,
-that all appropriate parse trees
-will be included in the parse series,
-and that none of the parse trees in the parse series
-will be the semantic duplicate of any other tree.
+The "arbitrary parse order" will be well-behaved
+in the sense that no parse tree will be omitted in it,
+and no parse tree will occur in it twice.
+Other than that,
+no property of it is guaranteed.
+For example, the order may
+change each time
+the parse series is traversed.
 
 =head2 Ranking methods
 
@@ -212,14 +198,14 @@ by comparing them as follows:
 
 =over
 
-=item * If two alternatives are for the same rule,
-and that the rule is null ranked, they rank as described
-under L<"Null ranking">.
-
 =item *
 If the two alternatives have the same rule,
 and that rule is non-null-ranked,
 the alternatives have equal rank.
+
+=item * If two alternatives are for the same rule,
+and that the rule is null ranked, they rank as described
+under L<"Null ranking">.
 
 =item * If the two alternatives have different rules,
 and the two rules have different rule ranks,
@@ -234,13 +220,13 @@ when both rules have the same rule rank.
 =over
 
 =item *
+If both rules are non-null-ranked,
+the two alternatives have equal rank.
+
+=item *
 If the rule for one alternative is null ranked,
 while the rule for the other is non-null-ranked,
 the alternative with the non-null-ranked rule ranks high.
-
-=item *
-If both rules are non-null-ranked,
-the two alternatives have equal rank.
 
 =item *
 If both rules are null-ranked, their ranking is arbitrary --
