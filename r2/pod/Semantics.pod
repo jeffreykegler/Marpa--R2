@@ -75,7 +75,7 @@ A parse is seen as a parse tree.
 Nodes on the tree are evaluated recursively, bottom-up.
 Once the values of all its child nodes are known,
 a parent node is ready to be evaluated.
-The value of a parse is the value of the top node 
+The value of a parse is the value of the top node
 of the parse tree.
 
 Marpa's semantics operate on the application's
@@ -181,7 +181,7 @@ Everything said above about rule nodes
 applies to sequence rule nodes.
 Specifically,
 the arguments to the value actions for sequence rules
-are the 
+are the
 per-parse-tree variable followed by
 the values of the child nodes in lexical order.
 
@@ -250,7 +250,7 @@ Because Marpa allows ambiguous parsing,
 each parse can produce a B<parse series> --
 a series of zero or more parse trees,
 each with its own parse result.
-The first call to the 
+The first call to the
 L<the recognizer's C<value>
 method|Marpa::R2::Recognizer/"value">
 after the recognizer is created is the
@@ -279,7 +279,7 @@ or until the recognizer is destroyed.
 
 While processing a recognizer, we have
 
-=over 
+=over
 
 =item * A Recognizer Setup Phase, which occurs
 during the call of a recognizer's C<new> method.
@@ -437,7 +437,7 @@ and that convention is recommended.
 
 =head2 Fully qualified action names
 
-If explicit resolution fails, 
+If explicit resolution fails,
 Marpa transforms the action name into a
 B<fully qualified> Perl name.
 An action name that
@@ -489,7 +489,7 @@ That is the
 one case in which Marpa
 will look at other alternatives.
 
-Marpa's philosophy 
+Marpa's philosophy
 is to require that the programmer be specific about action names.
 This can be an inconvenience, but Marpa prefers this to
 silently executing unintended code.
@@ -559,12 +559,12 @@ the action object constructor.
 If the action object constructor name is
 a hash key in the
 evaluator's C<closures> named argument,
-then 
+then
 the value referred to by
 that hash entry becomes the
 action object constructor.
 
-If a grammar has both the C<action> and the 
+If a grammar has both the C<action> and the
 C<action_object> named arguments defined,
 all action names B<except>
 for the action object constructor will be
@@ -618,12 +618,12 @@ ignore: 1
   redistribute it and/or modify it under the terms of the GNU Lesser
   General Public License as published by the Free Software Foundation,
   either version 3 of the License, or (at your option) any later version.
-  
+
   Marpa::R2 is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser
   General Public License along with Marpa::R2.  If not, see
   http://www.gnu.org/licenses/.
