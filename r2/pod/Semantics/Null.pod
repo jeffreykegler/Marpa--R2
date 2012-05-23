@@ -196,7 +196,7 @@ Here is the output:
 name: Null Value Example Output
 normalize-whitespace: 1
 
-    S(L(null A;null B;x);null R)
+    S(L(null A;null B;X(x));null R)
 
 =for Marpa::R2::Display::End
 

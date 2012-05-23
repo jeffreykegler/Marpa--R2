@@ -54,8 +54,7 @@ sub L {
 }
 
 sub R {
-    shift;
-    return 'R(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+    return 'R(): I will never be called';
 }
 
 sub S {
@@ -63,8 +62,8 @@ sub S {
     return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
 }
 
-sub X { return $_[1]; }
-sub Y { return $_[1]; }
+sub X { return 'X(' . $_[1] . ')'; }
+sub Y { return 'Y(' . $_[1] . ')'; }
 
 our $null_A = 'null A';
 our $null_B = 'null B';
@@ -108,7 +107,7 @@ $recce->read( 'x', 'x' );
 # end-before-line: '^END_OF_OUTPUT$'
 
 chomp( my $expected = <<'END_OF_OUTPUT');
-S(L(null A;null B;x);null R)
+S(L(null A;null B;X(x));null R)
 END_OF_OUTPUT
 
 # Marpa::R2::Display::End
