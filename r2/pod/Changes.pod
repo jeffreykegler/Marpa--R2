@@ -31,6 +31,58 @@ and tools to Marpa::R2.
 
 =head1 CHANGES
 
+=head2 Null actions now come from the rules
+
+In Marpa::XS null actions were specified by symbol.
+This created a dual semantics -- one for non-nulled rules,
+and another for nulled rules.   The conventions and
+behaviors of the two semantics were quite dissimilar.
+The rules for their coordination were complicated,
+and it was possible for a programmer
+expecting one semantics, to be surprised by a result from
+the other.
+
+In Marpa::R2 the semantics of nulled rules is the same
+as that of non-nulled rules,
+and the semantics of nulled symbols comes from the semantics
+of the nulled rules.
+This requires rule evaluation closures to be aware
+they might be called for nulled rules.
+But it greatly simplifies the semantics conceptually.
+
+=head2 Actions can now be constants
+
+If an action name resolves to a constant, that constant is the action.
+The effect is the same as if the action name resolved to a function
+that returned the same constant, except that it is more efficient.
+
+Perl cannot reliably distinguish between non-existent symbols and symbols
+whose value is C<undef>, so constants whose value C<undef> are not allowed.
+The C<::undef> reserved action name can be used instead.
+
+=head2 Actions names beginning with "C<::>" are reserved
+
+Action names which start with "C<::>" are reserved.
+"C<::whatever>" explicitly requests "whatever" semantics.
+"C<::undef>" is a safe way of specify a constant whose
+value is C<undef>.
+Use of a reserved name which has not yet been defined causes
+an exception to be thrown.
+
+=head2 The "default_null_value" named argument for grammars has been removed
+
+Symbols no longer have null values, so the "default_null_value"
+named argument of grammars has been removed.
+
+=head2 The "symbols" named argument for grammars has been removed
+
+In Marpa::XS the "symbols" named argument was used to specify null
+values for symbols.  It was also an alternate way of marking symbols
+as terminals.  Symbols no longer have null values and, as an alternate
+and more cumbersome way to marking terminals is not worth cluttering
+the documentation.  Use of the "symbols" named argument now causes
+an exception.
+
 =head2 The token value argument of read() has changed
 
 The Marpa::R2 recognizer's read() method differs from its Marpa::XS
