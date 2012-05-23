@@ -37,26 +37,27 @@ This manual is for Libmarpa, version @value{VERSION}.
 
 @end ifnottex
 @menu
-* How to read this document::
+* How to read this document::   
 * About Libmarpa::              What is Libmarpa?
-* Libmarpa objects::
-* The architecture of Marpa::
-* Threads::
-* Terminal and tokens::
-* Error handling concepts::
-* Introduction to the External Interface::
-* Static Methods::
-* Grammar objects::
+* Libmarpa objects::            
+* The architecture of Marpa::   
+* Threads::                     
+* Terminal and tokens::         
+* Semantics::                   
+* Error handling concepts::     
+* Introduction to the External Interface::  
+* Static Methods::              
+* Grammar objects::             
 * Recognizers::                 Recognizers.
 * Bocage::                      Bocage objects.
-* Ordering objects::
+* Ordering objects::            
 * Tree::                        Parse Trees.
 * Value::                       Value objects.
 * Events::                      Libmarpa Events
-* Error macros and code::
-* Design considerations::
-* Things To Do::
-* Internal Interface::
+* Error macros and code::       
+* Design considerations::       
+* Things To Do::                
+* Internal Interface::          
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -68,15 +69,15 @@ How to read this document
 
 Libmarpa objects
 
-* The sequence of time objects::
-* Base grammars::
-* The lifetime of time objects::
-* Numbered objects::
+* The sequence of time objects::  
+* Base grammars::               
+* The lifetime of time objects::  
+* Numbered objects::            
 
-The architecture of Marpa
+The architecture
 
-* Architecture - Grammar::
-* Recognition versus parsing::
+* Architecture - Grammar::      
+* Recognition versus parsing::  
 
 Grammars
 
@@ -84,12 +85,12 @@ Grammars
 
 Recognition versus parsing
 
-* Precomputation::
+* Precomputation::              
 
 Threads
 
-* C89 and thread-safety::
-* Base grammars cannot be shared between threads::
+* C89 and thread-safety::       
+* Base grammars cannot be shared between threads::  
 
 C89 and thread-safety
 
@@ -97,58 +98,63 @@ C89 and thread-safety
 
 Terminal and tokens
 
-* LHS Terminals::
-* Token values::
+* LHS Terminals::               
+* Token values::                
+
+Semantics
+
+* Whatever values::             
+* Caution about whatever values::  
 
 Error handling
 
-* Memory allocation failures::
-* Soft and hard errors::
+* Memory allocation failures::  
+* Soft and hard errors::        
 
 Introduction to the External Interface
 
-* Return value descriptions::
+* Return value descriptions::   
 
 Grammar objects
 
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
-* Symbols::
+* Symbols::                     
 * Terminals::                   Terminal symbols.
-* Rules::
-* Sequences::
+* Rules::                       
+* Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
-* Grammar events::
+* Grammar events::              
 
 Recognizer objects
 
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
-* Recognizer events::
+* Recognizer events::           
 
 Bocage objects
 
-* Bocage reference counting::
+* Bocage reference counting::   
 
 Ordering objects
 
-* Ordering constructor::
-* Ordering reference counting::
+* Ordering constructor::        
+* Ordering reference counting::  
 
 Tree iterators
 
-* Tree constructor::
-* Tree reference counting::
-* Tree iteration::
+* Tree constructor::            
+* Tree reference counting::     
+* Tree iteration::              
 
 Value objects
 
-* About the valuator::
-* Valuator constructor::
-* Valuator reference counting::
-* Valuator stepping::
-* Step accessors::
+* About the valuator::          
+* Valuator constructor::        
+* Valuator reference counting::  
+* Valuator stepping::           
+* Step accessors::              
 
 Events
 
@@ -156,25 +162,25 @@ Events
 
 Error macros and code
 
-* Methods::
-* Error Macros::
-* Error Codes::
+* Methods::                     
+* Error Macros::                
+* Error Codes::                 
 
 Design considerations
 
-* Why so many time objects::
-* Design of numbered objects::
+* Why so many time objects::    
+* Design of numbered objects::  
 
 Internal Interface
 
-* Symbol internal methods::
-* Rule internals::
-* Grammar internals::
-* Recognizer internals::
-* Bocage internals::
-* Ordering internals::
-* Tree internals::
-* Valuator internals::
+* Symbol internal methods::     
+* Rule internals::              
+* Grammar internals::           
+* Recognizer internals::        
+* Bocage internals::            
+* Ordering internals::          
+* Tree internals::              
+* Valuator internals::          
 
 @end detailmenu
 @end menu
@@ -328,10 +334,10 @@ The time objects are, in sequence:
 @end itemize
 
 @menu
-* The sequence of time objects::
-* Base grammars::
-* The lifetime of time objects::
-* Numbered objects::
+* The sequence of time objects::  
+* Base grammars::               
+* The lifetime of time objects::  
+* Numbered objects::            
 @end menu
 
 @node The sequence of time objects, Base grammars, Libmarpa objects, Libmarpa objects
@@ -418,11 +424,11 @@ Tokens values are
 another examples of numbered objects.
 
 @node The architecture of Marpa, Threads, Libmarpa objects, Top
-@chapter The architecture of Marpa
+@chapter The architecture
 
 @menu
-* Architecture - Grammar::
-* Recognition versus parsing::
+* Architecture - Grammar::      
+* Recognition versus parsing::  
 @end menu
 
 @node Architecture - Grammar, Recognition versus parsing, The architecture of Marpa, The architecture of Marpa
@@ -462,7 +468,7 @@ is implemented by its bocage class and the classes
 which follow the bocage in the time object sequence.
 
 @menu
-* Precomputation::
+* Precomputation::              
 @end menu
 
 @node Precomputation,  , Recognition versus parsing, Recognition versus parsing
@@ -491,8 +497,8 @@ if used as described below.
 The Libmarpa methods are not reentrant.
 
 @menu
-* C89 and thread-safety::
-* Base grammars cannot be shared between threads::
+* C89 and thread-safety::       
+* Base grammars cannot be shared between threads::  
 @end menu
 
 @node C89 and thread-safety, Base grammars cannot be shared between threads, Threads, Threads
@@ -540,7 +546,7 @@ Libmarpa could allow thread-safe
 cloning of grammars and other
 time objects.
 
-@node Terminal and tokens, Error handling concepts, Threads, Top
+@node Terminal and tokens, Semantics, Threads, Top
 @chapter Terminal and tokens
 
 A terminal symbol is a symbol which
@@ -561,8 +567,8 @@ symbol to also be a terminal
 and Marpa does not allow it.
 
 @menu
-* LHS Terminals::
-* Token values::
+* LHS Terminals::               
+* Token values::                
 @end menu
 
 @node LHS Terminals, Token values, Terminal and tokens, Terminal and tokens
@@ -605,12 +611,64 @@ using an array,
 so that the higher levels can translate integers back
 and forth into whatever the application requires.
 
-@node Error handling concepts, Introduction to the External Interface, Terminal and tokens, Top
+@node Semantics, Error handling concepts, Terminal and tokens, Top
+@chapter Semantics
+
+@menu
+* Whatever values::             
+* Caution about whatever values::  
+@end menu
+
+@node Whatever values, Caution about whatever values, Semantics, Semantics
+@section ``Whatever'' values
+
+Libmarpa allows
+``whatever'' semantics, because it can be easily optimized and it occurs
+quite frequently in practical parsing situations.  ``Whatever''
+values are more frequently called "arbitrary" values.
+The author's problem
+with the term "arbitrary" is that it is heavily overloaded, with
+several closely related meanings, so that it is hard to understand
+exactly what is meant.  And unfortunately, it is used in circumstances
+where the exact meaning can be quite important.
+
+In Libmarpa, a ``whatever'' value is a value each instance of which can
+be any value in the universe of possible values, and which has no
+other property that can be relied on.  ``Whatever'' values may stay
+constant, or they may vary from instance to instance.  If and when
+they do vary, they may do so randomly, or according to an arbitrary
+pattern.
+
+@node Caution about whatever values,  , Whatever values, Semantics
+@section A caution about ``Whatever'' values
+
+If a value is not a ``whatever'' value, this document calls
+it a defined value.
+It is important to realize that
+it is impossible to tell the difference between a defined value
+and a ``whatever'' value:
+they could by coincidence be exactly the same.
+Marpa::R2, as of this writing the standard upper layer for Libmarpa,
+does not allow any symbol
+to have both ``whatever'' and defined semantics.
+
+But
+Libmarpa itself does nothing to prevent the application from
+mixing ``whatever'' and defined
+values in any way it pleases.
+This is in keeping with Libmarpa's design goals of maximum
+flexibility and minimal overhead.
+This flexibility might be exploited,
+for example, by applications
+that distinguish ``whatever'' values from defined values,
+by context.
+
+@node Error handling concepts, Introduction to the External Interface, Semantics, Top
 @chapter Error handling
 
 @menu
-* Memory allocation failures::
-* Soft and hard errors::
+* Memory allocation failures::  
+* Soft and hard errors::        
 @end menu
 
 @node Memory allocation failures, Soft and hard errors, Error handling concepts, Error handling concepts
@@ -665,7 +723,7 @@ The following chapters describe Libmarpa's external
 interface in detail.
 
 @menu
-* Return value descriptions::
+* Return value descriptions::   
 @end menu
 
 @node Return value descriptions,  , Introduction to the External Interface, Introduction to the External Interface
@@ -767,12 +825,12 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 @menu
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
-* Symbols::
+* Symbols::                     
 * Terminals::                   Terminal symbols.
-* Rules::
-* Sequences::
+* Rules::                       
+* Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
-* Grammar events::
+* Grammar events::              
 @end menu
 
 @node Grammar constructor, Grammar reference counting, Grammar objects, Grammar objects
@@ -1367,7 +1425,7 @@ codes.
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
-* Recognizer events::
+* Recognizer events::           
 @end menu
 
 @node Recognizer constructor, Recognizer reference counting, Recognizers, Recognizers
@@ -1635,7 +1693,7 @@ codes.
 @chapter Bocage objects
 
 @menu
-* Bocage reference counting::
+* Bocage reference counting::   
 @end menu
 
 In Libmarpa, recognition and parsing are separate phases.
@@ -1681,8 +1739,8 @@ They are destroyed by reducing their reference count to zero.
 @chapter Ordering objects
 
 @menu
-* Ordering constructor::
-* Ordering reference counting::
+* Ordering constructor::        
+* Ordering reference counting::  
 @end menu
 
 @node Ordering constructor, Ordering reference counting, Ordering objects, Ordering objects
@@ -1752,9 +1810,9 @@ when it makes sense in context,
 ``tree'' means a parse tree.
 
 @menu
-* Tree constructor::
-* Tree reference counting::
-* Tree iteration::
+* Tree constructor::            
+* Tree reference counting::     
+* Tree iteration::              
 @end menu
 
 @node Tree constructor, Tree reference counting, Tree, Tree
@@ -1835,11 +1893,11 @@ Always succeeds.
 @chapter Value objects
 
 @menu
-* About the valuator::
-* Valuator constructor::
-* Valuator reference counting::
-* Valuator stepping::
-* Step accessors::
+* About the valuator::          
+* Valuator constructor::        
+* Valuator reference counting::  
+* Valuator stepping::           
+* Step accessors::              
 @end menu
 
 @node About the valuator, Valuator constructor, Value, Value
@@ -2174,9 +2232,9 @@ Suggested message: "Grammar has a nulling terminal."
 @chapter Error macros and code
 
 @menu
-* Methods::
-* Error Macros::
-* Error Codes::
+* Methods::                     
+* Error Macros::                
+* Error Codes::                 
 @end menu
 
 @node Methods, Error Macros, Error macros and code, Error macros and code
@@ -2611,8 +2669,8 @@ This section details some of the design choices
 in Libmarpa.
 
 @menu
-* Why so many time objects::
-* Design of numbered objects::
+* Why so many time objects::    
+* Design of numbered objects::  
 @end menu
 
 @node Why so many time objects, Design of numbered objects, Design considerations, Design considerations
@@ -2702,14 +2760,14 @@ determine the start and end earlemes of a token.
 @chapter Internal Interface
 
 @menu
-* Symbol internal methods::
-* Rule internals::
-* Grammar internals::
-* Recognizer internals::
-* Bocage internals::
-* Ordering internals::
-* Tree internals::
-* Valuator internals::
+* Symbol internal methods::     
+* Rule internals::              
+* Grammar internals::           
+* Recognizer internals::        
+* Bocage internals::            
+* Ordering internals::          
+* Tree internals::              
+* Valuator internals::          
 @end menu
 
 @node Symbol internal methods, Rule internals, Internal Interface, Internal Interface
