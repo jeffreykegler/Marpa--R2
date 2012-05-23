@@ -78,29 +78,10 @@ a parent node is ready to be evaluated.
 The value of a parse is the value of the top node
 of the parse tree.
 
-Marpa's semantics operate on the application's
-original rules and symbols.
-The internals of the parser are hidden from
-the semantics.
-Nodes in Marpa's virtual parse trees are of three kinds:
-
-=over
-
-=item * Token Nodes, which have a constant semantics,
-initialized when the token is read.
-
-=item * Rule Nodes, which have a dynamic semantics,
-based on action names and actions, as described below.
-
-=item * Null Nodes, which have a constant semantics,
-initialized when the recognizer is created.
-
-=back
-
 =head2 Action names and actions
 
 When a Marpa grammar is created,
-its dynamic semantics
+its semantics
 is
 specified indirectly, as B<action names>.
 To implement its semantics of action names and
@@ -112,10 +93,10 @@ Marpa must do three things:
 =item * Determine the action name.
 
 =item * Resolve the action name to an action.
-An action is a Perl closure.
+An action is a rule evalution closure, or a constant.
 
-=item * Call the Perl closure to produce the
-actual result.
+=item * If the action is a rule evaluation closure,
+call it to produce the actual result.
 
 =back
 
@@ -149,29 +130,32 @@ arbitrary pattern.
 
 =head2 Rule nodes
 
-Nodes which are ancestors of token nodes
-are called B<rule nodes>.
+If a nodes is not a token node,
+then it is a B<rule nodes>.
 Rule nodes are always
 associated with a rule.
-The value of a rule node is computed at
+Rules have actions names associated with them
+which resolve to actions.
+An action is either a constant or a rule
+evaluation closure.
+It the action is a rule evaluation closure,
+it is called at
 L<Node Evaluation Time|/"Node Evaluation Time">.
-Applications can specify,
-on a per-rule basis,
-Perl closures to evaluate rule nodes.
-The Perl closures which produce the value of
-rule nodes are called value actions.
 
-A value action's
+The rule evaluation closures's
 arguments will be a
-per-parse-tree variable followed by
-the values of its child nodes in lexical order.
-The return value of a value action becomes the
-value of the node.
-A value action is always evaluated in scalar context.
-If there is no value action for a
+per-parse-tree variable followed, if the rule is not nulled,
+by the values of its child nodes in lexical order.
+If the rule is nulled, the child node values will be omitted.
+A rule evaluation closure action is always called in scalar context.
+
+If the action is a constant,
+it becomes the value of the rule node.
+If the action is a rule evaluation closure,
+its return value becomes the value of the node.
+If there is no action for a
 rule node,
-the value of the rule node is
-a Perl C<undef>.
+the rule node has a "whatever" value.
 
 =head2 Sequence rule nodes
 
@@ -192,9 +176,9 @@ when you are writing the code for the value action.
 In a sequence rule,
 the number of right hand side symbols is not known
 until node evaluation time.
-The value action
-of a sequence rule node
-must be a Perl closure capable of
+The rule evaluation closure
+of a sequence rule
+must be capable of
 dealing with
 a variable number of arguments.
 
@@ -210,7 +194,7 @@ By default, if a sequence rule has separators,
 the separators are thrown away before
 the value action is called.
 This means that separators do not appear in the C<@_> array
-of the Perl closure which is the value action.
+of the rule evaluation closure which is the value action.
 If the value of the C<keep> rule property
 is a Perl true value, separators are kept,
 and do appear in the
@@ -219,19 +203,28 @@ C<@_> array.
 
 =head2 Null nodes
 
-A B<null node> is a node which derives the zero-length,
+A null node is a special case of a rule node,
+one where the rule derives the zero-length,
 or empty string.
-By default, the value of a null node is "whatever".
-This is adequate for many applications, but Marpa
-allows other values to be specified for null nodes.
-In fact, Marpa allows
-allows an arbitrarily complex null semantics.
-Readers interested in null nodes with values
-other than C<undef>,
-or who would like
-to read a more detailed account of how Marpa's
-null semantics works,
-should turn to L<the document on
+When the rule node is a null node,
+the rule evaluation closure will be called with
+no child value arguments.
+
+When a node is nulled,
+it must be as a result of a nullable rule,
+and the action name and action are those
+associated with that rule.
+An ambiguity can arise if there is more
+than one nullable rule with the same LHS,
+but a different action name.
+In that case the action name for the null nodes
+is that of the empty rule.
+If nullable rules with the same LHS have
+different action names, and none of those nullable
+rules is the empty rule,
+Marpa throws an exception.
+For more details,
+see L<the document on
 null semantics|Marpa::R2::Semantics::Null>.
 
 =head1 OVERVIEW OF THE SEMANTIC PHASES
@@ -277,18 +270,6 @@ or until the recognizer is destroyed.
 
 =head2 Summary of the phases
 
-While processing a recognizer, we have
-
-=over
-
-=item * A Recognizer Setup Phase, which occurs
-during the call of a recognizer's C<new> method.
-It is followed by
-
-=item * the processing of zero or more parse series.
-
-=back
-
 While processing a parse series, we have:
 
 =over
@@ -321,20 +302,15 @@ each rule node.  It is not a separate phase.
 
 =head1 THE SEMANTIC PHASES IN DETAIL
 
-=head2 Recognizer Setup Phase
-
-In the Recognizer Setup Phase, the null values
-of the symbols are determined.
-The null values of symbols never change --
-they are in effect properties of the grammar.
-
 =head2 Series Setup Phase
 
 During the Series Setup Phase
-all value action names are resolved to Perl closures --
-the value actions.
-The value actions are never called in the Series Setup Phase.
-Value actions are called
+all value action names are resolved to
+value actions --
+constants
+or rule evaluation closures.
+The rule evaluation closures are never called in the Series Setup Phase.
+They will be called later,
 in the Tree Traversal Phase.
 Also during the Series Setup Phase,
 the logic which
@@ -353,11 +329,9 @@ for each parse tree.
 =head2 Tree Traversal Phase
 
 During the Tree Traversal Phase,
-the value actions are called.
+the rule evaluation closures are called.
 Node Evaluation Time is the Tree Traversal Phase,
 as seen from the point of view of the individual nodes of the parse tree.
-If a node has a value action,
-it is called at Node Evaluation Time.
 
 =head1 FINDING THE ACTION FOR A RULE
 
@@ -373,20 +347,25 @@ if one is defined.
 
 =item * Resolving an action based on the C<lhs> property of the rule.
 
+=item * If the rule is empty,
+and the C<default_empty_action> named argument of the grammar
+is defined,
+resolving an action based on that named argument.
+
 =item * Resolving an action based on
 the C<default_action> named argument of the grammar,
 if one is defined.
 
-=item * Defaulting to a virtual action,
-one which
-returns a Perl C<undef>.
+=item * Defaulting to a "whatever" value.
 
 =back
 
 Resolution of action names is L<described
 below|/"RESOLVING ACTION NAMES">.
 If the C<action> property
-or the C<default_action> named argument is defined,
+the C<default_action> named argument,
+or the C<default_empty_action> named argument
+is defined,
 but does not resolve successfully, Marpa
 throws an exception.
 Marpa prefers to "fast fail" in these cases,
@@ -401,6 +380,8 @@ Action names come from these sources:
 
 =item * The C<default_action> named argument of Marpa's grammar.
 
+=item * The C<default_empty_action> named argument of Marpa's grammar.
+
 =item * The C<action> property of Marpa's rules.
 
 =item * The C<new> constructor in the package specified by the
@@ -409,6 +390,28 @@ C<action_object> named argument of the Marpa grammar.
 =item * The C<lhs> property of Marpa's rules.
 
 =back
+
+=head2 Reserved action names
+
+If the action name begins with the two characters "C<::>",
+then it is a reserved action name and must be resolved as such.
+The current
+reserved action names are "C<::whatever>" and "C<::undef>".
+If the reserved action name is not one of those,
+Marpa throws an exception.
+
+"Whatever" semantics usually results from taking the default,
+but it can be convenient to specify it explicitly.
+The "C<::whatever>" action name specifies "whatever" semantics.
+
+It can be convenient to have an action be a constant
+whose value is a Perl C<undef>.
+Unfortunately, there is no reliable way in Perl
+to distinguish a symbol name which is defined as a scalar
+with the value C<undef>
+from a non-existent symbol name.
+The "C<::undef>" action name specifies an action
+which is a constant whose value is a Perl C<undef>.
 
 =head2 Explicit resolution
 
@@ -469,6 +472,8 @@ one of these four things must be the case:
 
 =over
 
+=item * The action name is one of the reserved action names.
+
 =item * The action name resolves explicitly.
 
 =item * The action name is fully qualified to begin with.
@@ -494,11 +499,11 @@ is to require that the programmer be specific about action names.
 This can be an inconvenience, but Marpa prefers this to
 silently executing unintended code.
 
-Generally it is a good practice to keep
-the semantic Perl closures
+It can be good practice to keep
+the rule evaluation closures
 in their own namespace.
 But if, for example, the user wants to leave the
-semantic closures in the C<main> namespace,
+rule evaluation closures in the C<main> namespace,
 she can specify
 C<"main">
 as the value of the C<actions> named argument.
@@ -507,7 +512,7 @@ as the value of the C<actions> named argument.
 
 In the Tree Setup Phase,
 Marpa creates a per-parse-tree variable.
-This becomes the first argument of the semantic Perl closures for
+This becomes the first argument of the rule evaluation closures for
 the rule nodes.
 If the grammar's C<action_object> named argument is not defined,
 the per-parse-tree variable is initialized to an empty hash ref.
@@ -593,11 +598,7 @@ claim to support B<every grammar> that can be written in BNF.
 
 Marpa applies semantics to infinite loops by breaking the loop at
 some convenient point, so that an infinite regress is prevented.
-The exact location at which the loop is broken
-varies among Marpa implementations.
-If an infinite loop is given a null semantics,
-the location of the break will not matter.
-A null semantics is the default.
+The exact location at which the loop is broken is subject to change.
 
 More could be done.
 In particular, a precise definition of where loops are broken
