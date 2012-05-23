@@ -1073,7 +1073,7 @@ sub Marpa::R2::Perl::read {
             if ( $perl_type eq 'WORD' ) {
                 my $token_found = 0;
                 TYPE: for my $type (qw(WORD FUNC METHOD FUNCMETH)) {
-                    defined $recce->alternative( $type, $content, 1 )
+                    defined $recce->alternative( $type, \$content, 1 )
                         and $token_found++;
                 }
                 $token_found
@@ -1119,7 +1119,7 @@ sub Marpa::R2::Perl::read {
                 TYPE: for my $type (@potential_types) {
                     next TYPE if not $type ~~ $expected_tokens;
                     $token_found = 1;
-                    defined $recce->alternative( $type, $content, 1 )
+                    defined $recce->alternative( $type, \$content, 1 )
                         or token_not_accepted( $token, $type, $content, 1 );
                 } ## end for my $type (@potential_types)
                 defined $token_found or unknown_ppi_token($token);
@@ -1138,7 +1138,7 @@ sub Marpa::R2::Perl::read {
                 TYPE: for my $type (@potential_types) {
                     next TYPE if not $type ~~ $expected_tokens;
                     $token_found = 1;
-                    defined $recce->alternative( $type, $content, 1 )
+                    defined $recce->alternative( $type, \$content, 1 )
                         or token_not_accepted( $token, $type, $content, 1 );
                 } ## end for my $type (@potential_types)
                 defined $token_found or unknown_ppi_token($token);
@@ -1185,7 +1185,7 @@ sub Marpa::R2::Perl::read {
                 TYPE: for my $type (@potential_types) {
                     next TYPE if not $type ~~ $expected_tokens;
                     $token_found = 1;
-                    defined $recce->alternative( $type, $content, 1 )
+                    defined $recce->alternative( $type, \$content, 1 )
                         or token_not_accepted( $token, $type, $content, 1 );
                 } ## end for my $type (@potential_types)
                 defined $token_found or unknown_ppi_token($token);
@@ -1204,7 +1204,7 @@ sub Marpa::R2::Perl::read {
             my $content     = $token->{content};
             my $token_found = 0;
             TYPE: for my $type (qw(THING VERSION)) {
-                defined $recce->alternative( $type, $content, 1 )
+                defined $recce->alternative( $type, \$content, 1 )
                     and $token_found++;
             }
             $token_found or token_not_accepted( $token, 'THING', $content );

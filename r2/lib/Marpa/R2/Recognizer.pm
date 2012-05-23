@@ -539,14 +539,14 @@ sub Marpa::R2::Recognizer::show_progress {
 } ## end sub Marpa::R2::Recognizer::show_progress
 
 sub Marpa::R2::Recognizer::read {
-    my $recce = shift;
-    return if not $recce->alternative(@_);
+    my ($recce, $symbol_name, $value) = @_;
+    return if not $recce->alternative($symbol_name, \$value);
     return $recce->earleme_complete();
 }
 
 sub Marpa::R2::Recognizer::alternative {
 
-    my ( $recce, $symbol_name, $value, $length ) = @_;
+    my ( $recce, $symbol_name, $value_ref, $length ) = @_;
 
     Marpa::R2::exception(
         'No recognizer object for Marpa::R2::Recognizer::tokens')
@@ -570,10 +570,19 @@ sub Marpa::R2::Recognizer::alternative {
     }
 
     my $value_ix = -1;
-    if ( defined $value ) {
+    SET_VALUE_IX: {
+        last SET_VALUE_IX if not defined $value_ref;
+        my $ref_type = ref $value_ref;
+        if (    $ref_type ne 'SCALAR'
+            and $ref_type ne 'REF'
+            and $ref_type ne 'VSTRING' )
+        {
+            Marpa::R2::exception(
+                qq{alternative(): value must be undef or ref});
+        } ## end if ( $ref_type ne 'SCALAR' and $ref_type ne 'REF' and...)
         $value_ix = scalar @{$token_values};
-        push @{$token_values}, $value;
-    }
+        push @{$token_values}, ${$value_ref};
+    } ## end SET_VALUE_IX:
     $length //= 1;
 
     my $result = $recce_c->alternative( $symbol_id, $value_ix, $length );

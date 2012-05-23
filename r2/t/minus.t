@@ -177,8 +177,8 @@ my %expected = map { ( $_ => 1 ) } (
 
 $recce->read( 'Number', '6' );
 for ( 1 .. 4 ) {
-    $recce->alternative( 'MinusMinus', q{--}, 2 );
-    $recce->alternative( 'Minus', q{-} );
+    $recce->alternative( 'MinusMinus', \q{--}, 2 );
+    $recce->alternative( 'Minus', \q{-} );
     $recce->earleme_complete();
 }
 $recce->read( 'Minus',  q{-}, );

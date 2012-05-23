@@ -203,7 +203,7 @@ TEST: for my $test_data (@test_data) {
                 if not $test_input =~ m{ \G \s* (?<match>$regex) }xgms;
 
 ## no critic (Variables::ProhibitPunctuationVars)
-            $recce->alternative( $token, $+{match},
+            $recce->alternative( $token, \$+{match},
                 ( ( pos $test_input ) - $pos ) );
 
         } ## end while ( my ( $token, $regex ) = each %regexes )

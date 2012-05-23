@@ -124,7 +124,7 @@ package main;
 my $cycle1_test = [
     'cycle1',
     $Test_Grammar::MARPA_OPTIONS_1,
-    [ [ [ 's', '1' ] ] ],
+    [ [ [ 's', \'1' ] ] ],
     '1',
     <<'EOS'
 Cycle found involving rule: 0: s -> s
@@ -134,7 +134,7 @@ EOS
 my $cycle2_test = [
     'cycle2',
     $Test_Grammar::MARPA_OPTIONS_2,
-    [ [ [ 'a', '1' ] ] ],
+    [ [ [ 'a', \'1' ] ] ],
     '1',
     <<'EOS'
 Cycle found involving rule: 0: s -> a
@@ -142,15 +142,15 @@ Cycle found involving rule: 1: a -> s
 EOS
 ];
 
-my @cycle8_tokens = ( [ [ 'e', '1' ], [ 'v', '1' ], [ 'w', '1' ] ] );
+my @cycle8_tokens = ( [ [ 'e', \'1' ], [ 'v', \'1' ], [ 'w', \'1' ] ] );
 
 push @cycle8_tokens, map {
-    (   [   [ 'e', $_ ],
-            [ 't', $_ ],
-            [ 'u', $_ ],
-            [ 'v', $_ ],
-            [ 'w', $_ ],
-            [ 'x', $_ ]
+    (   [   [ 'e', \$_ ],
+            [ 't', \$_ ],
+            [ 'u', \$_ ],
+            [ 'v', \$_ ],
+            [ 'w', \$_ ],
+            [ 'x', \$_ ]
         ],
         )
 } qw( 2 3 4 5 6 );

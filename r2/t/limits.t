@@ -61,7 +61,8 @@ sub test_grammar {
     for my $token ( @{$tokens} ) {
         my $earleme_result;
         $eval_ok = eval {
-            $earleme_result = $recce->read( @{$token} );
+            $recce->alternative( @{$token} );
+            $earleme_result = $recce->earleme_complete();
             1;
         };
         die "Exception while recognizing earleme:\n$EVAL_ERROR"
@@ -98,7 +99,7 @@ my $placebo = {
 
 sub gen_tokens {
     my ($earleme_length) = @_;
-    return [ [ 'a', 'a', 1 ], [ 'a', 'a', $earleme_length ] ];
+    return [ [ 'a', \'a', 1 ], [ 'a', \'a', $earleme_length ] ];
 }
 
 my $value;

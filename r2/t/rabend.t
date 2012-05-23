@@ -98,11 +98,11 @@ sub duplicate_terminal_1 {
 # Marpa::R2::Display
 # name: Recognizer alternative Synopsis
 
-    $recce->alternative( 'a', 42, 1 ) or return 'First alternative failed';
+    $recce->alternative( 'a', \42, 1 ) or return 'First alternative failed';
 
 # Marpa::R2::Display::End
 
-    return 1 if $recce->alternative( 'a', 711, 1 );
+    return 1 if $recce->alternative( 'a', \711, 1 );
     return;
 } ## end sub duplicate_terminal_1
 
@@ -140,9 +140,9 @@ $recce = Marpa::R2::Recognizer->new(
 sub duplicate_terminal_2 {
 
     # Should be OK, because different symbols
-    $recce->alternative( 'a', 11, 1 )
+    $recce->alternative( 'a', \11, 1 )
         or return 'alternative a at 0 failed';
-    $recce->alternative( 'b', 12, 1 )
+    $recce->alternative( 'b', \12, 1 )
         or return 'alternative b at 0 failed';
 
 # Marpa::R2::Display
@@ -153,18 +153,18 @@ sub duplicate_terminal_2 {
 # Marpa::R2::Display::End
 
     # Should be OK, because different lengths
-    $recce->alternative( 'a', 21, 3 )
+    $recce->alternative( 'a', \21, 3 )
         or return 'alternative a at 1 failed';
-    $recce->alternative( 'a', 22, 1 )
+    $recce->alternative( 'a', \22, 1 )
         or return 'alternative b at 1 failed';
     $recce->earleme_complete();
-    $recce->alternative( 'd', 42, 2 )
+    $recce->alternative( 'd', \42, 2 )
         or return 'first alternative d at 2 failed';
-    $recce->alternative( 'b', 22, 1 )
+    $recce->alternative( 'b', \22, 1 )
         or return 'alternative b at 1 failed';
 
     # this should cause an abend -- a 2nd d, with the same length
-    return 1 if $recce->alternative( 'd', 711, 2 );
+    return 1 if $recce->alternative( 'd', \711, 2 );
     return;
 } ## end sub duplicate_terminal_2
 

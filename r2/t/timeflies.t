@@ -117,7 +117,7 @@ for my $data ( 'time flies like an arrow', 'fruit flies like a banana' ) {
 # Marpa::R2::Display::End
 
         for my $type ( @{ $vocabulary{$word} } ) {
-            $recce->alternative( $type, $word, 1 )
+            $recce->alternative( $type, \$word, 1 )
                 or die 'Recognition failed';
         }
         $recce->earleme_complete();
