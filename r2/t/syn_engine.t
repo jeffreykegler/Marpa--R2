@@ -54,9 +54,9 @@ $grammar->precompute();
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 $recce->read( 'Number', 42 );
-$recce->read( 'Multiply' );
+$recce->read('Multiply');
 $recce->read( 'Number', 1 );
-$recce->read( 'Add' );
+$recce->read('Add');
 $recce->read( 'Number', 7 );
 
 sub My_Actions::do_add {
@@ -101,9 +101,9 @@ my $ambiguous_recce =
     Marpa::R2::Recognizer->new( { grammar => $ambiguous_grammar } );
 
 $ambiguous_recce->read( 'Number', 42 );
-$ambiguous_recce->read( 'Multiply' );
+$ambiguous_recce->read('Multiply');
 $ambiguous_recce->read( 'Number', 1 );
-$ambiguous_recce->read( 'Add' );
+$ambiguous_recce->read('Add');
 $ambiguous_recce->read( 'Number', 7 );
 
 my @values = ();

@@ -26,9 +26,9 @@ normalize-whitespace: 1
 
     my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
     $recce->read( 'Number', 42 );
-    $recce->read( 'Multiply', );
+    $recce->read('Multiply');
     $recce->read( 'Number', 1 );
-    $recce->read( 'Add', );
+    $recce->read('Add');
     $recce->read( 'Number', 7 );
 
 =for Marpa::R2::Display::End
@@ -127,9 +127,9 @@ partial: 1
 normalize-whitespace: 1
 
     $recce->read( 'Number', 42 );
-    $recce->read( 'Multiply', );
+    $recce->read('Multiply');
     $recce->read( 'Number', 1 );
-    $recce->read( 'Add', );
+    $recce->read('Add');
     $recce->read( 'Number', 7 );
 
 =for Marpa::R2::Display::End
@@ -183,6 +183,14 @@ For other failures,
 including an attempt to C<read> a token
 into an exhausted parser,
 Marpa throws an exception.
+
+Note that passing an explicit C<undef> as the token value
+argument is
+quite different from omitting it.
+If the token value is omitted, it is a "whatever" value,
+one which could be anything.
+If it is C<undef>, then the token value
+is always a Perl C<undef>.
 
 =head2 set
 
