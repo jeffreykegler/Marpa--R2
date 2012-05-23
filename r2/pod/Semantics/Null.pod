@@ -37,7 +37,7 @@ L<in the semantics document|Marpa::R2::Semantics>.
 This document provides additional detail on the assignment
 of values to nulled symbols.
 
-=head1 OVERVIEW
+=head1 DESCRIPTION
 
 =head2 Null values come from rules
 
@@ -55,13 +55,15 @@ then that closure is called with no child arguments,
 and the closure's result is the value of the nulled symbol.
 
 It may be that more than one nullable rule has that symbol on
-its LHS, and and these rules have different action names.
-In that case, the action for the empty rule is the one which
+its LHS, and and that
+these rules have different action names.
+In that case, the action for the empty rule with that LHS
+is the one which
 applies.
 It is a fatal error if the nullable rules for a LHS symbol
-have different action names, and none of them is an empty rule.
-A simple way to fix this problem is create an empty rule
-that decide the semantics to be applied to nulled symbols.
+have different action names, and there is no empty rule for that LHS
+symbol.
+A simple way to fix this problem is create such an empty rule.
 
 =head2 Null subtrees
 
@@ -72,7 +74,7 @@ all null subtrees back to their topmost nulled symbol.
 The "lost" semantics of the non-topmost symbols and rules
 of null subtrees is usually not missed.
 Nulled subtrees cannot contain input,
-and therefore do no contain token symbols.
+and therefore do not contain token symbols.
 So no token values are lost when
 nulled subtrees are pruned.
 As bushy as a null subtree might be,
@@ -83,11 +85,6 @@ so we are literally dealing here with
 the "semantics of nothing".
 In theory the semantics of nothing can be arbitrarily complex.
 In practice it should be possible to keep them simple.
-But if an application actually needs it,
-Marpa could implement an arbitrarily complex,
-and even a dynamic,
-"semantics of nothing",
-as described below.
 
 =head1 EXAMPLE
 
@@ -223,7 +220,7 @@ C<S := L R>
 
 =back
 
-We do not see any output
+We B<do not> see any output
 for symbols
 2.1 (C<A>),
 2.2 (C<B>),
@@ -232,50 +229,6 @@ because they were not topmost
 in the pruned subtree.
 We B<do not> see an application of the rule evaluation closure for rule C<R := A B Y>,
 because there is an empty rule for C<R>, and that takes priority.
-
-=head1 ADVANCED
-
-In rare cases,
-your application
-may call for null values with a complex semantics.
-
-=head2 Implementing a complex but constant null semantics
-
-If an application's semantics of nothing, while complex, remains constant,
-you can handle it
-by setting every nullable symbol's C<null_value> property
-to the value
-which your semantics produces when that nullable symbol is the root
-symbol of a null subtree.
-
-=head2 Implementing a complex and dynamic null semantics
-
-If the values of an application's
-null values are not constants,
-Marpa can still calculate them.
-Here is the most general method:
-
-=over
-
-=item *
-
-Determine which of the application's nullable symbols have a dynamic semantics.
-Call these the B<dynamic nullables>.
-
-=item *
-Let the action of the empty rule with the dynamic nullables on their LHS
-be a constant that can be used as a hash key.
-
-=item *
-For every rule with a dynamic nullable on its right hand side,
-write the rule evaluation closure
-so that it looks up that hash key
-in a hash whose values are Perl closures.
-The closures found by hash lookup
-can then use an arbitrarily complex semantics for
-calculating the value of the dynamic nullable.
-
-=back
 
 =head1 COPYRIGHT AND LICENSE
 
