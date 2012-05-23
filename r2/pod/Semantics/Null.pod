@@ -17,11 +17,9 @@
 
 Marpa::R2::Semantics::Null - How Marpa evaluates null rules and symbols
 
-=head1 DESCRIPTION
+=head1 OVERVIEW
 
-=head2 Nulled symbols
-
-In Marpa parses, some symbols can be nulled --
+In Marpa parses, rules and  symbols can be nulled --
 in other words they can derive the zero-length, or null, string.
 Which symbols can be, or are, nulled, depends on the grammar
 and the input.
@@ -33,19 +31,37 @@ in which case the entire parse derives the null string.
 A parse in which the start symbol is nulled is
 called a B<null parse>.
 
-When evaluating a parse, the symbols are
+When evaluating a parse, nulled rules and symbols are
 assigned values as described
 L<in the semantics document|Marpa::R2::Semantics>.
 This document provides additional detail on the assignment
 of values to nulled symbols.
 
-The B<null value of a symbol> comes from its rules.
+=head1 OVERVIEW
 
-Marpa optimizes for "whatever" null values.
-Null values often are not used for anything,
-and in those case applications that
-allow "whatever" null values
-can have better performance.
+=head2 Null values come from rules
+
+All null values for symbols come from rules with that symbol
+on their LHS.
+For a symbol to be nulled, it must be on the LHS of at least one
+nullable rule.
+The action of one of these nullable rules will be the action for
+the nulled symbol.
+
+If the action is a constant, then that constant is the value
+of the nulled symbol.
+If the action is a rule evaluation closure,
+then that closure is called with no child arguments,
+and the closure's result is the value of the nulled symbol.
+
+It may be that more than one nullable rule has that symbol on
+its LHS, and and these rules have different action names.
+In that case, the action for the empty rule is the one which
+applies.
+It is a fatal error if the nullable rules for a LHS symbol
+have different action names, and none of them is an empty rule.
+A simple way to fix this problem is create an empty rule
+that decide the semantics to be applied to nulled symbols.
 
 =head2 Null subtrees
 
@@ -73,45 +89,6 @@ and even a dynamic,
 "semantics of nothing",
 as described below.
 
-=head2 Nullable Rules
-
-Some BNF rules and sequences may sometimes be nulled,
-and sometimes not.
-This offer some potential for suprising the programmer,
-because their value comes from two different sources,
-depending on whether they are nulled or not.
-
-When a rule is nulled, its value is the null value
-of its B<LHS symbol>.
-When a rule is not nulled,
-it value comes from the action for the rule.
-It's up to the
-application to ensure that
-the nulled value of the LHS symbol,
-and the semantics of the visible rule,
-"work together" in a way that makes sense
-in the context of
-the grammar.
-
-=head2 Nullable Sequences
-
-What was just said about nullable rules applies to nullable seqeunces.
-Sequence rules are nullable rules
-if they have a C<min> rule property of 0.
-When a sequence contains zero items, it must derive the zero-length string,
-and the sequence is a nulled rule.
-
-Nullable sequence rules behave in the same way 
-as nullable BNF rules.
-When the a nullable sequence rule is nulled,
-its semantics comes from the null value for its left hand side symbol.
-When the a nullable sequence rule is not nulled,
-its semantics come from the rule.
-If a nulled sequence is in a nulled subtree,
-but that nulled sequence
-is not the topmost rule of that subtree,
-then its semantics will be completely ignored.
-
 =head1 EXAMPLE
 
 As already stated,
@@ -129,8 +106,7 @@ perltidy: '-dcsc -sil=0'
     }
 
     sub R {
-        shift;
-        return 'R(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+        return 'R(): I will never be called';
     }
 
     sub S {
@@ -138,8 +114,8 @@ perltidy: '-dcsc -sil=0'
         return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
     }
 
-    sub X { return $_[1]; }
-    sub Y { return $_[1]; }
+    sub X { return 'X(' . $_[1] . ')'; }
+    sub Y { return 'Y(' . $_[1] . ')'; }
 
     our $null_A = 'null A';
     our $null_B = 'null B';
@@ -206,8 +182,8 @@ ignore: 1
 
         0: Visible Rule: S := L R
              1: Visible Rule L := A B X
-                 1.1: Nulled Node, Symbol A
-                 1.2: Nulled Node, Symbol B
+                 1.1: Nulled Symbol A
+                 1.2: Nulled Symbol B
                  1.3: Token, Value is 'x'
              2: LHS of Nulled Rule, Symbol R
 
@@ -229,27 +205,33 @@ In the output we see
 =over
 
 =item * The null value for symbol 1.1: "C<null A>".
+This comes from the empty rule for C<A>.
 
 =item * The null value for symbol 1.2: "C<null B>".
+This comes from the empty rule for C<B>.
 
 =item * The token value for symbol 1.3: "C<x>".
 
-=item * An application of the semantic Perl closure for rule 1.
+=item * An application of the semantic Perl closure for the rule
+C<L := A B X>.
 
 =item * The null value for rule 2: "C<null R>".
+This comes from the empty rule for C<R>.
 
-=item * An application of the semantic Perl closure for rule 0.
+=item * An application of the semantic Perl closure for the rule
+C<S := L R>
 
 =back
 
 We do not see any output
-for symbols 2.1, 2.2, or 2.3 because they were not topmost
+for symbols
+2.1 (C<A>),
+2.2 (C<B>),
+or 2.3 (C<Y>)
+because they were not topmost
 in the pruned subtree.
-We B<do> see the null value for the LHS of rule 2,
-because it is the topmost symbol.
-We B<do not> see an application of the semantic Perl closure for rule 2,
-because nulled rules take their value from the null value of their LHS,
-and not from the rule semantics.
+We B<do not> see an application of the rule evaluation closure for rule C<R := A B Y>,
+because there is an empty rule for C<R>, and that takes priority.
 
 =head1 ADVANCED
 
@@ -281,16 +263,16 @@ Determine which of the application's nullable symbols have a dynamic semantics.
 Call these the B<dynamic nullables>.
 
 =item *
-Let the C<null_value> property of every dynamic nullable be a hash key.
+Let the action of the empty rule with the dynamic nullables on their LHS
+be a constant that can be used as a hash key.
 
 =item *
 For every rule with a dynamic nullable on its right hand side,
-write the rule's semantic Perl closure
+write the rule evaluation closure
 so that it looks up that hash key
 in a hash whose values are Perl closures.
-
-=item *
-The Perl closure can then use an arbitrarily complex semantics for
+The closures found by hash lookup
+can then use an arbitrarily complex semantics for
 calculating the value of the dynamic nullable.
 
 =back
