@@ -31,6 +31,28 @@ and tools to Marpa::R2.
 
 =head1 CHANGES
 
+=head2 The token value argument of read() has changed
+
+The Marpa::R2 recognizer's read() method differs from its Marpa::XS
+equivalent.  In Marpa::R2, If read()'s token value argument is
+omitted, then the token value will be a "whatever" value.  If read()'s
+token value is given explicitly, then that explicit value will be
+the value of the token.  In particular, an explicit C<undef> token
+value argument will behave differently from an omitted token value
+argument.  For details, see L<the documentation of recognizer's
+C<read> method|Marpa::R2::Recognizer/"read">.
+
+=head2 The token value argument of alternative() has changed
+
+The Marpa::R2 recognizer's alternative() method differs from its
+Marpa::XS equivalent.  Its token value argument must now be a
+REFERENCE to the token value, not the token value itself, as in
+Marpa::XS.  If alternative's token value argument is omitted or a
+C<undef>, then the token has a "whatever" value.  If alternative's
+token value argument is reference to C<undef>, then the value
+of the token is a Perl C<undef>.  For details, see L<the documentation
+of the C<alternative> method|Marpa::R2::Advanced::Models/"alternative">.
+
 =head2 Marpa::R2::Recognizer::value() does not accept named arguments
 
 n the Marpa::XS recognizer, the new(), set() and value() methods
