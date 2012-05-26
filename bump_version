@@ -12,10 +12,11 @@ chomp( my $LATEST =
 
 warn "Bumping -> $LATEST\n";
 
-my ( $minor, $micro ) = ( $LATEST =~ m/\A 0 [.] (\d\d\d) [_]? (\d\d\d) /xms );
+my ( $major, $minor, $micro ) = ( $LATEST =~ m/\A (\d+) [.] (\d\d\d) [_]? (\d\d\d) /xms );
 if ( not defined $micro ) {
     die "bump_version Cannot handle new version number: $LATEST";
 }
+$major += 0;
 $micro += 0;
 $minor += 0;
 
@@ -32,7 +33,7 @@ END_OF_LIST
 for my $versioned_file (@versioned_files) {
     say STDERR $versioned_file;
     my $file = do { local ( @ARGV, $/ ) = ($versioned_file); <> };
-    $file =~ s/(\$VERSION \s+ =  \s+ ['] ) \d [.] \d\d\d [_.] \d\d\d /$1${LATEST}/xms;
+    $file =~ s/(\$VERSION \s+ =  \s+ ['] ) \d+ [.] \d\d\d [_]? \d\d\d /$1${LATEST}/xms;
     open my $out, '>', $versioned_file;
     print $out $file;
 } ## end for my $versioned_file (@versioned_files)
@@ -46,6 +47,9 @@ for my $configure_ac_file (
 {
     say STDERR $configure_ac_file;
     my $file = do { local ( @ARGV, $/ ) = ($configure_ac_file); <> };
+    $file =~ s{
+    ( m4_define [(] [\[] marpa_major_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
+  }{$1${major}$2}xms;
     $file =~ s{
     ( m4_define [(] [\[] marpa_minor_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
   }{$1${minor}$2}xms;
