@@ -208,27 +208,6 @@ _marpa_obs_free (struct obstack *h)
     }
 }
 
-/* Free objects in obstack H, but leave it initialized */
-void
-_marpa_obs_clear (struct obstack *h)
-{
-  struct _obstack_chunk *lp;	/* below addr of any objects in this chunk */
-  struct _obstack_chunk *plp;	/* point to previous chunk if any */
-
-  lp = h->chunk;
-  /* We use >= because there cannot be an object at the beginning of a chunk.
-     But there can be an empty object at that address
-     at the end of another chunk.  */
-  while ((plp = lp->prev) != 0)
-    {
-      my_free (plp);
-    }
-  h->object_base = h->next_free =
-    __PTR_ALIGN ((char *) lp, lp->contents, h->alignment_mask);
-  h->chunk_limit = lp->limit;
-  h->chunk = lp;
-}
-
 int
 _marpa_obs_memory_used (struct obstack *h)
 {

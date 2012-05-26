@@ -86,7 +86,6 @@ extern int _marpa_obs_memory_used (struct obstack *);
 #define _obstack_memory_used _marpa_obs_memory_used
 
 void _marpa_obs_free (struct obstack *__obstack);
-void _marpa_obs_clear (struct obstack *__obstack);
 
 /* Pointer to beginning of object being allocated or to be allocated next.
    Note that this might not be the final address of the object
