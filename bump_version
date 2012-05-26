@@ -7,14 +7,17 @@ use autodie;
 use English qw( -no_match_vars );
 use IPC::Cmd;
 
-chomp(my $LATEST = qx(grep '^[0-9]' r2/Changes | head -1 | awk '{print \$1}'));
+chomp( my $LATEST =
+        qx(grep '^[0-9]' r2/Changes | head -1 | awk '{print \$1}') );
 
 warn "Bumping -> $LATEST\n";
-(my $micro = $LATEST) =~ s/\A 0 [.] 001 [_] //xms;
-if (not defined $micro) {
+
+my ( $minor, $micro ) = ( $LATEST =~ m/\A 0 [.] (\d\d\d) [_]? (\d\d\d) /xms );
+if ( not defined $micro ) {
     die "bump_version Cannot handle new version number: $LATEST";
 }
 $micro += 0;
+$minor += 0;
 
 my @versioned_files = split /\n/xms, <<'END_OF_LIST';
 r2/html/lib/Marpa/R2/HTML/Callback.pm
@@ -44,6 +47,9 @@ for my $configure_ac_file (
     say STDERR $configure_ac_file;
     my $file = do { local ( @ARGV, $/ ) = ($configure_ac_file); <> };
     $file =~ s{
+    ( m4_define [(] [\[] marpa_minor_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
+  }{$1${minor}$2}xms;
+    $file =~ s{
     ( m4_define [(] [\[] marpa_micro_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
   }{$1${micro}$2}xms;
     open my $out, '>', $configure_ac_file;
@@ -52,6 +58,10 @@ for my $configure_ac_file (
 
 chdir 'r2';
 die qq{"perl Build.PL" failed: $!}
-        if not IPC::Cmd::run( command => [$EXECUTABLE_NAME, 'Build.PL'], verbose => 1 );
+    if not IPC::Cmd::run(
+            command => [ $EXECUTABLE_NAME, 'Build.PL' ],
+            verbose => 1
+    );
 die qq{"./Build distmeta" failed: $!}
-        if not IPC::Cmd::run( command => ['./Build', 'distmeta'], verbose => 1 );
+    if
+    not IPC::Cmd::run( command => [ './Build', 'distmeta' ], verbose => 1 );
