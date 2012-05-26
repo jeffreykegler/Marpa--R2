@@ -103,6 +103,8 @@ Terminal and tokens
 
 Semantics
 
+* How Libmarpa semantics work::  
+* Universe of values::          
 * Whatever values::             
 * Caution about whatever values::  
 
@@ -615,32 +617,90 @@ and forth into whatever the application requires.
 @chapter Semantics
 
 @menu
+* How Libmarpa semantics work::  
+* Universe of values::          
 * Whatever values::             
 * Caution about whatever values::  
 @end menu
 
-@node Whatever values, Caution about whatever values, Semantics, Semantics
+@node How Libmarpa semantics work, Universe of values, Semantics, Semantics
+@section How the Libmarpa semantics work
+
+Libmarpa handling of semantics is unusual.
+Most semantics are left up to the application,
+but Libmarpa guides them.
+
+Specifically, the application is expected to maintain the evaluation
+stack.
+Libmarpa's valuator provides instructions on how to handle the stack.
+Libmarpa's stack handling instructions
+are called ``steps''.
+For example, a Libmarpa step might tell the application that the value
+of a token needs to go into a certain stack position.
+Or a Libmarpa step might tell the application that a rule is to be evaluation.
+For rule evalution, Libmarpa will tell the application where the operands
+are to be found,
+and where the result must go.
+
+@node Universe of values, Whatever values, How Libmarpa semantics work, Semantics
+@section The universe of values
+
+The application can react to Libmarpa's stack handling instructions
+in any way it sees fit,
+but it is expected that it will maintain a physical stack which
+can be addressed as an array.
+
+An advantage of leaving the application in control of the stack
+is that the applicaion has total control over what the stack values
+are.
+The set of all possible stack values is the application's
+@dfn{universe of values}.
+For example, as implemented in Perl,
+the universe of values is the Perl scalar-assignables.
+In C, they could be integers, @code{void *} pointers,
+or pointers to some sort of polymorphic object.
+
+It is up to the application to make sure the stack positions
+in Libmarpa's steps exist and are initialized as desired
+by the application.
+This means extending the stack as needed for writes,
+but also for reads.
+Because of optimizations, it is quite possible for a
+Libmarpa step to identify a stack position which has
+never been written to as the operand of a rule.
+This can happen, for example, if the rule's
+operand is a ``whatever''
+value.
+(It is expected that in such a case that the rule's value
+does not depend on that operand, though it is up to the
+application to ensure this.)
+
+C programmers should be aware of a pitfalls specific to C.
+Both C90 and C99 allow unitialized values to be ``trap'' values --
+values which cause a trap (possibly an abend) when read.
+A C application must take steps to ensure either that
+the universe of values does not include trap values,
+or that these trap values are never read.
+Excluding trap values from a C program's universe of
+values may require the application to make
+sure that stack positions are properly initialized.
+
+@node Whatever values, Caution about whatever values, Universe of values, Semantics
 @section ``Whatever'' values
 
 Libmarpa allows
 ``whatever'' semantics, because it can be easily optimized and it occurs
-quite frequently in practical parsing situations.  ``Whatever''
-values are more frequently called "arbitrary" values.
-The author's problem
-with the term "arbitrary" is that it is heavily overloaded, with
-several closely related meanings, so that it is hard to understand
-exactly what is meant.  And unfortunately, it is used in circumstances
-where the exact meaning can be quite important.
-
-In Libmarpa, a ``whatever'' value is a value each instance of which can
-be any value in the universe of possible values, and which has no
-other property that can be relied on.  ``Whatever'' values may stay
+quite frequently in practical parsing situations.
+In Libmarpa, a ``whatever'' value is some value in the
+universe of values.
+Which one is completely arbitrary.
+``Whatever'' values may stay
 constant, or they may vary from instance to instance.  If and when
 they do vary, they may do so randomly, or according to an arbitrary
 pattern.
 
 @node Caution about whatever values,  , Whatever values, Semantics
-@section A caution about ``Whatever'' values
+@section A caution about ``whatever'' values
 
 If a value is not a ``whatever'' value, this document calls
 it a defined value.
