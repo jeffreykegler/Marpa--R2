@@ -15,6 +15,12 @@
 
 Revision history for Marpa::R2
 
+2.003_000
+
+	* A new series of developer's versions.
+	  Version number advanced to coordinate with
+	  Libmarpa.
+
 0.002000
        
        * First official ("indexed") release
