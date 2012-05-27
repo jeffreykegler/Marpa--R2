@@ -2461,13 +2461,6 @@ An internal error will usually be a hard error.
 Suggested message: "Internal error."
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_INTERNAL_SYM
-In a context
-in which an internal symbol is disallowed,
-@var{symid} is for an internal symbol.
-Suggested message: "Symbol is internal."
-@end deftypevr
-
 @deftypevr Macro int MARPA_ERR_INVALID_AHFA_ID
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_AIMID
@@ -2531,8 +2524,6 @@ of libmarpa, and the actual one.
 @deftypevr Macro int MARPA_ERR_NOT_TRACING_TOKEN_LINKS
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_NO_ALIAS
-@end deftypevr
 @deftypevr Macro int MARPA_ERR_NO_AND_NODES
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NO_OR_NODES
@@ -2671,11 +2662,6 @@ That means it could never match any possible input,
 not even the null string.
 Presumably, an error in writing the grammar.
 Suggested message: "Start symbol not on LHS of any rule."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_SYMIX_NEGATIVE
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_SYMIX_OOB
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SYM_NOT_NULLABLE
