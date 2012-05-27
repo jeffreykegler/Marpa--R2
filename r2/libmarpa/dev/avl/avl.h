@@ -46,7 +46,7 @@ struct marpa_avl_table
     struct avl_node *avl_root;          /* Tree's root. */
     avl_comparison_func *avl_compare;   /* Comparison function. */
     void *avl_param;                    /* Extra argument to |avl_compare|. */
-    struct obstack avl_obstack;
+    struct obstack *avl_obstack;
     size_t avl_count;                   /* Number of items in tree. */
     unsigned long avl_generation;       /* Generation number. */
   };
@@ -72,7 +72,7 @@ struct avl_traverser
     unsigned long avl_generation;       /* Generation number. */
   };
 
-#define AVL_OBSTACK(table) (&(table)->avl_obstack)
+#define AVL_OBSTACK(table) ((table)->avl_obstack)
 
 /* Table functions. */
 AVL_TREE _marpa_avl_create (avl_comparison_func *, void *,

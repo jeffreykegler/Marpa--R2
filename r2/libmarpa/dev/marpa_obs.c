@@ -74,11 +74,16 @@ enum
    Return nonzero if successful, calls obstack_alloc_failed_handler if
    allocation fails.  */
 
-int
-_marpa_obs_begin (struct obstack *h,
-		int size, int alignment)
+struct obstack * _marpa_obs_begin ( int size, int alignment)
 {
-  struct _obstack_chunk *chunk; /* points to new chunk */
+  struct _obstack_chunk *chunk;	/* points to new chunk */
+  struct obstack *h;	/* points to new obstack */
+  const int minimum_chunk_size = 
+    offsetof(struct _obstack_chunk, contents) +
+    alignof(struct obstack) +
+    sizeof(struct obstack);
+    /* Minimum size is the offset of the contents, plus a high-ball estimate of what is
+    needed to align the obstack header, plus the size of obstack header. */
 
   if (alignment == 0)
     alignment = DEFAULT_ALIGNMENT;
@@ -86,31 +91,37 @@ _marpa_obs_begin (struct obstack *h,
     /* Default size is what GNU malloc can fit in a 4096-byte block.  */
     {
       /* 12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
-	 Use the values for range checking, because if range checking is off,
-	 the extra bytes won't be missed terribly, but if range checking is on
-	 and we used a larger request, a whole extra 4096 bytes would be
-	 allocated.
+         Use the values for range checking, because if range checking is off,
+         the extra bytes won't be missed terribly, but if range checking is on
+         and we used a larger request, a whole extra 4096 bytes would be
+         allocated.
 
-	 These number are irrelevant to the new GNU malloc.  I suspect it is
-	 less sensitive to the size of the request.  */
+         These number are irrelevant to the new GNU malloc.  I suspect it is
+         less sensitive to the size of the request.  */
       int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
-		    + 4 + DEFAULT_ROUNDING - 1)
-		   & ~(DEFAULT_ROUNDING - 1));
+		    + 4 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1));
       size = 4096 - extra;
     }
+  size = MAX (minimum_chunk_size, size);
+  chunk = my_malloc (size);
+  h = (struct obstack *)
+    (__PTR_ALIGN ((char *) chunk, chunk->contents,
+		      alignof (struct obstack) - 1));
+    /* The obstack structure is near the beginning of the first chunk,
+       just after the header of the chunk itself. */
 
   h->chunk_size = size;
   h->alignment_mask = alignment - 1;
+  h->chunk = chunk;
 
-  chunk = h->chunk = my_malloc(h -> chunk_size);
-  h->next_free = h->object_base = __PTR_ALIGN ((char *) chunk, chunk->contents,
-					       alignment - 1);
-  h->chunk_limit = chunk->limit
-    = (char *) chunk + h->chunk_size;
+  h->next_free = h->object_base = 
+    __PTR_ALIGN ((char *) chunk, ((char *)h + sizeof(*h)), alignment - 1);
+    /* The first object can go after the obstack header, suitably aligned */
+  h->chunk_limit = chunk->limit = (char *) chunk + h->chunk_size;
   chunk->prev = 0;
   /* The initial chunk now contains no empty object.  */
   h->maybe_empty_object = 0;
-  return 1;
+  return h;
 }
 
 /* Allocate a new current chunk for the obstack *H
@@ -197,7 +208,7 @@ _marpa_obs_free (struct obstack *h)
   struct _obstack_chunk *lp;	/* below addr of any objects in this chunk */
   struct _obstack_chunk *plp;	/* point to previous chunk if any */
 
-  if (h->chunk_size < 0)
+  if (!h)
     return;			/* Return safely if never initialized */
   lp = h->chunk;
   while (lp != 0)
@@ -211,7 +222,7 @@ _marpa_obs_free (struct obstack *h)
 int
 _marpa_obs_memory_used (struct obstack *h)
 {
-  struct _obstack_chunk* lp;
+  struct _obstack_chunk *lp;
   int nbytes = 0;
 
   for (lp = h->chunk; lp != 0; lp = lp->prev)

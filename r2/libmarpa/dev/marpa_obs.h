@@ -50,28 +50,28 @@
 
 struct _obstack_chunk		/* Lives at front of each chunk. */
 {
-  char  *limit;			/* 1 past end of this chunk */
+  char *limit;			/* 1 past end of this chunk */
   struct _obstack_chunk *prev;	/* address of prior chunk or NULL */
-  char	contents[4];		/* objects begin here */
+  char contents[4];	/* objects begin here */
 };
 
-struct obstack		/* control current object in current chunk */
+struct obstack			/* control current object in current chunk */
 {
-  long	chunk_size;		/* preferred size to allocate chunks in */
+  long chunk_size;		/* preferred size to allocate chunks in */
   struct _obstack_chunk *chunk;	/* address of current struct obstack_chunk */
-  char	*object_base;		/* address of object we are building */
-  char	*next_free;		/* where to add next char to current object */
-  char	*chunk_limit;		/* address of char after current chunk */
+  char *object_base;		/* address of object we are building */
+  char *next_free;		/* where to add next char to current object */
+  char *chunk_limit;		/* address of char after current chunk */
   union
   {
     ptrdiff_t tempint;
     void *tempptr;
   } temp;			/* Temporary for some macros.  */
-  int   alignment_mask;		/* Mask of alignment for each object. */
-  unsigned maybe_empty_object:1;/* There is a possibility that the current
-				   chunk contains a zero-length object.  This
-				   prevents freeing the chunk if we allocate
-				   a bigger chunk to replace it. */
+  int alignment_mask;		/* Mask of alignment for each object. */
+  unsigned maybe_empty_object:1;	/* There is a possibility that the current
+					   chunk contains a zero-length object.  This
+					   prevents freeing the chunk if we allocate
+					   a bigger chunk to replace it. */
 };
 
 /* Declare the external functions we use; they are in obstack.c.  */
@@ -79,7 +79,7 @@ struct obstack		/* control current object in current chunk */
 extern void _marpa_obs_newchunk (struct obstack *, int);
 #define _obstack_newchunk _marpa_obs_newchunk
 
-extern int _marpa_obs_begin (struct obstack *, int, int);
+extern struct obstack* _marpa_obs_begin (int, int);
 #define my_obstack_begin _marpa_obs_begin
 
 extern int _marpa_obs_memory_used (struct obstack *);
@@ -106,7 +106,7 @@ void _marpa_obs_free (struct obstack *__obstack);
 #define obstack_alignment_mask(h) ((h)->alignment_mask)
 
 /* To prevent prototype warnings provide complete argument list.  */
-#define my_obstack_init(h)	my_obstack_begin ((h), 0, 0)
+#define my_obstack_init	my_obstack_begin (0, 0)
 
 #define my_obstack_blank_fast(h,n) ((h)->next_free += (n))
 
