@@ -51,10 +51,17 @@ my %pod_files = ();
     LINE: for my $pod_file (@pod_files) {
         $pod_file =~ s/ \s* [#] .* \z //xms;
         next LINE if not $pod_file =~ / [.] pod \z /xms;
-        if ( $pod_file =~ m{ \A pod [/] }xms ) {
-            ( my $destfile = $pod_file ) =~ s{ \A html [/] pod [/] }{lib/Marpa/R2/}xms;
+        next LINE if $pod_file =~ m{ html [/] etc [/] drafts [/] }xms;
+        next LINE if $pod_file =~ m{ libmarpa [/] dev [/] old_pod [/] }xms;
+        if ( ( my $destfile = $pod_file ) =~ s{ \A pod [/] }{lib/Marpa/R2/}xms ) {
             $pod_files{$pod_file} = $destfile;
+	    next LINE;
         }
+        if ( ( my $destfile = $pod_file ) =~ s{ \A html [/] pod [/] }{lib/Marpa/R2/}xms ) {
+            $pod_files{$pod_file} = $destfile;
+	    next LINE;
+        }
+	die "Failed to rename POD file: $pod_file";
     } ## end for my $pod_file (@pod_files)
 }
 $pod_files{'pod/Marpa_R2.pod'} = 'lib/Marpa/R2.pod';
