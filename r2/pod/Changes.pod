@@ -82,7 +82,7 @@ In Marpa::XS the C<symbols> named argument was used to specify null
 values for symbols.  It was also an alternate way of marking symbols
 as terminals.  Symbols no longer have null values,
 and an alternate
-and more cumbersome way to marking terminals is not worth cluttering
+and more cumbersome way to mark terminals is not worth cluttering
 the documentation.  Use of the C<symbols> named argument now causes
 an exception.
 
