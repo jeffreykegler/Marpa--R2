@@ -32,8 +32,8 @@
 ^MYMETA.json$
 ^MYMETA.yml$
 ^Makefile$
-^Marpa-R2-0.\d{3}_\d{3}/
-^Marpa-R2-0.\d{6}/
+^Marpa-R2-\d+.\d{3}_\d{3}/
+^Marpa-R2-\d+.\d{6}/
 ^[.]gdb_history$
 ^[.]gdbinit$
 ^[.]gitattributes$
