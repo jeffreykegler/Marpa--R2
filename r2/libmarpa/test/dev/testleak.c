@@ -35,7 +35,7 @@ main (int argc, char **argv)
     {
       initial_sleep = atoi (argv[1]);
     }
-  g = marpa_g_new (2, 0, 38);
+  g = marpa_g_new (MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
   S = marpa_g_symbol_new (g);
   A = marpa_g_symbol_new (g);
   a = marpa_g_symbol_new (g);
@@ -145,22 +145,22 @@ main (int argc, char **argv)
 	    }
 	  while (1)
 	  {
-	    Marpa_Value_Type value_type = marpa_v_step (value);
-	    if (value_type < 0)
+	    Marpa_Step_Type step_type = marpa_v_step (value);
+	    if (step_type < 0)
 	      {
 		Marpa_Error_Code errcode = marpa_g_error (g, &error_string);
 		printf ("marpa_v_event returned %d: %s", errcode, error_string);
 		exit (1);
 	      }
-	    if (value_type == MARPA_VALUE_INACTIVE)
+	    if (step_type == MARPA_STEP_INACTIVE)
 	      {
 		printf ("No more events\n");
 		break;
 	      }
-	    fprintf (stdout, "Event: %d %d %d %d %d\n",
-		     marpa_v_semantic_token (value),
+	    fprintf (stdout, "Step: %d %d %d %d %d\n",
+		     marpa_v_token (value),
 		     marpa_v_token_value (value),
-		     marpa_v_semantic_rule (value),
+		     marpa_v_rule (value),
 		     marpa_v_arg_0 (value), marpa_v_arg_n (value));
 	  }
 	  marpa_v_unref (value);
