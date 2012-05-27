@@ -42,14 +42,12 @@ _marpa_avl_create (avl_comparison_func *compare, void *param,
 {
   AVL_TREE tree;
   int alignment = MAX(minimum_alignment, (int)alignof(struct avl_node));
+  struct obstack *avl_obstack = my_obstack_begin(0, alignment);
 
   assert (compare != NULL);
 
-  tree = my_malloc( sizeof *tree);
-  if (tree == NULL)
-    return NULL;
-
-  tree->avl_obstack = my_obstack_begin( 0, alignment);
+  tree = my_obstack_new( avl_obstack, struct marpa_avl_table, 1);
+  tree->avl_obstack = avl_obstack;
   tree->avl_root = NULL;
   tree->avl_compare = compare;
   tree->avl_param = param;
@@ -703,13 +701,15 @@ _marpa_avl_t_replace (struct avl_traverser *trav, void *new)
   return old;
 }
 
-/* Frees storage allocated for |tree|. */
+/* Frees storage allocated for |tree|.
+  Everything is on the obstack.
+*/
 void
 _marpa_avl_destroy (AVL_TREE tree)
 {
-  if (tree ==  NULL) return;
+  if (tree == NULL)
+    return;
   my_obstack_free (tree->avl_obstack);
-  my_free (tree);
 }
 
 #undef NDEBUG
