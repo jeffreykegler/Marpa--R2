@@ -167,10 +167,11 @@ sub process_xs {
 
     my @libmarpa_build_dir = File::Spec->splitdir( $self->base_dir );
     push @libmarpa_build_dir, qw(libmarpa build);
+    my @xs_dependencies = ( 'typemap', 'Build', $xs_file );
     my $libmarpa_build_dir = File::Spec->catdir(@libmarpa_build_dir);
-    my $marpa_h = File::Spec->catfile( @libmarpa_build_dir, 'marpa.h' );
-
-    my @xs_dependencies = ( 'typemap', 'Build', $xs_file, $marpa_h );
+    push @xs_dependencies,
+        map { File::Spec->catfile( @libmarpa_build_dir, $_ ) }
+        qw(marpa.h codes.h codes.c );
 
     if ( not $self->up_to_date( \@xs_dependencies, $spec->{c_file} ) ) {
         $self->verbose() and say "compiling $xs_file";
