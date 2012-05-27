@@ -20,6 +20,12 @@
 #include <stdio.h>
 #include "marpa.h"
 
+void await_input() {
+    fputs("Waiting for input: ", stdout);
+    getchar();
+    fflush(stdin);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -35,6 +41,7 @@ main (int argc, char **argv)
     {
       initial_sleep = atoi (argv[1]);
     }
+  await_input();
   g = marpa_g_new (MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
   S = marpa_g_symbol_new (g);
   A = marpa_g_symbol_new (g);
