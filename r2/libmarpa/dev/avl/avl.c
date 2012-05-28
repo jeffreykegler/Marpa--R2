@@ -220,8 +220,13 @@ _marpa_avl_replace (AVL_TREE table, void *item)
     }
 }
 
-/* Deletes from |tree| and returns an item matching |item|.
-   Returns a null pointer if no matching item found. */
+/* This code does not work.  It is a holdover, to use
+   as a starting point for when and if I decide to implement
+   the deletion and recycling of nodes.
+
+  Deletes from |tree| and returns an item matching |item|.
+   Returns a null pointer if no matching item found.
+   */
 void *
 _marpa_avl_delete (AVL_TREE tree, const void *item)
 {

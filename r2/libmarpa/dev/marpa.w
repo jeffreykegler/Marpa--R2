@@ -10540,7 +10540,11 @@ PRIVATE TOK and_node_token(AND and_node)
    r->t_progress_report_tree = NULL;
 @ @<Destroy recognizer elements@> =
    @<Clear progress report in |r|@>;
-@ @<Private structures@> =
+@
+@d Rule_of_REPORT(report) ((report)->t_rule_id)
+@d Position_of_REPORT(report) ((report)->t_position)
+@d Origin_of_REPORT(report) ((report)->t_origin)
+@<Private structures@> =
 struct s_report_item {
     Marpa_Rule_ID t_rule_id;
     int t_position;
@@ -10555,11 +10559,11 @@ static const struct s_report_item progress_report_not_ready = { -2, -2, -2 };
 
 @ @<Public defines@> =
 #define marpa_r_report_rule(v) \
-    ((r)->t-current_report_item->t_rule_id)
+    Rule_of_REPORT((r)->t-current_report_item)
 #define marpa_r_report_position(v) \
-    ((r)->t-current_report_item->t_position)
+    Position_of_REPORT((r)->t-current_report_item)
 #define marpa_r_report_origin(v) \
-    ((r)->t-current_report_item->t_origin)
+    Origin_of_REPORT((r)->t-current_report_item)
 
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int report_item_cmp (
@@ -10569,12 +10573,12 @@ PRIVATE_NOT_INLINE int report_item_cmp (
 {
     const struct s_report_item* const report_a = ap;
     const struct s_report_item* const report_b = bp;
-    if (report_a->t_position > report_b->t_position) return 1;
-    if (report_a->t_position < report_b->t_position) return -1;
-    if (report_a->t_rule_id > report_b->t_rule_id) return 1;
-    if (report_a->t_rule_id < report_b->t_rule_id) return -1;
-    if (report_a->t_origin > report_b->t_origin) return 1;
-    if (report_a->t_origin < report_b->t_origin) return -1;
+    if (Position_of_REPORT(report_a) > Position_of_REPORT(report_b)) return 1;
+    if (Position_of_REPORT(report_a) < Position_of_REPORT(report_b)) return -1;
+    if (Rule_of_REPORT(report_a) > Rule_of_REPORT(report_b)) return 1;
+    if (Rule_of_REPORT(report_a) < Rule_of_REPORT(report_b)) return -1;
+    if (Origin_of_REPORT(report_a) > Origin_of_REPORT(report_b)) return 1;
+    if (Origin_of_REPORT(report_a) < Origin_of_REPORT(report_b)) return -1;
     return 0;
 }
 
@@ -10602,8 +10606,53 @@ int marpa_r_progress_report_start(
     }
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
-  r->t_progress_report_tree =
-    _marpa_avl_create (report_item_cmp, NULL, alignof (REPORT));
+  {
+    const AVL_TREE report_tree = r->t_progress_report_tree =
+      _marpa_avl_create (report_item_cmp, NULL, alignof (REPORT));
+    const EIM *const earley_items = EIMs_of_ES (earley_set);
+    const int earley_item_count = EIM_Count_of_ES (earley_set);
+    int earley_item_id;
+    for (earley_item_id = 0; earley_item_id < earley_item_count;
+	 earley_item_id++)
+      {
+	AEX aex;
+	const EIM earley_item = earley_items[earley_item_id];
+	const ESID origin_esid = Origin_Ord_of_EIM (earley_item);
+	const AHFA AHFA_state = AHFA_of_EIM (earley_item);
+	const int aim_count = AHFA_state->t_item_count;
+	for (aex = 0; aex < aim_count; aex++)
+	  {
+	    const AIM aim = AIM_of_AHFA_by_AEX (AHFA_state, aex);
+	    const IRL irl = IRL_of_AIM(aim);
+	    const XRL source_xrl = Source_XRL_of_IRL(irl);
+	    if (source_xrl) {
+	      const int irl_position = Position_of_AIM(aim);
+	      int xrl_position = irl_position;
+	      const int virtual_start = Virtual_Start_of_IRL(irl);
+	      if (virtual_start >= 0) {
+	          xrl_position += virtual_start;
+	      }
+	      if (XRL_is_Sequence(source_xrl)) {
+	          if (IRL_has_Virtual_LHS(irl)) {
+		     if (irl_position <= 0) goto NEXT_AIM;
+		     xrl_position = 1;
+		  } else {
+		     xrl_position = irl_position > 0 ? 1 : 0;
+		  }
+	      }
+	      {
+		const REPORT new_report_item =
+		  my_obstack_new (AVL_OBSTACK (report_tree), struct s_report_item, 1);
+		Position_of_REPORT(new_report_item) = xrl_position;
+		Origin_of_REPORT(new_report_item) = origin_esid;
+		Rule_of_REPORT(new_report_item) = ID_of_XRL(source_xrl);
+		_marpa_avl_insert (report_tree, new_report_item);
+	      }
+	    }
+	    NEXT_AIM: ;
+	  }
+      }
+  }
   return marpa_avl_count (r->t_progress_report_tree);
 }
 
