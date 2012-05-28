@@ -22,7 +22,7 @@ use integer;
 use Carp;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.003_002';
+$VERSION        = '2.003_003';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
