@@ -10593,7 +10593,6 @@ int marpa_r_progress_report_start(
   @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
-  @<Fail if fatal error@>@;
   if (set_id < 0)
     {
       MARPA_ERROR (MARPA_ERR_INVALID_ES_ORDINAL);
@@ -10663,6 +10662,11 @@ void marpa_r_progress_report_finish(Marpa_Recognizer r) {
 
 @ @<Function definitions@> =
 int marpa_r_progress_item(Marpa_Recognizer r) {
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  return 1;
 }
 
 @** Parse bocage code (B, BOCAGE).
