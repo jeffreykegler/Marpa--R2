@@ -10531,10 +10531,13 @@ PRIVATE TOK and_node_token(AND and_node)
    typedef struct s_report_item* REPORT;
 @ @<Widely aligned recognizer elements@> =
    const struct s_report_item* t_current_report_item;
+   AVL_TREE t_progress_report_tree;
 @ @<Initialize recognizer elements@> =
    r->t_current_report_item = &progress_report_not_ready;
+   r->t_progress_report_tree = NULL;
 @ @<Clear progress report in |r|@> =
    r->t_current_report_item = &progress_report_not_ready;
+   r->t_progress_report_tree = NULL;
 @ @<Destroy recognizer elements@> =
    @<Clear progress report in |r|@>;
 @ @<Private structures@> =
@@ -10559,6 +10562,23 @@ static const struct s_report_item progress_report_not_ready = { -2, -2, -2 };
     ((r)->t-current_report_item->t_origin)
 
 @ @<Function definitions@> =
+PRIVATE_NOT_INLINE report_item_cmp () {
+    const void* ap,
+    const void* bp,
+    void *param UNUSED)
+{
+    const REPORT report_a = ap;
+    const REPORT report_b = bp;
+    if (report_a->t_position > report_b->t_position) return 1;
+    if (report_a->t_position < report_b->t_position) return -1;
+    if (report_a->t_rule_id > report_b->t_rule_id) return 1;
+    if (report_a->t_rule_id < report_b->t_rule_id) return -1;
+    if (report_a->t_origin > report_b->t_origin) return 1;
+    if (report_a->t_origin < report_b->t_origin) return -1;
+    return 0;
+}
+
+@ @<Function definitions@> =
 int marpa_r_progress_report_start(
   Marpa_Recognizer r,
   Marpa_Earley_Set_ID set_id)
@@ -10571,10 +10591,11 @@ int marpa_r_progress_report_start(
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
   @<Fail if fatal error@>@;
-  if (set_id < 0) {
-    MARPA_ERROR(MARPA_ERR_INVALID_ES_ORDINAL);
-    return failure_indicator;
-  }
+  if (set_id < 0)
+    {
+      MARPA_ERROR (MARPA_ERR_INVALID_ES_ORDINAL);
+      return failure_indicator;
+    }
   r_update_earley_sets (r);
   if (!ES_Ord_is_Valid (r, set_id))
     {
@@ -10582,6 +10603,9 @@ int marpa_r_progress_report_start(
     }
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
+  r->t_progress_report_tree =
+    _marpa_avl_create (report_item_rule_cmp, NULL, alignof (REPORT));
+  return marpa_avl_count (r->t_progress_report_tree);
 }
 
 @ @<Function definitions@> =
