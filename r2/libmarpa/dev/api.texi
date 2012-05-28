@@ -1779,7 +1779,7 @@ Initially,
 the report is positioned before the first item.
 To position the report to an item so it can be
 examined,
-call the @var{marpa_r_progress_item) method.
+call the @var{marpa_r_progress_item} method.
 @end deftypefun
 
 @deftypefun void marpa_r_progress_report_finish ( @
