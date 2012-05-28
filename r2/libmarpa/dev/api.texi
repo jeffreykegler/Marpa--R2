@@ -49,6 +49,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Static Methods::              
 * Grammar objects::             
 * Recognizers::                 Recognizers.
+* Progress reports::            
 * Bocage::                      Bocage objects.
 * Ordering objects::            
 * Tree::                        Parse Trees.
@@ -134,6 +135,10 @@ Recognizer objects
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
 * Recognizer events::           
+
+Progress reports
+
+* Report item accessors::       
 
 Bocage objects
 
@@ -1478,7 +1483,7 @@ codes.
 @xref{Events}.
 @end deftypefn
 
-@node Recognizers, Bocage, Grammar objects, Top
+@node Recognizers, Progress reports, Grammar objects, Top
 @chapter Recognizer objects
 
 @menu
@@ -1749,7 +1754,86 @@ codes.
 @xref{Events}.
 @end deftypefn
 
-@node Bocage, Ordering objects, Recognizers, Top
+@node Progress reports, Bocage, Recognizers, Top
+@chapter Progress reports
+
+An important advantage of the Marpa algorithm is the ability
+to easily get full information about the state of the parse
+so far.
+It may surprise those not familiar with the state of the art
+in parsing, but most parsing algorithms, in a quest for
+efficiency, reduce their grammars to a form which makes it
+impossible to determine what is going on in terms
+of the original grammar.
+
+@deftypefun int marpa_r_progress_report_start ( @
+  Marpa_Recognizer @var{r}, @
+  Marpa_Earley_Set_ID @var{set_id})
+Initializes a report of the progress at Earley set @var{set_id}
+for recognizer @var{r}.
+If a progress report already exists, it is destroyed and its
+memory is freed.
+
+The report is left positioned at the first progress report item,
+if there is one.
+Report items are examined using the report item
+accessors.
+@xref{Report item accessors}.
+@end deftypefun
+
+@deftypefun void marpa_r_progress_report_finish ( @
+  Marpa_Recognizer @var{r} )
+Destroys the report of the progress at Earley set @var{set_id}
+for recognizer @var{r},
+freeing the memory and other resources.
+It is often not necessary to call this method.
+Progress reports are destroyed automatically
+whenever a new progress report is started,
+and when the recognizer is destroyed.
+@end deftypefun
+
+@deftypefun int marpa_r_progress_item_next ( @
+  Marpa_Recognizer @var{r} )
+Advance to the next report item.
+Report items are examined using the report item
+accessors.
+@xref{Report item accessors}.
+@end deftypefun
+
+@menu
+* Report item accessors::       
+@end menu
+
+@node Report item accessors,  , Progress reports, Progress reports
+@section Report item accessors
+
+The report item accessors are implemented as macros.  They
+return -2 on failure.
+
+@deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
+Return value: Returns the ID of the token
+for the @code{MARPA_STEP_TOKEN} step.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Rule_ID marpa_r_report_rule (Marpa_Recognizer @var{r})
+Return value: Returns the ID of the rule
+for the current report item, 
+or -2 if there is no current report item.
+@end deftypefn
+
+@deftypefn {Macro} int marpa_r_report_position (Marpa_Recognizer @var{r})
+Return value: Returns the dot position
+of the current report item, 
+or -2 if there is no current report item.
+@end deftypefn
+
+@deftypefn {Macro} int marpa_r_report_origin (Marpa_Recognizer @var{r})
+Return value: Returns the Earley set ID of the origin
+of the current report item, 
+or -2 if there is no current report item.
+@end deftypefn
+
+@node Bocage, Ordering objects, Progress reports, Top
 @chapter Bocage objects
 
 @menu

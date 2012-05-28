@@ -10526,6 +10526,72 @@ PRIVATE TOK and_node_token(AND and_node)
 }
 
 @** Progress report code.
+@<Private typedefs@> =
+   struct s_report_item;
+   typedef struct s_report_item* REPORT;
+@ @<Widely aligned recognizer elements@> =
+   const struct s_report_item* t_current_report_item;
+@ @<Initialize recognizer elements@> =
+   r->t_current_report_item = &progress_report_not_ready;
+@ @<Clear progress report in |r|@> =
+   r->t_current_report_item = &progress_report_not_ready;
+@ @<Destroy recognizer elements@> =
+   @<Clear progress report in |r|@>;
+@ @<Private structures@> =
+struct s_report_item {
+    Marpa_Rule_ID t_rule_id;
+    int t_position;
+    int t_origin;
+};
+
+@ A dummy progress report item to allow the macros to
+produce error reports without having to use a ternary,
+and getting into issues of evaluation the argument twice.
+@<Global variables@> =
+static const struct s_report_item progress_report_not_ready = { -2, -2, -2 };
+
+@ @<Public defines@> =
+#define marpa_r_report_rule(v) \
+    ((r)->t-current_report_item->t_rule_id)
+#define marpa_r_report_position(v) \
+    ((r)->t-current_report_item->t_position)
+#define marpa_r_report_origin(v) \
+    ((r)->t-current_report_item->t_origin)
+
+@ @<Function definitions@> =
+int marpa_r_progress_report_start(
+  Marpa_Recognizer r,
+  Marpa_Earley_Set_ID set_id)
+{
+  int report_item_count = 0;
+  @<Return |-2| on failure@>@;
+  const int es_does_not_exist = -1;
+  ES earley_set;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  @<Fail if fatal error@>@;
+  if (set_id < 0) {
+    MARPA_ERROR(MARPA_ERR_INVALID_ES_ORDINAL);
+    return failure_indicator;
+  }
+  r_update_earley_sets (r);
+  if (!ES_Ord_is_Valid (r, set_id))
+    {
+      return es_does_not_exist;
+    }
+  earley_set = ES_of_R_by_Ord (r, set_id);
+  @<Clear progress report in |r|@>@;
+}
+
+@ @<Function definitions@> =
+void marpa_r_progress_report_finish(Marpa_Recognizer r) {
+    @<Clear progress report in |r|@>@;
+}
+
+@ @<Function definitions@> =
+int marpa_r_progress_item_next(Marpa_Recognizer r) {
+}
 
 @** Parse bocage code (B, BOCAGE).
 @ Pre-initialization is making the elements safe for the deallocation logic
@@ -13456,8 +13522,6 @@ void* (*_marpa_out_of_memory)(void) = _marpa_default_out_of_memory;
 @ @<Utility variables@> =
 extern void* (*_marpa_out_of_memory)(void);
 
-@ @<Global variables@> =
-
 @*0 Obstacks.
 |libmarpa| uses the system malloc,
 either directly or indirectly.
@@ -14056,9 +14120,9 @@ So I add such a comment.
 #include "avl.h"
 @<Private incomplete structures@>@;
 @<Private typedefs@>@;
-@<Global variables@>@;
 @<Private utility structures@>@;
 @<Private structures@>@;
+@<Global variables@>@;
 @<Recognizer structure@>@;
 @<Source object structure@>@;
 @<Earley item structure@>@;
