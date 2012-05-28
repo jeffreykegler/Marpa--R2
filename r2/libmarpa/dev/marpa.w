@@ -10614,12 +10614,30 @@ int marpa_r_progress_report_start(
     for (earley_item_id = 0; earley_item_id < earley_item_count;
 	 earley_item_id++)
       {
+	const int initial_phase = 1;
+	const int eim_is_finished = 2;
+	int next_phase = initial_phase;
+	ESID report_origin;
+	AHFA report_AHFA_state;
 	const EIM earley_item = earley_items[earley_item_id];
-	const ESID report_origin = Origin_Ord_of_EIM (earley_item);
-	const AHFA report_AHFA_state = AHFA_of_EIM (earley_item);
-	@<Insert items into tree for |report_AHFA_state|
+	while (1) {
+	  const int phase = next_phase;
+	  while (1)
+	    { // this pseudo-loop finds the next AHFA state to report
+	      if (phase == initial_phase)
+		{
+		  report_origin = Origin_Ord_of_EIM (earley_item);
+		  report_AHFA_state = AHFA_of_EIM (earley_item);
+		  next_phase = eim_is_finished;
+		  break;
+		}
+	      goto NEXT_EIM;		// happens only if |phase == eim_is_finished|
+	    }
+	  @<Insert items into tree for |report_AHFA_state|
 	  and |report_origin|@>@;
+	}
       }
+      NEXT_EIM: ;
   }
   return marpa_avl_count (r->t_progress_report_tree);
 }
