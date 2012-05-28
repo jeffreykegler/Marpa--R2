@@ -10614,45 +10614,58 @@ int marpa_r_progress_report_start(
     for (earley_item_id = 0; earley_item_id < earley_item_count;
 	 earley_item_id++)
       {
-	AEX aex;
 	const EIM earley_item = earley_items[earley_item_id];
-	const ESID origin_esid = Origin_Ord_of_EIM (earley_item);
-	const AHFA AHFA_state = AHFA_of_EIM (earley_item);
-	const int aim_count = AHFA_state->t_item_count;
-	for (aex = 0; aex < aim_count; aex++)
-	  {
-	    const AIM aim = AIM_of_AHFA_by_AEX (AHFA_state, aex);
-	    const IRL irl = IRL_of_AIM(aim);
-	    const XRL source_xrl = Source_XRL_of_IRL(irl);
-	    if (source_xrl) {
-	      const int irl_position = Position_of_AIM(aim);
-	      int xrl_position = irl_position;
-	      const int virtual_start = Virtual_Start_of_IRL(irl);
-	      if (virtual_start >= 0) {
-	          xrl_position += virtual_start;
-	      }
-	      if (XRL_is_Sequence(source_xrl)) {
-	          if (IRL_has_Virtual_LHS(irl)) {
-		     if (irl_position <= 0) goto NEXT_AIM;
-		     xrl_position = 1;
-		  } else {
-		     xrl_position = irl_position > 0 ? 1 : 0;
-		  }
-	      }
-	      {
-		const REPORT new_report_item =
-		  my_obstack_new (AVL_OBSTACK (report_tree), struct s_report_item, 1);
-		Position_of_REPORT(new_report_item) = xrl_position;
-		Origin_of_REPORT(new_report_item) = origin_esid;
-		Rule_of_REPORT(new_report_item) = ID_of_XRL(source_xrl);
-		_marpa_avl_insert (report_tree, new_report_item);
-	      }
-	    }
-	    NEXT_AIM: ;
-	  }
+	const ESID report_origin = Origin_Ord_of_EIM (earley_item);
+	const AHFA report_AHFA_state = AHFA_of_EIM (earley_item);
+	@<Insert items into tree for |report_AHFA_state|
+	  and |report_origin|@>@;
       }
   }
   return marpa_avl_count (r->t_progress_report_tree);
+}
+
+@ @<Insert items into tree for |report_AHFA_state| and |report_origin|@> =
+{
+  AEX aex;
+  const int aim_count = report_AHFA_state->t_item_count;
+  for (aex = 0; aex < aim_count; aex++)
+    {
+      const AIM report_aim = AIM_of_AHFA_by_AEX (report_AHFA_state, aex);
+      const IRL irl = IRL_of_AIM (report_aim);
+      const XRL source_xrl = Source_XRL_of_IRL (irl);
+      if (source_xrl)
+	{
+	  const int irl_position = Position_of_AIM (report_aim);
+	  int xrl_position = irl_position;
+	  const int virtual_start = Virtual_Start_of_IRL (irl);
+	  if (virtual_start >= 0)
+	    {
+	      xrl_position += virtual_start;
+	    }
+	  if (XRL_is_Sequence (source_xrl))
+	    {
+	      if (IRL_has_Virtual_LHS (irl))
+		{
+		  if (irl_position <= 0) goto NEXT_AIM;
+		  xrl_position = 1;
+		}
+	      else
+		{
+		  xrl_position = irl_position > 0 ? 1 : 0;
+		}
+	    }
+	  {
+	    const REPORT new_report_item =
+	      my_obstack_new (AVL_OBSTACK (report_tree), struct s_report_item,
+			      1);
+	    Position_of_REPORT (new_report_item) = xrl_position;
+	    Origin_of_REPORT (new_report_item) = report_origin;
+	    Rule_of_REPORT (new_report_item) = ID_of_XRL (source_xrl);
+	    _marpa_avl_insert (report_tree, new_report_item);
+	  }
+	}
+    NEXT_AIM:;
+    }
 }
 
 @ @<Function definitions@> =
