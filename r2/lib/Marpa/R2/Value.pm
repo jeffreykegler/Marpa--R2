@@ -308,7 +308,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
                 qq{  Marpa needs there to be only one\n}
             );
         } ## end if ( grep { $_ ne $first_resolution_name } ...)
-        $resolution_rule = $empty_rules[0];
+        $resolution_rule = $ruleids->[0];
         my ( $resolution_name, $closure ) =
             @{ $rule_resolutions->[$resolution_rule] };
         if ($trace_actions) {
