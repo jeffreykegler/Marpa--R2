@@ -210,17 +210,17 @@ which acquire their semantics during evaluation.
 
 Evaluation will be described later.
 Peeking ahead,
-the C<default_action> named argument
+C<actions> provides the name
+of a Perl package where Marpa will look for
+its B<actions>.
+The C<default_action> named argument
 will be interpreted
-as an B<action name>.
+as an B<action name> in that package.
 This action name will resolve to an action --
 a Perl closure that implements semantics.
 The action specified by C<default_action>
 is used as the action for rules
 with no action of their own.
-C<actions> provides the name
-of a Perl package where Marpa will look for
-its B<actions>.
 
 =head3 The rules named argument
 

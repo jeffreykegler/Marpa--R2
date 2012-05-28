@@ -110,7 +110,7 @@ of the C<alternative> method|Marpa::R2::Advanced::Models/"alternative">.
 
 =head2 Marpa::R2::Recognizer::value() does not accept named arguments
 
-n the Marpa::XS recognizer, the C<new()>, C<set()> and value() methods
+In the Marpa::XS recognizer, the C<new()>, C<set()> and value() methods
 all accepted named arguments.  As of Marpa::R2, the C<value()> method
 will no longer do so.
 
