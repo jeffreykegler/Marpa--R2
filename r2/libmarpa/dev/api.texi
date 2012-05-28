@@ -1774,11 +1774,12 @@ for recognizer @var{r}.
 If a progress report already exists, it is destroyed and its
 memory is freed.
 
-The report is left positioned at the first progress report item,
-if there is one.
-Report items are examined using the report item
-accessors.
-@xref{Report item accessors}.
+The report consists of items.
+Initially,
+the report is positioned before the first item.
+To position the report to an item so it can be
+examined,
+call the @var{marpa_r_progress_item) method.
 @end deftypefun
 
 @deftypefun void marpa_r_progress_report_finish ( @
@@ -1792,9 +1793,12 @@ whenever a new progress report is started,
 and when the recognizer is destroyed.
 @end deftypefun
 
-@deftypefun int marpa_r_progress_item_next ( @
+@deftypefun int marpa_r_progress_item ( @
   Marpa_Recognizer @var{r} )
-Advance to the next report item.
+For a newly initialized progress report,
+advance to the first item, if there is one.
+If the report is currently positioned at an item,
+advance to the next one.
 Report items are examined using the report item
 accessors.
 @xref{Report item accessors}.

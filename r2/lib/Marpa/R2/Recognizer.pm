@@ -487,6 +487,7 @@ sub Marpa::R2::Recognizer::show_progress {
     for my $current_ordinal ( $start_ordinal .. $end_ordinal ) {
         my $current_earleme     = $recce_c->earleme($current_ordinal);
         my %by_rule_by_position = ();
+	my $dummy = $recce_c->progress_report_start($current_ordinal);
         my $reports             = report_progress( $recce, $current_ordinal );
 
         for my $report ( @{$reports} ) {

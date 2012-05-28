@@ -2045,6 +2045,20 @@ PPCODE:
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
+void
+progress_report_start( r_wrapper, ordinal )
+     R_Wrapper *r_wrapper;
+     Marpa_Earley_Set_ID ordinal;
+PPCODE:
+    { struct marpa_r* const r = r_wrapper->r;
+	int result = marpa_r_progress_report_start(r, ordinal);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->earleme(): %s", xs_r_error(r_wrapper));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::B_C
 
 void

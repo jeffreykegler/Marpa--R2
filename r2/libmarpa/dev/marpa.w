@@ -10562,13 +10562,13 @@ static const struct s_report_item progress_report_not_ready = { -2, -2, -2 };
     ((r)->t-current_report_item->t_origin)
 
 @ @<Function definitions@> =
-PRIVATE_NOT_INLINE report_item_cmp () {
+PRIVATE_NOT_INLINE int report_item_cmp (
     const void* ap,
     const void* bp,
     void *param UNUSED)
 {
-    const REPORT report_a = ap;
-    const REPORT report_b = bp;
+    const struct s_report_item* const report_a = ap;
+    const struct s_report_item* const report_b = bp;
     if (report_a->t_position > report_b->t_position) return 1;
     if (report_a->t_position < report_b->t_position) return -1;
     if (report_a->t_rule_id > report_b->t_rule_id) return 1;
@@ -10583,7 +10583,6 @@ int marpa_r_progress_report_start(
   Marpa_Recognizer r,
   Marpa_Earley_Set_ID set_id)
 {
-  int report_item_count = 0;
   @<Return |-2| on failure@>@;
   const int es_does_not_exist = -1;
   ES earley_set;
@@ -10604,7 +10603,7 @@ int marpa_r_progress_report_start(
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
   r->t_progress_report_tree =
-    _marpa_avl_create (report_item_rule_cmp, NULL, alignof (REPORT));
+    _marpa_avl_create (report_item_cmp, NULL, alignof (REPORT));
   return marpa_avl_count (r->t_progress_report_tree);
 }
 
@@ -10614,7 +10613,7 @@ void marpa_r_progress_report_finish(Marpa_Recognizer r) {
 }
 
 @ @<Function definitions@> =
-int marpa_r_progress_item_next(Marpa_Recognizer r) {
+int marpa_r_progress_item(Marpa_Recognizer r) {
 }
 
 @** Parse bocage code (B, BOCAGE).
