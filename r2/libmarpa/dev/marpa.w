@@ -2762,8 +2762,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	  xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
-    while (seen_symid <= pre_census_xsy_count)
-      xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
+    while (++seen_symid <= pre_census_xsy_count)
+      xrl_list_x_rh_sym[seen_symid] = p_rule_data;
     _marpa_avl_destroy (rhs_avl_tree);
   }
 
@@ -2787,8 +2787,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	  xrl_list_x_lh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
-    while (seen_symid <= pre_census_xsy_count)
-      xrl_list_x_lh_sym[++seen_symid] = p_rule_data;
+    while (++seen_symid <= pre_census_xsy_count)
+      xrl_list_x_lh_sym[seen_symid] = p_rule_data;
     _marpa_avl_destroy (lhs_avl_tree);
   }
 
@@ -5071,8 +5071,8 @@ of minimum sizes.
 	  irl_list_x_lh_isy[++seen_isyid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
       }
-    while (seen_isyid <= isy_count)
-      irl_list_x_lh_isy[++seen_isyid] = p_rule_data;
+    while (++seen_isyid <= isy_count)
+      irl_list_x_lh_isy[seen_isyid] = p_rule_data;
   }
   _marpa_avl_destroy (lhs_avl_tree);
 }
