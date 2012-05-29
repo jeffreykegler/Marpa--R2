@@ -279,11 +279,18 @@ sub do_libmarpa {
 
         my @configure_command_args = ('--disable-static');
         if ( defined $self->args('marpa-debug') ) {
-	    my @debug_flags = ('-DMARPA_DEBUG=' . $self->args('marpa-debug'));
-	    push @debug_flags, '-fno-inline', '-Wno-inline';
-            push @configure_command_args, 'MARPA_DEBUG_FLAG='
-	      . (join q{ }, @debug_flags);
-        }
+            if ( $ENV{LIBMARPA_DEBUG_FLAGS} ) {
+                push @configure_command_args,
+                    'MARPA_DEBUG_FLAG=' . $ENV{LIBMARPA_DEBUG_FLAGS};
+            }
+            else {
+                my @debug_flags =
+                    ( '-DMARPA_DEBUG=' . $self->args('marpa-debug') );
+                push @debug_flags, '-fno-inline', '-Wno-inline';
+                push @configure_command_args,
+                    'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
+            } ## end else [ if ( $ENV{LIBMARPA_DEBUG_FLAGS} ) ]
+        } ## end if ( defined $self->args('marpa-debug') )
 
         if ( $self->verbose() ) {
             say join q{ }, "Running command:", $shell, $configure_script, @configure_command_args
