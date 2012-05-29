@@ -735,20 +735,13 @@ The |rule_tree| is a tree for detecting duplicates.
 @<Widely aligned grammar elements@> =
     DSTACK_DECLARE(t_xrl_stack);
     DSTACK_DECLARE(t_irl_stack);
-    struct marpa_avl_table* t_rule_tree;
 @ @<Initialize grammar elements@> =
     DSTACK_INIT2(g->t_xrl_stack, RULE);
     DSTACK_SAFE(g->t_irl_stack);
-    g->t_rule_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, alignof (RULE));
-
-@ @<Destroy rule tree@> =
-    _marpa_avl_destroy (g->t_rule_tree);
-    g->t_rule_tree = NULL;
 
 @ @<Destroy grammar elements@> =
     DSTACK_DESTROY(g->t_irl_stack);
     DSTACK_DESTROY(g->t_xrl_stack);
-    @<Destroy rule tree@>@;
 
 @*0 Rule count accessors.
 @ @d XRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_xrl_stack))
@@ -8026,7 +8019,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     EIK_Object key;
     AHFA state;
   @<Unpack recognizer objects@>@;
-    const ISYID isy_count = ISY_Count_of_G(g);
+    @<Declare |marpa_r_start_input| locals@>@;
     @<Return |-2| on failure@>@;
     @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
@@ -8050,12 +8043,19 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     if (state) {
 	key.t_state = state;
 	item = earley_item_create(r, key);
-    }
-    postdot_items_create(r, set0);
+    } 
+    postdot_items_create(r, bv_ok_for_chain, set0);
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
+    @<Destroy |marpa_r_start_input| locals@>@;
     return 1;
 }
+
+@ @<Declare |marpa_r_start_input| locals@> =
+    const ISYID isy_count = ISY_Count_of_G(g);
+    Bit_Vector bv_ok_for_chain = bv_create(isy_count);
+@ @<Destroy |marpa_r_start_input| locals@> =
+    bv_free(bv_ok_for_chain);
 
 @** Read a token alternative.
 The ordinary semantics of a parser generator is a token-stream
@@ -8286,8 +8286,9 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
   ES current_earley_set;
   EARLEME current_earleme;
   int count_of_expected_terminals;
-    @<Fail if recognizer not accepting input@>@;
-    G_EVENTS_CLEAR(g);
+  @<Declare |marpa_r_earleme_complete| locals@>@;
+  @<Fail if recognizer not accepting input@>@;
+  G_EVENTS_CLEAR(g);
   psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_isyid_is_expected);
     @<Initialize |current_earleme|@>@;
@@ -8299,7 +8300,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
       EIM cause = *cause_p;
         @<Add new Earley items for |cause|@>@;
     }
-    postdot_items_create(r, current_earley_set);
+    postdot_items_create(r, bv_ok_for_chain, current_earley_set);
 
     count_of_expected_terminals = bv_count (r->t_bv_isyid_is_expected);
     if (count_of_expected_terminals <= 0
@@ -8311,8 +8312,15 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
 	event_new(g, MARPA_EVENT_EXHAUSTED);
       }
     earley_set_update_items(r, current_earley_set);
+  @<Destroy |marpa_r_earleme_complete| locals@>@;
   return G_EVENT_COUNT(g);
 }
+
+@ @<Declare |marpa_r_earleme_complete| locals@> =
+    const ISYID isy_count = ISY_Count_of_G(g);
+    Bit_Vector bv_ok_for_chain = bv_create(isy_count);
+@ @<Destroy |marpa_r_earleme_complete| locals@> =
+    bv_free(bv_ok_for_chain);
 
 @ @<Initialize |current_earleme|@> = {
   current_earleme = ++(Current_Earleme_of_R(r));
@@ -8559,10 +8567,10 @@ and running benchmarks.
   bv_clear(r->t_bv_pim_symbols);
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE void
-postdot_items_create (RECCE r, ES current_earley_set)
+postdot_items_create (RECCE r,
+  Bit_Vector bv_ok_for_chain,
+  ES current_earley_set)
 {
-    struct obstack *obs_local = my_obstack_init;
-    const ISYID isy_count = ISY_Count_of_G(G_of_R(r));
   @<Unpack recognizer objects@>@;
     EARLEME current_earley_set_id = Earleme_of_ES(current_earley_set);
     @<Reinitialize containers used in PIM setup@>@;
@@ -8573,7 +8581,6 @@ postdot_items_create (RECCE r, ES current_earley_set)
     }
     @<Copy PIM workarea to postdot item array@>@;
     bv_and(r->t_bv_isyid_is_expected, r->t_bv_pim_symbols, g->t_bv_isyid_is_terminal);
-    my_obstack_free(obs_local);
 }
 
 @ This code creates the Earley indexes in the PIM workarea.
@@ -8756,7 +8763,6 @@ ID must
 \li Must not have already been added to a LIM chain for this
 Earley set.\par
 @<Add predecessors to LIMs@> = {
-  const Bit_Vector bv_ok_for_chain = bv_obs_create(obs_local, isy_count);
   unsigned int min, max, start;
 
   bv_copy(bv_ok_for_chain, r->t_bv_lim_symbols);
