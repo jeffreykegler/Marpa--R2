@@ -65,10 +65,6 @@ struct obstack			/* control current object in current chunk */
     void *tempptr;
   } temp;			/* Temporary for some macros.  */
   int alignment_mask;		/* Mask of alignment for each object. */
-  unsigned maybe_empty_object:1;	/* There is a possibility that the current
-					   chunk contains a zero-length object.  This
-					   prevents freeing the chunk if we allocate
-					   a bigger chunk to replace it. */
 };
 
 struct _obstack_chunk		/* Lives at front of each chunk. */
@@ -155,9 +151,7 @@ void _marpa_obs_free (struct obstack *__obstack);
     ((type *)my_obstack_alloc((h), (sizeof(type)*(count))))
 
 # define my_obstack_finish(h)						\
-( ((h)->next_free == (h)->object_base					\
-   ? (((h)->maybe_empty_object = 1), 0)					\
-   : 0),								\
+( \
   (h)->temp.tempptr = (h)->object_base,					\
   (h)->next_free							\
     = __PTR_ALIGN ((h)->object_base, (h)->next_free,			\

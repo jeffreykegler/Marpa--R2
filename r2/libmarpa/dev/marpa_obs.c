@@ -41,7 +41,7 @@
 # include "marpa_obs.h"
 
 /* Determine default alignment.  */
-union fooround
+union worst_aligned_object
 {
 /* intmax_t is guaranteed by AUTOCONF's AC_TYPE_INTMAX_T.
     Similarly, for uintmax_t.
@@ -57,7 +57,7 @@ union fooround
 struct fooalign
 {
   char c;
-  union fooround u;
+  union worst_aligned_object u;
 };
 /* If malloc were really smart, it would round addresses to DEFAULT_ALIGNMENT.
    But in fact it might be less smart and round addresses to as much as
@@ -65,7 +65,7 @@ struct fooalign
 enum
   {
     DEFAULT_ALIGNMENT = offsetof (struct fooalign, u),
-    DEFAULT_ROUNDING = sizeof (union fooround)
+    DEFAULT_ROUNDING = sizeof (union worst_aligned_object)
   };
 
 /* Initialize an obstack H for use.  Specify chunk size SIZE (0 means default).
@@ -111,8 +111,6 @@ struct obstack * _marpa_obs_begin ( int size, int alignment)
     /* The first object can go after the obstack header, suitably aligned */
   h->chunk_limit = chunk->limit = (char *) chunk + h->chunk_size;
   chunk->prev = 0;
-  /* The initial chunk now contains no empty object.  */
-  h->maybe_empty_object = 0;
   return h;
 }
 
@@ -128,12 +126,15 @@ _marpa_obs_newchunk (struct obstack *h, int length)
   struct _obstack_chunk *old_chunk = h->chunk;
   struct _obstack_chunk *new_chunk;
   long	new_size;
-  long obj_size = h->next_free - h->object_base;
   long i;
   char *object_base;
 
-  /* Compute size for new chunk.  */
-  new_size = (obj_size + length) + (obj_size >> 3) + h->alignment_mask + 100;
+  /* Compute size for new chunk. 
+   sizeof(struct _obstack_chunk) includes space for
+   the obstack table, which is unnecessary, but adds
+   to the fudge factor.
+  */
+  new_size = (length) + h->alignment_mask + 100 + sizeof(struct _obstack_chunk);
   if (new_size < h->chunk_size)
     new_size = h->chunk_size;
 
@@ -147,24 +148,8 @@ _marpa_obs_newchunk (struct obstack *h, int length)
   object_base =
     __PTR_ALIGN ((char *) new_chunk, new_chunk->contents.contents, h->alignment_mask);
 
-  for (i = obj_size - 1; i >= 0; i--) object_base[i] = (h->object_base)[i];
-
-  /* If the object just copied was the only data in OLD_CHUNK,
-     free that chunk and remove it from the chain.
-     But not if that chunk might contain an empty object.  */
-  if (! h->maybe_empty_object
-      && (h->object_base
-	  == __PTR_ALIGN ((char *) old_chunk, old_chunk->contents.contents,
-			  h->alignment_mask)))
-    {
-      new_chunk->prev = old_chunk->prev;
-      my_free( old_chunk);
-    }
-
   h->object_base = object_base;
-  h->next_free = h->object_base + obj_size;
-  /* The new chunk certainly contains no empty object yet.  */
-  h->maybe_empty_object = 0;
+  h->next_free = h->object_base;
 }
 
 /* Return nonzero if object OBJ has been allocated from obstack H.
