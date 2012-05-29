@@ -277,11 +277,12 @@ sub do_libmarpa {
         $shell or die q{No Bourne shell available says $Config{sh}};
 ##use critic
 
+	local $ENV{CFLAGS} = $ENV{CFLAGS};
+
         my @configure_command_args = ('--disable-static');
         if ( defined $self->args('marpa-debug') ) {
-            if ( $ENV{LIBMARPA_DEBUG_FLAGS} ) {
-                push @configure_command_args,
-                    'MARPA_DEBUG_FLAG=' . $ENV{LIBMARPA_DEBUG_FLAGS};
+            if ( defined $ENV{LIBMARPA_CFLAGS} ) {
+                $ENV{CFLAGS} = $ENV{LIBMARPA_CFLAGS};
             }
             else {
                 my @debug_flags =
@@ -289,7 +290,7 @@ sub do_libmarpa {
                 push @debug_flags, '-fno-inline', '-Wno-inline';
                 push @configure_command_args,
                     'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
-            } ## end else [ if ( $ENV{LIBMARPA_DEBUG_FLAGS} ) ]
+            } ## end else [ if ( $ENV{LIBMARPA_CFLAGS} ) ]
         } ## end if ( defined $self->args('marpa-debug') )
 
         if ( $self->verbose() ) {
