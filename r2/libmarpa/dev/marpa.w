@@ -12651,7 +12651,7 @@ by |bv_hiddenwords|.
 PRIVATE Bit_Vector bv_create(unsigned int bits)
 {
     unsigned int size = bv_bits_to_size(bits);
-    unsigned int bytes = (size + bv_hiddenwords) << sizeof(unsigned int);
+    unsigned int bytes = (size + bv_hiddenwords) * sizeof(Bit_Vector_Word);
     unsigned int* addr = (Bit_Vector) my_malloc0((size_t) bytes);
     *addr++ = bits;
     *addr++ = size;
@@ -12670,7 +12670,7 @@ PRIVATE Bit_Vector
 bv_obs_create (struct obstack *obs, unsigned int bits)
 {
   unsigned int size = bv_bits_to_size (bits);
-  unsigned int bytes = (size + bv_hiddenwords) << sizeof (unsigned int);
+  unsigned int bytes = (size + bv_hiddenwords) * sizeof (Bit_Vector_Word);
   unsigned int *addr = (Bit_Vector) my_obstack_alloc (obs, (size_t) bytes);
   *addr++ = bits;
   *addr++ = size;
@@ -12740,13 +12740,6 @@ PRIVATE void bv_free(Bit_Vector vector)
 	vector -= bv_hiddenwords;
 	my_free(vector);
     }
-}
-
-@*0 The number of bytes in a Boolean vector.
-@<Function definitions@> =
-PRIVATE int bv_bytes(Bit_Vector bv)
-{
-    return (BV_SIZE(bv)+bv_hiddenwords)*sizeof(Bit_Vector_Word);
 }
 
 @*0 Fill a Boolean vector.
