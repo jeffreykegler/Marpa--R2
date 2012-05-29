@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include "marpa.h"
 
-void await_input() {
+static void await_input(void) {
     fputs("Waiting for input: ", stdout);
     getchar();
     fflush(stdin);
@@ -102,6 +102,7 @@ main (int argc, char **argv)
 	  exit (1);
 	}
     }
+  await_input();
   for (i = 0; i <= 4; i++)
     {
       Marpa_Bocage bocage;
