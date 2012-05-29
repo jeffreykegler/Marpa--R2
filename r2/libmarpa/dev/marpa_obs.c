@@ -120,7 +120,7 @@ struct obstack * _marpa_obs_begin ( int size, int alignment)
   h->chunk = chunk;
 
   h->next_free = h->object_base = 
-    __PTR_ALIGN ((char *) chunk, ((char *)h + sizeof(*h)), alignment - 1);
+    __BPTR_ALIGN ((char *) chunk, ((char *)h + sizeof(*h)), alignment - 1);
     /* The first object can go after the obstack header, suitably aligned */
   h->chunk_limit = chunk->header.limit = (char *) chunk + h->chunk_size;
   chunk->header.prev = 0;
@@ -158,7 +158,7 @@ _marpa_obs_newchunk (struct obstack *h, int length)
 
   /* Compute an aligned object_base in the new chunk */
   object_base =
-    __PTR_ALIGN ((char *) new_chunk, new_chunk->contents.contents, h->alignment_mask);
+    __BPTR_ALIGN ((char *) new_chunk, new_chunk->contents.contents, h->alignment_mask);
 
   h->object_base = object_base;
   h->next_free = h->object_base;

@@ -44,11 +44,15 @@
    and converted back again.  If ptrdiff_t is narrower than a
    pointer (e.g., the AS/400), play it safe and compute the alignment
    relative to B.  Otherwise, use the faster strategy of computing the
-   alignment relative to 0.  */
+   alignment relative to 0.
 
-#define __PTR_ALIGN(B, P, A)						    \
-  __BPTR_ALIGN (sizeof (ptrdiff_t) < sizeof (void *) ? (B) : (char *) 0, \
+   Unsafe, so we don't use it. 
+*/
+
+/* #define __PTR_ALIGN(B, P, A)						    \
+  * __BPTR_ALIGN (sizeof (ptrdiff_t) < sizeof (void *) ? (B) : (char *) 0, \
 		P, A)
+*/
 
 #include <string.h>
 
@@ -132,7 +136,7 @@ void _marpa_obs_free (struct obstack *__obstack);
 
 # define obstack_empty_p(h) \
  ((h)->chunk->prev == 0							\
-  && (h)->next_free == __PTR_ALIGN ((char *) (h)->chunk,		\
+  && (h)->next_free == __BPTR_ALIGN ((char *) (h)->chunk,		\
 				    (h)->chunk->contents,		\
 				    (h)->alignment_mask))
 
@@ -159,7 +163,7 @@ void _marpa_obs_free (struct obstack *__obstack);
 ( \
   (h)->temp.tempptr = (h)->object_base,					\
   (h)->next_free							\
-    = __PTR_ALIGN ((h)->object_base, (h)->next_free,			\
+    = __BPTR_ALIGN ((h)->object_base, (h)->next_free,			\
 		   (h)->alignment_mask),				\
   (((h)->next_free - (char *) (h)->chunk				\
     > (h)->chunk_limit - (char *) (h)->chunk)				\
