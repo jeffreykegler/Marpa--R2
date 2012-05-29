@@ -69,8 +69,11 @@ enum
   };
 
 #define DEBUG_CONTENTS_OFFSET \
-  offsetof(struct { struct chunk_header header; union worst_aligned_object contents}, \
-       contents)
+  offsetof( \
+    struct { \
+      struct obstack_chunk_header header; \
+      union worst_aligned_object contents; \
+    }, contents)
 
 /* Initialize an obstack H for use.  Specify chunk size SIZE (0 means default).
    Objects start on multiples of ALIGNMENT (0 means use default).
@@ -83,7 +86,7 @@ struct obstack * _marpa_obs_begin ( int size, int alignment)
   struct obstack_chunk *chunk;	/* points to new chunk */
   struct obstack *h;	/* points to new obstack */
   const int minimum_chunk_size = sizeof(struct obstack_chunk);
-  /* Just enough room for the obstack header */
+  /* Just enough room for the chunk and obstack headers */
 
   if (alignment == 0)
     alignment = DEFAULT_ALIGNMENT;
