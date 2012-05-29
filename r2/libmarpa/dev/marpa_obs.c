@@ -78,12 +78,8 @@ struct obstack * _marpa_obs_begin ( int size, int alignment)
 {
   struct _obstack_chunk *chunk;	/* points to new chunk */
   struct obstack *h;	/* points to new obstack */
-  const int minimum_chunk_size = 
-    offsetof(struct _obstack_chunk, contents) +
-    alignof(struct obstack) +
-    sizeof(struct obstack);
-    /* Minimum size is the offset of the contents, plus a high-ball estimate of what is
-    needed to align the obstack header, plus the size of obstack header. */
+  const int minimum_chunk_size = sizeof(struct _obstack_chunk);
+  /* Just enough room for the obstack header */
 
   if (alignment == 0)
     alignment = DEFAULT_ALIGNMENT;
@@ -104,11 +100,7 @@ struct obstack * _marpa_obs_begin ( int size, int alignment)
     }
   size = MAX (minimum_chunk_size, size);
   chunk = my_malloc (size);
-  h = (struct obstack *)
-    (__PTR_ALIGN ((char *) chunk, chunk->contents,
-		      alignof (struct obstack) - 1));
-    /* The obstack structure is near the beginning of the first chunk,
-       just after the header of the chunk itself. */
+  h = &chunk->contents.obstack_header;
 
   h->chunk_size = size;
   h->alignment_mask = alignment - 1;
@@ -153,7 +145,7 @@ _marpa_obs_newchunk (struct obstack *h, int length)
 
   /* Compute an aligned object_base in the new chunk */
   object_base =
-    __PTR_ALIGN ((char *) new_chunk, new_chunk->contents, h->alignment_mask);
+    __PTR_ALIGN ((char *) new_chunk, new_chunk->contents.contents, h->alignment_mask);
 
   for (i = obj_size - 1; i >= 0; i--) object_base[i] = (h->object_base)[i];
 
@@ -162,7 +154,7 @@ _marpa_obs_newchunk (struct obstack *h, int length)
      But not if that chunk might contain an empty object.  */
   if (! h->maybe_empty_object
       && (h->object_base
-	  == __PTR_ALIGN ((char *) old_chunk, old_chunk->contents,
+	  == __PTR_ALIGN ((char *) old_chunk, old_chunk->contents.contents,
 			  h->alignment_mask)))
     {
       new_chunk->prev = old_chunk->prev;

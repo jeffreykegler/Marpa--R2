@@ -52,13 +52,6 @@
 
 #include <string.h>
 
-struct _obstack_chunk		/* Lives at front of each chunk. */
-{
-  char *limit;			/* 1 past end of this chunk */
-  struct _obstack_chunk *prev;	/* address of prior chunk or NULL */
-  char contents[4];	/* objects begin here */
-};
-
 struct obstack			/* control current object in current chunk */
 {
   long chunk_size;		/* preferred size to allocate chunks in */
@@ -76,6 +69,16 @@ struct obstack			/* control current object in current chunk */
 					   chunk contains a zero-length object.  This
 					   prevents freeing the chunk if we allocate
 					   a bigger chunk to replace it. */
+};
+
+struct _obstack_chunk		/* Lives at front of each chunk. */
+{
+  char *limit;			/* 1 past end of this chunk */
+  struct _obstack_chunk *prev;	/* address of prior chunk or NULL */
+  union {
+    char contents[4];	/* objects begin here */
+    struct obstack obstack_header;
+  } contents;
 };
 
 /* Declare the external functions we use; they are in obstack.c.  */
