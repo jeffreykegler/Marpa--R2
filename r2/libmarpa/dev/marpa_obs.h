@@ -29,6 +29,10 @@
 
 #include <stddef.h>
 
+#ifndef MARPA_OBSTACK_DEBUG
+#define MARPA_OBSTACK_DEBUG 0
+#endif
+
 /* If B is the base of an object addressed by P, return the result of
    aligning P to the next multiple of A + 1.  B and P must be of type
    char *.  A + 1 must be a power of 2.  */
@@ -128,9 +132,16 @@ void _marpa_obs_free (struct obstack *__obstack);
 				    (h)->chunk->contents,		\
 				    (h)->alignment_mask))
 
+#if MARPA_OBSTACK_DEBUG
+#define NEED_CHUNK(h, length) 1
+#else
+#define NEED_CHUNK(h, length) \
+  ((h)->chunk_limit - (h)->next_free < (length))
+#endif
+
 # define my_obstack_blank(h,length)					\
 ( (h)->temp.tempint = (length),						\
-  (((h)->chunk_limit - (h)->next_free < (h)->temp.tempint)		\
+  (NEED_CHUNK((h), (h)->temp.tempint)		\
    ? (_obstack_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
   my_obstack_blank_fast (h, (h)->temp.tempint))
 
