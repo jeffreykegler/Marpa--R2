@@ -55,7 +55,7 @@
 struct obstack			/* control current object in current chunk */
 {
   long chunk_size;		/* preferred size to allocate chunks in */
-  struct _obstack_chunk *chunk;	/* address of current struct obstack_chunk */
+  struct obstack_chunk *chunk;	/* address of current struct obstack_chunk */
   char *object_base;		/* address of object we are building */
   char *next_free;		/* where to add next char to current object */
   char *chunk_limit;		/* address of char after current chunk */
@@ -67,10 +67,15 @@ struct obstack			/* control current object in current chunk */
   int alignment_mask;		/* Mask of alignment for each object. */
 };
 
-struct _obstack_chunk		/* Lives at front of each chunk. */
+struct obstack_chunk_header		/* Lives at front of each chunk. */
 {
   char *limit;			/* 1 past end of this chunk */
-  struct _obstack_chunk *prev;	/* address of prior chunk or NULL */
+  struct obstack_chunk* prev;	/* address of prior chunk or NULL */
+};
+
+struct obstack_chunk
+{
+  struct obstack_chunk_header header;
   union {
     char contents[4];	/* objects begin here */
     struct obstack obstack_header;
@@ -132,7 +137,7 @@ void _marpa_obs_free (struct obstack *__obstack);
 				    (h)->alignment_mask))
 
 #if MARPA_OBSTACK_DEBUG
-#define NEED_CHUNK(h, length) 1
+#define NEED_CHUNK(h, length) (1)
 #else
 #define NEED_CHUNK(h, length) \
   ((h)->chunk_limit - (h)->next_free < (length))
