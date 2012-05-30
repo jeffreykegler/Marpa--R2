@@ -7185,8 +7185,8 @@ union u_source_container {
 @d LV_First_Completion_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_completion)
 @d LV_First_Token_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_token)
 @d LV_First_Leo_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_leo)
-@d First_Leo_SRCL_of_EIM(item) ( 
-  Source_Type_of_EIM(item) == SOURCE_IS_LEO ? SRCL_of_EIM(item) :
+@d First_Leo_SRCL_of_EIM(item)
+  ( Source_Type_of_EIM(item) == SOURCE_IS_LEO ? (SRCL)SRCL_of_EIM(item) :
   Source_Type_of_EIM(item) == SOURCE_IS_AMBIGUOUS ? 
     LV_First_Leo_SRCL_of_EIM(item) : NULL)
 
@@ -9346,62 +9346,47 @@ no other descendants.
 
 @ @<Push child Earley items from Leo sources@> =
 {
-  SRCL source_link = NULL;
-  EIM cause_earley_item = NULL;
-  LIM leo_predecessor = NULL;
-  switch (source_type)
+  SRCL source_link;
+  for (source_link = First_Leo_SRCL_of_EIM (parent_earley_item);
+       source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-    case SOURCE_IS_LEO:
-      leo_predecessor = Predecessor_of_EIM (parent_earley_item);
-      cause_earley_item = Cause_of_EIM (parent_earley_item);
-      break;
-    case SOURCE_IS_AMBIGUOUS:
-      source_link = LV_First_Leo_SRCL_of_EIM (parent_earley_item);
-      if (source_link)
-	{
-	  leo_predecessor = Predecessor_of_SRCL (source_link);
-	  cause_earley_item = Cause_of_SRCL (source_link);
-	  source_link = Next_SRCL_of_SRCL (source_link);
-	}
-      break;
-    }
-  while (cause_earley_item)
-    {
-      const ISYID transition_isyid = Postdot_ISYID_of_LIM(leo_predecessor);
+      const EIM cause_earley_item = Cause_of_SRCL (source_link);
+      LIM leo_predecessor = Predecessor_of_SRCL (source_link);
+      const ISYID transition_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
       const TRANS cause_completion_data =
 	TRANS_of_EIM_by_ISYID (cause_earley_item, transition_isyid);
       const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
-      const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
+      const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
       int ix;
       EIM ur_earley_item = cause_earley_item;
-      for (ix = 0; ix < aex_count; ix++) {
+      for (ix = 0; ix < aex_count; ix++)
+	{
 	  const AEX ur_aex = aexes[ix];
-	  const AIM ur_aim = AIM_of_EIM_by_AEX(ur_earley_item, ur_aex);
+	  const AIM ur_aim = AIM_of_EIM_by_AEX (ur_earley_item, ur_aex);
 	  @<Push ur-node if new@>@;
-      }
-    while (leo_predecessor) {
-      ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
-      EIM leo_base = Base_EIM_of_LIM (leo_predecessor);
-      TRANS transition = TRANS_of_EIM_by_ISYID (leo_base, postdot_isyid);
-      const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
-      const AIM ur_aim = AIM_of_EIM_by_AEX(leo_base, ur_aex);
-      ur_earley_item = leo_base;
-      /* Increment the
-      estimate to account for the Leo path or-nodes */
-      or_node_estimate += 1 + Null_Count_of_AIM(ur_aim+1);
-	if (EIM_is_Predicted (ur_earley_item))
-	  {
-	    Set_boolean_in_PSIA_for_initial_nulls(ur_earley_item, ur_aim);
-	  } else {
+	}
+      while (leo_predecessor)
+	{
+	  ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
+	  EIM leo_base = Base_EIM_of_LIM (leo_predecessor);
+	  TRANS transition = TRANS_of_EIM_by_ISYID (leo_base, postdot_isyid);
+	  const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
+	  const AIM ur_aim = AIM_of_EIM_by_AEX (leo_base, ur_aex);
+	  ur_earley_item = leo_base;
+	  /* Increment the
+	     estimate to account for the Leo path or-nodes */
+	  or_node_estimate += 1 + Null_Count_of_AIM (ur_aim + 1);
+	  if (EIM_is_Predicted (ur_earley_item))
+	    {
+	      Set_boolean_in_PSIA_for_initial_nulls (ur_earley_item, ur_aim);
+	    }
+	  else
+	    {
 	      @<Push ur-node if new@>@;
-	  }
-	leo_predecessor = Predecessor_LIM_of_LIM(leo_predecessor);
-        }
-	if (!source_link) break;
-	  leo_predecessor = Predecessor_of_SRCL (source_link);
-	  cause_earley_item = Cause_of_SRCL (source_link);
-	  source_link = Next_SRCL_of_SRCL (source_link);
-      }
+	    }
+	  leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor);
+	}
+    }
 }
 
 @** Or-node (OR) code.
