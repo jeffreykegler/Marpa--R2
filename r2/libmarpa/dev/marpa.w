@@ -7163,6 +7163,7 @@ union u_source_container {
 @d Predecessor_of_SRC(source) Predecessor_of_Source(*(source))
 @d Predecessor_of_EIM(item) Predecessor_of_Source(Source_of_EIM(item))
 @d Predecessor_of_SRCL(link) Predecessor_of_Source(Source_of_SRCL(link))
+@d LIM_of_SRCL(link) ((LIM)Predecessor_of_SRCL(link))
 @d Cause_of_Source(srcd) ((srcd).t_cause.t_completion)
 @d Cause_of_SRC(source) Cause_of_Source(*(source))
 @d Cause_of_EIM(item) Cause_of_Source(Source_of_EIM(item))
@@ -7179,7 +7180,7 @@ union u_source_container {
 @ @d Cause_AHFAID_of_SRCL(srcl)
     AHFAID_of_EIM((EIM)Cause_of_SRCL(srcl))
 @d Leo_Transition_ISYID_of_SRCL(leo_source_link)
-    Postdot_ISYID_of_LIM((LIM)Predecessor_of_SRCL(leo_source_link))
+    Postdot_ISYID_of_LIM(LIM_of_SRCL(leo_source_link))
 
 @ Macros for setting and finding the first |SRCL|'s of each type.
 @d LV_First_Completion_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_completion)
@@ -7762,7 +7763,7 @@ Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
       {
       case SOURCE_IS_LEO:
 	{
-	  LIM predecessor = Predecessor_of_SRCL (source_link);
+	  LIM predecessor = LIM_of_SRCL (source_link);
 	  if (!predecessor) return no_predecessor;
 	  return
 	    ES_Ord_of_EIM (Base_EIM_of_LIM (predecessor));
@@ -8895,12 +8896,13 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
     predecessor_lim = lim_to_process;
 }
 
-@ @<Populate |lim_to_process| from |predecessor_lim|@> = {
-Predecessor_LIM_of_LIM(lim_to_process) = predecessor_lim;
-Origin_of_LIM(lim_to_process) = Origin_of_LIM(predecessor_lim);
-Chain_Length_of_LIM(lim_to_process) = 
-    Chain_Length_of_LIM(lim_to_process)+1;
-Top_AHFA_of_LIM(lim_to_process) = Top_AHFA_of_LIM(predecessor_lim);
+@ @<Populate |lim_to_process| from |predecessor_lim|@> =
+{
+  Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
+  Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
+  Chain_Length_of_LIM (lim_to_process) =
+    Chain_Length_of_LIM (lim_to_process) + 1;
+  Top_AHFA_of_LIM (lim_to_process) = Top_AHFA_of_LIM (predecessor_lim);
 }
 
 @ If we have reached this code, either we do not have a predecessor
@@ -9351,7 +9353,7 @@ no other descendants.
        source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
       const EIM cause_earley_item = Cause_of_SRCL (source_link);
-      LIM leo_predecessor = Predecessor_of_SRCL (source_link);
+      LIM leo_predecessor = LIM_of_SRCL (source_link);
       const ISYID transition_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
       const TRANS cause_completion_data =
 	TRANS_of_EIM_by_ISYID (cause_earley_item, transition_isyid);
@@ -9733,7 +9735,7 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
   for (source_link = First_Leo_SRCL_of_EIM (work_earley_item);
        source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-      LIM leo_predecessor = Predecessor_of_SRCL (source_link);
+      LIM leo_predecessor = LIM_of_SRCL (source_link);
       if (leo_predecessor) {
 	@<Add or-nodes for chain starting with |leo_predecessor|@>@;
       }
@@ -9987,7 +9989,7 @@ predecessor.  Set |or_node| to 0 if there is none.
        source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
       EIM cause_earley_item = Cause_of_SRCL (source_link);
-      LIM leo_predecessor = Predecessor_of_SRCL (source_link);
+      LIM leo_predecessor = LIM_of_SRCL (source_link);
       if (leo_predecessor) {
 	@<Add draft and-nodes for chain starting with |leo_predecessor|@>@;
       }
@@ -10542,50 +10544,74 @@ int marpa_r_progress_report_start(
     for (earley_item_id = 0; earley_item_id < earley_item_count;
 	 earley_item_id++)
       {
-	const int initial_phase = 1;
-	const int leo_source_link_phase = 2;
-	const int leo_path_item_phase = 3;
-	int next_phase = initial_phase;
-	SRCL leo_source_link = NULL;
-	ESID report_origin;
-	AHFA report_AHFA_state;
-	const EIM earley_item = earley_items[earley_item_id];
-	while (1)
-	  {
-	    const int phase = next_phase;
-	    while (1)
-	      {				// this pseudo-loop finds the next AHFA state to report
-		if (phase == initial_phase)
-		  {
-		    report_origin = Origin_Ord_of_EIM (earley_item);
-		    report_AHFA_state = AHFA_of_EIM (earley_item);
-		    next_phase = leo_source_link_phase;
-		    goto INSERT_ITEMS_INTO_TREE;
-		  }
-		if (phase == leo_source_link_phase)
-		  {
-		    leo_source_link = leo_source_link ?
-		      Next_SRCL_of_SRCL (leo_source_link) :
-		      First_Leo_SRCL_of_EIM (earley_item) ;
-		    if (!leo_source_link)
-		      goto NEXT_EIM;	// we are finished if there are no Leo links
-		    next_phase = leo_path_item_phase;
-		    goto NEXT_PHASE;
-		}
-	      if (phase == leo_path_item_phase)
-		{
-		  next_phase = leo_source_link_phase;
-		  goto NEXT_PHASE;
-		}
-	    NEXT_PHASE:;
-	    }
-	    INSERT_ITEMS_INTO_TREE:
-	  @<Insert items into tree for |report_AHFA_state| and |report_origin|@>@;
-	}
+	@<Do the progress report for |earley_item|@>@;
       }
-      NEXT_EIM: ;
   }
   return marpa_avl_count (r->t_progress_report_tree);
+}
+
+@ @<Do the progress report for |earley_item|@> =
+{
+  const int initial_phase = 1;
+  const int leo_source_link_phase = 2;
+  const int leo_path_item_phase = 3;
+  int next_phase = initial_phase;
+  SRCL leo_source_link = NULL;
+  LIM leo_item = NULL;
+  const EIM earley_item = earley_items[earley_item_id];
+  while (1)
+    {
+      ESID report_origin;
+      AHFA report_AHFA_state;
+      const int phase = next_phase;
+      while (1)
+	{			// this loop finds the next AHFA state to report
+	  if (phase == initial_phase)
+	    {
+	      report_origin = Origin_Ord_of_EIM (earley_item);
+	      report_AHFA_state = AHFA_of_EIM (earley_item);
+	      next_phase = leo_source_link_phase;
+	      goto INSERT_ITEMS_INTO_TREE;
+	    }
+	  if (phase == leo_source_link_phase)
+	    {
+	      leo_source_link = leo_source_link ?
+		Next_SRCL_of_SRCL (leo_source_link) :
+		First_Leo_SRCL_of_EIM (earley_item);
+	      if (leo_source_link)
+		{
+		  /* The first leo item is already expanded, so it is skipped */
+		  leo_item = LIM_of_SRCL (leo_source_link);
+		  next_phase = leo_path_item_phase;
+		  goto NEXT_PHASE;
+		}
+	      goto NEXT_EARLEY_ITEM;
+	      // If there are no more Leo source links,
+	      // we are finished with this Earley item
+	    }
+	  if (phase == leo_path_item_phase)
+	    {
+	      leo_item = Predecessor_LIM_of_LIM (leo_item);
+	      if (leo_item)
+		{
+		  const EIM base_earley_item = Base_EIM_of_LIM (leo_item);
+		  const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
+		  report_origin = Ord_of_ES (ES_of_LIM (leo_item));
+		  report_AHFA_state =
+		    To_AHFA_of_EIM_by_ISYID (base_earley_item, postdot_isyid);
+		  goto INSERT_ITEMS_INTO_TREE;
+		}
+	      // If no more Leo items in this path,
+	      // look for the nex Leo source link
+	      next_phase = leo_source_link_phase;
+	      goto NEXT_PHASE;
+	    }
+	NEXT_PHASE:;
+	}
+    INSERT_ITEMS_INTO_TREE:
+      @<Insert items into tree for |report_AHFA_state| and |report_origin|@>@;
+    }
+NEXT_EARLEY_ITEM:;
 }
 
 @ @<Insert items into tree for |report_AHFA_state| and |report_origin|@> =
