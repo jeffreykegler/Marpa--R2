@@ -140,6 +140,10 @@ WARNING_CFLAGS="-Wall \
 -Wmissing-declarations \
 -ansi -pedantic"
 
+WARNING_CPPFLAGS=" \
+-Wundef \
+-Wendif-labels"
+
 fi
 
 dnl this section will only be run if config.status is invoked with no
@@ -183,6 +187,7 @@ if test x"$MARPA_DEBUG_FLAG" = x; then
 fi
 
 AC_SUBST(WARNING_CFLAGS)
+AC_SUBST(WARNING_CPPFLAGS)
 AC_ARG_VAR(MARPA_DEBUG_FLAG,[Marpa debugging])
 AC_TYPE_UINTMAX_T
 AC_TYPE_INTMAX_T
