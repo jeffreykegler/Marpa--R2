@@ -7151,12 +7151,14 @@ struct s_ambiguous_source {
 @ @<Source object structure@>= 
 union u_source_container {
     struct s_ambiguous_source t_ambiguous;
-    struct s_source t_unique;
+    struct s_source_link t_unique;
 };
 
 @
 @d Source_of_SRCL(link) ((link)->t_source)
-@d Source_of_EIM(eim) ((eim)->t_container.t_unique)
+@d SRCL_of_EIM(eim) (&(eim)->t_container.t_unique)
+@d Source_of_EIM(eim) ((eim)->t_container.t_unique.t_source)
+@d SRC_of_EIM(eim) (&Source_of_EIM(eim))
 @d Predecessor_of_Source(srcd) ((srcd).t_predecessor)
 @d Predecessor_of_SRC(source) Predecessor_of_Source(*(source))
 @d Predecessor_of_EIM(item) Predecessor_of_Source(Source_of_EIM(item))
@@ -7195,9 +7197,11 @@ token_link_add (RECCE r,
   unsigned int previous_source_type = Source_Type_of_EIM (item);
   if (previous_source_type == NO_SOURCE)
     {
+      const SRCL source_link = SRCL_of_EIM(item);
       Source_Type_of_EIM (item) = SOURCE_IS_TOKEN;
-      item->t_container.t_unique.t_predecessor = predecessor;
-      TOK_of_Source(item->t_container.t_unique) = token;
+      Predecessor_of_SRCL(source_link) = predecessor;
+      TOK_of_SRCL(source_link) = token;
+      Next_SRCL_of_SRCL(source_link) = NULL;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7272,9 +7276,11 @@ completion_link_add (RECCE r,
   unsigned int previous_source_type = Source_Type_of_EIM (item);
   if (previous_source_type == NO_SOURCE)
     {
+      const SRCL source_link = SRCL_of_EIM(item);
       Source_Type_of_EIM (item) = SOURCE_IS_COMPLETION;
-      item->t_container.t_unique.t_predecessor = predecessor;
-      Cause_of_Source(item->t_container.t_unique) = cause;
+      Predecessor_of_SRCL(source_link) = predecessor;
+      Cause_of_SRCL(source_link) = cause;
+      Next_SRCL_of_SRCL(source_link) = NULL;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7299,9 +7305,11 @@ leo_link_add (RECCE r,
   unsigned int previous_source_type = Source_Type_of_EIM (item);
   if (previous_source_type == NO_SOURCE)
     {
+      const SRCL source_link = SRCL_of_EIM(item);
       Source_Type_of_EIM (item) = SOURCE_IS_LEO;
-      item->t_container.t_unique.t_predecessor = predecessor;
-      Cause_of_Source(item->t_container.t_unique) = cause;
+      Predecessor_of_SRCL(source_link) = predecessor;
+      Cause_of_SRCL(source_link) = cause;
+      Next_SRCL_of_SRCL(source_link) = NULL;
       return;
     }
   if (previous_source_type != SOURCE_IS_AMBIGUOUS)
@@ -7354,8 +7362,7 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
 
 @ @<Ambiguate token source@> = {
   SRCL new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
-  new_link->t_next = NULL;
-  new_link->t_source = item->t_container.t_unique;
+  *new_link = *SRCL_of_EIM(item);
   First_Leo_SRCL_of_EIM (item) = NULL;
   First_Completion_Link_of_EIM (item) = NULL;
   First_Token_Link_of_EIM (item) = new_link;
@@ -7363,8 +7370,7 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
 
 @ @<Ambiguate completion source@> = {
   SRCL new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
-  new_link->t_next = NULL;
-  new_link->t_source = item->t_container.t_unique;
+  *new_link = *SRCL_of_EIM(item);
   First_Leo_SRCL_of_EIM (item) = NULL;
   First_Completion_Link_of_EIM (item) = new_link;
   First_Token_Link_of_EIM (item) = NULL;
@@ -7372,8 +7378,7 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
 
 @ @<Ambiguate Leo source@> = {
   SRCL new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
-  new_link->t_next = NULL;
-  new_link->t_source = item->t_container.t_unique;
+  *new_link = *SRCL_of_EIM(item);
   First_Leo_SRCL_of_EIM (item) = new_link;
   First_Completion_Link_of_EIM (item) = NULL;
   First_Token_Link_of_EIM (item) = NULL;
@@ -7417,7 +7422,7 @@ Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
       {
       case SOURCE_IS_TOKEN:
 	r->t_trace_source_type = SOURCE_IS_TOKEN;
-	source = &(item->t_container.t_unique);
+	source = SRC_of_EIM(item);
 	r->t_trace_source = source;
 	r->t_trace_next_source_link = NULL;
 	return ISYID_of_SRC (source);
@@ -7491,7 +7496,7 @@ Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
       {
       case SOURCE_IS_COMPLETION:
 	r->t_trace_source_type = SOURCE_IS_COMPLETION;
-	source = &(item->t_container.t_unique);
+	source = SRC_of_EIM(item);
 	r->t_trace_source = source;
 	r->t_trace_next_source_link = NULL;
 	return Cause_AHFA_State_ID_of_SRC (source);
@@ -7568,7 +7573,7 @@ _marpa_r_first_leo_link_trace (Marpa_Recognizer r)
 	{
 	case SOURCE_IS_LEO:
 	  r->t_trace_source_type = SOURCE_IS_LEO;
-	  source = &(item->t_container.t_unique);
+	  source = SRC_of_EIM(item);
 	  r->t_trace_source = source;
 	  r->t_trace_next_source_link = NULL;
 	  return Cause_AHFA_State_ID_of_SRC (source);
