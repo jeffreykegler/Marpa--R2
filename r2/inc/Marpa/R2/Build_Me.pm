@@ -282,6 +282,14 @@ sub do_libmarpa {
 	$ENV{CFLAGS} = $original_cflags if defined $original_cflags;
 
         my @configure_command_args = ('--disable-static');
+        my @bad_args =
+            grep { $_ ne 'ARGV' and $_ ne 'marpa-debug' }
+            keys %{ $self->args };
+        for my $bad_arg (@bad_args) {
+            say STDERR 'Bad argument to Build: ', $bad_arg
+                or die "print failed: $ERRNO";
+        }
+	die if @bad_args;
         if ( defined $self->args('marpa-debug') ) {
             if ( defined $ENV{LIBMARPA_CFLAGS} ) {
                 $ENV{CFLAGS} = $ENV{LIBMARPA_CFLAGS};
@@ -290,9 +298,10 @@ sub do_libmarpa {
                 my @debug_flags =
                     ( '-DMARPA_DEBUG=' . $self->args('marpa-debug') );
                 push @debug_flags, '-fno-inline', '-Wno-inline';
+                push @debug_flags, '-DMARPA_OBSTACK_DEBUG';
                 push @configure_command_args,
                     'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
-            } ## end else [ if ( $ENV{LIBMARPA_CFLAGS} ) ]
+            } ## end else [ if ( defined $ENV{LIBMARPA_CFLAGS} ) ]
         } ## end if ( defined $self->args('marpa-debug') )
 
         if ( $self->verbose() ) {
