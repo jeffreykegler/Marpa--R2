@@ -7176,10 +7176,10 @@ union u_source_container {
 @d ISYID_of_EIM(eim) ISYID_of_Source(Source_of_EIM(eim))
 @d ISYID_of_SRCL(link) ISYID_of_Source(Source_of_SRCL(link))
 
-@ @d Cause_AHFA_State_ID_of_SRC(source)
-    AHFAID_of_EIM((EIM)Cause_of_SRC(source))
-@d Leo_Transition_ISYID_of_SRC(leo_source)
-    Postdot_ISYID_of_LIM((LIM)Predecessor_of_SRC(leo_source))
+@ @d Cause_AHFAID_of_SRCL(srcl)
+    AHFAID_of_EIM((EIM)Cause_of_SRCL(srcl))
+@d Leo_Transition_ISYID_of_SRCL(leo_source_link)
+    Postdot_ISYID_of_LIM((LIM)Predecessor_of_SRCL(leo_source_link))
 
 @
 @d First_Completion_Link_of_EIM(item) ((item)->t_container.t_ambiguous.t_completion)
@@ -7392,13 +7392,11 @@ It is an error to call a trace function that is
 inconsistent with the type of the current trace
 source link.
 @<Widely aligned recognizer elements@> =
-SRC t_trace_source;
-SRCL t_trace_next_source_link;
+SRCL t_trace_source_link;
 @ @<Bit aligned recognizer elements@> =
 unsigned int t_trace_source_type:3;
 @ @<Initialize recognizer elements@> =
-r->t_trace_source = NULL;
-r->t_trace_next_source_link = NULL;
+r->t_trace_source_link = NULL;
 r->t_trace_source_type = NO_SOURCE;
 
 @*1 Trace first token link.
@@ -7411,7 +7409,7 @@ and |-2| on some other kind of failure.
 Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@;
-   SRC source;
+   SRCL source_link;
    unsigned int source_type;
     EIM item = r->t_trace_earley_item;
   @<Unpack recognizer objects@>@;
@@ -7422,20 +7420,17 @@ Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
       {
       case SOURCE_IS_TOKEN:
 	r->t_trace_source_type = SOURCE_IS_TOKEN;
-	source = SRC_of_EIM(item);
-	r->t_trace_source = source;
-	r->t_trace_next_source_link = NULL;
-	return ISYID_of_SRC (source);
+	source_link = SRCL_of_EIM(item);
+	r->t_trace_source_link = source_link;
+	return ISYID_of_SRCL (source_link);
       case SOURCE_IS_AMBIGUOUS:
 	{
-	  SRCL full_link =
-	    First_Token_Link_of_EIM (item);
-	  if (full_link)
+	  source_link = First_Token_Link_of_EIM (item);
+	  if (source_link)
 	    {
 	      r->t_trace_source_type = SOURCE_IS_TOKEN;
-	      r->t_trace_next_source_link = Next_SRCL_of_SRCL (full_link);
-	      r->t_trace_source = &(full_link->t_source);
-	      return ISYID_of_SRCL (full_link);
+	      r->t_trace_source_link = source_link;
+	      return ISYID_of_SRCL (source_link);
 	    }
 	}
       }
@@ -7455,7 +7450,7 @@ and |-2| on some other kind of failure.
 Marpa_Symbol_ID _marpa_r_next_token_link_trace(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@;
-   SRCL full_link;
+   SRCL source_link;
     EIM item;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
@@ -7465,14 +7460,13 @@ Marpa_Symbol_ID _marpa_r_next_token_link_trace(Marpa_Recognizer r)
 	MARPA_ERROR(MARPA_ERR_NOT_TRACING_TOKEN_LINKS);
         return failure_indicator;
     }
-    if (!r->t_trace_next_source_link) {
+    source_link = Next_SRCL_of_SRCL( r->t_trace_source_link);
+    if (!source_link) {
 	trace_source_link_clear(r);
         return -1;
     }
-    full_link = r->t_trace_next_source_link;
-    r->t_trace_next_source_link = Next_SRCL_of_SRCL (full_link);
-    r->t_trace_source = &(full_link->t_source);
-    return ISYID_of_SRCL (full_link);
+    r->t_trace_source_link = source_link;
+    return ISYID_of_SRCL (source_link);
 }
 
 @*1 Trace first completion link.
@@ -7486,7 +7480,7 @@ and |-2| on some other kind of failure.
 Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@;
-   SRC source;
+   SRCL source_link;
    unsigned int source_type;
     EIM item = r->t_trace_earley_item;
   @<Unpack recognizer objects@>@;
@@ -7496,20 +7490,17 @@ Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
       {
       case SOURCE_IS_COMPLETION:
 	r->t_trace_source_type = SOURCE_IS_COMPLETION;
-	source = SRC_of_EIM(item);
-	r->t_trace_source = source;
-	r->t_trace_next_source_link = NULL;
-	return Cause_AHFA_State_ID_of_SRC (source);
+	source_link = SRCL_of_EIM(item);
+	r->t_trace_source_link = source_link;
+	return Cause_AHFAID_of_SRCL (source_link);
       case SOURCE_IS_AMBIGUOUS:
 	{
-	  SRCL completion_link = First_Completion_Link_of_EIM (item);
-	  if (completion_link)
+	  source_link = First_Completion_Link_of_EIM (item);
+	  if (source_link)
 	    {
-	      source = &(completion_link->t_source);
 	      r->t_trace_source_type = SOURCE_IS_COMPLETION;
-	      r->t_trace_next_source_link = Next_SRCL_of_SRCL (completion_link);
-	      r->t_trace_source = source;
-	      return Cause_AHFA_State_ID_of_SRC (source);
+	      r->t_trace_source_link = source_link;
+	      return Cause_AHFAID_of_SRCL (source_link);
 	    }
 	}
       }
@@ -7529,8 +7520,7 @@ and |-2| on some other kind of failure.
 Marpa_Symbol_ID _marpa_r_next_completion_link_trace(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@;
-   SRC source;
-   SRCL completion_link; 
+   SRCL source_link;
     EIM item;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
@@ -7540,15 +7530,13 @@ Marpa_Symbol_ID _marpa_r_next_completion_link_trace(Marpa_Recognizer r)
 	MARPA_ERROR(MARPA_ERR_NOT_TRACING_COMPLETION_LINKS);
         return failure_indicator;
     }
-    if (!r->t_trace_next_source_link) {
+    source_link = Next_SRCL_of_SRCL (r->t_trace_source_link);
+    if (!source_link) {
 	trace_source_link_clear(r);
         return -1;
     }
-    completion_link = r->t_trace_next_source_link;
-    r->t_trace_next_source_link = Next_SRCL_of_SRCL (r->t_trace_next_source_link);
-    source = &(completion_link->t_source);
-    r->t_trace_source = source;
-    return Cause_AHFA_State_ID_of_SRC (source);
+    r->t_trace_source_link = source_link;
+    return Cause_AHFAID_of_SRCL (source_link);
 }
 
 @*1 Trace first Leo link.
@@ -7563,7 +7551,7 @@ Marpa_Symbol_ID
 _marpa_r_first_leo_link_trace (Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
-  SRC source;
+  SRCL source_link;
   unsigned int source_type;
   EIM item = r->t_trace_earley_item;
   @<Unpack recognizer objects@>@;
@@ -7573,22 +7561,17 @@ _marpa_r_first_leo_link_trace (Marpa_Recognizer r)
 	{
 	case SOURCE_IS_LEO:
 	  r->t_trace_source_type = SOURCE_IS_LEO;
-	  source = SRC_of_EIM(item);
-	  r->t_trace_source = source;
-	  r->t_trace_next_source_link = NULL;
-	  return Cause_AHFA_State_ID_of_SRC (source);
+	  source_link = SRCL_of_EIM(item);
+	  r->t_trace_source_link = source_link;
+	  return Cause_AHFAID_of_SRCL (source_link);
 	case SOURCE_IS_AMBIGUOUS:
 	  {
-	    SRCL full_link =
-	      First_Leo_SRCL_of_EIM (item);
-	    if (full_link)
+	    source_link = First_Leo_SRCL_of_EIM (item);
+	    if (source_link)
 	      {
-		source = &(full_link->t_source);
 		r->t_trace_source_type = SOURCE_IS_LEO;
-		r->t_trace_next_source_link = (SRCL)
-		  Next_SRCL_of_SRCL (full_link);
-		r->t_trace_source = source;
-		return Cause_AHFA_State_ID_of_SRC (source);
+		r->t_trace_source_link = source_link;
+		return Cause_AHFAID_of_SRCL (source_link);
 	      }
 	  }
 	}
@@ -7609,8 +7592,7 @@ Marpa_Symbol_ID
 _marpa_r_next_leo_link_trace (Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@/
-  SRCL full_link;
-  SRC source;
+  SRCL source_link;
   EIM item;
   @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@/
@@ -7621,17 +7603,14 @@ _marpa_r_next_leo_link_trace (Marpa_Recognizer r)
       MARPA_ERROR(MARPA_ERR_NOT_TRACING_LEO_LINKS);
       return failure_indicator;
     }
-  if (!r->t_trace_next_source_link)
+  source_link = Next_SRCL_of_SRCL(r->t_trace_source_link);
+  if (!source_link)
     {
       trace_source_link_clear (r);
       return -1;
     }
-  full_link = r->t_trace_next_source_link;
-  source = &(full_link->t_source);
-  r->t_trace_source = source;
-  r->t_trace_next_source_link =
-    Next_SRCL_of_SRCL(r->t_trace_next_source_link);
-  return Cause_AHFA_State_ID_of_SRC (source);
+  r->t_trace_source_link = source_link;
+  return Cause_AHFAID_of_SRCL (source_link);
 }
 
 @ @<Set |item|, failing if necessary@> =
@@ -7646,8 +7625,7 @@ _marpa_r_next_leo_link_trace (Marpa_Recognizer r)
 @<Function definitions@> =
 PRIVATE void trace_source_link_clear(RECCE r)
 {
-    r->t_trace_next_source_link = NULL;
-    r->t_trace_source = NULL;
+    r->t_trace_source_link = NULL;
     r->t_trace_source_type = NO_SOURCE;
 }
 
@@ -7664,16 +7642,16 @@ AHFAID _marpa_r_source_predecessor_state(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@/
    unsigned int source_type;
-   SRC source;
+   SRCL source_link;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
-    @<Set source, failing if necessary@>@/
+    @<Set source link, failing if necessary@>@/
     switch (source_type)
     {
     case SOURCE_IS_TOKEN:
     case SOURCE_IS_COMPLETION: {
-        EIM predecessor = Predecessor_of_SRC(source);
+        EIM predecessor = Predecessor_of_SRCL(source_link);
 	if (!predecessor) return -1;
 	return AHFAID_of_EIM(predecessor);
     }
@@ -7705,13 +7683,13 @@ Marpa_Symbol_ID _marpa_r_source_token(Marpa_Recognizer r, int *value_p)
 {
    @<Return |-2| on failure@>@;
    unsigned int source_type;
-   SRC source;
+   SRCL source_link;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@;
    source_type = r->t_trace_source_type;
-    @<Set source, failing if necessary@>@;
+    @<Set source link, failing if necessary@>@;
     if (source_type == SOURCE_IS_TOKEN) {
-	const TOK token = TOK_of_SRC(source);
+	const TOK token = TOK_of_SRCL(source_link);
         if (value_p) *value_p = Value_of_TOK(token);
 	return ISYID_of_TOK(token);
     }
@@ -7737,15 +7715,15 @@ Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@/
    unsigned int source_type;
-   SRC source;
+   SRCL source_link;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
-    @<Set source, failing if necessary@>@/
+    @<Set source link, failing if necessary@>@/
     switch (source_type)
     {
     case SOURCE_IS_LEO:
-	return Leo_Transition_ISYID_of_SRC(source);
+	return Leo_Transition_ISYID_of_SRCL(source_link);
     }
     MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
@@ -7784,16 +7762,16 @@ Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
    @<Return |-2| on failure@>@/
    const EARLEME no_predecessor = -1;
    unsigned int source_type;
-   SRC source;
+   SRCL source_link;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
-    @<Set source, failing if necessary@>@/
+    @<Set source link, failing if necessary@>@/
     switch (source_type)
       {
       case SOURCE_IS_LEO:
 	{
-	  LIM predecessor = Predecessor_of_SRC (source);
+	  LIM predecessor = Predecessor_of_SRCL (source_link);
 	  if (!predecessor) return no_predecessor;
 	  return
 	    ES_Ord_of_EIM (Base_EIM_of_LIM (predecessor));
@@ -7801,7 +7779,7 @@ Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
       case SOURCE_IS_TOKEN:
       case SOURCE_IS_COMPLETION:
 	{
-	  EIM predecessor = Predecessor_of_SRC (source);
+	  EIM predecessor = Predecessor_of_SRCL (source_link);
 	  if (!predecessor) return no_predecessor;
 	  return ES_Ord_of_EIM (predecessor);
 	}
@@ -7810,9 +7788,9 @@ Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
     return failure_indicator;
 }
 
-@ @<Set source, failing if necessary@> =
-    source = r->t_trace_source;
-    if (!source) {
+@ @<Set source link, failing if necessary@> =
+    source_link = r->t_trace_source_link;
+    if (!source_link) {
 	MARPA_ERROR(MARPA_ERR_NO_TRACE_SRCL);
         return failure_indicator;
     }
