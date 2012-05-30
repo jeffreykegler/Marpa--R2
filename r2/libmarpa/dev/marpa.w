@@ -9727,34 +9727,17 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
 }
 
 @*0 Leo or-nodes.
-@<Add Leo or-nodes for |work_earley_item| and |work_aex|@> = {
-  SRCL source_link = NULL;
-  EIM cause_earley_item = NULL;
-  LIM leo_predecessor = NULL;
-  switch (Source_Type_of_EIM(work_earley_item))
+@<Add Leo or-nodes for |work_earley_item| and |work_aex|@> =
+{
+  SRCL source_link;
+  for (source_link = First_Leo_SRCL_of_EIM (work_earley_item);
+       source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-    case SOURCE_IS_LEO:
-      leo_predecessor = Predecessor_of_EIM (work_earley_item);
-      cause_earley_item = Cause_of_EIM (work_earley_item);
-      break;
-    case SOURCE_IS_AMBIGUOUS:
-      source_link = LV_First_Leo_SRCL_of_EIM (work_earley_item);
-      if (source_link)
-	{
-	  leo_predecessor = Predecessor_of_SRCL (source_link);
-	  cause_earley_item = Cause_of_SRCL (source_link);
-	  source_link = Next_SRCL_of_SRCL (source_link);
-	}
-      break;
-    }
-    if (leo_predecessor) {
-	for (;;) { /* for each Leo source link */
-	    @<Add or-nodes for chain starting with |leo_predecessor|@>@;
-	    if (!source_link) break;
-	    leo_predecessor = Predecessor_of_SRCL (source_link);
-	    cause_earley_item = Cause_of_SRCL (source_link);
-	    source_link = Next_SRCL_of_SRCL (source_link);
-	}
+      EIM cause_earley_item = Cause_of_SRCL (source_link);
+      LIM leo_predecessor = Predecessor_of_SRCL (source_link);
+      if (leo_predecessor) {
+	@<Add or-nodes for chain starting with |leo_predecessor|@>@;
+      }
     }
 }
 
