@@ -7181,10 +7181,14 @@ union u_source_container {
 @d Leo_Transition_ISYID_of_SRCL(leo_source_link)
     Postdot_ISYID_of_LIM((LIM)Predecessor_of_SRCL(leo_source_link))
 
-@
-@d First_Completion_Link_of_EIM(item) ((item)->t_container.t_ambiguous.t_completion)
-@d First_Token_Link_of_EIM(item) ((item)->t_container.t_ambiguous.t_token)
-@d First_Leo_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_leo)
+@ Macros for setting and finding the first |SRCL|'s of each type.
+@d LV_First_Completion_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_completion)
+@d LV_First_Token_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_token)
+@d LV_First_Leo_SRCL_of_EIM(item) ((item)->t_container.t_ambiguous.t_leo)
+@d First_Leo_SRCL_of_EIM(item) ( 
+  Source_Type_of_EIM(item) == SOURCE_IS_LEO ? SRCL_of_EIM(item) :
+  Source_Type_of_EIM(item) == SOURCE_IS_AMBIGUOUS ? 
+    LV_First_Leo_SRCL_of_EIM(item) : NULL)
 
 @ @<Function definitions@> = PRIVATE
 void
@@ -7209,10 +7213,10 @@ token_link_add (RECCE r,
       earley_item_ambiguate (r, item);
     }
   new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
-  new_link->t_next = First_Token_Link_of_EIM (item);
+  new_link->t_next = LV_First_Token_SRCL_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   TOK_of_Source(new_link->t_source) = token;
-  First_Token_Link_of_EIM (item) = new_link;
+  LV_First_Token_SRCL_of_EIM (item) = new_link;
 }
 
 @
@@ -7288,10 +7292,10 @@ completion_link_add (RECCE r,
       earley_item_ambiguate (r, item);
     }
   new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
-  new_link->t_next = First_Completion_Link_of_EIM (item);
+  new_link->t_next = LV_First_Completion_SRCL_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
-  First_Completion_Link_of_EIM (item) = new_link;
+  LV_First_Completion_SRCL_of_EIM (item) = new_link;
 }
 
 @ @<Function definitions@> =
@@ -7317,10 +7321,10 @@ leo_link_add (RECCE r,
       earley_item_ambiguate (r, item);
     }
   new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
-  new_link->t_next = First_Leo_SRCL_of_EIM (item);
+  new_link->t_next = LV_First_Leo_SRCL_of_EIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
-  First_Leo_SRCL_of_EIM(item) = new_link;
+  LV_First_Leo_SRCL_of_EIM(item) = new_link;
 }
 
 @ {\bf Convert an Earley item to an ambiguous one.}
@@ -7363,25 +7367,25 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
 @ @<Ambiguate token source@> = {
   SRCL new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
   *new_link = *SRCL_of_EIM(item);
-  First_Leo_SRCL_of_EIM (item) = NULL;
-  First_Completion_Link_of_EIM (item) = NULL;
-  First_Token_Link_of_EIM (item) = new_link;
+  LV_First_Leo_SRCL_of_EIM (item) = NULL;
+  LV_First_Completion_SRCL_of_EIM (item) = NULL;
+  LV_First_Token_SRCL_of_EIM (item) = new_link;
 }
 
 @ @<Ambiguate completion source@> = {
   SRCL new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
   *new_link = *SRCL_of_EIM(item);
-  First_Leo_SRCL_of_EIM (item) = NULL;
-  First_Completion_Link_of_EIM (item) = new_link;
-  First_Token_Link_of_EIM (item) = NULL;
+  LV_First_Leo_SRCL_of_EIM (item) = NULL;
+  LV_First_Completion_SRCL_of_EIM (item) = new_link;
+  LV_First_Token_SRCL_of_EIM (item) = NULL;
 }
 
 @ @<Ambiguate Leo source@> = {
   SRCL new_link = my_obstack_alloc (r->t_obs, sizeof (*new_link));
   *new_link = *SRCL_of_EIM(item);
-  First_Leo_SRCL_of_EIM (item) = new_link;
-  First_Completion_Link_of_EIM (item) = NULL;
-  First_Token_Link_of_EIM (item) = NULL;
+  LV_First_Leo_SRCL_of_EIM (item) = new_link;
+  LV_First_Completion_SRCL_of_EIM (item) = NULL;
+  LV_First_Token_SRCL_of_EIM (item) = NULL;
 }
 
 @*0 Trace functions.
@@ -7425,7 +7429,7 @@ Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
 	return ISYID_of_SRCL (source_link);
       case SOURCE_IS_AMBIGUOUS:
 	{
-	  source_link = First_Token_Link_of_EIM (item);
+	  source_link = LV_First_Token_SRCL_of_EIM (item);
 	  if (source_link)
 	    {
 	      r->t_trace_source_type = SOURCE_IS_TOKEN;
@@ -7495,7 +7499,7 @@ Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
 	return Cause_AHFAID_of_SRCL (source_link);
       case SOURCE_IS_AMBIGUOUS:
 	{
-	  source_link = First_Completion_Link_of_EIM (item);
+	  source_link = LV_First_Completion_SRCL_of_EIM (item);
 	  if (source_link)
 	    {
 	      r->t_trace_source_type = SOURCE_IS_COMPLETION;
@@ -7566,7 +7570,7 @@ _marpa_r_first_leo_link_trace (Marpa_Recognizer r)
 	  return Cause_AHFAID_of_SRCL (source_link);
 	case SOURCE_IS_AMBIGUOUS:
 	  {
-	    source_link = First_Leo_SRCL_of_EIM (item);
+	    source_link = LV_First_Leo_SRCL_of_EIM (item);
 	    if (source_link)
 	      {
 		r->t_trace_source_type = SOURCE_IS_LEO;
@@ -9246,7 +9250,7 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
       predecessor_earley_item = Predecessor_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Token_Link_of_EIM (parent_earley_item);
+      source_link = LV_First_Token_SRCL_of_EIM (parent_earley_item);
       if (source_link)
 	{
 	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
@@ -9307,7 +9311,7 @@ no other descendants.
       cause_earley_item = Cause_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Completion_Link_of_EIM (parent_earley_item);
+      source_link = LV_First_Completion_SRCL_of_EIM (parent_earley_item);
       if (source_link)
 	{
 	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
@@ -9365,7 +9369,7 @@ no other descendants.
       cause_earley_item = Cause_of_EIM (parent_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_SRCL_of_EIM (parent_earley_item);
+      source_link = LV_First_Leo_SRCL_of_EIM (parent_earley_item);
       if (source_link)
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
@@ -9762,7 +9766,7 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
       cause_earley_item = Cause_of_EIM (work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_SRCL_of_EIM (work_earley_item);
+      source_link = LV_First_Leo_SRCL_of_EIM (work_earley_item);
       if (source_link)
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
@@ -10033,7 +10037,7 @@ predecessor.  Set |or_node| to 0 if there is none.
       cause_earley_item = Cause_of_EIM (work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Leo_SRCL_of_EIM (work_earley_item);
+      source_link = LV_First_Leo_SRCL_of_EIM (work_earley_item);
       if (source_link)
 	{
 	  leo_predecessor = Predecessor_of_SRCL (source_link);
@@ -10159,7 +10163,7 @@ predecessor.  Set |or_node| to 0 if there is none.
       token = TOK_of_EIM(work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Token_Link_of_EIM (work_earley_item);
+      source_link = LV_First_Token_SRCL_of_EIM (work_earley_item);
       if (source_link)
 	{
 	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
@@ -10209,7 +10213,7 @@ predecessor.  Set |or_node| to 0 if there is none.
       cause_earley_item = Cause_of_EIM (work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
-      source_link = First_Completion_Link_of_EIM (work_earley_item);
+      source_link = LV_First_Completion_SRCL_of_EIM (work_earley_item);
       if (source_link)
 	{
 	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
