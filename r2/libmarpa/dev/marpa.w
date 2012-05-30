@@ -7556,29 +7556,16 @@ _marpa_r_first_leo_link_trace (Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
   SRCL source_link;
-  unsigned int source_type;
   EIM item = r->t_trace_earley_item;
   @<Unpack recognizer objects@>@;
   @<Fail if not trace-safe@>@;
   @<Set |item|, failing if necessary@>@;
-  switch ((source_type = Source_Type_of_EIM (item)))
-	{
-	case SOURCE_IS_LEO:
-	  r->t_trace_source_type = SOURCE_IS_LEO;
-	  source_link = SRCL_of_EIM(item);
-	  r->t_trace_source_link = source_link;
-	  return Cause_AHFAID_of_SRCL (source_link);
-	case SOURCE_IS_AMBIGUOUS:
-	  {
-	    source_link = LV_First_Leo_SRCL_of_EIM (item);
-	    if (source_link)
-	      {
-		r->t_trace_source_type = SOURCE_IS_LEO;
-		r->t_trace_source_link = source_link;
-		return Cause_AHFAID_of_SRCL (source_link);
-	      }
-	  }
-	}
+  source_link = First_Leo_SRCL_of_EIM(item);
+  if (source_link) {
+      r->t_trace_source_type = SOURCE_IS_LEO;
+      r->t_trace_source_link = source_link;
+      return Cause_AHFAID_of_SRCL (source_link);
+  }
   trace_source_link_clear (r);
   return -1;
 }
