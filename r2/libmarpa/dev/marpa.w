@@ -9733,7 +9733,6 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
   for (source_link = First_Leo_SRCL_of_EIM (work_earley_item);
        source_link; source_link = Next_SRCL_of_SRCL (source_link))
     {
-      EIM cause_earley_item = Cause_of_SRCL (source_link);
       LIM leo_predecessor = Predecessor_of_SRCL (source_link);
       if (leo_predecessor) {
 	@<Add or-nodes for chain starting with |leo_predecessor|@>@;
@@ -10004,8 +10003,6 @@ predecessor.  Set |or_node| to 0 if there is none.
     IRL previous_path_irl;
     LIM path_leo_item = leo_predecessor;
     LIM higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
-    /* A boolean to indicate whether is true is there is some
-       section of a non-trivial path left unprocessed. */
     OR dand_predecessor;
     OR path_or_node;
     EIM base_earley_item;
@@ -10546,26 +10543,44 @@ int marpa_r_progress_report_start(
 	 earley_item_id++)
       {
 	const int initial_phase = 1;
-	const int eim_is_finished = 2;
+	const int leo_source_link_phase = 2;
+	const int leo_path_item_phase = 3;
 	int next_phase = initial_phase;
+	SRCL leo_source_link = NULL;
 	ESID report_origin;
 	AHFA report_AHFA_state;
 	const EIM earley_item = earley_items[earley_item_id];
-	while (1) {
-	  const int phase = next_phase;
-	  while (1)
-	    { // this pseudo-loop finds the next AHFA state to report
-	      if (phase == initial_phase)
-		{
-		  report_origin = Origin_Ord_of_EIM (earley_item);
-		  report_AHFA_state = AHFA_of_EIM (earley_item);
-		  next_phase = eim_is_finished;
-		  break;
+	while (1)
+	  {
+	    const int phase = next_phase;
+	    while (1)
+	      {				// this pseudo-loop finds the next AHFA state to report
+		if (phase == initial_phase)
+		  {
+		    report_origin = Origin_Ord_of_EIM (earley_item);
+		    report_AHFA_state = AHFA_of_EIM (earley_item);
+		    next_phase = leo_source_link_phase;
+		    goto INSERT_ITEMS_INTO_TREE;
+		  }
+		if (phase == leo_source_link_phase)
+		  {
+		    leo_source_link = leo_source_link ?
+		      Next_SRCL_of_SRCL (leo_source_link) :
+		      First_Leo_SRCL_of_EIM (earley_item) ;
+		    if (!leo_source_link)
+		      goto NEXT_EIM;	// we are finished if there are no Leo links
+		    next_phase = leo_path_item_phase;
+		    goto NEXT_PHASE;
 		}
-	      goto NEXT_EIM;		// happens only if |phase == eim_is_finished|
+	      if (phase == leo_path_item_phase)
+		{
+		  next_phase = leo_source_link_phase;
+		  goto NEXT_PHASE;
+		}
+	    NEXT_PHASE:;
 	    }
-	  @<Insert items into tree for |report_AHFA_state|
-	  and |report_origin|@>@;
+	    INSERT_ITEMS_INTO_TREE:
+	  @<Insert items into tree for |report_AHFA_state| and |report_origin|@>@;
 	}
       }
       NEXT_EIM: ;
