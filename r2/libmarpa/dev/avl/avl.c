@@ -32,16 +32,19 @@
 #include "marpa_util.h"
 #include "avl.h"
 
+const int minimum_alignment =
+  MAX ((int) alignof (struct avl_node), alignof (struct avl_traverser));
+
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|
    and memory allocator |allocator|.
    Returns |NULL| if memory allocation failed. */
 AVL_TREE 
 _marpa_avl_create (avl_comparison_func *compare, void *param,
-            int minimum_alignment)
+            int requested_alignment)
 {
   AVL_TREE tree;
-  int alignment = MAX(minimum_alignment, (int)alignof(struct avl_node));
+  const int alignment = MAX(minimum_alignment, requested_alignment);
   struct obstack *avl_obstack = my_obstack_begin(0, alignment);
 
   assert (compare != NULL);
@@ -422,32 +425,28 @@ trav_refresh (struct avl_traverser *trav)
     }
 }
 
-/* Initializes |trav| for use with |tree|
-   and selects the null node. */
-void
-_marpa_avl_t_init (struct avl_traverser *trav, AVL_TREE tree)
+static inline AVL_TRAV avl_t_init (AVL_TREE tree)
 {
+  const AVL_TRAV trav
+    = my_obstack_new (AVL_OBSTACK (tree), struct avl_traverser, 1);
   trav->avl_table = tree;
   trav->avl_node = NULL;
   trav->avl_height = 0;
   trav->avl_generation = tree->avl_generation;
+  return trav;
 }
 
-/* Initializes |trav| for |tree|
-   and selects and returns a pointer to its least-valued item.
-   Returns |NULL| if |tree| contains no nodes. */
-void *
-_marpa_avl_t_first (struct avl_traverser *trav, AVL_TREE tree)
+/* Initializes |trav| for use with |tree|
+   and selects the null node. */
+struct avl_traverser *
+_marpa_avl_t_init (AVL_TREE tree)
 {
-  struct avl_node *x;
+  return avl_t_init(tree);
+}
 
-  assert (tree != NULL && trav != NULL);
-
-  trav->avl_table = tree;
-  trav->avl_height = 0;
-  trav->avl_generation = tree->avl_generation;
-
-  x = tree->avl_root;
+static inline void select_first(AVL_TRAV trav) {
+  const AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  struct avl_node * x = tree->avl_root;
   if (x != NULL)
     while (x->avl_link[0] != NULL)
       {
@@ -456,8 +455,17 @@ _marpa_avl_t_first (struct avl_traverser *trav, AVL_TREE tree)
         x = x->avl_link[0];
       }
   trav->avl_node = x;
+}
 
-  return x != NULL ? x->avl_data : NULL;
+/* Initializes |trav| for |tree|
+   and selects and returns a pointer to its least-valued item.
+   Returns |NULL| if |tree| contains no nodes. */
+struct avl_traverser *
+_marpa_avl_t_first (AVL_TREE tree)
+{
+  const AVL_TRAV trav = avl_t_init(tree);
+  select_first(trav);
+  return trav;
 }
 
 /* Initializes |trav| for |tree|
@@ -524,37 +532,6 @@ _marpa_avl_t_find (struct avl_traverser *trav, AVL_TREE tree, void *item)
   return NULL;
 }
 
-/* Attempts to insert |item| into |tree|.
-   If |item| is inserted successfully, it is returned and |trav| is
-   initialized to its location.
-   If a duplicate is found, it is returned and |trav| is initialized to
-   its location.  No replacement of the item occurs.
-   If a memory allocation failure occurs, |NULL| is returned and |trav|
-   is initialized to the null item. */
-void *
-_marpa_avl_t_insert (struct avl_traverser *trav, AVL_TREE tree, void *item)
-{
-  void **p;
-
-  assert (trav != NULL && tree != NULL && item != NULL);
-
-  p = _marpa_avl_probe (tree, item);
-  if (p != NULL)
-    {
-      trav->avl_table = tree;
-      trav->avl_node =
-        ((struct avl_node *)
-         ((char *) p - offsetof (struct avl_node, avl_data)));
-      trav->avl_generation = tree->avl_generation - 1;
-      return *p;
-    }
-  else
-    {
-      _marpa_avl_t_init (trav, tree);
-      return NULL;
-    }
-}
-
 /* Initializes |trav| to have the same current node as |src|. */
 void *
 _marpa_avl_t_copy (struct avl_traverser *trav, const struct avl_traverser *src)
@@ -593,7 +570,8 @@ _marpa_avl_t_next (struct avl_traverser *trav)
   x = trav->avl_node;
   if (x == NULL)
     {
-      return _marpa_avl_t_first (trav, trav->avl_table);
+      select_first(trav);
+      return DATA_of_AVL_TRAV(trav);
     }
   else if (x->avl_link[1] != NULL)
     {

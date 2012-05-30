@@ -2738,17 +2738,17 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	}
     }
   {
-    struct avl_traverser traverser;
+    AVL_TRAV traverser;
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     RULEID *const rule_data_base =
       my_obstack_new (obs_precompute, RULEID, External_Size_of_G (g));
     RULEID *p_rule_data = rule_data_base;
-    _marpa_avl_t_init (&traverser, rhs_avl_tree);
+    traverser = _marpa_avl_t_first (rhs_avl_tree);
     /* One extra "symbol" as an end marker */
     xrl_list_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, pre_census_xsy_count + 1);
-    for (pair = (struct sym_rule_pair*)_marpa_avl_t_first (&traverser, rhs_avl_tree); pair;
-	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (&traverser))
+    for (pair = DATA_of_AVL_TRAV(traverser); pair;
+	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (traverser))
       {
 	const SYMID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
@@ -2761,19 +2761,18 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   }
 
   {
-    struct avl_traverser traverser;
+    AVL_TRAV traverser;
     struct sym_rule_pair *pair;
     SYMID seen_symid = -1;
     RULEID *const rule_data_base =
       my_obstack_new (obs_precompute, RULEID, xrl_count);
     RULEID *p_rule_data = rule_data_base;
-    _marpa_avl_t_init (&traverser, lhs_avl_tree);
+    traverser = _marpa_avl_t_first (lhs_avl_tree);
     /* One extra "symbol" as an end marker */
     xrl_list_x_lh_sym =
       my_obstack_new (obs_precompute, RULEID *, pre_census_xsy_count + 1);
-    for (pair =
-	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser, lhs_avl_tree);
-	 pair; pair = (struct sym_rule_pair *) _marpa_avl_t_next (&traverser))
+    for (pair = DATA_of_AVL_TRAV(traverser);
+	 pair; pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
       {
 	const SYMID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
@@ -5044,20 +5043,18 @@ of minimum sizes.
       p_sym_rule_pairs++;
     }
   {
-    struct avl_traverser traverser;
+    AVL_TRAV traverser;
     struct sym_rule_pair *pair;
     ISYID seen_isyid = -1;
     IRLID *const rule_data_base =
       my_obstack_new (obs_precompute, IRLID, irl_count);
     IRLID *p_rule_data = rule_data_base;
-    _marpa_avl_t_init (&traverser, lhs_avl_tree);
+    traverser = _marpa_avl_t_first (lhs_avl_tree);
     /* One extra "symbol" as an end marker */
     irl_list_x_lh_isy =
       my_obstack_new (obs_precompute, IRLID *, isy_count + 1);
-    for (pair =
-	 (struct sym_rule_pair *) _marpa_avl_t_first (&traverser,
-						      lhs_avl_tree); pair;
-	 pair = (struct sym_rule_pair *) _marpa_avl_t_next (&traverser))
+    for (pair = DATA_of_AVL_TRAV(traverser); pair;
+	 pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
       {
 	const ISYID current_isyid = pair->t_symid;
 	while (seen_isyid < current_isyid)
@@ -10461,14 +10458,16 @@ PRIVATE TOK and_node_token(AND and_node)
    typedef struct s_report_item* REPORT;
 @ @<Widely aligned recognizer elements@> =
    const struct s_report_item* t_current_report_item;
-   AVL_TREE t_progress_report_tree;
+   AVL_TRAV t_progress_report_traverser;
 @ @<Initialize recognizer elements@> =
    r->t_current_report_item = &progress_report_not_ready;
-   r->t_progress_report_tree = NULL;
+   r->t_progress_report_traverser = NULL;
 @ @<Clear progress report in |r|@> =
    r->t_current_report_item = &progress_report_not_ready;
-    _marpa_avl_destroy ( r->t_progress_report_tree );
-   r->t_progress_report_tree = NULL;
+    if (r->t_progress_report_traverser) {
+    _marpa_avl_destroy ( TREE_of_AVL_TRAV(r->t_progress_report_traverser) );
+    }
+   r->t_progress_report_traverser = NULL;
 @ @<Destroy recognizer elements@> =
    @<Clear progress report in |r|@>;
 @
@@ -10537,7 +10536,7 @@ int marpa_r_progress_report_start(
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
   {
-    const AVL_TREE report_tree = r->t_progress_report_tree =
+    const AVL_TREE report_tree =
       _marpa_avl_create (report_item_cmp, NULL, alignof (REPORT));
     const EIM *const earley_items = EIMs_of_ES (earley_set);
     const int earley_item_count = EIM_Count_of_ES (earley_set);
@@ -10547,8 +10546,9 @@ int marpa_r_progress_report_start(
       {
 	@<Do the progress report for |earley_item|@>@;
       }
+    r->t_progress_report_traverser = _marpa_avl_t_first(report_tree);
+    return marpa_avl_count (report_tree);
   }
-  return marpa_avl_count (r->t_progress_report_tree);
 }
 
 @ @<Do the progress report for |earley_item|@> =
