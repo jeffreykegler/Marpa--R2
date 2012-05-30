@@ -10467,6 +10467,7 @@ PRIVATE TOK and_node_token(AND and_node)
    r->t_progress_report_tree = NULL;
 @ @<Clear progress report in |r|@> =
    r->t_current_report_item = &progress_report_not_ready;
+    _marpa_avl_destroy ( r->t_progress_report_tree );
    r->t_progress_report_tree = NULL;
 @ @<Destroy recognizer elements@> =
    @<Clear progress report in |r|@>;
