@@ -10564,9 +10564,9 @@ int marpa_r_progress_report_start(
     {
       ESID report_origin;
       AHFA report_AHFA_state;
-      const int phase = next_phase;
       while (1)
 	{			// this loop finds the next AHFA state to report
+	  const int phase = next_phase;
 	  if (phase == initial_phase)
 	    {
 	      report_origin = Origin_Ord_of_EIM (earley_item);
