@@ -492,7 +492,7 @@ sub Marpa::R2::Recognizer::show_progress {
 	{
 	  my $report_item_count = $recce_c->progress_report_start($current_ordinal);
 	  while ($report_item_count--) {
-	    my ($rule, $position, $origin) = $recce_c->progress_report_item();
+	    my ($rule, $position, $origin) = $recce_c->progress_item();
 	  }
 	  $recce_c->progress_report_finish();
 	}
