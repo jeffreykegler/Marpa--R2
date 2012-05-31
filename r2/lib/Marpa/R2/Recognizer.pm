@@ -488,27 +488,13 @@ sub Marpa::R2::Recognizer::show_progress {
         my $current_earleme     = $recce_c->earleme($current_ordinal);
         my %by_rule_by_position = ();
 
-	# For when I convert
-	{
-	  my $report_item_count = $recce_c->progress_report_start($current_ordinal);
-	  while ($report_item_count--) {
-	    my ($rule, $position, $origin) = $recce_c->progress_item();
-	  }
-	  $recce_c->progress_report_finish();
+	my $report_item_count = $recce_c->progress_report_start($current_ordinal);
+	while ( $report_item_count-- ) {
+	    my ( $rule_id, $position, $origin ) = $recce_c->progress_item();
+	    if ($position < 0) { $position = $grammar_c->rule_length($rule_id); }
+	    $by_rule_by_position{$rule_id}->{$position}->{$origin}++;
 	}
 
-        my $reports             = report_progress( $recce, $current_ordinal );
-
-        for my $report ( @{$reports} ) {
-            my $rule_id =
-                $report->[Marpa::R2::Internal::Progress_Report::RULE_ID];
-            my $position =
-                $report->[Marpa::R2::Internal::Progress_Report::POSITION];
-            my $origin =
-                $report->[Marpa::R2::Internal::Progress_Report::ORIGIN];
-
-            $by_rule_by_position{$rule_id}->{$position}->{$origin}++;
-        } ## end for my $report ( @{$reports} )
         for my $rule_id ( sort { $a <=> $b } keys %by_rule_by_position ) {
             my $by_position = $by_rule_by_position{$rule_id};
             for my $position ( sort { $a <=> $b } keys %{$by_position} ) {
@@ -544,6 +530,9 @@ sub Marpa::R2::Recognizer::show_progress {
                 $text .= $item_text . "\n";
             } ## end for my $position ( sort { $a <=> $b } keys %{...})
         } ## end for my $rule_id ( sort { $a <=> $b } keys ...)
+
+	$recce_c->progress_report_finish();
+
     } ## end for my $current_ordinal ( $start_ordinal .. $end_ordinal)
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_progress
