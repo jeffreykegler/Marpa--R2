@@ -10558,7 +10558,7 @@ int marpa_r_progress_report_start(
   const int leo_path_item_phase = 3;
   int next_phase = initial_phase;
   SRCL leo_source_link = NULL;
-  LIM leo_item = NULL;
+  LIM next_leo_item = NULL;
   const EIM earley_item = earley_items[earley_item_id];
   while (1)
     {
@@ -10581,8 +10581,7 @@ int marpa_r_progress_report_start(
 		First_Leo_SRCL_of_EIM (earley_item);
 	      if (leo_source_link)
 		{
-		  /* The first leo item is already expanded, so it is skipped */
-		  leo_item = LIM_of_SRCL (leo_source_link);
+		  next_leo_item = LIM_of_SRCL (leo_source_link);
 		  next_phase = leo_path_item_phase;
 		  goto NEXT_PHASE;
 		}
@@ -10592,20 +10591,21 @@ int marpa_r_progress_report_start(
 	    }
 	  if (phase == leo_path_item_phase)
 	    {
-	      leo_item = Predecessor_LIM_of_LIM (leo_item);
-	      if (leo_item)
+	      const LIM leo_item = next_leo_item;
+	      if (!leo_item)
 		{
-		  const EIM base_earley_item = Base_EIM_of_LIM (leo_item);
-		  const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
-		  report_origin = Ord_of_ES (ES_of_LIM (leo_item));
-		  report_AHFA_state =
-		    To_AHFA_of_EIM_by_ISYID (base_earley_item, postdot_isyid);
-		  goto INSERT_ITEMS_INTO_TREE;
+		  next_phase = leo_source_link_phase;
+		  goto NEXT_PHASE;
 		}
-	      // If no more Leo items in this path,
-	      // look for the nex Leo source link
-	      next_phase = leo_source_link_phase;
-	      goto NEXT_PHASE;
+	      {
+		const EIM base_earley_item = Base_EIM_of_LIM (leo_item);
+		const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
+		report_origin = Ord_of_ES (ES_of_LIM (leo_item));
+		report_AHFA_state =
+		  To_AHFA_of_EIM_by_ISYID (base_earley_item, postdot_isyid);
+		next_leo_item = Predecessor_LIM_of_LIM (leo_item);
+		goto INSERT_ITEMS_INTO_TREE;
+	      }
 	    }
 	NEXT_PHASE:;
 	}
