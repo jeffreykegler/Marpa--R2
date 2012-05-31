@@ -95,13 +95,14 @@ void *_marpa_avl_assert_delete (AVL_TREE , void *);
 
 /* Table traverser functions. */
 AVL_TRAV _marpa_avl_t_init (AVL_TREE );
-AVL_TRAV _marpa_avl_t_first (AVL_TREE );
-void *_marpa_avl_t_last (struct avl_traverser *, AVL_TREE );
-void *_marpa_avl_t_find (struct avl_traverser *, AVL_TREE , void *);
+void *_marpa_avl_t_first (AVL_TRAV );
+void *_marpa_avl_t_last ( AVL_TRAV );
+void *_marpa_avl_t_find ( AVL_TRAV , void *);
 void *_marpa_avl_t_copy (struct avl_traverser *, const struct avl_traverser *);
-void *_marpa_avl_t_next (struct avl_traverser *);
-void *_marpa_avl_t_prev (struct avl_traverser *);
-void *_marpa_avl_t_cur (struct avl_traverser *);
-void *_marpa_avl_t_replace (struct avl_traverser *, void *);
+void *_marpa_avl_t_next (AVL_TRAV);
+void *_marpa_avl_t_prev (AVL_TRAV);
+void *_marpa_avl_t_cur (AVL_TRAV);
+void *_marpa_avl_t_insert (AVL_TRAV, void *);
+void *_marpa_avl_t_replace (AVL_TRAV, void *);
 
 #endif /* avl.h */

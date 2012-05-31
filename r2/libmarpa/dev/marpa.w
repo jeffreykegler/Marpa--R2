@@ -2744,10 +2744,10 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     RULEID *const rule_data_base =
       my_obstack_new (obs_precompute, RULEID, External_Size_of_G (g));
     RULEID *p_rule_data = rule_data_base;
-    traverser = _marpa_avl_t_first (rhs_avl_tree);
+    traverser = _marpa_avl_t_init (rhs_avl_tree);
     /* One extra "symbol" as an end marker */
     xrl_list_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, pre_census_xsy_count + 1);
-    for (pair = DATA_of_AVL_TRAV(traverser); pair;
+    for (pair = _marpa_avl_t_first (traverser); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (traverser))
       {
 	const SYMID current_symid = pair->t_symid;
@@ -2767,12 +2767,12 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     RULEID *const rule_data_base =
       my_obstack_new (obs_precompute, RULEID, xrl_count);
     RULEID *p_rule_data = rule_data_base;
-    traverser = _marpa_avl_t_first (lhs_avl_tree);
+    traverser = _marpa_avl_t_init (lhs_avl_tree);
     /* One extra "symbol" as an end marker */
     xrl_list_x_lh_sym =
       my_obstack_new (obs_precompute, RULEID *, pre_census_xsy_count + 1);
-    for (pair = DATA_of_AVL_TRAV(traverser);
-	 pair; pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
+    for (pair = _marpa_avl_t_first (traverser); pair;
+	pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
       {
 	const SYMID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
@@ -5049,11 +5049,11 @@ of minimum sizes.
     IRLID *const rule_data_base =
       my_obstack_new (obs_precompute, IRLID, irl_count);
     IRLID *p_rule_data = rule_data_base;
-    traverser = _marpa_avl_t_first (lhs_avl_tree);
+    traverser = _marpa_avl_t_init (lhs_avl_tree);
     /* One extra "symbol" as an end marker */
     irl_list_x_lh_isy =
       my_obstack_new (obs_precompute, IRLID *, isy_count + 1);
-    for (pair = DATA_of_AVL_TRAV(traverser); pair;
+    for (pair = _marpa_avl_t_first (traverser); pair;
 	 pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
       {
 	const ISYID current_isyid = pair->t_symid;
@@ -10546,7 +10546,7 @@ int marpa_r_progress_report_start(
       {
 	@<Do the progress report for |earley_item|@>@;
       }
-    r->t_progress_report_traverser = _marpa_avl_t_first(report_tree);
+    r->t_progress_report_traverser = _marpa_avl_t_init(report_tree);
     return marpa_avl_count (report_tree);
   }
 }
@@ -13987,6 +13987,11 @@ void marpa_debug_level_set( int level )
 }
 
 @ @<Debug macros@> =
+
+#ifndef MARPA_DEBUG
+#define MARPA_DEBUG 0
+#endif
+
 #if MARPA_DEBUG
 
 #undef MARPA_ENABLE_ASSERT
@@ -14012,6 +14017,10 @@ void marpa_debug_level_set( int level )
 #define MARPA_DEBUG4(a, b, c, d) @[@]
 #define MARPA_DEBUG5(a, b, c, d, e) @[@]
 #define MARPA_ASSERT(exp) @[@]
+#endif
+
+#ifndef MARPA_ENABLE_ASSERT
+#define MARPA_ENABLE_ASSERT 0
 #endif
 
 #if MARPA_ENABLE_ASSERT
