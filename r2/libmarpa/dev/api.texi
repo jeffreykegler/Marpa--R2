@@ -1780,9 +1780,16 @@ the report is positioned before the first item.
 To position the report to an item so it can be
 examined,
 call the @var{marpa_r_progress_item} method.
+
+Return value: On success, the number of report items available.
+If @var{set_id} is a non-negative number,
+but a corresponding Earley set does not exist, -1.
+If the recognizer has not been started,
+if @var{set_id} is less than zero,
+or on other hard failure, -2.
 @end deftypefun
 
-@deftypefun void marpa_r_progress_report_finish ( @
+@deftypefun int marpa_r_progress_report_finish ( @
   Marpa_Recognizer @var{r} )
 Destroys the report of the progress at Earley set @var{set_id}
 for recognizer @var{r},
@@ -1791,9 +1798,13 @@ It is often not necessary to call this method.
 Progress reports are destroyed automatically
 whenever a new progress report is started,
 and when the recognizer is destroyed.
+
+Return value: -2 if no progress report has been started,
+or on other hard failure.
+On success, a non-negative value.
 @end deftypefun
 
-@deftypefun int marpa_r_progress_item ( @
+@deftypefun Marpa_Rule_ID marpa_r_progress_item ( @
   Marpa_Recognizer @var{r} )
 For a newly initialized progress report,
 advance to the first item, if there is one.
@@ -1802,6 +1813,11 @@ advance to the next one.
 Report items are examined using the report item
 accessors.
 @xref{Report item accessors}.
+
+Return value: On success, the ID of the rule in the report item.
+If there are no more report items, -1.
+If no progress report has been started,
+or on other hard failure, -2.
 @end deftypefun
 
 @menu
@@ -2691,6 +2707,16 @@ Almost all changes to a grammar invalidate
 the precomputations.
 Suggested message: "This grammar is precomputed."
 @end deftypevr
+
+@deftypevr Macro int MARPA_ERR_PROGRESS_REPORT_NOT_STARTED
+No recognizer progress report is currently active,
+and an action has been attempted which
+is inconsistent with that.
+One such action would be a
+@code{marpa_r_progress_item()} call.
+Suggested message: "No progress report has been started."
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_RECCE_NOT_STARTED

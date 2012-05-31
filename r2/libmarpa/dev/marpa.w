@@ -10471,7 +10471,7 @@ PRIVATE TOK and_node_token(AND and_node)
 @ @<Destroy recognizer elements@> =
    @<Clear progress report in |r|@>;
 @
-@d Rule_of_REPORT(report) ((report)->t_rule_id)
+@d RULEID_of_REPORT(report) ((report)->t_rule_id)
 @d Position_of_REPORT(report) ((report)->t_position)
 @d Origin_of_REPORT(report) ((report)->t_origin)
 @<Private structures@> =
@@ -10489,7 +10489,7 @@ static const struct s_report_item progress_report_not_ready = { -2, -2, -2 };
 
 @ @<Public defines@> =
 #define marpa_r_report_rule(v) \
-    Rule_of_REPORT((r)->t-current_report_item)
+    RULEID_of_REPORT((r)->t-current_report_item)
 #define marpa_r_report_position(v) \
     Position_of_REPORT((r)->t-current_report_item)
 #define marpa_r_report_origin(v) \
@@ -10505,8 +10505,8 @@ PRIVATE_NOT_INLINE int report_item_cmp (
     const struct s_report_item* const report_b = bp;
     if (Position_of_REPORT(report_a) > Position_of_REPORT(report_b)) return 1;
     if (Position_of_REPORT(report_a) < Position_of_REPORT(report_b)) return -1;
-    if (Rule_of_REPORT(report_a) > Rule_of_REPORT(report_b)) return 1;
-    if (Rule_of_REPORT(report_a) < Rule_of_REPORT(report_b)) return -1;
+    if (RULEID_of_REPORT(report_a) > RULEID_of_REPORT(report_b)) return 1;
+    if (RULEID_of_REPORT(report_a) < RULEID_of_REPORT(report_b)) return -1;
     if (Origin_of_REPORT(report_a) > Origin_of_REPORT(report_b)) return 1;
     if (Origin_of_REPORT(report_a) < Origin_of_REPORT(report_b)) return -1;
     return 0;
@@ -10651,7 +10651,7 @@ NEXT_EARLEY_ITEM:;
 			      1);
 	    Position_of_REPORT (new_report_item) = xrl_position;
 	    Origin_of_REPORT (new_report_item) = report_origin;
-	    Rule_of_REPORT (new_report_item) = ID_of_XRL (source_xrl);
+	    RULEID_of_REPORT (new_report_item) = ID_of_XRL (source_xrl);
 	    _marpa_avl_insert (report_tree, new_report_item);
 	  }
 	}
@@ -10660,17 +10660,43 @@ NEXT_EARLEY_ITEM:;
 }
 
 @ @<Function definitions@> =
-void marpa_r_progress_report_finish(Marpa_Recognizer r) {
+int marpa_r_progress_report_finish(Marpa_Recognizer r) {
+  const int success = 1;
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  const AVL_TRAV traverser = r->t_progress_report_traverser;
+  @<Fail if no |traverser|@>@;
     @<Clear progress report in |r|@>@;
+    return success;
 }
 
 @ @<Function definitions@> =
-int marpa_r_progress_item(Marpa_Recognizer r) {
+Marpa_Rule_ID marpa_r_progress_item(Marpa_Recognizer r) {
   @<Return |-2| on failure@>@;
+  const Marpa_Rule_ID no_more_reports = -1;
+  REPORT report_item;
+  AVL_TRAV traverser;
   @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
-  return 1;
+  traverser = r->t_progress_report_traverser;
+  @<Fail if no |traverser|@>@;
+  report_item = _marpa_avl_t_next(traverser);
+  if (report_item) {
+    r->t_current_report_item = report_item;
+    return RULEID_of_REPORT(report_item);
+  }
+  r->t_current_report_item = &progress_report_not_ready ;
+  return no_more_reports;
+}
+
+@ @<Fail if no |traverser|@> =
+{
+  if (!traverser)
+    {
+      MARPA_ERROR (MARPA_ERR_PROGRESS_REPORT_NOT_STARTED);
+      return failure_indicator;
+    }
 }
 
 @** Parse bocage code (B, BOCAGE).
