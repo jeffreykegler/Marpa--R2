@@ -1804,20 +1804,16 @@ or on other hard failure.
 On success, a non-negative value.
 @end deftypefun
 
-@deftypefun Marpa_Rule_ID marpa_r_progress_item ( @
+@deftypefun Marpa_Progress_Item marpa_r_progress_item ( @
   Marpa_Recognizer @var{r} )
-For a newly initialized progress report,
-advance to the first item, if there is one.
-If the report is currently positioned at an item,
-advance to the next one.
+Returns the successive items of a
+progress report.
 Report items are examined using the report item
 accessors.
 @xref{Report item accessors}.
 
-Return value: On success, the ID of the rule in the report item.
-If there are no more report items, -1.
-If no progress report has been started,
-or on other hard failure, -2.
+Return value: On success, the progress report item.
+On failure, @code{NULL}.
 @end deftypefun
 
 @menu
@@ -1830,24 +1826,22 @@ or on other hard failure, -2.
 The report item accessors are implemented as macros.  They
 return -2 on failure.
 
-@deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
-Return value: Returns the ID of the token
-for the @code{MARPA_STEP_TOKEN} step.
-@end deftypefn
-
-@deftypefn {Macro} Marpa_Rule_ID marpa_r_report_rule (Marpa_Recognizer @var{r})
+@deftypefn {Macro} Marpa_Rule_ID marpa_r_report_rule ( @
+  Marpa_Recognizer @var{progress_item})
 Return value: Returns the ID of the rule
 for the current report item, 
 or -2 if there is no current report item.
 @end deftypefn
 
-@deftypefn {Macro} int marpa_r_report_position (Marpa_Recognizer @var{r})
+@deftypefn {Macro} int marpa_r_report_position (
+  Marpa_Recognizer @var{progress_item})
 Return value: Returns the dot position
 of the current report item, 
 or -2 if there is no current report item.
 @end deftypefn
 
-@deftypefn {Macro} int marpa_r_report_origin (Marpa_Recognizer @var{r})
+@deftypefn {Macro} int marpa_r_report_origin (
+  Marpa_Recognizer @var{progress_item})
 Return value: Returns the Earley set ID of the origin
 of the current report item, 
 or -2 if there is no current report item.

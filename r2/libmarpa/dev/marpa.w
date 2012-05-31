@@ -10454,10 +10454,9 @@ PRIVATE TOK and_node_token(AND and_node)
 
 @** Progress report code.
 @<Private typedefs@> =
-   struct s_report_item;
-   typedef struct s_report_item* REPORT;
+   typedef struct marpa_progress_item* PROGRESS;
 @ @<Widely aligned recognizer elements@> =
-   const struct s_report_item* t_current_report_item;
+   const struct marpa_progress_item* t_current_report_item;
    AVL_TRAV t_progress_report_traverser;
 @ @<Initialize recognizer elements@> =
    r->t_current_report_item = &progress_report_not_ready;
@@ -10470,30 +10469,31 @@ PRIVATE TOK and_node_token(AND and_node)
    r->t_progress_report_traverser = NULL;
 @ @<Destroy recognizer elements@> =
    @<Clear progress report in |r|@>;
-@
-@d RULEID_of_REPORT(report) ((report)->t_rule_id)
-@d Position_of_REPORT(report) ((report)->t_position)
-@d Origin_of_REPORT(report) ((report)->t_origin)
-@<Private structures@> =
-struct s_report_item {
+@ @<Public structures@> =
+struct marpa_progress_item {
     Marpa_Rule_ID t_rule_id;
     int t_position;
     int t_origin;
 };
+typedef const struct marpa_progress_item* Marpa_Progress_Item;
 
 @ A dummy progress report item to allow the macros to
 produce error reports without having to use a ternary,
 and getting into issues of evaluation the argument twice.
 @<Global variables@> =
-static const struct s_report_item progress_report_not_ready = { -2, -2, -2 };
+static const struct marpa_progress_item progress_report_not_ready = { -2, -2, -2 };
 
+@
+@d RULEID_of_PROGRESS(report) ((report)->t_rule_id)
+@d Position_of_PROGRESS(report) ((report)->t_position)
+@d Origin_of_PROGRESS(report) ((report)->t_origin)
 @ @<Public defines@> =
-#define marpa_r_report_rule(v) \
-    RULEID_of_REPORT((r)->t-current_report_item)
-#define marpa_r_report_position(v) \
-    Position_of_REPORT((r)->t-current_report_item)
-#define marpa_r_report_origin(v) \
-    Origin_of_REPORT((r)->t-current_report_item)
+#define marpa_r_progress_item_rule(item) \
+    ((item)->t_rule_id)
+#define marpa_r_progress_item_position(item) \
+    ((item)->t_position)
+#define marpa_r_progress_item_origin(item) \
+    ((item)->t_origin)
 
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int report_item_cmp (
@@ -10501,14 +10501,14 @@ PRIVATE_NOT_INLINE int report_item_cmp (
     const void* bp,
     void *param UNUSED)
 {
-    const struct s_report_item* const report_a = ap;
-    const struct s_report_item* const report_b = bp;
-    if (Position_of_REPORT(report_a) > Position_of_REPORT(report_b)) return 1;
-    if (Position_of_REPORT(report_a) < Position_of_REPORT(report_b)) return -1;
-    if (RULEID_of_REPORT(report_a) > RULEID_of_REPORT(report_b)) return 1;
-    if (RULEID_of_REPORT(report_a) < RULEID_of_REPORT(report_b)) return -1;
-    if (Origin_of_REPORT(report_a) > Origin_of_REPORT(report_b)) return 1;
-    if (Origin_of_REPORT(report_a) < Origin_of_REPORT(report_b)) return -1;
+    const struct marpa_progress_item* const report_a = ap;
+    const struct marpa_progress_item* const report_b = bp;
+    if (Position_of_PROGRESS(report_a) > Position_of_PROGRESS(report_b)) return 1;
+    if (Position_of_PROGRESS(report_a) < Position_of_PROGRESS(report_b)) return -1;
+    if (RULEID_of_PROGRESS(report_a) > RULEID_of_PROGRESS(report_b)) return 1;
+    if (RULEID_of_PROGRESS(report_a) < RULEID_of_PROGRESS(report_b)) return -1;
+    if (Origin_of_PROGRESS(report_a) > Origin_of_PROGRESS(report_b)) return 1;
+    if (Origin_of_PROGRESS(report_a) < Origin_of_PROGRESS(report_b)) return -1;
     return 0;
 }
 
@@ -10537,7 +10537,7 @@ int marpa_r_progress_report_start(
   @<Clear progress report in |r|@>@;
   {
     const AVL_TREE report_tree =
-      _marpa_avl_create (report_item_cmp, NULL, alignof (REPORT));
+      _marpa_avl_create (report_item_cmp, NULL, alignof (PROGRESS));
     const EIM *const earley_items = EIMs_of_ES (earley_set);
     const int earley_item_count = EIM_Count_of_ES (earley_set);
     int earley_item_id;
@@ -10646,12 +10646,12 @@ NEXT_EARLEY_ITEM:;
 		}
 	    }
 	  {
-	    const REPORT new_report_item =
-	      my_obstack_new (AVL_OBSTACK (report_tree), struct s_report_item,
+	    const PROGRESS new_report_item =
+	      my_obstack_new (AVL_OBSTACK (report_tree), struct marpa_progress_item,
 			      1);
-	    Position_of_REPORT (new_report_item) = xrl_position;
-	    Origin_of_REPORT (new_report_item) = report_origin;
-	    RULEID_of_REPORT (new_report_item) = ID_of_XRL (source_xrl);
+	    Position_of_PROGRESS (new_report_item) = xrl_position;
+	    Origin_of_PROGRESS (new_report_item) = report_origin;
+	    RULEID_of_PROGRESS (new_report_item) = ID_of_XRL (source_xrl);
 	    _marpa_avl_insert (report_tree, new_report_item);
 	  }
 	}
@@ -10671,10 +10671,9 @@ int marpa_r_progress_report_finish(Marpa_Recognizer r) {
 }
 
 @ @<Function definitions@> =
-Marpa_Rule_ID marpa_r_progress_item(Marpa_Recognizer r) {
-  @<Return |-2| on failure@>@;
-  const Marpa_Rule_ID no_more_reports = -1;
-  REPORT report_item;
+Marpa_Progress_Item marpa_r_progress_item(Marpa_Recognizer r) {
+  @<Return |NULL| on failure@>@;
+  PROGRESS report_item;
   AVL_TRAV traverser;
   @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
@@ -10684,10 +10683,9 @@ Marpa_Rule_ID marpa_r_progress_item(Marpa_Recognizer r) {
   report_item = _marpa_avl_t_next(traverser);
   if (report_item) {
     r->t_current_report_item = report_item;
-    return RULEID_of_REPORT(report_item);
+    return report_item;
   }
-  r->t_current_report_item = &progress_report_not_ready ;
-  return no_more_reports;
+  return &progress_report_not_ready ;
 }
 
 @ @<Fail if no |traverser|@> =

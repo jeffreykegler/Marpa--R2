@@ -489,7 +489,13 @@ sub Marpa::R2::Recognizer::show_progress {
         my %by_rule_by_position = ();
 
 	# For when I convert
-	my $dummy = $recce_c->progress_report_start($current_ordinal);
+	{
+	  my $report_item_count = $recce_c->progress_report_start($current_ordinal);
+	  while ($report_item_count--) {
+	    my ($rule, $position, $origin) = $recce_c->progress_report_item();
+	  }
+	  $recce_c->progress_report_finish();
+	}
 
         my $reports             = report_progress( $recce, $current_ordinal );
 

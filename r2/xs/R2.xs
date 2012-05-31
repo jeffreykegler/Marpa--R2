@@ -2054,7 +2054,37 @@ PPCODE:
 	int result = marpa_r_progress_report_start(r, ordinal);
 	if (result == -1) { XSRETURN_UNDEF; }
 	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", xs_r_error(r_wrapper));
+	  croak ("Problem in r->progress_report_finish(): %s", xs_r_error(r_wrapper));
+	}
+	XPUSHs( sv_2mortal( newSViv(result) ) );
+    }
+
+void
+progress_item( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+  {
+    struct marpa_r *const r = r_wrapper->r;
+    Marpa_Progress_Item progress_item = marpa_r_progress_item (r);
+    if (!progress_item)
+      {
+	croak ("Problem in r->progress_item(): %s",
+	       xs_r_error (r_wrapper));
+      }
+    XPUSHs (sv_2mortal (newSViv (marpa_r_progress_item_rule (progress_item))));
+    XPUSHs (sv_2mortal (newSViv (marpa_r_progress_item_position (progress_item))));
+    XPUSHs (sv_2mortal (newSViv (marpa_r_progress_item_origin (progress_item))));
+  }
+
+void
+progress_report_finish( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+    { struct marpa_r* const r = r_wrapper->r;
+	int result = marpa_r_progress_report_finish(r);
+	if (result == -1) { XSRETURN_UNDEF; }
+	if (result < 0) {
+	  croak ("Problem in r->progress_report_finish(): %s", xs_r_error(r_wrapper));
 	}
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
