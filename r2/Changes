@@ -15,16 +15,10 @@
 
 Revision history for Marpa::R2
 
-2.003_003
-2.003_002
-2.003_001
-2.003_000
+2.004000
 
-	* A new series of developer's versions.
-	  Version number advanced to coordinate with
-	  Libmarpa.
-
-	* Minor bug fixes
+	* Fix action resolution issue; cleanup
+	  memory allocation.
 
 0.002000
        
