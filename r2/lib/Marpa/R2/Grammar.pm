@@ -68,7 +68,7 @@ BEGIN {
     NAME
     ACTION { action for this rule as specified by user }
     RANK
-    NULL_RANKING
+    NULL_RANKS_HIGH
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -1069,9 +1069,8 @@ sub add_user_rule {
     } ## end if ( defined $rank and ( not Scalar::Util::looks_like_number...))
     $rank //= $default_rank;
 
-    if (    defined $null_ranking
-        and $null_ranking ne 'high'
-        and $null_ranking ne 'low' )
+    $null_ranking //= 'low';
+    if ( $null_ranking ne 'high' and $null_ranking ne 'low' )
     {
         push @rule_problems,
             "Null Ranking must be undefined, 'high' or 'low'\n";
@@ -1141,8 +1140,8 @@ sub add_user_rule {
         action_set( $ordinary_rule_id, $grammar, $action );
         $ordinary_rule->[Marpa::R2::Internal::Rule::RANK] = $rank
             // $default_rank;
-        $ordinary_rule->[Marpa::R2::Internal::Rule::NULL_RANKING] =
-            $null_ranking;
+        $ordinary_rule->[Marpa::R2::Internal::Rule::NULL_RANKS_HIGH] =
+            $null_ranking eq 'high';
         if ( defined $rule_name ) {
             $ordinary_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
             $rules_by_name->{$rule_name} = $ordinary_rule;
@@ -1197,7 +1196,7 @@ sub add_user_rule {
     # semantic equivalents.
     my $original_rule = $rules->[$original_rule_id];
     action_set( $original_rule_id, $grammar, $action );
-    $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKING] = $null_ranking;
+    $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKS_HIGH] = $null_ranking eq 'high';
     $original_rule->[Marpa::R2::Internal::Rule::RANK]         = $rank;
 
     if ( defined $rule_name ) {

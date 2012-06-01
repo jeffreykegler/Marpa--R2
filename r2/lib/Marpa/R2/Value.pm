@@ -949,60 +949,61 @@ sub rank_chaf_rules {
         my $original_rule_id = $grammar_c->_marpa_g_source_xrl($irl_id);
         my $original_rule =
             defined $original_rule_id ? $rules->[$original_rule_id] : undef;
-        my $null_ranking =
+        my $null_ranks_high =
             defined $original_rule
-            ? $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKING]
-            : undef;
+            ? $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKS_HIGH]
+            : 0;
 
-        # If not null ranked, default to highest CHAF rank
-        if ( not $null_ranking ) {
-            $chaf_ranks[$irl_id] = 99;
-            next RULE;
-        }
-
-        # If this rule is marked as null ranked,
-        # but it is not actually a CHAF rule, rank it below
-        # all non-null-ranked rules, but above all rules with CHAF
-        # ranks actually computed from the proper nullables
+        # Default to the rank of a non-nulled rule
+        my $pattern       = 'PP';
         my $virtual_start = $grammar_c->_marpa_g_virtual_start($irl_id);
-        if ( not defined $virtual_start ) {
-            $chaf_ranks[$irl_id] = 98;
-            next RULE;
-        }
 
-        my $original_rule_length = $grammar_c->rule_length($original_rule_id);
+        if ( defined $virtual_start ) {
 
-        my $rank                  = 0;
-        my $proper_nullable_count = 0;
-        RHS_IX:
-        for (
-            my $rhs_ix = $virtual_start;
-            $rhs_ix < $original_rule_length;
-            $rhs_ix++
-            )
-        {
-            my $original_rhs_id =
-                $grammar_c->rule_rhs( $original_rule_id, $rhs_ix );
+            # restart the pattern
+            $pattern = q{};
+            my $original_rule_length =
+                $grammar_c->rule_length($original_rule_id);
 
-            # Do nothing unless this is a proper nullable
-            next RHS_IX if $grammar_c->symbol_is_nulling($original_rhs_id);
-            next RHS_IX
-                if not $grammar_c->symbol_is_nullable($original_rhs_id);
+            my $proper_nullable_count = 0;
+            RHS_IX:
+            for (
+                my $rhs_ix = $virtual_start;
+                $rhs_ix < $original_rule_length;
+                $rhs_ix++
+                )
+            {
+                my $original_rhs_id =
+                    $grammar_c->rule_rhs( $original_rule_id, $rhs_ix );
 
-            my $rhs_id =
-                $grammar_c->_marpa_g_irl_rhs( $irl_id,
-                $rhs_ix - $virtual_start );
-            last RHS_IX if not defined $rhs_id;
-            $rank *= 2;
-            $rank += ( $grammar_c->_marpa_g_isy_is_nulling($rhs_id) ? 0 : 1 );
+                # Do nothing unless this is a proper nullable
+                next RHS_IX
+                    if $grammar_c->symbol_is_nulling($original_rhs_id);
+                next RHS_IX
+                    if not $grammar_c->symbol_is_nullable($original_rhs_id);
 
-            last RHS_IX if ++$proper_nullable_count >= 2;
-        } ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < ...)
+                my $rhs_id =
+                    $grammar_c->_marpa_g_irl_rhs( $irl_id,
+                    $rhs_ix - $virtual_start );
+                last RHS_IX if not defined $rhs_id;
+                $pattern
+                    .= ( $grammar_c->_marpa_g_isy_is_nulling($rhs_id)
+                    ? 'N'
+                    : 'P' );
 
-        if ( $null_ranking eq 'high' ) {
-            $rank = ( 2**$proper_nullable_count - 1 ) - $rank;
-        }
+                last RHS_IX if ++$proper_nullable_count >= 2;
+            } ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < ...)
 
+        } ## end if ( defined $virtual_start )
+
+        # default to the highest rank, that of a non-nulled rule
+        my $rank = 3;
+        $rank = 0 if $pattern eq 'N';
+        $rank = 0 if $pattern eq 'NN';
+        $rank = 1 if $pattern eq 'NP';
+        $rank = 2 if $pattern eq 'PN';
+
+        $rank = 3 - $rank if $null_ranks_high;
         $chaf_ranks[$irl_id] = $rank;
 
     } ## end for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count(...))
