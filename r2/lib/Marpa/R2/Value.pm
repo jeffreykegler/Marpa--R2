@@ -937,6 +937,8 @@ sub Marpa::R2::Recognizer::show_tree {
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_tree
 
+use constant MAXIMUM_CHAF_RANK => 3;
+
 sub rank_chaf_rules {
 
     my ($grammar) = @_;
@@ -997,13 +999,13 @@ sub rank_chaf_rules {
         } ## end if ( defined $virtual_start )
 
         # default to the highest rank, that of a non-nulled rule
-        my $rank = 3;
+        my $rank = MAXIMUM_CHAF_RANK;
         $rank = 0 if $pattern eq 'N';
         $rank = 0 if $pattern eq 'NN';
         $rank = 1 if $pattern eq 'NP';
         $rank = 2 if $pattern eq 'PN';
 
-        $rank = 3 - $rank if $null_ranks_high;
+        $rank = MAXIMUM_CHAF_RANK - $rank if $null_ranks_high;
         $chaf_ranks[$irl_id] = $rank;
 
     } ## end for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count(...))
@@ -1068,7 +1070,7 @@ sub do_high_rule_only {
             my $token = $bocage->_marpa_b_and_node_symbol($and_node);
             if ( defined $token ) {
                 push @ranking_data,
-                    [ $and_node, $rank_by_symbol[$token], 99 ];
+                    [ $and_node, $rank_by_symbol[$token], MAXIMUM_CHAF_RANK ];
                 next AND_NODE;
             }
             my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
@@ -1141,7 +1143,7 @@ sub do_rank_by_rule {
             my $token = $bocage->_marpa_b_and_node_symbol($and_node);
             if ( defined $token ) {
                 push @ranking_data,
-                    [ $and_node, $rank_by_symbol[$token], 99 ];
+                    [ $and_node, $rank_by_symbol[$token], MAXIMUM_CHAF_RANK ];
                 next AND_NODE;
             }
             my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
