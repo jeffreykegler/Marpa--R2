@@ -40,10 +40,21 @@ from the parse series.
 
 When evaluating the parse trees in a parse series,
 Marpa never evaluates the same parse tree twice.
-Marpa considers two parse trees to be the same if they are
-B<semantic duplicates>.
+What this means probably matches the programmer
+intuition of what it should mean.
 
-Two parse trees are semantic duplicates if
+Capturing intuition behind the phrase
+"same parse tree" in a
+careful definition,
+and implementing it in Marpa,
+was far from trivial.
+The more careful definition which occupies
+the rest of this section
+may interest some readers.
+
+Marpa considers two parse trees to be the same if they are
+B<semantic equivalents>.
+Two parse trees are semantic equivalents if
 and only if
 a recursive, top-down evaluation of each
 applies
@@ -53,12 +64,32 @@ at the same earleme locations.
 This definition implies that,
 given any deterministic semantics,
 two parse trees which are
-semantic duplicates
+semantic equivalents
 will always produce the same parse result --
-hence the term "semantic duplicates".
+hence the term.
 When the Marpa documentation refers to duplicate
-parses, it will mean semantic duplicates unless otherwise
+parses, it will mean that the two
+are semantic equivalents, unless otherwise
 stated.
+
+In this document, the term
+B<arbitrary parse order>
+is used to mean an
+arbitrary choice among
+the strict total orders of
+the equivalence classes
+that contain the semantically equivalent parse trees.
+This set of equivalence classes is finite.
+
+Traversal of the parse trees in
+arbitrary parse order
+will be always be well-behaved
+in the sense that no parse tree will be omitted in it,
+except that no two parse trees will be semantic duplicates.
+However, no other property of it is guaranteed.
+For example, the order may
+change each time
+the parse series is traversed.
 
 =head2 Default parse order
 
@@ -70,19 +101,10 @@ repeatedly,
 Marpa can produce all the parse results
 in the current parse series.
 The default is for the parse results to be returned
-in an arbitrary order.
+in an B<arbitrary parse order>.
 This corresponds to the "C<none>" value of
 L<the recognizer's C<ranking_method>|Marpa::R2::Recognizer/"ranking_method">
 named argument.
-
-The "arbitrary parse order" will be well-behaved
-in the sense that no parse tree will be omitted in it,
-and no parse tree will occur in it twice.
-Other than that,
-no property of it is guaranteed.
-For example, the order may
-change each time
-the parse series is traversed.
 
 =head2 Ranking methods
 
@@ -123,7 +145,41 @@ it is possible that several of the choices,
 or all of them, will have the same rank
 as the highest ranked alternative.
 
-=head2 Null ranking
+=head2 Rule ranking
+
+When ranking, the logic descends the parse trees top-down
+and left-to-right.
+Places where there is more than one alternative are
+called B<choice points>.
+Alternatives are ranked (in the C<rule> ranking method)
+or selected
+(in the C<high_rule_only> ranking method),
+by comparing them as follows:
+
+=over
+
+=item * B<Different ranks>:
+If the two alternatives have different rule ranks,
+they must also have different rules.
+The alternative with the higher rule rank
+will rank high.
+
+=item * B<Same Rule>:
+If the two alternatives have the same rule,
+they rank as described
+under L<"Null variant ranking">.
+
+=item * B<Same rank, different rules>:
+Two different rules can have the same rank.
+If the two alternatives are for
+different rules,
+but the two rules have the same rank,
+the relative order of the two alternatives is
+arbitrary.
+
+=back
+
+=head2 Null variant ranking
 
 Some rules have a RHS which contains
 B<proper nullables>:
@@ -154,87 +210,13 @@ with the null preference as indicated by the C<null_ranking>
 named argument.
 Specifically, if the C<null_ranking> is "C<low>",
 then the closer a nulling variant
-places its B<non-null> symbols to the start of the rule,
+places its B<visible> (non-null) symbols to the start of the rule,
 the higher it ranks.
+C<low> null ranking is the default.
 If the C<null_ranking> is "C<high>",
 then the closer a nulling variant
 places its B<null> symbols to the start of the rule,
 the higher it ranks.
-
-A rule is null ranked if and only if its C<null_ranking>
-is defined.
-Note that this definition means that a rule can be considered
-null ranked even if it does not have any nullable symbols.
-A rule which is not null ranked is called non-null-ranked.
-
-Null ranking, in the current implementation,
-is targeted at situations where the alternatives
-are different applications of
-a single rule.
-In situations where the choice is between
-two different rules,
-an application which cares about the order
-will typically want to
-override the null ranking
-using rule ranks.
-A more detailed description of the rule comparison
-logic can be found below.
-
-By default,
-C<null_ranking> is undefined, which means the order
-of the null variants is arbitrary.
-This is fine for most applications.
-
-=head2 Details of ranking
-
-When ranking, the logic descends the parse trees top-down
-and left-to-right.
-Places where there is more than one alternative are
-called B<choice points>.
-Alternatives are ranked (in the C<rule> ranking method)
-or selected
-(in the C<high_rule_only> ranking method),
-by comparing them as follows:
-
-=over
-
-=item *
-If the two alternatives have the same rule,
-and that rule is non-null-ranked,
-the alternatives have equal rank.
-
-=item * If two alternatives are for the same rule,
-and that the rule is null ranked, they rank as described
-under L<"Null ranking">.
-
-=item * If the two alternatives have different rules,
-and the two rules have different rule ranks,
-the alternative with the higher rule rank
-ranks high.
-
-=item * The remaining cases deal with the
-comparison of alternatives which have
-different rules,
-when both rules have the same rule rank.
-
-=over
-
-=item *
-If both rules are non-null-ranked,
-the two alternatives have equal rank.
-
-=item *
-If the rule for one alternative is null ranked,
-while the rule for the other is non-null-ranked,
-the alternative with the non-null-ranked rule ranks high.
-
-=item *
-If both rules are null-ranked, their ranking is arbitrary --
-either one may rank high, or they may have equal rank.
-
-=back
-
-=back
 
 =head2 A general approach to sorting parses
 
