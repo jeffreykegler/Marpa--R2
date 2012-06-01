@@ -171,7 +171,7 @@ sub process_xs {
     my $libmarpa_build_dir = File::Spec->catdir(@libmarpa_build_dir);
     push @xs_dependencies,
         map { File::Spec->catfile( @libmarpa_build_dir, $_ ) }
-        qw(marpa.h codes.h codes.c );
+        qw(config.h marpa.h codes.h codes.c );
 
     if ( not $self->up_to_date( \@xs_dependencies, $spec->{c_file} ) ) {
         $self->verbose() and say "compiling $xs_file";
