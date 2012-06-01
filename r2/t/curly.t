@@ -86,55 +86,45 @@ END_OF_RESULT
     );
 } ## end else [ if ($utility) ]
 
-# This interface requires the user to know a lot about
-# the internals of Marpa::R2.  That's OK in the internal
-# testing context,
-# but if I want to document this interface, it needs to
-# be rethought.
-sub tag_completion {
-    my ( $parser, $and_node_id ) = @_;
-    my $recce = $parser->{recce};
-    die if not defined $recce;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    die if not defined $grammar;
-    my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $parent           = $bocage->_marpa_b_and_node_parent($and_node_id);
-    my $irl_id          = $bocage->_marpa_b_or_node_irl($parent);
-    my $semantic_rule_id = $grammar_c->_marpa_g_irl_semantic_equivalent($irl_id);
-    my $rules            = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $rule             = $rules->[$semantic_rule_id];
-    my $rule_name        = $rule->[Marpa::R2::Internal::Rule::NAME];
-    return if not defined $rule_name;
-    my $blocktype =
-          $rule_name eq 'anon_hash' ? 'hash'
-        : $rule_name eq 'block'     ? 'code'
-        : $rule_name eq 'mblock'    ? 'code'
-        :                             undef;
-    return if not defined $blocktype;
-    my $PPI_tokens       = $parser->{PPI_tokens};
-    my $earleme_to_token = $parser->{earleme_to_PPI_token};
-    my $origin           = $bocage->_marpa_b_or_node_origin($parent);
-    my $origin_earleme   = $recce_c->earleme($origin);
-    my $token    = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
-    my $location = 'line '
-        . $token->logical_line_number()
-        . q{, column }
-        . $token->column_number;
-    $hash{$location}++      if $blocktype eq 'hash';
-    $codeblock{$location}++ if $blocktype eq 'code';
-    return 1;
-} ## end sub tag_completion
-
 my $parser = Marpa::R2::Perl->new( {} );
 
 TEST: for my $test (@tests) {
 
     my ( $string, $expected, $expected_parse_count ) = @{$test};
     $parser = $parser->read( \$string );
-    my @values = $parser->eval();
-    $parser->foreach_completion( \&tag_completion );
+    my @values    = $parser->eval();
+    my $recce     = $parser->{recce};
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    for my $earley_set ( 0 .. $recce_c->latest_earley_set() ) {
+        my $report_item_count = $recce_c->progress_report_start($earley_set);
+        ITEM: while ( $report_item_count-- ) {
+            my ( $rule_id, $position, $origin ) = $recce_c->progress_item();
+            next ITEM if $position >= 0;
+            $position = $grammar_c->rule_length($rule_id);
+            my $origin_earleme = $recce_c->earleme($origin);
+            my $rule           = $rules->[$rule_id];
+            my $rule_name      = $rule->[Marpa::R2::Internal::Rule::NAME];
+            next ITEM if not defined $rule_name;
+            my $blocktype =
+                  $rule_name eq 'anon_hash' ? 'hash'
+                : $rule_name eq 'block'     ? 'code'
+                : $rule_name eq 'mblock'    ? 'code'
+                :                             undef;
+            next ITEM if not defined $blocktype;
+            my $PPI_tokens       = $parser->{PPI_tokens};
+            my $earleme_to_token = $parser->{earleme_to_PPI_token};
+            my $token = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
+            my $location = 'line '
+                . $token->logical_line_number()
+                . q{, column }
+                . $token->column_number;
+            $hash{$location}++      if $blocktype eq 'hash';
+            $codeblock{$location}++ if $blocktype eq 'code';
+        } ## end while ( $report_item_count-- )
+    } ## end for my $earley_set ( 0 .. $recce_c->latest_earley_set...)
     Marpa::R2::Test::is(
         ( scalar @values ),
         $expected_parse_count,

@@ -1277,25 +1277,4 @@ sub Marpa::R2::Perl::default_show_location {
         . $token->column_number();
 } ## end sub Marpa::R2::Perl::default_show_location
 
-sub Marpa::R2::Perl::foreach_completion {
-    my ( $parser, $closure ) = @_;
-    my $recce     = $parser->{recce};
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    AND_NODE: for ( my $id = 0;; $id++ ) {
-        my $parent = $bocage->_marpa_b_and_node_parent($id);
-        last AND_NODE if not defined $parent;
-        my $irl_id  = $bocage->_marpa_b_or_node_irl($parent);
-        next AND_NODE if $grammar_c->_marpa_g_irl_is_virtual_lhs($irl_id);
-        my $position   = $bocage->_marpa_b_or_node_position($parent);
-        my $rhs_length = $grammar_c->_marpa_g_irl_length($irl_id);
-        next AND_NODE if $position != $rhs_length;
-        $closure->( $parser, $id );
-    } ## end for ( my $id = 0;; $id++ )
-    return 1;
-} ## end sub Marpa::R2::Perl::foreach_completion
-
 1;
