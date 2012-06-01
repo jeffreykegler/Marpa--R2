@@ -277,7 +277,9 @@ sub do_libmarpa {
         $shell or die q{No Bourne shell available says $Config{sh}};
 ##use critic
 
-	local $ENV{CFLAGS} = $ENV{CFLAGS};
+	my $original_cflags = $ENV{CFLAGS};
+	local $ENV{CFLAGS};
+	$ENV{CFLAGS} = $original_cflags if defined $original_cflags;
 
         my @configure_command_args = ('--disable-static');
         if ( defined $self->args('marpa-debug') ) {
