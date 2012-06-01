@@ -100,6 +100,8 @@
 @s error normal
 @s PSAR int
 @s PSL int
+@s AVL_TREE int
+@s AVL_TRAV int
 
 @** License.
 \bigskip\noindent
@@ -10638,11 +10640,11 @@ NEXT_EARLEY_ITEM:;
 	      if (IRL_has_Virtual_LHS (irl))
 		{
 		  if (irl_position <= 0) goto NEXT_AIM;
-		  xrl_position = 1;
+		  xrl_position = -1;
 		}
 	      else
 		{
-		  xrl_position = irl_position > 0 ? 1 : 0;
+		  xrl_position = irl_position > 0 ? -1 : 0;
 		}
 	    }
 	  {
