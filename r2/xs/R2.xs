@@ -2065,15 +2065,18 @@ progress_item( r_wrapper )
 PPCODE:
   {
     struct marpa_r *const r = r_wrapper->r;
-    Marpa_Progress_Item progress_item = marpa_r_progress_item (r);
-    if (!progress_item)
+    int position;
+    Marpa_Earley_Set_ID origin;
+    Marpa_Rule_ID rule_id = marpa_r_progress_item (r, &position, &origin);
+    if (rule_id == -1) { XSRETURN_UNDEF; }
+    if (rule_id < 0)
       {
 	croak ("Problem in r->progress_item(): %s",
 	       xs_r_error (r_wrapper));
       }
-    XPUSHs (sv_2mortal (newSViv (marpa_r_progress_item_rule (progress_item))));
-    XPUSHs (sv_2mortal (newSViv (marpa_r_progress_item_position (progress_item))));
-    XPUSHs (sv_2mortal (newSViv (marpa_r_progress_item_origin (progress_item))));
+    XPUSHs (sv_2mortal (newSViv (rule_id)));
+    XPUSHs (sv_2mortal (newSViv (position)));
+    XPUSHs (sv_2mortal (newSViv (origin)));
   }
 
 void

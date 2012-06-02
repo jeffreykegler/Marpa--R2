@@ -488,12 +488,15 @@ sub Marpa::R2::Recognizer::show_progress {
         my $current_earleme     = $recce_c->earleme($current_ordinal);
         my %by_rule_by_position = ();
 
-	my $report_item_count = $recce_c->progress_report_start($current_ordinal);
-	while ( $report_item_count-- ) {
+	$recce_c->progress_report_start($current_ordinal);
+	ITEM: while (1) {
 	    my ( $rule_id, $position, $origin ) = $recce_c->progress_item();
-	    if ($position < 0) { $position = $grammar_c->rule_length($rule_id); }
+	    last ITEM if not defined $rule_id;
+	    if ( $position < 0 ) {
+		$position = $grammar_c->rule_length($rule_id);
+	    }
 	    $by_rule_by_position{$rule_id}->{$position}->{$origin}++;
-	}
+	} ## end while (1)
 
         for my $rule_id ( sort { $a <=> $b } keys %by_rule_by_position ) {
             my $by_position = $by_rule_by_position{$rule_id};

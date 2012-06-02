@@ -1801,6 +1801,7 @@ On success, a non-negative value.
 @end deftypefun
 
 @deftypefun Marpa_Rule_ID marpa_r_progress_item ( @
+  Marpa_Recognizer @var{r}, @
   int* @var{position}, @
   Marpa_Earley_Set_ID* @var{origin} )
 Returns the successive items of a
