@@ -1804,48 +1804,35 @@ or on other hard failure.
 On success, a non-negative value.
 @end deftypefun
 
-@deftypefun Marpa_Progress_Item marpa_r_progress_item ( @
-  Marpa_Recognizer @var{r} )
+@deftypefun Marpa_Rule_ID marpa_r_progress_item ( @
+  int* @var{position}, @
+  Marpa_Earley_Set_ID* @var{origin} )
 Returns the successive items of a
 progress report.
-Report items are examined using the report item
-accessors.
-@xref{Report item accessors}.
+On success,
+the rule ID is the return value.
+the dot position is returned in the location
+pointed to by @var{position},
+and the origin is returned in the location
+pointed to by @var{origin}.
 
-Return value: On success, the progress report item.
-On failure, @code{NULL}.
+If there are no more progress report items,
+it is a soft failure, and -1 is returned.
+This return value may be used to terminate
+a loop through the progress report items.
+When there is a soft or hard failure,
+the values left in @var{position}
+and @var{origin} are undefined.
+
+Return value: On success, the rule ID of the progress report item.
+If there are no more progress report items, -1.
+If either @var{position} or @var{origin} is @code{NULL},
+or on other hard failure, @code{-2}.
 @end deftypefun
 
 @menu
 * Report item accessors::       
 @end menu
-
-@node Report item accessors,  , Progress reports, Progress reports
-@section Report item accessors
-
-The report item accessors are implemented as macros.  They
-return -2 on failure.
-
-@deftypefn {Macro} Marpa_Rule_ID marpa_r_report_rule ( @
-  Marpa_Recognizer @var{progress_item})
-Return value: Returns the ID of the rule
-for the current report item, 
-or -2 if there is no current report item.
-@end deftypefn
-
-@deftypefn {Macro} int marpa_r_report_position (
-  Marpa_Recognizer @var{progress_item})
-Return value: Returns the dot position
-of the current report item, 
-or -2 if there is no current report item.
-@end deftypefn
-
-@deftypefn {Macro} int marpa_r_report_origin (
-  Marpa_Recognizer @var{progress_item})
-Return value: Returns the Earley set ID of the origin
-of the current report item, 
-or -2 if there is no current report item.
-@end deftypefn
 
 @node Bocage, Ordering objects, Progress reports, Top
 @chapter Bocage objects
@@ -2690,6 +2677,15 @@ but they must do so by creating multiple order objects.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_PIM_IS_NOT_LIM
 @end deftypevr
+
+@deftypevr Macro int MARPA_ERR_POINTER_ARG_NULL
+In a method which takes pointers as arguments,
+one of the pointer arguments is @code{NULL},
+in a case where that is not allowed.
+One such method is@ @code{marpa_r_progress_item()}.
+Suggested message: "An argument is null when it should not be."
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_PRECOMPUTED
 An attempt was made to use a precomputed grammar
 in a way that is not allowed.
