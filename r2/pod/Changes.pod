@@ -31,25 +31,28 @@ and tools to Marpa::R2.
 
 =head1 CHANGES
 
-=head2 Rank of different rules with same rank is now arbitrary
+=head2 Different rules with the same rank now appear in arbitrary order
 
-In ranking rules,
-if two different rule instances are for different
-rules, but the two rules have the same rank,
-their relative ranking is now arbitrary.
+In ranking parse trees,
+if two rule instances are for different
+rules
+but have the same rule rank,
+they will now appear in arbitrary order.
 This is probably the behavior that programmers
 have always expected.
 
 In Marpa::XS, when the C<null_ranking> named
 argument of rules was in use for one of the rules,
-specific guarantees were made for some of the cases.
+specific guarantees were made for the order
+in some of the cases.
 The intent was to be orthogonal with the guarantees
 made for the ranking of null variants within the
 same rule.
-But these additional guarantees
+These additional guarantees
 proved useless in practice,
 cumbersome to implement,
 and, when documented, opaque and unintuitive.
+In Marpa::R2 they have been dropped.
 
 =head2 Null actions now come from the rules
 
