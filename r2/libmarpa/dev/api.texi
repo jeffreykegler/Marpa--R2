@@ -136,10 +136,6 @@ Recognizer objects
 * Recognizer life::             Taking a recognizer through its life cycle.
 * Recognizer events::           
 
-Progress reports
-
-* Report item accessors::       
-
 Bocage objects
 
 * Bocage reference counting::   
@@ -1829,10 +1825,6 @@ If there are no more progress report items, -1.
 If either @var{position} or @var{origin} is @code{NULL},
 or on other hard failure, @code{-2}.
 @end deftypefun
-
-@menu
-* Report item accessors::       
-@end menu
 
 @node Bocage, Ordering objects, Progress reports, Top
 @chapter Bocage objects
