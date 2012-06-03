@@ -882,7 +882,7 @@ the census, because not all symbols have been added at
 that point.
 At grammar initialization, this vector cannot be sized.
 It is initialized to |NULL| so that the destructor
-can tell if there is a bit vector to be freed.
+can tell if there is a boolean vector to be freed.
 @<Widely aligned grammar elements@> = Bit_Vector t_bv_isyid_is_terminal;
 @ @<Initialize grammar elements@> = g->t_bv_isyid_is_terminal = NULL;
 
@@ -1280,9 +1280,9 @@ unsigned int t_is_marked_terminal:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_terminal = 0;
 symbol->t_is_marked_terminal = 0;
-@ @d SYM_is_Terminal(symbol) ((symbol)->t_is_terminal)
+@ @d XSY_is_Terminal(symbol) ((symbol)->t_is_terminal)
 @ @d SYM_is_Marked_Terminal(symbol) ((symbol)->t_is_marked_terminal)
-@d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
+@d SYMID_is_Terminal(id) (XSY_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
 int marpa_g_symbol_is_terminal(Marpa_Grammar g,
 Marpa_Symbol_ID xsyid)
@@ -1307,7 +1307,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 	return failure_indicator;
     }
     SYM_is_Marked_Terminal(symbol) = 1;
-    return SYM_is_Terminal(symbol) = value;
+    return XSY_is_Terminal(symbol) = value;
 }
 
 @*0 Symbol is productive?.
@@ -2637,7 +2637,7 @@ if (UNLIKELY(xrl_count <= 0)) {
     return failure_indicator;
 }
 
-@ Loop over the rules, producing bit vector of LHS symbols, and of
+@ Loop over the rules, producing boolean vector of LHS symbols, and of
 symbols which are the LHS of empty rules.
 While at it, set a flag to indicate if there are empty rules.
 
@@ -2818,7 +2818,7 @@ and a flag which indicates if there are any.
 	{
 	  /* If marked by the user, leave the symbol
 	     as set by the user, and update the boolean vector */
-	  if (SYM_is_Terminal (symbol))
+	  if (XSY_is_Terminal (symbol))
 	    {
 	      bv_bit_set (terminal_v, (unsigned int) symid);
 	      continue;
@@ -2830,7 +2830,7 @@ and a flag which indicates if there are any.
          from the boolean vector and mark the symbol,
          if necessary. */
       if (bv_bit_test (terminal_v, (unsigned int) symid))
-	SYM_is_Terminal (symbol) = 1;
+	XSY_is_Terminal (symbol) = 1;
     }
 }
 
@@ -2992,7 +2992,7 @@ reach a terminal symbol.
 	    {
 	      const SYM symbol = SYM_by_ID (productive_id);
 	      SYM_is_Nulling (symbol) = 1;
-	      if (UNLIKELY (SYM_is_Terminal (symbol)))
+	      if (UNLIKELY (XSY_is_Terminal (symbol)))
 		{
 		  nulling_terminal_found = 1;
 		  int_event_new (g, MARPA_EVENT_NULLING_TERMINAL,
@@ -4409,9 +4409,9 @@ found.
 These are treated differently from discovered states.
 The items in these are always a subset of the initial items for rules,
 and therefore correspond one-to-one with a powerset of the rules.
-This fact is used in precomputing rule bit vectors, by postdot symbol,
+This fact is used in precomputing rule boolean vectors, by postdot symbol,
 to speed up the construction of these.
-An advantage of using bit vectors is that a radix sort of the items
+An advantage of using boolean vectors is that a radix sort of the items
 happens as a side effect.
 Because prediction states follow a very different distribution from
 discovered states, they have their own hash for checking duplicates.
@@ -5280,14 +5280,14 @@ and add the predicted AHFA state@> =
 
 @*0 Predicted AHFA states.
 The method for building predicted AHFA states is optimized using
-precomputed bit vectors.
+precomputed boolean vectors.
 This should be very fast,
 but it is possible to think other methods might
-be better, at least in some cases.  The bit vectors are $O(s)$ in length, where $s$ is the
+be better, at least in some cases.  The boolean vectors are $O(s)$ in length, where $s$ is the
 size of the grammar, and so is the time complexity of the method used.
 @ It may be possible to look at a list of
 only the AHFA items actually present in each state,
-which might be $O(\log s)$ in the average case.  An advantage of the bit vectors is they
+which might be $O(\log s)$ in the average case.  An advantage of the boolean vectors is they
 implicitly perform a radix sort.
 This would have to be performed explicitly for an enumerated
 list of AHFA items, making the putative average case $O(\log s \cdot \log \log s)$.
@@ -5295,13 +5295,13 @@ list of AHFA items, making the putative average case $O(\log s \cdot \log \log s
 $O(s)$, making the time complexity
 of a list solution, $O(s \cdot \log s)$.
 In normal cases,
-the practical advantages of bit vectors are overwhelming and swamp the theoretical
+the practical advantages of boolean vectors are overwhelming and swamp the theoretical
 time complexity.
 The advantage of listing AHFA items is restricted to a putative ``average" case,
 and even there would not kick in until the grammars became very large.
-My conclusion is that alternatives to the bit vector implementation deserve
+My conclusion is that alternatives to the boolean vector implementation deserve
 further investigation, but that at present, and overall,
-bit vectors appear clearly superior to the alternatives.
+boolean vectors appear clearly superior to the alternatives.
 @ For the predicted states, I construct a symbol-by-rule matrix
 of predictions.  First, I determine which symbols directly predict
 others.  Then I compute the transitive closure.
@@ -5366,7 +5366,7 @@ This first pass fully captures the order,
 but in the 
 final result we want the keys to be unique integers
 in a sequence start from 0,
-so that they can be used as the indices of a bit vector.
+so that they can be used as the indices of a boolean vector.
 
 @ @<Populate |irl_by_sort_key|@> =
 {
@@ -5405,7 +5405,7 @@ cmp_by_irl_sort_key(const void* ap, const void* bp)
 
 @ We have now sorted the rules into the final sort key order.
 The final version of the sort keys are ordinals,
-which can be used to index the rules in a bit vector.
+which can be used to index the rules in a boolean vector.
 @<Populate |sort_key_by_irl_id| with second pass value@> =
 {
   IRLID sort_ordinal;
@@ -5947,10 +5947,9 @@ const GRAMMAR g = G_of_I(input);
 @ @<Destroy recognizer elements@> = input_unref(input);
 
 @*0 Input phase.
-The recognizer always has
-an phase: |R_BEFORE_INPUT|,
-|R_DURING_INPUT|
-or |R_AFTER_INPUT|.
+The recognizer always is
+in a one of the following
+phases:
 @d R_BEFORE_INPUT 0x1
 @d R_DURING_INPUT 0x2
 @d R_AFTER_INPUT 0x3
@@ -6029,11 +6028,11 @@ with the bits set if the symbol is expected
 at the current earleme.
 This vector is not size until input starts.
 When the recognizer is created,
-this bit vector is initialized to |NULL| so that the destructor
-can tell if there is a bit vector to be freed.
+this boolean vector is initialized to |NULL| so that the destructor
+can tell if there is a boolean vector to be freed.
 @<Widely aligned recognizer elements@> = Bit_Vector t_bv_isyid_is_expected;
 @ @<Initialize recognizer elements@> = r->t_bv_isyid_is_expected = NULL;
-@ @<Allocate recognizer containers used in setup@> = 
+@ @<Allocate recognizer containers@> = 
     r->t_bv_isyid_is_expected = bv_obs_create( r->t_obs, (unsigned int)isy_count );
 @ Returns |-2| if there was a failure.
 There is a check that the expectations of this
@@ -8043,7 +8042,8 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     }
     Input_Phase_of_R(r) = R_DURING_INPUT;
     psar_reset(Dot_PSAR_of_R(r));
-    @<Allocate recognizer containers used in setup@>@;
+    @<Set up terminal-related boolean vectors@>@;
+    @<Allocate recognizer containers@>@;
     @<Initialize Earley item work stacks@>@;
     set0 = earley_set_new(r, 0);
     Latest_ES_of_R(r) = set0;
@@ -8067,6 +8067,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 
 @ @<Declare |marpa_r_start_input| locals@> =
     const ISYID isy_count = ISY_Count_of_G(g);
+    const ISYID xsy_count = XSY_Count_of_G(g);
     Bit_Vector bv_ok_for_chain = bv_create(isy_count);
 @ @<Destroy |marpa_r_start_input| locals@> =
     bv_free(bv_ok_for_chain);
@@ -8091,7 +8092,56 @@ or equal to one.
 This means tokens can span multiple earlemes.
 As a consequence,
 there may be no tokens at some earlemes.
-@ |marpa_alternative|, by enforcing a limit on token length and on
+@*0 Boolean vectors to track terminals.
+A number of boolean vectors are used to track
+the valued status of terminal symbols.
+Whether a symbol is a terminal or not cannot
+be changed by the recognizer,
+but some symbols are ``value unlocked'' and
+will be set to valued or unvalued the first
+time they are encountered.
+@<Widely aligned recognizer elements@> =
+  LBV t_valued_terminal;
+  LBV t_unvalued_terminal;
+  LBV t_valued;
+  LBV t_unvalued;
+  LBV t_valued_locked;
+
+@ @<Set up terminal-related boolean vectors@> =
+{
+  XSYID xsyid;
+  r->t_valued_terminal = lbv_obs_new0 (r->t_obs, xsy_count);
+  r->t_unvalued_terminal = lbv_obs_new0 (r->t_obs, xsy_count);
+  r->t_valued = lbv_obs_new0 (r->t_obs, xsy_count);
+  r->t_unvalued = lbv_obs_new0 (r->t_obs, xsy_count);
+  r->t_valued_locked = lbv_obs_new0 (r->t_obs, xsy_count);
+  for (xsyid = 0; xsyid < xsy_count; xsyid++)
+    {
+      const XSY xsy = XSY_by_ID (xsyid);
+      if (XSY_is_Valued_Locked (xsy))
+	{
+	  lbv_bit_set (r->t_valued_locked, xsyid);
+	}
+      if (XSY_is_Valued (xsy))
+	{
+	  lbv_bit_set (r->t_valued, xsyid);
+	  if (XSY_is_Terminal (xsy))
+	    {
+	      lbv_bit_set (r->t_valued_terminal, xsyid);
+	    }
+	}
+      else
+	{
+	  lbv_bit_set (r->t_unvalued, xsyid);
+	  if (XSY_is_Terminal (xsy))
+	    {
+	      lbv_bit_set (r->t_unvalued_terminal, xsyid);
+	    }
+	}
+    }
+}
+
+@ |marpa_r_alternative|, by enforcing a limit on token length and on
 the furthest location, indirectly enforces a limit on the
 number of earley sets and the maximum earleme location.
 If tokens ending at location $n$ cannot be scanned, then clearly
@@ -8144,7 +8194,7 @@ Marpa_Earleme marpa_r_alternative(
 
 @ @<|marpa_alternative| initial check for failure conditions@> = {
     const XSY_Const token = SYM_by_ID(token_xsyid);
-    if (!SYM_is_Terminal(token)) {
+    if (!XSY_is_Terminal(token)) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
 	return failure_indicator;
     }
@@ -8572,7 +8622,7 @@ and running benchmarks.
   Bit_Vector t_bv_lim_symbols;
   Bit_Vector t_bv_pim_symbols;
   void** t_pim_workarea;
-@ @<Allocate recognizer containers used in setup@> = 
+@ @<Allocate recognizer containers@> = 
   r->t_bv_lim_symbols = bv_obs_create(r->t_obs, isy_count);
   r->t_bv_pim_symbols = bv_obs_create(r->t_obs, isy_count);
   r->t_pim_workarea = my_obstack_new(r->t_obs, void*, isy_count);
@@ -8723,7 +8773,7 @@ already populated,
 before populating it.
 @ The outer loop ensures that all LIMs are eventually
 populated.  It uses the PIM workarea, guided by
-a bit vector which indicates the LIM's.
+a boolean vector which indicates the LIM's.
 @ It is possible for a LIM to be encountered which may have a predecessor,
 but which cannot be immediately populated.
 This is because predecessors link the LIMs in chains, and such chains
@@ -8852,7 +8902,7 @@ In a populated LIM, this will not necessarily be the case.
 
 @ @<Widely aligned recognizer elements@> =
   void** t_lim_chain;
-@ @<Allocate recognizer containers used in setup@> = 
+@ @<Allocate recognizer containers@> = 
   r->t_lim_chain = my_obstack_new(r->t_obs, void*, 2*isy_count);
 @ @<Create and populate a LIM chain@> = {
   int lim_chain_ix;
@@ -11346,10 +11396,10 @@ But most applications won't care, and
 will benefit from the faster memory allocation
 this restriction allows.
 
-@ Using a bit vector for
+@ Using a boolean vector for
 the index of an and-node within an or-node,
 instead of the and-node ID, would seem to allow
-an space efficiency: the size of the bit vector
+an space efficiency: the size of the boolean vector
 could be reduced to the maximum number of descendents
 of any or-node.
 But in fact, improvements from this approach are elusive.
@@ -11359,13 +11409,13 @@ almost the same.
 Any attempt to economize on space seems to always
 be counter-productive in terms of speed.
 And since
-allocating a bit vector for the worst case does
+allocating a boolean vector for the worst case does
 not increase the memory high water mark,
 it would seems to be the most reasonable tradeoff.
 
 This in turn suggests there is no advantage is using
-a within-or-node index to index the bit vector,
-instead of using the and-node id to index the bit vector.
+a within-or-node index to index the boolean vector,
+instead of using the and-node id to index the boolean vector.
 Using the and-node ID does have the advantage that the bit
 vector does not need to be cleared for each or-node.
 @ The first position in each |and_node_orderings| array is not
@@ -11778,7 +11828,7 @@ unsigned int t_is_nulling:1;
 @*0 Claiming and releasing and-nodes.
 To avoid cycles, the same and node is not allowed to occur twice
 in the parse tree.
-A bit vector, accessed by these functions, enforces this.
+A boolean vector, accessed by these functions, enforces this.
 @ Claim the and-node by setting its bit.
 @<Function definitions@> =
 PRIVATE void tree_and_node_claim(TREE tree, ANDID and_node_id)
@@ -12655,7 +12705,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 
 @** Lightweight boolean vectors (LBV).
 These macros and functions assume that the 
-caller remembers the bit vector's length.
+caller remembers the boolean vector's length.
 They also take no precautions about trailing bits
 in the last word.
 Most operations do not need to.
@@ -12693,20 +12743,20 @@ lbv_obs_new0 (struct obstack *obs, int bits)
 
 @*0 Basic LBV operations.
 @d lbv_w(lbv, bit) ((lbv)+((bit)/lbv_wordbits))
-@d lbv_b(bit) (lbv_lsb << ((bit)%bv_wordbits));
+@d lbv_b(bit) (lbv_lsb << ((bit)%bv_wordbits))
 @d lbv_bit_set(lbv, bit)
-  (*(lbv_w ((lbv)), (bit)) |= (lbv_b (bit)))
+  (*lbv_w ((lbv), (bit)) |= lbv_b (bit))
 @d lbv_bit_clear(lbv, bit)
-  (*(lbv_w ((lbv)), (bit)) &= ~(lbv_b (bit)))
+  (*lbv_w ((lbv), (bit)) &= ~lbv_b (bit))
 @d lbv_bit_test(lbv, bit)
-  ((*(lbv_w ((lbv)), (bit)) & (lbv_b (bit))) != 0u)
+  (*lbv_w ((lbv), (bit)) & lbv_b (bit) != 0u)
 
 @** Boolean vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.
 This is a combined Perl package and C library for handling
-bit vectors.
-Someone seeking a general bit vector package should
+boolean vectors.
+Someone seeking a general boolean vector package should
 look at Steffen's instead.
 |libmarpa|'s boolean vectors are tightly tied in
 with its own needs and environment.
@@ -12862,7 +12912,7 @@ PRIVATE void bv_clear(Bit_Vector bv)
 
 @ This function "overclears" ---
 it clears "too many bits".
-It clears a prefix of the bit vector faster
+It clears a prefix of the boolean vector faster
 than an interval clear, at the expense of often
 clearing more bits than were requested.
 In some situations clearing the extra bits is OK.
