@@ -718,7 +718,7 @@ void symbol_add( GRAMMAR g, SYM symbol)
 
 @ Check that external symbol is in valid range.
 @<Function definitions@> =
-PRIVATE int symbol_is_valid(GRAMMAR g, XSYID xsyid)
+PRIVATE int xsyid_is_valid(GRAMMAR g, XSYID xsyid)
 {
     return xsyid >= 0 && xsyid < XSY_Count_of_G(g);
 }
@@ -799,13 +799,13 @@ Marpa_Symbol_ID marpa_g_start_symbol(Marpa_Grammar g)
 @ Returns the symbol ID on success,
 |-2| on failure.
 @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_start_symbol_set(Marpa_Grammar g, Marpa_Symbol_ID symid)
+Marpa_Symbol_ID marpa_g_start_symbol_set(Marpa_Grammar g, Marpa_Symbol_ID xsyid)
 {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return g->t_start_xsyid = symid;
+    @<Fail if |xsyid| is invalid@>@;
+    return g->t_start_xsyid = xsyid;
 }
 
 @*0 Start rules.
@@ -1142,11 +1142,11 @@ Symbols are semantic by default.
 @ @<Function definitions@> =
 int _marpa_g_symbol_is_semantic(
     Marpa_Grammar g,
-    Marpa_Symbol_ID symid)
+    Marpa_Symbol_ID xsyid)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_is_Semantic(SYM_by_ID(symid));
+    @<Fail if |xsyid| is invalid@>@;
+    return SYM_is_Semantic(SYM_by_ID(xsyid));
 }
 
 @*0 Nulling symbol has semantics?.
@@ -1157,27 +1157,46 @@ where the application
 does not care about the value of 
 a symbol -- that is, the semantics
 is arbitrary.
-@d XSY_is_Ask_Me_When_Null(symbol) ((symbol)->t_is_ask_me_when_null)
-@<Bit aligned symbol elements@> = unsigned int t_is_ask_me_when_null:1;
+@d XSY_is_Valued(symbol) ((symbol)->t_is_valued)
+@d XSY_is_Valued_Locked(symbol) ((symbol)->t_is_valued_locked)
+@<Bit aligned symbol elements@> =
+  unsigned int t_is_valued:1;
+  unsigned int t_is_valued_locked:1;
 @ @<Initialize symbol elements@> =
-    XSY_is_Ask_Me_When_Null(symbol) = 0;
+  XSY_is_Valued(symbol) = 0;
+  XSY_is_Valued_Locked(symbol) = 0;
+
 @ @<Function definitions@> =
-int marpa_g_symbol_is_ask_me_when_null(
+int marpa_g_symbol_is_valued(
     Marpa_Grammar g,
-    Marpa_Symbol_ID symid)
+    Marpa_Symbol_ID xsyid)
 {
     @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    return XSY_is_Ask_Me_When_Null(SYM_by_ID(symid));
+    @<Fail if |xsyid| is invalid@>@;
+    return XSY_is_Valued(SYM_by_ID(xsyid));
 }
-int marpa_g_symbol_ask_me_when_null_set(
-    Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
+
+@ @<Function definitions@> =
+int marpa_g_symbol_valued_set(
+    Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 {
-    SYM symbol;
-    @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    symbol = SYM_by_ID(symid);
-    return XSY_is_Ask_Me_When_Null(symbol) = value ? 1 : 0;
+  SYM symbol;
+  const int valued_is_locked = -1;
+  @<Return |-2| on failure@>@;
+  @<Fail if |xsyid| is invalid@>@;
+  symbol = SYM_by_ID (xsyid);
+  if (UNLIKELY (value < 0 || value > 1))
+    {
+      MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+      return failure_indicator;
+    }
+  if (UNLIKELY (XSY_is_Valued_Locked (symbol)
+		&& value != XSY_is_Valued (symbol)))
+    {
+      return valued_is_locked;
+    }
+  XSY_is_Valued (symbol) = value;
+  return value;
 }
 
 @ Symbol Is Accessible Boolean
@@ -1193,13 +1212,13 @@ If that becomes private,
 the prototype of this function
 must be changed.
 @<Function definitions@> =
-int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
+int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID xsyid)
 {
   @<Return |-2| on failure@>@;
   @<Fail if fatal error@>@;
   @<Fail if not precomputed@>@;
-  @<Fail if |symid| is invalid@>@;
-  return XSY_is_Accessible( XSY_by_ID(symid));
+  @<Fail if |xsyid| is invalid@>@;
+  return XSY_is_Accessible( XSY_by_ID(xsyid));
 }
 
 @ Symbol Is Counted Boolean
@@ -1208,12 +1227,12 @@ int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID symid)
 symbol->t_is_counted = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_counted(Marpa_Grammar g,
-Marpa_Symbol_ID symid)
+Marpa_Symbol_ID xsyid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_by_ID(symid)->t_is_counted;
+    @<Fail if |xsyid| is invalid@>@;
+    return SYM_by_ID(xsyid)->t_is_counted;
 }
 
 @ Symbol Is Nulling Boolean
@@ -1223,13 +1242,13 @@ Marpa_Symbol_ID symid)
 @ @<Initialize symbol elements@> =
 symbol->t_is_nulling = 0;
 @ @<Function definitions@> =
-int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
+int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsyid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if not precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYM_is_Nulling(SYM_by_ID(symid));
+    @<Fail if |xsyid| is invalid@>@;
+    return SYM_is_Nulling(SYM_by_ID(xsyid));
 }
 
 @ Symbol Is Nullable Boolean
@@ -1239,13 +1258,13 @@ int marpa_g_symbol_is_nulling(GRAMMAR g, SYMID symid)
 @ @<Initialize symbol elements@> =
 symbol->t_is_nullable = 0;
 @ @<Function definitions@> =
-int marpa_g_symbol_is_nullable(Marpa_Grammar g, Marpa_Symbol_ID symid)
+int marpa_g_symbol_is_nullable(Marpa_Grammar g, Marpa_Symbol_ID xsyid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if not precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return XSY_is_Nullable(SYM_by_ID(symid));
+    @<Fail if |xsyid| is invalid@>@;
+    return XSY_is_Nullable(SYM_by_ID(xsyid));
 }
 
 @ Symbol Is Terminal Boolean
@@ -1266,23 +1285,23 @@ symbol->t_is_marked_terminal = 0;
 @d SYMID_is_Terminal(id) (SYM_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
 int marpa_g_symbol_is_terminal(Marpa_Grammar g,
-Marpa_Symbol_ID symid)
+Marpa_Symbol_ID xsyid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-    return SYMID_is_Terminal(symid);
+    @<Fail if |xsyid| is invalid@>@;
+    return SYMID_is_Terminal(xsyid);
 }
 @ @<Function definitions@> =
 int marpa_g_symbol_is_terminal_set(
-Marpa_Grammar g, Marpa_Symbol_ID symid, int value)
+Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 {
     SYM symbol;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    symbol = SYM_by_ID(symid);
+    @<Fail if |xsyid| is invalid@>@;
+    symbol = SYM_by_ID(xsyid);
     if (UNLIKELY(value < 0 || value > 1)) {
 	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
@@ -1300,25 +1319,25 @@ symbol->t_is_productive = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_productive(
     Marpa_Grammar g,
-    Marpa_Symbol_ID symid)
+    Marpa_Symbol_ID xsyid)
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if not precomputed@>@;
-    @<Fail if |symid| is invalid@>@;
-    return XSY_is_Productive(XSY_by_ID(symid));
+    @<Fail if |xsyid| is invalid@>@;
+    return XSY_is_Productive(XSY_by_ID(xsyid));
 }
 
 @ Symbol Is Start Boolean
 @<Bit aligned symbol elements@> = unsigned int t_is_start:1;
 @ @<Initialize symbol elements@> = symbol->t_is_start = 0;
 @ @<Function definitions@> =
-int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID symid) 
+int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID xsyid) 
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-   return SYM_by_ID(symid)->t_is_start;
+    @<Fail if |xsyid| is invalid@>@;
+   return SYM_by_ID(xsyid)->t_is_start;
 }
 
 @*0 Primary internal equivalent.
@@ -1335,13 +1354,13 @@ it is the non-nullable ISY.
 @ @<Function definitions@> =
 Marpa_ISY_ID _marpa_g_xsy_isy(
     Marpa_Grammar g,
-    Marpa_Symbol_ID symid)
+    Marpa_Symbol_ID xsyid)
 {
     XSY xsy;
     ISY isy;
     @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    xsy = XSY_by_ID(symid);
+    @<Fail if |xsyid| is invalid@>@;
+    xsy = XSY_by_ID(xsyid);
     isy = ISY_of_XSY(xsy);
     return isy ? ID_of_ISY(isy) : -1;
 }
@@ -1363,13 +1382,13 @@ there is no nulling internal equivalent.
 @ @<Function definitions@> =
 Marpa_ISY_ID _marpa_g_xsy_nulling_isy(
     Marpa_Grammar g,
-    Marpa_Symbol_ID symid)
+    Marpa_Symbol_ID xsyid)
 {
     XSY xsy;
     ISY isy;
     @<Return |-2| on failure@>@;
-    @<Fail if |symid| is invalid@>@;
-    xsy = XSY_by_ID(symid);
+    @<Fail if |xsyid| is invalid@>@;
+    xsy = XSY_by_ID(xsyid);
     isy = Nulling_ISY_of_XSY(xsy);
     return isy ? ID_of_ISY(isy) : -1;
 }
@@ -1776,13 +1795,13 @@ int min, int flags )
 {
   if (separator_id != -1)
     {
-      if (UNLIKELY (!symbol_is_valid (g, separator_id)))
+      if (UNLIKELY (!xsyid_is_valid (g, separator_id)))
 	{
 	  MARPA_ERROR (MARPA_ERR_BAD_SEPARATOR);
 	  goto FAILURE;
 	}
     }
-  if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
+  if (UNLIKELY (!xsyid_is_valid (g, lhs_id)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
       goto FAILURE;
@@ -1795,7 +1814,7 @@ int min, int flags )
 	goto FAILURE;
       }
   }
-  if (UNLIKELY (!symbol_is_valid (g, rhs_id)))
+  if (UNLIKELY (!xsyid_is_valid (g, rhs_id)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
       goto FAILURE;
@@ -1886,7 +1905,7 @@ rule_check (GRAMMAR g, XRL rule)
 {
   SYM lhs;
   const XRLID lhs_id = LHS_ID_of_XRL (rule);
-  if (UNLIKELY (!symbol_is_valid (g, lhs_id)))
+  if (UNLIKELY (!xsyid_is_valid (g, lhs_id)))
     goto INVALID_SYMID;
   lhs = SYM_by_ID (lhs_id);
   if (UNLIKELY (SYM_is_Sequence_LHS (lhs)))
@@ -1901,7 +1920,7 @@ rule_check (GRAMMAR g, XRL rule)
       {
 	const SYMID symid = RHS_ID_of_XRL (rule, rh_index);
 	SYM rhs;
-	if (UNLIKELY (!symbol_is_valid (g, symid)))
+	if (UNLIKELY (!xsyid_is_valid (g, symid)))
 	  goto INVALID_SYMID;
 	rhs = SYM_by_ID (symid);
       }
@@ -2200,23 +2219,7 @@ int marpa_g_rule_is_ask_me(
     @<Fail if |xrl_id| is invalid@>@;
     return XRL_is_Ask_Me(XRL_by_ID(xrl_id));
 }
-@ The application can specify the zero-based
-number of a child as the semantics of a rule.
-Marpa will implement that internally if it can,
-otherwise it will return the rule in an evaluation
-step to the higher layer.
-If the child number is -2, the application
-wants to implement the semantics itself.
-If the child number is -1, the value desired
-is arbitrary ---
-Marpa guarantees it can implement that.
-In the current implementation,
-if the child number is specified as zero,
-Marpa can implement that as a stack no-op,
-and will do so,
-but may not in some future implementation.
-The result of any other value is a failure.
-@<Function definitions@> =
+@ @<Function definitions@> =
 int marpa_g_rule_whatever_set(
     Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
@@ -2235,7 +2238,18 @@ int marpa_g_rule_ask_me_set(
     xrl = XRL_by_ID(xrl_id);
     return XRL_is_Ask_Me(xrl) = 1;
 }
-int marpa_g_rule_first_child_set(
+
+@ In the current implementation,
+if the desired semantics is simply
+to return the first child as the value
+(not an uncommon case)
+Marpa could implement that as a stack no-op.
+This stub may become part of the external interface
+at some point,
+once I fully work out the implications
+of "first child" semantics.
+ @<Function definitions@> =
+int _marpa_g_rule_first_child_set(
     Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
     XRL xrl;
@@ -2633,7 +2647,7 @@ While at it, set a flag to indicate if there are empty rules.
       MARPA_ERROR (MARPA_ERR_NO_START_SYM);
       return failure_indicator;
     }
-  if (UNLIKELY(!symbol_is_valid (g, start_xsyid)))
+  if (UNLIKELY(!xsyid_is_valid (g, start_xsyid)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYM);
       return failure_indicator;
@@ -3853,10 +3867,10 @@ unit transitions are not in general reflexive.
       rule_length = Length_of_RULE (rule);
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	{
-	  Marpa_Symbol_ID symid = RHS_ID_of_RULE (rule, rhs_ix);
-	  if (bv_bit_test (nullable_v, symid))
+	  XSYID xsyid = RHS_ID_of_RULE (rule, rhs_ix);
+	  if (bv_bit_test (nullable_v, xsyid))
 	    continue;
-	  nonnulling_id = symid;
+	  nonnulling_id = xsyid;
 	  nonnulling_count++;
 	}
 	if (nonnulling_count == 1)
@@ -6948,7 +6962,7 @@ and clears the trace postdot item.
 @<Function definitions@> =
 Marpa_Symbol_ID
 _marpa_r_postdot_symbol_trace (Marpa_Recognizer r,
-    Marpa_Symbol_ID symid)
+    Marpa_Symbol_ID xsyid)
 {
   @<Return |-2| on failure@>@;
   ES current_es = r->t_trace_earley_set;
@@ -6957,17 +6971,17 @@ _marpa_r_postdot_symbol_trace (Marpa_Recognizer r,
   @<Unpack recognizer objects@>@;
   @<Clear trace postdot item data@>@;
   @<Fail if not trace-safe@>@;
-  @<Fail if |symid| is invalid@>@;
+  @<Fail if |xsyid| is invalid@>@;
   if (!current_es) {
       MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
       return failure_indicator;
   }
-  pim_isy_p = PIM_ISY_P_of_ES_by_ISYID(current_es, ISYID_by_XSYID(symid));
+  pim_isy_p = PIM_ISY_P_of_ES_by_ISYID(current_es, ISYID_by_XSYID(xsyid));
   pim = *pim_isy_p;
   if (!pim) return -1;
   r->t_trace_pim_isy_p = pim_isy_p;
   r->t_trace_postdot_item = pim;
-  return symid;
+  return xsyid;
 }
 
 @ @<Clear trace postdot item data@> =
@@ -12346,7 +12360,7 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
     Nulling_Ask_BV_of_V(v) = bv_create (xsy_count);
     for (ix = 0; ix < xsy_count; ix++) {
 	const XSY xsy = XSY_by_ID(ix);
-	if (XSY_is_Ask_Me_When_Null(xsy))
+	if (XSY_is_Valued(xsy))
 	{
 	    bv_bit_set(Nulling_Ask_BV_of_V(v), ix);
 	}
@@ -12358,14 +12372,14 @@ set with the grammar.
 @<Function definitions@> =
 int marpa_v_symbol_is_ask_me_when_null(
     Marpa_Value public_v,
-    Marpa_Symbol_ID symid)
+    Marpa_Symbol_ID xsyid)
 {
     @<Return |-2| on failure@>@;
     const VALUE v = (VALUE)public_v;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-    return bv_bit_test(Nulling_Ask_BV_of_V(v), symid);
+    @<Fail if |xsyid| is invalid@>@;
+    return bv_bit_test(Nulling_Ask_BV_of_V(v), xsyid);
 }
 @ If the symbol has a null alias, the call is interpreted
 as being for that null alias.
@@ -12379,24 +12393,35 @@ but I cannot think of a reason to ban it,
 so I do not.
 @<Function definitions@> =
 int marpa_v_symbol_ask_me_when_null_set(
-    Marpa_Value public_v, Marpa_Symbol_ID symid, int value)
+    Marpa_Value public_v, Marpa_Symbol_ID xsyid, int value)
 {
-    SYM symbol;
+    XSY xsy;
     const VALUE v = (VALUE)public_v;
+    const int valued_is_locked = -1;
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |symid| is invalid@>@;
-    symbol = SYM_by_ID(symid);
-    if (UNLIKELY(!SYM_is_Nullable(symbol) && value)) {
+    if (UNLIKELY (value < 0 || value > 1))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+	return failure_indicator;
+      }
+    @<Fail if |xsyid| is invalid@>@;
+    xsy = XSY_by_ID(xsyid);
+    if (UNLIKELY(!SYM_is_Nullable(xsy) && value)) {
        MARPA_ERROR(MARPA_ERR_SYM_NOT_NULLABLE);
     }
-    if (value) {
-	bv_bit_set(Nulling_Ask_BV_of_V(v), symid);
-    } else {
-	bv_bit_clear(Nulling_Ask_BV_of_V(v), symid);
+    if (UNLIKELY (XSY_is_Valued_Locked (xsy)
+		&& value != XSY_is_Valued (xsy)))
+    {
+      return valued_is_locked;
     }
-    return value ? 1 : 0;
+    if (value) {
+	bv_bit_set(Nulling_Ask_BV_of_V(v), xsyid);
+    } else {
+	bv_bit_clear(Nulling_Ask_BV_of_V(v), xsyid);
+    }
+    return value;
 }
 
 @*0 Stepping the valuator.
@@ -12994,18 +13019,18 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
   FSTACK_INIT (stack, XSYID, XSY_Count_of_G (g));
   while (bv_scan (bv, start, &min, &max))
     {
-      unsigned int symid;
-      for (symid = min; symid <= max; symid++)
+      unsigned int xsyid;
+      for (xsyid = min; xsyid <= max; xsyid++)
 	{
-	  *(FSTACK_PUSH (stack)) = symid;
+	  *(FSTACK_PUSH (stack)) = xsyid;
 	}
       start = max + 2;
     }
   while ((top_of_stack = FSTACK_POP (stack)))
     {
-      const SYMID symid = *top_of_stack;
-      XRLID *p_xrl = xrl_list_x_rh_sym[symid];
-      const XRLID *p_one_past_rules = xrl_list_x_rh_sym[symid + 1];
+      const SYMID xsyid = *top_of_stack;
+      XRLID *p_xrl = xrl_list_x_rh_sym[xsyid];
+      const XRLID *p_one_past_rules = xrl_list_x_rh_sym[xsyid + 1];
       for (; p_xrl < p_one_past_rules; p_xrl++)
 	{
 	  const XRLID rule_id = *p_xrl;
@@ -13828,8 +13853,8 @@ if (UNLIKELY(!G_is_Precomputed(g))) {
     MARPA_ERROR(MARPA_ERR_NOT_PRECOMPUTED);
     return failure_indicator;
 }
-@ @<Fail if |symid| is invalid@> =
-if (UNLIKELY(!symbol_is_valid(g, symid))) {
+@ @<Fail if |xsyid| is invalid@> =
+if (UNLIKELY(!xsyid_is_valid(g, xsyid))) {
     MARPA_ERROR(MARPA_ERR_INVALID_XSYID);
     return failure_indicator;
 }

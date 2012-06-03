@@ -1073,36 +1073,23 @@ Return value: On success, 1 if symbol is nullable, 0 if not.
 If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
-@deftypefun int marpa_g_symbol_ask_me_when_null_set ( @
+@deftypefun int marpa_g_symbol_valued_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symbol_id}, @
     int value)
-@deftypefunx int marpa_g_symbol_is_ask_me_when_null ( @
+@deftypefunx int marpa_g_symbol_is_valued ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symbol_id})
 
-In Marpa,
-most of the semantics is usually be implemented by the
-higher layers.
-This is called @dfn{``ask me'' semantics}.
-The ``ask me when null''
-calls deal with the handling of semantics
-in case when the symbol is nulling.
-For proper nullables,
-the ``Ask me when null'' setting is relevant
-only in cases where the symbol is nulled.
+These methods, respectively, set
+and query the ``valued status'' of a symbol.
+If a symbol is ``valued'',
+the semantics require that it have a defined value.
+If a symbol is not valued,
+it is an unvalued, or a ``whatever'' symbol.
 
-Marpa's default is to assume that the
-value of nulled symbols will be ignored,
-and to let that value be ``whatever''.
-``Whatever'' here means it may not be relied
-and may change from instance to instance.
-Marpa optimizes for cases where symbols
-have ``whatever'' values.
-
-Return value: On success, 1 if the resulting semantics after
-  the function call is the ``ask me'' semantics,
-  0 if not.
+Return value: On success, 1 if the symbol @var{symbol_id}
+is valued, 0 if not.
 On failure, -2.
 
 @end deftypefun
@@ -1173,9 +1160,6 @@ On other failures, -2.
 @deftypefun int marpa_g_rule_whatever_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
-@deftypefunx int marpa_g_rule_first_child_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
 @deftypefunx int marpa_g_rule_ask_me_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
@@ -1186,31 +1170,7 @@ On other failures, -2.
 Usually,
 most of the semantics must be implemented by Marpa's
 higher layers.
-This is called @dfn{``ask me'' semantics}.
-In two special but common cases, however,
-Marpa can implement the semantics internally,
-eliminating an evaluation step.
-This can be an considerable efficiency.
-
-The two optimizable cases are ``whatever'' semantics
-and ``first child'' semantics.
-If a rule has
-@dfn{whatever semantics}, that means
-that the higher layers
-do not care about the value of the rule.
-If a rule has
-@dfn{first child semantics}, the value of the rule
-should be the value of its first child node.
-In the current implementation, both of these
-can be implemented as stack no-ops.
-
-In the current implementation,
-first child semantics is equivalent to whatever semantics.
-It is possible that a future implementation will
-be unable to implement first child semantics as a stack
-no-op.
-At that point first child semantics will made equivalent
-to ``ask me'' semantics.
+This is called @dfn{``ask'' semantics}.
 
 Return value: On success, 1 if the resulting semantics after
   the function call is the ``ask me'' semantics;
@@ -2926,6 +2886,19 @@ Where a description exists and may be helpful,
 it may be included below,
 but all applications
 should treat these methods as ``undocumented''.
+
+@deftypefun int _marpa_g_rule_first_child_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+If the desired semantics is simply
+to return the first child as the value
+(not an uncommon case)
+Marpa could implement that as a stack no-op.
+This stub may become part of the external interface
+at some point,
+once I fully work out the implications
+of "first child" semantics.
+@end deftypefun
 
 @deftypefun int _marpa_g_isy_is_start ( Marpa_Grammar @var{g}, @
     Marpa_ISY_ID @var{isy_id})
