@@ -12690,6 +12690,17 @@ lbv_obs_new0 (struct obstack *obs, int bits)
   }
   return lbv;
 }
+
+@*0 Basic LBV operations.
+@d lbv_w(lbv, bit) ((lbv)+((bit)/lbv_wordbits))
+@d lbv_b(bit) (lbv_lsb << ((bit)%bv_wordbits));
+@d lbv_bit_set(lbv, bit)
+  (*(lbv_w ((lbv)), (bit)) |= (lbv_b (bit)))
+@d lbv_bit_clear(lbv, bit)
+  (*(lbv_w ((lbv)), (bit)) &= ~(lbv_b (bit)))
+@d lbv_bit_test(lbv, bit)
+  ((*(lbv_w ((lbv)), (bit)) & (lbv_b (bit))) != 0u)
+
 @** Boolean vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.
