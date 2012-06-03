@@ -8194,10 +8194,6 @@ Marpa_Earleme marpa_r_alternative(
 
 @ @<|marpa_alternative| initial check for failure conditions@> = {
     const XSY_Const token = SYM_by_ID(token_xsyid);
-    if (!XSY_is_Terminal(token)) {
-	MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
-	return failure_indicator;
-    }
     if (length <= 0) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_LENGTH_LE_ZERO);
 	return failure_indicator;
@@ -8205,6 +8201,34 @@ Marpa_Earleme marpa_r_alternative(
     if (length >= EARLEME_THRESHOLD) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_TOO_LONG);
 	return failure_indicator;
+    }
+    if (value && UNLIKELY(!lbv_bit_test(r->t_valued_terminal, token_xsyid)))
+    {
+      if (!XSY_is_Terminal(token)) {
+	  MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
+	  return failure_indicator;
+      }
+      if (lbv_bit_test(r->t_valued_locked, token_xsyid)) {
+	  MARPA_ERROR(MARPA_ERR_SYMBOL_VALUED_CONFLICT);
+	  return failure_indicator;
+      }
+      lbv_bit_set(r->t_valued_locked, token_xsyid);
+      lbv_bit_set(r->t_valued_terminal, token_xsyid);
+      lbv_bit_set(r->t_valued, token_xsyid);
+    }
+    if (!value && UNLIKELY(!lbv_bit_test(r->t_unvalued_terminal, token_xsyid)))
+    {
+      if (!XSY_is_Terminal(token)) {
+	  MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
+	  return failure_indicator;
+      }
+      if (lbv_bit_test(r->t_valued_locked, token_xsyid)) {
+	  MARPA_ERROR(MARPA_ERR_SYMBOL_VALUED_CONFLICT);
+	  return failure_indicator;
+      }
+      lbv_bit_set(r->t_valued_locked, token_xsyid);
+      lbv_bit_set(r->t_unvalued_terminal, token_xsyid);
+      lbv_bit_set(r->t_unvalued, token_xsyid);
     }
 }
 
@@ -12749,7 +12773,7 @@ lbv_obs_new0 (struct obstack *obs, int bits)
 @d lbv_bit_clear(lbv, bit)
   (*lbv_w ((lbv), (bit)) &= ~lbv_b (bit))
 @d lbv_bit_test(lbv, bit)
-  (*lbv_w ((lbv), (bit)) & lbv_b (bit) != 0u)
+  (*lbv_w ((lbv), (bit)) & lbv_b (bit))
 
 @** Boolean vectors.
 Marpa's boolean vectors are adapted from

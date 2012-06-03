@@ -2732,6 +2732,16 @@ call.
 Suggested message: "Symbol not nullable."
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_SYMBOL_VALUED_CONFLICT
+An unvalued symbol may take on any value,
+and therefore a symbol which is unvalued at some points
+cannot safely to be used to contain a value at
+others.
+This error indicates that such an unsafe use is
+being attempted.
+Suggested message: "Symbol is treated both as valued and unvalued."
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_TOKEN_IS_NOT_TERMINAL
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_TOKEN_LENGTH_LE_ZERO
