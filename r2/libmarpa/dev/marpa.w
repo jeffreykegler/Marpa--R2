@@ -12676,6 +12676,20 @@ PRIVATE int lbv_bits_to_size(int bits)
     return (bits+(lbv_wordbits-1))/lbv_wordbits;
 }
 
+@*0 Create a zeroed LBV on an obstack.
+@
+@<Function definitions@> =
+PRIVATE Bit_Vector
+lbv_obs_new0 (struct obstack *obs, int bits)
+{
+  int size = lbv_bits_to_size (bits);
+  LBV lbv = my_obstack_new (obs, LBW, size);
+  if (size > 0) {
+      LBW *addr = lbv;
+      while (size--) *addr++ = 0u;
+  }
+  return lbv;
+}
 @** Boolean vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.
