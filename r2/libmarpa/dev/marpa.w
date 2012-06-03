@@ -1199,13 +1199,13 @@ int marpa_g_symbol_valued_set(
   return value;
 }
 
-@ Symbol Is Accessible Boolean
+@*0 Symbol is accessible?.
 @d XSY_is_Accessible(xsy) ((xsy)->t_is_accessible)
 @d SYM_is_Accessible(sym) XSY_is_Accessible(sym)
 @<Bit aligned symbol elements@> = unsigned int t_is_accessible:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_accessible = 0;
-@ The trace accessor returns the Boolean value.
+@ The trace accessor returns the boolean value.
 Right now this function uses a pointer
 to the symbol function.
 If that becomes private,
@@ -1221,7 +1221,7 @@ int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID xsyid)
   return XSY_is_Accessible( XSY_by_ID(xsyid));
 }
 
-@ Symbol Is Counted Boolean
+@*0 Symbol is counted?.
 @<Bit aligned symbol elements@> = unsigned int t_is_counted:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_counted = 0;
@@ -1235,7 +1235,7 @@ Marpa_Symbol_ID xsyid)
     return SYM_by_ID(xsyid)->t_is_counted;
 }
 
-@ Symbol Is Nulling Boolean
+@*0 Symbol is nulling?.
 @d XSY_is_Nulling(sym) ((sym)->t_is_nulling)
 @d SYM_is_Nulling(sym) XSY_is_Nulling(sym)
 @<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
@@ -1251,7 +1251,7 @@ int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsyid)
     return SYM_is_Nulling(SYM_by_ID(xsyid));
 }
 
-@ Symbol Is Nullable Boolean
+@*0 Symbol is nullable?.
 @d XSY_is_Nullable(sym) ((sym)->t_is_nullable)
 @d SYM_is_Nullable(sym) XSY_is_Nullable(sym)
 @<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
@@ -1267,7 +1267,7 @@ int marpa_g_symbol_is_nullable(Marpa_Grammar g, Marpa_Symbol_ID xsyid)
     return XSY_is_Nullable(SYM_by_ID(xsyid));
 }
 
-@ Symbol Is Terminal Boolean
+@*0 Symbol is terminal?.
 The ``marked terminal'' flag tracked whether
 the terminal flag was set by the user.
 It distinguishes those
@@ -1310,7 +1310,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
     return SYM_is_Terminal(symbol) = value;
 }
 
-@ Symbol Is Productive Boolean
+@*0 Symbol is productive?.
 @d XSY_is_Productive(xsy) ((xsy)->t_is_productive)
 @d SYM_is_Productive(xsy) XSY_is_Productive(xsy)
 @<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
@@ -1328,7 +1328,7 @@ int marpa_g_symbol_is_productive(
     return XSY_is_Productive(XSY_by_ID(xsyid));
 }
 
-@ Symbol Is Start Boolean
+@*0 Symbol is start?.
 @<Bit aligned symbol elements@> = unsigned int t_is_start:1;
 @ @<Initialize symbol elements@> = symbol->t_is_start = 0;
 @ @<Function definitions@> =
@@ -2572,7 +2572,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Calculate Rule by LHS lists@>@;
 	@<Create AHFA items@>@;
 	@<Create AHFA states@>@;
-	@<Populate the Terminal Boolean Vector@>@;
+	@<Populate the terminal boolean vector@>@;
     }
      return_value = G_EVENT_COUNT(g);
      FAILURE:;
@@ -5744,7 +5744,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 
 
 @** Populating the terminal boolean vector.
-@<Populate the Terminal Boolean Vector@> =
+@<Populate the terminal boolean vector@> =
 {
   int xsyid;
   g->t_bv_isyid_is_terminal = bv_obs_create (g->t_obs, isy_count);
@@ -12653,7 +12653,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
     }
 }
 
-@** Lightweight Boolean vectors (LBV).
+@** Lightweight boolean vectors (LBV).
 These macros and functions assume that the 
 caller remembers the bit vector's length.
 They also take no precautions about trailing bits
@@ -12739,7 +12739,7 @@ PRIVATE unsigned int bv_bits_to_unused_mask(unsigned int bits)
     return(mask);
 }
 
-@*0 Create a Boolean vector.
+@*0 Create a boolean vector.
 @ Always start with an all-zero vector.
 Note this code is a bit tricky ---
 the pointer returned is to the data.
@@ -12757,7 +12757,7 @@ PRIVATE Bit_Vector bv_create(unsigned int bits)
     return addr;
 }
 
-@*0 Create a Boolean vector on an obstack.
+@*0 Create a boolean vector on an obstack.
 @ Always start with an all-zero vector.
 Note this code is a bit tricky ---
 the pointer returned is to the data.
@@ -12781,7 +12781,7 @@ bv_obs_create (struct obstack *obs, unsigned int bits)
 }
 
 
-@*0 Shadow a Boolean vector.
+@*0 Shadow a boolean vector.
 Create another vector the same size as the original, but with
 all bits unset.
 @<Function definitions@> =
@@ -12794,7 +12794,7 @@ PRIVATE Bit_Vector bv_obs_shadow(struct obstack * obs, Bit_Vector bv)
     return bv_obs_create(obs, BV_BITS(bv));
 }
 
-@*0 Clone a Boolean vector.
+@*0 Clone a boolean vector.
 Given a boolean vector, creates a new vector which is
 an exact duplicate.
 This call allocates a new vector, which must be |free|'d.
@@ -12812,7 +12812,7 @@ Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from)
     return(bv_to);
 }
 
-@*0 Clone a Boolean vector.
+@*0 Clone a boolean vector.
 Given a boolean vector, creates a new vector which is
 an exact duplicate.
 This call allocates a new vector, which must be |free|'d.
@@ -12829,7 +12829,7 @@ Bit_Vector bv_obs_clone(struct obstack *obs, Bit_Vector bv)
     return bv_copy(bv_obs_shadow(obs, bv), bv);
 }
 
-@*0 Free a Boolean vector.
+@*0 Free a boolean vector.
 @<Function definitions@> =
 PRIVATE void bv_free(Bit_Vector vector)
 {
@@ -12840,7 +12840,7 @@ PRIVATE void bv_free(Bit_Vector vector)
     }
 }
 
-@*0 Fill a Boolean vector.
+@*0 Fill a boolean vector.
 @<Function definitions@> =
 PRIVATE void bv_fill(Bit_Vector bv)
 {
@@ -12851,7 +12851,7 @@ PRIVATE void bv_fill(Bit_Vector bv)
     *bv &= BV_MASK(bv);
 }
 
-@*0 Clear a Boolean vector.
+@*0 Clear a boolean vector.
 @<Function definitions@> =
 PRIVATE void bv_clear(Bit_Vector bv)
 {
@@ -12873,28 +12873,28 @@ PRIVATE void bv_over_clear(Bit_Vector bv, unsigned int bit)
     while (length--) *bv++ = 0u;
 }
 
-@*0 Set a Boolean vector bit.
+@*0 Set a boolean vector bit.
 @ @<Function definitions@> =
 PRIVATE void bv_bit_set(Bit_Vector vector, unsigned int bit)
 {
     *(vector+(bit/bv_wordbits)) |= (bv_lsb << (bit%bv_wordbits));
 }
 
-@*0 Clear a Boolean vector bit.
+@*0 Clear a boolean vector bit.
 @<Function definitions@> =
 PRIVATE void bv_bit_clear(Bit_Vector vector, unsigned int bit)
 {
     *(vector+(bit/bv_wordbits)) &= ~ (bv_lsb << (bit%bv_wordbits));
 }
 
-@*0 Test a Boolean vector bit.
+@*0 Test a boolean vector bit.
 @<Function definitions@> =
 PRIVATE int bv_bit_test(Bit_Vector vector, unsigned int bit)
 {
     return (*(vector+(bit/bv_wordbits)) & (bv_lsb << (bit%bv_wordbits))) != 0u;
 }
 
-@*0 Test and set a Boolean vector bit.
+@*0 Test and set a boolean vector bit.
 Ensure that a bit is set and returning its value to the call.
 @<Function definitions@> =
 PRIVATE int
@@ -12908,7 +12908,7 @@ bv_bit_test_and_set (Bit_Vector vector, unsigned int bit)
   return 0;
 }
 
-@*0 Test a Boolean vector for all zeroes.
+@*0 Test a boolean vector for all zeroes.
 @<Function definitions@> =
 PRIVATE
 int bv_is_empty(Bit_Vector addr)
@@ -12922,7 +12922,7 @@ int bv_is_empty(Bit_Vector addr)
     return(r);
 }
 
-@*0 Bitwise-negate a Boolean vector.
+@*0 Bitwise-negate a boolean vector.
 @<Function definitions@>=
 PRIVATE void bv_not(Bit_Vector X, Bit_Vector Y)
 {
@@ -12932,7 +12932,7 @@ PRIVATE void bv_not(Bit_Vector X, Bit_Vector Y)
     *(--X) &= mask;
 }
 
-@*0 Bitwise-and a Boolean vector.
+@*0 Bitwise-and a boolean vector.
 @<Function definitions@>=
 PRIVATE void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 {
@@ -12942,7 +12942,7 @@ PRIVATE void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
     *(--X) &= mask;
 }
 
-@*0 Bitwise-or a Boolean vector.
+@*0 Bitwise-or a boolean vector.
 @<Function definitions@>=
 PRIVATE void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 {
@@ -12952,7 +12952,7 @@ PRIVATE void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
     *(--X) &= mask;
 }
 
-@*0 Bitwise-or-assign a Boolean vector.
+@*0 Bitwise-or-assign a boolean vector.
 @<Function definitions@>=
 PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 {
@@ -12962,7 +12962,7 @@ PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
     *(--X) &= mask;
 }
 
-@*0 Scan a Boolean vector.
+@*0 Scan a boolean vector.
 @<Function definitions@>=
 PRIVATE_NOT_INLINE
 int bv_scan(Bit_Vector bv, unsigned int start,
@@ -13034,7 +13034,7 @@ int bv_scan(Bit_Vector bv, unsigned int start,
     return 1;
 }
 
-@*0 Count the bits in a Boolean vector.
+@*0 Count the bits in a boolean vector.
 @<Function definitions@>=
 PRIVATE unsigned int
 bv_count (Bit_Vector v)
@@ -13157,11 +13157,11 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 }
 
 @** Boolean matrixes.
-Marpa's Boolean matrixes are implemented differently
+Marpa's boolean matrixes are implemented differently
 from the matrixes in
 Steffen Beyer's Bit-Vector package on CPAN,
 but like Beyer's matrixes are build on that package.
-Beyer's matrixes are a single Boolean vector
+Beyer's matrixes are a single boolean vector
 which special routines index by row and column.
 Marpa's matrixes are arrays of vectors.
 
@@ -13180,7 +13180,7 @@ and |Bit_Vector| are identical.
 @<Private typedefs@> =
 typedef Bit_Vector_Word* Bit_Matrix;
 
-@*0 Create a Boolean matrix.
+@*0 Create a boolean matrix.
 @ Here the pointer returned is the actual start of the
 |malloc|'d space.
 This is {\bf not} the case with vectors, whose pointer is offset for
@@ -13206,7 +13206,7 @@ PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, uns
     return matrix_addr;
 }
 
-@*0 Find the number of columns in a Boolean matrix.
+@*0 Find the number of columns in a boolean matrix.
 The column count returned is for the first row.
 It is assumed that 
 all rows have the same number of columns.
@@ -13219,7 +13219,7 @@ PRIVATE int matrix_columns(Bit_Matrix matrix)
      return BV_BITS(row0);
 }
 
-@*0 Find a row of a Boolean matrix.
+@*0 Find a row of a boolean matrix.
 Here's where the slight extra overhead of repeating
 identical ``hidden word" data for each row of a matrix
 pays off.
@@ -13236,7 +13236,7 @@ PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, unsigned int row)
     return row0 + row*words_per_row;
 }
 
-@*0 Set a Boolean matrix bit.
+@*0 Set a boolean matrix bit.
 @ @<Function definitions@> =
 PRIVATE void matrix_bit_set(Bit_Matrix matrix, unsigned int row, unsigned int column)
 {
@@ -13244,7 +13244,7 @@ PRIVATE void matrix_bit_set(Bit_Matrix matrix, unsigned int row, unsigned int co
     bv_bit_set(vector, column);
 }
 
-@*0 Clear a Boolean matrix bit.
+@*0 Clear a boolean matrix bit.
 @ @<Function definitions@> =
 PRIVATE void matrix_bit_clear(Bit_Matrix matrix, unsigned int row, unsigned int column)
 {
@@ -13252,7 +13252,7 @@ PRIVATE void matrix_bit_clear(Bit_Matrix matrix, unsigned int row, unsigned int 
     bv_bit_clear(vector, column);
 }
 
-@*0 Test a Boolean matrix bit.
+@*0 Test a boolean matrix bit.
 @ @<Function definitions@> =
 PRIVATE int matrix_bit_test(Bit_Matrix matrix, unsigned int row, unsigned int column)
 {
@@ -13260,7 +13260,7 @@ PRIVATE int matrix_bit_test(Bit_Matrix matrix, unsigned int row, unsigned int co
     return bv_bit_test(vector, column);
 }
 
-@*0 Produce the transitive closure of a Boolean matrix.
+@*0 Produce the transitive closure of a boolean matrix.
 This routine takes a matrix representing a relation
 and produces a matrix that represents the transitive closure
 of the relation.
