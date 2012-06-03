@@ -2624,6 +2624,7 @@ a lot of useless diagnostics.
     @<Census accessible symbols@>@;
     @<Census nulling symbols@>@;
     @<Classify rules@>@;
+    @<Mark valued symbols@>@;
 }
 
 @ @<Declare precompute variables@> =
@@ -3049,6 +3050,32 @@ and productive.
 	XRL_is_Nullable (xrl) = is_nullable;
 	XRL_is_Productive (xrl) = is_productive;
       }
+    }
+}
+
+@ Those LHS terminals that have not been explicitly marked
+(as indicated by their ``valued locked'' bit),
+should be marked valued and locked.
+This is to follow the principle of least surprise.
+A recognizer might mark these symbols as unvalued,
+prior to valuator trying to assign semantics to rules
+with them on the LHS.
+Better to mark them valued now,
+and cause an error in the recognizer.
+@<Mark valued symbols@> = 
+{
+  XSYID xsyid;
+  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
+    {
+      if (bv_bit_test (terminal_v, xsyid) && bv_bit_test (lhs_v, xsyid))
+	{
+	  const XSY xsy = XSY_by_ID (xsyid);
+	  if (XSY_is_Valued_Locked (xsy))
+	    continue;
+	  XSY_is_Valued (xsy) = 1;
+	  XSY_is_Valued_Locked (xsy) = 1;
+	  continue;
+	}
     }
 }
 
