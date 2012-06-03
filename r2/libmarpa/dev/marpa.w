@@ -12259,6 +12259,13 @@ Token_Type_of_V(v) = DUMMY_OR_NODE;
 TOS_of_V(v) = -1;
 Arg_N_of_V(v) = -1;
 
+@*0 The obstack.
+An obstack with the same lifetime as the valuator.
+@<Widely aligned value elements@> =
+  struct obstack* t_obs;
+@ @<Destroy value elements@> =
+  my_obstack_free(v->t_obs);
+
 @*0 Virtual stack.
 @ A dynamic stack is used here instead of a fixed
 stack for two reasons.
@@ -12305,6 +12312,13 @@ stack reallocations is $O(1)$.
     DSTACK_DECLARE(t_virtual_stack);
 @ @<Pre-initialize value elements@> =
     DSTACK_SAFE(VStack_of_V(v));
+@ @<Destroy value elements@> =
+{
+    if (LIKELY(DSTACK_IS_INITIALIZED(VStack_of_V(v)) != NULL))
+    {
+        DSTACK_DESTROY(VStack_of_V(v));
+    }
+}
 
 @*0 Valuator constructor.
 @<Function definitions@> =
@@ -12315,7 +12329,9 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     @<Fail if fatal error@>@;
     if (!T_is_Exhausted (t))
       {
-	VALUE v = my_slice_new (struct s_value);
+	struct obstack* const obstack = my_obstack_init;
+	const VALUE v = my_obstack_new (obstack, struct s_value, 1);
+	v->t_obs = obstack;
 	Next_Value_Type_of_V(v) = V_GET_DATA;
 	@<Pre-initialize value elements@>@;
 	tree_pause (t);
@@ -12378,11 +12394,7 @@ PRIVATE void value_free(VALUE v)
 {
     tree_unpause(T_of_V(v));
     bv_free(Nulling_Ask_BV_of_V(v));
-    if (LIKELY(DSTACK_IS_INITIALIZED(VStack_of_V(v)) != NULL))
-    {
-        DSTACK_DESTROY(VStack_of_V(v));
-    }
-    my_slice_free(*v, v);
+    @<Destroy value elements@>@;
 }
 
 @ @<Unpack value objects@> =
@@ -12774,6 +12786,20 @@ lbv_obs_new0 (struct obstack *obs, int bits)
   (*lbv_w ((lbv), (bit)) &= ~lbv_b (bit))
 @d lbv_bit_test(lbv, bit)
   (*lbv_w ((lbv), (bit)) & lbv_b (bit))
+
+@*0 Copy an LBV.
+PRIVATE LBV lbv_copy(
+  struct obstack* obs, LBV old_lbv, int bits)
+{
+  int size = lbv_bits_to_size (bits);
+  const LBV new_lbv = my_obstack_new (obs, LBW, size);
+  if (size > 0) {
+      LBW *from_addr = old_lbv;
+      LBW *to_addr = new_lbv;
+      while (size--) *to_addr++ = *from_addr++;
+  }
+  return new_lbv;
+}
 
 @** Boolean vectors.
 Marpa's boolean vectors are adapted from
