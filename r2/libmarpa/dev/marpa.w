@@ -3062,7 +3062,11 @@ prior to valuator trying to assign semantics to rules
 with them on the LHS.
 Better to mark them valued now,
 and cause an error in the recognizer.
+@ Commented out.  The LHS terminal user is a sophisticated
+user so it is probably the better course to allow her the
+choice.
 @<Mark valued symbols@> = 
+#if 0
 {
   XSYID xsyid;
   for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
@@ -3077,6 +3081,7 @@ and cause an error in the recognizer.
 	}
     }
 }
+#endif
 
 @** The sequence rewrite.
 @<Rewrite sequence |rule| into BNF@> =
@@ -10843,8 +10848,6 @@ An obstack with the lifetime of the bocage.
 @d OBS_of_B(b) ((b)->t_obs)
 @<Widely aligned bocage elements@> =
 struct obstack *t_obs;
-@ @<Initialize bocage elements@> =
-OBS_of_B(b) = my_obstack_init;
 @ @<Destroy bocage elements, final phase@> =
 my_obstack_free(OBS_of_B(b));
 
@@ -10856,9 +10859,13 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Return |NULL| on failure@>@;
     @<Declare bocage locals@>@;
     INPUT input;
-  @<Fail if fatal error@>@;
-  @<Fail if recognizer not started@>@;
-    b = my_slice_new(*b);
+    @<Fail if fatal error@>@;
+    @<Fail if recognizer not started@>@;
+    {
+	struct obstack* const obstack = my_obstack_init;
+	b = my_obstack_new (obstack, struct marpa_bocage, 1);
+	OBS_of_B(b) = obstack;
+    }
     @<Initialize bocage elements@>@;
     input = I_of_B(b) = I_of_R(r);
     input_ref(input);
@@ -10896,9 +10903,21 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     return NULL;
 }
 
+@ @d Valued_BV_of_B(b) ((b)->t_valued_bv)
+@d Valued_Locked_BV_of_B(b) ((b)->t_valued_locked_bv)
+@<Widely aligned bocage elements@> =
+    LBV t_valued_bv;
+    LBV t_valued_locked_bv;
+
+@ @<Initialize bocage elements@> =
+  Valued_BV_of_B (b) = lbv_copy (b->t_obs, r->t_valued, xsy_count);
+  Valued_Locked_BV_of_B (b) =
+    lbv_copy (b->t_obs, r->t_valued_locked, xsy_count);
+
 @ @<Declare bocage locals@> =
 const GRAMMAR g = G_of_R(r);
 const int isy_count = ISY_Count_of_G(g);
+const int xsy_count = XSY_Count_of_G(g);
 const IRLID irl_count = IRL_Count_of_G(g);
 BOCAGE b = NULL;
 ES end_of_parse_earley_set;
@@ -11121,7 +11140,6 @@ bocage_free (BOCAGE b)
   if (b)
     {
       @<Destroy bocage elements, all phases@>;
-      my_slice_free (*b, b);
     }
 }
 
@@ -12461,20 +12479,21 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
     return NOOK_of_V(v);
 }
 
-@*0 Nulling symbol semantics.
+@*0 Symbol valued status.
 @ @d Nulling_Ask_BV_of_V(val) ((val)->t_nulling_ask_bv)
 @<Widely aligned value elements@> =
     Bit_Vector t_nulling_ask_bv;
 @ @<Pre-initialize value elements@> =
 {
-    const XSYID xsy_count = XSY_Count_of_G(g);
-    XSYID ix;
-    Nulling_Ask_BV_of_V(v) = bv_create (xsy_count);
-    for (ix = 0; ix < xsy_count; ix++) {
-	const XSY xsy = XSY_by_ID(ix);
-	if (XSY_is_Valued(xsy))
+  const XSYID xsy_count = XSY_Count_of_G (g);
+  XSYID ix;
+  Nulling_Ask_BV_of_V (v) = bv_create (xsy_count);
+  for (ix = 0; ix < xsy_count; ix++)
+    {
+      const XSY xsy = XSY_by_ID (ix);
+      if (XSY_is_Valued (xsy))
 	{
-	    bv_bit_set(Nulling_Ask_BV_of_V(v), ix);
+	  bv_bit_set (Nulling_Ask_BV_of_V (v), ix);
 	}
     }
 }
@@ -12763,7 +12782,6 @@ PRIVATE int lbv_bits_to_size(int bits)
 }
 
 @*0 Create a zeroed LBV on an obstack.
-@
 @<Function definitions@> =
 PRIVATE Bit_Vector
 lbv_obs_new0 (struct obstack *obs, int bits)
@@ -12788,6 +12806,7 @@ lbv_obs_new0 (struct obstack *obs, int bits)
   (*lbv_w ((lbv), (bit)) & lbv_b (bit))
 
 @*0 Copy an LBV.
+@<Function definitions@> =
 PRIVATE LBV lbv_copy(
   struct obstack* obs, LBV old_lbv, int bits)
 {
@@ -13952,16 +13971,15 @@ Where necessary, the caller must do that.
     ((type *)my_realloc((p), (sizeof(type)*(count))))
 
 @*0 Slices.
-Some memory allocations are suitable for special "slice"
-allocators, such as the one in the GNU glib.
-These are faster than the system malloc, but do not
-allow resizing, and require that the size of the
-allocation be known when it is freed.
-At present, libmarpa's ``slice allocator'' exists only
-as documentation
-of potential opportunities for optimization --
-it does nothing
-but pass all these calls on to the system malloc.
+I once used the "slice" allocator to handle
+the "middle ground" between the flexibity of the
+system malloc,
+and the efficiency of obstacks.
+But there turned out to not even "middle ground"
+to justify a third memory allocation scheme.
+I now simply
+pass all calls to the "slice" allocator
+on to the system malloc.
 @d my_slice_alloc(size) my_malloc(size)
 @d my_slice_new(x) my_malloc(sizeof(x))
 @d my_slice_free(x, p) my_free(p)
