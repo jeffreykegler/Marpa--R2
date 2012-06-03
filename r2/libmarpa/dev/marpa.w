@@ -3074,7 +3074,6 @@ and cause an error in the recognizer.
 	    continue;
 	  XSY_is_Valued (xsy) = 1;
 	  XSY_is_Valued_Locked (xsy) = 1;
-	  continue;
 	}
     }
 }
@@ -12654,6 +12653,29 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
     }
 }
 
+@** Lightweight Boolean vectors (LBV).
+These macros and functions assume that the 
+caller remembers the bit vector's length.
+They also take no precautions about trailing bits
+in the last word.
+Most operations do not need to.
+When and if there are such operations,
+it will be up to the caller to make sure that
+the trailing bits are correct.
+@d lbv_wordbits (sizeof(LBW)*8u)
+@d lbv_lsb (1u)
+@d lbv_msb (1u << (lbv_wordbits-1u))
+@<Private typedefs@> =
+typedef unsigned int LBW;
+typedef LBW* LBV;
+
+@ Given a number of bits, compute the size.
+@<Function definitions@> =
+PRIVATE int lbv_bits_to_size(int bits)
+{
+    return (bits+(lbv_wordbits-1))/lbv_wordbits;
+}
+
 @** Boolean vectors.
 Marpa's boolean vectors are adapted from
 Steffen Beyer's Bit-Vector package on CPAN.
@@ -12664,18 +12686,18 @@ look at Steffen's instead.
 |libmarpa|'s boolean vectors are tightly tied in
 with its own needs and environment.
 @<Private typedefs@> =
-typedef unsigned int Bit_Vector_Word;
+typedef LBW Bit_Vector_Word;
 typedef Bit_Vector_Word* Bit_Vector;
 @ Some defines and constants
 @d BV_BITS(bv) *(bv-3)
 @d BV_SIZE(bv) *(bv-2)
 @d BV_MASK(bv) *(bv-1)
 @<Global variables@> =
-static const unsigned int bv_wordbits = sizeof(Bit_Vector_Word)*8u;
-static const unsigned int bv_modmask = sizeof(Bit_Vector_Word)*8u-1u;
+static const unsigned int bv_wordbits = lbv_wordbits;
+static const unsigned int bv_modmask = lbv_wordbits - 1u;
 static const unsigned int bv_hiddenwords = 3;
-static const unsigned int bv_lsb = 1u;
-static const unsigned int bv_msb = (1u << (sizeof(Bit_Vector_Word)*8u-1u));
+static const unsigned int bv_lsb = lbv_lsb;
+static const unsigned int bv_msb = lbv_msb;
 
 @ Given a number of bits, compute the size.
 @<Function definitions@> =
