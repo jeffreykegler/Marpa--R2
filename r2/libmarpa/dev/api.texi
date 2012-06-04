@@ -107,7 +107,6 @@ Semantics
 * How Libmarpa semantics work::  
 * Universe of values::          
 * Whatever values::             
-* Caution about whatever values::  
 
 Error handling
 
@@ -621,7 +620,6 @@ and forth into whatever the application requires.
 * How Libmarpa semantics work::  
 * Universe of values::          
 * Whatever values::             
-* Caution about whatever values::  
 @end menu
 
 @node How Libmarpa semantics work, Universe of values, Semantics, Semantics
@@ -686,7 +684,7 @@ Excluding trap values from a C program's universe of
 values may require the application to make
 sure that stack positions are properly initialized.
 
-@node Whatever values, Caution about whatever values, Universe of values, Semantics
+@node Whatever values,  , Universe of values, Semantics
 @section Valued and unvalued symbols
 
 Libmarpa symbols can have values,
