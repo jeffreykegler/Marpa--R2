@@ -77,7 +77,7 @@ for my $maximal ( 0, 1 ) {
         $recce->set( { end => $i, } );
         my $result = $recce->value();
         Test::More::is( ${$result}, $expected->[$i],
-            "$name parse permutation $i" );
+            "$name parse, length=$i" );
 
     } ## end for my $i ( 0 .. $input_length )
 } ## end for my $maximal ( 0, 1 )

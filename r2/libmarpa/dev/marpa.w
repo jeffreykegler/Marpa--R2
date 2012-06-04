@@ -12620,7 +12620,7 @@ for the rule.
 	      Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
 	      XSYID_of_V(v) = g->t_start_xsyid;
 	      TOS_of_V(v) = Arg_N_of_V(v) = 0;
-	      if (bv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v)))
+	      if (lbv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v)))
 		      return MARPA_STEP_NULLING_SYMBOL;
 	    }
 	    /* fall through */
