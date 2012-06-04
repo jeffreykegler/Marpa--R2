@@ -12412,7 +12412,6 @@ marpa_v_ref (Marpa_Value v)
 PRIVATE void value_free(VALUE v)
 {
     tree_unpause(T_of_V(v));
-    bv_free(Nulling_Ask_BV_of_V(v));
     @<Destroy value elements@>@;
 }
 
@@ -12494,27 +12493,10 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
     lbv_copy (v->t_obs, Valued_Locked_BV_of_B (b), xsy_count);
 }
 
-@ @d Nulling_Ask_BV_of_V(val) ((val)->t_nulling_ask_bv)
-@<Widely aligned value elements@> =
-    Bit_Vector t_nulling_ask_bv;
-@ @<Initialize value elements@> =
-{
-  XSYID ix;
-  Nulling_Ask_BV_of_V (v) = bv_create (xsy_count);
-  for (ix = 0; ix < xsy_count; ix++)
-    {
-      const XSY xsy = XSY_by_ID (ix);
-      if (XSY_is_Valued (xsy))
-	{
-	  bv_bit_set (Nulling_Ask_BV_of_V (v), ix);
-	}
-    }
-}
-
 @ The settings here overrides the value
 set with the grammar.
 @<Function definitions@> =
-int marpa_v_symbol_is_ask_me_when_null(
+int marpa_v_symbol_is_valued(
     Marpa_Value public_v,
     Marpa_Symbol_ID xsyid)
 {
@@ -12523,7 +12505,7 @@ int marpa_v_symbol_is_ask_me_when_null(
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
     @<Fail if |xsyid| is invalid@>@;
-    return bv_bit_test(Nulling_Ask_BV_of_V(v), xsyid);
+    return lbv_bit_test(Valued_BV_of_V(v), xsyid);
 }
 @ If the symbol has a null alias, the call is interpreted
 as being for that null alias.
@@ -12536,7 +12518,7 @@ The idea scares me,
 but I cannot think of a reason to ban it,
 so I do not.
 @<Function definitions@> =
-int marpa_v_symbol_ask_me_when_null_set(
+int marpa_v_symbol_is_valued_set (
     Marpa_Value public_v, Marpa_Symbol_ID xsyid, int value)
 {
     XSY xsy;
@@ -12552,18 +12534,17 @@ int marpa_v_symbol_ask_me_when_null_set(
       }
     @<Fail if |xsyid| is invalid@>@;
     xsy = XSY_by_ID(xsyid);
-    if (UNLIKELY(!SYM_is_Nullable(xsy) && value)) {
-       MARPA_ERROR(MARPA_ERR_SYM_NOT_NULLABLE);
-    }
-    if (UNLIKELY (XSY_is_Valued_Locked (xsy)
-		&& value != XSY_is_Valued (xsy)))
-    {
-      return valued_is_locked;
-    }
+    if (UNLIKELY
+	(lbv_bit_test (Valued_Locked_BV_of_V (v), xsyid)
+	&& value != (int)lbv_bit_test(Valued_BV_of_V (v), xsyid)))
+      {
+	return valued_is_locked;
+      }
+    lbv_bit_set(Valued_Locked_BV_of_V (v), xsyid);
     if (value) {
-	bv_bit_set(Nulling_Ask_BV_of_V(v), xsyid);
+	lbv_bit_set(Valued_BV_of_V (v), xsyid);
     } else {
-	bv_bit_clear(Nulling_Ask_BV_of_V(v), xsyid);
+	lbv_bit_clear(Valued_BV_of_V (v), xsyid);
     }
     return value;
 }
@@ -12601,7 +12582,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	      Next_Value_Type_of_V (v) = MARPA_STEP_RULE;
 	      if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
-		  if (bv_bit_test(Nulling_Ask_BV_of_V(v), XSYID_of_V(v)))
+		  if (lbv_bit_test(Valued_BV_of_V(v), XSYID_of_V(v)))
 		      return MARPA_STEP_NULLING_SYMBOL;
 	      }
 	      else if (token_type != DUMMY_OR_NODE)
@@ -12641,7 +12622,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	      Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
 	      XSYID_of_V(v) = g->t_start_xsyid;
 	      TOS_of_V(v) = Arg_N_of_V(v) = 0;
-	      if (bv_bit_test(Nulling_Ask_BV_of_V(v), XSYID_of_V(v)))
+	      if (bv_bit_test(Valued_BV_of_V(v), XSYID_of_V(v)))
 		      return MARPA_STEP_NULLING_SYMBOL;
 	    }
 	    /* fall through */
@@ -12711,7 +12692,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 		const ISY token_isy = ISY_by_ID (token_isyid);
 		const XSY source_xsy = Source_XSY_of_ISY(token_isy);
 		const XSYID source_xsyid = ID_of_XSY(source_xsy);
-		if (bv_bit_test (Nulling_Ask_BV_of_V (v), source_xsyid))
+		if (bv_bit_test (Valued_BV_of_V (v), source_xsyid))
 		  {
 		    XSYID_of_V (v) = source_xsyid;
 		  }

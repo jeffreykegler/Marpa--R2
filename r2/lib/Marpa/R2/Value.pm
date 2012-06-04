@@ -398,8 +398,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#$null_values )
     {
-        $value->symbol_ask_me_when_null_set( $token_id, 1 );
-    }
+        my $result = $value->symbol_is_valued_set( $token_id, 1 );
+        if ( not $result ) {
+            my $token_name = $grammar->symbol_name($token_id);
+            Marpa::R2::exception(
+                qq{Cannot assign values to symbol "$token_name"},
+		q{because it was already treated as an unvalued symbol}
+            );
+        } ## end if ( not $result )
+    } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
     my @evaluation_stack = ();
     value_trace( $value, $trace_values ? 1 : 0 );
 

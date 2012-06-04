@@ -2772,17 +2772,17 @@ PPCODE:
 }
 
 void
-symbol_ask_me_when_null_set( v_wrapper, symbol_id, value )
+symbol_is_valued_set( v_wrapper, symbol_id, value )
     V_Wrapper *v_wrapper;
     Marpa_Symbol_ID symbol_id;
     int value;
 PPCODE:
 {
   const Marpa_Value v = v_wrapper->v;
-  int result = marpa_v_symbol_ask_me_when_null_set (v, symbol_id, value);
+  int result = marpa_v_symbol_is_valued_set (v, symbol_id, value);
   if (result <= -1)
     {
-      croak ("Problem in v->symbol_ask_me_when_null_set(%d, %d): %s",
+      croak ("Problem in v->symbol_is_valued_set(%d, %d): %s",
 	     symbol_id, value, xs_v_error (v_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
