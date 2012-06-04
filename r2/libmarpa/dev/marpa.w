@@ -12269,7 +12269,7 @@ I need to straighten this out sometime.
 @d Token_Type_of_V(val) ((val)->t_token_type)
 @d TOS_of_V(val) ((val)->public.t_tos)
 @d Arg_N_of_V(val) ((val)->public.t_arg_n)
-@<Pre-initialize value elements@> =
+@<Initialize value elements@> =
 XSYID_of_V(v) = -1;
 RULEID_of_V(v) = -1;
 Token_Value_of_V(v) = -1;
@@ -12328,7 +12328,7 @@ stack reallocations is $O(1)$.
 @d VStack_of_V(val) ((val)->t_virtual_stack)
 @<Widely aligned value elements@> =
     DSTACK_DECLARE(t_virtual_stack);
-@ @<Pre-initialize value elements@> =
+@ @<Initialize value elements@> =
     DSTACK_SAFE(VStack_of_V(v));
 @ @<Destroy value elements@> =
 {
@@ -12347,11 +12347,12 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     @<Fail if fatal error@>@;
     if (!T_is_Exhausted (t))
       {
+	const XSYID xsy_count = XSY_Count_of_G (g);
 	struct obstack* const obstack = my_obstack_init;
 	const VALUE v = my_obstack_new (obstack, struct s_value, 1);
 	v->t_obs = obstack;
 	Next_Value_Type_of_V(v) = V_GET_DATA;
-	@<Pre-initialize value elements@>@;
+	@<Initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
 	if (T_is_Nulling(o)) {
@@ -12371,7 +12372,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 @*0 Reference counting and destructors.
 @ @<Int aligned value elements@>=
     int t_ref_count;
-@ @<Pre-initialize value elements@> =
+@ @<Initialize value elements@> =
     v->t_ref_count = 1;
 
 @ Decrement the value reference count.
@@ -12433,14 +12434,14 @@ Is this valuator for a nulling parse?
 @d V_is_Nulling(v) ((v)->t_is_nulling)
 @ @<Bit aligned value elements@> =
 unsigned int t_is_nulling:1;
-@ @<Pre-initialize value elements@> =
+@ @<Initialize value elements@> =
   V_is_Nulling(v) = 0;
 
 @*0 Trace valuator?.
 @d V_is_Trace(val) ((val)->t_trace)
 @<Bit aligned value elements@> =
     unsigned int t_trace:1;
-@ @<Pre-initialize value elements@> =
+@ @<Initialize value elements@> =
    V_is_Trace(v) = 0;
 @ @<Function definitions@> =
 int _marpa_v_trace(Marpa_Value public_v, int flag)
@@ -12461,7 +12462,7 @@ int _marpa_v_trace(Marpa_Value public_v, int flag)
 @d NOOK_of_V(val) ((val)->t_nook)
 @<Int aligned value elements@> =
     NOOKID t_nook;
-@ @<Pre-initialize value elements@> =
+@ @<Initialize value elements@> =
 	NOOK_of_V(v) = -1;
 @ Returns -1 if valuator is nulling.
 @<Function definitions@> =
@@ -12480,12 +12481,24 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
 }
 
 @*0 Symbol valued status.
+@ @d Valued_BV_of_V(v) ((v)->t_valued)
+@d Valued_Locked_BV_of_V(v) ((v)->t_valued_locked)
+@<Widely aligned value elements@> =
+    LBV t_valued;
+    LBV t_valued_locked;
+
+@ @<Initialize value elements@> =
+{
+  Valued_BV_of_V (v) = lbv_copy (v->t_obs, Valued_BV_of_B (b), xsy_count);
+  Valued_Locked_BV_of_V (v) =
+    lbv_copy (v->t_obs, Valued_Locked_BV_of_B (b), xsy_count);
+}
+
 @ @d Nulling_Ask_BV_of_V(val) ((val)->t_nulling_ask_bv)
 @<Widely aligned value elements@> =
     Bit_Vector t_nulling_ask_bv;
-@ @<Pre-initialize value elements@> =
+@ @<Initialize value elements@> =
 {
-  const XSYID xsy_count = XSY_Count_of_G (g);
   XSYID ix;
   Nulling_Ask_BV_of_V (v) = bv_create (xsy_count);
   for (ix = 0; ix < xsy_count; ix++)
