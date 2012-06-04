@@ -878,8 +878,8 @@ In the archetypal Libmarpa application,
 grammar, input and semantics are
 all small but non-trivial.
 
-@node Return value descriptions,  , About the overviews, Introduction to the external interface
-@section Return value descriptions
+@node Return values
+@section Return values
 
 If a function returns an integer value,
 and it is not otherwise stated,
@@ -890,8 +890,27 @@ If a function returns an pointer value,
 and it is not otherwise stated,
 @code{NULL} indicates a failure,
 and any other result indicates success.
-There are exceptions to these rules,
+Exceptions to these rules,
 but these will be explicitly indicated.
+
+If a method allows soft failure,
+the cause of the soft failure will always be described,
+either in the description of a -1 return,
+or explicitly.
+Where a method returns @code{NULL},
+and in its description
+there is no mention of soft failure,
+the reader can assume that the method never
+returns soft failure.
+
+Hard failure often can have many causes,
+and descriptions of all of them under each
+method would clutter the method descriptions.
+The Libmarpa error code is always set after
+a hard failure,
+and a full descriptions of the causes of each
+error code is in its own section.
+@xref{Error Codes}.
 
 @node Static method, Grammar methods, Introduction to the external interface, Top
 @chapter Static method
@@ -1033,8 +1052,8 @@ zero.
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
-
-Increases the reference count.
+Increases the reference count by 1.
+Not needed by most applications.
 
 Return value:
 On success, the grammar object it was called with;
@@ -1058,8 +1077,7 @@ On failure, -2.
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{id})
 
-Sets the start symbol of grammar @var{g} to symbol @code{id}.
-To be precomputed, a grammar must have a start symbol.
+Sets the start symbol of grammar @var{g} to symbol @var{id}.
 
 Return value: On success, the ID of the new start symbol.
 On failure, -2.
@@ -1119,7 +1137,6 @@ or on some other failure, -2.
 @deftypefun int marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{accessible} if it can be reached from the start symbol.
-This is not known until the grammar is precomputed.
 
 Return value: On success, 1 if accessible, 0 if not.  If the grammar
 is not precomputed, or on other failure, -2.
@@ -1129,7 +1146,6 @@ is not precomputed, or on other failure, -2.
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{productive} if it can produce a string of terminals.
 All nullable symbols are considered productive.
-This is not known until the grammar is precomputed.
 
 Return value: On success, 1 if productive, 0 if not.  If the grammar
 is not precomputed, or on other failure, -2.
@@ -1150,7 +1166,6 @@ Return value: -2 if @var{symid} is not valid;
 @deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{nulling} if it always produces the empty string.
-This is not determined until the grammar is precomputed.
 
 Return value: On success, 1 if symbol is nulling, 0 if not.
 If the grammar is not precomputed, or on other failure, -2.
@@ -1161,7 +1176,6 @@ If the grammar is not precomputed, or on other failure, -2.
 A symbol is @dfn{nullable} if it sometimes produces the empty string.
 A @strong{nulling} symbol is always a @strong{nullable} symbol,
 but not all @strong{nullable} symbols are @strong{nulling} symbols.
-This is not determined until the grammar is precomputed.
 
 Return value: On success, 1 if symbol is nullable, 0 if not.
 If the grammar is not precomputed, or on other failure, -2.
@@ -1254,7 +1268,6 @@ On other failures, -2.
 @deftypefun int marpa_g_rule_is_nulling (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{ruleid})
 A rule is @dfn{nulling} if it always produces the empty string.
-This is not determined until the grammar is precomputed.
 
 Return value: On success, 1 if @var{ruleid} is nulling, 0 if not.
 If the grammar is not precomputed, or on other failure, -2.
@@ -1263,7 +1276,6 @@ If the grammar is not precomputed, or on other failure, -2.
 @deftypefun int marpa_g_rule_is_nullable ( @
   Marpa_Grammar g, Marpa_Rule_ID ruleid)
 A rule is @dfn{nullable} if it sometimes produces the empty string.
-This is not determined until the grammar is precomputed.
 A @strong{nulling} rule is always a @strong{nullable} rule,
 but not all @strong{nullable} rules are @strong{nulling} rules.
 
@@ -1274,7 +1286,6 @@ If the grammar is not precomputed, or on other failure, -2.
 @deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 A rule is @dfn{accessible} if it can be reached from the start symbol.
-This is not known until the grammar is precomputed.
 A rule is accessible if and only if its LHS symbol is accessible.
 The start rule is always an accessible rule.
 
@@ -1286,10 +1297,9 @@ is not precomputed, or on other failure, -2.
     Marpa_Rule_ID @var{id})
 A rule is @dfn{productive} if it can be produce a string of terminals.
 including the empty string.
-This is not known until the grammar is precomputed.
 An rule is productive if and only if all the symbols on
 its RHS are productive.
-An empty rule is considered productive, vacuously.
+An empty rule is considered productive.
 
 Return value: On success, 1 if productive, 0 if not.  If the grammar
 is not precomputed, or on other failure, -2.
@@ -1342,8 +1352,10 @@ properly-speaking, separators should actually separate items.
 
 The sequence RHS, or item,
 is restricted to a single symbol,
-but almost arbitrary semantics can be expressed by having
-@var{rhs_id} be the LHS of another rule.
+but almost
+any language and any semantics
+can be expressed indirectly,
+by using @var{rhs_id} be the LHS of another rule.
 @var{rhs_id} cannot be a nullable symbol.
 If @var{separator_id} is a symbol, it also cannot
 be a nullable symbol.
@@ -1355,7 +1367,7 @@ they must be expressed using BNF rules, not sequence rules.
 This is for two reasons:
 First, sequence optimizations would not work
 in the presence of nullables.
-Second, it is not completely clear what
+Second, since it is not completely clear what
 an application intends
 when it asks for a sequence of identical items,
 some of which are nullable,
@@ -1542,7 +1554,8 @@ If @var{g} is not precomputed, or on other failure, @code{NULL}.
 @section Keeping the reference count of a recognizer
 
 @deftypefun Marpa_Recognizer marpa_r_ref (Marpa_Recognizer @var{r})
-Increases the reference count.
+Increases the reference count by 1.
+Not needed by most applications.
 
 Return value:
 On success, the @var{r};
@@ -1893,7 +1906,8 @@ Always succeeds.
 @node Bocage reference counting,  , Bocage, Bocage
 @section  Reference counting
 @deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
-Increases the reference count.
+Increases the reference count by 1.
+Not needed by most applications.
 
 Return value:
 On success, @var{b}.
@@ -1967,7 +1981,8 @@ Always succeeds.
 
 @deftypefun Marpa_Order marpa_o_ref ( @
     Marpa_Order @var{o})
-Increases the reference count.
+Increases the reference count by 1.
+Not needed by most applications.
 
 Return value:
 On success, @var{o}.
@@ -2041,7 +2056,8 @@ Always succeeds.
 @section Reference counting
 
 @deftypefun Marpa_Tree marpa_t_ref (Marpa_Tree @var{t})
-Increases the reference count.
+Increases the reference count by 1.
+Not needed by most applications.
 
 Return value:
 On success, @var{t}.
@@ -2052,8 +2068,18 @@ On failure, @code{NULL}.
 Decreases the reference count by 1,
 destroying @var{t} once the reference count reaches
 zero.
-Libmarpa time objects have no explicit destructor.
-They are destroyed by reducing their reference count to zero.
+Beginning with @var{t}'s parent ordering,
+Libmarpa then proceeds up the chain of parent objects.
+Every time a child is destroyed, the
+reference count of its parent is decreased by 1.
+Every time the reference count of an object
+is decreased by 1,
+if that reference count is now zero,
+that object is destroyed.
+Libmarpa follows this chain of decrements
+and destructions as required,
+all the way back to the
+base grammar, if necessary.
 
 @end deftypefun
 
@@ -2208,7 +2234,8 @@ Always succeeds.
 @end deftypefun
 
 @deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
-Increases the reference count.
+Increases the reference count by 1.
+Not needed by most applications.
 
 Return value:
 On success, @var{v}.
@@ -2220,8 +2247,18 @@ On failure, @code{NULL}.
 Decreases the reference count by 1,
 destroying @var{v} once the reference count reaches
 zero.
-Libmarpa time objects have no explicit destructor.
-They are destroyed by reducing their reference count to zero.
+Beginning with @var{v}'s parent tree,
+Libmarpa then proceeds up the chain of parent objects.
+Every time a child is destroyed, the
+reference count of its parent is decreased by 1.
+Every time the reference count of an object
+is decreased by 1,
+if that reference count is now zero,
+that object is destroyed.
+Libmarpa follows this chain of decrements
+and destructions as required,
+all the way back to the
+base grammar, if necessary.
 
 @end deftypefun
 
