@@ -772,35 +772,71 @@ an alternative memory allocator to be specificied,
 and to allow the user to specifier a handler to
 be called when an out-of-memory condition occurs.
 
-@node Soft and hard errors,  , Memory allocation failures, Error handling concepts
-@section Soft and hard errors
+@node Success and failure
+@section Success and failure
 
-Soft errors are errors which may be a result of normal processing.
-Soft errors often do not disrupt the flow of processing,
-and applications typically do not treat soft errors
-as fatal errors.
-When a soft error is an interruption of normal processing,
-the disruption is usually recoverable.
+In this document, success and failure are (unless
+the context makes it clear otherwise) used in a special, technical
+sense, one which may differ from the usual one.
+In ordinary language, ``success'' is a desired result,
+and ``failure'' an undesired one.
 
-Hard errors are errors which are never the result of
-normal processing.
-They almost always disrupt the flow of processing.
-Recovery from a hard error is usually not possible,
-and an application will usually treat a hard error
-as a fatal error.
+In this document, @dfn{success}
+successfully followed its primary logic path to an end result.
+@dfn{Failure} means some other logic path was followed.
 
-The difference between hard and soft errors can
-depend, to a certain extent,
-on the application.
-Libmarpa has its own idea of what is a hard
-and soft error but,
-whenever possible,
-it does not enforce this on the application.
-An application is also free to treat a soft
-error as a hard error.
-And Libmarpa makes
-every attempt to allow an application to
-reinterpret a hard error as a soft error.
+As one example where the distinction is relevant,
+some methods are designed so that they can be used
+to control a loop.  Success means continue the loop,
+while a soft failure indicates loop terminate.
+It is typically a good thing for loops to terminate,
+so that the soft failure is very much a ``desired result''.
+As another example,
+the ``Ruby Slippers'' parsing method uses soft failures
+as a means of testing alternative inputs and/or
+checking the state of the parse.
+
+@node Soft and hard failure.
+@section Soft and hard failure.
+
+Some methods have, in addition to a primary logic path,
+a secondary one.
+If a result is returned from a secondary logic path,
+that is a soft failure.
+As previously stated, a soft failure may be,
+in the ordinary sense of the word ``failure'',
+no failure at all but very much a desired
+and expected result.
+
+All methods have a primary logic path,
+but for some methods no logic path is distinguished
+as the ``secondary'' one.
+These methods never return a soft failure.
+A hard failure results when a method returns a value
+from some logic path other than the primary or secondary
+one.
+
+An application will have its own ideas of success,
+primary and secondary logic paths,
+what is or is not a recoverable failure,
+and what is or is not a fatal error.
+As much as possible, Libmarpa makes it
+possible for the application to capture
+its results and reinterpret them to suit
+the application's purpose.
+
+Because of the variability of applications, there are no hard and
+fast rules.  However, if taken with a grain of salt, a few
+generalizations may be helpful.  Soft failures disrupt the normal
+flow of processing less often than hard failures.  Hard failures
+only rarely are part of an application's primary logic path, and
+very often indicate an unrecoverable error.
+There are many case in which
+soft failures are part of an application's primary logic path, and
+even more where they are part of a secondary logic path, and even
+more where they are recoverable.  But it is also true that many
+soft failures are unrecoverable errors from the point of view of
+the application.
 
 @node Introduction to the External Interface, Static Methods, Error handling concepts, Top
 @chapter Introduction to the External Interface
@@ -815,46 +851,17 @@ interface in detail.
 @node Return value descriptions,  , Introduction to the External Interface, Introduction to the External Interface
 @section Return value descriptions
 
-Most function descriptions have a section describing their
-return values.
-In these sections, @dfn{success} means that the method
-successfully accomplished its primary purpose.
-A @dfn{hard failure}, or sometimes simply a @dfn{failure}
-means that the method failed in a way that
-is usually not part of the normal processing.
-A @dfn{soft failure} means that
-the method accomplished a secondary purpose,
-one which can be considered either a failure
-or a success depending on the circumstances.
-Where function return an integer value,
-unless otherwise stated,
--1 will indicate a soft failure
-and -2 will indicate a hard failure.
-
-Soft failures are always recoverable.
-An example of a soft failure
-is when @code{marpa_r_alternative}'s
-finds that token is unexpected.
-In some cases,
-this error will also be unexpected by the
-application
-and will be an unrecoverable failure.
-But the ``Ruby slippers'' parsing method can
-incorporate this return value into its normal processing,
-as a means of testing alternative inputs and/or
-checking the state of the parse.
-
-@dfn{Hard failures} are not always recoverable.
-Libmarpa attempts to allow applications to,
-on one hand, reclass failures from hard to
-soft and proceed whenever possible.
-On the other hand, Libmarpa is liberal in
-classing problems as soft failures,
-and there are many cases that
-Libmarpa treats as successes
-or soft failures, that an application
-will want to escalate to hard
-failures.
+If a function returns an integer value,
+and it is not otherwise stated,
+-1 indicates a soft failure,
+-2 indicates a hard failure
+and a non-negative result indicates success.
+If a function returns an pointer value,
+and it is not otherwise stated,
+@code{NULL} indicates a failure,
+and any other result indicates success.
+There are exceptions to these rules,
+but these will be explicitly indicated.
 
 @node Static Methods, Grammar objects, Introduction to the External Interface, Top
 @chapter Static Methods
