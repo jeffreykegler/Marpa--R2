@@ -351,7 +351,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
-    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_values =
         $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
@@ -414,6 +413,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $value = Marpa::R2::Internal::V_C->new($tree);
 
     Marpa::R2::Internal::Recognizer::set_actions( $recce, $value );
+
+    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
 
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#{$null_values} )
@@ -1283,7 +1284,8 @@ sub trace_op {
             ', rule: ', $grammar->brief_irl($trace_irl_id),
             "\n",
             'Incrementing virtual rule by ',
-            $grammar_c->_marpa_g_real_symbol_count($trace_irl_id), ' symbols'
+            $grammar_c->_marpa_g_real_symbol_count($trace_irl_id), ' symbols',
+            "\n"
             or Marpa::R2::exception('Could not print to trace file');
 
         return $trace_output;
