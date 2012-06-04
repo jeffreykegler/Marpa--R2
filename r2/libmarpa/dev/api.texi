@@ -687,42 +687,69 @@ values may require the application to make
 sure that stack positions are properly initialized.
 
 @node Whatever values, Caution about whatever values, Universe of values, Semantics
-@section ``Whatever'' values
+@section Valued and unvalued symbols
 
-Libmarpa allows
-``whatever'' semantics, because it can be easily optimized and it occurs
-quite frequently in practical parsing situations.
-In Libmarpa, a ``whatever'' value is some value in the
-universe of values.
-Which one is completely arbitrary.
-``Whatever'' values may stay
-constant, or they may vary from instance to instance.  If and when
-they do vary, they may do so randomly, or according to an arbitrary
-pattern.
+Libmarpa symbols can have values,
+which is the traditional way of doing semantics.
+Libmarpa also allows symbols to be unvalued.
+An @dfn{unvalued} symbol is one whose value
+is unpredictable from instance to instance.
+If a symbol is unvalued, we sometimes say that it
+has ``whatever'' semantics.
 
-@node Caution about whatever values,  , Whatever values, Semantics
-@section A caution about ``whatever'' values
+Situations where the semantics can tolerate unvalued symbols
+are surprisingly frequent.
+For example, the top-level of many languages is a series
+of major units, all of whose semantics are typically accomplished
+via side effects.
+The compiler is typically indifferent to the actual value produced
+by these major units, and tracking them is a waste of time.
+Similarly, the value of the separators in a list is typically
+ignored.
 
-If a value is not a ``whatever'' value, this document calls
-it a defined value.
-It is important to realize that
-it is impossible to tell the difference between a defined value
-and a ``whatever'' value:
-they could by coincidence be exactly the same.
-Marpa::R2, as of this writing the standard upper layer for Libmarpa,
-does not allow any symbol
-to have both ``whatever'' and defined semantics.
+Rules are unvalued if and only if their LHS symbols
+are unvalued
+When rules and symbols are unvalued,
+Libmarpa optimizes their evaluation.
 
-But
-Libmarpa itself does nothing to prevent the application from
-mixing ``whatever'' and defined
-values in any way it pleases.
-This is in keeping with Libmarpa's design goals of maximum
-flexibility and minimal overhead.
-This flexibility might be exploited,
-for example, by applications
-that distinguish ``whatever'' values from defined values,
-by context.
+Tt is in principle unsafe to check the value 
+of a symbol if it can be unvalued.
+For this reason,
+once a symbol has been treated as valued,
+Libmarpa marks it as valued.
+Similarly,
+once a symbol has been treated as unvalued,
+Libmarpa marks it as unvalued.
+Once marked, a symbol's valued status is
+@dfn{locked} and cannot be changed later.
+
+The valued status of terminals is marked the first
+time they are read.
+The valued status of LHS symbols must be explicitly
+marked by the application when initializing the
+valuator -- this is Libmarpa's equivalent of
+registering a callback.
+
+LHS terminals are disabled by default.
+If allowed, the user should be aware that the valued
+status of a LHS terminal
+will be locked in the recognizer
+if it is used as a terminal,
+and the symbols use as a rule LHS
+in the valuator must be
+consistent with the recognizer's marking.
+
+Marpa reports an error when a symbol's use
+conflicts with its locked valued status.
+This usually is usually saving the programmer
+some tricky debugging down the road.
+It is possible that an application might want to mix
+valued and unvalued uses of a symbol -- an application
+might be able to differentiate them using the larger
+context, or might be tolerant of a the uncertainty.
+If there is interest,
+a future extension might allow a locked
+valued status to be overriden.
 
 @node Error handling concepts, Introduction to the External Interface, Semantics, Top
 @chapter Error handling
@@ -1497,30 +1524,24 @@ values, instead tracking their own, perhaps based on
 the earleme location, and @var{token_id}.
 
 A @var{value} of 0 has special significance -- it indicates
-that the token's value is ``whatever'' -- that it may take an
+that the token's is unvalued -- that it's value is allowed
+to be unpredictable.
 arbitrary value.
-This usually means that the application simply does not
-care what the value of the token is.
-The value of tokens with a ``whatever'' value
-does not need to be stored, tracked or computed either
-by Libmarpa or by the application.
-
-Note that if a ``whatever'' value is specified,
-it must be the case that @strong{the application}
-also does not care about the value of the token.
-When a token has a ``whatever'' value, Libmarpa not
-only does not store a value itself,
-it also optimizes away the valuator steps which
-signal to the application that it needs to provide
+Note that if a token is unvalued,
+it must be the case,
+not just that Libmarpa need not care about its value,
+but also that @strong{the application}
+does not care about the value of the token.
+When a token has a ``whatever'' value, Libmarpa 
+optimizes away the valuator steps which
+give the application an opportunity to provide
 a value for that token.
 Applications which do not use Libmarpa's token values,
-but which do care about a token value,
-should make @var{value} an arbitrary, non-zero, constant
-in order to
-tell Libmarpa that the token does need a value
-and prevent the valuator from optimizing away those
-steps which tell the application that a token needs
-to be given a value.
+but which @strong{do} care about the token's value,
+must tell Libmarpa not to optimize away the
+relevant valuator steps.
+An application can do this by
+letting @var{value} be any non-zero integer.
 
 @end deftypefun
 
@@ -2107,20 +2128,16 @@ They are destroyed by reducing their reference count to zero.
     Marpa_Symbol_ID @var{symid}, @
     int @var{value} )
 These methods, respectively, report and set to @var{value}
-the ``valued'' flag for symbol @var{symid}.
-@var{value} must be 1 or 0.
-When this flag is 1,
-the valuator asks the application
-to supply a value for the symbol.
-When this flag is 0 (its default value),
-the behavior is for a null symbol to have a
-``whatever'' value.
+the valued status for symbol @var{symid}.
+If @var{value} is 1, symbol @var{symid} is valued.
+If @var{value} is 0, symbol @var{symid} is unvalued.
+The @var{value} argument must be 1 or 0.
 
-Return value:  On success, the value of the flag after the
-call.
-On an attempt to set the ``valued'' flag
-when it is locked, -1.
-On failure, -2.
+Return value:  On success, the valued status @strong{after}
+the call.
+On an attempt to set a locked valued status
+to a value different from its current one, -1.
+On hard failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_v_rule_is_valued ( @
@@ -2131,28 +2148,24 @@ On failure, -2.
     Marpa_Rule_ID @var{ruleid}, @
     int @var{value} )
 These methods, respectively, report and set to @var{value}
-the ``valued'' flag for the LHS symbol of @var{ruleid}.
-@var{value} must be 1 or 0.
-When this flag is 1,
-the valuator asks the application
-to supply a value for the symbol.
-When this flag is 0 (its default value),
-the symbol is set to unvalued.
+the valued status for rule @var{ruleid}.
+Rules get their valued status from their LHS symbol,
+so that these are a convenience method --
+they saves the application the trouble of looking
+up the rule's LHS.
 
-The valued status is by symbol, but
-these methods saves the application the trouble of looking
-up the rule's LHS, when its motive for setting the valued
-flag is based on a rule's semantics.
-Once set,
-A symbol's valued status is locked.
-A later attempt to set it to a different value
-is a soft failure,
-one which the application will usually wish to
-escalate to a hard failure.
+These methods, respectively, report and set to @var{value}
+the valued status of the LHS symbol for rule @var{ruleid}.
+If @var{value} is 1,
+the LHS symbol rule @var{ruleid} is valued.
+If @var{value} is 0,
+the LHS symbol rule @var{ruleid} is unvalued.
+The @var{value} argument must be 1 or 0.
 
-Return value:  On success, the value of the flag after the
-call.
-On an attempt to set a locked ``valued'' flag
+Return value:  On success, the valued status of the
+rule @var{ruleid}'s LHS symbol @strong{after}
+the call.
+On an attempt to set a locked valued status
 to a value different from its current one, -1.
 On hard failure, -2.
 @end deftypefun
@@ -2197,9 +2210,7 @@ The value of the token whose ID is
 placed in
 stack location @code{marpa_v_result(v)}.
 The token is non-nulling.
-Its value
-will not be the ``whatever''
-value and will be in
+Its value will be in
 @code{marpa_v_token_value(v)}.
 @end deftypevr
 
@@ -2216,8 +2227,8 @@ The valuator has gone through all of its steps
 and is now inactive.
 The value of the parse will be in stack location 0.
 
-Because of ``whatever'' semantics and nulling
-parses, it is quite possible for valuator to immediately
+Because of unvalued symbols,
+it is quite possible for valuator to immediately
 became inactive -- @code{MARPA_STEP_INACTIVE} could
 be the first and last step.
 For similar reasons, the application
