@@ -111,7 +111,8 @@ Semantics
 Error handling
 
 * Memory allocation failures::  
-* Soft and hard errors::        
+* Success and failure::         
+* Soft and hard failure.::      
 
 Introduction to the External Interface
 
@@ -754,10 +755,11 @@ valued status to be overriden.
 
 @menu
 * Memory allocation failures::  
-* Soft and hard errors::        
+* Success and failure::         
+* Soft and hard failure.::      
 @end menu
 
-@node Memory allocation failures, Soft and hard errors, Error handling concepts, Error handling concepts
+@node Memory allocation failures, Success and failure, Error handling concepts, Error handling concepts
 @section Memory allocation failures
 
 Libmarpa leaves the decision of what is a fatal
@@ -772,7 +774,7 @@ an alternative memory allocator to be specificied,
 and to allow the user to specifier a handler to
 be called when an out-of-memory condition occurs.
 
-@node Success and failure
+@node Success and failure, Soft and hard failure., Memory allocation failures, Error handling concepts
 @section Success and failure
 
 In this document, success and failure are (unless
@@ -796,7 +798,7 @@ the ``Ruby Slippers'' parsing method uses soft failures
 as a means of testing alternative inputs and/or
 checking the state of the parse.
 
-@node Soft and hard failure.
+@node Soft and hard failure.,  , Success and failure, Error handling concepts
 @section Soft and hard failure.
 
 Some methods have, in addition to a primary logic path,
