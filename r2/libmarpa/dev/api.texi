@@ -1157,28 +1157,6 @@ the rule, -1.
 On other failures, -2.
 @end deftypefun
 
-@deftypefun int marpa_g_rule_whatever_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@deftypefunx int marpa_g_rule_ask_me_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-@deftypefunx int marpa_g_rule_is_ask_me ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-
-Usually,
-most of the semantics must be implemented by Marpa's
-higher layers.
-This is called @dfn{``ask'' semantics}.
-
-Return value: On success, 1 if the resulting semantics after
-  the function call is the ``ask me'' semantics;
-  0 otherwise.
-  On failure, -2.
-
-@end deftypefun
-
 @deftypefun int marpa_g_rule_is_nulling (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{ruleid})
 A rule is @dfn{nulling} if it always produces the empty string.
@@ -2145,6 +2123,40 @@ when it is locked, -1.
 On failure, -2.
 @end deftypefun
 
+@deftypefun int marpa_v_rule_is_valued ( @
+    Marpa_Value @var{v}, @
+    Marpa_Rule_ID @var{ruleid} )
+@deftypefunx int marpa_v_rule_is_valued_set ( @
+    Marpa_Value @var{v}, @
+    Marpa_Rule_ID @var{ruleid}, @
+    int @var{value} )
+These methods, respectively, report and set to @var{value}
+the ``valued'' flag for the LHS symbol of @var{ruleid}.
+@var{value} must be 1 or 0.
+When this flag is 1,
+the valuator asks the application
+to supply a value for the symbol.
+When this flag is 0 (its default value),
+the symbol is set to unvalued.
+
+The valued status is by symbol, but
+these methods saves the application the trouble of looking
+up the rule's LHS, when its motive for setting the valued
+flag is based on a rule's semantics.
+Once set,
+A symbol's valued status is locked.
+A later attempt to set it to a different value
+is a soft failure,
+one which the application will usually wish to
+escalate to a hard failure.
+
+Return value:  On success, the value of the flag after the
+call.
+On an attempt to set a locked ``valued'' flag
+to a value different from its current one, -1.
+On hard failure, -2.
+@end deftypefun
+
 @node Valuator reference counting, Valuator stepping, Valuator constructor, Value
 @section Reference counting
 
@@ -2714,17 +2726,6 @@ That means it could never match any possible input,
 not even the null string.
 Presumably, an error in writing the grammar.
 Suggested message: "Start symbol not on LHS of any rule."
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_SYM_NOT_NULLABLE
-In circumstances where a symbol is required to be a nullable
-symbol,
-it is not.
-One such circumstance when the symbol is the
-argument of a
-@code{marpa_v_symbol_ask_me_when_null_set}
-call.
-Suggested message: "Symbol not nullable."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SYMBOL_VALUED_CONFLICT

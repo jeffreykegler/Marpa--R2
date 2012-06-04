@@ -1141,26 +1141,6 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-void
-rule_ask_me_set( g_wrapper, rule_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Rule_ID rule_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = marpa_g_rule_ask_me_set (g, rule_id);
-  if (result <= -2)
-    {
-      croak ("Problem in g->rule_ask_me_set(%d): %s", rule_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
 Marpa_Rule_ID
 _marpa_g_irl_semantic_equivalent( g_wrapper, irl_id )
     G_Wrapper *g_wrapper;
@@ -2780,10 +2760,33 @@ PPCODE:
 {
   const Marpa_Value v = v_wrapper->v;
   int result = marpa_v_symbol_is_valued_set (v, symbol_id, value);
-  if (result <= -1)
+  if (result == -1) {
+      XSRETURN_UNDEF;
+  }
+  if (result < -1)
     {
       croak ("Problem in v->symbol_is_valued_set(%d, %d): %s",
 	     symbol_id, value, xs_v_error (v_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+void
+rule_is_valued_set( v_wrapper, rule_id, value )
+    V_Wrapper *v_wrapper;
+    Marpa_Rule_ID rule_id;
+    int value;
+PPCODE:
+{
+  const Marpa_Value v = v_wrapper->v;
+  int result = marpa_v_rule_is_valued_set (v, rule_id, value);
+  if (result == -1) {
+      XSRETURN_UNDEF;
+  }
+  if (result < -1)
+    {
+      croak ("Problem in v->rule_is_valued_set(%d, %d): %s",
+	     rule_id, value, xs_v_error (v_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }

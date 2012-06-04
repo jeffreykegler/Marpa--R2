@@ -2194,71 +2194,6 @@ _marpa_g_rule_is_used(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
   return XRL_is_Used(XRL_by_ID(xrl_id));
 }
 
-@*0 Rule has semantics?.
-This value describes the rule's semantics.
-Most of the semantics are left up to the higher
-layers, but there are two cases where Marpa
-can help optimize.
-The first is the case where the application
-does not care -- that is, the semantics
-is arbitrary.
-The second case is where the application wants
-the value of a rule to be the value of its
-first child, which under the current implementation
-is a stack no-op.
-@d XRL_is_Ask_Me(rule) ((rule)->t_is_ask_me)
-@<Bit aligned rule elements@> = unsigned int t_is_ask_me:1;
-@ @<Initialize rule elements@> =
-    XRL_is_Ask_Me(rule) = 0;
-@ @<Function definitions@> =
-int marpa_g_rule_is_ask_me(
-    Marpa_Grammar g,
-    Marpa_Rule_ID xrl_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if |xrl_id| is invalid@>@;
-    return XRL_is_Ask_Me(XRL_by_ID(xrl_id));
-}
-@ @<Function definitions@> =
-int marpa_g_rule_whatever_set(
-    Marpa_Grammar g, Marpa_Rule_ID xrl_id)
-{
-    XRL xrl;
-    @<Return |-2| on failure@>@;
-    @<Fail if |xrl_id| is invalid@>@;
-    xrl = XRL_by_ID(xrl_id);
-    return XRL_is_Ask_Me(xrl) = 0;
-}
-int marpa_g_rule_ask_me_set(
-    Marpa_Grammar g, Marpa_Rule_ID xrl_id)
-{
-    XRL xrl;
-    @<Return |-2| on failure@>@;
-    @<Fail if |xrl_id| is invalid@>@;
-    xrl = XRL_by_ID(xrl_id);
-    return XRL_is_Ask_Me(xrl) = 1;
-}
-
-@ In the current implementation,
-if the desired semantics is simply
-to return the first child as the value
-(not an uncommon case)
-Marpa could implement that as a stack no-op.
-This stub may become part of the external interface
-at some point,
-once I fully work out the implications
-of "first child" semantics.
- @<Function definitions@> =
-int _marpa_g_rule_first_child_set(
-    Marpa_Grammar g, Marpa_Rule_ID xrl_id)
-{
-    XRL xrl;
-    @<Return |-2| on failure@>@;
-    @<Fail if |xrl_id| is invalid@>@;
-    xrl = XRL_by_ID(xrl_id);
-    return XRL_is_Ask_Me(xrl) = 0;
-}
-
 @ If this rule is the semantic equivalent of another rule,
 this external accessor returns the ``original rule".
 Otherwise it returns -1.
@@ -12520,22 +12455,10 @@ The idea scares me,
 but I cannot think of a reason to ban it,
 so I do not.
 @<Function definitions@> =
-int marpa_v_symbol_is_valued_set (
-    Marpa_Value public_v, Marpa_Symbol_ID xsyid, int value)
+PRIVATE int symbol_is_valued_set (
+    VALUE v, XSYID xsyid, int value)
 {
-    XSY xsy;
-    const VALUE v = (VALUE)public_v;
     const int valued_is_locked = -1;
-    @<Return |-2| on failure@>@;
-    @<Unpack value objects@>@;
-    @<Fail if fatal error@>@;
-    if (UNLIKELY (value < 0 || value > 1))
-      {
-	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
-	return failure_indicator;
-      }
-    @<Fail if |xsyid| is invalid@>@;
-    xsy = XSY_by_ID(xsyid);
     if (UNLIKELY
 	(lbv_bit_test (Valued_Locked_BV_of_V (v), xsyid)
 	&& value != (int)lbv_bit_test(XSY_is_Valued_BV_of_V (v), xsyid)))
@@ -12549,6 +12472,45 @@ int marpa_v_symbol_is_valued_set (
 	lbv_bit_clear(XSY_is_Valued_BV_of_V (v), xsyid);
     }
     return value;
+}
+
+@ @<Function definitions@> =
+int marpa_v_symbol_is_valued_set (
+    Marpa_Value public_v, Marpa_Symbol_ID xsyid, int value)
+{
+    XSY xsy;
+    const VALUE v = (VALUE)public_v;
+    @<Return |-2| on failure@>@;
+    @<Unpack value objects@>@;
+    @<Fail if fatal error@>@;
+    if (UNLIKELY (value < 0 || value > 1))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+	return failure_indicator;
+      }
+    @<Fail if |xsyid| is invalid@>@;
+    return symbol_is_valued_set(v, xsyid, value);
+}
+
+@ @<Function definitions@> =
+int marpa_v_rule_is_valued_set (
+    Marpa_Value public_v, Marpa_Rule_ID xrl_id, int value)
+{
+    const VALUE v = (VALUE)public_v;
+    @<Return |-2| on failure@>@;
+    @<Unpack value objects@>@;
+    @<Fail if fatal error@>@;
+    if (UNLIKELY (value < 0 || value > 1))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+	return failure_indicator;
+      }
+    @<Fail if |xrl_id| is invalid@>@;
+    {
+      const XRL xrl = XRL_by_ID (xrl_id);
+      const XSYID xsyid = LHS_ID_of_XRL (xrl);
+      return symbol_is_valued_set (v, xsyid, value);
+    }
 }
 
 @*0 Stepping the valuator.
@@ -12771,7 +12733,7 @@ for the rule.
 		  XRLID original_rule_id = ID_of_XRL (Source_XRL_of_IRL (nook_irl));
 		  TOS_of_V (v) = Arg_N_of_V (v) - real_symbol_count + 1;
 		  pop_arguments = 1;
-		  if (XRL_is_Ask_Me (XRL_by_ID (original_rule_id)))
+	      if (lbv_bit_test(XRL_is_Valued_BV_of_V(v), original_rule_id))
 		    {
 		      RULEID_of_V (v) = original_rule_id;
 		    }
@@ -12847,7 +12809,8 @@ PRIVATE LBV lbv_copy(
   return new_lbv;
 }
 
-@*0 Copy an LBV.
+@*0 Fill an LBV with ones.
+No special provision is made for trailing bits.
 @<Function definitions@> =
 PRIVATE LBV lbv_fill(
   LBV lbv, int bits)

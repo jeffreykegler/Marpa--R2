@@ -143,9 +143,12 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_semantics
 
 sub Marpa::R2::Internal::Recognizer::set_actions {
-    my ($recce)   = @_;
+    my ($recce, $value)     = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $trace_actions =
@@ -248,10 +251,17 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             );
         } ## end if ( $new_resolution ne $current_resolution and ( ...))
         if ( $new_resolution ne '::whatever' ) {
-            $grammar_c->rule_ask_me_set($rule_id);
+            my $result = $value->rule_is_valued_set( $rule_id, 1 );
+            if ( not $result ) {
+                my $lhs_name = $grammar->symbol_name($lhs_id);
+                Marpa::R2::exception(
+                    qq{Cannot assign values to rule $rule_id (lhs is "$lhs_name") },
+                    q{because the LHS was already treated as an unvalued symbol}
+                );
+            } ## end if ( not $result )
             $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]
                 ->[$rule_id] = $closure;
-        }
+        } ## end if ( $new_resolution ne '::whatever' )
         push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
             if $grammar_c->rule_is_nullable($rule_id);
     } ## end for my $rule_id ( 0 .. $#{$rules} )
@@ -395,6 +405,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     $action_object //= {};
 
     my $value = Marpa::R2::Internal::V_C->new($tree);
+
+    Marpa::R2::Internal::Recognizer::set_actions($recce, $value);
+
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#$null_values )
     {
@@ -608,7 +621,6 @@ sub Marpa::R2::Recognizer::value {
     } ## end if ($tree)
     else {
 
-        Marpa::R2::Internal::Recognizer::set_actions($recce);
 
         my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Internal::B_C->new( $recce_c,
