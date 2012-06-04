@@ -60,7 +60,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
             qq{Unknown reserved action name "$closure_name"\n},
             q{  Action names beginning with "::" are reserved}
         );
-    } ## end if ( substr( $closure, 0, 2 ) eq '::' )
+    } ## end if ( substr( $closure_name, 0, 2 ) eq q{::} )
 
     if ( my $closure = $closures->{$closure_name} ) {
         if ($trace_actions) {
@@ -146,12 +146,12 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_semantics
 
 sub Marpa::R2::Internal::Recognizer::set_actions {
-    my ($recce, $value)     = @_;
+    my ( $recce, $value ) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order     = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree      = $recce->[Marpa::R2::Internal::Recognizer::T_C];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $trace_actions =
@@ -413,7 +413,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $value = Marpa::R2::Internal::V_C->new($tree);
 
-    Marpa::R2::Internal::Recognizer::set_actions($recce, $value);
+    Marpa::R2::Internal::Recognizer::set_actions( $recce, $value );
 
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#{$null_values} )
@@ -423,7 +423,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             my $token_name = $grammar->symbol_name($token_id);
             Marpa::R2::exception(
                 qq{Cannot assign values to symbol "$token_name"},
-		q{because it was already treated as an unvalued symbol}
+                q{because it was already treated as an unvalued symbol}
             );
         } ## end if ( not $result )
     } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
@@ -626,7 +626,6 @@ sub Marpa::R2::Recognizer::value {
 
     } ## end if ($tree)
     else {
-
 
         my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Internal::B_C->new( $recce_c,
@@ -923,8 +922,8 @@ sub Marpa::R2::Recognizer::show_nook {
     $text .= " $or_node_tag";
 
     $text .= ' p';
-    $text
-        .= $tree->_marpa_t_nook_predecessor_is_ready($nook_id)
+    $text .=
+        $tree->_marpa_t_nook_predecessor_is_ready($nook_id)
         ? q{=ok}
         : q{-};
     $text .= ' c';
@@ -1013,10 +1012,11 @@ sub rank_chaf_rules {
                     $grammar_c->_marpa_g_irl_rhs( $irl_id,
                     $rhs_ix - $virtual_start );
                 last RHS_IX if not defined $rhs_id;
-                $pattern
-                    .= ( $grammar_c->_marpa_g_isy_is_nulling($rhs_id)
+                $pattern .= (
+                    $grammar_c->_marpa_g_isy_is_nulling($rhs_id)
                     ? 'N'
-                    : 'P' );
+                    : 'P'
+                );
 
                 last RHS_IX if ++$proper_nullable_count >= 2;
             } ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < ...)
@@ -1232,10 +1232,10 @@ sub trace_token_evaluation {
 
 sub trace_stack_1 {
     my ( $grammar, $recce, $value, $args, $rule_id ) = @_;
-    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree    = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
     my $argc       = scalar @{$args};
     my $nook_ix    = $value->_marpa_v_nook();
@@ -1256,9 +1256,9 @@ sub trace_op {
     my ( $grammar, $recce, $value ) = @_;
     my $trace_output = q{};
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $bocage       = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order        = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree         = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
     my $nook_ix    = $value->_marpa_v_nook();
     my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
