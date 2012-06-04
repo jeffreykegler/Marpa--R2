@@ -53,12 +53,12 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 
     # A reserved closure name;
     return [ '::whatever', undef ] if not defined $closure_name;
-    if ( substr( $closure_name, 0, 2 ) eq '::' ) {
+    if ( substr( $closure_name, 0, 2 ) eq q{::} ) {
         return [ $closure_name, undef ]  if $closure_name eq '::whatever';
         return [ $closure_name, \undef ] if $closure_name eq '::undef';
         Marpa::R2::exception(
             qq{Unknown reserved action name "$closure_name"\n},
-            qq{  Action names beginning with "::" are reserved}
+            q{  Action names beginning with "::" are reserved}
         );
     } ## end if ( substr( $closure, 0, 2 ) eq '::' )
 
@@ -106,11 +106,14 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     TYPE: {
         no strict 'refs';
         $closure = *{$fully_qualified_name}{'CODE'};
+        use strict;
         if ( defined $closure ) {
             $type = 'CODE';
             last TYPE;
         }
+        no strict 'refs';
         $closure = *{$fully_qualified_name}{'SCALAR'};
+        use strict;
 
         # Currently $closure is always defined, but this
         # behavior is said to be subject to change in perlref
@@ -226,7 +229,8 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
                 @{ $rule_resolutions->[$rule_id] };
             say {$Marpa::R2::Internal::TRACE_FH} 'Rule ',
                 $grammar->brief_rule($rule_id),
-                qq{ resolves to "$resolution_name"};
+                qq{ resolves to "$resolution_name"}
+                or Marpa::R2::exception('print to trace handle failed');
         } ## end for my $rule_id ( 0 .. $#{$rules} )
     } ## end if ( $trace_actions >= 2 )
 
@@ -283,7 +287,8 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
                 say {$Marpa::R2::Internal::TRACE_FH}
                     qq{Nulled symbol "$lhs_name" },
                     qq{ resolved to "$resolution_name" from rule },
-                    $grammar->brief_rule($resolution_rule);
+                    $grammar->brief_rule($resolution_rule)
+                    or Marpa::R2::exception('print to trace handle failed');
             } ## end if ($trace_actions)
             $null_symbol_closures[$lhs_id] = $closure;
             next LHS;
@@ -299,7 +304,8 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
                 say {$Marpa::R2::Internal::TRACE_FH}
                     qq{Nulled symbol "$lhs_name" },
                     qq{ resolved to "$resolution_name" from rule },
-                    $grammar->brief_rule($resolution_rule);
+                    $grammar->brief_rule($resolution_rule)
+                    or Marpa::R2::exception('print to trace handle failed');
             } ## end if ($trace_actions)
             $null_symbol_closures[$lhs_id] = $closure;
             next LHS;
@@ -326,7 +332,8 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             say {$Marpa::R2::Internal::TRACE_FH}
                 qq{Nulled symbol "$lhs_name" },
                 qq{ resolved to "$resolution_name" from rule },
-                $grammar->brief_rule($resolution_rule);
+                $grammar->brief_rule($resolution_rule)
+                or Marpa::R2::exception('print to trace handle failed');
         } ## end if ($trace_actions)
         $null_symbol_closures[$lhs_id] = $closure;
     } ## end for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs...)
@@ -409,7 +416,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     Marpa::R2::Internal::Recognizer::set_actions($recce, $value);
 
     for my $token_id ( grep { defined $null_values->[$_] }
-        0 .. $#$null_values )
+        0 .. $#{$null_values} )
     {
         my $result = $value->symbol_is_valued_set( $token_id, 1 );
         if ( not $result ) {
@@ -541,10 +548,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 }
 
                 if ($trace_values) {
-                    say {$Marpa::R2::Internal::TRACE_FH} trace_stack_1(
-                        $grammar, $recce, $order, $tree,
-                        $value,   \@args, $rule_id
-                    );
+                    say {$Marpa::R2::Internal::TRACE_FH}
+                        trace_stack_1( $grammar, $recce, $value, \@args,
+                        $rule_id )
+                        or
+                        Marpa::R2::exception('Could not print to trace file');
                     print {$Marpa::R2::Internal::TRACE_FH}
                         'Calculated and pushed value: ',
                         Data::Dumper->new( [$result] )->Terse(1)->Dump
@@ -564,8 +572,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             if ($trace_values) {
                 print {$Marpa::R2::Internal::TRACE_FH}
-                    trace_op( $grammar, $recce, $bocage, $order, $tree,
-                    $value, );
+                    trace_op( $grammar, $recce, $value, )
+                    or Marpa::R2::exception('Could not print to trace file');
             }
 
             next EVENT;
@@ -586,7 +594,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 sub Marpa::R2::Recognizer::value {
     my ($recce) = @_;
 
-    Marpa::R2::exception("Too many arguments to Marpa::R2::Recognizer::value")
+    Marpa::R2::exception('Too many arguments to Marpa::R2::Recognizer::value')
         if scalar @_ != 1;
 
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -606,8 +614,6 @@ sub Marpa::R2::Recognizer::value {
     ) if $furthest_earleme > $last_completed_earleme;
 
     my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
-    my $tree_result;
-    my $parse_count;
 
     if ($tree) {
         my $max_parses =
@@ -628,7 +634,7 @@ sub Marpa::R2::Recognizer::value {
 
         return if not defined $bocage;
 
-        my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
+        $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
             Marpa::R2::Internal::O_C->new($bocage);
 
         given ( $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] ) {
@@ -1199,7 +1205,8 @@ sub trace_token_evaluation {
 
     my $nook_ix = $value->_marpa_v_nook();
     if ( not defined $nook_ix ) {
-        print {$Marpa::R2::Internal::TRACE_FH} "Nulling valuator\n";
+        print {$Marpa::R2::Internal::TRACE_FH} "Nulling valuator\n"
+            or Marpa::R2::exception('Could not print to trace file');
         return;
     }
     my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
@@ -1224,7 +1231,11 @@ sub trace_token_evaluation {
 } ## end sub trace_token_evaluation
 
 sub trace_stack_1 {
-    my ( $grammar, $recce, $order, $tree, $value, $args, $rule_id ) = @_;
+    my ( $grammar, $recce, $value, $args, $rule_id ) = @_;
+    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
     my $argc       = scalar @{$args};
     my $nook_ix    = $value->_marpa_v_nook();
@@ -1242,9 +1253,12 @@ sub trace_stack_1 {
 
 sub trace_op {
 
-    my ( $grammar, $recce, $bocage, $order, $tree, $value ) = @_;
+    my ( $grammar, $recce, $value ) = @_;
     my $trace_output = q{};
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
     my $nook_ix    = $value->_marpa_v_nook();
     my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
@@ -1309,7 +1323,7 @@ sub trace_op {
 
 sub value_trace {
     my ( $value, $trace_flag ) = @_;
-    $value->_marpa_v_trace($trace_flag);
+    return $value->_marpa_v_trace($trace_flag);
 }
 
 1;
