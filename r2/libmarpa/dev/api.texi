@@ -863,16 +863,20 @@ most important Libmarpa methods,
 in the order in which they are typically used,
 and can be used as ``cheat sheet''.
 
-The overview sections assume
-a small but non-trivial application
-and describe a logic flow,
-one which takes a parse all the way through
+The overview sections limit themselves to
+the most important methods.
+To guide the reader to those methods
+that he is most likely to find essential
+for his application,
+the overview sections often speak of
+an ``archetypal'' application.
+The archetypal Libmarpa application
+implements the complete logic flow,
 from the creation of a grammar to a final result
 from its valuation.
-In the overviews, the term ``must'' is intended
-to be read as
-``must, in order to completely implement the application'',
-where the application is as just described.
+In the archetypal Libmarpa application,
+grammar, input and semantics are
+all small but non-trivial.
 
 @node Return value descriptions,  , About the overviews, Introduction to the external interface
 @section Return value descriptions
@@ -956,27 +960,31 @@ one of the following is returned, indicating the nature of the mismatch:
 @node Grammar overview, Grammar constructor, Grammar methods, Grammar methods
 @section Overview
 
+The archtypal application must have a grammar.
 To create a grammar, use the @code{marpa_g_new()} method.
 When a grammar is no longer in use, its memory can be freed
 using the 
 @code{marpa_g_unref()} method.
 
-A grammar must have one or more symbol.
+To be precomputed,
+a grammar must have one or more symbol.
 To create symbols, use the
 @code{marpa_g_symbol_new()} method.
 
-A grammar must have one or more rules.
+To be precomputed,
+a grammar must have one or more rules.
 To create rules, use the
 @code{marpa_g_rule_new()} and
 @code{marpa_g_sequence_new()} methods.
 
 For non-trivial parsing,
 one or more of the symbols must be terminals.
-To mark a symbol as a terminal,
+To mark a symbols a terminal,
 use the
 @code{marpa_g_symbol_is_terminal_set()} method.
 
-A grammar must have exactly one start symbol.
+To be precomputed,
+a grammar must have exactly one start symbol.
 To mark a symbol as the start symbol,
 use the
 @code{marpa_g_start_symbol_set()} method.
@@ -1021,8 +1029,6 @@ On failure, @code{NULL}.
 Decreases the reference count by 1,
 destroying @var{g} once the reference count reaches
 zero.
-Libmarpa time objects have no explicit destructor.
-They are destroyed by reducing their reference count to zero.
 
 @end deftypefun
 
@@ -1520,6 +1526,9 @@ codes.
 
 @deftypefun Marpa_Recognizer marpa_r_new ( Marpa_Grammar @var{g} )
 Creates a new recognizer.
+The reference count of the recognizer will be 1.
+The reference count the the base grammar, @var{g},
+will be incremented by one.
 In order to allow settings to be changed before input starts,
 the new recognizer is @strong{not} ready for input.
 The @code{marpa_r_start_input} method will make the
@@ -1544,8 +1553,10 @@ On success, the @var{r};
 Decreases the reference count by 1,
 destroying @var{r} once the reference count reaches
 zero.
-Libmarpa time objects have no explicit destructor.
-They are destroyed by reducing their reference count to zero.
+When @var{r} is destroyed, the reference count
+of its base grammar is decreased by one.
+It this takes the reference count of the base grammar
+to zero, it too is destroyed.
 
 @end deftypefun
 
@@ -1862,6 +1873,11 @@ a specialized and extended form of a parse forest.)
 
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{ordinal_arg})
+
+Creates a new bocage object, with a reference count of 1.
+The reference count of its parent recognizer object, @var{r},
+is increased by 1.
+
 Return value: On success, the new bocage object.
 On soft failure, returns @code{NULL} and sets the error
 code to @code{MARPA_ERR_NO_PARSE}.
@@ -1888,8 +1904,14 @@ On failure, @code{NULL}.
 Decreases the reference count by 1,
 destroying @var{b} once the reference count reaches
 zero.
-Libmarpa time objects have no explicit destructor.
-They are destroyed by reducing their reference count to zero.
+When @var{b} is destroyed, the reference count
+of its parent recognizer is decreased by 1.
+It this takes the reference count of the parent recognizer
+to zero, it too is destroyed.
+If the parent recognizer is destroyed, the reference count
+of its base grammar is decreased by 1.
+It this takes the reference count of the base grammar
+to zero, it too is destroyed.
 
 @end deftypefun
 
@@ -1926,6 +1948,10 @@ extra subroutine calls.
 
 @deftypefun Marpa_Order marpa_o_new ( @
     Marpa_Bocage @var{b})
+Creates a new ordering object, with a reference count of 1.
+The reference count of its parent bocage object, @var{b},
+is increased by 1.
+
 Return value: On success, the new ordering object.
 On failure, @code{NULL}.
 @end deftypefun
@@ -1953,8 +1979,18 @@ On failure, @code{NULL}.
 Decreases the reference count by 1,
 destroying @var{o} once the reference count reaches
 zero.
-Libmarpa time objects have no explicit destructor.
-They are destroyed by reducing their reference count to zero.
+Beginning with @var{o}'s parent bocage,
+Libmarpa then proceeds up the chain of parent objects.
+Every time a child is destroyed, the
+reference count of its parent is decreased by 1.
+Every time the reference count of an object
+is decreased by 1,
+if that reference count is now zero,
+that object is destroyed.
+Libmarpa follows this chain of decrements
+and destructions as required,
+all the way back to the
+base grammar, if necessary.
 
 @end deftypefun
 
@@ -1977,6 +2013,10 @@ when it makes sense in context,
 @section Creating a new tree iterator
 
 @deftypefun Marpa_Tree marpa_t_new (Marpa_Order @var{o})
+Creates a new tree object, with a reference count of 1.
+The reference count of its parent ordering object, @var{o},
+is increased by 1.
+
 When created, a tree object is not initialized to
 an iteration.
 To position the tree to the first parse,
@@ -2144,7 +2184,11 @@ and inside code about which Libmarpa can make no assumptions.
     Marpa_Tree @var{t} @
 )
 Creates a new valuator from the tree @var{t},
-and ``Pauses'' the tree,
+with a reference count of 1.
+The reference count of its parent tree object, @var{t},
+is increased by 1.
+
+The parent tree object is ``paused'',
 so that the tree cannot move on to a new iteration
 until the valuator is destroyed.
 Many valuators of the same tree
