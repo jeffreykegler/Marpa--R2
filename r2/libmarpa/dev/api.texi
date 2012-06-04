@@ -840,8 +840,8 @@ more where they are recoverable.  But it is also true that many
 soft failures are unrecoverable errors from the point of view of
 the application.
 
-@node Introduction to the External Interface, Static Methods, Error handling concepts, Top
-@chapter Introduction to the External Interface
+@node Introduction to the external interface
+@chapter Introduction to the external interface
 
 The following chapters describe Libmarpa's external
 interface in detail.
@@ -849,6 +849,27 @@ interface in detail.
 @menu
 * Return value descriptions::   
 @end menu
+
+@node About the overviews
+@section  About the overviews
+
+The reference method sections usually begin with an overview
+describing the important methods.
+These sections can be describe the
+most important Libmarpa methods,
+in the order in which they are typically used,
+and can be used as ``cheat sheet''.
+
+The overview sections assume
+a small but non-trivial application
+and describe a logic flow,
+one which takes a parse all the way through
+from the creation of a grammar to a final result
+from its valuation.
+In the overviews, the term ``must'' is intended
+to be read as
+``must, in order to completely implement the application'',
+where the application is as just described.
 
 @node Return value descriptions,  , Introduction to the External Interface, Introduction to the External Interface
 @section Return value descriptions
@@ -865,8 +886,8 @@ and any other result indicates success.
 There are exceptions to these rules,
 but these will be explicitly indicated.
 
-@node Static Methods, Grammar objects, Introduction to the External Interface, Top
-@chapter Static Methods
+@node Static method
+@chapter Static method
 
 @deftypefun Marpa_Error_Code marpa_check_version @
     (unsigned int @var{required_major}, @
@@ -888,8 +909,6 @@ Currently Libmarpa is undergoing rapid development,
 and backward compatibility is not maintained.
 This will be the case as long as Libmarpa stays
 alpha.
-While Libmarpa is still alpha, much stricter compatibility
-will be enforced.
 While Libmarpa is alpha
 the major, minor and micro numbers must match exactly.
 
@@ -905,16 +924,18 @@ version
 (same major version.)
 
 Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
-  requested version.  If the library is not compatible,
-  one of @code{MARPA_ERR_MAJOR_VERSION_MISMATCH},
-  @code{MARPA_ERR_MINOR_VERSION_MISMATCH} or
-  @code{MARPA_ERR_MICRO_VERSION_MISMATCH}
-  is returned, depending on the nature of the mismatch.
+requested version.  If the library is not compatible,
+one of the following is returned, indicating the nature of the mismatch:
+@itemize
+@item @code{MARPA_ERR_MAJOR_VERSION_MISMATCH},
+@item @code{MARPA_ERR_MINOR_VERSION_MISMATCH}
+@item @code{MARPA_ERR_MICRO_VERSION_MISMATCH}
+@end itemize
 
 @end deftypefun
 
-@node Grammar objects, Recognizers, Static Methods, Top
-@chapter Grammar objects
+@node Grammar methods
+@chapter Grammar methods
 @cindex grammars
 
 @menu
@@ -927,6 +948,39 @@ Return value: @code{MARPA_ERR_NONE} if the Marpa library is compatible with the
 * Grammar precomputation::      Precomputing the Grammar.
 * Grammar events::              
 @end menu
+
+@node Grammar overview
+@section Overview
+
+To create a grammar, use the @code{marpa_g_new()} method.
+When a grammar is no longer in use, its memory can be freed
+using the 
+@code{marpa_g_unref()} method.
+
+A grammar must have one or more symbol.
+To create symbols, use the
+@code{marpa_g_symbol_new()} method.
+
+A grammar must have one or more rules.
+To create rules, use the
+@code{marpa_g_rule_new()} and
+@code{marpa_g_sequence_new()} methods.
+
+For non-trivial parsing,
+one or more of the symbols must be terminals.
+To mark a symbol as a terminal,
+use the
+@code{marpa_g_symbol_is_terminal_set()} method.
+
+A grammar must have exactly one start symbol.
+To mark a symbol as the start symbol,
+use the
+@code{marpa_g_start_symbol_set()} method.
+
+Before parsing with a grammar, it must be precomputed.
+To precompute a grammar,
+use the
+@code{marpa_g_precompute()} method.
 
 @node Grammar constructor, Grammar reference counting, Grammar objects, Grammar objects
 @section Creating a new grammar
@@ -941,10 +995,6 @@ Creates a new grammar time object.
 The returned grammar object is not yet precomputed,
 and will have no symbols and rules.
 Its reference count will be 1.
-
-After a @code{marpa_g_new} call, the next step is
-usually the addition of rules and symbols
-in preparation for grammar precomputation.
 
 The expected major, minor and micro version
 numbers must be passed as arguments,
