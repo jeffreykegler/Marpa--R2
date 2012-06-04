@@ -45,9 +45,9 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Terminal and tokens::         
 * Semantics::                   
 * Error handling concepts::     
-* Introduction to the External Interface::  
-* Static Methods::              
-* Grammar objects::             
+* Introduction to the external interface::  
+* Static method::               
+* Grammar methods::             
 * Recognizers::                 Recognizers.
 * Progress reports::            
 * Bocage::                      Bocage objects.
@@ -114,12 +114,14 @@ Error handling
 * Success and failure::         
 * Soft and hard failure.::      
 
-Introduction to the External Interface
+Introduction to the external interface
 
+* About the overviews::         
 * Return value descriptions::   
 
-Grammar objects
+Grammar methods
 
+* Grammar overview::            
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
 * Symbols::                     
@@ -750,7 +752,7 @@ If there is interest,
 a future extension might allow a locked
 valued status to be overriden.
 
-@node Error handling concepts, Introduction to the External Interface, Semantics, Top
+@node Error handling concepts, Introduction to the external interface, Semantics, Top
 @chapter Error handling
 
 @menu
@@ -840,17 +842,18 @@ more where they are recoverable.  But it is also true that many
 soft failures are unrecoverable errors from the point of view of
 the application.
 
-@node Introduction to the external interface
+@node Introduction to the external interface, Static method, Error handling concepts, Top
 @chapter Introduction to the external interface
 
 The following chapters describe Libmarpa's external
 interface in detail.
 
 @menu
+* About the overviews::         
 * Return value descriptions::   
 @end menu
 
-@node About the overviews
+@node About the overviews, Return value descriptions, Introduction to the external interface, Introduction to the external interface
 @section  About the overviews
 
 The reference method sections usually begin with an overview
@@ -871,7 +874,7 @@ to be read as
 ``must, in order to completely implement the application'',
 where the application is as just described.
 
-@node Return value descriptions,  , Introduction to the External Interface, Introduction to the External Interface
+@node Return value descriptions,  , About the overviews, Introduction to the external interface
 @section Return value descriptions
 
 If a function returns an integer value,
@@ -886,7 +889,7 @@ and any other result indicates success.
 There are exceptions to these rules,
 but these will be explicitly indicated.
 
-@node Static method
+@node Static method, Grammar methods, Introduction to the external interface, Top
 @chapter Static method
 
 @deftypefun Marpa_Error_Code marpa_check_version @
@@ -934,11 +937,12 @@ one of the following is returned, indicating the nature of the mismatch:
 
 @end deftypefun
 
-@node Grammar methods
+@node Grammar methods, Recognizers, Static method, Top
 @chapter Grammar methods
 @cindex grammars
 
 @menu
+* Grammar overview::            
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
 * Symbols::                     
@@ -949,7 +953,7 @@ one of the following is returned, indicating the nature of the mismatch:
 * Grammar events::              
 @end menu
 
-@node Grammar overview
+@node Grammar overview, Grammar constructor, Grammar methods, Grammar methods
 @section Overview
 
 To create a grammar, use the @code{marpa_g_new()} method.
@@ -982,7 +986,7 @@ To precompute a grammar,
 use the
 @code{marpa_g_precompute()} method.
 
-@node Grammar constructor, Grammar reference counting, Grammar objects, Grammar objects
+@node Grammar constructor, Grammar reference counting, Grammar overview, Grammar methods
 @section Creating a new grammar
 @cindex grammar constructor
 
@@ -1007,7 +1011,7 @@ On failure, @code{NULL}.
 
 @end deftypefun
 
-@node Grammar reference counting, Symbols, Grammar constructor, Grammar objects
+@node Grammar reference counting, Symbols, Grammar constructor, Grammar methods
 @section Tracking the reference count of the grammar
 @cindex grammar destructor
 @cindex grammar reference
@@ -1032,7 +1036,7 @@ On success, the grammar object it was called with;
 
 @end deftypefun
 
-@node Symbols, Terminals, Grammar reference counting, Grammar objects
+@node Symbols, Terminals, Grammar reference counting, Grammar methods
 @section Symbols
 
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
@@ -1075,7 +1079,7 @@ On success, the symbol count of the grammar.
 On failure, -2.
 @end deftypefun
 
-@node Terminals, Rules, Symbols, Grammar objects
+@node Terminals, Rules, Symbols, Grammar methods
 @section Methods for terminal symbols
 
 @deftypefun int marpa_g_symbol_is_terminal ( @
@@ -1178,7 +1182,7 @@ On failure, -2.
 
 @end deftypefun
 
-@node Rules, Sequences, Terminals, Grammar objects
+@node Rules, Sequences, Terminals, Grammar methods
 @section Rules
 
 @deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
@@ -1303,7 +1307,7 @@ Return value: On success, 1 if this is a loop rule, 0 if not.  If the grammar
 is not precomputed, or on other failure, -2.
 @end deftypefun
 
-@node Sequences, Grammar precomputation, Rules, Grammar objects
+@node Sequences, Grammar precomputation, Rules, Grammar methods
 @section Sequences
 
 @deftypefun Marpa_Rule_ID marpa_g_sequence_new (Marpa_Grammar @var{g}, @
@@ -1388,7 +1392,7 @@ Returns 0 if
 On hard failure, returns -2.
 @end deftypefun
 
-@node Grammar precomputation, Grammar events, Sequences, Grammar objects
+@node Grammar precomputation, Grammar events, Sequences, Grammar methods
 @section Precomputing the Grammar
 
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
@@ -1472,7 +1476,7 @@ Return value: On success, 1 if the grammar has a cycle,
 On failure, -2.
 @end deftypefun
 
-@node Grammar events,  , Grammar precomputation, Grammar objects
+@node Grammar events,  , Grammar precomputation, Grammar methods
 @section Events
 
 @deftypefun int marpa_g_event (Marpa_Grammar @var{g}, @
@@ -1501,7 +1505,7 @@ codes.
 @xref{Events}.
 @end deftypefn
 
-@node Recognizers, Progress reports, Grammar objects, Top
+@node Recognizers, Progress reports, Grammar methods, Top
 @chapter Recognizer objects
 
 @menu
