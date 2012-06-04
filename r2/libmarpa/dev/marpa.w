@@ -12459,12 +12459,15 @@ PRIVATE int symbol_is_valued_set (
     VALUE v, XSYID xsyid, int value)
 {
     const int valued_is_locked = -1;
-    if (UNLIKELY
-	(lbv_bit_test (Valued_Locked_BV_of_V (v), xsyid)
-	&& value != (int)lbv_bit_test(XSY_is_Valued_BV_of_V (v), xsyid)))
-      {
+    const int old_value = lbv_bit_test(XSY_is_Valued_BV_of_V (v), xsyid);
+    if (old_value == value) {
+      lbv_bit_set(Valued_Locked_BV_of_V (v), xsyid);
+      return value;
+    }
+
+    if (UNLIKELY(lbv_bit_test (Valued_Locked_BV_of_V (v), xsyid))) {
 	return valued_is_locked;
-      }
+    }
     lbv_bit_set(Valued_Locked_BV_of_V (v), xsyid);
     if (value) {
 	lbv_bit_set(XSY_is_Valued_BV_of_V (v), xsyid);
@@ -12792,7 +12795,7 @@ lbv_obs_new0 (struct obstack *obs, int bits)
 @d lbv_bit_clear(lbv, bit)
   (*lbv_w ((lbv), (bit)) &= ~lbv_b (bit))
 @d lbv_bit_test(lbv, bit)
-  (*lbv_w ((lbv), (bit)) & lbv_b (bit))
+  ((*lbv_w ((lbv), (bit)) & lbv_b (bit)) != 0U)
 
 @*0 Copy an LBV.
 @<Function definitions@> =
