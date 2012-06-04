@@ -12351,7 +12351,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	struct obstack* const obstack = my_obstack_init;
 	const VALUE v = my_obstack_new (obstack, struct s_value, 1);
 	v->t_obs = obstack;
-	Next_Value_Type_of_V(v) = V_GET_DATA;
+	Next_Value_Type_of_V(v) = V_INITIALIZE;
 	@<Initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
@@ -12480,15 +12480,17 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
 }
 
 @*0 Symbol valued status.
-@ @d Valued_BV_of_V(v) ((v)->t_valued)
+@ @d XSY_is_Valued_BV_of_V(v) ((v)->t_xsy_is_valued)
+@ @d XRL_is_Valued_BV_of_V(v) ((v)->t_xrl_is_valued)
 @d Valued_Locked_BV_of_V(v) ((v)->t_valued_locked)
 @<Widely aligned value elements@> =
-    LBV t_valued;
+    LBV t_xsy_is_valued;
+    LBV t_xrl_is_valued;
     LBV t_valued_locked;
 
 @ @<Initialize value elements@> =
 {
-  Valued_BV_of_V (v) = lbv_copy (v->t_obs, Valued_BV_of_B (b), xsy_count);
+  XSY_is_Valued_BV_of_V (v) = lbv_copy (v->t_obs, Valued_BV_of_B (b), xsy_count);
   Valued_Locked_BV_of_V (v) =
     lbv_copy (v->t_obs, Valued_Locked_BV_of_B (b), xsy_count);
 }
@@ -12505,7 +12507,7 @@ int marpa_v_symbol_is_valued(
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
     @<Fail if |xsyid| is invalid@>@;
-    return lbv_bit_test(Valued_BV_of_V(v), xsyid);
+    return lbv_bit_test(XSY_is_Valued_BV_of_V(v), xsyid);
 }
 @ If the symbol has a null alias, the call is interpreted
 as being for that null alias.
@@ -12536,15 +12538,15 @@ int marpa_v_symbol_is_valued_set (
     xsy = XSY_by_ID(xsyid);
     if (UNLIKELY
 	(lbv_bit_test (Valued_Locked_BV_of_V (v), xsyid)
-	&& value != (int)lbv_bit_test(Valued_BV_of_V (v), xsyid)))
+	&& value != (int)lbv_bit_test(XSY_is_Valued_BV_of_V (v), xsyid)))
       {
 	return valued_is_locked;
       }
     lbv_bit_set(Valued_Locked_BV_of_V (v), xsyid);
     if (value) {
-	lbv_bit_set(Valued_BV_of_V (v), xsyid);
+	lbv_bit_set(XSY_is_Valued_BV_of_V (v), xsyid);
     } else {
-	lbv_bit_clear(Valued_BV_of_V (v), xsyid);
+	lbv_bit_clear(XSY_is_Valued_BV_of_V (v), xsyid);
     }
     return value;
 }
@@ -12554,7 +12556,8 @@ The value type indicates whether the value
 is for a semantic rule, a semantic token, etc.
 @<Public typedefs@> =
 typedef int Marpa_Step_Type;
-@ @d V_GET_DATA MARPA_STEP_INTERNAL1
+@ @d V_INITIALIZE MARPA_STEP_INTERNAL1
+@ @d V_GET_DATA MARPA_STEP_INTERNAL2
 
 @<Function definitions@> =
 Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
@@ -12572,6 +12575,15 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	Marpa_Step_Type current_value_type = Next_Value_Type_of_V(v);
 	switch (current_value_type)
 	  {
+	  case V_INITIALIZE:
+	    {
+	      XSYID xsy_count;
+	      @<Unpack value objects@>@;
+	      xsy_count = XSY_Count_of_G (g);
+	      lbv_fill (Valued_Locked_BV_of_V (v), xsy_count);
+	      @<Set rule-is-valued vector@>@;
+	    }
+	    /* fall through */
 	  case V_GET_DATA:
 	    @<Perform evaluation steps @>@;
 	    if (!V_is_Active (v)) break;
@@ -12582,7 +12594,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	      Next_Value_Type_of_V (v) = MARPA_STEP_RULE;
 	      if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
-		  if (lbv_bit_test(Valued_BV_of_V(v), XSYID_of_V(v)))
+		  if (lbv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v)))
 		      return MARPA_STEP_NULLING_SYMBOL;
 	      }
 	      else if (token_type != DUMMY_OR_NODE)
@@ -12611,18 +12623,39 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
     return MARPA_STEP_INACTIVE;
 }
 
+@ A rule is valued if and only if its LHS is a
+valued symbol.  All the symbol values have been
+locked at this point, so we can memoize the value
+for the rule.
+@<Set rule-is-valued vector@> =
+{
+  const LBV xsy_bv = XSY_is_Valued_BV_of_V(v);
+  const XRLID xrl_count = XRL_Count_of_G(g);
+  const LBV xrl_bv = lbv_obs_new0(v->t_obs, xrl_count);
+  XRLID xrlid ;
+  XRL_is_Valued_BV_of_V(v) = xrl_bv;
+  for (xrlid = 0; xrlid < xrl_count; xrlid++) {
+      const XRL xrl = XRL_by_ID(xrlid);
+      const XSYID lhs_xsyid = LHS_ID_of_XRL(xrl);
+      if (lbv_bit_test(xsy_bv, lhs_xsyid)) {
+          lbv_bit_set(xrl_bv, xrlid);
+      }
+  }
+}
+
 @ @<Step through a nulling valuator@> =
 {
     while (V_is_Active(v)) {
 	Marpa_Step_Type current_value_type = Next_Value_Type_of_V(v);
 	switch (current_value_type)
 	  {
+	  case V_INITIALIZE:
 	  case V_GET_DATA:
 	    {
 	      Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
 	      XSYID_of_V(v) = g->t_start_xsyid;
 	      TOS_of_V(v) = Arg_N_of_V(v) = 0;
-	      if (bv_bit_test(Valued_BV_of_V(v), XSYID_of_V(v)))
+	      if (bv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v)))
 		      return MARPA_STEP_NULLING_SYMBOL;
 	    }
 	    /* fall through */
@@ -12692,7 +12725,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 		const ISY token_isy = ISY_by_ID (token_isyid);
 		const XSY source_xsy = Source_XSY_of_ISY(token_isy);
 		const XSYID source_xsyid = ID_of_XSY(source_xsy);
-		if (bv_bit_test (Valued_BV_of_V (v), source_xsyid))
+		if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsyid))
 		  {
 		    XSYID_of_V (v) = source_xsyid;
 		  }
@@ -12812,6 +12845,19 @@ PRIVATE LBV lbv_copy(
       while (size--) *to_addr++ = *from_addr++;
   }
   return new_lbv;
+}
+
+@*0 Copy an LBV.
+@<Function definitions@> =
+PRIVATE LBV lbv_fill(
+  LBV lbv, int bits)
+{
+  int size = lbv_bits_to_size (bits);
+  if (size > 0) {
+      LBW *to_addr = lbv;
+      while (size--) *to_addr++ = ~((LBW)0);
+  }
+  return lbv;
 }
 
 @** Boolean vectors.
