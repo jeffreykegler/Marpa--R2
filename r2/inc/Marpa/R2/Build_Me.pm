@@ -286,14 +286,12 @@ sub do_libmarpa {
             if ( defined $ENV{LIBMARPA_CFLAGS} ) {
                 $ENV{CFLAGS} = $ENV{LIBMARPA_CFLAGS};
             }
-            else {
-                my @debug_flags =
-                    ( '-DMARPA_DEBUG=' . $self->args('marpa-debug') );
-                push @debug_flags, '-fno-inline', '-Wno-inline';
-                push @debug_flags, '-DMARPA_OBSTACK_DEBUG';
-                push @configure_command_args,
-                    'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
-            } ## end else [ if ( defined $ENV{LIBMARPA_CFLAGS} ) ]
+            my @debug_flags =
+                ( '-DMARPA_DEBUG=' . $self->args('marpa-debug') );
+            push @debug_flags, '-fno-inline', '-Wno-inline';
+            push @debug_flags, '-DMARPA_OBSTACK_DEBUG';
+            push @configure_command_args,
+                'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
         } ## end if ( defined $self->args('marpa-debug') )
 
         if ( $self->verbose() ) {
