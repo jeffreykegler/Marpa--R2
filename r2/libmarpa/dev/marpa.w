@@ -12216,7 +12216,7 @@ Arg_N_of_V(v) = -1;
 An obstack with the same lifetime as the valuator.
 @<Widely aligned value elements@> =
   struct obstack* t_obs;
-@ @<Destroy value elements@> =
+@ @<Destroy value obstack@> =
   my_obstack_free(v->t_obs);
 
 @*0 Virtual stack.
@@ -12348,6 +12348,7 @@ PRIVATE void value_free(VALUE v)
 {
     tree_unpause(T_of_V(v));
     @<Destroy value elements@>@;
+    @<Destroy value obstack@>@;
 }
 
 @ @<Unpack value objects@> =

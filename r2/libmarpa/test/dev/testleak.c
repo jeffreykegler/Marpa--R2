@@ -132,7 +132,7 @@ main (int argc, char **argv)
 	}
       while (++tree_ordinal)
 	{
-	  Marpa_Value value;
+	  Marpa_Value value = NULL;
 	  int tree_status;
 	  tree_status = marpa_t_next(tree);
 	      if (tree_status < -1)
@@ -171,7 +171,7 @@ main (int argc, char **argv)
 		     marpa_v_rule (value),
 		     marpa_v_arg_0 (value), marpa_v_arg_n (value));
 	  }
-	  marpa_v_unref (value);
+	  if (value) marpa_v_unref (value);
 	}
       marpa_t_unref (tree);
       marpa_o_unref (order);
