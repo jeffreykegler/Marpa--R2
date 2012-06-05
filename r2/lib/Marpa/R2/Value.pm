@@ -195,23 +195,6 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             next RULE;
         } ## end if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION...])
 
-        # Try to resolve the LHS as a closure name,
-        # if it is not internal.
-        # If we can't resolve
-        # the LHS as a closure name, it's not
-        # a fatal error.
-        FIND_CLOSURE_BY_LHS: {
-            my $lhs_id = $grammar_c->rule_lhs($rule_id);
-            my $action = $grammar->symbol_name($lhs_id);
-            last FIND_CLOSURE_BY_LHS if substr( $action, -1 ) eq ']';
-            my $resolution =
-                Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
-                $action );
-            last FIND_CLOSURE_BY_LHS if not defined $resolution;
-            $rule_resolutions->[$rule_id] = $resolution;
-            next RULE;
-        } ## end FIND_CLOSURE_BY_LHS:
-
         if (    $default_empty_action
             and $grammar_c->rule_length($rule_id) == 0 )
         {
