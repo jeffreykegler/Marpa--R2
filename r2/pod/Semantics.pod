@@ -128,30 +128,32 @@ For safety therefore,
 the "C<::undef>" reserved action name must be used
 to specify a constant whose value is a Perl C<undef>.
 
-=head1 "WHATEVER" VALUES
+=head1 VALUED AND UNVALUED SYMBOLS
 
-A "whatever" value can have any value which is assignable to a Perl
+An unvalued (or
+"whatever") symbol can have any value
+that is assignable to a Perl
 scalar.
 Other than that,
-a "whatever" value is unspecified.
+the value of an unvalued symbol is unspecified
+and unpredictable.
 It may be constant, or may vary from instance to instance.
 If it varies it may do so randomly or according to a pattern.
 "Whatever" values will usually only be appropriate for cases
 where the application does not care what the value is.
 
-"Whatever" values are very efficient to implement,
-and Marpa often defaults to them.
+The semantics of unvalued symbols is very efficient to implement,
+and by default symbols are unvalued.
 The "C<::whatever>" reserved action name can be used
-to explicitly specify a whatever value.
+to explicitly specify that a rule's LHS,
+and therefore the rule, is unvalued.
 
 A "whatever" value may happen to be identical to any other value,
 and therefore "whatever" values cannot be reliably
 disinguished from other
 results.
-For this reason, whenever a rule has "whatever"
-semantics,
-all rules with the same LHS must also have "whatever"
-semantics.
+For this reason, whenever a rule is unvalued,
+all rules with the same LHS must also be unvalued.
 Where this is not the case,
 Marpa throws an exception.
 
@@ -391,8 +393,6 @@ in order:
 =item * Resolving an action based on the C<action> property of the rule,
 if one is defined.
 
-=item * Resolving an action based on the C<lhs> property of the rule.
-
 =item * If the rule is empty,
 and the C<default_empty_action> named argument of the grammar
 is defined,
@@ -432,8 +432,6 @@ Action names come from these sources:
 
 =item * The C<new> constructor in the package specified by the
 C<action_object> named argument of the Marpa grammar.
-
-=item * The C<lhs> property of Marpa's rules.
 
 =back
 
