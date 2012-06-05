@@ -1516,14 +1516,14 @@ On failure, -2.
 This method provides access to the events generated
 by the @code{marpa_g_precompute} method.
 The @var{ix}'th event (numbered from 0) is placed
-in the @var{public_event} value.
+in the @var{event} value.
 
 It is a soft failure if there is no such event.
 This can be used as the termination condition
 in a loop over the events.
 
 Return value:  On success, returns the type of event @var{ix},
-and places the data for the event in @var{public_event}.
+and places the data for the event in @var{event}.
 If there is no such event, returns -1.
 On hard failure, returns -2.
 @end deftypefun
@@ -1536,8 +1536,8 @@ codes.
 @xref{Events}.
 @end deftypefn
 
-@node Recognizers, Progress reports, Grammar methods, Top
-@chapter Recognizer objects
+@node Recognizer methods
+@chapter Recognizer methods
 
 @menu
 * Recognizer constructor::      Creating a new recognizer.
@@ -1545,6 +1545,16 @@ codes.
 * Recognizer life::             Taking a recognizer through its life cycle.
 * Recognizer events::           
 @end menu
+
+@node Recognizer overview
+@section Overview
+
+In order to allow future extensions that change settings
+before the recognizer is set up for input,
+when the recognizer is created,
+it is @strong{not} created ready for input.
+To make a recognizer ready for input,
+Use the @code{marpa_r_start_input} method.
 
 @node Recognizer constructor, Recognizer reference counting, Recognizers, Recognizers
 @section Creating a new recognizer
@@ -1554,10 +1564,6 @@ Creates a new recognizer.
 The reference count of the recognizer will be 1.
 The reference count the the base grammar, @var{g},
 will be incremented by one.
-In order to allow settings to be changed before input starts,
-the new recognizer is @strong{not} ready for input.
-The @code{marpa_r_start_input} method will make the
-recognizer ready for input.
 
 Return value:  On success, the newly created recognizer.
 If @var{g} is not precomputed, or on other failure, @code{NULL}.
@@ -1884,12 +1890,15 @@ If either @var{position} or @var{origin} is @code{NULL},
 or on other hard failure, @code{-2}.
 @end deftypefun
 
-@node Bocage, Ordering objects, Progress reports, Top
-@chapter Bocage objects
+@node Bocage methods
+@chapter Bocage methods
 
 @menu
 * Bocage reference counting::   
 @end menu
+
+@node Bocage overview
+@section Overview
 
 In Libmarpa, recognition and parsing are separate phases.
 Once recognition is complete, a parse ``bocage'' must be created
@@ -1942,13 +1951,16 @@ to zero, it too is destroyed.
 
 @end deftypefun
 
-@node Ordering objects, Tree, Bocage, Top
-@chapter Ordering objects
+@node Ordering methods
+@chapter Ordering methods
 
 @menu
 * Ordering constructor::        
 * Ordering reference counting::  
 @end menu
+
+@node Ordering overview
+@section Overview
 
 @node Ordering constructor, Ordering reference counting, Ordering objects, Ordering objects
 @section Creating an ordering
@@ -2022,20 +2034,17 @@ base grammar, if necessary.
 
 @end deftypefun
 
-@node Tree, Value, Ordering objects, Top
-@chapter Tree iterators
+@node Tree methods
+@chapter Tree methods
+
+@node Tree overview
+@section Overview
 
 Once the bocage has an ordering, the parses can be iterated.
 Marpa's tree objects are also bocage iterators.
 Within Marpa,
 when it makes sense in context,
 ``tree'' means a parse tree.
-
-@menu
-* Tree constructor::            
-* Tree reference counting::     
-* Tree iteration::              
-@end menu
 
 @node Tree constructor, Tree reference counting, Tree, Tree
 @section Creating a new tree iterator
@@ -2126,16 +2135,11 @@ Return value: The number of parses traversed so far.
 Always succeeds.
 @end deftypefun
 
-@node Value, Events, Tree, Top
-@chapter Value objects
+@node Value methods
+@chapter Value methods
 
-@menu
-* About the valuator::          
-* Valuator constructor::        
-* Valuator reference counting::  
-* Valuator stepping::           
-* Step accessors::              
-@end menu
+@node Value overview
+@section Overview
 
 @node About the valuator, Valuator constructor, Value, Value
 @section About the valuator
