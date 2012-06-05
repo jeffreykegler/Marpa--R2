@@ -122,7 +122,7 @@ name: Marpa::R2::Grammar min 1 sequence example
 partial: 1
 normalize-whitespace: 1
 
-    { lhs => 'sequence', rhs => ['item'], min => 1 }
+    { lhs => 'sequence', rhs => ['item'], min => 1, action => 'do_sequence' }
 
 =for Marpa::R2::Display::End
 
@@ -188,8 +188,8 @@ name: Marpa::R2::Grammar multipart rhs sequence example
 partial: 1
 normalize-whitespace: 1
 
-    { lhs => 'sequence', rhs => [qw(item)], min => 0 },
-    { lhs => 'item', rhs => [qw(part1 part2)], },
+    { lhs => 'sequence', rhs => [qw(item)], min => 0, action => 'do_sequence' },
+    { lhs => 'item', rhs => [qw(part1 part2)], action => 'do_item' },
 
 =for Marpa::R2::Display::End
 
