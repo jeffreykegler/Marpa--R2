@@ -1604,8 +1604,8 @@ to zero, it too is destroyed.
 
 @end deftypefun
 
-@node Recognizer life, Recognizer events, Recognizer reference counting, Recognizer methods
-@section Taking a recognizer through its life cycle
+@node Recognizer life cycle mutators
+@section Life cycle mutators
 
 @deftypefun int marpa_r_start_input (Marpa_Recognizer @var{r})
 Makes @var{r} ready to accept input.
@@ -1701,6 +1701,9 @@ Return value:  On success, the number of events generated.
 On failure, -2.
 @end deftypefun
 
+@node Location accessors
+@section Location accessors
+
 @deftypefun Marpa_Earleme marpa_r_earleme ( @
     Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{set_id})
@@ -1724,6 +1727,31 @@ If input has not started, -1.
 Always succeeds or fails softly.
 @end deftypefun
 
+@deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
+The ID of ``latest'' or most recently completed Earley set.
+This will always be the highest-numbered completed Earley set.
+In the default input model, this will always be the Earley set at the current
+earleme,
+but in some input models there are earlemes with no Earley sets.
+
+Return value: On success, the furthest earleme.
+Always succeeds.
+@end deftypefun
+
+@deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
+The ``furthest'' or highest-numbered earleme.
+This is the earleme of the last Earley set that contains anything.
+Marpa allows variable length tokens,
+and in input models which use them,
+it may be necessary to track how far out tokens might be found.
+
+Return value: On success, the furthest earleme.
+Always succeeds.
+@end deftypefun
+
+@node Other parse status methods
+@section Other parse status methods
+
 @deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
 @deftypefunx int marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer @var{r}, @
     int @var{threshold})
@@ -1746,17 +1774,6 @@ be happy with it.
 Return value:
 The value that the Earley item warning threshold has
 after the method call is finished.
-Always succeeds.
-@end deftypefun
-
-@deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
-The ``furthest'' or highest-numbered earleme.
-This is the earleme of the last Earley set that contains anything.
-Marpa allows variable length tokens,
-and in input models which use them,
-it may be necessary to track how far out tokens might be found.
-
-Return value: On success, the furthest earleme.
 Always succeeds.
 @end deftypefun
 
@@ -3321,9 +3338,6 @@ and development.
 @end deftypefun
 
 @deftypefun Marpa_Earley_Set_ID _marpa_r_trace_earley_set (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_Earley_Set_ID _marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun int _marpa_r_earley_set_size (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})

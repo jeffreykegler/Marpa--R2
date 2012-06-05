@@ -6287,7 +6287,7 @@ Marpa_Earley_Set_ID _marpa_r_trace_earley_set(Marpa_Recognizer r)
 }
 
 @ @<Function definitions@> =
-Marpa_Earley_Set_ID _marpa_r_latest_earley_set(Marpa_Recognizer r)
+Marpa_Earley_Set_ID marpa_r_latest_earley_set(Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
