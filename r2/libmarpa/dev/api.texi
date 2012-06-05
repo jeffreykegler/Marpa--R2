@@ -1436,30 +1436,31 @@ but it is important to note that events may be
 created whether precomputation fails or succeeds.
 When the method fails,
 the application must call @code{marpa_g_event}
-if it want to determine if any events occurred.
+if it wants to determine if any events occurred.
 Since the reason for failure to precompute is often
 detailed in the events, failed applications will often
 be at least as interested in the events as those
 which succeeded.
 
-Each @code{MARPA_EVENT_LOOP_RULES} event is a rule
-which is part of an cycle (infinite loop) in the grammar.
-Cycles
-are useless in current
-practice.
-Cycles make a grammar infinitely ambiguous
-and their presence makes processing the grammar less
+A @code{MARPA_EVENT_LOOP_RULES} event occurs
+when there are infinite loop rules (cycles)
+in the grammar.
+Cycles make a grammar infinitely ambiguous.
+They are considered useless in current
+practice,
+and make processing the grammar less
 efficient, sometimes considerably so.
+Most applications will want to treat them
+as errors.
 Nonetheless, they are not errors in Libmarpa,
-although most applications will wish to treat them
-as such.
+and do not prevent Libmarpa from parsing.
 
 Each @code{MARPA_EVENT_COUNTED_NULLABLE} event is a symbol
 which is a nullable on the right hand side of a sequence
 rule -- a ``counted'' symbol.
 The presence of one or more of these is a hard failure.
 So that the programmer can fix several at once,
-the failure is delayed until events are created
+these failures are delayed until events are created
 for all of the counted nullables.
 
 Each @code{MARPA_EVENT_NULLING_TERMINAL} event is a nulling
