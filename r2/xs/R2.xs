@@ -1653,7 +1653,7 @@ latest_earley_set( r_wrapper )
 PPCODE:
     {
       struct marpa_r *r = r_wrapper->r;
-      int latest_earley_set = _marpa_r_latest_earley_set(r);
+      int latest_earley_set = marpa_r_latest_earley_set(r);
       if (latest_earley_set < 0)
 	{
       croak ("Problem with r->latest_earley_set(): %s",
