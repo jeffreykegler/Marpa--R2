@@ -12481,7 +12481,6 @@ PRIVATE int symbol_is_valued_set (
 int marpa_v_symbol_is_valued_set (
     Marpa_Value public_v, Marpa_Symbol_ID xsyid, int value)
 {
-    XSY xsy;
     const VALUE v = (VALUE)public_v;
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
