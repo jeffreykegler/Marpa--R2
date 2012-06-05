@@ -15,11 +15,14 @@
 
 Revision history for Marpa::R2
 
+2.005_003
 2.005_002
 2.005_001
 2.005_000
 
 	* New series of developer's versions
+
+	* Progress reports converted to C
 
 2.004000
 
