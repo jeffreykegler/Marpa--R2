@@ -433,27 +433,9 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Where there is no C<action> rule property,
-Marpa tries to use the
-C<lhs> property
-as an action name.
-When Marpa cannot resolve the C<lhs> property
-as an action name, it will fall back to
-using the
-default action for the grammar.
-
-For example, in the first rule in the above display,
-Marpa will look for a Perl closure with the fully qualified
-name "C<My_Actions::Expression>".
-When Marpa does not find a closure by that name,
+The rules in the above display have no action names.
+When a rule has no action name,
 Marpa will fall back to trying to use
-the default action.
-
-The other two rules in the above display work similarly.
-Marpa will look for Perl closures
-named "C<My_Actions::Term>"
-and "C<My_Actions::Factor>".
-It will not find them and will fall back to trying to use
 the default action,
 as described next.
 
