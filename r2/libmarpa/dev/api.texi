@@ -131,7 +131,7 @@ Grammar methods
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
 * Symbols::                     
-* Terminals::                   Terminal symbols.
+* Terminals methods::           
 * Rules::                       
 * Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
@@ -1003,7 +1003,7 @@ one of the following is returned, indicating the nature of the mismatch:
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
 * Symbols::                     
-* Terminals::                   Terminal symbols.
+* Terminals methods::           
 * Rules::                       
 * Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
@@ -1095,7 +1095,7 @@ On success, the grammar object it was called with;
 
 @end deftypefun
 
-@node Symbols, Terminals, Grammar reference counting, Grammar methods
+@node Symbols, Terminals methods, Grammar reference counting, Grammar methods
 @section Symbols
 
 @deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
@@ -1137,7 +1137,7 @@ On success, the symbol count of the grammar.
 On failure, -2.
 @end deftypefun
 
-@node Terminals, Rules, Symbols, Grammar methods
+@node Terminals methods, Rules, Symbols, Grammar methods
 @section Methods for terminal symbols
 
 @deftypefun int marpa_g_symbol_is_terminal ( @
@@ -1236,7 +1236,7 @@ On failure, -2.
 
 @end deftypefun
 
-@node Rules, Sequences, Terminals, Grammar methods
+@node Rules, Sequences, Terminals methods, Grammar methods
 @section Rules
 
 @deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
