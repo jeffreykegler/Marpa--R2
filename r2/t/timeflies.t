@@ -46,17 +46,17 @@ use Marpa::R2;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-sub sva_sentence      { return "sva($_[1];$_[2];$_[3])" }
-sub svo_sentence      { return "svo($_[1];$_[2];$_[3])" }
-sub adjunct           { return "adju($_[1];$_[2])" }
-sub adjective         { return "adje($_[1])" }
-sub qualified_subject { return "s($_[1];$_[2])" }
-sub bare_subject      { return "s($_[1])" }
-sub noun              { return "n($_[1])" }
-sub verb              { return "v($_[1])" }
-sub object            { return "o($_[1];$_[2])" }
-sub article           { return "art($_[1])" }
-sub preposition       { return "pr($_[1])" }
+sub do_sva_sentence      { return "sva($_[1];$_[2];$_[3])" }
+sub do_svo_sentence      { return "svo($_[1];$_[2];$_[3])" }
+sub do_adjunct           { return "adju($_[1];$_[2])" }
+sub do_adjective         { return "adje($_[1])" }
+sub do_qualified_subject { return "s($_[1];$_[2])" }
+sub do_bare_subject      { return "s($_[1])" }
+sub do_noun              { return "n($_[1])" }
+sub do_verb              { return "v($_[1])" }
+sub do_object            { return "o($_[1];$_[2])" }
+sub do_article           { return "art($_[1])" }
+sub do_preposition       { return "pr($_[1])" }
 
 ## use critic
 
@@ -64,17 +64,17 @@ my $grammar = Marpa::R2::Grammar->new(
     {   start   => 'sentence',
         actions => 'main',
         rules   => [
-            [ 'sentence', [qw(subject verb adjunct)], 'sva_sentence' ],
-            [ 'sentence', [qw(subject verb object)],  'svo_sentence' ],
-            [ 'adjunct',  [qw(preposition object)] ],
-            [ 'adjective',   [qw(adjective_noun_lex)] ],
-            [ 'subject',     [qw(adjective noun)], 'qualified_subject' ],
-            [ 'subject',     [qw(noun)], 'bare_subject' ],
-            [ 'noun',        [qw(adjective_noun_lex)] ],
-            [ 'verb',        [qw(verb_lex)] ],
-            [ 'object',      [qw(article noun)] ],
-            [ 'article',     [qw(article_lex)] ],
-            [ 'preposition', [qw(preposition_lex)] ],
+            [ 'sentence', [qw(subject verb adjunct)], 'do_sva_sentence' ],
+            [ 'sentence', [qw(subject verb object)],  'do_svo_sentence' ],
+            [ 'adjunct',  [qw(preposition object)], 'do_adjunct' ],
+            [ 'adjective',   [qw(adjective_noun_lex)], 'do_adjective' ],
+            [ 'subject',     [qw(adjective noun)], 'do_qualified_subject' ],
+            [ 'subject',     [qw(noun)], 'do_bare_subject' ],
+            [ 'noun',        [qw(adjective_noun_lex)], 'do_noun' ],
+            [ 'verb',        [qw(verb_lex)], 'do_verb' ],
+            [ 'object',      [qw(article noun)], 'do_object' ],
+            [ 'article',     [qw(article_lex)], 'do_article' ],
+            [ 'preposition', [qw(preposition_lex)], 'do_preposition' ],
         ],
     }
 );
