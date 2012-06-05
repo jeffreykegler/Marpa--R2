@@ -7976,13 +7976,13 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     @<Return |-2| on failure@>@;
     @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
+    @<Set up terminal-related boolean vectors@>@;
     if (G_is_Trivial(g)) {
 	@<Set |r| exhausted@>@;
 	return 1;
     }
     Input_Phase_of_R(r) = R_DURING_INPUT;
     psar_reset(Dot_PSAR_of_R(r));
-    @<Set up terminal-related boolean vectors@>@;
     @<Allocate recognizer containers@>@;
     @<Initialize Earley item work stacks@>@;
     set0 = earley_set_new(r, 0);
