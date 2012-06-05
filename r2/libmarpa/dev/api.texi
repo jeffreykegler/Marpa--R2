@@ -319,8 +319,74 @@ to catch errors at runtime or,
 failing all else,
 to successfully debug the logic.
 
-@node Libmarpa objects, The architecture of Marpa, About Libmarpa, Top
-@chapter Libmarpa objects
+@node Architecture
+@chapter Architecture
+
+@menu
+* Architecture - Grammar::      
+* Recognition versus parsing::  
+@end menu
+
+@node Architecture - Grammar, Recognition versus parsing, The architecture of Marpa, The architecture of Marpa
+@section Grammars
+
+As per parsing theory,
+before an input can be parsed,
+a grammar must be defined.
+Traditionally,
+a grammar consists of a set of terminal symbols,
+a set of non-terminal symbols,
+a set of rules,
+and a distinguished start symbol.
+
+@menu
+* Precomputation::
+@end menu
+
+@node Recognition versus parsing,  , Architecture - Grammar, The architecture of Marpa
+@section Recognition versus parsing
+
+Even in the academic literature,
+parsing is used in many senses,
+Determining whether a string matches a grammar is called
+@dfn{recognition}.
+Finding the structure of the recognized string according
+to the grammar is
+@dfn{parsing} in a very strict sense of the term.
+Strictly speaking,
+Earley's algorithm was a recognizer,
+and not a parser.
+Marpa contains both a recognizer
+and a parser in the strict sense.
+Marpa's recognizer is implemented by its recognizer time objects.
+Marpa's parser in the strict sense
+is implemented by its bocage class and the classes
+which follow the bocage in the time object sequence.
+
+@menu
+* Precomputation::              
+@end menu
+
+@node Precomputation,  , Recognition versus parsing, Recognition versus parsing
+@subsection Precomputation
+
+Before a recognizer can be created from a grammar,
+it must be precomputed.
+Internally, precomputation is what the term
+suggests --
+the memoization of a large number
+of facts about the grammar to allow
+the recognizer to proceed more efficiently.
+Marpa makes aggressive use of grammar precomputation.
+
+Precomputation ``freezes'' a grammar.
+New symbols, rules and sequences cannot be added
+to a precomputed grammar
+are disallowed,
+as are most other changes.
+
+@node Objects
+@chapter Objects
 
 Libmarpa's most important objects are time objects.
 Time objects are so called for two related reasons.
@@ -435,131 +501,11 @@ Rules and symbols are numbered objects.
 Tokens values are
 another examples of numbered objects.
 
-@node The architecture of Marpa, Threads, Libmarpa objects, Top
-@chapter The architecture
+@node Input
+@chapter Input
 
-@menu
-* Architecture - Grammar::      
-* Recognition versus parsing::  
-@end menu
-
-@node Architecture - Grammar, Recognition versus parsing, The architecture of Marpa, The architecture of Marpa
-@section Grammars
-
-As per parsing theory,
-before an input can be parsed,
-a grammar must be defined.
-Traditionally,
-a grammar consists of a set of terminal symbols,
-a set of non-terminal symbols,
-a set of rules,
-and a distinguished start symbol.
-
-@menu
-* Precomputation::
-@end menu
-
-@node Recognition versus parsing,  , Architecture - Grammar, The architecture of Marpa
-@section Recognition versus parsing
-
-Even in the academic literature,
-parsing is used in many senses,
-Determining whether a string matches a grammar is called
-@dfn{recognition}.
-Finding the structure of the recognized string according
-to the grammar is
-@dfn{parsing} in a very strict sense of the term.
-Strictly speaking,
-Earley's algorithm was a recognizer,
-and not a parser.
-Marpa contains both a recognizer
-and a parser in the strict sense.
-Marpa's recognizer is implemented by its recognizer time objects.
-Marpa's parser in the strict sense
-is implemented by its bocage class and the classes
-which follow the bocage in the time object sequence.
-
-@menu
-* Precomputation::              
-@end menu
-
-@node Precomputation,  , Recognition versus parsing, Recognition versus parsing
-@subsection Precomputation
-
-Before a recognizer can be created from a grammar,
-it must be precomputed.
-Internally, precomputation is what the term
-suggests --
-the memoization of a large number
-of facts about the grammar to allow
-the recognizer to proceed more efficiently.
-Marpa makes aggressive use of grammar precomputation.
-
-Precomputation ``freezes'' a grammar.
-New symbols, rules and sequences cannot be added
-to a precomputed grammar
-are disallowed,
-as are most other changes.
-
-@node Threads, Terminal and tokens, The architecture of Marpa, Top
-@chapter Threads
-
-Libmarpa is thread-safe,
-if used as described below.
-The Libmarpa methods are not reentrant.
-
-@menu
-* C89 and thread-safety::       
-* Base grammars cannot be shared between threads::  
-@end menu
-
-@node C89 and thread-safety, Base grammars cannot be shared between threads, Threads, Threads
-@section C89 and thread-safety
-
-Libmarpa is C89-compliant.
-It uses no global data,
-and it does not use those C library functions which
-are inherently thread-unsafe.
-
-Libmarpa calls only the routines
-that are defined in the C89 standard
-and that can be made thread-safe.
-In most modern implementations these are thread-safe.
-But the C89 standard does not require thread-safety,
-and even most modern environments allow the user
-to turn thread safety off.
-To be thread-safe, Libmarpa must be compiled
-and linked in an environment that provides
-thread-safety.
-
-@menu
-* C89 and thread-safety::
-@end menu
-
-@node Base grammars cannot be shared between threads,  , C89 and thread-safety, Threads
-@section Base grammars cannot be shared between threads
-While Libmarpa can be used safely across
-multiple threads,
-a Libmarpa grammar cannot be.
-Further, a Libmarpa time object can
-only be used safely in the same thread
-as its base grammar.
-This is because all
-time objects with the same base grammar share data
-from that base grammar.
-
-To work around this limitation,
-the same grammar definition can be
-used to a create a new
-Libmarpa grammar
-time object in each thread.
-If there is sufficient interest, future versions of
-Libmarpa could allow thread-safe
-cloning of grammars and other
-time objects.
-
-@node Terminal and tokens, Semantics, Threads, Top
-@chapter Terminal and tokens
+@node Terminals
+@section Terminals
 
 A terminal symbol is a symbol which
 may appear in the input.
@@ -758,6 +704,63 @@ context, or might be tolerant of a the uncertainty.
 If there is interest,
 a future extension might allow a locked
 valued status to be overriden.
+
+@node Threads, Terminal and tokens, The architecture of Marpa, Top
+@chapter Threads
+
+Libmarpa is thread-safe,
+if used as described below.
+The Libmarpa methods are not reentrant.
+
+@menu
+* C89 and thread-safety::       
+* Base grammars cannot be shared between threads::  
+@end menu
+
+@node C89 and thread-safety, Base grammars cannot be shared between threads, Threads, Threads
+@section C89 and thread-safety
+
+Libmarpa is C89-compliant.
+It uses no global data,
+and it does not use those C library functions which
+are inherently thread-unsafe.
+
+Libmarpa calls only the routines
+that are defined in the C89 standard
+and that can be made thread-safe.
+In most modern implementations these are thread-safe.
+But the C89 standard does not require thread-safety,
+and even most modern environments allow the user
+to turn thread safety off.
+To be thread-safe, Libmarpa must be compiled
+and linked in an environment that provides
+thread-safety.
+
+@menu
+* C89 and thread-safety::
+@end menu
+
+@node Base grammars cannot be shared between threads,  , C89 and thread-safety, Threads
+@section Base grammars cannot be shared between threads
+While Libmarpa can be used safely across
+multiple threads,
+a Libmarpa grammar cannot be.
+Further, a Libmarpa time object can
+only be used safely in the same thread
+as its base grammar.
+This is because all
+time objects with the same base grammar share data
+from that base grammar.
+
+To work around this limitation,
+the same grammar definition can be
+used to a create a new
+Libmarpa grammar
+time object in each thread.
+If there is sufficient interest, future versions of
+Libmarpa could allow thread-safe
+cloning of grammars and other
+time objects.
 
 @node Error handling concepts, Introduction to the external interface, Semantics, Top
 @chapter Error handling
