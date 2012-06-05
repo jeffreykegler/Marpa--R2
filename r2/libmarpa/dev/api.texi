@@ -996,7 +996,7 @@ one of the following is returned, indicating the nature of the mismatch:
 @node Grammar overview, Grammar constructor, Grammar methods, Grammar methods
 @section Overview
 
-The archtypal application must have a grammar.
+An archtypal application has a grammar.
 To create a grammar, use the @code{marpa_g_new()} method.
 When a grammar is no longer in use, its memory can be freed
 using the 
@@ -1555,6 +1555,12 @@ codes.
 @node Recognizer overview, Recognizer constructor, Recognizer methods, Recognizer methods
 @section Overview
 
+An archtypal application uses a recognizer to read input.
+To create a recognizer, use the @code{marpa_r_new()} method.
+When a recognizer is no longer in use, its memory can be freed
+using the 
+@code{marpa_r_unref()} method.
+
 In order to allow future extensions that change settings
 before the recognizer is set up for input,
 when the recognizer is created,
@@ -1907,11 +1913,22 @@ or on other hard failure, @code{-2}.
 @node Bocage overview, Bocage reference counting, Bocage methods, Bocage methods
 @section Overview
 
-In Libmarpa, recognition and parsing are separate phases.
-Once recognition is complete, a parse ``bocage'' must be created
-from the recognizer.
-(For those familiar with parse forests, a bocage is a
-a specialized and extended form of a parse forest.)
+As a byproduct of recognition,
+the recognizer has tables.
+Before parsing, an archtypal application must create
+a bocage.
+A bocage is structure containing all the parses found
+for the input.
+
+Because Libmarpa parses ambiguous grammars, the bocage may
+contain many parses.
+(For those familiar with them, a bocage is a
+a specialized and extended parse forest.)
+
+To create a bocage, use the @code{marpa_b_new()} method.
+When a recognizer is no longer in use, its memory can be freed
+using the 
+@code{marpa_b_unref()} method.
 
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{ordinal_arg})
@@ -1970,28 +1987,27 @@ to zero, it too is destroyed.
 @node Ordering overview, Ordering constructor, Ordering methods, Ordering methods
 @section Overview
 
-@node Ordering constructor, Ordering reference counting, Ordering overview, Ordering methods
-@section Creating an ordering
-
-Libmarpa allows ambiguous parses.
-In many applications it is necessary or desirable to
-control the order in which these are traversed.
-For this reason,
-Libmarpa requires all parse series to be turned
-into an ``ordering'' object before traversing
-and evaluating them.
+Before iterating the parses in the bocage,
+they must be ordered.
+To create an ordering, use the @code{marpa_o_new()} method.
+When an ordergin is no longer in use, its memory can be freed
+using the 
+@code{marpa_o_unref()} method.
 
 In many cases, the ordering is trivial.
 Either the parse is unambiguous, or the
 application does not care about the order in
 which parses are returned.
-In such cases,
-the creation of the ordering object is a useless
-overhead.
-Future versions of libmarpa might allow this phase
-to be bypassed, but there is little to be gained.
-The overhead amounts to little more than two or three
-extra subroutine calls.
+When the ordering is trivial,
+its overhead is very small --
+essentially two or three subroutine calls.
+
+As of this writing, the only methods to order parses
+are internal and undocumented.
+This is expected to change in the near future.
+
+@node Ordering constructor, Ordering reference counting, Ordering overview, Ordering methods
+@section Creating an ordering
 
 @deftypefun Marpa_Order marpa_o_new ( @
     Marpa_Bocage @var{b})
@@ -2056,10 +2072,12 @@ base grammar, if necessary.
 @section Overview
 
 Once the bocage has an ordering, the parses can be iterated.
-Marpa's tree objects are also bocage iterators.
-Within Marpa,
-when it makes sense in context,
-``tree'' means a parse tree.
+Marpa's bocage iterators are tree objects.
+(``Tree'' is short for ``parse tree''.)
+To create a tree, use the @code{marpa_t_new()} method.
+When a tree is no longer in use, its memory can be freed
+using the 
+@code{marpa_t_unref()} method.
 
 @node Tree constructor, Tree reference counting, Tree overview, Tree methods
 @section Creating a new tree iterator
@@ -2164,6 +2182,14 @@ Always succeeds.
 
 @node Value overview, About the valuator, Value methods, Value methods
 @section Overview
+
+The archetypal application needs
+a Value object (or @dfn{valuator}) to produce
+the value of the parse.
+To create a valuator, use the @code{marpa_v_new()} method.
+When a valuator is no longer in use, its memory can be freed
+using the 
+@code{marpa_v_unref()} method.
 
 @node About the valuator, Valuator constructor, Value overview, Value methods
 @section About the valuator
