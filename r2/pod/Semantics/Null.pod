@@ -97,45 +97,47 @@ Here is an example:
 name: Null Value Example
 perltidy: '-dcsc -sil=0'
 
-    sub L {
+    sub do_L {
         shift;
         return 'L(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
     }
 
-    sub R {
+    sub do_R {
         return 'R(): I will never be called';
     }
 
-    sub S {
+    sub do_S {
         shift;
         return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
     }
 
-    sub X { return 'X(' . $_[1] . ')'; }
-    sub Y { return 'Y(' . $_[1] . ')'; }
+    sub do_X { return 'X(' . $_[1] . ')'; }
+    sub do_Y { return 'Y(' . $_[1] . ')'; }
 
+    ## no critic (Variables::ProhibitPackageVars)
     our $null_A = 'null A';
     our $null_B = 'null B';
     our $null_L = 'null L';
     our $null_R = 'null R';
     our $null_X = 'null X';
     our $null_Y = 'null Y';
+    ## use critic
 
     my $grammar = Marpa::R2::Grammar->new(
         {   start   => 'S',
             actions => 'main',
             rules   => [
-                [ 'S', [qw/L R/] ],
-                [ 'L', [qw/A B X/] ],
+                [ 'S', [qw/L R/],   'do_S' ],
+                [ 'L', [qw/A B X/], 'do_L' ],
                 [ 'L', [], 'null_L' ],
-                [ 'R', [qw/A B Y/] ],
+                [ 'R', [qw/A B Y/], 'do_R' ],
                 [ 'R', [], 'null_R' ],
                 [ 'A', [], 'null_A' ],
                 [ 'B', [], 'null_B' ],
                 [ 'X', [], 'null_X' ],
-                [ 'X', [qw/x/] ],
+                [ 'X', [qw/x/], 'do_X' ],
                 [ 'Y', [], 'null_Y' ],
-                [ 'Y', [qw/y/] ],
+                [ 'Y', [qw/y/], 'do_Y' ],
             ],
         }
     );

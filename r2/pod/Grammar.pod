@@ -108,7 +108,7 @@ name: Marpa::R2::Grammar min 0 sequence example
 partial: 1
 normalize-whitespace: 1
 
-    { lhs => 'sequence', rhs => ['item'], min => 0 }
+    { lhs => 'sequence', rhs => ['item'], min => 0, action => 'do_sequence' }
 
 =for Marpa::R2::Display::End
 
