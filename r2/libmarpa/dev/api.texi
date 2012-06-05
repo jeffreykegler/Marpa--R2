@@ -136,7 +136,9 @@ Recognizer methods
 * Recognizer overview::         
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
-* Recognizer life::             Taking a recognizer through its life cycle.
+* Recognizer life cycle mutators::  
+* Location accessors::          
+* Other parse status methods::  
 * Recognizer events::           
 
 Bocage methods
@@ -1548,7 +1550,9 @@ codes.
 * Recognizer overview::         
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
-* Recognizer life::             Taking a recognizer through its life cycle.
+* Recognizer life cycle mutators::  
+* Location accessors::          
+* Other parse status methods::  
 * Recognizer events::           
 @end menu
 
@@ -1581,7 +1585,7 @@ Return value:  On success, the newly created recognizer.
 If @var{g} is not precomputed, or on other failure, @code{NULL}.
 @end deftypefun
 
-@node Recognizer reference counting, Recognizer life, Recognizer constructor, Recognizer methods
+@node Recognizer reference counting, Recognizer life cycle mutators, Recognizer constructor, Recognizer methods
 @section Keeping the reference count of a recognizer
 
 @deftypefun Marpa_Recognizer marpa_r_ref (Marpa_Recognizer @var{r})
@@ -1604,7 +1608,7 @@ to zero, it too is destroyed.
 
 @end deftypefun
 
-@node Recognizer life cycle mutators
+@node Recognizer life cycle mutators, Location accessors, Recognizer reference counting, Recognizer methods
 @section Life cycle mutators
 
 @deftypefun int marpa_r_start_input (Marpa_Recognizer @var{r})
@@ -1701,7 +1705,7 @@ Return value:  On success, the number of events generated.
 On failure, -2.
 @end deftypefun
 
-@node Location accessors
+@node Location accessors, Other parse status methods, Recognizer life cycle mutators, Recognizer methods
 @section Location accessors
 
 @deftypefun Marpa_Earleme marpa_r_earleme ( @
@@ -1749,7 +1753,7 @@ Return value: On success, the furthest earleme.
 Always succeeds.
 @end deftypefun
 
-@node Other parse status methods
+@node Other parse status methods, Recognizer events, Location accessors, Recognizer methods
 @section Other parse status methods
 
 @deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
@@ -1811,7 +1815,7 @@ Return value:
 Always succeeds.
 @end deftypefun
 
-@node Recognizer events,  , Recognizer life, Recognizer methods
+@node Recognizer events,  , Other parse status methods, Recognizer methods
 @section Events
 
 @deftypefun int marpa_r_event (Marpa_Recognizer @var{r}, @
