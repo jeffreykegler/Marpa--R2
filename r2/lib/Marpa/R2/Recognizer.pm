@@ -416,6 +416,12 @@ sub Marpa::R2::Recognizer::furthest_earleme {
     return $recce_c->furthest_earleme();
 }
 
+sub Marpa::R2::Recognizer::earleme {
+    my ($recce, $earley_set_id) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    return $recce_c->earleme($earley_set_id);
+}
+
 # Deprecated -- obsolete
 sub Marpa::R2::Recognizer::status {
     my ($recce) = @_;
