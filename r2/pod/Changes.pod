@@ -31,6 +31,27 @@ and tools to Marpa::R2.
 
 =head1 CHANGES
 
+=head2 Rule LHS's are no longer a source of action names
+
+In Marpa::XS, if there was no explicit action name for a rule, Marpa
+would try to find a closure that had the same name as the rule's
+LHS.  The use of rule LHS's as
+action names had a potential for
+unpleasant surprises.
+A surprise could occur if the rule's LHS coincided with
+a function name without the prorgrammer realizing or intending it.
+This kind of 'action at a distance' bug can be very hard to detect
+and trace.
+
+It was originally thought that implicitly using the LHS as the name
+of an action would be convenient enough to outweigh the dangers.
+But in fact,
+this feature wound up being little used.  And accidental
+resolution via a rule LHS was a danger for all users, whether they
+used the feature or not.  For these reasons, as well as
+potential optimization and efficiency considerations, Marpa::R2 no longer
+does implicit action resolution using a rule LHS.
+
 =head2 Different rules with the same rank now appear in arbitrary order
 
 In ranking parse trees,
