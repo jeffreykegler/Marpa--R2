@@ -27,10 +27,8 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-## no critic (Subroutines::RequireArgUnpacking)
-sub sequence { shift; return 'seq(' .  ( join q{;}, @_ ) . ')' }
-sub item     { shift; return 'item(' . ( join q{;}, @_ ) . ')' }
-## use critic
+sub do_sequence { shift; return 'seq(' .  ( join q{;}, @_ ) . ')' }
+sub do_item     { shift; return 'item(' . ( join q{;}, @_ ) . ')' }
 
 my $grammar;
 my $recce;
@@ -42,7 +40,7 @@ my $min0 =
 # Marpa::R2::Display
 # name: Marpa::R2::Grammar min 0 sequence example
 
-    { lhs => 'sequence', rhs => ['item'], min => 0 }
+    { lhs => 'sequence', rhs => ['item'], min => 0, action => 'do_sequence' }
 
 # Marpa::R2::Display::End
 ; # semicolon to terminate rule
@@ -73,7 +71,7 @@ my $min1 =
 # Marpa::R2::Display
 # name: Marpa::R2::Grammar min 1 sequence example
 
-    { lhs => 'sequence', rhs => ['item'], min => 1 }
+    { lhs => 'sequence', rhs => ['item'], min => 1, action => 'do_sequence' }
 
 # Marpa::R2::Display::End
 ; # semicolon to terminate rule
@@ -103,8 +101,8 @@ my $multipart = [
 # Marpa::R2::Display
 # name: Marpa::R2::Grammar multipart rhs sequence example
 
-    { lhs => 'sequence', rhs => [qw(item)], min => 0 },
-    { lhs => 'item', rhs => [qw(part1 part2)], },
+    { lhs => 'sequence', rhs => [qw(item)], min => 0, action => 'do_sequence' },
+    { lhs => 'item', rhs => [qw(part1 part2)], action => 'do_item' },
 
 # Marpa::R2::Display::End
 ]; # semicolon to terminate rule
