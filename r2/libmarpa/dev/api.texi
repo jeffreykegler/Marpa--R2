@@ -48,12 +48,12 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Introduction to the external interface::  
 * Static method::               
 * Grammar methods::             
-* Recognizers::                 Recognizers.
+* Recognizer methods::          
 * Progress reports::            
-* Bocage::                      Bocage objects.
-* Ordering objects::            
-* Tree::                        Parse Trees.
-* Value::                       Value objects.
+* Bocage methods::              
+* Ordering methods::            
+* Tree methods::                
+* Value methods::               
 * Events::                      Libmarpa Events
 * Error macros and code::       
 * Design considerations::       
@@ -131,30 +131,35 @@ Grammar methods
 * Grammar precomputation::      Precomputing the Grammar.
 * Grammar events::              
 
-Recognizer objects
+Recognizer methods
 
+* Recognizer overview::         
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
 * Recognizer events::           
 
-Bocage objects
+Bocage methods
 
+* Bocage overview::             
 * Bocage reference counting::   
 
-Ordering objects
+Ordering methods
 
+* Ordering overview::           
 * Ordering constructor::        
 * Ordering reference counting::  
 
-Tree iterators
+Tree methods
 
+* Tree overview::               
 * Tree constructor::            
 * Tree reference counting::     
 * Tree iteration::              
 
-Value objects
+Value methods
 
+* Value overview::              
 * About the valuator::          
 * Valuator constructor::        
 * Valuator reference counting::  
@@ -972,7 +977,7 @@ one of the following is returned, indicating the nature of the mismatch:
 
 @end deftypefun
 
-@node Grammar methods, Recognizers, Static method, Top
+@node Grammar methods, Recognizer methods, Static method, Top
 @chapter Grammar methods
 @cindex grammars
 
@@ -1536,17 +1541,18 @@ codes.
 @xref{Events}.
 @end deftypefn
 
-@node Recognizer methods
+@node Recognizer methods, Progress reports, Grammar methods, Top
 @chapter Recognizer methods
 
 @menu
+* Recognizer overview::         
 * Recognizer constructor::      Creating a new recognizer.
 * Recognizer reference counting::  Keeping the reference count of a recognizer.
 * Recognizer life::             Taking a recognizer through its life cycle.
 * Recognizer events::           
 @end menu
 
-@node Recognizer overview
+@node Recognizer overview, Recognizer constructor, Recognizer methods, Recognizer methods
 @section Overview
 
 In order to allow future extensions that change settings
@@ -1556,7 +1562,7 @@ it is @strong{not} created ready for input.
 To make a recognizer ready for input,
 Use the @code{marpa_r_start_input} method.
 
-@node Recognizer constructor, Recognizer reference counting, Recognizers, Recognizers
+@node Recognizer constructor, Recognizer reference counting, Recognizer overview, Recognizer methods
 @section Creating a new recognizer
 
 @deftypefun Marpa_Recognizer marpa_r_new ( Marpa_Grammar @var{g} )
@@ -1569,7 +1575,7 @@ Return value:  On success, the newly created recognizer.
 If @var{g} is not precomputed, or on other failure, @code{NULL}.
 @end deftypefun
 
-@node Recognizer reference counting, Recognizer life, Recognizer constructor, Recognizers
+@node Recognizer reference counting, Recognizer life, Recognizer constructor, Recognizer methods
 @section Keeping the reference count of a recognizer
 
 @deftypefun Marpa_Recognizer marpa_r_ref (Marpa_Recognizer @var{r})
@@ -1592,7 +1598,7 @@ to zero, it too is destroyed.
 
 @end deftypefun
 
-@node Recognizer life, Recognizer events, Recognizer reference counting, Recognizers
+@node Recognizer life, Recognizer events, Recognizer reference counting, Recognizer methods
 @section Taking a recognizer through its life cycle
 
 @deftypefun int marpa_r_start_input (Marpa_Recognizer @var{r})
@@ -1782,7 +1788,7 @@ Return value:
 Always succeeds.
 @end deftypefun
 
-@node Recognizer events,  , Recognizer life, Recognizers
+@node Recognizer events,  , Recognizer life, Recognizer methods
 @section Events
 
 @deftypefun int marpa_r_event (Marpa_Recognizer @var{r}, @
@@ -1813,7 +1819,7 @@ codes.
 @xref{Events}.
 @end deftypefn
 
-@node Progress reports, Bocage, Recognizers, Top
+@node Progress reports, Bocage methods, Recognizer methods, Top
 @chapter Progress reports
 
 An important advantage of the Marpa algorithm is the ability
@@ -1890,14 +1896,15 @@ If either @var{position} or @var{origin} is @code{NULL},
 or on other hard failure, @code{-2}.
 @end deftypefun
 
-@node Bocage methods
+@node Bocage methods, Ordering methods, Progress reports, Top
 @chapter Bocage methods
 
 @menu
+* Bocage overview::             
 * Bocage reference counting::   
 @end menu
 
-@node Bocage overview
+@node Bocage overview, Bocage reference counting, Bocage methods, Bocage methods
 @section Overview
 
 In Libmarpa, recognition and parsing are separate phases.
@@ -1925,7 +1932,7 @@ Return value: The base grammar of @var{b}.
 Always succeeds.
 @end deftypefun
 
-@node Bocage reference counting,  , Bocage, Bocage
+@node Bocage reference counting,  , Bocage overview, Bocage methods
 @section  Reference counting
 @deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
 Increases the reference count by 1.
@@ -1951,18 +1958,19 @@ to zero, it too is destroyed.
 
 @end deftypefun
 
-@node Ordering methods
+@node Ordering methods, Tree methods, Bocage methods, Top
 @chapter Ordering methods
 
 @menu
+* Ordering overview::           
 * Ordering constructor::        
 * Ordering reference counting::  
 @end menu
 
-@node Ordering overview
+@node Ordering overview, Ordering constructor, Ordering methods, Ordering methods
 @section Overview
 
-@node Ordering constructor, Ordering reference counting, Ordering objects, Ordering objects
+@node Ordering constructor, Ordering reference counting, Ordering overview, Ordering methods
 @section Creating an ordering
 
 Libmarpa allows ambiguous parses.
@@ -2001,7 +2009,7 @@ Return value: The base grammar of @var{o}.
 Always succeeds.
 @end deftypefun
 
-@node Ordering reference counting,  , Ordering constructor, Ordering objects
+@node Ordering reference counting,  , Ordering constructor, Ordering methods
 @section Reference counting
 
 @deftypefun Marpa_Order marpa_o_ref ( @
@@ -2034,10 +2042,17 @@ base grammar, if necessary.
 
 @end deftypefun
 
-@node Tree methods
+@node Tree methods, Value methods, Ordering methods, Top
 @chapter Tree methods
 
-@node Tree overview
+@menu
+* Tree overview::               
+* Tree constructor::            
+* Tree reference counting::     
+* Tree iteration::              
+@end menu
+
+@node Tree overview, Tree constructor, Tree methods, Tree methods
 @section Overview
 
 Once the bocage has an ordering, the parses can be iterated.
@@ -2046,7 +2061,7 @@ Within Marpa,
 when it makes sense in context,
 ``tree'' means a parse tree.
 
-@node Tree constructor, Tree reference counting, Tree, Tree
+@node Tree constructor, Tree reference counting, Tree overview, Tree methods
 @section Creating a new tree iterator
 
 @deftypefun Marpa_Tree marpa_t_new (Marpa_Order @var{o})
@@ -2074,7 +2089,7 @@ Return value: The base grammar of @var{t}.
 Always succeeds.
 @end deftypefun
 
-@node Tree reference counting, Tree iteration, Tree constructor, Tree
+@node Tree reference counting, Tree iteration, Tree constructor, Tree methods
 @section Reference counting
 
 @deftypefun Marpa_Tree marpa_t_ref (Marpa_Tree @var{t})
@@ -2105,7 +2120,7 @@ base grammar, if necessary.
 
 @end deftypefun
 
-@node Tree iteration,  , Tree reference counting, Tree
+@node Tree iteration,  , Tree reference counting, Tree methods
 @section Iterating through the trees
 
 @deftypefun int marpa_t_next ( @
@@ -2135,13 +2150,22 @@ Return value: The number of parses traversed so far.
 Always succeeds.
 @end deftypefun
 
-@node Value methods
+@node Value methods, Events, Tree methods, Top
 @chapter Value methods
 
-@node Value overview
+@menu
+* Value overview::              
+* About the valuator::          
+* Valuator constructor::        
+* Valuator reference counting::  
+* Valuator stepping::           
+* Step accessors::              
+@end menu
+
+@node Value overview, About the valuator, Value methods, Value methods
 @section Overview
 
-@node About the valuator, Valuator constructor, Value, Value
+@node About the valuator, Valuator constructor, Value overview, Value methods
 @section About the valuator
 While Libmarpa passes instructions
 (called ``steps'')
@@ -2220,7 +2244,7 @@ The worst aspect happens when there is a programming error.
 This error will occur inside Libmarpa,
 and inside code about which Libmarpa can make no assumptions.
 
-@node Valuator constructor, Valuator reference counting, About the valuator, Value
+@node Valuator constructor, Valuator reference counting, About the valuator, Value methods
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
@@ -2329,10 +2353,10 @@ to a value different from its current one, -1.
 On hard failure, -2.
 @end deftypefun
 
-@node Valuator reference counting, Valuator stepping, Valuator constructor, Value
+@node Valuator reference counting, Valuator stepping, Valuator constructor, Value methods
 @section Reference counting
 
-@node Valuator stepping, Step accessors, Valuator reference counting, Value
+@node Valuator stepping, Step accessors, Valuator reference counting, Value methods
 @section Stepping through the valuator
 
 @deftypefun Marpa_Step_Type marpa_v_step ( @
@@ -2404,7 +2428,7 @@ prompts to do so.
 These step types are reserved for internal purposes.
 @end deftypevr
 
-@node Step accessors,  , Valuator stepping, Value
+@node Step accessors,  , Valuator stepping, Value methods
 @section Step accessors
 
 Step accessors are implemented as macros.  They always succeed.
@@ -2452,7 +2476,7 @@ returns the stack location where the value of the last child
 can be found.
 @end deftypefn
 
-@node Events, Error macros and code, Value, Top
+@node Events, Error macros and code, Value methods, Top
 @chapter Events
 
 @menu
