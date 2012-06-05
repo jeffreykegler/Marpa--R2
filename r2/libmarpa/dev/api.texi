@@ -117,7 +117,7 @@ Error handling
 Introduction to the external interface
 
 * About the overviews::         
-* Return value descriptions::   
+* Return values::               
 
 Grammar methods
 
@@ -820,6 +820,17 @@ A hard failure results when a method returns a value
 from some logic path other than the primary or secondary
 one.
 
+Whenever a method returns a hard failure,
+Libmarpa sets the error code to indicate
+the nature of the failure.
+Soft failures typically have a single
+cause, and usually are indicated by a return
+value special to soft failures,
+and in those cases an error code is not needed.
+In the cases where it is not
+necessary,
+the error code is not set.
+
 An application will have its own ideas of success,
 primary and secondary logic paths,
 what is or is not a recoverable failure,
@@ -850,10 +861,10 @@ interface in detail.
 
 @menu
 * About the overviews::         
-* Return value descriptions::   
+* Return values::               
 @end menu
 
-@node About the overviews, Return value descriptions, Introduction to the external interface, Introduction to the external interface
+@node About the overviews, Return values, Introduction to the external interface, Introduction to the external interface
 @section  About the overviews
 
 The reference method sections usually begin with an overview
@@ -878,7 +889,7 @@ In the archetypal Libmarpa application,
 grammar, input and semantics are
 all small but non-trivial.
 
-@node Return values
+@node Return values,  , About the overviews, Introduction to the external interface
 @section Return values
 
 If a function returns an integer value,
@@ -890,22 +901,23 @@ If a function returns an pointer value,
 and it is not otherwise stated,
 @code{NULL} indicates a failure,
 and any other result indicates success.
-Exceptions to these rules,
-but these will be explicitly indicated.
+Exceptions to these rules
+will be explicitly indicated.
 
-If a method allows soft failure,
-the cause of the soft failure will always be described,
-either in the description of a -1 return,
-or explicitly.
 Where a method returns @code{NULL},
 and in its description
 there is no mention of soft failure,
 the reader can assume that the method never
 returns soft failure.
+If a method allows soft failure,
+the cause of the soft failure will always be described,
+either in the description of a -1 return,
+or explicitly.
 
 Hard failure often can have many causes,
-and descriptions of all of them under each
-method would clutter the method descriptions.
+and full descriptions of all of them under each
+method would hopelessly
+clutter the method descriptions.
 The Libmarpa error code is always set after
 a hard failure,
 and a full descriptions of the causes of each
