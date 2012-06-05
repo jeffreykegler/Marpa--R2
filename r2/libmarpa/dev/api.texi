@@ -39,11 +39,11 @@ This manual is for Libmarpa, version @value{VERSION}.
 @menu
 * How to read this document::   
 * About Libmarpa::              What is Libmarpa?
-* Libmarpa objects::            
-* The architecture of Marpa::   
-* Threads::                     
-* Terminal and tokens::         
+* Architecture::                
+* Objects::                     
+* Input::                       
 * Semantics::                   
+* Threads::                     
 * Error handling concepts::     
 * Introduction to the external interface::  
 * Static method::               
@@ -68,14 +68,7 @@ How to read this document
 * Prerequisites::               Prerequisites.
 * Parsing theory::              Parsing theory.
 
-Libmarpa objects
-
-* The sequence of time objects::  
-* Base grammars::               
-* The lifetime of time objects::  
-* Numbered objects::            
-
-The architecture
+Architecture
 
 * Architecture - Grammar::      
 * Recognition versus parsing::  
@@ -88,16 +81,20 @@ Recognition versus parsing
 
 * Precomputation::              
 
-Threads
+Objects
 
-* C89 and thread-safety::       
-* Base grammars cannot be shared between threads::  
+* The sequence of time objects::  
+* Base grammars::               
+* The lifetime of time objects::  
+* Numbered objects::            
 
-C89 and thread-safety
+Input
 
-* C89 and thread-safety::
+* Terminals::                   
+* LHS Terminals::               
+* Token values::                
 
-Terminal and tokens
+Terminals
 
 * LHS Terminals::               
 * Token values::                
@@ -107,6 +104,15 @@ Semantics
 * How Libmarpa semantics work::  
 * Universe of values::          
 * Whatever values::             
+
+Threads
+
+* C89 and thread-safety::       
+* Base grammars cannot be shared between threads::  
+
+C89 and thread-safety
+
+* C89 and thread-safety::
 
 Error handling
 
@@ -265,7 +271,7 @@ one of the packages that extend
 regular expressions,
 he should have no trouble with BNF.
 
-@node About Libmarpa, Libmarpa objects, How to read this document, Top
+@node About Libmarpa, Architecture, How to read this document, Top
 @chapter About Libmarpa
 Libmarpa implements the Marpa parsing algorithm.
 Marpa is named
@@ -319,7 +325,7 @@ to catch errors at runtime or,
 failing all else,
 to successfully debug the logic.
 
-@node Architecture
+@node Architecture, Objects, About Libmarpa, Top
 @chapter Architecture
 
 @menu
@@ -327,7 +333,7 @@ to successfully debug the logic.
 * Recognition versus parsing::  
 @end menu
 
-@node Architecture - Grammar, Recognition versus parsing, The architecture of Marpa, The architecture of Marpa
+@node Architecture - Grammar, Recognition versus parsing, Architecture, Architecture
 @section Grammars
 
 As per parsing theory,
@@ -343,7 +349,7 @@ and a distinguished start symbol.
 * Precomputation::
 @end menu
 
-@node Recognition versus parsing,  , Architecture - Grammar, The architecture of Marpa
+@node Recognition versus parsing,  , Architecture - Grammar, Architecture
 @section Recognition versus parsing
 
 Even in the academic literature,
@@ -385,7 +391,7 @@ to a precomputed grammar
 are disallowed,
 as are most other changes.
 
-@node Objects
+@node Objects, Input, Architecture, Top
 @chapter Objects
 
 Libmarpa's most important objects are time objects.
@@ -418,7 +424,7 @@ The time objects are, in sequence:
 * Numbered objects::            
 @end menu
 
-@node The sequence of time objects, Base grammars, Libmarpa objects, Libmarpa objects
+@node The sequence of time objects, Base grammars, Objects, Objects
 @section The sequence of time objects
 
 While time objects do not correspond to phases,
@@ -430,7 +436,7 @@ A recognizer cannot be created without a precomputed grammar;
 a bocage cannot be created without a recognizer;
 and so on.
 
-@node Base grammars, The lifetime of time objects, The sequence of time objects, Libmarpa objects
+@node Base grammars, The lifetime of time objects, The sequence of time objects, Objects
 @section Every time object has a base grammar
 
 When one time object is used to create a second
@@ -461,7 +467,7 @@ the base grammar of a bocage is the base
 grammar of the recognizer that it was created
 with.
 
-@node The lifetime of time objects, Numbered objects, Base grammars, Libmarpa objects
+@node The lifetime of time objects, Numbered objects, Base grammars, Objects
 @section The lifetime of time objects
 
 Time objects are reference-counted.
@@ -488,7 +494,7 @@ For such situations,
 every time object has a method to increment
 the reference count.
 
-@node Numbered objects,  , The lifetime of time objects, Libmarpa objects
+@node Numbered objects,  , The lifetime of time objects, Objects
 @section Numbered objects
 
 In addition to its major, ``time'' objects, Libmarpa also has
@@ -501,10 +507,16 @@ Rules and symbols are numbered objects.
 Tokens values are
 another examples of numbered objects.
 
-@node Input
+@node Input, Semantics, Objects, Top
 @chapter Input
 
-@node Terminals
+@menu
+* Terminals::                   
+* LHS Terminals::               
+* Token values::                
+@end menu
+
+@node Terminals, LHS Terminals, Input, Input
 @section Terminals
 
 A terminal symbol is a symbol which
@@ -529,7 +541,7 @@ and Marpa does not allow it.
 * Token values::                
 @end menu
 
-@node LHS Terminals, Token values, Terminal and tokens, Terminal and tokens
+@node LHS Terminals, Token values, Terminals, Input
 @section Uses for LHS terminals
 
 Marpa's idea
@@ -552,7 +564,7 @@ For this reason,
 the traditional behavior is the default
 in Marpa.
 
-@node Token values,  , LHS Terminals, Terminal and tokens
+@node Token values,  , LHS Terminals, Input
 @section Token values
 
 Token values are @code{int}'s.
@@ -569,7 +581,7 @@ using an array,
 so that the higher levels can translate integers back
 and forth into whatever the application requires.
 
-@node Semantics, Error handling concepts, Terminal and tokens, Top
+@node Semantics, Threads, Input, Top
 @chapter Semantics
 
 @menu
@@ -705,7 +717,7 @@ If there is interest,
 a future extension might allow a locked
 valued status to be overriden.
 
-@node Threads, Terminal and tokens, The architecture of Marpa, Top
+@node Threads, Error handling concepts, Semantics, Top
 @chapter Threads
 
 Libmarpa is thread-safe,
@@ -762,7 +774,7 @@ Libmarpa could allow thread-safe
 cloning of grammars and other
 time objects.
 
-@node Error handling concepts, Introduction to the external interface, Semantics, Top
+@node Error handling concepts, Introduction to the external interface, Threads, Top
 @chapter Error handling
 
 @menu
