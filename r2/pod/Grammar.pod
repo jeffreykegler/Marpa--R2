@@ -648,16 +648,6 @@ The value of the C<lhs> rule property must be a string containing
 the name of the rule's left hand side symbol.
 Every Marpa rule must have a left hand side symbol.
 
-The C<lhs> plays a role in the semantics.
-If no C<action> rule property is defined,
-Marpa looks in either the
-grammar's C<actions> package
-or the grammar's C<action_object>
-for a Perl closure that has
-the name of the C<lhs> symbol.
-For details, see
-L<the document on semantics|Marpa::R2::Semantics>.
-
 =head2 min
 
 C<min> must be 0, 1, or undefined.
