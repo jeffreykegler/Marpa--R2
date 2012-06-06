@@ -90,9 +90,17 @@ Objects
 
 Input
 
+* Earlemes::                    
 * Terminals::                   
 * LHS Terminals::               
 * Token values::                
+
+Earlemes
+
+* The traditional model::       
+* Current furthest and latest earleme::  
+* The initial earleme settings::  
+* The standard model of input::  
 
 Terminals
 
@@ -511,15 +519,23 @@ another examples of numbered objects.
 @chapter Input
 
 @menu
+* Earlemes::                    
 * Terminals::                   
 * LHS Terminals::               
 * Token values::                
 @end menu
 
-@node Earlemes
+@node Earlemes, Terminals, Input, Input
 @section Earlemes
 
-@node The traditional model
+@menu
+* The traditional model::       
+* Current furthest and latest earleme::  
+* The initial earleme settings::  
+* The standard model of input::  
+@end menu
+
+@node The traditional model, Current furthest and latest earleme, Earlemes, Earlemes
 @subsection The traditional model
 
 In traditional Earley parsers, the concept of location is very simple.
@@ -553,7 +569,7 @@ In the traditional model, the ordinal of an Earley set and
 its earleme are always exactly the same, but in Libmarpa
 they will be different.
 
-@node Current furthest and latest earleme
+@node Current furthest and latest earleme, The initial earleme settings, The traditional model, Earlemes
 @subsection Current, furthest and latest earleme
 
 The @dfn{current earleme} is the earleme that Libmarpa is currently working on.
@@ -598,7 +614,7 @@ that does @strong{not} add a token,
 the value of the lastest earleme is unchanged
 from its value before the call.
 
-@node The initial earleme settings
+@node The initial earleme settings, The standard model of input, Current furthest and latest earleme, Earlemes
 @subsection The initial earleme settings
 
 Understanding the
@@ -614,7 +630,7 @@ All input models have the same initial values.
 Initially the current, latest and furthest earleme
 are always earleme 0.
 
-@node The standard model of input
+@node The standard model of input,  , The initial earleme settings, Earlemes
 @subsection The standard model of input
 
 In the standard model of input,
@@ -643,7 +659,7 @@ the furthest earleme,
 and the new current earleme
 will all be @var{i}+1.
 
-@node Terminals, LHS Terminals, Input, Input
+@node Terminals, LHS Terminals, Earlemes, Input
 @section Terminals
 
 A terminal symbol is a symbol which
