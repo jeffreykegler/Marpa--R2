@@ -2223,11 +2223,17 @@ codes.
 An important advantage of the Marpa algorithm is the ability
 to easily get full information about the state of the parse
 so far.
-It may surprise those not familiar with the state of the art
-in parsing, but most parsing algorithms, in a quest for
-efficiency, reduce their grammars to a form which makes it
-impossible to determine what is going on in terms
-of the original grammar.
+Only one progress report can be in use at any one time.
+To start a progress report,
+use the @code{marpa_r_progress_report_start()} command.
+
+To get the information in a progress report,
+step through its items with
+the @code{marpa_r_progress_item()} method.
+
+To destroy a progress report,
+freeing the memory it uses,
+call the @code{marpa_r_progress_report_finish()} method.
 
 @deftypefun int marpa_r_progress_report_start ( @
   Marpa_Recognizer @var{r}, @
@@ -2258,7 +2264,8 @@ Destroys the report of the progress at Earley set @var{set_id}
 for recognizer @var{r},
 freeing the memory and other resources.
 It is often not necessary to call this method.
-Progress reports are destroyed automatically
+Any previously existing progress report
+is destroyed automatically
 whenever a new progress report is started,
 and when the recognizer is destroyed.
 
