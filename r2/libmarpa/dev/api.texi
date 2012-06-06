@@ -2242,13 +2242,8 @@ Initializes a report of the progress at Earley set @var{set_id}
 for recognizer @var{r}.
 If a progress report already exists, it is destroyed and its
 memory is freed.
-
-The report consists of items.
 Initially,
-the report is positioned before the first item.
-To position the report to an item so it can be
-examined,
-call the @var{marpa_r_progress_item} method.
+the progress report is positioned before its first item.
 
 Return value: On success, the number of report items available.
 If @var{set_id} is a non-negative number,
@@ -2278,27 +2273,30 @@ On success, a non-negative value.
   Marpa_Recognizer @var{r}, @
   int* @var{position}, @
   Marpa_Earley_Set_ID* @var{origin} )
-Returns the successive items of a
+This method allows access to the data
+for the next item of a
 progress report.
+If there are no more progress report items,
+it returns -1 to indicate a soft failure.
+Either the soft failure,
+or the item count returned by
+@code{marpa_r_progress_report_start()}
+can be used to determine when the last
+item has been seen.
+
+Return value: On success, the rule ID of
+the next progress report item.
+If there are no more progress report items, -1.
+If either @var{position} or @var{origin} is @code{NULL},
+or on other hard failure, @code{-2}.
 On success,
-the rule ID is the return value.
 the dot position is returned in the location
 pointed to by @var{position},
 and the origin is returned in the location
 pointed to by @var{origin}.
-
-If there are no more progress report items,
-it is a soft failure, and -1 is returned.
-This return value may be used to terminate
-a loop through the progress report items.
-When there is a soft or hard failure,
-the values left in @var{position}
-and @var{origin} are undefined.
-
-Return value: On success, the rule ID of the progress report item.
-If there are no more progress report items, -1.
-If either @var{position} or @var{origin} is @code{NULL},
-or on other hard failure, @code{-2}.
+On failure, it is not specified what, if any,
+value is written to
+@var{position} and @var{origin}.
 @end deftypefun
 
 @node Bocage methods, Ordering methods, Progress reports, Top
