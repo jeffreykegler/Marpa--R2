@@ -516,8 +516,11 @@ another examples of numbered objects.
 * Token values::                
 @end menu
 
-@node The concept of location in traditional Earley parsers
-@section The concept of location in traditional Earley parsers
+@node Earlemes
+@section Earlemes
+
+@node The traditional model
+@subsection The traditional model
 
 In traditional Earley parsers, the concept of location is very simple.
 Locations are numbered from 0 to @math{n}, where @math{n} is the length of
@@ -549,6 +552,96 @@ or its @dfn{ordinal}.
 In the traditional model, the ordinal of an Earley set and
 its earleme are always exactly the same, but in Libmarpa
 they will be different.
+
+@node Current furthest and latest earleme
+@subsection Current, furthest and latest earleme
+
+The @dfn{current earleme} is the earleme that Libmarpa is currently working on.
+More specifically, it is the one at which new tokens will @strong{start}.
+Since tokens are never zero length, a new token will always end after the
+current earleme.
+The current earleme is initially earleme 0.
+Every call to @code{marpa_r_earleme_complete()} advances the
+current earleme by 1.
+
+The @dfn{furthest earleme} is the highest numbered (and therefore ``furthest'')
+earleme at which a token ends.
+The furthest earleme is initially earleme 0.
+With every call to @code{marpa_r_alternative()}, the end of the token
+it adds is calculated.
+A token ends at earleme @var{end_earleme} = @var{current}+@var{length},
+where @var{current} is the current earleme,
+and @var{length} is the length of the newly added token.
+After a call to @code{marpa_r_alternative()},
+the furthest earleme is its value before the call,
+or @var{end_earleme}, whichever is greater.
+
+The @dfn{latest earleme} is the earleme of the latest
+Earley set.
+The @dfn{latest Earley set} is the last Earley set completed.
+This is always the highest numbered Earley set.
+If there is an Earley set at the current earleme,
+it is the latest Earley set and the latest earleme
+is equal to the current earleme.
+There is never an Earley set after the current earleme.
+If there is no Earley set at the current earleme,
+the latest Earley set,
+which is also the highest numbered Earley set,
+is the last one completed.
+
+After every call to the @code{marpa_r_earleme_complete()} method
+that adds a token,
+the value of the latest earleme is 
+same as the value of the current earleme.
+After every call to the @code{marpa_r_earleme_complete()} method
+that does @strong{not} add a token,
+the value of the lastest earleme is unchanged
+from its value before the call.
+
+@node The initial earleme settings
+@subsection The initial earleme settings
+
+Understanding the
+settings of current, latest and furthest earleme is
+crucial to working with advanced input models,
+and for this reason the next sections will go
+through the possibilities carefully.
+The presentation will start with the most traditional
+and restrictive models.
+It will proceed to less restrictive models.
+
+All input models have the same initial values.
+Initially the current, latest and furthest earleme
+are always earleme 0.
+
+@node The standard model of input
+@subsection The standard model of input
+
+In the standard model of input,
+Calls to @code{marpa_r_alternative()}
+and @code{marpa_r_earleme_complete()} are
+made in pairs.
+There is first exactly one call 
+to @code{marpa_r_alternative()}
+for a token with length 1.
+Following it must be a call
+to @code{marpa_r_earleme_complete()}.
+For an input of length @var{n}, there will be
+exactly @var{n} such paired calls.
+
+In the standard model,
+after each call to 
+@code{marpa_r_alternative()} when the current
+earleme is @var{i},
+the latest earleme will also be @var{i},
+and the furthest earleme will be @var{i}+1.
+After each call to
+@code{marpa_r_earleme()} when the current
+earleme is @var{i},
+the latest earleme,
+the furthest earleme,
+and the new current earleme
+will all be @var{i}+1.
 
 @node Terminals, LHS Terminals, Input, Input
 @section Terminals
