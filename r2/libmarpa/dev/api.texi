@@ -2280,7 +2280,7 @@ If there are no more progress report items,
 it returns -1 to indicate a soft failure.
 Either the soft failure,
 or the item count returned by
-@code{marpa_r_progress_report_start()}
+@code{marpa_r_progress_report_start()},
 can be used to determine when the last
 item has been seen.
 
@@ -2319,7 +2319,7 @@ for the input.
 
 Because Libmarpa parses ambiguous grammars, the bocage may
 contain many parses.
-(For those familiar with them, a bocage is a
+(For those familiar with them, a bocage is
 a specialized and extended parse forest.)
 
 To create a bocage, use the @code{marpa_b_new()} method.
