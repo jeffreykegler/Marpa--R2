@@ -516,6 +516,40 @@ another examples of numbered objects.
 * Token values::                
 @end menu
 
+@node The concept of location in traditional Earley parsers
+@section The concept of location in traditional Earley parsers
+
+In traditional Earley parsers, the concept of location is very simple.
+Locations are numbered from 0 to @math{n}, where @math{n} is the length of
+the input.
+Every location has an Earley set, and vice versa.
+Location 0 is the start location.
+Every location after the start location has exactly one input token
+associated with it.
+
+Already some applications
+do not fit this traditional input model -- 
+natural language processing requires ambiguous tokens,
+for example.
+Libmarpa's allows a wide variety of alternative input models.
+
+This document assumes that the reader knows the concepts
+behind Libmarpa's
+alternative input models, either from the documentation
+of a higher level interface, such as
+@code{Marpa::XS} or
+@code{Marpa::R2},
+or from Marpa's
+@uref{https://github.com/downloads/jeffreykegler/Marpa-theory/recce.pdf, theory document}.
+
+As a reminder,
+in Libmarpa a location is called a @dfn{earleme}.
+The number of an Earley set is the @dfn{ID of the Earley set},
+or its @dfn{ordinal}.
+In the traditional model, the ordinal of an Earley set and
+its earleme are always exactly the same, but in Libmarpa
+they will be different.
+
 @node Terminals, LHS Terminals, Input, Input
 @section Terminals
 
