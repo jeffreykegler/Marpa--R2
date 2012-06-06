@@ -101,6 +101,10 @@ Earlemes
 * Current furthest and latest earleme::  
 * The initial earleme settings::  
 * The standard model of input::  
+* Ambiguous input::             
+* Variable length tokens::      
+* The generalized model::       
+* General rules for the earleme variables::  
 
 Terminals
 
@@ -533,6 +537,10 @@ another examples of numbered objects.
 * Current furthest and latest earleme::  
 * The initial earleme settings::  
 * The standard model of input::  
+* Ambiguous input::             
+* Variable length tokens::      
+* The generalized model::       
+* General rules for the earleme variables::  
 @end menu
 
 @node The traditional model, Current furthest and latest earleme, Earlemes, Earlemes
@@ -630,7 +638,7 @@ All input models have the same initial values.
 Initially the current, latest and furthest earleme
 are always earleme 0.
 
-@node The standard model of input,  , The initial earleme settings, Earlemes
+@node The standard model of input, Ambiguous input, The initial earleme settings, Earlemes
 @subsection The standard model of input
 
 In the standard model of input,
@@ -646,18 +654,129 @@ For an input of length @var{n}, there will be
 exactly @var{n} such paired calls.
 
 In the standard model,
-after each call to 
-@code{marpa_r_alternative()} when the current
-earleme is @var{i},
+for each call to 
+@code{marpa_r_alternative()}
+if the current earleme before the call was @var{i},
+then after the call
 the latest earleme will also be @var{i},
 and the furthest earleme will be @var{i}+1.
-After each call to
-@code{marpa_r_earleme()} when the current
-earleme is @var{i},
+For each call to
+@code{marpa_r_earleme_complete()},
+if the current earleme before the call was @var{i},
+then after the call
 the latest earleme,
 the furthest earleme,
-and the new current earleme
+and the current earleme
 will all be @var{i}+1.
+
+@node Ambiguous input, Variable length tokens, The standard model of input, Earlemes
+@subsection Ambiguous input
+
+As a first loosening of the standard model,
+we no longer require calls to @code{marpa_r_alternative()}
+to be paired with calls to
+@code{marpa_r_earleme_complete()}.
+Instead,
+we allow multiple calls
+to @code{marpa_r_alternative()}
+before each call to
+@code{marpa_r_earleme_complete()}.
+We still require that there be at least one call
+to @code{marpa_r_alternative()}
+before each call to
+@code{marpa_r_earleme_complete()},
+and we still require that all tokens have 
+a length of 1.
+In this model, the behavior of the current,
+latest and furthest earlemes are exactly
+as described for the standard model.
+
+@node Variable length tokens, The generalized model, Ambiguous input, Earlemes
+@subsection Variable length tokens
+
+Our next loosening of the restrictions is to allow
+variable length tokens.
+That is, instead of requiring that all tokens
+be of length 1,
+we allow tokens to be of length 1 or longer.
+This does change the behavior of the earleme variables.
+
+In this new model,
+for each call to 
+@code{marpa_r_alternative()}
+if the current earleme before the call was @var{i},
+then after the call
+the latest earleme will also be @var{i},
+but the furthest earleme will be MAX(@var{f'}, @var{i}+@var{length}),
+where @var{f'} is the value of the furthest earleme before the call,
+and @var{length} is the length of the token.
+That is, the new value of the furthest earleme will
+be its previous value,
+or the end earleme of the newly added token,
+whichever is greater.
+
+For each call to 
+@code{marpa_r_earleme_complete()}
+if the current earleme before the call was @var{i},
+then after the call
+the current earleme and latest earleme will both be @var{i+1}.
+The furthest earleme is never changed by a call
+to @code{marpa_r_earleme_complete()} --
+it will have the same value it had before the call.
+
+@node The generalized model, General rules for the earleme variables, Variable length tokens, Earlemes
+@subsection The generalized model
+
+To fully generalize the input model,
+we now need to remove only one restriction.
+We now allow empty earlemes -- earlemes with
+no tokens and no Earley set.
+
+An empty earleme 1 can be created by
+making a call to @code{marpa_r_earleme_complete()}
+when 
+no call to @code{marpa_r_alternative()} has been
+made for the recognizer.
+Later earleme will be empty if two calls
+to @code{marpa_r_earleme_complete()}
+are made with no intervening call
+to @code{marpa_r_alternative()}.
+
+If @code{marpa_r_earleme_complete()} is called
+for an empty earleme,
+the latest earleme remains unchanged from its
+prior value.
+This means that, since the current earleme will
+change, the latest earleme will be less
+than the current earleme.
+As always the furthest earleme is unchanged by
+the call to @code{marpa_r_earleme_complete()}.
+
+@node General rules for the earleme variables,  , The generalized model, Earlemes
+@subsection General rules for the earleme variables
+
+At this point, the most generalized input model has been
+introduced.
+This section will summarize the properties that
+the earleme variables will always have,
+even in Libmarpa's most generalized input model.
+
+@itemize
+@item It is always the case that the current earleme is greater than
+or equal to the latest earleme.
+@item It is always the case that the furthest earleme is greater than
+or equal to the latest earleme.
+@item If the parser is not exhausted,
+it is always the case that the furthest earleme is greater than
+or equal to the current earleme.
+@item For an exhausted parser,
+it is always the case that the furthest earleme is less than
+or equal to the current earleme.
+@item If the furthest earleme is greater than the current earleme,
+the parser is not exhausted.
+@item For the furthest earleme to be less than the current earleme,
+the parser must be exhausted.
+@end itemize
 
 @node Terminals, LHS Terminals, Earlemes, Input
 @section Terminals
