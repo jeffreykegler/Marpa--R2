@@ -577,9 +577,11 @@ In the traditional model, the ordinal of an Earley set and
 its earleme are always exactly the same, but in Libmarpa
 they will be different.
 
-@node Current furthest and latest earleme, The initial earleme settings, The traditional model, Earlemes
-@subsection Current, furthest and latest earleme
+@node The earleme variables, The initial earleme settings, The traditional model, Earlemes
+@subsection The earleme variables
 
+The important earleme variables are the current, the furthest and
+the latest earleme.
 The @dfn{current earleme} is the earleme that Libmarpa is currently working on.
 More specifically, it is the one at which new tokens will @strong{start}.
 Since tokens are never zero length, a new token will always end after the
@@ -621,6 +623,44 @@ After every call to the @code{marpa_r_earleme_complete()} method
 that does @strong{not} add a token,
 the value of the lastest earleme is unchanged
 from its value before the call.
+
+@node The significances of the earleme variables
+@subsection The significances of the earleme variables
+
+The current earleme tracks the advance of the recognizer through the input.
+Input tokens always start at the current earleme.
+An application can advance past the current earleme,
+by calling @code{marpa_r_earleme_complete()}, which
+increments the current earleme by 1.
+After initialization,
+@code{marpa_r_earleme_complete()} is
+the only way to manipulate the value of the current earleme.
+
+The furthest earleme tracks how ``far out'' tokens can be found.
+In the standard input model, calling 
+@code{marpa_r_earleme_complete()} after each
+@code{marpa_r_alternative()} call is sufficient to process
+all inputs,
+and the furthest earleme's value
+can be typically be ignored.
+In alternative input models, if tokens have lengths greater than
+1, calling
+@code{marpa_r_earleme_complete()} once after the last token
+is read may not be enough to ensure that all tokens have been processed.
+To ensure that all tokens have been processed,
+an application must advance the current earleme
+by calling @code{marpa_r_earleme_complete()},
+until the current earleme is equal to the furthest earleme.
+
+The lastest earleme is the earleme of the last Earley set.
+Typically, the Earley set ID is the number of greater interest.
+It is different from the current earleme if and only if
+there is no Earley set at the current earleme.
+Once recognition is complete, parsing must take place over
+a range of Earley sets.
+A different end of parsing can be specified,
+but by default, parsing is of the input
+from earleme 0 to the latest earleme.
 
 @node The initial earleme settings, The standard model of input, Current furthest and latest earleme, Earlemes
 @subsection The initial earleme settings
@@ -1846,7 +1886,16 @@ before the recognizer is set up for input,
 when the recognizer is created,
 it is @strong{not} created ready for input.
 To make a recognizer ready for input,
-Use the @code{marpa_r_start_input} method.
+Use the @code{marpa_r_start_input()} method.
+
+The recognizer starts with its current earleme
+at location 0.
+To read a token at the current earleme,
+use the @code{marpa_r_alternative()} call.
+
+To complete the processing of the current earleme,
+and move forward to a new one,
+use the @code{marpa_r_earleme_complete()} call.
 
 @node Recognizer constructor, Recognizer reference counting, Recognizer overview, Recognizer methods
 @section Creating a new recognizer
@@ -1906,7 +1955,8 @@ variable length and to overlap.
 which must be a terminal.
 @var{length} is the length of the token.
 
-@var{value} is a integer which represents the value of the
+@var{value} is an
+integer which represents the value of the
 token.
 In applications where the token's value is not an integer, it is
 expected that the application will use this value to
@@ -1920,9 +1970,8 @@ values, instead tracking their own, perhaps based on
 the earleme location, and @var{token_id}.
 
 A @var{value} of 0 has special significance -- it indicates
-that the token's is unvalued -- that it's value is allowed
+that the token is unvalued -- that its value is allowed
 to be unpredictable.
-arbitrary value.
 Note that if a token is unvalued,
 it must be the case,
 not just that Libmarpa need not care about its value,
@@ -1939,6 +1988,28 @@ relevant valuator steps.
 An application can do this by
 letting @var{value} be any non-zero integer.
 
+When @code{marpa_r_alternative}
+is successful,
+the value of furthest earleme is set to
+the greater of its value before the call,
+and @var{current}+@var{length},
+where @var{current} is the value of the current earleme.
+The values of the current and latest earlemes
+are unchanged by
+calls to @code{marpa_r_alternative}.
+
+Return value:  On success, returns a non-negative value.
+If the token was not accepted because @var{token_id} is unexpected,
+it is considered a soft failure,
+and @code{marpa_r_alternative()} returns -1.
+If the token was not accepted because it
+is a duplicate,
+it is considered a soft failure,
+and @code{marpa_r_alternative()} returns -3.
+Other problems that prevent successful processing,
+are considered hard failures,
+and -2 is returned.
+
 @end deftypefun
 
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
@@ -1950,6 +2021,24 @@ in the character-per-earleme input model, for example, tokens
 can span many characters and, if the input is unambiguous over that
 span, there will be no other tokens that start inside it.
 
+As mentioned,
+@code{marpa_r_earleme_complete} always advances the current earleme,
+incrementing its value by 1.
+This means that value of the current earleme after the call
+will be the one plus the value of the earleme processed by the call
+to @code{marpa_r_earleme_complete}.
+If any token was accepted at the earleme being processed,
+@code{marpa_r_earleme_complete} creates a new Earley set
+which will be the latest Earley set,
+and, after the call, the latest
+earleme will be equal to the new current earleme.
+If no token was accepted at the
+earleme being processed,
+no Earley set is created,
+and the value of the latest earleme remains unchanged.
+The value of the furthest earleme is never changed by
+a call to @code{marpa_r_earleme_complete}.
+
 During this method, one or more events may occur.
 On success, this function returns the number of events
 generated,
@@ -1959,9 +2048,9 @@ When this method fails,
 the application must call @code{marpa_r_event}
 if it wants to determine if any events occurred.
 Since the reason for failure to complete an earleme is often
-detailed in the events, failed applications will often
+detailed in the events, applications that fail will often
 be at least as interested in the events as those
-which succeeded.
+that succeed.
 
 @code{MARPA_EVENT_EXHAUSTED} indicates that the parse is
 exhausted -- that no input will be accepted at later earlemes.
@@ -1975,7 +2064,7 @@ What this means depends on the application,
 but when the default threshold is exceeded,
 it means that it is very likely
 that the time and space resources consumed by
-the parse are going to be excessive.
+the parse will prove excessive.
 
 Return value:  On success, the number of events generated.
 On failure, -2.
@@ -1991,6 +2080,18 @@ On failure, -2.
 In the default, token-stream model, Earley set ID and earleme
 are always equal, but this is not the case in other input
 models.
+
+At this writing, there is no method for
+the inverse operation (conversion of an earleme to an Earley set
+ID).
+One consideration in writing
+such a method is that not all earlemes correspond to Earley sets.
+Applications using the standard input model
+can take advantage of the exact equivalence of Earley set
+ID's and earlemes in that model.
+Other applications may need to create an ID-to-earleme
+array using the @code{marpa_r_earleme()} method,
+and invert it themselves.
 
 Return value:
 On success,
@@ -2008,23 +2109,14 @@ Always succeeds or fails softly.
 @end deftypefun
 
 @deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
-The ID of ``latest'' or most recently completed Earley set.
-This will always be the highest-numbered completed Earley set.
-In the default input model, this will always be the Earley set at the current
-earleme,
-but in some input models there are earlemes with no Earley sets.
+The value of the latest earleme can be found by converting ID using
+the @code{marpa_r_earleme()} method.
 
-Return value: On success, the furthest earleme.
+Return value: On success, the ID of the latest earley set.
 Always succeeds.
 @end deftypefun
 
 @deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
-The ``furthest'' or highest-numbered earleme.
-This is the earleme of the last Earley set that contains anything.
-Marpa allows variable length tokens,
-and in input models which use them,
-it may be necessary to track how far out tokens might be found.
-
 Return value: On success, the furthest earleme.
 Always succeeds.
 @end deftypefun
@@ -2047,7 +2139,7 @@ an unlimited number of Earley items
 will be allowed without warning.
 This will rarely be what the user wants.
 By default, Libmarpa calculates a value based on the grammar.
-This default value is the result of a considerable amount of experience,
+The formula Libmarpa uses is the result of some experience,
 and most applications will
 be happy with it.
 
@@ -2078,7 +2170,7 @@ On failure, -2.
 
 @deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
 A parser is ``exhausted'' if it cannot accept any more input.
-Both successful and failed parses can be ``exhausted''.
+Both successful and failed parses can be exhausted.
 In many grammars,
 the parse is always exhausted as soon as it succeeds.
 And even if the parse is exhausted at a point
@@ -2101,7 +2193,6 @@ This method provides access to the events generated
 by the @code{marpa_r_earleme_complete} method.
 The @var{ix}'th event (numbered from 0) is placed
 in the @var{public_event} value.
-
 It is a soft failure if there is no
 @var{ix}'th event.
 This can be used as the termination condition
@@ -2109,12 +2200,14 @@ in a loop over the events.
 
 Return value:  On success, returns the type of event @var{ix},
 and places the data for the event in @var{public_event}.
-If there is no such event (a soft failure),
+If there is no such event,
 -1 is returned.
 On hard failure, -2 is returned.
+On failure,
+the value pointed to be @var{public_event} is unspecified.
 @end deftypefun
 
-@deftypefn {Macro} void* marpa_r_event_value (Marpa_Event* @var{event})
+@deftypefn {Macro} int marpa_r_event_value (Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
