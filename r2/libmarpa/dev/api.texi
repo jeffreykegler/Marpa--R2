@@ -98,7 +98,8 @@ Input
 Earlemes
 
 * The traditional model::       
-* Current furthest and latest earleme::  
+* The earleme variables::       
+* The significances of the earleme variables::  
 * The initial earleme settings::  
 * The standard model of input::  
 * Ambiguous input::             
@@ -534,7 +535,8 @@ another examples of numbered objects.
 
 @menu
 * The traditional model::       
-* Current furthest and latest earleme::  
+* The earleme variables::       
+* The significances of the earleme variables::  
 * The initial earleme settings::  
 * The standard model of input::  
 * Ambiguous input::             
@@ -543,7 +545,7 @@ another examples of numbered objects.
 * General rules for the earleme variables::  
 @end menu
 
-@node The traditional model, Current furthest and latest earleme, Earlemes, Earlemes
+@node The traditional model, The earleme variables, Earlemes, Earlemes
 @subsection The traditional model
 
 In traditional Earley parsers, the concept of location is very simple.
@@ -577,7 +579,7 @@ In the traditional model, the ordinal of an Earley set and
 its earleme are always exactly the same, but in Libmarpa
 they will be different.
 
-@node The earleme variables, The initial earleme settings, The traditional model, Earlemes
+@node The earleme variables, The significances of the earleme variables, The traditional model, Earlemes
 @subsection The earleme variables
 
 The important earleme variables are the current, the furthest and
@@ -624,7 +626,7 @@ that does @strong{not} add a token,
 the value of the lastest earleme is unchanged
 from its value before the call.
 
-@node The significances of the earleme variables
+@node The significances of the earleme variables, The initial earleme settings, The earleme variables, Earlemes
 @subsection The significances of the earleme variables
 
 The current earleme tracks the advance of the recognizer through the input.
@@ -662,7 +664,7 @@ A different end of parsing can be specified,
 but by default, parsing is of the input
 from earleme 0 to the latest earleme.
 
-@node The initial earleme settings, The standard model of input, Current furthest and latest earleme, Earlemes
+@node The initial earleme settings, The standard model of input, The significances of the earleme variables, Earlemes
 @subsection The initial earleme settings
 
 Understanding the
