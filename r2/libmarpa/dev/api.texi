@@ -757,20 +757,19 @@ the call to @code{marpa_r_earleme_complete()}.
 
 At this point, the most generalized input model has been
 introduced.
-This section will summarize the properties that
-the earleme variables will always have,
+The following will always be the case,
 even in Libmarpa's most generalized input model.
 
 @itemize
-@item It is always the case that the current earleme is greater than
+@item The current earleme is greater than
 or equal to the latest earleme.
-@item It is always the case that the furthest earleme is greater than
+@item The furthest earleme is greater than
 or equal to the latest earleme.
 @item If the parser is not exhausted,
-it is always the case that the furthest earleme is greater than
+the furthest earleme is always greater than
 or equal to the current earleme.
-@item For an exhausted parser,
-it is always the case that the furthest earleme is less than
+@item In an exhausted parser,
+the furthest earleme is always less than
 or equal to the current earleme.
 @item If the furthest earleme is greater than the current earleme,
 the parser is not exhausted.
