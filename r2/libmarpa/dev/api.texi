@@ -2625,7 +2625,7 @@ How to perform the steps is described in
 @ref{How to use the valuator}
 and @ref{Stepping through the valuator}.
 
-@node How to use the valuator, Advantages of Libmarpa's valuator, Value overview, Value methods
+@node How to use the valuator, Advantages of Libmara's valuator, Value overview, Value methods
 @section How to use the valuator
 While Libmarpa passes instructions
 (called ``steps'')
