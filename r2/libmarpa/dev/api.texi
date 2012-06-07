@@ -182,6 +182,7 @@ Value methods
 
 * Value overview::              
 * How to use the valuator::     
+* Advantages of Libmara's valuator::  
 * Valuator constructor::        
 * Valuator reference counting::  
 * Stepping through the valuator::  
@@ -2577,6 +2578,7 @@ Always succeeds.
 @menu
 * Value overview::              
 * How to use the valuator::     
+* Advantages of Libmara's valuator::  
 * Valuator constructor::        
 * Valuator reference counting::  
 * Stepping through the valuator::  
@@ -2587,7 +2589,7 @@ Always succeeds.
 @section Overview
 
 The archetypal application needs
-a Value object (or @dfn{valuator}) to produce
+a value object (or @dfn{valuator}) to produce
 the value of the parse.
 To create a valuator, use the @code{marpa_v_new()} method.
 When a valuator is no longer in use, its memory can be freed
@@ -2614,15 +2616,14 @@ use the @code{marpa_v_step()} method.
 
 @code{marpa_v_step()} returns the type
 of step.
-Most step type has values associated with them.
+Most step types has values associated with them.
 To access these values use the methods
 described in @ref{Step accessors}.
 How to perform the steps is described in
-the sections
 @ref{How to use the valuator}
 and @ref{Stepping through the valuator}.
 
-@node How to use the valuator, Valuator constructor, Value overview, Value methods
+@node How to use the valuator, Advantages of Libmara's valuator, Value overview, Value methods
 @section How to use the valuator
 While Libmarpa passes instructions
 (called ``steps'')
@@ -2670,6 +2671,9 @@ to the application whether the stack contains integers,
 strings, complex numbers, or polymorphic objects which are
 capable of being any of these things and more.
 
+@node Advantages of Libmara's valuator, Valuator constructor, How to use the valuator, Value methods
+@section Advantages of Libmara's valuator
+
 This technique
 hides Libmarpa's grammar rewrites from the application,
 and is actually quite efficient.
@@ -2696,15 +2700,25 @@ of isolating Libmarpa from semantics,
 suppose
 that Libmarpa is used as the basis
 for a higher-level language which needs callbacks in that higher level language.
-For generality, Libmarpa would have to deal in C callback,
-which wrapper the callbacks in the higher level language.
-This is complex to code and inefficient,
-but that is not its worst aspect.
-The worst aspect happens when there is a programming error.
-This error will occur inside Libmarpa,
-and inside code about which Libmarpa can make no assumptions.
+For generality, Libmarpa would have to deal in C callbacks,
+and a middle layer would have to create C language wrappers
+for the callbacks in the higher level language.
+Libmarpa's method of handling semantics may seem indirect and complex,
+but by allowing the upper layer to perform all the semantics directly,
+overall the effect is a more direct semantics
+and a major simplification of the programming.
 
-@node Valuator constructor, Valuator reference counting, How to use the valuator, Value methods
+Not only is the
+Libmarpa valuator's method of handling semantics simpler,
+it is more efficient than callbacks.
+However, neither of these is the most important reason
+to prefer the design of Libmarpa's valuator.
+The most important reason is debugging.
+Error detection for callbacks is extremely difficult,
+and this is especially the case if the callbacks
+are in a higher-level language.
+
+@node Valuator constructor, Valuator reference counting, Advantages of Libmara's valuator, Value methods
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
