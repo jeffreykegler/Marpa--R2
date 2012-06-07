@@ -181,7 +181,7 @@ Tree methods
 Value methods
 
 * Value overview::              
-* About the valuator::          
+* How to use the valuator::     
 * Valuator constructor::        
 * Valuator reference counting::  
 * Valuator stepping::           
@@ -2576,14 +2576,14 @@ Always succeeds.
 
 @menu
 * Value overview::              
-* About the valuator::          
+* How to use the valuator::     
 * Valuator constructor::        
 * Valuator reference counting::  
 * Valuator stepping::           
 * Step accessors::              
 @end menu
 
-@node Value overview, About the valuator, Value methods, Value methods
+@node Value overview, How to use the valuator, Value methods, Value methods
 @section Overview
 
 The archetypal application needs
@@ -2704,7 +2704,7 @@ The worst aspect happens when there is a programming error.
 This error will occur inside Libmarpa,
 and inside code about which Libmarpa can make no assumptions.
 
-@node Valuator constructor, Valuator reference counting, About the valuator, Value methods
+@node Valuator constructor, Valuator reference counting, How to use the valuator, Value methods
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
