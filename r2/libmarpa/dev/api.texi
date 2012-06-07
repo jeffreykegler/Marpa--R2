@@ -304,7 +304,8 @@ Libmarpa implements the entire Marpa algorithm.
 This library does
 the necessary grammar preprocessing, recognizes the input,
 and produces parse trees.
-It also supports the ordering and evaluation of the parse
+It also supports the ordering, iteration
+and evaluation of the parse
 trees.
 
 Libmarpa is very low-level.
@@ -2397,7 +2398,8 @@ When an ordering is no longer in use, its memory can be freed
 using the 
 @code{marpa_o_unref()} method.
 
-An ordering is @dfn{frozen} once the first tree is created
+An ordering is @dfn{frozen} once the first
+tree iterator is created
 using it.
 A frozen ordering cannot be changed.
 
@@ -2623,7 +2625,7 @@ How to perform the steps is described in
 @ref{How to use the valuator}
 and @ref{Stepping through the valuator}.
 
-@node How to use the valuator, Advantages of Libmara's valuator, Value overview, Value methods
+@node How to use the valuator, Advantages of Libmarpa's valuator, Value overview, Value methods
 @section How to use the valuator
 While Libmarpa passes instructions
 (called ``steps'')
@@ -2715,8 +2717,10 @@ However, neither of these is the most important reason
 to prefer the design of Libmarpa's valuator.
 The most important reason is debugging.
 Error detection for callbacks is extremely difficult,
-and this is especially the case if the callbacks
-are in a higher-level language.
+and this is especially the case if 
+methods in
+a higher-level language are being called back
+from inside C language code.
 
 @node Valuator constructor, Valuator reference counting, Advantages of Libmara's valuator, Value methods
 @section Creating a new valuator
@@ -2726,16 +2730,17 @@ are in a higher-level language.
 )
 Creates a new valuator from the tree @var{t},
 with a reference count of 1.
-The reference count of its parent tree object, @var{t},
+The reference count of its parent tree iterator, @var{t},
 is increased by 1.
 
-The parent tree object is ``paused'',
-so that the tree cannot move on to a new iteration
+The parent tree iterator is ``paused'',
+so that the tree iterator
+cannot move on to a new parse tree
 until the valuator is destroyed.
-Many valuators of the same tree
+Many valuators of the same parse tree
 can exist at once.
-A tree is ``unpaused'' when
-all of its valuators are destroyed.
+A tree iterator is ``unpaused'' when
+all of the valuators of a parse tree are destroyed.
 
 Return value:  On success, the newly created valuator.
 On failure, returns @code{NULL} and sets the error code.
@@ -2786,9 +2791,12 @@ base grammar, if necessary.
     int @var{value} )
 These methods, respectively, report and set to @var{value}
 the valued status for symbol @var{symid}.
-If @var{value} is 1, symbol @var{symid} is valued.
-If @var{value} is 0, symbol @var{symid} is unvalued.
-The @var{value} argument must be 1 or 0.
+A valued status is either 1 or 0.
+The @var{value} argument must be a valid valued status.
+A valued status of 1 indicates that the symbol is valued.
+A valued status of 0 indicates that the symbol is unvalued.
+For these methods, the symbol in question is indicated
+by the @var{symid} argument.
 
 Return value:  On success, the valued status @strong{after}
 the call.
@@ -2799,28 +2807,29 @@ On hard failure, -2.
 
 @deftypefun int marpa_v_rule_is_valued ( @
     Marpa_Value @var{v}, @
-    Marpa_Rule_ID @var{ruleid} )
+    Marpa_Rule_ID @var{rule_id} )
 @deftypefunx int marpa_v_rule_is_valued_set ( @
     Marpa_Value @var{v}, @
-    Marpa_Rule_ID @var{ruleid}, @
+    Marpa_Rule_ID @var{rule_id}, @
     int @var{value} )
 These methods, respectively, report and set to @var{value}
-the valued status for rule @var{ruleid}.
-Rules get their valued status from their LHS symbol,
-so that these are a convenience method --
-they saves the application the trouble of looking
+the valued status for rule @var{rule_id}.
+A valued status is either 1 or 0.
+The @var{value} argument must be a valid valued status.
+A valued status of 1 indicates that the symbol is valued.
+A valued status of 0 indicates that the symbol is unvalued.
+For these methods, the symbol in question is the
+LHS symbol of the rule @var{rule_id}.
+
+Rules have no valued status of their own.
+The valued status of a rule
+is always that of its LHS symbol.
+These methods are conveniences -- they
+save the application the trouble of looking
 up the rule's LHS.
 
-These methods, respectively, report and set to @var{value}
-the valued status of the LHS symbol for rule @var{ruleid}.
-If @var{value} is 1,
-the LHS symbol rule @var{ruleid} is valued.
-If @var{value} is 0,
-the LHS symbol rule @var{ruleid} is unvalued.
-The @var{value} argument must be 1 or 0.
-
 Return value:  On success, the valued status of the
-rule @var{ruleid}'s LHS symbol @strong{after}
+rule @var{rule_id}'s LHS symbol @strong{after}
 the call.
 On an attempt to set a locked valued status
 to a value different from its current one, -1.
@@ -3290,9 +3299,9 @@ Suggested message: "A symbol is both terminal and nulling."
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_ORDER_FROZEN
 The Marpa order object has been frozen.
-Multiple trees can share a Marpa order object,
+Multiple tree iterators can share a Marpa order object,
 but that order object is @dfn{frozen} after the first tree
-is created from it.
+iterator is created from it.
 If a Marpa order object is @dfn{frozen}, it cannot be
 changed.
 Applications can order an bocage in many ways,
