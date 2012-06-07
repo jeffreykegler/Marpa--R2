@@ -1,11 +1,3 @@
-For R2, visit action names vs. rule names -- both needed?
-For R2, default semantics => 'arbitrary'
-For R2, add 'arg0' semantics
-For R2, revisit LHS as action name
-For R2, eliminate SINGLE_PARSE_MODE
-Remove Marpa::XS::length static method
-Document recce->latest_earley_set method
-Document rule name, recce->rule_by_name() once there is a test for them
-Do not document DEFAULT_RANK and Symbol::RANK until there are tests for them
-Document Symbol::RANK
-Document LHS_RANK and TERMINAL_RANK once tested
+* Document recce->latest_earley_set method
+
+* Create tests for Symbol::RANK and DEFAULT_RANK, then document them
