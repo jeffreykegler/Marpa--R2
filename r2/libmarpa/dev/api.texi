@@ -2468,32 +2468,34 @@ base grammar, if necessary.
 @node Tree overview, Tree constructor, Tree methods, Tree methods
 @section Overview
 
-Once the bocage has an ordering, the parses can be iterated.
-Marpa's bocage iterators are tree objects.
-(``Tree'' is short for ``parse tree''.)
+Once the bocage has an ordering, the parses trees can be iterated.
+Marpa's @dfn{parse tree iterators} iterate the parse trees contained
+in a bocage object.
+In Libmarpa,
+``Parse tree iterators'' are usually just called @dfn{trees}.
+
 To create a tree, use the @code{marpa_t_new()} method.
 When a tree is no longer in use, its memory can be freed
 using the 
 @code{marpa_t_unref()} method.
 
+To position a new tree to the first parse,
+use the @code{marpa_t_next} method.
+The @code{marpa_t_next} method is also used
+to step through subsequence parses.
+
 @node Tree constructor, Tree reference counting, Tree overview, Tree methods
 @section Creating a new tree iterator
 
 @deftypefun Marpa_Tree marpa_t_new (Marpa_Order @var{o})
-Creates a new tree object, with a reference count of 1.
+Creates a new tree iterator, with a reference count of 1.
 The reference count of its parent ordering object, @var{o},
 is increased by 1.
 
-When created, a tree object is not initialized to
-an iteration.
-To position the tree to the first parse,
+When initialized, a tree iterator is positioned
+before the first parse tree.
+To position the tree iterator to the first parse,
 the application must call @code{marpa_t_next}.
-(Tree objects are created uninitialized to allow for
-future extensions that require the setting of
-flags and parameters to control
-the iteration.)
-When a tree is created from an ordering, that ordering
-is ``frozen'', so that it cannot be changed.
 
 Return value:  On success, a newly created tree.
 On failure, returns @code{NULL} and sets the error code.
@@ -2540,12 +2542,17 @@ base grammar, if necessary.
 
 @deftypefun int marpa_t_next ( @
 	Marpa_Tree @var{t})
-Iterates the tree to a parse.
-Trees are created uninitialized, so
-this method must be called before creating a valuator
+Positions @var{t} at the next parse tree
+in the iteration.
+Tree iterators are uninitialized to the position
+before the first parse,
+so this method must be called before creating a valuator
 from a tree.
-A tree which has finished its iterations is said to
-be ``exhausted''.
+
+If a tree iterator is positioned after the last parse.
+the tree is said to be ``exhausted''.
+A tree iterator for a bocage with no parse trees
+is considered to be ``exhausted'' when initialized.
 It is a soft failure if the tree is exhausted.
 
 Return value: On success, returns a non-negatve value.
@@ -2555,11 +2562,11 @@ On other failure, returns -2 and sets the error code.
 
 @deftypefun int marpa_t_parse_count ( @
 	Marpa_Tree @var{t})
-The parse counter counts the number of parses
+The parse counter counts the number of parse trees
 traversed so far.
 The count includes the current iteration of the
-tree, so that a value of 0 indicates a tree
-which is not yet initialized.
+tree, so that a value of 0 indicates that the tree iterator
+is initialized to the position before the first parse tree.
 
 Return value: The number of parses traversed so far.
 Always succeeds.
