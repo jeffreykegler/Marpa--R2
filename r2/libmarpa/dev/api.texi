@@ -184,7 +184,7 @@ Value methods
 * How to use the valuator::     
 * Valuator constructor::        
 * Valuator reference counting::  
-* Valuator stepping::           
+* Stepping through the valuator::  
 * Step accessors::              
 
 Events
@@ -2579,7 +2579,7 @@ Always succeeds.
 * How to use the valuator::     
 * Valuator constructor::        
 * Valuator reference counting::  
-* Valuator stepping::           
+* Stepping through the valuator::  
 * Step accessors::              
 @end menu
 
@@ -2813,10 +2813,10 @@ to a value different from its current one, -1.
 On hard failure, -2.
 @end deftypefun
 
-@node Valuator reference counting, Valuator stepping, Valuator constructor, Value methods
+@node Valuator reference counting, Stepping through the valuator, Valuator constructor, Value methods
 @section Reference counting
 
-@node Valuator stepping, Step accessors, Valuator reference counting, Value methods
+@node Stepping through the valuator, Step accessors, Valuator reference counting, Value methods
 @section Stepping through the valuator
 
 @deftypefun Marpa_Step_Type marpa_v_step ( @
@@ -2888,7 +2888,7 @@ prompts to do so.
 These step types are reserved for internal purposes.
 @end deftypevr
 
-@node Step accessors,  , Valuator stepping, Value methods
+@node Step accessors,  , Stepping through the valuator, Value methods
 @section Step accessors
 
 Step accessors are implemented as macros.  They always succeed.
