@@ -2387,17 +2387,13 @@ to zero, it too is destroyed.
 Before iterating the parses in the bocage,
 they must be ordered.
 To create an ordering, use the @code{marpa_o_new()} method.
-When an ordergin is no longer in use, its memory can be freed
+When an ordering is no longer in use, its memory can be freed
 using the 
 @code{marpa_o_unref()} method.
 
-In many cases, the ordering is trivial.
-Either the parse is unambiguous, or the
-application does not care about the order in
-which parses are returned.
-When the ordering is trivial,
-its overhead is very small --
-essentially two or three subroutine calls.
+An ordering is @dfn{frozen} once the first tree is created
+using it.
+A frozen ordering cannot be changed.
 
 As of this writing, the only methods to order parses
 are internal and undocumented.
@@ -3443,6 +3439,26 @@ both in theory and in implementation,
 because Marpa regularly substitutes
 two fast @math{O(n)} passes for a single
 @math{O(n log n)} pass.
+
+@node Why ordering objects?
+@subsection Why ordering objects?
+
+Of the various objects, the best
+case for elimination is of the
+ordering object.
+In many cases, the ordering is trivial.
+Either the parse is unambiguous, or the
+application does not care about the order in
+which parses are returned.
+
+But while it would be easy to add an option
+to bypass creation of an ordering object,
+there is little to be gained from it.
+When the ordering is trivial,
+its overhead is very small --
+essentially a handful of subroutine calls.
+Many orderings accomplish nothing,
+but these cost next to nothing.
 
 @node Design of numbered objects,  , Why so many time objects, Design considerations
 @section Numbered objects
