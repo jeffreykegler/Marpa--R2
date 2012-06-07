@@ -320,7 +320,8 @@ translate Libmarpa's integer ID's to strings or other
 values as required.
 
 Libmarpa also does @strong{not} implement most of the semantics.
-Libmarpa does have an evaluator, but it does @strong{not}
+Libmarpa does have an evaluator (called a ``valuator''),
+but it does @strong{not}
 manipulate the stack directly.
 Instead, Libmarpa,
 based on its traversal of the parse tree,
@@ -2593,8 +2594,36 @@ When a valuator is no longer in use, its memory can be freed
 using the 
 @code{marpa_v_unref()} method.
 
-@node About the valuator, Valuator constructor, Value overview, Value methods
-@section About the valuator
+By default, Libmarpa assumes that symbols have
+no semantics.
+The archetypal application will need to register
+and symbols that contain semantics with
+@code{marpa_v_symbol_is_valued}.
+As a convenience, LHS symbols may be register
+as having semantics using their rule ID 
+and the @code{marpa_v_rule_is_valued} method.
+
+The application is required to maintain the stack,
+and the application is also required to implement
+most of the semantics, including the evaluation
+of rules.
+Libmarpa's valuator provides instructions to
+the application on how to manipulate the stack.
+To iterate through this series of instructions,
+use the @code{marpa_v_step()} method.
+
+@code{marpa_v_step()} returns the type
+of step.
+Most step type has values associated with them.
+To access these values use the methods
+described in @ref{Step accessors}.
+How to perform the steps is described in
+the sections
+@ref{How to use the valuator}
+and @ref{Stepping through the valuator}.
+
+@node How to use the valuator, Valuator constructor, Value overview, Value methods
+@section How to use the valuator
 While Libmarpa passes instructions
 (called ``steps'')
 for stack manipulation,
@@ -2653,11 +2682,14 @@ suggest by Libmarpa will be significantly faster than the standard
 stack evaluation algorithm in the textbooks.
 
 To make it clear,
-we are under no illusion that direct use of Libmarpa's evaluator will be found
-satisfactory even to most application programmers.
-I certainly avoid using it directly.
-It is intended to be used via an upper layer,
-one which does know about semantics.
+we are under no illusion
+that direct use of Libmarpa's valuator will be found
+satisfactory by most application programmers,
+even in the C language.
+The author certainly avoids using it directly.
+Libmarpa's valuator is intended
+to be used via an upper layer,
+one which @strong{does} know about semantics.
 
 To see the advantage
 of isolating Libmarpa from semantics,
