@@ -2875,7 +2875,6 @@ The value of the token whose ID is
 @code{marpa_v_token(v)} should be
 placed in
 stack location @code{marpa_v_result(v)}.
-The token is non-nulling.
 Its value will be in
 @code{marpa_v_token_value(v)}.
 @end deftypevr
