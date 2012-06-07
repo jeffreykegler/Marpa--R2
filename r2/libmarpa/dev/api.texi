@@ -202,6 +202,10 @@ Design considerations
 * Why so many time objects::    
 * Design of numbered objects::  
 
+Why so many time objects?
+
+* Why ordering objects?::       
+
 Internal Interface
 
 * Symbol internal methods::     
@@ -3440,7 +3444,11 @@ because Marpa regularly substitutes
 two fast @math{O(n)} passes for a single
 @math{O(n log n)} pass.
 
-@node Why ordering objects?
+@menu
+* Why ordering objects?::       
+@end menu
+
+@node Why ordering objects?,  , Why so many time objects, Why so many time objects
 @subsection Why ordering objects?
 
 Of the various objects, the best
