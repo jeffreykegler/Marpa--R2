@@ -2548,14 +2548,12 @@ Tree iterators are initialized to the position
 before the first parse,
 so this method must be called before creating a valuator
 from a tree.
-
-If a tree iterator is positioned after the last parse.
+If a tree iterator is positioned after the last parse,
 the tree is said to be ``exhausted''.
 A tree iterator for a bocage with no parse trees
 is considered to be ``exhausted'' when initialized.
-It is a soft failure if the tree is exhausted.
 
-Return value: On success, returns a non-negatve value.
+Return value: On success, returns a non-negative value.
 If the tree is exhausted, returns -1.
 On other failure, returns -2 and sets the error code.
 @end deftypefun
