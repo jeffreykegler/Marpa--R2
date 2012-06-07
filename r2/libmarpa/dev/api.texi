@@ -2472,17 +2472,17 @@ Once the bocage has an ordering, the parses trees can be iterated.
 Marpa's @dfn{parse tree iterators} iterate the parse trees contained
 in a bocage object.
 In Libmarpa,
-``Parse tree iterators'' are usually just called @dfn{trees}.
+``parse tree iterators'' are usually just called @dfn{trees}.
 
 To create a tree, use the @code{marpa_t_new()} method.
 When a tree is no longer in use, its memory can be freed
 using the 
 @code{marpa_t_unref()} method.
 
-To position a new tree to the first parse,
+To position a new tree iterator to the first parse tree,
 use the @code{marpa_t_next} method.
-The @code{marpa_t_next} method is also used
-to step through subsequence parses.
+To step through subsequent parse trees,
+use the @code{marpa_t_next} method.
 
 @node Tree constructor, Tree reference counting, Tree overview, Tree methods
 @section Creating a new tree iterator
@@ -2544,7 +2544,7 @@ base grammar, if necessary.
 	Marpa_Tree @var{t})
 Positions @var{t} at the next parse tree
 in the iteration.
-Tree iterators are uninitialized to the position
+Tree iterators are initialized to the position
 before the first parse,
 so this method must be called before creating a valuator
 from a tree.
@@ -3929,7 +3929,7 @@ called "nooks".
 	Marpa_Tree @var{t})
 Return the size of the parse tree.
 This is the number of nooks in its stack.
-If there is a serioius error,
+If there is a serious error,
 or if the tree is uninitialized, return -2.
 If the tree is exhausted, return -1.
 @end deftypefun
