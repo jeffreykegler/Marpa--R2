@@ -378,11 +378,14 @@ Useful for debugging grammars.
 =head2 action_object
 
 The C<action_object> named argument
-specifies a class name to be used
+specifies a Perl class name to be used
 in resolving action names to Perl closures.
 A C<new> constructor must be defined
 in the C<action_object> package.
 It will be used to create the per-parse-tree variables.
+The per-parse-tree variable is passed
+to rule evaluation closures,
+as their first argument.
 Details are in
 L<the document on semantics|Marpa::R2::Semantics>.
 
