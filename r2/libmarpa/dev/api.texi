@@ -184,9 +184,17 @@ Value methods
 * How to use the valuator::     
 * Advantages of Libmara's valuator::  
 * Valuator constructor::        
+* Details of stack manipulation::  
 * Valuator reference counting::  
+* Registering semantics::       
 * Stepping through the valuator::  
+* Valuator steps by type::      
 * Step accessors::              
+
+Details of stack manipulation
+
+* Implications for literal stack manipulation::  
+* Implications for non-literal implementations::  
 
 Events
 
@@ -2582,8 +2590,11 @@ Always succeeds.
 * How to use the valuator::     
 * Advantages of Libmara's valuator::  
 * Valuator constructor::        
+* Details of stack manipulation::  
 * Valuator reference counting::  
+* Registering semantics::       
 * Stepping through the valuator::  
+* Valuator steps by type::      
 * Step accessors::              
 @end menu
 
@@ -2722,7 +2733,7 @@ methods in
 a higher-level language are being called back
 from inside C language code.
 
-@node Valuator constructor, Valuator reference counting, Advantages of Libmara's valuator, Value methods
+@node Valuator constructor, Details of stack manipulation, Advantages of Libmara's valuator, Value methods
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
@@ -2753,7 +2764,7 @@ Return value: The base grammar of @var{v}.
 Always succeeds.
 @end deftypefun
 
-@node Details of stack manipulation
+@node Details of stack manipulation, Valuator reference counting, Valuator constructor, Value methods
 @section Details of stack manipulation
 
 In manipulating the stack, if the application
@@ -2771,7 +2782,12 @@ offers some room for surprise.
 This section discusses the requirements for
 safe stack manipulation in detail.
 
-@node Implications for literal stack manipulation
+@menu
+* Implications for literal stack manipulation::  
+* Implications for non-literal implementations::  
+@end menu
+
+@node Implications for literal stack manipulation, Implications for non-literal implementations, Details of stack manipulation, Details of stack manipulation
 @subsection Implications for literal stack manipulation
 
 In this section,
@@ -2838,7 +2854,7 @@ it will be indifferent to whatever value is
 in the stack at the location
 for the unvalued symbol.
 
-@node Implications for non-literal implementations
+@node Implications for non-literal implementations,  , Implications for literal stack manipulation, Details of stack manipulation
 @subsection Implications for non-literal implementations
 
 It is tempting to think there may be ways to
@@ -2858,9 +2874,9 @@ of those previous values.
 been written to for any value,
 and therefore must be assumed by standard-conformant C code
 potentially to contain trap values.
-@itemize
+@end itemize
 
-@node Valuator reference counting, Stepping through the valuator, Valuator constructor, Value methods
+@node Valuator reference counting, Registering semantics, Details of stack manipulation, Value methods
 @section Reference counting
 
 @deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
@@ -2892,7 +2908,7 @@ base grammar, if necessary.
 
 @end deftypefun
 
-@node Registering semantics
+@node Registering semantics, Stepping through the valuator, Valuator reference counting, Value methods
 @section Registering semantics
 
 @deftypefun int marpa_v_symbol_is_valued ( @
@@ -2949,7 +2965,7 @@ to a value different from its current one, -1.
 On hard failure, -2.
 @end deftypefun
 
-@node Stepping through the valuator, Step accessors, Valuator reference counting, Value methods
+@node Stepping through the valuator, Valuator steps by type, Registering semantics, Value methods
 @section Stepping through the valuator
 
 @deftypefun Marpa_Step_Type marpa_v_step ( @
@@ -2966,7 +2982,7 @@ On soft failure, @code{MARPA_STEP_INACTIVE}.
 On other failure, -2.
 @end deftypefun
 
-@node Valuator steps by type
+@node Valuator steps by type, Step accessors, Stepping through the valuator, Value methods
 @section Valuator steps by type
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_RULE
@@ -3023,7 +3039,7 @@ prompts to do so.
 These step types are reserved for internal purposes.
 @end deftypevr
 
-@node Step accessors,  , Stepping through the valuator, Value methods
+@node Step accessors,  , Valuator steps by type, Value methods
 @section Step accessors
 
 Step accessors are implemented as macros.  They always succeed.
