@@ -2005,16 +2005,22 @@ relevant valuator steps.
 An application can do this by
 letting @var{value} be any non-zero integer.
 
-Once @code{marpa_r_alternative()} treats as having
-a valued status, whether valued or unvalued,
-the valued status is not allowed to change.
-If the terminal symbol's valued status is not already
-locked, on its first use
-in a @code{marpa_r_alternative()} it is changed
-to reflect its usage in that call,
-and locked.
-Every use of symbols @var{token_id} thereafter,
-must be consistent with the locked valued status.
+If, on the first read by
+@code{marpa_r_alternative()},
+symbol @var{token_id} is not already locked,
+the valued status
+of symbol @var{token_id}
+will be set according to its
+use in that call
+to @code{marpa_r_alternative()},
+and symbol @var{token_id}
+will be locked in that valued status.
+Once symbol
+@var{token_id} is locked in valued status,
+it must be used as a valued symbol.
+Similarly, once symbol
+@var{token_id} is locked in unvalued status,
+it must be used as a unvalued symbol.
 
 When @code{marpa_r_alternative()}
 is successful,
