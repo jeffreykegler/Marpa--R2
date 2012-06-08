@@ -183,8 +183,8 @@ Value methods
 * Value overview::              
 * How to use the valuator::     
 * Advantages of Libmarpa's valuator::  
-* Valuator constructor::        
 * Details of stack manipulation::  
+* Valuator constructor::        
 * Valuator reference counting::  
 * Registering semantics::       
 * Stepping through the valuator::  
@@ -2005,6 +2005,17 @@ relevant valuator steps.
 An application can do this by
 letting @var{value} be any non-zero integer.
 
+Once @code{marpa_r_alternative()} treats as having
+a valued status, whether valued or unvalued,
+the valued status is not allowed to change.
+If the terminal symbol's valued status is not already
+locked, on its first use
+in a @code{marpa_r_alternative()} it is changed
+to reflect its usage in that call,
+and locked.
+Every use of symbols @var{token_id} thereafter,
+must be consistent with the locked valued status.
+
 When @code{marpa_r_alternative()}
 is successful,
 the value of furthest earleme is set to
@@ -2589,8 +2600,8 @@ Always succeeds.
 * Value overview::              
 * How to use the valuator::     
 * Advantages of Libmarpa's valuator::  
-* Valuator constructor::        
 * Details of stack manipulation::  
+* Valuator constructor::        
 * Valuator reference counting::  
 * Registering semantics::       
 * Stepping through the valuator::  
@@ -2684,7 +2695,7 @@ to the application whether the stack contains integers,
 strings, complex numbers, or polymorphic objects which are
 capable of being any of these things and more.
 
-@node Advantages of Libmarpa's valuator, Valuator constructor, How to use the valuator, Value methods
+@node Advantages of Libmarpa's valuator, Details of stack manipulation, How to use the valuator, Value methods
 @section Advantages of Libmarpa's valuator
 
 This technique
@@ -2733,38 +2744,7 @@ methods in
 a higher-level language are being called back
 from inside C language code.
 
-@node Valuator constructor, Details of stack manipulation, Advantages of Libmarpa's valuator, Value methods
-@section Creating a new valuator
-
-@deftypefun Marpa_Value marpa_v_new ( @
-    Marpa_Tree @var{t} @
-)
-Creates a new valuator from the tree @var{t},
-with a reference count of 1.
-The reference count of its parent tree iterator, @var{t},
-is increased by 1.
-
-The parent tree iterator is ``paused'',
-so that the tree iterator
-cannot move on to a new parse tree
-until the valuator is destroyed.
-Many valuators of the same parse tree
-can exist at once.
-A tree iterator is ``unpaused'' when
-all of the valuators of a parse tree are destroyed.
-
-Return value:  On success, the newly created valuator.
-On failure, returns @code{NULL} and sets the error code.
-@end deftypefun
-
-@deftypefun Marpa_Grammar marpa_v_g ( @
-    Marpa_Value @var{v} @
-    )
-Return value: The base grammar of @var{v}.
-Always succeeds.
-@end deftypefun
-
-@node Details of stack manipulation, Valuator reference counting, Valuator constructor, Value methods
+@node Details of stack manipulation, Valuator constructor, Advantages of Libmarpa's valuator, Value methods
 @section Details of stack manipulation
 
 In manipulating the stack, if the application
@@ -2876,7 +2856,38 @@ and therefore must be assumed by standard-conformant C code
 potentially to contain trap values.
 @end itemize
 
-@node Valuator reference counting, Registering semantics, Details of stack manipulation, Value methods
+@node Valuator constructor, Valuator reference counting, Details of stack manipulation, Value methods
+@section Creating a new valuator
+
+@deftypefun Marpa_Value marpa_v_new ( @
+    Marpa_Tree @var{t} @
+)
+Creates a new valuator from the tree @var{t},
+with a reference count of 1.
+The reference count of its parent tree iterator, @var{t},
+is increased by 1.
+
+The parent tree iterator is ``paused'',
+so that the tree iterator
+cannot move on to a new parse tree
+until the valuator is destroyed.
+Many valuators of the same parse tree
+can exist at once.
+A tree iterator is ``unpaused'' when
+all of the valuators of a parse tree are destroyed.
+
+Return value:  On success, the newly created valuator.
+On failure, returns @code{NULL} and sets the error code.
+@end deftypefun
+
+@deftypefun Marpa_Grammar marpa_v_g ( @
+    Marpa_Value @var{v} @
+    )
+Return value: The base grammar of @var{v}.
+Always succeeds.
+@end deftypefun
+
+@node Valuator reference counting, Registering semantics, Valuator constructor, Value methods
 @section Reference counting
 
 @deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
