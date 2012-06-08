@@ -15,11 +15,16 @@
 
 Revision history for Marpa::R2
 
-2.005_002
-2.005_001
-2.005_000
+2.006000
 
-	* New series of developer's versions
+	* Convert progress reports to C
+
+	* Cleanup logic of valued/unvalued symbols
+
+	* Cleanup ranking of symbols/rules
+
+	* LHS of rule no longer implicitly used
+	  as action name.
 
 2.004000
 
