@@ -386,7 +386,7 @@ is not reclassed as cruft.
 
 =head2 :CRUFT
 
-The C<:COMMENT> pseudoclass specifies the action for cruft.
+The C<:CRUFT> pseudoclass specifies the action for cruft.
 Its action is called once for every C<HTML::Parser> event that
 L<Marpa::R2::HTML> reclasses as cruft.
 
