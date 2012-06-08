@@ -182,7 +182,7 @@ Value methods
 
 * Value overview::              
 * How to use the valuator::     
-* Advantages of Libmara's valuator::  
+* Advantages of Libmarpa's valuator::  
 * Valuator constructor::        
 * Details of stack manipulation::  
 * Valuator reference counting::  
@@ -2588,7 +2588,7 @@ Always succeeds.
 @menu
 * Value overview::              
 * How to use the valuator::     
-* Advantages of Libmara's valuator::  
+* Advantages of Libmarpa's valuator::  
 * Valuator constructor::        
 * Details of stack manipulation::  
 * Valuator reference counting::  
@@ -2636,7 +2636,7 @@ How to perform the steps is described in
 @ref{How to use the valuator}
 and @ref{Stepping through the valuator}.
 
-@node How to use the valuator, Advantages of Libmara's valuator, Value overview, Value methods
+@node How to use the valuator, Advantages of Libmarpa's valuator, Value overview, Value methods
 @section How to use the valuator
 While Libmarpa passes instructions
 (called ``steps'')
@@ -2684,8 +2684,8 @@ to the application whether the stack contains integers,
 strings, complex numbers, or polymorphic objects which are
 capable of being any of these things and more.
 
-@node Advantages of Libmara's valuator, Valuator constructor, How to use the valuator, Value methods
-@section Advantages of Libmara's valuator
+@node Advantages of Libmarpa's valuator, Valuator constructor, How to use the valuator, Value methods
+@section Advantages of Libmarpa's valuator
 
 This technique
 hides Libmarpa's grammar rewrites from the application,
@@ -2733,7 +2733,7 @@ methods in
 a higher-level language are being called back
 from inside C language code.
 
-@node Valuator constructor, Details of stack manipulation, Advantages of Libmara's valuator, Value methods
+@node Valuator constructor, Details of stack manipulation, Advantages of Libmarpa's valuator, Value methods
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
