@@ -1432,7 +1432,7 @@ On failure, -2.
 
 Returns current value of the start symbol of grammar @var{g}.
 The value is that of the user's start
-symbol, as specified in the @code{marpa_g_start_symbol_set} call,
+symbol, as specified in the @code{marpa_g_start_symbol_set()} call,
 if there has been one.
 
 Return value:
@@ -1767,7 +1767,7 @@ generated,
 but it is important to note that events may be
 created whether precomputation fails or succeeds.
 When the method fails,
-the application must call @code{marpa_g_event}
+the application must call @code{marpa_g_event()}
 if it wants to determine if any events occurred.
 Since the reason for failure to precompute is often
 detailed in the events, failed applications will often
@@ -1832,7 +1832,7 @@ This function allows the application to determine if grammar
 As mentioned, most applications will want to treat these
 as fatal errors.
 To determine which rules are in the cycle,
-@var{marpa_g_rule_is_loop} can be used.
+@var{marpa_g_rule_is_loop()} can be used.
 
 Return value: On success, 1 if the grammar has a cycle,
 0 otherwise.
@@ -1846,7 +1846,7 @@ On failure, -2.
     Marpa_Event* @var{event}, @
 	       int @var{ix})
 This method provides access to the events generated
-by the @code{marpa_g_precompute} method.
+by the @code{marpa_g_precompute()} method.
 The @var{ix}'th event (numbered from 0) is placed
 in the @var{event} value.
 
@@ -1997,7 +1997,7 @@ relevant valuator steps.
 An application can do this by
 letting @var{value} be any non-zero integer.
 
-When @code{marpa_r_alternative}
+When @code{marpa_r_alternative()}
 is successful,
 the value of furthest earleme is set to
 the greater of its value before the call,
@@ -2005,7 +2005,7 @@ and @var{current}+@var{length},
 where @var{current} is the value of the current earleme.
 The values of the current and latest earlemes
 are unchanged by
-calls to @code{marpa_r_alternative}.
+calls to @code{marpa_r_alternative()}.
 
 Return value:  On success, returns a non-negative value.
 If the token was not accepted because @var{token_id} is unexpected,
@@ -2024,20 +2024,20 @@ and -2 is returned.
 @deftypefun Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer @var{r})
 This method does the final processing for the current earleme.
 It then advances the current earleme by one.
-Note that @code{marpa_r_earleme_complete} may be called
+Note that @code{marpa_r_earleme_complete()} may be called
 even when no tokens have been read at the current earleme --
 in the character-per-earleme input model, for example, tokens
 can span many characters and, if the input is unambiguous over that
 span, there will be no other tokens that start inside it.
 
 As mentioned,
-@code{marpa_r_earleme_complete} always advances the current earleme,
+@code{marpa_r_earleme_complete()} always advances the current earleme,
 incrementing its value by 1.
 This means that value of the current earleme after the call
 will be the one plus the value of the earleme processed by the call
-to @code{marpa_r_earleme_complete}.
+to @code{marpa_r_earleme_complete()}.
 If any token was accepted at the earleme being processed,
-@code{marpa_r_earleme_complete} creates a new Earley set
+@code{marpa_r_earleme_complete()} creates a new Earley set
 which will be the latest Earley set,
 and, after the call, the latest
 earleme will be equal to the new current earleme.
@@ -2046,7 +2046,7 @@ earleme being processed,
 no Earley set is created,
 and the value of the latest earleme remains unchanged.
 The value of the furthest earleme is never changed by
-a call to @code{marpa_r_earleme_complete}.
+a call to @code{marpa_r_earleme_complete()}.
 
 During this method, one or more events may occur.
 On success, this function returns the number of events
@@ -2054,7 +2054,7 @@ generated,
 but it is important to note that events may be
 created whether earleme completion fails or succeeds.
 When this method fails,
-the application must call @code{marpa_r_event}
+the application must call @code{marpa_r_event()}
 if it wants to determine if any events occurred.
 Since the reason for failure to complete an earleme is often
 detailed in the events, applications that fail will often
@@ -2199,7 +2199,7 @@ Always succeeds.
     Marpa_Event* @var{event}, @
 	       int @var{ix})
 This method provides access to the events generated
-by the @code{marpa_r_earleme_complete} method.
+by the @code{marpa_r_earleme_complete()} method.
 The @var{ix}'th event (numbered from 0) is placed
 in the @var{public_event} value.
 It is a soft failure if there is no
@@ -2484,9 +2484,9 @@ using the
 @code{marpa_t_unref()} method.
 
 To position a new tree iterator to the first parse tree,
-use the @code{marpa_t_next} method.
+use the @code{marpa_t_next()} method.
 To step through subsequent parse trees,
-use the @code{marpa_t_next} method.
+use the @code{marpa_t_next()} method.
 
 @node Tree constructor, Tree reference counting, Tree overview, Tree methods
 @section Creating a new tree iterator
@@ -2499,7 +2499,7 @@ is increased by 1.
 When initialized, a tree iterator is positioned
 before the first parse tree.
 To position the tree iterator to the first parse,
-the application must call @code{marpa_t_next}.
+the application must call @code{marpa_t_next()}.
 
 Return value:  On success, a newly created tree.
 On failure, returns @code{NULL} and sets the error code.
@@ -2602,10 +2602,10 @@ By default, Libmarpa assumes that symbols have
 no semantics.
 The archetypal application will need to register
 and symbols that contain semantics with
-@code{marpa_v_symbol_is_valued}.
+@code{marpa_v_symbol_is_valued()}.
 As a convenience, LHS symbols may be register
 as having semantics using their rule ID 
-and the @code{marpa_v_rule_is_valued} method.
+and the @code{marpa_v_rule_is_valued()} method.
 
 The application is required to maintain the stack,
 and the application is also required to implement
@@ -2753,6 +2753,116 @@ Return value: The base grammar of @var{v}.
 Always succeeds.
 @end deftypefun
 
+@node Details of stack manipulation
+@section Details of stack manipulation
+
+In manipulating the stack, if the application
+is mantaining a conventional physical stack,
+it is up
+the application to ensure that all locations
+that it writes to or reads from actually
+exist.
+In the form we have stated it,
+this requirement sounds obvious,
+However, the existence of unvalued symbols,
+and the optimization of stack manipulations
+involving them,
+offers some room for surprise.
+This section discusses the requirements for
+safe stack manipulation in detail.
+
+@node Implications for literal stack manipulation
+@subsection Implications for literal stack manipulation
+
+In this section,
+we assume that
+the application is keeping a physical stack,
+and that the application is following the valuator's stack
+manipulation instructions strictly and literally.
+That is, when the application is told a rule's
+arguments are in the locations from X to Y,
+it reads locations from X to Y of a physical stack.
+And when the application is told that the result
+goes into stack location Z,
+the application writes to location Z of a physical stack.
+Many, if not most,
+applications will implement their semantics
+in exactly this way.
+
+The application needs to be aware that the
+valuator may ask it to read from an stack location
+N, even though it was never instructed to write
+to location N.
+This will not be an issue if the stack is implemented as,
+say, a Perl array, because Perl extends and initializes
+arrays as necessary, on both read and write.
+From the point of view of the programmer of a language
+like Perl, therefore, the discussion
+of this section will be a non-issue.
+
+The situation for the C programmer is more complicated,
+to put it mildly.
+We assume the C programmer is using a dynamic array as
+a stack.
+Under these circumstances, a read from an never-written
+location beyond the end of the array,
+may cause a memory fault.
+In fact, if the C programmer is following the standards,
+she has to allow for ``trap values''.
+That is, she must assume that uninitialized locations,
+even within the
+array bounds, may contain values which will cause an
+abend on read.
+
+The C programmer implementing Libmarpa semantics literally
+and using a dynamic array as a stack, must ensure that
+the stack is extended
+@strong{and initialized to non-trap values}
+before each write
+and @strong{before each read}.
+When implementing a rule's semantics,
+it is sufficient to ensure that the rule's arguments
+exist and are initialized on the stack.
+The programmer is allowed to assume that stack location
+for a rule's result will be at or before
+the stack location of the rule's last argument.
+
+This ``read with no previous write'' behavior occurs
+because of unvalued symbols.
+If a symbol is unvalued, the write to it may be
+optimized away, but often the read from that location
+may not be.
+If the application has registered its valued symbols
+properly, 
+it will be indifferent to whatever value is
+in the stack at the location
+for the unvalued symbol.
+
+@node Implications for non-literal implementations
+@subsection Implications for non-literal implementations
+
+It is tempting to think there may be ways to
+avoid reading never-written values
+when using less-than-literal implementations.
+The programmer needs to be aware that reads
+beyond the end of stack are only part of the problem.
+Specifically,
+@itemize
+@item Many of the locations of never-written values
+will be within the stack.
+@item Many of within-the-stack locations never written for a particular
+value may have been used
+for other values, and therefore will still have one
+of those previous values.
+@item Other never-written within-the-stack locations will never have
+been written to for any value,
+and therefore must be assumed by standard-conformant C code
+potentially to contain trap values.
+@itemize
+
+@node Valuator reference counting, Stepping through the valuator, Valuator constructor, Value methods
+@section Reference counting
+
 @deftypefun Marpa_Value marpa_v_ref (Marpa_Value @var{v})
 Increases the reference count by 1.
 Not needed by most applications.
@@ -2781,6 +2891,9 @@ all the way back to the
 base grammar, if necessary.
 
 @end deftypefun
+
+@node Registering semantics
+@section Registering semantics
 
 @deftypefun int marpa_v_symbol_is_valued ( @
     Marpa_Value @var{v}, @
@@ -2836,9 +2949,6 @@ to a value different from its current one, -1.
 On hard failure, -2.
 @end deftypefun
 
-@node Valuator reference counting, Stepping through the valuator, Valuator constructor, Value methods
-@section Reference counting
-
 @node Stepping through the valuator, Step accessors, Valuator reference counting, Value methods
 @section Stepping through the valuator
 
@@ -2855,6 +2965,9 @@ to be performed.
 On soft failure, @code{MARPA_STEP_INACTIVE}.
 On other failure, -2.
 @end deftypefun
+
+@node Valuator steps by type
+@section Valuator steps by type
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_RULE
 The semantics of a rule should be performed.
@@ -2923,7 +3036,7 @@ for the @code{MARPA_STEP_TOKEN} step.
 @deftypefn {Macro} Marpa_Symbol_ID marpa_v_symbol (Marpa_Value @var{v})
 Return value: Returns the ID of the symbol
 for the @code{MARPA_STEP_NULLING_SYMBOL} step.
-The value is always the same as that for the @code{marpa_v_token}
+The value is always the same as that for the @code{marpa_v_token()}
 macro.
 @end deftypefn
 
@@ -2948,7 +3061,7 @@ should be placed.
 For a @code{MARPA_STEP_RULE} step,
 returns the stack location where the value of first child
 can be found.
-The value is always the same as that for the @code{marpa_v_result}
+The value is always the same as that for the @code{marpa_v_result()}
 macro.
 @end deftypefn
 
@@ -3039,7 +3152,7 @@ Always succeeds.
     (Marpa_Recognizer @var{r}, @
     const char** @var{p_error_string})
 All errors are tracked in the grammar object.
-This method is a convenience wrapper for @code{marpa_g_error}.
+This method is a convenience wrapper for @code{marpa_g_error()}.
 @var{p_error_string} is reserved for use by
 the internals.
 Applications should set it to @code{NULL}.
