@@ -2626,14 +2626,18 @@ When a valuator is no longer in use, its memory can be freed
 using the 
 @code{marpa_v_unref()} method.
 
-By default, Libmarpa assumes that symbols have
+By default, Libmarpa assumes that
+non-terminal symbols have
 no semantics.
 The archetypal application will need to register
-and symbols that contain semantics with
+symbols that contain semantics.
+The primary method for doing this is
 @code{marpa_v_symbol_is_valued()}.
-As a convenience, LHS symbols may be register
-as having semantics using their rule ID 
-and the @code{marpa_v_rule_is_valued()} method.
+Applications registering semantics may find
+it convenient to do so directly using
+the @code{marpa_v_rule_is_valued()} method,
+which will save them the trouble
+of looking up the rule's LHS symbol.
 
 The application is required to maintain the stack,
 and the application is also required to implement
@@ -2655,10 +2659,10 @@ and @ref{Stepping through the valuator}.
 
 @node How to use the valuator, Advantages of Libmarpa's valuator, Value overview, Value methods
 @section How to use the valuator
-While Libmarpa passes instructions
-(called ``steps'')
-for stack manipulation,
-it does not actually maintain a stack.
+Libmarpa's valuator provides the application with
+``steps'', which are
+instructions for stack manipulation.
+Libmarpa itself does not maintain a stack.
 This leaves the upper layer in total control of the
 stack and the values which are placed on it.
 
@@ -2733,22 +2737,33 @@ for a higher-level language which needs callbacks in that higher level language.
 For generality, Libmarpa would have to deal in C callbacks,
 and a middle layer would have to create C language wrappers
 for the callbacks in the higher level language.
-Libmarpa's method of handling semantics may seem indirect and complex,
-but by allowing the upper layer to perform all the semantics directly,
-overall the effect is a more direct semantics
-and a major simplification of the programming.
+This intermixture of languages is very hard to handle,
+especially when debugging.
+Programmers typically react to these difficulties by
+doing the minimum possible in the callbacks themselves,
+and as much as possible in pre- and post-processing.
+But this division of the work is usually undesirable
+from other points of view,
+sometimes highly so.
+But the ability to debug can make the difference between
+code that does work and code that does not,
+and that consideration will typically trump others.
 
-Not only is the
-Libmarpa valuator's method of handling semantics simpler,
-it is more efficient than callbacks.
-However, neither of these is the most important reason
-to prefer the design of Libmarpa's valuator.
-The most important reason is debugging.
-Error detection for callbacks is extremely difficult,
-and this is especially the case if 
-methods in
-a higher-level language are being called back
-from inside C language code.
+Libmarpa valuator's method of handling semantics
+does well in terms of those other considerations.
+Step-driven valuation may seem complex and indirect
+at first, but the programmer will find that the
+pushing the semantics up to a layer which knows more
+about it simplifies many things.
+Step-driven valuation also makes it unnecessary
+to divide the logic 
+between pre-processing, main processing,
+and post-processing, unless the semantics
+themselves suggest such an approach.
+Step-driven valuation is also more efficient --
+slightly so when the callbacks are in C,
+and considerably so when the callbacks are in a
+higher-level language.
 
 @node Details of stack manipulation, Valuator constructor, Advantages of Libmarpa's valuator, Value methods
 @section Details of stack manipulation
@@ -3013,6 +3028,10 @@ The semantics for the rule whose ID is
 on these child values,
 and the result placed in
 @code{marpa_v_result(v)}.
+The stack location of
+@code{marpa_v_result(v)} is quaranteed to
+be equal to 
+to @code{marpa_v_arg_n(v)}.
 @end deftypevr
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_TOKEN
@@ -3116,17 +3135,17 @@ can be found.
 
 @deftypevr Macro int MARPA_EVENT_NONE
 Applications should never see this event.
-Suggested message: "No event."
+Suggested message: "No event"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EXHAUSTED
 The event value is undefined.
-Suggested message: "Recognizer is exhausted."
+Suggested message: "Recognizer is exhausted"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
 The event value is undefined.
-Suggested message: "Too many Earley items."
+Suggested message: "Too many Earley items"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_LOOP_RULES
@@ -3139,20 +3158,20 @@ and it is up to the application to treat these
 as fatal errors,
 something most of them will wish to do.
 The value of the event is the count of loop rules.
-Suggested message: "A rule is part of a infinite loop."
+Suggested message: "Grammar contains a infinite loop"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
 A nullable is either the separator
 for, or the right hand side of a sequence.
 The value of the event is the ID of the symbol.
-Suggested message: "Grammar has a counted nullable."
+Suggested message: "This symbol is a counted nullable"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_NULLING_TERMINAL
 A nulling symbol is also a terminal.
 The value of the event is the ID of the symbol.
-Suggested message: "Grammar has a nulling terminal."
+Suggested message: "This symbol is a nulling terminal"
 @end deftypevr
 
 @node Error macros and code, Design considerations, Events, Top
@@ -3205,11 +3224,24 @@ The number of error codes.
 @section Error Codes
 
 @deftypevr Macro int MARPA_ERR_NONE
-No error condition since the last time the
-error code was reset or,
-if there was no reset,
-since grammar initialization.
-Suggested message: "No error."
+No error condition.
+The error code is initialized to this value.
+An application should never see this value,
+because it should examine the error code
+only when a hard failure has been indicated,
+in which case the error code will have set
+to another value.
+
+Methods which do not result in a hard failure
+may reset the error code to @code{MARPA_ERR_NONE}
+or leave it at its current value.
+Which of the two a method does is currently
+unspecified,
+although the current implementation,
+for efficiency and simplicity,
+will usually leave the error code as it
+found it.
+Suggested message: "No error"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_AHFA_IX_NEGATIVE
@@ -3228,7 +3260,8 @@ Suggested message: "No error."
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE
-A "counted" symbol is also a nullable symbol.
+A "counted" symbol was found,
+that is also a nullable symbol.
 A "counted" symbol is one that appears on the RHS
 of a sequence rule.
 If a symbol is nullable,
@@ -3236,7 +3269,7 @@ counting occurrences of it,
 which is what sequence rules do for their RHS
 symbols,
 becomes very difficult.
-All sorts of questions of definition and
+Questions of definition and
 problems of implementation arise.
 At a minimum, such a sequence would be wildly
 ambigious.
@@ -3248,7 +3281,7 @@ really what your application needs,
 nothing in Libmarpa prevents you from specifying
 that sequence
 with ordinary BNF rules.
-Suggested message: "Nullable symbol on RHS of a sequence rule."
+Suggested message: "Nullable symbol on RHS of a sequence rule"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_DEVELOPMENT
@@ -3263,7 +3296,7 @@ Classifying an error as "development"
 is a temporary measure,
 taken until the error can be more
 precisely defined and classed.
-Suggested message: "Development error, see string."
+Suggested message: "Development error, see string"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_DUPLICATE_AND_NODE
@@ -3282,7 +3315,7 @@ Both rules have the same right hand symbols in the same order.
 @end itemize
 
 This definition applies to sequence rules, as well as to ordinary rules. As a consequence, sequence rules can be considered duplicates even when they have different separators and/or different minimum counts.
-Suggested message: "Duplicate rule."
+Suggested message: "Duplicate rule"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_EIM_COUNT
@@ -3297,7 +3330,7 @@ by the application.
 Exceeding the warning threshold causes
 a Libmarpa event, which the application
 is free to treat as a hard or soft error.
-Suggested message: "Maximum number of earley items exceeded."
+Suggested message: "Maximum number of earley items exceeded"
 
 Most likely, memory will run out for
 other reasons long before this error can
@@ -3325,7 +3358,7 @@ They could result when the calling program
 overwrites Libmarpa's internal data.
 They may also indicate a bug in Libmarpa.
 An internal error will usually be a hard error.
-Suggested message: "Internal error."
+Suggested message: "Internal error"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_AHFA_ID
@@ -3336,17 +3369,17 @@ Suggested message: "Internal error."
 A function was called which takes a boolean argument,
 one which must be either 0 or 1,
 and that argument has some other value.
-Suggested message: "Argument is not boolean."
+Suggested message: "Argument is not boolean"
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_ES_ORDINAL
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_IRLID
 A method was called with an invalid internal rule ID.
-Suggested message: "No IRL with that ID exists."
+Suggested message: "No IRL with that ID exists"
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_ISYID
 A method was called with an invalid internal symbol ID.
-Suggested message: "No ISY with that ID exists."
+Suggested message: "No ISY with that ID exists"
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_START_SYM
 @end deftypevr
@@ -3356,11 +3389,11 @@ be used and should be deleted.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_XRLID
 A method was called with an invalid external rule ID.
-Suggested message: "No rule with that ID exists."
+Suggested message: "No rule with that ID exists"
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_XSYID
 A method was called with an invalid external symbol ID.
-Suggested message: "No symbol with that ID exists."
+Suggested message: "No symbol with that ID exists"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_MAJOR_VERSION_MISMATCH
@@ -3400,7 +3433,7 @@ The application attempted to create a bocage
 from a recognizer without a parse.
 The application will often treat this as
 a soft error.
-Suggested message: "No parse."
+Suggested message: "No parse"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_RULES
@@ -3411,7 +3444,7 @@ trying to precompute the grammar.
 The precomputations are not defined
 for grammar without rules,
 in large part because it would be useless to do so.
-Suggested message: "This grammar does not have any rules."
+Suggested message: "This grammar does not have any rules"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_START_SYM
@@ -3420,7 +3453,7 @@ and an attempt was made to perform an
 operation which requires one.
 For example, no grammar without a start
 symbol can be precomputed.
-Suggested message: "This grammar has no start symbol."
+Suggested message: "This grammar has no start symbol"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_TRACE_ES
@@ -3435,7 +3468,7 @@ Suggested message: "This grammar has no start symbol."
 @deftypevr Macro int MARPA_ERR_NULLING_TERMINAL
 Marpa does not allow a symbol to be both nulling
 and a terminal.
-Suggested message: "A symbol is both terminal and nulling."
+Suggested message: "A symbol is both terminal and nulling"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_ORID_NEGATIVE
@@ -3465,7 +3498,7 @@ In a method which takes pointers as arguments,
 one of the pointer arguments is @code{NULL},
 in a case where that is not allowed.
 One such method is@ @code{marpa_r_progress_item()}.
-Suggested message: "An argument is null when it should not be."
+Suggested message: "An argument is null when it should not be"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_PRECOMPUTED
@@ -3477,7 +3510,7 @@ the precomputation
 is not allowed.
 Almost all changes to a grammar invalidate
 the precomputations.
-Suggested message: "This grammar is precomputed."
+Suggested message: "This grammar is precomputed"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_PROGRESS_REPORT_NOT_STARTED
@@ -3486,7 +3519,7 @@ and an action has been attempted which
 is inconsistent with that.
 One such action would be a
 @code{marpa_r_progress_item()} call.
-Suggested message: "No progress report has been started."
+Suggested message: "No progress report has been started"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT
@@ -3503,42 +3536,42 @@ The LHS of a
 sequence rule cannot be the LHS of any other rule,
 whether a sequence rule or a BNF rule.
 An attempt was made to violate this restriction.
-Suggested message: "LHS of sequence rule would not be unique."
+Suggested message: "LHS of sequence rule would not be unique"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_NONE
 The link source type is 'none'
 in a context where that is not allowed.
-Suggested message: "A source type of 'none' is not allowed here."
+Suggested message: "A source type of 'none' is not allowed here"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_TOKEN
 The link source type is 'token'
 in a context where that is not allowed.
-Suggested message: "Token source type is not allowed here."
+Suggested message: "Token source type is not allowed here"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_COMPLETION
 The link source type is 'completion'
 in a context where that is not allowed.
-Suggested message: "Completion source type is not allowed here."
+Suggested message: "Completion source type is not allowed here"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_LEO
 The link source type is 'Leo'
 in a context where that is not allowed.
-Suggested message: "Leo source type is not allowed here."
+Suggested message: "Leo source type is not allowed here"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_AMBIGUOUS
 The link source type is ambiguous
 in a context where that is not allowed.
-Suggested message: "Ambiguous source type is not allowed here."
+Suggested message: "Ambiguous source type is not allowed here"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN
 The link source type is not known.
-Suggested message: "The source type is unknown."
+Suggested message: "The source type is unknown"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_START_NOT_LHS
@@ -3547,7 +3580,7 @@ any rule.
 That means it could never match any possible input,
 not even the null string.
 Presumably, an error in writing the grammar.
-Suggested message: "Start symbol not on LHS of any rule."
+Suggested message: "Start symbol not on LHS of any rule"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SYMBOL_VALUED_CONFLICT
@@ -3557,7 +3590,7 @@ cannot safely to be used to contain a value at
 others.
 This error indicates that such an unsafe use is
 being attempted.
-Suggested message: "Symbol is treated both as valued and unvalued."
+Suggested message: "Symbol is treated both as valued and unvalued"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_TOKEN_IS_NOT_TERMINAL
@@ -3576,7 +3609,7 @@ The cause of the error could not be determined.
 This usually indicates a problem in the error handling
 logic itself.
 This will usually be a hard error.
-Suggested message: "Unknown error."
+Suggested message: "Unknown error"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_UNPRODUCTIVE_START
@@ -3584,13 +3617,13 @@ The start symbol is unproductive.
 That means it could never match any possible input,
 not even the null string.
 Presumably, an error in writing the grammar.
-Suggested message: "Unproductive start symbol."
+Suggested message: "Unproductive start symbol"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_VALUATOR_INACTIVE
 The valuator is inactive in a context where that
 should not be the case.
-Suggested message: "Valuator inactive."
+Suggested message: "Valuator inactive"
 @end deftypevr
 
 @node Design considerations, Things To Do, Error macros and code, Top
