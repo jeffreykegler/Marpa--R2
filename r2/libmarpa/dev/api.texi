@@ -2956,17 +2956,15 @@ base grammar, if necessary.
 These methods, respectively, report and set to @var{value}
 the valued status for symbol @var{symid}.
 A valued status is either 1 or 0.
-The @var{value} argument must be a valid valued status.
 A valued status of 1 indicates that the symbol is valued.
 A valued status of 0 indicates that the symbol is unvalued.
-For these methods, the symbol in question is indicated
-by the @var{symid} argument.
 
 Return value:  On success, the valued status @strong{after}
 the call.
 On an attempt to set a locked valued status
 to a value different from its current one, -1.
-On hard failure, -2.
+If @var{value} is not either 0 or 1,
+or on other hard failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_v_rule_is_valued ( @
@@ -2977,13 +2975,11 @@ On hard failure, -2.
     Marpa_Rule_ID @var{rule_id}, @
     int @var{value} )
 These methods, respectively, report and set to @var{value}
-the valued status for rule @var{rule_id}.
+the valued status
+for the LHS symbol of rule @var{rule_id}.
 A valued status is either 1 or 0.
-The @var{value} argument must be a valid valued status.
 A valued status of 1 indicates that the symbol is valued.
 A valued status of 0 indicates that the symbol is unvalued.
-For these methods, the symbol in question is the
-LHS symbol of the rule @var{rule_id}.
 
 Rules have no valued status of their own.
 The valued status of a rule
@@ -2997,7 +2993,8 @@ rule @var{rule_id}'s LHS symbol @strong{after}
 the call.
 On an attempt to set a locked valued status
 to a value different from its current one, -1.
-On hard failure, -2.
+If @var{value} is not either 0 or 1,
+or on other hard failure, -2.
 @end deftypefun
 
 @node Stepping through the valuator, Valuator steps by type, Registering semantics, Value methods
