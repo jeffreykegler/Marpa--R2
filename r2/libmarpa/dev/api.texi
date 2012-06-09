@@ -2760,10 +2760,12 @@ to divide the logic
 between pre-processing, main processing,
 and post-processing, unless the semantics
 themselves suggest such an approach.
-Step-driven valuation is also more efficient --
-slightly so when the callbacks are in C,
-and considerably so when the callbacks are in a
-higher-level language.
+Finally, step-driven valuation
+is usually slightly more efficient
+when the callbacks are in C,
+and is almost always significantly more efficient
+when the callbacks would have to be
+to a higher-level language.
 
 @node Details of stack manipulation, Valuator constructor, Advantages of Libmarpa's valuator, Value methods
 @section Details of stack manipulation
@@ -2883,10 +2885,11 @@ potentially to contain trap values.
 @deftypefun Marpa_Value marpa_v_new ( @
     Marpa_Tree @var{t} @
 )
-Creates a new valuator from the tree @var{t},
-with a reference count of 1.
-The reference count of its parent tree iterator, @var{t},
-is increased by 1.
+Creates a new valuator.
+The parent object of the new valuator
+will be the tree iterator @var{t},
+and the reference count of the new valuator will be 1.
+The reference count of @var{t} is increased by 1.
 
 The parent tree iterator is ``paused'',
 so that the tree iterator
