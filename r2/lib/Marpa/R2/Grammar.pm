@@ -798,37 +798,22 @@ sub Marpa::R2::Grammar::show_rules {
     return $text;
 } ## end sub Marpa::R2::Grammar::show_rules
 
+sub Marpa::R2::Grammar::rule {
+    my ( $grammar, $rule_id ) = @_;
+    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $rule_length = $grammar_c->rule_length($rule_id);
+    my @symbol_ids = ( $grammar_c->rule_lhs( $rule_id) );
+    push @symbol_ids, map { $grammar_c->rule_rhs( $rule_id, $_ ) } (0 .. $rule_length - 1);
+    return map { $grammar->symbol_name($_) } @symbol_ids;
+} ## end sub Marpa::R2::Grammar::rule
+
 sub Marpa::R2::Grammar::show_dotted_rule {
     my ( $grammar, $rule_id, $dot_position ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $lhs_id    = $grammar_c->rule_lhs($rule_id);
-    my $lhs       = $symbols->[$lhs_id];
-    my $rule_length = $grammar_c->rule_length($rule_id);
-
-    my $text = $grammar->symbol_name($lhs_id) . q{ ->};
-    if ( $dot_position < 0 ) {
-        $dot_position = $rule_length;
-    }
-
-    my @rhs_names = ();
-    for my $ix ( 0 .. $rule_length - 1 ) {
-        my $rhs_symbol_id = $grammar_c->rule_rhs( $rule_id, $ix );
-        my $rhs_symbol_name = $grammar->symbol_name($rhs_symbol_id);
-        push @rhs_names, $rhs_symbol_name;
-    }
-
-    POSITION: for my $position ( 0 .. scalar @rhs_names ) {
-        if ( $position == $dot_position ) {
-            $text .= q{ .};
-        }
-        my $name = $rhs_names[$position];
-        next POSITION if not defined $name;
-        $text .= " $name";
-    } ## end for my $position ( 0 .. scalar @rhs_names )
-
-    return $text;
-
+    my ($lhs, @rhs) = $grammar->rule($rule_id);
+    $dot_position = 0 if $dot_position < 0;
+    splice(@rhs, $dot_position, 0, q{.});
+    return join q{ }, $lhs, q{->}, @rhs;
 } ## end sub Marpa::R2::Grammar::show_dotted_rule
 
 # Used by lexers to check that symbol is a terminal
