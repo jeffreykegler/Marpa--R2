@@ -569,7 +569,7 @@ Grammars are often written so that once they "find what
 they are looking for", no further input is acceptable.
 Grammars of that kind become exhausted when they succeed.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

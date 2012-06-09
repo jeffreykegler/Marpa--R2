@@ -271,7 +271,7 @@ The new definition is simpler and more
 intuitive, and its greater restrictiveness
 is easy to work around.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

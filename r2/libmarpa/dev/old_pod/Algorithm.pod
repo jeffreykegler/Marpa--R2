@@ -1015,7 +1015,7 @@ the bocage country.
 Most identify the Allied breakout from the hedgerows
 as the turning point of that campaign.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

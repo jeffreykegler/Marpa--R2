@@ -1710,7 +1710,7 @@ remove-blank-last-line: 1
 
 =for Marpa::PP::Display::End
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

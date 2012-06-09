@@ -123,7 +123,7 @@ The quality of the present implementation
 seems to be fully adequate in terms
 of the present interest.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

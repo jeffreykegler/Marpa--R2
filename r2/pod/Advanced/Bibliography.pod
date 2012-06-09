@@ -214,7 +214,7 @@ gave a precise description of Sanskirt
 more than 23 centuries earlier in India
 using a similar notation.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

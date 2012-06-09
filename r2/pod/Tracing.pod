@@ -126,7 +126,7 @@ and C<trace_values>
 will be very lengthy.
 You want to work with short inputs if at all possible.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

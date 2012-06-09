@@ -109,7 +109,7 @@ $indented_license =~ s/^/  /gxms;
 $indented_license =~ s/[ ]+$//gxms;
 
 my $pod_section = <<'END_OF_STRING';
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1
@@ -642,14 +642,14 @@ sub license_problems_in_pod_file {
     my @problems = license_problems_in_perl_file( $filename, $verbose );
 
     my $text = ${ slurp($filename) };
-    if ( $text =~ m/ ^ [=]head1 \s+ COPYRIGHT \s+ AND \s+ LICENSE /xmsp ) {
+    if ( $text =~ m/ ^ [=]head1 \s+ Copyright \s+ and \s+ License /xmsp ) {
         ## no critic (Variables::ProhibitPunctuationVars);
         my $pos = length ${^PREMATCH};
         $text = substr $text, $pos;
     }
     else {
         push @problems,
-            "No COPYRIGHT AND LICENSE header in pod file $filename\n";
+            qq{No "Copyright and License" header in pod file $filename\n};
     }
     if ( not scalar @problems and ( index $text, $pod_section ) < 0 ) {
         my $problem = "No LICENSE pod section in $filename\n";

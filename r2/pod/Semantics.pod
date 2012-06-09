@@ -630,7 +630,7 @@ For those who want to know more,
 the details are in a L<separate
 document|Marpa::R2::Semantics::Infinite>.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

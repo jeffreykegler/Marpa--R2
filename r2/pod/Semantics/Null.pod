@@ -232,7 +232,7 @@ in the pruned subtree.
 We B<do not> see an application of the rule evaluation closure for rule C<R := A B Y>,
 because there is an empty rule for C<R>, and that takes priority.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

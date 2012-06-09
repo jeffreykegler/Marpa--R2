@@ -431,7 +431,7 @@ from the values of zero or more of the nodes which represent the RHS symbols
 Values are computed recursively, bottom-up.
 The value of a parse is the value of its start symbol.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

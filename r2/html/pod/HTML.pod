@@ -1051,7 +1051,7 @@ Optionally,
 L<Marpa::R2::HTML::html|/"THE Marpa::R2::HTML::html STATIC METHOD">
 may be exported.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

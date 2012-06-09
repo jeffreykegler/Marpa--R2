@@ -794,7 +794,7 @@ whose RHS is the sequence LHS symbol.
 The LHS of the intermediate rule can then be used,
 without restriction, as the LHS of other rules.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1

@@ -735,7 +735,7 @@ on a volunteer basis
 through the standard mechanisms for CPAN modules.
 L<The Support document|Marpa::R2::Support> has details.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 Copyright and License
 
 =for Marpa::R2::Display
 ignore: 1
