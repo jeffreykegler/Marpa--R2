@@ -3017,6 +3017,17 @@ On other failure, -2.
 @node Valuator steps by type, Step accessors, Stepping through the valuator, Value methods
 @section Valuator steps by type
 
+Stack locations are non-negative integers
+The bottom of the stack is location 0.
+In moving from the bottom of the stack to the top,
+the numbers increase.
+Stack location @var{X} is said to be ``greater'' 
+than stack location @var{Y} if stack location
+@var{X} is closer to the top of stack than location @var{Y},
+and therefore stack locations are considered greater or
+lesser if the integers that represent them are
+greater or lesser.
+
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_RULE
 The semantics of a rule should be performed.
 The application can find the value of the rule's
@@ -3029,7 +3040,7 @@ on these child values,
 and the result placed in
 @code{marpa_v_result(v)}.
 The stack location of
-@code{marpa_v_result(v)} is quaranteed to
+@code{marpa_v_result(v)} is guaranteed to
 be equal to 
 to @code{marpa_v_arg_n(v)}.
 @end deftypevr
