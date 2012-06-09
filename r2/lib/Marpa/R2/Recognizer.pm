@@ -451,13 +451,27 @@ END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
 
+sub Marpa::R2::Recognizer::progress {
+    my ( $recce, $ordinal ) = @_;
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    $ordinal = $recce->latest_earley_set() if not defined $ordinal;
+    my $result = [];
+    $recce_c->progress_report_start($ordinal);
+    ITEM: while (1) {
+        my @item = $recce_c->progress_item();
+        last ITEM if not defined $item[0];
+        push @{$result}, [@item];
+    }
+    $recce_c->progress_report_finish();
+    return $result;
+} ## end sub Marpa::R2::Recognizer::progress
+
 sub Marpa::R2::Recognizer::show_progress {
     my ( $recce, $start_ordinal, $end_ordinal ) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
 
-    my $last_ordinal = $recce_c->latest_earley_set();
+    my $last_ordinal = $recce->latest_earley_set();
 
     if ( not defined $start_ordinal ) {
         $start_ordinal = $last_ordinal;
@@ -491,18 +505,15 @@ sub Marpa::R2::Recognizer::show_progress {
 
     my $text = q{};
     for my $current_ordinal ( $start_ordinal .. $end_ordinal ) {
-        my $current_earleme     = $recce_c->earleme($current_ordinal);
+        my $current_earleme     = $recce->earleme($current_ordinal);
         my %by_rule_by_position = ();
-
-	$recce_c->progress_report_start($current_ordinal);
-	ITEM: while (1) {
-	    my ( $rule_id, $position, $origin ) = $recce_c->progress_item();
-	    last ITEM if not defined $rule_id;
-	    if ( $position < 0 ) {
-		$position = $grammar_c->rule_length($rule_id);
-	    }
-	    $by_rule_by_position{$rule_id}->{$position}->{$origin}++;
-	} ## end while (1)
+        for my $progress_item ( @{ $recce->progress($current_ordinal) } ) {
+            my ( $rule_id, $position, $origin ) = @{$progress_item};
+            if ( $position < 0 ) {
+                $position = $grammar_c->rule_length($rule_id);
+            }
+            $by_rule_by_position{$rule_id}->{$position}->{$origin}++;
+        } ## end for my $progress_item ( @{ $recce->($current_ordinal)...})
 
         for my $rule_id ( sort { $a <=> $b } keys %by_rule_by_position ) {
             my $by_position = $by_rule_by_position{$rule_id};
@@ -539,8 +550,6 @@ sub Marpa::R2::Recognizer::show_progress {
                 $text .= $item_text . "\n";
             } ## end for my $position ( sort { $a <=> $b } keys %{...})
         } ## end for my $rule_id ( sort { $a <=> $b } keys ...)
-
-	$recce_c->progress_report_finish();
 
     } ## end for my $current_ordinal ( $start_ordinal .. $end_ordinal)
     return $text;
