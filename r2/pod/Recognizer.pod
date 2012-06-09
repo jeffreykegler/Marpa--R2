@@ -83,6 +83,39 @@ The named arguments are described L<below|/"NAMED ARGUMENTS">.
 
 =head1 ACCESSORS
 
+=head2 check_terminal
+
+=for Marpa::R2::Display
+name: Recognizer check_terminal Synopsis
+normalize-whitespace: 1
+
+    my $is_symbol_a_terminal = $recce->check_terminal('Document');
+
+=for Marpa::R2::Display::End
+
+Returns a Perl true when its argument is the name of a terminal symbol.
+Otherwise, returns a Perl false.
+Not often needed.
+
+=head2 latest_earley_set
+
+=for Marpa::R2::Display
+name: latest_earley_set() Synopsis
+normalize-whitespace: 1
+
+    my $latest_earley_set = $recce->latest_earley_set();
+
+=for Marpa::R2::Display::End
+
+Return the location of the latest (in other words,
+the most recent)
+Earley set.
+Not usually needed explicitly, because it is often
+the default.
+For example, by default parsing is of the input from
+0 through I<N>,
+where I<N> is the location of the last Earley set.
+
 =head2 terminals_expected
 
 =for Marpa::R2::Display
@@ -102,20 +135,6 @@ In the default input model, the presence of a terminal
 in this list means that terminal will be acceptable
 in the next C<read> method call.
 This is highly useful for Ruby Slippers parsing.
-
-=head2 check_terminal
-
-=for Marpa::R2::Display
-name: Recognizer check_terminal Synopsis
-normalize-whitespace: 1
-
-    my $is_symbol_a_terminal = $recce->check_terminal('Document');
-
-=for Marpa::R2::Display::End
-
-Returns a Perl true when its argument is the name of a terminal symbol.
-Otherwise, returns a Perl false.
-Not often needed.
 
 =head1 MUTATORS
 

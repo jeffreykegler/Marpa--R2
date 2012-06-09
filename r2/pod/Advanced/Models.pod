@@ -17,7 +17,7 @@
 
 Marpa::R2::Advanced::Models - Other input models
 
-=head1 ABOUT THIS DOCUMENT
+=head1 About this document
 
 The alternative input models described in this document are an
 advanced technique.
@@ -28,7 +28,7 @@ it is still safe to ignore this document,
 but you might find the possibilities it discusses
 interesting.
 
-=head1 DESCRIPTION
+=head1 Description
 
 =head2 What is an alternative input model?
 
@@ -129,6 +129,19 @@ parsing is finished.
 Alternative input models use
 the recognizer's L<C<end_input>|/"end_input"> method to ensure
 that processing of input catches up to the furthest earleme.
+
+=head2 The latest Earley set and latest earleme
+
+The B<latest earleme> is the earleme location of the latest
+Earley set.
+In the default input model, the latest earleme is always the
+same as the current earleme.
+
+In alternative input models,
+there may not be an Earley set at a given earleme location.
+When that is the case for the current earleme,
+then the latest Earley set is not at the current earleme,
+and the latest earleme and current earlemes are different.
 
 =head1 METHODS
 

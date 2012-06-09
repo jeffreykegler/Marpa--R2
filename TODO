@@ -1,7 +1,5 @@
 * "Context accessor" in actions to return current grammar, current
 rule ID, and start of token.
 
-* Document recce->latest_earley_set method
-
 * Create tests for Symbol::RANK and DEFAULT_RANK, then document
 them
