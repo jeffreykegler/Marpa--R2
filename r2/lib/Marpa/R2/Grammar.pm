@@ -749,18 +749,8 @@ sub Marpa::R2::Grammar::unproductive_symbols {
 
 sub Marpa::R2::Grammar::brief_rule {
     my ( $grammar, $rule_id ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $lhs_id    = $grammar_c->rule_lhs($rule_id);
-    my $text .= $rule_id . ': ' . $grammar->xsy_name($lhs_id) . ' ->';
-    if ( my $rh_length = $grammar_c->rule_length($rule_id) ) {
-        my @rhs_ids = ();
-        for my $ix ( 0 .. $rh_length - 1 ) {
-            push @rhs_ids, $grammar_c->rule_rhs( $rule_id, $ix );
-        }
-        $text .= q{ }
-            . ( join q{ }, map { $grammar->xsy_name($_) } @rhs_ids );
-    } ## end if ( my $rh_length = $grammar_c->rule_length($rule_id...))
-    return $text;
+    my ($lhs, @rhs) = $grammar->rule($rule_id);
+    return join q{ }, "$rule_id:", $lhs, '->', @rhs;
 } ## end sub Marpa::R2::Grammar::brief_rule
 
 sub Marpa::R2::Grammar::show_rule {
