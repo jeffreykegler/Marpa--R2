@@ -168,9 +168,9 @@ libmarpa/test/dev/testleak.c
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod
 pod/Changes.pod
-pod/Debug.pod
 pod/Grammar.pod
 pod/Marpa_R2.pod
+pod/Progress.pod
 pod/Recognizer.pod
 pod/Semantics.pod
 pod/Semantics/Infinite.pod

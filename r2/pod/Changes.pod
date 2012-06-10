@@ -17,7 +17,7 @@
 
 Marpa::R2::Changes - Differences between Marpa::R2 and Marpa::XS
 
-=head1 ABOUT THIS DOCUMENT
+=head1 About this document
 
 This document describes the incompatible
 differences between Marpa::XS
@@ -29,7 +29,7 @@ who are writing new applications for Marpa::R2,
 and for readers migrating Marpa::XS applications
 and tools to Marpa::R2.
 
-=head1 CHANGES
+=head1 Changes
 
 =head2 Rule LHS's are no longer a source of action names
 
