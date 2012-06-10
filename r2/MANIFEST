@@ -189,6 +189,7 @@ t/ah_numeric.t
 t/bocage.t
 t/chaf.t
 t/code_diag.t
+t/context.t
 t/counter.t
 t/curly.t
 t/debug.t
