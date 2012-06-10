@@ -590,11 +590,11 @@ the value referred to by
 that hash entry becomes the
 action object constructor.
 
-If a grammar has both the C<action> and the
+If a grammar has both the C<actions> and the
 C<action_object> named arguments defined,
 all action names B<except>
 for the action object constructor will be
-resolved in the C<action> package or not at all.
+resolved in the C<actions> package or not at all.
 The action object constructor is always in
 the C<action_object> class, if it is anywhere.
 
