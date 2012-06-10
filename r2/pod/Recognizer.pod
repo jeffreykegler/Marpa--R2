@@ -274,6 +274,10 @@ the string contains reports for location I<N>.
 With two numeric arguments, I<N> and I<M>, the arguments are interpreted
 as a range of locations and the returned string contains
 reports for all locations in the range.
+("Location" as referred to in this section,
+and elsewhere
+in this document,
+is what is also called the Earley set ID.)
 
 If an argument is negative,
 I<-N>,
@@ -338,6 +342,9 @@ The default is for the parse to end where the input did,
 so that the parse returned is of the entire input.
 The C<end> named argument is not allowed
 once evaluation has begun.
+"Location" as referred to here and elsewhere
+in this document is what is also called
+an Earley set ID.
 
 =head2 grammar
 

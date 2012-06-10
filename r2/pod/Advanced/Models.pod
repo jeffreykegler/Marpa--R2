@@ -28,7 +28,34 @@ it is still safe to ignore this document,
 but you might find the possibilities it discusses
 interesting.
 
-=head1 Description
+=head1 Marpa has two different ideas of location
+
+In the other Marpa documentation,
+we have spoken of "location",
+and assumed the standard input model.
+The locations actually in use by the methods
+described for the standard input model were Earley set
+ordinals.
+(An Earley set's ordinal is also its ID.)
+
+Marpa actually has two different ideas of location --
+Earley set ordinal and earleme.
+This is ignored in the other Marpa documents,
+and it can be, because they
+assume the standard input model.
+Use of the standard input model
+guarantees that earleme
+and Earley set ordinal
+will always be exactly the same.
+
+This document introduces methods which make it
+possible (and in fact likely) that earleme and 
+Earley set ordinal will differ.
+From here on,
+the reader will need to pay careful attention
+to the distinction.
+
+=head1 Details
 
 =head2 What is an alternative input model?
 
