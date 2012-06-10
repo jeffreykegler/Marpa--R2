@@ -17,22 +17,43 @@
 
 Marpa::R2::Progress - Progress reports on your parse
 
-=head1 OVERVIEW
+=head1 About this document
 
 This document describes
-the more powerful of
-Marpa's
-tracing and debugging techniques.
-It assumes that you have written
-a grammar for your Marpa application,
-and that something is going wrong.
-You should read
-L<the overview document
-for tracing
+Marpa's progress reports.
+These allow an application to know
+exactly where it is in the parse at any
+point.
+For parse locations of the user's choosing,
+progress reports list all the rules in play,
+and indicate the location at which the rule started,
+and how far into the rule parsing has progressed.
+
+For those new to parsing, this "situational awareness"
+might seem to be a feature that they can expect
+from any servicable parser.
+In fact,
+situation awareness in most parsers is extremely limited,
+and it tends to be more limited in those
+parsers considered production quality.
+Marpa is not just unusual in the amount of feedback
+it offers the application,
+it breaks new ground.
+
+Progress reports are extremely useful in
+debugging grammars.
+Because debugging creates a
+clear "narrative",
+the detailed example in
+this document is a debugging situation.
+Readers specifically interested in debugging
+a grammar
+should read L<the document
+on tracing
 problems|Marpa::R2::Tracing> before
 reading this document.
 
-=head1 INTRODUCTION TO EARLEY PARSING
+=head1 Introduction to Earley parsing
 
 To read the
 L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
@@ -129,7 +150,7 @@ if a rule will
 ever be completed,
 much less at which location.
 
-=head1 THE EXAMPLE
+=head1 The example
 
 For this example of debugging,
 I've taken a very common example
@@ -165,7 +186,7 @@ where the problem is,
 and use the Marpa diagnostics and tracing facilities
 to "discover" it.
 
-=head1 FIRST WARNING
+=head1 First warning
 
 Right off the bat, we get two warning messages:
 
@@ -197,7 +218,7 @@ tracing facilities, let's pretend we have not
 had our morning coffee,
 and that we miss the significance of these warning messages.
 
-=head1 OUTPUT FROM trace_terminals
+=head1 Output from trace_terminals()
 
 Before looking at Marpa's progress reports,
 it is usually best to orient yourself by looking
@@ -245,7 +266,7 @@ assume that we are slow on the uptake today,
 and that this does not clue us in.
 We move on.
 
-=head1 OUTPUT FROM show_progress
+=head1 Output from show_progress()
 
 Marpa's most powerful tool for debugging
 grammars is its progress report, which
@@ -540,7 +561,7 @@ and see that our C<Expression -E<gt> Factor> rule is wrong.
 It should be C<Expression -E<gt> Term>.
 Change that and the problem is fixed.
 
-=head1 EMPTY RULES
+=head1 Empty rules
 
 When a symbol is nulled in your parse,
 L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
@@ -548,7 +569,7 @@ does not show its expansion into rules.
 This reduces clutter,
 and seems to be the intuitive way to treat nulled rules.
 
-=head1 APPENDIX: FULL CODE AND OUTPUT FOR THE EXAMPLE
+=head1 Appendix: full code and output for the example
 
 Below are the code, the trace outputs
 and the progress report
