@@ -17,7 +17,7 @@
 
 Marpa::R2::Recognizer - Marpa recognizers
 
-=head1 SYNOPSIS
+=head1 Synopsis
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -33,7 +33,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 DESCRIPTION
+=head1 Description
 
 To create a recognizer object, use L<the C<new> method|/new>.
 
@@ -58,7 +58,7 @@ requires special method calls,
 which are described in L<the
 document on alternative input models|Marpa::R2::Advanced::Models>.
 
-=head1 CONSTRUCTOR
+=head1 Constructor
 
 =head2 new
 
@@ -81,7 +81,7 @@ In each key/value pair of these hashes, the key is the argument name,
 and the hash value is the value of the argument.
 The named arguments are described L<below|/"Named arguments">.
 
-=head1 ACCESSORS
+=head1 Accessors
 
 =head2 check_terminal
 
@@ -136,7 +136,7 @@ in this list means that terminal will be acceptable
 in the next C<read> method call.
 This is highly useful for Ruby Slippers parsing.
 
-=head1 MUTATORS
+=head1 Mutators
 
 =head2 read
 
@@ -251,7 +251,7 @@ and returns a reference to the parse result for that parse tree.
 If there are no more parse trees,
 the C<value> method returns C<undef>.
 
-=head1 TRACE ACCESSORS
+=head1 Trace accessors
 
 =head2 show_progress
 
