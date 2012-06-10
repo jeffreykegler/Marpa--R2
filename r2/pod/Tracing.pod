@@ -17,13 +17,13 @@
 
 Marpa::R2::Tracing - Tracing your grammar
 
-=head1 DESCRIPTION
+=head1 Description
 
 This document is an overview of
 the techniques for tracing and
 debugging Marpa parses and grammars.
 
-=head1 BASIC TECHNIQUES
+=head1 Basic techniques
 
 =head2 Check the input location where parsing failed
 

@@ -17,17 +17,17 @@
 
 Marpa::R2::Support - Support, and how to report bugs
 
-=head1 DESCRIPTION
+=head1 Description
 
 Marpa::R2 is free software.
 There is no warranty.
 
-=head1 MAILING LIST
+=head1 Mailing list
 
 There is a Google Groups mailing list dedicated to Marpa at
 L<https://groups.google.com/forum/?fromgroups#!forum/marpa-parser>.
 
-=head1 BUGS
+=head1 Bugs
 
 Please report any bugs or feature requests to
 C<bug-marpa-xs at rt.cpan.org>, or through the web interface at
@@ -35,7 +35,7 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa::R2>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
 
-=head1 OTHER RESOURCES
+=head1 Other resources
 
 You can find documentation for this module with the perldoc command.
 

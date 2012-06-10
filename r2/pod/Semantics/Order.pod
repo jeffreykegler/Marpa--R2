@@ -17,7 +17,7 @@
 
 Marpa::R2::Semantics::Order - How Marpa ranks ambiguous parses
 
-=head1 DESCRIPTION
+=head1 Description
 
 Marpa allows ambiguous parses.
 While an unambiguous parse can produce at most one parse tree

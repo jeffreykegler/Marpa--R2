@@ -17,7 +17,7 @@
 
 Marpa::R2 - Release 2 of Marpa
 
-=head1 SYNOPSIS
+=head1 Synopsis
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -80,7 +80,7 @@ Its intended audience is those who want to get a head
 start with Marpa::R2 and Libmarpa.
 This release does pass an extensive test suite.
 
-=head1 DESCRIPTION
+=head1 Description
 
 =head2 Overview
 
@@ -123,7 +123,7 @@ The reading of input and the evaluation of the parse
 according to the semantics is performed by
 L<C<Marpa::R2::Recognizer>|Marpa::R2::Recognizer> objects.
 
-=head1 EXAMPLE 1: A SIMPLE CALCULATOR
+=head1 Example 1: a simple calculator
 
 The synopsis shows the code for a very simple calculator.
 It handles only
@@ -510,7 +510,7 @@ rules with no action specified for them
 return a "whatever" value --
 an arbitrary value which should not be used.
 
-=head1 EXAMPLE 2: AN AMBIGUOUS PARSE
+=head1 Example 2: an ambiguous parse
 
 This is the same calculator as before,
 rewritten to be ambiguous.
@@ -613,18 +613,18 @@ If there were no parse results,
 C<Marpa::R2::Recognizer::value> returns C<undef> the first
 time that it is called.
 
-=head1 ERRORS AND EXCEPTIONS
+=head1 Errors and exceptions
 
 Methods in the Marpa API do not return errors.
 When there are errors,
 Marpa API methods throw an exception.
 
-=head1 INHERITANCE
+=head1 Inheritance
 
 Classes in the Marpa API are not designed to
 be inherited.
 
-=head1 OTHER DOCUMENTS
+=head1 Other documents
 
 This document gives a semi-tutorial overview of the entire Marpa API.
 For full details on Marpa's grammar objects and their methods,
@@ -648,7 +648,7 @@ For those with a theoretical bent,
 my sources, and other useful references, are described in
 L<Marpa::R2::Advanced::Bibliography>.
 
-=head1 AUTHOR
+=head1 Author
 
 Jeffrey Kegler
 
@@ -674,7 +674,7 @@ as a free download (L<http://www.lulu.com/content/933192>).
 It can be purchased in print form at Amazon.com:
 L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
-=head1 ACKNOWLEDGMENTS
+=head1 Acknowledgments
 
 Marpa is
 directly derived from two other parsers.
@@ -727,7 +727,7 @@ in module writing,
 both on the finer points and
 on issues about which I really should have know better.
 
-=head1 SUPPORT
+=head1 Support
 
 L<Marpa::R2> comes without warranty.
 Support is provided

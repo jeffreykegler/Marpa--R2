@@ -17,7 +17,7 @@
 
 Marpa::R2::Vocabulary - Standard parsing terms as used within Marpa
 
-=head1 DESCRIPTION
+=head1 Description
 
 The definitions in this document are of standard parsing
 terms as they are used

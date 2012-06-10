@@ -17,7 +17,7 @@
 
 Marpa::R2::Semantics::Infinite - How Marpa deals with infinite cycles
 
-=head1 INFINITELY AMBIGUOUS GRAMMARS
+=head1 Infinitely ambiguous grammars
 
 Marpa will parse using an infinitely ambiguous grammar.
 (In the technical literature, an infinite ambiguity is more usually
@@ -69,7 +69,7 @@ to a value other than "C<fatal>".
 The other choices are "C<warn>"
 and "C<quiet>".
 
-=head1 CYCLE LENGTH
+=head1 Cycle length
 
 Obviously,
 Marpa cannot list all of an infinite number of parse results.
@@ -100,7 +100,7 @@ Marpa would return a parse result
 only for the first parse tree in the list above,
 the one whose cycle length is 1.
 
-=head1 LIMITATIONS
+=head1 Limitations
 
 The "breakpoint" of a cycle occurs when it loops
 back to the same

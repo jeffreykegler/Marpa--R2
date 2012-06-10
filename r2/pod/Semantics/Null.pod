@@ -17,7 +17,7 @@
 
 Marpa::R2::Semantics::Null - How Marpa evaluates null rules and symbols
 
-=head1 OVERVIEW
+=head1 Overview
 
 In Marpa parses, rules and  symbols can be nulled --
 in other words they can derive the zero-length, or null, string.
@@ -37,7 +37,7 @@ L<in the semantics document|Marpa::R2::Semantics>.
 This document provides additional detail on the assignment
 of values to nulled symbols.
 
-=head1 DESCRIPTION
+=head1 Description
 
 =head2 Null values come from rules
 
@@ -86,7 +86,7 @@ the "semantics of nothing".
 In theory the semantics of nothing can be arbitrarily complex.
 In practice it should be possible to keep them simple.
 
-=head1 EXAMPLE
+=head1 Example
 
 As already stated,
 Marpa prunes every null subtree back to its topmost

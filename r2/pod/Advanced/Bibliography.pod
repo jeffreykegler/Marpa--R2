@@ -17,7 +17,7 @@
 
 Marpa::R2::Advanced::Bibliography - A Marpa bibliography
 
-=head1 HISTORY OF THE MARPA ALGORITHM
+=head1 History of the Marpa algorithm
 
 =over
 
@@ -63,7 +63,7 @@ implementation issues.
 
 =back
 
-=head1 BIBLIOGRAPHY
+=head1 Bibliography
 
 =head2 Aho and Ullman 1972
 
