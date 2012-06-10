@@ -79,7 +79,7 @@ are references to hashes of named
 arguments.
 In each key/value pair of these hashes, the key is the argument name,
 and the hash value is the value of the argument.
-The named arguments are described L<below|/"NAMED ARGUMENTS">.
+The named arguments are described L<below|/"Named arguments">.
 
 =head1 ACCESSORS
 
@@ -226,7 +226,7 @@ arguments.
 The C<set> method
 can be used to set or change named arguments after the recognizer
 has been created.
-Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
+Details of the named arguments are L<below|/"Named arguments">.
 
 =head2 value
 
@@ -300,7 +300,7 @@ is in
 L<the document on debugging Marpa
 grammars|Marpa::R2::Debug>.
 
-=head1 NAMED ARGUMENTS
+=head1 Named arguments
 
 The recognizer's named arguments are
 accepted by its

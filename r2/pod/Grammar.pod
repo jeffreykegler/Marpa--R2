@@ -231,7 +231,7 @@ the hash key is the argument name
 and the hash value is the value of
 the named argument.
 The available named arguments are described
-L<below|/"Named Arguments">.
+L<below|/"Named arguments">.
 
 =head1 MUTATORS
 
@@ -265,7 +265,7 @@ The arguments to the
 C<set> method are
 references to hashes of named arguments.
 The available named arguments are described
-L<below|/"Named Arguments">.
+L<below|/"Named arguments">.
 C<set> either returns true or throws an exception.
 
 =head1 ACCESSORS
@@ -373,7 +373,7 @@ indicating whether they were
 terminal, nulling, nullable, unproductive or inaccessible.
 Useful for debugging grammars.
 
-=head1 NAMED ARGUMENTS
+=head1 Named arguments
 
 =head2 action_object
 
@@ -498,7 +498,7 @@ The C<rules> named argument may be specified multiple times,
 adding new rules to the grammar each time.
 New rules may be added until the grammar is precomputed.
 The format of rule descriptors is L<explained
-below|/"RULE DESCRIPTORS">.
+below|/"Rule descriptors">.
 
 =head2 start
 
@@ -523,7 +523,7 @@ In each key/value pair of this hash,
 the hash key is the symbol property name
 and the hash value is the
 symbol descriptor.
-Symbol descriptors are described L<below|/"SYMBOL DESCRIPTORS">.
+Symbol descriptors are described L<below|/"Symbol descriptors">.
 
 Note that the value of C<symbols> named argument is a hash,
 but the value of the C<rules> named argument is an array.
@@ -577,7 +577,7 @@ turning them back on
 after grammar precomputation is useless,
 and itself results in a warning.
 
-=head1 RULE DESCRIPTORS
+=head1 Rule descriptors
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -793,6 +793,36 @@ intermediate rule of length one,
 whose RHS is the sequence LHS symbol.
 The LHS of the intermediate rule can then be used,
 without restriction, as the LHS of other rules.
+
+=head1 Symbol descriptors
+
+=for Marpa::R2::Display
+name: Symbol descriptor example
+normalize-whitespace: 1
+
+    symbols => {
+        MinusMinus => { terminal => 1 },
+        Minus      => { terminal => 1 },
+        Number     => { terminal => 1 },
+    },
+
+=for Marpa::R2::Display::End
+
+A symbol descriptor is a hash.
+In the key/value pairs of this hash,
+the hash key is the symbol property name
+and the hash value is the value of
+that property.
+The available symbol properties are as follows:
+
+=head2 terminal
+
+A boolean.
+If true, it allows the symbol to be used as a terminal.
+If false, it disallows use of
+the symbol as a terminal.
+For details, see
+L<the section on terminals|/"Terminal Symbols">.
 
 =head1 Copyright and License
 
