@@ -55,9 +55,7 @@ From here on,
 the reader will need to pay careful attention
 to the distinction.
 
-=head1 Details
-
-=head2 What is an alternative input model?
+=head1 What is an alternative input model?
 
 An alternative input model
 is anything that is not the default, token-stream model.
@@ -91,7 +89,7 @@ This document revises those explanations as necessary
 to take into
 account the alternative input models.
 
-=head2 Token streams
+=head1 Token streams
 
 Marpa's default input model is the traditional one --
 a token stream.
@@ -116,7 +114,7 @@ For example,
 the first token would start at location 0 and end at location 1.
 The second token would start at location 1 and end at location 2.
 
-=head2 Earlemes
+=head1 Earlemes
 
 For most parsers, position is location in a token stream.
 To deal with variable-length and overlapping tokens,
@@ -139,7 +137,7 @@ tokens and position in a token stream.
 Because of this, the main Marpa documents speak
 simply of the "location" in the parse.
 
-=head2 The furthest earleme
+=head1 The furthest earleme
 
 The B<furthest earleme> is the last earleme at which a token ends.
 In the default input model, the furthest earleme is not an important
@@ -157,7 +155,7 @@ Alternative input models use
 the recognizer's L<C<end_input>|/"end_input"> method to ensure
 that processing of input catches up to the furthest earleme.
 
-=head2 The latest Earley set and latest earleme
+=head1 The latest Earley set and latest earleme
 
 The B<latest earleme> is the earleme location of the latest
 Earley set.
@@ -170,7 +168,7 @@ When that is the case for the current earleme,
 then the latest Earley set is not at the current earleme,
 and the latest earleme and current earlemes are different.
 
-=head1 METHODS
+=head1 Methods
 
 =head2 alternative
 
@@ -339,7 +337,7 @@ The second and subsequent calls will
 return a Perl true,
 but will have no effect.
 
-=head1 ALTERNATIVE MODELS AND THE C<read> METHOD
+=head1 Alternative models and C<read()>
 
 A recognizer can mix
 calls to
@@ -350,7 +348,7 @@ The C<read> method has the same effect as a single call
 to the C<alternative> method, followed immediately
 by a call of the C<earleme_complete> method.
 
-=head1 AMBIGUOUS LEXING
+=head1 Ambiguous lexing
 
 Marpa allows ambiguous tokens.
 Several Marpa tokens can start at a single parsing location.
@@ -391,7 +389,7 @@ In Marpa,
 if the input is ambiguous,
 even an unambiguous grammar can produce than one parse.
 
-=head1 DUPLICATE TOKENS
+=head1 Duplicate tokens
 
 A duplicate token is a token of the same type
 and the same length as another
@@ -419,7 +417,7 @@ to be a useful technique, Marpa may provide an option to change
 its behavior, so that a soft failure is returned
 when there is a duplicate token.
 
-=head1 EARLEMES: THE DETAILS
+=head1 Earlemes: the details
 
 While scanning, Marpa keeps track of the B<current earleme>.
 Earlemes in a parse start at earleme 0 and increase numerically.
@@ -449,7 +447,7 @@ If the length of the token is I<L>,
 and the number of the current earleme is I<C>,
 the end of the token will be at the earleme whose number is I<C+L>.
 
-=head1 THE CHARACTER-PER-EARLEME MODEL
+=head1 The character-per-earleme model
 
 Many different models of the relationship between tokens and earlemes
 are possible, but two are particularly important.
@@ -475,7 +473,7 @@ no tokens will start at
 any earlemes which corresponds to character locations inside
 a comment.
 
-=head1 OTHER INPUT MODELS
+=head1 Other input models
 
 So far only the token-per-earleme and
 character-per-earleme models have seen any
