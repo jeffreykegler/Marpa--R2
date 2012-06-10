@@ -17,7 +17,7 @@
 
 Marpa::R2::Grammar - Marpa grammars
 
-=head1 SYNOPSIS
+=head1 Synopsis
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -45,7 +45,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 DESCRIPTION
+=head1 Description
 
 To create a Marpa grammar object,
 use the C<new> method.
@@ -193,7 +193,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 CONSTRUCTOR
+=head1 Constructor
 
 =head2 new
 
@@ -233,7 +233,7 @@ the named argument.
 The available named arguments are described
 L<below|/"Named arguments">.
 
-=head1 MUTATORS
+=head1 Mutators
 
 =head2 precompute
 
@@ -268,7 +268,7 @@ The available named arguments are described
 L<below|/"Named arguments">.
 C<set> either returns true or throws an exception.
 
-=head1 ACCESSORS
+=head1 Accessors
 
 =head2 check_terminal
 
@@ -278,7 +278,35 @@ Not often needed,
 but a lexer may find this
 the most convenient way to determine if a symbol is a terminal.
 
-=head1 TRACE ACCESSORS
+=head2 progress
+
+Given the location (Earley set ID) as its argument,
+returns an array which describes the parse progress
+at that location.
+Details on progress reports can be found in
+L<their own document|Marpa::R2::Progress>.
+
+=head2 rule
+
+=for Marpa::R2::Display
+name: rule() Synopsis
+normalize-whitespace: 1
+
+    my ($lhs, @rhs) = $grammar->rule($completed_rule_id);
+
+=for Marpa::R2::Display::End
+
+Given a rule ID as its argument,
+returns an array containing the symbols of the rule.
+The LHS symbol is the first symbol in the array,
+and the RHS symbols follow it in order.
+Returns a Perl false if there is rule ID is well-formed,
+but no such rule exists.
+
+Rule ID's are used in callbacks,
+tracing and debugging.
+
+=head1 Trace accessors
 
 =head2 show_problems
 
