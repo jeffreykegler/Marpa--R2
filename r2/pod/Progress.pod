@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Debug - Debugging your grammar
+Marpa::R2::Progress - Progress reports on your parse
 
 =head1 OVERVIEW
 

@@ -302,7 +302,7 @@ A much fuller description,
 with an example,
 is in
 L<the document on debugging Marpa
-grammars|Marpa::R2::Debug>.
+grammars|Marpa::R2::Progress>.
 
 =head1 Named arguments
 
