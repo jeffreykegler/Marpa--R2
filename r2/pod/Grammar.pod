@@ -281,7 +281,7 @@ the most convenient way to determine if a symbol is a terminal.
 =head2 progress
 
 Given the location (Earley set ID) as its argument,
-returns an array which describes the parse progress
+returns an array that describes the parse progress
 at that location.
 Details on progress reports can be found in
 L<their own document|Marpa::R2::Progress>.
@@ -300,11 +300,12 @@ Given a rule ID as its argument,
 returns an array containing the symbols of the rule.
 The LHS symbol is the first symbol in the array,
 and the RHS symbols follow it in order.
-Returns a Perl false if there is rule ID is well-formed,
+Returns a Perl false if rule ID is well-formed,
 but no such rule exists.
-
-Rule ID's are used in callbacks,
-tracing and debugging.
+Situations where
+Rule ID's are encountered include
+callbacks and
+use of L<the progress method|/"progress">.
 
 =head1 Trace accessors
 
