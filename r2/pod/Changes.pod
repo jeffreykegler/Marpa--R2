@@ -120,15 +120,11 @@ an exception to be thrown.
 Symbols no longer have null values, so the "default_null_value"
 named argument of grammars has been removed.
 
-=head2 The "symbols" named argument for grammars has been removed
+=head2 The "null_value" symbol property has been removed
 
-In Marpa::XS the C<symbols> named argument was used to specify null
-values for symbols.  It was also an alternate way of marking symbols
-as terminals.  Symbols no longer have null values,
-and an alternate
-and more cumbersome way to mark terminals is not worth cluttering
-the documentation.  Use of the C<symbols> named argument now causes
-an exception.
+Symbols no longer have null values.
+Use of the C<null value> symbol property
+now causes an exception.
 
 =head2 The token value argument of read() has changed
 
