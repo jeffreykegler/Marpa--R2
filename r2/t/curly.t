@@ -100,13 +100,20 @@ TEST: for my $test (@tests) {
     for my $earley_set_id ( 0 .. $recce->latest_earley_set() ) {
         my $progress_report = $recce->progress($earley_set_id);
         ITEM: for my $progress_item ( @{$progress_report} ) {
-            my ( $rule_id, $position, $origin ) = @{$progress_item};
+            my ( $rule_id, $position, $origin_earley_set_id ) = @{$progress_item};
             last ITEM if not defined $rule_id;
             next ITEM if $position >= 0;
             $position = $grammar_c->rule_length($rule_id);
-            my $origin_earleme = $recce->earleme($origin);
-            my $rule           = $rules->[$rule_id];
-            my $rule_name      = $rule->[Marpa::R2::Internal::Rule::NAME];
+
+# Marpa::R2::Display
+# name: earleme() Synopsis
+
+            my $origin_earleme = $recce->earleme($origin_earley_set_id);
+
+# Marpa::R2::Display::End
+
+            my $rule      = $rules->[$rule_id];
+            my $rule_name = $rule->[Marpa::R2::Internal::Rule::NAME];
             next ITEM if not defined $rule_name;
             my $blocktype =
                   $rule_name eq 'anon_hash' ? 'hash'

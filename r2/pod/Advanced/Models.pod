@@ -225,6 +225,46 @@ Returns the current parse location,
 also known as the current earleme.
 Not often needed.
 
+=head2 earleme
+
+=for Marpa::R2::Display
+name: earleme() Synopsis
+normalize-whitespace: 1
+
+      my $origin_earleme = $recce->earleme($origin_earley_set_id);
+
+=for Marpa::R2::Display::End
+
+Given an Earley set ID as its argument,
+the C<earleme()> recognizer method
+returns the corresponding earleme.
+Every integer in the range from 0
+to the ID of the latest Earley
+is a valid Earley set ID,
+and every valid Earley set ID corresponds to an
+earleme.
+If the argument of C<earleme()> is
+greater than the latest Earley set ID,
+C<earleme()> returns Perl C<undef>.
+
+There is currently no method that translates from
+earleme to Earley set.
+Earley set to earleme translation is a well-behaved
+one-to-one function
+in all input models -- for every Earley set there is
+a earleme,
+and every earleme is mapped to by at most one Earley set.
+Earleme to Earley set translation is far less well-behaved.
+In many input models, it is a partial function -- there
+are some earlemes that are
+in the valid range of earlemes
+but do not map to any Earley set.
+
+Earleme to Earley set translation is often not needed.
+When it is, it can be implemented at the application
+level, with the application taking advantage of what
+it knows about its choice of input model.
+
 =head2 earleme_complete
 
 =for Marpa::R2::Display
