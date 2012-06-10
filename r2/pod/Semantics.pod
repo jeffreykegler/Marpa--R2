@@ -100,7 +100,7 @@ An action name
 and action is also used
 to create the per-parse-tree variable,
 as L<described
-below|/"THE PER-PARSE-TREE VARIABLE">.
+below|/"The per-parse-tree variable">.
 
 =head1 ACTIONS
 
@@ -407,7 +407,7 @@ if one is defined.
 =back
 
 Resolution of action names is L<described
-below|/"RESOLVING ACTION NAMES">.
+below|/"Resolving action names">.
 If the C<action> property
 the C<default_action> named argument,
 or the C<default_empty_action> named argument
@@ -418,7 +418,7 @@ Marpa prefers to "fast fail" in these cases,
 because they often indicate a mistake in
 writing the application.
 
-=head1 RESOLVING ACTION NAMES
+=head1 Resolving action names
 
 Action names come from these sources:
 
@@ -529,7 +529,7 @@ she can specify
 C<"main">
 as the value of the C<actions> named argument.
 
-=head1 THE PER-PARSE-TREE VARIABLE
+=head1 The per-parse-tree variable
 
 In the Tree Setup Phase,
 Marpa creates a per-parse-tree variable.

@@ -172,7 +172,7 @@ If the parser accepted the token,
 the C<read> method returns
 the number of tokens which are acceptable at the new current location.
 This number may be helpful in guiding L<Ruby
-Slippers parsing|/"RUBY SLIPPERS PARSING">.
+Slippers parsing|/"Ruby Slippers parsing">.
 
 C<read> may return zero,
 which means
@@ -184,7 +184,7 @@ a zero return from a C<read> method
 means that the parse is B<exhausted> --
 that no more input is possible.
 More details on "exhaustion" are in L<a
-section below|/"PARSE EXHAUSTION">.
+section below|/"Parse exhaustion">.
 
 Marpa may reject a token because it is not one of those
 acceptable at the current location.
@@ -196,7 +196,7 @@ This is, in fact, an important technique in Ruby
 Slippers parsing.
 For details,
 see L<the section on Ruby Slippers
-parsing|/"RUBY SLIPPERS PARSING">.
+parsing|/"Ruby Slippers parsing">.
 
 For other failures,
 including an attempt to C<read> a token
@@ -471,7 +471,7 @@ Warnings are written to the trace file handle.
 By default, the recognizer's warnings are on.
 Usually, an application will want to leave them on.
 
-=head1 RUBY SLIPPERS PARSING
+=head1 Ruby Slippers parsing
 
 =for Marpa::R2::Display
 name: Engine Synopsis Interactive Parse
@@ -558,7 +558,7 @@ a completely new "virtual" token that gives the parser exactly what it expects.
 L<Marpa::HTML> then resumes input at the point in the original input stream
 where it left off.
 
-=head1 PARSE EXHAUSTION
+=head1 Parse exhaustion
 
 A parse is B<exhausted> when it will accept no more input.
 In the default input model, the C<read> method indicates this
