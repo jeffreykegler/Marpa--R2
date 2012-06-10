@@ -317,8 +317,6 @@ sub Marpa::R2::Grammar::set {
 
         if ( defined( my $value = $args->{'symbols'} ) ) {
             Marpa::R2::exception(
-                'The symbols option is not currently implemented');
-            Marpa::R2::exception(
                 'symbols option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             Marpa::R2::exception('symbols value must be REF to HASH')
