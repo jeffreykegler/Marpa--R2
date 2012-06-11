@@ -674,59 +674,6 @@ as a free download (L<http://www.lulu.com/content/933192>).
 It can be purchased in print form at Amazon.com:
 L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
-=head1 Acknowledgments
-
-Marpa is
-directly derived from two other parsers.
-The first was discovered by
-John Aycock and
-R.  Nigel Horspool
-and is described in their
-L<Aycock and Horspool 2002|Marpa::R2::Advanced::Bibliography/"Aycock and Horspool 2002">.
-The second was described by Joop Leo and is described in
-L<Leo 1991|Marpa::R2::Advanced::Bibliography/"Leo 1991">.
-Aycock, Horspool, and Leo, in turn, based their
-algorithms on the
-L<algorithm discovered by Jay Earley|Marpa::R2::Advanced::Bibliography/"Earley 1970">.
-I combined the Aycock-Horspool algorithm with the Leo algorithm,
-and added significant changes of my own.
-
-I'm grateful to Randal Schwartz for his support over the years that
-I've been working on Marpa.
-My chats with
-Larry Wall have been few and brief,
-but his openness to new ideas has been
-a major encouragement
-and his insight into the relationship between
-"natural language" and computer language
-has been a major influence.
-More recently,
-Allison Randal and Patrick Michaud have been generous with their
-very valuable time.
-They might have preferred that I volunteered as a Parrot cage-cleaner,
-but if so, they were too polite to say.
-
-Many at perlmonks.org answered questions for me.
-I used answers from
-chromatic, Corion, dragonchild,
-jdporter, samtregar and Juerd,
-among others,
-in writing this module.
-I'm just as grateful to those whose answers I didn't use.
-My inquiries were made while I was thinking out the code and
-it wasn't always 100% clear what I was after.
-If the butt is moved after the round,
-it shouldn't count against the archer.
-
-In writing the Pure Perl version of Marpa, I benefited from studying
-the work of Francois Desarmenien (C<Parse::Yapp>),
-Damian Conway (C<Parse::RecDescent>) and
-Graham Barr (C<Scalar::Util>).
-Adam Kennedy patiently instructed me
-in module writing,
-both on the finer points and
-on issues about which I really should have know better.
-
 =head1 Support
 
 L<Marpa::R2> comes without warranty.

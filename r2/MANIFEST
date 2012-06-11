@@ -165,6 +165,7 @@ libmarpa/test/dev/Makefile.am
 libmarpa/test/dev/balanced.c
 libmarpa/test/dev/configure.ac
 libmarpa/test/dev/testleak.c
+pod/Acknowledgments.pod
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod
 pod/Changes.pod
