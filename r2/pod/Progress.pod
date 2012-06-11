@@ -582,6 +582,7 @@ Marpa's "situational awareness" in innovative ways.
 
 =for Marpa::R2::Display
 name: progress(0) example
+normalize-whitespace: 1
 
     my $report0 = $recce->progress(0);
 
@@ -591,6 +592,7 @@ Z<>
 
 =for Marpa::R2::Display
 name: progress() example
+normalize-whitespace: 1
 
     my $latest_report = $recce->progress();
 
