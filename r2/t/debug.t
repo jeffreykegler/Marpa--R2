@@ -138,12 +138,12 @@ END_PROGRESS_REPORT
 # Marpa::R2::Display::End
 
 $Data::Dumper::Indent = 0;
-$Data::Dumper::Terse = 1;
+$Data::Dumper::Terse  = 1;
 
 # Marpa::R2::Display
 # name: progress(0) example
 
-$progress_report = $recce->progress(0);
+my $report0 = $recce->progress(0);
 
 # Marpa::R2::Display::End
 
@@ -152,42 +152,48 @@ $progress_report = $recce->progress(0);
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::R2::Test::is( Data::Dumper::Dumper($progress_report),
-    <<'END_PROGRESS_REPORT', 'progress report at location 0' );
+chomp( my $expected_report0 = <<'END_PROGRESS_REPORT');
+[[0,0,0],[2,0,0],[4,0,0]]
 END_PROGRESS_REPORT
+Marpa::R2::Test::is( Data::Dumper::Dumper($report0),
+    $expected_report0, 'progress report at location 0' );
 
 # Marpa::R2::Display::End
 
-$progress_report = $recce->progress(1);
+my $report1 = $recce->progress(1);
 
 # Marpa::R2::Display
 # name: Progress Report at Location 1
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::R2::Test::is( Data::Dumper::Dumper($progress_report),
-    <<'END_PROGRESS_REPORT', 'progress report at location 1' );
+chomp( my $expected_report1 = <<'END_PROGRESS_REPORT');
+[[0,-1,0],[2,-1,0],[4,1,0]]
 END_PROGRESS_REPORT
+Marpa::R2::Test::is( Data::Dumper::Dumper($report1),
+    $expected_report1, 'progress report at location 1' );
 
 # Marpa::R2::Display::End
 
-$progress_report = $recce->progress(2);
+my $report2 = $recce->progress(2);
 
 # Marpa::R2::Display
 # name: Progress Report at Location 2
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::R2::Test::is( Data::Dumper::Dumper($progress_report),
-    <<'END_PROGRESS_REPORT', 'progress report at location 2' );
+chomp( my $expected_report2 = <<'END_PROGRESS_REPORT');
+[[2,0,2],[4,0,2],[4,2,0]]
 END_PROGRESS_REPORT
+Marpa::R2::Test::is( Data::Dumper::Dumper($report2),
+    $expected_report2, 'progress report at location 2' );
 
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
 # name: progress() example
 
-$progress_report = $recce->progress();
+my $report3 = $recce->progress();
 
 # Marpa::R2::Display::End
 
@@ -196,9 +202,11 @@ $progress_report = $recce->progress();
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
-Marpa::R2::Test::is( Data::Dumper::Dumper($progress_report),
-    <<'END_PROGRESS_REPORT', 'progress report at location 3' );
+chomp( my $expected_report3 = <<'END_PROGRESS_REPORT');
+[[0,-1,0],[2,-1,2],[4,-1,0],[4,1,0],[4,1,2]]
 END_PROGRESS_REPORT
+Marpa::R2::Test::is( Data::Dumper::Dumper($report3),
+    $expected_report3, 'progress report at location 3' );
 
 # Marpa::R2::Display::End
 
