@@ -148,7 +148,7 @@ my $report0 = $recce->progress(0);
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
-# name: Progress Report at Location 0
+# name: progress() output at location 0
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -163,7 +163,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report0),
 my $report1 = $recce->progress(1);
 
 # Marpa::R2::Display
-# name: Progress Report at Location 1
+# name: progress() output at location 1
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -178,7 +178,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report1),
 my $report2 = $recce->progress(2);
 
 # Marpa::R2::Display
-# name: Progress Report at Location 2
+# name: progress() output at location 2
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -198,7 +198,7 @@ my $report3 = $recce->progress();
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
-# name: Progress Report at Location 3
+# name: progress() output at location 3
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 

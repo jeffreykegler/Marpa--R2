@@ -679,7 +679,7 @@ may set it up so that earleme and location are
 two different things,
 and in that case the distinction will matter.
 
-=head2 Progress output
+=head2 show_progress() output
 
 =for Marpa::R2::Display
 name: Debug Example Progress Report
@@ -699,6 +699,23 @@ remove-blank-last-line: 1
     F2 @2-3 Factor -> Number .
     R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
     F4 @0-3 Factor -> Factor Multiply Factor .
+
+=for Marpa::R2::Display::End
+
+=head2 progress() outputs
+
+These section contains the output of the C<progress()>
+method -- the progress reports in their "raw" format.
+The output is show in L<Data::Dumper> format,
+with C<Data::Dumper::Indent> set to 0
+and C<Data::Dumper::Terse> set to 1.
+
+=for Marpa::R2::Display
+name: progress() output at location 0
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    [[0,0,0],[2,0,0],[4,0,0]]
 
 =for Marpa::R2::Display::End
 
