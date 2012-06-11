@@ -25,6 +25,7 @@ use Fatal qw( open close );
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
+use Data::Dumper;
 
 my $progress_report = q{};
 
@@ -132,6 +133,68 @@ F0 @0-3 Expression -> Factor .
 F2 @2-3 Factor -> Number .
 R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
 F4 @0-3 Factor -> Factor Multiply Factor .
+END_PROGRESS_REPORT
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: progress(0) example
+
+$progress_report = $recce->progress(0);
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: Progress Report at Location 0
+# start-after-line: END_PROGRESS_REPORT
+# end-before-line: '^END_PROGRESS_REPORT$'
+
+Marpa::R2::Test::is( Data::Dumper::Dumper($progress_report),
+    <<'END_PROGRESS_REPORT', 'progress report at location 0' );
+END_PROGRESS_REPORT
+
+# Marpa::R2::Display::End
+
+$progress_report = $recce->progress(1);
+
+# Marpa::R2::Display
+# name: Progress Report at Location 1
+# start-after-line: END_PROGRESS_REPORT
+# end-before-line: '^END_PROGRESS_REPORT$'
+
+Marpa::R2::Test::is( Data::Dumper::Dumper($progress_report),
+    <<'END_PROGRESS_REPORT', 'progress report at location 1' );
+END_PROGRESS_REPORT
+
+# Marpa::R2::Display::End
+
+$progress_report = $recce->progress(2);
+
+# Marpa::R2::Display
+# name: Progress Report at Location 2
+# start-after-line: END_PROGRESS_REPORT
+# end-before-line: '^END_PROGRESS_REPORT$'
+
+Marpa::R2::Test::is( Data::Dumper::Dumper($progress_report),
+    <<'END_PROGRESS_REPORT', 'progress report at location 2' );
+END_PROGRESS_REPORT
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: progress() example
+
+$progress_report = $recce->progress();
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: Progress Report at Location 3
+# start-after-line: END_PROGRESS_REPORT
+# end-before-line: '^END_PROGRESS_REPORT$'
+
+Marpa::R2::Test::is( Data::Dumper::Dumper($progress_report),
+    <<'END_PROGRESS_REPORT', 'progress report at location 3' );
 END_PROGRESS_REPORT
 
 # Marpa::R2::Display::End
