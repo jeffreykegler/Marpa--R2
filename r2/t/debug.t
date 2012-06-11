@@ -18,7 +18,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 7;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
@@ -136,6 +136,9 @@ F4 @0-3 Factor -> Factor Multiply Factor .
 END_PROGRESS_REPORT
 
 # Marpa::R2::Display::End
+
+$Data::Dumper::Indent = 0;
+$Data::Dumper::Terse = 1;
 
 # Marpa::R2::Display
 # name: progress(0) example
