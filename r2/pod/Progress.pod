@@ -719,6 +719,33 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
+=for Marpa::R2::Display
+name: progress() output at location 1
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    [[0,-1,0],[2,-1,0],[4,1,0]]
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: progress() output at location 2
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    [[2,0,2],[4,0,2],[4,2,0]]
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: progress() output at location 3
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    [[0,-1,0],[2,-1,2],[4,-1,0],[4,1,0],[4,1,2]]
+
+=for Marpa::R2::Display::End
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display
