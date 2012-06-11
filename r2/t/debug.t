@@ -193,7 +193,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report2),
 # Marpa::R2::Display
 # name: progress() example
 
-my $report3 = $recce->progress();
+my $latest_report = $recce->progress();
 
 # Marpa::R2::Display::End
 
@@ -205,7 +205,7 @@ my $report3 = $recce->progress();
 chomp( my $expected_report3 = <<'END_PROGRESS_REPORT');
 [[0,-1,0],[2,-1,2],[4,-1,0],[4,1,0],[4,1,2]]
 END_PROGRESS_REPORT
-Marpa::R2::Test::is( Data::Dumper::Dumper($report3),
+Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
     $expected_report3, 'progress report at location 3' );
 
 # Marpa::R2::Display::End

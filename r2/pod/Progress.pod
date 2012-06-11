@@ -569,6 +569,97 @@ does not show its expansion into rules.
 This reduces clutter,
 and seems to be the intuitive way to treat nulled rules.
 
+=head1 Access to the "raw" progress report information
+
+This section deals with the C<progress()> recognizer method,
+which allows access to the raw progress report information.
+This method is not needed for typical debugging and tracing
+situations.
+It is intended for applications which want to leverage
+Marpa's "situational awareness" in innovative ways.
+
+=head2 progress()
+
+=for Marpa::R2::Display
+name: progress(0) example
+
+    my $report0 = $recce->progress(0);
+
+=for Marpa::R2::Display::End
+
+Z<>
+
+=for Marpa::R2::Display
+name: progress() example
+
+    my $latest_report = $recce->progress();
+
+=for Marpa::R2::Display::End
+
+Given the parse location (Earley set ID) as its argument,
+the C<progress()> recognizer method returns a reference
+to an array of "report items".
+Each report item is a triple: an array of three elements.
+The three elements are, in order,
+rule ID, dot position, and origin.
+
+The rule ID is the same number that Marpa uses
+to identify rules
+in tracing and debugging output.
+Given a rule ID, an application can find
+its LHS and RHS symbols using
+L<the grammar's C<rule()> method|Marpa::R2::Grammar/"rule">.
+
+Dot position is -1 for completions,
+and 0 for predictions.
+Where the report item is not for a completion or
+a prediction, dot position is I<N>,
+where <N> is the number of RHS symbols
+successfully recognized at the parse location of
+the progress report.
+
+Origin is parse location (Earley set ID)
+at which the rule application reported by
+the report item began.
+For a prediction, origin will always be
+the same as the location of the parse report.
+
+=head2 Progress reports and efficiency
+
+When progress reports are used for production parsing,
+instead of just for debugging and tracing,
+efficiency consideration become significant.
+We will start with the good news.
+C<progress()> is implemented in C, so that the
+application can usually expect calls to
+C<progress()> to be extremely fast.
+
+Now, as to the potential bad news:
+Applications planning frequent use of calls
+to C<progress()> need to be aware that,
+where there is a right recursion at a parse location,
+C<progress()> needs to follow the entire chain
+of recursions to create the progress report.
+That this is happening will always be evident
+from the parse report itself,
+which will contain one report item
+for every completion in the right-recursive
+chain of completions.
+If an application tries to
+produce progress reports for a large number of parse locations,
+and these parse locations have long right recursive chains,
+it can prove computationally expensive.
+
+The efficiency consideration just mentioned
+for following right recursions
+is not an issue for left recursions.
+Left recursions only produce at most two report
+items per parse location
+and are extremely fast to process.
+Similarly, it is also not an issue for
+Marpa's sequence rules, because they are implemented
+internally as left recursions.
+
 =head1 Appendix: full code and output for the example
 
 Below are the code, the trace outputs
