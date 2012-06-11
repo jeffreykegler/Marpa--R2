@@ -158,7 +158,7 @@ my $unique_lhs_grammar = {
     start => 'Top',
 };
 test_grammar( 'unique_lhs',
-    $unique_lhs_grammar, 'LHS of sequence rule would not be unique.: Dup -> Item ' );
+    $unique_lhs_grammar, 'LHS of sequence rule would not be unique: Dup -> Item ' );
 
 my $nulling_terminal_grammar = {
     rules => [
