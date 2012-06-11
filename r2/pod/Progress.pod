@@ -604,6 +604,10 @@ to an array of "report items".
 Each report item is a triple: an array of three elements.
 The three elements are, in order,
 rule ID, dot position, and origin.
+The data returned by the two displays above,
+as well as the data for the other parse locations
+in our example,
+are shown L<below|"progress() outputs">.
 
 The rule ID is the same number that Marpa uses
 to identify rules
@@ -799,9 +803,11 @@ remove-blank-last-line: 1
 
 These section contains the output of the C<progress()>
 method -- the progress reports in their "raw" format.
-The output is show in L<Data::Dumper> format,
+The output is shown in L<Data::Dumper> format,
 with C<Data::Dumper::Indent> set to 0
 and C<Data::Dumper::Terse> set to 1.
+
+The C<Data::Dumper> output from C<progress()> at location 0:
 
 =for Marpa::R2::Display
 name: progress() output at location 0
@@ -812,6 +818,8 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
+The C<Data::Dumper> output from C<progress()> at location 1:
+
 =for Marpa::R2::Display
 name: progress() output at location 1
 remove-display-indent: 1
@@ -821,6 +829,8 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
+The C<Data::Dumper> output from C<progress()> at location 2:
+
 =for Marpa::R2::Display
 name: progress() output at location 2
 remove-display-indent: 1
@@ -829,6 +839,10 @@ remove-blank-last-line: 1
     [[2,0,2],[4,0,2],[4,2,0]]
 
 =for Marpa::R2::Display::End
+
+The default C<progress()> output is for the latest Earley set,
+which is location 3 in our example.
+Here is the C<progress()> output for location 3.
 
 =for Marpa::R2::Display
 name: progress() output at location 3
