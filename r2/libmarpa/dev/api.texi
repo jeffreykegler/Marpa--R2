@@ -3707,6 +3707,17 @@ determine the start and end earlemes of a token.
 @node Internal Interface,  , Things To Do, Top
 @chapter Internal Interface
 
+Internal methods are only for testing and development of libmarpa.
+They are listed here (and sometimes described) for the convenience
+of those working on libmarpa's internals.
+
+Internal methods are subject to change.
+Applications should not use internal methods.
+If a description exists and might be helpful,
+it may be included below,
+but all applications
+should treat these methods as ``undocumented''.
+
 @menu
 * Symbol internal methods::     
 * Rule internals::              
@@ -3720,17 +3731,6 @@ determine the start and end earlemes of a token.
 
 @node Symbol internal methods, Rule internals, Internal Interface, Internal Interface
 @section Symbol internal methods
-
-Internal methods are only for testing and development of libmarpa.
-They are listed here (and sometimes described) for the convenience
-of those working on libmarpa's internals.
-
-Internal methods are subject to change.
-Applications should not use internal methods.
-Where a description exists and may be helpful,
-it may be included below,
-but all applications
-should treat these methods as ``undocumented''.
 
 @deftypefun int _marpa_g_rule_first_child_set ( @
     Marpa_Grammar @var{g}, @
