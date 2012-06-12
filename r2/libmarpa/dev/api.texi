@@ -40,7 +40,6 @@ This manual is for Libmarpa, version @value{VERSION}.
 * How to read this document::   
 * About Libmarpa::              What is Libmarpa?
 * Architecture::                
-* Objects::                     
 * Input::                       
 * Semantics::                   
 * Threads::                     
@@ -70,22 +69,9 @@ How to read this document
 
 Architecture
 
-* Architecture - Grammar::      
-* Recognition versus parsing::  
-
-Grammars
-
-* Precomputation::
-
-Recognition versus parsing
-
-* Precomputation::              
-
-Objects
-
-* The sequence of time objects::  
-* Base grammars::               
+* Time objects::                
 * The lifetime of time objects::  
+* Parent and child time objects::  
 * Numbered objects::            
 
 Input
@@ -244,7 +230,9 @@ This document is very far from self-contained.
 It assumes the following:
 @itemize
 @item
-The reader knows the C programming language.
+The reader knows the C programming language
+at least well
+enough to understand function prototypes.
 @item
 The reader
 has read the documents for one of Libmarpa's upper layers.
@@ -337,8 +325,7 @@ Instead, Libmarpa,
 based on its traversal of the parse tree,
 passes optimized step by step stack manipulation
 instructions to the upper layer.
-These instructions indicate the token or rule involved
-involved,
+These instructions indicate the token or rule involved,
 and the proper location for the true token value or
 the result of the rule evaluation.
 For rule evaluations, the instructions include the stack location
@@ -353,119 +340,105 @@ to catch errors at runtime or,
 failing all else,
 to successfully debug the logic.
 
-@node Architecture, Objects, About Libmarpa, Top
+@node Architecture, Input, About Libmarpa, Top
 @chapter Architecture
 
 @menu
-* Architecture - Grammar::      
-* Recognition versus parsing::  
-@end menu
-
-@node Architecture - Grammar, Recognition versus parsing, Architecture, Architecture
-@section Grammars
-
-As per parsing theory,
-before an input can be parsed,
-a grammar must be defined.
-Traditionally,
-a grammar consists of a set of terminal symbols,
-a set of non-terminal symbols,
-a set of rules,
-and a distinguished start symbol.
-
-@menu
-* Precomputation::
-@end menu
-
-@node Recognition versus parsing,  , Architecture - Grammar, Architecture
-@section Recognition versus parsing
-
-Even in the academic literature,
-parsing is used in many senses,
-Determining whether a string matches a grammar is called
-@dfn{recognition}.
-Finding the structure of the recognized string according
-to the grammar is
-@dfn{parsing} in a very strict sense of the term.
-Strictly speaking,
-Earley's algorithm was a recognizer,
-and not a parser.
-Marpa contains both a recognizer
-and a parser in the strict sense.
-Marpa's recognizer is implemented by its recognizer time objects.
-Marpa's parser in the strict sense
-is implemented by its bocage class and the classes
-which follow the bocage in the time object sequence.
-
-@menu
-* Precomputation::              
-@end menu
-
-@node Precomputation,  , Recognition versus parsing, Recognition versus parsing
-@subsection Precomputation
-
-Before a recognizer can be created from a grammar,
-it must be precomputed.
-Internally, precomputation is what the term
-suggests --
-the memoization of a large number
-of facts about the grammar to allow
-the recognizer to proceed more efficiently.
-Marpa makes aggressive use of grammar precomputation.
-
-Precomputation ``freezes'' a grammar.
-New symbols, rules and sequences cannot be added
-to a precomputed grammar
-are disallowed,
-as are most other changes.
-
-@node Objects, Input, Architecture, Top
-@chapter Objects
-
-Libmarpa's most important objects are time objects.
-Time objects are so called for two related reasons.
-First, they relate to a ``time'' in the progress of a parse.
-Second, each time object has a lifetime and is reference counted.
-
-Libmarpa's major objects are called ``time'' objects instead
-of phase objects,
-because phases are exclusive and non-simultaneous
--- when one phase ends, another begins.
-Time objects are often in use simultaneously.
-In our lives, work and play are times.
-Infancy, adolescent and adulthood are phases.
-
-The time objects are, in sequence:
-@itemize
-@item Grammars.
-@item Recognizers.
-@item Bocages.
-@item Orderings.
-@item Trees.
-@item Valuators.
-@end itemize
-
-@menu
-* The sequence of time objects::  
-* Base grammars::               
+* Time objects::                
 * The lifetime of time objects::  
+* Parent and child time objects::  
 * Numbered objects::            
 @end menu
 
-@node The sequence of time objects, Base grammars, Objects, Objects
-@section The sequence of time objects
+@node Time objects, The lifetime of time objects, Architecture, Architecture
+@section Time objects
 
-While time objects do not correspond to phases,
-they do have a well-defined sequence.
+Marpa divides parsing into phases,
+which in this document are more often called ``times''.
+The term ``time'' is more accurate,
+beacuse the time objects are typically in use simultaneously.
+The term ``phase'' suggest a time which is
+exclusive and non-simultaneous
+-- when one phase ends, another begins.
+In our lives, work and play are times.
+Infancy, adolescent and adulthood are phases.
+
+Although times can be simulataneous,
+they do have a sequence.
+The times are, in sequence order:
+
+@itemize
+@item
+Grammar:  At grammar time, the rules and symbols
+are defined, with their properties.
+A grammar must be precomputed before a recognizer can
+be created from it.
+@item
+Recognizer: At recognizer time, input is read.
+@item
+Bocage: At bocage time, a data structure called a
+bocage is created from the information captured
+during recognition.
+The bocage stores a collection of parse trees,
+similar to a parse forest.
+@item:
+Ordering: At ordering time, a order is defined
+for the bocage.
+@item:
+Tree: At tree time,
+an iterator of the parse bocage
+is created, and traversed.
+@item:
+Value: At value time,
+the current parse tree of a tree iterator
+is traversed for its ``steps''.
+``Steps'' are instructions that tell
+the application how to maintain
+a stack and to evaluate the
+semantics.
+@end itemize
+
+@node The lifetime of time objects, Parent and child time objects, Time objects, Architecture
+@section The lifetime of time objects
+
+One of reasons Libmarpa's major objects
+are called ``time objects''
+is that each of them has a distinct lifetime.
+Time objects are reference counted.
+Every time object is created with a reference count of 1.
+Whenever one time object is created from another,
+the parent time object has its reference count incremented
+by 1.
+
+Time objects do not have explicit destructors.
+Every time object has a method which decrements its
+reference count by 1.
+When the reference count of a time object reaches
+0, that time object is destroyed.
+
+In ordinary circumstances, all an application has to
+do is keep in mind that it ``owns'' the time objects
+it has created,
+and that it must call a method
+to ``unreference'' that object when it is finished.
+
+In some applications, multiple parts of it
+may need to share ownership of an object.
+For such situations,
+every time object has a method to increment
+the reference count.
+
+@node Parent and child time objects, Numbered objects, The lifetime of time objects, Architecture
+@section Parent and child time objects
+
 Except for grammars,
 all time objects are created from another time
 object.
+Each time object is created from a time object
+of the class before it in the sequence.
 A recognizer cannot be created without a precomputed grammar;
 a bocage cannot be created without a recognizer;
 and so on.
-
-@node Base grammars, The lifetime of time objects, The sequence of time objects, Objects
-@section Every time object has a base grammar
 
 When one time object is used to create a second
 time object,
@@ -495,34 +468,7 @@ the base grammar of a bocage is the base
 grammar of the recognizer that it was created
 with.
 
-@node The lifetime of time objects, Numbered objects, Base grammars, Objects
-@section The lifetime of time objects
-
-Time objects are reference-counted.
-Every time object is created with a reference count of 1.
-Whenever one time object is created from another,
-the parent time object has its reference count incremented
-by 1.
-
-Time objects do not have explicit destructors.
-Every time object has a method which decrements its
-reference count by 1.
-When the reference count of a time object reaches
-0, that time object is destroyed.
-
-In ordinary circumstances, all an application has to
-do is keep in mind that it ``owns'' the time objects
-it has created,
-and that it must call a method
-to ``unreference'' that object when it is finished.
-
-In some applications, multiple parts of it
-may need to share ownership of an object.
-For such situations,
-every time object has a method to increment
-the reference count.
-
-@node Numbered objects,  , The lifetime of time objects, Objects
+@node Numbered objects,  , Parent and child time objects, Architecture
 @section Numbered objects
 
 In addition to its major, ``time'' objects, Libmarpa also has
@@ -530,12 +476,11 @@ numbered objects.
 Numbered objects do not have lifetimes of their own.
 Every numbered object belongs to a timed object,
 and is destroyed with it.
-
 Rules and symbols are numbered objects.
-Tokens values are
-another examples of numbered objects.
+Tokens values are another class of numbered
+objects.
 
-@node Input, Semantics, Objects, Top
+@node Input, Semantics, Architecture, Top
 @chapter Input
 
 @menu
