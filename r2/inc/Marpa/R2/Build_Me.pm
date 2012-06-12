@@ -265,6 +265,26 @@ sub do_libmarpa {
 
     my $configure_script = 'configure';
     make_writeable($configure_script);
+
+    # Some files are *NOT* to be rebuilt,
+    # and are time-stamped as up to date.
+    # Do not memoize time(), because we may need to space out
+    # the timestamps anyway with sleep(), so speed is no issue
+    # at all here.
+    #
+    # This is necessary because automake tries to be smart
+    # about remaking everything needed and often is
+    # too agressive for our purposes
+    utime time(), time(), 'configure.ac';
+    utime time(), time(), 'Makefile.am';
+
+    # The order very much matters
+    utime time(), time(), 'Makefile.in';
+    utime time(), time(), 'aclocal.m4';
+
+    utime time(), time(), $configure_script;
+    utime time(), time(), 'config.h.in';
+
     if ( not -r 'stamp-h1' ) {
 
         if ( $self->verbose() ) {
@@ -319,6 +339,10 @@ sub do_libmarpa {
                 or die "print failed: $ERRNO";
         }
     } ## end else [ if ( not -r 'stamp-h1' ) ]
+
+    # At this point we know that config.status is
+    # up to date, so we timestamp it
+    utime time(), time(), 'config.status';
 
     if ( $self->verbose() ) {
         print "Making libmarpa: Start\n" or die "Cannot print: $ERRNO";
