@@ -1058,15 +1058,19 @@ In ordinary language, ``success'' is a desired result,
 and ``failure'' an undesired one.
 
 In this document, @dfn{success}
-successfully followed its primary logic path to an end result.
+means that Libmarpa
+followed its primary logic path to its end,
+returning the result appropriate for that logic path.
 @dfn{Failure} means some other logic path was followed.
 
 As one example where the distinction is relevant,
 some methods are designed so that they can be used
 to control a loop.  Success means continue the loop,
-while a soft failure indicates loop terminate.
+while a soft failure indicates that the loop should terminate.
 It is typically a good thing for loops to terminate,
-so that the soft failure is very much a ``desired result''.
+so that this soft failure is,
+in context,
+very much a ``desired result''.
 As another example,
 the ``Ruby Slippers'' parsing method uses soft failures
 as a means of testing alternative inputs and/or
@@ -1104,9 +1108,8 @@ necessary,
 the error code is not set.
 
 An application will have its own ideas of success,
-primary and secondary logic paths,
-what is or is not a recoverable failure,
-and what is or is not a fatal error.
+of what is or is not a recoverable failure,
+and of what is or is not a fatal error.
 As much as possible, Libmarpa makes it
 possible for the application to capture
 its results and reinterpret them to suit
@@ -1118,10 +1121,11 @@ generalizations may be helpful.  Soft failures disrupt the normal
 flow of processing less often than hard failures.  Hard failures
 only rarely are part of an application's primary logic path, and
 very often indicate an unrecoverable error.
-There are many case in which
-soft failures are part of an application's primary logic path, and
-even more where they are part of a secondary logic path, and even
-more where they are recoverable.  But it is also true that many
+There are many cases in which
+soft failures are part of an application's primary logic path,
+even more where they are part of a secondary logic path,
+and even more where they are recoverable.
+But it is also true that many
 soft failures are unrecoverable errors from the point of view of
 the application.
 
@@ -1158,8 +1162,7 @@ implements the complete logic flow,
 from the creation of a grammar to a final result
 from its valuation.
 In the archetypal Libmarpa application,
-grammar, input and semantics are
-all small but non-trivial.
+the grammar, input and semantics are small but non-trivial.
 
 @node Return values,  , About the overviews, Introduction to the external interface
 @section Return values
@@ -1173,9 +1176,9 @@ If a function returns an pointer value,
 and it is not otherwise stated,
 @code{NULL} indicates a failure,
 and any other result indicates success.
+
 Exceptions to these rules
 will be explicitly indicated.
-
 Where a method returns @code{NULL},
 and in its description
 there is no mention of soft failure,
