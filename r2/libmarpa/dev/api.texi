@@ -30,14 +30,14 @@ Published @value{UPDATED} by Jeffrey Kegler
 @c So the toc is printed at the start.
 @contents
 @ifnottex
-@node Top, How to read this document, (dir), (dir)
+@node Top, About this document, (dir), (dir)
 @top Libmarpa: The Marpa low-level library
 
 This manual is for Libmarpa, version @value{VERSION}.
 
 @end ifnottex
 @menu
-* How to read this document::   
+* About this document::         
 * About Libmarpa::              What is Libmarpa?
 * Architecture::                
 * Input::                       
@@ -62,8 +62,9 @@ This manual is for Libmarpa, version @value{VERSION}.
 @detailmenu
  --- The Detailed Node Listing ---
 
-How to read this document
+About this document
 
+* How to read this document::   
 * Prerequisites::               Prerequisites.
 * Parsing theory::              Parsing theory.
 
@@ -206,15 +207,28 @@ Internal Interface
 @end detailmenu
 @end menu
 
-@node How to read this document, About Libmarpa, Top, Top
-@chapter How to read this document
+@node About this document, About Libmarpa, Top, Top
+@chapter About this document
 
 @menu
+* How to read this document::   
 * Prerequisites::               Prerequisites.
 * Parsing theory::              Parsing theory.
 @end menu
 
-@node Prerequisites, Parsing theory, How to read this document, How to read this document
+@node How to read this document, Prerequisites, About this document, About this document
+@section How to read this document
+
+This is essentially a reference document,
+but its early chapters lay out concepts
+essential to the others.
+Readers will usually want to read the
+chapters up and including
+@ref{Introduction to the external interface}
+in order.
+Otherwise, they may follow their interests.
+
+@node Prerequisites, Parsing theory, How to read this document, About this document
 @section Prerequisites
 
 This document is very far from self-contained.
@@ -232,7 +246,7 @@ The reader knows some parsing theory.
 @xref{Parsing theory}.
 @end itemize
 
-@node Parsing theory,  , Prerequisites, How to read this document
+@node Parsing theory,  , Prerequisites, About this document
 @section Parsing theory
 
 This document assumes an acquaintance
@@ -276,7 +290,7 @@ one of the packages that extend
 regular expressions,
 he should have no trouble with BNF.
 
-@node About Libmarpa, Architecture, How to read this document, Top
+@node About Libmarpa, Architecture, About this document, Top
 @chapter About Libmarpa
 Libmarpa implements the Marpa parsing algorithm.
 Marpa is named
