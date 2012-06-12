@@ -102,7 +102,7 @@ Semantics
 
 * How Libmarpa semantics work::  
 * Universe of values::          
-* Whatever values::             
+* Valued and unvalued symbols::  
 
 Threads
 
@@ -411,10 +411,12 @@ the parent time object has its reference count incremented
 by 1.
 
 Time objects do not have explicit destructors.
-Every time object has a method which decrements its
-reference count by 1.
 When the reference count of a time object reaches
 0, that time object is destroyed.
+When a child object is destroyed, it
+decrements the reference count of its parent.
+Also, each time class has a method that decrements 
+the reference count of an object in that class by 1.
 
 In ordinary circumstances, all an application has to
 do is keep in mind that it ``owns'' the time objects
@@ -422,11 +424,12 @@ it has created,
 and that it must call a method
 to ``unreference'' that object when it is finished.
 
-In some applications, multiple parts of it
-may need to share ownership of an object.
+More complex applications may find it convenient
+to have multiple parts, or even new objects,
+that share ownership of a Libmarpa time object.
 For such situations,
-every time object has a method to increment
-the reference count.
+every class of time object has a method to increment
+the reference count for objects in that class.
 
 @node Parent and child time objects, Numbered objects, The lifetime of time objects, Architecture
 @section Parent and child time objects
@@ -451,10 +454,10 @@ and the bocage is the child object.
 
 Grammars have no parent object.
 Every other time object has exactly one parent object.
-Valuation objects have no child objects.
+Value objects have no child objects.
 All other time objects can have any number of children,
-from zero up to a number determined by the memory limits
-or the architecture.
+from zero up to a number determined by memory or
+some other machine-determined limit.
 
 Every time object has a @dfn{base grammar}.
 A grammar object is its own base grammar.
@@ -615,8 +618,7 @@ by calling @code{marpa_r_earleme_complete()},
 until the current earleme is equal to the furthest earleme.
 
 The lastest earleme is the earleme of the last Earley set.
-Typically, the Earley set ID is the number of greater interest.
-It is different from the current earleme if and only if
+The latest earleme is different from the current earleme if and only if
 there is no Earley set at the current earleme.
 Once recognition is complete, parsing must take place over
 a range of Earley sets.
@@ -734,18 +736,24 @@ we now need to remove only one restriction.
 We now allow empty earlemes -- earlemes with
 no tokens and no Earley set.
 
-An empty earleme 1 can be created by
-making a call to @code{marpa_r_earleme_complete()}
-when 
-no call to @code{marpa_r_alternative()} has been
-made for the recognizer.
-Later earleme will be empty if two calls
-to @code{marpa_r_earleme_complete()}
-are made with no intervening call
-to @code{marpa_r_alternative()}.
+A call
+to @code{marpa_r_earleme_complete()},
+creates an empty earleme if and only if
+it falls into one of these two cases:
+@itemize
+@item
+There has been no call
+to @code{marpa_r_alternative()} since
+recognizer initialization.
+@item
+There has been no call
+to @code{marpa_r_alternative()} since
+the previous call
+to @code{marpa_r_earleme_complete()}.
+@end itemize
 
-If @code{marpa_r_earleme_complete()} is called
-for an empty earleme,
+If a call to @code{marpa_r_earleme_complete()} creates
+an empty earleme,
 the latest earleme remains unchanged from its
 prior value.
 This means that, since the current earleme will
@@ -759,8 +767,8 @@ the call to @code{marpa_r_earleme_complete()}.
 
 At this point, the most generalized input model has been
 introduced.
-The following will always be the case,
-even in Libmarpa's most generalized input model.
+Next we state some facts that will always be the case,
+no matter what input model is in use.
 
 @itemize
 @item The current earleme is greater than
@@ -850,7 +858,7 @@ and forth into whatever the application requires.
 @menu
 * How Libmarpa semantics work::  
 * Universe of values::          
-* Whatever values::             
+* Valued and unvalued symbols::  
 @end menu
 
 @node How Libmarpa semantics work, Universe of values, Semantics, Semantics
@@ -859,7 +867,6 @@ and forth into whatever the application requires.
 Libmarpa handling of semantics is unusual.
 Most semantics are left up to the application,
 but Libmarpa guides them.
-
 Specifically, the application is expected to maintain the evaluation
 stack.
 Libmarpa's valuator provides instructions on how to handle the stack.
@@ -872,7 +879,7 @@ For rule evalution, Libmarpa will tell the application where the operands
 are to be found,
 and where the result must go.
 
-@node Universe of values, Whatever values, How Libmarpa semantics work, Semantics
+@node Universe of values, Valued and unvalued symbols, How Libmarpa semantics work, Semantics
 @section The universe of values
 
 The application can react to Libmarpa's stack handling instructions
@@ -899,7 +906,7 @@ Because of optimizations, it is quite possible for a
 Libmarpa step to identify a stack position which has
 never been written to as the operand of a rule.
 This can happen, for example, if the rule's
-operand is a ``whatever''
+operand is an unvalued or ``whatever''
 value.
 (It is expected that in such a case that the rule's value
 does not depend on that operand, though it is up to the
@@ -914,8 +921,11 @@ or that these trap values are never read.
 Excluding trap values from a C program's universe of
 values may require the application to make
 sure that stack positions are properly initialized.
+This is discussed in detail in the section
+on value objects.
+@xref{Value methods}.
 
-@node Whatever values,  , Universe of values, Semantics
+@node Valued and unvalued symbols,  , Universe of values, Semantics
 @section Valued and unvalued symbols
 
 Libmarpa symbols can have values,
@@ -937,11 +947,11 @@ Similarly, the value of the separators in a list is typically
 ignored.
 
 Rules are unvalued if and only if their LHS symbols
-are unvalued
+are unvalued.
 When rules and symbols are unvalued,
 Libmarpa optimizes their evaluation.
 
-Tt is in principle unsafe to check the value 
+It is in principle unsafe to check the value 
 of a symbol if it can be unvalued.
 For this reason,
 once a symbol has been treated as valued,
@@ -964,36 +974,29 @@ If allowed, the user should be aware that the valued
 status of a LHS terminal
 will be locked in the recognizer
 if it is used as a terminal,
-and the symbols use as a rule LHS
+and the symbol's use as a rule LHS
 in the valuator must be
 consistent with the recognizer's marking.
 
 Marpa reports an error when a symbol's use
 conflicts with its locked valued status.
-This usually is usually saving the programmer
-some tricky debugging down the road.
-It is possible that an application might want to mix
+Doing so usually saves the programmer
+some tricky debugging further down the road.
+But it is possible that an application might deliberately
+want to mix
 valued and unvalued uses of a symbol -- an application
 might be able to differentiate them using the larger
-context, or might be tolerant of a the uncertainty.
+context, or might be tolerant of the uncertainty.
 If there is interest,
-a future extension might allow a locked
+a future Libmarpa extension might allow a locked
 valued status to be overriden.
 
 @node Threads, Error handling concepts, Semantics, Top
 @chapter Threads
 
 Libmarpa is thread-safe,
-if used as described below.
+given circumstances as described below.
 The Libmarpa methods are not reentrant.
-
-@menu
-* C89 and thread-safety::       
-* Base grammars cannot be shared between threads::  
-@end menu
-
-@node C89 and thread-safety, Base grammars cannot be shared between threads, Threads, Threads
-@section C89 and thread-safety
 
 Libmarpa is C89-compliant.
 It uses no global data,
@@ -1011,12 +1014,6 @@ To be thread-safe, Libmarpa must be compiled
 and linked in an environment that provides
 thread-safety.
 
-@menu
-* C89 and thread-safety::
-@end menu
-
-@node Base grammars cannot be shared between threads,  , C89 and thread-safety, Threads
-@section Base grammars cannot be shared between threads
 While Libmarpa can be used safely across
 multiple threads,
 a Libmarpa grammar cannot be.
