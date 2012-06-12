@@ -381,14 +381,14 @@ bocage is created from the information captured
 during recognition.
 The bocage stores a collection of parse trees,
 similar to a parse forest.
-@item:
+@item
 Ordering: At ordering time, a order is defined
 for the bocage.
-@item:
+@item
 Tree: At tree time,
 an iterator of the parse bocage
 is created, and traversed.
-@item:
+@item
 Value: At value time,
 the current parse tree of a tree iterator
 is traversed for its ``steps''.
