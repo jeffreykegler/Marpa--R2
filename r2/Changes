@@ -15,9 +15,14 @@
 
 Revision history for Marpa::R2
 
+2.007_001
 2.007_000
        
        * New series of developer's releases
+
+       * Clean up libmarpa build
+
+       * Documented $recce->progress()
 
 2.006000
 
