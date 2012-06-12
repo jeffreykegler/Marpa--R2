@@ -620,7 +620,7 @@ Dot position is -1 for completions,
 and 0 for predictions.
 Where the report item is not for a completion or
 a prediction, dot position is I<N>,
-where <N> is the number of RHS symbols
+where I<N> is the number of RHS symbols
 successfully recognized at the parse location of
 the progress report.
 
@@ -634,7 +634,7 @@ the same as the location of the parse report.
 
 When progress reports are used for production parsing,
 instead of just for debugging and tracing,
-efficiency consideration become significant.
+efficiency considerations become significant.
 We will start with the good news.
 C<progress()> is implemented in C, so that the
 application can usually expect calls to
@@ -662,9 +662,9 @@ is not an issue for left recursions.
 Left recursions only produce at most two report
 items per parse location
 and are extremely fast to process.
-Similarly, it is also not an issue for
-Marpa's sequence rules, because they are implemented
-internally as left recursions.
+It is also not an issue for
+Marpa's sequence rules, because sequence rules
+are implemented internally as left recursions.
 
 =head1 Appendix: full code and output for the example
 

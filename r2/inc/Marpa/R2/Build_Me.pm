@@ -263,18 +263,19 @@ sub do_libmarpa {
     -d $build_dir or mkdir $build_dir;
     chdir $build_dir;
 
+    my @m4_files = glob('m4/*.m4');
     my $configure_script = 'configure';
 
     # Some files should NEVER be updated in this directory, by
     # make or anything else.  If for some reason they are
     # out of date, stamp them up to date
-    if ( not $self->up_to_date( ['configure.ac'], 'aclocal.m4' ) ) {
+    if ( not $self->up_to_date( ['configure.ac', @m4_files], 'aclocal.m4' ) ) {
         utime time(), time(), 'aclocal.m4';
     }
-    if (not $self->up_to_date( [ 'configure.ac', 'Makefile.am' ],
+    if (not $self->up_to_date( [ 'configure.ac', 'Makefile.am', 'aclocal.m4' ],
             'Makefile.in' ) )
     {
-        utime time(), time(), 'aclocal.m4';
+        utime time(), time(), 'Makefile.in';
     }
     if (not $self->up_to_date(
             [ 'configure.ac',    'aclocal.m4' ],
