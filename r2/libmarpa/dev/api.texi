@@ -104,15 +104,6 @@ Semantics
 * Universe of values::          
 * Valued and unvalued symbols::  
 
-Threads
-
-* C89 and thread-safety::       
-* Base grammars cannot be shared between threads::  
-
-C89 and thread-safety
-
-* C89 and thread-safety::
-
 Error handling
 
 * Memory allocation failures::  
@@ -1000,13 +991,12 @@ The Libmarpa methods are not reentrant.
 
 Libmarpa is C89-compliant.
 It uses no global data,
-and it does not use those C library functions which
-are inherently thread-unsafe.
-
-Libmarpa calls only the routines
+and calls only the routines
 that are defined in the C89 standard
 and that can be made thread-safe.
-In most modern implementations these are thread-safe.
+In most modern implementations,
+the default C89 implementation is thread-safe
+to the extent possible.
 But the C89 standard does not require thread-safety,
 and even most modern environments allow the user
 to turn thread safety off.
