@@ -224,8 +224,12 @@ LINE: while ( my $line = <STDIN> ) {
 
 } ## end while ( my $line = <STDIN> )
 
-for my $error_not_seen ( grep { !$errors_seen[$_] } (0 .. $#error_codes) ) {
-    say STDERR "Error not in document: ", $error_codes[$error_not_seen];
+my @errors_not_seen = grep { !$errors_seen[$_] } (0 .. $#error_codes);
+if (@errors_not_seen) {
+  for my $error_not_seen (@errors_not_seen) {
+      say STDERR "Error not in document: ", $error_codes[$error_not_seen];
+  }
+  die 'Error(s) in list, but not in document';
 }
 
 my $common_preamble = <<'COMMON_PREAMBLE';

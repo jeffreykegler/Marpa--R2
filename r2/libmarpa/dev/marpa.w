@@ -1803,7 +1803,7 @@ int min, int flags )
     }
   if (UNLIKELY (!xsyid_is_valid (g, lhs_id)))
     {
-      MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+      MARPA_ERROR (MARPA_ERR_INVALID_XSYID);
       goto FAILURE;
     }
   {
@@ -1816,7 +1816,7 @@ int min, int flags )
   }
   if (UNLIKELY (!xsyid_is_valid (g, rhs_id)))
     {
-      MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+      MARPA_ERROR (MARPA_ERR_INVALID_XSYID);
       goto FAILURE;
     }
 }
@@ -1906,7 +1906,7 @@ rule_check (GRAMMAR g, XRL rule)
   SYM lhs;
   const XRLID lhs_id = LHS_ID_of_XRL (rule);
   if (UNLIKELY (!xsyid_is_valid (g, lhs_id)))
-    goto INVALID_SYMID;
+    goto INVALID_XSYID;
   lhs = SYM_by_ID (lhs_id);
   if (UNLIKELY (SYM_is_Sequence_LHS (lhs)))
     {
@@ -1921,13 +1921,13 @@ rule_check (GRAMMAR g, XRL rule)
 	const SYMID symid = RHS_ID_of_XRL (rule, rh_index);
 	SYM rhs;
 	if (UNLIKELY (!xsyid_is_valid (g, symid)))
-	  goto INVALID_SYMID;
+	  goto INVALID_XSYID;
 	rhs = SYM_by_ID (symid);
       }
   }
   return 1;
-INVALID_SYMID:;
-  MARPA_ERROR (MARPA_ERR_INVALID_SYMID);
+INVALID_XSYID:;
+  MARPA_ERROR (MARPA_ERR_INVALID_XSYID);
   return 0;
 }
 

@@ -3330,48 +3330,45 @@ fatal error.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_EIM_ID_INVALID
+Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INTERNAL
-Internal errors are errors which
-"should not happen".
-They could result when the calling program
-overwrites Libmarpa's internal data.
-They may also indicate a bug in Libmarpa.
-An internal error will usually be a hard error.
-Suggested message: "Internal error"
+Internal.
+A ``catchall'' internal error.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_AHFA_ID
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_AIMID
+Internal.
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_BOOLEAN
 A function was called which takes a boolean argument,
 one which must be either 0 or 1,
 and that argument has some other value.
 Suggested message: "Argument is not boolean"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_ES_ORDINAL
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_IRLID
-A method was called with an invalid internal rule ID.
-Suggested message: "No IRL with that ID exists"
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_ISYID
-A method was called with an invalid internal symbol ID.
-Suggested message: "No ISY with that ID exists"
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_START_SYM
 @end deftypevr
-@deftypevr Macro int MARPA_ERR_INVALID_SYMID
-After development, this error code should no longer
-be used and should be deleted.
-@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_XRLID
 A method was called with an invalid external rule ID.
 Suggested message: "No rule with that ID exists"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_XSYID
 A method was called with an invalid external symbol ID.
 Suggested message: "No symbol with that ID exists"
@@ -3394,7 +3391,9 @@ of libmarpa, and the actual one.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NOOKID_NEGATIVE
+Internal.
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED
 An attempt was made to use a grammar
 that is not precomputed
@@ -3405,16 +3404,21 @@ Suggested message: "This grammar is not precomputed"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NOT_TRACING_COMPLETION_LINKS
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NOT_TRACING_LEO_LINKS
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NOT_TRACING_TOKEN_LINKS
+Internal.
 @end deftypevr
-
 @deftypevr Macro int MARPA_ERR_NO_AND_NODES
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NO_OR_NODES
+Internal.
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_NO_PARSE
 The application attempted to create a bocage
 from a recognizer without a parse.
@@ -3444,12 +3448,16 @@ Suggested message: "This grammar has no start symbol"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_TRACE_ES
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NO_TRACE_PIM
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NO_TRACE_EIM
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NO_TRACE_SRCL
+Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NULLING_TERMINAL
@@ -3459,9 +3467,12 @@ Suggested message: "A symbol is both terminal and nulling"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_ORID_NEGATIVE
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_OR_ALREADY_ORDERED
+Internal.
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_ORDER_FROZEN
 The Marpa order object has been frozen.
 Multiple tree iterators can share a Marpa order object,
@@ -3477,7 +3488,9 @@ but they must do so by creating multiple order objects.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_PARSE_TOO_LONG
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_PIM_IS_NOT_LIM
+Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_POINTER_ARG_NULL
@@ -3527,38 +3540,22 @@ Suggested message: "LHS of sequence rule would not be unique"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_NONE
-The link source type is 'none'
-in a context where that is not allowed.
-Suggested message: "A source type of 'none' is not allowed here"
+Internal.
 @end deftypevr
-
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_TOKEN
-The link source type is 'token'
-in a context where that is not allowed.
-Suggested message: "Token source type is not allowed here"
+Internal.
 @end deftypevr
-
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_COMPLETION
-The link source type is 'completion'
-in a context where that is not allowed.
-Suggested message: "Completion source type is not allowed here"
+Internal.
 @end deftypevr
-
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_LEO
-The link source type is 'Leo'
-in a context where that is not allowed.
-Suggested message: "Leo source type is not allowed here"
+Internal.
 @end deftypevr
-
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_AMBIGUOUS
-The link source type is ambiguous
-in a context where that is not allowed.
-Suggested message: "Ambiguous source type is not allowed here"
+Internal.
 @end deftypevr
-
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN
-The link source type is not known.
-Suggested message: "The source type is unknown"
+Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_START_NOT_LHS
