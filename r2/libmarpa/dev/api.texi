@@ -182,7 +182,8 @@ Error macros and code
 
 * Methods::                     
 * Error Macros::                
-* Error Codes::                 
+* External error codes::        
+* Internal error codes::        
 
 Design considerations
 
@@ -1211,7 +1212,7 @@ The Libmarpa error code is always set after
 a hard failure,
 and a full descriptions of the causes of each
 error code is in its own section.
-@xref{Error Codes}.
+@xref{External error codes}.
 
 @node Static method, Grammar methods, Introduction to the external interface, Top
 @chapter Static method
@@ -3140,7 +3141,8 @@ Suggested message: "This symbol is a nulling terminal"
 @menu
 * Methods::                     
 * Error Macros::                
-* Error Codes::                 
+* External error codes::        
+* Internal error codes::        
 @end menu
 
 @node Methods, Error Macros, Error macros and code, Error macros and code
@@ -3173,26 +3175,25 @@ Return value: The last error code from a Libmarpa method.
 Always succeeds.
 @end deftypefun
 
-@node Error Macros, Error Codes, Methods, Error macros and code
+@node Error Macros, External error codes, Methods, Error macros and code
 @section Error Macros
 
 @deftypevr Macro int MARPA_ERRCODE_COUNT
 The number of error codes.
 @end deftypevr
 
-@node Error Codes,  , Error Macros, Error macros and code
-@section Error Codes
+@node External error codes, Internal error codes, Error Macros, Error macros and code
+@section External error codes
+
+This section lists the external error codes.
+These are the only error codes that users
+of the Libmarpa external interface should ever see.
+Internal error codes are in their own section.
+@xref{Internal error codes}.
 
 This section is incomplete.
 As of this writing, some of the external error codes
 have no description or suggested message.
-
-Many of the error codes in this section are internal.
-Users of the external interface should never see
-internal error codes.
-Internal error codes are clearly indicated as such.
-The description and suggested message for internal error codes is either
-omitted or very brief.
 
 @deftypevr Macro int MARPA_ERR_NONE
 No error condition.
@@ -3213,22 +3214,6 @@ for efficiency and simplicity,
 will usually leave the error code as it
 found it.
 Suggested message: "No error"
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_AHFA_IX_NEGATIVE
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_AHFA_IX_OOB
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_ANDID_NEGATIVE
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_ANDID_NOT_IN_OR
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_ANDIX_NEGATIVE
-Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_BAD_SEPARATOR
@@ -3279,10 +3264,6 @@ which describes the error.
 Suggested message: "Development error, see string"
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_DUPLICATE_AND_NODE
-Internal.
-@end deftypevr
-
 @deftypevr Macro int MARPA_ERR_DUPLICATE_RULE
 This error indicates an attempt to add a rule which
 is a duplicate of a rule already in the grammar.
@@ -3329,22 +3310,6 @@ it is almost certainly both a hard and a
 fatal error.
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_EIM_ID_INVALID
-Internal.
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_INTERNAL
-Internal.
-A ``catchall'' internal error.
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_INVALID_AHFA_ID
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_INVALID_AIMID
-Internal.
-@end deftypevr
-
 @deftypevr Macro int MARPA_ERR_INVALID_BOOLEAN
 A function was called which takes a boolean argument,
 one which must be either 0 or 1,
@@ -3352,24 +3317,32 @@ and that argument has some other value.
 Suggested message: "Argument is not boolean"
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_INVALID_ES_ORDINAL
+@deftypevr Macro int MARPA_ERR_INVALID_LOCATION
+The location (Earley set ID) is not valid.
+It may be invalid because it is negative,
+and is not being used as an argument where
+a negative Earley set ID has a special meaning.
+It may be invalid because it is after the latest Earley set.
+
+For users of input models other than the standard one,
+the term ``location'', as used in association
+with this error code,
+means Earley set ID or Earley set ordinal.
+In the standard input model, this will always
+be identical with Libmarpa's other idea of
+location, the earleme.
+Suggested message: "Location is not valid"
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_INVALID_IRLID
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_INVALID_ISYID
-Internal.
-@end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_START_SYM
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_INVALID_XRLID
+@deftypevr Macro int MARPA_ERR_INVALID_RULE_ID
 A method was called with an invalid external rule ID.
 Suggested message: "No rule with that ID exists"
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_INVALID_XSYID
+@deftypevr Macro int MARPA_ERR_INVALID_SYMBOL_ID
 A method was called with an invalid external symbol ID.
 Suggested message: "No symbol with that ID exists"
 @end deftypevr
@@ -3390,10 +3363,6 @@ between the requested version
 of libmarpa, and the actual one.
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_NOOKID_NEGATIVE
-Internal.
-@end deftypevr
-
 @deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED
 An attempt was made to use a grammar
 that is not precomputed
@@ -3401,22 +3370,6 @@ in a way that is not allowed.
 For example, a recognizer cannot be
 created from a grammar until it is precomputed.
 Suggested message: "This grammar is not precomputed"
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_NOT_TRACING_COMPLETION_LINKS
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_NOT_TRACING_LEO_LINKS
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_NOT_TRACING_TOKEN_LINKS
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_NO_AND_NODES
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_NO_OR_NODES
-Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_PARSE
@@ -3447,30 +3400,10 @@ symbol can be precomputed.
 Suggested message: "This grammar has no start symbol"
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_NO_TRACE_ES
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_NO_TRACE_PIM
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_NO_TRACE_EIM
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_NO_TRACE_SRCL
-Internal.
-@end deftypevr
-
 @deftypevr Macro int MARPA_ERR_NULLING_TERMINAL
 Marpa does not allow a symbol to be both nulling
 and a terminal.
 Suggested message: "A symbol is both terminal and nulling"
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_ORID_NEGATIVE
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_OR_ALREADY_ORDERED
-Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_ORDER_FROZEN
@@ -3487,10 +3420,6 @@ but they must do so by creating multiple order objects.
 @deftypevr Macro int MARPA_ERR_PARSE_EXHAUSTED
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_PARSE_TOO_LONG
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_PIM_IS_NOT_LIM
-Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_POINTER_ARG_NULL
@@ -3537,25 +3466,6 @@ sequence rule cannot be the LHS of any other rule,
 whether a sequence rule or a BNF rule.
 An attempt was made to violate this restriction.
 Suggested message: "LHS of sequence rule would not be unique"
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_NONE
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_TOKEN
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_COMPLETION
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_LEO
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_AMBIGUOUS
-Internal.
-@end deftypevr
-@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN
-Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_START_NOT_LHS
@@ -3610,6 +3520,120 @@ should not be the case.
 Suggested message: "Valuator inactive"
 @end deftypevr
 
+@node Internal error codes,  , External error codes, Error macros and code
+@section Internal error codes
+
+An internal error code may be one of two things:
+First,
+it can be an error code which
+arises from an internal Libmarpa programming issue
+(in other words, something happening in the code
+that was not supposed to be able to happen.)
+Second, it can be an error code which only occurs
+when a method from Libmarpa's internal interface
+is used.
+Both kinds of internal error message share one common
+trait -- users of the Libmarpa's external interface
+should never see them.
+
+Internal error messages
+require someone with knowledge of the Libmarpa internals
+to follow up on them.
+They usually do not have descriptions or suggested messages.
+
+@deftypevr Macro int MARPA_ERR_AHFA_IX_NEGATIVE
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_AHFA_IX_OOB
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_ANDID_NEGATIVE
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_ANDID_NOT_IN_OR
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_ANDIX_NEGATIVE
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_DEVELOPMENT
+"Development" errors were used heavily during
+Libmarpa's development,
+when it is not yet clear how precisely
+to classify every error condition.
+Users of the external interface in released
+non-developer's versions should never
+see development errors.
+
+Development errors has an error string
+associated with them.
+The error string is a
+short 7-bit ASCII error string
+which describes the error.
+Suggested message: "Development error, see string"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_DUPLICATE_AND_NODE
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_EIM_ID_INVALID
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_INTERNAL
+A ``catchall'' internal error.
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_INVALID_AHFA_ID
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_INVALID_AIMID
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_INVALID_IRLID
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_INVALID_ISYID
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_INVALID_START_SYM
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NOOKID_NEGATIVE
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NOT_TRACING_COMPLETION_LINKS
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_NOT_TRACING_LEO_LINKS
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_NOT_TRACING_TOKEN_LINKS
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_NO_AND_NODES
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_NO_OR_NODES
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_TRACE_ES
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_NO_TRACE_PIM
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_NO_TRACE_EIM
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_NO_TRACE_SRCL
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_ORID_NEGATIVE
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_OR_ALREADY_ORDERED
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_PIM_IS_NOT_LIM
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_NONE
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_TOKEN
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_COMPLETION
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_LEO
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_AMBIGUOUS
+@end deftypevr
+@deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN
+@end deftypevr
 @node Design considerations, Things To Do, Error macros and code, Top
 @chapter Design considerations
 
