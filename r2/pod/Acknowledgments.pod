@@ -15,9 +15,9 @@
 
 =head1 NAME
 
-Marpa::R2::Acknowledgments - Marpa acknowledgements
+Marpa::R2::Acknowledgements - Marpa acknowledgements
 
-=head1 Acknowledgments
+=head1 Acknowledgements
 
 Marpa is
 directly derived from two other parsers.

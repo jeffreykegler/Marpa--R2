@@ -362,12 +362,10 @@ and its logic
 is a straightforward,
 natural expression of the structure of HTML.
 
-=head1 ACKNOWLEDGMENTS
+=head1 ACKNOWLEDGEMENTS
 
 The starting template for this code was
 L<HTML::TokeParser>, by Gisle Aas.
-See also the
-L<acknowledgments for Marpa as a whole|Marpa/"ACKNOWLEDGMENTS">.
 
 =head1 LICENSE AND COPYRIGHT
 
