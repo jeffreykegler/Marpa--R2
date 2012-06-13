@@ -84,8 +84,41 @@ sub default_action {
     return '(' . join( q{;}, @_ ) . ')';
 } ## end sub default_action
 
-my $grammar = Marpa::R2::Thin::G->new();
+my $grammar  = Marpa::R2::Thin::G->new();
+my $symbol_E = $grammar->symbol_new();
+$grammar->start_symbol_set($symbol_E);
+my $symbol_op     = $grammar->symbol_new();
+my $symbol_number = $grammar->symbol_new();
+my $rule_op =
+    $grammar->rule_new( $symbol_E, [ $symbol_E, $symbol_op, $symbol_E ] );
+my $rule_number = $grammar->rule_new( $symbol_E, [$symbol_number] );
+$grammar->precompute();
+
 my $recce = Marpa::R2::Thin::R->new($grammar);
+$recce->start_input();
+my @token_values         = ( 0 .. 3 );
+my $minus_token_value    = -1 + push @token_values, q{-};
+my $plus_token_value     = -1 + push @token_values, q{+};
+my $multiply_token_value = -1 + push @token_values, q{*};
+$recce->alternative( $symbol_number, 2, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_op, $minus_token_value, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_number, 0, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_op, $plus_token_value, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_number, 3, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_op, $multiply_token_value, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_number, 1, 1 );
+$recce->earleme_complete();
+
+my $latest_earley_set_ID = $recce->latest_earley_set();
+my $bocage = Marpa::R2::Thin::B->new($recce, $latest_earley_set_ID);
+my $order = Marpa::R2::Thin::O->new($bocage);
+my $tree = Marpa::R2::Thin::T->new($order);
 
 my $thick_grammar = Marpa::R2::Grammar->new(
     {   start   => 'E',

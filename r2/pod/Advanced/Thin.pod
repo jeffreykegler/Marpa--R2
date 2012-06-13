@@ -31,10 +31,11 @@ NOT convenient to use --
 user-friendliness is expected to be provided by
 an upper layer.
 The "thin" interface is intended for those writing
-upper layers for Marpa, or for those who want
-to eliminate the overhead of an upper layer from
-their application and consider the additional
-effort to do that worth while.
+upper layers for Marpa.
+It is also for those writing applications,
+when they want
+to eliminate the overhead of an upper layer,
+or when they want the flexibility provided by direct access to Libmarpa.
 
 This document assumes that the reader is familiar with
 the other Marpa::R2 documentation,
