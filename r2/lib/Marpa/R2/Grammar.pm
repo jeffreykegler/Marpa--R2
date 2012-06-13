@@ -243,7 +243,7 @@ sub Marpa::R2::Grammar::new {
     $grammar->[Marpa::R2::Internal::Grammar::RULE_NAME_REQUIRED] = 0;
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C] =
-        Marpa::R2::Thin::G->new($grammar);
+        Marpa::R2::Thin::G->new();
 
     $grammar->set(@arg_hashes);
 

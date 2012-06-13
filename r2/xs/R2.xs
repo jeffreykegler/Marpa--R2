@@ -274,7 +274,7 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 G_Wrapper *
-new( class, non_c_sv )
+new( class )
     char * class;
 PPCODE:
 {
