@@ -495,7 +495,7 @@ normalize-whitespace: 1
 
     TOKEN: for ( my $token_ix = 0; $token_ix <= $#tokens; $token_ix++ ) {
         defined $recce->read( @{ $tokens[$token_ix] } )
-            or fix_things( $recce, \@tokens )
+            or fix_things( $recce, $token_ix, \@tokens )
             or die q{Don't know how to fix things};
     }
 

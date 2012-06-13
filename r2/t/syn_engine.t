@@ -120,7 +120,8 @@ Test::More::is_deeply( [ sort @values ], [ 336, 49 ], 'Ambiguous Values' );
 # the unambiguous grammar.
 
 sub fix_things {
-    die q{Don't know how to fix things};
+    my ($recce, $tokens, $token_ix) = @_;
+    die qq{Don't know how to fix things at $token_ix};
 }
 
 # Marpa::R2::Display
@@ -136,7 +137,7 @@ my @tokens = (
 
 TOKEN: for ( my $token_ix = 0; $token_ix <= $#tokens; $token_ix++ ) {
     defined $recce->read( @{ $tokens[$token_ix] } )
-        or fix_things( $recce, \@tokens )
+        or fix_things( $recce, $token_ix, \@tokens )
         or die q{Don't know how to fix things};
 }
 
