@@ -3183,6 +3183,17 @@ The number of error codes.
 @node Error Codes,  , Error Macros, Error macros and code
 @section Error Codes
 
+This section is incomplete.
+As of this writing, some of the external error codes
+have no description or suggested message.
+
+Many of the error codes in this section are internal.
+Users of the external interface should never see
+internal error codes.
+Internal error codes are clearly indicated as such.
+The description and suggested message for internal error codes is either
+omitted or very brief.
+
 @deftypevr Macro int MARPA_ERR_NONE
 No error condition.
 The error code is initialized to this value.
@@ -3205,15 +3216,21 @@ Suggested message: "No error"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_AHFA_IX_NEGATIVE
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_AHFA_IX_OOB
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_ANDID_NEGATIVE
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_ANDID_NOT_IN_OR
+Internal.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_ANDIX_NEGATIVE
+Internal.
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_BAD_SEPARATOR
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_BOCAGE_ITERATION_EXHAUSTED
@@ -3245,21 +3262,25 @@ Suggested message: "Nullable symbol on RHS of a sequence rule"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_DEVELOPMENT
-The "development" errors is for use during
+Internal.
+"Development" errors were used heavily during
 Libmarpa's development,
-while it is not yet clear how precisely
+when it is not yet clear how precisely
 to classify every error condition.
+Users of the external interface in released
+non-developer's versions should never
+see development errors.
+
+Development errors has an error string
+associated with them.
 The error string is a
 short 7-bit ASCII error string
 which describes the error.
-Classifying an error as "development"
-is a temporary measure,
-taken until the error can be more
-precisely defined and classed.
 Suggested message: "Development error, see string"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_DUPLICATE_AND_NODE
+Internal.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_DUPLICATE_RULE
@@ -3375,6 +3396,12 @@ of libmarpa, and the actual one.
 @deftypevr Macro int MARPA_ERR_NOOKID_NEGATIVE
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED
+An attempt was made to use a grammar
+that is not precomputed
+in a way that is not allowed.
+For example, a recognizer cannot be
+created from a grammar until it is precomputed.
+Suggested message: "This grammar is not precomputed"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NOT_TRACING_COMPLETION_LINKS
@@ -3462,15 +3489,6 @@ Suggested message: "An argument is null when it should not be"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_PRECOMPUTED
-An attempt was made to use a precomputed grammar
-in a way that is not allowed.
-After a grammar is precomputed,
-any changes to it that would invalidate
-the precomputation
-is not allowed.
-Almost all changes to a grammar invalidate
-the precomputations.
-Suggested message: "This grammar is precomputed"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_PROGRESS_REPORT_NOT_STARTED
