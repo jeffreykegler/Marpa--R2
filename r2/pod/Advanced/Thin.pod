@@ -1,0 +1,85 @@
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Advanced::Thin - Direct access to Libmarpa
+
+=head1 About this document
+
+Most Marpa users can ignore this document.
+It describes Marpa's "thin" interface.
+The provides efficient access to Marpa's core
+library, Libmarpa.
+It provides the ultimate in Marpa speed,
+power and flexibility.
+
+The "thin" interface is very low-level and
+NOT convenient to use --
+user-friendliness is expected to be provided by
+an upper layer.
+The "thin" interface is intended for those writing
+upper layers for Marpa, or for those who want
+to eliminate the overhead of an upper layer from
+their application and consider the additional
+effort to do that worth while.
+
+This document assumes that the reader is familiar with
+the other Marpa::R2 documentation,
+as well as the Libmarpa API document.
+This means the reader will have to know some C language,
+enough to understand C function prototypes.
+
+=head1 How this document is written
+
+The Libmarpa interface is described in the Libmarpa
+API document,
+and this document avoids duplicating the material there.
+This document states general rules for the "thin" interface,
+and only describes in detail, those methods
+and situation which depart from the general rules.
+
+=head1 Example
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2012 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
