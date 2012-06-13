@@ -117,7 +117,7 @@ sub Marpa::R2::Recognizer::new {
         $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C] =
-        Marpa::R2::Internal::R_C->new($grammar_c);
+        Marpa::R2::Thin::R->new($grammar_c);
     if ( not defined $recce_c ) {
         my $error_code = $grammar_c->error_code() // -1;
         if ( $error_code == $Marpa::R2::Error::NOT_PRECOMPUTED ) {

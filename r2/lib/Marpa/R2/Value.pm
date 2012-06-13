@@ -393,7 +393,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     $action_object //= {};
 
-    my $value = Marpa::R2::Internal::V_C->new($tree);
+    my $value = Marpa::R2::Thin::V->new($tree);
 
     Marpa::R2::Internal::Recognizer::set_actions( $recce, $value );
 
@@ -612,13 +612,13 @@ sub Marpa::R2::Recognizer::value {
     else {
 
         my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-            Marpa::R2::Internal::B_C->new( $recce_c,
+            Marpa::R2::Thin::B->new( $recce_c,
             ( $parse_set_arg // -1 ) );
 
         return if not defined $bocage;
 
         $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
-            Marpa::R2::Internal::O_C->new($bocage);
+            Marpa::R2::Thin::O->new($bocage);
 
         given ( $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] ) {
             when ('high_rule_only') { do_high_rule_only($recce); }
@@ -626,7 +626,7 @@ sub Marpa::R2::Recognizer::value {
         }
 
         $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
-            Marpa::R2::Internal::T_C->new($order);
+            Marpa::R2::Thin::T->new($order);
 
     } ## end else [ if ($tree) ]
 

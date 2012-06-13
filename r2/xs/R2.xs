@@ -60,12 +60,12 @@ typedef struct {
      char *message_buffer;
 } V_Wrapper;
 
-static const char grammar_c_class_name[] = "Marpa::R2::Internal::G_C";
-static const char recce_c_class_name[] = "Marpa::R2::Internal::R_C";
-static const char bocage_c_class_name[] = "Marpa::R2::Internal::B_C";
-static const char order_c_class_name[] = "Marpa::R2::Internal::O_C";
-static const char tree_c_class_name[] = "Marpa::R2::Internal::T_C";
-static const char value_c_class_name[] = "Marpa::R2::Internal::V_C";
+static const char grammar_c_class_name[] = "Marpa::R2::Thin::G";
+static const char recce_c_class_name[] = "Marpa::R2::Thin::R";
+static const char bocage_c_class_name[] = "Marpa::R2::Thin::B";
+static const char order_c_class_name[] = "Marpa::R2::Thin::O";
+static const char tree_c_class_name[] = "Marpa::R2::Thin::T";
+static const char value_c_class_name[] = "Marpa::R2::Thin::V";
 
 #include "codes.h"
 #include "codes.c"
@@ -271,7 +271,7 @@ PPCODE:
     }
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::G_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 G_Wrapper *
 new( class, non_c_sv )
@@ -1453,7 +1453,7 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::R_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R
 
 void
 new( class, g_wrapper )
@@ -2072,7 +2072,7 @@ PPCODE:
 	XPUSHs( sv_2mortal( newSViv(result) ) );
     }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::B_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
 
 void
 new( class, r_wrapper, ordinal )
@@ -2389,7 +2389,7 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (value)));
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::O_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::O
 
 void
 new( class, b_wrapper )
@@ -2480,7 +2480,7 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::T_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::T
 
 void
 new( class, o_wrapper )
@@ -2715,7 +2715,7 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal::V_C
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::V
 
 void
 new( class, t_wrapper )
