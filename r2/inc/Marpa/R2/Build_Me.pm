@@ -238,10 +238,6 @@ sub marpa_link_c {
         if $self->up_to_date( [ $spec->{obj_file}, @{$objects} ],
         $spec->{lib_file} );
 
-    say {*STDERR} $spec->{lib_file}, ' Out of date wrt ', join q{, },
-        $spec->{obj_file}, @{$objects}
-        or die "say failed: $ERRNO";
-
     my $module_name = $spec->{module_name} || $self->module_name;
 
     $self->cbuilder->link(
