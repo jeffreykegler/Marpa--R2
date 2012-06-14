@@ -29,61 +29,6 @@ use English qw( -no_match_vars );
 use Fatal qw( close open );
 use Marpa::R2;
 
-## no critic (InputOutput::RequireBriefOpen)
-open my $original_stdout, q{>&STDOUT};
-## use critic
-
-sub save_stdout {
-    my $save;
-    my $save_ref = \$save;
-    close STDOUT;
-    open STDOUT, q{>}, $save_ref;
-    return $save_ref;
-} ## end sub save_stdout
-
-sub restore_stdout {
-    close STDOUT;
-    open STDOUT, q{>&}, $original_stdout;
-    return 1;
-}
-
-## no critic (Subroutines::RequireArgUnpacking, ErrorHandling::RequireCarping)
-
-sub do_op {
-    shift;
-    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
-    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
-    my $op = $_[1];
-    my $value;
-    if ( $op eq q{+} ) {
-        $value = $left_value + $right_value;
-    }
-    elsif ( $op eq q{*} ) {
-        $value = $left_value * $right_value;
-    }
-    elsif ( $op eq q{-} ) {
-        $value = $left_value - $right_value;
-    }
-    else {
-        die "Unknown op: $op";
-    }
-    return '(' . $left_string . $op . $right_string . ')==' . $value;
-} ## end sub do_op
-
-sub do_number {
-    shift;
-    my $v0 = pop @_;
-    return $v0 . q{==} . $v0;
-}
-
-sub default_action {
-    shift;
-    my $v_count = scalar @_;
-    return q{}   if $v_count <= 0;
-    return $_[0] if $v_count == 1;
-    return '(' . join( q{;}, @_ ) . ')';
-} ## end sub default_action
-
 my $grammar  = Marpa::R2::Thin::G->new();
 my $symbol_E = $grammar->symbol_new();
 $grammar->start_symbol_set($symbol_E);
@@ -96,13 +41,17 @@ $grammar->precompute();
 
 my $recce = Marpa::R2::Thin::R->new($grammar);
 $recce->start_input();
-my @token_values = ( 0 .. 3 );
 
+# The numbers from 1 to 3 are themselves --
+# that is, they index their own token value.
 # Important: zero cannot be itself!
-my $zero = -1 + +push @token_values, 0;
+
+my @token_values         = ( 0 .. 3 );
+my $zero                 = -1 + +push @token_values, 0;
 my $minus_token_value    = -1 + push @token_values, q{-};
 my $plus_token_value     = -1 + push @token_values, q{+};
 my $multiply_token_value = -1 + push @token_values, q{*};
+
 $recce->alternative( $symbol_number, 2, 1 );
 $recce->earleme_complete();
 $recce->alternative( $symbol_op, $minus_token_value, 1 );
@@ -190,8 +139,6 @@ for my $actual_value (@actual_values) {
     }
     $i++;
 } ## end for my $actual_value (@actual_values)
-
-1;    # In case used as "do" file
 
 # Local Variables:
 #   mode: cperl
