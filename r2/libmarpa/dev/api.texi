@@ -1239,7 +1239,8 @@ error code is in its own section.
 @section Naming conventions
 
 Methods in Libmarpa follow a strict naming convention.
-All methods have a name beginning with @{marpa_}, if they are part of the
+All methods have a name beginning with @code{marpa_},
+if they are part of the
 external interface.
 If an external method is not a static method,
 its name is prefixed with one of 
@@ -1255,7 +1256,8 @@ The letter indicates which class
 the method belongs to.
 
 Methods which are exported,
-but which are part of the internal interface begin with @{_marpa_}.
+but which are part of
+the internal interface begin with @code{_marpa_}.
 Methods which are part of the internal interface
 (hereafter ``internal methods'')
 are subject to change and are intended for use
