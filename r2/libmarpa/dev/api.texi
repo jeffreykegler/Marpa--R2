@@ -404,6 +404,25 @@ a stack and to evaluate the
 semantics.
 @end itemize
 
+The time objects classes have one letter abbreviations,
+which are used frequently.
+These are, in the standard sequence,
+
+@itemize
+@item
+Grammar:  G
+@item
+Recognizer: R
+@item
+Bocage: B
+@item
+Ordering: O
+@item
+Tree: T
+@item
+Value: V
+@end itemize
+
 @node The lifetime of time objects, Parent and child time objects, Time objects, Architecture
 @section The lifetime of time objects
 
@@ -1213,6 +1232,39 @@ a hard failure,
 and a full descriptions of the causes of each
 error code is in its own section.
 @xref{External error codes}.
+
+@node Naming conventions
+@section Naming conventions
+
+Methods in Libmarpa follow a strict naming convention.
+All methods have a name beginning with @{marpa_}, if they are part of the
+external interface.
+If an external method is not a static method,
+its name is prefixed with one of 
+@code{marpa_g_},
+@code{marpa_r_},
+@code{marpa_b_},
+@code{marpa_o_},
+@code{marpa_t_} or
+@code{marpa_v_},
+where the single letter between underscores
+is one of the time class abbreviations.
+The letter indicates which class
+the method belongs to.
+
+Methods which are exported,
+but which are part of the internal interface begin with @{_marpa_}.
+Methods which are part of the internal interface
+(hereafter ``internal methods'')
+are subject to change and are intended for use
+only by Libmarpa's developers.
+
+Libmarpa reserves the @code{marpa_}
+and @code{_marpa_} prefixes for itself,
+with all their capitalization variants.
+All Libmarpa names visible outside the package
+will begin with a capitalization variant
+of one of these two prefixes.
 
 @node Static method, Grammar methods, Introduction to the external interface, Top
 @chapter Static method
