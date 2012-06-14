@@ -165,9 +165,10 @@ libmarpa/test/dev/Makefile.am
 libmarpa/test/dev/balanced.c
 libmarpa/test/dev/configure.ac
 libmarpa/test/dev/testleak.c
-pod/Acknowledgments.pod
+pod/Acknowledgements.pod
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod
+pod/Advanced/Thin.pod
 pod/Changes.pod
 pod/Grammar.pod
 pod/Marpa_R2.pod
@@ -188,6 +189,7 @@ t/00-load.t
 t/ah2.t
 t/ah_numeric.t
 t/bocage.t
+t/catalan.t
 t/chaf.t
 t/code_diag.t
 t/context.t
@@ -225,6 +227,7 @@ t/rewrite.t
 t/sequence.t
 t/sequence2.t
 t/syn_engine.t
+t/thin_eq.t
 t/timeflies.t
 t/use.t
 t/wall.t
