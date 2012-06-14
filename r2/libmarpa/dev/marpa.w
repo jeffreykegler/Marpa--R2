@@ -2580,12 +2580,12 @@ While at it, set a flag to indicate if there are empty rules.
 {
   if (UNLIKELY(start_xsyid < 0))
     {
-      MARPA_ERROR (MARPA_ERR_NO_START_SYM);
+      MARPA_ERROR (MARPA_ERR_NO_START_SYMBOL);
       return failure_indicator;
     }
   if (UNLIKELY(!xsyid_is_valid (g, start_xsyid)))
     {
-      MARPA_ERROR (MARPA_ERR_INVALID_START_SYM);
+      MARPA_ERROR (MARPA_ERR_INVALID_START_SYMBOL);
       return failure_indicator;
     }
   if (UNLIKELY(!SYM_is_LHS (SYM_by_ID (start_xsyid))))
