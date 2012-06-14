@@ -14,14 +14,14 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# An ambiguous equation
-# A version using the thin interface
+# Testing an ambiguous equation
+# using the thin interface
 
 use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 5;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -70,7 +70,7 @@ sub do_op {
     return '(' . $left_string . $op . $right_string . ')==' . $value;
 } ## end sub do_op
 
-sub number {
+sub do_number {
     shift;
     my $v0 = pop @_;
     return $v0 . q{==} . $v0;
@@ -96,7 +96,10 @@ $grammar->precompute();
 
 my $recce = Marpa::R2::Thin::R->new($grammar);
 $recce->start_input();
-my @token_values         = ( 0 .. 3 );
+my @token_values = ( 0 .. 3 );
+
+# Important: zero cannot be itself!
+my $zero = -1 + +push @token_values, 0;
 my $minus_token_value    = -1 + push @token_values, q{-};
 my $plus_token_value     = -1 + push @token_values, q{+};
 my $multiply_token_value = -1 + push @token_values, q{*};
@@ -104,63 +107,69 @@ $recce->alternative( $symbol_number, 2, 1 );
 $recce->earleme_complete();
 $recce->alternative( $symbol_op, $minus_token_value, 1 );
 $recce->earleme_complete();
-$recce->alternative( $symbol_number, 0, 1 );
+$recce->alternative( $symbol_number, $zero, 1 );
 $recce->earleme_complete();
-$recce->alternative( $symbol_op, $plus_token_value, 1 );
+$recce->alternative( $symbol_op, $multiply_token_value, 1 );
 $recce->earleme_complete();
 $recce->alternative( $symbol_number, 3, 1 );
 $recce->earleme_complete();
-$recce->alternative( $symbol_op, $multiply_token_value, 1 );
+$recce->alternative( $symbol_op, $plus_token_value, 1 );
 $recce->earleme_complete();
 $recce->alternative( $symbol_number, 1, 1 );
 $recce->earleme_complete();
 
 my $latest_earley_set_ID = $recce->latest_earley_set();
-my $bocage = Marpa::R2::Thin::B->new($recce, $latest_earley_set_ID);
-my $order = Marpa::R2::Thin::O->new($bocage);
-my $tree = Marpa::R2::Thin::T->new($order);
-
-my $thick_grammar = Marpa::R2::Grammar->new(
-    {   start   => 'E',
-        actions => 'main',
-        rules   => [
-            [ 'E', [qw/E Op E/], 'do_op' ],
-            [ 'E', [qw/Number/], 'number' ],
-        ],
-        default_action => 'default_action',
-    }
-);
-
-$thick_grammar->precompute();
-
-my $thick_recce = Marpa::R2::Recognizer->new( { grammar => $thick_grammar } );
-
-$thick_recce->read( 'Number', 2 );
-$thick_recce->read( 'Op',     q{-} );
-$thick_recce->read( 'Number', 0 );
-$thick_recce->read( 'Op',     q{*} );
-$thick_recce->read( 'Number', 3 );
-$thick_recce->read( 'Op',     q{+} );
-$thick_recce->read( 'Number', 1 );
-
-my $actual_ref = save_stdout();
-
-# Marpa::R2::Display
-# name: Thin show_progress Synopsis
-
-print $thick_recce->show_progress()
-    or die "print failed: $ERRNO";
-
-# Marpa::R2::Display::End
-
-Marpa::R2::Test::is( ${$actual_ref},
-    <<'END_OF_PROGRESS_REPORT', 'Ambiguous Equation Progress Report' );
-R0:1 x4 @0...6-7 E -> E . Op E
-F0 x3 @0,2,4-7 E -> E Op E .
-F1 @6-7 E -> Number .
-END_OF_PROGRESS_REPORT
-
-restore_stdout();
+my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+my $order         = Marpa::R2::Thin::O->new($bocage);
+my $tree          = Marpa::R2::Thin::T->new($order);
+my @actual_values = ();
+while ( $tree->next() ) {
+    my $valuator = Marpa::R2::Thin::V->new($tree);
+    $valuator->rule_is_valued_set( $rule_op, 1 );
+    my @stack = ();
+    STEP: while ( my ( $type, @step_data ) = $valuator->step() ) {
+        last STEP if not defined $type;
+        if ( $type eq 'MARPA_STEP_TOKEN' ) {
+            my ( undef, $token_value_ix, $arg_n ) = @step_data;
+            $stack[$arg_n] = $token_values[$token_value_ix];
+            next STEP;
+        }
+        if ( $type eq 'MARPA_STEP_RULE' ) {
+            my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+            if ( $rule_id == $rule_number ) {
+                my $number = $stack[$arg_0];
+                $stack[$arg_0] = $number . q{==} . $number;
+                next STEP;
+            }
+            if ( $rule_id == $rule_op ) {
+                my $op = $stack[ $arg_0 + 1 ];
+                my ( $right_string, $right_value ) =
+                    ( $stack[$arg_n] =~ /^(.*)==(.*)$/xms );
+                my ( $left_string, $left_value ) =
+                    ( $stack[$arg_0] =~ /^(.*)==(.*)$/xms );
+                my $value;
+                if ( $op eq q{+} ) {
+                    $value = $left_value + $right_value;
+                }
+                elsif ( $op eq q{*} ) {
+                    $value = $left_value * $right_value;
+                }
+                elsif ( $op eq q{-} ) {
+                    $value = $left_value - $right_value;
+                }
+                else {
+                    die "Unknown op: $op";
+                }
+                $stack[$arg_0] =
+                    '(' . $left_string . $op . $right_string . ')==' . $value;
+                next STEP;
+            } ## end if ( $rule_id == $rule_op )
+            die "Unknown rule $rule_id";
+        } ## end if ( $type eq 'MARPA_STEP_RULE' )
+        die "Unexpected step type: $type";
+    } ## end while ( my ( $type, @step_data ) = $valuator->step() )
+    push @actual_values, $stack[0];
+} ## end while ( $tree->next() )
 
 my %expected_value = (
     '(2-(0*(3+1)))==2' => 1,
@@ -170,28 +179,17 @@ my %expected_value = (
     '(2-((0*3)+1))==1' => 1,
 );
 
-# Set max at 10 just in case there's an infinite loop.
-# This is for debugging, after all
-
-# Marpa::R2::Display
-# name: Thin Recognizer set Synopsis
-
-$thick_recce->set( { max_parses => 10, } );
-
-# Marpa::R2::Display::End
-
 my $i = 0;
-while ( defined( my $value = $thick_recce->value() ) ) {
-    my $value = ${$value};
-    if ( defined $expected_value{$value} ) {
-        delete $expected_value{$value};
-        Test::More::pass("Expected Value $i: $value");
+for my $actual_value (@actual_values) {
+    if ( defined $expected_value{$actual_value} ) {
+        delete $expected_value{$actual_value};
+        Test::More::pass("Expected Value $i: $actual_value");
     }
     else {
-        Test::More::fail("Unexpected Value $i: $value");
+        Test::More::fail("Unexpected Value $i: $actual_value");
     }
     $i++;
-} ## end while ( defined( my $value = $thick_recce->value() ) )
+} ## end for my $actual_value (@actual_values)
 
 1;    # In case used as "do" file
 
