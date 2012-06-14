@@ -115,6 +115,7 @@ Introduction to the external interface
 
 * About the overviews::         
 * Return values::               
+* Naming conventions::          
 
 Grammar methods
 
@@ -1172,6 +1173,7 @@ interface in detail.
 @menu
 * About the overviews::         
 * Return values::               
+* Naming conventions::          
 @end menu
 
 @node About the overviews, Return values, Introduction to the external interface, Introduction to the external interface
@@ -1198,7 +1200,7 @@ from its valuation.
 In the archetypal Libmarpa application,
 the grammar, input and semantics are small but non-trivial.
 
-@node Return values,  , About the overviews, Introduction to the external interface
+@node Return values, Naming conventions, About the overviews, Introduction to the external interface
 @section Return values
 
 If a function returns an integer value,
@@ -1233,7 +1235,7 @@ and a full descriptions of the causes of each
 error code is in its own section.
 @xref{External error codes}.
 
-@node Naming conventions
+@node Naming conventions,  , Return values, Introduction to the external interface
 @section Naming conventions
 
 Methods in Libmarpa follow a strict naming convention.
