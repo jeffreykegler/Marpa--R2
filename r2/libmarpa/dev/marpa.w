@@ -14505,7 +14505,7 @@ So I add such a comment.
 @<Body of public header file@>
 
 #include "marpa_api.h"
-#endif __MARPA_H__
+#endif /* __MARPA_H__ */
 
 @*0 |marpa_util.h| layout.
 \tenpoint
@@ -14520,7 +14520,7 @@ So I add such a comment.
 @<Utility variables@>
 @<Utility static functions@>
 
-#endif __MARPA__UTIL_H__
+#endif /* __MARPA__UTIL_H__ */
 
 @** Miscellaneous compiler defines.
 Various defines to
