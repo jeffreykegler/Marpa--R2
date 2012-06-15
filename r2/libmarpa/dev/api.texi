@@ -3247,10 +3247,6 @@ of the Libmarpa external interface should ever see.
 Internal error codes are in their own section.
 @xref{Internal error codes}.
 
-This section is incomplete.
-As of this writing, some of the external error codes
-have no description or suggested message.
-
 @deftypevr Macro int MARPA_ERR_NONE
 No error condition.
 The error code is initialized to this value.
@@ -3521,12 +3517,34 @@ Suggested message: "No progress report has been started"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT
+The recognizer is not accepting input,
+and the application has attempted something that
+is inconsistent with that fact.
+Suggested message: "The recognizer is not accepting input"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_RECCE_NOT_STARTED
+The recognizer has not been started.
+and the application has attempted something that
+is inconsistent with that fact.
+Suggested message: "The recognizer has not been started"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_RECCE_STARTED
+The recognizer has been started.
+and the application has attempted something that
+is inconsistent with that fact.
+Suggested message: "The recognizer has been started"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_RHS_TOO_LONG
+An attempt was made to add a rule with too many
+right hand side symbols.
+The limit on the RHS symbol count is very large,
+far beyond that required in any current practical grammar.
+This error code almost certainly indicates
+an mistake by the application.
+Suggested message: "The RHS is too long"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE
@@ -3565,14 +3583,6 @@ Suggested message: "Symbol is treated both as valued and unvalued"
 @deftypevr Macro int MARPA_ERR_TREE_EXHAUSTED
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_TREE_PAUSED
-@end deftypevr
-
-@deftypevr Macro int MARPA_ERR_UNKNOWN
-The cause of the error could not be determined.
-This usually indicates a problem in the error handling
-logic itself.
-This will usually be a hard error.
-Suggested message: "Unknown error"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_UNPRODUCTIVE_START
