@@ -3281,9 +3281,8 @@ to another value.
 Methods which do not result in a hard failure
 may reset the error code to @code{MARPA_ERR_NONE}
 or leave it at its current value.
-Which of the two a method does is currently
-unspecified,
-although the current implementation,
+Which of the two a method does is unspecified.
+The current implementation,
 for efficiency and simplicity,
 will usually leave the error code as it
 found it.
@@ -3408,16 +3407,21 @@ Suggested message: "No symbol with that ID exists"
 There was a mismatch in the major version number
 between the requested version
 of libmarpa, and the actual one.
+Suggested message: "Libmarpa major version number is a mismatch"
+
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_MICRO_VERSION_MISMATCH
 There was a mismatch in the micro version number
 between the requested version
 of libmarpa, and the actual one.
+Suggested message: "Libmarpa micro version number is a mismatch"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_MINOR_VERSION_MISMATCH
 There was a mismatch in the minor version number
 between the requested version
 of libmarpa, and the actual one.
+Suggested message: "Libmarpa minor version number is a mismatch"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED
@@ -3500,6 +3504,7 @@ of long tokens.
 This error code is unlikely in the standard input model.
 Almost certainly memory would be exceeded
 before it could occur.
+Suggested message: "This input would make the parse too long"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_POINTER_ARG_NULL
