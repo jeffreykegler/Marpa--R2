@@ -110,6 +110,7 @@ Error handling
 * Memory allocation failures::  
 * Success and failure::         
 * Soft and hard failure.::      
+* Interpreting hard and soft failure::  
 
 Introduction to the external interface
 
@@ -1066,6 +1067,7 @@ time objects.
 * Memory allocation failures::  
 * Success and failure::         
 * Soft and hard failure.::      
+* Interpreting hard and soft failure::  
 @end menu
 
 @node Memory allocation failures, Success and failure, Error handling concepts, Error handling concepts
@@ -1111,7 +1113,7 @@ the ``Ruby Slippers'' parsing method uses soft failures
 as a means of testing alternative inputs and/or
 checking the state of the parse.
 
-@node Soft and hard failure.,  , Success and failure, Error handling concepts
+@node Soft and hard failure., Interpreting hard and soft failure, Success and failure, Error handling concepts
 @section Soft and hard failure.
 
 Some methods have, in addition to a primary logic path,
@@ -1141,6 +1143,26 @@ and in those cases an error code is not needed.
 In the cases where it is not
 necessary,
 the error code is not set.
+
+Whether an error is a hard or soft failure
+depends on the context.
+For example, when iterating parse trees,
+it is usually a soft failure when the iterator is
+``exhausted''.
+The primary logic path is to continue the loop,
+but terminating the loop because the
+iterator is exhausted is an important secondary
+logic path.
+Reaching the end of an iteration is a normal event.
+On the other hand, attempting to create a new valuator
+from an exhausted parse tree iterator is
+considered a hard failure,
+because it is
+something the typical application will only
+do by mistake.
+
+@node Interpreting hard and soft failure,  , Soft and hard failure., Error handling concepts
+@section Interpreting hard and soft failure
 
 An application will have its own ideas of success,
 of what is or is not a recoverable failure,
@@ -3317,33 +3339,29 @@ Suggested message: "Duplicate rule"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_EIM_COUNT
-Libmarpa allows a maximum number of earley
-items per Earley set.
-This error code indicates that limit was
-exceeded.
-Note that this limit is different from
-the optional earley item
-warning threshold, which can be set
-by the application.
-Exceeding the warning threshold causes
-a Libmarpa event, which the application
-is free to treat as a hard or soft error.
-Suggested message: "Maximum number of earley items exceeded"
+This error code indicates that
+an implementation-defined limit on the
+number of earley items per Earley set
+was exceedeed.
+This limit is different from
+the earley item warning threshold,
+an optional limit on the number
+of Earley items in an Earley set,
+which can be set by the application.
 
-Most likely, memory will run out for
-other reasons long before this error can
-occur.
-The maximum earley item count for the
-purposes of this error code
-is over a billion.
-As a contrast, a reasonable setting for the
-warning threshold,
-even when exceeding the threshold is
-treated as a fatal error,
-will usually be well under 1000.
-If this error code ever does occur,
-it is almost certainly both a hard and a
-fatal error.
+The implementation defined-limit is very large,
+at least 500,000,000 earlemes.
+An application is unlikely ever to see this
+error for two reasons.
+First, Libmarpa's use of memory
+would almost certainly exceed the implementation's
+limits before it occurred.
+Second, applications will almost always want
+to use the earley item warning threshold to implement
+a much smaller limit.
+Typically, this will be under 1,000 Earley items
+per Earley set.
+Suggested message: "Maximum number of earley items exceeded"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_BOOLEAN
@@ -3466,7 +3484,9 @@ Suggested message: "The parse is exhausted"
 
 @deftypevr Macro int MARPA_ERR_PARSE_TOO_LONG
 The parse is too long.
-The limit on the length of a parse is very large.
+The limit on the length of a parse is implementation
+dependent, but it is very large,
+is at least 500,000,000 earlemes.
 If an application sees this error,
 it almost certainly using one of the non-standard
 input models.
@@ -3478,13 +3498,8 @@ occur after the input of a large number
 of long tokens.
 
 This error code is unlikely in the standard input model.
-The length, for the purpose of this
-error code, is calculated in earlemes,
-and the allowed parse length is very long.
 Almost certainly memory would be exceeded
-for other reasons before this message could be
-returned by a recognizer using the standard model of
-input.
+before it could occur.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_POINTER_ARG_NULL
@@ -3540,10 +3555,13 @@ Suggested message: "The recognizer has been started"
 @deftypevr Macro int MARPA_ERR_RHS_TOO_LONG
 An attempt was made to add a rule with too many
 right hand side symbols.
-The limit on the RHS symbol count is very large,
+The limit on the RHS symbol count is implementation
+dependent, but it is very large,
+is at least 500,000,000.
+This is
 far beyond that required in any current practical grammar.
-This error code almost certainly indicates
-an mistake by the application.
+An application with rules of this length is almost
+certain to run into memory and other limits.
 Suggested message: "The RHS is too long"
 @end deftypevr
 
@@ -3575,14 +3593,50 @@ Suggested message: "Symbol is treated both as valued and unvalued"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_TOKEN_IS_NOT_TERMINAL
+A token was specified whose symbol ID is not
+a terminal.
+Suggested message: "Token symbol must be a terminal"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_TOKEN_LENGTH_LE_ZERO
+A token length was specified which is less than
+or equal to zero.
+Zero-length tokens are not allowed in Libmarpa.
+Suggested message: "Token length must greater than zero"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_TOKEN_TOO_LONG
+The token length is too long.
+The limit on the length of a token
+is implementation dependent, but it
+is at least 500,000,000.
+An application using a token that long
+is almost certain to run into some other
+limit.
+Suggested message: "Token is too long"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_TREE_EXHAUSTED
+A Libmarpa parse tree iterator
+is ``exhausted'', that is,
+it has no more parses,
+under a circumstance where this is a hard
+failure.
+As of this writing, the only such
+circumstance is a call to @code{marpa_v_new()}.
+An exhausted tree can also be a soft failure,
+but in those cases, this error code will
+not be set.
+Suggested message: "Tree iterator is exhausted"
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_TREE_PAUSED
+A Libmarpa tree is ``paused''
+and an operation was attempted which
+is inconsistent with that face.
+Typically, this operation will be
+a call of the @code{marpa_t_next()} method.
+Suggested message: "Tree iterator is paused"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_UNPRODUCTIVE_START
