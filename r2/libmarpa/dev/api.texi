@@ -1963,8 +1963,8 @@ Increases the reference count by 1.
 Not needed by most applications.
 
 Return value:
-On success, the @var{r};
-@code{NULL} on failure.
+On success, the recognizer object, @var{r}.
+On failure, @code{NULL}.
 @end deftypefun
 
 @deftypefun void marpa_r_unref (Marpa_Recognizer @var{r})
