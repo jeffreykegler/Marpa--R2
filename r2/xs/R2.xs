@@ -113,10 +113,6 @@ libmarpa_exception (int error_code, const char *error_string)
       output_string = form ("(development) %s",
 			      (error_string ? error_string : "(null)"));
 			    goto COPY_STRING;
-    case MARPA_ERR_UNKNOWN:
-      output_string = form ("Unknown error (%s)",
-			      (error_string ? error_string : "(null)"));
-			    goto COPY_STRING;
     case MARPA_ERR_INTERNAL:
       output_string = form ("Internal error (%s)",
 			      (error_string ? error_string : "(null)"));

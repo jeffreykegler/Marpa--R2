@@ -533,7 +533,7 @@ sub Marpa::R2::Grammar::precompute {
             );
         } ## end if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE)
 
-        if ( $error_code == $Marpa::R2::Error::NO_START_SYM ) {
+        if ( $error_code == $Marpa::R2::Error::NO_START_SYMBOL ) {
             Marpa::R2::exception('No start symbol');
         }
         if ( $error_code == $Marpa::R2::Error::START_NOT_LHS ) {
