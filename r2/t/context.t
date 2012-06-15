@@ -28,9 +28,14 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
+my $trace_rules = q{};
 
 sub do_S {
-   return join q{ }, @_[1 .. $#_];
+   my ($action_object) = @_;
+   my $rule_id = $Marpa::R2::Context::rule;
+   my ($lhs, @rhs) = $Marpa::R2::Context::grammar->rule($rule_id);
+   $action_object->{text} .= "rule $rule_id: $lhs ::= " . (join q{ }, @rhs) . "\n";
+   return $action_object;
 }
 
 my @terminals = qw/A B C D/;
@@ -51,9 +56,17 @@ for my $terminal (@terminals) {
 
 
 my $value_ref = $recce->value;
-my $value = ref $value_ref eq 'SCALAR' ? ${$value_ref} : 'Parse result not scalar';
+if (ref $value_ref ne 'REF') {
+    my $ref_type = ref $value_ref;
+    die qq{Parse result ref type is "$ref_type"; it needs to be "REF"};
+}
+my $value = ${$value_ref};
+if (ref $value ne 'HASH') {
+    my $ref_type = ref $value;
+    die qq{Parse value ref type is "$ref_type"; it needs to be "HASH"};
+}
 
-Test::More::is( $value, 'A B C D', 'Parse ok?' );
+Test::More::is( $value->{text}, 'A B C D', 'Parse ok?' );
 
 my $completed_rule_id;
 my $completed_rule_count = 0;

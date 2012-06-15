@@ -342,6 +342,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
         // 0;
 
+    local $Marpa::R2::Context::grammar = $grammar;
+    local $Marpa::R2::Context::rule = undef;
+
     my $rule_closures =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
 
@@ -485,6 +488,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         if ( $value_type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @value_data;
             my $closure = $rule_closures->[$rule_id];
+
             if ( defined $closure ) {
                 my $result;
 
@@ -506,6 +510,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         };
 
                         $eval_ok = eval {
+			    local $Marpa::R2::Context::rule = $rule_id;
                             $result = $closure->( $action_object, @args );
                             1;
                         };
