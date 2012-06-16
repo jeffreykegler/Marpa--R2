@@ -116,7 +116,7 @@ are, respectively,
 C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
 
 The
-Internal methods of Libmarpa's time classes
+Internal class instance methods for Libmarpa's time classes
 have names of the form C<marpa_g_start_symbol_set>.
 The name begin with a fixed six-letter prefix
 C<marpa_>,
@@ -131,14 +131,18 @@ The corresponding Perl closure would be named
 C<start_symbol_set> and would be a method of the
 class C<Marpa::R2::Thin:G>.
 
-The Libmarpa C prototypes always take the appropriate class object
-as their first argument.
-Zero or more other arguments follow this first time class argument.
-In Perl, the thin interface wrapper would called as a class method,
-and the second and subsequent arguments of the C function would
-be the arguments to the Perl method closure.
+Libmarpa's class instance methods
+prototypes have an object of the appropriate class
+as their first ("self") argument.
+Zero or more other non-self arguments follow this first time class argument.
+In Perl, the corresponding 
+thin Marpa method
+would called as a class instance method,
+and the arguments of the C function are the same
+as the arguments to the Perl method closure.
 
 As an example, here is a call to a Libmarpa function
+in the C language:
 
 =for Marpa::R2::Display
 ignore: 1
@@ -147,7 +151,7 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-This is a corresonding call in the thin interface:
+and here is the corresonding thin Marpa call:
 
 =for Marpa::R2::Display
 name: Thin example
@@ -158,10 +162,11 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
-So far, we have not explained the
+In the above displays,
+we have yet to explain the
 translation between the C language
-arguments and return values and those in Perl.
-This will be described below.
+arguments and return values and those of Perl.
+This will be done in what follows.
 
 =head1 Methods omitted
 
@@ -194,17 +199,19 @@ environment.
 =head1 Libmarpa time objects and constructors
 
 The thin interface implements a Perl class
-for each of the Libmarpa time classes.
-These Perl classes should be considered opaque.
+corresponding to
+each of the Libmarpa time classes.
+Objects in the thin Marpa classes
+should be treated as opaque scalars.
+No applications should define new elements for a
+thin Marpa classes,
+redefine, overload or remove existing elements,
+or subclass the class itself.
 The only operations an application should perform
 on objects blessed into the thin interfaces
 classes is to assign them,
-and to use them to call methods in their class.
-Their namespace should be left strictly alone.
-In particular,
-new objects and methods
-should not be defined in it
-and they should not be subclassed.
+to use them to call methods in their class,
+and to pass them as arguments where appropriate.
 
 =for Marpa::R2::Display
 ignore: 1
@@ -231,10 +238,11 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-For destruction, the thin interface's time objects
-behave like other Perl objects.
 The thin interface takes care of Libmarpa's reference
 counting for the user.
+Marpa thin interface's time objects should be destroyed
+implicitly by undefining them,
+or by letting them go out of scope.
 
 =head1 Errors
 
