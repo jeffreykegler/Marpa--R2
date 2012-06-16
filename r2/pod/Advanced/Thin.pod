@@ -227,6 +227,69 @@ behave like other Perl objects.
 The thin interface takes care of Libmarpa's reference
 counting for the user.
 
+=head1 Errors
+
+In general,
+when a Libmarpa method returns -1 to indicate failure,
+the thin interface return a Perl C<undef>.
+When a Libmarpa method returns -2 to indicate failure,
+the thin interface throws a Perl exception.
+
+The thin interface allows a Perl application to
+interrogate the Libmarpa error codes
+and descriptions.
+The thin interfaces error methods differ from
+those of Libmarpa.
+
+=for Marpa::R2::Display
+name: Thin grammar error methods
+
+$error_code = $grammar->error_code();
+$error_description = $grammar->error();
+
+=for Marpa::R2::Display::End
+
+The C<error_code()> method returns the error code.
+The error code is a string:
+the error code macro, as listed in
+the Libmarpa documentation.
+Once Libmarpa is out of alpha,
+this can be relied on by application to be stable.
+Originally it would have been a mnemonic describing
+the error, but the programmer should not rely on this.
+
+The C<error()> method returns a message describing the 
+the error code.
+
+=for Marpa::R2::Display
+name: Thin recognizer error methods
+
+my $error_code = $recce->error_code();
+my $error_description = $recce->error();
+
+=for Marpa::R2::Display::End
+
+=head1 Grammar methods
+
+=head2 Constructor
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    my $grammar  = Marpa::R2::Thin::G->new();
+
+=for Marpa::R2::Display::End
+
+Because version checking is handled by the thin interface internally,
+the grammar constructor does NOT accept the version numbers as arguments.
+There are no arguments to the grammar constructor.
+Its return value is a thin interface grammar object.
+An exception is thrown if there is a version mismatch, which should
+not happen -- it indicates a problem with the way that the library
+was built.
+
 =head1 Example
 
 =for Marpa::R2::Display
