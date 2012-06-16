@@ -325,22 +325,22 @@ PPCODE:
 }
 
 void
-start_symbol( g_wrapper )
+start_symbol( g_wrapper, a, rule )
     G_Wrapper *g_wrapper;
+    int a;
+    Marpa_Rule_ID rule;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  Marpa_Symbol_ID id = marpa_g_start_symbol (g);
-  if (id <= -2)
-    {
-      croak ("Problem in g->start_symbol(): %s", xs_g_error (g_wrapper));
-    }
-  if (id < 0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (id)));
+  int gp_result = marpa_g_start_symbol(g);
+  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
+  if ( gp_result < 0 ) {
+    croak("Problem in g->start_symbol(%d, %d): %s", a, rule, xs_g_error (g_wrapper));
+  }
+  XPUSHs (sv_2mortal (newSViv (gp_result)));
 }
+
+
 
 void
 is_precomputed( g_wrapper )
@@ -429,23 +429,6 @@ PPCODE:
 }
 
 void
-_marpa_g_symbol_is_semantic( g_wrapper, symbol_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Symbol_ID symbol_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_symbol_is_semantic (g, symbol_id);
-  if (result < 0)
-    {
-      croak ("Problem in g->_marpa_g_symbol_is_semantic(): %s", xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
-void
 symbol_is_counted( g_wrapper, symbol_id )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
@@ -473,24 +456,6 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in g->symbol_is_nulling(%d): %s", symbol_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
-void
-_marpa_g_isy_is_nulling( g_wrapper, isy_id )
-    G_Wrapper *g_wrapper;
-    Marpa_ISY_ID isy_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_isy_is_nulling (g, isy_id);
-  if (result < 0)
-    {
-      croak ("Problem in g->_marpa_g_isy_is_nulling(%d): %s", isy_id,
 	     xs_g_error (g_wrapper));
     }
   if (result)
@@ -583,82 +548,6 @@ PPCODE:
   if (result)
     XSRETURN_YES;
   XSRETURN_NO;
-}
-
-void
-_marpa_g_isy_is_start( g_wrapper, isy_id )
-    G_Wrapper *g_wrapper;
-    Marpa_ISY_ID isy_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_isy_is_start (g, isy_id);
-  if (result < 0)
-    {
-      croak ("Invalid isy %d", isy_id);
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
-Marpa_Symbol_ID
-_marpa_g_source_xsy( g_wrapper, symbol_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Symbol_ID symbol_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  Marpa_Symbol_ID source_xsy = _marpa_g_source_xsy (g, symbol_id);
-  if (source_xsy < -1)
-    {
-      croak ("problem with g->_marpa_g_source_xsy: %s", xs_g_error (g_wrapper));
-    }
-  if (source_xsy < 0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (source_xsy)));
-}
-
-Marpa_Rule_ID
-_marpa_g_isy_lhs_xrl( g_wrapper, isy_id )
-    G_Wrapper *g_wrapper;
-    Marpa_ISY_ID isy_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  Marpa_Rule_ID rule_id = _marpa_g_isy_lhs_xrl (g, isy_id);
-  if (rule_id < -1)
-    {
-      croak ("problem with g->_marpa_g_isy_lhs_xrl: %s",
-	     xs_g_error (g_wrapper));
-    }
-  if (rule_id < 0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (rule_id)));
-}
-
-Marpa_Rule_ID
-_marpa_g_isy_xrl_offset( g_wrapper, isy_id )
-    G_Wrapper *g_wrapper;
-    Marpa_ISY_ID isy_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int offset = _marpa_g_isy_xrl_offset (g, isy_id);
-  if (offset == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  if (offset < 0)
-    {
-      croak ("problem with g->_marpa_g_isy_xrl_offset: %s",
-	     xs_g_error (g_wrapper));
-    }
-  XPUSHs (sv_2mortal (newSViv (offset)));
 }
 
  # Rules
@@ -938,111 +827,6 @@ PPCODE:
   XSRETURN_NO;
 }
 
-Marpa_Symbol_ID
-_marpa_g_irl_lhs( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_irl_lhs(g, irl_id);
-    if (result < -1) { 
-      croak ("Problem in g->_marpa_g_irl_lhs(%d): %s", irl_id, xs_g_error (g_wrapper));
-      }
-    if (result < 0) { XSRETURN_UNDEF; }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-}
-
-Marpa_Symbol_ID
-_marpa_g_irl_rhs( g_wrapper, irl_id, ix )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-    int ix;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_irl_rh_symbol(g, irl_id, ix);
-    if (result < -1) { 
-      croak ("Problem in g->_marpa_g_irl_rhs(%d, %d): %s", irl_id, ix, xs_g_error (g_wrapper));
-      }
-    if (result < 0) { XSRETURN_UNDEF; }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-}
-
-int
-_marpa_g_irl_length( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_irl_length (g, irl_id);
-  if (result < -1)
-    {
-      croak ("Problem in g->_marpa_g_irl_length(%d): %s", irl_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result < 0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-int
-_marpa_g_virtual_start( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_virtual_start (g, irl_id);
-  if (result == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  if (result < 0)
-    {
-      croak ("Problem in g->_marpa_g_virtual_start(%d): %s", irl_id,
-	     xs_g_error (g_wrapper));
-    }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-}
-
-int
-_marpa_g_virtual_end( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_virtual_end (g, irl_id);
-  if (result <= -2)
-    {
-      croak ("Problem in g->_marpa_g_virtual_end(%d): %s", irl_id,
-	     xs_g_error (g_wrapper));
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-void
-_marpa_g_rule_is_used( g_wrapper, rule_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Rule_ID rule_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_rule_is_used (g, rule_id);
-  if (result < 0)
-    {
-      croak ("Problem in g->_marpa_g_rule_is_used(%d): %s", rule_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
 void
 rule_is_keep_separation( g_wrapper, rule_id )
     G_Wrapper *g_wrapper;
@@ -1061,120 +845,6 @@ PPCODE:
   XSRETURN_NO;
 }
 
-void
-_marpa_g_irl_is_virtual_lhs( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_irl_is_virtual_lhs (g, irl_id);
-  if (result < 0)
-    {
-      croak ("Problem in g->_marpa_g_irl_is_virtual_lhs(%d): %s", irl_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
-void
-_marpa_g_irl_is_virtual_rhs( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_irl_is_virtual_rhs (g, irl_id);
-  if (result < 0)
-    {
-      croak ("Problem in g->_marpa_g_irl_is_virtual_rhs(%d): %s", irl_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
-Marpa_Rule_ID
-_marpa_g_real_symbol_count( g_wrapper, rule_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Rule_ID rule_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_real_symbol_count(g, rule_id);
-  if (result <= -2)
-    {
-      croak ("Problem in g->_marpa_g_real_symbol_count(%d): %s", rule_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-Marpa_Rule_ID
-_marpa_g_source_xrl ( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_source_xrl (g, irl_id);
-  if (result <= -2)
-    {
-      croak ("Problem in g->_marpa_g_source_xrl (%d): %s", irl_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-Marpa_Rule_ID
-_marpa_g_irl_semantic_equivalent( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_irl_semantic_equivalent (g, irl_id);
-  if (result <= -2)
-    {
-      croak ("Problem in g->_marpa_g_irl_semantic_equivalent(%d): %s", irl_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-int
-_marpa_g_AHFA_item_count( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_AHFA_item_count (g);
-  if (result <= -2)
-    {
-      croak ("Problem in g->_marpa_g_AHFA_item_count(): %s", xs_g_error (g_wrapper));
-    }
-  if (result < 0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
 int
 rule_count( g_wrapper )
     G_Wrapper *g_wrapper;
@@ -1185,42 +855,6 @@ PPCODE:
   if (result < -1)
     {
       croak ("Problem in g->rule_count(): %s", xs_g_error (g_wrapper));
-    }
-  if (result < 0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-int
-_marpa_g_irl_count( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_irl_count (g);
-  if (result < -1)
-    {
-      croak ("Problem in g->_marpa_g_irl_count(): %s", xs_g_error (g_wrapper));
-    }
-  if (result < 0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-int
-_marpa_g_isy_count( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_isy_count (g);
-  if (result < -1)
-    {
-      croak ("Problem in g->_marpa_g_isy_count(): %s", xs_g_error (g_wrapper));
     }
   if (result < 0)
     {
@@ -1245,173 +879,6 @@ PPCODE:
       XSRETURN_UNDEF;
     }
   XPUSHs (sv_2mortal (newSViv (count)));
-}
-
-Marpa_IRL_ID
-_marpa_g_AHFA_item_irl( g_wrapper, item_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_Item_ID item_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_irl(g, item_id);
-    if (result < 0) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
- # -1 is a valid return value, so -2 indicates an error
-int
-_marpa_g_AHFA_item_position( g_wrapper, item_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_Item_ID item_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_position(g, item_id);
-    if (result <= -2) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-int
-_marpa_g_AHFA_item_sort_key( g_wrapper, item_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_Item_ID item_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_sort_key(g, item_id);
-    if (result < 0) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
- # -1 is a valid return value, and -2 indicates an error
-Marpa_Symbol_ID
-_marpa_g_AHFA_item_postdot( g_wrapper, item_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_Item_ID item_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_postdot(g, item_id);
-    if (result <= -2) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-int
-_marpa_g_AHFA_state_count( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_state_count(g );
-    if (result < 0) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
- # In scalar context, returns the count
-void
-_marpa_g_AHFA_state_items( g_wrapper, AHFA_state_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int count = _marpa_g_AHFA_state_item_count(g, AHFA_state_id);
-    if (count < 0) { croak("Invalid AHFA state %d", AHFA_state_id); }
-    if (GIMME == G_ARRAY) {
-        int item_ix;
-        EXTEND(SP, count);
-        for (item_ix = 0; item_ix < count; item_ix++) {
-	    Marpa_AHFA_Item_ID item_id
-		= _marpa_g_AHFA_state_item(g, AHFA_state_id, item_ix);
-            PUSHs( sv_2mortal( newSViv(item_id) ) );
-        }
-    } else {
-        XPUSHs( sv_2mortal( newSViv(count) ) );
-    }
-}
-
- # In scalar context, returns the count
-void
-_marpa_g_AHFA_state_transitions( g_wrapper, AHFA_state_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-{
-  int result_count;
-  int *buffer;
-  Marpa_Grammar g = g_wrapper->g;
-  const int symbol_count = marpa_g_symbol_count(g);
-  Newx( buffer, 2 * symbol_count, int);
-  result_count =
-    _marpa_g_AHFA_state_transitions (g, AHFA_state_id, buffer, 2*symbol_count*sizeof(int));
-  if (result_count < 0)
-    {
-	Safefree(buffer);
-      croak ("Problem in g->_marpa_g_AHFA_state_transitions(): %s", xs_g_error (g_wrapper));
-    }
-  if (GIMME == G_ARRAY)
-    {
-      int ix;
-      for (ix = 0; ix < result_count*2; ix++)
-	{
-	  XPUSHs (sv_2mortal (newSViv (buffer[ix] )));
-	}
-    }
-  else
-    {
-      XPUSHs (sv_2mortal (newSViv (result_count)));
-    }
-    Safefree(buffer);
-}
-
- # -1 is a valid return value, and -2 indicates an error
-Marpa_AHFA_State_ID
-_marpa_g_AHFA_state_empty_transition( g_wrapper, AHFA_state_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_state_empty_transition(g, AHFA_state_id);
-    if (result <= -2) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-void
-_marpa_g_AHFA_state_is_predict( g_wrapper, AHFA_state_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_AHFA_state_is_predict (g, AHFA_state_id);
-  if (result < 0)
-    {
-      croak ("Problem in AHFA_state_is_predict(%d): %s", AHFA_state_id,
-	xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
-void
-_marpa_g_AHFA_state_leo_lhs_symbol( g_wrapper, AHFA_state_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_AHFA_state_leo_lhs_symbol (g, AHFA_state_id);
-  if (result == -1)
-    XSRETURN_UNDEF;
-  if (result < 0)
-    {
-      croak ("Problem in AHFA_state_leo_lhs_symbol(%d): %s", AHFA_state_id,
-	xs_g_error (g_wrapper));
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 void
@@ -2873,6 +2340,541 @@ PPCODE:
       croak ("Problem in v->_marpa_v_nook(): %s", xs_v_error (v_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (status)));
+}
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
+
+void
+_marpa_g_symbol_is_semantic( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_symbol_is_semantic (g, symbol_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->_marpa_g_symbol_is_semantic(): %s", xs_g_error (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+_marpa_g_isy_is_nulling( g_wrapper, isy_id )
+    G_Wrapper *g_wrapper;
+    Marpa_ISY_ID isy_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_isy_is_nulling (g, isy_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->_marpa_g_isy_is_nulling(%d): %s", isy_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+_marpa_g_isy_is_start( g_wrapper, isy_id )
+    G_Wrapper *g_wrapper;
+    Marpa_ISY_ID isy_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_isy_is_start (g, isy_id);
+  if (result < 0)
+    {
+      croak ("Invalid isy %d", isy_id);
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+Marpa_Symbol_ID
+_marpa_g_source_xsy( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  Marpa_Symbol_ID source_xsy = _marpa_g_source_xsy (g, symbol_id);
+  if (source_xsy < -1)
+    {
+      croak ("problem with g->_marpa_g_source_xsy: %s", xs_g_error (g_wrapper));
+    }
+  if (source_xsy < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (source_xsy)));
+}
+
+Marpa_Rule_ID
+_marpa_g_isy_lhs_xrl( g_wrapper, isy_id )
+    G_Wrapper *g_wrapper;
+    Marpa_ISY_ID isy_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  Marpa_Rule_ID rule_id = _marpa_g_isy_lhs_xrl (g, isy_id);
+  if (rule_id < -1)
+    {
+      croak ("problem with g->_marpa_g_isy_lhs_xrl: %s",
+	     xs_g_error (g_wrapper));
+    }
+  if (rule_id < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (rule_id)));
+}
+
+Marpa_Rule_ID
+_marpa_g_isy_xrl_offset( g_wrapper, isy_id )
+    G_Wrapper *g_wrapper;
+    Marpa_ISY_ID isy_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int offset = _marpa_g_isy_xrl_offset (g, isy_id);
+  if (offset == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (offset < 0)
+    {
+      croak ("problem with g->_marpa_g_isy_xrl_offset: %s",
+	     xs_g_error (g_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (offset)));
+}
+
+Marpa_Symbol_ID
+_marpa_g_irl_lhs( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_irl_lhs(g, irl_id);
+    if (result < -1) { 
+      croak ("Problem in g->_marpa_g_irl_lhs(%d): %s", irl_id, xs_g_error (g_wrapper));
+      }
+    if (result < 0) { XSRETURN_UNDEF; }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+}
+
+Marpa_Symbol_ID
+_marpa_g_irl_rhs( g_wrapper, irl_id, ix )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+    int ix;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_irl_rh_symbol(g, irl_id, ix);
+    if (result < -1) { 
+      croak ("Problem in g->_marpa_g_irl_rhs(%d, %d): %s", irl_id, ix, xs_g_error (g_wrapper));
+      }
+    if (result < 0) { XSRETURN_UNDEF; }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+}
+
+int
+_marpa_g_irl_length( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_irl_length (g, irl_id);
+  if (result < -1)
+    {
+      croak ("Problem in g->_marpa_g_irl_length(%d): %s", irl_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+_marpa_g_virtual_start( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_virtual_start (g, irl_id);
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (result < 0)
+    {
+      croak ("Problem in g->_marpa_g_virtual_start(%d): %s", irl_id,
+	     xs_g_error (g_wrapper));
+    }
+    XPUSHs( sv_2mortal( newSViv(result) ) );
+}
+
+int
+_marpa_g_virtual_end( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_virtual_end (g, irl_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->_marpa_g_virtual_end(%d): %s", irl_id,
+	     xs_g_error (g_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+void
+_marpa_g_rule_is_used( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_rule_is_used (g, rule_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->_marpa_g_rule_is_used(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+_marpa_g_irl_is_virtual_lhs( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_irl_is_virtual_lhs (g, irl_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->_marpa_g_irl_is_virtual_lhs(%d): %s", irl_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+_marpa_g_irl_is_virtual_rhs( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_irl_is_virtual_rhs (g, irl_id);
+  if (result < 0)
+    {
+      croak ("Problem in g->_marpa_g_irl_is_virtual_rhs(%d): %s", irl_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+Marpa_Rule_ID
+_marpa_g_real_symbol_count( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_real_symbol_count(g, rule_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->_marpa_g_real_symbol_count(%d): %s", rule_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+Marpa_Rule_ID
+_marpa_g_source_xrl ( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_source_xrl (g, irl_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->_marpa_g_source_xrl (%d): %s", irl_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+Marpa_Rule_ID
+_marpa_g_irl_semantic_equivalent( g_wrapper, irl_id )
+    G_Wrapper *g_wrapper;
+    Marpa_IRL_ID irl_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_irl_semantic_equivalent (g, irl_id);
+  if (result <= -2)
+    {
+      croak ("Problem in g->_marpa_g_irl_semantic_equivalent(%d): %s", irl_id,
+	     xs_g_error (g_wrapper));
+    }
+  if (result == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+_marpa_g_AHFA_item_count( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_AHFA_item_count (g);
+  if (result <= -2)
+    {
+      croak ("Problem in g->_marpa_g_AHFA_item_count(): %s", xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+_marpa_g_irl_count( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_irl_count (g);
+  if (result < -1)
+    {
+      croak ("Problem in g->_marpa_g_irl_count(): %s", xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+_marpa_g_isy_count( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_isy_count (g);
+  if (result < -1)
+    {
+      croak ("Problem in g->_marpa_g_isy_count(): %s", xs_g_error (g_wrapper));
+    }
+  if (result < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+Marpa_IRL_ID
+_marpa_g_AHFA_item_irl( g_wrapper, item_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_Item_ID item_id;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_AHFA_item_irl(g, item_id);
+    if (result < 0) { XSRETURN_UNDEF; }
+      XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+ # -1 is a valid return value, so -2 indicates an error
+int
+_marpa_g_AHFA_item_position( g_wrapper, item_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_Item_ID item_id;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_AHFA_item_position(g, item_id);
+    if (result <= -2) { XSRETURN_UNDEF; }
+      XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+_marpa_g_AHFA_item_sort_key( g_wrapper, item_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_Item_ID item_id;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_AHFA_item_sort_key(g, item_id);
+    if (result < 0) { XSRETURN_UNDEF; }
+      XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+ # -1 is a valid return value, and -2 indicates an error
+Marpa_Symbol_ID
+_marpa_g_AHFA_item_postdot( g_wrapper, item_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_Item_ID item_id;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_AHFA_item_postdot(g, item_id);
+    if (result <= -2) { XSRETURN_UNDEF; }
+      XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+int
+_marpa_g_AHFA_state_count( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_AHFA_state_count(g );
+    if (result < 0) { XSRETURN_UNDEF; }
+      XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+ # In scalar context, returns the count
+void
+_marpa_g_AHFA_state_items( g_wrapper, AHFA_state_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_State_ID AHFA_state_id;
+PPCODE:
+{
+    Marpa_Grammar g = g_wrapper->g;
+    int count = _marpa_g_AHFA_state_item_count(g, AHFA_state_id);
+    if (count < 0) { croak("Invalid AHFA state %d", AHFA_state_id); }
+    if (GIMME == G_ARRAY) {
+        int item_ix;
+        EXTEND(SP, count);
+        for (item_ix = 0; item_ix < count; item_ix++) {
+	    Marpa_AHFA_Item_ID item_id
+		= _marpa_g_AHFA_state_item(g, AHFA_state_id, item_ix);
+            PUSHs( sv_2mortal( newSViv(item_id) ) );
+        }
+    } else {
+        XPUSHs( sv_2mortal( newSViv(count) ) );
+    }
+}
+
+ # In scalar context, returns the count
+void
+_marpa_g_AHFA_state_transitions( g_wrapper, AHFA_state_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_State_ID AHFA_state_id;
+PPCODE:
+{
+  int result_count;
+  int *buffer;
+  Marpa_Grammar g = g_wrapper->g;
+  const int symbol_count = marpa_g_symbol_count(g);
+  Newx( buffer, 2 * symbol_count, int);
+  result_count =
+    _marpa_g_AHFA_state_transitions (g, AHFA_state_id, buffer, 2*symbol_count*sizeof(int));
+  if (result_count < 0)
+    {
+	Safefree(buffer);
+      croak ("Problem in g->_marpa_g_AHFA_state_transitions(): %s", xs_g_error (g_wrapper));
+    }
+  if (GIMME == G_ARRAY)
+    {
+      int ix;
+      for (ix = 0; ix < result_count*2; ix++)
+	{
+	  XPUSHs (sv_2mortal (newSViv (buffer[ix] )));
+	}
+    }
+  else
+    {
+      XPUSHs (sv_2mortal (newSViv (result_count)));
+    }
+    Safefree(buffer);
+}
+
+ # -1 is a valid return value, and -2 indicates an error
+Marpa_AHFA_State_ID
+_marpa_g_AHFA_state_empty_transition( g_wrapper, AHFA_state_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_State_ID AHFA_state_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+    int result = _marpa_g_AHFA_state_empty_transition(g, AHFA_state_id);
+    if (result <= -2) { XSRETURN_UNDEF; }
+      XPUSHs (sv_2mortal (newSViv (result)));
+}
+
+void
+_marpa_g_AHFA_state_is_predict( g_wrapper, AHFA_state_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_State_ID AHFA_state_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_AHFA_state_is_predict (g, AHFA_state_id);
+  if (result < 0)
+    {
+      croak ("Problem in AHFA_state_is_predict(%d): %s", AHFA_state_id,
+	xs_g_error (g_wrapper));
+    }
+  if (result)
+    XSRETURN_YES;
+  XSRETURN_NO;
+}
+
+void
+_marpa_g_AHFA_state_leo_lhs_symbol( g_wrapper, AHFA_state_id )
+    G_Wrapper *g_wrapper;
+    Marpa_AHFA_State_ID AHFA_state_id;
+PPCODE:
+{
+  Marpa_Grammar g = g_wrapper->g;
+  int result = _marpa_g_AHFA_state_leo_lhs_symbol (g, AHFA_state_id);
+  if (result == -1)
+    XSRETURN_UNDEF;
+  if (result < 0)
+    {
+      croak ("Problem in AHFA_state_leo_lhs_symbol(%d): %s", AHFA_state_id,
+	xs_g_error (g_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (result)));
 }
 
 BOOT:
