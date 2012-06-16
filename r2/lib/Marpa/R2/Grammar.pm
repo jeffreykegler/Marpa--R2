@@ -1188,14 +1188,13 @@ sub set_start_symbol {
     my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $start_name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
 
-    # Let libmarpa catch this error
     return if not defined $start_name;
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     my $start_id    = $symbol_hash->{$start_name};
     Marpa::R2::exception(qq{Start symbol "$start_name" not in grammar})
         if not defined $start_id;
 
-    if ( !$grammar_c->start_symbol_set($start_id) ) {
+    if ( not defined $grammar_c->start_symbol_set($start_id) ) {
         Marpa::R2::uncaught_error( $grammar_c->error() );
     }
     return 1;

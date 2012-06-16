@@ -309,38 +309,39 @@ CODE:
     marpa_g_unref( grammar );
     Safefree( g_wrapper );
 
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
+
+void
+start_symbol( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_start_symbol(self);
+  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
+  if ( gp_result < 0 ) {
+    croak("Problem in g->start_symbol(): %s", 
+      xs_g_error( g_wrapper ));
+  }
+  XPUSHs (sv_2mortal (newSViv (gp_result)));
+}
+
 void
 start_symbol_set( g_wrapper, id )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID id;
 PPCODE:
 {
-  Marpa_Grammar g = g_wrapper->g;
-  int result = marpa_g_start_symbol_set (g, id);
-  if (result < 0)
-    {
-      croak ("Problem in g->start_symbol_set(): %s", xs_g_error (g_wrapper));
-    }
-  XSRETURN_YES;
-}
-
-void
-start_symbol( g_wrapper, a, rule )
-    G_Wrapper *g_wrapper;
-    int a;
-    Marpa_Rule_ID rule;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int gp_result = marpa_g_start_symbol(g);
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_start_symbol_set(self, id);
   if ( gp_result == -1 ) { XSRETURN_UNDEF; }
   if ( gp_result < 0 ) {
-    croak("Problem in g->start_symbol(%d, %d): %s", a, rule, xs_g_error (g_wrapper));
+    croak("Problem in g->start_symbol_set(%d): %s", 
+      id, xs_g_error( g_wrapper ));
   }
   XPUSHs (sv_2mortal (newSViv (gp_result)));
 }
-
-
 
 void
 is_precomputed( g_wrapper )
