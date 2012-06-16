@@ -1,3 +1,4 @@
+#!perl
 # Copyright 2012 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
@@ -16,37 +17,55 @@
 use 5.010;
 use strict;
 use warnings;
-use Fatal qw(open close chdir chmod utime unlink);
+use English qw( -no_match_vars );
+use autodie;
 
 # Portability is NOT emphasized here -- this script is part
 # of the development environment, not the configuration or
 # installation environment
 
-for my $file (qw(Build.PL MANIFEST))
-{
-   -e $file or die "No $file: wrong directory?";
+for my $file (qw(Build.PL MANIFEST)) {
+    -e $file or die "No $file: wrong directory?";
 }
 
-for my $subdir (qw(lib libmarpa t lib inc))
-{
-   -d $subdir or die "No $subdir/: wrong directory?";
+for my $subdir (qw(lib libmarpa t lib inc)) {
+    -d $subdir or die "No $subdir/: wrong directory?";
 }
 chdir 'libmarpa/dev';
-system('make', 'install') == 0 or die('Cannot make install in libmarpa/dev');
+
+## no critic (InputOutput::RequireCheckedSyscalls)
+( system 'make', 'install' ) == 0
+    or die 'Cannot make install in libmarpa/dev';
+## use critic
+
 chdir '../../libmarpa/stage';
-system('make', 'dist') == 0 or die('Cannot make dist in libmarpa/stage');
+
+## no critic (InputOutput::RequireCheckedSyscalls)
+( system 'make', 'dist' ) == 0 or die 'Cannot make dist in libmarpa/stage';
+## use critic
+
+## no critic(InputOutput::ProhibitBacktickOperators)
 my $version_info = `./configure --version`;
+## use critic
+
 my ($version) = $version_info =~ m/\A marpa \s configure \s ([\d.]*)$/msx;
 
-chdir '..'; # PWD=libmarpa
-if (-d 'build') {
-    system('rm', '-rf', 'build') and die "rm -rf libmarpa/build failed: $!";
+chdir q{..};    # PWD=libmarpa
+if ( -d 'build' ) {
+    ## no critic (InputOutput::RequireCheckedSyscalls)
+    ( system 'rm', '-rf', 'build' ) == 0
+        or die "rm -rf libmarpa/build failed: $ERRNO";
 }
-my $tar_file = 'stage/marpa-' . $version . '.tar.gz';
+my $tar_file     = 'stage/marpa-' . $version . '.tar.gz';
 my $untarred_dir = 'marpa-' . $version;
-say "Tar file is $tar_file";
-system('tar', '-xzf', $tar_file) == 0 or die("Could not tar -xvzf $tar_file: $!");
-rename $untarred_dir, 'build' or die "rename failed: $!";
+say "Tar file is $tar_file" or die 'Cannot print to STDOUT';
 
-chdir 'build'; # PWD=libmarpa/build
+## no critic (InputOutput::RequireCheckedSyscalls)
+( system 'tar', '-xzf', $tar_file ) == 0
+    or die "Could not tar -xvzf $tar_file: $ERRNO";
+## use critic
+
+rename $untarred_dir, 'build' or die "rename failed: $ERRNO";
+
+chdir 'build';    # PWD=libmarpa/build
 
