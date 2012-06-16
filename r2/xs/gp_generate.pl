@@ -28,7 +28,11 @@ sub gp_generate {
    my ($function, @arg_type_pairs) = @_;
    my $output = q{};
    $output .= "void\n";
-   $output .= "$function( g_wrapper )\n";
+   my @args = ('g_wrapper');
+   ARG: for (my $i=0; $i < $#arg_type_pairs; $i+=2) {
+     push @args, $arg_type_pairs[ $i + 1 ];
+   }
+   $output .= "$function( " . (join q{, }, @args) . " )\n";
    $output .= "    G_Wrapper *g_wrapper;\n";
    ARG: for (my $i=0; $i < $#arg_type_pairs; $i+=2) {
      $output .= q{    };
@@ -37,8 +41,8 @@ sub gp_generate {
    }
    $output .= "PPCODE:\n";
    $output .= "{\n";
-   $output .= "  Marpa_Grammar g = gwrapper->g;\n";
-   $output .= "  int gp_result = marpa_g_" . $function . '(g)' . "\n";
+   $output .= "  Marpa_Grammar g = g_wrapper->g;\n";
+   $output .= "  int gp_result = marpa_g_" . $function . '(g)' . ";\n";
    $output .= "  if ( gp_result == -1 ) { XSRETURN_UNDEF; }\n";
    $output .= "  if ( gp_result < 0 ) {\n";
    $output .= '    croak("Problem in g->' . $function . '(';
