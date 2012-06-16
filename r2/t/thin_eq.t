@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 11;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -139,6 +139,26 @@ my %expected_value = (
     '(2-((0*3)+1)) == 1' => 1,
 );
 
+# Marpa::R2::Display
+# name: Thin recognizer error methods
+
+my @error_names = Marpa::R2::Thin::error_names();
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: Thin recognizer error methods
+
+my $error_code = $recce->error_code();
+my $error_name = $error_names[$error_code];
+my $error_description = $recce->error();
+
+# Marpa::R2::Display::End
+
+Test::More::is($error_code, 0, 'Recognizer error code');
+Test::More::is($error_name, 'MARPA_ERR_NONE', 'Recognizer error name');
+Test::More::is($error_description, 'No error', 'Recognizer error description');
+
 my $i = 0;
 for my $actual_value (@actual_values) {
     if ( defined $expected_value{$actual_value} ) {
@@ -150,6 +170,22 @@ for my $actual_value (@actual_values) {
     }
     $i++;
 } ## end for my $actual_value (@actual_values)
+
+# For the error methods, start clean,
+# with a new grammar
+$grammar  = Marpa::R2::Thin::G->new();
+
+# Marpa::R2::Display
+# name: Thin grammar error methods
+
+$error_code = $grammar->error_code();
+$error_description = $grammar->error();
+
+# Marpa::R2::Display::End
+
+Test::More::is($error_code, 0, 'Grammar error code');
+Test::More::is($error_name, 'MARPA_ERR_NONE', 'Grammar error name');
+Test::More::is($error_description, 'No error', 'Grammar error description');
 
 # Local Variables:
 #   mode: cperl

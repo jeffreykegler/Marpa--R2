@@ -242,7 +242,7 @@ static int marpa_r2_warn(const char* format, ...)
    return 1;
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Internal
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
 

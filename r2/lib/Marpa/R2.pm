@@ -78,7 +78,7 @@ sub version_ok {
 } ## end sub version_ok
 
 # Set up the error values
-my @error_names = Marpa::R2::Internal::error_names();
+my @error_names = Marpa::R2::Thin::error_names();
 for ( my $error = 0; $error <= $#error_names; ) {
     my $current_error = $error;
     (my $name = $error_names[$error] ) =~ s/\A MARPA_ERR_//xms;
