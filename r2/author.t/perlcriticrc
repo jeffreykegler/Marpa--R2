@@ -433,7 +433,7 @@ severity=5
 
 [Variables::ProhibitPackageVars]
 severity=5
-add_packages = DynaLoader
+add_packages = DynaLoader Marpa::R2::Context
 
 [Variables::ProhibitPerl4PackageNames]
 severity=5

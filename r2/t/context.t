@@ -69,14 +69,14 @@ VALUE_TEST: {
     if ( ref $value_ref ne 'REF' ) {
         my $ref_type = ref $value_ref;
         Test::More::fail(
-            q{Parse result ref type is "$ref_type"; it needs to be "REF"});
+            qq{Parse result ref type is "$ref_type"; it needs to be "REF"});
         last VALUE_TEST;
     } ## end if ( ref $value_ref ne 'REF' )
     my $value = ${$value_ref};
     if ( ref $value ne 'HASH' ) {
         my $ref_type = ref $value;
         Test::More::fail(
-            q{Parse value ref type is "$ref_type"; it needs to be "HASH"});
+            qq{Parse value ref type is "$ref_type"; it needs to be "HASH"});
         last VALUE_TEST;
     } ## end if ( ref $value ne 'HASH' )
     my $expected_text = qq{rule 0: S ::= A B C D\n};
