@@ -88,7 +88,7 @@ sub gp_generate {
     $output .= q{): %s", } . "\n";
     $output .= q{      } . join q{, }, @variables,
         qq{$xs_error_method( $wrapper_variable )};
-    $output .= qq{);} . "\n";
+    $output .= q{);} . "\n";
     $output .= "  }\n";
     $output .= q{  XPUSHs (sv_2mortal (newSViv (gp_result)));} . "\n";
     $output .= "}\n";
