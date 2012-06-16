@@ -2997,26 +2997,25 @@ prior to valuator trying to assign semantics to rules
 with them on the LHS.
 Better to mark them valued now,
 and cause an error in the recognizer.
-@ Commented out.  The LHS terminal user is a sophisticated
-user so it is probably the better course to allow her the
-choice.
 @<Mark valued symbols@> = 
-#if 0
-{
-  XSYID xsyid;
-  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
-    {
-      if (bv_bit_test (terminal_v, xsyid) && bv_bit_test (lhs_v, xsyid))
-	{
-	  const XSY xsy = XSY_by_ID (xsyid);
-	  if (XSY_is_Valued_Locked (xsy))
-	    continue;
-	  XSY_is_Valued (xsy) = 1;
-	  XSY_is_Valued_Locked (xsy) = 1;
-	}
-    }
-}
-#endif
+if (0)
+  {
+    /* Commented out.  The LHS terminal user is a sophisticated
+       user so it is probably the better course to allow her the
+       choice.  */
+    XSYID xsyid;
+    for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
+      {
+	if (bv_bit_test (terminal_v, xsyid) && bv_bit_test (lhs_v, xsyid))
+	  {
+	    const XSY xsy = XSY_by_ID (xsyid);
+	    if (XSY_is_Valued_Locked (xsy))
+	      continue;
+	    XSY_is_Valued (xsy) = 1;
+	    XSY_is_Valued_Locked (xsy) = 1;
+	  }
+      }
+  }
 
 @** The sequence rewrite.
 @<Rewrite sequence |rule| into BNF@> =
@@ -14505,7 +14504,7 @@ So I add such a comment.
 @<Body of public header file@>
 
 #include "marpa_api.h"
-#endif /* __MARPA_H__ */
+#endif /* |__MARPA_H__| */
 
 @*0 |marpa_util.h| layout.
 \tenpoint
@@ -14520,7 +14519,7 @@ So I add such a comment.
 @<Utility variables@>
 @<Utility static functions@>
 
-#endif /* __MARPA__UTIL_H__ */
+#endif /* |__MARPA__UTIL_H__| */
 
 @** Miscellaneous compiler defines.
 Various defines to
