@@ -52,15 +52,20 @@ enough to understand C function prototypes.
 The Libmarpa interface is described in the Libmarpa
 API document,
 and this document avoids duplicating the material there.
-This document states general rules for the "thin" interface,
-and only describes in detail, those methods
-and situations which depart from the general rules.
+This document states general rules for the "thin" interface.
+Methods that do not
+depart from the general rules
+are not specifically mentioned.
 
-Admittedly, this is a very terse style of presentation.
+While this style and level of documentation 
+is efficient,
+and the standard for C library interfaces to Perl,
+it is,
+admittedly, very terse.
 As an aid to
 the reader,
 an example of the usage of the thin interface is presented
-L<below/"Example">.
+L<below|"Example">.
 While small, the example is non-trival.
 It includes a full
 logic flow, starting with the definition
@@ -78,16 +83,16 @@ from the Libmarpa interface.
 Not all Libmarpa methods have thin interface wrappers.
 None of Libmarpa's internal methods are included in
 the thin interface.
-Additionally, some of Libmarpa's external methods,
-while needed by the C programmer,
-provide services best handled within the thin
-interface.
-Examples are version checking and reference counting
-of Libmarpa time objects.
+Additionally, some of Libmarpa's external methods
+provide services that are handled internally by the thin
+interface,
+and wrappers to those methods
+are therefore not included in the actual interface.
+When an external Libmarpa method is omitted,
+this will be specificially stated,
+with the reason for the omission.
 
-When an external Libmarpa method is omitted as
-unnecessary, that is explicitly stated.
-If an external Libmarpa method is not mentioned
+Whenever an external Libmarpa method is not mentioned
 in this document, the reader can assume that
 it has a wrapper that is implemented according
 to the general guidelines, as
@@ -192,33 +197,17 @@ new objects and methods
 should not be defined in it
 and they should not be subclassed.
 
-=over
+=for Marpa::R2::Display
+ignore: 1
 
-=item C<Marpa_Grammar>
+    Marpa_Grammar       Marpa::R2::Thin::G
+    Marpa_Recognizer    Marpa::R2::Thin::R
+    Marpa_Bocage        Marpa::R2::Thin::B
+    Marpa_Ordering      Marpa::R2::Thin::O
+    Marpa_Tree          Marpa::R2::Thin::T
+    Marpa_Value         Marpa::R2::Thin::V
 
-C<Marpa::R2::Thin::G>
-
-=item C<Marpa_Recognizer>
-
-C<Marpa::R2::Thin::R>
-
-=item C<Marpa_Bocage>
-
-C<Marpa::R2::Thin::B>,
-
-=item C<Marpa_Ordering>
-
-C<Marpa::R2::Thin::O>
-
-=item C<Marpa_Tree>
-
-C<Marpa::R2::Thin::T>
-
-=item C<Marpa_Value>
-
-C<Marpa::R2::Thin::V>
-
-=back
+=for Marpa::R2::Display::End
 
 Constructors for the time objects may be called using
 the C<new> method of the corresponding Perl class.
