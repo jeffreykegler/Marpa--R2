@@ -19,6 +19,10 @@ Marpa::R2::Advanced::Thin - Direct access to Libmarpa
 
 =head1 About this document
 
+At this moment, this document is INCOMPLETE and,
+for that reason
+NOT 100% RELIABLE.
+
 Most Marpa users can ignore this document.
 It describes Marpa's "thin" interface.
 The provides efficient access to Marpa's core
@@ -50,9 +54,158 @@ API document,
 and this document avoids duplicating the material there.
 This document states general rules for the "thin" interface,
 and only describes in detail, those methods
-and situation which depart from the general rules.
+and situations which depart from the general rules.
+
+=head1 Methods in the thin interface
+
+As of this writing, the thin interface has
+no methods of its own.
+Each of its methods is a wrapper for a method
+from the Libmarpa interface.
+
+Not all Libmarpa methods have thin interface wrappers.
+None of Libmarpa's internal methods are included in
+the thin interface.
+Additionally, some of Libmarpa's external methods,
+while needed by the C programmer,
+provide services best handled within the thin
+interface.
+Examples are version checking and reference counting
+of Libmarpa time objects.
+
+When an external Libmarpa method is omitted as
+unnecessary, that is explicitly stated.
+If an external Libmarpa method is not mentioned
+in this document, the reader can assume that
+it has a wrapper that is implemented according
+to the general guidelines, as
+given below.
+Where the implementation of an
+external libmarpa methods
+is an exception to the guidelines,
+or has other peculiarities,
+that will be explicitly stated.
+
+=head1 Naming thin methods
+
+=head1 Methods omitted
+
+No internal Libmarpa method is part of the thin interface.
+The C<marpa_check_version()> static method is not
+part of the thin interface, because the thin interface
+interface handles its own version matching.
+
+The thin interface deals with all reference counting
+issues, and interconnects Libmarpa's reference counting
+with Perl's.  The application can rely on Libmarpa
+objects being cleaned up properly as part of Perl's
+ordinary garbage collection.
+For this reason, there are no thin wrappers for the 
+C<mapra_g_ref()>, C<mapra_g_unref()>,
+C<mapra_r_ref()>, C<mapra_r_unref()>,
+C<mapra_b_ref()>, C<mapra_b_unref()>,
+C<mapra_o_ref()>, C<mapra_o_unref()>,
+C<mapra_t_ref()>, C<mapra_t_unref()>
+C<mapra_v_ref()>, and C<mapra_v_unref()> methods.
 
 =head1 Example
+
+=for Marpa::R2::Display
+name: Thin example
+normalize-whitespace: 1
+
+    my $grammar  = Marpa::R2::Thin::G->new();
+    my $symbol_E = $grammar->symbol_new();
+    $grammar->start_symbol_set($symbol_E);
+    my $symbol_op     = $grammar->symbol_new();
+    my $symbol_number = $grammar->symbol_new();
+    my $rule_op =
+        $grammar->rule_new( $symbol_E, [ $symbol_E, $symbol_op, $symbol_E ] );
+    my $rule_number = $grammar->rule_new( $symbol_E, [$symbol_number] );
+    $grammar->precompute();
+
+    my $recce = Marpa::R2::Thin::R->new($grammar);
+    $recce->start_input();
+
+    # The numbers from 1 to 3 are themselves --
+    # that is, they index their own token value.
+    # Important: zero cannot be itself!
+
+    my @token_values         = ( 0 .. 3 );
+    my $zero                 = -1 + +push @token_values, 0;
+    my $minus_token_value    = -1 + push @token_values, q{-};
+    my $plus_token_value     = -1 + push @token_values, q{+};
+    my $multiply_token_value = -1 + push @token_values, q{*};
+
+    $recce->alternative( $symbol_number, 2, 1 );
+    $recce->earleme_complete();
+    $recce->alternative( $symbol_op, $minus_token_value, 1 );
+    $recce->earleme_complete();
+    $recce->alternative( $symbol_number, $zero, 1 );
+    $recce->earleme_complete();
+    $recce->alternative( $symbol_op, $multiply_token_value, 1 );
+    $recce->earleme_complete();
+    $recce->alternative( $symbol_number, 3, 1 );
+    $recce->earleme_complete();
+    $recce->alternative( $symbol_op, $plus_token_value, 1 );
+    $recce->earleme_complete();
+    $recce->alternative( $symbol_number, 1, 1 );
+    $recce->earleme_complete();
+
+    my $latest_earley_set_ID = $recce->latest_earley_set();
+    my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+    my $order         = Marpa::R2::Thin::O->new($bocage);
+    my $tree          = Marpa::R2::Thin::T->new($order);
+    my @actual_values = ();
+    while ( $tree->next() ) {
+        my $valuator = Marpa::R2::Thin::V->new($tree);
+        $valuator->rule_is_valued_set( $rule_op, 1 );
+        my @stack = ();
+        STEP: while ( my ( $type, @step_data ) = $valuator->step() ) {
+            last STEP if not defined $type;
+            if ( $type eq 'MARPA_STEP_TOKEN' ) {
+                my ( undef, $token_value_ix, $arg_n ) = @step_data;
+                $stack[$arg_n] = $token_values[$token_value_ix];
+                next STEP;
+            }
+            if ( $type eq 'MARPA_STEP_RULE' ) {
+                my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+                if ( $rule_id == $rule_number ) {
+                    my $number = $stack[$arg_0];
+                    $stack[$arg_0] = $number . q{==} . $number;
+                    next STEP;
+                }
+                if ( $rule_id == $rule_op ) {
+                    my $op = $stack[ $arg_0 + 1 ];
+                    my ( $right_string, $right_value ) =
+                        ( $stack[$arg_n] =~ /^(.*)==(.*)$/xms );
+                    my ( $left_string, $left_value ) =
+                        ( $stack[$arg_0] =~ /^(.*)==(.*)$/xms );
+                    my $value;
+                    if ( $op eq q{+} ) {
+                        $value = $left_value + $right_value;
+                    }
+                    elsif ( $op eq q{*} ) {
+                        $value = $left_value * $right_value;
+                    }
+                    elsif ( $op eq q{-} ) {
+                        $value = $left_value - $right_value;
+                    }
+                    else {
+                        die "Unknown op: $op";
+                    }
+                    $stack[$arg_0] =
+                        '(' . $left_string . $op . $right_string . ')==' . $value;
+                    next STEP;
+                } ## end if ( $rule_id == $rule_op )
+                die "Unknown rule $rule_id";
+            } ## end if ( $type eq 'MARPA_STEP_RULE' )
+            die "Unexpected step type: $type";
+        } ## end while ( my ( $type, @step_data ) = $valuator->step() )
+        push @actual_values, $stack[0];
+    } ## end while ( $tree->next() )
+
+=for Marpa::R2::Display::End
 
 =head1 Copyright and License
 

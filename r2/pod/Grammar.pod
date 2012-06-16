@@ -284,7 +284,7 @@ the most convenient way to determine if a symbol is a terminal.
 name: rule() Synopsis
 normalize-whitespace: 1
 
-    my ($lhs, @rhs) = $grammar->rule($completed_rule_id);
+    my ( $lhs, @rhs ) = $grammar->rule($rule_id);
 
 =for Marpa::R2::Display::End
 

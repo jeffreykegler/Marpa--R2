@@ -29,6 +29,9 @@ use English qw( -no_match_vars );
 use Fatal qw( close open );
 use Marpa::R2;
 
+# Marpa::R2::Display
+# name: Thin example
+
 my $grammar  = Marpa::R2::Thin::G->new();
 my $symbol_E = $grammar->symbol_new();
 $grammar->start_symbol_set($symbol_E);
@@ -119,6 +122,8 @@ while ( $tree->next() ) {
     } ## end while ( my ( $type, @step_data ) = $valuator->step() )
     push @actual_values, $stack[0];
 } ## end while ( $tree->next() )
+
+# Marpa::R2::Display::End
 
 my %expected_value = (
     '(2-(0*(3+1)))==2' => 1,
