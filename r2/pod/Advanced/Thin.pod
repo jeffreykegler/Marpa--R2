@@ -56,6 +56,18 @@ This document states general rules for the "thin" interface,
 and only describes in detail, those methods
 and situations which depart from the general rules.
 
+Admittedly, this is a very terse style of presentation.
+As an aid to
+the reader,
+an example of the usage of the thin interface is presented
+L<below/"Example">.
+While small, the example is non-trival.
+It includes a full
+logic flow, starting with the definition
+of the grammar
+and contining all the way to the iteration of
+the values of an ambiguous parse.
+
 =head1 Methods in the thin interface
 
 As of this writing, the thin interface has
@@ -86,7 +98,64 @@ is an exception to the guidelines,
 or has other peculiarities,
 that will be explicitly stated.
 
-=head1 Naming thin methods
+=head1 Libmarpa time classes
+
+As a reminder,
+the classes of
+Libmarpa's time objects are,
+in sequence,
+grammar, recognizer, bocage,
+ordering, tree and value.
+The one-letter abbreviations for these
+are, respectively,
+C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
+
+Internal Libmarpa methods have names of the form
+C<marpa_g_start_symbol_set>.
+The name always begin with the six-letter prefix
+C<marpa_>.
+Next follows a single letter and an underscore.
+The one-letter is one of Libmarpa's time class
+abbreviations, and indicates which
+class the method belongs to.
+(At this writing, there is no Libmarpa static
+method in the thin interface.)
+In the thin interface,
+The corresponding Perl closure would be named
+C<start_symbol_set> and would be a method of the
+class C<Marpa::R2::Thin:G>.
+
+The Libmarpa C prototypes always take the appropriate class object
+as their first argument.
+Zero or more other arguments follow this first time class argument.
+In Perl, the thin interface wrapper would called as a class method,
+and the second and subsequent arguments of the C function would
+be the arguments to the Perl method closure.
+
+As an example, here is a call to a Libmarpa function
+
+=for Marpa::R2::Display
+ignore: 1
+
+  marpa_g_start_symbol_set (grammar, symbol_S);
+
+=for Marpa::R2::Display::End
+
+This is a corresonding call in the thin interface:
+
+=for Marpa::R2::Display
+name: Thin example
+normalize-whitespace: 1
+partial: 1
+
+    $grammar->start_symbol_set($symbol_S);
+
+=for Marpa::R2::Display::End
+
+So far, we have not explained the
+translation between the C language
+arguments and return values and those in Perl.
+This will be described below.
 
 =head1 Methods omitted
 
@@ -107,6 +176,67 @@ C<mapra_b_ref()>, C<mapra_b_unref()>,
 C<mapra_o_ref()>, C<mapra_o_unref()>,
 C<mapra_t_ref()>, C<mapra_t_unref()>
 C<mapra_v_ref()>, and C<mapra_v_unref()> methods.
+
+=head1 Libmarpa time objects and constructors
+
+The thin interface implements a Perl class
+for each of the Libmarpa time classes.
+These Perl classes should be considered opaque.
+The only operations an application should perform
+on objects blessed into the thin interfaces
+classes is to assign them,
+and to use them to call methods in their class.
+Their namespace should be left strictly alone.
+In particular,
+new objects and methods
+should not be defined in it
+and they should not be subclassed.
+
+=over
+
+=item C<Marpa_Grammar>
+
+C<Marpa::R2::Thin::G>
+
+=item C<Marpa_Recognizer>
+
+C<Marpa::R2::Thin::R>
+
+=item C<Marpa_Bocage>
+
+C<Marpa::R2::Thin::B>,
+
+=item C<Marpa_Ordering>
+
+C<Marpa::R2::Thin::O>
+
+=item C<Marpa_Tree>
+
+C<Marpa::R2::Thin::T>
+
+=item C<Marpa_Value>
+
+C<Marpa::R2::Thin::V>
+
+=back
+
+Constructors for the time objects may be called using
+the C<new> method of the corresponding Perl class.
+For example,
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Thin::R->new($grammar);
+
+=for Marpa::R2::Display::End
+
+For destruction, the thin interface's time objects
+behave like other Perl objects.
+The thin interface takes care of Libmarpa's reference
+counting for the user.
 
 =head1 Example
 

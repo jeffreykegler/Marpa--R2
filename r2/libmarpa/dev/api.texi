@@ -1378,7 +1378,7 @@ To create rules, use the
 
 For non-trivial parsing,
 one or more of the symbols must be terminals.
-To mark a symbols a terminal,
+To mark a symbol as a terminal,
 use the
 @code{marpa_g_symbol_is_terminal_set()} method.
 
