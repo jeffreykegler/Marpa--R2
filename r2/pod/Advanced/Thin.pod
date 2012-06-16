@@ -115,16 +115,17 @@ The one-letter abbreviations for these
 are, respectively,
 C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
 
-Internal Libmarpa methods have names of the form
-C<marpa_g_start_symbol_set>.
-The name always begin with the six-letter prefix
-C<marpa_>.
-Next follows a single letter and an underscore.
-The one-letter is one of Libmarpa's time class
+The
+Internal methods of Libmarpa's time classes
+have names of the form C<marpa_g_start_symbol_set>.
+The name begin with a fixed six-letter prefix
+C<marpa_>,
+followed by a single letter,
+(in this case "C<g>")
+and another underscore.
+The single letter is one of Libmarpa's time class
 abbreviations, and indicates which
 class the method belongs to.
-(At this writing, there is no Libmarpa static
-method in the thin interface.)
 In the thin interface,
 The corresponding Perl closure would be named
 C<start_symbol_set> and would be a method of the
@@ -182,6 +183,14 @@ C<mapra_o_ref()>, C<mapra_o_unref()>,
 C<mapra_t_ref()>, C<mapra_t_unref()>
 C<mapra_v_ref()>, and C<mapra_v_unref()> methods.
 
+There are no thin wrappers for the
+C<marpa_g_error()> and
+C<marpa_r_error()> methods.
+The thin interface provides its own interface
+to Libmarpa's error information,
+one which is more convenient in the Perl
+environment.
+
 =head1 Libmarpa time objects and constructors
 
 The thin interface implements a Perl class
@@ -232,42 +241,72 @@ counting for the user.
 In general,
 when a Libmarpa method returns -1 to indicate failure,
 the thin interface return a Perl C<undef>.
-When a Libmarpa method returns -2 to indicate failure,
+In general,
+when a Libmarpa method returns -2 to indicate failure,
 the thin interface throws a Perl exception.
+Exceptions will be indicated in what follows.
 
-The thin interface allows a Perl application to
-interrogate the Libmarpa error codes
-and descriptions.
-The thin interfaces error methods differ from
-those of Libmarpa.
+The thin interface to Libmarpa provides
+error methods
+more appropriate to the Perl
+environment,
+than Libmarpa's own.
 
 =for Marpa::R2::Display
 name: Thin grammar error methods
 
-$error_code = $grammar->error_code();
-$error_description = $grammar->error();
+    my @error_names       = Marpa::R2::Thin::error_names();
+    my $error_code        = $grammar->error_code();
+    my $error_name        = $error_names[$error_code];
+    my $error_description = $grammar->error();
 
 =for Marpa::R2::Display::End
 
-The C<error_code()> method returns the error code.
-The error code is a string:
-the error code macro, as listed in
+The C<error_code()> method returns the most
+recent error code,
+which is an integer.
+The C<error_names()> static method returns
+an array of error "names":
+these are the error code macros, as listed in
 the Libmarpa documentation.
-Once Libmarpa is out of alpha,
-this can be relied on by application to be stable.
-Originally it would have been a mnemonic describing
-the error, but the programmer should not rely on this.
+The error code can be used as an index
+into the array of error names.
+The programmer can expect error
+codes and error names to be kept stable.
 
-The C<error()> method returns a message describing the 
-the error code.
+The C<error()> method returns
+the "error description",
+a string
+that provides a fuller
+description
+of the latest error than
+does the error name.
+Error descriptions are subject to change,
+Because error descriptions can be kept up
+to date, they may more accurately reflect
+the nature of the error than the error
+name.
 
 =for Marpa::R2::Display
 name: Thin recognizer error methods
 
-my $error_code = $recce->error_code();
-my $error_description = $recce->error();
+    $error_code        = $recce->error_code();
+    $error_name        = $error_names[$error_code];
+    $error_description = $recce->error();
 
 =for Marpa::R2::Display::End
+
+A separate set of error methods is provided
+for thin interface recognizer objects.
+A recognizer does not have its own
+error code,
+and the error returned by the recognizer
+error methods will be the one
+tracked in the base grammar.
+The recognizer error methods are
+a convenience, to save the application
+the trouble of looking up the recognizer's
+base grammar.
 
 =head1 Grammar methods
 
