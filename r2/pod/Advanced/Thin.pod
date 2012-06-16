@@ -193,22 +193,29 @@ or by letting them go out of scope.
 
 =head1 The general pattern
 
-The following is the general pattern
-for the thin Marpa interfaces.
-Iinternal class instance methods for Libmarpa's time classes
+The thin Marpa methods often follow
+a general pattern,
+based on their corresponding Libmarpa time class method.
+Internal class instance methods for Libmarpa's time classes
 have names of the form C<marpa_g_start_symbol_set>.
-The name begin with a fixed six-letter prefix
+The name begins with a fixed six-letter prefix
 C<marpa_>,
-followed by a single letter,
-(in this case "C<g>")
+followed by a single letter
+(in this case "C<g>"),
 and another underscore.
 The single letter is one of Libmarpa's time class
 abbreviations, and indicates which
 class the method belongs to.
-In general patten of Marpa's thin interface,
-the corresponding Perl closure would be named
-C<start_symbol_set> and would be a method of the
-class C<Marpa::R2::Thin:G>.
+
+In general pattern of Marpa's thin interface,
+the corresponding Marpa thin Perl closure would be
+be a method in the appropriate Marpa thin class,
+whose name is the same except for the 8-letter prefix.
+For example,
+the Marpa thin method corresponding to C<marpa_g_start_symbol_set>
+would be named C<start_symbol_set>
+and would be a method
+of the C<Marpa::R2::Thin:G> Perl class.
 
 When a Libmarpa method returns -1 to indicate failure,
 a Marpa thin interface following the general pattern
@@ -242,7 +249,7 @@ C language C<int>'s are also
 converted to Perl scalar integers.
 
 Here is an example of a Libmarpa function
-that whose corresponding Marpa thin method follows the
+whose corresponding Marpa thin method follows the
 general pattern.
 
 =for Marpa::R2::Display
