@@ -115,59 +115,6 @@ The one-letter abbreviations for these
 are, respectively,
 C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
 
-The
-Internal class instance methods for Libmarpa's time classes
-have names of the form C<marpa_g_start_symbol_set>.
-The name begin with a fixed six-letter prefix
-C<marpa_>,
-followed by a single letter,
-(in this case "C<g>")
-and another underscore.
-The single letter is one of Libmarpa's time class
-abbreviations, and indicates which
-class the method belongs to.
-In the thin interface,
-The corresponding Perl closure would be named
-C<start_symbol_set> and would be a method of the
-class C<Marpa::R2::Thin:G>.
-
-Libmarpa's class instance methods
-prototypes have an object of the appropriate class
-as their first ("self") argument.
-Zero or more other non-self arguments follow this first time class argument.
-In Perl, the corresponding 
-thin Marpa method
-would called as a class instance method,
-and the arguments of the C function are the same
-as the arguments to the Perl method closure.
-
-As an example, here is a call to a Libmarpa function
-in the C language:
-
-=for Marpa::R2::Display
-ignore: 1
-
-  marpa_g_start_symbol_set (grammar, symbol_S);
-
-=for Marpa::R2::Display::End
-
-and here is the corresonding thin Marpa call:
-
-=for Marpa::R2::Display
-name: Thin example
-normalize-whitespace: 1
-partial: 1
-
-    $grammar->start_symbol_set($symbol_S);
-
-=for Marpa::R2::Display::End
-
-In the above displays,
-we have yet to explain the
-translation between the C language
-arguments and return values and those of Perl.
-This will be done in what follows.
-
 =head1 Methods omitted
 
 No internal Libmarpa method is part of the thin interface.
@@ -244,15 +191,79 @@ Marpa thin interface's time objects should be destroyed
 implicitly by undefining them,
 or by letting them go out of scope.
 
-=head1 Errors
+=head1 The general pattern
 
-In general,
-when a Libmarpa method returns -1 to indicate failure,
-the thin interface return a Perl C<undef>.
-In general,
-when a Libmarpa method returns -2 to indicate failure,
-the thin interface throws a Perl exception.
-Exceptions will be indicated in what follows.
+The following is the general pattern
+for the thin Marpa interfaces.
+Iinternal class instance methods for Libmarpa's time classes
+have names of the form C<marpa_g_start_symbol_set>.
+The name begin with a fixed six-letter prefix
+C<marpa_>,
+followed by a single letter,
+(in this case "C<g>")
+and another underscore.
+The single letter is one of Libmarpa's time class
+abbreviations, and indicates which
+class the method belongs to.
+In general patten of Marpa's thin interface,
+the corresponding Perl closure would be named
+C<start_symbol_set> and would be a method of the
+class C<Marpa::R2::Thin:G>.
+
+When a Libmarpa method returns -1 to indicate failure,
+a Marpa thin interface following the general pattern
+returns a Perl C<undef>.
+When a Libmarpa method returns -2 to indicate failure,
+a Marpa thin interface following the general pattern
+throws a Perl exception.
+
+Libmarpa's class instance methods
+prototypes have an object of the appropriate class
+as their first ("self") argument.
+Zero or more other non-self arguments follow this first time class argument.
+In the corresponding thin Marpa method,
+if it follows the general pattern,
+the arguments to the Perl method closure are the
+the arguments of the C function
+in the same order,
+and converted in Perl variables as described next.
+(Here I am following the
+convention in the L<perlobj> of considered the "self" object to
+be a Perl method's first argument.)
+
+In the general pattern,
+every return value or argument whose type is one
+of Libmarpa's time classes is converted
+to the corresponding Marpa thin interface class.
+Return values and arguments of Libmarpa's numbered 
+classes (C<Marpa_Rule_ID> and C<Marpa_Symbol_ID>)
+are converted to Perl scalar integers.
+C language C<int>'s are also
+converted to Perl scalar integers.
+
+Here is an example of a Libmarpa function
+that whose corresponding Marpa thin method follows the
+general pattern.
+
+=for Marpa::R2::Display
+ignore: 1
+
+  marpa_g_start_symbol_set (grammar, symbol_S);
+
+=for Marpa::R2::Display::End
+
+and here is the corresonding thin Marpa call:
+
+=for Marpa::R2::Display
+name: Thin example
+normalize-whitespace: 1
+partial: 1
+
+    $grammar->start_symbol_set($symbol_S);
+
+=for Marpa::R2::Display::End
+
+=head1 Error methods
 
 The thin interface to Libmarpa provides
 error methods
