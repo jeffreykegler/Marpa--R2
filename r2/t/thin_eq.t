@@ -33,13 +33,15 @@ use Marpa::R2;
 # name: Thin example
 
 my $grammar  = Marpa::R2::Thin::G->new();
+my $symbol_S = $grammar->symbol_new();
 my $symbol_E = $grammar->symbol_new();
-$grammar->start_symbol_set($symbol_E);
+$grammar->start_symbol_set($symbol_S);
 my $symbol_op     = $grammar->symbol_new();
 my $symbol_number = $grammar->symbol_new();
-my $rule_op =
+my $start_rule_id = $grammar->rule_new( $symbol_S, [$symbol_E] );
+my $op_rule_id =
     $grammar->rule_new( $symbol_E, [ $symbol_E, $symbol_op, $symbol_E ] );
-my $rule_number = $grammar->rule_new( $symbol_E, [$symbol_number] );
+my $number_rule_id = $grammar->rule_new( $symbol_E, [$symbol_number] );
 $grammar->precompute();
 
 my $recce = Marpa::R2::Thin::R->new($grammar);
@@ -77,7 +79,9 @@ my $tree          = Marpa::R2::Thin::T->new($order);
 my @actual_values = ();
 while ( $tree->next() ) {
     my $valuator = Marpa::R2::Thin::V->new($tree);
-    $valuator->rule_is_valued_set( $rule_op, 1 );
+    $valuator->rule_is_valued_set( $op_rule_id,     1 );
+    $valuator->rule_is_valued_set( $start_rule_id,  1 );
+    $valuator->rule_is_valued_set( $number_rule_id, 1 );
     my @stack = ();
     STEP: while ( my ( $type, @step_data ) = $valuator->step() ) {
         last STEP if not defined $type;
@@ -88,34 +92,36 @@ while ( $tree->next() ) {
         }
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-            if ( $rule_id == $rule_number ) {
-                my $number = $stack[$arg_0];
-                $stack[$arg_0] = $number . q{==} . $number;
+            if ( $rule_id == $start_rule_id ) {
+                my ( $string, $value ) = @{ $stack[$arg_n] };
+                $stack[$arg_0] = "$string == $value";
                 next STEP;
             }
-            if ( $rule_id == $rule_op ) {
-                my $op = $stack[ $arg_0 + 1 ];
-                my ( $right_string, $right_value ) =
-                    ( $stack[$arg_n] =~ /^(.*)==(.*)$/xms );
-                my ( $left_string, $left_value ) =
-                    ( $stack[$arg_0] =~ /^(.*)==(.*)$/xms );
-                my $value;
-                if ( $op eq q{+} ) {
-                    $value = $left_value + $right_value;
-                }
-                elsif ( $op eq q{*} ) {
-                    $value = $left_value * $right_value;
-                }
-                elsif ( $op eq q{-} ) {
-                    $value = $left_value - $right_value;
-                }
-                else {
-                    die "Unknown op: $op";
-                }
-                $stack[$arg_0] =
-                    '(' . $left_string . $op . $right_string . ')==' . $value;
+            if ( $rule_id == $number_rule_id ) {
+                my $number = $stack[$arg_0];
+                $stack[$arg_0] = [ $number, $number ];
                 next STEP;
-            } ## end if ( $rule_id == $rule_op )
+            }
+            if ( $rule_id == $op_rule_id ) {
+                my $op = $stack[ $arg_0 + 1 ];
+                my ( $right_string, $right_value ) = @{ $stack[$arg_n] };
+                my ( $left_string,  $left_value )  = @{ $stack[$arg_0] };
+                my $value;
+                my $text = '(' . $left_string . $op . $right_string . ')';
+                if ( $op eq q{+} ) {
+                    $stack[$arg_0] = [ $text, $left_value + $right_value ];
+                    next STEP;
+                }
+                if ( $op eq q{-} ) {
+                    $stack[$arg_0] = [ $text, $left_value - $right_value ];
+                    next STEP;
+                }
+                if ( $op eq q{*} ) {
+                    $stack[$arg_0] = [ $text, $left_value * $right_value ];
+                    next STEP;
+                }
+                die "Unknown op: $op";
+            } ## end if ( $rule_id == $op_rule_id )
             die "Unknown rule $rule_id";
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
         die "Unexpected step type: $type";
@@ -126,11 +132,11 @@ while ( $tree->next() ) {
 # Marpa::R2::Display::End
 
 my %expected_value = (
-    '(2-(0*(3+1)))==2' => 1,
-    '(((2-0)*3)+1)==7' => 1,
-    '((2-(0*3))+1)==3' => 1,
-    '((2-0)*(3+1))==8' => 1,
-    '(2-((0*3)+1))==1' => 1,
+    '(2-(0*(3+1))) == 2' => 1,
+    '(((2-0)*3)+1) == 7' => 1,
+    '((2-(0*3))+1) == 3' => 1,
+    '((2-0)*(3+1)) == 8' => 1,
+    '(2-((0*3)+1)) == 1' => 1,
 );
 
 my $i = 0;
