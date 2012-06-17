@@ -371,7 +371,7 @@ PPCODE:
 }
 
  # This function invalidates any current iteration on
- # the hash args.  This seesm to be the way things are
+ # the hash args.  This seems to be the way things are
  # done in Perl -- in particular there seems to be no
  # easy way to  prevent that.
 Marpa_Rule_ID
