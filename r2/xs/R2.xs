@@ -310,25 +310,6 @@ CODE:
     Safefree( g_wrapper );
 
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
-
-void
-is_precomputed( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = marpa_g_is_precomputed (g);
-  if (result < 0)
-    {
-      croak ("Problem in g->is_precomputed(): %s",
-	     xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
 void
 event( g_wrapper, ix )
     G_Wrapper *g_wrapper;
@@ -354,21 +335,6 @@ PPCODE:
     }
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
   XPUSHs (sv_2mortal (newSViv (marpa_g_event_value(&event))));
-}
-
-void
-has_cycle( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = marpa_g_has_cycle (g);
-  if (result < 0)
-    {
-      croak ("Problem in g->has_cycle(): %s", xs_g_error (g_wrapper));
-    }
-  if (result) XSRETURN_YES;
-  XSRETURN_NO;
 }
 
 Marpa_Symbol_ID

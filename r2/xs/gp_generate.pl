@@ -124,21 +124,5 @@ print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
 
 say {$out} gp_generate(qw(start_symbol));
 say {$out} gp_generate(qw(start_symbol_set Marpa_Symbol_ID id));
-
-# void
-# start_symbol( g_wrapper )
-#     G_Wrapper *g_wrapper;
-# PPCODE:
-# {
-#   Marpa_Grammar g = g_wrapper->g;
-#   Marpa_Symbol_ID id = marpa_g_start_symbol (g);
-#   if (id <= -2)
-#     {
-#       croak ("Problem in g->start_symbol(): %s", xs_g_error (g_wrapper));
-#     }
-#   if (id < 0)
-#     {
-#       XSRETURN_UNDEF;
-#     }
-#   XPUSHs (sv_2mortal (newSViv (id)));
-# }
+say {$out} gp_generate(qw(is_precomputed));
+say {$out} gp_generate(qw(has_cycle));
