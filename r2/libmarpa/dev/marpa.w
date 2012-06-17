@@ -1947,7 +1947,7 @@ PRIVATE Marpa_Symbol_ID* rule_rhs_get(RULE rule)
 {
     return rule->t_symbols+1; }
 @ @<Function definitions@> =
-Marpa_Symbol_ID marpa_g_rule_rh_symbol(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) {
+Marpa_Symbol_ID marpa_g_rule_rhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) {
     RULE rule;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -2255,7 +2255,7 @@ Marpa_ISY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
 @ @d RHSID_of_IRL(irl, position) ((irl)->t_isyid_array[(position)+1])
 @ @d RHS_of_IRL(irl, position) ISY_by_ID(RHSID_of_IRL((irl), (position)))
 @<Function definitions@> =
-Marpa_ISY_ID _marpa_g_irl_rh_symbol(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
+Marpa_ISY_ID _marpa_g_irl_rhs(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
     IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -2510,7 +2510,11 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Populate the terminal boolean vector@>@;
     }
      return_value = G_EVENT_COUNT(g);
-     FAILURE:;
+     goto CLEANUP;
+     SOFT_FAILURE:;
+     return_value = -1;
+     goto CLEANUP;
+     CLEANUP:;
     my_obstack_free(obs_precompute);
      return return_value;
 }
@@ -2569,7 +2573,7 @@ a lot of useless diagnostics.
 @ @<Fail if no rules@> =
 if (UNLIKELY(xrl_count <= 0)) {
     MARPA_ERROR(MARPA_ERR_NO_RULES);
-    return failure_indicator;
+    goto SOFT_FAILURE;
 }
 
 @ Loop over the rules, producing boolean vector of LHS symbols, and of
@@ -2581,17 +2585,17 @@ While at it, set a flag to indicate if there are empty rules.
   if (UNLIKELY(start_xsyid < 0))
     {
       MARPA_ERROR (MARPA_ERR_NO_START_SYMBOL);
-      return failure_indicator;
+      goto SOFT_FAILURE;
     }
   if (UNLIKELY(!xsyid_is_valid (g, start_xsyid)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYMBOL);
-      return failure_indicator;
+      goto SOFT_FAILURE;
     }
   if (UNLIKELY(!SYM_is_LHS (SYM_by_ID (start_xsyid))))
     {
       MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
-      return failure_indicator;
+      goto SOFT_FAILURE;
     }
 }
 
@@ -2803,7 +2807,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
   if (UNLIKELY(counted_nullables))
     {
       MARPA_ERROR (MARPA_ERR_COUNTED_NULLABLE);
-      goto FAILURE;
+      goto SOFT_FAILURE;
     }
 }
 
@@ -2832,7 +2836,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
 if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)start_xsyid)))
 {
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
-    goto FAILURE;
+    goto SOFT_FAILURE;
 }
 @ @<Declare census variables@> =
 Bit_Vector productive_v = NULL;
@@ -2940,7 +2944,7 @@ reach a terminal symbol.
   if (UNLIKELY (nulling_terminal_found))
     {
       MARPA_ERROR (MARPA_ERR_NULLING_TERMINAL);
-      goto FAILURE;
+      goto SOFT_FAILURE;
     }
 }
 

@@ -355,6 +355,10 @@ An exception is thrown if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library
 was built.
 
+=head2 precompute()
+
+The C<precompute()> method follows the general pattern.
+
 =head1 Example
 
 =for Marpa::R2::Display

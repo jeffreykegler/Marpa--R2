@@ -1628,7 +1628,7 @@ Return value: On success, the rule length.
 On failure, -2.
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_g_rule_rh_symbol ( @
+@deftypefun Marpa_Symbol_ID marpa_g_rule_rhs ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id}, @
     int @var{ix})
@@ -4014,7 +4014,7 @@ Return value: On success, the IRL length.
 On failure, -2.
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID _marpa_g_irl_rh_symbol ( @
+@deftypefun Marpa_Symbol_ID _marpa_g_irl_rhs ( @
     Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id}, @
     int @var{ix})
