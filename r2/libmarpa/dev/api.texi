@@ -124,7 +124,6 @@ Grammar methods
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
 * Symbols::                     
-* Terminals methods::           
 * Rules::                       
 * Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
@@ -1361,7 +1360,6 @@ one of the following is returned, indicating the nature of the mismatch:
 * Grammar constructor::         Creating a new grammar.
 * Grammar reference counting::  Tracking the reference count of the grammar.
 * Symbols::                     
-* Terminals methods::           
 * Rules::                       
 * Sequences::                   
 * Grammar precomputation::      Precomputing the Grammar.
@@ -1453,7 +1451,7 @@ On success, the grammar object it was called with;
 
 @end deftypefun
 
-@node Symbols, Terminals methods, Grammar reference counting, Grammar methods
+@node Symbols, Rules, Grammar reference counting, Grammar methods
 @section Symbols
 
 @deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
@@ -1485,18 +1483,6 @@ Return value:
 On success, the symbol count of the grammar.
 On failure, -2.
 @end deftypefun
-
-@deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
-
-Creates a new symbol.
-
-Return value: On success, the ID of a new symbol;
-On failure, -2.
-
-@end deftypefun
-
-@node Terminals methods, Rules, Symbols, Grammar methods
-@section Methods for terminal symbols
 
 @deftypefun int marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
@@ -1562,6 +1548,14 @@ This function flags symbol @var{symid} as a terminal if
 @var{value} is 1,
 or flags it as a non-terminal if @var{value} is 0.
 
+Once set to a value with the
+@code{marpa_g_symbol_is_terminal_set()} method,
+the terminal status of a symbol is ``locked'' at that value.
+A subsequenct call to 
+@code{marpa_g_symbol_is_terminal_set()} with the same
+@var{symid} will return a soft failure,
+and leave the symbol's terminal status unchanged.
+
 By default, a symbol is a terminal if and only if it
 does not appear on the LHS of any rule.
 An attempt to flag a nulling symbol
@@ -1570,6 +1564,7 @@ but this is not necesssarily detected before precomputation.
 
 Return value: On success, 1 if @var{symid} is a terminal symbol after the
 call, 0 otherwise.
+If the terminal status is locked, -1.
 If @var{value} is not 0 or 1;
 if the grammar @var{g} is precomputed;
 or on some other failure, -2.
@@ -1590,13 +1585,32 @@ the semantics require that it have a defined value.
 If a symbol is not valued,
 it is an unvalued, or a ``whatever'' symbol.
 
+Once set to a value with the
+@code{marpa_g_symbol_is_valued_set()} method,
+the valued status of a symbol is ``locked'' at that value.
+A subsequenct call to 
+@code{marpa_g_symbol_is_valued_set()} with the same
+@var{symid} will return a soft failure,
+and leave the symbol's valued status unchanged.
+
 Return value: On success, 1 if the symbol @var{symbol_id}
 is valued, 0 if not.
+If the valued status is locked, -1.
+If @var{value} is not 0 or 1;
 On failure, -2.
 
 @end deftypefun
 
-@node Rules, Sequences, Terminals methods, Grammar methods
+@deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
+
+Creates a new symbol.
+
+Return value: On success, the ID of a new symbol;
+On failure, -2.
+
+@end deftypefun
+
+@node Rules, Sequences, Symbols, Grammar methods
 @section Rules
 
 @deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
