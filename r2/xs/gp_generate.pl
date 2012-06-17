@@ -24,6 +24,29 @@ use autodie;
 # of the development environment, not the configuration or
 # installation environment
 
+sub usage {
+     die "usage: $PROGRAM_NAME [out.xsh]";
+}
+
+if (@ARGV > 1) {
+   usage();
+}
+
+my $out;
+if ( @ARGV == 1 ) {
+  # For safety sake, only allow output files
+  # which end in '.xsh'.  This can be overriden
+  # by redirecting STDOUT, for example from
+  # the shell.
+    my $xsh_file_name = $ARGV[0];
+    if ( $xsh_file_name !~ /[.]xsh$/ ) {
+        usage();
+    }
+    open $out, q{>}, $xsh_file_name;
+} else {
+   $out = *STDOUT;
+}
+
 sub gp_generate {
     my ( $function, @arg_type_pairs ) = @_;
     my $output = q{};
@@ -97,10 +120,10 @@ sub gp_generate {
 
 $main::CLASS_LETTER   = 'g';
 $main::LIBMARPA_CLASS = 'Marpa_Grammar';
-print 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
+print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
 
-say gp_generate(qw(start_symbol));
-say gp_generate(qw(start_symbol_set Marpa_Symbol_ID id));
+say {$out} gp_generate(qw(start_symbol));
+say {$out} gp_generate(qw(start_symbol_set Marpa_Symbol_ID id));
 
 # void
 # start_symbol( g_wrapper )
