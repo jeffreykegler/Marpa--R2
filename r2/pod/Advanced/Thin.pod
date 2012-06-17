@@ -357,7 +357,23 @@ was built.
 
 =head2 precompute()
 
-The C<precompute()> method follows the general pattern.
+The C<precompute()> method follows the general pattern,
+but is unusual is having a variety of soft failures.
+Following the general pattern, C<precompute()> returns
+a Perl C<undef> for all of these soft failures.
+To tell them apart, the error methods must be used.
+
+In addition to errors,
+C<precompute()> also reports events.
+On success, C<precompute> returns an event count.
+Events are interogated using the grammar's
+C<event()> method.
+
+It is quite possible for C<precompute()> to report
+one or more events, even when there is an error.
+It is not safe to assume that no events occurred
+unless C<precompute()> succeeds and reports
+an event count of zero.
 
 =head1 Example
 

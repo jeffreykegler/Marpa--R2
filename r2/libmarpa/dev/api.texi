@@ -1137,15 +1137,27 @@ Whenever a method returns a hard failure,
 Libmarpa sets the error code to indicate
 the nature of the failure.
 Soft failures typically have a single
-cause, and usually are indicated by a return
+cause.
+Since soft failures usually are indicated by a return
 value special to soft failures,
-and in those cases an error code is not needed.
-In the cases where it is not
-necessary,
-the error code is not set.
+in most cases of soft failure
+an error code is unnecessary.
+Unless explicitly stated otherwise
+in a method's description,
+the reader should assume that the error code
+is not set on a soft failure.
 
-Whether an error is a hard or soft failure
-depends on the context.
+There are exceptions.
+The @code{marpa_g_precompute()} method
+can report soft failure for many reasons.
+An error code distinguishing them can
+be very necessary,
+and @code{marpa_g_precompute()} sets an
+error code on both soft and hard failure.
+
+Whether a particular kind
+of error is a hard or soft failure
+sometimes depends on the context.
 For example, when iterating parse trees,
 it is usually a soft failure when the iterator is
 ``exhausted''.
@@ -1841,18 +1853,34 @@ the failure is delayed until events are created
 for all of the counted nullables.
 
 Precomputation involves freezing
-and then thoroughly checking the grammar,
-and it is at this point that many failures
-are caught and reported.
-Counted nullables and nulling terminals have
-already been mentioned.
-Grammars without rules and those
-with invalid start symbols also produce
-hard failures.
+and then thoroughly checking the grammar.
+Because of the many checks it runs,
+The @code{marpa_g_precompute()} method is unusual in
+returning a variety of soft failures.
+
+@itemize
+@item @code{MARPA_ERR_NO_RULES}: The grammar has no rules.
+@item @code{MARPA_ERR_NO_START_SYMBOL}: No start symbol was specified.
+@item @code{MARPA_ERR_INVALID_START_SYMBOL}: A start symbol ID was specified, but it
+is not the ID of a valid symbol.
+@item @code{MARPA_ERR_START_NOT_LHS}: The start symbol is not on the LHS of any rule.
+@item @code{MARPA_ERR_UNPRODUCTIVE_START}: The start symbol is not productive.
+@item @code{MARPA_ERR_COUNTED_NULLABLE}: A symbol on the RHS of a sequence rule is
+nullable.
+Libmarpa does not allow this.
+@item @code{MARPA_ERR_NULLING_TERMINAL}: A terminal is also a nulling symbol.
+Libmarpa does not allow this.
+@end itemize
+
+More details of these can be found under the
+description of the appropriate code.
+@xref{External error codes}.
 
 Return value: On success, the number of events generated.
-If the grammar is already precomputed,
-or on other failure, -2.
+On one of the many soft failures, -1.
+On hard failure, -2.
+@code{marpa_g_precompute()} sets the error code
+on both soft and hard failures.
 @end deftypefun
 
 @deftypefun int marpa_g_is_precomputed (Marpa_Grammar @var{g})
