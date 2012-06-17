@@ -1498,46 +1498,30 @@ On failure, -2.
 @node Terminals methods, Rules, Symbols, Grammar methods
 @section Methods for terminal symbols
 
-@deftypefun int marpa_g_symbol_is_terminal ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-Return value: On success, 1 if @var{symid} is a terminal symbol, 0 otherwise.
-On failure, -2.
-
-@deftypefunx int marpa_g_symbol_is_terminal_set ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid}, @
- int @var{value})
-
-These methods, respectively, set
-and query the ``terminal status'' of a symbol.
-To be used as an input symbol
-in the @code{marpa_r_alternative()} method,
-a symbol must be a terminal.
-This function flags symbol @var{symid} as a terminal if
-@var{value} is 1,
-or flags it as a non-terminal if @var{value} is 0.
-
-By default, a symbol is a terminal if and only if it
-does not appear on the LHS of any rule.
-This setting overrides the default.
-An attempt to flag a nulling symbol
-as a terminal is a fatal error,
-but this is not necesssarily detected before precomputation.
-
-Return value: On success, 1 if @var{symid} is a terminal symbol after the
-call, 0 otherwise.
-If @var{value} is not 0 or 1;
-if the grammar @var{g} is precomputed;
-or on some other failure, -2.
-@end deftypefun
-
 @deftypefun int marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{accessible} if it can be reached from the start symbol.
 
 Return value: On success, 1 if accessible, 0 if not.  If the grammar
 is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_symbol_is_nullable ( @
+  Marpa_Grammar g, Marpa_Symbol_ID symid)
+A symbol is @dfn{nullable} if it sometimes produces the empty string.
+A @strong{nulling} symbol is always a @strong{nullable} symbol,
+but not all @strong{nullable} symbols are @strong{nulling} symbols.
+
+Return value: On success, 1 if symbol is nullable, 0 if not.
+If the grammar is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid})
+A symbol is @dfn{nulling} if it always produces the empty string.
+
+Return value: On success, 1 if symbol is nulling, 0 if not.
+If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
@@ -1561,31 +1545,43 @@ Return value: -2 if @var{symid} is not valid;
 
 @end deftypefun
 
-@deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
+@deftypefun int marpa_g_symbol_is_terminal ( @
+    Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
-A symbol is @dfn{nulling} if it always produces the empty string.
+@deftypefunx int marpa_g_symbol_is_terminal_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symid}, @
+ int @var{value})
 
-Return value: On success, 1 if symbol is nulling, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
+These methods, respectively, set
+and query the ``terminal status'' of a symbol.
+To be used as an input symbol
+in the @code{marpa_r_alternative()} method,
+a symbol must be a terminal.
+This function flags symbol @var{symid} as a terminal if
+@var{value} is 1,
+or flags it as a non-terminal if @var{value} is 0.
+
+By default, a symbol is a terminal if and only if it
+does not appear on the LHS of any rule.
+An attempt to flag a nulling symbol
+as a terminal is a fatal error,
+but this is not necesssarily detected before precomputation.
+
+Return value: On success, 1 if @var{symid} is a terminal symbol after the
+call, 0 otherwise.
+If @var{value} is not 0 or 1;
+if the grammar @var{g} is precomputed;
+or on some other failure, -2.
 @end deftypefun
 
-@deftypefun int marpa_g_symbol_is_nullable ( @
-  Marpa_Grammar g, Marpa_Symbol_ID symid)
-A symbol is @dfn{nullable} if it sometimes produces the empty string.
-A @strong{nulling} symbol is always a @strong{nullable} symbol,
-but not all @strong{nullable} symbols are @strong{nulling} symbols.
-
-Return value: On success, 1 if symbol is nullable, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_symbol_valued_set ( @
+@deftypefun int marpa_g_symbol_is_valued ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{symbol_id})
+@deftypefunx int marpa_g_symbol_is_valued_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symbol_id}, @
     int value)
-@deftypefunx int marpa_g_symbol_is_valued ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symbol_id})
 
 These methods, respectively, set
 and query the ``valued status'' of a symbol.
