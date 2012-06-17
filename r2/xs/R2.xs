@@ -313,37 +313,6 @@ CODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 void
-start_symbol( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  Marpa_Grammar self = g_wrapper->g;
-  int gp_result = marpa_g_start_symbol(self);
-  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
-  if ( gp_result < 0 ) {
-    croak("Problem in g->start_symbol(): %s", 
-      xs_g_error( g_wrapper ));
-  }
-  XPUSHs (sv_2mortal (newSViv (gp_result)));
-}
-
-void
-start_symbol_set( g_wrapper, id )
-    G_Wrapper *g_wrapper;
-    Marpa_Symbol_ID id;
-PPCODE:
-{
-  Marpa_Grammar self = g_wrapper->g;
-  int gp_result = marpa_g_start_symbol_set(self, id);
-  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
-  if ( gp_result < 0 ) {
-    croak("Problem in g->start_symbol_set(%d): %s", 
-      id, xs_g_error( g_wrapper ));
-  }
-  XPUSHs (sv_2mortal (newSViv (gp_result)));
-}
-
-void
 is_precomputed( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
@@ -2877,6 +2846,8 @@ PPCODE:
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
+
+INCLUDE: general_pattern.xsh
 
 BOOT:
     marpa_debug_handler_set(marpa_r2_warn);

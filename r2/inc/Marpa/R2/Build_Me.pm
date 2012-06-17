@@ -160,7 +160,26 @@ sub marpa_infer_xs_spec {
 sub process_xs {
     my ( $self, $xs_file ) = @_;
 
+    my $development_mode = defined $self->args('dev');
+
     my $spec = marpa_infer_xs_spec( $self, $xs_file );
+
+    if ($development_mode) {
+        my $xs_build_dir = File::Spec->catdir(qw(lib Marpa));
+        my $xs_dir = File::Spec->catdir(qw(xs));
+        my $gp_generate_pl = File::Spec->catfile( $xs_dir, 'gp_generate.pl' );
+        my $gp_xsh = File::Spec->catfile( $xs_build_dir, 'general_pattern.xsh' );
+        if ( not $self->up_to_date( [$gp_generate_pl], $gp_xsh ) ) {
+            if (not IPC::Cmd::run(
+                    command => [ $EXECUTABLE_NAME, $gp_generate_pl, $gp_xsh ],
+                    verbose => 1
+                )
+                )
+            {
+                die "Could not generate $gp_xsh";
+            } ## end if ( not IPC::Cmd::run( command => [ $EXECUTABLE_NAME...]))
+        } ## end if ( not $self->up_to_date( [$gp_generate_pl], $gp_xsh...))
+    } ## end if ($development_mode)
 
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
@@ -224,7 +243,7 @@ sub process_xs {
     return marpa_link_c( $self, $spec );
 } ## end sub process_xs
 
-# The following was initially copied from Module::Build, and have
+# The following was initially copied from Module::Build, and has
 # been customized for Marpa.
 sub marpa_link_c {
     my ( $self, $spec ) = @_;
