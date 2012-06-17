@@ -366,7 +366,10 @@ PPCODE:
     }
     new_rule_id = marpa_g_rule_new(g, lhs, rhs, length);
     Safefree(rhs);
-    if (new_rule_id < 0) { XSRETURN_UNDEF; }
+    if (new_rule_id == -1) { XSRETURN_UNDEF; }
+    if (new_rule_id < 0) {
+      croak ("Problem in g->rule_new(%d, ...): %s", lhs, xs_g_error (g_wrapper));
+    }
     XPUSHs( sv_2mortal( newSViv(new_rule_id) ) );
 }
 
@@ -382,51 +385,61 @@ sequence_new( g_wrapper, lhs, rhs, args )
     HV *args;
 PPCODE:
 {
-    Marpa_Grammar g = g_wrapper->g;
-    Marpa_Rule_ID new_rule_id;
-    Marpa_Symbol_ID separator = -1;
-    int min = 1;
-    int flags = 0;
-    if (args) {
-	I32 retlen;
-	char* key;
-	SV* arg_value;
-	hv_iterinit(args);
-	while ((arg_value = hv_iternextsv (args, &key, &retlen)))
-	  {
-	    if ((*key == 'k') && strnEQ (key, "keep", (unsigned) retlen))
-	      {
-		if (SvTRUE (arg_value))
-		  flags |= MARPA_KEEP_SEPARATION;
-		continue;
-	      }
-	    if ((*key == 'm') && strnEQ (key, "min", (unsigned) retlen))
-	      {
-		int raw_min = SvIV (arg_value);
-		if (raw_min < 0)
-		  {
-		    croak ("sequence_new(): min cannot be less than 0");
-		  }
-		min = raw_min;
-		continue;
-	      }
-	    if ((*key == 'p') && strnEQ (key, "proper", (unsigned) retlen))
-	      {
-		if (SvTRUE (arg_value))
-		  flags |= MARPA_PROPER_SEPARATION;
-		continue;
-      }
-    if ((*key == 's') && strnEQ (key, "separator", (unsigned) retlen))
-      {
-	separator = SvIV (arg_value);
-	continue;
-      }
-    croak ("unknown argument to sequence_new(): %.*s", (int)retlen, key);
-  }
+  Marpa_Grammar g = g_wrapper->g;
+  Marpa_Rule_ID new_rule_id;
+  Marpa_Symbol_ID separator = -1;
+  int min = 1;
+  int flags = 0;
+  if (args)
+    {
+      I32 retlen;
+      char *key;
+      SV *arg_value;
+      hv_iterinit (args);
+      while ((arg_value = hv_iternextsv (args, &key, &retlen)))
+	{
+	  if ((*key == 'k') && strnEQ (key, "keep", (unsigned) retlen))
+	    {
+	      if (SvTRUE (arg_value))
+		flags |= MARPA_KEEP_SEPARATION;
+	      continue;
+	    }
+	  if ((*key == 'm') && strnEQ (key, "min", (unsigned) retlen))
+	    {
+	      int raw_min = SvIV (arg_value);
+	      if (raw_min < 0)
+		{
+		  croak ("sequence_new(): min cannot be less than 0");
+		}
+	      min = raw_min;
+	      continue;
+	    }
+	  if ((*key == 'p') && strnEQ (key, "proper", (unsigned) retlen))
+	    {
+	      if (SvTRUE (arg_value))
+		flags |= MARPA_PROPER_SEPARATION;
+	      continue;
+	    }
+	  if ((*key == 's') && strnEQ (key, "separator", (unsigned) retlen))
+	    {
+	      separator = SvIV (arg_value);
+	      continue;
+	    }
+	  croak ("unknown argument to sequence_new(): %.*s", (int) retlen,
+		 key);
+	}
     }
-    new_rule_id = marpa_g_sequence_new(g, lhs, rhs, separator, min, flags );
-    if (new_rule_id < 0) { XSRETURN_UNDEF; }
-    XPUSHs( sv_2mortal( newSViv(new_rule_id) ) );
+  new_rule_id = marpa_g_sequence_new (g, lhs, rhs, separator, min, flags);
+  if (new_rule_id == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (new_rule_id < 0)
+    {
+      croak ("Problem in g->sequence_new(%d, %d, ...): %s", lhs, rhs,
+	     xs_g_error (g_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (new_rule_id)));
 }
 
 void
