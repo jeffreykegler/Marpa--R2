@@ -180,11 +180,9 @@ sub process_xs {
         } ## end if ( not $self->up_to_date( [$gp_generate_pl], $gp_xsh...))
     } ## end if ($development_mode)
 
-    my $dest_gp_xsh = $self->copy_if_modified(
-        from => $gp_xsh,
-        to   => File::Spec->catfile( $spec->{src_dir}, 'general_pattern.xsh' ),
-        verbose => 1
-    );
+    my $dest_gp_xsh =
+        File::Spec->catfile( $spec->{src_dir}, 'general_pattern.xsh' );
+    $self->copy_if_modified( from => $gp_xsh, to => $dest_gp_xsh, );
 
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
