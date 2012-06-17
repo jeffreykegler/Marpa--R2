@@ -280,6 +280,7 @@ than Libmarpa's own.
 
 =for Marpa::R2::Display
 name: Thin grammar error methods
+normalize-whitespace: 1
 
     my @error_names       = Marpa::R2::Thin::error_names();
     my $error_code        = $grammar->error_code();
@@ -315,6 +316,7 @@ name.
 
 =for Marpa::R2::Display
 name: Thin recognizer error methods
+normalize-whitespace: 1
 
     $error_code        = $recce->error_code();
     $error_name        = $error_names[$error_code];
@@ -354,6 +356,34 @@ Its return value is a thin interface grammar object.
 An exception is thrown if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library
 was built.
+
+=head2 rule_new()
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    my $start_rule_id = $grammar->rule_new( $symbol_S, [$symbol_E] );
+
+=for Marpa::R2::Display::End
+
+=head2 sequence_new()
+
+=for Marpa::R2::Display
+name: Thin sequence_new() example
+
+my $sequence_rule_id = $grammar_c->sequence_new(
+        $symbol_S,
+        $symbol_a,
+        {   separator => $symbol_sep,
+            keep      => 0,
+            proper    => 0,
+            min       => 1
+        }
+    );
+
+=for Marpa::R2::Display::End
 
 =head2 precompute()
 

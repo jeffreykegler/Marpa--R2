@@ -170,8 +170,25 @@ Test::More::is( $error_name, 'MARPA_ERR_NONE', 'Grammar error name' );
 Test::More::is( $error_description, 'No error', 'Grammar error description' );
 
 $symbol_S = $grammar->symbol_new();
+$symbol_a = $grammar->symbol_new();
+$symbol_sep = $grammar->symbol_new();
 $grammar->start_symbol_set($symbol_S);
-$start_rule_id = $grammar->rule_new( $symbol_S, [] );
+
+# Marpa::R2::Display
+# name: Thin sequence_new() example
+
+my $sequence_rule_id = $grammar_c->sequence_new(
+        $symbol_S,
+        $symbol_a,
+        {   separator => $symbol_sep,
+            keep      => 0,
+            proper    => 0,
+            min       => 1
+        }
+    );
+
+# Marpa::R2::Display::End
+
 $grammar->precompute();
 $recce = Marpa::R2::Thin::R->new($grammar);
 
