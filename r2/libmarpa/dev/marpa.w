@@ -1268,7 +1268,7 @@ int marpa_g_symbol_is_nullable(Marpa_Grammar g, Marpa_Symbol_ID xsyid)
 }
 
 @*0 Symbol is terminal?.
-The ``marked terminal'' flag tracked whether
+The ``locked terminal'' flag tracked whether
 the terminal flag was set by the user.
 It distinguishes those
 terminal settings that will
@@ -1276,12 +1276,12 @@ be overwritten by the default
 from those should not be.
 @<Bit aligned symbol elements@> =
 unsigned int t_is_terminal:1;
-unsigned int t_is_marked_terminal:1;
+unsigned int t_is_locked_terminal:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_terminal = 0;
-symbol->t_is_marked_terminal = 0;
+symbol->t_is_locked_terminal = 0;
 @ @d XSY_is_Terminal(symbol) ((symbol)->t_is_terminal)
-@ @d SYM_is_Marked_Terminal(symbol) ((symbol)->t_is_marked_terminal)
+@ @d SYM_is_Locked_Terminal(symbol) ((symbol)->t_is_locked_terminal)
 @d SYMID_is_Terminal(id) (XSY_is_Terminal(SYM_by_ID(id)))
 @<Function definitions@> =
 int marpa_g_symbol_is_terminal(Marpa_Grammar g,
@@ -1297,6 +1297,7 @@ int marpa_g_symbol_is_terminal_set(
 Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 {
     SYM symbol;
+    const int terminal_is_locked = -1;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
@@ -1306,7 +1307,10 @@ Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
     }
-    SYM_is_Marked_Terminal(symbol) = 1;
+    if (UNLIKELY(SYM_is_Locked_Terminal(symbol))) {
+	return terminal_is_locked;
+    }
+    SYM_is_Locked_Terminal(symbol) = 1;
     return XSY_is_Terminal(symbol) = value;
 }
 
@@ -2753,7 +2757,7 @@ and a flag which indicates if there are any.
   for (symid = 0; symid < pre_census_xsy_count; symid++)
     {
       SYM symbol = SYM_by_ID (symid);
-      if (SYM_is_Marked_Terminal (symbol))
+      if (SYM_is_Locked_Terminal (symbol))
 	{
 	  /* If marked by the user, leave the symbol
 	     as set by the user, and update the boolean vector */
@@ -12448,17 +12452,8 @@ int marpa_v_symbol_is_valued(
     @<Fail if |xsyid| is invalid@>@;
     return lbv_bit_test(XSY_is_Valued_BV_of_V(v), xsyid);
 }
-@ If the symbol has a null alias, the call is interpreted
-as being for that null alias.
-Non-nullables can never have "ask me" set,
-and it is an error to attempt to attempt to do so.
-Note that it is currently
-{\bf not} an error to change setting while the valuation
-is in progress.
-The idea scares me,
-but I cannot think of a reason to ban it,
-so I do not.
-@<Function definitions@> =
+
+@ @<Function definitions@> =
 PRIVATE int symbol_is_valued_set (
     VALUE v, XSYID xsyid, int value)
 {

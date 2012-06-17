@@ -357,6 +357,15 @@ was built.
 
 =head2 precompute()
 
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    $grammar->precompute();
+
+=for Marpa::R2::Display::End
+
 The C<precompute()> method follows the general pattern,
 but is unusual is having a variety of soft failures.
 Following the general pattern, C<precompute()> returns
@@ -374,6 +383,21 @@ one or more events, even when there is an error.
 It is not safe to assume that no events occurred
 unless C<precompute()> succeeds and reports
 an event count of zero.
+
+=head2 Omitted methods
+
+The
+C<marpa_g_error()>,
+C<marpa_g_ref()>
+and C<marpa_g_unref()>
+are not included of the Marpa thin interface.
+
+=head2 General pattern methods
+
+All methods that are part of the Libmarpa external interface,
+but that are not mentioned explicitly in this section,
+follow the general pattern, as describe L<in another
+section|"The general pattern">
 
 =head1 Example
 

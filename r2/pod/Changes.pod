@@ -267,6 +267,20 @@ The new definition is simpler and more
 intuitive, and its greater restrictiveness
 is easy to work around.
 
+=head2 The terminal status of a symbol is locked once set
+
+Once a symbol is marked as a terminal or a non-terminal,
+its terminal status cannot be changed.
+We doubt this will affect any actual applications.
+It would only affect an application
+that changes symbols from their default status
+to non-terminal,
+and then only if they attempted to mark the same symbol
+as a terminal at another point.
+Few Marpa::R2 applications change symbols from
+their default terminal status,
+and none to my knowledge mark symbols as non-terminals.
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display

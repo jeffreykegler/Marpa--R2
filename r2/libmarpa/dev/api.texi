@@ -1456,13 +1456,17 @@ On success, the grammar object it was called with;
 @node Symbols, Terminals methods, Grammar reference counting, Grammar methods
 @section Symbols
 
-@deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
+@deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
 
-Creates a new symbol.
+Returns current value of the start symbol of grammar @var{g}.
+The value is that
+specified in the @code{marpa_g_start_symbol_set()} call,
+if there has been one.
 
-Return value: On success, the ID of a new symbol;
-On failure, -2.
-
+Return value:
+On failure, -2;
+-1 if there is no start symbol yet;
+otherwise the ID of the new start symbol.
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID marpa_g_start_symbol_set ( @
@@ -1476,23 +1480,19 @@ On failure, -2.
 
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar @var{g})
-
-Returns current value of the start symbol of grammar @var{g}.
-The value is that of the user's start
-symbol, as specified in the @code{marpa_g_start_symbol_set()} call,
-if there has been one.
-
-Return value:
-On failure, -2;
--1 if there is no start symbol yet;
-otherwise the ID of the new start symbol.
-@end deftypefun
-
 @deftypefun int marpa_g_symbol_count (Marpa_Grammar @var{g})
 Return value:
 On success, the symbol count of the grammar.
 On failure, -2.
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar @var{g})
+
+Creates a new symbol.
+
+Return value: On success, the ID of a new symbol;
+On failure, -2.
+
 @end deftypefun
 
 @node Terminals methods, Rules, Symbols, Grammar methods
@@ -1503,15 +1503,21 @@ On failure, -2.
     Marpa_Symbol_ID @var{symid})
 Return value: On success, 1 if @var{symid} is a terminal symbol, 0 otherwise.
 On failure, -2.
-@end deftypefun
 
-@deftypefun int marpa_g_symbol_is_terminal_set ( @
+@deftypefunx int marpa_g_symbol_is_terminal_set ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid}, @
  int @var{value})
+
+These methods, respectively, set
+and query the ``terminal status'' of a symbol.
+To be used as an input symbol
+in the @code{marpa_r_alternative()} method,
+a symbol must be a terminal.
 This function flags symbol @var{symid} as a terminal if
 @var{value} is 1,
 or flags it as a non-terminal if @var{value} is 0.
+
 By default, a symbol is a terminal if and only if it
 does not appear on the LHS of any rule.
 This setting overrides the default.
