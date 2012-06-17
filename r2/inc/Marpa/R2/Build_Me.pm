@@ -164,11 +164,10 @@ sub process_xs {
 
     my $spec = marpa_infer_xs_spec( $self, $xs_file );
 
+    my $xs_dir = File::Spec->catdir(qw(xs));
+    my $gp_xsh = File::Spec->catfile( $xs_dir, 'general_pattern.xsh' );
     if ($development_mode) {
-        my $xs_build_dir = File::Spec->catdir(qw(lib Marpa));
-        my $xs_dir = File::Spec->catdir(qw(xs));
         my $gp_generate_pl = File::Spec->catfile( $xs_dir, 'gp_generate.pl' );
-        my $gp_xsh = File::Spec->catfile( $xs_build_dir, 'general_pattern.xsh' );
         if ( not $self->up_to_date( [$gp_generate_pl], $gp_xsh ) ) {
             if (not IPC::Cmd::run(
                     command => [ $EXECUTABLE_NAME, $gp_generate_pl, $gp_xsh ],
@@ -181,12 +180,18 @@ sub process_xs {
         } ## end if ( not $self->up_to_date( [$gp_generate_pl], $gp_xsh...))
     } ## end if ($development_mode)
 
+    my $dest_gp_xsh = $self->copy_if_modified(
+        from => $gp_xsh,
+        to   => File::Spec->catfile( $spec->{src_dir}, 'general_pattern.xsh' ),
+        verbose => 1
+    );
+
     # .xs -> .c
     $self->add_to_cleanup( $spec->{c_file} );
 
     my @libmarpa_build_dir = File::Spec->splitdir( $self->base_dir );
     push @libmarpa_build_dir, qw(libmarpa build);
-    my @xs_dependencies = ( 'typemap', 'Build', $xs_file );
+    my @xs_dependencies = ( 'typemap', 'Build', $xs_file, $dest_gp_xsh );
     my $libmarpa_build_dir = File::Spec->catdir(@libmarpa_build_dir);
     push @xs_dependencies,
         map { File::Spec->catfile( @libmarpa_build_dir, $_ ) }
