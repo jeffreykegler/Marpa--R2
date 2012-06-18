@@ -428,17 +428,70 @@ C<rule_new()> throws hard failures as exceptions.
 name: Thin sequence_new() example
 normalize-whitespace: 1
 
-my $sequence_rule_id = $grammar->sequence_new(
-        $symbol_S,
-        $symbol_a,
-        {   separator => $symbol_sep,
-            keep      => 0,
-            proper    => 0,
-            min       => 1
-        }
-    );
+    my $sequence_rule_id = $grammar->sequence_new(
+            $symbol_S,
+            $symbol_a,
+            {   separator => $symbol_sep,
+                proper    => 0,
+                min       => 1
+            }
+        );
 
 =for Marpa::R2::Display::End
+
+The C<sequence_new()> grammar method is
+the Libmarpa thin interface method corresponding
+to the C<marpa_g_sequence_new()> method.
+It takes three arguments, all required.
+The first argument is a symbol ID representing the
+sequence's LHS.
+The second argument is a symbol ID representing the
+sequence's RHS.
+The third argument is a reference to a hash of named
+arguments.
+
+The hash of named arguments may be empty.
+If not empty, its keys, and their values,
+must be one of the following:
+
+=over
+
+=item C<separator>
+
+The value of the C<separator> named argument
+will be treated as an integer,
+and passed as the separator ID argument
+to the C<marpa_g_sequence_new()> method.
+It defaults to -1.
+
+=item C<proper>
+
+If the value of C<proper> named argument
+is a Perl true value,
+the C<MARPA_PROPER_SEPARATION> flag
+will be set in the flags passed
+to the C<marpa_g_sequence_new()> method.
+Otherwise, 
+the C<MARPA_PROPER_SEPARATION> flag
+will not be set.
+
+=item C<min>
+
+The value of the C<separator> named argument
+will be treated as an integer,
+and passed as the separator ID argument
+to the C<marpa_g_sequence_new()> method.
+It defaults to 0.
+
+=back
+
+On success,
+the return value is the ID of the new sequence.
+The C<sequence_new()> can return soft failure,
+as described in the Libmarpa API.
+C<sequence_new()> throws hard failures as exceptions.
+The C<sequence_new()> method
+sets the error code on both soft and hard failure.
 
 =head2 precompute()
 

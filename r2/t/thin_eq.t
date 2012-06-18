@@ -181,7 +181,6 @@ my $sequence_rule_id = $grammar->sequence_new(
         $symbol_S,
         $symbol_a,
         {   separator => $symbol_sep,
-            keep      => 0,
             proper    => 0,
             min       => 1
         }
