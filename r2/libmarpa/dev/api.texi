@@ -1551,7 +1551,7 @@ or flags it as a non-terminal if @var{value} is 0.
 Once set to a value with the
 @code{marpa_g_symbol_is_terminal_set()} method,
 the terminal status of a symbol is ``locked'' at that value.
-A subsequenct call to 
+A subsequent call to 
 @code{marpa_g_symbol_is_terminal_set()} with the same
 @var{symid} will return a soft failure,
 and leave the symbol's terminal status unchanged.
@@ -1559,7 +1559,7 @@ and leave the symbol's terminal status unchanged.
 By default, a symbol is a terminal if and only if it
 does not appear on the LHS of any rule.
 An attempt to flag a nulling symbol
-as a terminal is a fatal error,
+as a terminal is a hard failure,
 but this is not necesssarily detected before precomputation.
 
 Return value: On success, 1 if symbol @var{symid}
@@ -1589,7 +1589,7 @@ it is an unvalued, or a ``whatever'' symbol.
 Once set to a value with the
 @code{marpa_g_symbol_is_valued_set()} method,
 the valued status of a symbol is ``locked'' at that value.
-A subsequenct call to 
+A subsequent call to 
 @code{marpa_g_symbol_is_valued_set()} with the same
 @var{symid} will return a soft failure,
 and leave the symbol's valued status unchanged.
@@ -1616,6 +1616,80 @@ On failure, -2.
 
 @deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
 Return value: On success, the current number of rules in grammar @var{g}.
+On failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{id})
+A rule is @dfn{accessible} if it can be reached from the start symbol.
+A rule is accessible if and only if its LHS symbol is accessible.
+The start rule is always an accessible rule.
+
+Return value: On success, 1 if accessible, 0 if not.  If the grammar
+is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_nullable ( @
+  Marpa_Grammar g, Marpa_Rule_ID ruleid)
+A rule is @dfn{nullable} if it sometimes produces the empty string.
+A @strong{nulling} rule is always a @strong{nullable} rule,
+but not all @strong{nullable} rules are @strong{nulling} rules.
+
+Return value: On success, 1 if @var{ruleid} is nullable, 0 if not.
+If the grammar is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_nulling (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{ruleid})
+A rule is @dfn{nulling} if it always produces the empty string.
+
+Return value: On success, 1 if @var{ruleid} is nulling, 0 if not.
+If the grammar is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+A rule is a loop rule if it non-trivially
+produces the string of length one
+which consists only of its LHS symbol.
+``Non-trivially'' means the zero-step derivation does not count -- the
+derivation must have at least one step.
+
+The presence of a loop rule makes a grammar infinitely ambiguous,
+and applications will typically want to treat them as fatal errors.
+But nothing forces an application to do this,
+and Marpa will successfully parse and evaluate grammars with
+loop rules.
+
+Return value: On success, 1 if this is a loop rule, 0 if not.  If the grammar
+is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{id})
+A rule is @dfn{productive} if it can be produce a string of terminals.
+including the empty string.
+An rule is productive if and only if all the symbols on
+its RHS are productive.
+An empty rule is considered productive.
+
+Return value: On success, 1 if productive, 0 if not.  If the grammar
+is not precomputed, or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_length ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+The length of a rule is the number of symbols on its RHS.
+
+Return value: On success, the length of rule @var{rule_id}.
+On failure, -2.
+@end deftypefun
+
+@deftypefun Marpa_Symbol_ID marpa_g_rule_lhs ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+Return value: On success, the LHS symbol of rule @var{rule_id}.
 On failure, -2.
 @end deftypefun
 
@@ -1648,22 +1722,6 @@ On other failures, -2.
 The error code is set on all failures.
 @end deftypefun
 
-@deftypefun Marpa_Symbol_ID marpa_g_rule_lhs ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-Return value: On success, the LHS symbol of the rule.
-On failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_length ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-The length of a rule is the number of symbols on its RHS.
-
-Return value: On success, the rule length.
-On failure, -2.
-@end deftypefun
-
 @deftypefun Marpa_Symbol_ID marpa_g_rule_rhs ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id}, @
@@ -1679,64 +1737,6 @@ on the rules RHS.
 If @var{ix} is greater than or equal to the length of
 the rule, -1.
 On other failures, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_nulling (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{ruleid})
-A rule is @dfn{nulling} if it always produces the empty string.
-
-Return value: On success, 1 if @var{ruleid} is nulling, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_nullable ( @
-  Marpa_Grammar g, Marpa_Rule_ID ruleid)
-A rule is @dfn{nullable} if it sometimes produces the empty string.
-A @strong{nulling} rule is always a @strong{nullable} rule,
-but not all @strong{nullable} rules are @strong{nulling} rules.
-
-Return value: On success, 1 if @var{ruleid} is nullable, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{id})
-A rule is @dfn{accessible} if it can be reached from the start symbol.
-A rule is accessible if and only if its LHS symbol is accessible.
-The start rule is always an accessible rule.
-
-Return value: On success, 1 if accessible, 0 if not.  If the grammar
-is not precomputed, or on other failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{id})
-A rule is @dfn{productive} if it can be produce a string of terminals.
-including the empty string.
-An rule is productive if and only if all the symbols on
-its RHS are productive.
-An empty rule is considered productive.
-
-Return value: On success, 1 if productive, 0 if not.  If the grammar
-is not precomputed, or on other failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-A rule is a loop rule if it non-trivially
-produces the string of length one
-which consists only of its LHS symbol.
-``Non-trivially'' means the zero-step derivation does not count -- the
-derivation must have at least one step.
-
-The presence of a loop rule makes a grammar infinitely ambiguous,
-and applications will typically want to treat them as fatal errors.
-But nothing forces an application to do this,
-and Marpa will successfully parse and evaluate grammars with
-loop rules.
-
-Return value: On success, 1 if this is a loop rule, 0 if not.  If the grammar
-is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @node Sequences, Grammar precomputation, Rules, Grammar methods
