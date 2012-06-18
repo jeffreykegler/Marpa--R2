@@ -1552,9 +1552,11 @@ Once set to a value with the
 @code{marpa_g_symbol_is_terminal_set()} method,
 the terminal status of a symbol is ``locked'' at that value.
 A subsequent call to 
-@code{marpa_g_symbol_is_terminal_set()} with the same
-@var{symid} will return a soft failure,
-and leave the symbol's terminal status unchanged.
+@code{marpa_g_symbol_is_terminal_set()} that attempts
+to change the terminal tstatus
+of @var{symid} to a value different from its current
+one is a soft failure.
+The error code is @code{MARPA_ERR_TERMINAL_IS_LOCKED}.
 
 By default, a symbol is a terminal if and only if it
 does not appear on the LHS of any rule.
@@ -1862,36 +1864,80 @@ On failure, -2.
 
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
 
-This function precomputes the grammar.
-In the process, precomputation creates events which
-the user can access.
-Application writers should be wary about continuing
-processing without looking at the events.
+This function attempts to precompute the grammar,
+in the process checking for a large number of issues.
+Precomputation is necessary for a recognizer to be generated
+from a grammar.
+On success, @code{marpa_g_precompute} returns a non-negative
+number to indicate that it precomputed the grammar without
+issues.
+On soft failure, @code{marpa_g_precompute} returns -1
+to indicate that it encountered issues that it
+reported as events.
+On hard failure, @code{marpa_g_precompute} returns -2
+to indicate that it encountered serious issues
+and could not report events or precompute the grammar.
 
-On success, this function returns the number of events
-generated,
-but it is important to note that events may be
-created whether precomputation fails or succeeds.
-When the method fails,
-the application must call @code{marpa_g_event()}
-if it wants to determine if any events occurred.
-Since the reason for failure to precompute is often
-detailed in the events, failed applications will often
-be at least as interested in the events as those
-which succeeded.
+On success, the grammar will have been precomputed,
+and the typical application will go on to create
+a recognizer and continue with the parse.
+On soft failure,
+the application will be able to
+to query events.
+On soft failure,
+there are also circumstances,
+as described below,
+under which the
+grammar will have been precomputed,
+and the applicaton can
+continue the parse.
+On hard failure, the issues will have
+been serious enough to prevent
+both precomputation and the reporting of events.
+
+On soft failure, the grammar may or
+may not have been precomputed.
+An error code of
+@code{MARPA_ERR_GRAMMAR_HAS_CYCLE}
+indicates that the grammar was precomputed.
+An application can also query the precomputed status
+of a grammar directly using
+the @code{marpa_g_is_precomputed()} method.
+
+At this writing,
+only unusual applications will want to continue
+with parsing in the presence of a soft failure.
+The only soft failure that does not prevent
+precomputation is the detection of a cycle,
+as reported with an error code of
+@code{MARPA_ERR_GRAMMAR_HAS_CYCLE}.
+Cycles make a grammar infinitely ambiguous,
+and are considered useless in current
+practice.
+Cycles make processing the grammar less
+efficient, sometimes considerably so.
+Although, in Libmarpa, cycles are not
+an error that must be fixed before
+parsing can take place,
+most applications will want to treat them
+as such.
+
+To query events,
+the application must call @code{marpa_g_event()}.
+At this point events only occur for failures,
+and always report issues.
+But
+application writers should expect future versions
+to have events which are not issues.
+Application writers should also be prepared
+for future extension which report event
+on success.
 
 A @code{MARPA_EVENT_LOOP_RULES} event occurs
 when there are infinite loop rules (cycles)
 in the grammar.
-Cycles make a grammar infinitely ambiguous.
-They are considered useless in current
-practice,
-and make processing the grammar less
-efficient, sometimes considerably so.
-Most applications will want to treat them
-as errors.
-Nonetheless, they are not errors in Libmarpa,
-and do not prevent Libmarpa from parsing.
+The presence of one or more of these is a soft failure,
+but does not prevent the grammar from being precomputed.
 
 Each @code{MARPA_EVENT_COUNTED_NULLABLE} event is a symbol
 which is a nullable on the right hand side of a sequence
@@ -1913,8 +1959,8 @@ for all of the counted nullables.
 Precomputation involves freezing
 and then thoroughly checking the grammar.
 Because of the many checks it runs,
-The @code{marpa_g_precompute()} method is unusual in
-returning a variety of soft failures.
+The @code{marpa_g_precompute()} method
+returns a variety of soft failures.
 
 @itemize
 @item @code{MARPA_ERR_NO_RULES}: The grammar has no rules.
@@ -1934,11 +1980,9 @@ More details of these can be found under the
 description of the appropriate code.
 @xref{External error codes}.
 
-Return value: On success, the number of events generated.
-On one of the many soft failures, -1.
+Return value: On success, a non-negative number.
+On soft failure, -1.
 On hard failure, -2.
-@code{marpa_g_precompute()} sets the error code
-on both soft and hard failures.
 @end deftypefun
 
 @deftypefun int marpa_g_is_precomputed (Marpa_Grammar @var{g})
@@ -1976,14 +2020,17 @@ in the location pointed to by @var{event}.
 On failure,
 the locations pointed to by @var{event}
 are not changed.
-It is a soft failure if there is no
-@var{ix}'th event.
+It is a soft failure
+(error code @code{MARPA_ERR_EVENT_IX_OOB})
+if @var{ix} is non-negative,
+but there is no @var{ix}'th event.
 This can be used as the termination condition
 in a loop over the events.
 
 Return value:  On success, the type of event @var{ix}.
 If there is no @var{ix}'th event, -1.
-On hard failure, -2.
+It @var{ix} is negative,
+or on other hard failure, -2.
 @end deftypefun
 
 @deftypefn {Macro} int marpa_g_event_value (Marpa_Event* @var{event})
@@ -2150,18 +2197,15 @@ The values of the current and latest earlemes
 are unchanged by
 calls to @code{marpa_r_alternative()}.
 
+If the token was not accepted
+because @var{token_id} is unexpected, it is a soft failure.
+The error code is @code{MARPA_ERR_UNEXPECTED_TOKEN};
+
 Return value:  On success, a non-negative value.
-If the token was not accepted because @var{token_id} is unexpected,
-it is considered a soft failure,
-and @code{marpa_r_alternative()}, -1.
+On soft failure, -1.
 If the token was not accepted because it
 is a duplicate,
-it is considered a soft failure,
-and @code{marpa_r_alternative()}, -3.
-For
-other problems that prevent successful processing,
-are considered hard failures,
--2.
+or on other hard failure, -2.
 
 @end deftypefun
 
@@ -2246,12 +2290,17 @@ Other applications may need to create an ID-to-earleme
 array using the @code{marpa_r_earleme()} method,
 and invert it themselves.
 
+If Earley set ID is non-negative,
+but there is no Earley set with that ID,
+it is a soft failure.
+The error code is 
+@code{MARPA_ERR_NO_EARLEY_SET_AT_LOCATION}.
+
 Return value:
 On success,
-returns the earleme corresponding to Earley
+the earleme corresponding to Earley
 set @var{set_id}.
-If @var{set_id} is out of bounds,
-returns -1.
+On soft failure, -1.
 On other failures, returns -2.
 @end deftypefun
 
@@ -2396,9 +2445,13 @@ memory is freed.
 Initially,
 the progress report is positioned before its first item.
 
-Return value: On success, the number of report items available.
 If @var{set_id} is a non-negative number,
-but a corresponding Earley set does not exist, -1.
+but a corresponding Earley set does not exist, it is
+a soft failure.
+The error code is @code{MARPA_ERR_NO_EARLEY_SET_AT_LOCATION}.
+
+Return value: On success, the number of report items available.
+On soft failure, -1.
 If the recognizer has not been started,
 if @var{set_id} is less than zero,
 or on other hard failure, -2.
@@ -2428,26 +2481,28 @@ This method allows access to the data
 for the next item of a
 progress report.
 If there are no more progress report items,
-it returns -1 to indicate a soft failure.
+it returns -1 to indicate a soft failure
+(error code @code{MARPA_ERR_PROGRESS_REPORT_EXHAUSTED}).
 Either the soft failure,
 or the item count returned by
 @code{marpa_r_progress_report_start()},
 can be used to determine when the last
 item has been seen.
 
-Return value: On success, the rule ID of
-the next progress report item.
-If there are no more progress report items, -1.
-If either @var{position} or @var{origin} is @code{NULL},
-or on other hard failure, @code{-2}.
 On success,
 the dot position is returned in the location
 pointed to by @var{position},
 and the origin is returned in the location
 pointed to by @var{origin}.
-On failure, it is not specified what, if any,
-value is written to
-@var{position} and @var{origin}.
+On failure, the locations pointed to by
+@var{position} and @var{origin}
+are unchanged.
+
+Return value: On success, the rule ID of
+the next progress report item.
+On soft failure, -1.
+If either @var{position} or @var{origin} is @code{NULL},
+or on other hard failure, @code{-2}.
 @end deftypefun
 
 @node Bocage methods, Ordering methods, Progress reports, Top
@@ -2701,8 +2756,11 @@ the tree is said to be ``exhausted''.
 A tree iterator for a bocage with no parse trees
 is considered to be ``exhausted'' when initialized.
 
+If the tree is exhausted, it is a soft failure.
+The error code is @code{MARPA_ERR_TREE_EXHAUSTED}.
+
 Return value: On success, returns a non-negative value.
-If the tree is exhausted, returns -1.
+On soft failure, returns -1.
 On other failure, returns -2 and sets the error code.
 @end deftypefun
 
@@ -3078,10 +3136,14 @@ A valued status is either 1 or 0.
 A valued status of 1 indicates that the symbol is valued.
 A valued status of 0 indicates that the symbol is unvalued.
 
+If the valued status is locked,
+an attempt to change to a status different from the
+current one is a soft failure.
+The error code is @code{ MARPA_ERR_VALUED_IS_LOCKED}.
+
 Return value:  On success, the valued status @strong{after}
 the call.
-On an attempt to set a locked valued status
-to a value different from its current one, -1.
+On soft failure, -1.
 If @var{value} is not either 0 or 1,
 or on other hard failure, -2.
 @end deftypefun

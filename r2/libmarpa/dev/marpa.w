@@ -971,7 +971,7 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event* public_event,
   }
   if (ix >= DSTACK_LENGTH (*events)) {
     MARPA_ERROR(MARPA_ERR_EVENT_IX_OOB);
-    return index_out_of_bounds;
+    return soft_failure;
   }
   internal_event = DSTACK_INDEX (*events, GEV_Object, ix);
   type = internal_event->t_type;
@@ -1198,7 +1198,7 @@ int marpa_g_symbol_is_valued_set(
 		&& value != XSY_is_Valued (symbol)))
     {
       MARPA_ERROR(MARPA_ERR_VALUED_IS_LOCKED);
-      return valued_is_locked;
+      return soft_failure;
     }
   XSY_is_Valued (symbol) = value;
   return value;
@@ -1316,7 +1316,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
     if (UNLIKELY (SYM_is_Locked_Terminal (symbol))
 	&& XSY_is_Terminal (symbol) != value)
       {
-	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+	MARPA_ERROR (MARPA_ERR_TERMINAL_IS_LOCKED);
 	return soft_failure;
       }
     SYM_is_Locked_Terminal (symbol) = 1;
@@ -8109,28 +8109,6 @@ number of earley sets and the maximum earleme location.
 If tokens ending at location $n$ cannot be scanned, then clearly
 the parse can
 never reach location $n$.
-@ Whether token rejection is considered a failure is
-a matter for the upper layers to define.
-Retrying rejected tokens is one way to implement the
-important ``Ruby Slippers" parsing technique.
-On the other hand it is traditional,
-and often quite reasonable,
-to always treat rejection of a token as a fatal error.
-@ Returns current earleme (which may be zero) on success.
-If the token is rejected because it is not
-expected, returns |-1|.
-If the token is rejected as a duplicate
-expected, returns |-3|.
-On failure for other reasons, returns |-2|.
-@ Rejection because a token is unexpected can a common
-occurrence in an application---%
-an application may use this function to try out
-various alternatives.
-Rejection because a token is a duplicate is more likely to be
-a hard failure, but it is possible that an application will
-also see this as a normal data path.
-The general failures reported with |-2| will typically be
-treated by the application as fatal errors.
 @<Function definitions@> =
 Marpa_Earleme marpa_r_alternative(
     Marpa_Recognizer r,
@@ -8276,7 +8254,7 @@ altered by the attempt.
     {
       my_obstack_reject (token_obstack);
       MARPA_ERROR(MARPA_ERR_DUPLICATE_TOKEN);
-      return soft_failure;
+      return failure_indicator;
     }
   token = my_obstack_finish (token_obstack);
 }
