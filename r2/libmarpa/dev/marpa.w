@@ -2521,7 +2521,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Create AHFA states@>@;
 	@<Populate the terminal boolean vector@>@;
     }
-    if (g->has_cycle)
+    if (g->t_has_cycle)
       {
 	MARPA_ERROR (MARPA_ERR_GRAMMAR_HAS_CYCLE);
 	goto SOFT_FAILURE;
@@ -10587,7 +10587,6 @@ int marpa_r_progress_report_start(
     {
         MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
 	return soft_failure;
-      }
     }
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
@@ -12006,6 +12005,7 @@ int marpa_t_parse_count(Marpa_Tree t)
 int _marpa_t_size(Marpa_Tree t)
 {
   @<Return |-2| on failure@>@;
+  const int soft_failure = -1;
   @<Unpack tree objects@>@;
   @<Fail if fatal error@>@;
   if (T_is_Exhausted(t)) {
