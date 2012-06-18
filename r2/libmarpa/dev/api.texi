@@ -1627,17 +1627,24 @@ The LHS symbol is @var{lhs},
 and there are @var{length} symbols on the RHS,
 which is pointed to by @var{rhs}.
 
-An attempt to add a duplicate rule is a hard failure.
-A rule is considered a duplicate if it has the same
-LHS symbol,
+@code{marpa_g_rule_new()} sets an error code
+on both soft and hard failure.
+Possible soft failures, with their error codes, include:
+@itemize
+@item @code{MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE}: The LHS symbol is the same
+as that of a sequence rule.
+@item @code{MARPA_ERR_DUPLICATE_RULE}: The rule would duplicate another BNF
+rule.
+Another BNF rule is considered a duplicate
+of the one being added,
+if it have the same LHS symbol,
 and the same RHS symbols in the same order.
-A rule is also considered a duplicate if it has
-the same LHS symbol as a sequence rule,
-regardless of the right hand sides of the
-two rules.
+@end itemize
 
 Return value:  On success, the ID of new external rule.
-On failure, -2.
+On soft failures, -1.
+On other failures, -2.
+The error code is set on all failures.
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID marpa_g_rule_lhs ( @
@@ -1782,9 +1789,18 @@ some of which are nullable,
 the user's intent can be more clearly expressed
 directly in BNF.
 
+The LHS symbol cannot be the LHS of any other rule,
+whether a BNF rule or a sequence rule.
+On an attempt to create an sequence rule with a duplicate
+LHS,
+@code{marpa_g_sequence_new()} sets the error code to
+@code{MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE}
+and returns a soft failure.
+
 Return value:  On success, the ID of the external rule.
-If the rule duplicates another rule,
-or on other failure, -2.
+On failure because the LHS symbol is not unique, -1.
+On other failure, -2.
+The error code is set for both hard and soft failures.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_sequence ( @

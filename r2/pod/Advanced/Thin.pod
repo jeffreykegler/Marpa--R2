@@ -357,6 +357,16 @@ An exception is thrown if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library
 was built.
 
+=head2 event()
+
+=for Marpa::R2::Display
+name: Thin event() example
+normalize-whitespace: 1
+
+    my ( $event_type, $value ) = $grammar->event( $event_ix++ ) ;
+
+=for Marpa::R2::Display::End
+
 =head2 rule_new()
 
 =for Marpa::R2::Display
@@ -368,12 +378,18 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+The C<rule_new()> method has more than one kind of soft failures.
+To distinguish them, the error methods must be used.
+Following the general pattern, C<precompute()> returns
+a Perl C<undef> for all of these soft failures.
+
 =head2 sequence_new()
 
 =for Marpa::R2::Display
 name: Thin sequence_new() example
+normalize-whitespace: 1
 
-my $sequence_rule_id = $grammar_c->sequence_new(
+my $sequence_rule_id = $grammar->sequence_new(
         $symbol_S,
         $symbol_a,
         {   separator => $symbol_sep,
@@ -396,11 +412,11 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<precompute()> method follows the general pattern,
-but is unusual is having a variety of soft failures.
+The C<precompute()> method follows the general pattern.
+It has a variety of soft failures.
+To distinguish them, the error methods must be used.
 Following the general pattern, C<precompute()> returns
 a Perl C<undef> for all of these soft failures.
-To tell them apart, the error methods must be used.
 
 In addition to errors,
 C<precompute()> also reports events.

@@ -190,6 +190,15 @@ my $sequence_rule_id = $grammar->sequence_new(
 # Marpa::R2::Display::End
 
 $grammar->precompute();
+my $event_ix = 0;
+
+# Marpa::R2::Display
+# name: Thin event() example
+
+my ( $event_type, $value ) = $grammar->event( $event_ix++ ) ;
+
+# Marpa::R2::Display::End
+
 $recce = Marpa::R2::Thin::R->new($grammar);
 
 # Marpa::R2::Display
