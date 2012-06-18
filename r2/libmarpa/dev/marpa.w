@@ -1177,7 +1177,7 @@ int marpa_g_symbol_is_valued(
 }
 
 @ @<Function definitions@> =
-int marpa_g_symbol_valued_set(
+int marpa_g_symbol_is_valued_set(
     Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 {
   SYM symbol;
@@ -1725,9 +1725,10 @@ irl_finish( GRAMMAR g, IRL irl)
 @ @<Function definitions@> =
 Marpa_Rule_ID
 marpa_g_rule_new (Marpa_Grammar g,
-		  Marpa_Symbol_ID lhs, Marpa_Symbol_ID * rhs, int length)
+		  Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID * rhs_ids, int length)
 {
   @<Return |-2| on failure@>@;
+  const int soft_failure = -1;
   Marpa_Rule_ID rule_id;
   RULE rule;
   @<Fail if fatal error@>@;
@@ -1735,24 +1736,45 @@ marpa_g_rule_new (Marpa_Grammar g,
   if (UNLIKELY (length > MAX_RHS_LENGTH))
     {
       MARPA_ERROR (MARPA_ERR_RHS_TOO_LONG);
-      goto FAILURE;
+      return failure_indicator;
     }
-  rule = xrl_start (g, lhs, rhs, length);
+  if (UNLIKELY (!xsyid_is_valid (g, lhs_id)))
+    {
+      MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
+      return failure_indicator;
+    }
+  {
+    int rh_index;
+    for (rh_index = 0; rh_index < length; rh_index++)
+      {
+	const SYMID rhs_id = rhs_ids[rh_index];
+	if (UNLIKELY (!xsyid_is_valid (g, rhs_id)))
+	  {
+	    MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
+	    return failure_indicator;
+	  }
+      }
+  }
+  {
+    const SYM lhs = SYM_by_ID(lhs_id);
+    if (UNLIKELY (SYM_is_Sequence_LHS (lhs)))
+      {
+	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
+	return soft_failure;
+      }
+  }
+  rule = xrl_start (g, lhs_id, rhs_ids, length);
   if (UNLIKELY (_marpa_avl_insert (g->t_xrl_tree, rule) != NULL))
     {
       MARPA_ERROR (MARPA_ERR_DUPLICATE_RULE);
-      goto FAILURE;
+      my_obstack_reject(g->t_xrl_obs);
+      return soft_failure;
     }
-  if (UNLIKELY (!rule_check (g, rule)))
-    goto FAILURE;
   rule = xrl_finish (g, rule);
   rule = my_obstack_finish(g->t_xrl_obs);
   XRL_is_BNF (rule) = 1;
   rule_id = rule->t_id;
   return rule_id;
-  FAILURE:
-  my_obstack_reject(g->t_xrl_obs);
-  return failure_indicator;
 }
 
 @ @<Function definitions@> =
@@ -1768,6 +1790,8 @@ int min, int flags )
     @<Check that the sequence symbols are valid@>@;
     @<Add the original rule for a sequence@>@;
     return original_rule_id;
+    SOFT_FAILURE:
+    return -1;
     FAILURE:
     return failure_indicator;
 }
@@ -1815,7 +1839,7 @@ int min, int flags )
     if (UNLIKELY (SYM_is_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
-	goto FAILURE;
+	goto SOFT_FAILURE;
       }
   }
   if (UNLIKELY (!xsyid_is_valid (g, rhs_id)))
@@ -1903,37 +1927,6 @@ nobody will have noticed this restriction.
 so that they can be variable length.
 @<Final rule elements@> = Marpa_Symbol_ID t_symbols[1];
 
-@ @<Function definitions@> =
-PRIVATE int
-rule_check (GRAMMAR g, XRL rule)
-{
-  SYM lhs;
-  const XRLID lhs_id = LHS_ID_of_XRL (rule);
-  if (UNLIKELY (!xsyid_is_valid (g, lhs_id)))
-    goto INVALID_XSYID;
-  lhs = SYM_by_ID (lhs_id);
-  if (UNLIKELY (SYM_is_Sequence_LHS (lhs)))
-    {
-      MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
-      return 0;
-    }
-  {
-    int rh_index;
-    const int length = Length_of_XRL (rule);
-    for (rh_index = 0; rh_index < length; rh_index++)
-      {
-	const SYMID symid = RHS_ID_of_XRL (rule, rh_index);
-	SYM rhs;
-	if (UNLIKELY (!xsyid_is_valid (g, symid)))
-	  goto INVALID_XSYID;
-	rhs = SYM_by_ID (symid);
-      }
-  }
-  return 1;
-INVALID_XSYID:;
-  MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
-  return 0;
-}
 
 @ @<Function definitions@> =
 PRIVATE Marpa_Symbol_ID rule_lhs_get(RULE rule)
