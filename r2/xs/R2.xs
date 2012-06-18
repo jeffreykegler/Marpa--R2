@@ -39,7 +39,7 @@ typedef struct {
 typedef struct marpa_b Bocage;
 typedef struct {
      Marpa_Bocage b;
-     char *message_buffer;
+     G_Wrapper* base;
 } B_Wrapper;
 
 typedef struct marpa_o Order;
@@ -153,21 +153,6 @@ xs_g_error (G_Wrapper * g_wrapper)
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
   g_wrapper->message_buffer = buffer =
-    libmarpa_exception (error_code, error_string);
-  return buffer;
-}
-
-/* Return value must be Safefree()'d */
-static const char *
-xs_b_error (B_Wrapper * b_wrapper)
-{
-  const char *error_string;
-  Marpa_Bocage b = b_wrapper->b;
-  Marpa_Grammar g = marpa_b_g(b);
-  const int error_code = marpa_g_error (g, &error_string);
-  char *buffer = b_wrapper->message_buffer;
-  if (buffer) Safefree(buffer);
-  b_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
@@ -1081,7 +1066,7 @@ PPCODE:
       croak ("Problem in b->new(): %s", xs_g_error(r_wrapper->base));
     }
   Newx (b_wrapper, 1, B_Wrapper);
-  b_wrapper->message_buffer = NULL;
+  b_wrapper->base = r_wrapper->base;
   b_wrapper->b = b;
   sv = sv_newmortal ();
   sv_setref_pv (sv, bocage_c_class_name, (void *) b_wrapper);
@@ -1094,8 +1079,6 @@ DESTROY( b_wrapper )
 PPCODE:
 {
     const Marpa_Bocage b = b_wrapper->b;
-    if (b_wrapper->message_buffer)
-	Safefree(b_wrapper->message_buffer);
     marpa_b_unref(b);
     Safefree( b_wrapper );
 }
@@ -1114,7 +1097,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_top_or_node(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1134,7 +1117,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_or_node_set(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1154,7 +1137,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_or_node_origin(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1174,7 +1157,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_or_node_position(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1194,7 +1177,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_or_node_irl(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1214,7 +1197,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_or_node_first_and(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1234,7 +1217,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_or_node_last_and(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1254,7 +1237,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_or_node_and_count(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1273,7 +1256,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_and_node_count(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1293,7 +1276,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_and_node_parent(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1313,7 +1296,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_and_node_predecessor(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1333,7 +1316,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_and_node_cause(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1353,7 +1336,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_and_node_symbol(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1374,7 +1357,7 @@ PPCODE:
   if (result < 0)
     {
       croak ("Problem in b->_marpa_b_and_node_symbol(): %s",
-	     xs_b_error (b_wrapper));
+	     xs_g_error(b_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
   XPUSHs (sv_2mortal (newSViv (value)));
@@ -1394,7 +1377,7 @@ PPCODE:
   Marpa_Order o = marpa_o_new (b);
   if (!o)
     {
-      croak ("Problem in o->new(): %s", xs_b_error (b_wrapper));
+      croak ("Problem in o->new(): %s", xs_g_error(b_wrapper->base));
     }
   Newx (o_wrapper, 1, O_Wrapper);
   o_wrapper->message_buffer = NULL;
