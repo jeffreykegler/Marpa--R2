@@ -57,7 +57,7 @@ typedef struct {
 typedef struct marpa_v Value;
 typedef struct {
      Marpa_Value v;
-     char *message_buffer;
+     G_Wrapper* base;
 } V_Wrapper;
 
 static const char grammar_c_class_name[] = "Marpa::R2::Thin::G";
@@ -153,21 +153,6 @@ xs_g_error (G_Wrapper * g_wrapper)
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
   g_wrapper->message_buffer = buffer =
-    libmarpa_exception (error_code, error_string);
-  return buffer;
-}
-
-/* Return value must be Safefree()'d */
-static const char *
-xs_v_error (V_Wrapper * v_wrapper)
-{
-  const char *error_string;
-  Marpa_Value v = v_wrapper->v;
-  Marpa_Grammar g = marpa_v_g(v);
-  const int error_code = marpa_g_error (g, &error_string);
-  char *buffer = v_wrapper->message_buffer;
-  if (buffer) Safefree(buffer);
-  v_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
@@ -1672,7 +1657,7 @@ PPCODE:
       croak ("Problem in v->new(): %s", xs_g_error(t_wrapper->base));
     }
   Newx (v_wrapper, 1, V_Wrapper);
-  v_wrapper->message_buffer = NULL;
+  v_wrapper->base = t_wrapper->base;
   v_wrapper->v = v;
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
@@ -1685,8 +1670,6 @@ DESTROY( v_wrapper )
 PPCODE:
 {
     const Marpa_Value v = v_wrapper->v;
-    if (v_wrapper->message_buffer)
-	Safefree(v_wrapper->message_buffer);
     marpa_v_unref(v);
     Safefree( v_wrapper );
 }
@@ -1706,7 +1689,7 @@ PPCODE:
   if (result < -1)
     {
       croak ("Problem in v->symbol_is_valued_set(%d, %d): %s",
-	     symbol_id, value, xs_v_error (v_wrapper));
+	     symbol_id, value, xs_g_error(v_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1726,7 +1709,7 @@ PPCODE:
   if (result < -1)
     {
       croak ("Problem in v->rule_is_valued_set(%d, %d): %s",
-	     rule_id, value, xs_v_error (v_wrapper));
+	     rule_id, value, xs_g_error(v_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -1749,7 +1732,7 @@ PPCODE:
     }
   if (status < 0)
     {
-      croak ("Problem in v->step(): %s", xs_v_error (v_wrapper));
+      croak ("Problem in v->step(): %s", xs_g_error(v_wrapper->base));
     }
   result_string = step_type_to_string (status);
   if (!result_string)
@@ -1795,7 +1778,7 @@ PPCODE:
     }
   if (status < 0)
     {
-      croak ("Problem in v->trace(): %s", xs_v_error (v_wrapper));
+      croak ("Problem in v->trace(): %s", xs_g_error(v_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (status)));
 }
@@ -1814,7 +1797,7 @@ PPCODE:
     }
   if (status < 0)
     {
-      croak ("Problem in v->_marpa_v_nook(): %s", xs_v_error (v_wrapper));
+      croak ("Problem in v->_marpa_v_nook(): %s", xs_g_error(v_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (status)));
 }
