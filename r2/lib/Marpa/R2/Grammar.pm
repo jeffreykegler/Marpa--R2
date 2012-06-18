@@ -493,7 +493,7 @@ sub Marpa::R2::Grammar::precompute {
         # Cycles are not necessarily errors,
         # and get special handling
         $precompute_error_code = $Marpa::R2::Error::NONE
-            if $Marpa::R2::Error::GRAMMAR_HAS_CYCLE;
+            if $precompute_error_code == $Marpa::R2::Error::GRAMMAR_HAS_CYCLE;
 
     } ## end if ( not defined $precompute_result )
 
