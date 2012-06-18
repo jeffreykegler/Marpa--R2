@@ -34,7 +34,7 @@ install:
 	(cd r2/libmarpa/dev; make install)
 	(cd r2 && perl etc/copy_from_stage)
 	(cd r2 && perl Build.PL)
-	(cd r2 && ./Build code)
+	(cd r2 && ./Build --Dev code)
 
 fullinstall: install
 	-mkdir r2/libmarpa/test/dev/m4
