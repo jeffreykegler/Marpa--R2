@@ -32,8 +32,8 @@ typedef struct {
 typedef struct marpa_r Recce;
 typedef struct {
      Marpa_Recce r;
-     char *message_buffer;
      Marpa_Symbol_ID* terminals_buffer;
+     G_Wrapper* base;
 } R_Wrapper;
 
 typedef struct marpa_b Bocage;
@@ -161,14 +161,7 @@ xs_g_error (G_Wrapper * g_wrapper)
 static const char *
 xs_r_error (R_Wrapper * r_wrapper)
 {
-  const char *error_string;
-  struct marpa_r *r = r_wrapper->r;
-  const int error_code = marpa_r_error (r, &error_string);
-  char *buffer = r_wrapper->message_buffer;
-  if (buffer) Safefree(buffer);
-  r_wrapper->message_buffer = buffer =
-    libmarpa_exception (error_code, error_string);
-  return buffer;
+  return xs_g_error(r_wrapper->base);
 }
 
 /* Return value must be Safefree()'d */
@@ -483,7 +476,7 @@ PPCODE:
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;
     Newx( r_wrapper->terminals_buffer, symbol_count, Marpa_Symbol_ID );
-    r_wrapper->message_buffer = NULL;
+    r_wrapper->base = g_wrapper;
     sv = sv_newmortal();
     sv_setref_pv(sv, recce_c_class_name, (void*)r_wrapper);
     XPUSHs(sv);
@@ -496,8 +489,6 @@ PREINIT:
     struct marpa_r *r;
 CODE:
     r = r_wrapper->r;
-    if (r_wrapper->message_buffer)
-	Safefree(r_wrapper->message_buffer);
     Safefree(r_wrapper->terminals_buffer);
     marpa_r_unref( r );
     Safefree( r_wrapper );
