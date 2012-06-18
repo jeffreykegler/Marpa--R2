@@ -1864,6 +1864,7 @@ On failure, -2.
 
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
 
+@anchor{marpa_g_precompute}
 This function attempts to precompute the grammar,
 in the process checking for a large number of issues.
 Precomputation is necessary for a recognizer to be generated
@@ -3490,6 +3491,13 @@ This definition applies to sequence rules, as well as to ordinary rules. As a co
 Suggested message: "Duplicate rule"
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_DUPLICATE_TOKEN
+This error indicates an attempt to add a duplicate token.
+A token is a duplicate if one already read at the same
+earleme has the same symbol ID and the same length.
+Suggested message: "Duplicate token"
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_EIM_COUNT
 This error code indicates that
 an implementation-defined limit on the
@@ -3514,6 +3522,30 @@ a much smaller limit.
 Typically, this will be under 1,000 Earley items
 per Earley set.
 Suggested message: "Maximum number of earley items exceeded"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_EVENT_IX_NEGATIVE
+A negative event index was specified.
+That is not allowed.
+Suggested message: "Negative event index"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_EVENT_IX_OOB
+An non-negative event index was specified,
+but there is no event at that index.
+Since the events are in sequence, this means it
+was too large.
+Suggested message: "No event at that index"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_GRAMMAR_HAS_CYCLE
+The grammar has a cycle -- one or more loop
+rules.
+This is a recoverable error,
+although most applications will want to treat
+it as fatal.
+For more see the description of @ref{marpa_g_precompute}.
+Suggested message: "Grammar has cycle"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_BOOLEAN
@@ -3575,6 +3607,16 @@ There was a mismatch in the minor version number
 between the requested version
 of libmarpa, and the actual one.
 Suggested message: "Libmarpa minor version number is a mismatch"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_EARLEY_SET_AT_LOCATION
+A non-negative Earley set ID (also called an Earley set ordinal)
+was specified,
+but there is no corresponding Earley set.
+Since the Earley set ordinals are in sequence,
+this means that the specified ID is greater
+than that of the latest Earley set.
+Suggested message: "Earley set ID is after latest Earley set"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED
@@ -3689,6 +3731,12 @@ One such action would be a
 Suggested message: "No progress report has been started"
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_PROGRESS_REPORT_EXHAUSTED
+The progress report is ``exhausted'' -- all its
+items have been iterated through.
+Suggested message: "The progress report is exhausted"
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT
 The recognizer is not accepting input,
 and the application has attempted something that
@@ -3708,6 +3756,21 @@ The recognizer has been started.
 and the application has attempted something that
 is inconsistent with that fact.
 Suggested message: "The recognizer has been started"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_RHS_IX_NEGATIVE
+The index of RHS symbol was specified,
+but it was negative.
+That is not allowed.
+Suggested message: "RHS index cannot be negative"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_RHS_IX_OOB
+A non-negative index of RHS symbol was specified,
+but there is no symbol at that index.
+Since the indexes are in sequence, this means the
+index was greater than or equal to the rule length.
+Suggested message: "RHS index must be less than rule length"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_RHS_TOO_LONG
@@ -3748,6 +3811,13 @@ others.
 This error indicates that such an unsafe use is
 being attempted.
 Suggested message: "Symbol is treated both as valued and unvalued"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_TERMINAL_IS_LOCKED
+An attempt was made to change the terminal status
+of a symbol to a different value
+after it was locked.
+Suggested message: "The terminal status of the symbol is locked"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_TOKEN_IS_NOT_TERMINAL
@@ -3797,6 +3867,16 @@ a call of the @code{marpa_t_next()} method.
 Suggested message: "Tree iterator is paused"
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_UNEXPECTED_TOKEN
+An attempt was made to read a token
+where a token with that symbol ID is not
+expected.
+This message will also occur when an
+attempt is made to read a token
+at a location where no token is expected.
+Suggested message: "Unexpected token"
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_UNPRODUCTIVE_START
 The start symbol is unproductive.
 That means it could never match any possible input,
@@ -3809,6 +3889,14 @@ Suggested message: "Unproductive start symbol"
 The valuator is inactive in a context where that
 should not be the case.
 Suggested message: "Valuator inactive"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_VALUED_IS_LOCKED
+The valued status of a symbol is locked,
+and an attempt was made 
+to change it to a status different from the
+current one.
+Suggested message: "The valued status of the symbol is locked"
 @end deftypevr
 
 @node Internal error codes,  , External error codes, Error macros and code

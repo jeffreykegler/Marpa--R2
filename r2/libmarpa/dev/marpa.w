@@ -1960,11 +1960,11 @@ Marpa_Symbol_ID marpa_g_rule_rhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) 
     @<Fail if |xrl_id| is invalid@>@;
     rule = XRL_by_ID(xrl_id);
     if (ix < 0) {
-      MARPA_ERROR(MARPA_ERR_RULE_IX_NEGATIVE);
+      MARPA_ERROR(MARPA_ERR_RHS_IX_NEGATIVE);
       return failure_indicator;
     }
     if (Length_of_RULE(rule) <= ix) {
-      MARPA_ERROR(MARPA_ERR_RULE_IX_OOB);
+      MARPA_ERROR(MARPA_ERR_RHS_IX_OOB);
       return -1;
     }
     return RHS_ID_of_RULE(rule, ix);
