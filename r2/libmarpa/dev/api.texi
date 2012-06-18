@@ -1675,11 +1675,11 @@ is not precomputed, or on other failure, -2.
 
 @deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
-A rule is @dfn{productive} if it can be produce a string of terminals.
+A rule is @dfn{productive} if it can produce a string of terminals.
 An rule is productive if and only if all the symbols on
 its RHS are productive.
 The empty string counts as a string of terminals,
-so that a nullable rule is always a producive rule.
+so that a nullable rule is always a productive rule.
 For that same reason,
 an empty rule is considered productive.
 
