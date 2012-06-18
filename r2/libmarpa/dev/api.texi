@@ -1759,18 +1759,19 @@ On other failures, -2.
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 
-Note that this method will succeeds even if rule @var{rule_id}
+Note that this method will succeed even if rule @var{rule_id}
 is not a sequence rule.
 Since only sequence rules can have the proper separation flag set,
-@code{marpa_g_rule_is_proper_separation} always returns 0
-if rule @var{rule_is} is a BNF rule.
+the @code{marpa_g_rule_is_proper_separation()}
+method returns 0
+whenever rule @var{rule_is} is a BNF rule.
 
 Return value:
 On success,
 1 if rule @var{rule_id} has
 the proper separation flag set,
 0 otherwise.
-On hard failure, returns -2.
+On hard failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_sequence ( @
@@ -1791,9 +1792,10 @@ On failure, -2.
 Adds a new sequence rule to grammar @var{g}.
 Sequence rules do not extend the kinds of grammar that
 Libmarpa parses -- a sequence can always be written
-as BNF rules and in fact this is howl the Libmarpa
-implements them.
-But when Libmarpa that a rule is a sequence,
+as BNF rules.
+(In fact this is how Libmarpa
+implements them.)
+But when Libmarpa knows that a rule is a sequence,
 it can optimize it.
 This speedup is often considerable.
 
@@ -1971,10 +1973,10 @@ It is a soft failure if there is no such event.
 This can be used as the termination condition
 in a loop over the events.
 
-Return value:  On success, returns the type of event @var{ix},
+Return value:  On success, the type of event @var{ix},
 and places the data for the event in @var{event}.
-If there is no such event, returns -1.
-On hard failure, returns -2.
+If there is no such event, -1.
+On hard failure, -2.
 @end deftypefun
 
 @deftypefn {Macro} void* marpa_g_event_value (Marpa_Event* @var{event})
@@ -2141,17 +2143,18 @@ The values of the current and latest earlemes
 are unchanged by
 calls to @code{marpa_r_alternative()}.
 
-Return value:  On success, returns a non-negative value.
+Return value:  On success, a non-negative value.
 If the token was not accepted because @var{token_id} is unexpected,
 it is considered a soft failure,
-and @code{marpa_r_alternative()} returns -1.
+and @code{marpa_r_alternative()}, -1.
 If the token was not accepted because it
 is a duplicate,
 it is considered a soft failure,
-and @code{marpa_r_alternative()} returns -3.
-Other problems that prevent successful processing,
+and @code{marpa_r_alternative()}, -3.
+For
+other problems that prevent successful processing,
 are considered hard failures,
-and -2 is returned.
+-2.
 
 @end deftypefun
 
