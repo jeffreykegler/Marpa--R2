@@ -1755,6 +1755,33 @@ On other failures, -2.
 @node Sequences, Grammar precomputation, Rules, Grammar methods
 @section Sequences
 
+@deftypefun int marpa_g_rule_is_proper_separation ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+
+Note that this method will succeeds even if rule @var{rule_id}
+is not a sequence rule.
+Since only sequence rules can have the proper separation flag set,
+@code{marpa_g_rule_is_proper_separation} always returns 0
+if rule @var{rule_is} is a BNF rule.
+
+Return value:
+On success,
+1 if rule @var{rule_id} has
+the proper separation flag set,
+0 otherwise.
+On hard failure, returns -2.
+@end deftypefun
+
+@deftypefun int marpa_g_rule_is_sequence ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+Return value:  On success,
+1 if rule @var{rule_id} is a sequence rule,
+0 otherwise.
+On failure, -2.
+@end deftypefun
+
 @deftypefun Marpa_Rule_ID marpa_g_sequence_new (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{lhs_id}, @
  Marpa_Symbol_ID @var{rhs_id}, @
@@ -1762,9 +1789,13 @@ On other failures, -2.
     int @var{min}, @
  int @var{flags} )
 Adds a new sequence rule to grammar @var{g}.
-Internally, Libmarpa translates sequences into BNF
-rules, but it also optimizes their evaluation.
-In practice this speedup can be considerable.
+Sequence rules do not extend the kinds of grammar that
+Libmarpa parses -- a sequence can always be written
+as BNF rules and in fact this is howl the Libmarpa
+implements them.
+But when Libmarpa that a rule is a sequence,
+it can optimize it.
+This speedup is often considerable.
 
 The sequence is @var{lhs_id},
 and the item to be repeated in the sequence is @var{rhs_id}.
@@ -1781,17 +1812,12 @@ properly-speaking, separators should actually separate items.
 
 The sequence RHS, or item,
 is restricted to a single symbol,
-but almost
-any language and any semantics
-can be expressed indirectly,
-by using @var{rhs_id} be the LHS of another rule.
-@var{rhs_id} cannot be a nullable symbol.
+and that symbol cannot be nullable.
 If @var{separator_id} is a symbol, it also cannot
 be a nullable symbol.
-
 Nullables on the RHS of sequences are restricted
 because they lead to highly ambiguous grammars.
-Such grammars are allowed by Libmarpa, but
+Grammars of this kind are allowed by Libmarpa, but
 they must be expressed using BNF rules, not sequence rules.
 This is for two reasons:
 First, sequence optimizations would not work
@@ -1817,35 +1843,16 @@ On other failure, -2.
 The error code is set for both hard and soft failures.
 @end deftypefun
 
-@deftypefun int marpa_g_rule_is_sequence ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-Return value:  1 if @var{rule_id} is a sequence rule,
-0 otherwise.
-On failure, -2.
-@end deftypefun
-
 @deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{counted}
-if it appears on the RHS of a sequence rule.
-The separator symbol of a sequence rule is also considered
-to be a counted symbol.
+if it appears on the RHS of a sequence rule,
+or if it is used as
+the separator symbol of a sequence rule.
 
-Return value: On success, 1 if the symbol is counted, 0 if not.
+Return value: On success,
+1 if symbol @var{symid} is counted, 0 if not.
 On failure, -2.
-@end deftypefun
-
-@deftypefun int marpa_g_rule_is_proper_separation ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{rule_id})
-Return value:
-Returns 1 if
-the proper separation flag is set,
-0 if not.
-Returns 0 if
-@var{rule_id} is not a sequence rule.
-On hard failure, returns -2.
 @end deftypefun
 
 @node Grammar precomputation, Grammar events, Sequences, Grammar methods
