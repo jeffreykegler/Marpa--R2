@@ -109,7 +109,7 @@ Error handling
 
 * Memory allocation failures::  
 * Success and failure::         
-* Soft and hard failure.::      
+* Soft and hard failure::       
 * Interpreting hard and soft failure::  
 
 Introduction to the external interface
@@ -1065,7 +1065,7 @@ time objects.
 @menu
 * Memory allocation failures::  
 * Success and failure::         
-* Soft and hard failure.::      
+* Soft and hard failure::       
 * Interpreting hard and soft failure::  
 @end menu
 
@@ -1084,7 +1084,7 @@ an alternative memory allocator to be specificied,
 and to allow the user to specifier a handler to
 be called when an out-of-memory condition occurs.
 
-@node Success and failure, Soft and hard failure., Memory allocation failures, Error handling concepts
+@node Success and failure, Soft and hard failure, Memory allocation failures, Error handling concepts
 @section Success and failure
 
 In this document, success and failure are (unless
@@ -1112,7 +1112,7 @@ the ``Ruby Slippers'' parsing method uses soft failures
 as a means of testing alternative inputs and/or
 checking the state of the parse.
 
-@node Soft and hard failure., Interpreting hard and soft failure, Success and failure, Error handling concepts
+@node Soft and hard failure, Interpreting hard and soft failure, Success and failure, Error handling concepts
 @section Soft and hard failure.
 
 Some methods have, in addition to a primary logic path,
@@ -1172,7 +1172,7 @@ because it is
 something the typical application will only
 do by mistake.
 
-@node Interpreting hard and soft failure,  , Soft and hard failure., Error handling concepts
+@node Interpreting hard and soft failure,  , Soft and hard failure, Error handling concepts
 @section Interpreting hard and soft failure
 
 An application will have its own ideas of success,
