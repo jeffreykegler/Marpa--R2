@@ -26,40 +26,6 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-sub catch_problem {
-    my ( $test_name, $test, $expected_result, $expected_error ) = @_;
-    my $result;
-    my $eval_ok = eval {
-        $result = $test->();
-        1;
-    };
-    my $eval_error = $EVAL_ERROR;
-
-    Test::More::is( $result, $expected_result, "Result: $test_name" );
-    if ($eval_ok) {
-        Test::More::fail("Failed to catch problem: $test_name");
-    }
-    elsif ( index( $eval_error, $expected_error ) < 0 ) {
-        my $diag_message =
-            "Failed to find expected message, was expecting:\n";
-        my $temp;
-        $temp = $expected_error;
-        $temp =~ s/^/=== /xmsg;
-        chomp $temp;
-        $diag_message .= "$temp\n";
-        $diag_message .= "This was the message actually received:\n";
-        $temp = $eval_error;
-        $temp =~ s/^/=== /xmsg;
-        chomp $temp;
-        $diag_message .= "$temp\n";
-        Test::More::diag($diag_message);
-        Test::More::fail("Unexpected message: $test_name");
-    } ## end elsif ( index( $eval_error, $expected_error ) < 0 )
-    else {
-        Test::More::pass("Successfully caught problem: $test_name");
-    }
-    return;
-} ## end sub catch_problem
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start => 'Top',
@@ -72,6 +38,55 @@ my $grammar = Marpa::R2::Grammar->new(
         ],
     }
 );
+
+sub catch_problem {
+    my ( $test_name, $test, $expected_result, $expected_error ) = @_;
+    my $result;
+    my $eval_ok = eval {
+        $result = $test->();
+        1;
+    };
+
+    my $eval_error = $EVAL_ERROR;
+
+    Test::More::is( $result, $expected_result, "Result: $test_name" );
+    if ($eval_ok) {
+        Test::More::fail("Failed to catch problem: $test_name");
+        return;
+    }
+
+    my $error_string = $grammar->error();
+
+    if ( index( $error_string, $expected_error ) < 0 ) {
+        my $diag_message =
+            "Failed to find expected message, was expecting:\n";
+        my $temp;
+        $temp = $expected_error;
+        $temp =~ s/^/=== /xmsg;
+        chomp $temp;
+        $diag_message .= "$temp\n";
+
+        $diag_message .= "This was the message actually received:\n";
+        $temp = $error_string;
+        $temp =~ s/^/=== /xmsg;
+        chomp $temp;
+        $diag_message .= "$temp\n";
+
+        $diag_message .= "This was the error reported by eval():\n";
+        $temp = $eval_error;
+        $temp =~ s/^/=== /xmsg;
+        chomp $temp;
+        $diag_message .= "$temp\n";
+
+        Test::More::diag($diag_message);
+        Test::More::fail("Unexpected message: $test_name");
+
+    } ## end if ( index( $error_string, $expected_error ) < 0 )
+    else {
+        Test::More::pass("Successfully caught problem: $test_name");
+    }
+    return;
+} ## end sub catch_problem
 
 $grammar->precompute();
 
@@ -107,7 +122,7 @@ sub duplicate_terminal_1 {
 } ## end sub duplicate_terminal_1
 
 catch_problem( $test_name, \&duplicate_terminal_1, undef,
-    q{Problem in r->alternative: Duplicate token } );
+    q{Duplicate token} );
 
 $expected_trace = q{Accepted "a" at 0-1};
 if ( index( $trace, $expected_trace ) < 0 ) {
@@ -169,7 +184,7 @@ sub duplicate_terminal_2 {
 } ## end sub duplicate_terminal_2
 
 catch_problem( $test_name, \&duplicate_terminal_2, undef,
-    q{Problem in r->alternative: Duplicate token } );
+    q{Duplicate token} );
 
 $expected_trace = <<'EOS';
 Setting trace_terminals option
