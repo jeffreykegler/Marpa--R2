@@ -70,6 +70,7 @@
 ^lib/Marpa/R2/Version.pm$
 ^lib/Marpa/R2\.c
 ^lib/Marpa/R2\.xs
+^lib/Marpa/.*\.xsh
 ^libmarpa/build/.deps/
 ^libmarpa/build/Makefile
 ^libmarpa/build/api[.]info$

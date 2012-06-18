@@ -101,6 +101,7 @@ sub c_comment {
 
 my $c_license          = c_comment($license);
 my $r2_hash_license    = hash_comment($license);
+my $xsh_hash_license    = hash_comment($license, q{ #});
 my $tex_closed_license = hash_comment( $closed_license, q{%} );
 my $tex_license        = hash_comment( $license, q{%} );
 my $tex_cc_a_nd_license = hash_comment( $cc_a_nd_license, q{%} );
@@ -252,6 +253,7 @@ my %files_by_type = (
         \&ignored,    # not source, and not clear how to add license at top
     'ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
     'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
+    'etc/copy_from_stage'    => \&license_problems_in_perl_file,
     'html/script/marpa_r2_html_fmt'    => \&license_problems_in_perl_file,
     'html/script/marpa_r2_html_score'  => \&license_problems_in_perl_file,
     'html/t/no_tang.html'              => \&ignored,
@@ -336,6 +338,8 @@ sub file_type {
     return \&license_problems_in_pod_file if $filepart =~ /[.]pod \z/xms;
     return \&license_problems_in_c_file
         if $filepart =~ /[.] (xs|c|h) \z /xms;
+    return \&license_problems_in_xsh_file
+        if $filepart =~ /[.] (xsh) \z /xms;
     return \&license_problems_in_c_file
         if $filepart =~ /[.] (xs|c|h) [.] in \z /xms;
     return \&license_problems_in_tex_file
@@ -451,6 +455,34 @@ sub license_problems_in_hash_file {
     } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
 } ## end sub license_problems_in_hash_file
+
+sub license_problems_in_xsh_file {
+    my ( $filename, $verbose ) = @_;
+    if ($verbose) {
+        say {*STDERR} "Checking $filename as hash style file"
+            or die "say failed: $ERRNO";
+    }
+    my @problems = ();
+    my $text = slurp_top( $filename, length $xsh_hash_license );
+    if ( $xsh_hash_license ne ${$text} ) {
+        my $problem = "No license language in $filename (hash style)\n";
+        if ($verbose) {
+            $problem
+                .= "=== Differences ===\n"
+                . Text::Diff::diff( $text, \$xsh_hash_license )
+                . ( q{=} x 30 );
+        } ## end if ($verbose)
+        push @problems, $problem;
+    } ## end if ( $xsh_hash_license ne ${$text} )
+    if ( scalar @problems and $verbose >= 2 ) {
+        my $problem =
+              "=== license for $filename should be as follows:\n"
+            . $xsh_hash_license
+            . ( q{=} x 30 );
+        push @problems, $problem;
+    } ## end if ( scalar @problems and $verbose >= 2 )
+    return @problems;
+} ## end sub license_problems_in_xsh_file
 
 sub license_problems_in_perl_file {
     my ( $filename, $type, $verbose ) = @_;

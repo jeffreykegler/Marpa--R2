@@ -234,3 +234,5 @@ t/wall.t
 typemap
 xs/.gitignore
 xs/R2.xs
+xs/general_pattern.xsh
+xs/gp_generate.pl
