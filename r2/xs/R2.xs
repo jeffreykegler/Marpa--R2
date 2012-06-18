@@ -45,7 +45,7 @@ typedef struct {
 typedef struct marpa_o Order;
 typedef struct {
      Marpa_Order o;
-     char *message_buffer;
+     G_Wrapper* base;
 } O_Wrapper;
 
 typedef struct marpa_t Tree;
@@ -153,21 +153,6 @@ xs_g_error (G_Wrapper * g_wrapper)
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
   g_wrapper->message_buffer = buffer =
-    libmarpa_exception (error_code, error_string);
-  return buffer;
-}
-
-/* Return value must be Safefree()'d */
-static const char *
-xs_o_error (O_Wrapper * o_wrapper)
-{
-  const char *error_string;
-  Marpa_Order o = o_wrapper->o;
-  Marpa_Grammar g = marpa_o_g(o);
-  const int error_code = marpa_g_error (g, &error_string);
-  char *buffer = o_wrapper->message_buffer;
-  if (buffer) Safefree(buffer);
-  o_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
   return buffer;
 }
@@ -1380,7 +1365,7 @@ PPCODE:
       croak ("Problem in o->new(): %s", xs_g_error(b_wrapper->base));
     }
   Newx (o_wrapper, 1, O_Wrapper);
-  o_wrapper->message_buffer = NULL;
+  o_wrapper->base = b_wrapper->base;
   o_wrapper->o = o;
   sv = sv_newmortal ();
   sv_setref_pv (sv, order_c_class_name, (void *) o_wrapper);
@@ -1393,8 +1378,6 @@ DESTROY( o_wrapper )
 PPCODE:
 {
     const Marpa_Order o = o_wrapper->o;
-    if (o_wrapper->message_buffer)
-	Safefree(o_wrapper->message_buffer);
     marpa_o_unref(o);
     Safefree( o_wrapper );
 }
@@ -1428,7 +1411,7 @@ PPCODE:
   result = _marpa_o_and_order_set (o, or_node_id, and_node_ids, length);
   Safefree (and_node_ids);
   if (result < -1) {
-    croak ("Problem in o->_marpa_o_and_node_order_set(): %s", xs_o_error(o_wrapper));
+    croak ("Problem in o->_marpa_o_and_node_order_set(): %s", xs_g_error(o_wrapper->base));
   }
   if (result < 0)
     {
@@ -1449,7 +1432,7 @@ PPCODE:
     result = _marpa_o_and_order_get(o, or_node_id, and_ix);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) {
-      croak ("Problem in o->_marpa_o_and_node_order_get(): %s", xs_o_error(o_wrapper));
+      croak ("Problem in o->_marpa_o_and_node_order_get(): %s", xs_g_error(o_wrapper->base));
     }
     XPUSHs( sv_2mortal( newSViv(result) ) );
 }
@@ -1468,7 +1451,7 @@ PPCODE:
   Marpa_Tree t = marpa_t_new (o);
   if (!t)
     {
-      croak ("Problem in t->new(): %s", xs_o_error (o_wrapper));
+      croak ("Problem in t->new(): %s", xs_g_error(o_wrapper->base));
     }
   Newx (t_wrapper, 1, T_Wrapper);
   t_wrapper->message_buffer = NULL;
