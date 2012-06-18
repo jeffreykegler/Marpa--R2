@@ -1865,6 +1865,9 @@ On failure, -2.
 This function precomputes the grammar.
 In the process, precomputation creates events which
 the user can access.
+Application writers should be wary about continuing
+processing without looking at the events.
+
 On success, this function returns the number of events
 generated,
 but it is important to note that events may be
@@ -1961,25 +1964,29 @@ On failure, -2.
 @node Grammar events,  , Grammar precomputation, Grammar methods
 @section Events
 
-@deftypefun int marpa_g_event (Marpa_Grammar @var{g}, @
+@deftypefun Marpa_Event_Type marpa_g_event (Marpa_Grammar @var{g}, @
     Marpa_Event* @var{event}, @
 	       int @var{ix})
 This method provides access to the events generated
 by the @code{marpa_g_precompute()} method.
-The @var{ix}'th event (numbered from 0) is placed
-in the @var{event} value.
+On success,
+the data for the @var{ix}'th event (numbered from 0) is placed
+in the location pointed to by @var{event}.
 
-It is a soft failure if there is no such event.
+On failure,
+the locations pointed to by @var{event}
+are not changed.
+It is a soft failure if there is no
+@var{ix}'th event.
 This can be used as the termination condition
 in a loop over the events.
 
-Return value:  On success, the type of event @var{ix},
-and places the data for the event in @var{event}.
-If there is no such event, -1.
+Return value:  On success, the type of event @var{ix}.
+If there is no @var{ix}'th event, -1.
 On hard failure, -2.
 @end deftypefun
 
-@deftypefn {Macro} void* marpa_g_event_value (Marpa_Event* @var{event})
+@deftypefn {Macro} int marpa_g_event_value (Marpa_Event* @var{event})
 This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event

@@ -955,7 +955,7 @@ void int_event_new(GRAMMAR g, int type, int value)
 }
 
 @ @<Function definitions@> =
-int
+Marpa_Event_Type
 marpa_g_event (Marpa_Grammar g, Marpa_Event* public_event,
 	       int ix)
 {
