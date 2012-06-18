@@ -1625,7 +1625,9 @@ A rule is @dfn{accessible} if it can be reached from the start symbol.
 A rule is accessible if and only if its LHS symbol is accessible.
 The start rule is always an accessible rule.
 
-Return value: On success, 1 if accessible, 0 if not.  If the grammar
+Return value: On success, 1 if rule @var{rule_id}
+is accessible, 0 if not.
+If the grammar
 is not precomputed, or on other failure, -2.
 @end deftypefun
 
@@ -1635,7 +1637,8 @@ A rule is @dfn{nullable} if it sometimes produces the empty string.
 A @strong{nulling} rule is always a @strong{nullable} rule,
 but not all @strong{nullable} rules are @strong{nulling} rules.
 
-Return value: On success, 1 if @var{ruleid} is nullable, 0 if not.
+Return value: On success,
+1 if rule @var{ruleid} is nullable, 0 if not.
 If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
@@ -1643,7 +1646,8 @@ If the grammar is not precomputed, or on other failure, -2.
     Marpa_Rule_ID @var{ruleid})
 A rule is @dfn{nulling} if it always produces the empty string.
 
-Return value: On success, 1 if @var{ruleid} is nulling, 0 if not.
+Return value: On success,
+1 if rule @var{ruleid} is nulling, 0 if not.
 If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
@@ -1652,6 +1656,8 @@ If the grammar is not precomputed, or on other failure, -2.
 A rule is a loop rule if it non-trivially
 produces the string of length one
 which consists only of its LHS symbol.
+Such a derivation takes the parse back to where
+it started, hence the term ``loop''.
 ``Non-trivially'' means the zero-step derivation does not count -- the
 derivation must have at least one step.
 
@@ -1661,20 +1667,25 @@ But nothing forces an application to do this,
 and Marpa will successfully parse and evaluate grammars with
 loop rules.
 
-Return value: On success, 1 if this is a loop rule, 0 if not.  If the grammar
+Return value: On success,
+1 if rule @var{rule_id} is a loop rule, 0 if not.
+If the grammar
 is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{id})
 A rule is @dfn{productive} if it can be produce a string of terminals.
-including the empty string.
 An rule is productive if and only if all the symbols on
 its RHS are productive.
-An empty rule is considered productive.
+The empty string counts as a string of terminals,
+so that a nullable rule is always a producive rule.
+For that same reason,
+an empty rule is considered productive.
 
-Return value: On success, 1 if productive, 0 if not.  If the grammar
-is not precomputed, or on other failure, -2.
+Return value: On success,
+1 if rule @var{rule_id} is productive, 0 if not.
+If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_length ( @
@@ -1694,13 +1705,14 @@ On failure, -2.
 @end deftypefun
 
 @deftypefun Marpa_Rule_ID marpa_g_rule_new (Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{lhs}, @
- Marpa_Symbol_ID *@var{rhs}, @
+    Marpa_Symbol_ID @var{lhs_id}, @
+ Marpa_Symbol_ID *@var{rhs_ids}, @
      int @var{length})
 Creates a new external rule in grammar @var{g}.
-The LHS symbol is @var{lhs},
-and there are @var{length} symbols on the RHS,
-which is pointed to by @var{rhs}.
+The LHS symbol is @var{lhs_id},
+and there are @var{length} symbols on the RHS.
+The RHS symbols are in an array
+pointed to by @var{rhs_ids}.
 
 @code{marpa_g_rule_new()} sets an error code
 on both soft and hard failure.
@@ -1708,18 +1720,19 @@ Possible soft failures, with their error codes, include:
 @itemize
 @item @code{MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE}: The LHS symbol is the same
 as that of a sequence rule.
-@item @code{MARPA_ERR_DUPLICATE_RULE}: The rule would duplicate another BNF
+@item @code{MARPA_ERR_DUPLICATE_RULE}: The new rule would duplicate another BNF
 rule.
-Another BNF rule is considered a duplicate
-of the one being added,
-if it have the same LHS symbol,
-and the same RHS symbols in the same order.
+Another BNF rule is considered the duplicate of the new one,
+if its LHS symbol is the same as symbol @var{lhs_id},
+if its length is the same as @var{length},
+and if its RHS symbols match one for one those
+in the array of symbols @var{rhs_ids}.
 @end itemize
 
 Return value:  On success, the ID of new external rule.
 On soft failures, -1.
 On other failures, -2.
-The error code is set on all failures.
+The error code is set for all failures.
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID marpa_g_rule_rhs ( @
@@ -1729,7 +1742,7 @@ The error code is set on all failures.
 The position in the rule, @var{ix}, is zero-based.
 If @var{ix} is greater than or equal the length of the
 rule, it is a soft failure.
-This can be used in loops, to avoid having to determine
+This can be used in loops, to avoid having to query
 the rule's length explicitly.
 
 Return value: On success, the symbol in position @var{ix}
