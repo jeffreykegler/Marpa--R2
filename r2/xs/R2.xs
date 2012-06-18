@@ -621,13 +621,9 @@ PPCODE:
 	{
 	  XSRETURN_UNDEF;
 	}
-      if (result == -3)
-	{
-	  croak ("r->alternative(): Attempt to read same symbol twice at same location");
-	  }
       if (result < 0)
 	{
-	  croak ("Invalid alternative: %s", xs_r_error (r_wrapper));
+	  croak ("Problem in r->alternative: %s", xs_r_error (r_wrapper));
 	}
       XPUSHs (sv_2mortal (newSViv (result)));
     }
