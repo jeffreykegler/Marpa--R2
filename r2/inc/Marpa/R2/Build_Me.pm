@@ -160,7 +160,7 @@ sub marpa_infer_xs_spec {
 sub process_xs {
     my ( $self, $xs_file ) = @_;
 
-    my $development_mode = defined $self->args('dev');
+    my $development_mode = $self->args('Dev');
 
     my $spec = marpa_infer_xs_spec( $self, $xs_file );
 
