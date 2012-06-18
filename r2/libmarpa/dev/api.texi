@@ -1434,13 +1434,6 @@ On failure, @code{NULL}.
 @cindex grammar reference
 @cindex grammar reference count
 
-@deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
-Decreases the reference count by 1,
-destroying @var{g} once the reference count reaches
-zero.
-
-@end deftypefun
-
 @deftypefun Marpa_Grammar marpa_g_ref (Marpa_Grammar @var{g})
 Increases the reference count by 1.
 Not needed by most applications.
@@ -1448,6 +1441,13 @@ Not needed by most applications.
 Return value:
 On success, the grammar object it was called with;
 @code{NULL} on failure.
+
+@end deftypefun
+
+@deftypefun void marpa_g_unref (Marpa_Grammar @var{g})
+Decreases the reference count by 1,
+destroying @var{g} once the reference count reaches
+zero.
 
 @end deftypefun
 
@@ -1488,8 +1488,8 @@ On failure, -2.
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{accessible} if it can be reached from the start symbol.
 
-Return value: On success, 1 if accessible, 0 if not.  If the grammar
-is not precomputed, or on other failure, -2.
+Return value: On success, 1 if symbol @var{symid} is accessible, 0 if not.
+If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_nullable ( @
@@ -1498,7 +1498,7 @@ A symbol is @dfn{nullable} if it sometimes produces the empty string.
 A @strong{nulling} symbol is always a @strong{nullable} symbol,
 but not all @strong{nullable} symbols are @strong{nulling} symbols.
 
-Return value: On success, 1 if symbol is nullable, 0 if not.
+Return value: On success, 1 if symbol @var{symid} is nullable, 0 if not.
 If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
@@ -1506,7 +1506,7 @@ If the grammar is not precomputed, or on other failure, -2.
     Marpa_Symbol_ID @var{symid})
 A symbol is @dfn{nulling} if it always produces the empty string.
 
-Return value: On success, 1 if symbol is nulling, 0 if not.
+Return value: On success, 1 if symbol @var{symid} is nulling, 0 if not.
 If the grammar is not precomputed, or on other failure, -2.
 @end deftypefun
 
@@ -1515,7 +1515,7 @@ If the grammar is not precomputed, or on other failure, -2.
 A symbol is @dfn{productive} if it can produce a string of terminals.
 All nullable symbols are considered productive.
 
-Return value: On success, 1 if productive, 0 if not.  If the grammar
+Return value: On success, 1 if symbol @var{symid} is productive, 0 if not.  If the grammar
 is not precomputed, or on other failure, -2.
 @end deftypefun
 
@@ -1562,7 +1562,8 @@ An attempt to flag a nulling symbol
 as a terminal is a fatal error,
 but this is not necesssarily detected before precomputation.
 
-Return value: On success, 1 if @var{symid} is a terminal symbol after the
+Return value: On success, 1 if symbol @var{symid}
+is a terminal symbol after the
 call, 0 otherwise.
 If the terminal status is locked, -1.
 If @var{value} is not 0 or 1;
@@ -1594,7 +1595,7 @@ A subsequenct call to
 and leave the symbol's valued status unchanged.
 
 Return value: On success, 1 if the symbol @var{symbol_id}
-is valued, 0 if not.
+is valued after the call, 0 if not.
 If the valued status is locked, -1.
 If @var{value} is not 0 or 1;
 On failure, -2.
