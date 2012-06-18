@@ -477,24 +477,35 @@ sub Marpa::R2::Grammar::precompute {
     return $grammar if $grammar_c->is_precomputed();
 
     set_start_symbol($grammar);
-    my $event_count = $grammar_c->precompute();
-    if ( not defined $event_count ) {
-        my $error_code = $grammar_c->error_code();
-
-        if ( not defined $error_code ) {
+    my $precompute_error_code = $Marpa::R2::Error::NONE;
+    my $precompute_result = $grammar_c->precompute();
+    if ( not defined $precompute_result ) {
+        $precompute_error_code = $grammar_c->error_code();
+        if ( not defined $precompute_error_code ) {
             Marpa::R2::exception(
                 'libmarpa error, but no error code returned');
         }
 
-        # If the grammar is already precomputed, just
-        # return success without doing anything.
-        return $grammar if $error_code == $Marpa::R2::Error::PRECOMPUTED;
+	# If already precomputed, just return success
+        return $grammar
+            if $precompute_error_code == $Marpa::R2::Error::PRECOMPUTED;
 
-        if ( $error_code == $Marpa::R2::Error::NO_RULES ) {
+        # Cycles are not necessarily errors,
+        # and get special handling
+        $precompute_error_code = $Marpa::R2::Error::NONE
+            if $Marpa::R2::Error::GRAMMAR_HAS_CYCLE;
+
+    } ## end if ( not defined $precompute_result )
+
+    if ( $precompute_error_code != $Marpa::R2::Error::NONE ) {
+
+        # Report the errors, then return failure
+
+        if ( $precompute_error_code == $Marpa::R2::Error::NO_RULES ) {
             Marpa::R2::exception(
                 'Attempted to precompute grammar with no rules');
         }
-        if ( $error_code == $Marpa::R2::Error::NULLING_TERMINAL ) {
+        if ( $precompute_error_code == $Marpa::R2::Error::NULLING_TERMINAL ) {
             my @nulling_terminals = ();
             my $event_ix          = 0;
             EVENT:
@@ -507,46 +518,50 @@ sub Marpa::R2::Grammar::precompute {
                 }
             } ## end while ( my ( $event_type, $value ) = $grammar_c->event(...))
             my @nulling_terminal_messages =
-                map { qq{Nulling symbol "$_" is also a terminal\n} }
+                map {qq{Nulling symbol "$_" is also a terminal\n}}
                 @nulling_terminals;
             Marpa::R2::exception( @nulling_terminal_messages,
                 'A terminal symbol cannot also be a nulling symbol' );
-        } ## end if ( $error_code == $Marpa::R2::Error::NULLING_TERMINAL)
-        if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE ) {
+        } ## end if ( $precompute_error_code == ...)
+        if ( $precompute_error_code == $Marpa::R2::Error::COUNTED_NULLABLE ) {
             my @counted_nullables = ();
             my $event_ix          = 0;
-            EVENT: while ( my ( $event_type, $value ) =
+            EVENT:
+            while ( my ( $event_type, $value ) =
                 $grammar_c->event( $event_ix++ ) )
             {
                 last EVENT if not defined $event_type;
-                if ( $event_type eq 'MARPA_EVENT_COUNTED_NULLABLE') {
+                if ( $event_type eq 'MARPA_EVENT_COUNTED_NULLABLE' ) {
                     push @counted_nullables, $grammar->symbol_name($value);
                 }
             } ## end while ( my ( $event_type, $value ) = $grammar_c->event(...))
             my @counted_nullable_messages = map {
-                      q{Nullable symbol "}
+                      q{Nullable symbol "} 
                     . $_
                     . qq{" is on rhs of counted rule\n}
             } @counted_nullables;
             Marpa::R2::exception( @counted_nullable_messages,
                 'Counted nullables confuse Marpa -- please rewrite the grammar'
             );
-        } ## end if ( $error_code == $Marpa::R2::Error::COUNTED_NULLABLE)
+        } ## end if ( $precompute_error_code == ...)
 
-        if ( $error_code == $Marpa::R2::Error::NO_START_SYMBOL ) {
+        if ( $precompute_error_code == $Marpa::R2::Error::NO_START_SYMBOL ) {
             Marpa::R2::exception('No start symbol');
         }
-        if ( $error_code == $Marpa::R2::Error::START_NOT_LHS ) {
+        if ( $precompute_error_code == $Marpa::R2::Error::START_NOT_LHS ) {
             my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
             Marpa::R2::exception(
                 qq{Start symbol "$name" not on LHS of any rule});
         }
-        if ( $error_code == $Marpa::R2::Error::UNPRODUCTIVE_START ) {
+        if ( $precompute_error_code == $Marpa::R2::Error::UNPRODUCTIVE_START )
+        {
             my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
             Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
         }
-	Marpa::R2::uncaught_error($grammar_c->error());
-    } ## end if ( not defined $event_count )
+
+        Marpa::R2::uncaught_error( $grammar_c->error() );
+
+    } ## end if ( $precompute_error_code != $Marpa::R2::Error::NONE)
 
     # Shadow all the new rules
     RULE:
@@ -563,8 +578,9 @@ sub Marpa::R2::Grammar::precompute {
     # Here I go through the events fors situation were there was no
     # hard error returned from libmarpa
     my $loop_rule_count = 0;
-    EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
+    EVENT: for (my $event_ix = 0; 1; $event_ix++) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
+	last EVENT if not defined $event_type;
         if ( $event_type ne 'MARPA_EVENT_LOOP_RULES' ) {
 	    Marpa::R2::exception(
 		qq{Unknown grammar precomputation event; type="$event_type"});
