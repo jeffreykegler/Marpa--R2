@@ -960,15 +960,19 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event* public_event,
 	       int ix)
 {
   @<Return |-2| on failure@>@;
-  const int index_out_of_bounds = -1;
+  const int soft_failure = -1;
   DSTACK events = &g->t_events;
   GEV internal_event;
   int type;
 
-  if (ix < 0)
+  if (ix < 0) {
     return failure_indicator;
-  if (ix >= DSTACK_LENGTH (*events))
+    MARPA_ERROR(MARPA_ERR_EVENT_IX_NEGATIVE);
+  }
+  if (ix >= DSTACK_LENGTH (*events)) {
+    MARPA_ERROR(MARPA_ERR_EVENT_IX_OOB);
     return index_out_of_bounds;
+  }
   internal_event = DSTACK_INDEX (*events, GEV_Object, ix);
   type = internal_event->t_type;
   public_event->t_type = type;
@@ -1181,7 +1185,7 @@ int marpa_g_symbol_is_valued_set(
     Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 {
   SYM symbol;
-  const int valued_is_locked = -1;
+  const int soft_failure = -1;
   @<Return |-2| on failure@>@;
   @<Fail if |xsyid| is invalid@>@;
   symbol = SYM_by_ID (xsyid);
@@ -1193,6 +1197,7 @@ int marpa_g_symbol_is_valued_set(
   if (UNLIKELY (XSY_is_Valued_Locked (symbol)
 		&& value != XSY_is_Valued (symbol)))
     {
+      MARPA_ERROR(MARPA_ERR_VALUED_IS_LOCKED);
       return valued_is_locked;
     }
   XSY_is_Valued (symbol) = value;
@@ -1297,21 +1302,25 @@ int marpa_g_symbol_is_terminal_set(
 Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 {
     SYM symbol;
-    const int terminal_is_locked = -1;
+    const int soft_failure = -1;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |xsyid| is invalid@>@;
-    symbol = SYM_by_ID(xsyid);
-    if (UNLIKELY(value < 0 || value > 1)) {
-	MARPA_ERROR(MARPA_ERR_INVALID_BOOLEAN);
+    symbol = SYM_by_ID (xsyid);
+    if (UNLIKELY (value < 0 || value > 1))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
-    }
-    if (UNLIKELY(SYM_is_Locked_Terminal(symbol))) {
-	return terminal_is_locked;
-    }
-    SYM_is_Locked_Terminal(symbol) = 1;
-    return XSY_is_Terminal(symbol) = value;
+      }
+    if (UNLIKELY (SYM_is_Locked_Terminal (symbol))
+	&& XSY_is_Terminal (symbol) != value)
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+	return soft_failure;
+      }
+    SYM_is_Locked_Terminal (symbol) = 1;
+    return XSY_is_Terminal (symbol) = value;
 }
 
 @*0 Symbol is productive?.
@@ -1950,7 +1959,14 @@ Marpa_Symbol_ID marpa_g_rule_rhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) 
     @<Fail if fatal error@>@;
     @<Fail if |xrl_id| is invalid@>@;
     rule = XRL_by_ID(xrl_id);
-    if (Length_of_RULE(rule) <= ix) return -1;
+    if (ix < 0) {
+      MARPA_ERROR(MARPA_ERR_RULE_IX_NEGATIVE);
+      return failure_indicator;
+    }
+    if (Length_of_RULE(rule) <= ix) {
+      MARPA_ERROR(MARPA_ERR_RULE_IX_OOB);
+      return -1;
+    }
     return RHS_ID_of_RULE(rule, ix);
 }
 @ @<Function definitions@> =
@@ -2484,7 +2500,6 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
     // After this point, errors are not recoverable
-    g->t_is_precomputed = 1;
     @<Clear rule duplication tree@>@;
     // Phase 1: census the external grammar
     { /* Scope with only external grammar */
@@ -2506,14 +2521,20 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Create AHFA states@>@;
 	@<Populate the terminal boolean vector@>@;
     }
-     return_value = G_EVENT_COUNT(g);
-     goto CLEANUP;
-     SOFT_FAILURE:;
-     return_value = -1;
-     goto CLEANUP;
-     CLEANUP:;
-    my_obstack_free(obs_precompute);
-     return return_value;
+    if (g->has_cycle)
+      {
+	MARPA_ERROR (MARPA_ERR_GRAMMAR_HAS_CYCLE);
+	goto SOFT_FAILURE;
+      }
+    g->t_is_precomputed = 1;
+    return_value = G_EVENT_COUNT (g);
+    goto CLEANUP;
+    SOFT_FAILURE:;
+    return_value = -1;
+    goto CLEANUP;
+    CLEANUP:;
+    my_obstack_free (obs_precompute);
+    return return_value;
 }
 @ {\bf To Do}: @^To Do@>
 
@@ -6298,7 +6319,7 @@ Marpa_Earley_Set_ID marpa_r_latest_earley_set(Marpa_Recognizer r)
 @ @<Function definitions@> =
 Marpa_Earleme marpa_r_earleme(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 {
-    const int es_does_not_exist = -1;
+    const int soft_failure = -1;
   @<Unpack recognizer objects@>@;
     @<Return |-2| on failure@>@;
     ES earley_set;
@@ -6311,7 +6332,8 @@ Marpa_Earleme marpa_r_earleme(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
     r_update_earley_sets (r);
     if (!ES_Ord_is_Valid (r, set_id))
       {
-	return es_does_not_exist;
+        MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
+	return soft_failure;
       }
     earley_set = ES_of_R_by_Ord (r, set_id);
     return Earleme_of_ES (earley_set);
@@ -8118,8 +8140,7 @@ Marpa_Earleme marpa_r_alternative(
 {
     @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
-    const int duplicate_token_indicator = -3;
-    const int unexpected_token_indicator = -1;
+    const int soft_failure = -1;
     ES current_earley_set;
     const EARLEME current_earleme = Current_Earleme_of_R(r);
     EARLEME target_earleme;
@@ -8181,10 +8202,10 @@ Marpa_Earleme marpa_r_alternative(
 }
 
 @ If no postdot item is found at the current Earley set for this
-item, the token ID is unexpected, and |unexpected_token_indicator| is returned.
+item, the token ID is unexpected, and |soft_failure| is returned.
 The application can treat this as a fatal error.
 The application can also use this as a mechanism to test alternatives,
-in which case, returning |unexpected_token_indicator| is a perfectly normal data path.
+in which case, returning |soft_failure| is a perfectly normal data path.
 This last is part of an important technique:
 ``Ruby Slippers" parsing.
 @ Another case of an ``unexpected'' token is an inaccessible one.
@@ -8195,13 +8216,19 @@ are always unexpected.
 @<Set |current_earley_set|, failing if token is unexpected@> = {
     ISY token_isy = ISY_by_XSYID(token_xsyid);
     if (UNLIKELY(!token_isy)) {
-	return unexpected_token_indicator;
+	MARPA_ERROR(MARPA_ERR_UNEXPECTED_TOKEN);
+	return soft_failure;
     }
     token_isyid = ID_of_ISY(token_isy);
     current_earley_set = Current_ES_of_R (r);
-    if (!current_earley_set) return unexpected_token_indicator;
-    if (!First_PIM_of_ES_by_ISYID (current_earley_set, token_isyid))
-	return unexpected_token_indicator;
+    if (!current_earley_set) {
+	MARPA_ERROR(MARPA_ERR_UNEXPECTED_TOKEN);
+	return soft_failure;
+    }
+    if (!First_PIM_of_ES_by_ISYID (current_earley_set, token_isyid)) {
+	MARPA_ERROR(MARPA_ERR_UNEXPECTED_TOKEN);
+	return soft_failure;
+    }
 }
 
 @ Insert an alternative into the alternatives stack,
@@ -8248,7 +8275,8 @@ altered by the attempt.
   if (alternative_insert (r, &alternative) < 0)
     {
       my_obstack_reject (token_obstack);
-      return duplicate_token_indicator;
+      MARPA_ERROR(MARPA_ERR_DUPLICATE_TOKEN);
+      return soft_failure;
     }
   token = my_obstack_finish (token_obstack);
 }
@@ -10566,7 +10594,7 @@ int marpa_r_progress_report_start(
   Marpa_Earley_Set_ID set_id)
 {
   @<Return |-2| on failure@>@;
-  const int es_does_not_exist = -1;
+  const int soft_failure = -1;
   ES earley_set;
   @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
@@ -10579,7 +10607,9 @@ int marpa_r_progress_report_start(
   r_update_earley_sets (r);
   if (!ES_Ord_is_Valid (r, set_id))
     {
-      return es_does_not_exist;
+        MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
+	return soft_failure;
+      }
     }
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
@@ -10723,7 +10753,7 @@ Marpa_Rule_ID marpa_r_progress_item(
   Marpa_Recognizer r, int* position, Marpa_Earley_Set_ID* origin
 ) {
   @<Return |-2| on failure@>@;
-  const RULEID no_more_items = -1;
+  const RULEID soft_failure = -1;
   PROGRESS report_item;
   AVL_TRAV traverser;
   @<Unpack recognizer objects@>@;
@@ -10737,7 +10767,8 @@ Marpa_Rule_ID marpa_r_progress_item(
   @<Fail if no |traverser|@>@;
   report_item = _marpa_avl_t_next(traverser);
   if (!report_item) {
-      return no_more_items;
+      MARPA_ERROR(MARPA_ERR_PROGRESS_REPORT_EXHAUSTED);
+      return soft_failure;
   }
   *position = Position_of_PROGRESS(report_item);
   *origin = Origin_of_PROGRESS(report_item);
@@ -11743,6 +11774,7 @@ Marpa_Grammar marpa_t_g(Marpa_Tree t)
 int marpa_t_next(Marpa_Tree t)
 {
     @<Return |-2| on failure@>@;
+    const int soft_failure = -1;
     int is_first_tree_attempt = 0;
     @<Unpack tree objects@>@;
     @<Fail if fatal error@>@;
@@ -11753,7 +11785,8 @@ int marpa_t_next(Marpa_Tree t)
 
     if (T_is_Exhausted (t))
       {
-	return -1;
+	  MARPA_ERROR (MARPA_ERR_TREE_EXHAUSTED);
+	return soft_failure;
       }
 
     if (T_is_Nulling(t)) {
@@ -11998,7 +12031,8 @@ int _marpa_t_size(Marpa_Tree t)
   @<Unpack tree objects@>@;
   @<Fail if fatal error@>@;
   if (T_is_Exhausted(t)) {
-      return -1;
+      MARPA_ERROR (MARPA_ERR_TREE_EXHAUSTED);
+      return soft_failure;
   }
   if (T_is_Nulling(t)) return 0;
   return Size_of_T(t);
@@ -13990,39 +14024,12 @@ example, they may have been called incorrectly.
 Many of the external routines share failure logic in
 common.
 I found it convenient to gather much of this logic here.
-
-@ External routines will differ in the exact value
-they return on failure.
-Routines returning a pointer will return a |NULL|.
-External routines which return an integer value
-will return either |-2| as a general failure
-indicator,
-so that |-1| can be reserved for special purposes.
-@ The circumstances under
-which |-1| is returned are described in the section
-for each external function call.
-Typical meanings of |-1| are
-``not defined", or ``does not exist".
-
-@ The final decision about the meaning of
-return values is up to the higher layers.
-A general failure return
-(|NULL| or |-2|) will
-typically be a hard failure.
-A |-1| return may be reasonably be
-interpreted as a normal
-return value, a soft failure,
-or a hard failure,
-depending on the context.
-
-@ For this reason,
-all the logic in this section expects |failure_indication|
+All the logic in this section expects |failure_indication|
 to be set in the scope in which it is used.
-All failures treated in this section are general failures,
-so that |-1| is not used as a return value.
+All failures treated in this section are hard failures.
 
 @ Routines returning pointers typically use |NULL| as
-the general failure indicator.
+both the soft and hard failure indicator.
 @<Return |NULL| on failure@> = void* const failure_indicator = NULL;
 @ Routines returning integer value use |-2| as the
 general failure indicator.
