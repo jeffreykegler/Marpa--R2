@@ -2521,12 +2521,12 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Create AHFA states@>@;
 	@<Populate the terminal boolean vector@>@;
     }
+    g->t_is_precomputed = 1;
     if (g->t_has_cycle)
       {
 	MARPA_ERROR (MARPA_ERR_GRAMMAR_HAS_CYCLE);
 	goto SOFT_FAILURE;
       }
-    g->t_is_precomputed = 1;
     return_value = G_EVENT_COUNT (g);
     goto CLEANUP;
     SOFT_FAILURE:;
