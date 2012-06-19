@@ -63,6 +63,9 @@ sub gp_generate {
     # For example, 'g_wrapper'
     my $xs_error_method = 'xs_' . $main::CLASS_LETTER . '_error';
 
+    # Just g_wrapper for the grammar, self->base otherwise
+    my $base = $main::CLASS_LETTER eq 'g' ? 'g_wrapper' : 'self->base';
+
     $output .= "void\n";
     my @args = ();
     ARG: for ( my $i = 0; $i < $#arg_type_pairs; $i += 2 ) {
@@ -83,8 +86,7 @@ sub gp_generate {
     $output .= "  int gp_result = $libmarpa_method("
         . ( join q{, }, 'self', @args ) . ");\n";
     $output .= "  if ( gp_result == -1 ) { XSRETURN_UNDEF; }\n";
-    $output .= "  if ( gp_result < 0 ) {\n";
-    $output .= '    croak("Problem in g->' . $function . '(';
+    $output .= "  if ( gp_result < 0 && $base->throw ) {\n";
     my @format    = ();
     my @variables = ();
     ARG: for ( my $i = 0; $i < $#arg_type_pairs; $i += 2 ) {
@@ -107,11 +109,16 @@ sub gp_generate {
         }
         die "Unknown arg_type $arg_type";
     } ## end for ( my $i = 0; $i < $#arg_type_pairs; $i += 2 )
-    $output .= join q{, }, @format;
-    $output .= q{): %s", } . "\n";
-    $output .= q{      } . join q{, }, @variables,
-        qq{$xs_error_method( $wrapper_variable )};
-    $output .= q{);} . "\n";
+    my $format_string =
+          q{"Problem in }
+        . $main::CLASS_LETTER . q{->}
+        . $function . '('
+        . ( join q{, }, @format )
+        . q{): %s"};
+    my @format_args = @variables;
+    push @format_args, qq{$xs_error_method( $base )};
+    $output .= "    croak( $format_string,\n";
+    $output .= q{     } . (join q{, }, @format_args) . ");\n";
     $output .= "  }\n";
     $output .= q{  XPUSHs (sv_2mortal (newSViv (gp_result)));} . "\n";
     $output .= "}\n";
