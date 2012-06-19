@@ -2689,17 +2689,19 @@ Tree iterators are initialized to the position
 before the first parse,
 so this method must be called before creating a valuator
 from a tree.
+
 If a tree iterator is positioned after the last parse,
 the tree is said to be ``exhausted''.
 A tree iterator for a bocage with no parse trees
 is considered to be ``exhausted'' when initialized.
+If the tree is exhausted, @code{marpa_t_next{
+return -1 as a termination indicator,
+and sets the error code to 
+@code{MARPA_ERR_TREE_EXHAUSTED}.
 
-If the tree is exhausted, it is a soft failure.
-The error code is @code{MARPA_ERR_TREE_EXHAUSTED}.
-
-Return value: On success, returns a non-negative value.
-On soft failure, returns -1.
-On other failure, returns -2 and sets the error code.
+Return value: On success, a non-negative value.
+If the tree is exhausted, returns -1
+On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_t_parse_count ( @

@@ -11762,7 +11762,7 @@ Marpa_Grammar marpa_t_g(Marpa_Tree t)
 int marpa_t_next(Marpa_Tree t)
 {
     @<Return |-2| on failure@>@;
-    const int soft_failure = -1;
+    const int termination_indicator = -1;
     int is_first_tree_attempt = 0;
     @<Unpack tree objects@>@;
     @<Fail if fatal error@>@;
@@ -11774,7 +11774,7 @@ int marpa_t_next(Marpa_Tree t)
     if (T_is_Exhausted (t))
       {
 	  MARPA_ERROR (MARPA_ERR_TREE_EXHAUSTED);
-	return soft_failure;
+	return termination_indicator;
       }
 
     if (T_is_Nulling(t)) {
@@ -11805,7 +11805,7 @@ int marpa_t_next(Marpa_Tree t)
     return FSTACK_LENGTH(t->t_nook_stack);
     TREE_IS_EXHAUSTED: ;
     tree_exhaust(t);
-    return -1;
+    return termination_indicator;
 
 }
 
@@ -12472,7 +12472,7 @@ int marpa_v_symbol_is_valued(
 PRIVATE int symbol_is_valued_set (
     VALUE v, XSYID xsyid, int value)
 {
-    const int valued_is_locked = -1;
+    @<Return |-2| on failure@>@;
     const int old_value = lbv_bit_test(XSY_is_Valued_BV_of_V (v), xsyid);
     if (old_value == value) {
       lbv_bit_set(Valued_Locked_BV_of_V (v), xsyid);
@@ -12480,7 +12480,7 @@ PRIVATE int symbol_is_valued_set (
     }
 
     if (UNLIKELY(lbv_bit_test (Valued_Locked_BV_of_V (v), xsyid))) {
-	return valued_is_locked;
+	    return failure_indicator;
     }
     lbv_bit_set(Valued_Locked_BV_of_V (v), xsyid);
     if (value) {
