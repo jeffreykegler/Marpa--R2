@@ -563,7 +563,7 @@ PPCODE:
 	}
       if (result < 0)
 	{
-	  croak ("Problem in r->alternative: %s", xs_g_error(r_wrapper->base));
+	  croak ("Problem in r->alternative(): %s", xs_g_error(r_wrapper->base));
 	}
       XPUSHs (sv_2mortal (newSViv (result)));
     }
