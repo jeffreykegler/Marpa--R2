@@ -1770,7 +1770,6 @@ marpa_g_rule_new (Marpa_Grammar g,
 		  Marpa_Symbol_ID lhs_id, Marpa_Symbol_ID * rhs_ids, int length)
 {
   @<Return |-2| on failure@>@;
-  const int soft_failure = -1;
   Marpa_Rule_ID rule_id;
   RULE rule;
   @<Fail if fatal error@>@;
@@ -1802,7 +1801,7 @@ marpa_g_rule_new (Marpa_Grammar g,
     if (UNLIKELY (SYM_is_Sequence_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
-	return soft_failure;
+	return failure_indicator;
       }
   }
   rule = xrl_start (g, lhs_id, rhs_ids, length);
@@ -1810,7 +1809,7 @@ marpa_g_rule_new (Marpa_Grammar g,
     {
       MARPA_ERROR (MARPA_ERR_DUPLICATE_RULE);
       my_obstack_reject(g->t_xrl_obs);
-      return soft_failure;
+      return failure_indicator;
     }
   rule = xrl_finish (g, rule);
   rule = my_obstack_finish(g->t_xrl_obs);

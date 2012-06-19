@@ -1120,8 +1120,13 @@ sub add_user_rule {
     my $lhs_id = $lhs->[Marpa::R2::Internal::Symbol::ID];
 
     if ($is_ordinary_rule) {
+
+	# Capture errors
+	$grammar_c->throw_set(0);
         my $ordinary_rule_id = $grammar_c->rule_new( $lhs_id, \@rhs_ids );
-        if ( not defined $ordinary_rule_id ) {
+	$grammar_c->throw_set(1);
+
+        if ( $ordinary_rule_id < 0 ) {
             my $rule_description =
                 "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
             my $error_code = $grammar_c->error_code() // -1;
