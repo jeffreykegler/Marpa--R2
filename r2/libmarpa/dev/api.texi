@@ -1837,14 +1837,12 @@ The LHS symbol cannot be the LHS of any other rule,
 whether a BNF rule or a sequence rule.
 On an attempt to create an sequence rule with a duplicate
 LHS,
-@code{marpa_g_sequence_new()} sets the error code to
-@code{MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE}
-and returns a soft failure.
+@code{marpa_g_sequence_new()} fails,
+setting the error code to
+@code{MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE}.
 
 Return value:  On success, the ID of the external rule.
-On failure because the LHS symbol is not unique, -1.
-On other failure, -2.
-The error code is set for both hard and soft failures.
+On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
@@ -1865,74 +1863,45 @@ On failure, -2.
 @deftypefun int marpa_g_precompute (Marpa_Grammar @var{g})
 
 @anchor{marpa_g_precompute}
-This function attempts to precompute the grammar,
-in the process checking for a large number of issues.
 Precomputation is necessary for a recognizer to be generated
 from a grammar.
 On success, @code{marpa_g_precompute} returns a non-negative
 number to indicate that it precomputed the grammar without
 issues.
-On soft failure, @code{marpa_g_precompute} returns -1
-to indicate that it encountered issues that it
-reported as events.
-On hard failure, @code{marpa_g_precompute} returns -2
-to indicate that it encountered serious issues
-and could not report events or precompute the grammar.
-
-On success, the grammar will have been precomputed,
-and the typical application will go on to create
+On failure, @code{marpa_g_precompute} returns -2
+to indicate that it encountered issues.
+Usually this issues will have prevented precomputation,
+making it impossible
+to go on to create
 a recognizer and continue with the parse.
-On soft failure,
-the application will be able to
-to query events.
-On soft failure,
-there are also circumstances,
-as described below,
-under which the
-grammar will have been precomputed,
-and the applicaton can
-continue the parse.
-On hard failure, the issues will have
-been serious enough to prevent
-both precomputation and the reporting of events.
 
-On soft failure, the grammar may or
-may not have been precomputed.
-An error code of
-@code{MARPA_ERR_GRAMMAR_HAS_CYCLE}
-indicates that the grammar was precomputed.
-An application can also query the precomputed status
-of a grammar directly using
-the @code{marpa_g_is_precomputed()} method.
+When 
+@code{marpa_g_precompute()} fails with an error code
+of @code{MARPA_ERR_GRAMMAR_HAS_CYCLE},
+the grammar will have been precomputed.
+If the @code{marpa_g_is_precomputed()} method
+is called, it will confirm this.
+This means an application is free to ignore the presence
+of cycles,
+create a recognizer from the precomputed grammar,
+and continue parsing all the way to evaluation.
 
-At this writing,
-only unusual applications will want to continue
-with parsing in the presence of a soft failure.
-The only soft failure that does not prevent
-precomputation is the detection of a cycle,
-as reported with an error code of
-@code{MARPA_ERR_GRAMMAR_HAS_CYCLE}.
+Most applications, however,
+will want to simply treat cycles as a problem,
+and fix them before parsing.
 Cycles make a grammar infinitely ambiguous,
 and are considered useless in current
 practice.
 Cycles make processing the grammar less
 efficient, sometimes considerably so.
-Although, in Libmarpa, cycles are not
-an error that must be fixed before
-parsing can take place,
-most applications will want to treat them
-as such.
 
 To query events,
 the application must call @code{marpa_g_event()}.
-At this point events only occur for failures,
+At this point events only occur when failures is reported,
 and always report issues.
-But
-application writers should expect future versions
-to have events which are not issues.
-Application writers should also be prepared
-for future extension which report event
-on success.
+But application writers should expect future versions
+to have events which are reported on success,
+as well as events which do not represent issues.
 
 A @code{MARPA_EVENT_LOOP_RULES} event occurs
 when there are infinite loop rules (cycles)
@@ -1960,8 +1929,8 @@ for all of the counted nullables.
 Precomputation involves freezing
 and then thoroughly checking the grammar.
 Because of the many checks it runs,
-The @code{marpa_g_precompute()} method
-returns a variety of soft failures.
+Among the reasons for precomputation to fail
+are the following:
 
 @itemize
 @item @code{MARPA_ERR_NO_RULES}: The grammar has no rules.
@@ -1982,8 +1951,7 @@ description of the appropriate code.
 @xref{External error codes}.
 
 Return value: On success, a non-negative number.
-On soft failure, -1.
-On hard failure, -2.
+On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_is_precomputed (Marpa_Grammar @var{g})

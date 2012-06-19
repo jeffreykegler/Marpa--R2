@@ -477,9 +477,14 @@ sub Marpa::R2::Grammar::precompute {
     return $grammar if $grammar_c->is_precomputed();
 
     set_start_symbol($grammar);
+
+    # Catch errors in precomputation
     my $precompute_error_code = $Marpa::R2::Error::NONE;
+    $grammar_c->throw_set(0);
     my $precompute_result = $grammar_c->precompute();
-    if ( not defined $precompute_result ) {
+    $grammar_c->throw_set(1);
+
+    if ( $precompute_result < 0 ) {
         $precompute_error_code = $grammar_c->error_code();
         if ( not defined $precompute_error_code ) {
             Marpa::R2::exception(

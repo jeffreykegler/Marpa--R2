@@ -1824,8 +1824,6 @@ int min, int flags )
     @<Check that the sequence symbols are valid@>@;
     @<Add the original rule for a sequence@>@;
     return original_rule_id;
-    SOFT_FAILURE:
-    return -1;
     FAILURE:
     return failure_indicator;
 }
@@ -1873,7 +1871,7 @@ int min, int flags )
     if (UNLIKELY (SYM_is_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
-	goto SOFT_FAILURE;
+	goto FAILURE;
       }
   }
   if (UNLIKELY (!xsyid_is_valid (g, rhs_id)))
@@ -2550,12 +2548,11 @@ int marpa_g_precompute(Marpa_Grammar g)
     if (g->t_has_cycle)
       {
 	MARPA_ERROR (MARPA_ERR_GRAMMAR_HAS_CYCLE);
-	goto SOFT_FAILURE;
+	goto FAILURE;
       }
-    return_value = G_EVENT_COUNT (g);
+    return_value = 0;
     goto CLEANUP;
-    SOFT_FAILURE:;
-    return_value = -1;
+    FAILURE:;
     goto CLEANUP;
     CLEANUP:;
     my_obstack_free (obs_precompute);
@@ -2616,7 +2613,7 @@ a lot of useless diagnostics.
 @ @<Fail if no rules@> =
 if (UNLIKELY(xrl_count <= 0)) {
     MARPA_ERROR(MARPA_ERR_NO_RULES);
-    goto SOFT_FAILURE;
+    goto FAILURE;
 }
 
 @ Loop over the rules, producing boolean vector of LHS symbols, and of
@@ -2628,17 +2625,17 @@ While at it, set a flag to indicate if there are empty rules.
   if (UNLIKELY(start_xsyid < 0))
     {
       MARPA_ERROR (MARPA_ERR_NO_START_SYMBOL);
-      goto SOFT_FAILURE;
+      goto FAILURE;
     }
   if (UNLIKELY(!xsyid_is_valid (g, start_xsyid)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYMBOL);
-      goto SOFT_FAILURE;
+      goto FAILURE;
     }
   if (UNLIKELY(!SYM_is_LHS (SYM_by_ID (start_xsyid))))
     {
       MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
-      goto SOFT_FAILURE;
+      goto FAILURE;
     }
 }
 
@@ -2850,7 +2847,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
   if (UNLIKELY(counted_nullables))
     {
       MARPA_ERROR (MARPA_ERR_COUNTED_NULLABLE);
-      goto SOFT_FAILURE;
+      goto FAILURE;
     }
 }
 
@@ -2879,7 +2876,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
 if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)start_xsyid)))
 {
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
-    goto SOFT_FAILURE;
+    goto FAILURE;
 }
 @ @<Declare census variables@> =
 Bit_Vector productive_v = NULL;
@@ -2987,7 +2984,7 @@ reach a terminal symbol.
   if (UNLIKELY (nulling_terminal_found))
     {
       MARPA_ERROR (MARPA_ERR_NULLING_TERMINAL);
-      goto SOFT_FAILURE;
+      goto FAILURE;
     }
 }
 
