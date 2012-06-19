@@ -378,7 +378,7 @@ PPCODE:
 {
   if (boolean < 0 || boolean > 1)
     {
-      croak ("Problem in g->throw_set(%d): argument must be 0 or 1");
+      croak ("Problem in g->throw_set(%d): argument must be 0 or 1", boolean);
     }
   g_wrapper->throw = boolean;
   XPUSHs (sv_2mortal (newSViv (boolean)));

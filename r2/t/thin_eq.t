@@ -199,6 +199,7 @@ my ( $event_type, $value ) = $grammar->event( $event_ix++ ) ;
 # Marpa::R2::Display::End
 
 $recce = Marpa::R2::Thin::R->new($grammar);
+$grammar->error_clear();
 
 # Marpa::R2::Display
 # name: Thin recognizer error methods

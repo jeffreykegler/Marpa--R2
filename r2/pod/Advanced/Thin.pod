@@ -336,6 +336,8 @@ a convenience, to save the application
 the trouble of looking up the recognizer's
 base grammar.
 
+=head2 throw_set()
+
 =head1 Grammar methods
 
 =head2 Constructor
