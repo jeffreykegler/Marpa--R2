@@ -2243,6 +2243,17 @@ On failure, -2.
 In the default, token-stream model, Earley set ID and earleme
 are always equal, but this is not the case in other input
 models.
+(The ID of an Earley set ID is also called its ordinal.)
+If there is no Earley set whose ID is
+@var{set_id},
+@code{marpa_r_earleme()} fails.
+If @var{set_id} was negative,
+the error code is set to
+@code{MARPA_ERR_INVALID_LOCATION}.
+If @var{set_id} is greater than the ordinal
+of the latest Earley set,
+the error code is set to
+@code{MARPA_ERR_NO_EARLEY_SET_AT_LOCATION}.
 
 At this writing, there is no method for
 the inverse operation (conversion of an earleme to an Earley set
@@ -2256,18 +2267,11 @@ Other applications may need to create an ID-to-earleme
 array using the @code{marpa_r_earleme()} method,
 and invert it themselves.
 
-If Earley set ID is non-negative,
-but there is no Earley set with that ID,
-it is a soft failure.
-The error code is 
-@code{MARPA_ERR_NO_EARLEY_SET_AT_LOCATION}.
-
 Return value:
 On success,
 the earleme corresponding to Earley
 set @var{set_id}.
-On soft failure, -1.
-On other failures, returns -2.
+On failure, -2.
 @end deftypefun
 
 @deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})

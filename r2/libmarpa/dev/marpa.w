@@ -6334,7 +6334,6 @@ Marpa_Earley_Set_ID marpa_r_latest_earley_set(Marpa_Recognizer r)
 @ @<Function definitions@> =
 Marpa_Earleme marpa_r_earleme(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 {
-    const int soft_failure = -1;
   @<Unpack recognizer objects@>@;
     @<Return |-2| on failure@>@;
     ES earley_set;
@@ -6348,7 +6347,7 @@ Marpa_Earleme marpa_r_earleme(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
     if (!ES_Ord_is_Valid (r, set_id))
       {
         MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
-	return soft_failure;
+	return failure_indicator;
       }
     earley_set = ES_of_R_by_Ord (r, set_id);
     return Earleme_of_ES (earley_set);
@@ -10587,7 +10586,6 @@ int marpa_r_progress_report_start(
   Marpa_Earley_Set_ID set_id)
 {
   @<Return |-2| on failure@>@;
-  const int soft_failure = -1;
   ES earley_set;
   @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
@@ -10601,7 +10599,6 @@ int marpa_r_progress_report_start(
   if (!ES_Ord_is_Valid (r, set_id))
     {
         MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
-	return soft_failure;
     }
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
