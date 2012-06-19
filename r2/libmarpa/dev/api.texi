@@ -2163,15 +2163,58 @@ The values of the current and latest earlemes
 are unchanged by
 calls to @code{marpa_r_alternative()}.
 
-If the token was not accepted
-because @var{token_id} is unexpected, it is a soft failure.
-The error code is @code{MARPA_ERR_UNEXPECTED_TOKEN};
+Several error codes leave the recognizer in a fully
+recoverable state, allowing the application to
+retry the @code{marpa_r_alternative} method.
+Retry is efficient, and quite useable as a parsing
+technique.
 
-Return value:  On success, a non-negative value.
-On soft failure, -1.
-If the token was not accepted because it
-is a duplicate,
-or on other hard failure, -2.
+@itemize
+@item @code{MARPA_ERR_UNEXPECTED_TOKEN_ID}
+indicates that the token was not accepted
+because @var{token_id} is unexpected at that location.
+Retry at this location, with another token ID, may succeed.
+Many applications use this technique.
+This is the error code
+of primary interest to users of the Ruby Slippers technique.
+@item @code{MARPA_ERR_DUPLICATE_TOKEN}
+indicates that
+the token was a duplicate of another already read
+at this location.
+Typically, this indicates an application programming
+error, but a retry at this
+location, using another, non-duplicate token,
+may succeed.
+At this writing,
+the author knows of no uses of this technique.
+@item @code{MARPA_ERR_NO_TOKEN_EXPECTED_HERE}
+indicates that
+in this case no tokens at all were expected at this earleme
+location.
+This can only happen in alternative input models.
+Typically, this indicates an application programming
+error.
+Retrying input at this location will always fail.
+But if the application is able to leave this
+earleme empty, a retry at a later location,
+using this or another token,
+may succeed.
+At this writing,
+the author knows of no uses of this technique.
+@item @code{MARPA_ERR_INACCESSIBLE_TOKEN}
+indicates that
+the token symbol is an inaccessible symbol -- one which
+cannot be reached from the start symbol.
+Since the inaccessibility of a symbol is a property of the grammar,
+this error code typically indicates an application error.
+A retry at this location, using another token ID,
+may succeed.
+At this writing,
+the author knows of no uses of this technique.
+@end itemize
+
+Return value:  On success, @code{MARPA_ERR_NONE}.
+On failure, some other error code.
 
 @end deftypefun
 
@@ -2694,7 +2737,7 @@ If a tree iterator is positioned after the last parse,
 the tree is said to be ``exhausted''.
 A tree iterator for a bocage with no parse trees
 is considered to be ``exhausted'' when initialized.
-If the tree is exhausted, @code{marpa_t_next{
+If the tree is exhausted, @code{marpa_t_next}
 return -1 as a termination indicator,
 and sets the error code to 
 @code{MARPA_ERR_TREE_EXHAUSTED}.

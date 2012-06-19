@@ -8208,17 +8208,17 @@ are always unexpected.
 @<Set |current_earley_set|, failing if token is unexpected@> = {
     ISY token_isy = ISY_by_XSYID(token_xsyid);
     if (UNLIKELY(!token_isy)) {
-	MARPA_ERROR(MARPA_ERR_UNEXPECTED_TOKEN);
+	MARPA_ERROR(MARPA_ERR_INACCESSIBLE_TOKEN);
 	return soft_failure;
     }
     token_isyid = ID_of_ISY(token_isy);
     current_earley_set = Current_ES_of_R (r);
     if (!current_earley_set) {
-	MARPA_ERROR(MARPA_ERR_UNEXPECTED_TOKEN);
+	MARPA_ERROR(MARPA_ERR_NO_TOKEN_EXPECTED_HERE);
 	return soft_failure;
     }
     if (!First_PIM_of_ES_by_ISYID (current_earley_set, token_isyid)) {
-	MARPA_ERROR(MARPA_ERR_UNEXPECTED_TOKEN);
+	MARPA_ERROR(MARPA_ERR_UNEXPECTED_TOKEN_ID);
 	return soft_failure;
     }
 }
