@@ -1216,6 +1216,12 @@ sub set_start_symbol {
     return 1;
 } ## end sub set_start_symbol
 
+sub Marpa::R2::Grammar::error {
+    my ( $grammar ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    return $grammar_c->error();
+}
+
 # INTERNAL OK AFTER HERE _marpa_
 
 sub Marpa::R2::Grammar::show_ISY {
@@ -1442,11 +1448,5 @@ sub Marpa::R2::Grammar::isy_name {
 
     return $name;
 } ## end sub Marpa::R2::Grammar::isy_name
-
-sub Marpa::R2::Grammar::error {
-    my ( $grammar ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    return $grammar_c->error();
-}
 
 1;
