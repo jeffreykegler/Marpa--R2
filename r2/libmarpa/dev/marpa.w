@@ -960,24 +960,32 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event* public_event,
 	       int ix)
 {
   @<Return |-2| on failure@>@;
-  const int soft_failure = -1;
   DSTACK events = &g->t_events;
   GEV internal_event;
   int type;
 
   if (ix < 0) {
-    return failure_indicator;
     MARPA_ERROR(MARPA_ERR_EVENT_IX_NEGATIVE);
+    return failure_indicator;
   }
   if (ix >= DSTACK_LENGTH (*events)) {
     MARPA_ERROR(MARPA_ERR_EVENT_IX_OOB);
-    return soft_failure;
+    return failure_indicator;
   }
   internal_event = DSTACK_INDEX (*events, GEV_Object, ix);
   type = internal_event->t_type;
   public_event->t_type = type;
   public_event->t_value = internal_event->t_value;
   return type;
+}
+
+@ @<Function definitions@> =
+Marpa_Event_Type
+marpa_g_event_count (Marpa_Grammar g)
+{
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  return DSTACK_LENGTH (g->t_events);
 }
 
 @*0 The rule duplication tree.

@@ -382,11 +382,14 @@ a Perl scalar number.
 The number is either a symbol ID or a count,
 as described in the Libmarpa API document.
 
-On soft failure, C<event()> returns a Perl C<undef>.
-Soft failure indicates that there is no event C<event_ix>.
-Since the events are indexed in sequence starting from
-0, the soft failure can be used as a loop termination condition.
-C<event()> throws all other failures as exceptions.
+As stated described in the Libmarpa
+The permissible range of event indexes can be
+found with the Marpa thin interface's C<event_count()>
+grammar method,
+which corresponds to Libmarpa's
+C<marpa_g_event_count()> method.
+The thin interface's C<event_count()> method 
+follows the general pattern.
 
 Since C<event()> returns the event value whenever it
 exists,

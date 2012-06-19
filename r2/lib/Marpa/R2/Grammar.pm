@@ -512,16 +512,15 @@ sub Marpa::R2::Grammar::precompute {
         }
         if ( $precompute_error_code == $Marpa::R2::Error::NULLING_TERMINAL ) {
             my @nulling_terminals = ();
-            my $event_ix          = 0;
+	    my $event_count = $grammar_c->event_count();
             EVENT:
-            while ( my ( $event_type, $value ) =
-                $grammar_c->event( $event_ix++ ) )
+            for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ )
             {
-                last EVENT if not defined $event_type;
+                my ( $event_type, $value ) = $grammar_c->event( $event_ix );
                 if ( $event_type eq 'MARPA_EVENT_NULLING_TERMINAL' ) {
                     push @nulling_terminals, $grammar->symbol_name($value);
                 }
-            } ## end while ( my ( $event_type, $value ) = $grammar_c->event(...))
+            } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
             my @nulling_terminal_messages =
                 map {qq{Nulling symbol "$_" is also a terminal\n}}
                 @nulling_terminals;
@@ -530,16 +529,14 @@ sub Marpa::R2::Grammar::precompute {
         } ## end if ( $precompute_error_code == ...)
         if ( $precompute_error_code == $Marpa::R2::Error::COUNTED_NULLABLE ) {
             my @counted_nullables = ();
-            my $event_ix          = 0;
+            my $event_count       = $grammar_c->event_count();
             EVENT:
-            while ( my ( $event_type, $value ) =
-                $grammar_c->event( $event_ix++ ) )
-            {
-                last EVENT if not defined $event_type;
+            for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+                my ( $event_type, $value ) = $grammar_c->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_COUNTED_NULLABLE' ) {
                     push @counted_nullables, $grammar->symbol_name($value);
                 }
-            } ## end while ( my ( $event_type, $value ) = $grammar_c->event(...))
+            } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
             my @counted_nullable_messages = map {
                       q{Nullable symbol "} 
                     . $_
@@ -580,18 +577,22 @@ sub Marpa::R2::Grammar::precompute {
         $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION];
      
     # Above I went through the error events
-    # Here I go through the events fors situation were there was no
+    # Here I go through the events for situations where there was no
     # hard error returned from libmarpa
     my $loop_rule_count = 0;
-    EVENT: for (my $event_ix = 0; 1; $event_ix++) {
-        my ( $event_type, $value ) = $grammar_c->event($event_ix);
-	last EVENT if not defined $event_type;
-        if ( $event_type ne 'MARPA_EVENT_LOOP_RULES' ) {
-	    Marpa::R2::exception(
-		qq{Unknown grammar precomputation event; type="$event_type"});
-	}
-	$loop_rule_count = $value;
-    } ## end for my $event_ix ( 0 .. $event_count - 1 )
+    {
+        my $event_count = $grammar_c->event_count();
+        EVENT:
+        for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+            my ( $event_type, $value ) = $grammar_c->event($event_ix);
+            if ( $event_type ne 'MARPA_EVENT_LOOP_RULES' ) {
+                Marpa::R2::exception(
+                    qq{Unknown grammar precomputation event; type="$event_type"}
+                );
+            }
+            $loop_rule_count = $value;
+        } ## end for ( my $event_ix = 0; $event_ix < $event_count; $event_ix...)
+    }
 
     if ( $loop_rule_count and $infinite_action ne 'quiet' ) {
         my @loop_rules =

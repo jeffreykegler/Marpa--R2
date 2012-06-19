@@ -1985,21 +1985,26 @@ by the @code{marpa_g_precompute()} method.
 On success,
 the data for the @var{ix}'th event (numbered from 0) is placed
 in the location pointed to by @var{event}.
-
 On failure,
 the locations pointed to by @var{event}
 are not changed.
-It is a soft failure
-(error code @code{MARPA_ERR_EVENT_IX_OOB})
-if @var{ix} is non-negative,
-but there is no @var{ix}'th event.
-This can be used as the termination condition
-in a loop over the events.
+
+Event indexes are in sequence, starting with 0.
+Valid events will be in the range from 0 to @var{n}.
+where @var{n} is one less than the event count.
+The event count
+can be queried using the @code{marpa_g_event_count()}
+method.
 
 Return value:  On success, the type of event @var{ix}.
-If there is no @var{ix}'th event, -1.
-It @var{ix} is negative,
-or on other hard failure, -2.
+If there is no @var{ix}'th event,
+fi @var{ix} is negative,
+or on other failure, -2.
+@end deftypefun
+
+@deftypefun int marpa_g_event_count ( Marpa_Grammar g )
+Return value:  On success, the number of events.
+On failure, -2.
 @end deftypefun
 
 @deftypefn {Macro} int marpa_g_event_value (Marpa_Event* @var{event})
