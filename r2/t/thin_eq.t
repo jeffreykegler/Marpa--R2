@@ -190,8 +190,6 @@ my $sequence_rule_id = $grammar->sequence_new(
 
 $grammar->precompute();
 my @events;
-my $event_ix = 0;
-
 my $event_ix = $grammar->event_count();
 while ( $event_ix-- ) {
 

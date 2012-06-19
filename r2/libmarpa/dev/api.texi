@@ -137,7 +137,6 @@ Recognizer methods
 * Recognizer life cycle mutators::  
 * Location accessors::          
 * Other parse status methods::  
-* Recognizer events::           
 
 Bocage methods
 
@@ -2025,7 +2024,6 @@ codes.
 * Recognizer life cycle mutators::  
 * Location accessors::          
 * Other parse status methods::  
-* Recognizer events::           
 @end menu
 
 @node Recognizer overview, Recognizer constructor, Recognizer methods, Recognizer methods
@@ -2216,7 +2214,7 @@ generated,
 but it is important to note that events may be
 created whether earleme completion fails or succeeds.
 When this method fails,
-the application must call @code{marpa_r_event()}
+the application must call @code{marpa_g_event()}
 if it wants to determine if any events occurred.
 Since the reason for failure to complete an earleme is often
 detailed in the events, applications that fail will often
@@ -2297,7 +2295,7 @@ Return value: On success, the furthest earleme.
 Always succeeds.
 @end deftypefun
 
-@node Other parse status methods, Recognizer events, Location accessors, Recognizer methods
+@node Other parse status methods,  , Location accessors, Recognizer methods
 @section Other parse status methods
 
 @deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
@@ -2358,38 +2356,6 @@ Return value:
 1 if the parser is exhausted, 0 otherwise.
 Always succeeds.
 @end deftypefun
-
-@node Recognizer events,  , Other parse status methods, Recognizer methods
-@section Events
-
-@deftypefun int marpa_r_event (Marpa_Recognizer @var{r}, @
-    Marpa_Event* @var{event}, @
-	       int @var{ix})
-This method provides access to the events generated
-by the @code{marpa_r_earleme_complete()} method.
-The @var{ix}'th event (numbered from 0) is placed
-in the @var{public_event} value.
-It is a soft failure if there is no
-@var{ix}'th event.
-This can be used as the termination condition
-in a loop over the events.
-
-Return value:  On success, returns the type of event @var{ix},
-and places the data for the event in @var{public_event}.
-If there is no such event,
--1 is returned.
-On hard failure, -2 is returned.
-On failure,
-the value pointed to be @var{public_event} is unspecified.
-@end deftypefun
-
-@deftypefn {Macro} int marpa_r_event_value (Marpa_Event* @var{event})
-This macro provides access to the ``value'' of the event.
-The semantics of the value varies according to the type
-of the event, and is described in the section on event
-codes.
-@xref{Events}.
-@end deftypefn
 
 @node Progress reports, Bocage methods, Recognizer methods, Top
 @chapter Progress reports

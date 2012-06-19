@@ -6195,18 +6195,6 @@ Marpa_Error_Code marpa_r_error(Marpa_Recognizer r, const char** p_error_string)
   return marpa_g_error (g, p_error_string);
 }
 
-@*0 Recognizer event accessor.
-@ A convenience wrapper for the grammar error strings.
-@<Public defines@> =
-#define marpa_r_event_value(event) \
-    ((event)->t_value)
-@ @<Function definitions@> =
-int marpa_r_event(Marpa_Recognizer r, Marpa_Event* public_event, int ix)
-{
-    @<Unpack recognizer objects@>@;
-  return marpa_g_event (g, public_event, ix);
-}
-
 @** Earlemes.
 In most parsers, the input is modeled as a token stream ---
 a sequence of tokens.

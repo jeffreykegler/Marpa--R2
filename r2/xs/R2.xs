@@ -936,29 +936,6 @@ PPCODE:
     }
 
 void
-event( r_wrapper, ix )
-    R_Wrapper *r_wrapper;
-    int ix;
-PPCODE:
-    {
-      struct marpa_r * const r = r_wrapper->r;
-      Marpa_Event event;
-      const char *result_string = NULL;
-      Marpa_Event_Type result = marpa_r_event (r, &event, ix);
-      if (result < 0)
-	{
-	  croak ("Problem in r->earleme_event(): %s", xs_g_error(r_wrapper->base));
-	}
-	result_string = event_type_to_string(result);
-      if (!result_string)
-	{
-	  croak ("Problem in r->earleme_event(): unknown event %d", result);
-	}
-      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-      XPUSHs (sv_2mortal (newSViv (marpa_r_event_value(&event))));
-    }
-
-void
 earleme( r_wrapper, ordinal )
      R_Wrapper *r_wrapper;
      Marpa_Earley_Set_ID ordinal;

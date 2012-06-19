@@ -652,12 +652,13 @@ sub Marpa::R2::Recognizer::earleme_complete {
     local $Marpa::R2::Internal::TRACE_FH =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
 
     my $event_count = $recce_c->earleme_complete();
     EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
-        my ($event_type, $value) = $recce_c->event($event_ix);
+        my ( $event_type, $value ) = $grammar_c->event($event_ix);
         next EVENT if $event_type eq 'MARPA_EVENT_EXHAUSTED';
         if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
             say {
