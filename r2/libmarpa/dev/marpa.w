@@ -1077,6 +1077,31 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
     return error_code;
 }
 
+@ If this is called when Libmarpa is in a ``not OK'' state,
+it means very bad things are happening --
+possibly memory overwrites.
+So we do not attempt
+much.
+We return, leaving the error code as is,
+unless it is |MARPA_ERR_NONE|.
+Since this would be completely misleading,
+we take a chance and try to
+change it to |MARPA_ERR_I_AM_NOT_OK|.
+@<Function definitions@> =
+Marpa_Error_Code
+marpa_g_error_clear (Marpa_Grammar g)
+{
+  if (!IS_G_OK (g))
+    {
+      if (g->t_error == MARPA_ERR_NONE)
+	g->t_error = MARPA_ERR_I_AM_NOT_OK;
+      return g->t_error;
+    }
+  g->t_error = MARPA_ERR_NONE;
+  g->t_error_string = NULL;
+  return MARPA_ERR_NONE;
+}
+
 @** Symbol (XSY) code.
 @s Marpa_Symbol_ID int
 @<Public typedefs@> =

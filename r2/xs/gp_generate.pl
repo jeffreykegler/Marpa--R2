@@ -146,6 +146,7 @@ $main::CLASS_LETTER   = 'g';
 $main::LIBMARPA_CLASS = 'Marpa_Grammar';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
 
+say {$out} gp_generate(qw(error_clear));
 say {$out} gp_generate(qw(has_cycle));
 say {$out} gp_generate(qw(is_precomputed));
 say {$out} gp_generate(qw(precompute));

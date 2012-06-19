@@ -3394,6 +3394,19 @@ Return value: The last error code from a Libmarpa method.
 Always succeeds.
 @end deftypefun
 
+@deftypefun Marpa_Error_Code marpa_g_error_clear @
+    ( Marpa_Grammar @var{g} )
+
+Sets the error code
+to @code{MARPA_ERR_NONE}.
+Not often used,
+but it now and then it can be useful
+to force the error code to a known state.
+
+Return value: @code{MARPA_ERR_NONE}.
+Always succeeds.
+@end deftypefun
+
 @deftypefun Marpa_Error_Code marpa_r_error @
     (Marpa_Recognizer @var{r}, @
     const char** @var{p_error_string})
@@ -3536,6 +3549,14 @@ but there is no event at that index.
 Since the events are in sequence, this means it
 was too large.
 Suggested message: "No event at that index"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_I_AM_NOT_OK
+The Libmarpa base grammar is in a "not ok"
+state.
+Currently, the only way this can happen
+is if Libmarpa memory is being overwritten.
+Suggested message: "Marpa is in a not OK state"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_GRAMMAR_HAS_CYCLE

@@ -27,6 +27,7 @@ typedef struct marpa_g Grammar;
 typedef struct {
      Marpa_Grammar g;
      char *message_buffer;
+     int throw; /* boolean */
 } G_Wrapper;
 
 typedef struct marpa_r Recce;
@@ -216,6 +217,7 @@ PPCODE:
       }
     g = marpa_g_new( MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
     Newx( g_wrapper, 1, G_Wrapper );
+    g_wrapper->throw = 1;
     g_wrapper->g = g;
     g_wrapper->message_buffer = NULL;
     sv = sv_newmortal();
@@ -366,6 +368,20 @@ PPCODE:
 	     xs_g_error (g_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (new_rule_id)));
+}
+
+void
+throw_set( g_wrapper, boolean )
+    G_Wrapper *g_wrapper;
+    int boolean;
+PPCODE:
+{
+  if (boolean < 0 || boolean > 1)
+    {
+      croak ("Problem in g->throw_set(%d): argument must be 0 or 1");
+    }
+  g_wrapper->throw = boolean;
+  XPUSHs (sv_2mortal (newSViv (boolean)));
 }
 
 void
