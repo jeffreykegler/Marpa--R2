@@ -1334,7 +1334,6 @@ int marpa_g_symbol_is_terminal_set(
 Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 {
     SYM symbol;
-    const int soft_failure = -1;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
@@ -1349,7 +1348,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 	&& XSY_is_Terminal (symbol) != value)
       {
 	MARPA_ERROR (MARPA_ERR_TERMINAL_IS_LOCKED);
-	return soft_failure;
+	return failure_indicator;
       }
     SYM_is_Locked_Terminal (symbol) = 1;
     return XSY_is_Terminal (symbol) = value;
