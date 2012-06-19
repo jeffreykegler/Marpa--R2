@@ -1736,17 +1736,15 @@ On failure, -2.
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id}, @
     int @var{ix})
-The position in the rule, @var{ix}, is zero-based.
-If @var{ix} is greater than or equal the length of the
-rule, it is a soft failure.
-This can be used in loops, to avoid having to query
-the rule's length explicitly.
+Returns the ID of the symbol in position @var{ix}
+in the RHS of rule @var{rule_id}.
+The RHS position, @var{ix}, is zero-based.
 
 Return value: On success, the symbol in position @var{ix}
 on the rules RHS.
 If @var{ix} is greater than or equal to the length of
-the rule, -1.
-On other failures, -2.
+the rule,
+or on other failure, -2.
 @end deftypefun
 
 @node Sequences, Grammar precomputation, Rules, Grammar methods

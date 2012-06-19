@@ -1993,7 +1993,7 @@ Marpa_Symbol_ID marpa_g_rule_rhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) 
     }
     if (Length_of_RULE(rule) <= ix) {
       MARPA_ERROR(MARPA_ERR_RHS_IX_OOB);
-      return -1;
+      return failure_indicator;
     }
     return RHS_ID_of_RULE(rule, ix);
 }
