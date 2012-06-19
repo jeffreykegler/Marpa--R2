@@ -2415,9 +2415,9 @@ This method allows access to the data
 for the next item of a
 progress report.
 If there are no more progress report items,
-it returns -1 to indicate a soft failure
-(error code @code{MARPA_ERR_PROGRESS_REPORT_EXHAUSTED}).
-Either the soft failure,
+it returns -1 as a termination indicator
+and sets the error code to @code{MARPA_ERR_PROGRESS_REPORT_EXHAUSTED}.
+Either the termination indicator,
 or the item count returned by
 @code{marpa_r_progress_report_start()},
 can be used to determine when the last
@@ -2434,9 +2434,9 @@ are unchanged.
 
 Return value: On success, the rule ID of
 the next progress report item.
-On soft failure, -1.
+If there are no more progress report items, -1.
 If either @var{position} or @var{origin} is @code{NULL},
-or on other hard failure, @code{-2}.
+or on other failure, @code{-2}.
 @end deftypefun
 
 @node Bocage methods, Ordering methods, Progress reports, Top

@@ -10745,7 +10745,6 @@ Marpa_Rule_ID marpa_r_progress_item(
   Marpa_Recognizer r, int* position, Marpa_Earley_Set_ID* origin
 ) {
   @<Return |-2| on failure@>@;
-  const RULEID soft_failure = -1;
   PROGRESS report_item;
   AVL_TRAV traverser;
   @<Unpack recognizer objects@>@;
@@ -10760,7 +10759,7 @@ Marpa_Rule_ID marpa_r_progress_item(
   report_item = _marpa_avl_t_next(traverser);
   if (!report_item) {
       MARPA_ERROR(MARPA_ERR_PROGRESS_REPORT_EXHAUSTED);
-      return soft_failure;
+      return -1;
   }
   *position = Position_of_PROGRESS(report_item);
   *origin = Origin_of_PROGRESS(report_item);
@@ -12020,12 +12019,11 @@ int marpa_t_parse_count(Marpa_Tree t)
 int _marpa_t_size(Marpa_Tree t)
 {
   @<Return |-2| on failure@>@;
-  const int soft_failure = -1;
   @<Unpack tree objects@>@;
   @<Fail if fatal error@>@;
   if (T_is_Exhausted(t)) {
       MARPA_ERROR (MARPA_ERR_TREE_EXHAUSTED);
-      return soft_failure;
+      return failure_indicator;
   }
   if (T_is_Nulling(t)) return 0;
   return Size_of_T(t);
