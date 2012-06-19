@@ -1218,7 +1218,6 @@ int marpa_g_symbol_is_valued_set(
     Marpa_Grammar g, Marpa_Symbol_ID xsyid, int value)
 {
   SYM symbol;
-  const int soft_failure = -1;
   @<Return |-2| on failure@>@;
   @<Fail if |xsyid| is invalid@>@;
   symbol = SYM_by_ID (xsyid);
@@ -1231,7 +1230,7 @@ int marpa_g_symbol_is_valued_set(
 		&& value != XSY_is_Valued (symbol)))
     {
       MARPA_ERROR(MARPA_ERR_VALUED_IS_LOCKED);
-      return soft_failure;
+      return failure_indicator;
     }
   XSY_is_Valued (symbol) = value;
   return value;
