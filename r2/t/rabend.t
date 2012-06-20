@@ -107,7 +107,7 @@ sub duplicate_terminal_1 {
 } ## end sub duplicate_terminal_1
 
 catch_problem( $test_name, \&duplicate_terminal_1, undef,
-    q{Problem in r->alternative(): Duplicate token});
+    q{Duplicate token});
 
 $expected_trace = q{Accepted "a" at 0-1};
 if ( index( $trace, $expected_trace ) < 0 ) {
@@ -169,7 +169,7 @@ sub duplicate_terminal_2 {
 } ## end sub duplicate_terminal_2
 
 catch_problem( $test_name, \&duplicate_terminal_2, undef,
-    q{Problem in r->alternative(): Duplicate token});
+    q{Duplicate token});
 
 $expected_trace = <<'EOS';
 Setting trace_terminals option

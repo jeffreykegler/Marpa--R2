@@ -614,8 +614,8 @@ sub Marpa::R2::Recognizer::alternative {
     my $trace_terminals =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS];
     if ($trace_terminals) {
-        my $verb = defined $result ? 'Accepted' : 'Rejected';
-        my $current_earleme = $result // $recce_c->current_earleme();
+        my $verb = $result == $Marpa::R2::Error::NONE ? 'Accepted' : 'Rejected';
+        my $current_earleme = $recce_c->current_earleme();
         say {$trace_fh} qq{$verb "$symbol_name" at $current_earleme-}
             . ( $length + $current_earleme )
             or Marpa::R2::exception("Cannot print: $ERRNO");
