@@ -10603,7 +10603,8 @@ int marpa_r_progress_report_start(
   r_update_earley_sets (r);
   if (!ES_Ord_is_Valid (r, set_id))
     {
-        MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
+      MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
+      return failure_indicator;
     }
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
