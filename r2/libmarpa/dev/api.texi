@@ -2168,50 +2168,25 @@ recoverable state, allowing the application to
 retry the @code{marpa_r_alternative} method.
 Retry is efficient, and quite useable as a parsing
 technique.
+The error code
+of primary interest from this point of view
+is @code{MARPA_ERR_UNEXPECTED_TOKEN_ID},
+which indicates that the token was not accepted
+because of its token ID.
+Retry after this condition is used in several
+applications,
+and is called ``the Ruby Slippers technique''.
 
-@itemize
-@item @code{MARPA_ERR_UNEXPECTED_TOKEN_ID}
-indicates that the token was not accepted
-because @var{token_id} is unexpected at that location.
-Retry at this location, with another token ID, may succeed.
-Many applications use this technique.
-This is the error code
-of primary interest to users of the Ruby Slippers technique.
-@item @code{MARPA_ERR_DUPLICATE_TOKEN}
-indicates that
-the token was a duplicate of another already read
-at this location.
-Typically, this indicates an application programming
-error, but a retry at this
-location, using another, non-duplicate token,
-may succeed.
+The error codes
+@code{MARPA_ERR_DUPLICATE_TOKEN},
+@code{MARPA_ERR_NO_TOKEN_EXPECTED_HERE}
+and @code{MARPA_ERR_INACCESSIBLE_TOKEN}
+also leave the recognizer in a fully recoverable
+state, and may also be useable for the
+Ruby Slippers or similar technique.
 At this writing,
-the author knows of no uses of this technique.
-@item @code{MARPA_ERR_NO_TOKEN_EXPECTED_HERE}
-indicates that
-in this case no tokens at all were expected at this earleme
-location.
-This can only happen in alternative input models.
-Typically, this indicates an application programming
-error.
-Retrying input at this location will always fail.
-But if the application is able to leave this
-earleme empty, a retry at a later location,
-using this or another token,
-may succeed.
-At this writing,
-the author knows of no uses of this technique.
-@item @code{MARPA_ERR_INACCESSIBLE_TOKEN}
-indicates that
-the token symbol is an inaccessible symbol -- one which
-cannot be reached from the start symbol.
-Since the inaccessibility of a symbol is a property of the grammar,
-this error code typically indicates an application error.
-A retry at this location, using another token ID,
-may succeed.
-At this writing,
-the author knows of no uses of this technique.
-@end itemize
+the author knows of no applications which
+attempt to recover from these errors.
 
 Return value:  On success, @code{MARPA_ERR_NONE}.
 On failure, some other error code.
@@ -3549,6 +3524,19 @@ For more see the description of @ref{marpa_g_precompute}.
 Suggested message: "Grammar has cycle"
 @end deftypevr
 
+@deftypevr Macro int MARPA_ERR_INACCESSIBLE_TOKEN
+This error code indicates that
+indicates that
+the token symbol is an inaccessible symbol -- one which
+cannot be reached from the start symbol.
+Since the inaccessibility of a symbol is a property of the grammar,
+this error code typically indicates an application error.
+A retry at this location, using another token ID,
+may succeed.
+At this writing,
+the author knows of no uses of this technique.
+@end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_BOOLEAN
 A function was called which takes a boolean argument,
 one which must be either 0 or 1,
@@ -3655,6 +3643,22 @@ operation which requires one.
 For example, no grammar without a start
 symbol can be precomputed.
 Suggested message: "This grammar has no start symbol"
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_TOKEN_EXPECTED_HERE
+This error code indicates that
+in this case no tokens at all were expected at this earleme
+location.
+This can only happen in alternative input models.
+Typically, this indicates an application programming
+error.
+Retrying input at this location will always fail.
+But if the application is able to leave this
+earleme empty, a retry at a later location,
+using this or another token,
+may succeed.
+At this writing,
+the author knows of no uses of this technique.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NULLING_TERMINAL
