@@ -8130,14 +8130,15 @@ Marpa_Earleme marpa_r_alternative(
     int value,
     int length)
 {
-    @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
-    const int soft_failure = -1;
     ES current_earley_set;
     const EARLEME current_earleme = Current_Earleme_of_R(r);
     EARLEME target_earleme;
     ISYID token_isyid;
-    @<Fail if recognizer not accepting input@>@;
+    if (UNLIKELY(Input_Phase_of_R(r) != R_DURING_INPUT)) {
+	MARPA_ERROR(MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
+	return MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT;
+    }
     @<|marpa_alternative| initial check for failure conditions@>@;
     @<Set |current_earley_set|, failing if token is unexpected@>@;
     @<Set |target_earleme| or fail@>@;
@@ -8149,21 +8150,21 @@ Marpa_Earleme marpa_r_alternative(
     const XSY_Const token = SYM_by_ID(token_xsyid);
     if (length <= 0) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_LENGTH_LE_ZERO);
-	return failure_indicator;
+	return MARPA_ERR_TOKEN_LENGTH_LE_ZERO;
     }
     if (length >= EARLEME_THRESHOLD) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_TOO_LONG);
-	return failure_indicator;
+	return MARPA_ERR_TOKEN_TOO_LONG;
     }
     if (value && UNLIKELY(!lbv_bit_test(r->t_valued_terminal, token_xsyid)))
     {
       if (!XSY_is_Terminal(token)) {
 	  MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
-	  return failure_indicator;
+	  return MARPA_ERR_TOKEN_IS_NOT_TERMINAL;
       }
       if (lbv_bit_test(r->t_valued_locked, token_xsyid)) {
 	  MARPA_ERROR(MARPA_ERR_SYMBOL_VALUED_CONFLICT);
-	  return failure_indicator;
+	  return MARPA_ERR_SYMBOL_VALUED_CONFLICT;
       }
       lbv_bit_set(r->t_valued_locked, token_xsyid);
       lbv_bit_set(r->t_valued_terminal, token_xsyid);
@@ -8173,11 +8174,11 @@ Marpa_Earleme marpa_r_alternative(
     {
       if (!XSY_is_Terminal(token)) {
 	  MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
-	  return failure_indicator;
+	  return MARPA_ERR_TOKEN_IS_NOT_TERMINAL;
       }
       if (lbv_bit_test(r->t_valued_locked, token_xsyid)) {
 	  MARPA_ERROR(MARPA_ERR_SYMBOL_VALUED_CONFLICT);
-	  return failure_indicator;
+	  return MARPA_ERR_SYMBOL_VALUED_CONFLICT;
       }
       lbv_bit_set(r->t_valued_locked, token_xsyid);
       lbv_bit_set(r->t_unvalued_terminal, token_xsyid);
@@ -8189,7 +8190,7 @@ Marpa_Earleme marpa_r_alternative(
     target_earleme = current_earleme + length;
     if (target_earleme >= EARLEME_THRESHOLD) {
 	MARPA_ERROR(MARPA_ERR_PARSE_TOO_LONG);
-	return failure_indicator;
+	return MARPA_ERR_PARSE_TOO_LONG;
     }
 }
 
@@ -8205,21 +8206,25 @@ This last is part of an important technique:
 Inaccessible tokens will not have an ISY and,
 since they don't derive from the start symbol,
 are always unexpected.
-@<Set |current_earley_set|, failing if token is unexpected@> = {
-    ISY token_isy = ISY_by_XSYID(token_xsyid);
-    if (UNLIKELY(!token_isy)) {
-	MARPA_ERROR(MARPA_ERR_INACCESSIBLE_TOKEN);
-	return soft_failure;
+@<Set |current_earley_set|, failing if token is unexpected@> =
+{
+  ISY token_isy = ISY_by_XSYID (token_xsyid);
+  if (UNLIKELY (!token_isy))
+    {
+      MARPA_ERROR (MARPA_ERR_INACCESSIBLE_TOKEN);
+      return MARPA_ERR_INACCESSIBLE_TOKEN;
     }
-    token_isyid = ID_of_ISY(token_isy);
-    current_earley_set = Current_ES_of_R (r);
-    if (!current_earley_set) {
-	MARPA_ERROR(MARPA_ERR_NO_TOKEN_EXPECTED_HERE);
-	return soft_failure;
+  token_isyid = ID_of_ISY (token_isy);
+  current_earley_set = Current_ES_of_R (r);
+  if (!current_earley_set)
+    {
+      MARPA_ERROR (MARPA_ERR_NO_TOKEN_EXPECTED_HERE);
+      return MARPA_ERR_NO_TOKEN_EXPECTED_HERE;
     }
-    if (!First_PIM_of_ES_by_ISYID (current_earley_set, token_isyid)) {
-	MARPA_ERROR(MARPA_ERR_UNEXPECTED_TOKEN_ID);
-	return soft_failure;
+  if (!First_PIM_of_ES_by_ISYID (current_earley_set, token_isyid))
+    {
+      MARPA_ERROR (MARPA_ERR_UNEXPECTED_TOKEN_ID);
+      return MARPA_ERR_UNEXPECTED_TOKEN_ID;
     }
 }
 
@@ -8268,7 +8273,7 @@ altered by the attempt.
     {
       my_obstack_reject (token_obstack);
       MARPA_ERROR(MARPA_ERR_DUPLICATE_TOKEN);
-      return failure_indicator;
+      return MARPA_ERR_DUPLICATE_TOKEN;
     }
   token = my_obstack_finish (token_obstack);
 }
