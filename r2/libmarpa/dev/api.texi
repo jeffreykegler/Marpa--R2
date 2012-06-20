@@ -1083,119 +1083,6 @@ an alternative memory allocator to be specificied,
 and to allow the user to specifier a handler to
 be called when an out-of-memory condition occurs.
 
-@node Success and failure, Soft and hard failure, Memory allocation failures, Error handling concepts
-@section Success and failure
-
-In this document, success and failure are (unless
-the context makes it clear otherwise) used in a special, technical
-sense, one which may differ from the usual one.
-In ordinary language, ``success'' is a desired result,
-and ``failure'' an undesired one.
-
-In this document, @dfn{success}
-means that Libmarpa
-followed its primary logic path to its end,
-returning the result appropriate for that logic path.
-@dfn{Failure} means some other logic path was followed.
-
-As one example where the distinction is relevant,
-some methods are designed so that they can be used
-to control a loop.  Success means continue the loop,
-while a soft failure indicates that the loop should terminate.
-It is typically a good thing for loops to terminate,
-so that this soft failure is,
-in context,
-very much a ``desired result''.
-As another example,
-the ``Ruby Slippers'' parsing method uses soft failures
-as a means of testing alternative inputs and/or
-checking the state of the parse.
-
-@node Soft and hard failure, Interpreting hard and soft failure, Success and failure, Error handling concepts
-@section Soft and hard failure.
-
-Some methods have, in addition to a primary logic path,
-a secondary one.
-If a result is returned from a secondary logic path,
-that is a soft failure.
-As previously stated, a soft failure may be,
-in the ordinary sense of the word ``failure'',
-no failure at all but very much a desired
-and expected result.
-
-All methods have a primary logic path,
-but for some methods no logic path is distinguished
-as the ``secondary'' one.
-These methods never return a soft failure.
-A hard failure results when a method returns a value
-from some logic path other than the primary or secondary
-one.
-
-Whenever a method returns a hard failure,
-Libmarpa sets the error code to indicate
-the nature of the failure.
-Soft failures typically have a single
-cause.
-Since soft failures usually are indicated by a return
-value special to soft failures,
-in most cases of soft failure
-an error code is unnecessary.
-Unless explicitly stated otherwise
-in a method's description,
-the reader should assume that the error code
-is not set on a soft failure.
-
-There are exceptions.
-The @code{marpa_g_precompute()} method
-can report soft failure for many reasons.
-An error code distinguishing them can
-be very necessary,
-and @code{marpa_g_precompute()} sets an
-error code on both soft and hard failure.
-
-Whether a particular kind
-of error is a hard or soft failure
-sometimes depends on the context.
-For example, when iterating parse trees,
-it is usually a soft failure when the iterator is
-``exhausted''.
-The primary logic path is to continue the loop,
-but terminating the loop because the
-iterator is exhausted is an important secondary
-logic path.
-Reaching the end of an iteration is a normal event.
-On the other hand, attempting to create a new valuator
-from an exhausted parse tree iterator is
-considered a hard failure,
-because it is
-something the typical application will only
-do by mistake.
-
-@node Interpreting hard and soft failure,  , Soft and hard failure, Error handling concepts
-@section Interpreting hard and soft failure
-
-An application will have its own ideas of success,
-of what is or is not a recoverable failure,
-and of what is or is not a fatal error.
-As much as possible, Libmarpa makes it
-possible for the application to capture
-its results and reinterpret them to suit
-the application's purpose.
-
-Because of the variability of applications, there are no hard and
-fast rules.  However, if taken with a grain of salt, a few
-generalizations may be helpful.  Soft failures disrupt the normal
-flow of processing less often than hard failures.  Hard failures
-only rarely are part of an application's primary logic path, and
-very often indicate an unrecoverable error.
-There are many cases in which
-soft failures are part of an application's primary logic path,
-even more where they are part of a secondary logic path,
-and even more where they are recoverable.
-But it is also true that many
-soft failures are unrecoverable errors from the point of view of
-the application.
-
 @node Introduction to the external interface, Static method, Error handling concepts, Top
 @chapter Introduction to the external interface
 
@@ -1235,36 +1122,28 @@ the grammar, input and semantics are small but non-trivial.
 @node Return values, Naming conventions, About the overviews, Introduction to the external interface
 @section Return values
 
-If a function returns an integer value,
-and it is not otherwise stated,
--1 indicates a soft failure,
--2 indicates a hard failure
-and a non-negative result indicates success.
+Return values are discussed method by method,
+but some general practices are worth
+mentioning.
+For methods that return an integer,
+Libmarpa usually reserves -1 for special purposes,
+such as indicating loop termination in an iterator.
+In Libmarpa, methods typically indicate failure
+by returning -2.
 If a function returns an pointer value,
-and it is not otherwise stated,
-@code{NULL} indicates a failure,
+@code{NULL} typically indicates failure.
 and any other result indicates success.
 
-Exceptions to these rules
-will be explicitly indicated.
-Where a method returns @code{NULL},
-and in its description
-there is no mention of soft failure,
-the reader can assume that the method never
-returns soft failure.
-If a method allows soft failure,
-the cause of the soft failure will always be described,
-either in the description of a -1 return,
-or explicitly.
-
-Hard failure often can have many causes,
-and full descriptions of all of them under each
-method would hopelessly
-clutter the method descriptions.
-The Libmarpa error code is always set after
-a hard failure,
-and a full descriptions of the causes of each
-error code is in its own section.
+A method can have many reasons for
+failing, and many of the reasons
+for failure are common to
+large number of methods.
+The method descriptions contain details
+of possible failures when they are significant
+for using that method.
+Full descriptions of the error codes
+returned by the external methods
+are given in their own section.
 @xref{External error codes}.
 
 @node Naming conventions,  , Return values, Introduction to the external interface
@@ -1560,7 +1439,7 @@ The error code will be @code{MARPA_ERR_TERMINAL_IS_LOCKED}.
 By default, a symbol is a terminal if and only if it
 does not appear on the LHS of any rule.
 An attempt to flag a nulling symbol
-as a terminal is a hard failure,
+as a terminal will cause a failure,
 but this is not necesssarily detected before precomputation.
 
 Return value: On success, 1 if symbol @var{symid}
@@ -1590,16 +1469,22 @@ it is an unvalued, or a ``whatever'' symbol.
 Once set to a value with the
 @code{marpa_g_symbol_is_valued_set()} method,
 the valued status of a symbol is ``locked'' at that value.
-A subsequent call to 
-@code{marpa_g_symbol_is_valued_set()} with the same
-@var{symid} will return a soft failure,
-and leave the symbol's valued status unchanged.
+It cannot thereafter be changed.
+Subsequents call to 
+@code{marpa_g_symbol_is_valued_set()} can be made
+for the same @var{symid}
+will succeed only if
+@var{value} is the same as the locked-in value.
+Attempts to change a locked value
+will return failure,
+and leave the @var{symid}'s valued status unchanged.
 
 Return value: On success, 1 if the symbol @var{symbol_id}
 is valued after the call, 0 if not.
-If the valued status is locked, -1.
+If the valued status is locked and @var{value}
+is different from the current status, -2.
 If @var{value} is not 0 or 1;
-On failure, -2.
+or on other failure, -2.
 
 @end deftypefun
 
@@ -1766,7 +1651,7 @@ On success,
 1 if rule @var{rule_id} has
 the proper separation flag set,
 0 otherwise.
-On hard failure, -2.
+On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_sequence ( @
@@ -1899,13 +1784,16 @@ as well as events which do not represent issues.
 A @code{MARPA_EVENT_LOOP_RULES} event occurs
 when there are infinite loop rules (cycles)
 in the grammar.
-The presence of one or more of these is a soft failure,
-but does not prevent the grammar from being precomputed.
+The presence of one or more of these will cause failure
+to be reported,
+but will not prevent the grammar from being precomputed.
 
 Each @code{MARPA_EVENT_COUNTED_NULLABLE} event is a symbol
 which is a nullable on the right hand side of a sequence
 rule -- a ``counted'' symbol.
-The presence of one or more of these is a soft failure.
+The presence of one or more of these will cause failure
+to be reported,
+and will prevent the grammar from being precomputed.
 So that the programmer can fix several at once,
 these failures are delayed until events are created
 for all of the counted nullables.
@@ -1913,8 +1801,10 @@ for all of the counted nullables.
 Each @code{MARPA_EVENT_NULLING_TERMINAL} event is a nulling
 symbol which is also flagged as a terminal.
 Since terminals cannot be of zero length, this is a logical
-impossibility, and
-the presence of one or more of these is a soft failure.
+impossibility.
+The presence of one or more of these will cause failure
+to be reported,
+and will prevent the grammar from being precomputed.
 So that the programmer can fix several at once,
 the failure is delayed until events are created
 for all of the counted nullables.
@@ -2293,9 +2183,9 @@ On failure, -2.
 @end deftypefun
 
 @deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
-Return value: On success, the current earleme.
+Return value: If input has started, the current earleme.
 If input has not started, -1.
-Always succeeds or fails softly.
+Always succeeds.
 @end deftypefun
 
 @deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
@@ -2401,16 +2291,19 @@ memory is freed.
 Initially,
 the progress report is positioned before its first item.
 
-If @var{set_id} is a non-negative number,
-but a corresponding Earley set does not exist, it is
-a soft failure.
-The error code is @code{MARPA_ERR_NO_EARLEY_SET_AT_LOCATION}.
+If no Earley set with
+@var{set_id} as its ID,
+@code{marpa_r_progress_report_start} fails.
+The error code is @code{MARPA_ERR_INVALID_LOCATION} if @var{set_id}
+is negative.
+The error code is @code{MARPA_ERR_NO_EARLEY_SET_AT_LOCATION}
+if @var{set_id} is greater than the ID of the 
+the latest Earley set.
 
 Return value: On success, the number of report items available.
-On soft failure, -1.
 If the recognizer has not been started,
-if @var{set_id} is less than zero,
-or on other hard failure, -2.
+if @var{set_id} does not exist
+or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_r_progress_report_finish ( @
@@ -2425,7 +2318,7 @@ whenever a new progress report is started,
 and when the recognizer is destroyed.
 
 Return value: -2 if no progress report has been started,
-or on other hard failure.
+or on other failure.
 On success, a non-negative value.
 @end deftypefun
 
@@ -2490,17 +2383,18 @@ using the
 @code{marpa_b_unref()} method.
 
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
-    Marpa_Earley_Set_ID @var{ordinal_arg})
+    Marpa_Earley_Set_ID @var{earley_set_ID})
 
 Creates a new bocage object, with a reference count of 1.
 The reference count of its parent recognizer object, @var{r},
 is increased by 1.
+If there is no parse ending at Earley set @var{earley_set_ID},
+@code{marpa_b_new} fails.
+The error code is set to
+@code{MARPA_ERR_NO_PARSE}.
 
 Return value: On success, the new bocage object.
-On soft failure, returns @code{NULL} and sets the error
-code to @code{MARPA_ERR_NO_PARSE}.
-On other failure, returns @code{NULL} and sets the error
-appropriately.
+On failure, returns @code{NULL}.
 @end deftypefun
 
 @deftypefun Marpa_Grammar marpa_b_g (Marpa_Bocage @var{b})
@@ -3125,13 +3019,16 @@ These methods are conveniences -- they
 save the application the trouble of looking
 up the rule's LHS.
 
+@code{marpa_v_rule_is_valued_set} fails if
+@var{value} is not either 0 or 1.
+It also fails if the valued status of
+the LHS symbol of @var{rule_id} is locked
+and @var{value} is different from its locked-in value.
+
 Return value:  On success, the valued status of the
 rule @var{rule_id}'s LHS symbol @strong{after}
 the call.
-On an attempt to set a locked valued status
-to a value different from its current one, -1.
-If @var{value} is not either 0 or 1,
-or on other hard failure, -2.
+On failure, -2.
 @end deftypefun
 
 @node Stepping through the valuator, Valuator steps by type, Registering semantics, Value methods
@@ -3144,11 +3041,13 @@ The return value is a @code{Marpa_Step_Type},
 a integer which indicates the type of step.
 How the application is expected to act on
 each step is described below.
+When the iteration through the steps is finished,
+@code{marpa_v_step} returns @code{MARPA_STEP_INACTIVE}.
 
 Return value:  On success, the type of the step
 to be performed.
-On soft failure, @code{MARPA_STEP_INACTIVE}.
-On other failure, -2.
+This will always be a non-negative number.
+On failure, -2.
 @end deftypefun
 
 @node Valuator steps by type, Step accessors, Stepping through the valuator, Value methods
@@ -3394,20 +3293,19 @@ Internal error codes are in their own section.
 @deftypevr Macro int MARPA_ERR_NONE
 No error condition.
 The error code is initialized to this value.
-An application should never see this value,
-because it should examine the error code
-only when a hard failure has been indicated,
-in which case the error code will have set
-to another value.
-
-Methods which do not result in a hard failure
-may reset the error code to @code{MARPA_ERR_NONE}
-or leave it at its current value.
-Which of the two a method does is unspecified.
+Methods which do not result in failure
+sometimes reset the error code to @code{MARPA_ERR_NONE}
+and sometimes leave it at its current value.
+Which of the two a method does is unspecified
+unless explicitly stated in that method's description.
 The current implementation,
 for efficiency and simplicity,
 will usually leave the error code as it
 found it.
+On the other, as stated in its description,
+@code{marpa_r_alternative()}
+sets the error code to @code{MARPA_ERR_NONE}
+on success.
 Suggested message: "No error"
 @end deftypevr
 
@@ -3535,6 +3433,7 @@ A retry at this location, using another token ID,
 may succeed.
 At this writing,
 the author knows of no uses of this technique.
+Suggested message: "Token symbol is inaccessible"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_BOOLEAN
@@ -3659,6 +3558,7 @@ using this or another token,
 may succeed.
 At this writing,
 the author knows of no uses of this technique.
+Suggested message: "No token is expected at this earleme location"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NULLING_TERMINAL
@@ -3681,8 +3581,6 @@ Suggested message: "The ordering is frozen"
 
 @deftypevr Macro int MARPA_ERR_PARSE_EXHAUSTED
 The parse is exhausted.
-This can be both a hard and a soft failure.
-This error code is reserved for hard failures.
 Suggested message: "The parse is exhausted"
 @end deftypevr
 
@@ -3852,14 +3750,7 @@ Suggested message: "Token is too long"
 @deftypevr Macro int MARPA_ERR_TREE_EXHAUSTED
 A Libmarpa parse tree iterator
 is ``exhausted'', that is,
-it has no more parses,
-under a circumstance where this is a hard
-failure.
-As of this writing, the only such
-circumstance is a call to @code{marpa_v_new()}.
-An exhausted tree can also be a soft failure,
-but in those cases, this error code will
-not be set.
+it has no more parses.
 Suggested message: "Tree iterator is exhausted"
 @end deftypevr
 
@@ -4234,7 +4125,7 @@ the keep separation flag is set,
 0 if not.
 Returns 0 if
 @var{rule_id} is not a sequence rule.
-On hard failure, returns -2.
+On failure, returns -2.
 @end deftypefun
 
 @deftypefun int _marpa_g_isy_count ( @
@@ -4472,7 +4363,7 @@ If @var{and_node_id} is not the ID of an and-node
 whose cause is a token,
 returns -1,
 without changing @var{value_p}.
-On hard failure, returns -2 without changing
+On failure, returns -2 without changing
 @var{value_p}.
 
 There is no function to simply return the token value --
