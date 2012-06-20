@@ -35,6 +35,7 @@ typedef struct {
      Marpa_Recce r;
      Marpa_Symbol_ID* terminals_buffer;
      G_Wrapper* base;
+     int ruby_slippers; /* boolean */
 } R_Wrapper;
 
 typedef struct marpa_b Bocage;
@@ -425,6 +426,7 @@ PPCODE:
     Newx( r_wrapper, 1, R_Wrapper );
     r_wrapper->r = r;
     Newx( r_wrapper->terminals_buffer, symbol_count, Marpa_Symbol_ID );
+    r_wrapper->ruby_slippers = 0;
     r_wrapper->base = g_wrapper;
     sv = sv_newmortal();
     sv_setref_pv(sv, recce_c_class_name, (void*)r_wrapper);
@@ -462,6 +464,20 @@ PPCODE:
 	  XSRETURN_UNDEF;
   }
   XPUSHs (sv_2mortal (newSViv (error_code)));
+}
+
+void
+ruby_slippers_set( r_wrapper, boolean )
+    R_Wrapper *r_wrapper;
+    int boolean;
+PPCODE:
+{
+  if (boolean < 0 || boolean > 1)
+    {
+      croak ("Problem in g->ruby_slippers_set(%d): argument must be 0 or 1", boolean);
+    }
+  r_wrapper->ruby_slippers = boolean;
+  XPUSHs (sv_2mortal (newSViv (boolean)));
 }
 
 Marpa_Earleme
@@ -541,10 +557,6 @@ PPCODE:
     XSRETURN_YES;
 }
 
- # current earleme on success -- return that directly
- # -1 means rejected because unexpected -- return undef
- # -3 means rejected as duplicate -- call croak
- # -2 means some other failure -- call croak
 void
 alternative( r_wrapper, symbol_id, value, length )
     R_Wrapper *r_wrapper;
@@ -552,21 +564,16 @@ alternative( r_wrapper, symbol_id, value, length )
     int value;
     int length;
 PPCODE:
+{
+  struct marpa_r *r = r_wrapper->r;
+  const G_Wrapper *base = r_wrapper->base;
+  const int result = marpa_r_alternative (r, symbol_id, value, length);
+  if (result == MARPA_ERR_NONE || r_wrapper->ruby_slippers || !base->throw)
     {
-      struct marpa_r *r = r_wrapper->r;
-      int result;
-      result =
-	marpa_r_alternative (r, symbol_id, value, length);
-      if (result == -1)
-	{
-	  XSRETURN_UNDEF;
-	}
-      if (result < 0)
-	{
-	  croak ("Problem in r->alternative(): %s", xs_g_error(r_wrapper->base));
-	}
-      XPUSHs (sv_2mortal (newSViv (result)));
+      XSRETURN_IV (result);
     }
+  croak ("Problem in r->alternative(): %s", xs_g_error (r_wrapper->base));
+}
 
 void
 earley_item_warning_threshold_set( r_wrapper, too_many_earley_items )

@@ -127,6 +127,8 @@ sub Marpa::R2::Recognizer::new {
         Marpa::R2::exception( $grammar_c->error());
     } ## end if ( not defined $recce_c )
 
+    $recce_c->ruby_slippers_set(1);
+
     $recce->[Marpa::R2::Internal::Recognizer::WARNINGS]       = 1;
     $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES]     = 0;

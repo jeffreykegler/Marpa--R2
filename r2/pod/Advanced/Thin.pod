@@ -549,6 +549,10 @@ are implemented
 following the general pattern, as described
 L<above|"The general pattern">
 
+=head1 Recognizer methods
+
+=head2 ruby_slippers_set()
+
 =head1 Example
 
 =for Marpa::R2::Display

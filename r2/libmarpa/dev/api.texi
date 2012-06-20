@@ -3872,7 +3872,7 @@ a call of the @code{marpa_t_next()} method.
 Suggested message: "Tree iterator is paused"
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_UNEXPECTED_TOKEN
+@deftypevr Macro int MARPA_ERR_UNEXPECTED_TOKEN_ID
 An attempt was made to read a token
 where a token with that symbol ID is not
 expected.
