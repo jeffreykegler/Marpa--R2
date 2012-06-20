@@ -108,9 +108,6 @@ Semantics
 Error handling
 
 * Memory allocation failures::  
-* Success and failure::         
-* Soft and hard failure::       
-* Interpreting hard and soft failure::  
 
 Introduction to the external interface
 
@@ -1063,12 +1060,9 @@ time objects.
 
 @menu
 * Memory allocation failures::  
-* Success and failure::         
-* Soft and hard failure::       
-* Interpreting hard and soft failure::  
 @end menu
 
-@node Memory allocation failures, Success and failure, Error handling concepts, Error handling concepts
+@node Memory allocation failures,  , Error handling concepts, Error handling concepts
 @section Memory allocation failures
 
 Libmarpa leaves the decision of what is a fatal
