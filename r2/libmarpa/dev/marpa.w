@@ -8143,7 +8143,7 @@ Marpa_Earleme marpa_r_alternative(
     @<Set |current_earley_set|, failing if token is unexpected@>@;
     @<Set |target_earleme| or fail@>@;
     @<Insert alternative into stack, failing if token is duplicate@>@;
-    return current_earleme;
+    return MARPA_ERR_NONE;
 }
 
 @ @<|marpa_alternative| initial check for failure conditions@> = {

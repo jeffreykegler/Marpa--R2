@@ -621,8 +621,16 @@ sub Marpa::R2::Recognizer::alternative {
             or Marpa::R2::exception("Cannot print: $ERRNO");
     } ## end if ($trace_terminals)
 
-    return if not defined $result;
-    return 1;
+    return 1 if $result == $Marpa::R2::Error::NONE;
+
+    # The last two are perhaps unnecessary or arguable,
+    # but they preserve compatibility with Marpa::XS
+    return if $result == $Marpa::R2::Error::UNEXPECTED_TOKEN_ID
+       || $result == $Marpa::R2::Error::NO_TOKEN_EXPECTED_HERE
+       || $result == $Marpa::R2::Error::INACCESSIBLE_TOKEN ;
+
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    Marpa::R2::exception($grammar_c->error());
 
 } ## end sub Marpa::R2::Recognizer::alternative
 
