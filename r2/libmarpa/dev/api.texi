@@ -1769,8 +1769,8 @@ efficient, sometimes considerably so.
 
 To query events,
 the application must call @code{marpa_g_event()}.
-At this point events only occur when failures is reported,
-and always report issues.
+At this point events only occur when failure is reported,
+and events always report issues.
 But application writers should expect future versions
 to have events which are reported on success,
 as well as events which do not represent issues.
@@ -1805,7 +1805,6 @@ for all of the counted nullables.
 
 Precomputation involves freezing
 and then thoroughly checking the grammar.
-Because of the many checks it runs,
 Among the reasons for precomputation to fail
 are the following:
 
