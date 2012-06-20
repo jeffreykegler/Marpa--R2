@@ -382,7 +382,6 @@ a Perl scalar number.
 The number is either a symbol ID or a count,
 as described in the Libmarpa API document.
 
-As stated described in the Libmarpa
 The permissible range of event indexes can be
 found with the Marpa thin interface's C<event_count()>
 grammar method,
@@ -420,12 +419,6 @@ array of symbol ID's.
 The symbol ID's in the array represent the RHS.
 On success,
 the return value is the ID of the new rule.
-
-The C<rule_new()> method has more than one kind of soft failure.
-To distinguish them, the error methods must be used.
-Following the general pattern, C<precompute()> returns
-a Perl C<undef> for all of these soft failures.
-C<rule_new()> throws hard failures as exceptions.
 
 =head2 sequence_new()
 
@@ -492,11 +485,6 @@ It defaults to 0.
 
 On success,
 the return value is the ID of the new sequence.
-The C<sequence_new()> can return soft failure,
-as described in the Libmarpa API.
-C<sequence_new()> throws hard failures as exceptions.
-The C<sequence_new()> method
-sets the error code on both soft and hard failure.
 
 =head2 precompute()
 
@@ -510,19 +498,15 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<precompute()> method follows the general pattern.
-It has a variety of soft failures.
-To distinguish them, the error methods must be used.
-Following the general pattern, C<precompute()> returns
-a Perl C<undef> for all of these soft failures.
-
 In addition to errors,
 C<precompute()> also reports events.
-On success, C<precompute> returns an event count.
-Events are interogated using the grammar's
+Events are queried using the grammar's
 C<event()> method.
 
-It is quite possible for C<precompute()> to report
-one or more events, even when there is an error.
+On success, C<precompute()> returns an event count.
+But, even when there is an error,
+C<precompute()> often reports
+one or more events.
 It is not safe to assume that no events occurred
 unless C<precompute()> succeeds and reports
 an event count of zero.
