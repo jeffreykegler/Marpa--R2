@@ -459,35 +459,6 @@ PPCODE:
 }
 
 void
-is_exhausted( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-{
-  struct marpa_r *r = r_wrapper->r;
-  int boolean = marpa_r_is_exhausted (r);
-  if (boolean < 0)
-    {
-      croak ("Problem in is_exhausted(): %s", xs_g_error(r_wrapper->base));
-    }
-  if (boolean)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
-void
-start_input( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-{
-    int result = marpa_r_start_input(r_wrapper->r);
-  if (result < 0)
-    {
-      croak ("Problem in r->start_input(): %s", xs_g_error(r_wrapper->base));
-    }
-    XSRETURN_YES;
-}
-
-void
 alternative( r_wrapper, symbol_id, value, length )
     R_Wrapper *r_wrapper;
     Marpa_Symbol_ID symbol_id;
@@ -504,47 +475,6 @@ PPCODE:
     }
   croak ("Problem in r->alternative(): %s", xs_g_error (r_wrapper->base));
 }
-
-void
-earley_item_warning_threshold_set( r_wrapper, too_many_earley_items )
-    R_Wrapper *r_wrapper;
-    int too_many_earley_items;
-PPCODE:
-{
-  int result =
-    marpa_r_earley_item_warning_threshold_set (r_wrapper->r,
-					       too_many_earley_items);
-      if (result < 0)
-	{
-	  croak ("Problem in r->earley_item_warning_threshold: %s", xs_g_error(r_wrapper->base));
-	}
-    XSRETURN_YES;
-}
-
-void
-too_many_earley_items( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-{
-  int too_many_earley_items =
-    marpa_r_earley_item_warning_threshold (r_wrapper->r);
-  XPUSHs (sv_2mortal (newSViv (too_many_earley_items)));
-}
-
-void
-latest_earley_set( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    {
-      struct marpa_r *r = r_wrapper->r;
-      int latest_earley_set = marpa_r_latest_earley_set(r);
-      if (latest_earley_set < 0)
-	{
-      croak ("Problem with r->latest_earley_set(): %s",
-		 xs_g_error(r_wrapper->base));
-	}
-      XPUSHs (sv_2mortal (newSViv (latest_earley_set)));
-    }
 
 void
 terminals_expected( r_wrapper )
@@ -568,77 +498,27 @@ PPCODE:
 }
 
 void
-earleme_complete( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-        Marpa_Earleme result = marpa_r_earleme_complete(r);
-	if (result < 0) {
-	  croak ("Problem in r->earleme_complete(): %s", xs_g_error(r_wrapper->base));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-void
-earleme( r_wrapper, ordinal )
-     R_Wrapper *r_wrapper;
-     Marpa_Earley_Set_ID ordinal;
-PPCODE:
-    { struct marpa_r* const r = r_wrapper->r;
-	int result = marpa_r_earleme(r, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->earleme(): %s", xs_g_error(r_wrapper->base));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-void
-progress_report_start( r_wrapper, ordinal )
-     R_Wrapper *r_wrapper;
-     Marpa_Earley_Set_ID ordinal;
-PPCODE:
-    { struct marpa_r* const r = r_wrapper->r;
-	int result = marpa_r_progress_report_start(r, ordinal);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->progress_report_finish(): %s", xs_g_error(r_wrapper->base));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
-    }
-
-void
 progress_item( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
-  {
-    struct marpa_r *const r = r_wrapper->r;
-    int position;
-    Marpa_Earley_Set_ID origin;
-    Marpa_Rule_ID rule_id = marpa_r_progress_item (r, &position, &origin);
-    if (rule_id == -1) { XSRETURN_UNDEF; }
-    if (rule_id < 0)
-      {
-	croak ("Problem in r->progress_item(): %s",
-	       xs_g_error(r_wrapper->base));
-      }
-    XPUSHs (sv_2mortal (newSViv (rule_id)));
-    XPUSHs (sv_2mortal (newSViv (position)));
-    XPUSHs (sv_2mortal (newSViv (origin)));
-  }
-
-void
-progress_report_finish( r_wrapper )
-     R_Wrapper *r_wrapper;
-PPCODE:
-    { struct marpa_r* const r = r_wrapper->r;
-	int result = marpa_r_progress_report_finish(r);
-	if (result == -1) { XSRETURN_UNDEF; }
-	if (result < 0) {
-	  croak ("Problem in r->progress_report_finish(): %s", xs_g_error(r_wrapper->base));
-	}
-	XPUSHs( sv_2mortal( newSViv(result) ) );
+{
+  struct marpa_r *const r = r_wrapper->r;
+  int position;
+  Marpa_Earley_Set_ID origin;
+  Marpa_Rule_ID rule_id = marpa_r_progress_item (r, &position, &origin);
+  if (rule_id == -1)
+    {
+      XSRETURN_UNDEF;
     }
+  if (rule_id < 0)
+    {
+      croak ("Problem in r->progress_item(): %s",
+	     xs_g_error (r_wrapper->base));
+    }
+  XPUSHs (sv_2mortal (newSViv (rule_id)));
+  XPUSHs (sv_2mortal (newSViv (position)));
+  XPUSHs (sv_2mortal (newSViv (origin)));
+}
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
 

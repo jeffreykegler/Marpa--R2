@@ -47,6 +47,13 @@ if ( @ARGV == 1 ) {
    $out = *STDOUT;
 }
 
+my %format_by_type = (
+   int => '%d',
+   Marpa_Rule_ID => '%d',
+   Marpa_Symbol_ID => '%d',
+   Marpa_Earley_Set_ID => '%d',
+);
+
 sub gp_generate {
     my ( $function, @arg_type_pairs ) = @_;
     my $output = q{};
@@ -89,18 +96,8 @@ sub gp_generate {
     ARG: for ( my $i = 0; $i < $#arg_type_pairs; $i += 2 ) {
         my $arg_type = $arg_type_pairs[$i];
         my $variable = $arg_type_pairs[ $i + 1 ];
-        if ( $arg_type eq 'int' ) {
-            push @format,    '%d';
-            push @variables, $variable;
-            next ARG;
-        }
-        if ( $arg_type eq 'Marpa_Rule_ID' ) {
-            push @format,    '%d';
-            push @variables, $variable;
-            next ARG;
-        }
-        if ( $arg_type eq 'Marpa_Symbol_ID' ) {
-            push @format,    '%d';
+        if ( my $format = $format_by_type{$arg_type} ) {
+            push @format,    $format;
             push @variables, $variable;
             next ARG;
         }
@@ -187,4 +184,13 @@ print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R', "\n\n";
 
 say {$out} gp_generate(qw(current_earleme));
 say {$out} gp_generate(qw(furthest_earleme));
+say {$out} gp_generate(qw(is_exhausted));
+say {$out} gp_generate(qw(start_input));
+say {$out} gp_generate(qw(earley_item_warning_threshold_set int too_many_earley_items));
+say {$out} gp_generate(qw(earley_item_warning_threshold));
+say {$out} gp_generate(qw(latest_earley_set));
+say {$out} gp_generate(qw(earleme_complete));
+say {$out} gp_generate(qw(earleme Marpa_Earley_Set_ID ordinal));
+say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
+say {$out} gp_generate(qw(progress_report_finish));
 
