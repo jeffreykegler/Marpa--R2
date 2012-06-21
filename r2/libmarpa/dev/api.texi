@@ -3254,19 +3254,6 @@ Return value: @code{MARPA_ERR_NONE}.
 Always succeeds.
 @end deftypefun
 
-@deftypefun Marpa_Error_Code marpa_r_error @
-    (Marpa_Recognizer @var{r}, @
-    const char** @var{p_error_string})
-All errors are tracked in the grammar object.
-This method is a convenience wrapper for @code{marpa_g_error()}.
-@var{p_error_string} is reserved for use by
-the internals.
-Applications should set it to @code{NULL}.
-
-Return value: The last error code from a Libmarpa method.
-Always succeeds.
-@end deftypefun
-
 @node Error Macros, External error codes, Methods, Error macros and code
 @section Error Macros
 

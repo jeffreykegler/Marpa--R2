@@ -6183,15 +6183,6 @@ resized and which will have the same lifetime as the recognizer.
 @ @<Initialize recognizer obstack@> = r->t_obs = my_obstack_init;
 @ @<Destroy recognizer obstack@> = my_obstack_free(r->t_obs);
 
-@*0 Recognizer error accessor.
-@ A convenience wrapper for the grammar error strings.
-@<Function definitions@> =
-Marpa_Error_Code marpa_r_error(Marpa_Recognizer r, const char** p_error_string)
-{
-    @<Unpack recognizer objects@>@;
-  return marpa_g_error (g, p_error_string);
-}
-
 @** Earlemes.
 In most parsers, the input is modeled as a token stream ---
 a sequence of tokens.

@@ -445,28 +445,6 @@ CODE:
     Safefree( r_wrapper );
 
 void
-error( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-{
-  struct marpa_r *r = r_wrapper->r;
-  XPUSHs (sv_2mortal (newSVpv (xs_g_error(r_wrapper->base), 0)));
-}
-
-void
-error_code( r_wrapper )
-    R_Wrapper *r_wrapper;
-PPCODE:
-{
-  struct marpa_r *r = r_wrapper->r;
-  const Marpa_Error_Code error_code = marpa_r_error (r, NULL);
-  if (error_code < 0) {
-	  XSRETURN_UNDEF;
-  }
-  XPUSHs (sv_2mortal (newSViv (error_code)));
-}
-
-void
 ruby_slippers_set( r_wrapper, boolean )
     R_Wrapper *r_wrapper;
     int boolean;

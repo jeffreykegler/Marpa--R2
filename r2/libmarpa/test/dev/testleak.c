@@ -74,13 +74,13 @@ main (int argc, char **argv)
   r = marpa_r_new (g);
   if (!r)
     {
-      marpa_r_error (r, &error_string);
+      marpa_g_error(g, &error_string);
       puts (error_string);
       exit (1);
     }
   if (!marpa_r_start_input (r))
     {
-      marpa_r_error (r, &error_string);
+      marpa_g_error(g, &error_string);
       puts (error_string);
       exit (1);
     }
@@ -89,14 +89,14 @@ main (int argc, char **argv)
       int status = marpa_r_alternative (r, a, 42, 1);
       if (status < 0)
 	{
-	  marpa_r_error (r, &error_string);
+	  marpa_g_error(g, &error_string);
 	  printf ("marpa_alternative returned %d: %s", status, error_string);
 	  exit (1);
 	}
       status = marpa_r_earleme_complete (r);
       if (status < 0)
 	{
-	  marpa_r_error (r, &error_string);
+	  marpa_g_error(g, &error_string);
 	  printf ("marpa_earleme_complete returned %d: %s", status,
 		  error_string);
 	  exit (1);
@@ -112,7 +112,7 @@ main (int argc, char **argv)
       bocage = marpa_b_new (r, i);
       if (!bocage)
 	{
-	  int errcode = marpa_r_error (r, &error_string);
+	  int errcode = marpa_g_error(g, &error_string);
 	  printf ("marpa_bocage_new returned %d: %s", errcode, error_string);
 	  exit (1);
 	}

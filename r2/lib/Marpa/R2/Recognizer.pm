@@ -146,7 +146,7 @@ sub Marpa::R2::Recognizer::new {
         // 0;
 
     if ( not $recce_c->start_input() ) {
-        my $error = $recce_c->error();
+        my $error = $grammar_c->error();
         Marpa::R2::exception( 'Recognizer start of input failed: ', $error );
     }
 
