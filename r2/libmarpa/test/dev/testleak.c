@@ -87,7 +87,7 @@ main (int argc, char **argv)
   for (i = 0; i < 4; i++)
     {
       int status = marpa_r_alternative (r, a, 42, 1);
-      if (status < 0)
+      if (status != MARPA_ERR_NONE)
 	{
 	  marpa_g_error(g, &error_string);
 	  printf ("marpa_alternative returned %d: %s", status, error_string);
