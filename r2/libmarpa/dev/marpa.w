@@ -550,11 +550,12 @@ marpa_check_version (unsigned int required_major,
                     unsigned int required_minor,
                     unsigned int required_micro)
 {
+  const int alpha_version_check = 1;
   int marpa_effective_micro =
     100 * MARPA_MINOR_VERSION + MARPA_MICRO_VERSION;
   int required_effective_micro = 100 * required_minor + required_micro;
 
-  if (required_major <= 2)
+  if (alpha_version_check) 
     return check_alpha_version (required_major, required_minor,
 				required_micro);
   if (required_major > MARPA_MAJOR_VERSION)
@@ -592,6 +593,37 @@ extern const unsigned int marpa_binary_age;@#
 @<Public structures@>@;
 @<Public function prototypes@>@;
 
+@** Config (C) code.
+@ @<Public structures@> =
+struct marpa_config {
+     int t_is_ok;
+     Marpa_Error_Code t_error;
+     const char *t_error_string;
+};
+typedef struct marpa_config Marpa_Config;
+
+@*0
+@ @<Function definitions@> =
+int marpa_c_default (Marpa_Config *config)
+{
+    config->t_is_ok = I_AM_OK;
+    config->t_error = MARPA_ERR_NONE;
+    config->t_error_string = NULL;
+    return 0;
+}
+
+@*0
+@ @<Function definitions@> =
+Marpa_Error_Code marpa_c_error(Marpa_Config* config, const char** p_error_string)
+{
+    const Marpa_Error_Code error_code = config->t_error;
+    const char* error_string = config->t_error_string;
+    if (p_error_string) {
+       *p_error_string = error_string;
+    }
+    return error_code;
+}
+
 @** Grammar (GRAMMAR) code.
 @<Public incomplete structures@> =
 struct marpa_g;
@@ -608,14 +640,13 @@ typedef struct marpa_g* GRAMMAR;
 
 @*0 Constructors.
 @ @<Function definitions@> =
-Marpa_Grammar marpa_g_new (unsigned int required_major,
-                    unsigned int required_minor,
-                    unsigned int required_micro)
+Marpa_Grammar marpa_g_new (Marpa_Config* configuration)
 {
     GRAMMAR g;
-    /* While alpha, require an exact version match */
-    if (check_alpha_version (required_major, required_minor, required_micro))
-      return NULL;
+    if (configuration && configuration->t_is_ok != I_AM_OK) {
+        configuration->t_error = MARPA_ERR_I_AM_NOT_OK;
+	return NULL;
+    }
     g = my_slice_new(struct marpa_g);
     /* Set |t_is_ok| to a bad value, just in case */
     g->t_is_ok = 0;
@@ -624,6 +655,7 @@ Marpa_Grammar marpa_g_new (unsigned int required_major,
     g->t_is_ok = I_AM_OK;
    return g;
 }
+
 @*0 Reference counting and destructors.
 @ @<Int aligned grammar elements@>= int t_ref_count;
 @ @<Initialize grammar elements@> =

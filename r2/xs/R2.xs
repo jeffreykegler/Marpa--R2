@@ -202,28 +202,50 @@ new( class )
     char * class;
 PPCODE:
 {
-    Marpa_Grammar g;
-    SV *sv;
-    G_Wrapper *g_wrapper;
-    Marpa_Error_Code version_error =
-	marpa_check_version(MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
-    if (version_error != MARPA_ERR_NONE)
-      {
-	const char *error_description = "Error code out of bounds";
-	if (version_error >= 0 && version_error < MARPA_ERROR_COUNT)
-	  {
-	    error_description = marpa_error_description[version_error].name;
-	  }
+  Marpa_Grammar g;
+  SV *sv;
+  G_Wrapper *g_wrapper;
+  SV *throw_sv = get_sv ("Marpa::R2::Thin::THROW", 0);
+  const int throw = throw_sv && SvTRUE (throw_sv);
+  Marpa_Config marpa_configuration;
+  Marpa_Error_Code error_code =
+    marpa_check_version (MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION,
+			 MARPA_MICRO_VERSION);
+  if (error_code == MARPA_ERR_NONE)
+    {
+      marpa_c_default (&marpa_configuration);
+      g = marpa_g_new (&marpa_configuration);
+      if (g)
+	{
+	  Newx (g_wrapper, 1, G_Wrapper);
+	  g_wrapper->throw = throw;
+	  g_wrapper->g = g;
+	  g_wrapper->message_buffer = NULL;
+	  sv = sv_newmortal ();
+	  sv_setref_pv (sv, grammar_c_class_name, (void *) g_wrapper);
+	  XPUSHs (sv);
+	}
+      else
+	{
+	  error_code = marpa_c_error (&marpa_configuration, NULL);
+	}
+    }
+  if (error_code != MARPA_ERR_NONE)
+    {
+      const char *error_description = "Error code out of bounds";
+      if (error_code >= 0 && error_code < MARPA_ERROR_COUNT)
+	{
+	  error_description = marpa_error_description[error_code].name;
+	}
+      if (throw)
 	croak ("Problem in Marpa::R2->new(): %s", error_description);
-      }
-    g = marpa_g_new( MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION, MARPA_MICRO_VERSION);
-    Newx( g_wrapper, 1, G_Wrapper );
-    g_wrapper->throw = 1;
-    g_wrapper->g = g;
-    g_wrapper->message_buffer = NULL;
-    sv = sv_newmortal();
-    sv_setref_pv(sv, grammar_c_class_name, (void*)g_wrapper);
-    XPUSHs(sv);
+      if (GIMME != G_ARRAY)
+	{
+	  XSRETURN_UNDEF;
+	}
+      XPUSHs (&PL_sv_undef);
+      XPUSHs (sv_2mortal (newSViv (error_code)));
+    }
 }
 
 void

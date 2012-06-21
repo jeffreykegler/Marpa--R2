@@ -248,6 +248,19 @@ are converted to Perl scalar integers.
 C language C<int>'s are also
 converted to Perl scalar integers.
 
+Note that will NOT convert
+a Perl true to a 1
+or a Perl false to a 0.
+The thin interface expects even those arguments 
+which Libmapra interprets as booleans to be
+numbers, as specified in the Libmarpa API.
+This usually means the that arguments
+must either be
+NUMERIC one or NUMERIC zero.
+This allows for future extensions
+to the Libmarpa interface that
+accept and interpret other numeric values.
+
 Here is an example of a Libmarpa function
 whose corresponding Marpa thin method follows the
 general pattern.
@@ -314,29 +327,15 @@ to date, they may more accurately reflect
 the nature of the error than the error
 name.
 
-=for Marpa::R2::Display
-name: Thin recognizer error methods
-normalize-whitespace: 1
-
-    $error_code        = $recce->error_code();
-    $error_name        = $error_names[$error_code];
-    $error_description = $recce->error();
-
-=for Marpa::R2::Display::End
-
-A separate set of error methods is provided
-for thin interface recognizer objects.
-A recognizer does not have its own
-error code,
-and the error returned by the recognizer
-error methods will be the one
-tracked in the base grammar.
-The recognizer error methods are
-a convenience, to save the application
-the trouble of looking up the recognizer's
-base grammar.
-
 =head2 throw_set()
+
+=head1 Configuarion methods
+
+Libmarpa's configuration objects
+and methods are omitted from the Marpa
+thin interface.
+Their functions are handled by the thin
+interface internally.
 
 =head1 Grammar methods
 
@@ -351,9 +350,9 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Because version checking is handled by the thin interface internally,
-the grammar constructor does NOT accept the version numbers as arguments.
-There are no arguments to the grammar constructor.
+There are no configuration objects in the Marpa thin interface.
+There are no arguments to the Marpa thin interface's
+grammar constructor.
 Its return value is a thin interface grammar object.
 An exception is thrown if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library

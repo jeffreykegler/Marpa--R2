@@ -1223,6 +1223,38 @@ one of the following is returned, indicating the nature of the mismatch:
 
 @end deftypefun
 
+@node Configuration methods
+@chapter Configuration methods
+
+The configuration structure is intended for future extensions that
+will allow the application to override Libmarpa's memory allocation
+and fatal error handling.
+Currently, its only function is to give the @code{marpa_g_new()}
+a place to put its error code.
+
+@deftypefun int marpa_c_default ( @
+  Marpa_Config *config)
+
+Initialize the @var{config} information to ``safe'' default
+values.
+Arbitrary behavior will result
+if an initialized
+configuration is used to create a grammar.
+Return value: A non-negative value.  Always succeeds.
+@end deftypefun
+
+@deftypefun Marpa_Error_Code marpa_c_error( @
+  Marpa_Config* config, const char** p_error_string)
+
+Returns the error code in @var{config}.
+Error codes are usually kept in the base grammar,
+which leaves @code{marpa_g_new()} no place to put
+its error code on failure.
+The configuration provides such a place.
+
+Return value: The error code.  Always succeeds.
+@end deftypefun
+
 @node Grammar methods, Recognizer methods, Static method, Top
 @chapter Grammar methods
 @cindex grammars
@@ -1280,23 +1312,31 @@ use the
 @cindex grammar constructor
 
 @deftypefun Marpa_Grammar marpa_g_new ( @
-    unsigned int @var{required_major}, @
-    unsigned int @var{required_minor}, @
-    unsigned int @var{required_micro})
+    Marpa_Config* configuration )
 
 Creates a new grammar time object.
 The returned grammar object is not yet precomputed,
 and will have no symbols and rules.
 Its reference count will be 1.
 
-The expected major, minor and micro version
-numbers must be passed as arguments,
-While Libmarpa is alpha,
-any mismatch with the actual version will
-cause a failure.
+The @var{configuration} argument is to allow future
+extensions.
+Unless the application calls @code{marpa_c_error},
+Libmarpa will not reference the location
+pointed to by the @var{configuration}
+argument after @code{marpa_g_new} returns.
+The intent is to make it convenient
+to use automatic memory
+for the location pointed
+by @var{configuration}.
+The @var{configuration} argument may be @code{NULL},
+but if it is,
+there will be no way to determine
+the error code on failure.
 
 Return value: On success, the grammar object.
-On failure, @code{NULL}.
+On failure, @code{NULL},
+and the error code is set in @var{configuration}.
 
 @end deftypefun
 
