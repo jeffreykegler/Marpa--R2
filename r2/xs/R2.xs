@@ -458,22 +458,6 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (boolean)));
 }
 
-Marpa_Earleme
-current_earleme( r_wrapper )
-    R_Wrapper *r_wrapper;
-CODE:
-    RETVAL = marpa_r_current_earleme(r_wrapper->r);
-OUTPUT:
-    RETVAL
-
-Marpa_Earleme
-furthest_earleme( r_wrapper )
-    R_Wrapper *r_wrapper;
-CODE:
-    RETVAL = marpa_r_furthest_earleme(r_wrapper->r);
-OUTPUT:
-    RETVAL
-
 void
 is_exhausted( r_wrapper )
     R_Wrapper *r_wrapper;
@@ -566,21 +550,22 @@ void
 terminals_expected( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
-    { struct marpa_r* r = r_wrapper->r;
-        int count = marpa_r_terminals_expected(r, r_wrapper->terminals_buffer);
-	if (count < 0) {
-	  croak ("Problem in r->terminals_expected(): %s", xs_g_error(r_wrapper->base));
-	}
-	if (GIMME == G_ARRAY) {
-	    int i;
-	    EXTEND(SP, count);
-	    for (i = 0; i < count; i++) {
-		PUSHs (sv_2mortal (newSViv (r_wrapper->terminals_buffer[i])));
-	    }
-	} else {
-	    XPUSHs( sv_2mortal( newSViv(count) ) );
-	}
+{
+  int i;
+  struct marpa_r *r = r_wrapper->r;
+  const int count =
+    marpa_r_terminals_expected (r, r_wrapper->terminals_buffer);
+  if (count < 0)
+    {
+      croak ("Problem in r->terminals_expected(): %s",
+	     xs_g_error (r_wrapper->base));
     }
+  EXTEND (SP, count);
+  for (i = 0; i < count; i++)
+    {
+      PUSHs (sv_2mortal (newSViv (r_wrapper->terminals_buffer[i])));
+    }
+}
 
 void
 earleme_complete( r_wrapper )

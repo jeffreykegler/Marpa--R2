@@ -229,7 +229,7 @@ sub Marpa::R2::Recognizer::set {
         if ( defined( my $value = $args->{'leo'} ) ) {
 
             # Not allowed once input has started
-            if ( $recce_c->current_earleme() >= 0 ) {
+            if ( defined $recce_c->current_earleme() ) {
                 Marpa::R2::exception(
                     q{Cannot reset 'leo' once input has started});
             }

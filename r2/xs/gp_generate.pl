@@ -60,11 +60,8 @@ sub gp_generate {
     # For example, 'g_wrapper'
     my $libmarpa_method = 'marpa_' . $main::CLASS_LETTER . '_' . $function;
 
-    # For example, 'g_wrapper'
-    my $xs_error_method = 'xs_' . $main::CLASS_LETTER . '_error';
-
     # Just g_wrapper for the grammar, self->base otherwise
-    my $base = $main::CLASS_LETTER eq 'g' ? 'g_wrapper' : 'self->base';
+    my $base = $main::CLASS_LETTER eq 'g' ? 'g_wrapper' : "$wrapper_variable->base";
 
     $output .= "void\n";
     my @args = ();
@@ -116,7 +113,7 @@ sub gp_generate {
         . ( join q{, }, @format )
         . q{): %s"};
     my @format_args = @variables;
-    push @format_args, qq{$xs_error_method( $base )};
+    push @format_args, qq{xs_g_error( $base )};
     $output .= "    croak( $format_string,\n";
     $output .= q{     } . (join q{, }, @format_args) . ");\n";
     $output .= "  }\n";
@@ -183,3 +180,11 @@ say {$out} gp_generate(qw(symbol_is_terminal_set Marpa_Symbol_ID symbol_id int b
 say {$out} gp_generate(qw(symbol_is_valued Marpa_Symbol_ID symbol_id));
 say {$out} gp_generate(qw(symbol_is_valued_set Marpa_Symbol_ID symbol_id int boolean));
 say {$out} gp_generate(qw(symbol_new));
+
+$main::CLASS_LETTER   = 'r';
+$main::LIBMARPA_CLASS = 'Marpa_Recognizer';
+print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R', "\n\n";
+
+say {$out} gp_generate(qw(current_earleme));
+say {$out} gp_generate(qw(furthest_earleme));
+
