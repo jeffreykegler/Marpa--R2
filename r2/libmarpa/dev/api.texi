@@ -1228,22 +1228,23 @@ one of the following is returned, indicating the nature of the mismatch:
 @chapter Configuration methods
 
 The configuration object is intended for future extensions.
-The may
+These may
 allow the application to override Libmarpa's memory allocation
 and fatal error handling without resorting to global
 variables, and therefore in a thread-safe way.
 Currently, the only function of the @code{Marpa_Config}
-class is to give the @code{marpa_g_new()}
+class is to give @code{marpa_g_new()}
 a place to put its error code.
 
-The @code{Marpa_Config} class is Libmarpa's only ``major''
-object which is not a time class.
+@code{Marpa_Config} is Libmarpa's only ``major''
+class which is not a time class.
 There is no constructor or destructor, although
-@code{Marpa_Config} objects do need to be initialized
+@code{Marpa_Config} objects @strong{do} need to be initialized
 before use.
 Aside from its own accessor,
 @code{Marpa_Config} objects are only used by @code{marpa_g_new}
-and a reference to their location is not kept.
+and no reference to their location is not kept
+in any of Libmarpa's time objects.
 The intent is to that it be convenient
 to have them in memory that might be deallocated
 soon after @code{marpa_g_new} returns.
@@ -1254,22 +1255,25 @@ For example, they could be put on the stack.
 
 Initialize the @var{config} information to ``safe'' default
 values.
-Arbitrary behavior will result
+Unspecified behavior will result
 if an initialized
 configuration is used to create a grammar.
+
 Return value: A non-negative value.  Always succeeds.
 @end deftypefun
 
 @deftypefun Marpa_Error_Code marpa_c_error ( @
   Marpa_Config* @var{config}, const char** @var{p_error_string} )
 
-Returns the error code in @var{config}.
 Error codes are usually kept in the base grammar,
 which leaves @code{marpa_g_new()} no place to put
 its error code on failure.
-The configuration provides such a place.
+Objects of
+the @code{Marpa_Config} class provide such a place.
 
-Return value: The error code.  Always succeeds.
+Return value:
+The error code in @var{config}.
+Always succeeds.
 @end deftypefun
 
 @node Grammar methods, Recognizer methods, Configuration methods, Top
@@ -1336,8 +1340,6 @@ The returned grammar object is not yet precomputed,
 and will have no symbols and rules.
 Its reference count will be 1.
 
-The @var{configuration} argument is to allow future
-extensions.
 Unless the application calls @code{marpa_c_error},
 Libmarpa will not reference the location
 pointed to by the @var{configuration}
