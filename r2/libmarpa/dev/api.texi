@@ -1227,13 +1227,29 @@ one of the following is returned, indicating the nature of the mismatch:
 @node Configuration methods, Grammar methods, Static method, Top
 @chapter Configuration methods
 
-The configuration structure is intended for future extensions that
-will allow the application to override Libmarpa's memory allocation
-and fatal error handling.
-Currently, its only function is to give the @code{marpa_g_new()}
+The configuration object is intended for future extensions.
+The may
+allow the application to override Libmarpa's memory allocation
+and fatal error handling without resorting to global
+variables, and therefore in a thread-safe way.
+Currently, the only function of the @code{Marpa_Config}
+class is to give the @code{marpa_g_new()}
 a place to put its error code.
 
-@deftypefun int marpa_c_default ( @
+The @code{Marpa_Config} class is Libmarpa's only ``major''
+object which is not a time class.
+There is no constructor or destructor, although
+@code{Marpa_Config} objects do need to be initialized
+before use.
+Aside from its own accessor,
+@code{Marpa_Config} objects are only used by @code{marpa_g_new}
+and a reference to their location is not kept.
+The intent is to that it be convenient
+to have them in memory that might be deallocated
+soon after @code{marpa_g_new} returns.
+For example, they could be put on the stack.
+
+@deftypefun int marpa_c_init ( @
   Marpa_Config* @var{config})
 
 Initialize the @var{config} information to ``safe'' default
@@ -1326,10 +1342,6 @@ Unless the application calls @code{marpa_c_error},
 Libmarpa will not reference the location
 pointed to by the @var{configuration}
 argument after @code{marpa_g_new} returns.
-The intent is to make it convenient
-to use automatic memory
-for the location pointed
-by @var{configuration}.
 The @var{configuration} argument may be @code{NULL},
 but if it is,
 there will be no way to determine
