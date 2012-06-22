@@ -571,7 +571,38 @@ L<above|"The general pattern">
 
 =head1 Recognizer methods
 
+=head2 C<< Marpa::R2::Thin::R->new() >>
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Thin::R->new($grammar);
+
+=for Marpa::R2::Display::End
+
+The C<<new()>> method takes a Marpa thin grammar object
+as its one argument.
+On success, it returns a Marpa thin recognzier object.
+On an unthrown failure, it returns undef.
+
 =head2 ruby_slippers_set()
+
+=head2 Omitted methods
+
+The C<marpa_r_ref()>
+and C<marpa_r_unref()> methods are omitted
+because the Marpa thin interface performs
+their function.
+
+=head2 General pattern methods
+
+All methods that are part of the Libmarpa external interface,
+but that are not mentioned explicitly in this section,
+are implemented
+following the general pattern, as described
+L<above|"The general pattern">
 
 =head1 Example
 

@@ -130,8 +130,8 @@ Grammar methods
 Recognizer methods
 
 * Recognizer overview::         
-* Recognizer constructor::      Creating a new recognizer.
-* Recognizer reference counting::  Keeping the reference count of a recognizer.
+* Recognizer constructor::
+* Recognizer reference counting::
 * Recognizer life cycle mutators::  
 * Location accessors::          
 * Other parse status methods::  
@@ -1951,8 +1951,8 @@ codes.
 
 @menu
 * Recognizer overview::         
-* Recognizer constructor::      Creating a new recognizer.
-* Recognizer reference counting::  Keeping the reference count of a recognizer.
+* Recognizer constructor::
+* Recognizer reference counting::
 * Recognizer life cycle mutators::  
 * Location accessors::          
 * Other parse status methods::  
@@ -1989,7 +1989,8 @@ use the @code{marpa_r_earleme_complete()} call.
 @deftypefun Marpa_Recognizer marpa_r_new ( Marpa_Grammar @var{g} )
 Creates a new recognizer.
 The reference count of the recognizer will be 1.
-The reference count the the base grammar, @var{g},
+The reference count of @var{g},
+the base grammar,
 will be incremented by one.
 
 Return value:  On success, the newly created recognizer.

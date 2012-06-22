@@ -437,22 +437,31 @@ new( class, g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
-    int symbol_count;
-    Marpa_Grammar g = g_wrapper->g;
-    SV *sv;
-    R_Wrapper *r_wrapper;
-    Marpa_Recce r;
-    r = marpa_r_new(g);
-    if (!r) { croak ("failure in marpa_r_new: %s", xs_g_error (g_wrapper)); };
-    symbol_count = marpa_g_symbol_count(g);
-    Newx( r_wrapper, 1, R_Wrapper );
-    r_wrapper->r = r;
-    Newx( r_wrapper->terminals_buffer, symbol_count, Marpa_Symbol_ID );
-    r_wrapper->ruby_slippers = 0;
-    r_wrapper->base = g_wrapper;
-    sv = sv_newmortal();
-    sv_setref_pv(sv, recce_c_class_name, (void*)r_wrapper);
-    XPUSHs(sv);
+  int symbol_count;
+  Marpa_Grammar g = g_wrapper->g;
+  SV *sv;
+  R_Wrapper *r_wrapper;
+  Marpa_Recce r;
+  r = marpa_r_new (g);
+  if (!r)
+    {
+      if (!g_wrapper->throw) { XSRETURN_UNDEF; }
+      croak ("failure in marpa_r_new: %s", xs_g_error (g_wrapper));
+    };
+  symbol_count = marpa_g_symbol_count (g);
+  if (symbol_count < 0)
+    {
+      if (!g_wrapper->throw) { XSRETURN_UNDEF; }
+      croak ("failure in marpa_g_symbol_count: %s", xs_g_error (g_wrapper));
+    };
+  Newx (r_wrapper, 1, R_Wrapper);
+  r_wrapper->r = r;
+  Newx (r_wrapper->terminals_buffer, symbol_count, Marpa_Symbol_ID);
+  r_wrapper->ruby_slippers = 0;
+  r_wrapper->base = g_wrapper;
+  sv = sv_newmortal ();
+  sv_setref_pv (sv, recce_c_class_name, (void *) r_wrapper);
+  XPUSHs (sv);
 }
 
 void
