@@ -437,10 +437,8 @@ and the second is a scalar representing its value.
 The string for an event type is its macro name,
 as given in the Libmarpa API document.
 
-The value of the event, when defined
-for an event type, is always,
-as of this writing,
-a Perl scalar number.
+Some event types have an event "value".
+All event values are numeric Perl scalars.
 The number is either a symbol ID or a count,
 as described in the Libmarpa API document.
 
@@ -632,12 +630,23 @@ With an argument of 0,
 the C<ruby_slippers_set()> method disables "Ruby Slippers" mode.
 
 The L<< C<alternative()>
-method|$r->alternative() >>
+method|"$r->alternative()" >>
 will only throw exceptions when 
 "Ruby Slippers" mode is OFF and the throw flag is ON.
 One way of describing Ruby Slippers mode is to say it is
 an override of the throw flag, one which only applies
 to the C<alternative()> method.
+
+=head2 C<< $r->alternative() >>
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    $recce->alternative( $symbol_number, 2, 1 );
+
+=for Marpa::R2::Display::End
 
 =head2 Omitted methods
 

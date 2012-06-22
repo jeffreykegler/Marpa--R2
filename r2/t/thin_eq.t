@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 11;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -223,8 +223,36 @@ $recce->ruby_slippers_set(1);
 # Marpa::R2::Display::End
 
 $recce->start_input();
-$recce->alternative( $symbol_number, 2, 1 );
+$recce->alternative( $symbol_a, 1, 1 );
 $recce->earleme_complete();
+
+# Marpa::R2::Display
+# name: Thin terminals_expected() example
+
+   my @terminals = $recce->terminals_expected();
+
+# Marpa::R2::Display::End
+
+Test::More::is( (scalar @terminals), 1, 'count of terminals expected' );
+Test::More::is( $terminals[0], $symbol_sep, 'expected terminal' );
+
+my $report;
+
+# Marpa::R2::Display
+# name: Thin progress_item() example
+
+    my $ordinal = $recce->latest_earley_set();
+    $recce->progress_report_start($ordinal);
+    ITEM: while (1) {
+        my @item = $recce->progress_item();
+        last ITEM if not defined $item[0];
+        push @{$report}, @item;
+    }
+    $recce->progress_report_finish();
+
+# Marpa::R2::Display::End
+
+Test::More::is( (join q{ }, @{$report}), '0 -1 0 0 0 0', 'progress report');
 
 # Local Variables:
 #   mode: cperl
