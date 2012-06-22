@@ -603,7 +603,7 @@ struct marpa_config {
 typedef struct marpa_config Marpa_Config;
 
 @ @<Function definitions@> =
-int marpa_c_default (Marpa_Config *config)
+int marpa_c_init (Marpa_Config *config)
 {
     config->t_is_ok = I_AM_OK;
     config->t_error = MARPA_ERR_NONE;

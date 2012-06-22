@@ -213,7 +213,7 @@ PPCODE:
 			 MARPA_MICRO_VERSION);
   if (error_code == MARPA_ERR_NONE)
     {
-      marpa_c_default (&marpa_configuration);
+      marpa_c_init (&marpa_configuration);
       g = marpa_g_new (&marpa_configuration);
       if (g)
 	{

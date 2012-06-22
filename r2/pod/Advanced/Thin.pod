@@ -401,7 +401,7 @@ and whose second element is the error code.
 name: Thin event() example
 normalize-whitespace: 1
 
-    my ( $event_type, $value ) = $grammar->event( $event_ix++ ) ;
+    my ( $event_type, $value ) = $grammar->event( $event_ix++ );
 
 =for Marpa::R2::Display::End
 
