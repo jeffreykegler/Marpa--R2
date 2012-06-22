@@ -329,13 +329,45 @@ name.
 
 =head2 throw_set()
 
-=head1 Configuarion methods
+=head1 Configuration methods and variables
 
 Libmarpa's configuration objects
 and methods are omitted from the Marpa
 thin interface.
 Their functions are handled by the thin
 interface internally.
+The Marpa thin interface has a configuration
+variable:
+
+=over 4
+
+=item *
+
+C<< $Marpa::R2::Thin::THROW >>
+
+If a Perl true, the Marpa thin interface throws
+failures as exceptions.
+If a Perl false, the Marpa thin interface methods return
+failure, as described for each method.
+Defaults to true.
+
+Each grammar has its own "throw" flag.
+This variables controls only the initial setting of
+that variable.
+A grammar's "throw" flag can be reset using
+the C<< $g->throw_set() >> method,
+after which its setting is independent of the
+C< $Marpa::R2::Thin::THROW > variable.
+
+For the
+C<< $r->alternative() >> method, the "Ruby Slippers"
+flag also affects which issues are throw as
+exceptions.
+See L<< its
+description|$r->alternative() >>
+for details.
+
+=back
 
 =head1 Grammar methods
 
@@ -350,13 +382,18 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-There are no configuration objects in the Marpa thin interface.
 There are no arguments to the Marpa thin interface's
 grammar constructor.
-Its return value is a thin interface grammar object.
-An exception is thrown if there is a version mismatch, which should
+A failure occurs if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library
 was built.
+On success,
+its return value is a thin interface grammar object.
+On failure in scalar context,
+its return value is a Perl undef.
+On failure in array context, its return value
+is a 2-element array whose first element is a Perl C<undef>
+and whose second element is the error code.
 
 =head2 event()
 
