@@ -1929,7 +1929,7 @@ method.
 
 Return value:  On success, the type of event @var{ix}.
 If there is no @var{ix}'th event,
-fi @var{ix} is negative,
+if @var{ix} is negative,
 or on other failure, -2.
 @end deftypefun
 
