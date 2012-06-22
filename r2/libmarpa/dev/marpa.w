@@ -8151,14 +8151,20 @@ Marpa_Earleme marpa_r_alternative(
     int value,
     int length)
 {
-  @<Unpack recognizer objects@>@;
+    @<Unpack recognizer objects@>@;
     ES current_earley_set;
-    const EARLEME current_earleme = Current_Earleme_of_R(r);
+    const EARLEME current_earleme = Current_Earleme_of_R (r);
     EARLEME target_earleme;
     ISYID token_isyid;
-    if (UNLIKELY(Input_Phase_of_R(r) != R_DURING_INPUT)) {
-	MARPA_ERROR(MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
+    if (UNLIKELY (Input_Phase_of_R (r) != R_DURING_INPUT))
+      {
+	MARPA_ERROR (MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
 	return MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT;
+      }
+    if (UNLIKELY (!xsyid_is_valid (g, token_xsyid)))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
+	return MARPA_ERR_INVALID_SYMBOL_ID;
     }
     @<|marpa_alternative| initial check for failure conditions@>@;
     @<Set |current_earley_set|, failing if token is unexpected@>@;
