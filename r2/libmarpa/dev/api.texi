@@ -3303,7 +3303,7 @@ Always succeeds.
 Sets the error code
 to @code{MARPA_ERR_NONE}.
 Not often used,
-but it now and then it can be useful
+but now and then it can be useful
 to force the error code to a known state.
 
 Return value: @code{MARPA_ERR_NONE}.
