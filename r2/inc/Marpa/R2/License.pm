@@ -273,6 +273,7 @@ my %files_by_type = (
     'libmarpa/build/INSTALL'   => \&ignored,    # GNU file, leave it alone
     'libmarpa/build/NEWS'      => \&trivial,
     'libmarpa/build/api.texi' => \&license_problems_in_fdl_file,
+    'libmarpa/build/internal.texi' => \&license_problems_in_fdl_file,
     'libmarpa/build/config.h.in' =>
 	check_tag( 'Generated from configure.ac by autoheader', 250 ),
     'libmarpa/build/install-sh'   => \&check_X_copyright,
@@ -280,8 +281,9 @@ my %files_by_type = (
     'libmarpa/build/version.texi' => \&trivial,
     'libmarpa/dev/README'         => \&trivial,
     'libmarpa/dev/VERSION.in'     => \&trivial,
-    'libmarpa/dev/api.texi'       => \&license_problems_in_fdl_file,
     'libmarpa/build/README'   => \&license_problems_in_text_file,
+    'libmarpa/dev/api.texi' => \&license_problems_in_fdl_file,
+    'libmarpa/dev/internal.texi' => \&license_problems_in_fdl_file,
     'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
     'libmarpa/dev/cwebmac.tex' =>
 	\&ignored,    # originally from Cweb, leave it alone

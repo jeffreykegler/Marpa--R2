@@ -86,6 +86,7 @@
 ^libmarpa/build/stamp-h1
 ^libmarpa/build_dist/
 ^libmarpa/dev/api[.]texi[~]$
+^libmarpa/dev/internal[.]texi[~]$
 ^libmarpa/dev/codes[.]c
 ^libmarpa/dev/codes[.]h
 ^libmarpa/dev/fragments/

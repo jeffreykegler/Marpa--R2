@@ -124,6 +124,7 @@ libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
 libmarpa/dev/README
 libmarpa/dev/api.texi
+libmarpa/dev/internal.texi
 libmarpa/dev/avl/avl.c
 libmarpa/dev/avl/avl.h
 libmarpa/dev/copyright_page_license.w
