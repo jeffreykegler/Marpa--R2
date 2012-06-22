@@ -119,12 +119,12 @@ Introduction to the external interface
 Grammar methods
 
 * Grammar overview::            
-* Grammar constructor::         Creating a new grammar.
-* Grammar reference counting::  Tracking the reference count of the grammar.
+* Grammar constructor::         
+* Grammar reference counting::  
 * Symbols::                     
 * Rules::                       
 * Sequences::                   
-* Grammar precomputation::      Precomputing the Grammar.
+* Grammar precomputation::      
 * Grammar events::              
 
 Recognizer methods
@@ -1282,12 +1282,12 @@ Always succeeds.
 
 @menu
 * Grammar overview::            
-* Grammar constructor::         Creating a new grammar.
-* Grammar reference counting::  Tracking the reference count of the grammar.
+* Grammar constructor::         
+* Grammar reference counting::  
 * Symbols::                     
 * Rules::                       
 * Sequences::                   
-* Grammar precomputation::      Precomputing the Grammar.
+* Grammar precomputation::      
 * Grammar events::              
 @end menu
 
