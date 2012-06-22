@@ -153,7 +153,7 @@ for my $actual_value (@actual_values) {
 
 # For the error methods, start clean,
 # with a new, trivial grammar
-$grammar = $recce = $bocage = $order = $tree = $value = undef;
+$grammar = $recce = $bocage = $order = $tree = undef;
 $grammar = Marpa::R2::Thin::G->new();
 
 # Marpa::R2::Display

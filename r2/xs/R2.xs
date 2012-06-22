@@ -284,12 +284,14 @@ PPCODE:
       croak ("Problem in g->event(): %s", xs_g_error (g_wrapper));
     }
   result_string = event_type_to_string (result);
-  if (!result_string)
+  if (result_string)
     {
-      result_string =
-	mess ("Problem in g->event(): unknown event %d", result);
+      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
     }
-  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+  else
+    {
+      XPUSHs (mess ("Problem in g->event(): unknown event %d", result));
+    }
   XPUSHs (sv_2mortal (newSViv (marpa_g_event_value (&event))));
 }
 
