@@ -648,12 +648,63 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+The thin interface's C<alternative()> method follows
+the general pattern, with one exception.
+The Ruby Slippers flag overrides the base grammar's
+throw setting.
+
+The C<alternative()> method
+will not throw an exception if the
+Ruby Slippers flag is on.
+More precisely, the C<alternative()> method will
+throw failures as exceptions if and only if the
+base grammar's throw flag is on
+and the Ruby Slippers flag is off.
+
+=head2 C<< $r->terminals_expected() >>
+
+=for Marpa::R2::Display
+name: Thin terminals_expected() example
+partial: 1
+normalize-whitespace: 1
+
+    my @terminals = $recce->terminals_expected();
+
+=for Marpa::R2::Display::End
+
+The C<terminals_expected()> method takes no arguments.
+On success, it returns an array containing the
+symbol ID's of the expected terminals.
+Note that the array of expected terminal ID's may
+be empty, so that an empty array is NOT a failure
+indicator.
+On failure,
+C<terminal_expected()> returns a Perl C<undef>.
+
+=head2 C<< $r->progress_item() >>
+
+=for Marpa::R2::Display
+name: Thin progress_item() example
+
+    my $ordinal = $recce->latest_earley_set();
+    $recce->progress_report_start($ordinal);
+    ITEM: while (1) {
+        my @item = $recce->progress_item();
+        last ITEM if not defined $item[0];
+        push @{$report}, \@item;
+    }
+    $recce->progress_report_finish();
+
+=for Marpa::R2::Display::End
+
 =head2 Omitted methods
 
-The C<marpa_r_ref()>
-and C<marpa_r_unref()> methods are omitted
-because the Marpa thin interface performs
-their function.
+Because the Marpa thin interface 
+handles reference counting internally,
+it does not implement methods
+directly corresponding to
+Libmarpa's C<marpa_r_ref()>
+and C<marpa_r_unref()> methods.
 
 =head2 General pattern methods
 

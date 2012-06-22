@@ -526,8 +526,10 @@ PPCODE:
     marpa_r_terminals_expected (r, r_wrapper->terminals_buffer);
   if (count < 0)
     {
+      G_Wrapper* base = r_wrapper->base;
+      if (!base->throw) { XSRETURN_UNDEF; }
       croak ("Problem in r->terminals_expected(): %s",
-	     xs_g_error (r_wrapper->base));
+	     xs_g_error (base));
     }
   EXTEND (SP, count);
   for (i = 0; i < count; i++)

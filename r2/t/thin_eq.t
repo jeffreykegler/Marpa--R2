@@ -246,13 +246,14 @@ my $report;
     ITEM: while (1) {
         my @item = $recce->progress_item();
         last ITEM if not defined $item[0];
-        push @{$report}, @item;
+        push @{$report}, \@item;
     }
     $recce->progress_report_finish();
 
 # Marpa::R2::Display::End
 
-Test::More::is( (join q{ }, @{$report}), '0 -1 0 0 0 0', 'progress report');
+Test::More::is( ( join q{ }, map { @{$_} } @{$report} ),
+    '0 -1 0 0 0 0', 'progress report' );
 
 # Local Variables:
 #   mode: cperl
