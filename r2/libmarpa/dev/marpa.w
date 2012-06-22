@@ -11042,25 +11042,6 @@ to make sense.
   Top_ORID_of_B (b) = ID_of_OR (top_or_node);
 }
 
-@*0 The grammar of the bocage.
-@ This function returns the grammar of the bocage.
-It never returns an error.
-The grammar is always set when the bocage is initialized,
-and is never changed while the bocage exists.
-Fatal state is not reported,
-because it is kept in the grammar,
-so that
-either we can return the grammar in spite of
-its fatal state,
-or the problem is so severe than no
-errors can be properly reported.
-@<Function definitions@> =
-Marpa_Grammar marpa_b_g(Marpa_Bocage b)
-{
-  @<Unpack bocage objects@>@;
-  return g;
-}
-
 @*0 Top or-node.
 @ If |b| is nulling, the top Or node ID will be -1.
 @<Function definitions@> =
@@ -11377,25 +11358,6 @@ PRIVATE void order_free(ORDER o)
 @ @<Unpack order objects@> =
     const BOCAGE b = B_of_O(o);
     @<Unpack bocage objects@>@;
-
-@*0 The grammar of the order.
-@ This function returns the grammar of the order.
-It never returns an error.
-The grammar is always set when the order is initialized,
-and is never changed while the order exists.
-Fatal state is not reported,
-because it is kept in the grammar,
-so that
-either we can return the grammar in spite of
-its fatal state,
-or the problem is so severe than no
-errors can be properly reported.
-@<Function definitions@> =
-Marpa_Grammar marpa_o_g(Marpa_Order o)
-{
-  @<Unpack order objects@>@;
-  return g;
-}
 
 @*0 Order is nulling?.
 Is this order for a nulling parse?
@@ -11770,25 +11732,6 @@ tree_unpause (TREE t)
     MARPA_ASSERT(t->t_ref_count >= t->t_pause_counter);
     t->t_pause_counter--;
     tree_unref(t);
-}
-
-@*0 The grammar of the tree.
-@ This function returns the grammar of the tree.
-It never returns an error.
-The grammar is always set when the tree is initialized,
-and is never changed while the tree exists.
-Fatal state is not reported,
-because it is kept in the grammar,
-so that
-either we can return the grammar in spite of
-its fatal state,
-or the problem is so severe than no
-errors can be properly reported.
-@<Function definitions@> =
-Marpa_Grammar marpa_t_g(Marpa_Tree t)
-{
-  @<Unpack tree objects@>@;
-  return g;
 }
 
 @ @<Function definitions@> =
@@ -12409,15 +12352,6 @@ PRIVATE void value_free(VALUE v)
 @ @<Unpack value objects@> =
     TREE t = T_of_V(v);
     @<Unpack tree objects@>@;
-
-@*0 The grammar of the value object.
-@<Function definitions@> =
-Marpa_Grammar marpa_v_g(Marpa_Value public_v)
-{
-  const VALUE v = (VALUE)public_v;
-  @<Unpack value objects@>@;
-  return g;
-}
 
 @*0 Valuator is nulling?.
 Is this valuator for a nulling parse?

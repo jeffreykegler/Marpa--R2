@@ -2434,11 +2434,6 @@ Return value: On success, the new bocage object.
 On failure, returns @code{NULL}.
 @end deftypefun
 
-@deftypefun Marpa_Grammar marpa_b_g (Marpa_Bocage @var{b})
-Return value: The base grammar of @var{b}.
-Always succeeds.
-@end deftypefun
-
 @node Bocage reference counting,  , Bocage overview, Bocage methods
 @section  Reference counting
 @deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
@@ -2504,12 +2499,6 @@ is increased by 1.
 
 Return value: On success, the new ordering object.
 On failure, @code{NULL}.
-@end deftypefun
-
-@deftypefun Marpa_Grammar marpa_o_g ( @
-    Marpa_Order @var{o})
-Return value: The base grammar of @var{o}.
-Always succeeds.
 @end deftypefun
 
 @node Ordering reference counting,  , Ordering constructor, Ordering methods
@@ -2589,11 +2578,6 @@ the application must call @code{marpa_t_next()}.
 
 Return value:  On success, a newly created tree.
 On failure, returns @code{NULL} and sets the error code.
-@end deftypefun
-
-@deftypefun Marpa_Grammar marpa_t_g (Marpa_Tree @var{t})
-Return value: The base grammar of @var{t}.
-Always succeeds.
 @end deftypefun
 
 @node Tree reference counting, Tree iteration, Tree constructor, Tree methods
@@ -2968,13 +2952,6 @@ all of the valuators of a parse tree are destroyed.
 
 Return value:  On success, the newly created valuator.
 On failure, returns @code{NULL} and sets the error code.
-@end deftypefun
-
-@deftypefun Marpa_Grammar marpa_v_g ( @
-    Marpa_Value @var{v} @
-    )
-Return value: The base grammar of @var{v}.
-Always succeeds.
 @end deftypefun
 
 @node Valuator reference counting, Registering semantics, Valuator constructor, Value methods
