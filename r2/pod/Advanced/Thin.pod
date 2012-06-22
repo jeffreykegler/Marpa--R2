@@ -327,7 +327,25 @@ to date, they may more accurately reflect
 the nature of the error than the error
 name.
 
-=head2 throw_set()
+=head2 C<< $g->throw_set() >>
+
+=for Marpa::R2::Display
+name: Thin throw_set() example
+normalize-whitespace: 1
+
+    $grammar->throw_set(0);
+
+=for Marpa::R2::Display::End
+
+The C<throw_set()> method turns the throw flag
+for the grammar on or off,
+according to whether its argument is 1 or 0.
+
+If the argument of C<throw_set()> is
+not a numeric 0 or 1,
+the method always throws an exception,
+regardless of the setting of any
+throw flags or variables.
 
 =head1 Configuration methods and variables
 
@@ -359,13 +377,21 @@ the C<< $g->throw_set() >> method,
 after which its setting is independent of the
 C< $Marpa::R2::Thin::THROW > variable.
 
-For the
+Each grammar's "throw" flag is intended to
+centralize control of the throwing of exceptions
+in the time objects descended from that base grammar.
+But there are exceptions.
+If the arguments to the C<throw_set()> method
+itself are not sane,
+it assumes all bets are off and throws an
+exception.
+And for the
 C<< $r->alternative() >> method, the "Ruby Slippers"
 flag also affects which issues are throw as
 exceptions.
-See L<< its
-description|$r->alternative() >>
-for details.
+For details, set
+L<< its
+description|$r->alternative() >>.
 
 =back
 
@@ -587,7 +613,31 @@ as its one argument.
 On success, it returns a Marpa thin recognzier object.
 On an unthrown failure, it returns undef.
 
-=head2 ruby_slippers_set()
+=head2 C<< $r->ruby_slippers_set() >>
+
+=for Marpa::R2::Display
+name: Thin ruby_slippers_set() example
+normalize-whitespace: 1
+
+    $recce->ruby_slippers_set(1);
+
+=for Marpa::R2::Display::End
+
+Ruby Slippers mode is OFF by default in the thin
+interface -- the opposite of the default in the
+higher level interface.
+With an argument of 1,
+the C<ruby_slippers_set()> method enables "Ruby Slippers" mode.
+With an argument of 0,
+the C<ruby_slippers_set()> method disables "Ruby Slippers" mode.
+
+The L<< C<alternative()>
+method|$r->alternative() >>
+will only throw exceptions when 
+"Ruby Slippers" mode is OFF and the throw flag is ON.
+One way of describing Ruby Slippers mode is to say it is
+an override of the throw flag, one which only applies
+to the C<alternative()> method.
 
 =head2 Omitted methods
 

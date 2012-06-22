@@ -272,20 +272,25 @@ PPCODE:
   const char *result_string = NULL;
   Marpa_Event_Type result = marpa_g_event (g, &event, ix);
   if (result == -1)
-  {
+    {
       XSRETURN_UNDEF;
-  }
+    }
   if (result < 0)
     {
+      if (!g_wrapper->throw)
+	{
+	  XSRETURN_UNDEF;
+	}
       croak ("Problem in g->event(): %s", xs_g_error (g_wrapper));
     }
   result_string = event_type_to_string (result);
   if (!result_string)
     {
-      croak ("Problem in g->event(): unknown event %d", result);
+      result_string =
+	mess ("Problem in g->event(): unknown event %d", result);
     }
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-  XPUSHs (sv_2mortal (newSViv (marpa_g_event_value(&event))));
+  XPUSHs (sv_2mortal (newSViv (marpa_g_event_value (&event))));
 }
 
 Marpa_Rule_ID
@@ -385,7 +390,7 @@ PPCODE:
     {
       XSRETURN_UNDEF;
     }
-  if (new_rule_id < 0)
+  if (new_rule_id < 0 && g_wrapper->throw)
     {
       croak ("Problem in g->sequence_new(%d, %d, ...): %s", lhs, rhs,
 	     xs_g_error (g_wrapper));
@@ -401,6 +406,7 @@ PPCODE:
 {
   if (boolean < 0 || boolean > 1)
     {
+      /* Always throws an exception if the arguments are bad */
       croak ("Problem in g->throw_set(%d): argument must be 0 or 1", boolean);
     }
   g_wrapper->throw = boolean;

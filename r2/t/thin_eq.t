@@ -153,7 +153,18 @@ for my $actual_value (@actual_values) {
 
 # For the error methods, start clean,
 # with a new, trivial grammar
+$grammar = $recce = $bocage = $order = $tree = $value = undef;
 $grammar = Marpa::R2::Thin::G->new();
+
+# Marpa::R2::Display
+# name: Thin throw_set() example
+
+$grammar->throw_set(0);
+
+# Marpa::R2::Display::End
+
+# Turn it right back on, for safety's sake
+$grammar->throw_set(0);
 
 # Marpa::R2::Display
 # name: Thin grammar error methods
@@ -201,6 +212,19 @@ while ( $event_ix-- ) {
 # Marpa::R2::Display::End
 
 }
+
+$recce = Marpa::R2::Thin::R->new($grammar);
+
+# Marpa::R2::Display
+# name: Thin ruby_slippers_set() example
+
+$recce->ruby_slippers_set(1);
+
+# Marpa::R2::Display::End
+
+$recce->start_input();
+$recce->alternative( $symbol_number, 2, 1 );
+$recce->earleme_complete();
 
 # Local Variables:
 #   mode: cperl
