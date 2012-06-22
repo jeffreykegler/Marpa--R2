@@ -602,7 +602,6 @@ struct marpa_config {
 };
 typedef struct marpa_config Marpa_Config;
 
-@*0
 @ @<Function definitions@> =
 int marpa_c_default (Marpa_Config *config)
 {
@@ -612,7 +611,6 @@ int marpa_c_default (Marpa_Config *config)
     return 0;
 }
 
-@*0
 @ @<Function definitions@> =
 Marpa_Error_Code marpa_c_error(Marpa_Config* config, const char** p_error_string)
 {

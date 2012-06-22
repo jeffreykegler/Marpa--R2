@@ -46,6 +46,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Error handling concepts::     
 * Introduction to the external interface::  
 * Static method::               
+* Configuration methods::       
 * Grammar methods::             
 * Recognizer methods::          
 * Progress reports::            
@@ -1175,7 +1176,7 @@ All Libmarpa names visible outside the package
 will begin with a capitalization variant
 of one of these two prefixes.
 
-@node Static method, Grammar methods, Introduction to the external interface, Top
+@node Static method, Configuration methods, Introduction to the external interface, Top
 @chapter Static method
 
 @deftypefun Marpa_Error_Code marpa_check_version @
@@ -1223,7 +1224,7 @@ one of the following is returned, indicating the nature of the mismatch:
 
 @end deftypefun
 
-@node Configuration methods
+@node Configuration methods, Grammar methods, Static method, Top
 @chapter Configuration methods
 
 The configuration structure is intended for future extensions that
@@ -1233,7 +1234,7 @@ Currently, its only function is to give the @code{marpa_g_new()}
 a place to put its error code.
 
 @deftypefun int marpa_c_default ( @
-  Marpa_Config *config)
+  Marpa_Config* @var{config})
 
 Initialize the @var{config} information to ``safe'' default
 values.
@@ -1243,8 +1244,8 @@ configuration is used to create a grammar.
 Return value: A non-negative value.  Always succeeds.
 @end deftypefun
 
-@deftypefun Marpa_Error_Code marpa_c_error( @
-  Marpa_Config* config, const char** p_error_string)
+@deftypefun Marpa_Error_Code marpa_c_error ( @
+  Marpa_Config* @var{config}, const char** @var{p_error_string} )
 
 Returns the error code in @var{config}.
 Error codes are usually kept in the base grammar,
@@ -1255,7 +1256,7 @@ The configuration provides such a place.
 Return value: The error code.  Always succeeds.
 @end deftypefun
 
-@node Grammar methods, Recognizer methods, Static method, Top
+@node Grammar methods, Recognizer methods, Configuration methods, Top
 @chapter Grammar methods
 @cindex grammars
 
