@@ -32,6 +32,7 @@ DOC_FILES = \
     ../doc/Makefile.am \
     ../doc/configure.ac \
     ../doc/api.texi \
+    ../doc/internal.texi \
     ../doc/NEWS \
     ../doc/README \
     ../doc/ChangeLog \
@@ -94,8 +95,9 @@ sources: marpa.c marpa.h marpa_util.h marpa_api.h codes.h codes.c private.h
 marpa.h marpa.c: copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w
 
-codes.c codes.h marpa_api.h: api.texi texi2code.pl
-	perl texi2code.pl marpa_api.h codes.h codes.c < api.texi
+codes.c codes.h marpa_api.h: api.texi internal.texi texi2code.pl
+	cat api.texi internal.texi | \
+	  perl texi2code.pl marpa_api.h codes.h codes.c
 
 private.h: marpa.w w2private_h.pl
 	perl w2private_h.pl private.h < marpa.w
@@ -183,6 +185,9 @@ stage_dir:
 ../doc/api.texi: api.texi
 	cp $? $@
 
+../doc/internal.texi: internal.texi
+	cp $? $@
+
 doc_dir:
 	test -d ../doc || mkdir ../doc
 
@@ -201,6 +206,12 @@ stage_configuration: stage_dir ../stage/configure ../stage/Makefile
 ../doc/api.html/index.html: ../doc/Makefile ../doc/api.texi
 	cd ../doc && make html
 
+../doc/internal.pdf: ../doc/Makefile ../doc/internal.texi
+	cd ../doc && make pdf
+
+../doc/internal.html/index.html: ../doc/Makefile ../doc/internal.texi
+	cd ../doc && make html
+
 install: stage_dir $(STAGE_FILES) stage_configuration
 
 ../doc/configure: $(DOC_CONFIGURE_FILES)
@@ -212,10 +223,16 @@ install: stage_dir $(STAGE_FILES) stage_configuration
 
 doc_configuration: doc_dir ../doc/configure ../doc/Makefile
 
-docs: marpa.pdf doc_dir $(DOC_FILES) doc_configuration ../doc/api.pdf ../doc/api.html/index.html
+docs: marpa.pdf doc_dir $(DOC_FILES) doc_configuration \
+  ../doc/api.pdf ../doc/api.html/index.html \
+  ../doc/internal.pdf ../doc/internal.html/index.html
 
-update_api_texi:
+update_texi:
 	emacs -batch api.texi \
+	    -f texinfo-every-node-update \
+	    -f texinfo-all-menus-update \
+	    -f save-buffer -kill
+	emacs -batch internal.texi \
 	    -f texinfo-every-node-update \
 	    -f texinfo-all-menus-update \
 	    -f save-buffer -kill
