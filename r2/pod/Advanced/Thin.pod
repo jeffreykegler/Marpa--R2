@@ -690,8 +690,10 @@ symbol ID's of the expected terminals.
 Note that the array of expected terminal ID's may
 be empty, so that an empty array is NOT a failure
 indicator.
-On failure,
-C<terminal_expected()> returns a Perl C<undef>.
+C<terminals_expected()> obeys the throw setting.
+On unthrown failure,
+C<terminals_expected()> sets the error
+code and returns a Perl C<undef>.
 
 =head2 C<< $r->progress_item() >>
 
@@ -701,13 +703,25 @@ name: Thin progress_item() example
     my $ordinal = $recce->latest_earley_set();
     $recce->progress_report_start($ordinal);
     ITEM: while (1) {
-        my @item = $recce->progress_item();
-        last ITEM if not defined $item[0];
-        push @{$report}, \@item;
+        my ($rule_id, $dot_position, $origin) = $recce->progress_item();
+        last ITEM if not defined $rule_id;
+        push @{$report}, [$rule_id, $dot_position, $origin];
     }
     $recce->progress_report_finish();
 
 =for Marpa::R2::Display::End
+
+The C<progress_item()> method takes no arguments.
+On success, it returns an array of 3 elements:
+the rule ID, the dot position, and the earley set ID
+of the origin.
+If there are no more items,
+C<progress_item()> returns a Perl C<undef>.
+
+C<progress_item()> obeys the throw setting.
+On unthrown failure,
+C<progress_item()> sets the error code
+and returns -2.
 
 =head2 Omitted methods
 

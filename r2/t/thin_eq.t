@@ -244,9 +244,9 @@ my $report;
     my $ordinal = $recce->latest_earley_set();
     $recce->progress_report_start($ordinal);
     ITEM: while (1) {
-        my @item = $recce->progress_item();
-        last ITEM if not defined $item[0];
-        push @{$report}, \@item;
+        my ($rule_id, $dot_position, $origin) = $recce->progress_item();
+        last ITEM if not defined $rule_id;
+        push @{$report}, [$rule_id, $dot_position, $origin];
     }
     $recce->progress_report_finish();
 
