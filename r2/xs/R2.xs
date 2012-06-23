@@ -388,10 +388,6 @@ PPCODE:
 	}
     }
   new_rule_id = marpa_g_sequence_new (g, lhs, rhs, separator, min, flags);
-  if (new_rule_id == -1)
-    {
-      XSRETURN_UNDEF;
-    }
   if (new_rule_id < 0 && g_wrapper->throw)
     {
       croak ("Problem in g->sequence_new(%d, %d, ...): %s", lhs, rhs,

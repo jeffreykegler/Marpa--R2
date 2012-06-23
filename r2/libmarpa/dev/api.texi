@@ -1729,6 +1729,15 @@ a trailing separator is not allowed.
 The term @dfn{proper} is based on the idea that
 properly-speaking, separators should actually separate items.
 
+Some higher-level Marpa interfaces offer the ability to
+discard separators in the semantics,
+and in fact will do this by default.
+At the Libmarpa level, sequences always ``keep
+separators''.
+It is up to the programmer to arrange
+to discard separators,
+if that is what is desired.
+
 The sequence RHS, or item,
 is restricted to a single symbol,
 and that symbol cannot be nullable.

@@ -545,6 +545,18 @@ It defaults to 0.
 
 On success,
 the return value is the ID of the new sequence.
+C<sequence_new()> obeys the throw setting.
+On unthrown failure, it returns -2.
+
+Users should be aware that all sequences at
+the Marpa thin interface level are "keep
+separation".
+This differs from the higher-level interface,
+which discards separators by default.
+At the 
+Marpa thin interface level, it is up
+to the programmer to discard separators,
+if that is what is wanted.
 
 =head2 C<< $g->precompute() >>
 
