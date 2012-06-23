@@ -397,7 +397,7 @@ description|$r->alternative() >>.
 
 =head1 Grammar methods
 
-=head2 Constructor
+=head2 C<< Marpa::R2::Thin::G->new() >>
 
 =for Marpa::R2::Display
 name: Thin example
@@ -421,7 +421,7 @@ On failure in array context, its return value
 is a 2-element array whose first element is a Perl C<undef>
 and whose second element is the error code.
 
-=head2 event()
+=head2 C<< $g->event() >>
 
 =for Marpa::R2::Display
 name: Thin event() example
@@ -457,7 +457,7 @@ unneeded.
 The Libmarpa C<marpa_g_event_value()> method has
 no corresponding Marpa thin interface method.
 
-=head2 rule_new()
+=head2 C<< $g->rule_new() >>
 
 =for Marpa::R2::Display
 name: Thin example
@@ -480,7 +480,7 @@ The symbol ID's in the array represent the RHS.
 On success,
 the return value is the ID of the new rule.
 
-=head2 sequence_new()
+=head2 C<< $g->sequence_new() >>
 
 =for Marpa::R2::Display
 name: Thin sequence_new() example
@@ -546,7 +546,7 @@ It defaults to 0.
 On success,
 the return value is the ID of the new sequence.
 
-=head2 precompute()
+=head2 C<< $g->precompute() >>
 
 =for Marpa::R2::Display
 name: Thin example
