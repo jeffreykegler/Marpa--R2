@@ -164,7 +164,7 @@ of "first child" semantics.
 @node Rule internals, Grammar internals, Symbol internal methods, Internal Interface
 @section Rule internals
 
-@deftypefun int marpa_g_rule_is_keep_separation ( @
+@deftypefun int _marpa_g_rule_is_keep_separation ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 This function does nothing but return an undocumented flag.

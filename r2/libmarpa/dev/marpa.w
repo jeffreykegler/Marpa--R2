@@ -2115,7 +2115,7 @@ Alternatively, it may be deleted.
 @ @<Initialize rule elements@> =
 rule->t_is_discard = 0;
 @ @<Function definitions@> =
-int marpa_g_rule_is_keep_separation(
+int _marpa_g_rule_is_keep_separation(
     Marpa_Grammar g,
     Marpa_Rule_ID xrl_id)
 {

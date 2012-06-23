@@ -784,7 +784,7 @@ sub Marpa::R2::Grammar::show_rule {
     $grammar->rule_is_used($rule_id)         or push @comment, '!used';
     $grammar_c->rule_is_productive($rule_id) or push @comment, 'unproductive';
     $grammar_c->rule_is_accessible($rule_id) or push @comment, 'inaccessible';
-    $grammar_c->rule_is_keep_separation($rule_id)
+    $grammar_c->_marpa_g_rule_is_keep_separation($rule_id)
         or push @comment, 'discard_sep';
 
     my $text = $grammar->brief_rule($rule_id);

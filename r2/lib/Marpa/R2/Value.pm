@@ -495,7 +495,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my @args =
                     map { defined $_ ? ${$_} : $_ }
                     @evaluation_stack[ $arg_0 .. $arg_n ];
-                if ( !$grammar_c->rule_is_keep_separation($rule_id) ) {
+                if ( !$grammar_c->_marpa_g_rule_is_keep_separation($rule_id) ) {
                     @args =
                         @args[ map { 2 * $_ }
                         ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
