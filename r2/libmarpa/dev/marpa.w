@@ -11535,9 +11535,9 @@ Marpa_And_Node_ID _marpa_o_and_order_get(Marpa_Order o,
 }
 
 @** Parse tree (T, TREE) code.
-Within Marpa,
+In this document,
 when it makes sense in context,
-"tree" means a parse tree.
+the term "tree" means a parse tree.
 Trees are, of course, a very common data structure,
 and are used for all sorts of things.
 But the most important trees in Marpa's universe
@@ -11681,13 +11681,13 @@ PRIVATE void tree_free(TREE t)
 
 @*0 Tree pause counting.
 Trees referenced by an active |VALUE| object
-cannot be moved for the lifetime of that
+cannot be iterated for the lifetime of that
 |VALUE| object.
-This is enforced by "pausing" the tree.
+This is enforced by ``pausing'' the tree.
 Because there may be multiple |VALUE| objects
 for each |TREE| object,
 a pause counter is used.
-@ The |TREE| object's "pause counter
+@ The |TREE| object's pause counter
 works much the same as a reference counter.
 And the two are tied together.
 Every time the pause counter is incremented,
@@ -11698,8 +11698,8 @@ every time the pause counter is decremented,
 the |TREE| object's reference counter is also
 decremented.
 For this reason, it is important that every
-tree "pause" be matched with a "tree unpause".
-@ "Pausing" is used because the expected use of
+tree ``pause'' be matched with a ``tree unpause''
+@ ``Pausing'' is used because the expected use of
 multiple |VALUE| objects is to evaluation a single
 tree instance in multiple ways ---
 |VALUE| objects are not expected to need to live
@@ -11803,18 +11803,6 @@ unsigned int t_is_nulling:1;
 To avoid cycles, the same and node is not allowed to occur twice
 in the parse tree.
 A boolean vector, accessed by these functions, enforces this.
-@ Claim the and-node by setting its bit.
-@<Function definitions@> =
-PRIVATE void tree_and_node_claim(TREE tree, ANDID and_node_id)
-{
-    bv_bit_set(tree->t_and_node_in_use, (unsigned int)and_node_id);
-}
-@ Release the and-node by unsetting its bit.
-@<Function definitions@> =
-PRIVATE void tree_and_node_release(TREE tree, ANDID and_node_id)
-{
-    bv_bit_clear(tree->t_and_node_in_use, (unsigned int)and_node_id);
-}
 @ Try to claim the and-node.
 If it was already claimed, return 0, otherwise claim it (that is,
 set the bit) and return 1.
@@ -11822,6 +11810,12 @@ set the bit) and return 1.
 PRIVATE int tree_and_node_try(TREE tree, ANDID and_node_id)
 {
     return !bv_bit_test_and_set(tree->t_and_node_in_use, (unsigned int)and_node_id);
+}
+@ Release the and-node by unsetting its bit.
+@<Function definitions@> =
+PRIVATE void tree_and_node_release(TREE tree, ANDID and_node_id)
+{
+    bv_bit_clear(tree->t_and_node_in_use, (unsigned int)and_node_id);
 }
 
 @ @<Initialize the tree iterator@> =
@@ -11831,8 +11825,9 @@ PRIVATE int tree_and_node_try(TREE tree, ANDID and_node_id)
   NOOK nook;
   int choice;
   choice = or_node_next_choice (o, t, top_or_node, 0);
-  /* Due to skipping, even the top or-node can have no
-     valid choices, in which case there is no parse */
+  /* Due to skipping, it is possible for even
+    the top or-node to have no valid choices,
+    in which case there is no parse */
   if (choice < 0)
     goto TREE_IS_EXHAUSTED;
   nook = FSTACK_PUSH (t->t_nook_stack);
@@ -11874,7 +11869,8 @@ Otherwise, the tree is exhausted.
 	    break;
 	}
 	{
-	    /* Dirty the corresponding bit in the parent */
+	    /* Dirty the corresponding bit in the parent,
+	       then pop the nook */
 	    const int parent_nook_ix = Parent_of_NOOK(iteration_candidate);
 	    if (parent_nook_ix >= 0) {
 		NOOK parent_nook = NOOK_of_TREE_by_IX(t, parent_nook_ix);
@@ -11894,6 +11890,8 @@ Otherwise, the tree is exhausted.
 	int stack_length = Size_of_T(t);
 	int i;
 	if (stack_length <= 0) goto TREE_IS_EXHAUSTED;
+	/* Clear the worklist, then copy the entire remaining
+	   tree onto it. */
 	FSTACK_CLEAR(t->t_nook_worklist);
 	for (i = 0; i < stack_length; i++) {
 	    *(FSTACK_PUSH(t->t_nook_worklist)) = i;
@@ -12008,6 +12006,7 @@ typedef int Marpa_Nook_ID;
 @ @<Private typedefs@> =
 typedef Marpa_Nook_ID NOOKID;
 @ @s NOOK int
+@s NOOKID int
 @<Private incomplete structures@> =
 struct s_nook;
 typedef struct s_nook* NOOK;
@@ -12144,7 +12143,8 @@ evaluate it.
 @<Public incomplete structures@> =
 struct marpa_value;
 typedef struct marpa_value* Marpa_Value;
-@ @<Private incomplete structures@> =
+@ @s VALUE @s VALUE
+@<Private incomplete structures@> =
 typedef struct s_value* VALUE;
 @ This structure tracks the top of the evaluation
 stack, but does {\bf not} maintain the

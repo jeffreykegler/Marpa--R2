@@ -15,6 +15,7 @@
 # http://www.gnu.org/licenses/.
 
 # A grammars with cycles
+
 use 5.010;
 use strict;
 use warnings;
@@ -24,8 +25,6 @@ use Test::More tests => 3;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
-
-my %expected_original = map { ( $_ => 1 ) } qw( A(B(a)) a );
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub show_a         { return 'A(' . $_[1] . ')' }
@@ -80,7 +79,9 @@ my $recce = Marpa::R2::Recognizer->new(
 
 $recce->read( 'a:k0', 'a' );
 
+my %expected_original = map { ( $_ => 1 ) } qw( A(B(a)) a );
 my %expected = %expected_original;
+
 while ( my $value_ref = $recce->value() ) {
     my $value = ${$value_ref};
     if ( defined $expected{$value} ) {
