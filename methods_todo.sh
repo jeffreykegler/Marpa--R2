@@ -9,7 +9,7 @@ perl -n -E '
     m/::CLASS_LETTER.*['"'"']([cgrbotv])['"'"'][;]/ and $class = $1;
     m/[\(]qw[\(]([^ \)]*)[ \)]/ and say "marpa_$class" . "_$1";
      ' r2/xs/gp_generate.pl >> /tmp/method.list
-sort -o /tmp/method.list /tmp/method.list
+sort -u -o /tmp/method.list /tmp/method.list
 perl -n -E '
   s/{[^}]*}/{}/g;
   m/^[@]deftypefn [^ ]+ [^ ]+ ([^ ]+) / and say $1;
