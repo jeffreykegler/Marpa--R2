@@ -69,6 +69,7 @@ BEGIN {
     ACTION { action for this rule as specified by user }
     RANK
     NULL_RANKS_HIGH
+    DISCARD_SEPARATION
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -784,8 +785,8 @@ sub Marpa::R2::Grammar::show_rule {
     $grammar->rule_is_used($rule_id)         or push @comment, '!used';
     $grammar_c->rule_is_productive($rule_id) or push @comment, 'unproductive';
     $grammar_c->rule_is_accessible($rule_id) or push @comment, 'inaccessible';
-    $grammar_c->_marpa_g_rule_is_keep_separation($rule_id)
-        or push @comment, 'discard_sep';
+    $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
+        and push @comment, 'discard_sep';
 
     my $text = $grammar->brief_rule($rule_id);
 
@@ -1174,7 +1175,6 @@ sub add_user_rule {
         $lhs_id,
         $rhs_ids[0],
         {   separator => $separator_id,
-            keep      => $keep_separation,
             proper    => $proper_separation,
             min       => $min,
         }
@@ -1197,6 +1197,8 @@ sub add_user_rule {
     # semantic equivalents.
     my $original_rule = $rules->[$original_rule_id];
     action_set( $original_rule_id, $grammar, $action );
+    $original_rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] =
+        $separator_id >= 0 && !$keep_separation;
     $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKS_HIGH] = $null_ranking eq 'high';
     $original_rule->[Marpa::R2::Internal::Rule::RANK]         = $rank;
 

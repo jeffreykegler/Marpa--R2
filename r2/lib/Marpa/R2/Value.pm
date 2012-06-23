@@ -329,16 +329,17 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 
 # Does not modify stack
 sub Marpa::R2::Internal::Recognizer::evaluate {
-    my ($recce)     = @_;
-    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order       = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree        = $recce->[Marpa::R2::Internal::Recognizer::T_C];
-    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree    = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_values =
         $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols      = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
         // 0;
 
@@ -491,11 +492,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             if ( defined $closure ) {
                 my $result;
+		my $rule = $rules->[$rule_id];
 
                 my @args =
                     map { defined $_ ? ${$_} : $_ }
                     @evaluation_stack[ $arg_0 .. $arg_n ];
-                if ( !$grammar_c->_marpa_g_rule_is_keep_separation($rule_id) ) {
+                if ( $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] ) {
                     @args =
                         @args[ map { 2 * $_ }
                         ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
