@@ -69,7 +69,7 @@ to a value other than "C<fatal>".
 The other choices are "C<warn>"
 and "C<quiet>".
 
-=head1 Cycle length
+=head1 Cycle-free parse results
 
 Obviously,
 Marpa cannot list all of an infinite number of parse results.
@@ -88,11 +88,6 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-=head1 The definition of a cycle
-
-As already stated,
-Marpa eliminates parse results that contain a
-cycle.
 More specifically, Marpa guarantees to eliminate
 all parse results that contain nulling-sensitive cycles.
 Intuitively, a nulling-sensitive cycle is a case
