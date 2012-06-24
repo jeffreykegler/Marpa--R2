@@ -11822,10 +11822,6 @@ PRIVATE int tree_or_node_try(TREE tree, ORID or_node_id)
 }
 @ Release the and-node by unsetting its bit.
 @<Function definitions@> =
-PRIVATE void tree_and_node_release(TREE tree, ANDID and_node_id)
-{
-    bv_bit_clear(tree->t_and_node_in_use, (unsigned int)and_node_id);
-}
 PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
 {
     bv_bit_clear(tree->t_or_node_in_use, (unsigned int)or_node_id);
@@ -11868,8 +11864,6 @@ Otherwise, the tree is exhausted.
 	choice = Choice_of_NOOK(iteration_candidate);
 	MARPA_ASSERT(choice >= 0);
 	{
-	    ANDID and_node_id = and_order_get(o, iteration_candidate_or_node, choice);
-	    tree_and_node_release(t, and_node_id);
 	    choice = or_node_next_choice(o, t, iteration_candidate_or_node, choice+1);
 	}
 	if (choice >= 0) {
