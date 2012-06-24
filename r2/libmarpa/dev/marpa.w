@@ -11495,16 +11495,14 @@ int _marpa_o_and_order_set(
   return 1;
 }
 
-@*0 Get an and-node by order within its or-node.
+@
+Check that |ix| is the index of a valid and-node
+in |or_node|.
 @<Function definitions@> =
-PRIVATE ANDID and_order_get(ORDER o, OR or_node, int ix)
+PRIVATE ANDID and_order_ix_is_valid(ORDER o, OR or_node, int ix)
 {
-  @<Unpack order objects@>@;
   ANDID **and_node_orderings;
-  if (ix >= AND_Count_of_OR (or_node))
-    {
-      return -1;
-    }
+  if (ix >= AND_Count_of_OR (or_node)) return 0;
   and_node_orderings = o->t_and_node_orderings;
   if (and_node_orderings)
     {
@@ -11513,12 +11511,27 @@ PRIVATE ANDID and_order_get(ORDER o, OR or_node, int ix)
       if (ordering)
 	{
 	  int length = ordering[0];
-	  if (ix >= length)
-	    return -1;
-	  return ordering[1 + ix];
+	  if (ix >= length) return 0;
 	}
     }
-  return First_ANDID_of_OR(or_node) + ix;
+  return 1;
+}
+
+@ Get the |ix|'th and-node of an or-node.
+It is up to the caller to ensure that |ix|
+is valid.
+@<Function definitions@> =
+PRIVATE ANDID and_order_get(ORDER o, OR or_node, int ix)
+{
+  ANDID **and_node_orderings = o->t_and_node_orderings;
+  if (and_node_orderings)
+    {
+      ORID or_node_id = ID_of_OR (or_node);
+      ANDID *ordering = and_node_orderings[or_node_id];
+      if (ordering)
+	return ordering[1 + ix];
+    }
+  return First_ANDID_of_OR (or_node) + ix;
 }
 
 @ @<Function definitions@> =
@@ -11534,6 +11547,7 @@ Marpa_And_Node_ID _marpa_o_and_order_get(Marpa_Order o,
       MARPA_ERROR(MARPA_ERR_ANDIX_NEGATIVE);
       return failure_indicator;
   }
+    if (!and_order_ix_is_valid(o, or_node, ix)) return -1;
     return and_order_get(o, or_node, ix);
 }
 
@@ -11827,12 +11841,11 @@ PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
   ORID top_or_id = Top_ORID_of_B (b);
   OR top_or_node = OR_of_B_by_ID (b, top_or_id);
   NOOK nook;
-  int choice;
-  choice = or_node_next_choice (o, t, top_or_node, 0);
   /* Due to skipping, it is possible for even
     the top or-node to have no valid choices,
     in which case there is no parse */
-  if (choice < 0)
+  int choice = 0;
+  if (!and_order_ix_is_valid(o, top_or_node, 0))
     goto TREE_IS_EXHAUSTED;
   nook = FSTACK_PUSH (t->t_nook_stack);
   tree_or_node_try(t, top_or_id); /* Empty stack, so cannot fail */
@@ -11856,12 +11869,9 @@ Otherwise, the tree is exhausted.
 	int choice;
 	if (!iteration_candidate) break;
 	iteration_candidate_or_node = OR_of_NOOK(iteration_candidate);
-	choice = Choice_of_NOOK(iteration_candidate);
-	MARPA_ASSERT(choice >= 0);
-	{
-	    choice = or_node_next_choice(o, t, iteration_candidate_or_node, choice+1);
-	}
-	if (choice >= 0) {
+	choice = Choice_of_NOOK(iteration_candidate) + 1;
+	MARPA_ASSERT(choice > 0);
+	if (and_order_ix_is_valid(o, iteration_candidate_or_node, choice)) {
 	    /* We have found a nook we can iterate.
 	        Set the new choice,
 		dirty the child bits in the current working nook,
@@ -11945,21 +11955,12 @@ Otherwise, the tree is exhausted.
 	    goto NEXT_NOOK_ON_WORKLIST;
 	}
 	if (!tree_or_node_try(t, ID_of_OR(child_or_node))) goto NEXT_TREE;
-	choice = or_node_next_choice(o, t, child_or_node, 0);
-	if (choice < 0) goto NEXT_TREE;
+	choice = 0;
+	if (!and_order_ix_is_valid(o, child_or_node, choice)) goto NEXT_TREE;
 	@<Add new nook to tree@>;
 	NEXT_NOOK_ON_WORKLIST: ;
     }
     NEXT_TREE: ;
-}
-
-@ @<Function definitions@> =
-PRIVATE int or_node_next_choice(ORDER o, TREE tree, OR or_node, int start_choice)
-{
-    int choice = start_choice;
-	ANDID and_node_id = and_order_get(o, or_node, choice);
-	if (and_node_id < 0) return -1;
-	 return choice;
 }
 
 @ @<Add new nook to tree@> =

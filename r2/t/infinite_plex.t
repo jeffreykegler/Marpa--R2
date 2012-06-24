@@ -115,35 +115,31 @@ for my $test_data ( $plex1_test, $plex2_test ) {
     my ( $test_name, $rules, $expected_values, $expected_trace ) =
         @{$test_data};
 
-    SKIP: {
-        Test::More::skip '2-plex test may be too large', 2
-            if $test_name eq '2-plex test';
-        my $trace = q{};
-        open my $MEMORY, '>', \$trace;
-        my %args = (
-            @{$rules},
-            infinite_action   => 'warn',
-            trace_file_handle => $MEMORY,
-        );
-        my $grammar = Marpa::R2::Grammar->new( \%args );
-        $grammar->precompute();
+    my $trace = q{};
+    open my $MEMORY, '>', \$trace;
+    my %args = (
+        @{$rules},
+        infinite_action   => 'warn',
+        trace_file_handle => $MEMORY,
+    );
+    my $grammar = Marpa::R2::Grammar->new( \%args );
+    $grammar->precompute();
 
-        close $MEMORY;
-        Marpa::R2::Test::is( $trace, $expected_trace, "$test_name trace" );
+    close $MEMORY;
+    Marpa::R2::Test::is( $trace, $expected_trace, "$test_name trace" );
 
-        my $recce = Marpa::R2::Recognizer->new(
-            { grammar => $grammar, trace_file_handle => \*STDERR } );
+    my $recce = Marpa::R2::Recognizer->new(
+        { grammar => $grammar, trace_file_handle => \*STDERR } );
 
-        $recce->read( 't', 't' );
+    $recce->read( 't', 't' );
 
-        my @values = ();
-        while ( my $value_ref = $recce->value() ) {
-            push @values, ${$value_ref};
-        }
+    my @values = ();
+    while ( my $value_ref = $recce->value() ) {
+        push @values, ${$value_ref};
+    }
 
-        my $values = join "\n", sort @values;
-        Marpa::R2::Test::is( "$values\n", $expected_values, $test_name );
-    } ## end SKIP:
+    my $values = join "\n", sort @values;
+    Marpa::R2::Test::is( "$values\n", $expected_values, $test_name );
 
 } ## end for my $test_data ( $plex1_test, $plex2_test )
 
