@@ -100,28 +100,33 @@ Marpa would return a parse result
 only for the first parse tree in the list above,
 the one whose cycle length is 1.
 
-=head1 Limitations
+=head1 Nulling variants
 
 The "breakpoint" of a cycle occurs when it loops
 back to the same
-rule, but the exact placement
-of this "same rule" breakpoint is not 
-precisely defined at this point.
-In particular, internal rewritings of the grammar's rules,
-which are otherwise invisible,
-can influence the breakpoint.
-Applications should avoid
-relying on the exact location of cycle breakpoints.
+rule.
+This raises the question of whether nulling variants
+of a rule are "different" or "the same".
+Marpa's behavior here is only partially specified
+at this point.
+Marpa guarantees that it will produce a parse for
+at least one of the nulling variants.
+Which one is unspecified.
+Also unspecified is
+how many other nulling variants Marpa will produce
+parses for.
+Marpa's current behavior depends
+on internals of the implementation,
+and is subject to change.
 
-In future releases,
-Marpa's behavior may be more carefully defined.
-But cycles at this point are universally considered
-useless,
-and there seems to be literally nobody who
-cares about the details of their implementation.
-The quality of the present implementation
-seems to be fully adequate in terms
-of the present interest.
+It is not clear whether the "right" behavior
+would be to return all nulling variants,
+or just one.
+And if just one, it is also not clear which
+one.
+It seems more clear that
+the quality of the present implementation
+is fully adequate to the present interest.
 
 =head1 Copyright and License
 

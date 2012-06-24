@@ -609,23 +609,17 @@ on parse order|Marpa::R2::Semantics::Order>.
 
 =head1 Infinite loops
 
-Marpa allows grammars with infinite loops.
-These are universally considered useless in practical applications.
-Marpa supports all the semantics for these that should be necessary
-and more.
-Because it can handle
-infinite loops, Marpa can accurately
+Grammars with infinite loops
+are generally regarded as useless in practical applications,
+but Marpa allows them.
+Marpa can accurately
 claim to support B<every grammar> that can be written in BNF.
 
-Marpa applies semantics to infinite loops by breaking the loop at
-some convenient point, so that an infinite regress is prevented.
-The exact location at which the loop is broken is subject to change.
-
-More could be done.
-In particular, a precise definition of where loops are broken
-would allow applications to depend on the details of the structure
-of infinite loops.
-But practical interest in this seems non-existent.
+If a grammar with infinite loops is ambiguous,
+it can produce valid parses as well as infinite ones.
+Marpa will parse with infinite loop grammars,
+and Marpa's evaluator will return the values from the grammar's
+non-infinite parses.
 For those who want to know more,
 the details are in a L<separate
 document|Marpa::R2::Semantics::Infinite>.
