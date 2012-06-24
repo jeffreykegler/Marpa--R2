@@ -281,6 +281,15 @@ Few Marpa::R2 applications change symbols from
 their default terminal status,
 and none to my knowledge mark symbols as non-terminals.
 
+=head2 Evaluation of infinite loops has been changed
+
+Infinite loops (cycles) are still, by default, fatal errors.
+For those considering programming with them,
+and evaluating parses from grammars with cycles,
+the semantics of cycles is now more closely specified.
+For details of the new semantics,
+see L<Marpa::R2::Semantics::Infinite>.
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display

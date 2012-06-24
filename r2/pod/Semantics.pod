@@ -609,17 +609,20 @@ on parse order|Marpa::R2::Semantics::Order>.
 
 =head1 Infinite loops
 
-Grammars with infinite loops
+Grammars with infinite loops (cycles)
 are generally regarded as useless in practical applications,
 but Marpa allows them.
 Marpa can accurately
 claim to support B<every grammar> that can be written in BNF.
 
-If a grammar with infinite loops is ambiguous,
-it can produce valid parses as well as infinite ones.
-Marpa will parse with infinite loop grammars,
-and Marpa's evaluator will return the values from the grammar's
-non-infinite parses.
+If a grammar with cycles is ambiguous,
+it can produce cycle-free parses
+and parses with finite-length cycles,
+as well as parses with infinite length cycles.
+Marpa will parse with grammars that contain cycles,
+and Marpa's evaluator will iterate through
+the values from the grammar's
+cycle-free parses.
 For those who want to know more,
 the details are in a L<separate
 document|Marpa::R2::Semantics::Infinite>.
