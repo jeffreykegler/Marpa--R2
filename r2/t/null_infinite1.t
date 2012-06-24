@@ -35,19 +35,24 @@ sub default_action {
     return '(' . join( q{;}, @vals ) . ')';
 } ## end sub default_action
 
-sub rule_n {
+sub rule_na {
     shift;
-    return 'n(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
+    return 'na(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
-sub start_rule {
+sub rule_Snf {
     shift;
-    return 'S(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
+    return 'Snf(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
-sub rule_f {
+sub rule_fa {
     shift;
-    return 'f(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
+    return 'fa(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
+}
+
+sub rule_fS {
+    shift;
+    return 'fS(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
 ## use critic
@@ -56,12 +61,12 @@ my $grammar = Marpa::R2::Grammar->new(
     {   start           => 'S',
         infinite_action => 'quiet',
         rules           => [
-            { lhs => 'S', rhs => [qw/n f/], action => 'main::start_rule' },
-            { lhs => 'n', rhs => ['a'],     action => 'main::rule_n' },
+            { lhs => 'S', rhs => [qw/n f/], action => 'main::rule_Snf' },
+            { lhs => 'n', rhs => ['a'],     action => 'main::rule_na' },
             { lhs => 'n', rhs => [] },
-            { lhs => 'f', rhs => ['a'],     action => 'main::rule_f' },
+            { lhs => 'f', rhs => ['a'],     action => 'main::rule_fa' },
             { lhs => 'f', rhs => [] },
-            { lhs => 'f', rhs => ['S'],     action => 'main::rule_f' },
+            { lhs => 'f', rhs => ['S'],     action => 'main::rule_fS' },
         ],
         terminals => [qw(a)],
         default_action => 'main::default_action',
@@ -71,41 +76,29 @@ my $grammar = Marpa::R2::Grammar->new(
 $grammar->precompute();
 
 my @expected2 = qw{
-    S(-;f(S(n(A);f(A))))
-    S(-;f(S(n(A);f(S(-;f(A))))))
-    S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))
-    S(-;f(S(n(A);f(S(n(A);-)))))
-    S(n(A);f(S(-;f(A))))
-    S(n(A);f(S(-;f(S(n(A);-)))))
-    S(n(A);f(S(n(A);-)))
-    S(n(A);f(A))
+    Snf(-;fS(Snf(na(A);fS(Snf(-;fa(A))))))
+    Snf(-;fS(Snf(na(A);fS(Snf(na(A);-)))))
+    Snf(-;fS(Snf(na(A);fa(A))))
+    Snf(na(A);fS(Snf(-;fa(A))))
+    Snf(na(A);fS(Snf(na(A);-)))
+    Snf(na(A);fa(A))
 };
 
 my @expected3 = qw{
-    S(-;f(S(n(A);f(S(-;f(S(n(A);f(A))))))))
-    S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(-;f(A))))))))))
-    S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))))))
-    S(-;f(S(n(A);f(S(-;f(S(n(A);f(S(n(A);-)))))))))
-    S(-;f(S(n(A);f(S(n(A);f(A))))))
-    S(-;f(S(n(A);f(S(n(A);f(S(-;f(A))))))))
-    S(-;f(S(n(A);f(S(n(A);f(S(-;f(S(n(A);-)))))))))
-    S(-;f(S(n(A);f(S(n(A);f(S(n(A);-)))))))
-    S(n(A);f(S(n(A);f(A))))
-    S(n(A);f(S(n(A);f(S(-;f(A))))))
-    S(n(A);f(S(n(A);f(S(-;f(S(n(A);-)))))))
-    S(n(A);f(S(n(A);f(S(n(A);-)))))
-    S(n(A);f(S(-;f(S(n(A);f(A))))))
-    S(n(A);f(S(-;f(S(n(A);f(S(-;f(A))))))))
-    S(n(A);f(S(-;f(S(n(A);f(S(-;f(S(n(A);-)))))))))
-    S(n(A);f(S(-;f(S(n(A);f(S(n(A);-)))))))
+    Snf(-;fS(Snf(na(A);fS(Snf(na(A);fS(Snf(-;fa(A))))))))
+    Snf(-;fS(Snf(na(A);fS(Snf(na(A);fS(Snf(na(A);-)))))))
+    Snf(-;fS(Snf(na(A);fS(Snf(na(A);fa(A))))))
+    Snf(na(A);fS(Snf(na(A);fS(Snf(-;fa(A))))))
+    Snf(na(A);fS(Snf(na(A);fS(Snf(na(A);-)))))
+    Snf(na(A);fS(Snf(na(A);fa(A))))
 };
 
 my @expected = (
     [q{}],
     [   qw{
-            S(-;f(A))
-            S(-;f(S(n(A);-)))
-            S(n(A);-)
+            Snf(-;fa(A))
+            Snf(-;fS(Snf(na(A);-)))
+            Snf(na(A);-)
             }
     ],
     \@expected2,
