@@ -49,6 +49,8 @@ if ( @ARGV == 1 ) {
 
 my %format_by_type = (
    int => '%d',
+   Marpa_IRL_ID => '%d',
+   Marpa_ISY_ID => '%d',
    Marpa_Rule_ID => '%d',
    Marpa_Symbol_ID => '%d',
    Marpa_Earley_Set_ID => '%d',
@@ -202,3 +204,6 @@ $main::LIBMARPA_CLASS = 'Marpa_Grammar';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
 
 say {$out} gp_generate(qw(_marpa_g_rule_is_keep_separation Marpa_Rule_ID rule_id));
+say {$out} gp_generate(qw(_marpa_g_irl_lhs Marpa_IRL_ID rule_id));
+say {$out} gp_generate(qw(_marpa_g_irl_rhs Marpa_IRL_ID rule_id int ix));
+say {$out} gp_generate(qw(_marpa_g_irl_length Marpa_IRL_ID rule_id));

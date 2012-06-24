@@ -2318,6 +2318,7 @@ Marpa_ISY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if |irl_id| is invalid@>@;
     irl = IRL_by_ID(irl_id);
     return LHSID_of_IRL(irl);
@@ -2330,6 +2331,7 @@ Marpa_ISY_ID _marpa_g_irl_rhs(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
     IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if |irl_id| is invalid@>@;
     irl = IRL_by_ID(irl_id);
     if (Length_of_IRL(irl) <= ix) return -1;
@@ -2342,6 +2344,7 @@ Marpa_ISY_ID _marpa_g_irl_rhs(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
 int _marpa_g_irl_length(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
+    @<Fail if not precomputed@>@;
     @<Fail if |irl_id| is invalid@>@;
     return Length_of_IRL(IRL_by_ID(irl_id));
 }
@@ -11568,6 +11571,7 @@ struct marpa_tree {
     FSTACK_DECLARE(t_nook_stack, NOOK_Object)@;
     FSTACK_DECLARE(t_nook_worklist, int)@;
     Bit_Vector t_and_node_in_use;
+    Bit_Vector t_or_node_in_use;
     Marpa_Order t_order;
     @<Int aligned tree elements@>@;
     @<Bit aligned tree elements@>@;
@@ -11592,7 +11596,9 @@ PRIVATE void tree_exhaust(TREE t)
       FSTACK_SAFE (t->t_nook_worklist);
     }
   bv_free (t->t_and_node_in_use);
+  bv_free (t->t_or_node_in_use);
   t->t_and_node_in_use = NULL;
+  t->t_or_node_in_use = NULL;
   T_is_Exhausted(t) = 1;
 }
 
@@ -11619,14 +11625,17 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     {
       T_is_Nulling (t) = 1;
       t->t_and_node_in_use = NULL;
+      t->t_or_node_in_use = NULL;
       FSTACK_SAFE (t->t_nook_stack);
       FSTACK_SAFE (t->t_nook_worklist);
     }
   else
     {
       const int and_count = AND_Count_of_B (b);
+      const int or_count = OR_Count_of_B (b);
       T_is_Nulling (t) = 0;
       t->t_and_node_in_use = bv_create ((unsigned int) and_count);
+      t->t_or_node_in_use = bv_create ((unsigned int) or_count);
       FSTACK_INIT (t->t_nook_stack, NOOK_Object, and_count);
       FSTACK_INIT (t->t_nook_worklist, int, and_count);
     }
@@ -11811,11 +11820,19 @@ PRIVATE int tree_and_node_try(TREE tree, ANDID and_node_id)
 {
     return !bv_bit_test_and_set(tree->t_and_node_in_use, (unsigned int)and_node_id);
 }
+PRIVATE int tree_or_node_try(TREE tree, ORID or_node_id)
+{
+    return !bv_bit_test_and_set(tree->t_or_node_in_use, (unsigned int)or_node_id);
+}
 @ Release the and-node by unsetting its bit.
 @<Function definitions@> =
 PRIVATE void tree_and_node_release(TREE tree, ANDID and_node_id)
 {
     bv_bit_clear(tree->t_and_node_in_use, (unsigned int)and_node_id);
+}
+PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
+{
+    bv_bit_clear(tree->t_or_node_in_use, (unsigned int)or_node_id);
 }
 
 @ @<Initialize the tree iterator@> =
@@ -11831,6 +11848,7 @@ PRIVATE void tree_and_node_release(TREE tree, ANDID and_node_id)
   if (choice < 0)
     goto TREE_IS_EXHAUSTED;
   nook = FSTACK_PUSH (t->t_nook_stack);
+  tree_or_node_try(t, top_or_id); /* Empty stack, so cannot fail */
   OR_of_NOOK (nook) = top_or_node;
   Choice_of_NOOK (nook) = choice;
   Parent_of_NOOK (nook) = -1;
@@ -11846,16 +11864,17 @@ If there is one, set it to the next choice.
 Otherwise, the tree is exhausted.
 @<Start a new iteration of the tree@> = {
     while (1) {
-	NOOK iteration_candidate = FSTACK_TOP(t->t_nook_stack, NOOK_Object);
+	OR iteration_candidate_or_node;
+	const NOOK iteration_candidate = FSTACK_TOP(t->t_nook_stack, NOOK_Object);
 	int choice;
 	if (!iteration_candidate) break;
+	iteration_candidate_or_node = OR_of_NOOK(iteration_candidate);
 	choice = Choice_of_NOOK(iteration_candidate);
 	MARPA_ASSERT(choice >= 0);
 	{
-	    OR or_node = OR_of_NOOK(iteration_candidate);
-	    ANDID and_node_id = and_order_get(o, or_node, choice);
+	    ANDID and_node_id = and_order_get(o, iteration_candidate_or_node, choice);
 	    tree_and_node_release(t, and_node_id);
-	    choice = or_node_next_choice(o, t, or_node, choice+1);
+	    choice = or_node_next_choice(o, t, iteration_candidate_or_node, choice+1);
 	}
 	if (choice >= 0) {
 	    /* We have found a nook we can iterate.
@@ -11883,6 +11902,7 @@ Otherwise, the tree is exhausted.
 	    }
 
 	    /* Continue with the next item on the stack */
+	    tree_or_node_release(t, ID_of_OR(iteration_candidate_or_node));
 	    FSTACK_POP(t->t_nook_stack);
 	}
     }
@@ -11939,6 +11959,7 @@ Otherwise, the tree is exhausted.
 	    FSTACK_POP(t->t_nook_worklist);
 	    goto NEXT_NOOK_ON_WORKLIST;
 	}
+	if (!tree_or_node_try(t, ID_of_OR(child_or_node))) goto NEXT_TREE;
 	choice = or_node_next_choice(o, t, child_or_node, 0);
 	if (choice < 0) goto NEXT_TREE;
 	@<Add new nook to tree@>;

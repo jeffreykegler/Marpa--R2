@@ -934,57 +934,6 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (offset)));
 }
 
-Marpa_Symbol_ID
-_marpa_g_irl_lhs( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_irl_lhs(g, irl_id);
-    if (result < -1) { 
-      croak ("Problem in g->_marpa_g_irl_lhs(%d): %s", irl_id, xs_g_error (g_wrapper));
-      }
-    if (result < 0) { XSRETURN_UNDEF; }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-}
-
-Marpa_Symbol_ID
-_marpa_g_irl_rhs( g_wrapper, irl_id, ix )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-    int ix;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_irl_rhs(g, irl_id, ix);
-    if (result < -1) { 
-      croak ("Problem in g->_marpa_g_irl_rhs(%d, %d): %s", irl_id, ix, xs_g_error (g_wrapper));
-      }
-    if (result < 0) { XSRETURN_UNDEF; }
-    XPUSHs( sv_2mortal( newSViv(result) ) );
-}
-
-int
-_marpa_g_irl_length( g_wrapper, irl_id )
-    G_Wrapper *g_wrapper;
-    Marpa_IRL_ID irl_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_irl_length (g, irl_id);
-  if (result < -1)
-    {
-      croak ("Problem in g->_marpa_g_irl_length(%d): %s", irl_id,
-	     xs_g_error (g_wrapper));
-    }
-  if (result < 0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
 int
 _marpa_g_virtual_start( g_wrapper, irl_id )
     G_Wrapper *g_wrapper;

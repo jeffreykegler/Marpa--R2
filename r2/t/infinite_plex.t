@@ -66,7 +66,6 @@ my $plex1_test = [
     '1-plex test',
     [ start => 's', rules => make_plex_rules(1) ],
     <<'EOS',
-sA(AA(AA(At(t))))
 sA(AA(At(t)))
 sA(At(t))
 EOS
@@ -84,8 +83,6 @@ sA(AA(AB(BB(BA(At(t))))))
 sA(AA(AB(BB(Bt(t)))))
 sA(AA(AB(Bt(t))))
 sA(AA(At(t)))
-sA(AB(BA(AA(AB(BB(Bt(t)))))))
-sA(AB(BA(AA(AB(Bt(t))))))
 sA(AB(BA(AA(At(t)))))
 sA(AB(BA(At(t))))
 sA(AB(BB(BA(AA(At(t))))))
@@ -99,7 +96,6 @@ sB(BA(AA(At(t))))
 sB(BA(AB(BB(Bt(t)))))
 sB(BA(AB(Bt(t))))
 sB(BA(At(t)))
-sB(BB(BA(AA(AB(BB(Bt(t)))))))
 sB(BB(BA(AA(AB(Bt(t))))))
 sB(BB(BA(AA(At(t)))))
 sB(BB(BA(AB(Bt(t)))))
