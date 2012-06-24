@@ -11816,10 +11816,6 @@ A boolean vector, accessed by these functions, enforces this.
 If it was already claimed, return 0, otherwise claim it (that is,
 set the bit) and return 1.
 @<Function definitions@> =
-PRIVATE int tree_and_node_try(TREE tree, ANDID and_node_id)
-{
-    return !bv_bit_test_and_set(tree->t_and_node_in_use, (unsigned int)and_node_id);
-}
 PRIVATE int tree_or_node_try(TREE tree, ORID or_node_id)
 {
     return !bv_bit_test_and_set(tree->t_or_node_in_use, (unsigned int)or_node_id);
@@ -11972,13 +11968,9 @@ Otherwise, the tree is exhausted.
 PRIVATE int or_node_next_choice(ORDER o, TREE tree, OR or_node, int start_choice)
 {
     int choice = start_choice;
-    while (1) {
 	ANDID and_node_id = and_order_get(o, or_node, choice);
 	if (and_node_id < 0) return -1;
-	if (tree_and_node_try(tree, and_node_id)) return choice;
-	choice++;
-    }
-    return -1;
+	 return choice;
 }
 
 @ @<Add new nook to tree@> =
