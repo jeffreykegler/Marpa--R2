@@ -322,12 +322,11 @@ sub do_libmarpa {
 	$ENV{CFLAGS} = $original_cflags if defined $original_cflags;
 
         my @configure_command_args = ('--disable-static');
-        if ( defined $self->args('marpa-debug') ) {
+        if ( defined $self->args('Marpa-debug') ) {
             if ( defined $ENV{LIBMARPA_CFLAGS} ) {
                 $ENV{CFLAGS} = $ENV{LIBMARPA_CFLAGS};
             }
-            my @debug_flags =
-                ( '-DMARPA_DEBUG=' . $self->args('marpa-debug') );
+            my @debug_flags = ( '-DMARPA_DEBUG' );
             push @debug_flags, '-fno-inline', '-Wno-inline';
             push @debug_flags, '-DMARPA_OBSTACK_DEBUG';
             push @configure_command_args,
