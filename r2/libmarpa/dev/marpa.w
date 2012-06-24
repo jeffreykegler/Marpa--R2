@@ -11570,7 +11570,6 @@ it is exhausted.
 struct marpa_tree {
     FSTACK_DECLARE(t_nook_stack, NOOK_Object)@;
     FSTACK_DECLARE(t_nook_worklist, int)@;
-    Bit_Vector t_and_node_in_use;
     Bit_Vector t_or_node_in_use;
     Marpa_Order t_order;
     @<Int aligned tree elements@>@;
@@ -11595,9 +11594,7 @@ PRIVATE void tree_exhaust(TREE t)
       FSTACK_DESTROY (t->t_nook_worklist);
       FSTACK_SAFE (t->t_nook_worklist);
     }
-  bv_free (t->t_and_node_in_use);
   bv_free (t->t_or_node_in_use);
-  t->t_and_node_in_use = NULL;
   t->t_or_node_in_use = NULL;
   T_is_Exhausted(t) = 1;
 }
@@ -11624,7 +11621,6 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
   if (O_is_Nulling (o))
     {
       T_is_Nulling (t) = 1;
-      t->t_and_node_in_use = NULL;
       t->t_or_node_in_use = NULL;
       FSTACK_SAFE (t->t_nook_stack);
       FSTACK_SAFE (t->t_nook_worklist);
@@ -11634,7 +11630,6 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
       const int and_count = AND_Count_of_B (b);
       const int or_count = OR_Count_of_B (b);
       T_is_Nulling (t) = 0;
-      t->t_and_node_in_use = bv_create ((unsigned int) and_count);
       t->t_or_node_in_use = bv_create ((unsigned int) or_count);
       FSTACK_INIT (t->t_nook_stack, NOOK_Object, and_count);
       FSTACK_INIT (t->t_nook_worklist, int, and_count);
