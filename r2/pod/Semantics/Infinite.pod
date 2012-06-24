@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Infinite - How Marpa deals with infinite cycles
+Marpa::R2::Semantics::Infinite - How Marpa deals with infinite ambiguity
 
 =head1 Infinitely ambiguous grammars
 
@@ -73,60 +73,66 @@ and "C<quiet>".
 
 Obviously,
 Marpa cannot list all of an infinite number of parse results.
-Marpa deals with potentially infinite parses by limiting the
-cycle length.
-B<Cycle length> is the number of times a parse derivation goes
-around a potentially infinite cycle.
-
-Marpa limits all cycles to a length of 1.
-There will always be a finite number of these parse results.
-
-Above I showed
-a set of parses from an example of an
-infinitely ambiguous grammar.
-Here are those parses again, this time
-labeled with their cycle length.
+When Marpa iterates through the parse results returned
+by a grammar with cycles,
+it produces only those which are cycle-free.
+For examples, in the above list of derivations, Marpa
+would return only
+the parse result corresponding to this
+derivation:
 
 =for Marpa::R2::Display
 ignore: 1
 
-    Cycle length 1: S -> A -> B -> x
-    Cycle length 2: S -> A -> B -> A -> B -> x
-    Cycle length 3: S -> A -> B -> A -> B -> A -> B -> x
+    S -> A -> B -> x
 
 =for Marpa::R2::Display::End
 
-Marpa would return a parse result
-only for the first parse tree in the list above,
-the one whose cycle length is 1.
+=head1 The definition of a cycle
 
-=head1 Nulling variants
+As already stated,
+Marpa eliminates parse results that contain a
+cycle.
+More specifically, Marpa guarantees to eliminate
+all parse results that contain nulling-sensitive cycles.
+Intuitively, a nulling-sensitive cycle is a case
+where the same rule, with the same pattern of nulled
+and non-nulled symbols, is applied at the same
+locations.
 
-The "breakpoint" of a cycle occurs when it loops
-back to the same
-rule.
-This raises the question of whether nulling variants
-of a rule are "different" or "the same".
-Marpa's behavior here is only partially specified
-at this point.
-Marpa guarantees that it will produce a parse for
-at least one of the nulling variants.
-Which one is unspecified.
-Also unspecified is
-how many other nulling variants Marpa will produce
-parses for.
-Marpa's current behavior depends
-on internals of the implementation,
-and is subject to change.
+More carefully,
+a "nulling-sensitive cycle"
+is defined as a derivation which contains the same
+nulling-sensitive rule instance
+twice.
+A "rule instance" is an application of a rule,
+with the same start location,
+and the same end location.
+A "nulling-sensitive rule instance"
+is a rule instance in a specific nulling variant.
+"Nulling-indifferent rule instance"
+is another term for "rule instance."
 
-It is not clear whether the "right" behavior
-would be to return all nulling variants,
-or just one.
-And if just one, it is also not clear which
-one.
-It seems more clear that
-the quality of the present implementation
-is fully adequate to the present interest.
+"Nulling variants" apply to rules with properly nullable symbols.
+When these rules are applied in a parse,
+the properly nullable symbols will sometimes be nulled,
+and sometimes not.
+Each pattern of nulled and non-nulled symbols
+is a nulling variant.
+Note that Marpa does not implement empty rules
+directly, so that there will never be a nulling
+variant which creates an empty rule.
+
+While the author expects Marpa
+to continue to eliminate
+cycles as defined by "rule instance",
+applications should be prepared for Marpa's
+elimination of parse results with cycles to change
+in its treatment of null variants.
+In particular, it is possible that Marpa may
+switch to a system that treats parses as cycle-free
+if and only if they contain no cycles as defined by
+nulling-indifferent rule instance.
 
 =head1 Copyright and License
 
