@@ -341,7 +341,7 @@ First, it may
 clear the error code and error description.
 Second, it may leave them as is.
 Which of the two will happen is
-unspecified, unless stated in the descripton
+unspecified, unless stated in the description
 of that method in this document.
 
 =back
@@ -701,9 +701,9 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<<new()>> method takes a Marpa thin grammar object
+The C<new()> method takes a Marpa thin grammar object
 as its one argument.
-On success, it returns a Marpa thin recognzier object.
+On success, it returns a Marpa thin recognizer object.
 On an unthrown failure, it returns undef.
 
 =head2 C<< $r->ruby_slippers_set() >>
@@ -716,13 +716,13 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Ruby Slippers mode is OFF by default in the thin
-interface -- the opposite of the default in the
-higher level interface.
 With an argument of 1,
 the C<ruby_slippers_set()> method enables "Ruby Slippers" mode.
 With an argument of 0,
 the C<ruby_slippers_set()> method disables "Ruby Slippers" mode.
+This is the default.
+Note that the default in this interface (off) is
+the opposite of the default in the higher level L<Marpa::R2> interface.
 
 The L<< C<alternative()>
 method|"$r->alternative()" >>
@@ -731,6 +731,11 @@ will only throw exceptions when
 One way of describing Ruby Slippers mode is to say it is
 an override of the throw flag, one which only applies
 to the C<alternative()> method.
+
+The C<ruby_slippers_set()> method itself does B<not>
+obey the throw setting.
+All failures by C<ruby_slippers_set()> are thrown
+as exceptions.
 
 =head2 C<< $r->alternative() >>
 
