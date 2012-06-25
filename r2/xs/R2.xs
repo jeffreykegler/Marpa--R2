@@ -152,7 +152,11 @@ libmarpa_exception (int error_code, const char *error_string)
 }
 
 /* Argument 'string' must be something that can (and
-   should) be Safefree()'d */
+   should) be Safefree()'d.  This call is used even when
+   the string is thrown with croak(), because it sets
+    g_wrapper->message_buffer, which guarantees it will
+    be freed at some point in the future.
+   */
 static const char *
 set_error_from_string (G_Wrapper * g_wrapper, char *string)
 {
@@ -390,7 +394,17 @@ PPCODE:
 	      int raw_min = SvIV (arg_value);
 	      if (raw_min < 0)
 		{
-		  croak ("sequence_new(): min cannot be less than 0");
+		  char *error_message =
+		    form ("sequence_new(): min cannot be less than 0");
+		  set_error_from_string (g_wrapper, error_message);
+		  if (g_wrapper->throw)
+		    {
+		      croak ("%s", error_message);
+		    }
+		  else
+		    {
+		      XSRETURN_UNDEF;
+		    }
 		}
 	      min = raw_min;
 	      continue;
@@ -406,8 +420,20 @@ PPCODE:
 	      separator = SvIV (arg_value);
 	      continue;
 	    }
-	  croak ("unknown argument to sequence_new(): %.*s", (int) retlen,
-		 key);
+	  {
+	    char *error_message =
+	      form ("unknown argument to sequence_new(): %.*s", (int) retlen,
+		    key);
+	    set_error_from_string (g_wrapper, error_message);
+	    if (g_wrapper->throw)
+	      {
+		croak ("%s", error_message);
+	      }
+	    else
+	      {
+		XSRETURN_UNDEF;
+	      }
+	  }
 	}
     }
   new_rule_id = marpa_g_sequence_new (g, lhs, rhs, separator, min, flags);
