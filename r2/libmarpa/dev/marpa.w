@@ -12146,7 +12146,7 @@ evaluate it.
 @<Public incomplete structures@> =
 struct marpa_value;
 typedef struct marpa_value* Marpa_Value;
-@ @s VALUE @s VALUE
+@ @s VALUE int
 @<Private incomplete structures@> =
 typedef struct s_value* VALUE;
 @ This structure tracks the top of the evaluation

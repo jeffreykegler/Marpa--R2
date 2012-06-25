@@ -1964,10 +1964,6 @@ When a recognizer is no longer in use, its memory can be freed
 using the 
 @code{marpa_r_unref()} method.
 
-In order to allow future extensions that change settings
-before the recognizer is set up for input,
-when the recognizer is created,
-it is @strong{not} created ready for input.
 To make a recognizer ready for input,
 Use the @code{marpa_r_start_input()} method.
 
@@ -2101,7 +2097,7 @@ calls to @code{marpa_r_alternative()}.
 
 Several error codes leave the recognizer in a fully
 recoverable state, allowing the application to
-retry the @code{marpa_r_alternative} method.
+retry the @code{marpa_r_alternative()} method.
 Retry is efficient, and quite useable as a parsing
 technique.
 The error code
@@ -2119,7 +2115,7 @@ The error codes
 and @code{MARPA_ERR_INACCESSIBLE_TOKEN}
 also leave the recognizer in a fully recoverable
 state, and may also be useable for the
-Ruby Slippers or similar technique.
+Ruby Slippers or similar techniques.
 At this writing,
 the author knows of no applications which
 attempt to recover from these errors.
@@ -2214,12 +2210,16 @@ the inverse operation (conversion of an earleme to an Earley set
 ID).
 One consideration in writing
 such a method is that not all earlemes correspond to Earley sets.
-Applications using the standard input model
-can take advantage of the exact equivalence of Earley set
-ID's and earlemes in that model.
-Other applications may need to create an ID-to-earleme
-array using the @code{marpa_r_earleme()} method,
-and invert it themselves.
+Applications which want to map earlemes
+to Earley sets will have no trouble if they
+are using the standard input model --
+the Earley set
+ID is always exactly equal to the earleme in that model.
+For an
+application that wants an earleme-to-ID mapping to obtain it,
+the most general method is create an ID-to-earleme
+array using the @code{marpa_r_earleme()} method
+and invert it.
 
 Return value:
 On success,
@@ -2235,7 +2235,10 @@ Always succeeds.
 @end deftypefun
 
 @deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
-The value of the latest earleme can be found by converting ID using
+This method returns the Earley set ID (ordinal) of the latest Earley set.
+Applications which want the
+value of the latest earleme can convert
+this value using
 the @code{marpa_r_earleme()} method.
 
 Return value: On success, the ID of the latest earley set.
