@@ -820,6 +820,147 @@ are implemented
 following the general pattern, as described
 L<above|"The general pattern">
 
+=head1 Bocage methods
+
+=head2 C<< Marpa::R2::Thin::B->new() >>
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    my $latest_earley_set_ID = $recce->latest_earley_set();
+    my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+
+=for Marpa::R2::Display::End
+
+The C<new()> method takes a Marpa thin recognizer object
+as its one argument.
+On success, it returns a Marpa thin bocage object.
+On an unthrown failure, it returns undef.
+
+=head2 Omitted methods
+
+Because the Marpa thin interface 
+handles reference counting internally,
+it does not implement methods
+directly corresponding to
+Libmarpa's C<marpa_b_ref()>
+and C<marpa_b_unref()> methods.
+
+=head2 Methods not mentioned
+
+All bocage methods that are part of the Libmarpa external interface,
+but that are not mentioned explicitly in this document,
+are implemented
+following the general pattern, as described
+L<above|"The general pattern">
+
+=head1 Ordering methods
+
+=head2 C<< Marpa::R2::Thin::O->new() >>
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    my $order = Marpa::R2::Thin::O->new($bocage);
+
+=for Marpa::R2::Display::End
+
+The C<new()> method takes a Marpa thin bocage object
+as its one argument.
+On success, it returns a Marpa thin ordering object.
+On an unthrown failure, it returns undef.
+
+=head2 Omitted methods
+
+Because the Marpa thin interface 
+handles reference counting internally,
+it does not implement methods
+directly corresponding to
+Libmarpa's C<marpa_o_ref()>
+and C<marpa_o_unref()> methods.
+
+=head2 Methods not mentioned
+
+All ordering methods that are part of the Libmarpa external interface,
+but that are not mentioned explicitly in this document,
+are implemented
+following the general pattern, as described
+L<above|"The general pattern">
+
+=head1 Tree methods
+
+=head2 C<< Marpa::R2::Thin::T->new() >>
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    my $tree = Marpa::R2::Thin::T->new($order);
+
+=for Marpa::R2::Display::End
+
+The C<new()> method takes a Marpa thin ordering object
+as its one argument.
+On success, it returns a Marpa thin tree object.
+On an unthrown failure, it returns undef.
+
+=head2 Omitted methods
+
+Because the Marpa thin interface 
+handles reference counting internally,
+it does not implement methods
+directly corresponding to
+Libmarpa's C<marpa_t_ref()>
+and C<marpa_t_unref()> methods.
+
+=head2 Methods not mentioned
+
+All tree methods that are part of the Libmarpa external interface,
+but that are not mentioned explicitly in this document,
+are implemented
+following the general pattern, as described
+L<above|"The general pattern">
+
+=head1 Value methods
+
+=head2 C<< Marpa::R2::Thin::V->new() >>
+
+=for Marpa::R2::Display
+name: Thin example
+partial: 1
+normalize-whitespace: 1
+
+    my $valuator = Marpa::R2::Thin::V->new($tree);
+
+=for Marpa::R2::Display::End
+
+The C<new()> method takes a Marpa thin tree object
+as its one argument.
+On success, it returns a Marpa thin value object.
+On an unthrown failure, it returns undef.
+
+=head2 Omitted methods
+
+Because the Marpa thin interface 
+handles reference counting internally,
+it does not implement methods
+directly corresponding to
+Libmarpa's C<marpa_v_ref()>
+and C<marpa_v_unref()> methods.
+
+=head2 Methods not mentioned
+
+All value methods that are part of the Libmarpa external interface,
+but that are not mentioned explicitly in this document,
+are implemented
+following the general pattern, as described
+L<above|"The general pattern">
+
 =head1 Example
 
 =for Marpa::R2::Display
