@@ -311,6 +311,48 @@ The first element of the array is the B<error code>,
 and the second element is the same error description
 that is returned in scalar context.
 
+If a method follows
+the general error handling pattern,
+then it does the following:
+
+=over 4
+
+=item *
+
+On a Libmarpa failure,
+the method sets the error code to the
+Libmarpa error code.
+This is a integer.
+The method always sets the error description
+to a string which describes the Libmarpa failure.
+
+=item *
+
+On other failures,
+the method sets the error code to a Perl C<undef>.
+It sets the error description
+to a string which describes the failure.
+
+=item *
+
+On success, the method may do
+one of two things.
+First, it may
+clear the error code and error description.
+Second, it may leave them as is.
+Which of the two will happen is
+unspecified, unless stated in the descripton
+of that method in this document.
+
+=back
+
+All Marpa thin interface
+methods follow the general error
+handling pattern, unless it is stated otherwise
+in that method's description in this document.
+Methods which follow the general pattern
+always follow the general error handling pattern.
+
 The "error description" is
 a string
 that describes the most recent error.
@@ -586,7 +628,8 @@ It defaults to 0.
 On success,
 the return value is the ID of the new sequence.
 C<sequence_new()> obeys the throw setting.
-On unthrown failure, it returns -2.
+On unthrown Libmarpa failure, it returns -2.
+On other unthrown failure, it returns a Perl C<undef>.
 
 Users should be aware that all sequences at
 the Marpa thin interface level are "keep
@@ -760,8 +803,7 @@ C<progress_item()> returns a Perl C<undef>.
 
 C<progress_item()> obeys the throw setting.
 On unthrown failure,
-C<progress_item()> sets the error code
-and returns -2.
+C<progress_item()> returns a rule ID of -2.
 
 =head2 Omitted methods
 
