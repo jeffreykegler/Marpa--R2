@@ -42,12 +42,13 @@ my @pascal_numbers = (
 
 for my $n ( 0 .. 10 ) {
 
-    my $variable_rule = parse_rules( 'S ::=' . ($n ? (' A' x $n) : ' Null'));
+    my $variable_rule =
+        parse_rules( 'S ::=' . ( $n ? ( ' A' x $n ) : ' Null' ) );
     my $grammar = Marpa::XS::Grammar->new(
         {   start => 'S',
             rules => [ map { @{$_} } $basic_pascal_rules, $variable_rule ],
-	    lhs_terminals => 0,
-            warnings => ( $n ? 1 : 0 ),
+            lhs_terminals => 0,
+            warnings      => ( $n ? 1 : 0 ),
         }
     );
 
@@ -55,8 +56,8 @@ for my $n ( 0 .. 10 ) {
 
     my $expected = join q{ }, $pascal_numbers[$n];
     my $actual = join q{ }, map { do_pascal( $grammar, $_ ) } 0 .. $n;
-    say "Expected: $expected";
-    say "  Actual: $actual";
-    say( $actual eq $expected ? 'OK' : 'MISMATCH' );
+    say "$actual";
+    say "  MISMATCH, above should have been $expected"
+        if $actual ne $expected;
 
 } ## end for my $n ( 0 .. 10 )
