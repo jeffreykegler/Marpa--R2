@@ -6,7 +6,6 @@ egrep '^=head2 ' r2/pod/Advanced/Thin.pod |
    ' > nogit/documented_method.list
 perl -n -E '
     m/::CLASS_LETTER.*['"'"']([cgrbotv])['"'"'][;]/ and $class = $1;
-    m/[\(]qw[\(](_[^ \)]*)[ \)]/ and say $1;
     m/[\(]qw[\(]([^_][^ \)]*)[ \)]/ and say "marpa_$class" . "_$1";
      ' r2/xs/gp_generate.pl > nogit/gp_method.list
 perl -n -E '

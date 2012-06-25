@@ -668,17 +668,13 @@ an event count of zero.
 
 =head2 Omitted methods
 
-The
-C<marpa_g_error()> method is omitted
-because it is replaced by the error methods
-offered in the Marpa thin interface.
 The C<marpa_g_ref()>
 and C<marpa_g_unref()> methods are omitted
 because the Marpa thin interface performs
 their function.
 The C<marpa_g_event_value()> method is omitted
-because its function is performed by the
-thin interface's C<event()> grammar method.
+because its function is absorbed into
+the thin interface's C<event()> grammar method.
 
 =head2 General pattern methods
 
