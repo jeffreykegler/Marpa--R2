@@ -115,33 +115,35 @@ The one-letter abbreviations for these
 are, respectively,
 C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
 
-=head1 Methods omitted
+=head1 Libmarpa methods not in the Marpa thin interface
 
-No internal Libmarpa method is part of the thin interface.
-The C<marpa_check_version()> static method is not
-part of the thin interface, because the thin interface
+No internal Libmarpa method is part of the Marpa:thin interface.
+Additionally,
+several
+external Libmarpa methods are omitted because their function is performed
+by the Marpa thin interface.
+
+No thin interface method corresponds to
+the C<marpa_check_version()> static method,
+because the Marpa thin interface
 interface handles its own version matching.
+No thin interface method corresponds to any
+of the Libmarpa config class methods,
+and no Marpa thin interface object corresponds
+to Libmarpa's config objects,
+Configuration in the Marpa thin
+interface is done Perl variables.
 
-The thin interface deals with all reference counting
-issues, and interconnects Libmarpa's reference counting
-with Perl's.  The application can rely on Libmarpa
+No Marpa thin interface method corresponds to the
+C<marpa_g_ref()> and C<marpa_g_unref()> methods
+because the thin interface handles the
+reference counting of the Libmarpa objects it creates.
+The application can rely on Libmarpa
 objects being cleaned up properly as part of Perl's
-ordinary garbage collection.
-For this reason, there are no thin wrappers for the 
-C<mapra_g_ref()>, C<mapra_g_unref()>,
-C<mapra_r_ref()>, C<mapra_r_unref()>,
-C<mapra_b_ref()>, C<mapra_b_unref()>,
-C<mapra_o_ref()>, C<mapra_o_unref()>,
-C<mapra_t_ref()>, C<mapra_t_unref()>
-C<mapra_v_ref()>, and C<mapra_v_unref()> methods.
-
-There are no thin wrappers for the
-C<marpa_g_error()> and
-C<marpa_r_error()> methods.
-The thin interface provides its own interface
-to Libmarpa's error information,
-one which is more convenient in the Perl
-environment.
+For the same reason,
+no Marpa thin interface method corresponds to the
+"ref" and "unref" methods of the other Libmarpa time
+classes.
 
 =head1 Libmarpa time objects and constructors
 
@@ -431,12 +433,7 @@ throw flags or variables.
 
 =head1 Configuration methods and variables
 
-Libmarpa's configuration objects
-and methods are omitted from the Marpa
-thin interface.
-Their functions are handled by the thin
-interface internally.
-The Marpa thin interface has a configuration
+The Marpa thin interface has one configuration
 variable:
 
 =over 4
