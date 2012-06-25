@@ -2267,6 +2267,7 @@ If @var{threshold} is zero or less,
 an unlimited number of Earley items
 will be allowed without warning.
 This will rarely be what the user wants.
+
 By default, Libmarpa calculates a value based on the grammar.
 The formula Libmarpa uses is the result of some experience,
 and most applications will
@@ -2302,10 +2303,8 @@ A parser is ``exhausted'' if it cannot accept any more input.
 Both successful and failed parses can be exhausted.
 In many grammars,
 the parse is always exhausted as soon as it succeeds.
-And even if the parse is exhausted at a point
-where there is no good parse,
-there may be good parses at earlemes prior to the
-earleme at which the parse became exhausted.
+Good parses may also exist at earlemes prior to the
+current one.
 
 Return value:
 1 if the parser is exhausted, 0 otherwise.
@@ -2316,15 +2315,18 @@ Always succeeds.
 @chapter Progress reports
 
 An important advantage of the Marpa algorithm is the ability
-to easily get full information about the state of the parse
-so far.
-Only one progress report can be in use at any one time.
+to easily get full information about the state of the parse.
+
 To start a progress report,
 use the @code{marpa_r_progress_report_start()} command.
+Only one progress report can be in use at any one time.
 
 To get the information in a progress report,
-step through its items with
-the @code{marpa_r_progress_item()} method.
+it is necessary to step through the progress report
+items.
+To the current progress report item,
+and advance to the next one,
+use the @code{marpa_r_progress_item()} method.
 
 To destroy a progress report,
 freeing the memory it uses,
@@ -2340,8 +2342,8 @@ memory is freed.
 Initially,
 the progress report is positioned before its first item.
 
-If no Earley set with
-@var{set_id} as its ID,
+If no Earley set with ID
+@var{set_id} exists,
 @code{marpa_r_progress_report_start} fails.
 The error code is @code{MARPA_ERR_INVALID_LOCATION} if @var{set_id}
 is negative.
@@ -2389,17 +2391,18 @@ item has been seen.
 
 On success,
 the dot position is returned in the location
-pointed to by @var{position},
+pointed to by the @var{position} argument,
 and the origin is returned in the location
-pointed to by @var{origin}.
+pointed to by the @var{origin} argument.
 On failure, the locations pointed to by
-@var{position} and @var{origin}
-are unchanged.
+the @var{position} and @var{origin}
+arguments are unchanged.
 
 Return value: On success, the rule ID of
 the next progress report item.
 If there are no more progress report items, -1.
-If either @var{position} or @var{origin} is @code{NULL},
+If either the @var{position} or the @var{origin}
+argument is @code{NULL},
 or on other failure, @code{-2}.
 @end deftypefun
 
