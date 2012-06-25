@@ -288,44 +288,84 @@ partial: 1
 The thin interface to Libmarpa provides
 error methods
 more appropriate to the Perl
-environment,
+environment
 than Libmarpa's own.
+
+=head2 C<< $g->error() >>
 
 =for Marpa::R2::Display
 name: Thin grammar error methods
 normalize-whitespace: 1
 
-    my @error_names       = Marpa::R2::Thin::error_names();
-    my $error_code        = $grammar->error_code();
-    my $error_name        = $error_names[$error_code];
-    my $error_description = $grammar->error();
+    my ( $error_code, $error_description ) = $grammar->error();
+    my @error_names = Marpa::R2::Thin::error_names();
+    my $error_name = $error_names[$error_code];
 
 =for Marpa::R2::Display::End
 
-The C<error_code()> method returns the most
-recent error code,
-which is an integer.
-The C<error_names()> static method returns
-an array of error "names":
-these are the error code macros, as listed in
-the Libmarpa documentation.
-The error code can be used as an index
-into the array of error names.
+In scalar context,
+the C<error()> method returns the B<error description>,
+a string that describes the most recent error.
+In array context, it returns a 2-element array.
+The first element of the array is the B<error code>,
+and the second element is the same error description
+that is returned in scalar context.
+
+The "error description" is
+a string
+that describes the most recent error.
+Error descriptions are subject to wording
+and punctuation changes,
+and applications should not rely on their text.
+
+The error code may be undefined
+or an integer.
+If it is an integer, it
+is the Libmarpa error code and
+can be used as an index to array of
+error names returned by the 
+L<< C<< $g->error_names() >>
+method|"$g->error_names()" >>.
 The programmer can expect error
 codes and error names to be kept stable.
 
-The C<error()> method returns
-the "error description",
-a string
-that provides a fuller
-description
-of the latest error than
-does the error name.
-Error descriptions are subject to change,
-Because error descriptions can be kept up
-to date, they may more accurately reflect
-the nature of the error than the error
-name.
+If the error code is a Perl C<undef>,
+the most recent error was in the Marpa thin
+layer, and the error description will be of
+that error.
+Note that a Marpa thin layer
+error will not persist after the call
+to C<error()>.
+It is up to
+an application, if it wants to refer to the
+error code or description again,
+to store them.
+
+While in the current implement Libmarpa error
+codes and descriptions can be more persistent,
+applications should not rely on this.
+Applications should assume, for all classes of
+errors returned by the C<error()> method,
+that they will not persist into a call to
+any other Marpa thin method, including the
+a second call to the C<error()>
+method itself.
+
+=head2 C<< $g->error_names() >>
+
+For a synopsis, see L<< the section on
+the C<< $g->error() >>
+method|"$g->error()" >>.
+The C<error_names()> method returns a
+B<reference> to an array of error names,
+indexed by Libmarpa error code.
+Error names are intended as mnemonic codes --
+as a convenient alternative to the numeric
+error codes.
+They are not intended as descriptions of the error
+condition.
+The programmer can expect error
+codes and error names to be kept stable.
 
 =head2 C<< $g->throw_set() >>
 
