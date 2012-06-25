@@ -3,13 +3,9 @@ use 5.010;
 use strict;
 use warnings;
 
+use English qw( -no_match_vars );
 use Marpa::XS;
 use MarpaX::Simple::Rules 'parse_rules';
-
-sub numbers {
-    my ( undef, @numbers ) = @_;
-    return \@numbers;
-}
 
 my $wall_rules = parse_rules(<<"RULES");
      E ::= E Minus E
@@ -33,12 +29,14 @@ sub do_wall {
 
     # Just in case
     $recce->set( { max_parses => 999, } );
-    defined $recce->read( 'Number', 6, 1 ) or die qq{Cannot read 1st "Number"};
+    defined $recce->read( 'Number', 6, 1 )
+        or die q{Cannot read 1st "Number"};
     for my $token_ix ( 0 .. $n - 1 ) {
         defined $recce->read( 'Minus', q{-}, 1 )
             or die qq{Cannot read final "Minus", #$token_ix};
     }
-    defined $recce->read( 'Number', 1, 1 ) or die qq{Cannot read final "Number"};
+    defined $recce->read( 'Number', 1, 1 )
+        or die q{Cannot read final "Number"};
     $parse_count++ while $recce->value();
     return $parse_count;
 } ## end sub do_wall
@@ -48,7 +46,7 @@ my @wall_numbers = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
 my $expected = join q{ }, @wall_numbers;
 my $actual = join q{ }, 0, map { do_wall($_) } 1 .. 12;
 
-say "Expected: $expected";
-say "  Actual: $actual";
-say( $actual eq $expected ? 'OK' : 'MISMATCH' );
+say "Expected: $expected" or die "say failed: $ERRNO";
+say "  Actual: $actual"   or die "say failed: $ERRNO";
+say +( $actual eq $expected ? 'OK' : 'MISMATCH' ) or die "say failed: $ERRNO";
 

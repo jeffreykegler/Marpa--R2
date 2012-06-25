@@ -3,6 +3,7 @@ use 5.010;
 use strict;
 use warnings;
 
+use English qw( -no_match_vars );
 use Marpa::XS;
 use MarpaX::Simple::Rules 'parse_rules';
 
@@ -56,8 +57,10 @@ for my $n ( 0 .. 10 ) {
 
     my $expected = join q{ }, $pascal_numbers[$n];
     my $actual = join q{ }, map { do_pascal( $grammar, $_ ) } 0 .. $n;
-    say "$actual";
-    say "  MISMATCH, above should have been $expected"
-        if $actual ne $expected;
+    say "$actual" or die "say failed: $ERRNO";
+    if ( $actual ne $expected ) {
+        say "  MISMATCH, above should have been $expected"
+            or die "say failed: $ERRNO";
+    }
 
 } ## end for my $n ( 0 .. 10 )
