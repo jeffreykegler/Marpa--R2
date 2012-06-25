@@ -33,12 +33,12 @@ sub do_wall {
 
     # Just in case
     $recce->set( { max_parses => 999, } );
-    $recce->read( 'Number', 6, 1 ) or die qq{Cannot read 1st "Number"};
+    defined $recce->read( 'Number', 6, 1 ) or die qq{Cannot read 1st "Number"};
     for my $token_ix ( 0 .. $n - 1 ) {
-        $recce->read( 'Minus', q{-}, 1 )
+        defined $recce->read( 'Minus', q{-}, 1 )
             or die qq{Cannot read final "Minus", #$token_ix};
     }
-    $recce->read( 'Number', 1, 1 ) or die qq{Cannot read final "Number"};
+    defined $recce->read( 'Number', 1, 1 ) or die qq{Cannot read final "Number"};
     $parse_count++ while $recce->value();
     return $parse_count;
 } ## end sub do_wall

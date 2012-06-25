@@ -54,7 +54,7 @@ for my $n ( 0 .. 10 ) {
     $grammar->precompute();
 
     my $expected = join q{ }, $pascal_numbers[$n];
-    my $actual = join q{ }, 0, map { do_pascal( $grammar, $_ ) } 0 .. $n;
+    my $actual = join q{ }, map { do_pascal( $grammar, $_ ) } 0 .. $n;
     say "Expected: $expected";
     say "  Actual: $actual";
     say( $actual eq $expected ? 'OK' : 'MISMATCH' );

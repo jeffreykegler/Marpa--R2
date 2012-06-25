@@ -33,7 +33,7 @@ sub do_catalan
     # Just in case
     $recce->set( { max_parses => 999, } );
     for my $token_ix ( 0 .. $n - 1 ) {
-        $recce->read('a') or die "Cannot read char $token_ix";
+        defined $recce->read('a') or die "Cannot read char $token_ix";
     }
     $parse_count++ while $recce->value();
     return $parse_count;
