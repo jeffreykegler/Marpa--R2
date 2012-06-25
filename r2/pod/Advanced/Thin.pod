@@ -678,8 +678,8 @@ the thin interface's C<event()> grammar method.
 
 =head2 General pattern methods
 
-All methods that are part of the Libmarpa external interface,
-but that are not mentioned explicitly in this section,
+All grammar methods that are part of the Libmarpa external interface,
+but that are not mentioned explicitly in this document,
 are implemented
 following the general pattern, as described
 L<above|"The general pattern">
@@ -815,10 +815,10 @@ directly corresponding to
 Libmarpa's C<marpa_r_ref()>
 and C<marpa_r_unref()> methods.
 
-=head2 General pattern methods
+=head2 Methods not mentioned
 
-All methods that are part of the Libmarpa external interface,
-but that are not mentioned explicitly in this section,
+All recognizer methods that are part of the Libmarpa external interface,
+but that are not mentioned explicitly in this document,
 are implemented
 following the general pattern, as described
 L<above|"The general pattern">
