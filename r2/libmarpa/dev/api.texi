@@ -2324,7 +2324,7 @@ Only one progress report can be in use at any one time.
 To get the information in a progress report,
 it is necessary to step through the progress report
 items.
-To the current progress report item,
+To get the data for the current progress report item,
 and advance to the next one,
 use the @code{marpa_r_progress_item()} method.
 
@@ -2417,20 +2417,17 @@ or on other failure, @code{-2}.
 @node Bocage overview, Bocage reference counting, Bocage methods, Bocage methods
 @section Overview
 
-As a byproduct of recognition,
-the recognizer has tables.
+Libmarpa parses ambiguous grammars.
+A bocage is structure containing all the full set of parses found
+by processing the input according to the grammar.
+The bocage structure is new with Libmarpa, but is very similar
+in purpose to the more familar parse forests.
+
 Before parsing, an archtypal application must create
 a bocage.
-A bocage is structure containing all the parses found
-for the input.
-
-Because Libmarpa parses ambiguous grammars, the bocage may
-contain many parses.
-(For those familiar with them, a bocage is
-a specialized and extended parse forest.)
-
 To create a bocage, use the @code{marpa_b_new()} method.
-When a recognizer is no longer in use, its memory can be freed
+
+When a bocage is no longer in use, its memory can be freed
 using the 
 @code{marpa_b_unref()} method.
 
