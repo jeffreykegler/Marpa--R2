@@ -169,10 +169,9 @@ $grammar->throw_set(0);
 # Marpa::R2::Display
 # name: Thin grammar error methods
 
-my @error_names       = Marpa::R2::Thin::error_names();
-my $error_code        = $grammar->error_code();
-my $error_name        = $error_names[$error_code];
-my $error_description = $grammar->error();
+my ( $error_code, $error_description ) = $grammar->error();
+my @error_names = Marpa::R2::Thin::error_names();
+my $error_name = $error_names[$error_code];
 
 # Marpa::R2::Display::End
 

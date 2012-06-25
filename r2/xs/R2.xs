@@ -24,10 +24,16 @@
 #include "marpa.h"
 
 typedef struct marpa_g Grammar;
+/* The error_code member should usually be ignored in favor of
+ * getting a fresh error code from Libmarpa.  Essentially it
+ * acts as an optional return value for marpa_g_error()
+ */
 typedef struct {
      Marpa_Grammar g;
      char *message_buffer;
-     int throw; /* boolean */
+     int error_code;
+     unsigned int throw:1;
+     unsigned int message_is_marpa_thin_error:1;
 } G_Wrapper;
 
 typedef struct marpa_r Recce;
@@ -35,7 +41,7 @@ typedef struct {
      Marpa_Recce r;
      Marpa_Symbol_ID* terminals_buffer;
      G_Wrapper* base;
-     int ruby_slippers; /* boolean */
+     unsigned int ruby_slippers:1;
 } R_Wrapper;
 
 typedef struct marpa_b Bocage;
@@ -145,6 +151,19 @@ libmarpa_exception (int error_code, const char *error_string)
       return savepv(output_string);
 }
 
+/* Argument 'string' must be something that can (and
+   should) be Safefree()'d */
+static const char *
+set_error_from_string (G_Wrapper * g_wrapper, char *string)
+{
+  const char *error_string;
+  char *buffer = g_wrapper->message_buffer;
+  if (buffer) Safefree(buffer);
+  g_wrapper->message_buffer = string;
+  g_wrapper->message_is_marpa_thin_error = 1;
+  return buffer;
+}
+
 /* Return value must be Safefree()'d */
 static const char *
 xs_g_error (G_Wrapper * g_wrapper)
@@ -156,6 +175,8 @@ xs_g_error (G_Wrapper * g_wrapper)
   if (buffer) Safefree(buffer);
   g_wrapper->message_buffer = buffer =
     libmarpa_exception (error_code, error_string);
+  g_wrapper->message_is_marpa_thin_error = 0;
+  g_wrapper->error_code = error_code;
   return buffer;
 }
 
@@ -221,6 +242,8 @@ PPCODE:
 	  g_wrapper->throw = throw;
 	  g_wrapper->g = g;
 	  g_wrapper->message_buffer = NULL;
+	  g_wrapper->error_code = MARPA_ERR_NONE;
+	  g_wrapper->message_is_marpa_thin_error = 0;
 	  sv = sv_newmortal ();
 	  sv_setref_pv (sv, grammar_c_class_name, (void *) g_wrapper);
 	  XPUSHs (sv);
@@ -417,20 +440,22 @@ error( g_wrapper )
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  XPUSHs (sv_2mortal (newSVpv (xs_g_error (g_wrapper), 0)));
-}
-
-void
-error_code( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-  const Marpa_Grammar g = g_wrapper->g;
-  const Marpa_Error_Code error_code = marpa_g_error (g, NULL);
-  if (error_code < 0) {
-	  XSRETURN_UNDEF;
-  }
-  XPUSHs (sv_2mortal (newSViv (error_code)));
+  const char *error_message =
+    "Problem in $g->error(): Nothing in message buffer";
+  SV *error_code_sv = &PL_sv_undef;
+  if (!g_wrapper->message_is_marpa_thin_error)
+    {
+      xs_g_error (g_wrapper);
+      error_code_sv = sv_2mortal (newSViv (g_wrapper->error_code));
+    }
+  g_wrapper->message_is_marpa_thin_error = 0;
+  if (g_wrapper->message_buffer)
+    error_message = g_wrapper->message_buffer;
+  if (GIMME == G_ARRAY)
+    {
+      XPUSHs (error_code_sv);
+    }
+  XPUSHs (sv_2mortal (newSVpv (error_message, 0)));
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R
@@ -487,6 +512,7 @@ PPCODE:
 {
   if (boolean < 0 || boolean > 1)
     {
+      /* Always thrown */
       croak ("Problem in g->ruby_slippers_set(%d): argument must be 0 or 1", boolean);
     }
   r_wrapper->ruby_slippers = boolean;

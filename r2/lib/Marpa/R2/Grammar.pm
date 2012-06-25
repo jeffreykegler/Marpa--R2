@@ -486,7 +486,7 @@ sub Marpa::R2::Grammar::precompute {
     $grammar_c->throw_set(1);
 
     if ( $precompute_result < 0 ) {
-        $precompute_error_code = $grammar_c->error_code();
+        ($precompute_error_code) = $grammar_c->error();
         if ( not defined $precompute_error_code ) {
             Marpa::R2::exception(
                 'libmarpa error, but no error code returned');
@@ -562,7 +562,7 @@ sub Marpa::R2::Grammar::precompute {
             Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
         }
 
-        Marpa::R2::uncaught_error( $grammar_c->error() );
+        Marpa::R2::uncaught_error( scalar $grammar_c->error() );
 
     } ## end if ( $precompute_error_code != $Marpa::R2::Error::NONE)
 
@@ -1130,11 +1130,12 @@ sub add_user_rule {
         if ( $ordinary_rule_id < 0 ) {
             my $rule_description =
                 "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
-            my $error_code = $grammar_c->error_code() // -1;
+            my ($error_code, $error_string) = $grammar_c->error();
+	    $error_code //= -1;
             my $problem_description =
 		$error_code == $Marpa::R2::Error::DUPLICATE_RULE
                 ? 'Duplicate rule'
-                : $grammar_c->error();
+                : $error_string;
             Marpa::R2::exception("$problem_description: $rule_description");
         } ## end if ( not defined $ordinary_rule_id )
         shadow_rule( $grammar, $ordinary_rule_id );
@@ -1181,11 +1182,12 @@ sub add_user_rule {
     );
     if ( not defined $original_rule_id ) {
         my $rule_description = "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
-        my $error_code = $grammar_c->error_code() // -1;
+        my ($error_code, $error_string) = $grammar_c->error();
+        $error_code //= -1;
         my $problem_description =
             $error_code == $Marpa::R2::Error::DUPLICATE_RULE
             ? 'Duplicate rule'
-            : $grammar_c->error();
+            : $error_string;
         Marpa::R2::exception("$problem_description: $rule_description");
     } ## end if ( not defined $event_count )
 
