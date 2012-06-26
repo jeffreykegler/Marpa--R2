@@ -764,7 +764,7 @@ PPCODE:
   status = marpa_v_step (v);
   if (status == MARPA_STEP_INACTIVE)
     {
-      XSRETURN_UNDEF;
+      XSRETURN_EMPTY;
     }
   if (status < 0)
     {

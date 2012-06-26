@@ -3102,7 +3102,7 @@ and the result placed in
 The stack location of
 @code{marpa_v_result(v)} is guaranteed to
 be equal to 
-to @code{marpa_v_arg_n(v)}.
+to @code{marpa_v_arg_0(v)}.
 @end deftypevr
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_TOKEN

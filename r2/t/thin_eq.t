@@ -83,7 +83,8 @@ while ( $tree->next() ) {
     $valuator->rule_is_valued_set( $start_rule_id,  1 );
     $valuator->rule_is_valued_set( $number_rule_id, 1 );
     my @stack = ();
-    STEP: while ( my ( $type, @step_data ) = $valuator->step() ) {
+    STEP: while ( 1 ) {
+        my ( $type, @step_data ) = $valuator->step();
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             my ( undef, $token_value_ix, $arg_n ) = @step_data;
