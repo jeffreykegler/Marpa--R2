@@ -199,6 +199,15 @@ say {$out} gp_generate(qw(earleme Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(progress_report_finish));
 
+# Nothing (as yet) in bocage, ordering classes
+
+$main::CLASS_LETTER   = 't';
+$main::LIBMARPA_CLASS = 'Marpa_Tree';
+print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R', "\n\n";
+
+say {$out} gp_generate(qw(next));
+say {$out} gp_generate(qw(parse_count));
+
 $main::CLASS_LETTER   = 'g';
 $main::LIBMARPA_CLASS = 'Marpa_Grammar';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";

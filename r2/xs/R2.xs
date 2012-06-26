@@ -715,44 +715,6 @@ PPCODE:
     Safefree( t_wrapper );
 }
 
-void
-next( t_wrapper )
-    T_Wrapper *t_wrapper;
-PPCODE:
-{
-  Marpa_Tree t = t_wrapper->t;
-  int result;
-  result = marpa_t_next (t);
-  if (result == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  if (result < 0)
-    {
-      croak ("Problem in t->next(): %s", xs_g_error(t_wrapper->base));
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-void
-parse_count( t_wrapper )
-    T_Wrapper *t_wrapper;
-PPCODE:
-{
-  Marpa_Tree t = t_wrapper->t;
-  int result;
-  result = marpa_t_parse_count (t);
-  if (result == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  if (result < 0)
-    {
-      croak ("Problem in t->parse_count(): %s", xs_g_error(t_wrapper->base));
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::V
 
 void
