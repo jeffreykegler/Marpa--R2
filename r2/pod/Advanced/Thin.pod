@@ -957,22 +957,10 @@ normalize-whitespace: 1
 
 The C<step()> method takes no arguments.
 It returns an array.
-the first element
-of this array is
-a string containing one of the step type
-names, as defined in the Libmarpa API document,
-or a Perl C<undef>.
-A return of C<undef> corresponds to the step
-type C<MARPA_STEP_INACTIVE>.
 
-=over 4
-
-=item * 
-
-If the step type is C<MARPA_STEP_INACTIVE>, C<step()> returns
-the empty array.
-
-=item * 
+On success,
+if the step type is C<MARPA_STEP_INACTIVE>, C<step()> returns
+an empty array.
 
 On success,
 if the step type is C<MARPA_STEP_TOKEN>, C<step()>
@@ -986,8 +974,6 @@ The fourth element is the token's stack location,
 as returned
 by the Libmarpa method C<marpa_v_token_arg_n()>.
 
-=item * 
-
 On success,
 if the step type is C<MARPA_STEP_NULLING_SYMBOL>, C<step()>
 returns an array of 3 elements.
@@ -998,13 +984,11 @@ The third element is the token's stack location,
 as returned
 by the Libmarpa method C<marpa_v_token_arg_n()>.
 
-=item * 
-
 On success,
 if the step type is C<MARPA_STEP_RULE>, C<step()>
 returns an array of 2 elements.
 The first element is the string "C<MARPA_STEP_RULE>".
-The second element is the rule_id id, as returned
+The second element is the rule id, as returned
 by the Libmarpa method C<marpa_v_rule_id()>.
 The third element is the stack location of the
 rule's argument 0,
@@ -1015,8 +999,7 @@ rule's last argument,
 as returned
 by the Libmarpa method C<marpa_v_token_arg_n()>.
 
-=item *
-
+On failure,
 C<step()> obeys the throw settings.
 On unthrown failure,
 C<step()> returns an array whose only
@@ -1029,8 +1012,6 @@ The string will usually be a description of the error.
 On failure,
 C<step()> also sets the error code and error description
 in conformance to the general error handling pattern.
-
-=back
 
 =head2 Omitted methods
 
