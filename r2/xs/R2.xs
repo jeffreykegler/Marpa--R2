@@ -751,46 +751,6 @@ PPCODE:
 }
 
 void
-symbol_is_valued_set( v_wrapper, symbol_id, value )
-    V_Wrapper *v_wrapper;
-    Marpa_Symbol_ID symbol_id;
-    int value;
-PPCODE:
-{
-  const Marpa_Value v = v_wrapper->v;
-  int result = marpa_v_symbol_is_valued_set (v, symbol_id, value);
-  if (result == -1) {
-      XSRETURN_UNDEF;
-  }
-  if (result < -1)
-    {
-      croak ("Problem in v->symbol_is_valued_set(%d, %d): %s",
-	     symbol_id, value, xs_g_error(v_wrapper->base));
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-void
-rule_is_valued_set( v_wrapper, rule_id, value )
-    V_Wrapper *v_wrapper;
-    Marpa_Rule_ID rule_id;
-    int value;
-PPCODE:
-{
-  const Marpa_Value v = v_wrapper->v;
-  int result = marpa_v_rule_is_valued_set (v, rule_id, value);
-  if (result == -1) {
-      XSRETURN_UNDEF;
-  }
-  if (result < -1)
-    {
-      croak ("Problem in v->rule_is_valued_set(%d, %d): %s",
-	     rule_id, value, xs_g_error(v_wrapper->base));
-    }
-  XPUSHs (sv_2mortal (newSViv (result)));
-}
-
-void
 step( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:
@@ -808,20 +768,34 @@ PPCODE:
     }
   if (status < 0)
     {
-      croak ("Problem in v->step(): %s", xs_g_error(v_wrapper->base));
+      const char *error_message = xs_g_error (v_wrapper->base);
+      if (v_wrapper->base->throw)
+	{
+	  croak ("Problem in v->step(): %s", error_message);
+	}
+      XPUSHs (sv_2mortal
+	      (newSVpvf ("Problem in v->step(): %s", error_message)));
+      XSRETURN (1);
     }
   result_string = step_type_to_string (status);
   if (!result_string)
     {
-      croak ("Problem in r->v_step(): unknown action type %d", status);
+      char *error_message =
+	form ("Problem in v->step(): unknown step type %d", status);
+      set_error_from_string (v_wrapper->base, error_message);
+      if (v_wrapper->base->throw)
+	{
+	  croak ("%s", error_message);
+	}
+      XPUSHs (sv_2mortal (newSVpv (error_message, 0)));
+      XSRETURN (1);
     }
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
   if (status == MARPA_STEP_TOKEN)
     {
       token_id = marpa_v_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
-      XPUSHs (sv_2mortal
-	      (newSViv (marpa_v_token_value (v))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
   if (status == MARPA_STEP_NULLING_SYMBOL)
