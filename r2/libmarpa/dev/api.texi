@@ -2417,13 +2417,12 @@ or on other failure, @code{-2}.
 @node Bocage overview, Bocage reference counting, Bocage methods, Bocage methods
 @section Overview
 
-Libmarpa parses ambiguous grammars.
-A bocage is structure containing all the full set of parses found
+A bocage is structure containing the full set of parses found
 by processing the input according to the grammar.
 The bocage structure is new with Libmarpa, but is very similar
 in purpose to the more familar parse forests.
 
-Before parsing, an archtypal application must create
+An archtypal application will create
 a bocage.
 To create a bocage, use the @code{marpa_b_new()} method.
 
@@ -2498,7 +2497,7 @@ A frozen ordering cannot be changed.
 
 As of this writing, the only methods to order parses
 are internal and undocumented.
-This is expected to change in the near future.
+This is expected to change.
 
 @node Ordering constructor, Ordering reference counting, Ordering overview, Ordering methods
 @section Creating an ordering
@@ -2566,13 +2565,12 @@ In Libmarpa,
 ``parse tree iterators'' are usually just called @dfn{trees}.
 
 To create a tree, use the @code{marpa_t_new()} method.
+A newly created tree is positioned before the first parse tree.
 When a tree is no longer in use, its memory can be freed
 using the 
 @code{marpa_t_unref()} method.
 
-To position a new tree iterator to the first parse tree,
-use the @code{marpa_t_next()} method.
-To step through subsequent parse trees,
+To position a tree iterator at the next parse tree,
 use the @code{marpa_t_next()} method.
 
 @node Tree constructor, Tree reference counting, Tree overview, Tree methods
