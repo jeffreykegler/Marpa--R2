@@ -4,8 +4,8 @@ use strict;
 use warnings;
 
 use English qw( -no_match_vars );
-use Marpa::XS;
-use MarpaX::Simple::Rules 'parse_rules';
+use Marpa::R2;
+use MarpaX::Simple::Rules '0.2.6', 'parse_rules';
 
 my $basic_pascal_rules = parse_rules(<<"RULES");
      A ::= a
@@ -16,7 +16,7 @@ RULES
 sub do_pascal {
     my ( $g, $n ) = @_;
     my $parse_count = 0;
-    my $recce = Marpa::XS::Recognizer->new( { grammar => $g } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $g } );
 
     # Just in case
     $recce->set( { max_parses => 999, end => $n } );
@@ -45,10 +45,9 @@ for my $n ( 0 .. 10 ) {
 
     my $variable_rule =
         parse_rules( 'S ::=' . ( $n ? ( ' A' x $n ) : ' Null' ) );
-    my $grammar = Marpa::XS::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start => 'S',
             rules => [ map { @{$_} } $basic_pascal_rules, $variable_rule ],
-            lhs_terminals => 0,
             warnings      => ( $n ? 1 : 0 ),
         }
     );

@@ -4,8 +4,8 @@ use strict;
 use warnings;
 
 use English qw( -no_match_vars );
-use Marpa::XS;
-use MarpaX::Simple::Rules 'parse_rules';
+use Marpa::R2;
+use MarpaX::Simple::Rules '0.2.6', 'parse_rules';
 
 my $catalan_rules = parse_rules(<<"RULES");
      pair ::= a a
@@ -14,7 +14,7 @@ my $catalan_rules = parse_rules(<<"RULES");
      pair ::= pair pair
 RULES
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start => 'pair',
         rules => $catalan_rules,
     }
@@ -24,7 +24,7 @@ $grammar->precompute();
 sub do_catalan {
     my $n           = shift;
     my $parse_count = 0;
-    my $recce       = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+    my $recce       = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     # Just in case
     $recce->set( { max_parses => 9999, } );
