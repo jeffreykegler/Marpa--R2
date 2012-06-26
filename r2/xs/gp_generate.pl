@@ -203,7 +203,7 @@ say {$out} gp_generate(qw(progress_report_finish));
 
 $main::CLASS_LETTER   = 't';
 $main::LIBMARPA_CLASS = 'Marpa_Tree';
-print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R', "\n\n";
+print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::T', "\n\n";
 
 say {$out} gp_generate(qw(next));
 say {$out} gp_generate(qw(parse_count));
