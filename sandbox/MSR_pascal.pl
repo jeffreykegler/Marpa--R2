@@ -45,11 +45,10 @@ my @pascal_numbers = (
 
 for my $n ( 0 .. 12 ) {
 
-    my $variable_rule =
-        parse_rules( 'S ::=' . ( $n ? ( ' A' x $n ) : ' Null' ) );
+    my $variable_rule = [ S => [ ('A') x $n ] ];
     my $grammar = Marpa::R2::Grammar->new(
         {   start => 'S',
-            rules => [ map { @{$_} } $basic_pascal_rules, $variable_rule ],
+            rules => [ $variable_rule, @{$basic_pascal_rules} ],
             warnings      => ( $n ? 1 : 0 ),
         }
     );
