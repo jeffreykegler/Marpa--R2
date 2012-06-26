@@ -624,6 +624,7 @@ PPCODE:
   Marpa_Bocage b = marpa_b_new (r, ordinal);
   if (!b)
     {
+      if (!r_wrapper->base->throw) { XSRETURN_UNDEF; }
       croak ("Problem in b->new(): %s", xs_g_error(r_wrapper->base));
     }
   Newx (b_wrapper, 1, B_Wrapper);
@@ -658,6 +659,7 @@ PPCODE:
   Marpa_Order o = marpa_o_new (b);
   if (!o)
     {
+      if (!b_wrapper->base->throw) { XSRETURN_UNDEF; }
       croak ("Problem in o->new(): %s", xs_g_error(b_wrapper->base));
     }
   Newx (o_wrapper, 1, O_Wrapper);
@@ -692,6 +694,7 @@ PPCODE:
   Marpa_Tree t = marpa_t_new (o);
   if (!t)
     {
+      if (!o_wrapper->base->throw) { XSRETURN_UNDEF; }
       croak ("Problem in t->new(): %s", xs_g_error(o_wrapper->base));
     }
   Newx (t_wrapper, 1, T_Wrapper);
@@ -764,6 +767,7 @@ PPCODE:
   Marpa_Value v = marpa_v_new (t);
   if (!v)
     {
+      if (!t_wrapper->base->throw) { XSRETURN_UNDEF; }
       croak ("Problem in v->new(): %s", xs_g_error(t_wrapper->base));
     }
   Newx (v_wrapper, 1, V_Wrapper);
