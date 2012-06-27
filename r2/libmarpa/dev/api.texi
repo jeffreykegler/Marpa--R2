@@ -157,19 +157,14 @@ Value methods
 
 * Value overview::              
 * How to use the valuator::     
-* Advantages of Libmarpa's valuator::  
-* Details of stack manipulation::  
+* Advantages of step-driven valuation::  
+* Tricky aspects of stack manipulation::  
 * Valuator constructor::        
 * Valuator reference counting::  
 * Registering semantics::       
 * Stepping through the valuator::  
 * Valuator steps by type::      
 * Step accessors::              
-
-Details of stack manipulation
-
-* Implications for literal stack manipulation::  
-* Implications for non-literal implementations::  
 
 Events
 
@@ -2665,8 +2660,8 @@ Always succeeds.
 @menu
 * Value overview::              
 * How to use the valuator::     
-* Advantages of Libmarpa's valuator::  
-* Details of stack manipulation::  
+* Advantages of step-driven valuation::  
+* Tricky aspects of stack manipulation::  
 * Valuator constructor::        
 * Valuator reference counting::  
 * Registering semantics::       
@@ -2717,7 +2712,7 @@ How to perform the steps is described in
 @ref{How to use the valuator}
 and @ref{Stepping through the valuator}.
 
-@node How to use the valuator, Advantages of Libmarpa's valuator, Value overview, Value methods
+@node How to use the valuator, Advantages of step-driven valuation, Value overview, Value methods
 @section How to use the valuator
 Libmarpa's valuator provides the application with
 ``steps'', which are
@@ -2765,71 +2760,98 @@ to the application whether the stack contains integers,
 strings, complex numbers, or polymorphic objects which are
 capable of being any of these things and more.
 
-@node Advantages of Libmarpa's valuator, Details of stack manipulation, How to use the valuator, Value methods
-@section Advantages of Libmarpa's valuator
+@node Advantages of step-driven valuation, Tricky aspects of stack manipulation, How to use the valuator, Value methods
+@section Advantages of step-driven valuation
 
-This technique
+Step-driven valuation
 hides Libmarpa's grammar rewrites from the application,
 and is actually quite efficient.
-Libmarpa knows which rules are sequences
-and optimizes stack manipulations based on this knowledge.
-Many practical grammars use long sequences heavily
-and, for these,
-the series of steps
-suggest by Libmarpa will be significantly faster than the standard
-stack evaluation algorithm in the textbooks.
+Libmarpa knows which rules are sequences.
+Based on the ``unvalued'' status,
+Libmarpa also knows which rules
+and terminals have values that it need not bother tracking.
+Libmarpa optimizes stack manipulations based on this knowledge.
+Long sequences,
+as well as unvalued rules and symbols,
+are often very common in practical grammars.
+For these,
+the stack manipulations suggested by Libmarpa's
+step driven valuator
+will be significantly faster than the
+traditional stack evaluation algorithm.
 
-To make it clear,
-we are under no illusion
+The author is under no illusion
 that direct use of Libmarpa's valuator will be found
 satisfactory by most application programmers,
-even in the C language.
+even those using the C language.
 The author certainly avoids using it directly.
 Libmarpa's valuator is intended
 to be used via an upper layer,
 one which @strong{does} know about semantics.
 
-To see the advantage
-of isolating Libmarpa from semantics,
-suppose
-that Libmarpa is used as the basis
-for a higher-level language which needs callbacks in that higher level language.
-For generality, Libmarpa would have to deal in C callbacks,
-and a middle layer would have to create C language wrappers
+Step-driven evalution has another advantage.
+To illustrate this,
+consider what is a very common case:
+the semantics are implemented in a higher-level language,
+using callbacks.
+If Libmarpa did not use step-driven valuation,
+it would need to provide for this case.
+But for generality,
+Libmarpa would have to deal in C callbacks.
+Therefore, a middle layer would have to create C language wrappers
 for the callbacks in the higher level language.
-This intermixture of languages is very hard to handle,
-especially when debugging.
-Programmers typically react to these difficulties by
-doing the minimum possible in the callbacks themselves,
-and as much as possible in pre- and post-processing.
-But this division of the work is usually undesirable
-from other points of view,
-sometimes highly so.
+
+The result implementatin is this:
+The higher level language would need to wrap its callbacks in C,
+and then calling Libmarpa, passing the wrappered callback.
+Libmarpa would then need to call the C ``wrapper'' callbacks,
+which in turn would call the higher-level language callbacks.
+A setup like this is not terribly efficient.
+And exception handling across language boundaries would be
+very tricky.
+But neither of these is the worst problem.
+
+Callbacks are hard to debug.
+Wrappered callbacks are even worse.
+Calls made across language boundaries
+are harder yet to debug.
+In the system described above,
+by the time a return value reaches the higher-level language,
+a language boundary would have been crossed four times.
+
+How do
+programmers deal with difficulties like this?
+Usually, it is by
+doing the absolute minimum possible in the callbacks.
+A horrific debugging enviroment can become a manageable
+one if there is next to no code to be debugged.
+And this can be accomplished by
+doing as much as possible in pre- and post-processing.
+
+In essence, callbacks force applications to do most
+of the programming
+via side effects.
+One need not be a functional programming purist to find
+this a very undesirable style of design to force on
+an application.
 But the ability to debug can make the difference between
 code that does work and code that does not,
-and that consideration will typically trump others.
+and, unfairly or not,
+code is rarely considered well-designed when it does
+not work.
 
-Libmarpa valuator's method of handling semantics
-does well in terms of those other considerations.
-Step-driven valuation may seem complex and indirect
-at first, but the programmer will find that the
-pushing the semantics up to a layer which knows more
-about it simplifies many things.
-Step-driven valuation also makes it unnecessary
-to divide the logic 
-between pre-processing, main processing,
-and post-processing, unless the semantics
-themselves suggest such an approach.
-Finally, step-driven valuation
-is usually slightly more efficient
-when the callbacks are in C,
-and is almost always significantly more efficient
-when the callbacks would have to be
-to a higher-level language.
+So, while step-driven valuation seems
+a roundabout approach,
+it actually is simpler and more direct than
+the likely alternatives.
+And this is something to be said for pushing
+semantics up to the higher levels --
+they can be expected to know more about it.
 
-@node Details of stack manipulation, Valuator constructor, Advantages of Libmarpa's valuator, Value methods
-@section Details of stack manipulation
+@node Tricky aspects of stack manipulation, Valuator constructor, Advantages of step-driven valuation, Value methods
+@section Tricky aspects of stack manipulation
 
+There is one tricky aspect to step-driven valuation:
 In manipulating the stack, if the application
 is mantaining a conventional physical stack,
 it is up
@@ -2837,109 +2859,121 @@ the application to ensure that all locations
 that it writes to or reads from actually
 exist.
 In the form we have stated it,
-this requirement sounds obvious,
-However, the existence of unvalued symbols,
-and the optimization of stack manipulations
-involving them,
-offers some room for surprise.
-This section discusses the requirements for
-safe stack manipulation in detail.
+this may not sound tricky.
 
-@menu
-* Implications for literal stack manipulation::  
-* Implications for non-literal implementations::  
-@end menu
+What makes it tricky is there are circumstances
+under which Libmarpa steps will suggest reads
+or writes to stack locations which are beyond
+any stack location previously referenced --
+that are outside the current stack.
+There are also circumstance
+under which a Libmarpa steps will suggest a read
+of a location which is inside the current stack,
+but which has never been written to,
+and which the application therefore
+cannot assume has been initialized.
 
-@node Implications for literal stack manipulation, Implications for non-literal implementations, Details of stack manipulation, Details of stack manipulation
-@subsection Implications for literal stack manipulation
+Whether the matters discussed in this section are issues
+depends very much on the choice of higher-level language.
+For example,
+if the stack is implemented in Perl using a Perl array,
+the arrays will be extended
+as necessary for both reads and writes.
+And, if a location has never been written,
+Perl will automatically initializes the location for its first read.
 
-In this section,
-we assume that
-the application is keeping a physical stack,
-and that the application is following the valuator's stack
+For the C programmer, life is very different.
+The same naive coding approach which would be worry-free
+for the Perl programmer would be highly-problematic for
+the C programmer.
+If a C programmer
+reads every location suggested
+by a Libmarpa step instruction,
+without taking steps to ensure that stack is properly
+extended and initialized,
+he risks traps and memory faults.
+
+In what follows, we assume an implementation
+in C90-conformant or C99-conformant C.
+This will be the most common ``hard'' case.
+It should guide other programmers adequately,
+since the C programmers situation is probably also
+``worst case'' -- if it's a safe strategy for
+the C programmer,
+it is probably more than good enough for anybody else.
+
+For the purposes of this discussion,
+we'll speak in terms of a typical implementation:
+a physical stack, implemented using a dynamic array.
+We will assume that the application is following the valuator's stack
 manipulation instructions strictly and literally.
-That is, when the application is told a rule's
+By ``literally'', we mean that,
+when the application is told a rule's
 arguments are in the locations from X to Y,
-it reads locations from X to Y of a physical stack.
+it reads locations from X to Y of the physical stack.
 And when the application is told that the result
 goes into stack location Z,
 the application writes to location Z of a physical stack.
-Many, if not most,
-applications will implement their semantics
-in exactly this way.
 
-The application needs to be aware that the
+The C application needs to be aware that the
 valuator may ask it to read from an stack location
 N, even though it was never instructed to write
 to location N.
-This will not be an issue if the stack is implemented as,
-say, a Perl array, because Perl extends and initializes
-arrays as necessary, on both read and write.
-From the point of view of the programmer of a language
-like Perl, therefore, the discussion
-of this section will be a non-issue.
-
-The situation for the C programmer is more complicated,
-to put it mildly.
-We assume the C programmer is using a dynamic array as
-a stack.
 Under these circumstances, a read from an never-written
 location beyond the end of the array,
 may cause a memory fault.
-In fact, if the C programmer is following the standards,
-she has to allow for ``trap values''.
-That is, she must assume that uninitialized locations,
-even within the
-array bounds, may contain values which will cause an
-abend on read.
+The C application must be prepared to extend the stack before
+reading as well as before writing.
 
-The C programmer implementing Libmarpa semantics literally
-and using a dynamic array as a stack, must ensure that
-the stack is extended
-@strong{and initialized to non-trap values}
-before each write
-and @strong{before each read}.
-When implementing a rule's semantics,
+There are also issues for reads of locations which are ``inside''
+the stack -- that is, which are before locations already successfully
+read or written.
+Because of unvalued symbols, a Libmarpa step instruction
+may suggest the application read a location which
+has never been written to, and which therefore may
+not have been initialized.
+
+A read of an uninitialized never-written location is an
+issue, even if it is known that the read value will
+never be used.
+Both C90 and C99 allow integers to have ``trap values'',
+and an uninitialized location may contain one of those.
+The read of trap value would cause an abend.
+
+One way of being safe is do the following:
+
+@itemize
+@item Check even rule read, and each token and
+nulling symbol write,
+and extend the stack as needed.
+@item When extending the stack, ensure that the new
+locations contain non-trap values.
+@item Ensure that the stack is length 1, that is,
+that stack location 0 exists and that it contains
+a non-trap value.
+@end itemize
+
+Note that the above states no requirement to ensure that
+the location for writing a rule's result is safe.
+To ensure this,
 it is sufficient to ensure that the rule's arguments
 exist and are initialized on the stack.
 The programmer is allowed to assume that stack location
 for a rule's result will be at or before
 the stack location of the rule's last argument.
 
-This ``read with no previous write'' behavior occurs
-because of unvalued symbols.
-If a symbol is unvalued, the write to it may be
-optimized away, but often the read from that location
-may not be.
-If the application has registered its valued symbols
-properly, 
-it will be indifferent to whatever value is
-in the stack at the location
-for the unvalued symbol.
+Also note the requirement stated for location 0.
+If the start symbol has unvalued status,
+and there is a null parse,
+a @code{MARPA_STEP_INACTIVE} may be returned
+immediately,
+without there having been any steps suggesting
+either a read or write to the stack.
+If a C application does not special-case this
+circumstance, and naively reads location 0,
+the result may be an abend.
 
-@node Implications for non-literal implementations,  , Implications for literal stack manipulation, Details of stack manipulation
-@subsection Implications for non-literal implementations
-
-It is tempting to think there may be ways to
-avoid reading never-written values
-when using less-than-literal implementations.
-The programmer needs to be aware that reads
-beyond the end of stack are only part of the problem.
-Specifically,
-@itemize
-@item Many of the locations of never-written values
-will be within the stack.
-@item Many of within-the-stack locations never written for a particular
-value may have been used
-for other values, and therefore will still have one
-of those previous values.
-@item Other never-written within-the-stack locations will never have
-been written to for any value,
-and therefore must be assumed by standard-conformant C code
-potentially to contain trap values.
-@end itemize
-
-@node Valuator constructor, Valuator reference counting, Details of stack manipulation, Value methods
+@node Valuator constructor, Valuator reference counting, Tricky aspects of stack manipulation, Value methods
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
