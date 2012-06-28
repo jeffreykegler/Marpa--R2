@@ -158,13 +158,18 @@ Value methods
 * Value overview::              
 * How to use the valuator::     
 * Advantages of step-driven valuation::  
-* Tricky aspects of stack manipulation::  
+* Maintaining the stack::       
 * Valuator constructor::        
 * Valuator reference counting::  
 * Registering semantics::       
 * Stepping through the valuator::  
 * Valuator steps by type::      
 * Step accessors::              
+
+Maintaining the stack
+
+* Sizing the stack::            
+* Initializing locations in the stack::  
 
 Events
 
@@ -2661,7 +2666,7 @@ Always succeeds.
 * Value overview::              
 * How to use the valuator::     
 * Advantages of step-driven valuation::  
-* Tricky aspects of stack manipulation::  
+* Maintaining the stack::       
 * Valuator constructor::        
 * Valuator reference counting::  
 * Registering semantics::       
@@ -2760,7 +2765,7 @@ to the application whether the stack contains integers,
 strings, complex numbers, or polymorphic objects which are
 capable of being any of these things and more.
 
-@node Advantages of step-driven valuation, Tricky aspects of stack manipulation, How to use the valuator, Value methods
+@node Advantages of step-driven valuation, Maintaining the stack, How to use the valuator, Value methods
 @section Advantages of step-driven valuation
 
 Step-driven valuation
@@ -2848,7 +2853,7 @@ And this is something to be said for pushing
 semantics up to the higher levels --
 they can be expected to know more about it.
 
-@node Maintaining the stack
+@node Maintaining the stack, Valuator constructor, Advantages of step-driven valuation, Value methods
 @section Maintaining the stack
 
 This section discusses in detail the requirements
@@ -2860,19 +2865,19 @@ Perl auto-extends its arrays,
 and initializes the element values,
 on every read or write.
 For the C programmer,
-like is considerably more difficult.
+things are not quite so easy.
 
 In this section,
 we will assume a C90 or C99 standard-conformant
 C application.
 This assumption is convenient on two grounds.
-First, this will be exactly the intended use
-for most of this sections careful readers.
-Second, standard-conformant C is a ``worst case'',
-in the sense that addressing all the potential issues
-faced by a C pragrammer
-will take care of any issue faced by the programmer
-in another language.
+First, this will be the intended use
+for many readers.
+Second, standard-conformant C is
+a ``worst case''.
+In tackling the issues faced in the C environment,
+this section hopes to anticipate
+those faced elsewhere.
 
 Libmarpa often
 optimizes away unnecessary stack writes
@@ -2898,8 +2903,16 @@ than stack location @var{Y} if stack location
 and therefore stack locations are considered greater or
 lesser if the integers that represent them are
 greater or lesser.
+A stack location @var{X} which is greater (lesser)
+than stack location @var{Y} is also said to be
+later (earlier) than stack location @var{Y}.
 
-@node Sizing the stack
+@menu
+* Sizing the stack::            
+* Initializing locations in the stack::  
+@end menu
+
+@node Sizing the stack, Initializing locations in the stack, Maintaining the stack, Maintaining the stack
 @subsection Sizing the stack
 
 If an implementation applies Libmarpa's step
@@ -2959,58 +2972,54 @@ an application cannot assume that it
 will receive a Libmarpa step instruction that
 either reads from or writes to location 0.
 
-@node Initializing locations in the stack
+@node Initializing locations in the stack,  , Sizing the stack, Maintaining the stack
 @subsection Initializing locations in the stack
 
-There are also issues for reads of locations which are ``inside''
-the stack -- that is, which are before locations already successfully
-read or written.
-Because of unvalued symbols, a Libmarpa step instruction
-may suggest the application read a location which
-has never been written to, and which therefore may
-not have been initialized.
-
-A read of an uninitialized never-written location is an
-issue, even if it is known that the read value will
-never be used.
+Write optimizations also creates issues for implementations
+which require data to be initialized before reading.
+Every fully standard-conforming C application is such an
+implementation.
 Both C90 and C99 allow integers to have ``trap values'',
 and an uninitialized location may contain one of those.
 The read of trap value would cause an abend.
+(It is safe, in standard-conforming C, to write to a location
+containing a trap value.)
 
-One way of being safe is do the following:
+The requirement that locations be initialized before
+reading occurs in other implementations.
+Uninitialized locations will correspond to unvalued symbols,
+but ``unvalued'' means ``not having a specific predictable value'' --
+an implementation may require even ``unvalued'' symbols have
+a value from a ``universe'' of values.
+For example, an application may every stack item
+to be belong to a class,
+the possible objects of that class being the
+``universe'' of values.
+In such an implementation,
+just as in standard-conformant C, every stack location
+would need to be initialized before being read.
 
+One way to safely deal with the
+initialization of stack locations,
+is to do all of the following:
 @itemize
-@item Check even rule read, and each token and
-nulling symbol write,
-and extend the stack as needed.
-@item When extending the stack, ensure that the new
-locations contain non-trap values.
-@item Ensure that the stack is length 1, that is,
-that stack location 0 exists and that it contains
-a non-trap value.
+@item Ensure that the initial stack contains at least location 0.
+@item Initializing every location in the initial stack.
+@item Whenever the stack is extended,
+initializing every stack location added.
 @end itemize
 
-Note that the above states no requirement to ensure that
-the location for writing a rule's result is safe.
-To ensure this,
-it is sufficient to ensure that the rule's arguments
-exist and are initialized on the stack.
-The programmer is allowed to assume that stack location
-for a rule's result will be at or before
-the stack location of the rule's last argument.
+Applications which try to optimize out some of
+these initializations
+need to be prepared for
+step instructions that revisit earlier
+sections of the stack.
+The application must always be prepared for a step
+instruction to specify a read anywhere in the current stack,
+as well as a read beyond the end of the current
+stack.
 
-Also note the requirement stated for location 0.
-If the start symbol has unvalued status,
-and there is a null parse,
-a @code{MARPA_STEP_INACTIVE} may be returned
-immediately,
-without there having been any steps suggesting
-either a read or write to the stack.
-If a C application does not special-case this
-circumstance, and naively reads location 0,
-the result may be an abend.
-
-@node Valuator constructor, Valuator reference counting, Tricky aspects of stack manipulation, Value methods
+@node Valuator constructor, Valuator reference counting, Maintaining the stack, Value methods
 @section Creating a new valuator
 
 @deftypefun Marpa_Value marpa_v_new ( @
