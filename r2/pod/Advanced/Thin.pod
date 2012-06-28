@@ -100,44 +100,6 @@ many
 Libmarpa methods do not have
 Marpa thin interface wrappers.
 
-None of Libmarpa's internal methods are included in
-the thin interface.
-Additionally, some of Libmarpa's external methods
-provide services that are handled internally by the thin
-interface,
-and wrappers to those methods
-are often not omitted from the Marpa thin interface.
-Whenever an external Libmarpa method is omitted from
-the thin interface,
-that will be specificially stated in this document,
-along with a reason for the omission.
-
-Whenever an external Libmarpa method is not mentioned
-in this document, the reader can assume that
-it has a wrapper that is implemented according
-to the general pattern, as
-described L<below|"The general pattern">.
-Where the implementation of an
-external libmarpa methods
-is an exception to the guidelines,
-or has other peculiarities,
-the corresponding Marpa thin interface method
-will be described in detail.
-
-=head1 Libmarpa time classes
-
-As a reminder,
-the classes of
-Libmarpa's time objects are,
-in sequence,
-grammar, recognizer, bocage,
-ordering, tree and value.
-The one-letter abbreviations for these
-are, respectively,
-C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
-
-=head1 Libmarpa methods not in the Marpa thin interface
-
 No internal Libmarpa method is part of the Marpa:thin interface.
 Additionally,
 several
@@ -153,7 +115,7 @@ of the Libmarpa config class methods,
 and no Marpa thin interface object corresponds
 to Libmarpa's config objects,
 Configuration in the Marpa thin
-interface is done Perl variables.
+interface is done using Perl variables.
 
 No Marpa thin interface method corresponds to the
 C<marpa_g_ref()> and C<marpa_g_unref()> methods
@@ -161,12 +123,35 @@ because the thin interface handles the
 reference counting of the Libmarpa objects it creates.
 The application can rely on Libmarpa
 objects being cleaned up properly as part of Perl's
+usual garbage collection.
 For the same reason,
 no Marpa thin interface method corresponds to the
 "ref" and "unref" methods of the other Libmarpa time
 classes.
 
+Whenever an external Libmarpa method is not mentioned
+in this document, the reader can assume that
+it has a wrapper that is implemented according
+to the general pattern, as
+described L<below|"The general pattern">.
+Where the implementation of an
+external libmarpa methods
+is an exception to the guidelines,
+or has other peculiarities,
+the corresponding Marpa thin interface method
+will be described in detail.
+
 =head1 Libmarpa time objects and constructors
+
+As a reminder,
+the classes of
+Libmarpa's time objects are,
+in sequence,
+grammar, recognizer, bocage,
+ordering, tree and value.
+The one-letter abbreviations for these
+are, respectively,
+C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
 
 The thin interface implements a Perl class
 corresponding to
