@@ -19,55 +19,71 @@ Marpa::R2::Advanced::Thin - Direct access to Libmarpa
 
 =head1 About this document
 
-At this moment, this document is INCOMPLETE and,
-for that reason
-NOT 100% RELIABLE.
-
 Most Marpa users can ignore this document.
-It describes Marpa's "thin" interface.
-The provides efficient access to Marpa's core
+It describes Marpa's "thin" interface,
+which
+provides efficient access to Marpa's core
 library, Libmarpa.
 It provides the ultimate in Marpa speed,
 power and flexibility.
 
 The "thin" interface is very low-level and
-NOT convenient to use --
-user-friendliness is expected to be provided by
+is not designed to be convenient to use.
+User-friendliness is expected to be provided by
 an upper layer.
-The "thin" interface is intended for those writing
-upper layers for Marpa.
+The "thin" interface
+is intended for use in writing
+those upper layers.
 It is also for those writing applications,
 when they want
 to eliminate the overhead of an upper layer,
 or when they want the flexibility provided by direct access to Libmarpa.
 
+=head1 How this document is written
+
 This document assumes that the reader is familiar with
 the other Marpa::R2 documentation,
 as well as the Libmarpa API document.
-This means the reader will have to know some C language,
-enough to understand C function prototypes.
+This means its reader will have to know some C language --
+at least enough to understand a discussion
+written in terms of C functions,
+their parameters and return values,
+and C language macros.
 
-=head1 How this document is written
+This document
+avoids
+duplicating the material in the Libmarpa
+API document.
+Most Marpa thin interface functions correspond
+directly to a Libmarpa method,
+and their implementation follows a "general pattern".
+This document describes that "general pattern".
 
-The Libmarpa interface is described in the Libmarpa
-API document,
-and this document avoids duplicating the material there.
-This document states general rules for the "thin" interface.
-Methods that do not
-depart from the general rules
-are not specifically mentioned.
+Methods that follow
+the general pattern are not specifically mentioned.
+Methods that are
+exceptions
+to the general pattern
+are described in detail.
+Those
+Libmarpa methods to which
+no Marpa thin interface method directly corresponds
+are identified.
 
-While this style and level of documentation 
-is efficient,
-and the standard for C library interfaces to Perl,
-it is,
-admittedly, very terse.
+This style of documentation 
+is very efficient,
+which is one reason that it is the
+standard for C library interfaces to Perl.
+Admittedly, however,
+it is also very terse.
 As an aid to
 the reader,
-an example of the usage of the thin interface is presented
+an example of a script using
+the Marpa thin interface is presented
 L<below|"Example">.
 While small, the example is non-trival.
-It includes a full
+It is also full,
+in the sense it contains a complete
 logic flow, starting with the definition
 of the grammar
 and contining all the way to the iteration of
@@ -75,33 +91,38 @@ the values of an ambiguous parse.
 
 =head1 Methods in the thin interface
 
-As of this writing, the thin interface has
-no methods of its own.
-Each of its methods is a wrapper for a method
+While the thin interface has a few
+methods of its own,
+most of its methods are wrappers for a method
 from the Libmarpa interface.
+On the other hand,
+many 
+Libmarpa methods do not have
+Marpa thin interface wrappers.
 
-Not all Libmarpa methods have thin interface wrappers.
 None of Libmarpa's internal methods are included in
 the thin interface.
 Additionally, some of Libmarpa's external methods
 provide services that are handled internally by the thin
 interface,
 and wrappers to those methods
-are therefore not included in the actual interface.
-When an external Libmarpa method is omitted,
-this will be specificially stated,
-with the reason for the omission.
+are often not omitted from the Marpa thin interface.
+Whenever an external Libmarpa method is omitted from
+the thin interface,
+that will be specificially stated in this document,
+along with a reason for the omission.
 
 Whenever an external Libmarpa method is not mentioned
 in this document, the reader can assume that
 it has a wrapper that is implemented according
-to the general guidelines, as
-given below.
+to the general pattern, as
+described L<below|"The general pattern">.
 Where the implementation of an
 external libmarpa methods
 is an exception to the guidelines,
 or has other peculiarities,
-that will be explicitly stated.
+the corresponding Marpa thin interface method
+will be described in detail.
 
 =head1 Libmarpa time classes
 
