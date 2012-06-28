@@ -2785,15 +2785,6 @@ step driven valuator
 will be significantly faster than the
 traditional stack evaluation algorithm.
 
-The author is under no illusion
-that direct use of Libmarpa's valuator will be found
-satisfactory by most application programmers,
-even those using the C language.
-The author certainly avoids using it directly.
-Libmarpa's valuator is intended
-to be used via an upper layer,
-one which @strong{does} know about semantics.
-
 Step-driven evalution has another advantage.
 To illustrate this,
 consider what is a very common case:
@@ -2852,6 +2843,18 @@ the likely alternatives.
 And this is something to be said for pushing
 semantics up to the higher levels --
 they can be expected to know more about it.
+
+These advantages of step-driven valuation
+are strictly in
+the context of a low-level interface.
+The author is under no illusion
+that direct use of Libmarpa's valuator will be found
+satisfactory by most application programmers,
+even those using the C language.
+The author certainly avoids using it directly.
+Libmarpa's valuator is intended
+to be used via an upper layer,
+one which @strong{does} know about semantics.
 
 @node Maintaining the stack, Valuator constructor, Advantages of step-driven valuation, Value methods
 @section Maintaining the stack
@@ -2960,13 +2963,6 @@ location for the result of the
 An application is allowed to assume that
 result will go into one of the locations
 that were read.
-This assumes, of course, that the application did
-resize the stack to include the rule's arguments.
-If it did not, perhaps because the rule's semantics
-do not take the rule's arguments into account,
-then the application will need to extend that stack
-to ensure that the
-location @code{marpa_v_result(v)} exists.
 
 Third, special note should be made of the requirement
 that location 0 exist.
