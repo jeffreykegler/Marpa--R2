@@ -2848,82 +2848,119 @@ And this is something to be said for pushing
 semantics up to the higher levels --
 they can be expected to know more about it.
 
-@node Tricky aspects of stack manipulation, Valuator constructor, Advantages of step-driven valuation, Value methods
-@section Tricky aspects of stack manipulation
+@node Maintaining the stack
+@section Maintaining the stack
 
-There is one tricky aspect to step-driven valuation:
-In manipulating the stack, if the application
-is mantaining a conventional physical stack,
-it is up
-the application to ensure that all locations
-that it writes to or reads from actually
-exist.
-In the form we have stated it,
-this may not sound tricky.
+This section discusses in detail the requirements
+for maintaining the stack.
+In some cases,
+such as implementation using a Perl array,
+fulfilling these requirements is trivial.
+Perl auto-extends its arrays,
+and initializes the element values,
+on every read or write.
+For the C programmer,
+like is considerably more difficult.
 
-What makes it tricky is there are circumstances
-under which Libmarpa steps will suggest reads
-or writes to stack locations which are beyond
-any stack location previously referenced --
-that are outside the current stack.
-There are also circumstance
-under which a Libmarpa steps will suggest a read
-of a location which is inside the current stack,
-but which has never been written to,
-and which the application therefore
-cannot assume has been initialized.
+In this section,
+we will assume a C90 or C99 standard-conformant
+C application.
+This assumption is convenient on two grounds.
+First, this will be exactly the intended use
+for most of this sections careful readers.
+Second, standard-conformant C is a ``worst case'',
+in the sense that addressing all the potential issues
+faced by a C pragrammer
+will take care of any issue faced by the programmer
+in another language.
 
-Whether the matters discussed in this section are issues
-depends very much on the choice of higher-level language.
-For example,
-if the stack is implemented in Perl using a Perl array,
-the arrays will be extended
-as necessary for both reads and writes.
-And, if a location has never been written,
-Perl will automatically initializes the location for its first read.
+Libmarpa often
+optimizes away unnecessary stack writes
+to stack locations.
+When it does so, it will not
+necessarily optimize away all reads
+to that stack location.
+This means the a location's first access,
+as suggested by the Libmarpa step instructions,
+may be a read.
+This possibility
+require a special awareness from the C
+programmer.
 
-For the C programmer, life is very different.
-The same naive coding approach which would be worry-free
-for the Perl programmer would be highly-problematic for
-the C programmer.
-If a C programmer
-reads every location suggested
-by a Libmarpa step instruction,
-without taking steps to ensure that stack is properly
-extended and initialized,
-he risks traps and memory faults.
+In the discussions in this document,
+stack locations are non-negative integers
+The bottom of the stack is location 0.
+In moving from the bottom of the stack to the top,
+the numbers increase.
+Stack location @var{X} is said to be ``greater'' 
+than stack location @var{Y} if stack location
+@var{X} is closer to the top of stack than location @var{Y},
+and therefore stack locations are considered greater or
+lesser if the integers that represent them are
+greater or lesser.
 
-In what follows, we assume an implementation
-in C90-conformant or C99-conformant C.
-This will be the most common ``hard'' case.
-It should guide other programmers adequately,
-since the C programmers situation is probably also
-``worst case'' -- if it's a safe strategy for
-the C programmer,
-it is probably more than good enough for anybody else.
+@node Sizing the stack
+@subsection Sizing the stack
 
-For the purposes of this discussion,
-we'll speak in terms of a typical implementation:
-a physical stack, implemented using a dynamic array.
-We will assume that the application is following the valuator's stack
-manipulation instructions strictly and literally.
-By ``literally'', we mean that,
-when the application is told a rule's
-arguments are in the locations from X to Y,
-it reads locations from X to Y of the physical stack.
-And when the application is told that the result
-goes into stack location Z,
-the application writes to location Z of a physical stack.
+If an implementation applies Libmarpa's step
+instructions literally, using a physical stack,
+it must make sure the stack is large enough.
+Specifically, the application must do the following
 
-The C application needs to be aware that the
-valuator may ask it to read from an stack location
-N, even though it was never instructed to write
-to location N.
-Under these circumstances, a read from an never-written
-location beyond the end of the array,
-may cause a memory fault.
-The C application must be prepared to extend the stack before
-reading as well as before writing.
+@itemize
+@item Ensure location 0 exists -- in other
+words that the stack is length 1.
+@item For @code{MARPA_STEP_TOKEN} steps,
+ensure that location @code{marpa_v_result(v)}
+exists.
+@item For @code{MARPA_STEP_NULLING_SYMBOL} steps,
+ensure that location @code{marpa_v_result(v)}
+exists.
+@item For @code{MARPA_STEP_RULE} steps,
+ensure that that stack locations from @code{marpa_v_arg_0(v)}
+to @code{marpa_v_arg_n(v)} exist.
+@end itemize
+
+Three aspects of the requirements deserve special mention.
+First,
+Note that the requirement for a
+@code{MARPA_STEP_RULE} is that the application
+size the stack to include the arguments to be
+read.
+Because stack writes may be optimized away,
+an application cannot that the stack was
+sized appropriately by a write prior to the read.
+The first access to a new stack location may be
+a read.
+
+Second,
+note that there is no explicit requirement that
+the application size the stack to include the
+location for the result of the
+@code{MARPA_STEP_RULE} step.
+An application is allowed to assume that
+result will go into one of the locations
+that were read.
+This assumes, of course, that the application did
+resize the stack to include the rule's arguments.
+If it did not, perhaps because the rule's semantics
+do not take the rule's arguments into account,
+then the application will need to extend that stack
+to ensure that the
+location @code{marpa_v_result(v)} exists.
+
+Third, special note should be made of the requirement
+that location 0 exist.
+By convention, the parse result resides
+in location 0 of the stack.
+But, because the start symbol
+may have unvalued status,
+an application cannot assume that it
+will receive a Libmarpa step instruction that
+either reads from or writes to location 0.
+
+@node Initializing locations in the stack
+@subsection Initializing locations in the stack
 
 There are also issues for reads of locations which are ``inside''
 the stack -- that is, which are before locations already successfully
@@ -3110,17 +3147,6 @@ On failure, -2.
 
 @node Valuator steps by type, Step accessors, Stepping through the valuator, Value methods
 @section Valuator steps by type
-
-Stack locations are non-negative integers
-The bottom of the stack is location 0.
-In moving from the bottom of the stack to the top,
-the numbers increase.
-Stack location @var{X} is said to be ``greater'' 
-than stack location @var{Y} if stack location
-@var{X} is closer to the top of stack than location @var{Y},
-and therefore stack locations are considered greater or
-lesser if the integers that represent them are
-greater or lesser.
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_RULE
 The semantics of a rule should be performed.
