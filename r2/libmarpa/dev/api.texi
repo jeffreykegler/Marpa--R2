@@ -2797,11 +2797,17 @@ Libmarpa would have to deal in C callbacks.
 Therefore, a middle layer would have to create C language wrappers
 for the callbacks in the higher level language.
 
-The result implementatin is this:
-The higher level language would need to wrap its callbacks in C,
-and then calling Libmarpa, passing the wrappered callback.
-Libmarpa would then need to call the C ``wrapper'' callbacks,
-which in turn would call the higher-level language callbacks.
+The implementation that results is this:
+The higher level language would need to wrap each callback in C.
+When calling Libmarpa, it would pass the wrappered callback.
+Libmarpa would then need to call the C language ``wrappered'' callback.
+Next, the wrapper would call the higher-level language callback.
+The return value,
+which would be data native to the higher-level language,
+would need to be passed to the C language wrapper,
+which will need to make arrangements for it to be based
+back to the higher-level language when appropriate.
+
 A setup like this is not terribly efficient.
 And exception handling across language boundaries would be
 very tricky.
@@ -2812,8 +2818,8 @@ Wrappered callbacks are even worse.
 Calls made across language boundaries
 are harder yet to debug.
 In the system described above,
-by the time a return value reaches the higher-level language,
-a language boundary would have been crossed four times.
+by the time a return value is finally consumed,
+a language boundary will have been crossed four times.
 
 How do
 programmers deal with difficulties like this?
@@ -2831,8 +2837,8 @@ One need not be a functional programming purist to find
 this a very undesirable style of design to force on
 an application.
 But the ability to debug can make the difference between
-code that does work and code that does not,
-and, unfairly or not,
+code that does work and code that does not.
+Unfairly or not,
 code is rarely considered well-designed when it does
 not work.
 
