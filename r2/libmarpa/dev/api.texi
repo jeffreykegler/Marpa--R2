@@ -102,7 +102,6 @@ Terminals
 Semantics
 
 * How Libmarpa semantics work::  
-* Universe of values::          
 * Valued and unvalued symbols::  
 
 Error handling
@@ -868,11 +867,10 @@ and forth into whatever the application requires.
 
 @menu
 * How Libmarpa semantics work::  
-* Universe of values::          
 * Valued and unvalued symbols::  
 @end menu
 
-@node How Libmarpa semantics work, Universe of values, Semantics, Semantics
+@node How Libmarpa semantics work, Valued and unvalued symbols, Semantics, Semantics
 @section How the Libmarpa semantics work
 
 Libmarpa handling of semantics is unusual.
@@ -890,14 +888,6 @@ For rule evalution, Libmarpa will tell the application where the operands
 are to be found,
 and where the result must go.
 
-@node Universe of values, Valued and unvalued symbols, How Libmarpa semantics work, Semantics
-@section The universe of values
-
-The application can react to Libmarpa's stack handling instructions
-in any way it sees fit,
-but it is expected that it will maintain a physical stack which
-can be addressed as an array.
-
 An advantage of leaving the application in control of the stack
 is that the applicaion has total control over what the stack values
 are.
@@ -908,35 +898,7 @@ the universe of values is the Perl scalar-assignables.
 In C, they could be integers, @code{void *} pointers,
 or pointers to some sort of polymorphic object.
 
-It is up to the application to make sure the stack positions
-in Libmarpa's steps exist and are initialized as desired
-by the application.
-This means extending the stack as needed for writes,
-but also for reads.
-Because of optimizations, it is quite possible for a
-Libmarpa step to identify a stack position which has
-never been written to as the operand of a rule.
-This can happen, for example, if the rule's
-operand is an unvalued or ``whatever''
-value.
-(It is expected that in such a case that the rule's value
-does not depend on that operand, though it is up to the
-application to ensure this.)
-
-C programmers should be aware of a pitfalls specific to C.
-Both C90 and C99 allow unitialized values to be ``trap'' values --
-values which cause a trap (possibly an abend) when read.
-A C application must take steps to ensure either that
-the universe of values does not include trap values,
-or that these trap values are never read.
-Excluding trap values from a C program's universe of
-values may require the application to make
-sure that stack positions are properly initialized.
-This is discussed in detail in the section
-on value objects.
-@xref{Value methods}.
-
-@node Valued and unvalued symbols,  , Universe of values, Semantics
+@node Valued and unvalued symbols,  , How Libmarpa semantics work, Semantics
 @section Valued and unvalued symbols
 
 Libmarpa symbols can have values,
