@@ -2979,9 +2979,11 @@ Write optimizations also creates issues for implementations
 which require data to be initialized before reading.
 Every fully standard-conforming C application is such an
 implementation.
-Both C90 and C99 allow integers to have ``trap values'',
-and an uninitialized location may contain one of those.
-The read of trap value would cause an abend.
+Both C90 and C99 allow ``trap values'',
+and therefore conforming applications must be
+prepared for
+an uninitialized location to contain one of those.
+Reading a trap value may cause an abend.
 (It is safe, in standard-conforming C, to write to a location
 containing a trap value.)
 
@@ -2989,24 +2991,30 @@ The requirement that locations be initialized before
 reading occurs in other implementations.
 Uninitialized locations will correspond to unvalued symbols,
 but ``unvalued'' means ``not having a specific predictable value'' --
-an implementation may require even ``unvalued'' symbols have
-a value from a ``universe'' of values.
-For example, an application may every stack item
-to be belong to a class,
-the possible objects of that class being the
+an implementation may require even ``unvalued'' symbols to have
+a value that belongs to its ``universe'' of values.
+For example, an application may be implemented
+expecting every item on the stack
+to belong to a class,
+in which case
+the set of all objects of that class would
+be that application's
 ``universe'' of values.
 In such an implementation,
 just as in standard-conformant C, every stack location
 would need to be initialized before being read.
 
+Due to write optimizations, an application
+cannot rely on Libmarpa's step instructions to
+initialize every stack location before its first read.
 One way to safely deal with the
 initialization of stack locations,
 is to do all of the following:
 @itemize
-@item Ensure that the initial stack contains at least location 0.
-@item Initializing every location in the initial stack.
+@item When starting evaluation, ensure that the stack contains at least location 0.
+@item Also, when starting evaluation, initialize every location in the stack.
 @item Whenever the stack is extended,
-initializing every stack location added.
+initialize every stack location added.
 @end itemize
 
 Applications which try to optimize out some of
