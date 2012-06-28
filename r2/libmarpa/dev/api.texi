@@ -2875,9 +2875,9 @@ First, this will be the intended use
 for many readers.
 Second, standard-conformant C is
 a ``worst case''.
-In tackling the issues faced in the C environment,
-this section hopes to anticipate
-those faced elsewhere.
+Any issue faced by a programmer of another environment
+is likely to also be one that must be solved
+by the C programmer.
 
 Libmarpa often
 optimizes away unnecessary stack writes
@@ -2890,7 +2890,10 @@ as suggested by the Libmarpa step instructions,
 may be a read.
 This possibility
 require a special awareness from the C
-programmer.
+programmer,
+as discussed in
+@ref{Sizing the stack} and
+@ref{Initializing locations in the stack}.
 
 In the discussions in this document,
 stack locations are non-negative integers
@@ -2934,15 +2937,18 @@ ensure that that stack locations from @code{marpa_v_arg_0(v)}
 to @code{marpa_v_arg_n(v)} exist.
 @end itemize
 
-Three aspects of the requirements deserve special mention.
+Three aspects of these requirements deserve special mention.
 First,
-Note that the requirement for a
+note that the requirement for a
 @code{MARPA_STEP_RULE} is that the application
 size the stack to include the arguments to be
 read.
 Because stack writes may be optimized away,
-an application cannot that the stack was
-sized appropriately by a write prior to the read.
+an application,
+when reading,
+cannot assume
+that the stack was
+sized appropriately by a prior write.
 The first access to a new stack location may be
 a read.
 
