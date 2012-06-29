@@ -265,6 +265,84 @@ For details, see
 L<< the description of that
 method|"$r->alternative()" >>.
 
+=head1 Error codes, names and descriptions
+
+Errors in the Marpa thin interface come from
+two sources:
+Libmarpa, and the Marpa thin interface itself.
+These will be called Libmarpa errors
+and thin interface errors, respectively.
+
+When the last error was a Libmarpa error,
+the error code is the Libmarpa error code, as described
+in the Libmarpa API document.
+A Libmarpa error code is a non-negative integer.
+When the most recent error was a thin interface
+error, the error code is
+a Perl C<undef>.
+
+Libmarpa's integral error codes are rarely used directly,
+either in C or in Perl.
+In C, the error codes are referred to using macros.
+The macro names are available through the thin interface
+as error names.
+For details see L<the section on error methods|"Error methods">.
+Thin interface errors do not have error names.
+
+In addition to error names, there are error descriptions.
+Error descriptions differ from error names.
+
+=over 4
+
+=item *
+
+Error names are short mnemonics.
+Error descriptions are typically longer.
+
+=item *
+
+Error names and error codes have a one to one correspondence (bijection).
+For a given error code, the error name will always
+be the same, and vice versa.
+Error descriptions 
+may context text relating, not just to the error code,
+but to the specific error instance.
+
+=item *
+
+The error name is defined if and
+only if
+the error code is defined.
+Error descriptions always exist,
+whether or not there is an error code defined.
+
+=item *
+
+A thin interface error
+will always have an error description.
+A thin interface error
+will never have an error name.
+
+=item *
+
+The programmer can expect error codes and error names
+to remain stable and can write code that relies
+on the numeric value of the error codes
+and the text of the error name.
+Applications should rely on the text of an error description for
+only one purpose: passing it on to a human user.
+
+=back
+
+Error descriptions, while typically longer than error names,
+are intended for situations where
+it is most convenient if they fit into a single line,
+or at most two.
+The Libmarpa API document contains a section on the Libmarpa
+error codes.
+and there the descriptions
+are often longer and more detailed.
+
 =head1 The general pattern
 
 Most Marpa thin interface methods correspond directly
