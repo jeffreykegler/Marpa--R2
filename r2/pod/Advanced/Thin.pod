@@ -496,45 +496,16 @@ it will return it as a numeric Perl scalar.
 If the Libmarpa method returns -1,
 its corresponding general pattern Marpa thin method
 will return a Perl C<undef>.
-For the treatment of other negative return values,
-see the section on L<the general failure handling
-pattern|"The general failure handling pattern">.
 
-=head2 The general failure handling pattern
-
-The general failure handling pattern is part
-of the general pattern.
-In addition there are several methods that do not
-follow
-the general pattern, but that do follow the
-general failure handling pattern in part
-or in whole.
-These cases will be noted specifically in
-descriptions of those methods
-in this document.
+=head2 General pattern failures
 
 General pattern methods consider failure to be
-a return of -2 or less.
-If the throw setting is 1,
-the failure is thrown.
+a Libmarpa return value of -2 or less.
+Failure is thrown if the throw setting is 1.
 On unthrown failure, the return value
 of the Libmarpa method will
-also be returned by the Marpa thin
+be returned by the Marpa thin
 method as a numeric Perl scalar.
-The Libmarpa error code
-and a Marpa thin interface error name
-and error description
-will be available,
-as described in L<the section
-on error
-methods|/"Error methods">.
-
-In the general pattern,
-if the Libmarpa method returns -1,
-the corresponding Marpa thin method returns
-a Perl C<undef>.
-In the general pattern,
-a return of -1 is NOT considered a failure.
 
 =head2 An example of a general pattern method
 
@@ -581,60 +552,21 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 In scalar context,
-the C<error()> method returns the B<error description>,
-a string that describes the most recent error.
+the C<error()> method returns the error description.
 In array context, it returns a 2-element array.
-The first element of the array is the B<error code>,
-and the second element is the same error description
-that is returned in scalar context.
+The first element of the array is the error code,
+and the second element is the error description.
+Applications should assume that
+a call to any other Marpa thin method
+will overwrite the error code and error description.
+For C<error()> to successfully query
+the error code or error description of a method,
+it should be
+the next Marpa thin interface method called.
 
+=head2 C<< $g->error_clear() >>
 
-All Marpa thin interface
-methods follow the general failure
-handling pattern, unless it is stated otherwise
-in that method's description in this document.
-Methods which follow the general pattern
-always follow the general failure handling pattern.
-
-The "error description" is
-a string
-that describes the most recent error.
-Error descriptions are subject to wording
-and punctuation changes,
-and applications should not rely on their text.
-
-The error code may be undefined
-or an integer.
-If it is an integer, it
-is the Libmarpa error code and
-can be used as an index to array of
-error names returned by the 
-L<< C<< $g->error_names() >>
-method|"$g->error_names()" >>.
-The programmer can expect error
-codes and error names to be kept stable.
-
-If the error code is a Perl C<undef>,
-the most recent error was in the Marpa thin
-layer, and the error description will be of
-that error.
-Note that a Marpa thin layer
-error will not persist after the call
-to C<error()>.
-It is up to
-an application, if it wants to refer to the
-error code or description again,
-to store them.
-
-While in the current implement Libmarpa error
-codes and descriptions can be more persistent,
-applications should not rely on this.
-Applications should assume, for all classes of
-errors returned by the C<error()> method,
-that they will not persist into a call to
-any other Marpa thin method, including the
-a second call to the C<error()>
-method itself.
+The C<error_clear()> method follows the general pattern.
 
 =head2 C<< $g->error_names() >>
 
@@ -644,13 +576,6 @@ method|"$g->error()" >>.
 The C<error_names()> method returns a
 B<reference> to an array of error names,
 indexed by Libmarpa error code.
-Error names are intended as mnemonic codes --
-as a convenient alternative to the numeric
-error codes.
-They are not intended as descriptions of the error
-condition.
-The programmer can expect error
-codes and error names to be kept stable.
 
 =head2 C<< $g->throw_set() >>
 
