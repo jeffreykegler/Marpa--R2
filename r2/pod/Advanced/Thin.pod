@@ -343,6 +343,77 @@ error codes.
 and there the descriptions
 are often longer and more detailed.
 
+Error codes and error descriptions should only be considered
+valid if they are queried immediately after a method returns,
+and only if that method indicated that an error description
+can be expected.
+"Immediately" in this context means before another call to
+another thin interface method, except the L<< C<error()>
+method|"$g->error()" >>.
+Indication of failure can be either a thrown exception,
+or a return value.
+Which return values indicate that there is an error code
+is documented for each method.
+For those methods following the general pattern,
+for example,
+an error description can be expected only if failure was
+thrown or if the method returned a value equal to or
+less than -2.
+
+More specifically,
+
+=over 4
+
+=item *
+
+On a Libmarpa failure,
+thrown or unthrown,
+the method sets the error code to the
+Libmarpa error code
+and the error description
+to a string which describes the Libmarpa failure.
+
+=item *
+
+On a thin interface failure,
+thrown or unthrown,
+the method sets the error code to a Perl C<undef>.
+It also sets the error description
+to a string which describes the failure.
+
+=item *
+
+In a few cases,
+as documented in the Libmarpa API,
+Libmarpa set an "informational"
+error code on success.
+(In this context, "error code"
+becomes something of a misnomer.)
+An appropriate error description is also set.
+These "informational" error codes
+are solely intended as a convenience,
+and the programmer should consider herself
+free to ignore them.
+Whenver a Libmarpa method sets an informational error code,
+the code, the circumstances under which it is set,
+and the associated return value,
+are specifically stated
+in the Libmarpa API document.
+
+=item *
+
+On success,
+if a method does not set an informational error code,
+it may do one of two things.
+First, it may
+clear the error code and error description.
+Second, it may leave them as is.
+Which of the two will happen is
+unspecified, unless stated in the description
+of that method in this document.
+
+=back
+
 =head1 The general pattern
 
 Most Marpa thin interface methods correspond directly
@@ -517,40 +588,6 @@ The first element of the array is the B<error code>,
 and the second element is the same error description
 that is returned in scalar context.
 
-If a method follows
-the general failure handling pattern,
-then it does the following:
-
-=over 4
-
-=item *
-
-On a Libmarpa failure,
-the method sets the error code to the
-Libmarpa error code.
-This is a integer.
-The method always sets the error description
-to a string which describes the Libmarpa failure.
-
-=item *
-
-On other failures,
-the method sets the error code to a Perl C<undef>.
-It sets the error description
-to a string which describes the failure.
-
-=item *
-
-On success, the method may do
-one of two things.
-First, it may
-clear the error code and error description.
-Second, it may leave them as is.
-Which of the two will happen is
-unspecified, unless stated in the description
-of that method in this document.
-
-=back
 
 All Marpa thin interface
 methods follow the general failure
