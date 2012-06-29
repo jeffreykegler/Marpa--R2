@@ -106,9 +106,11 @@ step_type_to_string (Marpa_Step_Type step_type)
    It returns a buffer which must be Safefree()'d.
 */
 static char *
-libmarpa_exception (int error_code, const char *error_string)
+error_description_generate (G_Wrapper *g_wrapper)
 {
   dTHX;
+  const int error_code = g_wrapper->libmarpa_error_code;
+  const char *error_string = g_wrapper->libmarpa_error_string;
   const char *suggested_description = NULL;
   /*
    * error_name should always be set when suggested_description is,
@@ -149,7 +151,11 @@ libmarpa_exception (int error_code, const char *error_string)
     }
   output_string = suggested_description;
   COPY_STRING:
-      return savepv(output_string);
+  {
+      char* buffer = g_wrapper->message_buffer;
+      if (buffer) Safefree(buffer);
+      return g_wrapper->message_buffer = savepv(output_string);
+    }
 }
 
 /* Argument 'string' must be something that can (and
@@ -174,14 +180,10 @@ static const char *
 xs_g_error (G_Wrapper * g_wrapper)
 {
   Marpa_Grammar g = g_wrapper->g;
-  const int error_code = marpa_g_error (g, &g_wrapper->libmarpa_error_string);
-  char *buffer = g_wrapper->message_buffer;
-  if (buffer) Safefree(buffer);
-  g_wrapper->message_buffer = buffer =
-    libmarpa_exception (error_code, g_wrapper->libmarpa_error_string);
+  g_wrapper->libmarpa_error_code =
+    marpa_g_error (g, &g_wrapper->libmarpa_error_string);
   g_wrapper->message_is_marpa_thin_error = 0;
-  g_wrapper->libmarpa_error_code = error_code;
-  return buffer;
+  return error_description_generate (g_wrapper);
 }
 
 /* Wrapper to use vwarn with libmarpa */
