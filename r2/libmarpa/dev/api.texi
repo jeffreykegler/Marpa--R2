@@ -70,7 +70,7 @@ About this document
 
 Architecture
 
-* Time objects::                
+* Major objects::               
 * The lifetime of time objects::  
 * Parent and child time objects::  
 * Numbered objects::            
@@ -335,65 +335,60 @@ to successfully debug the logic.
 @chapter Architecture
 
 @menu
-* Time objects::                
+* Major objects::               
 * The lifetime of time objects::  
 * Parent and child time objects::  
 * Numbered objects::            
 @end menu
 
-@node Time objects, The lifetime of time objects, Architecture, Architecture
-@section Time objects
+@node Major objects, The lifetime of time objects, Architecture, Architecture
+@section Major objects
 
-Marpa divides parsing into phases,
-which in this document are more often called ``times''.
-The term ``time'' is more accurate,
-beacuse the time objects are typically in use simultaneously.
-The term ``phase'' suggest a time which is
-exclusive and non-simultaneous
--- when one phase ends, another begins.
-In our lives, work and play are times.
-Infancy, adolescent and adulthood are phases.
-
-Although times can be simulataneous,
-they do have a sequence.
-The times are, in sequence order:
+These are the major objects of Libmarpa,
+in sequence.
 
 @itemize
 @item
-Grammar:  At grammar time, the rules and symbols
-are defined, with their properties.
-A grammar must be precomputed before a recognizer can
-be created from it.
+Configuration:
+Configuration objects are
+a thread-safe way to hold configuration variables,
+as well as the return code from failed attempts
+to create grammars.
 @item
-Recognizer: At recognizer time, input is read.
+Grammar objects contain rules and symbols,
+with their properties.
 @item
-Bocage: At bocage time, a data structure called a
-bocage is created from the information captured
-during recognition.
-The bocage stores a collection of parse trees,
-similar to a parse forest.
+Recognizer objects read input.
 @item
-Ordering: At ordering time, a order is defined
-for the bocage.
+Bocage objects contain the collection of
+parse trees found by a recognizer.
+Bocages are similar to parse forests.
 @item
-Tree: At tree time,
-an iterator of the parse bocage
-is created, and traversed.
+Ordering objects are bocage objects,
+plus an ordering.
 @item
-Value: At value time,
-the current parse tree of a tree iterator
-is traversed for its ``steps''.
-``Steps'' are instructions that tell
-the application how to maintain
-a stack and to evaluate the
-semantics.
+Tree objects are bocage iterators.
+@item
+Value objects are a kind of tree iterator.
+Iteration of a value object
+produces ``steps'',
+instructions to the
+the application on how 
+to evaluate the semantics,
+and how to manipulate the stack.
 @end itemize
 
-The time objects classes have one letter abbreviations,
+All of Libmarpa's major objects,
+except Coniguration objects
+are ``time'' objects.
+
+The major objects have one letter abbreviations,
 which are used frequently.
 These are, in the standard sequence,
 
 @itemize
+@item
+Configuration:  C
 @item
 Grammar:  G
 @item
@@ -408,14 +403,14 @@ Tree: T
 Value: V
 @end itemize
 
-@node The lifetime of time objects, Parent and child time objects, Time objects, Architecture
+@node The lifetime of time objects, Parent and child time objects, Major objects, Architecture
 @section The lifetime of time objects
 
-One of reasons Libmarpa's major objects
-are called ``time objects''
-is that each of them has a distinct lifetime.
-Time objects are reference counted.
-Every time object is created with a reference count of 1.
+Each of Libmarpa's major objects
+has a distinct lifetime, which is controlled
+by a reference count.
+Reference counting follow the common practice.
+Time objects are created with a reference count of 1.
 Whenever one time object is created from another,
 the parent time object has its reference count incremented
 by 1.
