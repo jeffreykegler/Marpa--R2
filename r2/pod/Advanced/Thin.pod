@@ -267,73 +267,116 @@ method|"$r->alternative()" >>.
 
 =head1 The general pattern
 
-The thin Marpa methods often follow
-a general pattern,
-based on their corresponding Libmarpa time class method.
-Internal class instance methods for Libmarpa's time classes
-have names of the form C<marpa_g_start_symbol_set>.
-The name begins with a fixed six-letter prefix
-C<marpa_>,
-followed by a single letter
-(in this case "C<g>"),
-and another underscore.
-The single letter is one of Libmarpa's time class
-abbreviations, and indicates which
-class the method belongs to.
+Most Marpa thin interface methods correspond directly
+to a Libmarpa method,
+and their behaviors are in most cases exactly the same.
+These behaviors are called the "general pattern"
+in this document.
+To avoid repetition,
+Marpa thin interface methods that follow
+the general pattern exactly are not
+explicitly described in this document.
 
-In general pattern of Marpa's thin interface,
-the corresponding Marpa thin Perl closure would be
-be a method in the appropriate Marpa thin class,
-whose name is the same except for the 8-letter prefix.
+The name of a general pattern method is that of
+its corresponding Libmarpa method,
+minus the 8-letter prefix which indicates
+its Libmarpa class.
 For example,
-the Marpa thin method corresponding to C<marpa_g_start_symbol_set>
-would be named C<start_symbol_set>
-and would be a method
-of the C<Marpa::R2::Thin:G> Perl class.
-
-When a Libmarpa method returns -1 to indicate failure,
-a Marpa thin interface following the general pattern
-returns a Perl C<undef>.
-When a Libmarpa method returns -2 to indicate failure,
-a Marpa thin interface following the general pattern
-throws a Perl exception.
+the Marpa thin interface method that
+corresponds to C<marpa_g_start_symbol_set>
+is C<< $g->start_symbol_set() >>.
+The class of the general pattern method
+will be the Marpa thin class corresponding
+to the time class
+of the Libmarpa method.
+In the previous example, C<start_symbol_set()>
+will be in
+the C<Marpa::R2::Thin:G> Perl class.
 
 Libmarpa's class instance methods
 prototypes have an object of the appropriate class
 as their first ("self") argument.
-Zero or more other non-self arguments follow this first time class argument.
-In the corresponding thin Marpa method,
-if it follows the general pattern,
-the arguments to the Perl method closure are the
-the arguments of the C function
-in the same order,
-and converted in Perl variables as described next.
-(Here I am following the
-convention in the L<perlobj> of considered the "self" object to
+Zero or more non-self arguments follow this first time class argument.
+The arguments of the corresponding general pattern
+Marpa thin method will be
+the same, converted from C types to Perl as described below.
+(This discussion follows
+the convention used in L<perlobj>,
+and considers the "self" object to
 be a Perl method's first argument.)
 
 In the general pattern,
-every return value or argument whose type is one
+every argument whose type is one
 of Libmarpa's time classes is converted
 to the corresponding Marpa thin interface class.
-Return values and arguments of Libmarpa's numbered 
-classes (C<Marpa_Rule_ID> and C<Marpa_Symbol_ID>)
-are converted to Perl scalar integers.
-C language C<int>'s are also
-converted to Perl scalar integers.
+C language C<int>'s are converted to Perl scalar integers.
+Arguments which belong to Libmarpa's numbered 
+classes (for example,
+C<Marpa_Rule_ID> and C<Marpa_Symbol_ID>)
+are also converted to Perl scalar integers.
 
-Note that will NOT convert
-a Perl true to a 1
-or a Perl false to a 0.
-The thin interface expects even those arguments 
-which Libmapra interprets as booleans to be
-numbers, as specified in the Libmarpa API.
-This usually means the that arguments
-must either be
-NUMERIC one or NUMERIC zero.
-This allows for future extensions
+In the general pattern,
+return values from Libmarpa method
+will always either
+belong to
+one of Libmarpa's numbered classes,
+or be C language C<int>'s.
+The corresponding
+general pattern Marpa thin method
+will return the integer as
+a numeric Perl scalar,
+with one exception.
+When a Libmarpa method returns -1,
+its corresponding general pattern Marpa thin method
+will return a Perl C<undef>.
+
+Note that booleans do not receive special recognition.
+Even when a Libmarpa interface treats an
+argument as a booleans, the corresponding
+general pattern Marpa thin method will treat
+its arguments as if they were any other numeric,
+without regard to their "Perl truth value".
+The intent is to allow for future extensions
 to the Libmarpa interface that
 accept and interpret other numeric values.
+
+=head2 The general failure handling pattern
+
+The general failure handling pattern is part
+of the general pattern.
+In addition there are several methods that do not
+follow
+the general pattern, but that do follow the
+general failure handling pattern in part
+or in whole.
+These cases will be noted specifically in
+descriptions of those methods
+in this document.
+
+General pattern methods consider failure to be
+a return of -2 or less.
+If the throw setting is 1,
+the failure is thrown.
+On unthrown failure, the return value
+of the Libmarpa method will
+also be returned by the Marpa thin
+method as a numeric Perl scalar.
+The Libmarpa error code
+and a Marpa thin interface error name
+and error description
+will be available,
+as described in L<the section
+on error
+methods|/"Error methods">.
+
+In the general pattern,
+if the Libmarpa method returns -1,
+the corresponding Marpa thin method returns
+a Perl C<undef>.
+In the general pattern,
+a return of -1 is NOT considered a failure.
+
+=head2 An example of a general pattern method
 
 Here is an example of a Libmarpa function
 whose corresponding Marpa thin method follows the
@@ -386,7 +429,7 @@ and the second element is the same error description
 that is returned in scalar context.
 
 If a method follows
-the general error handling pattern,
+the general failure handling pattern,
 then it does the following:
 
 =over 4
@@ -421,11 +464,11 @@ of that method in this document.
 =back
 
 All Marpa thin interface
-methods follow the general error
+methods follow the general failure
 handling pattern, unless it is stated otherwise
 in that method's description in this document.
 Methods which follow the general pattern
-always follow the general error handling pattern.
+always follow the general failure handling pattern.
 
 The "error description" is
 a string
@@ -1086,7 +1129,7 @@ captialization variants.
 The string will usually be a description of the error.
 On failure,
 C<step()> also sets the error code and error description
-in conformance to the general error handling pattern.
+in conformance to the general failure handling pattern.
 
 =head2 Omitted methods
 
