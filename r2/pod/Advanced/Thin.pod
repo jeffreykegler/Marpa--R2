@@ -305,7 +305,7 @@ Error names and error codes have a one to one correspondence (bijection).
 For a given error code, the error name will always
 be the same, and vice versa.
 Error descriptions 
-may context text relating, not just to the error code,
+may contain text relating, not just to the error code,
 but to the specific error instance.
 
 =item *
@@ -348,7 +348,7 @@ valid if they are queried immediately after a method returns,
 and only if that method indicated that an error description
 can be expected.
 "Immediately" in this context means before another call to
-another thin interface method, except the L<< C<error()>
+a thin interface method, except the L<< C<error()>
 method|"$g->error()" >>.
 Indication of failure can be either a thrown exception,
 or a return value.
@@ -360,7 +360,7 @@ an error description can be expected only if failure was
 thrown or if the method returned a value equal to or
 less than -2.
 
-More specifically,
+Specifically,
 
 =over 4
 
@@ -385,7 +385,7 @@ to a string which describes the failure.
 
 In a few cases,
 as documented in the Libmarpa API,
-Libmarpa set an "informational"
+Libmarpa sets an "informational"
 error code on success.
 (In this context, "error code"
 becomes something of a misnomer.)
@@ -394,7 +394,7 @@ These "informational" error codes
 are solely intended as a convenience,
 and the programmer should consider herself
 free to ignore them.
-Whenver a Libmarpa method sets an informational error code,
+Whenever a Libmarpa method sets an informational error code,
 the code, the circumstances under which it is set,
 and the associated return value,
 are specifically stated
@@ -423,8 +423,9 @@ These behaviors are called the "general pattern"
 in this document.
 To avoid repetition,
 Marpa thin interface methods that follow
-the general pattern exactly are not
-explicitly described in this document.
+the general pattern exactly are
+usually not
+described explicitly in this document.
 
 =head2 Method names
 
@@ -452,7 +453,7 @@ as their first ("self") argument.
 Zero or more non-self arguments follow this first time class argument.
 The arguments of the corresponding general pattern
 Marpa thin method will be
-the same, converted from C types to Perl as described below.
+the same, converted from C types to Perl as described next.
 (This discussion follows
 the convention used in L<perlobj>,
 and considers the "self" object to
@@ -474,7 +475,7 @@ C or in Perl.
 For example,
 if a Perl true value is not a numeric
 1, it will not be converted to a numeric
-1, even in a situation where
+1 in C, even in a situation where
 the Libmarpa method is clearly
 looking for a boolean.
 The intent is to allow for future extensions
@@ -484,7 +485,7 @@ accept and interpret other numeric values.
 =head2 Return values
 
 In the general pattern,
-the return values from Libmarpa method
+the return value from a Libmarpa method
 will always either
 belong to
 one of Libmarpa's numbered classes,
@@ -492,7 +493,7 @@ or be a C language C<int>.
 If the Libmarpa return value is a non-negative
 integer,
 the corresponding general pattern Marpa thin method
-it will return it as a numeric Perl scalar.
+will return a numeric Perl scalar.
 If the Libmarpa method returns -1,
 its corresponding general pattern Marpa thin method
 will return a Perl C<undef>.
@@ -590,12 +591,10 @@ normalize-whitespace: 1
 The C<throw_set()> method turns the throw flag
 for the grammar on or off,
 according to whether its argument is 1 or 0.
-
-If the argument of C<throw_set()> is
-not a numeric 0 or 1,
-the method always throws an exception,
-regardless of the setting of any
-throw flags or variables.
+C<throw_set()> fails if its argument is
+not a numeric 0 or 1.
+C<throw_set()> itself never returns failure --
+it always throws an exception.
 
 =head1 Configuration variables
 
@@ -617,22 +616,6 @@ A grammar's "throw" flag can be reset using
 the C<< $g->throw_set() >> method,
 after which its setting is independent of the
 C< $Marpa::R2::Thin::C::THROW > variable.
-
-Each grammar's "throw" flag is intended to
-centralize control of the throwing of exceptions
-in the time objects descended from that base grammar.
-But there are exceptions.
-If the arguments to the C<throw_set()> method
-itself are not sane,
-it assumes all bets are off and throws an
-exception.
-And for the
-C<< $r->alternative() >> method, the "Ruby Slippers"
-flag also affects which issues are throw as
-exceptions.
-For details, set
-L<< its
-description|$r->alternative() >>.
 
 =head2 Omitted methods
 
