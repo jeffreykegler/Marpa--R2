@@ -31,7 +31,8 @@ typedef struct marpa_g Grammar;
 typedef struct {
      Marpa_Grammar g;
      char *message_buffer;
-     int error_code;
+     int libmarpa_error_code;
+     const char *libmarpa_error_string;
      unsigned int throw:1;
      unsigned int message_is_marpa_thin_error:1;
 } G_Wrapper;
@@ -172,15 +173,14 @@ set_error_from_string (G_Wrapper * g_wrapper, char *string)
 static const char *
 xs_g_error (G_Wrapper * g_wrapper)
 {
-  const char *error_string;
   Marpa_Grammar g = g_wrapper->g;
-  const int error_code = marpa_g_error (g, &error_string);
+  const int error_code = marpa_g_error (g, &g_wrapper->libmarpa_error_string);
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
   g_wrapper->message_buffer = buffer =
-    libmarpa_exception (error_code, error_string);
+    libmarpa_exception (error_code, g_wrapper->libmarpa_error_string);
   g_wrapper->message_is_marpa_thin_error = 0;
-  g_wrapper->error_code = error_code;
+  g_wrapper->libmarpa_error_code = error_code;
   return buffer;
 }
 
@@ -246,7 +246,8 @@ PPCODE:
 	  g_wrapper->throw = throw;
 	  g_wrapper->g = g;
 	  g_wrapper->message_buffer = NULL;
-	  g_wrapper->error_code = MARPA_ERR_NONE;
+	  g_wrapper->libmarpa_error_code = MARPA_ERR_NONE;
+	  g_wrapper->libmarpa_error_string = NULL;
 	  g_wrapper->message_is_marpa_thin_error = 0;
 	  sv = sv_newmortal ();
 	  sv_setref_pv (sv, grammar_c_class_name, (void *) g_wrapper);
@@ -472,7 +473,7 @@ PPCODE:
   if (!g_wrapper->message_is_marpa_thin_error)
     {
       xs_g_error (g_wrapper);
-      error_code_sv = sv_2mortal (newSViv (g_wrapper->error_code));
+      error_code_sv = sv_2mortal (newSViv (g_wrapper->libmarpa_error_code));
     }
   g_wrapper->message_is_marpa_thin_error = 0;
   if (g_wrapper->message_buffer)
