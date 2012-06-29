@@ -71,7 +71,7 @@ About this document
 Architecture
 
 * Major objects::               
-* The lifetime of time objects::  
+* Time objects::                
 * Parent and child time objects::  
 * Numbered objects::            
 
@@ -336,51 +336,56 @@ to successfully debug the logic.
 
 @menu
 * Major objects::               
-* The lifetime of time objects::  
+* Time objects::                
 * Parent and child time objects::  
 * Numbered objects::            
 @end menu
 
-@node Major objects, The lifetime of time objects, Architecture, Architecture
+@node Major objects, Time objects, Architecture, Architecture
 @section Major objects
 
-These are the major objects of Libmarpa,
+The classes of
+Libmarpa's object system fall into two types:
+major and numbered.
+These are the Libmarpa's major classes,
 in sequence.
 
 @itemize
 @item
 Configuration:
-Configuration objects are
+A configuration object is
 a thread-safe way to hold configuration variables,
 as well as the return code from failed attempts
-to create grammars.
+to create grammar objects.
 @item
-Grammar objects contain rules and symbols,
+Grammar:
+A grammar object contains rules and symbols,
 with their properties.
 @item
-Recognizer objects read input.
+Recognizer:
+A recognizer object reads input.
 @item
-Bocage objects contain the collection of
-parse trees found by a recognizer.
+Bocage:
+A bocage object is a collection of
+parse trees, as found by a recognizer.
 Bocages are similar to parse forests.
 @item
-Ordering objects are bocage objects,
-plus an ordering.
+An ordering object
+is an ordering of the trees
+in a bocage.
 @item
-Tree objects are bocage iterators.
+A tree object is a bocage iterator.
 @item
-Value objects are a kind of tree iterator.
-Iteration of a value object
-produces ``steps'',
-instructions to the
+A value object is a tree iterator.
+Iteration of tree using a value object
+produces ``steps''.
+These ``steps'' are
+instructions to
 the application on how 
 to evaluate the semantics,
 and how to manipulate the stack.
 @end itemize
 
-All of Libmarpa's major objects,
-except Coniguration objects
-are ``time'' objects.
 
 The major objects have one letter abbreviations,
 which are used frequently.
@@ -403,40 +408,66 @@ Tree: T
 Value: V
 @end itemize
 
-@node The lifetime of time objects, Parent and child time objects, Major objects, Architecture
-@section The lifetime of time objects
+@node Time objects, Parent and child time objects, Major objects, Architecture
+@section Time objects
 
-Each of Libmarpa's major objects
-has a distinct lifetime, which is controlled
-by a reference count.
-Reference counting follow the common practice.
-Time objects are created with a reference count of 1.
-Whenever one time object is created from another,
-the parent time object has its reference count incremented
-by 1.
+All of Libmarpa's major classes,
+except the configuration class,
+are ``time'' classes.
+Every object in a ``time'' class
+has its own, distinct, lifetime,
+which is controlled by the object's reference count.
+Reference counting follows the usual practice.
+Contexts which take a share of the
+``ownership'' of an object
+increase the reference count by 1.
+When a context relinguishes its share of
+the ownership of an object, it decreases the reference
+count by 1.
+Each class of time object has a ``ref'' and an ``unref''
+method, to be used by those contexts which need to
+explicitly increment and decrement the reference count.
 
 Time objects do not have explicit destructors.
 When the reference count of a time object reaches
 0, that time object is destroyed.
-When a child object is destroyed, it
-decrements the reference count of its parent.
-Also, each time class has a method that decrements 
-the reference count of an object in that class by 1.
 
-In ordinary circumstances, all an application has to
-do is keep in mind that it ``owns'' the time objects
-it has created,
-and that it must call a method
-to ``unreference'' that object when it is finished.
+Much of the necessary reference counting
+is performed automatically.
+The context calling the constructor of a time object
+does not need to explicitly increase the reference
+count, because
+Libmarpa time objects are
+always created with a reference count of 1.
+
+Every time object, except for grammar time objects,
+is created from another ``parent'' time object.
+The new object is called the ``child'' object
+of its parent object.
+Child objects ``own'' their parents,
+and when a child object is successfully created,
+the reference count of its parent object is
+automatically incremented to reflect this.
+When a child object is destroyed, it
+automatically decrements the reference count of its parent.
+
+In a typical application, the calling context needs only
+to remember,
+for those time objects it has created,
+to ``unref'' them when it is finished with then.
+All other reference decrements and increments are taken
+care of automatically.
+The typical application never needs to explicitly
+call one of the ``ref'' methods.
 
 More complex applications may find it convenient
-to have multiple parts, or even new objects,
-that share ownership of a Libmarpa time object.
-For such situations,
-every class of time object has a method to increment
-the reference count for objects in that class.
+to have one or more contexts share ownership of objects
+created in another context.
+These more complex situations,
+are the only cases in which the ``ref'' methods
+will be needed.
 
-@node Parent and child time objects, Numbered objects, The lifetime of time objects, Architecture
+@node Parent and child time objects, Numbered objects, Time objects, Architecture
 @section Parent and child time objects
 
 Except for grammars,
