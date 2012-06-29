@@ -277,6 +277,8 @@ Marpa thin interface methods that follow
 the general pattern exactly are not
 explicitly described in this document.
 
+=head2 Method names
+
 The name of a general pattern method is that of
 its corresponding Libmarpa method,
 minus the 8-letter prefix which indicates
@@ -292,6 +294,8 @@ of the Libmarpa method.
 In the previous example, C<start_symbol_set()>
 will be in
 the C<Marpa::R2::Thin:G> Perl class.
+
+=head2 Arguments
 
 Libmarpa's class instance methods
 prototypes have an object of the appropriate class
@@ -315,30 +319,37 @@ classes (for example,
 C<Marpa_Rule_ID> and C<Marpa_Symbol_ID>)
 are also converted to Perl scalar integers.
 
-In the general pattern,
-return values from Libmarpa method
-will always either
-belong to
-one of Libmarpa's numbered classes,
-or be C language C<int>'s.
-The corresponding
-general pattern Marpa thin method
-will return the integer as
-a numeric Perl scalar,
-with one exception.
-When a Libmarpa method returns -1,
-its corresponding general pattern Marpa thin method
-will return a Perl C<undef>.
-
-Note that booleans do not receive special recognition.
-Even when a Libmarpa interface treats an
-argument as a booleans, the corresponding
-general pattern Marpa thin method will treat
-its arguments as if they were any other numeric,
-without regard to their "Perl truth value".
+The Marpa thin interface does
+not recognize booleans, either in 
+C or in Perl.
+For example,
+if a Perl true value is not a numeric
+1, it will not be converted to a numeric
+1, even in a situation where
+the Libmarpa method is clearly
+looking for a boolean.
 The intent is to allow for future extensions
 to the Libmarpa interface that
 accept and interpret other numeric values.
+
+=head2 Return values
+
+In the general pattern,
+the return values from Libmarpa method
+will always either
+belong to
+one of Libmarpa's numbered classes,
+or be a C language C<int>.
+If the Libmarpa return value is a non-negative
+integer,
+the corresponding general pattern Marpa thin method
+it will return it as a numeric Perl scalar.
+If the Libmarpa method returns -1,
+its corresponding general pattern Marpa thin method
+will return a Perl C<undef>.
+For the treatment of other negative return values,
+see the section on L<the general failure handling
+pattern|"The general failure handling pattern">.
 
 =head2 The general failure handling pattern
 
