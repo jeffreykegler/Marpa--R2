@@ -476,14 +476,21 @@ PPCODE:
   const char *error_message =
     "Problem in $g->error(): Nothing in message buffer";
   SV *error_code_sv = &PL_sv_undef;
-  if (!g_wrapper->message_is_marpa_thin_error)
+
+  g_wrapper->libmarpa_error_code =
+    marpa_g_error (g, &g_wrapper->libmarpa_error_string);
+  /* A new Libmarpa error overrides any thin interface error */
+  if (g_wrapper->libmarpa_error_code != MARPA_ERR_NONE)
+    g_wrapper->message_is_marpa_thin_error = 0;
+  if (g_wrapper->message_is_marpa_thin_error)
     {
-      xs_g_error (g_wrapper);
+      error_message = g_wrapper->message_buffer;
+    }
+  else
+    {
+      error_message = error_description_generate (g_wrapper);
       error_code_sv = sv_2mortal (newSViv (g_wrapper->libmarpa_error_code));
     }
-  g_wrapper->message_is_marpa_thin_error = 0;
-  if (g_wrapper->message_buffer)
-    error_message = g_wrapper->message_buffer;
   if (GIMME == G_ARRAY)
     {
       XPUSHs (error_code_sv);
