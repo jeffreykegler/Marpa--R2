@@ -230,7 +230,7 @@ PPCODE:
   Marpa_Grammar g;
   SV *sv;
   G_Wrapper *g_wrapper;
-  SV *throw_sv = get_sv ("Marpa::R2::Thin::THROW", 0);
+  SV *throw_sv = get_sv ("Marpa::R2::Thin::C::THROW", 0);
   const int throw = throw_sv && SvTRUE (throw_sv);
   Marpa_Config marpa_configuration;
   Marpa_Error_Code error_code =

@@ -151,26 +151,15 @@ grammar, recognizer, bocage,
 ordering, tree and value.
 The one-letter abbreviations for these
 are, respectively,
-C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
-
+C<c>, C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
 The thin interface implements a Perl class
 corresponding to
-each of the Libmarpa time classes.
-Objects in the thin Marpa classes
-should be treated as opaque scalars.
-No applications should define new elements for a
-thin Marpa classes,
-redefine, overload or remove existing elements,
-or subclass the class itself.
-The only operations an application should perform
-on objects blessed into the thin interfaces
-classes is to assign them,
-to use them to call methods in their class,
-and to pass them as arguments where appropriate.
+each of Libmarpa major classes.
 
 =for Marpa::R2::Display
 ignore: 1
 
+    Marpa_Config        Marpa::R2::Thin::C
     Marpa_Grammar       Marpa::R2::Thin::G
     Marpa_Recognizer    Marpa::R2::Thin::R
     Marpa_Bocage        Marpa::R2::Thin::B
@@ -179,6 +168,22 @@ ignore: 1
     Marpa_Value         Marpa::R2::Thin::V
 
 =for Marpa::R2::Display::End
+
+Objects in the thin Marpa classes
+should be treated as opaque scalars.
+Applications must not define new methods,
+constants or variables in a
+thin Marpa classes.
+Similarly, applications
+must not
+redefine, overload or remove existing elements.
+Thin Marpa classes must not be subclassed.
+Applications should restrict their operation on
+objects in the Marpa thin classes to assignments;
+calling methods of the class; and,
+in those cases where
+this document states that it is appropriate,
+passing them as arguments.
 
 Constructors for the time objects may be called using
 the C<new> method of the corresponding Perl class.
@@ -193,11 +198,72 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The thin interface takes care of Libmarpa's reference
-counting for the user.
-Marpa thin interface's time objects should be destroyed
-implicitly by undefining them,
+Perl applications can destroy objects of the
+Marpa thin classes 
+by undefining them,
 or by letting them go out of scope.
+Application programmers do not need
+to concern themselves
+with the reference counting of Libmarpa objects.
+The Marpa thin interface handles this.
+
+=head1 The throw setting
+
+One of the most important functions of
+the Marpa thin interface to to adapt Libmarpa's
+error reporting to Perl.
+Perl allows two kinds of error reporting.
+Perl methods can communicate failure via their return values,
+or they can throw exceptions.
+
+Each has its place.
+Throwing failure as an exception is the default in 
+the Marpa thin interface because it is safer,
+and because
+it is convenient for prototyping and the first
+cuts at a new application.
+On the other hand, for Marpa thin
+applications to have access
+to the full flexibility and power of Libmarpa,
+these must be able to set the Marpa thin
+interface to return failure, instead of
+throwing it.
+
+In choosing whether or not to throw a failure
+as an exception,
+almost every Marpa thin method obeys the throw
+setting.
+If the throw setting is 1, failure is thrown.
+If the throw setting is 0, failure is returned.
+
+Newly created grammar objects take their
+throw setting from the
+L<C<$Marpa::R2::Thin::C::THROW>|"$Marpa::R2::Thin::C::THROW">
+configuration variable.
+By default, C<$Marpa::R2::Thin::C::THROW> is set to 1.
+Once created, the throw setting of a grammar object
+can be changed using the L<< C<throw_set()>
+method|"$g->throw_set()" >>
+The throw setting of other objects is that
+of their base grammar.
+
+Nearly every Marpa thin method always obeys the throw setting.
+Only two methods never obey the throw setting.
+L<< C<throw_set()>|"$g->throw_set()" >>
+and L<< C<ruby_slippers_set()>|"$r->ruby_slippers_set()" >>
+themselves change
+the logic that controls the throwing of exceptions.
+For this reason it is safest to have these two
+methods throw all failures.
+
+One method allows the throw setting to be overriden.
+For convenience in using the Ruby Slippers technique,
+the behavior of the L<< C<alternative()>
+method|"$r->alternative()" >>
+is also affected by a separate "Ruby Slippers" flag.
+For details, see
+L<< the description of that
+method|"$r->alternative()" >>.
 
 =head1 The general pattern
 
@@ -437,16 +503,12 @@ the method always throws an exception,
 regardless of the setting of any
 throw flags or variables.
 
-=head1 Configuration methods and variables
+=head1 Configuration variables
 
 The Marpa thin interface has one configuration
 variable:
 
-=over 4
-
-=item *
-
-C<< $Marpa::R2::Thin::THROW >>
+=head2 C<< $Marpa::R2::Thin::C::THROW >>
 
 If a Perl true, the Marpa thin interface throws
 failures as exceptions.
@@ -460,7 +522,7 @@ that variable.
 A grammar's "throw" flag can be reset using
 the C<< $g->throw_set() >> method,
 after which its setting is independent of the
-C< $Marpa::R2::Thin::THROW > variable.
+C< $Marpa::R2::Thin::C::THROW > variable.
 
 Each grammar's "throw" flag is intended to
 centralize control of the throwing of exceptions
@@ -478,7 +540,14 @@ For details, set
 L<< its
 description|$r->alternative() >>.
 
-=back
+=head2 Omitted methods
+
+All of
+the functions performed by Libmarpa's configuration
+methods are handled in a more Perl-centric way
+by the Marpa thin interface.
+All of the methods of Libmarpa's configuration
+class are omitted in the Marpa thin interface.
 
 =head1 Grammar methods
 

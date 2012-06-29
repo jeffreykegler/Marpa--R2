@@ -515,7 +515,7 @@ will be needed.
 In addition to its major, ``time'' objects, Libmarpa also has
 numbered objects.
 Numbered objects do not have lifetimes of their own.
-Every numbered object belongs to a timed object,
+Every numbered object belongs to a time object,
 and is destroyed with it.
 Rules and symbols are numbered objects.
 Tokens values are another class of numbered
