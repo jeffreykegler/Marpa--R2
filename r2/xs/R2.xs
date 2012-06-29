@@ -168,10 +168,14 @@ static const char *
 set_error_from_string (G_Wrapper * g_wrapper, char *string)
 {
   const char *error_string;
+  Marpa_Grammar g = g_wrapper->g;
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
   g_wrapper->message_buffer = string;
   g_wrapper->message_is_marpa_thin_error = 1;
+  marpa_g_error_clear(g);
+  g_wrapper->libmarpa_error_code = MARPA_ERR_NONE;
+  g_wrapper->libmarpa_error_string = NULL;
   return buffer;
 }
 
