@@ -72,7 +72,7 @@ Architecture
 
 * Major objects::               
 * Time objects::                
-* Parent and child time objects::  
+* Reference counting::          
 * Numbered objects::            
 
 Input
@@ -337,7 +337,7 @@ to successfully debug the logic.
 @menu
 * Major objects::               
 * Time objects::                
-* Parent and child time objects::  
+* Reference counting::          
 * Numbered objects::            
 @end menu
 
@@ -408,69 +408,13 @@ Tree: T
 Value: V
 @end itemize
 
-@node Time objects, Parent and child time objects, Major objects, Architecture
+@node Time objects, Reference counting, Major objects, Architecture
 @section Time objects
 
 All of Libmarpa's major classes,
 except the configuration class,
 are ``time'' classes.
-Every object in a ``time'' class
-has its own, distinct, lifetime,
-which is controlled by the object's reference count.
-Reference counting follows the usual practice.
-Contexts which take a share of the
-``ownership'' of an object
-increase the reference count by 1.
-When a context relinguishes its share of
-the ownership of an object, it decreases the reference
-count by 1.
-Each class of time object has a ``ref'' and an ``unref''
-method, to be used by those contexts which need to
-explicitly increment and decrement the reference count.
-
-Time objects do not have explicit destructors.
-When the reference count of a time object reaches
-0, that time object is destroyed.
-
-Much of the necessary reference counting
-is performed automatically.
-The context calling the constructor of a time object
-does not need to explicitly increase the reference
-count, because
-Libmarpa time objects are
-always created with a reference count of 1.
-
-Every time object, except for grammar time objects,
-is created from another ``parent'' time object.
-The new object is called the ``child'' object
-of its parent object.
-Child objects ``own'' their parents,
-and when a child object is successfully created,
-the reference count of its parent object is
-automatically incremented to reflect this.
-When a child object is destroyed, it
-automatically decrements the reference count of its parent.
-
-In a typical application, the calling context needs only
-to remember,
-for those time objects it has created,
-to ``unref'' them when it is finished with then.
-All other reference decrements and increments are taken
-care of automatically.
-The typical application never needs to explicitly
-call one of the ``ref'' methods.
-
-More complex applications may find it convenient
-to have one or more contexts share ownership of objects
-created in another context.
-These more complex situations,
-are the only cases in which the ``ref'' methods
-will be needed.
-
-@node Parent and child time objects, Numbered objects, Time objects, Architecture
-@section Parent and child time objects
-
-Except for grammars,
+Except for objects in the grammar class,
 all time objects are created from another time
 object.
 Each time object is created from a time object
@@ -507,7 +451,65 @@ the base grammar of a bocage is the base
 grammar of the recognizer that it was created
 with.
 
-@node Numbered objects,  , Parent and child time objects, Architecture
+
+@node Reference counting, Numbered objects, Time objects, Architecture
+@section Reference counting
+
+Every object in a ``time'' class
+has its own, distinct, lifetime,
+which is controlled by the object's reference count.
+Reference counting follows the usual practice.
+Contexts which take a share of the
+``ownership'' of an object
+increase the reference count by 1.
+When a context relinguishes its share of
+the ownership of an object, it decreases the reference
+count by 1.
+
+Each class of time object has a ``ref'' and an ``unref''
+method, to be used by those contexts which need to
+explicitly increment and decrement the reference count.
+For example, the ``ref'' method for the grammar class is
+@code{marpa_g_ref()}
+and the ``unref'' method for the grammar class is
+@code{marpa_g_unref()}.
+
+Time objects do not have explicit destructors.
+When the reference count of a time object reaches
+0, that time object is destroyed.
+
+Much of the necessary reference counting
+is performed automatically.
+The context calling the constructor of a time object
+does not need to explicitly increase the reference
+count, because
+Libmarpa time objects are
+always created with a reference count of 1.
+
+Child objects ``own'' their parents,
+and when a child object is successfully created,
+the reference count of its parent object is
+automatically incremented to reflect this.
+When a child object is destroyed, it
+automatically decrements the reference count of its parent.
+
+In a typical application, a calling context needs only
+to remember,
+for those time objects it has created,
+to ``unref'' them when it is finished with then.
+All other reference decrements and increments are taken
+care of automatically.
+The typical application never needs to explicitly
+call one of the ``ref'' methods.
+
+More complex applications may find it convenient
+to have one or more contexts share ownership of objects
+created in another context.
+These more complex situations,
+are the only cases in which the ``ref'' methods
+will be needed.
+
+@node Numbered objects,  , Reference counting, Architecture
 @section Numbered objects
 
 In addition to its major, ``time'' objects, Libmarpa also has
