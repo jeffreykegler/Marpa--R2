@@ -548,7 +548,7 @@ Some applications
 do not fit this traditional input model -- 
 natural language processing requires ambiguous tokens,
 for example.
-Libmarpa's allows a wide variety of alternative input models.
+Libmarpa allows a wide variety of alternative input models.
 
 This document assumes that the reader knows the concepts
 behind Libmarpa's
@@ -570,8 +570,8 @@ they will be different.
 @node The earleme variables, The significances of the earleme variables, The traditional model, Earlemes
 @subsection The earleme variables
 
-The important earleme variables are the current, the furthest and
-the latest earleme.
+The important earleme variables are the current earleme, the furthest earleme
+and the latest earleme.
 The @dfn{current earleme} is the earleme that Libmarpa is currently working on.
 More specifically, it is the one at which new tokens will @strong{start}.
 Since tokens are never zero length, a new token will always end after the
@@ -585,12 +585,13 @@ earleme at which a token ends.
 The furthest earleme is initially earleme 0.
 With every call to @code{marpa_r_alternative()}, the end of the token
 it adds is calculated.
-A token ends at earleme @var{end_earleme} = @var{current}+@var{length},
+A token ends at the earleme location @var{current}+@var{length},
 where @var{current} is the current earleme,
 and @var{length} is the length of the newly added token.
 After a call to @code{marpa_r_alternative()},
 the furthest earleme is its value before the call,
-or @var{end_earleme}, whichever is greater.
+or @var{current}+@var{length},
+whichever is greater.
 
 The @dfn{latest earleme} is the earleme of the latest
 Earley set.
@@ -601,8 +602,7 @@ it is the latest Earley set and the latest earleme
 is equal to the current earleme.
 There is never an Earley set after the current earleme.
 If there is no Earley set at the current earleme,
-the latest Earley set,
-which is also the highest numbered Earley set,
+the latest Earley set
 is the last one completed.
 
 After every call to the @code{marpa_r_earleme_complete()} method
