@@ -914,10 +914,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The thin interface's C<alternative()> method follows
-the general pattern, with one exception.
-The Ruby Slippers flag overrides the base grammar's
-throw setting.
-
+the general pattern, with one exception:
 The C<alternative()> method
 will not throw an exception if the
 Ruby Slippers flag is on.
@@ -925,6 +922,7 @@ More precisely, the C<alternative()> method will
 throw failures as exceptions if and only if the
 base grammar's throw flag is on
 and the Ruby Slippers flag is off.
+For more, see L<< C<ruby_slippers_set()>|"$r->ruby_slippers_set()" >>.
 
 =head2 C<< $r->terminals_expected() >>
 
@@ -972,7 +970,8 @@ C<progress_item()> returns a Perl C<undef>.
 
 C<progress_item()> obeys the throw setting.
 On unthrown failure,
-C<progress_item()> returns a rule ID of -2.
+the rule ID element in the array returned by
+C<progress_item()> will have a value of -2.
 
 =head2 Omitted methods
 
@@ -989,7 +988,7 @@ All recognizer methods that are part of the Libmarpa external interface,
 but that are not mentioned explicitly in this document,
 are implemented
 following the general pattern, as described
-L<above|"The general pattern">
+L<above|"The general pattern">.
 
 =head1 Bocage methods
 
@@ -1026,7 +1025,7 @@ All bocage methods that are part of the Libmarpa external interface,
 but that are not mentioned explicitly in this document,
 are implemented
 following the general pattern, as described
-L<above|"The general pattern">
+L<above|"The general pattern">.
 
 =head1 Ordering methods
 
@@ -1062,7 +1061,7 @@ All ordering methods that are part of the Libmarpa external interface,
 but that are not mentioned explicitly in this document,
 are implemented
 following the general pattern, as described
-L<above|"The general pattern">
+L<above|"The general pattern">.
 
 =head1 Tree methods
 
@@ -1098,7 +1097,7 @@ All tree methods that are part of the Libmarpa external interface,
 but that are not mentioned explicitly in this document,
 are implemented
 following the general pattern, as described
-L<above|"The general pattern">
+L<above|"The general pattern">.
 
 =head1 Value methods
 
@@ -1204,7 +1203,7 @@ All value methods that are part of the Libmarpa external interface,
 but that are not mentioned explicitly in this document,
 are implemented
 following the general pattern, as described
-L<above|"The general pattern">
+L<above|"The general pattern">.
 
 =head1 Example
 
