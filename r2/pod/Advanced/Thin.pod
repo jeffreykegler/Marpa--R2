@@ -1201,6 +1201,13 @@ by the Libmarpa method C<marpa_v_result()>.
 
 =back
 
+As a reminder, Libmarpa's token values are always integers.
+Applications will often have a richer or different
+semantics for token values.
+One approach such applications can take is
+to use
+Libmarpa's token values as indexes into an array.
+
 =item C<MARPA_STEP_NULLING_SYMBOL>
 
 If the step type is C<MARPA_STEP_NULLING_SYMBOL>, C<step()>
