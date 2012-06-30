@@ -869,7 +869,7 @@ The C<new()> method takes a Marpa thin grammar object
 as its one argument.
 On success, it returns a Marpa thin recognizer object.
 C<new()> obeys the throw setting.
-On unthrown failure, it returns undef.
+On unthrown failure, it returns a Perl C<undef>.
 
 =head2 C<< $r->ruby_slippers_set() >>
 
@@ -1008,7 +1008,7 @@ The C<new()> method takes a Marpa thin recognizer object
 as its one argument.
 On success, it returns a Marpa thin bocage object.
 C<new()> obeys the throw setting.
-On unthrown failure, it returns undef.
+On unthrown failure, it returns a Perl C<undef>.
 
 =head2 Omitted methods
 
@@ -1044,7 +1044,7 @@ The C<new()> method takes a Marpa thin bocage object
 as its one argument.
 On success, it returns a Marpa thin ordering object.
 C<new()> obeys the throw setting.
-On unthrown failure, it returns undef.
+On unthrown failure, it returns a Perl C<undef>.
 
 =head2 Omitted methods
 
@@ -1080,7 +1080,7 @@ The C<new()> method takes a Marpa thin ordering object
 as its one argument.
 On success, it returns a Marpa thin tree object.
 C<new()> obeys the throw setting.
-On unthrown failure, it returns undef.
+On unthrown failure, it returns a Perl C<undef>.
 
 =head2 Omitted methods
 
@@ -1116,7 +1116,7 @@ The C<new()> method takes a Marpa thin tree object
 as its one argument.
 On success, it returns a Marpa thin value object.
 C<new()> obeys the throw setting.
-On unthrown failure, it returns undef.
+On unthrown failure, it returns a Perl C<undef>.
 
 =head2 C<< $v->step() >>
 
@@ -1130,48 +1130,109 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<step()> method takes no arguments.
-It returns an array.
+On success, C<step()>
+returns an array, whose contents are as follows:
 
-On success,
-if the step type is C<MARPA_STEP_INACTIVE>, C<step()> returns
-an empty array.
+=over 4
 
-On success,
-if the step type is C<MARPA_STEP_TOKEN>, C<step()>
-returns an array of 4 elements.
-The first element is the string "C<MARPA_STEP_TOKEN>".
-The second element is the token id, as returned
-by the Libmarpa method C<marpa_v_token()>.
-The third element is the token value, as returned
-by the Libmarpa method C<marpa_v_token_value()>.
-The fourth element is the token's stack location,
-as returned
-by the Libmarpa method C<marpa_v_token_arg_n()>.
+=item C<MARPA_STEP_RULE>
 
-On success,
-if the step type is C<MARPA_STEP_NULLING_SYMBOL>, C<step()>
-returns an array of 3 elements.
-The first element is the string "C<MARPA_STEP_NULLING_SYMBOL>".
-The second element is the token id, as returned
-by the Libmarpa method C<marpa_v_token()>.
-The third element is the token's stack location,
-as returned
-by the Libmarpa method C<marpa_v_token_arg_n()>.
+If the step type is C<MARPA_STEP_RULE>, C<step()>
+returns an array of 4 elements.  These will be,
+in order:
 
-On success,
-if the step type is C<MARPA_STEP_RULE>, C<step()>
-returns an array of 2 elements.
-The first element is the string "C<MARPA_STEP_RULE>".
-The second element is the rule id, as returned
+=over 4
+
+=item *
+
+The string "C<MARPA_STEP_RULE>".
+
+=item *
+
+The rule id, as returned
 by the Libmarpa method C<marpa_v_rule_id()>.
-The third element is the stack location of the
-rule's argument 0,
+
+=item *
+
+The stack location where the child values
+of the rule begin,
 as returned
 by the Libmarpa method C<marpa_v_token_arg_0()>.
-The fourth element is the stack location of the
-rule's last argument,
+This is also the stack location to which the result
+should be written.
+
+=item *
+
+The stack location where the child values
+of the rule end,
 as returned
 by the Libmarpa method C<marpa_v_token_arg_n()>.
+
+=back
+
+=item C<MARPA_STEP_TOKEN>
+
+If the step type is C<MARPA_STEP_TOKEN>, C<step()>
+returns an array of 4 elements.  These will be,
+in order:
+
+=over 4
+
+=item *
+
+The string "C<MARPA_STEP_TOKEN>".
+
+=item *
+
+The token id, as returned
+by the Libmarpa method C<marpa_v_token()>.
+
+=item *
+
+The token value, as returned
+by the Libmarpa method C<marpa_v_token_value()>.
+
+=item *
+
+The stack location to which the token's
+value should be written,
+as returned
+by the Libmarpa method C<marpa_v_result()>.
+
+=back
+
+=item C<MARPA_STEP_NULLING_SYMBOL>
+
+If the step type is C<MARPA_STEP_NULLING_SYMBOL>, C<step()>
+returns an array of 3 elements.  These will be,
+in order:
+
+=over 4
+
+=item *
+
+The string "C<MARPA_STEP_NULLING_SYMBOL>".
+
+=item *
+
+The ID of the nulling symbol, as returned
+by the Libmarpa method C<marpa_v_symbol()>.
+
+=item *
+
+The stack location to which the nulling
+symbol's value should be written,
+as returned
+by the Libmarpa method C<marpa_v_result()>.
+
+=back
+
+=item C<MARPA_STEP_INACTIVE>
+
+If the step type is C<MARPA_STEP_INACTIVE>, C<step()> returns
+an empty array.
+
+=back
 
 C<step()> obeys the throw setting.
 On unthrown failure,
