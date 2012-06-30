@@ -731,19 +731,24 @@ that for a call
 to @code{marpa_r_alternative()},
 the following is true:
 @itemize
-@item The current earleme before the call was @var{i}.
+@item The current earleme before the call was @var{c}.
+@item The latest earleme before the call was @var{old_l}.
 @item The furthest earleme before the call was @var{old_f}.
-@item The length of the token was @var{length}.
+@item The length of the token is @var{length}.
 @end itemize
 In that case,
 after the call to 
 @code{marpa_r_alternative()},
 the following would be true:
 @itemize
-@item The current earleme would still be @var{i}.
-@item The latest earleme will now also be @var{i}.
-@item The furthest earleme would be either @var{old_f} or
- @var{i}+@var{length}, whichever was greater.
+@item The current earleme will still be @var{c}.
+The current earleme is never changed by a call
+to @code{marpa_r_alternative()}.
+@item The latest earleme will still be @var{old_l}.
+The latest earleme is never changed by a call
+to @code{marpa_r_alternative()}.
+@item The furthest earleme will be either @var{old_f} or
+ @var{c}+@var{length}, whichever was greater.
 @end itemize
 
 Suppose, in this new model,
@@ -751,16 +756,17 @@ that for a call
 to @code{marpa_r_earleme_complete()}
 the following is true:
 @itemize
-@item The current earleme before the call was @var{i}.
-@item The furthest earleme before the call was @var{old_f}.
+@item The current earleme before the call is @var{c}.
+@item The latest earleme before the call is @var{old_l}.
+@item The furthest earleme before the call is @var{old_f}.
 @end itemize
 In that case,
 after the call
 to @code{marpa_r_earleme_complete()},
 the following would be true:
 @itemize
-@item The current earleme would be advanced to @var{i+1}.
-@item The latest earleme will also be @var{i+1}.
+@item The current earleme would be advanced to @var{c+1}.
+@item The latest earleme will also be @var{c+1}.
 @item The furthest earleme would still be @var{old_f}.
 The furthest earleme is never changed by a call
 to @code{marpa_r_earleme_complete()}.
