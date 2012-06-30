@@ -649,7 +649,8 @@ its return value is a thin interface grammar object.
 A failure occurs if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library
 was built.
-On failure, the method sets a Libmarpa error code.
+C<new()> obeys the throw setting.
+On failure, C<new()> sets a Libmarpa error code.
 On unthrown failure in scalar context, C<new()> returns
 a Perl C<undef>.
 On unthrown failure in array context,
