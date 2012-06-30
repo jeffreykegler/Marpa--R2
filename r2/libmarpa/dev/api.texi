@@ -726,28 +726,45 @@ be of length 1,
 we allow tokens to be of length 1 or longer.
 This does change the behavior of the earleme variables.
 
-In this new model,
-for each call to 
-@code{marpa_r_alternative()}
-if the current earleme before the call was @var{i},
-then after the call
-the latest earleme will also be @var{i},
-but the furthest earleme will be MAX(@var{f'}, @var{i}+@var{length}),
-where @var{f'} is the value of the furthest earleme before the call,
-and @var{length} is the length of the token.
-That is, the new value of the furthest earleme will
-be its previous value,
-or the end earleme of the newly added token,
-whichever is greater.
+Suppose, in this new model,
+that for a call
+to @code{marpa_r_alternative()},
+the following is true:
+@itemize
+@item The current earleme before the call was @var{i}.
+@item The furthest earleme before the call was @var{old_f}.
+@item The length of the token was @var{length}.
+@end itemize
+In that case,
+after the call to 
+@code{marpa_r_alternative()},
+the following would be true:
+@itemize
+@item The current earleme would still be @var{i}.
+@item The latest earleme will now also be @var{i}.
+@item The furthest earleme would be either @var{old_f} or
+ @var{i}+@var{length}, whichever was greater.
+@end itemize
 
-For each call to 
-@code{marpa_r_earleme_complete()}
-if the current earleme before the call was @var{i},
-then after the call
-the current earleme and latest earleme will both be @var{i+1}.
+Suppose, in this new model,
+that for a call
+to @code{marpa_r_earleme_complete()}
+the following is true:
+@itemize
+@item The current earleme before the call was @var{i}.
+@item The furthest earleme before the call was @var{old_f}.
+@end itemize
+In that case,
+after the call
+to @code{marpa_r_earleme_complete()},
+the following would be true:
+@itemize
+@item The current earleme would be advanced to @var{i+1}.
+@item The latest earleme will also be @var{i+1}.
+@item The furthest earleme would still be @var{old_f}.
 The furthest earleme is never changed by a call
-to @code{marpa_r_earleme_complete()} --
-it will have the same value it had before the call.
+to @code{marpa_r_earleme_complete()}.
+@end itemize
 
 @node The generalized model, General rules for the earleme variables, Variable length tokens, Earlemes
 @subsection The generalized model
