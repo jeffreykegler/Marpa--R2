@@ -360,7 +360,14 @@ an error description can be expected only if failure was
 thrown or if the method returned a value equal to or
 less than -2.
 
-Specifically,
+In the rest of this document, the phrase "sets
+a Libmaqrpa error code" should be taken to mean
+"sets
+a Libmaqrpa error code,
+together with an appropriate error description".
+Here are the specifics on when an application can
+expect and error code and/or error description to
+have been set:
 
 =over 4
 
@@ -368,37 +375,34 @@ Specifically,
 
 On a Libmarpa failure,
 thrown or unthrown,
-the method sets the error code to the
-Libmarpa error code
-and the error description
-to a string which describes the Libmarpa failure.
+the method sets a Libmarpa error code.
 
 =item *
 
 On a thin interface failure,
 thrown or unthrown,
-the method sets the error code to a Perl C<undef>.
-It also sets the error description
+the method sets the error code to a Perl C<undef>,
+and the error description
 to a string which describes the failure.
 
 =item *
 
 In a few cases,
-as documented in the Libmarpa API,
-Libmarpa sets an "informational"
-error code on success.
-(In this context, "error code"
-becomes something of a misnomer.)
-An appropriate error description is also set.
-These "informational" error codes
+Libmarpa sets an Libmarpa error code
+on success.
+An error code that is the result of success
+is called an information error code,
+the phrase "error code" in this context
+being something of a misnomer.
+"Informational" error codes
 are solely intended as a convenience,
 and the programmer should consider herself
 free to ignore them.
-Whenever a Libmarpa method sets an informational error code,
-the code, the circumstances under which it is set,
-and the associated return value,
-are specifically stated
-in the Libmarpa API document.
+For every method that sets an information
+error code,
+the Libmarpa API document gives specifics,
+including the name of the error code,
+and the circumstances under which it is set.
 
 =item *
 
@@ -406,8 +410,9 @@ On success,
 if a method does not set an informational error code,
 it may do one of two things.
 First, it may
-clear the error code and error description.
-Second, it may leave them as is.
+clear the error code.
+A "cleared" error code is set to C<MARPA_ERR_NONE>.
+Second, it may leave the error code as is.
 Which of the two will happen is
 unspecified, unless stated in the description
 of that method in this document.
