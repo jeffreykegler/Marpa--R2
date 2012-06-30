@@ -396,7 +396,7 @@ of the following three things:
 
 A successful method
 may set the error code to C<MARPA_ERR_NONE>,
-together with an error descripton that indicates
+together with an error description that indicates
 there is no error.
 
 =item *
@@ -850,7 +850,7 @@ All grammar methods that are part of the Libmarpa external interface,
 but that are not mentioned explicitly in this document,
 are implemented
 following the general pattern, as described
-L<above|"The general pattern">
+L<above|"The general pattern">.
 
 =head1 Recognizer methods
 
@@ -868,7 +868,8 @@ normalize-whitespace: 1
 The C<new()> method takes a Marpa thin grammar object
 as its one argument.
 On success, it returns a Marpa thin recognizer object.
-On an unthrown failure, it returns undef.
+C<new()> obeys the throw setting.
+On unthrown failure, it returns undef.
 
 =head2 C<< $r->ruby_slippers_set() >>
 
@@ -1007,7 +1008,8 @@ normalize-whitespace: 1
 The C<new()> method takes a Marpa thin recognizer object
 as its one argument.
 On success, it returns a Marpa thin bocage object.
-On an unthrown failure, it returns undef.
+C<new()> obeys the throw setting.
+On unthrown failure, it returns undef.
 
 =head2 Omitted methods
 
@@ -1042,7 +1044,8 @@ normalize-whitespace: 1
 The C<new()> method takes a Marpa thin bocage object
 as its one argument.
 On success, it returns a Marpa thin ordering object.
-On an unthrown failure, it returns undef.
+C<new()> obeys the throw setting.
+On unthrown failure, it returns undef.
 
 =head2 Omitted methods
 
@@ -1077,7 +1080,8 @@ normalize-whitespace: 1
 The C<new()> method takes a Marpa thin ordering object
 as its one argument.
 On success, it returns a Marpa thin tree object.
-On an unthrown failure, it returns undef.
+C<new()> obeys the throw setting.
+On unthrown failure, it returns undef.
 
 =head2 Omitted methods
 
@@ -1112,7 +1116,8 @@ normalize-whitespace: 1
 The C<new()> method takes a Marpa thin tree object
 as its one argument.
 On success, it returns a Marpa thin value object.
-On an unthrown failure, it returns undef.
+C<new()> obeys the throw setting.
+On unthrown failure, it returns undef.
 
 =head2 C<< $v->step() >>
 
