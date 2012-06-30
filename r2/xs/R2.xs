@@ -158,20 +158,15 @@ error_description_generate (G_Wrapper *g_wrapper)
     }
 }
 
-/* Argument 'string' must be something that can (and
-   should) be Safefree()'d.  This call is used even when
-   the string is thrown with croak(), because it sets
-    g_wrapper->message_buffer, which guarantees it will
-    be freed at some point in the future.
-   */
+/* Argument 'string' is copied.  */
 static const char *
 set_error_from_string (G_Wrapper * g_wrapper, char *string)
 {
-  const char *error_string;
+  dTHX;
   Marpa_Grammar g = g_wrapper->g;
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
-  g_wrapper->message_buffer = string;
+  g_wrapper->message_buffer = savepv(string);
   g_wrapper->message_is_marpa_thin_error = 1;
   marpa_g_error_clear(g);
   g_wrapper->libmarpa_error_code = MARPA_ERR_NONE;
@@ -305,10 +300,6 @@ PPCODE:
   Marpa_Event event;
   const char *result_string = NULL;
   Marpa_Event_Type result = marpa_g_event (g, &event, ix);
-  if (result == -1)
-    {
-      XSRETURN_UNDEF;
-    }
   if (result < 0)
     {
       if (!g_wrapper->throw)
@@ -318,14 +309,14 @@ PPCODE:
       croak ("Problem in g->event(): %s", xs_g_error (g_wrapper));
     }
   result_string = event_type_to_string (result);
-  if (result_string)
+  if (!result_string)
     {
-      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+      char *error_message =
+	form ("event(%d): unknown event code, %d", ix, result);
+      set_error_from_string (g_wrapper, error_message);
+      XSRETURN_UNDEF;
     }
-  else
-    {
-      XPUSHs (mess ("Problem in g->event(): unknown event %d", result));
-    }
+  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
   XPUSHs (sv_2mortal (newSViv (marpa_g_event_value (&event))));
 }
 
