@@ -883,18 +883,18 @@ normalize-whitespace: 1
 
 With an argument of 1,
 the C<ruby_slippers_set()> method enables "Ruby Slippers" mode.
-With an argument of 0,
-the C<ruby_slippers_set()> method disables "Ruby Slippers" mode.
-This is the default.
-Note that the default in this interface (off) is
-the opposite of the default in the higher level L<Marpa::R2> interface.
+An argument of 0 disables "Ruby Slippers" mode.
+By default, 
+Ruby Slippers mode is disabled.
+Note that this default (disabled) is
+the opposite of that in the higher level L<Marpa::R2> interface.
 
 The L<< C<alternative()>
 method|"$r->alternative()" >>
 will only throw exceptions when 
-"Ruby Slippers" mode is OFF and the throw flag is ON.
-One way of describing Ruby Slippers mode is to say it is
-an override of the throw flag, one which only applies
+"Ruby Slippers" mode is disabled and the throw flag is on.
+One way of describing Ruby Slippers mode is as
+an override of the throw setting, one which only applies
 to the C<alternative()> method.
 
 The C<ruby_slippers_set()> method itself does B<not>
