@@ -349,7 +349,6 @@ PPCODE:
     }
     new_rule_id = marpa_g_rule_new(g, lhs, rhs, length);
     Safefree(rhs);
-    if (new_rule_id == -1) { XSRETURN_UNDEF; }
     if (new_rule_id < 0 && g_wrapper->throw ) {
       croak ("Problem in g->rule_new(%d, ...): %s", lhs, xs_g_error (g_wrapper));
     }
