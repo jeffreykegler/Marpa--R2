@@ -678,21 +678,54 @@ to @code{marpa_r_earleme_complete()}.
 For an input of length @var{n}, there will be
 exactly @var{n} such paired calls.
 
-In the standard model,
-for each call to 
-@code{marpa_r_alternative()}
-if the current earleme before the call was @var{i},
-then after the call
-the latest earleme will also be @var{i},
-and the furthest earleme will be @var{i}+1.
-For each call to
-@code{marpa_r_earleme_complete()},
-if the current earleme before the call was @var{i},
-then after the call
-the latest earleme,
-the furthest earleme,
-and the current earleme
-will all be @var{i}+1.
+Suppose, in the standard model,
+that for a call
+to @code{marpa_r_alternative()},
+the following is true:
+@itemize
+@item The current earleme before the call was @var{c}.
+@end itemize
+Because this is the standard model,
+this means that we also know that
+@itemize
+@item The latest earleme before the call was @var{c}.
+@item The furthest earleme before the call was @var{c}.
+@end itemize
+In that case,
+after the call to 
+@code{marpa_r_alternative()},
+the following would be true:
+@itemize
+@item The current earleme will still be @var{c}.
+@item The latest earleme will still be @var{c}.
+@item The furthest earleme will be @var{c}+1.
+@end itemize
+
+Suppose, in the standard model,
+that for a call
+to @code{marpa_r_earleme_complete()}
+the following is true:
+@itemize
+@item The current earleme before the call is @var{c}.
+@end itemize
+Because this is the standard model,
+this means that we also know that
+@itemize
+@item The latest earleme before the call was @var{c}.
+@item The furthest earleme before the call was @var{c+1}.
+@end itemize
+In that case,
+after the call
+to @code{marpa_r_earleme_complete()},
+the current, latest and furthest earlemes will
+be the same.
+Specifically,
+the following will be true:
+@itemize
+@item The current earleme will be advanced to @var{c+1}.
+@item The latest earleme will be advanced to @var{c+1}.
+@item The furthest earleme will remain at @var{c+1}.
+@end itemize
 
 @node Ambiguous input, Variable length tokens, The standard model of input, Earlemes
 @subsection Ambiguous input
@@ -702,7 +735,7 @@ we no longer require calls to @code{marpa_r_alternative()}
 to be paired with calls to
 @code{marpa_r_earleme_complete()}.
 Instead,
-we allow multiple calls
+we allow a series of one or more calls
 to @code{marpa_r_alternative()}
 before each call to
 @code{marpa_r_earleme_complete()}.
@@ -712,9 +745,16 @@ before each call to
 @code{marpa_r_earleme_complete()},
 and we still require that all tokens have 
 a length of 1.
-In this model, the behavior of the current,
+
+In the ambiguous input model, the behavior of the current,
 latest and furthest earlemes are exactly
-as described for the standard model.
+as described for the standard model, with one minor
+exception:
+Where the current earleme is @var{c},
+and a call to @code{marpa_r_alternative()} is not the first
+of a series,
+the value of the furthest earleme before the call will be
+@var{c}+1.
 
 @node Variable length tokens, The generalized model, Ambiguous input, Earlemes
 @subsection Variable length tokens
