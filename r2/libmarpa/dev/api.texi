@@ -642,14 +642,17 @@ until the current earleme is equal to the furthest earleme.
 The lastest earleme is the earleme of the last Earley set.
 The latest earleme is different from the current earleme if and only if
 there is no Earley set at the current earleme.
-Once recognition is complete, parsing must take place over
-a range of Earley sets.
 A different end of parsing can be specified,
 but by default, parsing is of the input
+in the range
 from earleme 0 to the latest earleme.
 
 @node The initial earleme settings, The standard model of input, The significances of the earleme variables, Earlemes
 @subsection The initial earleme settings
+
+All input models have the same initial values.
+Initially the current, latest and furthest earleme
+are always earleme 0.
 
 Understanding the
 settings of current, latest and furthest earleme is
@@ -659,10 +662,6 @@ through the possibilities carefully.
 The presentation will start with the most traditional
 and restrictive models.
 It will proceed to less restrictive models.
-
-All input models have the same initial values.
-Initially the current, latest and furthest earleme
-are always earleme 0.
 
 @node The standard model of input, Ambiguous input, The initial earleme settings, Earlemes
 @subsection The standard model of input
