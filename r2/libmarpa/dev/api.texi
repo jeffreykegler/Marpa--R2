@@ -38,7 +38,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 @end ifnottex
 @menu
 * About this document::         
-* About Libmarpa::              What is Libmarpa?
+* About Libmarpa::              
 * Architecture::                
 * Input::                       
 * Semantics::                   
@@ -54,7 +54,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Ordering methods::            
 * Tree methods::                
 * Value methods::               
-* Events::                      Libmarpa Events
+* Events::                      
 * Error macros and code::       
 * Design considerations::       
 * Things To Do::                
@@ -65,8 +65,8 @@ This manual is for Libmarpa, version @value{VERSION}.
 About this document
 
 * How to read this document::   
-* Prerequisites::               Prerequisites.
-* Parsing theory::              Parsing theory.
+* Prerequisites::               
+* Parsing theory::              
 
 Architecture
 
@@ -172,7 +172,7 @@ Maintaining the stack
 
 Events
 
-* Event codes::                 Event codes.
+* Event codes::                 
 
 Error macros and code
 
@@ -198,8 +198,8 @@ Why so many time objects?
 
 @menu
 * How to read this document::   
-* Prerequisites::               Prerequisites.
-* Parsing theory::              Parsing theory.
+* Prerequisites::               
+* Parsing theory::              
 @end menu
 
 @node How to read this document, Prerequisites, About this document, About this document
@@ -212,7 +212,7 @@ Readers will usually want to read the
 chapters up and including
 @ref{Introduction to the external interface}
 in order.
-Otherwise, they may follow their interests.
+Otherwise, they should follow their interests.
 
 @node Prerequisites, Parsing theory, How to read this document, About this document
 @section Prerequisites
@@ -223,10 +223,12 @@ It assumes the following:
 @item
 The reader knows the C programming language
 at least well
-enough to understand function prototypes.
+enough to understand function prototypes and return values.
 @item
 The reader
 has read the documents for one of Libmarpa's upper layers.
+As of this writing, the only such layer is @code{Marpa::R2},
+in Perl.
 @item
 The reader knows some parsing theory.
 @xref{Parsing theory}.
@@ -235,14 +237,13 @@ The reader knows some parsing theory.
 @node Parsing theory,  , Prerequisites, About this document
 @section Parsing theory
 
-This document assumes an acquaintance
+This document assumes some acquaintance
 with parsing theory.
-As a test of whether he needs to refresh
-his knowledge before tackling
-this document,
-I hope the reader will find it helpful to
-ask himself the
-following list of questions.
+The reader's
+level of knowledge is probably adequate
+if he can
+answer the following questions,
+either immediately or after a little reflection.
 @itemize @bullet
 @item
 What is a BNF rule?
@@ -260,21 +261,6 @@ What does it look like when rewritten in BNF?
 What does the sequence look like when rewritten
 in BNF as a right-recursion?
 @end itemize
-For a reader to be satisfied with the level of detail
-in the following pages,
-he probably should be able to answer all the questions
-in the above list after a moment of thought.
-
-On the encouraging side,
-while BNF has been overshadowed
-by regular expressions, and is now considered
-an advanced skill,
-BNF is in fact as easy (or easier) to learn
-and manipulation than regular expressions.
-If a reader has learned how to use
-one of the packages that extend
-regular expressions,
-he should have no trouble with BNF.
 
 @node About Libmarpa, Architecture, About this document, Top
 @chapter About Libmarpa
@@ -299,12 +285,11 @@ Libmarpa is very low-level.
 For example, it has no strings.
 Rules, symbols, and token values are all represented
 by integers.
-This, of course, will not suffice for most applications.
-A user will almost always want,
-at a minimum,
-names for the symbols and non-integer values for
-tokens.
-Typically, an application will use arrays to
+This, of course, will not suffice for many applications.
+Users will very often want
+names for the symbols, non-integer values for
+tokens, or both.
+Typically, applications will use arrays to
 translate Libmarpa's integer ID's to strings or other
 values as required.
 
@@ -370,12 +355,15 @@ A bocage object is a collection of
 parse trees, as found by a recognizer.
 Bocages are similar to parse forests.
 @item
+Ordering:
 An ordering object
 is an ordering of the trees
 in a bocage.
 @item
+Tree:
 A tree object is a bocage iterator.
 @item
+Value:
 A value object is a tree iterator.
 Iteration of tree using a value object
 produces ``steps''.
@@ -3273,7 +3261,7 @@ can be found.
 @chapter Events
 
 @menu
-* Event codes::                 Event codes.
+* Event codes::                 
 @end menu
 
 @node Event codes,  , Events, Events
