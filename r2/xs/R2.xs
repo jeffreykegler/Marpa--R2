@@ -158,7 +158,7 @@ error_description_generate (G_Wrapper *g_wrapper)
     }
 }
 
-/* Argument 'string' is copied.  */
+/* Argument must be something that can be Safefree()'d */
 static const char *
 set_error_from_string (G_Wrapper * g_wrapper, char *string)
 {
@@ -166,7 +166,7 @@ set_error_from_string (G_Wrapper * g_wrapper, char *string)
   Marpa_Grammar g = g_wrapper->g;
   char *buffer = g_wrapper->message_buffer;
   if (buffer) Safefree(buffer);
-  g_wrapper->message_buffer = savepv(string);
+  g_wrapper->message_buffer = string;
   g_wrapper->message_is_marpa_thin_error = 1;
   marpa_g_error_clear(g);
   g_wrapper->libmarpa_error_code = MARPA_ERR_NONE;
@@ -313,7 +313,7 @@ PPCODE:
     {
       char *error_message =
 	form ("event(%d): unknown event code, %d", ix, result);
-      set_error_from_string (g_wrapper, error_message);
+      set_error_from_string (g_wrapper, savepv(error_message));
       XSRETURN_UNDEF;
     }
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
@@ -394,7 +394,7 @@ PPCODE:
 		{
 		  char *error_message =
 		    form ("sequence_new(): min cannot be less than 0");
-		  set_error_from_string (g_wrapper, error_message);
+		  set_error_from_string (g_wrapper, savepv(error_message));
 		  if (g_wrapper->throw)
 		    {
 		      croak ("%s", error_message);
@@ -422,7 +422,7 @@ PPCODE:
 	    char *error_message =
 	      form ("unknown argument to sequence_new(): %.*s", (int) retlen,
 		    key);
-	    set_error_from_string (g_wrapper, error_message);
+	    set_error_from_string (g_wrapper, savepv(error_message));
 	    if (g_wrapper->throw)
 	      {
 		croak ("%s", error_message);
@@ -787,7 +787,7 @@ PPCODE:
     {
       char *error_message =
 	form ("Problem in v->step(): unknown step type %d", status);
-      set_error_from_string (v_wrapper->base, error_message);
+      set_error_from_string (v_wrapper->base, savepv(error_message));
       if (v_wrapper->base->throw)
 	{
 	  croak ("%s", error_message);
