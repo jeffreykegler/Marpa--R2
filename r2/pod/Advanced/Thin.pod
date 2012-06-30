@@ -649,8 +649,8 @@ its return value is a thin interface grammar object.
 A failure occurs if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library
 was built.
-C<new()> obeys the throw setting.
 On failure, C<new()> sets a Libmarpa error code.
+C<new()> obeys the throw setting.
 On unthrown failure in scalar context, C<new()> returns
 a Perl C<undef>.
 On unthrown failure in array context,
@@ -694,6 +694,10 @@ unneeded.
 The Libmarpa C<marpa_g_event_value()> method has
 no corresponding Marpa thin interface method.
 
+On failure, C<event()> sets an error code.
+C<event()> obeys the throw setting.
+On unthrown failure, C<event()> returns a Perl C<undef>.
+
 =head2 C<< $g->rule_new() >>
 
 =for Marpa::R2::Display
@@ -716,6 +720,10 @@ array of symbol ID's.
 The symbol ID's in the array represent the RHS.
 On success,
 the return value is the ID of the new rule.
+
+On failure, C<rule_new()> sets the error code.
+C<rule_new()> obeys the throw setting.
+On unthrown failure, it returns -2.
 
 =head2 C<< $g->sequence_new() >>
 
@@ -782,9 +790,6 @@ It defaults to 0.
 
 On success,
 the return value is the ID of the new sequence.
-C<sequence_new()> obeys the throw setting.
-On unthrown Libmarpa failure, it returns -2.
-On other unthrown failure, it returns a Perl C<undef>.
 
 Users should be aware that all sequences at
 the Marpa thin interface level are "keep
@@ -795,6 +800,10 @@ At the
 Marpa thin interface level, it is up
 to the programmer to discard separators,
 if that is what is wanted.
+
+On failure, C<sequence_new()> sets the error code.
+C<sequence_new()> obeys the throw setting.
+On unthrown failure, it returns -2.
 
 =head2 C<< $g->precompute() >>
 
