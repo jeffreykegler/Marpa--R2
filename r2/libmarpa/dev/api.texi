@@ -667,7 +667,7 @@ It will proceed to less restrictive models.
 @subsection The standard model of input
 
 In the standard model of input,
-Calls to @code{marpa_r_alternative()}
+calls to @code{marpa_r_alternative()}
 and @code{marpa_r_earleme_complete()} are
 made in pairs.
 There is first exactly one call 
