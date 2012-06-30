@@ -431,8 +431,7 @@ Every time object has a @dfn{base grammar}.
 A grammar object is its own base grammar.
 The base grammar of a recognizer is the grammar
 that it was created with.
-Similarly,
-the base grammar of any other time object is the base
+The base grammar of any other time object is the base
 grammar of its parent object.
 For example,
 the base grammar of a bocage is the base
@@ -450,7 +449,7 @@ Reference counting follows the usual practice.
 Contexts which take a share of the
 ``ownership'' of an object
 increase the reference count by 1.
-When a context relinguishes its share of
+When a context relinquishes its share of
 the ownership of an object, it decreases the reference
 count by 1.
 
@@ -482,9 +481,9 @@ When a child object is destroyed, it
 automatically decrements the reference count of its parent.
 
 In a typical application, a calling context needs only
-to remember,
-for those time objects it has created,
-to ``unref'' them when it is finished with then.
+to remember
+to ``unref'' each time object that it creates,
+once it is finished with that time object.
 All other reference decrements and increments are taken
 care of automatically.
 The typical application never needs to explicitly
@@ -493,7 +492,7 @@ call one of the ``ref'' methods.
 More complex applications may find it convenient
 to have one or more contexts share ownership of objects
 created in another context.
-These more complex situations,
+These more complex situations
 are the only cases in which the ``ref'' methods
 will be needed.
 
