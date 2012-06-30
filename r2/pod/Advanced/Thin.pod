@@ -290,7 +290,6 @@ For details see L<the section on error methods|"Error methods">.
 Thin interface errors do not have error names.
 
 In addition to error names, there are error descriptions.
-Error descriptions differ from error names.
 
 =over 4
 
@@ -325,12 +324,13 @@ will never have an error name.
 
 =item *
 
-The programmer can expect error codes and error names
-to remain stable and can write code that relies
+The programmer may expect error codes and error names
+to remain stable and may write code that relies
 on the numeric value of the error codes
 and the text of the error name.
-Applications should rely on the text of an error description for
-only one purpose: passing it on to a human user.
+Applications should treat the text of an error description
+as suitable for the purpose of passing it on to a human user,
+and should otherwise regard it as opaque.
 
 =back
 
@@ -343,79 +343,76 @@ error codes.
 and there the descriptions
 are often longer and more detailed.
 
-Error codes and error descriptions should only be considered
-valid if they are queried immediately after a method returns,
-and only if that method indicated that an error description
-can be expected.
-"Immediately" in this context means before another call to
-a thin interface method, except the L<< C<error()>
-method|"$g->error()" >>.
-Indication of failure can be either a thrown exception,
-or a return value.
-Which return values indicate that there is an error code
-is documented for each method.
-For those methods following the general pattern,
-for example,
-an error description can be expected only if failure was
-thrown or if the method returned a value equal to or
-less than -2.
 
 In the rest of this document, the phrase "sets
-a Libmaqrpa error code" should be taken to mean
-"sets
-a Libmaqrpa error code,
-together with an appropriate error description".
-Here are the specifics on when an application can
-expect and error code and/or error description to
-have been set:
+a Libmarpa error code" should be taken as abbreviating
+the phrase "sets the error code
+to a Libmarpa error code,
+and sets the error description to describe the error".
+The phrase "undefs the error code"
+should be taken as abbreviating
+the phrase "sets the error code to a Perl C<undef>
+and sets the error description to a message describing
+the Marpa thin interface error".
+The phrase "sets the error code" should be taken
+to mean "sets a Libmarpa error code or undefs the error code".
+
+Error codes and error descriptions should only be considered
+valid
+only if that method indicates that it sets the error code.
+An application should assume that the
+error codes and error descriptions will be overwritten by the
+next call to 
+any  thin interface method other than the L<< C<error()>
+method|"$g->error()" >>.
+
+When a method indicates failure,
+either by throwing an exception
+or by returning a value that indicates failure,
+it also indicates that it sets the error code.
+If a method follows the general pattern,
+it indicates failure if and only if
+its return value is less than or equal to -2.
+Other methods indicate failure as stated in
+their descriptions in this document.
+
+On success,
+what a method will do with the error code and error
+description is usually unspecified,
+except that it will be one
+of the following three things:
 
 =over 4
 
 =item *
 
-On a Libmarpa failure,
-thrown or unthrown,
-the method sets a Libmarpa error code.
+A successful method
+may set the error code to C<MARPA_ERR_NONE>,
+together with an error descripton that indicates
+there is no error.
 
 =item *
 
-On a thin interface failure,
-thrown or unthrown,
-the method sets the error code to a Perl C<undef>,
-and the error description
-to a string which describes the failure.
+A successful method
+may leave the error code and error
+description as is.
 
 =item *
 
-In a few cases,
-Libmarpa sets an Libmarpa error code
-on success.
-An error code that is the result of success
-is called an information error code,
+A successful method may set a
+Libmarpa error code to
+a value other than C<MARPA_ERR_NONE>.
+Error codes of this kind are called
+informational error codes,
 the phrase "error code" in this context
 being something of a misnomer.
-"Informational" error codes
-are solely intended as a convenience,
-and the programmer should consider herself
-free to ignore them.
-For every method that sets an information
+When a Libmarpa method might set an informational
 error code,
-the Libmarpa API document gives specifics,
-including the name of the error code,
-and the circumstances under which it is set.
-
-=item *
-
-On success,
-if a method does not set an informational error code,
-it may do one of two things.
-First, it may
-clear the error code.
-A "cleared" error code is set to C<MARPA_ERR_NONE>.
-Second, it may leave the error code as is.
-Which of the two will happen is
-unspecified, unless stated in the description
-of that method in this document.
+that is explicitly stated
+in that method's description in
+the Libmarpa API document.
+Typically, informational error codes are
+ignored.
 
 =back
 
@@ -646,15 +643,18 @@ normalize-whitespace: 1
 
 There are no arguments to the Marpa thin interface's
 grammar constructor.
+On success,
+its return value is a thin interface grammar object.
+
 A failure occurs if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library
 was built.
-On success,
-its return value is a thin interface grammar object.
-On failure in scalar context,
-its return value is a Perl undef.
-On failure in array context, its return value
-is a 2-element array whose first element is a Perl C<undef>
+On failure, the method sets a Libmarpa error code.
+On unthrown failure in scalar context, C<new()> returns
+a Perl C<undef>.
+On unthrown failure in array context,
+C<new()> returns a 2-element array
+whose first element is a Perl C<undef>
 and whose second element is the error code.
 
 =head2 C<< $g->event() >>
