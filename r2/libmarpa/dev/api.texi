@@ -601,9 +601,6 @@ If there is an Earley set at the current earleme,
 it is the latest Earley set and the latest earleme
 is equal to the current earleme.
 There is never an Earley set after the current earleme.
-If there is no Earley set at the current earleme,
-the latest Earley set
-is the last one completed.
 
 After every call to the @code{marpa_r_earleme_complete()} method
 that adds a token,
