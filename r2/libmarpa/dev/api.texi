@@ -537,14 +537,14 @@ objects.
 @subsection The traditional model
 
 In traditional Earley parsers, the concept of location is very simple.
-Locations are numbered from 0 to @math{n}, where @math{n} is the length of
+Locations are numbered from 0 to @var{n}, where @var{n} is the length of
 the input.
 Every location has an Earley set, and vice versa.
 Location 0 is the start location.
 Every location after the start location has exactly one input token
 associated with it.
 
-Already some applications
+Some applications
 do not fit this traditional input model -- 
 natural language processing requires ambiguous tokens,
 for example.
@@ -2708,29 +2708,29 @@ Suppose the evalution is at a place in the parse tree
 where an addition is being performed.
 Libmarpa does not know that the operation
 is an addition.
-It will tell the application that rule number @math{R}
+It will tell the application that rule number @var{R}
 is to be applied to the arguments at stack locations
-@math{N} and @math{N+1}, and that the result is to placed in
-stack location @math{N}.
+@var{N} and @var{N}+1, and that the result is to placed in
+stack location @var{N}.
 
 In this system
 the application keeps track of the semantics for all
-rules, so it looks up rule @math{R} and determines that it
+rules, so it looks up rule @var{R} and determines that it
 is an addition.
-The application can do this by using @math{R} as an index
+The application can do this by using @var{R} as an index
 into an array of callbacks, or by any other method
 it chooses.
 Let's assume a callback implements the semantics
-for rule @math{R}.
+for rule @var{R}.
 Libmarpa has told the application that two arguments
 are available for this operation, and that they are
-at locations @math{N} and @math{N+1} in the stack.
+at locations @var{N} and @var{N}+1 in the stack.
 They might be the numbers 42 and 711.
 So the callback is called with its two arguments,
 and produces a return value, let's say, 753.
 Libmarpa has told the application that the result
-belongs at location @math{N} in the stack,
-so the application writes 753 to location @math{N}.
+belongs at location @var{N} in the stack,
+so the application writes 753 to location @var{N}.
 
 Since Libmarpa knows nothing about the semantics,
 the operation for rule R could be string concatenation
@@ -4028,11 +4028,11 @@ Marpa is an aggressively multi-pass algorithm.
 Marpa achieves its efficiency,
 not in spite of making multiple
 passes over the data, but because of it.
-Marpa is @math{O(n)} for LR-regular grammars,
+Marpa is O(@var{n}) for LR-regular grammars,
 both in theory and in implementation,
 because Marpa regularly substitutes
-two fast @math{O(n)} passes for a single
-@math{O(n log n)} pass.
+two fast O(@var{n}) passes for a single
+O(@var{n} log @var{n}) pass.
 
 @menu
 * Why ordering objects?::       
