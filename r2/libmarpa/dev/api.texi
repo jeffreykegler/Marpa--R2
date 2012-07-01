@@ -670,9 +670,9 @@ In the standard model of input,
 calls to @code{marpa_r_alternative()}
 and @code{marpa_r_earleme_complete()} are
 made in pairs.
-There is first exactly one call 
-to @code{marpa_r_alternative()}
-for a token with length 1.
+There is, first, exactly one call 
+to @code{marpa_r_alternative()},
+and it is for a token with length 1.
 Following it must be a call
 to @code{marpa_r_earleme_complete()}.
 For an input of length @var{n}, there will be
