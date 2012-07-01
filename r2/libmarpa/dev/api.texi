@@ -126,6 +126,7 @@ Recognizer methods
 Bocage methods
 
 * Bocage overview::             
+* Bocage constructor::          
 * Bocage reference counting::   
 
 Ordering methods
@@ -2373,16 +2374,16 @@ the progress report is positioned before its first item.
 
 If no Earley set with ID
 @var{set_id} exists,
-@code{marpa_r_progress_report_start} fails.
+@code{marpa_r_progress_report_start()} fails.
 The error code is @code{MARPA_ERR_INVALID_LOCATION} if @var{set_id}
 is negative.
 The error code is @code{MARPA_ERR_NO_EARLEY_SET_AT_LOCATION}
-if @var{set_id} is greater than the ID of the 
+if @var{set_id} is greater than the ID of
 the latest Earley set.
 
 Return value: On success, the number of report items available.
-If the recognizer has not been started,
-if @var{set_id} does not exist
+If the recognizer has not been started;
+if @var{set_id} does not exist;
 or on other failure, -2.
 @end deftypefun
 
@@ -2440,10 +2441,11 @@ or on other failure, @code{-2}.
 
 @menu
 * Bocage overview::             
+* Bocage constructor::          
 * Bocage reference counting::   
 @end menu
 
-@node Bocage overview, Bocage reference counting, Bocage methods, Bocage methods
+@node Bocage overview, Bocage constructor, Bocage methods, Bocage methods
 @section Overview
 
 A bocage is structure containing the full set of parses found
@@ -2451,13 +2453,14 @@ by processing the input according to the grammar.
 The bocage structure is new with Libmarpa, but is very similar
 in purpose to the more familar parse forests.
 
-An archtypal application will create
-a bocage.
 To create a bocage, use the @code{marpa_b_new()} method.
 
 When a bocage is no longer in use, its memory can be freed
 using the 
 @code{marpa_b_unref()} method.
+
+@node Bocage constructor, Bocage reference counting, Bocage overview, Bocage methods
+@section Creating a new bocage
 
 @deftypefun Marpa_Bocage marpa_b_new (Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{earley_set_ID})
@@ -2466,15 +2469,15 @@ Creates a new bocage object, with a reference count of 1.
 The reference count of its parent recognizer object, @var{r},
 is increased by 1.
 If there is no parse ending at Earley set @var{earley_set_ID},
-@code{marpa_b_new} fails.
-The error code is set to
+@code{marpa_b_new} fails
+and the error code is set to
 @code{MARPA_ERR_NO_PARSE}.
 
 Return value: On success, the new bocage object.
-On failure, returns @code{NULL}.
+On failure, @code{NULL}.
 @end deftypefun
 
-@node Bocage reference counting,  , Bocage overview, Bocage methods
+@node Bocage reference counting,  , Bocage constructor, Bocage methods
 @section  Reference counting
 @deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
 Increases the reference count by 1.
