@@ -54,8 +54,8 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Ordering methods::            
 * Tree methods::                
 * Value methods::               
-* Events::                      
-* Error macros and code::       
+* Event codes::                 
+* Error macros and codes::      
 * Design notes::                
 * Things To Do::                
 
@@ -160,11 +160,7 @@ Maintaining the stack
 * Sizing the stack::            
 * Initializing locations in the stack::  
 
-Events
-
-* Event codes::                 
-
-Error macros and code
+Error macros and codes
 
 * Methods::                     
 * Error Macros::                
@@ -1912,7 +1908,7 @@ On failure, -2.
 @end deftypefun
 
 @node Grammar events,  , Grammar precomputation, Grammar methods
-@section Events
+@section Grammar events
 
 @deftypefun Marpa_Event_Type marpa_g_event (Marpa_Grammar @var{g}, @
     Marpa_Event* @var{event}, @
@@ -1949,7 +1945,7 @@ This macro provides access to the ``value'' of the event.
 The semantics of the value varies according to the type
 of the event, and is described in the section on event
 codes.
-@xref{Events}.
+@xref{Event codes}.
 @end deftypefn
 
 @node Recognizer methods, Progress reports, Grammar methods, Top
@@ -2688,7 +2684,7 @@ Return value: The number of parses traversed so far.
 Always succeeds.
 @end deftypefun
 
-@node Value methods, Events, Tree methods, Top
+@node Value methods, Event codes, Tree methods, Top
 @chapter Value methods
 
 @menu
@@ -3271,7 +3267,8 @@ macro.
 @end deftypefn
 
 @deftypefn {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
-Return value: Returns the integer which is (or represents)
+Return value: Returns the integer which is
+(or which represents)
 the value of the token for the
 @code{MARPA_STEP_TOKEN} step.
 @end deftypefn
@@ -3301,28 +3298,25 @@ returns the stack location where the value of the last child
 can be found.
 @end deftypefn
 
-@node Events, Error macros and code, Value methods, Top
-@chapter Events
-
-@menu
-* Event codes::                 
-@end menu
-
-@node Event codes,  , Events, Events
-@section Event codes
+@node Event codes, Error macros and codes, Value methods, Top
+@chapter Event codes
 
 @deftypevr Macro int MARPA_EVENT_NONE
 Applications should never see this event.
+Event value: Not defined.
 Suggested message: "No event"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EXHAUSTED
-The event value is undefined.
+The parse is exhausted.
+The value of this event is not defined.
+Event value: Not defined.
 Suggested message: "Recognizer is exhausted"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
-The event value is undefined.
+The user-settable Earley item threshold was exceeded.
+Event value: Not defined.
 Suggested message: "Too many Earley items"
 @end deftypevr
 
@@ -3335,25 +3329,25 @@ Nonetheless, Marpa parses in the presence of these,
 and it is up to the application to treat these
 as fatal errors,
 something most of them will wish to do.
-The value of the event is the count of loop rules.
+Event value: The count of loop rules.
 Suggested message: "Grammar contains a infinite loop"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
 A nullable is either the separator
-for, or the right hand side of a sequence.
-The value of the event is the ID of the symbol.
+for, or the right hand side of, a sequence.
+Event value: The ID of the symbol.
 Suggested message: "This symbol is a counted nullable"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_NULLING_TERMINAL
 A nulling symbol is also a terminal.
-The value of the event is the ID of the symbol.
+Event value: The ID of the symbol.
 Suggested message: "This symbol is a nulling terminal"
 @end deftypevr
 
-@node Error macros and code, Design notes, Events, Top
-@chapter Error macros and code
+@node Error macros and codes, Design notes, Event codes, Top
+@chapter Error macros and codes
 
 @menu
 * Methods::                     
@@ -3362,7 +3356,7 @@ Suggested message: "This symbol is a nulling terminal"
 * Internal error codes::        
 @end menu
 
-@node Methods, Error Macros, Error macros and code, Error macros and code
+@node Methods, Error Macros, Error macros and codes, Error macros and codes
 @section Methods
 
 @deftypefun Marpa_Error_Code marpa_g_error @
@@ -3392,14 +3386,14 @@ Return value: @code{MARPA_ERR_NONE}.
 Always succeeds.
 @end deftypefun
 
-@node Error Macros, External error codes, Methods, Error macros and code
+@node Error Macros, External error codes, Methods, Error macros and codes
 @section Error Macros
 
 @deftypevr Macro int MARPA_ERRCODE_COUNT
 The number of error codes.
 @end deftypevr
 
-@node External error codes, Internal error codes, Error Macros, Error macros and code
+@node External error codes, Internal error codes, Error Macros, Error macros and codes
 @section External error codes
 
 This section lists the external error codes.
@@ -3913,7 +3907,7 @@ current one.
 Suggested message: "The valued status of the symbol is locked"
 @end deftypevr
 
-@node Internal error codes,  , External error codes, Error macros and code
+@node Internal error codes,  , External error codes, Error macros and codes
 @section Internal error codes
 
 An internal error code may be one of two things:
@@ -4024,7 +4018,7 @@ A ``catchall'' internal error.
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN
 @end deftypevr
 
-@node Design notes, Things To Do, Error macros and code, Top
+@node Design notes, Things To Do, Error macros and codes, Top
 @chapter Design notes
 
 There is
