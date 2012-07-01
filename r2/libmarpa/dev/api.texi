@@ -43,7 +43,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Input::                       
 * Semantics::                   
 * Threads::                     
-* Error handling concepts::     
+* Fatal Errors::                
 * Introduction to the external interface::  
 * Static method::               
 * Configuration methods::       
@@ -96,10 +96,6 @@ Semantics
 
 * How Libmarpa semantics work::  
 * Valued and unvalued symbols::  
-
-Error handling
-
-* Memory allocation failures::  
 
 Introduction to the external interface
 
@@ -964,7 +960,7 @@ The detailed discussion of
 Libmarpa's handling of semantics is in the reference chapters
 of this document,
 under the appropriate methods and classes.
-The most extensive discussion of the semantics,
+The most extensive discussion of the semantics
 is in the section that deals with the methods of the value time class.
 @xref{Value methods}.
 
@@ -1034,7 +1030,7 @@ If there is interest,
 a future Libmarpa extension might allow a locked
 valued status to be overriden.
 
-@node Threads, Error handling concepts, Semantics, Top
+@node Threads, Fatal Errors, Semantics, Top
 @chapter Threads
 
 Libmarpa is thread-safe,
@@ -1076,18 +1072,11 @@ Libmarpa could allow thread-safe
 cloning of grammars and other
 time objects.
 
-@node Error handling concepts, Introduction to the external interface, Threads, Top
-@chapter Error handling
+@node Fatal Errors, Introduction to the external interface, Threads, Top
+@chapter Fatal Errors
 
-@menu
-* Memory allocation failures::  
-@end menu
-
-@node Memory allocation failures,  , Error handling concepts, Error handling concepts
-@section Memory allocation failures
-
-Libmarpa leaves the decision of what is a fatal
-error up to the application,
+Libmarpa avoids fatal errors,
+leaving that decision up to the application,
 with one exception.
 Currently, if @code{malloc} fails to allocate memory,
 Libmarpa terminates the program with a fatal error.
@@ -1098,7 +1087,7 @@ an alternative memory allocator to be specificied,
 and to allow the user to specifier a handler to
 be called when an out-of-memory condition occurs.
 
-@node Introduction to the external interface, Static method, Error handling concepts, Top
+@node Introduction to the external interface, Static method, Fatal Errors, Top
 @chapter Introduction to the external interface
 
 The following chapters describe Libmarpa's external
