@@ -56,7 +56,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Value methods::               
 * Events::                      
 * Error macros and code::       
-* Design considerations::       
+* Design notes::                
 * Things To Do::                
 
 @detailmenu
@@ -171,15 +171,11 @@ Error macros and code
 * External error codes::        
 * Internal error codes::        
 
-Design considerations
+Design notes
 
 * Why so many time objects::    
 * Design of numbered objects::  
 * LHS Terminals::               
-
-Why so many time objects?
-
-* Why ordering objects?::       
 
 @end detailmenu
 @end menu
@@ -3219,17 +3215,16 @@ and the result placed in
 @code{marpa_v_result(v)}.
 The stack location of
 @code{marpa_v_result(v)} is guaranteed to
-be equal to 
-to @code{marpa_v_arg_0(v)}.
+be equal to @code{marpa_v_arg_0(v)}.
 @end deftypevr
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_TOKEN
 The semantics of a non-null token should be performed.
-The value of the token whose ID is
+The application's value for the token whose ID is
 @code{marpa_v_token(v)} should be
 placed in
 stack location @code{marpa_v_result(v)}.
-Its value will be in
+Its value according to Libmarpa will be in
 @code{marpa_v_token_value(v)}.
 @end deftypevr
 
@@ -3245,17 +3240,11 @@ stack location @code{marpa_v_result(v)}.
 The valuator has gone through all of its steps
 and is now inactive.
 The value of the parse will be in stack location 0.
-
 Because of unvalued symbols,
 it is quite possible for valuator to immediately
 became inactive -- @code{MARPA_STEP_INACTIVE} could
-be the first and last step.
-For similar reasons, the application
-may need, on its own initiative,
-to initialize the stack
-to ensure there is a stack with a location 0 --
-there will not necessarily be a valuator step that
-prompts to do so.
+be both the first and last step.
+
 @end deftypevr
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_INTERNAL1
@@ -3363,7 +3352,7 @@ The value of the event is the ID of the symbol.
 Suggested message: "This symbol is a nulling terminal"
 @end deftypevr
 
-@node Error macros and code, Design considerations, Events, Top
+@node Error macros and code, Design notes, Events, Top
 @chapter Error macros and code
 
 @menu
@@ -4034,11 +4023,18 @@ A ``catchall'' internal error.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN
 @end deftypevr
-@node Design considerations, Things To Do, Error macros and code, Top
-@chapter Design considerations
 
-This section details some of the design choices
-in Libmarpa.
+@node Design notes, Things To Do, Error macros and code, Top
+@chapter Design notes
+
+There is
+a considerable amount of
+design apologetics throughout this document,
+dispersed among sections where it is
+hoped that it is useful to motivate
+the description or discussion.
+Those notes in this section are
+those which did not find a home elsewhere.
 
 @menu
 * Why so many time objects::    
@@ -4046,41 +4042,9 @@ in Libmarpa.
 * LHS Terminals::               
 @end menu
 
-@node Why so many time objects, Design of numbered objects, Design considerations, Design considerations
+@node Why so many time objects, Design of numbered objects, Design notes, Design notes
 @section Why so many time objects?
 
-Readers accustomed to other appraoches to parsing,
-particular those in fashion at this writing,
-may wonder on the number of time objects
-in the Marpa architecture.
-Several of Marpa's time objects (bocages,
-orderings and trees) are required
-because Marpa allows,
-and offers powerful tools for dealing with,
-ambigious grammars.
-
-It may seem, then, that users of unambiguous grammars,
-are paying a considerable price in time effiency
-for the ability to parse
-ambiguous ones.
-This is not the case.
-In the trivial case, the cost of the orderings
-object is a single, very brief, subroutine call.
-
-Bocage objects come at minimal cost,
-because the same pass which creates the bocage
-also deals with other issues which are of major
-significance even for unambiguous parses.
-The same pass which creates the bocage
-enables Marpa to do both left-
-and right-recursion in linear time.
-
-Tree objects come at mininal cost to unambiguous grammars,
-because the same pass that allows iteration through multiple
-parse trees does the tree traversal, so that the valuation time object
-has very litle to do -- it just steps through the sequence.
-
-But what about the many passes over the data this requires?
 Marpa is an aggressively multi-pass algorithm.
 Marpa achieves its efficiency,
 not in spite of making multiple
@@ -4091,12 +4055,25 @@ because Marpa regularly substitutes
 two fast O(@var{n}) passes for a single
 O(@var{n} log @var{n}) pass.
 
-@menu
-* Why ordering objects?::       
-@end menu
+Marpa's proliferation of time objects is in
+keeping with its multi-pass approach.
+Several of Marpa's time objects (bocages,
+orderings and trees) are required
+to deal with
+ambiguous grammars,
+but, as the following will show,
+in all cases the step that handle
+ambiguous either accomplish important work
+for unambiguous grammars,
+or come at almost no cost.
 
-@node Why ordering objects?,  , Why so many time objects, Why so many time objects
-@subsection Why ordering objects?
+Bocage objects come at minimal cost,
+because the same pass which creates the bocage
+also deals with other issues which are of major
+significance even for unambiguous parses.
+The same pass which creates the bocage
+enables Marpa to do both left-
+and right-recursion in linear time.
 
 Of the various objects, the best
 case for elimination is of the
@@ -4115,7 +4092,17 @@ essentially a handful of subroutine calls.
 Many orderings accomplish nothing,
 but these cost next to nothing.
 
-@node Design of numbered objects, LHS Terminals, Why so many time objects, Design considerations
+Tree objects come at mininal cost to unambiguous grammars,
+because the same pass that allows iteration through multiple
+parse trees does the tree traversal.
+This eliminates much of the work that otherwise would
+need to be done in
+the valuation time object.
+In the current implement, the valuation time object
+needs only to step through a sequence already determined
+in the tree iterator.
+
+@node Design of numbered objects, LHS Terminals, Why so many time objects, Design notes
 @section Numbered objects
 
 As the name suggests,
@@ -4144,7 +4131,7 @@ modern architectures is
 a small price to pay for
 safe, portable validity checking.
 
-@node LHS Terminals,  , Design of numbered objects, Design considerations
+@node LHS Terminals,  , Design of numbered objects, Design notes
 @section LHS terminals
 
 Marpa's idea
@@ -4167,7 +4154,7 @@ For this reason,
 the traditional behavior is the default
 in Marpa.
 
-@node Things To Do,  , Design considerations, Top
+@node Things To Do,  , Design notes, Top
 @chapter Things to do
 
 @itemize
