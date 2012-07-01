@@ -2726,11 +2726,9 @@ The archetypal application will need to register
 symbols that contain semantics.
 The primary method for doing this is
 @code{marpa_v_symbol_is_valued()}.
-Applications registering semantics may find
-it convenient to do so directly using
-the @code{marpa_v_rule_is_valued()} method,
-which will save them the trouble
-of looking up the rule's LHS symbol.
+Applications will typically register semantics by rule,
+and these applications will find
+the @code{marpa_v_rule_is_valued()} method more convenient.
 
 The application is required to maintain the stack,
 and the application is also required to implement
@@ -2745,8 +2743,9 @@ use the @code{marpa_v_step()} method.
 of step.
 Most step types has values associated with them.
 To access these values use the methods
-described in @ref{Step accessors}.
+described in the section @ref{Step accessors}.
 How to perform the steps is described in
+the sections
 @ref{How to use the valuator}
 and @ref{Stepping through the valuator}.
 
@@ -2803,25 +2802,25 @@ capable of being any of these things and more.
 
 Step-driven valuation
 hides Libmarpa's grammar rewrites from the application,
-and is actually quite efficient.
+and is quite efficient.
 Libmarpa knows which rules are sequences.
-Based on the ``unvalued'' status,
+Based on the individual symbol's valued statuses,
 Libmarpa also knows which rules
 and terminals have values that it need not bother tracking.
 Libmarpa optimizes stack manipulations based on this knowledge.
 Long sequences,
 as well as unvalued rules and symbols,
-are often very common in practical grammars.
+are very common in practical grammars.
 For these,
 the stack manipulations suggested by Libmarpa's
-step driven valuator
+step-driven valuator
 will be significantly faster than the
 traditional stack evaluation algorithm.
 
 Step-driven evalution has another advantage.
 To illustrate this,
 consider what is a very common case:
-the semantics are implemented in a higher-level language,
+The semantics are implemented in a higher-level language,
 using callbacks.
 If Libmarpa did not use step-driven valuation,
 it would need to provide for this case.
@@ -2856,7 +2855,7 @@ a language boundary will have been crossed four times.
 
 How do
 programmers deal with difficulties like this?
-Usually, it is by
+Usually, by
 doing the absolute minimum possible in the callbacks.
 A horrific debugging enviroment can become a manageable
 one if there is next to no code to be debugged.
@@ -2877,9 +2876,9 @@ not work.
 
 So, while step-driven valuation seems
 a roundabout approach,
-it actually is simpler and more direct than
+it is simpler and more direct than
 the likely alternatives.
-And this is something to be said for pushing
+And there is something to be said for pushing
 semantics up to the higher levels --
 they can be expected to know more about it.
 
@@ -2890,7 +2889,7 @@ The author is under no illusion
 that direct use of Libmarpa's valuator will be found
 satisfactory by most application programmers,
 even those using the C language.
-The author certainly avoids using it directly.
+The author certainly avoids using step-driven valuation directly.
 Libmarpa's valuator is intended
 to be used via an upper layer,
 one which @strong{does} know about semantics.
@@ -2927,30 +2926,33 @@ to stack locations.
 When it does so, it will not
 necessarily optimize away all reads
 to that stack location.
-This means the a location's first access,
+This means that a location's first access,
 as suggested by the Libmarpa step instructions,
 may be a read.
 This possibility
-require a special awareness from the C
+requires a special awareness from the C
 programmer,
 as discussed in
+the sections
 @ref{Sizing the stack} and
 @ref{Initializing locations in the stack}.
 
 In the discussions in this document,
-stack locations are non-negative integers
+stack locations are non-negative integers.
 The bottom of the stack is location 0.
 In moving from the bottom of the stack to the top,
 the numbers increase.
-Stack location @var{X} is said to be ``greater'' 
-than stack location @var{Y} if stack location
-@var{X} is closer to the top of stack than location @var{Y},
+Stack location @var{Y} is said to be ``greater'' 
+than stack location @var{X} if stack location
+@var{Y} is closer to the top of stack than location @var{X},
 and therefore stack locations are considered greater or
 lesser if the integers that represent them are
 greater or lesser.
-A stack location @var{X} which is greater (lesser)
-than stack location @var{Y} is also said to be
-later (earlier) than stack location @var{Y}.
+Another way to state that
+a stack location @var{Y} is greater (lesser)
+than stack location @var{X} is to say that
+a stack location @var{Y} is later (earlier)
+than stack location @var{X}.
 
 @menu
 * Sizing the stack::            
@@ -2967,7 +2969,7 @@ Specifically, the application must do the following
 
 @itemize
 @item Ensure location 0 exists -- in other
-words that the stack is length 1.
+words that the stack is at least length 1.
 @item For @code{MARPA_STEP_TOKEN} steps,
 ensure that location @code{marpa_v_result(v)}
 exists.
@@ -2975,7 +2977,7 @@ exists.
 ensure that location @code{marpa_v_result(v)}
 exists.
 @item For @code{MARPA_STEP_RULE} steps,
-ensure that that stack locations from @code{marpa_v_arg_0(v)}
+ensure that stack locations from @code{marpa_v_arg_0(v)}
 to @code{marpa_v_arg_n(v)} exist.
 @end itemize
 
@@ -3031,9 +3033,10 @@ containing a trap value.)
 The requirement that locations be initialized before
 reading occurs in other implementations.
 Uninitialized locations will correspond to unvalued symbols,
-but ``unvalued'' means ``not having a specific predictable value'' --
-an implementation may require even ``unvalued'' symbols to have
+but an implementation may require even ``unvalued'' symbols to have
 a value that belongs to its ``universe'' of values.
+A symbol is
+``unvalued'' if it does not have a predictable @strong{specific} value.
 For example, an application may be implemented
 expecting every item on the stack
 to belong to a class,
@@ -3060,13 +3063,17 @@ initialize every stack location added.
 
 Applications which try to optimize out some of
 these initializations
-need to be prepared for
-step instructions that revisit earlier
-sections of the stack.
-The application must always be prepared for a step
-instruction to specify a read anywhere in the current stack,
-as well as a read beyond the end of the current
+need to be aware that
+an application cannot assume that reads,
+even of previously unvisited locations,
+will only be near or
+beyond the end of the current
 stack.
+If there is any uninitialized stack location
+from location 0
+to the end of the current stack and beyond,
+an application will always need to be prepared for a step
+instruction that specifies it as a location from which to read.
 
 @node Valuator constructor, Valuator reference counting, Maintaining the stack, Value methods
 @section Creating a new valuator
