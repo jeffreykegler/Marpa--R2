@@ -3303,38 +3303,38 @@ can be found.
 
 @deftypevr Macro int MARPA_EVENT_NONE
 Applications should never see this event.
-Event value: Not defined.
+Event value: Undefined.
 Suggested message: "No event"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EXHAUSTED
 The parse is exhausted.
-The value of this event is not defined.
-Event value: Not defined.
+Event value: Undefined.
 Suggested message: "Recognizer is exhausted"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
 The user-settable Earley item threshold was exceeded.
-Event value: Not defined.
+Event value: Undefined.
 Suggested message: "Too many Earley items"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_LOOP_RULES
-A rule is part of a cycle.
+One or more rules are loop rules -- rules
+that are part of a cycle.
 Cycles are pathological cases of recursion,
 in which the same symbol string derives itself
 a potentially infinite number of times.
 Nonetheless, Marpa parses in the presence of these,
 and it is up to the application to treat these
 as fatal errors,
-something most of them will wish to do.
+something they almost always will wish to do.
 Event value: The count of loop rules.
 Suggested message: "Grammar contains a infinite loop"
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
-A nullable is either the separator
+A nullable symbol is either the separator
 for, or the right hand side of, a sequence.
 Event value: The ID of the symbol.
 Suggested message: "This symbol is a counted nullable"
