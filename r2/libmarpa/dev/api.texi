@@ -2050,9 +2050,10 @@ which must be a terminal.
 @var{value} is an
 integer that represents the value of the
 token.
-In applications where the token's value is not an integer, it is
-expected that the application will use this value to
-find the application's value, perhaps by using @var{value}
+In applications where the token's actual value is not an integer, it is
+expected that the application will use this value as
+a ``virtual'' value,
+perhaps finding the actual value by using @var{value}
 to index an array.
 @var{value} is not used inside Libmarpa -- it is simply
 stored to be returned by the valuator
@@ -2107,11 +2108,11 @@ symbol @var{token_id} will be set to 0
 and locked.
 
 If the valued status of
-@var{token_id} is locked at 0,
-it is a failure if it is used as an valued symbol.
+symbol @var{token_id} is locked at 0,
+it is a failure if that symbol is used as an valued symbol.
 If the valued status of
-@var{token_id} is locked at 1,
-it is a failure if it is used as an unvalued symbol.
+symbol @var{token_id} is locked at 1,
+it is a failure if that symbol is used as an unvalued symbol.
 
 When @code{marpa_r_alternative()}
 is successful,
@@ -2170,7 +2171,7 @@ will be the one plus the value of the earleme processed by the call
 to @code{marpa_r_earleme_complete()}.
 If any token was accepted at the earleme being processed,
 @code{marpa_r_earleme_complete()} creates a new Earley set
-which will be the latest Earley set,
+which will be the latest Earley set
 and, after the call, the latest
 earleme will be equal to the new current earleme.
 If no token was accepted at the
@@ -2238,13 +2239,13 @@ the inverse operation (conversion of an earleme to an Earley set
 ID).
 One consideration in writing
 such a method is that not all earlemes correspond to Earley sets.
-Applications which want to map earlemes
+Applications that want to map earlemes
 to Earley sets will have no trouble if they
 are using the standard input model --
 the Earley set
 ID is always exactly equal to the earleme in that model.
-For an
-application that wants an earleme-to-ID mapping to obtain it,
+For other applications
+that want an earleme-to-ID mapping,
 the most general method is create an ID-to-earleme
 array using the @code{marpa_r_earleme()} method
 and invert it.
@@ -2264,7 +2265,7 @@ Always succeeds.
 
 @deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set (Marpa_Recognizer @var{r})
 This method returns the Earley set ID (ordinal) of the latest Earley set.
-Applications which want the
+Applications that want the
 value of the latest earleme can convert
 this value using
 the @code{marpa_r_earleme()} method.
@@ -2311,7 +2312,7 @@ Always succeeds.
     Marpa_Recognizer @var{r}, @
     Marpa_Symbol_ID* @var{buffer})
 Returns a list of the ID's of the symbols
-which are acceptable as tokens
+that are acceptable as tokens
 at the current earleme.
 @var{buffer} is expected to be large enough to hold
 the result.
