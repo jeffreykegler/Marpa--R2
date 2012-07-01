@@ -694,7 +694,7 @@ this means that we also know that
 In that case,
 after the call to 
 @code{marpa_r_alternative()},
-the following would be true:
+the following will be true:
 @itemize
 @item The current earleme will still be @var{c}.
 @item The latest earleme will still be @var{c}.
@@ -779,7 +779,7 @@ the following is true:
 In that case,
 after the call to 
 @code{marpa_r_alternative()},
-the following would be true:
+the following will be true:
 @itemize
 @item The current earleme will still be @var{c}.
 The current earleme is never changed by a call
@@ -803,11 +803,11 @@ the following is true:
 In that case,
 after the call
 to @code{marpa_r_earleme_complete()},
-the following would be true:
+the following will be true:
 @itemize
-@item The current earleme would be advanced to @var{c+1}.
+@item The current earleme will be advanced to @var{c+1}.
 @item The latest earleme will also be @var{c+1}.
-@item The furthest earleme would still be @var{old_f}.
+@item The furthest earleme will still be @var{old_f}.
 The furthest earleme is never changed by a call
 to @code{marpa_r_earleme_complete()}.
 @end itemize
@@ -856,9 +856,9 @@ the following is true:
 In that case,
 after the call
 to @code{marpa_r_earleme_complete()},
-the following would be true:
+the following will be true:
 @itemize
-@item The current earleme would be advanced to @var{c+1}.
+@item The current earleme will be advanced to @var{c+1}.
 @item The latest earleme will remain at @var{old_l}.
 This means that the latest earleme will be less than
 the current earleme.
@@ -880,9 +880,9 @@ the following is true:
 In that case,
 after the call
 to @code{marpa_r_earleme_complete()},
-the following would be true:
+the following will be true:
 @itemize
-@item The current earleme would be advanced to @var{c+1}.
+@item The current earleme will be advanced to @var{c+1}.
 @item The latest earleme will be advanced to @var{c+1}.
 @item The furthest earleme will remain at @var{old_f}.
 The furthest earleme is never changed by a call
@@ -1253,7 +1253,7 @@ of one of these two prefixes.
     )
 
 Checks that the Marpa library in use is compatible with the
-given version. Generally you would pass in the constants
+given version. Generally you will pass in the constants
 @code{MARPA_MAJOR_VERSION},
 @code{MARPA_MINOR_VERSION},
 @code{MARPA_MICRO_VERSION}
