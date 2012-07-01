@@ -703,7 +703,7 @@ the following will be true:
 
 Suppose, in the standard model that,
 for a call
-to @code{marpa_r_earleme_complete()}
+to @code{marpa_r_earleme_complete()},
 the following is true:
 @itemize
 @item The current earleme before the call is @var{c}.
@@ -793,7 +793,7 @@ to @code{marpa_r_alternative()}.
 
 Suppose, in the variable length token model that,
 for a call
-to @code{marpa_r_earleme_complete()}
+to @code{marpa_r_earleme_complete()},
 the following is true:
 @itemize
 @item The current earleme before the call is @var{c}.
