@@ -1674,7 +1674,8 @@ Returns the ID of the symbol in position @var{ix}
 in the RHS of rule @var{rule_id}.
 The RHS position, @var{ix}, is zero-based.
 
-Return value: On success, the symbol in position @var{ix}
+Return value: On success,
+the ID of the symbol in position @var{ix}
 on the rules RHS.
 If @var{ix} is greater than or equal to the length of
 the rule,
@@ -1688,27 +1689,24 @@ or on other failure, -2.
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 
-Note that this method will succeed even if rule @var{rule_id}
-is not a sequence rule.
-Since only sequence rules can have the proper separation flag set,
-the @code{marpa_g_rule_is_proper_separation()}
-method returns 0
-whenever rule @var{rule_is} is a BNF rule.
-
 Return value:
-On success,
-1 if rule @var{rule_id} has
-the proper separation flag set,
-0 otherwise.
+On success, if rule @var{rule_id} is not a sequence rule, 0.
+On success, if rule @var{rule_id}
+is a sequence rule where the proper separation flag
+is set, 1.
+On success, if rule @var{rule_id}
+is a sequence rule where the proper separation flag
+is @strong{not} set, 0.
 On failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_sequence ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
-Return value:  On success,
-1 if rule @var{rule_id} is a sequence rule,
-0 otherwise.
+Return value:
+On success,
+if rule @var{rule_id} is a sequence rule, 1;
+otherwise, 0.
 On failure, -2.
 @end deftypefun
 
@@ -1719,14 +1717,14 @@ On failure, -2.
     int @var{min}, @
  int @var{flags} )
 Adds a new sequence rule to grammar @var{g}.
-Sequence rules do not extend the kinds of grammar that
-Libmarpa parses -- a sequence can always be written
-as BNF rules.
-(In fact this is how Libmarpa
-implements them.)
-But when Libmarpa knows that a rule is a sequence,
-it can optimize it.
-This speedup is often considerable.
+Sequence rules do not add to the classes of grammar parsed
+by Libmarpa --
+a sequence can always be written as BNF rules.
+When a rule is created
+with the @code{marpa_g_sequence_new()} method,
+Libmarpa will understand that it is a sequence,
+and will optimize accordingly.
+The speedup is often considerable.
 
 The sequence is @var{lhs_id},
 and the item to be repeated in the sequence is @var{rhs_id}.
