@@ -955,20 +955,18 @@ Libmarpa's stack handling instructions
 are called ``steps''.
 For example, a Libmarpa step might tell the application that the value
 of a token needs to go into a certain stack position.
-Or a Libmarpa step might tell the application that a rule is to be evaluation.
+Or a Libmarpa step might tell the application that a rule is to be evaluated.
 For rule evalution, Libmarpa will tell the application where the operands
 are to be found,
 and where the result must go.
 
-An advantage of leaving the application in control of the stack
-is that the applicaion has total control over what the stack values
-are.
-The set of all possible stack values is the application's
-@dfn{universe of values}.
-For example, as implemented in Perl,
-the universe of values is the Perl scalar-assignables.
-In C, they could be integers, @code{void *} pointers,
-or pointers to some sort of polymorphic object.
+The detailed discussion of
+Libmarpa's handling of semantics is in the reference chapters
+of this document,
+under the appropriate methods and classes.
+The most extensive discussion of the semantics,
+is in the section that deals with the methods of the value time class.
+@xref{Value methods}.
 
 @node Valued and unvalued symbols,  , How Libmarpa semantics work, Semantics
 @section Valued and unvalued symbols
