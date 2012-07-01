@@ -1308,7 +1308,7 @@ using the
 @code{marpa_g_unref()} method.
 
 To be precomputed,
-a grammar must have one or more symbol.
+a grammar must have one or more symbols.
 To create symbols, use the
 @code{marpa_g_symbol_new()} method.
 
@@ -1487,8 +1487,8 @@ Once set to a value with the
 the terminal status of a symbol is ``locked'' at that value.
 A subsequent call to 
 @code{marpa_g_symbol_is_terminal_set()} that attempts
-to change the terminal tstatus
-of @var{symid} to a value different from its current
+to change the terminal status
+of @var{symid} to a value different from its current one
 will fail.
 The error code will be @code{MARPA_ERR_TERMINAL_IS_LOCKED}.
 
@@ -1501,8 +1501,9 @@ but this is not necesssarily detected before precomputation.
 Return value: On success, 1 if symbol @var{symid}
 is a terminal symbol after the
 call, 0 otherwise.
-If the terminal status would be changed but is locked;
 If @var{value} is not 0 or 1;
+if the terminal status is locked and @var{value}
+is different from its current value;
 if the grammar @var{g} is precomputed;
 or on other failure, -2.
 @end deftypefun
@@ -1517,23 +1518,15 @@ or on other failure, -2.
 
 These methods, respectively, set
 and query the ``valued status'' of a symbol.
-If a symbol is ``valued'',
-the semantics require that it have a defined value.
-If a symbol is not valued,
-it is an unvalued, or a ``whatever'' symbol.
-
 Once set to a value with the
 @code{marpa_g_symbol_is_valued_set()} method,
 the valued status of a symbol is ``locked'' at that value.
 It cannot thereafter be changed.
-Subsequents call to 
-@code{marpa_g_symbol_is_valued_set()} can be made
-for the same @var{symid}
-will succeed only if
-@var{value} is the same as the locked-in value.
-Attempts to change a locked value
-will return failure,
-and leave the @var{symid}'s valued status unchanged.
+Subsequent calls to 
+@code{marpa_g_symbol_is_valued_set()}
+for the same @var{symid} will fail,
+leaving @var{symid}'s valued status unchanged,
+unless @var{value} is the same as the locked-in value.
 
 Return value: On success, 1 if the symbol @var{symbol_id}
 is valued after the call, 0 if not.
