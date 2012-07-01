@@ -1112,9 +1112,10 @@ The overviews are intended as ``cheat sheets''.
 The overview sections often speak of
 an ``archetypal'' application.
 The archetypal Libmarpa application
-implements the complete logic flow,
-from the creation of a grammar to a final result
-from its valuation.
+implements a complete logic flow,
+starting with the creation of a grammar,
+and proceeding all the way
+to the return of the final result from a value object.
 In the archetypal Libmarpa application,
 the grammar, input and semantics are
 all small but non-trivial.
@@ -1130,19 +1131,18 @@ Libmarpa usually reserves -1 for special purposes,
 such as indicating loop termination in an iterator.
 In Libmarpa, methods typically indicate failure
 by returning -2.
-If a function returns an pointer value,
+Any result greater than -2 indicates success.
+
+If a method returns an pointer value,
 @code{NULL} typically indicates failure.
-and any other result indicates success.
+Any other result indicates success.
 
 A method can have many reasons for
 failing, and many of the reasons
 for failure are common to
 large number of methods.
-The method descriptions contain details
-of possible failures when they are significant
-for using that method.
 Full descriptions of the error codes
-returned by the external methods
+that are returned by the external methods
 are given in their own section.
 @xref{External error codes}.
 
@@ -1155,6 +1155,7 @@ if they are part of the
 external interface.
 If an external method is not a static method,
 its name is prefixed with one of 
+@code{marpa_c_},
 @code{marpa_g_},
 @code{marpa_r_},
 @code{marpa_b_},
@@ -1162,15 +1163,16 @@ its name is prefixed with one of
 @code{marpa_t_} or
 @code{marpa_v_},
 where the single letter between underscores
-is one of the time class abbreviations.
+is one of the Libmarpa major class abbreviations.
 The letter indicates which class
 the method belongs to.
 
-Methods which are exported,
-but which are part of
-the internal interface begin with @code{_marpa_}.
-Methods which are part of the internal interface
-(hereafter ``internal methods'')
+Methods that are exported,
+but that are part of
+the internal interface,
+begin with @code{_marpa_}.
+Methods that are part of the internal interface
+(often called ``internal methods'')
 are subject to change and are intended for use
 only by Libmarpa's developers.
 
@@ -1204,7 +1206,7 @@ Currently Libmarpa is undergoing rapid development,
 and backward compatibility is not maintained.
 This will be the case as long as Libmarpa stays
 alpha.
-While Libmarpa is alpha
+While Libmarpa is alpha,
 the major, minor and micro numbers must match exactly.
 
 Once Libmarpa is beyond alpha releases,
