@@ -79,8 +79,6 @@ Input
 
 * Earlemes::                    
 * Terminals::                   
-* LHS Terminals::               
-* Token values::                
 
 Earlemes
 
@@ -93,11 +91,6 @@ Earlemes
 * Variable length tokens::      
 * The generalized model::       
 * General rules for the earleme variables::  
-
-Terminals
-
-* LHS Terminals::               
-* Token values::                
 
 Semantics
 
@@ -185,6 +178,7 @@ Design considerations
 
 * Why so many time objects::    
 * Design of numbered objects::  
+* LHS Terminals::               
 
 Why so many time objects?
 
@@ -514,8 +508,6 @@ objects.
 @menu
 * Earlemes::                    
 * Terminals::                   
-* LHS Terminals::               
-* Token values::                
 @end menu
 
 @node Earlemes, Terminals, Input, Input
@@ -913,7 +905,7 @@ the parser is not exhausted.
 the parser must be exhausted.
 @end itemize
 
-@node Terminals
+@node Terminals,  , Earlemes, Input
 @section Terminals
 
 A terminal symbol is a symbol which
@@ -4052,6 +4044,7 @@ in Libmarpa.
 @menu
 * Why so many time objects::    
 * Design of numbered objects::  
+* LHS Terminals::               
 @end menu
 
 @node Why so many time objects, Design of numbered objects, Design considerations, Design considerations
@@ -4123,7 +4116,7 @@ essentially a handful of subroutine calls.
 Many orderings accomplish nothing,
 but these cost next to nothing.
 
-@node Design of numbered objects,  , Why so many time objects, Design considerations
+@node Design of numbered objects, LHS Terminals, Why so many time objects, Design considerations
 @section Numbered objects
 
 As the name suggests,
@@ -4152,7 +4145,7 @@ modern architectures is
 a small price to pay for
 safe, portable validity checking.
 
-@node LHS Terminals
+@node LHS Terminals,  , Design of numbered objects, Design considerations
 @section LHS terminals
 
 Marpa's idea
