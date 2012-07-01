@@ -678,8 +678,8 @@ to @code{marpa_r_earleme_complete()}.
 For an input of length @var{n}, there will be
 exactly @var{n} such paired calls.
 
-Suppose, in the standard model,
-that for a call
+Suppose, in the standard model that,
+for a call
 to @code{marpa_r_alternative()},
 the following is true:
 @itemize
@@ -701,8 +701,8 @@ the following will be true:
 @item The furthest earleme will be @var{c}+1.
 @end itemize
 
-Suppose, in the standard model,
-that for a call
+Suppose, in the standard model that,
+for a call
 to @code{marpa_r_earleme_complete()}
 the following is true:
 @itemize
@@ -766,8 +766,8 @@ be of length 1,
 we allow tokens to be of length 1 or longer.
 This does change the behavior of the earleme variables.
 
-Suppose, in this new model,
-that for a call
+Suppose, in the variable length token model that,
+for a call
 to @code{marpa_r_alternative()},
 the following is true:
 @itemize
@@ -791,8 +791,8 @@ to @code{marpa_r_alternative()}.
  @var{c}+@var{length}, whichever was greater.
 @end itemize
 
-Suppose, in this new model,
-that for a call
+Suppose, in the variable length token model that,
+for a call
 to @code{marpa_r_earleme_complete()}
 the following is true:
 @itemize
