@@ -3064,16 +3064,11 @@ initialize every stack location added.
 Applications which try to optimize out some of
 these initializations
 need to be aware that
-an application cannot assume that reads,
-even of previously unvisited locations,
-will only be near or
-beyond the end of the current
-stack.
-If there is any uninitialized stack location
-from location 0
-to the end of the current stack and beyond,
-an application will always need to be prepared for a step
-instruction that specifies it as a location from which to read.
+an application can never assume that activity in
+the stack is safely ``beyond'' an uninitialized location.
+Libmarpa steps often revisit earlier sections of the stack,
+and these revisits may include reads of previously
+unvisited stack locations.
 
 @node Valuator constructor, Valuator reference counting, Maintaining the stack, Value methods
 @section Creating a new valuator
@@ -3094,10 +3089,10 @@ until the valuator is destroyed.
 Many valuators of the same parse tree
 can exist at once.
 A tree iterator is ``unpaused'' when
-all of the valuators of a parse tree are destroyed.
+all of the valuators of that tree iterator are destroyed.
 
 Return value:  On success, the newly created valuator.
-On failure, returns @code{NULL} and sets the error code.
+On failure, @code{NULL}.
 @end deftypefun
 
 @node Valuator reference counting, Registering semantics, Valuator constructor, Value methods
@@ -3144,18 +3139,17 @@ base grammar, if necessary.
     int @var{value} )
 These methods, respectively, report and set to @var{value}
 the valued status for symbol @var{symid}.
-A valued status is either 1 or 0.
 A valued status of 1 indicates that the symbol is valued.
 A valued status of 0 indicates that the symbol is unvalued.
-
 If the valued status is locked,
 an attempt to change to a status different from the
-current one will fail.
-The error code will be @code{MARPA_ERR_VALUED_IS_LOCKED}.
+current one will fail
+(error code @code{MARPA_ERR_VALUED_IS_LOCKED}).
 
 Return value:  On success, the valued status @strong{after}
 the call.
-On failure, -2.
+If @var{value} is not either 0 or 1,
+or on other failure, -2.
 @end deftypefun
 
 @deftypefun int marpa_v_rule_is_valued ( @
@@ -3168,9 +3162,12 @@ On failure, -2.
 These methods, respectively, report and set to @var{value}
 the valued status
 for the LHS symbol of rule @var{rule_id}.
-A valued status is either 1 or 0.
 A valued status of 1 indicates that the symbol is valued.
 A valued status of 0 indicates that the symbol is unvalued.
+If the valued status is locked,
+an attempt to change to a status different from the
+current one will fail
+(error code @code{MARPA_ERR_VALUED_IS_LOCKED}).
 
 Rules have no valued status of their own.
 The valued status of a rule
@@ -3179,16 +3176,11 @@ These methods are conveniences -- they
 save the application the trouble of looking
 up the rule's LHS.
 
-@code{marpa_v_rule_is_valued_set} fails if
-@var{value} is not either 0 or 1.
-It also fails if the valued status of
-the LHS symbol of @var{rule_id} is locked
-and @var{value} is different from its locked-in value.
-
 Return value:  On success, the valued status of the
 rule @var{rule_id}'s LHS symbol @strong{after}
 the call.
-On failure, -2.
+If @var{value} is not either 0 or 1,
+or on other failure, -2.
 @end deftypefun
 
 @node Stepping through the valuator, Valuator steps by type, Registering semantics, Value methods
@@ -3198,9 +3190,10 @@ On failure, -2.
     Marpa_Value @var{v})
 This method ``steps through'' the valuator.
 The return value is a @code{Marpa_Step_Type},
-a integer which indicates the type of step.
+an integer which indicates the type of step.
 How the application is expected to act on
 each step is described below.
+@xref{Valuator steps by type}.
 When the iteration through the steps is finished,
 @code{marpa_v_step} returns @code{MARPA_STEP_INACTIVE}.
 
