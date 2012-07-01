@@ -2597,8 +2597,8 @@ In Libmarpa,
 ``parse tree iterators'' are usually just called @dfn{trees}.
 
 To create a tree, use the @code{marpa_t_new()} method.
-A newly created tree is positioned before the first parse tree.
-When a tree is no longer in use, its memory can be freed
+A newly created tree iterator is positioned before the first parse tree.
+When a tree iterator is no longer in use, its memory can be freed
 using the 
 @code{marpa_t_unref()} method.
 
@@ -2619,7 +2619,7 @@ To position the tree iterator to the first parse,
 the application must call @code{marpa_t_next()}.
 
 Return value:  On success, a newly created tree.
-On failure, returns @code{NULL} and sets the error code.
+On failure, @code{NULL}.
 @end deftypefun
 
 @node Tree reference counting, Tree iteration, Tree constructor, Tree methods
@@ -2661,7 +2661,7 @@ base grammar, if necessary.
 Positions @var{t} at the next parse tree
 in the iteration.
 Tree iterators are initialized to the position
-before the first parse,
+before the first parse tree,
 so this method must be called before creating a valuator
 from a tree.
 
@@ -2669,13 +2669,13 @@ If a tree iterator is positioned after the last parse,
 the tree is said to be ``exhausted''.
 A tree iterator for a bocage with no parse trees
 is considered to be ``exhausted'' when initialized.
-If the tree is exhausted, @code{marpa_t_next}
-return -1 as a termination indicator,
+If the tree iterator is exhausted, @code{marpa_t_next()}
+returns -1 as a termination indicator,
 and sets the error code to 
 @code{MARPA_ERR_TREE_EXHAUSTED}.
 
 Return value: On success, a non-negative value.
-If the tree is exhausted, returns -1
+If the tree iterator is exhausted, -1.
 On failure, -2.
 @end deftypefun
 
@@ -2685,7 +2685,8 @@ The parse counter counts the number of parse trees
 traversed so far.
 The count includes the current iteration of the
 tree, so that a value of 0 indicates that the tree iterator
-is initialized to the position before the first parse tree.
+is at its initialized position,
+before the first parse tree.
 
 Return value: The number of parses traversed so far.
 Always succeeds.
