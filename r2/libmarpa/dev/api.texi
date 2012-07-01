@@ -913,7 +913,7 @@ the parser is not exhausted.
 the parser must be exhausted.
 @end itemize
 
-@node Terminals, LHS Terminals, Earlemes, Input
+@node Terminals
 @section Terminals
 
 A terminal symbol is a symbol which
@@ -921,62 +921,26 @@ may appear in the input.
 Traditionally,
 all LHS symbols, as well as
 the start symbol, must be non-terminals.
-Marpa's grammars differ from the traditional ones
-in that there is no necessary distinction between
-terminals and non-terminals.
+This is Marpa's behavior, by default.
+
+Marpa differs from the traditional parsers
+in that it allows the user to eliminate the distinction
+between terminals and non-terminals.
 In Marpa,
-a terminal may be the start symbol,
-and may appear on the LHS of a rule.
+the user can arrange it so that
+a terminal is the start symbol,
+or so that a terminal also appears on
+the LHS of a rule.
 However,
 since terminals can never be zero length,
 it is a logical contradiction for a nulling
 symbol to also be a terminal
 and Marpa does not allow it.
 
-@menu
-* LHS Terminals::               
-* Token values::                
-@end menu
-
-@node LHS Terminals, Token values, Terminals, Input
-@section Uses for LHS terminals
-
-Marpa's idea
-in losing the sharp division between terminals
-and non-terminals is that the distinction,
-while helpful for proving theorems,
-is not essential in practice.
-If LHS symbols
-appear in the input they, in effect,
-``short circuiting'' the rules in which they occur.
-This may
-be helpful in debugging, or have other applications.
-
-However,
-it also can be useful,
-for checking input validity as well as for efficiency,
-to follow tradition and distingush
-non-terminals from terminals.
-For this reason,
-the traditional behavior is the default
-in Marpa.
-
-@node Token values,  , LHS Terminals, Input
-@section Token values
-
 Token values are @code{int}'s.
 Libmarpa does nothing with token values except accept
 them from the application and return them during
 parse evaluation.
-Integers are used as token values instead of
-pointers because their validity can be safely checked.
-It is hard or impossible
-to check the validity of pointers
-without risking an abend.
-Integers can be used to access any kind of data
-using an array,
-so that the higher levels can translate integers back
-and forth into whatever the application requires.
 
 @node Semantics, Threads, Input, Top
 @chapter Semantics
@@ -4187,6 +4151,29 @@ In any case, the difference is speed on
 modern architectures is
 a small price to pay for
 safe, portable validity checking.
+
+@node LHS Terminals
+@section LHS terminals
+
+Marpa's idea
+in losing the sharp division between terminals
+and non-terminals is that the distinction,
+while helpful for proving theorems,
+is not essential in practice.
+If LHS symbols
+appear in the input they, in effect,
+``short circuiting'' the rules in which they occur.
+This may
+be helpful in debugging, or have other applications.
+
+However,
+it also can be useful,
+for checking input validity as well as for efficiency,
+to follow tradition and distingush
+non-terminals from terminals.
+For this reason,
+the traditional behavior is the default
+in Marpa.
 
 @node Things To Do,  , Design considerations, Top
 @chapter Things to do
