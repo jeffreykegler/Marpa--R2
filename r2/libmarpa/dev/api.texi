@@ -772,7 +772,8 @@ to @code{marpa_r_alternative()},
 the following is true:
 @itemize
 @item The current earleme before the call was @var{c}.
-@item The latest earleme before the call was @var{old_l}.
+In this model, this means that
+the latest earleme before the call is also @var{c}.
 @item The furthest earleme before the call was @var{old_f}.
 @item The length of the token is @var{length}.
 @end itemize
@@ -781,11 +782,8 @@ after the call to
 @code{marpa_r_alternative()},
 the following will be true:
 @itemize
-@item The current earleme will still be @var{c}.
-The current earleme is never changed by a call
-to @code{marpa_r_alternative()}.
-@item The latest earleme will still be @var{old_l}.
-The latest earleme is never changed by a call
+@item The current and latest earlemes will still be @var{c}.
+The current and latest earlemes are never changed by a call
 to @code{marpa_r_alternative()}.
 @item The furthest earleme will be either @var{old_f} or
  @var{c}+@var{length}, whichever was greater.
@@ -797,7 +795,8 @@ to @code{marpa_r_earleme_complete()},
 the following is true:
 @itemize
 @item The current earleme before the call is @var{c}.
-@item The latest earleme before the call is @var{old_l}.
+In this model, this means that
+the latest earleme before the call is also @var{c}.
 @item The furthest earleme before the call is @var{old_f}.
 @end itemize
 In that case,
@@ -828,7 +827,7 @@ The effect on the earleme variables of a call to
 to @code{marpa_r_earleme_complete()} depends on
 whether or not that call creates an empty earleme.
 A call
-to @code{marpa_r_earleme_complete()},
+to @code{marpa_r_earleme_complete()}
 creates an empty earleme if and only if
 it falls into one of these two cases:
 @itemize
