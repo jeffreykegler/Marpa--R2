@@ -918,7 +918,7 @@ This is Marpa's behavior, by default.
 Marpa allows the user to eliminate the distinction
 between terminals and non-terminals.
 In this, it
-differs from the traditional parsers.
+differs from traditional parsers.
 A Libmarpa
 can arrange for a a terminal
 to appear on the LHS of one or more rules,
