@@ -915,14 +915,14 @@ all LHS symbols, as well as
 the start symbol, must be non-terminals.
 This is Marpa's behavior, by default.
 
-Marpa differs from the traditional parsers
-in that it allows the user to eliminate the distinction
+Marpa allows the user to eliminate the distinction
 between terminals and non-terminals.
-In Marpa,
-the user can arrange it so that
-a terminal is the start symbol,
-or so that a terminal also appears on
-the LHS of a rule.
+In this, it
+differs from the traditional parsers.
+A Libmarpa
+can arrange for a a terminal
+to appear on the LHS of one or more rules,
+or for a terminal to be the start symbol.
 However,
 since terminals can never be zero length,
 it is a logical contradiction for a nulling
