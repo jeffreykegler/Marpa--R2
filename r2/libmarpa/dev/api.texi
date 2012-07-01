@@ -1102,26 +1102,22 @@ interface in detail.
 @node About the overviews, Return values, Introduction to the external interface, Introduction to the external interface
 @section  About the overviews
 
-The reference method sections usually begin with an overview
-describing the important methods.
-These sections can be describe the
-most important Libmarpa methods,
+The reference sections for each major class begin with an overview.
+These sections name the
+most important Libmarpa methods
 in the order in which they are typically used,
-and can be used as ``cheat sheet''.
+and very briefly describe their purpose.
+The overviews are intended as ``cheat sheets''.
 
-The overview sections limit themselves to
-the most important methods.
-To guide the reader to those methods
-that he is most likely to find essential
-for his application,
-the overview sections often speak of
+The overview sections often speak of
 an ``archetypal'' application.
 The archetypal Libmarpa application
 implements the complete logic flow,
 from the creation of a grammar to a final result
 from its valuation.
 In the archetypal Libmarpa application,
-the grammar, input and semantics are small but non-trivial.
+the grammar, input and semantics are
+all small but non-trivial.
 
 @node Return values, Naming conventions, About the overviews, Introduction to the external interface
 @section Return values
