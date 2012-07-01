@@ -1802,35 +1802,11 @@ from a grammar.
 On success, @code{marpa_g_precompute} returns a non-negative
 number to indicate that it precomputed the grammar without
 issues.
-On failure, @code{marpa_g_precompute} returns -2
-to indicate that it encountered issues.
-Usually this issues will have prevented precomputation,
-making it impossible
-to go on to create
-a recognizer and continue with the parse.
+On failure, @code{marpa_g_precompute} returns -2.
 
-When 
-@code{marpa_g_precompute()} fails with an error code
-of @code{MARPA_ERR_GRAMMAR_HAS_CYCLE},
-the grammar will have been precomputed.
-If the @code{marpa_g_is_precomputed()} method
-is called, it will confirm this.
-This means an application is free to ignore the presence
-of cycles,
-create a recognizer from the precomputed grammar,
-and continue parsing all the way to evaluation.
-
-Most applications, however,
-will want to simply treat cycles as a problem,
-and fix them before parsing.
-Cycles make a grammar infinitely ambiguous,
-and are considered useless in current
-practice.
-Cycles make processing the grammar less
-efficient, sometimes considerably so.
-
-To query events,
-the application must call @code{marpa_g_event()}.
+Precomputation may return one or more events,
+which may be queried using the
+@code{marpa_g_event()} method.
 At this point events only occur when failure is reported,
 and events always report issues.
 But application writers should expect future versions
@@ -1888,6 +1864,32 @@ More details of these can be found under the
 description of the appropriate code.
 @xref{External error codes}.
 
+@code{marpa_g_precompute()} is unusual in that it
+is possible to treat one of its failures as ``advisory'',
+and to proceed with parsing.
+If 
+@code{marpa_g_precompute()} fails with an error code
+of @code{MARPA_ERR_GRAMMAR_HAS_CYCLE},
+parsing can proceed, just as it typically would for
+success.
+The grammar will have been precomputed, as
+calling the @code{marpa_g_is_precomputed()} method
+will confirm.
+
+Most applications, however,
+will want to simply treat failure
+with @code{MARPA_ERR_GRAMMAR_HAS_CYCLE},
+as simply another failure,
+and fix the cycles before parsing.
+Cycles make a grammar infinitely ambiguous,
+and are considered useless in current
+practice.
+Cycles make processing the grammar less
+efficient, sometimes considerably so.
+Detection of cycles is returned as failure
+because that is by far the convenient thing to do
+for the vast majority of applications.
+
 Return value: On success, a non-negative number.
 On failure, -2.
 @end deftypefun
@@ -1921,14 +1923,14 @@ On failure, -2.
 This method provides access to the events generated
 by the @code{marpa_g_precompute()} method.
 On success,
-the data for the @var{ix}'th event (numbered from 0) is placed
+the data for the @var{ix}'th event is placed
 in the location pointed to by @var{event}.
 On failure,
 the locations pointed to by @var{event}
 are not changed.
 
-Event indexes are in sequence, starting with 0.
-Valid events will be in the range from 0 to @var{n}.
+Event indexes are in sequence.
+Valid events will be in the range from 0 to @var{n},
 where @var{n} is one less than the event count.
 The event count
 can be queried using the @code{marpa_g_event_count()}
