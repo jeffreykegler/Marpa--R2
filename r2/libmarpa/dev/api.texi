@@ -1977,7 +1977,7 @@ using the
 @code{marpa_r_unref()} method.
 
 To make a recognizer ready for input,
-Use the @code{marpa_r_start_input()} method.
+use the @code{marpa_r_start_input()} method.
 
 The recognizer starts with its current earleme
 at location 0.
@@ -2020,7 +2020,7 @@ destroying @var{r} once the reference count reaches
 zero.
 When @var{r} is destroyed, the reference count
 of its base grammar is decreased by one.
-It this takes the reference count of the base grammar
+If this takes the reference count of the base grammar
 to zero, it too is destroyed.
 
 @end deftypefun
@@ -2043,12 +2043,12 @@ Reads a token into @var{r}.
 The token will start at the current earleme.
 Libmarpa allows tokens to be ambiguous, to be of
 variable length and to overlap.
-@var{token_id} is the symbol of the token,
+@var{token_id} is the symbol ID of the token,
 which must be a terminal.
 @var{length} is the length of the token.
 
 @var{value} is an
-integer which represents the value of the
+integer that represents the value of the
 token.
 In applications where the token's value is not an integer, it is
 expected that the application will use this value to
@@ -2057,9 +2057,10 @@ to index an array.
 @var{value} is not used inside Libmarpa -- it is simply
 stored to be returned by the valuator
 as a convenience for the application.
-Some applications will not want to use Libmarpa's token
-values, instead tracking their own, perhaps based on
-the earleme location, and @var{token_id}.
+Some applications may prefer to track token values on
+their own, perhaps based on
+the earleme location and @var{token_id},
+instead of using Libmarpa's token values.
 
 A @var{value} of 0 has special significance -- it indicates
 that the token is unvalued -- that its value is allowed
@@ -2069,37 +2070,52 @@ it must be the case,
 not just that Libmarpa need not care about its value,
 but also that @strong{the application}
 does not care about the value of the token.
-When a token has a ``whatever'' value, Libmarpa 
-optimizes away the valuator steps which
+When a token is unvalued, Libmarpa 
+optimizes away the valuator steps that
 give the application an opportunity to provide
 a value for that token.
-Applications which do not use Libmarpa's token values,
-but which @strong{do} care about the token's value,
+Applications that do not use Libmarpa's token values,
+but that @strong{do} care about the token's value,
 must tell Libmarpa not to optimize away the
 relevant valuator steps.
 An application can do this by
 letting @var{value} be any non-zero integer.
 
-If, on the first read by
+When @var{value}
+in a call to @code{marpa_r_alternative()}
+is 0,
+symbol @var{token_id} is considered to have
+been used as an unvalued symbol.
+When @var{value}
+in a call to @code{marpa_r_alternative()}
+is not zero,
+symbol @var{token_id} is considered to have
+been used as an valued symbol.
+On the first read by
 @code{marpa_r_alternative()},
-symbol @var{token_id} is not already locked,
-the valued status
-of symbol @var{token_id}
-will be set according to its
-use in that call
-to @code{marpa_r_alternative()},
-and symbol @var{token_id}
-will be locked in that valued status.
-Once symbol
-@var{token_id} is locked in valued status,
-it must be used as a valued symbol.
-Similarly, once symbol
-@var{token_id} is locked in unvalued status,
-it must be used as a unvalued symbol.
+if symbol @var{token_id} is used as a valued
+symbol,
+the valued status of
+symbol @var{token_id} will be set to 1
+and locked.
+On the first read by
+@code{marpa_r_alternative()},
+if symbol @var{token_id} is used as a unvalued
+symbol,
+the valued status of
+symbol @var{token_id} will be set to 0
+and locked.
+
+If the valued status of
+@var{token_id} is locked at 0,
+it is a failure if it is used as an valued symbol.
+If the valued status of
+@var{token_id} is locked at 1,
+it is a failure if it is used as an unvalued symbol.
 
 When @code{marpa_r_alternative()}
 is successful,
-the value of furthest earleme is set to
+the value of the furthest earleme is set to
 the greater of its value before the call,
 and @var{current}+@var{length},
 where @var{current} is the value of the current earleme.
@@ -2474,11 +2490,11 @@ destroying @var{b} once the reference count reaches
 zero.
 When @var{b} is destroyed, the reference count
 of its parent recognizer is decreased by 1.
-It this takes the reference count of the parent recognizer
+If this takes the reference count of the parent recognizer
 to zero, it too is destroyed.
 If the parent recognizer is destroyed, the reference count
 of its base grammar is decreased by 1.
-It this takes the reference count of the base grammar
+If this takes the reference count of the base grammar
 to zero, it too is destroyed.
 
 @end deftypefun
