@@ -1,10 +1,7 @@
 .gdb_history
-[.]DS_Store
-/pod2htmd.tmp
-/pod2htmi.tmp
 /Build
-/MYMETA.yml
 /MYMETA.json
+/MYMETA.yml
 /Makefile
 /Marpa-R2-[0-9].[0-9][0-9][0-9][0-9][0-9][0-9].tar.gz
 /Marpa-R2-[0-9].[0-9][0-9][0-9][0-9][0-9][0-9]/
@@ -12,7 +9,11 @@
 /Marpa-R2-[0-9].[0-9][0-9][0-9]_[0-9][0-9][0-9]/
 /_build/
 /blib/
+/libmarpa_build
+/nogit/
+/pod2htmd.tmp
+/pod2htmi.tmp
+[.]DS_Store
 errs
 junk
-/nogit/
 nogit*

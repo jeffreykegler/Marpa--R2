@@ -138,7 +138,7 @@ END_OF_STRING
 
 my %GNU_file = (
     map {
-    (   'libmarpa/stage/' . $_, 1, 'libmarpa/build/' . $_, 1,
+    (   'libmarpa/stage/' . $_, 1,
         'libmarpa/test/dev/' . $_,   1
         )
     } qw(
@@ -266,22 +266,8 @@ my %files_by_type = (
     'html/t/fmt_t_data/score_expected2.html' => \&trivial,
     'Makefile.PL'                            => \&trivial,
     'libmarpa/VERSION'           => \&trivial,
-    'libmarpa/build/AUTHORS' => \&trivial,
-    'libmarpa/build/COPYING.LESSER' =>
-	\&ignored,    # GNU license text, leave it alone
-    'libmarpa/build/ChangeLog' => \&trivial,
-    'libmarpa/build/INSTALL'   => \&ignored,    # GNU file, leave it alone
-    'libmarpa/build/NEWS'      => \&trivial,
-    'libmarpa/build/api.texi' => \&license_problems_in_fdl_file,
-    'libmarpa/build/internal.texi' => \&license_problems_in_fdl_file,
-    'libmarpa/build/config.h.in' =>
-	check_tag( 'Generated from configure.ac by autoheader', 250 ),
-    'libmarpa/build/install-sh'   => \&check_X_copyright,
-    'libmarpa/build/stamp-vti'    => \&trivial,
-    'libmarpa/build/version.texi' => \&trivial,
     'libmarpa/dev/README'         => \&trivial,
     'libmarpa/dev/VERSION.in'     => \&trivial,
-    'libmarpa/build/README'   => \&license_problems_in_text_file,
     'libmarpa/dev/api.texi' => \&license_problems_in_fdl_file,
     'libmarpa/dev/internal.texi' => \&license_problems_in_fdl_file,
     'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
