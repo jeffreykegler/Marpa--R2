@@ -3452,9 +3452,9 @@ Suggested message: "Separator has invalid symbol ID"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE
-A "counted" symbol was found
+A ``counted'' symbol was found
 that is also a nullable symbol.
-A "counted" symbol is one that appears on the RHS
+A ``counted'' symbol is one that appears on the RHS
 of a sequence rule.
 If a symbol is nullable,
 counting its occurrences becomes difficult.
@@ -3658,7 +3658,7 @@ Suggested message: "This grammar is not precomputed"
 @deftypevr Macro int MARPA_ERR_NO_PARSE
 The application attempted to create a bocage
 from a recognizer without a parse.
-Application will often want to treat this as
+Applications will often want to treat this as
 a soft error.
 Suggested message: "No parse"
 @end deftypevr
@@ -3909,7 +3909,7 @@ Suggested message: "Tree iterator is paused"
 An attempt was made to read a token
 where a token with that symbol ID is not
 expected.
-This message will also occur when an
+This message can also occur when an
 attempt is made to read a token
 at a location where no token is expected.
 Suggested message: "Unexpected token"
@@ -3974,10 +3974,11 @@ They usually do not have descriptions or suggested messages.
 @deftypevr Macro int MARPA_ERR_DEVELOPMENT
 "Development" errors were used heavily during
 Libmarpa's development,
-when it is not yet clear how precisely
+when it was not yet clear how precisely
 to classify every error condition.
-Users of the external interface in released
-non-developer's versions should never
+Unless they are using a developer's version,
+users of the external interface 
+should never
 see development errors.
 
 Development errors has an error string
