@@ -2294,7 +2294,7 @@ value of the latest earleme can convert
 this value using
 the @code{marpa_r_earleme()} method.
 
-Return value: On success, the ID of the latest earley set.
+Return value: On success, the ID of the latest Earley set.
 Always succeeds.
 @end deftypefun
 
@@ -2309,7 +2309,7 @@ Always succeeds.
 @deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
 @deftypefunx int marpa_r_earley_item_warning_threshold_set (Marpa_Recognizer @var{r}, @
     int @var{threshold})
-These methods, respectively, report and set the earley item warning threshold.
+These methods, respectively, report and set the Earley item warning threshold.
 The @dfn{Earley item warning threshold}
 is a number that is compared with
 the count of Earley items in each Earley set.
@@ -3452,18 +3452,16 @@ Suggested message: "Separator has invalid symbol ID"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE
-A "counted" symbol was found,
+A "counted" symbol was found
 that is also a nullable symbol.
 A "counted" symbol is one that appears on the RHS
 of a sequence rule.
 If a symbol is nullable,
-counting occurrences of it,
-which is what sequence rules do for their RHS
-symbols,
-becomes very difficult.
+counting its occurrences becomes difficult.
 Questions of definition and
 problems of implementation arise.
-At a minimum, such a sequence would be wildly
+At a minimum, a sequence with counted nullables
+would be wildly
 ambigious.
 
 Sequence rules are simply an optimized shorthand
@@ -3473,22 +3471,27 @@ really what your application needs,
 nothing in Libmarpa prevents you from specifying
 that sequence
 with ordinary BNF rules.
+
 Suggested message: "Nullable symbol on RHS of a sequence rule"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_DUPLICATE_RULE
-This error indicates an attempt to add a rule which
-is a duplicate of a rule already in the grammar.
-Two rules are considered duplicates if
+This error indicates an attempt to add a BNF rule which
+is a duplicate of a BNF rule already in the grammar.
+Two BNF rules are considered duplicates if
 
 @itemize @bullet
 @item
-Both rules have the same left hand symbol.
+Both rules have the same left hand symbol, and
 @item
 Both rules have the same right hand symbols in the same order.
 @end itemize
 
-This definition applies to sequence rules, as well as to ordinary rules. As a consequence, sequence rules can be considered duplicates even when they have different separators and/or different minimum counts.
+Duplication of sequence rules,
+and duplication between BNF rules and sequence rules,
+is dealt with by requiring that the LHS of a sequence rule
+not be the LHS of any other rule.
+
 Suggested message: "Duplicate rule"
 @end deftypevr
 
@@ -3502,10 +3505,10 @@ Suggested message: "Duplicate token"
 @deftypevr Macro int MARPA_ERR_EIM_COUNT
 This error code indicates that
 an implementation-defined limit on the
-number of earley items per Earley set
+number of Earley items per Earley set
 was exceedeed.
 This limit is different from
-the earley item warning threshold,
+the Earley item warning threshold,
 an optional limit on the number
 of Earley items in an Earley set,
 which can be set by the application.
@@ -3513,16 +3516,11 @@ which can be set by the application.
 The implementation defined-limit is very large,
 at least 500,000,000 earlemes.
 An application is unlikely ever to see this
-error for two reasons.
-First, Libmarpa's use of memory
+error.
+Libmarpa's use of memory
 would almost certainly exceed the implementation's
 limits before it occurred.
-Second, applications will almost always want
-to use the earley item warning threshold to implement
-a much smaller limit.
-Typically, this will be under 1,000 Earley items
-per Earley set.
-Suggested message: "Maximum number of earley items exceeded"
+Suggested message: "Maximum number of Earley items exceeded"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_EVENT_IX_NEGATIVE
@@ -3562,28 +3560,32 @@ This error code indicates that
 indicates that
 the token symbol is an inaccessible symbol -- one which
 cannot be reached from the start symbol.
+
 Since the inaccessibility of a symbol is a property of the grammar,
 this error code typically indicates an application error.
-A retry at this location, using another token ID,
+Nevertheless, a retry at this location, using another token ID,
 may succeed.
 At this writing,
 the author knows of no uses of this technique.
+
 Suggested message: "Token symbol is inaccessible"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_BOOLEAN
-A function was called which takes a boolean argument,
-one which must be either 0 or 1,
-and that argument has some other value.
+A function was called that takes a boolean argument,
+but the value of that argument was not either 0 or 1.
 Suggested message: "Argument is not boolean"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_LOCATION
 The location (Earley set ID) is not valid.
-It may be invalid because it is negative,
-and is not being used as an argument where
-a negative Earley set ID has a special meaning.
-It may be invalid because it is after the latest Earley set.
+It may be invalid for one of two reasons:
+@itemize
+@item It is negative,
+and it is being used as the argument to a method
+for which that negative value does not have a special meaning.
+@item It is after the latest Earley set.
+@end itemize
 
 For users of input models other than the standard one,
 the term ``location'', as used in association
@@ -3592,6 +3594,7 @@ means Earley set ID or Earley set ordinal.
 In the standard input model, this will always
 be identical with Libmarpa's other idea of
 location, the earleme.
+
 Suggested message: "Location is not valid"
 @end deftypevr
 
@@ -3602,12 +3605,12 @@ Suggested message: "Specified start symbol is not valid"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_RULE_ID
-A method was called with an invalid external rule ID.
+A method was called with an invalid rule ID.
 Suggested message: "No rule with that ID exists"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_SYMBOL_ID
-A method was called with an invalid external symbol ID.
+A method was called with an invalid symbol ID.
 Suggested message: "No symbol with that ID exists"
 @end deftypevr
 
@@ -3643,9 +3646,10 @@ Suggested message: "Earley set ID is after latest Earley set"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NOT_PRECOMPUTED
-An attempt was made to use a grammar
-that is not precomputed
-in a way that is not allowed.
+The grammar is not precomputed,
+and attempt was made to do something with it
+that is not allowed for unprecomputed
+grammars.
 For example, a recognizer cannot be
 created from a grammar until it is precomputed.
 Suggested message: "This grammar is not precomputed"
@@ -3654,7 +3658,7 @@ Suggested message: "This grammar is not precomputed"
 @deftypevr Macro int MARPA_ERR_NO_PARSE
 The application attempted to create a bocage
 from a recognizer without a parse.
-The application will often treat this as
+Application will often want to treat this as
 a soft error.
 Suggested message: "No parse"
 @end deftypevr
@@ -3664,9 +3668,6 @@ A grammar which has no rules is being used
 in a way that is not allowed.
 Usually the problem is that the user is
 trying to precompute the grammar.
-The precomputations are not defined
-for grammar without rules,
-in large part because it would be useless to do so.
 Suggested message: "This grammar does not have any rules"
 @end deftypevr
 
@@ -3674,16 +3675,17 @@ Suggested message: "This grammar does not have any rules"
 The grammar has no start symbol,
 and an attempt was made to perform an
 operation which requires one.
-For example, no grammar without a start
-symbol can be precomputed.
+Usually the problem is that the user is
+trying to precompute the grammar.
 Suggested message: "This grammar has no start symbol"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_TOKEN_EXPECTED_HERE
 This error code indicates that
-in this case no tokens at all were expected at this earleme
+no tokens at all were expected at this earleme
 location.
 This can only happen in alternative input models.
+
 Typically, this indicates an application programming
 error.
 Retrying input at this location will always fail.
@@ -3693,6 +3695,7 @@ using this or another token,
 may succeed.
 At this writing,
 the author knows of no uses of this technique.
+
 Suggested message: "No token is expected at this earleme location"
 @end deftypevr
 
@@ -3704,13 +3707,15 @@ Suggested message: "A symbol is both terminal and nulling"
 
 @deftypevr Macro int MARPA_ERR_ORDER_FROZEN
 The Marpa order object has been frozen.
-Multiple tree iterators can share a Marpa order object,
-but that order object is @dfn{frozen} after the first tree
-iterator is created from it.
-If a Marpa order object is @dfn{frozen}, it cannot be
+If a Marpa order object is frozen, it cannot be
 changed.
+
+Multiple tree iterators can share a Marpa order object,
+but that order object is frozen after the first tree
+iterator is created from it.
 Applications can order an bocage in many ways,
 but they must do so by creating multiple order objects.
+
 Suggested message: "The ordering is frozen"
 @end deftypevr
 
@@ -3723,10 +3728,15 @@ Suggested message: "The parse is exhausted"
 The parse is too long.
 The limit on the length of a parse is implementation
 dependent, but it is very large,
-is at least 500,000,000 earlemes.
+at least 500,000,000 earlemes.
+
+This error code is unlikely in the standard input model.
+Almost certainly memory would be exceeded
+before it could occur.
 If an application sees this error,
 it almost certainly using one of the non-standard
 input models.
+
 Most often this messsage will occur because
 of a request to add a single extremely long token,
 perhaps as a result of an application error.
@@ -3734,9 +3744,6 @@ But it is also possible this error condition will
 occur after the input of a large number
 of long tokens.
 
-This error code is unlikely in the standard input model.
-Almost certainly memory would be exceeded
-before it could occur.
 Suggested message: "This input would make the parse too long"
 @end deftypevr
 
@@ -3797,8 +3804,8 @@ Suggested message: "The recognizer has been started"
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_RHS_IX_NEGATIVE
-The index of RHS symbol was specified,
-but it was negative.
+The index of a RHS symbol was specified,
+and it was negative.
 That is not allowed.
 Suggested message: "RHS index cannot be negative"
 @end deftypevr
@@ -3816,9 +3823,9 @@ An attempt was made to add a rule with too many
 right hand side symbols.
 The limit on the RHS symbol count is implementation
 dependent, but it is very large,
-is at least 500,000,000.
+at least 500,000,000 symbols.
 This is
-far beyond that required in any current practical grammar.
+far beyond what is required in any current practical grammar.
 An application with rules of this length is almost
 certain to run into memory and other limits.
 Suggested message: "The RHS is too long"
@@ -3875,7 +3882,7 @@ Suggested message: "Token length must greater than zero"
 The token length is too long.
 The limit on the length of a token
 is implementation dependent, but it
-is at least 500,000,000.
+is at least 500,000,000 earlemes.
 An application using a token that long
 is almost certain to run into some other
 limit.
@@ -3892,7 +3899,7 @@ Suggested message: "Tree iterator is exhausted"
 @deftypevr Macro int MARPA_ERR_TREE_PAUSED
 A Libmarpa tree is ``paused''
 and an operation was attempted which
-is inconsistent with that face.
+is inconsistent with that fact.
 Typically, this operation will be
 a call of the @code{marpa_t_next()} method.
 Suggested message: "Tree iterator is paused"
