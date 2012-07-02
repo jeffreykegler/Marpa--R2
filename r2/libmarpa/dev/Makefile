@@ -22,15 +22,16 @@ CTANGLE = ctangle
 
 MARPA_PDF_SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 
-.PHONY: install stage_dir
+.PHONY: install docs
 
+# Order matters -- configure.ac must be first
 DOC_CONFIGURE_FILES = \
-    ../doc/Makefile.am \
-    ../doc/configure.ac
+    ../doc/configure.ac \
+    ../doc/Makefile.am
 
 DOC_FILES = \
+    $(DOC_CONFIGURE_FILES) \
     ../doc/Makefile.am \
-    ../doc/configure.ac \
     ../doc/api.texi \
     ../doc/internal.texi \
     ../doc/NEWS \
@@ -39,9 +40,10 @@ DOC_FILES = \
     ../doc/COPYING.LESSER \
     ../doc/AUTHORS
 
+# Order matters -- configure.ac must be first
 CONFIGURE_FILES = \
-    ../stage/Makefile.am \
-    ../stage/configure.ac
+    ../stage/configure.ac \
+    ../stage/Makefile.am
 
 STAGE_FILES = \
     $(CONFIGURE_FILES) \
@@ -105,12 +107,14 @@ private.h: marpa.w w2private_h.pl
 marpa.pdf: marpa.tex cwebmac.tex
 
 ../doc/configure.ac: doc_dist/configure.ac
+	test -d ../doc || mkdir ../doc
 	cp $? $@
 
 ../doc/Makefile.am: doc_dist/Makefile.am
 	cp $? $@
 
 ../stage/configure.ac: dist/configure.ac
+	test -d ../stage || mkdir ../stage
 	cp $? $@
 
 ../stage/Makefile.am: dist/Makefile.am
@@ -164,9 +168,6 @@ marpa.pdf: marpa.tex cwebmac.tex
 ../stage/ChangeLog: dist/ChangeLog
 	cp $? $@
 
-stage_dir:
-	test -d ../stage || mkdir ../stage
-
 ../doc/README: doc_dist/README
 	cp $? $@
 
@@ -188,12 +189,8 @@ stage_dir:
 ../doc/internal.texi: internal.texi
 	cp $? $@
 
-doc_dir:
-	test -d ../doc || mkdir ../doc
-
-stage_configuration: stage_dir ../stage/configure ../stage/Makefile
-
 ../stage/configure: $(CONFIGURE_FILES)
+	test -d ../stage || mkdir ../stage
 	test -d ../stage/m4 || mkdir ../stage/m4
 	cd ../stage && autoreconf -iv
 
@@ -212,18 +209,29 @@ stage_configuration: stage_dir ../stage/configure ../stage/Makefile
 ../doc/internal.html/index.html: ../doc/Makefile ../doc/internal.texi
 	cd ../doc && make html
 
-install: stage_dir $(STAGE_FILES) stage_configuration
+install: ../libmarpa.tar ../libmarpa-doc.tar
 
-../doc/configure: $(DOC_CONFIGURE_FILES)
+../libmarpa.tar: $(STAGE_FILES) ../stage/Makefile
+	(cd ../stage; make dist)
+	version=`../stage/configure --version | sed -ne '1s/^marpa configure *//p'`; \
+	  tar_gz_file=../stage/marpa-$$version.tar.gz ; \
+	  gzip -dc $$tar_gz_file > ../libmarpa.tar
+
+../libmarpa-doc.tar: ../doc/Makefile
+	(cd ../doc; make dist)
+	version=`../doc/configure --version | sed -ne '1s/^marpa-doc configure *//p'`; \
+	  tar_gz_file=../doc/marpa-doc-$$version.tar.gz ; \
+	  gzip -dc $$tar_gz_file > ../libmarpa-doc.tar
+
+../doc/configure: $(DOC_FILES)
+	test -d ../doc || mkdir ../doc
 	test -d ../doc/m4 || mkdir ../doc/m4
 	cd ../doc && autoreconf -iv
 
 ../doc/Makefile: ../doc/configure
 	cd ../doc && ../doc/configure
 
-doc_configuration: doc_dir ../doc/configure ../doc/Makefile
-
-docs: marpa.pdf doc_dir $(DOC_FILES) doc_configuration \
+docs: marpa.pdf ../doc/Makefile \
   ../doc/api.pdf ../doc/api.html/index.html \
   ../doc/internal.pdf ../doc/internal.html/index.html
 

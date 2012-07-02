@@ -58,7 +58,7 @@ m4_define([marpa_lt_current_minus_age],
 # m4_define([marpa_debug_default],
 #          [m4_if(m4_eval(marpa_minor_version % 2), [1], [yes], [minimum])])dnl
 
-AC_INIT([marpa],[marpa_version],[http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa])
+AC_INIT([marpa-doc],[marpa_version],[http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([])

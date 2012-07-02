@@ -1931,7 +1931,7 @@ This function allows the application to determine if grammar
 As mentioned, most applications will want to treat these
 as fatal errors.
 To determine which rules are in the cycle,
-@var{marpa_g_rule_is_loop()} can be used.
+@code{marpa_g_rule_is_loop()} can be used.
 
 Return value: On success, 1 if the grammar has a cycle,
 0 otherwise.
