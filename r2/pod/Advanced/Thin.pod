@@ -98,21 +98,21 @@ On the other hand,
 many 
 Libmarpa methods do not have
 Marpa thin interface wrappers.
+No internal Libmarpa method is part of the Marpa thin interface.
 
-No internal Libmarpa method is part of the Marpa:thin interface.
 Additionally,
-several
+many of the
 external Libmarpa methods are omitted because their function is performed
 by the Marpa thin interface.
-
 No thin interface method corresponds to
 the C<marpa_check_version()> static method,
 because the Marpa thin interface
 interface handles its own version matching.
+
 No thin interface method corresponds to any
-of the Libmarpa config class methods,
-and no Marpa thin interface object corresponds
-to Libmarpa's config objects,
+of the Libmarpa configuration class methods.
+No Marpa thin interface object corresponds
+to Libmarpa's configuration objects.
 Configuration in the Marpa thin
 interface is done using Perl variables.
 
@@ -134,26 +134,25 @@ it has a wrapper that is implemented according
 to the general pattern, as
 described L<below|"The general pattern">.
 Where the implementation of an
-external libmarpa methods
-is an exception to the guidelines,
-or has other peculiarities,
-the corresponding Marpa thin interface method
-will be described in detail.
+external Libmarpa method
+is an exception to the general pattern,
+its implementation will be explicitly described
+and any corresponding Marpa thin interface method
+will have a section devoted to it
+and specifying its differences
+from the general pattern.
 
 =head1 Libmarpa time objects and constructors
 
 As a reminder,
-the classes of
-Libmarpa's time objects are,
+Libmarpa's major classes are,
 in sequence,
+configuration,
 grammar, recognizer, bocage,
 ordering, tree and value.
 The one-letter abbreviations for these
 are, respectively,
 C<c>, C<g>, C<r>, C<b>, C<o>, C<t> and C<v>.
-The thin interface implements a Perl class
-corresponding to
-each of Libmarpa major classes.
 
 =for Marpa::R2::Display
 ignore: 1
@@ -167,6 +166,12 @@ ignore: 1
     Marpa_Value         Marpa::R2::Thin::V
 
 =for Marpa::R2::Display::End
+
+The thin interface implements a Perl class
+corresponding to
+each of Libmarpa time classes.
+The thin interface does not implement a Perl class
+corresponding to Libmarpa's configuration class.
 
 Objects in the thin Marpa classes
 should be treated as opaque scalars.
@@ -224,9 +229,9 @@ cuts at a new application.
 On the other hand, for Marpa thin
 applications to have access
 to the full flexibility and power of Libmarpa,
-these must be able to set the Marpa thin
+they must be able to set the Marpa thin
 interface to return failure, instead of
-throwing it.
+throwing failure as an exception.
 
 In choosing whether or not to throw a failure
 as an exception,
