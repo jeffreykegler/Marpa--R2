@@ -1122,13 +1122,44 @@ mentioning.
 For methods that return an integer,
 Libmarpa usually reserves -1 for special purposes,
 such as indicating loop termination in an iterator.
-In Libmarpa, methods typically indicate failure
+In Libmarpa, methods usually indicate failure
 by returning -2.
-Any result greater than -2 indicates success.
+Any result greater than -2 usually indicates success.
 
 If a method returns an pointer value,
-@code{NULL} typically indicates failure.
-Any other result indicates success.
+@code{NULL} usually indicates failure.
+Any other result usually indicates success.
+
+On failure, a Libmarpa method always sets
+the error code.
+On success, a Libmarpa method may take
+one of three actions:
+@itemize
+@item Set
+an informational error code.
+@item Leave
+the error code as it is.
+@item Reset the error code to @code{MARPA_ERROR_NONE}.
+@end itemize
+
+Which of the three actions the method
+takes on success
+should be regarded as unspecified,
+unless stated in the description of the method
+in this document.
+If a method sets an informational error code on
+success, that will always be stated in
+its description, and the description will 
+specify,
+for each informational error code,
+the specific error code value,
+the circumstances under which it is set,
+and what return values will accompany it.
+
+Informational error codes are set
+because some applications may find them convenient.
+Typically information error codes are redundant information,
+which may be ignored.
 
 A method can have many reasons for
 failing, and many of the reasons
@@ -3391,6 +3422,9 @@ Always succeeds.
 
 @deftypevr Macro int MARPA_ERRCODE_COUNT
 The number of error codes.
+All error codes, whether internal or external,
+will be integers, non-negative but
+strictly less than @code{MARPA_ERRCODE_COUNT}.
 @end deftypevr
 
 @node External error codes, Internal error codes, Error Macros, Error macros and codes
@@ -3406,18 +3440,7 @@ Internal error codes are in their own section.
 No error condition.
 The error code is initialized to this value.
 Methods which do not result in failure
-sometimes reset the error code to @code{MARPA_ERR_NONE}
-and sometimes leave it at its current value.
-Which of the two a method does is unspecified
-unless explicitly stated in that method's description.
-The current implementation,
-for efficiency and simplicity,
-will usually leave the error code as it
-found it.
-On the other, as stated in its description,
-@code{marpa_r_alternative()}
-sets the error code to @code{MARPA_ERR_NONE}
-on success.
+sometimes reset the error code to @code{MARPA_ERR_NONE}.
 Suggested message: "No error"
 @end deftypevr
 
