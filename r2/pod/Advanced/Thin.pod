@@ -460,16 +460,16 @@ The class of the general pattern method
 will be the Marpa thin class corresponding
 to the time class
 of the Libmarpa method.
-In the previous example, C<start_symbol_set()>
+For example, C<< $g->start_symbol_set() >>
 will be in
 the C<Marpa::R2::Thin:G> Perl class.
 
 =head2 Arguments
 
 Libmarpa's class instance methods
-prototypes have an object of the appropriate class
+take an object of the their class
 as their first ("self") argument.
-Zero or more non-self arguments follow this first time class argument.
+Zero or more non-self arguments follow the self argument.
 The arguments of the corresponding general pattern
 Marpa thin method will be
 the same, converted from C types to Perl as described next.
@@ -482,11 +482,12 @@ In the general pattern,
 every argument whose type is one
 of Libmarpa's time classes is converted
 to the corresponding Marpa thin interface class.
-C language C<int>'s are converted to Perl scalar integers.
 Arguments which belong to Libmarpa's numbered 
-classes (for example,
+classes (C<Marpa_Earley_Set_ID>,
 C<Marpa_Rule_ID> and C<Marpa_Symbol_ID>)
-are also converted to Perl scalar integers.
+are converted to Perl scalar integers.
+C language C<int>'s are also
+converted to Perl scalar integers.
 
 The Marpa thin interface does
 not recognize booleans, either in 
@@ -629,8 +630,9 @@ failure, as described for each method.
 Defaults to true.
 
 Each grammar has its own "throw" flag.
-This variables controls only the initial setting of
-that variable.
+The C< $Marpa::R2::Thin::C::THROW > variable
+determines the initial setting of
+a grammar's throw flag.
 A grammar's "throw" flag can be reset using
 the C<< $g->throw_set() >> method,
 after which its setting is independent of the
