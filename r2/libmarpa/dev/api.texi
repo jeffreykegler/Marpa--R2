@@ -4052,15 +4052,12 @@ A ``catchall'' internal error.
 @node Design notes, Things To Do, Error macros and codes, Top
 @chapter Design notes
 
-There is
-a considerable amount of
-design apologetics throughout this document.
-Most of it is
+Design apologetics are
+throughout this document,
 dispersed among sections where it is
-hoped that it is useful to motivate
-the description or discussion.
-Those notes in this section are
-those which did not find a home elsewhere.
+hoped that they motivate the description or discussion.
+The notes in this section 
+did not find a home elsewhere.
 
 @menu
 * Why so many time objects::    
@@ -4075,20 +4072,19 @@ Marpa is an aggressively multi-pass algorithm.
 Marpa achieves its efficiency,
 not in spite of making multiple
 passes over the data, but because of it.
-Marpa is O(@var{n}) for LR-regular grammars,
-both in theory and in implementation,
-because Marpa regularly substitutes
+Marpa regularly substitutes
 two fast O(@var{n}) passes for a single
 O(@var{n} log @var{n}) pass.
 Marpa's proliferation of time objects is in
 keeping with its multi-pass approach.
 
-Bocage objects come at minimal cost,
+Bocage objects come at no cost,
+even for unambiguous parses,
 because the same pass which creates the bocage
 also deals with other issues which are of major
 significance for unambiguous parses.
-The same pass which creates the bocage
-enables Marpa to do both left-
+It is the post-processing of the bocage pass
+that enables Marpa to do both left-
 and right-recursion in linear time.
 
 Of the various objects, the best
@@ -4098,7 +4094,6 @@ In many cases, the ordering is trivial.
 Either the parse is unambiguous, or the
 application does not care about the order in
 which parses are returned.
-
 But while it would be easy to add an option
 to bypass creation of an ordering object,
 there is little to be gained from it.
@@ -4108,7 +4103,7 @@ essentially a handful of subroutine calls.
 Many orderings accomplish nothing,
 but these cost next to nothing.
 
-Tree objects come at mininal cost to unambiguous grammars,
+Tree objects come at minimal cost to unambiguous grammars,
 because the same pass that allows iteration through multiple
 parse trees does the tree traversal.
 This eliminates much of the work that otherwise would
@@ -4148,12 +4143,12 @@ objects,
 and to optimize on that basis.
 The author concedes that it is
 possible that
-someone redoing Libmarpa from scratch using
-pointers might find they are faster.
-But the author feels certain
-that they will also discover
-that, on modern architectures,
-the lack of safe validity checking
+others redoing Libmarpa from scratch
+might find that pointers are faster.
+But the author is confident
+that they will also discover,
+on modern architectures,
+that the lack of safe validity checking
 is far too high a price to pay
 for the difference in speed.
 
@@ -4174,7 +4169,7 @@ prove helpful in debugging, or have other applications.
 However,
 it also can be useful,
 for checking input validity as well as for efficiency,
-to follow tradition and distingush
+to follow tradition and distinguish
 non-terminals from terminals.
 For this reason,
 the traditional behavior is the default
