@@ -1,5 +1,7 @@
 build/
 stage/
 doc/
-libmarpa.tar
-libmarpa-doc.tar
+marpa-*.tar.gz
+marpa-stamp
+marpa-doc-*.tar.gz
+marpa-doc-stamp
