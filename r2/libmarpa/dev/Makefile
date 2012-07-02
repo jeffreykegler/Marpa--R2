@@ -209,19 +209,19 @@ marpa.pdf: marpa.tex cwebmac.tex
 ../doc/internal.html/index.html: ../doc/Makefile ../doc/internal.texi
 	cd ../doc && make html
 
-install: ../marpa-stamp ../marpa-doc-stamp
+install: ../libmarpa.tar ../libmarpa-doc.tar
 
-../marpa-stamp: $(STAGE_FILES) ../stage/Makefile
+../libmarpa.tar: $(STAGE_FILES) ../stage/Makefile
 	(cd ../stage; make dist)
 	version=`../stage/configure --version | sed -ne '1s/^marpa configure *//p'`; \
-	  tar_gz_file=../stage/marpa-$$version.tar.gz ; cp $$tar_gz_file ..
-	date > $@
+	  tar_gz_file=../stage/marpa-$$version.tar.gz ; \
+	  gzip -dc $$tar_gz_file > ../libmarpa.tar
 
-../marpa-doc-stamp: ../doc/Makefile
+../libmarpa-doc.tar: ../doc/Makefile
 	(cd ../doc; make dist)
 	version=`../doc/configure --version | sed -ne '1s/^marpa-doc configure *//p'`; \
-	  tar_gz_file=../doc/marpa-doc-$$version.tar.gz ; cp $$tar_gz_file ..
-	date > $@
+	  tar_gz_file=../doc/marpa-doc-$$version.tar.gz ; \
+	  gzip -dc $$tar_gz_file > ../libmarpa-doc.tar
 
 ../doc/configure: $(DOC_FILES)
 	test -d ../doc || mkdir ../doc
