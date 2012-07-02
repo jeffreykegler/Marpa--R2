@@ -277,11 +277,9 @@ sub marpa_link_c {
 
 sub libmarpa_version {
     my $self     = shift;
-    my $marpa_version = eval $self->dist_version();
-    my @marpa_version = (int $marpa_version);
-    push @marpa_version, int +( 1000 * $marpa_version ) % 1000;
-    push @marpa_version, int +( 1_000_000 * $marpa_version ) % 1000;
-    my $libmarpa_version = join '.', @marpa_version;
+    my @marpa_version= (
+        $self->dist_version() =~ /\A (\d+) [.] (\d{3}) [_]? (\d{3}) \z/xms );
+    my $libmarpa_version = join '.', map { 0+$_ } @marpa_version;
     return $libmarpa_version;
 }
 
