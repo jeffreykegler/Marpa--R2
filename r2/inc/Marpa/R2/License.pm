@@ -310,6 +310,7 @@ sub file_type {
         if scalar @dirs > 1
             and $dirs[0] eq 'pperl'
             and $filepart =~ /[.]pm\z/xms;
+    return \&ignored if $filepart =~ /[.]tar\z/xms;
     return \&ignored
         if scalar @dirs >= 2
             and $dirs[0] eq 'libmarpa'

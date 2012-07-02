@@ -66,16 +66,16 @@
 ^html/sandbox/
 ^inc/proof/.*[.]lyx[~]$
 ^junk$
+^lib/Marpa/.*\.xsh
 ^lib/Marpa/R2/Installed.pm$
 ^lib/Marpa/R2/Version.pm$
 ^lib/Marpa/R2\.c
 ^lib/Marpa/R2\.xs
-^lib/Marpa/.*\.xsh
 ^libmarpa/dev/api[.]texi[~]$
-^libmarpa/dev/internal[.]texi[~]$
 ^libmarpa/dev/codes[.]c
 ^libmarpa/dev/codes[.]h
 ^libmarpa/dev/fragments/
+^libmarpa/dev/internal[.]texi[~]$
 ^libmarpa/dev/marpa.log
 ^libmarpa/dev/marpa.scn
 ^libmarpa/dev/marpa[.]c
@@ -87,6 +87,7 @@
 ^libmarpa/dev/marpa_util[.]h
 ^libmarpa/dev/private[.]h$
 ^libmarpa/doc/
+^libmarpa/libmarpa[-]doc[.]tar$
 ^libmarpa/stage/
 ^libmarpa/test/dev/Makefile[.]in$
 ^libmarpa/test/dev/aclocal[.]m4$
@@ -105,6 +106,7 @@
 ^libmarpa/test/dev/m4/lt~obsolete[.]m4$
 ^libmarpa/test/dev/missing$
 ^libmarpa/test/work/
+^libmarpa_build/marpa-[0-9]*[.][0-9]*[.][0-9]*/
 ^nogit
 ^nogit/
 ^nytprof/
