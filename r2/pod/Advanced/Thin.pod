@@ -24,8 +24,6 @@ It describes Marpa's "thin" interface,
 which
 provides efficient access to Marpa's core
 library, Libmarpa.
-It provides the ultimate in Marpa speed,
-power and flexibility.
 
 The "thin" interface is very low-level and
 is not designed to be convenient to use.
@@ -34,16 +32,17 @@ an upper layer.
 The "thin" interface
 is intended for use in writing
 those upper layers.
-It is also for those writing applications,
-when they want
+Libmarpa is also intended for writing applications,
+when the programmer wants
 to eliminate the overhead of an upper layer,
-or when they want the flexibility provided by direct access to Libmarpa.
+or wants the flexibility provided by direct access to Libmarpa,
+and is willing to go to some extra effort.
 
 =head1 How this document is written
 
 This document assumes that the reader is familiar with
 the other Marpa::R2 documentation,
-as well as the Libmarpa API document.
+as well as with the Libmarpa API document.
 This means its reader will have to know some C language --
 at least enough to understand a discussion
 written in terms of C functions,
@@ -86,7 +85,7 @@ It is also full,
 in the sense it contains a complete
 logic flow, starting with the definition
 of the grammar
-and contining all the way to the iteration of
+and continuing all the way to the iteration of
 the values of an ambiguous parse.
 
 =head1 Methods in the thin interface
