@@ -286,7 +286,7 @@ Together, the error code, the error name
 and the error descriptions are called the
 "error variables".
 
-When the last error was a Libmarpa error,
+When the most recent error was a Libmarpa error,
 the error code is the Libmarpa error code, as described
 in the Libmarpa API document.
 A Libmarpa error code is a non-negative integer.
@@ -356,9 +356,10 @@ error codes.
 and there the descriptions
 are often longer and more detailed.
 
-Error codes and error descriptions should only be considered
+Error codes and error descriptions should be considered
 valid
-only if that method indicates that it sets the error code.
+only if the most recently called Marpa thin method
+indicated that it set the error code.
 An application should assume that the
 error codes and error descriptions will be overwritten by the
 next call to 
@@ -389,44 +390,48 @@ that describes the error.
 =head2 Success and the error variables
 
 On success,
-what a method will do with the error code and error
-description is usually unspecified,
-except that it will be one
-of the following three things:
+a method will take one of the following
+three actions
+with respect to the error variables:
 
 =over 4
 
-=item *
+=item Reset the error code
 
 A successful method
 may set the error code to C<MARPA_ERR_NONE>,
 together with an error description that indicates
 there is no error.
 
-=item *
+=item Leave the error code as is
 
 A successful method
 may leave the error code and error
 description as is.
 
-=item *
+=item Set an informational error code
 
 A successful method may set a
 Libmarpa error code to
 a value other than C<MARPA_ERR_NONE>.
 Error codes of this kind are called
-informational error codes,
-the phrase "error code" in this context
-being something of a misnomer.
-When a Libmarpa method might set an informational
-error code,
-that is explicitly stated
-in that method's description in
-the Libmarpa API document.
-Typically, informational error codes are
-ignored.
+informational error codes.
+The phrase "error code" in this context
+is something of a misnomer.
+Informational error codes exist
+as a convenience for some applications,
+but typically are ignored.
 
 =back
+
+The Libmarpa API document sometimes specifies
+what a Libmarpa method does with the error code
+on success.
+The Libmarpa API document always specifies
+if and when a method sets an informational error code.
+If Libmarpa API document is silent,
+the application should regard it as unspecified
+whether the error code is reset or left as is.
 
 =head1 The general pattern
 
