@@ -805,7 +805,8 @@ It defaults to 0.
 =back
 
 On success,
-the return value is the ID of the new sequence.
+the return value is
+the rule ID of the new sequence.
 
 Users should be aware that all sequences at
 the Marpa thin interface level are "keep
@@ -926,10 +927,7 @@ normalize-whitespace: 1
 
 The thin interface's C<alternative()> method follows
 the general pattern, with one exception:
-The C<alternative()> method
-will not throw an exception if the
-Ruby Slippers flag is on.
-More precisely, the C<alternative()> method will
+The C<alternative()> method will
 throw failures as exceptions if and only if the
 base grammar's throw flag is on
 and the Ruby Slippers flag is off.
