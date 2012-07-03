@@ -223,7 +223,7 @@ install: ../libmarpa.tar ../libmarpa-doc.tar
 	  tar_gz_file=../doc/marpa-doc-$$version.tar.gz ; \
 	  gzip -dc $$tar_gz_file > ../libmarpa-doc.tar
 
-../doc/configure: $(DOC_FILES)
+../doc/configure: $(DOC_CONFIGURE_FILES)
 	test -d ../doc || mkdir ../doc
 	test -d ../doc/m4 || mkdir ../doc/m4
 	cd ../doc && autoreconf -iv
