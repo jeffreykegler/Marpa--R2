@@ -3788,12 +3788,10 @@ Suggested message: "An argument is null when it should not be".
 @deftypevr Macro int MARPA_ERR_PRECOMPUTED
 An attempt was made to use a precomputed grammar
 in a way that is not allowed.
-After a grammar is precomputed,
-any changes to it that would invalidate
-the precomputation
-is not allowed.
-Almost all changes to a grammar invalidate
-the precomputations.
+Often this is an attempt to change the grammar.
+Nearly every change to a grammar after
+precomputation invalidates the precomputation,
+and is therefore not allowed.
 Numeric value: 57.
 Suggested message: "This grammar is precomputed".
 @end deftypevr
