@@ -153,6 +153,7 @@ my @defs = ();
 
 my %error_number = map { $error_codes[$_], $_ } (0 .. $#error_codes);
 my @errors_seen = ();
+my @error_number_matches = ();
 my @errors = ();
 my $current_error_number = undef;
 my @error_suggested_messages = ();
@@ -170,13 +171,24 @@ my $current_step_type_number = undef;
 
 LINE: while ( my $line = <STDIN> ) {
 
-     if ( defined $current_error_number ) {
-        my ($message) = ($line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
+    if ( defined $current_error_number ) {
+        my ($documented_value) =
+            ( $line =~ /^Numeric \s* value [:] \s (\d+) [.] $/xms );
+        if ( defined $documented_value ) {
+            if ( $documented_value != $current_error_number ) {
+                die
+                    "Error number mismatch $current_error_number is $documented_value in doc";
+            }
+            $error_number_matches[$current_error_number]++;
+        } ## end if ( defined $documented_value )
+        my ($message) =
+            ( $line =~ /Suggested \s* message [:] \s " ([^"]*) " /xms );
         if ($message) {
             $error_suggested_messages[$current_error_number] = $message;
             $current_error_number = undef;
         }
-     }
+    } ## end if ( defined $current_error_number )
+
     if ( $line =~ /[@]deftypevr/xms ) {
         my ($error) = ($line =~ m/(MARPA_ERR_.*)\b/xms);
 	if ($error) {
@@ -242,6 +254,14 @@ if (@errors_not_seen) {
       say STDERR "Error not in document: ", $error_codes[$error_not_seen];
   }
   die 'Error(s) in list, but not in document';
+}
+
+my @error_numbers_not_matched = grep { !$error_number_matches[$_] } (0 .. $#error_codes);
+if (@error_numbers_not_matched) {
+  for my $error_numbers_not_matched (@error_numbers_not_matched) {
+      say STDERR "No Error number in document for ", $error_codes[$error_numbers_not_matched];
+  }
+  die 'Error(s) in list, but no number in document';
 }
 
 my $common_preamble = <<'COMMON_PREAMBLE';
