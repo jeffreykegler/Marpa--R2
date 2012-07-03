@@ -128,6 +128,8 @@ MARPA_ERR_UNEXPECTED_TOKEN_ID
 MARPA_ERR_UNPRODUCTIVE_START
 MARPA_ERR_VALUATOR_INACTIVE
 MARPA_ERR_VALUED_IS_LOCKED
+MARPA_ERR_RANK_NEGATIVE
+MARPA_ERR_RANK_TOO_HIGH
 );
 
 my @event_codes = qw(
@@ -256,13 +258,15 @@ if (@errors_not_seen) {
   die 'Error(s) in list, but not in document';
 }
 
-my @error_numbers_not_matched = grep { !$error_number_matches[$_] } (0 .. $#error_codes);
-if (@error_numbers_not_matched) {
-  for my $error_numbers_not_matched (@error_numbers_not_matched) {
-      say STDERR "No Error number in document for ", $error_codes[$error_numbers_not_matched];
-  }
-  die 'Error(s) in list, but no number in document';
-}
+my $error_code_issues = 0;
+ERROR_CODE: for my $error_code ( 0 .. $#error_codes ) {
+    my $matches = $error_number_matches[$error_code] // 0;
+    next ERROR_CODE if $matches == 1;
+    say STDERR
+        "Problem: Error number $error_code has $matches errors associated with it";
+    $error_code_issues++;
+} ## end ERROR_CODE: for my $error_code ( 0 .. $#error_codes )
+die 'Error(s) in list, but no number in document' if $error_code_issues;
 
 my $common_preamble = <<'COMMON_PREAMBLE';
 /*
