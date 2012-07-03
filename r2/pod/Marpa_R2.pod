@@ -69,16 +69,11 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 This release is ALPHA
+=head1 This release is alpha
 
 This release is alpha.
-At this point features may change incompatibly.
 Users who seek stability should, for the time being,
 prefer L<Marpa::XS>.
-
-Its intended audience is those who want to get a head
-start with Marpa::R2 and Libmarpa.
-This release does pass an extensive test suite.
 
 =head1 Description
 
