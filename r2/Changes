@@ -25,6 +25,8 @@ Revision history for Marpa::R2
 
       * A new series of developer's releases
 
+      * Documented Libmarpa API and Marpa::R2::Thin.
+
       * Added context variables
 
 2.008000

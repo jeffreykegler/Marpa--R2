@@ -310,7 +310,7 @@ sub do_libmarpa {
     }
 
     # Otherwise, rebuild from scratch
-    File::Path->remove_tree($build_dir);
+    File::Path::rmtree($build_dir);
 
     if ( $self->verbose() ) {
         say join q{ }, "Running command: tar -xf $tar_file"
