@@ -1034,13 +1034,11 @@ sub calculate_rank_by_irl {
     my ($grammar)    = @_;
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $default_rank = $grammar_c->default_rank();
-    my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my @rank_by_irl  = ();
     RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count() - 1 ) {
         my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
         if ( defined $xrl_id ) {
-            my $rule = $rules->[$xrl_id];
-            $rank_by_irl[$irl_id] = $rule->[Marpa::R2::Internal::Rule::RANK];
+            $rank_by_irl[$irl_id] = $grammar_c->rule_rank($xrl_id);
             next RULE;
         }
         $rank_by_irl[$irl_id] = $default_rank;
