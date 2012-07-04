@@ -883,10 +883,10 @@ g->t_max_rule_length = 0;
 The default rank for rules and symbols.
 For minimum rank we want 
 negative numbers rounded toward 0, not down.
-@ @d MAXIMUM_RANK (MAX_INT/4)
-@d MINIMUM_RANK (MIN_INT/4 + (MIN_INT%4 > 0 ? 1 : 0))
+@ @d MAXIMUM_RANK (INT_MAX/4)
+@d MINIMUM_RANK (INT_MIN/4 + (INT_MIN%4 > 0 ? 1 : 0))
 @<Public typedefs@> =
-typedef int Marpa_Rule_ID;
+typedef int Marpa_Rank;
 @ @d Default_Rank_of_G(g) ((g)->t_default_rank)
 @<Int aligned grammar elements@> = Marpa_Rank t_default_rank;
 @ @<Initialize grammar elements@> =

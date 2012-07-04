@@ -1815,6 +1815,36 @@ Return value: On success,
 On failure, -2.
 @end deftypefun
 
+@node Ranks
+@section Ranks
+
+@deftypefun Marpa_Rank marpa_g_default_rank ( @
+    Marpa_Grammar @var{g})
+@deftypefunx Marpa_Rank marpa_g_default_rank_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rank @var{rank})
+
+These methods, respectively, set
+and query the default rank of the grammar.
+When a grammar is created, the default rank is 0.
+When rules and symbols are created, their rank is
+the default rank of the grammar.
+
+Changing the grammar's default rank does not affect
+those 
+rules and symbols already created,
+only those that will be created.
+This means that
+the grammar's default rank can be used to,
+in effect, assign ranks to groups of rules and symbols.
+Applications may find this behavior useful.
+
+Return value: On success, the rank @strong{after}
+the call.
+On failure, -2.
+
+@end deftypefun
+
 @node Grammar precomputation, Grammar events, Sequences, Grammar methods
 @section Precomputing the Grammar
 
