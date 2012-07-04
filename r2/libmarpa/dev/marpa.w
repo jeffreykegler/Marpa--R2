@@ -879,6 +879,47 @@ are marked useless.
 @ @<Initialize grammar elements@> =
 g->t_max_rule_length = 0;
 
+@*0 The default rank.
+The default rank for rules and symbols.
+For minimum rank we want 
+negative numbers rounded toward 0, not down.
+@ @d MAXIMUM_RANK (MAX_INT/4)
+@d MINIMUM_RANK (MIN_INT/4 + (MIN_INT%4 > 0 ? 1 : 0))
+@<Public typedefs@> =
+typedef int Marpa_Rule_ID;
+@ @d Default_Rank_of_G(g) ((g)->t_default_rank)
+@<Int aligned grammar elements@> = Marpa_Rank t_default_rank;
+@ @<Initialize grammar elements@> =
+g->t_default_rank = 0;
+@ @<Function definitions@> =
+Marpa_Rank marpa_g_default_rank(Marpa_Grammar g)
+{
+   @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    return Default_Rank_of_G(g);
+}
+@ Returns the symbol ID on success,
+|-2| on failure.
+@<Function definitions@> =
+Marpa_Rank marpa_g_default_rank_set(Marpa_Grammar g, Marpa_Rank rank)
+{
+  @<Return |-2| on failure@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if precomputed@>@;
+  if (UNLIKELY (rank < MINIMUM_RANK))
+    {
+      MARPA_ERROR (MARPA_ERR_RANK_TOO_LOW);
+      return failure_indicator;
+    }
+  if (UNLIKELY (rank > MAXIMUM_RANK))
+    {
+      MARPA_ERROR (MARPA_ERR_RANK_TOO_HIGH);
+      return failure_indicator;
+    }
+  return Default_Rank_of_G (g) = rank;
+}
+
+
 @*0 Grammar is precomputed?.
 @ @d G_is_Precomputed(g) ((g)->t_is_precomputed)
 @<Bit aligned grammar elements@> = unsigned int t_is_precomputed:1;

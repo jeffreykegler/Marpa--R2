@@ -3813,22 +3813,24 @@ Numeric value: 58.
 Suggested message: "The progress report is exhausted".
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_RANK_NEGATIVE
+@deftypevr Macro int MARPA_ERR_RANK_TOO_LOW
 A symbol or rule rank was specified which
-was less than zero.
-That is not allowed.
+was less than an implementation-defined minimum.
+Implementations will always allow at least those
+ranks in the range between
+-134,217,727 and 134,217,727.
 Numeric value: 85.
-Suggested message: "Negative rule or symbol rank".
+Suggested message: "Rule or symbol rank too low".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_RANK_TOO_HIGH
 A symbol or rule rank was specified which
-is over the system maximum.
-This maximum is implementation defined,
-but it is at least 
-268,435,455 (the 28th power of 2, less 1).
+was greater than an implementation-defined maximum.
+Implementations will always allow at least those
+ranks in the range between
+-134,217,727 and 134,217,727.
 Numeric value: 86.
-Suggested message: "Rule or symbol rank exceeds maximum".
+Suggested message: "Rule or symbol rank too high".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT
