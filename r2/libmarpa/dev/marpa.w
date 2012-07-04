@@ -2175,6 +2175,46 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, Marpa_Rank rank)
     return Rank_of_XRL (xrl) = rank;
 }
 
+@*0 Rule ranks high?.
+The ``rule ranks high'' setting affects the
+ranking of the null variants, for rules
+with properly nullable symbols on their
+RHS.
+@<Bit aligned rule elements@> = 
+  Marpa_Rank t_null_ranks_high:1;
+@ @<Initialize rule elements@> =
+rule->t_null_ranks_high = 0;
+@ 
+@d Null_Ranks_High_of_RULE(rule) ((rule)->t_null_ranks_high)
+@<Function definitions@> =
+int marpa_g_rule_null_high (Marpa_Grammar g,
+  Marpa_Rule_ID xrl_id)
+{
+    XRL xrl;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xrl_id| is invalid@>@;
+    xrl = XRL_by_ID (xrl_id);
+    return Null_Ranks_High_of_RULE(xrl);
+}
+@ @<Function definitions@> =
+int marpa_g_rule_null_high_set(
+Marpa_Grammar g, Marpa_Rule_ID xrl_id, int flag)
+{
+    XRL xrl;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if precomputed@>@;
+    @<Fail if |xrl_id| is invalid@>@;
+    xrl = XRL_by_ID (xrl_id);
+    if (UNLIKELY (flag < 0 || flag > 1))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+	return failure_indicator;
+      }
+    return Null_Ranks_High_of_RULE(xrl) = flag;
+}
+
 @*0 Rule is user-created BNF?.
 True for if the rule is a user-created
 BNF rule, false otherwise.
