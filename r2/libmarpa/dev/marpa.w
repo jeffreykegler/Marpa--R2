@@ -919,7 +919,6 @@ Marpa_Rank marpa_g_default_rank_set(Marpa_Grammar g, Marpa_Rank rank)
   return Default_Rank_of_G (g) = rank;
 }
 
-
 @*0 Grammar is precomputed?.
 @ @d G_is_Precomputed(g) ((g)->t_is_precomputed)
 @<Bit aligned grammar elements@> = unsigned int t_is_precomputed:1;
@@ -1224,6 +1223,58 @@ marpa_g_symbol_new (Marpa_Grammar g)
   return ID_of_SYM(symbol);
 }
 
+@*0 Symbol is start?.
+@<Bit aligned symbol elements@> = unsigned int t_is_start:1;
+@ @<Initialize symbol elements@> = symbol->t_is_start = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID xsyid) 
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsyid| is invalid@>@;
+   return SYM_by_ID(xsyid)->t_is_start;
+}
+
+@*0 Symbol rank.
+@<Int aligned symbol elements@> = 
+  Marpa_Rank t_rank;
+@ @<Initialize symbol elements@> =
+symbol->t_rank = Default_Rank_of_G(g);
+@ @d Rank_of_XSY(symbol) ((symbol)->t_rank)
+@<Function definitions@> =
+int marpa_g_symbol_rank(Marpa_Grammar g,
+  Marpa_Symbol_ID xsyid)
+{
+    SYM xsy;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsyid| is invalid@>@;
+    xsy = SYM_by_ID (xsyid);
+    return Rank_of_XSY(xsy);
+}
+@ @<Function definitions@> =
+int marpa_g_symbol_rank_set(
+Marpa_Grammar g, Marpa_Symbol_ID xsyid, Marpa_Rank rank)
+{
+    SYM xsy;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if precomputed@>@;
+    @<Fail if |xsyid| is invalid@>@;
+    xsy = SYM_by_ID (xsyid);
+    if (UNLIKELY (rank < MINIMUM_RANK))
+      {
+	MARPA_ERROR (MARPA_ERR_RANK_TOO_LOW);
+	return failure_indicator;
+      }
+    if (UNLIKELY (rank > MAXIMUM_RANK))
+      {
+	MARPA_ERROR (MARPA_ERR_RANK_TOO_HIGH);
+	return failure_indicator;
+      }
+    return Rank_of_XSY (xsy) = rank;
+}
+
 @*0 Symbol is LHS?.
 Is this (external) symbol on the LHS of any rule,
 whether sequence or BNF.
@@ -1441,18 +1492,6 @@ int marpa_g_symbol_is_productive(
     @<Fail if not precomputed@>@;
     @<Fail if |xsyid| is invalid@>@;
     return XSY_is_Productive(XSY_by_ID(xsyid));
-}
-
-@*0 Symbol is start?.
-@<Bit aligned symbol elements@> = unsigned int t_is_start:1;
-@ @<Initialize symbol elements@> = symbol->t_is_start = 0;
-@ @<Function definitions@> =
-int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID xsyid) 
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if |xsyid| is invalid@>@;
-   return SYM_by_ID(xsyid)->t_is_start;
 }
 
 @*0 Primary internal equivalent.
