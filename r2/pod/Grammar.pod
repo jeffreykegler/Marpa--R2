@@ -728,8 +728,10 @@ and trailing separators are not allowed.
 C<rank> is ignored unless
 the recognizer's C<ranking_method> named argument
 is set to something other than its default.
-C<rank>, when specified, must be an integer.
-It may be negative.
+The range allowed for C<rank> is implementation-defined,
+but numbers in the range
+between -134,217,727 and 134,217,727
+will always be allowed.
 C<rank> is 0 by default.
 For details on using the
 C<rank> named argument,

@@ -290,6 +290,18 @@ the semantics of cycles is now more closely specified.
 For details of the new semantics,
 see L<Marpa::R2::Semantics::Infinite>.
 
+=head2 The allowed rank for ranks has been clarified
+
+Symbols and rules have numeric ranks.
+Previously, no mention was made of range of values allowed.
+This is implemented-defined,
+except that the minimum magnitudes will always be
+the 28th power of 2, less 1.
+That is,
+numbers in the range between
+-134,217,727 and 134,217,727 will always be
+allowed as ranks.
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display
