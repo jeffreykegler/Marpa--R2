@@ -85,7 +85,6 @@ BEGIN {
     SYMBOLS { array of symbol refs }
     ACTIONS { Default package in which to find actions }
     DEFAULT_ACTION { Action for rules without one }
-    DEFAULT_RANK { Rank for rules and symbols without one }
     TRACE_FILE_HANDLE
     WARNINGS { print warnings about grammar? }
     RULE_NAME_REQUIRED
@@ -235,7 +234,6 @@ sub Marpa::R2::Grammar::new {
     $grammar->[Marpa::R2::Internal::Grammar::INACCESSIBLE_OK] = {};
     $grammar->[Marpa::R2::Internal::Grammar::UNPRODUCTIVE_OK] = {};
     $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION] = 'fatal';
-    $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK]    = 0;
 
     $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS]            = [];
     $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH]        = {};
@@ -309,9 +307,9 @@ sub Marpa::R2::Grammar::set {
 
         if ( defined( my $value = $args->{'default_rank'} ) ) {
             Marpa::R2::exception(
-                'default_rank option not allowed after grammar is precomputed')
-                if $grammar_c->is_precomputed();
-            $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK] = $value;
+                'default_rank option not allowed after grammar is precomputed'
+            ) if $grammar_c->is_precomputed();
+            $grammar_c->default_rank_set($value);
         } ## end if ( defined( my $value = $args->{'default_rank'} ) )
 
         # Second pass options
@@ -608,7 +606,7 @@ sub Marpa::R2::Grammar::precompute {
             if $infinite_action eq 'fatal';
     } ## end if ( $loop_rule_count and $infinite_action ne 'quiet')
 
-    my $default_rank = $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK];
+    my $default_rank = $grammar_c->default_rank();
 
     # LHS_RANK is left undefined if not explicitly set
     SYMBOL: for my $symbol ( @{$symbols} ) {
@@ -1010,7 +1008,7 @@ sub add_user_rule {
 
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $default_rank = $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK];
+    my $default_rank = $grammar_c->default_rank();
 
     my ( $lhs_name, $rhs_names, $action );
     my ( $min, $separator_name );

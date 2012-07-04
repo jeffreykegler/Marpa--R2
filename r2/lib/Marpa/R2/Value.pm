@@ -1033,7 +1033,7 @@ sub rank_chaf_rules {
 sub calculate_rank_by_irl {
     my ($grammar)    = @_;
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $default_rank = $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_RANK];
+    my $default_rank = $grammar_c->default_rank();
     my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my @rank_by_irl  = ();
     RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count() - 1 ) {
