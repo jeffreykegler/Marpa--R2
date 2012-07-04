@@ -170,6 +170,8 @@ say {$out} gp_generate(qw(rule_is_proper_separation Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_is_sequence Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_length Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_lhs Marpa_Rule_ID rule_id));
+say {$out} gp_generate(qw(rule_null_high Marpa_Rule_ID rule_id));
+say {$out} gp_generate(qw(rule_null_high_set Marpa_Rule_ID rule_id int flag));
 say {$out} gp_generate(qw(rule_rank Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_rank_set Marpa_Rule_ID rule_id Marpa_Rank rank));
 say {$out} gp_generate(qw(rule_rhs Marpa_Rule_ID rule_id int ix));
