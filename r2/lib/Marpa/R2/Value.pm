@@ -1065,13 +1065,6 @@ sub do_high_rule_only {
     return if not defined $top_or_node;
     my @or_nodes = ($top_or_node);
 
-    # Set up ranks by symbol
-    my @rank_by_symbol = ();
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::R2::Internal::Symbol::RANK];
-        $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
-    }    # end for my $symbol ( @{$symbols} )
-
     my $rank_by_irl = calculate_rank_by_irl($grammar);
 
     OR_NODE: for ( my $or_node = 0;; $or_node++ ) {
@@ -1085,8 +1078,10 @@ sub do_high_rule_only {
         for my $and_node (@and_nodes) {
             my $token = $bocage->_marpa_b_and_node_symbol($and_node);
             if ( defined $token ) {
+		my $xsyid = $grammar_c->_marpa_g_source_xsy($token);
+		my $token_rank = defined $xsyid ?  $grammar_c->symbol_rank($xsyid) : 0;
                 push @ranking_data,
-                    [ $and_node, $rank_by_symbol[$token], MAXIMUM_CHAF_RANK ];
+                    [ $and_node, $token_rank, MAXIMUM_CHAF_RANK ];
                 next AND_NODE;
             }
             my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
@@ -1134,13 +1129,6 @@ sub do_rank_by_rule {
 
     my @or_nodes = ( $bocage->_marpa_b_top_or_node() );
 
-    # Set up ranks by symbol
-    my @rank_by_symbol = ();
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $rank = $symbol->[Marpa::R2::Internal::Symbol::RANK];
-        $rank_by_symbol[ $symbol->[Marpa::R2::Internal::Symbol::ID] ] = $rank;
-    }    # end for my $symbol ( @{$symbols} )
-
     # Set up ranks by rule
     my $rank_by_irl = calculate_rank_by_irl($grammar);
 
@@ -1158,10 +1146,13 @@ sub do_rank_by_rule {
         for my $and_node (@and_nodes) {
             my $token = $bocage->_marpa_b_and_node_symbol($and_node);
             if ( defined $token ) {
+                my $xsyid = $grammar_c->_marpa_g_source_xsy($token);
+                my $token_rank =
+                    defined $xsyid ? $grammar_c->symbol_rank($xsyid) : 0;
                 push @ranking_data,
-                    [ $and_node, $rank_by_symbol[$token], MAXIMUM_CHAF_RANK ];
+                    [ $and_node, $token_rank, MAXIMUM_CHAF_RANK ];
                 next AND_NODE;
-            }
+            } ## end if ( defined $token )
             my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
             my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
             push @ranking_data,

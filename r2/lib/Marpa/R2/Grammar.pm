@@ -54,7 +54,6 @@ BEGIN {
     :package=Marpa::R2::Internal::Symbol
     ID { Unique ID }
     NAME
-    RANK
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -606,14 +605,6 @@ sub Marpa::R2::Grammar::precompute {
             if $infinite_action eq 'fatal';
     } ## end if ( $loop_rule_count and $infinite_action ne 'quiet')
 
-    my $default_rank = $grammar_c->default_rank();
-
-    # LHS_RANK is left undefined if not explicitly set
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        $symbol->[Marpa::R2::Internal::Symbol::RANK] //=
-            $default_rank;
-    }
-
     # A bit hackish here: INACCESSIBLE_OK is not a HASH ref iff
     # it is a Boolean TRUE indicating that all inaccessibles are OK.
     # A Boolean FALSE will have been replaced with an empty hash.
@@ -921,7 +912,7 @@ sub assign_user_symbol {
             Marpa::R2::exception(qq{Symbol "$name": rank must be an integer})
                 if not Scalar::Util::looks_like_number($value)
                     or int($value) != $value;
-            $symbol->[Marpa::R2::Internal::Symbol::RANK] = $value;
+	    $grammar_c->symbol_rank_set($symbol_id) = $value;
         } ## end if ( $property eq 'rank' )
     } ## end while ( my ( $property, $value ) = each %{$options} )
 
