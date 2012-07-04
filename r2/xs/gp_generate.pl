@@ -51,6 +51,7 @@ my %format_by_type = (
    int => '%d',
    Marpa_IRL_ID => '%d',
    Marpa_ISY_ID => '%d',
+   Marpa_Rank => '%d',
    Marpa_Rule_ID => '%d',
    Marpa_Symbol_ID => '%d',
    Marpa_Earley_Set_ID => '%d',
@@ -152,6 +153,8 @@ $main::CLASS_LETTER   = 'g';
 $main::LIBMARPA_CLASS = 'Marpa_Grammar';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
 
+say {$out} gp_generate(qw(default_rank));
+say {$out} gp_generate(qw(default_rank_set Marpa_Rank rank));
 say {$out} gp_generate(qw(error_clear));
 say {$out} gp_generate(qw(event_count));
 say {$out} gp_generate(qw(has_cycle));
@@ -162,8 +165,8 @@ say {$out} gp_generate(qw(rule_is_accessible Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_is_loop Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_is_nullable Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_is_nulling Marpa_Rule_ID rule_id));
-say {$out} gp_generate(qw(rule_is_proper_separation Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_is_productive Marpa_Rule_ID rule_id));
+say {$out} gp_generate(qw(rule_is_proper_separation Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_is_sequence Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_length Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_lhs Marpa_Rule_ID rule_id));
@@ -188,16 +191,16 @@ $main::LIBMARPA_CLASS = 'Marpa_Recognizer';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R', "\n\n";
 
 say {$out} gp_generate(qw(current_earleme));
+say {$out} gp_generate(qw(earleme Marpa_Earley_Set_ID ordinal));
+say {$out} gp_generate(qw(earleme_complete));
+say {$out} gp_generate(qw(earley_item_warning_threshold));
+say {$out} gp_generate(qw(earley_item_warning_threshold_set int too_many_earley_items));
 say {$out} gp_generate(qw(furthest_earleme));
 say {$out} gp_generate(qw(is_exhausted));
-say {$out} gp_generate(qw(start_input));
-say {$out} gp_generate(qw(earley_item_warning_threshold_set int too_many_earley_items));
-say {$out} gp_generate(qw(earley_item_warning_threshold));
 say {$out} gp_generate(qw(latest_earley_set));
-say {$out} gp_generate(qw(earleme_complete));
-say {$out} gp_generate(qw(earleme Marpa_Earley_Set_ID ordinal));
-say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(progress_report_finish));
+say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
+say {$out} gp_generate(qw(start_input));
 
 # Nothing (as yet) in bocage, ordering classes
 

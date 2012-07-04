@@ -20,6 +20,7 @@ O_Wrapper * T_MARPA_O_W
 T_Wrapper * T_MARPA_T_W
 V_Wrapper * T_MARPA_V_W
 
+Marpa_Rank T_IV
 Marpa_Symbol_ID T_IV
 Marpa_Rule_ID T_IV
 Marpa_IRL_ID T_IV

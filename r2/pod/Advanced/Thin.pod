@@ -484,6 +484,7 @@ of Libmarpa's time classes is converted
 to the corresponding Marpa thin interface class.
 Arguments which belong to Libmarpa's numbered 
 classes (C<Marpa_Earley_Set_ID>,
+C<Marpa_Rank>,
 C<Marpa_Rule_ID> and C<Marpa_Symbol_ID>)
 are converted to Perl scalar integers.
 C language C<int>'s are also
