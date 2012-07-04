@@ -1867,6 +1867,26 @@ or on other failure, -2.
 
 @end deftypefun
 
+@deftypefun Marpa_Rank marpa_g_rule_rank ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID rule_id)
+@deftypefunx Marpa_Rank marpa_g_rule_rank_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id}, @
+    Marpa_Rank @var{rank})
+
+These methods, respectively, set
+and query the rank of a rule @var{rule_id}.
+When @var{rule_id} is created, its rank
+initialized to the default rank of the grammar.
+
+Return value: On success, the rank @strong{after}
+the call.
+If the grammar has been precomputed,
+or on other failure, -2.
+
+@end deftypefun
+
 @node Grammar precomputation, Grammar events, Ranks, Grammar methods
 @section Precomputing the Grammar
 

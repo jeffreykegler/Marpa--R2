@@ -2135,6 +2135,46 @@ added to the list of rules.
 @d ID_of_RULE(rule) ID_of_XRL(rule)
 @<Int aligned rule elements@> = Marpa_Rule_ID t_id;
 
+@*0 Rule rank.
+@<Int aligned rule elements@> = 
+  Marpa_Rank t_rank;
+@ @<Initialize rule elements@> =
+rule->t_rank = Default_Rank_of_G(g);
+@ @d Rank_of_XRL(rule) ((rule)->t_rank)
+@<Function definitions@> =
+int marpa_g_rule_rank(Marpa_Grammar g,
+  Marpa_Rule_ID xrl_id)
+{
+    XRL xrl;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xrl_id| is invalid@>@;
+    xrl = XRL_by_ID (xrl_id);
+    return Rank_of_XRL(xrl);
+}
+@ @<Function definitions@> =
+int marpa_g_rule_rank_set(
+Marpa_Grammar g, Marpa_Rule_ID xrl_id, Marpa_Rank rank)
+{
+    XRL xrl;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if precomputed@>@;
+    @<Fail if |xrl_id| is invalid@>@;
+    xrl = XRL_by_ID (xrl_id);
+    if (UNLIKELY (rank < MINIMUM_RANK))
+      {
+	MARPA_ERROR (MARPA_ERR_RANK_TOO_LOW);
+	return failure_indicator;
+      }
+    if (UNLIKELY (rank > MAXIMUM_RANK))
+      {
+	MARPA_ERROR (MARPA_ERR_RANK_TOO_HIGH);
+	return failure_indicator;
+      }
+    return Rank_of_XRL (xrl) = rank;
+}
+
 @*0 Rule is user-created BNF?.
 True for if the rule is a user-created
 BNF rule, false otherwise.
