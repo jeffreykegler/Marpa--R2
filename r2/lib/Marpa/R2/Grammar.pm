@@ -66,7 +66,6 @@ BEGIN {
     ID
     NAME
     ACTION { action for this rule as specified by user }
-    NULL_RANKS_HIGH
     DISCARD_SEPARATION
 
 END_OF_STRUCTURE
@@ -1132,8 +1131,8 @@ sub add_user_rule {
 	if (defined $rank) {
 	   $grammar_c->rule_rank_set($ordinary_rule_id, $rank);
 	}
-        $ordinary_rule->[Marpa::R2::Internal::Rule::NULL_RANKS_HIGH] =
-            $null_ranking eq 'high';
+	$grammar_c->rule_null_high_set( $ordinary_rule_id,
+	    ( $null_ranking eq 'high' ? 1 : 0 ) );
         if ( defined $rule_name ) {
             $ordinary_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
             $rules_by_name->{$rule_name} = $ordinary_rule;
@@ -1190,7 +1189,8 @@ sub add_user_rule {
     action_set( $original_rule_id, $grammar, $action );
     $original_rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] =
         $separator_id >= 0 && !$keep_separation;
-    $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKS_HIGH] = $null_ranking eq 'high';
+    $grammar_c->rule_null_high_set( $original_rule_id,
+	( $null_ranking eq 'high' ? 1 : 0 ) );
     $grammar_c->rule_rank_set($original_rule_id, $rank);
 
     if ( defined $rule_name ) {

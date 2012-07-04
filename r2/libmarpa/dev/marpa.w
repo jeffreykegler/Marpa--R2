@@ -2181,7 +2181,7 @@ ranking of the null variants, for rules
 with properly nullable symbols on their
 RHS.
 @<Bit aligned rule elements@> = 
-  Marpa_Rank t_null_ranks_high:1;
+  unsigned int t_null_ranks_high:1;
 @ @<Initialize rule elements@> =
 rule->t_null_ranks_high = 0;
 @ 

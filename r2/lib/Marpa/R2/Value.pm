@@ -967,8 +967,8 @@ sub rank_chaf_rules {
         my $original_rule =
             defined $original_rule_id ? $rules->[$original_rule_id] : undef;
         my $null_ranks_high =
-            defined $original_rule
-            ? $original_rule->[Marpa::R2::Internal::Rule::NULL_RANKS_HIGH]
+            defined $original_rule_id
+            ? $grammar_c->rule_null_high($original_rule_id)
             : 0;
 
         # Default to the rank of a non-nulled rule
