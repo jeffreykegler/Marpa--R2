@@ -993,7 +993,7 @@ sub do_high_rule_only {
             sort { $b->[1] <=> $a->[1] } @ranking_data;
 ## use critic
 
-        my ( $first_selected_and_node, $high_rule_rank, $high_chaf_rank ) =
+        my ( $first_selected_and_node, $high_rule_rank ) =
             @{ $sorted_and_data[0] };
         my @selected_and_nodes = ($first_selected_and_node);
         AND_DATUM:
@@ -1063,9 +1063,6 @@ sub do_rank_by_rule {
     return 1;
 } ## end sub do_rank_by_rule
 
-#
-# Set ranks for chaf rules
-#
 sub trace_token_evaluation {
     my ( $recce, $value, $token_id, $value_ref ) = @_;
     my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
