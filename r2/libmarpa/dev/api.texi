@@ -57,7 +57,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Event codes::                 
 * Error macros and codes::      
 * Design notes::                
-* Things To Do::                
+* Work in Progress::            
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -173,6 +173,11 @@ Design notes
 * Why so many time objects::    
 * Design of numbered objects::  
 * LHS Terminals::               
+
+Work in Progress
+
+* Untested methods::            
+* Things to do::                
 
 @end detailmenu
 @end menu
@@ -4217,7 +4222,7 @@ Numeric value: 67.
 Numeric value: 72.
 @end deftypevr
 
-@node Design notes, Things To Do, Error macros and codes, Top
+@node Design notes, Work in Progress, Error macros and codes, Top
 @chapter Design notes
 
 Design apologetics are
@@ -4343,10 +4348,15 @@ For this reason,
 the traditional behavior is the default
 in Libmarpa.
 
-@node Work in Progress
-@chaper Work in Progress
+@node Work in Progress,  , Design notes, Top
+@chapter Work in Progress
 
-@node Untested methods
+@menu
+* Untested methods::            
+* Things to do::                
+@end menu
+
+@node Untested methods, Things to do, Work in Progress, Work in Progress
 @section Untested methods
 
 The methods of this section are not in the external interface,
@@ -4402,7 +4412,7 @@ or on other failure, -2.
 
 @end deftypefun
 
-@node Things to do
+@node Things to do,  , Untested methods, Work in Progress
 @section Things to do
 
 @itemize

@@ -244,6 +244,10 @@ On other failures, -2.
 @deftypefun Marpa_Rule_ID _marpa_g_irl_semantic_equivalent (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
+@deftypefun Marpa_Rank _marpa_g_irl_rank ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{irl_id})
+@end deftypefun
 
 @node Grammar internals, Recognizer internals, Rule internals, Internal Interface
 @section Grammar internal methods

@@ -1710,11 +1710,12 @@ Marpa_Rule_ID _marpa_g_source_xsy(
 }
 
 @*0 Source rule and offset.
-In the case of sequences and CHAF rules, internal symbol
+In the case of sequences and CHAF rules, internal symbols
 are created to act as the LHS of internal rules.
+These fields record the symbol's source information
+with the symbol.
 The semantics need this information so that they can
 simulate the external ``source'' rule.
-These fields record that information.
 @ @d LHS_XRL_of_ISY(isy) ((isy)->t_lhs_xrl)
 @d XRL_Offset_of_ISY(isy) ((isy)->t_xrl_offset)
 @<Widely aligned ISY elements@> =
@@ -1864,6 +1865,7 @@ irl_finish( GRAMMAR g, IRL irl)
   int symbol_ix;
   const IRL new_irl = irl_start (g, rewrite_xrl_length);
   Source_XRL_of_IRL (new_irl) = rule;
+  Rank_of_IRL(new_irl) = IRL_Rank_by_XRL(rule);
   for (symbol_ix = 0; symbol_ix <= rewrite_xrl_length; symbol_ix++)
     {
       new_irl->t_isyid_array[symbol_ix] =
@@ -2637,6 +2639,31 @@ Marpa_Rule_ID _marpa_g_source_xrl(
     return source_xrl ? ID_of_XRL(source_xrl) : -1;
 }
 
+@*0 Rank.
+The rank of the internal rule.
+|IRL_Rank_by_XRL| and |IRL_CHAF_Rank_by_XRL|
+assume that |t_source_xrl| is not |NULL|.
+@d EXTERNAL_RANK_FACTOR 4
+@d MAXIMUM_CHAF_RANK 3
+@d IRL_CHAF_Rank_by_XRL( xrl, chaf_rank) (
+  ((xrl)->t_rank * EXTERNAL_RANK_FACTOR) +
+    ((xrl)->t_null_ranks_high) ? (MAXIMUM_CHAF_RANK - (chaf_rank)) : (chaf_rank)
+)
+@d IRL_Rank_by_XRL(xrl) IRL_CHAF_Rank_by_XRL(xrl, MAXIMUM_CHAF_RANK)
+@d Rank_of_IRL(irl) ((irl)->t_rank)
+@<Int aligned IRL elements@> = Marpa_Rank t_rank;
+@ @<Initialize IRL elements@> =
+  Rank_of_IRL(irl) = Default_Rank_of_G(g) * EXTERNAL_RANK_FACTOR + MAXIMUM_CHAF_RANK;
+@ @<Function definitions@> =
+Marpa_Rank _marpa_g_irl_rank(
+    Marpa_Grammar g,
+    Marpa_IRL_ID irl_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if |irl_id| is invalid@>@;
+    return Rank_of_IRL(IRL_by_ID(irl_id));
+}
+
 @*0 First AIM.
 This is the first AHFA item for a rule.
 There may not be one, in which case it is |NULL|.
@@ -3296,6 +3323,7 @@ if (0)
     RHSID_of_IRL(rewrite_irl, 0) = internal_lhs_isyid;
     irl_finish(g, rewrite_irl);
     Source_XRL_of_IRL(rewrite_irl) = rule;
+    Rank_of_IRL(rewrite_irl) = IRL_Rank_by_XRL(rule);
     /* Real symbol count remains at default of 0 */
     IRL_has_Virtual_RHS (rewrite_irl) = 1;
 }
@@ -3310,6 +3338,7 @@ if (0)
   RHSID_of_IRL (rewrite_irl, 1) = separator_isyid;
   irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
+  Rank_of_IRL(rewrite_irl) = IRL_Rank_by_XRL(rule);
   IRL_has_Virtual_RHS (rewrite_irl) = 1;
   Real_SYM_Count_of_IRL (rewrite_irl) = 1;
 }
@@ -3324,6 +3353,7 @@ That's the core of Marpa's rewrite.
   RHSID_of_IRL (rewrite_irl, 0) = rhs_isyid;
   irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
+  Rank_of_IRL(rewrite_irl) = IRL_Rank_by_XRL(rule);
   IRL_has_Virtual_LHS (rewrite_irl) = 1;
   Real_SYM_Count_of_IRL (rewrite_irl) = 1;
 }
@@ -3340,6 +3370,7 @@ That's the core of Marpa's rewrite.
   RHSID_of_IRL (rewrite_irl, rhs_ix) = rhs_isyid;
   irl_finish (g, rewrite_irl);
   Source_XRL_of_IRL (rewrite_irl) = rule;
+  Rank_of_IRL(rewrite_irl) = IRL_Rank_by_XRL(rule);
   IRL_has_Virtual_LHS (rewrite_irl) = 1;
   IRL_has_Virtual_RHS (rewrite_irl) = 1;
   Real_SYM_Count_of_IRL (rewrite_irl) = length - 1;
@@ -3597,6 +3628,7 @@ end before the second proper nullable (or factor).
 	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 2);
   @<Add CHAF IRL@>@;
 }
 
@@ -3642,6 +3674,7 @@ the Marpa parse engine.
 				 (rule, piece_start + piece_ix));
 	}
       irl_finish (g, chaf_irl);
+      Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 0);
       @<Add CHAF IRL@>@;
     }
 }
@@ -3671,6 +3704,7 @@ the Marpa parse engine.
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 3);
   @<Add CHAF IRL@>@;
 }
 
@@ -3698,6 +3732,7 @@ the Marpa parse engine.
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 2);
   @<Add CHAF IRL@>@;
 }
 
@@ -3725,6 +3760,7 @@ the Marpa parse engine.
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 1);
   @<Add CHAF IRL@>@;
 }
 
@@ -3762,6 +3798,7 @@ the Marpa parse engine.
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length-1) = chaf_virtual_isyid;
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 0);
   @<Add CHAF IRL@>@;
 }
 
@@ -3792,6 +3829,7 @@ Open block, declarations and setup.
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 3);
   @<Add CHAF IRL@>@;
 }
 
@@ -3818,6 +3856,7 @@ Open block, declarations and setup.
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 2);
   @<Add CHAF IRL@>@;
 }
 
@@ -3844,6 +3883,7 @@ Open block, declarations and setup.
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 1);
   @<Add CHAF IRL@>@;
 }
 
@@ -3883,6 +3923,7 @@ a nulling rule.
 				 (rule, piece_start + piece_ix));
 	}
       irl_finish (g, chaf_irl);
+      Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 0);
       @<Add CHAF IRL@>@;
   }
 }
@@ -3911,6 +3952,7 @@ a nulling rule.
 	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
+  Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 3);
   @<Add CHAF IRL@>@;
 }
 
@@ -3941,6 +3983,7 @@ a nulling rule.
 				 (rule, piece_start + piece_ix));
 	}
       irl_finish (g, chaf_irl);
+      Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 0);
       @<Add CHAF IRL@>@;
     }
 }
