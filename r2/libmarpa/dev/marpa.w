@@ -1588,6 +1588,7 @@ struct s_isy {
   int t_or_node_type;
   ISYID t_isyid;
   @<Widely aligned ISY elements@>@;
+  @<Int aligned ISY elements@>@;
   @<Bit aligned ISY elements@>@;
 };
 @ |t_isyid| is initialized when the symbol is
@@ -1611,22 +1612,26 @@ isy_start(GRAMMAR g)
 }
 
 @ Create an ISY from scratch.
+A source symbol must be specified.
 @<Function definitions@> =
 PRIVATE ISY
 isy_new(GRAMMAR g, XSY source)
 {
   const ISY new_isy = isy_start(g);
   Source_XSY_of_ISY(new_isy) = source;
+  Rank_of_ISY(new_isy) = ISY_Rank_by_XSY(source);
   return new_isy;
 }
 
 @ Clone an ISY from an XSY.
+An XSY must be specified.
 @<Function definitions@> =
 PRIVATE ISY
 isy_clone(GRAMMAR g, XSY xsy)
 {
   const ISY new_isy = isy_start(g);
   Source_XSY_of_ISY(new_isy) = xsy;
+  Rank_of_ISY(new_isy) = ISY_Rank_by_XSY(xsy);
   ISY_is_Nulling(new_isy) = XSY_is_Nulling(xsy);
   return new_isy;
 }
@@ -1764,6 +1769,24 @@ int _marpa_g_isy_xrl_offset(Marpa_Grammar g, Marpa_ISY_ID isy_id)
   @<Fail if |isy_id| is invalid@>@;
   isy = ISY_by_ID (isy_id);
   return XRL_Offset_of_ISY(isy);
+}
+
+@*0 Rank.
+The rank of the internal symbol.
+@d ISY_Rank_by_XSY(xsy)
+  ((xsy)->t_rank * EXTERNAL_RANK_FACTOR + MAXIMUM_CHAF_RANK)
+@d Rank_of_ISY(isy) ((isy)->t_rank)
+@<Int aligned ISY elements@> = Marpa_Rank t_rank;
+@ @<Initialize ISY elements@> =
+  Rank_of_ISY(isy) = Default_Rank_of_G(g) * EXTERNAL_RANK_FACTOR + MAXIMUM_CHAF_RANK;
+@ @<Function definitions@> =
+Marpa_Rank _marpa_g_isy_rank(
+    Marpa_Grammar g,
+    Marpa_ISY_ID isy_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if |isy_id| is invalid@>@;
+    return Rank_of_ISY(ISY_by_ID(isy_id));
 }
 
 @** External rule (XRL) code.

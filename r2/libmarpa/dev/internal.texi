@@ -248,6 +248,10 @@ On other failures, -2.
     Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
+@deftypefun Marpa_Rank _marpa_g_isy_rank ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_IRL_ID @var{isy_id})
+@end deftypefun
 
 @node Grammar internals, Recognizer internals, Rule internals, Internal Interface
 @section Grammar internal methods
