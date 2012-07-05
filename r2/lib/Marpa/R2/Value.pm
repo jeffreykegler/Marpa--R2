@@ -1079,19 +1079,17 @@ sub do_high_rule_only {
 		my $xsyid = $grammar_c->_marpa_g_source_xsy($token);
 		my $token_rank = defined $xsyid ?  $grammar_c->symbol_rank($xsyid) : 0;
                 push @ranking_data,
-                    [ $and_node, $token_rank, MAXIMUM_CHAF_RANK ];
+                    [ $and_node, $token_rank*4 + MAXIMUM_CHAF_RANK ];
                 next AND_NODE;
             }
             my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
             my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
-            push @ranking_data,
-                [ $and_node, $rank_by_irl->[$irl_id],
-                $chaf_ranks->[$irl_id] ];
+            push @ranking_data, [ $and_node, $grammar_c->_marpa_g_irl_rank($irl_id) ];
         } ## end for my $and_node (@and_nodes)
 
 ## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
         my @sorted_and_data =
-            sort { $b->[1] <=> $a->[1] or $b->[2] <=> $a->[2] } @ranking_data;
+            sort { $b->[1] <=> $a->[1] } @ranking_data;
 ## use critic
 
         my ( $first_selected_and_node, $high_rule_rank, $high_chaf_rank ) =
@@ -1099,9 +1097,8 @@ sub do_high_rule_only {
         my @selected_and_nodes = ($first_selected_and_node);
         AND_DATUM:
         for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data ] ) {
-            my ( $and_node, $rule_rank, $chaf_rank ) = @{$and_datum};
+            my ( $and_node, $rule_rank ) = @{$and_datum};
             last AND_DATUM if $rule_rank < $high_rule_rank;
-            last AND_DATUM if $chaf_rank < $high_chaf_rank;
             push @selected_and_nodes, $and_node;
         } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
         $order->_marpa_o_and_node_order_set( $or_node, \@selected_and_nodes );
@@ -1148,20 +1145,18 @@ sub do_rank_by_rule {
                 my $token_rank =
                     defined $xsyid ? $grammar_c->symbol_rank($xsyid) : 0;
                 push @ranking_data,
-                    [ $and_node, $token_rank, MAXIMUM_CHAF_RANK ];
+                    [ $and_node, $token_rank * 4 + MAXIMUM_CHAF_RANK ];
                 next AND_NODE;
             } ## end if ( defined $token )
             my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
             my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
-            push @ranking_data,
-                [ $and_node, $rank_by_irl->[$irl_id],
-                $chaf_ranks->[$irl_id] ];
+            push @ranking_data, [ $and_node, $grammar_c->_marpa_g_irl_rank($irl_id) ];
         } ## end for my $and_node (@and_nodes)
 
 ## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
         my @ranked_and_nodes =
             map { $_->[0] }
-            sort { $b->[1] <=> $a->[1] or $b->[2] <=> $a->[2] } @ranking_data;
+            sort { $b->[1] <=> $a->[1] } @ranking_data;
 ## use critic
 
         $order->_marpa_o_and_node_order_set( $or_node, \@ranked_and_nodes );
