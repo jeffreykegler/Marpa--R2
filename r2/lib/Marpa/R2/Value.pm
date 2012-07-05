@@ -954,98 +954,6 @@ sub Marpa::R2::Recognizer::show_tree {
 
 use constant MAXIMUM_CHAF_RANK => 3;
 
-sub rank_chaf_rules {
-
-    my ($grammar) = @_;
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my @chaf_ranks;
-
-    RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count() - 1 ) {
-
-        my $original_rule_id = $grammar_c->_marpa_g_source_xrl($irl_id);
-        my $original_rule =
-            defined $original_rule_id ? $rules->[$original_rule_id] : undef;
-        my $null_ranks_high =
-            defined $original_rule_id
-            ? $grammar_c->rule_null_high($original_rule_id)
-            : 0;
-
-        # Default to the rank of a non-nulled rule
-        my $pattern       = 'PP';
-        my $virtual_start = $grammar_c->_marpa_g_virtual_start($irl_id);
-
-        if ( defined $virtual_start ) {
-
-            # restart the pattern
-            $pattern = q{};
-            my $original_rule_length =
-                $grammar_c->rule_length($original_rule_id);
-
-            my $proper_nullable_count = 0;
-            RHS_IX:
-            for (
-                my $rhs_ix = $virtual_start;
-                $rhs_ix < $original_rule_length;
-                $rhs_ix++
-                )
-            {
-                my $original_rhs_id =
-                    $grammar_c->rule_rhs( $original_rule_id, $rhs_ix );
-
-                # Do nothing unless this is a proper nullable
-                next RHS_IX
-                    if $grammar_c->symbol_is_nulling($original_rhs_id);
-                next RHS_IX
-                    if not $grammar_c->symbol_is_nullable($original_rhs_id);
-
-                my $rhs_id =
-                    $grammar_c->_marpa_g_irl_rhs( $irl_id,
-                    $rhs_ix - $virtual_start );
-                last RHS_IX if not defined $rhs_id;
-                $pattern .= (
-                    $grammar_c->_marpa_g_isy_is_nulling($rhs_id)
-                    ? 'N'
-                    : 'P'
-                );
-
-                last RHS_IX if ++$proper_nullable_count >= 2;
-            } ## end for ( my $rhs_ix = $virtual_start; $rhs_ix < ...)
-
-        } ## end if ( defined $virtual_start )
-
-        # default to the highest rank, that of a non-nulled rule
-        my $rank = MAXIMUM_CHAF_RANK;
-        $rank = 0 if $pattern eq 'N';
-        $rank = 0 if $pattern eq 'NN';
-        $rank = 1 if $pattern eq 'NP';
-        $rank = 2 if $pattern eq 'PN';
-
-        $rank = MAXIMUM_CHAF_RANK - $rank if $null_ranks_high;
-        $chaf_ranks[$irl_id] = $rank;
-
-    } ## end for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count(...))
-
-    return \@chaf_ranks;
-
-} ## end sub rank_chaf_rules
-
-sub calculate_rank_by_irl {
-    my ($grammar)    = @_;
-    my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $default_rank = $grammar_c->default_rank();
-    my @rank_by_irl  = ();
-    RULE: for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count() - 1 ) {
-        my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
-        if ( defined $xrl_id ) {
-            $rank_by_irl[$irl_id] = $grammar_c->rule_rank($xrl_id);
-            next RULE;
-        }
-        $rank_by_irl[$irl_id] = $default_rank;
-    }    # end for my $rule ( @{$rules} )
-    return \@rank_by_irl;
-} ## end sub calculate_rank_by_irl
-
 sub do_high_rule_only {
     my ($recce)    = @_;
     my $recce_c    = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -1055,15 +963,12 @@ sub do_high_rule_only {
     my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols    = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules      = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $chaf_ranks = rank_chaf_rules($grammar);
 
     my $top_or_node = $bocage->_marpa_b_top_or_node();
 
     # If parse is nulling, just return
     return if not defined $top_or_node;
     my @or_nodes = ($top_or_node);
-
-    my $rank_by_irl = calculate_rank_by_irl($grammar);
 
     OR_NODE: for ( my $or_node = 0;; $or_node++ ) {
         my $first_and_node = $bocage->_marpa_b_or_node_first_and($or_node);
@@ -1120,12 +1025,8 @@ sub do_rank_by_rule {
     my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $symbols    = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules      = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $chaf_ranks = rank_chaf_rules($grammar);
 
     my @or_nodes = ( $bocage->_marpa_b_top_or_node() );
-
-    # Set up ranks by rule
-    my $rank_by_irl = calculate_rank_by_irl($grammar);
 
     my $seen = q{};
     OR_NODE: while ( my $or_node = pop @or_nodes ) {
