@@ -952,8 +952,6 @@ sub Marpa::R2::Recognizer::show_tree {
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_tree
 
-use constant MAXIMUM_CHAF_RANK => 3;
-
 sub do_high_rule_only {
     my ($recce)    = @_;
     my $recce_c    = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -981,10 +979,8 @@ sub do_high_rule_only {
         for my $and_node (@and_nodes) {
             my $token = $bocage->_marpa_b_and_node_symbol($and_node);
             if ( defined $token ) {
-		my $xsyid = $grammar_c->_marpa_g_source_xsy($token);
-		my $token_rank = defined $xsyid ?  $grammar_c->symbol_rank($xsyid) : 0;
                 push @ranking_data,
-                    [ $and_node, $token_rank*4 + MAXIMUM_CHAF_RANK ];
+                    [ $and_node, $grammar_c->_marpa_g_isy_rank($token) ];
                 next AND_NODE;
             }
             my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
@@ -1042,13 +1038,10 @@ sub do_rank_by_rule {
         for my $and_node (@and_nodes) {
             my $token = $bocage->_marpa_b_and_node_symbol($and_node);
             if ( defined $token ) {
-                my $xsyid = $grammar_c->_marpa_g_source_xsy($token);
-                my $token_rank =
-                    defined $xsyid ? $grammar_c->symbol_rank($xsyid) : 0;
                 push @ranking_data,
-                    [ $and_node, $token_rank * 4 + MAXIMUM_CHAF_RANK ];
+                    [ $and_node, $grammar_c->_marpa_g_isy_rank($token) ];
                 next AND_NODE;
-            } ## end if ( defined $token )
+            }
             my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
             my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
             push @ranking_data, [ $and_node, $grammar_c->_marpa_g_irl_rank($irl_id) ];
