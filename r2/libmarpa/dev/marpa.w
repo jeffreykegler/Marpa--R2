@@ -2647,9 +2647,10 @@ assume that |t_source_xrl| is not |NULL|.
 @d MAXIMUM_CHAF_RANK 3
 @d IRL_CHAF_Rank_by_XRL( xrl, chaf_rank) (
   ((xrl)->t_rank * EXTERNAL_RANK_FACTOR) +
-    ((xrl)->t_null_ranks_high) ? (MAXIMUM_CHAF_RANK - (chaf_rank)) : (chaf_rank)
+    (((xrl)->t_null_ranks_high) ? (MAXIMUM_CHAF_RANK -
+				   (chaf_rank)) : (chaf_rank))
 )
-@d IRL_Rank_by_XRL(xrl) IRL_CHAF_Rank_by_XRL(xrl, MAXIMUM_CHAF_RANK)
+@d IRL_Rank_by_XRL(xrl) IRL_CHAF_Rank_by_XRL((xrl), MAXIMUM_CHAF_RANK)
 @d Rank_of_IRL(irl) ((irl)->t_rank)
 @<Int aligned IRL elements@> = Marpa_Rank t_rank;
 @ @<Initialize IRL elements@> =

@@ -65,7 +65,7 @@ if ( not $ENV{'MARPA_AUTHOR_TEST'} ) {
     $Marpa::R2::DEBUG = 0;
 }
 else {
-    Marpa::R2::Internal::debug_level_set(1);
+    Marpa::R2::Thin::debug_level_set(1);
     $Marpa::R2::DEBUG = 1;
 }
 

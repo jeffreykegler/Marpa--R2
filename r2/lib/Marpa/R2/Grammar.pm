@@ -1272,6 +1272,16 @@ sub Marpa::R2::Grammar::brief_irl {
     return $text;
 } ## end sub Marpa::R2::Grammar::brief_irl
 
+sub Marpa::R2::Grammar::show_IRLs {
+    my ($grammar) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $text      = q{};
+    for my $irl_id ( 0 .. $grammar_c->_marpa_g_irl_count() - 1 ) {
+        $text .= $grammar->brief_irl($irl_id) . "\n";
+    }
+    return $text;
+} ## end sub Marpa::R2::Grammar::show_IRLs
+
 sub Marpa::R2::Grammar::rule_is_used {
     my ( $grammar, $rule_id ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
