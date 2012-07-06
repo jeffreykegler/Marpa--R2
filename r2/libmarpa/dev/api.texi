@@ -2691,6 +2691,18 @@ Return value:  On success, the  value of the
 the call.
 On failure, -2.
 @end deftypefun
+
+@deftypefun int marpa_o_rank ( Marpa_Order @var{o} )
+By default, the ordering of parse trees is arbitrary.
+This method causes the ordering to be ranked
+according to the ranks of symbols and rules,
+the ``null ranks high'' flags of the rules,
+and the ``high rank only'' flag of the ordering.
+
+Once this method returns, the ordering is frozen.
+Return value:  On success, a non-negative value.
+On failure, -2.
+
 @end deftypefun
 
 @node Tree methods, Value methods, Ordering methods, Top

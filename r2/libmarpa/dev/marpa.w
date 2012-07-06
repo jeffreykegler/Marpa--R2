@@ -11763,6 +11763,19 @@ int _marpa_o_and_order_set(
   return 1;
 }
 
+int marpa_o_rank( Marpa_Order o)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+    if (O_is_Frozen (o))
+      {
+	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
+	return failure_indicator;
+      }
+  return 1;
+}
+
 @
 Check that |ix| is the index of a valid and-node
 in |or_node|.

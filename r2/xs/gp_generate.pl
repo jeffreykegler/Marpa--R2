@@ -216,6 +216,7 @@ print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::O', "\n\n";
 
 say {$out} gp_generate(qw(high_rank_only_set int flag));
 say {$out} gp_generate(qw(high_rank_only));
+say {$out} gp_generate(qw(rank));
 
 $main::CLASS_LETTER   = 't';
 $main::LIBMARPA_CLASS = 'Marpa_Tree';
