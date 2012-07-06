@@ -135,6 +135,7 @@ Ordering methods
 * Ordering overview::           
 * Ordering constructor::        
 * Ordering reference counting::  
+* Non-default ordering::        
 
 Tree methods
 
@@ -2603,6 +2604,7 @@ to zero, it too is destroyed.
 * Ordering overview::           
 * Ordering constructor::        
 * Ordering reference counting::  
+* Non-default ordering::        
 @end menu
 
 @node Ordering overview, Ordering constructor, Ordering methods, Ordering methods
@@ -2637,7 +2639,7 @@ Return value: On success, the new ordering object.
 On failure, @code{NULL}.
 @end deftypefun
 
-@node Ordering reference counting,  , Ordering constructor, Ordering methods
+@node Ordering reference counting, Non-default ordering, Ordering constructor, Ordering methods
 @section Reference counting
 
 @deftypefun Marpa_Order marpa_o_ref ( @
@@ -2670,7 +2672,7 @@ base grammar, if necessary.
 
 @end deftypefun
 
-@node Non-default ordering
+@node Non-default ordering,  , Ordering reference counting, Ordering methods
 @section Non-default ordering
 
 @deftypefun int marpa_o_high_rank_only_set ( @
