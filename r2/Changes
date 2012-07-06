@@ -15,15 +15,7 @@
 
 Revision history for Marpa::R2
 
-2.009_006
-2.009_005
-2.009_004
-2.009_003
-2.009_002
-2.009_001
-2.009_000
-
-      * A new series of developer's releases
+2.010000 Thu Jul  5 20:44:07 PDT 2012
 
       * Documented Libmarpa API and Marpa::R2::Thin.
 
