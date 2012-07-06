@@ -15,47 +15,43 @@
 
 Revision history for Marpa::R2
 
-2.009_006
-2.009_005
-2.009_004
-2.009_003
-2.009_002
-2.009_001
-2.009_000
+2.011_000 Thu Jul  5 21:10:04 PDT 2012
 
       * A new series of developer's releases
+
+2.010000 Thu Jul  5 20:44:07 PDT 2012
 
       * Documented Libmarpa API and Marpa::R2::Thin.
 
       * Added context variables
 
-2.008000
-       
+2.008000 14-Jun-2012 10:42
+
        * Documented $recce->progress()
 
        * Clean up libmarpa build
 
-2.006000
+2.006000 8-Jun-2012 08:18
 
-	* Convert progress reports to C
+        * Convert progress reports to C
 
-	* Cleanup logic of valued/unvalued symbols
+        * Cleanup logic of valued/unvalued symbols
 
-	* Cleanup ranking of symbols/rules
+        * Cleanup ranking of symbols/rules
 
-	* LHS of rule no longer implicitly used
-	  as action name.
+        * LHS of rule no longer implicitly used
+          as action name.
 
-2.004000
+2.004000 01-Jun-2012 08:20
 
-	* Fix action resolution issue; cleanup
-	  memory allocation.
+        * Fix action resolution issue; cleanup
+          memory allocation.
 
-	* Large bump in version number is to sync
-	  version numbers with libmarpa.
+        * Large bump in version number is to sync
+          version numbers with libmarpa.
 
-0.002000
-       
+0.002000 26-May-2012 08:56
+
        * First official ("indexed") release
 
        * Changes incompatible with Marpa::XS are described
@@ -63,6 +59,4 @@ Revision history for Marpa::R2
 
 0.001_000 Fri Oct 21 20:57:44 PDT 2011
 
-	* Series of developer's versions
-
-	* Marpa::R2 forked from Marpa::XS 0.019_002
+        * Marpa::R2 forked from Marpa::XS 0.019_002
