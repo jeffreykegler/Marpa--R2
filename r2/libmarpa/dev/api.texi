@@ -2670,6 +2670,29 @@ base grammar, if necessary.
 
 @end deftypefun
 
+@node Non-default ordering
+@section Non-default ordering
+
+@deftypefun int marpa_o_high_rank_only_set ( @
+    Marpa_Order @var{o}, @
+    int @var{flag})
+@deftypefunx int marpa_o_high_rank_only ( @
+    Marpa_Order @var{o})
+These methods, respectively, set and discover
+the ``high rank only'' flag of ordering @var{0}.
+A flag of 1 indicates that, when ranking,
+all choices should be discarded except those of the
+highest rank.
+A valued status of 0 indicates that
+no choices should be discarded, based on rank.
+
+Return value:  On success, the  value of the
+``high rank only'' flag @strong{after}
+the call.
+On failure, -2.
+@end deftypefun
+@end deftypefun
+
 @node Tree methods, Value methods, Ordering methods, Top
 @chapter Tree methods
 
@@ -3223,14 +3246,14 @@ base grammar, if necessary.
 @node Registering semantics, Stepping through the valuator, Valuator reference counting, Value methods
 @section Registering semantics
 
-@deftypefun int marpa_v_symbol_is_valued ( @
-    Marpa_Value @var{v}, @
-    Marpa_Symbol_ID @var{symid} )
-@deftypefunx int marpa_v_symbol_is_valued_set ( @
+@deftypefun int marpa_v_symbol_is_valued_set ( @
     Marpa_Value @var{v}, @
     Marpa_Symbol_ID @var{symid}, @
     int @var{value} )
-These methods, respectively, report and set to @var{value}
+@deftypefunx int marpa_v_symbol_is_valued ( @
+    Marpa_Value @var{v}, @
+    Marpa_Symbol_ID @var{symid} )
+These methods, respectively, set and discover
 the valued status for symbol @var{symid}.
 A valued status of 1 indicates that the symbol is valued.
 A valued status of 0 indicates that the symbol is unvalued.

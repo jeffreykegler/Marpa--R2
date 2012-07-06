@@ -208,7 +208,14 @@ say {$out} gp_generate(qw(progress_report_finish));
 say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(start_input));
 
-# Nothing (as yet) in bocage, ordering classes
+# Nothing (as yet) in bocage class
+
+$main::CLASS_LETTER   = 'o';
+$main::LIBMARPA_CLASS = 'Marpa_Order';
+print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::O', "\n\n";
+
+say {$out} gp_generate(qw(high_rank_only_set int flag));
+say {$out} gp_generate(qw(high_rank_only));
 
 $main::CLASS_LETTER   = 't';
 $main::LIBMARPA_CLASS = 'Marpa_Tree';

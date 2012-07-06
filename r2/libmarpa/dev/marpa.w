@@ -11595,6 +11595,47 @@ Is this order for a nulling parse?
 @ @<Bit aligned order elements@> =
 unsigned int t_is_nulling:1;
 
+@ In the future perhaps,
+a ``high rank count'' of $n$
+might indicate that
+the $n$ highest ranks should be included.
+Right now the only values allowed are 0 (allow everything)
+and 1.
+@d High_Rank_Count_of_O(order) ((order)->t_high_rank_count)
+@<Int aligned order elements@>= int t_high_rank_count;
+@ @<Pre-initialize order elements@> =
+    High_Rank_Count_of_O(o) = 1;
+@ @<Function definitions@> =
+int marpa_o_high_rank_only_set(
+    Marpa_Order o,
+    int count)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+  if (O_is_Frozen (o))
+    {
+      MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
+      return failure_indicator;
+    }
+  if (UNLIKELY (count < 0 || count > 1))
+    {
+      MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+      return failure_indicator;
+    }
+  return High_Rank_Count_of_O (o) = count;
+}
+
+@
+@<Function definitions@> =
+int marpa_o_high_rank_only( Marpa_Order o)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+  return High_Rank_Count_of_O(o);
+}
+
 @*0 Set the order of and-nodes.
 This function
 sets the order in which the and-nodes of an
