@@ -583,7 +583,7 @@ a call to any other Marpa thin method
 will overwrite the error code and error description.
 For C<error()> to successfully query
 the error code or error description of a method,
-it should be
+C<error()> should be
 the next Marpa thin interface method called.
 
 =head2 C<< $g->error_clear() >>
