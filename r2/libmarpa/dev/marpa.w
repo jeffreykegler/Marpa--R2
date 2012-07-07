@@ -11765,15 +11765,46 @@ int _marpa_o_and_order_set(
 
 int marpa_o_rank( Marpa_Order o)
 {
+  ANDID** and_node_orderings;
+  struct obstack *obs;
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
-    if (O_is_Frozen (o))
+  if (O_is_Frozen (o))
+    {
+      MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
+      return failure_indicator;
+    }
+  if (!(obs = OBS_of_O(o))) {
+    @<Initialize |obs| and |and_node_orderings|@>@;
+  } else {
+    and_node_orderings = o->t_and_node_orderings;
+  }
+  {
+    OR *const or_nodes_of_b = ORs_of_B (b);
+    const int or_node_count_of_b = OR_Count_of_B (b);
+    int or_node_id = 0;
+    while (or_node_id < or_node_count_of_b)
       {
-	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
-	return failure_indicator;
+	const OR work_or_node = or_nodes_of_b[or_node_id];
+	or_node_id++;
       }
+  }
   return 1;
+}
+
+@ @<Initialize |obs| and |and_node_orderings|@> =
+{
+  int and_id;
+  const int and_count_of_r = AND_Count_of_B (b);
+  obs = OBS_of_O (o) = my_obstack_init;
+  o->t_and_node_orderings =
+    and_node_orderings =
+    my_obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
+  for (and_id = 0; and_id < and_count_of_r; and_id++)
+    {
+      and_node_orderings[and_id] = (ANDID *) NULL;
+    }
 }
 
 @
