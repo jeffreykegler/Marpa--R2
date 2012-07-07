@@ -11472,18 +11472,17 @@ typedef struct marpa_order* Marpa_Order;
 @ @<Public incomplete structures@> =
 typedef Marpa_Order ORDER;
 @
-|t_obs| is
-an obstack with the lifetime of the Marpa order object.
-|t_and_node_orderings| is used as the "safe boolean"
-for the obstack.  They have the same lifetime, so
-that it is safe to destroy the obstack if
-and only if
+|t_ordering_obs| is
+an obstack which contains the ordering information
+for non-default orderings.
+It is non-null if and only if
 |t_and_node_orderings| is non-null.
-@d OBS_of_O(order) ((order)->t_obs)
+@d OBS_of_O(order) ((order)->t_ordering_obs)
+@d O_is_Default(order) (!OBS_of_O(order))
 @d O_is_Frozen(o) ((o)->t_is_frozen)
 @<Private structures@> =
 struct marpa_order {
-    struct obstack* t_obs;
+    struct obstack* t_ordering_obs;
     Bit_Vector t_and_node_in_use;
     ANDID** t_and_node_orderings;
     @<Widely aligned order elements@>@;
@@ -11558,30 +11557,16 @@ marpa_o_ref (Marpa_Order o)
 }
 
 @ @<Function definitions@> =
-PRIVATE void order_strip(ORDER o)
+PRIVATE void order_free(ORDER o)
 {
+  @<Unpack order objects@>@;
+  bocage_unref(b);
   if (o->t_and_node_in_use)
     {
       bv_free (o->t_and_node_in_use);
 	o->t_and_node_in_use = NULL;
     }
-}
-@ @<Function definitions@> =
-PRIVATE void order_freeze(ORDER o)
-{
-  order_strip(o);
-  O_is_Frozen(o) = 0;
-}
-@ @<Function definitions@> =
-PRIVATE void order_free(ORDER o)
-{
-  @<Unpack order objects@>@;
-  bocage_unref(b);
-  order_strip(o);
-  if (o->t_and_node_orderings) {
-      o->t_and_node_orderings = NULL;
-      my_obstack_free(OBS_of_O(o));
-  }
+  my_obstack_free(OBS_of_O(o));
   my_slice_free(*o, o);
 }
 
@@ -11710,7 +11695,7 @@ int _marpa_o_and_order_set(
       ANDID and_count_of_or;
 	and_node_orderings = o->t_and_node_orderings;
 	and_node_in_use = o->t_and_node_in_use;
-	if (!and_node_orderings)
+	if (O_is_Default(o))
 	  {
 	    int and_id;
 	    const int and_count_of_r = AND_Count_of_B (b);
@@ -11775,11 +11760,7 @@ int marpa_o_rank( Marpa_Order o)
       MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
       return failure_indicator;
     }
-  if (!(obs = OBS_of_O(o))) {
-    @<Initialize |obs| and |and_node_orderings|@>@;
-  } else {
-    and_node_orderings = o->t_and_node_orderings;
-  }
+  @<Initialize |obs| and |and_node_orderings|@>@;
   {
     OR *const or_nodes_of_b = ORs_of_B (b);
     const int or_node_count_of_b = OR_Count_of_B (b);
@@ -11790,6 +11771,7 @@ int marpa_o_rank( Marpa_Order o)
 	or_node_id++;
       }
   }
+  O_is_Frozen(o) = 1;
   return 1;
 }
 
@@ -11813,11 +11795,10 @@ in |or_node|.
 @<Function definitions@> =
 PRIVATE ANDID and_order_ix_is_valid(ORDER o, OR or_node, int ix)
 {
-  ANDID **and_node_orderings;
   if (ix >= AND_Count_of_OR (or_node)) return 0;
-  and_node_orderings = o->t_and_node_orderings;
-  if (and_node_orderings)
+  if (!O_is_Default(o))
     {
+      ANDID ** const and_node_orderings = o->t_and_node_orderings;
       ORID or_node_id = ID_of_OR(or_node);
       ANDID *ordering = and_node_orderings[or_node_id];
       if (ordering)
@@ -11835,9 +11816,9 @@ is valid.
 @<Function definitions@> =
 PRIVATE ANDID and_order_get(ORDER o, OR or_node, int ix)
 {
-  ANDID **and_node_orderings = o->t_and_node_orderings;
-  if (and_node_orderings)
+  if (!O_is_Default(o))
     {
+      ANDID ** const and_node_orderings = o->t_and_node_orderings;
       ORID or_node_id = ID_of_OR (or_node);
       ANDID *ordering = and_node_orderings[or_node_id];
       if (ordering)
@@ -11935,7 +11916,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     t = my_slice_new(*t);
     O_of_T(t) = o;
     order_ref(o);
-    order_freeze(o);
+    O_is_Frozen(o) = 1;
     @<Pre-initialize tree elements@>@;
     @<Initialize tree elements@>@;
     return t;
