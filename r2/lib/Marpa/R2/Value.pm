@@ -660,6 +660,14 @@ sub Marpa::R2::Recognizer::value {
 
 } ## end sub Marpa::R2::Recognizer::value
 
+sub do_high_rule_only {
+    my ($recce)    = @_;
+    my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    $order->high_rank_only_set(1);
+    $order->rank();
+    return 1;
+} ## end sub do_high_rule_only
+
 # INTERNAL OK AFTER HERE _marpa_
 
 sub Marpa::R2::Recognizer::show_bocage {
@@ -951,14 +959,6 @@ sub Marpa::R2::Recognizer::show_tree {
     }
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_tree
-
-sub do_high_rule_only {
-    my ($recce)    = @_;
-    my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    $order->high_rank_only_set(1);
-    $order->rank();
-    return 1;
-} ## end sub do_high_rule_only
 
 sub do_rank_by_rule {
     my ($recce)    = @_;

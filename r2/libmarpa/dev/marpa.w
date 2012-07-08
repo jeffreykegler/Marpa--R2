@@ -11764,6 +11764,7 @@ int marpa_o_rank( Marpa_Order o)
 {
   ANDID** and_node_orderings;
   struct obstack *obs;
+  int bocage_was_reordered = 0;
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
@@ -11788,6 +11789,11 @@ int marpa_o_rank( Marpa_Order o)
 	or_node_id++;
       }
   }
+  if (!bocage_was_reordered) {
+    my_obstack_free(obs);
+    OBS_of_O(o) = NULL;
+    o->t_and_node_orderings = NULL;
+  }
   O_is_Frozen(o) = 1;
   return 1;
 }
@@ -11805,6 +11811,7 @@ int marpa_o_rank( Marpa_Order o)
 	 my_obstack_base (obs));
       ANDID *order = order_base + 1;
       ANDID and_node_id;
+      bocage_was_reordered = 1;
       for (and_node_id = first_and_node_id; and_node_id <= last_and_node_id;
 	   and_node_id++)
 	{
