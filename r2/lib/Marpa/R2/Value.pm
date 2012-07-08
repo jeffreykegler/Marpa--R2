@@ -954,61 +954,9 @@ sub Marpa::R2::Recognizer::show_tree {
 
 sub do_high_rule_only {
     my ($recce)    = @_;
-    my $recce_c    = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $grammar    = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols    = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $rules      = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-
-    my $top_or_node = $bocage->_marpa_b_top_or_node();
-
-    # If parse is nulling, just return
-    return if not defined $top_or_node;
-    my @or_nodes = ($top_or_node);
-
-    OR_NODE: for ( my $or_node = 0;; $or_node++ ) {
-        my $first_and_node = $bocage->_marpa_b_or_node_first_and($or_node);
-        last OR_NODE if not defined $first_and_node;
-        my $last_and_node = $bocage->_marpa_b_or_node_last_and($or_node);
-        my @ranking_data  = ();
-        my @and_nodes     = $first_and_node .. $last_and_node;
-        AND_NODE:
-
-        for my $and_node (@and_nodes) {
-            my $token = $bocage->_marpa_b_and_node_symbol($and_node);
-            if ( defined $token ) {
-                push @ranking_data,
-                    [ $and_node, $grammar_c->_marpa_g_isy_rank($token) ];
-                next AND_NODE;
-            }
-            my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
-            my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
-            push @ranking_data, [ $and_node, $grammar_c->_marpa_g_irl_rank($irl_id) ];
-        } ## end for my $and_node (@and_nodes)
-
-## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
-        my @sorted_and_data =
-            sort { $b->[1] <=> $a->[1] } @ranking_data;
-## use critic
-
-        my ( $first_selected_and_node, $high_rule_rank ) =
-            @{ $sorted_and_data[0] };
-        my @selected_and_nodes = ($first_selected_and_node);
-        AND_DATUM:
-        for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data ] ) {
-            my ( $and_node, $rule_rank ) = @{$and_datum};
-            last AND_DATUM if $rule_rank < $high_rule_rank;
-            push @selected_and_nodes, $and_node;
-        } ## end for my $and_datum ( @sorted_and_data[ 1 .. $#sorted_and_data...])
-        $order->_marpa_o_and_node_order_set( $or_node, \@selected_and_nodes );
-        push @or_nodes, grep {defined} map {
-            (   $bocage->_marpa_b_and_node_predecessor($_),
-                $bocage->_marpa_b_and_node_cause($_)
-                )
-        } @selected_and_nodes;
-    } ## end for ( my $or_node = 0;; $or_node++ )
+    $order->high_rank_only_set(1);
+    $order->rank();
     return 1;
 } ## end sub do_high_rule_only
 
