@@ -1827,7 +1827,7 @@ PRIVATE
   XRL xrl;
   const int sizeof_xrl = offsetof (struct s_xrl, t_symbols) +
     (length + 1) * sizeof (xrl->t_symbols[0]);
-  my_obstack_blank (g->t_xrl_obs, sizeof_xrl);
+  my_obstack_reserve (g->t_xrl_obs, sizeof_xrl);
   xrl = my_obstack_base (g->t_xrl_obs);
   Length_of_XRL (xrl) = length;
   xrl->t_symbols[0] = lhs;
@@ -8508,7 +8508,7 @@ altered by the attempt.
   struct obstack * const token_obstack = TOK_Obs_of_I (input);
   if (value)
     {
-      my_obstack_blank (TOK_Obs_of_I (input), sizeof (*token));
+      my_obstack_reserve (TOK_Obs_of_I (input), sizeof (*token));
       token = my_obstack_base (token_obstack);
       ISYID_of_TOK (token) = token_isyid;
       Type_of_TOK (token) = VALUED_TOKEN_OR_NODE;
@@ -8516,7 +8516,7 @@ altered by the attempt.
     }
   else
     {
-      my_obstack_blank (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
+      my_obstack_reserve (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
       token = my_obstack_base (token_obstack);
       ISYID_of_TOK (token) = token_isyid;
       Type_of_TOK (token) = UNVALUED_TOKEN_OR_NODE;

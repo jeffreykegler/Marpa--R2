@@ -117,15 +117,22 @@ void _marpa_obs_free (struct obstack *__obstack);
 
 #define obstack_alignment_mask(h) ((h)->alignment_mask)
 
-/* To prevent prototype warnings provide complete argument list.  */
 #define my_obstack_init	my_obstack_begin (0, 0)
 
-#define my_obstack_blank_fast(h,n) ((h)->next_free += (n))
+#define my_obstack_reserve_fast(h,n) ((h)->next_free += (n))
 
 #define obstack_memory_used(h) _obstack_memory_used (h)
 
 # define obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
+
+/* "Confirm" the size of a reserved object, currently being built.
+ * Confirmed size must be less than or equal to the reserved size.
+ * "Fast" here means there is no check -- it is up to the caller
+ * to ensure that the confirmed size is not too big
+ */
+# define my_obstack_confirm_fast(h, n) \
+  ((h)->next_free = (h)->object_base + (n))
 
 /* Reject any object being built, as if it never existed */
 # define my_obstack_reject(h) \
@@ -147,14 +154,14 @@ void _marpa_obs_free (struct obstack *__obstack);
   ((h)->chunk_limit - (h)->next_free < (length))
 #endif
 
-# define my_obstack_blank(h,length)					\
+# define my_obstack_reserve(h,length)					\
 ( (h)->temp.tempint = (length),						\
   (NEED_CHUNK((h), (h)->temp.tempint)		\
    ? (_obstack_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
-  my_obstack_blank_fast (h, (h)->temp.tempint))
+  my_obstack_reserve_fast (h, (h)->temp.tempint))
 
 # define my_obstack_alloc(h,length)					\
- (my_obstack_blank ((h), (length)), my_obstack_finish ((h)))
+ (my_obstack_reserve ((h), (length)), my_obstack_finish ((h)))
 
 #define my_obstack_new(h, type, count) \
     ((type *)my_obstack_alloc((h), (sizeof(type)*(count))))
