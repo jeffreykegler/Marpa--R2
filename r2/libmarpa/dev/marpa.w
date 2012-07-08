@@ -11748,6 +11748,18 @@ int _marpa_o_and_order_set(
   return 1;
 }
 
+@ @<Set |and_node_rank| from |and_node|@> =
+{
+    const OR cause_or = Cause_OR_of_AND (and_node);
+    if (OR_is_Token(cause_or)) {
+       const ISYID isy_id = ISYID_of_OR(cause_or);
+       and_node_rank = Rank_of_ISY(ISY_by_ID(isy_id));
+    } else {
+       and_node_rank = Rank_of_IRL(IRL_of_OR(cause_or));
+    }
+}
+
+@ @<Function definitions@> =
 int marpa_o_rank( Marpa_Order o)
 {
   ANDID** and_node_orderings;
@@ -11762,12 +11774,25 @@ int marpa_o_rank( Marpa_Order o)
     }
   @<Initialize |obs| and |and_node_orderings|@>@;
   {
-    OR *const or_nodes_of_b = ORs_of_B (b);
+    const AND and_nodes = ANDs_of_B(b);
+    OR *const or_nodes = ORs_of_B (b);
     const int or_node_count_of_b = OR_Count_of_B (b);
     int or_node_id = 0;
     while (or_node_id < or_node_count_of_b)
       {
-	const OR work_or_node = or_nodes_of_b[or_node_id];
+	const OR work_or_node = or_nodes[or_node_id];
+	const ANDID and_count_of_or = AND_Count_of_OR(work_or_node);
+	if (and_count_of_or > 1) {
+	  int high_rank_so_far = INT_MIN;
+	  const ANDID first_and_node_id = First_ANDID_of_OR(work_or_node);
+	  const ANDID last_and_node_id = (first_and_node_id + and_count_of_or) - 1;
+	  ANDID and_node_id;
+	  for (and_node_id = first_and_node_id; and_node_id <= last_and_node_id; and_node_id++) {
+	    const AND and_node = and_nodes + and_node_id;
+	    int and_node_rank;
+	    @<Set |and_node_rank| from |and_node|@>@;
+	  }
+	}
 	or_node_id++;
       }
   }
