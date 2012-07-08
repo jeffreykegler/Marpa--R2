@@ -11774,7 +11774,11 @@ int marpa_o_rank( Marpa_Order o)
       return failure_indicator;
     }
   @<Initialize |obs| and |and_node_orderings|@>@;
-  @<Sort bocage for high rank only@>@;
+  if (High_Rank_Count_of_O (o)) {
+    @<Sort bocage for "high rank only"@>@;
+  } else {
+    @<Sort bocage for "rank by rule"@>@;
+  }
   if (!bocage_was_reordered) {
     my_obstack_free(obs);
     OBS_of_O(o) = NULL;
@@ -11784,7 +11788,7 @@ int marpa_o_rank( Marpa_Order o)
   return 1;
 }
 
-@ @<Sort bocage for high rank only@> =
+@ @<Sort bocage for "high rank only"@> =
 {
   const AND and_nodes = ANDs_of_B (b);
   OR *const or_nodes = ORs_of_B (b);
@@ -11794,15 +11798,12 @@ int marpa_o_rank( Marpa_Order o)
     {
       const OR work_or_node = or_nodes[or_node_id];
       const ANDID and_count_of_or = AND_Count_of_OR (work_or_node);
-      if (High_Rank_Count_of_O (o))
-	{
-	  @<Sort |work_or_node| for high rank only@>@;
-	}
+	@<Sort |work_or_node| for "high rank only"@>@;
       or_node_id++;
     }
 }
 
-@ @<Sort |work_or_node| for high rank only@> =
+@ @<Sort |work_or_node| for "high rank only"@> =
 {
   if (and_count_of_or > 1)
     {
@@ -11837,6 +11838,36 @@ int marpa_o_rank( Marpa_Order o)
 	and_node_orderings[or_node_id] = my_obstack_finish (obs);
       }
     }
+}
+
+@ @<Sort bocage for "rank by rule"@> =
+{
+  const AND and_nodes = ANDs_of_B (b);
+  OR *const or_nodes = ORs_of_B (b);
+  const int or_node_count_of_b = OR_Count_of_B (b);
+  const int and_node_count_of_b = AND_Count_of_B (b);
+  int or_node_id = 0;
+  int *rank_by_and_id = my_new (int, and_node_count_of_b);
+  int and_node_id;
+  for (and_node_id = 0; and_node_id < and_node_count_of_b; and_node_id++)
+    {
+      const AND and_node = and_nodes + and_node_id;
+      int and_node_rank;
+      @<Set |and_node_rank| from |and_node|@>@;
+      rank_by_and_id[and_node_id] = and_node_rank;
+    }
+  while (or_node_id < or_node_count_of_b)
+    {
+      const OR work_or_node = or_nodes[or_node_id];
+      const ANDID and_count_of_or = AND_Count_of_OR (work_or_node);
+	@<Sort |work_or_node| for "rank by rule"@>@;
+      or_node_id++;
+    }
+   my_free(rank_by_and_id);
+}
+
+@ @<Sort |work_or_node| for "rank by rule"@> =
+{
 }
 
 @ @<Initialize |obs| and |and_node_orderings|@> =
