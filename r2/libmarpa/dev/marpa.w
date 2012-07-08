@@ -11782,38 +11782,50 @@ int marpa_o_rank( Marpa_Order o)
       {
 	const OR work_or_node = or_nodes[or_node_id];
 	const ANDID and_count_of_or = AND_Count_of_OR(work_or_node);
-	if (and_count_of_or > 1) {
-	  int high_rank_so_far = INT_MIN;
-	  const ANDID first_and_node_id = First_ANDID_of_OR(work_or_node);
-	  const ANDID last_and_node_id = (first_and_node_id + and_count_of_or) - 1;
-	  ANDID *const order_base =
-	    (my_obstack_reserve (obs, sizeof (ANDID) * (and_count_of_or + 1)),
-	     my_obstack_base (obs));
-	  ANDID * order = order_base + 1;
-	  ANDID and_node_id;
-	  for (and_node_id = first_and_node_id; and_node_id <= last_and_node_id; and_node_id++) {
-	    const AND and_node = and_nodes + and_node_id;
-	    int and_node_rank;
-	    @<Set |and_node_rank| from |and_node|@>@;
-	    if (and_node_rank < high_rank_so_far) continue;
-	    if (and_node_rank > high_rank_so_far) {
-	      order = order_base + 1;
-	      high_rank_so_far = and_node_rank;
-	    }
-	    *order++ = and_node_id;
-	  }
-	  {
-	    int final_count = (order - order_base) - 1;
-	    *order_base = final_count;
-	    my_obstack_confirm_fast (obs, sizeof (ANDID) * (final_count + 1));
-	    and_node_orderings[or_node_id] = my_obstack_finish (obs);
-	  }
+	if (High_Rank_Count_of_O(o)) {
+	  @<Sort for high rank only@>@;
 	}
 	or_node_id++;
       }
   }
   O_is_Frozen(o) = 1;
   return 1;
+}
+
+@ @<Sort for high rank only@> =
+{
+  if (and_count_of_or > 1)
+    {
+      int high_rank_so_far = INT_MIN;
+      const ANDID first_and_node_id = First_ANDID_of_OR (work_or_node);
+      const ANDID last_and_node_id =
+	(first_and_node_id + and_count_of_or) - 1;
+      ANDID *const order_base =
+	(my_obstack_reserve (obs, sizeof (ANDID) * (and_count_of_or + 1)),
+	 my_obstack_base (obs));
+      ANDID *order = order_base + 1;
+      ANDID and_node_id;
+      for (and_node_id = first_and_node_id; and_node_id <= last_and_node_id;
+	   and_node_id++)
+	{
+	  const AND and_node = and_nodes + and_node_id;
+	  int and_node_rank;
+	  @<Set |and_node_rank| from |and_node|@>@;
+	  if (and_node_rank > high_rank_so_far)
+	    {
+	      order = order_base + 1;
+	      high_rank_so_far = and_node_rank;
+	    }
+	  if (and_node_rank >= high_rank_so_far)
+	    *order++ = and_node_id;
+	}
+      {
+	int final_count = (order - order_base) - 1;
+	*order_base = final_count;
+	my_obstack_confirm_fast (obs, sizeof (ANDID) * (final_count + 1));
+	and_node_orderings[or_node_id] = my_obstack_finish (obs);
+      }
+    }
 }
 
 @ @<Initialize |obs| and |and_node_orderings|@> =
