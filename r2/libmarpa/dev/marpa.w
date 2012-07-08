@@ -11774,21 +11774,7 @@ int marpa_o_rank( Marpa_Order o)
       return failure_indicator;
     }
   @<Initialize |obs| and |and_node_orderings|@>@;
-  {
-    const AND and_nodes = ANDs_of_B(b);
-    OR *const or_nodes = ORs_of_B (b);
-    const int or_node_count_of_b = OR_Count_of_B (b);
-    int or_node_id = 0;
-    while (or_node_id < or_node_count_of_b)
-      {
-	const OR work_or_node = or_nodes[or_node_id];
-	const ANDID and_count_of_or = AND_Count_of_OR(work_or_node);
-	if (High_Rank_Count_of_O(o)) {
-	  @<Sort for high rank only@>@;
-	}
-	or_node_id++;
-      }
-  }
+  @<Sort bocage for high rank only@>@;
   if (!bocage_was_reordered) {
     my_obstack_free(obs);
     OBS_of_O(o) = NULL;
@@ -11798,7 +11784,25 @@ int marpa_o_rank( Marpa_Order o)
   return 1;
 }
 
-@ @<Sort for high rank only@> =
+@ @<Sort bocage for high rank only@> =
+{
+  const AND and_nodes = ANDs_of_B (b);
+  OR *const or_nodes = ORs_of_B (b);
+  const int or_node_count_of_b = OR_Count_of_B (b);
+  int or_node_id = 0;
+  while (or_node_id < or_node_count_of_b)
+    {
+      const OR work_or_node = or_nodes[or_node_id];
+      const ANDID and_count_of_or = AND_Count_of_OR (work_or_node);
+      if (High_Rank_Count_of_O (o))
+	{
+	  @<Sort |work_or_node| for high rank only@>@;
+	}
+      or_node_id++;
+    }
+}
+
+@ @<Sort |work_or_node| for high rank only@> =
 {
   if (and_count_of_or > 1)
     {
