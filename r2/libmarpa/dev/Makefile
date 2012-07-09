@@ -25,12 +25,8 @@ MARPA_PDF_SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 .PHONY: install docs
 
 # Order matters -- configure.ac must be first
-DOC_CONFIGURE_FILES = \
+DOC_SOURCE_FILES = \
     ../doc/configure.ac \
-    ../doc/Makefile.am
-
-DOC_FILES = \
-    $(DOC_CONFIGURE_FILES) \
     ../doc/Makefile.am \
     ../doc/api.texi \
     ../doc/internal.texi \
@@ -223,8 +219,7 @@ install: ../libmarpa.tar ../libmarpa-doc.tar
 	  tar_gz_file=../doc/marpa-doc-$$version.tar.gz ; \
 	  gzip -dc $$tar_gz_file > ../libmarpa-doc.tar
 
-../doc/configure: $(DOC_CONFIGURE_FILES)
-	test -d ../doc || mkdir ../doc
+../doc/configure: $(DOC_SOURCE_FILES)
 	test -d ../doc/m4 || mkdir ../doc/m4
 	cd ../doc && autoreconf -iv
 
