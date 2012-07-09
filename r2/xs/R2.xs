@@ -1914,44 +1914,6 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::O
 
 int
-_marpa_o_and_node_order_set( o_wrapper, or_node_id, and_node_id_av )
-    O_Wrapper *o_wrapper;
-    Marpa_Or_Node_ID or_node_id;
-    AV *and_node_id_av;
-PPCODE:
-{
-  Marpa_Order o = o_wrapper->o;
-  int length = av_len (and_node_id_av) + 1;
-  int result;
-  Marpa_And_Node_ID *and_node_ids;
-  int i;
-  Newx (and_node_ids, length, Marpa_And_Node_ID);
-  for (i = 0; i < length; i++)
-    {
-      SV **elem = av_fetch (and_node_id_av, i, 0);
-      if (elem == NULL)
-	{
-	  Safefree (and_node_ids);
-	  XSRETURN_UNDEF;
-	}
-      else
-	{
-	  and_node_ids[i] = SvIV (*elem);
-	}
-    }
-  result = _marpa_o_and_order_set (o, or_node_id, and_node_ids, length);
-  Safefree (and_node_ids);
-  if (result < -1) {
-    croak ("Problem in o->_marpa_o_and_node_order_set(): %s", xs_g_error(o_wrapper->base));
-  }
-  if (result < 0)
-    {
-      XSRETURN_NO;
-    }
-  XSRETURN_YES;
-}
-
-int
 _marpa_o_and_node_order_get( o_wrapper, or_node_id, and_ix )
     O_Wrapper *o_wrapper;
     Marpa_Or_Node_ID or_node_id;
