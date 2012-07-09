@@ -221,7 +221,7 @@ install: ../libmarpa.tar ../libmarpa-doc.tar
 
 ../doc/configure: $(DOC_SOURCE_FILES)
 	test -d ../doc/m4 || mkdir ../doc/m4
-	cd ../doc && autoreconf -iv
+	cd ../doc && autoreconf -ivf
 
 ../doc/Makefile: ../doc/configure
 	cd ../doc && ../doc/configure

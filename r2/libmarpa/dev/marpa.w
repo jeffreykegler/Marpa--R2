@@ -11483,7 +11483,6 @@ It is non-null if and only if
 @<Private structures@> =
 struct marpa_order {
     struct obstack* t_ordering_obs;
-    Bit_Vector t_and_node_in_use;
     ANDID** t_and_node_orderings;
     @<Widely aligned order elements@>@;
     @<Int aligned order elements@>@;
@@ -11492,7 +11491,6 @@ struct marpa_order {
 };
 @ @<Pre-initialize order elements@> =
 {
-    o->t_and_node_in_use = NULL;
     o->t_and_node_orderings = NULL;
     o->t_is_frozen = 0;
     OBS_of_O(o) = NULL;
@@ -11561,11 +11559,6 @@ PRIVATE void order_free(ORDER o)
 {
   @<Unpack order objects@>@;
   bocage_unref(b);
-  if (o->t_and_node_in_use)
-    {
-      bv_free (o->t_and_node_in_use);
-	o->t_and_node_in_use = NULL;
-    }
   my_obstack_free(OBS_of_O(o));
   my_slice_free(*o, o);
 }
@@ -11670,94 +11663,6 @@ actually an |ANDID|, but a count.
 A purist might insist this needs to be reflected in a structure,
 but to my mind doing this portably makes the code more obscure,
 not less.
-@<Function definitions@> =
-int _marpa_o_and_order_set(
-    Marpa_Order o,
-    Marpa_Or_Node_ID or_node_id,
-    Marpa_And_Node_ID* and_node_ids,
-    int length)
-{
-    OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack order objects@>@;
-  @<Fail if fatal error@>@;
-    if (O_is_Frozen (o))
-      {
-	MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
-	return failure_indicator;
-      }
-    @<Check |or_node_id|; set |or_node|@>@;
-    {
-      ANDID** and_node_orderings;
-      Bit_Vector and_node_in_use;
-      struct obstack *obs = OBS_of_O(o);
-      ANDID first_and_node_id;
-      ANDID and_count_of_or;
-	and_node_orderings = o->t_and_node_orderings;
-	and_node_in_use = o->t_and_node_in_use;
-	if (O_is_Default(o))
-	  {
-	    int and_id;
-	    const int and_count_of_r = AND_Count_of_B (b);
-	    obs = OBS_of_O(o) = my_obstack_init;
-	    o->t_and_node_orderings =
-	      and_node_orderings =
-	      my_obstack_alloc (obs, sizeof (ANDID *) * and_count_of_r);
-	    for (and_id = 0; and_id < and_count_of_r; and_id++)
-	      {
-		and_node_orderings[and_id] = (ANDID *) NULL;
-	      }
-	     o->t_and_node_in_use =
-	     and_node_in_use = bv_create ((unsigned int)and_count_of_r);
-	  }
-	  first_and_node_id = First_ANDID_of_OR(or_node);
-	  and_count_of_or = AND_Count_of_OR(or_node);
-	    {
-	      int and_ix;
-	      for (and_ix = 0; and_ix < length; and_ix++)
-		{
-		  ANDID and_node_id = and_node_ids[and_ix];
-		  if (and_node_id < first_and_node_id ||
-			  and_node_id - first_and_node_id >= and_count_of_or) {
-		      MARPA_ERROR (MARPA_ERR_ANDID_NOT_IN_OR);
-		      return failure_indicator;
-		    }
-		  if (bv_bit_test (and_node_in_use, (unsigned int)and_node_id))
-		    {
-		      MARPA_ERROR (MARPA_ERR_DUPLICATE_AND_NODE);
-		      return failure_indicator;
-		    }
-		  bv_bit_set (and_node_in_use, (unsigned int)and_node_id);
-		}
-	    }
-	    if (and_node_orderings[or_node_id]) {
-		      MARPA_ERROR (MARPA_ERR_OR_ALREADY_ORDERED);
-		      return failure_indicator;
-	    }
-	    {
-	      ANDID *orderings = my_obstack_alloc (obs, sizeof (ANDID) * (length + 1));
-	      int i;
-	      and_node_orderings[or_node_id] = orderings;
-	      *orderings++ = length;
-	      for (i = 0; i < length; i++)
-		{
-		  *orderings++ = and_node_ids[i];
-		}
-	    }
-    }
-  return 1;
-}
-
-@ @<Set |and_node_rank| from |and_node|@> =
-{
-    const OR cause_or = Cause_OR_of_AND (and_node);
-    if (OR_is_Token(cause_or)) {
-       const ISYID isy_id = ISYID_of_OR(cause_or);
-       and_node_rank = Rank_of_ISY(ISY_by_ID(isy_id));
-    } else {
-       and_node_rank = Rank_of_IRL(IRL_of_OR(cause_or));
-    }
-}
 
 @ @<Function definitions@> =
 int marpa_o_rank( Marpa_Order o)
@@ -11840,6 +11745,17 @@ int marpa_o_rank( Marpa_Order o)
     }
 }
 
+@ @<Set |and_node_rank| from |and_node|@> =
+{
+    const OR cause_or = Cause_OR_of_AND (and_node);
+    if (OR_is_Token(cause_or)) {
+       const ISYID isy_id = ISYID_of_OR(cause_or);
+       and_node_rank = Rank_of_ISY(ISY_by_ID(isy_id));
+    } else {
+       and_node_rank = Rank_of_IRL(IRL_of_OR(cause_or));
+    }
+}
+
 @ @<Sort bocage for "rank by rule"@> =
 {
   const AND and_nodes = ANDs_of_B (b);
@@ -11866,7 +11782,27 @@ int marpa_o_rank( Marpa_Order o)
    my_free(rank_by_and_id);
 }
 
-@ @<Sort |work_or_node| for "rank by rule"@> =
+@ An insertion sort is used here, which is
+$O(n^2)$.
+The average case (and the root mean square case) in practice
+will be small number, and this is probably optimal in those terms.
+Note that none of my complexity claims includes the ranking of
+ambiguous parses -- that is ``extra''.
+\par
+For the and-node ranks, I create an array the size of the
+bocage's and-node count.
+I could arrange, with some trouble, to just create
+one the size of the maximum and-node count per or-node.
+But there seems to be no advantage of any kind gained for the trouble.
+First, it does not help the worst case.
+Second, in practice, it does not help with memory issues,
+because an array of this size will be created with the tree iterator,
+so I am not establishing a memory ''high water mark",
+and in that sense the space is ``free''.
+And third, computationally, pre-computing
+the and-node ranks is fast and easy, so I am gaining real speed
+and code-size savings in exchange for the space.
+@<Sort |work_or_node| for "rank by rule"@> =
 {
   if (and_count_of_or > 1)
     {

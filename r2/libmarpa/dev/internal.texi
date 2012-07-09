@@ -471,13 +471,6 @@ the or-node.
 @node Ordering internals, Tree internals, Bocage internals, Internal Interface
 @section Ordering internals
 
-@deftypefun int _marpa_o_and_order_set ( @
-    Marpa_Order @var{o}, @
-    Marpa_Or_Node_ID @var{or_node_id}, @
-    Marpa_And_Node_ID* @var{and_node_ids}, @
-    int @var{length})
-@end deftypefun
-
 @deftypefun Marpa_And_Node_ID _marpa_o_and_order_get ( @
     Marpa_Order @var{o}, @
     Marpa_Or_Node_ID @var{or_node_id}, @

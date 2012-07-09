@@ -2686,7 +2686,8 @@ A flag of 1 indicates that, when ranking,
 all choices should be discarded except those of the
 highest rank.
 A valued status of 0 indicates that
-no choices should be discarded, based on rank.
+no choices should be discarded on the
+basis of their rank.
 
 Return value:  On success, the  value of the
 ``high rank only'' flag @strong{after}
@@ -2700,8 +2701,8 @@ This method causes the ordering to be ranked
 according to the ranks of symbols and rules,
 the ``null ranks high'' flags of the rules,
 and the ``high rank only'' flag of the ordering.
-
 Once this method returns, the ordering is frozen.
+
 Return value:  On success, a non-negative value.
 On failure, -2.
 
