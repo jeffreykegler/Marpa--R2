@@ -11874,25 +11874,25 @@ int marpa_o_rank( Marpa_Order o)
       ANDID *const order_base =
 	my_obstack_alloc (obs, sizeof (ANDID) * (and_count_of_or + 1));
       ANDID *order = order_base + 1;
-      int nodes_inserted_so_far = 0;
+      int nodes_inserted_so_far;
       bocage_was_reordered = 1;
       and_node_orderings[or_node_id] = order_base;
       *order_base = and_count_of_or;
-      for (nodes_inserted_so_far = 0;
-	   nodes_inserted_so_far < and_count_of_or; nodes_inserted_so_far++)
+      for (nodes_inserted_so_far = 0; nodes_inserted_so_far < and_count_of_or;
+	   nodes_inserted_so_far++)
 	{
-	  const ANDID new_and_node_id = first_and_node_id + nodes_inserted_so_far;
+	  const ANDID new_and_node_id =
+	    first_and_node_id + nodes_inserted_so_far;
 	  int pre_insertion_ix = nodes_inserted_so_far - 1;
 	  while (pre_insertion_ix >= 0)
 	    {
-	      if (rank_by_and_id[new_and_node_id] >=
+	      if (rank_by_and_id[new_and_node_id] <=
 		  rank_by_and_id[order[pre_insertion_ix]])
 		break;
 	      order[pre_insertion_ix + 1] = order[pre_insertion_ix];
 	      pre_insertion_ix--;
 	    }
 	  order[pre_insertion_ix + 1] = new_and_node_id;
-	  nodes_inserted_so_far++;
 	}
     }
 }

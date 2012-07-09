@@ -668,6 +668,15 @@ sub do_high_rule_only {
     return 1;
 } ## end sub do_high_rule_only
 
+sub do_rank_by_rule {
+    my ($recce)    = @_;
+    my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    # Rank by rule is the default, but just in case
+    $order->high_rank_only_set(0);
+    $order->rank();
+    return 1;
+} ## end sub do_high_rule_only
+
 # INTERNAL OK AFTER HERE _marpa_
 
 sub Marpa::R2::Recognizer::show_bocage {
@@ -959,57 +968,6 @@ sub Marpa::R2::Recognizer::show_tree {
     }
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_tree
-
-sub do_rank_by_rule {
-    my ($recce)    = @_;
-    my $recce_c    = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $grammar    = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols    = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $rules      = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-
-    my @or_nodes = ( $bocage->_marpa_b_top_or_node() );
-
-    my $seen = q{};
-    OR_NODE: while ( my $or_node = pop @or_nodes ) {
-        last OR_NODE if not defined $or_node;
-        next OR_NODE if vec $seen, $or_node, 1;
-        vec( $seen, $or_node, 1 ) = 1;
-        my $first_and_node = $bocage->_marpa_b_or_node_first_and($or_node);
-        my $last_and_node  = $bocage->_marpa_b_or_node_last_and($or_node);
-        my @ranking_data   = ();
-        my @and_nodes      = $first_and_node .. $last_and_node;
-        AND_NODE:
-
-        for my $and_node (@and_nodes) {
-            my $token = $bocage->_marpa_b_and_node_symbol($and_node);
-            if ( defined $token ) {
-                push @ranking_data,
-                    [ $and_node, $grammar_c->_marpa_g_isy_rank($token) ];
-                next AND_NODE;
-            }
-            my $cause  = $bocage->_marpa_b_and_node_cause($and_node);
-            my $irl_id = $bocage->_marpa_b_or_node_irl($cause);
-            push @ranking_data, [ $and_node, $grammar_c->_marpa_g_irl_rank($irl_id) ];
-        } ## end for my $and_node (@and_nodes)
-
-## no critic(BuiltinFunctions::ProhibitReverseSortBlock)
-        my @ranked_and_nodes =
-            map { $_->[0] }
-            sort { $b->[1] <=> $a->[1] } @ranking_data;
-## use critic
-
-        $order->_marpa_o_and_node_order_set( $or_node, \@ranked_and_nodes );
-        push @or_nodes, grep {defined} map {
-            (   $bocage->_marpa_b_and_node_predecessor($_),
-                $bocage->_marpa_b_and_node_cause($_)
-                )
-        } @ranked_and_nodes;
-    } ## end while ( my $or_node = pop @or_nodes )
-    return 1;
-} ## end sub do_rank_by_rule
 
 sub trace_token_evaluation {
     my ( $recce, $value, $token_id, $value_ref ) = @_;
