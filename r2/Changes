@@ -15,11 +15,14 @@
 
 Revision history for Marpa::R2
 
+2.011_001 Wed Jul 11 20:38:52 PDT 2012
 2.011_000 Thu Jul  5 21:10:04 PDT 2012
 
       * A new series of developer's releases
 
       * Added marpa_o_rank() to Libmarpa interface
+
+      * Added "if" arg to Marpa::R2::Thin::G->new()
 
 2.010000 Thu Jul  5 20:44:07 PDT 2012
 
