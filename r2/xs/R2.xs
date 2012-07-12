@@ -228,17 +228,22 @@ new( ... )
 PPCODE:
 {
   Marpa_Grammar g;
-  SV *sv;
   G_Wrapper *g_wrapper;
-  SV *throw_sv = get_sv ("Marpa::R2::Thin::C::THROW", 0);
-  const int throw = throw_sv && SvTRUE (throw_sv);
+  int throw = 1;
   int interface = 0;
   Marpa_Config marpa_configuration;
   Marpa_Error_Code error_code;
 
   switch (items)
     {
-    case 1: break;
+    case 1: {
+      /* If we are using the (deprecated) interface 0,
+       * get the throw setting from a (deprecated) global variable
+       */
+      SV *throw_sv = get_sv ("Marpa::R2::Thin::C::THROW", 0);
+      throw = throw_sv && SvTRUE (throw_sv);
+    }
+    break;
     default: croak_xs_usage (cv, "class, arg_hash");
     case 2:
       {
@@ -281,6 +286,7 @@ PPCODE:
       g = marpa_g_new (&marpa_configuration);
       if (g)
 	{
+	  SV *sv;
 	  Newx (g_wrapper, 1, G_Wrapper);
 	  g_wrapper->throw = throw;
 	  g_wrapper->g = g;
