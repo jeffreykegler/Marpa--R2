@@ -238,12 +238,38 @@ PPCODE:
 
   switch (items)
     {
+    case 1: break;
+    default: croak_xs_usage (cv, "class, arg_hash");
     case 2:
-      croak ("failure in marpa_g_new: arg_hash not yet implemented");
-    default:
-      croak_xs_usage (cv, "class, arg_hash");
-    case 1:
-      break;
+      {
+	I32 retlen;
+	char *key;
+	SV *arg_value;
+	SV *arg = ST (1);
+	HV *named_args;
+	if (!SvROK (arg) || SvTYPE (SvRV (arg)) != SVt_PVHV)
+	    croak ("Problem in $g->new(): argument is not hash ref");
+	named_args = (HV *) SvRV (arg);
+	hv_iterinit (named_args);
+	while ((arg_value = hv_iternextsv (named_args, &key, &retlen)))
+	  {
+	    if ((*key == 'i') && strnEQ (key, "if", (unsigned) retlen))
+	      {
+		interface = SvIV (arg_value);
+		if (interface != 1)
+		  {
+		    croak ("Problem in $g->new(): interface value must be 1");
+		  }
+		continue;
+	      }
+	    croak ("Problem in $g->new(): unknown named argument: %s", key);
+	  }
+	if (interface != 1)
+	  {
+	    croak
+	      ("Problem in $g->new(): 'interface' named argument is required");
+	  }
+      }
     }
 
   error_code =
