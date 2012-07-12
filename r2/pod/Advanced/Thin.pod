@@ -240,11 +240,8 @@ setting.
 If the throw setting is 1, failure is thrown.
 If the throw setting is 0, failure is returned.
 
-Newly created grammar objects take their
-throw setting from the
-L<C<$Marpa::R2::Thin::C::THROW>|"$Marpa::R2::Thin::C::THROW">
-configuration variable.
-By default, C<$Marpa::R2::Thin::C::THROW> is set to 1.
+The throw setting is 1 in newly created grammar
+objects.
 Once created, the throw setting of a grammar object
 can be changed using the L<< C<throw_set()>
 method|"$g->throw_set()" >>
@@ -252,13 +249,16 @@ The throw setting of other objects is that
 of their base grammar.
 
 Nearly every Marpa thin method always obeys the throw setting.
-Only two methods never obey the throw setting.
+Only three methods never obey the throw setting.
+They are exceptions because their logic
+controls the throw setting, so that a problem with them
+suggests the throw setting itself may not be correct.
+The methods which never obey the throw setting,
+are
+L<< C<< Marpa::R2::Thin::G->new() >>|"Marpa::R2::Thin::G->new()" >>,
 L<< C<throw_set()>|"$g->throw_set()" >>
-and L<< C<ruby_slippers_set()>|"$r->ruby_slippers_set()" >>
-themselves change
-the logic that controls the throwing of exceptions.
-For this reason it is safest to have these two
-methods throw all failures.
+and L<< C<ruby_slippers_set()>|"$r->ruby_slippers_set()" >>.
+These methods throw all failures.
 
 One method allows the throw setting to be overriden.
 For convenience in using the Ruby Slippers technique,
@@ -617,28 +617,6 @@ not a numeric 0 or 1.
 C<throw_set()> itself never returns failure --
 it always throws an exception.
 
-=head1 Configuration variables
-
-The Marpa thin interface has one configuration
-variable:
-
-=head2 C<< $Marpa::R2::Thin::C::THROW >>
-
-If a Perl true, the Marpa thin interface throws
-failures as exceptions.
-If a Perl false, the Marpa thin interface methods return
-failure, as described for each method.
-Defaults to true.
-
-Each grammar has its own "throw" flag.
-The C< $Marpa::R2::Thin::C::THROW > variable
-determines the initial setting of
-a grammar's throw flag.
-A grammar's "throw" flag can be reset using
-the C<< $g->throw_set() >> method,
-after which its setting is independent of the
-C< $Marpa::R2::Thin::C::THROW > variable.
-
 =head2 Omitted methods
 
 All of
@@ -661,21 +639,25 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-There are no arguments to the Marpa thin interface's
+There is one argument to the Marpa thin interface's
 grammar constructor.
 On success,
-its return value is a thin interface grammar object.
+the return value is a thin interface grammar object.
+
+The argument, which should be considered required,
+must be a hash reference of named arguments.
+At present the only named argument allowed is C<if>,
+the interface number.
+This argument is required and currently is required
+to have a value of 1.
+The intent of the C<if> argument is to provide
+for backward compatibility in the future.
 
 A failure occurs if there is a version mismatch, which should
 not happen -- it indicates a problem with the way that the library
 was built.
-C<new()> obeys the throw setting.
-On unthrown failure in scalar context, C<new()> returns
-a Perl C<undef>.
-On unthrown failure in array context,
-C<new()> returns a 2-element array
-whose first element is a Perl C<undef>
-and whose second element is the error code.
+C<new()> does not obey the throw setting --
+errors are always thrown.
 
 =head2 C<< $g->event() >>
 
