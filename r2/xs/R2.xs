@@ -223,9 +223,8 @@ PPCODE:
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
-G_Wrapper *
-new( class )
-    char * class;
+void
+new( ... )
 PPCODE:
 {
   Marpa_Grammar g;
@@ -233,8 +232,21 @@ PPCODE:
   G_Wrapper *g_wrapper;
   SV *throw_sv = get_sv ("Marpa::R2::Thin::C::THROW", 0);
   const int throw = throw_sv && SvTRUE (throw_sv);
+  int interface = 0;
   Marpa_Config marpa_configuration;
-  Marpa_Error_Code error_code =
+  Marpa_Error_Code error_code;
+
+  switch (items)
+    {
+    case 2:
+      croak ("failure in marpa_g_new: arg_hash not yet implemented");
+    default:
+      croak_xs_usage (cv, "class, arg_hash");
+    case 1:
+      break;
+    }
+
+  error_code =
     marpa_check_version (MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION,
 			 MARPA_MICRO_VERSION);
   if (error_code == MARPA_ERR_NONE)
