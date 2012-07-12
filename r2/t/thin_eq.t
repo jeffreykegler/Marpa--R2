@@ -32,7 +32,7 @@ use Marpa::R2;
 # Marpa::R2::Display
 # name: Thin example
 
-my $grammar  = Marpa::R2::Thin::G->new();
+my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 my $symbol_S = $grammar->symbol_new();
 my $symbol_E = $grammar->symbol_new();
 $grammar->start_symbol_set($symbol_S);
@@ -155,7 +155,7 @@ for my $actual_value (@actual_values) {
 # For the error methods, start clean,
 # with a new, trivial grammar
 $grammar = $recce = $bocage = $order = $tree = undef;
-$grammar = Marpa::R2::Thin::G->new();
+$grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 
 # Marpa::R2::Display
 # name: Thin throw_set() example

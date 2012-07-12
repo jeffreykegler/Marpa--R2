@@ -657,7 +657,7 @@ name: Thin example
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar  = Marpa::R2::Thin::G->new();
+    my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
 
 =for Marpa::R2::Display::End
 
@@ -1289,7 +1289,7 @@ L<above|"The general pattern">.
 name: Thin example
 normalize-whitespace: 1
 
-    my $grammar  = Marpa::R2::Thin::G->new();
+    my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
     my $symbol_S = $grammar->symbol_new();
     my $symbol_E = $grammar->symbol_new();
     $grammar->start_symbol_set($symbol_S);
