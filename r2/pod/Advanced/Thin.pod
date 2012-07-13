@@ -639,25 +639,36 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-There is one argument to the Marpa thin interface's
-grammar constructor.
+The one argument to the Marpa thin interface's
+grammar constructor,
+as a reference to a hash of named arguments.
 On success,
 the return value is a thin interface grammar object.
+C<new()> does not obey the throw setting --
+errors are always thrown.
 
-The argument, which should be considered required,
-must be a hash reference of named arguments.
 At present the only named argument allowed is C<if>,
 the interface number.
 This argument is required and currently is required
-to have a value of 1.
+to have a value of 1,
+which specifies interface 1.
 The intent of the C<if> argument is to provide
 for backward compatibility in the future.
 
-A failure occurs if there is a version mismatch, which should
-not happen -- it indicates a problem with the way that the library
-was built.
-C<new()> does not obey the throw setting --
-errors are always thrown.
+Although there is no error message or warning if the hash
+ref argument
+is omitted, new code should treat
+the hash ref argument as a required argument.
+Calling C<new()> without an argument is deprecated.
+If the hash ref argument is omitted, the thin
+layer uses interface 0.
+Interface 0 cannot be specified directly,
+and is deprecated.
+The difference between interface 0 and interface 1
+is that, in interface 0, the default throw setting
+is unspecified.
+(In fact, the interface 0 throw setting depends on an
+undocumented and deprecated global variable.)
 
 =head2 C<< $g->event() >>
 
