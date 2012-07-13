@@ -30,20 +30,23 @@ Marpa_Symbol_ID s_lparen;
 Marpa_Symbol_ID s_rparen;
 Marpa_Symbol_ID s_endmark;
 
-struct leo_workitem {
-    Marpa_Earley_Set_ID es;
-    Marpa_Symbol_ID transition_symbol;
+struct leo_workitem
+{
+  Marpa_Earley_Set_ID es;
+  Marpa_Symbol_ID transition_symbol;
 };
 
-static inline char *gen_example_string(int length)
+static inline char *
+gen_example_string (int length)
 {
-    char *result = g_malloc((guint)length+1);
-    int i;
-    for (i = 0; i < length-8; i++) {
-        result[i] = '(';
+  char *result = g_malloc ((guint) length + 1);
+  int i;
+  for (i = 0; i < length - 8; i++)
+    {
+      result[i] = '(';
     }
-    strcpy(result+i, "(()())((");
-    return result;
+  strcpy (result + i, "(()())((");
+  return result;
 }
 
 static inline struct marpa_r *
@@ -146,8 +149,7 @@ at_first_balanced_completion (struct marpa_r *r, int current_earley_set)
 	{
 	  Marpa_Earley_Set_ID origin;
 	  Marpa_AHFA_State_ID expansion_ahfa_id;
-	  int result =
-	    marpa_earley_set_trace (r, earley_set_of_leo_item);
+	  int result = marpa_earley_set_trace (r, earley_set_of_leo_item);
 	  if (result < -1)
 	    {
 	      fatal_r_error ("marpa_earley_set_trace", r, result);
@@ -220,25 +222,25 @@ main (int argc, char **argv)
       exit (1);
     }
 
-if (string)
-  {
-    /* Never freed */
-    test_string = string;
-    string_length = strlen(test_string);
-    printf("Target is \"%s\", length=%d\n", test_string, string_length);
-  }
-else if (string_length < 10)
-  {
-    fprintf (stderr, "String length is %d, must be at least 10\n",
-	     string_length);
-    exit (1);
-  }
-else
-  {
-    /* Never freed */
-    test_string = gen_example_string (string_length);
-    printf("Target at end, length=%d\n", string_length);
-  }
+  if (string)
+    {
+      /* Never freed */
+      test_string = string;
+      string_length = strlen (test_string);
+      printf ("Target is \"%s\", length=%d\n", test_string, string_length);
+    }
+  else if (string_length < 10)
+    {
+      fprintf (stderr, "String length is %d, must be at least 10\n",
+	       string_length);
+      exit (1);
+    }
+  else
+    {
+      /* Never freed */
+      test_string = gen_example_string (string_length);
+      printf ("Target at end, length=%d\n", string_length);
+    }
 
   for (pass = 0; pass < repeats; pass++)
     {
@@ -287,40 +289,43 @@ else
 	  puts (marpa_g_error (g));
 	  exit (1);
 	}
-{
-  int AHFA_state_count = marpa_AHFA_state_count (g);
-  int ahfa_id;
-  first_balanced_completion = -1;
-  for (ahfa_id = 0; ahfa_id < AHFA_state_count; ahfa_id++)
-    {
-      guint aim_ix;
-      guint aim_count = marpa_AHFA_state_item_count (g, ahfa_id);
-      for (aim_ix = 0; aim_ix < aim_count; aim_ix++)
-	{
-	  int aim_id = marpa_AHFA_state_item (g, ahfa_id, aim_ix);
-	  int position = marpa_AHFA_item_position (g, aim_id);
-	  if (position == -1)
-	    {
-	      Marpa_Rule_ID rule = marpa_AHFA_item_rule (g, aim_id);
-	      Marpa_Symbol_ID lhs = marpa_rule_lhs (g, rule);
-	      if (lhs == s_first_balanced)
-		{
-		  if (first_balanced_completion != -1) {
-		      fprintf (stderr, "First balanced completion is not unique");
-		      exit (1);
+      {
+	int AHFA_state_count = marpa_AHFA_state_count (g);
+	int ahfa_id;
+	first_balanced_completion = -1;
+	for (ahfa_id = 0; ahfa_id < AHFA_state_count; ahfa_id++)
+	  {
+	    guint aim_ix;
+	    guint aim_count = marpa_AHFA_state_item_count (g, ahfa_id);
+	    for (aim_ix = 0; aim_ix < aim_count; aim_ix++)
+	      {
+		int aim_id = marpa_AHFA_state_item (g, ahfa_id, aim_ix);
+		int position = marpa_AHFA_item_position (g, aim_id);
+		if (position == -1)
+		  {
+		    Marpa_Rule_ID rule = marpa_AHFA_item_rule (g, aim_id);
+		    Marpa_Symbol_ID lhs = marpa_rule_lhs (g, rule);
+		    if (lhs == s_first_balanced)
+		      {
+			if (first_balanced_completion != -1)
+			  {
+			    fprintf (stderr,
+				     "First balanced completion is not unique");
+			    exit (1);
+			  }
+			first_balanced_completion = ahfa_id;
+			break;
+		      }
 		  }
-		  first_balanced_completion= ahfa_id;
-		  break;
-		}
-	    }
-	}
-    }
-}
+	      }
+	  }
+      }
       r = create_recce (g);
       for (location = 0; location <= string_length; location++)
 	{
 	  int origin, status;
-	  Marpa_Symbol_ID paren_token = test_string[location] == '(' ? s_lparen : s_rparen;
+	  Marpa_Symbol_ID paren_token =
+	    test_string[location] == '(' ? s_lparen : s_rparen;
 	  status = marpa_alternative (r, paren_token, 0, 1);
 	  if (status < -1)
 	    fatal_r_error ("marpa alternative", r, status);
@@ -331,7 +336,7 @@ else
 	  if (status < -1)
 	    fatal_r_error ("marpa_earleme_complete", r, status);
 	  /* If none of the alternatives were accepted, we are done */
-	  origin = at_first_balanced_completion (r, location+1 );
+	  origin = at_first_balanced_completion (r, location + 1);
 	  if (origin >= 0)
 	    {
 	      start_of_match = origin;
@@ -346,31 +351,35 @@ else
       while (++location < string_length)
 	{
 	  int origin, status, earleme_complete_status;
-	  Marpa_Symbol_ID paren_token = test_string[location] == '(' ? s_lparen : s_rparen;
+	  Marpa_Symbol_ID paren_token =
+	    test_string[location] == '(' ? s_lparen : s_rparen;
 	  status = marpa_alternative (r, paren_token, 0, 1);
-	  if (status == -1) break;
+	  if (status == -1)
+	    break;
 	  if (status < -1)
 	    fatal_r_error ("marpa alternative", r, status);
 	  earleme_complete_status = marpa_earleme_complete (r);
 	  if (earleme_complete_status < -1)
-	    fatal_r_error ("marpa_earleme_complete", r, earleme_complete_status);
-	  origin = at_first_balanced_completion (r, location+1 );
+	    fatal_r_error ("marpa_earleme_complete", r,
+			   earleme_complete_status);
+	  origin = at_first_balanced_completion (r, location + 1);
 	  if (origin >= 0 && origin < start_of_match)
 	    {
 	      start_of_match = origin;
 	      end_of_match = location + 1;
 	      break;
 	    }
-	    if (earleme_complete_status == 0) break;
+	  if (earleme_complete_status == 0)
+	    break;
 	}
-	if (!was_result_written) {
-	printf("Match at %d-%d\n", start_of_match, end_of_match);
-	was_result_written++;
+      if (!was_result_written)
+	{
+	  printf ("Match at %d-%d\n", start_of_match, end_of_match);
+	  was_result_written++;
 	}
       marpa_r_free (r);
       marpa_g_free (g);
       g = NULL;
     }
-  /* while(1) { putc('.', stderr); sleep(10); } */
   exit (0);
 }
