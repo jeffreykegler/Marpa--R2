@@ -641,7 +641,7 @@ normalize-whitespace: 1
 
 The one argument to the Marpa thin interface's
 grammar constructor,
-as a reference to a hash of named arguments.
+is a reference to a hash of named arguments.
 On success,
 the return value is a thin interface grammar object.
 C<new()> does not obey the throw setting --
@@ -666,6 +666,7 @@ Interface 0 cannot be specified directly,
 and is deprecated.
 The difference between interface 0 and interface 1
 is that, in interface 0, the default throw setting
+of the newly created grammar object
 is unspecified.
 (In fact, the interface 0 throw setting depends on an
 undocumented and deprecated global variable.)
