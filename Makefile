@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: dummy basic_test full_test etc_make install
+.PHONY: dummy basic_test full_test etc_make install cpan_dist_files
 
 dummy: 
 
@@ -30,10 +30,15 @@ full_test: etc_make
 	    ./Build disttest; \
 	) 2>&1 | tee full_test.out
 
-install:
+r2/libmarpa/libmarpa.tar:
 	(cd r2/libmarpa/dev; make install)
+
+r2/xs/general_pattern.xsh:
+	(cd r2/libmarpa/xs; perl gp_generate.pl r2/xs/general_pattern.xsh)
+
+install: r2/libmarpa/libmarpa.tar r2/xs/general_pattern.xsh
 	(cd r2 && perl Build.PL)
-	(cd r2 && ./Build --Dev code)
+	(cd r2 && ./Build code)
 
 fullinstall: install
 	-mkdir r2/libmarpa/test/dev/m4
