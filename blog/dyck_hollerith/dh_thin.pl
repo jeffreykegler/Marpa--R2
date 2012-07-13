@@ -7,6 +7,9 @@ use Marpa::R2;
 
 # A Marpa::R2 parser for the Dyck-Hollerith language
 
+my @stack = ();
+my @token_values = ('Do not use position zero');
+
 my $repeat;
 if (@ARGV) {
     $repeat = $ARGV[0];
@@ -66,7 +69,6 @@ my $string_length = 0;
 my $position = 0;
 my $input_length = length $res;
 
-my @token_values = ('Do not use position zero');
 
 INPUT: while ($position < $input_length) {
 	pos $res = $position;
@@ -76,7 +78,7 @@ INPUT: while ($position < $input_length) {
 	    $recce->alternative( $Scount_symbol, 0, 1 ); $recce->earleme_complete();
 	    $recce->alternative( $lparen_symbol, 0, 1 ); $recce->earleme_complete();
 	    $position += 2 + (length $string_length);
-	    my $token_ix = 1 + push @token_values, substr( $res, $position, $string_length );
+	    my $token_ix = -1 + push @token_values, substr( $res, $position, $string_length );
 	    $recce->alternative( $text_symbol, $token_ix, 1);
 	    $recce->earleme_complete();
 	    $position += $string_length;
@@ -110,28 +112,45 @@ $valuator->rule_is_valued_set($array_rule, 1);
 $valuator->rule_is_valued_set($element_string_rule, 1);
 $valuator->rule_is_valued_set($element_array_rule, 1);
 $valuator->rule_is_valued_set($elements_rule, 1);
-while (1) {
-   my @data = $valuator->step();
-   last if not defined $data[0];
-   say join " ", @data;
+STEP: for ( ;; ) {
+    my ( $type, @step_data ) = $valuator->step();
+    last STEP if not defined $type;
+    if ( $type eq 'MARPA_STEP_TOKEN' ) {
+        my ( undef, $token_value_ix, $arg_n ) = @step_data;
+        $stack[$arg_n] = $token_values[$token_value_ix];
+        next STEP;
+    }
+    if ( $type eq 'MARPA_STEP_RULE' ) {
+        my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+	if ($rule_id == $string_rule) {
+	  $stack[$arg_0] = $stack[$arg_0 + 3];
+	  next STEP;
+	}
+	if ($rule_id == $array_rule) {
+	  $stack[$arg_0] = $stack[$arg_0 + 3];
+	  next STEP;
+	}
+	if ($rule_id == $elements_rule) {
+	  $stack[$arg_0] = [@stack[$arg_0 .. $arg_n]];
+	  next STEP;
+	}
+      }
+} ## end STEP: for ( ;; )
+
+my $received = Dumper($stack[0]);
+
+my $expected = <<'EXPECTED_OUTPUT';
+$VAR1 = [
+          [
+            'Hey',
+            'Hello, World!'
+          ],
+          'Ciao!'
+        ];
+EXPECTED_OUTPUT
+if ($received eq $expected )
+{
+    say "Output matches";
+} else {
+    say "Output differs: $received";
 }
-
-exit 0;
-
-# my $received = Dumper(${$result});
-# 
-# my $expected = <<'EXPECTED_OUTPUT';
-# $VAR1 = [
-#           [
-#             'Hey',
-#             'Hello, World!'
-#           ],
-#           'Ciao!'
-#         ];
-# EXPECTED_OUTPUT
-# if ($received eq $expected )
-# {
-#     say "Output matches";
-# } else {
-#     say "Output differs: $received";
-# }
