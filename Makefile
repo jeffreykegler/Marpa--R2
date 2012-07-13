@@ -34,7 +34,7 @@ r2/libmarpa/libmarpa.tar:
 	(cd r2/libmarpa/dev; make install)
 
 r2/xs/general_pattern.xsh:
-	(cd r2/libmarpa/xs; perl gp_generate.pl r2/xs/general_pattern.xsh)
+	(cd r2/xs; perl gp_generate.pl general_pattern.xsh)
 
 install: r2/libmarpa/libmarpa.tar r2/xs/general_pattern.xsh
 	(cd r2 && perl Build.PL)
