@@ -3261,14 +3261,15 @@ base grammar, if necessary.
 @node Registering semantics, Stepping through the valuator, Valuator reference counting, Value methods
 @section Registering semantics
 
-@deftypefun int marpa_v_symbol_is_valued_set ( @
+@deftypefun int marpa_v_symbol_is_valued ( @
+    Marpa_Value @var{v}, @
+    Marpa_Symbol_ID @var{symid} )
+@deftypefunx int marpa_v_symbol_is_valued_set ( @
     Marpa_Value @var{v}, @
     Marpa_Symbol_ID @var{symid}, @
     int @var{value} )
-@deftypefunx int marpa_v_symbol_is_valued ( @
-    Marpa_Value @var{v}, @
-    Marpa_Symbol_ID @var{symid} )
-These methods, respectively, set and discover
+These methods, respectively,
+discover and set to @var{value},
 the valued status for symbol @var{symid}.
 A valued status of 1 indicates that the symbol is valued.
 A valued status of 0 indicates that the symbol is unvalued.
@@ -3290,7 +3291,8 @@ or on other failure, -2.
     Marpa_Value @var{v}, @
     Marpa_Rule_ID @var{rule_id}, @
     int @var{value} )
-These methods, respectively, report and set to @var{value}
+These methods respectively,
+discover and set to @var{value},
 the valued status
 for the LHS symbol of rule @var{rule_id}.
 A valued status of 1 indicates that the symbol is valued.

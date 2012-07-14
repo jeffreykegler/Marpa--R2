@@ -12529,8 +12529,10 @@ struct marpa_value {
     Marpa_Symbol_ID t_token_id;
     int t_token_value;
     Marpa_Rule_ID t_rule_id;
-    int t_tos;
+    int t_arg_0;
     int t_arg_n;
+    Marpa_Earley_Set_ID t_start_esid;
+    Marpa_Earley_Set_ID t_end_esid;
 };
 @ @<Public defines@> =
 #define marpa_v_token(v) \
@@ -12541,28 +12543,32 @@ struct marpa_value {
 #define marpa_v_rule(v) \
     ((v)->t_rule_id)
 #define marpa_v_arg_0(v) \
-    ((v)->t_tos)
+    ((v)->t_arg_0)
 #define marpa_v_arg_n(v) \
     ((v)->t_arg_n)
 #define marpa_v_result(v) marpa_v_arg_0(v)
+#define marpa_v_start(v) ((v)->t_start_esid)
+#define marpa_v_end(v) ((v)->t_end_esid)
+
 @
-{\bf To Do}: @^To Do@>
-|TOS_of_V| is misnamed.  |Arg_N_of_V| is actually
-the top of stack.
-I need to straighten this out sometime.
+|Arg_N_of_V| is the top of stack.
 @d XSYID_of_V(val) ((val)->public.t_token_id)
 @d RULEID_of_V(val) ((val)->public.t_rule_id)
 @d Token_Value_of_V(val) ((val)->public.t_token_value)
 @d Token_Type_of_V(val) ((val)->t_token_type)
-@d TOS_of_V(val) ((val)->public.t_tos)
+@d Arg_0_of_V(val) ((val)->public.t_arg_0)
 @d Arg_N_of_V(val) ((val)->public.t_arg_n)
+@d Start_of_V(val) ((val)->public.t_start_esid)
+@d End_of_V(val) ((val)->public.t_end_esid)
 @<Initialize value elements@> =
 XSYID_of_V(v) = -1;
 RULEID_of_V(v) = -1;
 Token_Value_of_V(v) = -1;
 Token_Type_of_V(v) = DUMMY_OR_NODE;
-TOS_of_V(v) = -1;
+Arg_0_of_V(v) = -1;
 Arg_N_of_V(v) = -1;
+Start_of_V(v) = -1;
+End_of_V(v) = -1;
 
 @*0 The obstack.
 An obstack with the same lifetime as the valuator.
@@ -12953,7 +12959,7 @@ for the rule.
 	    {
 	      Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
 	      XSYID_of_V(v) = g->t_start_xsyid;
-	      TOS_of_V(v) = Arg_N_of_V(v) = 0;
+	      Arg_0_of_V(v) = Arg_N_of_V(v) = 0;
 	      if (lbv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v)))
 		      return MARPA_STEP_NULLING_SYMBOL;
 	    }
@@ -12993,7 +12999,7 @@ for the rule.
 	if (pop_arguments) {
 	  /* Pop the arguments for the last rule execution off of
 	  the stack */
-	  Arg_N_of_V(v) = TOS_of_V(v);
+	  Arg_N_of_V(v) = Arg_0_of_V(v);
 	  pop_arguments = 0;
 	}
 	{
@@ -13012,7 +13018,7 @@ for the rule.
 	  if (token_type != DUMMY_OR_NODE)
 	  {
 	    const ISYID token_isyid = ISYID_of_TOK (token);
-	    TOS_of_V (v) = ++Arg_N_of_V (v);
+	    Arg_0_of_V (v) = ++Arg_N_of_V (v);
 	    if (token_type == VALUED_TOKEN_OR_NODE)
 	      {
 		const ISY token_isy = ISY_by_ID (token_isyid);
@@ -13068,7 +13074,7 @@ for the rule.
 		  // Currently all rules with a non-virtual LHS are
 		  // "semantic" rules.
 		  XRLID original_rule_id = ID_of_XRL (Source_XRL_of_IRL (nook_irl));
-		  TOS_of_V (v) = Arg_N_of_V (v) - real_symbol_count + 1;
+		  Arg_0_of_V (v) = Arg_N_of_V (v) - real_symbol_count + 1;
 		  pop_arguments = 1;
 	      if (lbv_bit_test(XRL_is_Valued_BV_of_V(v), original_rule_id))
 		    {
