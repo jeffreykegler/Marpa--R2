@@ -3384,6 +3384,11 @@ be both the first and last step.
 
 @end deftypevr
 
+@deftypevr Macro Marpa_Step_Type MARPA_STEP_INITIAL
+The valuator is new and has
+yet to go through any steps.
+@end deftypevr
+
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_INTERNAL1
 @deftypevrx Macro Marpa_Step_Type MARPA_STEP_INTERNAL2
 @deftypevrx Macro Marpa_Step_Type MARPA_STEP_TRACE

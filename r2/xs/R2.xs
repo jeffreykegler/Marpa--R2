@@ -861,6 +861,34 @@ PPCODE:
     }
 }
 
+void
+location( v_wrapper )
+    V_Wrapper *v_wrapper;
+PPCODE:
+{
+  const Marpa_Value v = v_wrapper->v;
+  const int status = marpa_v_step_type (v);
+  if (status == MARPA_STEP_RULE)
+    {
+      XPUSHs (sv_2mortal (newSViv (marpa_v_rule_start_es_id (v))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_es_id (v))));
+      XSRETURN (2);
+    }
+  if (status == MARPA_STEP_NULLING_SYMBOL)
+    {
+      XPUSHs (sv_2mortal (newSViv (marpa_v_token_start_es_id (v))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_es_id (v))));
+      XSRETURN (2);
+    }
+  if (status == MARPA_STEP_TOKEN)
+    {
+      XPUSHs (sv_2mortal (newSViv (marpa_v_token_start_es_id (v))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_es_id (v))));
+      XSRETURN (2);
+    }
+  XSRETURN_EMPTY;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 void

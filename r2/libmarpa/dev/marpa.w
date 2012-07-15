@@ -12526,15 +12526,18 @@ struct s_value {
 @*0 Public data.
 @<Public structures@> =
 struct marpa_value {
+    Marpa_Step_Type t_step_type;
     Marpa_Symbol_ID t_token_id;
     int t_token_value;
     Marpa_Rule_ID t_rule_id;
     int t_arg_0;
     int t_arg_n;
-    Marpa_Earley_Set_ID t_start_esid;
-    Marpa_Earley_Set_ID t_end_esid;
+    Marpa_Earley_Set_ID t_token_start_es_id;
+    Marpa_Earley_Set_ID t_rule_start_es_id;
+    Marpa_Earley_Set_ID t_es_id;
 };
 @ @<Public defines@> =
+#define marpa_v_step_type(v) ((v)->t_step_type)
 #define marpa_v_token(v) \
     ((v)->t_token_id)
 #define marpa_v_symbol(v) marpa_v_token(v)
@@ -12547,19 +12550,22 @@ struct marpa_value {
 #define marpa_v_arg_n(v) \
     ((v)->t_arg_n)
 #define marpa_v_result(v) marpa_v_arg_0(v)
-#define marpa_v_start(v) ((v)->t_start_esid)
-#define marpa_v_end(v) ((v)->t_end_esid)
+#define marpa_v_rule_start_es_id(v) ((v)->t_rule_start_es_id)
+#define marpa_v_token_start_es_id(v) ((v)->t_token_start_es_id)
+#define marpa_v_es_id(v) ((v)->t_es_id)
 
 @
 |Arg_N_of_V| is the top of stack.
+@d Step_Type_of_V(val) ((val)->public.t_step_type)
 @d XSYID_of_V(val) ((val)->public.t_token_id)
 @d RULEID_of_V(val) ((val)->public.t_rule_id)
 @d Token_Value_of_V(val) ((val)->public.t_token_value)
 @d Token_Type_of_V(val) ((val)->t_token_type)
 @d Arg_0_of_V(val) ((val)->public.t_arg_0)
 @d Arg_N_of_V(val) ((val)->public.t_arg_n)
-@d Start_of_V(val) ((val)->public.t_start_esid)
-@d End_of_V(val) ((val)->public.t_end_esid)
+@d Rule_Start_of_V(val) ((val)->public.t_rule_start_es_id)
+@d Token_Start_of_V(val) ((val)->public.t_token_start_es_id)
+@d ES_ID_of_V(val) ((val)->public.t_es_id)
 @<Initialize value elements@> =
 XSYID_of_V(v) = -1;
 RULEID_of_V(v) = -1;
@@ -12567,8 +12573,9 @@ Token_Value_of_V(v) = -1;
 Token_Type_of_V(v) = DUMMY_OR_NODE;
 Arg_0_of_V(v) = -1;
 Arg_N_of_V(v) = -1;
-Start_of_V(v) = -1;
-End_of_V(v) = -1;
+Rule_Start_of_V(v) = -1;
+Token_Start_of_V(v) = -1;
+ES_ID_of_V(v) = -1;
 
 @*0 The obstack.
 An obstack with the same lifetime as the valuator.
@@ -12644,7 +12651,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	struct obstack* const obstack = my_obstack_init;
 	const VALUE v = my_obstack_new (obstack, struct s_value, 1);
 	v->t_obs = obstack;
-	Next_Value_Type_of_V(v) = V_INITIALIZE;
+	Step_Type_of_V (v) = Next_Value_Type_of_V (v) = MARPA_STEP_INITIAL;
 	@<Initialize value elements@>@;
 	tree_pause (t);
 	T_of_V(v) = t;
@@ -12861,8 +12868,7 @@ The value type indicates whether the value
 is for a semantic rule, a semantic token, etc.
 @<Public typedefs@> =
 typedef int Marpa_Step_Type;
-@ @d V_INITIALIZE MARPA_STEP_INTERNAL1
-@ @d V_GET_DATA MARPA_STEP_INTERNAL2
+@ @d STEP_GET_DATA MARPA_STEP_INTERNAL2
 
 @<Function definitions@> =
 Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
@@ -12873,14 +12879,14 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
     if (V_is_Nulling(v)) {
       @<Unpack value objects@>@;
       @<Step through a nulling valuator@>@;
-      return MARPA_STEP_INACTIVE;
+      return Step_Type_of_V(v) = MARPA_STEP_INACTIVE;
     }
 
     while (V_is_Active(v)) {
 	Marpa_Step_Type current_value_type = Next_Value_Type_of_V(v);
 	switch (current_value_type)
 	  {
-	  case V_INITIALIZE:
+	  case MARPA_STEP_INITIAL:
 	    {
 	      XSYID xsy_count;
 	      @<Unpack value objects@>@;
@@ -12889,7 +12895,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	      @<Set rule-is-valued vector@>@;
 	    }
 	    /* fall through */
-	  case V_GET_DATA:
+	  case STEP_GET_DATA:
 	    @<Perform evaluation steps @>@;
 	    if (!V_is_Active (v)) break;
 	    /* fall through */
@@ -12900,11 +12906,11 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	      if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
 		  if (lbv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v)))
-		      return MARPA_STEP_NULLING_SYMBOL;
+		      return Step_Type_of_V(v) = MARPA_STEP_NULLING_SYMBOL;
 	      }
 	      else if (token_type != DUMMY_OR_NODE)
 		{
-		   return MARPA_STEP_TOKEN;
+		   return Step_Type_of_V(v) = MARPA_STEP_TOKEN;
 		 }
 	    }
 	    /* fall through */
@@ -12912,20 +12918,20 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	    if (RULEID_of_V (v) >= 0)
 	      {
 		Next_Value_Type_of_V(v) = MARPA_STEP_TRACE;
-		return MARPA_STEP_RULE;
+		return Step_Type_of_V(v) = MARPA_STEP_RULE;
 	      }
 	    /* fall through */
 	  case MARPA_STEP_TRACE:
-	    Next_Value_Type_of_V(v) = V_GET_DATA;
+	    Next_Value_Type_of_V(v) = STEP_GET_DATA;
 	    if (V_is_Trace (v))
 	      {
-		return MARPA_STEP_TRACE;
+		return Step_Type_of_V(v) = MARPA_STEP_TRACE;
 	      }
 	  }
       }
 
     Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
-    return MARPA_STEP_INACTIVE;
+    return Step_Type_of_V(v) = MARPA_STEP_INACTIVE;
 }
 
 @ A rule is valued if and only if its LHS is a
@@ -12950,24 +12956,25 @@ for the rule.
 
 @ @<Step through a nulling valuator@> =
 {
-    while (V_is_Active(v)) {
-	Marpa_Step_Type current_value_type = Next_Value_Type_of_V(v);
-	switch (current_value_type)
+  while (V_is_Active (v))
+    {
+      Marpa_Step_Type current_value_type = Next_Value_Type_of_V (v);
+      switch (current_value_type)
+	{
+	case MARPA_STEP_INITIAL:
+	case STEP_GET_DATA:
 	  {
-	  case V_INITIALIZE:
-	  case V_GET_DATA:
-	    {
-	      Next_Value_Type_of_V(v) = MARPA_STEP_INACTIVE;
-	      XSYID_of_V(v) = g->t_start_xsyid;
-	      Arg_0_of_V(v) = Arg_N_of_V(v) = 0;
-	      if (lbv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v)))
-		      return MARPA_STEP_NULLING_SYMBOL;
-	    }
-	    /* fall through */
-	    /* No tracing of nulling valuators, at least at this point */
-	    /* fall through */
+	    Next_Value_Type_of_V (v) = MARPA_STEP_INACTIVE;
+	    XSYID_of_V (v) = g->t_start_xsyid;
+	    Arg_0_of_V (v) = Arg_N_of_V (v) = 0;
+	    if (lbv_bit_test (XSY_is_Valued_BV_of_V (v), XSYID_of_V (v)))
+	      return Step_Type_of_V (v) = MARPA_STEP_NULLING_SYMBOL;
 	  }
-      }
+	  /* fall through */
+	  /* No tracing of nulling valuators, at least at this point */
+	  /* fall through */
+	}
+    }
 }
 
 @ @<Perform evaluation steps@> =
@@ -13010,6 +13017,7 @@ for the rule.
 	  const NOOK nook = NOOK_of_TREE_by_IX (t, NOOK_of_V (v));
 	  const int choice = Choice_of_NOOK (nook);
 	  or = OR_of_NOOK (nook);
+	  ES_ID_of_V(v) = ES_Ord_of_OR(or);
 	  and_node_id = and_order_get (o, or, choice);
 	  and_node = and_nodes + and_node_id;
 	  token = and_node_token (and_node);
@@ -13022,7 +13030,10 @@ for the rule.
 	    if (token_type == VALUED_TOKEN_OR_NODE)
 	      {
 		const ISY token_isy = ISY_by_ID (token_isyid);
+		const OR predecessor = Predecessor_OR_of_AND (and_node);
 		XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_ISY (token_isy));
+		Token_Start_of_V (v) =
+		  predecessor ? ES_Ord_of_OR (predecessor) : Origin_Ord_of_OR (or);
 		Token_Value_of_V (v) = Value_of_TOK (token);
 	      }
 	    else if (token_type == NULLING_TOKEN_OR_NODE)
@@ -13033,6 +13044,7 @@ for the rule.
 		if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsyid))
 		  {
 		    XSYID_of_V (v) = source_xsyid;
+		    Token_Start_of_V(v) = ES_ID_of_V(v);
 		  }
 		else
 		  {
@@ -13079,6 +13091,7 @@ for the rule.
 	      if (lbv_bit_test(XRL_is_Valued_BV_of_V(v), original_rule_id))
 		    {
 		      RULEID_of_V (v) = original_rule_id;
+		      Rule_Start_of_V (v) = Origin_Ord_of_OR (or);
 		    }
 		}
 
