@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 12;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -269,12 +269,36 @@ $order         = Marpa::R2::Thin::O->new($bocage);
 $tree          = Marpa::R2::Thin::T->new($order);
 $tree->next();
 my $valuator = Marpa::R2::Thin::V->new($tree);
-$valuator->rule_is_valued_set( $sequence_rule_id,     1 );
-STEP: for (;;) {
+$valuator->rule_is_valued_set( $sequence_rule_id, 1 );
+my $locations_report = q{};
+STEP: for ( ;; ) {
     my ( $type, @step_data ) = $valuator->step();
     last STEP if not defined $type;
-    say STDERR "$type: locations ", join q{ }, $valuator->location();
-}
+    $type = $valuator->step_type();
+    my ( $start, $end ) = $valuator->location();
+    if ( $type eq 'MARPA_STEP_RULE' ) {
+        my ($rule_id) = @step_data;
+        $locations_report .= "Rule $rule_id is from $start to $end\n";
+    }
+    if ( $type eq 'MARPA_STEP_TOKEN' ) {
+        my ($token_id) = @step_data;
+        $locations_report .= "Token $token_id is from $start to $end\n";
+    }
+    if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
+        my ($symbol_id) = @step_data;
+        $locations_report
+            .= "Nulling symbol $symbol_id is from $start to $end\n";
+    }
+} ## end STEP: for ( ;; )
+
+Test::More::is( $locations_report, <<'EXPECTED', 'Step locations' );
+Token 1 is from 0 to 1
+Token 2 is from 1 to 2
+Token 1 is from 2 to 3
+Token 2 is from 3 to 4
+Token 1 is from 4 to 5
+Rule 0 is from 0 to 5
+EXPECTED
 
 # Local Variables:
 #   mode: cperl
