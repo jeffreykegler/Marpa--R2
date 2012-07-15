@@ -155,7 +155,7 @@ Value methods
 * Registering semantics::       
 * Stepping through the valuator::  
 * Valuator steps by type::      
-* Step accessors::              
+* Basic step accessors::        
 
 Maintaining the stack
 
@@ -178,7 +178,6 @@ Design notes
 Work in Progress
 
 * Untested methods::            
-* Things to do::                
 
 @end detailmenu
 @end menu
@@ -2836,7 +2835,7 @@ Always succeeds.
 * Registering semantics::       
 * Stepping through the valuator::  
 * Valuator steps by type::      
-* Step accessors::              
+* Basic step accessors::        
 @end menu
 
 @node Value overview, How to use the valuator, Value methods, Value methods
@@ -2874,7 +2873,7 @@ use the @code{marpa_v_step()} method.
 of step.
 Most step types has values associated with them.
 To access these values use the methods
-described in the section @ref{Step accessors}.
+described in the section @ref{Basic step accessors}.
 How to perform the steps is described in
 the sections
 @ref{How to use the valuator}
@@ -3336,7 +3335,7 @@ This will always be a non-negative number.
 On failure, -2.
 @end deftypefun
 
-@node Valuator steps by type, Step accessors, Stepping through the valuator, Value methods
+@node Valuator steps by type, Basic step accessors, Stepping through the valuator, Value methods
 @section Valuator steps by type
 
 @deftypevr Macro Marpa_Step_Type MARPA_STEP_RULE
@@ -3395,10 +3394,27 @@ yet to go through any steps.
 These step types are reserved for internal purposes.
 @end deftypevr
 
-@node Step accessors,  , Valuator steps by type, Value methods
-@section Step accessors
+@node Basic step accessors,  , Valuator steps by type, Value methods
+@section Basic step accessors
 
-Step accessors are implemented as macros.  They always succeed.
+The basic step accessors are so called because their information
+is basic to the stack manipulation.
+The basic step accessors are implemented as macros.
+They always succeed.
+
+@deftypefn {Macro} Marpa_Step_Type marpa_v_step_type (Marpa_Value @var{v})
+Return value: Returns the current step type:
+@code{MARPA_STEP_TOKEN},
+@code{MARPA_STEP_RULE},
+etc.
+Usually not needed since this is also the return value of
+@code{marpa_v_step()}.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
+Return value: Returns the ID of the token
+for the @code{MARPA_STEP_TOKEN} step.
+@end deftypefn
 
 @deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
 Return value: Returns the ID of the token
@@ -4398,10 +4414,9 @@ in Libmarpa.
 
 @menu
 * Untested methods::            
-* Things to do::                
 @end menu
 
-@node Untested methods, Things to do, Work in Progress, Work in Progress
+@node Untested methods,  , Work in Progress, Work in Progress
 @section Untested methods
 
 The methods of this section are not in the external interface,
@@ -4456,14 +4471,5 @@ If the grammar has been precomputed,
 or on other failure, -2.
 
 @end deftypefun
-
-@node Things to do,  , Untested methods, Work in Progress
-@section Things to do
-
-@itemize
-@item
-There should be an interface in the valuator that allows the user to
-determine the start and end earlemes of a token.
-@end itemize
 
 @bye
