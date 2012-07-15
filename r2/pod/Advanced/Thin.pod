@@ -1122,6 +1122,72 @@ On success, it returns a Marpa thin value object.
 C<new()> obeys the throw setting.
 On unthrown failure, it returns a Perl C<undef>.
 
+=head2 C<< $v->location() >>
+
+=for Marpa::R2::Display
+name: Thin location() example
+normalize-whitespace: 1
+
+    $type = $valuator->step_type();
+    my ( $start, $end ) = $valuator->location();
+    if ( $type eq 'MARPA_STEP_RULE' ) {
+        my ($rule_id) = @step_data;
+        $locations_report .= "Rule $rule_id is from $start to $end\n";
+    }
+    if ( $type eq 'MARPA_STEP_TOKEN' ) {
+        my ($token_id) = @step_data;
+        $locations_report .= "Token $token_id is from $start to $end\n";
+    }
+    if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
+        my ($symbol_id) = @step_data;
+        $locations_report
+            .= "Nulling symbol $symbol_id is from $start to $end\n";
+    }
+
+
+=for Marpa::R2::Display::End
+
+The C<location()> method takes no arguments.
+The C<location()> method always succeeds,
+returning either an empty array
+or an array of two elements.
+
+=over 4
+
+=item *
+
+It the last step was C<MARPA_STEP_RULE>,
+the array contains the locations where the rule starts
+and ends,
+as returned
+by the Libmarpa methods C<marpa_v_rule_start_es_id()>
+and C<marpa_v_es_id()>.
+
+=item *
+
+It the last step was C<MARPA_STEP_TOKEN>,
+the array contains the locations where the token starts
+and ends,
+as returned
+by the Libmarpa methods C<marpa_v_token_start_es_id()>
+and C<marpa_v_es_id()>.
+
+=item *
+
+It the last step was C<MARPA_STEP_NULLING_SYMBOL>,
+the array contains the locations where the token starts
+and ends,
+as returned
+by the Libmarpa methods C<marpa_v_token_start_es_id()>
+and C<marpa_v_es_id()>.
+
+=item *
+
+In any other case,
+the array is empty.
+
+=back
+
 =head2 C<< $v->step() >>
 
 =for Marpa::R2::Display
@@ -1252,7 +1318,39 @@ element is a
 string not reserved by Libmarpa.
 A string is not reserved by Libmarpa if it does
 not begin with "C<MARPA_>" in one of its
-captialization variants.
+capitalization variants.
+The string will usually be a description of the error.
+
+=head2 C<< $v->step_type() >>
+
+=for Marpa::R2::Display
+name: Thin location() example
+partial: 1
+normalize-whitespace: 1
+
+    $type = $valuator->step_type();
+
+=for Marpa::R2::Display::End
+
+The C<step_type()> method takes no arguments.
+On success, C<step_type()>
+returns the string indicating the type of the last
+Libmarpa valuator step.
+If the last call of the
+L<< C<step()>
+method|"$v->step()" >> succeeded,
+the string returned by C<step_type()> will
+be the same as the one that was the first
+element of the array returned by C<step()>.
+
+C<step_type()> obeys the throw setting.
+On unthrown failure,
+C<step()> returns an array whose only
+element is a
+string not reserved by Libmarpa.
+A string is not reserved by Libmarpa if it does
+not begin with "C<MARPA_>" in one of its
+capitalization variants.
 The string will usually be a description of the error.
 
 =head2 Omitted methods
@@ -1263,11 +1361,13 @@ it does not implement methods
 directly corresponding to
 Libmarpa's C<marpa_v_ref()>
 and C<marpa_v_unref()> methods.
-Because they are folded into the thin interface's
-C<< $v->step() >> method,
-the thin interface does not have any methods
-corresponding directly to the
-step accessor macros.
+The step accessor macros are folded into the thin interface's
+C<< $v->step() >>
+and C<< $v->location() >>
+methods.
+For this reason,
+no thin interface macro corresponds directly to most
+of the individual step accessors.
 
 =head2 Methods not mentioned
 
@@ -1303,7 +1403,7 @@ normalize-whitespace: 1
     # Important: zero cannot be itself!
 
     my @token_values         = ( 0 .. 3 );
-    my $zero                 = -1 + +push @token_values, 0;
+    my $zero                 = -1 + push @token_values, 0;
     my $minus_token_value    = -1 + push @token_values, q{-};
     my $plus_token_value     = -1 + push @token_values, q{+};
     my $multiply_token_value = -1 + push @token_values, q{*};

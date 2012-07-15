@@ -52,7 +52,7 @@ $recce->start_input();
 # Important: zero cannot be itself!
 
 my @token_values         = ( 0 .. 3 );
-my $zero                 = -1 + +push @token_values, 0;
+my $zero                 = -1 + push @token_values, 0;
 my $minus_token_value    = -1 + push @token_values, q{-};
 my $plus_token_value     = -1 + push @token_values, q{+};
 my $multiply_token_value = -1 + push @token_values, q{*};
@@ -274,6 +274,10 @@ my $locations_report = q{};
 STEP: for ( ;; ) {
     my ( $type, @step_data ) = $valuator->step();
     last STEP if not defined $type;
+
+# Marpa::R2::Display
+# name: Thin location() example
+
     $type = $valuator->step_type();
     my ( $start, $end ) = $valuator->location();
     if ( $type eq 'MARPA_STEP_RULE' ) {
@@ -289,6 +293,9 @@ STEP: for ( ;; ) {
         $locations_report
             .= "Nulling symbol $symbol_id is from $start to $end\n";
     }
+
+# Marpa::R2::Display::End
+
 } ## end STEP: for ( ;; )
 
 Test::More::is( $locations_report, <<'EXPECTED', 'Step locations' );
