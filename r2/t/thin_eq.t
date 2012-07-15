@@ -255,6 +255,27 @@ my $report;
 Test::More::is( ( join q{ }, map { @{$_} } @{$report} ),
     '0 -1 0 0 0 0', 'progress report' );
 
+$recce->alternative( $symbol_sep, 1, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_a, 1, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_sep, 1, 1 );
+$recce->earleme_complete();
+$recce->alternative( $symbol_a, 1, 1 );
+$recce->earleme_complete();
+$latest_earley_set_ID = $recce->latest_earley_set();
+$bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+$order         = Marpa::R2::Thin::O->new($bocage);
+$tree          = Marpa::R2::Thin::T->new($order);
+$tree->next();
+my $valuator = Marpa::R2::Thin::V->new($tree);
+$valuator->rule_is_valued_set( $sequence_rule_id,     1 );
+STEP: for (;;) {
+    my ( $type, @step_data ) = $valuator->step();
+    last STEP if not defined $type;
+    say STDERR "$type: locations ", join q{ }, $valuator->location();
+}
+
 # Local Variables:
 #   mode: cperl
 #   cperl-indent-level: 4
