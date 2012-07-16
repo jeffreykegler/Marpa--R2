@@ -3472,7 +3472,7 @@ In this context, an ``unspecified value'' is a value
 that is either @minus{}1 or the ID of a valid Earley set,
 but which is otherwise unpredictable.
 
-@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_es_id(Marpa_Value @var{v})
+@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_es_id (Marpa_Value @var{v})
 Return value:
 If the current step type is @code{MARPA_STEP_RULE},
 the Earley Set ordinal where the rule ends.
@@ -3483,14 +3483,14 @@ the Earley Set ordinal where the symbol ends.
 If the current step type is anything else, an unspecified value.
 @end deftypefn
 
-@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_rule_start_es_id(Marpa_Value @var{v})
+@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_rule_start_es_id (Marpa_Value @var{v})
 Return value:
 If the current step type is @code{MARPA_STEP_RULE},
 the Earley Set ordinal where the rule begins.
 If the current step type is anything else, an unspecified value.
 @end deftypefn
 
-@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_token_start_es_id(Marpa_Value @var{v})
+@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_token_start_es_id (Marpa_Value @var{v})
 Return value:
 If the current step type is @code{MARPA_STEP_TOKEN}
 or @code{MARPA_STEP_NULLING_SYMBOL},
