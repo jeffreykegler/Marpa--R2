@@ -15,10 +15,7 @@
 
 Revision history for Marpa::R2
 
-2.011_001 Wed Jul 11 20:38:52 PDT 2012
-2.011_000 Thu Jul  5 21:10:04 PDT 2012
-
-      * A new series of developer's releases
+2.012000 Sun Jul 15 17:43:59 PDT 2012
 
       * Added marpa_o_rank() to Libmarpa interface
 
