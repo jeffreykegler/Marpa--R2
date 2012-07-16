@@ -1127,11 +1127,11 @@ Return values are discussed method by method,
 but some general practices are worth
 mentioning.
 For methods that return an integer,
-Libmarpa usually reserves -1 for special purposes,
+Libmarpa usually reserves @minus{}1 for special purposes,
 such as indicating loop termination in an iterator.
 In Libmarpa, methods usually indicate failure
-by returning -2.
-Any result greater than -2 usually indicates success.
+by returning @minus{}2.
+Any result greater than @minus{}2 usually indicates success.
 
 If a method returns an pointer value,
 @code{NULL} usually indicates failure.
@@ -1428,8 +1428,8 @@ specified in the @code{marpa_g_start_symbol_set()} call,
 if there has been one.
 
 Return value:
-On failure, -2;
--1 if there is no start symbol yet;
+On failure, @minus{}2;
+@minus{}1 if there is no start symbol yet;
 otherwise the ID of the new start symbol.
 @end deftypefun
 
@@ -1440,14 +1440,14 @@ otherwise the ID of the new start symbol.
 Sets the start symbol of grammar @var{g} to symbol @var{id}.
 
 Return value: On success, the ID of the new start symbol.
-On failure, -2.
+On failure, @minus{}2.
 
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_count (Marpa_Grammar @var{g})
 Return value:
 On success, the symbol count of the grammar.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_accessible (Marpa_Grammar @var{g}, @
@@ -1455,7 +1455,7 @@ On failure, -2.
 A symbol is @dfn{accessible} if it can be reached from the start symbol.
 
 Return value: On success, 1 if symbol @var{symid} is accessible, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
+If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_nullable ( @
@@ -1465,7 +1465,7 @@ A @strong{nulling} symbol is always a @strong{nullable} symbol,
 but not all @strong{nullable} symbols are @strong{nulling} symbols.
 
 Return value: On success, 1 if symbol @var{symid} is nullable, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
+If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_nulling (Marpa_Grammar @var{g}, @
@@ -1473,7 +1473,7 @@ If the grammar is not precomputed, or on other failure, -2.
 A symbol is @dfn{nulling} if it always produces the empty string.
 
 Return value: On success, 1 if symbol @var{symid} is nulling, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
+If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_productive (Marpa_Grammar @var{g}, @
@@ -1482,7 +1482,7 @@ A symbol is @dfn{productive} if it can produce a string of terminals.
 All nullable symbols are considered productive.
 
 Return value: On success, 1 if symbol @var{symid} is productive, 0 if not.  If the grammar
-is not precomputed, or on other failure, -2.
+is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
@@ -1491,7 +1491,7 @@ is not precomputed, or on other failure, -2.
 This return value of this call indicates whether @var{symid}
 is the start symbol.
 
-Return value: -2 if @var{symid} is not valid;
+Return value: @minus{}2 if @var{symid} is not valid;
     1 if @var{symid} is the start symbol;
     0 otherwise.
 
@@ -1537,7 +1537,7 @@ If @var{value} is not 0 or 1;
 if the terminal status is locked and @var{value}
 is different from its current value;
 if the grammar @var{g} is precomputed;
-or on other failure, -2.
+or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_valued ( @
@@ -1563,9 +1563,9 @@ unless @var{value} is the same as the locked-in value.
 Return value: On success, 1 if the symbol @var{symbol_id}
 is valued after the call, 0 if not.
 If the valued status is locked and @var{value}
-is different from the current status, -2.
+is different from the current status, @minus{}2.
 If @var{value} is not 0 or 1;
-or on other failure, -2.
+or on other failure, @minus{}2.
 
 @end deftypefun
 
@@ -1574,7 +1574,7 @@ or on other failure, -2.
 Creates a new symbol.
 
 Return value: On success, the ID of a new symbol;
-On failure, -2.
+On failure, @minus{}2.
 
 @end deftypefun
 
@@ -1583,7 +1583,7 @@ On failure, -2.
 
 @deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
 Return value: On success, the current number of rules in grammar @var{g}.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
@@ -1595,7 +1595,7 @@ The start rule is always an accessible rule.
 Return value: On success, 1 if rule @var{rule_id}
 is accessible, 0 if not.
 If the grammar
-is not precomputed, or on other failure, -2.
+is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_nullable ( @
@@ -1606,7 +1606,7 @@ but not all @strong{nullable} rules are @strong{nulling} rules.
 
 Return value: On success,
 1 if rule @var{ruleid} is nullable, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
+If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_nulling (Marpa_Grammar @var{g}, @
@@ -1615,7 +1615,7 @@ A rule is @dfn{nulling} if it always produces the empty string.
 
 Return value: On success,
 1 if rule @var{ruleid} is nulling, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
+If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_loop (Marpa_Grammar @var{g}, @
@@ -1637,7 +1637,7 @@ loop rules.
 Return value: On success,
 1 if rule @var{rule_id} is a loop rule, 0 if not.
 If the grammar
-is not precomputed, or on other failure, -2.
+is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
@@ -1652,7 +1652,7 @@ an empty rule is considered productive.
 
 Return value: On success,
 1 if rule @var{rule_id} is productive, 0 if not.
-If the grammar is not precomputed, or on other failure, -2.
+If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_length ( @
@@ -1661,14 +1661,14 @@ If the grammar is not precomputed, or on other failure, -2.
 The length of a rule is the number of symbols on its RHS.
 
 Return value: On success, the length of rule @var{rule_id}.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID marpa_g_rule_lhs ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 Return value: On success, the LHS symbol of rule @var{rule_id}.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun Marpa_Rule_ID marpa_g_rule_new (Marpa_Grammar @var{g}, @
@@ -1695,7 +1695,7 @@ in the array of symbols @var{rhs_ids}.
 @end itemize
 
 Return value:  On success, the ID of new external rule.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID marpa_g_rule_rhs ( @
@@ -1711,7 +1711,7 @@ the ID of the symbol in position @var{ix}
 on the rules RHS.
 If @var{ix} is greater than or equal to the length of
 the rule,
-or on other failure, -2.
+or on other failure, @minus{}2.
 @end deftypefun
 
 @node Sequences, Ranks, Rules, Grammar methods
@@ -1729,7 +1729,7 @@ is set, 1.
 On success, if rule @var{rule_id}
 is a sequence rule where the proper separation flag
 is @strong{not} set, 0.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_sequence ( @
@@ -1739,7 +1739,7 @@ Return value:
 On success,
 if rule @var{rule_id} is a sequence rule, 1;
 otherwise, 0.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun Marpa_Rule_ID marpa_g_sequence_new (Marpa_Grammar @var{g}, @
@@ -1808,7 +1808,7 @@ setting the error code to
 @code{MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE}.
 
 Return value:  On success, the ID of the external rule.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @
@@ -1820,7 +1820,7 @@ the separator symbol of a sequence rule.
 
 Return value: On success,
 1 if symbol @var{symid} is counted, 0 if not.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @node Ranks, Grammar precomputation, Sequences, Grammar methods
@@ -1847,7 +1847,7 @@ are currently in the experimental stage.
 Return value: On success, the rank @strong{after}
 the call.
 If the grammar has been precomputed,
-or on other failure, -2.
+or on other failure, @minus{}2.
 
 @end deftypefun
 
@@ -1882,7 +1882,7 @@ Return value: On success, the setting
 of the ``null ranks high'' flag @strong{after}
 the call.
 If the grammar has been precomputed,
-or on other failure, -2.
+or on other failure, @minus{}2.
 
 @end deftypefun
 
@@ -1897,7 +1897,7 @@ from a grammar.
 On success, @code{marpa_g_precompute} returns a non-negative
 number to indicate that it precomputed the grammar without
 issues.
-On failure, @code{marpa_g_precompute} returns -2.
+On failure, @code{marpa_g_precompute} returns @minus{}2.
 
 Precomputation may return one or more events,
 which may be queried using the
@@ -1986,14 +1986,14 @@ because that is by far the convenient thing to do
 for the vast majority of applications.
 
 Return value: On success, a non-negative number.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_is_precomputed (Marpa_Grammar @var{g})
 Return value: On success, 1
 if grammar @var{g} is already precomputed,
 0 otherwise.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_has_cycle (Marpa_Grammar @var{g})
@@ -2006,7 +2006,7 @@ To determine which rules are in the cycle,
 
 Return value: On success, 1 if the grammar has a cycle,
 0 otherwise.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @node Grammar events,  , Grammar precomputation, Grammar methods
@@ -2034,12 +2034,12 @@ method.
 Return value:  On success, the type of event @var{ix}.
 If there is no @var{ix}'th event,
 if @var{ix} is negative,
-or on other failure, -2.
+or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_event_count ( Marpa_Grammar g )
 Return value:  On success, the number of events.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefn {Macro} int marpa_g_event_value (Marpa_Event* @var{event})
@@ -2127,7 +2127,7 @@ to zero, it too is destroyed.
 Makes @var{r} ready to accept input.
 
 Return value:  On success, a non-negative value.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_r_alternative (Marpa_Recognizer @var{r}, @
@@ -2304,7 +2304,7 @@ that the time and space resources consumed by
 the parse will prove excessive.
 
 Return value:  On success, the number of events generated.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @node Location accessors, Other parse status methods, Recognizer life cycle mutators, Recognizer methods
@@ -2349,12 +2349,12 @@ Return value:
 On success,
 the earleme corresponding to Earley
 set @var{set_id}.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
 Return value: If input has started, the current earleme.
-If input has not started, -1.
+If input has not started, @minus{}1.
 Always succeeds.
 @end deftypefun
 
@@ -2419,7 +2419,7 @@ in the grammar.
 
 Return value:  On success, the number of @code{Marpa_Symbol_ID}'s
 in @var{buffer}.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
@@ -2478,7 +2478,7 @@ the latest Earley set.
 Return value: On success, the number of report items available.
 If the recognizer has not been started;
 if @var{set_id} does not exist;
-or on other failure, -2.
+or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_r_progress_report_finish ( @
@@ -2492,7 +2492,7 @@ is destroyed automatically
 whenever a new progress report is started,
 and when the recognizer is destroyed.
 
-Return value: -2 if no progress report has been started,
+Return value: @minus{}2 if no progress report has been started,
 or on other failure.
 On success, a non-negative value.
 @end deftypefun
@@ -2505,7 +2505,7 @@ This method allows access to the data
 for the next item of a
 progress report.
 If there are no more progress report items,
-it returns -1 as a termination indicator
+it returns @minus{}1 as a termination indicator
 and sets the error code to @code{MARPA_ERR_PROGRESS_REPORT_EXHAUSTED}.
 Either the termination indicator,
 or the item count returned by
@@ -2524,10 +2524,10 @@ arguments are unchanged.
 
 Return value: On success, the rule ID of
 the next progress report item.
-If there are no more progress report items, -1.
+If there are no more progress report items, @minus{}1.
 If either the @var{position} or the @var{origin}
 argument is @code{NULL},
-or on other failure, @code{-2}.
+or on other failure, @minus{}2.
 @end deftypefun
 
 @node Bocage methods, Ordering methods, Progress reports, Top
@@ -2692,7 +2692,7 @@ basis of their rank.
 Return value:  On success, the  value of the
 ``high rank only'' flag @strong{after}
 the call.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_o_rank ( Marpa_Order @var{o} )
@@ -2704,7 +2704,7 @@ and the ``high rank only'' flag of the ordering.
 Once this method returns, the ordering is frozen.
 
 Return value:  On success, a non-negative value.
-On failure, -2.
+On failure, @minus{}2.
 
 @end deftypefun
 
@@ -2801,13 +2801,13 @@ the tree is said to be ``exhausted''.
 A tree iterator for a bocage with no parse trees
 is considered to be ``exhausted'' when initialized.
 If the tree iterator is exhausted, @code{marpa_t_next()}
-returns -1 as a termination indicator,
+returns @minus{}1 as a termination indicator,
 and sets the error code to 
 @code{MARPA_ERR_TREE_EXHAUSTED}.
 
 Return value: On success, a non-negative value.
-If the tree iterator is exhausted, -1.
-On failure, -2.
+If the tree iterator is exhausted, @minus{}1.
+On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_t_parse_count ( @
@@ -3282,7 +3282,7 @@ current one will fail
 Return value:  On success, the valued status @strong{after}
 the call.
 If @var{value} is not either 0 or 1,
-or on other failure, -2.
+or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_v_rule_is_valued ( @
@@ -3314,7 +3314,7 @@ Return value:  On success, the valued status of the
 rule @var{rule_id}'s LHS symbol @strong{after}
 the call.
 If @var{value} is not either 0 or 1,
-or on other failure, -2.
+or on other failure, @minus{}2.
 @end deftypefun
 
 @node Stepping through the valuator, Valuator steps by type, Registering semantics, Value methods
@@ -3334,7 +3334,7 @@ When the iteration through the steps is finished,
 Return value:  On success, the type of the step
 to be performed.
 This will always be a non-negative number.
-On failure, -2.
+On failure, @minus{}2.
 @end deftypefun
 
 @node Valuator steps by type, Basic step accessors, Stepping through the valuator, Value methods
@@ -3404,50 +3404,6 @@ is basic to the stack manipulation.
 The basic step accessors are implemented as macros.
 They always succeed.
 
-@deftypefn {Macro} Marpa_Step_Type marpa_v_step_type (Marpa_Value @var{v})
-Return value: Returns the current step type:
-@code{MARPA_STEP_TOKEN},
-@code{MARPA_STEP_RULE},
-etc.
-Usually not needed since this is also the return value of
-@code{marpa_v_step()}.
-@end deftypefn
-
-@deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
-Return value: Returns the ID of the token
-for the @code{MARPA_STEP_TOKEN} step.
-@end deftypefn
-
-@deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
-Return value: Returns the ID of the token
-for the @code{MARPA_STEP_TOKEN} step.
-@end deftypefn
-
-@deftypefn {Macro} Marpa_Symbol_ID marpa_v_symbol (Marpa_Value @var{v})
-Return value: Returns the ID of the symbol
-for the @code{MARPA_STEP_NULLING_SYMBOL} step.
-The value is always the same as that for the @code{marpa_v_token()}
-macro.
-@end deftypefn
-
-@deftypefn {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
-Return value: Returns the integer which is
-(or which represents)
-the value of the token for the
-@code{MARPA_STEP_TOKEN} step.
-@end deftypefn
-
-@deftypefn {Macro} Marpa_Rule_ID marpa_v_rule (Marpa_Value @var{v})
-Return value: Returns the ID of the rule
-token for the
-@code{MARPA_STEP_RULE} step.
-@end deftypefn
-
-@deftypefn {Macro} int marpa_v_result (Marpa_Value @var{v})
-Return the stack location where the result of the semantics
-should be placed.
-@end deftypefn
-
 @deftypefn {Macro} int marpa_v_arg_0 (Marpa_Value @var{v})
 For a @code{MARPA_STEP_RULE} step,
 returns the stack location where the value of first child
@@ -3462,6 +3418,45 @@ returns the stack location where the value of the last child
 can be found.
 @end deftypefn
 
+@deftypefn {Macro} int marpa_v_result (Marpa_Value @var{v})
+Return the stack location where the result of the semantics
+should be placed.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Rule_ID marpa_v_rule (Marpa_Value @var{v})
+Return value: Returns the ID of the rule
+token for the
+@code{MARPA_STEP_RULE} step.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Step_Type marpa_v_step_type (Marpa_Value @var{v})
+Return value: Returns the current step type:
+@code{MARPA_STEP_TOKEN},
+@code{MARPA_STEP_RULE},
+etc.
+Usually not needed since this is also the return value of
+@code{marpa_v_step()}.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Symbol_ID marpa_v_symbol (Marpa_Value @var{v})
+Return value: Returns the ID of the symbol
+for the @code{MARPA_STEP_NULLING_SYMBOL} step.
+The value is always the same as that for the @code{marpa_v_token()}
+macro.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
+Return value: Returns the ID of the token
+for the @code{MARPA_STEP_TOKEN} step.
+@end deftypefn
+
+@deftypefn {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
+Return value: Returns the integer which is
+(or which represents)
+the value of the token for the
+@code{MARPA_STEP_TOKEN} step.
+@end deftypefn
+
 @node Other step accessors,  , Basic step accessors, Value methods
 @section Other step accessors
 
@@ -3474,7 +3469,7 @@ All of these accessors always succeed, but
 if called when they are irrelevant
 they return an unspecified value.
 In this context, an ``unspecified value'' is a value
-that is either |-1| or the ID of a valid Earley set,
+that is either @minus{}1 or the ID of a valid Earley set,
 but which is otherwise unpredictable.
 
 @deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_es_id(Marpa_Value @var{v})
@@ -3482,7 +3477,7 @@ Return value:
 If the current step type is @code{MARPA_STEP_RULE},
 the Earley Set ordinal where the rule ends.
 If the current step type is
-@code{MARPA_STEP_TOKEN},
+@code{MARPA_STEP_TOKEN}
 or @code{MARPA_STEP_NULLING_SYMBOL},
 the Earley Set ordinal where the symbol ends.
 If the current step type is anything else, an unspecified value.
@@ -3992,7 +3987,7 @@ A symbol or rule rank was specified which
 was less than an implementation-defined minimum.
 Implementations will always allow at least those
 ranks in the range between
--134,217,727 and 134,217,727.
+@minus{}134,217,727 and 134,217,727.
 Numeric value: 85.
 Suggested message: "Rule or symbol rank too low".
 @end deftypevr
@@ -4002,7 +3997,7 @@ A symbol or rule rank was specified which
 was greater than an implementation-defined maximum.
 Implementations will always allow at least those
 ranks in the range between
--134,217,727 and 134,217,727.
+@minus{}134,217,727 and 134,217,727.
 Numeric value: 86.
 Suggested message: "Rule or symbol rank too high".
 @end deftypevr
@@ -4491,7 +4486,7 @@ Applications may find this behavior useful.
 
 Return value: On success, the rank @strong{after}
 the call.
-On failure, -2.
+On failure, @minus{}2.
 
 @end deftypefun
 
@@ -4511,7 +4506,7 @@ initialized to the default rank of the grammar.
 Return value: On success, the rank @strong{after}
 the call.
 If the grammar has been precomputed,
-or on other failure, -2.
+or on other failure, @minus{}2.
 
 @end deftypefun
 
