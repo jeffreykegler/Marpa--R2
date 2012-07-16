@@ -156,6 +156,7 @@ Value methods
 * Stepping through the valuator::  
 * Valuator steps by type::      
 * Basic step accessors::        
+* Other step accessors::        
 
 Maintaining the stack
 
@@ -2680,7 +2681,7 @@ base grammar, if necessary.
 @deftypefunx int marpa_o_high_rank_only ( @
     Marpa_Order @var{o})
 These methods, respectively, set and discover
-the ``high rank only'' flag of ordering @var{0}.
+the ``high rank only'' flag of ordering @var{o}.
 A flag of 1 indicates that, when ranking,
 all choices should be discarded except those of the
 highest rank.
@@ -2836,6 +2837,7 @@ Always succeeds.
 * Stepping through the valuator::  
 * Valuator steps by type::      
 * Basic step accessors::        
+* Other step accessors::        
 @end menu
 
 @node Value overview, How to use the valuator, Value methods, Value methods
@@ -3394,7 +3396,7 @@ yet to go through any steps.
 These step types are reserved for internal purposes.
 @end deftypevr
 
-@node Basic step accessors,  , Valuator steps by type, Value methods
+@node Basic step accessors, Other step accessors, Valuator steps by type, Value methods
 @section Basic step accessors
 
 The basic step accessors are so called because their information
@@ -3458,6 +3460,47 @@ macro.
 For a @code{MARPA_STEP_RULE} step,
 returns the stack location where the value of the last child
 can be found.
+@end deftypefn
+
+@node Other step accessors,  , Basic step accessors, Value methods
+@section Other step accessors
+
+This section contains the step accessors that
+are not basic to stack manipulation, but which provide
+other useful information about the parse.
+These step accessors are implemented as macros.
+
+All of these accessors always succeed, but
+if called when they are irrelevant
+they return an unspecified value.
+In this context, an ``unspecified value'' is a value
+that is either |-1| or the ID of a valid Earley set,
+but which is otherwise unpredictable.
+
+@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_es_id(Marpa_Value @var{v})
+Return value:
+If the current step type is @code{MARPA_STEP_RULE},
+the Earley Set ordinal where the rule ends.
+If the current step type is
+@code{MARPA_STEP_TOKEN},
+or @code{MARPA_STEP_NULLING_SYMBOL},
+the Earley Set ordinal where the symbol ends.
+If the current step type is anything else, an unspecified value.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_rule_start_es_id(Marpa_Value @var{v})
+Return value:
+If the current step type is @code{MARPA_STEP_RULE},
+the Earley Set ordinal where the rule begins.
+If the current step type is anything else, an unspecified value.
+@end deftypefn
+
+@deftypefn {Macro} Marpa_Earley_Set_ID marpa_v_token_start_es_id(Marpa_Value @var{v})
+Return value:
+If the current step type is @code{MARPA_STEP_TOKEN}
+or @code{MARPA_STEP_NULLING_SYMBOL},
+the Earley Set ordinal where the token begins.
+If the current step type is anything else, an unspecified value.
 @end deftypefn
 
 @node Event codes, Error macros and codes, Value methods, Top

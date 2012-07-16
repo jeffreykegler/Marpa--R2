@@ -59,15 +59,18 @@ and their implementation follows a "general pattern".
 This document describes that "general pattern".
 
 Methods that follow
-the general pattern are not specifically mentioned.
+the general pattern are usually
+not mentioned specifically.
 Methods that are
 exceptions
 to the general pattern
-are described in detail.
-Those
-Libmarpa methods to which
-no Marpa thin interface method directly corresponds
-are identified.
+are always mentioned,
+and behaviors which deviate from the general
+pattern are always described in detail.
+This document also identifies
+those Libmarpa
+methods to which
+no Marpa thin interface method directly corresponds.
 
 This style of documentation 
 is very efficient,
