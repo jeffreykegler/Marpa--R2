@@ -533,7 +533,7 @@ Every location after the start location has exactly one input token
 associated with it.
 
 Some applications
-do not fit this traditional input model -- 
+do not fit this traditional input model --- 
 natural language processing requires ambiguous tokens,
 for example.
 Libmarpa allows a wide variety of alternative input models.
@@ -804,7 +804,7 @@ to @code{marpa_r_earleme_complete()}.
 
 To fully generalize the input model,
 we now need to remove only one restriction.
-We now allow empty earlemes -- earlemes with
+We now allow empty earlemes --- earlemes with
 no tokens and no Earley set.
 For the generalized input model,
 the effect on the earleme variables of
@@ -1005,7 +1005,7 @@ The valued status of terminals is marked the first
 time they are read.
 The valued status of LHS symbols must be explicitly
 marked by the application when initializing the
-valuator -- this is Libmarpa's equivalent of
+valuator --- this is Libmarpa's equivalent of
 registering a callback.
 
 LHS terminals are disabled by default.
@@ -1023,7 +1023,7 @@ Doing so usually saves the programmer
 some tricky debugging further down the road.
 But it is possible that an application might deliberately
 want to mix
-valued and unvalued uses of a symbol -- an application
+valued and unvalued uses of a symbol --- an application
 might be able to differentiate them using the larger
 context, or might be tolerant of the uncertainty.
 If there is interest,
@@ -1625,7 +1625,7 @@ produces the string of length one
 which consists only of its LHS symbol.
 Such a derivation takes the parse back to where
 it started, hence the term ``loop''.
-``Non-trivially'' means the zero-step derivation does not count -- the
+``Non-trivially'' means the zero-step derivation does not count --- the
 derivation must have at least one step.
 
 The presence of a loop rule makes a grammar infinitely ambiguous,
@@ -1750,7 +1750,7 @@ On failure, @minus{}2.
  int @var{flags} )
 Adds a new sequence rule to grammar @var{g}.
 Sequence rules do not add to the classes of grammar parsed
-by Libmarpa --
+by Libmarpa ---
 a sequence can always be written as BNF rules.
 When a rule is created
 with the @code{marpa_g_sequence_new()} method,
@@ -1917,7 +1917,7 @@ but will not prevent the grammar from being precomputed.
 
 Each @code{MARPA_EVENT_COUNTED_NULLABLE} event is a symbol
 which is a nullable on the right hand side of a sequence
-rule -- a ``counted'' symbol.
+rule --- a ``counted'' symbol.
 The presence of one or more of these will cause failure
 to be reported,
 and will prevent the grammar from being precomputed.
@@ -2150,7 +2150,7 @@ expected that the application will use this value as
 a ``virtual'' value,
 perhaps finding the actual value by using @var{value}
 to index an array.
-@var{value} is not used inside Libmarpa -- it is simply
+@var{value} is not used inside Libmarpa --- it is simply
 stored to be returned by the valuator
 as a convenience for the application.
 Some applications may prefer to track token values on
@@ -2158,8 +2158,8 @@ their own, perhaps based on
 the earleme location and @var{token_id},
 instead of using Libmarpa's token values.
 
-A @var{value} of 0 has special significance -- it indicates
-that the token is unvalued -- that its value is allowed
+A @var{value} of 0 has special significance --- it indicates
+that the token is unvalued --- that its value is allowed
 to be unpredictable.
 Note that if a token is unvalued,
 it must be the case,
@@ -2253,7 +2253,7 @@ On failure, some other error code.
 This method does the final processing for the current earleme.
 It then advances the current earleme by one.
 Note that @code{marpa_r_earleme_complete()} may be called
-even when no tokens have been read at the current earleme --
+even when no tokens have been read at the current earleme ---
 in the character-per-earleme input model, for example, tokens
 can span many characters and, if the input is unambiguous over that
 span, there will be no other tokens that start inside it.
@@ -2290,8 +2290,8 @@ be at least as interested in the events as those
 that succeed.
 
 @code{MARPA_EVENT_EXHAUSTED} indicates that the parse is
-exhausted -- that no input will be accepted at later earlemes.
-Note that an exhausted parse can be a successful one -- it
+exhausted --- that no input will be accepted at later earlemes.
+Note that an exhausted parse can be a successful one --- it
 just cannot succeed at a later earleme than the current one.
 
 The @code{MARPA_EVENT_EARLEY_ITEM_THRESHOLD} event
@@ -2336,7 +2336,7 @@ One consideration in writing
 such a method is that not all earlemes correspond to Earley sets.
 Applications that want to map earlemes
 to Earley sets will have no trouble if they
-are using the standard input model --
+are using the standard input model ---
 the Earley set
 ID is always exactly equal to the earleme in that model.
 For other applications
@@ -3011,7 +3011,7 @@ a roundabout approach,
 it is simpler and more direct than
 the likely alternatives.
 And there is something to be said for pushing
-semantics up to the higher levels --
+semantics up to the higher levels ---
 they can be expected to know more about it.
 
 These advantages of step-driven valuation
@@ -3100,7 +3100,7 @@ it must make sure the stack is large enough.
 Specifically, the application must do the following
 
 @itemize
-@item Ensure location 0 exists -- in other
+@item Ensure location 0 exists --- in other
 words that the stack is at least length 1.
 @item For @code{MARPA_STEP_TOKEN} steps,
 ensure that location @code{marpa_v_result(v)}
@@ -3306,7 +3306,7 @@ current one will fail
 Rules have no valued status of their own.
 The valued status of a rule
 is always that of its LHS symbol.
-These methods are conveniences -- they
+These methods are conveniences --- they
 save the application the trouble of looking
 up the rule's LHS.
 
@@ -3380,7 +3380,7 @@ and is now inactive.
 The value of the parse will be in stack location 0.
 Because of unvalued symbols,
 it is quite possible for valuator to immediately
-became inactive -- @code{MARPA_STEP_INACTIVE} could
+became inactive --- @code{MARPA_STEP_INACTIVE} could
 be both the first and last step.
 
 @end deftypevr
@@ -3520,7 +3520,7 @@ Suggested message: "Too many Earley items".
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_LOOP_RULES
-One or more rules are loop rules -- rules
+One or more rules are loop rules --- rules
 that are part of a cycle.
 Cycles are pathological cases of recursion,
 in which the same symbol string derives itself
@@ -3724,7 +3724,7 @@ Suggested message: "Marpa is in a not OK state".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_GRAMMAR_HAS_CYCLE
-The grammar has a cycle -- one or more loop
+The grammar has a cycle --- one or more loop
 rules.
 This is a recoverable error,
 although most applications will want to treat
@@ -3737,7 +3737,7 @@ Suggested message: "Grammar has cycle".
 @deftypevr Macro int MARPA_ERR_INACCESSIBLE_TOKEN
 This error code indicates that
 indicates that
-the token symbol is an inaccessible symbol -- one which
+the token symbol is an inaccessible symbol --- one which
 cannot be reached from the start symbol.
 
 Since the inaccessibility of a symbol is a property of the grammar,
@@ -3976,7 +3976,7 @@ Suggested message: "No progress report has been started".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_PROGRESS_REPORT_EXHAUSTED
-The progress report is ``exhausted'' -- all its
+The progress report is ``exhausted'' --- all its
 items have been iterated through.
 Numeric value: 58.
 Suggested message: "The progress report is exhausted".
@@ -4189,7 +4189,7 @@ Second, it can be an error code which only occurs
 when a method from Libmarpa's internal interface
 is used.
 Both kinds of internal error message share one common
-trait -- users of the Libmarpa's external interface
+trait --- users of the Libmarpa's external interface
 should never see them.
 
 Internal error messages
@@ -4370,7 +4370,7 @@ But while it would be easy to add an option
 to bypass creation of an ordering object,
 there is little to be gained from it.
 When the ordering is trivial,
-its overhead is very small --
+its overhead is very small ---
 essentially a handful of subroutine calls.
 Many orderings accomplish nothing,
 but these cost next to nothing.
