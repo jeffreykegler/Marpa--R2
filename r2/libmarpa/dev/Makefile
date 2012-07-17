@@ -28,6 +28,7 @@ MARPA_PDF_SOURCES = cwebmac.tex marpa.w copyright_page_license.w
 DOC_SOURCE_FILES = \
     ../doc/configure.ac \
     ../doc/Makefile.am \
+    ../doc/fdl.texi \
     ../doc/api.texi \
     ../doc/internal.texi \
     ../doc/NEWS \
@@ -177,6 +178,9 @@ marpa.pdf: marpa.tex cwebmac.tex
 	cp $? $@
 
 ../doc/ChangeLog: doc_dist/ChangeLog
+	cp $? $@
+
+../doc/fdl.texi: doc_dist/fdl.texi
 	cp $? $@
 
 ../doc/api.texi: api.texi
