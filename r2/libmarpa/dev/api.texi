@@ -30,13 +30,14 @@ Published @value{UPDATED} by Jeffrey Kegler
 @c So the toc is printed at the start.
 @contents
 @ifnottex
-@node Top, About this document, (dir), (dir)
+@node Top, Copying Conditions, (dir), (dir)
 @top Libmarpa: The Marpa low-level library
 
 This manual is for Libmarpa, version @value{VERSION}.
 
 @end ifnottex
 @menu
+* Copying Conditions::          
 * About this document::         
 * About Libmarpa::              
 * Architecture::                
@@ -58,6 +59,8 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Error macros and codes::      
 * Design notes::                
 * Work in Progress::            
+* GNU Free Documentation License::  
+* Index::                       
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -183,7 +186,15 @@ Work in Progress
 @end detailmenu
 @end menu
 
-@node About this document, About Libmarpa, Top, Top
+@node Copying Conditions, About this document, Top, Top
+@unnumbered Texinfo Copying Conditions
+@cindex Copying conditions
+
+This manual is covered by
+the GNU Free Documentation License (@pxref{GNU Free Documentation
+License}).
+
+@node About this document, About Libmarpa, Copying Conditions, Top
 @chapter About this document
 
 @menu
@@ -4447,7 +4458,7 @@ For this reason,
 the traditional behavior is the default
 in Libmarpa.
 
-@node Work in Progress,  , Design notes, Top
+@node Work in Progress, GNU Free Documentation License, Design notes, Top
 @chapter Work in Progress
 
 @menu
@@ -4509,5 +4520,15 @@ If the grammar has been precomputed,
 or on other failure, @minus{}2.
 
 @end deftypefun
+
+@node GNU Free Documentation License, Index, Work in Progress, Top
+@appendix GNU Free Documentation License
+
+@include fdl.texi
+
+@node Index,  , GNU Free Documentation License, Top
+@unnumbered Index
+
+@printindex cp
 
 @bye
