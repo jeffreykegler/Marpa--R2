@@ -60,7 +60,6 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Design notes::                
 * Work in Progress::            
 * GNU Free Documentation License::  
-* Index::                       
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -4521,14 +4520,9 @@ or on other failure, @minus{}2.
 
 @end deftypefun
 
-@node GNU Free Documentation License, Index, Work in Progress, Top
+@node GNU Free Documentation License,  , Work in Progress, Top
 @appendix GNU Free Documentation License
 
 @include fdl.texi
-
-@node Index,  , GNU Free Documentation License, Top
-@unnumbered Index
-
-@printindex cp
 
 @bye
