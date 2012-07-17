@@ -280,6 +280,8 @@ my %files_by_type = (
     'libmarpa/dev/dist/NEWS'      => \&trivial,
     'libmarpa/dev/dist/README'    => \&license_problems_in_text_file,
     'libmarpa/dev/doc_dist/AUTHORS' => \&trivial,
+    'libmarpa/dev/doc_dist/fdl.texi' => 
+	\&ignored,    # GNU license text, leave it alone
     'libmarpa/dev/doc_dist/COPYING.LESSER' =>
 	\&ignored,    # GNU license text, leave it alone
     'libmarpa/dev/doc_dist/ChangeLog' => \&trivial,

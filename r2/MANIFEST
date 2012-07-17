@@ -107,6 +107,7 @@ libmarpa/dev/doc_dist/Makefile.am
 libmarpa/dev/doc_dist/NEWS
 libmarpa/dev/doc_dist/README
 libmarpa/dev/doc_dist/configure.ac
+libmarpa/dev/doc_dist/fdl.texi
 libmarpa/dev/internal.texi
 libmarpa/dev/marpa.w
 libmarpa/dev/marpa_obs.c
