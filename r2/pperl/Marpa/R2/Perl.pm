@@ -904,7 +904,7 @@ sub Marpa::R2::Perl::new {
                 next RHS;
             } ## end if ( $rhs_desc =~ m/\A ['] ([^']*) ['] \z/xms )
             push @rhs, $rhs_desc;
-        } ## end for my $rhs_desc ( split q{ }, $rhs_string )
+        } ## end RHS: for my $rhs_desc ( split q{ }, $rhs_string )
 
         for my $symbol ( $lhs, @rhs ) {
             $symbol{$symbol} //= 0;
@@ -915,7 +915,7 @@ sub Marpa::R2::Perl::new {
         $symbol{$lhs}++;
 
         my @additional_args = ();
-	my $closure_type = ref $gen_closure;
+        my $closure_type    = ref $gen_closure;
         if ( $closure_type eq 'CODE' ) {
             $rule_name ||= q{!} . scalar @rules;
             my ($action) = $gen_closure->( $lhs, \@rhs, $rule_name );
@@ -943,24 +943,25 @@ sub Marpa::R2::Perl::new {
             @additional_args, name => $rule_name
             };
 
-    } ## end for my $line ( split /\n/xms, $reference_grammar )
+    } ## end LINE: for my $line ( split /\n/xms, $reference_grammar )
 
     my $start = 'prog';
     if ($embedded) {
-	push @rules,
-        [ 'embedded_prog', [ qw(non_perl_prefix prog) ] ],
-        [ 'embedded_prog', [ qw(non_perl_prefix prog embedded_end_marker ) ] ],
-	{
-	    lhs => 'non_perl_prefix',
-	    rhs => [ 'prefix_token' ],
-	    min => 0,
-	};
-	$start = 'embedded_prog';
-    }
+        push @rules, [ 'embedded_prog', [qw(non_perl_prefix prog)] ],
+            [
+            'embedded_prog', [qw(non_perl_prefix prog embedded_end_marker )]
+            ],
+            {
+            lhs => 'non_perl_prefix',
+            rhs => ['prefix_token'],
+            min => 0,
+            };
+        $start = 'embedded_prog';
+    } ## end if ($embedded)
 
     my $grammar = Marpa::R2::Grammar->new(
-        {   start         => $start,
-            rules         => \@rules,
+        {   start => $start,
+            rules => \@rules,
         }
     );
 
@@ -1024,7 +1025,7 @@ sub Marpa::R2::Perl::read {
             next HASH_ARG;
         }
         Carp::croak("Unknown hash arg: $arg");
-    } ## end while ( my ( $arg, $value ) = each %{$hash_arg} )
+    } ## end HASH_ARG: while ( my ( $arg, $value ) = each %{$hash_arg} )
 
     my $grammar = $parser->{grammar};
 
@@ -1155,7 +1156,7 @@ sub Marpa::R2::Perl::read {
                     $token_found = 1;
                     defined $recce->alternative( $type, \$content, 1 )
                         or token_not_accepted( $token, $type, $content, 1 );
-                } ## end for my $type (@potential_types)
+                } ## end TYPE: for my $type (@potential_types)
                 defined $token_found or unknown_ppi_token($token);
                 $recce->earleme_complete();
                 next TOKEN;
@@ -1174,7 +1175,7 @@ sub Marpa::R2::Perl::read {
                     $token_found = 1;
                     defined $recce->alternative( $type, \$content, 1 )
                         or token_not_accepted( $token, $type, $content, 1 );
-                } ## end for my $type (@potential_types)
+                } ## end TYPE: for my $type (@potential_types)
                 defined $token_found or unknown_ppi_token($token);
                 $recce->earleme_complete();
                 next TOKEN;
@@ -1221,7 +1222,7 @@ sub Marpa::R2::Perl::read {
                     $token_found = 1;
                     defined $recce->alternative( $type, \$content, 1 )
                         or token_not_accepted( $token, $type, $content, 1 );
-                } ## end for my $type (@potential_types)
+                } ## end TYPE: for my $type (@potential_types)
                 defined $token_found or unknown_ppi_token($token);
                 $recce->earleme_complete();
                 next TOKEN;
@@ -1268,7 +1269,7 @@ sub Marpa::R2::Perl::read {
 
         unknown_ppi_token($token);
 
-    } ## end for ( my $PPI_token_ix = 0; $PPI_token_ix <= $#PPI_tokens...)
+    } ## end TOKEN: for ( my $PPI_token_ix = 0; $PPI_token_ix <= $#PPI_tokens...)
 
     $recce->end_input();
     $parser->{recce}                = $recce;
