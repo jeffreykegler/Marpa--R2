@@ -945,18 +945,30 @@ sub Marpa::R2::Perl::new {
 
     } ## end for my $line ( split /\n/xms, $reference_grammar )
 
+    my $start = 'prog';
+    if ($embedded) {
+	push @rules,
+        [ 'embedded_prog', [ qw(non_perl_prefix prog) ] ],
+        [ 'embedded_prog', [ qw(non_perl_prefix prog embedded_end_marker ) ] ],
+	{
+	    lhs => 'non_perl_prefix',
+	    rhs => [ 'prefix_token' ],
+	    min => 0,
+	};
+	$start = 'embedded_prog';
+    }
+
     my $grammar = Marpa::R2::Grammar->new(
-        {   start         => 'prog',
+        {   start         => $start,
             rules         => \@rules,
         }
     );
 
     $grammar->precompute();
 
-    return bless {
-        grammar => $grammar,
-        closure => \%closure,
-    }, $class;
+    my $self = bless { grammar => $grammar, closure => \%closure }, $class;
+    $self->{embedded} = 1 if $embedded;
+    return $self;
 
 } ## end sub Marpa::R2::Perl::new
 
