@@ -86,7 +86,7 @@ END_OF_RESULT
     );
 } ## end else [ if ($utility) ]
 
-my $parser = Marpa::R2::Perl->new( {} );
+my $parser = Marpa::R2::Perl->new( { closures => {} } );
 
 TEST: for my $test (@tests) {
 

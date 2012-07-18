@@ -851,12 +851,33 @@ my %rule_rank = (
 );
 
 sub Marpa::R2::Perl::new {
-    my ( $class, $gen_closure ) = @_;
+    my ( $class, $args ) = @_;
+    $args //= {};
+    my $gen_closure;
+    my $embedded = 0;
 
-    my $closure_type = ref $gen_closure;
-    if ( $closure_type ne 'HASH' and $closure_type ne 'CODE' ) {
-        die 'Closure argument to new must be HASH or CODE ref';
-    }
+    die 'Closure argument to new must be HASH of named arguments'
+        if ref $args ne 'HASH';
+
+    NAMED_ARG: for my $named_arg ( keys %{$args} ) {
+        if ( $named_arg eq 'closures' ) {
+            $gen_closure = $args->{$named_arg};
+            my $closure_type = ref $gen_closure;
+            if ( $closure_type ne 'HASH' and $closure_type ne 'CODE' ) {
+                die 'Closure argument to new must be HASH or CODE ref';
+            }
+            next NAMED_ARG;
+        } ## end if ( $named_arg eq 'closures' )
+        if ( $named_arg eq 'embedded' ) {
+            $embedded = $args->{$named_arg} ? 1 : 0;
+            next NAMED_ARG;
+        }
+        die qq{"Unknown named argument to new(): "$named_arg"};
+    } ## end NAMED_ARG: for my $named_arg ( keys %{$args} )
+
+    die q{"closure" named argument is required}
+        if not defined $gen_closure;
+
     my %symbol = ();
     my @rules;
     my %closure;
@@ -894,6 +915,7 @@ sub Marpa::R2::Perl::new {
         $symbol{$lhs}++;
 
         my @additional_args = ();
+	my $closure_type = ref $gen_closure;
         if ( $closure_type eq 'CODE' ) {
             $rule_name ||= q{!} . scalar @rules;
             my ($action) = $gen_closure->( $lhs, \@rhs, $rule_name );

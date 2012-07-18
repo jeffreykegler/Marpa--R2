@@ -456,7 +456,7 @@ my %closure = ();
 
 ## Tests from dumper.t
 
-my $parser = Marpa::R2::Perl->new( \&gen_closure );
+my $parser = Marpa::R2::Perl->new( { closures => \&gen_closure } );
 
 # Perlcritic cannot figure out that $a and $b are not magic variables
 # for a sort comparison

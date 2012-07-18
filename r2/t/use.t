@@ -99,7 +99,7 @@ sub gen_closure {
     };
 } ## end sub gen_closure
 
-my $parser = Marpa::R2::Perl->new( \&gen_closure );
+my $parser = Marpa::R2::Perl->new( { closures => \&gen_closure } );
 
 my $string;
 if ($utility) {
