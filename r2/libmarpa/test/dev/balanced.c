@@ -19,10 +19,14 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <glib.h>
 #include "marpa.h"
 
 #define Dim(x) (sizeof(x)/sizeof(*x))
+
+#if defined (__GNUC__) && defined (__STRICT_ANSI__)
+#  undef inline
+#  define inline __inline__
+#endif
 
 Marpa_AHFA_State_ID first_balanced_completion;
 
@@ -39,7 +43,7 @@ struct leo_workitem
 static inline char *
 gen_example_string (int length)
 {
-  char *result = g_malloc ((guint) length + 1);
+  char *result = malloc ((unsigned int) length + 1);
   int i;
   for (i = 0; i < length - 8; i++)
     {
@@ -55,12 +59,12 @@ create_recce (struct marpa_g *g)
   struct marpa_r *r = marpa_r_new (g);
   if (!r)
     {
-      puts (marpa_r_error (r));
+      puts (marpa_g_error (g));
       exit (1);
     }
   if (!marpa_start_input (r))
     {
-      puts (marpa_r_error (r));
+      puts (marpa_g_error (g));
       exit (1);
     }
   return r;
@@ -77,7 +81,7 @@ static Marpa_Earley_Set_ID
 at_first_balanced_completion (struct marpa_r *r, int current_earley_set)
 {
   int eim = 0;
-  guint work_item_ix;
+  unsigned int work_item_ix;
 
   GArray *leo_worklist =
     g_array_new (TRUE, FALSE, sizeof (struct leo_workitem));
@@ -189,8 +193,8 @@ at_first_balanced_completion (struct marpa_r *r, int current_earley_set)
   return -1;
 }
 
-static gint string_length = 1000;
-static gint repeats = 1;
+static int string_length = 1000;
+static int repeats = 1;
 static char *string = NULL;
 
 static GOptionEntry entries[] = {
@@ -295,8 +299,8 @@ main (int argc, char **argv)
 	first_balanced_completion = -1;
 	for (ahfa_id = 0; ahfa_id < AHFA_state_count; ahfa_id++)
 	  {
-	    guint aim_ix;
-	    guint aim_count = marpa_AHFA_state_item_count (g, ahfa_id);
+	    unsigned int aim_ix;
+	    unsigned int aim_count = marpa_AHFA_state_item_count (g, ahfa_id);
 	    for (aim_ix = 0; aim_ix < aim_count; aim_ix++)
 	      {
 		int aim_id = marpa_AHFA_state_item (g, ahfa_id, aim_ix);
