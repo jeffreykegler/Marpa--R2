@@ -53,7 +53,7 @@ main (int argc, char **argv)
     }
   await_input ();
 
-  marpa_c_default (&marpa_configuration);
+  marpa_c_init (&marpa_configuration);
   g = marpa_g_new (&marpa_configuration);
   if (!g) {
     Marpa_Error_Code errcode = marpa_c_error (&marpa_configuration, &error_string);
