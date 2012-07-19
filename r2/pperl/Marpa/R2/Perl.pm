@@ -1092,10 +1092,12 @@ sub read_PPI_token {
                 Data::Dumper::Dumper($token) );
             goto SUCCESS;
         }
-        defined $recce->read( $symbol_name, $sigil )
+        defined $recce->alternative( $symbol_name, \$sigil )
             or token_not_accepted( $token, $symbol_name, $sigil );
-        defined $recce->read( 'WORD', $word )
+	$recce->earleme_complete();
+        defined $recce->alternative( 'WORD', \$word )
             or token_not_accepted( $token, 'WORD', $word );
+	$recce->earleme_complete();
         goto SUCCESS;
     } ## end if ( $PPI_type eq 'PPI::Token::Symbol' )
 
@@ -1110,8 +1112,9 @@ sub read_PPI_token {
                     "\n";
             }
             $token_found = 1;
-            defined $recce->read( $perl_type, $cast )
+            defined $recce->alternative( $perl_type, \$cast )
                 or token_not_accepted( $token, $perl_type, $cast );
+            $recce->earleme_complete();
         } ## end for my $cast ( split //xms, $content )
         defined $token_found or unknown_ppi_token($token);
         goto SUCCESS;
@@ -1132,21 +1135,25 @@ sub read_PPI_token {
             goto SUCCESS;
         } ## end if ( $perl_type eq 'WORD' )
         if ( $perl_type eq 'PHASER' ) {
-            defined $recce->read('SUB')
+            defined $recce->alternative('SUB')
                 or token_not_accepted( $token, 'PHASER', 'no value' );
-            defined $recce->read( 'WORD', $content )
+            $recce->earleme_complete();
+            defined $recce->alternative( 'WORD', \$content )
                 or token_not_accepted( $token, 'WORD', $content );
+            $recce->earleme_complete();
             goto SUCCESS;
         } ## end if ( $perl_type eq 'PHASER' )
-        defined $recce->read( $perl_type, $content )
+        defined $recce->alternative( $perl_type, \$content )
             or token_not_accepted( $token, $perl_type, $content );
+	$recce->earleme_complete();
         goto SUCCESS;
     } ## end if ( $PPI_type eq 'PPI::Token::Word' )
 
     if ( $PPI_type eq 'PPI::Token::Label' ) {
         my $content = $token->{content};
-        defined $recce->read( 'LABEL', $content )
+        defined $recce->alternative( 'LABEL', \$content )
             or token_not_accepted( $token, 'LABEL', $content );
+	$recce->earleme_complete();
         goto SUCCESS;
     } ## end if ( $PPI_type eq 'PPI::Token::Label' )
 
@@ -1195,8 +1202,9 @@ sub read_PPI_token {
             $recce->earleme_complete();
             goto SUCCESS;
         } ## end if ( $perl_type eq 'MINUS' )
-        defined $recce->read( $perl_type, $content )
+        defined $recce->alternative( $perl_type, \$content )
             or token_not_accepted( $token, $perl_type, $content );
+	$recce->earleme_complete();
         goto SUCCESS;
     } ## end if ( $PPI_type eq 'PPI::Token::Operator' )
 
@@ -1216,11 +1224,13 @@ sub read_PPI_token {
                 and 'SEMI' ~~ $expected_tokens
                 )
             {
-                defined $recce->read( 'SEMI', q{;} )
+                defined $recce->alternative( 'SEMI', \q{;} )
                     or token_not_accepted( $token, 'SEMI', q{;} );
+		$recce->earleme_complete();
             } ## end if ( ( not defined $Marpa::R2::Perl::LAST_PERL_TYPE ...))
-            defined $recce->read( $perl_type, $content )
+            defined $recce->alternative( $perl_type, \$content )
                 or token_not_accepted( $token, $perl_type, $content );
+	    $recce->earleme_complete();
             goto SUCCESS;
         } ## end if ( $perl_type eq 'RCURLY' )
         if ( $perl_type eq 'LCURLY' ) {
