@@ -1050,7 +1050,7 @@ sub Marpa::R2::Perl::read {
     $parser->{earleme_to_PPI_token} = \@earleme_to_PPI_token;
 
     # For use by read_PPI_token
-    local $Marpa::R2::Perl::last_perl_type = undef;
+    local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
 
     TOKEN:
     for (
@@ -1061,8 +1061,8 @@ sub Marpa::R2::Perl::read {
     {
         my $current_earleme = $recce->current_earleme();
         $earleme_to_PPI_token[$current_earleme] //= $PPI_token_ix;
-        my $token    = $PPI_tokens[$PPI_token_ix];
-         read_PPI_token($parser, $token);
+        my $token = $PPI_tokens[$PPI_token_ix];
+        read_PPI_token( $parser, $token );
     } ## end TOKEN: for ( my $PPI_token_ix = 0; $PPI_token_ix <= $#PPI_tokens...)
 
     $recce->end_input();
@@ -1070,226 +1070,225 @@ sub Marpa::R2::Perl::read {
 
 } ## end sub Marpa::R2::Perl::read
 
-sub read_PPI_token
-{
-	my ($parser, $token) = @_;
-	my $recce = $parser->{recce};
-        my $PPI_type = ref $token;
-        return 1 if $PPI_type eq 'PPI::Token::Whitespace';
-        return 1 if $PPI_type eq 'PPI::Token::Comment';
-        my $perl_type = undef;
+sub read_PPI_token {
+    my ( $parser, $token ) = @_;
+    my $recce    = $parser->{recce};
+    my $PPI_type = ref $token;
+    return 1 if $PPI_type eq 'PPI::Token::Whitespace';
+    return 1 if $PPI_type eq 'PPI::Token::Comment';
+    my $perl_type = undef;
 
-        if ( $PPI_type eq 'PPI::Token::Symbol' ) {
-            my ( $sigil, $word ) =
-                ( $token->{content} =~ / \A ([\$@%]) (\w*) \z /xms );
-            if ( not defined $sigil ) {
-                Carp::croak( 'Unknown symbol type: ',
-                    Data::Dumper::Dumper($token) );
-                goto SUCCESS;
-            }
-            my $symbol_name = $symbol_name{$sigil};
-            if ( not defined $symbol_name ) {
-                Carp::croak( 'Unknown symbol type: ',
-                    Data::Dumper::Dumper($token) );
-                goto SUCCESS;
-            }
-            defined $recce->read( $symbol_name, $sigil )
-                or token_not_accepted( $token, $symbol_name, $sigil );
-            defined $recce->read( 'WORD', $word )
-                or token_not_accepted( $token, 'WORD', $word );
+    if ( $PPI_type eq 'PPI::Token::Symbol' ) {
+        my ( $sigil, $word ) =
+            ( $token->{content} =~ / \A ([\$@%]) (\w*) \z /xms );
+        if ( not defined $sigil ) {
+            Carp::croak( 'Unknown symbol type: ',
+                Data::Dumper::Dumper($token) );
             goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::Symbol' )
-
-        if ( $PPI_type eq 'PPI::Token::Cast' ) {
-            my $content = $token->{content};
-            my $token_found;
-            for my $cast ( split //xms, $content ) {
-                $perl_type = $perl_type_by_cast{$content};
-                if ( not defined $perl_type ) {
-                    die qq{Unknown $PPI_type: "$content":},
-                        Marpa::R2::Perl::default_show_location($token),
-                        "\n";
-                }
-                $token_found = 1;
-                defined $recce->read( $perl_type, $cast )
-                    or token_not_accepted( $token, $perl_type, $cast );
-            } ## end for my $cast ( split //xms, $content )
-            defined $token_found or unknown_ppi_token($token);
+        }
+        my $symbol_name = $symbol_name{$sigil};
+        if ( not defined $symbol_name ) {
+            Carp::croak( 'Unknown symbol type: ',
+                Data::Dumper::Dumper($token) );
             goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::Cast' )
+        }
+        defined $recce->read( $symbol_name, $sigil )
+            or token_not_accepted( $token, $symbol_name, $sigil );
+        defined $recce->read( 'WORD', $word )
+            or token_not_accepted( $token, 'WORD', $word );
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::Symbol' )
 
-        if ( $PPI_type eq 'PPI::Token::Word' ) {
-            my $content = $token->{content};
-            $perl_type = $perl_type_by_word{$content} // 'WORD';
-            if ( $perl_type eq 'WORD' ) {
-                my $token_found = 0;
-                TYPE: for my $type (qw(WORD FUNC METHOD FUNCMETH)) {
-                    defined $recce->alternative( $type, \$content, 1 )
-                        and $token_found++;
-                }
-                $token_found
-                    or token_not_accepted( $token, 'WORD', $content, 1 );
-                $recce->earleme_complete();
-                goto SUCCESS;
-            } ## end if ( $perl_type eq 'WORD' )
-            if ( $perl_type eq 'PHASER' ) {
-                defined $recce->read('SUB')
-                    or token_not_accepted( $token, 'PHASER', 'no value' );
-                defined $recce->read( 'WORD', $content )
-                    or token_not_accepted( $token, 'WORD', $content );
-                goto SUCCESS;
-            } ## end if ( $perl_type eq 'PHASER' )
-            defined $recce->read( $perl_type, $content )
-                or token_not_accepted( $token, $perl_type, $content );
-            goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::Word' )
-
-        if ( $PPI_type eq 'PPI::Token::Label' ) {
-            my $content = $token->{content};
-            defined $recce->read( 'LABEL', $content )
-                or token_not_accepted( $token, 'LABEL', $content );
-            goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::Label' )
-
-        if ( $PPI_type eq 'PPI::Token::Operator' ) {
-            my $content = $token->{content};
-            $perl_type = $perl_type_by_op{$content};
+    if ( $PPI_type eq 'PPI::Token::Cast' ) {
+        my $content = $token->{content};
+        my $token_found;
+        for my $cast ( split //xms, $content ) {
+            $perl_type = $perl_type_by_cast{$content};
             if ( not defined $perl_type ) {
                 die qq{Unknown $PPI_type: "$content":},
                     Marpa::R2::Perl::default_show_location($token),
                     "\n";
             }
-            if ( $perl_type eq 'PLUS' ) {
+            $token_found = 1;
+            defined $recce->read( $perl_type, $cast )
+                or token_not_accepted( $token, $perl_type, $cast );
+        } ## end for my $cast ( split //xms, $content )
+        defined $token_found or unknown_ppi_token($token);
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::Cast' )
 
-                # Apply the "ruby slippers"
-                # Make the plus sign be whatever the parser
-                # wishes it was
-                my @potential_types = qw(ADDOP PLUS);
-                my $expected_tokens = $recce->terminals_expected();
-                my $token_found;
-                TYPE: for my $type (@potential_types) {
-                    next TYPE if not $type ~~ $expected_tokens;
-                    $token_found = 1;
-                    defined $recce->alternative( $type, \$content, 1 )
-                        or token_not_accepted( $token, $type, $content, 1 );
-                } ## end TYPE: for my $type (@potential_types)
-                defined $token_found or unknown_ppi_token($token);
-                $recce->earleme_complete();
-                goto SUCCESS;
-            } ## end if ( $perl_type eq 'PLUS' )
-
-            if ( $perl_type eq 'MINUS' ) {
-
-                # Apply the "ruby slippers"
-                # Make the plus sign be whatever the parser
-                # wishes it was
-                my $expected_tokens = $recce->terminals_expected();
-                my @potential_types = qw(ADDOP UMINUS);
-                my $token_found;
-                TYPE: for my $type (@potential_types) {
-                    next TYPE if not $type ~~ $expected_tokens;
-                    $token_found = 1;
-                    defined $recce->alternative( $type, \$content, 1 )
-                        or token_not_accepted( $token, $type, $content, 1 );
-                } ## end TYPE: for my $type (@potential_types)
-                defined $token_found or unknown_ppi_token($token);
-                $recce->earleme_complete();
-                goto SUCCESS;
-            } ## end if ( $perl_type eq 'MINUS' )
-            defined $recce->read( $perl_type, $content )
-                or token_not_accepted( $token, $perl_type, $content );
-            goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::Operator' )
-
-        if ( $PPI_type eq 'PPI::Token::Structure' ) {
-            my $content = $token->{content};
-            $perl_type = $perl_type_by_structure{$content};
-            my $expected_tokens = $recce->terminals_expected();
-            if ( not defined $perl_type ) {
-                die qq{Unknown $PPI_type: "$content":},
-                    Marpa::R2::Perl::default_show_location($token),
-                    "\n";
-            }
-            if ( $perl_type eq 'RCURLY' ) {
-                if ((   not defined $Marpa::R2::Perl::last_perl_type
-                        or $Marpa::R2::Perl::last_perl_type ne 'SEMI'
-                    )
-                    and 'SEMI' ~~ $expected_tokens
-                    )
-                {
-                    defined $recce->read( 'SEMI', q{;} )
-                        or token_not_accepted( $token, 'SEMI', q{;} );
-                } ## end if ( ( not defined $Marpa::R2::Perl::last_perl_type or ...))
-                defined $recce->read( $perl_type, $content )
-                    or token_not_accepted( $token, $perl_type, $content );
-                goto SUCCESS;
-            } ## end if ( $perl_type eq 'RCURLY' )
-            if ( $perl_type eq 'LCURLY' ) {
-                my @potential_types = ();
-                push @potential_types, 'LCURLY';
-                if ( not defined $Marpa::R2::Perl::last_perl_type
-                    or $Marpa::R2::Perl::last_perl_type ne 'DO' )
-                {
-                    push @potential_types, 'HASHBRACK';
-                }
-                my $token_found;
-                TYPE: for my $type (@potential_types) {
-                    next TYPE if not $type ~~ $expected_tokens;
-                    $token_found = 1;
-                    defined $recce->alternative( $type, \$content, 1 )
-                        or token_not_accepted( $token, $type, $content, 1 );
-                } ## end TYPE: for my $type (@potential_types)
-                defined $token_found or unknown_ppi_token($token);
-                $recce->earleme_complete();
-                goto SUCCESS;
-            } ## end if ( $perl_type eq 'LCURLY' )
-            defined $recce->read( $perl_type, $content )
-                or token_not_accepted( $token, $perl_type, $content );
-            goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::Structure' )
-
-        if (   $PPI_type eq 'PPI::Token::Number'
-            or $PPI_type eq 'PPI::Token::Number::Float'
-            or $PPI_type eq 'PPI::Token::Number::Version' )
-        {
-            my $content     = $token->{content};
+    if ( $PPI_type eq 'PPI::Token::Word' ) {
+        my $content = $token->{content};
+        $perl_type = $perl_type_by_word{$content} // 'WORD';
+        if ( $perl_type eq 'WORD' ) {
             my $token_found = 0;
-            TYPE: for my $type (qw(THING VERSION)) {
+            TYPE: for my $type (qw(WORD FUNC METHOD FUNCMETH)) {
                 defined $recce->alternative( $type, \$content, 1 )
                     and $token_found++;
             }
-            $token_found or token_not_accepted( $token, 'THING', $content );
+            $token_found
+                or token_not_accepted( $token, 'WORD', $content, 1 );
             $recce->earleme_complete();
             goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::Number' or $PPI_type ...)
-
-        if ( $PPI_type eq 'PPI::Token::Quote::Single' ) {
-            my $content = $token->{content};
-            ## no critic (BuiltinFunctions::ProhibitStringyEval)
-            my $string = eval $content;
-            ## use critic
-            Carp::Croak("eval failed: $EVAL_ERROR")
-                if not defined $string;
-            defined $recce->read( 'THING', $string )
-                or token_not_accepted( $token, 'THING', $string );
+        } ## end if ( $perl_type eq 'WORD' )
+        if ( $perl_type eq 'PHASER' ) {
+            defined $recce->read('SUB')
+                or token_not_accepted( $token, 'PHASER', 'no value' );
+            defined $recce->read( 'WORD', $content )
+                or token_not_accepted( $token, 'WORD', $content );
             goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::Quote::Single' )
+        } ## end if ( $perl_type eq 'PHASER' )
+        defined $recce->read( $perl_type, $content )
+            or token_not_accepted( $token, $perl_type, $content );
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::Word' )
 
-        if ( $PPI_type eq 'PPI::Token::QuoteLike::Words' ) {
-            my $content = $token->{content};
-            my $words   = $token->literal();
-            defined $recce->read( 'THING', $words )
-                or token_not_accepted( $token, 'THING', $words );
+    if ( $PPI_type eq 'PPI::Token::Label' ) {
+        my $content = $token->{content};
+        defined $recce->read( 'LABEL', $content )
+            or token_not_accepted( $token, 'LABEL', $content );
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::Label' )
+
+    if ( $PPI_type eq 'PPI::Token::Operator' ) {
+        my $content = $token->{content};
+        $perl_type = $perl_type_by_op{$content};
+        if ( not defined $perl_type ) {
+            die qq{Unknown $PPI_type: "$content":},
+                Marpa::R2::Perl::default_show_location($token),
+                "\n";
+        }
+        if ( $perl_type eq 'PLUS' ) {
+
+            # Apply the "ruby slippers"
+            # Make the plus sign be whatever the parser
+            # wishes it was
+            my @potential_types = qw(ADDOP PLUS);
+            my $expected_tokens = $recce->terminals_expected();
+            my $token_found;
+            TYPE: for my $type (@potential_types) {
+                next TYPE if not $type ~~ $expected_tokens;
+                $token_found = 1;
+                defined $recce->alternative( $type, \$content, 1 )
+                    or token_not_accepted( $token, $type, $content, 1 );
+            } ## end TYPE: for my $type (@potential_types)
+            defined $token_found or unknown_ppi_token($token);
+            $recce->earleme_complete();
             goto SUCCESS;
-        } ## end if ( $PPI_type eq 'PPI::Token::QuoteLike::Words' )
+        } ## end if ( $perl_type eq 'PLUS' )
 
-        unknown_ppi_token($token);
+        if ( $perl_type eq 'MINUS' ) {
 
-	SUCCESS:
-	$Marpa::R2::Perl::last_perl_type = $perl_type;
-	return 1;
+            # Apply the "ruby slippers"
+            # Make the plus sign be whatever the parser
+            # wishes it was
+            my $expected_tokens = $recce->terminals_expected();
+            my @potential_types = qw(ADDOP UMINUS);
+            my $token_found;
+            TYPE: for my $type (@potential_types) {
+                next TYPE if not $type ~~ $expected_tokens;
+                $token_found = 1;
+                defined $recce->alternative( $type, \$content, 1 )
+                    or token_not_accepted( $token, $type, $content, 1 );
+            } ## end TYPE: for my $type (@potential_types)
+            defined $token_found or unknown_ppi_token($token);
+            $recce->earleme_complete();
+            goto SUCCESS;
+        } ## end if ( $perl_type eq 'MINUS' )
+        defined $recce->read( $perl_type, $content )
+            or token_not_accepted( $token, $perl_type, $content );
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::Operator' )
 
-}
+    if ( $PPI_type eq 'PPI::Token::Structure' ) {
+        my $content = $token->{content};
+        $perl_type = $perl_type_by_structure{$content};
+        my $expected_tokens = $recce->terminals_expected();
+        if ( not defined $perl_type ) {
+            die qq{Unknown $PPI_type: "$content":},
+                Marpa::R2::Perl::default_show_location($token),
+                "\n";
+        }
+        if ( $perl_type eq 'RCURLY' ) {
+            if ((   not defined $Marpa::R2::Perl::LAST_PERL_TYPE
+                    or $Marpa::R2::Perl::LAST_PERL_TYPE ne 'SEMI'
+                )
+                and 'SEMI' ~~ $expected_tokens
+                )
+            {
+                defined $recce->read( 'SEMI', q{;} )
+                    or token_not_accepted( $token, 'SEMI', q{;} );
+            } ## end if ( ( not defined $Marpa::R2::Perl::LAST_PERL_TYPE ...))
+            defined $recce->read( $perl_type, $content )
+                or token_not_accepted( $token, $perl_type, $content );
+            goto SUCCESS;
+        } ## end if ( $perl_type eq 'RCURLY' )
+        if ( $perl_type eq 'LCURLY' ) {
+            my @potential_types = ();
+            push @potential_types, 'LCURLY';
+            if ( not defined $Marpa::R2::Perl::LAST_PERL_TYPE
+                or $Marpa::R2::Perl::LAST_PERL_TYPE ne 'DO' )
+            {
+                push @potential_types, 'HASHBRACK';
+            }
+            my $token_found;
+            TYPE: for my $type (@potential_types) {
+                next TYPE if not $type ~~ $expected_tokens;
+                $token_found = 1;
+                defined $recce->alternative( $type, \$content, 1 )
+                    or token_not_accepted( $token, $type, $content, 1 );
+            } ## end TYPE: for my $type (@potential_types)
+            defined $token_found or unknown_ppi_token($token);
+            $recce->earleme_complete();
+            goto SUCCESS;
+        } ## end if ( $perl_type eq 'LCURLY' )
+        defined $recce->read( $perl_type, $content )
+            or token_not_accepted( $token, $perl_type, $content );
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::Structure' )
+
+    if (   $PPI_type eq 'PPI::Token::Number'
+        or $PPI_type eq 'PPI::Token::Number::Float'
+        or $PPI_type eq 'PPI::Token::Number::Version' )
+    {
+        my $content     = $token->{content};
+        my $token_found = 0;
+        TYPE: for my $type (qw(THING VERSION)) {
+            defined $recce->alternative( $type, \$content, 1 )
+                and $token_found++;
+        }
+        $token_found or token_not_accepted( $token, 'THING', $content );
+        $recce->earleme_complete();
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::Number' or $PPI_type ...)
+
+    if ( $PPI_type eq 'PPI::Token::Quote::Single' ) {
+        my $content = $token->{content};
+        ## no critic (BuiltinFunctions::ProhibitStringyEval)
+        my $string = eval $content;
+        ## use critic
+        Carp::Croak("eval failed: $EVAL_ERROR")
+            if not defined $string;
+        defined $recce->read( 'THING', $string )
+            or token_not_accepted( $token, 'THING', $string );
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::Quote::Single' )
+
+    if ( $PPI_type eq 'PPI::Token::QuoteLike::Words' ) {
+        my $content = $token->{content};
+        my $words   = $token->literal();
+        defined $recce->read( 'THING', $words )
+            or token_not_accepted( $token, 'THING', $words );
+        goto SUCCESS;
+    } ## end if ( $PPI_type eq 'PPI::Token::QuoteLike::Words' )
+
+    unknown_ppi_token($token);
+
+    SUCCESS:
+    $Marpa::R2::Perl::LAST_PERL_TYPE = $perl_type;
+    return 1;
+
+} ## end sub read_PPI_token
 
 sub Marpa::R2::Perl::eval {
     my ($parser) = @_;
