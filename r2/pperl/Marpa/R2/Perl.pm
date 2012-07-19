@@ -968,7 +968,7 @@ sub Marpa::R2::Perl::new {
     $grammar->precompute();
 
     my $self = bless { grammar => $grammar, closure => \%closure }, $class;
-    $self->{embedded} = 1 if $embedded;
+    $self->{embedded} = $embedded ? 1 : 0;
     return $self;
 
 } ## end sub Marpa::R2::Perl::new
@@ -1051,6 +1051,7 @@ sub Marpa::R2::Perl::read {
 
     # For use by read_PPI_token
     local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
+    local $Marpa::R2::Perl::IN_PREFIX = $parser->{embedded};
 
     TOKEN:
     for (
@@ -1076,6 +1077,12 @@ sub read_PPI_token {
     my $PPI_type = ref $token;
     return 1 if $PPI_type eq 'PPI::Token::Whitespace';
     return 1 if $PPI_type eq 'PPI::Token::Comment';
+    if ($Marpa::R2::Perl::IN_PREFIX) {
+        my @terminals_expected = $recce->terminals_expected();
+        $Marpa::R2::Perl::IN_PREFIX = 0
+            if not 'prefix_token' ~~ \@terminals_expected;
+    } ## end if ($Marpa::R2::Perl::IN_PREFIX)
+
     my $perl_type = undef;
 
     if ( $PPI_type eq 'PPI::Token::Symbol' ) {
