@@ -979,8 +979,8 @@ sub token_not_accepted {
     my ( $ppi_token, $token_name, $token_value, $length ) = @_;
     local $Data::Dumper::Maxdepth = 2;
     local $Data::Dumper::Terse    = 1;
-    say {*STDERR} $Marpa::R2::Perl::RECOGNIZER->show_progress()
-        or die 'Cannot write to STDERR';
+    # say {*STDERR} $Marpa::R2::Perl::RECOGNIZER->show_progress()
+        # or die 'Cannot write to STDERR';
     my $perl_token_desc;
     if ( not defined $token_name ) {
         $perl_token_desc = 'Undefined Perl token was not accepted: ';
@@ -1050,7 +1050,7 @@ sub Marpa::R2::Perl::read {
 
     # For use by read_PPI_token
     local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
-    local $Marpa::R2::Perl::IN_PREFIX = $parser->{embedded};
+    $parser->{in_prefix} = $parser->{embedded};
 
     TOKEN:
     for (
@@ -1079,6 +1079,10 @@ sub Marpa::R2::Perl::earleme_complete
     my $grammar = $parser->{grammar};
     my $grammar_c = $grammar->thin();
 
+    $parser->{in_prefix} = 1 if $parser->{tokens_not_accepted} and $parser->{embedded};
+    if ($parser->{in_prefix}) {
+        $recce->alternative( 'non_perl_token' );
+    }
     my $event_count = $recce_c->earleme_complete();
     EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
@@ -1104,11 +1108,11 @@ sub read_PPI_token {
     my $PPI_type = ref $token;
     return 1 if $PPI_type eq 'PPI::Token::Whitespace';
     return 1 if $PPI_type eq 'PPI::Token::Comment';
-    if ($Marpa::R2::Perl::IN_PREFIX) {
+    if ( $parser->{in_prefix} ) {
         my @terminals_expected = $recce->terminals_expected();
-        $Marpa::R2::Perl::IN_PREFIX = 0
+        $parser->{in_prefix} = 0
             if not 'prog_end_marker' ~~ \@terminals_expected;
-    } ## end if ($Marpa::R2::Perl::IN_PREFIX)
+    }
 
     my $perl_type = undef;
 
@@ -1323,7 +1327,7 @@ sub read_PPI_token {
     if ( $PPI_type eq 'PPI::Token::QuoteLike::Words' ) {
         my $content = $token->{content};
         my $words   = $token->literal();
-        defined $recce->alternative( 'THING', $words )
+        defined $recce->alternative( 'THING', \$words )
             or token_not_accepted( $token, 'THING', $words );
         $parser->earleme_complete();
         goto SUCCESS;
