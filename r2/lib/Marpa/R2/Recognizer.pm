@@ -599,7 +599,7 @@ sub Marpa::R2::Recognizer::alternative {
             qq{alternative(): symbol "$symbol_name" does not exist});
     }
 
-    my $value_ix = -1;
+    my $value_ix = 0;
     SET_VALUE_IX: {
         last SET_VALUE_IX if not defined $value_ref;
         my $ref_type = ref $value_ref;
