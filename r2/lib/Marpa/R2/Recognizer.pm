@@ -166,6 +166,10 @@ sub Marpa::R2::Recognizer::new {
     return $recce;
 } ## end sub Marpa::R2::Recognizer::new
 
+sub Marpa::R2::Recognizer::thin {
+    $_[0]->[Marpa::R2::Internal::Recognizer::C];
+}
+
 use constant RECOGNIZER_OPTIONS => [
     qw{
         closures

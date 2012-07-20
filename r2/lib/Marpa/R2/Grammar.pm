@@ -246,6 +246,10 @@ sub Marpa::R2::Grammar::new {
     return $grammar;
 } ## end sub Marpa::R2::Grammar::new
 
+sub Marpa::R2::Grammar::thin {
+    $_[0]->[Marpa::R2::Internal::Grammar::C];
+}
+
 use constant GRAMMAR_OPTIONS => [
     qw{
         action_object
