@@ -947,16 +947,15 @@ sub Marpa::R2::Perl::new {
 
     my $start = 'prog';
     if ($embedded) {
-        push @rules, [ 'embedded_prog', [qw(non_perl_prefix prog)] ],
-            [
-            'embedded_prog', [qw(non_perl_prefix prog embedded_end_marker )]
-            ],
+        push @rules, [ 'text_with_perl', [qw(non_perl_text perl_prog)] ],
+	    [ 'perl_prog', [qw(prog)]],
+	    [ 'perl_prog', [qw(prog prog_end_marker)]],
             {
-            lhs => 'non_perl_prefix',
-            rhs => ['prefix_token'],
+            lhs => 'non_perl_text',
+            rhs => ['non_perl_token'],
             min => 0,
             };
-        $start = 'embedded_prog';
+        $start = 'text_with_perl';
     } ## end if ($embedded)
 
     my $grammar = Marpa::R2::Grammar->new(
@@ -1108,7 +1107,7 @@ sub read_PPI_token {
     if ($Marpa::R2::Perl::IN_PREFIX) {
         my @terminals_expected = $recce->terminals_expected();
         $Marpa::R2::Perl::IN_PREFIX = 0
-            if not 'prefix_token' ~~ \@terminals_expected;
+            if not 'prog_end_marker' ~~ \@terminals_expected;
     } ## end if ($Marpa::R2::Perl::IN_PREFIX)
 
     my $perl_type = undef;
