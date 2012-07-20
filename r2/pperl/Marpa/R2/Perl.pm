@@ -947,13 +947,22 @@ sub Marpa::R2::Perl::new {
 
     my $start = 'prog';
     if ($embedded) {
-        push @rules, [ 'text_with_perl', [qw(non_perl_text perl_prog)] ],
-	    [ 'perl_prog', [qw(prog)]],
-	    [ 'perl_prog', [qw(prog prog_end_marker)]],
+        push @rules,
+            [ 'text_with_perl', [qw(perl_progs)] ],
+            [ 'text_with_perl', [qw(non_perl_text perl_progs)] ],
+            {
+            lhs  => 'perl_progs',
+            rhs  => ['perl_prog'],
+            keep => 1,
+            separator  => 'non_perl_text',
+            min  => 0,
+            },
+            [ 'perl_prog', [qw(prog)] ],
+            [ 'perl_prog', [qw(prog prog_end_marker)] ],
             {
             lhs => 'non_perl_text',
             rhs => ['non_perl_token'],
-            min => 0,
+            min => 1,
             };
         $start = 'text_with_perl';
     } ## end if ($embedded)
@@ -1011,6 +1020,14 @@ sub unknown_ppi_token {
         Marpa::R2::Perl::default_show_location($ppi_token), "\n";
 } ## end sub unknown_ppi_token
 
+sub Marpa::R2::Perl::tokens {
+    my ( $parser, $input ) = @_;
+    my $document = $parser->{document} = PPI::Document->new($input);
+    $document->index_locations();
+    $parser->{PPI_tokens} = [$document->tokens()];
+    $parser->{earleme_to_PPI_token} = [];
+} ## end sub Marpa::R2::Perl::tokens
+
 sub Marpa::R2::Perl::read {
 
     my ( $parser, $input, $hash_arg ) = @_;
@@ -1035,35 +1052,25 @@ sub Marpa::R2::Perl::read {
             @recce_args
         }
     );
+    $parser->{recce}                = $recce;
 
     # This is convenient for making the recognizer available to
     # error messages
     local $Marpa::R2::Perl::RECOGNIZER = $recce;
 
-    my $document = PPI::Document->new($input);
-    $document->index_locations();
-    my @PPI_tokens = $document->tokens();
-    my @earleme_to_PPI_token;
-    $parser->{recce}                = $recce;
-    $parser->{PPI_tokens}           = \@PPI_tokens;
-    $parser->{earleme_to_PPI_token} = \@earleme_to_PPI_token;
+    $parser->tokens($input);
+    my $PPI_tokens = $parser->{PPI_tokens};
+    my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token};
 
     # For use by read_PPI_token
     local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
     $parser->{in_prefix} = $parser->{embedded};
 
-    TOKEN:
-    for (
-        my $PPI_token_ix = 0;
-        $PPI_token_ix <= $#PPI_tokens;
-        $PPI_token_ix++
-        )
-    {
+    for my $PPI_token_ix ( 0 .. $#{$PPI_tokens} ) {
         my $current_earleme = $recce->current_earleme();
-        $earleme_to_PPI_token[$current_earleme] //= $PPI_token_ix;
-        my $token = $PPI_tokens[$PPI_token_ix];
-        read_PPI_token( $parser, $token );
-    } ## end TOKEN: for ( my $PPI_token_ix = 0; $PPI_token_ix <= $#PPI_tokens...)
+        $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
+        read_PPI_token( $parser, $PPI_token_ix );
+    }
 
     $recce->end_input();
     return $parser;
@@ -1103,8 +1110,9 @@ sub Marpa::R2::Perl::earleme_complete
 }
 
 sub read_PPI_token {
-    my ( $parser, $token ) = @_;
+    my ( $parser, $token_ix ) = @_;
     my $recce    = $parser->{recce};
+    my $token    = $parser->{PPI_tokens}->[$token_ix];
     my $PPI_type = ref $token;
     return 1 if $PPI_type eq 'PPI::Token::Whitespace';
     return 1 if $PPI_type eq 'PPI::Token::Comment';
