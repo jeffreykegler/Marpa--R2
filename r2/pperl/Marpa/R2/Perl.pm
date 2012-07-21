@@ -19,10 +19,16 @@ use 5.010;
 use strict;
 use warnings;
 
+package Marpa::R2::Internal::Perl::Exception;
+
+use overload qw("") => \&as_string;
+
+sub as_string { return $_[0]->[1] }
+
 package Marpa::R2::Internal::Perl;
 
-use charnames ':full';
 use English qw( -no_match_vars );
+use charnames ':full';
 
 use Marpa::R2::Perl::Version ();
 
@@ -30,6 +36,10 @@ use Marpa::R2::Perl::Version ();
 # If you're looking here
 # for a Perl SEMANTICS here,
 # you won't find one.
+
+sub exception {
+    return bless [@_], 'Marpa::R2::Internal::Perl::Exception';
+}
 
 my $reference_grammar = <<'END_OF_GRAMMAR';
 
@@ -981,7 +991,6 @@ my @RECCE_NAMED_ARGUMENTS =
 
 sub token_not_accepted {
     my ( $ppi_token, $token_name, $token_value, $length ) = @_;
-    return if $Marpa::R2::Perl::PARSER->{embedded};
     local $Data::Dumper::Maxdepth = 2;
     local $Data::Dumper::Terse    = 1;
     my $perl_token_desc;
@@ -997,14 +1006,16 @@ sub token_not_accepted {
     $perl_token_desc .= Data::Dumper::Dumper($token_value);
     my $logical_filename = $ppi_token->logical_filename();
     $logical_filename = '[no file]' if not $logical_filename;
-    Carp::croak(
+    my $error_string = join q{},
         "$perl_token_desc",                'PPI token is ',
         ( ref $ppi_token ),                qq{: $logical_filename:},
         $ppi_token->logical_line_number(), q{:},
         $ppi_token->column_number(),       q{, },
         q{content="},                      $ppi_token->content(),
         q{"}
-    );
+    ;
+    die exception('TOKEN_NOT_ACCEPTED', "$error_string\n") if $Marpa::R2::Perl::PARSER->{embedded};
+    Carp::croak($error_string);
 } ## end sub token_not_accepted
 
 sub unknown_ppi_token {
@@ -1377,12 +1388,12 @@ sub Marpa::R2::Perl::find_perl {
     TOKEN: for my $PPI_token_ix ( $first_token_ix .. $last_token_ix ) {
 	last TOKEN if $recce->exhausted();
         my $current_earleme = $recce->current_earleme();
-	my @terminals_expected = $recce->terminals_expected();
-	if ( 'non_trivial_prog_marker' ~~ \@terminals_expected ) {
+	my $terminals_expected = $recce->terminals_expected();
+	if ( 'non_trivial_prog_marker' ~~ $terminals_expected ) {
 	    $in_prefix = $parser->{in_prefix} = 0;
 	    $last_end_marker = $current_earleme;
 	}
-	if ( 'prog_end_marker' ~~ \@terminals_expected ) {
+	if ( defined $last_end_marker && 'prog_end_marker' ~~ $terminals_expected ) {
 	    $last_end_marker = $current_earleme;
 	}
         $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
