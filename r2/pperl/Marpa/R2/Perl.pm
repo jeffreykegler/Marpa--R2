@@ -981,10 +981,9 @@ my @RECCE_NAMED_ARGUMENTS =
 
 sub token_not_accepted {
     my ( $ppi_token, $token_name, $token_value, $length ) = @_;
+    return if $Marpa::R2::Perl::PARSER->{embedded};
     local $Data::Dumper::Maxdepth = 2;
     local $Data::Dumper::Terse    = 1;
-    # say {*STDERR} $Marpa::R2::Perl::RECOGNIZER->show_progress()
-        # or die 'Cannot write to STDERR';
     my $perl_token_desc;
     if ( not defined $token_name ) {
         $perl_token_desc = 'Undefined Perl token was not accepted: ';
@@ -1362,7 +1361,7 @@ sub Marpa::R2::Perl::find_perl {
 
     # This is convenient for making the recognizer available to
     # error messages
-    local $Marpa::R2::Perl::RECOGNIZER = $recce;
+    local $Marpa::R2::Perl::PARSER = $parser;
 
     my $PPI_tokens = $parser->{PPI_tokens};
     my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token};
@@ -1375,11 +1374,15 @@ sub Marpa::R2::Perl::find_perl {
 
     $first_token_ix //= 0;
     $last_token_ix  //= $#{$PPI_tokens};
-    for my $PPI_token_ix ( $first_token_ix .. $last_token_ix ) {
+    TOKEN: for my $PPI_token_ix ( $first_token_ix .. $last_token_ix ) {
+	last TOKEN if $recce->exhausted();
         my $current_earleme = $recce->current_earleme();
 	my @terminals_expected = $recce->terminals_expected();
-	if ( 'prog_end_marker' ~~ \@terminals_expected ) {
+	if ( 'non_trivial_prog_marker' ~~ \@terminals_expected ) {
 	    $in_prefix = $parser->{in_prefix} = 0;
+	    $last_end_marker = $current_earleme;
+	}
+	if ( 'prog_end_marker' ~~ \@terminals_expected ) {
 	    $last_end_marker = $current_earleme;
 	}
         $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
