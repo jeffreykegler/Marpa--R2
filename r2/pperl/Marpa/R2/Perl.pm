@@ -948,15 +948,10 @@ sub Marpa::R2::Perl::new {
     my $start = 'prog';
     if ($embedded) {
         push @rules,
-            [ 'text_with_perl', [qw(perl_progs)] ],
-            [ 'text_with_perl', [qw(non_perl_text perl_progs)] ],
-            {
-            lhs  => 'perl_progs',
-            rhs  => ['perl_prog'],
-            keep => 1,
-            separator  => 'non_perl_text',
-            min  => 0,
-            },
+            [ 'embedded_perl', [qw(perl_prog)] ],
+            [ 'embedded_perl', [qw(non_perl_text perl_prog)] ],
+            [ 'perl_prog', [qw(line non_trivial_prog_marker)] ],
+            [ 'perl_prog', [qw(decl non_trivial_prog_marker)] ],
             [ 'perl_prog', [qw(prog)] ],
             [ 'perl_prog', [qw(prog prog_end_marker)] ],
             {
@@ -964,7 +959,7 @@ sub Marpa::R2::Perl::new {
             rhs => ['non_perl_token'],
             min => 1,
             };
-        $start = 'text_with_perl';
+        $start = 'embedded_perl';
     } ## end if ($embedded)
 
     my $grammar = Marpa::R2::Grammar->new(
