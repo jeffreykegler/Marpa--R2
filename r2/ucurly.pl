@@ -33,8 +33,22 @@ my $string = do { local $RS = undef; <STDIN> };
 my $finder = Marpa::R2::Perl->new( { embedded => 1, closures => {} } );
 my $parser = Marpa::R2::Perl->new( { closures => {} } );
 
-$parser = $parser->read( \$string );
-my @values    = $parser->eval();
+my $tokens = $finder->tokens(\$string);
+my $start = 0;
+my $last_end = 0;
+PERL_CODE: while (1) {
+  say STDERR '=' x 40;
+  say STDERR "last_end=$last_end";
+  my ($start, $end) = $finder->find_perl( $last_end );
+  last PERL_CODE if not defined $start;
+  say STDERR join q{ }, ($start // '-'), ($end // '-');
+  say STDERR $finder->{PPI_tokens}->[$end]->content();
+  say STDERR map { $_->content() } @{$tokens}[($last_end//0) .. $end];
+  $last_end = $end;
+}
+
+exit 0;
+
 my $recce     = $parser->{recce};
 my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
 my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
