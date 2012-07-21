@@ -19,12 +19,6 @@ use 5.010;
 use strict;
 use warnings;
 
-package Marpa::R2::Internal::Perl::Exception;
-
-use overload qw("") => \&as_string;
-
-sub as_string { return $_[0]->[1] }
-
 package Marpa::R2::Internal::Perl;
 
 use English qw( -no_match_vars );
@@ -36,10 +30,6 @@ use Marpa::R2::Perl::Version ();
 # If you're looking here
 # for a Perl SEMANTICS here,
 # you won't find one.
-
-sub exception {
-    return bless [@_], 'Marpa::R2::Internal::Perl::Exception';
-}
 
 my $reference_grammar = <<'END_OF_GRAMMAR';
 
@@ -991,6 +981,7 @@ my @RECCE_NAMED_ARGUMENTS =
 
 sub token_not_accepted {
     my ( $ppi_token, $token_name, $token_value, $length ) = @_;
+    die "TOKEN_NOT_ACCEPTED\n" if $Marpa::R2::Perl::PARSER->{embedded};
     local $Data::Dumper::Maxdepth = 2;
     local $Data::Dumper::Terse    = 1;
     my $perl_token_desc;
@@ -1014,7 +1005,6 @@ sub token_not_accepted {
         q{content="},                      $ppi_token->content(),
         q{"}
     ;
-    die exception('TOKEN_NOT_ACCEPTED', "$error_string\n") if $Marpa::R2::Perl::PARSER->{embedded};
     Carp::croak($error_string);
 } ## end sub token_not_accepted
 
@@ -1032,8 +1022,8 @@ sub Marpa::R2::Perl::tokens {
     # or bad things happen.
     my $document = $parser->{document} = PPI::Document->new($input);
     $document->index_locations();
-    $parser->{PPI_tokens} = [$document->tokens()];
     $parser->{earleme_to_PPI_token} = [];
+    return $parser->{PPI_tokens} = [$document->tokens()];
 } ## end sub Marpa::R2::Perl::tokens
 
 sub Marpa::R2::Perl::read {
@@ -1368,13 +1358,13 @@ sub Marpa::R2::Perl::find_perl {
             ranking_method => 'high_rule_only',
         }
     );
-    $parser->{recce}                = $recce;
+    $parser->{recce} = $recce;
 
     # This is convenient for making the recognizer available to
     # error messages
     local $Marpa::R2::Perl::PARSER = $parser;
 
-    my $PPI_tokens = $parser->{PPI_tokens};
+    my $PPI_tokens           = $parser->{PPI_tokens};
     my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token};
 
     # For use by read_PPI_token
@@ -1386,24 +1376,30 @@ sub Marpa::R2::Perl::find_perl {
     $first_token_ix //= 0;
     $last_token_ix  //= $#{$PPI_tokens};
     TOKEN: for my $PPI_token_ix ( $first_token_ix .. $last_token_ix ) {
-	last TOKEN if $recce->exhausted();
-        my $current_earleme = $recce->current_earleme();
-	my $terminals_expected = $recce->terminals_expected();
-	if ( 'non_trivial_prog_marker' ~~ $terminals_expected ) {
-	    $in_prefix = $parser->{in_prefix} = 0;
-	    $last_end_marker = $current_earleme;
-	}
-	if ( defined $last_end_marker && 'prog_end_marker' ~~ $terminals_expected ) {
-	    $last_end_marker = $current_earleme;
-	}
+        last TOKEN if $recce->exhausted();
+        my $current_earleme    = $recce->current_earleme();
+        my $terminals_expected = $recce->terminals_expected();
+        if ( 'non_trivial_prog_marker' ~~ $terminals_expected ) {
+            $in_prefix = $parser->{in_prefix} = 0;
+            $last_end_marker = $PPI_token_ix - 1;
+        }
+        if ( defined $last_end_marker
+            && 'prog_end_marker' ~~ $terminals_expected )
+        {
+            $last_end_marker = $PPI_token_ix - 1;
+        }
         $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
-        read_PPI_token( $parser, $PPI_token_ix );
-    }
+        eval { read_PPI_token( $parser, $PPI_token_ix ); };
+	if ($EVAL_ERROR) {
+	   die $EVAL_ERROR if $EVAL_ERROR ne "TOKEN_NOT_ACCEPTED\n";
+	   last TOKEN;
+	}
+    } ## end TOKEN: for my $PPI_token_ix ( $first_token_ix .. $last_token_ix)
 
     $recce->end_input();
-    return $parser;
+    return ($last_end_marker, $last_end_marker);
 
-} ## end sub Marpa::R2::Perl::read
+} ## end sub Marpa::R2::Perl::find_perl
 
 sub Marpa::R2::Perl::eval {
     my ($parser) = @_;
