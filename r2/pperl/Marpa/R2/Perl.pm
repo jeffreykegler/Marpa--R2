@@ -1022,6 +1022,9 @@ sub unknown_ppi_token {
 
 sub Marpa::R2::Perl::tokens {
     my ( $parser, $input ) = @_;
+    # We need to keep a reference to the document,
+    # not just the tokens,
+    # or bad things happen.
     my $document = $parser->{document} = PPI::Document->new($input);
     $document->index_locations();
     $parser->{PPI_tokens} = [$document->tokens()];
@@ -1029,8 +1032,14 @@ sub Marpa::R2::Perl::tokens {
 } ## end sub Marpa::R2::Perl::tokens
 
 sub Marpa::R2::Perl::read {
+    my ( $parser, $input ) = @_;
+    $parser->tokens($input);
+    $parser->read_tokens();
+}
 
-    my ( $parser, $input, $hash_arg ) = @_;
+sub Marpa::R2::Perl::read_tokens {
+
+    my ( $parser, $first_token_ix, $last_token_ix, $hash_arg ) = @_;
 
     $hash_arg //= {};
 
@@ -1058,7 +1067,6 @@ sub Marpa::R2::Perl::read {
     # error messages
     local $Marpa::R2::Perl::RECOGNIZER = $recce;
 
-    $parser->tokens($input);
     my $PPI_tokens = $parser->{PPI_tokens};
     my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token};
 
@@ -1066,7 +1074,9 @@ sub Marpa::R2::Perl::read {
     local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
     $parser->{in_prefix} = $parser->{embedded};
 
-    for my $PPI_token_ix ( 0 .. $#{$PPI_tokens} ) {
+    $first_token_ix //= 0;
+    $last_token_ix  //= $#{$PPI_tokens};
+    for my $PPI_token_ix ( $first_token_ix .. $last_token_ix ) {
         my $current_earleme = $recce->current_earleme();
         $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
         read_PPI_token( $parser, $PPI_token_ix );
