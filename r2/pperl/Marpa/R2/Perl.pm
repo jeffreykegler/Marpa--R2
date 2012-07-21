@@ -1072,7 +1072,6 @@ sub Marpa::R2::Perl::read_tokens {
 
     # For use by read_PPI_token
     local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
-    $parser->{in_prefix} = $parser->{embedded};
 
     $first_token_ix //= 0;
     $last_token_ix  //= $#{$PPI_tokens};
@@ -1096,7 +1095,6 @@ sub Marpa::R2::Perl::earleme_complete
     my $grammar = $parser->{grammar};
     my $grammar_c = $grammar->thin();
 
-    $parser->{in_prefix} = 1 if $parser->{tokens_not_accepted} and $parser->{embedded};
     if ($parser->{in_prefix}) {
         $recce->alternative( 'non_perl_token' );
     }
@@ -1126,11 +1124,6 @@ sub read_PPI_token {
     my $PPI_type = ref $token;
     return 1 if $PPI_type eq 'PPI::Token::Whitespace';
     return 1 if $PPI_type eq 'PPI::Token::Comment';
-    if ( $parser->{in_prefix} ) {
-        my @terminals_expected = $recce->terminals_expected();
-        $parser->{in_prefix} = 0
-            if not 'prog_end_marker' ~~ \@terminals_expected;
-    }
 
     my $perl_type = undef;
 
@@ -1358,6 +1351,50 @@ sub read_PPI_token {
     return 1;
 
 } ## end sub read_PPI_token
+
+sub Marpa::R2::Perl::find_perl {
+
+    my ( $parser, $first_token_ix, $last_token_ix ) = @_;
+
+    my $grammar = $parser->{grammar};
+
+    my $recce = Marpa::R2::Recognizer->new(
+        {   grammar        => $grammar,
+            ranking_method => 'high_rule_only',
+        }
+    );
+    $parser->{recce}                = $recce;
+
+    # This is convenient for making the recognizer available to
+    # error messages
+    local $Marpa::R2::Perl::RECOGNIZER = $recce;
+
+    my $PPI_tokens = $parser->{PPI_tokens};
+    my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token};
+
+    # For use by read_PPI_token
+    local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
+    die 'find_perl requires embedded parser' if not $parser->{embedded};
+    my $in_prefix = $parser->{in_prefix} = 1;
+    my $last_end_marker;
+
+    $first_token_ix //= 0;
+    $last_token_ix  //= $#{$PPI_tokens};
+    for my $PPI_token_ix ( $first_token_ix .. $last_token_ix ) {
+        my $current_earleme = $recce->current_earleme();
+	my @terminals_expected = $recce->terminals_expected();
+	if ( 'prog_end_marker' ~~ \@terminals_expected ) {
+	    $in_prefix = $parser->{in_prefix} = 0;
+	    $last_end_marker = $current_earleme;
+	}
+        $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
+        read_PPI_token( $parser, $PPI_token_ix );
+    }
+
+    $recce->end_input();
+    return $parser;
+
+} ## end sub Marpa::R2::Perl::read
 
 sub Marpa::R2::Perl::eval {
     my ($parser) = @_;
