@@ -2301,8 +2301,6 @@ that succeed.
 
 @code{MARPA_EVENT_EXHAUSTED} indicates that the parse is
 exhausted --- that no input will be accepted at later earlemes.
-Note that an exhausted parse can be a successful one --- it
-just cannot succeed at a later earleme than the current one.
 
 The @code{MARPA_EVENT_EARLEY_ITEM_THRESHOLD} event
 indicates that an application-settable threshold
@@ -2312,6 +2310,33 @@ but when the default threshold is exceeded,
 it means that it is very likely
 that the time and space resources consumed by
 the parse will prove excessive.
+
+Note that an exhausted parse may be returned
+as a failure,
+or it may be an event returned on success, depending on the
+circumstances.
+If @code{marpa_r_earleme_complete()} is called
+with the furthest earleme equal to the current
+earleme,
+a failure will result
+whose error code is @code{MARPA_ERR_PARSE_EXHAUSTED}.
+A failure of this sort can happen if the last
+call to 
+@code{marpa_r_earleme_complete()} left the current
+earleme equal to the furthest earleme,
+and no alternatives were added at the current earleme.
+Note that when a parse fails due to
+exhaustion, it may have succeeded at earlier earlemes.
+
+On the other hand, a parse can be exhausted on success.
+In this case, a new Earley set is created,
+and the earleme advanced,
+but no input will be possible at the new current
+earleme.
+It is quite common for a parse to accept no
+more input when it succeeds.
+Many practical grammars are designed so that a
+successful parse cannot be extended.
 
 Return value:  On success, the number of events generated.
 On failure, @minus{}2.
