@@ -1397,6 +1397,15 @@ sub Marpa::R2::Perl::find_perl {
     } ## end TOKEN: for my $PPI_token_ix ( $first_token_ix .. $last_token_ix)
 
     $recce->end_input();
+
+    say 'progress at ', ($last_end_marker - $first_token_ix - 1);
+    say 'latest ES at ', $recce->latest_earley_set();
+    my $report = $recce->progress($last_end_marker - $first_token_ix - 1);
+    for my $item (@{$report}) {
+        my ($rule_id, $dot_position, $origin) = @{$item};
+	next ITEM if $dot_position >= 0;
+	say STDERR join q{ }, $grammar->rule(), '@', $origin;
+    }
     return ($last_end_marker, $last_end_marker);
 
 } ## end sub Marpa::R2::Perl::find_perl
