@@ -1014,6 +1014,10 @@ sub token_not_accepted {
 
 sub unknown_ppi_token {
     my ($ppi_token) = @_;
+    if ($Marpa::R2::Perl::PARSER->{embedded}) {
+      return if $Marpa::R2::Perl::PARSER->{in_prefix};
+      die "TOKEN_NOT_ACCEPTED\n";
+    }
     die 'Failed at Token: ', Data::Dumper::Dumper($ppi_token),
         'Marpa::R2::Perl did not know how to process token',
         Marpa::R2::Perl::default_show_location($ppi_token), "\n";
@@ -1154,15 +1158,13 @@ sub read_PPI_token {
         my $token_found;
         for my $cast ( split //xms, $content ) {
             $perl_type = $perl_type_by_cast{$content};
-            if ( not defined $perl_type ) {
-                die qq{Unknown $PPI_type: "$content":},
-                    Marpa::R2::Perl::default_show_location($token),
-                    "\n";
-            }
-            $token_found = 1;
-            defined $recce->alternative( $perl_type, \$cast )
-                or token_not_accepted( $token, $perl_type, $cast );
-            $parser->earleme_complete();
+            defined $perl_type or unknown_ppi_token($token);
+            if ( defined $perl_type ) {
+                $token_found = 1;
+                defined $recce->alternative( $perl_type, \$cast )
+                    or token_not_accepted( $token, $perl_type, $cast );
+                $parser->earleme_complete();
+            } ## end if ( defined $perl_type )
         } ## end for my $cast ( split //xms, $content )
         defined $token_found or unknown_ppi_token($token);
         goto SUCCESS;
@@ -1208,11 +1210,11 @@ sub read_PPI_token {
     if ( $PPI_type eq 'PPI::Token::Operator' ) {
         my $content = $token->{content};
         $perl_type = $perl_type_by_op{$content};
-        if ( not defined $perl_type ) {
-            die qq{Unknown $PPI_type: "$content":},
-                Marpa::R2::Perl::default_show_location($token),
-                "\n";
-        }
+	if (not defined $perl_type) {
+	  unknown_ppi_token($token);
+	  $parser->earleme_complete();
+	  goto SUCCESS;
+	}
         if ( $perl_type eq 'PLUS' ) {
 
             # Apply the "ruby slippers"
@@ -1260,11 +1262,11 @@ sub read_PPI_token {
         my $content = $token->{content};
         $perl_type = $perl_type_by_structure{$content};
         my $expected_tokens = $recce->terminals_expected();
-        if ( not defined $perl_type ) {
-            die qq{Unknown $PPI_type: "$content":},
-                Marpa::R2::Perl::default_show_location($token),
-                "\n";
-        }
+	if ( not defined $perl_type ) {
+	    unknown_ppi_token($token);
+	    $parser->earleme_complete();
+	    goto SUCCESS;
+	}
         if ( $perl_type eq 'RCURLY' ) {
             if ((   not defined $Marpa::R2::Perl::LAST_PERL_TYPE
                     or $Marpa::R2::Perl::LAST_PERL_TYPE ne 'SEMI'
@@ -1404,7 +1406,6 @@ sub Marpa::R2::Perl::find_perl {
 
     $recce->end_input();
 
-    say 'latest ES at ', $recce->latest_earley_set();
     my $report = $recce->progress($PPI_token_to_earleme[$last_end_marker]);
     my $start;
     ITEM: for my $item (@{$report}) {
@@ -1440,6 +1441,10 @@ sub Marpa::R2::Perl::parse {
     my ( $parser, $input, $hash_arg ) = @_;
     $parser->Marpa::R2::Perl::read( $input, $hash_arg );
     return $parser->Marpa::R2::Perl::eval();
+}
+
+sub Marpa::R2::Perl::brief_location {
+    my ($token) = @_;
 }
 
 sub Marpa::R2::Perl::default_show_location {
