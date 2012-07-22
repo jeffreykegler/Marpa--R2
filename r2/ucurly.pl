@@ -40,6 +40,7 @@ sub linecol {
 }
 
 my $tokens = $finder->tokens(\$string);
+$parser->clone_tokens($finder);
 my $count_of_tokens = scalar @{$tokens};
 my $perl_found = 0;
 my $start = 0;
@@ -63,55 +64,60 @@ PERL_CODE: while (1) {
     say join q{ }, ( '=' x 20 ), linecol( $tokens->[$start] ), 'to',
         linecol( $tokens->[$end] ), ( '=' x 20 );
     say map { $_->content() } @{$tokens}[ $start .. $end ];
+    find_curly($parser, $start, $end);
     $next_start = $end + 1;
 } ## end PERL_CODE: while (1)
 
 printf "perl tokens = %d; all tokens=%d; %.2f%%\n", $perl_found,
     $count_of_tokens, ( $perl_found / $count_of_tokens ) * 100;
 
-exit 0;
+sub find_curly {
+    my ( $parser, $start_ix, $end_ix ) = @_;
+    $parser->read_tokens( $start_ix, $end_ix );
 
-my $recce     = $parser->{recce};
-my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-for my $earley_set_id ( 0 .. $recce->latest_earley_set() ) {
-    my $progress_report = $recce->progress($earley_set_id);
-    ITEM: for my $progress_item ( @{$progress_report} ) {
-        my ( $rule_id, $position, $origin_earley_set_id ) = @{$progress_item};
-        last ITEM if not defined $rule_id;
-        next ITEM if $position >= 0;
-        $position = $grammar_c->rule_length($rule_id);
+    my $recce     = $parser->{recce};
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    for my $earley_set_id ( 0 .. $recce->latest_earley_set() ) {
+        my $progress_report = $recce->progress($earley_set_id);
+        ITEM: for my $progress_item ( @{$progress_report} ) {
+            my ( $rule_id, $position, $origin_earley_set_id ) =
+                @{$progress_item};
+            last ITEM if not defined $rule_id;
+            next ITEM if $position >= 0;
+            $position = $grammar_c->rule_length($rule_id);
 
-        my $origin_earleme = $recce->earleme($origin_earley_set_id);
+            my $origin_earleme = $recce->earleme($origin_earley_set_id);
 
-        my $rule      = $rules->[$rule_id];
-        my $rule_name = $rule->[Marpa::R2::Internal::Rule::NAME];
-        next ITEM if not defined $rule_name;
-        my $blocktype =
-              $rule_name eq 'anon_hash' ? 'hash'
-            : $rule_name eq 'block'     ? 'code'
-            : $rule_name eq 'mblock'    ? 'code'
-            :                             undef;
-        next ITEM if not defined $blocktype;
-        my $PPI_tokens       = $parser->{PPI_tokens};
-        my $earleme_to_token = $parser->{earleme_to_PPI_token};
-        my $token    = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
-        my $location = 'line '
-            . $token->logical_line_number()
-            . q{, column }
-            . $token->column_number;
-        $hash{$location}++      if $blocktype eq 'hash';
-        $codeblock{$location}++ if $blocktype eq 'code';
-    } ## end ITEM: for my $progress_item ( @{$progress_report} )
-} ## end for my $earley_set_id ( 0 .. $recce->latest_earley_set...)
-my @result;
-for my $location ( sort keys %hash ) {
-    push @result, "Hash at $location\n";
-}
-for my $location ( sort keys %codeblock ) {
-    push @result, "Code block at $location\n";
-}
-my $result = join q{}, sort @result;
-say $result or die 'say builtin failed';
+            my $rule      = $rules->[$rule_id];
+            my $rule_name = $rule->[Marpa::R2::Internal::Rule::NAME];
+            next ITEM if not defined $rule_name;
+            my $blocktype =
+                  $rule_name eq 'anon_hash' ? 'hash'
+                : $rule_name eq 'block'     ? 'code'
+                : $rule_name eq 'mblock'    ? 'code'
+                :                             undef;
+            next ITEM if not defined $blocktype;
+            my $PPI_tokens       = $parser->{PPI_tokens};
+            my $earleme_to_token = $parser->{earleme_to_PPI_token};
+            my $token = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
+            my $location = 'line '
+                . $token->logical_line_number()
+                . q{, column }
+                . $token->column_number;
+            $hash{$location}++      if $blocktype eq 'hash';
+            $codeblock{$location}++ if $blocktype eq 'code';
+        } ## end ITEM: for my $progress_item ( @{$progress_report} )
+    } ## end for my $earley_set_id ( 0 .. $recce->latest_earley_set...)
+    my @result;
+    for my $location ( sort keys %hash ) {
+        push @result, "Hash at $location\n";
+    }
+    for my $location ( sort keys %codeblock ) {
+        push @result, "Code block at $location\n";
+    }
+    my $result = join q{}, sort @result;
+    say $result or die 'say builtin failed';
 
+} ## end sub find_curly
