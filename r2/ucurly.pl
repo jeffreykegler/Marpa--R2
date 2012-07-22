@@ -24,12 +24,7 @@ use Marpa::R2;
 use lib 'pperl';
 use Marpa::R2::Perl;
 
-my %hash;
-my %codeblock;
-
-my @tests;
 my $string = do { local $RS = undef; <STDIN> };
-
 my $finder = Marpa::R2::Perl->new( { embedded => 1, closures => {} } );
 my $parser = Marpa::R2::Perl->new( { closures => {} } );
 
@@ -64,7 +59,7 @@ PERL_CODE: while (1) {
     say join q{ }, ( '=' x 20 ), linecol( $tokens->[$start] ), 'to',
         linecol( $tokens->[$end] ), ( '=' x 20 );
     say map { $_->content() } @{$tokens}[ $start .. $end ];
-    # find_curly($parser, $start, $end);
+    find_curly($parser, $start, $end);
     $next_start = $end + 1;
 } ## end PERL_CODE: while (1)
 
@@ -73,13 +68,18 @@ printf "perl tokens = %d; all tokens=%d; %.2f%%\n", $perl_found,
 
 sub find_curly {
     my ( $parser, $start_ix, $end_ix ) = @_;
+
     $parser->read_tokens( $start_ix, $end_ix );
 
-    my $recce     = $parser->{recce};
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $recce            = $parser->{recce};
+    my $earleme_to_token = $parser->{earleme_to_PPI_token};
+    my $PPI_tokens       = $parser->{PPI_tokens};
+    my $grammar          = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $rules            = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     for my $earley_set_id ( 0 .. $recce->latest_earley_set() ) {
+        my @hash_locations  = ();
+        my @code_locations  = ();
         my $progress_report = $recce->progress($earley_set_id);
         ITEM: for my $progress_item ( @{$progress_report} ) {
             my ( $rule_id, $position, $origin_earley_set_id ) =
@@ -99,25 +99,45 @@ sub find_curly {
                 : $rule_name eq 'mblock'    ? 'code'
                 :                             undef;
             next ITEM if not defined $blocktype;
-            my $PPI_tokens       = $parser->{PPI_tokens};
-            my $earleme_to_token = $parser->{earleme_to_PPI_token};
             my $token = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
-            my $location = 'line '
-                . $token->logical_line_number()
-                . q{, column }
-                . $token->column_number;
-            $hash{$location}++      if $blocktype eq 'hash';
-            $codeblock{$location}++ if $blocktype eq 'code';
+            push @hash_locations, [$origin_earleme, $earley_set_id] if $blocktype eq 'hash';
+            push @code_locations, [$origin_earleme, $earley_set_id] if $blocktype eq 'code';
+
+            if ( $blocktype eq 'hash' ) {
+                say 'Hash at line '
+                    . $token->logical_line_number()
+                    . q{, column }
+                    . $token->column_number;
+            } ## end if ( $blocktype eq 'hash' )
+            if ( $blocktype eq 'code' ) {
+                say 'Code block at line '
+                    . $token->logical_line_number()
+                    . q{, column }
+                    . $token->column_number;
+            } ## end if ( $blocktype eq 'code' )
         } ## end ITEM: for my $progress_item ( @{$progress_report} )
+        for my $hash_location (@hash_locations) {
+	    my ($start, $end) = @{$hash_location};
+            my $start_ix = $earleme_to_token->[$start];
+            my $end_ix = $earleme_to_token->[$end]-1;
+            my $string         = join q{},
+                map { $_->content() }
+                @{$tokens}[ $start_ix .. $end_ix ];
+            $string =~ s/^\s*//;
+            $string =~ s/\s*$//;
+            say join q{ }, 'Hash at', linecol( $PPI_tokens->[$start_ix] ), linecol( $PPI_tokens->[$end_ix] ), $string;
+        } ## end for my $hash_origin (@hash_locations)
+        for my $code_location (@code_locations) {
+	    my ($start, $end) = @{$code_location};
+            my $start_ix = $earleme_to_token->[$start];
+            my $end_ix = $earleme_to_token->[$end]-1;
+            my $string         = join q{},
+                map { $_->content() }
+                @{$tokens}[ $start_ix .. $end_ix ];
+            $string =~ s/^\s*//;
+            $string =~ s/\s*$//;
+            say join q{ }, 'Code at', linecol( $PPI_tokens->[$start_ix] ), linecol( $PPI_tokens->[$end_ix] ), $string;
+        } ## end for my $code_origin (@code_locations)
     } ## end for my $earley_set_id ( 0 .. $recce->latest_earley_set...)
-    my @result;
-    for my $location ( sort keys %hash ) {
-        push @result, "Hash at $location\n";
-    }
-    for my $location ( sort keys %codeblock ) {
-        push @result, "Code block at $location\n";
-    }
-    my $result = join q{}, sort @result;
-    say $result or die 'say builtin failed';
 
 } ## end sub find_curly

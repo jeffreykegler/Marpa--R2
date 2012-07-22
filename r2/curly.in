@@ -1,0 +1,18 @@
+This line is not perl
+             {42;{1,2,3;4}}
+Code block at line 1, column 1
+Code block at line 1, column 5
+These lines are not perl
+             {42;{1,2,3,4}}
+Code block at line 1, column 1
+Code block at line 1, column 5
+Hash at line 1, column 5
+These lines are not perl
+             {42;{;1,2,3;4}}
+Code block at line 1, column 1
+Code block at line 1, column 5
+These lines are not perl
+             {42;+{1,2,3,4}}
+Code block at line 1, column 1
+Hash at line 1, column 6
+These lines are not perl
