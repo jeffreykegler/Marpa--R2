@@ -1033,9 +1033,14 @@ sub Marpa::R2::Perl::tokens {
     # or bad things happen.
     my $document = $parser->{document} = PPI::Document->new($input);
     $document->index_locations();
-    $parser->{earleme_to_PPI_token} = [];
     return $parser->{PPI_tokens} = [$document->tokens()];
 } ## end sub Marpa::R2::Perl::tokens
+
+sub Marpa::R2::Perl::clone_tokens {
+    my ( $to_parser, $from_parser ) = @_;
+    $to_parser->{document} = $from_parser->{document} ;
+    $to_parser->{PPI_tokens} = $from_parser->{PPI_tokens} ;
+}
 
 sub Marpa::R2::Perl::read {
     my ( $parser, $input ) = @_;
@@ -1074,7 +1079,7 @@ sub Marpa::R2::Perl::read_tokens {
     local $Marpa::R2::Perl::RECOGNIZER = $recce;
 
     my $PPI_tokens = $parser->{PPI_tokens};
-    my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token};
+    my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token} = [];
 
     # For use by read_PPI_token
     local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
@@ -1326,18 +1331,16 @@ sub read_PPI_token {
         goto SUCCESS;
     } ## end if ( $PPI_type eq 'PPI::Token::Number' or $PPI_type ...)
 
-    if ( $PPI_type eq 'PPI::Token::Quote::Single' ) {
+    if (   $PPI_type eq 'PPI::Token::Quote::Single'
+        or $PPI_type eq 'PPI::Token::Quote::Double'
+        or $PPI_type eq 'PPI::Token::Regexp::Match' )
+    {
         my $content = $token->{content};
-        ## no critic (BuiltinFunctions::ProhibitStringyEval)
-        my $string = eval $content;
-        ## use critic
-        Carp::Croak("eval failed: $EVAL_ERROR")
-            if not defined $string;
-        defined $recce->alternative( 'THING', \$string )
-            or token_not_accepted( $token, 'THING', $string );
+        defined $recce->alternative( 'THING', \$content )
+            or token_not_accepted( $token, 'THING', $content );
         $parser->earleme_complete();
         goto SUCCESS;
-    } ## end if ( $PPI_type eq 'PPI::Token::Quote::Single' )
+    } ## end if ( $PPI_type eq 'PPI::Token::Quote::Single' or $PPI_type...)
 
     if ( $PPI_type eq 'PPI::Token::QuoteLike::Words' ) {
         my $content = $token->{content};
