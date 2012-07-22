@@ -35,14 +35,17 @@ my $parser = Marpa::R2::Perl->new( { closures => {} } );
 
 sub linecol {
     my ($token) = @_;
+    return '?' if not defined $token;
     return $token->logical_line_number() . ':' . $token->column_number;
 }
 
 my $tokens = $finder->tokens(\$string);
-say 'count of tokens: ', (scalar @{$tokens});
+my $count_of_tokens = scalar @{$tokens};
+my $perl_found = 0;
 my $start = 0;
 my $next_start = 0;
 PERL_CODE: while (1) {
+    last PERL_CODE if $next_start >= $count_of_tokens;
     my ( $start, $end ) = $finder->find_perl($next_start);
     my @issues = @{ $finder->{token_issues} };
     if ( scalar @issues ) {
@@ -56,11 +59,15 @@ PERL_CODE: while (1) {
         $next_start = $end + 1;
         next PERL_CODE;
     } ## end if ( not defined $start )
+    $perl_found += ($end - $start) + 1;
     say join q{ }, ( '=' x 20 ), linecol( $tokens->[$start] ), 'to',
         linecol( $tokens->[$end] ), ( '=' x 20 );
     say map { $_->content() } @{$tokens}[ $start .. $end ];
     $next_start = $end + 1;
 } ## end PERL_CODE: while (1)
+
+printf "perl tokens = %d; all tokens=%d; %.2f%%\n", $perl_found,
+    $count_of_tokens, ( $perl_found / $count_of_tokens ) * 100;
 
 exit 0;
 

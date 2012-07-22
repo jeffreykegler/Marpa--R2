@@ -1135,7 +1135,7 @@ sub read_PPI_token {
 
     if ( $PPI_type eq 'PPI::Token::Symbol' ) {
         my ( $sigil, $word ) =
-            ( $token->{content} =~ / \A ([\$@%]) ([':\w]*) \z /xms );
+            ( $token->{content} =~ / \A ([&*\$@%]) ([':\w]*) \z /xms );
         if ( not defined $sigil ) {
             Carp::croak( 'Unknown symbol type: ',
                 Data::Dumper::Dumper($token) );
@@ -1416,6 +1416,7 @@ sub Marpa::R2::Perl::find_perl {
 
     $recce->end_input();
 
+    return (undef, $PPI_token_ix) if not defined $last_end_marker;
     my $report = $recce->progress($PPI_token_to_earleme[$last_end_marker]);
     my $start;
     ITEM: for my $item (@{$report}) {
