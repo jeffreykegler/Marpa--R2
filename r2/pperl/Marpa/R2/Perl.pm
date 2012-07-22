@@ -486,6 +486,8 @@ my %symbol_name = (
 
 my %perl_type_by_cast = (
     q{\\} => 'REFGEN',
+    q{*} => 'ASTERISK',
+    q{&} => 'AMPERSAND',
     q{$}  => 'DOLLAR',
     q{@}  => 'ATSIGN',
     q{%}  => 'PERCENT',
@@ -1135,6 +1137,7 @@ sub read_PPI_token {
     my $PPI_type = ref $token;
     return 1 if $PPI_type eq 'PPI::Token::Whitespace';
     return 1 if $PPI_type eq 'PPI::Token::Comment';
+    return 1 if $PPI_type eq 'PPI::Token::Pod';
 
     my $perl_type = undef;
 
@@ -1318,6 +1321,7 @@ sub read_PPI_token {
 
     if (   $PPI_type eq 'PPI::Token::Number'
         or $PPI_type eq 'PPI::Token::Number::Float'
+        or $PPI_type eq 'PPI::Token::Magic'
         or $PPI_type eq 'PPI::Token::Number::Version' )
     {
         my $content     = $token->{content};
@@ -1333,7 +1337,8 @@ sub read_PPI_token {
 
     if (   $PPI_type eq 'PPI::Token::Quote::Single'
         or $PPI_type eq 'PPI::Token::Quote::Double'
-        or $PPI_type eq 'PPI::Token::Regexp::Match' )
+        or $PPI_type eq 'PPI::Token::Regexp::Match'
+        or $PPI_type eq 'PPI::Token::Magic')
     {
         my $content = $token->{content};
         defined $recce->alternative( 'THING', \$content )

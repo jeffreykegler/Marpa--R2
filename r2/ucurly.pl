@@ -64,7 +64,7 @@ PERL_CODE: while (1) {
     say join q{ }, ( '=' x 20 ), linecol( $tokens->[$start] ), 'to',
         linecol( $tokens->[$end] ), ( '=' x 20 );
     say map { $_->content() } @{$tokens}[ $start .. $end ];
-    find_curly($parser, $start, $end);
+    # find_curly($parser, $start, $end);
     $next_start = $end + 1;
 } ## end PERL_CODE: while (1)
 
