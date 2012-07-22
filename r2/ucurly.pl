@@ -59,7 +59,7 @@ PERL_CODE: while (1) {
     say join q{ }, ( '=' x 20 ), linecol( $tokens->[$start] ), 'to',
         linecol( $tokens->[$end] ), ( '=' x 20 );
     say map { $_->content() } @{$tokens}[ $start .. $end ];
-    find_curly($parser, $start, $end);
+    find_curly($parser, $start, $end-1);
     $next_start = $end + 1;
 } ## end PERL_CODE: while (1)
 
@@ -116,27 +116,39 @@ sub find_curly {
                     . $token->column_number;
             } ## end if ( $blocktype eq 'code' )
         } ## end ITEM: for my $progress_item ( @{$progress_report} )
+	my @ambiguous = ();
+	push @ambiguous, 'AMBIGUOUS' if scalar @hash_locations and scalar @code_locations;
         for my $hash_location (@hash_locations) {
 	    my ($start, $end) = @{$hash_location};
             my $start_ix = $earleme_to_token->[$start];
-            my $end_ix = $earleme_to_token->[$end]-1;
+	    my $end_ix = $earleme_to_token->[$end];
+            if (defined $end_ix) {
+	       $end_ix--;
+	    } else {
+	      do {} while not defined ($end_ix = $earleme_to_token->[--$end]);
+	    }
             my $string         = join q{},
                 map { $_->content() }
                 @{$tokens}[ $start_ix .. $end_ix ];
             $string =~ s/^\s*//;
             $string =~ s/\s*$//;
-            say join q{ }, 'Hash at', linecol( $PPI_tokens->[$start_ix] ), linecol( $PPI_tokens->[$end_ix] ), $string;
+            say join q{ }, @ambiguous, 'Hash at', linecol( $PPI_tokens->[$start_ix] ), linecol( $PPI_tokens->[$end_ix] ), $string;
         } ## end for my $hash_origin (@hash_locations)
         for my $code_location (@code_locations) {
 	    my ($start, $end) = @{$code_location};
             my $start_ix = $earleme_to_token->[$start];
-            my $end_ix = $earleme_to_token->[$end]-1;
+            my $end_ix = $earleme_to_token->[$end];
+            if (defined $end_ix) {
+	       $end_ix--;
+	    } else {
+	      do {} while not defined ($end_ix = $earleme_to_token->[--$end]);
+	    }
             my $string         = join q{},
                 map { $_->content() }
                 @{$tokens}[ $start_ix .. $end_ix ];
             $string =~ s/^\s*//;
             $string =~ s/\s*$//;
-            say join q{ }, 'Code at', linecol( $PPI_tokens->[$start_ix] ), linecol( $PPI_tokens->[$end_ix] ), $string;
+            say join q{ }, @ambiguous, 'Code at', linecol( $PPI_tokens->[$start_ix] ), linecol( $PPI_tokens->[$end_ix] ), $string;
         } ## end for my $code_origin (@code_locations)
     } ## end for my $earley_set_id ( 0 .. $recce->latest_earley_set...)
 

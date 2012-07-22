@@ -1337,7 +1337,11 @@ sub read_PPI_token {
 
     if (   $PPI_type eq 'PPI::Token::Quote::Single'
         or $PPI_type eq 'PPI::Token::Quote::Double'
+        or $PPI_type eq 'PPI::Token::Quote::Interpolate'
+        or $PPI_type eq 'PPI::Token::HereDoc'
         or $PPI_type eq 'PPI::Token::Regexp::Match'
+        or $PPI_type eq 'PPI::Token::Regexp::Substitute'
+        or $PPI_type eq 'PPI::Token::Regexp::Transliterate'
         or $PPI_type eq 'PPI::Token::Magic')
     {
         my $content = $token->{content};
