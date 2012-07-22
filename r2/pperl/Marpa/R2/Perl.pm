@@ -981,7 +981,11 @@ my @RECCE_NAMED_ARGUMENTS =
 
 sub token_not_accepted {
     my ( $ppi_token, $token_name, $token_value, $length ) = @_;
-    die "TOKEN_NOT_ACCEPTED\n" if $Marpa::R2::Perl::PARSER->{embedded};
+    if ($Marpa::R2::Perl::PARSER->{embedded}) {
+      return if $Marpa::R2::Perl::PARSER->{in_prefix};
+      die "TOKEN_NOT_ACCEPTED\n";
+    }
+
     local $Data::Dumper::Maxdepth = 2;
     local $Data::Dumper::Terse    = 1;
     my $perl_token_desc;
@@ -1359,13 +1363,14 @@ sub Marpa::R2::Perl::find_perl {
         }
     );
     $parser->{recce} = $recce;
+    my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token} = ();
 
     # This is convenient for making the recognizer available to
     # error messages
     local $Marpa::R2::Perl::PARSER = $parser;
 
     my $PPI_tokens           = $parser->{PPI_tokens};
-    my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token};
+    my @PPI_token_to_earleme = ();
 
     # For use by read_PPI_token
     local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
@@ -1389,6 +1394,7 @@ sub Marpa::R2::Perl::find_perl {
             $last_end_marker = $PPI_token_ix - 1;
         }
         $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
+	$PPI_token_to_earleme[$PPI_token_ix] = $current_earleme;
         eval { read_PPI_token( $parser, $PPI_token_ix ); };
 	if ($EVAL_ERROR) {
 	   die $EVAL_ERROR if $EVAL_ERROR ne "TOKEN_NOT_ACCEPTED\n";
@@ -1398,15 +1404,19 @@ sub Marpa::R2::Perl::find_perl {
 
     $recce->end_input();
 
-    say 'progress at ', ($last_end_marker - $first_token_ix - 1);
     say 'latest ES at ', $recce->latest_earley_set();
-    my $report = $recce->progress($last_end_marker - $first_token_ix - 1);
-    for my $item (@{$report}) {
+    my $report = $recce->progress($PPI_token_to_earleme[$last_end_marker]);
+    my $start;
+    ITEM: for my $item (@{$report}) {
         my ($rule_id, $dot_position, $origin) = @{$item};
 	next ITEM if $dot_position >= 0;
-	say STDERR join q{ }, $grammar->rule(), '@', $origin;
+	next ITEM if ($grammar->rule($rule_id))[0] ne 'prog';
+	$start //= $origin;
+	$start = $origin if $start > $origin;
     }
-    return ($last_end_marker, $last_end_marker);
+    return if not defined $start;
+    my $start_PPI_ix = $earleme_to_PPI_token->[$start];
+    return ($start_PPI_ix, $last_end_marker);
 
 } ## end sub Marpa::R2::Perl::find_perl
 
