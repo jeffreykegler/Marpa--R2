@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.015_000 Sat Jul 21 18:38:13 PDT 2012
+
+      * New developer's release
+
 2.014000 Sat Jul 21 18:18:52 PDT 2012
 
       * Added $v->location() to thin interface
