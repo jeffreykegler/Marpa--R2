@@ -981,10 +981,6 @@ my @RECCE_NAMED_ARGUMENTS =
 
 sub token_not_accepted {
     my ( $ppi_token, $token_name, $token_value, $length ) = @_;
-    if ($Marpa::R2::Perl::PARSER->{embedded}) {
-      return if $Marpa::R2::Perl::PARSER->{in_prefix};
-      die "TOKEN_NOT_ACCEPTED\n";
-    }
 
     local $Data::Dumper::Maxdepth = 2;
     local $Data::Dumper::Terse    = 1;
@@ -1009,18 +1005,25 @@ sub token_not_accepted {
         q{content="},                      $ppi_token->content(),
         q{"}
     ;
+    if ($Marpa::R2::Perl::PARSER->{embedded}) {
+      push @{$Marpa::R2::Perl::PARSER->{token_issues}}, $error_string;
+      return if $Marpa::R2::Perl::PARSER->{in_prefix};
+      die "TOKEN_NOT_ACCEPTED\n";
+    }
     Carp::croak($error_string);
 } ## end sub token_not_accepted
 
 sub unknown_ppi_token {
     my ($ppi_token) = @_;
+    my $issue = join q{}, 'Failed at Token: ', Data::Dumper::Dumper($ppi_token),
+        'Marpa::R2::Perl did not know how to process token',
+        Marpa::R2::Perl::default_show_location($ppi_token), "\n";
     if ($Marpa::R2::Perl::PARSER->{embedded}) {
+      push @{$Marpa::R2::Perl::PARSER->{token_issues}}, $issue;
       return if $Marpa::R2::Perl::PARSER->{in_prefix};
       die "TOKEN_NOT_ACCEPTED\n";
     }
-    die 'Failed at Token: ', Data::Dumper::Dumper($ppi_token),
-        'Marpa::R2::Perl did not know how to process token',
-        Marpa::R2::Perl::default_show_location($ppi_token), "\n";
+    die $issue;
 } ## end sub unknown_ppi_token
 
 sub Marpa::R2::Perl::tokens {
@@ -1380,29 +1383,38 @@ sub Marpa::R2::Perl::find_perl {
     my $in_prefix = $parser->{in_prefix} = 1;
     my $last_end_marker;
 
-    $first_token_ix //= 0;
-    $last_token_ix  //= $#{$PPI_tokens};
-    TOKEN: for my $PPI_token_ix ( $first_token_ix .. $last_token_ix ) {
+    $last_token_ix //= $#{$PPI_tokens};
+    my $PPI_token_ix;
+    TOKEN:
+    for (
+        $PPI_token_ix = $first_token_ix // 0;
+        $PPI_token_ix < $last_token_ix;
+        $PPI_token_ix++
+        )
+    {
         last TOKEN if $recce->exhausted();
-        my $current_earleme    = $recce->current_earleme();
+        my $current_earleme = $recce->current_earleme();
+        $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
+        $PPI_token_to_earleme[$PPI_token_ix] = $current_earleme;
+        $parser->{token_issues} = [];
+        eval { read_PPI_token( $parser, $PPI_token_ix ); };
+        if ($EVAL_ERROR) {
+            die $EVAL_ERROR if $EVAL_ERROR ne "TOKEN_NOT_ACCEPTED\n";
+            last TOKEN;
+        }
         my $terminals_expected = $recce->terminals_expected();
         if ( 'non_trivial_prog_marker' ~~ $terminals_expected ) {
             $in_prefix = $parser->{in_prefix} = 0;
-            $last_end_marker = $PPI_token_ix - 1;
-        }
+            $last_end_marker = $PPI_token_ix;
+        } ## end if ( 'non_trivial_prog_marker' ~~ $terminals_expected)
         if ( defined $last_end_marker
             && 'prog_end_marker' ~~ $terminals_expected )
         {
-            $last_end_marker = $PPI_token_ix - 1;
-        }
-        $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
-	$PPI_token_to_earleme[$PPI_token_ix] = $current_earleme;
-        eval { read_PPI_token( $parser, $PPI_token_ix ); };
-	if ($EVAL_ERROR) {
-	   die $EVAL_ERROR if $EVAL_ERROR ne "TOKEN_NOT_ACCEPTED\n";
-	   last TOKEN;
-	}
-    } ## end TOKEN: for my $PPI_token_ix ( $first_token_ix .. $last_token_ix)
+            $last_end_marker = $PPI_token_ix;
+        } ## end if ( defined $last_end_marker && 'prog_end_marker' ~~...)
+    } ## end for ( $PPI_token_ix = $first_token_ix // 0; $PPI_token_ix...)
+
+    die if $parser->{in_prefix}; # should not happen
 
     $recce->end_input();
 
@@ -1415,7 +1427,7 @@ sub Marpa::R2::Perl::find_perl {
 	$start //= $origin;
 	$start = $origin if $start > $origin;
     }
-    return if not defined $start;
+    return (undef, $PPI_token_ix) if not defined $start;
     my $start_PPI_ix = $earleme_to_PPI_token->[$start];
     return ($start_PPI_ix, $last_end_marker);
 
@@ -1441,10 +1453,6 @@ sub Marpa::R2::Perl::parse {
     my ( $parser, $input, $hash_arg ) = @_;
     $parser->Marpa::R2::Perl::read( $input, $hash_arg );
     return $parser->Marpa::R2::Perl::eval();
-}
-
-sub Marpa::R2::Perl::brief_location {
-    my ($token) = @_;
 }
 
 sub Marpa::R2::Perl::default_show_location {
