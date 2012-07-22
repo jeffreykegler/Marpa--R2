@@ -43,12 +43,24 @@ say 'count of tokens: ', (scalar @{$tokens});
 my $start = 0;
 my $next_start = 0;
 PERL_CODE: while (1) {
-  my ($start, $end) = $finder->find_perl( $next_start );
-  last PERL_CODE if not defined $start;
-  say join q{ }, ('=' x 20), linecol($tokens->[$start]), 'to', linecol($tokens->[$end]), ('=' x 20);
-  say map { $_->content() } @{$tokens}[$start .. $end];
-  $next_start = $end+1;
-}
+    my ( $start, $end ) = $finder->find_perl($next_start);
+    my @issues = @{ $finder->{token_issues} };
+    if ( scalar @issues ) {
+        say +( '=' x 20 );
+        say @issues;
+    }
+    if ( not defined $start ) {
+        say join q{ }, ( '=' x 20 ), 'No Perl found',
+            linecol( $tokens->[$next_start] ), 'to', linecol( $tokens->[$end] ),
+            ( '=' x 20 );
+        $next_start = $end + 1;
+        next PERL_CODE;
+    } ## end if ( not defined $start )
+    say join q{ }, ( '=' x 20 ), linecol( $tokens->[$start] ), 'to',
+        linecol( $tokens->[$end] ), ( '=' x 20 );
+    say map { $_->content() } @{$tokens}[ $start .. $end ];
+    $next_start = $end + 1;
+} ## end PERL_CODE: while (1)
 
 exit 0;
 
