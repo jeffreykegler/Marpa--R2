@@ -85,6 +85,8 @@
 ^libmarpa/dev/marpa[.]toc
 ^libmarpa/dev/marpa_api[.]h
 ^libmarpa/dev/marpa_util[.]h
+^libmarpa/dev/old_pod/Algorithm[.]pod
+^libmarpa/dev/old_pod/Implementation[.]pod
 ^libmarpa/dev/private[.]h$
 ^libmarpa/doc/
 ^libmarpa/libmarpa[-]doc[.]tar$
@@ -105,6 +107,7 @@
 ^libmarpa/test/dev/m4/ltversion[.]m4$
 ^libmarpa/test/dev/m4/lt~obsolete[.]m4$
 ^libmarpa/test/dev/missing$
+^libmarpa/test/libmarpa/
 ^libmarpa/test/work/
 ^libmarpa_build/marpa-[0-9]*[.][0-9]*[.][0-9]*/
 ^nogit

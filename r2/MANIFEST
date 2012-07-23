@@ -112,8 +112,6 @@ libmarpa/dev/internal.texi
 libmarpa/dev/marpa.w
 libmarpa/dev/marpa_obs.c
 libmarpa/dev/marpa_obs.h
-libmarpa/dev/old_pod/Algorithm.pod
-libmarpa/dev/old_pod/Implementation.pod
 libmarpa/dev/texi2code.pl
 libmarpa/dev/w2private_h.pl
 libmarpa/libmarpa.tar
@@ -163,6 +161,7 @@ t/code_diag.t
 t/context.t
 t/counter.t
 t/curly.t
+t/curly2.t
 t/debug.t
 t/debug_leo.t
 t/debug_seq.t
