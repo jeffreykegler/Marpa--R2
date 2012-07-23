@@ -1,18 +1,18 @@
-This line is not perl
-             {42;{1,2,3;4}}
-Code block at line 1, column 1
-Code block at line 1, column 5
-These lines are not perl
-             {42;{1,2,3,4}}
-Code block at line 1, column 1
-Code block at line 1, column 5
-Hash at line 1, column 5
-These lines are not perl
-             {42;{;1,2,3;4}}
-Code block at line 1, column 1
-Code block at line 1, column 5
-These lines are not perl
-             {42;+{1,2,3,4}}
-Code block at line 1, column 1
-Hash at line 1, column 6
-These lines are not perl
+Note: line:column figures include preceding whitepace
+The next line is a perl fragment
+{42;{1,2,3;4}}
+Code block from 3:5 to 3:13
+Code block from 2:33 to 3:14
+The next line is a perl fragment
+{42;{1,2,3,4}}
+Hash from 7:5 to 7:13
+Code block from 7:5 to 7:13
+Code block from 6:33 to 7:14
+The next line is a perl fragment
+{42;{;1,2,3;4}}
+Code block from 12:5 to 12:14
+Code block from 11:33 to 12:15
+The next line is a perl fragment
+{42;+{1,2,3,4}}
+Hash from 16:6 to 16:14
+Code block from 15:33 to 16:15

@@ -1,0 +1,14 @@
+Perl fragment: {42;{1,2,3;4}}
+Code block at 3:5 3:13 {1,2,3;4}
+Code block at 2:33 3:14 {42;{1,2,3;4}}
+Perl fragment: {42;{1,2,3,4}}
+Ambiguous Hash at 7:5 7:13 {1,2,3,4}
+Ambiguous Code block at 7:5 7:13 {1,2,3,4}
+Code block at 6:33 7:14 {42;{1,2,3,4}}
+Perl fragment: {42;{;1,2,3;4}}
+Code block at 12:5 12:14 {;1,2,3;4}
+Code block at 11:33 12:15 {42;{;1,2,3;4}}
+Perl fragment: {42;+{1,2,3,4}}
+Hash at 16:6 16:14 {1,2,3,4}
+Code block at 15:33 16:15 {42;+{1,2,3,4}}
+perl tokens = 62; all tokens=267; 23.22%

@@ -19,10 +19,16 @@ use warnings;
 use strict;
 
 use English qw( -no_match_vars );
+use Getopt::Long;
 use PPI 1.206;
+
 use Marpa::R2;
 use lib 'pperl';
 use Marpa::R2::Perl;
+
+my $task    = 'find_curly';
+my $verbose = 99;
+my $result = GetOptions( "verbose=i" => \$verbose, "task=s" => \$task );
 
 my $string = do { local $RS = undef; <STDIN> };
 my $finder = Marpa::R2::Perl->new( { embedded => 1, closures => {} } );
@@ -44,22 +50,32 @@ PERL_CODE: while (1) {
     last PERL_CODE if $next_start >= $count_of_tokens;
     my ( $start, $end ) = $finder->find_perl($next_start);
     my @issues = @{ $finder->{token_issues} };
-    if ( scalar @issues ) {
+    if ( $verbose > 1 and scalar @issues ) {
         say +( '=' x 20 );
         say @issues;
     }
     if ( not defined $start ) {
-        say join q{ }, ( '=' x 20 ), 'No Perl found',
+        $verbose > 1 and say join q{ }, ( '=' x 20 ), 'No Perl found',
             linecol( $tokens->[$next_start] ), 'to', linecol( $tokens->[$end] ),
             ( '=' x 20 );
         $next_start = $end + 1;
         next PERL_CODE;
     } ## end if ( not defined $start )
     $perl_found += ($end - $start) + 1;
-    say join q{ }, ( '=' x 20 ), linecol( $tokens->[$start] ), 'to',
+    $verbose > 1 and say join q{ }, ( '=' x 20 ), linecol( $tokens->[$start] ), 'to',
         linecol( $tokens->[$end] ), ( '=' x 20 );
-    say map { $_->content() } @{$tokens}[ $start .. $end ];
-    find_curly($parser, $start, $end-1);
+    my $perl_code = join q{}, map { $_->content() } @{$tokens}[ $start .. $end ];
+    if ( $verbose > 1 ) {
+        say $perl_code;
+    }
+    else {
+        $perl_code =~ s/^\s*//;
+        $perl_code =~ s/\s*$//;
+        say 'Perl fragment: ', $perl_code;
+    }
+    if ( $task eq 'find_curly' ) {
+        find_curly( $parser, $start, $end - 1 );
+    }
     $next_start = $end + 1;
 } ## end PERL_CODE: while (1)
 
@@ -100,56 +116,55 @@ sub find_curly {
                 :                             undef;
             next ITEM if not defined $blocktype;
             my $token = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
-            push @hash_locations, [$origin_earleme, $earley_set_id] if $blocktype eq 'hash';
-            push @code_locations, [$origin_earleme, $earley_set_id] if $blocktype eq 'code';
+            push @hash_locations, [ $origin_earleme, $earley_set_id ]
+                if $blocktype eq 'hash';
+            push @code_locations, [ $origin_earleme, $earley_set_id ]
+                if $blocktype eq 'code';
 
-            if ( $blocktype eq 'hash' ) {
-                say 'Hash at line '
-                    . $token->logical_line_number()
-                    . q{, column }
-                    . $token->column_number;
-            } ## end if ( $blocktype eq 'hash' )
-            if ( $blocktype eq 'code' ) {
-                say 'Code block at line '
-                    . $token->logical_line_number()
-                    . q{, column }
-                    . $token->column_number;
-            } ## end if ( $blocktype eq 'code' )
         } ## end ITEM: for my $progress_item ( @{$progress_report} )
-	my @ambiguous = ();
-	push @ambiguous, 'AMBIGUOUS' if scalar @hash_locations and scalar @code_locations;
+        my @ambiguous = ();
+        push @ambiguous, 'Ambiguous'
+            if scalar @hash_locations and scalar @code_locations;
         for my $hash_location (@hash_locations) {
-	    my ($start, $end) = @{$hash_location};
+            my ( $start, $end ) = @{$hash_location};
             my $start_ix = $earleme_to_token->[$start];
-	    my $end_ix = $earleme_to_token->[$end];
-            if (defined $end_ix) {
-	       $end_ix--;
-	    } else {
-	      do {} while not defined ($end_ix = $earleme_to_token->[--$end]);
-	    }
-            my $string         = join q{},
-                map { $_->content() }
-                @{$tokens}[ $start_ix .. $end_ix ];
+            my $end_ix   = $earleme_to_token->[$end];
+            if ( defined $end_ix ) {
+                $end_ix--;
+            }
+            else {
+                do { }
+                    while not
+                        defined( $end_ix = $earleme_to_token->[ --$end ] );
+            }
+            my $string = join q{},
+                map { $_->content() } @{$tokens}[ $start_ix .. $end_ix ];
             $string =~ s/^\s*//;
             $string =~ s/\s*$//;
-            say join q{ }, @ambiguous, 'Hash at', linecol( $PPI_tokens->[$start_ix] ), linecol( $PPI_tokens->[$end_ix] ), $string;
-        } ## end for my $hash_origin (@hash_locations)
+            say join q{ }, @ambiguous, 'Hash at',
+                linecol( $PPI_tokens->[$start_ix] ),
+                linecol( $PPI_tokens->[$end_ix] ), $string;
+        } ## end for my $hash_location (@hash_locations)
         for my $code_location (@code_locations) {
-	    my ($start, $end) = @{$code_location};
+            my ( $start, $end ) = @{$code_location};
             my $start_ix = $earleme_to_token->[$start];
-            my $end_ix = $earleme_to_token->[$end];
-            if (defined $end_ix) {
-	       $end_ix--;
-	    } else {
-	      do {} while not defined ($end_ix = $earleme_to_token->[--$end]);
-	    }
-            my $string         = join q{},
-                map { $_->content() }
-                @{$tokens}[ $start_ix .. $end_ix ];
+            my $end_ix   = $earleme_to_token->[$end];
+            if ( defined $end_ix ) {
+                $end_ix--;
+            }
+            else {
+                do { }
+                    while not
+                        defined( $end_ix = $earleme_to_token->[ --$end ] );
+            }
+            my $string = join q{},
+                map { $_->content() } @{$tokens}[ $start_ix .. $end_ix ];
             $string =~ s/^\s*//;
             $string =~ s/\s*$//;
-            say join q{ }, @ambiguous, 'Code at', linecol( $PPI_tokens->[$start_ix] ), linecol( $PPI_tokens->[$end_ix] ), $string;
-        } ## end for my $code_origin (@code_locations)
+            say join q{ }, @ambiguous, 'Code block at',
+                linecol( $PPI_tokens->[$start_ix] ),
+                linecol( $PPI_tokens->[$end_ix] ), $string;
+        } ## end for my $code_location (@code_locations)
     } ## end for my $earley_set_id ( 0 .. $recce->latest_earley_set...)
 
 } ## end sub find_curly
