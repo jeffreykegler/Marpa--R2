@@ -1402,11 +1402,15 @@ sub Marpa::R2::Perl::find_perl {
     TOKEN:
     for (
         $PPI_token_ix = $first_token_ix // 0;
-        $PPI_token_ix < $last_token_ix;
+        $PPI_token_ix <= $last_token_ix;
         $PPI_token_ix++
         )
     {
-        last TOKEN if $recce->exhausted();
+        if ($recce->exhausted())
+	{
+	  die 'Exhausted but no program found\?' if not defined $last_end_marker_ix;
+	  last TOKEN;
+	}
         my $current_earleme = $recce->current_earleme();
         $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
         $PPI_token_to_earleme[$PPI_token_ix] = $current_earleme;
@@ -1430,6 +1434,9 @@ sub Marpa::R2::Perl::find_perl {
         } ## end if ( defined $last_end_marker && 'prog_end_marker' ~~...)
     } ## end for ( $PPI_token_ix = $first_token_ix // 0; $PPI_token_ix...)
 
+    # We are one past the last token successfully parsed
+    $PPI_token_ix--;
+
     $recce->end_input();
 
     return (undef, $PPI_token_ix) if not defined $last_end_marker_earleme;
@@ -1442,7 +1449,7 @@ sub Marpa::R2::Perl::find_perl {
 	$start //= $origin;
 	$start = $origin if $start > $origin;
     }
-die 'End marker, but no Perl prog?' if not defined $start;
+    die 'End marker, but no Perl prog?' if not defined $start;
     my $start_PPI_ix = $earleme_to_PPI_token->[$start];
     return ($start_PPI_ix, $last_end_marker_ix);
 
