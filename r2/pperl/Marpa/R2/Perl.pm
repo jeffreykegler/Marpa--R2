@@ -1394,7 +1394,8 @@ sub Marpa::R2::Perl::find_perl {
     local $Marpa::R2::Perl::LAST_PERL_TYPE = undef;
     die 'find_perl requires embedded parser' if not $parser->{embedded};
     my $in_prefix = $parser->{in_prefix} = 1;
-    my $last_end_marker;
+    my $last_end_marker_ix;
+    my $last_end_marker_earleme;
 
     $last_token_ix //= $#{$PPI_tokens};
     my $PPI_token_ix;
@@ -1418,19 +1419,21 @@ sub Marpa::R2::Perl::find_perl {
         my $terminals_expected = $recce->terminals_expected();
         if ( 'non_trivial_prog_marker' ~~ $terminals_expected ) {
             $in_prefix = $parser->{in_prefix} = 0;
-            $last_end_marker = $PPI_token_ix;
+            $last_end_marker_ix = $PPI_token_ix;
+            $last_end_marker_earleme = $recce->current_earleme();
         } ## end if ( 'non_trivial_prog_marker' ~~ $terminals_expected)
-        if ( defined $last_end_marker
+        if ( defined $last_end_marker_earleme
             && 'prog_end_marker' ~~ $terminals_expected )
         {
-            $last_end_marker = $PPI_token_ix;
+            $last_end_marker_ix = $PPI_token_ix;
+            $last_end_marker_earleme = $recce->current_earleme();
         } ## end if ( defined $last_end_marker && 'prog_end_marker' ~~...)
     } ## end for ( $PPI_token_ix = $first_token_ix // 0; $PPI_token_ix...)
 
     $recce->end_input();
 
-    return (undef, $PPI_token_ix) if not defined $last_end_marker;
-    my $report = $recce->progress($PPI_token_to_earleme[$last_end_marker]);
+    return (undef, $PPI_token_ix) if not defined $last_end_marker_earleme;
+    my $report = $recce->progress($last_end_marker_earleme);
     my $start;
     ITEM: for my $item (@{$report}) {
         my ($rule_id, $dot_position, $origin) = @{$item};
@@ -1439,9 +1442,9 @@ sub Marpa::R2::Perl::find_perl {
 	$start //= $origin;
 	$start = $origin if $start > $origin;
     }
-    return (undef, $PPI_token_ix) if not defined $start;
+die 'End marker, but no Perl prog?' if not defined $start;
     my $start_PPI_ix = $earleme_to_PPI_token->[$start];
-    return ($start_PPI_ix, $last_end_marker);
+    return ($start_PPI_ix, $last_end_marker_ix);
 
 } ## end sub Marpa::R2::Perl::find_perl
 

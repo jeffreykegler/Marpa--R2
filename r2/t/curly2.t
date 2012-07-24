@@ -88,7 +88,6 @@ my $result = q{};
 PERL_CODE: while (1) {
     last PERL_CODE if $next_start >= $count_of_tokens;
     my ( $start, $end ) = $finder->find_perl($next_start);
-    my @issues = @{ $finder->{token_issues} };
     if ( not defined $start ) {
         $next_start = $end + 1;
         next PERL_CODE;
