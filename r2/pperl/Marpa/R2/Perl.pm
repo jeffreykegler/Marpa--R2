@@ -952,9 +952,9 @@ sub Marpa::R2::Perl::new {
         push @rules,
             [ 'embedded_perl', [qw(target)] ],
             [ 'embedded_perl', [qw(non_perl_prefix target)] ],
-            [ 'target', [qw(line non_trivial_target_end)] ],
-            [ 'target', [qw(decl non_trivial_target_end)] ],
-            [ 'target', [qw(prog target_end_marker)] ],
+            [ 'target', [qw(target_start_marker line non_trivial_target_end)] ],
+            [ 'target', [qw(target_start_marker decl non_trivial_target_end)] ],
+            [ 'target', [qw(target_start_marker prog target_end_marker)] ],
             {
             lhs => 'non_perl_prefix',
             rhs => ['non_perl_token'],
@@ -1108,8 +1108,11 @@ sub Marpa::R2::Perl::earleme_complete {
     my $grammar_c = $grammar->thin();
 
     if ( $parser->{in_prefix} ) {
+        if ( 'target_start_marker' ~~ $parser->{terminals_expected} ) {
+            $recce->alternative('target_start_marker');
+        }
         $recce->alternative('non_perl_token');
-    }
+    } ## end if ( $parser->{in_prefix} )
     my $event_count = $recce_c->earleme_complete();
     $parser->{terminals_expected} = $recce->terminals_expected();
     EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
