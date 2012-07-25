@@ -168,6 +168,7 @@ t/debug_seq.t
 t/deprecated1.t
 t/duplicate_parse.t
 t/equation.t
+t/etc/wall_proof.txt
 t/final_nonnullable.t
 t/gabend.t
 t/implementation.t

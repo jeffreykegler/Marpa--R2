@@ -253,7 +253,7 @@ my %files_by_type = (
         \&ignored,    # not source, and not clear how to add license at top
     'ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
     'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
-    'etc/copy_from_stage'    => \&license_problems_in_perl_file,
+    'etc/copy_from_stage'              => \&license_problems_in_perl_file,
     'html/script/marpa_r2_html_fmt'    => \&license_problems_in_perl_file,
     'html/script/marpa_r2_html_score'  => \&license_problems_in_perl_file,
     'html/t/no_tang.html'              => \&ignored,
@@ -265,34 +265,34 @@ my %files_by_type = (
     'html/t/fmt_t_data/score_expected1.html' => \&trivial,
     'html/t/fmt_t_data/score_expected2.html' => \&trivial,
     'Makefile.PL'                            => \&trivial,
-    'libmarpa/VERSION'           => \&trivial,
-    'libmarpa/dev/README'         => \&trivial,
-    'libmarpa/dev/VERSION.in'     => \&trivial,
-    'libmarpa/dev/api.texi' => \&license_problems_in_fdl_file,
-    'libmarpa/dev/internal.texi' => \&license_problems_in_fdl_file,
+    'libmarpa/VERSION'                       => \&trivial,
+    'libmarpa/dev/README'                    => \&trivial,
+    'libmarpa/dev/VERSION.in'                => \&trivial,
+    'libmarpa/dev/api.texi'                 => \&license_problems_in_fdl_file,
+    'libmarpa/dev/internal.texi'            => \&license_problems_in_fdl_file,
     'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
     'libmarpa/dev/cwebmac.tex' =>
-	\&ignored,    # originally from Cweb, leave it alone
+        \&ignored,    # originally from Cweb, leave it alone
     'libmarpa/dev/dist/AUTHORS' => \&trivial,
     'libmarpa/dev/dist/COPYING.LESSER' =>
-	\&ignored,    # GNU license text, leave it alone
-    'libmarpa/dev/dist/ChangeLog' => \&trivial,
-    'libmarpa/dev/dist/NEWS'      => \&trivial,
-    'libmarpa/dev/dist/README'    => \&license_problems_in_text_file,
+        \&ignored,    # GNU license text, leave it alone
+    'libmarpa/dev/dist/ChangeLog'   => \&trivial,
+    'libmarpa/dev/dist/NEWS'        => \&trivial,
+    'libmarpa/dev/dist/README'      => \&license_problems_in_text_file,
     'libmarpa/dev/doc_dist/AUTHORS' => \&trivial,
-    'libmarpa/dev/doc_dist/fdl.texi' => 
-	\&ignored,    # GNU license text, leave it alone
+    'libmarpa/dev/doc_dist/fdl.texi' =>
+        \&ignored,    # GNU license text, leave it alone
     'libmarpa/dev/doc_dist/COPYING.LESSER' =>
-	\&ignored,    # GNU license text, leave it alone
+        \&ignored,    # GNU license text, leave it alone
     'libmarpa/dev/doc_dist/ChangeLog' => \&trivial,
     'libmarpa/dev/doc_dist/NEWS'      => \&trivial,
     'libmarpa/dev/doc_dist/README'    => \&license_problems_in_text_file,
     'libmarpa/stage/config.h.in' =>
-	check_tag( 'Generated from configure.ac by autoheader', 250 ),
-    'libmarpa/stage_dist/install-sh' => \&check_X_copyright,
-    'libmarpa/test/Makefile'         => \&trivial,
-    'libmarpa/test/README'           => \&trivial,
-    'libmarpa/test/dev/install-sh'   => \&check_X_copyright,
+        check_tag( 'Generated from configure.ac by autoheader', 250 ),
+    'libmarpa/stage_dist/install-sh'    => \&check_X_copyright,
+    'libmarpa/test/Makefile'            => \&trivial,
+    'libmarpa/test/README'              => \&trivial,
+    'libmarpa/test/dev/install-sh'      => \&check_X_copyright,
     'README'                            => \&trivial,
     'TODO'                              => \&trivial,
     'author.t/accept_tidy'              => \&trivial,
@@ -300,6 +300,7 @@ my %files_by_type = (
     'author.t/perltidyrc'               => \&trivial,
     'author.t/spelling_exceptions.list' => \&trivial,
     'author.t/tidy1'                    => \&trivial,
+    't/etc/wall_proof.txt'              => \&cc_a_nd,
 );
 
 sub file_type {
@@ -621,6 +622,28 @@ sub tex_cc_a_nd {
     } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
 } ## end sub tex_closed
+
+sub cc_a_nd {
+    my ( $filename, $verbose ) = @_;
+    my @problems = ();
+    my $text     = slurp($filename);
+    if ( ( index ${$text}, $cc_a_nd_body ) < 0 ) {
+        my $problem = "No CC-A-ND language in $filename (TeX style)\n";
+        push @problems, $problem;
+    }
+    if ( ( index ${$text}, $copyright_line ) < 0 ) {
+        my $problem = "No copyright line in $filename\n";
+        push @problems, $problem;
+    }
+    if ( scalar @problems and $verbose >= 2 ) {
+        my $problem =
+              "=== license for $filename should be as follows:\n"
+            . $cc_a_nd_body
+            . ( q{=} x 30 );
+        push @problems, $problem;
+    } ## end if ( scalar @problems and $verbose >= 2 )
+    return @problems;
+} ## end sub cc_a_nd
 
 sub copyright_page {
     my ( $filename, $verbose ) = @_;
