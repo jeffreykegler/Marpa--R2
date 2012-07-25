@@ -950,14 +950,14 @@ sub Marpa::R2::Perl::new {
     my $start = 'prog';
     if ($embedded) {
         push @rules,
-            [ 'embedded_perl', [qw(perl_prog)] ],
-            [ 'embedded_perl', [qw(non_perl_text perl_prog)] ],
-            [ 'perl_prog', [qw(line non_trivial_prog_marker)] ],
-            [ 'perl_prog', [qw(decl non_trivial_prog_marker)] ],
-            [ 'perl_prog', [qw(prog)] ],
-            [ 'perl_prog', [qw(prog prog_end_marker)] ],
+            [ 'embedded_perl', [qw(target)] ],
+            [ 'embedded_perl', [qw(non_perl_prefix target)] ],
+            [ 'target', [qw(line non_trivial_target_end)] ],
+            [ 'target', [qw(decl non_trivial_target_end)] ],
+            [ 'target', [qw(prog)] ],
+            [ 'target', [qw(prog target_end_marker)] ],
             {
-            lhs => 'non_perl_text',
+            lhs => 'non_perl_prefix',
             rhs => ['non_perl_token'],
             min => 1,
             };
@@ -1423,17 +1423,17 @@ sub Marpa::R2::Perl::find_perl {
             last TOKEN;
         }
         my $terminals_expected = $parser->{terminals_expected};
-        if ( 'non_trivial_prog_marker' ~~ $terminals_expected ) {
+        if ( 'non_trivial_target_end' ~~ $terminals_expected ) {
             $in_prefix = $parser->{in_prefix} = 0;
             $last_end_marker_ix = $PPI_token_ix;
             $last_end_marker_earleme = $recce->current_earleme();
-        } ## end if ( 'non_trivial_prog_marker' ~~ $terminals_expected)
+        } ## end if ( 'non_trivial_target_end' ~~ $terminals_expected)
         if ( defined $last_end_marker_earleme
-            && 'prog_end_marker' ~~ $terminals_expected )
+            && 'target_end_marker' ~~ $terminals_expected )
         {
             $last_end_marker_ix = $PPI_token_ix;
             $last_end_marker_earleme = $recce->current_earleme();
-        } ## end if ( defined $last_end_marker && 'prog_end_marker' ~~...)
+        } ## end if ( defined $last_end_marker && 'target_end_marker' ~~...)
     } ## end for ( $PPI_token_ix = $first_token_ix // 0; $PPI_token_ix...)
 
     # We are one past the last token successfully parsed
