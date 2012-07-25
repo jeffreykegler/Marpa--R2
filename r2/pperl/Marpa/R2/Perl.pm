@@ -954,7 +954,6 @@ sub Marpa::R2::Perl::new {
             [ 'embedded_perl', [qw(non_perl_prefix target)] ],
             [ 'target', [qw(line non_trivial_target_end)] ],
             [ 'target', [qw(decl non_trivial_target_end)] ],
-            [ 'target', [qw(prog)] ],
             [ 'target', [qw(prog target_end_marker)] ],
             {
             lhs => 'non_perl_prefix',
