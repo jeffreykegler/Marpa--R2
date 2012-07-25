@@ -1233,7 +1233,7 @@ sub read_PPI_token {
             # Make the plus sign be whatever the parser
             # wishes it was
             my @potential_types = qw(ADDOP PLUS);
-            my $expected_tokens = $recce->terminals_expected();
+            my $expected_tokens = $parser->{terminals_expected};
             my $token_found;
             TYPE: for my $type (@potential_types) {
                 next TYPE if not $type ~~ $expected_tokens;
@@ -1251,7 +1251,7 @@ sub read_PPI_token {
             # Apply the "ruby slippers"
             # Make the plus sign be whatever the parser
             # wishes it was
-            my $expected_tokens = $recce->terminals_expected();
+            my $expected_tokens = $parser->{terminals_expected};
             my @potential_types = qw(ADDOP UMINUS);
             my $token_found;
             TYPE: for my $type (@potential_types) {
