@@ -1099,19 +1099,19 @@ sub Marpa::R2::Perl::read_tokens {
 
 } ## end sub Marpa::R2::Perl::read
 
-sub Marpa::R2::Perl::earleme_complete
-{
+sub Marpa::R2::Perl::earleme_complete {
     my ($parser) = @_;
 
-    my $recce = $parser->{recce};
-    my $recce_c = $recce->thin();
-    my $grammar = $parser->{grammar};
+    my $recce     = $parser->{recce};
+    my $recce_c   = $recce->thin();
+    my $grammar   = $parser->{grammar};
     my $grammar_c = $grammar->thin();
 
-    if ($parser->{in_prefix}) {
-        $recce->alternative( 'non_perl_token' );
+    if ( $parser->{in_prefix} ) {
+        $recce->alternative('non_perl_token');
     }
     my $event_count = $recce_c->earleme_complete();
+    $parser->{terminals_expected} = $recce->terminals_expected();
     EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
         next EVENT if $event_type eq 'MARPA_EVENT_EXHAUSTED';
@@ -1128,7 +1128,7 @@ sub Marpa::R2::Perl::earleme_complete
 
     return $event_count;
 
-}
+} ## end sub Marpa::R2::Perl::earleme_complete
 
 sub read_PPI_token {
     my ( $parser, $token_ix ) = @_;
