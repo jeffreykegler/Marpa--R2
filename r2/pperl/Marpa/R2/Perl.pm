@@ -1075,6 +1075,7 @@ sub Marpa::R2::Perl::read_tokens {
         }
     );
     $parser->{recce}                = $recce;
+    $parser->{terminals_expected} = $recce->terminals_expected();
 
     # This is convenient for making the recognizer available to
     # error messages
@@ -1272,7 +1273,7 @@ sub read_PPI_token {
     if ( $PPI_type eq 'PPI::Token::Structure' ) {
         my $content = $token->{content};
         $perl_type = $perl_type_by_structure{$content};
-        my $expected_tokens = $recce->terminals_expected();
+        my $expected_tokens = $parser->{terminals_expected};
 	if ( not defined $perl_type ) {
 	    unknown_ppi_token($token);
 	    $parser->earleme_complete();
@@ -1381,6 +1382,7 @@ sub Marpa::R2::Perl::find_perl {
         }
     );
     $parser->{recce} = $recce;
+    $parser->{terminals_expected} = $recce->terminals_expected();
     my $earleme_to_PPI_token = $parser->{earleme_to_PPI_token} = ();
 
     # This is convenient for making the recognizer available to
@@ -1420,7 +1422,7 @@ sub Marpa::R2::Perl::find_perl {
             die $EVAL_ERROR if $EVAL_ERROR ne "TOKEN_NOT_ACCEPTED\n";
             last TOKEN;
         }
-        my $terminals_expected = $recce->terminals_expected();
+        my $terminals_expected = $parser->{terminals_expected};
         if ( 'non_trivial_prog_marker' ~~ $terminals_expected ) {
             $in_prefix = $parser->{in_prefix} = 0;
             $last_end_marker_ix = $PPI_token_ix;
