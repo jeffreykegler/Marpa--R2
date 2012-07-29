@@ -136,11 +136,12 @@ MARPA_ERR_SYMBOL_IS_UNUSED
 
 my @event_codes = qw(
 MARPA_EVENT_NONE
-MARPA_EVENT_EXHAUSTED
-MARPA_EVENT_EARLEY_ITEM_THRESHOLD
-MARPA_EVENT_LOOP_RULES
 MARPA_EVENT_COUNTED_NULLABLE
+MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+MARPA_EVENT_EXHAUSTED
+MARPA_EVENT_LOOP_RULES
 MARPA_EVENT_NULLING_TERMINAL
+MARPA_EVENT_SYMBOL_EXPECTED
 );
 
 my @step_type_codes = qw(
@@ -252,6 +253,14 @@ LINE: while ( my $line = <STDIN> ) {
     } ## end if ( $line =~ /[@]deftypefun/xms )
 
 } ## end while ( my $line = <STDIN> )
+
+my @events_not_seen = grep { !$events_seen[$_] } (0 .. $#event_codes);
+if (@events_not_seen) {
+  for my $event_not_seen (@events_not_seen) {
+      say STDERR "Event not in document: ", $event_codes[$event_not_seen];
+  }
+  die 'Event(s) in list, but not in document';
+}
 
 my @errors_not_seen = grep { !$errors_seen[$_] } (0 .. $#error_codes);
 if (@errors_not_seen) {

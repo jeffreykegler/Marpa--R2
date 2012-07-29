@@ -3566,16 +3566,23 @@ Event value: Undefined.
 Suggested message: "No event".
 @end deftypevr
 
-@deftypevr Macro int MARPA_EVENT_EXHAUSTED
-The parse is exhausted.
-Event value: Undefined.
-Suggested message: "Recognizer is exhausted".
+@deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
+A nullable symbol is either the separator
+for, or the right hand side of, a sequence.
+Event value: The ID of the symbol.
+Suggested message: "This symbol is a counted nullable".
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
 The user-settable Earley item threshold was exceeded.
 Event value: Undefined.
 Suggested message: "Too many Earley items".
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_EXHAUSTED
+The parse is exhausted.
+Event value: Undefined.
+Suggested message: "Recognizer is exhausted".
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_LOOP_RULES
@@ -3592,17 +3599,21 @@ Event value: The count of loop rules.
 Suggested message: "Grammar contains a infinite loop".
 @end deftypevr
 
-@deftypevr Macro int MARPA_EVENT_COUNTED_NULLABLE
-A nullable symbol is either the separator
-for, or the right hand side of, a sequence.
-Event value: The ID of the symbol.
-Suggested message: "This symbol is a counted nullable".
-@end deftypevr
-
 @deftypevr Macro int MARPA_EVENT_NULLING_TERMINAL
 A nulling symbol is also a terminal.
 Event value: The ID of the symbol.
 Suggested message: "This symbol is a nulling terminal".
+@end deftypevr
+
+@deftypevr Macro int MARPA_EVENT_SYMBOL_EXPECTED
+The recognizer can be set to generate an events when a
+symbol is expected
+using its @code{marpa_r_expected_symbol_event_set()}
+method.
+This event code indicates that one of those events
+occurred.
+Event value: The ID of the expected symbol.
+Suggested message: "Expecting symbol".
 @end deftypevr
 
 @node Error macros and codes, Design notes, Event codes, Top

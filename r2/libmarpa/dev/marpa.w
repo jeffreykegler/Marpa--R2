@@ -9318,6 +9318,11 @@ of the base EIM.
     for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max); start = max + 2) {
 	ISYID isyid;
 	for (isyid = (ISYID)min; isyid <= (ISYID) max; isyid++) {
+	    if (lbv_bit_test(r->t_isy_expected_is_event, isyid)) {
+	      ISY isy = ISY_by_ID(isyid);
+	      XSY xsy = Source_XSY_of_ISY(isy);
+	      int_event_new (g, MARPA_EVENT_SYMBOL_EXPECTED, ID_of_XSY(xsy));
+	    }
             PIM this_pim = r->t_pim_workarea[isyid];
 	    if (this_pim) postdot_array[postdot_array_ix++] = this_pim;
 	}
