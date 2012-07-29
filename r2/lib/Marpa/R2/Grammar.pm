@@ -250,6 +250,11 @@ sub Marpa::R2::Grammar::thin {
     $_[0]->[Marpa::R2::Internal::Grammar::C];
 }
 
+sub Marpa::R2::Grammar::thin_symbol {
+    my ($grammar, $symbol_name) = @_;
+    return $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH]->{$symbol_name};
+}
+
 use constant GRAMMAR_OPTIONS => [
     qw{
         action_object
