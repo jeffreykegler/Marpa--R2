@@ -1502,6 +1502,9 @@ it is the non-nullable ISY.
 @d ISY_of_XSY(xsy) ((xsy)->t_isy_equivalent)
 @d ISYID_of_XSY(xsy) ID_of_ISY(ISY_of_XSY(xsy))
 @d ISY_by_XSYID(xsyid) (XSY_by_ID(xsyid)->t_isy_equivalent)
+@ Note that it is up to the calling environment for
+|ISYID_by_XSYID(xsyid)| to ensure that
+|ISY_of_XSY(xsy)| exists.
 @d ISYID_by_XSYID(xsyid) ID_of_ISY(ISY_of_XSY(XSY_by_ID(xsyid)))
 @<Widely aligned symbol elements@> = ISY t_isy_equivalent;
 @ @<Initialize symbol elements@> = ISY_of_XSY(symbol) = NULL;
@@ -1530,6 +1533,9 @@ If the external symbol is non-nulling,
 there is no nulling internal equivalent.
 @d Nulling_ISY_of_XSY(xsy) ((xsy)->t_nulling_isy)
 @d Nulling_ISY_by_XSYID(xsy) (XSY_by_ID(xsy)->t_nulling_isy)
+@ Note that it is up to the calling environment for
+|Nulling_ISYID_by_XSYID(xsyid)| to ensure that
+|Nulling_ISY_of_XSY(xsy)| exists.
 @d Nulling_ISYID_by_XSYID(xsy) ID_of_ISY(XSY_by_ID(xsy)->t_nulling_isy)
 @<Widely aligned symbol elements@> = ISY t_nulling_isy;
 @ @<Initialize symbol elements@> = Nulling_ISY_of_XSY(symbol) = NULL;
@@ -6283,14 +6289,7 @@ can tell if there is a boolean vector to be freed.
 @ @<Allocate recognizer containers@> = 
     r->t_bv_isyid_is_expected = bv_obs_create( r->t_obs, (unsigned int)isy_count );
 @ Returns |-2| if there was a failure.
-There is a check that the expectations of this
-function and its caller about size of the |GArray| elements match.
-This is a check worth making.
-Mistakes happen,
-a mismatch might arise as a portability issue,
-and if I do not ``fail fast" here the ultimate problem
-could be very hard to debug.
-@ The buffer is expected to be large enough to hold
+The buffer is expected to be large enough to hold
 the result.
 This will be the case if the length of the buffer
 is greater than or equal to the number of symbols
@@ -6316,6 +6315,56 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 	  }
       }
     return ix;
+}
+
+@*0 Expected symbol is event?.
+A boolean vector by symbol ID,
+with the bits set if, when
+that symbol is an expected symbol,
+an event should be created.
+@<Widely aligned recognizer elements@> = LBV t_isy_expected_is_event;
+@ @<Initialize recognizer elements@> = r->t_isy_expected_is_event = NULL;
+@ @<Allocate recognizer containers@> = 
+  r->t_isy_expected_is_event = lbv_obs_new0(r->t_obs, isy_count);
+@ Returns |-2| if there was a failure.
+The buffer is expected to be large enough to hold
+the result.
+This will be the case if the length of the buffer
+is greater than or equal to the number of symbols
+in the grammar.
+@ For the moment, at least, it is a no-op if there is
+no internal symbol.
+@<Function definitions@> =
+int marpa_r_expected_symbol_event_set(Marpa_Recognizer r, Marpa_Symbol_ID xsyid, int value)
+{
+    XSY xsy;
+    ISY isy;
+    ISYID isyid;
+    @<Return |-2| on failure@>@;
+    @<Unpack recognizer objects@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if recognizer not started@>@;
+    @<Fail if |xsyid| is invalid@>@;
+    if (UNLIKELY (value < 0 || value > 1))
+      {
+	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+	return failure_indicator;
+      }
+    xsy = XSY_by_ID(xsyid);
+    if (UNLIKELY(XSY_is_Nulling(xsy))) {
+      MARPA_ERROR (MARPA_ERR_SYMBOL_IS_NULLING);
+    }
+    isy = ISY_of_XSY(xsy);
+    if (UNLIKELY(!isy)) {
+      MARPA_ERROR (MARPA_ERR_SYMBOL_IS_UNUSED);
+    }
+    isyid = ID_of_ISY(isy);
+    if (value) {
+      lbv_bit_set(r->t_isy_expected_is_event, isyid);
+    } else {
+      lbv_bit_clear(r->t_isy_expected_is_event, isyid);
+    }
+    return value;
 }
 
 @*0 Leo-related booleans.

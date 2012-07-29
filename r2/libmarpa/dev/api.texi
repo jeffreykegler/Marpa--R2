@@ -2438,6 +2438,30 @@ after the method call is finished.
 Always succeeds.
 @end deftypefun
 
+@deftypefun int marpa_r_expected_symbol_event_set ( @
+  Marpa_Recognizer @var{r}, @
+  Marpa_Symbol_ID @var{symbol_id}, @
+  int @var{value})
+Sets the ``expected symbol event bit'' for @var{symbol_id} to @var{value}.
+A recognizer event is created whenever 
+symbol @var{symbol_id} is expected at the current earleme.
+if and only if the expected symbol event bit
+for @var{symbol_id} is 1.
+The ``expected symbol event bit'' must be 1 or 0.
+
+By default, the ``expected symbol event bit'' is 0.
+It is an error to attempt to set the
+``expected symbol event bit'' to 1 for a nulling symbol,
+an inaccessible symbol,
+or an unproductive symbol.
+
+Return value:
+The value of the event bit after the method call is finished.
+-2 if @var{symbol_id} is not the ID of a valid symbol;
+if it is the ID of an nulling, inaccessible for unproductive symbol;
+or on other failure.
+@end deftypefun
+
 @deftypefun int marpa_r_terminals_expected ( @
     Marpa_Recognizer @var{r}, @
     Marpa_Symbol_ID* @var{buffer})
@@ -4209,6 +4233,31 @@ to change it to a status different from the
 current one.
 Numeric value: 84.
 Suggested message: "The valued status of the symbol is locked".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SYMBOL_IS_NULLING
+An attempt was made to do something with a nulling
+symbol that is not allowed.
+For example,
+the ID of a nulling symbol cannot be an argument
+to @code{marpa_r_expected_symbol_event_set} ---
+because it is not possible to create an ``expected symbol'' event
+for a nulling symbol.
+Numeric value: 87.
+Suggested message: "Symbol is nulling".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SYMBOL_IS_UNUSED
+An attempt was made to do something with a nulling
+symbol that is not allowed.
+An ``unused'' symbol is a inaccessible or unproductive symbol.
+For example,
+the ID of a unused symbol cannot be an argument
+to @code{marpa_r_expected_symbol_event_set} ---
+because it is not possible to create an ``expected symbol'' event
+for a nulling symbol.
+Numeric value: 88.
+Suggested message: "Symbol is not used".
 @end deftypevr
 
 @node Internal error codes,  , External error codes, Error macros and codes

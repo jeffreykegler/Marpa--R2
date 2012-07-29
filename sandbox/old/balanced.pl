@@ -17,6 +17,7 @@ my $getopt_result = GetOptions(
 );   
 
 if ($pp) {
+    die 'PP not currently implemented';
     require Marpa::PP;
     'Marpa::PP'->VERSION(0.010000);
     say "Marpa::PP ", $Marpa::PP::VERSION;
@@ -25,12 +26,9 @@ if ($pp) {
     *{'main::Marpa::recce_new'} = \&Marpa::PP::Recognizer::new;
 }
 else {
-    require Marpa::XS;
-    'Marpa::XS'->VERSION(0.020000);
-    say "Marpa::XS ", $Marpa::XS::VERSION;
-    no strict 'refs';
-    *{'main::Marpa::grammar_new'} = \&Marpa::XS::Grammar::new;
-    *{'main::Marpa::recce_new'} = \&Marpa::XS::Recognizer::new;
+    require Marpa::R2;
+    'Marpa::R2'->VERSION(0.020000);
+    say "Marpa::R2 ", $Marpa::R2::VERSION;
 }
 
 my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
@@ -38,7 +36,7 @@ my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 if ( defined $string ) {
     die "Bad string: $string" if not $string =~ /\A [()]+ \z/xms;
     say "Testing $string";
-    do_marpa_xs($string);
+    do_marpa_r2($string);
     do_regex($string);
     do_regex_new($string);
     exit 0;
@@ -86,47 +84,46 @@ my $marpa_answer_shown;
 my $regex_answer_shown;
 my $regex_new_answer_shown;
 
-sub paren_grammar_generate {
-    my $grammar = main::Marpa->grammar_new(
-        {   start => 'S',
-	    strip => 0,
-            rules => [
-                [ S => [qw(prefix first_balanced endmark )] ],
-                {   lhs    => 'S',
-                    rhs    => [qw(prefix first_balanced )],
-                    action => 'main::arg1'
-                },
-                { lhs => 'prefix', rhs => [qw(prefix_char)], min => 0 },
-                { lhs => 'prefix_char', rhs => [qw(xlparen)] },
-                { lhs => 'prefix_char', rhs => [qw(rparen)] },
-                { lhs => 'lparen', rhs => [qw(xlparen)] },
-                { lhs => 'lparen', rhs => [qw(ilparen)] },
-                {   lhs    => 'first_balanced',
-                    rhs    => [qw(xlparen balanced_sequence rparen)],
-                    action => 'main::arg0'
-                },
-                {   lhs    => 'balanced',
-                    rhs    => [qw(lparen balanced_sequence rparen)],
-                },
-                {   lhs    => 'balanced_sequence',
-                    rhs    => [qw(balanced)],
-                    min    => 0,
-                },
-            ],
-        }
-    );
+my $grammar_args =
+    {   start => 'S',
+        rules => [
+            [ S => [qw(prefix first_balanced endmark )], 'main::arg1' ],
+            {   lhs    => 'S',
+                rhs    => [qw(prefix first_balanced )],
+                action => 'main::arg1'
+            },
+            { lhs => 'prefix',      rhs => [qw(prefix_char)], min => 0 },
+            { lhs => 'prefix_char', rhs => [qw(xlparen)] },
+            { lhs => 'prefix_char', rhs => [qw(rparen)] },
+            { lhs => 'lparen',      rhs => [qw(xlparen)] },
+            { lhs => 'lparen',      rhs => [qw(ilparen)] },
+            {   lhs    => 'first_balanced',
+                rhs    => [qw(xlparen balanced_sequence rparen)],
+                action => 'main::arg0'
+            },
+            {   lhs => 'balanced',
+                rhs => [qw(lparen balanced_sequence rparen)],
+            },
+            {   lhs => 'balanced_sequence',
+                rhs => [qw(balanced)],
+                min => 0,
+            },
+        ],
+    };
 
-    $grammar->set(
-        { terminals => [qw(xlparen ilparen rparen endmark )] } );
+sub paren_grammar_generate {
+    my $grammar = Marpa::R2::Grammar->new($grammar_args);
+    $grammar->set( { terminals => [qw(xlparen ilparen rparen endmark )] } );
 
     $grammar->precompute();
     return $grammar;
 } ## end sub paren_grammar_generate
 
-sub do_marpa_xs {
+sub do_marpa_r2 {
     my ($s) = @_;
     my $grammar = paren_grammar_generate();
-    my $recce = main::Marpa->recce_new( { grammar => $grammar } );
+
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
     my $location = 0;
     my $string_length = length $s;
     my $end_of_match;
@@ -177,7 +174,7 @@ sub do_marpa_xs {
     say qq{marpa: "$value" at $start_of_match-$end_of_match};
     return 0;
 
-} ## end sub do_marpa_xs
+} ## end sub do_marpa_r2
 
 sub do_regex {
     my ($s) = @_;
@@ -203,11 +200,11 @@ sub do_regex_new {
     return 0;
 } ## end sub do_regex
 
-# say timestr countit( 2, sub { do_marpa_xs($s) } );
+# say timestr countit( 2, sub { do_marpa_r2($s) } );
 # say timestr countit( 2, sub { do_regex($s) } );
 # say timestr countit( 2, sub { do_regex_new($s) } );
 Benchmark::cmpthese ( -4, {
-    marpa_xs => sub { do_marpa_xs($s) },
+    marpa_r2 => sub { do_marpa_r2($s) },
     regex => sub { do_regex_new($s) }
 } );
 
