@@ -82,7 +82,6 @@ sub arg1 {
 }
 
 my $marpa_answer_shown;
-my $r2er_answer_shown;
 my $regex_answer_shown;
 my $regex_new_answer_shown;
 
@@ -120,64 +119,8 @@ sub thick_grammar_generate {
     $grammar->precompute();
     return $grammar;
 } ## end sub thick_grammar_generate
+
 sub do_marpa_r2 {
-    my ($s) = @_;
-    my $grammar = thick_grammar_generate();
-
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
-    my $location = 0;
-    my $string_length = length $s;
-    my $end_of_match;
-    # find the match which ends first -- the one which starts
-    # first must start at or before it does
-    CHAR: while ( $location < $string_length ) {
-        my $value = substr $s, $location, 1;
-	if ($value eq '(') {
-	    # say "Adding xlparen at $location";
-	    $recce->read( 'xlparen', $location );
-	} else {
-	    # say "Adding rparen at $location";
-	    $recce->read( 'rparen' );
-	}
-        if ( 'endmark' ~~ $recce->terminals_expected() ) {
-            $end_of_match = $location + 1;
-	    # say "Setting end of match to ", $location + 1;
-            last CHAR;
-        }
-        $location++;
-    } ## end while ( $location < $string_length )
-
-    if ( not defined $end_of_match ) {
-       say "No balanced parens";
-       return 0;
-    }
-
-    CHAR: while ( ++$location < $string_length ) {
-        my $value = substr $s, $location, 1;
-        my $token = $value eq '(' ? 'ilparen' : 'rparen';
-	# say "Adding $token at $location";
-        last CHAR if not defined $recce->read( $token );
-        if ( 'endmark' ~~ $recce->terminals_expected() ) {
-            $end_of_match = $location + 1;
-            # say $recce->show_progress();
-        }
-    } ## end while ( ++$location < $string_length )
-
-    # say "End of match is ", $end_of_match;
-    $recce->set( { end => $end_of_match } );
-    my $value_ref = $recce->value( );
-    # say $recce->show_progress($end_of_match);
-    die "No parse" if not defined $value_ref;
-    my $start_of_match = ${$value_ref};
-    my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
-    return 0 if $marpa_answer_shown;
-    $marpa_answer_shown = $value;
-    say qq{marpa: "$value" at $start_of_match-$end_of_match};
-    return 0;
-
-} ## end sub do_marpa_r2
-
-sub do_marpa_r2er {
     my ($s) = @_;
 
     my $grammar_args = {
@@ -210,7 +153,7 @@ sub do_marpa_r2er {
 
     $grammar->precompute();
 
-    my $first_balanced_rule =
+    my ($first_balanced_rule) =
         grep { ( $grammar->rule($_) )[0] eq 'first_balanced' }
         $grammar->rule_ids();
 
@@ -258,15 +201,17 @@ sub do_marpa_r2er {
     } ## end CHAR: while ( ++$location < $string_length )
 
     my $report = $recce->progress($end_of_match);
+
+    # say Dumper($report);
     my $start_of_match = List::Util::min map { $_->[2] }
         grep { $_->[1] < 0 && $_->[0] eq $first_balanced_rule } @{$report};
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
-    return 0 if $r2er_answer_shown;
-    $r2er_answer_shown = $value;
+    return 0 if $marpa_answer_shown;
+    $marpa_answer_shown = $value;
     say qq{marpa: "$value" at $start_of_match-$end_of_match};
     return 0;
 
-} ## end sub do_marpa_r2er
+} ## end sub do_marpa_r2
 
 sub do_marpa_thin {
 }
@@ -299,10 +244,8 @@ sub do_regex_new {
 # say timestr countit( 2, sub { do_regex($s) } );
 # say timestr countit( 2, sub { do_regex_new($s) } );
 Benchmark::cmpthese ( -4, {
-    marpa_r2er => sub { do_marpa_r2er($s) },
     marpa_r2 => sub { do_marpa_r2($s) },
     regex => sub { do_regex_new($s) }
 } );
 
 say +($marpa_answer_shown eq $regex_new_answer_shown ? 'New Answer matches' : 'NEW ANSWER DOES NOT MATCH!');
-say +($r2er_answer_shown eq $regex_new_answer_shown ? 'New Answer matches' : 'NEW ANSWER DOES NOT MATCH!');
