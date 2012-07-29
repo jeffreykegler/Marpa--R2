@@ -299,6 +299,22 @@ Rule ID's are encountered include
 callbacks and
 use of L<the progress method|/"progress">.
 
+=head2 rule_ids
+
+# Marpa::R2::Display
+# name: rule_ids() Synopsis
+# normalize-whitespace: 1
+
+    my @rule_ids = $grammar->rule_ids();
+
+# Marpa::R2::Display::End
+
+Returns an array containing the valid rule IDs.
+Situations where
+Rule ID's are encountered include
+callbacks and
+use of L<the progress method|/"progress">.
+
 =head1 Trace accessors
 
 =head2 show_problems

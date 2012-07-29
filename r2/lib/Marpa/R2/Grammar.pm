@@ -805,6 +805,12 @@ sub Marpa::R2::Grammar::show_rules {
     return $text;
 } ## end sub Marpa::R2::Grammar::show_rules
 
+sub Marpa::R2::Grammar::rule_ids {
+    my ( $grammar ) = @_;
+    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
+    return  0 .. $grammar_c->rule_count() - 1;
+}
+
 sub Marpa::R2::Grammar::rule {
     my ( $grammar, $rule_id ) = @_;
     my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];

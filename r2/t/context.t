@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
@@ -57,6 +57,15 @@ my $grammar   = Marpa::R2::Grammar->new(
 );
 
 $grammar->precompute();
+
+# Marpa::R2::Display
+# name: rule_ids() Synopsis
+
+my @rule_ids = $grammar->rule_ids();
+
+# Marpa::R2::Display::End
+
+Test::More::is( (join q{ }, @rule_ids), '0', '$g->rule_ids() ok?' );
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 

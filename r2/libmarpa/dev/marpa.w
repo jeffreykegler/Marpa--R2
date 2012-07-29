@@ -804,8 +804,8 @@ rule_add (GRAMMAR g, RULE rule)
   const RULEID new_id = DSTACK_LENGTH ((g)->t_xrl_stack);
   *DSTACK_PUSH ((g)->t_xrl_stack, RULE) = rule;
   rule->t_id = new_id;
-  External_Size_of_G (g) += 1 + Length_of_RULE (rule);
-  g->t_max_rule_length = MAX (Length_of_RULE (rule), g->t_max_rule_length);
+  External_Size_of_G (g) += 1 + Length_of_XRL (rule);
+  g->t_max_rule_length = MAX (Length_of_XRL (rule), g->t_max_rule_length);
 }
 
 @ Check that rule is in valid range.
@@ -2098,7 +2098,6 @@ I believe
 by the time 64-bit machines become universal,
 nobody will have noticed this restriction.
 @d MAX_RHS_LENGTH (INT_MAX >> (2))
-@d Length_of_RULE(rule) ((rule)->t_rhs_length)
 @d Length_of_XRL(xrl) ((xrl)->t_rhs_length)
 @<Int aligned rule elements@> = int t_rhs_length;
 @ The symbols come at the end of the |marpa_rule| structure,
@@ -2132,22 +2131,20 @@ Marpa_Symbol_ID marpa_g_rule_rhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) 
       MARPA_ERROR(MARPA_ERR_RHS_IX_NEGATIVE);
       return failure_indicator;
     }
-    if (Length_of_RULE(rule) <= ix) {
+    if (Length_of_XRL(rule) <= ix) {
       MARPA_ERROR(MARPA_ERR_RHS_IX_OOB);
       return failure_indicator;
     }
     return RHS_ID_of_RULE(rule, ix);
 }
-@ @<Function definitions@> =
-PRIVATE size_t rule_length_get(RULE rule)
-{
-    return Length_of_RULE(rule); }
+
 @ @<Function definitions@> =
 int marpa_g_rule_length(Marpa_Grammar g, Marpa_Rule_ID xrl_id) {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if |xrl_id| is invalid@>@;
-    return rule_length_get(XRL_by_ID(xrl_id)); }
+    return Length_of_XRL(XRL_by_ID(xrl_id));
+}
 
 @*1 Symbols of the rule.
 @d LHS_ID_of_RULE(rule) ((rule)->t_symbols[0])
@@ -2946,7 +2943,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     {
       const XRL rule = XRL_by_ID (rule_id);
       const Marpa_Symbol_ID lhs_id = LHS_ID_of_RULE (rule);
-      const int rule_length = Length_of_RULE (rule);
+      const int rule_length = Length_of_XRL (rule);
       const int is_sequence = XRL_is_Sequence (rule);
 
       bv_bit_set (lhs_v, (unsigned int) lhs_id);
@@ -3163,7 +3160,7 @@ where many of the right hand sides repeat symbols.
     {
       XRL rule = XRL_by_ID (rule_id);
       SYMID lhs_id = LHS_ID_of_RULE (rule);
-      unsigned int rhs_ix, rule_length = Length_of_RULE (rule);
+      unsigned int rhs_ix, rule_length = Length_of_XRL (rule);
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	{
 	  matrix_bit_set (reach_matrix,
@@ -3838,8 +3835,8 @@ Open block, declarations and setup.
 {
   const int first_factor_position = factor_positions[factor_position_ix];
   const int second_factor_position = factor_positions[factor_position_ix + 1];
-  const int real_symbol_count = Length_of_RULE (rule) - piece_start;
-  piece_end = Length_of_RULE (rule) - 1;
+  const int real_symbol_count = Length_of_XRL (rule) - piece_start;
+  piece_end = Length_of_XRL (rule) - 1;
   @<Add final CHAF PP rule for two factors@>@;
   @<Add final CHAF PN rule for two factors@>@;
   @<Add final CHAF NP rule for two factors@>@;
@@ -3963,7 +3960,7 @@ a nulling rule.
 {
   int real_symbol_count;
   const int first_factor_position = factor_positions[factor_position_ix];
-  piece_end = Length_of_RULE (rule) - 1;
+  piece_end = Length_of_XRL (rule) - 1;
   real_symbol_count = piece_end - piece_start + 1;
   @<Add final CHAF P rule for one factor@>@;
   @<Add final CHAF N rule for one factor@>@;
@@ -4144,7 +4141,7 @@ unit transitions are not in general reflexive.
       SYMID nonnulling_id = -1;
       int nonnulling_count = 0;
       int rhs_ix, rule_length;
-      rule_length = Length_of_RULE (rule);
+      rule_length = Length_of_XRL (rule);
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	{
 	  XSYID xsyid = RHS_ID_of_RULE (rule, rhs_ix);
