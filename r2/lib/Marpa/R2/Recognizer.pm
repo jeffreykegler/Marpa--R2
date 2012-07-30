@@ -150,8 +150,6 @@ sub Marpa::R2::Recognizer::new {
         Marpa::R2::exception( 'Recognizer start of input failed: ', $error );
     }
 
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-
     $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR] = $grammar;
 
     if ( $trace_terminals > 1 ) {
@@ -428,15 +426,16 @@ sub Marpa::R2::Recognizer::earleme {
     return $recce_c->earleme($earley_set_id);
 }
 
-# Deprecated -- obsolete
-sub Marpa::R2::Recognizer::status {
-    my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    return ( $recce_c->current_earleme(), $recce->terminals_expected() )
-        if wantarray;
-    return $recce->current_earleme();
-
-} ## end sub Marpa::R2::Recognizer::status
+sub Marpa::R2::Recognizer::expected_symbol_event_set {
+    my ( $recce, $symbol_name, $value ) = @_;
+    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
+    my $symbol_id   = $symbol_hash->{$symbol_name};
+    Marpa::exception(qq{Unknown symbol: "$symbol_name"})
+        if not defined $symbol_id;
+    return $recce_c->expected_symbol_event_set( $symbol_id, $value );
+} ## end sub Marpa::R2::Recognizer::expected_symbol_event_set
 
 # Now useless and deprecated
 sub Marpa::R2::Recognizer::strip { return 1; }
@@ -672,18 +671,30 @@ sub Marpa::R2::Recognizer::earleme_complete {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
 
     my $event_count = $recce_c->earleme_complete();
+    my @cooked_events = ();
     EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
-        next EVENT if $event_type eq 'MARPA_EVENT_EXHAUSTED';
         if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
             say {
                 $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] }
                 "Earley item count ($value) exceeds warning threshold"
                 or die "say: $ERRNO";
-            next EVENT;
         } ## end if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD')
-        Marpa::R2::exception(
-            qq{Unknown earleme completion event; type="$event_type"});
+        if (wantarray) {
+            if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                push @cooked_events,
+                    [ $event_type, $grammar->symbol_name($value) ];
+                next EVENT;
+            }
+            if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
+                push @cooked_events, [$event_type];
+                next EVENT;
+            }
+            if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                push @cooked_events, [$event_type];
+                next EVENT;
+            }
+        } ## end if (wantarray)
     } ## end EVENT: for my $event_ix ( 0 .. $event_count - 1 )
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS] ) {
@@ -707,7 +718,7 @@ sub Marpa::R2::Recognizer::earleme_complete {
         }
     } ## end if ( $trace_terminals > 1 )
 
-    return $event_count;
+    return wantarray ? @cooked_events : $event_count;
 
 } ## end sub Marpa::R2::Recognizer::earleme_complete
 

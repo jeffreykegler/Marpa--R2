@@ -252,6 +252,8 @@ sub do_marpa_r2e {
         $grammar->rule_ids();
 
     my $recce         = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    $recce->expected_symbol_event_set( 'endmark', 1 );
+
     my $location      = 0;
     my $string_length = length $s;
     my $end_of_match;
