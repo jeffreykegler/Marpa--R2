@@ -15,10 +15,15 @@
 
 Revision history for Marpa::R2
 
+2.015_002 Tue Jul 24 21:25:43 PDT 2012
 2.015_001 Tue Jul 24 21:25:43 PDT 2012
 2.015_000 Sat Jul 21 18:38:13 PDT 2012
 
-      * New developer's release
+      * Developer's releases
+
+      * Documentation fixes
+
+      * Added marpa_r_expected_symbol_event_set() to Libmarpa
 
 2.014000 Sat Jul 21 18:18:52 PDT 2012
 
