@@ -31,6 +31,24 @@ and tools to Marpa::R2.
 
 =head1 Changes
 
+=head2 The return value of the read() method has changed
+
+The return value of
+the Marpa::R2 recognizer's C<read()> method differs from its Marpa::XS
+equivalent.
+In Marpa::XS it returned the number of distinct
+terminals (by symbol ID) allowed in the next 
+C<read()>.
+In Marpa::R2 it returns the number of recognizer
+events that occurred during the read.
+Examples of recognizer events are exhaustion,
+the Earley sets exceeding a designated "warning"
+level,
+and other circumstances settable by the user.
+For more detail,
+see L<the documentation of recognizer's
+C<read> method|Marpa::R2::Recognizer/"read">.
+
 =head2 Rule LHS's are no longer a source of action names
 
 In Marpa::XS, if there was no explicit action name for a rule, Marpa
@@ -290,7 +308,7 @@ the semantics of cycles is now more closely specified.
 For details of the new semantics,
 see L<Marpa::R2::Semantics::Infinite>.
 
-=head2 The allowed rank for ranks has been clarified
+=head2 The range of values allowed for ranks has been clarified
 
 Symbols and rules have numeric ranks.
 Previously, no mention was made of range of values allowed.

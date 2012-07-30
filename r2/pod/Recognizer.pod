@@ -110,11 +110,11 @@ normalize-whitespace: 1
 Return the location of the latest (in other words,
 the most recent)
 Earley set.
-Not usually needed explicitly, because it is often
-the default.
-For example, by default parsing is of the input from
-0 through I<N>,
-where I<N> is the location of the last Earley set.
+In the places where it is most often needed,
+the latest Earley set is the default,
+and there is usually no need to request
+the explicit value
+of the latest Earley set.
 
 =head2 progress
 
@@ -143,6 +143,30 @@ In the default input model, the presence of a terminal
 in this list means that terminal will be acceptable
 in the next C<read> method call.
 This is highly useful for Ruby Slippers parsing.
+
+=head2 exhausted
+
+=for Marpa::R2::Display
+name: Recognizer exhausted Synopsis
+normalize-whitespace: 1
+
+	$recce->exhausted() and die 'Recognizer exhausted';
+
+=for Marpa::R2::Display::End
+
+The C<exhausted> method returns a Perl true if parsing
+in a recognizer is exhausted, and a Perl false
+otherwise.
+Parsing is exhausted when the recognizer will not accept
+any further input.
+By default, a recognizer event occurs if parsing
+is exhausted.
+An attempt to read input into an exhausted parser
+causes an exception to be thrown.
+The recognizer event and the exception are all that
+many applications require,
+but this method allows the recognizer's exhaustion
+status to be discovered directly.
 
 =head1 Mutators
 
@@ -178,19 +202,17 @@ see L<Marpa::R2::Grammar/"Terminals">.
 The parser may accept or reject the token.
 If the parser accepted the token,
 the C<read> method returns
-the number of tokens which are acceptable at the new current location.
-This number may be helpful in guiding L<Ruby
-Slippers parsing|/"Ruby Slippers parsing">.
-
-C<read> may return zero,
-which means
-that the next C<read> call must fail,
+the number of recognizer events that occurred during the
+C<read>.
+Only two events are enabled by default --
+exceeding the Earley item warning threshold,
+and exhaustion.
+For more about the 
+Earley item warning threshold,
+see L<"too_many_earley_items">.
+"Exhaustion"
+means that the next C<read> call must fail,
 because there is no token that will be acceptable to it.
-In the default input model,
-where the C<read> method is the only means of inputing tokens,
-a zero return from a C<read> method
-means that the parse is B<exhausted> --
-that no more input is possible.
 More details on "exhaustion" are in L<a
 section below|/"Parse exhaustion">.
 
@@ -576,13 +598,17 @@ where it left off.
 =head1 Parse exhaustion
 
 A parse is B<exhausted> when it will accept no more input.
-In the default input model, the C<read> method indicates this
-by returning zero.
-
 An B<exhausted> parse is not necessarily a failed parse.
 Grammars are often written so that once they "find what
 they are looking for", no further input is acceptable.
 Grammars of that kind become exhausted when they succeed.
+
+By default,
+a recognizer event occurs whenever the parse is
+exhausted.
+An application can also check for exhaustion
+explicitly, using the recognizer's
+L<C<exhausted> method|/exhausted>.
 
 =head1 Copyright and License
 

@@ -74,8 +74,9 @@ To do either of these things,
 a user must use the recognizer's L<C<alternative>|/"alternative">
 method.
 In other words,
-if you are not using the recognizer's C<alternative> method call,
-you are not using an alternative input method.
+if an application is not directly
+using the recognizer's C<alternative> method call,
+that application is not using an alternative input method.
 
 Many concepts, such as parsing location,
 parse exhaustion,
@@ -130,21 +131,27 @@ The token stream model may also be called the token-per-earleme
 model.
 In the token stream model,
 token location and earleme location
-are exactly identical an one-to-one basis.
+are exactly identical.
+More formally, in the token stream model,
+if the token location is I<N>,
+then the earleme location is also I<N>.
 If a user's application uses the token stream model,
-he can ignore earlemes, and think entirely in terms of
-tokens and position in a token stream.
-Because of this, the main Marpa documents speak
+the user can ignore the existence of earlemes,
+and can think entirely in terms of
+tokens and their position in a token stream.
+Because of this, the main Marpa documents
+often speak
 simply of the "location" in the parse.
 
 =head1 The furthest earleme
 
 The B<furthest earleme> is the last earleme at which a token ends.
-In the default input model, the furthest earleme is not an important
-concept.
 In the default input model,
 the furthest earleme and the current earleme
 are always the same.
+As a result,
+in the default input model, the furthest earleme is not an important
+concept.
 
 In alternative input models,
 tokens may be longer than 1 earleme, and
@@ -287,13 +294,13 @@ an "event" is one of a list of occurrences of special interest during
 the successful completion of an earleme.
 One example of an event is parse exhaustion.
 To determine if one of the events was parse exhaustion,
-the L<C<exhausted> method|/"exhausted">
+the L<C<exhausted> method|Marpa::R2::Recognizer/"exhausted">
 can be used.
 
 All tokens read using the C<alternative> method start at one
 location -- the current earleme.
 When reading input using the C<alternative> method,
-C<earleme_complete> is used to move complete processing
+C<earleme_complete> is used to complete processing
 at the current earleme and move
 forward in
 the input stream.
@@ -305,42 +312,6 @@ This will create an earleme with no tokens.
 In certain input models,
 such as the character-per-earleme model,
 this can be useful.
-
-=head2 exhausted
-
-=for Marpa::R2::Display
-name: Recognizer exhausted Synopsis
-normalize-whitespace: 1
-
-	$recce->exhausted() and die 'Recognizer exhausted';
-
-=for Marpa::R2::Display::End
-
-The C<exhausted> method returns a Perl true if parsing
-in a recognizer is exhausted, and a Perl false
-otherwise.
-Parsing is exhausted when the recognizer will not accept
-any further input.
-This method is seldom used.
-For most applications, the return values of the other
-methods provide sufficient information about the parse status,
-and there is no need to specifically test for parse exhaustion.
-
-In the default input model, a recognizer was exhausted if
-the C<read> method returned 0, indicating that no tokens
-would be accepted at the new current earleme.
-In alternative input models,
-C<earleme_complete> will always return 0 when the parser is exhausted,
-but the converse is not always true:
-C<earleme_complete> may return 0 even in some cases when the parser is not exhausted.
-
-When C<earleme_complete> returns 0, no input will be
-accepted at the current earleme.
-But in input models which allow tokens longer than 1,
-it is possible for input to be accepted at earlemes
-after the current earleme,
-even if no input is accepted
-at the current earleme.
 
 =head2 end_input
 
@@ -477,15 +448,15 @@ for example, is 3 earlemes.
 Whenever a token is given to Marpa to be scanned,
 it starts at the current earleme.
 In addition to the type and value of the token,
-Marpa must be told token's B<length> in earlemes.
+Marpa must be told the token's B<length> in earlemes.
 The length of a Marpa token must be greater than zero.
 
 This earleme length will become
 the distance from the start of the
 token to the end of the token.
 If the length of the token is I<L>,
-and the number of the current earleme is I<C>,
-the end of the token will be at the earleme whose number is I<C+L>.
+and the current earleme is I<C>,
+the end of the token will be at earleme I<C+L>.
 
 =head1 The character-per-earleme model
 
@@ -507,10 +478,10 @@ When a one-character-per-earleme model of input is used,
 there may be many earlemes at which no tokens start.
 For example,
 in a straightforward character-per-earleme implementation
-of a grammar for a language which allows
+of a grammar for a language that allows
 comments,
 no tokens will start at
-any earlemes which corresponds to character locations inside
+any earlemes which correspond to character locations inside
 a comment.
 
 =head1 Other input models
