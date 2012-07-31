@@ -794,11 +794,13 @@ will not be set.
 
 =item C<min>
 
-The value of the C<separator> named argument
+The value of the C<min> named argument
 will be treated as an integer,
-and passed as the separator ID argument
+and passed as the C<min> argument
 to the C<marpa_g_sequence_new()> method.
-It defaults to 0.
+The C<min> argument indicates the minimum number of
+repetitions of the sequence that are required.
+It defaults to 1.
 
 =back
 
