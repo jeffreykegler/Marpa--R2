@@ -10,11 +10,15 @@ my $example;
 my $length = 1000;
 my $string;
 my $pp = 0;
+my $do_regex = 1;
+my $iteration_count = -4;
 my $getopt_result = GetOptions(
     "length=i" => \$length,
+    "count=i" => \$iteration_count,
     "example=s"   => \$example,
     "string=s"   => \$string,
     "pp" => \$pp,
+    "regex!" => \$do_regex,
 );   
 
 if ($pp) {
@@ -348,11 +352,16 @@ sub do_thin {
 # say timestr countit( 2, sub { do_marpa_r2($s) } );
 # say timestr countit( 2, sub { do_regex($s) } );
 # say timestr countit( 2, sub { do_regex_new($s) } );
-Benchmark::cmpthese ( -4, {
+my $tests = {
     marpa_r2 => sub { do_marpa_r2($s) },
     thin => sub { do_thin($s) },
-    regex => sub { do_regex_new($s) }
-} );
+};
+$tests->{regex} = sub { do_regex_new($s) } if $do_regex;
+Benchmark::cmpthese ( $iteration_count, $tests );
 
-say +($marpa_answer_shown eq $regex_new_answer_shown ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
-say +($thin_answer_shown eq $regex_new_answer_shown ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
+my $answer = '(()())';
+say +($marpa_answer_shown eq $answer ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
+say +($thin_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
+if ($do_regex) {
+  say +($regex_new_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
+}
