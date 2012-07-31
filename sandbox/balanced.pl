@@ -320,7 +320,10 @@ sub do_thin {
         # say "Adding $token at $location";
         my $event_count = $recce->read($token);
         last CHAR if not defined $event_count;
-	if ($event_count and grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{$recce->events()}) {
+        if ( $event_count
+            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ;($thin_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
+        {
 	    $end_of_match = $location + 1;
 	}
     } ## end CHAR: while ( ++$location < $string_length )
