@@ -275,14 +275,15 @@ sub do_thin {
     my $s_xlparen = $grammar->thin_symbol('xlparen');
     my $s_ilparen = $grammar->thin_symbol('ilparen');
     my $s_rparen = $grammar->thin_symbol('rparen');
+    my $s_endmark = $grammar->thin_symbol('endmark');
 
     my ($first_balanced_rule) =
         grep { ( $grammar->rule($_) )[0] eq 'first_balanced' }
         $grammar->rule_ids();
 
-    my $recce         = Marpa::R2::Recognizer->new( { grammar => $grammar } );
-    my $thin_recce = $recce->thin();
-    $recce->expected_symbol_event_set( 'endmark', 1 );
+    my $thin_recce = Marpa::R2::Thin::R->new($thin_grammar);
+    $thin_recce->start_input();
+    $thin_recce->expected_symbol_event_set( $s_endmark, 1 );
 
     my $location      = 0;
     my $string_length = length $s;
