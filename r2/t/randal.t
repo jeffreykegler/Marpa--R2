@@ -195,7 +195,42 @@ TEST: for my $test_data (@test_data) {
 
 # Marpa::R2::Display::End
 
+    TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
+
+# Marpa::R2::Display
+# name: Recognizer expected_symbol_event_set() Synopsis
+
+      $recce->expected_symbol_event_set( $token, 1 );
+
+# Marpa::R2::Display::End
+
+    }
+
+    TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
+
+    }
+
     for ( my $pos = 0; $pos < $input_length; $pos++ ) {
+
+	my @event_tokens =
+	    map { $_->[1]; }
+	    grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
+
+	say STDERR join " ", "event tokens: ", @event_tokens;
+
+	my @not_in_events =
+	    grep { not $_ ~~ @event_tokens } @{$terminals_expected};
+	Marpa::R2::Test::is( (scalar @not_in_events), 0, "Events not in events: " . (join " ", @not_in_events));
+
+	my @not_in_terminals_expected =
+	    grep { not $_ ~~ @{$terminals_expected} } @event_tokens;
+	Marpa::R2::Test::is(
+	    ( scalar @not_in_terminals_expected ),
+	    0,
+	    "Events not in terminals_expected: " .
+	    ( join " ", @not_in_terminals_expected )
+	);
+
         TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
             next TOKEN_TYPE if not $token ~~ $terminals_expected;
             pos $test_input = $pos;

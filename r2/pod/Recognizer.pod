@@ -508,6 +508,25 @@ Warnings are written to the trace file handle.
 By default, the recognizer's warnings are on.
 Usually, an application will want to leave them on.
 
+=head1 Recognizer events
+
+=head2 
+
+=head1 Parse exhaustion
+
+A parse is B<exhausted> when it will accept no more input.
+An B<exhausted> parse is not necessarily a failed parse.
+Grammars are often written so that once they "find what
+they are looking for", no further input is acceptable.
+Grammars of that kind become exhausted when they succeed.
+
+By default,
+a recognizer event occurs whenever the parse is
+exhausted.
+An application can also check for exhaustion
+explicitly, using the recognizer's
+L<C<exhausted> method|/exhausted>.
+
 =head1 Ruby Slippers parsing
 
 =for Marpa::R2::Display
@@ -594,21 +613,6 @@ L<Marpa::HTML> creates a token for it --
 a completely new "virtual" token that gives the parser exactly what it expects.
 L<Marpa::HTML> then resumes input at the point in the original input stream
 where it left off.
-
-=head1 Parse exhaustion
-
-A parse is B<exhausted> when it will accept no more input.
-An B<exhausted> parse is not necessarily a failed parse.
-Grammars are often written so that once they "find what
-they are looking for", no further input is acceptable.
-Grammars of that kind become exhausted when they succeed.
-
-By default,
-a recognizer event occurs whenever the parse is
-exhausted.
-An application can also check for exhaustion
-explicitly, using the recognizer's
-L<C<exhausted> method|/exhausted>.
 
 =head1 Copyright and License
 
