@@ -242,44 +242,37 @@ sub do_regex_new {
 sub do_thin {
     my ($s) = @_;
 
-    my $grammar_args = {
-        start => 'S',
-        rules => [
-            [ S => [qw(prefix first_balanced endmark )] ],
-            {   lhs => 'S',
-                rhs => [qw(prefix first_balanced )]
-            },
-            { lhs => 'prefix',      rhs => [qw(prefix_char)], min => 0 },
-            { lhs => 'prefix_char', rhs => [qw(xlparen)] },
-            { lhs => 'prefix_char', rhs => [qw(rparen)] },
-            { lhs => 'lparen',      rhs => [qw(xlparen)] },
-            { lhs => 'lparen',      rhs => [qw(ilparen)] },
-            {   lhs => 'first_balanced',
-                rhs => [qw(xlparen balanced_sequence rparen)],
-            },
-            {   lhs => 'balanced',
-                rhs => [qw(lparen balanced_sequence rparen)],
-            },
-            {   lhs => 'balanced_sequence',
-                rhs => [qw(balanced)],
-                min => 0,
-            },
-        ],
-    };
-
     my $grammar = Marpa::R2::Grammar->new($grammar_args);
-    my $thin_grammar = $grammar->thin();
 
-    $grammar->precompute();
+    my $thin_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
+    my $s_xlparen           = $thin_grammar->symbol_new();
+    my $s_ilparen           = $thin_grammar->symbol_new();
+    my $s_rparen            = $thin_grammar->symbol_new();
+    my $s_lparen            = $thin_grammar->symbol_new();
+    my $s_endmark           = $thin_grammar->symbol_new();
+    my $s_start             = $thin_grammar->symbol_new();
+    my $s_prefix            = $thin_grammar->symbol_new();
+    my $s_first_balanced    = $thin_grammar->symbol_new();
+    my $s_prefix_char       = $thin_grammar->symbol_new();
+    my $s_balanced_sequence = $thin_grammar->symbol_new();
+    my $s_balanced          = $thin_grammar->symbol_new();
+    $thin_grammar->start_symbol_set($s_start);
+    $thin_grammar->rule_new( $s_start,
+        [ $s_prefix, $s_first_balanced, $s_endmark ] );
+    $thin_grammar->rule_new( $s_start, [ $s_prefix, $s_first_balanced ] );
+    $thin_grammar->rule_new( $s_prefix_char, [$s_xlparen] );
+    $thin_grammar->rule_new( $s_prefix_char, [$s_rparen] );
+    $thin_grammar->rule_new( $s_lparen,      [$s_xlparen] );
+    $thin_grammar->rule_new( $s_lparen,      [$s_ilparen] );
+    my $first_balanced_rule =
+        $thin_grammar->rule_new( $s_first_balanced,
+        [ $s_xlparen, $s_balanced_sequence, $s_rparen ] );
+    $thin_grammar->rule_new( $s_balanced,
+        [ $s_lparen, $s_balanced_sequence, $s_rparen ] );
+    $thin_grammar->sequence_new( $s_prefix,            $s_prefix_char, {min => 0} );
+    $thin_grammar->sequence_new( $s_balanced_sequence, $s_balanced,    {min => 0} );
 
-    my $s_xlparen = $grammar->thin_symbol('xlparen');
-    my $s_ilparen = $grammar->thin_symbol('ilparen');
-    my $s_rparen = $grammar->thin_symbol('rparen');
-    my $s_endmark = $grammar->thin_symbol('endmark');
-
-    my ($first_balanced_rule) =
-        grep { ( $grammar->rule($_) )[0] eq 'first_balanced' }
-        $grammar->rule_ids();
+    $thin_grammar->precompute();
 
     my $thin_recce = Marpa::R2::Thin::R->new($thin_grammar);
     $thin_recce->start_input();
