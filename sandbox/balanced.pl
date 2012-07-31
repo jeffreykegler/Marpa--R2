@@ -272,6 +272,10 @@ sub do_thin {
 
     $grammar->precompute();
 
+    my $s_xlparen = $grammar->thin_symbol('xlparen');
+    my $s_ilparen = $grammar->thin_symbol('ilparen');
+    my $s_rparen = $grammar->thin_symbol('rparen');
+
     my ($first_balanced_rule) =
         grep { ( $grammar->rule($_) )[0] eq 'first_balanced' }
         $grammar->rule_ids();
@@ -290,13 +294,14 @@ sub do_thin {
         my $value = substr $s, $location, 1;
         my $event_count;
         if ( $value eq '(' ) {
-
             # say "Adding xlparen at $location";
-            $event_count = $recce->read( 'xlparen', $location );
+	    $thin_recce->alternative($s_xlparen, 0, 1);
+	    $event_count = $thin_recce->earleme_complete();
         }
         else {
             # say "Adding rparen at $location";
-            $event_count = $recce->read('rparen');
+	    $thin_recce->alternative($s_rparen, 0, 1);
+	    $event_count = $thin_recce->earleme_complete();
         }
         if ( $event_count
             and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
@@ -315,11 +320,11 @@ sub do_thin {
 
     CHAR: while ( ++$location < $string_length ) {
         my $value = substr $s, $location, 1;
-        my $token = $value eq '(' ? 'ilparen' : 'rparen';
+        my $token = $value eq '(' ? $s_ilparen : $s_rparen;
 
         # say "Adding $token at $location";
-        my $event_count = $recce->read($token);
-        last CHAR if not defined $event_count;
+        last CHAR if not defined $thin_recce->alternative($token, 0, 1);
+        my $event_count = $thin_recce->earleme_complete();
         if ( $event_count
             and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
             map { ;($thin_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
