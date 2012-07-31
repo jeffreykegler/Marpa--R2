@@ -268,6 +268,7 @@ sub do_thin {
     };
 
     my $grammar = Marpa::R2::Grammar->new($grammar_args);
+    my $thin_grammar = $grammar->thin();
 
     $grammar->precompute();
 
@@ -287,7 +288,7 @@ sub do_thin {
     # first must start at or before it does
     CHAR: while ( $location < $string_length ) {
         my $value = substr $s, $location, 1;
-	my $event_count;
+        my $event_count;
         if ( $value eq '(' ) {
 
             # say "Adding xlparen at $location";
@@ -297,10 +298,13 @@ sub do_thin {
             # say "Adding rparen at $location";
             $event_count = $recce->read('rparen');
         }
-	if ($event_count and grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{$recce->events()}) {
-	    $end_of_match = $location + 1;
-	    last CHAR;
-	}
+        if ( $event_count
+            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ;($thin_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
+        {
+            $end_of_match = $location + 1;
+            last CHAR;
+        } ## end if ( $event_count and grep { $_->[0] eq ...})
         $location++;
     } ## end CHAR: while ( $location < $string_length )
 
