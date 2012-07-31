@@ -82,6 +82,7 @@ sub arg1 {
 }
 
 my $marpa_answer_shown;
+my $thin_answer_shown;
 my $regex_answer_shown;
 my $regex_new_answer_shown;
 
@@ -205,7 +206,7 @@ sub do_marpa_r2 {
 
     # say Dumper($report);
     my $start_of_match = List::Util::min map { $_->[2] }
-        grep { $_->[1] < 0 && $_->[0] eq $first_balanced_rule } @{$report};
+        grep { $_->[1] < 0 && $_->[0] == $first_balanced_rule } @{$report};
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
     return 0 if $marpa_answer_shown;
     $marpa_answer_shown = $value;
@@ -238,12 +239,114 @@ sub do_regex_new {
     return 0;
 } ## end sub do_regex
 
+sub do_thin {
+    my ($s) = @_;
+
+    my $grammar_args = {
+        start => 'S',
+        rules => [
+            [ S => [qw(prefix first_balanced endmark )] ],
+            {   lhs => 'S',
+                rhs => [qw(prefix first_balanced )]
+            },
+            { lhs => 'prefix',      rhs => [qw(prefix_char)], min => 0 },
+            { lhs => 'prefix_char', rhs => [qw(xlparen)] },
+            { lhs => 'prefix_char', rhs => [qw(rparen)] },
+            { lhs => 'lparen',      rhs => [qw(xlparen)] },
+            { lhs => 'lparen',      rhs => [qw(ilparen)] },
+            {   lhs => 'first_balanced',
+                rhs => [qw(xlparen balanced_sequence rparen)],
+            },
+            {   lhs => 'balanced',
+                rhs => [qw(lparen balanced_sequence rparen)],
+            },
+            {   lhs => 'balanced_sequence',
+                rhs => [qw(balanced)],
+                min => 0,
+            },
+        ],
+    };
+
+    my $grammar = Marpa::R2::Grammar->new($grammar_args);
+
+    $grammar->precompute();
+
+    my ($first_balanced_rule) =
+        grep { ( $grammar->rule($_) )[0] eq 'first_balanced' }
+        $grammar->rule_ids();
+
+    my $recce         = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    my $thin_recce = $recce->thin();
+    $recce->expected_symbol_event_set( 'endmark', 1 );
+
+    my $location      = 0;
+    my $string_length = length $s;
+    my $end_of_match;
+
+    # find the match which ends first -- the one which starts
+    # first must start at or before it does
+    CHAR: while ( $location < $string_length ) {
+        my $value = substr $s, $location, 1;
+	my $event_count;
+        if ( $value eq '(' ) {
+
+            # say "Adding xlparen at $location";
+            $event_count = $recce->read( 'xlparen', $location );
+        }
+        else {
+            # say "Adding rparen at $location";
+            $event_count = $recce->read('rparen');
+        }
+	if ($event_count and grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{$recce->events()}) {
+	    $end_of_match = $location + 1;
+	    last CHAR;
+	}
+        $location++;
+    } ## end CHAR: while ( $location < $string_length )
+
+    if ( not defined $end_of_match ) {
+        say "No balanced parens";
+        return 0;
+    }
+
+    CHAR: while ( ++$location < $string_length ) {
+        my $value = substr $s, $location, 1;
+        my $token = $value eq '(' ? 'ilparen' : 'rparen';
+
+        # say "Adding $token at $location";
+        my $event_count = $recce->read($token);
+        last CHAR if not defined $event_count;
+	if ($event_count and grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{$recce->events()}) {
+	    $end_of_match = $location + 1;
+	}
+    } ## end CHAR: while ( ++$location < $string_length )
+
+    my $start_of_match = $end_of_match;
+    $thin_recce->progress_report_start($end_of_match);
+    ITEM: while (1) {
+        my ($rule_id, $dot_position, $item_origin) = $thin_recce->progress_item();
+        last ITEM if not defined $rule_id;
+	next ITEM if $dot_position >= 0;
+        next ITEM if $rule_id != $first_balanced_rule;
+	$start_of_match = $item_origin if $item_origin < $start_of_match;
+    }
+
+    my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
+    return 0 if $thin_answer_shown;
+    $thin_answer_shown = $value;
+    say qq{thin: "$value" at $start_of_match-$end_of_match};
+    return 0;
+
+} ## end sub do_thine
+
 # say timestr countit( 2, sub { do_marpa_r2($s) } );
 # say timestr countit( 2, sub { do_regex($s) } );
 # say timestr countit( 2, sub { do_regex_new($s) } );
 Benchmark::cmpthese ( -4, {
     marpa_r2 => sub { do_marpa_r2($s) },
+    thin => sub { do_thin($s) },
     regex => sub { do_regex_new($s) }
 } );
 
-say +($marpa_answer_shown eq $regex_new_answer_shown ? 'New Answer matches' : 'NEW ANSWER DOES NOT MATCH!');
+say +($marpa_answer_shown eq $regex_new_answer_shown ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
+say +($thin_answer_shown eq $regex_new_answer_shown ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
