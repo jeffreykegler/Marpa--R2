@@ -42,8 +42,8 @@ if ( defined $string ) {
     die "Bad string: $string" if not $string =~ /\A [()]+ \z/xms;
     say "Testing $string";
     do_marpa_r2($string);
+    do_regex_old($string);
     do_regex($string);
-    do_regex_new($string);
     exit 0;
 } ## end if ( defined $string )
 
@@ -87,8 +87,8 @@ sub arg1 {
 
 my $marpa_answer_shown;
 my $thin_answer_shown;
+my $regex_old_answer_shown;
 my $regex_answer_shown;
-my $regex_new_answer_shown;
 
 my $grammar_args =
     {   start => 'S',
@@ -176,7 +176,7 @@ sub do_marpa_r2 {
         if ( $value eq '(' ) {
 
             # say "Adding xlparen at $location";
-            $event_count = $recce->read( 'xlparen', $location );
+            $event_count = $recce->read( 'xlparen' );
         }
         else {
             # say "Adding rparen at $location";
@@ -219,27 +219,27 @@ sub do_marpa_r2 {
 
 } ## end sub do_marpa_r2e
 
-sub do_regex {
+sub do_regex_old {
     my ($s) = @_;
     my $answer =
           $s =~ /$RE{balanced}{-parens=>'()'}{-keep}/
         ? $1
         : 'no balanced parentheses';
-    return 0 if $regex_answer_shown;
-    $regex_answer_shown = $answer;
-    say qq{regex answer: "$answer"};
+    return 0 if $regex_old_answer_shown;
+    $regex_old_answer_shown = $answer;
+    say qq{regex_old answer: "$answer"};
     return 0;
 } ## end sub do_regex
 
-sub do_regex_new {
+sub do_regex {
     my ($s) = @_;
     my $answer =
           $s =~ $tchrist_regex
         ? $1
         : 'no balanced parentheses';
-    return 0 if $regex_new_answer_shown;
-    $regex_new_answer_shown = $answer;
-    say qq{tchrist answer: "$answer"};
+    return 0 if $regex_answer_shown;
+    $regex_answer_shown = $answer;
+    say qq{regex: "$answer"};
     return 0;
 } ## end sub do_regex
 
@@ -349,19 +349,16 @@ sub do_thin {
 
 } ## end sub do_thine
 
-# say timestr countit( 2, sub { do_marpa_r2($s) } );
-# say timestr countit( 2, sub { do_regex($s) } );
-# say timestr countit( 2, sub { do_regex_new($s) } );
 my $tests = {
     marpa_r2 => sub { do_marpa_r2($s) },
     thin => sub { do_thin($s) },
 };
-$tests->{regex} = sub { do_regex_new($s) } if $do_regex;
+$tests->{regex} = sub { do_regex($s) } if $do_regex;
 Benchmark::cmpthese ( $iteration_count, $tests );
 
 my $answer = '(()())';
 say +($marpa_answer_shown eq $answer ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
 say +($thin_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
 if ($do_regex) {
-  say +($regex_new_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
+  say +($regex_answer_shown eq $answer ? 'Regex Answer matches' : 'Regex ANSWER DOES NOT MATCH!');
 }
