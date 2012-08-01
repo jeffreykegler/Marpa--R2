@@ -71,7 +71,7 @@ and an alternative input model is any input model which
 =back
 
 To do either of these things,
-a user must use the recognizer's L<C<alternative>|/"alternative">
+a user must use the recognizer's L<C<alternative>|/"alternative()">
 method.
 In other words,
 if an application is not directly
@@ -159,7 +159,7 @@ the furthest earleme and the current earleme may be far apart.
 This becomes an issue when
 parsing is finished.
 Alternative input models use
-the recognizer's L<C<end_input>|/"end_input"> method to ensure
+the recognizer's L<C<end_input>|/"end_input()"> method to ensure
 that processing of input catches up to the furthest earleme.
 
 =head1 The latest Earley set and latest earleme
@@ -177,7 +177,7 @@ and the latest earleme and current earlemes are different.
 
 =head1 Methods
 
-=head2 alternative
+=head2 alternative()
 
 =for Marpa::R2::Display
 name: Recognizer alternative Synopsis
@@ -218,7 +218,7 @@ On success, C<alternative> returns a Perl true value.
 If the token is rejected, C<alternative> returns a Perl false.
 On other failures, C<alternative> throws an exception.
 
-=head2 current_earleme
+=head2 current_earleme()
 
 =for Marpa::R2::Display
 name: current_earleme Example
@@ -232,7 +232,7 @@ Returns the current parse location,
 also known as the current earleme.
 Not often needed.
 
-=head2 earleme
+=head2 earleme()
 
 =for Marpa::R2::Display
 name: earleme() Synopsis
@@ -272,7 +272,7 @@ When it is, it can be implemented at the application
 level, with the application taking advantage of what
 it knows about its choice of input model.
 
-=head2 earleme_complete
+=head2 earleme_complete()
 
 =for Marpa::R2::Display
 name: Recognizer earleme_complete Synopsis
@@ -313,7 +313,7 @@ In certain input models,
 such as the character-per-earleme model,
 this can be useful.
 
-=head2 end_input
+=head2 end_input()
 
 =for Marpa::R2::Display
 name: Recognizer end_input Synopsis
@@ -352,8 +352,8 @@ but will have no effect.
 
 A recognizer can mix
 calls to
-its L<C<read>|Marpa::R2::Recognizer/"read">
-method with calls to its L<C<alternative>|/"alternative">
+its L<C<read>|Marpa::R2::Recognizer/"read()">
+method with calls to its L<C<alternative>|/"alternative()">
 method.
 The C<read> method has the same effect as a single call
 to the C<alternative> method, followed immediately
