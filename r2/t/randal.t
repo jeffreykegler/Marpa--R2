@@ -218,7 +218,7 @@ TEST: for my $test_data (@test_data) {
                 map { $_->[1]; }
                 grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
 
-# Marpa::R2::Display
+# Marpa::R2::Display::End
 
             TOKEN: for my $token ( @{$terminals_expected} ) {
                 next TOKEN if $token ~~ @expected_symbols;
