@@ -184,7 +184,7 @@ Rule nodes are always
 associated with a rule.
 It a rule's action is a rule evaluation closure,
 it is called at
-L<Node Evaluation Time|/"Node Evaluation Time">.
+L<Node Evaluation Time|/"Tree Traversal Phase">.
 
 The rule evaluation closures's
 arguments will be a

@@ -93,7 +93,7 @@ This document will use these examples
 to describe the basic features of Marpa
 in semi-tutorial fashion.
 Marpa's advanced features, and full reference details of all features,
-can be found in L<the other Marpa API documents|/"OTHER DOCUMENTS">.
+can be found in L<the other Marpa API documents|/"Other documents">.
 
 =head2 The three phases
 

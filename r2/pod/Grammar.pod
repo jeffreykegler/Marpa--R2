@@ -195,7 +195,7 @@ normalize-whitespace: 1
 
 =head1 Constructor
 
-=head2 new
+=head2 new()
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -235,7 +235,7 @@ L<below|/"Named arguments">.
 
 =head1 Mutators
 
-=head2 precompute
+=head2 precompute()
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -251,7 +251,7 @@ compiles data structures that the recognizer will need.
 It
 returns the grammar object or throws an exception.
 
-=head2 set
+=head2 set()
 
 =for Marpa::R2::Display
 name: Grammar set Synopsis
@@ -270,7 +270,7 @@ C<set> either returns true or throws an exception.
 
 =head1 Accessors
 
-=head2 check_terminal
+=head2 check_terminal()
 
 Returns a Perl true when its argument is the name of a terminal symbol.
 Otherwise, returns a Perl false.
@@ -278,7 +278,7 @@ Not often needed,
 but a lexer may find this
 the most convenient way to determine if a symbol is a terminal.
 
-=head2 rule
+=head2 rule()
 
 =for Marpa::R2::Display
 name: rule() Synopsis
@@ -297,9 +297,9 @@ but no such rule exists.
 Situations where
 Rule ID's are encountered include
 callbacks and
-use of L<the progress method|/"progress">.
+use of L<the progress method|Marpa::R2::Progress/progress()>.
 
-=head2 rule_ids
+=head2 rule_ids()
 
 # Marpa::R2::Display
 # name: rule_ids() Synopsis
@@ -313,11 +313,11 @@ Returns an array containing the valid rule IDs.
 Situations where
 Rule ID's are encountered include
 callbacks and
-use of L<the progress method|/"progress">.
+use of L<the progress method|Marpa::R2::Progress/progress()>.
 
 =head1 Trace accessors
 
-=head2 show_problems
+=head2 show_problems()
 
 =for Marpa::R2::Display
 name: show_problems Synopsis
@@ -357,7 +357,7 @@ When that happens,
 the string returned by C<show_problems> is part of the
 error message.
 
-=head2 show_rules
+=head2 show_rules()
 
 =for Marpa::R2::Display
 name: show_rules Synopsis
@@ -394,7 +394,7 @@ Other comments indicate
 whether rules
 were nullable, unproductive, inaccessible, or empty.
 
-=head2 show_symbols
+=head2 show_symbols()
 
 =for Marpa::R2::Display
 name: show_symbols Synopsis
@@ -574,7 +574,7 @@ must be a reference to an array of symbol names.
 All the symbols in the array
 will be allowed as terminals.
 See
-L<the discussion of terminals above|/"Terminal Symbols">.
+L<the discussion of terminals above|/"Terminal symbols">.
 
 =head2 trace_file_handle
 
@@ -861,7 +861,7 @@ If true, it allows the symbol to be used as a terminal.
 If false, it disallows use of
 the symbol as a terminal.
 For details, see
-L<the section on terminals|/"Terminal Symbols">.
+L<the section on terminals|/"Terminal symbols">.
 
 =head1 Copyright and License
 

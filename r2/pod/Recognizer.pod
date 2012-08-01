@@ -112,11 +112,11 @@ Returns a reference to an array of the events
 from the last L</read()> method call.
 Each element of the array is a subarray or 1 or 2 elements.
 The first element of the subarray is the name of an event type,
-as described in L</"Recognizer Events">.
+as described in L</"Recognizer events">.
 The second element is the event value of the event,
 where that is applicable.
 For more detail, see
-L</"Recognizer Events">.
+L</"Recognizer events">.
 
 =head2 exhausted()
 
