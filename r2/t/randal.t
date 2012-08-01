@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 
-use Test::More tests => 4;
+use Test::More tests => 6;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -187,6 +187,7 @@ TEST: for my $test_data (@test_data) {
 
     my $input_length = length $test_input;
     pos $test_input = 0;
+    my $terminals_expected_matches_events = 1;
 
 # Marpa::R2::Display
 # name: Recognizer terminals_expected Synopsis
@@ -200,36 +201,32 @@ TEST: for my $test_data (@test_data) {
 # Marpa::R2::Display
 # name: Recognizer expected_symbol_event_set() Synopsis
 
-      $recce->expected_symbol_event_set( $token, 1 );
+        $recce->expected_symbol_event_set( $token, 1 );
 
 # Marpa::R2::Display::End
 
-    }
-
-    TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
-
-    }
+    } ## end TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes )
 
     for ( my $pos = 0; $pos < $input_length; $pos++ ) {
 
-	my @event_tokens =
-	    map { $_->[1]; }
-	    grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
+	if ( $pos > 0 ) {
+	    my @event_tokens =
+		map { $_->[1]; }
+		grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
 
-	say STDERR join " ", "event tokens: ", @event_tokens;
+	    TOKEN: for my $token ( @{$terminals_expected} ) {
+		next TOKEN if $token ~~ @event_tokens;
+		$terminals_expected_matches_events = 0;
+		Test::More::diag( $token, ' not in events() at pos ', $pos );
+	    }
 
-	my @not_in_events =
-	    grep { not $_ ~~ @event_tokens } @{$terminals_expected};
-	Marpa::R2::Test::is( (scalar @not_in_events), 0, "Events not in events: " . (join " ", @not_in_events));
-
-	my @not_in_terminals_expected =
-	    grep { not $_ ~~ @{$terminals_expected} } @event_tokens;
-	Marpa::R2::Test::is(
-	    ( scalar @not_in_terminals_expected ),
-	    0,
-	    "Events not in terminals_expected: " .
-	    ( join " ", @not_in_terminals_expected )
-	);
+	    TOKEN: for my $token (@event_tokens) {
+		next TOKEN if $token ~~ @{$terminals_expected};
+		$terminals_expected_matches_events = 0;
+		Test::More::diag( $token, ' not in terminals_expected() at pos ',
+		    $pos );
+	    } ## end TOKEN: for my $token (@event_tokens)
+	} ## end if ( $pos > 0 )
 
         TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
             next TOKEN_TYPE if not $token ~~ $terminals_expected;
@@ -241,7 +238,7 @@ TEST: for my $test_data (@test_data) {
             $recce->alternative( $token, \$+{match},
                 ( ( pos $test_input ) - $pos ) );
 
-        } ## end while ( my ( $token, $regex ) = each %regexes )
+        } ## end TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes )
         $recce->earleme_complete();
         $terminals_expected = $recce->terminals_expected();
     } ## end for ( my $pos = 0; $pos < $input_length; $pos++ )
@@ -260,7 +257,11 @@ TEST: for my $test_data (@test_data) {
     my $expected = join "\n", sort @{$test_results};
     my $actual   = join "\n", sort @parses;
     Marpa::R2::Test::is( $actual, $expected, "$test_name: Parse match" );
-} ## end for my $test_data (@test_data)
+
+    Test::More::ok( $terminals_expected_matches_events,
+        'Output of terminals_expected() matched events()' );
+
+} ## end TEST: for my $test_data (@test_data)
 
 sub show_perl_line {
     shift;
