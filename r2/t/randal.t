@@ -209,24 +209,30 @@ TEST: for my $test_data (@test_data) {
 
     for ( my $pos = 0; $pos < $input_length; $pos++ ) {
 
-	if ( $pos > 0 ) {
-	    my @event_tokens =
-		map { $_->[1]; }
-		grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
+        if ( $pos > 0 ) {
 
-	    TOKEN: for my $token ( @{$terminals_expected} ) {
-		next TOKEN if $token ~~ @event_tokens;
-		$terminals_expected_matches_events = 0;
-		Test::More::diag( $token, ' not in events() at pos ', $pos );
-	    }
+# Marpa::R2::Display
+# name: Recognizer events() Synopsis
 
-	    TOKEN: for my $token (@event_tokens) {
-		next TOKEN if $token ~~ @{$terminals_expected};
-		$terminals_expected_matches_events = 0;
-		Test::More::diag( $token, ' not in terminals_expected() at pos ',
-		    $pos );
-	    } ## end TOKEN: for my $token (@event_tokens)
-	} ## end if ( $pos > 0 )
+            my @expected_symbols =
+                map { $_->[1]; }
+                grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
+
+# Marpa::R2::Display
+
+            TOKEN: for my $token ( @{$terminals_expected} ) {
+                next TOKEN if $token ~~ @expected_symbols;
+                $terminals_expected_matches_events = 0;
+                Test::More::diag( $token, ' not in events() at pos ', $pos );
+            }
+
+            TOKEN: for my $token (@expected_symbols) {
+                next TOKEN if $token ~~ @{$terminals_expected};
+                $terminals_expected_matches_events = 0;
+                Test::More::diag( $token,
+                    ' not in terminals_expected() at pos ', $pos );
+            } ## end TOKEN: for my $token (@expected_symbols)
+        } ## end if ( $pos > 0 )
 
         TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
             next TOKEN_TYPE if not $token ~~ $terminals_expected;

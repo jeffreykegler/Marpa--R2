@@ -35,11 +35,11 @@ normalize-whitespace: 1
 
 =head1 Description
 
-To create a recognizer object, use L<the C<new> method|/new>.
+To create a recognizer object, use L<the C<new> method|/new()>.
 
-To read input, use L<the C<read> method|/read>.
+To read input, use L<the C<read> method|/read()>.
 
-To evaluate a parse tree, based on the input, use L<the C<value> method|/value>.
+To evaluate a parse tree, based on the input, use L<the C<value> method|/value()>.
 
 =head2 Token streams
 
@@ -60,7 +60,7 @@ document on alternative input models|Marpa::R2::Advanced::Models>.
 
 =head1 Constructor
 
-=head2 new
+=head2 new()
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -83,7 +83,7 @@ The named arguments are described L<below|/"Named arguments">.
 
 =head1 Accessors
 
-=head2 check_terminal
+=head2 check_terminal()
 
 =for Marpa::R2::Display
 name: Recognizer check_terminal Synopsis
@@ -97,54 +97,28 @@ Returns a Perl true when its argument is the name of a terminal symbol.
 Otherwise, returns a Perl false.
 Not often needed.
 
-=head2 latest_earley_set
+=head2 events()
 
 =for Marpa::R2::Display
-name: latest_earley_set() Synopsis
-normalize-whitespace: 1
+name: Recognizer events() Synopsis
 
-    my $latest_earley_set = $recce->latest_earley_set();
+            my @expected_symbols =
+                map { $_->[1]; }
+                grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
 
 =for Marpa::R2::Display::End
 
-Return the location of the latest (in other words,
-the most recent)
-Earley set.
-In the places where it is most often needed,
-the latest Earley set is the default,
-and there is usually no need to request
-the explicit value
-of the latest Earley set.
+Returns a reference to an array of the events
+from the last L</read()> method call.
+Each element of the array is a subarray or 1 or 2 elements.
+The first element of the subarray is the name of an event type,
+as described in L</"Recognizer Events">.
+The second element is the event value of the event,
+where that is applicable.
+For more detail, see
+L</"Recognizer Events">.
 
-=head2 progress
-
-Given the location (Earley set ID) as its argument,
-returns an array that describes the parse progress
-at that location.
-Details on progress reports can be found in
-L<their own document|Marpa::R2::Progress>.
-
-=head2 terminals_expected
-
-=for Marpa::R2::Display
-name: Recognizer terminals_expected Synopsis
-partial: 1
-normalize-whitespace: 1
-
-    my $terminals_expected = $recce->terminals_expected();
-
-=for Marpa::R2::Display::End
-
-Returns a reference to a list of strings,
-where the strings are the
-names of the terminals
-acceptable at the current location.
-In the default input model, the presence of a terminal
-in this list means that terminal will be acceptable
-in the next C<read> method call.
-This is highly useful for Ruby Slippers parsing.
-
-=head2 exhausted
+=head2 exhausted()
 
 =for Marpa::R2::Display
 name: Recognizer exhausted Synopsis
@@ -168,9 +142,72 @@ many applications require,
 but this method allows the recognizer's exhaustion
 status to be discovered directly.
 
+=head2 latest_earley_set()
+
+=for Marpa::R2::Display
+name: latest_earley_set() Synopsis
+normalize-whitespace: 1
+
+    my $latest_earley_set = $recce->latest_earley_set();
+
+=for Marpa::R2::Display::End
+
+Return the location of the latest (in other words,
+the most recent)
+Earley set.
+In the places where it is most often needed,
+the latest Earley set is the default,
+and there is usually no need to request
+the explicit value
+of the latest Earley set.
+
+=head2 progress()
+
+Given the location (Earley set ID) as its argument,
+returns an array that describes the parse progress
+at that location.
+Details on progress reports can be found in
+L<their own document|Marpa::R2::Progress>.
+
+=head2 terminals_expected()
+
+=for Marpa::R2::Display
+name: Recognizer terminals_expected Synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $terminals_expected = $recce->terminals_expected();
+
+=for Marpa::R2::Display::End
+
+Returns a reference to a list of strings,
+where the strings are the
+names of the terminals
+acceptable at the current location.
+In the default input model, the presence of a terminal
+in this list means that terminal will be acceptable
+in the next C<read> method call.
+This is highly useful for Ruby Slippers parsing.
+
 =head1 Mutators
 
-=head2 read
+=head2 expected_symbol_event_set()
+
+=for Marpa::R2::Display
+name: Recognizer expected_symbol_event_set() Synopsis
+
+        $recce->expected_symbol_event_set( $token, 1 );
+
+=for Marpa::R2::Display::End
+
+Marpa can generate a recognizer event when 
+a symbol is expected.
+This method takes a symbol name as its first argument,
+and turns expected-symbol events on or off,
+according to whether its second argument is 1 or 0.
+Always succeeds or throws an exception.
+
+=head2 read()
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -204,17 +241,8 @@ If the parser accepted the token,
 the C<read> method returns
 the number of recognizer events that occurred during the
 C<read>.
-Only two events are enabled by default --
-exceeding the Earley item warning threshold,
-and exhaustion.
-For more about the 
-Earley item warning threshold,
-see L<"too_many_earley_items">.
-"Exhaustion"
-means that the next C<read> call must fail,
-because there is no token that will be acceptable to it.
-More details on "exhaustion" are in L<a
-section below|/"Parse exhaustion">.
+For more about events, see
+L</"Recognizer events">.
 
 Marpa may reject a token because it is not one of those
 acceptable at the current location.
@@ -241,7 +269,7 @@ one which could be anything.
 If it is C<undef>, then the token value
 is always a Perl C<undef>.
 
-=head2 set
+=head2 set()
 
 =for Marpa::R2::Display
 name: Recognizer set Synopsis
@@ -258,7 +286,7 @@ can be used to set or change named arguments after the recognizer
 has been created.
 Details of the named arguments are L<below|/"Named arguments">.
 
-=head2 value
+=head2 value()
 
 =for Marpa::R2::Display
 name: Engine Synopsis Unambiguous Parse
@@ -283,7 +311,7 @@ the C<value> method returns C<undef>.
 
 =head1 Trace accessors
 
-=head2 show_progress
+=head2 show_progress()
 
 =for Marpa::R2::Display
 name: show_progress Synopsis
@@ -433,6 +461,8 @@ The C<too_many_earley_items> argument is optional.
 If specified, it sets the B<Earley item warning threshold>.
 If an Earley set becomes larger than the
 Earley item warning threshold,
+a recognizer event is generated,
+and
 a warning is printed to the trace file handle.
 
 Marpa parses from any BNF,
@@ -449,6 +479,8 @@ based on the size of the
 grammar.
 The default threshold will never be less than 100.
 If the Earley item warning threshold is set to 0,
+no recognizer event is generated,
+and
 warnings about large Earley sets are turned off.
 
 =head2 trace_actions
@@ -510,7 +542,42 @@ Usually, an application will want to leave them on.
 
 =head1 Recognizer events
 
-=head2 
+The recognizer's C<read()> method can generate events.
+To access events, use the recognizer's L</events()> method.
+
+The C<EARLEY_ITEM_THRESHOLD> and
+The C<EXHAUSTED> events are enabled by default.
+Events optionally have an "event value",
+as specified in the description of each event.
+The following events are possible.
+
+=head2 EARLEY_ITEM_THRESHOLD
+
+The Earley item threshold was exceeded.
+For more about the 
+Earley item warning threshold,
+see L</too_many_earley_items>.
+No event value is defined for this event.
+This event is enabled by default.
+
+=head2 EXHAUSTED
+
+"Exhaustion"
+means that the next C<read> call must fail,
+because there is no token that will be acceptable to it.
+More details on "exhaustion" are in L<a
+section below|/"Parse exhaustion">.
+No event value is defined for this event.
+This event is enabled by default.
+
+=head2 SYMBOL_EXPECTED
+
+A "symbol expected" event means that a symbol is expected
+at that point.
+The event value of this event is the symbol
+whose expectation caused the event.
+This event is disabled by default.
+For details, see L</expected_symbol_event_set()>.
 
 =head1 Parse exhaustion
 
@@ -525,7 +592,7 @@ a recognizer event occurs whenever the parse is
 exhausted.
 An application can also check for exhaustion
 explicitly, using the recognizer's
-L<C<exhausted> method|/exhausted>.
+L<C<exhausted> method|/exhausted()>.
 
 =head1 Ruby Slippers parsing
 
@@ -553,7 +620,7 @@ normalize-whitespace: 1
 Marpa is able to tell the application
 which symbols are acceptable as tokens at the next location
 in the parse.
-The L<C<terminals_expected> method|/terminals_expected>
+The L<C<terminals_expected> method|/terminals_expected()>
 returns the list of tokens that B<will> be accepted by
 the next C<read>.
 The application can use this information to change the
@@ -565,9 +632,9 @@ approach.
 If an application is not sure whether a token is
 acceptable or not, the application can
 try to read the dubious token using
-L<the C<read> method|/read>.
+L<the C<read> method|/read()>.
 If the token is rejected,
-L<the C<read> method|/read> call will return a
+L<the C<read> method|/read()> call will return a
 Perl C<undef>.
 At that point,
 the application can retry the C<read> with a different token.
