@@ -8,7 +8,7 @@ build_requires:
 configure_requires:
   Module::Build: 0.3601
 dynamic_config: 1
-generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112621'
+generated_by: 'Module::Build version 0.4002, CPAN::Meta::Converter version 2.112621'
 license: unknown
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -45,16 +45,16 @@ no_index:
 provides:
   Marpa::R2:
     file: lib/Marpa/R2.pm
-    version: 2.015_002
+    version: 2.015_003
   Marpa::R2::Grammar:
     file: lib/Marpa/R2/Grammar.pm
-    version: 2.015_002
+    version: 2.015_003
   Marpa::R2::HTML:
     file: html/lib/Marpa/R2/HTML.pm
-    version: 2.015_002
+    version: 2.015_003
   Marpa::R2::HTML::Callback:
     file: html/lib/Marpa/R2/HTML/Callback.pm
-    version: 2.015_002
+    version: 2.015_003
   Marpa::R2::HTML::Internal:
     file: html/lib/Marpa/R2/HTML.pm
     version: 0
@@ -63,7 +63,7 @@ provides:
     version: 0
   Marpa::R2::Internal:
     file: lib/Marpa/R2/Internal.pm
-    version: 2.015_002
+    version: 2.015_003
   Marpa::R2::Internal::Grammar:
     file: lib/Marpa/R2/Grammar.pm
     version: 0
@@ -75,10 +75,10 @@ provides:
     version: 0
   Marpa::R2::Recognizer:
     file: lib/Marpa/R2/Recognizer.pm
-    version: 2.015_002
+    version: 2.015_003
   Marpa::R2::Value:
     file: lib/Marpa/R2/Value.pm
-    version: 2.015_002
+    version: 2.015_003
 recommends:
   HTML::Entities: 3.68
   HTML::Parser: 3.64
@@ -91,4 +91,4 @@ requires:
   Scalar::Util: 1.21
 resources:
   repository: git://github.com/jeffreykegler/Marpa-R2.git
-version: 2.015_002
+version: 2.015_003
