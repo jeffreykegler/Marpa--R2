@@ -154,6 +154,7 @@ t/.gitignore
 t/00-load.t
 t/ah2.t
 t/ah_numeric.t
+t/balanced.t
 t/bocage.t
 t/catalan.t
 t/chaf.t
