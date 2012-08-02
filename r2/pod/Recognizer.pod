@@ -101,10 +101,11 @@ Not often needed.
 
 =for Marpa::R2::Display
 name: Recognizer events() Synopsis
+normalize-whitespace: 1
 
-            my @expected_symbols =
-                map { $_->[1]; }
-                grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
+    my @expected_symbols =
+        map { $_->[1]; }
+        grep { $_->[0] eq 'SYMBOL_EXPECTED' } @{ $recce->events() };
 
 =for Marpa::R2::Display::End
 
