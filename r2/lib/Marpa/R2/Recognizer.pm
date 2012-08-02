@@ -47,6 +47,7 @@ BEGIN {
 
     END
     CLOSURES
+    EVENT_IF_EXPECTED
     MAX_PARSES
     NULL_VALUES
     RANKING_METHOD
@@ -102,6 +103,7 @@ sub Marpa::R2::Recognizer::new {
         if not $grammar_class eq 'Marpa::R2::Grammar';
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
 
     my $problems = $grammar->[Marpa::R2::Internal::Grammar::PROBLEMS];
     if ($problems) {
@@ -130,6 +132,31 @@ sub Marpa::R2::Recognizer::new {
 
     $recce_c->ruby_slippers_set(1);
 
+    ARG_HASH: for my $arg_hash (@arg_hashes) {
+        if ( defined( my $value = $arg_hash->{'leo'} ) ) {
+            my $boolean = $value ? 1 : 0;
+            $recce->use_leo_set($boolean);
+            delete $arg_hash->{leo};
+            last ARG_HASH;
+        } ## end if ( defined( my $value = $arg_hash->{'leo'} ) )
+    } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
+
+    ARG_HASH: for my $arg_hash (@arg_hashes) {
+        if ( defined( my $value = $arg_hash->{'event_if_expected'} ) ) {
+            Marpa::R2::exception(
+                'value of "event_if_expected" must be a REF to an array of symbol names'
+            ) if ref $value ne 'ARRAY';
+            for my $symbol_name ( @{$value} ) {
+                my $symbol_id = $symbol_hash->{$symbol_name};
+                Marpa::exception(
+                    qq{Unknown symbol in "event_if_expected" value: "$symbol_name"}
+                ) if not defined $symbol_id;
+                $recce_c->expected_symbol_event_set( $symbol_id, 1 );
+            } ## end for my $symbol_name ( @{$value} )
+            delete $arg_hash->{event_if_expected};
+        } ## end if ( defined( my $value = $arg_hash->{'event_if_expected'...}))
+    } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
+
     $recce->[Marpa::R2::Internal::Recognizer::WARNINGS]       = 1;
     $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES]     = 0;
@@ -139,19 +166,18 @@ sub Marpa::R2::Recognizer::new {
 
     $recce->reset_evaluation();
 
+    if ( not $recce_c->start_input() ) {
+        my $error = $grammar_c->error();
+        Marpa::R2::exception( 'Recognizer start of input failed: ', $error );
+    }
+    $recce->[Marpa::R2::Internal::Recognizer::EVENTS] = cook_events($recce);
+
     $recce->set(@arg_hashes);
 
     my $trace_terminals =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_TERMINALS] // 0;
     my $trace_tasks = $recce->[Marpa::R2::Internal::Recognizer::TRACE_TASKS]
         // 0;
-
-    if ( not $recce_c->start_input() ) {
-        my $error = $grammar_c->error();
-        Marpa::R2::exception( 'Recognizer start of input failed: ', $error );
-    }
-
-    $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR] = $grammar;
 
     if ( $trace_terminals > 1 ) {
         my @terminals_expected = @{ $recce->terminals_expected() };
@@ -173,6 +199,7 @@ use constant RECOGNIZER_OPTIONS => [
     qw{
         closures
         end
+	event_if_expected
         leo
         max_parses
         ranking_method
@@ -230,16 +257,16 @@ sub Marpa::R2::Recognizer::set {
                 join q{ }, @bad_options );
         } ## end if ( my @bad_options = grep { not $_ ~~ ...})
 
-        if ( defined( my $value = $args->{'leo'} ) ) {
+        if ( defined( my $value = $args->{'event_if_expected'} ) ) {
+            ## It could be allowed, but it is not needed and this is simpler
+            Marpa::R2::exception(
+                q{'event_if_expected' not allowed once input has started});
+        }
 
-            # Not allowed once input has started
-            if ( defined $recce_c->current_earleme() ) {
-                Marpa::R2::exception(
-                    q{Cannot reset 'leo' once input has started});
-            }
-            my $boolean = $value ? 1 : 0;
-            $recce->use_leo_set($boolean);
-        } ## end if ( defined( my $value = $args->{'leo'} ) )
+        if ( defined( my $value = $args->{'leo'} ) ) {
+            Marpa::R2::exception(
+                q{Cannot reset 'leo' once input has started});
+        }
 
         if ( defined( my $value = $args->{'max_parses'} ) ) {
             $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES] = $value;
@@ -663,18 +690,15 @@ sub Marpa::R2::Recognizer::terminals_expected {
             $recce_c->terminals_expected() ];
 } ## end sub Marpa::R2::Recognizer::terminals_expected
 
-sub Marpa::R2::Recognizer::earleme_complete {
+sub cook_events {
     my ($recce) = @_;
-
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    local $Marpa::R2::Internal::TRACE_FH =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
 
-    my $event_count = $recce_c->earleme_complete();
     my @cooked_events = ();
-    EVENT: for my $event_ix ( 0 .. $event_count - 1 ) {
+    my $event_count = $grammar_c->event_count();
+    EVENT: for (my $event_ix = 0; $event_ix < $event_count; $event_ix++) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
         if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
             say {
@@ -694,7 +718,21 @@ sub Marpa::R2::Recognizer::earleme_complete {
             next EVENT;
         }
     } ## end EVENT: for my $event_ix ( 0 .. $event_count - 1 )
-    $recce->[Marpa::R2::Internal::Recognizer::EVENTS] = \@cooked_events;
+    return \@cooked_events;
+}
+
+sub Marpa::R2::Recognizer::earleme_complete {
+    my ($recce) = @_;
+
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    local $Marpa::R2::Internal::TRACE_FH =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+
+    my $event_count = $recce_c->earleme_complete();
+    $recce->[Marpa::R2::Internal::Recognizer::EVENTS] =
+        $event_count ? cook_events($recce) : [];
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_EARLEY_SETS] ) {
         my $latest_set = $recce_c->latest_earley_set();
