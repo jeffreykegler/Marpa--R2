@@ -31,6 +31,18 @@ and tools to Marpa::R2.
 
 =head1 Changes
 
+=head2 Additional reserved symbol names
+
+Marpa::XS reserved, for its internal use, all symbol names
+ending with the right square bracket ("C<]>").
+In addition,
+Marpa::RS reserved symbols ending 
+with the right parenthesis ("C<)>"),
+the right angle bracket ("C<< > >>"),
+and the right curly bracket ("C<}>").
+Any other valid Perl string remains an acceptable
+symbol name.
+
 =head2 The return value of the read() method has changed
 
 The return value of

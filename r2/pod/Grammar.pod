@@ -64,8 +64,12 @@ most other changes are forbidden.
 
 =head2 Symbol names
 
-Symbol names that end in right square brackets
-are reserved for Marpa's internal use.
+Marpa reserves, for its internal use, all symbol names
+ending with one of these four symbols:
+the right square bracket ("C<]>"),
+the right parenthesis ("C<)>"),
+the right angle bracket ("C<< > >>"),
+and the right curly bracket ("C<}>").
 Any other valid Perl string is an acceptable
 symbol name.
 

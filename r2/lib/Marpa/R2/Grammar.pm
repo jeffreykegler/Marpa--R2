@@ -899,8 +899,10 @@ sub assign_user_symbol {
         Marpa::R2::exception(
             "Symbol name was ref to $type; it must be a scalar string");
     }
-    Marpa::R2::exception("Symbol name $name ends in ']': that's not allowed")
-        if $name =~ /\]\z/xms;
+    if ( $name =~ / ( [\]>)}] ) \z /xms ) {
+        Marpa::R2::exception(
+            qq{Symbol name $name ends in "$1": that's not allowed});
+    }
     my $symbol = assign_symbol( $grammar, $name );
     my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
