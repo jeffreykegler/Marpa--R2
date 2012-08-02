@@ -8310,6 +8310,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
     @<Set up terminal-related boolean vectors@>@;
+    G_EVENTS_CLEAR(g);
     if (G_is_Trivial(g)) {
 	@<Set |r| exhausted@>@;
 	return 1;
