@@ -195,17 +195,27 @@ This is highly useful for Ruby Slippers parsing.
 
 =for Marpa::R2::Display
 name: Recognizer expected_symbol_event_set() Synopsis
+normalize-whitespace: 1
 
-        $recce->expected_symbol_event_set( $token, 1 );
+    $recce->expected_symbol_event_set( 'endmark', 1 );
 
 =for Marpa::R2::Display::End
 
 Marpa can generate a recognizer event when 
-a symbol is expected.
+a symbol is expected at the current earleme.
 This method takes a symbol name as its first argument,
-and turns expected-symbol events on or off,
+and turns the expected-symbol event for that
+symbol on or off,
 according to whether its second argument is 1 or 0.
 Always succeeds or throws an exception.
+
+Events can occur at location 0 -- when the recognizer is first created.
+However, the event setting of C<expected_symbol_event_set()>
+cannot have an effect until after the first token is read --
+after location 0.
+In cases where this is an issue,
+the L</event_if_expected> named argument of the
+L</new()> method can be used to set an expected-symbol event.
 
 =head2 read()
 
@@ -403,6 +413,22 @@ once evaluation has begun.
 "Location" as referred to here and elsewhere
 in this document is what is also called
 an Earley set ID.
+
+=head2 event_if_expected
+
+The value of the 
+C<event_if_expected> named argument
+must be a reference to an array
+of symbol names.
+Expected-symbol events will be turned on for those symbol
+names.
+Expected-symbol events may be turned off (or back on)
+using the L</expected_symbol_event_set()> method.
+The advantage of the C<event_if_expected> named argument
+is that it takes effect as soon as the recognizer is created,
+while events set
+using the L</expected_symbol_event_set()> method
+cannot occur until after the first token is read.
 
 =head2 grammar
 

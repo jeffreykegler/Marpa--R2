@@ -6131,8 +6131,10 @@ In the event of an error creating the recognizer,
 Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 {
     RECCE r;
+    ISYID isy_count;
     @<Return |NULL| on failure@>@;
     @<Fail if not precomputed@>@;
+    isy_count = ISY_Count_of_G(g);
     r = my_slice_new(struct marpa_r);
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
@@ -6282,8 +6284,7 @@ When the recognizer is created,
 this boolean vector is initialized to |NULL| so that the destructor
 can tell if there is a boolean vector to be freed.
 @<Widely aligned recognizer elements@> = Bit_Vector t_bv_isyid_is_expected;
-@ @<Initialize recognizer elements@> = r->t_bv_isyid_is_expected = NULL;
-@ @<Allocate recognizer containers@> = 
+@ @<Initialize recognizer elements@> = 
     r->t_bv_isyid_is_expected = bv_obs_create( r->t_obs, (unsigned int)isy_count );
 @ Returns |-2| if there was a failure.
 The buffer is expected to be large enough to hold
@@ -6320,8 +6321,7 @@ with the bits set if, when
 that symbol is an expected symbol,
 an event should be created.
 @<Widely aligned recognizer elements@> = LBV t_isy_expected_is_event;
-@ @<Initialize recognizer elements@> = r->t_isy_expected_is_event = NULL;
-@ @<Allocate recognizer containers@> = 
+@ @<Initialize recognizer elements@> = 
   r->t_isy_expected_is_event = lbv_obs_new0(r->t_obs, isy_count);
 @ Returns |-2| if there was a failure.
 The buffer is expected to be large enough to hold
@@ -6340,7 +6340,6 @@ int marpa_r_expected_symbol_event_set(Marpa_Recognizer r, Marpa_Symbol_ID xsyid,
     @<Return |-2| on failure@>@;
     @<Unpack recognizer objects@>@;
     @<Fail if fatal error@>@;
-    @<Fail if recognizer not started@>@;
     @<Fail if |xsyid| is invalid@>@;
     if (UNLIKELY (value < 0 || value > 1))
       {
