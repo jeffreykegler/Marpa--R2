@@ -6465,8 +6465,9 @@ earleme at which the parse became exhausted.
 @ @<Initialize recognizer elements@> = r->t_is_exhausted = 0;
 @ @<Set |r| exhausted@> = 
 {
-     R_is_Exhausted(r) = 1;
-     Input_Phase_of_R(r) = R_AFTER_INPUT;
+  R_is_Exhausted (r) = 1;
+  Input_Phase_of_R (r) = R_AFTER_INPUT;
+  event_new (g, MARPA_EVENT_EXHAUSTED);
 }
 
 @ Exhaustion is a boolean, not a phase.
@@ -8665,7 +8666,6 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
            uncompleted Earley sets, we can make no further progress.
 	   The parse is ``exhausted". */
 	@<Set |r| exhausted@>@;
-	event_new(g, MARPA_EVENT_EXHAUSTED);
       }
     earley_set_update_items(r, current_earley_set);
   @<Destroy |marpa_r_earleme_complete| locals@>@;
