@@ -11,6 +11,8 @@ my $length = 1000;
 my $string;
 my $pp = 0;
 my $do_regex = 0;
+my $do_thin = 0;
+my $do_r2 = 0;
 my $iteration_count = -4;
 my $getopt_result = GetOptions(
     "length=i" => \$length,
@@ -19,6 +21,8 @@ my $getopt_result = GetOptions(
     "string=s"   => \$string,
     "pp" => \$pp,
     "regex!" => \$do_regex,
+    "thin!" => \$do_thin,
+    "r2!" => \$do_r2,
 );   
 
 if ($pp) {
@@ -41,7 +45,7 @@ my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 if ( defined $string ) {
     die "Bad string: $string" if not $string =~ /\A [()]+ \z/xms;
     say "Testing $string";
-    do_marpa_r2($string);
+    do_r2($string);
     do_regex_old($string);
     do_regex($string);
     exit 0;
@@ -126,7 +130,7 @@ sub thick_grammar_generate {
     return $grammar;
 } ## end sub thick_grammar_generate
 
-sub do_marpa_r2 {
+sub do_r2 {
     my ($s) = @_;
 
     my $grammar_args = {
@@ -218,7 +222,7 @@ sub do_marpa_r2 {
     say qq{marpa: "$value" at $start_of_match-$end_of_match};
     return 0;
 
-} ## end sub do_marpa_r2e
+} ## end sub do_r2e
 
 sub do_regex_old {
     my ($s) = @_;
@@ -357,33 +361,38 @@ sub do_target {
 
     my $target_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
     my $s_start = $target_grammar->symbol_new();
-    my $s_pre_target      = $target_grammar->symbol_new();
-    my $s_post_target      = $target_grammar->symbol_new();
+    my $s_target_start_marker      = $target_grammar->symbol_new();
+    my $s_target_end_marker      = $target_grammar->symbol_new();
     my $s_target      = $target_grammar->symbol_new();
-    my $s_prefix            = $target_grammar->symbol_new();
+    my $s_active_prefix            = $target_grammar->symbol_new();
+    my $s_potential_prefix            = $target_grammar->symbol_new();
     my $s_prefix_char       = $target_grammar->symbol_new();
     $target_grammar->start_symbol_set($s_start);
     $target_grammar->rule_new( $s_start,
-        [ $s_prefix, $s_pre_target, $s_target, $s_post_target ] );
-    $target_grammar->sequence_new( $s_prefix, $s_prefix_char, { min => 0 } );
+        [ $s_active_prefix, $s_target_start_marker, $s_target, $s_target_end_marker ] );
+    $target_grammar->rule_new( $s_start,
+        [ $s_target_start_marker, $s_target, $s_target_end_marker ] );
+    $target_grammar->rule_new( $s_active_prefix, [ $s_potential_prefix, $s_prefix_char ] );
+    $target_grammar->rule_new( $s_potential_prefix, [ $s_prefix_char ] );
+    $target_grammar->rule_new( $s_potential_prefix, [ $s_active_prefix ] );
+    $target_grammar->rule_new( $s_potential_prefix, [ $s_active_prefix, $s_target_start_marker ] );
 
-    my $s_lparen           = $target_grammar->symbol_new();
-    my $s_rparen            = $target_grammar->symbol_new();
-    my $s_balanced_sequence = $target_grammar->symbol_new();
-    my $s_balanced          = $target_grammar->symbol_new();
-    my $target =
-        $target_grammar->rule_new( $s_target,
-        [ $s_lparen, $s_balanced_paren_sequence, $s_rparen ] );
-    $target_grammar->sequence_new( $s_balanced_sequence, $s_balanced_parens,
+    my $s_lparen                  = $target_grammar->symbol_new();
+    my $s_rparen                  = $target_grammar->symbol_new();
+    my $s_balanced_paren_sequence = $target_grammar->symbol_new();
+    my $s_balanced_parens         = $target_grammar->symbol_new();
+    my $target_rule = $target_grammar->rule_new( $s_target, [ $s_balanced_parens ] );
+    $target_grammar->sequence_new( $s_balanced_paren_sequence, $s_balanced_parens,
         { min => 0 } );
-    $target_grammar->rule_new( $s_balanced_paren_sequence,
-        [ $s_lparen, $s_balanced_parens, $s_rparen ] );
+    $target_grammar->rule_new( $s_balanced_parens,
+        [ $s_lparen, $s_balanced_paren_sequence, $s_rparen ] );
 
     $target_grammar->precompute();
 
     my $target_recce = Marpa::R2::Thin::R->new($target_grammar);
     $target_recce->start_input();
-    $target_recce->expected_symbol_event_set( $s_endmark, 1 );
+    $target_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
+    $target_recce->ruby_slippers_set( 1 );
 
     my $location      = 0;
     my $string_length = length $s;
@@ -394,17 +403,24 @@ sub do_target {
     CHAR: while ( $location < $string_length ) {
         my $value = substr $s, $location, 1;
         my $event_count;
-        if ( $value eq '(' ) {
-
-            # say "Adding xlparen at $location";
-            $target_recce->alternative( $s_xlparen, 0, 1 );
-            $event_count = $target_recce->earleme_complete();
-        } ## end if ( $value eq '(' ) )
-        else {
-            # say "Adding rparen at $location";
-            $target_recce->alternative( $s_rparen, 0, 1 );
-            $event_count = $target_recce->earleme_complete();
-        }
+	if (defined $target_recce->alternative( $s_target_start_marker, $location,
+		1 ) )
+	{
+	    $event_count = $target_recce->earleme_complete();
+	    if ($event_count
+		and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+		map { ; ( $target_grammar->event($_) )[0] }
+		( 0 .. $event_count - 1 )
+		)
+	    {
+		die
+		    "Zero length target not allowed: found at location $location\n";
+	    } ## end if ( $event_count and grep { $_ eq ...})
+	} ## end if ( defined $target_recce->alternative( $s_target_start_marker...))
+	$target_recce->alternative( $s_prefix_char, 0, 1);
+        $value eq '(' and $target_recce->alternative( $s_lparen, 0, 1 );
+        $value eq '(' and $target_recce->alternative( $s_rparen, 0, 1 );
+	$event_count = $target_recce->earleme_complete();
         if ($event_count
             and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
             map { ; ( $target_grammar->event($_) )[0] }
@@ -424,7 +440,7 @@ sub do_target {
 
     CHAR: while ( ++$location < $string_length ) {
         my $value = substr $s, $location, 1;
-        my $token = $value eq '(' ? $s_ilparen : $s_rparen;
+        my $token = $value eq '(' ? $s_lparen : $s_rparen;
 
         # say "Adding $token at $location";
         last CHAR if not defined $target_recce->alternative( $token, 0, 1 );
@@ -446,7 +462,7 @@ sub do_target {
             $target_recce->progress_item();
         last ITEM if not defined $rule_id;
         next ITEM if $dot_position >= 0;
-        next ITEM if $rule_id != $first_balanced_rule;
+        next ITEM if $rule_id != $target_rule;
         $start_of_match = $item_origin if $item_origin < $start_of_match;
     } ## end ITEM: while (1)
 
@@ -459,18 +475,23 @@ sub do_target {
 } ## end sub do_target
 
 my $tests = {
-    marpa_r2 => sub { do_marpa_r2($s) },
     thin => sub { do_thin($s) },
     target => sub { do_target($s) },
 };
 
 $tests->{regex} = sub { do_regex($s) } if $do_regex;
+$tests->{thin} = sub { do_thin($s) } if $do_thin;
+$tests->{r2} = sub { do_r2($s) } if $do_r2;
 Benchmark::cmpthese ( $iteration_count, $tests );
 
 my $answer = '(()())';
-say +($marpa_answer_shown eq $answer ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
-say +($thin_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
 say +($target_answer_shown eq $answer ? 'Target Answer matches' : 'Target ANSWER DOES NOT MATCH!');
+if ($do_r2) {
+  say +($marpa_answer_shown eq $answer ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
+}
+if ($do_thin) {
+  say +($thin_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
+}
 if ($do_regex) {
   say +($regex_answer_shown eq $answer ? 'Regex Answer matches' : 'Regex ANSWER DOES NOT MATCH!');
 }
