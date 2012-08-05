@@ -7,24 +7,29 @@ use List::Util qw(min);
 use Regexp::Common qw /balanced/;
 use Getopt::Long;
 my $example;
-my $length = 1000;
+my $length;
 my $string;
 my $pp              = 0;
 my $do_regex        = 0;
 my $do_thin         = 0;
+my $do_target         = 1;
 my $do_r2           = 0;
 my $do_timing = 1;
+my $random = 0;
 my $iteration_count = -4;
 my $getopt_result   = GetOptions(
     "length=i"  => \$length,
     "count=i"   => \$iteration_count,
     "example=s" => \$example,
     "string=s"  => \$string,
+    "random!" => \$random,
     "regex!"    => \$do_regex,
     "thin!"     => \$do_thin,
+    "target!"     => \$do_target,
     "r2!"       => \$do_r2,
     "time!"       => \$do_timing,
 );
+die "getopt failed" if not defined $getopt_result;
 
 {
     require Marpa::R2;
@@ -36,39 +41,44 @@ my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 
 my $s;
 
-if ( defined $string ) {
-    die "Bad string: $string" if not $string =~ /\A [()]+ \z/xms;
-    say "Testing $string";
-    $s = $string;
-} ## end if ( defined $string )
-else {
+CREATE_STRING: {
 
-    $length += 0;
-    if ( $length <= 0 ) {
-        die "Bad length $length";
-    }
+    if ( defined $string ) {
+        die "Bad string: $string" if not $string =~ /\A [()]+ \z/xms;
+        say "Testing $string";
+        $s      = $string;
+        $length = length $s;
+        last CREATE_STRING;
+    } ## end if ( defined $string )
+
+    if ($random) {
+        $do_timing = 0;
+        $length //= 10;
+        $s = join "", map { ; rand(2) < 1 ? '(' : ')' } 0 .. $length - 1;
+        say "Testing ", substr $s, 0, 100;
+        last CREATE_STRING;
+    } ## end if ($random)
+
+    $length //= 1000;
+    die "Bad length $length" if $length <= 0;
 
     $example //= "final";
-    CREATE_S: {
-        my $s_balanced = '(()())((';
-        if ( $example eq 'pos2_simple' ) {
-            $s = '(' . '()' . ( '(' x ( $length - length $s_balanced ) );
-            last CREATE_S;
-        }
-        if ( $example eq 'pos2' ) {
-            $s = '('
-                . $s_balanced
-                . ( '(' x ( $length - length $s_balanced ) );
-            last CREATE_S;
-        } ## end if ( $example eq 'pos2' )
-        if ( $example eq 'final' ) {
-            $s = ( '(' x ( $length - length $s_balanced ) ) . $s_balanced;
-            last CREATE_S;
-        }
-        die qq{Example "$example" not known};
-    } ## end CREATE_S:
+    my $s_balanced = '(()())((';
+    if ( $example eq 'pos2_simple' ) {
+        $s = '(' . '()' . ( '(' x ( $length - length $s_balanced ) );
+        last CREATE_STRING;
+    }
+    if ( $example eq 'pos2' ) {
+        $s = '(' . $s_balanced . ( '(' x ( $length - length $s_balanced ) );
+        last CREATE_STRING;
+    }
+    if ( $example eq 'final' ) {
+        $s = ( '(' x ( $length - length $s_balanced ) ) . $s_balanced;
+        last CREATE_STRING;
+    }
+    die qq{Example "$example" not known};
 
-} ## end else [ if ( defined $string ) ]
+} ## end CREATE_STRING:
 
 sub concat {
     my (undef, @args) = @_;
@@ -85,6 +95,7 @@ sub arg1 {
 }
 
 my $marpa_answer_shown;
+my $flm_answer_shown;
 my $thin_answer_shown;
 my $target_answer_shown;
 my $regex_old_answer_shown;
@@ -488,11 +499,145 @@ sub do_target {
 
 } ## end sub do_target
 
+sub do_flm {
+    my ($s) = @_;
+
+    my $grammar = Marpa::R2::Grammar->new($grammar_args);
+
+    my $flm_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
+    my $s_start = $flm_grammar->symbol_new();
+    my $s_target_start_marker      = $flm_grammar->symbol_new();
+    my $s_target_end_marker      = $flm_grammar->symbol_new();
+    my $s_target      = $flm_grammar->symbol_new();
+    my $s_prefix            = $flm_grammar->symbol_new();
+    my $s_physical_char       = $flm_grammar->symbol_new();
+    my $s_prefix_char       = $flm_grammar->symbol_new();
+    $flm_grammar->start_symbol_set($s_start);
+    $flm_grammar->rule_new( $s_start,
+        [ $s_prefix, $s_target_start_marker, $s_target, $s_target_end_marker ] );
+    $flm_grammar->rule_new( $s_prefix_char, [ $s_physical_char ] );
+    $flm_grammar->rule_new( $s_prefix_char, [ $s_target_start_marker ] );
+    $flm_grammar->sequence_new( $s_prefix, $s_prefix_char, { min => 0 } );
+
+    my $s_lparen                  = $flm_grammar->symbol_new();
+    my $s_rparen                  = $flm_grammar->symbol_new();
+    my $s_balanced_paren_sequence = $flm_grammar->symbol_new();
+    my $s_balanced_parens         = $flm_grammar->symbol_new();
+    my $target_rule = $flm_grammar->rule_new( $s_target, [ $s_balanced_parens ] );
+    $flm_grammar->sequence_new( $s_balanced_paren_sequence, $s_balanced_parens,
+        { min => 0 } );
+    $flm_grammar->rule_new( $s_balanced_parens,
+        [ $s_lparen, $s_balanced_paren_sequence, $s_rparen ] );
+
+    $flm_grammar->precompute();
+
+    my $flm_recce = Marpa::R2::Thin::R->new($flm_grammar);
+    $flm_recce->start_input();
+    $flm_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
+    $flm_recce->ruby_slippers_set( 1 );
+
+    my $location      = 0;
+    my $string_length = length $s;
+    my $end_of_match_earley_set;
+
+    # Add a check that we don't already expect the end_marker
+    # at location 0 -- this will detect zero-length targets.
+
+    # Find the prefix length
+    CHAR: while ( $location < $string_length ) {
+        my $value = substr $s, $location, 1;
+        my $event_count;
+	my $token_symbol = $value eq '(' ? $s_lparen : $s_rparen;
+	$flm_recce->alternative( $s_target_start_marker, 0, 1);
+	$flm_recce->alternative( $token_symbol, 0, 2);
+	$event_count = $flm_recce->earleme_complete();
+        if ($event_count
+            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ; ( $flm_grammar->event($_) )[0] }
+            ( 0 .. $event_count - 1 )
+            )
+        {
+	   die "Zero length target at location $location\n",
+	   "Zero length targets are not allowed";
+	}
+	$flm_recce->alternative( $token_symbol, 0, 1);
+	$flm_recce->alternative( $s_physical_char, 0, 1);
+	$event_count = $flm_recce->earleme_complete();
+        if ($event_count
+            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ; ( $flm_grammar->event($_) )[0] }
+            ( 0 .. $event_count - 1 )
+            )
+        {
+            $end_of_match_earley_set = $flm_recce->latest_earley_set();
+            last CHAR;
+        } ## end if ( $event_count and grep { $_ eq ...})
+        $location++;
+    } ## end CHAR: while ( $location < $string_length )
+
+    if ( not defined $end_of_match_earley_set ) {
+        say "No balanced parens";
+        return 0;
+    }
+
+    # We are after the prefix, so now we just continue until exhausted
+    CHAR: for ( $location++; $location < $string_length; $location++ ) {
+        my $value = substr $s, $location, 1;
+        last CHAR
+            if $flm_recce->alternative(
+            ( $value eq '(' ? $s_lparen : $s_rparen ),
+            0, 2 );
+        for ( 0, 1 ) {
+            my $event_count = $flm_recce->earleme_complete();
+            if ($event_count) {
+                my $exhausted = 0;
+                EVENT:
+                for my $event_type ( map { ( $flm_grammar->event($_) )[0] }
+                    0 .. $event_count - 1 )
+                {
+                    if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                        $end_of_match_earley_set = $flm_recce->latest_earley_set();
+                        next EVENT;
+                    }
+                    if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                        $exhausted = 1;
+                        next EVENT;
+                    }
+                    die "Unknown event: $event_type";
+                } ## end for my $event_type ( map { ( $flm_grammar->event($_)...)})
+                last CHAR if $exhausted;
+            } ## end if ($event_count)
+        } ## end for ( 0, 1 )
+    } ## end CHAR: for ( $location++; $location < $string_length; $location...)
+
+    my $start_of_match_earley_set = $end_of_match_earley_set;
+    $flm_recce->progress_report_start($end_of_match_earley_set);
+    ITEM: while (1) {
+        my ( $rule_id, $dot_position, $item_origin ) =
+            $flm_recce->progress_item();
+        last ITEM if not defined $rule_id;
+        next ITEM if $dot_position >= 0;
+        next ITEM if $rule_id != $target_rule;
+        $start_of_match_earley_set = $item_origin if $item_origin < $start_of_match_earley_set;
+    } ## end ITEM: while (1)
+
+  my $start_of_match_earleme = $flm_recce->earleme( $start_of_match_earley_set );
+  my $end_of_match_earleme = $flm_recce->earleme( $end_of_match_earley_set );
+    my $start_of_match = ($start_of_match_earleme-1)/2;
+    my $end_of_match = $end_of_match_earleme/2;
+    my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
+    return 0 if $flm_answer_shown;
+    $flm_answer_shown = $value;
+    say qq{flm: "$value" at $start_of_match-$end_of_match};
+    return 0;
+
+} ## end sub do_flm
+
 my $tests = {
-    thin => sub { do_thin($s) },
-    target => sub { do_target($s) },
+    flm => sub { do_flm($s) },
 };
 
+$tests->{target} = sub { do_target($s) } if $do_target;
 $tests->{regex} = sub { do_regex($s) } if $do_regex;
 $tests->{thin} = sub { do_thin($s) } if $do_thin;
 $tests->{r2} = sub { do_r2($s) } if $do_r2;
@@ -509,7 +654,11 @@ if ( !$do_timing ) {
 Benchmark::cmpthese ( $iteration_count, $tests );
 
 my $answer = '(()())';
-say +($target_answer_shown eq $answer ? 'Target Answer matches' : 'Target ANSWER DOES NOT MATCH!');
+if ($do_target) {
+    say +( $target_answer_shown eq $answer
+        ? 'Target Answer matches'
+        : 'Target ANSWER DOES NOT MATCH!' );
+}
 if ($do_r2) {
   say +($marpa_answer_shown eq $answer ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
 }
