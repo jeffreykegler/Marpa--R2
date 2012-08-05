@@ -11,9 +11,9 @@ my $length;
 my $string;
 my $pp              = 0;
 my $do_regex        = 0;
-my $do_thin         = 0;
-my $do_target         = 1;
-my $do_r2           = 0;
+my $do_thin         = 1;
+my $do_target         = 0;
+my $do_r2           = 1;
 my $do_timing = 1;
 my $random = 0;
 my $iteration_count = -4;
@@ -35,6 +35,13 @@ die "getopt failed" if not defined $getopt_result;
     require Marpa::R2;
     'Marpa::R2'->VERSION(0.020000);
     say "Marpa::R2 ", $Marpa::R2::VERSION;
+}
+
+my $number_of_modes = (defined $string ? 1 : 0) +
+(defined $example ? 1 : 0) +
+($random ? 1 : 0) ;
+if ($number_of_modes > 1) {
+    die qq{"example", "random" and "string" options are mutually exclusive\n};
 }
 
 my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
@@ -292,6 +299,7 @@ sub do_thin {
     my $thin_recce = Marpa::R2::Thin::R->new($thin_grammar);
     $thin_recce->start_input();
     $thin_recce->expected_symbol_event_set( $s_endmark, 1 );
+    $thin_recce->ruby_slippers_set( 1 );
 
     my $location      = 0;
     my $string_length = length $s;
@@ -332,7 +340,7 @@ sub do_thin {
         my $token = $value eq '(' ? $s_ilparen : $s_rparen;
 
         # say "Adding $token at $location";
-        last CHAR if not defined $thin_recce->alternative($token, 0, 1);
+        last CHAR if $thin_recce->alternative($token, 0, 1);
         my $event_count = $thin_recce->earleme_complete();
         if ( $event_count
             and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
