@@ -65,21 +65,30 @@ my $ix_rcb = 2;
 my $ix_tchrist = 3;
 my $ix_marpa_pp = 4;
 
-say  '<table align="center" cellpadding="5" border="1" width="100%">';
+say  '<table align="center" cellpadding="5" border="1">';
+say '<tr><th colspan=7>Executions per second for various methods of finding balanced parentheses<br>',
+'by length of input (a higher number means a faster method)</tr>';
 
+my @counts = qw(10 100 500 1000 2000 3000);
 sub do_old_row {
     my ($desc, $ix) = @_;
     say '<tr><td>', $desc;
-    for my $length (reverse qw(10 100 500 1000 2000 3000)) {
-        say '<td align="center">', $result{$length}[$ix];
+    for my $length (reverse @counts) {
+        say '<td align="right">', sprintf "%.2f", $result{$length}[$ix];
     }
     say '</tr>';
 } ## end sub do_old_row
 
-do_old_row('Marpa::R2<br>Latest Marpa version', 8);
-do_old_row('Marpa::R2::Thin<br>"Thin" interface to Marpa::R2', 7);
-do_old_row('Marpa::XS<br>Older, stable version', 1);
-do_old_row('Perl regex', 3);
-do_old_row('Regexp::Common::Balanced', 2);
+say '<tr><td>';
+for my $count (reverse @counts) {
+    say '<th align="center">', $count;
+}
+say '</tr>';
 
-say  '</table>';
+do_old_row( 'Marpa::R2, "thin" interface', 7 );
+do_old_row( 'Marpa::R2, standard interface', 8 );
+do_old_row( 'Marpa::XS (older, stable Marpa version)', 1 );
+do_old_row( 'Perl regex',                         3 );
+do_old_row( 'Regexp::Common::Balanced',           2 );
+
+say '</table>';
