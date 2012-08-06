@@ -251,8 +251,6 @@ sub do_regex {
 sub do_thin {
     my ($s) = @_;
 
-    my $grammar = Marpa::R2::Grammar->new($grammar_args);
-
     my $thin_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
     my $s_xlparen           = $thin_grammar->symbol_new();
     my $s_ilparen           = $thin_grammar->symbol_new();

@@ -264,8 +264,6 @@ sub do_regex {
 sub do_thin {
     my ($s) = @_;
 
-    my $grammar = Marpa::R2::Grammar->new($grammar_args);
-
     my $thin_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
     my $s_xlparen           = $thin_grammar->symbol_new();
     my $s_ilparen           = $thin_grammar->symbol_new();
@@ -370,8 +368,6 @@ sub do_thin {
 
 sub do_retrace {
     my ($s) = @_;
-
-    my $grammar = Marpa::R2::Grammar->new($grammar_args);
 
     my $retrace_grammar     = Marpa::R2::Thin::G->new( { if => 1 } );
     my $s_start             = $retrace_grammar->symbol_new();
@@ -518,8 +514,6 @@ sub do_retrace {
 
 sub do_flm {
     my ($s) = @_;
-
-    my $grammar = Marpa::R2::Grammar->new($grammar_args);
 
     my $flm_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
     my $s_start = $flm_grammar->symbol_new();
