@@ -1,6 +1,9 @@
+#!perl
+
 use 5.010;
 use strict;
 use warnings;
+use autodie;
 
 use Benchmark qw(timethis);
 use List::Util qw(min);
@@ -13,33 +16,6 @@ my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 my $marpa_answer_shown;
 my $thin_answer_shown;
 my $regex_answer_shown;
-
-my $grammar_args = {
-    start => 'S',
-    rules => [
-        [ S => [qw(prefix first_balanced endmark )], 'main::arg1' ],
-        {   lhs    => 'S',
-            rhs    => [qw(prefix first_balanced )],
-            action => 'main::arg1'
-        },
-        { lhs => 'prefix',      rhs => [qw(prefix_char)], min => 0 },
-        { lhs => 'prefix_char', rhs => [qw(xlparen)] },
-        { lhs => 'prefix_char', rhs => [qw(rparen)] },
-        { lhs => 'lparen',      rhs => [qw(xlparen)] },
-        { lhs => 'lparen',      rhs => [qw(ilparen)] },
-        {   lhs    => 'first_balanced',
-            rhs    => [qw(xlparen balanced_sequence rparen)],
-            action => 'main::arg0'
-        },
-        {   lhs => 'balanced',
-            rhs => [qw(lparen balanced_sequence rparen)],
-        },
-        {   lhs => 'balanced_sequence',
-            rhs => [qw(balanced)],
-            min => 0,
-        },
-    ],
-};
 
 sub do_marpa_r2 {
     my ($s) = @_;
@@ -108,7 +84,7 @@ sub do_marpa_r2 {
     } ## end CHAR: while ( $location < $string_length )
 
     if ( not defined $end_of_match ) {
-        say "No balanced parens";
+        say 'No balanced parens';
         return 0;
     }
 
@@ -116,7 +92,6 @@ sub do_marpa_r2 {
         my $value = substr $s, $location, 1;
         my $token = $value eq '(' ? 'ilparen' : 'rparen';
 
-        # say "Adding $token at $location";
         my $event_count = $recce->read($token);
         last CHAR if not defined $event_count;
         if ( $event_count
@@ -153,8 +128,6 @@ sub do_regex {
 
 sub do_thin {
     my ($s) = @_;
-
-    my $grammar = Marpa::R2::Grammar->new($grammar_args);
 
     my $thin_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
     my $s_xlparen           = $thin_grammar->symbol_new();
@@ -224,7 +197,7 @@ sub do_thin {
     } ## end CHAR: while ( $location < $string_length )
 
     if ( not defined $end_of_match ) {
-        say "No balanced parens";
+        say 'No balanced parens';
         return 0;
     }
 
@@ -269,10 +242,14 @@ for my $length (qw(10 100 500 1000 2000 3000)) {
     my $test_string = ( '(' x ( $length - length $target ) ) . $target;
     timethis( -4, sub { do_thin($test_string); }, "Marpa::R2::Thin $length" );
     timethis( -4, sub { do_marpa_r2($test_string); }, "Marpa::R2 $length" );
-    timethis( -4, sub { do_regex($test_string); }, "regex $length" );
+    timethis( -4, sub { do_regex($test_string); },    "regex $length" );
+    my $answer = '(()())';
+    $marpa_answer_shown eq $answer
+        or say {*STDERR} 'R2 ANSWER DOES NOT MATCH!';
+    $thin_answer_shown eq $answer
+        or say {*STDERR} 'Thin ANSWER DOES NOT MATCH!';
+    $regex_answer_shown eq $answer
+        or say {*STDERR} 'Regex ANSWER DOES NOT MATCH!';
+    $marpa_answer_shown = $thin_answer_shown = $regex_answer_shown = 0;
 } ## end for my $length (qw(10 100 500 1000 2000 3000))
 
-my $answer = '(()())';
-$marpa_answer_shown eq $answer or say STDERR 'R2 ANSWER DOES NOT MATCH!';
-$thin_answer_shown  eq $answer or say STDERR 'Thin ANSWER DOES NOT MATCH!';
-$regex_answer_shown eq $answer or say 'Regex ANSWER DOES NOT MATCH!';
