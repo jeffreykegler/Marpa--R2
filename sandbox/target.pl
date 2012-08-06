@@ -14,6 +14,7 @@ my $do_regex        = 0;
 my $do_thin         = 1;
 my $do_retrace         = 1;
 my $do_r2           = 1;
+my $do_flm           = 1;
 my $do_timing = 1;
 my $random = 0;
 my $iteration_count = -4;
@@ -27,6 +28,7 @@ my $getopt_result   = GetOptions(
     "thin!"     => \$do_thin,
     "retrace!"     => \$do_retrace,
     "r2!"       => \$do_r2,
+    "flm!"       => \$do_flm,
     "time!"       => \$do_timing,
 );
 die "getopt failed" if not defined $getopt_result;
@@ -103,6 +105,7 @@ sub arg1 {
 
 my $marpa_answer_shown;
 my $flm_answer_shown;
+my $r2_answer_shown;
 my $thin_answer_shown;
 my $retrace_answer_shown;
 my $regex_old_answer_shown;
@@ -230,8 +233,8 @@ sub do_r2 {
     my $start_of_match = List::Util::min map { $_->[2] }
         grep { $_->[1] < 0 && $_->[0] == $first_balanced_rule } @{$report};
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
-    return 0 if $marpa_answer_shown;
-    $marpa_answer_shown = $value;
+    return 0 if $r2_answer_shown;
+    $r2_answer_shown = $value;
     say qq{r2: "$value" at $start_of_match-$end_of_match};
     return 0;
 
@@ -644,10 +647,8 @@ sub do_flm {
 
 } ## end sub do_flm
 
-my $tests = {
-    flm => sub { do_flm($s) },
-};
-
+my $tests = {};
+$tests->{flm} = sub { do_flm($s) } if $do_flm;
 $tests->{retrace} = sub { do_retrace($s) } if $do_retrace;
 $tests->{regex} = sub { do_regex($s) } if $do_regex;
 $tests->{thin} = sub { do_thin($s) } if $do_thin;
@@ -670,8 +671,11 @@ if ($do_retrace) {
         ? 'Retrace Answer matches'
         : 'Retrace ANSWER DOES NOT MATCH!' );
 }
+if ($do_flm) {
+  say +($flm_answer_shown eq $answer ? 'FLM Answer matches' : 'FLM ANSWER DOES NOT MATCH!');
+}
 if ($do_r2) {
-  say +($marpa_answer_shown eq $answer ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
+  say +($r2_answer_shown eq $answer ? 'R2 Answer matches' : 'R2 ANSWER DOES NOT MATCH!');
 }
 if ($do_thin) {
   say +($thin_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
