@@ -57,18 +57,18 @@ my $ix_marpa_pp = 4;
 my $ix_marpa_r2_thin = 5;
 my $ix_marpa_r2 = 6;
 
-$result{10}[$ix_marpa_r2] = 306;
-$result{10}[$ix_marpa_r2_thin] = 500;
-$result{100}[$ix_marpa_r2] = 138;
-$result{100}[$ix_marpa_r2_thin] = 326;
-$result{500}[$ix_marpa_r2] = 42.0;
-$result{500}[$ix_marpa_r2_thin] = 131;
-$result{1000}[$ix_marpa_r2] = 22.3;
-$result{1000}[$ix_marpa_r2_thin] = 74.8;
-$result{2000}[$ix_marpa_r2] = 11.7;
-$result{2000}[$ix_marpa_r2_thin] = 40.9;
+$result{10}[$ix_marpa_r2] = 305.61;
+$result{10}[$ix_marpa_r2_thin] = 2665.79;
+$result{100}[$ix_marpa_r2] = 140;
+$result{100}[$ix_marpa_r2_thin] = 803.23;
+$result{500}[$ix_marpa_r2] = 41.03;
+$result{500}[$ix_marpa_r2_thin] = 176.98;
+$result{1000}[$ix_marpa_r2] = 22.47;
+$result{1000}[$ix_marpa_r2_thin] = 89.81;
+$result{2000}[$ix_marpa_r2] = 11.69;
+$result{2000}[$ix_marpa_r2_thin] = 46.14;
 $result{3000}[$ix_marpa_r2] = 7.79;
-$result{3000}[$ix_marpa_r2_thin] = 27.9;
+$result{3000}[$ix_marpa_r2_thin] = 30.88;
 
 say  '<table align="center" cellpadding="5" border="1">';
 say '<tr><th colspan=7>Executions per second for various methods of finding balanced parentheses<br>',
