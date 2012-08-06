@@ -47,23 +47,28 @@ $result{3000} = [qw(
 0.13
 0.74
 )];
-$result{10}[8] = 306;
-$result{10}[7] = 500;
-$result{100}[8] = 138;
-$result{100}[7] = 326;
-$result{500}[8] = 42.0;
-$result{500}[7] = 131;
-$result{1000}[8] = 22.3;
-$result{1000}[7] = 74.8;
-$result{2000}[8] = 11.7;
-$result{2000}[7] = 40.9;
-$result{3000}[8] = 7.79;
-$result{3000}[7] = 27.9;
+
+
 my $ix_pure_c = 0;
 my $ix_marpa_xs = 1;
 my $ix_rcb = 2;
 my $ix_tchrist = 3;
 my $ix_marpa_pp = 4;
+my $ix_marpa_r2_thin = 5;
+my $ix_marpa_r2 = 6;
+
+$result{10}[$ix_marpa_r2] = 306;
+$result{10}[$ix_marpa_r2_thin] = 500;
+$result{100}[$ix_marpa_r2] = 138;
+$result{100}[$ix_marpa_r2_thin] = 326;
+$result{500}[$ix_marpa_r2] = 42.0;
+$result{500}[$ix_marpa_r2_thin] = 131;
+$result{1000}[$ix_marpa_r2] = 22.3;
+$result{1000}[$ix_marpa_r2_thin] = 74.8;
+$result{2000}[$ix_marpa_r2] = 11.7;
+$result{2000}[$ix_marpa_r2_thin] = 40.9;
+$result{3000}[$ix_marpa_r2] = 7.79;
+$result{3000}[$ix_marpa_r2_thin] = 27.9;
 
 say  '<table align="center" cellpadding="5" border="1">';
 say '<tr><th colspan=7>Executions per second for various methods of finding balanced parentheses<br>',
@@ -85,10 +90,10 @@ for my $count (reverse @counts) {
 }
 say '</tr>';
 
-do_old_row( 'Marpa::R2, "thin" interface', 7 );
-do_old_row( 'Marpa::R2, standard interface', 8 );
-do_old_row( 'Marpa::XS (older, stable Marpa version)', 1 );
-do_old_row( 'Perl regex',                         3 );
-do_old_row( 'Regexp::Common::Balanced',           2 );
+do_old_row( 'Marpa::R2, "thin" interface', $ix_marpa_r2_thin );
+do_old_row( 'Marpa::R2, standard interface', $ix_marpa_r2 );
+do_old_row( 'Marpa::XS (older, stable Marpa version)', $ix_marpa_xs );
+do_old_row( 'Perl regex',                         $ix_tchrist );
+do_old_row( 'Regexp::Common::Balanced',           $ix_rcb );
 
 say '</table>';
