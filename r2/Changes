@@ -15,21 +15,15 @@
 
 Revision history for Marpa::R2
 
-2.015_004 Thu Aug  2 16:33:51 PDT 2012
-2.015_003 Mon Jul 30 22:01:45 PDT 2012
-2.015_002
-2.015_001 Tue Jul 24 21:25:43 PDT 2012
-2.015_000 Sat Jul 21 18:38:13 PDT 2012
-
-      * Developer's releases
+2.016000 Sun Aug  5 17:20:13 PDT 2012
 
       * Documentation fixes
 
-      * Added marpa_r_expected_symbol_event_set() to Libmarpa;
+      * Added marpa_r_expected_symbol_event_set() to Libmarpa
 
       * Added Marpa::R2::Recognizer::expected_symbol_event_set(),
 	Marpa::R2::Recognizer::events(), and 'event_if_expected'
-	recognizer named argument.
+	recognizer named argument to Marpa::R2
 
 2.014000 Sat Jul 21 18:18:52 PDT 2012
 
