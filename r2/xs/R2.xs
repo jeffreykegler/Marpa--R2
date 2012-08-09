@@ -666,6 +666,22 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (origin)));
 }
 
+void
+per_codepoint_ops( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+{
+  XPUSHs (sv_2mortal (newRV (r_wrapper->per_codepoint_ops)));
+}
+
+void
+all_codepoint_ops( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+{
+  XPUSHs (sv_2mortal (newRV (r_wrapper->all_codepoint_ops)));
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
 
 void
