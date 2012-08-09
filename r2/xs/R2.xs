@@ -235,8 +235,8 @@ op( op_name )
      char *op_name;
 PPCODE:
 {
-   if (strEQ(op_name, "alternate")) { XSRETURN_IV(op_alternative); }
-   if (strEQ(op_name, "alternate;ignore")) { XSRETURN_IV(op_alternative_ignore); }
+   if (strEQ(op_name, "alternative")) { XSRETURN_IV(op_alternative); }
+   if (strEQ(op_name, "alternative;ignore")) { XSRETURN_IV(op_alternative_ignore); }
    if (strEQ(op_name, "earleme_complete")) { XSRETURN_IV(op_earleme_complete); }
    XSRETURN_UNDEF;
 }
@@ -697,6 +697,22 @@ all_codepoint_ops( r_wrapper )
 PPCODE:
 {
   XPUSHs (sv_2mortal (newRV ((SV*)r_wrapper->all_codepoint_ops)));
+}
+
+void
+read_string( r_wrapper, string )
+     R_Wrapper *r_wrapper;
+     SV *string;
+PPCODE:
+{
+    char * input;
+    STRLEN len;
+    sv_setsv( r_wrapper->input, string );
+    input = SvPV( r_wrapper->input, len );
+    if ( SvUTF8( r_wrapper->input ) ) {
+        croak("Problem in r->read_string(): UTF8 not yet implemented");
+    }
+    XSRETURN_UNDEF;
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
