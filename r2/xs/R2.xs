@@ -42,6 +42,9 @@ typedef struct {
      Marpa_Recce r;
      Marpa_Symbol_ID* terminals_buffer;
      G_Wrapper* base;
+     SV* input;
+     HV* per_codepoint_ops;
+     AV* all_codepoint_ops;
      unsigned int ruby_slippers:1;
 } R_Wrapper;
 
@@ -562,6 +565,9 @@ PPCODE:
   Newx (r_wrapper->terminals_buffer, symbol_count, Marpa_Symbol_ID);
   r_wrapper->ruby_slippers = 0;
   r_wrapper->base = g_wrapper;
+  r_wrapper->input = newSVpvn("", 0);
+  r_wrapper->per_codepoint_ops = newHV();
+  r_wrapper->all_codepoint_ops = newAV();
   sv = sv_newmortal ();
   sv_setref_pv (sv, recce_c_class_name, (void *) r_wrapper);
   XPUSHs (sv);
@@ -574,6 +580,9 @@ PREINIT:
     struct marpa_r *r;
 CODE:
     r = r_wrapper->r;
+    SvREFCNT_dec(r_wrapper->input);
+    SvREFCNT_dec(r_wrapper->per_codepoint_ops);
+    SvREFCNT_dec(r_wrapper->all_codepoint_ops);
     Safefree(r_wrapper->terminals_buffer);
     marpa_r_unref( r );
     Safefree( r_wrapper );
