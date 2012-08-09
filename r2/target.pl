@@ -10,11 +10,13 @@ my $example;
 my $length;
 my $string;
 my $pp              = 0;
-my $do_regex        = 0;
-my $do_thin         = 1;
-my $do_retrace         = 1;
-my $do_r2           = 1;
-my $do_flm           = 1;
+my $do_only = 0;
+my $do_regex;
+my $do_thin;
+my $do_thin3;
+my $do_retrace;
+my $do_r2;
+my $do_flm;
 my $do_timing = 1;
 my $random = 0;
 my $iteration_count = -4;
@@ -26,7 +28,9 @@ my $getopt_result   = GetOptions(
     "random!" => \$random,
     "regex!"    => \$do_regex,
     "thin!"     => \$do_thin,
+    "thin3!"     => \$do_thin3,
     "retrace!"     => \$do_retrace,
+    "only!"     => \$do_only,
     "r2!"       => \$do_r2,
     "flm!"       => \$do_flm,
     "time!"       => \$do_timing,
@@ -38,6 +42,16 @@ die "getopt failed" if not defined $getopt_result;
     'Marpa::R2'->VERSION(0.020000);
     say "Marpa::R2 ", $Marpa::R2::VERSION;
 }
+
+# Apply defaults
+if ( !$do_only ) {
+    $do_regex   //= 0;
+    $do_thin    //= 1;
+    $do_thin3   //= 1;
+    $do_retrace //= 1;
+    $do_r2      //= 1;
+    $do_flm     //= 0;
+} ## end if ( !$do_only )
 
 my $number_of_modes = (defined $string ? 1 : 0) +
 (defined $example ? 1 : 0) +
@@ -107,6 +121,7 @@ my $marpa_answer_shown;
 my $flm_answer_shown;
 my $r2_answer_shown;
 my $thin_answer_shown;
+my $thin3_answer_shown;
 my $retrace_answer_shown;
 my $regex_old_answer_shown;
 my $regex_answer_shown;
@@ -365,6 +380,111 @@ sub do_thin {
     return 0 if $thin_answer_shown;
     $thin_answer_shown = $value;
     say qq{thin: "$value" at $start_of_match-$end_of_match};
+    return 0;
+
+} ## end sub do_thin
+
+sub do_thin3 {
+    my ($s) = @_;
+
+    my $thin3_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
+    my $s_xlparen           = $thin3_grammar->symbol_new();
+    my $s_ilparen           = $thin3_grammar->symbol_new();
+    my $s_rparen            = $thin3_grammar->symbol_new();
+    my $s_lparen            = $thin3_grammar->symbol_new();
+    my $s_endmark           = $thin3_grammar->symbol_new();
+    my $s_start             = $thin3_grammar->symbol_new();
+    my $s_prefix            = $thin3_grammar->symbol_new();
+    my $s_first_balanced    = $thin3_grammar->symbol_new();
+    my $s_prefix_char       = $thin3_grammar->symbol_new();
+    my $s_balanced_sequence = $thin3_grammar->symbol_new();
+    my $s_balanced          = $thin3_grammar->symbol_new();
+    $thin3_grammar->start_symbol_set($s_start);
+    $thin3_grammar->rule_new( $s_start,
+        [ $s_prefix, $s_first_balanced, $s_endmark ] );
+    $thin3_grammar->rule_new( $s_start, [ $s_prefix, $s_first_balanced ] );
+    $thin3_grammar->rule_new( $s_prefix_char, [$s_xlparen] );
+    $thin3_grammar->rule_new( $s_prefix_char, [$s_rparen] );
+    $thin3_grammar->rule_new( $s_lparen,      [$s_xlparen] );
+    $thin3_grammar->rule_new( $s_lparen,      [$s_ilparen] );
+    my $first_balanced_rule =
+        $thin3_grammar->rule_new( $s_first_balanced,
+        [ $s_xlparen, $s_balanced_sequence, $s_rparen ] );
+    $thin3_grammar->rule_new( $s_balanced,
+        [ $s_lparen, $s_balanced_sequence, $s_rparen ] );
+    $thin3_grammar->sequence_new( $s_prefix,            $s_prefix_char, {min => 0} );
+    $thin3_grammar->sequence_new( $s_balanced_sequence, $s_balanced,    {min => 0} );
+
+    $thin3_grammar->precompute();
+
+    my $thin3_recce = Marpa::R2::Thin::R->new($thin3_grammar);
+    $thin3_recce->start_input();
+    $thin3_recce->expected_symbol_event_set( $s_endmark, 1 );
+    $thin3_recce->ruby_slippers_set( 1 );
+
+    my $location      = 0;
+    my $string_length = length $s;
+    my $end_of_match;
+
+    # find the match which ends first -- the one which starts
+    # first must start at or before it does
+    CHAR: while ( $location < $string_length ) {
+        my $value = substr $s, $location, 1;
+        my $event_count;
+        if ( $value eq '(' ) {
+            # say "Adding xlparen at $location";
+	    $thin3_recce->alternative($s_xlparen, 0, 1);
+	    $event_count = $thin3_recce->earleme_complete();
+        }
+        else {
+            # say "Adding rparen at $location";
+	    $thin3_recce->alternative($s_rparen, 0, 1);
+	    $event_count = $thin3_recce->earleme_complete();
+        }
+        if ( $event_count
+            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ;($thin3_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
+        {
+            $end_of_match = $location + 1;
+            last CHAR;
+        } ## end if ( $event_count and grep { $_->[0] eq ...})
+        $location++;
+    } ## end CHAR: while ( $location < $string_length )
+
+    if ( not defined $end_of_match ) {
+        say "No balanced parens";
+        return 0;
+    }
+
+    CHAR: while ( ++$location < $string_length ) {
+        my $value = substr $s, $location, 1;
+        my $token = $value eq '(' ? $s_ilparen : $s_rparen;
+
+        # say "Adding $token at $location";
+        last CHAR if $thin3_recce->alternative($token, 0, 1);
+        my $event_count = $thin3_recce->earleme_complete();
+        if ( $event_count
+            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ;($thin3_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
+        {
+	    $end_of_match = $location + 1;
+	}
+    } ## end CHAR: while ( ++$location < $string_length )
+
+    my $start_of_match = $end_of_match;
+    $thin3_recce->progress_report_start($end_of_match);
+    ITEM: while (1) {
+        my ($rule_id, $dot_position, $item_origin) = $thin3_recce->progress_item();
+        last ITEM if not defined $rule_id;
+	next ITEM if $dot_position >= 0;
+        next ITEM if $rule_id != $first_balanced_rule;
+	$start_of_match = $item_origin if $item_origin < $start_of_match;
+    }
+
+    my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
+    return 0 if $thin3_answer_shown;
+    $thin3_answer_shown = $value;
+    say qq{thin3: "$value" at $start_of_match-$end_of_match};
     return 0;
 
 } ## end sub do_thin
@@ -652,6 +772,7 @@ $tests->{flm} = sub { do_flm($s) } if $do_flm;
 $tests->{retrace} = sub { do_retrace($s) } if $do_retrace;
 $tests->{regex} = sub { do_regex($s) } if $do_regex;
 $tests->{thin} = sub { do_thin($s) } if $do_thin;
+$tests->{thin3} = sub { do_thin3($s) } if $do_thin3;
 $tests->{r2} = sub { do_r2($s) } if $do_r2;
 
 if ( !$do_timing ) {
@@ -679,6 +800,9 @@ if ($do_r2) {
 }
 if ($do_thin) {
   say +($thin_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
+}
+if ($do_thin3) {
+  say +($thin3_answer_shown eq $answer ? 'Thin3 Answer matches' : 'Thin3 ANSWER DOES NOT MATCH!');
 }
 if ($do_regex) {
   say +($regex_answer_shown eq $answer ? 'Regex Answer matches' : 'Regex ANSWER DOES NOT MATCH!');
