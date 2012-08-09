@@ -199,6 +199,12 @@ static int marpa_r2_warn(const char* format, ...)
    return 1;
 }
 
+enum marpa_recce_op {
+   op_alternative,
+   op_alternative_ignore,
+   op_earleme_complete,
+};
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
@@ -222,6 +228,17 @@ PPCODE:
       const char *error_name = marpa_error_description[error_code].name;
       XPUSHs (sv_2mortal (newSVpv (error_name, 0)));
     }
+}
+
+void
+op( op_name )
+     char *op_name;
+PPCODE:
+{
+   if (strEQ(op_name, "alternate")) { XSRETURN_IV(op_alternative); }
+   if (strEQ(op_name, "alternate;ignore")) { XSRETURN_IV(op_alternative_ignore); }
+   if (strEQ(op_name, "earleme_complete")) { XSRETURN_IV(op_earleme_complete); }
+   XSRETURN_UNDEF;
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
@@ -671,7 +688,7 @@ per_codepoint_ops( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
 {
-  XPUSHs (sv_2mortal (newRV (r_wrapper->per_codepoint_ops)));
+  XPUSHs (sv_2mortal (newRV ((SV*)r_wrapper->per_codepoint_ops)));
 }
 
 void
@@ -679,7 +696,7 @@ all_codepoint_ops( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
 {
-  XPUSHs (sv_2mortal (newRV (r_wrapper->all_codepoint_ops)));
+  XPUSHs (sv_2mortal (newRV ((SV*)r_wrapper->all_codepoint_ops)));
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
