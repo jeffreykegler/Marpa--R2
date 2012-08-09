@@ -418,6 +418,18 @@ sub do_thin3 {
     $thin3_grammar->precompute();
 
     my $thin3_recce = Marpa::R2::Thin::R->new($thin3_grammar);
+
+{ require Devel::Peek; 
+say STDERR "DEBUGGING!!!";
+Devel::Peek::Dump($thin3_recce->per_codepoint_ops());
+Devel::Peek::Dump($thin3_recce->all_codepoint_ops());
+say Marpa::R2::Thin::op('alternative');
+say Marpa::R2::Thin::op('alternative;ignore');
+say Marpa::R2::Thin::op('earleme_complete');
+$thin3_recce->read_string("(()())");
+say STDERR "DEBUGGING!!!";
+}
+
     $thin3_recce->start_input();
     $thin3_recce->expected_symbol_event_set( $s_endmark, 1 );
     $thin3_recce->ruby_slippers_set( 1 );
