@@ -584,7 +584,16 @@ PPCODE:
   r_wrapper->base = g_wrapper;
   r_wrapper->input = newSVpvn("", 0);
   r_wrapper->per_codepoint_ops = newHV();
-  r_wrapper->per_7bit_ops = newAV();
+  {
+    const int av_size = 0x7F;
+    int av_ix;
+    AV *av_7bit = r_wrapper->per_7bit_ops = newAV ();
+    av_extend (av_7bit, av_size);
+    for (av_ix = 0; av_ix < av_size; av_ix++)
+      {
+	av_store (av_7bit, av_ix, newSVpvn ("", 0));
+      }
+  }
   sv = sv_newmortal ();
   sv_setref_pv (sv, recce_c_class_name, (void *) r_wrapper);
   XPUSHs (sv);
@@ -706,8 +715,9 @@ char_register( r_wrapper, codepoint, ... )
 PPCODE:
 {
   int i;
-  char *ops;
+  UV *ops;
   SV *ops_sv;
+  const STRLEN ops_length_in_bytes = (items-2)*sizeof(UV);
   if (codepoint > 0x7F)
     {
       croak
@@ -715,8 +725,8 @@ PPCODE:
 	 codepoint);
     }
   ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 1));
-  ops = SvPVX (ops_sv);
-  SvCUR_set(ops_sv, (items-2) * sizeof(UV));
+  ops = (UV*)SvGROW(ops_sv, ops_length_in_bytes);
+  SvCUR_set(ops_sv, ops_length_in_bytes);
   for (i = 2; i < items; i++)
     {
       ops[i - 2] = SvUV (ST (i));

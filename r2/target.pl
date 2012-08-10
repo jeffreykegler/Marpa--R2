@@ -13,7 +13,7 @@ my $pp              = 0;
 my $do_only = 0;
 my $do_regex;
 my $do_thin;
-my $do_thin3;
+my $do_thinsl;
 my $do_retrace;
 my $do_r2;
 my $do_flm;
@@ -28,7 +28,7 @@ my $getopt_result   = GetOptions(
     "random!" => \$random,
     "regex!"    => \$do_regex,
     "thin!"     => \$do_thin,
-    "thin3!"     => \$do_thin3,
+    "thinsl!"     => \$do_thinsl,
     "retrace!"     => \$do_retrace,
     "only!"     => \$do_only,
     "r2!"       => \$do_r2,
@@ -47,7 +47,7 @@ die "getopt failed" if not defined $getopt_result;
 if ( !$do_only ) {
     $do_regex   //= 0;
     $do_thin    //= 1;
-    $do_thin3   //= 1;
+    $do_thinsl   //= 1;
     $do_retrace //= 1;
     $do_r2      //= 1;
     $do_flm     //= 0;
@@ -121,7 +121,7 @@ my $marpa_answer_shown;
 my $flm_answer_shown;
 my $r2_answer_shown;
 my $thin_answer_shown;
-my $thin3_answer_shown;
+my $thinsl_answer_shown;
 my $retrace_answer_shown;
 my $regex_old_answer_shown;
 my $regex_answer_shown;
@@ -384,55 +384,57 @@ sub do_thin {
 
 } ## end sub do_thin
 
-sub do_thin3 {
+sub do_thinsl {
     my ($s) = @_;
 
-    my $thin3_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
-    my $s_xlparen           = $thin3_grammar->symbol_new();
-    my $s_ilparen           = $thin3_grammar->symbol_new();
-    my $s_rparen            = $thin3_grammar->symbol_new();
-    my $s_lparen            = $thin3_grammar->symbol_new();
-    my $s_endmark           = $thin3_grammar->symbol_new();
-    my $s_start             = $thin3_grammar->symbol_new();
-    my $s_prefix            = $thin3_grammar->symbol_new();
-    my $s_first_balanced    = $thin3_grammar->symbol_new();
-    my $s_prefix_char       = $thin3_grammar->symbol_new();
-    my $s_balanced_sequence = $thin3_grammar->symbol_new();
-    my $s_balanced          = $thin3_grammar->symbol_new();
-    $thin3_grammar->start_symbol_set($s_start);
-    $thin3_grammar->rule_new( $s_start,
+    my $thinsl_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
+    my $s_xlparen           = $thinsl_grammar->symbol_new();
+    my $s_ilparen           = $thinsl_grammar->symbol_new();
+    my $s_rparen            = $thinsl_grammar->symbol_new();
+    my $s_lparen            = $thinsl_grammar->symbol_new();
+    my $s_endmark           = $thinsl_grammar->symbol_new();
+    my $s_start             = $thinsl_grammar->symbol_new();
+    my $s_prefix            = $thinsl_grammar->symbol_new();
+    my $s_first_balanced    = $thinsl_grammar->symbol_new();
+    my $s_prefix_char       = $thinsl_grammar->symbol_new();
+    my $s_balanced_sequence = $thinsl_grammar->symbol_new();
+    my $s_balanced          = $thinsl_grammar->symbol_new();
+    $thinsl_grammar->start_symbol_set($s_start);
+    $thinsl_grammar->rule_new( $s_start,
         [ $s_prefix, $s_first_balanced, $s_endmark ] );
-    $thin3_grammar->rule_new( $s_start, [ $s_prefix, $s_first_balanced ] );
-    $thin3_grammar->rule_new( $s_prefix_char, [$s_xlparen] );
-    $thin3_grammar->rule_new( $s_prefix_char, [$s_rparen] );
-    $thin3_grammar->rule_new( $s_lparen,      [$s_xlparen] );
-    $thin3_grammar->rule_new( $s_lparen,      [$s_ilparen] );
+    $thinsl_grammar->rule_new( $s_start, [ $s_prefix, $s_first_balanced ] );
+    $thinsl_grammar->rule_new( $s_prefix_char, [$s_xlparen] );
+    $thinsl_grammar->rule_new( $s_prefix_char, [$s_rparen] );
+    $thinsl_grammar->rule_new( $s_lparen,      [$s_xlparen] );
+    $thinsl_grammar->rule_new( $s_lparen,      [$s_ilparen] );
     my $first_balanced_rule =
-        $thin3_grammar->rule_new( $s_first_balanced,
+        $thinsl_grammar->rule_new( $s_first_balanced,
         [ $s_xlparen, $s_balanced_sequence, $s_rparen ] );
-    $thin3_grammar->rule_new( $s_balanced,
+    $thinsl_grammar->rule_new( $s_balanced,
         [ $s_lparen, $s_balanced_sequence, $s_rparen ] );
-    $thin3_grammar->sequence_new( $s_prefix,            $s_prefix_char, {min => 0} );
-    $thin3_grammar->sequence_new( $s_balanced_sequence, $s_balanced,    {min => 0} );
+    $thinsl_grammar->sequence_new( $s_prefix,            $s_prefix_char, {min => 0} );
+    $thinsl_grammar->sequence_new( $s_balanced_sequence, $s_balanced,    {min => 0} );
 
-    $thin3_grammar->precompute();
+    $thinsl_grammar->precompute();
 
-    my $thin3_recce = Marpa::R2::Thin::R->new($thin3_grammar);
+    my $thinsl_recce = Marpa::R2::Thin::R->new($thinsl_grammar);
 
 { require Devel::Peek; 
 say STDERR "DEBUGGING!!!";
-Devel::Peek::Dump($thin3_recce->_per_codepoint_ops());
-Devel::Peek::Dump($thin3_recce->_per_7bit_ops());
-say Marpa::R2::Thin::op('alternative');
-say Marpa::R2::Thin::op('alternative;ignore');
-say Marpa::R2::Thin::op('earleme_complete');
-$thin3_recce->string_read("(()())");
+Devel::Peek::Dump($thinsl_recce->_per_codepoint_ops());
+Devel::Peek::Dump($thinsl_recce->_per_7bit_ops());
+my $op_alternative = Marpa::R2::Thin::op('alternative');
+my $op_alternative_ignore =  Marpa::R2::Thin::op('alternative;ignore');
+my $op_earleme_complete = Marpa::R2::Thin::op('earleme_complete');
+$thinsl_recce->char_register(ord('('), $op_alternative, $s_xlparen, $op_earleme_complete);
+$thinsl_recce->char_register(ord(')'), $op_alternative, $s_rparen, $op_earleme_complete);
+$thinsl_recce->string_read("(()())");
 say STDERR "DEBUGGING!!!";
 }
 
-    $thin3_recce->start_input();
-    $thin3_recce->expected_symbol_event_set( $s_endmark, 1 );
-    $thin3_recce->ruby_slippers_set( 1 );
+    $thinsl_recce->start_input();
+    $thinsl_recce->expected_symbol_event_set( $s_endmark, 1 );
+    $thinsl_recce->ruby_slippers_set( 1 );
 
     my $location      = 0;
     my $string_length = length $s;
@@ -445,17 +447,17 @@ say STDERR "DEBUGGING!!!";
         my $event_count;
         if ( $value eq '(' ) {
             # say "Adding xlparen at $location";
-	    $thin3_recce->alternative($s_xlparen, 0, 1);
-	    $event_count = $thin3_recce->earleme_complete();
+	    $thinsl_recce->alternative($s_xlparen, 0, 1);
+	    $event_count = $thinsl_recce->earleme_complete();
         }
         else {
             # say "Adding rparen at $location";
-	    $thin3_recce->alternative($s_rparen, 0, 1);
-	    $event_count = $thin3_recce->earleme_complete();
+	    $thinsl_recce->alternative($s_rparen, 0, 1);
+	    $event_count = $thinsl_recce->earleme_complete();
         }
         if ( $event_count
             and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
-            map { ;($thin3_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
+            map { ;($thinsl_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
         {
             $end_of_match = $location + 1;
             last CHAR;
@@ -473,20 +475,20 @@ say STDERR "DEBUGGING!!!";
         my $token = $value eq '(' ? $s_ilparen : $s_rparen;
 
         # say "Adding $token at $location";
-        last CHAR if $thin3_recce->alternative($token, 0, 1);
-        my $event_count = $thin3_recce->earleme_complete();
+        last CHAR if $thinsl_recce->alternative($token, 0, 1);
+        my $event_count = $thinsl_recce->earleme_complete();
         if ( $event_count
             and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
-            map { ;($thin3_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
+            map { ;($thinsl_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
         {
 	    $end_of_match = $location + 1;
 	}
     } ## end CHAR: while ( ++$location < $string_length )
 
     my $start_of_match = $end_of_match;
-    $thin3_recce->progress_report_start($end_of_match);
+    $thinsl_recce->progress_report_start($end_of_match);
     ITEM: while (1) {
-        my ($rule_id, $dot_position, $item_origin) = $thin3_recce->progress_item();
+        my ($rule_id, $dot_position, $item_origin) = $thinsl_recce->progress_item();
         last ITEM if not defined $rule_id;
 	next ITEM if $dot_position >= 0;
         next ITEM if $rule_id != $first_balanced_rule;
@@ -494,9 +496,9 @@ say STDERR "DEBUGGING!!!";
     }
 
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
-    return 0 if $thin3_answer_shown;
-    $thin3_answer_shown = $value;
-    say qq{thin3: "$value" at $start_of_match-$end_of_match};
+    return 0 if $thinsl_answer_shown;
+    $thinsl_answer_shown = $value;
+    say qq{thinsl: "$value" at $start_of_match-$end_of_match};
     return 0;
 
 } ## end sub do_thin
@@ -784,7 +786,7 @@ $tests->{flm} = sub { do_flm($s) } if $do_flm;
 $tests->{retrace} = sub { do_retrace($s) } if $do_retrace;
 $tests->{regex} = sub { do_regex($s) } if $do_regex;
 $tests->{thin} = sub { do_thin($s) } if $do_thin;
-$tests->{thin3} = sub { do_thin3($s) } if $do_thin3;
+$tests->{thinsl} = sub { do_thinsl($s) } if $do_thinsl;
 $tests->{r2} = sub { do_r2($s) } if $do_r2;
 
 if ( !$do_timing ) {
@@ -813,8 +815,8 @@ if ($do_r2) {
 if ($do_thin) {
   say +($thin_answer_shown eq $answer ? 'Thin Answer matches' : 'Thin ANSWER DOES NOT MATCH!');
 }
-if ($do_thin3) {
-  say +($thin3_answer_shown eq $answer ? 'Thin3 Answer matches' : 'Thin3 ANSWER DOES NOT MATCH!');
+if ($do_thinsl) {
+  say +($thinsl_answer_shown eq $answer ? 'ThinSL Answer matches' : 'ThinSL ANSWER DOES NOT MATCH!');
 }
 if ($do_regex) {
   say +($regex_answer_shown eq $answer ? 'Regex Answer matches' : 'Regex ANSWER DOES NOT MATCH!');
