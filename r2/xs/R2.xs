@@ -719,19 +719,23 @@ PPCODE:
     }
   {
     AV *const av_7bit = r_wrapper->per_7bit_ops;
-    SV *const ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 0));
-    /* The pointer comparison is *NOT* valid C90, but seems to be the way
-     * testing for an uninitialized value is done.  It and tests like it
-     * are relied on throughout the Perl source code.
-     */
-    if (ops_sv == &PL_sv_undef)
+    SV *ops_sv;
+    SV **p_ops_sv = av_fetch (r_wrapper->per_7bit_ops, codepoint, 0);
+    UV *ops;
+    if (!p_ops_sv)
       {
-	av_store (av_7bit, codepoint, newSVpvn ("", 0));
+	p_ops_sv = av_store (av_7bit, codepoint, newSV (ops_length_in_bytes));
+	ops_sv = *p_ops_sv;
+	(void) SvPOK_only (ops_sv);
+	ops = (UV *) SvPVX (ops_sv);
       }
-    SvGROW (ops_sv, ops_length_in_bytes);
+    else
+      {
+	ops_sv = *p_ops_sv;
+	ops = (UV *) SvGROW (ops_sv, ops_length_in_bytes);
+      }
     SvCUR_set (ops_sv, ops_length_in_bytes);
     {
-      UV *const ops = (UV *) AvARRAY (av_7bit);
       int i;
       for (i = 2; i < items; i++)
 	{
