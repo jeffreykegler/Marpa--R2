@@ -43,8 +43,8 @@ typedef struct {
      Marpa_Symbol_ID* terminals_buffer;
      G_Wrapper* base;
      SV* input;
+     AV* per_7bit_ops;
      HV* per_codepoint_ops;
-     AV* all_codepoint_ops;
      unsigned int ruby_slippers:1;
 } R_Wrapper;
 
@@ -584,7 +584,7 @@ PPCODE:
   r_wrapper->base = g_wrapper;
   r_wrapper->input = newSVpvn("", 0);
   r_wrapper->per_codepoint_ops = newHV();
-  r_wrapper->all_codepoint_ops = newAV();
+  r_wrapper->per_7bit_ops = newAV();
   sv = sv_newmortal ();
   sv_setref_pv (sv, recce_c_class_name, (void *) r_wrapper);
   XPUSHs (sv);
@@ -599,7 +599,7 @@ CODE:
     r = r_wrapper->r;
     SvREFCNT_dec(r_wrapper->input);
     SvREFCNT_dec(r_wrapper->per_codepoint_ops);
-    SvREFCNT_dec(r_wrapper->all_codepoint_ops);
+    SvREFCNT_dec(r_wrapper->per_7bit_ops);
     Safefree(r_wrapper->terminals_buffer);
     marpa_r_unref( r );
     Safefree( r_wrapper );
@@ -684,7 +684,7 @@ PPCODE:
 }
 
 void
-per_codepoint_ops( r_wrapper )
+_per_codepoint_ops( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
 {
@@ -692,15 +692,39 @@ PPCODE:
 }
 
 void
-all_codepoint_ops( r_wrapper )
+_per_7bit_ops( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
 {
-  XPUSHs (sv_2mortal (newRV ((SV*)r_wrapper->all_codepoint_ops)));
+  XPUSHs (sv_2mortal (newRV ((SV*)r_wrapper->per_7bit_ops)));
 }
 
 void
-read_string( r_wrapper, string )
+char_register( r_wrapper, codepoint, ... )
+     R_Wrapper *r_wrapper;
+     unsigned long codepoint;
+PPCODE:
+{
+  int i;
+  char *ops;
+  SV *ops_sv;
+  if (codepoint > 0x7F)
+    {
+      croak
+	("Problem in r->char_register(%ld): More than 7bit not yet implemented",
+	 codepoint);
+    }
+  ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 1));
+  ops = SvPVX (ops_sv);
+  SvCUR_set(ops_sv, (items-2) * sizeof(UV));
+  for (i = 2; i < items; i++)
+    {
+      ops[i - 2] = SvUV (ST (i));
+    }
+}
+
+void
+string_read( r_wrapper, string )
      R_Wrapper *r_wrapper;
      SV *string;
 PPCODE:

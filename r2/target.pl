@@ -421,12 +421,12 @@ sub do_thin3 {
 
 { require Devel::Peek; 
 say STDERR "DEBUGGING!!!";
-Devel::Peek::Dump($thin3_recce->per_codepoint_ops());
-Devel::Peek::Dump($thin3_recce->all_codepoint_ops());
+Devel::Peek::Dump($thin3_recce->_per_codepoint_ops());
+Devel::Peek::Dump($thin3_recce->_per_7bit_ops());
 say Marpa::R2::Thin::op('alternative');
 say Marpa::R2::Thin::op('alternative;ignore');
 say Marpa::R2::Thin::op('earleme_complete');
-$thin3_recce->read_string("(()())");
+$thin3_recce->string_read("(()())");
 say STDERR "DEBUGGING!!!";
 }
 
