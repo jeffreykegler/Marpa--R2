@@ -771,9 +771,13 @@ PPCODE:
 		 codepoint);
 	    }
 	}
-      ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 1));
+      ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 0));
       ops = (UV *) SvPV (ops_sv, ops_byte_len);
       op_count = ops_byte_len / sizeof (UV);
+      if (op_count <= 0)
+	{
+	  croak ("Unregistered codepoint (%lu)", (unsigned long) codepoint);
+	}
       for (op_ix = 0; op_ix < op_count; op_ix++)
       {
 	UV op_code = ops[op_ix];
