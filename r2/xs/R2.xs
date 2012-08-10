@@ -711,7 +711,7 @@ PPCODE:
   if (codepoint > 0x7F)
     {
       croak
-	("Problem in r->char_register(%ld): More than 7bit not yet implemented",
+	("Problem in r->char_register(%lu): More than 7bit not yet implemented",
 	 codepoint);
     }
   ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 1));
@@ -729,14 +729,78 @@ string_read( r_wrapper, string )
      SV *string;
 PPCODE:
 {
-    char * input;
-    STRLEN len;
-    sv_setsv( r_wrapper->input, string );
-    input = SvPV( r_wrapper->input, len );
-    if ( SvUTF8( r_wrapper->input ) ) {
-        croak("Problem in r->read_string(): UTF8 not yet implemented");
+  char *input;
+  STRLEN char_ix, byte_ix;
+  int input_is_utf8;
+  STRLEN len;
+  sv_setsv (r_wrapper->input, string);
+  input = SvPV (r_wrapper->input, len);
+  input_is_utf8 = SvUTF8 (r_wrapper->input);
+  byte_ix = char_ix = 0;
+  for (;;)
+    {
+      UV codepoint;
+      STRLEN op_count;
+      STRLEN op_ix;
+      UV *ops;
+      SV *ops_sv;
+      STRLEN ops_byte_len;
+      if (byte_ix >= len)
+	break;
+      if (input_is_utf8)
+	{
+	  croak ("Problem in r->read_string(): UTF8 not yet implemented");
+	}
+      else
+	{
+	  codepoint = (UV) input[byte_ix];
+	  if (codepoint > 0x7F)
+	    {
+	      croak
+		("Problem in r->string_read(%lu): More than 7bit not yet implemented",
+		 codepoint);
+	    }
+	}
+      ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 1));
+      ops = (UV *) SvPV (ops_sv, ops_byte_len);
+      op_count = ops_byte_len / sizeof (UV);
+      for (op_ix = 0; op_ix < op_count; op_ix++)
+      {
+	UV op_code = ops[op_ix];
+	switch (op_code)
+	  {
+	  default:
+	    croak ("Unknown op code (%lu); codepoint=%lu, op_ix=%lu",
+		   (unsigned long) op_code, (unsigned long) codepoint,
+		   (unsigned long) op_ix);
+	  case op_alternative_ignore:
+	  case op_alternative:
+	    op_ix++;
+	    if (op_ix >= op_count)
+	      {
+		croak ("Missing operand for op code (%lu); codepoint=%lu, op_ix=%lu",
+		       (unsigned long) op_code, (unsigned long) codepoint,
+		       (unsigned long) op_ix);
+	      }
+	    {
+	      int symbol_id = (int) ops[op_ix];
+	    }
+	    break;
+	  case op_earleme_complete:
+	    break;
+	  }
+      }
+      if (input_is_utf8)
+	{
+	  croak ("Problem in r->read_string(): UTF8 not yet implemented");
+	}
+      else
+	{
+	  byte_ix++;
+	}
+      char_ix++;
     }
-    XSRETURN_UNDEF;
+  XSRETURN_UNDEF;
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
