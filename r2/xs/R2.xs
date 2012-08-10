@@ -589,10 +589,6 @@ PPCODE:
     int av_ix;
     AV *av_7bit = r_wrapper->per_7bit_ops = newAV ();
     av_extend (av_7bit, av_size);
-    for (av_ix = 0; av_ix < av_size; av_ix++)
-      {
-	av_store (av_7bit, av_ix, newSVpvn ("", 0));
-      }
   }
   sv = sv_newmortal ();
   sv_setref_pv (sv, recce_c_class_name, (void *) r_wrapper);
@@ -714,23 +710,35 @@ char_register( r_wrapper, codepoint, ... )
      unsigned long codepoint;
 PPCODE:
 {
-  int i;
-  UV *ops;
-  SV *ops_sv;
-  const STRLEN ops_length_in_bytes = (items-2)*sizeof(UV);
+  const STRLEN ops_length_in_bytes = (items - 2) * sizeof (UV);
   if (codepoint > 0x7F)
     {
       croak
 	("Problem in r->char_register(%lu): More than 7bit not yet implemented",
 	 codepoint);
     }
-  ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 1));
-  ops = (UV*)SvGROW(ops_sv, ops_length_in_bytes);
-  SvCUR_set(ops_sv, ops_length_in_bytes);
-  for (i = 2; i < items; i++)
+  {
+    AV *const av_7bit = r_wrapper->per_7bit_ops;
+    SV *const ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 0));
+    /* The pointer comparison is *NOT* valid C90, but seems to be the way
+     * testing for an uninitialized value is done.  It and tests like it
+     * are relied on throughout the Perl source code.
+     */
+    if (ops_sv == &PL_sv_undef)
+      {
+	av_store (av_7bit, codepoint, newSVpvn ("", 0));
+      }
+    SvGROW (ops_sv, ops_length_in_bytes);
+    SvCUR_set (ops_sv, ops_length_in_bytes);
     {
-      ops[i - 2] = SvUV (ST (i));
+      UV *const ops = (UV *) AvARRAY (av_7bit);
+      int i;
+      for (i = 2; i < items; i++)
+	{
+	  ops[i - 2] = SvUV (ST (i));
+	}
     }
+  }
 }
 
 void
