@@ -204,6 +204,7 @@ static int marpa_r2_warn(const char* format, ...)
 enum marpa_recce_op {
    op_alternative,
    op_alternative_ignore,
+   op_alternative_long,
    op_earleme_complete,
    op_unregistered,
 };
@@ -240,6 +241,7 @@ PPCODE:
 {
    if (strEQ(op_name, "alternative")) { XSRETURN_IV(op_alternative); }
    if (strEQ(op_name, "alternative;ignore")) { XSRETURN_IV(op_alternative_ignore); }
+   if (strEQ(op_name, "alternative;long")) { XSRETURN_IV(op_alternative_long); }
    if (strEQ(op_name, "earleme_complete")) { XSRETURN_IV(op_earleme_complete); }
    XSRETURN_UNDEF;
 }
@@ -855,20 +857,36 @@ PPCODE:
 	  UV op_code = ops[op_ix];
 	  switch (op_code)
 	    {
-	    case op_alternative_ignore:
-	      ignore_is_on = 1;
 	    case op_alternative:
-	      op_ix++;
-	      if (op_ix >= op_count)
-		{
-		  croak
-		    ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
-		     (unsigned long) op_code, (unsigned long) codepoint,
-		     (unsigned long) op_ix);
-		}
+	    case op_alternative_long:
+	    case op_alternative_ignore:
 	      {
-		const int symbol_id = (int) ops[op_ix];
-		const int result = marpa_r_alternative (r, symbol_id, 0, 1);
+		int result;
+		int symbol_id;
+		const int ignore_is_on = op_code == op_alternative_ignore;
+		int length = 1;;
+
+		op_ix++;
+		if (op_ix >= op_count)
+		  {
+		    croak
+		      ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
+		       (unsigned long) op_code, (unsigned long) codepoint,
+		       (unsigned long) op_ix);
+		  }
+		symbol_id = (int) ops[op_ix];
+		if (op_code == op_alternative_long)
+		  {
+		    op_ix++;
+		    length = (int) ops[op_ix];
+		    {
+		      croak
+			("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
+			 (unsigned long) op_code, (unsigned long) codepoint,
+			 (unsigned long) op_ix);
+		    }
+		  }
+		result = marpa_r_alternative (r, symbol_id, 0, 1);
 		switch (result)
 		  {
 		  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
