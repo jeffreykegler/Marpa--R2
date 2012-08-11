@@ -544,15 +544,15 @@ sub do_resl {
     $resl_recce->start_input();
     $resl_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
 
-    $resl_recce->char_register( ord('('),
-	$op_alternative_ignore, $s_lparen,
-	$op_alternative_ignore, $s_prefix_char,
-        $op_earleme_complete );
-    $resl_recce->char_register( ord(')'), $op_alternative, $s_rparen,
-	$op_alternative_ignore, $s_prefix_char,
-        $op_earleme_complete );
+    $resl_recce->char_register(
+        ord('('),               $op_alternative_ignore, $s_lparen,
+        $op_alternative_ignore, $s_prefix_char,         $op_earleme_complete
+    );
+    $resl_recce->char_register(
+        ord(')'),               $op_alternative_ignore, $s_rparen,
+        $op_alternative_ignore, $s_prefix_char,         $op_earleme_complete
+    );
 
-    my $location      = 0;
     my $string_length = length $s;
     my $end_of_match_earleme;
 
@@ -599,21 +599,23 @@ sub do_resl {
     # Start the recognizer over again
     $resl_recce = Marpa::R2::Thin::R->new($resl_grammar);
     $resl_recce->start_input();
-    $resl_recce->ruby_slippers_set(1);
 
-    # Redo the prefix -- we know this must succeed, so no checking
-    $location = 0;
-    CHAR: while ( $location < $start_of_match_earleme ) {
-        my $value = substr $s, $location, 1;
-        $resl_recce->alternative( $s_prefix_char, 0, 1 );
-        $value eq '(' and $resl_recce->alternative( $s_lparen, 0, 1 );
-        $value eq ')' and $resl_recce->alternative( $s_rparen, 0, 1 );
-        $resl_recce->earleme_complete();
-        $location++;
-    } ## end CHAR: while ( $location < $start_of_match_earleme )
+    $resl_recce->char_register(
+        ord('('),               $op_alternative_ignore, $s_lparen,
+        $op_alternative_ignore, $s_prefix_char,         $op_earleme_complete
+    );
+    $resl_recce->char_register(
+        ord(')'),               $op_alternative_ignore, $s_rparen,
+        $op_alternative_ignore, $s_prefix_char,         $op_earleme_complete
+    );
+
+    $resl_recce->input_string_set(substr $s, 0, $start_of_match_earleme);
+    $resl_recce->input_string_read();
 
     $resl_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
+    $resl_recce->ruby_slippers_set(1);
 
+    my $location = $start_of_match_earleme;
     # We are after the prefix, so now we just continue until exhausted
     CHAR: while ( $location < $string_length ) {
         my $value = substr $s, $location, 1;
