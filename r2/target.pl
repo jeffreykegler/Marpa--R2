@@ -575,6 +575,7 @@ sub do_resl {
         $end_of_match_earleme = $resl_recce->input_string_pos();
     } ## end if ( grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' } map...)
 
+    # For arbitrary targets,
     # Add a check that we don't already expect the end_marker
     # at location 0? This will detect zero-length targets?
 
@@ -610,7 +611,7 @@ sub do_resl {
     );
 
     $resl_recce->input_string_set(substr $s, 0, $start_of_match_earleme);
-    $resl_recce->input_string_read();
+    die if defined $resl_recce->input_string_read();
 
     $resl_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
     $resl_recce->ruby_slippers_set(1);
