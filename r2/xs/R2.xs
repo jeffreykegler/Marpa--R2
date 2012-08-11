@@ -43,7 +43,7 @@ typedef struct {
      Marpa_Symbol_ID* terminals_buffer;
      G_Wrapper* base;
      SV* input;
-     AV* per_7bit_ops;
+     UV** oplists_by_byte;
      HV* per_codepoint_ops;
      unsigned int ruby_slippers:1;
 } R_Wrapper;
@@ -203,6 +203,7 @@ enum marpa_recce_op {
    op_alternative,
    op_alternative_ignore,
    op_earleme_complete,
+   op_unregistered,
 };
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
@@ -585,10 +586,14 @@ PPCODE:
   r_wrapper->input = newSVpvn("", 0);
   r_wrapper->per_codepoint_ops = newHV();
   {
-    const int av_size = 0x7F;
-    int av_ix;
-    AV *av_7bit = r_wrapper->per_7bit_ops = newAV ();
-    av_extend (av_7bit, av_size);
+    const int number_of_bytes = 0x100;
+    int codepoint;
+    UV **oplists;
+    Newx(oplists, number_of_bytes, UV*);
+    r_wrapper->oplists_by_byte = oplists;
+    for (codepoint = 0; codepoint < number_of_bytes; codepoint++) {
+        oplists[codepoint] = (UV*)NULL;
+    }
   }
   sv = sv_newmortal ();
   sv_setref_pv (sv, recce_c_class_name, (void *) r_wrapper);
@@ -604,7 +609,7 @@ CODE:
     r = r_wrapper->r;
     SvREFCNT_dec(r_wrapper->input);
     SvREFCNT_dec(r_wrapper->per_codepoint_ops);
-    SvREFCNT_dec(r_wrapper->per_7bit_ops);
+    Safefree(r_wrapper->oplists_by_byte);
     Safefree(r_wrapper->terminals_buffer);
     marpa_r_unref( r );
     Safefree( r_wrapper );
@@ -697,51 +702,34 @@ PPCODE:
 }
 
 void
-_per_7bit_ops( r_wrapper )
-     R_Wrapper *r_wrapper;
-PPCODE:
-{
-  XPUSHs (sv_2mortal (newRV ((SV*)r_wrapper->per_7bit_ops)));
-}
-
-void
 char_register( r_wrapper, codepoint, ... )
      R_Wrapper *r_wrapper;
      unsigned long codepoint;
 PPCODE:
 {
-  const STRLEN ops_length_in_bytes = (items - 2) * sizeof (UV);
-  if (codepoint > 0x7F)
+  /* OP Count is args less two, then plus two for codepoint and length fields */
+  const STRLEN op_count = items;
+  if (codepoint > 0xFF)
     {
       croak
-	("Problem in r->char_register(%lu): More than 7bit not yet implemented",
+	("Problem in r->char_register(0x%lx): More than 8bit codepoint not yet implemented",
 	 codepoint);
     }
   {
-    AV *const av_7bit = r_wrapper->per_7bit_ops;
-    SV *ops_sv;
-    SV **p_ops_sv = av_fetch (r_wrapper->per_7bit_ops, codepoint, 0);
-    UV *ops;
-    if (!p_ops_sv)
+    STRLEN op_ix;
+    UV **const ops_by_byte = r_wrapper->oplists_by_byte;
+    UV *ops = ops_by_byte[codepoint];
+    Renew (ops, op_count, UV);
+    r_wrapper->oplists_by_byte[codepoint] = ops;
+    ops[0] = codepoint;
+    ops[1] = op_count;
+    for (op_ix = 2; op_ix < op_count; op_ix++)
       {
-	p_ops_sv = av_store (av_7bit, codepoint, newSV (ops_length_in_bytes));
-	ops_sv = *p_ops_sv;
-	(void) SvPOK_only (ops_sv);
-	ops = (UV *) SvPVX (ops_sv);
+	/* By coincidence, offset of individual ops is 2 both in the
+	 * method arguments and in the op_list, so that arg IX == op_ix
+	 */
+	ops[op_ix] = SvUV (ST (op_ix));
       }
-    else
-      {
-	ops_sv = *p_ops_sv;
-	ops = (UV *) SvGROW (ops_sv, ops_length_in_bytes);
-      }
-    SvCUR_set (ops_sv, ops_length_in_bytes);
-    {
-      int i;
-      for (i = 2; i < items; i++)
-	{
-	  ops[i - 2] = SvUV (ST (i));
-	}
-    }
   }
 }
 
@@ -762,11 +750,9 @@ PPCODE:
   for (;;)
     {
       UV codepoint;
-      STRLEN op_count;
       STRLEN op_ix;
+      STRLEN op_count;
       UV *ops;
-      SV *ops_sv;
-      STRLEN ops_byte_len;
       if (byte_ix >= len)
 	break;
       if (input_is_utf8)
@@ -776,46 +762,50 @@ PPCODE:
       else
 	{
 	  codepoint = (UV) input[byte_ix];
-	  if (codepoint > 0x7F)
+	  if (codepoint > 0xFF)
 	    {
 	      croak
-		("Problem in r->string_read(%lu): More than 7bit not yet implemented",
+		("Problem in r->string_read(0x%lx): More than 8bit codepoints not yet implemented",
 		 codepoint);
 	    }
 	}
-      ops_sv = *(av_fetch (r_wrapper->per_7bit_ops, codepoint, 0));
-      ops = (UV *) SvPV (ops_sv, ops_byte_len);
-      op_count = ops_byte_len / sizeof (UV);
-      if (op_count <= 0)
+      ops = r_wrapper->oplists_by_byte[codepoint];
+      if (!ops)
 	{
-	  croak ("Unregistered codepoint (%lu)", (unsigned long) codepoint);
+	  croak ("Unregistered codepoint (0x%lx)", (unsigned long) codepoint);
 	}
-      for (op_ix = 0; op_ix < op_count; op_ix++)
-      {
-	UV op_code = ops[op_ix];
-	switch (op_code)
-	  {
-	  default:
-	    croak ("Unknown op code (%lu); codepoint=%lu, op_ix=%lu",
-		   (unsigned long) op_code, (unsigned long) codepoint,
-		   (unsigned long) op_ix);
-	  case op_alternative_ignore:
-	  case op_alternative:
-	    op_ix++;
-	    if (op_ix >= op_count)
-	      {
-		croak ("Missing operand for op code (%lu); codepoint=%lu, op_ix=%lu",
-		       (unsigned long) op_code, (unsigned long) codepoint,
-		       (unsigned long) op_ix);
-	      }
+      /* ops[0] is codepoint */
+      op_count = ops[1];
+      for (op_ix = 2; op_ix < op_count; op_ix++)
+	{
+	  UV op_code = ops[op_ix];
+	  switch (op_code)
 	    {
-	      int symbol_id = (int) ops[op_ix];
+	    case op_alternative_ignore:
+	    case op_alternative:
+	      op_ix++;
+	      if (op_ix >= op_count)
+		{
+		  croak
+		    ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
+		     (unsigned long) op_code, (unsigned long) codepoint,
+		     (unsigned long) op_ix);
+		}
+	      {
+		int symbol_id = (int) ops[op_ix];
+	      }
+	      break;
+	    case op_earleme_complete:
+	      break;
+	    case op_unregistered:
+	      croak ("Unregistered codepoint (0x%lx)",
+		     (unsigned long) codepoint);
+	    default:
+	      croak ("Unknown op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
+		     (unsigned long) op_code, (unsigned long) codepoint,
+		     (unsigned long) op_ix);
 	    }
-	    break;
-	  case op_earleme_complete:
-	    break;
-	  }
-      }
+	}
       if (input_is_utf8)
 	{
 	  croak ("Problem in r->read_string(): UTF8 not yet implemented");

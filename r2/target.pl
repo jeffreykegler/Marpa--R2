@@ -419,10 +419,8 @@ sub do_thinsl {
 
     my $thinsl_recce = Marpa::R2::Thin::R->new($thinsl_grammar);
 
-{ require Devel::Peek; 
+{
 say STDERR "DEBUGGING!!!";
-Devel::Peek::Dump($thinsl_recce->_per_codepoint_ops());
-Devel::Peek::Dump($thinsl_recce->_per_7bit_ops());
 my $op_alternative = Marpa::R2::Thin::op('alternative');
 my $op_alternative_ignore =  Marpa::R2::Thin::op('alternative;ignore');
 my $op_earleme_complete = Marpa::R2::Thin::op('earleme_complete');
