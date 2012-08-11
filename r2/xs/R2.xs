@@ -42,6 +42,7 @@ typedef struct {
      Marpa_Recce r;
      Marpa_Symbol_ID* terminals_buffer;
      G_Wrapper* base;
+     STRLEN character_ix;
      SV* input;
      UV** oplists_by_byte;
      HV* per_codepoint_ops;
@@ -584,6 +585,7 @@ PPCODE:
   r_wrapper->ruby_slippers = 0;
   r_wrapper->base = g_wrapper;
   r_wrapper->input = newSVpvn("", 0);
+  r_wrapper->character_ix = 0;
   r_wrapper->per_codepoint_ops = newHV();
   {
     const int number_of_bytes = 0x100;
@@ -747,8 +749,17 @@ input_string_set( r_wrapper, string )
      SV *string;
 PPCODE:
 {
+  r_wrapper->character_ix = 0;
   sv_setsv (r_wrapper->input, string);
   SvPV_nolen (r_wrapper->input);
+}
+
+void
+input_string_pos( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+{
+  XSRETURN_IV(r_wrapper->character_ix);
 }
 
 void
@@ -756,13 +767,14 @@ input_string_read( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
 {
+  struct marpa_r *const r = r_wrapper->r;
   char *input;
-  STRLEN char_ix, byte_ix;
+  STRLEN byte_ix;
   int input_is_utf8;
   STRLEN len;
   input_is_utf8 = SvUTF8 (r_wrapper->input);
-  input = SvPV(r_wrapper->input, len);
-  byte_ix = char_ix = 0;
+  input = SvPV (r_wrapper->input, len);
+  byte_ix = 0;
   for (;;)
     {
       UV codepoint;
@@ -794,10 +806,12 @@ PPCODE:
       op_count = ops[1];
       for (op_ix = 2; op_ix < op_count; op_ix++)
 	{
+	  int ignore_is_on = 0;
 	  UV op_code = ops[op_ix];
 	  switch (op_code)
 	    {
 	    case op_alternative_ignore:
+	      ignore_is_on = 1;
 	    case op_alternative:
 	      op_ix++;
 	      if (op_ix >= op_count)
@@ -808,10 +822,39 @@ PPCODE:
 		     (unsigned long) op_ix);
 		}
 	      {
-		int symbol_id = (int) ops[op_ix];
+		const int symbol_id = (int) ops[op_ix];
+		const int result = marpa_r_alternative (r, symbol_id, 0, 1);
+		switch (result)
+		  {
+		  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
+		    if (!ignore_is_on)
+		      {
+			XSRETURN_IV (-1);
+		      }
+		    /* fall through */
+		  case MARPA_ERR_NONE:
+		    break;
+		  default:
+		    croak
+		      ("Problem in r->input_string_read(), alternative() failed: %s",
+		       xs_g_error (r_wrapper->base));
+		  }
 	      }
 	      break;
 	    case op_earleme_complete:
+	      {
+		const int result = marpa_r_earleme_complete (r);
+		if (result > 0)
+		  {
+		    XSRETURN_IV (result);
+		  }
+		if (result < 0)
+		  {
+		    croak
+		      ("Problem in r->input_string_read(), earleme_complete() failed: %s",
+		       xs_g_error (r_wrapper->base));
+		  }
+	      }
 	      break;
 	    case op_unregistered:
 	      croak ("Unregistered codepoint (0x%lx)",
@@ -830,7 +873,7 @@ PPCODE:
 	{
 	  byte_ix++;
 	}
-      char_ix++;
+      r_wrapper->character_ix++;
     }
   XSRETURN_UNDEF;
 }

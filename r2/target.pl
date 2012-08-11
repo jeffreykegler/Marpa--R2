@@ -423,43 +423,28 @@ sub do_thinsl {
 
     my $thinsl_recce = Marpa::R2::Thin::R->new($thinsl_grammar);
 
-  $thinsl_recce->char_register(ord('('), $op_alternative, $s_xlparen, $op_earleme_complete);
-  $thinsl_recce->char_register(ord(')'), $op_alternative, $s_rparen, $op_earleme_complete);
-  $thinsl_recce->input_string_set($s);
-  $thinsl_recce->input_string_read();
-
     $thinsl_recce->start_input();
     $thinsl_recce->expected_symbol_event_set( $s_endmark, 1 );
     $thinsl_recce->ruby_slippers_set( 1 );
 
+  $thinsl_recce->char_register(ord('('), $op_alternative, $s_xlparen, $op_earleme_complete);
+  $thinsl_recce->char_register(ord(')'), $op_alternative, $s_rparen, $op_earleme_complete);
+  $thinsl_recce->input_string_set($s);
     my $location      = 0;
     my $string_length = length $s;
     my $end_of_match;
+  my $event_count = $thinsl_recce->input_string_read();
+  if ($event_count < 0) {
+      die "Token rejected";
+  }
 
-    # find the match which ends first -- the one which starts
-    # first must start at or before it does
-    CHAR: while ( $location < $string_length ) {
-        my $value = substr $s, $location, 1;
-        my $event_count;
-        if ( $value eq '(' ) {
-            # say "Adding xlparen at $location";
-	    $thinsl_recce->alternative($s_xlparen, 0, 1);
-	    $event_count = $thinsl_recce->earleme_complete();
-        }
-        else {
-            # say "Adding rparen at $location";
-	    $thinsl_recce->alternative($s_rparen, 0, 1);
-	    $event_count = $thinsl_recce->earleme_complete();
-        }
         if ( $event_count
             and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
             map { ;($thinsl_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
         {
+	    $location = $thinsl_recce->input_string_pos();
             $end_of_match = $location + 1;
-            last CHAR;
         } ## end if ( $event_count and grep { $_->[0] eq ...})
-        $location++;
-    } ## end CHAR: while ( $location < $string_length )
 
     if ( not defined $end_of_match ) {
         say "No balanced parens";
