@@ -603,16 +603,24 @@ PPCODE:
 void
 DESTROY( r_wrapper )
     R_Wrapper *r_wrapper;
-PREINIT:
-    struct marpa_r *r;
-CODE:
-    r = r_wrapper->r;
+PPCODE:
+{
+    struct marpa_r *r = r_wrapper->r;
+    UV **oplists = r_wrapper->oplists_by_byte;
+    if (oplists) {
+      const int number_of_bytes = 0x100;
+      int codepoint;
+      for (codepoint = 0; codepoint < number_of_bytes; codepoint++) {
+	  Safefree(oplists[codepoint]);
+      }
+      Safefree(r_wrapper->oplists_by_byte);
+    }
     SvREFCNT_dec(r_wrapper->input);
     SvREFCNT_dec(r_wrapper->per_codepoint_ops);
-    Safefree(r_wrapper->oplists_by_byte);
     Safefree(r_wrapper->terminals_buffer);
     marpa_r_unref( r );
     Safefree( r_wrapper );
+}
 
 void
 ruby_slippers_set( r_wrapper, boolean )
