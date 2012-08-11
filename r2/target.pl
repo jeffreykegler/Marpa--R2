@@ -62,6 +62,10 @@ if ($number_of_modes > 1) {
 
 my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 
+my $op_alternative = Marpa::R2::Thin::op('alternative');
+my $op_alternative_ignore =  Marpa::R2::Thin::op('alternative;ignore');
+my $op_earleme_complete = Marpa::R2::Thin::op('earleme_complete');
+
 my $s;
 
 CREATE_STRING: {
@@ -419,16 +423,10 @@ sub do_thinsl {
 
     my $thinsl_recce = Marpa::R2::Thin::R->new($thinsl_grammar);
 
-{
-say STDERR "DEBUGGING!!!";
-my $op_alternative = Marpa::R2::Thin::op('alternative');
-my $op_alternative_ignore =  Marpa::R2::Thin::op('alternative;ignore');
-my $op_earleme_complete = Marpa::R2::Thin::op('earleme_complete');
-$thinsl_recce->char_register(ord('('), $op_alternative, $s_xlparen, $op_earleme_complete);
-$thinsl_recce->char_register(ord(')'), $op_alternative, $s_rparen, $op_earleme_complete);
-$thinsl_recce->string_read("(()())");
-say STDERR "DEBUGGING!!!";
-}
+  $thinsl_recce->char_register(ord('('), $op_alternative, $s_xlparen, $op_earleme_complete);
+  $thinsl_recce->char_register(ord(')'), $op_alternative, $s_rparen, $op_earleme_complete);
+  $thinsl_recce->input_string_set($s);
+  $thinsl_recce->input_string_read();
 
     $thinsl_recce->start_input();
     $thinsl_recce->expected_symbol_event_set( $s_endmark, 1 );
@@ -467,6 +465,8 @@ say STDERR "DEBUGGING!!!";
         say "No balanced parens";
         return 0;
     }
+
+  $thinsl_recce->char_register(ord('('), $op_alternative, $s_ilparen, $op_earleme_complete);
 
     CHAR: while ( ++$location < $string_length ) {
         my $value = substr $s, $location, 1;

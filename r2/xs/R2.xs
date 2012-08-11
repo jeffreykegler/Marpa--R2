@@ -734,18 +734,26 @@ PPCODE:
 }
 
 void
-string_read( r_wrapper, string )
+input_string_set( r_wrapper, string )
      R_Wrapper *r_wrapper;
      SV *string;
+PPCODE:
+{
+  sv_setsv (r_wrapper->input, string);
+  SvPV_nolen (r_wrapper->input);
+}
+
+void
+input_string_read( r_wrapper )
+     R_Wrapper *r_wrapper;
 PPCODE:
 {
   char *input;
   STRLEN char_ix, byte_ix;
   int input_is_utf8;
   STRLEN len;
-  sv_setsv (r_wrapper->input, string);
-  input = SvPV (r_wrapper->input, len);
   input_is_utf8 = SvUTF8 (r_wrapper->input);
+  input = SvPV(r_wrapper->input, len);
   byte_ix = char_ix = 0;
   for (;;)
     {
