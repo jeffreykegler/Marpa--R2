@@ -42,7 +42,8 @@ typedef struct {
      Marpa_Recce r;
      Marpa_Symbol_ID* terminals_buffer;
      G_Wrapper* base;
-     STRLEN character_ix;
+     STRLEN character_ix; /* character position, taking into account Unicode */
+     STRLEN input_offset; /* byte position, ignoring Unicode */
      SV* input;
      UV** oplists_by_byte;
      HV* per_codepoint_ops;
@@ -586,6 +587,7 @@ PPCODE:
   r_wrapper->base = g_wrapper;
   r_wrapper->input = newSVpvn("", 0);
   r_wrapper->character_ix = 0;
+  r_wrapper->input_offset = 0;
   r_wrapper->per_codepoint_ops = newHV();
   {
     const int number_of_bytes = 0x100;
@@ -750,6 +752,7 @@ input_string_set( r_wrapper, string )
 PPCODE:
 {
   r_wrapper->character_ix = 0;
+  r_wrapper->input_offset = 0;
   sv_setsv (r_wrapper->input, string);
   SvPV_nolen (r_wrapper->input);
 }
@@ -763,25 +766,67 @@ PPCODE:
 }
 
 void
+input_string_offset( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+{
+  XSRETURN_IV(r_wrapper->input_offset);
+}
+
+void
+input_string_hop( r_wrapper, hop )
+     R_Wrapper *r_wrapper;
+     int hop;
+PPCODE:
+{
+  /* *SAFELY* move the pointer backward or forward
+   * This requires care in UTF8
+   * Returns the hop actually performed
+   */
+  int input_is_utf8 = SvUTF8 (r_wrapper->input);
+  STRLEN len;
+  char *input;
+  if (hop == 0) XSRETURN_IV(0);
+  if (input_is_utf8) {
+      croak ("Problem in r->read_string(): UTF8 not yet implemented");
+  }
+  input = SvPV (r_wrapper->input, len);
+  if (hop > 0) {
+     const int maximum_hop = len - r_wrapper->input_offset;
+     const int actual_hop = hop > maximum_hop ? maximum_hop : hop;
+     r_wrapper->input_offset += actual_hop;
+     r_wrapper->character_ix += actual_hop;
+     XSRETURN_IV(actual_hop);
+  }
+  if (hop < 0) {
+     const int minimum_hop = -r_wrapper->input_offset;
+     const int actual_hop = hop < minimum_hop ? minimum_hop : hop;
+     r_wrapper->input_offset += actual_hop;
+     r_wrapper->character_ix += actual_hop;
+     XSRETURN_IV(actual_hop);
+  }
+  /* Never reached */
+  XSRETURN_UNDEF;
+}
+
+void
 input_string_read( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
 {
   struct marpa_r *const r = r_wrapper->r;
   char *input;
-  STRLEN byte_ix;
   int input_is_utf8;
   STRLEN len;
   input_is_utf8 = SvUTF8 (r_wrapper->input);
   input = SvPV (r_wrapper->input, len);
-  byte_ix = 0;
   for (;;)
     {
       UV codepoint;
       STRLEN op_ix;
       STRLEN op_count;
       UV *ops;
-      if (byte_ix >= len)
+      if (r_wrapper->input_offset >= len)
 	break;
       if (input_is_utf8)
 	{
@@ -789,7 +834,7 @@ PPCODE:
 	}
       else
 	{
-	  codepoint = (UV) input[byte_ix];
+	  codepoint = (UV) input[r_wrapper->input_offset];
 	  if (codepoint > 0xFF)
 	    {
 	      croak
@@ -871,7 +916,7 @@ PPCODE:
 	}
       else
 	{
-	  byte_ix++;
+	  r_wrapper->input_offset++;
 	}
       r_wrapper->character_ix++;
     }

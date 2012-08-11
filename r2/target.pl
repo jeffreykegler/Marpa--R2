@@ -391,7 +391,7 @@ sub do_thin {
 sub do_thinsl {
     my ($s) = @_;
 
-    my $thinsl_grammar        = Marpa::R2::Thin::G->new( { if => 1 } );
+    my $thinsl_grammar      = Marpa::R2::Thin::G->new( { if => 1 } );
     my $s_xlparen           = $thinsl_grammar->symbol_new();
     my $s_ilparen           = $thinsl_grammar->symbol_new();
     my $s_rparen            = $thinsl_grammar->symbol_new();
@@ -416,8 +416,9 @@ sub do_thinsl {
         [ $s_xlparen, $s_balanced_sequence, $s_rparen ] );
     $thinsl_grammar->rule_new( $s_balanced,
         [ $s_lparen, $s_balanced_sequence, $s_rparen ] );
-    $thinsl_grammar->sequence_new( $s_prefix,            $s_prefix_char, {min => 0} );
-    $thinsl_grammar->sequence_new( $s_balanced_sequence, $s_balanced,    {min => 0} );
+    $thinsl_grammar->sequence_new( $s_prefix, $s_prefix_char, { min => 0 } );
+    $thinsl_grammar->sequence_new( $s_balanced_sequence, $s_balanced,
+        { min => 0 } );
 
     $thinsl_grammar->precompute();
 
@@ -425,66 +426,73 @@ sub do_thinsl {
 
     $thinsl_recce->start_input();
     $thinsl_recce->expected_symbol_event_set( $s_endmark, 1 );
-    $thinsl_recce->ruby_slippers_set( 1 );
 
-  $thinsl_recce->char_register(ord('('), $op_alternative, $s_xlparen, $op_earleme_complete);
-  $thinsl_recce->char_register(ord(')'), $op_alternative, $s_rparen, $op_earleme_complete);
-  $thinsl_recce->input_string_set($s);
-    my $location      = 0;
+    $thinsl_recce->char_register( ord('('), $op_alternative, $s_xlparen,
+        $op_earleme_complete );
+    $thinsl_recce->char_register( ord(')'), $op_alternative, $s_rparen,
+        $op_earleme_complete );
+    $thinsl_recce->input_string_set($s);
     my $string_length = length $s;
-    my $end_of_match;
-  my $event_count = $thinsl_recce->input_string_read();
-  if ($event_count < 0) {
-      die "Token rejected";
-  }
+    my $end_of_match_earleme;
+    my $event_count = $thinsl_recce->input_string_read();
+    if ( not $event_count ) {
+        say "No balanced parens";
+        return 0;
+    }
+    if ( $event_count < 0 ) {
+        die "Token rejected";
+    }
 
-        if ( $event_count
-            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
-            map { ;($thinsl_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
-        {
-	    $location = $thinsl_recce->input_string_pos();
-            $end_of_match = $location + 1;
-        } ## end if ( $event_count and grep { $_->[0] eq ...})
+    if (grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+        map { ; ( $thinsl_grammar->event($_) )[0] } ( 0 .. $event_count - 1 )
+        )
+    {
 
-    if ( not defined $end_of_match ) {
+        die if $thinsl_recce->input_string_hop(1) != 1;
+        $end_of_match_earleme = $thinsl_recce->input_string_pos();
+    } ## end if ( grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' } map...)
+
+    if ( not defined $end_of_match_earleme ) {
         say "No balanced parens";
         return 0;
     }
 
-  $thinsl_recce->char_register(ord('('), $op_alternative, $s_ilparen, $op_earleme_complete);
+    $thinsl_recce->char_register( ord('('), $op_alternative, $s_ilparen,
+        $op_earleme_complete );
 
-    CHAR: while ( ++$location < $string_length ) {
-        my $value = substr $s, $location, 1;
-        my $token = $value eq '(' ? $s_ilparen : $s_rparen;
-
-        # say "Adding $token at $location";
-        last CHAR if $thinsl_recce->alternative($token, 0, 1);
-        my $event_count = $thinsl_recce->earleme_complete();
-        if ( $event_count
-            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
-            map { ;($thinsl_grammar->event($_))[0] } ( 0 .. $event_count - 1 ) )
+    CHAR: while (1) {
+        my $event_count = $thinsl_recce->input_string_read();
+        last CHAR if not defined $event_count;
+        last CHAR if $event_count <= 0;
+        if (grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ; ( $thinsl_grammar->event($_) )[0] }
+            ( 0 .. $event_count - 1 )
+            )
         {
-	    $end_of_match = $location + 1;
-	}
-    } ## end CHAR: while ( ++$location < $string_length )
+	    die if $thinsl_recce->input_string_hop(1) != 1;
+            $end_of_match_earleme = $thinsl_recce->input_string_pos();
+        } ## end if ( grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' } map...)
+    } ## end CHAR: while (1)
 
-    my $start_of_match = $end_of_match;
-    $thinsl_recce->progress_report_start($end_of_match);
+    my $start_of_match = $end_of_match_earleme;
+    $thinsl_recce->progress_report_start($end_of_match_earleme);
     ITEM: while (1) {
-        my ($rule_id, $dot_position, $item_origin) = $thinsl_recce->progress_item();
+        my ( $rule_id, $dot_position, $item_origin ) =
+            $thinsl_recce->progress_item();
         last ITEM if not defined $rule_id;
-	next ITEM if $dot_position >= 0;
+        next ITEM if $dot_position >= 0;
         next ITEM if $rule_id != $first_balanced_rule;
-	$start_of_match = $item_origin if $item_origin < $start_of_match;
-    }
+        $start_of_match = $item_origin if $item_origin < $start_of_match;
+    } ## end ITEM: while (1)
 
-    my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
+    my $value = substr $s, $start_of_match,
+        $end_of_match_earleme - $start_of_match;
     return 0 if $thinsl_answer_shown;
     $thinsl_answer_shown = $value;
-    say qq{thinsl: "$value" at $start_of_match-$end_of_match};
+    say qq{thinsl: "$value" at $start_of_match-$end_of_match_earleme};
     return 0;
 
-} ## end sub do_thin
+} ## end sub do_thinsl
 
 sub do_retrace {
     my ($s) = @_;
