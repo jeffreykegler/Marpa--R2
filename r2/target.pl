@@ -613,38 +613,35 @@ sub do_resl {
     $resl_recce->input_string_set(substr $s, 0, $start_of_match_earleme);
     die if defined $resl_recce->input_string_read();
 
+    $resl_recce->char_register( ord('('), $op_alternative, $s_lparen,
+        $op_earleme_complete );
+    $resl_recce->char_register( ord(')'), $op_alternative, $s_rparen,
+        $op_earleme_complete );
+    $resl_recce->input_string_set( substr $s, $start_of_match_earleme );
     $resl_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
-    $resl_recce->ruby_slippers_set(1);
 
-    my $location = $start_of_match_earleme;
-    # We are after the prefix, so now we just continue until exhausted
-    CHAR: while ( $location < $string_length ) {
-        my $value = substr $s, $location, 1;
-        last CHAR
-            if $resl_recce->alternative(
-            ( $value eq '(' ? $s_lparen : $s_rparen ),
-            0, 1 );
-        my $event_count = $resl_recce->earleme_complete();
-        if ($event_count) {
-            my $exhausted = 0;
-            EVENT:
-            for my $event_type ( map { ( $resl_grammar->event($_) )[0] }
-                0 .. $event_count - 1 )
-            {
-                if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
-                    $end_of_match_earleme = $location + 1;
-                    next EVENT;
-                }
-                if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                    $exhausted = 1;
-                    next EVENT;
-                }
-                die "Unknown event: $event_type";
-            } ## end for my $event_type ( map { ( $resl_grammar->event...)})
-            last CHAR if $exhausted;
-        } ## end if ($event_count)
-        $location++;
-    } ## end CHAR: while ( $location < $string_length )
+    READ: while (1) {
+        my $event_count = $resl_recce->input_string_read();
+        last READ if not defined $event_count;
+        last READ if $event_count <= 0;
+        my $exhausted = 0;
+        EVENT:
+        for my $event_type ( map { ( $resl_grammar->event($_) )[0] }
+            0 .. $event_count - 1 )
+        {
+            if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                die if $resl_recce->input_string_hop(1) != 1;
+                $end_of_match_earleme = $start_of_match_earleme + $resl_recce->input_string_pos();
+                next EVENT;
+            }
+            if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                $exhausted = 1;
+                next EVENT;
+            }
+            die "Unknown event: $event_type";
+        } ## end for my $event_type ( map { ( $resl_grammar->event($_)...)})
+        last READ if $exhausted;
+    } ## end READ: while (1)
 
     $start_of_match_earleme = $end_of_match_earleme;
     $resl_recce->progress_report_start($end_of_match_earleme);
