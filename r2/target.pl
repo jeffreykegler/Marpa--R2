@@ -69,7 +69,10 @@ if ( $number_of_modes > 1 ) {
 
 my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 
-my $op_alternative        = Marpa::R2::Thin::op('alternative');
+my $op_alternative      = Marpa::R2::Thin::op('alternative');
+my $op_alternative_args = Marpa::R2::Thin::op('alternative;args');
+my $op_alternative_args_ignore =
+    Marpa::R2::Thin::op('alternative;args;ignore');
 my $op_alternative_ignore = Marpa::R2::Thin::op('alternative;ignore');
 my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
@@ -990,7 +993,6 @@ sub do_flmsl {
     my $flmsl_recce = Marpa::R2::Thin::R->new($flmsl_grammar);
     $flmsl_recce->start_input();
     $flmsl_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
-    $flmsl_recce->ruby_slippers_set(1);
 
     my $location      = 0;
     my $string_length = length $s;
@@ -999,41 +1001,60 @@ sub do_flmsl {
     # Add a check that we don't already expect the end_marker
     # at location 0 -- this will detect zero-length targets.
 
-    # Find the prefix length
-    CHAR: while ( $location < $string_length ) {
-        my $value = substr $s, $location, 1;
-        my $event_count;
-        my $token_symbol = $value eq '(' ? $s_lparen : $s_rparen;
-        $flmsl_recce->alternative( $s_target_start_marker, 0, 1 );
-        $flmsl_recce->alternative( $token_symbol,          0, 2 );
-        $event_count = $flmsl_recce->earleme_complete();
-        if ($event_count
-            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
-            map { ; ( $flmsl_grammar->event($_) )[0] } ( 0 .. $event_count - 1 )
-            )
+    $flmsl_recce->char_register(
+        ord('('),
+	$op_alternative_ignore, $s_target_start_marker,
+	$op_alternative_args_ignore, $s_lparen, 0, 2,
+	$op_earleme_complete,
+	$op_alternative_ignore, $s_lparen,
+        $op_alternative_ignore, $s_physical_char,
+	$op_earleme_complete,
+    );
+    $flmsl_recce->char_register(
+        ord(')'),
+	$op_alternative_ignore, $s_target_start_marker,
+	$op_alternative_args_ignore, $s_rparen, 0, 2,
+	$op_earleme_complete,
+	$op_alternative_ignore, $s_rparen,
+        $op_alternative_ignore, $s_physical_char,
+	$op_earleme_complete,
+    );
+
+    # Find the prefix
+    $flmsl_recce->input_string_set($s);
+    my $event_count = $flmsl_recce->input_string_read();
+    if ($event_count) {
+        if ( $event_count < 0 ) {
+            die "Terminal rejected at Earley set ",
+                $flmsl_recce->latest_earley_set()
+		if $event_count == -1;
+            die "input_string_read returned $event_count at Earley set ",
+                $flmsl_recce->latest_earley_set();
+        }
+        EVENT:
+        for my $event_type ( map { ( $flmsl_grammar->event($_) )[0] }
+            0 .. $event_count - 1 )
         {
-            die "Zero length target at location $location\n",
-                "Zero length targets are not allowed";
-        } ## end if ( $event_count and grep { $_ eq ...})
-        $flmsl_recce->alternative( $token_symbol,    0, 1 );
-        $flmsl_recce->alternative( $s_physical_char, 0, 1 );
-        $event_count = $flmsl_recce->earleme_complete();
-        if ($event_count
-            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
-            map { ; ( $flmsl_grammar->event($_) )[0] } ( 0 .. $event_count - 1 )
-            )
-        {
-            $end_of_match_earley_set = $flmsl_recce->latest_earley_set();
-            last CHAR;
-        } ## end if ( $event_count and grep { $_ eq ...})
-        $location++;
-    } ## end CHAR: while ( $location < $string_length )
+            if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                $end_of_match_earley_set = $flmsl_recce->latest_earley_set();
+                die "Zero length target at earley set $end_of_match_earley_set\n",
+		  "Zero length targets are not allowed"
+                    if $end_of_match_earley_set % 2;
+                next EVENT;
+            } ## end if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' )
+            if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                die "Exhausted in prefix -- this should not happen";
+            }
+            die "Unknown event: $event_type";
+        } ## end for my $event_type ( map { ( $flmsl_grammar->event($_...))})
+    } ## end if ($event_count)
 
     if ( not defined $end_of_match_earley_set ) {
         say "No balanced parens";
         return 0;
     }
 
+    $flmsl_recce->ruby_slippers_set(1);
     $location = $flmsl_recce->latest_earley_set()/2 - 1;
     # We are after the prefix, so now we just continue until exhausted
     CHAR: for ( $location++; $location < $string_length; $location++ ) {
