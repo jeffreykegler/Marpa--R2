@@ -1,0 +1,76 @@
+<h1>The Perl "Sixish" Marpa interface</h1>
+<p>These notes outline my planned Marpa interface,
+based on Larry Wall's Perl 6 grammars/regexes.
+The Perl 6 regexes represents detailed
+and advanced thinking on how to represent BNF grammars
+to a modern programming audience,
+and it makes sense to leverage that work.
+But Marpa and LL differ heavily in their power
+and abilities,
+and this Marpa interface will never be
+either a proper subset or superset of Perl 6.
+<h2>For the first prototype</h2>
+A six-ish grammar will be a series of one or more rules,
+separated by a ';' character.
+Rules have a lhs and a rhs.
+The RHS consists of zero or more RHS elements,
+A RHS element is one of:
+<ul>
+<li>A quoted literal, in single quotes.
+Between single quotes may be any character other than an unescaped single
+<li>A unquoted literal, which must be a string of letters or digits.
+<li><code>ident</code>, where <code>ident</code> is the lhs
+of a rule.
+<li><code>&lt;~~&gt;</code>, which is idential to 
+<code>lhs</code>, where <code>lhs</code> is the left hand
+side symbol of the current rule.
+<li>Repetition of one of the previous zero or more times,
+expressed by the <code>*</code> quantifier.
+</ul>
+<p>Whitespace may be interspersed througout.  It is not
+significant, except inside literals.
+<p>
+The first rule, and only the first rule,
+may consist of only a RHS.
+When this is the case a LHS of <code>TARGET</code>
+is assumed.
+A top-level rule will be the one with
+<code>TARGET</code> as its LHS, explicitly or
+implicitly.
+There may be more than one such rule.
+<h2>Limitations, but only for the moment</h2>
+<ul>
+<li>7-bit ASCII:
+This restriction will be lifted in the first few versions.
+Unicode is required for a real production quality interface.
+<li>Whitespace not significant.
+Perl 6 regexes do a lot around use of significant whitespace,
+and leveraging that thinking and experience is a major motive
+for the six-ish interface.  But not today.
+</ul>
+<h2>Not for a while, and maybe never</h2>
+<ul>
+<li>Backtracking:
+Marpa does non-deterministic general BNF parsing without having to
+backtrack.
+Marpa could be changed to allow backtracking,
+but Marpa typically can and should
+solve the problem to solved in a better,
+faster way.
+<li>Lookahead:
+Marpa does non-deterministic general BNF parsing without 
+lookahead.
+For special cases,
+Marpa has its own similar features,
+such as the Ruby Slippers.
+Lookahead could be added to Marpa,
+but Marpa typically can and should
+deal with the problem in an easier and
+faster way.
+</ul>
+<h2>Almost certainly never</h2>
+<p>A PEG-style "pecking order"
+will almost certainly never be implemented in the six-ish
+interface.
+Marpa does non-deterministic general BNF parsing,
+and PEG-style conflict resolution is not helpful for Marpa.
