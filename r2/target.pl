@@ -18,6 +18,7 @@ my $do_retrace;
 my $do_resl;
 my $do_r2;
 my $do_flm;
+my $do_flmsl;
 my $do_timing       = 1;
 my $random          = 0;
 my $iteration_count = -4;
@@ -35,6 +36,7 @@ my $getopt_result   = GetOptions(
     "only!"     => \$do_only,
     "r2!"       => \$do_r2,
     "flm!"      => \$do_flm,
+    "flmsl!"      => \$do_flmsl,
     "time!"     => \$do_timing,
 );
 die "getopt failed" if not defined $getopt_result;
@@ -54,6 +56,7 @@ if ( !$do_only ) {
     $do_resl //= 1;
     $do_r2      //= 1;
     $do_flm     //= 0;
+    $do_flmsl     //= 1;
 } ## end if ( !$do_only )
 
 my $number_of_modes =
@@ -130,6 +133,7 @@ sub arg1 {
 
 my $marpa_answer_shown;
 my $flm_answer_shown;
+my $flmsl_answer_shown;
 my $r2_answer_shown;
 my $thin_answer_shown;
 my $thinsl_answer_shown;
@@ -949,9 +953,149 @@ sub do_flm {
 
 } ## end sub do_flm
 
+sub do_flmsl {
+    my ($s) = @_;
+
+    my $flmsl_grammar           = Marpa::R2::Thin::G->new( { if => 1 } );
+    my $s_start               = $flmsl_grammar->symbol_new();
+    my $s_target_start_marker = $flmsl_grammar->symbol_new();
+    my $s_target_end_marker   = $flmsl_grammar->symbol_new();
+    my $s_target              = $flmsl_grammar->symbol_new();
+    my $s_prefix              = $flmsl_grammar->symbol_new();
+    my $s_physical_char       = $flmsl_grammar->symbol_new();
+    my $s_prefix_char         = $flmsl_grammar->symbol_new();
+    $flmsl_grammar->start_symbol_set($s_start);
+    $flmsl_grammar->rule_new(
+        $s_start,
+        [   $s_prefix, $s_target_start_marker, $s_target, $s_target_end_marker
+        ]
+    );
+    $flmsl_grammar->rule_new( $s_prefix_char, [$s_physical_char] );
+    $flmsl_grammar->rule_new( $s_prefix_char, [$s_target_start_marker] );
+    $flmsl_grammar->sequence_new( $s_prefix, $s_prefix_char, { min => 0 } );
+
+    my $s_lparen                  = $flmsl_grammar->symbol_new();
+    my $s_rparen                  = $flmsl_grammar->symbol_new();
+    my $s_balanced_paren_sequence = $flmsl_grammar->symbol_new();
+    my $s_balanced_parens         = $flmsl_grammar->symbol_new();
+    my $target_rule =
+        $flmsl_grammar->rule_new( $s_target, [$s_balanced_parens] );
+    $flmsl_grammar->sequence_new( $s_balanced_paren_sequence,
+        $s_balanced_parens, { min => 0 } );
+    $flmsl_grammar->rule_new( $s_balanced_parens,
+        [ $s_lparen, $s_balanced_paren_sequence, $s_rparen ] );
+
+    $flmsl_grammar->precompute();
+
+    my $flmsl_recce = Marpa::R2::Thin::R->new($flmsl_grammar);
+    $flmsl_recce->start_input();
+    $flmsl_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
+    $flmsl_recce->ruby_slippers_set(1);
+
+    my $location      = 0;
+    my $string_length = length $s;
+    my $end_of_match_earley_set;
+
+    # Add a check that we don't already expect the end_marker
+    # at location 0 -- this will detect zero-length targets.
+
+    # Find the prefix length
+    CHAR: while ( $location < $string_length ) {
+        my $value = substr $s, $location, 1;
+        my $event_count;
+        my $token_symbol = $value eq '(' ? $s_lparen : $s_rparen;
+        $flmsl_recce->alternative( $s_target_start_marker, 0, 1 );
+        $flmsl_recce->alternative( $token_symbol,          0, 2 );
+        $event_count = $flmsl_recce->earleme_complete();
+        if ($event_count
+            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ; ( $flmsl_grammar->event($_) )[0] } ( 0 .. $event_count - 1 )
+            )
+        {
+            die "Zero length target at location $location\n",
+                "Zero length targets are not allowed";
+        } ## end if ( $event_count and grep { $_ eq ...})
+        $flmsl_recce->alternative( $token_symbol,    0, 1 );
+        $flmsl_recce->alternative( $s_physical_char, 0, 1 );
+        $event_count = $flmsl_recce->earleme_complete();
+        if ($event_count
+            and grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' }
+            map { ; ( $flmsl_grammar->event($_) )[0] } ( 0 .. $event_count - 1 )
+            )
+        {
+            $end_of_match_earley_set = $flmsl_recce->latest_earley_set();
+            last CHAR;
+        } ## end if ( $event_count and grep { $_ eq ...})
+        $location++;
+    } ## end CHAR: while ( $location < $string_length )
+
+    if ( not defined $end_of_match_earley_set ) {
+        say "No balanced parens";
+        return 0;
+    }
+
+    $location = $flmsl_recce->latest_earley_set()/2 - 1;
+    # We are after the prefix, so now we just continue until exhausted
+    CHAR: for ( $location++; $location < $string_length; $location++ ) {
+        my $value = substr $s, $location, 1;
+        last CHAR
+            if $flmsl_recce->alternative(
+            ( $value eq '(' ? $s_lparen : $s_rparen ),
+            0, 2 );
+        for ( 0, 1 ) {
+            my $event_count = $flmsl_recce->earleme_complete();
+            if ($event_count) {
+                my $exhausted = 0;
+                EVENT:
+                for my $event_type ( map { ( $flmsl_grammar->event($_) )[0] }
+                    0 .. $event_count - 1 )
+                {
+                    if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                        $end_of_match_earley_set =
+                            $flmsl_recce->latest_earley_set();
+                        next EVENT;
+                    }
+                    if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                        $exhausted = 1;
+                        next EVENT;
+                    }
+                    die "Unknown event: $event_type";
+                } ## end for my $event_type ( map { ( $flmsl_grammar->event($_)...)})
+                last CHAR if $exhausted;
+            } ## end if ($event_count)
+        } ## end for ( 0, 1 )
+    } ## end CHAR: for ( $location++; $location < $string_length; $location...)
+
+    my $start_of_match_earley_set = $end_of_match_earley_set;
+    $flmsl_recce->progress_report_start($end_of_match_earley_set);
+    ITEM: while (1) {
+        my ( $rule_id, $dot_position, $item_origin ) =
+            $flmsl_recce->progress_item();
+        last ITEM if not defined $rule_id;
+        next ITEM if $dot_position >= 0;
+        next ITEM if $rule_id != $target_rule;
+        $start_of_match_earley_set = $item_origin
+            if $item_origin < $start_of_match_earley_set;
+    } ## end ITEM: while (1)
+
+    my $start_of_match_earleme =
+        $flmsl_recce->earleme($start_of_match_earley_set);
+    my $end_of_match_earleme = $flmsl_recce->earleme($end_of_match_earley_set);
+    my $start_of_match       = ( $start_of_match_earleme - 1 ) / 2;
+    my $end_of_match         = $end_of_match_earleme / 2;
+    my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
+    return 0 if $flmsl_answer_shown;
+    $flmsl_answer_shown = $value;
+    say qq{flmsl: "$value" at $start_of_match-$end_of_match};
+    return 0;
+
+} ## end sub do_flm
+
 my $tests = {};
 $tests->{flm} = sub { do_flm($s) }
     if $do_flm;
+$tests->{flmsl} = sub { do_flmsl($s) }
+    if $do_flmsl;
 $tests->{retrace} = sub { do_retrace($s) }
     if $do_retrace;
 $tests->{resl} = sub { do_resl($s) }
@@ -961,7 +1105,6 @@ $tests->{regex} = sub { do_regex($s) }
 $tests->{thin} = sub { do_thin($s) }
     if $do_thin;
 $tests->{thinsl} = sub { do_thinsl($s) }
-
     if $do_thinsl;
 $tests->{r2} = sub { do_r2($s) }
     if $do_r2;
@@ -996,6 +1139,11 @@ if ($do_flm) {
     say +( $flm_answer_shown eq $answer
         ? 'FLM Answer matches'
         : 'FLM ANSWER DOES NOT MATCH!' );
+}
+if ($do_flmsl) {
+    say +( $flmsl_answer_shown eq $answer
+        ? 'FLMSL Answer matches'
+        : 'FLMSL ANSWER DOES NOT MATCH!' );
 }
 if ($do_r2) {
     say +( $r2_answer_shown eq $answer
