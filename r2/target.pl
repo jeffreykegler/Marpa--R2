@@ -1054,38 +1054,47 @@ sub do_flmsl {
         return 0;
     }
 
-    $flmsl_recce->ruby_slippers_set(1);
-    $location = $flmsl_recce->latest_earley_set()/2 - 1;
+    $flmsl_recce->char_register(
+        ord('('),
+	$op_alternative_args, $s_lparen, 0, 2,
+	$op_earleme_complete,
+	$op_earleme_complete,
+    );
+    $flmsl_recce->char_register(
+        ord(')'),
+	$op_alternative_args, $s_rparen, 0, 2,
+	$op_earleme_complete,
+	$op_earleme_complete,
+    );
+
     # We are after the prefix, so now we just continue until exhausted
-    CHAR: for ( $location++; $location < $string_length; $location++ ) {
-        my $value = substr $s, $location, 1;
-        last CHAR
-            if $flmsl_recce->alternative(
-            ( $value eq '(' ? $s_lparen : $s_rparen ),
-            0, 2 );
-        for ( 0, 1 ) {
-            my $event_count = $flmsl_recce->earleme_complete();
-            if ($event_count) {
-                my $exhausted = 0;
-                EVENT:
-                for my $event_type ( map { ( $flmsl_grammar->event($_) )[0] }
-                    0 .. $event_count - 1 )
-                {
-                    if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
-                        $end_of_match_earley_set =
-                            $flmsl_recce->latest_earley_set();
-                        next EVENT;
-                    }
-                    if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                        $exhausted = 1;
-                        next EVENT;
-                    }
-                    die "Unknown event: $event_type";
-                } ## end for my $event_type ( map { ( $flmsl_grammar->event($_)...)})
-                last CHAR if $exhausted;
-            } ## end if ($event_count)
-        } ## end for ( 0, 1 )
-    } ## end CHAR: for ( $location++; $location < $string_length; $location...)
+    $location = $flmsl_recce->latest_earley_set()/2 - 1;
+
+    $flmsl_recce->input_string_set(substr $s, $location+1);
+    READ: while (1) {
+        my $exhausted   = 0;
+        my $event_count = $flmsl_recce->input_string_read();
+        last READ if not $event_count;
+        last READ if $event_count == -1;
+        die "input_string_read returned $event_count at Earley set ",
+            $flmsl_recce->latest_earley_set()
+            if $event_count < 0;
+        EVENT:
+        for my $event_type ( map { ( $flmsl_grammar->event($_) )[0] }
+            0 .. $event_count - 1 )
+        {
+            if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                $end_of_match_earley_set = $flmsl_recce->latest_earley_set();
+                next EVENT;
+            }
+            if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                $exhausted = 1;
+                next EVENT;
+            }
+            die "Unknown event: $event_type";
+        } ## end for my $event_type ( map { ( $flmsl_grammar->event($_...))})
+        last READ if $exhausted;
+    } ## end READ: while (1)
 
     my $start_of_match_earley_set = $end_of_match_earley_set;
     $flmsl_recce->progress_report_start($end_of_match_earley_set);
