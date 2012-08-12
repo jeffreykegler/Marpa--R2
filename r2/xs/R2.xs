@@ -882,7 +882,7 @@ PPCODE:
 		int result;
 		int symbol_id;
 		const int ignore_is_on = op_code == op_alternative_ignore
-		  || op_code == op_alternative_ignore;
+		  || op_code == op_alternative_args_ignore;
 		int length = 1;
 		int value = 0;
 
