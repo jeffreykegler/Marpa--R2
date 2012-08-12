@@ -1085,6 +1085,7 @@ sub do_flmsl {
         {
             if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
                 $end_of_match_earley_set = $flmsl_recce->latest_earley_set();
+		die if $flmsl_recce->input_string_hop(1) != 1;
                 next EVENT;
             }
             if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
