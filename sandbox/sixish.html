@@ -1,15 +1,54 @@
-<h1>The Perl "Sixish" Marpa interface</h1>
+<h1>The "Sixish" Marpa interface</h1>
 <p>These notes outline my planned Marpa interface,
 based on Larry Wall's Perl 6 grammars/regexes.
-The Perl 6 regexes represents detailed
-and advanced thinking on how to represent BNF grammars
-to a modern programming audience,
-and it makes sense to leverage that work.
-But Marpa and LL differ heavily in their power
-and abilities,
-and this Marpa interface will never be
-either a proper subset or superset of Perl 6.
-<h2>For the first prototype</h2>
+The Perl 6 regexes represents careful, detailed
+and experienced thinking on representing
+complex BNF grammars
+to a modern programming audience.
+It makes sense to leverage that work.
+
+On the other hand,
+Marpa and LL differ heavily in their power,
+abilities, and approach.
+The Sixish interface will never be
+a proper subset or superset of Perl 6.
+<h2>The first two prototypes</h2>
+<p>
+The first prototype will compile and match, unanchored,
+the following regex
+<code><pre>
+'(' &lt;~~&gt;* ')'
+</pre></code>
+It will also have a syntax sufficient to express any
+BNF grammar,
+but otherwise minimal.
+<p>
+The second prototype will be a self-compiling superset of
+the first.
+<h2>Syntax for the first prototype</h2>
+The following syntax is a description of the first prototype.
+It is written in a half-formal half-intuitive form,
+This form may resemble where Sixish goes,
+but it is not necessarily that of the second
+prototype.
+For the moment, whitespace issues are left to the reader's imagination.
+<code><pre>
+    &lt;sixish grammar&gt; ::= &lt;first sixish rule&gt; ';'?
+    &lt;sixish grammar&gt; ::= &lt;first sixish rule&gt; ';' &lt;sixish rule&gt;+
+    &lt;first sixish rule&gt; ::= &lt;sixish rule&gt;
+    &lt;first sixish rule&gt; ::= &lt;pattern&gt;
+    &lt;sixish rule&gt; ::= 'regex' &lt;ident&gt; '{' &lt;pattern&gt; '}'
+    &lt;pattern&gt; ::= &lt;pattern element&gt;*
+    &lt;pattern element&gt; ::= &lt;quantified atom&gt;
+    &lt;ident> ::= [ &lt;alpha> | _ ] \w*
+    &lt;hexint&gt; ::=  &lt;[ 0..9 a..f A..F ]&gt;+ [ _ &lt;[ 0..9 a..f A..F ]&gt;+ ]*
+    &lt;atom&gt; ::= &lt;subrule&gt;
+    &lt;atom&gt; ::= \w
+    &lt;atom&gt; ::= &lt;literal&gt;
+    &lt;quantified atom&gt; ::= &lt;atom&gt; &lt;quantifier&gt;
+    &lt;quantified atom&gt; ::= &lt;atom&gt;
+    &lt;subrule&gt; ::= '&lt;' &lt;ident&gt; '&gt;'
+</pre></code>
 A six-ish grammar will be a series of one or more rules,
 separated by a ';' character.
 Rules have a lhs and a rhs.
