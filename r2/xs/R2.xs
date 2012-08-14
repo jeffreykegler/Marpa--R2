@@ -841,6 +841,7 @@ PPCODE:
   input = SvPV (r_wrapper->input, len);
   for (;;)
     {
+      int return_value = 0;
       UV codepoint;
       STRLEN op_ix;
       STRLEN op_count;
@@ -931,7 +932,9 @@ PPCODE:
 		const int result = marpa_r_earleme_complete (r);
 		if (result > 0)
 		  {
-		    XSRETURN_IV (result);
+		    return_value = result;
+		    /* Advance one character before returning */
+		    goto ADVANCE_ONE_CHAR;
 		  }
 		if (result < 0)
 		  {
@@ -950,6 +953,7 @@ PPCODE:
 		     (unsigned long) op_ix);
 	    }
 	}
+      ADVANCE_ONE_CHAR: ;
       if (input_is_utf8)
 	{
 	  croak ("Problem in r->read_string(): UTF8 not yet implemented");
@@ -959,6 +963,10 @@ PPCODE:
 	  r_wrapper->input_offset++;
 	}
       r_wrapper->character_ix++;
+      /* This logic does not allow a return value of 0,
+       * but at the moment that is not an issue.
+       */
+      if (return_value) { XSRETURN_IV(return_value); }
     }
   XSRETURN_UNDEF;
 }

@@ -474,7 +474,6 @@ sub do_thinsl {
         )
     {
 
-        die if $thinsl_recce->input_string_hop(1) != 1;
         $end_of_match_earleme = $thinsl_recce->input_string_pos();
     } ## end if ( grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' } map...)
 
@@ -495,7 +494,6 @@ sub do_thinsl {
             ( 0 .. $event_count - 1 )
             )
         {
-            die if $thinsl_recce->input_string_hop(1) != 1;
             $end_of_match_earleme = $thinsl_recce->input_string_pos();
         } ## end if ( grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' } map...)
     } ## end CHAR: while (1)
@@ -578,7 +576,6 @@ sub do_resl {
         )
     {
 
-        die if $resl_recce->input_string_hop(1) != 1;
         $end_of_match_earleme = $resl_recce->input_string_pos();
     } ## end if ( grep { $_ eq 'MARPA_EVENT_SYMBOL_EXPECTED' } map...)
 
@@ -637,7 +634,6 @@ sub do_resl {
             0 .. $event_count - 1 )
         {
             if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
-                die if $resl_recce->input_string_hop(1) != 1;
                 $end_of_match_earleme = $start_of_match_earleme + $resl_recce->input_string_pos();
                 next EVENT;
             }
@@ -1085,7 +1081,6 @@ sub do_flmsl {
         {
             if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
                 $end_of_match_earley_set = $flmsl_recce->latest_earley_set();
-		die if $flmsl_recce->input_string_hop(1) != 1;
                 next EVENT;
             }
             if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
