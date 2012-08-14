@@ -114,15 +114,8 @@ libmarpa/dev/marpa_obs.c
 libmarpa/dev/marpa_obs.h
 libmarpa/dev/texi2code.pl
 libmarpa/dev/w2private_h.pl
+libmarpa/libmarpa-doc.tar
 libmarpa/libmarpa.tar
-libmarpa/orig/gnu/obstack.c
-libmarpa/orig/gnu/obstack.h
-libmarpa/orig/libavl/Makefile
-libmarpa/orig/libavl/avl-test.c
-libmarpa/orig/libavl/avl.c
-libmarpa/orig/libavl/avl.h
-libmarpa/orig/libavl/test.c
-libmarpa/orig/libavl/test.h
 libmarpa/test/.gitignore
 libmarpa/test/Makefile
 libmarpa/test/README
