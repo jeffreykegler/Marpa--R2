@@ -11,9 +11,15 @@ my $op_alternative_args_ignore =
 my $op_alternative_ignore = Marpa::R2::Thin::op('alternative;ignore');
 my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
-my $sixish_grammar = q{'(' <~~>* ')'};
+my $paren_grammar = q{'(' <~~>* ')'};
 
-sub pre_sixish_child {
+sub sixish_subgrammar {
+    my ($source) = @_;
+    my $sixish_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+    my %char_to_symbol = ();
+}
+
+sub pre_sixish_subgrammar {
     my $child_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
     my %char_to_symbol = ();
     $char_to_symbol{'('} = $child_grammar->symbol_new();
@@ -31,12 +37,12 @@ sub pre_sixish_child {
             $char_to_symbol{')'},
         ]
     );
-    return [ $target_rule, $s_target, $child_grammar, \%char_to_symbol ];
+    return [ $target_rule, $child_grammar, \%char_to_symbol ];
 } ## end sub pre_sixish_child
 
 sub do_sixish {
     my ( $s ) = @_;
-    my $child_grammar = pre_sixish_child();
+    my $child_grammar = pre_sixish_subgrammar( $paren_grammar );
     my ( $start_of_match, $end_of_match ) = sixish_find( $child_grammar, $s );
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
     return 0 if $sixish_answer_shown;
@@ -47,8 +53,9 @@ sub do_sixish {
 
 sub sixish_find {
     my ( $child_grammar_data, $s ) = @_;
-    my ( $target_rule, $s_target, $child_grammar, $char_to_symbol ) = @{$child_grammar_data};
+    my ( $target_rule, $child_grammar, $char_to_symbol ) = @{$child_grammar_data};
 
+    my $s_target            = $child_grammar->rule_lhs($target_rule);
     my $s_start             = $child_grammar->symbol_new();
     my $s_target_end_marker = $child_grammar->symbol_new();
     my $s_prefix            = $child_grammar->symbol_new();
