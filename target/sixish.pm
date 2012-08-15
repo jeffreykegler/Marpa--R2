@@ -13,9 +13,30 @@ my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
 my $sixish_grammar = q{'(' <~~>* ')'};
 
+sub pre_sixish_child {
+    my $child_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+    my %char_to_symbol = ();
+    $char_to_symbol{'('} = $child_grammar->symbol_new();
+    $char_to_symbol{')'} = $child_grammar->symbol_new();
+    my $s_target                  = $child_grammar->symbol_new();
+    my $s_balanced_paren_sequence = $child_grammar->symbol_new();
+    my $s_balanced_parens         = $child_grammar->symbol_new();
+    my $target_rule =
+        $child_grammar->rule_new( $s_target, [$s_balanced_parens] );
+    $child_grammar->sequence_new( $s_balanced_paren_sequence,
+        $s_balanced_parens, { min => 0 } );
+    $child_grammar->rule_new(
+        $s_balanced_parens,
+        [   $char_to_symbol{'('}, $s_balanced_paren_sequence,
+            $char_to_symbol{')'},
+        ]
+    );
+    return [ $target_rule, $s_target, $child_grammar, \%char_to_symbol ];
+} ## end sub pre_sixish_child
+
 sub do_sixish {
     my ( $s ) = @_;
-    my $child_grammar;
+    my $child_grammar = pre_sixish_child();
     my ( $start_of_match, $end_of_match ) = sixish_find( $child_grammar, $s );
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
     return 0 if $sixish_answer_shown;
@@ -25,11 +46,11 @@ sub do_sixish {
 } ## end sub do_sixish
 
 sub sixish_find {
-    my ( undef, $s ) = @_;
-    my $child_grammar       = Marpa::R2::Thin::G->new( { if => 1 } );
+    my ( $child_grammar_data, $s ) = @_;
+    my ( $target_rule, $s_target, $child_grammar, $char_to_symbol ) = @{$child_grammar_data};
+
     my $s_start             = $child_grammar->symbol_new();
     my $s_target_end_marker = $child_grammar->symbol_new();
-    my $s_target            = $child_grammar->symbol_new();
     my $s_prefix            = $child_grammar->symbol_new();
     my $s_prefix_char       = $child_grammar->symbol_new();
     $child_grammar->start_symbol_set($s_start);
@@ -37,31 +58,18 @@ sub sixish_find {
         [ $s_prefix, $s_target, $s_target_end_marker ] );
     $child_grammar->sequence_new( $s_prefix, $s_prefix_char, { min => 0 } );
 
-    my $s_lparen                  = $child_grammar->symbol_new();
-    my $s_rparen                  = $child_grammar->symbol_new();
-    my $s_balanced_paren_sequence = $child_grammar->symbol_new();
-    my $s_balanced_parens         = $child_grammar->symbol_new();
-    my $target_rule =
-        $child_grammar->rule_new( $s_target, [$s_balanced_parens] );
-    $child_grammar->sequence_new( $s_balanced_paren_sequence,
-        $s_balanced_parens, { min => 0 } );
-    $child_grammar->rule_new( $s_balanced_parens,
-        [ $s_lparen, $s_balanced_paren_sequence, $s_rparen ] );
-
     $child_grammar->precompute();
 
     my $child_recce = Marpa::R2::Thin::R->new($child_grammar);
     $child_recce->start_input();
     $child_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
 
-    $child_recce->char_register(
-        ord('('),               $op_alternative_ignore, $s_lparen,
-        $op_alternative_ignore, $s_prefix_char,         $op_earleme_complete
-    );
-    $child_recce->char_register(
-        ord(')'),               $op_alternative_ignore, $s_rparen,
-        $op_alternative_ignore, $s_prefix_char,         $op_earleme_complete
-    );
+    while ( my ( $char, $symbol ) = each %{$char_to_symbol} ) {
+        $child_recce->char_register(
+            ord($char), $op_alternative_ignore, $symbol,
+            $op_alternative_ignore, $s_prefix_char, $op_earleme_complete
+        );
+    } ## end while ( my ( $char, $symbol ) = each %char_to_symbol )
 
     my $string_length = length $s;
     my $end_of_match_earleme;
@@ -110,22 +118,21 @@ sub sixish_find {
     $child_recce = Marpa::R2::Thin::R->new($child_grammar);
     $child_recce->start_input();
 
-    $child_recce->char_register(
-        ord('('),               $op_alternative_ignore, $s_lparen,
-        $op_alternative_ignore, $s_prefix_char,         $op_earleme_complete
-    );
-    $child_recce->char_register(
-        ord(')'),               $op_alternative_ignore, $s_rparen,
-        $op_alternative_ignore, $s_prefix_char,         $op_earleme_complete
-    );
+    while ( my ( $char, $symbol ) = each %{$char_to_symbol} ) {
+        $child_recce->char_register(
+            ord($char), $op_alternative_ignore, $symbol,
+            $op_alternative_ignore, $s_prefix_char, $op_earleme_complete
+        );
+    } ## end while ( my ( $char, $symbol ) = each %char_to_symbol )
 
     $child_recce->input_string_set( substr $s, 0, $start_of_match_earleme );
     die if defined $child_recce->input_string_read();
 
-    $child_recce->char_register( ord('('), $op_alternative, $s_lparen,
-        $op_earleme_complete );
-    $child_recce->char_register( ord(')'), $op_alternative, $s_rparen,
-        $op_earleme_complete );
+    while ( my ( $char, $symbol ) = each %{$char_to_symbol} ) {
+        $child_recce->char_register( ord($char), $op_alternative, $symbol,
+            $op_earleme_complete );
+    }
+
     $child_recce->input_string_set( substr $s, $start_of_match_earleme );
     $child_recce->expected_symbol_event_set( $s_target_end_marker, 1 );
 
