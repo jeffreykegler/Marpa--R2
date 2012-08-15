@@ -69,11 +69,17 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 This release is alpha
+=head1 This release is beta
 
-This release is alpha.
-Users who seek stability should, for the time being,
-prefer L<Marpa::XS>.
+This release is beta.
+Those who prefer a more stable release should look
+at L<Marpa::XS>.
+Note that Libmarpa (the C library at the core of Marpa)
+and Marpa::R2::Thin (a "thin" interface to Libmarpa)
+have their own, separate, release statuses.
+which are as stated in their own documentation.
+As of this writing, Libmarpa and Marpa::R2::Thin
+are alpha.
 
 =head1 Description
 

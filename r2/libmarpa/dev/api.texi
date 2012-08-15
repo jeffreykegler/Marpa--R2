@@ -7,10 +7,11 @@
 @copying
 This manual is for Libmarpa @value{VERSION}.
 Copyright @copyright{} 2012 Jeffrey Kegler.
+Libmarpa is alpha software.
 @quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation;
+any later version published by the Free Software Foundation.
 @end quotation
 @end copying
 @finalout
@@ -269,6 +270,10 @@ in BNF as a right-recursion?
 
 @node About Libmarpa, Architecture, About this document, Top
 @chapter About Libmarpa
+
+Libmarpa is alpha software.
+Its interface is subject to change.
+
 Libmarpa implements the Marpa parsing algorithm.
 Marpa is named
 after the legendary 11th century Tibetan translator,
