@@ -16,6 +16,7 @@ my $do_thin;
 my $do_thinsl;
 my $do_retrace;
 my $do_resl;
+my $do_sixish;
 my $do_r2;
 my $do_flm;
 my $do_flmsl;
@@ -33,6 +34,7 @@ my $getopt_result   = GetOptions(
     "thinsl!"   => \$do_thinsl,
     "retrace!"  => \$do_retrace,
     "resl!"  => \$do_resl,
+    "sixish!"  => \$do_sixish,
     "only!"     => \$do_only,
     "r2!"       => \$do_r2,
     "flm!"      => \$do_flm,
@@ -41,9 +43,8 @@ my $getopt_result   = GetOptions(
 );
 die "getopt failed" if not defined $getopt_result;
 
-{
-    require Marpa::R2;
-    'Marpa::R2'->VERSION(0.020000);
+use Marpa::R2 0.100000;
+BEGIN {
     say "Marpa::R2 ", $Marpa::R2::VERSION;
 }
 
@@ -54,6 +55,7 @@ if ( !$do_only ) {
     $do_thinsl  //= 1;
     $do_retrace //= 1;
     $do_resl //= 1;
+    $do_sixish //= 0;
     $do_r2      //= 1;
     $do_flm     //= 0;
     $do_flmsl     //= 1;
@@ -76,7 +78,13 @@ my $op_alternative_args_ignore =
 my $op_alternative_ignore = Marpa::R2::Thin::op('alternative;ignore');
 my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
-do './sixish.pm';
+for my $file ('./sixish.pm') {
+    unless ( my $return = do $file ) {
+        warn "couldn't parse $file: $@" if $@;
+        warn "couldn't do $file: $!" unless defined $return;
+        warn "couldn't run $file" unless $return;
+    }
+} ## end for $file ('./sixish.pm')
 
 my $s;
 
@@ -146,7 +154,7 @@ my $retrace_answer_shown;
 my $resl_answer_shown;
 my $regex_old_answer_shown;
 my $regex_answer_shown;
-my $sixish_answer_shown;
+our $sixish_answer_shown;
 
 my $grammar_args = {
     start => 'S',
@@ -1129,6 +1137,8 @@ $tests->{retrace} = sub { do_retrace($s) }
     if $do_retrace;
 $tests->{resl} = sub { do_resl($s) }
     if $do_resl;
+$tests->{sixish} = sub { do_sixish($s) }
+    if $do_sixish;
 $tests->{regex} = sub { do_regex($s) }
     if $do_regex;
 $tests->{thin} = sub { do_thin($s) }
@@ -1162,6 +1172,13 @@ if ($do_resl) {
         $resl_answer_shown eq $answer
         ? 'Resl Answer matches'
         : 'Resl ANSWER DOES NOT MATCH!'
+    );
+}
+if ($do_sixish) {
+    say +(
+        $sixish_answer_shown eq $answer
+        ? 'Sixish Answer matches'
+        : 'Sixish ANSWER DOES NOT MATCH!'
     );
 }
 if ($do_flm) {
