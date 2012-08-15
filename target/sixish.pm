@@ -29,7 +29,7 @@ sub sixish_new {
     my $s_quoted_literal   = $sixish_grammar->symbol_new();
     my $s_right_angle      = $sixish_grammar->symbol_new();
     my $s_self             = $sixish_grammar->symbol_new();
-    my $s_start             = $sixish_grammar->symbol_new();
+    my $s_start            = $sixish_grammar->symbol_new();
     my $s_single_quote     = $sixish_grammar->symbol_new();
     my $s_tilde            = $sixish_grammar->symbol_new();
     my $s_ws_char          = $sixish_grammar->symbol_new();
@@ -48,7 +48,7 @@ sub sixish_new {
     $sixish_grammar->sequence_new( $s_literal_char_seq, $s_literal_char,
         { min => 0 } );
     $sixish_grammar->rule_new( $s_literal_char, [$s_char] );
-    $sixish_grammar->rule_new( $s_atom, [$s_self] );
+    $sixish_grammar->rule_new( $s_atom,         [$s_self] );
     $sixish_grammar->rule_new( $s_self,
         [ $s_left_angle, $s_tilde, $s_tilde, $s_right_angle ] );
     $sixish_grammar->rule_new( $s_quantifier, [$s_asterisk] );
@@ -56,7 +56,17 @@ sub sixish_new {
     $sixish_grammar->start_symbol_set($s_start);
     $sixish_grammar->precompute();
     return $sixish_grammar;
-} ## end sub sixish_subgrammar
+} ## end sub sixish_new
+
+my $sixish_grammar = sixish_new();
+
+sub sixish_child_new {
+    my ($child_source) = @_;
+    my $sixish_recce = Marpa::R2::Thin::R->new($sixish_grammar);
+    $sixish_recce->start_input();
+    $sixish_recce->input_string_set($child_source);
+    $sixish_recce->input_string_read();
+}
 
 sub pre_sixish_subgrammar {
     my $child_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
@@ -81,7 +91,7 @@ sub pre_sixish_subgrammar {
 
 sub do_sixish {
     my ( $s ) = @_;
-    sixish_new();
+    sixish_child_new($sixish_grammar, $paren_grammar);
     my $child_grammar = pre_sixish_subgrammar( $paren_grammar );
     my ( $start_of_match, $end_of_match ) = sixish_find( $child_grammar, $s );
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
