@@ -76,6 +76,8 @@ my $op_alternative_args_ignore =
 my $op_alternative_ignore = Marpa::R2::Thin::op('alternative;ignore');
 my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
+do './sixish.pm';
+
 my $s;
 
 CREATE_STRING: {
@@ -144,6 +146,7 @@ my $retrace_answer_shown;
 my $resl_answer_shown;
 my $regex_old_answer_shown;
 my $regex_answer_shown;
+my $sixish_answer_shown;
 
 my $grammar_args = {
     start => 'S',
