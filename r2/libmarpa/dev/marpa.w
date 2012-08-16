@@ -8699,10 +8699,7 @@ exist.
 @ If there are no alternatives for this earleme
 return 0 without creating an
 Earley set.
-The return value of 0 indicates that there are no terminals
-which will be accepted at this earleme.
-In the default (token stream) model of input,
-this means that the parse is exhausted.
+The return value means success, with no events.
 @<Return 0 if no alternatives@> = {
     ALT top_of_stack = DSTACK_TOP(r->t_alternatives, ALT_Object);
     if (!top_of_stack) return 0;
