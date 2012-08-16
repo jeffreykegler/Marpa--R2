@@ -16,6 +16,7 @@ my $paren_grammar = q{'(' <~~>* ')'};
 sub sixish_new {
     my $sixish_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
     my %char_to_symbol = ();
+    my @regex_to_symbol = ();
 
     $char_to_symbol{'*'}  = $sixish_grammar->symbol_new();
     $char_to_symbol{'<'}  = $sixish_grammar->symbol_new();
@@ -23,8 +24,12 @@ sub sixish_new {
     $char_to_symbol{q{'}} = $sixish_grammar->symbol_new();
     $char_to_symbol{'~'}  = $sixish_grammar->symbol_new();
 
-    my $s_atom             = $sixish_grammar->symbol_new();
+    my $s_ws_char          = $sixish_grammar->symbol_new();
+    push @regex_to_symbol, [ qr/\s/xms, $s_ws_char ];
     my $s_char             = $sixish_grammar->symbol_new();
+    push @regex_to_symbol, [ qr/./xms, $s_char ];
+
+    my $s_atom             = $sixish_grammar->symbol_new();
     my $s_concatenation    = $sixish_grammar->symbol_new();
     my $s_literal_char     = $sixish_grammar->symbol_new();
     my $s_literal_char_seq = $sixish_grammar->symbol_new();
@@ -34,7 +39,6 @@ sub sixish_new {
     my $s_quoted_literal   = $sixish_grammar->symbol_new();
     my $s_self             = $sixish_grammar->symbol_new();
     my $s_start            = $sixish_grammar->symbol_new();
-    my $s_ws_char          = $sixish_grammar->symbol_new();
 
     $sixish_grammar->rule_new( $s_start, [$s_concatenation] );
     $sixish_grammar->rule_new( $s_concatenation, [] );
@@ -62,19 +66,23 @@ sub sixish_new {
 
     $sixish_grammar->start_symbol_set($s_start);
     $sixish_grammar->precompute();
-    return $sixish_grammar, \%char_to_symbol;
+    return $sixish_grammar, \%char_to_symbol, \@regex_to_symbol;
 } ## end sub sixish_new
 
-my ( $sixish_grammar, $sixish_char_to_symbol ) = sixish_new();
+my ( $sixish_grammar, $sixish_char_to_symbol, $sixish_regex_to_symbol ) =
+    sixish_new();
 
 sub sixish_child_new {
     my ($child_source) = @_;
     my $sixish_recce = Marpa::R2::Thin::R->new($sixish_grammar);
     $sixish_recce->start_input();
     while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol} ) {
+	my @alternatives = ($symbol);
+	push @alternatives, map { $_[1] } grep { $char =~ $_[0] } @{$sixish_regex_to_symbol};
         $sixish_recce->char_register(
-            ord($char), $op_alternative_ignore,
-            $symbol,    $op_earleme_complete
+            ord($char),
+	    (map { ($op_alternative_ignore, $_ ) } @alternatives),
+            $op_earleme_complete
         );
     } ## end while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol...})
     $sixish_recce->input_string_set($child_source);
