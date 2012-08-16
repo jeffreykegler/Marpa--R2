@@ -863,10 +863,7 @@ PPCODE:
 	    }
 	}
       ops = r_wrapper->oplists_by_byte[codepoint];
-      if (!ops)
-	{
-	  croak ("Unregistered codepoint (0x%lx)", (unsigned long) codepoint);
-	}
+      if ( !ops ) { XSRETURN_IV(-2); }
       /* ops[0] is codepoint */
       op_count = ops[1];
       for (op_ix = 2; op_ix < op_count; op_ix++)
@@ -935,6 +932,14 @@ PPCODE:
 		    return_value = result;
 		    /* Advance one character before returning */
 		    goto ADVANCE_ONE_CHAR;
+		  }
+		if (result == -2)
+		  {
+		    const Marpa_Error_Code error = marpa_g_error (r_wrapper->base->g, NULL);
+		    if (error == MARPA_ERR_PARSE_EXHAUSTED)
+		      {
+			XSRETURN_IV(-3);
+		      }
 		  }
 		if (result < 0)
 		  {

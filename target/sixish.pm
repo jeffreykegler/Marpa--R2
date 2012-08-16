@@ -77,16 +77,31 @@ sub sixish_child_new {
     my $sixish_recce = Marpa::R2::Thin::R->new($sixish_grammar);
     $sixish_recce->start_input();
     while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol} ) {
-	my @alternatives = ($symbol);
-	push @alternatives, map { $_[1] } grep { $char =~ $_[0] } @{$sixish_regex_to_symbol};
-        $sixish_recce->char_register(
-            ord($char),
-	    (map { ($op_alternative_ignore, $_ ) } @alternatives),
-            $op_earleme_complete
-        );
+        my @alternatives = ($symbol);
+        push @alternatives,
+            map { $_->[1] } grep { $char =~ $_->[0] } @{$sixish_regex_to_symbol};
+        $sixish_recce->char_register( ord($char),
+            ( map { ( $op_alternative_ignore, $_ ) } @alternatives ),
+            $op_earleme_complete );
     } ## end while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol...})
     $sixish_recce->input_string_set($child_source);
-    $sixish_recce->input_string_read();
+    READ: while (1) {
+        my $event_count = $sixish_recce->input_string_read();
+        last READ if not defined $event_count;
+        if ( $event_count == -2 ) {
+            my $char = substr $child_source,
+                $sixish_recce->input_string_pos(), 1;
+            my @alternatives =
+                map { $_->[1] }
+		@{$sixish_regex_to_symbol};
+            $sixish_recce->char_register( ord($char),
+                ( map { ( $op_alternative_ignore, $_ ) } @alternatives ),
+                $op_earleme_complete );
+	      next READ;
+        } ## end if ( $event_count == -2 )
+        die "input_string_read(): $event_count, char=",
+            ( substr $child_source, $sixish_recce->input_string_pos(), 1 );
+    } ## end READ: while (1)
 } ## end sub sixish_child_new
 
 sub pre_sixish_subgrammar {
