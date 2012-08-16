@@ -15,23 +15,25 @@ my $paren_grammar = q{'(' <~~>* ')'};
 
 sub sixish_new {
     my $sixish_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+    my %char_to_symbol = ();
 
-    my $s_asterisk         = $sixish_grammar->symbol_new();
+    $char_to_symbol{'*'}  = $sixish_grammar->symbol_new();
+    $char_to_symbol{'<'}  = $sixish_grammar->symbol_new();
+    $char_to_symbol{'>'}  = $sixish_grammar->symbol_new();
+    $char_to_symbol{q{'}} = $sixish_grammar->symbol_new();
+    $char_to_symbol{'~'}  = $sixish_grammar->symbol_new();
+
     my $s_atom             = $sixish_grammar->symbol_new();
     my $s_char             = $sixish_grammar->symbol_new();
     my $s_concatenation    = $sixish_grammar->symbol_new();
-    my $s_left_angle       = $sixish_grammar->symbol_new();
     my $s_literal_char     = $sixish_grammar->symbol_new();
     my $s_literal_char_seq = $sixish_grammar->symbol_new();
     my $s_opt_ws           = $sixish_grammar->symbol_new();
     my $s_quantified_atom  = $sixish_grammar->symbol_new();
     my $s_quantifier       = $sixish_grammar->symbol_new();
     my $s_quoted_literal   = $sixish_grammar->symbol_new();
-    my $s_right_angle      = $sixish_grammar->symbol_new();
     my $s_self             = $sixish_grammar->symbol_new();
     my $s_start            = $sixish_grammar->symbol_new();
-    my $s_single_quote     = $sixish_grammar->symbol_new();
-    my $s_tilde            = $sixish_grammar->symbol_new();
     my $s_ws_char          = $sixish_grammar->symbol_new();
 
     $sixish_grammar->rule_new( $s_start, [$s_concatenation] );
@@ -44,29 +46,40 @@ sub sixish_new {
         [ $s_atom, $s_opt_ws, $s_quantifier ] );
     $sixish_grammar->rule_new( $s_atom, [$s_quoted_literal] );
     $sixish_grammar->rule_new( $s_quoted_literal,
-        [ $s_single_quote, $s_literal_char_seq, $s_single_quote ] );
+        [ $char_to_symbol{q{'}}, $s_literal_char_seq, $char_to_symbol{q{'}} ]
+    );
     $sixish_grammar->sequence_new( $s_literal_char_seq, $s_literal_char,
         { min => 0 } );
     $sixish_grammar->rule_new( $s_literal_char, [$s_char] );
     $sixish_grammar->rule_new( $s_atom,         [$s_self] );
-    $sixish_grammar->rule_new( $s_self,
-        [ $s_left_angle, $s_tilde, $s_tilde, $s_right_angle ] );
-    $sixish_grammar->rule_new( $s_quantifier, [$s_asterisk] );
+    $sixish_grammar->rule_new(
+        $s_self,
+        [   $char_to_symbol{'<'}, $char_to_symbol{'~'},
+            $char_to_symbol{'~'}, $char_to_symbol{'>'}
+        ]
+    );
+    $sixish_grammar->rule_new( $s_quantifier, [ $char_to_symbol{'*'} ] );
 
     $sixish_grammar->start_symbol_set($s_start);
     $sixish_grammar->precompute();
-    return $sixish_grammar;
+    return $sixish_grammar, \%char_to_symbol;
 } ## end sub sixish_new
 
-my $sixish_grammar = sixish_new();
+my ( $sixish_grammar, $sixish_char_to_symbol ) = sixish_new();
 
 sub sixish_child_new {
     my ($child_source) = @_;
     my $sixish_recce = Marpa::R2::Thin::R->new($sixish_grammar);
     $sixish_recce->start_input();
+    while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol} ) {
+        $sixish_recce->char_register(
+            ord($char), $op_alternative_ignore,
+            $symbol,    $op_earleme_complete
+        );
+    } ## end while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol...})
     $sixish_recce->input_string_set($child_source);
     $sixish_recce->input_string_read();
-}
+} ## end sub sixish_child_new
 
 sub pre_sixish_subgrammar {
     my $child_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
@@ -91,7 +104,7 @@ sub pre_sixish_subgrammar {
 
 sub do_sixish {
     my ( $s ) = @_;
-    sixish_child_new($sixish_grammar, $paren_grammar);
+    sixish_child_new($paren_grammar);
     my $child_grammar = pre_sixish_subgrammar( $paren_grammar );
     my ( $start_of_match, $end_of_match ) = sixish_find( $child_grammar, $s );
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
