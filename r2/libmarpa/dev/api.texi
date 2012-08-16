@@ -57,7 +57,7 @@ This manual is for Libmarpa, version @value{VERSION}.
 * Tree methods::                
 * Value methods::               
 * Events::                      
-* Error macros and codes::      
+* Error methods macros and codes::  
 * Design notes::                
 * Work in Progress::            
 * GNU Free Documentation License::  
@@ -171,9 +171,9 @@ Events
 * Event methods::               
 * Event codes::                 
 
-Error macros and codes
+Error methods, macros and codes
 
-* Methods::                     
+* Error methods::               
 * Error Macros::                
 * External error codes::        
 * Internal error codes::        
@@ -3525,7 +3525,7 @@ the Earley Set ordinal where the token begins.
 If the current step type is anything else, an unspecified value.
 @end deftypefn
 
-@node Events, Error macros and codes, Value methods, Top
+@node Events, Error methods macros and codes, Value methods, Top
 @chapter Events
 
 @menu
@@ -3662,18 +3662,18 @@ Event value: The ID of the expected symbol.
 Suggested message: "Expecting symbol".
 @end deftypevr
 
-@node Error macros and codes, Design notes, Events, Top
-@chapter Error macros and codes
+@node Error methods macros and codes, Design notes, Events, Top
+@chapter Error methods, macros and codes
 
 @menu
-* Methods::                     
+* Error methods::               
 * Error Macros::                
 * External error codes::        
 * Internal error codes::        
 @end menu
 
-@node Methods, Error Macros, Error macros and codes, Error macros and codes
-@section Methods
+@node Error methods, Error Macros, Error methods macros and codes, Error methods macros and codes
+@section Error methods
 
 @deftypefun Marpa_Error_Code marpa_g_error @
     ( Marpa_Grammar @var{g}, @
@@ -3702,7 +3702,7 @@ Return value: @code{MARPA_ERR_NONE}.
 Always succeeds.
 @end deftypefun
 
-@node Error Macros, External error codes, Methods, Error macros and codes
+@node Error Macros, External error codes, Error methods, Error methods macros and codes
 @section Error Macros
 
 @deftypevr Macro int MARPA_ERRCODE_COUNT
@@ -3712,7 +3712,7 @@ will be integers, non-negative but
 strictly less than @code{MARPA_ERRCODE_COUNT}.
 @end deftypevr
 
-@node External error codes, Internal error codes, Error Macros, Error macros and codes
+@node External error codes, Internal error codes, Error Macros, Error methods macros and codes
 @section External error codes
 
 This section lists the external error codes.
@@ -4317,7 +4317,7 @@ Numeric value: 88.
 Suggested message: "Symbol is not used".
 @end deftypevr
 
-@node Internal error codes,  , External error codes, Error macros and codes
+@node Internal error codes,  , External error codes, Error methods macros and codes
 @section Internal error codes
 
 An internal error code may be one of two things:
@@ -4462,7 +4462,7 @@ Numeric value: 67.
 Numeric value: 72.
 @end deftypevr
 
-@node Design notes, Work in Progress, Error macros and codes, Top
+@node Design notes, Work in Progress, Error methods macros and codes, Top
 @chapter Design notes
 
 Design apologetics are
