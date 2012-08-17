@@ -1,14 +1,19 @@
 \input texinfo @c -*-texinfo-*-
 @c %**start of header
 @setfilename api.info
-@settitle Libmarpa @value{VERSION}
-@c %**end of header
 @include version.texi
+@settitle Libmarpa @value{VERSION}
+@finalout
+@c %**end of header
+
 @copying
 This manual (@value{UPDATED})
 is for Libmarpa @value{VERSION}.
+
 Copyright @copyright{} 2012 Jeffrey Kegler.
+
 Libmarpa is alpha software.
+
 @quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the @acronym{GNU} Free Documentation License,
@@ -18,12 +23,13 @@ A copy of the license is included in the section entitled
 ``@acronym{GNU} Free Documentation License.''
 @end quotation
 @end copying
-@finalout
+
 @titlepage
 @title Libmarpa
 @subtitle Version @value{VERSION}
 @subtitle @value{UPDATED}
 @author Jeffrey Kegler
+
 @c The following two commands
 @c start the copyright page.
 @page
@@ -34,15 +40,15 @@ Published @value{UPDATED} by Jeffrey Kegler
 @end titlepage
 @c So the toc is printed at the start.
 @contents
+
 @ifnottex
-@node Top, Copying Conditions, (dir), (dir)
+@node Top, Copying, (dir), (dir)
 @top Libmarpa: The Marpa low-level library
-
-This manual is for Libmarpa, version @value{VERSION}.
-
+@insertcopying
 @end ifnottex
+
 @menu
-* Copying Conditions::          
+* Copying::                     
 * About this document::         
 * About Libmarpa::              
 * Architecture::                
@@ -195,15 +201,11 @@ Work in Progress
 @end detailmenu
 @end menu
 
-@node Copying Conditions, About this document, Top, Top
-@unnumbered Texinfo Copying Conditions
-@cindex Copying conditions
+@node Copying, About this document, Top, Top
+@unnumbered GNU LESSER GENERAL PUBLIC LICENSE
+@include lgpl-3.0.texi
 
-This manual is covered by
-the GNU Free Documentation License (@pxref{GNU Free Documentation
-License}).
-
-@node About this document, About Libmarpa, Copying Conditions, Top
+@node About this document, About Libmarpa, Copying, Top
 @chapter About this document
 
 @menu

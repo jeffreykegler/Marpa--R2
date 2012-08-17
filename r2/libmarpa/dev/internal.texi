@@ -1,14 +1,19 @@
 \input texinfo @c -*-texinfo-*-
 @c %**start of header
 @setfilename internal.info
-@settitle Libmarpa @value{VERSION}
-@c %**end of header
 @include version_i.texi
+@settitle Libmarpa @value{VERSION}
+@finalout
+@c %**end of header
+
 @copying
 This manual (@value{UPDATED})
 is for the internals of Libmarpa @value{VERSION}.
+
 Copyright @copyright{} 2012 Jeffrey Kegler.
+
 Libmarpa is alpha software.
+
 @quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the @acronym{GNU} Free Documentation License,
@@ -18,7 +23,7 @@ A copy of the license is included in the section entitled
 ``@acronym{GNU} Free Documentation License.''
 @end quotation
 @end copying
-@finalout
+
 @titlepage
 @title Libmarpa internals
 @subtitle Version @value{VERSION}
@@ -34,25 +39,21 @@ Published @value{UPDATED} by Jeffrey Kegler
 @end titlepage
 @c So the toc is printed at the start.
 @contents
+
 @ifnottex
-@node Top, Copying Conditions, (dir), (dir)
+@node Top, Copying, (dir), (dir)
 @top Libmarpa internals
-
-This manual is for the internal portions of Libmarpa, version @value{VERSION}.
-
+@insertcopying
 @end ifnottex
+
 @menu
-* Copying Conditions::          
+* Copying::                     
 * About this document::         
 * Internal Interface::          
 * GNU Free Documentation License::  
 
 @detailmenu
  --- The Detailed Node Listing ---
-
-About this document
-
-* How to read this document::   
 
 Internal Interface
 
@@ -68,23 +69,12 @@ Internal Interface
 @end detailmenu
 @end menu
 
-@node Copying Conditions, About this document, Top, Top
-@unnumbered Texinfo Copying Conditions
-@cindex Copying conditions
+@node Copying, About this document, Top, Top
+@unnumbered GNU LESSER GENERAL PUBLIC LICENSE
+@include lgpl-3.0.texi
 
-This manual is covered by
-the GNU Free Documentation License (@pxref{GNU Free Documentation
-License}).
-
-@node About this document, Internal Interface, Copying Conditions, Top
+@node About this document, Internal Interface, Copying, Top
 @chapter About this document
-
-@menu
-* How to read this document::   
-@end menu
-
-@node How to read this document,  , About this document, About this document
-@section How to read this document
 
 This manual is a tool
 for is those working on the Libmarpa internals.
