@@ -17,4 +17,8 @@
 
 ACLOCAL_AMFLAGS = -I m4
 info_TEXINFOS = api.texi internal.texi
+api_TEXINFOS = fdl-1.3.texi
+internal_TEXINFOS = fdl-1.3.texi
+
+
 
