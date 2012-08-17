@@ -65,12 +65,18 @@ In the Marpa::R2 distribution, the GNU Lesser General Public License
 version 3 should be in a file named "COPYING.LESSER".
 END_OF_STRING
 
-my $fdl_license = <<'END_OF_FDL_LANGUAGE';
+my $texi_copyright = <<'END_OF_TEXI_COPYRIGHT';
 Copyright @copyright{} 2012 Jeffrey Kegler.
+END_OF_TEXI_COPYRIGHT
+
+my $fdl_license = <<'END_OF_FDL_LANGUAGE';
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation;
+under the terms of the @acronym{GNU} Free Documentation License,
+Version 1.3 or any later version published by the Free Software
+Foundation.
+A copy of the license is included in the section entitled
+``@acronym{GNU} Free Documentation License.''
 @end quotation
 @end copying
 END_OF_FDL_LANGUAGE
@@ -280,7 +286,9 @@ my %files_by_type = (
     'libmarpa/dev/dist/NEWS'        => \&trivial,
     'libmarpa/dev/dist/README'      => \&license_problems_in_text_file,
     'libmarpa/dev/doc_dist/AUTHORS' => \&trivial,
-    'libmarpa/dev/doc_dist/fdl.texi' =>
+    'libmarpa/dev/doc_dist/fdl-1.3.texi' =>
+        \&ignored,    # GNU license text, leave it alone
+    'libmarpa/dev/doc_dist/lgpl-3.0.texi' =>
         \&ignored,    # GNU license text, leave it alone
     'libmarpa/dev/doc_dist/COPYING.LESSER' =>
         \&ignored,    # GNU license text, leave it alone
@@ -754,6 +762,14 @@ sub license_problems_in_fdl_file {
     }
     my @problems = ();
     my $text     = slurp_top($filename);
+    if ( ( index ${$text}, $texi_copyright ) < 0 ) {
+        my $problem = "Copyright missing in texinfo file $filename\n";
+        if ($verbose) {
+            $problem .= "\nMissing FDL license language:\n"
+                . Text::Diff::diff( $text, \$fdl_license );
+        }
+        push @problems, $problem;
+    }
     if ( ( index ${$text}, $fdl_license ) < 0 ) {
         my $problem = "FDL language missing in text file $filename\n";
         if ($verbose) {
