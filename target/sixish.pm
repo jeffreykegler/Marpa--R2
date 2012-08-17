@@ -102,6 +102,7 @@ sub sixish_child_new {
         die "input_string_read(): $event_count, char=",
             ( substr $child_source, $sixish_recce->input_string_pos(), 1 );
     } ## end READ: while (1)
+
 } ## end sub sixish_child_new
 
 sub pre_sixish_subgrammar {
