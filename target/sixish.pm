@@ -49,6 +49,7 @@ sub sixish_new {
     $tracer->rule_new('opt_ws ::= ');
     $tracer->rule_new('opt_ws ::= opt_ws ws_char');
     $tracer->rule_new('quantified_atom ::= atom opt_ws quantifier');
+    $tracer->rule_new('quantified_atom ::= atom');
     $tracer->rule_new('atom ::= quoted_literal');
     $tracer->rule_new(
         'quoted_literal ::= single_quote single_quoted_char_seq single_quote');
@@ -97,6 +98,7 @@ sub sixish_child_new {
                 $op_earleme_complete );
             next READ;
         } ## end if ( $event_count == -2 )
+
         die "input_string_read(): $event_count, char=",
             ( substr $child_source, $sixish_recce->input_string_pos(), 1 );
     } ## end READ: while (1)
@@ -105,6 +107,33 @@ sub sixish_child_new {
     my $bocage = Marpa::R2::Thin::B->new( $sixish_recce, $latest_earley_set_ID );
     my $order  = Marpa::R2::Thin::O->new($bocage);
     my $tree   = Marpa::R2::Thin::T->new($order);
+
+my $valuator = Marpa::R2::Thin::V->new($tree);
+for my $rule_id (0 .. $sixish_grammar->rule_count() - 1) {
+        $valuator->rule_is_valued_set( $rule_id,     1 );
+}
+        my @stack = ();
+        STEP: while ( 1 ) {
+            my ( $type, @step_data ) = $valuator->step();
+            last STEP if not defined $type;
+            if ( $type eq 'MARPA_STEP_TOKEN' ) {
+                my ( undef, $token_value_ix, $arg_n ) = @step_data;
+
+say STDERR join q{ }, $token_value_ix, $arg_n ;
+
+                next STEP;
+            }
+            if ( $type eq 'MARPA_STEP_RULE' ) {
+                my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+
+say STDERR join q{ }, $rule_id, $arg_0, $arg_n ;
+
+                    next STEP;
+                die "Unknown rule $rule_id";
+            } ## end if ( $type eq 'MARPA_STEP_RULE' )
+            die "Unexpected step type: $type";
+        } ## end while ( my ( $type, @step_data ) = $valuator->step() )
+        push @actual_values, $stack[0];
 
 } ## end sub sixish_child_new
 
