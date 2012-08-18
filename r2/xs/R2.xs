@@ -582,7 +582,7 @@ new( class, g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
-  int symbol_count;
+  int highest_symbol_id;
   Marpa_Grammar g = g_wrapper->g;
   SV *sv;
   R_Wrapper *r_wrapper;
@@ -593,15 +593,15 @@ PPCODE:
       if (!g_wrapper->throw) { XSRETURN_UNDEF; }
       croak ("failure in marpa_r_new: %s", xs_g_error (g_wrapper));
     };
-  symbol_count = marpa_g_symbol_count (g);
-  if (symbol_count < 0)
+  highest_symbol_id = marpa_g_highest_symbol_id (g);
+  if (highest_symbol_id < 0)
     {
       if (!g_wrapper->throw) { XSRETURN_UNDEF; }
-      croak ("failure in marpa_g_symbol_count: %s", xs_g_error (g_wrapper));
+      croak ("failure in marpa_g_highest_symbol_id: %s", xs_g_error (g_wrapper));
     };
   Newx (r_wrapper, 1, R_Wrapper);
   r_wrapper->r = r;
-  Newx (r_wrapper->terminals_buffer, symbol_count, Marpa_Symbol_ID);
+  Newx (r_wrapper->terminals_buffer, highest_symbol_id+1, Marpa_Symbol_ID);
   r_wrapper->ruby_slippers = 0;
   r_wrapper->base = g_wrapper;
   r_wrapper->input = newSVpvn("", 0);
@@ -1650,7 +1650,13 @@ PPCODE:
   int result_count;
   int *buffer;
   Marpa_Grammar g = g_wrapper->g;
-  const int symbol_count = marpa_g_symbol_count(g);
+  const int highest_symbol_id = marpa_g_highest_symbol_id(g);
+  const int symbol_count = highest_symbol_id+1;
+  if (highest_symbol_id < 0)
+    {
+      if (!g_wrapper->throw) { XSRETURN_UNDEF; }
+      croak ("failure in marpa_g_highest_symbol_id: %s", xs_g_error (g_wrapper));
+    };
   Newx( buffer, 2 * symbol_count, int);
   result_count =
     _marpa_g_AHFA_state_transitions (g, AHFA_state_id, buffer, 2*symbol_count*sizeof(int));
