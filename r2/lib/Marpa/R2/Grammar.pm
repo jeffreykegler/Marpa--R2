@@ -571,11 +571,18 @@ sub Marpa::R2::Grammar::precompute {
     } ## end if ( $precompute_error_code != $Marpa::R2::Error::NONE)
 
     # Shadow all the new rules
-    RULE:
-    for my $rule_id ( grep { not defined $rules->[$_] }
-        ( 0 .. $grammar_c->rule_count - 1 ) )
     {
-        shadow_rule( $grammar, $rule_id );
+        my $highest_rule_id = $grammar_c->highest_rule_id();
+        RULE:
+        for ( my $rule_id = 0; $rule_id <= $highest_rule_id; $rule_id++ )
+        {
+            next RULE if defined $rules->[$rule_id];
+
+            # The Marpa::R2 logic assumes no "gaps" in the rule numbering,
+            # which is currently the case for Libmarpa,
+            # but not guaranteed.
+            shadow_rule( $grammar, $rule_id );
+        } ## end RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; ...)
     }
 
     my $infinite_action =
@@ -805,11 +812,16 @@ sub Marpa::R2::Grammar::show_rules {
     return $text;
 } ## end sub Marpa::R2::Grammar::show_rules
 
+# This logic tests for gaps in the rule numbering.
+# Currently there are none, but Libmarpa does not
+# guarantee this.
 sub Marpa::R2::Grammar::rule_ids {
-    my ( $grammar ) = @_;
-    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
-    return  0 .. $grammar_c->rule_count() - 1;
-}
+    my ($grammar) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    return
+        grep { $grammar_c->rule_length($_); }
+        0 .. $grammar_c->highest_rule_id();
+} ## end sub Marpa::R2::Grammar::rule_ids
 
 sub Marpa::R2::Grammar::rule {
     my ( $grammar, $rule_id ) = @_;

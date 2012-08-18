@@ -1606,31 +1606,36 @@ On failure, @minus{}2.
 @node Rules, Sequences, Symbols, Grammar methods
 @section Rules
 
-@deftypefun int marpa_g_rule_count (Marpa_Grammar @var{g})
-Return value: On success, the current number of rules in grammar @var{g}.
+@deftypefun int marpa_g_highest_rule_id (Marpa_Grammar @var{g})
+Return value: On success, the numerically largest rule ID
+of @var{g}.
 On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_accessible (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{id})
+    Marpa_Rule_ID @var{rule_id})
 A rule is @dfn{accessible} if it can be reached from the start symbol.
 A rule is accessible if and only if its LHS symbol is accessible.
 The start rule is always an accessible rule.
 
 Return value: On success, 1 if rule @var{rule_id}
 is accessible, 0 if not.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
 If the grammar
 is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_nullable ( @
-  Marpa_Grammar g, Marpa_Rule_ID ruleid)
+  Marpa_Grammar @var{g}, Marpa_Rule_ID @var{ruleid})
 A rule is @dfn{nullable} if it sometimes produces the empty string.
 A @strong{nulling} rule is always a @strong{nullable} rule,
 but not all @strong{nullable} rules are @strong{nulling} rules.
 
 Return value: On success,
 1 if rule @var{ruleid} is nullable, 0 if not.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
 If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
@@ -1640,6 +1645,8 @@ A rule is @dfn{nulling} if it always produces the empty string.
 
 Return value: On success,
 1 if rule @var{ruleid} is nulling, 0 if not.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
 If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
@@ -1661,12 +1668,14 @@ loop rules.
 
 Return value: On success,
 1 if rule @var{rule_id} is a loop rule, 0 if not.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
 If the grammar
 is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_rule_is_productive (Marpa_Grammar @var{g}, @
-    Marpa_Rule_ID @var{id})
+    Marpa_Rule_ID @var{rule_id})
 A rule is @dfn{productive} if it can produce a string of terminals.
 An rule is productive if and only if all the symbols on
 its RHS are productive.
@@ -1677,6 +1686,8 @@ an empty rule is considered productive.
 
 Return value: On success,
 1 if rule @var{rule_id} is productive, 0 if not.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
 If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
@@ -1693,7 +1704,9 @@ On failure, @minus{}2.
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
 Return value: On success, the LHS symbol of rule @var{rule_id}.
-On failure, @minus{}2.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
+On other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun Marpa_Rule_ID marpa_g_rule_new (Marpa_Grammar @var{g}, @
@@ -1734,6 +1747,8 @@ The RHS position, @var{ix}, is zero-based.
 Return value: On success,
 the ID of the symbol in position @var{ix}
 on the rules RHS.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
 If @var{ix} is greater than or equal to the length of
 the rule,
 or on other failure, @minus{}2.
@@ -1754,6 +1769,8 @@ is set, 1.
 On success, if rule @var{rule_id}
 is a sequence rule where the proper separation flag
 is @strong{not} set, 0.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
 On failure, @minus{}2.
 @end deftypefun
 
@@ -1764,6 +1781,8 @@ Return value:
 On success,
 if rule @var{rule_id} is a sequence rule, 1;
 otherwise, 0.
+If @var{rule_id} is well-formed, but there is no
+such rule, -1.
 On failure, @minus{}2.
 @end deftypefun
 
@@ -3911,14 +3930,20 @@ Suggested message: "Specified start symbol is not valid".
 
 @deftypevr Macro int MARPA_ERR_INVALID_RULE_ID
 A method was called with an invalid rule ID.
+This is a rule ID which not only does
+not exist, but cannot exist.
+Currently that means its value is less than zero.
 Numeric value: 26.
-Suggested message: "No rule with that ID exists".
+Suggested message: "Rule ID is malformed".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_SYMBOL_ID
 A method was called with an invalid symbol ID.
+This is a symbol ID which not only does
+not exist, but cannot exist.
+Currently that means its value is less than zero.
 Numeric value: 28.
-Suggested message: "No symbol with that ID exists".
+Suggested message: "Symbol ID is malformed".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_MAJOR_VERSION_MISMATCH
@@ -3993,6 +4018,20 @@ Usually the problem is that the user is
 trying to precompute the grammar.
 Numeric value: 43.
 Suggested message: "This grammar has no start symbol".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_SUCH_RULE_ID
+A method was called with a rule ID which is well-formed,
+but the rule does not exist.
+Numeric value: 89.
+Suggested message: "No rule with this ID exists".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_NO_SUCH_SYMBOL_ID
+A method was called with a symbol ID which is well-formed,
+but the symbol does not exist.
+Numeric value: 90.
+Suggested message: "No symbol with this ID exists".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_NO_TOKEN_EXPECTED_HERE

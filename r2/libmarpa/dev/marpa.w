@@ -779,10 +779,10 @@ The |rule_tree| is a tree for detecting duplicates.
 @ @d XRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_xrl_stack))
 @ @d IRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_irl_stack))
 @ @<Function definitions@> =
-int marpa_g_rule_count(Marpa_Grammar g) {
+int marpa_g_highest_rule_id(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
    @<Fail if fatal error@>@;
-   return XRL_Count_of_G(g);
+   return XRL_Count_of_G(g) - 1;
 }
 int _marpa_g_irl_count(Marpa_Grammar g) {
   @<Return |-2| on failure@>@;
@@ -809,11 +809,10 @@ rule_add (GRAMMAR g, RULE rule)
 }
 
 @ Check that rule is in valid range.
-@d XRLID_of_G_is_Valid(rule_id)
-    ((rule_id) >= 0 && (rule_id) < XRL_Count_of_G(g))
+@d XRLID_of_G_is_Malformed(rule_id) ((rule_id) < 0)
+@d XRLID_of_G_Exists(rule_id) ((rule_id) < XRL_Count_of_G(g))
 @d IRLID_of_G_is_Valid(irl_id)
     ((irl_id) >= 0 && (irl_id) < IRL_Count_of_G(g))
-@d RULEID_of_G_is_Valid(g, rule_id) XRLID_of_G_is_Valid(rule_id)
 
 @*0 Start symbol.
 @<Int aligned grammar elements@> = XSYID t_start_xsyid;
@@ -2113,7 +2112,8 @@ PRIVATE Marpa_Symbol_ID rule_lhs_get(RULE rule)
 Marpa_Symbol_ID marpa_g_rule_lhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id) {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     return rule_lhs_get(XRL_by_ID(xrl_id));
 }
 @ @<Function definitions@> =
@@ -2125,7 +2125,8 @@ Marpa_Symbol_ID marpa_g_rule_rhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) 
     RULE rule;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     rule = XRL_by_ID(xrl_id);
     if (ix < 0) {
       MARPA_ERROR(MARPA_ERR_RHS_IX_NEGATIVE);
@@ -2142,7 +2143,8 @@ Marpa_Symbol_ID marpa_g_rule_rhs(Marpa_Grammar g, Marpa_Rule_ID xrl_id, int ix) 
 int marpa_g_rule_length(Marpa_Grammar g, Marpa_Rule_ID xrl_id) {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     return Length_of_XRL(XRL_by_ID(xrl_id));
 }
 
@@ -2176,7 +2178,8 @@ int marpa_g_rule_rank(Marpa_Grammar g,
     XRL xrl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
     return Rank_of_XRL(xrl);
 }
@@ -2188,7 +2191,8 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, Marpa_Rank rank)
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
     if (UNLIKELY (rank < MINIMUM_RANK))
       {
@@ -2221,7 +2225,8 @@ int marpa_g_rule_null_high (Marpa_Grammar g,
     XRL xrl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
     return Null_Ranks_High_of_RULE(xrl);
 }
@@ -2233,7 +2238,8 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, int flag)
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
     if (UNLIKELY (flag < 0 || flag > 1))
       {
@@ -2264,7 +2270,8 @@ int marpa_g_rule_is_sequence(
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     return XRL_is_Sequence(XRL_by_ID(xrl_id));
 }
 
@@ -2309,7 +2316,8 @@ int _marpa_g_rule_is_keep_separation(
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     return !XRL_by_ID(xrl_id)->t_is_discard;
 }
 
@@ -2348,7 +2356,8 @@ int marpa_g_rule_is_proper_separation(
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     return !XRL_is_Proper_Separation(XRL_by_ID(xrl_id));
 }
 
@@ -2366,7 +2375,8 @@ int marpa_g_rule_is_loop(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
   @<Return |-2| on failure@>@;
   @<Fail if fatal error@>@;
-  @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
   @<Fail if not precomputed@>@;
   return XRL_by_ID(xrl_id)->t_is_loop;
 }
@@ -2383,7 +2393,8 @@ int marpa_g_rule_is_nulling(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
   @<Return |-2| on failure@>@;
   XRL xrl;
   @<Fail if fatal error@>@;
-  @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
   xrl = XRL_by_ID(xrl_id);
   return XRL_is_Nulling(xrl);
 }
@@ -2400,7 +2411,8 @@ int marpa_g_rule_is_nullable(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
   @<Return |-2| on failure@>@;
   XRL xrl;
   @<Fail if fatal error@>@;
-  @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
   xrl = XRL_by_ID(xrl_id);
   return XRL_is_Nullable(xrl);
 }
@@ -2417,7 +2429,8 @@ int marpa_g_rule_is_accessible(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
   @<Return |-2| on failure@>@;
   XRL xrl;
   @<Fail if fatal error@>@;
-  @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
   xrl = XRL_by_ID(xrl_id);
   return XRL_is_Accessible(xrl);
 }
@@ -2434,7 +2447,8 @@ int marpa_g_rule_is_productive(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
   @<Return |-2| on failure@>@;
   XRL xrl;
   @<Fail if fatal error@>@;
-  @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
   xrl = XRL_by_ID(xrl_id);
   return XRL_is_Productive(xrl);
 }
@@ -2449,7 +2463,8 @@ int
 _marpa_g_rule_is_used(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
   @<Return |-2| on failure@>@;
-  @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
   return XRL_is_Used(XRL_by_ID(xrl_id));
 }
 
@@ -12903,7 +12918,8 @@ int marpa_v_rule_is_valued_set (
 	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
       }
-    @<Fail if |xrl_id| is invalid@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Soft fail if |xrl_id| does not exist@>@;
     {
       const XRL xrl = XRL_by_ID (xrl_id);
       const XSYID xsyid = LHS_ID_of_XRL (xrl);
@@ -14440,8 +14456,15 @@ if (UNLIKELY(!IRLID_of_G_is_Valid(irl_id))) {
     MARPA_ERROR (MARPA_ERR_INVALID_IRLID);
     return failure_indicator;
 }
-@ @<Fail if |xrl_id| is invalid@> =
-if (UNLIKELY(!XRLID_of_G_is_Valid(xrl_id))) {
+@ Fail with |-1| for invalid rule ID.
+@<Soft fail if |xrl_id| does not exist@> =
+if (UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
+    MARPA_ERROR (MARPA_ERR_NO_SUCH_RULE_ID);
+    return -1;
+}
+@
+@<Fail if |xrl_id| is malformed@> =
+if (UNLIKELY(XRLID_of_G_is_Malformed(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_INVALID_RULE_ID);
     return failure_indicator;
 }
