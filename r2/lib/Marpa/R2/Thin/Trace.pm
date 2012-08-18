@@ -93,4 +93,32 @@ sub symbol_new {
    return $self->symbol_name_set($name, $self->{g}->symbol_new());
 }
 
+sub dotted_rule {
+    my ( $self, $rule_id, $dot_position ) = @_;
+    my $grammar     = $self->{g};
+    my $rule_length = $grammar->rule_length($rule_id);
+    my $lhs         = $self->symbol_name( $grammar->rule_lhs($rule_id) );
+    my @rhs =
+        map { $self->symbol_name( $grammar->rule_rhs( $rule_id, $_ ) ) }
+        ( 0 .. $rule_length - 1 );
+    $dot_position = 0 if $dot_position < 0;
+    splice( @rhs, $dot_position, 0, q{.} );
+    return join q{ }, $lhs, q{::=}, @rhs;
+} ## end sub dotted_rule
+
+sub progress_report {
+    my ( $self, $recce, $ordinal ) = @_;
+    my $result = q{};
+    $ordinal //= $recce->latest_earley_set();
+    $recce->progress_report_start($ordinal);
+    ITEM: while (1) {
+        my ( $rule_id, $dot_position, $origin ) = $recce->progress_item();
+        last ITEM if not defined $rule_id;
+        $result .= $self->dotted_rule( $rule_id, $dot_position ) . q{ @}
+            . $origin . "\n";
+    } ## end ITEM: while (1)
+    $recce->progress_report_finish();
+    return $result;
+} ## end sub progress_report
+
 1;

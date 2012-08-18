@@ -64,10 +64,10 @@ sub sixish_new {
 
     $sixish_grammar->start_symbol_set( $tracer->symbol_by_name('start'), );
     $sixish_grammar->precompute();
-    return $sixish_grammar, \%char_to_symbol, \@regex_to_symbol;
+    return $tracer, $sixish_grammar, \%char_to_symbol, \@regex_to_symbol;
 } ## end sub sixish_new
 
-my ( $sixish_grammar, $sixish_char_to_symbol, $sixish_regex_to_symbol ) =
+my ( $sixish_tracer, $sixish_grammar, $sixish_char_to_symbol, $sixish_regex_to_symbol ) =
     sixish_new();
 
 sub sixish_child_new {
