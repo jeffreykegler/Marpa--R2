@@ -863,7 +863,10 @@ PPCODE:
 	    }
 	}
       ops = r_wrapper->oplists_by_byte[codepoint];
-      if ( !ops ) { XSRETURN_IV(-2); }
+      if (!ops)
+	{
+	  XSRETURN_IV (-2);
+	}
       /* ops[0] is codepoint */
       op_count = ops[1];
       for (op_ix = 2; op_ix < op_count; op_ix++)
@@ -919,7 +922,9 @@ PPCODE:
 		    break;
 		  default:
 		    croak
-		      ("Problem in r->input_string_read(), alternative() failed: %s",
+		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
+		       "Problem in r->input_string_read(), alternative() failed: %s",
+		       (int)r_wrapper->character_ix, symbol_id, codepoint,
 		       xs_g_error (r_wrapper->base));
 		  }
 	      }
@@ -935,10 +940,11 @@ PPCODE:
 		  }
 		if (result == -2)
 		  {
-		    const Marpa_Error_Code error = marpa_g_error (r_wrapper->base->g, NULL);
+		    const Marpa_Error_Code error =
+		      marpa_g_error (r_wrapper->base->g, NULL);
 		    if (error == MARPA_ERR_PARSE_EXHAUSTED)
 		      {
-			XSRETURN_IV(-3);
+			XSRETURN_IV (-3);
 		      }
 		  }
 		if (result < 0)
@@ -958,7 +964,7 @@ PPCODE:
 		     (unsigned long) op_ix);
 	    }
 	}
-      ADVANCE_ONE_CHAR: ;
+    ADVANCE_ONE_CHAR:;
       if (input_is_utf8)
 	{
 	  croak ("Problem in r->read_string(): UTF8 not yet implemented");
@@ -971,7 +977,10 @@ PPCODE:
       /* This logic does not allow a return value of 0,
        * but at the moment that is not an issue.
        */
-      if (return_value) { XSRETURN_IV(return_value); }
+      if (return_value)
+	{
+	  XSRETURN_IV (return_value);
+	}
     }
   XSRETURN_UNDEF;
 }

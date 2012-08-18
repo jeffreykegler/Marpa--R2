@@ -2,6 +2,8 @@ use 5.010;
 use strict;
 use warnings;
 
+use Marpa::R2::Thin::Trace;
+
 our $sixish_answer_shown;
 
 my $op_alternative      = Marpa::R2::Thin::op('alternative');
@@ -14,57 +16,53 @@ my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 my $paren_grammar = q{'(' <~~>* ')'};
 
 sub sixish_new {
-    my $sixish_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
-    my %char_to_symbol = ();
+    my $sixish_grammar  = Marpa::R2::Thin::G->new( { if => 1 } );
+    my $tracer          = Marpa::R2::Thin::Trace->new($sixish_grammar);
+    my %char_to_symbol  = ();
     my @regex_to_symbol = ();
 
-    $char_to_symbol{'*'}  = $sixish_grammar->symbol_new();
-    $char_to_symbol{'<'}  = $sixish_grammar->symbol_new();
-    $char_to_symbol{'>'}  = $sixish_grammar->symbol_new();
-    $char_to_symbol{q{'}} = $sixish_grammar->symbol_new();
-    $char_to_symbol{'~'}  = $sixish_grammar->symbol_new();
+    $char_to_symbol{'*'}  = $tracer->symbol_new('star');
+    $char_to_symbol{'<'}  = $tracer->symbol_new('langle');
+    $char_to_symbol{'>'}  = $tracer->symbol_new('rangle');
+    $char_to_symbol{q{'}} = $tracer->symbol_new('single_quote');
+    $char_to_symbol{'~'}  = $tracer->symbol_new('tilde');
 
-    my $s_ws_char          = $sixish_grammar->symbol_new();
+    my $s_ws_char = $tracer->symbol_new('ws_char');
     push @regex_to_symbol, [ qr/\s/xms, $s_ws_char ];
-    my $s_char             = $sixish_grammar->symbol_new();
-    push @regex_to_symbol, [ qr/./xms, $s_char ];
+    my $s_single_quoted_char = $tracer->symbol_new('single_quoted_char');
+    push @regex_to_symbol, [ qr/[^\\']/xms, $s_single_quoted_char ];
 
-    my $s_atom             = $sixish_grammar->symbol_new();
-    my $s_concatenation    = $sixish_grammar->symbol_new();
-    my $s_literal_char     = $sixish_grammar->symbol_new();
-    my $s_literal_char_seq = $sixish_grammar->symbol_new();
-    my $s_opt_ws           = $sixish_grammar->symbol_new();
-    my $s_quantified_atom  = $sixish_grammar->symbol_new();
-    my $s_quantifier       = $sixish_grammar->symbol_new();
-    my $s_quoted_literal   = $sixish_grammar->symbol_new();
-    my $s_self             = $sixish_grammar->symbol_new();
-    my $s_start            = $sixish_grammar->symbol_new();
+    $tracer->symbol_new('atom');
+    $tracer->symbol_new('concatenation');
+    $tracer->symbol_new('single_quoted_char_seq');
+    $tracer->symbol_new('opt_ws');
+    $tracer->symbol_new('quantified_atom');
+    $tracer->symbol_new('quantifier');
+    $tracer->symbol_new('quoted_literal');
+    $tracer->symbol_new('self');
+    $tracer->symbol_new('start');
 
-    $sixish_grammar->rule_new( $s_start, [$s_concatenation] );
-    $sixish_grammar->rule_new( $s_concatenation, [] );
-    $sixish_grammar->rule_new( $s_concatenation,
-        [ $s_concatenation, $s_opt_ws, $s_quantified_atom ] );
-    $sixish_grammar->rule_new( $s_opt_ws, [] );
-    $sixish_grammar->rule_new( $s_opt_ws, [ $s_opt_ws, $s_ws_char ] );
-    $sixish_grammar->rule_new( $s_quantified_atom,
-        [ $s_atom, $s_opt_ws, $s_quantifier ] );
-    $sixish_grammar->rule_new( $s_atom, [$s_quoted_literal] );
-    $sixish_grammar->rule_new( $s_quoted_literal,
-        [ $char_to_symbol{q{'}}, $s_literal_char_seq, $char_to_symbol{q{'}} ]
+    $tracer->rule_new('start ::= concatenation');
+    $tracer->rule_new('concatenation ::=');
+    $tracer->rule_new(
+        'concatenation ::= concatenation opt_ws quantified_atom');
+    $tracer->rule_new('opt_ws ::= ');
+    $tracer->rule_new('opt_ws ::= opt_ws ws_char');
+    $tracer->rule_new('quantified_atom ::= atom opt_ws quantifier');
+    $tracer->rule_new('atom ::= quoted_literal');
+    $tracer->rule_new(
+        'quoted_literal ::= single_quote single_quoted_char_seq single_quote');
+    $sixish_grammar->sequence_new(
+        $tracer->symbol_by_name('single_quoted_char_seq'),
+        $tracer->symbol_by_name('single_quoted_char'),
+        { min => 0 }
     );
-    $sixish_grammar->sequence_new( $s_literal_char_seq, $s_literal_char,
-        { min => 0 } );
-    $sixish_grammar->rule_new( $s_literal_char, [$s_char] );
-    $sixish_grammar->rule_new( $s_atom,         [$s_self] );
-    $sixish_grammar->rule_new(
-        $s_self,
-        [   $char_to_symbol{'<'}, $char_to_symbol{'~'},
-            $char_to_symbol{'~'}, $char_to_symbol{'>'}
-        ]
-    );
-    $sixish_grammar->rule_new( $s_quantifier, [ $char_to_symbol{'*'} ] );
+    $tracer->rule_new('atom ::= self');
+    $sixish_grammar->rule_new( $tracer->symbol_by_name('self'),
+        [ map { $char_to_symbol{$_} } split //xms, '<~~>' ] );
+    $tracer->rule_new('quantifier ::= star');
 
-    $sixish_grammar->start_symbol_set($s_start);
+    $sixish_grammar->start_symbol_set( $tracer->symbol_by_name('start'), );
     $sixish_grammar->precompute();
     return $sixish_grammar, \%char_to_symbol, \@regex_to_symbol;
 } ## end sub sixish_new
@@ -79,7 +77,8 @@ sub sixish_child_new {
     while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol} ) {
         my @alternatives = ($symbol);
         push @alternatives,
-            map { $_->[1] } grep { $char =~ $_->[0] } @{$sixish_regex_to_symbol};
+            map { $_->[1] }
+            grep { $char =~ $_->[0] } @{$sixish_regex_to_symbol};
         $sixish_recce->char_register( ord($char),
             ( map { ( $op_alternative_ignore, $_ ) } @alternatives ),
             $op_earleme_complete );
@@ -92,16 +91,20 @@ sub sixish_child_new {
             my $char = substr $child_source,
                 $sixish_recce->input_string_pos(), 1;
             my @alternatives =
-                map { $_->[1] }
-		@{$sixish_regex_to_symbol};
+                map { $_->[1] } @{$sixish_regex_to_symbol};
             $sixish_recce->char_register( ord($char),
                 ( map { ( $op_alternative_ignore, $_ ) } @alternatives ),
                 $op_earleme_complete );
-	      next READ;
+            next READ;
         } ## end if ( $event_count == -2 )
         die "input_string_read(): $event_count, char=",
             ( substr $child_source, $sixish_recce->input_string_pos(), 1 );
     } ## end READ: while (1)
+
+    my $latest_earley_set_ID = $sixish_recce->latest_earley_set();
+    my $bocage = Marpa::R2::Thin::B->new( $sixish_recce, $latest_earley_set_ID );
+    my $order  = Marpa::R2::Thin::O->new($bocage);
+    my $tree   = Marpa::R2::Thin::T->new($order);
 
 } ## end sub sixish_child_new
 
