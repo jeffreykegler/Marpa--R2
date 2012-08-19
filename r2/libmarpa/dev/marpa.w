@@ -12732,6 +12732,10 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     @<Return |NULL| on failure@>@;
     @<Unpack tree objects@>;
     @<Fail if fatal error@>@;
+    if (t->t_parse_count <= 0) {
+      MARPA_ERROR(MARPA_ERR_BEFORE_FIRST_TREE);
+      return NULL;
+    }
     if (!T_is_Exhausted (t))
       {
 	const XSYID xsy_count = XSY_Count_of_G (g);

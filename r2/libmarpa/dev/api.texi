@@ -2798,8 +2798,11 @@ When a tree iterator is no longer in use, its memory can be freed
 using the 
 @code{marpa_t_unref()} method.
 
-To position a tree iterator at the next parse tree,
+To position a newly created tree iterator at the first parse tree,
 use the @code{marpa_t_next()} method.
+Once the tree iterator is positioned at a parse tree,
+the same @code{marpa_t_next()} method is used
+to position it to the next parse tree.
 
 @node Tree constructor, Tree reference counting, Tree overview, Tree methods
 @section Creating a new tree iterator
@@ -3774,6 +3777,18 @@ but its ID was not that
 of a valid symbol.
 Numeric value: 6.
 Suggested message: "Separator has invalid symbol ID".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_BEFORE_FIRST_TREE
+A tree iterator is positioned before the first tree,
+and it was specified in a context where that is not
+allowed.
+A newly created tree is positioned before the first
+tree.
+To position a newly created tree iterator to the first tree
+use the @code{marpa_t_next()} method.
+Numeric value: 91.
+Suggested message: "Tree iterator is before first tree".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_COUNTED_NULLABLE
