@@ -100,12 +100,15 @@ sub sixish_child_new {
     $sixish_recce->start_input();
     while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol} ) {
         my @alternatives = ($symbol);
-        push @alternatives,
-            map { $_->[1] }
+        push @alternatives, map { $_->[1] }
             grep { $char =~ $_->[0] } @{$sixish_regex_to_symbol};
-        $sixish_recce->char_register( ord($char),
-                ( map { ( $op_alternative_args_ignore, $_, 1, 1 ) } @alternatives ),
-            $op_earleme_complete );
+        $sixish_recce->char_register(
+            ord($char),
+            (   map { ( $op_alternative_args_ignore, $_, 1, 1 ) }
+                    @alternatives
+            ),
+            $op_earleme_complete
+        );
     } ## end while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol...})
     $sixish_recce->input_string_set($child_source);
     READ: while (1) {
@@ -116,9 +119,13 @@ sub sixish_child_new {
                 $sixish_recce->input_string_pos(), 1;
             my @alternatives =
                 map { $_->[1] } @{$sixish_regex_to_symbol};
-            $sixish_recce->char_register( ord($char),
-                ( map { ( $op_alternative_args_ignore, $_, 1, 1 ) } @alternatives ),
-                $op_earleme_complete );
+            $sixish_recce->char_register(
+                ord($char),
+                (   map { ( $op_alternative_args_ignore, $_, 1, 1 ) }
+                        @alternatives
+                ),
+                $op_earleme_complete
+            );
             next READ;
         } ## end if ( $event_count == -2 )
 
@@ -127,31 +134,50 @@ sub sixish_child_new {
     } ## end READ: while (1)
 
     my $latest_earley_set_ID = $sixish_recce->latest_earley_set();
-    my $bocage = Marpa::R2::Thin::B->new( $sixish_recce, $latest_earley_set_ID );
-    my $order  = Marpa::R2::Thin::O->new($bocage);
-    my $tree   = Marpa::R2::Thin::T->new($order);
+    my $bocage =
+        Marpa::R2::Thin::B->new( $sixish_recce, $latest_earley_set_ID );
+    my $order = Marpa::R2::Thin::O->new($bocage);
+    my $tree  = Marpa::R2::Thin::T->new($order);
     $tree->next();
 
-my $valuator = Marpa::R2::Thin::V->new($tree);
+    my $valuator = Marpa::R2::Thin::V->new($tree);
 
-for my $rule_id (0 .. $sixish_grammar->highest_rule_id() ) {
-        $valuator->rule_is_valued_set( $rule_id,     1 );
-}
+    for my $rule_id ( 0 .. $sixish_grammar->highest_rule_id() ) {
+        $valuator->rule_is_valued_set( $rule_id, 1 );
+    }
 
-        my @stack = ();
-        STEP: while (1) {
-            my ( $type, @step_data ) = $valuator->step();
-	    last STEP if not defined $type;
-            if ( $type eq 'MARPA_STEP_TOKEN' ) {
-                my ( $start, $end ) = $valuator->location();
-                my ( $symbol_id, $token_value_ix, $arg_n ) = @step_data;
-                $stack[$arg_n] = substr $paren_grammar, $start, $end - $start;
-                next STEP;
-            } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
-            dwim( \@stack, $type, @step_data );
-        } ## end STEP: while (1)
-	use Data::Dumper;
-	say Data::Dumper::Dumper($stack[0]);
+    my $sym6_single_quoted_char = $sixish_tracer->symbol_by_name('single_quoted_char');
+    my $sym6_self = $sixish_tracer->symbol_by_name('self');
+    my %char_to_symbol = ();
+
+    my @stack = ();
+    STEP: while (1) {
+        my ( $type, @step_data ) = $valuator->step();
+        last STEP if not defined $type;
+        if ( $type eq 'MARPA_STEP_TOKEN' ) {
+            my ( $symbol_id, $token_value_ix, $arg_n ) = @step_data;
+            my ( $start, $end ) = $valuator->location();
+	    if ($symbol_id == $sym6_single_quoted_char) {
+	      $stack[$arg_n] = 'CHAR(' . (substr $paren_grammar, $start, $end - $start) . ')';
+	      next STEP;
+	    }
+            $stack[$arg_n] = substr $paren_grammar, $start, $end - $start;
+            next STEP;
+        } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
+	if ( $type eq 'MARPA_STEP_RULE' ) { 
+	   my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+	   say STDERR "RULE: ", $sixish_tracer->symbol_name($rule_id);
+	   if ($rule_id == $sym6_self) {
+	      $stack[$arg_0] = 'SELF';
+	      next STEP;
+	   }
+	   # Fall through
+	}
+        dwim( \@stack, $type, @step_data );
+    } ## end STEP: while (1)
+
+    use Data::Dumper;
+    say Data::Dumper::Dumper( $stack[0] );
 
 } ## end sub sixish_child_new
 
