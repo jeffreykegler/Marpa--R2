@@ -71,6 +71,29 @@ sub sixish_new {
 my ( $sixish_tracer, $sixish_grammar, $sixish_char_to_symbol, $sixish_regex_to_symbol ) =
     sixish_new();
 
+sub dwim {
+    my ( $stack, $type, @step_data ) = @_;
+    return if not defined $type;
+    if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
+        my ( $symbol_id, $arg_n ) = @step_data;
+        $stack->[$arg_n] = undef;
+        return 1;
+    }
+    if ( $type eq 'MARPA_STEP_TOKEN' ) {
+        my ( undef, $token_value_ix, $arg_n ) = @step_data;
+        $stack->[$arg_n] = $token_value_ix;
+        return 1;
+    }
+    if ( $type eq 'MARPA_STEP_RULE' ) {
+        my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+        my @children = grep {defined} @{$stack}[ $arg_0 .. $arg_n ];
+        $stack->[$arg_0] =
+            scalar @children > 1 ? \@children : shift @children;
+        return 1;
+    } ## end if ( $type eq 'MARPA_STEP_RULE' )
+    die "Unexpected step type: $type";
+} ## end sub dwim
+
 sub sixish_child_new {
     my ($child_source) = @_;
     my $sixish_recce = Marpa::R2::Thin::R->new($sixish_grammar);
@@ -81,7 +104,7 @@ sub sixish_child_new {
             map { $_->[1] }
             grep { $char =~ $_->[0] } @{$sixish_regex_to_symbol};
         $sixish_recce->char_register( ord($char),
-            ( map { ( $op_alternative_ignore, $_ ) } @alternatives ),
+                ( map { ( $op_alternative_args_ignore, $_, 1, 1 ) } @alternatives ),
             $op_earleme_complete );
     } ## end while ( my ( $char, $symbol ) = each %{$sixish_char_to_symbol...})
     $sixish_recce->input_string_set($child_source);
@@ -107,32 +130,28 @@ sub sixish_child_new {
     my $bocage = Marpa::R2::Thin::B->new( $sixish_recce, $latest_earley_set_ID );
     my $order  = Marpa::R2::Thin::O->new($bocage);
     my $tree   = Marpa::R2::Thin::T->new($order);
+    $tree->next();
 
 my $valuator = Marpa::R2::Thin::V->new($tree);
+
 for my $rule_id (0 .. $sixish_grammar->highest_rule_id() ) {
         $valuator->rule_is_valued_set( $rule_id,     1 );
 }
+
         my @stack = ();
-        STEP: while ( 1 ) {
+        STEP: while (1) {
             my ( $type, @step_data ) = $valuator->step();
-            last STEP if not defined $type;
+	    last STEP if not defined $type;
             if ( $type eq 'MARPA_STEP_TOKEN' ) {
-                my ( undef, $token_value_ix, $arg_n ) = @step_data;
-
-say STDERR join q{ }, $token_value_ix, $arg_n ;
-
+                my ( $start, $end ) = $valuator->location();
+                my ( $symbol_id, $token_value_ix, $arg_n ) = @step_data;
+                $stack[$arg_n] = substr $paren_grammar, $start, $end - $start;
                 next STEP;
-            }
-            if ( $type eq 'MARPA_STEP_RULE' ) {
-                my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-
-say STDERR join q{ }, $rule_id, $arg_0, $arg_n ;
-
-                    next STEP;
-                die "Unknown rule $rule_id";
-            } ## end if ( $type eq 'MARPA_STEP_RULE' )
-            die "Unexpected step type: $type";
-        } ## end while ( my ( $type, @step_data ) = $valuator->step() )
+            } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
+            dwim( \@stack, $type, @step_data );
+        } ## end STEP: while (1)
+	use Data::Dumper;
+	say Data::Dumper::Dumper($stack[0]);
 
 } ## end sub sixish_child_new
 
