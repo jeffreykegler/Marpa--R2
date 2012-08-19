@@ -97,6 +97,7 @@ sub dotted_rule {
     my ( $self, $rule_id, $dot_position ) = @_;
     my $grammar     = $self->{g};
     my $rule_length = $grammar->rule_length($rule_id);
+    $dot_position = $rule_length if $dot_position < 0;
     my $lhs         = $self->symbol_name( $grammar->rule_lhs($rule_id) );
     my @rhs =
         map { $self->symbol_name( $grammar->rule_rhs( $rule_id, $_ ) ) }
@@ -113,9 +114,11 @@ sub progress_report {
     $recce->progress_report_start($ordinal);
     ITEM: while (1) {
         my ( $rule_id, $dot_position, $origin ) = $recce->progress_item();
-        last ITEM if not defined $rule_id;
-        $result .= $self->dotted_rule( $rule_id, $dot_position ) . q{ @}
-            . $origin . "\n";
+        last ITEM if not defined $rule_id; 
+        $result
+            .= q{@}
+            . $origin . q{: }
+            . $self->dotted_rule( $rule_id, $dot_position ) . "\n";
     } ## end ITEM: while (1)
     $recce->progress_report_finish();
     return $result;

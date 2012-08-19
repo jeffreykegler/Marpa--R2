@@ -94,7 +94,7 @@ sub sixish_child_new {
             my @alternatives =
                 map { $_->[1] } @{$sixish_regex_to_symbol};
             $sixish_recce->char_register( ord($char),
-                ( map { ( $op_alternative_ignore, $_ ) } @alternatives ),
+                ( map { ( $op_alternative_args_ignore, $_, 1, 1 ) } @alternatives ),
                 $op_earleme_complete );
             next READ;
         } ## end if ( $event_count == -2 )
@@ -109,7 +109,7 @@ sub sixish_child_new {
     my $tree   = Marpa::R2::Thin::T->new($order);
 
 my $valuator = Marpa::R2::Thin::V->new($tree);
-for my $rule_id (0 .. $sixish_grammar->rule_count() - 1) {
+for my $rule_id (0 .. $sixish_grammar->highest_rule_id() ) {
         $valuator->rule_is_valued_set( $rule_id,     1 );
 }
         my @stack = ();
@@ -133,7 +133,6 @@ say STDERR join q{ }, $rule_id, $arg_0, $arg_n ;
             } ## end if ( $type eq 'MARPA_STEP_RULE' )
             die "Unexpected step type: $type";
         } ## end while ( my ( $type, @step_data ) = $valuator->step() )
-        push @actual_values, $stack[0];
 
 } ## end sub sixish_child_new
 
