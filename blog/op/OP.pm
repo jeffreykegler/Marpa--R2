@@ -7,15 +7,22 @@ use warnings;
 use Marpa::XS;
 
 sub rules { my $m = shift; return { m => $m, rules => \@_ }; }
-sub priority_rule { shift; return { @{ $_[0] }, priorities => $_[2] } }
+
+sub priority_rule {
+  my (undef, $lhs, undef, $priorities ) = @_;
+  my $priority_count = scalar @{$priorities};
+  my @rules =
+    map { my $priority = $_; map { [ $priority, @{$_} ] } @{ $priorities->[$_] } } 0 .. $priority_count - 1;
+  return [ "lhs=$lhs", ('priority_count=' . scalar @{$priorities}), \@rules ];
+}
 sub empty_rule { shift; return { @{ $_[0] }, rhs => [], @{ $_[2] || [] } }; }
 sub priority1 { shift; return [ $_[0] ]; }
 sub priority3 { shift; return [ $_[0], @{ $_[2] } ]; }
-sub do_full_alternative { shift; return [ $_[0], $_[1] ]; }
-sub do_bare_alternative { shift; return [ $_[0], undef ] }
+sub do_full_alternative { shift; return [ 'L', $_[0], $_[1] ]; }
+sub do_bare_alternative { shift; return [ 'L', $_[0], undef ] }
 sub do_alternatives_1 { shift; return [ $_[0] ]; }
 sub do_alternatives_3 { shift; return [ $_[0], @{ $_[2] } ] }
-sub lhs     { shift; return [ lhs => $_[0] ]; }
+sub lhs     { shift; return $_[0]; }
 sub op_star { shift; return [ rhs => [ $_[0] ], min => 0 ]; }
 sub op_plus { shift; return [ rhs => [ $_[0] ], min => 1 ]; }
 sub do_array { shift; return [@_]; }
