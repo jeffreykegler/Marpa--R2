@@ -79,9 +79,14 @@ TOKEN: while ( pos $string < $length ) {
     # read other tokens
     TOKEN_TYPE: for my $t (@terminals) {
         next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gc;
-        $rec->read( $t->[0], $1 );
+        if ( not defined $rec->read( $t->[0], $1 ) ) {
+            die die q{Problem before position }, pos $string, ': ',
+                ( substr $string, pos $string, 40 ),
+                qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
+                ;
+        } ## end if ( not defined $rec->read( $t->[0], $1 ) )
         next TOKEN;
-    }
+    } ## end TOKEN_TYPE: for my $t (@terminals)
 
     die q{No token at "}, ( substr $string, pos $string, 40 ),
         q{", position }, pos $string;
@@ -101,4 +106,4 @@ say Data::Dumper::Dumper($value_ref);
 
 calculate( '4 * 3 + 42 1' );
 calculate( '4 * 3 4 5 + 42 1' );
-calculate( '4 quine 1+3 : 4 2 : 5 ? : sum from 6 to 9 by 1 : 7 : 8' );
+calculate( '4 quine 1+3 : 4 2 : 5 ? 42 : sum from 6 to 9 by 1 : 8' );

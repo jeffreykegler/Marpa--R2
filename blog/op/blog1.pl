@@ -55,7 +55,12 @@ TOKEN: while ( pos $string < $length ) {
     # read other tokens
     TOKEN_TYPE: for my $t (@terminals) {
         next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gc;
-        $rec->read( $t->[0], $1 );
+        if ( not defined $rec->read( $t->[0], $1 ) ) {
+            die die q{Problem before position }, pos $string, ': ',
+                ( substr $string, pos $string, 40 ),
+                qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
+                ;
+        } ## end if ( not defined $rec->read( $t->[0], $1 ) )
         next TOKEN;
     }
 

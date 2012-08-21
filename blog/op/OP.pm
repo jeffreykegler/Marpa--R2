@@ -77,15 +77,17 @@ sub quantified_rule {
     };
 } ## end sub empty_rule
 
-sub do_priority1 { shift; return [ $_[0] ]; }
-sub do_priority3 { shift; return [ $_[0], @{ $_[2] } ]; }
-sub do_full_alternative { shift; return [ 'L', $_[0], $_[1] ]; }
-sub do_bare_alternative { shift; return [ 'L', $_[0], undef ] }
-sub do_alternatives_1 { shift; return [ $_[0] ]; }
+sub do_priority1        { shift; return [ $_[0] ]; }
+sub do_priority3        { shift; return [ $_[0], @{ $_[2] } ]; }
+sub do_full_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], $_[2] ]; }
+sub do_bare_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], undef ] }
+sub do_alternatives_1   { shift; return [ $_[0] ]; }
 sub do_alternatives_3 { shift; return [ $_[0], @{ $_[2] } ] }
-sub do_lhs     { shift; return $_[0]; }
+sub do_lhs { shift; return $_[0]; }
 sub do_array { shift; return [@_]; }
 sub do_arg1 { return $_[2]; }
+sub do_right_adverb { return 'R' }
+sub do_left_adverb { return 'L' }
 
 sub do_what_I_mean {
 
@@ -133,8 +135,12 @@ sub parse_rules {
 		{ lhs => 'alternatives', rhs => [qw(alternative op_eq_pri alternatives)], action => 'do_alternatives_3',
 		},
 
-		{ lhs => 'alternative', rhs => [qw(rhs action)], action => 'do_full_alternative' },
-		{ lhs => 'alternative', rhs => [qw(rhs)], action => 'do_bare_alternative' },
+		{ lhs => 'alternative', rhs => [qw(adverb rhs action)], action => 'do_full_alternative' },
+		{ lhs => 'alternative', rhs => [qw(adverb rhs)], action => 'do_bare_alternative' },
+
+                { lhs => 'adverb', rhs => [qw/op_right/], action => 'do_right_adverb' },
+                { lhs => 'adverb', rhs => [qw/op_left/], action => 'do_left_adverb' },
+                { lhs => 'adverb', rhs => [] },
 
                 { lhs => 'action', rhs => [] },
                 {   lhs    => 'action',
@@ -165,7 +171,10 @@ sub parse_rules {
 
     my $rec = Marpa::XS::Recognizer->new( { grammar => $grammar } );
 
+    # Order matters !!!
     my @terminals = (
+        [ 'op_right',      qr/:right\b/ ],
+        [ 'op_left',       qr/:left\b/ ],
         [ 'op_declare',    qr/::=/ ],
         [ 'op_arrow',      qr/=>/ ],
         [ 'op_tighter',    qr/[|][|]/ ],
@@ -186,9 +195,14 @@ sub parse_rules {
 	# read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gc;
-            $rec->read( $t->[0], $1 );
+            if ( not defined $rec->read( $t->[0], $1 ) ) {
+                die die q{Problem before position }, pos $string, ': ',
+                    ( substr $string, pos $string, 40 ),
+                    qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
+                    ;
+            } ## end if ( not defined $rec->read( $t->[0], $1 ) )
             next TOKEN;
-        }
+        } ## end TOKEN_TYPE: for my $t (@terminals)
 
         die q{No token at "}, ( substr $string, pos $string, 40 ),
             q{", position }, pos $string;
