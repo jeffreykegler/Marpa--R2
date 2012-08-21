@@ -6,14 +6,14 @@ use warnings;
 
 use Marpa::XS;
 
-sub rules { my $m = shift; return { m => $m, rules => \@_ }; }
+sub rules { shift; return $_[0] ; }
 
 sub priority_rule {
     my ( undef, $lhs, undef, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
     my @rules =
         map {
-        my $priority = $_;
+        my $priority = $priority_count - ($_ + 1);
         map { [ $priority, @{$_} ] } @{ $priorities->[$_] }
         } 0 .. $priority_count - 1;
     my @xs_rules = (
@@ -28,6 +28,8 @@ sub priority_rule {
     );
     RULE: for my $rule (@rules) {
         my ( $priority, $assoc, $rhs, $action ) = @{$rule};
+	my @action_kv = ();
+	push @action_kv, action => $action if defined $action;
 	my @new_rhs = @{$rhs};
         my @arity = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $length = scalar @{$rhs};
@@ -40,7 +42,7 @@ sub priority_rule {
             push @xs_rules,
                 {
                 lhs => $current_exp,
-                rhs => \@new_rhs, action => $action
+                rhs => \@new_rhs, @action_kv
                 };
             next RULE;
         } ## end if ( not scalar @arity )
@@ -56,7 +58,7 @@ sub priority_rule {
 	for my $rhs_ix (@arity[1 .. $#arity]) {
 	  $new_rhs[$rhs_ix] = $next_exp;
 	}
-	push @xs_rules, { lhs => $current_exp, { rhs => \@new_rhs }, action => $action };
+	push @xs_rules, { lhs => $current_exp, rhs => \@new_rhs, @action_kv };
     } ## end RULE: for my $rule (@rules)
     return [
 	@xs_rules
@@ -64,17 +66,25 @@ sub priority_rule {
 } ## end sub priority_rule
 
 sub empty_rule { shift; return { @{ $_[0] }, rhs => [], @{ $_[2] || [] } }; }
-sub priority1 { shift; return [ $_[0] ]; }
-sub priority3 { shift; return [ $_[0], @{ $_[2] } ]; }
+
+sub quantified_rule {
+    shift;
+    return {
+        @{ $_[0] },
+        rhs => [ $_[2] ],
+        min => ( $_[3] eq q{+} ? 1 : 0 ),
+        @{ $_[4] || [] }
+    };
+} ## end sub empty_rule
+
+sub do_priority1 { shift; return [ $_[0] ]; }
+sub do_priority3 { shift; return [ $_[0], @{ $_[2] } ]; }
 sub do_full_alternative { shift; return [ 'L', $_[0], $_[1] ]; }
 sub do_bare_alternative { shift; return [ 'L', $_[0], undef ] }
 sub do_alternatives_1 { shift; return [ $_[0] ]; }
 sub do_alternatives_3 { shift; return [ $_[0], @{ $_[2] } ] }
-sub lhs     { shift; return $_[0]; }
-sub op_star { shift; return [ rhs => [ $_[0] ], min => 0 ]; }
-sub op_plus { shift; return [ rhs => [ $_[0] ], min => 1 ]; }
+sub do_lhs     { shift; return $_[0]; }
 sub do_array { shift; return [@_]; }
-sub do_bnf_rhs { shift; return \@_; }
 sub do_arg1 { return $_[2]; }
 
 sub do_what_I_mean {
@@ -113,10 +123,11 @@ sub parse_rules {
                 },
                 {   lhs    => 'rule',
                     rhs    => [qw/lhs op_declare name quantifier action/],
+                    action => 'quantified_rule'
                 },
 
-		{ lhs => 'priorities', rhs => [qw(alternatives)], action => 'priority1' },
-		{ lhs => 'priorities', rhs => [qw(alternatives op_tighter priorities)], action => 'priority3' },
+		{ lhs => 'priorities', rhs => [qw(alternatives)], action => 'do_priority1' },
+		{ lhs => 'priorities', rhs => [qw(alternatives op_tighter priorities)], action => 'do_priority3' },
 
 		{ lhs => 'alternatives', rhs => [qw(alternative)], action => 'do_alternatives_1', },
 		{ lhs => 'alternatives', rhs => [qw(alternative op_eq_pri alternatives)], action => 'do_alternatives_3',
@@ -135,15 +146,16 @@ sub parse_rules {
                     action => 'do_arg1'
                 },
 
-                { lhs => 'lhs', rhs => [qw/name/], action => 'lhs' },
+                { lhs => 'lhs', rhs => [qw/name/], action => 'do_lhs' },
 
-                { lhs => 'rhs', rhs => [qw/names/], action => 'do_bnf_rhs' },
-                { lhs => 'rhs', rhs => [qw/name op_plus/], action => 'op_plus' },
-                { lhs => 'rhs', rhs => [qw/name op_star/], action => 'op_star' },
+                { lhs => 'rhs', rhs => [qw/names/] },
+                { lhs => 'quantifier', rhs => [qw/op_plus/] },
+                { lhs => 'quantifier', rhs => [qw/op_star/] },
 
                 {   lhs    => 'names',
                     rhs    => [qw/name/],
-                    min    => 1
+                    min    => 1,
+		    action => 'do_array'
                 },
             ],
             lhs_terminals => 0,
@@ -192,7 +204,7 @@ sub parse_rules {
     }
     my $parse = $$parse_ref;
 
-    return $parse->{rules};
+    return $parse;
 } ## end sub parse_rules
 
 1;
