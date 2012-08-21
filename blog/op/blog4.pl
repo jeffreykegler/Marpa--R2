@@ -10,22 +10,22 @@ use Data::Dumper;
 require './OP.pm';
 
 my $rules =
-    Marpa::Blog::OP::parse_rules(
+    MarpaX::Blog::OP::parse_rules(
 <<'END_OF_GRAMMAR'
 e ::=
   NUM
   | VAR
-  | :group LPAREN e RPAREN => add_brackets
-  || NEG e => add_brackets
-  || e STAR e => add_brackets
+  | :group '(' e ')' => add_brackets
+  || '-' e => add_brackets
+  || e '*' e => add_brackets
   | e e => implied_multiply
-  | e DIV e => add_brackets
-  || e PLUS e => add_brackets
-  | e NEG e => add_brackets
-  || VAR ASSIGN e => add_brackets
-  ||:right e TERNARY e COLON e => spaced_within_brackets
-  | :right e QUATERNARY e COLON e COLON e => spaced_within_brackets
-  || PAYMENT ON e OVER e YEARS AT e PERCENT => spaced_within_brackets
+  | e '/' e => add_brackets
+  || e '+' e => add_brackets
+  | e '-' e => add_brackets
+  || VAR '=' e => add_brackets
+  ||:right e '?' e ':' e => spaced_within_brackets
+  | :right e '??' e ':' e ':' e => spaced_within_brackets
+  || 'payment' 'on' e 'over' e 'years' 'at' e '%' => spaced_within_brackets
 END_OF_GRAMMAR
     );
 
@@ -65,24 +65,24 @@ $grammar->precompute;
 
 # Order matters !!
 my @terminals = (
-    [ 'AT',   qr/at\b/ ],
-    [ 'ON',   qr/on\b/ ],
-    [ 'OVER',   qr/over\b/ ],
-    [ 'PAYMENT',   qr/payment\b/ ],
-    [ 'YEARS',   qr/years\b/ ],
-    [ 'QUATERNARY',   qr/[?][?]/ ],
-    [ 'TERNARY', qr/[?]/ ],
+    [ q{'at'},   qr/at\b/ ],
+    [ q{'on'},   qr/on\b/ ],
+    [ q{'over'},   qr/over\b/ ],
+    [ q{'payment'},   qr/payment\b/ ],
+    [ q{'years'},   qr/years\b/ ],
+    [ q{'??'},   qr/[?][?]/ ],
+    [ q{'?'}, qr/[?]/ ],
     [ 'NUM',   qr/\d+/ ],
     [ 'VAR',   qr/\w+/ ],
-    [ 'ASSIGN',   qr/[=]/ ],
-    [ 'STAR',  qr/[*]/ ],
-    [ 'DIV',  qr/[\/]/ ],
-    [ 'PLUS',  qr/[+]/ ],
-    [ 'PERCENT',  qr/[%]/ ],
-    [ 'NEG',  qr/[-]/ ],
-    [ 'COLON',  qr/[:]/ ],
-    [ 'LPAREN',  qr/[(]/ ],
-    [ 'RPAREN',  qr/[)]/ ],
+    [ q{'='},   qr/[=]/ ],
+    [ q{'*'},  qr/[*]/ ],
+    [ q{'/'},  qr/[\/]/ ],
+    [ q{'+'},  qr/[+]/ ],
+    [ q{'%'},  qr/[%]/ ],
+    [ q{'-'},  qr/[-]/ ],
+    [ q{':'},  qr/[:]/ ],
+    [ q{'('},  qr/[(]/ ],
+    [ q{')'},  qr/[)]/ ],
 );
 
 sub calculate {

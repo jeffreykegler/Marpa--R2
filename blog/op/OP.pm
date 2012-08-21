@@ -1,4 +1,4 @@
-package Marpa::Blog::OP;
+package MarpaX::Blog::OP;
 
 use 5.010;
 use strict;
@@ -203,6 +203,7 @@ sub parse_rules {
         [ 'op_plus',       qr/[+]/ ],
         [ 'op_star',       qr/[*]/ ],
         [ 'name',          qr/\w+/, ],
+        [ 'name',          qr/['][^']+[']/, ],
     );
 
     my $length = length $string;

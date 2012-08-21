@@ -10,19 +10,19 @@ use Data::Dumper;
 require './OP.pm';
 
 my $rules =
-    Marpa::Blog::OP::parse_rules(
+    MarpaX::Blog::OP::parse_rules(
 <<'END_OF_GRAMMAR'
 e ::=
-  NUM
-  | VAR
-  | :group LPAREN e RPAREN => add_brackets
-  || NEG e => add_brackets
-  || :right e EXP e => add_brackets
-  || e STAR e => add_brackets
-  | e DIV e => add_brackets
-  || e PLUS e => add_brackets
-  | e NEG e => add_brackets
-  || VAR ASSIGN e => add_brackets
+     NUM
+   | VAR
+   | :group '(' e ')'
+  || '-' e
+  || :right e '^' e
+  || e '*' e
+   | e '/' e
+  || e '+' e
+   | e '-' e
+  || VAR '=' e
 END_OF_GRAMMAR
     );
 
@@ -33,6 +33,7 @@ sub pass_upward {
 
 sub add_brackets {
     shift;
+    return $_[0] if 1 == scalar @_;
     my $original = join q{}, grep { defined } @_;
     return '[' . $original . ']';
 } ## end sub do_what_I_mean
@@ -42,7 +43,7 @@ sub add_brackets {
 my $grammar = Marpa::XS::Grammar->new(
     {   start          => 'e',
         actions        => __PACKAGE__,
-	default_action => 'pass_upward',
+	default_action => 'add_brackets',
         rules          => $rules,
         lhs_terminals  => 0,
     }
@@ -54,14 +55,14 @@ $grammar->precompute;
 my @terminals = (
     [ 'NUM',   qr/\d+/ ],
     [ 'VAR',   qr/\w+/ ],
-    [ 'ASSIGN',   qr/[=]/ ],
-    [ 'STAR',  qr/[*]/ ],
-    [ 'DIV',  qr/[\/]/ ],
-    [ 'PLUS',  qr/[+]/ ],
-    [ 'NEG',  qr/[-]/ ],
-    [ 'EXP',  qr/[\^]/ ],
-    [ 'LPAREN',  qr/[(]/ ],
-    [ 'RPAREN',  qr/[)]/ ],
+    [ q{'='},   qr/[=]/ ],
+    [ q{'*'},  qr/[*]/ ],
+    [ q{'/'},  qr/[\/]/ ],
+    [ q{'+'},  qr/[+]/ ],
+    [ q{'-'},  qr/[-]/ ],
+    [ q{'^'},  qr/[\^]/ ],
+    [ q{'('},  qr/[(]/ ],
+    [ q{')'},  qr/[)]/ ],
 );
 
 sub calculate {
