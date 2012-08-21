@@ -17,6 +17,7 @@ e ::=
   | VAR
   | :group LPAREN e RPAREN => add_brackets
   || NEG e => add_brackets
+  || :right e EXP e => add_brackets
   || e STAR e => add_brackets
   | e DIV e => add_brackets
   || e PLUS e => add_brackets
@@ -58,6 +59,7 @@ my @terminals = (
     [ 'DIV',  qr/[\/]/ ],
     [ 'PLUS',  qr/[+]/ ],
     [ 'NEG',  qr/[-]/ ],
+    [ 'EXP',  qr/[\^]/ ],
     [ 'LPAREN',  qr/[(]/ ],
     [ 'RPAREN',  qr/[)]/ ],
 );
@@ -107,7 +109,14 @@ return ${$value_ref};
 
 }
 
-say calculate( '4 * 3 + 42 / 1' );
-say calculate( '4 * 3 / (a = b = 5) + 42 - 1' );
-say calculate( '4 * 3 /  5 - - - 3 + 42 - 1' );
-say calculate( '- a - b' );
+sub report_calculation {
+    my ($string) = @_;
+    say qq{Input: "$string"};
+    say '  Parse: ', calculate( $string );
+}
+
+report_calculation( '4 * 3 + 42 / 1' );
+report_calculation( '4 * 3 / (a = b = 5) + 42 - 1' );
+report_calculation( '4 * 3 /  5 - - - 3 + 42 - 1' );
+report_calculation( '- a - b' );
+report_calculation( '1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1' );
