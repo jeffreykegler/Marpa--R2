@@ -16,16 +16,16 @@ e ::=
   NUM
   | VAR
   | :group LPAREN e RPAREN => add_brackets
-  || NEG e
+  || NEG e => add_brackets
   || e STAR e => add_brackets
-  | e e => add_brackets
+  | e e => implied_multiply
   | e DIV e => add_brackets
   || e PLUS e => add_brackets
-  | e SUBTRACT e => add_brackets
+  | e NEG e => add_brackets
   || VAR ASSIGN e => add_brackets
-  || :right e TERN e : e => add_brackets
-  | :right e QUINARY e : e : e : e => add_brackets
-  || PAYMENT ON e OVER e YEARS AT e % => add_brackets
+  ||:right e TERNARY e COLON e => spaced_within_brackets
+  | :right e QUATERNARY e COLON e COLON e => spaced_within_brackets
+  || PAYMENT ON e OVER e YEARS AT e PERCENT => spaced_within_brackets
 END_OF_GRAMMAR
     );
 
@@ -34,11 +34,21 @@ sub pass_upward {
     return join q{}, @_;
 }
 
+sub spaced_within_brackets {
+    shift;
+    my $original = join q{ }, grep { defined } @_;
+    return '[' . $original . ']';
+}
+
 sub add_brackets {
     shift;
     my $original = join q{}, grep { defined } @_;
     return '[' . $original . ']';
-} ## end sub do_what_I_mean
+}
+
+sub implied_multiply {
+    return '[' . $_[1] . 'x' . $_[2] . ']'; 
+}
 
 # say Data::Dumper::Dumper($rules);
 
@@ -55,13 +65,22 @@ $grammar->precompute;
 
 # Order matters !!
 my @terminals = (
+    [ 'AT',   qr/at\b/ ],
+    [ 'ON',   qr/on\b/ ],
+    [ 'OVER',   qr/over\b/ ],
+    [ 'PAYMENT',   qr/payment\b/ ],
+    [ 'YEARS',   qr/years\b/ ],
+    [ 'QUATERNARY',   qr/[?][?]/ ],
+    [ 'TERNARY', qr/[?]/ ],
     [ 'NUM',   qr/\d+/ ],
     [ 'VAR',   qr/\w+/ ],
     [ 'ASSIGN',   qr/[=]/ ],
     [ 'STAR',  qr/[*]/ ],
     [ 'DIV',  qr/[\/]/ ],
     [ 'PLUS',  qr/[+]/ ],
-    [ 'SUBTRACT',  qr/[-]/ ],
+    [ 'PERCENT',  qr/[%]/ ],
+    [ 'NEG',  qr/[-]/ ],
+    [ 'COLON',  qr/[:]/ ],
     [ 'LPAREN',  qr/[(]/ ],
     [ 'RPAREN',  qr/[)]/ ],
 );
@@ -111,5 +130,7 @@ return ${$value_ref};
 
 }
 
-say calculate( '4 * 3 + 42 / 1' );
-say calculate( '4 * 3 / (a = b = 5) + 42 - 1' );
+say calculate( '4 3 42 + 1' );
+say calculate( '4 * 3 5 (6 7) 8 9 10' );
+say calculate( '1 ? 42 : 2 ?? 3 : 4 : 5 ? 6 : 7' );
+say calculate( 'payment on 1000 + 1000 over 41 years at 5 + 1 %' );
