@@ -9,12 +9,60 @@ use Marpa::XS;
 sub rules { my $m = shift; return { m => $m, rules => \@_ }; }
 
 sub priority_rule {
-  my (undef, $lhs, undef, $priorities ) = @_;
-  my $priority_count = scalar @{$priorities};
-  my @rules =
-    map { my $priority = $_; map { [ $priority, @{$_} ] } @{ $priorities->[$_] } } 0 .. $priority_count - 1;
-  return [ "lhs=$lhs", ('priority_count=' . scalar @{$priorities}), \@rules ];
-}
+    my ( undef, $lhs, undef, $priorities ) = @_;
+    my $priority_count = scalar @{$priorities};
+    my @rules =
+        map {
+        my $priority = $_;
+        map { [ $priority, @{$_} ] } @{ $priorities->[$_] }
+        } 0 .. $priority_count - 1;
+    my @xs_rules = (
+        { lhs => $lhs, rhs => [ $lhs . '_0' ] },
+        (   map {
+                ;
+                {   lhs => ( $lhs . '_' . ( $_ - 1 ) ),
+                    rhs => [ $lhs . '_' . ($_) ]
+                }
+            } 1 .. $priority_count - 1
+        )
+    );
+    RULE: for my $rule (@rules) {
+        my ( $priority, $assoc, $rhs, $action ) = @{$rule};
+	my @new_rhs = @{$rhs};
+        my @arity = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
+        my $length = scalar @{$rhs};
+        my $current_exp   = $lhs . '_' . $priority;
+        my $next_priority = $priority + 1;
+        $next_priority = 0 if $next_priority >= $priority_count;
+        my $next_exp = $lhs . '_' . $next_priority;
+
+        if ( not scalar @arity ) {
+            push @xs_rules,
+                {
+                lhs => $current_exp,
+                rhs => \@new_rhs, action => $action
+                };
+            next RULE;
+        } ## end if ( not scalar @arity )
+
+        if ( scalar @arity == 1 ) {
+            die "Unnecessary unit rule in priority rule" if $length == 1;
+	    $new_rhs[$arity[0]] = $current_exp;
+        }
+	if ($assoc ne "L") {
+            die qq{Unknown association type: "$assoc"};
+	}
+	$new_rhs[$arity[0]] = $current_exp;
+	for my $rhs_ix (@arity[1 .. $#arity]) {
+	  $new_rhs[$rhs_ix] = $next_exp;
+	}
+	push @xs_rules, { lhs => $current_exp, { rhs => \@new_rhs }, action => $action };
+    } ## end RULE: for my $rule (@rules)
+    return [
+	@xs_rules
+    ];
+} ## end sub priority_rule
+
 sub empty_rule { shift; return { @{ $_[0] }, rhs => [], @{ $_[2] || [] } }; }
 sub priority1 { shift; return [ $_[0] ]; }
 sub priority3 { shift; return [ $_[0], @{ $_[2] } ]; }
