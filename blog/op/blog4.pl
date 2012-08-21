@@ -16,12 +16,16 @@ e ::=
   NUM
   | VAR
   | :group LPAREN e RPAREN => add_brackets
-  || NEG e => add_brackets
+  || NEG e
   || e STAR e => add_brackets
+  | e e => add_brackets
   | e DIV e => add_brackets
   || e PLUS e => add_brackets
-  | e NEG e => add_brackets
+  | e SUBTRACT e => add_brackets
   || VAR ASSIGN e => add_brackets
+  || :right e TERN e : e => add_brackets
+  | :right e QUINARY e : e : e : e => add_brackets
+  || PAYMENT ON e OVER e YEARS AT e % => add_brackets
 END_OF_GRAMMAR
     );
 
@@ -57,7 +61,7 @@ my @terminals = (
     [ 'STAR',  qr/[*]/ ],
     [ 'DIV',  qr/[\/]/ ],
     [ 'PLUS',  qr/[+]/ ],
-    [ 'NEG',  qr/[-]/ ],
+    [ 'SUBTRACT',  qr/[-]/ ],
     [ 'LPAREN',  qr/[(]/ ],
     [ 'RPAREN',  qr/[)]/ ],
 );
@@ -109,5 +113,3 @@ return ${$value_ref};
 
 say calculate( '4 * 3 + 42 / 1' );
 say calculate( '4 * 3 / (a = b = 5) + 42 - 1' );
-say calculate( '4 * 3 /  5 - - - 3 + 42 - 1' );
-say calculate( '- a - b' );
