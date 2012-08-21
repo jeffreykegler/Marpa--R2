@@ -57,16 +57,22 @@ sub priority_rule {
                 $new_rhs[ $arity[0] ] = $current_exp;
                 for my $rhs_ix ( @arity[ 1 .. $#arity ] ) {
                     $new_rhs[$rhs_ix] = $next_exp;
-                    last DO_ASSOCIATION;
                 }
+		last DO_ASSOCIATION;
             } ## end if ( $assoc eq 'L' )
             if ( $assoc eq 'R' ) {
                 $new_rhs[ $arity[-1] ] = $current_exp;
                 for my $rhs_ix ( @arity[ 0 .. $#arity - 1 ] ) {
                     $new_rhs[$rhs_ix] = $next_exp;
-                    last DO_ASSOCIATION;
                 }
+		last DO_ASSOCIATION;
             } ## end if ( $assoc eq 'R' )
+            if ( $assoc eq 'G' ) {
+                for my $rhs_ix ( @arity[ 0 .. $#arity ] ) {
+                    $new_rhs[$rhs_ix] = 'exp_0';
+		}
+		last DO_ASSOCIATION;
+	    }
             die qq{Unknown association type: "$assoc"};
         } ## end DO_ASSOCIATION:
         push @xs_rules, { lhs => $current_exp, rhs => \@new_rhs, @action_kv };
@@ -99,6 +105,7 @@ sub do_array { shift; return [@_]; }
 sub do_arg1 { return $_[2]; }
 sub do_right_adverb { return 'R' }
 sub do_left_adverb { return 'L' }
+sub do_group_adverb { return 'G' }
 
 sub do_what_I_mean {
 
@@ -149,6 +156,7 @@ sub parse_rules {
 		{ lhs => 'alternative', rhs => [qw(adverb rhs action)], action => 'do_full_alternative' },
 		{ lhs => 'alternative', rhs => [qw(adverb rhs)], action => 'do_bare_alternative' },
 
+                { lhs => 'adverb', rhs => [qw/op_group/], action => 'do_group_adverb' },
                 { lhs => 'adverb', rhs => [qw/op_right/], action => 'do_right_adverb' },
                 { lhs => 'adverb', rhs => [qw/op_left/], action => 'do_left_adverb' },
                 { lhs => 'adverb', rhs => [] },
@@ -186,6 +194,7 @@ sub parse_rules {
     my @terminals = (
         [ 'op_right',      qr/:right\b/ ],
         [ 'op_left',       qr/:left\b/ ],
+        [ 'op_group',       qr/:group\b/ ],
         [ 'op_declare',    qr/::=/ ],
         [ 'op_arrow',      qr/=>/ ],
         [ 'op_tighter',    qr/[|][|]/ ],
