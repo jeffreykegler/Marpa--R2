@@ -28,11 +28,11 @@ sub priority_rule {
     );
     RULE: for my $rule (@rules) {
         my ( $priority, $assoc, $rhs, $action ) = @{$rule};
-	my @action_kv = ();
-	push @action_kv, action => $action if defined $action;
-	my @new_rhs = @{$rhs};
-        my @arity = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
-        my $length = scalar @{$rhs};
+        my @action_kv = ();
+        push @action_kv, action => $action if defined $action;
+        my @new_rhs       = @{$rhs};
+        my @arity         = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
+        my $length        = scalar @{$rhs};
         my $current_exp   = $lhs . '_' . $priority;
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
@@ -42,23 +42,34 @@ sub priority_rule {
             push @xs_rules,
                 {
                 lhs => $current_exp,
-                rhs => \@new_rhs, @action_kv
+                rhs => \@new_rhs,
+                @action_kv
                 };
             next RULE;
         } ## end if ( not scalar @arity )
 
         if ( scalar @arity == 1 ) {
             die "Unnecessary unit rule in priority rule" if $length == 1;
-	    $new_rhs[$arity[0]] = $current_exp;
+            $new_rhs[ $arity[0] ] = $current_exp;
         }
-	if ($assoc ne "L") {
+        DO_ASSOCIATION: {
+            if ( $assoc eq 'L' ) {
+                $new_rhs[ $arity[0] ] = $current_exp;
+                for my $rhs_ix ( @arity[ 1 .. $#arity ] ) {
+                    $new_rhs[$rhs_ix] = $next_exp;
+                    last DO_ASSOCIATION;
+                }
+            } ## end if ( $assoc eq 'L' )
+            if ( $assoc eq 'R' ) {
+                $new_rhs[ $arity[-1] ] = $current_exp;
+                for my $rhs_ix ( @arity[ 0 .. $#arity - 1 ] ) {
+                    $new_rhs[$rhs_ix] = $next_exp;
+                    last DO_ASSOCIATION;
+                }
+            } ## end if ( $assoc eq 'R' )
             die qq{Unknown association type: "$assoc"};
-	}
-	$new_rhs[$arity[0]] = $current_exp;
-	for my $rhs_ix (@arity[1 .. $#arity]) {
-	  $new_rhs[$rhs_ix] = $next_exp;
-	}
-	push @xs_rules, { lhs => $current_exp, rhs => \@new_rhs, @action_kv };
+        } ## end DO_ASSOCIATION:
+        push @xs_rules, { lhs => $current_exp, rhs => \@new_rhs, @action_kv };
     } ## end RULE: for my $rule (@rules)
     return [
 	@xs_rules
