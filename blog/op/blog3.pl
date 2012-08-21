@@ -25,7 +25,6 @@ e ::=
 END_OF_GRAMMAR
     );
 
-
 sub pass_upward {
     shift;
     return join q{}, @_;
@@ -58,7 +57,7 @@ my @terminals = (
     [ 'STAR',  qr/[*]/ ],
     [ 'DIV',  qr/[\/]/ ],
     [ 'PLUS',  qr/[+]/ ],
-    [ 'SUBTRACT',  qr/[+]/ ],
+    [ 'SUBTRACT',  qr/[-]/ ],
     [ 'LPAREN',  qr/[(]/ ],
     [ 'RPAREN',  qr/[)]/ ],
 );
@@ -78,6 +77,7 @@ TOKEN: while ( pos $string < $length ) {
     TOKEN_TYPE: for my $t (@terminals) {
         next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gc;
         if ( not defined $rec->read( $t->[0], $1 ) ) {
+	    say $rec->show_progress();
 	    my $problem_position = (pos $string) - length $1;
 	    my $before_start = $problem_position - 40;
 	    $before_start = 0 if $before_start < 0;
@@ -103,9 +103,9 @@ if ( !defined $value_ref ) {
     say $rec->show_progress();
     die "Parse failed";
 }
-say Data::Dumper::Dumper($value_ref);
+return ${$value_ref};
 
 }
 
-calculate( '4 * 3 + 42 / 1' );
-calculate( '4 * 3 / (a = b = 5) + 42 1' );
+say calculate( '4 * 3 + 42 / 1' );
+say calculate( '4 * 3 / (a = b = 5) + 42 - 1' );

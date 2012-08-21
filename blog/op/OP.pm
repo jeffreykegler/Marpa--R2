@@ -69,7 +69,7 @@ sub priority_rule {
             } ## end if ( $assoc eq 'R' )
             if ( $assoc eq 'G' ) {
                 for my $rhs_ix ( @arity[ 0 .. $#arity ] ) {
-                    $new_rhs[$rhs_ix] = 'exp_0';
+                    $new_rhs[$rhs_ix] = $lhs . '_0';
 		}
 		last DO_ASSOCIATION;
 	    }
