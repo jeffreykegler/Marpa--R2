@@ -7,10 +7,10 @@ use warnings;
 use Marpa::XS;
 
 use Data::Dumper;
-require './OP.pm';
+require './OP1.pm';
 
 my $rules =
-    MarpaX::Blog::OP::parse_rules(
+    Marpa::Demo::OP1::parse_rules(
 <<'END_OF_GRAMMAR'
 e ::=
      NUM
