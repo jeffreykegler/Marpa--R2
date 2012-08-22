@@ -6,14 +6,14 @@ use warnings;
 
 use Marpa::XS;
 
-sub rules { shift; return $_[0] ; }
+sub rules { shift; return $_[0]; }
 
 sub priority_rule {
     my ( undef, $lhs, undef, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
     my @rules =
         map {
-        my $priority = $priority_count - ($_ + 1);
+        my $priority = $priority_count - ( $_ + 1 );
         map { [ $priority, @{$_} ] } @{ $priorities->[$_] }
         } 0 .. $priority_count - 1;
     my @xs_rules = (
@@ -58,28 +58,26 @@ sub priority_rule {
                 for my $rhs_ix ( @arity[ 1 .. $#arity ] ) {
                     $new_rhs[$rhs_ix] = $next_exp;
                 }
-		last DO_ASSOCIATION;
+                last DO_ASSOCIATION;
             } ## end if ( $assoc eq 'L' )
             if ( $assoc eq 'R' ) {
                 $new_rhs[ $arity[-1] ] = $current_exp;
                 for my $rhs_ix ( @arity[ 0 .. $#arity - 1 ] ) {
                     $new_rhs[$rhs_ix] = $next_exp;
                 }
-		last DO_ASSOCIATION;
+                last DO_ASSOCIATION;
             } ## end if ( $assoc eq 'R' )
             if ( $assoc eq 'G' ) {
                 for my $rhs_ix ( @arity[ 0 .. $#arity ] ) {
                     $new_rhs[$rhs_ix] = $lhs . '_0';
-		}
-		last DO_ASSOCIATION;
-	    }
+                }
+                last DO_ASSOCIATION;
+            } ## end if ( $assoc eq 'G' )
             die qq{Unknown association type: "$assoc"};
         } ## end DO_ASSOCIATION:
         push @xs_rules, { lhs => $current_exp, rhs => \@new_rhs, @action_kv };
     } ## end RULE: for my $rule (@rules)
-    return [
-	@xs_rules
-    ];
+    return [ @xs_rules ];
 } ## end sub priority_rule
 
 sub empty_rule { shift; return { @{ $_[0] }, rhs => [], @{ $_[2] || [] } }; }
@@ -92,7 +90,7 @@ sub quantified_rule {
         min => ( $_[3] eq q{+} ? 1 : 0 ),
         @{ $_[4] || [] }
     };
-} ## end sub empty_rule
+} ## end sub quantified_rule
 
 sub do_priority1        { shift; return [ $_[0] ]; }
 sub do_priority3        { shift; return [ $_[0], @{ $_[2] } ]; }
@@ -104,7 +102,7 @@ sub do_lhs { shift; return $_[0]; }
 sub do_array { shift; return [@_]; }
 sub do_arg1 { return $_[2]; }
 sub do_right_adverb { return 'R' }
-sub do_left_adverb { return 'L' }
+sub do_left_adverb  { return 'L' }
 sub do_group_adverb { return 'G' }
 
 sub do_what_I_mean {
@@ -114,20 +112,20 @@ sub do_what_I_mean {
     shift;
 
     # Throw away any undef's
-    my @children = grep { defined } @_;
+    my @children = grep {defined} @_;
 
     # Return what's left
     return scalar @children > 1 ? \@children : shift @children;
-}
+} ## end sub do_what_I_mean
 
 sub parse_rules {
     my ($string) = @_;
 
     my $grammar = Marpa::XS::Grammar->new(
-        {   start   => 'rules',
-            actions => __PACKAGE__,
-	    default_action => 'do_what_I_mean',
-            rules   => [
+        {   start          => 'rules',
+            actions        => __PACKAGE__,
+            default_action => 'do_what_I_mean',
+            rules          => [
                 {   lhs    => 'rules',
                     rhs    => [qw/rule/],
                     action => 'rules',
@@ -146,19 +144,45 @@ sub parse_rules {
                     action => 'quantified_rule'
                 },
 
-		{ lhs => 'priorities', rhs => [qw(alternatives)], action => 'do_priority1' },
-		{ lhs => 'priorities', rhs => [qw(alternatives op_tighter priorities)], action => 'do_priority3' },
+                {   lhs    => 'priorities',
+                    rhs    => [qw(alternatives)],
+                    action => 'do_priority1'
+                },
+                {   lhs    => 'priorities',
+                    rhs    => [qw(alternatives op_tighter priorities)],
+                    action => 'do_priority3'
+                },
 
-		{ lhs => 'alternatives', rhs => [qw(alternative)], action => 'do_alternatives_1', },
-		{ lhs => 'alternatives', rhs => [qw(alternative op_eq_pri alternatives)], action => 'do_alternatives_3',
-		},
+                {   lhs    => 'alternatives',
+                    rhs    => [qw(alternative)],
+                    action => 'do_alternatives_1',
+                },
+                {   lhs    => 'alternatives',
+                    rhs    => [qw(alternative op_eq_pri alternatives)],
+                    action => 'do_alternatives_3',
+                },
 
-		{ lhs => 'alternative', rhs => [qw(adverb rhs action)], action => 'do_full_alternative' },
-		{ lhs => 'alternative', rhs => [qw(adverb rhs)], action => 'do_bare_alternative' },
+                {   lhs    => 'alternative',
+                    rhs    => [qw(adverb rhs action)],
+                    action => 'do_full_alternative'
+                },
+                {   lhs    => 'alternative',
+                    rhs    => [qw(adverb rhs)],
+                    action => 'do_bare_alternative'
+                },
 
-                { lhs => 'adverb', rhs => [qw/op_group/], action => 'do_group_adverb' },
-                { lhs => 'adverb', rhs => [qw/op_right/], action => 'do_right_adverb' },
-                { lhs => 'adverb', rhs => [qw/op_left/], action => 'do_left_adverb' },
+                {   lhs    => 'adverb',
+                    rhs    => [qw/op_group/],
+                    action => 'do_group_adverb'
+                },
+                {   lhs    => 'adverb',
+                    rhs    => [qw/op_right/],
+                    action => 'do_right_adverb'
+                },
+                {   lhs    => 'adverb',
+                    rhs    => [qw/op_left/],
+                    action => 'do_left_adverb'
+                },
                 { lhs => 'adverb', rhs => [] },
 
                 { lhs => 'action', rhs => [] },
@@ -173,14 +197,14 @@ sub parse_rules {
 
                 { lhs => 'lhs', rhs => [qw/name/], action => 'do_lhs' },
 
-                { lhs => 'rhs', rhs => [qw/names/] },
+                { lhs => 'rhs',        rhs => [qw/names/] },
                 { lhs => 'quantifier', rhs => [qw/op_plus/] },
                 { lhs => 'quantifier', rhs => [qw/op_star/] },
 
                 {   lhs    => 'names',
                     rhs    => [qw/name/],
                     min    => 1,
-		    action => 'do_array'
+                    action => 'do_array'
                 },
             ],
             lhs_terminals => 0,
@@ -194,7 +218,7 @@ sub parse_rules {
     my @terminals = (
         [ 'op_right',      qr/:right\b/ ],
         [ 'op_left',       qr/:left\b/ ],
-        [ 'op_group',       qr/:group\b/ ],
+        [ 'op_group',      qr/:group\b/ ],
         [ 'op_declare',    qr/::=/ ],
         [ 'op_arrow',      qr/=>/ ],
         [ 'op_tighter',    qr/[|][|]/ ],
@@ -210,10 +234,10 @@ sub parse_rules {
     pos $string = 0;
     TOKEN: while ( pos $string < $length ) {
 
-	# skip whitespace
+        # skip whitespace
         next TOKEN if $string =~ m/\G\s+/gc;
 
-	# read other tokens
+        # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gc;
             if ( not defined $rec->read( $t->[0], $1 ) ) {
@@ -234,7 +258,7 @@ sub parse_rules {
     my $parse_ref = $rec->value;
 
     if ( !defined $parse_ref ) {
-	say $rec->show_progress();
+        say $rec->show_progress();
         die "Parse failed";
     }
     my $parse = $$parse_ref;
@@ -243,4 +267,3 @@ sub parse_rules {
 } ## end sub parse_rules
 
 1;
-
