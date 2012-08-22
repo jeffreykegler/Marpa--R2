@@ -17,6 +17,7 @@ e ::=
    | VAR
    | :group '(' e ')'
   || '-' e
+  || :right e '^' e
   || e '*' e
    | e e                                          => implied_multiply
    | e '/' e
@@ -43,7 +44,7 @@ sub spaced {
 }
 
 sub implied_multiply {
-    return '[' . $_[1] . 'x' . $_[2] . ']';
+    return '[' . $_[1] . ' x ' . $_[2] . ']';
 }
 
 my $grammar = Marpa::XS::Grammar->new(
@@ -71,6 +72,7 @@ my @terminals = (
     [ q{'*'},       qr/[*]/xms ],
     [ q{'/'},       qr/[\/]/xms ],
     [ q{'+'},       qr/[+]/xms ],
+    [ q{'^'},       qr/[\^]/xms ],
     [ q{'%'},       qr/[%]/xms ],
     [ q{'-'},       qr/[-]/xms ],
     [ q{':'},       qr/[:]/xms ],
@@ -132,6 +134,7 @@ sub report_calculation {
 
 my $output = join q{},
     report_calculation('4 3 42 + 1'),
+    report_calculation('e = m c^2'),
     report_calculation('4 * 3 5 (6 7) 8 9 10'),
     report_calculation('1 ? 42 : 2 ?? 3 : 4 : 5 ? 6 : 7'),
     report_calculation(
@@ -140,9 +143,11 @@ my $output = join q{},
 print $output or die "say failed: $ERRNO";
 $output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
 Input: "4 3 42 + 1"
-  Parse: [[[4x3]x42]+1]
+  Parse: [[[4 x 3] x 42]+1]
+Input: "e = m c^2"
+  Parse: [e=[m x [c^2]]]
 Input: "4 * 3 5 (6 7) 8 9 10"
-  Parse: [[[[[[4*3]x5]x[([6x7])]]x8]x9]x10]
+  Parse: [[[[[[4*3] x 5] x [([6 x 7])]] x 8] x 9] x 10]
 Input: "1 ? 42 : 2 ?? 3 : 4 : 5 ? 6 : 7"
   Parse: [1 ? 42 : [2 ?? 3 : 4 : [5 ? 6 : 7]]]
 Input: "payment on 1000 + 1000 over months/12 years at 5 + 1 %"
