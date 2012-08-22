@@ -3,11 +3,12 @@
 use 5.010;
 use strict;
 use warnings;
+use English qw( -no_match_vars );
 
 use Marpa::XS;
 
 use Data::Dumper;
-require './OP1.pm';
+require './OP1.pm';    ## no critic (Modules::RequireBarewordIncludes)
 
 my $rules = Marpa::Demo::OP1::parse_rules(
     <<'END_OF_GRAMMAR'
@@ -26,13 +27,11 @@ END_OF_GRAMMAR
 );
 
 sub add_brackets {
-    shift;
-    return $_[0] if 1 == scalar @_;
-    my $original = join q{}, grep {defined} @_;
+    my ( undef, @children ) = @_;
+    return $children[0] if 1 == scalar @children;
+    my $original = join q{}, grep {defined} @children;
     return '[' . $original . ']';
 } ## end sub add_brackets
-
-# say Data::Dumper::Dumper($rules);
 
 my $grammar = Marpa::XS::Grammar->new(
     {   start          => 'e',
@@ -46,16 +45,16 @@ $grammar->precompute;
 
 # Order matters !!
 my @terminals = (
-    [ 'NUM',  qr/\d+/ ],
-    [ 'VAR',  qr/\w+/ ],
-    [ q{'='}, qr/[=]/ ],
-    [ q{'*'}, qr/[*]/ ],
-    [ q{'/'}, qr/[\/]/ ],
-    [ q{'+'}, qr/[+]/ ],
-    [ q{'-'}, qr/[-]/ ],
-    [ q{'^'}, qr/[\^]/ ],
-    [ q{'('}, qr/[(]/ ],
-    [ q{')'}, qr/[)]/ ],
+    [ 'NUM',  qr/\d+/xms ],
+    [ 'VAR',  qr/\w+/xms ],
+    [ q{'='}, qr/[=]/xms ],
+    [ q{'*'}, qr/[*]/xms ],
+    [ q{'/'}, qr/[\/]/xms ],
+    [ q{'+'}, qr/[+]/xms ],
+    [ q{'-'}, qr/[-]/xms ],
+    [ q{'^'}, qr/[\^]/xms ],
+    [ q{'('}, qr/[(]/xms ],
+    [ q{')'}, qr/[)]/xms ],
 );
 
 sub calculate {
@@ -67,13 +66,13 @@ sub calculate {
     TOKEN: while ( pos $string < $length ) {
 
         # skip whitespace
-        next TOKEN if $string =~ m/\G\s+/gc;
+        next TOKEN if $string =~ m/\G\s+/gcxms;
 
         # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
-            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gc;
+            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
             if ( not defined $rec->read( $t->[0], $1 ) ) {
-                say $rec->show_progress();
+                say $rec->show_progress() or die "say failed: $ERRNO";
                 my $problem_position = ( pos $string ) - length $1;
                 my $before_start     = $problem_position - 40;
                 $before_start = 0 if $before_start < 0;
@@ -83,7 +82,7 @@ sub calculate {
                     ( substr $string, $before_start, $before_length + 40 ),
                     qq{"\n},
                     ( q{ } x ( $before_length + 18 ) ), qq{^\n},
-                    qq{Token rejected, "}, $t->[0], qq{", "$1"},
+                    q{Token rejected, "}, $t->[0], qq{", "$1"},
                     ;
             } ## end if ( not defined $rec->read( $t->[0], $1 ) )
             next TOKEN;
@@ -98,8 +97,8 @@ sub calculate {
     my $value_ref = $rec->value;
 
     if ( !defined $value_ref ) {
-        say $rec->show_progress();
-        die "Parse failed";
+        say $rec->show_progress() or die "say failed: $ERRNO";
+        die 'Parse failed';
     }
     return ${$value_ref};
 
@@ -117,8 +116,8 @@ my $output = join q{},
     report_calculation('- a - b'),
     report_calculation('1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1');
 
-print $output;
-$output eq <<'EXPECTED_OUTPUT' or die "FAIL: Output mismatch";
+print $output or die "print failed: $ERRNO";
+$output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
 Input: "4 * 3 + 42 / 1"
   Parse: [[4*3]+[42/1]]
 Input: "4 * 3 / (a = b = 5) + 42 - 1"

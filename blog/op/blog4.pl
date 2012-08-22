@@ -3,11 +3,12 @@
 use 5.010;
 use strict;
 use warnings;
+use English qw( -no_match_vars );
 
 use Marpa::XS;
 
 use Data::Dumper;
-require './OP1.pm';
+require './OP1.pm';    ## no critic (Modules::RequireBarewordIncludes)
 
 my $rules = Marpa::Demo::OP1::parse_rules(
     <<'END_OF_GRAMMAR'
@@ -29,9 +30,9 @@ END_OF_GRAMMAR
 );
 
 sub add_brackets {
-    shift;
-    return $_[0] if 1 == scalar @_;
-    my $original = join q{}, grep {defined} @_;
+    my ( undef, @children ) = @_;
+    return $children[0] if 1 == scalar @children;
+    my $original = join q{}, grep {defined} @children;
     return '[' . $original . ']';
 } ## end sub add_brackets
 
@@ -45,8 +46,6 @@ sub implied_multiply {
     return '[' . $_[1] . 'x' . $_[2] . ']';
 }
 
-# say Data::Dumper::Dumper($rules);
-
 my $grammar = Marpa::XS::Grammar->new(
     {   start          => 'e',
         actions        => __PACKAGE__,
@@ -59,24 +58,24 @@ $grammar->precompute;
 
 # Order matters !!
 my @terminals = (
-    [ q{'at'},      qr/at\b/ ],
-    [ q{'on'},      qr/on\b/ ],
-    [ q{'over'},    qr/over\b/ ],
-    [ q{'payment'}, qr/payment\b/ ],
-    [ q{'years'},   qr/years\b/ ],
-    [ q{'??'},      qr/[?][?]/ ],
-    [ q{'?'},       qr/[?]/ ],
-    [ 'NUM',        qr/\d+/ ],
-    [ 'VAR',        qr/\w+/ ],
-    [ q{'='},       qr/[=]/ ],
-    [ q{'*'},       qr/[*]/ ],
-    [ q{'/'},       qr/[\/]/ ],
-    [ q{'+'},       qr/[+]/ ],
-    [ q{'%'},       qr/[%]/ ],
-    [ q{'-'},       qr/[-]/ ],
-    [ q{':'},       qr/[:]/ ],
-    [ q{'('},       qr/[(]/ ],
-    [ q{')'},       qr/[)]/ ],
+    [ q{'at'},      qr/at\b/xms ],
+    [ q{'on'},      qr/on\b/xms ],
+    [ q{'over'},    qr/over\b/xms ],
+    [ q{'payment'}, qr/payment\b/xms ],
+    [ q{'years'},   qr/years\b/xms ],
+    [ q{'??'},      qr/[?][?]/xms ],
+    [ q{'?'},       qr/[?]/xms ],
+    [ 'NUM',        qr/\d+/xms ],
+    [ 'VAR',        qr/\w+/xms ],
+    [ q{'='},       qr/[=]/xms ],
+    [ q{'*'},       qr/[*]/xms ],
+    [ q{'/'},       qr/[\/]/xms ],
+    [ q{'+'},       qr/[+]/xms ],
+    [ q{'%'},       qr/[%]/xms ],
+    [ q{'-'},       qr/[-]/xms ],
+    [ q{':'},       qr/[:]/xms ],
+    [ q{'('},       qr/[(]/xms ],
+    [ q{')'},       qr/[)]/xms ],
 );
 
 sub calculate {
@@ -88,13 +87,13 @@ sub calculate {
     TOKEN: while ( pos $string < $length ) {
 
         # skip whitespace
-        next TOKEN if $string =~ m/\G\s+/gc;
+        next TOKEN if $string =~ m/\G\s+/gcxms;
 
         # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
-            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gc;
+            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
             if ( not defined $rec->read( $t->[0], $1 ) ) {
-                say $rec->show_progress();
+                say $rec->show_progress() or die "say failed: $ERRNO";
                 my $problem_position = ( pos $string ) - length $1;
                 my $before_start     = $problem_position - 40;
                 $before_start = 0 if $before_start < 0;
@@ -104,7 +103,7 @@ sub calculate {
                     ( substr $string, $before_start, $before_length + 40 ),
                     qq{"\n},
                     ( q{ } x ( $before_length + 18 ) ), qq{^\n},
-                    qq{Token rejected, "}, $t->[0], qq{", "$1"},
+                    q{Token rejected, "}, $t->[0], qq{", "$1"},
                     ;
             } ## end if ( not defined $rec->read( $t->[0], $1 ) )
             next TOKEN;
@@ -119,8 +118,8 @@ sub calculate {
     my $value_ref = $rec->value;
 
     if ( !defined $value_ref ) {
-        say $rec->show_progress();
-        die "Parse failed";
+        say $rec->show_progress() or die "say failed: $ERRNO";
+        die 'Parse failed';
     }
     return ${$value_ref};
 
@@ -138,8 +137,8 @@ my $output = join q{},
     report_calculation(
     'payment on 1000 + 1000 over months/12 years at 5 + 1 %');
 
-print $output;
-$output eq <<'EXPECTED_OUTPUT' or die "FAIL: Output mismatch";
+print $output or die "say failed: $ERRNO";
+$output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
 Input: "4 3 42 + 1"
   Parse: [[[4x3]x42]+1]
 Input: "4 * 3 5 (6 7) 8 9 10"
