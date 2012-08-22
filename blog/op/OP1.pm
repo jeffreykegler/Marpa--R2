@@ -3,6 +3,7 @@ package Marpa::Demo::OP1;
 use 5.010;
 use strict;
 use warnings;
+use English qw( -no_match_vars );
 
 use Marpa::XS;
 
@@ -11,11 +12,13 @@ sub rules { shift; return $_[0]; }
 sub priority_rule {
     my ( undef, $lhs, undef, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
-    my @rules =
-        map {
-        my $priority = $priority_count - ( $_ + 1 );
-        map { [ $priority, @{$_} ] } @{ $priorities->[$_] }
-        } 0 .. $priority_count - 1;
+    my @rules          = ();
+    for my $priority_ix ( 0 .. $priority_count - 1 ) {
+        my $priority = $priority_count - ( $priority_ix + 1 );
+        for my $alternative ( @{ $priorities->[$priority_ix] } ) {
+            push @rules, [ $priority, @{$alternative} ];
+        }
+    } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
     my @xs_rules = (
         { lhs => $lhs, rhs => [ $lhs . '_0' ] },
         (   map {
@@ -49,7 +52,7 @@ sub priority_rule {
         } ## end if ( not scalar @arity )
 
         if ( scalar @arity == 1 ) {
-            die "Unnecessary unit rule in priority rule" if $length == 1;
+            die 'Unnecessary unit rule in priority rule' if $length == 1;
             $new_rhs[ $arity[0] ] = $current_exp;
         }
         DO_ASSOCIATION: {
@@ -77,7 +80,7 @@ sub priority_rule {
         } ## end DO_ASSOCIATION:
         push @xs_rules, { lhs => $current_exp, rhs => \@new_rhs, @action_kv };
     } ## end RULE: for my $rule (@rules)
-    return [ @xs_rules ];
+    return [@xs_rules];
 } ## end sub priority_rule
 
 sub empty_rule { shift; return { @{ $_[0] }, rhs => [], @{ $_[2] || [] } }; }
@@ -216,18 +219,18 @@ sub parse_rules {
 
     # Order matters !!!
     my @terminals = (
-        [ 'op_right',      qr/:right\b/ ],
-        [ 'op_left',       qr/:left\b/ ],
-        [ 'op_group',      qr/:group\b/ ],
-        [ 'op_declare',    qr/::=/ ],
-        [ 'op_arrow',      qr/=>/ ],
-        [ 'op_tighter',    qr/[|][|]/ ],
-        [ 'op_eq_pri',     qr/[|]/ ],
-        [ 'reserved_name', qr/(::(whatever|undef))/ ],
-        [ 'op_plus',       qr/[+]/ ],
-        [ 'op_star',       qr/[*]/ ],
-        [ 'name',          qr/\w+/, ],
-        [ 'name',          qr/['][^']+[']/, ],
+        [ 'op_right',      qr/:right\b/xms ],
+        [ 'op_left',       qr/:left\b/xms ],
+        [ 'op_group',      qr/:group\b/xms ],
+        [ 'op_declare',    qr/::=/xms ],
+        [ 'op_arrow',      qr/=>/xms ],
+        [ 'op_tighter',    qr/[|][|]/xms ],
+        [ 'op_eq_pri',     qr/[|]/xms ],
+        [ 'reserved_name', qr/(::(whatever|undef))/xms ],
+        [ 'op_plus',       qr/[+]/xms ],
+        [ 'op_star',       qr/[*]/xms ],
+        [ 'name',          qr/\w+/xms ],
+        [ 'name',          qr/['][^']+[']/xms ],
     );
 
     my $length = length $string;
@@ -235,11 +238,11 @@ sub parse_rules {
     TOKEN: while ( pos $string < $length ) {
 
         # skip whitespace
-        next TOKEN if $string =~ m/\G\s+/gc;
+        next TOKEN if $string =~ m/\G\s+/gcxms;
 
         # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
-            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gc;
+            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
             if ( not defined $rec->read( $t->[0], $1 ) ) {
                 die die q{Problem before position }, pos $string, ': ',
                     ( substr $string, pos $string, 40 ),
@@ -258,10 +261,10 @@ sub parse_rules {
     my $parse_ref = $rec->value;
 
     if ( !defined $parse_ref ) {
-        say $rec->show_progress();
-        die "Parse failed";
+        say $rec->show_progress() or die "say failed: $ERRNO";
+        die 'Parse failed';
     }
-    my $parse = $$parse_ref;
+    my $parse = ${$parse_ref};
 
     return $parse;
 } ## end sub parse_rules
