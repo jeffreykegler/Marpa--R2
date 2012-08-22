@@ -13,36 +13,32 @@ my $rules =
     Marpa::Demo::OP1::parse_rules(
 <<'END_OF_GRAMMAR'
 e ::=
-  NUM
-  | VAR
-  | :group '(' e ')' => add_brackets
-  || '-' e => add_brackets
-  || e '*' e => add_brackets
-  | e e => implied_multiply
-  | e '/' e => add_brackets
-  || e '+' e => add_brackets
-  | e '-' e => add_brackets
-  || VAR '=' e => add_brackets
-  ||:right e '?' e ':' e => spaced_within_brackets
-  | :right e '??' e ':' e ':' e => spaced_within_brackets
-  || 'payment' 'on' e 'over' e 'years' 'at' e '%' => spaced_within_brackets
+     NUM
+   | VAR
+   | :group '(' e ')'
+  || '-' e
+  || e '*' e
+   | e e                                          => implied_multiply
+   | e '/' e
+  || e '+' e
+   | e '-' e
+  || VAR '=' e
+  || :right e '?' e ':' e                         => spaced
+   | :right e '??' e ':' e ':' e                  => spaced
+  || 'payment' 'on' e 'over' e 'years' 'at' e '%' => spaced
 END_OF_GRAMMAR
     );
 
-sub pass_upward {
-    shift;
-    return join q{}, @_;
-}
-
-sub spaced_within_brackets {
-    shift;
-    my $original = join q{ }, grep { defined } @_;
-    return '[' . $original . ']';
-}
-
 sub add_brackets {
     shift;
+    return $_[0] if 1 == scalar @_;
     my $original = join q{}, grep { defined } @_;
+    return '[' . $original . ']';
+} ## end sub do_what_I_mean
+
+sub spaced {
+    shift;
+    my $original = join q{ }, grep { defined } @_;
     return '[' . $original . ']';
 }
 
@@ -55,7 +51,7 @@ sub implied_multiply {
 my $grammar = Marpa::XS::Grammar->new(
     {   start          => 'e',
         actions        => __PACKAGE__,
-	default_action => 'pass_upward',
+	default_action => 'add_brackets',
         rules          => $rules,
         lhs_terminals  => 0,
     }
@@ -130,7 +126,13 @@ return ${$value_ref};
 
 }
 
-say calculate( '4 3 42 + 1' );
-say calculate( '4 * 3 5 (6 7) 8 9 10' );
-say calculate( '1 ? 42 : 2 ?? 3 : 4 : 5 ? 6 : 7' );
-say calculate( 'payment on 1000 + 1000 over 41 years at 5 + 1 %' );
+sub report_calculation {
+    my ($string) = @_;
+    say qq{Input: "$string"};
+    say '  Parse: ', calculate( $string );
+}
+
+report_calculation( '4 3 42 + 1' );
+report_calculation( '4 * 3 5 (6 7) 8 9 10' );
+report_calculation( '1 ? 42 : 2 ?? 3 : 4 : 5 ? 6 : 7' );
+report_calculation( 'payment on 1000 + 1000 over months/12 years at 5 + 1 %' );

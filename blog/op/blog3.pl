@@ -26,11 +26,6 @@ e ::=
 END_OF_GRAMMAR
     );
 
-sub pass_upward {
-    shift;
-    return join q{}, @_;
-}
-
 sub add_brackets {
     shift;
     return $_[0] if 1 == scalar @_;
