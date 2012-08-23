@@ -5,13 +5,13 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 
-use Marpa::XS;
+use Marpa::R2;
 
-use Data::Dumper;
 require './OP1.pm';    ## no critic (Modules::RequireBarewordIncludes)
 
 my $rules = Marpa::Demo::OP1::parse_rules(
     <<'END_OF_GRAMMAR'
+reduce_op ::= '+' | '-' | '/' | '*'
 e ::=
      NUM
    | VAR
@@ -22,6 +22,8 @@ e ::=
    | e '/' e
   || e '+' e
    | e '-' e
+  || e e
+  || reduce_op 'reduce' e
   || VAR '=' e
 END_OF_GRAMMAR
 );

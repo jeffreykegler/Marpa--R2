@@ -7,9 +7,9 @@ use English qw( -no_match_vars );
 
 use Marpa::XS;
 
-sub rules { shift; return $_[0]; }
+sub do_rules { shift; return [ map { @{$_} } @_]; }
 
-sub priority_rule {
+sub do_priority_rule {
     my ( undef, $lhs, undef, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
     my @rules          = ();
@@ -95,12 +95,16 @@ sub quantified_rule {
     };
 } ## end sub quantified_rule
 
-sub do_priority1        { shift; return [ $_[0] ]; }
-sub do_priority3        { shift; return [ $_[0], @{ $_[2] } ]; }
+sub do_priority1        {
+shift; return [ $_[0] ]; }
+sub do_priority3        {
+shift; return [ $_[0], @{ $_[2] } ]; }
 sub do_full_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], $_[2] ]; }
 sub do_bare_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], undef ] }
-sub do_alternatives_1   { shift; return [ $_[0] ]; }
-sub do_alternatives_3 { shift; return [ $_[0], @{ $_[2] } ] }
+sub do_alternatives_1   {
+shift; return [ $_[0] ]; }
+sub do_alternatives_3 {
+shift; return [ $_[0], @{ $_[2] } ] }
 sub do_lhs { shift; return $_[0]; }
 sub do_array { shift; return [@_]; }
 sub do_arg1 { return $_[2]; }
@@ -131,12 +135,12 @@ sub parse_rules {
             rules          => [
                 {   lhs    => 'rules',
                     rhs    => [qw/rule/],
-                    action => 'rules',
+                    action => 'do_rules',
                     min    => 1
                 },
                 {   lhs    => 'rule',
                     rhs    => [qw/lhs op_declare priorities/],
-                    action => 'priority_rule'
+                    action => 'do_priority_rule'
                 },
                 {   lhs    => 'rule',
                     rhs    => [qw/lhs op_declare action/],
