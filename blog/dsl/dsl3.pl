@@ -35,12 +35,11 @@ sub add_brackets {
     return '[' . $original . ']';
 } ## end sub add_brackets
 
-my $grammar = Marpa::XS::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start          => 'e',
         actions        => __PACKAGE__,
         default_action => 'add_brackets',
         rules          => $rules,
-        lhs_terminals  => 0,
     }
 );
 $grammar->precompute;
@@ -61,7 +60,7 @@ my @terminals = (
 
 sub calculate {
     my ($string) = @_;
-    my $rec = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+    my $rec = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     my $length = length $string;
     pos $string = 0;

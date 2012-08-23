@@ -5,6 +5,8 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 
+use Marpa::R2;
+
 sub do_rules {
     shift;
     return [ map { @{$_} } @_ ];
@@ -140,7 +142,7 @@ sub do_what_I_mean {
 sub parse_rules {
     my ($string) = @_;
 
-    my $grammar = Marpa::XS::Grammar->new(
+    my $grammar = Marpa::R2::Grammar->new(
         {   start          => 'rules',
             actions        => __PACKAGE__,
             default_action => 'do_what_I_mean',
@@ -226,12 +228,11 @@ sub parse_rules {
                     action => 'do_array'
                 },
             ],
-            lhs_terminals => 0,
         }
     );
     $grammar->precompute;
 
-    my $rec = Marpa::XS::Recognizer->new( { grammar => $grammar } );
+    my $rec = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     # Order matters !!!
     my @terminals = (
