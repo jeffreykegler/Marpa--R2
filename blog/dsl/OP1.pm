@@ -5,9 +5,10 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 
-use Marpa::XS;
-
-sub do_rules { shift; return [ map { @{$_} } @_]; }
+sub do_rules {
+    shift;
+    return [ map { @{$_} } @_ ];
+}
 
 sub do_priority_rule {
     my ( undef, $lhs, undef, $priorities ) = @_;
@@ -81,7 +82,7 @@ sub do_priority_rule {
         push @xs_rules, { lhs => $current_exp, rhs => \@new_rhs, @action_kv };
     } ## end RULE: for my $rule (@rules)
     return [@xs_rules];
-} ## end sub priority_rule
+} ## end sub do_priority_rule
 
 sub empty_rule { shift; return { @{ $_[0] }, rhs => [], @{ $_[2] || [] } }; }
 
@@ -95,19 +96,30 @@ sub quantified_rule {
     };
 } ## end sub quantified_rule
 
-sub do_priority1        {
-shift; return [ $_[0] ]; }
-sub do_priority3        {
-shift; return [ $_[0], @{ $_[2] } ]; }
+sub do_priority1 {
+    shift;
+    return [ $_[0] ];
+}
+
+sub do_priority3 {
+    shift;
+    return [ $_[0], @{ $_[2] } ];
+}
 sub do_full_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], $_[2] ]; }
 sub do_bare_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], undef ] }
-sub do_alternatives_1   {
-shift; return [ $_[0] ]; }
+
+sub do_alternatives_1 {
+    shift;
+    return [ $_[0] ];
+}
+
 sub do_alternatives_3 {
-shift; return [ $_[0], @{ $_[2] } ] }
+    shift;
+    return [ $_[0], @{ $_[2] } ];
+}
 sub do_lhs { shift; return $_[0]; }
 sub do_array { shift; return [@_]; }
-sub do_arg1 { return $_[2]; }
+sub do_arg1         { return $_[2]; }
 sub do_right_adverb { return 'R' }
 sub do_left_adverb  { return 'L' }
 sub do_group_adverb { return 'G' }
