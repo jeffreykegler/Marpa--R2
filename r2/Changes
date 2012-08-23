@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.019_000 Wed Aug 22 21:33:38 PDT 2012
+
+      * New series of developer's releases
+
 2.018000 Wed Aug 22 20:46:44 PDT 2012
 
       * Libmarpa docs now shipped with Marpa::R2
