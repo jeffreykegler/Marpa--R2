@@ -11,28 +11,100 @@ require './OP1.pm';    ## no critic (Modules::RequireBarewordIncludes)
 
 our $DEBUG = 1;
 
+my %binop_closure = (
+    '*' => sub { $_[0] * $_[1] },
+    '/' => sub { $_[0] / $_[1] },
+    '+' => sub { $_[0] + $_[1] },
+    '-' => sub { $_[0] - $_[1] },
+    '^' => sub { $_[0] ** $_[1] },
+);
+
+my %symbol_table = ();
+
+sub do_is_var {
+   my (undef, $var) = @_;
+   my $value = $symbol_table{$var};
+   die qq{Undefined variable "$var"} if not defined $value;
+   return $value;
+}
+
+sub do_set_var {
+   my (undef, $var, undef, $value) = @_;
+   return $symbol_table{$var} = $value;
+}
+
+sub do_negate {
+   return -$_[2];
+}
+
+sub do_arg1 { return $_[2]; }
+sub do_arg2 { return $_[3]; }
+
+sub do_array {
+    my ( undef, $left, undef, $right ) = @_;
+    my @value = ();
+    my $ref;
+    if ( $ref = ref $left ) {
+        die "Bad ref type for array operand: $ref" if $ref ne 'ARRAY';
+        push @value, @{$left};
+    }
+    else {
+        push @value, $left;
+    }
+    if ( $ref = ref $right ) {
+        die "Bad ref type for array operand: $ref" if $ref ne 'ARRAY';
+        push @value, @{$right};
+    }
+    else {
+        push @value, $right;
+    }
+    return \@value;
+} ## end sub do_array
+
 my $rules = Marpa::Demo::OP1::parse_rules(
     <<'END_OF_GRAMMAR'
 reduce_op ::= '+' | '-' | '/' | '*'
-script ::= e*
+script ::= e
+script ::= script ';' e => do_arg2
 e ::=
      NUM
-   | VAR
-   | :group '(' e ')'
-  || '-' e
-  || :right e '^' e
-  || e '*' e => binop
-   | e '/' e => binop
-  || e '+' e => binop
-   | e '-' e => binop
-  || e e
-  || reduce_op 'reduce' e
-  || VAR '=' e
+   | VAR => do_is_var
+   | :group '(' e ')' => do_arg1
+  || '-' e => do_negate
+  || :right e '^' e => do_binop
+  || e '*' e => do_binop
+   | e '/' e => do_binop
+  || e '+' e => do_binop
+   | e '-' e => do_binop
+  || e ',' e => do_array
+  || reduce_op 'reduce' e => do_reduce
+  || VAR '=' e => do_set_var
 END_OF_GRAMMAR
 );
 
-sub binop {
-   goto &add_brackets if $DEBUG;
+# require Data::Dumper; say Data::Dumper::Dumper($rules);
+
+sub do_binop {
+   my (undef, $left, $op, $right) = @_;
+   # goto &add_brackets if $DEBUG;
+   my $closure = $binop_closure{$op};
+   die qq{Do not know how to perform binary operation "$op"}
+      if not defined $closure;
+   return $closure->($left, $right);
+}
+
+sub do_reduce {
+   my (undef, $op, undef, $args) = @_;
+   my $closure = $binop_closure{$op};
+   die qq{Do not know how to perform binary operation "$op"}
+      if not defined $closure;
+   my @stack = @{$args};
+   OP: while (1) {
+      return $stack[0] if scalar @stack <= 1;
+      my $result = $closure->($stack[-2], $stack[-1]);
+      splice @stack, -2, 2, $result;
+   }
+   die; # Should not get here
 }
 
 sub add_brackets {
@@ -57,6 +129,7 @@ my @terminals = (
     [ 'NUM',  qr/\d+/xms ],
     [ 'VAR',  qr/\w+/xms ],
     [ q{'='}, qr/[=]/xms ],
+    [ q{';'}, qr/[;]/xms ],
     [ q{'*'}, qr/[*]/xms ],
     [ q{'/'}, qr/[\/]/xms ],
     [ q{'+'}, qr/[+]/xms ],
@@ -64,11 +137,14 @@ my @terminals = (
     [ q{'^'}, qr/[\^]/xms ],
     [ q{'('}, qr/[(]/xms ],
     [ q{')'}, qr/[)]/xms ],
+    [ q{','}, qr/[,]/xms ],
 );
 
 sub calculate {
     my ($string) = @_;
     my $rec = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+
+    %symbol_table = ();
 
     my $length = length $string;
     pos $string = 0;
@@ -115,16 +191,33 @@ sub calculate {
 
 sub report_calculation {
     my ($string) = @_;
-    return qq{Input: "$string"\n} . '  Parse: ' . calculate($string) . "\n";
+    my $output = qq{Input: "$string"\n};
+    my $result = calculate($string);
+    $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
+    $output .= "  Parse: $result\n";
+    for my $symbol (sort keys %symbol_table) {
+        $output .= qq{"$symbol" = "} . $symbol_table{$symbol} . qq{"\n};
+    }
+    return $output;
+}
+
+if (@ARGV) {
+    my $result = calculate(join ';', grep { /\S/ } @ARGV);
+    $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
+    say "Result is ", $result;
+    for my $symbol (sort keys %symbol_table) {
+        say qq{"$symbol" = "} . $symbol_table{$symbol} . qq{"};
+    }
+    exit 0;
 }
 
 my $output = join q{},
     report_calculation('4 * 3 + 42 / 1'),
     report_calculation('4 * 3 / (a = b = 5) + 42 - 1'),
     report_calculation('4 * 3 /  5 - - - 3 + 42 - 1'),
-    report_calculation('- a - b'),
+    report_calculation('a=1;b = 5;  - a - b'),
     report_calculation('1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1'),
-    report_calculation('+ reduce 1 + 2 3 4*2 5');
+    report_calculation('+ reduce 1 + 2, 3,4*2 , 5');
 
 print $output or die "print failed: $ERRNO";
 $output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
