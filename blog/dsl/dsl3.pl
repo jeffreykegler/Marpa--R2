@@ -9,6 +9,8 @@ use Marpa::R2;
 
 require './OP1.pm';    ## no critic (Modules::RequireBarewordIncludes)
 
+our $DEBUG = 1;
+
 my $rules = Marpa::Demo::OP1::parse_rules(
     <<'END_OF_GRAMMAR'
 reduce_op ::= '+' | '-' | '/' | '*'
@@ -18,15 +20,19 @@ e ::=
    | :group '(' e ')'
   || '-' e
   || :right e '^' e
-  || e '*' e
-   | e '/' e
-  || e '+' e
-   | e '-' e
+  || e '*' e => binop
+   | e '/' e => binop
+  || e '+' e => binop
+   | e '-' e => binop
   || e e
   || reduce_op 'reduce' e
   || VAR '=' e
 END_OF_GRAMMAR
 );
+
+sub binop {
+   goto &add_brackets if $DEBUG;
+}
 
 sub add_brackets {
     my ( undef, @children ) = @_;
@@ -46,6 +52,7 @@ $grammar->precompute;
 
 # Order matters !!
 my @terminals = (
+    [ q{'reduce'}, qr/reduce\b/xms ],
     [ 'NUM',  qr/\d+/xms ],
     [ 'VAR',  qr/\w+/xms ],
     [ q{'='}, qr/[=]/xms ],
@@ -115,7 +122,8 @@ my $output = join q{},
     report_calculation('4 * 3 / (a = b = 5) + 42 - 1'),
     report_calculation('4 * 3 /  5 - - - 3 + 42 - 1'),
     report_calculation('- a - b'),
-    report_calculation('1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1');
+    report_calculation('1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1'),
+    report_calculation('+ reduce 1 + 2 3 4*2 5');
 
 print $output or die "print failed: $ERRNO";
 $output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
