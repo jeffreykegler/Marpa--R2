@@ -22,6 +22,14 @@ sub do_priority_rule {
             push @rules, [ $priority, @{$alternative} ];
         }
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
+    if ( scalar @rules <= 1 ) {
+
+        # If there is only one rule,
+        my ( $priority, $assoc, $rhs, $action ) = @{ $rules[0] };
+        my @action_kv;
+        push @action_kv, action => $action if defined $action;
+        return [ { lhs => $lhs, rhs => $rhs, @action_kv } ];
+    } ## end if ( scalar @rules <= 1 )
     my @xs_rules = (
         { lhs => $lhs, rhs => [ $lhs . '_0' ] },
         (   map {
@@ -86,17 +94,32 @@ sub do_priority_rule {
     return [@xs_rules];
 } ## end sub do_priority_rule
 
-sub empty_rule { shift; return { @{ $_[0] }, rhs => [], @{ $_[2] || [] } }; }
+sub do_empty_rule {
+    my ( undef, $lhs, undef, $action ) = @_;
+    return [ { lhs => $lhs, rhs => [], @{ $action || [] } } ];
+}
 
-sub quantified_rule {
+sub do_quantified_rule {
+    my ( undef, $lhs, undef, $rhs, $quantifier, $action ) = @_;
+    my @action_kv;
+    push @action_kv, action => $action if defined $action;
+    return [
+        {   lhs => $lhs,
+            rhs => [$rhs],
+            min => ( $quantifier eq q{+} ? 1 : 0 ),
+            @action_kv
+        }
+    ];
+} ## end sub do_quantified_rule
+
+sub do_simple_rule {
     shift;
     return {
         @{ $_[0] },
         rhs => [ $_[2] ],
-        min => ( $_[3] eq q{+} ? 1 : 0 ),
-        @{ $_[4] || [] }
+        @{ $_[3] || [] }
     };
-} ## end sub quantified_rule
+} ## end sub do_simple_rule
 
 sub do_priority1 {
     shift;
@@ -158,11 +181,11 @@ sub parse_rules {
                 },
                 {   lhs    => 'rule',
                     rhs    => [qw/lhs op_declare action/],
-                    action => 'empty_rule'
+                    action => 'do_empty_rule'
                 },
                 {   lhs    => 'rule',
                     rhs    => [qw/lhs op_declare name quantifier action/],
-                    action => 'quantified_rule'
+                    action => 'do_quantified_rule'
                 },
 
                 {   lhs    => 'priorities',

@@ -14,6 +14,7 @@ our $DEBUG = 1;
 my $rules = Marpa::Demo::OP1::parse_rules(
     <<'END_OF_GRAMMAR'
 reduce_op ::= '+' | '-' | '/' | '*'
+script ::= e*
 e ::=
      NUM
    | VAR
@@ -42,7 +43,7 @@ sub add_brackets {
 } ## end sub add_brackets
 
 my $grammar = Marpa::R2::Grammar->new(
-    {   start          => 'e',
+    {   start          => 'script',
         actions        => __PACKAGE__,
         default_action => 'add_brackets',
         rules          => $rules,
