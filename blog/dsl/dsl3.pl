@@ -1,5 +1,11 @@
 #!perl
 
+# This calculator contains *TWO* DSL's.
+# The first one is for the calculator itself.
+# The calculator's grammar is written in OP2.
+# OP2 is the second DSL, and its code is the
+# second half of this file.
+
 use 5.010;
 use strict;
 use warnings;
@@ -256,6 +262,10 @@ Input: "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1"
 Input: "+ reduce 1 + 2, 3,4*2 , 5"
   Parse: 19
 EXPECTED_OUTPUT
+
+# The code from this point on is yet another DSL --
+# the one that specified OP2, the language in
+# which the rules for the first were expressed.
 
 package Marpa::Demo::OP2;
 
