@@ -9,6 +9,53 @@ use Marpa::R2;
 
 require './OP2.pm';    ## no critic (Modules::RequireBarewordIncludes)
 
+my $rules = Marpa::Demo::OP2::parse_rules(
+    <<'END_OF_GRAMMAR'
+reduce_op ::= '+' | '-' | '/' | '*'
+script ::= e
+script ::= script ';' e => do_arg2
+e ::=
+     NUM
+   | VAR => do_is_var
+   | :group '(' e ')' => do_arg1
+  || '-' e => do_negate
+  || :right e '^' e => do_binop
+  || e '*' e => do_binop
+   | e '/' e => do_binop
+  || e '+' e => do_binop
+   | e '-' e => do_binop
+  || e ',' e => do_array
+  || reduce_op 'reduce' e => do_reduce
+  || VAR '=' e => do_set_var
+END_OF_GRAMMAR
+);
+
+my $grammar = Marpa::R2::Grammar->new(
+    {   start          => 'script',
+        actions        => __PACKAGE__,
+        default_action => 'add_brackets',
+        rules          => $rules,
+    }
+);
+$grammar->precompute;
+
+# Order matters !!
+my @terminals = (
+    [ q{'reduce'}, qr/reduce\b/xms ],
+    [ 'NUM',  qr/\d+/xms ],
+    [ 'VAR',  qr/\w+/xms ],
+    [ q{'='}, qr/[=]/xms ],
+    [ q{';'}, qr/[;]/xms ],
+    [ q{'*'}, qr/[*]/xms ],
+    [ q{'/'}, qr/[\/]/xms ],
+    [ q{'+'}, qr/[+]/xms ],
+    [ q{'-'}, qr/[-]/xms ],
+    [ q{'^'}, qr/[\^]/xms ],
+    [ q{'('}, qr/[(]/xms ],
+    [ q{')'}, qr/[)]/xms ],
+    [ q{','}, qr/[,]/xms ],
+);
+
 our $DEBUG = 1;
 
 my %binop_closure = (
@@ -61,29 +108,6 @@ sub do_array {
     return \@value;
 } ## end sub do_array
 
-my $rules = Marpa::Demo::OP2::parse_rules(
-    <<'END_OF_GRAMMAR'
-reduce_op ::= '+' | '-' | '/' | '*'
-script ::= e
-script ::= script ';' e => do_arg2
-e ::=
-     NUM
-   | VAR => do_is_var
-   | :group '(' e ')' => do_arg1
-  || '-' e => do_negate
-  || :right e '^' e => do_binop
-  || e '*' e => do_binop
-   | e '/' e => do_binop
-  || e '+' e => do_binop
-   | e '-' e => do_binop
-  || e ',' e => do_array
-  || reduce_op 'reduce' e => do_reduce
-  || VAR '=' e => do_set_var
-END_OF_GRAMMAR
-);
-
-# require Data::Dumper; say Data::Dumper::Dumper($rules);
-
 sub do_binop {
    my (undef, $left, $op, $right) = @_;
    # goto &add_brackets if $DEBUG;
@@ -113,32 +137,6 @@ sub add_brackets {
     my $original = join q{}, grep {defined} @children;
     return '[' . $original . ']';
 } ## end sub add_brackets
-
-my $grammar = Marpa::R2::Grammar->new(
-    {   start          => 'script',
-        actions        => __PACKAGE__,
-        default_action => 'add_brackets',
-        rules          => $rules,
-    }
-);
-$grammar->precompute;
-
-# Order matters !!
-my @terminals = (
-    [ q{'reduce'}, qr/reduce\b/xms ],
-    [ 'NUM',  qr/\d+/xms ],
-    [ 'VAR',  qr/\w+/xms ],
-    [ q{'='}, qr/[=]/xms ],
-    [ q{';'}, qr/[;]/xms ],
-    [ q{'*'}, qr/[*]/xms ],
-    [ q{'/'}, qr/[\/]/xms ],
-    [ q{'+'}, qr/[+]/xms ],
-    [ q{'-'}, qr/[-]/xms ],
-    [ q{'^'}, qr/[\^]/xms ],
-    [ q{'('}, qr/[(]/xms ],
-    [ q{')'}, qr/[)]/xms ],
-    [ q{','}, qr/[,]/xms ],
-);
 
 sub calculate {
     my ($string) = @_;
