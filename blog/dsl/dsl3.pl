@@ -61,7 +61,7 @@ sub do_array {
     return \@value;
 } ## end sub do_array
 
-my $rules = Marpa::Demo::OP1::parse_rules(
+my $rules = Marpa::Demo::OP2::parse_rules(
     <<'END_OF_GRAMMAR'
 reduce_op ::= '+' | '-' | '/' | '*'
 script ::= e
