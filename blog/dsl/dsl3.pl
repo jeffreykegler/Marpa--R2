@@ -5,7 +5,29 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 
+use Getopt::Long;
 use Marpa::R2;
+
+my $do_demo = 0;
+my $getopt_result   = GetOptions(
+    "demo!"  => \$do_demo,
+);
+
+sub usage {
+    die <<"END_OF_USAGE_MESSAGE";
+$PROGRAM_NAME --demo
+$PROGRAM_NAME 'exp' [...]
+
+Run $PROGRAM_NAME with either the "--demo" argument
+or a series of calculator expressions.
+END_OF_USAGE_MESSAGE
+}
+
+if ($do_demo && scalar @ARGV > 0 ) {
+    usage();
+} elsif (scalar @ARGV <= 0) {
+    usage();
+}
 
 my $rules = Marpa::Demo::OP2::parse_rules(
     <<'END_OF_GRAMMAR'
