@@ -7,7 +7,7 @@ use English qw( -no_match_vars );
 
 use Marpa::R2;
 
-require './OP1.pm';    ## no critic (Modules::RequireBarewordIncludes)
+require './OP2.pm';    ## no critic (Modules::RequireBarewordIncludes)
 
 our $DEBUG = 1;
 
@@ -222,13 +222,19 @@ my $output = join q{},
 print $output or die "print failed: $ERRNO";
 $output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
 Input: "4 * 3 + 42 / 1"
-  Parse: [[4*3]+[42/1]]
+  Parse: 54
 Input: "4 * 3 / (a = b = 5) + 42 - 1"
-  Parse: [[[[4*3]/[([a=[b=5]])]]+42]-1]
+  Parse: 43.4
+"a" = "5"
+"b" = "5"
 Input: "4 * 3 /  5 - - - 3 + 42 - 1"
-  Parse: [[[[[4*3]/5]-[-[-3]]]+42]-1]
-Input: "- a - b"
-  Parse: [[-a]-b]
+  Parse: 40.4
+Input: "a=1;b = 5;  - a - b"
+  Parse: -6
+"a" = "1"
+"b" = "5"
 Input: "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1"
-  Parse: [[[1*2]+[[3*[4^[2^[2^2]]]]*42]]+1]
+  Parse: 541165879299
+Input: "+ reduce 1 + 2, 3,4*2 , 5"
+  Parse: 19
 EXPECTED_OUTPUT
