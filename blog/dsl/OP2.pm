@@ -1,4 +1,4 @@
-package Marpa::Demo::OP1;
+package Marpa::Demo::OP2;
 
 use 5.010;
 use strict;
