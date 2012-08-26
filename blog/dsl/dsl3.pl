@@ -29,11 +29,13 @@ or a series of calculator expressions.
 END_OF_USAGE_MESSAGE
 }
 
-if ($do_demo && scalar @ARGV > 0 ) {
-    usage();
-} elsif (scalar @ARGV <= 0) {
-    usage();
+if (not $getopt_result) {
+   usage();
 }
+if ($do_demo) {
+    if ( scalar @ARGV > 0 ) { say join " ", @ARGV; usage(); }
+}
+elsif ( scalar @ARGV <= 0 ) { usage(); }
 
 my $rules = Marpa::Demo::OP2::parse_rules(
     <<'END_OF_GRAMMAR'
