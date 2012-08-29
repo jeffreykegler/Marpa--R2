@@ -15,9 +15,7 @@ use Getopt::Long;
 use Marpa::R2;
 
 my $do_demo = 0;
-my $getopt_result   = GetOptions(
-    "demo!"  => \$do_demo,
-);
+my $getopt_result = GetOptions( "demo!" => \$do_demo, );
 
 sub usage {
     die <<"END_OF_USAGE_MESSAGE";
@@ -27,10 +25,10 @@ $PROGRAM_NAME 'exp' [...]
 Run $PROGRAM_NAME with either the "--demo" argument
 or a series of calculator expressions.
 END_OF_USAGE_MESSAGE
-}
+} ## end sub usage
 
-if (not $getopt_result) {
-   usage();
+if ( not $getopt_result ) {
+    usage();
 }
 if ($do_demo) {
     if ( scalar @ARGV > 0 ) { say join " ", @ARGV; usage(); }
@@ -70,18 +68,18 @@ $grammar->precompute;
 # Order matters !!
 my @terminals = (
     [ q{'reduce'}, qr/reduce\b/xms ],
-    [ 'NUM',  qr/\d+/xms ],
-    [ 'VAR',  qr/\w+/xms ],
-    [ q{'='}, qr/[=]/xms ],
-    [ q{';'}, qr/[;]/xms ],
-    [ q{'*'}, qr/[*]/xms ],
-    [ q{'/'}, qr/[\/]/xms ],
-    [ q{'+'}, qr/[+]/xms ],
-    [ q{'-'}, qr/[-]/xms ],
-    [ q{'^'}, qr/[\^]/xms ],
-    [ q{'('}, qr/[(]/xms ],
-    [ q{')'}, qr/[)]/xms ],
-    [ q{','}, qr/[,]/xms ],
+    [ 'NUM',       qr/\d+/xms ],
+    [ 'VAR',       qr/\w+/xms ],
+    [ q{'='},      qr/[=]/xms ],
+    [ q{';'},      qr/[;]/xms ],
+    [ q{'*'},      qr/[*]/xms ],
+    [ q{'/'},      qr/[\/]/xms ],
+    [ q{'+'},      qr/[+]/xms ],
+    [ q{'-'},      qr/[-]/xms ],
+    [ q{'^'},      qr/[\^]/xms ],
+    [ q{'('},      qr/[(]/xms ],
+    [ q{')'},      qr/[)]/xms ],
+    [ q{','},      qr/[,]/xms ],
 );
 
 our $DEBUG = 1;
@@ -91,25 +89,25 @@ my %binop_closure = (
     '/' => sub { $_[0] / $_[1] },
     '+' => sub { $_[0] + $_[1] },
     '-' => sub { $_[0] - $_[1] },
-    '^' => sub { $_[0] ** $_[1] },
+    '^' => sub { $_[0]**$_[1] },
 );
 
 my %symbol_table = ();
 
 sub do_is_var {
-   my (undef, $var) = @_;
-   my $value = $symbol_table{$var};
-   die qq{Undefined variable "$var"} if not defined $value;
-   return $value;
-}
+    my ( undef, $var ) = @_;
+    my $value = $symbol_table{$var};
+    die qq{Undefined variable "$var"} if not defined $value;
+    return $value;
+} ## end sub do_is_var
 
 sub do_set_var {
-   my (undef, $var, undef, $value) = @_;
-   return $symbol_table{$var} = $value;
+    my ( undef, $var, undef, $value ) = @_;
+    return $symbol_table{$var} = $value;
 }
 
 sub do_negate {
-   return -$_[2];
+    return -$_[2];
 }
 
 sub do_arg1 { return $_[2]; }
@@ -137,27 +135,29 @@ sub do_array {
 } ## end sub do_array
 
 sub do_binop {
-   my (undef, $left, $op, $right) = @_;
-   # goto &add_brackets if $DEBUG;
-   my $closure = $binop_closure{$op};
-   die qq{Do not know how to perform binary operation "$op"}
-      if not defined $closure;
-   return $closure->($left, $right);
-}
+    my ( undef, $left, $op, $right ) = @_;
+
+    # goto &add_brackets if $DEBUG;
+    my $closure = $binop_closure{$op};
+    die qq{Do not know how to perform binary operation "$op"}
+        if not defined $closure;
+    return $closure->( $left, $right );
+} ## end sub do_binop
 
 sub do_reduce {
-   my (undef, $op, undef, $args) = @_;
-   my $closure = $binop_closure{$op};
-   die qq{Do not know how to perform binary operation "$op"}
-      if not defined $closure;
-   my @stack = @{$args};
-   OP: while (1) {
-      return $stack[0] if scalar @stack <= 1;
-      my $result = $closure->($stack[-2], $stack[-1]);
-      splice @stack, -2, 2, $result;
-   }
-   die; # Should not get here
-}
+    my ( undef, $op, undef, $args ) = @_;
+    my $closure = $binop_closure{$op};
+    die qq{Do not know how to perform binary operation "$op"}
+        if not defined $closure;
+    $args = [$args] if ref $args eq '';
+    my @stack = @{$args};
+    OP: while (1) {
+        return $stack[0] if scalar @stack <= 1;
+        my $result = $closure->( $stack[-2], $stack[-1] );
+        splice @stack, -2, 2, $result;
+    }
+    die;    # Should not get here
+} ## end sub do_reduce
 
 sub add_brackets {
     my ( undef, @children ) = @_;
@@ -165,6 +165,22 @@ sub add_brackets {
     my $original = join q{}, grep {defined} @children;
     return '[' . $original . ']';
 } ## end sub add_brackets
+
+sub die_on_read_problem {
+    my ( $rec, $t, $token_value, $string, $position ) = @_;
+    say $rec->show_progress() or die "say failed: $ERRNO";
+    my $problem_position = $position - length $1;
+    my $before_start     = $problem_position - 40;
+    $before_start = 0 if $before_start < 0;
+    my $before_length = $problem_position - $before_start;
+    die "Problem near position $problem_position\n",
+        q{Problem is here: "},
+        ( substr $string, $before_start, $before_length + 40 ),
+        qq{"\n},
+        ( q{ } x ( $before_length + 18 ) ), qq{^\n},
+        q{Token rejected, "}, $t->[0], qq{", "$token_value"},
+        ;
+} ## end sub die_on_read_problem
 
 sub calculate {
     my ($string) = @_;
@@ -183,27 +199,14 @@ sub calculate {
         TOKEN_TYPE: for my $t (@terminals) {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
             if ( not defined $rec->read( $t->[0], $1 ) ) {
-                say $rec->show_progress() or die "say failed: $ERRNO";
-                my $problem_position = ( pos $string ) - length $1;
-                my $before_start     = $problem_position - 40;
-                $before_start = 0 if $before_start < 0;
-                my $before_length = $problem_position - $before_start;
-                die "Problem near position $problem_position\n",
-                    q{Problem is here: "},
-                    ( substr $string, $before_start, $before_length + 40 ),
-                    qq{"\n},
-                    ( q{ } x ( $before_length + 18 ) ), qq{^\n},
-                    q{Token rejected, "}, $t->[0], qq{", "$1"},
-                    ;
-            } ## end if ( not defined $rec->read( $t->[0], $1 ) )
+                die_on_read_problem( $rec, $t, $1, $string, pos $string );
+            }
             next TOKEN;
         } ## end TOKEN_TYPE: for my $t (@terminals)
 
         die q{No token at "}, ( substr $string, pos $string, 40 ),
             q{", position }, pos $string;
     } ## end TOKEN: while ( pos $string < $length )
-
-    $rec->end_input;
 
     my $value_ref = $rec->value;
 
@@ -217,25 +220,25 @@ sub calculate {
 
 sub report_calculation {
     my ($string) = @_;
-    my $output = qq{Input: "$string"\n};
-    my $result = calculate($string);
+    my $output   = qq{Input: "$string"\n};
+    my $result   = calculate($string);
     $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
     $output .= "  Parse: $result\n";
-    for my $symbol (sort keys %symbol_table) {
+    for my $symbol ( sort keys %symbol_table ) {
         $output .= qq{"$symbol" = "} . $symbol_table{$symbol} . qq{"\n};
     }
     return $output;
-}
+} ## end sub report_calculation
 
 if (@ARGV) {
-    my $result = calculate(join ';', grep { /\S/ } @ARGV);
+    my $result = calculate( join ';', grep {/\S/} @ARGV );
     $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
     say "Result is ", $result;
-    for my $symbol (sort keys %symbol_table) {
+    for my $symbol ( sort keys %symbol_table ) {
         say qq{"$symbol" = "} . $symbol_table{$symbol} . qq{"};
     }
     exit 0;
-}
+} ## end if (@ARGV)
 
 my $output = join q{},
     report_calculation('4 * 3 + 42 / 1'),
@@ -566,8 +569,6 @@ sub parse_rules {
         die q{No token at "}, ( substr $string, pos $string, 40 ),
             q{", position }, pos $string;
     } ## end TOKEN: while ( pos $string < $length )
-
-    $rec->end_input;
 
     my $parse_ref = $rec->value;
 
