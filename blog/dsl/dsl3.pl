@@ -37,11 +37,15 @@ elsif ( scalar @ARGV <= 0 ) { usage(); }
 
 my $rules = Marpa::Demo::OP2::parse_rules(
     <<'END_OF_GRAMMAR'
-reduce_op ::= '+' | '-' | '/' | '*'
-script ::= e
+reduce_op ::=
+    '+' => do_arg0
+  | '-' => do_arg0
+  | '/' => do_arg0
+  | '*' => do_arg0
+script ::= e => do_arg0
 script ::= script ';' e => do_arg2
 e ::=
-     NUM
+     NUM => do_arg0
    | VAR => do_is_var
    | :group '(' e ')' => do_arg1
   || '-' e => do_negate
@@ -59,7 +63,6 @@ END_OF_GRAMMAR
 my $grammar = Marpa::R2::Grammar->new(
     {   start          => 'script',
         actions        => __PACKAGE__,
-        default_action => 'add_brackets',
         rules          => $rules,
     }
 );
@@ -110,6 +113,7 @@ sub do_negate {
     return -$_[2];
 }
 
+sub do_arg0 { return $_[1]; }
 sub do_arg1 { return $_[2]; }
 sub do_arg2 { return $_[3]; }
 
@@ -159,6 +163,7 @@ sub do_reduce {
     die;    # Should not get here
 } ## end sub do_reduce
 
+# For debugging
 sub add_brackets {
     my ( undef, @children ) = @_;
     return $children[0] if 1 == scalar @children;
@@ -281,6 +286,8 @@ use English qw( -no_match_vars );
 
 use Marpa::R2;
 
+sub do_arg0 { return $_[1]; }
+
 sub do_rules {
     shift;
     return [ map { @{$_} } @_ ];
@@ -304,12 +311,17 @@ sub do_priority_rule {
         push @action_kv, action => $action if defined $action;
         return [ { lhs => $lhs, rhs => $rhs, @action_kv } ];
     } ## end if ( scalar @rules <= 1 )
+    my $do_arg0_full_name = __PACKAGE__ . q{::} . 'do_arg0';
     my @xs_rules = (
-        { lhs => $lhs, rhs => [ $lhs . '_0' ] },
+        {   lhs    => $lhs,
+            rhs    => [ $lhs . '_0' ],
+            action => $do_arg0_full_name
+        },
         (   map {
                 ;
                 {   lhs => ( $lhs . '_' . ( $_ - 1 ) ),
-                    rhs => [ $lhs . '_' . ($_) ]
+                    rhs => [ $lhs . '_' . ($_) ],
+                    action => $do_arg0_full_name
                 }
             } 1 .. $priority_count - 1
         )
