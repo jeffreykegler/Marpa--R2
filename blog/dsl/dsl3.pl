@@ -189,9 +189,10 @@ sub die_on_read_problem {
 
 sub calculate {
     my ($string) = @_;
-    my $rec = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     %symbol_table = ();
+
+    my $rec = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     my $length = length $string;
     pos $string = 0;
