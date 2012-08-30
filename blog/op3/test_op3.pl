@@ -568,7 +568,6 @@ sub parse_rules {
                 # normalize spaces
                 $token_value =~ s/ [ ]+ / /xmsg;
                 $token_value =~ s/ [ ]* \z //xms;
-                $token_value =~ s/ \A [ ]* //xms;
             } ## end if ( $t->[0] eq 'name' )
             if ( not defined $rec->read( $t->[0], $token_value ) ) {
                 die die q{Problem before position }, pos $string, ': ',
