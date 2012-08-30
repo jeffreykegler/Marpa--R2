@@ -117,6 +117,9 @@ package Marpa::R2::Internal::Grammar;
 
 use English qw( -no_match_vars );
 
+our %DEFAULT_SYMBOLS_RESERVED;
+%DEFAULT_SYMBOLS_RESERVED = map { $_, 1 } split //xms, '}]>)';
+
 sub Marpa::R2::Internal::code_problems {
     my $args = shift;
 
@@ -911,9 +914,10 @@ sub assign_user_symbol {
         Marpa::R2::exception(
             "Symbol name was ref to $type; it must be a scalar string");
     }
-    if ( $name =~ / ( [\]>)}] ) \z /xms ) {
+    my $final_symbol = substr $name, -1;
+    if ( $DEFAULT_SYMBOLS_RESERVED{$final_symbol} ) {
         Marpa::R2::exception(
-            qq{Symbol name $name ends in "$1": that's not allowed});
+            qq{Symbol name $name ends in "$final_symbol": that's not allowed});
     }
     my $symbol = assign_symbol( $grammar, $name );
     my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
