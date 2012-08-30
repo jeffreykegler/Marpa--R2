@@ -464,6 +464,26 @@ sub Marpa::R2::Grammar::set {
     return 1;
 } ## end sub Marpa::R2::Grammar::set
 
+sub Marpa::R2::Grammar::symbol_reserved_set {
+    my ( $grammar, $final_character, $boolean ) = @_;
+    if ( length $final_character != 1 ) {
+        Marpa::R2::exception( 'symbol_reserved_set(): "',
+            $final_character, '" is not a symbol' );
+    }
+    if ( $final_character eq ']' ) {
+        return if $boolean;
+        Marpa::R2::exception(
+            q{symbol_reserved_set(): Attempt to unreserve ']'; this is not allowed}
+        );
+    } ## end if ( $final_character eq ']' ) ([)
+    if ( not exists $DEFAULT_SYMBOLS_RESERVED{$final_character} ) {
+        Marpa::R2::exception(
+            qq{symbol_reserved_set(): "$final_character" is not a reservable symbol}
+        );
+    }
+    $DEFAULT_SYMBOLS_RESERVED{$final_character} = $boolean ? 1 : 0;
+} ## end sub Marpa::R2::Grammar::symbol_reserved_set
+
 sub Marpa::R2::Grammar::precompute {
     my $grammar = shift;
 
