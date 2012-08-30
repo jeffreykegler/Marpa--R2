@@ -31,42 +31,43 @@ elsif ( scalar @ARGV <= 0 ) { usage(); }
 
 my $rules = Marpa::Demo::OP3::parse_rules(
     <<'END_OF_GRAMMAR'
-reduce_op ::=
+<reduce op> ::=
     '+' => do_arg0
   | '-' => do_arg0
   | '/' => do_arg0
   | '*' => do_arg0
-<script> ::= e => do_arg0
-<script> ::= <script> ';' e => do_arg2
-e ::=
-     NUM => do_arg0
-   | VAR => do_is_var
-   | :group '(' e ')' => do_arg1
-  || '-' e => do_negate
-  || :right e '^' e => do_binop
-  || e '*' e => do_binop
-   | e '/' e => do_binop
-  || e '+' e => do_binop
-   | e '-' e => do_binop
-  || e ',' e => do_array
-  || reduce_op 'reduce' e => do_reduce
-  || VAR '=' e => do_set_var
+<script> ::= <e> => do_arg0
+<script> ::= <script> ';' <e> => do_arg2
+<e> ::=
+     <NUM> => do_arg0
+   | <VAR> => do_is_var
+   | :group '(' <e> ')' => do_arg1
+  || '-' <e> => do_negate
+  || :right <e> '^' <e> => do_binop
+  || <e> '*' <e> => do_binop
+   | <e> '/' <e> => do_binop
+  || <e> '+' <e> => do_binop
+   | <e> '-' <e> => do_binop
+  || <e> ',' <e> => do_array
+  || <reduce     op> 'reduce' <e> => do_reduce
+  || <VAR> '=' <e> => do_set_var
 END_OF_GRAMMAR
 );
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start          => '<script>',
         actions        => __PACKAGE__,
-        rules          => $rules,
     }
 );
+$grammar->symbol_reserved_set( '>', 0 );
+$grammar->set( { rules          => $rules });
 $grammar->precompute;
 
 # Order matters !!
 my @terminals = (
     [ q{'reduce'}, qr/reduce\b/xms ],
-    [ 'NUM',       qr/\d+/xms ],
-    [ 'VAR',       qr/\w+/xms ],
+    [ '<NUM>',       qr/\d+/xms ],
+    [ '<VAR>',       qr/\w+/xms ],
     [ q{'='},      qr/[=]/xms ],
     [ q{';'},      qr/[;]/xms ],
     [ q{'*'},      qr/[*]/xms ],
@@ -515,10 +516,6 @@ sub parse_rules {
                     rhs    => [qw/op_arrow action_name/],
                     action => 'do_arg1'
                 },
-                {   lhs    => 'action',
-                    rhs    => [qw/op_arrow name/],
-                    action => 'do_arg1'
-                },
 
                 { lhs => 'lhs', rhs => [qw/name/], action => 'do_lhs' },
 
@@ -550,8 +547,8 @@ sub parse_rules {
         [ 'reserved_name', qr/(::(whatever|undef))/xms ],
         [ 'op_plus',       qr/[+]/xms ],
         [ 'op_star',       qr/[*]/xms ],
-        [ 'name',          qr/\w+/xms ],
-        [ 'name',          qr/[<] \w+ [>]/xms ],
+        [ 'action_name',          qr/ \w+ /xms ],
+        [ 'name',          qr/[<] [\w] [\w ]* [>]/xms ],
         [ 'name',          qr/['][^']+[']/xms ],
     );
 
@@ -565,12 +562,20 @@ sub parse_rules {
         # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
-            if ( not defined $rec->read( $t->[0], $1 ) ) {
+            my $token_value = $1;
+            if ( $t->[0] eq 'name' ) {
+
+                # normalize spaces
+                $token_value =~ s/ [ ]+ / /xmsg;
+                $token_value =~ s/ [ ]* \z //xms;
+                $token_value =~ s/ \A [ ]* //xms;
+            } ## end if ( $t->[0] eq 'name' )
+            if ( not defined $rec->read( $t->[0], $token_value ) ) {
                 die die q{Problem before position }, pos $string, ': ',
                     ( substr $string, pos $string, 40 ),
-                    qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
+                    qq{\nToken rejected, "}, $t->[0], qq{", "$token_value"},
                     ;
-            } ## end if ( not defined $rec->read( $t->[0], $1 ) )
+            } ## end if ( not defined $rec->read( $t->[0], $token_value ))
             next TOKEN;
         } ## end TOKEN_TYPE: for my $t (@terminals)
 
