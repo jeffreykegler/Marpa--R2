@@ -4,6 +4,15 @@ use warnings;
 
 use Marpa::R2::Thin::Trace;
 
+{
+    my $file = './sixish.pm';
+    unless ( my $return = do $file ) {
+        warn "couldn't parse $file: $@" if $@;
+        warn "couldn't do $file: $!" unless defined $return;
+        warn "couldn't run $file" unless $return;
+    }
+}
+
 our $sixish_answer_shown;
 
 my $op_alternative      = Marpa::R2::Thin::op('alternative');
@@ -166,7 +175,7 @@ sub sixish_child_new {
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
 	if ( $type eq 'MARPA_STEP_RULE' ) { 
 	   my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-	   say STDERR "RULE: ", $sixish_tracer->symbol_name($rule_id);
+	   # say STDERR "RULE: ", $sixish_tracer->symbol_name($rule_id);
 	   if ($rule_id == $sym6_self) {
 	      $stack[$arg_0] = 'SELF';
 	      next STEP;
@@ -175,9 +184,6 @@ sub sixish_child_new {
 	}
         dwim( \@stack, $type, @step_data );
     } ## end STEP: while (1)
-
-    use Data::Dumper;
-    say Data::Dumper::Dumper( $stack[0] );
 
 } ## end sub sixish_child_new
 

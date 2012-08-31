@@ -78,7 +78,7 @@ my $op_alternative_args_ignore =
 my $op_alternative_ignore = Marpa::R2::Thin::op('alternative;ignore');
 my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
-for my $file ('./sixish.pm') {
+for my $file ('./do_sixish.pm') {
     unless ( my $return = do $file ) {
         warn "couldn't parse $file: $@" if $@;
         warn "couldn't do $file: $!" unless defined $return;
