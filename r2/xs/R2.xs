@@ -45,6 +45,8 @@ typedef struct {
      STRLEN character_ix; /* character position, taking into account Unicode */
      STRLEN input_offset; /* byte position, ignoring Unicode */
      SV* input;
+     int input_debug; /* debug level for input */
+     Marpa_Symbol_ID input_symbol_id;
      UV** oplists_by_byte;
      HV* per_codepoint_ops;
      unsigned int ruby_slippers:1;
@@ -607,6 +609,8 @@ PPCODE:
   r_wrapper->input = newSVpvn("", 0);
   r_wrapper->character_ix = 0;
   r_wrapper->input_offset = 0;
+  r_wrapper->input_debug = 0;
+  r_wrapper->input_symbol_id = -1;
   r_wrapper->per_codepoint_ops = newHV();
   {
     const int number_of_bytes = 0x100;
@@ -785,6 +789,14 @@ PPCODE:
 }
 
 void
+input_string_symbol_id( r_wrapper )
+     R_Wrapper *r_wrapper;
+PPCODE:
+{
+  XSRETURN_IV(r_wrapper->input_symbol_id);
+}
+
+void
 input_string_offset( r_wrapper )
      R_Wrapper *r_wrapper;
 PPCODE:
@@ -836,6 +848,7 @@ PPCODE:
   struct marpa_r *const r = r_wrapper->r;
   char *input;
   int input_is_utf8;
+  int input_debug = r_wrapper->input_debug;
   STRLEN len;
   input_is_utf8 = SvUTF8 (r_wrapper->input);
   input = SvPV (r_wrapper->input, len);
@@ -913,8 +926,13 @@ PPCODE:
 		switch (result)
 		  {
 		  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
+		    if (input_debug > 0) {
+		       warn("input_read_string unexpected token: %d,%d,%d",
+			 symbol_id, value, length);
+		    }
 		    if (!ignore_is_on)
 		      {
+			r_wrapper->input_symbol_id = symbol_id;
 			XSRETURN_IV (-1);
 		      }
 		    /* fall through */
