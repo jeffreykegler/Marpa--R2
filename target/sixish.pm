@@ -21,14 +21,14 @@ use Marpa::R2;
     Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
     <start> ::= <concatenation>
     <concatenation> ::=
-        <concatenation> ::= <concatenation> <opt_ws> <quantified_atom>
-    <opt_ws> ::=
-    <opt_ws> ::= <opt_ws> <ws_char>
-    <quantified_atom> ::= <atom> <opt_ws> <quantifier>
-    <quantified_atom> ::= <atom>
-    <atom> ::= <quoted_literal>
-        <quoted_literal> ::= <single_quote> <single_quoted_char_seq> <single_quote>
-    <single_quoted_char_seq> ::= <single_quoted_char>*
+        <concatenation> ::= <concatenation> <opt ws> <quantified atom>
+    <opt ws> ::=
+    <opt ws> ::= <opt ws> <ws char>
+    <quantified atom> ::= <atom> <opt ws> <quantifier>
+    <quantified atom> ::= <atom>
+    <atom> ::= <quoted literal>
+        <quoted literal> ::= <single quote> <single quoted char seq> <single quote>
+    <single quoted char seq> ::= <single quoted char>*
     <atom> ::= <self>
     <self> ::= '<~~>'
     <quantifier> ::= <star>
