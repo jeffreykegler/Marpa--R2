@@ -138,54 +138,52 @@ sub new {
     $self->{symbol_by_name} = {};
     $self->{rule_names} = {};
     $self->{symbol_names} = {};
-    my $tracer          = $self;
 
-    $char_to_symbol{'*'}  = $tracer->symbol_new('star');
-    $char_to_symbol{'<'}  = $tracer->symbol_new('langle');
-    $char_to_symbol{'>'}  = $tracer->symbol_new('rangle');
-    $char_to_symbol{q{'}} = $tracer->symbol_new('single_quote');
-    $char_to_symbol{'~'}  = $tracer->symbol_new('tilde');
+    $char_to_symbol{'*'}  = $self->symbol_new('star');
+    $char_to_symbol{'<'}  = $self->symbol_new('langle');
+    $char_to_symbol{'>'}  = $self->symbol_new('rangle');
+    $char_to_symbol{q{'}} = $self->symbol_new('single_quote');
+    $char_to_symbol{'~'}  = $self->symbol_new('tilde');
 
-    my $s_ws_char = $tracer->symbol_new('ws_char');
+    my $s_ws_char = $self->symbol_new('ws_char');
     push @regex_to_symbol, [ qr/\s/xms, $s_ws_char ];
-    my $s_single_quoted_char = $tracer->symbol_new('single_quoted_char');
+    my $s_single_quoted_char = $self->symbol_new('single_quoted_char');
     push @regex_to_symbol, [ qr/[^\\']/xms, $s_single_quoted_char ];
 
-    $tracer->symbol_new('atom');
-    $tracer->symbol_new('concatenation');
-    $tracer->symbol_new('single_quoted_char_seq');
-    $tracer->symbol_new('opt_ws');
-    $tracer->symbol_new('quantified_atom');
-    $tracer->symbol_new('quantifier');
-    $tracer->symbol_new('quoted_literal');
-    $tracer->symbol_new('self');
-    $tracer->symbol_new('start');
+    $self->symbol_new('atom');
+    $self->symbol_new('concatenation');
+    $self->symbol_new('single_quoted_char_seq');
+    $self->symbol_new('opt_ws');
+    $self->symbol_new('quantified_atom');
+    $self->symbol_new('quantifier');
+    $self->symbol_new('quoted_literal');
+    $self->symbol_new('self');
+    $self->symbol_new('start');
 
-    $tracer->rule_new('start ::= concatenation');
-    $tracer->rule_new('concatenation ::=');
-    $tracer->rule_new(
+    $self->rule_new('start ::= concatenation');
+    $self->rule_new('concatenation ::=');
+    $self->rule_new(
         'concatenation ::= concatenation opt_ws quantified_atom');
-    $tracer->rule_new('opt_ws ::= ');
-    $tracer->rule_new('opt_ws ::= opt_ws ws_char');
-    $tracer->rule_new('quantified_atom ::= atom opt_ws quantifier');
-    $tracer->rule_new('quantified_atom ::= atom');
-    $tracer->rule_new('atom ::= quoted_literal');
-    $tracer->rule_new(
+    $self->rule_new('opt_ws ::= ');
+    $self->rule_new('opt_ws ::= opt_ws ws_char');
+    $self->rule_new('quantified_atom ::= atom opt_ws quantifier');
+    $self->rule_new('quantified_atom ::= atom');
+    $self->rule_new('atom ::= quoted_literal');
+    $self->rule_new(
         'quoted_literal ::= single_quote single_quoted_char_seq single_quote');
     $sixish_grammar->sequence_new(
-        $tracer->symbol_by_name('single_quoted_char_seq'),
-        $tracer->symbol_by_name('single_quoted_char'),
+        $self->symbol_by_name('single_quoted_char_seq'),
+        $self->symbol_by_name('single_quoted_char'),
         { min => 0 }
     );
-    $tracer->rule_new('atom ::= self');
-    $sixish_grammar->rule_new( $tracer->symbol_by_name('self'),
+    $self->rule_new('atom ::= self');
+    $sixish_grammar->rule_new( $self->symbol_by_name('self'),
         [ map { $char_to_symbol{$_} } split //xms, '<~~>' ] );
-    $tracer->rule_new('quantifier ::= star');
+    $self->rule_new('quantifier ::= star');
 
-    $sixish_grammar->start_symbol_set( $tracer->symbol_by_name('start'), );
+    $sixish_grammar->start_symbol_set( $self->symbol_by_name('start'), );
     $sixish_grammar->precompute();
 
-        $self->{tracer}          = $tracer;
         $self->{grammar}         = $sixish_grammar;
         $self->{char_to_symbol}  = \%char_to_symbol;
         $self->{regex_to_symbol} = \@regex_to_symbol;

@@ -25,7 +25,6 @@ my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 my $paren_grammar = q{'(' <~~>* ')'};
 
 my $sixish                 = Marpa::R2::Demo::Sixish1->new();
-my $sixish_tracer          = $sixish->{tracer};
 my $sixish_grammar         = $sixish->{grammar};
 my $sixish_char_to_symbol  = $sixish->{char_to_symbol};
 my $sixish_regex_to_symbol = $sixish->{regex_to_symbol};
@@ -105,8 +104,8 @@ sub sixish_child_new {
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
 
-    my $sym6_single_quoted_char = $sixish_tracer->symbol_by_name('single_quoted_char');
-    my $sym6_self = $sixish_tracer->symbol_by_name('self');
+    my $sym6_single_quoted_char = $sixish->symbol_by_name('single_quoted_char');
+    my $sym6_self = $sixish->symbol_by_name('self');
     my %char_to_symbol = ();
 
     my @stack = ();
@@ -125,7 +124,7 @@ sub sixish_child_new {
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
 	if ( $type eq 'MARPA_STEP_RULE' ) { 
 	   my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-	   # say STDERR "RULE: ", $sixish_tracer->symbol_name($rule_id);
+	   # say STDERR "RULE: ", $sixish->symbol_name($rule_id);
 	   if ($rule_id == $sym6_self) {
 	      $stack[$arg_0] = 'SELF';
 	      next STEP;
