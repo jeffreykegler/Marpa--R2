@@ -72,6 +72,12 @@ sub sixish_child_new {
     READ: while (1) {
         my $event_count = $sixish_recce->input_string_read();
         last READ if not defined $event_count;
+        if ( $event_count == -1 ) {
+            say $sixish->progress_report($sixish_recce);
+            my $rejected_symbol_id = $sixish_recce->input_string_symbol_id;
+            die "Fatal error -- Token rejected: $rejected_symbol_id ",
+                $sixish->symbol_name($rejected_symbol_id);
+        } ## end if ( $event_count == -1 )
         if ( $event_count == -2 ) {
             my $char = substr $child_source,
                 $sixish_recce->input_string_pos(), 1;
@@ -104,8 +110,9 @@ sub sixish_child_new {
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
 
-    my $sym6_single_quoted_char = $sixish->symbol_by_name('<single quoted char>');
-    my $sym6_self = $sixish->symbol_by_name('<self>');
+    my $sym6_single_quoted_char =
+        $sixish->symbol_by_name('<single quoted char>');
+    my $sym6_self      = $sixish->symbol_by_name('<self>');
     my %char_to_symbol = ();
 
     my @stack = ();
@@ -115,52 +122,58 @@ sub sixish_child_new {
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             my ( $symbol_id, $token_value_ix, $arg_n ) = @step_data;
             my ( $start, $end ) = $valuator->location();
-	    if ($symbol_id == $sym6_single_quoted_char) {
-	      $stack[$arg_n] = 'CHAR(' . (substr $paren_grammar, $start, $end - $start) . ')';
-	      next STEP;
-	    }
+            if ( $symbol_id == $sym6_single_quoted_char ) {
+                $stack[$arg_n] = 'CHAR('
+                    . ( substr $paren_grammar, $start, $end - $start ) . ')';
+                next STEP;
+            }
             $stack[$arg_n] = substr $paren_grammar, $start, $end - $start;
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
-	if ( $type eq 'MARPA_STEP_RULE' ) { 
-	   my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-	   # say STDERR "RULE: ", $sixish->symbol_name($rule_id);
-	   if ($rule_id == $sym6_self) {
-	      $stack[$arg_0] = 'SELF';
-	      next STEP;
-	   }
-	   # Fall through
-	}
+        if ( $type eq 'MARPA_STEP_RULE' ) {
+            my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+
+            # say STDERR "RULE: ", $sixish->symbol_name($rule_id);
+            if ( $rule_id == $sym6_self ) {
+                $stack[$arg_0] = 'SELF';
+                next STEP;
+            }
+
+            # Fall through
+        } ## end if ( $type eq 'MARPA_STEP_RULE' )
         dwim( \@stack, $type, @step_data );
     } ## end STEP: while (1)
 
+    require Data::Dumper;
+    say STDERR Data::Dumper::Dumper( $stack[0] );
+    die;
+
 } ## end sub sixish_child_new
 
-sub pre_sixish_subgrammar {
-    my $child_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
-    my %char_to_symbol = ();
-    $char_to_symbol{'('} = $child_grammar->symbol_new();
-    $char_to_symbol{')'} = $child_grammar->symbol_new();
-    my $s_target                  = $child_grammar->symbol_new();
-    my $s_balanced_paren_sequence = $child_grammar->symbol_new();
-    my $s_balanced_parens         = $child_grammar->symbol_new();
-    my $target_rule =
-        $child_grammar->rule_new( $s_target, [$s_balanced_parens] );
-    $child_grammar->sequence_new( $s_balanced_paren_sequence,
-        $s_balanced_parens, { min => 0 } );
-    $child_grammar->rule_new(
-        $s_balanced_parens,
-        [   $char_to_symbol{'('}, $s_balanced_paren_sequence,
-            $char_to_symbol{')'},
-        ]
-    );
-    return [ $target_rule, $child_grammar, \%char_to_symbol ];
-} ## end sub pre_sixish_child
+# sub pre_sixish_subgrammar {
+#     my $child_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+#     my %char_to_symbol = ();
+#     $char_to_symbol{'('} = $child_grammar->symbol_new();
+#     $char_to_symbol{')'} = $child_grammar->symbol_new();
+#     my $s_target                  = $child_grammar->symbol_new();
+#     my $s_balanced_paren_sequence = $child_grammar->symbol_new();
+#     my $s_balanced_parens         = $child_grammar->symbol_new();
+#     my $target_rule =
+#         $child_grammar->rule_new( $s_target, [$s_balanced_parens] );
+#     $child_grammar->sequence_new( $s_balanced_paren_sequence,
+#         $s_balanced_parens, { min => 0 } );
+#     $child_grammar->rule_new(
+#         $s_balanced_parens,
+#         [   $char_to_symbol{'('}, $s_balanced_paren_sequence,
+#             $char_to_symbol{')'},
+#         ]
+#     );
+#     return [ $target_rule, $child_grammar, \%char_to_symbol ];
+# } ## end sub pre_sixish_child
 
 sub do_sixish {
     my ( $s ) = @_;
-    sixish_child_new($paren_grammar);
-    my $child_grammar = pre_sixish_subgrammar( $paren_grammar );
+    my $child_grammar = sixish_child_new($paren_grammar);
     my ( $start_of_match, $end_of_match ) = sixish_find( $child_grammar, $s );
     my $value = substr $s, $start_of_match, $end_of_match - $start_of_match;
     return 0 if $sixish_answer_shown;

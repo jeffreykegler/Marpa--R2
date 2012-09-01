@@ -34,7 +34,7 @@ my $OP_rules;
     <quantifier> ::= '*'
 END_OF_RULES
 
-require Data::Dumper; say Data::Dumper::Dumper($rules);
+require Data::Dumper; say Data::Dumper::Dumper($OP_rules);
 }
 
 sub rule_by_name {
@@ -155,6 +155,7 @@ sub new {
 	next SYMBOL if $symbol_name =~ m{ \A ['] (.*) ['] \z }xms;
         if ( not defined $symbol_by_name->{$symbol_name} ) {
             my $symbol = $self->symbol_new($symbol_name);
+say STDERR "Created symbol $symbol: ", $symbol_name;
         }
     } ## end for my $symbol_name ( map { $rule->{lhs}, @{ $rule->{...}}})
 
@@ -174,6 +175,7 @@ sub new {
         RHS_SYMBOL: for my $rhs_symbol_name ( @{$rhs} ) {
             if ($rhs_symbol_name =~ m{ \A ['] ([^']+) ['] \z }xms) {
 		my $single_quoted_string = $1;
+		say STDERR $rhs_symbol_name;
                 push @rhs_symbols, map { $char_to_symbol{$_} } split //xms,
                     $single_quoted_string;
                 next RHS_SYMBOL;
@@ -182,6 +184,7 @@ sub new {
         } ## end RHS_SYMBOL: for my $rhs_symbol_name ( @{$rhs} )
         my $rule_id = $sixish_grammar->rule_new( $self->symbol_by_name($lhs),
             \@rhs_symbols );
+say STDERR $self->dotted_rule($rule_id, 0);
     } ## end RULE: for my $rule ( @{$OP_rules} )
 
     # $sixish_grammar->rule_new( $self->symbol_by_name('self'),
@@ -189,9 +192,15 @@ sub new {
     $sixish_grammar->start_symbol_set( $self->symbol_by_name('<start>'), );
     $sixish_grammar->precompute();
 
+while ( my ( $char, $symbol ) = each %char_to_symbol ) {
+    say STDERR qq{Symbol $symbol, "$char"};
+    die qq{Symbol $symbol, "$char" is inaccessible} if not $sixish_grammar->symbol_is_accessible($symbol);
+}
+
         $self->{grammar}         = $sixish_grammar;
         $self->{char_to_symbol}  = \%char_to_symbol;
         $self->{regex_to_symbol} = \@regex_to_symbol;
+
     return $self;
 } ## end sub sixish_new
 
