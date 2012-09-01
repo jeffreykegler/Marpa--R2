@@ -15,10 +15,10 @@ use Marpa::R2;
     }
 }
 
+my $OP_rules;
 {
 
-    my $rules =
-    Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
+    $OP_rules = Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
     <start> ::= <concatenation>
     <concatenation> ::=
         <concatenation> ::= <concatenation> <opt ws> <quantified atom>
@@ -31,7 +31,7 @@ use Marpa::R2;
     <single quoted char seq> ::= <single quoted char>*
     <atom> ::= <self>
     <self> ::= '<~~>'
-    <quantifier> ::= <star>
+    <quantifier> ::= '*'
 END_OF_RULES
 
 require Data::Dumper; say Data::Dumper::Dumper($rules);
@@ -135,53 +135,58 @@ sub new {
     my $self = bless {}, $class;
     $self->{grammar} = $sixish_grammar;
     $self->{rule_by_name} = {};
-    $self->{symbol_by_name} = {};
+    my $symbol_by_name = $self->{symbol_by_name} = {};
     $self->{rule_names} = {};
     $self->{symbol_names} = {};
 
-    $char_to_symbol{'*'}  = $self->symbol_new('star');
-    $char_to_symbol{'<'}  = $self->symbol_new('langle');
-    $char_to_symbol{'>'}  = $self->symbol_new('rangle');
-    $char_to_symbol{q{'}} = $self->symbol_new('single_quote');
-    $char_to_symbol{'~'}  = $self->symbol_new('tilde');
+    for my $char (split //xms, q{*<>~}) {
+      $char_to_symbol{$char}  = $self->symbol_new(qq{'$char'});
+    }
+    $char_to_symbol{q{'}}  = $self->symbol_new('<single quote>');
 
-    my $s_ws_char = $self->symbol_new('ws_char');
+    my $s_ws_char = $self->symbol_new('<ws char>');
     push @regex_to_symbol, [ qr/\s/xms, $s_ws_char ];
-    my $s_single_quoted_char = $self->symbol_new('single_quoted_char');
+    my $s_single_quoted_char = $self->symbol_new('<single quoted char>');
     push @regex_to_symbol, [ qr/[^\\']/xms, $s_single_quoted_char ];
 
-    $self->symbol_new('atom');
-    $self->symbol_new('concatenation');
-    $self->symbol_new('single_quoted_char_seq');
-    $self->symbol_new('opt_ws');
-    $self->symbol_new('quantified_atom');
-    $self->symbol_new('quantifier');
-    $self->symbol_new('quoted_literal');
-    $self->symbol_new('self');
-    $self->symbol_new('start');
+    SYMBOL: for my $symbol_name ( map { $_->{lhs}, @{ $_->{rhs} } }
+        @{$OP_rules} )
+    {
+	next SYMBOL if $symbol_name =~ m{ \A ['] (.*) ['] \z }xms;
+        if ( not defined $symbol_by_name->{$symbol_name} ) {
+            my $symbol = $self->symbol_new($symbol_name);
+        }
+    } ## end for my $symbol_name ( map { $rule->{lhs}, @{ $rule->{...}}})
 
-    $self->rule_new('start ::= concatenation');
-    $self->rule_new('concatenation ::=');
-    $self->rule_new(
-        'concatenation ::= concatenation opt_ws quantified_atom');
-    $self->rule_new('opt_ws ::= ');
-    $self->rule_new('opt_ws ::= opt_ws ws_char');
-    $self->rule_new('quantified_atom ::= atom opt_ws quantifier');
-    $self->rule_new('quantified_atom ::= atom');
-    $self->rule_new('atom ::= quoted_literal');
-    $self->rule_new(
-        'quoted_literal ::= single_quote single_quoted_char_seq single_quote');
-    $sixish_grammar->sequence_new(
-        $self->symbol_by_name('single_quoted_char_seq'),
-        $self->symbol_by_name('single_quoted_char'),
-        { min => 0 }
-    );
-    $self->rule_new('atom ::= self');
-    $sixish_grammar->rule_new( $self->symbol_by_name('self'),
-        [ map { $char_to_symbol{$_} } split //xms, '<~~>' ] );
-    $self->rule_new('quantifier ::= star');
+    RULE: for my $rule ( @{$OP_rules} ) {
+        my $min = $rule->{min};
+        my $lhs = $rule->{lhs};
+        my $rhs = $rule->{rhs};
+        if ( defined $min ) {
+            $sixish_grammar->sequence_new(
+                $self->symbol_by_name($lhs),
+                $self->symbol_by_name( $rhs->[0] ),
+                { min => $min }
+            );
+            next RULE;
+        } ## end if ( defined $min )
+        my @rhs_symbols = ();
+        RHS_SYMBOL: for my $rhs_symbol_name ( @{$rhs} ) {
+            if ($rhs_symbol_name =~ m{ \A ['] ([^']+) ['] \z }xms) {
+		my $single_quoted_string = $1;
+                push @rhs_symbols, map { $char_to_symbol{$_} } split //xms,
+                    $single_quoted_string;
+                next RHS_SYMBOL;
+            }
+            push @rhs_symbols, $self->symbol_by_name($rhs_symbol_name);
+        } ## end RHS_SYMBOL: for my $rhs_symbol_name ( @{$rhs} )
+        my $rule_id = $sixish_grammar->rule_new( $self->symbol_by_name($lhs),
+            \@rhs_symbols );
+    } ## end RULE: for my $rule ( @{$OP_rules} )
 
-    $sixish_grammar->start_symbol_set( $self->symbol_by_name('start'), );
+    # $sixish_grammar->rule_new( $self->symbol_by_name('self'),
+
+    $sixish_grammar->start_symbol_set( $self->symbol_by_name('<start>'), );
     $sixish_grammar->precompute();
 
         $self->{grammar}         = $sixish_grammar;

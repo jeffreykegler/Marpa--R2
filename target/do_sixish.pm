@@ -104,8 +104,8 @@ sub sixish_child_new {
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
 
-    my $sym6_single_quoted_char = $sixish->symbol_by_name('single_quoted_char');
-    my $sym6_self = $sixish->symbol_by_name('self');
+    my $sym6_single_quoted_char = $sixish->symbol_by_name('<single quoted char>');
+    my $sym6_self = $sixish->symbol_by_name('<self>');
     my %char_to_symbol = ();
 
     my @stack = ();
