@@ -1,3 +1,5 @@
+package Marpa::R2::Demo::Sixish1;
+
 use 5.010;
 use strict;
 use warnings;
@@ -5,7 +7,7 @@ use warnings;
 use Marpa::R2;
 
 {
-    my $file = './OP3.pm';
+    my $file = './OP4.pm';
     unless ( my $return = do $file ) {
         warn "couldn't parse $file: $@" if $@;
         warn "couldn't do $file: $!" unless defined $return;
@@ -13,7 +15,7 @@ use Marpa::R2;
     }
 }
 
-sub sixish_new {
+sub new {
     my $sixish_grammar  = Marpa::R2::Thin::G->new( { if => 1 } );
     my $tracer          = Marpa::R2::Thin::Trace->new($sixish_grammar);
     my %char_to_symbol  = ();
