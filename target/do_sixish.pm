@@ -24,8 +24,11 @@ my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
 my $paren_grammar = q{'(' <~~>* ')'};
 
-my ( $sixish_tracer, $sixish_grammar, $sixish_char_to_symbol, $sixish_regex_to_symbol ) =
-    Marpa::R2::Demo::Sixish1->new();
+my $sixish                 = Marpa::R2::Demo::Sixish1->new();
+my $sixish_tracer          = $sixish->{tracer};
+my $sixish_grammar         = $sixish->{grammar};
+my $sixish_char_to_symbol  = $sixish->{char_to_symbol};
+my $sixish_regex_to_symbol = $sixish->{regex_to_symbol};
 
 sub dwim {
     my ( $stack, $type, @step_data ) = @_;

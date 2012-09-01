@@ -15,7 +15,30 @@ use Marpa::R2;
     }
 }
 
+{
+
+    my $rules =
+    Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
+    <start> ::= <concatenation>
+    <concatenation> ::=
+        <concatenation> ::= <concatenation> <opt_ws> <quantified_atom>
+    <opt_ws> ::=
+    <opt_ws> ::= <opt_ws> <ws_char>
+    <quantified_atom> ::= <atom> <opt_ws> <quantifier>
+    <quantified_atom> ::= <atom>
+    <atom> ::= <quoted_literal>
+        <quoted_literal> ::= <single_quote> <single_quoted_char_seq> <single_quote>
+    <single_quoted_char_seq> ::= <single_quoted_char>*
+    <atom> ::= <self>
+    <self> ::= '<~~>'
+    <quantifier> ::= <star>
+END_OF_RULES
+
+require Data::Dumper; say Data::Dumper::Dumper($rules);
+}
+
 sub new {
+    my ($class) = @_;
     my $sixish_grammar  = Marpa::R2::Thin::G->new( { if => 1 } );
     my $tracer          = Marpa::R2::Thin::Trace->new($sixish_grammar);
     my %char_to_symbol  = ();
@@ -65,7 +88,12 @@ sub new {
 
     $sixish_grammar->start_symbol_set( $tracer->symbol_by_name('start'), );
     $sixish_grammar->precompute();
-    return $tracer, $sixish_grammar, \%char_to_symbol, \@regex_to_symbol;
+    return bless {
+        tracer          => $tracer,
+        grammar         => $sixish_grammar,
+        char_to_symbol  => \%char_to_symbol,
+        regex_to_symbol => \@regex_to_symbol
+    }, $class;
 } ## end sub sixish_new
 
 1;
