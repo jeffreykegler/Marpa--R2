@@ -57,12 +57,8 @@ sub rule_name_set {
 }
 
 sub rule_new {
-    my ( $self, $ebnf ) = @_;
-    my ( $lhs, $rhs ) = split /\s*[:][:][=]\s*/xms, $ebnf;
-    die "Malformed EBNF: $ebnf" if not defined $lhs;
-    $lhs =~ s/\A\s*//xms;
-    $lhs =~ s/\s*\z//xms;
-    my @rhs = split /\s+/xms, $rhs;
+    my ( $self, $lhs, @rhs ) = @_;
+    die "Missing lhs" if not defined $lhs;
     return $self->{g}->rule_new( $self->symbol_by_name($lhs),
         [ map { $self->symbol_by_name($_) } @rhs ] );
 } ## end sub rule_new
