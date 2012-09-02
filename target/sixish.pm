@@ -32,7 +32,7 @@ my $OP_rules;
         <quoted literal> ::= <single quote> <single quoted char seq> <single quote>
     <single quoted char seq> ::= <single quoted char>*
     <atom> ::= <self>
-    <self> ::= '<~~>'
+    <self> ::= '<~~>' :action<do_self>
     <quantifier> ::= '*'
 END_OF_RULES
 

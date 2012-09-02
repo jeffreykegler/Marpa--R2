@@ -155,6 +155,10 @@ sub do_arg1         { return $_[2]; }
 sub do_right_adverb { return 'R' }
 sub do_left_adverb  { return 'L' }
 sub do_group_adverb { return 'G' }
+sub do_action_adverb {
+    my ($action_name) = ( $_[1] =~ m/[<] ( [^>]* )/xms );
+    return $action_name;
+}
 
 sub do_what_I_mean {
 
@@ -238,8 +242,8 @@ sub parse_rules {
 
                 { lhs => 'action', rhs => [] },
                 {   lhs    => 'action',
-                    rhs    => [qw/op_arrow action_name/],
-                    action => 'do_arg1'
+                    rhs    => [qw/action_adverb/],
+                    action => 'do_action_adverb'
                 },
 
                 { lhs => 'lhs', rhs => [qw/name/], action => 'do_lhs' },
@@ -265,11 +269,10 @@ sub parse_rules {
         [ 'op_right',      qr/:right\b/xms ],
         [ 'op_left',       qr/:left\b/xms ],
         [ 'op_group',      qr/:group\b/xms ],
+	[ 'action_adverb', qr/:action [<] [^>]* [>]/xms ],
         [ 'op_declare',    qr/::=/xms ],
-        [ 'op_arrow',      qr/=>/xms ],
         [ 'op_tighter',    qr/[|][|]/xms ],
         [ 'op_eq_pri',     qr/[|]/xms ],
-        [ 'reserved_name', qr/(::(whatever|undef))/xms ],
         [ 'op_plus',       qr/[+]/xms ],
         [ 'op_star',       qr/[*]/xms ],
         [ 'action_name',          qr/ \w+ /xms ],
