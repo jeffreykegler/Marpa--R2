@@ -3,6 +3,7 @@ package Marpa::R2::Demo::Sixish1;
 use 5.010;
 use strict;
 use warnings;
+use English qw( -no_match_vars );
 
 use Marpa::R2::Thin::Trace;
 
@@ -13,6 +14,90 @@ use Marpa::R2::Thin::Trace;
         warn "couldn't do $file: $!" unless defined $return;
         warn "couldn't run $file" unless $return;
     }
+}
+
+sub code_problems {
+    my $args = shift;
+
+    my $fatal_error;
+    my $warnings = [];
+    my $where    = '?where?';
+    my $long_where;
+    my @msg = ();
+    my $eval_value;
+    my $eval_given = 0;
+
+    push @msg, q{=} x 60, "\n";
+    while ( my ( $arg, $value ) = each %{$args} ) {
+        given ($arg) {
+            when ('fatal_error') { $fatal_error = $value }
+            when ('where')       { $where       = $value }
+            when ('long_where')  { $long_where  = $value }
+            when ('warnings')    { $warnings    = $value }
+            when ('eval_ok') {
+                $eval_value = $value;
+                $eval_given = 1;
+            }
+            default { push @msg, "Unknown argument to code_problems: $arg" };
+        } ## end given
+    } ## end while ( my ( $arg, $value ) = each %{$args} )
+
+    my @problem_line     = ();
+    my $max_problem_line = -1;
+    for my $warning_data ( @{$warnings} ) {
+        my ( $warning, $package, $filename, $problem_line ) =
+            @{$warning_data};
+        $problem_line[$problem_line] = 1;
+        $max_problem_line = List::Util::max $problem_line, $max_problem_line;
+    } ## end for my $warning_data ( @{$warnings} )
+
+    $long_where //= $where;
+
+    my $warnings_count = scalar @{$warnings};
+    {
+        my @problems;
+        my $false_eval = $eval_given && !$eval_value && !$fatal_error;
+        if ($false_eval) {
+            push @problems, '* THE MARPA SEMANTICS RETURNED A PERL FALSE',
+                'Marpa::R2 requires its semantics to return a true value';
+        }
+        if ($fatal_error) {
+            push @problems, '* THE MARPA SEMANTICS PRODUCED A FATAL ERROR';
+        }
+        if ($warnings_count) {
+            push @problems,
+                "* THERE WERE $warnings_count WARNING(S) IN THE MARPA SEMANTICS:",
+                'Marpa treats warnings as fatal errors';
+        }
+        if ( not scalar @problems ) {
+            push @msg, '* THERE WAS A FATAL PROBLEM IN THE MARPA SEMANTICS';
+        }
+        push @msg, ( join "\n", @problems ) . "\n";
+    }
+
+    push @msg, "* THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:\n"
+        . $long_where . "\n";
+
+    for my $warning_ix ( 0 .. ( $warnings_count - 1 ) ) {
+        push @msg, "* WARNING MESSAGE NUMBER $warning_ix:\n";
+        my $warning_message = $warnings->[$warning_ix]->[0];
+        $warning_message =~ s/\n*\z/\n/xms;
+        push @msg, $warning_message;
+    } ## end for my $warning_ix ( 0 .. ( $warnings_count - 1 ) )
+
+    if ($fatal_error) {
+        push @msg, "* THIS WAS THE FATAL ERROR MESSAGE:\n";
+        my $fatal_error_message = $fatal_error;
+        $fatal_error_message =~ s/\n*\z/\n/xms;
+        push @msg, $fatal_error_message;
+    } ## end if ($fatal_error)
+
+    push @msg, q{* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE};
+    Marpa::R2::exception(@msg);
+
+    # this is to keep perlcritic happy
+    return 1;
+
 }
 
 our $sixish_answer_shown;
@@ -54,7 +139,11 @@ sub dwim {
     die "Unexpected step type: $type";
 } ## end sub dwim
 
-sub do_short_rule {
+sub Marpa::R2::Sixish::Action::do_self {
+    return '{self}';
+}
+
+sub Marpa::R2::Sixish::Action::do_short_rule {
     shift;
     return {
         lhs => '<TOP><6>',
@@ -126,7 +215,20 @@ sub sixish_child_new {
     my %char_to_symbol = ();
 
     my @stack = ();
-    my $actions = $sixish->{actions};
+    my $actions = [];
+    {
+	# Where to do this?  Once actions are finally known, but where
+	# is that?
+        my $sixish_actions = $sixish->{actions};
+        RULE: for my $rule_id ( 0 .. $#{$sixish_actions} ) {
+            my $action_name = $sixish_actions->[$rule_id];
+            next RULE if not defined $action_name;
+	    local *closure = $Marpa::R2::Sixish::Action::{$action_name};
+            die "Internal error: Sixish action $action_name not defined"
+                if not defined &closure;
+            $actions->[$rule_id] = \&closure;
+        } ## end RULE: for my $rule_id ( 0 .. $#{$sixish_actions} )
+    }
     STEP: while (1) {
         my ( $type, @step_data ) = $valuator->step();
         last STEP if not defined $type;
@@ -145,11 +247,47 @@ sub sixish_child_new {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
             # say STDERR "RULE: ", $sixish->symbol_name($rule_id);
-            my $action = $actions->[$rule_id];
-            if ( defined $action ) {
-                $stack[$arg_0] = '{' . $action . '}';
+            my $closure = $actions->[$rule_id];
+            if ( defined $closure ) {
+                my $result;
+
+                my @args =
+                    @stack[ $arg_0 .. $arg_n ];
+
+                {
+                    my @warnings;
+                    my $eval_ok;
+                    DO_EVAL: {
+                        local $SIG{__WARN__} = sub {
+                            push @warnings, [ $_[0], ( caller 0 ) ];
+                        };
+
+                        $eval_ok = eval {
+			    local $Marpa::R2::Context::rule = $rule_id;
+                            $result = $closure->( @args );
+                            1;
+                        };
+
+                    } ## end DO_EVAL:
+
+                    if ( not $eval_ok or @warnings ) {
+                        my $fatal_error = $EVAL_ERROR;
+                        code_problems(
+                            {   fatal_error => $fatal_error,
+                                eval_ok     => $eval_ok,
+                                warnings    => \@warnings,
+                                where       => 'computing value',
+                                long_where  => 'Computing value for rule: '
+                                    . $sixish->dotted_rule($rule_id, 0),
+                            }
+                        );
+                    } ## end if ( not $eval_ok or @warnings )
+                    $stack[$arg_0] = \$result;
+                } ## end if ( ref $closure eq 'CODE' )
+
                 next STEP;
-            }
+
+            } ## end if ( defined $closure )
 
             # Fall through
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
