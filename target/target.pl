@@ -1137,7 +1137,7 @@ $tests->{retrace} = sub { do_retrace($s) }
     if $do_retrace;
 $tests->{resl} = sub { do_resl($s) }
     if $do_resl;
-$tests->{sixish} = sub { do_sixish($s) }
+$tests->{sixish} = sub { Marpa::R2::Demo::Sixish1::do_sixish($s) }
     if $do_sixish;
 $tests->{regex} = sub { do_regex($s) }
     if $do_regex;

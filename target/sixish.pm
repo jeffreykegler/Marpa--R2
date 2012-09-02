@@ -20,7 +20,7 @@ my $OP_rules;
 
     $OP_rules = Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
     <top> ::= <short rule>
-    <short rule> ::= <rhs>
+    <short rule> ::= <rhs> :action<do_short_rule>
     <rhs> ::= <concatenation>
     <concatenation> ::=
         <concatenation> ::= <concatenation> <opt ws> <quantified atom>
@@ -140,6 +140,7 @@ sub new {
     my $symbol_by_name = $self->{symbol_by_name} = {};
     $self->{rule_names} = {};
     $self->{symbol_names} = {};
+    my $actions = $self->{actions} = [];
 
     for my $char (split //xms, q{*<>~}) {
       $char_to_symbol{$char}  = $self->symbol_new(qq{'$char'});
@@ -165,12 +166,14 @@ say STDERR "Created symbol $symbol: ", $symbol_name;
         my $min = $rule->{min};
         my $lhs = $rule->{lhs};
         my $rhs = $rule->{rhs};
+        my $action = $rule->{action};
         if ( defined $min ) {
-            $sixish_grammar->sequence_new(
+            my $rule_id = $sixish_grammar->sequence_new(
                 $self->symbol_by_name($lhs),
                 $self->symbol_by_name( $rhs->[0] ),
                 { min => $min }
             );
+	    $actions->[$rule_id] = $action if defined $action;
             next RULE;
         } ## end if ( defined $min )
         my @rhs_symbols = ();
@@ -186,7 +189,10 @@ say STDERR "Created symbol $symbol: ", $symbol_name;
         } ## end RHS_SYMBOL: for my $rhs_symbol_name ( @{$rhs} )
         my $rule_id = $sixish_grammar->rule_new( $self->symbol_by_name($lhs),
             \@rhs_symbols );
-say STDERR $self->dotted_rule($rule_id, 0);
+	$actions->[$rule_id] = $action if defined $action;
+
+# say STDERR $self->dotted_rule($rule_id, 0);
+
     } ## end RULE: for my $rule ( @{$OP_rules} )
 
     $sixish_grammar->start_symbol_set( $self->symbol_by_name('<top>'), );

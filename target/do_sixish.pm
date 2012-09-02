@@ -1,3 +1,5 @@
+package Marpa::R2::Demo::Sixish1;
+
 use 5.010;
 use strict;
 use warnings;
@@ -51,6 +53,14 @@ sub dwim {
     } ## end if ( $type eq 'MARPA_STEP_RULE' )
     die "Unexpected step type: $type";
 } ## end sub dwim
+
+sub do_short_rule {
+    shift;
+    return {
+        lhs => '<TOP><6>',
+        rhs => [ $_[1] ],
+    };
+} ## end sub do_short_rule
 
 sub sixish_child_new {
     my ($child_source) = @_;
@@ -116,6 +126,7 @@ sub sixish_child_new {
     my %char_to_symbol = ();
 
     my @stack = ();
+    my $actions = $sixish->{actions};
     STEP: while (1) {
         my ( $type, @step_data ) = $valuator->step();
         last STEP if not defined $type;
@@ -134,8 +145,9 @@ sub sixish_child_new {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
             # say STDERR "RULE: ", $sixish->symbol_name($rule_id);
-            if ( $rule_id == $sym6_self ) {
-                $stack[$arg_0] = 'SELF';
+            my $action = $actions->[$rule_id];
+            if ( defined $action ) {
+                $stack[$arg_0] = '{' . $action . '}';
                 next STEP;
             }
 
