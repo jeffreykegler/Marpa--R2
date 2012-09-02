@@ -19,7 +19,9 @@ my $OP_rules;
 {
 
     $OP_rules = Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
-    <start> ::= <concatenation>
+    <top> ::= <short rule>
+    <short rule> ::= <rhs>
+    <rhs> ::= <concatenation>
     <concatenation> ::=
         <concatenation> ::= <concatenation> <opt ws> <quantified atom>
     <opt ws> ::=
@@ -187,9 +189,7 @@ say STDERR "Created symbol $symbol: ", $symbol_name;
 say STDERR $self->dotted_rule($rule_id, 0);
     } ## end RULE: for my $rule ( @{$OP_rules} )
 
-    # $sixish_grammar->rule_new( $self->symbol_by_name('self'),
-
-    $sixish_grammar->start_symbol_set( $self->symbol_by_name('<start>'), );
+    $sixish_grammar->start_symbol_set( $self->symbol_by_name('<top>'), );
     $sixish_grammar->precompute();
 
 while ( my ( $char, $symbol ) = each %char_to_symbol ) {

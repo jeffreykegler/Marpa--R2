@@ -123,8 +123,8 @@ sub sixish_child_new {
             my ( $symbol_id, $token_value_ix, $arg_n ) = @step_data;
             my ( $start, $end ) = $valuator->location();
             if ( $symbol_id == $sym6_single_quoted_char ) {
-                $stack[$arg_n] = 'CHAR('
-                    . ( substr $paren_grammar, $start, $end - $start ) . ')';
+                $stack[$arg_n] = q{'}
+                    . ( substr $paren_grammar, $start, $end - $start ) . q{'};
                 next STEP;
             }
             $stack[$arg_n] = substr $paren_grammar, $start, $end - $start;
