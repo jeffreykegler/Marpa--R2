@@ -25,10 +25,6 @@ $rules = [
              'lhs' => '<concatenation>'
            },
            {
-             'rhs' => [],
-             'lhs' => '<opt ws>'
-           },
-           {
              'rhs' => [
                         '<concatenation>',
                         '<opt ws>',
@@ -36,6 +32,11 @@ $rules = [
                       ],
              'lhs' => '<concatenation>',
              'action' => 'do_remove_undefs'
+           },
+           {
+             'rhs' => [],
+             'lhs' => '<opt ws>',
+             'action' => 'do_undef'
            },
            {
              'rhs' => [

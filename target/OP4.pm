@@ -103,7 +103,9 @@ sub do_priority_rule {
 
 sub do_empty_rule {
     my ( undef, $lhs, undef, $action ) = @_;
-    return [ { lhs => $lhs, rhs => [], @{ $action || [] } } ];
+    my @action_kv;
+    push @action_kv, action => $action if defined $action;
+    return [ { lhs => $lhs, rhs => [], @action_kv } ];
 }
 
 sub do_quantified_rule {
