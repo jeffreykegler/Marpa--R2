@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Marpa::R2;
+BEGIN { require './Own_Rules.pm' };
 
 {
     my $file = './OP4.pm';
@@ -13,30 +14,6 @@ use Marpa::R2;
         warn "couldn't do $file: $!" unless defined $return;
         warn "couldn't run $file" unless $return;
     }
-}
-
-my $OP_rules;
-{
-
-    $OP_rules = Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
-    <top> ::= <short rule>
-    <short rule> ::= <rhs> :action<do_short_rule>
-    <rhs> ::= <concatenation>
-    <concatenation> ::=
-    <opt ws> ::=
-    <concatenation> ::= <concatenation> <opt ws> <quantified atom> :action<do_remove_undefs>
-    <opt ws> ::= <opt ws> <ws char> :action<do_undef>
-    <quantified atom> ::= <atom> <opt ws> <quantifier>
-    <quantified atom> ::= <atom>
-    <atom> ::= <quoted literal>
-        <quoted literal> ::= <single quote> <single quoted char seq> <single quote>
-    <single quoted char seq> ::= <single quoted char>*
-    <atom> ::= <self>
-    <self> ::= '<~~>' :action<do_self>
-    <quantifier> ::= '*'
-END_OF_RULES
-
-require Data::Dumper; say Data::Dumper::Dumper($OP_rules);
 }
 
 sub rule_by_name {
@@ -153,7 +130,7 @@ sub new {
     push @regex_to_symbol, [ qr/[^\\']/xms, $s_single_quoted_char ];
 
     SYMBOL: for my $symbol_name ( map { $_->{lhs}, @{ $_->{rhs} } }
-        @{$OP_rules} )
+        @{$Marpa::R2::Sixish::Own_Rules::rules} )
     {
 	next SYMBOL if $symbol_name =~ m{ \A ['] (.*) ['] \z }xms;
         if ( not defined $symbol_by_name->{$symbol_name} ) {
@@ -162,10 +139,10 @@ say STDERR "Created symbol $symbol: ", $symbol_name;
         }
     } ## end for my $symbol_name ( map { $rule->{lhs}, @{ $rule->{...}}})
 
-    RULE: for my $rule ( @{$OP_rules} ) {
-        my $min = $rule->{min};
-        my $lhs = $rule->{lhs};
-        my $rhs = $rule->{rhs};
+    RULE: for my $rule ( @{$Marpa::R2::Sixish::Own_Rules::rules} ) {
+        my $min    = $rule->{min};
+        my $lhs    = $rule->{lhs};
+        my $rhs    = $rule->{rhs};
         my $action = $rule->{action};
         if ( defined $min ) {
             my $rule_id = $sixish_grammar->sequence_new(
@@ -173,27 +150,27 @@ say STDERR "Created symbol $symbol: ", $symbol_name;
                 $self->symbol_by_name( $rhs->[0] ),
                 { min => $min }
             );
-	    $actions->[$rule_id] = $action if defined $action;
+            $actions->[$rule_id] = $action if defined $action;
             next RULE;
         } ## end if ( defined $min )
         my @rhs_symbols = ();
         RHS_SYMBOL: for my $rhs_symbol_name ( @{$rhs} ) {
-            if ($rhs_symbol_name =~ m{ \A ['] ([^']+) ['] \z }xms) {
-		my $single_quoted_string = $1;
-		say STDERR $rhs_symbol_name;
+            if ( $rhs_symbol_name =~ m{ \A ['] ([^']+) ['] \z }xms ) {
+                my $single_quoted_string = $1;
+                say STDERR $rhs_symbol_name;
                 push @rhs_symbols, map { $char_to_symbol{$_} } split //xms,
                     $single_quoted_string;
                 next RHS_SYMBOL;
-            }
+            } ## end if ( $rhs_symbol_name =~ m{ \A ['] ([^']+) ['] \z }xms)
             push @rhs_symbols, $self->symbol_by_name($rhs_symbol_name);
         } ## end RHS_SYMBOL: for my $rhs_symbol_name ( @{$rhs} )
         my $rule_id = $sixish_grammar->rule_new( $self->symbol_by_name($lhs),
             \@rhs_symbols );
-	$actions->[$rule_id] = $action if defined $action;
+        $actions->[$rule_id] = $action if defined $action;
 
 # say STDERR $self->dotted_rule($rule_id, 0);
 
-    } ## end RULE: for my $rule ( @{$OP_rules} )
+    } ## end RULE: for my $rule ( @{$Marpa::R2::Sixish::Own_Rules::rules...})
 
     $sixish_grammar->start_symbol_set( $self->symbol_by_name('<top>'), );
     $sixish_grammar->precompute();
