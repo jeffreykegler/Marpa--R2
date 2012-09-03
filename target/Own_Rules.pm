@@ -32,7 +32,8 @@ $rules = [
              'rhs' => [
                         '<concatenation>'
                       ],
-             'lhs' => '<rhs>'
+             'lhs' => '<rhs>',
+             'action' => 'do_arg0'
            },
            {
              'rhs' => [],

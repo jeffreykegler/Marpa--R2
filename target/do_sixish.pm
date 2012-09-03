@@ -151,7 +151,7 @@ sub Marpa::R2::Sixish::Action::do_arg0 {
 }
 
 sub Marpa::R2::Sixish::Action::do_arg1 {
-    return $_[1];
+    return $_[2];
 }
 
 sub Marpa::R2::Sixish::Action::do_undef {
@@ -177,10 +177,17 @@ sub Marpa::R2::Sixish::Action::do_self {
 }
 
 sub Marpa::R2::Sixish::Action::do_short_rule {
-    shift;
+    my ($eval_object, $rhs) = @_;
+    my $lhs = '<TOP><6>';
+    for my $self_occurrence (@{$eval_object->{self_occurrences}}) {
+        my ($rule, $ix) = @{$self_occurrence};
+	my $rhs = $rule->{rhs};
+	$rhs->[$ix] = $lhs;
+    }
+    $eval_object->{self_occurrences} = [];
     return {
-        lhs => '<TOP><6>',
-        rhs => [ $_[0] ],
+        lhs => $lhs,
+        rhs => $rhs
     };
 } ## end sub do_short_rule
 
@@ -189,6 +196,7 @@ sub Marpa::R2::Sixish::Action::do_quantification {
     my ( $object_var, $atom, undef, $quantifier ) = @_;
     my $symbol_hash = $object_var->{symbol_hash};
     my $rules       = $object_var->{rules};
+    my $self_occurrences       = $object_var->{self_occurrences};
     my $i           = 0;
     my $quantified_lhs;
     GEN_SYMBOL_NAME: while (1) {
@@ -202,14 +210,14 @@ sub Marpa::R2::Sixish::Action::do_quantification {
         }
         $i++;
     } ## end GEN_SYMBOL_NAME: while (1)
-    push @{$rules},
-        [
+    my $side_effect_rule = 
         {   lhs => $quantified_lhs,
             min => 0,
             rhs => $atom
-        }
-        ];
-    return [$quantified_lhs];
+        } ;
+    push @{$self_occurrences}, [$side_effect_rule, 0];
+    push @{$rules}, $side_effect_rule;
+    return $quantified_lhs;
 } ## end sub Marpa::R2::Sixish::Action::do_quantifier
 
 sub sixish_child_new {
@@ -277,7 +285,8 @@ sub sixish_child_new {
 
     my @stack = ();
     my $actions = [];
-    my $evaluation_object = { rules => [] };
+    my $evaluation_object =
+        { rules => [], symbol_hash => {}, self_occurrences => [] };
     {
 	# Where to do this?  Once actions are finally known, but where
 	# is that?
