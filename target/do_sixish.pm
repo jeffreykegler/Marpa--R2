@@ -139,6 +139,13 @@ sub dwim {
     die "Unexpected step type: $type";
 } ## end sub dwim
 
+sub Marpa::R2::Sixish::Action::do_top {
+    my ($object_var, $first_rule, $more_rules) = @_;
+    my @rules = ( $first_rule, @{$object_var->{rules}});
+    push @rules, @{$more_rules} if defined $more_rules;
+  return \@rules;
+}
+
 sub Marpa::R2::Sixish::Action::do_undef {
     return undef;
 }
@@ -146,6 +153,14 @@ sub Marpa::R2::Sixish::Action::do_undef {
 sub Marpa::R2::Sixish::Action::do_remove_undefs {
     shift;
     return [ grep { defined } @_ ];
+}
+
+sub Marpa::R2::Sixish::Action::do_array {
+    return [ $_[1] ]
+}
+
+sub Marpa::R2::Sixish::Action::do_empty_array {
+    return [ ];
 }
 
 sub Marpa::R2::Sixish::Action::do_self {
@@ -225,7 +240,7 @@ sub sixish_child_new {
 
     my @stack = ();
     my $actions = [];
-    my $evaluation_object = {};
+    my $evaluation_object = { rules => [] };
     {
 	# Where to do this?  Once actions are finally known, but where
 	# is that?
@@ -233,9 +248,10 @@ sub sixish_child_new {
         RULE: for my $rule_id ( 0 .. $#{$sixish_actions} ) {
             my $action_name = $sixish_actions->[$rule_id];
             next RULE if not defined $action_name;
-	    local *closure = $Marpa::R2::Sixish::Action::{$action_name};
+	    my $slot = $Marpa::R2::Sixish::Action::{$action_name};
             die "Internal error: Sixish action $action_name not defined"
-                if not defined &closure;
+                if not defined $slot;
+	    local *closure = $slot;
             $actions->[$rule_id] = \&closure;
         } ## end RULE: for my $rule_id ( 0 .. $#{$sixish_actions} )
     }

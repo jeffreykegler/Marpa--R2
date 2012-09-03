@@ -3,9 +3,23 @@ package Marpa::R2::Sixish::Own_Rules;
 $rules = [
            {
              'rhs' => [
+                        '<first rule>',
+                        '<more rules>'
+                      ],
+             'lhs' => '<top>',
+             'action' => 'do_top'
+           },
+           {
+             'rhs' => [
                         '<short rule>'
                       ],
-             'lhs' => '<top>'
+             'lhs' => '<first rule>',
+             'action' => 'do_array'
+           },
+           {
+             'rhs' => [],
+             'lhs' => '<more rules>',
+             'action' => 'do_empty_array'
            },
            {
              'rhs' => [

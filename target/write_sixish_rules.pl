@@ -8,7 +8,9 @@ use Data::Dumper;
 BEGIN { require './OP4.pm' }
 
 my $OP_rules = Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
-    <top> ::= <short rule>
+    <top> ::= <first rule> <more rules> :action<do_top>
+    <first rule> ::= <short rule> :action<do_array>
+    <more rules> ::= :action<do_empty_array>
     <short rule> ::= <rhs> :action<do_short_rule>
     <rhs> ::= <concatenation>
     <concatenation> ::=
