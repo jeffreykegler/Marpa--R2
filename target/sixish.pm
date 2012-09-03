@@ -23,9 +23,9 @@ my $OP_rules;
     <short rule> ::= <rhs> :action<do_short_rule>
     <rhs> ::= <concatenation>
     <concatenation> ::=
-        <concatenation> ::= <concatenation> <opt ws> <quantified atom>
     <opt ws> ::=
-    <opt ws> ::= <opt ws> <ws char>
+    <concatenation> ::= <concatenation> <opt ws> <quantified atom> :action<do_remove_undefs>
+    <opt ws> ::= <opt ws> <ws char> :action<do_undef>
     <quantified atom> ::= <atom> <opt ws> <quantifier>
     <quantified atom> ::= <atom>
     <atom> ::= <quoted literal>

@@ -139,6 +139,15 @@ sub dwim {
     die "Unexpected step type: $type";
 } ## end sub dwim
 
+sub Marpa::R2::Sixish::Action::do_undef {
+    return undef;
+}
+
+sub Marpa::R2::Sixish::Action::do_remove_undefs {
+    shift;
+    return [ grep { defined } @_ ];
+}
+
 sub Marpa::R2::Sixish::Action::do_self {
     return '{self}';
 }
@@ -147,7 +156,7 @@ sub Marpa::R2::Sixish::Action::do_short_rule {
     shift;
     return {
         lhs => '<TOP><6>',
-        rhs => [ $_[1] ],
+        rhs => [ $_[0] ],
     };
 } ## end sub do_short_rule
 
@@ -216,6 +225,7 @@ sub sixish_child_new {
 
     my @stack = ();
     my $actions = [];
+    my $evaluation_object = {};
     {
 	# Where to do this?  Once actions are finally known, but where
 	# is that?
@@ -264,7 +274,7 @@ sub sixish_child_new {
 
                         $eval_ok = eval {
 			    local $Marpa::R2::Context::rule = $rule_id;
-                            $result = $closure->( @args );
+                            $result = $closure->( $evaluation_object, @args );
                             1;
                         };
 
