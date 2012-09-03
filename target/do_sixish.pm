@@ -150,13 +150,18 @@ sub Marpa::R2::Sixish::Action::do_arg0 {
     return $_[1];
 }
 
+sub Marpa::R2::Sixish::Action::do_arg1 {
+    return $_[1];
+}
+
 sub Marpa::R2::Sixish::Action::do_undef {
     return undef;
 }
 
-sub Marpa::R2::Sixish::Action::do_remove_undefs {
-    shift;
-    return [ grep { defined } @_ ];
+sub Marpa::R2::Sixish::Action::do_concatenation {
+    my (undef, $concatenation, undef, $quantified_atom) = @_;
+    $concatenation //= [];
+    return [ @{$concatenation}, $quantified_atom ];
 }
 
 sub Marpa::R2::Sixish::Action::do_array {
@@ -304,7 +309,7 @@ sub sixish_child_new {
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
-            say STDERR "RULE: ", $sixish->dotted_rule($rule_id, 0);
+            # say STDERR "RULE: ", $sixish->dotted_rule($rule_id, 0);
             my $closure = $actions->[$rule_id];
             if ( defined $closure ) {
                 my $result;

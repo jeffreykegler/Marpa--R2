@@ -45,7 +45,7 @@ $rules = [
                         '<quantified atom>'
                       ],
              'lhs' => '<concatenation>',
-             'action' => 'do_remove_undefs'
+             'action' => 'do_concatenation'
            },
            {
              'rhs' => [],
@@ -80,7 +80,8 @@ $rules = [
              'rhs' => [
                         '<quoted literal>'
                       ],
-             'lhs' => '<atom>'
+             'lhs' => '<atom>',
+             'action' => 'do_arg0'
            },
            {
              'rhs' => [
@@ -88,7 +89,8 @@ $rules = [
                         '<single quoted char seq>',
                         '<single quote>'
                       ],
-             'lhs' => '<quoted literal>'
+             'lhs' => '<quoted literal>',
+             'action' => 'do_arg1'
            },
            {
              'min' => 0,
