@@ -66,13 +66,15 @@ $rules = [
                         '<opt ws>',
                         '<quantifier>'
                       ],
-             'lhs' => '<quantified atom>'
+             'lhs' => '<quantified atom>',
+             'action' => 'do_quantification'
            },
            {
              'rhs' => [
                         '<atom>'
                       ],
-             'lhs' => '<quantified atom>'
+             'lhs' => '<quantified atom>',
+             'action' => 'do_arg0'
            },
            {
              'rhs' => [
@@ -99,7 +101,8 @@ $rules = [
              'rhs' => [
                         '<self>'
                       ],
-             'lhs' => '<atom>'
+             'lhs' => '<atom>',
+             'action' => 'do_array'
            },
            {
              'rhs' => [

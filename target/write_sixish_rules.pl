@@ -17,12 +17,12 @@ my $OP_rules = Marpa::R2::Demo::OP4::parse_rules( <<'END_OF_RULES');
     <concatenation> ::= <concatenation> <opt ws> <quantified atom> :action<do_remove_undefs>
     <opt ws> ::= :action<do_undef>
     <opt ws> ::= <opt ws> <ws char> :action<do_undef>
-    <quantified atom> ::= <atom> <opt ws> <quantifier>
-    <quantified atom> ::= <atom>
+    <quantified atom> ::= <atom> <opt ws> <quantifier> :action<do_quantification>
+    <quantified atom> ::= <atom> :action<do_arg0>
     <atom> ::= <quoted literal>
         <quoted literal> ::= <single quote> <single quoted char seq> <single quote>
     <single quoted char seq> ::= <single quoted char>*
-    <atom> ::= <self>
+    <atom> ::= <self> :action<do_array>
     <self> ::= '<~~>' :action<do_self>
     <quantifier> ::= '*'
 END_OF_RULES

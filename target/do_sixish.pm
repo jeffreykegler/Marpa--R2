@@ -126,14 +126,14 @@ sub dwim {
     }
     if ( $type eq 'MARPA_STEP_TOKEN' ) {
         my ( undef, $token_value_ix, $arg_n ) = @step_data;
-        $stack->[$arg_n] = $token_value_ix;
+        $stack->[$arg_n] = \$token_value_ix;
         return 1;
     }
     if ( $type eq 'MARPA_STEP_RULE' ) {
         my ( $rule_id, $arg_0, $arg_n ) = @step_data;
         my @children = grep {defined} @{$stack}[ $arg_0 .. $arg_n ];
         $stack->[$arg_0] =
-            scalar @children > 1 ? \@children : shift @children;
+            scalar @children > 1 ? \[@children] : \$children[0];
         return 1;
     } ## end if ( $type eq 'MARPA_STEP_RULE' )
     die "Unexpected step type: $type";
@@ -144,6 +144,10 @@ sub Marpa::R2::Sixish::Action::do_top {
     my @rules = ( $first_rule, @{$object_var->{rules}});
     push @rules, @{$more_rules} if defined $more_rules;
   return \@rules;
+}
+
+sub Marpa::R2::Sixish::Action::do_arg0 {
+    return $_[1];
 }
 
 sub Marpa::R2::Sixish::Action::do_undef {
@@ -174,6 +178,34 @@ sub Marpa::R2::Sixish::Action::do_short_rule {
         rhs => [ $_[0] ],
     };
 } ## end sub do_short_rule
+
+# right now quantifier is always '*'
+sub Marpa::R2::Sixish::Action::do_quantification {
+    my ( $object_var, $atom, undef, $quantifier ) = @_;
+    my $symbol_hash = $object_var->{symbol_hash};
+    my $rules       = $object_var->{rules};
+    my $i           = 0;
+    my $quantified_lhs;
+    GEN_SYMBOL_NAME: while (1) {
+	# for now, just name after the first element of the "atom"
+
+	my $atom_desc = $atom->[0];
+        $quantified_lhs = '<' . $atom_desc . '><' . $i . '><q:*>';
+        if ( not $symbol_hash->{$quantified_lhs} ) {
+            $symbol_hash->{$quantified_lhs} = 1;
+            last GEN_SYMBOL_NAME;
+        }
+        $i++;
+    } ## end GEN_SYMBOL_NAME: while (1)
+    push @{$rules},
+        [
+        {   lhs => $quantified_lhs,
+            min => 0,
+            rhs => $atom
+        }
+        ];
+    return [$quantified_lhs];
+} ## end sub Marpa::R2::Sixish::Action::do_quantifier
 
 sub sixish_child_new {
     my ($child_source) = @_;
@@ -261,23 +293,26 @@ sub sixish_child_new {
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             my ( $symbol_id, $token_value_ix, $arg_n ) = @step_data;
             my ( $start, $end ) = $valuator->location();
+	    my $token_desc = substr $paren_grammar, $start, $end - $start;
             if ( $symbol_id == $sym6_single_quoted_char ) {
-                $stack[$arg_n] = q{'}
-                    . ( substr $paren_grammar, $start, $end - $start ) . q{'};
+                $stack[$arg_n] = \qq{'$token_desc'};
                 next STEP;
             }
-            $stack[$arg_n] = substr $paren_grammar, $start, $end - $start;
+	    $stack[$arg_n] = \$token_desc;
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
-            # say STDERR "RULE: ", $sixish->symbol_name($rule_id);
+            say STDERR "RULE: ", $sixish->dotted_rule($rule_id, 0);
             my $closure = $actions->[$rule_id];
             if ( defined $closure ) {
                 my $result;
 
                 my @args =
+		    map {
+		    defined $_ ? ${$_} : undef
+		    }
                     @stack[ $arg_0 .. $arg_n ];
 
                 {
@@ -320,8 +355,7 @@ sub sixish_child_new {
         dwim( \@stack, $type, @step_data );
     } ## end STEP: while (1)
 
-    require Data::Dumper;
-    say STDERR Data::Dumper::Dumper( $stack[0] );
+    require Data::Dumper; say STDERR Data::Dumper::Dumper( $stack[0] );
     die;
 
 } ## end sub sixish_child_new
