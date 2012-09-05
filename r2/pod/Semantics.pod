@@ -169,7 +169,7 @@ At lexing time,
 they can be assigned a B<token value>.
 If no token value is assigned at lex time,
 the token value has an "whatever" value.
-A "whatever" value in one that
+A "whatever" value is one that
 cannot be relied on.
 It may, for example,
 vary from instance to instance,
