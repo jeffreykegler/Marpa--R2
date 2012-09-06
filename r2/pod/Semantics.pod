@@ -275,15 +275,7 @@ For more details,
 see L<the document on
 null semantics|Marpa::R2::Semantics::Null>.
 
-=head1 Overview of the semantic phases
-
-Most applications will find that the order in which
-Marpa executes its semantics "just works".
-This section describes that order in detail.
-These details can matter in some applications,
-for example, those which exploit side effects.
-
-=head2 Parse trees, parse results and parse series
+=head1 Parse trees, parse results and parse series
 
 When the semantics are applied to a parse tree,
 it produces a value called a B<parse result>.
@@ -316,70 +308,14 @@ L<the C<reset_evaluation>
 method|Marpa::R2::Recognizer/"reset_evaluation">,
 or until the recognizer is destroyed.
 
-=head2 Summary of the phases
-
-While processing a parse series, we have:
-
-=over
-
-=item * A Series Setup Phase, which occurs during
-the first call of the recognizer's C<value> method
-for that series.
-It is followed by
-
-=item * the processing of zero or more parse trees.
-
-=back
-
-While processing a parse tree, we have:
-
-=over
-
-=item * A Tree Setup Phase, which occurs during
-the call of the recognizer's C<value> method
-for that parse tree.
-It is followed by
-
-=item * a Tree Traveral Phase.
-
-=back
-
-B<Node Evaluation Time>
-is the Tree Traversal Phase, as seen from the point of view of
-each rule node.  It is not a separate phase.
-
-=head1 The phases in detail
-
-=head2 Series Setup Phase
-
-During the Series Setup Phase
-all value action names are resolved to
-value actions --
-constants
-or rule evaluation closures.
-The rule evaluation closures are never called in the Series Setup Phase.
-They will be called later,
-in the Tree Traversal Phase.
-Also, during the Series Setup Phase,
-the logic which
-ranks parse trees is executed.
-
-=head2 Tree Setup Phase
-
-In the Tree Setup Phase,
-the per-parse-tree variable is created.
-If a constructor was found for the C<action_object>,
-it is run at this point, and the per-parse-tree variable is
-its return value.
-Exactly one Tree Setup Phase occurs
-for each parse tree.
-
-=head2 Tree Traversal Phase
-
-During the Tree Traversal Phase,
-the rule evaluation closures are called.
-Node Evaluation Time is the Tree Traversal Phase,
-as seen from the point of view of the individual nodes of the parse tree.
+Most applications will find that the order in which
+Marpa executes its semantics "just works".
+L<A separate
+document|Marpa::R2::Semantics::Phases>,
+describes that order
+in detail.
+These details can matter in some applications,
+for example, those which exploit side effects.
 
 =head1 Finding the action for a rule
 

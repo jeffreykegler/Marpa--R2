@@ -139,6 +139,7 @@ pod/Semantics.pod
 pod/Semantics/Infinite.pod
 pod/Semantics/Null.pod
 pod/Semantics/Order.pod
+pod/Semantics/Phases.pod
 pod/Support.pod
 pod/Tracing.pod
 pod/Vocabulary.pod
