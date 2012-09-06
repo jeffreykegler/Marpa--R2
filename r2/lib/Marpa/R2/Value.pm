@@ -146,15 +146,12 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_semantics
 
 sub Marpa::R2::Internal::Recognizer::set_actions {
-    my ( $recce, $value ) = @_;
+    my ( $recce ) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order     = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree      = $recce->[Marpa::R2::Internal::Recognizer::T_C];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $rule_closures = $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
+    my $rule_closures = [];
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
 
@@ -239,14 +236,6 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             );
         } ## end if ( $new_resolution ne $current_resolution and ( ...))
         if ( $new_resolution ne '::whatever' ) {
-            my $result = $value->rule_is_valued_set( $rule_id, 1 );
-            if ( not $result ) {
-                my $lhs_name = $grammar->symbol_name($lhs_id);
-                Marpa::R2::exception(
-                    qq{Cannot assign values to rule $rule_id (lhs is "$lhs_name") },
-                    q{because the LHS was already treated as an unvalued symbol}
-                );
-            } ## end if ( not $result )
             $rule_closures->[$rule_id] = $closure;
         } ## end if ( $new_resolution ne '::whatever' )
         push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
@@ -344,6 +333,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
 
     return 1;
 }    # set_actions
@@ -415,14 +405,27 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     $action_object //= {};
 
-    my $value = Marpa::R2::Thin::V->new($tree);
-
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] //= [];
-    my $rule_closures =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
-    Marpa::R2::Internal::Recognizer::set_actions( $recce, $value );
+    my $rule_closures = $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
+    if (not defined $rule_closures )
+    {
+        Marpa::R2::Internal::Recognizer::set_actions($recce);
+	$rule_closures = $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
+    }
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
+
+    my $value = Marpa::R2::Thin::V->new($tree);
+    for my $rule_id ( 0 .. $#{$rule_closures} ) {
+        my $result = $value->rule_is_valued_set( $rule_id, 1 );
+        if ( not $result ) {
+	    my $lhs_id = $grammar_c->rule_lhs($rule_id);
+            my $lhs_name = $grammar->symbol_name($lhs_id);
+            Marpa::R2::exception(
+                qq{Cannot assign values to rule $rule_id (lhs is "$lhs_name") },
+                q{because the LHS was already treated as an unvalued symbol}
+            );
+        } ## end if ( not $result )
+    } ## end for my $rule_id ( 0 .. $#{$rule_closures} )
 
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#{$null_values} )
