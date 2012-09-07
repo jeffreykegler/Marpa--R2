@@ -108,7 +108,7 @@ named argument.
 
 =head2 Ranking methods
 
-Marpa grammar objects have L<a C<ranking_method> named
+Marpa recognizer objects have L<a C<ranking_method> named
 argument|Marpa::R2::Recognizer/"ranking_method">,
 whose value can be the name of a ranking method,
 or "C<none>", indicating that the default ranking method is to
