@@ -33,7 +33,7 @@ full_test: etc_make
 r2/libmarpa/libmarpa.tar:
 	(cd r2/libmarpa/dev; make install)
 
-r2/xs/general_pattern.xsh:
+r2/xs/general_pattern.xsh: r2/xs/gp_generate.pl
 	(cd r2/xs; perl gp_generate.pl general_pattern.xsh)
 
 install: r2/libmarpa/libmarpa.tar r2/xs/general_pattern.xsh
