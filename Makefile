@@ -30,13 +30,11 @@ full_test: etc_make
 	    ./Build disttest; \
 	) 2>&1 | tee full_test.out
 
-r2/libmarpa/libmarpa.tar:
-	(cd r2/libmarpa/dev; make install)
-
 r2/xs/general_pattern.xsh: r2/xs/gp_generate.pl
 	(cd r2/xs; perl gp_generate.pl general_pattern.xsh)
 
-install: r2/libmarpa/libmarpa.tar r2/xs/general_pattern.xsh
+install: r2/xs/general_pattern.xsh
+	(cd r2/libmarpa/dev; make install)
 	(cd r2 && perl Build.PL)
 	(cd r2 && ./Build code)
 
