@@ -30,22 +30,20 @@ use Marpa::R2;
 
 my $trace_rules = q{};
 
+# Marpa::R2::Display
+# name: rule() Synopsis
+
 sub do_S {
     my ($action_object) = @_;
     my $rule_id         = $Marpa::R2::Context::rule;
     my $grammar         = $Marpa::R2::Context::grammar;
-
-# Marpa::R2::Display
-# name: rule() Synopsis
-
     my ( $lhs, @rhs ) = $grammar->rule($rule_id);
-
-# Marpa::R2::Display::End
-
     $action_object->{text}
         .= "rule $rule_id: $lhs ::= " . ( join q{ }, @rhs ) . "\n";
     return $action_object;
 } ## end sub do_S
+
+# Marpa::R2::Display::End
 
 my @terminals = qw/A B C D/;
 my $grammar   = Marpa::R2::Grammar->new(

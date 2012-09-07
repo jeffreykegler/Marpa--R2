@@ -128,6 +128,23 @@ For safety therefore,
 the "C<::undef>" reserved action name must be used
 to specify a constant whose value is a Perl C<undef>.
 
+It is important to note that,
+when Perl closures are used for the semantics,
+they must be visible in the scope where the semantics are
+B<resolved>.
+The action names are usually B<specified> with the grammar,
+but action B<resolution> takes place
+in the recognizer's
+L<C<value>|Marpa::R2::Recognizer/"value">
+and
+L<C<reset_evaluation>|Marpa::R2::Recognizer/"reset_evaluation">
+methods.
+This can sometimes be a source of confusion,
+because if a Perl closure is visible when the
+action is specified,
+but goes out of scope before the action name is resolved,
+resolution will fail.
+
 =head1 Valued and unvalued symbols
 
 An unvalued (or
