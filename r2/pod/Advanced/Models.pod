@@ -398,7 +398,7 @@ then that grammar must be ambiguous.
 In Marpa this is not strictly true.
 In Marpa,
 if the input is ambiguous,
-even an unambiguous grammar can produce than one parse.
+even an unambiguous grammar can produce more than one parse.
 
 =head1 Duplicate tokens
 
