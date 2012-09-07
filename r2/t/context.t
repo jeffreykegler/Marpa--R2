@@ -31,7 +31,7 @@ use Marpa::R2;
 my $trace_rules = q{};
 
 # Marpa::R2::Display
-# name: rule() Synopsis
+# name: Action context synopsis
 
 sub do_S {
     my ($action_object) = @_;

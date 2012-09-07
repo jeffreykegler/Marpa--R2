@@ -292,6 +292,36 @@ For more details,
 see L<the document on
 null semantics|Marpa::R2::Semantics::Null>.
 
+=head1 Action context
+
+=for Marpa::R2::Display
+name: Action context synopsis
+normalize-whitespace: 1
+
+    sub do_S {
+        my ($action_object) = @_;
+        my $rule_id         = $Marpa::R2::Context::rule;
+        my $grammar         = $Marpa::R2::Context::grammar;
+        my ( $lhs, @rhs ) = $grammar->rule($rule_id);
+        $action_object->{text}
+            .= "rule $rule_id: $lhs ::= " . ( join q{ }, @rhs ) . "\n";
+        return $action_object;
+    } ## end sub do_S
+
+=for Marpa::R2::Display::End
+
+In addition to the per-parse-tree variable
+and their child arguments,
+rule evaluation closures also have access
+to B<context variables>.
+C<$Marpa::R2::Context::grammar> is set to
+the grammar being parsed.
+C<$Marpa::R2::Context::rule> is the ID of the
+current rule.
+Given the rule ID, an application can find
+its LHS and RHS symbols using
+L<the grammar's C<rule()> method|Marpa::R2::Grammar/"rule">.
+
 =head1 Parse trees, parse results and parse series
 
 When the semantics are applied to a parse tree,
@@ -328,10 +358,10 @@ or until the recognizer is destroyed.
 Most applications will find that the order in which
 Marpa executes its semantics "just works".
 L<A separate
-document|Marpa::R2::Semantics::Phases>,
+document|Marpa::R2::Semantics::Phases>
 describes that order
 in detail.
-These details can matter in some applications,
+The details can matter in some applications,
 for example, those which exploit side effects.
 
 =head1 Finding the action for a rule
@@ -361,15 +391,16 @@ if one is defined.
 
 Resolution of action names is L<described
 below|/"Resolving action names">.
-If the C<action> property
+If the C<action> property,
 the C<default_action> named argument,
 or the C<default_empty_action> named argument
 is defined,
 but does not resolve successfully, Marpa
 throws an exception.
 Marpa prefers to "fast fail" in these cases,
-because they often indicate a mistake in
-writing the application.
+because they usually indicate a mistake
+that the application's author
+will want to correct.
 
 =head1 Resolving action names
 
@@ -473,14 +504,16 @@ is to require that the programmer be specific about action names.
 This can be an inconvenience, but Marpa prefers this to
 silently executing unintended code.
 
-It can be good practice to keep
-the rule evaluation closures
-in their own namespace.
-But if, for example, the user wants to leave the
+But if  the user wants to leave the
 rule evaluation closures in the C<main> namespace,
 she can specify
 C<"main">
 as the value of the C<actions> named argument.
+But
+it can be good practice to keep
+the rule evaluation closures
+in their own namespace,
+particularly if the application is not small.
 
 =head1 The per-parse-tree variable
 

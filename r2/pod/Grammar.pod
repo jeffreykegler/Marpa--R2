@@ -285,7 +285,7 @@ the most convenient way to determine if a symbol is a terminal.
 =head2 rule()
 
 =for Marpa::R2::Display
-name: rule() Synopsis
+name: Action context synopsis
 normalize-whitespace: 1
 partial: 1
 
