@@ -441,24 +441,21 @@ The C<grammar> named argument is not allowed anywhere else.
 
 =head2 max_parses
 
+If non-zero, causes a fatal error when that number
+of parse results is exceeded.
+C<max_parses> is useful to
+limit CPU usage and output length when testing
+and debugging.
+Stable and production applications may
+prefer to count the number of parses,
+and take a less Draconian response when the
+count is exceeded.
+
 The value must be an integer.
-If it is greater than zero, the evaluator will
-return no more than that number of parse results.
 If it is zero, there will be no
 limit on the number of parse results returned.
 The default is for
 there to be no limit.
-
-Marpa allows extremely ambiguous grammars.
-C<max_parses>
-can be used if
-the user
-wants to see only
-the first few parse results of
-an ambiguous parse.
-C<max_parses> is also useful to
-limit CPU usage and output length when testing
-and debugging.
 
 =head2 ranking_method
 
