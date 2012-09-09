@@ -15,8 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.019_002 Sat Sep  8 20:10:12 PDT 2012
 2.019_001 Thu Sep  6 19:11:09 PDT 2012
 2.019_000 Wed Aug 22 21:33:38 PDT 2012
+
+      * Documentation changes and fixes
 
       * New series of developer's releases
 
