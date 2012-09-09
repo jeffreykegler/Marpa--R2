@@ -374,7 +374,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Here the "C<R4:1>" indicates that this is rule number 4
-(the "C<R>" stands for rule number) and that its dot
+(the "C<R>" stands for "rule") and that its dot
 position is after the first symbol on the right hand side.
 Symbol positions are numbered using the
 ordinal of the symbol just before the position.

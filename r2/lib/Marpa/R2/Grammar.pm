@@ -288,7 +288,7 @@ sub Marpa::R2::Grammar::set {
         my $ref_type = ref $args;
         if ( not $ref_type or $ref_type ne 'HASH' ) {
             Carp::croak(
-                'Marpa::R2 Grammar expects args as ref to HASH, got ',
+                'Marpa::R2::Grammar expects args as ref to HASH, got ',
                 ( "ref to $ref_type" || 'non-reference' ),
                 ' instead'
             );
@@ -298,7 +298,7 @@ sub Marpa::R2::Grammar::set {
             keys %{$args}
             )
         {
-            Carp::croak( 'Unknown option(s) for Marpa::R2 Grammar: ',
+            Carp::croak( 'Unknown option(s) for Marpa::R2::Grammar: ',
                 join q{ }, @bad_options );
         } ## end if ( my @bad_options = grep { not $_ ~~ ...})
 
