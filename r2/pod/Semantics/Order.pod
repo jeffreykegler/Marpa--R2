@@ -42,18 +42,9 @@ When evaluating the parse trees in a parse series,
 Marpa never evaluates the same parse tree twice.
 What this means probably matches the programmer
 intuition of what it should mean.
-
-Capturing intuition behind the phrase
-"same parse tree" in a
-careful definition,
-and implementing it in Marpa,
-was far from trivial.
-The more careful definition which occupies
-the rest of this section
-may interest some readers.
-
 Marpa considers two parse trees to be the same if they are
 B<semantic equivalents>.
+
 Two parse trees are semantic equivalents if
 and only if
 a recursive, top-down evaluation of each
@@ -72,6 +63,8 @@ parses, it will mean that the two
 are semantic equivalents, unless otherwise
 stated.
 
+=head2 Default parse order
+
 In this document, the term
 B<arbitrary parse order>
 is used to mean an
@@ -84,14 +77,14 @@ This set of equivalence classes is finite.
 Traversal of the parse trees in
 arbitrary parse order
 will be always be well-behaved
-in the sense that no parse tree will be omitted in it,
-except that no two parse trees will be semantic duplicates.
-However, no other property of it is guaranteed.
+in the sense
+that no two parse trees will be semantic duplicates,
+and no unique (semantic non-duplicate)
+parse tree will be omitted in it,
+No other property of arbitrary parse order is guaranteed.
 For example, the order may
 change each time
 the parse series is traversed.
-
-=head2 Default parse order
 
 By calling
 the recognizer's
@@ -123,9 +116,6 @@ the C<rank> named
 argument for that rule.
 Rule ranks must be integers.
 If no rule rank is specified, the rule rank is 0.
-When being ranked,
-parse trees
-are traversed top-down, left-to-right.
 
 =head2 The C<high_rule_only> ranking method
 
@@ -134,9 +124,6 @@ C<rule> ranking method, except that, at every choice point,
 it discards all of the choices which
 have a rank lower than that of the highest ranked alternative.
 
-In carrying out the ranking,
-the choice points of the parse trees
-are visited in top-down, left-to-right order.
 Since the C<high_rule_only> ranking method eliminates some
 parse trees, it can reduce or eliminate the ambiguity of a parse,
 but it does not necessarily do either.
@@ -147,11 +134,27 @@ as the highest ranked alternative.
 
 =head2 Rule ranking
 
-When ranking, the logic descends the parse trees top-down
+A parse series is kept in a structure called a B<parse bocage>.
+The parse bocage is a tree-like structure, whose root node
+is the common root of all the parse trees of the parse series.
+In an unambiguous parse,
+there will be only one parse tree,
+and the parse bocage will be equivalent
+to that parse tree.
+In an ambiguous parse,
+there will be B<choice points> in the parse bocage.
+At the choice points, there will be two or more
+B<alternatives> -- choices which
+result in different parse trees.
+
+When ranking, the logic traverses the parse bocage,
+looking for choice points.
+From the point of view of the individual parse trees,
+this traversal will be top-down
 and left-to-right.
-Places where there is more than one alternative are
-called B<choice points>.
-Alternatives are ranked (in the C<rule> ranking method)
+At the choice points,
+the alternatives
+are ranked (in the C<rule> ranking method)
 or selected
 (in the C<high_rule_only> ranking method),
 by comparing them as follows:
