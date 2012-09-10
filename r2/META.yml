@@ -18,7 +18,6 @@ no_index:
   directory:
     - pperl
     - tool
-    - html
     - libmarpa
     - author.t
     - html/etc
@@ -28,7 +27,6 @@ no_index:
   namespace:
     - Marpa::R2::Recognizer
     - Marpa::R2::Grammar
-    - Marpa::R2::HTML
     - Marpa::R2::HTML
     - Marpa::R2::Value
     - Marpa::R2::Perl
@@ -42,6 +40,7 @@ no_index:
     - Marpa::R2::Test
     - Marpa::R2::Display
     - Marpa::R2::Internal
+    - Marpa::R2::Thin::Trace
 provides:
   Marpa::R2:
     file: lib/Marpa/R2.pm

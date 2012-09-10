@@ -128,22 +128,23 @@ my $build = Marpa::R2::Build_Me->new(
             { repository => 'git://github.com/jeffreykegler/Marpa-R2.git', },
         no_index => {
             directory => [
-                qw( pperl tool html libmarpa author.t
+                qw( pperl tool libmarpa author.t
                     html/etc html/sandbox html/script html/t
                     )
             ],
             namespace => [
                 'Marpa::R2::Recognizer', 'Marpa::R2::Grammar',
-                'Marpa::R2::HTML',       @no_index_namespace_inclusive
+                @no_index_namespace_inclusive
             ],
-            package => [@no_index_namespace_inclusive],
+            package =>
+                [ @no_index_namespace_inclusive, 'Marpa::R2::Thin::Trace' ],
         }
     },
     pod_files          => \%pod_files,
     create_readme      => 0,
     create_makefile_pl => 'small',
     test_files         => [ map { glob $_ } qw(t/*.t html/t/*.t) ],
-    getoptions => { Dev => {}, 'Marpa-debug' => {} },
+    getoptions         => { Dev => {}, 'Marpa-debug' => {} },
 );
 
 $build->create_build_script;
