@@ -21,21 +21,43 @@ use English qw( -no_match_vars );
 use Marpa::R2::HTML;
 use HTML::Tagset;
 use Fatal qw(open close);
+use Getopt::Long;
+
+sub usage 
+{
+    say STDERR "$PROGRAM_NAME html_fmt [uri|file]";
+    exit 1;
+}
+
+my $data = "file.dat";
+my $length = 24;
+my $help_flag = 0;
+usage() if not GetOptions ( "help" => \$help_flag);
+usage() if $help_flag or scalar @ARGV > 1;
 
 my $locator = shift;
 my $document;
-if ($locator =~ /^[a-zA-Z0-9]+[:]/) {
-    require WWW::Mechanize;
-    my $mech = WWW::Mechanize->new( autocheck => 1 );
-    $mech->get( $locator );
-    $document = $mech->content;
-    undef $mech;
-} else {
-    local $RS = undef;
-    open my $fh, q{<}, $locator;
-    $document = <$fh>;
-    close $fh;
-}
+GET_DOCUMENT: {
+    if ( not defined $locator ) {
+        local $RS = undef;
+        $document = <STDIN>;
+        last GET_DOCUMENT;
+    }
+    if ( $locator =~ /^[a-zA-Z0-9]+[:]/ ) {
+        require WWW::Mechanize;
+        my $mech = WWW::Mechanize->new( autocheck => 1 );
+        $mech->get($locator);
+        $document = $mech->content;
+        undef $mech;
+        last GET_DOCUMENT;
+    } ## end if ( $locator =~ /^[a-zA-Z0-9]+[:]/ )
+    {
+        local $RS = undef;
+        open my $fh, q{<}, $locator;
+        $document = <$fh>;
+        close $fh;
+    }
+} ## end GET_DOCUMENT:
 
 my $html_args = {
     'pre' => sub {
