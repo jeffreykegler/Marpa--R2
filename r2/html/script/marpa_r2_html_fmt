@@ -320,7 +320,7 @@ When missing tags or cruft occur inside a C<pre> element,
 the comments to that effect are placed 
 before the C<< <pre> >> start tag.
 
-The argument to L<html_score> can be either as a URI or a file
+The argument to L<html_fmt> can be either as a URI or a file
 name.  If it starts with alphanumerics followed by a colon, it is treated
 as a URI.  Otherwise it is treated as file name.
 
