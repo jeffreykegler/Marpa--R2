@@ -59,13 +59,11 @@ GET_DOCUMENT: {
     }
 } ## end GET_DOCUMENT:
 
-sub old_top {
+sub post_process {
     my $result = q{};
+    my ($html_data) = @_;
     CHILD:
-    for my $descendant_data (
-        @{ Marpa::R2::HTML::descendants('value,original') } )
-    {
-        my ( $value, $original ) = @{$descendant_data};
+    for my $value (@{$html_data}) {
         if ( defined $value ) {
             LINE: for my $line_data ( @{$value} ) {
                 my $type        = shift @{$line_data};
@@ -147,32 +145,51 @@ sub old_top {
                     } ## end given
                     next LINE;
                 } ## end if ( $type eq 'cruft' )
+		if ($type eq 'start tag') {
+		    $result .= $line_data->[0];
+                    next LINE;
+		}
+		if ($type eq 'end tag') {
+		    $result .= $line_data->[0];
+                    next LINE;
+		}
+		if ($type eq 'content') {
+		    $result .= $line_data->[0];
+                    next LINE;
+		}
+		if ($type eq 'pre') {
+		    $result .= $line_data->[0];
+                    next LINE;
+		}
+		if ($type eq 'script') {
+		    $result .= $line_data->[0];
+                    next LINE;
+		}
                 Carp::croak(
-                    qq{Internal error: unknown line data type: "$type"});
+                    qq{Internal error: unknown line data type: "$type"\n},
+                    qq{  data: }, join q{}, @{$line_data}, "\n"
+                );
             } ## end LINE: for my $line_data ( @{$value} )
             next CHILD;
         } ## end if ( defined $value )
-        LINE: for my $line ( split /\n/xms, $original ) {
-            next LINE if $line =~ /^\s*$/;
-            $line =~ s/^\s+//gxms;
-            $line =~ s/\s+$//gxms;
-            $line =~ s/\s+/ /gxms;
-            $result .= "$line\n";
-        } ## end LINE: for my $line ( split /\n/xms, $original )
     } ## end CHILD: for my $descendant_data ( @{ Marpa::R2::HTML::descendants...})
     return $result;
 } ## end sub old_top
 
 sub new_top {
-    return Marpa::R2::HTML::descendants('value,original');
+    return Marpa::R2::HTML::values();
 }
 
 my $html_args = {
+    'script' => sub {
+        return [ [ 'script', 0, Marpa::R2::HTML::original() ] ];
+    },
     'pre' => sub {
         my @new_line_data      = ();
         my @following_comments = ();
         CHILD:
-        for my $descendant_data ( @{ Marpa::R2::HTML::descendants('value') } ) {
+        for my $descendant_data ( @{ Marpa::R2::HTML::descendants('value') } )
+        {
             next CHILD if not defined( my $value = $descendant_data->[0] );
             for my $line_data ( @{$value} ) {
                 given ( $line_data->[0] ) {    # depending on the type
@@ -188,18 +205,15 @@ my $html_args = {
                     } ## end when ( [ 'cruft', 'missing start tag', ...])
                 } ## end given
             } ## end for my $line_data ( @{$value} )
-        } ## end for my $descendant_data ( @{ Marpa::R2::HTML::descendants('value'...)})
+        } ## end CHILD: for my $descendant_data ( @{ ...})
         my $original = Marpa::R2::HTML::original();
-        push @new_line_data, [ 'line', 0, $original ];
+        push @new_line_data, [ 'pre', 0, $original ];
         push @new_line_data, @following_comments;
         return \@new_line_data;
     },
     ':CRUFT' => sub {
         my $literal = Marpa::R2::HTML::literal();
         my @new_line_data = ( [ 'cruft', 0, 'following', $literal ] );
-        $literal =~ s/^\s+//gxms;
-        $literal =~ s/\s+$//gxms;
-        $literal =~ s/\s+/ /gxms;
         push @new_line_data, [ 'line', 0, $literal ];
         return \@new_line_data;
     },
@@ -212,7 +226,7 @@ my $html_args = {
         my $first_content_child = 0;
 
         if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
-            push @new_line_data, [ 'line', 0, $first_child->[2] ];
+            push @new_line_data, [ 'start tag', 0, $first_child->[2] ];
             $first_content_child = 1;
         }
         else {
@@ -229,7 +243,8 @@ my $html_args = {
         }
 
         CHILD:
-        for my $descendant_data_ix ( $first_content_child .. $last_content_child )
+        for my $descendant_data_ix (
+            $first_content_child .. $last_content_child )
         {
             my ( $token_type, $value, $original ) =
                 @{ $descendant_data[$descendant_data_ix] };
@@ -240,17 +255,12 @@ my $html_args = {
                 }
                 next CHILD;
             } ## end if ( defined $value )
-            for my $line ( split /\n/xms, $original ) {
-                $line =~ s/^\s+//gxms;
-                $line =~ s/\s+$//gxms;
-                $line =~ s/\s+/ /gxms;
-                push @new_line_data, [ 'line', 1, $line ];
-            } ## end for my $line ( split /\n/xms, $original )
-        } ## end for my $descendant_data_ix ( $first_content_child .. ...)
+            push @new_line_data, [ 'content', 1, $original ];
+        } ## end CHILD: for my $descendant_data_ix ( $first_content_child .. ...)
 
         given (1) {
             when ( defined $end_tag_child ) {
-                push @new_line_data, [ 'line', 0, $end_tag_child->[2] ];
+                push @new_line_data, [ 'end tag', 0, $end_tag_child->[2] ];
             }
             when ( not $HTML::Tagset::emptyElement{$tagname} ) {
                 push @new_line_data,
@@ -263,8 +273,11 @@ my $html_args = {
     ':TOP' => \&new_top,
 };
 
+my $value_ref = Marpa::R2::HTML::html( \$document, $html_args );
+die "Internal error: no parse" if not defined $value_ref;
 require Data::Dumper;
-print Data::Dumper::Dumper(Marpa::R2::HTML::html( \$document, $html_args ));
+print Data::Dumper::Dumper($value_ref);
+print post_process($value_ref);
 
 exit 0;
 
