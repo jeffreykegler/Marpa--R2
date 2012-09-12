@@ -72,137 +72,141 @@ sub output_messages {
 } ## end sub output_messages
 
 sub post_process {
-    my $result = q{};
-    my ($html_data) = @_;
+    my ($value)          = @_;
+    my $result           = q{};
     my @pending_messages = ();
-    CHILD:
-    for my $value (@{$html_data}) {
-        if ( defined $value ) {
-            LINE: for my $line_data ( @{$value} ) {
-                my $type        = shift @{$line_data};
-                my $indent      = shift @{$line_data};
-                my $line_prefix = q{  } x $indent;
-                if ( $type eq 'line' ) {
-                    my ($line) = @{$line_data};
-                    next LINE if $line =~ /^\s*$/;
-                    $result .= "$line_prefix$line\n";
-                    next LINE;
-                } ## end if ( $type eq 'line' )
-                if ( $type eq 'msg: missing start tag' ) {
-                    my ( $location, $tagname ) = @{$line_data};
-                    given ($location) {
-                        when ('following') {
-                            $result
-                                .= $line_prefix
-                                . qq{<!-- Following start tag is replacement for a missing one -->\n}
-                                . $line_prefix
-                                . "<$tagname>\n";
-                        } ## end when ('following')
-                        when ('following pre') {
-                            $result .= $line_prefix
-                                . qq{<!-- Inside following <pre>, a start tag is missing: <$tagname> -->\n};
-                        }
-                        default {
-                            Carp::croak(
-                                "Internal error: unprovided-for missing start tag location: $_"
-                            );
-                        }
-                    } ## end given
-                    next LINE;
-                } ## end if ( $type eq 'missing start tag' )
-                if ( $type eq 'msg: missing end tag' ) {
-                    my ( $location, $tagname ) = @{$line_data};
-                    given ($location) {
-                        when ('preceding') {
-                            push @pending_messages, 'Preceding end tag is replacement for a missing one';
-                        } ## end when ('preceding')
-                        when ('following pre') {
-                            push @pending_messages,
-                                "Inside following <pre>, an end tag is missing: <$tagname>";
-                        }
-                        default {
-                            Carp::croak(
-                                "Internal error: unprovided-for missing end tag location: $_"
-                            );
-                        }
-                    } ## end given
-                    next LINE;
-                } ## end if ( $type eq 'missing end tag' )
-                if ( $type eq 'msg: cruft' ) {
-                    my ( $location, $cruft ) = @{$line_data};
-                    given ($location) {
-                        when ('following') {
-                            push @pending_messages, 'Next line is cruft';
-                        }
-                        when ('following pre') {
 
-                            # Make sure the cruft quoted inside
-                            # the HTML comment does not
-                            # disrupt the comment.
-                            ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
-                            push @pending_messages,
-                                qq{Inside the following <pre>, there is this cruft:\n$safe_cruft};
-                        } ## end when ('following pre')
-                        default {
-                            Carp::croak(
-                                "Internal error: unprovided-for cruft location: $_"
-                            );
-                        }
-                    } ## end given
-                    next LINE;
-                } ## end if ( $type eq 'cruft' )
-		if ($type eq 'start tag') {
-		    $result .= output_messages($indent, \@pending_messages);
-		    $result .= "\n" if $result !~ /\n\z/xms;
-		    $result .= q{  } x $indent;
-		    $result .= $line_data->[0];
-                    next LINE;
-		}
-		if ($type eq 'end tag') {
-		    $result .= output_messages($indent, \@pending_messages);
-		    $result .= "\n" if $result !~ /\n\z/xms;
-		    $result .= q{  } x $indent;
-		    $result .= $line_data->[0];
-                    next LINE;
-		}
-		if ($type eq 'content') {
-		    $result .= output_messages($indent, \@pending_messages);
-		    $result .= "\n" if $result !~ /\n\z/xms;
-		    $result .= q{  } x $indent;
-		    $result .= $line_data->[0];
-                    next LINE;
-		}
-		if ($type eq 'cruft') {
-		    $result .= output_messages($indent, \@pending_messages);
-		    $result .= "\n" if $result !~ /\n\z/xms;
-		    $result .= q{  } x $indent;
-		    $result .= $line_data->[0];
-                    next LINE;
-		}
-		if ($type eq 'pre') {
-		    $result .= output_messages($indent, \@pending_messages);
-		    $result .= "\n" if $result !~ /\n\z/xms;
-		    $result .= q{  } x $indent;
-		    $result .= $line_data->[0];
-                    next LINE;
-		}
-		if ($type eq 'script') {
-		    $result .= output_messages($indent, \@pending_messages);
-		    $result .= "\n" if $result !~ /\n\z/xms;
-		    $result .= q{  } x $indent;
-		    $result .= $line_data->[0];
-                    next LINE;
-		}
-                Carp::croak(
-                    qq{Internal error: unknown line data type: "$type"\n},
-                    qq{  data: }, join q{}, @{$line_data}, "\n"
-                );
-            } ## end LINE: for my $line_data ( @{$value} )
-            next CHILD;
-        } ## end if ( defined $value )
-    } ## end CHILD: for my $descendant_data ( @{ Marpa::R2::HTML::descendants...})
+    # 0 means whitespace is not OK
+    # 1 means whitespace is OK
+    # 2 means whitespace is needed
+    my $ws_ok = 0;
+    my $pending_content;
+    DATUM: for my $line_data ( @{$value->[0]}, ['end of file', 0] ) {
+        my $type        = shift @{$line_data};
+        my $indent      = shift @{$line_data};
+        my $line_prefix = q{  } x $indent;
+        if ( $type eq 'content' ) {
+	    $pending_content .= $line_data->[0];
+	    next DATUM;
+	}
+	if (defined $pending_content) {
+            $result .= output_messages( $indent, \@pending_messages );
+	    if ( $pending_content =~ /\S/xms ) {
+		$pending_content =~ s/\A\s+//xms;
+		$pending_content =~ s/\s+\z//xms;
+		$pending_content =~ s/\s+/ /gxms;
+		$result .= "\n" if $result !~ /\n\z/xms;
+		$result .= q{  } x $indent;
+		$result .= $pending_content;
+	    } else {
+	       $ws_ok = 2;
+	    }
+	    $pending_content = undef;
+	}
+        if ( $type eq 'msg: missing start tag' ) {
+            my ( $location, $tagname ) = @{$line_data};
+            given ($location) {
+                when ('following') {
+                    push @pending_messages,
+                        'Following start tag is replacement for a missing one';
+                }
+                when ('following pre') {
+                    push @pending_messages,
+                        "Inside following <pre>, a start tag is missing: <$tagname>";
+                }
+                default {
+                    Carp::croak(
+                        "Internal error: unprovided-for missing start tag location: $_"
+                    );
+                }
+            } ## end given
+            next DATUM;
+        } ## end if ( $type eq 'msg: missing start tag' )
+        if ( $type eq 'msg: missing end tag' ) {
+            my ( $location, $tagname ) = @{$line_data};
+            given ($location) {
+                when ('preceding') {
+                    push @pending_messages,
+                        'Preceding end tag is replacement for a missing one';
+                }
+                when ('following pre') {
+                    push @pending_messages,
+                        "Inside following <pre>, an end tag is missing: <$tagname>";
+                }
+                default {
+                    Carp::croak(
+                        "Internal error: unprovided-for missing end tag location: $_"
+                    );
+                }
+            } ## end given
+            next DATUM;
+        } ## end if ( $type eq 'msg: missing end tag' )
+        if ( $type eq 'msg: cruft' ) {
+            my ( $location, $cruft ) = @{$line_data};
+            given ($location) {
+                when ('following') {
+                    push @pending_messages, 'Next line is cruft';
+                }
+                when ('following pre') {
+
+                    # Make sure the cruft quoted inside
+                    # the HTML comment does not
+                    # disrupt the comment.
+                    ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
+                    push @pending_messages,
+                        qq{Inside the following <pre>, there is this cruft:\n$safe_cruft};
+                } ## end when ('following pre')
+                default {
+                    Carp::croak(
+                        "Internal error: unprovided-for cruft location: $_" );
+                }
+            } ## end given
+            next DATUM;
+        } ## end if ( $type eq 'msg: cruft' )
+        if ( $type eq 'end of file' ) {
+            $result .= output_messages( $indent, \@pending_messages );
+	    last DATUM;
+	}
+        if ( $type eq 'start tag' ) {
+            $result .= output_messages( $indent, \@pending_messages );
+            $result .= "\n" if $result !~ /\n\z/xms;
+            $result .= q{  } x $indent;
+            $result .= $line_data->[0];
+            next DATUM;
+        } ## end if ( $type eq 'start tag' )
+        if ( $type eq 'end tag' ) {
+            $result .= output_messages( $indent, \@pending_messages );
+            $result .= "\n" if $result !~ /\n\z/xms;
+            $result .= q{  } x $indent;
+            $result .= $line_data->[0];
+            next DATUM;
+        } ## end if ( $type eq 'end tag' )
+        if ( $type eq 'cruft' ) {
+            $result .= output_messages( $indent, \@pending_messages );
+            $result .= "\n" if $result !~ /\n\z/xms;
+            $result .= q{  } x $indent;
+            $result .= $line_data->[0];
+            next DATUM;
+        } ## end if ( $type eq 'cruft' )
+        if ( $type eq 'pre' ) {
+            $result .= output_messages( $indent, \@pending_messages );
+            $result .= "\n" if $result !~ /\n\z/xms;
+            $result .= q{  } x $indent;
+            $result .= $line_data->[0];
+            next DATUM;
+        } ## end if ( $type eq 'pre' )
+        if ( $type eq 'script' ) {
+            $result .= output_messages( $indent, \@pending_messages );
+            $result .= "\n" if $result !~ /\n\z/xms;
+            $result .= q{  } x $indent;
+            $result .= $line_data->[0];
+            next DATUM;
+        } ## end if ( $type eq 'script' )
+        Carp::croak( qq{Internal error: unknown line data type: "$type"\n},
+            qq{  data: }, join q{}, @{$line_data}, "\n" );
+    } ## end DATUM: for my $line_data ( @{$value} )
     return $result;
-} ## end sub old_top
+} ## end sub post_process
 
 sub new_top {
     return Marpa::R2::HTML::values();
@@ -255,6 +259,7 @@ my $html_args = {
         else {
             push @new_line_data,
                 [ 'missing start tag', 0, 'following', $tagname ];
+            push @new_line_data, [ 'start tag', 0, '<' . $tagname . '>' ];
         }
 
         my $last_child         = $descendant_data[-1];
@@ -287,7 +292,7 @@ my $html_args = {
                 last END_TAG_PROCESSING;
             }
             last END_TAG_PROCESSING if $HTML::Tagset::emptyElement{$tagname};
-            push @new_line_data, [ 'end tag', 0, $tagname ];
+            push @new_line_data, [ 'end tag', 0, '<' . $tagname . '>' ];
             push @new_line_data,
                 [ 'msg: missing end tag', 0, 'preceding', $tagname ];
         } ## end END_TAG_PROCESSING:
