@@ -180,7 +180,7 @@ sub post_process {
             next LIMB;
         }
         if ( $type eq 'comment' ) {
-            push @output, $indentation . '<!-- ' . $text . '-->';
+            push @output, $indentation . '<!-- html_fmt: ' . $text . '-->';
             next LIMB;
         }
         push @output, $indentation . $text;
