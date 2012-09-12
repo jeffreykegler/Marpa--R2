@@ -197,7 +197,7 @@ sub post_process {
         }
         push @output, $indentation . $text;
     } ## end TEXT_PIECE: for my $text_piece (@text_pieces)
-    return join "\n", @output;
+    return join "\n", @output, q{};
 } ## end sub post_process
 
 sub new_top {
