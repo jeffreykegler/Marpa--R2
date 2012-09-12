@@ -59,9 +59,22 @@ GET_DOCUMENT: {
     }
 } ## end GET_DOCUMENT:
 
+sub output_messages {
+    my $result = q{};
+    my ( $indent, $messages ) = @_;
+    if ( $indent > 0 ) {
+        my $indentation .= q{  } x $indent;
+        while ( my $message = shift @{$messages} ) {
+            $result .= $indentation . '<!-- ' . $message . " -->\n";
+        }
+    } ## end if ( $indent > 0 )
+    return $result;
+} ## end sub output_messages
+
 sub post_process {
     my $result = q{};
     my ($html_data) = @_;
+    my @pending_messages = ();
     CHILD:
     for my $value (@{$html_data}) {
         if ( defined $value ) {
@@ -75,7 +88,7 @@ sub post_process {
                     $result .= "$line_prefix$line\n";
                     next LINE;
                 } ## end if ( $type eq 'line' )
-                if ( $type eq 'missing start tag' ) {
+                if ( $type eq 'msg: missing start tag' ) {
                     my ( $location, $tagname ) = @{$line_data};
                     given ($location) {
                         when ('following') {
@@ -97,18 +110,15 @@ sub post_process {
                     } ## end given
                     next LINE;
                 } ## end if ( $type eq 'missing start tag' )
-                if ( $type eq 'missing end tag' ) {
+                if ( $type eq 'msg: missing end tag' ) {
                     my ( $location, $tagname ) = @{$line_data};
                     given ($location) {
                         when ('preceding') {
-                            $result
-                                .= "$line_prefix</$tagname>\n"
-                                . $line_prefix
-                                . qq{<!-- Preceding end tag is replacement for a missing one -->\n};
+                            push @pending_messages, 'Preceding end tag is replacement for a missing one';
                         } ## end when ('preceding')
                         when ('following pre') {
-                            $result .= $line_prefix
-                                . qq{<!-- Inside following <pre>, an end tag is missing: <$tagname> -->\n};
+                            push @pending_messages,
+                                "Inside following <pre>, an end tag is missing: <$tagname>";
                         }
                         default {
                             Carp::croak(
@@ -118,12 +128,11 @@ sub post_process {
                     } ## end given
                     next LINE;
                 } ## end if ( $type eq 'missing end tag' )
-                if ( $type eq 'cruft' ) {
+                if ( $type eq 'msg: cruft' ) {
                     my ( $location, $cruft ) = @{$line_data};
                     given ($location) {
                         when ('following') {
-                            $result
-                                .= "$line_prefix<!-- Next line is cruft -->\n";
+                            push @pending_messages, 'Next line is cruft';
                         }
                         when ('following pre') {
 
@@ -131,11 +140,8 @@ sub post_process {
                             # the HTML comment does not
                             # disrupt the comment.
                             ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
-                            $safe_cruft =~ s/^/  $line_prefix/gxms;
-                            $result
-                                .= qq{$line_prefix<!-- Inside the following <pre>, there is this cruft:\n}
-                                . qq{$safe_cruft\n}
-                                . qq{$line_prefix-->\n};
+                            push @pending_messages,
+                                qq{Inside the following <pre>, there is this cruft:\n$safe_cruft};
                         } ## end when ('following pre')
                         default {
                             Carp::croak(
@@ -146,22 +152,44 @@ sub post_process {
                     next LINE;
                 } ## end if ( $type eq 'cruft' )
 		if ($type eq 'start tag') {
+		    $result .= output_messages($indent, \@pending_messages);
+		    $result .= "\n" if $result !~ /\n\z/xms;
+		    $result .= q{  } x $indent;
 		    $result .= $line_data->[0];
                     next LINE;
 		}
 		if ($type eq 'end tag') {
+		    $result .= output_messages($indent, \@pending_messages);
+		    $result .= "\n" if $result !~ /\n\z/xms;
+		    $result .= q{  } x $indent;
 		    $result .= $line_data->[0];
                     next LINE;
 		}
 		if ($type eq 'content') {
+		    $result .= output_messages($indent, \@pending_messages);
+		    $result .= "\n" if $result !~ /\n\z/xms;
+		    $result .= q{  } x $indent;
+		    $result .= $line_data->[0];
+                    next LINE;
+		}
+		if ($type eq 'cruft') {
+		    $result .= output_messages($indent, \@pending_messages);
+		    $result .= "\n" if $result !~ /\n\z/xms;
+		    $result .= q{  } x $indent;
 		    $result .= $line_data->[0];
                     next LINE;
 		}
 		if ($type eq 'pre') {
+		    $result .= output_messages($indent, \@pending_messages);
+		    $result .= "\n" if $result !~ /\n\z/xms;
+		    $result .= q{  } x $indent;
 		    $result .= $line_data->[0];
                     next LINE;
 		}
 		if ($type eq 'script') {
+		    $result .= output_messages($indent, \@pending_messages);
+		    $result .= "\n" if $result !~ /\n\z/xms;
+		    $result .= q{  } x $indent;
 		    $result .= $line_data->[0];
                     next LINE;
 		}
@@ -188,22 +216,17 @@ my $html_args = {
         my @new_line_data      = ();
         my @following_comments = ();
         CHILD:
-        for my $descendant_data ( @{ Marpa::R2::HTML::descendants('value') } )
+        for my $value ( @{ Marpa::R2::HTML::values() } )
         {
-            next CHILD if not defined( my $value = $descendant_data->[0] );
             for my $line_data ( @{$value} ) {
-                given ( $line_data->[0] ) {    # depending on the type
-                    when (
-                        [ 'cruft', 'missing start tag', 'missing end tag' ] )
-                    {
-                        push @new_line_data,
-                            [
-                            $_, 0,
-                            'following pre',
-                            @{$line_data}[ 3 .. $#{$line_data} ]
-                            ];
-                    } ## end when ( [ 'cruft', 'missing start tag', ...])
-                } ## end given
+                if ( $line_data->[0] =~ /^msg:/ ) {
+                    push @new_line_data,
+                        [
+                        $_, 0,
+                        'following pre',
+                        @{$line_data}[ 3 .. $#{$line_data} ]
+                        ];
+                } ## end if ( $line_data->[0] =~ /^msg:/ )
             } ## end for my $line_data ( @{$value} )
         } ## end CHILD: for my $descendant_data ( @{ ...})
         my $original = Marpa::R2::HTML::original();
@@ -213,8 +236,8 @@ my $html_args = {
     },
     ':CRUFT' => sub {
         my $literal = Marpa::R2::HTML::literal();
-        my @new_line_data = ( [ 'cruft', 0, 'following', $literal ] );
-        push @new_line_data, [ 'line', 0, $literal ];
+        my @new_line_data = ( [ 'msg: cruft', 0, 'following', $literal ] );
+        push @new_line_data, [ 'cruft', 0, $literal ];
         return \@new_line_data;
     },
     q{*} => sub {
@@ -258,15 +281,16 @@ my $html_args = {
             push @new_line_data, [ 'content', 1, $original ];
         } ## end CHILD: for my $descendant_data_ix ( $first_content_child .. ...)
 
-        given (1) {
-            when ( defined $end_tag_child ) {
+        END_TAG_PROCESSING: {
+            if ( defined $end_tag_child ) {
                 push @new_line_data, [ 'end tag', 0, $end_tag_child->[2] ];
+                last END_TAG_PROCESSING;
             }
-            when ( not $HTML::Tagset::emptyElement{$tagname} ) {
-                push @new_line_data,
-                    [ 'missing end tag', 0, 'preceding', $tagname ];
-            }
-        } ## end given
+            last END_TAG_PROCESSING if $HTML::Tagset::emptyElement{$tagname};
+            push @new_line_data, [ 'end tag', 0, $tagname ];
+            push @new_line_data,
+                [ 'msg: missing end tag', 0, 'preceding', $tagname ];
+        } ## end END_TAG_PROCESSING:
 
         return \@new_line_data;
     },
@@ -276,7 +300,7 @@ my $html_args = {
 my $value_ref = Marpa::R2::HTML::html( \$document, $html_args );
 die "Internal error: no parse" if not defined $value_ref;
 require Data::Dumper;
-print Data::Dumper::Dumper($value_ref);
+print STDERR Data::Dumper::Dumper($value_ref);
 print post_process($value_ref);
 
 exit 0;
