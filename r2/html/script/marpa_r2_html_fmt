@@ -78,17 +78,25 @@ sub output_messages {
 
 sub post_process {
     my ($value) = @_;
-    my @tree = ();
+    my @text_pieces = ();
     DATUM: for my $line_data ( @{ $value->[0] } ) {
         my ( $type, $indent ) = @{$line_data};
         if ( $type eq 'text' ) {
             my $text = $line_data->[2];
-            for my $line ( split /\n/xms, $text ) {
+            my $has_trailing_ws = $text =~ s/ \s+ \z//xms;
+            if ( $text =~ s/ \A \s+ //xms ) {
+                push @text_pieces, [ 'whitespace', $indent ];
+            }
+            my @lines = grep { $_ =~ /\S/xms } split /\n/xms, $text;
+            for my $line_no ( 0 .. $#lines ) {
+                my $line = $lines[$line_no];
                 $line =~ s/\A[ \t]+//xms;
                 $line =~ s/[ \t]+\z//xms;
                 $line =~ s/[ \t]+/ /xms;
-                push @tree, [ 'text', $indent, $line ];
-            } ## end for my $line ( split /\n/xms, $text )
+                push @text_pieces, [ 'whitespace', $indent ] if $line_no;
+                push @text_pieces, [ 'text', $indent, $line ];
+            } ## end for my $line_no ( 0 .. $#lines )
+            push @text_pieces, [ 'whitespace', $indent ] if $has_trailing_ws;
             next DATUM;
         } ## end if ( $type eq 'text' )
         if ( $type eq 'msg: missing start tag' ) {
@@ -96,14 +104,15 @@ sub post_process {
             my $tagname  = $line_data->[3];
             given ($location) {
                 when ('preceeding') {
-                    push @tree,
+                    push @text_pieces,
                         [
-                        'comment', $indent+1,
+                        'comment',
+                        $indent + 1,
                         'Preceeding start tag is replacement for a missing one'
                         ];
                 } ## end when ('preceeding')
                 when ('following pre') {
-                    push @tree,
+                    push @text_pieces,
                         [
                         'comment', $indent,
                         "Inside following <pre>, a start tag is missing: <$tagname>"
@@ -122,14 +131,15 @@ sub post_process {
             my $tagname  = $line_data->[3];
             given ($location) {
                 when ('following') {
-                    push @tree,
+                    push @text_pieces,
                         [
-                        'comment', $indent+1,
+                        'comment',
+                        $indent + 1,
                         'Following end tag is replacement for a missing one'
                         ];
                 } ## end when ('following')
                 when ('following pre') {
-                    push @tree,
+                    push @text_pieces,
                         [
                         'comment', $indent,
                         "Inside following <pre>, an end tag is missing: <$tagname>"
@@ -148,7 +158,8 @@ sub post_process {
             my $cruft    = $line_data->[3];
             given ($location) {
                 when ('following') {
-                    push @tree, [ 'comment', $indent, 'Next line is cruft' ];
+                    push @text_pieces,
+                        [ 'comment', $indent, 'Next line is cruft' ];
                 }
                 when ('following pre') {
 
@@ -156,7 +167,7 @@ sub post_process {
                     # the HTML comment does not
                     # disrupt the comment.
                     ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
-                    push @tree,
+                    push @text_pieces,
                         [
                         'comment', $indent,
                         qq{Inside the following <pre>, there is this cruft:\n$safe_cruft}
@@ -169,22 +180,23 @@ sub post_process {
             } ## end given
             next DATUM;
         } ## end if ( $type eq 'msg: cruft' )
-        push @tree, [ $type, $indent, $line_data->[2] ];
+        push @text_pieces, [ $type, $indent, $line_data->[2] ];
     } ## end DATUM: for my $line_data ( @{ $value->[0] } )
     my @output = ();
-    LIMB: for my $limb (@tree) {
-        my ( $type, $indent, $text ) = @{$limb};
+    TEXT_PIECE: for my $text_piece (@text_pieces) {
+        my ( $type, $indent, $text ) = @{$text_piece};
+	next TEXT_PIECE if $type eq 'whitespace';
         my $indentation = q{  } x $indent;
         if ( $type eq 'text' and $text =~ /\S/ ) {
             push @output, $indentation . $text;
-            next LIMB;
+            next TEXT_PIECE;
         }
         if ( $type eq 'comment' ) {
-            push @output, $indentation . '<!-- html_fmt: ' . $text . '-->';
-            next LIMB;
+            push @output, $indentation . '<!-- html_fmt: ' . $text . ' -->';
+            next TEXT_PIECE;
         }
         push @output, $indentation . $text;
-    } ## end LIMB: for my $limb (@tree)
+    } ## end TEXT_PIECE: for my $text_piece (@text_pieces)
     return join "\n", @output;
 } ## end sub post_process
 
