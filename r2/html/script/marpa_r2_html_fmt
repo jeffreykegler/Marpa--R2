@@ -81,12 +81,14 @@ sub post_process {
     # 2 means whitespace is needed
     my $ws_ok = 0;
     my $pending_content;
+    my $pending_content_indent = 0;
     DATUM: for my $line_data ( @{$value->[0]}, ['end of file', 0] ) {
         my $type        = shift @{$line_data};
         my $indent      = shift @{$line_data};
         my $line_prefix = q{  } x $indent;
         if ( $type eq 'content' ) {
 	    $pending_content .= $line_data->[0];
+	    $pending_content_indent = $indent;
 	    next DATUM;
 	}
 	if (defined $pending_content) {
@@ -96,7 +98,7 @@ sub post_process {
 		$pending_content =~ s/\s+\z//xms;
 		$pending_content =~ s/\s+/ /gxms;
 		$result .= "\n" if $result !~ /\n\z/xms;
-		$result .= q{  } x $indent;
+		$result .= q{  } x $pending_content_indent;
 		$result .= $pending_content;
 	    } else {
 	       $ws_ok = 2;
@@ -205,6 +207,7 @@ sub post_process {
         Carp::croak( qq{Internal error: unknown line data type: "$type"\n},
             qq{  data: }, join q{}, @{$line_data}, "\n" );
     } ## end DATUM: for my $line_data ( @{$value} )
+    $result .= "\n" if $result !~ /\n\z/xms;
     return $result;
 } ## end sub post_process
 
