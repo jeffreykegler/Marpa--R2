@@ -35,6 +35,11 @@ my $help_flag = 0;
 usage() if not GetOptions ( "help" => \$help_flag);
 usage() if $help_flag or scalar @ARGV > 1;
 
+my %inline_tag = map { $_, 1 } qw(
+    A ABBR ACRONYM B BASEFONT BDO BIG BR CITE CODE DFN EM FONT I IMG
+    INPUT KBD LABEL Q S SAMP SELECT SMALL SPAN STRIKE STRONG SUB SUP
+    TEXTAREA TT U VAR);
+
 my $locator = shift;
 my $document;
 GET_DOCUMENT: {
@@ -71,31 +76,32 @@ sub output_messages {
     return $result;
 } ## end sub output_messages
 
-sub new_post_process {
+sub post_process {
     my ($value) = @_;
     my @tree = ();
     DATUM: for my $line_data ( @{ $value->[0] } ) {
         my ( $type, $indent ) = @{$line_data};
-        if ( $type eq 'content' ) {
-            my @pieces = split /\b/, $line_data->[2];
-            push @tree, map {
-                $_ =~ /\S/
-                    ? [ 'text', $indent, $_ ]
-                    : [ 'whitespace', $indent ]
-            } @pieces;
+        if ( $type eq 'text' ) {
+            my $text = $line_data->[2];
+            for my $line ( split /\n/xms, $text ) {
+                $line =~ s/\A[ \t]+//xms;
+                $line =~ s/[ \t]+\z//xms;
+                $line =~ s/[ \t]+/ /xms;
+                push @tree, [ 'text', $indent, $line ];
+            } ## end for my $line ( split /\n/xms, $text )
             next DATUM;
-        } ## end if ( $type eq 'content' )
+        } ## end if ( $type eq 'text' )
         if ( $type eq 'msg: missing start tag' ) {
             my $location = $line_data->[2];
             my $tagname  = $line_data->[3];
             given ($location) {
-                when ('following') {
+                when ('preceeding') {
                     push @tree,
                         [
-                        'comment', $indent,
-                        'Following start tag is replacement for a missing one'
+                        'comment', $indent+1,
+                        'Preceeding start tag is replacement for a missing one'
                         ];
-                } ## end when ('following')
+                } ## end when ('preceeding')
                 when ('following pre') {
                     push @tree,
                         [
@@ -115,13 +121,13 @@ sub new_post_process {
             my $location = $line_data->[2];
             my $tagname  = $line_data->[3];
             given ($location) {
-                when ('preceding') {
+                when ('following') {
                     push @tree,
                         [
-                        'comment', $indent,
-                        'Preceding end tag is replacement for a missing one'
+                        'comment', $indent+1,
+                        'Following end tag is replacement for a missing one'
                         ];
-                } ## end when ('preceding')
+                } ## end when ('following')
                 when ('following pre') {
                     push @tree,
                         [
@@ -139,7 +145,7 @@ sub new_post_process {
         } ## end if ( $type eq 'msg: missing end tag' )
         if ( $type eq 'msg: cruft' ) {
             my $location = $line_data->[2];
-            my $cruft  = $line_data->[3];
+            my $cruft    = $line_data->[3];
             given ($location) {
                 when ('following') {
                     push @tree, [ 'comment', $indent, 'Next line is cruft' ];
@@ -163,170 +169,23 @@ sub new_post_process {
             } ## end given
             next DATUM;
         } ## end if ( $type eq 'msg: cruft' )
-        if ( $type eq 'start tag' ) {
-            push @tree, ['literal', $indent, $line_data->[2]];
-            push @tree, ['ignore ws'];
-            next DATUM;
-        } ## end if ( $type eq 'start tag' )
-        if ( $type eq 'end tag' ) {
-            push @tree, ['ignore ws'];
-            push @tree, ['literal', $indent, $line_data->[2]];
-            next DATUM;
-        } ## end if ( $type eq 'end tag' )
-        if ( $type eq 'cruft' ) {
-            push @tree, ['literal', $indent, $line_data->[2]];
-            next DATUM;
-        } ## end if ( $type eq 'cruft' )
-        if ( $type eq 'pre' ) {
-            push @tree, ['literal', $indent, $line_data->[2]];
-            next DATUM;
-        } ## end if ( $type eq 'pre' )
-        if ( $type eq 'script' ) {
-            push @tree, ['literal', $indent, $line_data->[2]];
-            next DATUM;
-        } ## end if ( $type eq 'script' )
+        push @tree, [ $type, $indent, $line_data->[2] ];
     } ## end DATUM: for my $line_data ( @{ $value->[0] } )
-    return \@tree;
-} ## end sub new_post_process
-
-sub post_process {
-    my ($value)          = @_;
-    my $result           = q{};
-    my @pending_messages = ();
-
-    # 0 means whitespace is not OK
-    # 1 means whitespace is OK
-    # 2 means whitespace is needed
-    my $ws_ok = 0;
-    my $pending_content;
-    my $pending_content_indent = 0;
-    DATUM: for my $line_data ( @{$value->[0]}, ['end of file', 0] ) {
-        my $type        = shift @{$line_data};
-        my $indent      = shift @{$line_data};
-        my $line_prefix = q{  } x $indent;
-        if ( $type eq 'content' ) {
-	    $pending_content .= $line_data->[0];
-	    $pending_content_indent = $indent;
-	    next DATUM;
-	}
-	if (defined $pending_content) {
-            $result .= output_messages( $indent, \@pending_messages );
-	    if ( $pending_content =~ /\S/xms ) {
-		$pending_content =~ s/\A\s+//xms;
-		$pending_content =~ s/\s+\z//xms;
-		$pending_content =~ s/\s+/ /gxms;
-		$result .= "\n" if $result !~ /\n\z/xms;
-		$result .= q{  } x $pending_content_indent;
-		$result .= $pending_content;
-	    } else {
-	       $ws_ok = 2;
-	    }
-	    $pending_content = undef;
-	}
-        if ( $type eq 'msg: missing start tag' ) {
-            my ( $location, $tagname ) = @{$line_data};
-            given ($location) {
-                when ('following') {
-                    push @pending_messages,
-                        'Following start tag is replacement for a missing one';
-                }
-                when ('following pre') {
-                    push @pending_messages,
-                        "Inside following <pre>, a start tag is missing: <$tagname>";
-                }
-                default {
-                    Carp::croak(
-                        "Internal error: unprovided-for missing start tag location: $_"
-                    );
-                }
-            } ## end given
-            next DATUM;
-        } ## end if ( $type eq 'msg: missing start tag' )
-        if ( $type eq 'msg: missing end tag' ) {
-            my ( $location, $tagname ) = @{$line_data};
-            given ($location) {
-                when ('preceding') {
-                    push @pending_messages,
-                        'Preceding end tag is replacement for a missing one';
-                }
-                when ('following pre') {
-                    push @pending_messages,
-                        "Inside following <pre>, an end tag is missing: <$tagname>";
-                }
-                default {
-                    Carp::croak(
-                        "Internal error: unprovided-for missing end tag location: $_"
-                    );
-                }
-            } ## end given
-            next DATUM;
-        } ## end if ( $type eq 'msg: missing end tag' )
-        if ( $type eq 'msg: cruft' ) {
-            my ( $location, $cruft ) = @{$line_data};
-            given ($location) {
-                when ('following') {
-                    push @pending_messages, 'Next line is cruft';
-                }
-                when ('following pre') {
-
-                    # Make sure the cruft quoted inside
-                    # the HTML comment does not
-                    # disrupt the comment.
-                    ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
-                    push @pending_messages,
-                        qq{Inside the following <pre>, there is this cruft:\n$safe_cruft};
-                } ## end when ('following pre')
-                default {
-                    Carp::croak(
-                        "Internal error: unprovided-for cruft location: $_" );
-                }
-            } ## end given
-            next DATUM;
-        } ## end if ( $type eq 'msg: cruft' )
-        if ( $type eq 'end of file' ) {
-            $result .= output_messages( $indent, \@pending_messages );
-	    last DATUM;
-	}
-        if ( $type eq 'start tag' ) {
-            $result .= output_messages( $indent, \@pending_messages );
-            $result .= "\n" if $result !~ /\n\z/xms;
-            $result .= q{  } x $indent;
-            $result .= $line_data->[0];
-            next DATUM;
-        } ## end if ( $type eq 'start tag' )
-        if ( $type eq 'end tag' ) {
-            $result .= output_messages( $indent, \@pending_messages );
-            $result .= "\n" if $result !~ /\n\z/xms;
-            $result .= q{  } x $indent;
-            $result .= $line_data->[0];
-            next DATUM;
-        } ## end if ( $type eq 'end tag' )
-        if ( $type eq 'cruft' ) {
-            $result .= output_messages( $indent, \@pending_messages );
-            $result .= "\n" if $result !~ /\n\z/xms;
-            $result .= q{  } x $indent;
-            $result .= $line_data->[0];
-            next DATUM;
-        } ## end if ( $type eq 'cruft' )
-        if ( $type eq 'pre' ) {
-            $result .= output_messages( $indent, \@pending_messages );
-            $result .= "\n" if $result !~ /\n\z/xms;
-            $result .= q{  } x $indent;
-            $result .= $line_data->[0];
-            next DATUM;
-        } ## end if ( $type eq 'pre' )
-        if ( $type eq 'script' ) {
-            $result .= output_messages( $indent, \@pending_messages );
-            $result .= "\n" if $result !~ /\n\z/xms;
-            $result .= q{  } x $indent;
-            $result .= $line_data->[0];
-            next DATUM;
-        } ## end if ( $type eq 'script' )
-        Carp::croak( qq{Internal error: unknown line data type: "$type"\n},
-            qq{  data: }, join q{}, @{$line_data}, "\n" );
-    } ## end DATUM: for my $line_data ( @{$value} )
-    $result .= "\n" if $result !~ /\n\z/xms;
-    return $result;
+    my @output = ();
+    LIMB: for my $limb (@tree) {
+        my ( $type, $indent, $text ) = @{$limb};
+        my $indentation = q{  } x $indent;
+        if ( $type eq 'text' and $text =~ /\S/ ) {
+            push @output, $indentation . $text;
+            next LIMB;
+        }
+        if ( $type eq 'comment' ) {
+            push @output, $indentation . '<!-- ' . $text . '-->';
+            next LIMB;
+        }
+        push @output, $indentation . $text;
+    } ## end LIMB: for my $limb (@tree)
+    return join "\n", @output;
 } ## end sub post_process
 
 sub new_top {
@@ -341,8 +200,7 @@ my $html_args = {
         my @new_line_data      = ();
         my @following_comments = ();
         CHILD:
-        for my $value ( @{ Marpa::R2::HTML::values() } )
-        {
+        for my $value ( @{ Marpa::R2::HTML::values() } ) {
             for my $line_data ( @{$value} ) {
                 if ( $line_data->[0] =~ /^msg:/ ) {
                     push @new_line_data,
@@ -353,7 +211,7 @@ my $html_args = {
                         ];
                 } ## end if ( $line_data->[0] =~ /^msg:/ )
             } ## end for my $line_data ( @{$value} )
-        } ## end CHILD: for my $descendant_data ( @{ ...})
+        } ## end CHILD: for my $value ( @{ Marpa::R2::HTML::values() } )
         my $original = Marpa::R2::HTML::original();
         push @new_line_data, [ 'pre', 0, $original ];
         push @new_line_data, @following_comments;
@@ -373,14 +231,16 @@ my $html_args = {
         my $first_child         = $descendant_data[0];
         my $first_content_child = 0;
 
+        my $tag_is_line = $inline_tag{ uc $tagname };
+        my $tag_type = $tag_is_line ? 'inline start tag' : 'start tag';
         if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
-            push @new_line_data, [ 'start tag', 0, $first_child->[2] ];
+            push @new_line_data, [ $tag_type, 0, $first_child->[2] ];
             $first_content_child = 1;
         }
         else {
+            push @new_line_data, [ $tag_type, 0, '<' . $tagname . '>' ];
             push @new_line_data,
-                [ 'msg: missing start tag', 0, 'following', $tagname ];
-            push @new_line_data, [ 'start tag', 0, '<' . $tagname . '>' ];
+                [ 'msg: missing start tag', 0, 'preceeding', $tagname ];
         }
 
         my $last_child         = $descendant_data[-1];
@@ -404,18 +264,19 @@ my $html_args = {
                 }
                 next CHILD;
             } ## end if ( defined $value )
-            push @new_line_data, [ 'content', 1, $original ];
+            push @new_line_data, [ 'text', 1, $original ];
         } ## end CHILD: for my $descendant_data_ix ( $first_content_child .. ...)
 
         END_TAG_PROCESSING: {
+            my $tag_type = $tag_is_line ? 'inline end tag' : 'end tag';
             if ( defined $end_tag_child ) {
-                push @new_line_data, [ 'end tag', 0, $end_tag_child->[2] ];
+                push @new_line_data, [ $tag_type, 0, $end_tag_child->[2] ];
                 last END_TAG_PROCESSING;
             }
             last END_TAG_PROCESSING if $HTML::Tagset::emptyElement{$tagname};
-            push @new_line_data, [ 'end tag', 0, '</' . $tagname . '>' ];
             push @new_line_data,
-                [ 'msg: missing end tag', 0, 'preceding', $tagname ];
+                [ 'msg: missing end tag', 0, 'following', $tagname ];
+            push @new_line_data, [ $tag_type, 0, '</' . $tagname . '>' ];
         } ## end END_TAG_PROCESSING:
 
         return \@new_line_data;
@@ -426,8 +287,6 @@ my $html_args = {
 my $value_ref = Marpa::R2::HTML::html( \$document, $html_args );
 die "Internal error: no parse" if not defined $value_ref;
 require Data::Dumper;
-my $tree = new_post_process($value_ref);
-print STDERR Data::Dumper::Dumper($tree);
 print post_process($value_ref);
 
 exit 0;
