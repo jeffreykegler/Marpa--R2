@@ -188,45 +188,54 @@ sub post_process {
     my $safe_after_piece = 0;
     TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
         my ( $type, $indent, $text ) = @{ $text_pieces[$text_piece_ix] };
-	my $safe_before_piece = 0;
-	WHITESPACE_BY_TYPE: {
-	    # If a comment, after-piece is whatever current value
-	    # of $safe_after_piece,
-	    # leave before as-is
-	    last WHITESPACE_BY_TYPE if $type eq 'comment';
-	    if ( $type eq 'whitespace' ) {
-		# Safe before and after other whitespace
-		$safe_before_piece = $safe_after_piece = 1;
-		last WHITESPACE_BY_TYPE;
-	    }
-	    if ( $type eq 'end tag' ) {
-		# Unsafe after an end tag, but safe before it
-		$safe_before_piece = 1;
-		$safe_after_piece = 0;
-		last WHITESPACE_BY_TYPE;
-	    }
-	    if ( $type eq 'start tag' ) {
-		# Leave safe status as-is before start tag
-		# Whitespace safe after a start tag
-		$safe_after_piece = 1;
-		last WHITESPACE_BY_TYPE;
-	    }
-	    if ( $type eq 'text' ) {
-		# Leave safe status as-is before text
-		# Whitespace not safe after a start tag
-		$safe_after_piece = 0;
-		last WHITESPACE_BY_TYPE;
-	    }
-	    die "Unknown type: $type";
-	} ## end WHITESPACE_BY_TYPE:
-	$ws_unsafe[ $text_piece_ix + 1 ] = !$safe_after_piece;
-	if ($safe_before_piece) {
-	   for my $ix ($last_non_comment_ix+1 .. $text_piece_ix) {
-		$ws_unsafe[ $ix ] = 0;
-	   }
-	}
-	$last_non_comment_ix = $text_piece_ix if $type ne 'comment';
-    }
+        my $safe_before_piece = 0;
+        WHITESPACE_BY_TYPE: {
+
+            # If a comment, after-piece is whatever current value
+            # of $safe_after_piece,
+            # leave before as-is
+            last WHITESPACE_BY_TYPE if $type eq 'comment';
+            if ( $type eq 'whitespace' ) {
+
+                # Safe before and after other whitespace
+                $safe_before_piece = $safe_after_piece = 1;
+                last WHITESPACE_BY_TYPE;
+            } ## end if ( $type eq 'whitespace' )
+            if ( $type eq 'end tag' ) {
+
+                # Unsafe after an end tag, but safe before it
+                $safe_before_piece = 1;
+                $safe_after_piece  = 0;
+                last WHITESPACE_BY_TYPE;
+            } ## end if ( $type eq 'end tag' )
+            if ( $type eq 'start tag' ) {
+
+                # Leave safe status as-is before start tag
+                # Whitespace safe after a start tag
+                $safe_after_piece = 1;
+                last WHITESPACE_BY_TYPE;
+            } ## end if ( $type eq 'start tag' )
+            if ( $type eq 'text' ) {
+
+                # Leave safe status as-is before text
+                # Whitespace not safe after a start tag
+                $safe_after_piece = 0;
+                last WHITESPACE_BY_TYPE;
+            } ## end if ( $type eq 'text' )
+                # Blocks can occur inline, etc.
+                # So with everything else, be conservative.
+                # Whitespace is unsafe after, and left as-is before.
+            $safe_after_piece = 0;
+        } ## end WHITESPACE_BY_TYPE:
+        $ws_unsafe[ $text_piece_ix + 1 ] = !$safe_after_piece;
+        if ($safe_before_piece) {
+            for my $ix ( $last_non_comment_ix + 1 .. $text_piece_ix ) {
+                $ws_unsafe[$ix] = 0;
+            }
+        }
+        $last_non_comment_ix = $text_piece_ix if $type ne 'comment';
+    } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
+    $ws_unsafe[scalar @text_pieces] = 0; # EOF is whitespace safe
     my @output = ();
     TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
         my ( $type, $indent, $text ) = @{ $text_pieces[$text_piece_ix] };
