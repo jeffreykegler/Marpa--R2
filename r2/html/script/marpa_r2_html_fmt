@@ -23,19 +23,19 @@ use HTML::Tagset;
 use Fatal qw(open close);
 use Getopt::Long;
 
-sub usage 
+sub usage
 {
-    say STDERR "$PROGRAM_NAME html_fmt [uri|file]";
+    say {STDERR} "$PROGRAM_NAME html_fmt [uri|file]" or die "say failed: $ERRNO";
     exit 1;
 }
 
-my $data = "file.dat";
+my $data = 'file.dat';
 my $length = 24;
 my $help_flag = 0;
-usage() if not GetOptions ( "help" => \$help_flag);
+usage() if not Getopt::Long::GetOptions ( 'help' => \$help_flag);
 usage() if $help_flag or scalar @ARGV > 1;
 
-my %inline_tag = map { $_, 1 } qw(
+my %inline_tag = map { ($_, 1) } qw(
     A ABBR ACRONYM B BASEFONT BDO BIG BR CITE CODE DFN EM FONT I IMG
     INPUT KBD LABEL Q S SAMP SELECT SMALL SPAN STRIKE STRONG SUB SUP
     TEXTAREA TT U VAR);
@@ -45,17 +45,18 @@ my $document;
 GET_DOCUMENT: {
     if ( not defined $locator ) {
         local $RS = undef;
+	## no critic(InputOutput::ProhibitExplicitStdin)
         $document = <STDIN>;
         last GET_DOCUMENT;
     }
-    if ( $locator =~ /^[a-zA-Z0-9]+[:]/ ) {
+    if ( $locator =~ /\A [[:alnum]]+ [:] /xms ) {
         require WWW::Mechanize;
         my $mech = WWW::Mechanize->new( autocheck => 1 );
         $mech->get($locator);
         $document = $mech->content;
         undef $mech;
         last GET_DOCUMENT;
-    } ## end if ( $locator =~ /^[a-zA-Z0-9]+[:]/ )
+    } ## end if ( $locator =~ /\A [[:alnum]]+ [:] /xms )
     {
         local $RS = undef;
         open my $fh, q{<}, $locator;
@@ -63,18 +64,6 @@ GET_DOCUMENT: {
         close $fh;
     }
 } ## end GET_DOCUMENT:
-
-sub output_messages {
-    my $result = q{};
-    my ( $indent, $messages ) = @_;
-    if ( $indent > 0 ) {
-        my $indentation .= q{  } x $indent;
-        while ( my $message = shift @{$messages} ) {
-            $result .= $indentation . '<!-- ' . $message . " -->\n";
-        }
-    } ## end if ( $indent > 0 )
-    return $result;
-} ## end sub output_messages
 
 sub post_process {
     my ($value) = @_;
@@ -244,7 +233,7 @@ sub post_process {
     TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
         my ( $type, $indent, $text ) = @{ $text_pieces[$text_piece_ix] };
         next TEXT_PIECE if $type eq 'whitespace';
-	my $suffix = $ws_unsafe[$text_piece_ix+1] ? '<!--' : '';
+	my $suffix = $ws_unsafe[$text_piece_ix+1] ? '<!--' : q{};
 	my $indentation = q{  } x $indent;
 	if ( $ws_unsafe[$text_piece_ix] ) {
 	    $indentation =
@@ -252,7 +241,7 @@ sub post_process {
 		. '  html_fmt: this comment is to avoid introducing whitespace'
 		. "\n" . $indentation . '-->';
 	} ## end if ( $ws_unsafe[$text_piece_ix] )
-        if ( $type eq 'text' and $text =~ /\S/ ) {
+        if ( $type eq 'text' and $text =~ /\S/xms ) {
             push @output, $indentation . $text . $suffix;
             next TEXT_PIECE;
         }
@@ -271,7 +260,7 @@ sub do_pre {
     CHILD:
     for my $value ( @{ Marpa::R2::HTML::values() } ) {
         for my $line_data ( @{$value} ) {
-            if ( $line_data->[0] =~ /^msg:/ ) {
+            if ( $line_data->[0] =~ /\A msg [:] /xms ) {
                 push @new_line_data,
                     [
                     $_, 0,
@@ -308,10 +297,12 @@ sub do_default {
     my $first_content_child = 0;
 
     {
+        ## no critic(Variables::ProhibitPackageVars)
         my $tag_type =
             $HTML::Tagset::emptyElement{$tagname}
             ? 'empty element'
             : 'start tag';
+        ##use critic
         if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
             push @new_line_data, [ $tag_type, 0, $first_child->[2] ];
             $first_content_child = 1;
@@ -352,7 +343,9 @@ sub do_default {
             push @new_line_data, [ $tag_type, 0, $end_tag_child->[2] ];
             last END_TAG_PROCESSING;
         }
+        ## no critic(Variables::ProhibitPackageVars)
         last END_TAG_PROCESSING if $HTML::Tagset::emptyElement{$tagname};
+        ## use critic
         push @new_line_data,
             [ 'msg: missing end tag', 0, 'following', $tagname ];
         push @new_line_data, [ $tag_type, 0, '</' . $tagname . '>' ];
@@ -373,9 +366,9 @@ my $html_args = {
 };
 
 my $value_ref = Marpa::R2::HTML::html( \$document, $html_args );
-die "Internal error: no parse" if not defined $value_ref;
+die 'Internal error: no parse' if not defined $value_ref;
 require Data::Dumper;
-print post_process($value_ref);
+print post_process($value_ref) or die "print failed: $ERRNO";
 
 exit 0;
 
@@ -383,27 +376,27 @@ __END__
 
 =head1 NAME
 
-C<html_fmt> - Reformat HTML, indented according to structure
+  html_fmt - Reformat HTML, indented according to structure
 
-=head1 SYNOPSIS
+=head1 Synopsis
 
     html_fmt [uri|file]
 
-=head1 EXAMPLE
+=head1 Example
 
     html_fmt http://perl.org
 
-=head1 DESCRIPTION
+=head1 Description
 
 Writes its input to C<STDOUT>
 reformatted and
 indented according to the HTML structure.
 If it has an argument, it treats it
 as a URI if it starts with alphanumerics followed by a colon.
-Otherwise, L<html_fmt> assumes its arguments is the name
+Otherwise, c<html_fmt> assumes its arguments is the name
 of its input file.
 With no arguments,
-L<html_fmt> looks for its input
+C<html_fmt> looks for its input
 on C<STDIN>.
 
 Missing start and end tags are supplied and
@@ -412,55 +405,55 @@ Text inside
 C<< <pre> >>
 and
 C<< <script> >>
-elements 
+elements
 is not altered.
 When reformatting and indenting,
-L<html_fmt> uses comments
+C<html_fmt> uses comments
 in an attempt to
 avoid introducing
 whitespace that will affect the way in which the HTML
 displays.
 
-L<html_fmt> tries to parse everything that is actually out there on the Web.
+C<html_fmt> tries to parse everything that is actually out there on the Web.
 In fact,
-L<html_fmt> will assume any file fed to it was intended as HTML,
+C<html_fmt> will assume any file fed to it was intended as HTML,
 and will produce its best guess of the author's intent.
 
-L<html_fmt> supplies missing start and end tags.
-L<html_fmt>'s parser is extremely liberal in what it accepts.
+C<html_fmt> supplies missing start and end tags.
+C<html_fmt>'s parser is extremely liberal in what it accepts.
 When its liberalization of the standards is not sufficient to make
 a document into valid HTML,
-L<html_fmt>
+C<html_fmt>
 will pick characters to treat as noise or "cruft".
 The parser ignores cruft in determining
 the structure of the document.
 
 When
-L<html_fmt> adds
+C<html_fmt> adds
 a missing start tag,
 it precedes the new start tag with a comment.
 When
-L<html_fmt> adds
+C<html_fmt> adds
 a missing end tag,
 it follows the new end tag with a comment.
-When L<html_fmt> classifies characters
+When C<html_fmt> classifies characters
 as "cruft",
 it adds a comment to that effect before the "cruft".
 
 C<pre> elements receive special treatment.
-The contents of 
+The contents of
 C<pre> elements are not reformatted.
 When missing tags or cruft occur inside a C<pre> element,
-the comments to that effect are placed 
+the comments to that effect are placed
 before the C<< <pre> >> start tag.
 
-=head1 SAMPLE OUTPUT
+=head1 Sample output
 
 Given this input:
 
     <title>Test page<tr>x<head attr="I am cruft"><p>Final graf
 
-L<html_fmt> returns
+C<html_fmt> returns
 
   <html>
     <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
@@ -505,10 +498,10 @@ L<html_fmt> returns
     <!-- html_fmt: Following end tag is replacement for a missing one -->
   </html>
 
-=head1 ACKNOWLEDGEMENTS
+=head1 Acknowledgements
 
 The starting template for this code was
-L<HTML::TokeParser>, by Gisle Aas.
+L<HTML::TokeParser|HTML::TokeParser>, by Gisle Aas.
 
 =head1 LICENSE AND COPYRIGHT
 
