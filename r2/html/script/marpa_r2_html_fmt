@@ -25,7 +25,7 @@ use Getopt::Long;
 
 sub usage
 {
-    say {STDERR} "$PROGRAM_NAME html_fmt [uri|file]" or die "say failed: $ERRNO";
+    say {*STDERR} "$PROGRAM_NAME html_fmt [uri|file]" or die "say failed: $ERRNO";
     exit 1;
 }
 
@@ -49,14 +49,14 @@ GET_DOCUMENT: {
         $document = <STDIN>;
         last GET_DOCUMENT;
     }
-    if ( $locator =~ /\A [[:alnum]]+ [:] /xms ) {
+    if ( $locator =~ /\A [[:alnum:]]+ [:] /xms ) {
         require WWW::Mechanize;
         my $mech = WWW::Mechanize->new( autocheck => 1 );
         $mech->get($locator);
         $document = $mech->content;
         undef $mech;
         last GET_DOCUMENT;
-    } ## end if ( $locator =~ /\A [[:alnum]]+ [:] /xms )
+    } ## end if ( $locator =~ /\A [[:alnum:]]+ [:] /xms )
     {
         local $RS = undef;
         open my $fh, q{<}, $locator;
