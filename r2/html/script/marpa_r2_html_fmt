@@ -106,7 +106,7 @@ sub post_process {
                 when ('preceeding') {
                     push @text_pieces,
                         [
-                        'comment',
+                        'html_fmt comment',
                         $indent + 1,
                         'Preceeding start tag is replacement for a missing one'
                         ];
@@ -114,7 +114,7 @@ sub post_process {
                 when ('following pre') {
                     push @text_pieces,
                         [
-                        'comment', $indent,
+                        'html_fmt comment', $indent,
                         "Inside following <pre>, a start tag is missing: <$tagname>"
                         ];
                 } ## end when ('following pre')
@@ -133,7 +133,7 @@ sub post_process {
                 when ('following') {
                     push @text_pieces,
                         [
-                        'comment',
+                        'html_fmt comment',
                         $indent + 1,
                         'Following end tag is replacement for a missing one'
                         ];
@@ -141,7 +141,7 @@ sub post_process {
                 when ('following pre') {
                     push @text_pieces,
                         [
-                        'comment', $indent,
+                        'html_fmt comment', $indent,
                         "Inside following <pre>, an end tag is missing: <$tagname>"
                         ];
                 } ## end when ('following pre')
@@ -159,7 +159,7 @@ sub post_process {
             given ($location) {
                 when ('following') {
                     push @text_pieces,
-                        [ 'comment', $indent, 'Next line is cruft' ];
+                        [ 'html_fmt comment', $indent, 'Next line is cruft' ];
                 }
                 when ('following pre') {
 
@@ -169,7 +169,7 @@ sub post_process {
                     ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
                     push @text_pieces,
                         [
-                        'comment', $indent,
+                        'html_fmt comment', $indent,
                         qq{Inside the following <pre>, there is this cruft:\n$safe_cruft}
                         ];
                 } ## end when ('following pre')
@@ -184,6 +184,7 @@ sub post_process {
     } ## end DATUM: for my $line_data ( @{ $value->[0] } )
     my @ws_unsafe;
     $ws_unsafe[scalar @text_pieces] = 0; # size the array
+    $ws_unsafe[0] = 0;
     my $last_non_comment_ix = scalar @text_pieces;
     my $safe_after_piece = 0;
     TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
@@ -194,6 +195,7 @@ sub post_process {
             # If a comment, after-piece is whatever current value
             # of $safe_after_piece,
             # leave before as-is
+            last WHITESPACE_BY_TYPE if $type eq 'html_fmt comment';
             last WHITESPACE_BY_TYPE if $type eq 'comment';
             if ( $type eq 'whitespace' ) {
 
@@ -227,13 +229,15 @@ sub post_process {
                 # Whitespace is unsafe after, and left as-is before.
             $safe_after_piece = 0;
         } ## end WHITESPACE_BY_TYPE:
-        $ws_unsafe[ $text_piece_ix + 1 ] = !$safe_after_piece;
+        $ws_unsafe[ $text_piece_ix + 1 ] = $safe_after_piece ? 0 : 1;
         if ($safe_before_piece) {
             for my $ix ( $last_non_comment_ix + 1 .. $text_piece_ix ) {
                 $ws_unsafe[$ix] = 0;
             }
         }
-        $last_non_comment_ix = $text_piece_ix if $type ne 'comment';
+	if ( $type ne 'comment' and $type ne 'html_fmt comment' ) {
+	    $last_non_comment_ix = $text_piece_ix;
+	}
     } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
     $ws_unsafe[scalar @text_pieces] = 0; # EOF is whitespace safe
     my @output = ();
@@ -252,7 +256,7 @@ sub post_process {
             push @output, $indentation . $text . $suffix;
             next TEXT_PIECE;
         }
-        if ( $type eq 'comment' ) {
+        if ( $type eq 'html_fmt comment' ) {
             push @output, $indentation . '<!-- html_fmt: ' . $text . ' -->' . $suffix;
             next TEXT_PIECE;
         }
@@ -289,6 +293,11 @@ sub do_cruft {
     push @new_line_data, [ 'cruft', 0, $literal ];
     return \@new_line_data;
 } ## end sub do_cruft
+
+sub do_comment {
+    my $literal = Marpa::R2::HTML::literal();
+    return [ [ 'comment', 0, $literal ] ];
+}
 
 sub do_default {
     my $tagname       = Marpa::R2::HTML::tagname();
@@ -352,10 +361,11 @@ my $html_args = {
     'script' => sub {
         return [ [ 'script', 0, Marpa::R2::HTML::original() ] ];
     },
-    ':CRUFT' => \&do_cruft,
-    'pre'    => \&do_pre,
-    q{*}     => \&do_default,
-    ':TOP'   => sub { return Marpa::R2::HTML::values(); }
+    ':CRUFT'   => \&do_cruft,
+    ':COMMENT' => \&do_comment,
+    'pre'      => \&do_pre,
+    q{*}       => \&do_default,
+    ':TOP'     => sub { return Marpa::R2::HTML::values(); }
 };
 
 my $value_ref = Marpa::R2::HTML::html( \$document, $html_args );
