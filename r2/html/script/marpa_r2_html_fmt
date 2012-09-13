@@ -307,16 +307,20 @@ sub do_default {
     my $first_child         = $descendant_data[0];
     my $first_content_child = 0;
 
-    my $tag_is_line = $inline_tag{ uc $tagname };
-    my $tag_type = 'start tag';
-    if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
-        push @new_line_data, [ $tag_type, 0, $first_child->[2] ];
-        $first_content_child = 1;
-    }
-    else {
-        push @new_line_data, [ $tag_type, 0, '<' . $tagname . '>' ];
-        push @new_line_data,
-            [ 'msg: missing start tag', 0, 'preceeding', $tagname ];
+    {
+        my $tag_type =
+            $HTML::Tagset::emptyElement{$tagname}
+            ? 'empty element'
+            : 'start tag';
+        if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
+            push @new_line_data, [ $tag_type, 0, $first_child->[2] ];
+            $first_content_child = 1;
+        }
+        else {
+            push @new_line_data, [ $tag_type, 0, '<' . $tagname . '>' ];
+            push @new_line_data,
+                [ 'msg: missing start tag', 0, 'preceeding', $tagname ];
+        }
     }
 
     my $last_child         = $descendant_data[-1];
