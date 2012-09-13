@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.021_000 Thu Sep 13 08:20:56 PDT 2012
+
+      * New series of developer's releases
+
 2.020000 Wed Sep 12 20:44:46 PDT 2012
 
       * Make Marpa::R2::HTML a fully visible part
