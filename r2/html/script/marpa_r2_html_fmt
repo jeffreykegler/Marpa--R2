@@ -182,21 +182,73 @@ sub post_process {
         } ## end if ( $type eq 'msg: cruft' )
         push @text_pieces, [ $type, $indent, $line_data->[2] ];
     } ## end DATUM: for my $line_data ( @{ $value->[0] } )
+    my @ws_unsafe;
+    $ws_unsafe[scalar @text_pieces] = 0; # size the array
+    my $last_non_comment_ix = scalar @text_pieces;
+    my $safe_after_piece = 0;
+    TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
+        my ( $type, $indent, $text ) = @{ $text_pieces[$text_piece_ix] };
+	my $safe_before_piece = 0;
+	WHITESPACE_BY_TYPE: {
+	    # If a comment, after-piece is whatever current value
+	    # of $safe_after_piece,
+	    # leave before as-is
+	    last WHITESPACE_BY_TYPE if $type eq 'comment';
+	    if ( $type eq 'whitespace' ) {
+		# Safe before and after other whitespace
+		$safe_before_piece = $safe_after_piece = 1;
+		last WHITESPACE_BY_TYPE;
+	    }
+	    if ( $type eq 'end tag' ) {
+		# Unsafe after an end tag, but safe before it
+		$safe_before_piece = 1;
+		$safe_after_piece = 0;
+		last WHITESPACE_BY_TYPE;
+	    }
+	    if ( $type eq 'start tag' ) {
+		# Leave safe status as-is before start tag
+		# Whitespace safe after a start tag
+		$safe_after_piece = 1;
+		last WHITESPACE_BY_TYPE;
+	    }
+	    if ( $type eq 'text' ) {
+		# Leave safe status as-is before text
+		# Whitespace not safe after a start tag
+		$safe_after_piece = 0;
+		last WHITESPACE_BY_TYPE;
+	    }
+	    die "Unknown type: $type";
+	} ## end WHITESPACE_BY_TYPE:
+	$ws_unsafe[ $text_piece_ix + 1 ] = !$safe_after_piece;
+	if ($safe_before_piece) {
+	   for my $ix ($last_non_comment_ix+1 .. $text_piece_ix) {
+		$ws_unsafe[ $ix ] = 0;
+	   }
+	}
+	$last_non_comment_ix = $text_piece_ix if $type ne 'comment';
+    }
     my @output = ();
-    TEXT_PIECE: for my $text_piece (@text_pieces) {
-        my ( $type, $indent, $text ) = @{$text_piece};
-	next TEXT_PIECE if $type eq 'whitespace';
-        my $indentation = q{  } x $indent;
+    TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
+        my ( $type, $indent, $text ) = @{ $text_pieces[$text_piece_ix] };
+        next TEXT_PIECE if $type eq 'whitespace';
+	my $suffix = $ws_unsafe[$text_piece_ix+1] ? '<!--' : '';
+	my $indentation = q{  } x $indent;
+	if ( $ws_unsafe[$text_piece_ix] ) {
+	    $indentation =
+		  $indentation
+		. '  html_fmt: this comment is to avoid introducing whitespace'
+		. "\n" . $indentation . '-->';
+	} ## end if ( $ws_unsafe[$text_piece_ix] )
         if ( $type eq 'text' and $text =~ /\S/ ) {
-            push @output, $indentation . $text;
+            push @output, $indentation . $text . $suffix;
             next TEXT_PIECE;
         }
         if ( $type eq 'comment' ) {
-            push @output, $indentation . '<!-- html_fmt: ' . $text . ' -->';
+            push @output, $indentation . '<!-- html_fmt: ' . $text . ' -->' . $suffix;
             next TEXT_PIECE;
         }
-        push @output, $indentation . $text;
-    } ## end TEXT_PIECE: for my $text_piece (@text_pieces)
+        push @output, $indentation . $text . $suffix;
+    } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
     return join "\n", @output, q{};
 } ## end sub post_process
 
@@ -238,7 +290,7 @@ sub do_default {
     my $first_content_child = 0;
 
     my $tag_is_line = $inline_tag{ uc $tagname };
-    my $tag_type = $tag_is_line ? 'inline start tag' : 'start tag';
+    my $tag_type = 'start tag';
     if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
         push @new_line_data, [ $tag_type, 0, $first_child->[2] ];
         $first_content_child = 1;
@@ -273,7 +325,7 @@ sub do_default {
     } ## end CHILD: for my $descendant_data_ix ( $first_content_child .. ...)
 
     END_TAG_PROCESSING: {
-        my $tag_type = $tag_is_line ? 'inline end tag' : 'end tag';
+        my $tag_type = 'end tag';
         if ( defined $end_tag_child ) {
             push @new_line_data, [ $tag_type, 0, $end_tag_child->[2] ];
             last END_TAG_PROCESSING;
