@@ -391,15 +391,31 @@ C<html_fmt> - Reformat HTML, indented according to structure
 
 =head1 DESCRIPTION
 
-Given the URI or the name of a file,
-writes it to C<STDOUT>
+Writes its input to C<STDOUT>
 reformatted and
 indented according to the HTML structure.
+If it has an argument, it treats it
+as a URI if it starts with alphanumerics followed by a colon.
+Otherwise, L<html_fmt> assumes its arguments is the name
+of its input file.
+With no arguments,
+L<html_fmt> looks for its input
+on C<STDIN>.
+
 Missing start and end tags are supplied and
 comments added to indicate this.
 Text inside
-C<< <pre> >> elements 
+C<< <pre> >>
+and
+C<< <script> >>
+elements 
 is not altered.
+When reformatting and indenting,
+L<html_fmt> uses comments
+in an attempt to
+avoid introducing
+whitespace that will affect the way in which the HTML
+displays.
 
 L<html_fmt> tries to parse everything that is actually out there on the Web.
 In fact,
@@ -434,10 +450,6 @@ When missing tags or cruft occur inside a C<pre> element,
 the comments to that effect are placed 
 before the C<< <pre> >> start tag.
 
-The argument to L<html_fmt> can be either as a URI or a file
-name.  If it starts with alphanumerics followed by a colon, it is treated
-as a URI.  Otherwise it is treated as file name.
-
 =head1 SAMPLE OUTPUT
 
 Given this input:
@@ -446,57 +458,48 @@ Given this input:
 
 L<html_fmt> returns
 
-    <!-- Following start tag is replacement for a missing one -->
-    <html>
-      <!-- Following start tag is replacement for a missing one -->
-      <head>
-        <title>
-          Test page
-        </title>
-        <!-- Preceding end tag is replacement for a missing one -->
-      </head>
-      <!-- Preceding end tag is replacement for a missing one -->
-      <!-- Following start tag is replacement for a missing one -->
-      <body>
-        <!-- Following start tag is replacement for a missing one -->
-        <table>
-          <!-- Following start tag is replacement for a missing one -->
-          <tbody>
-            <tr>
-              <!-- Following start tag is replacement for a missing one -->
-              <td>
-                x
-                <!-- Next line is cruft -->
-                <head attr="I am cruft">
-                <p>
-                  Final graf
-                </p>
-                <!-- Preceding end tag is replacement for a missing one -->
-              </td>
-              <!-- Preceding end tag is replacement for a missing one -->
-            </tr>
-            <!-- Preceding end tag is replacement for a missing one -->
-          </tbody>
-          <!-- Preceding end tag is replacement for a missing one -->
-        </table>
-        <!-- Preceding end tag is replacement for a missing one -->
-      </body>
-      <!-- Preceding end tag is replacement for a missing one -->
-    </html>
-    <!-- Preceding end tag is replacement for a missing one -->
-
-=head1 PURPOSE
-
-This program is a demo of a demo.
-It purpose is to show how easy it is to write applications which look
-at the structure of web pages using L<Marpa::R2::HTML>.
-And the purpose of L<Marpa::R2::HTML>
-is to demonstrate the power of its parse engine,
-L<Marpa>.
-L<Marpa::R2::HTML> was written in a few days,
-and its logic 
-is a straightforward,
-natural expression of the structure of HTML.
+  <html>
+    <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+    <head>
+      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+      <title>
+	Test page
+	<!-- html_fmt: Following end tag is replacement for a missing one -->
+      </title>
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </head><!--
+      html_fmt: this comment is to avoid introducing whitespace
+    --><body>
+      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+      <table>
+	<!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	<tbody>
+	  <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	  <tr>
+	    <td>
+	      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	      x<!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><!-- html_fmt: Next line is cruft --><!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><head attr="I am cruft"><!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><p>
+		Final graf
+		<!-- html_fmt: Following end tag is replacement for a missing one -->
+	      </p>
+	      <!-- html_fmt: Following end tag is replacement for a missing one -->
+	    </td>
+	    <!-- html_fmt: Following end tag is replacement for a missing one -->
+	  </tr>
+	  <!-- html_fmt: Following end tag is replacement for a missing one -->
+	</tbody>
+	<!-- html_fmt: Following end tag is replacement for a missing one -->
+      </table>
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </body>
+    <!-- html_fmt: Following end tag is replacement for a missing one -->
+  </html>
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -505,7 +508,7 @@ L<HTML::TokeParser>, by Gisle Aas.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007-2010 Jeffrey Kegler, all rights reserved.
+Copyright 2007-2012 Jeffrey Kegler, all rights reserved.
 Marpa is free software under the Perl license.
 For details see the LICENSE file in the Marpa distribution.
 
