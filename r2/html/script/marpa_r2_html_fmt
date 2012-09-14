@@ -421,7 +421,7 @@ __END__
 
 =head1 Synopsis
 
-    html_fmt [uri|file]
+    html_fmt [--avoid-whitespace=[yes|comment]] [uri|file]
 
 =head1 Example
 
@@ -429,36 +429,40 @@ __END__
 
 =head1 Description
 
-Writes its input to C<STDOUT>
+Writes its input to C<STDOUT>,
 reformatted and
 indented according to the HTML structure.
-If it has an argument, it treats it
-as a URI if it starts with alphanumerics followed by a colon.
-Otherwise, c<html_fmt> assumes its arguments is the name
-of its input file.
 With no arguments,
 C<html_fmt> looks for its input
 on C<STDIN>.
+If it has an argument that looks like a URI,
+C<html_fmt> treats that argument
+as a URI.
+If it has an argument that does not
+look like a URI,
+C<html_fmt> uses that argument
+as the name
+of its input file.
+C<html_fmt> considers its argument to
+"look like a URI",
+if it
+starts with alphanumerics followed by a colon.
 
-Missing start and end tags are supplied and
-comments added to indicate this.
-Text inside
-C<< <pre> >>
-and
-C<< <script> >>
-elements
-is not altered.
 When reformatting and indenting,
-C<html_fmt> uses comments
-in an attempt to
-avoid introducing
+C<html_fmt> takes measures
+to avoid introducing
 whitespace that will affect the way in which the HTML
 displays.
-
-C<html_fmt> tries to parse everything that is actually out there on the Web.
-In fact,
-C<html_fmt> will assume any file fed to it was intended as HTML,
-and will produce its best guess of the author's intent.
+The standards differ on whitespace treatment,
+when the standards agree
+they often allow considerable
+latitude to the browsers,
+and specific implementions will
+exploit the allowed latitude in different ways,
+or exceed it.
+All of which is to say that
+C<html_fmt>'s attempts to avoid introducing
+whitespace are not always successful.
 
 C<html_fmt> supplies missing start and end tags.
 C<html_fmt>'s parser is extremely liberal in what it accepts.
@@ -469,24 +473,62 @@ will pick characters to treat as noise or "cruft".
 The parser ignores cruft in determining
 the structure of the document.
 
+C<html_fmt> parses all input files as HTML,
+whatever their contents,
+and never rejects a file.
+It does this by
+adding tags and ignoring "cruft"
+until the file turns into valid HTML.
+
 When
 C<html_fmt> adds
 a missing start tag,
-it precedes the new start tag with a comment.
+it follows the new start tag with a comment.
 When
 C<html_fmt> adds
 a missing end tag,
-it follows the new end tag with a comment.
+it preceeds the new end tag with a comment.
 When C<html_fmt> classifies characters
 as "cruft",
 it adds a comment to that effect before the "cruft".
 
-C<pre> elements receive special treatment.
+C<pre> and C<script>
+elements receive special treatment.
 The contents of
-C<pre> elements are not reformatted.
+C<pre> and C<script> elements are not reformatted.
 When missing tags or cruft occur inside a C<pre> element,
 the comments to that effect are placed
 before the C<< <pre> >> start tag.
+The contents of C<script> elements are not
+examined.
+
+=head1 Options
+
+No one set of choices is anywhere
+near adequate to the variety of standards,
+renderers and application requirements out there.
+Ideally,
+C<html_fmt> would have many options customizing its behavior.
+As of this writing, there is only one.
+
+=head2 avoid-whitespace
+
+The C<--avoid-whitespace> option
+may take one of two values:
+C<yes> and C<comment>.
+If the value is C<comment>,
+HTML (SGML) comments are used to achieve proper
+indentation without introducing whitespace.
+This works, but does get a bit cluttered.
+Adding comments is the default behavior.
+
+If the value is C<yes>,
+C<html_fmt> does not try to add indentation
+in whitespace-sensitive places.
+This avoids clutter but,
+because of the missed indentation,
+the structure of the 
+document can be harder to follow.
 
 =head1 Sample output
 
