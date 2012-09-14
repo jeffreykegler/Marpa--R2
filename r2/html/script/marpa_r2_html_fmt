@@ -29,16 +29,20 @@ sub usage
     exit 1;
 }
 
-my $data = 'file.dat';
-my $length = 24;
-my $help_flag = 0;
-usage() if not Getopt::Long::GetOptions ( 'help' => \$help_flag);
+my $help_flag              = 0;
+my @avoid_whitespace_flags = qw(comment yes);
+my $avoid_whitespace_flag  = 'comment';
+usage()
+    if not Getopt::Long::GetOptions(
+    'help'               => \$help_flag,
+    'avoid-whitespace=s' => \$avoid_whitespace_flag,
+    );
 usage() if $help_flag or scalar @ARGV > 1;
-
-my %inline_tag = map { ($_, 1) } qw(
-    A ABBR ACRONYM B BASEFONT BDO BIG BR CITE CODE DFN EM FONT I IMG
-    INPUT KBD LABEL Q S SAMP SELECT SMALL SPAN STRIKE STRONG SUB SUP
-    TEXTAREA TT U VAR);
+if ( not $avoid_whitespace_flag ~~ \@avoid_whitespace_flags ) {
+    die "Bad avoid-whitespace flag\n",
+        'avoid-whitespace must be one of the following: ', join q{ },
+        @avoid_whitespace_flags;
+}
 
 my $locator = shift;
 my $document;
@@ -230,40 +234,78 @@ sub post_process {
     } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
     $ws_unsafe[scalar @text_pieces] = 0; # EOF is whitespace safe
     my @output = ();
-    TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
-        my ( $type, $indent, $text ) = @{ $text_pieces[$text_piece_ix] };
-        next TEXT_PIECE if $type eq 'whitespace';
-	my $suffix = $ws_unsafe[$text_piece_ix+1] ? '<!--' : q{};
-	my $indentation = q{  } x $indent;
-	if ( $ws_unsafe[$text_piece_ix] ) {
-	    $indentation =
-		  $indentation
-		. '  html_fmt: this comment is to avoid introducing whitespace'
-		. "\n" . $indentation . '-->';
-	} ## end if ( $ws_unsafe[$text_piece_ix] )
-        if ( $type eq 'text' and $text =~ /\S/xms ) {
-            push @output, $indentation . $text . $suffix;
-            next TEXT_PIECE;
-        }
-        if ( $type eq 'html_fmt comment' ) {
-            push @output, $indentation . '<!-- html_fmt: ' . $text . ' -->' . $suffix;
-            next TEXT_PIECE;
-        }
-        push @output, $indentation . $text . $suffix;
-    } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
+    CREATE_OUTPUT: {
+        if ( $avoid_whitespace_flag eq 'comment' ) {
+            TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
+                my ( $type, $indent, $text ) =
+                    @{ $text_pieces[$text_piece_ix] };
+                next TEXT_PIECE if $type eq 'whitespace';
+                my $suffix = $ws_unsafe[ $text_piece_ix + 1 ] ? '<!--' : q{};
+                my $indentation = q{  } x $indent;
+                if ( $ws_unsafe[$text_piece_ix] ) {
+                    $indentation =
+                          $indentation
+                        . '  html_fmt: this comment is to avoid introducing whitespace'
+                        . "\n"
+                        . $indentation . '-->';
+                } ## end if ( $ws_unsafe[$text_piece_ix] )
+                if ( $type eq 'text' and $text =~ /\S/xms ) {
+                    push @output, $indentation . $text . $suffix;
+                    next TEXT_PIECE;
+                }
+                if ( $type eq 'html_fmt comment' ) {
+                    push @output,
+                          $indentation
+                        . '<!-- html_fmt: '
+                        . $text . ' -->'
+                        . $suffix;
+                    next TEXT_PIECE;
+                } ## end if ( $type eq 'html_fmt comment' )
+                push @output, $indentation . $text . $suffix;
+            } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
+            last CREATE_OUTPUT;
+        } ## end if ( $avoid_whitespace_flag eq 'comment' )
+        if ( $avoid_whitespace_flag eq 'yes' ) {
+            TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
+                my ( $type, $indent, $text ) =
+                    @{ $text_pieces[$text_piece_ix] };
+                next TEXT_PIECE if $type eq 'whitespace';
+                if ( $ws_unsafe[$text_piece_ix] ) {
+                    if ( $type eq 'html_fmt comment' ) {
+                        $text = '<!-- html_fmt: ' . $text . ' -->';
+                    }
+                    $output[-1] .= $text;
+                    next TEXT_PIECE;
+                } ## end if ( $ws_unsafe[$text_piece_ix] )
+                my $indentation = q{  } x $indent;
+                if ( $type eq 'text' and $text =~ /\S/xms ) {
+                    push @output, $indentation . $text;
+                    next TEXT_PIECE;
+                }
+                if ( $type eq 'html_fmt comment' ) {
+                    push @output,
+                          $indentation
+                        . '<!-- html_fmt: '
+                        . $text . ' -->';
+                    next TEXT_PIECE;
+                } ## end if ( $type eq 'html_fmt comment' )
+                push @output, $indentation . $text;
+            } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
+            last CREATE_OUTPUT;
+	}
+    } ## end CREATE_OUTPUT:
     return join "\n", @output, q{};
 } ## end sub post_process
 
 sub do_pre {
     my @new_line_data      = ();
-    my @following_comments = ();
     CHILD:
     for my $value ( @{ Marpa::R2::HTML::values() } ) {
         for my $line_data ( @{$value} ) {
             if ( $line_data->[0] =~ /\A msg [:] /xms ) {
                 push @new_line_data,
                     [
-                    $_, 0,
+                    $line_data->[0], 0,
                     'following pre',
                     @{$line_data}[ 3 .. $#{$line_data} ]
                     ];
@@ -272,7 +314,6 @@ sub do_pre {
     } ## end CHILD: for my $value ( @{ Marpa::R2::HTML::values() } )
     my $original = Marpa::R2::HTML::original();
     push @new_line_data, [ 'pre', 0, $original ];
-    push @new_line_data, @following_comments;
     return \@new_line_data;
 } ## end sub do_pre
 
