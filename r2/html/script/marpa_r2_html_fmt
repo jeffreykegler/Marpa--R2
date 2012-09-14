@@ -423,11 +423,8 @@ __END__
 
 =head1 Synopsis
 
-    html_fmt [--avoid-whitespace=[yes|comment]] [uri|file]
-
-=head1 Example
-
-    html_fmt http://perl.org
+    html_fmt [--avoid-whitespace=[yes|comment]]
+      [--ws-ok-before-end-tag|--no-ws-ok-before-end-tag] [uri|file]
 
 =head1 Description
 
@@ -455,10 +452,10 @@ C<html_fmt> takes measures
 to avoid introducing
 whitespace that will affect the way in which the HTML
 displays.
-The standards differ on whitespace treatment,
+The standards differ on whitespace treatment;
 when the standards agree
 they often allow considerable
-latitude to the browsers,
+latitude to the browsers;
 and specific implementions will
 exploit the allowed latitude in different ways,
 or exceed it.
@@ -467,20 +464,19 @@ C<html_fmt>'s attempts to avoid introducing
 whitespace are not always successful.
 
 C<html_fmt> supplies missing start and end tags.
-C<html_fmt>'s parser is extremely liberal in what it accepts.
-When its liberalization of the standards is not sufficient to make
-a document into valid HTML,
+If C<html_fmt> cannot find required start and end tags,
+it supplies them.
+C<html_fmt>'s grammar is very liberal in its interpretation
+of what is valid HTML.
+Finally, if this is not sufficient to turn the input
+into valid HTML,
 C<html_fmt>
-will pick characters to treat as noise or "cruft".
-The parser ignores cruft in determining
+will treat problem sections of the input
+as noise or "cruft",
+ignoring them in determining
 the structure of the document.
-
-C<html_fmt> parses all input files as HTML,
-whatever their contents,
-and never rejects a file.
-It does this by
-adding tags and ignoring "cruft"
-until the file turns into valid HTML.
+C<html_fmt> never rejects its input,
+whatever its contents.
 
 When
 C<html_fmt> adds
@@ -506,7 +502,7 @@ examined.
 
 =head1 Options
 
-No one set of choices is anywhere
+No single set of reformatting choices can anywhere
 near adequate to the variety of standards,
 renderers and application requirements out there.
 Ideally,
@@ -537,13 +533,14 @@ This works, but does get a bit cluttered.
 The C<--ws-ok-before-end-tag> option is a Boolean.
 If set, C<html_fmt> will add whitespace before an end tag when
 that is useful.
-The SGML standards say that such whitespace is always ignored,
-and if they are adhered to, the added whitespace will not
+If they SGML standards
+are adhered to, the added whitespace will not
 change what is displayed.
 However, the HTML standards, while they allow SGML-adherent behavior
 for whitespace before end tags,
-do not require it,
-and many browsers will render whitespace found before
+do not require it.
+In practice,
+many browsers will render whitespace found before
 end tags.
 
 If C<--ws-ok-before-end-tag> is false,
@@ -556,13 +553,17 @@ what is displayed.
 But it limits the ability of
 C<html_fmt> to make its output readable.
 
-=head1 Sample output
+=head1 Example
 
 Given this input:
 
     <title>Test page<tr>x<head attr="I am cruft"><p>Final graf
 
-C<html_fmt> returns
+to this command:
+
+    html_fmt --avoid-whitespace=comment --ws-ok-before-end-tag
+
+the output is
 
   <html>
     <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
