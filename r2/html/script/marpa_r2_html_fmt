@@ -502,7 +502,7 @@ examined.
 
 =head1 Options
 
-No single set of reformatting choices can anywhere
+No single set of reformatting choices is anywhere
 near adequate to the variety of standards,
 renderers and application requirements out there.
 Ideally,
@@ -533,9 +533,9 @@ This works, but does get a bit cluttered.
 The C<--ws-ok-before-end-tag> option is a Boolean.
 If set, C<html_fmt> will add whitespace before an end tag when
 that is useful.
-If they SGML standards
+If the SGML standards
 are adhered to, the added whitespace will not
-change what is displayed.
+be rendered.
 However, the HTML standards, while they allow SGML-adherent behavior
 for whitespace before end tags,
 do not require it.
@@ -549,7 +549,7 @@ end tags.
 C<--ws-ok-before-end-tag> is false by default.
 This is always safe,
 in the sense that it will not change
-what is displayed.
+what is there to be rendered.
 But it limits the ability of
 C<html_fmt> to make its output readable.
 
