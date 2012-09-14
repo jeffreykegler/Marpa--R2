@@ -37,7 +37,7 @@ usage()
     if not Getopt::Long::GetOptions(
     'help'               => \$help_flag,
     'avoid-whitespace=s' => \$avoid_whitespace_flag,
-    'ws-ok-before-eng-tag' => \$ws_ok_before_end_tag_flag,
+    'ws-ok-before-end-tag' => \$ws_ok_before_end_tag_flag,
     );
 usage() if $help_flag or scalar @ARGV > 1;
 if ( not $avoid_whitespace_flag ~~ \@avoid_whitespace_flags ) {
@@ -511,7 +511,7 @@ near adequate to the variety of standards,
 renderers and application requirements out there.
 Ideally,
 C<html_fmt> would have many options customizing its behavior.
-As of this writing, there is only one.
+As of this writing, there are only two.
 
 =head2 avoid-whitespace
 
@@ -531,6 +531,30 @@ If the value is C<comment>,
 HTML (SGML) comments are used to achieve proper
 indentation without introducing whitespace.
 This works, but does get a bit cluttered.
+
+=head2 ws-ok-before-end-tag
+
+The C<--ws-ok-before-end-tag> option is a Boolean.
+If set, C<html_fmt> will add whitespace before an end tag when
+that is useful.
+The SGML standards say that such whitespace is always ignored,
+and if they are adhered to, the added whitespace will not
+change what is displayed.
+However, the HTML standards, while they allow SGML-adherent behavior
+for whitespace before end tags,
+do not require it,
+and many browsers will render whitespace found before
+end tags.
+
+If C<--ws-ok-before-end-tag> is false,
+C<html_fmt> will not add whitespace before
+end tags.
+C<--ws-ok-before-end-tag> is false by default.
+This is always safe,
+in the sense that it will not change
+what is displayed.
+But it limits the ability of
+C<html_fmt> to make its output readable.
 
 =head1 Sample output
 
