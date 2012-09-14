@@ -31,11 +31,13 @@ sub usage
 
 my $help_flag              = 0;
 my @avoid_whitespace_flags = qw(comment yes);
-my $avoid_whitespace_flag  = 'comment';
+my $avoid_whitespace_flag  = 'yes';
+my $ws_ok_before_end_tag_flag = 0;
 usage()
     if not Getopt::Long::GetOptions(
     'help'               => \$help_flag,
     'avoid-whitespace=s' => \$avoid_whitespace_flag,
+    'ws-ok-before-eng-tag' => \$ws_ok_before_end_tag_flag,
     );
 usage() if $help_flag or scalar @ARGV > 1;
 if ( not $avoid_whitespace_flag ~~ \@avoid_whitespace_flags ) {
@@ -199,7 +201,7 @@ sub post_process {
             if ( $type eq 'end tag' ) {
 
                 # Unsafe after an end tag, but safe before it
-                $safe_before_piece = 1;
+                $safe_before_piece = $ws_ok_before_end_tag_flag;
                 $safe_after_piece  = 0;
                 last WHITESPACE_BY_TYPE;
             } ## end if ( $type eq 'end tag' )
@@ -516,19 +518,19 @@ As of this writing, there is only one.
 The C<--avoid-whitespace> option
 may take one of two values:
 C<yes> and C<comment>.
-If the value is C<comment>,
-HTML (SGML) comments are used to achieve proper
-indentation without introducing whitespace.
-This works, but does get a bit cluttered.
-Adding comments is the default behavior.
-
 If the value is C<yes>,
 C<html_fmt> does not try to add indentation
 in whitespace-sensitive places.
 This avoids clutter but,
 because of the missed indentation,
 the structure of the 
-document can be harder to follow.
+document becomes harder to follow.
+C<yes> is the default value.
+
+If the value is C<comment>,
+HTML (SGML) comments are used to achieve proper
+indentation without introducing whitespace.
+This works, but does get a bit cluttered.
 
 =head1 Sample output
 
