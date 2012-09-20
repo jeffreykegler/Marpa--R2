@@ -182,6 +182,8 @@ sub post_process {
     $ws_unsafe[0] = 0;
     my $last_non_comment_ix = scalar @text_pieces;
     my $safe_after_piece = 0;
+    my $first_body_tag;
+    my $last_body_tag;
     TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
         my ( $type, $indent, $text ) = @{ $text_pieces[$text_piece_ix] };
         my $safe_before_piece = 0;
@@ -200,12 +202,21 @@ sub post_process {
             } ## end if ( $type eq 'whitespace' )
             if ( $type eq 'end tag' ) {
 
+		if ( $text =~ /\A [^[:alnum:]]+ body [^[:alnum:]]+ \z /xmsi) {
+		    $last_body_tag = $text_piece_ix;
+		}
+
                 # Unsafe after an end tag, but safe before it
                 $safe_before_piece = $ws_ok_before_end_tag_flag;
                 $safe_after_piece  = 0;
                 last WHITESPACE_BY_TYPE;
             } ## end if ( $type eq 'end tag' )
             if ( $type eq 'start tag' ) {
+
+		if ( not defined $first_body_tag and
+		$text =~ /\A [^[:alnum:]]+ body [^[:alnum:]]+ \z /xmsi) {
+		    $first_body_tag = $text_piece_ix;
+		}
 
                 # Leave safe status as-is before start tag
                 # Whitespace safe after a start tag
@@ -234,7 +245,30 @@ sub post_process {
 	    $last_non_comment_ix = $text_piece_ix;
 	}
     } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
-    $ws_unsafe[scalar @text_pieces] = 0; # EOF is whitespace safe
+
+    # Whitespace safe before the body
+    $first_body_tag //= -1;
+    for (
+        my $text_piece_ix = 0;
+        $text_piece_ix <= $first_body_tag;
+        $text_piece_ix++
+        )
+    {
+        $ws_unsafe[$text_piece_ix] = 0;
+    } ## end for ( my $text_piece_ix = 0; $text_piece_ix <= $first_body_tag...)
+
+    # Whitespace safe after the body,
+    # or at least at the EOF if no end tag
+    $last_body_tag //= $#text_pieces;
+    for (
+        my $text_piece_ix = scalar @text_pieces;
+        $text_piece_ix > $last_body_tag;
+        $text_piece_ix--
+        )
+    {
+        $ws_unsafe[$text_piece_ix] = 0;
+    } ## end for ( my $text_piece_ix = scalar @text_pieces; $text_piece_ix...)
+
     my @output = ();
     CREATE_OUTPUT: {
         if ( $avoid_whitespace_flag eq 'comment' ) {
@@ -244,6 +278,14 @@ sub post_process {
                 next TEXT_PIECE if $type eq 'whitespace';
                 my $suffix = $ws_unsafe[ $text_piece_ix + 1 ] ? '<!--' : q{};
                 my $indentation = q{  } x $indent;
+                if ( $type eq 'html_fmt comment' ) {
+                    push @output,
+                          $indentation
+                        . '  html_fmt: '
+                        . $text . ' -->'
+                        . $suffix;
+                    next TEXT_PIECE;
+                } ## end if ( $type eq 'html_fmt comment' )
                 if ( $ws_unsafe[$text_piece_ix] ) {
                     $indentation =
                           $indentation
@@ -255,14 +297,6 @@ sub post_process {
                     push @output, $indentation . $text . $suffix;
                     next TEXT_PIECE;
                 }
-                if ( $type eq 'html_fmt comment' ) {
-                    push @output,
-                          $indentation
-                        . '<!-- html_fmt: '
-                        . $text . ' -->'
-                        . $suffix;
-                    next TEXT_PIECE;
-                } ## end if ( $type eq 'html_fmt comment' )
                 push @output, $indentation . $text . $suffix;
             } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
             last CREATE_OUTPUT;
@@ -273,8 +307,11 @@ sub post_process {
                     @{ $text_pieces[$text_piece_ix] };
                 next TEXT_PIECE if $type eq 'whitespace';
                 if ( $ws_unsafe[$text_piece_ix] ) {
+		    my $indentation = q{  } x ($indent);
                     if ( $type eq 'html_fmt comment' ) {
-                        $text = '<!-- html_fmt: ' . $text . ' -->';
+                        $text = qq{<!--\n}
+			  . $indentation . '    html_fmt: ' . $text . "\n"
+			  . $indentation . '  -->';
                     }
                     $output[-1] .= $text;
                     next TEXT_PIECE;
