@@ -911,7 +911,7 @@ sub parse {
     my %optional_terminals =
         %Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS;
     my @html_parser_tokens = ();
-    my @marpa_tokens       = ();
+    my @marpa_tokens       = (undef);
     HTML_PARSER_TOKEN:
     while ( my $html_parser_token = $pull_parser->get_token ) {
         my ( $token_type, $line, $column, $offset, $offset_end ) =
@@ -1173,12 +1173,17 @@ sub parse {
     my %start_virtuals_used           = ();
     my $earleme_of_last_start_virtual = -1;
 
-    my $marpa_token = shift @marpa_tokens;
-    RECCE_RESPONSE: while ( defined $marpa_token ) {
+    # first token is a dummy, so that ix is never 0
+    # this is done because 0 has a special meaning as a Libmarpa
+    # token value
+    my $marpa_token_ix = 1;
+    RECCE_RESPONSE: while (1) {
+	my $marpa_token = $marpa_tokens[$marpa_token_ix];
+	 last RECCE_RESPONSE if not defined $marpa_token;
 
         my $read_result = $recce->read( @{$marpa_token} );
         if ( defined $read_result ) {
-            $marpa_token = shift @marpa_tokens;
+	    $marpa_token_ix++;
             next RECCE_RESPONSE;
         }
 
