@@ -985,7 +985,7 @@ sub parse {
             } ## end when ( ['PI'] )
             default { Carp::croak("Unprovided-for event: $_") }
         } ## end given
-    } ## end while ( my $html_parser_token = $pull_parser->get_token)
+    } ## end HTML_PARSER_TOKEN: while ( my $html_parser_token = $pull_parser...)
 
     # Points AFTER the last HTML
     # Parser token.
@@ -1038,7 +1038,7 @@ sub parse {
         $optional_terminals{$end_tag} = keys %optional_terminals;
 
         $element_actions{"!ELE_$_"} = $_;
-    } ## end for ( keys %start_tags )
+    } ## end ELEMENT: for ( keys %start_tags )
 
     # The question is where to put cruft -- in the current element,
     # or at a higher level.  As a first step, we set up a system of
@@ -1124,7 +1124,7 @@ sub parse {
 
             $level{$terminal} = $inline_level;
 
-        } ## end for my $terminal ( grep { not defined $level{$_} } ( ...))
+        } ## end for my $terminal ( grep { not defined $level{$_} } (...))
 
         EXPECTED_TERMINAL:
         for my $expected_terminal ( keys %optional_terminals ) {
@@ -1138,7 +1138,7 @@ sub parse {
                 $ok_as_cruft{$expected_terminal}{$actual_terminal} =
                     $level{$actual_terminal} < $level{$expected_terminal};
             }
-        } ## end for my $expected_terminal ( keys %optional_terminals )
+        } ## end EXPECTED_TERMINAL: for my $expected_terminal ( keys %optional_terminals)
 
     } ## end DECIDE_CRUFT_TREATMENT:
 
@@ -1163,7 +1163,7 @@ sub parse {
             or Carp::croak("Cannot print: $ERRNO");
     }
 
-    my $recce = Marpa::R2::Thin::R->new($grammar->thin());
+    my $recce = Marpa::R2::Thin::R->new( $grammar->thin() );
     $recce->ruby_slippers_set(1);
     $recce->start_input();
 
@@ -1180,20 +1180,21 @@ sub parse {
     # token value
     my $marpa_token_ix = 1;
     RECCE_RESPONSE: while (1) {
-	my $marpa_token = $marpa_tokens[$marpa_token_ix];
-	last RECCE_RESPONSE if not defined $marpa_token;
+        my $marpa_token = $marpa_tokens[$marpa_token_ix];
+        last RECCE_RESPONSE if not defined $marpa_token;
 
-        say STDERR "token = ", $marpa_token->[0] ;
+        say STDERR "token = ", $marpa_token->[0];
         my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
         my $read_result =
             $recce->alternative( $marpa_symbol_id, $marpa_token_ix, 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
-	    say "UNEXPECTED_TOKEN_ID = ", $UNEXPECTED_TOKEN_ID;
-	    say STDERR "result = $read_result ", $LIBMARPA_ERROR_NAMES[$read_result];
+            say "UNEXPECTED_TOKEN_ID = ", $UNEXPECTED_TOKEN_ID;
+            say STDERR "result = $read_result ",
+                $LIBMARPA_ERROR_NAMES[$read_result];
             $marpa_token_ix++;
             $recce->earleme_complete();
             next RECCE_RESPONSE;
-        }
+        } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
         my $actual_terminal = $marpa_token->[0];
         if ($trace_terminals) {
@@ -1208,7 +1209,7 @@ sub parse {
             my @virtuals_expected =
                 sort { $optional_terminals{$a} <=> $optional_terminals{$b} }
                 grep { defined $optional_terminals{$_} }
-		map { $grammar->symbol_name($_) }
+                map  { $grammar->symbol_name($_) }
                 $recce->terminals_expected();
             if ($trace_conflicts) {
                 say {$trace_fh} 'Conflict of virtual choices'
@@ -1298,7 +1299,7 @@ sub parse {
                 $virtual_terminal = $candidate;
                 last LOOKAHEAD_VIRTUAL_TERMINAL;
 
-            } ## end while ( my $candidate = pop @virtuals_expected )
+            } ## end LOOKAHEAD_VIRTUAL_TERMINAL: while ( my $candidate = pop @virtuals_expected )
 
             if ($trace_terminals) {
                 say {$trace_fh} 'Converting Token: ', $actual_terminal
@@ -1369,13 +1370,14 @@ sub parse {
         } ## end FIND_VIRTUAL_TOKEN:
 
         if ( defined $virtual_token_to_add ) {
-	    my $marpa_symbol_id = $grammar->thin_symbol( $virtual_token_to_add->[0] );
-	    $recce->ruby_slippers_set(0);
-	    $recce->alternative( $marpa_symbol_id, $marpa_token_ix, 1 );
-	    $recce->ruby_slippers_set(1);
+            my $marpa_symbol_id =
+                $grammar->thin_symbol( $virtual_token_to_add->[0] );
+            $recce->ruby_slippers_set(0);
+            $recce->alternative( $marpa_symbol_id, $marpa_token_ix, 1 );
+            $recce->ruby_slippers_set(1);
             $recce->earleme_complete();
             next RECCE_RESPONSE;
-        }
+        } ## end if ( defined $virtual_token_to_add )
 
         # If we didn't find a token to add, add the
         # current physical token as CRUFT.
@@ -1403,7 +1405,7 @@ sub parse {
                 or Carp::croak("Cannot print: $ERRNO");
         } ## end if ($trace_cruft)
 
-    } ## end while ( defined $marpa_token )
+    } ## end RECCE_RESPONSE: while (1)
 
     if ($trace_terminals) {
         say {$trace_fh} 'at end of tokens'
@@ -1440,7 +1442,7 @@ sub parse {
         } ## end if ($pseudoclass_action)
         $closure{$pseudoclass_action_name} =
             \&Marpa::R2::HTML::Internal::default_action;
-    } ## end for my $pseudoclass (...)
+    } ## end PSEUDO_CLASS: for my $pseudoclass (...)
 
     while ( my ( $element_action, $element ) = each %element_actions ) {
         $closure{$element_action} = create_tdesc_handler( $self, $element );
@@ -1467,46 +1469,61 @@ sub parse {
         # }
         # $pseudoclass_action //= \&Marpa::R2::HTML::Internal::default_action;
         # $closure{$element_action} = $pseudoclass_action;
-    } ## end while ( my ( $element_action, $data ) = each ...)
+    } ## end ELEMENT_ACTION: while ( my ( $element_action, $data ) = each ...)
 
-    my $value = do {
-        local $Marpa::R2::HTML::Internal::PARSE_INSTANCE = $self;
-        local $Marpa::R2::HTML::INSTANCE                 = {};
-	my $latest_earley_set_ID = $recce->latest_earley_set();
-my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
-my $order         = Marpa::R2::Thin::O->new($bocage);
-my $tree          = Marpa::R2::Thin::T->new($order);
-$tree->next();
-my @actual_values = ();
-{
+    local $Marpa::R2::HTML::Internal::PARSE_INSTANCE = $self;
+    local $Marpa::R2::HTML::INSTANCE                 = {};
+    my $latest_earley_set_ID = $recce->latest_earley_set();
+    my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+    my $order  = Marpa::R2::Thin::O->new($bocage);
+    my $tree   = Marpa::R2::Thin::T->new($order);
+    $tree->next();
+    my @stack    = ();
     my $valuator = Marpa::R2::Thin::V->new($tree);
     for my $rule_id ( $grammar->rule_ids() ) {
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
-    my @stack = ();
     STEP: while (1) {
         my ( $type, @step_data ) = $valuator->step();
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
-            say STDERR ( $type, @step_data );
+            say STDERR join " ", ( $type, @step_data );
             my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            $stack[$arg_n] = $marpa_tokens[$token_value_ix];
+            $stack[$arg_n] = $marpa_tokens[$token_value_ix]->[1];
+	    say "Stack:\n", Data::Dumper::Dumper(\@stack);
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-            say STDERR ( $type, $rule_id, $arg_0, $arg_n );
-
-            # die "Unknown rule $rule_id";
+            say STDERR join " ", ( $type, $rule_id, $arg_0, $arg_n );
+            say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
+            my $action = $grammar->action($rule_id);
+            say STDERR "action for rule $rule_id: ", ( $action // 'undef' );
+            my $closure =
+                defined $action
+                ? $closure{$action}
+                : \&Marpa::R2::HTML::Internal::default_action;
+            die "No closure for action: $action" if not defined $closure;
+            $stack[$arg_0] = $closure->(undef, @stack[$arg_0 .. $arg_n]);
+	    say "Stack:\n", Data::Dumper::Dumper(\@stack);
+            ## die "Unknown rule $rule_id";
+            next STEP;
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
+        if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
+            my ( $symbol_id, $arg_n ) = @step_data;
+            say STDERR join " ", $type, @step_data,
+                $grammar->symbol_name($symbol_id);
+            my $symbol_name = $grammar->symbol_name($symbol_id);
+            $stack[$arg_n] = [ [ 'POINT', undef ] ];
+	    say "Stack:\n", Data::Dumper::Dumper(\@stack);
+            next STEP;
+        } ## end if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' )
         die "Unexpected step type: $type";
     } ## end STEP: while (1)
-    push @actual_values, $stack[0];
-} ## end while ( $tree->next() )
-    };
+    my $value = $stack[0];
     Marpa::R2::exception('No parse: evaler returned undef')
         if not defined $value;
-    return ${$value};
+    return \$value;
 
 } ## end sub parse
 

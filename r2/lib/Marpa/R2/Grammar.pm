@@ -856,6 +856,14 @@ sub Marpa::R2::Grammar::rule {
     return map { $grammar->symbol_name($_) } @symbol_ids;
 } ## end sub Marpa::R2::Grammar::rule
 
+sub Marpa::R2::Grammar::action {
+    my ( $grammar, $rule_id ) = @_;
+    my $rules = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $rule  = $rules->[$rule_id];
+    Marpa::R2::exception("No such rule ID: $rule_id") if not defined $rule;
+    return $rule->[Marpa::R2::Internal::Rule::ACTION];
+} ## end sub Marpa::R2::Grammar::action
+
 sub Marpa::R2::Grammar::show_dotted_rule {
     my ( $grammar, $rule_id, $dot_position ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
