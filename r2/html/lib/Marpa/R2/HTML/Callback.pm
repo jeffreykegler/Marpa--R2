@@ -320,10 +320,14 @@ sub Marpa::R2::HTML::literal {
 
 sub Marpa::R2::HTML::offset {
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::R2::exception('Attempt to read offset outside of a parse instance')
-        if not defined $parse_instance;
+    my $valuator = $Marpa::R2::HTML::Internal::VALUATOR;
+    my $recce = $Marpa::R2::HTML::Internal::RECCE;
+    Marpa::R2::exception('Attempt to read offset, but no evaluation in progress')
+        if not defined $valuator;
+    my $earley_set_id = $valuator->es_id();
+    my $earleme = $recce->earleme();
     return Marpa::R2::HTML::Internal::earleme_to_offset( $parse_instance,
-        $Marpa::R2::HTML::Internal::PER_NODE_DATA->{first_token_id} );
+        $earleme);
 } ## end sub Marpa::R2::HTML::offset
 
 sub Marpa::R2::HTML::original {

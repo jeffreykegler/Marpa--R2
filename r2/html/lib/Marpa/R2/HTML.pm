@@ -232,6 +232,8 @@ sub create_tdesc_handler {
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
 
+	say STDERR 'created hander for element: ', ($element // 'undef');
+
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         return undef if not scalar @tdesc_list;
         local $Marpa::R2::HTML::Internal::TDESC_LIST = \@tdesc_list;
@@ -455,21 +457,13 @@ sub wrap_user_tdesc_handler {
 } ## end sub wrap_user_tdesc_handler
 
 sub earleme_to_linecol {
-    my ( $self, $token_offset ) = @_;
+    my ( $self, $earleme ) = @_;
     my $html_parser_tokens = $self->{tokens};
+    my $html_token_ix = $self->{earleme_to_html_token_ix}->[$earleme] + 1;
 
-    # Special start of file for undefined offset
-    if ( not defined $token_offset ) {
-        return ( 1, 0 );
-    }
+    die if not defined $html_token_ix;
 
-    # Special case needed for a token offset after the last
-    # token.  This happens with the EOF.
-    if ( $token_offset < 0 or $token_offset > $#{$html_parser_tokens} ) {
-        $token_offset = $#{$html_parser_tokens};
-    }
-
-    return @{ $html_parser_tokens->[$token_offset] }[
+    return @{ $html_parser_tokens->[$html_token_ix] }[
         Marpa::R2::HTML::Internal::Token::LINE,
         Marpa::R2::HTML::Internal::Token::COLUMN,
     ];
@@ -477,27 +471,14 @@ sub earleme_to_linecol {
 } ## end sub earleme_to_linecol
 
 sub earleme_to_offset {
-
-    my ( $self, $token_offset ) = @_;
+    my ( $self, $earleme ) = @_;
     my $html_parser_tokens = $self->{tokens};
+    my $html_token_ix = $self->{earleme_to_html_token_ix}->[$earleme] + 1;
 
-    # Special start of file for undefined offset
-    if ( not defined $token_offset ) {
-        return 0;
-    }
+    die if not defined $html_token_ix;
 
-    # Special case needed for a token offset after the last
-    # token.  This happens with the EOF.
-    my $offset;
-    if ( $token_offset < 0 or $token_offset > $#{$html_parser_tokens} ) {
-        $offset = length ${ $self->{document} };
-    }
-    else {
-        $offset =
-            $html_parser_tokens->[$token_offset]
-            ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
-    }
-    return $offset;
+    return $html_parser_tokens->[$html_token_ix]
+        ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
 
 } ## end sub earleme_to_offset
 
@@ -1169,6 +1150,7 @@ sub parse {
 
     $self->{recce}  = $recce;
     $self->{tokens} = \@html_parser_tokens;
+    $self->{earleme_to_html_token_ix} = [-1];
 
     # These variables track virtual start tokens as
     # a protection against infinite loops.
@@ -1179,6 +1161,7 @@ sub parse {
     # this is done because 0 has a special meaning as a Libmarpa
     # token value
     my $marpa_token_ix = 1;
+    my $latest_html_token = -1;
     RECCE_RESPONSE: while (1) {
         my $marpa_token = $marpa_tokens[$marpa_token_ix];
         last RECCE_RESPONSE if not defined $marpa_token;
@@ -1193,6 +1176,11 @@ sub parse {
                 $LIBMARPA_ERROR_NAMES[$read_result];
             $marpa_token_ix++;
             $recce->earleme_complete();
+	    my $last_html_token_of_marpa_token //= $marpa_token->[1]->[0]->[2];
+	    if (defined $last_html_token_of_marpa_token) {
+	        $latest_html_token = $last_html_token_of_marpa_token;
+	    }
+	    $self->{earleme_to_html_token_ix}->[$recce->current_earleme()] = $latest_html_token;
             next RECCE_RESPONSE;
         } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
@@ -1376,6 +1364,8 @@ sub parse {
             $recce->alternative( $marpa_symbol_id, $marpa_token_ix, 1 );
             $recce->ruby_slippers_set(1);
             $recce->earleme_complete();
+            $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
+                $latest_html_token;
             next RECCE_RESPONSE;
         } ## end if ( defined $virtual_token_to_add )
 
@@ -1422,10 +1412,17 @@ sub parse {
             : \&Marpa::R2::HTML::Internal::default_top_handler;
     } ## end if ( defined( my $user_top_handler = $self->{...}))
 
-    if ( defined $self->{user_handlers_by_class}->{ANY}->{ANY} ) {
-        $closure{'!DEFAULT_ELE_handler'} =
+    my $default_element_closure;
+    {
+        my $default_element_handler =
             $self->{user_handlers_by_class}->{ANY}->{ANY};
+        $default_element_closure =
+            defined $default_element_handler
+            ? wrap_user_tdesc_handler($default_element_handler)
+            : \&Marpa::R2::HTML::Internal::default_top_handler;
     }
+
+    say STDERR "default_element_closure = ", ($default_element_closure//'undef');
 
     PSEUDO_CLASS:
     for my $pseudoclass (
@@ -1480,6 +1477,8 @@ sub parse {
     $tree->next();
     my @stack    = ();
     my $valuator = Marpa::R2::Thin::V->new($tree);
+    local $Marpa::R2::HTML::Internal::RECCE = $recce;
+    local $Marpa::R2::HTML::Internal::VALUATOR = $valuator;
     for my $rule_id ( $grammar->rule_ids() ) {
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
@@ -1490,7 +1489,6 @@ sub parse {
             say STDERR join " ", ( $type, @step_data );
             my ( undef, $token_value_ix, $arg_n ) = @step_data;
             $stack[$arg_n] = $marpa_tokens[$token_value_ix]->[1];
-	    say "Stack:\n", Data::Dumper::Dumper(\@stack);
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
@@ -1499,13 +1497,24 @@ sub parse {
             say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
             my $action = $grammar->action($rule_id);
             say STDERR "action for rule $rule_id: ", ( $action // 'undef' );
-            my $closure =
-                defined $action
-                ? $closure{$action}
-                : \&Marpa::R2::HTML::Internal::default_action;
-            die "No closure for action: $action" if not defined $closure;
+	    say STDERR "available closures: ", join " ", keys %closure;
+	    my $closure;
+	    FIND_CLOSURE: {
+		if ( defined $action ) {
+		    say STDERR "handler found by action name: $action";
+		    $closure = $closure{$action};
+		    last FIND_CLOSURE;
+		}
+		my ($lhs) = $grammar->rule($rule_id);
+		say STDERR "LHS=$lhs";
+		if ( $lhs =~ /\A ELE_ /xms ) {
+		    $closure = $default_element_closure;
+		    say STDERR "using default element closure" if defined $closure;
+		}
+		  say STDERR "using default action " if not defined $closure;
+		$closure //= \&Marpa::R2::HTML::Internal::default_action;
+	    } ## end FIND_CLOSURE:
             $stack[$arg_0] = $closure->(undef, @stack[$arg_0 .. $arg_n]);
-	    say "Stack:\n", Data::Dumper::Dumper(\@stack);
             ## die "Unknown rule $rule_id";
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
@@ -1515,15 +1524,18 @@ sub parse {
                 $grammar->symbol_name($symbol_id);
             my $symbol_name = $grammar->symbol_name($symbol_id);
             $stack[$arg_n] = [ [ 'POINT', undef ] ];
-	    say "Stack:\n", Data::Dumper::Dumper(\@stack);
+	    # say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' )
         die "Unexpected step type: $type";
     } ## end STEP: while (1)
+
+    say STDERR "Self:\n", Data::Dumper::Dumper($self);
+
     my $value = $stack[0];
     Marpa::R2::exception('No parse: evaler returned undef')
         if not defined $value;
-    return \$value;
+    return $value;
 
 } ## end sub parse
 
