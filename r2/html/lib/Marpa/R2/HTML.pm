@@ -51,6 +51,10 @@ use Marpa::R2;
         if $submodule_version != $Marpa::R2::HTML::VERSION;
 }
 
+# constants
+our $PHYSICAL_TOKEN = 42;
+our $RUBY_SLIPPERS_TOKEN = 43;
+
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::R2::HTML::Internal::TDesc
@@ -857,6 +861,12 @@ use strict;
     ( map { $_ => 'empty' } keys %Marpa::R2::HTML::Internal::EMPTY_ELEMENT ),
 );
 
+sub find_handler {
+   my ( $self, $rule_id, $class ) = @_;
+   say STDERR qq{Looking for handler for rule $rule_id and class "$class"};
+   return undef;
+}
+
 sub parse {
     my ( $self, $document_ref ) = @_;
 
@@ -1164,7 +1174,7 @@ sub parse {
         say STDERR "token = ", $marpa_token->[0];
         my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
         my $read_result =
-            $recce->alternative( $marpa_symbol_id, $marpa_token_ix, 1 );
+            $recce->alternative( $marpa_symbol_id, $PHYSICAL_TOKEN, 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
             say "UNEXPECTED_TOKEN_ID = ", $UNEXPECTED_TOKEN_ID;
             say STDERR "result = $read_result ",
@@ -1356,7 +1366,7 @@ sub parse {
             my $marpa_symbol_id =
                 $grammar->thin_symbol( $virtual_token_to_add->[0] );
             $recce->ruby_slippers_set(0);
-            $recce->alternative( $marpa_symbol_id, $marpa_token_ix, 1 );
+            $recce->alternative( $marpa_symbol_id, $RUBY_SLIPPERS_TOKEN, 1 );
             $recce->ruby_slippers_set(1);
             $recce->earleme_complete();
             $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
@@ -1492,14 +1502,32 @@ sub parse {
         my ( $type, @step_data ) = $valuator->step();
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
-            say STDERR join " ", ( $type, @step_data );
-            my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            $stack[$arg_n] = $marpa_tokens[$token_value_ix]->[1];
+            say STDERR join " ", $type, @step_data , $grammar->symbol_name($step_data[0]);
+            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
+            my ( undef, $token_value, $arg_n ) = @step_data;
+	    if ( $token_value == $RUBY_SLIPPERS_TOKEN ) {
+		$stack[$arg_n] = [ ['POINT'] ];
+		next STEP;
+	    }
+            my ( $start_earley_set_id, $end_earley_set_id ) =
+                $valuator->location();
+            my $start_earleme = $recce->earleme($start_earley_set_id);
+            my $start_html_token_ix =
+                $self->{earleme_to_html_token_ix}->[$start_earleme];
+            my $end_earleme = $recce->earleme($end_earley_set_id);
+            my $end_html_token_ix =
+                $self->{earleme_to_html_token_ix}->[$end_earleme];
+            $stack[$arg_n] = [
+                [   'UNVALUED_SPAN' => $start_html_token_ix,
+                    $end_html_token_ix
+                ]
+            ];
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
+            say STDERR join " ", ( $type, @step_data );
+	    say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-            say STDERR join " ", ( $type, $rule_id, $arg_0, $arg_n );
             say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
 
 	    my $attributes = undef;
@@ -1531,17 +1559,18 @@ sub parse {
 	    my $end_earleme = $recce->earleme($end_earley_set_id);
 	    my $end_html_token_ix = $self->{earleme_to_html_token_ix}->[$end_earleme];
 
-	    say STDERR "Looking for memoized handler: ",
-		$rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
+	    my $handler_key = $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
+	    say STDERR "Looking for memoized handler: $handler_key";
 
-	    my $handler = $memoized_handlers{ $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS };
+	    my $handler = $memoized_handlers{ $handler_key };
 
 	    say STDERR "Found memoized handler: ",
 		$rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS
 		if defined $handler;
 
-	    if (not defined $handler) {
-	        $handler = undef;
+	    if ( not defined $handler ) {
+		$handler = $memoized_handlers{$handler_key} =
+		    find_handler( $self, $rule_id, $class );
 	    }
 
 	    if ( defined $handler ) {
@@ -1554,31 +1583,15 @@ sub parse {
 		next STEP;
 	    } ## end if ( defined $handler )
 
-	    my $closure;
+	    die "No handler";
 
-	    FIND_CLOSURE: {
-		if ( defined $action ) {
-		    say STDERR "handler found by action name: $action";
-		    $closure = $closure{$action};
-		    last FIND_CLOSURE;
-		}
-		my ($lhs) = $grammar->rule($rule_id);
-		say STDERR "LHS=$lhs";
-		if ( $lhs =~ /\A ELE_ /xms ) {
-		    $closure = $default_element_closure;
-		    say STDERR "using default element closure" if defined $closure;
-		}
-		  say STDERR "using default action " if not defined $closure;
-		$closure //= \&Marpa::R2::HTML::Internal::default_action;
-	    } ## end FIND_CLOSURE:
-            $stack[$arg_0] = $closure->(undef, @stack[$arg_0 .. $arg_n]);
-            ## die "Unknown rule $rule_id";
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
         if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $symbol_id, $arg_n ) = @step_data;
             say STDERR join " ", $type, @step_data,
                 $grammar->symbol_name($symbol_id);
+	    say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
             my $symbol_name = $grammar->symbol_name($symbol_id);
             $stack[$arg_n] = [ [ 'POINT', undef ] ];
 	    # say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
