@@ -501,7 +501,6 @@ sub add_handler {
         "Long form handler description should be ref to hash, but it is $ref_type"
     ) if $ref_type ne 'HASH';
     my $element     = delete $handler_description->{element};
-    my $id          = delete $handler_description->{id};
     my $class       = delete $handler_description->{class};
     my $pseudoclass = delete $handler_description->{pseudoclass};
     my $action      = delete $handler_description->{action};
@@ -515,16 +514,14 @@ sub add_handler {
 
     $element = ( not $element or $element eq q{*} ) ? 'ANY' : lc $element;
     if ( defined $pseudoclass ) {
+        $self->{memoized_handlers}->{ q{;:} . $pseudoclass } = $action;
         $self->{user_handlers_by_pseudoclass}->{$element}->{$pseudoclass} =
             $action;
         return 1;
-    }
+    } ## end if ( defined $pseudoclass )
 
-    if ( defined $id ) {
-        $self->{user_handlers_by_id}->{$element}->{ lc $id } = $action;
-        return 1;
-    }
     $class = defined $class ? lc $class : 'ANY';
+    $self->{memoized_handlers}->{ join q{;}, $element, $class } = $action;
     $self->{user_handlers_by_class}->{$element}->{$class} = $action;
     return 1;
 } ## end sub add_handler
@@ -544,10 +541,9 @@ sub add_handlers_from_hashes {
 sub add_handlers {
     my ( $self, $handler_specs ) = @_;
     HANDLER_SPEC: for my $specifier ( keys %{$handler_specs} ) {
-        my ( $element, $id, $class, $pseudoclass );
+        my ( $element, $class, $pseudoclass );
         my $action = $handler_specs->{$specifier};
-        ( $element, $id ) = ( $specifier =~ /\A ([^#]*) [#] (.*) \z/xms )
-            or ( $element, $class ) =
+	( $element, $class ) =
                ( $specifier =~ /\A ([^.]*) [.] (.*) \z/xms )
             or ( $element, $pseudoclass ) =
             ( $specifier =~ /\A ([^:]*) [:] (.*) \z/xms )
@@ -571,7 +567,6 @@ sub add_handlers {
         add_handler(
             $self,
             {   element     => $element,
-                id          => $id,
                 class       => $class,
                 pseudoclass => $pseudoclass,
                 action      => $action
@@ -799,16 +794,16 @@ END_OF_BNF
 @Marpa::R2::HTML::Internal::CORE_RULES = ();
 
 my %handler = (
-    cruft      => '!CRUFT_handler',
-    comment    => '!COMMENT_handler',
-    pi         => '!PI_handler',
-    decl       => '!DECL_handler',
-    document   => '!TOP_handler',
-    whitespace => '!WHITESPACE_handler',
-    pcdata     => '!PCDATA_handler',
-    cdata      => '!CDATA_handler',
-    prolog     => '!PROLOG_handler',
-    trailer    => '!TRAILER_handler',
+    cruft      => 'MOL_CRUFT',
+    comment    => 'MOL_COMMENT',
+    pi         => 'MOL_PI',
+    decl       => 'MOL_DECL',
+    document   => 'MOL_TOP',
+    whitespace => 'MOL_WHITESPACE',
+    pcdata     => 'MOL_PCDATA',
+    cdata      => 'MOL_CDATA',
+    prolog     => 'MOL_PROLOG',
+    trailer    => 'MOL_TRAILER',
 );
 
 for my $bnf_production ( split /\n/xms, $BNF ) {
@@ -827,7 +822,7 @@ for my $bnf_production ( split /\n/xms, $BNF ) {
         $rule_descriptor{action} = $handler;
     }
     elsif ( $lhs =~ /^ELE_/xms ) {
-        $rule_descriptor{action} = "!$lhs";
+        $rule_descriptor{action} = "$lhs";
     }
     push @Marpa::R2::HTML::Internal::CORE_RULES, \%rule_descriptor;
 } ## end for my $bnf_production ( split /\n/xms, $BNF )
@@ -986,7 +981,7 @@ sub parse {
     # start and end tags
     for my $special_element (qw(html head body table tbody tr td)) {
         delete $start_tags{$special_element};
-        $element_actions{"!ELE_$special_element"} = $special_element;
+        $element_actions{"ELE_$special_element"} = $special_element;
     }
 
     ELEMENT: for ( keys %start_tags ) {
@@ -1004,7 +999,7 @@ sub parse {
             {
             lhs    => "ELE_$_",
             rhs    => [ $start_tag, $contents, $end_tag ],
-            action => "!ELE_$_",
+            action => "ELE_$_",
             };
 
         # There may be no
@@ -1018,7 +1013,7 @@ sub parse {
         # Make each new optional terminal the highest ranking
         $optional_terminals{$end_tag} = keys %optional_terminals;
 
-        $element_actions{"!ELE_$_"} = $_;
+        $element_actions{"ELE_$_"} = $_;
     } ## end ELEMENT: for ( keys %start_tags )
 
     # The question is where to put cruft -- in the current element,
@@ -1406,7 +1401,7 @@ sub parse {
     {
         my $user_top_handler =
             $self->{user_handlers_by_pseudoclass}->{ANY}->{TOP};
-        $closure{'!TOP_handler'} =
+        $closure{'MOL_TOP'} =
             defined $user_top_handler
             ? wrap_user_top_handler($user_top_handler)
             : \&Marpa::R2::HTML::Internal::default_top_handler;
@@ -1430,7 +1425,7 @@ sub parse {
     {
         my $pseudoclass_action =
             $self->{user_handlers_by_pseudoclass}->{ANY}->{$pseudoclass};
-        my $pseudoclass_action_name = "!$pseudoclass" . '_handler';
+        my $pseudoclass_action_name = "MOL_$pseudoclass";
         if ($pseudoclass_action) {
             $closure{$pseudoclass_action_name} =
                 wrap_user_tdesc_handler( $pseudoclass_action,
@@ -1475,11 +1470,22 @@ sub parse {
     my $order  = Marpa::R2::Thin::O->new($bocage);
     my $tree   = Marpa::R2::Thin::T->new($order);
     $tree->next();
+
     my @stack    = ();
+    my %memoized_handlers = ();
+
     my $valuator = Marpa::R2::Thin::V->new($tree);
     local $Marpa::R2::HTML::Internal::RECCE = $recce;
     local $Marpa::R2::HTML::Internal::VALUATOR = $valuator;
+
+    # Track whether this rule is for an element with
+    # a start tag
+    my @rule_has_start_tag;
+
     for my $rule_id ( $grammar->rule_ids() ) {
+	my ($lhs, $start_tag) = $grammar->rule($rule_id);
+	$rule_has_start_tag[$rule_id] = 1
+	    if $lhs =~ /\A ELE_ /xms and $start_tag =~ /\A S_ /xms;
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
     STEP: while (1) {
@@ -1495,10 +1501,61 @@ sub parse {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
             say STDERR join " ", ( $type, $rule_id, $arg_0, $arg_n );
             say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
+
+	    my $attributes = undef;
+	    my $class = undef;
+	    if ( $rule_has_start_tag[$rule_id] ) {
+		my $start_tag_marpa_token = $stack[$arg_0]->[0];
+		say STDERR Data::Dumper::Dumper($start_tag_marpa_token);
+		if ( $start_tag_marpa_token->[0] eq 'UNVALUED_SPAN' ) {
+		    my $start_tag_html_token_ix = $start_tag_marpa_token->[1];
+		    my $start_tag_token         = $html_parser_tokens[$start_tag_html_token_ix];
+		    say STDERR Data::Dumper::Dumper($start_tag_token);
+		    $attributes =
+			$start_tag_token->[Marpa::R2::HTML::Internal::Token::ATTR];
+		    $class = $attributes->{class};
+		} ## end if ( $start_tag_marpa_token->[0] eq 'UNVALUED_SPAN' )
+	    } ## end if ( $rule_has_start_tag[$rule_id] )
+	    local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
+	    local $Marpa::R2::HTML::Internal::CLASS = $attributes->{class};
+	    say STDERR "class = ", $Marpa::R2::HTML::Internal::CLASS;
+
             my $action = $grammar->action($rule_id);
             say STDERR "action for rule $rule_id: ", ( $action // 'undef' );
-	    say STDERR "available closures: ", join " ", keys %closure;
+	    my ($start_earley_set_id, $end_earley_set_id) = $valuator->location();
+	    say STDERR "start earley set = ", $start_earley_set_id;
+	    say STDERR "end earley set = ", $end_earley_set_id;
+
+	    my $start_earleme = $recce->earleme($start_earley_set_id);
+	    my $start_html_token_ix = $self->{earleme_to_html_token_ix}->[$start_earleme];
+	    my $end_earleme = $recce->earleme($end_earley_set_id);
+	    my $end_html_token_ix = $self->{earleme_to_html_token_ix}->[$end_earleme];
+
+	    say STDERR "Looking for memoized handler: ",
+		$rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
+
+	    my $handler = $memoized_handlers{ $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS };
+
+	    say STDERR "Found memoized handler: ",
+		$rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS
+		if defined $handler;
+
+	    if (not defined $handler) {
+	        $handler = undef;
+	    }
+
+	    if ( defined $handler ) {
+		$stack[$arg_0] = [
+		    [   VALUED_SPAN => $start_html_token_ix,
+			$end_html_token_ix,
+			( scalar $handler->() ),
+		    ]
+		];
+		next STEP;
+	    } ## end if ( defined $handler )
+
 	    my $closure;
+
 	    FIND_CLOSURE: {
 		if ( defined $action ) {
 		    say STDERR "handler found by action name: $action";

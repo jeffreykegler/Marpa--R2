@@ -324,8 +324,8 @@ sub Marpa::R2::HTML::offset {
     my $recce = $Marpa::R2::HTML::Internal::RECCE;
     Marpa::R2::exception('Attempt to read offset, but no evaluation in progress')
         if not defined $valuator;
-    my $earley_set_id = $valuator->es_id();
-    my $earleme = $recce->earleme();
+    my ($earley_set_id) = $valuator->location();
+    my $earleme = $recce->earleme($earley_set_id);
     return Marpa::R2::HTML::Internal::earleme_to_offset( $parse_instance,
         $earleme);
 } ## end sub Marpa::R2::HTML::offset
