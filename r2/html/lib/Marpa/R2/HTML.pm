@@ -52,8 +52,6 @@ use Marpa::R2;
 }
 
 # constants
-our $PHYSICAL_TOKEN = 42;
-our $RUBY_SLIPPERS_TOKEN = 43;
 
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
@@ -121,73 +119,6 @@ use Marpa::R2::HTML::Callback;
         if $submodule_version != $Marpa::R2::HTML::VERSION;
 }
 
-sub tdesc_list_to_literal {
-    my ( $self, $tdesc_list ) = @_;
-
-    my $text     = q{};
-    my $document = $self->{document};
-    my $tokens   = $self->{tokens};
-    TDESC: for my $tdesc ( @{$tdesc_list} ) {
-        given ( $tdesc->[Marpa::R2::HTML::Internal::TDesc::TYPE] ) {
-            when ('POINT') { break; }
-            when ('VALUED_SPAN') {
-                if (defined(
-                        my $value = $tdesc->[
-                            Marpa::R2::HTML::Internal::TDesc::Element::VALUE]
-                    )
-                    )
-                {
-                    $text .= $value;
-                    break;    # next TDESC;
-                } ## end if ( defined( my $value = $tdesc->[...]))
-
-                # next TDESC if no first token id
-                #<<< As of 2009-11-22 perltidy cycles on this code
-                break
-                    if not defined( my $first_token_id = $tdesc
-                        ->[ Marpa::R2::HTML::Internal::TDesc::START_TOKEN ] );
-                #>>>
-
-                # next TDESC if no last token id
-                #<<< As of 2009-11-22 perltidy cycles on this code
-                break
-                    if not defined( my $last_token_id =
-                        $tdesc->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN] );
-                #>>>
-
-                my $offset =
-                    $tokens->[$first_token_id]
-                    ->[Marpa::R2::HTML::Internal::Token::START_OFFSET];
-                my $end_offset =
-                    $tokens->[$last_token_id]
-                    ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
-                $text .= substr ${$document}, $offset,
-                    ( $end_offset - $offset );
-            } ## end when ('VALUED_SPAN')
-            when ('UNVALUED_SPAN') {
-                my $first_token_id =
-                    $tdesc->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
-                my $last_token_id =
-                    $tdesc->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN];
-                my $offset =
-                    $tokens->[$first_token_id]
-                    ->[Marpa::R2::HTML::Internal::Token::START_OFFSET];
-                my $end_offset =
-                    $tokens->[$last_token_id]
-                    ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
-
-                $text .= substr ${$document}, $offset,
-                    ( $end_offset - $offset );
-            } ## end when ('UNVALUED_SPAN')
-            default {
-                Marpa::R2::exception(
-                    qq{Internal error: unknown tdesc type "$_"});
-            }
-        } ## end given
-    } ## end for my $tdesc ( @{$tdesc_list} )
-    return \$text;
-} ## end sub tdesc_list_to_literal
-
 # Convert a list of text descriptions to text
 sub default_top_handler {
     my ( $dummy, @tdesc_lists ) = @_;
@@ -206,39 +137,6 @@ sub wrap_user_top_handler {
         return scalar $user_handler->();
     };
 } ## end sub wrap_user_top_handler
-
-sub wrap_user_tdesc_handler {
-    my ( $user_handler, $per_node_data ) = @_;
-
-    return sub {
-        my ( $dummy, @tdesc_lists ) = @_;
-        my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
-        return undef if not scalar @tdesc_list;
-        my @token_ids = sort { $a <=> $b } grep {defined} map {
-            @{$_}[
-                Marpa::R2::HTML::Internal::TDesc::START_TOKEN,
-                Marpa::R2::HTML::Internal::TDesc::END_TOKEN
-                ]
-        } @tdesc_list;
-
-        my $first_token_id = $token_ids[0];
-        my $last_token_id  = $token_ids[-1];
-        $per_node_data //= {};
-        $per_node_data->{first_token_id} = $first_token_id;
-        $per_node_data->{last_token_id}  = $last_token_id;
-
-        # scalar context needed for the user handler
-        # because so that a bare return returns undef
-        # and not an empty list.
-        return [
-            [   VALUED_SPAN => $first_token_id,
-                $last_token_id, ( scalar $user_handler->() ),
-                $per_node_data
-            ]
-        ];
-
-    };
-} ## end sub wrap_user_tdesc_handler
 
 sub earleme_to_linecol {
     my ( $self, $earleme ) = @_;
@@ -977,7 +875,7 @@ sub parse {
         say STDERR "token = ", $marpa_token->[0];
         my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
         my $read_result =
-            $recce->alternative( $marpa_symbol_id, $PHYSICAL_TOKEN, 1 );
+            $recce->alternative( $marpa_symbol_id, 'PHYSICAL_TOKEN', 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
             say "UNEXPECTED_TOKEN_ID = ", $UNEXPECTED_TOKEN_ID;
             say STDERR "result = $read_result ",
@@ -1169,7 +1067,7 @@ sub parse {
             my $marpa_symbol_id =
                 $grammar->thin_symbol( $virtual_token_to_add->[0] );
             $recce->ruby_slippers_set(0);
-            $recce->alternative( $marpa_symbol_id, $RUBY_SLIPPERS_TOKEN, 1 );
+            $recce->alternative( $marpa_symbol_id, 'RUBY_SLIPPERS_TOKEN', 1 );
             $recce->ruby_slippers_set(1);
             $recce->earleme_complete();
             $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
@@ -1242,8 +1140,8 @@ sub parse {
             say STDERR join " ", $type, @step_data , $grammar->symbol_name($step_data[0]);
             say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             my ( undef, $token_value, $arg_n ) = @step_data;
-	    if ( $token_value == $RUBY_SLIPPERS_TOKEN ) {
-		$stack[$arg_n] = [ ['POINT'] ];
+	    if ( $token_value eq 'RUBY_SLIPPERS_TOKEN' ) {
+		$stack[$arg_n] = [ 'RUBY_SLIPPERS_TOKEN' ];
 		next STEP;
 	    }
             my ( $start_earley_set_id, $end_earley_set_id ) =
@@ -1255,7 +1153,7 @@ sub parse {
             my $end_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$end_earleme];
             $stack[$arg_n] = [
-                [   'UNVALUED_SPAN' => $start_html_token_ix,
+                [  PHYSICAL_TOKEN => $start_html_token_ix,
                     $end_html_token_ix
                 ]
             ];
@@ -1312,10 +1210,9 @@ sub parse {
 
 	    if ( defined $handler ) {
 		$stack[$arg_0] = [
-		    [   VALUED_SPAN => $start_html_token_ix,
-			$end_html_token_ix,
-			( scalar $handler->() ),
-		    ]
+		    VALUED_SPAN => $start_html_token_ix,
+		    $end_html_token_ix,
+		    ( scalar $handler->() ),
 		];
 		next STEP;
 	    } ## end if ( defined $handler )
@@ -1324,14 +1221,16 @@ sub parse {
 
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
+
         if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $symbol_id, $arg_n ) = @step_data;
             say STDERR join " ", $type, @step_data,
                 $grammar->symbol_name($symbol_id);
-	    say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
+            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             my $symbol_name = $grammar->symbol_name($symbol_id);
-            $stack[$arg_n] = [ [ 'POINT', undef ] ];
-	    # say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
+            $stack[$arg_n] = ['ZERO_SPAN'];
+
+            # say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' )
         die "Unexpected step type: $type";
