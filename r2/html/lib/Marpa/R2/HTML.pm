@@ -121,18 +121,6 @@ use Marpa::R2::HTML::Callback;
         if $submodule_version != $Marpa::R2::HTML::VERSION;
 }
 
-sub per_element_handlers {
-    my ( $element, $user_handlers ) = @_;
-    return {} if not $element;
-    return {} if not $user_handlers;
-    my $wildcard_handlers    = $user_handlers->{ANY} // {};
-    my %handlers             = %{$wildcard_handlers};
-    my $per_element_handlers = $user_handlers->{$element} // {};
-    @handlers{ keys %{$per_element_handlers} } =
-        values %{$per_element_handlers};
-    return \%handlers;
-} ## end sub per_element_handlers
-
 sub tdesc_list_to_literal {
     my ( $self, $tdesc_list ) = @_;
 
@@ -215,215 +203,9 @@ sub wrap_user_top_handler {
         my ( $dummy, @tdesc_lists ) = @_;
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         return undef if not scalar @tdesc_list;
-        local $Marpa::R2::HTML::Internal::TDESC_LIST = \@tdesc_list;
-        local $Marpa::R2::HTML::Internal::PER_NODE_DATA =
-            { pseudoclass => 'TOP' };
         return scalar $user_handler->();
     };
 } ## end sub wrap_user_top_handler
-
-# Convert a list of text descriptions to a
-# single, shortened text description
-sub create_tdesc_handler {
-    my ( $self, $element ) = @_;
-    my $handlers_by_class =
-        per_element_handlers( $element,
-        ( $self ? $self->{user_handlers_by_class} : {} ) );
-    my $handlers_by_id =
-        per_element_handlers( $element,
-        ( $self ? $self->{user_handlers_by_id} : {} ) );
-
-    return sub {
-        my ( $dummy, @tdesc_lists ) = @_;
-
-	say STDERR 'created hander for element: ', ($element // 'undef');
-
-        my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
-        return undef if not scalar @tdesc_list;
-        local $Marpa::R2::HTML::Internal::TDESC_LIST = \@tdesc_list;
-
-        my @token_ids = sort { $a <=> $b } grep {defined} map {
-            @{$_}[
-                Marpa::R2::HTML::Internal::TDesc::START_TOKEN,
-                Marpa::R2::HTML::Internal::TDesc::END_TOKEN
-                ]
-        } @tdesc_list;
-
-        my $first_token_id_in_node = $token_ids[0];
-        my $last_token_id_in_node  = $token_ids[-1];
-        my $per_node_data          = {
-            element        => $element,
-            first_token_id => $first_token_id_in_node,
-            last_token_id  => $last_token_id_in_node,
-        };
-
-        if ( $tdesc_list[0]->[Marpa::R2::HTML::Internal::TDesc::TYPE] ne
-            'POINT' )
-        {
-            $per_node_data->{start_tag_token_id} = $first_token_id_in_node;
-        }
-
-        if ( $tdesc_list[-1]->[Marpa::R2::HTML::Internal::TDesc::TYPE] ne
-            'POINT' )
-        {
-            $per_node_data->{end_tag_token_id} = $last_token_id_in_node;
-        }
-
-        local $Marpa::R2::HTML::Internal::PER_NODE_DATA = $per_node_data;
-
-        my $self           = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-        my $trace_fh       = $self->{trace_fh};
-        my $trace_handlers = $self->{trace_handlers};
-
-        my $tokens = $self->{tokens};
-
-        my $user_handler;
-        GET_USER_HANDLER: {
-            if ( my $id = Marpa::R2::HTML::id() ) {
-                if ( $user_handler = $handlers_by_id->{$id} ) {
-                    if ($trace_handlers) {
-                        say {$trace_fh}
-                            "Resolved to user handler by element ($element) and id ($id)"
-                            or Carp::croak("Cannot print: $ERRNO");
-                    }
-                    last GET_USER_HANDLER;
-                } ## end if ( $user_handler = $handlers_by_id->{$id} )
-            } ## end if ( my $id = Marpa::R2::HTML::id() )
-            if ( my $class = Marpa::R2::HTML::class() ) {
-                if ( $user_handler = $handlers_by_class->{$class} ) {
-                    if ($trace_handlers) {
-                        say {$trace_fh}
-                            "Resolved to user handler by element ($element) and class ($class)"
-                            or Carp::croak("Cannot print: $ERRNO");
-                    }
-                    last GET_USER_HANDLER;
-                } ## end if ( $user_handler = $handlers_by_class->{$class} )
-            } ## end if ( my $class = Marpa::R2::HTML::class() )
-            $user_handler = $handlers_by_class->{ANY};
-            if ( $trace_handlers and $user_handler ) {
-                say {$trace_fh} +(
-                    defined $element
-                    ? "Resolved to user handler by element ($element)"
-                    : 'Resolved to default user handler'
-                ) or Carp::croak("Cannot print: $ERRNO");
-            } ## end if ( $trace_handlers and $user_handler )
-        } ## end GET_USER_HANDLER:
-
-        if ( defined $user_handler ) {
-
-            # scalar context needed for the user handler
-            # because so that a bare return returns undef
-            # and not an empty list.
-            return [
-                [   VALUED_SPAN => $first_token_id_in_node,
-                    $last_token_id_in_node, ( scalar $user_handler->() ),
-                    $per_node_data
-                ]
-            ];
-        } ## end if ( defined $user_handler )
-
-        my $doc          = $self->{doc};
-        my @tdesc_result = ();
-
-        my $first_token_id_in_current_span;
-        my $last_token_id_in_current_span;
-
-        TDESC: for my $tdesc ( @tdesc_list, ['FINAL'] ) {
-
-            my $next_tdesc;
-            my $first_token_id;
-            my $last_token_id;
-            PARSE_TDESC: {
-                my $ref_type = ref $tdesc;
-                if ( not $ref_type or $ref_type ne 'ARRAY' ) {
-                    $next_tdesc = $tdesc;
-                    last PARSE_TDESC;
-                }
-                given ( $tdesc->[Marpa::R2::HTML::Internal::TDesc::TYPE] ) {
-                    when ('POINT') { break; }
-                    when ('VALUED_SPAN') {
-                        if (not defined(
-                                my $value = $tdesc->[
-                                    Marpa::R2::HTML::Internal::TDesc::Element::VALUE
-                                ]
-                            )
-                            )
-                        {
-                            #<<< As of 2009-11-22 pertidy cycles on this
-                            $first_token_id = $tdesc->[
-                                Marpa::R2::HTML::Internal::TDesc::START_TOKEN ];
-                            $last_token_id =
-                                $tdesc
-                                ->[ Marpa::R2::HTML::Internal::TDesc::END_TOKEN
-                                ];
-                            #>>>
-                            break;    # last PARSE_TDESC;
-                        } ## end if ( not defined( my $value = $tdesc->[ ...]))
-                        $next_tdesc = $tdesc;
-                    } ## end when ('VALUED_SPAN')
-                    when ('FINAL') {
-                        $next_tdesc = $tdesc;
-                    }
-                    when ('UNVALUED_SPAN') {
-                        $first_token_id = $tdesc
-                            ->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
-                        $last_token_id = $tdesc
-                            ->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN];
-                    } ## end when ('UNVALUED_SPAN')
-                    default {
-                        Marpa::R2::exception(
-                            "Unknown text description type: $_");
-                    }
-                } ## end given
-            } ## end PARSE_TDESC:
-
-            if ( defined $first_token_id and defined $last_token_id ) {
-                if ( defined $first_token_id_in_current_span ) {
-                    if ( $first_token_id
-                        <= $last_token_id_in_current_span + 1 )
-                    {
-                        $last_token_id_in_current_span = $last_token_id;
-                        next TDESC;
-                    } ## end if ( $first_token_id <= ...)
-                    push @tdesc_result,
-                        [
-                        'UNVALUED_SPAN',
-                        $first_token_id_in_current_span,
-                        $last_token_id_in_current_span
-                        ];
-                } ## end if ( defined $first_token_id_in_current_span )
-                $first_token_id_in_current_span = $first_token_id;
-                $last_token_id_in_current_span  = $last_token_id;
-                next TDESC;
-            } ## end if ( defined $first_token_id and defined $last_token_id)
-
-            if ( defined $next_tdesc ) {
-                if ( defined $first_token_id_in_current_span ) {
-                    push @tdesc_result,
-                        [
-                        'UNVALUED_SPAN',
-                        $first_token_id_in_current_span,
-                        $last_token_id_in_current_span
-                        ];
-
-                    $first_token_id_in_current_span =
-                        $last_token_id_in_current_span = undef;
-                } ## end if ( defined $first_token_id_in_current_span )
-                my $ref_type = ref $next_tdesc;
-
-                last TDESC
-                    if $ref_type eq 'ARRAY'
-                        and
-                        $next_tdesc->[Marpa::R2::HTML::Internal::TDesc::TYPE]
-                        eq 'FINAL';
-                push @tdesc_result, $next_tdesc;
-            } ## end if ( defined $next_tdesc )
-
-        } ## end for my $tdesc ( @tdesc_list, ['FINAL'] )
-
-        return \@tdesc_result;
-    };
-} ## end sub create_tdesc_handler
 
 sub wrap_user_tdesc_handler {
     my ( $user_handler, $per_node_data ) = @_;
@@ -432,7 +214,6 @@ sub wrap_user_tdesc_handler {
         my ( $dummy, @tdesc_lists ) = @_;
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         return undef if not scalar @tdesc_list;
-        local $Marpa::R2::HTML::Internal::TDESC_LIST = \@tdesc_list;
         my @token_ids = sort { $a <=> $b } grep {defined} map {
             @{$_}[
                 Marpa::R2::HTML::Internal::TDesc::START_TOKEN,
@@ -445,7 +226,6 @@ sub wrap_user_tdesc_handler {
         $per_node_data //= {};
         $per_node_data->{first_token_id} = $first_token_id;
         $per_node_data->{last_token_id}  = $last_token_id;
-        local $Marpa::R2::HTML::Internal::PER_NODE_DATA = $per_node_data;
 
         # scalar context needed for the user handler
         # because so that a bare return returns undef
@@ -516,17 +296,19 @@ sub add_handler {
     Marpa::R2::exception('Handler action must be CODE ref')
         if ref $action ne 'CODE';
 
-    $element = ( not $element or $element eq q{*} ) ? 'ANY' : lc $element;
     if ( defined $pseudoclass ) {
-        $self->{memoized_handlers}->{ q{;:} . $pseudoclass } = $action;
-        $self->{user_handlers_by_pseudoclass}->{$element}->{$pseudoclass} =
-            $action;
+        $self->{handler_by_species}->{$pseudoclass} = $action;
         return 1;
-    } ## end if ( defined $pseudoclass )
+    }
 
-    $class = defined $class ? lc $class : 'ANY';
-    $self->{memoized_handlers}->{ join q{;}, $element, $class } = $action;
-    $self->{user_handlers_by_class}->{$element}->{$class} = $action;
+    $element = q{*} if not $element;
+    $element = lc $element;
+    $class //= q{*};
+    $class = lc $class;
+    if ( $element eq q{*} and $class eq q{*} ) {
+        $self->{default_element_action} = $action;
+    }
+    $self->{handler_by_element_by_class}->{$element}->{$class} = $action;
     return 1;
 } ## end sub add_handler
 
@@ -798,16 +580,16 @@ END_OF_BNF
 @Marpa::R2::HTML::Internal::CORE_RULES = ();
 
 my %handler = (
-    cruft      => 'MOL_CRUFT',
-    comment    => 'MOL_COMMENT',
-    pi         => 'MOL_PI',
-    decl       => 'MOL_DECL',
-    document   => 'MOL_TOP',
-    whitespace => 'MOL_WHITESPACE',
-    pcdata     => 'MOL_PCDATA',
-    cdata      => 'MOL_CDATA',
-    prolog     => 'MOL_PROLOG',
-    trailer    => 'MOL_TRAILER',
+    cruft      => 'SPE_CRUFT',
+    comment    => 'SPE_COMMENT',
+    pi         => 'SPE_PI',
+    decl       => 'SPE_DECL',
+    document   => 'SPE_TOP',
+    whitespace => 'SPE_WHITESPACE',
+    pcdata     => 'SPE_PCDATA',
+    cdata      => 'SPE_CDATA',
+    prolog     => 'SPE_PROLOG',
+    trailer    => 'SPE_TRAILER',
 );
 
 for my $bnf_production ( split /\n/xms, $BNF ) {
@@ -837,10 +619,6 @@ for my $bnf_production ( split /\n/xms, $BNF ) {
 push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
     keys %Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS;
 
-no strict 'refs';
-*{'Marpa::R2::HTML::Internal::default_action'} = create_tdesc_handler();
-use strict;
-
 %Marpa::R2::HTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
     area base basefont br col frame hr
     img input isindex link meta param);
@@ -861,11 +639,35 @@ use strict;
     ( map { $_ => 'empty' } keys %Marpa::R2::HTML::Internal::EMPTY_ELEMENT ),
 );
 
-sub find_handler {
-   my ( $self, $rule_id, $class ) = @_;
-   say STDERR qq{Looking for handler for rule $rule_id and class "$class"};
-   return undef;
+sub Marpa::R2::HTML::Internal::default_handler
+{
+   my @tdesc = grep { scalar @{$_} and $_->[0] eq 'VALUE' } @_;
+   return [] if scalar @tdesc <= 0;
+   return $tdesc[0] if scalar @tdesc == 1;
+   return [ 'TREE', \@tdesc ];
 }
+
+sub handler_find {
+    my ( $self, $rule_id, $class ) = @_;
+    my $handler;
+    my $action = $self->{thick_grammar}->action($rule_id);
+    FIND_HANDLER: {
+        if ( $action =~ / \A SPE_ /xms ) {
+            $handler = $self->{handler_by_species}->{$action};
+            last FIND_HANDLER;
+        }
+        $class //= q{*};
+        my $handler_by_class = $self->{handler_by_element_by_class}->{$action};
+        last FIND_HANDLER if not defined $handler_by_class;
+        $handler = $handler_by_class->{$class};
+        last FIND_HANDLER if defined $handler;
+        $handler = $handler_by_class->{q{*}};
+        last FIND_HANDLER if defined $handler;
+        $handler = $self->{default_element_handler};
+    } ## end FIND_HANDLER:
+    return $handler if defined $handler;
+    return \&Marpa::R2::HTML::Internal::default_handler;
+} ## end sub handler_find
 
 sub parse {
     my ( $self, $document_ref ) = @_;
@@ -1153,6 +955,7 @@ sub parse {
     $recce->ruby_slippers_set(1);
     $recce->start_input();
 
+    $self->{thick_grammar}  = $grammar;
     $self->{recce}  = $recce;
     $self->{tokens} = \@html_parser_tokens;
     $self->{earleme_to_html_token_ix} = [-1];
@@ -1407,72 +1210,6 @@ sub parse {
             or Carp::croak("Cannot print: $ERRNO");
     }
 
-    my %closure = ();
-    {
-        my $user_top_handler =
-            $self->{user_handlers_by_pseudoclass}->{ANY}->{TOP};
-        $closure{'MOL_TOP'} =
-            defined $user_top_handler
-            ? wrap_user_top_handler($user_top_handler)
-            : \&Marpa::R2::HTML::Internal::default_top_handler;
-    } ## end if ( defined( my $user_top_handler = $self->{...}))
-
-    my $default_element_closure;
-    {
-        my $default_element_handler =
-            $self->{user_handlers_by_class}->{ANY}->{ANY};
-        $default_element_closure =
-            defined $default_element_handler
-            ? wrap_user_tdesc_handler($default_element_handler)
-            : \&Marpa::R2::HTML::Internal::default_top_handler;
-    }
-
-    say STDERR "default_element_closure = ", ($default_element_closure//'undef');
-
-    PSEUDO_CLASS:
-    for my $pseudoclass (
-        qw(PI DECL COMMENT PROLOG TRAILER WHITESPACE CDATA PCDATA CRUFT))
-    {
-        my $pseudoclass_action =
-            $self->{user_handlers_by_pseudoclass}->{ANY}->{$pseudoclass};
-        my $pseudoclass_action_name = "MOL_$pseudoclass";
-        if ($pseudoclass_action) {
-            $closure{$pseudoclass_action_name} =
-                wrap_user_tdesc_handler( $pseudoclass_action,
-                { pseudoclass => $pseudoclass } );
-            next PSEUDO_CLASS;
-        } ## end if ($pseudoclass_action)
-        $closure{$pseudoclass_action_name} =
-            \&Marpa::R2::HTML::Internal::default_action;
-    } ## end PSEUDO_CLASS: for my $pseudoclass (...)
-
-    while ( my ( $element_action, $element ) = each %element_actions ) {
-        $closure{$element_action} = create_tdesc_handler( $self, $element );
-    }
-
-    ELEMENT_ACTION:
-    while ( my ( $element_action, $data ) =
-        each %pseudoclass_element_actions )
-    {
-
-        # As of now, there are
-        # no per-element pseudo-classes, and since I can't regression test
-        # this logic any more, I'm commenting it out.
-        Marpa::R2::exception('per-element pseudo-classes not implemented');
-
-        # my ( $pseudoclass, $element ) = @{$data};
-        # my $pseudoclass_action =
-        #    $self->{user_handlers_by_pseudoclass}->{$element}
-        #    ->{$pseudoclass}
-        #    // $self->{user_handlers_by_pseudoclass}->{ANY}->{$pseudoclass};
-        # if ( defined $pseudoclass_action ) {
-        #    $pseudoclass_action =
-        #        wrap_user_tdesc_handler($pseudoclass_action);
-        # }
-        # $pseudoclass_action //= \&Marpa::R2::HTML::Internal::default_action;
-        # $closure{$element_action} = $pseudoclass_action;
-    } ## end ELEMENT_ACTION: while ( my ( $element_action, $data ) = each ...)
-
     local $Marpa::R2::HTML::Internal::PARSE_INSTANCE = $self;
     local $Marpa::R2::HTML::INSTANCE                 = {};
     my $latest_earley_set_ID = $recce->latest_earley_set();
@@ -1545,8 +1282,8 @@ sub parse {
 		} ## end if ( $start_tag_marpa_token->[0] eq 'UNVALUED_SPAN' )
 	    } ## end if ( $rule_has_start_tag[$rule_id] )
 	    local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
-	    local $Marpa::R2::HTML::Internal::CLASS = $attributes->{class};
-	    say STDERR "class = ", $Marpa::R2::HTML::Internal::CLASS;
+	    local $Marpa::R2::HTML::Internal::CLASS = $attributes->{class} // q{*};
+	    say STDERR "class = ", $Marpa::R2::HTML::Internal::CLASS ;
 
             my $action = $grammar->action($rule_id);
             say STDERR "action for rule $rule_id: ", ( $action // 'undef' );
@@ -1570,7 +1307,7 @@ sub parse {
 
 	    if ( not defined $handler ) {
 		$handler = $memoized_handlers{$handler_key} =
-		    find_handler( $self, $rule_id, $class );
+		    handler_find( $self, $rule_id, $class );
 	    }
 
 	    if ( defined $handler ) {
