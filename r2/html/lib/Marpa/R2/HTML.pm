@@ -206,10 +206,7 @@ sub add_handler {
     $element = lc $element;
     $class //= q{*};
     $class = lc $class;
-    if ( $element eq q{*} and $class eq q{*} ) {
-        $self->{default_element_action} = $action;
-    }
-    $self->{handler_by_element_by_class}->{$element}->{$class} = $action;
+    $self->{handler_by_element_and_class}->{join q{;}, $element, $class} = $action;
     return 1;
 } ## end sub add_handler
 
@@ -562,15 +559,23 @@ say STDERR "handler_find(); action: $action";
             last FIND_HANDLER;
         }
         $class //= q{*};
-        my $handler_by_class = $self->{handler_by_element_by_class}->{$action};
-        last FIND_HANDLER if not defined $handler_by_class;
-        $handler = $handler_by_class->{$class};
-        last FIND_HANDLER if defined $handler;
-        $handler = $handler_by_class->{q{*}};
-        last FIND_HANDLER if defined $handler;
-        $handler = $self->{default_element_handler};
+
+say STDERR __LINE__, " handler_find(); class: $class";
+
+	my @handler_keys = (
+	  (join q{;}, $action, $class),
+	  (join q{;}, q{*}, $class),
+	  (join q{;}, $action, q{*}),
+	  (join q{;}, q{*}, q{*}),
+	  );
+        ($handler) = grep { defined } @{$self->{handler_by_element_and_class}}{
+	    @handler_keys
+	};
+
     } ## end FIND_HANDLER:
+say STDERR join " ", __FILE__, __LINE__;
     return $handler if defined $handler;
+say STDERR join " ", __FILE__, __LINE__;
     return \&Marpa::R2::HTML::Internal::default_handler;
 } ## end sub handler_find
 
