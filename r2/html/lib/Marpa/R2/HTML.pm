@@ -75,6 +75,9 @@ END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
 
+use constant PHYSICAL_TOKEN => 42;
+use constant RUBY_SLIPPERS_TOKEN => 43;
+
 our @LIBMARPA_ERROR_NAMES = Marpa::R2::Thin::error_names();
 our $UNEXPECTED_TOKEN_ID =
     ( grep { $LIBMARPA_ERROR_NAMES[$_] eq 'MARPA_ERR_UNEXPECTED_TOKEN_ID' }
@@ -550,6 +553,10 @@ sub handler_find {
     my $handler;
     my $action = $self->{thick_grammar}->action($rule_id);
     FIND_HANDLER: {
+	last FIND_HANDLER if not defined $action;
+
+say STDERR "handler_find(); action: $action";
+
         if ( $action =~ / \A SPE_ /xms ) {
             $handler = $self->{handler_by_species}->{$action};
             last FIND_HANDLER;
@@ -875,7 +882,7 @@ sub parse {
         say STDERR "token = ", $marpa_token->[0];
         my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
         my $read_result =
-            $recce->alternative( $marpa_symbol_id, 'PHYSICAL_TOKEN', 1 );
+            $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
             say "UNEXPECTED_TOKEN_ID = ", $UNEXPECTED_TOKEN_ID;
             say STDERR "result = $read_result ",
@@ -1067,7 +1074,7 @@ sub parse {
             my $marpa_symbol_id =
                 $grammar->thin_symbol( $virtual_token_to_add->[0] );
             $recce->ruby_slippers_set(0);
-            $recce->alternative( $marpa_symbol_id, 'RUBY_SLIPPERS_TOKEN', 1 );
+            $recce->alternative( $marpa_symbol_id, RUBY_SLIPPERS_TOKEN, 1 );
             $recce->ruby_slippers_set(1);
             $recce->earleme_complete();
             $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
@@ -1140,7 +1147,7 @@ sub parse {
             say STDERR join " ", $type, @step_data , $grammar->symbol_name($step_data[0]);
             say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             my ( undef, $token_value, $arg_n ) = @step_data;
-	    if ( $token_value eq 'RUBY_SLIPPERS_TOKEN' ) {
+	    if ( $token_value eq RUBY_SLIPPERS_TOKEN ) {
 		$stack[$arg_n] = [ 'RUBY_SLIPPERS_TOKEN' ];
 		next STEP;
 	    }
@@ -1153,7 +1160,7 @@ sub parse {
             my $end_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$end_earleme];
             $stack[$arg_n] = [
-                [  PHYSICAL_TOKEN => $start_html_token_ix,
+                [  'PHYSICAL_TOKEN' => $start_html_token_ix,
                     $end_html_token_ix
                 ]
             ];
@@ -1168,9 +1175,12 @@ sub parse {
 	    my $attributes = undef;
 	    my $class = undef;
 	    if ( $rule_has_start_tag[$rule_id] ) {
-		my $start_tag_marpa_token = $stack[$arg_0]->[0];
-		say STDERR Data::Dumper::Dumper($start_tag_marpa_token);
-		if ( $start_tag_marpa_token->[0] eq 'UNVALUED_SPAN' ) {
+		my $start_tag_marpa_token = $stack[$arg_0];
+
+say STDERR "MARPA_STEP_RULE Potential start tag:\n", Data::Dumper::Dumper($start_tag_marpa_token);
+
+		my $start_tag_type = $start_tag_marpa_token->[0];
+		if ( defined $start_tag_type and $start_tag_type eq 'UNVALUED_SPAN' ) {
 		    my $start_tag_html_token_ix = $start_tag_marpa_token->[1];
 		    my $start_tag_token         = $html_parser_tokens[$start_tag_html_token_ix];
 		    say STDERR Data::Dumper::Dumper($start_tag_token);
@@ -1235,8 +1245,6 @@ sub parse {
         } ## end if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' )
         die "Unexpected step type: $type";
     } ## end STEP: while (1)
-
-    say STDERR "Self:\n", Data::Dumper::Dumper($self);
 
     my $value = $stack[0];
     Marpa::R2::exception('No parse: evaler returned undef')
