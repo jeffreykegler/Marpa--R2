@@ -168,7 +168,7 @@ method not part of the API for the
 semantic actions.
 
 C<html> takes one or more arguments.
-The first argument is required, and must be a pointer to
+The first argument is required, and must be a reference to
 a string to be parsed as HTML.
 The second and
 subsequent arguments (all optional) are hash references
@@ -739,7 +739,7 @@ Details of that syntax L<are given below|/"Dataspecs">
 =item Marpa::R2::HTML::values
 
 The C<Marpa::R2::HTML::values> method implements the values view.
-It returns a pointer to an array of the descendant
+It returns an array reference of the descendant
 values visible from this component,
 in lexical order.
 No elements of this array will be undefined.
