@@ -1130,6 +1130,7 @@ sub parse {
             or Carp::croak("Cannot print: $ERRNO");
     }
 
+    $Marpa::R2::HTML::INSTANCE = $self;
     local $Marpa::R2::HTML::Internal::PARSE_INSTANCE = $self;
     my $latest_earley_set_ID = $recce->latest_earley_set();
     my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
@@ -1267,7 +1268,7 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
     my $value = $stack[0];
     Marpa::R2::exception('No parse: evaler returned undef')
         if not defined $value;
-    return $value;
+    return \$value;
 
 } ## end sub parse
 

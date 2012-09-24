@@ -288,7 +288,7 @@ use strict;
 package Marpa::R2::HTML::Internal::Callback;
 
 sub Marpa::R2::HTML::tagname {
-    return $Marpa::R2::HTML::Internal::PER_NODE_DATA->{element};
+    return $Marpa::R2::HTML::Internal::ELEMENT;
 }
 
 sub Marpa::R2::HTML::literal_ref {
