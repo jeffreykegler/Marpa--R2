@@ -593,8 +593,7 @@ sub tdesc_item_to_original {
 sub parse {
     my ( $self, $document_ref ) = @_;
 
-    my %start_tags = ();
-    my %end_tags   = ();
+    my %tags = ();
 
     Marpa::R2::exception(
         "parse() already run on this object\n",
@@ -659,7 +658,7 @@ sub parse {
             when ('S') {
                 my $tag_name = $html_parser_token
                     ->[Marpa::R2::HTML::Internal::Token::TAGNAME];
-                $start_tags{$tag_name}++;
+                $tags{$tag_name}++;
                 my $terminal = "S_$tag_name";
                 $terminals{$terminal}++;
                 push @marpa_tokens,
@@ -671,7 +670,7 @@ sub parse {
             when ('E') {
                 my $tag_name = $html_parser_token
                     ->[Marpa::R2::HTML::Internal::Token::TAGNAME];
-                $end_tags{$tag_name}++;
+                $tags{$tag_name}++;
                 my $terminal = "E_$tag_name";
                 $terminals{$terminal}++;
                 push @marpa_tokens,
@@ -713,11 +712,11 @@ sub parse {
     # As of now the only special cases are elements with optional
     # start and end tags
     for my $special_element (qw(html head body table tbody tr td)) {
-        delete $start_tags{$special_element};
+        delete $tags{$special_element};
         $element_actions{"ELE_$special_element"} = $special_element;
     }
 
-    ELEMENT: for ( keys %start_tags ) {
+    ELEMENT: for ( keys %tags ) {
         my $start_tag    = "S_$_";
         my $end_tag      = "E_$_";
         my $contents     = $Marpa::R2::HTML::Internal::CONTENTS{$_} // 'flow';
@@ -747,7 +746,7 @@ sub parse {
         $optional_terminals{$end_tag} = keys %optional_terminals;
 
         $element_actions{"ELE_$_"} = $_;
-    } ## end ELEMENT: for ( keys %start_tags )
+    } ## end ELEMENT: for ( keys %tags )
 
     # The question is where to put cruft -- in the current element,
     # or at a higher level.  As a first step, we set up a system of
@@ -1165,13 +1164,8 @@ sub parse {
             my $start_earleme = $recce->earleme($start_earley_set_id);
             my $start_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$start_earleme];
-            my $end_earleme = $recce->earleme($end_earley_set_id);
-            my $end_html_token_ix =
-                $self->{earleme_to_html_token_ix}->[$end_earleme];
             $stack[$arg_n] = 
-                [  'PHYSICAL_TOKEN' => $start_html_token_ix,
-                    $end_html_token_ix
-            ];
+                [  'PHYSICAL_TOKEN' => $start_html_token_ix+1 ];
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
@@ -1188,7 +1182,7 @@ sub parse {
             local $Marpa::R2::HTML::Internal::ELEMENT = undef;
 
             if ( defined $action and ( index $action, 'ELE_' ) == 0 ) {
-                local $Marpa::R2::HTML::Internal::ELEMENT = substr $action, 4;
+                $Marpa::R2::HTML::Internal::ELEMENT = substr $action, 4;
                 my $start_tag_marpa_token = $stack[$arg_0];
 
                 say STDERR "MARPA_STEP_RULE Potential start tag:\n",
