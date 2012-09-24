@@ -29,10 +29,6 @@ $VERSION = eval $VERSION;
 
 package Marpa::R2::HTML::Internal::Callback;
 
-# use Smart::Comments '-ENV';
-
-### Using smart comments <where>...
-
 use English qw( -no_match_vars );
 
 sub Marpa::R2::HTML::start_tag {
@@ -40,22 +36,17 @@ sub Marpa::R2::HTML::start_tag {
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Marpa::R2::exception(q{Attempt to fetch start tag outside of a parse})
         if not defined $parse_instance;
+    return undef if not defined $Marpa::R2::HTML::Internal::START_TAG_IX;
 
-    my $element = $Marpa::R2::HTML::Internal::PER_NODE_DATA->{element};
-    return if not $element;
 
-    #<<< perltidy cycles on this as of 2009-11-28
-    return if not defined (my $start_tag_token_id =
-            $Marpa::R2::HTML::Internal::PER_NODE_DATA->{start_tag_token_id});
-    #>>>
-    #
-    # Inlining this might be faster, especially since I have to dummy
-    # up a tdesc list to make it work.
     return ${
-        Marpa::R2::HTML::Internal::tdesc_list_to_literal( $parse_instance,
-            [ [ UNVALUED_SPAN => $start_tag_token_id, $start_tag_token_id ] ]
+        Marpa::R2::HTML::Internal::token_range_to_original(
+            $parse_instance,
+            $Marpa::R2::HTML::Internal::START_TAG_IX,
+            $Marpa::R2::HTML::Internal::START_TAG_IX
         )
         };
+
 } ## end sub Marpa::R2::HTML::start_tag
 
 sub Marpa::R2::HTML::end_tag {

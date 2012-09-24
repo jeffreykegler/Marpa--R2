@@ -122,25 +122,6 @@ use Marpa::R2::HTML::Callback;
         if $submodule_version != $Marpa::R2::HTML::VERSION;
 }
 
-# Convert a list of text descriptions to text
-sub default_top_handler {
-    my ( $dummy, @tdesc_lists ) = @_;
-    my $self = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
-    return tdesc_list_to_literal( $self, \@tdesc_list );
-
-} ## end sub default_top_handler
-
-sub wrap_user_top_handler {
-    my ($user_handler) = @_;
-    return sub {
-        my ( $dummy, @tdesc_lists ) = @_;
-        my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
-        return undef if not scalar @tdesc_list;
-        return scalar $user_handler->();
-    };
-} ## end sub wrap_user_top_handler
-
 sub earleme_to_linecol {
     my ( $self, $earleme ) = @_;
     my $html_parser_tokens = $self->{tokens};
@@ -578,6 +559,46 @@ say STDERR join " ", __FILE__, __LINE__;
 say STDERR join " ", __FILE__, __LINE__;
     return \&Marpa::R2::HTML::Internal::default_handler;
 } ## end sub handler_find
+
+# "Original" value of a token range -- that is, the corresponding
+# text of the original document, unchanged.
+# Returned as a reference, because it may be very long
+sub token_range_to_original {
+    my ( $self, $first_token_ix, $last_token_ix ) = @_;
+    my $document        = $self->{document};
+    my $tokens          = $self->{tokens};
+    my $start_offset =
+        $tokens->[$first_token_ix]
+        ->[Marpa::R2::HTML::Internal::Token::START_OFFSET];
+    my $end_offset =
+        $tokens->[$last_token_ix]
+        ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
+    return \substr ${$document}, $start_offset,
+        ( $end_offset - $start_offset );
+} ## end sub token_range_to_original
+
+# "Original" value of token -- that is, the corresponding
+# text of the original document, unchanged.
+# The empty string if there is no such text.
+# Returned as a reference, because it may be very long
+sub tdesc_item_to_original {
+    my ( $self, $tdesc_item ) = @_;
+
+    my $text            = q{};
+    my $document        = $self->{document};
+    my $tokens          = $self->{tokens};
+    my $tdesc_item_type = $tdesc_item->[0];
+    return '' if not defined $tdesc_item_type;
+    if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' ) {
+        return token_range_to_original( $self, $tdesc_item->[1],
+            $tdesc_item->[1] );
+    }
+    if ( $tdesc_item_type eq 'VALUED_SPAN' ) {
+        return token_range_to_original( $self, $tdesc_item->[1],
+            $tdesc_item->[2] );
+    }
+    return '';
+} ## end sub tdesc_item_to_original
 
 sub parse {
     my ( $self, $document_ref ) = @_;
@@ -1135,14 +1156,7 @@ sub parse {
     local $Marpa::R2::HTML::Internal::RECCE = $recce;
     local $Marpa::R2::HTML::Internal::VALUATOR = $valuator;
 
-    # Track whether this rule is for an element with
-    # a start tag
-    my @rule_has_start_tag;
-
     for my $rule_id ( $grammar->rule_ids() ) {
-	my ($lhs, $start_tag) = $grammar->rule($rule_id);
-	$rule_has_start_tag[$rule_id] = 1
-	    if $lhs =~ /\A ELE_ /xms and $start_tag =~ /\A S_ /xms;
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
     STEP: while (1) {
@@ -1164,10 +1178,9 @@ sub parse {
             my $end_earleme = $recce->earleme($end_earley_set_id);
             my $end_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$end_earleme];
-            $stack[$arg_n] = [
+            $stack[$arg_n] = 
                 [  'PHYSICAL_TOKEN' => $start_html_token_ix,
                     $end_html_token_ix
-                ]
             ];
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
@@ -1179,27 +1192,33 @@ sub parse {
 
 	    my $attributes = undef;
 	    my $class = undef;
-	    if ( $rule_has_start_tag[$rule_id] ) {
+            my $action = $grammar->action($rule_id);
+            say STDERR "action for rule $rule_id: ", ( $action // 'undef' );
+	    local $Marpa::R2::HTML::Internal::START_TAG_IX;
+
+	    if ( ( index $action, 'ELE_' ) == 0 ) {
 		my $start_tag_marpa_token = $stack[$arg_0];
 
-say STDERR "MARPA_STEP_RULE Potential start tag:\n", Data::Dumper::Dumper($start_tag_marpa_token);
+		say STDERR "MARPA_STEP_RULE Potential start tag:\n",
+		    Data::Dumper::Dumper($start_tag_marpa_token);
 
 		my $start_tag_type = $start_tag_marpa_token->[0];
-		if ( defined $start_tag_type and $start_tag_type eq 'UNVALUED_SPAN' ) {
-		    my $start_tag_html_token_ix = $start_tag_marpa_token->[1];
-		    my $start_tag_token         = $html_parser_tokens[$start_tag_html_token_ix];
+		if ( defined $start_tag_type and $start_tag_type eq 'PHYSICAL_TOKEN' )
+		{
+		    $Marpa::R2::HTML::Internal::START_TAG_IX =
+			$start_tag_marpa_token->[1];
+		    my $start_tag_token =
+			$html_parser_tokens[$Marpa::R2::HTML::Internal::START_TAG_IX];
 		    say STDERR Data::Dumper::Dumper($start_tag_token);
 		    $attributes =
 			$start_tag_token->[Marpa::R2::HTML::Internal::Token::ATTR];
 		    $class = $attributes->{class};
-		} ## end if ( $start_tag_marpa_token->[0] eq 'UNVALUED_SPAN' )
-	    } ## end if ( $rule_has_start_tag[$rule_id] )
+		} ## end if ( defined $start_tag_type and $start_tag_type eq ...)
+	    } ## end if ( ( index $action, 'ELE_' ) == 0 )
 	    local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
 	    local $Marpa::R2::HTML::Internal::CLASS = $attributes->{class} // q{*};
 	    say STDERR "class = ", $Marpa::R2::HTML::Internal::CLASS ;
 
-            my $action = $grammar->action($rule_id);
-            say STDERR "action for rule $rule_id: ", ( $action // 'undef' );
 	    my ($start_earley_set_id, $end_earley_set_id) = $valuator->location();
 	    say STDERR "start earley set = ", $start_earley_set_id;
 	    say STDERR "end earley set = ", $end_earley_set_id;
