@@ -59,18 +59,8 @@ BEGIN {
     TYPE
     START_TOKEN
     END_TOKEN
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
-
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-    :package=Marpa::R2::HTML::Internal::TDesc::Element
-    TYPE
-    START_TOKEN
-    END_TOKEN
     VALUE
-    NODE_DATA
+    RULE_ID
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -1142,7 +1132,6 @@ sub parse {
     }
 
     local $Marpa::R2::HTML::Internal::PARSE_INSTANCE = $self;
-    local $Marpa::R2::HTML::INSTANCE                 = {};
     my $latest_earley_set_ID = $recce->latest_earley_set();
     my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
     my $order  = Marpa::R2::Thin::O->new($bocage);
@@ -1150,6 +1139,7 @@ sub parse {
     $tree->next();
 
     my @stack    = ();
+    local $Marpa::R2::HTML::Internal::STACK = \@stack;
     my %memoized_handlers = ();
 
     my $valuator = Marpa::R2::Thin::V->new($tree);
@@ -1186,72 +1176,82 @@ sub parse {
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
             say STDERR join " ", ( $type, @step_data );
-	    say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
+            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
             say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
 
-	    my $attributes = undef;
-	    my $class = undef;
-            my $action = $grammar->action($rule_id);
+            my $attributes = undef;
+            my $class      = undef;
+            my $action     = $grammar->action($rule_id);
             say STDERR "action for rule $rule_id: ", ( $action // 'undef' );
-	    local $Marpa::R2::HTML::Internal::START_TAG_IX;
+            local $Marpa::R2::HTML::Internal::START_TAG_IX = undef;
+            local $Marpa::R2::HTML::Internal::ELEMENT = undef;
 
-	    if ( ( index $action, 'ELE_' ) == 0 ) {
-		my $start_tag_marpa_token = $stack[$arg_0];
+            if ( defined $action and ( index $action, 'ELE_' ) == 0 ) {
+                local $Marpa::R2::HTML::Internal::ELEMENT = substr $action, 4;
+                my $start_tag_marpa_token = $stack[$arg_0];
 
-		say STDERR "MARPA_STEP_RULE Potential start tag:\n",
-		    Data::Dumper::Dumper($start_tag_marpa_token);
+                say STDERR "MARPA_STEP_RULE Potential start tag:\n",
+                    Data::Dumper::Dumper($start_tag_marpa_token);
 
-		my $start_tag_type = $start_tag_marpa_token->[0];
-		if ( defined $start_tag_type and $start_tag_type eq 'PHYSICAL_TOKEN' )
-		{
-		    $Marpa::R2::HTML::Internal::START_TAG_IX =
-			$start_tag_marpa_token->[1];
-		    my $start_tag_token =
-			$html_parser_tokens[$Marpa::R2::HTML::Internal::START_TAG_IX];
-		    say STDERR Data::Dumper::Dumper($start_tag_token);
-		    $attributes =
-			$start_tag_token->[Marpa::R2::HTML::Internal::Token::ATTR];
-		    $class = $attributes->{class};
-		} ## end if ( defined $start_tag_type and $start_tag_type eq ...)
-	    } ## end if ( ( index $action, 'ELE_' ) == 0 )
-	    local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
-	    local $Marpa::R2::HTML::Internal::CLASS = $attributes->{class} // q{*};
-	    say STDERR "class = ", $Marpa::R2::HTML::Internal::CLASS ;
+                my $start_tag_type = $start_tag_marpa_token
+                    ->[Marpa::R2::HTML::Internal::TDesc::TYPE];
+                if ( defined $start_tag_type
+                    and $start_tag_type eq 'PHYSICAL_TOKEN' )
+                {
+                    my $start_tag_ix    = $start_tag_marpa_token->[1];
+                    my $start_tag_token = $html_parser_tokens[$start_tag_ix];
+say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token);
+                    if ( $start_tag_token
+                        ->[Marpa::R2::HTML::Internal::Token::TYPE] eq 'S' )
+                    {
+                        $Marpa::R2::HTML::Internal::START_TAG_IX =
+                            $start_tag_ix;
+                        $attributes = $start_tag_token
+                            ->[Marpa::R2::HTML::Internal::Token::ATTR];
+                    } ## end if ( $start_tag_token->[...])
+                } ## end if ( defined $start_tag_type and $start_tag_type eq ...)
+            } ## end if ( defined $action and ( index $action, 'ELE_' ) ==...)
+            local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
+            local $Marpa::R2::HTML::Internal::CLASS = $attributes->{class}
+                // q{*};
+            local $Marpa::R2::HTML::Internal::ARG_0 = $arg_0;
+            local $Marpa::R2::HTML::Internal::ARG_N = $arg_n;
+            say STDERR "class = ", $Marpa::R2::HTML::Internal::CLASS;
 
-	    my ($start_earley_set_id, $end_earley_set_id) = $valuator->location();
-	    say STDERR "start earley set = ", $start_earley_set_id;
-	    say STDERR "end earley set = ", $end_earley_set_id;
+            my ( $start_earley_set_id, $end_earley_set_id ) =
+                $valuator->location();
+            say STDERR "start earley set = ", $start_earley_set_id;
+            say STDERR "end earley set = ",   $end_earley_set_id;
 
-	    my $start_earleme = $recce->earleme($start_earley_set_id);
-	    my $start_html_token_ix = $self->{earleme_to_html_token_ix}->[$start_earleme];
-	    my $end_earleme = $recce->earleme($end_earley_set_id);
-	    my $end_html_token_ix = $self->{earleme_to_html_token_ix}->[$end_earleme];
+            my $start_earleme = $recce->earleme($start_earley_set_id);
+            my $start_html_token_ix =
+                $self->{earleme_to_html_token_ix}->[$start_earleme];
+            my $end_earleme = $recce->earleme($end_earley_set_id);
+            my $end_html_token_ix =
+                $self->{earleme_to_html_token_ix}->[$end_earleme];
 
-	    my $handler_key = $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
-	    say STDERR "Looking for memoized handler: $handler_key";
+            my $handler_key =
+                $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
+            say STDERR "Looking for memoized handler: $handler_key";
 
-	    my $handler = $memoized_handlers{ $handler_key };
+            my $handler = $memoized_handlers{$handler_key};
 
-	    say STDERR "Found memoized handler: ",
-		$rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS
-		if defined $handler;
+            say STDERR "Found memoized handler: ",
+                $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS
+                if defined $handler;
 
-	    if ( not defined $handler ) {
-		$handler = $memoized_handlers{$handler_key} =
-		    handler_find( $self, $rule_id, $class );
-	    }
+            if ( not defined $handler ) {
+                $handler = $memoized_handlers{$handler_key} =
+                    handler_find( $self, $rule_id, $class );
+            }
 
-	    if ( defined $handler ) {
-		$stack[$arg_0] = [
-		    VALUED_SPAN => $start_html_token_ix,
-		    $end_html_token_ix,
-		    ( scalar $handler->() ),
-		];
-		next STEP;
-	    } ## end if ( defined $handler )
-
-	    die "No handler";
+            $stack[$arg_0] = [
+                VALUED_SPAN => $start_html_token_ix,
+                $end_html_token_ix,
+                ( scalar $handler->() ),
+		$rule_id
+            ];
 
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_RULE' )

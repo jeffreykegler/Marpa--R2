@@ -38,7 +38,6 @@ sub Marpa::R2::HTML::start_tag {
         if not defined $parse_instance;
     return undef if not defined $Marpa::R2::HTML::Internal::START_TAG_IX;
 
-
     return ${
         Marpa::R2::HTML::Internal::token_range_to_original(
             $parse_instance,
@@ -55,20 +54,27 @@ sub Marpa::R2::HTML::end_tag {
     Marpa::R2::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
 
-    my $element = $Marpa::R2::HTML::Internal::PER_NODE_DATA->{element};
-    return if not $element;
+    my $arg_n = $Marpa::R2::HTML::Internal::ARG_N;
 
-    #<<< perltidy cycles on this as of 2009-11-28
-    return if not defined (my $end_tag_token_id =
-            $Marpa::R2::HTML::Internal::PER_NODE_DATA->{end_tag_token_id});
-    #>>>
-    #
-    # Inlining this might be faster, especially since I have to dummy
-    # up a tdesc list to make it work.
-    return ${
-        Marpa::R2::HTML::Internal::tdesc_list_to_literal( $parse_instance,
-            [ [ UNVALUED_SPAN => $end_tag_token_id, $end_tag_token_id ] ] )
-        };
+    # return undef if not element
+    return undef if not $Marpa::R2::HTML::Internal::ELEMENT;
+
+    my $end_tag_tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$arg_n];
+    my $end_tag_type       = $end_tag_tdesc_item->[0];
+    if ( defined $end_tag_type
+        and $end_tag_type eq 'PHYSICAL_TOKEN' )
+    {
+        my $end_tag_token_ix = $end_tag_tdesc_item->[1];
+	my $tokens = $parse_instance->{tokens};
+	my $html_token = $tokens->[$end_tag_token_ix];
+	my $html_token_type = $html_token->[$Marpa::R2::HTML::Internal::Token::TYPE];
+	return undef if $html_token_type ne 'E';
+        return ${
+            Marpa::R2::HTML::Internal::token_range_to_original(
+                $parse_instance, $end_tag_token_ix, $end_tag_token_ix, )
+            };
+    } ## end if ( defined $end_tag_type and $end_tag_type eq 'PHYSICAL_TOKEN')
+    return undef;
 } ## end sub Marpa::R2::HTML::end_tag
 
 sub Marpa::R2::HTML::contents {
@@ -107,12 +113,12 @@ sub Marpa::R2::HTML::values {
     Marpa::R2::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
 
-    my @values = grep {defined}
-        map { $_->[Marpa::R2::HTML::Internal::TDesc::Element::VALUE] }
-        grep { $_->[Marpa::R2::HTML::Internal::TDesc::TYPE] eq 'VALUED_SPAN' }
-        @{$Marpa::R2::HTML::Internal::TDESC_LIST};
+    # my @values = grep {defined}
+        # map { $_->[Marpa::R2::HTML::Internal::TDesc::Element::VALUE] }
+        # grep { $_->[Marpa::R2::HTML::Internal::TDesc::TYPE] eq 'VALUED_SPAN' }
+        # @{$Marpa::R2::HTML::Internal::TDESC_LIST};
 
-    return \@values;
+    # return \@values;
 } ## end sub Marpa::R2::HTML::values
 
 sub Marpa::R2::HTML::descendants {
@@ -154,27 +160,27 @@ sub Marpa::R2::HTML::descendants {
         my ( $child_type, $data ) = @{$child};
         for (@argspecs) {
             when ('token_type') {
-                push @values,
-                    ( $child_type eq 'token' )
-                    ? (
-                    $tokens->[$data]->[Marpa::R2::HTML::Internal::Token::TYPE] )
-                    : undef;
+                # push @values,
+                    # ( $child_type eq 'token' )
+                    # ? (
+                    # $tokens->[$data]->[Marpa::R2::HTML::Internal::Token::TYPE] )
+                    # : undef;
             } ## end when ('token_type')
             when ('pseudoclass') {
-                push @values,
-                    ( $child_type eq 'valued_span' )
-                    ? $data
-                    ->[Marpa::R2::HTML::Internal::TDesc::Element::NODE_DATA]
-                    ->{pseudoclass}
-                    : undef;
+                # push @values,
+                    # ( $child_type eq 'valued_span' )
+                    # ? $data
+                    # ->[Marpa::R2::HTML::Internal::TDesc::Element::NODE_DATA]
+                    # ->{pseudoclass}
+                    # : undef;
             } ## end when ('pseudoclass')
             when ('element') {
-                push @values,
-                    ( $child_type eq 'valued_span' )
-                    ? $data
-                    ->[Marpa::R2::HTML::Internal::TDesc::Element::NODE_DATA]
-                    ->{element}
-                    : undef;
+                # push @values,
+                    # ( $child_type eq 'valued_span' )
+                    # ? $data
+                    # ->[Marpa::R2::HTML::Internal::TDesc::Element::NODE_DATA]
+                    # ->{element}
+                    # : undef;
             } ## end when ('element')
             when ('literal_ref') {
                 my $tdesc =
@@ -215,10 +221,10 @@ sub Marpa::R2::HTML::descendants {
                     ( $end_offset - $start_offset );
             } ## end when ('original')
             when ('value') {
-                push @values,
-                    ( $child_type eq 'valued_span' )
-                    ? $data->[Marpa::R2::HTML::Internal::TDesc::Element::VALUE]
-                    : undef;
+                # push @values,
+                    # ( $child_type eq 'valued_span' )
+                    # ? $data->[Marpa::R2::HTML::Internal::TDesc::Element::VALUE]
+                    # : undef;
             } ## end when ('value')
             default {
                 Marpa::R2::exception(qq{Unrecognized argspec: "$_"})
