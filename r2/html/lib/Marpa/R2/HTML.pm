@@ -510,10 +510,9 @@ push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
 
 sub Marpa::R2::HTML::Internal::default_handler
 {
-   my @tdesc = grep { scalar @{$_} and $_->[0] eq 'VALUE' } @_;
-   return [] if scalar @tdesc <= 0;
-   return $tdesc[0] if scalar @tdesc == 1;
-   return [ 'TREE', \@tdesc ];
+   my @tdesc = grep { scalar @{$_} and $_->[0] eq 'VALUED_SPAN' } @_;
+   return $tdesc[0] if scalar @tdesc <= 1;
+   return [ 'VALUES', \@tdesc ];
 }
 
 sub handler_find {
@@ -580,13 +579,19 @@ sub tdesc_item_to_original {
     my $tdesc_item_type = $tdesc_item->[0];
     return '' if not defined $tdesc_item_type;
     if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' ) {
-        return token_range_to_original( $self, $tdesc_item->[1],
-            $tdesc_item->[1] );
-    }
+        return token_range_to_original(
+            $self,
+            $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN],
+            $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN],
+        );
+    } ## end if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' )
     if ( $tdesc_item_type eq 'VALUED_SPAN' ) {
-        return token_range_to_original( $self, $tdesc_item->[1],
-            $tdesc_item->[2] );
-    }
+        return token_range_to_original(
+            $self,
+            $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN],
+            $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN],
+        );
+    } ## end if ( $tdesc_item_type eq 'VALUED_SPAN' )
     return '';
 } ## end sub tdesc_item_to_original
 
@@ -1165,8 +1170,13 @@ sub parse {
             my $start_earleme = $recce->earleme($start_earley_set_id);
             my $start_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$start_earleme];
-            $stack[$arg_n] = 
-                [  'PHYSICAL_TOKEN' => $start_html_token_ix+1 ];
+            my $end_earleme = $recce->earleme($end_earley_set_id);
+            my $end_html_token_ix =
+                $self->{earleme_to_html_token_ix}->[$end_earleme];
+            $stack[$arg_n] = [
+                'PHYSICAL_TOKEN' => $start_html_token_ix + 1,
+                $end_html_token_ix,
+            ];
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
@@ -1222,9 +1232,11 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
             my $start_earleme = $recce->earleme($start_earley_set_id);
             my $start_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$start_earleme];
+            local $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX = $start_html_token_ix;
             my $end_earleme = $recce->earleme($end_earley_set_id);
             my $end_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$end_earleme];
+            local $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX = $end_html_token_ix;
 
             my $handler_key =
                 $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;

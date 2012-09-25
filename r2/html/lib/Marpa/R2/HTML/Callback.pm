@@ -137,103 +137,148 @@ sub Marpa::R2::HTML::descendants {
         push @argspecs, $argspec;
     }
 
-    my @children = ();
-    for my $tdesc ( @{$Marpa::R2::HTML::Internal::TDESC_LIST} ) {
-        given ( $tdesc->[Marpa::R2::HTML::Internal::TDesc::TYPE] ) {
-            when ('UNVALUED_SPAN') {
-                my $start_token =
-                    $tdesc->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
-                my $end_token =
-                    $tdesc->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN];
-                push @children,
-                    map { [ 'token', $_ ] } ( $start_token .. $end_token );
-            } ## end when ('UNVALUED_SPAN')
-            when ('VALUED_SPAN') {
-                push @children, [ 'valued_span', $tdesc ];
-            }
-        } ## end given
-    } ## end for my $tdesc ( @{$Marpa::R2::HTML::Internal::TDESC_LIST})
+    my @flat_tdesc_list = ();
+    STACK_IX:
+    for my $stack_ix (
+        $Marpa::R2::HTML::Internal::ARG_0 .. $Marpa::R2::HTML::Internal::ARG_N
+        )
+    {
+        my $tdesc_item = $Marpa::R2::HTML::Internal::STACK[$stack_ix];
+        my $type       = $tdesc_item->[0];
+        next STACK_IX if not defined $type;
+        next STACK_IX if $type eq 'ZERO_SPAN';
+        next STACK_IX if $type eq 'RUBY_SLIPPERS_TOKEN';
+        push @flat_tdesc_list, @{ $tdesc_item->[1] } if $type eq 'VALUES';
+        push @flat_tdesc_list, $_;
+    } ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0 ...)
 
-    my @return;
-    CHILD: for my $child (@children) {
-        my @values = ();
-        my ( $child_type, $data ) = @{$child};
-        for (@argspecs) {
-            when ('token_type') {
-                # push @values,
-                    # ( $child_type eq 'token' )
-                    # ? (
-                    # $tokens->[$data]->[Marpa::R2::HTML::Internal::Token::TYPE] )
-                    # : undef;
-            } ## end when ('token_type')
-            when ('pseudoclass') {
-                # push @values,
-                    # ( $child_type eq 'valued_span' )
-                    # ? $data
-                    # ->[Marpa::R2::HTML::Internal::TDesc::Element::NODE_DATA]
-                    # ->{pseudoclass}
-                    # : undef;
-            } ## end when ('pseudoclass')
-            when ('element') {
-                # push @values,
-                    # ( $child_type eq 'valued_span' )
-                    # ? $data
-                    # ->[Marpa::R2::HTML::Internal::TDesc::Element::NODE_DATA]
-                    # ->{element}
-                    # : undef;
-            } ## end when ('element')
-            when ('literal_ref') {
-                my $tdesc =
-                    $child_type eq 'token'
-                    ? [ 'UNVALUED_SPAN', $data, $data ]
-                    : $data;
-                push @values,
-                    Marpa::R2::HTML::Internal::tdesc_list_to_literal(
-                    $parse_instance, [$tdesc] );
-            } ## end when ('literal_ref')
-            when ('literal') {
-                my $tdesc =
-                    $child_type eq 'token'
-                    ? [ 'UNVALUED_SPAN', $data, $data ]
-                    : $data;
-                push @values,
-                    ${
-                    Marpa::R2::HTML::Internal::tdesc_list_to_literal(
-                        $parse_instance, [$tdesc] )
-                    };
-            } ## end when ('literal')
-            when ('original') {
-                my ( $first_token_id, $last_token_id ) =
-                    $child_type eq 'token'
-                    ? ( $data, $data )
-                    : @{$data}[
-                    Marpa::R2::HTML::Internal::TDesc::START_TOKEN,
+    my $next_token_ix  = $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX;
+    my $final_token_ix = $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX;
+
+    my @descendants = ();
+    TDESC_ITEM: for my $tdesc_item (@flat_tdesc_list) {
+        my ( $tdesc_item_type, $next_explicit_token_ix,
+            $furthest_explicit_token_ix )
+            = @{$tdesc_item};
+        push @descendants,
+            map { [ 0, $_ ] }
+            ( $next_token_ix .. $next_explicit_token_ix - 1 );
+        if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' ) {
+            push @descendants,
+                map { [ 0, $_ ] }
+                ( $next_explicit_token_ix .. $furthest_explicit_token_ix );
+            $next_token_ix = $furthest_explicit_token_ix + 1;
+            next TDESC_ITEM;
+        } ## end if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' )
+        if ( $tdesc_item_type eq 'VALUED_SPAN' ) {
+            push @descendants, [ 1, $tdesc_item ];
+        }
+        die "Internal: Unknown TDesc type: $tdesc_item_type";
+    } ## end TDESC_ITEM: for my $tdesc_item (@flat_tdesc_list)
+
+    my @results;
+    DESCENDANT: for my $descendant (@descendants) {
+        my @per_descendant_results = ();
+        my ( $is_valued, $data ) = @{$descendant};
+        ARGSPEC: for my $argspec (@argspecs) {
+            if ( $argspec eq 'literal' ) {
+                $argspec = $is_valued ? 'value' : 'original';
+            }
+            if ( $argspec eq 'value' ) {
+                push @per_descendant_results,
+                    $is_valued
+                    ? $data->[Marpa::R2::HTML::Internal::TDesc::VALUE] . ''
+                    : undef;
+                next ARGSPEC;
+            } ## end if ( $argspec eq 'value' )
+            if ( $argspec eq 'original' ) {
+                my ( $start_ix, $end_ix ) =
+                    $is_valued
+                    ? (
+                    @{$data}[
+                        Marpa::R2::HTML::Internal::TDesc::START_TOKEN,
                     Marpa::R2::HTML::Internal::TDesc::END_TOKEN
-                    ];
-                my $start_offset =
-                    $tokens->[$first_token_id]
-                    ->[Marpa::R2::HTML::Internal::Token::START_OFFSET];
-                my $end_offset =
-                    $tokens->[$last_token_id]
-                    ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
-                my $document = $parse_instance->{document};
-                push @values, substr ${$document}, $start_offset,
-                    ( $end_offset - $start_offset );
-            } ## end when ('original')
-            when ('value') {
-                # push @values,
-                    # ( $child_type eq 'valued_span' )
-                    # ? $data->[Marpa::R2::HTML::Internal::TDesc::Element::VALUE]
-                    # : undef;
-            } ## end when ('value')
-            default {
-                Marpa::R2::exception(qq{Unrecognized argspec: "$_"})
-            }
-        } ## end for (@argspecs)
-        push @return, \@values;
-    } ## end for my $child (@children)
+                    ]
+                    )
+                    : ( $data, $data );
+                Marpa::R2::HTML::Internal::token_range_to_original(
+                    $parse_instance, $start_ix, $end_ix );
+                next ARGSPEC;
+            } ## end if ( $argspec eq 'original' )
+            die "Unimplemented argspec: $argspec";
 
-    return \@return;
+            # when ('token_type') {
+            # push @values,
+            # ( $child_type eq 'token' )
+            # ? (
+            # $tokens->[$data]->[Marpa::R2::HTML::Internal::Token::TYPE] )
+            # : undef;
+            # } ## end when ('token_type')
+            # when ('pseudoclass') {
+            # push @values,
+            # ( $child_type eq 'valued_span' )
+            # ? $data
+            # ->[Marpa::R2::HTML::Internal::TDesc::Element::NODE_DATA]
+            # ->{pseudoclass}
+            # : undef;
+            # } ## end when ('pseudoclass')
+            # when ('element') {
+            # push @values,
+            # ( $child_type eq 'valued_span' )
+            # ? $data
+            # ->[Marpa::R2::HTML::Internal::TDesc::Element::NODE_DATA]
+            # ->{element}
+            # : undef;
+            # } ## end when ('element')
+            # when ('literal_ref') {
+            # my $tdesc =
+            # $child_type eq 'token'
+            # ? [ 'UNVALUED_SPAN', $data, $data ]
+            # : $data;
+            # push @values,
+            # Marpa::R2::HTML::Internal::tdesc_list_to_literal(
+            # $parse_instance, [$tdesc] );
+            # } ## end when ('literal_ref')
+            # when ('literal') {
+            # my $tdesc =
+            # $child_type eq 'token'
+            # ? [ 'UNVALUED_SPAN', $data, $data ]
+            # : $data;
+            # push @values,
+            # ${
+            # Marpa::R2::HTML::Internal::tdesc_list_to_literal(
+            # $parse_instance, [$tdesc] )
+            # };
+            # } ## end when ('literal')
+            # when ('original') {
+            # my ( $first_token_id, $last_token_id ) =
+            # $child_type eq 'token'
+            # ? ( $data, $data )
+            # : @{$data}[
+            # Marpa::R2::HTML::Internal::TDesc::START_TOKEN,
+            # Marpa::R2::HTML::Internal::TDesc::END_TOKEN
+            # ];
+            # my $start_offset =
+            # $tokens->[$first_token_id]
+            # ->[Marpa::R2::HTML::Internal::Token::START_OFFSET];
+            # my $end_offset =
+            # $tokens->[$last_token_id]
+            # ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
+            # my $document = $parse_instance->{document};
+            # push @values, substr ${$document}, $start_offset,
+            # ( $end_offset - $start_offset );
+            # } ## end when ('original')
+            # when ('value') {
+            # # push @values,
+            # # ( $child_type eq 'valued_span' )
+            # # ? $data->[Marpa::R2::HTML::Internal::TDesc::Element::VALUE]
+            # : undef;
+            # } ## end when ('value')
+        } ## end ARGSPEC: for my $argspec (@argspecs)
+        push @results, \@per_descendant_results;
+    } ## end CHILD: for my $child (@children)
+
+    return \@results;
 } ## end sub Marpa::R2::HTML::descendants
 
 sub Marpa::R2::HTML::attributes {
