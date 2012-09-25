@@ -1159,10 +1159,10 @@ sub parse {
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             say STDERR join " ", $type, @step_data , $grammar->symbol_name($step_data[0]);
-            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             my ( undef, $token_value, $arg_n ) = @step_data;
 	    if ( $token_value eq RUBY_SLIPPERS_TOKEN ) {
 		$stack[$arg_n] = [ 'RUBY_SLIPPERS_TOKEN' ];
+		say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
 		next STEP;
 	    }
             my ( $start_earley_set_id, $end_earley_set_id ) =
@@ -1177,13 +1177,12 @@ sub parse {
                 'PHYSICAL_TOKEN' => $start_html_token_ix + 1,
                 $end_html_token_ix,
             ];
+            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
             say STDERR join " ", ( $type, @step_data );
-            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-            say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
 
             my $attributes = undef;
             my $class      = undef;
@@ -1231,7 +1230,7 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
 
             my $start_earleme = $recce->earleme($start_earley_set_id);
             my $start_html_token_ix =
-                $self->{earleme_to_html_token_ix}->[$start_earleme];
+                $self->{earleme_to_html_token_ix}->[$start_earleme] + 1;
             local $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX = $start_html_token_ix;
             my $end_earleme = $recce->earleme($end_earley_set_id);
             my $end_html_token_ix =
@@ -1260,6 +1259,8 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
 		$rule_id
             ];
 
+            say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
+            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
 
@@ -1267,11 +1268,10 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
             my ( $symbol_id, $arg_n ) = @step_data;
             say STDERR join " ", $type, @step_data,
                 $grammar->symbol_name($symbol_id);
-            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             my $symbol_name = $grammar->symbol_name($symbol_id);
             $stack[$arg_n] = ['ZERO_SPAN'];
 
-            # say STDERR "Stack:\n", Data::Dumper::Dumper(\@stack);
+            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
             next STEP;
         } ## end if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' )
         die "Unexpected step type: $type";
