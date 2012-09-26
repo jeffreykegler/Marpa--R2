@@ -517,35 +517,33 @@ sub Marpa::R2::HTML::Internal::default_handler
 
 sub handler_find {
     my ( $self, $rule_id, $class ) = @_;
+    my $trace_handler = $self->{trace_handler};
     my $handler;
     my $action = $self->{thick_grammar}->action($rule_id);
     FIND_HANDLER: {
-	last FIND_HANDLER if not defined $action;
+        last FIND_HANDLER if not defined $action;
 
-say STDERR "handler_find(); action: $action";
-
-        if ( index($action, 'SPE_') == 0 ) {
-            $handler = $self->{handler_by_species}->{substr $action, 4};
+        if ( index( $action, 'SPE_' ) == 0 ) {
+            my $species = substr $action, 4;
+            $handler = $self->{handler_by_species}->{$species};
+            say STDERR qq{Found handler by species: "$species"}
+                if $trace_handler and defined $handler;
             last FIND_HANDLER;
-        }
+        } ## end if ( index( $action, 'SPE_' ) == 0 )
         $class //= q{*};
 
-say STDERR __LINE__, " handler_find(); class: $class";
-
-	my @handler_keys = (
-	  (join q{;}, $action, $class),
-	  (join q{;}, q{*}, $class),
-	  (join q{;}, $action, q{*}),
-	  (join q{;}, q{*}, q{*}),
-	  );
-        ($handler) = grep { defined } @{$self->{handler_by_element_and_class}}{
-	    @handler_keys
-	};
+        my @handler_keys = (
+            ( join q{;}, $action, $class ),
+            ( join q{;}, q{*},    $class ),
+            ( join q{;}, $action, q{*} ),
+            ( join q{;}, q{*},    q{*} ),
+        );
+        ($handler) =
+            grep {defined}
+            @{ $self->{handler_by_element_and_class} }{ @handler_keys };
 
     } ## end FIND_HANDLER:
-say STDERR join " ", __FILE__, __LINE__;
     return $handler if defined $handler;
-say STDERR join " ", __FILE__, __LINE__;
     return \&Marpa::R2::HTML::Internal::default_handler;
 } ## end sub handler_find
 
@@ -1188,7 +1186,6 @@ sub parse {
             my $attributes = undef;
             my $class      = undef;
             my $action     = $grammar->action($rule_id);
-            say STDERR "action for rule $rule_id: ", ( $action // 'undef' );
             local $Marpa::R2::HTML::Internal::START_TAG_IX = undef;
             local $Marpa::R2::HTML::Internal::ELEMENT = undef;
 
@@ -1206,7 +1203,6 @@ sub parse {
                 {
                     my $start_tag_ix    = $start_tag_marpa_token->[1];
                     my $start_tag_token = $html_parser_tokens[$start_tag_ix];
-say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token);
                     if ( $start_tag_token
                         ->[Marpa::R2::HTML::Internal::Token::TYPE] eq 'S' )
                     {
@@ -1222,12 +1218,9 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
                 // q{*};
             local $Marpa::R2::HTML::Internal::ARG_0 = $arg_0;
             local $Marpa::R2::HTML::Internal::ARG_N = $arg_n;
-            say STDERR "class = ", $Marpa::R2::HTML::Internal::CLASS;
 
             my ( $start_earley_set_id, $end_earley_set_id ) =
                 $valuator->location();
-            say STDERR "start earley set = ", $start_earley_set_id;
-            say STDERR "end earley set = ",   $end_earley_set_id;
 
             my $start_earleme = $recce->earleme($start_earley_set_id);
             my $start_html_token_ix =
@@ -1244,13 +1237,8 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
 
             my $handler_key =
                 $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
-            say STDERR "Looking for memoized handler: $handler_key";
 
             my $handler = $memoized_handlers{$handler_key};
-
-            say STDERR "Found memoized handler: ",
-                $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS
-                if defined $handler;
 
             if ( not defined $handler ) {
                 $handler = $memoized_handlers{$handler_key} =
