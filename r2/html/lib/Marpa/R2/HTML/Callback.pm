@@ -210,7 +210,7 @@ sub Marpa::R2::HTML::descendants {
                 my $result =
                     Marpa::R2::HTML::Internal::token_range_to_original(
                     $parse_instance, $start_ix, $end_ix );
-                my $result = ${$result} if $deref;
+                $result = ${$result} if $deref;
                 push @per_descendant_results, $result;
                 next ARGSPEC;
             } ## end if ( $argspec eq 'original' )

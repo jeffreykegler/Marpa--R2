@@ -508,12 +508,27 @@ push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
     ( map { $_ => 'empty' } keys %Marpa::R2::HTML::Internal::EMPTY_ELEMENT ),
 );
 
-sub Marpa::R2::HTML::Internal::default_handler
-{
-   my @tdesc = grep { scalar @{$_} and $_->[0] eq 'VALUED_SPAN' } @_;
-   return $tdesc[0] if scalar @tdesc <= 1;
-   return [ 'VALUES', \@tdesc ];
-}
+sub Marpa::R2::HTML::Internal::default_handler {
+    my @flat_tdesc_list = ();
+    STACK_IX:
+    for my $stack_ix (
+        $Marpa::R2::HTML::Internal::ARG_0 .. $Marpa::R2::HTML::Internal::ARG_N
+        )
+    {
+        my $tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$stack_ix];
+        my $type       = $tdesc_item->[0];
+        next STACK_IX if not defined $type;
+        if ( $type eq 'VALUES' ) {
+            push @flat_tdesc_list, @{ $tdesc_item->[1] };
+	    next STACK_IX;
+        }
+        next STACK_IX if $type ne 'VALUED_SPAN';
+        push @flat_tdesc_list, $tdesc_item;
+    } ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0 ...)
+    return $flat_tdesc_list[0]->[Marpa::R2::HTML::Internal::TDesc::VALUE]
+        if scalar @flat_tdesc_list <= 1;
+    return [ 'VALUES', \@flat_tdesc_list ];
+} ## end sub Marpa::R2::HTML::Internal::default_handler
 
 sub handler_find {
     my ( $self, $rule_id, $class ) = @_;
