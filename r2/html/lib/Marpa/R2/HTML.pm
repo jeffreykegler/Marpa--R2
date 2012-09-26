@@ -1231,10 +1231,14 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
             my $start_earleme = $recce->earleme($start_earley_set_id);
             my $start_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$start_earleme] + 1;
-            local $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX = $start_html_token_ix;
             my $end_earleme = $recce->earleme($end_earley_set_id);
             my $end_html_token_ix =
                 $self->{earleme_to_html_token_ix}->[$end_earleme];
+
+	    if ($start_html_token_ix > $end_html_token_ix) {
+	      $start_html_token_ix = $end_html_token_ix = undef;
+	    }
+            local $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX = $start_html_token_ix;
             local $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX = $end_html_token_ix;
 
             my $handler_key =

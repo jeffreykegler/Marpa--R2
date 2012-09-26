@@ -143,13 +143,13 @@ sub Marpa::R2::HTML::descendants {
         $Marpa::R2::HTML::Internal::ARG_0 .. $Marpa::R2::HTML::Internal::ARG_N
         )
     {
-        my $tdesc_item = $Marpa::R2::HTML::Internal::STACK[$stack_ix];
+        my $tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$stack_ix];
         my $type       = $tdesc_item->[0];
         next STACK_IX if not defined $type;
         next STACK_IX if $type eq 'ZERO_SPAN';
         next STACK_IX if $type eq 'RUBY_SLIPPERS_TOKEN';
         push @flat_tdesc_list, @{ $tdesc_item->[1] } if $type eq 'VALUES';
-        push @flat_tdesc_list, $_;
+        push @flat_tdesc_list, $tdesc_item;
     } ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0 ...)
 
     my $next_token_ix  = $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX;
@@ -172,6 +172,7 @@ sub Marpa::R2::HTML::descendants {
         } ## end if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' )
         if ( $tdesc_item_type eq 'VALUED_SPAN' ) {
             push @descendants, [ 1, $tdesc_item ];
+            next TDESC_ITEM;
         }
         die "Internal: Unknown TDesc type: $tdesc_item_type";
     } ## end TDESC_ITEM: for my $tdesc_item (@flat_tdesc_list)
@@ -185,10 +186,12 @@ sub Marpa::R2::HTML::descendants {
                 $argspec = $is_valued ? 'value' : 'original';
             }
             if ( $argspec eq 'value' ) {
-                push @per_descendant_results,
-                    $is_valued
-                    ? $data->[Marpa::R2::HTML::Internal::TDesc::VALUE] . ''
+                my $value =
+                      $is_valued
+                    ? $data->[Marpa::R2::HTML::Internal::TDesc::VALUE]
                     : undef;
+                push @per_descendant_results,
+                    defined $value ? q{} . $value : undef;
                 next ARGSPEC;
             } ## end if ( $argspec eq 'value' )
             if ( $argspec eq 'original' ) {
