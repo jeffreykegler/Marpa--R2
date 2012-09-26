@@ -524,8 +524,8 @@ sub handler_find {
 
 say STDERR "handler_find(); action: $action";
 
-        if ( $action =~ / \A SPE_ /xms ) {
-            $handler = $self->{handler_by_species}->{$action};
+        if ( index($action, 'SPE_') == 0 ) {
+            $handler = $self->{handler_by_species}->{substr $action, 4};
             last FIND_HANDLER;
         }
         $class //= q{*};
@@ -899,14 +899,10 @@ sub parse {
         my $marpa_token = $marpa_tokens[$marpa_token_ix];
         last RECCE_RESPONSE if not defined $marpa_token;
 
-        say STDERR "token = ", $marpa_token->[0];
         my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
         my $read_result =
             $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
-            say "UNEXPECTED_TOKEN_ID = ", $UNEXPECTED_TOKEN_ID;
-            say STDERR "result = $read_result ",
-                $LIBMARPA_ERROR_NAMES[$read_result];
             $marpa_token_ix++;
             $recce->earleme_complete();
 	    my $last_html_token_of_marpa_token //= $marpa_token->[1]->[0]->[2];
@@ -1281,10 +1277,19 @@ say STDERR "Start tag token candidate:\n", Data::Dumper::Dumper($start_tag_token
         die "Unexpected step type: $type";
     } ## end STEP: while (1)
 
-    my $value = $stack[0];
+    my $result = $stack[0];
     Marpa::R2::exception('No parse: evaler returned undef')
-        if not defined $value;
-    return \$value;
+        if not defined $result;
+
+    if ( $result->[Marpa::R2::HTML::Internal::TDesc::TYPE] eq 'VALUED_SPAN' )
+    {
+        $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
+    }
+    else {
+        die "Not yet implemented";
+    }
+
+    return $result;
 
 } ## end sub parse
 

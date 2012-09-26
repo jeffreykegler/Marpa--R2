@@ -190,8 +190,7 @@ sub Marpa::R2::HTML::descendants {
                       $is_valued
                     ? $data->[Marpa::R2::HTML::Internal::TDesc::VALUE]
                     : undef;
-                push @per_descendant_results,
-                    defined $value ? q{} . $value : undef;
+                push @per_descendant_results, $value;
                 next ARGSPEC;
             } ## end if ( $argspec eq 'value' )
             if ( $argspec eq 'original' ) {
@@ -204,7 +203,8 @@ sub Marpa::R2::HTML::descendants {
                     ]
                     )
                     : ( $data, $data );
-                Marpa::R2::HTML::Internal::token_range_to_original(
+                push @per_descendant_results,
+                    Marpa::R2::HTML::Internal::token_range_to_original(
                     $parse_instance, $start_ix, $end_ix );
                 next ARGSPEC;
             } ## end if ( $argspec eq 'original' )
