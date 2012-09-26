@@ -552,16 +552,17 @@ sub handler_find {
 # Returned as a reference, because it may be very long
 sub token_range_to_original {
     my ( $self, $first_token_ix, $last_token_ix ) = @_;
-    my $document        = $self->{document};
-    my $tokens          = $self->{tokens};
+    my $document = $self->{document};
+    my $tokens   = $self->{tokens};
     my $start_offset =
         $tokens->[$first_token_ix]
         ->[Marpa::R2::HTML::Internal::Token::START_OFFSET];
     my $end_offset =
         $tokens->[$last_token_ix]
         ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
-    return \substr ${$document}, $start_offset,
+    my $original = substr ${$document}, $start_offset,
         ( $end_offset - $start_offset );
+    return \$original;
 } ## end sub token_range_to_original
 
 # "Original" value of token -- that is, the corresponding

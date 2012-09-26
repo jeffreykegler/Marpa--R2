@@ -163,18 +163,18 @@ sub Marpa::R2::HTML::descendants {
         push @descendants,
             map { [ 0, $_ ] }
             ( $next_token_ix .. $next_explicit_token_ix - 1 );
-        if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' ) {
-            push @descendants,
-                map { [ 0, $_ ] }
-                ( $next_explicit_token_ix .. $furthest_explicit_token_ix );
-            $next_token_ix = $furthest_explicit_token_ix + 1;
-            next TDESC_ITEM;
-        } ## end if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' )
-        if ( $tdesc_item_type eq 'VALUED_SPAN' ) {
+        if ( $tdesc_item_type eq 'VALUED_SPAN'
+            and defined $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE]
+            )
+        {
             push @descendants, [ 1, $tdesc_item ];
+	    $next_token_ix = $furthest_explicit_token_ix + 1;
             next TDESC_ITEM;
-        }
-        die "Internal: Unknown TDesc type: $tdesc_item_type";
+        } ## end if ( $tdesc_item_type eq 'VALUED_SPAN' and defined ...)
+        push @descendants,
+            map { [ 0, $_ ] }
+            ( $next_explicit_token_ix .. $furthest_explicit_token_ix );
+        $next_token_ix = $furthest_explicit_token_ix + 1;
     } ## end TDESC_ITEM: for my $tdesc_item (@flat_tdesc_list)
 
     my @results;
@@ -182,6 +182,10 @@ sub Marpa::R2::HTML::descendants {
         my @per_descendant_results = ();
         my ( $is_valued, $data ) = @{$descendant};
         ARGSPEC: for my $argspec (@argspecs) {
+	    my $deref = 1;
+            if ( $argspec =~ s/_ref\z//xms ) {
+	        $deref = 0;
+	    }
             if ( $argspec eq 'literal' ) {
                 $argspec = $is_valued ? 'value' : 'original';
             }
@@ -203,9 +207,11 @@ sub Marpa::R2::HTML::descendants {
                     ]
                     )
                     : ( $data, $data );
-                push @per_descendant_results,
+                my $result =
                     Marpa::R2::HTML::Internal::token_range_to_original(
                     $parse_instance, $start_ix, $end_ix );
+                my $result = ${$result} if $deref;
+                push @per_descendant_results, $result;
                 next ARGSPEC;
             } ## end if ( $argspec eq 'original' )
             die "Unimplemented argspec: $argspec";
