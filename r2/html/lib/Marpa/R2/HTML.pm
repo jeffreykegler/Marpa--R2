@@ -1193,9 +1193,6 @@ sub parse {
                 $Marpa::R2::HTML::Internal::ELEMENT = substr $action, 4;
                 my $start_tag_marpa_token = $stack[$arg_0];
 
-                say STDERR "MARPA_STEP_RULE Potential start tag:\n",
-                    Data::Dumper::Dumper($start_tag_marpa_token);
-
                 my $start_tag_type = $start_tag_marpa_token
                     ->[Marpa::R2::HTML::Internal::TDesc::TYPE];
                 if ( defined $start_tag_type
