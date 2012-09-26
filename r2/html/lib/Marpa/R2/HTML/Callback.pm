@@ -148,7 +148,10 @@ sub Marpa::R2::HTML::descendants {
         next STACK_IX if not defined $type;
         next STACK_IX if $type eq 'ZERO_SPAN';
         next STACK_IX if $type eq 'RUBY_SLIPPERS_TOKEN';
-        push @flat_tdesc_list, @{ $tdesc_item->[1] } if $type eq 'VALUES';
+        if ( $type eq 'VALUES' ) {
+            push @flat_tdesc_list, @{ $tdesc_item->[1] };
+            next STACK_IX;
+        }
         push @flat_tdesc_list, $tdesc_item;
     } ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0 ...)
 
@@ -160,6 +163,20 @@ sub Marpa::R2::HTML::descendants {
         my ( $tdesc_item_type, $next_explicit_token_ix,
             $furthest_explicit_token_ix )
             = @{$tdesc_item};
+
+	if (not defined $next_explicit_token_ix) {
+	    ## An element can contain no HTML tokens -- it may contain
+	    ## only Ruby Slippers tokens.
+	    ## Treat this as a special case.
+	  if ( $tdesc_item_type eq 'VALUED_SPAN'
+	      and defined $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE]
+	      )
+	  {
+            push @descendants, [ 1, $tdesc_item ];
+            next TDESC_ITEM;
+	  }
+	}
+
         push @descendants,
             map { [ 0, $_ ] }
             ( $next_token_ix .. $next_explicit_token_ix - 1 );
@@ -187,8 +204,15 @@ sub Marpa::R2::HTML::descendants {
 	        $deref = 0;
 	    }
             if ( $argspec eq 'literal' ) {
-                $argspec = $is_valued ? 'value' : 'original';
-            }
+                if ($is_valued) {
+                    push @per_descendant_results,
+                        q{}
+                        . $data->[Marpa::R2::HTML::Internal::TDesc::VALUE];
+                    next ARGSPEC;
+                } ## end if ($is_valued)
+                $argspec = 'original';
+                ## FALL THROUGH
+            } ## end if ( $argspec eq 'literal' )
             if ( $argspec eq 'value' ) {
                 my $value =
                       $is_valued
