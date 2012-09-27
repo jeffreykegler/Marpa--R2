@@ -79,6 +79,8 @@ sub Marpa::R2::HTML::end_tag {
 
 sub Marpa::R2::HTML::contents {
 
+    die "Not yet implemented";
+
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Marpa::R2::exception(
         q{Attempt to fetch an element contents outside of a parse})
@@ -108,6 +110,8 @@ sub Marpa::R2::HTML::contents {
 } ## end sub Marpa::R2::HTML::contents
 
 sub Marpa::R2::HTML::values {
+
+    die "Not yet implemented";
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Marpa::R2::exception(q{Attempt to fetch an end tag outside of a parse})
@@ -318,6 +322,8 @@ sub Marpa::R2::HTML::descendants {
 
 sub Marpa::R2::HTML::attributes {
 
+    die "Not yet implemented";
+
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Marpa::R2::exception(
         q{Attempt to fetch attributes from an undefined parse instance})
@@ -337,27 +343,8 @@ sub Marpa::R2::HTML::attributes {
 # This assumes that a start token, if there is one
 # with attributes, is the first token
 sub create_fetch_attribute_closure {
-    my ($attribute) = @_;
-    return sub {
-        my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-        Marpa::R2::exception(
-            qq{Attempt to fetch attribute "$attribute" outside of a parse instance}
-        ) if not defined $parse_instance;
-
-        # It is OK to call this routine on a non-element.
-        my $start_tag_token_id =
-            $Marpa::R2::HTML::Internal::PER_NODE_DATA->{start_tag_token_id};
-
-        return if not defined $start_tag_token_id;
-        my $tokens          = $parse_instance->{tokens};
-        my $start_tag_token = $tokens->[$start_tag_token_id];
-        my $attribute_value =
-            $start_tag_token->[Marpa::R2::HTML::Internal::Token::ATTR]
-            ->{$attribute};
-
-        return defined $attribute_value ? lc $attribute_value : undef;
-    };
-} ## end sub create_fetch_attribute_closure
+    return sub { die "Not yet implemented"; }
+}
 
 no strict 'refs';
 *{'Marpa::R2::HTML::id'}    = create_fetch_attribute_closure('id');
@@ -373,6 +360,7 @@ sub Marpa::R2::HTML::tagname {
 
 sub Marpa::R2::HTML::literal_ref {
 
+    die "Not yet implemented";
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Marpa::R2::exception('Attempt to get literal value outside of a parse')
         if not defined $parse_instance;
@@ -382,6 +370,7 @@ sub Marpa::R2::HTML::literal_ref {
 } ## end sub Marpa::R2::HTML::literal_ref
 
 sub Marpa::R2::HTML::literal {
+    die "Not yet implemented";
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Carp::confess('Attempt to get literal value outside of a parse')
@@ -396,6 +385,7 @@ sub Marpa::R2::HTML::literal {
 } ## end sub Marpa::R2::HTML::literal
 
 sub Marpa::R2::HTML::offset {
+    die "Not yet implemented";
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     my $valuator = $Marpa::R2::HTML::Internal::VALUATOR;
     my $recce = $Marpa::R2::HTML::Internal::RECCE;
@@ -408,6 +398,7 @@ sub Marpa::R2::HTML::offset {
 } ## end sub Marpa::R2::HTML::offset
 
 sub Marpa::R2::HTML::original {
+    die "Not yet implemented";
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Marpa::R2::exception('Attempt to read offset outside of a parse instance')
         if not defined $parse_instance;
