@@ -103,34 +103,38 @@ sub Marpa::R2::HTML::end_tag {
 
 sub Marpa::R2::HTML::contents {
 
-    die "Not yet implemented";
-
-    my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
+    my $self = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Marpa::R2::exception(
         q{Attempt to fetch an element contents outside of a parse})
-        if not defined $parse_instance;
+        if not defined $self;
 
-    my $element = $Marpa::R2::HTML::Internal::PER_NODE_DATA->{element};
-    return if not $element;
+    return undef if not $Marpa::R2::HTML::Internal::ELEMENT;
 
-    my $contents_start_tdesc_ix =
-        defined $Marpa::R2::HTML::Internal::PER_NODE_DATA->{start_tag_token_id}
-        ? 1
-        : 0;
+    my $contents_start_ix =
+        defined $Marpa::R2::HTML::Internal::START_TAG_IX
+        ? $Marpa::R2::HTML::Internal::START_TAG_IX + 1
+        : $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX;
+    defined $Marpa::R2::HTML::Internal::END_TAG_IX_REF or end_tag_set();
+    my $end_tag_token_ix = ${$Marpa::R2::HTML::Internal::END_TAG_IX_REF};
+    my $contents_end_ix =
+        defined $end_tag_token_ix
+        ? $end_tag_token_ix + 1
+        : $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX;
 
-    my $contents_end_tdesc_ix =
-        defined $Marpa::R2::HTML::Internal::PER_NODE_DATA->{end_tag_token_id}
-        ? ( $#{$Marpa::R2::HTML::Internal::TDESC_LIST} - 1 )
-        : $#{$Marpa::R2::HTML::Internal::TDESC_LIST};
+    # An element does not necessarily have any tokens
+    return q{} if not defined $contents_start_ix;
 
+    my $content_values = [
+        @{$Marpa::R2::HTML::Internal::STACK}[
+            ( $Marpa::R2::HTML::Internal::ARG_0 + 1 )
+            .. ( $Marpa::R2::HTML::Internal::ARG_N - 1 )
+        ]
+    ];
     return ${
-        Marpa::R2::HTML::Internal::tdesc_list_to_literal(
-            $parse_instance,
-            [   @{$Marpa::R2::HTML::Internal::TDESC_LIST}
-                    [ $contents_start_tdesc_ix .. $contents_end_tdesc_ix ]
-            ]
-        )
+        Marpa::R2::HTML::Internal::range_and_values_to_literal( $self,
+            $contents_start_ix, $contents_end_ix, $content_values )
         };
+
 } ## end sub Marpa::R2::HTML::contents
 
 sub Marpa::R2::HTML::values {
