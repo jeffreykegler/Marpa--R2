@@ -1258,6 +1258,7 @@ sub parse {
             my $class      = undef;
             my $action     = $grammar->action($rule_id);
             local $Marpa::R2::HTML::Internal::START_TAG_IX = undef;
+            local $Marpa::R2::HTML::Internal::END_TAG_IX_REF = undef;
             local $Marpa::R2::HTML::Internal::ELEMENT = undef;
 
             if ( defined $action and ( index $action, 'ELE_' ) == 0 ) {

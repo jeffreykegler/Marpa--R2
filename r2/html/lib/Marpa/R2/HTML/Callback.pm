@@ -48,33 +48,57 @@ sub Marpa::R2::HTML::start_tag {
 
 } ## end sub Marpa::R2::HTML::start_tag
 
+# We do not always need the end tag, so it is found lazily,
+# unlike the start tag which is determined eagerly.
+# Return the end token ix, or undef if none.
+# As a side effect set $Marpa::R2::HTML::Internal::END_TAG_IX_REF
+# to be a reference to that result
+sub end_tag_set {
+
+    my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
+
+    # be idempotent -- but this is probably unnecessary
+    return ${$Marpa::R2::HTML::Internal::END_TAG_IX_REF}
+        if defined $Marpa::R2::HTML::Internal::END_TAG_IX_REF;
+
+    # default to no end tag
+    $Marpa::R2::HTML::Internal::END_TAG_IX_REF = \undef;
+
+    # return undef if the current rule is not an element
+    return undef if not $Marpa::R2::HTML::Internal::ELEMENT;
+
+    my $arg_n              = $Marpa::R2::HTML::Internal::ARG_N;
+    my $end_tag_tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$arg_n];
+    my $end_tag_type       = $end_tag_tdesc_item->[0];
+
+    return undef if not defined $end_tag_type;
+    return undef if $end_tag_type ne 'PHYSICAL_TOKEN';
+
+    my $end_tag_token_ix =
+        $end_tag_tdesc_item->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN];
+    my $tokens     = $parse_instance->{tokens};
+    my $html_token = $tokens->[$end_tag_token_ix];
+    my $html_token_type =
+        $html_token->[Marpa::R2::HTML::Internal::Token::TYPE];
+    return undef if $html_token_type ne 'E';
+    $Marpa::R2::HTML::Internal::END_TAG_IX_REF = \$end_tag_token_ix;
+    return $end_tag_token_ix;
+
+} ## end sub end_tag_set
+
 sub Marpa::R2::HTML::end_tag {
 
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
     Marpa::R2::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
+    defined $Marpa::R2::HTML::Internal::END_TAG_IX_REF or end_tag_set();
+    my $end_tag_token_ix = ${$Marpa::R2::HTML::Internal::END_TAG_IX_REF};
+    return undef if not defined $end_tag_token_ix;
 
-    my $arg_n = $Marpa::R2::HTML::Internal::ARG_N;
-
-    # return undef if not element
-    return undef if not $Marpa::R2::HTML::Internal::ELEMENT;
-
-    my $end_tag_tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$arg_n];
-    my $end_tag_type       = $end_tag_tdesc_item->[0];
-    if ( defined $end_tag_type
-        and $end_tag_type eq 'PHYSICAL_TOKEN' )
-    {
-        my $end_tag_token_ix = $end_tag_tdesc_item->[1];
-	my $tokens = $parse_instance->{tokens};
-	my $html_token = $tokens->[$end_tag_token_ix];
-	my $html_token_type = $html_token->[$Marpa::R2::HTML::Internal::Token::TYPE];
-	return undef if $html_token_type ne 'E';
-        return ${
-            Marpa::R2::HTML::Internal::token_range_to_original(
-                $parse_instance, $end_tag_token_ix, $end_tag_token_ix, )
-            };
-    } ## end if ( defined $end_tag_type and $end_tag_type eq 'PHYSICAL_TOKEN')
-    return undef;
+    return ${
+        Marpa::R2::HTML::Internal::token_range_to_original( $parse_instance,
+            $end_tag_token_ix, $end_tag_token_ix, )
+        };
 } ## end sub Marpa::R2::HTML::end_tag
 
 sub Marpa::R2::HTML::contents {
