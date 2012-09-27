@@ -1255,7 +1255,7 @@ sub parse {
 		    my $type       = $tdesc_item->[0];
 		    next STACK_IX if not defined $type;
 		    if ( $type eq 'VALUES' ) {
-			push @flat_tdesc_list, @{ $tdesc_item->[1] };
+			push @flat_tdesc_list, @{ $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE] };
 			next STACK_IX;
 		    }
 		    next STACK_IX if $type ne 'VALUED_SPAN';
@@ -1263,7 +1263,8 @@ sub parse {
 		} ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0...)
 		if ( scalar @flat_tdesc_list <= 1 ) {
 		    $stack[$arg_0] = [
-			VALUED_SPAN => $start_html_token_ix,
+			VALUED_SPAN
+			=> $start_html_token_ix,
 			$end_html_token_ix,
 			$flat_tdesc_list[0]
 			    ->[Marpa::R2::HTML::Internal::TDesc::VALUE],
@@ -1271,7 +1272,12 @@ sub parse {
 		    ];
 		    last COMPUTE_VALUE;
 		} ## end if ( scalar @flat_tdesc_list <= 1 )
-		$stack[$arg_0] = [ 'VALUES', \@flat_tdesc_list ];
+		$stack[$arg_0] = [
+		    VALUES => $start_html_token_ix,
+		    $end_html_token_ix,
+		    \@flat_tdesc_list,
+		    $rule_id
+		];
 	    } ## end COMPUTE_VALUE:
 
 	    if ($trace_values) {

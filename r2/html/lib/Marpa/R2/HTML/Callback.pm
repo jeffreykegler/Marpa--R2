@@ -144,12 +144,14 @@ sub Marpa::R2::HTML::descendants {
         )
     {
         my $tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$stack_ix];
-        my $type       = $tdesc_item->[0];
+
+        my $type = $tdesc_item->[0];
         next STACK_IX if not defined $type;
         next STACK_IX if $type eq 'ZERO_SPAN';
         next STACK_IX if $type eq 'RUBY_SLIPPERS_TOKEN';
         if ( $type eq 'VALUES' ) {
-            push @flat_tdesc_list, @{ $tdesc_item->[1] };
+            push @flat_tdesc_list,
+                @{ $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE] };
             next STACK_IX;
         }
         push @flat_tdesc_list, $tdesc_item;
