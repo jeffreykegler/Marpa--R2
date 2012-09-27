@@ -32,6 +32,9 @@ BEGIN { @EXPORT_OK = qw(html); }
 
 package Marpa::R2::HTML::Internal;
 
+# Data::Dumper is used in tracing
+use Data::Dumper;
+
 use Carp ();
 use HTML::PullParser;
 use HTML::Entities qw(decode_entities);
@@ -599,6 +602,66 @@ sub tdesc_item_to_original {
     } ## end if ( $tdesc_item_type eq 'VALUED_SPAN' )
     return '';
 } ## end sub tdesc_item_to_original
+
+# Given a token range and a tdesc list,
+# return a reference to the literal value.
+sub range_and_values_to_literal {
+    my ( $self, $next_token_ix, $final_token_ix, $tdesc_list) = @_;
+
+    my @flat_tdesc_list = ();
+    TDESC_ITEM: for my $tdesc_item ( @{$tdesc_list})
+    {
+        my $type = $tdesc_item->[0];
+        next TDESC_ITEM if not defined $type;
+        next TDESC_ITEM if $type eq 'ZERO_SPAN';
+        next TDESC_ITEM if $type eq 'RUBY_SLIPPERS_TOKEN';
+        if ( $type eq 'VALUES' ) {
+            push @flat_tdesc_list,
+                @{ $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE] };
+            next TDESC_ITEM;
+        }
+        push @flat_tdesc_list, $tdesc_item;
+    } ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0 ...)
+
+    my @literal_pieces = ();
+    TDESC_ITEM: for my $tdesc_item (@flat_tdesc_list) {
+
+        my ( $tdesc_item_type, $next_explicit_token_ix,
+            $furthest_explicit_token_ix )
+            = @{$tdesc_item};
+
+	if (not defined $next_explicit_token_ix) {
+	    ## An element can contain no HTML tokens -- it may contain
+	    ## only Ruby Slippers tokens.
+	    ## Treat this as a special case.
+	  if ( $tdesc_item_type eq 'VALUED_SPAN') {
+	    my $value = $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE] // q{};
+            push @literal_pieces, \(q{} . $value);
+	  }
+	  next TDESC_ITEM;
+	}
+
+        push @literal_pieces,
+            token_range_to_original( $self, $next_token_ix, $next_explicit_token_ix - 1)
+            if $next_token_ix < $next_explicit_token_ix;
+        if ( $tdesc_item_type eq 'VALUED_SPAN' ) {
+            my $value = $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE];
+            if ( defined $value ) {
+                push @literal_pieces, \( q{} . $value );
+                $next_token_ix = $furthest_explicit_token_ix + 1;
+                next TDESC_ITEM;
+            }
+            ## FALL THROUGH
+        } ## end if ( $tdesc_item_type eq 'VALUED_SPAN' and defined )
+        push @literal_pieces,
+            token_range_to_original( $self, $next_explicit_token_ix, $furthest_explicit_token_ix )
+            if $next_explicit_token_ix <= $furthest_explicit_token_ix;
+        $next_token_ix = $furthest_explicit_token_ix + 1;
+    } ## end TDESC_ITEM: for my $tdesc_item (@flat_tdesc_list)
+
+    return \(join q{}, map { ${$_} } @literal_pieces);
+
+}
 
 sub parse {
     my ( $self, $document_ref ) = @_;
@@ -1330,12 +1393,9 @@ sub parse {
         $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
     }
     else {
-        $Marpa::R2::HTML::Internal::ARG_0 =
-            $Marpa::R2::HTML::Internal::ARG_N = 0;
-        $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX = 0;
-        $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX = $#html_parser_tokens;
-        $result = \(join q{}, map { $_->[0] } @{Marpa::R2::HTML::descendants('literal')});
-    } ## end else [ if ( $result->[Marpa::R2::HTML::Internal::TDesc::TYPE...])]
+        return range_and_values_to_literal( $self, 0, $#html_parser_tokens,
+            $result->[Marpa::R2::HTML::Internal::TDesc::VALUE] );
+    }
 
     return $result;
 
