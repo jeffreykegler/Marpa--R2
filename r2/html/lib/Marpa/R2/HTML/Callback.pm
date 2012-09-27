@@ -204,7 +204,9 @@ sub Marpa::R2::HTML::descendants {
     DESCENDANT: for my $descendant (@descendants) {
         my @per_descendant_results = ();
         my ( $is_valued, $data ) = @{$descendant};
-        ARGSPEC: for my $argspec (@argspecs) {
+        ARGSPEC: for my $argspec_ix (0 .. $#argspecs) {
+	    ## Work with a copy, so we can change it
+	    my $argspec = $argspecs[$argspec_ix];
 	    my $deref = 1;
             if ( $argspec =~ s/_ref\z//xms ) {
 	        $deref = 0;

@@ -65,7 +65,7 @@ my $no_tang_document;
 
 my $value = Marpa::R2::HTML::html(
     \$document,
-    {   '.ktang' => sub { return q{}; }
+    {   '.kTang' => sub { return q{}; }
     }
 );
 

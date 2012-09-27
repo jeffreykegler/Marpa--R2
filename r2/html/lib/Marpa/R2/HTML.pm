@@ -176,7 +176,6 @@ sub add_handler {
     $element = q{*} if not $element;
     $element = lc $element;
     $class //= q{*};
-    $class = lc $class;
     $self->{handler_by_element_and_class}->{join q{;}, $element, $class} = $action;
     return 1;
 } ## end sub add_handler
@@ -1220,8 +1219,8 @@ sub parse {
                 } ## end if ( defined $start_tag_type and $start_tag_type eq ...)
             } ## end if ( defined $action and ( index $action, 'ELE_' ) ==...)
             local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
-            local $Marpa::R2::HTML::Internal::CLASS = $attributes->{class}
-                // q{*};
+	    $class = $attributes->{class} // q{*};
+            local $Marpa::R2::HTML::Internal::CLASS = $class;
             local $Marpa::R2::HTML::Internal::ARG_0 = $arg_0;
             local $Marpa::R2::HTML::Internal::ARG_N = $arg_n;
 
