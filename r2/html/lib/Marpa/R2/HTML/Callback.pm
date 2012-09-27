@@ -179,8 +179,8 @@ sub Marpa::R2::HTML::descendants {
 	      )
 	  {
             push @descendants, [ 1, $tdesc_item ];
-            next TDESC_ITEM;
 	  }
+	  next TDESC_ITEM;
 	}
 
         push @descendants,
@@ -224,6 +224,7 @@ sub Marpa::R2::HTML::descendants {
                       $is_valued
                     ? $data->[Marpa::R2::HTML::Internal::TDesc::VALUE]
                     : undef;
+
                 push @per_descendant_results, $value;
                 next ARGSPEC;
             } ## end if ( $argspec eq 'value' )

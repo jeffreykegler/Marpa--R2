@@ -545,6 +545,8 @@ sub handler_find {
 # Returned as a reference, because it may be very long
 sub token_range_to_original {
     my ( $self, $first_token_ix, $last_token_ix ) = @_;
+
+    return \q{} if not defined $first_token_ix;
     my $document = $self->{document};
     my $tokens   = $self->{tokens};
     my $start_offset =
@@ -570,6 +572,7 @@ sub tdesc_item_to_original {
     my $tokens          = $self->{tokens};
     my $tdesc_item_type = $tdesc_item->[0];
     return '' if not defined $tdesc_item_type;
+
     if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' ) {
         return token_range_to_original(
             $self,
@@ -1311,8 +1314,12 @@ sub parse {
         $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
     }
     else {
-        die "Not yet implemented";
-    }
+        $Marpa::R2::HTML::Internal::ARG_0 =
+            $Marpa::R2::HTML::Internal::ARG_N = 0;
+        $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX = 0;
+        $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX = $#html_parser_tokens;
+        $result = \(join q{}, map { $_->[0] } @{Marpa::R2::HTML::descendants('literal')});
+    } ## end else [ if ( $result->[Marpa::R2::HTML::Internal::TDesc::TYPE...])]
 
     return $result;
 
