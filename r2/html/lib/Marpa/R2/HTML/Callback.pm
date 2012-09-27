@@ -373,18 +373,7 @@ sub Marpa::R2::HTML::literal_ref {
 } ## end sub Marpa::R2::HTML::literal_ref
 
 sub Marpa::R2::HTML::literal {
-    die "Not yet implemented";
-
-    my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Carp::confess('Attempt to get literal value outside of a parse')
-        if not defined $parse_instance;
-    Marpa::R2::exception('Attempt to get literal value outside of a parse')
-        if not defined $parse_instance;
-    my $tdesc_list = $Marpa::R2::HTML::Internal::TDESC_LIST;
-    return ${
-        Marpa::R2::HTML::Internal::tdesc_list_to_literal( $parse_instance,
-            $tdesc_list )
-        };
+    return ${Marpa::R2::HTML::literal_ref()};
 } ## end sub Marpa::R2::HTML::literal
 
 sub Marpa::R2::HTML::offset {
