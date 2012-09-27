@@ -510,20 +510,21 @@ push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
 
 sub handler_find {
     my ( $self, $rule_id, $class ) = @_;
-    my $trace_handler = $self->{trace_handler};
+    my $trace_handlers = $self->{trace_handlers};
     my $handler;
+    $class //= q{*};
     my $action = $self->{thick_grammar}->action($rule_id);
     FIND_HANDLER: {
-        last FIND_HANDLER if not defined $action;
+
+	last FIND_HANDLER if not defined $action;
 
         if ( index( $action, 'SPE_' ) == 0 ) {
             my $species = substr $action, 4;
             $handler = $self->{handler_by_species}->{$species};
-            say STDERR qq{Found handler by species: "$species"}
-                if $trace_handler and defined $handler;
+            say STDERR qq{Rule $rule_id: Found handler by species: "$species"}
+                if $trace_handlers and defined $handler;
             last FIND_HANDLER;
         } ## end if ( index( $action, 'SPE_' ) == 0 )
-        $class //= q{*};
 
         my @handler_keys = (
             ( join q{;}, $action, $class ),
@@ -533,10 +534,20 @@ sub handler_find {
         );
         ($handler) =
             grep {defined}
-            @{ $self->{handler_by_element_and_class} }{ @handler_keys };
+            @{ $self->{handler_by_element_and_class} }{@handler_keys};
+
+        say STDERR qq{Rule $rule_id: Found handler by action and class: "},
+            ( grep { defined $self->{handler_by_element_and_class}->{$_} }
+                @handler_keys )[0], qq{"}
+            if $trace_handlers and defined $handler;
 
     } ## end FIND_HANDLER:
     return $handler if defined $handler;
+
+    say STDERR qq{Rule $rule_id: Using default handler for action "},
+        ( $action // q{*} ), qq{" and class: "$class"}
+        if $trace_handlers;
+
     return "default_handler";
 } ## end sub handler_find
 
@@ -603,6 +614,7 @@ sub parse {
     my $trace_cruft     = $self->{trace_cruft};
     my $trace_terminals = $self->{trace_terminals} // 0;
     my $trace_conflicts = $self->{trace_conflicts};
+    my $trace_handlers = $self->{trace_handlers};
     my $trace_values = $self->{trace_values};
     my $trace_fh        = $self->{trace_fh};
     my $ref_type        = ref $document_ref;
@@ -1233,6 +1245,11 @@ sub parse {
                 $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
 
             my $handler = $memoized_handlers{$handler_key};
+
+	    $trace_handlers
+		and $handler
+		and say STDERR qq{Found memoized handler for rule $rule_id, class "},
+		( $class // q{*} ), qq{"};
 
             if ( not defined $handler ) {
                 $handler = $memoized_handlers{$handler_key} =
