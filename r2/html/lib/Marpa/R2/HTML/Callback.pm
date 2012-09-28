@@ -290,6 +290,17 @@ sub Marpa::R2::HTML::descendants {
                 push @per_descendant_results, $result;
                 next ARGSPEC;
             } ## end if ( $argspec eq 'original' )
+	    if ( $argspec eq 'token_type' ) {
+		if ($is_valued) {
+		    push @per_descendant_results, undef;
+		    next ARGSPEC;
+		}
+		my $token_ix = $data;
+		my $html_token = $tokens->[$token_ix];
+		push @per_descendant_results,
+		    $html_token->[Marpa::R2::HTML::Internal::Token::TYPE];
+		next ARGSPEC;
+	    } ## end if ( $argspec eq 'token_type' )
             die "Unimplemented argspec: $argspec";
 
             # when ('token_type') {
