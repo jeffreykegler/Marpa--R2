@@ -367,30 +367,19 @@ sub Marpa::R2::HTML::descendants {
 } ## end sub Marpa::R2::HTML::descendants
 
 sub Marpa::R2::HTML::attributes {
-
-    die "Not yet implemented";
-
-    my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::R2::exception(
-        q{Attempt to fetch attributes from an undefined parse instance})
-        if not defined $parse_instance;
-
-    # It is OK to call this routine on a non-element -- you'll just
-    # get back an empty list of attributes.
-    my $start_tag_token_id =
-        $Marpa::R2::HTML::Internal::PER_NODE_DATA->{start_tag_token_id};
-    return {} if not defined $start_tag_token_id;
-
-    my $tokens          = $parse_instance->{tokens};
-    my $start_tag_token = $tokens->[$start_tag_token_id];
-    return $start_tag_token->[Marpa::R2::HTML::Internal::Token::ATTR];
+    return $Marpa::R2::HTML::Internal::ATTRIBUTES;
 } ## end sub Marpa::R2::HTML::attributes
 
 # This assumes that a start token, if there is one
 # with attributes, is the first token
 sub create_fetch_attribute_closure {
-    return sub { die "Not yet implemented"; }
-}
+    my ($attribute) = @_;
+    return sub {
+        my $attributes = $Marpa::R2::HTML::Internal::ATTRIBUTES;
+        return undef if not defined $attributes;
+        return $attributes->{$attribute};
+    };
+} ## end sub create_fetch_attribute_closure
 
 no strict 'refs';
 *{'Marpa::R2::HTML::id'}    = create_fetch_attribute_closure('id');
