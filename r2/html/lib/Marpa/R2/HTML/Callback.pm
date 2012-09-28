@@ -301,6 +301,24 @@ sub Marpa::R2::HTML::descendants {
 		    $html_token->[Marpa::R2::HTML::Internal::Token::TYPE];
 		next ARGSPEC;
 	    } ## end if ( $argspec eq 'token_type' )
+	    if ( $argspec eq 'element' ) {
+		if ( not $is_valued ) {
+		    push @per_descendant_results, undef;
+		    next ARGSPEC;
+		}
+		my $rule_id = $data->[Marpa::R2::HTML::Internal::TDesc::RULE_ID];
+		my $action  = $parse_instance->{thick_grammar}->action($rule_id);
+		if ( not defined $action ) {
+		    push @per_descendant_results, undef;
+		    next ARGSPEC;
+		}
+		if ( ( index $action, 'ELE_' ) != 0 ) {
+		    push @per_descendant_results, undef;
+		    next ARGSPEC;
+		}
+		push @per_descendant_results, ( substr $action, 4 );
+		next ARGSPEC;
+	    } ## end if ( $argspec eq 'element' )
             die "Unimplemented argspec: $argspec";
 
             # when ('token_type') {
