@@ -391,13 +391,27 @@ sub Marpa::R2::HTML::tagname {
 
 sub Marpa::R2::HTML::literal_ref {
 
-    die "Not yet implemented";
-    my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::R2::exception('Attempt to get literal value outside of a parse')
-        if not defined $parse_instance;
-    my $tdesc_list = $Marpa::R2::HTML::Internal::TDESC_LIST;
-    return Marpa::R2::HTML::Internal::tdesc_list_to_literal( $parse_instance,
-        $tdesc_list );
+    my $self = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
+    Marpa::R2::exception(
+        q{Attempt to fetch an element contents outside of a parse})
+        if not defined $self;
+
+    my $contents_start_ix = $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX;
+
+    # A rule does not necessarily have any tokens
+    return \q{} if not defined $contents_start_ix;
+
+    my $contents_end_ix = $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX;
+
+    my $content_values = [
+        @{$Marpa::R2::HTML::Internal::STACK}[
+            ($Marpa::R2::HTML::Internal::ARG_0)
+            .. ($Marpa::R2::HTML::Internal::ARG_N)
+        ]
+    ];
+    return Marpa::R2::HTML::Internal::range_and_values_to_literal( $self,
+        $contents_start_ix, $contents_end_ix, $content_values );
+
 } ## end sub Marpa::R2::HTML::literal_ref
 
 sub Marpa::R2::HTML::literal {
