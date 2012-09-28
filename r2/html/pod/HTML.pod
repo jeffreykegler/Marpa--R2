@@ -844,13 +844,6 @@ descendant.
 Returns a string containing the original view of the
 descendant.
 
-=item C<pseudoclass>
-
-If the descendant is a pseudoclass component,
-returns the
-name of the pseudoclass.
-In all other cases, returns undef.
-
 =item C<token_type>
 
 If the descendant is a terminal, returns the token type.
