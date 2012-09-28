@@ -396,7 +396,7 @@ sub Marpa::R2::HTML::descendants {
 } ## end sub Marpa::R2::HTML::descendants
 
 sub Marpa::R2::HTML::attributes {
-    return $Marpa::R2::HTML::Internal::ATTRIBUTES;
+    return $Marpa::R2::HTML::Internal::ATTRIBUTES // {};
 } ## end sub Marpa::R2::HTML::attributes
 
 # This assumes that a start token, if there is one
