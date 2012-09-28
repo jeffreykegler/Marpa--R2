@@ -1389,14 +1389,29 @@ sub parse {
     Marpa::R2::exception('No parse: evaler returned undef')
         if not defined $result;
 
-    if ( $result->[Marpa::R2::HTML::Internal::TDesc::TYPE] eq 'VALUED_SPAN' )
-    {
+    if ( ref $self->{handler_by_species}->{TOP} ) {
+        ## This is a user-defined handler.  We assume it returns
+        ## a VALUED_SPAN.
         $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
     }
     else {
-        return range_and_values_to_literal( $self, 0, $#html_parser_tokens,
-            $result->[Marpa::R2::HTML::Internal::TDesc::VALUE] );
-    }
+        ## The TOP handler was the default handler.
+        ## We now want to "literalize" its result.
+        FIND_LITERALIZEABLE: {
+            my $type = $result->[Marpa::R2::HTML::Internal::TDesc::TYPE];
+            if ( $type eq 'VALUES' ) {
+                $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
+                last FIND_LITERALIZEABLE;
+            }
+            if ( $type eq 'VALUED_SPAN' ) {
+                $result = [$result];
+                last FIND_LITERALIZEABLE;
+            }
+            die "Internal: TOP result is not literalize-able";
+        } ## end FIND_LITERALIZEABLE:
+        $result = range_and_values_to_literal( $self, 0, $#html_parser_tokens,
+            $result );
+    } ## end else [ if ( ref $self->{handler_by_species}->{TOP} )]
 
     return $result;
 
