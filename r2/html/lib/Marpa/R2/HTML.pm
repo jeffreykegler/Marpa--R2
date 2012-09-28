@@ -79,16 +79,15 @@ our $UNEXPECTED_TOKEN_ID =
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::R2::HTML::Internal::Token
-    DUMMY
+    TOKEN_NAME
     TYPE
     LINE
     COL
     =COLUMN
     START_OFFSET
     END_OFFSET
-    TAGNAME
-    =IS_CDATA
     ATTR
+    =IS_CDATA
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -671,12 +670,12 @@ sub parse {
     my @raw_tokens = ();
 my $p = HTML::Parser->new(
     api_version => 3,
-    start_h       => [\@raw_tokens, q{'','S',line,column,offset,offset_end,tagname,attr}],
-    end_h         => [\@raw_tokens, q{'','E',line,column,offset,offset_end,tagname}],
-    text_h        => [\@raw_tokens, q{'','T',line,column,offset,offset_end,is_cdata}],
-    comment_h     => [\@raw_tokens, q{'','C',line,column,offset,offset_end}],
-    declaration_h => [\@raw_tokens, q{'','D',line,column,offset,offset_end}],
-    process_h     => [\@raw_tokens, q{'','PI',line,column,offset,offset_end}],
+    start_h       => [\@raw_tokens, q{tagname,'S',line,column,offset,offset_end,attr}],
+    end_h         => [\@raw_tokens, q{tagname,'E',line,column,offset,offset_end}],
+    text_h        => [\@raw_tokens, q{'WHITESPACE','T',line,column,offset,offset_end,is_cdata}],
+    comment_h     => [\@raw_tokens, q{'C','C',line,column,offset,offset_end}],
+    declaration_h => [\@raw_tokens, q{'D','D',line,column,offset,offset_end}],
+    process_h     => [\@raw_tokens, q{'PI','PI',line,column,offset,offset_end}],
     unbroken_text => 1
 );
 
@@ -724,7 +723,7 @@ $p->eof;
             } ## end when ('T')
             when ('S') {
                 my $tag_name = $raw_token
-                    ->[Marpa::R2::HTML::Internal::Token::TAGNAME];
+                    ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
                 $tags{$tag_name}++;
                 my $terminal = "S_$tag_name";
                 $terminals{$terminal}++;
@@ -736,7 +735,7 @@ $p->eof;
             } ## end when ('S')
             when ('E') {
                 my $tag_name = $raw_token
-                    ->[Marpa::R2::HTML::Internal::Token::TAGNAME];
+                    ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
                 $tags{$tag_name}++;
                 my $terminal = "E_$tag_name";
                 $terminals{$terminal}++;
