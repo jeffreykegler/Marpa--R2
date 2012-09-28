@@ -139,18 +139,33 @@ sub Marpa::R2::HTML::contents {
 
 sub Marpa::R2::HTML::values {
 
-    die "Not yet implemented";
-
     my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::R2::exception(q{Attempt to fetch an end tag outside of a parse})
+    Marpa::R2::exception(q{Attempt to examine rule while not in a parse})
         if not defined $parse_instance;
 
-    # my @values = grep {defined}
-        # map { $_->[Marpa::R2::HTML::Internal::TDesc::Element::VALUE] }
-        # grep { $_->[Marpa::R2::HTML::Internal::TDesc::TYPE] eq 'VALUED_SPAN' }
-        # @{$Marpa::R2::HTML::Internal::TDESC_LIST};
+    my @flat_tdesc_list = ();
+    STACK_IX:
+    for my $stack_ix (
+        $Marpa::R2::HTML::Internal::ARG_0 .. $Marpa::R2::HTML::Internal::ARG_N
+        )
+    {
+        my $tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$stack_ix];
+        my $type       = $tdesc_item->[0];
+        next STACK_IX if not defined $type;
+        if ( $type eq 'VALUES' ) {
+            push @flat_tdesc_list,
+                @{ $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE] };
+            next STACK_IX;
+        }
+        if ( $type eq 'VALUED_SPAN' ) {
+            push @flat_tdesc_list, $tdesc_item;
+            next STACK_IX;
+        }
+    } ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0 ...)
 
-    # return \@values;
+    return [ grep {defined}
+            map { $_->[Marpa::R2::HTML::Internal::TDesc::VALUE] }
+            @flat_tdesc_list ];
 } ## end sub Marpa::R2::HTML::values
 
 sub Marpa::R2::HTML::descendants {
@@ -431,24 +446,24 @@ sub Marpa::R2::HTML::offset {
         $earleme);
 } ## end sub Marpa::R2::HTML::offset
 
+sub Marpa::R2::HTML::original_ref {
+
+    my $self = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
+    Marpa::R2::exception(q{Attempt to look at a rule while not in a parse})
+        if not defined $self;
+
+    my $start_token_ix = $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX;
+
+    # An rule does not necessarily have any HTML tokens
+    return q{} if not defined $start_token_ix;
+
+    return Marpa::R2::HTML::Internal::token_range_to_original( $self,
+        $start_token_ix, $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX );
+
+} ## end sub Marpa::R2::HTML::original_ref
+
 sub Marpa::R2::HTML::original {
-    die "Not yet implemented";
-    my $parse_instance = $Marpa::R2::HTML::Internal::PARSE_INSTANCE;
-    Marpa::R2::exception('Attempt to read offset outside of a parse instance')
-        if not defined $parse_instance;
-    my $tokens   = $Marpa::R2::HTML::Internal::PARSE_INSTANCE->{tokens};
-    my $document = $Marpa::R2::HTML::Internal::PARSE_INSTANCE->{document};
-    my $first_token_id =
-        $Marpa::R2::HTML::Internal::PER_NODE_DATA->{first_token_id};
-    my $last_token_id =
-        $Marpa::R2::HTML::Internal::PER_NODE_DATA->{last_token_id};
-    my $start_offset =
-        $tokens->[$first_token_id]
-        ->[Marpa::R2::HTML::Internal::Token::START_OFFSET];
-    my $end_offset =
-        $tokens->[$last_token_id]->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
-    return substr ${$document}, $start_offset,
-        ( $end_offset - $start_offset );
-} ## end sub Marpa::R2::HTML::original
+    return ${Marpa::R2::HTML::original_ref()};
+}
 
 1;
