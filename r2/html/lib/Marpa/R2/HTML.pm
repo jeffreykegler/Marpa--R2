@@ -528,10 +528,14 @@ sub handler_find {
             last FIND_HANDLER;
         } ## end if ( index( $action, 'SPE_' ) == 0 )
 
+        ## At this point action always is defined
+	## and starts with 'ELE_'
+	my $element = substr $action, 4;
+
         my @handler_keys = (
-            ( join q{;}, $action, $class ),
+            ( join q{;}, $element, $class ),
             ( join q{;}, q{*},    $class ),
-            ( join q{;}, $action, q{*} ),
+            ( join q{;}, $element, q{*} ),
             ( join q{;}, q{*},    q{*} ),
         );
         ($handler) =
