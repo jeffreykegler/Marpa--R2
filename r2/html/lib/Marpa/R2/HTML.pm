@@ -1264,8 +1264,10 @@ sub parse {
             local $Marpa::R2::HTML::Internal::START_TAG_IX = undef;
             local $Marpa::R2::HTML::Internal::END_TAG_IX_REF = undef;
             local $Marpa::R2::HTML::Internal::ELEMENT = undef;
+            local $Marpa::R2::HTML::Internal::SPECIES = q{};
 
             if ( defined $action and ( index $action, 'ELE_' ) == 0 ) {
+                $Marpa::R2::HTML::Internal::SPECIES = 
                 $Marpa::R2::HTML::Internal::ELEMENT = substr $action, 4;
                 my $start_tag_marpa_token = $stack[$arg_0];
 
@@ -1286,6 +1288,9 @@ sub parse {
                     } ## end if ( $start_tag_token->[...])
                 } ## end if ( defined $start_tag_type and $start_tag_type eq ...)
             } ## end if ( defined $action and ( index $action, 'ELE_' ) ==...)
+            if ( defined $action and ( index $action, 'SPE_' ) == 0 ) {
+                $Marpa::R2::HTML::Internal::SPECIES = q{:} . substr $action, 4;
+	    }
             local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
 	    $class = $attributes->{class} // q{*};
             local $Marpa::R2::HTML::Internal::CLASS = $class;
