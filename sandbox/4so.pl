@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 my $answer = html(
-    ( \join q{}, <STDIN> ),
+    ( \join q{}, <DATA> ),
     {   td => sub { return Marpa::R2::HTML::contents() },
         a  => sub {
             my $href = Marpa::R2::HTML::attributes()->{href};
