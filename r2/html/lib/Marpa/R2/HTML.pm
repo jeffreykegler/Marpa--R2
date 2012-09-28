@@ -36,7 +36,7 @@ package Marpa::R2::HTML::Internal;
 use Data::Dumper;
 
 use Carp ();
-use HTML::PullParser;
+use HTML::Parser 3.69;
 use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
 
@@ -76,21 +76,10 @@ our $UNEXPECTED_TOKEN_ID =
     ( grep { $LIBMARPA_ERROR_NAMES[$_] eq 'MARPA_ERR_UNEXPECTED_TOKEN_ID' }
         ( 0 .. $#LIBMARPA_ERROR_NAMES ) )[0];
 
-%Marpa::R2::HTML::PULL_PARSER_OPTIONS = (
-    start       => q{'S',line,column,offset,offset_end,tagname,attr},
-    end         => q{'E',line,column,offset,offset_end,tagname},
-    text        => q{'T',line,column,offset,offset_end,is_cdata},
-    comment     => q{'C',line,column,offset,offset_end},
-    declaration => q{'D',line,column,offset,offset_end},
-    process     => q{'PI',line,column,offset,offset_end},
-
-    # options that default on
-    unbroken_text => 1,
-);
-
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::R2::HTML::Internal::Token
+    DUMMY
     TYPE
     LINE
     COL
@@ -140,18 +129,6 @@ sub earleme_to_offset {
         ->[Marpa::R2::HTML::Internal::Token::END_OFFSET];
 
 } ## end sub earleme_to_offset
-
-my %ARGS = (
-    start       => q{'S',offset,offset_end,tagname,attr},
-    end         => q{'E',offset,offset_end,tagname},
-    text        => q{'T',offset,offset_end,is_cdata},
-    process     => q{'PI',offset,offset_end},
-    comment     => q{'C',offset,offset_end},
-    declaration => q{'D',offset,offset_end},
-
-    # options that default on
-    unbroken_text => 1,
-);
 
 sub add_handler {
     my ( $self, $handler_description ) = @_;
@@ -689,14 +666,22 @@ sub parse {
             or $ref_type ne 'SCALAR'
             or not defined ${$document_ref};
 
-    my %pull_parser_args;
-    my $document = $pull_parser_args{doc} = $self->{document} = $document_ref;
-    my $pull_parser =
-        HTML::PullParser->new( %pull_parser_args,
-        %Marpa::R2::HTML::PULL_PARSER_OPTIONS )
-        || Carp::croak('Could not create pull parser');
+    my $document = $self->{document} = $document_ref;
 
-    my @tokens = ();
+    my @raw_tokens = ();
+my $p = HTML::Parser->new(
+    api_version => 3,
+    start_h       => [\@raw_tokens, q{'','S',line,column,offset,offset_end,tagname,attr}],
+    end_h         => [\@raw_tokens, q{'','E',line,column,offset,offset_end,tagname}],
+    text_h        => [\@raw_tokens, q{'','T',line,column,offset,offset_end,is_cdata}],
+    comment_h     => [\@raw_tokens, q{'','C',line,column,offset,offset_end}],
+    declaration_h => [\@raw_tokens, q{'','D',line,column,offset,offset_end}],
+    process_h     => [\@raw_tokens, q{'','PI',line,column,offset,offset_end}],
+    unbroken_text => 1
+);
+
+$p->parse(${$document});
+$p->eof;
 
     my %terminals =
         map { $_ => 1 } @Marpa::R2::HTML::Internal::CORE_TERMINALS;
@@ -705,22 +690,25 @@ sub parse {
     my @html_parser_tokens = ();
     my @marpa_tokens       = (undef);
     HTML_PARSER_TOKEN:
-    while ( my $html_parser_token = $pull_parser->get_token ) {
-        my ( $token_type, $line, $column, $offset, $offset_end ) =
-            @{$html_parser_token};
+    for my $raw_token (@raw_tokens) {
+        my ( $dummy, $token_type, $line, $column, $offset, $offset_end ) =
+            @{$raw_token};
 
         # If it's a virtual token from HTML::Parser,
         # pretend it never existed.
-        # We figure out where the missing tags are,
-        # and HTML::Parser's guesses are not helpful.
-        next HTML_PARSER_TOKEN if $offset_end <= $offset;
+	# HTML::Parser supplies missing
+	# end tags for title elements, but for no
+	# others.
+        # This is not helpful and we need to special-case
+	# these zero-length tags and throw them away.
+	next HTML_PARSER_TOKEN if $offset_end <= $offset;
 
         my $token_number = scalar @html_parser_tokens;
-        push @html_parser_tokens, $html_parser_token;
+        push @html_parser_tokens, $raw_token;
 
         given ($token_type) {
             when ('T') {
-                my $is_cdata = $html_parser_token
+                my $is_cdata = $raw_token
                     ->[Marpa::R2::HTML::Internal::Token::IS_CDATA];
                 push @marpa_tokens,
                     [
@@ -735,7 +723,7 @@ sub parse {
                     ];
             } ## end when ('T')
             when ('S') {
-                my $tag_name = $html_parser_token
+                my $tag_name = $raw_token
                     ->[Marpa::R2::HTML::Internal::Token::TAGNAME];
                 $tags{$tag_name}++;
                 my $terminal = "S_$tag_name";
@@ -747,7 +735,7 @@ sub parse {
                     ];
             } ## end when ('S')
             when ('E') {
-                my $tag_name = $html_parser_token
+                my $tag_name = $raw_token
                     ->[Marpa::R2::HTML::Internal::Token::TAGNAME];
                 $tags{$tag_name}++;
                 my $terminal = "E_$tag_name";
@@ -779,7 +767,7 @@ sub parse {
     # The other logic needs to be ready for this.
     push @marpa_tokens, [ 'EOF', [ ['POINT'] ] ];
 
-    $pull_parser = undef;    # conserve memory
+    @raw_tokens = ();    # conserve memory
 
     my @rules     = @Marpa::R2::HTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
@@ -970,466 +958,466 @@ sub parse {
     my $marpa_token_ix = 1;
     my $latest_html_token = -1;
     RECCE_RESPONSE: while (1) {
-        my $marpa_token = $marpa_tokens[$marpa_token_ix];
-        last RECCE_RESPONSE if not defined $marpa_token;
+	  my $marpa_token = $marpa_tokens[$marpa_token_ix];
+	  last RECCE_RESPONSE if not defined $marpa_token;
 
-        my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
-        my $read_result =
-            $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
-        if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
-            $marpa_token_ix++;
-            $recce->earleme_complete();
-	    my $last_html_token_of_marpa_token //= $marpa_token->[1]->[0]->[2];
-	    if (defined $last_html_token_of_marpa_token) {
-	        $latest_html_token = $last_html_token_of_marpa_token;
-	    }
-	    $self->{earleme_to_html_token_ix}->[$recce->current_earleme()] = $latest_html_token;
-            next RECCE_RESPONSE;
-        } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
+	  my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
+	  my $read_result =
+	      $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
+	  if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
+	      $marpa_token_ix++;
+	      $recce->earleme_complete();
+	      my $last_html_token_of_marpa_token //= $marpa_token->[1]->[0]->[2];
+	      if (defined $last_html_token_of_marpa_token) {
+		  $latest_html_token = $last_html_token_of_marpa_token;
+	      }
+	      $self->{earleme_to_html_token_ix}->[$recce->current_earleme()] = $latest_html_token;
+	      next RECCE_RESPONSE;
+	  } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
-        my $actual_terminal = $marpa_token->[0];
-        if ($trace_terminals) {
-            say {$trace_fh} 'Literal Token not accepted: ', $actual_terminal
-                or Carp::croak("Cannot print: $ERRNO");
-        }
+	  my $actual_terminal = $marpa_token->[0];
+	  if ($trace_terminals) {
+	      say {$trace_fh} 'Literal Token not accepted: ', $actual_terminal
+		  or Carp::croak("Cannot print: $ERRNO");
+	  }
 
-        my $virtual_token_to_add;
+	  my $virtual_token_to_add;
 
-        FIND_VIRTUAL_TOKEN: {
-            my $virtual_terminal;
-            my @virtuals_expected =
-                sort { $optional_terminals{$a} <=> $optional_terminals{$b} }
-                grep { defined $optional_terminals{$_} }
-                map  { $grammar->symbol_name($_) }
-                $recce->terminals_expected();
-            if ($trace_conflicts) {
-                say {$trace_fh} 'Conflict of virtual choices'
-                    or Carp::croak("Cannot print: $ERRNO");
-                say {$trace_fh} "Actual Token is $actual_terminal"
-                    or Carp::croak("Cannot print: $ERRNO");
-                say {$trace_fh} +( scalar @virtuals_expected ),
-                    ' virtual terminals expected: ', join q{ },
-                    @virtuals_expected
-                    or Carp::croak("Cannot print: $ERRNO");
-            } ## end if ($trace_conflicts)
+	  FIND_VIRTUAL_TOKEN: {
+	      my $virtual_terminal;
+	      my @virtuals_expected =
+		  sort { $optional_terminals{$a} <=> $optional_terminals{$b} }
+		  grep { defined $optional_terminals{$_} }
+		  map  { $grammar->symbol_name($_) }
+		  $recce->terminals_expected();
+	      if ($trace_conflicts) {
+		  say {$trace_fh} 'Conflict of virtual choices'
+		      or Carp::croak("Cannot print: $ERRNO");
+		  say {$trace_fh} "Actual Token is $actual_terminal"
+		      or Carp::croak("Cannot print: $ERRNO");
+		  say {$trace_fh} +( scalar @virtuals_expected ),
+		      ' virtual terminals expected: ', join q{ },
+		      @virtuals_expected
+		      or Carp::croak("Cannot print: $ERRNO");
+	      } ## end if ($trace_conflicts)
 
-            LOOKAHEAD_VIRTUAL_TERMINAL:
-            while ( my $candidate = pop @virtuals_expected ) {
+	      LOOKAHEAD_VIRTUAL_TERMINAL:
+	      while ( my $candidate = pop @virtuals_expected ) {
 
-                # Start an implied table only if the next token is one which
-                # can only occur inside a table
-                if ( $candidate eq 'S_table' ) {
-                    if (not $actual_terminal ~~ [
-                            qw(
-                                S_caption S_col S_colgroup S_thead S_tfoot
-                                S_tbody S_tr S_th S_td
-                                E_caption E_col E_colgroup E_thead E_tfoot
-                                E_tbody E_tr E_th E_td
-                                E_table
-                                )
-                        ]
-                        )
-                    {
-                        next LOOKAHEAD_VIRTUAL_TERMINAL;
-                    } ## end if ( not $actual_terminal ~~ [ qw(...)])
+		  # Start an implied table only if the next token is one which
+		  # can only occur inside a table
+		  if ( $candidate eq 'S_table' ) {
+		      if (not $actual_terminal ~~ [
+			      qw(
+				  S_caption S_col S_colgroup S_thead S_tfoot
+				  S_tbody S_tr S_th S_td
+				  E_caption E_col E_colgroup E_thead E_tfoot
+				  E_tbody E_tr E_th E_td
+				  E_table
+				  )
+			  ]
+			  )
+		      {
+			  next LOOKAHEAD_VIRTUAL_TERMINAL;
+		      } ## end if ( not $actual_terminal ~~ [ qw(...)])
 
-                    # The above test implies the others below, so
-                    # this virtual table start terminal is OK.
-                    $virtual_terminal = $candidate;
-                    last LOOKAHEAD_VIRTUAL_TERMINAL;
-                } ## end if ( $candidate eq 'S_table' )
+		      # The above test implies the others below, so
+		      # this virtual table start terminal is OK.
+		      $virtual_terminal = $candidate;
+		      last LOOKAHEAD_VIRTUAL_TERMINAL;
+		  } ## end if ( $candidate eq 'S_table' )
 
-                # For other than <table>, we are permissive.
-                # Unless the lookahead gives us
-                # a specific reason to
-                # reject the virtual terminal, we accept it.
+		  # For other than <table>, we are permissive.
+		  # Unless the lookahead gives us
+		  # a specific reason to
+		  # reject the virtual terminal, we accept it.
 
-                # No need to check lookahead, unless we are starting
-                # an element
-                if ( $candidate !~ /^S_/xms ) {
-                    $virtual_terminal = $candidate;
-                    last LOOKAHEAD_VIRTUAL_TERMINAL;
-                }
+		  # No need to check lookahead, unless we are starting
+		  # an element
+		  if ( $candidate !~ /^S_/xms ) {
+		      $virtual_terminal = $candidate;
+		      last LOOKAHEAD_VIRTUAL_TERMINAL;
+		  }
 
-#<<< no perltidy cycles as of 12 Mar 2010
+  #<<< no perltidy cycles as of 12 Mar 2010
 
-                my $candidate_level =
-                    $Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY{
-                    $candidate };
+		  my $candidate_level =
+		      $Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY{
+		      $candidate };
 
-#>>>
-                # If the candidate is not part of the hierarchy, no need to check
-                # lookahead
-                if ( not defined $candidate_level ) {
-                    $virtual_terminal = $candidate;
-                    last LOOKAHEAD_VIRTUAL_TERMINAL;
-                }
+  #>>>
+		  # If the candidate is not part of the hierarchy, no need to check
+		  # lookahead
+		  if ( not defined $candidate_level ) {
+		      $virtual_terminal = $candidate;
+		      last LOOKAHEAD_VIRTUAL_TERMINAL;
+		  }
 
-                my $actual_terminal_level =
-                    $Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY{
-                    $actual_terminal};
+		  my $actual_terminal_level =
+		      $Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY{
+		      $actual_terminal};
 
-                # If the actual terminal is not part of the hierarchy, no need to check
-                # lookahead, either
-                if ( not defined $actual_terminal_level ) {
-                    $virtual_terminal = $candidate;
-                    last LOOKAHEAD_VIRTUAL_TERMINAL;
-                }
+		  # If the actual terminal is not part of the hierarchy, no need to check
+		  # lookahead, either
+		  if ( not defined $actual_terminal_level ) {
+		      $virtual_terminal = $candidate;
+		      last LOOKAHEAD_VIRTUAL_TERMINAL;
+		  }
 
-                # Here we are trying to deal with a higher-level element's
-                # start or end, by starting a new lower level element.
-                # This won't work, because we'll have to close it
-                # immediately with another virtual terminal.
-                # At best this means useless, empty elements.
-                # At worst, it means an infinite loop where
-                # empty lower-level elements are repeatedly added.
-                #
-                next LOOKAHEAD_VIRTUAL_TERMINAL
-                    if $candidate_level <= $actual_terminal_level;
+		  # Here we are trying to deal with a higher-level element's
+		  # start or end, by starting a new lower level element.
+		  # This won't work, because we'll have to close it
+		  # immediately with another virtual terminal.
+		  # At best this means useless, empty elements.
+		  # At worst, it means an infinite loop where
+		  # empty lower-level elements are repeatedly added.
+		  #
+		  next LOOKAHEAD_VIRTUAL_TERMINAL
+		      if $candidate_level <= $actual_terminal_level;
 
-                $virtual_terminal = $candidate;
-                last LOOKAHEAD_VIRTUAL_TERMINAL;
+		  $virtual_terminal = $candidate;
+		  last LOOKAHEAD_VIRTUAL_TERMINAL;
 
-            } ## end LOOKAHEAD_VIRTUAL_TERMINAL: while ( my $candidate = pop @virtuals_expected )
+	      } ## end LOOKAHEAD_VIRTUAL_TERMINAL: while ( my $candidate = pop @virtuals_expected )
 
-            if ($trace_terminals) {
-                say {$trace_fh} 'Converting Token: ', $actual_terminal
-                    or Carp::croak("Cannot print: $ERRNO");
-                if ( defined $virtual_terminal ) {
-                    say {$trace_fh} 'Candidate as Virtual Token: ',
-                        $virtual_terminal
-                        or Carp::croak("Cannot print: $ERRNO");
-                }
-            } ## end if ($trace_terminals)
+	      if ($trace_terminals) {
+		  say {$trace_fh} 'Converting Token: ', $actual_terminal
+		      or Carp::croak("Cannot print: $ERRNO");
+		  if ( defined $virtual_terminal ) {
+		      say {$trace_fh} 'Candidate as Virtual Token: ',
+			  $virtual_terminal
+			  or Carp::croak("Cannot print: $ERRNO");
+		  }
+	      } ## end if ($trace_terminals)
 
-            # Depending on the expected (optional or virtual)
-            # terminal and the actual
-            # terminal, we either want to add the actual one as cruft, or add
-            # the virtual one to move on in the parse.
+	      # Depending on the expected (optional or virtual)
+	      # terminal and the actual
+	      # terminal, we either want to add the actual one as cruft, or add
+	      # the virtual one to move on in the parse.
 
-            if ( $trace_terminals > 1 and defined $virtual_terminal ) {
-                say {$trace_fh}
-                    "OK as cruft when expecting $virtual_terminal: ",
-                    join q{ }, keys %{ $ok_as_cruft{$virtual_terminal} }
-                    or Carp::croak("Cannot print: $ERRNO");
-            } ## end if ( $trace_terminals > 1 and defined $virtual_terminal)
+	      if ( $trace_terminals > 1 and defined $virtual_terminal ) {
+		  say {$trace_fh}
+		      "OK as cruft when expecting $virtual_terminal: ",
+		      join q{ }, keys %{ $ok_as_cruft{$virtual_terminal} }
+		      or Carp::croak("Cannot print: $ERRNO");
+	      } ## end if ( $trace_terminals > 1 and defined $virtual_terminal)
 
-            last FIND_VIRTUAL_TOKEN if not defined $virtual_terminal;
-            last FIND_VIRTUAL_TOKEN
-                if $ok_as_cruft{$virtual_terminal}{$actual_terminal};
+	      last FIND_VIRTUAL_TOKEN if not defined $virtual_terminal;
+	      last FIND_VIRTUAL_TOKEN
+		  if $ok_as_cruft{$virtual_terminal}{$actual_terminal};
 
-            CHECK_FOR_INFINITE_LOOP: {
+	      CHECK_FOR_INFINITE_LOOP: {
 
-                # It is sufficient to check for start tags.
-                # Just ending things will never cause an infinite loop.
-                last CHECK_FOR_INFINITE_LOOP if $virtual_terminal !~ /^S_/xms;
+		  # It is sufficient to check for start tags.
+		  # Just ending things will never cause an infinite loop.
+		  last CHECK_FOR_INFINITE_LOOP if $virtual_terminal !~ /^S_/xms;
 
-                # Are we at the same earleme as we were when the last
-                # virtual start was added?  If not, no problem.
-                # But we need to reinitialize.
-                my $current_earleme = $recce->current_earleme();
-                if ( $current_earleme != $earleme_of_last_start_virtual ) {
-                    $earleme_of_last_start_virtual = $current_earleme;
-                    %start_virtuals_used           = ();
-                    last CHECK_FOR_INFINITE_LOOP;
-                }
+		  # Are we at the same earleme as we were when the last
+		  # virtual start was added?  If not, no problem.
+		  # But we need to reinitialize.
+		  my $current_earleme = $recce->current_earleme();
+		  if ( $current_earleme != $earleme_of_last_start_virtual ) {
+		      $earleme_of_last_start_virtual = $current_earleme;
+		      %start_virtuals_used           = ();
+		      last CHECK_FOR_INFINITE_LOOP;
+		  }
 
-                # Is this the first time we've added this start
-                # terminal?  If so, we're OK.
-                last CHECK_FOR_INFINITE_LOOP
-                    if $start_virtuals_used{$virtual_terminal}++ <= 1;
+		  # Is this the first time we've added this start
+		  # terminal?  If so, we're OK.
+		  last CHECK_FOR_INFINITE_LOOP
+		      if $start_virtuals_used{$virtual_terminal}++ <= 1;
 
-                # Attempt to add duplicate.
-                # Give up on adding virtual at this location,
-                # and warn the user.
-                ( my $tagname = $virtual_terminal ) =~ s/^S_//xms;
-                say {$trace_fh}
-                    "Warning: attempt to add <$tagname> twice at the same place"
-                    or Carp::croak("Cannot print: $ERRNO");
-                last FIND_VIRTUAL_TOKEN;
+		  # Attempt to add duplicate.
+		  # Give up on adding virtual at this location,
+		  # and warn the user.
+		  ( my $tagname = $virtual_terminal ) =~ s/^S_//xms;
+		  say {$trace_fh}
+		      "Warning: attempt to add <$tagname> twice at the same place"
+		      or Carp::croak("Cannot print: $ERRNO");
+		  last FIND_VIRTUAL_TOKEN;
 
-            } ## end CHECK_FOR_INFINITE_LOOP:
+	      } ## end CHECK_FOR_INFINITE_LOOP:
 
-            my $tdesc_list = $marpa_token->[1];
-            my $first_tdesc_start_token =
-                $tdesc_list->[0]
-                ->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
-            $virtual_token_to_add = [
-                $virtual_terminal, [ [ 'POINT', $first_tdesc_start_token ] ]
-            ];
+	      my $tdesc_list = $marpa_token->[1];
+	      my $first_tdesc_start_token =
+		  $tdesc_list->[0]
+		  ->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
+	      $virtual_token_to_add = [
+		  $virtual_terminal, [ [ 'POINT', $first_tdesc_start_token ] ]
+	      ];
 
-        } ## end FIND_VIRTUAL_TOKEN:
+	  } ## end FIND_VIRTUAL_TOKEN:
 
-        if ( defined $virtual_token_to_add ) {
-            my $marpa_symbol_id =
-                $grammar->thin_symbol( $virtual_token_to_add->[0] );
-            $recce->ruby_slippers_set(0);
-            $recce->alternative( $marpa_symbol_id, RUBY_SLIPPERS_TOKEN, 1 );
-            $recce->ruby_slippers_set(1);
-            $recce->earleme_complete();
-            $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
-                $latest_html_token;
-            next RECCE_RESPONSE;
-        } ## end if ( defined $virtual_token_to_add )
+	  if ( defined $virtual_token_to_add ) {
+	      my $marpa_symbol_id =
+		  $grammar->thin_symbol( $virtual_token_to_add->[0] );
+	      $recce->ruby_slippers_set(0);
+	      $recce->alternative( $marpa_symbol_id, RUBY_SLIPPERS_TOKEN, 1 );
+	      $recce->ruby_slippers_set(1);
+	      $recce->earleme_complete();
+	      $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
+		  $latest_html_token;
+	      next RECCE_RESPONSE;
+	  } ## end if ( defined $virtual_token_to_add )
 
-        # If we didn't find a token to add, add the
-        # current physical token as CRUFT.
+	  # If we didn't find a token to add, add the
+	  # current physical token as CRUFT.
 
-        if ($trace_terminals) {
-            say {$trace_fh} 'Adding actual token as cruft: ', $actual_terminal
-                or Carp::croak("Cannot print: $ERRNO");
-        }
+	  if ($trace_terminals) {
+	      say {$trace_fh} 'Adding actual token as cruft: ', $actual_terminal
+		  or Carp::croak("Cannot print: $ERRNO");
+	  }
 
-        # Cruft tokens are not virtual.
-        # They are the real things, hacked up.
-        $marpa_token->[0] = 'CRUFT';
-        if ($trace_cruft) {
-            my ( $line, $col ) =
-                earleme_to_linecol( $self, $recce->current_earleme() );
+	  # Cruft tokens are not virtual.
+	  # They are the real things, hacked up.
+	  $marpa_token->[0] = 'CRUFT';
+	  if ($trace_cruft) {
+	      my ( $line, $col ) =
+		  earleme_to_linecol( $self, $recce->current_earleme() );
 
-            # HTML::Parser uses one-based line numbers,
-            # but zero-based column numbers
-            # The convention (in vi and cut) is that
-            # columns are also one-based.
-            $col++;
+	      # HTML::Parser uses one-based line numbers,
+	      # but zero-based column numbers
+	      # The convention (in vi and cut) is that
+	      # columns are also one-based.
+	      $col++;
 
-            say {$trace_fh} qq{Cruft at line $line, column $col: "},
-                ${ tdesc_list_to_literal( $self, $marpa_token->[1] ) }, q{"}
-                or Carp::croak("Cannot print: $ERRNO");
-        } ## end if ($trace_cruft)
+	      say {$trace_fh} qq{Cruft at line $line, column $col: "},
+		  ${ tdesc_list_to_literal( $self, $marpa_token->[1] ) }, q{"}
+		  or Carp::croak("Cannot print: $ERRNO");
+	  } ## end if ($trace_cruft)
 
-    } ## end RECCE_RESPONSE: while (1)
+      } ## end RECCE_RESPONSE: while (1)
 
-    if ($trace_terminals) {
-        say {$trace_fh} 'at end of tokens'
-            or Carp::croak("Cannot print: $ERRNO");
-    }
+      if ($trace_terminals) {
+	  say {$trace_fh} 'at end of tokens'
+	      or Carp::croak("Cannot print: $ERRNO");
+      }
 
-    $Marpa::R2::HTML::INSTANCE = $self;
-    local $Marpa::R2::HTML::Internal::PARSE_INSTANCE = $self;
-    my $latest_earley_set_ID = $recce->latest_earley_set();
-    my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
-    my $order  = Marpa::R2::Thin::O->new($bocage);
-    my $tree   = Marpa::R2::Thin::T->new($order);
-    $tree->next();
+      $Marpa::R2::HTML::INSTANCE = $self;
+      local $Marpa::R2::HTML::Internal::PARSE_INSTANCE = $self;
+      my $latest_earley_set_ID = $recce->latest_earley_set();
+      my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+      my $order  = Marpa::R2::Thin::O->new($bocage);
+      my $tree   = Marpa::R2::Thin::T->new($order);
+      $tree->next();
 
-    my @stack    = ();
-    local $Marpa::R2::HTML::Internal::STACK = \@stack;
-    my %memoized_handlers = ();
+      my @stack    = ();
+      local $Marpa::R2::HTML::Internal::STACK = \@stack;
+      my %memoized_handlers = ();
 
-    my $valuator = Marpa::R2::Thin::V->new($tree);
-    local $Marpa::R2::HTML::Internal::RECCE = $recce;
-    local $Marpa::R2::HTML::Internal::VALUATOR = $valuator;
+      my $valuator = Marpa::R2::Thin::V->new($tree);
+      local $Marpa::R2::HTML::Internal::RECCE = $recce;
+      local $Marpa::R2::HTML::Internal::VALUATOR = $valuator;
 
-    for my $rule_id ( $grammar->rule_ids() ) {
-        $valuator->rule_is_valued_set( $rule_id, 1 );
-    }
-    STEP: while (1) {
-        my ( $type, @step_data ) = $valuator->step();
-        last STEP if not defined $type;
-        if ( $type eq 'MARPA_STEP_TOKEN' ) {
-            say STDERR join " ", $type, @step_data , $grammar->symbol_name($step_data[0])
-	      if $trace_values;
-            my ( undef, $token_value, $arg_n ) = @step_data;
-	    if ( $token_value eq RUBY_SLIPPERS_TOKEN ) {
-		$stack[$arg_n] = [ 'RUBY_SLIPPERS_TOKEN' ];
-		say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack )
-		   if $trace_values;
-		next STEP;
-	    }
-            my ( $start_earley_set_id, $end_earley_set_id ) =
-                $valuator->location();
-            my $start_earleme = $recce->earleme($start_earley_set_id);
-            my $start_html_token_ix =
-                $self->{earleme_to_html_token_ix}->[$start_earleme];
-            my $end_earleme = $recce->earleme($end_earley_set_id);
-            my $end_html_token_ix =
-                $self->{earleme_to_html_token_ix}->[$end_earleme];
-            $stack[$arg_n] = [
-                'PHYSICAL_TOKEN' => $start_html_token_ix + 1,
-                $end_html_token_ix,
-            ];
-            say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack )
-	      if $trace_values;
-            next STEP;
-        } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
-        if ( $type eq 'MARPA_STEP_RULE' ) {
-            say STDERR join " ", ( $type, @step_data )
-	       if $trace_values;
-            my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+      for my $rule_id ( $grammar->rule_ids() ) {
+	  $valuator->rule_is_valued_set( $rule_id, 1 );
+      }
+      STEP: while (1) {
+	  my ( $type, @step_data ) = $valuator->step();
+	  last STEP if not defined $type;
+	  if ( $type eq 'MARPA_STEP_TOKEN' ) {
+	      say STDERR join " ", $type, @step_data , $grammar->symbol_name($step_data[0])
+		if $trace_values;
+	      my ( undef, $token_value, $arg_n ) = @step_data;
+	      if ( $token_value eq RUBY_SLIPPERS_TOKEN ) {
+		  $stack[$arg_n] = [ 'RUBY_SLIPPERS_TOKEN' ];
+		  say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack )
+		     if $trace_values;
+		  next STEP;
+	      }
+	      my ( $start_earley_set_id, $end_earley_set_id ) =
+		  $valuator->location();
+	      my $start_earleme = $recce->earleme($start_earley_set_id);
+	      my $start_html_token_ix =
+		  $self->{earleme_to_html_token_ix}->[$start_earleme];
+	      my $end_earleme = $recce->earleme($end_earley_set_id);
+	      my $end_html_token_ix =
+		  $self->{earleme_to_html_token_ix}->[$end_earleme];
+	      $stack[$arg_n] = [
+		  'PHYSICAL_TOKEN' => $start_html_token_ix + 1,
+		  $end_html_token_ix,
+	      ];
+	      say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack )
+		if $trace_values;
+	      next STEP;
+	  } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
+	  if ( $type eq 'MARPA_STEP_RULE' ) {
+	      say STDERR join " ", ( $type, @step_data )
+		 if $trace_values;
+	      my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
-            my $attributes = undef;
-            my $class      = undef;
-            my $action     = $grammar->action($rule_id);
-            local $Marpa::R2::HTML::Internal::START_TAG_IX = undef;
-            local $Marpa::R2::HTML::Internal::END_TAG_IX_REF = undef;
-            local $Marpa::R2::HTML::Internal::ELEMENT = undef;
-            local $Marpa::R2::HTML::Internal::SPECIES = q{};
+	      my $attributes = undef;
+	      my $class      = undef;
+	      my $action     = $grammar->action($rule_id);
+	      local $Marpa::R2::HTML::Internal::START_TAG_IX = undef;
+	      local $Marpa::R2::HTML::Internal::END_TAG_IX_REF = undef;
+	      local $Marpa::R2::HTML::Internal::ELEMENT = undef;
+	      local $Marpa::R2::HTML::Internal::SPECIES = q{};
 
-            if ( defined $action and ( index $action, 'ELE_' ) == 0 ) {
-                $Marpa::R2::HTML::Internal::SPECIES = 
-                $Marpa::R2::HTML::Internal::ELEMENT = substr $action, 4;
-                my $start_tag_marpa_token = $stack[$arg_0];
+	      if ( defined $action and ( index $action, 'ELE_' ) == 0 ) {
+		  $Marpa::R2::HTML::Internal::SPECIES =
+		      $Marpa::R2::HTML::Internal::ELEMENT = substr $action, 4;
+		  my $start_tag_marpa_token = $stack[$arg_0];
 
-                my $start_tag_type = $start_tag_marpa_token
-                    ->[Marpa::R2::HTML::Internal::TDesc::TYPE];
-                if ( defined $start_tag_type
-                    and $start_tag_type eq 'PHYSICAL_TOKEN' )
-                {
-                    my $start_tag_ix    = $start_tag_marpa_token->[1];
-                    my $start_tag_token = $html_parser_tokens[$start_tag_ix];
-                    if ( $start_tag_token
-                        ->[Marpa::R2::HTML::Internal::Token::TYPE] eq 'S' )
-                    {
-                        $Marpa::R2::HTML::Internal::START_TAG_IX =
-                            $start_tag_ix;
-                        $attributes = $start_tag_token
-                            ->[Marpa::R2::HTML::Internal::Token::ATTR];
-                    } ## end if ( $start_tag_token->[...])
-                } ## end if ( defined $start_tag_type and $start_tag_type eq ...)
-            } ## end if ( defined $action and ( index $action, 'ELE_' ) ==...)
-            if ( defined $action and ( index $action, 'SPE_' ) == 0 ) {
-                $Marpa::R2::HTML::Internal::SPECIES = q{:} . substr $action, 4;
-	    }
-            local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
-	    $class = $attributes->{class} // q{*};
-            local $Marpa::R2::HTML::Internal::CLASS = $class;
-            local $Marpa::R2::HTML::Internal::ARG_0 = $arg_0;
-            local $Marpa::R2::HTML::Internal::ARG_N = $arg_n;
+		  my $start_tag_type = $start_tag_marpa_token
+		      ->[Marpa::R2::HTML::Internal::TDesc::TYPE];
+		  if ( defined $start_tag_type
+		      and $start_tag_type eq 'PHYSICAL_TOKEN' )
+		  {
+		      my $start_tag_ix    = $start_tag_marpa_token->[1];
+		      my $start_tag_token = $html_parser_tokens[$start_tag_ix];
+		      if ( $start_tag_token
+			  ->[Marpa::R2::HTML::Internal::Token::TYPE] eq 'S' )
+		      {
+			  $Marpa::R2::HTML::Internal::START_TAG_IX =
+			      $start_tag_ix;
+			  $attributes = $start_tag_token
+			      ->[Marpa::R2::HTML::Internal::Token::ATTR];
+		      } ## end if ( $start_tag_token->[...])
+		  } ## end if ( defined $start_tag_type and $start_tag_type eq ...)
+	      } ## end if ( defined $action and ( index $action, 'ELE_' ) ==...)
+	      if ( defined $action and ( index $action, 'SPE_' ) == 0 ) {
+		  $Marpa::R2::HTML::Internal::SPECIES = q{:} . substr $action, 4;
+	      }
+	      local $Marpa::R2::HTML::Internal::ATTRIBUTES = $attributes;
+	      $class = $attributes->{class} // q{*};
+	      local $Marpa::R2::HTML::Internal::CLASS = $class;
+	      local $Marpa::R2::HTML::Internal::ARG_0 = $arg_0;
+	      local $Marpa::R2::HTML::Internal::ARG_N = $arg_n;
 
-            my ( $start_earley_set_id, $end_earley_set_id ) =
-                $valuator->location();
+	      my ( $start_earley_set_id, $end_earley_set_id ) =
+		  $valuator->location();
 
-            my $start_earleme = $recce->earleme($start_earley_set_id);
-            my $start_html_token_ix =
-                $self->{earleme_to_html_token_ix}->[$start_earleme] + 1;
-            my $end_earleme = $recce->earleme($end_earley_set_id);
-            my $end_html_token_ix =
-                $self->{earleme_to_html_token_ix}->[$end_earleme];
+	      my $start_earleme = $recce->earleme($start_earley_set_id);
+	      my $start_html_token_ix =
+		  $self->{earleme_to_html_token_ix}->[$start_earleme] + 1;
+	      my $end_earleme = $recce->earleme($end_earley_set_id);
+	      my $end_html_token_ix =
+		  $self->{earleme_to_html_token_ix}->[$end_earleme];
 
-	    if ($start_html_token_ix > $end_html_token_ix) {
-	      $start_html_token_ix = $end_html_token_ix = undef;
-	    }
-            local $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX = $start_html_token_ix;
-            local $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX = $end_html_token_ix;
+	      if ($start_html_token_ix > $end_html_token_ix) {
+		$start_html_token_ix = $end_html_token_ix = undef;
+	      }
+	      local $Marpa::R2::HTML::Internal::START_HTML_TOKEN_IX = $start_html_token_ix;
+	      local $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX = $end_html_token_ix;
 
-            my $handler_key =
-                $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
+	      my $handler_key =
+		  $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
 
-            my $handler = $memoized_handlers{$handler_key};
+	      my $handler = $memoized_handlers{$handler_key};
 
-	    $trace_handlers
-		and $handler
-		and say STDERR qq{Found memoized handler for rule $rule_id, class "},
-		( $class // q{*} ), qq{"};
+	      $trace_handlers
+		  and $handler
+		  and say STDERR qq{Found memoized handler for rule $rule_id, class "},
+		  ( $class // q{*} ), qq{"};
 
-            if ( not defined $handler ) {
-                $handler = $memoized_handlers{$handler_key} =
-                    handler_find( $self, $rule_id, $class );
-            }
+	      if ( not defined $handler ) {
+		  $handler = $memoized_handlers{$handler_key} =
+		      handler_find( $self, $rule_id, $class );
+	      }
 
-	    COMPUTE_VALUE: {
-		if ( ref $handler ) {
-		    $stack[$arg_0] = [
-			VALUED_SPAN => $start_html_token_ix,
-			$end_html_token_ix,
-			( scalar $handler->() ),
-			$rule_id
-		    ];
-		    last COMPUTE_VALUE;
-		} ## end if ( ref $handler )
-		my @flat_tdesc_list = ();
-		STACK_IX:
-		for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0 ..
-		    $Marpa::R2::HTML::Internal::ARG_N )
-		{
-		    my $tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$stack_ix];
-		    my $type       = $tdesc_item->[0];
-		    next STACK_IX if not defined $type;
-		    if ( $type eq 'VALUES' ) {
-			push @flat_tdesc_list, @{ $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE] };
-			next STACK_IX;
-		    }
-		    next STACK_IX if $type ne 'VALUED_SPAN';
-		    push @flat_tdesc_list, $tdesc_item;
-		} ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0...)
-		if ( scalar @flat_tdesc_list <= 1 ) {
-		    $stack[$arg_0] = [
-			VALUED_SPAN
-			=> $start_html_token_ix,
-			$end_html_token_ix,
-			$flat_tdesc_list[0]
-			    ->[Marpa::R2::HTML::Internal::TDesc::VALUE],
-			$rule_id
-		    ];
-		    last COMPUTE_VALUE;
-		} ## end if ( scalar @flat_tdesc_list <= 1 )
-		$stack[$arg_0] = [
-		    VALUES => $start_html_token_ix,
-		    $end_html_token_ix,
-		    \@flat_tdesc_list,
-		    $rule_id
-		];
-	    } ## end COMPUTE_VALUE:
+	      COMPUTE_VALUE: {
+		  if ( ref $handler ) {
+		      $stack[$arg_0] = [
+			  VALUED_SPAN => $start_html_token_ix,
+			  $end_html_token_ix,
+			  ( scalar $handler->() ),
+			  $rule_id
+		      ];
+		      last COMPUTE_VALUE;
+		  } ## end if ( ref $handler )
+		  my @flat_tdesc_list = ();
+		  STACK_IX:
+		  for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0 ..
+		      $Marpa::R2::HTML::Internal::ARG_N )
+		  {
+		      my $tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$stack_ix];
+		      my $type       = $tdesc_item->[0];
+		      next STACK_IX if not defined $type;
+		      if ( $type eq 'VALUES' ) {
+			  push @flat_tdesc_list, @{ $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE] };
+			  next STACK_IX;
+		      }
+		      next STACK_IX if $type ne 'VALUED_SPAN';
+		      push @flat_tdesc_list, $tdesc_item;
+		  } ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0...)
+		  if ( scalar @flat_tdesc_list <= 1 ) {
+		      $stack[$arg_0] = [
+			  VALUED_SPAN
+			  => $start_html_token_ix,
+			  $end_html_token_ix,
+			  $flat_tdesc_list[0]
+			      ->[Marpa::R2::HTML::Internal::TDesc::VALUE],
+			  $rule_id
+		      ];
+		      last COMPUTE_VALUE;
+		  } ## end if ( scalar @flat_tdesc_list <= 1 )
+		  $stack[$arg_0] = [
+		      VALUES => $start_html_token_ix,
+		      $end_html_token_ix,
+		      \@flat_tdesc_list,
+		      $rule_id
+		  ];
+	      } ## end COMPUTE_VALUE:
 
-	    if ($trace_values) {
-		say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
-		say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
-	    }
-            next STEP;
-        } ## end if ( $type eq 'MARPA_STEP_RULE' )
+	      if ($trace_values) {
+		  say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
+		  say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
+	      }
+	      next STEP;
+	  } ## end if ( $type eq 'MARPA_STEP_RULE' )
 
-        if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
-            my ( $symbol_id, $arg_n ) = @step_data;
-            my $symbol_name = $grammar->symbol_name($symbol_id);
-            $stack[$arg_n] = ['ZERO_SPAN'];
+	  if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
+	      my ( $symbol_id, $arg_n ) = @step_data;
+	      my $symbol_name = $grammar->symbol_name($symbol_id);
+	      $stack[$arg_n] = ['ZERO_SPAN'];
 
-	    if ($trace_values) {
-		say STDERR join " ", $type, @step_data,
-		    $grammar->symbol_name($symbol_id);
-		say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
-	    }
-            next STEP;
-        } ## end if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' )
-        die "Unexpected step type: $type";
-    } ## end STEP: while (1)
+	      if ($trace_values) {
+		  say STDERR join " ", $type, @step_data,
+		      $grammar->symbol_name($symbol_id);
+		  say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
+	      }
+	      next STEP;
+	  } ## end if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' )
+	  die "Unexpected step type: $type";
+      } ## end STEP: while (1)
 
-    my $result = $stack[0];
-    Marpa::R2::exception('No parse: evaler returned undef')
-        if not defined $result;
+      my $result = $stack[0];
+      Marpa::R2::exception('No parse: evaler returned undef')
+	  if not defined $result;
 
-    if ( ref $self->{handler_by_species}->{TOP} ) {
-        ## This is a user-defined handler.  We assume it returns
-        ## a VALUED_SPAN.
-        $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
-    }
-    else {
-        ## The TOP handler was the default handler.
-        ## We now want to "literalize" its result.
-        FIND_LITERALIZEABLE: {
-            my $type = $result->[Marpa::R2::HTML::Internal::TDesc::TYPE];
-            if ( $type eq 'VALUES' ) {
-                $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
-                last FIND_LITERALIZEABLE;
-            }
-            if ( $type eq 'VALUED_SPAN' ) {
-                $result = [$result];
-                last FIND_LITERALIZEABLE;
-            }
-            die "Internal: TOP result is not literalize-able";
-        } ## end FIND_LITERALIZEABLE:
-        $result = range_and_values_to_literal( $self, 0, $#html_parser_tokens,
-            $result );
-    } ## end else [ if ( ref $self->{handler_by_species}->{TOP} )]
+      if ( ref $self->{handler_by_species}->{TOP} ) {
+	  ## This is a user-defined handler.  We assume it returns
+	  ## a VALUED_SPAN.
+	  $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
+      }
+      else {
+	  ## The TOP handler was the default handler.
+	  ## We now want to "literalize" its result.
+	  FIND_LITERALIZEABLE: {
+	      my $type = $result->[Marpa::R2::HTML::Internal::TDesc::TYPE];
+	      if ( $type eq 'VALUES' ) {
+		  $result = $result->[Marpa::R2::HTML::Internal::TDesc::VALUE];
+		  last FIND_LITERALIZEABLE;
+	      }
+	      if ( $type eq 'VALUED_SPAN' ) {
+		  $result = [$result];
+		  last FIND_LITERALIZEABLE;
+	      }
+	      die "Internal: TOP result is not literalize-able";
+	  } ## end FIND_LITERALIZEABLE:
+	  $result = range_and_values_to_literal( $self, 0, $#html_parser_tokens,
+	      $result );
+      } ## end else [ if ( ref $self->{handler_by_species}->{TOP} )]
 
-    return $result;
+      return $result;
 
-} ## end sub parse
+  } ## end sub parse
 
-sub Marpa::R2::HTML::html {
-    my ( $document_ref, @args ) = @_;
-    my $html = Marpa::R2::HTML::Internal::create(@args);
-    return Marpa::R2::HTML::Internal::parse( $html, $document_ref );
-}
+  sub Marpa::R2::HTML::html {
+      my ( $document_ref, @args ) = @_;
+      my $html = Marpa::R2::HTML::Internal::create(@args);
+      return Marpa::R2::HTML::Internal::parse( $html, $document_ref );
+  }
 
 1;
