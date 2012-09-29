@@ -970,7 +970,7 @@ $p->eof;
 	  if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
 	      $marpa_token_ix++;
 	      $recce->earleme_complete();
-	      my $last_html_token_of_marpa_token //= $marpa_token->[1]->[0]->[2];
+	      my $last_html_token_of_marpa_token //= $token_number;
 	      if (defined $last_html_token_of_marpa_token) {
 		  $latest_html_token = $last_html_token_of_marpa_token;
 	      }
