@@ -959,6 +959,10 @@ $p->eof;
     RECCE_RESPONSE: while (1) {
 	  my $marpa_token = $marpa_tokens[$marpa_token_ix];
 	  last RECCE_RESPONSE if not defined $marpa_token;
+	  my $token_number = $marpa_token->[1]->[0]->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
+
+	  # Not defined for EOF
+	  my $token = defined $token_number ? $html_parser_tokens[$token_number] : ['EOF'];
 
 	  my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
 	  my $read_result =
@@ -1181,7 +1185,8 @@ $p->eof;
 	      $col++;
 
 	      say {$trace_fh} qq{Cruft at line $line, column $col: "},
-		  ${ tdesc_list_to_literal( $self, $marpa_token->[1] ) }, q{"}
+		  ${ token_range_to_original( $self, $token_number, $token_number )
+		  }, q{"}
 		  or Carp::croak("Cannot print: $ERRNO");
 	  } ## end if ($trace_cruft)
 
