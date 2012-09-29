@@ -17,7 +17,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Fatal qw(print say);
+use autodie;
 use English qw( -no_match_vars );
 
 use Getopt::Long;
@@ -25,9 +25,8 @@ my $verbose = 1;
 my $result = Getopt::Long::GetOptions( 'verbose=i' => \$verbose );
 die "usage $PROGRAM_NAME [--verbose=n] file ...\n" if not $result;
 
-## no critic (Modules::RequireBarewordIncludes)
-require 'config/Marpa/R2/License.pm';
-## use critic
+use lib 'inc';
+use Marpa::R2::License;
 
 my $file_count = @ARGV;
 my @license_problems =
