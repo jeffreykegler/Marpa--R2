@@ -497,7 +497,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                             warnings    => \@warnings,
                             where       => 'computing value',
                             long_where  => 'Computing value for null symbol: '
-                                . $grammar->xsy_name($token_id),
+                                . $grammar->symbol_name($token_id),
                         }
                     );
                 } ## end if ( not $eval_ok or @warnings )
