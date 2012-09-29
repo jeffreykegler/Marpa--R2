@@ -707,8 +707,16 @@ $p->eof;
 
         given ($token_type) {
             when ('T') {
-                my $is_cdata = $raw_token
-                    ->[Marpa::R2::HTML::Internal::Token::IS_CDATA];
+                my $is_cdata =
+                    $raw_token->[Marpa::R2::HTML::Internal::Token::IS_CDATA];
+                if (substr(
+                        ${$document}, $offset, ( $offset_end - $offset )
+                    ) =~ / \S /xms
+                    )
+                {
+                    $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME]
+                        = $is_cdata ? 'CDATA' : 'PCDATA';
+                } ## end if ( substr( ${$document}, $offset, ( $offset_end - ...)))
                 push @marpa_tokens,
                     [
                     (   substr(
@@ -726,6 +734,7 @@ $p->eof;
                     ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
                 $tags{$tag_name}++;
                 my $terminal = "S_$tag_name";
+		$raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] = $terminal;
                 $terminals{$terminal}++;
                 push @marpa_tokens,
                     [
@@ -738,6 +747,7 @@ $p->eof;
                     ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
                 $tags{$tag_name}++;
                 my $terminal = "E_$tag_name";
+		$raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] = $terminal;
                 $terminals{$terminal}++;
                 push @marpa_tokens,
                     [
@@ -964,7 +974,7 @@ $p->eof;
 	  # Not defined for EOF
 	  my $token = defined $token_number ? $html_parser_tokens[$token_number] : ['EOF'];
 
-	  my $marpa_symbol_id = $grammar->thin_symbol( $marpa_token->[0] );
+	  my $marpa_symbol_id = $grammar->thin_symbol( $token->[0] );
 	  my $read_result =
 	      $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
 	  if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
@@ -978,7 +988,7 @@ $p->eof;
 	      next RECCE_RESPONSE;
 	  } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
-	  my $actual_terminal = $marpa_token->[0];
+	  my $actual_terminal = $token->[0];
 	  if ($trace_terminals) {
 	      say {$trace_fh} 'Literal Token not accepted: ', $actual_terminal
 		  or Carp::croak("Cannot print: $ERRNO");
@@ -1167,7 +1177,7 @@ $p->eof;
 
 	  # Cruft tokens are not virtual.
 	  # They are the real things, hacked up.
-	  $marpa_token->[0] = 'CRUFT';
+	  $token->[0] = 'CRUFT';
 	  if ($trace_cruft) {
 	      my ( $line, $col ) =
 		  earleme_to_linecol( $self, $recce->current_earleme() );
