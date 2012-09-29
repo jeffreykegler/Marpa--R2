@@ -687,7 +687,6 @@ $p->eof;
     my %optional_terminals =
         %Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS;
     my @html_parser_tokens = ();
-    my @marpa_tokens       = (undef);
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
         my ( $dummy, $token_type, $line, $column, $offset, $offset_end ) =
@@ -717,17 +716,6 @@ $p->eof;
                     $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME]
                         = $is_cdata ? 'CDATA' : 'PCDATA';
                 } ## end if ( substr( ${$document}, $offset, ( $offset_end - ...)))
-                push @marpa_tokens,
-                    [
-                    (   substr(
-                            ${$document}, $offset,
-                            ( $offset_end - $offset )
-                            ) =~ / \A \s* \z /xms ? 'WHITESPACE'
-                        : $is_cdata ? 'CDATA'
-                        : 'PCDATA'
-                    ),
-                    [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
-                    ];
             } ## end when ('T')
             when ('S') {
                 my $tag_name = $raw_token
@@ -736,11 +724,6 @@ $p->eof;
                 my $terminal = "S_$tag_name";
 		$raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] = $terminal;
                 $terminals{$terminal}++;
-                push @marpa_tokens,
-                    [
-                    $terminal,
-                    [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
-                    ];
             } ## end when ('S')
             when ('E') {
                 my $tag_name = $raw_token
@@ -749,34 +732,31 @@ $p->eof;
                 my $terminal = "E_$tag_name";
 		$raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] = $terminal;
                 $terminals{$terminal}++;
-                push @marpa_tokens,
-                    [
-                    $terminal,
-                    [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
-                    ];
             } ## end when ('E')
-            when ( [qw(C D)] ) {
-                push @marpa_tokens,
-                    [
-                    $_, [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
-                    ];
-            } ## end when ( [qw(C D)] )
-            when ( ['PI'] ) {
-                push @marpa_tokens,
-                    [
-                    $_, [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
-                    ];
-            } ## end when ( ['PI'] )
-            default { Carp::croak("Unprovided-for event: $_") }
         } ## end given
     } ## end HTML_PARSER_TOKEN: while ( my $html_parser_token = $pull_parser...)
 
     # Points AFTER the last HTML
     # Parser token.
     # The other logic needs to be ready for this.
-    push @marpa_tokens, [ 'EOF', [ ['POINT'] ] ];
+    {
+        my $document_length = length ${$document};
+        my $last_token      = $html_parser_tokens[$#html_parser_tokens];
+        push @html_parser_tokens,
+            [
+            'EOF', 'EOF',
+            @{$last_token}[
+                Marpa::R2::HTML::Internal::Token::LINE,
+            Marpa::R2::HTML::Internal::Token::COLUMN
+            ],
+            $document_length,
+            $document_length
+            ];
+    }
 
-    @raw_tokens = ();    # conserve memory
+    # conserve memory
+    $p          = undef;
+    @raw_tokens = ();
 
     my @rules     = @Marpa::R2::HTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
@@ -964,23 +944,21 @@ $p->eof;
     # first token is a dummy, so that ix is never 0
     # this is done because 0 has a special meaning as a Libmarpa
     # token value
-    my $marpa_token_ix = 1;
     my $latest_html_token = -1;
-    RECCE_RESPONSE: while (1) {
-	  my $marpa_token = $marpa_tokens[$marpa_token_ix];
-	  last RECCE_RESPONSE if not defined $marpa_token;
-	  my $token_number = $marpa_token->[1]->[0]->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
+    my $token_number = 0;
+    my $token_count = scalar @html_parser_tokens;
+    RECCE_RESPONSE: while ( $token_number < $token_count) {
+	  my $token = $html_parser_tokens[$token_number];
 
-	  # Not defined for EOF
-	  my $token = defined $token_number ? $html_parser_tokens[$token_number] : ['EOF'];
-
-	  my $marpa_symbol_id = $grammar->thin_symbol( $token->[0] );
+	  my $marpa_symbol_id =
+	      $grammar->thin_symbol(
+	      $token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] );
 	  my $read_result =
 	      $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
 	  if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
-	      $marpa_token_ix++;
 	      $recce->earleme_complete();
 	      my $last_html_token_of_marpa_token //= $token_number;
+	      $token_number++;
 	      if (defined $last_html_token_of_marpa_token) {
 		  $latest_html_token = $last_html_token_of_marpa_token;
 	      }
