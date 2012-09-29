@@ -215,7 +215,7 @@ say join q{}, <$fh>;
 say "# This file was generated automatically by $PROGRAM_NAME";
 say "# The date of generation was ", ( scalar localtime() ), "\n";
 
-say "package Marpa::R2::HTML::Internal::CORE_RULES;";
+say "package Marpa::R2::HTML::Internal;";
 
 require Data::Dumper;
 say Data::Dumper->Purity(1)

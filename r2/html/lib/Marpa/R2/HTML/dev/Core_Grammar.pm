@@ -3,20 +3,20 @@
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
 # either version 3 of the License, or (at your option) any later version.
-# 
+#
 # Marpa::R2 is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Fri Sep 28 21:50:34 2012
+# The date of generation was Fri Sep 28 22:14:34 2012
 
-package Marpa::R2::HTML::Internal::CORE_RULES;
+package Marpa::R2::HTML::Internal;
 $CORE_RULES = [
                 {
                   'rhs' => [
