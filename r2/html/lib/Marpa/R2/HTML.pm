@@ -692,49 +692,53 @@ $p->eof;
         my ( $dummy, $token_type, $line, $column, $offset, $offset_end ) =
             @{$raw_token};
 
-        # If it's a virtual token from HTML::Parser,
-        # pretend it never existed.
-	# HTML::Parser supplies missing
-	# end tags for title elements, but for no
-	# others.
-        # This is not helpful and we need to special-case
-	# these zero-length tags and throw them away.
-	next HTML_PARSER_TOKEN if $offset_end <= $offset;
-
-        my $token_number = scalar @html_parser_tokens;
-        push @html_parser_tokens, $raw_token;
-
-        given ($token_type) {
-            when ('T') {
-                my $is_cdata =
-                    $raw_token->[Marpa::R2::HTML::Internal::Token::IS_CDATA];
+        PROCESS_BY_TYPE: {
+            if ( $token_type eq 'T' ) {
                 if (substr(
                         ${$document}, $offset, ( $offset_end - $offset )
                     ) =~ / \S /xms
                     )
                 {
+                    my $is_cdata = $raw_token
+                        ->[Marpa::R2::HTML::Internal::Token::IS_CDATA];
                     $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME]
                         = $is_cdata ? 'CDATA' : 'PCDATA';
                 } ## end if ( substr( ${$document}, $offset, ( $offset_end - ...)))
-            } ## end when ('T')
-            when ('S') {
+                last PROCESS_BY_TYPE;
+            } ## end if ( $token_type eq 'T' )
+            if ( $token_type eq 'S' ) {
                 my $tag_name = $raw_token
                     ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
                 $tags{$tag_name}++;
                 my $terminal = "S_$tag_name";
-		$raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] = $terminal;
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
+                    $terminal;
                 $terminals{$terminal}++;
-            } ## end when ('S')
-            when ('E') {
+                last PROCESS_BY_TYPE;
+            } ## end if ( $token_type eq 'S' )
+            if ( $token_type eq 'E' ) {
+
+                # If it's a virtual token from HTML::Parser,
+                # pretend it never existed.
+                # HTML::Parser supplies missing
+                # end tags for title elements, but for no
+                # others.
+                # This is not helpful and we need to special-case
+                # these zero-length tags and throw them away.
+                next HTML_PARSER_TOKEN if $offset_end <= $offset;
+
                 my $tag_name = $raw_token
                     ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
                 $tags{$tag_name}++;
                 my $terminal = "E_$tag_name";
-		$raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] = $terminal;
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
+                    $terminal;
                 $terminals{$terminal}++;
-            } ## end when ('E')
-        } ## end given
-    } ## end HTML_PARSER_TOKEN: while ( my $html_parser_token = $pull_parser...)
+                last PROCESS_BY_TYPE;
+            } ## end if ( $token_type eq 'E' )
+        } ## end PROCESS_BY_TYPE:
+        push @html_parser_tokens, $raw_token;
+    } ## end for my $raw_token (@raw_tokens)
 
     # Points AFTER the last HTML
     # Parser token.
