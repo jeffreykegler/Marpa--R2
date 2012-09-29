@@ -40,7 +40,7 @@ my %requires =
     qw( Scalar::Util List::Util Carp Data::Dumper );
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( PPI HTML::Entities HTML::Parser HTML::PullParser );
+    qw( PPI HTML::Entities HTML::Parser );
 
 my %pod_files = ();
 {

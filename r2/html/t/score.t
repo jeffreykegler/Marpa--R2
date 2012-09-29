@@ -34,9 +34,9 @@ BEGIN {
     } ## end if ( !$eval_result )
 } ## end BEGIN
 
-# The script will require HTML::PullParser, so we need to check here,
+# The script will require HTML::Parser, so we need to check here,
 # even though we do not use it
-BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::PullParser'); }
+BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
 use Test::More tests => 4;
 

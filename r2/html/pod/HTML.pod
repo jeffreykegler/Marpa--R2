@@ -545,7 +545,7 @@ The terminals view is usually seen as part of other views.
 
 At this writing the API does not contain a "pure" terminals view method.
 For a terminals view of the whole HTML document,
-L<HTML::PullParser> does the job with significantly lower overhead.
+L<HTML::Parser> does the job with significantly lower overhead.
 For views and sections of views with no values defined,
 the descendants view (L<described below|/"The Descendants View">)
 is equivalent to the terminals view.

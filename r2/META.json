@@ -59,8 +59,7 @@
       "runtime" : {
          "recommends" : {
             "HTML::Entities" : "3.68",
-            "HTML::Parser" : "3.64",
-            "HTML::PullParser" : "3.57",
+            "HTML::Parser" : "3.69",
             "PPI" : "1.206"
          },
          "requires" : {
