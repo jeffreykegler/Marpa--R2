@@ -40,6 +40,8 @@ use HTML::Parser 3.69;
 use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
 
+use Marpa::R2::HTML::Core_Grammar;
+
 # versions below must be coordinated with
 # those required in Build.PL
 
@@ -424,8 +426,6 @@ table_flow_item ::= SGML_flow_item
 empty ::=
 END_OF_BNF
 
-@Marpa::R2::HTML::Internal::CORE_RULES = ();
-
 my %handler = (
     cruft      => 'SPE_CRUFT',
     comment    => 'SPE_COMMENT',
@@ -457,7 +457,7 @@ for my $bnf_production ( split /\n/xms, $BNF ) {
     elsif ( $lhs =~ /^ELE_/xms ) {
         $rule_descriptor{action} = "$lhs";
     }
-    push @Marpa::R2::HTML::Internal::CORE_RULES, \%rule_descriptor;
+    push @{$Marpa::R2::HTML::Internal::CORE_RULES}, \%rule_descriptor;
 } ## end for my $bnf_production ( split /\n/xms, $BNF )
 
 @Marpa::R2::HTML::Internal::CORE_TERMINALS =
@@ -762,7 +762,7 @@ $p->eof;
     $p          = undef;
     @raw_tokens = ();
 
-    my @rules     = @Marpa::R2::HTML::Internal::CORE_RULES;
+    my @rules     = @{$Marpa::R2::HTML::Internal::CORE_RULES};
     my @terminals = keys %terminals;
 
     my %pseudoclass_element_actions = ();
