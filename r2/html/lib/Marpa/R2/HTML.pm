@@ -984,7 +984,7 @@ $p->eof;
 		  or Carp::croak("Cannot print: $ERRNO");
 	  }
 
-	  my $virtual_token_to_add;
+	  my $virtual_terminal_to_add;
 
 	  FIND_VIRTUAL_TOKEN: {
 	      my $virtual_terminal;
@@ -1141,19 +1141,13 @@ $p->eof;
 
 	      } ## end CHECK_FOR_INFINITE_LOOP:
 
-	      my $tdesc_list = $marpa_token->[1];
-	      my $first_tdesc_start_token =
-		  $tdesc_list->[0]
-		  ->[Marpa::R2::HTML::Internal::TDesc::START_TOKEN];
-	      $virtual_token_to_add = [
-		  $virtual_terminal, [ [ 'POINT', $first_tdesc_start_token ] ]
-	      ];
+	      $virtual_terminal_to_add = $virtual_terminal;
 
 	  } ## end FIND_VIRTUAL_TOKEN:
 
-	  if ( defined $virtual_token_to_add ) {
+	  if ( defined $virtual_terminal_to_add ) {
 	      my $marpa_symbol_id =
-		  $grammar->thin_symbol( $virtual_token_to_add->[0] );
+		  $grammar->thin_symbol( $virtual_terminal_to_add );
 	      $recce->ruby_slippers_set(0);
 	      $recce->alternative( $marpa_symbol_id, RUBY_SLIPPERS_TOKEN, 1 );
 	      $recce->ruby_slippers_set(1);
@@ -1161,7 +1155,7 @@ $p->eof;
 	      $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
 		  $latest_html_token;
 	      next RECCE_RESPONSE;
-	  } ## end if ( defined $virtual_token_to_add )
+	  } ## end if ( defined $virtual_terminal_to_add )
 
 	  # If we didn't find a token to add, add the
 	  # current physical token as CRUFT.
