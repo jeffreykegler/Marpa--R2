@@ -37,10 +37,10 @@ my %configure_requires =
     qw( Module::Build );
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( Scalar::Util List::Util Carp Data::Dumper );
+    qw( Scalar::Util List::Util HTML::Entities HTML::Parser Carp Data::Dumper );
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( PPI HTML::Entities HTML::Parser );
+    qw( PPI );
 
 my %pod_files = ();
 {
