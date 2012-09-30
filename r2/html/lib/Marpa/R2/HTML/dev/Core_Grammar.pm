@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Fri Sep 28 22:14:34 2012
+# The date of generation was Sun Sep 30 16:06:59 2012
 
 package Marpa::R2::HTML::Internal;
 $CORE_RULES = [
@@ -172,7 +172,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_body',
-                             'flow',
+                             'mixed_flow',
                              'E_body'
                            ],
                   'lhs' => 'ELE_body',
@@ -208,7 +208,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_td',
-                             'flow',
+                             'mixed_flow',
                              'E_td'
                            ],
                   'lhs' => 'ELE_td',
@@ -217,69 +217,69 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'flow_item'
+                             'mixed_flow_item'
                            ],
-                  'lhs' => 'flow'
+                  'lhs' => 'mixed_flow'
                 },
                 {
                   'rhs' => [
                              'cruft'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'SGML_item'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'ELE_table'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'list_item_element'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'header_element'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'block_element'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'inline_element'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'whitespace'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'cdata'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
                              'pcdata'
                            ],
-                  'lhs' => 'flow_item'
+                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [

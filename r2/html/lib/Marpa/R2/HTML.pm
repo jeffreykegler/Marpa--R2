@@ -646,7 +646,7 @@ $p->eof;
     ELEMENT: for ( keys %tags ) {
         my $start_tag    = "S_$_";
         my $end_tag      = "E_$_";
-        my $contents     = $Marpa::R2::HTML::Internal::CONTENTS{$_} // 'flow';
+        my $contents     = $Marpa::R2::HTML::Internal::CONTENTS{$_} // 'mixed_flow';
         my $element_type = $Marpa::R2::HTML::Internal::ELEMENT_TYPE{$_}
             // 'inline_element';
 
